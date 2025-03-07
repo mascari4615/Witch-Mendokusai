@@ -1,0 +1,47 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbb281ee3bf0b054c82ac2347e9e782c, type: 3}
+  m_Name: Dungeon
+  m_EditorClassIdentifier: 
+  m_GroupName: Dungeon
+  m_GUID: 33f969f625e23334da0b37d5870f03b9
+  m_SerializeEntries:
+  - m_GUID: 18b8fc0dced87474a9c8e0e1e099a551
+    m_Address: Dungeon/0
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Dungeon
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 6fcb13fa06ab37e4399c866b682eaeaa
+    m_Address: Dungeon/1
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Dungeon
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 78fff8d602f415043ab8f466568758a3
+    m_Address: Dungeon/3
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Dungeon
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: a7ea31bc4fee37f4f83d162660b74062
+    m_Address: Dungeon/2
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Dungeon
+    FlaggedDuringContentUpdateRestriction: 0
+  m_ReadOnly: 0
+  m_Settings: {fileID: 11400000, guid: 5a4d7636943b8d645af161ef05df63d6, type: 2}
+  m_SchemaSet:
+    m_Schemas:
+    - {fileID: 11400000, guid: 6364a7fc1581509468402a83287ebb41, type: 2}
+    - {fileID: 11400000, guid: bcc39990c2b6980419cfe9d94330d823, type: 2}

@@ -1,0 +1,53 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbb281ee3bf0b054c82ac2347e9e782c, type: 3}
+  m_Name: WorldStage
+  m_EditorClassIdentifier: 
+  m_GroupName: WorldStage
+  m_GUID: 71e45a9f2fadf5548a0ea18fffc1fcdb
+  m_SerializeEntries:
+  - m_GUID: 2c2aefb624d3d0d43a05b0c0f01540be
+    m_Address: WorldStage/4
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - WorldStage
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 35207414aebbd0c4dbfb6881f0cfc110
+    m_Address: WorldStage/3
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - WorldStage
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 88a2d6c7973db064f8db83807e1d8d51
+    m_Address: WorldStage/2
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - WorldStage
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 9be0868af3c253b4d8d59d7a55a26dcc
+    m_Address: WorldStage/0
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - WorldStage
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: a9e3b44cff83bad47852b0e937ec9340
+    m_Address: WorldStage/1
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - WorldStage
+    FlaggedDuringContentUpdateRestriction: 0
+  m_ReadOnly: 0
+  m_Settings: {fileID: 11400000, guid: 5a4d7636943b8d645af161ef05df63d6, type: 2}
+  m_SchemaSet:
+    m_Schemas:
+    - {fileID: 11400000, guid: 0a1c6f4c1b1dfe2418b2bbba3bdc6f24, type: 2}
+    - {fileID: 11400000, guid: 9b23d747c8cee314ea0ba673a2a93313, type: 2}

@@ -6,13 +6,13 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/_Mascari4615/_Main/Scenes/Lobby.unity
+    path: Assets/_WitchMendokusai/Scenes/Lobby.unity
     guid: 233c17047fd82fd4c97bc2911201b317
   - enabled: 1
-    path: Assets/_Mascari4615/_Main/Scenes/World/World.unity
+    path: Assets/_WitchMendokusai/Scenes/World/World.unity
     guid: 2cda990e2423bbf4892e6590ba056729
   - enabled: 1
-    path: Assets/_Mascari4615/_Main/Scenes/Loading.unity
+    path: Assets/_WitchMendokusai/Scenes/Loading.unity
     guid: 5a8964239f703bc4c8c41c8e92655960
   m_configObjects:
     com.unity.addressableassets: {fileID: 11400000, guid: 58cd2970b1c6dbf42bccad18575e7241, type: 2}

@@ -1,0 +1,89 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbb281ee3bf0b054c82ac2347e9e782c, type: 3}
+  m_Name: MonsterWave
+  m_EditorClassIdentifier: 
+  m_GroupName: MonsterWave
+  m_GUID: fbce69ca0c82dda409d081ad8271e748
+  m_SerializeEntries:
+  - m_GUID: 09425564d1300264087b40f6d347818f
+    m_Address: MonsterWave/1
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - MonsterWave
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 1600d2bbc7d88ee499aad3550048e1c5
+    m_Address: MonsterWave/7
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - MonsterWave
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 25b1e8d42f1037b41a0d1830e952d19b
+    m_Address: MonsterWave/8
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - MonsterWave
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 3997de93a50dc744199e19ea8f527153
+    m_Address: MonsterWave/3
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - MonsterWave
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 57fb192422c85dc4fab31337d1c9f555
+    m_Address: MonsterWave/10
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - MonsterWave
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 63bee33dc5472fb4485fb9be293c89a7
+    m_Address: MonsterWave/9
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - MonsterWave
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 74eb582074283654084b6d044ff07556
+    m_Address: MonsterWave/0
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - MonsterWave
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: ba6c08cee7441184caa1fd1b8b7c3630
+    m_Address: MonsterWave/2
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - MonsterWave
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: c2d46081936fe944aaaff8b310cbaf8b
+    m_Address: MonsterWave/5
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - MonsterWave
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: d696638de33b26b48a2720da5c88b950
+    m_Address: MonsterWave/6
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - MonsterWave
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: f27b0467bd139e64289d5302e1a5842f
+    m_Address: MonsterWave/4
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - MonsterWave
+    FlaggedDuringContentUpdateRestriction: 0
+  m_ReadOnly: 0
+  m_Settings: {fileID: 11400000, guid: 5a4d7636943b8d645af161ef05df63d6, type: 2}
+  m_SchemaSet:
+    m_Schemas:
+    - {fileID: 11400000, guid: ef71caa009ee5f0488d3ebfa3c15c0e2, type: 2}
+    - {fileID: 11400000, guid: b0f1f00a252e7b5498cf5cec6297697a, type: 2}

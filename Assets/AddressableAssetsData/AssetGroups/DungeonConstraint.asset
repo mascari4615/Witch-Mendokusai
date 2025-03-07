@@ -1,0 +1,41 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbb281ee3bf0b054c82ac2347e9e782c, type: 3}
+  m_Name: DungeonConstraint
+  m_EditorClassIdentifier: 
+  m_GroupName: DungeonConstraint
+  m_GUID: 8e7353d132d52e64e8e24951a43c515b
+  m_SerializeEntries:
+  - m_GUID: 2d63efb33b5a0ef45b4d6d2077774871
+    m_Address: DungeonConstraint/2
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - DungeonConstraint
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: c5df60f552d80b54786d60d96c339214
+    m_Address: DungeonConstraint/0
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - DungeonConstraint
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: fc549d676aeac8044bf686b52196e891
+    m_Address: DungeonConstraint/1
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - DungeonConstraint
+    FlaggedDuringContentUpdateRestriction: 0
+  m_ReadOnly: 0
+  m_Settings: {fileID: 11400000, guid: 5a4d7636943b8d645af161ef05df63d6, type: 2}
+  m_SchemaSet:
+    m_Schemas:
+    - {fileID: 11400000, guid: 5cd852fa008bd4f4c962256e3ab07534, type: 2}
+    - {fileID: 11400000, guid: 221292d692358f2459eeb95b9b969de9, type: 2}
