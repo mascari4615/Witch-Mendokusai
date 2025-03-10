@@ -174,7 +174,7 @@ GameObject:
   - component: {fileID: 1671753715676980261}
   - component: {fileID: 2061713302530184289}
   m_Layer: 0
-  m_Name: GridManager
+  m_Name: BuildManager
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

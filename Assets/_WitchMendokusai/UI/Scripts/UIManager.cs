@@ -7,6 +7,7 @@ namespace WitchMendokusai
 	{
 		None,
 		Dungeon,
+		Build
 	}
 
 	public enum MPanelType
@@ -36,6 +37,7 @@ namespace WitchMendokusai
 		private UIDungeon dungeon;
 		private UIDungeonResult dungeonResult;
 		public UINPC Npc { get; private set; }
+		private UIBuild build;
 
 		public UITransition Transition { get; private set; }
 		private UIStagePopup stagePopup;
@@ -55,8 +57,10 @@ namespace WitchMendokusai
 			dungeonResult = FindFirstObjectByType<UIDungeonResult>(FindObjectsInactive.Include);
 			Npc = FindFirstObjectByType<UINPC>(FindObjectsInactive.Include); ;
 			Map = FindFirstObjectByType<UIMap>(FindObjectsInactive.Include);
+			build = FindFirstObjectByType<UIBuild>(FindObjectsInactive.Include);
 
 			canvasUIs[MCanvasType.Dungeon] = FindFirstObjectByType<UIDungeon>(FindObjectsInactive.Include);
+			canvasUIs[MCanvasType.Build] = build;
 
 			overlayUIs[MPanelType.Tab] = tab;
 			overlayUIs[MPanelType.Setting] = setting;

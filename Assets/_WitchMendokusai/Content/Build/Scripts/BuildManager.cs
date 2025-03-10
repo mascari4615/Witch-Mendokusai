@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace WitchMendokusai
 {
-	public class GridManager : MonoBehaviour
+	public class BuildManager : MonoBehaviour
 	{
 		private const string MarkerEnabled = "ENABLED";
 		private const string MarkerResetTrigger = "RESET";
@@ -18,6 +18,7 @@ namespace WitchMendokusai
 
 		private Vector3 targetCellPos;
 		private readonly GridData gridData = new();
+		private bool isBuilding = false;
 
 		private void Start()
 		{
@@ -27,6 +28,9 @@ namespace WitchMendokusai
 		[ContextMenu(nameof(StartBuilding))]
 		public void StartBuilding()
 		{
+			isBuilding = true;
+			UIManager.Instance.SetCanvas(MCanvasType.Build);
+
 			InputManager.RegisterMouseEvent(InputMouseEventType.Button0Down, () => ClickCell());
 			gridVisualization.SetActive(true);
 			marker.SetBool(MarkerEnabled, true);
@@ -35,6 +39,9 @@ namespace WitchMendokusai
 		[ContextMenu(nameof(StopBuilding))]
 		public void StopBuilding()
 		{
+			isBuilding = false;
+			UIManager.Instance.SetCanvas(MCanvasType.None);
+
 			InputManager.UnregisterMouseEvent(InputMouseEventType.Button0Down);
 			gridVisualization.SetActive(false);
 			marker.SetBool(MarkerEnabled, false);
@@ -42,6 +49,18 @@ namespace WitchMendokusai
 
 		private void Update()
 		{
+			// TODO: 임시 Build 키
+			if (Input.GetKeyDown(KeyCode.B))
+			{
+				if (isBuilding == true)
+					StopBuilding();
+				else
+					StartBuilding();
+			}
+
+			if (isBuilding == false)
+				return;
+
 			UpdateCellPos();
 
 			if (marker.transform.position != targetCellPos)

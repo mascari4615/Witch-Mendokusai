@@ -52,6 +52,7 @@ namespace WitchMendokusai
 		{
 			SOManager.Instance.DataSOs.Clear();
 
+			// TODO: MDataSOUtil에서 목록 가져오기
 			LoadAsset<QuestSO>(nameof(QuestSO));
 			LoadAsset<CardData>(nameof(CardData));
 			LoadAsset<ItemData>(nameof(ItemData));
@@ -67,6 +68,7 @@ namespace WitchMendokusai
 			LoadAsset<UnitStatData>(nameof(UnitStatData));
 			LoadAsset<GameStatData>(nameof(GameStatData));
 			LoadAsset<DungeonStatData>(nameof(DungeonStatData));
+			LoadAsset<Building>(nameof(Building));
 
 			void LoadAsset<T>(string label) where T : DataSO
 			{
