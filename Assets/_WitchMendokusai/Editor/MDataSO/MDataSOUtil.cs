@@ -101,80 +101,78 @@ namespace WitchMendokusai
 		}
 		public static bool SetAddressableAsset(DataSO dataSO, string path)
 		{
-			try
+			Type type = GetBaseType(dataSO);
+
+			// Addressable Asset Settings 가져오기
+			AddressableAssetSettings settings = AddressableAssetSettingsDefaultObject.Settings;
+			if (settings == null)
 			{
-				Type type = GetBaseType(dataSO);
+				Debug.LogError("Addressable Asset Settings not found");
+				return false;
+			}
 
-				// Addressable Asset Settings 가져오기
-				AddressableAssetSettings settings = AddressableAssetSettingsDefaultObject.Settings;
-				if (settings == null)
+			// 에셋의 GUID 가져오기
+			string guid = AssetDatabase.AssetPathToGUID(path);
+
+			// 이미 Addressable로 등록되어 있는지 확인
+			AddressableAssetEntry existingEntry = settings.FindAssetEntry(guid);
+			if (existingEntry != null)
+			{
+				// 이미 올바른 주소 형식을 가지고 있는지 확인
+				string expectedAddress = $"{type.Name}/{dataSO.ID}";
+				if (existingEntry.address == expectedAddress && existingEntry.labels.Contains(type.Name))
 				{
-					Debug.LogError("Addressable Asset Settings not found");
-					return false;
-				}
-
-				// 에셋의 GUID 가져오기
-				string guid = AssetDatabase.AssetPathToGUID(path);
-
-				// 이미 Addressable로 등록되어 있는지 확인
-				AddressableAssetEntry existingEntry = settings.FindAssetEntry(guid);
-				if (existingEntry != null)
-				{
-					// 이미 올바른 주소 형식을 가지고 있는지 확인
-					string expectedAddress = $"{type.Name}/{dataSO.ID}";
-					if (existingEntry.address == expectedAddress && existingEntry.labels.Contains(type.Name))
-					{
-						// 이미 올바르게 설정되어 있음
-						return true;
-					}
-
-					// 주소나 라벨이 다르면 업데이트
-					existingEntry.address = expectedAddress;
-					if (!existingEntry.labels.Contains(type.Name))
-						existingEntry.labels.Add(type.Name);
-
-					settings.SetDirty(AddressableAssetSettings.ModificationEvent.EntryModified, existingEntry, true);
+					// 이미 올바르게 설정되어 있음
 					return true;
 				}
 
-				// 그룹 이름 (데이터 타입에 따라 다른 그룹 설정)
-				string groupName = $"{type.Name}";
+				// 주소나 라벨이 다르면 업데이트
+				existingEntry.address = expectedAddress;
+				if (!existingEntry.labels.Contains(type.Name))
+					existingEntry.labels.Add(type.Name);
 
-				// 그룹 캐싱 (성능 향상을 위해 정적 딕셔너리 사용)
-				if (!addressableGroups.TryGetValue(groupName, out AddressableAssetGroup group))
-				{
-					group = settings.FindGroup(groupName);
-					if (group == null)
-					{
-						group = settings.CreateGroup(groupName, false, false, true,
-							new List<AddressableAssetGroupSchema>
-							{
-						settings.DefaultGroup.GetSchema<ContentUpdateGroupSchema>(),
-						settings.DefaultGroup.GetSchema<BundledAssetGroupSchema>()
-							});
-					}
-					addressableGroups[groupName] = group;
-				}
-
-				// Addressable 에셋으로 등록
-				AddressableAssetEntry entry = settings.CreateOrMoveEntry(guid, group);
-
-				// 주소 설정 - 타입/ID 형식
-				entry.address = $"{type.Name}/{dataSO.ID}";
-
-				// 레이블 추가
-				entry.labels.Add(type.Name);
-
-				// Addressable 설정 저장
-				settings.SetDirty(AddressableAssetSettings.ModificationEvent.EntryMoved, entry, true);
-
+				settings.SetDirty(AddressableAssetSettings.ModificationEvent.EntryModified, existingEntry, true);
 				return true;
 			}
-			catch (Exception ex)
+
+			// 그룹 이름 (데이터 타입에 따라 다른 그룹 설정)
+			string groupName = $"{type.Name}";
+
+			// 그룹 캐싱 (성능 향상을 위해 정적 딕셔너리 사용)
+			if (!addressableGroups.TryGetValue(groupName, out AddressableAssetGroup group))
 			{
-				Debug.LogError($"Error setting addressable asset: {ex.Message}");
+				group = settings.FindGroup(groupName);
+				if (group == null)
+				{
+					group = settings.CreateGroup(groupName, false, false, true,
+						new List<AddressableAssetGroupSchema>
+						{
+					settings.DefaultGroup.GetSchema<ContentUpdateGroupSchema>(),
+					settings.DefaultGroup.GetSchema<BundledAssetGroupSchema>()
+						});
+				}
+				addressableGroups[groupName] = group;
+			}
+
+			// Addressable 에셋으로 등록
+			AddressableAssetEntry entry = settings.CreateOrMoveEntry(guid, group);
+
+			if (entry == null)
+			{
+				Debug.LogError($"Failed to create Addressable entry for {dataSO.name}");
 				return false;
 			}
+
+			// 주소 설정 - 타입/ID 형식
+			entry.address = $"{type.Name}/{dataSO.ID}";
+
+			// 레이블 추가
+			entry.labels.Add(type.Name);
+
+			// Addressable 설정 저장
+			settings.SetDirty(AddressableAssetSettings.ModificationEvent.EntryMoved, entry, true);
+
+			return true;
 		}
 	}
 }
