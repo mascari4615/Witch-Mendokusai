@@ -49,7 +49,7 @@ namespace WitchMendokusai
 					{
 						case IntCriteria intCriteria:
 							// HACK, TODO: Refactor
-							criteriaSprite = SOManager.Instance.VQExp.Sprite;
+							criteriaSprite = GetGameStatData((int)GameStatType.VILLAGE_QUEST_EXP).Sprite;
 							criteriaName = intCriteria.IntVariable.Name;
 							break;
 						case ItemCountCriteria itemCountCriteria:
@@ -58,12 +58,12 @@ namespace WitchMendokusai
 							break;
 						case StatCriteria statCriteria:
 							// HACK
-							criteriaSprite = SOManager.Instance.VQExp.Sprite;
+							criteriaSprite = GetGameStatData((int)GameStatType.VILLAGE_QUEST_EXP).Sprite;
 							criteriaName = statCriteria.Type.ToString();
 							break;
 						case GameStatCriteria gameStatCriteria:
 							// HACK
-							criteriaSprite = SOManager.Instance.VQExp.Sprite;
+							criteriaSprite = GetGameStatData((int)GameStatType.VILLAGE_QUEST_EXP).Sprite;
 							criteriaName = gameStatCriteria.Type.ToString();
 							break;
 					}

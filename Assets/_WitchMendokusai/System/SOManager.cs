@@ -44,8 +44,6 @@ namespace WitchMendokusai
 		[field: SerializeField] public FloatVariable DashSpeed { get; private set; }
 
 		[field: SerializeField] public MonsterObjectVariable LastHitMonsterObject { get; private set; }
-		[field: SerializeField] public IntVariable Nyang { get; private set; }
-		[field: SerializeField] public IntVariable VQExp { get; private set; }
 		[field: SerializeField] public ItemVariable LastEquipedItem { get; private set; }
 
 		[field: Space(10), Header("Buffer")]

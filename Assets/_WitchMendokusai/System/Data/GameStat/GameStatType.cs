@@ -7,5 +7,11 @@ namespace WitchMendokusai
 
 		TOTAL_DUNGEON_CLEAR = 99,
 		TOTAL_DUNGEON_TIME = 100,
+
+		NYANG = 1000,
+		MANA = 1100,
+
+		VILLAGE_QUEST_EXP = 2000,
+		VILLAGE_QUEST_LEVEL = 2001,
 	}
 }

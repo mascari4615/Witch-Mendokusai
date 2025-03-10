@@ -21,7 +21,6 @@ namespace WitchMendokusai
 			{
 				curDollIndex = 0,
 				dummyDollCount = 1,
-				nyang = 100,
 				inventoryItems = new(),
 				dolls = new(),
 				works = new()
@@ -36,8 +35,6 @@ namespace WitchMendokusai
 				gameStats = new(),
 				dungeons = new()
 			};
-
-			SOManager.Instance.Nyang.RuntimeValue = newGameData.nyang;
 
 			// 인형, 인형 아이템(장비) 초기화
 			{
@@ -60,7 +57,7 @@ namespace WitchMendokusai
 						Exp = 0,
 						EquipmentGuids = new()
 					};
-				
+
 					foreach (EquipmentData equipmentData in doll.DefaultEquipments)
 					{
 						inventory.Add(equipmentData);
@@ -93,6 +90,7 @@ namespace WitchMendokusai
 
 			// 통계 초기화
 			DataManager.GameStat.InitAllZero();
+			DataManager.GameStat[GameStatType.NYANG] = 1000;
 
 			SaveData();
 			LoadLocalData();
@@ -120,7 +118,6 @@ namespace WitchMendokusai
 		{
 			DataManager.CurDollID = saveData.curDollIndex;
 			DataManager.DummyDollCount = saveData.dummyDollCount;
-			SOManager.Nyang.RuntimeValue = saveData.nyang;
 
 			// 통계 초기화
 			DataManager.GameStat.Load(saveData.gameStats);
@@ -171,7 +168,6 @@ namespace WitchMendokusai
 			{
 				curDollIndex = DataManager.CurDollID,
 				dummyDollCount = DataManager.DummyDollCount,
-				nyang = SOManager.Nyang.RuntimeValue,
 				inventoryItems = SOManager.ItemInventory.Save(),
 				dolls = new(),
 				works = DataManager.WorkManager.Works,

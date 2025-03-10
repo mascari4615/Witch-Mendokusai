@@ -16,7 +16,7 @@ namespace WitchMendokusai
 		private void Start()
 		{
 			text.text = "0냥";
-			SOManager.Instance.Nyang.OnValueChanged += UpdateNyang;
+			DataManager.Instance.GameStat.AddListener(GameStatType.NYANG, UpdateNyang);
 			UpdateNyang();
 		}
 
@@ -29,7 +29,7 @@ namespace WitchMendokusai
 
 		private IEnumerator UpdateGoldCoroutine()
 		{
-			int targetValue = SOManager.Instance.Nyang.RuntimeValue;
+			int targetValue = DataManager.Instance.GameStat[GameStatType.NYANG];
 			while (curValue != targetValue)
 			{
 				curValue = (int)Mathf.Ceil(Mathf.SmoothStep(curValue, targetValue, .5f));

@@ -181,9 +181,9 @@ namespace WitchMendokusai
 
 				// Check Nyang
 				int recipePrice = recipe.priceNyang;
-				if (recipePrice > SOManager.Instance.Nyang.RuntimeValue)
+				if (recipePrice > DataManager.Instance.GameStat[GameStatType.NYANG])
 				{
-					int diff = recipePrice - SOManager.Instance.Nyang.RuntimeValue;
+					int diff = recipePrice - DataManager.Instance.GameStat[GameStatType.NYANG];
 					UIManager.Instance.PopText($"제작에 필요한 냥이 부족합니다. ({diff}냥)", TextType.Warning);
 				}
 
@@ -213,7 +213,7 @@ namespace WitchMendokusai
 					}
 				}
 
-				SOManager.Instance.Nyang.RuntimeValue -= recipePrice;
+				DataManager.Instance.GameStat[GameStatType.NYANG] -= recipePrice;
 				UIManager.Instance.PopText($"- {recipePrice}", TextType.Warning);
 
 				// 2. Craft
@@ -244,9 +244,9 @@ namespace WitchMendokusai
 
 				// Check Nyang
 				int recipePrice = recipe.priceNyang;
-				if (recipePrice > SOManager.Instance.Nyang.RuntimeValue)
+				if (recipePrice > DataManager.Instance.GameStat[GameStatType.NYANG])
 				{
-					int diff = recipePrice - SOManager.Instance.Nyang.RuntimeValue;
+					int diff = recipePrice - DataManager.Instance.GameStat[GameStatType.NYANG];
 					UIManager.Instance.PopText($"제작에 필요한 냥이 부족합니다. ({diff}냥)", TextType.Warning);
 				}
 
@@ -273,7 +273,7 @@ namespace WitchMendokusai
 					}
 				}
 
-				SOManager.Instance.Nyang.RuntimeValue -= recipePrice;
+				DataManager.Instance.GameStat[GameStatType.NYANG] -= recipePrice;
 				UIManager.Instance.PopText($"- {recipePrice}", TextType.Warning);
 
 				// 2. Craft

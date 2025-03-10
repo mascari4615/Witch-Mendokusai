@@ -65,9 +65,9 @@ namespace WitchMendokusai
 		public void BuyItem(int itemID)
 		{
 			ItemData itemData = GetItemData(itemID);
-			if (itemData.PurchasePrice <= SOManager.Instance.Nyang.RuntimeValue)
+			if (itemData.PurchasePrice <= DataManager.Instance.GameStat[GameStatType.NYANG])
 			{
-				SOManager.Instance.Nyang.RuntimeValue -= itemData.PurchasePrice;
+				DataManager.Instance.GameStat[GameStatType.NYANG] -= itemData.PurchasePrice;
 				SOManager.Instance.ItemInventory.Add(itemData);
 				UpdateUI();
 
@@ -85,7 +85,7 @@ namespace WitchMendokusai
 			if (item != null)
 			{
 				ItemData itemData = item.Data;
-				SOManager.Instance.Nyang.RuntimeValue += itemData.SalePrice;
+				DataManager.Instance.GameStat[GameStatType.NYANG] += itemData.SalePrice;
 				SOManager.Instance.ItemInventory.Remove(slotIndex);
 				UpdateUI();
 

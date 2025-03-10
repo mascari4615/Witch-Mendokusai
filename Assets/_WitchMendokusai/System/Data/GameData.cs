@@ -9,7 +9,6 @@ namespace WitchMendokusai
 	{
 		public int curDollIndex = 0;
 		public int dummyDollCount = 1;
-		public int nyang = 100;
 
 		public List<InventorySlotSaveData> inventoryItems = new();
 		public List<DollSaveData> dolls = new();

@@ -21,10 +21,10 @@ namespace WitchMendokusai
 					SOManager.Instance.ItemInventory.Add(itemData, reward.Amount);
 					break;
 				case RewardType.Gold:
-					SOManager.Instance.Nyang.RuntimeValue += reward.Amount;
+					DataManager.Instance.GameStat[GameStatType.NYANG] += reward.Amount;
 					break;
 				case RewardType.Exp:
-					SOManager.Instance.VQExp.RuntimeValue += reward.Amount;
+					DataManager.Instance.GameStat[GameStatType.VILLAGE_QUEST_EXP] += reward.Amount;
 					break;
 			}
 		}
@@ -44,10 +44,10 @@ namespace WitchMendokusai
 					SOManager.Instance.ItemInventory.Add(itemData, reward.Amount);
 					break;
 				case RewardType.Gold:
-					SOManager.Instance.Nyang.RuntimeValue += reward.Amount;
+					DataManager.Instance.GameStat[GameStatType.NYANG] += reward.Amount;
 					break;
 				case RewardType.Exp:
-					SOManager.Instance.VQExp.RuntimeValue += reward.Amount;
+					DataManager.Instance.GameStat[GameStatType.VILLAGE_QUEST_EXP] += reward.Amount;
 					break;
 			}
 		}

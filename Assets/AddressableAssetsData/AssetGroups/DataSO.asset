@@ -75,12 +75,6 @@ MonoBehaviour:
     m_SerializedLabels:
     - DataSO
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 714fbe6124e7b924287a4483e7c27394
-    m_Address: DataSO/0
-    m_ReadOnly: 0
-    m_SerializedLabels:
-    - DataSO
-    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 77573cf858661314bb9ae5155e68cc11
     m_Address: DataSO/0
     m_ReadOnly: 0
@@ -88,12 +82,6 @@ MonoBehaviour:
     - DataSO
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 7e722dc07ec340d479558ceb2eec1f67
-    m_Address: DataSO/0
-    m_ReadOnly: 0
-    m_SerializedLabels:
-    - DataSO
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 9019d3cd648bf3543b8819b272e86e5f
     m_Address: DataSO/0
     m_ReadOnly: 0
     m_SerializedLabels:
