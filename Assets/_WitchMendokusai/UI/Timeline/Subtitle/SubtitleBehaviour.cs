@@ -14,7 +14,7 @@ namespace WitchMendokusai
 #if UNITY_EDITOR
 			TextMeshProUGUI text = Object.FindFirstObjectByType<UIManager>().CutSceneModule.Subtitle;
 #else
-        TextMeshProUGUI text = UIManager.Instance.CutSceneModule.Subtitle;
+			TextMeshProUGUI text = UIManager.Instance.CutSceneModule.Subtitle;
 #endif
 
 			text.text = subtitleText;

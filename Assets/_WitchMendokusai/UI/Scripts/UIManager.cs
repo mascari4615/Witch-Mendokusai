@@ -26,9 +26,9 @@ namespace WitchMendokusai
 		public MPanelType CurOverlay { get; private set; }
 		private readonly Dictionary<MPanelType, UIPanel> overlayUIs = new();
 
-		public UITab tab;
-		public CutSceneModule CutSceneModule { get; private set; }
-		public UISetting setting;
+		private UITab tab;
+		[field: SerializeField] public CutSceneModule CutSceneModule { get; private set; }
+		private UISetting setting;
 		private UIFloatingText damage;
 		private UIPopup popup;
 		public UIChat Chat { get; private set; }
@@ -47,13 +47,13 @@ namespace WitchMendokusai
 
 			tab = FindFirstObjectByType<UITab>(FindObjectsInactive.Include);
 			CutSceneModule = FindFirstObjectByType<CutSceneModule>(FindObjectsInactive.Include);
-			damage = FindFirstObjectByType<UIFloatingText>(FindObjectsInactive.Include);;
+			damage = FindFirstObjectByType<UIFloatingText>(FindObjectsInactive.Include); ;
 			popup = FindFirstObjectByType<UIPopup>(FindObjectsInactive.Include);
 			setting = FindFirstObjectByType<UISetting>(FindObjectsInactive.Include);
 			Chat = FindFirstObjectByType<UIChat>(FindObjectsInactive.Include);
 			dungeon = FindFirstObjectByType<UIDungeon>(FindObjectsInactive.Include);
 			dungeonResult = FindFirstObjectByType<UIDungeonResult>(FindObjectsInactive.Include);
-			Npc = FindFirstObjectByType<UINPC>(FindObjectsInactive.Include);;
+			Npc = FindFirstObjectByType<UINPC>(FindObjectsInactive.Include); ;
 			Map = FindFirstObjectByType<UIMap>(FindObjectsInactive.Include);
 
 			canvasUIs[MCanvasType.Dungeon] = FindFirstObjectByType<UIDungeon>(FindObjectsInactive.Include);
