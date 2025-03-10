@@ -161,7 +161,7 @@ namespace WitchMendokusai
 					new EffectInfo()
 					{
 						Type = EffectType.DungeonStat,
-						Data = GetDungeonStatData((int)DungeonStatType.DUNGEON_CLEAR),
+						Data = GetDungeonStatData(DungeonStatType.DUNGEON_CLEAR),
 						ArithmeticOperator = ArithmeticOperator.Add,
 						Value = 1,
 					}
@@ -188,7 +188,7 @@ namespace WitchMendokusai
 						new CriteriaInfo()
 						{
 							Type = CriteriaType.DungeonStat,
-							Data = GetDungeonStatData((int)DungeonStatType.DUNGEON_TIME),
+							Data = GetDungeonStatData(DungeonStatType.DUNGEON_TIME),
 							ComparisonOperator = ComparisonOperator.GreaterThanOrEqualTo,
 							Value = (int)Context.InitialDungeonTime.TotalSeconds,
 							JustOnce = true,
@@ -205,7 +205,7 @@ namespace WitchMendokusai
 						new CriteriaInfo()
 						{
 							Type = CriteriaType.DungeonStat,
-							Data = GetDungeonStatData((int)DungeonStatType.MONSTER_KILL),
+							Data = GetDungeonStatData(DungeonStatType.MONSTER_KILL),
 							ComparisonOperator = ComparisonOperator.GreaterThanOrEqualTo,
 							Value = CurDungeon.ClearValue,
 							JustOnce = true,
@@ -219,7 +219,7 @@ namespace WitchMendokusai
 						new CriteriaInfo()
 						{
 							Type = CriteriaType.DungeonStat,
-							Data = GetDungeonStatData((int)DungeonStatType.BOSS_KILL),
+							Data = GetDungeonStatData(DungeonStatType.BOSS_KILL),
 							ComparisonOperator = ComparisonOperator.GreaterThanOrEqualTo,
 							Value = CurDungeon.ClearValue,
 							JustOnce = true,

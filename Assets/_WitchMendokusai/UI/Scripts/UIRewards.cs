@@ -51,10 +51,10 @@ namespace WitchMendokusai
 							slots[i].SetSlot(itemData);
 							break;
 						case RewardType.Gold:
-							slots[i].SetSlot(GetGameStatData((int)GameStatType.NYANG), datas[i].Amount);
+							slots[i].SetSlot(GetGameStatData(GameStatType.NYANG), datas[i].Amount);
 							break;
 						case RewardType.Exp:
-							slots[i].SetSlot(GetGameStatData((int)GameStatType.VILLAGE_QUEST_EXP), datas[i].Amount);
+							slots[i].SetSlot(GetGameStatData(GameStatType.VILLAGE_QUEST_EXP), datas[i].Amount);
 							break;
 					}
 				}

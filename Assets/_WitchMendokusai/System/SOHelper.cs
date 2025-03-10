@@ -13,8 +13,11 @@ namespace WitchMendokusai
 		public static DungeonConstraint GetDungeonConstraint(int id) => Get<DungeonConstraint>(id);
 		public static Dungeon GetDungeon(int id) => Get<Dungeon>(id);
 		public static NPC GetNPC(int id) => Get<NPC>(id);
+		public static UnitStatData GetUnitStatData(UnitStatType unitStatType) => Get<UnitStatData>((int)unitStatType);
 		public static UnitStatData GetUnitStatData(int id) => Get<UnitStatData>(id);
+		public static GameStatData GetGameStatData(GameStatType gameStatType) => Get<GameStatData>((int)gameStatType);
 		public static GameStatData GetGameStatData(int id) => Get<GameStatData>(id);
+		public static DungeonStatData GetDungeonStatData(DungeonStatType dungeonStatType) => Get<DungeonStatData>((int)dungeonStatType);
 		public static DungeonStatData GetDungeonStatData(int id) => Get<DungeonStatData>(id);
 		public static CardData GetCardData(int id) => Get<CardData>(id);
 
