@@ -81,7 +81,7 @@ namespace WitchMendokusai
 				if (mouseInputEvents.TryGetValue(key, out Action mouseInputEvent))
 				{
 					if (action.Invoke())
-						mouseInputEvent.Invoke();
+						mouseInputEvent?.Invoke();
 				}
 			}
 
