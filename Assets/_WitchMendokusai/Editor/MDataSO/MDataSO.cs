@@ -254,8 +254,7 @@ namespace WitchMendokusai
 					nID++;
 			}
 
-			if (nName == null)
-				nName = $"New_{type.Name}";
+			nName ??= $"New_{type.Name}";
 
 			string assetName = ConvertToGoodName($"{AssetPrefixes[type]}_{nID}_{nName}");
 			string path = AssetDatabase.GenerateUniqueAssetPath($"{assetPath}{assetName}.asset");
@@ -275,9 +274,9 @@ namespace WitchMendokusai
 
 			dic.Add(nID, newDataSO);
 
-			if (isInit)
+			if (isInit == true)
 			{
-				UpdateGrid();
+				SetType(type);
 				SelectDataSOSlot(DataSOSlots[nID]);
 			}
 
@@ -481,12 +480,10 @@ namespace WitchMendokusai
 				else
 				{
 					Debug.Log($"Data를 추가합니다.");
-					Type type = typeof(TData);
 					int nID = Convert.ToInt32(enumValue);
 					string nName = Enum.GetName(typeof(TEnum), enumValue);
 
-					//FIXME: 경로 수정
-					TData typedData = AddDataSO(type, nID, nName, BASE_DIR) as TData;
+					TData typedData = AddDataSO(typeof(TData), nID, nName, BASE_DIR) as TData;
 					PropertyInfo typeProperty = typeof(TData).GetProperty(PropertyName);
 					typeProperty.SetValue(typedData, nID);
 				}
