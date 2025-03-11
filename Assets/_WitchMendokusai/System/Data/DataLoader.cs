@@ -6,6 +6,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Collections;
 using UnityEngine.SceneManagement;
+using System;
+using System.Reflection;
 
 namespace WitchMendokusai
 {
@@ -22,60 +24,45 @@ namespace WitchMendokusai
 			gameObject.SetActive(true);
 			progressBar.fillAmount = 0f;
 
+			// 데이터 초기화
+			SOManager.Instance.DataSOs.Clear();
+
 			List<AsyncOperationHandle> handles = new();
 			LoadAssetsAsync(handles);
 
-			while (true)
+			while (!handles.All(handle => handle.IsDone))
 			{
-				float totalPercent = 0;
-				foreach (AsyncOperationHandle handle in handles)
-					totalPercent += handle.PercentComplete;
-				progressBar.fillAmount = totalPercent / handles.Count;
-
-				// Debug.Log($"Loading... {progressBar.fillAmount * 100}%");
-
-				if (handles.All(handle => handle.IsDone))
-					break;
+				float totalPercent = handles.Sum(handle => handle.PercentComplete) / handles.Count;
+				progressBar.fillAmount = totalPercent;
 
 				yield return null;
 			}
-			Debug.Log($"Loading... {progressBar.fillAmount * 100}%");
-
-			//foreach (var handle in handles)
-			//	Addressables.Release(handle);
 
 			progressBar.fillAmount = 1f;
+			yield return new WaitForSeconds(0.5f); // 완료된 상태 잠시 표시
 			gameObject.SetActive(false);
 		}
 
 		private void LoadAssetsAsync(List<AsyncOperationHandle> handles)
 		{
-			SOManager.Instance.DataSOs.Clear();
-
-			// TODO: MDataSOUtil에서 목록 가져오기
-			LoadAsset<QuestSO>(nameof(QuestSO));
-			LoadAsset<CardData>(nameof(CardData));
-			LoadAsset<ItemData>(nameof(ItemData));
-			LoadAsset<MonsterWave>(nameof(MonsterWave));
-			LoadAsset<SkillData>(nameof(SkillData));
-			LoadAsset<WorldStage>(nameof(WorldStage));
-			LoadAsset<Dungeon>(nameof(Dungeon));
-			LoadAsset<DungeonStage>(nameof(DungeonStage));
-			LoadAsset<DungeonConstraint>(nameof(DungeonConstraint));
-			LoadAsset<Doll>(nameof(Doll));
-			LoadAsset<NPC>(nameof(NPC));
-			LoadAsset<Monster>(nameof(Monster));
-			LoadAsset<UnitStatData>(nameof(UnitStatData));
-			LoadAsset<GameStatData>(nameof(GameStatData));
-			LoadAsset<DungeonStatData>(nameof(DungeonStatData));
-			LoadAsset<Building>(nameof(Building));
-
-			void LoadAsset<T>(string label) where T : DataSO
+			foreach (Type type in DataSODefine.AssetPrefixes.Keys)
 			{
-				var handle = Addressables.LoadAssetsAsync<T>(label, null);
-				handle.Completed += OnAssetsLoaded;
-				handles.Add(handle);
+				LoadAssetByType(type, handles);
 			}
+
+			void LoadAssetByType(Type type, List<AsyncOperationHandle> handles)
+			{
+				MethodInfo method = typeof(DataLoader).GetMethod(nameof(LoadAsset), BindingFlags.Instance | BindingFlags.NonPublic);
+				MethodInfo genericMethod = method.MakeGenericMethod(type);
+				genericMethod.Invoke(this, new object[] { type.Name, handles });
+			}
+		}
+
+		private void LoadAsset<T>(string label, List<AsyncOperationHandle> handles) where T : DataSO
+		{
+			var handle = Addressables.LoadAssetsAsync<T>(label, null);
+			handle.Completed += OnAssetsLoaded;
+			handles.Add(handle);
 		}
 
 		private void OnAssetsLoaded<T>(AsyncOperationHandle<IList<T>> obj) where T : DataSO
@@ -83,13 +70,17 @@ namespace WitchMendokusai
 			if (obj.Status == AsyncOperationStatus.Succeeded)
 			{
 				List<T> assets = obj.Result.ToList();
-				SOManager.Instance.DataSOs[typeof(T)] = new();
+				Type type = typeof(T);
+
+				if (SOManager.Instance.DataSOs.ContainsKey(type) == false)
+					SOManager.Instance.DataSOs[type] = new();
 
 				foreach (T asset in assets)
-				{
-					// Debug.Log($"Loaded {asset.name}");
-					SOManager.Instance.DataSOs[typeof(T)].Add(asset.ID, asset);
-				}
+					SOManager.Instance.DataSOs[type][asset.ID] = asset;
+			}
+			else
+			{
+				Debug.LogError($"{typeof(T).Name} 로드 실패: {obj.OperationException?.Message}");
 			}
 		}
 	}

@@ -15,7 +15,7 @@ MonoBehaviour:
   m_DefaultGroup: a53af4dac55a80241a2f18ecda29de75
   m_currentHash:
     serializedVersion: 2
-    Hash: 08df80c08f27e73b80a286b86c73612f
+    Hash: f288e708e1b538887ae9d418014baca1
   m_OptimizeCatalogSize: 0
   m_BuildRemoteCatalog: 1
   m_CatalogRequestsTimeout: 0
@@ -116,7 +116,25 @@ MonoBehaviour:
       m_InlineUsage: 0
     m_ProfileVersion: 1
   m_LabelTable:
-    m_LabelNames: []
+    m_LabelNames:
+    - NPC
+    - CardData
+    - UnitStatData
+    - GameStatData
+    - DungeonStatData
+    - DataSO
+    - Building
+    - Dungeon
+    - DungeonConstraint
+    - DungeonStage
+    - MonsterWave
+    - ItemData
+    - QuestSO
+    - WorldStage
+    - ObjectData
+    - Doll
+    - Monster
+    - SkillData
   m_SchemaTemplates: []
   m_GroupTemplateObjects:
   - {fileID: 11400000, guid: 154aea50e355b0e40bc5fc4462b64350, type: 2}

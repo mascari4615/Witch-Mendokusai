@@ -3,6 +3,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
 using static WitchMendokusai.MDataSOUtil;
+using static WitchMendokusai.DataSODefine;
 
 namespace WitchMendokusai
 {

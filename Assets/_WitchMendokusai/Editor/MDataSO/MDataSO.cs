@@ -9,6 +9,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UIElements;
 using static WitchMendokusai.MDataSOUtil;
+using static WitchMendokusai.DataSODefine;
 
 namespace WitchMendokusai
 {

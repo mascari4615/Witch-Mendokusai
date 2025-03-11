@@ -5,36 +5,12 @@ using UnityEditor.AddressableAssets;
 using UnityEditor.AddressableAssets.Settings;
 using UnityEditor.AddressableAssets.Settings.GroupSchemas;
 using UnityEngine;
+using static WitchMendokusai.DataSODefine;
 
 namespace WitchMendokusai
 {
 	public static class MDataSOUtil
 	{
-		public const string BASE_DIR = "Assets/_WitchMendokusai/";
-		public const string EDITOR_DIR = BASE_DIR + "Editor/";
-		public const int ID_MAX = 100_000_000;
-
-		public static readonly Dictionary<Type, string> AssetPrefixes = new()
-		{
-			{ typeof(QuestSO), "Q" },
-			{ typeof(CardData), "C" },
-			{ typeof(ItemData), "I" },
-			{ typeof(MonsterWave), "MW" },
-			{ typeof(ObjectData), "O"},
-			{ typeof(SkillData), "SKL" },
-			{ typeof(UnitStatData), "USD"},
-			{ typeof(GameStatData), "GSD"},
-			{ typeof(WorldStage), "WS" },
-			{ typeof(Dungeon), "D" },
-			{ typeof(DungeonStage), "DS" },
-			{ typeof(DungeonStatData), "DSD" },
-			{ typeof(DungeonConstraint), "DC" },
-			{ typeof(Doll), "DOL" },
-			{ typeof(NPC), "NPC" },
-			{ typeof(Monster), "MOB" },
-			{ typeof(Building), "B"}
-		};
-
 		public static Type GetBaseType(DataSO dataSO)
 		{
 			Type type = dataSO.GetType();
@@ -47,7 +23,7 @@ namespace WitchMendokusai
 		// 이 아래부터는 Copilot가 만들어준 코드.
 
 		// 그룹 캐싱을 위한 정적 딕셔너리
-		private static Dictionary<string, AddressableAssetGroup> addressableGroups = new Dictionary<string, AddressableAssetGroup>();
+		private static readonly Dictionary<string, AddressableAssetGroup> addressableGroups = new();
 
 		// 일괄 처리를 위한 메뉴 아이템 추가
 		[MenuItem("WitchMendokusai/Setup All Addressables")]
@@ -89,6 +65,8 @@ namespace WitchMendokusai
 						EditorUtility.DisplayProgressBar("Addressable 설정 중", $"{i + 1}/{guids.Length} 처리 중...", (float)i / guids.Length);
 					}
 
+					EditorUtility.SetDirty(settings);
+
 					EditorUtility.ClearProgressBar();
 					Debug.Log($"{count}개의 DataSO에 Addressable 설정을 적용했습니다.");
 				}
@@ -99,6 +77,7 @@ namespace WitchMendokusai
 				}
 			}
 		}
+
 		public static bool SetAddressableAsset(DataSO dataSO, string path)
 		{
 			Type type = GetBaseType(dataSO);
@@ -109,6 +88,13 @@ namespace WitchMendokusai
 			{
 				Debug.LogError("Addressable Asset Settings not found");
 				return false;
+			}
+
+			// settings에 라벨이 있는지 확인
+			if (settings.GetLabels().Find(label => label == type.Name) == null)
+			{
+				Debug.Log($"Add label: {type.Name}");
+				settings.AddLabel(type.Name);
 			}
 
 			// 에셋의 GUID 가져오기
@@ -147,8 +133,8 @@ namespace WitchMendokusai
 					group = settings.CreateGroup(groupName, false, false, true,
 						new List<AddressableAssetGroupSchema>
 						{
-					settings.DefaultGroup.GetSchema<ContentUpdateGroupSchema>(),
-					settings.DefaultGroup.GetSchema<BundledAssetGroupSchema>()
+							settings.DefaultGroup.GetSchema<ContentUpdateGroupSchema>(),
+							settings.DefaultGroup.GetSchema<BundledAssetGroupSchema>()
 						});
 				}
 				addressableGroups[groupName] = group;
