@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 1930597945545288848}
   - component: {fileID: -1739834880617541996}
   m_Layer: 0
-  m_Name: TempBlock
+  m_Name: BuildingObject
   m_TagString: Interactive
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
