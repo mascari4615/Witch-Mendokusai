@@ -50,4 +50,51 @@ namespace WitchMendokusai
 			return o;
 		}
 	}
+
+	public class ObjectPool<T> where T : Component
+	{
+		private readonly T prefab;
+		private readonly Stack<T> stack;
+
+		public ObjectPool(T prefab)
+		{
+			this.prefab = prefab;
+			stack = new();
+		}
+
+		public void CreateObject(int count = 1)
+		{
+			for (var i = 0; i < count; i++)
+			{
+				GameObject g = UnityEngine.Object.Instantiate(prefab.gameObject);
+				g.SetActive(false);
+				Push(g.GetComponent<T>());
+			}
+		}
+
+		public void Push(T targetObject)
+		{
+			if (targetObject.gameObject.activeSelf)
+				targetObject.gameObject.SetActive(false);
+
+			if (stack.Contains(targetObject))
+			{
+				// Debug.Log($"{targetObject.name}, 이미 스택에 존재합니다");
+				return;
+			}
+
+			stack.Push(targetObject);
+		}
+
+		public T Pop()
+		{
+			if (stack.Count == 0)
+				CreateObject(5);
+
+			T o = stack.Pop();
+			// o.SetActive(true);
+
+			return o;
+		}
+	}
 }

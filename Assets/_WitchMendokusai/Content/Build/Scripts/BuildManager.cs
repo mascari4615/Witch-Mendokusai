@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace WitchMendokusai
 {
-	public class BuildManager : MonoBehaviour
+	public class BuildManager : Singleton<BuildManager>
 	{
 		private const string MarkerEnabled = "ENABLED";
 		private const string MarkerResetTrigger = "RESET";
@@ -14,23 +14,26 @@ namespace WitchMendokusai
 		[SerializeField] private Grid grid;
 		[SerializeField] private GameObject gridVisualization;
 		[SerializeField] private Animator marker;
-		[SerializeField] private BuildingData defaultBuilding;
+		[SerializeField] private Building defaultBuilding;
+		[field: SerializeField] public GameObject BuildingObjectPrefab { get; private set; } = null;
+		public Dictionary<Vector3Int, BuildingObject> BuildingObjectDict { get; } = new();
 
 		[SerializeField] private UIBuild buildUI;
 
-		private BuildingData selectedBuilding;
-		private Vector3 targetCellPos;
-		private readonly GridData gridData = new();
+		private Building selectedBuilding;
+		private Vector3Int gridPosition;
 		private bool isBuilding = false;
 
-		private void Awake()
+		protected override void Awake()
 		{
+			base.Awake();
 			Init();
 		}
 
 		private void Init()
 		{
 			selectedBuilding = defaultBuilding;
+			StageManager.OnStageChanged += OnStageChanged;
 		}
 
 		private void Start()
@@ -76,23 +79,28 @@ namespace WitchMendokusai
 
 			UpdateCellPos();
 
-			if (marker.transform.position != targetCellPos)
+			Vector3 worldPos = GetWorldPosition(gridPosition);
+			if (marker.transform.position != worldPos)
 			{
 				if (marker.GetBool(MarkerEnabled) == true)
 				{
-					marker.transform.position = targetCellPos;
+					marker.transform.position = worldPos;
 					marker.SetTrigger(MarkerResetTrigger);
 				}
 			}
 		}
 
+		public Vector3 GetWorldPosition(Vector3Int gridPosition)
+		{
+			Vector3 worldPos = grid.GetCellCenterWorld(gridPosition);
+			worldPos.y = 0.01f;
+			return worldPos;
+		}
+
 		private void UpdateCellPos()
 		{
 			Vector3 mousePosition = InputManager.MouseWorldPosition;
-			Vector3Int gridPosition = grid.WorldToCell(mousePosition);
-			Vector3 newTargetCellPos = grid.GetCellCenterWorld(gridPosition);
-			newTargetCellPos.y = 0.01f;
-			targetCellPos = newTargetCellPos;
+			gridPosition = grid.WorldToCell(mousePosition);
 		}
 
 		private void ClickCell()
@@ -100,27 +108,87 @@ namespace WitchMendokusai
 			if (InputManager.IsPointerOverUI())
 				return;
 
-			if (gridData.TryGetObjectAt(grid.WorldToCell(targetCellPos), out GameObject obj))
+			if (StageManager.Instance.CurStage is WorldStage worldStage)
 			{
-				gridData.RemoveObjectAt(grid.WorldToCell(targetCellPos));
-				ObjectPoolManager.Instance.Despawn(obj);
-				return;
-			}
-			else
-			{
-				GameObject block = ObjectPoolManager.Instance.Spawn(selectedBuilding.Prefab);
-				block.transform.position = targetCellPos;
-				block.SetActive(true);
+				GridData gridData = worldStage.GridData;
 
-				gridData.AddObjectAt(grid.WorldToCell(targetCellPos), block);
+				if (gridData.HasObjectAt(gridPosition))
+				{
+					gridData.RemoveObjectAt(gridPosition);
+					DespawnBuildingObject(gridPosition);
+					return;
+				}
+				else
+				{
+					gridData.AddObjectAt(gridPosition, selectedBuilding);
+					SpawnBuildingObject(gridPosition, selectedBuilding);
+				}
 			}
 
 			// buildingState.OnAction(gridPosition);
 		}
 
-		public void SelectBuilding(BuildingData building)
+		public void SelectBuilding(Building building)
 		{
 			selectedBuilding = building;
+		}
+
+		private void OnStageChanged(Stage stage, StageObject stageObject)
+		{
+			if (stage is WorldStage worldStage)
+			{
+				// Debug.Log($"{nameof(OnStageChanged)} {grid} | {stageObject}");
+				grid.transform.position = stageObject.transform.position;
+				DespawnAllBuildingObject();
+				SpawnAllBuildingObject(worldStage);
+			}
+		}
+
+		private void SpawnAllBuildingObject(WorldStage worldStage)
+		{
+			GridData gridData = worldStage.GridData;
+
+			foreach ((Vector3Int coord, RuntimeBuildingData runtimeBuildingData) in gridData.BuildingData)
+			{
+				Building building = SOHelper.Get<Building>(runtimeBuildingData.SOID);
+				SpawnBuildingObject(coord, building);
+			}
+		}
+
+		private void SpawnBuildingObject(Vector3Int coord, Building building)
+		{
+			// Debug.Log($"{nameof(SpawnBuildingObject)} ({coord}, {building.name})");
+
+			BuildingObject buildingObject = ObjectPoolManager.Instance.Spawn(BuildingObjectPrefab).GetComponent<BuildingObject>();
+			buildingObject.transform.position = GetWorldPosition(coord);
+			buildingObject.gameObject.SetActive(true);
+
+			buildingObject.Initialize(new RuntimeBuildingData()
+			{
+				State = BuildingState.Placed,
+				SOID = building.ID
+			});
+
+			BuildingObjectDict[coord] = buildingObject;
+		}
+
+		private void DespawnAllBuildingObject()
+		{
+			List<Vector3Int> keys = new(BuildingObjectDict.Keys);
+			foreach (Vector3Int coord in keys)
+			{
+				DespawnBuildingObject(coord);
+			}
+		}
+
+		private void DespawnBuildingObject(Vector3Int coord)
+		{
+			if (BuildingObjectDict.TryGetValue(coord, out BuildingObject buildingObject) == false)
+				return;
+
+			// Debug.Log($"{nameof(DespawnBuildingObject)} ({coord}, {buildingObject.name})");
+			ObjectPoolManager.Instance.Despawn(buildingObject.gameObject);
+			BuildingObjectDict.Remove(coord);
 		}
 	}
 }

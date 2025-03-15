@@ -1,18 +1,16 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using static WitchMendokusai.SOHelper;
 
 namespace WitchMendokusai
 {
-	public class Building : MonoBehaviour
+	[CreateAssetMenu(fileName = "BD_", menuName = "Variable/" + nameof(Building))]
+	public class Building : DataSO
 	{
-		public RuntimeBuildingData Data { get; private set; }
-
-		public void Initialize(BuildingData so)
-		{
-			Data = new RuntimeBuildingData(so);
-		}
+		[field: Header("_" + nameof(Building))]
+		[PropertyOrder(10)][field: SerializeField] public BuildingType Type { get; private set; } = new ();
+		[PropertyOrder(11)][field: SerializeField] public int Cost { get; private set; }
+		[PropertyOrder(12)][field: SerializeField] public GameObject Prefab { get; private set; }
+		[PropertyOrder(13)][field: SerializeField] public Unit Mascot { get; private set; }
 	}
 }

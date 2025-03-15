@@ -25,7 +25,7 @@ namespace WitchMendokusai
 				buildingSlot.Init();
 				buildingSlot.SetSelectAction((slot) =>
 				{
-					BuildingData building = slot.DataSO as BuildingData;
+					Building building = slot.DataSO as Building;
 					buildManager.SelectBuilding(building);
 				});
 			}
@@ -33,11 +33,11 @@ namespace WitchMendokusai
 
 		public void UpdateUI()
 		{
-			var buildings = SOManager.Instance.DataSOs[typeof(BuildingData)].Values.ToList();
+			var buildings = SOManager.Instance.DataSOs[typeof(Building)].Values.ToList();
 
 			for (int i = 0; i < buildings.Count; i++)
 			{
-				BuildingData building = buildings[i] as BuildingData;
+				Building building = buildings[i] as Building;
 				buildingSlots[i].SetSlot(building);
 			}
 

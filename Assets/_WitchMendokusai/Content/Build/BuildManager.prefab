@@ -209,10 +209,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 86a43063bfbbca64a8513bdd6883f767, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  dontDestroyOnLoad: 0
   grid: {fileID: 2413295352154115868}
   gridVisualization: {fileID: 1053113978057566296}
   marker: {fileID: 4904558852897361781}
-  blockPrefab: {fileID: 1496883160333710208, guid: 6d9e8a32b4461b249b0ca1ea89db7ea6, type: 3}
+  defaultBuilding: {fileID: 11400000, guid: 168201871ac1bcd419d378b9821ad5f1, type: 2}
+  <BuildingObjectPrefab>k__BackingField: {fileID: 1496883160333710208, guid: 6d9e8a32b4461b249b0ca1ea89db7ea6, type: 3}
+  buildUI: {fileID: 0}
 --- !u!1001 &5739025664947942450
 PrefabInstance:
   m_ObjectHideFlags: 0

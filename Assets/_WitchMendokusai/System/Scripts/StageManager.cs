@@ -8,19 +8,22 @@ namespace WitchMendokusai
 {
 	public class StageManager : Singleton<StageManager>
 	{
-		[SerializeField] private GameObject homeStageObject;
+		public static event Action<Stage, StageObject> OnStageChanged = delegate { };
+
+		[SerializeField] private StageObject homeStageObject;
 		[SerializeField] private Stage homeStage;
 
-		public Stage LastStage { get; private set; }
-		public StageObject CurStageObject { get; private set; }
-		public Stage CurStage { get; private set; }
+		public Stage LastStage { get; private set; } = null;
+		public StageObject CurStageObject { get; private set; } = null;
+		public Stage CurStage { get; private set; } = null;
 
 		private Vector3 lastPosDiff;
 
 		private void Start()
 		{
-			CurStageObject = homeStageObject.GetComponent<StageObject>();
+			CurStageObject = homeStageObject;
 			CurStage = homeStage;
+			OnStageChanged(CurStage, CurStageObject);
 		}
 
 		public void LoadStage(Stage stage, int spawnPortalIndex = -1, bool isBackToLastStage = false, Action action = null)
@@ -81,6 +84,7 @@ namespace WitchMendokusai
 				// 새로운 스테이지 B 활성화, CurStage를 B로 갱신
 				CurStageObject.gameObject.SetActive(true);
 				CurStage = stage;
+				OnStageChanged(CurStage, CurStageObject);
 
 				// 마지막 이동 위치 갱신 (B -> A로 다시 되돌아가는 경우)
 				lastPosDiff = newLastPosDiff;

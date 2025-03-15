@@ -29,7 +29,7 @@ namespace WitchMendokusai
 			{ typeof(Doll), "DOL" },
 			{ typeof(NPC), "NPC" },
 			{ typeof(Monster), "MOB" },
-			{ typeof(BuildingData), "BD"}
+			{ typeof(Building), "BD"}
 		};
 	}
 }

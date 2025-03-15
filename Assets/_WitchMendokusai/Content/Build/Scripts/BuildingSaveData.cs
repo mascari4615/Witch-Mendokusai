@@ -4,11 +4,15 @@ using System.Collections.Generic;
 namespace WitchMendokusai
 {
 	[Serializable]
-	public struct BuildingSaveData
+	public struct RuntimeBuildingData
 	{
-		public Guid? Guid;
-		public RuntimeBuildingState State;
+		public BuildingState State;
+		public int SOID;
 
-		public int SO_ID;
+		public RuntimeBuildingData(BuildingState state, int so_id)
+		{
+			State = state;
+			SOID = so_id;
+		}
 	}
 }
