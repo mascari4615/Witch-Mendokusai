@@ -14,11 +14,24 @@ namespace WitchMendokusai
 		[SerializeField] private Grid grid;
 		[SerializeField] private GameObject gridVisualization;
 		[SerializeField] private Animator marker;
-		[SerializeField] private GameObject blockPrefab;
+		[SerializeField] private BuildingData defaultBuilding;
 
+		[SerializeField] private UIBuild buildUI;
+
+		private BuildingData selectedBuilding;
 		private Vector3 targetCellPos;
 		private readonly GridData gridData = new();
 		private bool isBuilding = false;
+
+		private void Awake()
+		{
+			Init();
+		}
+
+		private void Init()
+		{
+			selectedBuilding = defaultBuilding;
+		}
 
 		private void Start()
 		{
@@ -95,7 +108,7 @@ namespace WitchMendokusai
 			}
 			else
 			{
-				GameObject block = ObjectPoolManager.Instance.Spawn(blockPrefab);
+				GameObject block = ObjectPoolManager.Instance.Spawn(selectedBuilding.Prefab);
 				block.transform.position = targetCellPos;
 				block.SetActive(true);
 
@@ -103,6 +116,11 @@ namespace WitchMendokusai
 			}
 
 			// buildingState.OnAction(gridPosition);
+		}
+
+		public void SelectBuilding(BuildingData building)
+		{
+			selectedBuilding = building;
 		}
 	}
 }

@@ -15,17 +15,26 @@ MonoBehaviour:
   m_GroupName: Building
   m_GUID: 40bf9397ec0e469429dfdd07d138f684
   m_SerializeEntries:
-  - m_GUID: 184c1c825101cca4dbcef2386058e421
-    m_Address: Building/1
+  - m_GUID: 168201871ac1bcd419d378b9821ad5f1
+    m_Address: BuildingData/2
     m_ReadOnly: 0
     m_SerializedLabels:
     - Building
+    - BuildingData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 184c1c825101cca4dbcef2386058e421
+    m_Address: BuildingData/1
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Building
+    - BuildingData
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 57868189b6e16c54f9e3f5bf46eff8e8
-    m_Address: Building/0
+    m_Address: BuildingData/0
     m_ReadOnly: 0
     m_SerializedLabels:
     - Building
+    - BuildingData
     FlaggedDuringContentUpdateRestriction: 0
   m_ReadOnly: 0
   m_Settings: {fileID: 11400000, guid: 5a4d7636943b8d645af161ef05df63d6, type: 2}

@@ -13,22 +13,31 @@ namespace WitchMendokusai
 
 		private void Start()
 		{
-			Init();
 			TimeManager.Instance.RegisterCallback(UpdateUI);
 		}
 
-		public void Init()
+		public void Init(BuildManager buildManager)
 		{
 			buildingSlots = GetComponentsInChildren<UIBuildingSlot>(true);
+
+			foreach (UIBuildingSlot buildingSlot in buildingSlots)
+			{
+				buildingSlot.Init();
+				buildingSlot.SetSelectAction((slot) =>
+				{
+					BuildingData building = slot.DataSO as BuildingData;
+					buildManager.SelectBuilding(building);
+				});
+			}
 		}
 
 		public void UpdateUI()
 		{
-			var buildings = SOManager.Instance.DataSOs[typeof(Building)].Values.ToList();
+			var buildings = SOManager.Instance.DataSOs[typeof(BuildingData)].Values.ToList();
 
 			for (int i = 0; i < buildings.Count; i++)
 			{
-				Building building = buildings[i] as Building;
+				BuildingData building = buildings[i] as BuildingData;
 				buildingSlots[i].SetSlot(building);
 			}
 

@@ -16259,7 +16259,7 @@ MonoBehaviour:
   bakedScaleOffsetTerrain: []
   assetList: []
   uvOverlapAssetList: 
-  idremap: 030000000300000003000000
+  idremap: 000000000000000000000000
   usesRealtimeGI: 0
   emptyDirectionTex: {fileID: 0}
   anyVolumes: 0
@@ -24545,6 +24545,17 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 5068817061271277338, guid: 57b8f3c7a7bb83243b2647022c442a9f, type: 3}
   m_PrefabInstance: {fileID: 1988904237}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1989130471 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 2061713302530184289, guid: a3d118426f12857458f7d51e5b663ced, type: 3}
+  m_PrefabInstance: {fileID: 8029970035374905948}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 86a43063bfbbca64a8513bdd6883f767, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!224 &1997551597 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 8791113349745418403, guid: dc7af30993950d947820761d51d18c0b, type: 3}
@@ -38660,6 +38671,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   <Name>k__BackingField: UIPanel
   <PanelIcon>k__BackingField: {fileID: 0}
+  buildingManager: {fileID: 1989130471}
   buildingBar: {fileID: 1182715636}
 --- !u!1001 &8029970035374905948
 PrefabInstance:

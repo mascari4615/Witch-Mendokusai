@@ -10,12 +10,13 @@ namespace WitchMendokusai
 	public class UIBuild : UIPanel
 	{
 		[field: Header("_" + nameof(UIBuild))]
+		[SerializeField] private BuildManager buildingManager;
 		[SerializeField] private UIBuildingBar buildingBar;
 		private Coroutine loop;
 
 		public override void Init()
 		{
-			buildingBar.Init();
+			buildingBar.Init(buildingManager);
 		}
 
 		public override void UpdateUI()

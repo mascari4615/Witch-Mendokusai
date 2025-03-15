@@ -142,9 +142,9 @@ namespace WitchMendokusai
 
 			// Addressable 에셋으로 등록
 			AddressableAssetEntry entry = settings.CreateOrMoveEntry(guid, group);
-
 			if (entry == null)
 			{
+				// 실패: 이미 다른 주소로 등록되어 있는 경우?
 				Debug.LogError($"Failed to create Addressable entry for {dataSO.name}");
 				return false;
 			}
