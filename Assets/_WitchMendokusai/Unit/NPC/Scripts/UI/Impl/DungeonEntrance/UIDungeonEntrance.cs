@@ -30,7 +30,7 @@ namespace WitchMendokusai
 			{
 				dungeonSelectButtons[i].SetSlotIndex(i);
 				dungeonSelectButtons[i].Init();
-				dungeonSelectButtons[i].SetClickAction((UISlot slot) => SelectDungeon(slot.Index));
+				dungeonSelectButtons[i].SetClickAction(slot => SelectDungeon(slot.Index));
 			}
 
 			rewardUI = GetComponentInChildren<UIRewards>(true);
@@ -46,6 +46,8 @@ namespace WitchMendokusai
 
 			if (dungeons == null || dungeons.Count == 0)
 				Debug.LogError("No Dungeon Data");
+
+			dungeonSelectButtons.First().Select(); // 첫 번째 던전에 UI Select Focus 주기 - 250315. 19:20
 		}
 
 		public override void UpdateUI()
