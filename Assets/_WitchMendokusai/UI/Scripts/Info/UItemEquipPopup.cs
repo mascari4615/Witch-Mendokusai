@@ -22,12 +22,24 @@ namespace WitchMendokusai
 		private UIItemEquipPopupElement[] elements;
 
 		private Coroutine showToolTipLoop;
+		private Coroutine lifeTimeLoop;
 		private int curElementIndex = 0;
 
 		private readonly WaitForSecondsRealtime popDelay = new(.2f);
 		private readonly Queue<ItemData> toolTipStacks = new();
 
 		private Color originColor = Color.clear;
+		private float expireTime = LIFE_TIME;
+		private const float LIFE_TIME = ANIM_TIME + WHITE_TIME + ANIM_TIME + WAIT_TIME;
+		private const float WAIT_TIME = 1.5f;
+		private const float ANIM_TIME = .2f;
+		private const float WHITE_TIME = .3f;
+		private bool IsLifeTime => expireTime > 0;
+
+		// 한 번에 공개할 슬롯의 수
+		private const int SLOT_COUNT = 8;
+		private int showingSlotCount = 0;
+		private int flag = 0;
 
 		private void Awake()
 		{
@@ -60,7 +72,8 @@ namespace WitchMendokusai
 		public void EquipItem()
 		{
 			toolTipStacks.Enqueue(SOManager.Instance.LastEquippedItem.RuntimeValue);
-			showToolTipLoop ??= StartCoroutine(ShowToolTips());
+			if (showToolTipLoop == null)
+				showToolTipLoop = StartCoroutine(ShowToolTips());
 		}
 
 		private IEnumerator ShowToolTips()
@@ -72,33 +85,61 @@ namespace WitchMendokusai
 				int targetSlotIndex = curElementIndex;
 				curElementIndex = (curElementIndex + 1) % elements.Length;
 
-				ShowToolTip(targetItemData, targetSlotIndex);
+				showingSlotCount++;
+				if (showingSlotCount >= SLOT_COUNT)
+					flag++;
+
+				StartCoroutine(ShowToolTip(targetItemData, targetSlotIndex, flag));
+
+				expireTime = LIFE_TIME;
+				if (lifeTimeLoop == null)
+					lifeTimeLoop = StartCoroutine(LifeTime());
+			
 				yield return popDelay;
 			}
 
 			showToolTipLoop = null;
 		}
 
-		private void ShowToolTip(ItemData itemData, int slotIndex)
+		private IEnumerator LifeTime()
+		{
+			while (IsLifeTime)
+			{
+				expireTime -= Time.deltaTime;
+				yield return null;
+			}
+
+			lifeTimeLoop = null;
+		}
+
+		private IEnumerator ShowToolTip(ItemData itemData, int slotIndex, int flag)
 		{
 			RuntimeManager.PlayOneShot($"event:/SFX/Equip");
 
 			UIItemEquipPopupElement targetElement = elements[slotIndex];
-			float whiteTime = .3f;
-			float lifeTime = 2f;
+
+			Image image = targetElement.image;
+			CanvasGroup canvasGroup = targetElement.canvasGroup;
+			UISlot targetSlot = targetElement.slot;
+
+			targetSlot.SetSlot(itemData);
+			targetSlot.transform.SetAsFirstSibling();
+		
 			{
-				UISlot targetSlot = targetElement.slot;
-				targetSlot.SetSlot(itemData);
-				targetSlot.transform.SetAsFirstSibling();
+				// 진입 애니메이션
+				canvasGroup.DOFade(1, ANIM_TIME);
+				image.DOColor(Color.white, ANIM_TIME);
+				yield return targetSlot.transform.DOScale(Vector3.one * 1.2f, ANIM_TIME).WaitForCompletion();
+				yield return new WaitForSeconds(WHITE_TIME);
+			
+				// 대기
+				targetSlot.transform.DOScale(Vector3.one, ANIM_TIME);
+				image.DOColor(originColor, ANIM_TIME);
+				yield return new WaitWhile(() => IsLifeTime && (flag == this.flag));
+				showingSlotCount--;
 
-				targetSlot.transform.DOScale(Vector3.one * 1.2f, .2f).OnComplete(() => targetSlot.transform.DOScale(Vector3.one, .2f).SetDelay(whiteTime));
-
-				CanvasGroup targetCanvasGroup = targetElement.canvasGroup;
-				targetCanvasGroup.DOFade(1, .2f).OnComplete(() => targetCanvasGroup.DOFade(0, .5f).SetDelay(lifeTime));
-
-				Image targetImage = targetElement.image;
-				targetImage.color = Color.white;
-				targetImage.DOColor(originColor, .2f).SetDelay(whiteTime);
+				// 퇴장 애니메이션
+				canvasGroup.DOFade(0, .5f);
 			}
 		}
 
