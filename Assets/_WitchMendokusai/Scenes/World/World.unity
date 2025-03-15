@@ -1135,11 +1135,6 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 5068817061271277338, guid: 57b8f3c7a7bb83243b2647022c442a9f, type: 3}
   m_PrefabInstance: {fileID: 113832997}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &122080827 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 3492282845195547143, guid: 57b8f3c7a7bb83243b2647022c442a9f, type: 3}
-  m_PrefabInstance: {fileID: 1823449332}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &136341860
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -6730,7 +6725,7 @@ GameObject:
   - component: {fileID: 562460231}
   - component: {fileID: 562460234}
   m_Layer: 5
-  m_Name: EquipTooltip
+  m_Name: '[Block] EquipTooltip'
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -15425,7 +15420,7 @@ GameObject:
   - component: {fileID: 1297217961}
   - component: {fileID: 1297217963}
   m_Layer: 5
-  m_Name: TooltipPopup
+  m_Name: '[Block] TooltipPopup'
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -21744,29 +21739,13 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 3492282845195547143, guid: 57b8f3c7a7bb83243b2647022c442a9f, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 1823449340}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 57b8f3c7a7bb83243b2647022c442a9f, type: 3}
 --- !u!224 &1823449333 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 5068817061271277338, guid: 57b8f3c7a7bb83243b2647022c442a9f, type: 3}
   m_PrefabInstance: {fileID: 1823449332}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &1823449340
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 122080827}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: -591303064, guid: a811bde74b26b53498b4f6d872b09b6d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  inspectorUpdater: 0
 --- !u!1001 &1825849639
 PrefabInstance:
   m_ObjectHideFlags: 0
