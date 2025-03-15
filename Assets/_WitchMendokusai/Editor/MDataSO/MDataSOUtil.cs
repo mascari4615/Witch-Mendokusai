@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditor;
 using UnityEditor.AddressableAssets;
 using UnityEditor.AddressableAssets.Settings;
@@ -104,6 +105,13 @@ namespace WitchMendokusai
 			AddressableAssetEntry existingEntry = settings.FindAssetEntry(guid);
 			if (existingEntry != null)
 			{
+				// 다른 라벨이 있다면 지우기 (오래된 라벨)
+				foreach (string label in existingEntry.labels.ToList())
+				{
+					if (label != type.Name)
+						existingEntry.labels.Remove(label);
+				}
+
 				// 이미 올바른 주소 형식을 가지고 있는지 확인
 				string expectedAddress = $"{type.Name}/{dataSO.ID}";
 				if (existingEntry.address == expectedAddress && existingEntry.labels.Contains(type.Name))
@@ -114,8 +122,12 @@ namespace WitchMendokusai
 
 				// 주소나 라벨이 다르면 업데이트
 				existingEntry.address = expectedAddress;
-				if (!existingEntry.labels.Contains(type.Name))
+			
+				// 라벨 추가
+				if (existingEntry.labels.Contains(type.Name) == false)
+				{
 					existingEntry.labels.Add(type.Name);
+				}
 
 				settings.SetDirty(AddressableAssetSettings.ModificationEvent.EntryModified, existingEntry, true);
 				return true;
