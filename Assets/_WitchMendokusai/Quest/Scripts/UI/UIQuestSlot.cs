@@ -47,9 +47,9 @@ namespace WitchMendokusai
 
 			for (int i = 0; i < criteriaObjects.Length; i++)
 			{
-				if (i < quest.Criterias.Count)
+				if (i < quest.Criteria.Count)
 				{
-					criteriaObjects[i].color = quest.Criterias[i].IsCompleted ? Color.green : Color.red;
+					criteriaObjects[i].color = quest.Criteria[i].IsCompleted ? Color.green : Color.red;
 					criteriaObjects[i].gameObject.SetActive(true);
 				}
 				else

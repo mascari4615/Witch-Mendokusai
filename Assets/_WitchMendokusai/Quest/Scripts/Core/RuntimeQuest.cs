@@ -18,7 +18,7 @@ namespace WitchMendokusai
 
 		public QuestType Type { get; private set; }
 		public List<GameEventType> GameEvents { get; private set; }
-		public List<RuntimeCriteria> Criterias { get; private set; }
+		public List<RuntimeCriteria> Criteria { get; private set; }
 		public List<EffectInfoData> CompleteEffects { get; private set; }
 		public List<EffectInfoData> RewardEffects { get; private set; }
 		public List<RewardInfoData> Rewards { get; private set; }
@@ -57,7 +57,7 @@ namespace WitchMendokusai
 
 			Type = questInfo.Type;
 			GameEvents = questInfo.GameEvents.ToList();
-			Criterias = questInfo.Criterias.ConvertAll(criteriaData => new RuntimeCriteria(criteriaData));
+			Criteria = questInfo.Criteria.ConvertAll(criteriaData => new RuntimeCriteria(criteriaData));
 			CompleteEffects = questInfo.CompleteEffects.ConvertAll(effectData => new EffectInfoData(effectData));
 			RewardEffects = questInfo.RewardEffects.ConvertAll(effectData => new EffectInfoData(effectData));
 			Rewards = questInfo.Rewards.ConvertAll(rewardData => new RewardInfoData(rewardData));
@@ -87,7 +87,7 @@ namespace WitchMendokusai
 					return;
 			}
 
-			foreach (RuntimeCriteria criteria in Criterias)
+			foreach (RuntimeCriteria criteria in Criteria)
 			{
 				criteria.Evaluate();
 				if (criteria.IsCompleted == false)
@@ -168,13 +168,13 @@ namespace WitchMendokusai
 				return 0;
 			}
 
-			if (Criterias.Count == 0)
+			if (Criteria.Count == 0)
 				return 1;
 
 			float progress = 0;
-			foreach (RuntimeCriteria runtimeCriteria in Criterias)
+			foreach (RuntimeCriteria runtimeCriteria in Criteria)
 				progress += runtimeCriteria.GetProgress();
-			return progress /= Criterias.Count;
+			return progress /= Criteria.Count;
 		}
 
 		public string GetProgressText()
@@ -188,12 +188,12 @@ namespace WitchMendokusai
 				return string.Empty;
 			}
 
-			if (Criterias.Count == 0)
+			if (Criteria.Count == 0)
 				return "100%";
 
 			float curValue = 0;
 			float targetValue = 0;
-			foreach (RuntimeCriteria runtimeCriteria in Criterias)
+			foreach (RuntimeCriteria runtimeCriteria in Criteria)
 			{
 				curValue += runtimeCriteria.GetCurValue();
 				targetValue += runtimeCriteria.GetTargetValue();
@@ -210,7 +210,7 @@ namespace WitchMendokusai
 
 			Type = saveData.Type;
 			GameEvents = saveData.GameEvents;
-			Criterias = saveData.Criterias.ConvertAll(criteriaData => new RuntimeCriteria(criteriaData));
+			Criteria = saveData.Criteria.ConvertAll(criteriaData => new RuntimeCriteria(criteriaData));
 			CompleteEffects = saveData.CompleteEffects;
 			RewardEffects = saveData.RewardEffects;
 			Rewards = saveData.Rewards;
@@ -231,7 +231,7 @@ namespace WitchMendokusai
 
 				Type = Type,
 				GameEvents = GameEvents,
-				Criterias = Criterias.ConvertAll(criteria => criteria.Save()),
+				Criteria = Criteria.ConvertAll(criteria => criteria.Save()),
 				CompleteEffects = CompleteEffects,
 				RewardEffects = RewardEffects,
 				Rewards = Rewards,

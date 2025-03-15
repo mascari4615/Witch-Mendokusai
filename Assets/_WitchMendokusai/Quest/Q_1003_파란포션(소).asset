@@ -29,7 +29,7 @@ MonoBehaviour:
       ArithmeticOperator: 1
       Value: 1
     GameEvents: 04000000
-    Criterias:
+    Criteria:
     - Type: 0
       Data: {fileID: 11400000, guid: 5e4a407bfab8f6d4489f5c792098808b, type: 2}
       ComparisonOperator: 4

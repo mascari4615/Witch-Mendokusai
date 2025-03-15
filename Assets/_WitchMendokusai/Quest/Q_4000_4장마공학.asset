@@ -21,7 +21,7 @@ MonoBehaviour:
     Type: 2
     UnlockEffects: []
     GameEvents: 
-    Criterias: []
+    Criteria: []
     CompleteEffects: []
     RewardEffects: []
     Rewards: []

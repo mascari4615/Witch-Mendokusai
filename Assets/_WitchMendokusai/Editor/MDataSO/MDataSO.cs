@@ -127,7 +127,7 @@ namespace WitchMendokusai
 			}
 			grid.Clear();
 
-			InitDic(CurType);
+			InitDict(CurType);
 			Dictionary<int, DataSO> dataSOs = DataSOs[CurType];
 
 			DataSOSlots.Clear();
@@ -163,7 +163,7 @@ namespace WitchMendokusai
 			// Debug.Log($"{nameof(SetType)} End");
 		}
 
-		private void InitDic(Type type)
+		private void InitDict(Type type)
 		{
 			// Debug.Log($"{nameof(InitDic)} <{type.Name}>");
 
@@ -450,7 +450,7 @@ namespace WitchMendokusai
 		{
 			// Debug.Log($"{nameof(InitEnumData)} <{typeof(TData).Name}, {typeof(TEnum).Name}>");
 
-			InitDic(typeof(TData));
+			InitDict(typeof(TData));
 
 			const string PropertyName = "Type";
 
@@ -513,21 +513,31 @@ namespace WitchMendokusai
 				return;
 			}
 
-			foreach (var dic in Instance.DataSOs.Values)
-				foreach (DataSO dataSO in dic.Values)
+			// 아직 초기화되지 않았다면 초기화
+			foreach (Type type in AssetPrefixes.Keys)
+			{
+				if (Instance.DataSOs.ContainsKey(type) == false)
+					Instance.InitDict(type);
+			}
+
+			foreach (Dictionary<int, DataSO> dict in Instance.DataSOs.Values)
+			{
+				int saveCount = 0;
+				foreach (DataSO dataSO in dict.Values)
 				{
 					if (dataSO == null)
-					{
-						Debug.Log($"{nameof(SaveAssets)}: {dic.GetType().Name} is null.");
 						continue;
-					}
 					EditorUtility.SetDirty(dataSO);
+					saveCount++;
 				}
+
+				Debug.Log($"{nameof(SaveAssets)}: {GetBaseType(dict.Values.First())} is saved. Count: {saveCount}/{dict.Count}");
+			}
 
 			AssetDatabase.SaveAssets();
 			AssetDatabase.Refresh();
 
-			// Debug.Log($"{nameof(SaveAssets)} is executed.");
+			Debug.Log($"{nameof(SaveAssets)} is executed.");
 		}
 
 		private string GetGoodName(DataSO dataSO)

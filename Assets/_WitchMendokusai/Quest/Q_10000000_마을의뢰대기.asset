@@ -22,7 +22,7 @@ MonoBehaviour:
     Type: 1
     UnlockEffects: []
     GameEvents: 04000000
-    Criterias: []
+    Criteria: []
     CompleteEffects: []
     RewardEffects: []
     Rewards: []

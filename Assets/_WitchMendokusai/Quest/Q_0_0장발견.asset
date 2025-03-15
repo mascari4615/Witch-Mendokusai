@@ -23,7 +23,7 @@ MonoBehaviour:
     Type: 2
     UnlockEffects: []
     GameEvents: 
-    Criterias: []
+    Criteria: []
     CompleteEffects:
     - Type: 100
       Data: {fileID: 11400000, guid: 49169869e7f5a39458bd633281937927, type: 2}

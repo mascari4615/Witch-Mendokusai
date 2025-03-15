@@ -154,7 +154,7 @@ namespace WitchMendokusai
 				{
 					GameEventType.OnTick,
 				},
-				Criterias = new(),
+				Criteria = new(),
 				CompleteEffects = new()
 				{
 					// HACK:
@@ -183,7 +183,7 @@ namespace WitchMendokusai
 			{
 				case DungeonType.TimeSurvival:
 					questName = "시간 동안 생존";
-					questInfo.Criterias = new()
+					questInfo.Criteria = new()
 					{
 						new CriteriaInfo()
 						{
@@ -200,7 +200,7 @@ namespace WitchMendokusai
 					break;
 				case DungeonType.KillCount:
 					questName = "몬스터 처치";
-					questInfo.Criterias = new()
+					questInfo.Criteria = new()
 					{
 						new CriteriaInfo()
 						{
@@ -214,7 +214,7 @@ namespace WitchMendokusai
 					break;
 				case DungeonType.Boss:
 					questName = "보스 처치";
-					questInfo.Criterias = new()
+					questInfo.Criteria = new()
 					{
 						new CriteriaInfo()
 						{

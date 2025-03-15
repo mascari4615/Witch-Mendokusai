@@ -25,7 +25,7 @@ namespace WitchMendokusai
 		public void SetCriteria(RuntimeQuest quest)
 		{
 			canvasGroup.alpha = 1;
-			if (quest == null || quest.Criterias == null || quest.Criterias.Count == 0)
+			if (quest == null || quest.Criteria == null || quest.Criteria.Count == 0)
 			{
 				canvasGroup.alpha = 0;
 				// foreach (UISlot slot in slots)
@@ -33,11 +33,11 @@ namespace WitchMendokusai
 				return;
 			}
 
-			List<RuntimeCriteria> criterias = quest.Criterias;
+			List<RuntimeCriteria> criteria = quest.Criteria;
 
 			for (int i = 0; i < slots.Length; i++)
 			{
-				if (i < criterias.Count)
+				if (i < criteria.Count)
 				{
 					slots[i].gameObject.SetActive(true);
 
@@ -45,7 +45,7 @@ namespace WitchMendokusai
 					string criteriaName = "";
 					string criteriaDesc = "";
 
-					switch (criterias[i].Criteria)
+					switch (criteria[i].Criteria)
 					{
 						case IntCriteria intCriteria:
 							// HACK, TODO: Refactor
@@ -68,7 +68,7 @@ namespace WitchMendokusai
 							break;
 					}
 
-					if (criterias[i].Criteria is NumCriteria numCriteria)
+					if (criteria[i].Criteria is NumCriteria numCriteria)
 					{
 						criteriaDesc = $"{numCriteria.GetCurValue()}/{numCriteria.GetTargetValue()} ({numCriteria.GetProgress() * 100}%)";
 					}

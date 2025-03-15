@@ -16,6 +16,7 @@ MonoBehaviour:
   <Name>k__BackingField: "\uC2AC\uB77C\uC7849"
   <Description>k__BackingField: 
   <Sprite>k__BackingField: {fileID: 0}
+  <Sprites>k__BackingField: []
   <Monsters>k__BackingField:
   - {fileID: 11400000, guid: 44760449275eb004db761ffc958fcd85, type: 2}
   <StartTime>k__BackingField: 160

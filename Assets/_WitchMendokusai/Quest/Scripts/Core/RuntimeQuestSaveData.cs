@@ -16,7 +16,7 @@ namespace WitchMendokusai
 
 		public QuestType Type;
 		public List<GameEventType> GameEvents;
-		public List<RuntimeCriteriaSaveData> Criterias;
+		public List<RuntimeCriteriaSaveData> Criteria;
 		public List<EffectInfoData> CompleteEffects;
 		public List<EffectInfoData> RewardEffects;
 		public List<RewardInfoData> Rewards;

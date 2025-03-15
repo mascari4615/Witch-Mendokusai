@@ -12,7 +12,7 @@ namespace WitchMendokusai
 {
 	[CustomEditor(typeof(DataSO), true)]
 	[CanEditMultipleObjects]
-	public class MDataSODetail : Editor
+	public class MDataSOInspector : Editor
 	{
 		private DataSO dataSO;
 		private VisualElement root;
@@ -34,26 +34,28 @@ namespace WitchMendokusai
 
 			// root.Add(new Label("This is a custom inspector"));
 			{
-				VisualElement buttonContainer = new VisualElement();
+				VisualElement buttonContainer = new();
 				buttonContainer.style.flexDirection = FlexDirection.Row;
 				buttonContainer.style.justifyContent = Justify.SpaceBetween;
 
+				int buttonCount = 4;
 				CreateButton("Copy", () => MDataSO.Instance.CopyDataSO(dataSO));
 				CreateButton("Remove", () => MDataSO.Instance.RemoveDataSO(dataSO));
 				CreateButton("SetID", () => MDataSO.Instance.IdChanger.SelectDataSO(dataSO));
+				CreateButton("Save", () => { EditorUtility.SetDirty(dataSO); AssetDatabase.SaveAssets(); });
 
 				root.Add(buttonContainer);
 
 				void CreateButton(string text, Action onClick)
 				{
-					Button button = new Button(onClick) { text = text };
+					Button button = new(onClick) { text = text };
 					ApplyButtonStyle(button);
 					buttonContainer.Add(button);
 				}
 
 				void ApplyButtonStyle(Button button)
 				{
-					button.style.width = new StyleLength(Length.Percent(30));
+					button.style.width = new StyleLength(Length.Percent(100 / buttonCount));
 					button.style.height = new StyleLength(20);
 				}
 			}
@@ -118,6 +120,7 @@ namespace WitchMendokusai
 					propertyField.RegisterValueChangeCallback((evt) =>
 					{
 						// Debug.Log("Value Changed");
+						EditorUtility.SetDirty(dataSO);
 						serializedObject.ApplyModifiedProperties();
 						UpdateMDataSOSlot();
 					});
@@ -128,14 +131,14 @@ namespace WitchMendokusai
 
 					if (propertyInfo.PropertyType == typeof(Sprite))
 					{
-						VisualElement spritePreviewContainer = new VisualElement();
+						VisualElement spritePreviewContainer = new();
 						spritePreviewContainer.style.flexDirection = FlexDirection.RowReverse;
 
 						Sprite sprite = (Sprite)propertyInfo.GetValue(dataSO);
 
 						if (sprite == null)
 						{
-							Label noSpriteLabel = new Label("No Sprite");
+							Label noSpriteLabel = new("No Sprite");
 							noSpriteLabel.style.marginLeft = 10;
 							noSpriteLabel.style.marginTop = 10;
 							spritePreviewContainer.Add(noSpriteLabel);
@@ -143,7 +146,7 @@ namespace WitchMendokusai
 						}
 						else
 						{
-							Image spritePreview = new Image
+							Image spritePreview = new()
 							{
 								scaleMode = ScaleMode.ScaleToFit,
 								style =
@@ -156,7 +159,7 @@ namespace WitchMendokusai
 							};
 
 							// Sprite의 UV 설정
-							Rect uvRect = new Rect(
+							Rect uvRect = new(
 								sprite.textureRect.x / sprite.texture.width,
 								sprite.textureRect.y / sprite.texture.height,
 								sprite.textureRect.width / sprite.texture.width,
@@ -187,7 +190,7 @@ namespace WitchMendokusai
 
 								if (sprite != null)
 								{
-									Rect uvRect = new Rect(
+									Rect uvRect = new(
 										sprite.textureRect.x / sprite.texture.width,
 										sprite.textureRect.y / sprite.texture.height,
 										sprite.textureRect.width / sprite.texture.width,
@@ -219,8 +222,7 @@ namespace WitchMendokusai
 				if (MDataSO.Instance.CurType == GetBaseType(dataSO))
 				{
 					MDataSOSlot dataSOSlot = MDataSO.Instance.GetDataSOSlot(dataSO);
-					if (dataSOSlot != null)
-						dataSOSlot.UpdateUI();
+					dataSOSlot?.UpdateUI();
 				}
 			}
 		}
