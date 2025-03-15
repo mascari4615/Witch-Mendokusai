@@ -34,7 +34,7 @@ namespace WitchMendokusai
 
 			clearDataButton.onClick.AddListener(() =>
 			{
-				DataManager.Instance.PlayFabManager.CreateAndSavePlayerData();
+				DataManager.Instance.CreateNewGameData();
 			});
 		}
 

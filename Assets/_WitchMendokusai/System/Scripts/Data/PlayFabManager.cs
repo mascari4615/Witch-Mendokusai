@@ -13,14 +13,14 @@ namespace WitchMendokusai
 {
 	public class PlayFabManager : MonoBehaviour
 	{
-		public static bool Logined = false;
+		public static bool Logged = false;
 
 		float secondsLeftToRefreshEnergy = 1;
 		[SerializeField] private TextMeshProUGUI GoogleStatusText;
 
 		private void Start()
 		{
-			if (Logined)
+			if (Logged == true)
 				return;
 
 			/*PlayGamesClientConfiguration config = new PlayGamesClientConfiguration.Builder()
@@ -37,6 +37,8 @@ namespace WitchMendokusai
 
 		public void Login()
 		{
+			Debug.Log($"{nameof(Login)}");
+			
 			if (GameSetting.UseLocalData)
 				return;
 
@@ -113,7 +115,7 @@ namespace WitchMendokusai
 			{
 				Debug.Log("Successful login/account create!");
 
-				Logined = true;
+				Logged = true;
 				string name = result.InfoResultPayload.PlayerProfile?.DisplayName;
 
 				if (name != null)
@@ -139,24 +141,22 @@ namespace WitchMendokusai
 
 			void LoadPlayerData()
 			{
-				PlayFabClientAPI.GetUserData(new GetUserDataRequest(), OnPlayerDataRecieved, OnError);
+				PlayFabClientAPI.GetUserData(new GetUserDataRequest(), OnPlayerDataReceived, OnError);
 			}
-			void OnPlayerDataRecieved(GetUserDataResult result)
+			void OnPlayerDataReceived(GetUserDataResult result)
 			{
-				Debug.Log("Recieved PlayerData!");
+				Debug.Log("Received PlayerData!");
 
 				if (result.Data?.ContainsKey("Player") == true)
 				{
 					GameData gameData = JsonConvert.DeserializeObject<GameData>(result.Data["Player"].Value);
 					if (gameData != null)
 					{
-						CreateAndSavePlayerData();
+						DataManager.Instance.SaveManager.LoadData(gameData);
 						return;
 					}
-					DataManager.Instance.SaveManager.LoadData(gameData);
-				}
-				{
-					CreateAndSavePlayerData();
+
+					DataManager.Instance.CreateNewGameData();
 				}
 			}
 
@@ -211,7 +211,7 @@ namespace WitchMendokusai
 		public void SubmitNickname(string name)
 		{
 			Debug.Log($"{nameof(SubmitNickname)} : ({name})");
-			var request = new UpdateUserTitleDisplayNameRequest
+			UpdateUserTitleDisplayNameRequest request = new()
 			{
 				DisplayName = name,
 			};
@@ -226,12 +226,11 @@ namespace WitchMendokusai
 
 		public void SendLeaderboard(int playTime)
 		{
-			var request = new UpdatePlayerStatisticsRequest
+			UpdatePlayerStatisticsRequest request = new()
 			{
 				Statistics = new List<StatisticUpdate>
 			{
-				new StatisticUpdate
-				{
+				new() {
 					StatisticName = "�÷��̽ð�",
 					Value = playTime
 				}
@@ -240,13 +239,13 @@ namespace WitchMendokusai
 
 			PlayFabClientAPI.UpdatePlayerStatistics(request, result =>
 			{
-				// Debug.Log("Successfull leaderboard sent");
+				// Debug.Log("Successfully leaderboard sent");
 			}, OnError);
 		}
 
 		public void GetLeaderboard()
 		{
-			var request = new GetLeaderboardRequest
+			GetLeaderboardRequest request = new()
 			{
 				StatisticName = "�÷��̽ð�",
 				StartPosition = 0,
@@ -255,7 +254,7 @@ namespace WitchMendokusai
 
 			PlayFabClientAPI.GetLeaderboard(request, result =>
 			{
-				foreach (var item in result.Leaderboard)
+				foreach (PlayerLeaderboardEntry item in result.Leaderboard)
 				{
 					Debug.Log(item.Position + " " + item.PlayFabId + " " + item.StatValue + " " + item.DisplayName);
 				}
@@ -264,7 +263,7 @@ namespace WitchMendokusai
 
 		public void GetLeaderboardAroundPlayer()
 		{
-			var request = new GetLeaderboardAroundPlayerRequest
+			GetLeaderboardAroundPlayerRequest request = new()
 			{
 				StatisticName = "�÷��̽ð�",
 				MaxResultsCount = 10
@@ -272,7 +271,7 @@ namespace WitchMendokusai
 			};
 			PlayFabClientAPI.GetLeaderboardAroundPlayer(request, result =>
 			{
-				foreach (var item in result.Leaderboard)
+				foreach (PlayerLeaderboardEntry item in result.Leaderboard)
 				{
 					Debug.Log(item.Position + " " + item.PlayFabId + " " + item.StatValue + " " + item.DisplayName);
 				}
@@ -281,14 +280,14 @@ namespace WitchMendokusai
 
 		public void SaveUserData(string _key, string _value)
 		{
-			var requset = new UpdateUserDataRequest
+			UpdateUserDataRequest request = new()
 			{
 				Data = new Dictionary<string, string>
 				{
 					{ _key, _value }
 				}
 			};
-			PlayFabClientAPI.UpdateUserData(requset, OnDataSend, OnError);
+			PlayFabClientAPI.UpdateUserData(request, OnDataSend, OnError);
 		}
 
 		[ContextMenu(nameof(GetTitleNewsData))]
@@ -303,7 +302,7 @@ namespace WitchMendokusai
 						return;
 					}
 
-					foreach (var item in result.News)
+					foreach (TitleNewsItem item in result.News)
 					{
 						Debug.Log($"{item.Title} : {item.Body}");
 					}
@@ -313,7 +312,7 @@ namespace WitchMendokusai
 
 		public void BuyItem()
 		{
-			var request = new SubtractUserVirtualCurrencyRequest
+			SubtractUserVirtualCurrencyRequest request = new()
 			{
 				VirtualCurrency = "AC",
 				Amount = 10
@@ -324,19 +323,14 @@ namespace WitchMendokusai
 
 		public void SavePlayerData(GameData gameData)
 		{
-			var requset = new UpdateUserDataRequest
+			UpdateUserDataRequest request = new()
 			{
 				Data = new Dictionary<string, string>
-			{
-				{ "Player", JsonConvert.SerializeObject(gameData) },
-			}
+				{
+					{ "Player", JsonConvert.SerializeObject(gameData) },
+				}
 			};
-			PlayFabClientAPI.UpdateUserData(requset, OnDataSend, OnError);
-		}
-
-		public void CreateAndSavePlayerData()
-		{
-			DataManager.Instance.SaveManager.CreateNewGameData();
+			PlayFabClientAPI.UpdateUserData(request, OnDataSend, OnError);
 		}
 
 		private void OnDataSend(UpdateUserDataResult result)
@@ -346,7 +340,7 @@ namespace WitchMendokusai
 
 		public void CloudScriptTest()
 		{
-			var request = new ExecuteCloudScriptRequest
+			ExecuteCloudScriptRequest request = new()
 			{
 				FunctionName = "hello",
 				FunctionParameter = new
@@ -365,7 +359,7 @@ namespace WitchMendokusai
 
 		public void SendFeedback(string topic, string message)
 		{
-			var request = new ExecuteCloudScriptRequest
+			ExecuteCloudScriptRequest request = new()
 			{
 				FunctionName = "sendFeedback",
 				FunctionParameter = new

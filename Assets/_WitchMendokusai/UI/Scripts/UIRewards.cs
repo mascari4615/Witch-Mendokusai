@@ -26,11 +26,11 @@ namespace WitchMendokusai
 		public void UpdateUI(List<RewardInfo> infos) =>
 			UpdateUI(infos.ConvertAll(x => new RewardInfoData(x)));
 
-		public void UpdateUI(List<RewardInfoData> datas)
+		public void UpdateUI(List<RewardInfoData> data)
 		{
 			canvasGroup.alpha = 1;
 
-			if (datas == null || datas.Count == 0)
+			if (data == null || data.Count == 0)
 			{
 				canvasGroup.alpha = 0;
 				// foreach (UISlot slot in slots)
@@ -40,21 +40,21 @@ namespace WitchMendokusai
 
 			for (int i = 0; i < slots.Length; i++)
 			{
-				if (i < datas.Count)
+				if (i < data.Count)
 				{
 					slots[i].gameObject.SetActive(true);
 
-					switch (datas[i].Type)
+					switch (data[i].Type)
 					{
 						case RewardType.Item:
-							ItemData itemData = GetItemData(datas[i].DataSOID);
+							ItemData itemData = GetItemData(data[i].DataSOID);
 							slots[i].SetSlot(itemData);
 							break;
 						case RewardType.Gold:
-							slots[i].SetSlot(GetGameStatData(GameStatType.NYANG), datas[i].Amount);
+							slots[i].SetSlot(GetGameStatData(GameStatType.NYANG), data[i].Amount);
 							break;
 						case RewardType.Exp:
-							slots[i].SetSlot(GetGameStatData(GameStatType.VILLAGE_QUEST_EXP), datas[i].Amount);
+							slots[i].SetSlot(GetGameStatData(GameStatType.VILLAGE_QUEST_EXP), data[i].Amount);
 							break;
 					}
 				}

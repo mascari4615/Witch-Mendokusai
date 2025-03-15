@@ -11,19 +11,19 @@ namespace WitchMendokusai
 
 	public class Effect
 	{
-		public static void ApplyEffects(List<EffectInfoData> effectInfoDatas)
+		public static void ApplyEffects(List<EffectInfoData> effectInfoData)
 		{
 			Debug.Log("Applying effects...");
 
-			foreach (EffectInfoData effectInfoData in effectInfoDatas)
+			foreach (EffectInfoData data in effectInfoData)
 			{
-				Debug.Log(effectInfoData.Type + " " + effectInfoData.DataSOID + " " + effectInfoData.ArithmeticOperator + " " + effectInfoData.Value);
+				Debug.Log(data.Type + " " + data.DataSoID + " " + data.ArithmeticOperator + " " + data.Value);
 
-				int id = effectInfoData.DataSOID;
-				EffectType effectType = effectInfoData.Type;
+				int id = data.DataSoID;
+				EffectType effectType = data.Type;
 				DataSO dataSO = null;
 
-				switch (effectInfoData.Type)
+				switch (data.Type)
 				{
 					case EffectType.AddCard:
 						dataSO = GetCardData(id);
@@ -33,7 +33,7 @@ namespace WitchMendokusai
 						break;
 					case EffectType.AddRandomVillageQuest:
 						effectType = EffectType.AddQuest;
-						dataSO = SOManager.Instance.VQuests.Datas[Random.Range(0, SOManager.Instance.VQuests.Datas.Count)];
+						dataSO = SOManager.Instance.VQuests.Data[Random.Range(0, SOManager.Instance.VQuests.Data.Count)];
 						break;
 					case EffectType.FloatVariable:
 						break;
@@ -67,8 +67,8 @@ namespace WitchMendokusai
 				{
 					Type = effectType,
 					Data = dataSO,
-					ArithmeticOperator = effectInfoData.ArithmeticOperator,
-					Value = effectInfoData.Value
+					ArithmeticOperator = data.ArithmeticOperator,
+					Value = data.Value
 				});
 			}
 		}

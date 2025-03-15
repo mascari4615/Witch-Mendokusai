@@ -44,7 +44,7 @@ namespace WitchMendokusai
 		{
 			spriteRenderer.sprite = null;
 
-			List<QuestSO> dataSOs = npcObject.Data.QuestDatas;
+			List<QuestSO> dataSOs = npcObject.Data.QuestData;
 			if (dataSOs.Count == 0)
 				return;
 

@@ -78,7 +78,7 @@ namespace WitchMendokusai
 						availableRecipes.Add(itemData);
 			}
 
-			recipeGrid.SetDatas(availableRecipes);
+			recipeGrid.SetData(availableRecipes);
 			recipeGrid.UpdateUI();
 		}
 
@@ -87,14 +87,14 @@ namespace WitchMendokusai
 			if (percentageText == null || priceText == null)
 				return;
 
-			if (recipeGrid.CurSlotIndex < 0 || recipeGrid.CurSlotIndex >= recipeGrid.Datas.Count)
+			if (recipeGrid.CurSlotIndex < 0 || recipeGrid.CurSlotIndex >= recipeGrid.Data.Count)
 			{
 				percentageText.text = "_";
 				priceText.text = "_";
 				return;
 			}
 
-			ItemData itemData = recipeGrid.Datas[recipeGrid.CurSlotIndex];
+			ItemData itemData = recipeGrid.Data[recipeGrid.CurSlotIndex];
 			Recipe recipe = itemData.Recipes[0];
 
 			percentageText.text = $"{recipe.Percentage}%";
@@ -163,7 +163,7 @@ namespace WitchMendokusai
 				return;
 			}
 
-			ItemData itemData = recipeGrid.Datas[recipeGrid.CurSlotIndex];
+			ItemData itemData = recipeGrid.Data[recipeGrid.CurSlotIndex];
 			Recipe recipe = itemData.Recipes[0];
 
 			// Has Ingredients

@@ -1,9 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.IO;
 using UnityEngine;
-using static WitchMendokusai.SOHelper;
 
 namespace WitchMendokusai
 {
@@ -44,7 +42,7 @@ namespace WitchMendokusai
 		[field: SerializeField] public FloatVariable DashSpeed { get; private set; }
 
 		[field: SerializeField] public MonsterObjectVariable LastHitMonsterObject { get; private set; }
-		[field: SerializeField] public ItemVariable LastEquipedItem { get; private set; }
+		[field: SerializeField] public ItemVariable LastEquippedItem { get; private set; }
 
 		[field: Space(10), Header("Buffer")]
 		[field: SerializeField] public QuestSOBuffer QuestDataBuffer { get; private set; }

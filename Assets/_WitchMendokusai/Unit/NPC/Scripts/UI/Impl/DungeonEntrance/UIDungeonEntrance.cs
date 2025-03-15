@@ -42,7 +42,7 @@ namespace WitchMendokusai
 
 		public override void SetNPC(NPCObject npc)
 		{
-			dungeons = npc.Data.Dungeons;
+			dungeons = NPCUtil.GetDungeons(npc.Data);
 
 			if (dungeons == null || dungeons.Count == 0)
 				Debug.LogError("No Dungeon Data");

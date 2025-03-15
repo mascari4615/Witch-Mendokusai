@@ -18,7 +18,7 @@ namespace WitchMendokusai
 		{
 			for (int i = startIndex; i < Capacity; i++)
 			{
-				if (Datas[i] == null)
+				if (Data[i] == null)
 					return i;
 			}
 			return NONE;
@@ -28,7 +28,7 @@ namespace WitchMendokusai
 		{
 			for (int i = startIndex; i < Capacity; i++)
 			{
-				Item cur = Datas[i];
+				Item cur = Data[i];
 				if (cur == null)
 					continue;
 
@@ -44,7 +44,7 @@ namespace WitchMendokusai
 		{
 			for (int i = startIndex; i < Capacity; i++)
 			{
-				Item cur = Datas[i];
+				Item cur = Data[i];
 				if (cur == null)
 					continue;
 
@@ -78,13 +78,13 @@ namespace WitchMendokusai
 						// 기존 아이템 슬롯을 찾은 경우, 양 증가시키고 초과량 존재 시 amount에 초기화
 						if (index != NONE)
 						{
-							if (Datas[index].IsMax)
+							if (Data[index].IsMax)
 							{
 								continue;
 							}
 							else
 							{
-								amount = Datas[index].AddAmountAndGetExcess(amount);
+								amount = Data[index].AddAmountAndGetExcess(amount);
 								UpdateSlot(index);
 							}
 						}
@@ -112,7 +112,7 @@ namespace WitchMendokusai
 							newItem.SetAmount(amount);
 
 							// 슬롯에 추가
-							Datas[index] = newItem;
+							Data[index] = newItem;
 
 							// 남은 개수 계산
 							amount = (amount > itemData.MaxAmount) ? (amount - itemData.MaxAmount) : 0;
@@ -134,7 +134,7 @@ namespace WitchMendokusai
 					if (index != NONE)
 					{
 						// 아이템을 생성하여 슬롯에 추가
-						Datas[index] = itemData.CreateItem();
+						Data[index] = itemData.CreateItem();
 						amount = 0;
 
 						UpdateSlot(index);
@@ -155,13 +155,13 @@ namespace WitchMendokusai
 					}
 
 					// 아이템을 생성하여 슬롯에 추가
-					Datas[index] = itemData.CreateItem();
+					Data[index] = itemData.CreateItem();
 
 					UpdateSlot(index);
 				}
 			}
 
-			SOManager.Instance.LastEquipedItem.RuntimeValue = itemData;
+			SOManager.Instance.LastEquippedItem.RuntimeValue = itemData;
 			return amount;
 		}
 
@@ -170,7 +170,7 @@ namespace WitchMendokusai
 			if (index < 0 || index >= Capacity)
 				return;
 
-			Item item = Datas[index];
+			Item item = Data[index];
 			if (item == null)
 				return;
 
@@ -178,11 +178,11 @@ namespace WitchMendokusai
 			{
 				item.SetAmount(item.Amount - amount);
 				if (item.IsEmpty)
-					Datas[index] = null;
+					Data[index] = null;
 			}
 			else
 			{
-				Datas[index] = null;
+				Data[index] = null;
 			}
 
 			UpdateSlot(index);
@@ -196,7 +196,7 @@ namespace WitchMendokusai
 		public ItemData GetItemData(int index)
 		{
 			if (!IsValidIndex(index)) return null;
-			return Datas[index]?.Data;
+			return Data[index]?.Data;
 		}
 
 		public Item GetItem(Guid? guid)
@@ -204,7 +204,7 @@ namespace WitchMendokusai
 			if (guid == null)
 				return null;
 
-			foreach (Item item in Datas)
+			foreach (Item item in Data)
 			{
 				if (item == null)
 					continue;
@@ -220,7 +220,7 @@ namespace WitchMendokusai
 		{
 			if (IsValidIndex(index) == false)
 				return null;
-			return Datas[index] ?? null;
+			return Data[index] ?? null;
 		}
 
 		public void SetItem(int index, Item item)
@@ -231,7 +231,7 @@ namespace WitchMendokusai
 				return;
 			}
 
-			Datas[index] = item;
+			Data[index] = item;
 			UpdateSlot(index);
 		}
 
@@ -243,15 +243,15 @@ namespace WitchMendokusai
 				return;
 			}
 
-			if (Datas[index] != null)
-				Datas[index].SetAmount(amount);
+			if (Data[index] != null)
+				Data[index].SetAmount(amount);
 			UpdateSlot(index);
 		}
 
 		public int GetItemAmount(int itemID)
 		{
 			int amount = 0;
-			foreach (Item item in Datas)
+			foreach (Item item in Data)
 			{
 				if (item == null)
 					continue;
@@ -278,12 +278,12 @@ namespace WitchMendokusai
 				return;
 			}
 
-			if (Datas[index] != null)
-				if (Datas[index].Data.IsCountable)
-					if (Datas[index].IsEmpty)
+			if (Data[index] != null)
+				if (Data[index].Data.IsCountable)
+					if (Data[index].IsEmpty)
 					{
 						Debug.Log($"{name} : {index} is empty");
-						Datas[index] = null;
+						Data[index] = null;
 					}
 
 			UpdateUI();
@@ -291,11 +291,11 @@ namespace WitchMendokusai
 
 		public void Load(List<InventorySlotSaveData> savedItems)
 		{
-			Datas = Enumerable.Repeat<Item>(null, Capacity = DefaultCapacity).ToList();
+			Data = Enumerable.Repeat<Item>(null, Capacity = DefaultCapacity).ToList();
 
 			foreach (InventorySlotSaveData itemData in savedItems)
 			{
-				Datas[itemData.slotIndex] = new Item(
+				Data[itemData.slotIndex] = new Item(
 					itemData.Guid,
 					SOHelper.GetItemData(itemData.itemID),
 					itemData.itemAmount);
@@ -305,11 +305,11 @@ namespace WitchMendokusai
 		public List<InventorySlotSaveData> Save()
 		{
 			List<InventorySlotSaveData> InventoryData = new(Capacity);
-			for (int i = 0; i < Datas.Count; i++)
+			for (int i = 0; i < Data.Count; i++)
 			{
-				if (Datas[i] == null)
+				if (Data[i] == null)
 					continue;
-				InventoryData.Add(new InventorySlotSaveData(i, Datas[i]));
+				InventoryData.Add(new InventorySlotSaveData(i, Data[i]));
 			}
 			// Debug.Log($"InventoryData.Count: {InventoryData.Count}");
 			return InventoryData;
@@ -317,7 +317,7 @@ namespace WitchMendokusai
 
 		public override void OnAfterDeserialize()
 		{
-			Datas = Enumerable.Repeat<Item>(null, Capacity = DefaultCapacity).ToList();
+			Data = Enumerable.Repeat<Item>(null, Capacity = DefaultCapacity).ToList();
 		}
 	}
 }

@@ -137,7 +137,7 @@ namespace WitchMendokusai
 
 			// 퀘스트 초기화
 			Dictionary<int, QuestState> questStates = new();
-			foreach (var (id, state) in saveData.questStates)
+			foreach ((int id, int state) in saveData.questStates)
 			{
 				questStates.Add(id, (QuestState)state);
 				if ((QuestState)state >= QuestState.Unlocked)
@@ -153,7 +153,7 @@ namespace WitchMendokusai
 			DataManager.QuestManager.Init(saveData.runtimeQuests.ConvertAll(questData => new RuntimeQuest(questData)));
 
 			// 던전 초기화
-			foreach (var (id, dungeonData) in saveData.dungeons)
+			foreach ((int id, DungeonSaveData dungeonData) in saveData.dungeons)
 			{
 				Dungeon dungeon = GetDungeon(id);
 				dungeon.Load(dungeonData);
@@ -173,7 +173,7 @@ namespace WitchMendokusai
 				works = DataManager.WorkManager.Works,
 				questStates = DataManager.QuestManager.GetQuestStates().ToDictionary(pair => pair.Key, pair => (int)pair.Value),
 				hasRecipe = DataManager.IsRecipeUnlocked,
-				runtimeQuests = DataManager.QuestManager.Quests.Datas.Where(quest => quest.Type != QuestType.Dungeon).ToList().ConvertAll(quest => quest.Save()),
+				runtimeQuests = DataManager.QuestManager.Quests.Data.Where(quest => quest.Type != QuestType.Dungeon).ToList().ConvertAll(quest => quest.Save()),
 				gameStats = DataManager.GameStat.Save(),
 				dungeons = new()
 			};
@@ -192,7 +192,7 @@ namespace WitchMendokusai
 			}
 			else
 			{
-				DataManager.PlayFabManager.SavePlayerData(gameData);
+				DataManager.SaveData(gameData);
 			}
 		}
 	}

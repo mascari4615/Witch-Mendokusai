@@ -28,12 +28,12 @@ namespace WitchMendokusai
 
 		private void Start()
 		{
-			SOManager.Instance.LastEquipedItem.OnValueChanged += EquipItem;
+			SOManager.Instance.LastEquippedItem.OnValueChanged += EquipItem;
 		}
 		
 		public void EquipItem()
 		{
-			toolTipStacks.Enqueue(SOManager.Instance.LastEquipedItem.RuntimeValue);
+			toolTipStacks.Enqueue(SOManager.Instance.LastEquippedItem.RuntimeValue);
 
 			if (showToolTipLoop == null)
 				showToolTipLoop = StartCoroutine(ShowToolTips());

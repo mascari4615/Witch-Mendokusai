@@ -34,7 +34,7 @@ namespace WitchMendokusai
 		public void StartChat(NPCObject npc, Action action = null)
 		{
 			// TODO: CSV가 아니라 스크립터블 오브젝트로 관리 가능하게
-			if (ChatManager.Instance.TryGetChatData(npc.UnitData.ID.ToString(), out List<LineData> curChatDatas) == false)
+			if (ChatManager.Instance.TryGetChatData(npc.UnitData.ID.ToString(), out List<LineData> curChatData) == false)
 			{
 				Debug.LogWarning($"ChatData not found: {npc.UnitData.ID}");
 				action?.Invoke();
@@ -49,10 +49,10 @@ namespace WitchMendokusai
 
 			GameManager.Instance.IsChatting = true;
 
-			StartCoroutine(ChatLoop(curChatDatas));
+			StartCoroutine(ChatLoop(curChatData));
 		}
 
-		private IEnumerator ChatLoop(List<LineData> curChatDatas)
+		private IEnumerator ChatLoop(List<LineData> curChatData)
 		{
 			StartCoroutine(BubbleLoop());
 
@@ -67,7 +67,7 @@ namespace WitchMendokusai
 
 			unitImage.color = Color.white;
 
-			foreach (LineData lineData in curChatDatas)
+			foreach (LineData lineData in curChatData)
 			{
 				// TODO: 유닛 이미지 바리에이션 어떻게 저장하고 불러온 것인지?
 				Unit unit = null;

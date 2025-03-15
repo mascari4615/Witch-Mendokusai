@@ -59,7 +59,7 @@ namespace WitchMendokusai
 				}
 
 				UIItemSlot slot = Slots[i] as UIItemSlot;
-				Item item = inventory.Datas.ElementAtOrDefault(i);
+				Item item = inventory.Data.ElementAtOrDefault(i);
 
 				slot.canHold = filter == ItemType.None;
 

@@ -33,9 +33,9 @@ namespace WitchMendokusai
 				if (DataManager.Instance.IsDataLoaded == false)
 					continue;
 
-				int workableDollCount = SOManager.Instance.DollBuffer.Datas.Count;
+				int workableDollCount = SOManager.Instance.DollBuffer.Data.Count;
 				workableDollCount -= workManager.GetWorkCount(WorkListType.DollWork) + workManager.GetWorkCount(WorkListType.DummyWork);
-				text.text = $"{workableDollCount}/{SOManager.Instance.DollBuffer.Datas.Count} 인형";
+				text.text = $"{workableDollCount}/{SOManager.Instance.DollBuffer.Data.Count} 인형";
 			}
 		}
 	}

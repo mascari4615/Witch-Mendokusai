@@ -31,4 +31,4 @@ MonoBehaviour:
   - Type: 1
     DataSOs:
     - {fileID: 11400000, guid: 78fff8d602f415043ab8f466568758a3, type: 2}
-  <QuestDatas>k__BackingField: []
+  <QuestData>k__BackingField: []

@@ -7,6 +7,7 @@ using UnityEngine.UI;
 
 namespace WitchMendokusai
 {
+	// TODO: SceneManager
 	// https://wergia.tistory.com/220
 	public class UISceneLoading : MonoBehaviour
 	{

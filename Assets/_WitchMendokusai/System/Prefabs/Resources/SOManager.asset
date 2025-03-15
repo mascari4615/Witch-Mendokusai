@@ -12,16 +12,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: be38740a3daafc8448f574f4a7873c20, type: 3}
   m_Name: SOManager
   m_EditorClassIdentifier: 
-  <GameStat>k__BackingField: {fileID: 11400000, guid: 48fc6905e6dc18b49966e677e763635c, type: 2}
   <InvincibleTime>k__BackingField: {fileID: 11400000, guid: 7e722dc07ec340d479558ceb2eec1f67, type: 2}
   <JoystickX>k__BackingField: {fileID: 11400000, guid: 64d14713df42cdb45bb9d5777014f481, type: 2}
   <JoystickY>k__BackingField: {fileID: 11400000, guid: f3d01bea6a0a79043b38712d843e2c8a, type: 2}
   <DashDuration>k__BackingField: {fileID: 11400000, guid: 97b54e68988d58f4ca1991b411678dbc, type: 2}
   <DashSpeed>k__BackingField: {fileID: 11400000, guid: c44df19b8e3cfdd41a320b9d89a3c3af, type: 2}
   <LastHitMonsterObject>k__BackingField: {fileID: 11400000, guid: 02651b9ff301b0e4fac2091ae8860410, type: 2}
-  <Nyang>k__BackingField: {fileID: 11400000, guid: 714fbe6124e7b924287a4483e7c27394, type: 2}
-  <VQExp>k__BackingField: {fileID: 11400000, guid: 9019d3cd648bf3543b8819b272e86e5f, type: 2}
-  <LastEquipedItem>k__BackingField: {fileID: 11400000, guid: 6a7cb1e0ea5550d43bcc42699083f84d, type: 2}
+  <LastEquippedItem>k__BackingField: {fileID: 11400000, guid: 6a7cb1e0ea5550d43bcc42699083f84d, type: 2}
   <QuestDataBuffer>k__BackingField: {fileID: 11400000, guid: 34d6a627ec27aeb4c826fd5dcd7fc39f, type: 2}
   <QuestBuffer>k__BackingField: {fileID: 11400000, guid: 3ec24248882b83e458342ca2d5cc9992, type: 2}
   <DollBuffer>k__BackingField: {fileID: 11400000, guid: d32743f508b1fb4498e16b9522cfa5b4, type: 2}

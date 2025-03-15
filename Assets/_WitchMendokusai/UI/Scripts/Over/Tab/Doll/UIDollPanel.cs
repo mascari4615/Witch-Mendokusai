@@ -90,7 +90,7 @@ namespace WitchMendokusai
 				equipmentSlots[0].transform.parent.gameObject.SetActive(true);
 				selectDollButton.SetActive(true);
 
-				List<EquipmentData> equipments = DataManager.Instance.GetEquipmentDatas(curDollID);
+				List<EquipmentData> equipments = DataManager.Instance.GetEquipmentData(curDollID);
 				for (int i = 0; i < equipments.Count; i++)
 					equipmentSlots[i].SetSlot(equipments[i]);
 			}
@@ -120,7 +120,7 @@ namespace WitchMendokusai
 
 			// 선택한 슬롯이 비어있지 않은 경우
 			// 이 장비를 이미 이 인형이나 다른 인형이 착용하고 있는지 확인
-			foreach (Doll doll in SOManager.Instance.DollBuffer.Datas)
+			foreach (Doll doll in SOManager.Instance.DollBuffer.Data)
 			{
 				for (int ei = 0; ei < doll.EquipmentGuids.Count; ei++)
 				{

@@ -13,21 +13,20 @@ namespace WitchMendokusai
 		[SerializeField] private TextMeshProUGUI copyRightText;
 		[SerializeField] private int year = 2024;
 
-		private void Start()
+		private IEnumerator Start()
 		{
-			Invoke(nameof(TryLogin), 1f);
+			Debug.Log($"{nameof(LobbyManager)} {nameof(Start)}");
+			Debug.Log($"Application.version: {Application.version}");
 			UpdateUI();
+
+			yield return StartCoroutine(DataManager.Instance.Init());
+			DataManager.Instance.Login();
 		}
 
 		private void UpdateUI()
 		{
 			versionText.text = $"마녀여 영원히 v{Application.version}";
 			copyRightText.text = $"© {year} {Application.companyName}";
-		}
-
-		private void TryLogin()
-		{
-			DataManager.Instance.PlayFabManager.Login();
 		}
 
 		public void StartGame()

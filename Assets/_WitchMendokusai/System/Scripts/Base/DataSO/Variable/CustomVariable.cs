@@ -18,7 +18,7 @@ namespace WitchMendokusai
 				OnValueChanged?.Invoke();
 			}
 		}
-		[System.NonSerialized] private T _runtimeValue;
+		[NonSerialized] private T _runtimeValue;
 		// [field: SerializeField] public GameEvent GameEvent { get; private set; }
 		public Action OnValueChanged { get; set; }
 

@@ -19,7 +19,7 @@ namespace WitchMendokusai
 		public override bool Remove(CardData card)
 		{
 			if (applyEffect)
-				if (Datas.Contains(card))
+				if (Data.Contains(card))
 					card.OnRemove();
 
 			return base.Remove(card);

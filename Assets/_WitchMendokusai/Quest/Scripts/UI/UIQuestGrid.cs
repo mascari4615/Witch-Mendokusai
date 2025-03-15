@@ -15,7 +15,7 @@ namespace WitchMendokusai
 
 		[SerializeField] private bool resetFilterOnEnable = true;
 
-		private RuntimeQuest CurQuest => Datas.Count > 0 ? Datas[CurSlotIndex] : null;
+		private RuntimeQuest CurQuest => Data.Count > 0 ? Data[CurSlotIndex] : null;
 
 		public override bool Init()
 		{
@@ -51,13 +51,13 @@ namespace WitchMendokusai
 		{
 			Init();
 
-			if (CurSlotIndex >= Datas.Count)
-				CurSlotIndex = Datas.Count - 1;
+			if (CurSlotIndex >= Data.Count)
+				CurSlotIndex = Data.Count - 1;
 
 			int activeSlotCount = 0;
 			foreach (UIQuestSlot slot in Slots.Cast<UIQuestSlot>())
 			{
-				RuntimeQuest quest = Datas.ElementAtOrDefault(slot.Index);
+				RuntimeQuest quest = Data.ElementAtOrDefault(slot.Index);
 
 				if (quest == null)
 				{

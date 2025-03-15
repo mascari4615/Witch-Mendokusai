@@ -8,12 +8,12 @@ namespace WitchMendokusai
 		[SerializeField] private TextAsset chatScripts;
 		private readonly Dictionary<string, List<LineData>> chatDataDic = new();
 
-		public bool TryGetChatData(string eventName, out List<LineData> chatDatas)
+		public bool TryGetChatData(string eventName, out List<LineData> chatData)
 		{
 			if (chatDataDic.Count == 0)
 				InitChatDic();
 
-			return chatDataDic.TryGetValue(eventName, out chatDatas);
+			return chatDataDic.TryGetValue(eventName, out chatData);
 		}
 
 		private void InitChatDic()
@@ -31,7 +31,7 @@ namespace WitchMendokusai
 			string[] rows = csvText.Split(new[] { '\n' });
 
 			string eventName = string.Empty;
-			List<LineData> lineDatas = new();
+			List<LineData> lineData = new();
 
 			for (int i = 1; i < rows.Length; i++)
 			{
@@ -39,20 +39,20 @@ namespace WitchMendokusai
 
 				if (columns[0] == "end")
 				{
-					chatDataDic.Add(eventName, lineDatas);
+					chatDataDic.Add(eventName, lineData);
 					eventName = string.Empty;
-					lineDatas = new List<LineData>();
+					lineData = new List<LineData>();
 					continue;
 				}
 
 				if (columns[0] != string.Empty)
 				{
 					eventName = columns[0];
-					lineDatas = new List<LineData>();
+					lineData = new List<LineData>();
 				}
 
 				LineData chatData = new(ref columns);
-				lineDatas.Add(chatData);
+				lineData.Add(chatData);
 			}
 		}
 	}

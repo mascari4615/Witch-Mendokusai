@@ -19,7 +19,8 @@ namespace WitchMendokusai
 		{
 			// 로딩 시 강제로 로비로 이동
 			// 인게임 씬에서 에디터 플레이 시 Awake, Start 등이 호출 될 때 로드가 안된 상태로 데이터에 접근해서 오류가 생기는 문제 방지
-			SceneManager.LoadScene("Lobby");
+			if (SceneManager.GetActiveScene().name != "Lobby")
+				SceneManager.LoadScene("Lobby");
 
 			gameObject.SetActive(true);
 			progressBar.fillAmount = 0f;
@@ -76,7 +77,12 @@ namespace WitchMendokusai
 					SOManager.Instance.DataSOs[type] = new();
 
 				foreach (T asset in assets)
+				{
 					SOManager.Instance.DataSOs[type][asset.ID] = asset;
+					// Debug.Log($"Load {type.Name}: {asset.ID}, {SOManager.Instance.DataSOs[type][asset.ID].name}");
+				}
+
+				// Debug.Log($"{typeof(T).Name} 로드 완료, {assets.Count}개");
 			}
 			else
 			{

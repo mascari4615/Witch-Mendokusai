@@ -11,10 +11,9 @@ namespace WitchMendokusai
 	{
 		[field: Header("_" + nameof(NPC))]
 		[field: SerializeField] public List<NPCPanelInfo> PanelInfos { get; private set; }
-		[field: SerializeField] public List<QuestSO> QuestDatas { get; private set; }
+		[field: SerializeField] public List<QuestSO> QuestData { get; private set; }
 
 		public List<ItemDataBuffer> ItemDataBuffers => GetAllDataSOs(NPCType.Shop).Cast<ItemDataBuffer>().ToList();
-		public List<Dungeon> Dungeons => GetAllDataSOs(NPCType.DungeonEntrance).Cast<Dungeon>().ToList();
 
 		private List<DataSO> GetAllDataSOs(NPCType npcType)
 		{

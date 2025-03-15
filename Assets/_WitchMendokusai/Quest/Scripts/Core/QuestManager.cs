@@ -34,12 +34,12 @@ namespace WitchMendokusai
 
 		public RuntimeQuest GetQuest(QuestSO questData)
 		{
-			return Quests.Datas.Find(x => x.SO?.ID == questData.ID);
+			return Quests.Data.Find(x => x.SO?.ID == questData.ID);
 		}
 
 		public RuntimeQuest GetQuest(Guid? guid)
 		{
-			return Quests.Datas.Find(x => x.Guid == guid);
+			return Quests.Data.Find(x => x.Guid == guid);
 		}
 
 		public void UnlockQuest(QuestSO questData)
@@ -77,12 +77,12 @@ namespace WitchMendokusai
 
 		public void RemoveQuests(QuestType questType)
 		{
-			Quests.Datas.RemoveAll(x => x.Type == questType);
+			Quests.Data.RemoveAll(x => x.Type == questType);
 		}
 
 		public int GetQuestCount(QuestType questType)
 		{
-			return Quests.Datas.FindAll(x => x.Type == questType).Count;
+			return Quests.Data.FindAll(x => x.Type == questType).Count;
 		}
 	}
 }

@@ -34,8 +34,8 @@ namespace WitchMendokusai
 
 					RuntimeQuest quest = QuestManager.Instance.GetQuest(slot.DataSO as QuestSO);
 
-					// QuestManager.Instance.Quests.Datas ToString
-					// Debug.Log($"Q {QuestManager.Instance.Quests.Datas.Select(x => x.SO.ID.ToString()).Aggregate((x, y) => $"{x}, {y}")}");
+					// QuestManager.Instance.Quests.Data ToString
+					// Debug.Log($"Q {QuestManager.Instance.Quests.Data.Select(x => x.SO.ID.ToString()).Aggregate((x, y) => $"{x}, {y}")}");
 					// Debug.Log($"ClickClick {slot.name} | {quest} | {slot.DataSO as QuestSO} | {slot.DataSO}");
 					questToolTip.SetQuest(quest);
 					questToolTip.UpdateUI();

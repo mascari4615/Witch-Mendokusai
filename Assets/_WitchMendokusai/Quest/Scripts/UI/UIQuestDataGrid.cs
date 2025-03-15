@@ -12,7 +12,7 @@ namespace WitchMendokusai
 			for (int i = 0; i < Slots.Count; i++)
 			{
 				UIQuestSlot slot = Slots[i] as UIQuestSlot;
-				QuestSO quest = DataBufferSO.Datas.ElementAtOrDefault(i);
+				QuestSO quest = DataBufferSO.Data.ElementAtOrDefault(i);
 
 				if (quest == null)
 				{

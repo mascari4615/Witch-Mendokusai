@@ -104,14 +104,14 @@ namespace WitchMendokusai
 			SetState(CardUIState.Wait);
 			CardBuffer selectedCardBuffer = SOManager.Instance.SelectedCardBuffer;
 
-			while (selectedCardBuffer.Datas.Count > 0)
-				selectedCardBuffer.Remove(selectedCardBuffer.Datas[^1]);
+			while (selectedCardBuffer.Data.Count > 0)
+				selectedCardBuffer.Remove(selectedCardBuffer.Data[^1]);
 			selectedCardBuffer.Clear();
 
 			foreach (List<CardData> cardDataBuffer in cardDataBuffers)
 				cardDataBuffer.Clear();
 
-			List<EquipmentData> equipments = DataManager.Instance.GetEquipmentDatas(DataManager.Instance.CurDollID);
+			List<EquipmentData> equipments = DataManager.Instance.GetEquipmentData(DataManager.Instance.CurDollID);
 			for (int i = 0; i < equipments.Count; i++)
 			{
 				if (equipments[i] == null)
@@ -122,7 +122,7 @@ namespace WitchMendokusai
 
 		private void ShuffleDeck()
 		{
-			List<EquipmentData> equipments = DataManager.Instance.GetEquipmentDatas(DataManager.Instance.CurDollID);
+			List<EquipmentData> equipments = DataManager.Instance.GetEquipmentData(DataManager.Instance.CurDollID);
 			deckIdMapping = deckIdMapping.OrderBy(m => Random.Range(0, 100)).ToList();
 			for (int i = 0; i < deckSelectButtons.Count; i++)
 				deckSelectButtons[i].SetSlot(equipments[deckIdMapping[i]]);
@@ -175,8 +175,8 @@ namespace WitchMendokusai
 					continue;
 				}
 
-				if (selectedCardBuffer.Datas.Count > 0 &&
-					selectedCardBuffer.Datas.Where(m => m.ID == randomCard.ID).Count() >= randomCard.MaxStack)
+				if (selectedCardBuffer.Data.Count > 0 &&
+					selectedCardBuffer.Data.Where(m => m.ID == randomCard.ID).Count() >= randomCard.MaxStack)
 				{
 					// Debug.LogWarning($"MaxStack is Full {randomCard.ID} {randomCard.MaxStack}");
 					continue;
@@ -198,8 +198,8 @@ namespace WitchMendokusai
 
 			SetState(CardUIState.SelectCard);
 
-			List<EquipmentData> equipmentDatas = DataManager.Instance.GetEquipmentDatas(DataManager.Instance.CurDollID);
-			int equipmentID = equipmentDatas[curDeckIndex].ID;
+			List<EquipmentData> equipmentData = DataManager.Instance.GetEquipmentData(DataManager.Instance.CurDollID);
+			int equipmentID = equipmentData[curDeckIndex].ID;
 
 			if (deckUIDic.TryGetValue(equipmentID, out UIDeck deckUI))
 			{
@@ -218,7 +218,7 @@ namespace WitchMendokusai
 			List<CardData> curDeckBuffer = cardDataBuffers[curDeckIndex];
 			selectedCardBuffer.Add(card);
 
-			int sameCardCount = selectedCardBuffer.Datas.Where(m => m.ID == card.ID).Count();
+			int sameCardCount = selectedCardBuffer.Data.Where(m => m.ID == card.ID).Count();
 			if (card.MaxStack == sameCardCount)
 			{
 				int cardIndex = curDeckBuffer.IndexOf(card);
@@ -231,8 +231,8 @@ namespace WitchMendokusai
 		public void ClearCardEffect()
 		{
 			CardBuffer selectedCardBuffer = SOManager.Instance.SelectedCardBuffer;
-			while (selectedCardBuffer.Datas.Count > 0)
-				selectedCardBuffer.Remove(selectedCardBuffer.Datas[^1]);
+			while (selectedCardBuffer.Data.Count > 0)
+				selectedCardBuffer.Remove(selectedCardBuffer.Data[^1]);
 		}
 	}
 }

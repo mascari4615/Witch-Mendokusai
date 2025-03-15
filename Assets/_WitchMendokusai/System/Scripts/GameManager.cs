@@ -28,7 +28,7 @@ namespace WitchMendokusai
 
 		public void InitEquipment()
 		{
-			List<EquipmentData> equipments = DataManager.Instance.GetEquipmentDatas(DataManager.Instance.CurDollID);
+			List<EquipmentData> equipments = DataManager.Instance.GetEquipmentData(DataManager.Instance.CurDollID);
 			foreach (EquipmentData equipment in equipments)
 			{
 				if (equipment == null)

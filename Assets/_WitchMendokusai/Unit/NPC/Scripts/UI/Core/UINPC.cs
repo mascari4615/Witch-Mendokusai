@@ -156,16 +156,16 @@ namespace WitchMendokusai
 			questOption.Selectable.navigation = navigation;
 
 			NPC curNPCData = curNPC.UnitData as NPC;
-			List<QuestSO> questDatas = curNPCData.QuestDatas;
-			int questCount = questDatas.Count;
+			List<QuestSO> questData = curNPCData.QuestData;
+			int questCount = questData.Count;
 
 			questOption.gameObject.SetActive(questCount > 0);
 			for (int i = 0; i < questEachOptions.Length; i++)
 			{
-				if (i < questCount && QuestManager.Instance.GetQuestState(questDatas[i].ID) != QuestState.Completed)
+				if (i < questCount && QuestManager.Instance.GetQuestState(questData[i].ID) != QuestState.Completed)
 				{
 					questEachOptions[i].gameObject.SetActive(true);
-					questEachOptions[i].SetSlot(questDatas[i]);
+					questEachOptions[i].SetSlot(questData[i]);
 
 					navigation = questEachOptions[i].Selectable.navigation;
 					navigation.selectOnLeft = questOption.Selectable;
@@ -199,7 +199,7 @@ namespace WitchMendokusai
 		private void SelectQuest(int index)
 		{
 			NPC curNPCData = curNPC.UnitData as NPC;
-			QuestSO questData = curNPCData.QuestDatas[index];
+			QuestSO questData = curNPCData.QuestData[index];
 
 			QuestState state = QuestManager.Instance.GetQuestState(questData.ID);
 			switch (state)

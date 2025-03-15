@@ -16,7 +16,7 @@ namespace WitchMendokusai
 			else
 			{
 				itemCountDic.Add(itemData.ID, 1);
-				Datas.Add(itemData);
+				Data.Add(itemData);
 			}
 		}
 
@@ -28,7 +28,7 @@ namespace WitchMendokusai
 				if (itemCountDic[itemData.ID] <= 0)
 				{
 					itemCountDic.Remove(itemData.ID);
-					Datas.Remove(itemData);
+					Data.Remove(itemData);
 				}
 				return true;
 			}
@@ -37,7 +37,7 @@ namespace WitchMendokusai
 
 		public override void Clear()
 		{
-			Datas.Clear();
+			Data.Clear();
 			itemCountDic.Clear();
 		}
 	}

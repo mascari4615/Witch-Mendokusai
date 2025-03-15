@@ -9,26 +9,26 @@ namespace WitchMendokusai
 	public abstract class DataBufferSO<T> : DataSO, ISerializationCallbackReceiver
 	{
 		[field: SerializeField] public List<T> InitItems { get; private set; }
-		[field: NonSerialized] public List<T> Datas { get; protected set; } = new();
+		[field: NonSerialized] public List<T> Data { get; protected set; } = new();
 
 		[field: NonSerialized] public List<IUI> UIs { get; private set; } = new();
 
 		public virtual void Add(T t)
 		{
-			Datas.Add(t);
+			Data.Add(t);
 			UpdateUI();
 		}
 
 		public virtual bool Remove(T t)
 		{
-			bool removeResult = Datas.Remove(t);
+			bool removeResult = Data.Remove(t);
 			UpdateUI();
 			return removeResult;
 		}
 
 		public virtual void Clear()
 		{
-			Datas.Clear();
+			Data.Clear();
 			UpdateUI();
 		}
 
@@ -39,9 +39,9 @@ namespace WitchMendokusai
 		public virtual void OnAfterDeserialize()
 		{
 			if (InitItems != null && InitItems.Count > 0)
-				Datas = InitItems.ToList();
+				Data = InitItems.ToList();
 			else
-				Datas = new();
+				Data = new();
 		}
 		public virtual void OnBeforeSerialize() { }
 	}

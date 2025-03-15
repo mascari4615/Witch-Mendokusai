@@ -4,8 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Serialization;
-using System.IO;
-using Newtonsoft.Json;
 using static WitchMendokusai.SOHelper;
 
 namespace WitchMendokusai
@@ -20,28 +18,21 @@ namespace WitchMendokusai
 		public DungeonStat DungeonStat { get; private set; } = new();
 		public readonly Dictionary<string, (Recipe recipe, int itemID)> CraftDic = new();
 
-		private SOManager SOManager;
-
 		public bool IsDataLoaded => SaveManager.IsDataLoaded;
 
-		public int CurDollID;
-		public int DummyDollCount;
-		public Dictionary<int, bool> IsRecipeUnlocked = new();
+		public int CurDollID { get; set; }
+		public int DummyDollCount { get; set; }
+		public Dictionary<int, bool> IsRecipeUnlocked { get; set; } = new();
 
 		public string localDisplayName = "";
 
-		public PlayFabManager PlayFabManager { get; private set; }
+		private PlayFabManager playFabManager;
 
-		protected override void Awake()
+		public IEnumerator Init()
 		{
-			base.Awake();
-			StartCoroutine(Init());
-		}
-
-		private IEnumerator Init()
-		{
-			SOManager = SOManager.Instance;
-			PlayFabManager = GetComponent<PlayFabManager>();
+			Debug.Log($"{nameof(DataManager)} {nameof(Init)}");
+			
+			playFabManager = GetComponent<PlayFabManager>();
 			TimeManager.Instance.RegisterCallback(WorkManager.TickEachWorks);
 
 			yield return StartCoroutine(DataLoader.Instance.LoadData());
@@ -61,21 +52,12 @@ namespace WitchMendokusai
 			}
 		}
 
-		public Color GetGradeColor(ItemGrade grade) => grade switch
-		{
-			ItemGrade.Common => Color.white,
-			ItemGrade.Uncommon => new Color(43 / 255f, 123 / 255f, 1),
-			ItemGrade.Rare => new Color(242 / 255f, 210 / 255f, 0),
-			ItemGrade.Legendary => new Color(1, 0, 142 / 255f),
-			_ => throw new ArgumentOutOfRangeException(nameof(ItemGrade), grade, null)
-		};
-
 		private void OnApplicationQuit() => SaveManager.SaveData();
 
-		public List<EquipmentData> GetEquipmentDatas(int dollID)
+		public List<EquipmentData> GetEquipmentData(int dollID)
 		{
 			Doll doll = GetDoll(dollID);
-			List<EquipmentData> equipmentDatas = new()
+			List<EquipmentData> equipmentData = new()
 			{
 				doll.SignatureEquipment
 			};
@@ -84,18 +66,33 @@ namespace WitchMendokusai
 			foreach (Guid? guid in guids)
 			{
 				if (guid == null)
-					equipmentDatas.Add(null);
+					equipmentData.Add(null);
 				else
-					equipmentDatas.Add(SOManager.ItemInventory.GetItem(guid)?.Data as EquipmentData);
+					equipmentData.Add(SOManager.Instance.ItemInventory.GetItem(guid)?.Data as EquipmentData);
 			}
 
-			return equipmentDatas;
+			return equipmentData;
 		}
 
 		public void SetCurDoll(int dollID)
 		{
 			CurDollID = dollID;
 			SaveManager.SaveData();
+		}
+
+		public void SaveData(GameData gameData)
+		{
+			playFabManager.SavePlayerData(gameData);
+		}
+
+		public void Login()
+		{
+			playFabManager.Login();
+		}
+
+		public void CreateNewGameData()
+		{
+			SaveManager.CreateNewGameData();
 		}
 	}
 }

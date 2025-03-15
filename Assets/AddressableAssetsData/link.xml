@@ -1,0 +1,133 @@
+<linker>
+  <assembly fullname="Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+    <type fullname="ObjectWithTime" preserve="all" />
+    <type fullname="PrefabLightmapData" preserve="all" />
+    <type fullname="RotateObject" preserve="all" />
+    <type fullname="WitchMendokusai.Aspect" preserve="all" />
+    <type fullname="WitchMendokusai.BuildingData" preserve="all" />
+    <type fullname="WitchMendokusai.BulletMovement" preserve="all" />
+    <type fullname="WitchMendokusai.CardBuffer" preserve="all" />
+    <type fullname="WitchMendokusai.CardData" preserve="all" />
+    <type fullname="WitchMendokusai.DamagingObject" preserve="all" />
+    <type fullname="WitchMendokusai.Dash" preserve="all" />
+    <type fullname="WitchMendokusai.Doll" preserve="all" />
+    <type fullname="WitchMendokusai.DollBuffer" preserve="all" />
+    <type fullname="WitchMendokusai.Dungeon" preserve="all" />
+    <type fullname="WitchMendokusai.DungeonConstraint" preserve="all" />
+    <type fullname="WitchMendokusai.DungeonStage" preserve="all" />
+    <type fullname="WitchMendokusai.DungeonStatData" preserve="all" />
+    <type fullname="WitchMendokusai.EquipmentData" preserve="all" />
+    <type fullname="WitchMendokusai.EquipmentFairy" preserve="all" />
+    <type fullname="WitchMendokusai.EquipmentHulahoop" preserve="all" />
+    <type fullname="WitchMendokusai.EquipmentMagnet" preserve="all" />
+    <type fullname="WitchMendokusai.EquipmentTurret" preserve="all" />
+    <type fullname="WitchMendokusai.ExpObject" preserve="all" />
+    <type fullname="WitchMendokusai.FloatVariable" preserve="all" />
+    <type fullname="WitchMendokusai.GameStatData" preserve="all" />
+    <type fullname="WitchMendokusai.InteractiveObject" preserve="all" />
+    <type fullname="WitchMendokusai.IntVariable" preserve="all" />
+    <type fullname="WitchMendokusai.Inventory" preserve="all" />
+    <type fullname="WitchMendokusai.ItemData" preserve="all" />
+    <type fullname="WitchMendokusai.ItemDataBuffer" preserve="all" />
+    <type fullname="WitchMendokusai.ItemObject" preserve="all" />
+    <type fullname="WitchMendokusai.ItemVariable" preserve="all" />
+    <type fullname="WitchMendokusai.Monster" preserve="all" />
+    <type fullname="WitchMendokusai.MonsterObject" preserve="all" />
+    <type fullname="WitchMendokusai.MonsterObjectVariable" preserve="all" />
+    <type fullname="WitchMendokusai.MonsterWave" preserve="all" />
+    <type fullname="WitchMendokusai.NPC" preserve="all" />
+    <type fullname="WitchMendokusai.NPCFSM" preserve="all" />
+    <type fullname="WitchMendokusai.NPCMarker" preserve="all" />
+    <type fullname="WitchMendokusai.NPCObject" preserve="all" />
+    <type fullname="WitchMendokusai.ObjectData" preserve="all" />
+    <type fullname="WitchMendokusai.PickupObject" preserve="all" />
+    <type fullname="WitchMendokusai.PoolingObject" preserve="all" />
+    <type fullname="WitchMendokusai.Portal" preserve="all" />
+    <type fullname="WitchMendokusai.QuestBuffer" preserve="all" />
+    <type fullname="WitchMendokusai.QuestSO" preserve="all" />
+    <type fullname="WitchMendokusai.QuestSOBuffer" preserve="all" />
+    <type fullname="WitchMendokusai.SkillObject" preserve="all" />
+    <type fullname="WitchMendokusai.SlimeFSM" preserve="all" />
+    <type fullname="WitchMendokusai.StageObject" preserve="all" />
+    <type fullname="WitchMendokusai.SummonSkill" preserve="all" />
+    <type fullname="WitchMendokusai.Trail" preserve="all" />
+    <type fullname="WitchMendokusai.TransparentObject" preserve="all" />
+    <type fullname="WitchMendokusai.UnitStatData" preserve="all" />
+    <type fullname="WitchMendokusai.WispFSM" preserve="all" />
+    <type fullname="WitchMendokusai.WorldStage" preserve="all" />
+    <type fullname="WitchMendokusai.EffectInfo" preserve="nothing" serialized="true" />
+    <type fullname="WitchMendokusai.RewardInfo" preserve="nothing" serialized="true" />
+    <type fullname="WitchMendokusai.UnitStatInfo" preserve="nothing" serialized="true" />
+    <type fullname="WitchMendokusai.UnitStatInfos" preserve="nothing" serialized="true" />
+    <type fullname="WitchMendokusai.ItemInfo" preserve="nothing" serialized="true" />
+    <type fullname="WitchMendokusai.Recipe" preserve="nothing" serialized="true" />
+    <type fullname="WitchMendokusai.NPCPanelInfo" preserve="nothing" serialized="true" />
+    <type fullname="PrefabLightmapData/LightInfo" preserve="nothing" serialized="true" />
+    <type fullname="PrefabLightmapData/RendererInfo" preserve="nothing" serialized="true" />
+    <type fullname="WitchMendokusai.DataSOWithPercentage" preserve="nothing" serialized="true" />
+    <type fullname="WitchMendokusai.DungeonConstraintEffectInfo" preserve="nothing" serialized="true" />
+    <type fullname="WitchMendokusai.CriteriaInfo" preserve="nothing" serialized="true" />
+    <type fullname="WitchMendokusai.QuestInfo" preserve="nothing" serialized="true" />
+  </assembly>
+  <assembly fullname="BakeryRuntimeAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+    <type fullname="BakeryDirectLight" preserve="all" />
+    <type fullname="BakeryPointLight" preserve="all" />
+    <type fullname="BakerySkyLight" preserve="all" />
+  </assembly>
+  <assembly fullname="FMODUnity, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+    <type fullname="FMODUnity.StudioEventEmitter" preserve="all" />
+    <type fullname="FMOD.GUID" preserve="nothing" serialized="true" />
+    <type fullname="FMODUnity.EventReference" preserve="nothing" serialized="true" />
+  </assembly>
+  <assembly fullname="Unity.Addressables, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null" preserve="all">
+    <type fullname="UnityEngine.AddressableAssets.Addressables" preserve="all" />
+  </assembly>
+  <assembly fullname="Unity.AI.Navigation, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+    <type fullname="Unity.AI.Navigation.NavMeshSurface" preserve="all" />
+  </assembly>
+  <assembly fullname="Unity.RenderPipelines.Universal.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+    <type fullname="UnityEngine.Rendering.Universal.UniversalAdditionalLightData" preserve="all" />
+  </assembly>
+  <assembly fullname="Unity.ResourceManager, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null" preserve="all">
+    <type fullname="UnityEngine.ResourceManagement.ResourceProviders.AssetBundleProvider" preserve="all" />
+    <type fullname="UnityEngine.ResourceManagement.ResourceProviders.BundledAssetProvider" preserve="all" />
+    <type fullname="UnityEngine.ResourceManagement.ResourceProviders.InstanceProvider" preserve="all" />
+    <type fullname="UnityEngine.ResourceManagement.ResourceProviders.SceneProvider" preserve="all" />
+  </assembly>
+  <assembly fullname="UnityEngine.AIModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+    <type fullname="UnityEngine.AI.NavMeshAgent" preserve="all" />
+    <type fullname="UnityEngine.AI.NavMeshData" preserve="all" />
+  </assembly>
+  <assembly fullname="UnityEngine.AnimationModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+    <type fullname="UnityEngine.AnimationClip" preserve="all" />
+    <type fullname="UnityEngine.Animator" preserve="all" />
+    <type fullname="UnityEngine.AnimatorOverrideController" preserve="all" />
+    <type fullname="UnityEngine.RuntimeAnimatorController" preserve="all" />
+  </assembly>
+  <assembly fullname="UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+    <type fullname="UnityEngine.GameObject" preserve="all" />
+    <type fullname="UnityEngine.Light" preserve="all" />
+    <type fullname="UnityEngine.Material" preserve="all" />
+    <type fullname="UnityEngine.Mesh" preserve="all" />
+    <type fullname="UnityEngine.MeshFilter" preserve="all" />
+    <type fullname="UnityEngine.MeshRenderer" preserve="all" />
+    <type fullname="UnityEngine.Object" preserve="all" />
+    <type fullname="UnityEngine.Shader" preserve="all" />
+    <type fullname="UnityEngine.Sprite" preserve="all" />
+    <type fullname="UnityEngine.SpriteRenderer" preserve="all" />
+    <type fullname="UnityEngine.Texture2D" preserve="all" />
+    <type fullname="UnityEngine.TrailRenderer" preserve="all" />
+    <type fullname="UnityEngine.Transform" preserve="all" />
+  </assembly>
+  <assembly fullname="UnityEngine.ParticleSystemModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+    <type fullname="UnityEngine.ParticleSystem" preserve="all" />
+    <type fullname="UnityEngine.ParticleSystemRenderer" preserve="all" />
+  </assembly>
+  <assembly fullname="UnityEngine.PhysicsModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+    <type fullname="UnityEngine.BoxCollider" preserve="all" />
+    <type fullname="UnityEngine.CapsuleCollider" preserve="all" />
+    <type fullname="UnityEngine.MeshCollider" preserve="all" />
+    <type fullname="UnityEngine.Rigidbody" preserve="all" />
+    <type fullname="UnityEngine.SphereCollider" preserve="all" />
+  </assembly>
+</linker>

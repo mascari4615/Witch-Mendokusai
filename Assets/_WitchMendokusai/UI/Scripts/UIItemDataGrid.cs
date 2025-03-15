@@ -37,7 +37,7 @@ namespace WitchMendokusai
 			for (int i = 0; i < Slots.Count; i++)
 			{
 				UIItemSlot slot = Slots[i] as UIItemSlot;
-				ItemData itemData = Datas.ElementAtOrDefault(i);
+				ItemData itemData = Data.ElementAtOrDefault(i);
 
 				if (itemData == null)
 				{

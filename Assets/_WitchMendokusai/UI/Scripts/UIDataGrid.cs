@@ -8,7 +8,7 @@ namespace WitchMendokusai
 	public abstract class UIDataGrid<T> : MonoBehaviour, IUI
 	{
 		[field: SerializeField] public DataBufferSO<T> DataBufferSO { get; private set; }
-		public List<T> Datas { get; private set; } = new();
+		public List<T> Data { get; private set; } = new();
 		public List<UISlot> Slots { get; protected set; } = new();
 		public int CurSlotIndex { get; protected set; } = 0;
 		
@@ -35,7 +35,7 @@ namespace WitchMendokusai
 				return false;
 
 			if (DataBufferSO != null)
-				SetDatas(DataBufferSO.Datas);
+				SetData(DataBufferSO.Data);
 
 			if (slotsParent == null)
 				slotsParent = transform;
@@ -68,9 +68,9 @@ namespace WitchMendokusai
 			{
 				if (DataBufferSO)
 				{
-					if (i < DataBufferSO.Datas.Count)
+					if (i < DataBufferSO.Data.Count)
 					{
-						Slots[i].SetSlot(DataBufferSO.Datas[i] as DataSO);
+						Slots[i].SetSlot(DataBufferSO.Data[i] as DataSO);
 						Slots[i].gameObject.SetActive(true);
 					}
 					else
@@ -83,9 +83,9 @@ namespace WitchMendokusai
 				}
 				else
 				{
-					if (i < Datas.Count)
+					if (i < Data.Count)
 					{
-						Slots[i].SetSlot(Datas[i] as DataSO);
+						Slots[i].SetSlot(Data[i] as DataSO);
 						Slots[i].gameObject.SetActive(true);
 					}
 					else
@@ -109,22 +109,22 @@ namespace WitchMendokusai
 
 			if (clickToolTip != null)
 			{
-				if (Datas.Count == 0)
+				if (Data.Count == 0)
 					clickToolTip.Clear();
 			}
 			if (noElementInfo != null)
-				noElementInfo.SetActive(Datas.Count == 0);
+				noElementInfo.SetActive(Data.Count == 0);
 		}
 
 		public void SetDataBuffer(DataBufferSO<T> newDataBuffer)
 		{
 			DataBufferSO = newDataBuffer;
-			SetDatas(DataBufferSO.Datas);
+			SetData(DataBufferSO.Data);
 		}
 
-		public void SetDatas(List<T> newDatas)
+		public void SetData(List<T> newData)
 		{
-			Datas = newDatas;
+			Data = newData;
 		}
 
 		public void SelectSlot(int index)
