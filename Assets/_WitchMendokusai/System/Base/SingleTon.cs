@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using Unity.VisualScripting;
 using UnityEngine;
 
 namespace WitchMendokusai
@@ -17,10 +16,10 @@ namespace WitchMendokusai
 				if (instance)
 					return instance;
 
-				Object t = Resources.Load($"Singleton/{typeof(T).Name}");
+				T t = Resources.Load($"Singleton/{typeof(T).Name}") as T;
 				if (t != null)
 				{
-					instance = Instantiate(t).GetComponent<T>();
+					instance = Instantiate(t);
 					return instance;
 				}
 
