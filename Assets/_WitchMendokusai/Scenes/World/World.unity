@@ -16567,11 +16567,17 @@ MonoBehaviour:
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 0
   m_ReverseArrangement: 1
---- !u!1 &1335225368 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 8876123413888872348, guid: 542a7047172d4c34d9be71b6ff7a8e56, type: 3}
+--- !u!114 &1335225371 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7477263321026071975, guid: 542a7047172d4c34d9be71b6ff7a8e56, type: 3}
   m_PrefabInstance: {fileID: 522091337}
   m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 832c79019a80086439c1eebb9ec24392, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &1340251824
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -38474,7 +38480,7 @@ PrefabInstance:
     - target: {fileID: 2466327848240403954, guid: 3f11a0e5c30d8fc4592bfa0b6d2df051, type: 3}
       propertyPath: homeStageObject
       value: 
-      objectReference: {fileID: 1335225368}
+      objectReference: {fileID: 1335225371}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []

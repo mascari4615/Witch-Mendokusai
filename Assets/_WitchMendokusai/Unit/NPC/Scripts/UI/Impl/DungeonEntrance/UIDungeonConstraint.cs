@@ -37,28 +37,6 @@ namespace WitchMendokusai
 
 		public override void UpdateUI()
 		{
-			// dungeon.ConstraintSelected 전부 출력
-			Debug.Log($"{nameof(UpdateUI)} {dungeon.name} {dungeon.ConstraintSelected.Count}");
-			foreach (KeyValuePair<int, bool> entry in dungeon.ConstraintSelected)
-			{
-				Debug.Log($"UpdateUI {entry.Key} {entry.Value}");
-			}
-
-			Debug.Log($"===============================");
-		
-			// 임의로 모든 Dungeon의 제약을 출력
-			SOHelper.ForEach<Dungeon>(dungeon =>
-			{
-				Debug.Log($"{dungeon.name} {dungeon.ConstraintSelected.Count}, {dungeon == this.dungeon}");
-
-				foreach (KeyValuePair<int, bool> entry in dungeon.ConstraintSelected)
-				{
-					Debug.Log($"UpdateUI {entry.Key} {entry.Value}");
-				}
-			});
-			
-			Debug.Log($"===============================");
-			
 			for (int i = 0; i < constraintSlots.Count; i++)
 			{
 				if (i < dungeon.Constraints.Count)
