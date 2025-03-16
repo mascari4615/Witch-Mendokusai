@@ -119,6 +119,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   dontDestroyOnLoad: 1
   progressBar: {fileID: 8128043123550158697}
+  progressText: {fileID: 6973584461257374162}
 --- !u!1 &5401346491924168016
 GameObject:
   m_ObjectHideFlags: 0
@@ -131,7 +132,7 @@ GameObject:
   - component: {fileID: 4315978308177682166}
   - component: {fileID: 6973584461257374162}
   m_Layer: 5
-  m_Name: '[Text] LoadingText'
+  m_Name: '[Text] Progress'
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -342,7 +343,7 @@ GameObject:
   - component: {fileID: 6084524515892346191}
   - component: {fileID: 8128043123550158697}
   m_Layer: 5
-  m_Name: '[Image] LoadingBar'
+  m_Name: '[Image] Progress'
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

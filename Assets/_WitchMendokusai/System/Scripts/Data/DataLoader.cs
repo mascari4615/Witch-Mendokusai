@@ -8,12 +8,14 @@ using System.Collections;
 using UnityEngine.SceneManagement;
 using System;
 using System.Reflection;
+using TMPro;
 
 namespace WitchMendokusai
 {
 	public class DataLoader : Singleton<DataLoader>
 	{
 		[SerializeField] private Image progressBar;
+		[SerializeField] private TextMeshProUGUI progressText;
 
 		public IEnumerator LoadData()
 		{
@@ -35,11 +37,14 @@ namespace WitchMendokusai
 			{
 				float totalPercent = handles.Sum(handle => handle.PercentComplete) / handles.Count;
 				progressBar.fillAmount = totalPercent;
+				progressText.text = $"로딩 중... {totalPercent * 100f:0.0}%";
 
 				yield return null;
 			}
 
 			progressBar.fillAmount = 1f;
+			progressText.text = "로딩 완료";
+			
 			yield return new WaitForSeconds(0.5f); // 완료된 상태 잠시 표시
 			gameObject.SetActive(false);
 		}
