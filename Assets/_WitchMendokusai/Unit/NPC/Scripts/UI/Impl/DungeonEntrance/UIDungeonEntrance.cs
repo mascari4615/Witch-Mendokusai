@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace WitchMendokusai
 {
@@ -10,6 +11,7 @@ namespace WitchMendokusai
 	{
 		[SerializeField] private Transform dungeonSelectButtonParent;
 		[SerializeField] private UISlot dungeonSlot;
+		[SerializeField] private Button dungeonEnterButton;
 
 		private List<UISlot> dungeonSelectButtons;
 		private UIRewards rewardUI;
@@ -38,6 +40,10 @@ namespace WitchMendokusai
 
 			constraintUI = GetComponentInChildren<UIDungeonConstraint>(true);
 			constraintUI.Init();
+
+			dungeonSlot.Init();
+
+			dungeonEnterButton.onClick.AddListener(EnterTheDungeon);
 		}
 
 		public override void SetNPC(NPCObject npc)

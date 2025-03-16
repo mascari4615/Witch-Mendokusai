@@ -38,21 +38,22 @@ namespace WitchMendokusai
 		public override void Init()
 		{
 			dollGridUI = GetComponentInChildren<UIDollGrid>(true);
+			dollGridUI.Init();
+		
 			selectNewEquipmentInventoryUI = selectNewEquipmentPanel.GetComponentInChildren<UIItemGrid>(true);
+			selectNewEquipmentInventoryUI.Init();
 
 			selectNewEquipmentPanel.SetActive(false);
 
 			for (int i = 0; i < equipmentSlots.Count; i++)
 			{
 				equipmentSlots[i].SetSlotIndex(i);
+				equipmentSlots[i].Init();
 
-				if (i == 0)
+				if (i == 0) // 첫 번째 장비는 기본 장비로 고정됨
 					continue;
-				equipmentSlots[i].SetClickAction((slot) => { OpenChangeEuqipmentPanel(slot.Index - 1); });
+				equipmentSlots[i].SetClickAction((slot) => { OpenChangeEquipmentPanel(slot.Index - 1); });
 			}
-
-			dollGridUI.Init();
-			selectNewEquipmentInventoryUI.Init();
 
 			// 인형
 			foreach (UISlot slot in dollGridUI.Slots)
@@ -96,7 +97,7 @@ namespace WitchMendokusai
 			}
 		}
 
-		private void OpenChangeEuqipmentPanel(int equipmentIndex)
+		private void OpenChangeEquipmentPanel(int equipmentIndex)
 		{
 			targetEquipmentIndex = equipmentIndex;
 			selectNewEquipmentPanel.SetActive(true);

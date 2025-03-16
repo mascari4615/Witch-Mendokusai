@@ -69,8 +69,8 @@ namespace WitchMendokusai
 					UIPanel panel = panelUIs[npcType];
 
 					options[i].SetSlotIndex(i);
-					options[i].SetSlot(panel.PanelIcon, panel.Name, string.Empty);
 					options[i].Init();
+					options[i].SetSlot(panel.PanelIcon, panel.Name, string.Empty);
 					options[i].SetClickAction((slot) => { SetPanel(npcType); });
 				}
 			}
