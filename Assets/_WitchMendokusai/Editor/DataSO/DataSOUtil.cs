@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEditor.AddressableAssets;
 using UnityEditor.AddressableAssets.Settings;
@@ -12,20 +14,38 @@ namespace WitchMendokusai
 {
 	public static class DataSOUtil
 	{
-		public static Type GetBaseType(DataSO dataSO)
+		public static bool TryGetBaseType(DataSO dataSO, out Type baseType)
 		{
 			Type type = dataSO.GetType();
 			while (type != typeof(DataSO) && AssetPrefixes.ContainsKey(type) == false)
 				type = type.BaseType;
 
-			return type;
+			baseType = type;
+			return baseType != typeof(DataSO);
+		}
+
+		public static string GetGoodAssetName(DataSO dataSO)
+		{
+			if (TryGetBaseType(dataSO, out Type type) == false)
+			{
+				Debug.LogError("Base type not found");
+				return null;
+			}
+			return ConvertToGoodAssetName($"{AssetPrefixes[type]}_{dataSO.ID}_{dataSO.Name}");
+		}
+
+		public static string ConvertToGoodAssetName(string name)
+		{
+			// 파일 이름에 사용할 수 없는 문자와 공백을 제거
+			Regex regex = new(string.Format("[{0}]", Regex.Escape(new string(Path.GetInvalidFileNameChars()) + " ")));
+			return regex.Replace(name, string.Empty);
 		}
 
 		#region Save
 		[MenuItem("WitchMendokusai/SaveAssets")]
 		public static void SaveAssets()
 		{
-			SetupAllDataSO(SetDirty, "SaveAssets");
+			ForeachDataSO(SetDirty, "SaveAssets");
 
 			AssetDatabase.SaveAssets();
 			AssetDatabase.Refresh();
@@ -60,14 +80,18 @@ namespace WitchMendokusai
 				return;
 			}
 
-			SetupAllDataSO(SetAddressableAsset, "Addressable 설정");
+			ForeachDataSO(SetAddressableAsset, "Addressable 설정");
 
 			EditorUtility.SetDirty(settings);
 		}
 
 		public static bool SetAddressableAsset(DataSO dataSO)
 		{
-			Type type = GetBaseType(dataSO);
+			if (TryGetBaseType(dataSO, out Type type) == false)
+			{
+				Debug.LogError($"Base type not found for {dataSO.name}");
+				return false;
+			}
 
 			// Addressable Asset Settings 가져오기
 			AddressableAssetSettings settings = AddressableAssetSettingsDefaultObject.Settings;
@@ -160,13 +184,14 @@ namespace WitchMendokusai
 		}
 		#endregion
 
-		public static void SetupAllDataSO(Func<DataSO, bool> action, string taskName = "무언가")
+		public static void ForeachDataSO(Func<DataSO, bool> action, string taskName = "무언가", bool showDialog = true)
 		{
-			if (EditorUtility.DisplayDialog($"{taskName}", $"모든 DataSO에 {taskName}을 적용하시겠습니까?", "예", "아니오"))
+			if ((showDialog == false) || EditorUtility.DisplayDialog($"{taskName}", $"모든 DataSO에 {taskName}을 적용하시겠습니까?", "예", "아니오"))
 			{
 				try
 				{
-					int count = 0;
+					int successCount = 0;
+					int nonTargetCount = 0;
 
 					// 에셋 검색 시작
 					string[] guids = AssetDatabase.FindAssets("t:DataSO", new[] { BASE_DIR });
@@ -180,17 +205,31 @@ namespace WitchMendokusai
 						string path = AssetDatabase.GUIDToAssetPath(guid);
 						DataSO dataSO = AssetDatabase.LoadAssetAtPath<DataSO>(path);
 
+						if (TryGetBaseType(dataSO, out Type type) == false)
+						{
+							// Debug.LogError($"목표로 하는 타입이 아닙니다: {dataSO.name}, {dataSO.GetType()}");
+							nonTargetCount++;
+							continue;
+						}
+
 						if (dataSO != null)
 						{
-							action?.Invoke(dataSO);
-							count++;
+							bool result = action.Invoke(dataSO);
+							if (result == true)
+							{
+								successCount++;
+							}
 						}
 
 						EditorUtility.DisplayProgressBar($"{taskName} 중", $"{i + 1}/{guids.Length} 처리 중...", (float)i / guids.Length);
 					}
 
 					EditorUtility.ClearProgressBar();
-					Debug.Log($"{count}개의 DataSO에 {taskName}을 적용했습니다.");
+
+					int targetCount = guids.Length - nonTargetCount;
+					float successRate = targetCount > 0 ? successCount / (float)targetCount : 0f;
+					string detail = $"[{successCount}/({targetCount}={guids.Length}-{nonTargetCount})]";
+					Debug.Log($"{successRate:P} = {detail} | 총 {successCount}개의 DataSO에 {taskName}을 적용했습니다.");
 				}
 				catch (Exception ex)
 				{

@@ -14,20 +14,20 @@ namespace WitchMendokusai
 	{
 		private bool processBadIdDataSOs = false;
 
-		public DataSO CurDataSO { get; private set; }
+		public DataSO CurDataSO { get; private set; } = null;
 
-		private VisualElement root;
-		private VisualElement thisRoot;
-		private VisualElement badIdDataSOsTitle;
-		private VisualElement badIdDataSOsRoot;
-		private VisualElement targetDataSOsRoot;
+		private VisualElement root = null;
+		private VisualElement thisRoot = null;
+		private VisualElement badIdDataSOsTitle = null;
+		private VisualElement badIdDataSOsRoot = null;
+		private VisualElement targetDataSOsRoot = null;
 
-		private DataSOSlot origin;
-		private DataSOSlot target;
+		private DataSOSlot origin = null;
+		private DataSOSlot target = null;
 
-		private Button changeButton;
-		private Button deleteButton;
-		private Button closeButton;
+		private Button changeButton = null;
+		private Button deleteButton = null;
+		private Button closeButton = null;
 
 		public DataSO_IdChanger()
 		{
@@ -74,7 +74,7 @@ namespace WitchMendokusai
 		{
 			Debug.Log(nameof(StartProcessBadIdDataSOs));
 
-			if (DataSOWindow.Instance.BadIDDataSOs.Count == 0)
+			if (DataSOWindow.Instance.BadIdDataSOs.Count == 0)
 			{
 				Debug.Log("No bad ID DataSOs");
 				processBadIdDataSOs = false;
@@ -84,7 +84,7 @@ namespace WitchMendokusai
 
 			processBadIdDataSOs = true;
 
-			List<DataSO> curBadIdDataSOs = DataSOWindow.Instance.BadIDDataSOs.Values.First();
+			List<DataSO> curBadIdDataSOs = DataSOWindow.Instance.BadIdDataSOs.Values.First().Values.First();
 			badIdDataSOsRoot.Clear();
 			foreach (DataSO badIdData in curBadIdDataSOs)
 			{
@@ -125,8 +125,14 @@ namespace WitchMendokusai
 			if (newID == CurDataSO.ID)
 				return;
 
-			Type type = GetBaseType(CurDataSO);
-			if (DataSOWindow.Instance.DataSOs[type].TryGetValue(newID, out DataSO existingDataSO))
+			if (TryGetBaseType(CurDataSO, out Type type) == false)
+			{
+				Debug.LogError($"Base type not found for {CurDataSO.name}");
+				return;
+			}
+
+			Dictionary<int, DataSO> dataSOs = DataSOWindow.Instance.GetDataSOs(type);
+			if (dataSOs.TryGetValue(newID, out DataSO existingDataSO))
 			{
 				Debug.Log("ID already exists");
 				target.SetDataSO(existingDataSO);
@@ -152,12 +158,13 @@ namespace WitchMendokusai
 			if (newID == CurDataSO.ID)
 				return;
 
-			Type type = GetBaseType(CurDataSO);
-			if (DataSOWindow.Instance.DataSOs.TryGetValue(type, out Dictionary<int, DataSO> dataSOs) == false)
+			if (TryGetBaseType(CurDataSO, out Type type) == false)
 			{
-				Debug.Log("DataSOs not found");
-				DataSOWindow.Instance.InitDict(type);
+				Debug.LogError($"Base type not found for {CurDataSO.name}");
+				return;
 			}
+
+			Dictionary<int, DataSO> dataSOs = DataSOWindow.Instance.GetDataSOs(type);
 
 			if (dataSOs.TryGetValue(newID, out DataSO existingDataSO))
 			{
@@ -172,12 +179,17 @@ namespace WitchMendokusai
 
 				CurDataSO.ID = newID;
 
-				List<DataSO> curBadIdDataSOs = DataSOWindow.Instance.BadIDDataSOs.Values.First();
+				List<DataSO> curBadIdDataSOs = DataSOWindow.Instance.BadIdDataSOs[type].Values.First();
 				int id = curBadIdDataSOs[0].ID;
 				dataSOs.Add(newID, CurDataSO);
 				curBadIdDataSOs.Remove(CurDataSO);
 				if (curBadIdDataSOs.Count == 1)
-					DataSOWindow.Instance.BadIDDataSOs.Remove(id);
+				{
+					DataSOWindow.Instance.BadIdDataSOs[type].Remove(id);
+
+					if (DataSOWindow.Instance.BadIdDataSOs[type].Count == 0)
+						DataSOWindow.Instance.BadIdDataSOs.Remove(type);
+				}
 
 				CurDataSO = null;
 				StartProcessBadIdDataSOs();
@@ -208,15 +220,26 @@ namespace WitchMendokusai
 			if (CurDataSO == null)
 				return;
 
+			if (TryGetBaseType(CurDataSO, out Type type) == false)
+			{
+				Debug.LogError($"Base type not found for {CurDataSO.name}");
+				return;
+			}
+
 			DataSOWindow.Instance.RemoveDataSO(CurDataSO);
 
 			if (processBadIdDataSOs)
 			{
-				List<DataSO> curBadIdDataSOs = DataSOWindow.Instance.BadIDDataSOs.Values.First();
+				List<DataSO> curBadIdDataSOs = DataSOWindow.Instance.BadIdDataSOs[type].Values.First();
 				int id = curBadIdDataSOs[0].ID;
 				curBadIdDataSOs.Remove(CurDataSO);
 				if (curBadIdDataSOs.Count == 1)
-					DataSOWindow.Instance.BadIDDataSOs.Remove(id);
+				{
+					DataSOWindow.Instance.BadIdDataSOs[type].Remove(id);
+
+					if (DataSOWindow.Instance.BadIdDataSOs[type].Count == 0)
+						DataSOWindow.Instance.BadIdDataSOs.Remove(type);
+				}
 
 				StartProcessBadIdDataSOs();
 			}

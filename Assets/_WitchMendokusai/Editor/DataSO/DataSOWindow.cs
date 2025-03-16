@@ -34,8 +34,8 @@ namespace WitchMendokusai
 		public Dictionary<int, DataSOSlot> DataSOSlots { get; private set; } = new();
 		public DataSOSlot CurSlot { get; private set; } = null;
 
-		public Dictionary<Type, Dictionary<int, DataSO>> DataSOs { get; private set; } = new();
-		public Dictionary<int, List<DataSO>> BadIDDataSOs { get; private set; } = new();
+		public Dictionary<Type, Dictionary<int, DataSO>> DataSOs { get; private set; } = new(); // 직접 접근하기 보다는, GetDataSOs(Type type)를 사용할 것
+		public Dictionary<Type, Dictionary<int, List<DataSO>>> BadIdDataSOs { get; private set; } = new();
 
 		public Type CurType { get; private set; } = null;
 
@@ -45,7 +45,7 @@ namespace WitchMendokusai
 		public static void ShowDataSOWindow()
 		{
 			// Debug.Log(nameof(ShowDataSOWindow));
-			// (유틸리티 창 여부, 타이틀, 이미 창이 열려있을 때 새로 열지 여부)
+			// (유틸리티 창 여부, 타이틀, 이미 창이 열려있을 때 Focus 여부)
 			GetWindow<DataSOWindow>(false, nameof(DataSOWindow), true);
 
 			// Debug.Log($"{nameof(ShowDataSOWindow)} End : {instance}");
@@ -68,6 +68,13 @@ namespace WitchMendokusai
 			}
 
 			DataSOs = new();
+
+			bool initDictResult = InitDict();
+			if (initDictResult == false)
+			{
+				Debug.LogError($"{nameof(OnEnable)} 중 오류 발생: InitDict 실패");
+				return;
+			}
 
 			InitEnumData<UnitStatData, UnitStatType>();
 			InitEnumData<GameStatData, GameStatType>();
@@ -114,20 +121,20 @@ namespace WitchMendokusai
 			// Debug.Log($"{nameof(CreateGUI)} End");
 		}
 
-		public void UpdateGrid(bool selectFirst = true)
+		// 창이 한 번이라도 열려 Grid가 존재한다면 Grid 갱신 후 true 반환
+		public bool UpdateGrid(bool selectFirst = true)
 		{
-			// Debug.Log($"{nameof(UpdateGrid)}");
-
 			VisualElement grid = rootVisualElement.Q<VisualElement>(name: "Grid");
 			if (grid == null)
 			{
-				// Debug.LogWarning("Grid이 없습니다.");
+				// 아직 창이 열리지 않아 Grid가 만들어지지 않은 경우
+				// Debug.LogWarning("Grid가 없습니다.");
 				// CreateGUI();
-				return;
+				return false;
 			}
 			grid.Clear();
 
-			InitDict(CurType);
+			// InitDict(CurType);
 			Dictionary<int, DataSO> dataSOs = DataSOs[CurType];
 
 			DataSOSlots.Clear();
@@ -150,111 +157,131 @@ namespace WitchMendokusai
 			}
 
 			Repaint();
-
-			// Debug.Log($"{nameof(UpdateGrid)} End");
+			return true;
 		}
 
 		public void SetType(Type type)
 		{
 			// TODO: 드롭박스 텍스트 변경
-			// Debug.Log($"{nameof(SetType)} <{type.Name}>");
 			CurType = type;
 			UpdateGrid();
-			// Debug.Log($"{nameof(SetType)} End");
 		}
 
-		public void InitDict(Type type)
+		[MenuItem("WitchMendokusai/SaveAssets")]
+		private bool InitDict()
 		{
-			// Debug.Log($"{nameof(InitDic)} <{type.Name}>");
+			DataSOs.Clear();
+			foreach (Type type in AssetPrefixes.Keys)
+				DataSOs[type] = new();
 
-			Dictionary<int, DataSO> dic = DataSOs[type] = new();
-			InitDic(ref dic, type, BASE_DIR);
-			// SaveAssets();
-
-			if (BadIDDataSOs.Count > 0)
-				IdChanger.StartProcessBadIdDataSOs();
-
-			// Debug.Log($"{nameof(InitDic)} End");
-
-			void InitDic(ref Dictionary<int, DataSO> dic, Type type, string dirPath, bool searchSubDir = true)
+			try
 			{
-				const string extension = ".asset";
+				ForeachDataSO((dataSO) => ProcessDataSO(dataSO), nameof(InitDict), showDialog: false);
+				if (BadIdDataSOs.Count > 0)
+					IdChanger.StartProcessBadIdDataSOs();
 
-				DirectoryInfo dir = new(dirPath);
-				foreach (FileInfo file in dir.GetFiles())
+				return true;
+			}
+			catch (Exception ex)
+			{
+				Debug.LogError($"{nameof(InitDict)} 중 오류 발생: {ex.Message}");
+				return false;
+			}
+			
+			bool ProcessDataSO(DataSO dataSO)
+			{
+				try
 				{
-					if (string.Compare(file.Extension, extension, StringComparison.Ordinal) != 0)
-						continue;
-
-					string filePath = $"{dirPath}/{file.Name}";
-					Type fileType = AssetDatabase.GetMainAssetTypeAtPath(filePath);
-
-					// 만약 type이 T이거나 T의 하위 클래스가 아니면 Continue
-					if ((fileType != type) && (fileType.IsSubclassOf(type) == false))
-						continue;
-
-					DataSO asset = AssetDatabase.LoadAssetAtPath<DataSO>(filePath);
-					if (dic.ContainsKey(asset.ID))
+					if (TryGetBaseType(dataSO, out Type type) == false)
 					{
-						Debug.LogWarning($"이미 존재하는 키입니다. {file.Name}");
-
-						if (BadIDDataSOs.ContainsKey(asset.ID) == false)
-						{
-							BadIDDataSOs.Add(asset.ID, new());
-							if (BadIDDataSOs[asset.ID].Contains(dic[asset.ID]) == false)
-								BadIDDataSOs[asset.ID].Add(dic[asset.ID]);
-						}
-
-						if (BadIDDataSOs[asset.ID].Contains(asset) == false)
-							BadIDDataSOs[asset.ID].Add(asset);
+						Debug.LogWarning($"Base type not found: {dataSO.name}");
+						return false;
 					}
-					else
+
+					// Debug.Log($"ProcessDataSO({dataSO.ID}, {dataSO.Name}): to {type}");
+				
+					Dictionary<int, DataSO> dataSOs = DataSOs[type];
+
+					if (dataSOs.ContainsKey(dataSO.ID) == true)
 					{
-						dic.Add(asset.ID, asset);
-
-						string goodName = GetGoodName(asset);
-						if (asset.name.Equals(goodName) == false)
-						{
-							Debug.Log($"에셋 이름을 변경합니다. {asset.name} -> {goodName}");
-							AssetDatabase.RenameAsset(filePath, goodName);
-						}
+						Debug.LogWarning($"이미 존재하는 키입니다. {dataSO.Name}.{dataSO.ID}");
+						ProcessBadIdData(dataSO, type, dataSOs);
+						return false;
 					}
+
+					dataSOs.Add(dataSO.ID, dataSO);
+
+					string goodName = GetGoodAssetName(dataSO);
+					if (dataSO.name.Equals(goodName) == false)
+					{
+						Debug.Log($"에셋 이름을 변경합니다. {dataSO.name} -> {goodName}");
+						AssetDatabase.RenameAsset(AssetDatabase.GetAssetPath(dataSO), goodName);
+					}
+					return true;
 				}
-
-				if (searchSubDir)
+				catch (Exception ex)
 				{
-					// dir 아래 모든 폴더 안에 있는 파일을 탐색
-					foreach (DirectoryInfo subDir in dir.GetDirectories())
-						InitDic(ref dic, type, $"{dirPath}/{subDir.Name}/");
+					Debug.LogError($"{nameof(ProcessDataSO)} 중 오류 발생: {dataSO}, {dataSO.name} = {ex.Message}");
+					return false;
+				}
+			}
+
+			void ProcessBadIdData(DataSO dataSO, Type type, Dictionary<int, DataSO> dataSOs)
+			{
+				try
+				{
+					// Type 별 Dictionary 존재 확인
+					if (BadIdDataSOs.ContainsKey(type) == false)
+					{
+						BadIdDataSOs.Add(type, new());
+					}
+
+					// ID 별 List 존재 확인
+					if (BadIdDataSOs[type].ContainsKey(dataSO.ID) == false)
+					{
+						BadIdDataSOs[type].Add(dataSO.ID, new());
+
+						// 이미 존재하던 데이터 추가
+						if (BadIdDataSOs[type][dataSO.ID].Contains(dataSOs[dataSO.ID]) == false)
+							BadIdDataSOs[type][dataSO.ID].Add(dataSOs[dataSO.ID]);
+					}
+
+					// 현재 데이터 추가
+					if (BadIdDataSOs[type][dataSO.ID].Contains(dataSO) == false)
+						BadIdDataSOs[type][dataSO.ID].Add(dataSO);
+				}
+				catch (Exception ex)
+				{
+					Debug.LogError($"{nameof(ProcessBadIdData)} 중 오류 발생: {dataSO}, {type} = {ex.Message}");
 				}
 			}
 		}
 
-		public DataSO AddDataSO(Type type, int nID = -1, string nName = null, string assetPath = null)
+		public DataSO AddDataSO(Type type, int newID = -1, string newName = null, string assetPath = null)
 		{
 			Debug.Log(nameof(AddDataSO));
 
-			Dictionary<int, DataSO> dic = DataSOs[type];
+			Dictionary<int, DataSO> dataSOs = GetDataSOs(type);
 
 			// 사용되지 않은 ID를 찾는다.
-			if (nID == -1)
+			if (newID == -1)
 			{
-				nID = 0;
-				while (dic.ContainsKey(nID))
-					nID++;
+				newID = 0;
+				while (dataSOs.ContainsKey(newID))
+					newID++;
 			}
 
-			nName ??= $"New_{type.Name}";
+			newName ??= $"New_{type.Name}";
 
-			string assetName = ConvertToGoodName($"{AssetPrefixes[type]}_{nID}_{nName}");
+			string assetName = ConvertToGoodAssetName($"{AssetPrefixes[type]}_{newID}_{newName}");
 			string path = AssetDatabase.GenerateUniqueAssetPath($"{assetPath}{assetName}.asset");
 
-			Debug.Log($"AddDataSO: {type.Name} {nID} {nName} {path}");
+			Debug.Log($"AddDataSO: {type.Name} {newID} {newName} {path}");
 
 			DataSO newDataSO = CreateInstance(type) as DataSO;
 			AssetDatabase.CreateAsset(newDataSO, path);
-			newDataSO.ID = nID;
-			newDataSO.Name = nName;
+			newDataSO.ID = newID;
+			newDataSO.Name = newName;
 
 			// Addressable 에셋으로 설정
 			SetAddressableAsset(newDataSO);
@@ -262,73 +289,94 @@ namespace WitchMendokusai
 			EditorUtility.SetDirty(newDataSO);
 			AssetDatabase.SaveAssets();
 
-			dic.Add(nID, newDataSO);
+			dataSOs.Add(newID, newDataSO);
 
-			if (isInit == true)
-			{
-				SetType(type);
-				SelectDataSOSlot(DataSOSlots[nID]);
-			}
+			// TODO:
+			// if (isInit == true)
+			// {
+			// 	SetType(type);
+			// 	SelectDataSOSlot(DataSOSlots[newID]);
+			// }
 
 			return newDataSO;
 		}
 
+		public Dictionary<int, DataSO> GetDataSOs(Type type)
+		{
+			if (DataSOs.ContainsKey(type) == false)
+				InitDict();
+				// InitDict(type);
+
+			return DataSOs[type];
+		}
+
 		public DataSO CopyDataSO(DataSO dataSO)
 		{
-			Debug.Log(nameof(CopyDataSO));
+			// Debug.Log(nameof(CopyDataSO));
 
-			Type type = GetBaseType(dataSO);
+			if (TryGetBaseType(dataSO, out Type type) == false)
+			{
+				Debug.LogError("Base type not found");
+				return null;
+			}
 
-			if (type == typeof(DataSO) || DataSOs[type].ContainsKey(dataSO.ID) == false)
+			Dictionary<int, DataSO> dataSOs = GetDataSOs(type);
+
+			if ((type == typeof(DataSO)) || (dataSOs.ContainsKey(dataSO.ID) == false))
 			{
 				Debug.LogError("복사할 수 없는 데이터입니다.");
 				return null;
 			}
-
-			Dictionary<int, DataSO> dic = DataSOs[type];
-
-			string nName = dataSO.Name;
+			string newName = dataSO.Name;
 
 			// 기존 데이터가 숫자로 끝나면, 해당 숫자에 1을 더한 값을 붙인다.
-			Match match = Regex.Match(nName, @"\d+$");
+			Match match = Regex.Match(newName, @"\d+$");
 			if (match.Success)
 			{
 				string number = match.Value;
-				nName = nName.Substring(0, nName.Length - number.Length) + (int.Parse(number) + 1);
+				newName = newName[..^number.Length] + (int.Parse(number) + 1);
+				// ..^number.Length: 문자열의 뒤에서부터 number.Length만큼 제외한 문자열
 			}
 			// 아니라면 "_Copy"를 붙인다.
 			else
 			{
-				nName += "_Copy";
+				newName += "_Copy";
 			}
 
 			// 사용되지 않은 ID를 찾는다.
-			int nID = dataSO.ID + 1;
-			while (dic.ContainsKey(nID))
-				nID++;
+			int newAssetID = dataSO.ID + 1;
+			while (dataSOs.ContainsKey(newAssetID))
+				newAssetID++;
 
-			string assetName = ConvertToGoodName($"{AssetPrefixes[type]}_{nID}_{nName}");
+			string newAssetName = ConvertToGoodAssetName($"{AssetPrefixes[type]}_{newAssetID}_{newName}");
 
 			// 복사하려는 데이터의 파일 경로를 가져온다.
 			string dataSOPath = AssetDatabase.GetAssetPath(dataSO);
 			string dataSODir = Path.GetDirectoryName(dataSOPath);
 
 			// 해당 경로에 새로운 이름으로 복사한다.
-			string path = AssetDatabase.GenerateUniqueAssetPath($"{dataSODir}/{assetName}.asset");
+			string path = AssetDatabase.GenerateUniqueAssetPath($"{dataSODir}/{newAssetName}.asset");
 			if (AssetDatabase.CopyAsset(AssetDatabase.GetAssetPath(dataSO), path))
 			{
 				DataSO newDataSO = AssetDatabase.LoadAssetAtPath<DataSO>(path);
-				newDataSO.ID = nID;
-				newDataSO.Name = nName;
+				newDataSO.ID = newAssetID;
+				newDataSO.Name = newName;
 
 				// Addressable 에셋으로 설정
 				SetAddressableAsset(newDataSO);
 
-				dic.Add(newDataSO.ID, newDataSO);
+				dataSOs.Add(newDataSO.ID, newDataSO);
 				Debug.Log($"복사 완료: {newDataSO.ID} {newDataSO.Name}");
 
-				UpdateGrid();
-				SelectDataSOSlot(DataSOSlots[newDataSO.ID]);
+				if (UpdateGrid())
+				{
+					if (CurType != type)
+					{
+						SetType(type);
+					}
+
+					SelectDataSOSlot(DataSOSlots[newDataSO.ID]);
+				}
 				return newDataSO;
 			}
 			else
@@ -342,20 +390,25 @@ namespace WitchMendokusai
 		{
 			Debug.Log(nameof(RemoveDataSO));
 
-			Type type = GetBaseType(dataSO);
-
-			if (type == typeof(DataSO) || DataSOs[type].ContainsKey(dataSO.ID) == false)
+			if (TryGetBaseType(dataSO, out Type type) == false)
 			{
-				Debug.LogError("삭제할 수 없는 데이터입니다.");
+				Debug.LogError("Base type not found");
 				return;
 			}
 
-			Dictionary<int, DataSO> dic = DataSOs[type];
+			Dictionary<int, DataSO> dataSOs = GetDataSOs(type);
+
+			if ((type == typeof(DataSO)) || (dataSOs.ContainsKey(dataSO.ID) == false))
+			{
+				Debug.LogWarning($"dataSOs({type})에 등록되지 않은 데이터를 삭제 합니다.");
+				AssetDatabase.DeleteAsset(AssetDatabase.GetAssetPath(dataSO));
+				return;
+			}
 
 			int id = dataSO.ID;
 
-			if (dic.ContainsKey(id))
-				dic.Remove(dataSO.ID);
+			if (dataSOs.ContainsKey(id))
+				dataSOs.Remove(dataSO.ID);
 			AssetDatabase.DeleteAsset(AssetDatabase.GetAssetPath(dataSO));
 
 			UpdateGrid();
@@ -384,12 +437,17 @@ namespace WitchMendokusai
 
 		public DataSOSlot GetDataSOSlot(DataSO dataSO)
 		{
-			Type type = GetBaseType(dataSO);
+			if (TryGetBaseType(dataSO, out Type type) == false)
+			{
+				Debug.LogError("Base type not found");
+				return null;
+			}
+
 			if (DataSOs.ContainsKey(type) == false)
 				return null;
 
-			Dictionary<int, DataSO> dic = DataSOs[type];
-			if (dic.ContainsKey(dataSO.ID) == false)
+			Dictionary<int, DataSO> dataSOs = GetDataSOs(type);
+			if (dataSOs.ContainsKey(dataSO.ID) == false)
 				return null;
 
 			if (isInit == false)
@@ -423,7 +481,12 @@ namespace WitchMendokusai
 				return;
 			}
 
-			Type type = GetBaseType(slot.DataSO);
+			if (TryGetBaseType(slot.DataSO, out Type type) == false)
+			{
+				Debug.LogError("Base type not found");
+				return;
+			}
+
 			if (CurType != type)
 				SetType(type);
 
@@ -435,18 +498,16 @@ namespace WitchMendokusai
 			// Debug.Log($"{nameof(SelectDataSOSlot)} End");
 		}
 
-		public void InitEnumData<TData, TEnum>() where TData : DataSO
+		private void InitEnumData<TData, TEnum>() where TData : DataSO
 		{
 			// Debug.Log($"{nameof(InitEnumData)} <{typeof(TData).Name}, {typeof(TEnum).Name}>");
 
-			InitDict(typeof(TData));
-
 			const string PropertyName = "Type";
 
-			var dic = DataSOs[typeof(TData)];
+			Dictionary<int, DataSO> dataSOs = DataSOs[typeof(TData)];
 			foreach (TEnum enumValue in Enum.GetValues(typeof(TEnum)))
 			{
-				if (dic.TryGetValue(Convert.ToInt32(enumValue), out DataSO dataSO))
+				if (dataSOs.TryGetValue(Convert.ToInt32(enumValue), out DataSO dataSO))
 				{
 					TData typedData = dataSO as TData;
 
@@ -469,17 +530,17 @@ namespace WitchMendokusai
 				else
 				{
 					Debug.Log($"Data를 추가합니다.");
-					int nID = Convert.ToInt32(enumValue);
-					string nName = Enum.GetName(typeof(TEnum), enumValue);
+					int newID = Convert.ToInt32(enumValue);
+					string newName = Enum.GetName(typeof(TEnum), enumValue);
 
-					TData typedData = AddDataSO(typeof(TData), nID, nName, BASE_DIR) as TData;
+					TData typedData = AddDataSO(typeof(TData), newID, newName, BASE_DIR) as TData;
 					PropertyInfo typeProperty = typeof(TData).GetProperty(PropertyName);
-					typeProperty.SetValue(typedData, nID);
+					typeProperty.SetValue(typedData, newID);
 				}
 			}
 
 			// 유효하지 않은 데이터 삭제
-			foreach (var (key, value) in dic)
+			foreach ((int key, DataSO value) in dataSOs)
 			{
 				if (Enum.IsDefined(typeof(TEnum), key) == false)
 				{
@@ -491,56 +552,13 @@ namespace WitchMendokusai
 			// Debug.Log($"{nameof(InitEnumData)} End");
 		}
 
-		private string GetGoodName(DataSO dataSO)
-		{
-			return ConvertToGoodName($"{AssetPrefixes[GetBaseType(dataSO)]}_{dataSO.ID}_{dataSO.Name}");
-		}
-
-		private string ConvertToGoodName(string name)
-		{
-			// 파일 이름에 사용할 수 없는 문자와 공백을 제거
-			Regex regex = new(string.Format("[{0}]", Regex.Escape(new string(Path.GetInvalidFileNameChars()) + " ")));
-			return regex.Replace(name, string.Empty);
-		}
-
-		private void OnValidate()
-		{
-			// Debug.Log("OnValidate is executed.");
-		}
-
-		private void OnFocus()
-		{
-			// Debug.Log("OnFocus is executed.");
-		}
-
-		private void OnLostFocus()
-		{
-			// Debug.Log("OnLostFocus is executed.");
-		}
-
-		private void OnProjectChange()
-		{
-			// Debug.Log("OnProjectChange is executed.");
-		}
-
-		private void OnSelectionChange()
-		{
-			// Debug.Log("OnSelectionChange is executed.");
-		}
-
-		private void OnInspectorUpdate()
-		{
-			// Debug.Log("OnInspectorUpdate is executed.");
-		}
-
-		private void OnHierarchyChange()
-		{
-			// Debug.Log("OnHierarchyChange is executed.");
-		}
-
-		private void OnGUI()
-		{
-			// Debug.Log("OnGUI is executed.");
-		}
+		// private void OnValidate() => Debug.Log("OnValidate is executed.");
+		// private void OnFocus() => Debug.Log("OnFocus is executed.");
+		// private void OnLostFocus() => Debug.Log("OnLostFocus is executed.");
+		// private void OnProjectChange() => Debug.Log("OnProjectChange is executed.");
+		// private void OnSelectionChange() => Debug.Log("OnSelectionChange is executed.");
+		// private void OnInspectorUpdate() => Debug.Log("OnInspectorUpdate is executed.");
+		// private void OnHierarchyChange() => Debug.Log("OnHierarchyChange is executed.");
+		// private void OnGUI() => Debug.Log("OnGUI is executed.");
 	}
 }

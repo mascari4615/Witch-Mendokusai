@@ -67,15 +67,14 @@ namespace WitchMendokusai
 
 			if (DataSOWindow.Instance)
 			{
-				Type baseType = GetBaseType(dataSO);
-				if (baseType == typeof(DataSO))
+				if (TryGetBaseType(dataSO, out Type type) == false)
 				{
-					// Debug.LogWarning("DataSO는 MDataSO UI를 지원하지 않아용");
+					Debug.LogError($"Base type not found for {dataSO.name}");
 					return;
 				}
 
-				if (DataSOWindow.Instance.CurType != baseType)
-					DataSOWindow.Instance.SetType(baseType);
+				if (DataSOWindow.Instance.CurType != type)
+					DataSOWindow.Instance.SetType(type);
 
 				DataSOSlot dataSOSlot = DataSOWindow.Instance.GetDataSOSlot(dataSO);
 				if (dataSOSlot != null)
@@ -219,7 +218,13 @@ namespace WitchMendokusai
 		{
 			if (DataSOWindow.Instance)
 			{
-				if (DataSOWindow.Instance.CurType == GetBaseType(dataSO))
+				if (TryGetBaseType(dataSO, out Type type) == false)
+				{
+					Debug.LogError($"Base type not found for {dataSO.name}");
+					return;
+				}
+
+				if (DataSOWindow.Instance.CurType == type)
 				{
 					DataSOSlot dataSOSlot = DataSOWindow.Instance.GetDataSOSlot(dataSO);
 					dataSOSlot?.UpdateUI();
