@@ -228,7 +228,7 @@ namespace WitchMendokusai
 
 					int targetCount = guids.Length - nonTargetCount;
 					float successRate = targetCount > 0 ? successCount / (float)targetCount : 0f;
-					string detail = $"[{successCount}/({targetCount}={guids.Length}-{nonTargetCount})]";
+					string detail = $"[{successCount}/{targetCount}( = {guids.Length} - {nonTargetCount} )]";
 					Debug.Log($"{successRate:P} = {detail} | 총 {successCount}개의 DataSO에 {taskName}을 적용했습니다.");
 				}
 				catch (Exception ex)

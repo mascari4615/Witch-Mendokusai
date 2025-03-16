@@ -21,7 +21,7 @@ namespace WitchMendokusai
 		[SerializeField] private float stoppingDistance = 0.1f;
 		[SerializeField] private bool updateRotation = false;
 		[SerializeField] private float acceleration = 40.0f;
-		[SerializeField] private float tolerance = 1.0f;
+		// [SerializeField] private float tolerance = 1.0f;
 
 		public bool IsAlive => UnitStat[UnitStatType.HP_CUR] > 0;
 

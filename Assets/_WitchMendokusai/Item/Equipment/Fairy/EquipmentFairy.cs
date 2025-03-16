@@ -6,7 +6,7 @@ namespace WitchMendokusai
 {
 	public class EquipmentFairy : SkillComponent
 	{
-		[SerializeField] private int originDamage = 2;
+		// [SerializeField] private int originDamage = 2;
 		[SerializeField] private float originCoolTime = 1.5f;
 		[SerializeField] private GameObject bulletPrefab;
 		[SerializeField] private GameObject fairyPrefab;
