@@ -8,47 +8,47 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UIElements;
-using static WitchMendokusai.MDataSOUtil;
+using static WitchMendokusai.DataSOUtil;
 using static WitchMendokusai.DataSODefine;
 
 namespace WitchMendokusai
 {
-	public partial class MDataSO : EditorWindow
+	public partial class DataSOWindow : EditorWindow
 	{
-		private static MDataSO instance;
-		public static MDataSO Instance
+		private static DataSOWindow instance;
+		public static DataSOWindow Instance
 		{
 			get
 			{
-				// if (instance == null)
-				// {
-				// 	ShowMDataSO();
-				// }
+				if (instance == null)
+				{
+					ShowDataSOWindow();
+				}
 
 				return instance;
 			}
 			private set => instance = value;
 		}
 
-		public MDataSO_IdChanger IdChanger { get; private set; }
-		public Dictionary<int, MDataSOSlot> DataSOSlots { get; private set; } = new();
-		public MDataSOSlot CurSlot { get; private set; }
+		public DataSO_IdChanger IdChanger { get; private set; } = null;
+		public Dictionary<int, DataSOSlot> DataSOSlots { get; private set; } = new();
+		public DataSOSlot CurSlot { get; private set; } = null;
 
-		public Dictionary<Type, Dictionary<int, DataSO>> DataSOs { get; private set; }
+		public Dictionary<Type, Dictionary<int, DataSO>> DataSOs { get; private set; } = new();
 		public Dictionary<int, List<DataSO>> BadIDDataSOs { get; private set; } = new();
 
 		public Type CurType { get; private set; } = null;
 
 		private bool isInit = false;
 
-		[MenuItem("WitchMendokusai/MDataSO")]
-		public static void ShowMDataSO()
+		[MenuItem("WitchMendokusai/DataSOWindow")]
+		public static void ShowDataSOWindow()
 		{
-			// Debug.Log(nameof(ShowMDataSO));
+			// Debug.Log(nameof(ShowDataSOWindow));
 			// (유틸리티 창 여부, 타이틀, 이미 창이 열려있을 때 새로 열지 여부)
-			GetWindow<MDataSO>(false, nameof(MDataSO), true);
+			GetWindow<DataSOWindow>(false, nameof(DataSOWindow), true);
 
-			// Debug.Log($"{nameof(ShowMDataSO)} End : {instance}");
+			// Debug.Log($"{nameof(ShowDataSOWindow)} End : {instance}");
 		}
 
 		private void OnEnable()
@@ -91,7 +91,7 @@ namespace WitchMendokusai
 			// Debug.Log(nameof(CreateGUI));
 
 			VisualElement root = rootVisualElement;
-			VisualTreeAsset visualTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>($"{EDITOR_DIR}MDataSO/MDataSO.uxml");
+			VisualTreeAsset visualTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>($"{EDITOR_DIR}{nameof(DataSO)}/{nameof(DataSOWindow)}.uxml");
 
 			// Instantiate UXML
 			VisualElement labelFromUXML = visualTree.Instantiate();
@@ -137,7 +137,7 @@ namespace WitchMendokusai
 
 			foreach (DataSO dataSO in dataSOsSortByID)
 			{
-				MDataSOSlot slot = new((slot) => Selection.activeObject = slot.DataSO);
+				DataSOSlot slot = new((slot) => Selection.activeObject = slot.DataSO);
 				slot.SetDataSO(dataSO);
 				DataSOSlots.Add(dataSO.ID, slot);
 				grid.Add(slot.VisualElement);
@@ -163,7 +163,7 @@ namespace WitchMendokusai
 			// Debug.Log($"{nameof(SetType)} End");
 		}
 
-		private void InitDict(Type type)
+		public void InitDict(Type type)
 		{
 			// Debug.Log($"{nameof(InitDic)} <{type.Name}>");
 
@@ -189,11 +189,8 @@ namespace WitchMendokusai
 					string filePath = $"{dirPath}/{file.Name}";
 					Type fileType = AssetDatabase.GetMainAssetTypeAtPath(filePath);
 
-					if (fileType == null)
-						continue;
-
 					// 만약 type이 T이거나 T의 하위 클래스가 아니면 Continue
-					if (fileType != type && !fileType.IsSubclassOf(type))
+					if ((fileType != type) && (fileType.IsSubclassOf(type) == false))
 						continue;
 
 					DataSO asset = AssetDatabase.LoadAssetAtPath<DataSO>(filePath);
@@ -220,13 +217,6 @@ namespace WitchMendokusai
 						{
 							Debug.Log($"에셋 이름을 변경합니다. {asset.name} -> {goodName}");
 							AssetDatabase.RenameAsset(filePath, goodName);
-						}
-
-						// 로드한 에셋에도 Addressable 설정 적용
-						bool addressableResult = SetAddressableAsset(asset, filePath);
-						if (!addressableResult)
-						{
-							Debug.LogWarning($"Addressable 설정 실패: {asset.name}");
 						}
 					}
 				}
@@ -267,7 +257,7 @@ namespace WitchMendokusai
 			newDataSO.Name = nName;
 
 			// Addressable 에셋으로 설정
-			SetAddressableAsset(newDataSO, path);
+			SetAddressableAsset(newDataSO);
 
 			EditorUtility.SetDirty(newDataSO);
 			AssetDatabase.SaveAssets();
@@ -332,8 +322,7 @@ namespace WitchMendokusai
 				newDataSO.Name = nName;
 
 				// Addressable 에셋으로 설정
-				SetAddressableAsset(newDataSO, path);
-
+				SetAddressableAsset(newDataSO);
 
 				dic.Add(newDataSO.ID, newDataSO);
 				Debug.Log($"복사 완료: {newDataSO.ID} {newDataSO.Name}");
@@ -374,9 +363,9 @@ namespace WitchMendokusai
 			SelectDataSOSlot(GetNearSlot(id));
 		}
 
-		private MDataSOSlot GetNearSlot(int startID)
+		private DataSOSlot GetNearSlot(int startID)
 		{
-			MDataSOSlot slot = null;
+			DataSOSlot slot = null;
 			for (int newID = startID; newID < ID_MAX; newID++)
 			{
 				if (DataSOSlots.TryGetValue(newID, out slot))
@@ -393,7 +382,7 @@ namespace WitchMendokusai
 			return slot;
 		}
 
-		public MDataSOSlot GetDataSOSlot(DataSO dataSO)
+		public DataSOSlot GetDataSOSlot(DataSO dataSO)
 		{
 			Type type = GetBaseType(dataSO);
 			if (DataSOs.ContainsKey(type) == false)
@@ -418,7 +407,7 @@ namespace WitchMendokusai
 			return DataSOSlots[dataSO.ID];
 		}
 
-		public void SelectDataSOSlot(MDataSOSlot slot)
+		public void SelectDataSOSlot(DataSOSlot slot)
 		{
 			// Debug.Log(nameof(SelectDataSOSlot));
 
@@ -438,7 +427,7 @@ namespace WitchMendokusai
 			if (CurType != type)
 				SetType(type);
 
-			MDataSOSlot oldSlot = CurSlot;
+			DataSOSlot oldSlot = CurSlot;
 			CurSlot = slot;
 			oldSlot?.UpdateUI();
 			CurSlot.UpdateUI();
@@ -500,44 +489,6 @@ namespace WitchMendokusai
 			}
 
 			// Debug.Log($"{nameof(InitEnumData)} End");
-		}
-
-		[MenuItem("WitchMendokusai/SaveAssets")]
-		public static void SaveAssets()
-		{
-			Debug.Log(nameof(SaveAssets));
-
-			if (Instance == null)
-			{
-				Debug.LogError("인스턴스가 존재하지 않습니다.");
-				return;
-			}
-
-			// 아직 초기화되지 않았다면 초기화
-			foreach (Type type in AssetPrefixes.Keys)
-			{
-				if (Instance.DataSOs.ContainsKey(type) == false)
-					Instance.InitDict(type);
-			}
-
-			foreach (Dictionary<int, DataSO> dict in Instance.DataSOs.Values)
-			{
-				int saveCount = 0;
-				foreach (DataSO dataSO in dict.Values)
-				{
-					if (dataSO == null)
-						continue;
-					EditorUtility.SetDirty(dataSO);
-					saveCount++;
-				}
-
-				Debug.Log($"{nameof(SaveAssets)}: {GetBaseType(dict.Values.First())} is saved. Count: {saveCount}/{dict.Count}");
-			}
-
-			AssetDatabase.SaveAssets();
-			AssetDatabase.Refresh();
-
-			Debug.Log($"{nameof(SaveAssets)} is executed.");
 		}
 
 		private string GetGoodName(DataSO dataSO)

@@ -2,12 +2,12 @@ using System;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
-using static WitchMendokusai.MDataSOUtil;
+using static WitchMendokusai.DataSOUtil;
 using static WitchMendokusai.DataSODefine;
 
 namespace WitchMendokusai
 {
-	public class MDataSOSlot
+	public class DataSOSlot
 	{
 		public DataSO DataSO { get; private set; }
 		public VisualElement VisualElement { get; private set; }
@@ -16,9 +16,9 @@ namespace WitchMendokusai
 		private readonly Label nameLabel;
 		private readonly Label idLabel;
 
-		public MDataSOSlot(Action<MDataSOSlot> clickAction)
+		public DataSOSlot(Action<DataSOSlot> clickAction)
 		{
-			VisualTreeAsset treeAsset = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>($"{EDITOR_DIR}MDataSO/MDataSOSlot/MDataSOSlot.uxml");
+			VisualTreeAsset treeAsset = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>($"{EDITOR_DIR}{nameof(DataSO)}/{nameof(DataSOSlot)}/{nameof(DataSOSlot)}.uxml");
 			VisualElement = treeAsset.Instantiate();
 
 			button = VisualElement.Q<Button>();
@@ -60,7 +60,7 @@ namespace WitchMendokusai
 					button.style.backgroundImage = new(DataSO.Sprite);
 
 				// new Color(226 / 255f, 137 / 255f, 45 / 255f)
-				Color borderColor = MDataSO.Instance.CurSlot == this ? Color.white : Color.black;
+				Color borderColor = DataSOWindow.Instance.CurSlot == this ? Color.white : Color.black;
 				button.style.borderTopColor = borderColor;
 				button.style.borderBottomColor = borderColor;
 				button.style.borderLeftColor = borderColor;

@@ -5,9 +5,9 @@ using System.IO;
 namespace WitchMendokusai
 {
 	[InitializeOnLoad]
-	public class MDataSOIcon
+	public class DataSOIcon
 	{
-		static MDataSOIcon()
+		static DataSOIcon()
 		{
 			EditorApplication.projectWindowItemOnGUI += OnProjectWindowItemGUI;
 		}

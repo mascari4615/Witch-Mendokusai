@@ -10,7 +10,7 @@ using static WitchMendokusai.DataSODefine;
 
 namespace WitchMendokusai
 {
-	public static class MDataSOUtil
+	public static class DataSOUtil
 	{
 		public static Type GetBaseType(DataSO dataSO)
 		{
@@ -21,65 +21,51 @@ namespace WitchMendokusai
 			return type;
 		}
 
-		// 이 아래부터는 Copilot가 만들어준 코드.
+		#region Save
+		[MenuItem("WitchMendokusai/SaveAssets")]
+		public static void SaveAssets()
+		{
+			SetupAllDataSO(SetDirty, "SaveAssets");
 
+			AssetDatabase.SaveAssets();
+			AssetDatabase.Refresh();
+		}
+
+		public static bool SetDirty(DataSO dataSO)
+		{
+			EditorUtility.SetDirty(dataSO);
+			return true;
+		}
+
+		public static void SaveAsset(DataSO dataSO)
+		{
+			EditorUtility.SetDirty(dataSO);
+
+			AssetDatabase.SaveAssets();
+			AssetDatabase.Refresh();
+		}
+		#endregion
+
+		#region Addressable
 		// 그룹 캐싱을 위한 정적 딕셔너리
 		private static readonly Dictionary<string, AddressableAssetGroup> addressableGroups = new();
 
-		// 일괄 처리를 위한 메뉴 아이템 추가
 		[MenuItem("WitchMendokusai/Setup All Addressables")]
 		public static void SetupAllAddressables()
 		{
-			if (EditorUtility.DisplayDialog("Addressable 설정", "모든 DataSO에 Addressable 설정을 적용하시겠습니까?", "예", "아니오"))
+			AddressableAssetSettings settings = AddressableAssetSettingsDefaultObject.Settings;
+			if (settings == null)
 			{
-				try
-				{
-					int count = 0;
-					AddressableAssetSettings settings = AddressableAssetSettingsDefaultObject.Settings;
-					if (settings == null)
-					{
-						Debug.LogError("Addressable Asset Settings not found");
-						return;
-					}
-
-					// 그룹 준비 작업
-					Dictionary<string, AddressableAssetGroup> groups = new();
-
-					// 에셋 검색 시작
-					string[] guids = AssetDatabase.FindAssets("t:DataSO", new[] { BASE_DIR });
-
-					// 진행 상황 표시
-					EditorUtility.DisplayProgressBar("Addressable 설정 중", "DataSO 에셋을 처리하고 있습니다", 0f);
-
-					for (int i = 0; i < guids.Length; i++)
-					{
-						string guid = guids[i];
-						string path = AssetDatabase.GUIDToAssetPath(guid);
-						DataSO dataSO = AssetDatabase.LoadAssetAtPath<DataSO>(path);
-
-						if (dataSO != null)
-						{
-							SetAddressableAsset(dataSO, path);
-							count++;
-						}
-
-						EditorUtility.DisplayProgressBar("Addressable 설정 중", $"{i + 1}/{guids.Length} 처리 중...", (float)i / guids.Length);
-					}
-
-					EditorUtility.SetDirty(settings);
-
-					EditorUtility.ClearProgressBar();
-					Debug.Log($"{count}개의 DataSO에 Addressable 설정을 적용했습니다.");
-				}
-				catch (Exception ex)
-				{
-					EditorUtility.ClearProgressBar();
-					Debug.LogError($"Addressable 설정 중 오류 발생: {ex.Message}");
-				}
+				Debug.LogError("Addressable Asset Settings not found");
+				return;
 			}
+
+			SetupAllDataSO(SetAddressableAsset, "Addressable 설정");
+
+			EditorUtility.SetDirty(settings);
 		}
 
-		public static bool SetAddressableAsset(DataSO dataSO, string path)
+		public static bool SetAddressableAsset(DataSO dataSO)
 		{
 			Type type = GetBaseType(dataSO);
 
@@ -99,7 +85,7 @@ namespace WitchMendokusai
 			}
 
 			// 에셋의 GUID 가져오기
-			string guid = AssetDatabase.AssetPathToGUID(path);
+			string guid = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(dataSO));
 
 			// 이미 Addressable로 등록되어 있는지 확인
 			AddressableAssetEntry existingEntry = settings.FindAssetEntry(guid);
@@ -122,7 +108,7 @@ namespace WitchMendokusai
 
 				// 주소나 라벨이 다르면 업데이트
 				existingEntry.address = expectedAddress;
-			
+
 				// 라벨 추가
 				if (existingEntry.labels.Contains(type.Name) == false)
 				{
@@ -171,6 +157,47 @@ namespace WitchMendokusai
 			settings.SetDirty(AddressableAssetSettings.ModificationEvent.EntryMoved, entry, true);
 
 			return true;
+		}
+		#endregion
+
+		public static void SetupAllDataSO(Func<DataSO, bool> action, string taskName = "무언가")
+		{
+			if (EditorUtility.DisplayDialog($"{taskName}", $"모든 DataSO에 {taskName}을 적용하시겠습니까?", "예", "아니오"))
+			{
+				try
+				{
+					int count = 0;
+
+					// 에셋 검색 시작
+					string[] guids = AssetDatabase.FindAssets("t:DataSO", new[] { BASE_DIR });
+
+					// 진행 상황 표시
+					EditorUtility.DisplayProgressBar($"{taskName} 중", "DataSO 에셋을 처리하고 있습니다", 0f);
+
+					for (int i = 0; i < guids.Length; i++)
+					{
+						string guid = guids[i];
+						string path = AssetDatabase.GUIDToAssetPath(guid);
+						DataSO dataSO = AssetDatabase.LoadAssetAtPath<DataSO>(path);
+
+						if (dataSO != null)
+						{
+							action?.Invoke(dataSO);
+							count++;
+						}
+
+						EditorUtility.DisplayProgressBar($"{taskName} 중", $"{i + 1}/{guids.Length} 처리 중...", (float)i / guids.Length);
+					}
+
+					EditorUtility.ClearProgressBar();
+					Debug.Log($"{count}개의 DataSO에 {taskName}을 적용했습니다.");
+				}
+				catch (Exception ex)
+				{
+					EditorUtility.ClearProgressBar();
+					Debug.LogError($"{taskName} 중 오류 발생: {ex.Message}");
+				}
+			}
 		}
 	}
 }

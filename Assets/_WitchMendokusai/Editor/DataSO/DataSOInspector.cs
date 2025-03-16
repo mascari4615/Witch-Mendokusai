@@ -6,13 +6,13 @@ using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
-using static WitchMendokusai.MDataSOUtil;
+using static WitchMendokusai.DataSOUtil;
 
 namespace WitchMendokusai
 {
 	[CustomEditor(typeof(DataSO), true)]
 	[CanEditMultipleObjects]
-	public class MDataSOInspector : Editor
+	public class DataSOInspector : Editor
 	{
 		private DataSO dataSO;
 		private VisualElement root;
@@ -39,9 +39,9 @@ namespace WitchMendokusai
 				buttonContainer.style.justifyContent = Justify.SpaceBetween;
 
 				int buttonCount = 4;
-				CreateButton("Copy", () => MDataSO.Instance.CopyDataSO(dataSO));
-				CreateButton("Remove", () => MDataSO.Instance.RemoveDataSO(dataSO));
-				CreateButton("SetID", () => MDataSO.Instance.IdChanger.SelectDataSO(dataSO));
+				CreateButton("Copy", () => DataSOWindow.Instance.CopyDataSO(dataSO));
+				CreateButton("Remove", () => DataSOWindow.Instance.RemoveDataSO(dataSO));
+				CreateButton("SetID", () => DataSOWindow.Instance.IdChanger.SelectDataSO(dataSO));
 				CreateButton("Save", () => { EditorUtility.SetDirty(dataSO); AssetDatabase.SaveAssets(); });
 
 				root.Add(buttonContainer);
@@ -65,7 +65,7 @@ namespace WitchMendokusai
 			dataSO = target as DataSO;
 			// Debug.Log($"{nameof(MDataSODetail)}.{nameof(CreateUI)} : {dataSO.Name}");
 
-			if (MDataSO.Instance)
+			if (DataSOWindow.Instance)
 			{
 				Type baseType = GetBaseType(dataSO);
 				if (baseType == typeof(DataSO))
@@ -74,12 +74,12 @@ namespace WitchMendokusai
 					return;
 				}
 
-				if (MDataSO.Instance.CurType != baseType)
-					MDataSO.Instance.SetType(baseType);
+				if (DataSOWindow.Instance.CurType != baseType)
+					DataSOWindow.Instance.SetType(baseType);
 
-				MDataSOSlot dataSOSlot = MDataSO.Instance.GetDataSOSlot(dataSO);
+				DataSOSlot dataSOSlot = DataSOWindow.Instance.GetDataSOSlot(dataSO);
 				if (dataSOSlot != null)
-					MDataSO.Instance.SelectDataSOSlot(dataSOSlot);
+					DataSOWindow.Instance.SelectDataSOSlot(dataSOSlot);
 			}
 
 			// Debug.Log($"{nameof(Init)} End");
@@ -217,11 +217,11 @@ namespace WitchMendokusai
 
 		private void UpdateMDataSOSlot()
 		{
-			if (MDataSO.Instance)
+			if (DataSOWindow.Instance)
 			{
-				if (MDataSO.Instance.CurType == GetBaseType(dataSO))
+				if (DataSOWindow.Instance.CurType == GetBaseType(dataSO))
 				{
-					MDataSOSlot dataSOSlot = MDataSO.Instance.GetDataSOSlot(dataSO);
+					DataSOSlot dataSOSlot = DataSOWindow.Instance.GetDataSOSlot(dataSO);
 					dataSOSlot?.UpdateUI();
 				}
 			}

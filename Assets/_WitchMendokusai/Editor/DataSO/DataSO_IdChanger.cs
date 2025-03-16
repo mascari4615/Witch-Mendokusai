@@ -6,11 +6,11 @@ using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
-using static WitchMendokusai.MDataSOUtil;
+using static WitchMendokusai.DataSOUtil;
 
 namespace WitchMendokusai
 {
-	public class MDataSO_IdChanger
+	public class DataSO_IdChanger
 	{
 		private bool processBadIdDataSOs = false;
 
@@ -22,29 +22,29 @@ namespace WitchMendokusai
 		private VisualElement badIdDataSOsRoot;
 		private VisualElement targetDataSOsRoot;
 
-		private MDataSOSlot origin;
-		private MDataSOSlot target;
+		private DataSOSlot origin;
+		private DataSOSlot target;
 
 		private Button changeButton;
 		private Button deleteButton;
 		private Button closeButton;
 
-		public MDataSO_IdChanger()
+		public DataSO_IdChanger()
 		{
 			Init();
 		}
 
 		private void Init()
 		{
-			root = MDataSO.Instance.rootVisualElement;
+			root = DataSOWindow.Instance.rootVisualElement;
 
 			thisRoot = root.Q<VisualElement>(name: "IDChanger");
 			badIdDataSOsTitle = thisRoot.Q<VisualElement>(name: "BadIdDataSOsTitle");
 			badIdDataSOsRoot = thisRoot.Q<VisualElement>(name: "BadIdDataSOs");
 			targetDataSOsRoot = thisRoot.Q<VisualElement>(name: "TargetDataSOs");
 
-			origin = new MDataSOSlot(null);
-			target = new MDataSOSlot(null);
+			origin = new DataSOSlot(null);
+			target = new DataSOSlot(null);
 			targetDataSOsRoot.Add(origin.VisualElement);
 			targetDataSOsRoot.Add(target.VisualElement);
 
@@ -61,7 +61,7 @@ namespace WitchMendokusai
 			integerField.RegisterValueChangedCallback(CheckID);
 
 			UpdateUI();
-			MDataSO.Instance.Repaint();
+			DataSOWindow.Instance.Repaint();
 		}
 
 		public void SelectDataSO(DataSO dataSO)
@@ -74,7 +74,7 @@ namespace WitchMendokusai
 		{
 			Debug.Log(nameof(StartProcessBadIdDataSOs));
 
-			if (MDataSO.Instance.BadIDDataSOs.Count == 0)
+			if (DataSOWindow.Instance.BadIDDataSOs.Count == 0)
 			{
 				Debug.Log("No bad ID DataSOs");
 				processBadIdDataSOs = false;
@@ -84,23 +84,23 @@ namespace WitchMendokusai
 
 			processBadIdDataSOs = true;
 
-			List<DataSO> curBadIdDataSOs = MDataSO.Instance.BadIDDataSOs.Values.First();
+			List<DataSO> curBadIdDataSOs = DataSOWindow.Instance.BadIDDataSOs.Values.First();
 			badIdDataSOsRoot.Clear();
 			foreach (DataSO badIdData in curBadIdDataSOs)
 			{
-				MDataSOSlot target = new((slot) => Selection.activeObject = slot.DataSO);
+				DataSOSlot target = new((slot) => Selection.activeObject = slot.DataSO);
 				target.SetDataSO(badIdData);
 				badIdDataSOsRoot.Add(target.VisualElement);
 			}
 
-			MDataSO.Instance.Repaint();
+			DataSOWindow.Instance.Repaint();
 
 			SelectDataSO(curBadIdDataSOs[0]);
 		}
 
 		private void UpdateUI()
 		{
-			// Debug.Log($"{nameof(MDataSO_IdChanger)}.{nameof(UpdateUI)}");
+			// Debug.Log($"{nameof(DataSOWindow_IdChanger)}.{nameof(UpdateUI)}");
 
 			origin.SetDataSO(CurDataSO);
 			target.SetDataSO(null);
@@ -111,12 +111,12 @@ namespace WitchMendokusai
 			deleteButton.SetEnabled(processBadIdDataSOs);
 			closeButton.SetEnabled(processBadIdDataSOs == false);
 
-			// Debug.Log($"{nameof(MDataSO_IdChanger)}.{nameof(UpdateUI)} End");
+			// Debug.Log($"{nameof(DataSOWindow_IdChanger)}.{nameof(UpdateUI)} End");
 		}
 
 		private void CheckID(ChangeEvent<int> evt)
 		{
-			Debug.Log($"{nameof(MDataSO_IdChanger)}.{nameof(CheckID)} : {evt.newValue}");
+			Debug.Log($"{nameof(DataSO_IdChanger)}.{nameof(CheckID)} : {evt.newValue}");
 
 			if (CurDataSO == null)
 				return;
@@ -126,7 +126,7 @@ namespace WitchMendokusai
 				return;
 
 			Type type = GetBaseType(CurDataSO);
-			if (MDataSO.Instance.DataSOs[type].TryGetValue(newID, out DataSO existingDataSO))
+			if (DataSOWindow.Instance.DataSOs[type].TryGetValue(newID, out DataSO existingDataSO))
 			{
 				Debug.Log("ID already exists");
 				target.SetDataSO(existingDataSO);
@@ -138,12 +138,12 @@ namespace WitchMendokusai
 				changeButton.SetEnabled(true);
 			}
 
-			Debug.Log($"{nameof(MDataSO_IdChanger)}.{nameof(CheckID)} End");
+			Debug.Log($"{nameof(DataSO_IdChanger)}.{nameof(CheckID)} End");
 		}
 
 		private void ChangeID()
 		{
-			Debug.Log($"{nameof(MDataSO_IdChanger)}.{nameof(ChangeID)}");
+			Debug.Log($"{nameof(DataSO_IdChanger)}.{nameof(ChangeID)}");
 
 			if (CurDataSO == null)
 				return;
@@ -153,26 +153,31 @@ namespace WitchMendokusai
 				return;
 
 			Type type = GetBaseType(CurDataSO);
-			if (MDataSO.Instance.DataSOs[type].TryGetValue(newID, out DataSO existingDataSO))
+			if (DataSOWindow.Instance.DataSOs.TryGetValue(type, out Dictionary<int, DataSO> dataSOs) == false)
+			{
+				Debug.Log("DataSOs not found");
+				DataSOWindow.Instance.InitDict(type);
+			}
+
+			if (dataSOs.TryGetValue(newID, out DataSO existingDataSO))
 			{
 				Debug.Log("ID already exists");
 				return;
 			}
 
-			MDataSO.Instance.DataSOs[type].TryGetValue(CurDataSO.ID, out DataSO temp);
-
-			if (processBadIdDataSOs && CurDataSO != temp)
+			dataSOs.TryGetValue(CurDataSO.ID, out DataSO dataSO);
+			if (processBadIdDataSOs && (CurDataSO != dataSO))
 			{
 				// processBadIdDataSOs
 
 				CurDataSO.ID = newID;
 
-				List<DataSO> curBadIdDataSOs = MDataSO.Instance.BadIDDataSOs.Values.First();
+				List<DataSO> curBadIdDataSOs = DataSOWindow.Instance.BadIDDataSOs.Values.First();
 				int id = curBadIdDataSOs[0].ID;
-				MDataSO.Instance.DataSOs[type].Add(newID, CurDataSO);
+				dataSOs.Add(newID, CurDataSO);
 				curBadIdDataSOs.Remove(CurDataSO);
 				if (curBadIdDataSOs.Count == 1)
-					MDataSO.Instance.BadIDDataSOs.Remove(id);
+					DataSOWindow.Instance.BadIDDataSOs.Remove(id);
 
 				CurDataSO = null;
 				StartProcessBadIdDataSOs();
@@ -181,19 +186,19 @@ namespace WitchMendokusai
 			{
 				// (단순 ID 변경) 혹은 (processBadIdDataSOs이지만, DataSOs에 등록된 DataSO의 ID 변경)
 
-				MDataSO.Instance.DataSOs[type].Remove(CurDataSO.ID);
+				dataSOs.Remove(CurDataSO.ID);
 				CurDataSO.ID = newID;
-				MDataSO.Instance.DataSOs[type].Add(newID, CurDataSO);
-				MDataSO.SaveAssets();
+				dataSOs.Add(newID, CurDataSO);
+				DataSOUtil.SaveAsset(CurDataSO);
 
-				MDataSO.Instance.UpdateGrid();
-				MDataSO.Instance.SelectDataSOSlot(MDataSO.Instance.DataSOSlots[CurDataSO.ID]);
+				DataSOWindow.Instance.UpdateGrid();
+				DataSOWindow.Instance.SelectDataSOSlot(DataSOWindow.Instance.DataSOSlots[CurDataSO.ID]);
 
 				CurDataSO = null;
 				UpdateUI();
 			}
 
-			Debug.Log($"{nameof(MDataSO_IdChanger)}.{nameof(ChangeID)} End");
+			Debug.Log($"{nameof(DataSO_IdChanger)}.{nameof(ChangeID)} End");
 		}
 
 		private void Delete()
@@ -203,15 +208,15 @@ namespace WitchMendokusai
 			if (CurDataSO == null)
 				return;
 
-			MDataSO.Instance.RemoveDataSO(CurDataSO);
+			DataSOWindow.Instance.RemoveDataSO(CurDataSO);
 
 			if (processBadIdDataSOs)
 			{
-				List<DataSO> curBadIdDataSOs = MDataSO.Instance.BadIDDataSOs.Values.First();
+				List<DataSO> curBadIdDataSOs = DataSOWindow.Instance.BadIDDataSOs.Values.First();
 				int id = curBadIdDataSOs[0].ID;
 				curBadIdDataSOs.Remove(CurDataSO);
 				if (curBadIdDataSOs.Count == 1)
-					MDataSO.Instance.BadIDDataSOs.Remove(id);
+					DataSOWindow.Instance.BadIDDataSOs.Remove(id);
 
 				StartProcessBadIdDataSOs();
 			}
