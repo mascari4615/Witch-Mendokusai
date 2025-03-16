@@ -9,25 +9,24 @@ namespace WitchMendokusai
 	{
 		[field: Header("_" + nameof(GameSettings))]
 		[field: SerializeField] public bool UseLocalData { get; private set; } = true;
+		[field: SerializeField] public bool InitDataSODict { get; private set; } = true;
 	}
 
 	public static class GameSetting
 	{
-		public static bool UseLocalData = false;
+		public static GameSettings Data { get; private set; }
 
 		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
 		public static void OnBooting()
 		{
 			Debug.Log("SANS");
 
-			GameSettings gameSettings = Resources.Load<GameSettings>(nameof(GameSettings));
-			if (gameSettings == null)
+			Data = Resources.Load<GameSettings>(nameof(GameSettings));
+			if (Data == null)
 			{
 				Debug.LogError("GameSettings not found");
 				return;
 			}
-
-			UseLocalData = gameSettings.UseLocalData;
 		}
 	}
 }

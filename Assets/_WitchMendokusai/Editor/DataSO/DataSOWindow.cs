@@ -69,6 +69,12 @@ namespace WitchMendokusai
 
 			DataSOs = new();
 
+			if (EditorSetting.Data.InitDataSODictOnCompile == false)
+			{
+				Debug.LogWarning("InitDataSODictOnCompile이 비활성화되어 있습니다.");
+				return;
+			}
+
 			bool initDictResult = InitDict();
 			if (initDictResult == false)
 			{
@@ -167,7 +173,6 @@ namespace WitchMendokusai
 			UpdateGrid();
 		}
 
-		[MenuItem("WitchMendokusai/SaveAssets")]
 		private bool InitDict()
 		{
 			DataSOs.Clear();

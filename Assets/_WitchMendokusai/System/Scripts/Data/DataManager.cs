@@ -46,7 +46,7 @@ namespace WitchMendokusai
 					CraftDic[RecipeUtil.RecipeToString(recipe)] = (recipe, itemData.ID);
 			});
 
-			if (GameSetting.UseLocalData)
+			if (GameSetting.Data.UseLocalData)
 			{
 				SaveManager.LoadLocalData();
 			}

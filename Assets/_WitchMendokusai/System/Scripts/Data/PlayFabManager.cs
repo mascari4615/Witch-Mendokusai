@@ -15,8 +15,8 @@ namespace WitchMendokusai
 	{
 		public static bool Logged = false;
 
-		float secondsLeftToRefreshEnergy = 1;
-		[SerializeField] private TextMeshProUGUI GoogleStatusText;
+		// private float secondsLeftToRefreshEnergy = 1;
+		// [SerializeField] private TextMeshProUGUI GoogleStatusText = null;
 
 		private void Start()
 		{
@@ -39,7 +39,7 @@ namespace WitchMendokusai
 		{
 			Debug.Log($"{nameof(Login)}");
 			
-			if (GameSetting.UseLocalData)
+			if (GameSetting.Data.UseLocalData)
 				return;
 
 			/*#if !UNITY_EDITOR
