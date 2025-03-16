@@ -12,4 +12,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7cf201c9a1c95ac41ac72cc7e96de2c3, type: 3}
   m_Name: EditorSettings
   m_EditorClassIdentifier: 
-  <InitDataSODictOnCompile>k__BackingField: 0
+  <InitDataSODictOnCompile>k__BackingField: 1
