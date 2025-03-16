@@ -19,5 +19,6 @@ MonoBehaviour:
   <Sprites>k__BackingField: []
   <Type>k__BackingField: 0
   <Cost>k__BackingField: 0
-  <Prefab>k__BackingField: {fileID: 1496883160333710208, guid: 6d9e8a32b4461b249b0ca1ea89db7ea6, type: 3}
+  <Prefab>k__BackingField: {fileID: 2009526812970326936, guid: 3654c98dff4539241a6d433903c0ee06, type: 3}
   <Mascot>k__BackingField: {fileID: 0}
+  <Size>k__BackingField: {x: 1, y: 1}

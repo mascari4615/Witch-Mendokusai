@@ -8,44 +8,44 @@ namespace WitchMendokusai
 	{
 		public Dictionary<Vector3Int, RuntimeBuildingData> BuildingData { get; set; } = new();
 
-		public bool HasObjectAt(Vector3Int gridPosition)
+		public bool HasObjectAt(Vector3Int pivot)
 		{
-			// Debug.Log($"{nameof(HasObjectAt)}({gridPosition}) = {BuildingData.ContainsKey(gridPosition)}");
-			return BuildingData.ContainsKey(gridPosition);
+			// Debug.Log($"{nameof(HasObjectAt)}({pivot}) = {BuildingData.ContainsKey(pivot)}");
+			return BuildingData.ContainsKey(pivot);
 		}
 
-		public bool TryGetObjectAt(Vector3Int gridPosition, out RuntimeBuildingData runtimeBuildingData)
+		public bool TryGetObjectAt(Vector3Int pivot, out RuntimeBuildingData runtimeBuildingData)
 		{
-			// Debug.Log($"{nameof(TryGetObjectAt)}({gridPosition}) = {BuildingData.TryGetValue(gridPosition, out runtimeBuildingData)} {runtimeBuildingData}");
-			return BuildingData.TryGetValue(gridPosition, out runtimeBuildingData);
+			// Debug.Log($"{nameof(TryGetObjectAt)}({pivot}) = {BuildingData.TryGetValue(pivot, out runtimeBuildingData)} {runtimeBuildingData}");
+			return BuildingData.TryGetValue(pivot, out runtimeBuildingData);
 		}
 
-		public void AddObjectAt(Vector3Int gridPosition, Building building)
+		public void AddObjectAt(Vector3Int pivot, Building building)
 		{
-			// Debug.Log("AddObjectAt " + gridPosition);
-			if (BuildingData.ContainsKey(gridPosition))
+			// Debug.Log("AddObjectAt " + pivot);
+			if (BuildingData.ContainsKey(pivot))
 			{
-				Debug.LogWarning("Already has object at " + gridPosition);
+				Debug.LogWarning("Already has object at " + pivot);
 				return;
 			}
 
-			BuildingData[gridPosition] = new RuntimeBuildingData()
+			BuildingData[pivot] = new RuntimeBuildingData()
 			{
 				State = BuildingState.Placed,
-				SOID = building.ID
+				BuildingID = building.ID
 			};
 		}
 
-		public void RemoveObjectAt(Vector3Int gridPosition)
+		public void RemoveObjectAt(Vector3Int pivot)
 		{
-			// Debug.Log("RemoveObjectAt " + gridPosition);
-			if (BuildingData.ContainsKey(gridPosition) == false)
+			// Debug.Log("RemoveObjectAt " + pivot);
+			if (BuildingData.ContainsKey(pivot) == false)
 			{
-				Debug.LogWarning("No object at " + gridPosition);
+				Debug.LogWarning("No object at " + pivot);
 				return;
 			}
 
-			BuildingData.Remove(gridPosition);
+			BuildingData.Remove(pivot);
 			// BuildingObject 관리 클래스에서 Remove
 		}
 
@@ -53,7 +53,7 @@ namespace WitchMendokusai
 		{
 			foreach ((Vector3Int key, RuntimeBuildingData value) in saveData)
 			{
-				AddObjectAt(key, SOHelper.Get<Building>(value.SOID));
+				AddObjectAt(key, SOHelper.Get<Building>(value.BuildingID));
 			}
 		}
 

@@ -40,12 +40,91 @@ namespace WitchMendokusai
 			}
 		}
 
-		private string GetActualObjectName(GameObject targetObject)
+		public GameObject Spawn(GameObject targetObject, Vector3 position, Quaternion rotation = default)
+		{
+			GameObject spawnedObject = Spawn(targetObject);
+			spawnedObject.transform.SetPositionAndRotation(position, rotation);
+			return spawnedObject;
+		}
+
+		public GameObject Spawn(GameObject targetObject, Transform parent, bool worldPositionStays = false)
+		{
+			GameObject spawnedObject = Spawn(targetObject);
+			spawnedObject.transform.SetParent(parent, worldPositionStays);
+			spawnedObject.transform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
+			return spawnedObject;
+		}
+
+		private static string GetActualObjectName(GameObject targetObject)
 		{
 			// 프리팹 이름에서 "(Clone)"을 제거
 			return targetObject.name.Contains("(Clone)")
 				? targetObject.name.Remove(targetObject.name.IndexOf("(", StringComparison.Ordinal), 7)
 				: targetObject.name;
+		}
+
+		// ObjectPool
+		private class ObjectPool
+		{
+			private static readonly Dictionary<ObjectPool, Transform> ObjectParent = new();
+
+			private GameObject prefab;
+			private readonly Stack<GameObject> stack;
+
+			public ObjectPool(GameObject prefab)
+			{
+				this.prefab = prefab;
+				stack = new();
+			}
+
+			public void CreateObject(int count = 1)
+			{
+				for (var i = 0; i < count; i++)
+				{
+					GameObject g = Instantiate(prefab, GetObjectParent(this));
+					g.SetActive(false);
+					Push(g);
+				}
+			}
+
+			public void Push(GameObject targetObject)
+			{
+				if (targetObject.activeSelf)
+					targetObject.SetActive(false);
+
+				if (stack.Contains(targetObject))
+				{
+					// Debug.Log($"{targetObject.name}, 이미 스택에 존재합니다");
+					return;
+				}
+
+				targetObject.transform.SetParent(GetObjectParent(this));
+				stack.Push(targetObject);
+			}
+
+			public GameObject Pop()
+			{
+				if (stack.Count == 0)
+					CreateObject(5);
+
+				GameObject o = stack.Pop();
+				// o.SetActive(true);
+
+				return o;
+			}
+
+			private static Transform GetObjectParent(ObjectPool objectPool)
+			{
+				if (ObjectParent.ContainsKey(objectPool) == false)
+				{
+					GameObject poolParentObject = new($"[{nameof(ObjectPool)}] {objectPool.prefab.name}");
+					poolParentObject.transform.SetParent(Instance.transform);
+
+					ObjectParent[objectPool] = poolParentObject.transform;
+				}
+
+				return ObjectParent[objectPool];
+			}
 		}
 	}
 }

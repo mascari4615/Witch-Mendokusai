@@ -4,6 +4,7 @@ using UnityEngine;
 
 namespace WitchMendokusai
 {
+	// TODO: 이미 있는 곳에 배치하려고 하는 경우 Text 알림
 	public class BuildManager : Singleton<BuildManager>
 	{
 		private const string MarkerEnabled = "ENABLED";
@@ -12,11 +13,12 @@ namespace WitchMendokusai
 		private InputManager InputManager => InputManager.Instance;
 
 		[SerializeField] private Grid grid;
+		[SerializeField] private Transform gridParent;
 		[SerializeField] private GameObject gridVisualization;
 		[SerializeField] private Animator marker;
 		[SerializeField] private Building defaultBuilding;
 		[field: SerializeField] public GameObject BuildingObjectPrefab { get; private set; } = null;
-		public Dictionary<Vector3Int, BuildingObject> BuildingObjectDict { get; } = new();
+		public Dictionary<Vector3Int, BuildingObject> BuildingObjectsByPos { get; } = new();
 
 		[SerializeField] private UIBuild buildUI;
 
@@ -97,6 +99,15 @@ namespace WitchMendokusai
 			return worldPos;
 		}
 
+		public Vector3 GetWorldPosition(Vector3Int gridPosition, Vector2Int size)
+		{
+			Vector3 pivotPos = grid.GetCellCenterWorld(gridPosition);
+			Vector3 endPos = grid.GetCellCenterWorld(gridPosition + new Vector3Int(-size.x + 1, size.y - 1, 0));
+			Vector3 worldPos = Vector3.Lerp(pivotPos, endPos, 0.5f);
+			worldPos.y = 0.01f;
+			return worldPos;
+		}
+
 		private void UpdateCellPos()
 		{
 			Vector3 mousePosition = InputManager.MouseWorldPosition;
@@ -108,21 +119,28 @@ namespace WitchMendokusai
 			if (InputManager.IsPointerOverUI())
 				return;
 
-			if (StageManager.Instance.CurStage is WorldStage worldStage)
-			{
-				GridData gridData = worldStage.GridData;
+			if (StageManager.Instance.CurStage is WorldStage worldStage == false)
+				return;
 
-				if (gridData.HasObjectAt(gridPosition))
+			if (BuildingObjectsByPos.TryGetValue(gridPosition, out BuildingObject buildingObject))
+			{
+				// 해당 위치에 이미 건물이 있는 경우
+				Vector3Int pivot = buildingObject.Pivot;
+				DespawnBuildingObject(worldStage, pivot);
+				return;
+			}
+			else
+			{
+				List<Vector3Int> coords = GetBuildingCoords(gridPosition, selectedBuilding.Size);
+				foreach (Vector3Int coord in coords)
 				{
-					gridData.RemoveObjectAt(gridPosition);
-					DespawnBuildingObject(gridPosition);
-					return;
+					if (BuildingObjectsByPos.ContainsKey(coord))
+					{
+						Debug.LogWarning("Already has object at " + coord);
+						return;
+					}
 				}
-				else
-				{
-					gridData.AddObjectAt(gridPosition, selectedBuilding);
-					SpawnBuildingObject(gridPosition, selectedBuilding);
-				}
+				SpawnBuildingObject(worldStage, gridPosition, selectedBuilding);
 			}
 
 			// buildingState.OnAction(gridPosition);
@@ -138,8 +156,8 @@ namespace WitchMendokusai
 			if (stage is WorldStage worldStage)
 			{
 				// Debug.Log($"{nameof(OnStageChanged)} {grid} | {stageObject}");
-				grid.transform.position = stageObject.transform.position;
-				DespawnAllBuildingObject();
+				gridParent.position = stageObject.transform.position;
+				DespawnAllBuildingObject(worldStage);
 				SpawnAllBuildingObject(worldStage);
 			}
 		}
@@ -150,45 +168,80 @@ namespace WitchMendokusai
 
 			foreach ((Vector3Int coord, RuntimeBuildingData runtimeBuildingData) in gridData.BuildingData)
 			{
-				Building building = SOHelper.Get<Building>(runtimeBuildingData.SOID);
-				SpawnBuildingObject(coord, building);
+				Building building = SOHelper.Get<Building>(runtimeBuildingData.BuildingID);
+				SpawnBuildingObject(worldStage, coord, building);
 			}
 		}
 
-		private void SpawnBuildingObject(Vector3Int coord, Building building)
+		private void SpawnBuildingObject(WorldStage worldStage, Vector3Int pivot, Building building)
 		{
 			// Debug.Log($"{nameof(SpawnBuildingObject)} ({coord}, {building.name})");
 
 			BuildingObject buildingObject = ObjectPoolManager.Instance.Spawn(BuildingObjectPrefab).GetComponent<BuildingObject>();
-			buildingObject.transform.position = GetWorldPosition(coord);
+			buildingObject.transform.position = GetWorldPosition(pivot, building.Size);
 			buildingObject.gameObject.SetActive(true);
 
 			buildingObject.Initialize(new RuntimeBuildingData()
 			{
 				State = BuildingState.Placed,
-				SOID = building.ID
+				BuildingID = building.ID
+			}, pivot);
+
+			GetBuildingCoords(pivot, building.Size).ForEach(c =>
+			{
+				BuildingObjectsByPos.Add(c, buildingObject);
 			});
 
-			BuildingObjectDict[coord] = buildingObject;
+			worldStage.GridData.AddObjectAt(pivot, building);
+
+			BuildingObjectsByPos[pivot] = buildingObject;
 		}
 
-		private void DespawnAllBuildingObject()
+		private void DespawnAllBuildingObject(WorldStage worldStage)
 		{
-			List<Vector3Int> keys = new(BuildingObjectDict.Keys);
+			List<Vector3Int> keys = new(BuildingObjectsByPos.Keys);
+			// 무엇이 pivot인지는 모르지만 일단 고
 			foreach (Vector3Int coord in keys)
-			{
-				DespawnBuildingObject(coord);
-			}
+				DespawnBuildingObject(worldStage, coord);
 		}
 
-		private void DespawnBuildingObject(Vector3Int coord)
+		private void DespawnBuildingObject(WorldStage worldStage, Vector3Int pivot)
 		{
-			if (BuildingObjectDict.TryGetValue(coord, out BuildingObject buildingObject) == false)
+			// 잘못된 좌표이거나, 아래에서 이미 제거된 경우
+			if (BuildingObjectsByPos.TryGetValue(pivot, out BuildingObject buildingObject) == false)
+			{
+				Debug.LogWarning("BuildingObject not found at " + pivot);
 				return;
+			}
+
+			// Size가 1이 아닌 Building들의 경우, 다른 좌표에도 같은 BuildingObject이 있을 수 있으므로 찾아서 제거
+			GetBuildingCoords(pivot, buildingObject.Building.Size).ForEach(c =>
+			{
+				BuildingObjectsByPos.Remove(c);
+			});
+
+			worldStage.GridData.RemoveObjectAt(pivot);
 
 			// Debug.Log($"{nameof(DespawnBuildingObject)} ({coord}, {buildingObject.name})");
+			buildingObject.Despawn();
 			ObjectPoolManager.Instance.Despawn(buildingObject.gameObject);
-			BuildingObjectDict.Remove(coord);
+		}
+
+		public List<Vector3Int> GetBuildingCoords(Vector3Int pivot, Vector2 size)
+		{
+			List<Vector3Int> coords = new();
+
+			for (int x = 0; x < size.x; x++)
+			{
+				for (int y = 0; y < size.y; y++)
+				{
+					Vector3Int coord = pivot + new Vector3Int(-x, y, 0);
+					// Debug.Log($"{nameof(GetBuildingCoords)} {coord} ({-x}, {y})");
+					coords.Add(coord);
+				}
+			}
+
+			return coords;
 		}
 	}
 }
