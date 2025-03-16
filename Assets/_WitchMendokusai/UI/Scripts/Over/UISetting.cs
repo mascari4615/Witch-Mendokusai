@@ -16,7 +16,7 @@ namespace WitchMendokusai
 		[SerializeField] private Button quitButton;
 		[SerializeField] private Button clearDataButton;
 
-		private void Start()
+		public override void Init()
 		{
 			InitVolumeSliderValue();
 
@@ -74,12 +74,12 @@ namespace WitchMendokusai
 			dungeonExitButton.gameObject.SetActive(UIManager.Instance.CurCanvas == MCanvasType.Dungeon);
 		}
 
-		public override void OnOpen()
+		protected override void OnOpen()
 		{
 			TimeManager.Instance.Pause();
 		}
 
-		public override void OnClose()
+		protected override void OnClose()
 		{
 			TimeManager.Instance.Resume();
 		}

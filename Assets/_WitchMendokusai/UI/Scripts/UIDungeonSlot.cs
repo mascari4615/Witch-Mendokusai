@@ -7,15 +7,12 @@ namespace WitchMendokusai
 		protected TextMeshProUGUI playTimeText;
 		protected TextMeshProUGUI typeText;
 
-		public override bool Init()
+		public override void Init()
 		{
-			if (base.Init() == false)
-				return false;
+			base.Init();
 
 			playTimeText = transform.Find("[Text] PlayTime").GetComponent<TextMeshProUGUI>();
 			typeText = transform.Find("[Text] Type").GetComponent<TextMeshProUGUI>();
-
-			return true;
 		}
 
 		public override void UpdateUI()

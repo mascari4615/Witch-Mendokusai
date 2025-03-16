@@ -43,7 +43,8 @@ namespace WitchMendokusai
 			foreach (UIDeck deckUI in deckUIs)
 			{
 				deckUIDic.Add(deckUI.EquipmentData.ID, deckUI);
-				deckUI.Init(cardSelectAction: (slot) => { SelectCard(slot.DataSO as CardData); });
+				deckUI.Init();
+				// deckUI.Init(cardSelectAction: (slot) => { SelectCard(slot.DataSO as CardData); });
 			}
 
 			for (int i = 0; i < deckSelectButtons.Count; i++)

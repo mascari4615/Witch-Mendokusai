@@ -5,10 +5,11 @@ using System.Linq;
 using TMPro;
 using UnityEngine;
 using Random = UnityEngine.Random;
+using static WitchMendokusai.SOHelper;
 
 namespace WitchMendokusai
 {
-	public class UICraft : MonoBehaviour, IUI
+	public class UICraft : UIBase
 	{
 		[SerializeField] private ItemType itemType;
 		[SerializeField] private RecipeType recipeType;
@@ -18,18 +19,19 @@ namespace WitchMendokusai
 
 		[SerializeField] private UIItemSlot[] craftTableSlots;
 		[SerializeField] private TextMeshProUGUI[] craftTableAmounts;
+
 		[SerializeField] private UIItemSlot[] resultSlots;
 		[SerializeField] private TextMeshProUGUI[] resultAmounts;
 
 		[SerializeField] private UIItemDataGrid recipeGrid;
 
-		private void OnEnable()
+		protected override void OnOpen()
 		{
 			// Debug.Log($"{nameof(UICraft)} {nameof(OnEnable)}");
 			StartCoroutine(Loop());
 		}
 
-		private void OnDisable()
+		protected override void OnClose()
 		{
 			// Debug.Log($"{nameof(UICraft)} {nameof(OnDisable)}");
 			StopAllCoroutines();
@@ -50,15 +52,19 @@ namespace WitchMendokusai
 			}
 		}
 
-		public void Init()
+		public override void Init()
 		{
+			foreach (UIItemSlot craftTableSlot in craftTableSlots)
+				craftTableSlot.Init();
 			foreach (UIItemSlot resultSlot in resultSlots)
 				resultSlot.Init();
 			recipeGrid.Init();
 		}
 
-		public void UpdateUI()
+		public override void UpdateUI()
 		{
+			foreach (UIItemSlot craftTableSlot in craftTableSlots)
+				craftTableSlot.UpdateUI();
 			foreach (UIItemSlot resultSlot in resultSlots)
 				resultSlot.UpdateUI();
 			UpdateRecipeGrid();
@@ -71,12 +77,12 @@ namespace WitchMendokusai
 			List<ItemData> availableRecipes = new();
 
 			// 모든 아이템 데이터 중에서 해당 아이템 타입과 레시피 타입이 일치하는 아이템 데이터만 필터링
-			foreach (ItemData itemData in SOManager.Instance[typeof(ItemData)].Values)
+			ForEach<ItemData>(itemData =>
 			{
 				if (itemData.Unlocked)
 					if ((itemData.Type == itemType) && (itemData.Recipes[0].Type == recipeType))
 						availableRecipes.Add(itemData);
-			}
+			});
 
 			recipeGrid.SetData(availableRecipes);
 			recipeGrid.UpdateUI();

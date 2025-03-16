@@ -147,7 +147,7 @@ namespace WitchMendokusai
 				overlayUIs[CurOverlay].SetActive(false);
 
 			CurOverlay = overlayUI;
-			if (overlayUIs.TryGetValue(overlayUI, out var uiPanel))
+			if (overlayUIs.TryGetValue(overlayUI, out UIPanel uiPanel))
 			{
 				uiPanel.SetActive(true);
 				uiPanel.UpdateUI();

@@ -26,14 +26,11 @@ namespace WitchMendokusai
 		public bool canHold = true;
 		private PriceType priceType = PriceType.Buy;
 
-		public override bool Init()
+		public override void Init()
 		{
-			if (base.Init() == false)
-				return false;
+			base.Init();
 
 			priceText = transform.Find("[Text] Price").GetComponent<TextMeshProUGUI>();
-
-			return true;
 		}
 
 		public override void UpdateUI()

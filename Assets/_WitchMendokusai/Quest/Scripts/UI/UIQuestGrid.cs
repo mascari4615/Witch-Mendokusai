@@ -13,15 +13,13 @@ namespace WitchMendokusai
 
 		private UIQuestToolTip questToolTip;
 
-		[SerializeField] private bool resetFilterOnEnable = true;
+		// TODO: [SerializeField] private bool resetFilterOnEnable = true;
 
 		private RuntimeQuest CurQuest => Data.Count > 0 ? Data[CurSlotIndex] : null;
 
-		public override bool Init()
+		public override void Init()
 		{
-			// 이미 한 번 Init했다면 Return
-			if (base.Init() == false)
-				return false;
+			base.Init();
 
 			// 필터 버튼 초기화
 			if (filtersParent != null)
@@ -43,14 +41,10 @@ namespace WitchMendokusai
 
 			if (questToolTip != null)
 				questToolTip.Init();
-
-			return true;
 		}
 
 		public override void UpdateUI()
 		{
-			Init();
-
 			if (CurSlotIndex >= Data.Count)
 				CurSlotIndex = Data.Count - 1;
 

@@ -24,10 +24,11 @@ namespace WitchMendokusai
 
 		public void SetCriteria(RuntimeQuest quest)
 		{
-			canvasGroup.alpha = 1;
-			if (quest == null || quest.Criteria == null || quest.Criteria.Count == 0)
+			bool hasQuest = (quest != null) && (quest.Criteria != null) && (quest.Criteria.Count > 0);
+			canvasGroup.SetVisible(hasQuest);
+
+			if (hasQuest == false)
 			{
-				canvasGroup.alpha = 0;
 				// foreach (UISlot slot in slots)
 				// 	slot.gameObject.SetActive(false);
 				return;

@@ -116,11 +116,9 @@ namespace WitchMendokusai
 			}
 		}
 
-		public override void OnOpen()
+		protected override void OnOpen()
 		{
-			canvasGroup.alpha = 0;
-			canvasGroup.interactable = false;
-			canvasGroup.blocksRaycasts = false;
+			canvasGroup.SetVisible(false);
 
 			NPC curNPCData = curNPC.UnitData as NPC;
 			List<NPCType> npcTypes = curNPCData.GetNPCTypeList();
@@ -133,7 +131,7 @@ namespace WitchMendokusai
 			Talk();
 		}
 
-		public override void OnClose()
+		protected override void OnClose()
 		{
 			CameraManager.Instance.SetCamera(CameraType.Normal);
 		}
@@ -186,9 +184,7 @@ namespace WitchMendokusai
 			buttonsParent.SetActive(false);
 			UIManager.Instance.Chat.StartChat(curNPC, () =>
 			{
-				canvasGroup.alpha = 1;
-				canvasGroup.interactable = true;
-				canvasGroup.blocksRaycasts = true;
+				canvasGroup.SetVisible(true);
 
 				SetPanel(NPCType.None);
 				buttonsParent.SetActive(true);

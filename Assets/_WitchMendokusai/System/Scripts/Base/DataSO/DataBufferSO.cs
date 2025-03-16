@@ -11,7 +11,7 @@ namespace WitchMendokusai
 		[field: SerializeField] public List<T> InitItems { get; private set; }
 		[field: NonSerialized] public List<T> Data { get; protected set; } = new();
 
-		[field: NonSerialized] public List<IUI> UIs { get; private set; } = new();
+		[field: NonSerialized] public List<UIBase> UIs { get; private set; } = new();
 
 		public virtual void Add(T t)
 		{
@@ -32,7 +32,7 @@ namespace WitchMendokusai
 			UpdateUI();
 		}
 
-		public void RegisterUI(IUI ui) => UIs.Add(ui);
+		public void RegisterUI(UIBase ui) => UIs.Add(ui);
 
 		public void UpdateUI() => UIs.ForEach(ui => ui.UpdateUI());
 

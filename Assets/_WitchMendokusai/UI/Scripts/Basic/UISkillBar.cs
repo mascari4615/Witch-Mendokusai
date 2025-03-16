@@ -1,29 +1,33 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace WitchMendokusai
 {
-	public class UISkillBar : MonoBehaviour, IUI
+	public class UISkillBar : UIBase
 	{
-		private UISkillSlot[] curSkillSlots;
+		private List<UISkillSlot> curSkillSlots;
 
 		private void Start()
 		{
 			Init();
-			TimeManager.Instance.RegisterCallback(UpdateUI);
+			SetActive(true);
 		}
 
-		public void Init()
+		public override void Init()
 		{
-			curSkillSlots = GetComponentsInChildren<UISkillSlot>(true);
+			curSkillSlots = GetComponentsInChildren<UISkillSlot>(true).ToList();
+
+			foreach (UISkillSlot skillSlot in curSkillSlots)
+				skillSlot.Init();
 		}
 
-		public void UpdateUI()
+		public override void UpdateUI()
 		{
 			int skillCount = 0;
 
-			var skills = Player.Instance.Object.SkillHandler.SkillDic.Values;
+			Dictionary<int, Skill>.ValueCollection skills = Player.Instance.Object.SkillHandler.SkillDic.Values;
 			foreach (Skill skill in skills)
 			{
 				curSkillSlots[skillCount].SetSlot(skill.Data);
@@ -32,8 +36,18 @@ namespace WitchMendokusai
 				skillCount++;
 			}
 
-			for (int i = 0; i < curSkillSlots.Length; i++)
+			for (int i = 0; i < curSkillSlots.Count; i++)
 				curSkillSlots[i].gameObject.SetActive(i < skillCount);
+		}
+
+		protected override void OnOpen()
+		{
+			TimeManager.Instance.RegisterCallback(UpdateUI);
+		}
+
+		protected override void OnClose()
+		{
+			TimeManager.Instance.RemoveCallback(UpdateUI);
 		}
 	}
 }

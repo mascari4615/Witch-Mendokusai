@@ -16,7 +16,7 @@ namespace WitchMendokusai
 
 		public override void Init()
 		{
-			buildingBar.Init(buildingManager);
+			buildingBar.Init();
 		}
 
 		public override void UpdateUI()
@@ -24,14 +24,14 @@ namespace WitchMendokusai
 			buildingBar.UpdateUI();
 		}
 
-		public override void OnOpen()
+		protected override void OnOpen()
 		{
 			if (loop != null)
 				StopCoroutine(loop);
 			loop = StartCoroutine(Loop());
 		}
 
-		public override void OnClose()
+		protected override void OnClose()
 		{
 			if (loop != null)
 				StopCoroutine(loop);

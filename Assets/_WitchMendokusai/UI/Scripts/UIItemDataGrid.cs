@@ -11,10 +11,9 @@ namespace WitchMendokusai
 		[SerializeField] private Transform filtersParent;
 		[SerializeField] private ItemType filter = ItemType.None;
 
-		public override bool Init()
+		public override void Init()
 		{
-			if (base.Init() == false)
-				return false;
+			base.Init();
 
 			if (filtersParent != null)
 			{
@@ -25,15 +24,10 @@ namespace WitchMendokusai
 					fillerButtons[i].SetClickAction((slot) => {SetFilter((ItemType)(slot.Index - 1));});
 				}
 			}
-
-			return true;
 		}
 
 		public override void UpdateUI()
 		{
-			if (!isInit)
-				Init();
-
 			for (int i = 0; i < Slots.Count; i++)
 			{
 				UIItemSlot slot = Slots[i] as UIItemSlot;

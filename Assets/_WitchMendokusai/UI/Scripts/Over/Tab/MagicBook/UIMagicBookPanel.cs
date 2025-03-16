@@ -2,12 +2,14 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.UI;
 using static WitchMendokusai.SOHelper;
 
 namespace WitchMendokusai
 {
 	public class UIMagicBookPanel : UIPanels
 	{
+		[SerializeField] private Button tooltipCloseButton;
 		private ToolTip toolTip;
 		private UIQuestToolTip questToolTip;
 
@@ -24,16 +26,20 @@ namespace WitchMendokusai
 
 			foreach (UIChapter chapter in panels.Cast<UIChapter>())
 				chapter.SetToolTip(toolTip, questToolTip);
+
+			tooltipCloseButton.onClick.AddListener(() => toolTip.gameObject.SetActive(false));
 		}
 
-		public override void UpdateUI()
+		protected override void OnOpen()
 		{
-			// Debug.Log(nameof(UpdateUI) + DataManager.Instance.QuestState[0]);
+			base.OnOpen();
+			TimeManager.Instance.RegisterCallback(UpdateUI);
+		}
 
-			base.UpdateUI();
-
-			foreach (UIChapter chapter in panels.Cast<UIChapter>())
-				chapter.UpdateUI();
+		protected override void OnClose()
+		{
+			base.OnClose();
+			TimeManager.Instance.RemoveCallback(UpdateUI);
 		}
 
 		public override void OpenPanel(int newPanelIndex)
@@ -44,8 +50,5 @@ namespace WitchMendokusai
 				toolTip.gameObject.SetActive(false);
 			base.OpenPanel(newPanelIndex);
 		}
-
-		private void OnEnable() => TimeManager.Instance.RegisterCallback(UpdateUI);
-		private void OnDisable() => TimeManager.Instance.RemoveCallback(UpdateUI);
 	}
 }

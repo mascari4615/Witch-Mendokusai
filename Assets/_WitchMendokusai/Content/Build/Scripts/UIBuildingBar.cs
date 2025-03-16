@@ -6,7 +6,7 @@ using static WitchMendokusai.SOHelper;
 
 namespace WitchMendokusai
 {
-	public class UIBuildingBar : MonoBehaviour, IUI
+	public class UIBuildingBar : UIBase
 	{
 		[field: Header("_" + nameof(UIBuildingBar))]
 		private UIBuildingSlot[] buildingSlots;
@@ -16,7 +16,7 @@ namespace WitchMendokusai
 			TimeManager.Instance.RegisterCallback(UpdateUI);
 		}
 
-		public void Init(BuildManager buildManager)
+		public override void Init()
 		{
 			buildingSlots = GetComponentsInChildren<UIBuildingSlot>(true);
 
@@ -26,14 +26,14 @@ namespace WitchMendokusai
 				buildingSlot.SetSelectAction((slot) =>
 				{
 					Building building = slot.DataSO as Building;
-					buildManager.SelectBuilding(building);
+					BuildManager.Instance.SelectBuilding(building);
 				});
 			}
 		}
 
-		public void UpdateUI()
+		public override void UpdateUI()
 		{
-			var buildings = SOManager.Instance.DataSOs[typeof(Building)].Values.ToList();
+			List<DataSO> buildings = SOManager.Instance.DataSOs[typeof(Building)].Values.ToList();
 
 			for (int i = 0; i < buildings.Count; i++)
 			{

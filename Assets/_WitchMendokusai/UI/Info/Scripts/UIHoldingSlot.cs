@@ -2,12 +2,13 @@ using UnityEngine;
 
 namespace WitchMendokusai
 {
+	[RequireComponent(typeof(UISlot), typeof(CanvasGroup))]
 	public class UIHoldingSlot : Singleton<UIHoldingSlot>
 	{
-		[SerializeField] private CanvasGroup canvasGroup;
-		[SerializeField] private UISlot thisSlot;
+		private CanvasGroup canvasGroup = null;
+		private UISlot slot = null;
 
-		private Item holdingItem;
+		private Item holdingItem = null;
 		public bool IsHolding => holdingItem != null;
 
 		private const float funcATime = 0.2f;
@@ -15,6 +16,14 @@ namespace WitchMendokusai
 		public bool CanFuncA => curFuncATime >= 0;
 
 		private Inventory Inventory => SOManager.Instance.ItemInventory;
+
+		private void Start()
+		{
+			slot = GetComponent<UISlot>();
+			slot.Init();
+
+			canvasGroup = GetComponent<CanvasGroup>();
+		}
 
 		public void DoSomething(UIItemSlot targetSlot, bool isLeftClick)
 		{
@@ -57,6 +66,26 @@ namespace WitchMendokusai
 			}
 		}
 
+		private void Update()
+		{
+			UpdateUI();
+
+			if (curFuncATime >= 0)
+				curFuncATime -= Time.deltaTime;
+		}
+
+		private void UpdateUI()
+		{
+			canvasGroup.SetVisible(IsHolding, allowInteraction: false);
+
+			if (IsHolding)
+			{
+				transform.position = Input.mousePosition;
+				slot.SetSlot(holdingItem.Data, holdingItem.Amount);
+			}
+		}
+
+		#region Actions
 		// 들고있지 않은 상태에서, 비어있지 않은 슬롯에 좌클릭
 		public void HoldSlot(UIItemSlot targetSlot)
 		{
@@ -202,24 +231,6 @@ namespace WitchMendokusai
 				}
 			}
 		}
-
-		private void Update()
-		{
-			UpdateUI();
-
-			if (curFuncATime >= 0)
-				curFuncATime -= Time.deltaTime;
-		}
-
-		private void UpdateUI()
-		{
-			canvasGroup.alpha = IsHolding ? 1 : 0;
-
-			if (IsHolding)
-			{
-				transform.position = Input.mousePosition;
-				thisSlot.SetSlot(holdingItem.Data, holdingItem.Amount);
-			}
-		}
+		#endregion
 	}
 }

@@ -21,7 +21,7 @@ namespace WitchMendokusai
 
 		private void Start()
 		{
-			canvasGroup.alpha = 0;
+			canvasGroup.SetVisible(false);
 			TimeManager.Instance.RegisterCallback(UpdatePopup);
 		}
 
@@ -34,11 +34,11 @@ namespace WitchMendokusai
 
 			if (nearestInteractive == null)
 			{
-				canvasGroup.alpha = 0;
+				canvasGroup.SetVisible(false);
 				return;
 			}
 
-			canvasGroup.alpha = 1;
+			canvasGroup.SetVisible(true);
 			keyCodeText.text = "Z";
 			nameText.text = nearestInteractive.name;
 

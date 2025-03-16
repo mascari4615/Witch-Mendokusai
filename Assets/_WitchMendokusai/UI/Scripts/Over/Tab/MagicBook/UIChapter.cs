@@ -43,7 +43,7 @@ namespace WitchMendokusai
 			}
 		}
 
-		public override void OnOpen()
+		protected override void OnOpen()
 		{
 			// Debug.Log($"{name} {nameof(OnOpen)}");
 		

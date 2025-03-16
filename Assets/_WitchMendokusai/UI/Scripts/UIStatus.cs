@@ -7,18 +7,18 @@ using static WitchMendokusai.SOHelper;
 
 namespace WitchMendokusai
 {
-	public class UIStatus : MonoBehaviour, IUI
+	public class UIStatus : UIBase
 	{
 		private List<UISlot> statusSlots;
 		private bool isInit = false;
 
-		public void Init()
+		public override void Init()
 		{
 			statusSlots = GetComponentsInChildren<UISlot>(true).ToList();
 			isInit = true;
 		}
 
-		public void UpdateUI()
+		public override void UpdateUI()
 		{
 			List<UnitStatType> stats = Enum.GetValues(typeof(UnitStatType)).Cast<UnitStatType>().ToList();
 

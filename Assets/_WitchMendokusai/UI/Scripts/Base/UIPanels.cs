@@ -8,66 +8,72 @@ namespace WitchMendokusai
 {
 	public abstract class UIPanels : UIPanel
 	{
-		[SerializeField] private Transform panelSelectButtonsParent;
-		protected UISlot[] panelSelectButtons;
 		[SerializeField] private Transform panelsParent;
+		[SerializeField] private Transform panelSelectButtonsParent;
+
 		protected int curPanelIndex = 0;
-		protected UIPanel[] panels;
+		protected List<UIPanel> panels;
+		protected List<UISlot> panelSelectButtons;
 
 		public override void Init()
 		{
-			panels = new UIPanel[panelsParent.childCount];
-			for (int i = 0; i < panels.Length; i++)
+			// 비활성화 된 UIPanel도 찾기 위해 GetComponentsInChildren 사용, 부모가 panelsParent인 것만 필터링 - 2025.03.16 15:48
+			panels = panelsParent.GetComponentsInChildren<UIPanel>(true).Where(p => p.transform.parent == panelsParent).ToList();
+			for (int i = 0; i < panels.Count; i++)
 			{
-				GameObject p = panelsParent.GetChild(i).gameObject;
-				p.SetActive(i == 0);
-
-				panels[i] = p.GetComponent<UIPanel>();
-				if (panels[i] == null)
-				{
-					panels = new UIPanel[0];
-					break;
-				}
 				panels[i].Init();
+				panels[i].SetActive(false);
 			}
 
-			panelSelectButtons = panelSelectButtonsParent.GetComponentsInChildren<UISlot>(true);
-			for (int i = 0; i < panelSelectButtons.Length; i++)
+			panelSelectButtons = panelSelectButtonsParent.GetComponentsInChildren<UISlot>(true).ToList();
+			for (int i = 0; i < panelSelectButtons.Count; i++)
 			{
-				if (i >= panels.Length)
-				{
-					panelSelectButtons[i].gameObject.SetActive(false);
-					continue;
-				}
-
 				panelSelectButtons[i].SetSlotIndex(i);
-				panelSelectButtons[i].SetSlot(panels[i].PanelIcon, panels[i].Name, string.Empty);
 				panelSelectButtons[i].Init();
 				panelSelectButtons[i].SetClickAction((slot) => { OpenPanel(slot.Index); });
+
+				if (i < panels.Count)
+				{
+					panelSelectButtons[i].SetSlot(panels[i].PanelIcon, panels[i].Name, string.Empty);
+					panelSelectButtons[i].gameObject.SetActive(true);
+				}
+				else
+				{
+					panelSelectButtons[i].gameObject.SetActive(false);
+				}
 			}
 		}
 
-		public override void OnOpen()
+		protected override void OnOpen()
 		{
+			// Debug.Log($"{name} {nameof(OnOpen)}");
 			OpenPanel(curPanelIndex);
 		}
 
 		public override void UpdateUI()
 		{
+			// foreach (UIPanel panel in panels)
+			// 	panel.UpdateUI();
+			panels[curPanelIndex].UpdateUI();
+
+			for (int i = 0; i < panels.Count; i++)
+				panelSelectButtons[i].UpdateUI();
 		}
 
 		public virtual void OpenPanel(int newPanelIndex)
 		{
 			// Debug.Log($"{nameof(OpenTabMenu)}, {menuType}");
-			curPanelIndex = newPanelIndex;
 
-			if (panels.Length > 0)
-			{
-				for (int i = 0; i < panels.Length; i++)
-					panels[i].gameObject.SetActive(i == curPanelIndex);
-				panels[curPanelIndex].OnOpen();
-				panels[curPanelIndex].UpdateUI();
-			}
+			if (panels == null || panels.Count == 0)
+				return;
+
+			if (newPanelIndex < 0 || newPanelIndex >= panels.Count)
+				return;
+
+			panels[curPanelIndex].SetActive(false);
+			curPanelIndex = newPanelIndex;
+			panels[curPanelIndex].SetActive(true);
+			panels[curPanelIndex].UpdateUI();
 		}
 	}
 }

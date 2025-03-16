@@ -11,10 +11,9 @@ namespace WitchMendokusai
 		[SerializeField] private Transform filtersParent;
 		[SerializeField] private ItemType filter = ItemType.None;
 
-		public override bool Init()
+		public override void Init()
 		{
-			if (base.Init() == false)
-				return false;
+			base.Init();
 
 			Inventory inventory = DataBufferSO as Inventory;
 			inventory.RegisterUI(this);
@@ -42,8 +41,6 @@ namespace WitchMendokusai
 					}
 				}
 			}
-
-			return true;
 		}
 
 		public override void UpdateUI()

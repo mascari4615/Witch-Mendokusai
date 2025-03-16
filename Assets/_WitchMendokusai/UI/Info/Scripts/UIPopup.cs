@@ -12,6 +12,11 @@ namespace WitchMendokusai
 		private readonly Queue<DataSO> dataSOs = new();
 		private bool isPlaying = false;
 
+		private void Start()
+		{
+			slot.Init();
+		}
+
 		public void Popup(DataSO dataSO)
 		{
 			dataSOs.Enqueue(dataSO);

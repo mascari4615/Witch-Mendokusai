@@ -28,11 +28,11 @@ namespace WitchMendokusai
 
 		public void UpdateUI(List<RewardInfoData> data)
 		{
-			canvasGroup.alpha = 1;
+			bool hasData = data != null && data.Count > 0;
+			canvasGroup.SetVisible(hasData);
 
-			if (data == null || data.Count == 0)
+			if (hasData == false)
 			{
-				canvasGroup.alpha = 0;
 				// foreach (UISlot slot in slots)
 				// 	slot.gameObject.SetActive(false);
 				return;

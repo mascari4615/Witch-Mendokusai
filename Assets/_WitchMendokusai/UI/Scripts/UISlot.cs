@@ -10,14 +10,15 @@ namespace WitchMendokusai
 {
 	public class SlotData
 	{
-		public DataSO DataSO { get; private set; }= null;
-		public Sprite Sprite{ get; private set; } = null;
-		public string Name { get; private set; }= "";
-		public string Description { get; private set; }= "";
+		public DataSO DataSO { get; private set; } = null;
+		public Sprite Sprite { get; private set; } = null;
+		public string Name { get; private set; } = "";
+		public string Description { get; private set; } = "";
+		public int Amount { get; private set; } = 1;
 
 		public bool IsEmpty { get; private set; }
 
-		public void SetData(Sprite sprite, string name, string description)
+		public void SetData(Sprite sprite, string name, string description, int amount = 1)
 		{
 			if (sprite != null || string.IsNullOrEmpty(name) == false)
 			{
@@ -25,6 +26,7 @@ namespace WitchMendokusai
 				Sprite = sprite;
 				Name = name;
 				Description = description;
+				Amount = amount;
 
 				IsEmpty = false;
 			}
@@ -34,14 +36,15 @@ namespace WitchMendokusai
 			}
 		}
 
-		public void SetData(DataSO dataSO)
+		public void SetData(DataSO dataSO, int amount = 1)
 		{
-			if (dataSO)
+			if (dataSO != null)
 			{
 				DataSO = dataSO;
 				Sprite = dataSO.Sprite;
 				Name = dataSO.Name;
 				Description = dataSO.Description;
+				Amount = amount;
 
 				IsEmpty = false;
 			}
@@ -57,48 +60,44 @@ namespace WitchMendokusai
 			Sprite = null;
 			Name = "";
 			Description = "";
+			Amount = 1;
 
 			IsEmpty = true;
 		}
 	}
 
-	public class UISlot : MonoBehaviour, IUI, ISelectHandler, IDeselectHandler
+	public class UISlot : UIBase, ISelectHandler, IDeselectHandler
 	{
-		public int Index { get; private set; }
-		public ToolTipTrigger ToolTipTrigger { get; private set; }
-		public SlotData Data { get; private set; }
-		public int Amount { get; private set; }
+		public int Index { get; private set; } = -1;
+		public ToolTipTrigger ToolTipTrigger { get; private set; } = null;
+		public SlotData Data { get; private set; } = new();
 		public bool IsDisable { get; private set; } = false;
 
-		[SerializeField] protected DataSO defaultDataSO;
+		[SerializeField] protected DataSO defaultDataSO = null;
+		protected Button button = null;
+		protected Image iconImage = null;
+		protected TextMeshProUGUI nameText = null;
+		protected TextMeshProUGUI amountText = null;
+		protected TextMeshProUGUI descriptionText = null;
+		protected Image disableImage = null;
+
 		[SerializeField] private bool blockClickWhenDisable = false;
 		[SerializeField] private bool showAmountOne = false;
+		private Action<UISlot> selectAction = delegate { };
+		private Action<UISlot> deselectAction = delegate { };
+		private Action<UISlot> clickAction = delegate { };
 
-		protected Button button;
 		public Selectable Selectable => button;
-		protected Image iconImage;
-		protected TextMeshProUGUI nameText;
-		protected TextMeshProUGUI amountText;
-		protected TextMeshProUGUI descriptionText;
-		protected Image disableImage;
-
-		private Action<UISlot> selectAction;
-		private Action<UISlot> deselectAction;
-		private Action<UISlot> clickAction;
-
-		private bool isInit = false;
-
 		public DataSO DataSO => Data.DataSO;
+		private bool IsInit => iconImage != null;
 
-		public virtual bool Init()
+		public override void Init()
 		{
-			if (isInit)
-				return false;
-			isInit = true;
-
-			button = GetComponent<Button>();
-			if (button)
+			if (TryGetComponent(out Button button))
+			{
 				button.onClick.AddListener(OnClick);
+				this.button = button;
+			}
 
 			iconImage = transform.Find("[Image] IconBackground").Find("[Image] Icon").GetComponent<Image>();
 			disableImage = transform.Find("[Image] Disable").GetComponent<Image>();
@@ -109,46 +108,45 @@ namespace WitchMendokusai
 
 			ToolTipTrigger = GetComponent<ToolTipTrigger>();
 
-			Data = new();
-
 			if (defaultDataSO != null)
+			{
 				SetSlot(defaultDataSO);
-
-			return true;
+			}
 		}
 
 		public void SetSlotIndex(int index) => Index = index;
 
 		public void SetSlot(DataSO dataSO, int amount = 1)
-			=> SetSlot_(() => Data.SetData(dataSO), amount);
+			=> SetSlot_(() => Data.SetData(dataSO, amount));
 
 		public void SetSlot(Sprite sprite, string name, string description, int amount = 1)
-			=> SetSlot_(() => Data.SetData(sprite, name, description), amount);
+			=> SetSlot_(() => Data.SetData(sprite, name, description, amount));
 
-		private void SetSlot_(Action action, int amount = 1)
+		private void SetSlot_(Action action)
 		{
-			Init();
+			// Init();
 
 			action?.Invoke();
-			Amount = amount;
 
-			if (ToolTipTrigger)
+			if (ToolTipTrigger != null)
+			{
 				ToolTipTrigger.SetToolTipContent(Data);
+			}
 
-			UpdateUI();
+			if (IsInit == true)
+			{
+				UpdateUI();
+			}
 		}
 
-		public virtual void UpdateUI()
+		public override void UpdateUI()
 		{
-			if (!isInit)
-				Init();
-
 			iconImage.sprite = Data.Sprite;
 			iconImage.color = Data.Sprite == null ? Color.clear : Color.white;
 			nameText.text = Data.Name;
 			descriptionText.text = Data.Description;
 
-			amountText.text = (Amount == 1 && showAmountOne == false) ? "" : Amount.ToString();
+			amountText.text = (Data.Amount == 1 && showAmountOne == false) ? "" : Data.Amount.ToString();
 		}
 
 		public void SetDisable(bool isDisable)
@@ -158,8 +156,10 @@ namespace WitchMendokusai
 
 			if (blockClickWhenDisable)
 			{
-				if (button)
+				if (button != null)
+				{
 					button.interactable = !isDisable;
+				}
 			}
 		}
 
@@ -171,18 +171,24 @@ namespace WitchMendokusai
 		{
 			// Debug.Log($"{name} has button? {button != null}");
 
-			if (button)
+			if (button != null)
+			{
 				button.Select();
+			}
 			else
+			{
 				OnSelect(null);
+			}
 		}
 
 		public void OnSelect(BaseEventData eventData)
 		{
 			// Debug.Log($"{name} is selected");
 			selectAction?.Invoke(this);
-			if (ToolTipTrigger)
+			if (ToolTipTrigger != null)
+			{
 				ToolTipTrigger.Trigger();
+			}
 		}
 
 		public void OnDeselect(BaseEventData eventData)
@@ -195,13 +201,15 @@ namespace WitchMendokusai
 		{
 			// Debug.Log($"{name} is clicked");
 			clickAction?.Invoke(this);
-			if (ToolTipTrigger)
+			if (ToolTipTrigger != null)
+			{
 				ToolTipTrigger.Trigger();
+			}
 		}
 
 		public void SetNavigation(Navigation navigation)
 		{
-			if (button)
+			if (button != null)
 				button.navigation = navigation;
 		}
 	}

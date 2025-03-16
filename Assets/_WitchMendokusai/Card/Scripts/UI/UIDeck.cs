@@ -8,13 +8,13 @@ using UnityEngine.UI;
 
 namespace WitchMendokusai
 {
-	public class UIDeck : MonoBehaviour, IUI
+	public class UIDeck : UIBase
 	{
 		[field: SerializeField] public EquipmentData EquipmentData { get; private set; }
 		private List<UICardSlot> cardSlots;
 		private List<CardData> cards;
 
-		public void Init(Action<UISlot> cardSelectAction)
+		public override void Init()
 		{
 			cardSlots = GetComponentsInChildren<UICardSlot>(true).ToList();
 
@@ -26,7 +26,7 @@ namespace WitchMendokusai
 		}
 
 		public void SetCards(List<CardData> cards) => this.cards = cards;
-		public void UpdateUI()
+		public override void UpdateUI()
 		{
 			// HashSet : 고유한 값만 저장하는 자료구조
 			// Convert cards to a HashSet for faster lookup

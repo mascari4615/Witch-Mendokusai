@@ -5,18 +5,17 @@ using UnityEngine.Serialization;
 
 namespace WitchMendokusai
 {
-	public abstract class UIDataGrid<T> : MonoBehaviour, IUI
+	public abstract class UIDataGrid<T> : UIBase
 	{
 		[field: SerializeField] public DataBufferSO<T> DataBufferSO { get; private set; }
 		public List<T> Data { get; private set; } = new();
 		public List<UISlot> Slots { get; protected set; } = new();
 		public int CurSlotIndex { get; protected set; } = 0;
-		
+
 		[SerializeField] protected Transform slotsParent;
 		[SerializeField] protected bool dontShowEmptySlot = false;
 		[SerializeField] protected ToolTip clickToolTip;
 		[SerializeField] protected GameObject noElementInfo;
-		protected bool isInit = false;
 
 		public UISlot CurSlot => Slots[CurSlotIndex];
 
@@ -25,15 +24,8 @@ namespace WitchMendokusai
 			UpdateUI();
 		}
 
-		/// <summary>
-		/// UI 초기화, 한 번만 실행됨
-		/// </summary>
-		/// <returns></returns>
-		public virtual bool Init()
+		public override void Init()
 		{
-			if (isInit)
-				return false;
-
 			if (DataBufferSO != null)
 				SetData(DataBufferSO.Data);
 
@@ -52,18 +44,10 @@ namespace WitchMendokusai
 			}
 
 			SelectSlot(0);
-
-			return isInit = true;
 		}
 
-		/// <summary>
-		/// UI 갱신
-		/// </summary>
-		public virtual void UpdateUI()
+		public override void UpdateUI()
 		{
-			if (!isInit)
-				Init();
-
 			for (int i = 0; i < Slots.Count; i++)
 			{
 				if (DataBufferSO)
@@ -106,7 +90,6 @@ namespace WitchMendokusai
 
 		protected void UpdateNoElementInfo()
 		{
-
 			if (clickToolTip != null)
 			{
 				if (Data.Count == 0)

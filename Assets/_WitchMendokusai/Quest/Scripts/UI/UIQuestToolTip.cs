@@ -3,7 +3,7 @@ using UnityEngine.UI;
 
 namespace WitchMendokusai
 {
-	public class UIQuestToolTip : MonoBehaviour, IUI
+	public class UIQuestToolTip : UIBase
 	{
 		[SerializeField] private Button workButton;
 		[SerializeField] private Button rewardButton;
@@ -12,7 +12,7 @@ namespace WitchMendokusai
 
 		private RuntimeQuest curQuest;
 
-		public void Init()
+		public override void Init()
 		{
 			if (rewardUI != null)
 				rewardUI.Init();
@@ -48,7 +48,7 @@ namespace WitchMendokusai
 			curQuest = newQuest;
 		}
 
-		public void UpdateUI()
+		public override void UpdateUI()
 		{
 			if (curQuest?.SO)
 			{

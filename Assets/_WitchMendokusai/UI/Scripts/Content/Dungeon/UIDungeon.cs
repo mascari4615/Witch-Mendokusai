@@ -31,7 +31,7 @@ namespace WitchMendokusai
 			questGrid.UpdateUI();
 		}
 
-		public override void OnOpen()
+		protected override void OnOpen()
 		{
 			if (loop != null)
 				StopCoroutine(loop);
@@ -39,7 +39,7 @@ namespace WitchMendokusai
 			CameraManager.Instance.SetCamera(CameraType.Dungeon);
 		}
 
-		public override void OnClose()
+		protected override void OnClose()
 		{
 			if (loop != null)
 				StopCoroutine(loop);

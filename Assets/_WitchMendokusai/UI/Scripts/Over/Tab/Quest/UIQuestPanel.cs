@@ -6,17 +6,17 @@ namespace WitchMendokusai
 {
 	public class UIQuestPanel : UIPanel
 	{
-		private UIQuestGrid questBufferUI;
+		private UIQuestGrid questGrid;
 
 		public override void Init()
 		{
-			questBufferUI = GetComponentInChildren<UIQuestGrid>(true);
-			questBufferUI.Init();
+			questGrid = GetComponentInChildren<UIQuestGrid>(true);
+			questGrid.Init();
 		}
 
 		public override void UpdateUI()
 		{
-			questBufferUI.UpdateUI();
+			questGrid.UpdateUI();
 		}
 	}
 }
