@@ -21,6 +21,9 @@ namespace WitchMendokusai
 
 		public void RegisterCallback(GameEventType gameEventType, Action action)
 		{
+			if (IsPlaying == false)
+				return;
+
 			if (Callback.ContainsKey(gameEventType))
 			{
 				Callback[gameEventType] += action;
