@@ -31,7 +31,6 @@ namespace WitchMendokusai
 
 		private void OnEnable()
 		{
-			RegisterCallback(UpdateTimeScale);
 			timeLoop = StartCoroutine(UpdateTime());
 		}
 
