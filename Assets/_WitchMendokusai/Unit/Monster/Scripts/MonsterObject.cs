@@ -59,7 +59,7 @@ namespace WitchMendokusai
             }
             */
 
-			if (!IsAlive)
+			if (IsAlive == false)
 				return;
 
 			if (flashRoutine != null)
@@ -91,37 +91,9 @@ namespace WitchMendokusai
 			RuntimeManager.PlayOneShot("event:/SFX/Monster/Die", transform.position);
 			StopAllCoroutines();
 
-			/*if (DataManager.Instance.CurGameData.killedOnceMonster[ID] == false)
-            {
-                if (Collection<>.Instance != null)
-                {
-                    Collection.Instance.Collect(this);
-                }
-
-                DataManager.Instance.CurGameData.killedOnceMonster[ID] = true;
-                DataManager.Instance.SaveGameData();
-            }*/
-
 			// Animator.SetTrigger("COLLAPSE");
 			if (IsPlaying)
 				ObjectBufferManager.RemoveObject(ObjectType.Monster, gameObject);
-
-			/*
-            if (StageManager.Instance.CurrentRoom is NormalRoom)
-            {
-                onMonsterCollapse.Raise(transform);
-                int randCount = Random.Range(0, 5 + 1);
-                for (int i = 0; i < randCount; i++)
-                {
-                    ObjectManager.Instance.PopObject("ExpOrb", transform);
-                }
-
-                randCount = Random.Range(0, 5 + 1);
-                for (int i = 0; i < randCount; i++)
-                {
-                    ObjectManager.Instance.PopObject("Goldu", transform);
-                }
-            }*/
 
 			GameObject dieEffect = ObjectPoolManager.Instance.Spawn(dieEffectPrefab);
 			dieEffect.transform.position = transform.position + (Vector3.Normalize(Player.Instance.transform.position - transform.position) * .5f);
