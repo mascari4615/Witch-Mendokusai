@@ -19,7 +19,7 @@ namespace WitchMendokusai
 
 		public void Continue()
 		{
-			DungeonManager.Instance.Continue();
+			DungeonManager.Instance.Continue().Forget();
 		}
 
 		public override void Init()

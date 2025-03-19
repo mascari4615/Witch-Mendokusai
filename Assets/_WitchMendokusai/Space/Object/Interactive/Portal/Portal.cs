@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 
 namespace WitchMendokusai
@@ -14,7 +15,9 @@ namespace WitchMendokusai
 		public void OnTriggerEnter(Collider other)
 		{
 			if (other.CompareTag("Player"))
-				StageManager.Instance.LoadStage(TargetStage, targetPortalIndex);
+			{
+				StageManager.Instance.LoadStage(TargetStage, targetPortalIndex).Forget();
+			}
 		}
 
 		public void Active()

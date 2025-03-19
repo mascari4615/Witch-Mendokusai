@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
-using PlayFab.EconomyModels;
+using Cysharp.Threading.Tasks;
+using UniRx;
 using UnityEngine;
 using static WitchMendokusai.SOHelper;
 
@@ -40,14 +41,16 @@ namespace WitchMendokusai
 		{
 		}
 
-		public void StartDungeon(Dungeon dungeon)
+		public async UniTaskVoid StartDungeon(Dungeon dungeon)
 		{
 			Debug.Log($"{nameof(StartDungeon)}");
 
 			CurDungeon = dungeon;
 
 			// TODO: 던전
-			StageManager.Instance.LoadStage(dungeon.Stages[0], action: InitDungeonAndPlayer);
+			await StageManager.Instance.LoadStage(dungeon.Stages[0]);
+
+			InitDungeonAndPlayer();
 
 			void InitDungeonAndPlayer()
 			{
@@ -123,15 +126,16 @@ namespace WitchMendokusai
 			UIManager.Instance.SetOverlay(MPanelType.DungeonResult);
 		}
 
-		public void Continue()
+		public async UniTaskVoid Continue()
 		{
 			// 집으로 돌아가기
-			StageManager.Instance.LoadStage
+			await StageManager.Instance.LoadStage
 			(
 				StageManager.Instance.LastStage,
-				isBackToLastStage: true,
-				action: ResetDungeonAndPlayer
+				isBackToLastStage: true
 			);
+			
+			ResetDungeonAndPlayer();
 
 			void ResetDungeonAndPlayer()
 			{
