@@ -1,13 +1,25 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.SceneManagement;
+
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 namespace WitchMendokusai
 {
 	public static class MHelper
 	{
-		public static bool IsPlaying => (SceneManager.GetActiveScene().isLoaded == false || Application.isPlaying == false) == false;
+		public static bool IsPlayModeInEditor()
+		{
+#if UNITY_EDITOR
+			return EditorApplication.isPlaying;
+#else
+			return false;
+#endif
+		}
+
+		public static bool IsPlaying => Application.isPlaying || IsPlayModeInEditor();
 
 		#region GetNearest
 		public static T GetNearest<T>(List<T> list, Vector3 targetPosition, float maxDistance) where T : MonoBehaviour
