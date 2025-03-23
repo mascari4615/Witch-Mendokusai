@@ -14,8 +14,7 @@ namespace WitchMendokusai
 	{
 		// TODO: InputManager를 통해 모든 입력을 받아서 처리하도록 한다.
 
-		[SerializeField]
-		private InputActionAsset inputActionAsset;
+		[SerializeField] private InputActionAsset inputActionAsset;
 
 		public Vector3 MouseWorldPosition { get; private set; }
 
@@ -59,17 +58,17 @@ namespace WitchMendokusai
 		public void RegisterMouseEvent(InputMouseEventType inputMouseEventType, Action action)
 		{
 			if (mouseInputEvents.ContainsKey(inputMouseEventType) == false)
-				mouseInputEvents.Add(inputMouseEventType, null);
+				mouseInputEvents.Add(inputMouseEventType, delegate { });
 
 			mouseInputEvents[inputMouseEventType] += action;
 		}
 
-		public void UnregisterMouseEvent(InputMouseEventType inputMouseEventType)
+		public void UnregisterMouseEvent(InputMouseEventType inputMouseEventType, Action action)
 		{
 			if (mouseInputEvents.ContainsKey(inputMouseEventType) == false)
 				return;
 
-			mouseInputEvents[inputMouseEventType] = null;
+			mouseInputEvents[inputMouseEventType] -= action;
 		}
 
 		private void Update()

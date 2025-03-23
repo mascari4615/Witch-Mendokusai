@@ -49,7 +49,8 @@ namespace WitchMendokusai
 			isBuilding = true;
 			UIManager.Instance.SetCanvas(MCanvasType.Build);
 
-			InputManager.RegisterMouseEvent(InputMouseEventType.Button0Down, () => ClickCell());
+			InputManager.RegisterMouseEvent(InputMouseEventType.Button0Down, ClickCell);
+			InputManager.RegisterMouseEvent(InputMouseEventType.Button1Get, TryRemoveCell);
 			gridVisualization.SetActive(true);
 			marker.SetBool(MarkerEnabled, true);
 		}
@@ -60,7 +61,8 @@ namespace WitchMendokusai
 			isBuilding = false;
 			UIManager.Instance.SetCanvas(MCanvasType.None);
 
-			InputManager.UnregisterMouseEvent(InputMouseEventType.Button0Down);
+			InputManager.UnregisterMouseEvent(InputMouseEventType.Button0Down, ClickCell);
+			InputManager.UnregisterMouseEvent(InputMouseEventType.Button1Get, TryRemoveCell);
 			gridVisualization.SetActive(false);
 			marker.SetBool(MarkerEnabled, false);
 		}
@@ -144,6 +146,21 @@ namespace WitchMendokusai
 			}
 
 			// buildingState.OnAction(gridPosition);
+		}
+
+		private void TryRemoveCell()
+		{
+			if (InputManager.IsPointerOverUI())
+				return;
+
+			if (StageManager.Instance.CurStage is WorldStage worldStage == false)
+				return;
+
+			if (BuildingObjectsByPos.TryGetValue(gridPosition, out BuildingObject buildingObject) == false)
+				return;
+
+			Vector3Int pivot = buildingObject.Pivot;
+			DespawnBuildingObject(worldStage, pivot);
 		}
 
 		public void SelectBuilding(Building building)
