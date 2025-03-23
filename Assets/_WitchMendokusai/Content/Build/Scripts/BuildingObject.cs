@@ -44,6 +44,7 @@ namespace WitchMendokusai
 
 		public void Despawn()
 		{
+			// Debug.Log($"{nameof(Despawn)} ({Pivot}, {Building.name})");
 			Model.SetActive(false);
 			ObjectPoolManager.Instance.Despawn(Model);
 			Model = null;

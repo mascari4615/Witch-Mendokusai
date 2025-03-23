@@ -28,7 +28,7 @@ namespace WitchMendokusai
 		}
 
 		public async UniTask LoadStage(Stage stage, int spawnPortalIndex = -1, bool isBackToLastStage = false)
-	{
+		{
 			// 플레이어의 위치는 그대로, 이동할 스테이지가 플레이어 위치에 생성됨
 
 			// isBackToLastStage: 어떠한 이유로 포탈 타기 전 마지막 위치로 돌아간다는 뜻.

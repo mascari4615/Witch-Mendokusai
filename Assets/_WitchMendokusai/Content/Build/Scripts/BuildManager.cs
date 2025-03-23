@@ -128,7 +128,9 @@ namespace WitchMendokusai
 			{
 				// 해당 위치에 이미 건물이 있는 경우
 				Vector3Int pivot = buildingObject.Pivot;
-				DespawnBuildingObject(worldStage, pivot);
+
+				worldStage.GridData.RemoveBuildingAt(gridPosition);
+				DespawnBuildingObject(pivot);
 				return;
 			}
 			else
@@ -142,7 +144,8 @@ namespace WitchMendokusai
 						return;
 					}
 				}
-				SpawnBuildingObject(worldStage, gridPosition, selectedBuilding);
+				worldStage.GridData.AddBuildingAt(gridPosition, selectedBuilding);
+				SpawnBuildingObject(gridPosition, selectedBuilding);
 			}
 
 			// buildingState.OnAction(gridPosition);
@@ -160,7 +163,8 @@ namespace WitchMendokusai
 				return;
 
 			Vector3Int pivot = buildingObject.Pivot;
-			DespawnBuildingObject(worldStage, pivot);
+			worldStage.GridData.RemoveBuildingAt(gridPosition);
+			DespawnBuildingObject(pivot);
 		}
 
 		public void SelectBuilding(Building building)
@@ -172,13 +176,14 @@ namespace WitchMendokusai
 		{
 			if (stage is WorldStage worldStage)
 			{
-				// Debug.Log($"{nameof(OnStageChanged)} {grid} | {stageObject}");
+				Debug.Log($"{nameof(OnStageChanged)} {grid} | {stageObject}");
 				gridParent.position = stageObject.transform.position;
-				DespawnAllBuildingObject(worldStage);
+				DespawnAllBuildingObject();
 				SpawnAllBuildingObject(worldStage);
 			}
 		}
 
+		// GridData는 따로 처리해야 함 - 2025.03.24 00:32
 		private void SpawnAllBuildingObject(WorldStage worldStage)
 		{
 			GridData gridData = worldStage.GridData;
@@ -186,13 +191,14 @@ namespace WitchMendokusai
 			foreach ((Vector3Int coord, RuntimeBuildingData runtimeBuildingData) in gridData.BuildingData)
 			{
 				Building building = SOHelper.Get<Building>(runtimeBuildingData.BuildingID);
-				SpawnBuildingObject(worldStage, coord, building);
+				SpawnBuildingObject(coord, building);
 			}
 		}
 
-		private void SpawnBuildingObject(WorldStage worldStage, Vector3Int pivot, Building building)
+		// GridData는 따로 처리해야 함 - 2025.03.24 00:32
+		private void SpawnBuildingObject(Vector3Int pivot, Building building)
 		{
-			// Debug.Log($"{nameof(SpawnBuildingObject)} ({coord}, {building.name})");
+			// Debug.Log($"{nameof(SpawnBuildingObject)} ({pivot}, {building.name})");
 
 			BuildingObject buildingObject = ObjectPoolManager.Instance.Spawn(BuildingObjectPrefab).GetComponent<BuildingObject>();
 			buildingObject.transform.position = GetWorldPosition(pivot, building.Size);
@@ -209,20 +215,20 @@ namespace WitchMendokusai
 				BuildingObjectsByPos.Add(c, buildingObject);
 			});
 
-			worldStage.GridData.AddObjectAt(pivot, building);
-
 			BuildingObjectsByPos[pivot] = buildingObject;
 		}
 
-		private void DespawnAllBuildingObject(WorldStage worldStage)
+		// GridData는 따로 처리해야 함 - 2025.03.24 00:32
+		private void DespawnAllBuildingObject()
 		{
 			List<Vector3Int> keys = new(BuildingObjectsByPos.Keys);
 			// 무엇이 pivot인지는 모르지만 일단 고
 			foreach (Vector3Int coord in keys)
-				DespawnBuildingObject(worldStage, coord);
+				DespawnBuildingObject(coord);
 		}
 
-		private void DespawnBuildingObject(WorldStage worldStage, Vector3Int pivot)
+		// GridData는 따로 처리해야 함 - 2025.03.24 00:32
+		private void DespawnBuildingObject(Vector3Int pivot)
 		{
 			// 잘못된 좌표이거나, 아래에서 이미 제거된 경우
 			if (BuildingObjectsByPos.TryGetValue(pivot, out BuildingObject buildingObject) == false)
@@ -237,9 +243,7 @@ namespace WitchMendokusai
 				BuildingObjectsByPos.Remove(c);
 			});
 
-			worldStage.GridData.RemoveObjectAt(pivot);
-
-			// Debug.Log($"{nameof(DespawnBuildingObject)} ({coord}, {buildingObject.name})");
+			// Debug.Log($"{nameof(DespawnBuildingObject)} ({pivot}, {buildingObject.name})");
 			buildingObject.Despawn();
 			ObjectPoolManager.Instance.Despawn(buildingObject.gameObject);
 		}
