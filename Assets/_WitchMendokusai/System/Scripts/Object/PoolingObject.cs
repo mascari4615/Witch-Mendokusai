@@ -10,8 +10,10 @@ namespace WitchMendokusai
 	{
 		private void OnDisable()
 		{
-			if (IsPlaying)
-				ObjectPoolManager.Instance?.Despawn(gameObject);
+			if (IsPlaying == false)
+				return;
+
+			ObjectPoolManager.Instance.Despawn(gameObject);
 		}
 	}
 }

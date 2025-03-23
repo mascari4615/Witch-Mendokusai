@@ -1,7 +1,9 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
+using static WitchMendokusai.MHelper;
 
 namespace WitchMendokusai
 {
@@ -68,7 +70,7 @@ namespace WitchMendokusai
 		{
 			private static readonly Dictionary<ObjectPool, Transform> ObjectParent = new();
 
-			private GameObject prefab;
+			private readonly GameObject prefab;
 			private readonly Stack<GameObject> stack;
 
 			public ObjectPool(GameObject prefab)
@@ -79,7 +81,7 @@ namespace WitchMendokusai
 
 			public void CreateObject(int count = 1)
 			{
-				for (var i = 0; i < count; i++)
+				for (int i = 0; i < count; i++)
 				{
 					GameObject g = Instantiate(prefab, GetObjectParent(this));
 					g.SetActive(false);
@@ -89,23 +91,46 @@ namespace WitchMendokusai
 
 			public void Push(GameObject targetObject)
 			{
-				if (targetObject.activeSelf)
-					targetObject.SetActive(false);
-
 				if (stack.Contains(targetObject))
 				{
 					// Debug.Log($"{targetObject.name}, 이미 스택에 존재합니다");
 					return;
 				}
 
-				targetObject.transform.SetParent(GetObjectParent(this));
+				if (targetObject.activeSelf)
+				{
+					targetObject.SetActive(false);
+				}
 				stack.Push(targetObject);
+
+				// 활성화/비활성화 이후, 부모 오브젝트를 변경하기 위해 1프레임 대기 - 2025.03.19 22:23
+				UniTask.DelayFrame(1).ContinueWith(() =>
+				{
+					// 그 사이에 stack에서 뽑힌 경우를 확인
+					if (stack.Contains(targetObject) == false)
+					{
+						return;
+					}
+
+					// Editor Timed에서 PlayMode 중지 시 Error Log 발생하는 것을 방지 - 2025.03.19 22:23
+					if (IsPlaying == false)
+					{
+						return;
+					}
+
+					if (targetObject.transform.parent != GetObjectParent(this))
+					{
+						targetObject.transform.SetParent(GetObjectParent(this));
+					}
+				}).Forget();
 			}
 
 			public GameObject Pop()
 			{
 				if (stack.Count == 0)
+				{
 					CreateObject(5);
+				}
 
 				GameObject o = stack.Pop();
 				// o.SetActive(true);
