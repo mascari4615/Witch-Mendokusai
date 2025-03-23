@@ -216,12 +216,7 @@ namespace WitchMendokusai
 
 					dataSOs.Add(dataSO.ID, dataSO);
 
-					string goodName = GetGoodAssetName(dataSO);
-					if (dataSO.name.Equals(goodName) == false)
-					{
-						Debug.Log($"에셋 이름을 변경합니다. {dataSO.name} -> {goodName}");
-						AssetDatabase.RenameAsset(AssetDatabase.GetAssetPath(dataSO), goodName);
-					}
+					SetCorrectAssetName(dataSO);
 					return true;
 				}
 				catch (Exception ex)
@@ -278,7 +273,7 @@ namespace WitchMendokusai
 
 			newName ??= $"New_{type.Name}";
 
-			string assetName = ConvertToGoodAssetName($"{AssetPrefixes[type]}_{newID}_{newName}");
+			string assetName = ConvertToCorrectAssetName($"{AssetPrefixes[type]}_{newID}_{newName}");
 			string path = AssetDatabase.GenerateUniqueAssetPath($"{assetPath}{assetName}.asset");
 
 			Debug.Log($"AddDataSO: {type.Name} {newID} {newName} {path}");
@@ -353,7 +348,7 @@ namespace WitchMendokusai
 			while (dataSOs.ContainsKey(newAssetID))
 				newAssetID++;
 
-			string newAssetName = ConvertToGoodAssetName($"{AssetPrefixes[type]}_{newAssetID}_{newName}");
+			string newAssetName = ConvertToCorrectAssetName($"{AssetPrefixes[type]}_{newAssetID}_{newName}");
 
 			// 복사하려는 데이터의 파일 경로를 가져온다.
 			string dataSOPath = AssetDatabase.GetAssetPath(dataSO);

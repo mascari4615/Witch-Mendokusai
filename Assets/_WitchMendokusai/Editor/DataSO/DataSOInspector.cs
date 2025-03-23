@@ -42,7 +42,7 @@ namespace WitchMendokusai
 				CreateButton("Copy", () => DataSOWindow.Instance.CopyDataSO(dataSO));
 				CreateButton("Remove", () => DataSOWindow.Instance.RemoveDataSO(dataSO));
 				CreateButton("SetID", () => DataSOWindow.Instance.IdChanger.SelectDataSO(dataSO));
-				CreateButton("Save", () => { EditorUtility.SetDirty(dataSO); AssetDatabase.SaveAssets(); });
+				CreateButton("Save", () => SetCorrectAssetName(dataSO));
 
 				root.Add(buttonContainer);
 

@@ -24,21 +24,33 @@ namespace WitchMendokusai
 			return baseType != typeof(DataSO);
 		}
 
-		public static string GetGoodAssetName(DataSO dataSO)
+		public static string GetCorrectAssetName(DataSO dataSO)
 		{
 			if (TryGetBaseType(dataSO, out Type type) == false)
 			{
 				Debug.LogError("Base type not found");
 				return null;
 			}
-			return ConvertToGoodAssetName($"{AssetPrefixes[type]}_{dataSO.ID}_{dataSO.Name}");
+			return ConvertToCorrectAssetName($"{AssetPrefixes[type]}_{dataSO.ID}_{dataSO.Name}");
 		}
 
-		public static string ConvertToGoodAssetName(string name)
+		public static string ConvertToCorrectAssetName(string name)
 		{
 			// 파일 이름에 사용할 수 없는 문자와 공백을 제거
 			Regex regex = new(string.Format("[{0}]", Regex.Escape(new string(Path.GetInvalidFileNameChars()) + " ")));
 			return regex.Replace(name, string.Empty);
+		}
+
+		public static void SetCorrectAssetName(DataSO dataSO)
+		{
+			string goodName = GetCorrectAssetName(dataSO);
+		
+			if (dataSO.name.Equals(goodName))
+				return;
+
+			AssetDatabase.RenameAsset(AssetDatabase.GetAssetPath(dataSO), goodName);
+			EditorUtility.SetDirty(dataSO);
+			AssetDatabase.SaveAssets();
 		}
 
 		#region Save
