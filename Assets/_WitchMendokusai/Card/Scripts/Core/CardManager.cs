@@ -49,14 +49,16 @@ namespace WitchMendokusai
 
 			for (int i = 0; i < deckSelectButtons.Count; i++)
 			{
+				deckSelectButtons[i].Init();
 				deckSelectButtons[i].SetSlotIndex(i);
 				deckSelectButtons[i].SetClickAction((slot) => { SelectDeck(slot.Index); });
 			}
 
 			for (int i = 0; i < cardSelectButtons.Count; i++)
 			{
-				// cardSelectAction: (slot) => { SelectCard(cardSlots[i].Atrifact as Card); }
+				// cardSelectAction: (slot) => { SelectCard(cardSlots[i].Artifact as Card); }
 				// 원래 위 코드를 썼는데, 클로저 문제로 인해 아래처럼 바꿈
+				cardSelectButtons[i].Init();
 				cardSelectButtons[i].SetClickAction((slot) => { SelectCard(slot.DataSO as CardData); });
 			}
 

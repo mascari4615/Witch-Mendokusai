@@ -53,6 +53,7 @@ namespace WitchMendokusai
 			elements = new UIItemEquipPopupElement[slots.Length];
 			for (int i = 0; i < slots.Length; i++)
 			{
+				slots[i].Init();
 				elements[i] = new UIItemEquipPopupElement
 				{
 					slot = slots[i],
