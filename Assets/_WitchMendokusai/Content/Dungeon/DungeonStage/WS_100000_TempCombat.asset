@@ -9,11 +9,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7f1156bb1666caf4b8bd93c1a84b4473, type: 3}
-  m_Name: DS_1_DS1
+  m_Script: {fileID: 11500000, guid: dc4da72a8ab50c34eab4693fa14a70d7, type: 3}
+  m_Name: WS_100000_TempCombat
   m_EditorClassIdentifier: 
-  <ID>k__BackingField: 1
-  <Name>k__BackingField: DS1
+  <ID>k__BackingField: 100000
+  <Name>k__BackingField: TempCombat
   <Description>k__BackingField: 
   <Sprite>k__BackingField: {fileID: 0}
   <Sprites>k__BackingField: []

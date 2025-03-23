@@ -23,7 +23,6 @@ namespace WitchMendokusai
 			{ typeof(GameStatData), "GSD"},
 			{ typeof(WorldStage), "WS" },
 			{ typeof(Dungeon), "D" },
-			{ typeof(DungeonStage), "DS" },
 			{ typeof(DungeonStatData), "DSD" },
 			{ typeof(DungeonConstraint), "DC" },
 			{ typeof(Doll), "DOL" },

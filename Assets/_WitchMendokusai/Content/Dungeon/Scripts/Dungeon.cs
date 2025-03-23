@@ -12,7 +12,7 @@ namespace WitchMendokusai
 		[PropertyOrder(101)][field: SerializeField] public int ClearValue { get; private set; }
 		[PropertyOrder(102)][field: SerializeField] public int TimeBySecond { get; private set; }
 		[PropertyOrder(103)][field: SerializeField] public List<DungeonConstraint> Constraints { get; private set; }
-		[PropertyOrder(104)][field: SerializeField] public List<DungeonStage> Stages { get; private set; }
+		[PropertyOrder(104)][field: SerializeField] public List<Stage> Stages { get; private set; }
 		[PropertyOrder(105)][field: SerializeField] public List<MonsterWave> MonsterWaves { get; set; }
 		[PropertyOrder(106)][field: SerializeField] public List<RewardInfo> Rewards { get; set; }
 

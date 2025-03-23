@@ -20,13 +20,13 @@ MonoBehaviour:
   <Sprites>k__BackingField: []
   <Type>k__BackingField: 0
   <ClearValue>k__BackingField: 0
-  <TimeBySecond>k__BackingField: 3
+  <TimeBySecond>k__BackingField: 30
   <Constraints>k__BackingField:
   - {fileID: 11400000, guid: c5df60f552d80b54786d60d96c339214, type: 2}
   - {fileID: 11400000, guid: fc549d676aeac8044bf686b52196e891, type: 2}
   - {fileID: 11400000, guid: 2d63efb33b5a0ef45b4d6d2077774871, type: 2}
   <Stages>k__BackingField:
-  - {fileID: 11400000, guid: 80926e99cd202c44e8159a1c752c015e, type: 2}
+  - {fileID: 11400000, guid: 80189e44b4e5101489b86446ca51ca47, type: 2}
   <MonsterWaves>k__BackingField:
   - {fileID: 11400000, guid: 74eb582074283654084b6d044ff07556, type: 2}
   - {fileID: 11400000, guid: 09425564d1300264087b40f6d347818f, type: 2}

@@ -27,6 +27,12 @@ MonoBehaviour:
     m_SerializedLabels:
     - WorldStage
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 80189e44b4e5101489b86446ca51ca47
+    m_Address: WorldStage/100000
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - WorldStage
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 88a2d6c7973db064f8db83807e1d8d51
     m_Address: WorldStage/2
     m_ReadOnly: 0
