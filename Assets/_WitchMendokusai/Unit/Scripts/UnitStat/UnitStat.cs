@@ -13,6 +13,8 @@ namespace WitchMendokusai
 
 			this[UnitStatType.MANA_MAX] = this[UnitStatType.MANA_MAX_STAT];
 			this[UnitStatType.MANA_CUR] = this[UnitStatType.MANA_MAX];
+
+			this[UnitStatType.CRITICAL_CHANCE] = 5;
 		}
 	}
 }
