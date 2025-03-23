@@ -201,9 +201,17 @@ namespace WitchMendokusai
 				dataSOs.Remove(CurDataSO.ID);
 				CurDataSO.ID = newID;
 				dataSOs.Add(newID, CurDataSO);
-				DataSOUtil.SaveAsset(CurDataSO);
+				SaveAsset(CurDataSO);
 
-				DataSOWindow.Instance.UpdateGrid();
+				if (DataSOWindow.Instance.CurType != type)
+				{
+					DataSOWindow.Instance.SetType(type);
+				}
+				else
+				{
+					DataSOWindow.Instance.UpdateGrid();
+				}
+
 				DataSOWindow.Instance.SelectDataSOSlot(DataSOWindow.Instance.DataSOSlots[CurDataSO.ID]);
 
 				CurDataSO = null;
