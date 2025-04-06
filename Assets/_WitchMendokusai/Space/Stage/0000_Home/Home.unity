@@ -674,21 +674,6 @@ MeshRenderer:
   m_CorrespondingSourceObject: {fileID: 853952410678897132, guid: 542a7047172d4c34d9be71b6ff7a8e56, type: 3}
   m_PrefabInstance: {fileID: 1991772597}
   m_PrefabAsset: {fileID: 0}
---- !u!23 &155529333 stripped
-MeshRenderer:
-  m_CorrespondingSourceObject: {fileID: 7825003571389915945, guid: 542a7047172d4c34d9be71b6ff7a8e56, type: 3}
-  m_PrefabInstance: {fileID: 1991772597}
-  m_PrefabAsset: {fileID: 0}
---- !u!23 &155529334 stripped
-MeshRenderer:
-  m_CorrespondingSourceObject: {fileID: 667917939664032212, guid: 542a7047172d4c34d9be71b6ff7a8e56, type: 3}
-  m_PrefabInstance: {fileID: 1991772597}
-  m_PrefabAsset: {fileID: 0}
---- !u!23 &155529335 stripped
-MeshRenderer:
-  m_CorrespondingSourceObject: {fileID: 891085503265067123, guid: 542a7047172d4c34d9be71b6ff7a8e56, type: 3}
-  m_PrefabInstance: {fileID: 1991772597}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &155529336 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 5180416833104375309, guid: 542a7047172d4c34d9be71b6ff7a8e56, type: 3}
@@ -1244,21 +1229,6 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 1214042537186363449, guid: 542a7047172d4c34d9be71b6ff7a8e56, type: 3}
   m_PrefabInstance: {fileID: 1991772597}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &155529447 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 5396779092628565927, guid: 542a7047172d4c34d9be71b6ff7a8e56, type: 3}
-  m_PrefabInstance: {fileID: 1991772597}
-  m_PrefabAsset: {fileID: 0}
---- !u!1 &155529448 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 8534042889767447545, guid: 542a7047172d4c34d9be71b6ff7a8e56, type: 3}
-  m_PrefabInstance: {fileID: 1991772597}
-  m_PrefabAsset: {fileID: 0}
---- !u!1 &155529449 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 3429451711470836851, guid: 542a7047172d4c34d9be71b6ff7a8e56, type: 3}
-  m_PrefabInstance: {fileID: 1991772597}
-  m_PrefabAsset: {fileID: 0}
 --- !u!114 &197616327
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1501,36 +1471,6 @@ MonoBehaviour:
     m_MipBias: 0
     m_VarianceClampScale: 0.9
     m_ContrastAdaptiveSharpening: 0
---- !u!23 &1100541726 stripped
-MeshRenderer:
-  m_CorrespondingSourceObject: {fileID: 9175873460921788390, guid: 542a7047172d4c34d9be71b6ff7a8e56, type: 3}
-  m_PrefabInstance: {fileID: 1991772597}
-  m_PrefabAsset: {fileID: 0}
---- !u!23 &1100541727 stripped
-MeshRenderer:
-  m_CorrespondingSourceObject: {fileID: 8078382763872661721, guid: 542a7047172d4c34d9be71b6ff7a8e56, type: 3}
-  m_PrefabInstance: {fileID: 1991772597}
-  m_PrefabAsset: {fileID: 0}
---- !u!23 &1100541728 stripped
-MeshRenderer:
-  m_CorrespondingSourceObject: {fileID: 7214123648041518270, guid: 542a7047172d4c34d9be71b6ff7a8e56, type: 3}
-  m_PrefabInstance: {fileID: 1991772597}
-  m_PrefabAsset: {fileID: 0}
---- !u!1 &1100541729 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 7230454691719726643, guid: 542a7047172d4c34d9be71b6ff7a8e56, type: 3}
-  m_PrefabInstance: {fileID: 1991772597}
-  m_PrefabAsset: {fileID: 0}
---- !u!1 &1100541730 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 7718274907811549452, guid: 542a7047172d4c34d9be71b6ff7a8e56, type: 3}
-  m_PrefabInstance: {fileID: 1991772597}
-  m_PrefabAsset: {fileID: 0}
---- !u!1 &1100541731 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 9159560008708203883, guid: 542a7047172d4c34d9be71b6ff7a8e56, type: 3}
-  m_PrefabInstance: {fileID: 1991772597}
-  m_PrefabAsset: {fileID: 0}
 --- !u!23 &1164817128 stripped
 MeshRenderer:
   m_CorrespondingSourceObject: {fileID: 1779764308844271286, guid: 542a7047172d4c34d9be71b6ff7a8e56, type: 3}
@@ -13679,16 +13619,6 @@ MeshRenderer:
   m_CorrespondingSourceObject: {fileID: 5684826226912938529, guid: 542a7047172d4c34d9be71b6ff7a8e56, type: 3}
   m_PrefabInstance: {fileID: 1991772597}
   m_PrefabAsset: {fileID: 0}
---- !u!23 &1991772601 stripped
-MeshRenderer:
-  m_CorrespondingSourceObject: {fileID: 3907445626625056156, guid: 542a7047172d4c34d9be71b6ff7a8e56, type: 3}
-  m_PrefabInstance: {fileID: 1991772597}
-  m_PrefabAsset: {fileID: 0}
---- !u!1 &1991772602 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 3259187109470960713, guid: 542a7047172d4c34d9be71b6ff7a8e56, type: 3}
-  m_PrefabInstance: {fileID: 1991772597}
-  m_PrefabAsset: {fileID: 0}
 --- !u!23 &1991772630 stripped
 MeshRenderer:
   m_CorrespondingSourceObject: {fileID: 3929480968449434283, guid: 542a7047172d4c34d9be71b6ff7a8e56, type: 3}
@@ -15328,9 +15258,9 @@ MonoBehaviour:
   - {fileID: 2008954535}
   - {fileID: 2008954535}
   implicitGroupedObjects:
-  - {fileID: 155529449}
-  - {fileID: 155529448}
-  - {fileID: 155529447}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
   - {fileID: 155529446}
   - {fileID: 155529445}
   - {fileID: 155529444}
@@ -15442,9 +15372,9 @@ MonoBehaviour:
   - {fileID: 155529338}
   - {fileID: 155529337}
   - {fileID: 155529336}
-  - {fileID: 1100541729}
-  - {fileID: 1100541730}
-  - {fileID: 1100541731}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
   - {fileID: 1164817169}
   - {fileID: 1164817170}
   - {fileID: 1164817171}
@@ -16641,7 +16571,7 @@ MonoBehaviour:
   - {fileID: 1616120618}
   - {fileID: 1616120619}
   - {fileID: 1616120620}
-  - {fileID: 1991772602}
+  - {fileID: 0}
   - {fileID: 1991772632}
   - {fileID: 1991772662}
   - {fileID: 1991772663}
@@ -16681,9 +16611,9 @@ MonoBehaviour:
   rnmMaps2: []
   mapsMode: 
   bakedRenderers:
-  - {fileID: 155529335}
-  - {fileID: 155529334}
-  - {fileID: 155529333}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
   - {fileID: 155529332}
   - {fileID: 155529331}
   - {fileID: 155529330}
@@ -16795,9 +16725,9 @@ MonoBehaviour:
   - {fileID: 155529224}
   - {fileID: 155529223}
   - {fileID: 155529222}
-  - {fileID: 1100541726}
-  - {fileID: 1100541727}
-  - {fileID: 1100541728}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
   - {fileID: 1164817128}
   - {fileID: 1164817129}
   - {fileID: 1164817130}
@@ -17994,7 +17924,7 @@ MonoBehaviour:
   - {fileID: 1616119463}
   - {fileID: 1616119464}
   - {fileID: 1616119465}
-  - {fileID: 1991772601}
+  - {fileID: 0}
   - {fileID: 1991772600}
   - {fileID: 1991772630}
   - {fileID: 1991772631}
@@ -20647,7 +20577,7 @@ MonoBehaviour:
   bakedScaleOffsetTerrain: []
   assetList: []
   uvOverlapAssetList: 
-  idremap: 000000000200000001000000
+  idremap: 000000000100000002000000
   usesRealtimeGI: 0
   emptyDirectionTex: {fileID: 0}
   anyVolumes: 0
@@ -20706,9 +20636,9 @@ MonoBehaviour:
     - {fileID: 1164817130}
     - {fileID: 1164817129}
     - {fileID: 1164817128}
-    - {fileID: 1100541726}
-    - {fileID: 1100541727}
-    - {fileID: 1100541728}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
     - {fileID: 1616118311}
     - {fileID: 1616118312}
     - {fileID: 1616118313}
@@ -21864,7 +21794,7 @@ MonoBehaviour:
     - {fileID: 1616119463}
     - {fileID: 1616119464}
     - {fileID: 1616119465}
-    - {fileID: 1991772601}
+    - {fileID: 0}
     - {fileID: 1991772600}
     - {fileID: 1991772630}
     - {fileID: 1991772631}

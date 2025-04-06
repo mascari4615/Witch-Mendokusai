@@ -27,14 +27,38 @@ MonoBehaviour:
     m_SerializedLabels:
     - Building
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 2a38b95b5cc40794e90ffee03cf84f40
+    m_Address: Building/4002
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Building
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 57868189b6e16c54f9e3f5bf46eff8e8
     m_Address: Building/0
     m_ReadOnly: 0
     m_SerializedLabels:
     - Building
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 748f262e8dc7da84582aae78eb154eee
+    m_Address: Building/4003
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Building
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 93d55707bade8e74fb7c7e2e1c622c47
     m_Address: Building/3
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Building
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: f58e40dcbab18e5409599a8da5e366ad
+    m_Address: Building/4000
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Building
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: f6aeb03a32bf16541ad8d243ad74dccc
+    m_Address: Building/4001
     m_ReadOnly: 0
     m_SerializedLabels:
     - Building

@@ -204,11 +204,7 @@ namespace WitchMendokusai
 			buildingObject.transform.position = GetWorldPosition(pivot, building.Size);
 			buildingObject.gameObject.SetActive(true);
 
-			buildingObject.Initialize(new RuntimeBuildingData()
-			{
-				State = BuildingState.Placed,
-				BuildingID = building.ID
-			}, pivot);
+			buildingObject.Initialize(new RuntimeBuildingData(building.ID), pivot);
 
 			GetBuildingCoords(pivot, building.Size).ForEach(c =>
 			{

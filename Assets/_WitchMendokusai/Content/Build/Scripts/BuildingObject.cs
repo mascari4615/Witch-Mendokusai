@@ -8,7 +8,10 @@ namespace WitchMendokusai
 {
 	public enum BuildingState
 	{
+		Building,
 		Placed,
+		Upgrading,
+		UpgradingComplete,
 	}
 
 	[Serializable]
@@ -16,11 +19,15 @@ namespace WitchMendokusai
 	{
 		public int BuildingID;
 		public BuildingState State;
+		public int Level;
+		public string RuntimeData;
 
-		public RuntimeBuildingData(int buildingID, BuildingState state)
+		public RuntimeBuildingData(int buildingID, BuildingState state = BuildingState.Placed, int level = 1, string runtimeData = "")
 		{
 			BuildingID = buildingID;
 			State = state;
+			Level = level;
+			RuntimeData = runtimeData;
 		}
 	}
 
