@@ -4,6 +4,13 @@ using UnityEngine;
 
 namespace WitchMendokusai
 {
+	public enum DungeonDifficulty
+	{
+		Easy,
+		Normal,
+		Hard
+	}
+
 	public class DungeonContext
 	{
 		public static readonly TimeSpan TimeUpdateInterval = new(0, 0, 0, 0, 100);
@@ -19,7 +26,7 @@ namespace WitchMendokusai
 			InitialDungeonTime = initialDungeonTime;
 			DungeonCurTime = InitialDungeonTime;
 		}
-		
+
 		public void UpdateTime()
 		{
 			DungeonCurTime -= TimeUpdateInterval;

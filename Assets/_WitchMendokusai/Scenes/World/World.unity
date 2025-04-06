@@ -3021,6 +3021,51 @@ Canvas:
   m_SortingLayerID: 0
   m_SortingOrder: 7
   m_TargetDisplay: 0
+--- !u!1 &692230403
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 692230404}
+  - component: {fileID: 692230405}
+  m_Layer: 0
+  m_Name: ExpChecker
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &692230404
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 692230403}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 980674218}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &692230405
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 692230403}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0b2f2c3f5d68e6d4b81c5a14db5b7e6c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  levelUpEffect: {fileID: 2029812584334360160, guid: df57d709a3f644146837a78ffd570a5f, type: 3}
 --- !u!1 &710342870
 GameObject:
   m_ObjectHideFlags: 0
@@ -4143,6 +4188,7 @@ Transform:
   m_Children:
   - {fileID: 1032405772}
   - {fileID: 1099597012}
+  - {fileID: 692230404}
   m_Father: {fileID: 1386303195}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &980674219
@@ -4158,6 +4204,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   dontDestroyOnLoad: 0
+  cardManager: {fileID: 1099597015}
+  monsterSpawner: {fileID: 1032405773}
+  expChecker: {fileID: 692230405}
 --- !u!114 &1022663532
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4391,8 +4440,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1099597012}
   - component: {fileID: 1099597015}
-  - component: {fileID: 1099597014}
-  - component: {fileID: 1099597016}
   m_Layer: 0
   m_Name: CardManager
   m_TagString: Untagged
@@ -4415,19 +4462,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 980674218}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1099597014
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1099597011}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0b2f2c3f5d68e6d4b81c5a14db5b7e6c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  levelUpEffect: {fileID: 2029812584334360160, guid: df57d709a3f644146837a78ffd570a5f, type: 3}
 --- !u!114 &1099597015
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4452,35 +4486,6 @@ MonoBehaviour:
   - {fileID: 351891065}
   - {fileID: 1096607784161294490}
   - {fileID: 1096607784161294489}
---- !u!114 &1099597016
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1099597011}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 296465009a6d2224ca0acb8481e2dfee, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  <EventType>k__BackingField: 5
-  <Response>k__BackingField:
-    m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 1099597015}
-        m_TargetAssemblyTypeName: Mascari4615.CardManager, Assembly-CSharp
-        m_MethodName: LevelUp
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
-  <Effects>k__BackingField: []
 --- !u!1001 &1107259697
 PrefabInstance:
   m_ObjectHideFlags: 0

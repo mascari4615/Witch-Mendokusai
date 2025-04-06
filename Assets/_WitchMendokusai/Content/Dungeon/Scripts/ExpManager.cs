@@ -7,7 +7,7 @@ namespace WitchMendokusai
 {
 	public class ExpManager : MonoBehaviour
 	{
-		private const int REQUIRE_EXP_INCREASEMENT = 30;
+		private const int REQUIRE_EXP_INCREMENT = 30;
 		
 		[SerializeField] private GameObject levelUpEffect;
 		
@@ -21,7 +21,7 @@ namespace WitchMendokusai
 
 		public void Init()
 		{
-			PlayerStat[UnitStatType.EXP_MAX] = REQUIRE_EXP_INCREASEMENT;
+			PlayerStat[UnitStatType.EXP_MAX] = REQUIRE_EXP_INCREMENT;
 			PlayerStat[UnitStatType.EXP_CUR] = 0;
 			PlayerStat[UnitStatType.LEVEL_CUR] = 0;
 			// Debug.Log(nameof(Init) + PlayerStat[StatType.EXP_CUR] + " / " + PlayerStat[StatType.EXP_MAX]);
@@ -36,7 +36,7 @@ namespace WitchMendokusai
 				RuntimeManager.PlayOneShot("event:/SFX/LevelUp", transform.position);
 
 				PlayerStat[UnitStatType.EXP_CUR] -= PlayerStat[UnitStatType.EXP_MAX];
-				PlayerStat[UnitStatType.EXP_MAX] += REQUIRE_EXP_INCREASEMENT;
+				PlayerStat[UnitStatType.EXP_MAX] += REQUIRE_EXP_INCREMENT;
 				PlayerStat[UnitStatType.LEVEL_CUR]++;
 				
 				GameEventManager.Instance.Raise(GameEventType.OnLevelUp);

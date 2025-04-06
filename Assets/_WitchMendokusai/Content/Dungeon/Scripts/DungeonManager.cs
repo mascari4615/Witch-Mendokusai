@@ -3,7 +3,6 @@ using System.Collections;
 using Cysharp.Threading.Tasks;
 using UniRx;
 using UnityEngine;
-using static WitchMendokusai.SOHelper;
 
 namespace WitchMendokusai
 {
@@ -15,20 +14,13 @@ namespace WitchMendokusai
 
 		public bool IsDungeon { get; private set; }
 
-		private CardManager cardManager;
-		private MonsterSpawner monsterSpawner;
-		private ExpManager expChecker;
-		private DungeonRecorder dungeonRecorder;
-
-		protected override void Awake()
-		{
-			base.Awake();
-
-			cardManager = FindFirstObjectByType<CardManager>(FindObjectsInactive.Include);
-			monsterSpawner = FindFirstObjectByType<MonsterSpawner>(FindObjectsInactive.Include);
-
-			expChecker = FindFirstObjectByType<ExpManager>(FindObjectsInactive.Include);
-		}
+		[SerializeField] private CardManager cardManager;
+		[SerializeField] private MonsterSpawner monsterSpawner;
+		[SerializeField] private ExpManager expChecker;
+	
+		private DungeonRecorder dungeonRecorder = null;
+		private DungeonStrategy dungeonStrategy = null;
+		private IDisposable dungeonLoopSubscription;
 
 		private void Start()
 		{
@@ -36,21 +28,27 @@ namespace WitchMendokusai
 			GameEventManager.Instance.RegisterCallback(GameEventType.OnPlayerDied, EndDungeon);
 		}
 
-		// TODO: 던전 인트로
-		public void CombatIntro()
-		{
-		}
-
-		public async UniTaskVoid StartDungeon(Dungeon dungeon)
+		public void StartDungeon(Dungeon dungeon)
 		{
 			Debug.Log($"{nameof(StartDungeon)}");
 
 			CurDungeon = dungeon;
+			dungeonStrategy = DungeonStrategyFactory.Create(dungeon);
 
-			// TODO: 던전
-			await StageManager.Instance.LoadStage(dungeon.Stages[0]);
+			Stage stage = dungeon.Stages[0];
 
-			InitDungeonAndPlayer();
+			// TODO: 던전 Transition
+			UIManager.Instance.Transition.Transition(
+				aDuringTransition: () =>
+				{
+					StageManager.Instance.LoadStage(stage);
+					InitDungeonAndPlayer();
+				},
+				aWhenEnd: () =>
+				{
+					UIManager.Instance.StagePopup(stage);
+					// TODO: 던전 Intro?
+				}).Forget();
 
 			void InitDungeonAndPlayer()
 			{
@@ -69,45 +67,40 @@ namespace WitchMendokusai
 
 				IsDungeon = true;
 
-				CreateDungeonQuest(dungeon);
+				// Create Dungeon Quest
+				{
+					dungeonStrategy.CreateRuntimeQuest(dungeon);
+
+					RuntimeQuest runtimeQuest = dungeonStrategy.CreateRuntimeQuest(dungeon);
+					QuestManager.Instance.AddQuest(runtimeQuest);
+				}
 
 				monsterSpawner.transform.position = Player.Instance.transform.position;
 				monsterSpawner.InitWaves(dungeon);
 
-				StartCoroutine(DungeonLoop());
+				// StartDungeonLoop();
+				{
+					// RuntimeQuest를 통해 DungeonClear 수치가 1 오르면 던전 종료
+					int targetClearCount = DataManager.Instance.DungeonStat[DungeonStatType.DUNGEON_CLEAR] + 1;
+					bool IsClear() => DataManager.Instance.DungeonStat[DungeonStatType.DUNGEON_CLEAR] == targetClearCount;
 
+					dungeonLoopSubscription = Observable.Interval(TimeSpan.FromSeconds(0.1f))
+						.TakeWhile(_ => !IsClear())
+						.Subscribe(_ =>
+						{
+							Context.UpdateTime();
+							Context.UpdateDifficulty();
+							monsterSpawner.UpdateWaves();
+						}, 
+						() => EndDungeon());
+				}
+				
 				// Context 생성 이후 UI 설정
 				// UIDungeon.UpdateUI(); 에서 Context를 사용합니다.
 				UIManager.Instance.SetOverlay(MPanelType.None);
 				UIManager.Instance.SetCanvas(MCanvasType.Dungeon);
-		
+
 				GameEventManager.Instance.Raise(GameEventType.OnDungeonStart);
-			}
-		}
-
-		private IEnumerator DungeonLoop()
-		{
-			Debug.Log(nameof(DungeonLoop));
-			WaitForSeconds ws01 = new(.1f);
-
-			// HACK:
-			int dungeonClear = DataManager.Instance.DungeonStat[DungeonStatType.DUNGEON_CLEAR];
-			Debug.Log($"DungeonClear: {dungeonClear}");
-
-			while (true)
-			{
-				Context.UpdateTime();
-				Context.UpdateDifficulty();
-				monsterSpawner.UpdateWaves();
-
-				// Debug.Log($"DungeonClear: {dungeonClear}");
-				if (dungeonClear < DataManager.Instance.DungeonStat[DungeonStatType.DUNGEON_CLEAR])
-				{
-					EndDungeon();
-					yield break;
-				}
-
-				yield return ws01;
 			}
 		}
 
@@ -116,7 +109,11 @@ namespace WitchMendokusai
 			Debug.Log($"{nameof(EndDungeon)}");
 
 			// Stop DungeonLoop
-			StopAllCoroutines();
+			if (dungeonLoopSubscription != null)
+			{
+				dungeonLoopSubscription.Dispose();
+				dungeonLoopSubscription = null;
+			}
 			monsterSpawner.StopWave();
 
 			Result = dungeonRecorder.GetResultRecord();
@@ -126,15 +123,15 @@ namespace WitchMendokusai
 			UIManager.Instance.SetOverlay(MPanelType.DungeonResult);
 		}
 
-		public async UniTaskVoid Continue()
+		public void Continue()
 		{
 			// 집으로 돌아가기
-			await StageManager.Instance.LoadStage
+			StageManager.Instance.LoadStage
 			(
 				StageManager.Instance.LastStage,
 				isBackToLastStage: true
 			);
-			
+
 			ResetDungeonAndPlayer();
 
 			void ResetDungeonAndPlayer()
@@ -146,96 +143,6 @@ namespace WitchMendokusai
 				expChecker.Init();
 				cardManager.ClearCardEffect();
 			}
-		}
-
-		private void CreateDungeonQuest(Dungeon dungeon)
-		{
-			// TEST:
-			QuestInfo questInfo = new()
-			{
-				Type = QuestType.Dungeon,
-				GameEvents = new()
-				{
-					GameEventType.OnTick,
-				},
-				Criteria = new(),
-				CompleteEffects = new()
-				{
-					// HACK:
-					new EffectInfo()
-					{
-						Type = EffectType.DungeonStat,
-						Data = GetDungeonStatData(DungeonStatType.DUNGEON_CLEAR),
-						ArithmeticOperator = ArithmeticOperator.Add,
-						Value = 1,
-					}
-				},
-				RewardEffects = new(),
-				Rewards = dungeon.Rewards,
-
-				WorkTime = 0,
-				AutoWork = false,
-				AutoComplete = true,
-			};
-
-			string questName = string.Empty;
-
-			DungeonRecord curRecord = dungeonRecorder.GetResultRecord();
-			DungeonType dungeonType = dungeon.Type;
-
-			switch (dungeonType)
-			{
-				case DungeonType.TimeSurvival:
-					questName = "시간 동안 생존";
-					questInfo.Criteria = new()
-					{
-						new CriteriaInfo()
-						{
-							Type = CriteriaType.DungeonStat,
-							Data = GetDungeonStatData(DungeonStatType.DUNGEON_TIME),
-							ComparisonOperator = ComparisonOperator.GreaterThanOrEqualTo,
-							Value = (int)Context.InitialDungeonTime.TotalSeconds,
-							JustOnce = true,
-						}
-					};
-					break;
-				case DungeonType.Domination:
-					// TODO:
-					break;
-				case DungeonType.KillCount:
-					questName = "몬스터 처치";
-					questInfo.Criteria = new()
-					{
-						new CriteriaInfo()
-						{
-							Type = CriteriaType.DungeonStat,
-							Data = GetDungeonStatData(DungeonStatType.MONSTER_KILL),
-							ComparisonOperator = ComparisonOperator.GreaterThanOrEqualTo,
-							Value = CurDungeon.ClearValue,
-							JustOnce = true,
-						}
-					};
-					break;
-				case DungeonType.Boss:
-					questName = "보스 처치";
-					questInfo.Criteria = new()
-					{
-						new CriteriaInfo()
-						{
-							Type = CriteriaType.DungeonStat,
-							Data = GetDungeonStatData(DungeonStatType.BOSS_KILL),
-							ComparisonOperator = ComparisonOperator.GreaterThanOrEqualTo,
-							Value = CurDungeon.ClearValue,
-							JustOnce = true,
-						}
-					};
-					break;
-				default:
-					throw new ArgumentOutOfRangeException();
-			}
-
-			RuntimeQuest runtimeQuest = new(questInfo, questName);
-			QuestManager.Instance.AddQuest(runtimeQuest);
 		}
 	}
 }

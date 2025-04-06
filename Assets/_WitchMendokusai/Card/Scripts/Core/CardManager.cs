@@ -65,6 +65,11 @@ namespace WitchMendokusai
 			SetState(CardUIState.Wait);
 		}
 
+		private void Start()
+		{
+			GameEventManager.Instance.RegisterCallback(GameEventType.OnLevelUp, LevelUp);
+		}
+
 		private void SetState(CardUIState state)
 		{
 			curState = state;

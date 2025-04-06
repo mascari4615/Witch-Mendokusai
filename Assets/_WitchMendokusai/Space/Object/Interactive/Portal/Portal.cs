@@ -16,7 +16,15 @@ namespace WitchMendokusai
 		{
 			if (other.CompareTag("Player"))
 			{
-				StageManager.Instance.LoadStage(TargetStage, targetPortalIndex).Forget();
+				UIManager.Instance.Transition.Transition(
+					aDuringTransition: () =>
+					{
+						StageManager.Instance.LoadStage(TargetStage, targetPortalIndex);
+					},
+					aWhenEnd: () =>
+					{
+						UIManager.Instance.StagePopup(TargetStage);
+					}).Forget();
 			}
 		}
 

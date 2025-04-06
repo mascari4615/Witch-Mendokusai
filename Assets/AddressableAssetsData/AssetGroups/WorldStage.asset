@@ -28,7 +28,7 @@ MonoBehaviour:
     - WorldStage
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 80189e44b4e5101489b86446ca51ca47
-    m_Address: WorldStage/100000
+    m_Address: WorldStage/1000
     m_ReadOnly: 0
     m_SerializedLabels:
     - WorldStage

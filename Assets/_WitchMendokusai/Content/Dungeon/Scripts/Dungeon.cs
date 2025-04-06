@@ -4,6 +4,25 @@ using UnityEngine;
 
 namespace WitchMendokusai
 {
+	public enum DungeonType
+	{
+		TimeSurvival,
+		Domination,
+		KillCount,
+		Boss,
+	}
+
+	[Serializable]
+	public struct DungeonSaveData
+	{
+		public Dictionary<int, bool> ConstraintSelected;
+
+		public DungeonSaveData(Dictionary<int, bool> constraintSelected)
+		{
+			ConstraintSelected = constraintSelected;
+		}
+	}
+
 	[CreateAssetMenu(fileName = nameof(Dungeon), menuName = "Variable/Dungeon")]
 	public class Dungeon : DataSO, ISavable<DungeonSaveData>
 	{

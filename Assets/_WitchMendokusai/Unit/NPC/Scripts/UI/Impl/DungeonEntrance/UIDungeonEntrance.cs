@@ -91,7 +91,7 @@ namespace WitchMendokusai
 
 		public void EnterTheDungeon()
 		{
-			DungeonManager.Instance.StartDungeon(CurDungeon).Forget();
+			DungeonManager.Instance.StartDungeon(CurDungeon);
 		}
 	}
 }
