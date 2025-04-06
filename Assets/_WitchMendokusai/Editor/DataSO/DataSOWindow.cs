@@ -375,6 +375,7 @@ namespace WitchMendokusai
 						SetType(type);
 					}
 
+					Selection.activeObject = newDataSO;
 					SelectDataSOSlot(DataSOSlots[newDataSO.ID]);
 				}
 				return newDataSO;
