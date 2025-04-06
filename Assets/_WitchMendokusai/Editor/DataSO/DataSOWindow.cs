@@ -30,7 +30,7 @@ namespace WitchMendokusai
 			private set => instance = value;
 		}
 
-		public DataSO_IdChanger IdChanger { get; private set; } = null;
+		public static DataSO_IdChanger IdChanger { get; private set; } = null;
 		public Dictionary<int, DataSOSlot> DataSOSlots { get; private set; } = new();
 		public DataSOSlot CurSlot { get; private set; } = null;
 
@@ -261,6 +261,8 @@ namespace WitchMendokusai
 		{
 			Debug.Log(nameof(AddDataSO));
 
+			ShowDataSOWindow();
+
 			Dictionary<int, DataSO> dataSOs = GetDataSOs(type);
 
 			// 사용되지 않은 ID를 찾는다.
@@ -314,6 +316,8 @@ namespace WitchMendokusai
 		{
 			// Debug.Log(nameof(CopyDataSO));
 
+			ShowDataSOWindow();
+		
 			if (TryGetBaseType(dataSO, out Type type) == false)
 			{
 				Debug.LogError("Base type not found");
@@ -391,6 +395,8 @@ namespace WitchMendokusai
 		{
 			Debug.Log(nameof(RemoveDataSO));
 
+			ShowDataSOWindow();
+	
 			if (TryGetBaseType(dataSO, out Type type) == false)
 			{
 				Debug.LogError("Base type not found");
@@ -469,6 +475,8 @@ namespace WitchMendokusai
 		public void SelectDataSOSlot(DataSOSlot slot)
 		{
 			// Debug.Log(nameof(SelectDataSOSlot));
+
+			ShowDataSOWindow();
 
 			if (isInit == false)
 			{

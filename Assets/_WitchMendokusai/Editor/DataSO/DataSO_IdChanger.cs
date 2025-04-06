@@ -67,6 +67,7 @@ namespace WitchMendokusai
 		public void SelectDataSO(DataSO dataSO)
 		{
 			CurDataSO = dataSO;
+			DataSOWindow.ShowDataSOWindow();
 			UpdateUI();
 		}
 

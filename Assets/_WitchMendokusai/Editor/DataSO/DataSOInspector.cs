@@ -41,7 +41,7 @@ namespace WitchMendokusai
 				int buttonCount = 4;
 				CreateButton("Copy", () => DataSOWindow.Instance.CopyDataSO(dataSO));
 				CreateButton("Remove", () => DataSOWindow.Instance.RemoveDataSO(dataSO));
-				CreateButton("SetID", () => DataSOWindow.Instance.IdChanger.SelectDataSO(dataSO));
+				CreateButton("SetID", () => DataSOWindow.IdChanger.SelectDataSO(dataSO));
 				CreateButton("Save", () => SetCorrectAssetName(dataSO));
 
 				root.Add(buttonContainer);
