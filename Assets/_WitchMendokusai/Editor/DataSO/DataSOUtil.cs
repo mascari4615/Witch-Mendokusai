@@ -71,6 +71,8 @@ namespace WitchMendokusai
 
 		public static void SaveAsset(DataSO dataSO)
 		{
+			SetCorrectAssetName(dataSO);
+
 			EditorUtility.SetDirty(dataSO);
 
 			AssetDatabase.SaveAssets();

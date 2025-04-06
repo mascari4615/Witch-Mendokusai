@@ -178,6 +178,7 @@ namespace WitchMendokusai
 				// processBadIdDataSOs
 
 				CurDataSO.ID = newID;
+				SetCorrectAssetName(CurDataSO);
 
 				List<DataSO> curBadIdDataSOs = DataSOWindow.Instance.BadIdDataSOs[type].Values.First();
 				int id = curBadIdDataSOs[0].ID;
