@@ -10,11 +10,12 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: dc4da72a8ab50c34eab4693fa14a70d7, type: 3}
-  m_Name: WS_2_Undo
+  m_Name: WS_3_LandOfRest
   m_EditorClassIdentifier: 
-  <ID>k__BackingField: 2
-  <Name>k__BackingField: Undo
+  <ID>k__BackingField: 3
+  <Name>k__BackingField: LandOfRest
   <Description>k__BackingField: 
   <Sprite>k__BackingField: {fileID: 0}
   <Sprites>k__BackingField: []
-  <Prefab>k__BackingField: {fileID: 6217246691778898903, guid: 1f2453cc865d69d4b88f4472557cb385, type: 3}
+  <Type>k__BackingField: 0
+  <Prefab>k__BackingField: {fileID: 6217246691778898903, guid: 0ee9aab9c011c4b45be4a7d8caf8fecf, type: 3}

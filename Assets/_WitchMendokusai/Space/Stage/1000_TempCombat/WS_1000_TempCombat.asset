@@ -10,11 +10,12 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: dc4da72a8ab50c34eab4693fa14a70d7, type: 3}
-  m_Name: WS_100000_TempCombat
+  m_Name: WS_1000_TempCombat
   m_EditorClassIdentifier: 
-  <ID>k__BackingField: 100000
+  <ID>k__BackingField: 1000
   <Name>k__BackingField: TempCombat
   <Description>k__BackingField: 
   <Sprite>k__BackingField: {fileID: 0}
   <Sprites>k__BackingField: []
+  <Type>k__BackingField: 1
   <Prefab>k__BackingField: {fileID: 7339564425061985270, guid: 2d7cc083ce952c348b3cf8f37ccd4a79, type: 3}

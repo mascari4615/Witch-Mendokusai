@@ -17,6 +17,7 @@ namespace WitchMendokusai
 		public Stage LastStage { get; private set; } = null;
 		public StageObject CurStageObject { get; private set; } = null;
 		public Stage CurStage { get; private set; } = null;
+		public StageStrategy CurStageStrategy { get; private set; } = null;
 
 		private Vector3 lastPosDiff;
 
@@ -82,6 +83,8 @@ namespace WitchMendokusai
 				CurStageObject.gameObject.SetActive(true);
 
 				CurStage = stage;
+				CurStageStrategy = StageStrategyFactory.Create(stage);
+				CurStageStrategy.Init(stage);
 				
 				OnStageChanged(CurStage, CurStageObject);
 
