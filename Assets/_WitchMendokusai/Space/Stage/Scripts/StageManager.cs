@@ -80,7 +80,9 @@ namespace WitchMendokusai
 
 				// 새로운 스테이지 B 활성화, CurStage를 B로 갱신
 				CurStageObject.gameObject.SetActive(true);
+
 				CurStage = stage;
+				
 				OnStageChanged(CurStage, CurStageObject);
 
 				// 마지막 이동 위치 갱신 (B -> A로 다시 되돌아가는 경우)
