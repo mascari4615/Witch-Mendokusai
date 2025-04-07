@@ -20,6 +20,15 @@ namespace WitchMendokusai
 
 		public override VisualElement CreateInspectorGUI()
 		{
+			dataSO = target as DataSO;
+
+			if (TryGetBaseType(dataSO, out Type type) == false)
+			{
+				// Debug.LogWarning($"Base type not found for {dataSO.name}");
+				base.CreateInspectorGUI();
+				return null;
+			}
+
 			root = new VisualElement();
 
 			CreateUI();
