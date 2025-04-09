@@ -11,10 +11,9 @@ GameObject:
   - component: {fileID: 530532686691932306}
   - component: {fileID: 8996930585753178708}
   - component: {fileID: 5886813220476812995}
-  - component: {fileID: 8885140117561594102}
   - component: {fileID: 3722916194089825757}
   m_Layer: 5
-  m_Name: UIBar
+  m_Name: UIBarUnitStat
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -64,38 +63,10 @@ MonoBehaviour:
   bar: {fileID: 3736486990721849706}
   text: {fileID: 1461665979124547268}
   curType: 0
-  maxType: 0
+  maxType: 1
   textType: 0
   lerpSpeed: 5
-  isExpBar: 1
---- !u!114 &8885140117561594102
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2022568587857572872}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 296465009a6d2224ca0acb8481e2dfee, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  EventType: 2
-  Response:
-    m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 5886813220476812995}
-        m_TargetAssemblyTypeName: Mascari4615.UIBar, Assembly-CSharp
-        m_MethodName: UpdateUI
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+  isExpType: 0
 --- !u!114 &3722916194089825757
 MonoBehaviour:
   m_ObjectHideFlags: 0
