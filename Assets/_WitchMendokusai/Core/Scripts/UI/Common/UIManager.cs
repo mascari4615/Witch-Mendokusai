@@ -38,6 +38,7 @@ namespace WitchMendokusai
 		private UIDungeonResult dungeonResult;
 		public UINPC Npc { get; private set; }
 		private UIBuild build;
+		private UIAdventurerGuild adventurerGuild;
 
 		public UITransition Transition { get; private set; }
 		private UIStagePopup stagePopup;
@@ -58,6 +59,7 @@ namespace WitchMendokusai
 			Npc = FindFirstObjectByType<UINPC>(FindObjectsInactive.Include); ;
 			Map = FindFirstObjectByType<UIMap>(FindObjectsInactive.Include);
 			build = FindFirstObjectByType<UIBuild>(FindObjectsInactive.Include);
+			adventurerGuild = FindFirstObjectByType<UIAdventurerGuild>(FindObjectsInactive.Include);
 
 			canvasUIs[MCanvasType.Dungeon] = FindFirstObjectByType<UIDungeon>(FindObjectsInactive.Include);
 			canvasUIs[MCanvasType.Build] = build;
