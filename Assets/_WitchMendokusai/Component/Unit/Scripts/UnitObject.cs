@@ -46,7 +46,7 @@ namespace WitchMendokusai
 			SkillHandler = new(this);
 			TimeManager.Instance.RegisterCallback(SkillHandler.Tick);
 
-			UnitStat.Init(UnitData.InitStatInfos.GetUnitStat());
+			UnitStat.Set(UnitData.InitStatInfos.GetUnitStat());
 			UpdateStat();
 
 			MeshParent.localScale = originScale;

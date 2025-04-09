@@ -30,6 +30,6 @@ MonoBehaviour:
       ArithmeticOperator: 0
       Value: 0
     Rewards: []
-    WorkTime: 10
+    WorkTime: 3
     AutoWork: 1
     AutoComplete: 1

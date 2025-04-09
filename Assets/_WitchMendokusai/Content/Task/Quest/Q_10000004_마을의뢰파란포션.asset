@@ -46,7 +46,7 @@ MonoBehaviour:
     Rewards:
     - Type: 2
       DataSO: {fileID: 0}
-      Amount: 10
-    WorkTime: 10
+      Amount: 120
+    WorkTime: 3
     AutoWork: 0
     AutoComplete: 0

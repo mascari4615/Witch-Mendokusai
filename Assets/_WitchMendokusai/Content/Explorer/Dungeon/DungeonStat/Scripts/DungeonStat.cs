@@ -7,16 +7,21 @@ namespace WitchMendokusai
 {
 	public class DungeonStat : Stat<DungeonStatType>
 	{
-		public void UpdateData()
+		public DungeonStat() : base()
 		{
-			stats[DungeonStatType.MONSTER_KILL] = 0;
-			stats[DungeonStatType.BOSS_KILL] = 0;
-			stats[DungeonStatType.DUNGEON_TIME] = 0;
 		}
 
-		public DungeonStat()
+		protected override void InitValue()
 		{
-			InitAllZero();
+			foreach (DungeonStatType statType in Enum.GetValues(typeof(DungeonStatType)))
+			{
+				int value = statType switch
+				{
+					_ => 0,
+				};
+
+				stats[statType] = value;
+			}
 		}
 	}
 }

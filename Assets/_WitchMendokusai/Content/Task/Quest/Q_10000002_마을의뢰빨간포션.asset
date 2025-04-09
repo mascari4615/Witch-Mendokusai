@@ -48,10 +48,10 @@ MonoBehaviour:
       Amount: 1000
     - Type: 2
       DataSO: {fileID: 0}
-      Amount: 10
+      Amount: 120
     - Type: 0
       DataSO: {fileID: 11400000, guid: bdc8b5d7cc5bde046bc2f31dd5c2d357, type: 2}
       Amount: 1
-    WorkTime: 10
+    WorkTime: 3
     AutoWork: 0
     AutoComplete: 0

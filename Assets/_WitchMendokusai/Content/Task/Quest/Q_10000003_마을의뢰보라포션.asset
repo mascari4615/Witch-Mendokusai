@@ -10,10 +10,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 57bcccf40b075204a842ff5fb93c7f74, type: 3}
-  m_Name: "Q_10000003_\uB9C8\uC744\uC758\uB8B0\uCD08\uB85D\uD3EC\uC158"
+  m_Name: "Q_10000003_\uB9C8\uC744\uC758\uB8B0\uBCF4\uB77C\uD3EC\uC158"
   m_EditorClassIdentifier: 
   <ID>k__BackingField: 10000003
-  <Name>k__BackingField: "\uB9C8\uC744 \uC758\uB8B0 : \uCD08\uB85D \uD3EC\uC158"
+  <Name>k__BackingField: "\uB9C8\uC744 \uC758\uB8B0 : \uBCF4\uB77C \uD3EC\uC158"
   <Description>k__BackingField: "\uB79C\uB364\uD55C \uB9C8\uC744 \uC758\uB8B0 \uC911
     \uD558\uB098\uC785\uB2C8\uB2E4."
   <Sprite>k__BackingField: {fileID: -1418086324, guid: fbd184d873518c24aaaa66f4c3d4c2a9, type: 3}
@@ -29,13 +29,13 @@ MonoBehaviour:
       Value: 10
       JustOnce: 1
     - Type: 0
-      Data: {fileID: 11400000, guid: b2d48e0595bde2c4e884b37009d8a6f4, type: 2}
+      Data: {fileID: 11400000, guid: bdc8b5d7cc5bde046bc2f31dd5c2d357, type: 2}
       ComparisonOperator: 4
       Value: 1
       JustOnce: 0
     CompleteEffects:
     - Type: 201
-      Data: {fileID: 11400000, guid: b2d48e0595bde2c4e884b37009d8a6f4, type: 2}
+      Data: {fileID: 11400000, guid: bdc8b5d7cc5bde046bc2f31dd5c2d357, type: 2}
       ArithmeticOperator: 2
       Value: 1
     RewardEffects:
@@ -47,6 +47,9 @@ MonoBehaviour:
     - Type: 1
       DataSO: {fileID: 0}
       Amount: 1000
-    WorkTime: 10
+    - Type: 2
+      DataSO: {fileID: 0}
+      Amount: 240
+    WorkTime: 3
     AutoWork: 0
     AutoComplete: 0

@@ -38,11 +38,11 @@ MonoBehaviour:
       JustOnce: 1
     CompleteEffects:
     - Type: 100
-      Data: {fileID: 11400000}
+      Data: {fileID: 11400000, guid: 8448b5dd7b36a0349a9e5ca003d30ab3, type: 2}
       ArithmeticOperator: 0
       Value: 0
     - Type: 101
-      Data: {fileID: 11400000}
+      Data: {fileID: 11400000, guid: 8448b5dd7b36a0349a9e5ca003d30ab3, type: 2}
       ArithmeticOperator: 0
       Value: 0
     RewardEffects: []

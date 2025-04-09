@@ -10,11 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a899d323ee2223c41be194617621dd9b, type: 3}
-  m_Name: GSD_2001_VILLAGE_QUEST_LEVEL
+  m_Name: GSD_2002_VILLAGE_QUEST_LEVEL
   m_EditorClassIdentifier: 
-  <ID>k__BackingField: 2001
+  <ID>k__BackingField: 2002
   <Name>k__BackingField: VILLAGE_QUEST_LEVEL
   <Description>k__BackingField: 
   <Sprite>k__BackingField: {fileID: 0}
   <Sprites>k__BackingField: []
-  <Type>k__BackingField: 2001
+  <Type>k__BackingField: 2002

@@ -10,22 +10,40 @@ namespace WitchMendokusai
 		protected readonly Dictionary<T, Action> events = new();
 		protected readonly Dictionary<T, Action<int>> valueReturnEvents = new();
 
-		public void InitAllZero()
+		private bool dontInvokeEvents = false;
+
+		public Stat()
 		{
 			foreach (T statType in Enum.GetValues(typeof(T)))
+			{
 				stats[statType] = 0;
+
+				events[statType] = () => { };
+				valueReturnEvents[statType] = (value) => { };
+			}
+		
+			InitValue();
 		}
 
-		public virtual void Init(Stat<T> newStats)
+		public void Init()
 		{
-			stats.Clear();
-			foreach (var (stat, value) in newStats.stats)
+			dontInvokeEvents = true;
+			InitValue();
+			dontInvokeEvents = false;
+		}
+
+		protected abstract void InitValue();
+
+		public virtual void Set(Stat<T> newStats)
+		{
+			Init();
+			foreach ((T stat, int value) in newStats.stats)
 				stats[stat] = value;
 		}
 
 		public void Add(Stat<T> addStats)
 		{
-			foreach (var (stat, value) in addStats.stats)
+			foreach ((T stat, int value) in addStats.stats)
 				this[stat] += value;
 		}
 
@@ -33,52 +51,37 @@ namespace WitchMendokusai
 		{
 			get
 			{
-				if (stats.ContainsKey(statType) == false)
-					stats[statType] = 0;
-
 				return stats[statType];
 			}
 			set
 			{
 				stats[statType] = value;
 
-				if (valueReturnEvents.ContainsKey(statType))
-					valueReturnEvents[statType]?.Invoke(stats[statType]);
+				if (dontInvokeEvents)
+					return;
 
-				if (events.ContainsKey(statType))
-					events[statType]?.Invoke();
+				valueReturnEvents[statType].Invoke(stats[statType]);
+				events[statType].Invoke();
 			}
 		}
 
 		public void AddListener(T statType, Action<int> action)
 		{
-			if (valueReturnEvents.ContainsKey(statType) == false)
-				valueReturnEvents[statType] = action;
-			else
-				valueReturnEvents[statType] += action;
+			valueReturnEvents[statType] += action;
 		}
 
 		public void AddListener(T statType, Action action)
 		{
-			if (events.ContainsKey(statType) == false)
-				events[statType] = action;
-			else
-				events[statType] += action;
+			events[statType] += action;
 		}
 
 		public void RemoveListener(T statType, Action<int> action)
 		{
-			if (valueReturnEvents.ContainsKey(statType) == false)
-				return;
-
 			valueReturnEvents[statType] -= action;
 		}
-		
+
 		public void RemoveListener(T statType, Action action)
 		{
-			if (events.ContainsKey(statType) == false)
-				return;
-
 			events[statType] -= action;
 		}
 	}

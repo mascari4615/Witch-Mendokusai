@@ -90,7 +90,7 @@ namespace WitchMendokusai
 			ForEach<Dungeon>(dungeon => { dungeon.Init(); });
 
 			// 통계 초기화
-			DataManager.GameStat.InitAllZero();
+			DataManager.GameStat.Init();
 			DataManager.GameStat[GameStatType.NYANG] = 1000;
 
 			SaveData();

@@ -27,12 +27,6 @@ MonoBehaviour:
     m_SerializedLabels:
     - GameStatData
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 425f2461c3add714681abf3e52a39748
-    m_Address: GameStatData/2001
-    m_ReadOnly: 0
-    m_SerializedLabels:
-    - GameStatData
-    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 46f6f8050891f644ca6f46b8dd67064e
     m_Address: GameStatData/100
     m_ReadOnly: 0
@@ -47,6 +41,12 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 5b9dfd6a63ee21049a73ad28fd908100
     m_Address: GameStatData/1
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - GameStatData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 5da7d7bdfc6e1464aabc0ffddf986f45
+    m_Address: GameStatData/2102
     m_ReadOnly: 0
     m_SerializedLabels:
     - GameStatData
@@ -69,8 +69,26 @@ MonoBehaviour:
     m_SerializedLabels:
     - GameStatData
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: c5bba92b47b2edb41abf82c4270fd7aa
+    m_Address: GameStatData/2002
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - GameStatData
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: d23f70ecd5e226f449791bb3dc20824e
     m_Address: GameStatData/2101
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - GameStatData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: e107ac46f86e34c48bc994df5e0030ef
+    m_Address: GameStatData/3000
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - GameStatData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: f16a83b7e661ab141ba9cb52ebfc9a1e
+    m_Address: GameStatData/2001
     m_ReadOnly: 0
     m_SerializedLabels:
     - GameStatData
