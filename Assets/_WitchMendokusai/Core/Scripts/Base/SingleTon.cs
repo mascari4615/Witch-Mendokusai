@@ -13,6 +13,11 @@ namespace WitchMendokusai
 				if (instance != null)
 					return instance;
 
+				Debug.Log($"There is no {typeof(T).Name} in the scene. Try to find it.");
+				instance = FindFirstObjectByType<T>(FindObjectsInactive.Include);
+				if (instance != null)
+					return instance;
+
 				T prefab = Resources.Load<T>($"Singletons/{typeof(T).Name}");
 				if (prefab != null)
 				{
