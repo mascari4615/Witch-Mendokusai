@@ -59,7 +59,7 @@ namespace WitchMendokusai
 			float t = 0;
 			float origin = bar.fillAmount;
 			float target = (Max == 0) ? 0 : ((float)Cur / Max);
-			Debug.Log(gameObject.name + " UpdateBarLerp Start: " + $"{Cur} / {Max} = [{target}]");
+			// Debug.Log(gameObject.name + " UpdateBarLerp Start: " + $"{Cur} / {Max} = [{target}]");
 
 			if (isExpType)
 				if (origin > target)
@@ -80,7 +80,7 @@ namespace WitchMendokusai
 			{
 				bar.fillAmount = Mathf.Lerp(origin, target, t);
 				t += Time.deltaTime * lerpSpeed;
-				Debug.Log(gameObject.name + " UpdateBarLerp Tick: " + $"{origin} / {target} ({t}) = [{Mathf.Lerp(origin, target, t)}]");
+				// Debug.Log(gameObject.name + " UpdateBarLerp Tick: " + $"{origin} / {target} ({t}) = [{Mathf.Lerp(origin, target, t)}]");
 				yield return null;
 
 				if (t >= 1)

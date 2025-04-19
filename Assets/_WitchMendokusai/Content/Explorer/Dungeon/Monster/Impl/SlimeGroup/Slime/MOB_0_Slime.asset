@@ -29,11 +29,11 @@ MonoBehaviour:
       value: 2
   <Type>k__BackingField: 0
   <Loots>k__BackingField:
-  - <DataSO>k__BackingField: {fileID: 11400000, guid: 41d3b97fb16981c4f949742deac36232, type: 2}
-    <Percentage>k__BackingField: 20
   - <DataSO>k__BackingField: {fileID: 11400000, guid: c93b3b25b6029194dabd908b48701409, type: 2}
-    <Percentage>k__BackingField: 10
+    <Percentage>k__BackingField: 20
   - <DataSO>k__BackingField: {fileID: 11400000, guid: a4ae19ecc14aeff4384a471b45db6f39, type: 2}
-    <Percentage>k__BackingField: 5
+    <Percentage>k__BackingField: 20
   - <DataSO>k__BackingField: {fileID: 11400000, guid: fa1e42f560679c74eb12d34c2b39de1f, type: 2}
-    <Percentage>k__BackingField: 1
+    <Percentage>k__BackingField: 20
+  - <DataSO>k__BackingField: {fileID: 11400000, guid: 26fca6659127a8f4cb0883c4c6a76100, type: 2}
+    <Percentage>k__BackingField: 40

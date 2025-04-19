@@ -21,11 +21,11 @@ MonoBehaviour:
   <Type>k__BackingField: 0
   <Recipes>k__BackingField:
   - Type: 1001
-    amount: 1
+    Amount: 0
     Items:
     - ItemData: {fileID: 11400000, guid: c9c3b46b7fe89374fa400174b9afa76a, type: 2}
       Amount: 1
-    priceNyang: 0
+    PriceNyang: 0
     Percentage: 100
     FailureRewards: []
     SuccessRewards: []
