@@ -120,8 +120,8 @@ Assets/PlayFabSDK/Shared/Public/Resources/PlayFabSharedSettings*
 /Assets/Plugins/Borodar*
 /Assets/Plugins/SelectionUtility*
 /Assets/Plugins/Unity-Logs-Viewer*
-/Assets/SpecialSkillsEffectsPack*
 /Assets/AssetKits*
+/Assets/Samples*
 
 Bakery
 bakery_times.log
