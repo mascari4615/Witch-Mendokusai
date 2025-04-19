@@ -9,6 +9,11 @@ namespace WitchMendokusai
 		[SerializeField] private UISlot slot;
 		[SerializeField] private Animator animator;
 
+		private void Awake()
+		{
+			slot.Init();
+		}
+
 		public void Popup(Stage stage)
 		{
 			slot.SetSlot(stage);
