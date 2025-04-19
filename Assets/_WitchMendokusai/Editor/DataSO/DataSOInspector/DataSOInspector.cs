@@ -14,9 +14,9 @@ namespace WitchMendokusai
 	[CanEditMultipleObjects]
 	public class DataSOInspector : Editor
 	{
-		private DataSO dataSO;
-		private VisualElement root;
-		private VisualElement dataSOContent;
+		protected DataSO dataSO;
+		protected VisualElement root;
+		protected VisualElement dataSOContent;
 
 		public override VisualElement CreateInspectorGUI()
 		{
@@ -42,32 +42,7 @@ namespace WitchMendokusai
 			// Debug.Log(nameof(CreateUI));
 
 			// root.Add(new Label("This is a custom inspector"));
-			{
-				VisualElement buttonContainer = new();
-				buttonContainer.style.flexDirection = FlexDirection.Row;
-				buttonContainer.style.justifyContent = Justify.SpaceBetween;
-
-				int buttonCount = 4;
-				CreateButton("Copy", () => DataSOWindow.Instance.CopyDataSO(dataSO));
-				CreateButton("Remove", () => DataSOWindow.Instance.RemoveDataSO(dataSO));
-				CreateButton("SetID", () => DataSOWindow.IdChanger.SelectDataSO(dataSO));
-				CreateButton("Save", () => SetCorrectAssetName(dataSO));
-
-				root.Add(buttonContainer);
-
-				void CreateButton(string text, Action onClick)
-				{
-					Button button = new(onClick) { text = text };
-					ApplyButtonStyle(button);
-					buttonContainer.Add(button);
-				}
-
-				void ApplyButtonStyle(Button button)
-				{
-					button.style.width = new StyleLength(Length.Percent(100 / buttonCount));
-					button.style.height = new StyleLength(20);
-				}
-			}
+			CreateButtons();
 
 			root.Add(dataSOContent = new VisualElement());
 
@@ -91,6 +66,51 @@ namespace WitchMendokusai
 			}
 
 			// Debug.Log($"{nameof(Init)} End");
+		}
+
+		private void CreateButtons()
+		{
+			CreateButtons_(new List<(string, Action)>
+			{
+				("Copy", () => DataSOWindow.Instance.CopyDataSO(dataSO)),
+				("Remove", () => DataSOWindow.Instance.RemoveDataSO(dataSO)),
+				("SetID", () => DataSOWindow.IdChanger.SelectDataSO(dataSO)),
+				("Save", () => SetCorrectAssetName(dataSO))
+			});
+
+			CreateButtons_(GetCustomButtons());
+
+			void CreateButtons_(List<(string, Action)> buttons)
+			{
+				VisualElement buttonContainer = new();
+				buttonContainer.style.flexDirection = FlexDirection.Row;
+				buttonContainer.style.justifyContent = Justify.SpaceBetween;
+
+				foreach (var (text, onClick) in buttons)
+				{
+					CreateButton(text, onClick);
+				}
+
+				root.Add(buttonContainer);
+
+				void CreateButton(string text, Action onClick)
+				{
+					Button button = new(onClick) { text = text };
+					ApplyButtonStyle(button);
+					buttonContainer.Add(button);
+				}
+
+				void ApplyButtonStyle(Button button)
+				{
+					button.style.width = new StyleLength(Length.Percent(100 / buttons.Count));
+					button.style.height = new StyleLength(20);
+				}
+			}
+		}
+		
+		protected virtual List<(string, Action)> GetCustomButtons()
+		{
+			return new List<(string, Action)>();
 		}
 
 		private void UpdateUI()
