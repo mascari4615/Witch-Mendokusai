@@ -28,6 +28,6 @@ MonoBehaviour:
     - unitStat: 300
       value: 3
   <PanelInfos>k__BackingField:
-  - Type: 3
+  - Type: 8
     DataSOs: []
   <QuestData>k__BackingField: []

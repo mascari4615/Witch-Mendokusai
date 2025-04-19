@@ -7,7 +7,7 @@ using static WitchMendokusai.SOHelper;
 
 namespace WitchMendokusai
 {
-	public class UIShop : UINPCPanel
+	public class UIShop : UIPanel
 	{
 		[SerializeField] private Image shopImage;
 		[SerializeField] private Image dollImage;
@@ -19,8 +19,6 @@ namespace WitchMendokusai
 
 		public override void Init()
 		{
-			base.Init();
-
 			shopInventoryUI = GetComponentInChildren<UIItemDataGrid>(true);
 			itemInventoryUI = GetComponentInChildren<UIItemGrid>(true);
 

@@ -6,25 +6,11 @@ using UnityEngine.Serialization;
 
 namespace WitchMendokusai
 {
-	public enum NPCType
-	{
-		None = -1,
-	
-		Shop,
-		DungeonEntrance,
-		Pot,
-		Anvil,
-		Furnace,
-		CraftingTable,
-	
-		Count
-	}
-
 	// NPC가 다루는 UI 정보
 	[Serializable]
 	public struct NPCPanelInfo
 	{
-		public NPCType Type;
+		public PanelType Type;
 		public List<DataSO> DataSOs;
 	}
 
@@ -35,17 +21,17 @@ namespace WitchMendokusai
 		[field: SerializeField] public List<NPCPanelInfo> PanelInfos { get; private set; }
 		[field: SerializeField] public List<QuestSO> QuestData { get; private set; }
 
-		public List<ItemDataBuffer> ItemDataBuffers => GetAllDataSOs(NPCType.Shop).Cast<ItemDataBuffer>().ToList();
+		public List<ItemDataBuffer> ItemDataBuffers => GetAllDataSOs(PanelType.Shop).Cast<ItemDataBuffer>().ToList();
 
-		private List<DataSO> GetAllDataSOs(NPCType npcType)
+		private List<DataSO> GetAllDataSOs(PanelType panelType)
 		{
 			return PanelInfos
-					.Where(i => i.Type == npcType)
+					.Where(i => i.Type == panelType)
 					.SelectMany(i => i.DataSOs)
 					.ToList();
 		}
 
-		public List<NPCType> GetNPCTypeList()
+		public List<PanelType> GetPanelTypeList()
 		{
 			return PanelInfos.Select(i => i.Type).ToList();
 		}

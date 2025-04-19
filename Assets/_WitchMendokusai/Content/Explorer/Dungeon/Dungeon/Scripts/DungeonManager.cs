@@ -97,8 +97,8 @@ namespace WitchMendokusai
 				
 				// Context 생성 이후 UI 설정
 				// UIDungeon.UpdateUI(); 에서 Context를 사용합니다.
-				UIManager.Instance.SetOverlay(MPanelType.None);
-				UIManager.Instance.SetCanvas(MCanvasType.Dungeon);
+				UIManager.Instance.SetPanel(PanelType.None);
+				UIManager.Instance.SetCanvas(CanvasType.Dungeon);
 
 				GameEventManager.Instance.Raise(GameEventType.OnDungeonStart);
 			}
@@ -120,7 +120,7 @@ namespace WitchMendokusai
 
 			IsDungeon = false;
 
-			UIManager.Instance.SetOverlay(MPanelType.DungeonResult);
+			UIManager.Instance.SetPanel(PanelType.DungeonResult);
 		}
 
 		public void Continue()
@@ -136,8 +136,8 @@ namespace WitchMendokusai
 
 			void ResetDungeonAndPlayer()
 			{
-				UIManager.Instance.SetOverlay(MPanelType.None);
-				UIManager.Instance.SetCanvas(MCanvasType.None);
+				UIManager.Instance.SetPanel(PanelType.None);
+				UIManager.Instance.SetCanvas(CanvasType.None);
 
 				GameManager.Instance.Init();
 				expChecker.Init();

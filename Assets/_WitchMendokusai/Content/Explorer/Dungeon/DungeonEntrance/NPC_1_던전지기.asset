@@ -28,7 +28,7 @@ MonoBehaviour:
     - unitStat: 300
       value: 3
   <PanelInfos>k__BackingField:
-  - Type: 1
+  - Type: 6
     DataSOs:
     - {fileID: 11400000, guid: 18b8fc0dced87474a9c8e0e1e099a551, type: 2}
     - {fileID: 11400000, guid: 6fcb13fa06ab37e4399c866b682eaeaa, type: 2}

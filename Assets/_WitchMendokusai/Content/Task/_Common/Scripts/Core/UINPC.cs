@@ -4,6 +4,7 @@ using UnityEngine.UI;
 
 namespace WitchMendokusai
 {
+	[RequireComponent(typeof(CanvasGroup))]
 	public class UINPC : UIPanel
 	{
 		private CanvasGroup canvasGroup;
@@ -14,31 +15,16 @@ namespace WitchMendokusai
 		[SerializeField] private CanvasGroup questEachParent;
 		[SerializeField] private UISlot[] questEachOptions;
 
-		[SerializeField] private UISlot[] options;
+		[SerializeField] private GameObject optionPrefab;
+		[SerializeField] private Transform optionsParent;
+		private readonly List<UISlot> options = new();
 
-		public NPCType CurPanelType { get; private set; }
-		private readonly Dictionary<NPCType, UINPCPanel> panelUIs = new();
-		private NPCObject curNPC;
+		public PanelType CurPanelType { get; private set; } = PanelType.None;
+		private NPCObject curNPC = null;
 
 		public override void Init()
 		{
 			canvasGroup = GetComponent<CanvasGroup>();
-
-			// 패널 초기화
-			{
-				panelUIs[NPCType.Shop] = FindFirstObjectByType<UIShop>(FindObjectsInactive.Include);
-				panelUIs[NPCType.DungeonEntrance] = FindFirstObjectByType<UIDungeonEntrance>(FindObjectsInactive.Include);
-				panelUIs[NPCType.Pot] = FindFirstObjectByType<UIPot>(FindObjectsInactive.Include);
-				panelUIs[NPCType.Anvil] = FindFirstObjectByType<UIAnvil>(FindObjectsInactive.Include);
-				panelUIs[NPCType.Furnace] = FindFirstObjectByType<UIFurnace>(FindObjectsInactive.Include);
-				panelUIs[NPCType.CraftingTable] = FindFirstObjectByType<UICraftingTable>(FindObjectsInactive.Include);
-
-				foreach (UIPanel uiPanel in panelUIs.Values)
-				{
-					uiPanel.Init();
-					uiPanel.SetActive(false);
-				}
-			}
 
 			// 버튼 초기화
 			{
@@ -63,45 +49,43 @@ namespace WitchMendokusai
 				}
 
 				// NPC 버튼
-				for (int i = 0; i < (int)NPCType.Count; i++)
+				for (int i = 0; i < (int)PanelType.Count; i++)
 				{
-					NPCType npcType = (NPCType)i;
-					UIPanel panel = panelUIs[npcType];
+					PanelType panelType = (PanelType)i;
+					UIPanel panel = UIManager.Instance.PanelUIs[panelType];
 
-					options[i].SetSlotIndex(i);
+					options.Add(Instantiate(optionPrefab, optionsParent).GetComponent<UISlot>());
+
 					options[i].Init();
+					options[i].SetSlotIndex(i);
 					options[i].SetSlot(panel.PanelIcon, panel.Name, string.Empty);
-					options[i].SetClickAction((slot) => { SetPanel(npcType); });
+					options[i].SetClickAction((slot) => { SetPanel(panelType); });
 				}
 			}
 
 			// 초기화
-			SetPanel(NPCType.None);
+			SetPanel(PanelType.None);
 		}
 
-		private void SetPanel(NPCType newPanelType)
+		private void SetPanel(PanelType newPanelType)
 		{
 			if (CurPanelType == newPanelType)
 				return;
 
-			NPCType originPanelType = CurPanelType;
+			PanelType originPanelType = CurPanelType;
 			CurPanelType = newPanelType;
 
 			// 전 패널 처리
 			{
-				if (originPanelType == NPCType.None)
+				if (originPanelType == PanelType.None)
 				{
 					buttonsParent.SetActive(false);
-				}
-				else
-				{
-					panelUIs[originPanelType].SetActive(false);
 				}
 			}
 
 			// 새 패널 처리
 			{
-				if (CurPanelType == NPCType.None)
+				if (CurPanelType == PanelType.None)
 				{
 					CameraManager.Instance.SetCamera(CameraType.Dialogue);
 					buttonsParent.SetActive(true);
@@ -109,9 +93,7 @@ namespace WitchMendokusai
 				else
 				{
 					CameraManager.Instance.SetChatCamera();
-					panelUIs[CurPanelType].SetActive(true);
-					panelUIs[CurPanelType].SetNPC(curNPC);
-					panelUIs[CurPanelType].UpdateUI();
+					UIManager.Instance.SetPanel(CurPanelType, curNPC);
 				}
 			}
 		}
@@ -121,9 +103,9 @@ namespace WitchMendokusai
 			canvasGroup.SetVisible(false);
 
 			NPC curNPCData = curNPC.UnitData as NPC;
-			List<NPCType> npcTypes = curNPCData.GetNPCTypeList();
-			for (int i = 0; i < options.Length; i++)
-				options[i].gameObject.SetActive(npcTypes.Contains((NPCType)i));
+			List<PanelType> panelTypes = curNPCData.GetPanelTypeList();
+			for (int i = 0; i < options.Count; i++)
+				options[i].gameObject.SetActive(panelTypes.Contains((PanelType)i));
 
 			UpdateQuestButtons();
 			questEachParent.gameObject.SetActive(false);
@@ -140,7 +122,7 @@ namespace WitchMendokusai
 		{
 		}
 
-		public void SetNPC(NPCObject npc)
+		public override void SetNPC(NPCObject npc)
 		{
 			curNPC = npc;
 		}
@@ -186,7 +168,7 @@ namespace WitchMendokusai
 			{
 				canvasGroup.SetVisible(true);
 
-				SetPanel(NPCType.None);
+				SetPanel(PanelType.None);
 				buttonsParent.SetActive(true);
 				talkOption.Select();
 			});
@@ -219,7 +201,7 @@ namespace WitchMendokusai
 
 		public void Close()
 		{
-			UIManager.Instance.SetOverlay(MPanelType.None);
+			UIManager.Instance.SetPanel(PanelType.None);
 		}
 		#endregion
 	}

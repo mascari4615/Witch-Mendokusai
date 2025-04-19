@@ -7,7 +7,7 @@ using UnityEngine.UI;
 
 namespace WitchMendokusai
 {
-	public class UIDungeonEntrance : UINPCPanel
+	public class UIDungeonEntrance : UIPanel
 	{
 		[SerializeField] private Transform dungeonSelectButtonParent;
 		[SerializeField] private UISlot dungeonSlot;
@@ -24,8 +24,6 @@ namespace WitchMendokusai
 
 		public override void Init()
 		{
-			base.Init();
-
 			dungeonSelectButtons = dungeonSelectButtonParent.GetComponentsInChildren<UISlot>(true).ToList();
 
 			for (int i = 0; i < dungeonSelectButtons.Count; i++)

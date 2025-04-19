@@ -3,41 +3,46 @@ using UnityEngine;
 
 namespace WitchMendokusai
 {
-	public enum MCanvasType
+	public enum CanvasType
 	{
 		None,
 		Dungeon,
 		Build
 	}
 
-	public enum MPanelType
+	public enum PanelType
 	{
-		None,
+		None = -1,
+
 		Tab,
 		Setting,
-		DungeonResult,
+		Map,
 		NPC,
+		DungeonResult,
+	
+		Shop,
+		DungeonEntrance,
+		Pot,
+		Anvil,
+		Furnace,
+		CraftingTable,
+
+		Count
 	}
 
 	public class UIManager : Singleton<UIManager>
 	{
-		public MCanvasType CurCanvas { get; private set; }
-		private readonly Dictionary<MCanvasType, UIPanel> canvasUIs = new();
+		public CanvasType CurCanvas { get; private set; }
+		private readonly Dictionary<CanvasType, UIPanel> canvasUIs = new();
 
-		public MPanelType CurOverlay { get; private set; }
-		private readonly Dictionary<MPanelType, UIPanel> overlayUIs = new();
+		public PanelType CurPanel { get; private set; }
+		public Stack<PanelType> PanelStack { get; private set; } = new();
+		public Dictionary<PanelType, UIPanel> PanelUIs { get; private set; } = new();
 
-		private UITab tab;
 		[field: SerializeField] public CutSceneModule CutSceneModule { get; private set; }
-		private UISetting setting;
 		private UIFloatingText damage;
 		private UIPopup popup;
 		public UIChat Chat { get; private set; }
-		public UIMap Map { get; private set; }
-		private UIDungeon dungeon;
-		private UIDungeonResult dungeonResult;
-		public UINPC Npc { get; private set; }
-		private UIBuild build;
 		private UIAdventurerGuild adventurerGuild;
 
 		public UITransition Transition { get; private set; }
@@ -48,30 +53,33 @@ namespace WitchMendokusai
 		{
 			base.Awake();
 
-			tab = FindFirstObjectByType<UITab>(FindObjectsInactive.Include);
 			CutSceneModule = FindFirstObjectByType<CutSceneModule>(FindObjectsInactive.Include);
 			damage = FindFirstObjectByType<UIFloatingText>(FindObjectsInactive.Include); ;
 			popup = FindFirstObjectByType<UIPopup>(FindObjectsInactive.Include);
-			setting = FindFirstObjectByType<UISetting>(FindObjectsInactive.Include);
 			Chat = FindFirstObjectByType<UIChat>(FindObjectsInactive.Include);
-			dungeon = FindFirstObjectByType<UIDungeon>(FindObjectsInactive.Include);
-			dungeonResult = FindFirstObjectByType<UIDungeonResult>(FindObjectsInactive.Include);
-			Npc = FindFirstObjectByType<UINPC>(FindObjectsInactive.Include); ;
-			Map = FindFirstObjectByType<UIMap>(FindObjectsInactive.Include);
-			build = FindFirstObjectByType<UIBuild>(FindObjectsInactive.Include);
 			adventurerGuild = FindFirstObjectByType<UIAdventurerGuild>(FindObjectsInactive.Include);
 
-			canvasUIs[MCanvasType.Dungeon] = FindFirstObjectByType<UIDungeon>(FindObjectsInactive.Include);
-			canvasUIs[MCanvasType.Build] = build;
-
-			overlayUIs[MPanelType.Tab] = tab;
-			overlayUIs[MPanelType.Setting] = setting;
-			overlayUIs[MPanelType.DungeonResult] = dungeonResult;
-			overlayUIs[MPanelType.NPC] = Npc;
+			canvasUIs[CanvasType.Dungeon] = FindFirstObjectByType<UIDungeon>(FindObjectsInactive.Include);
+			canvasUIs[CanvasType.Build] = FindFirstObjectByType<UIBuild>(FindObjectsInactive.Include);
 
 			Transition = FindFirstObjectByType<UITransition>(FindObjectsInactive.Include);
 			stagePopup = FindFirstObjectByType<UIStagePopup>(FindObjectsInactive.Include);
 			Status = FindFirstObjectByType<UIStatus>(FindObjectsInactive.Include);
+
+			// 패널 초기화
+			{
+				PanelUIs[PanelType.Tab] = FindFirstObjectByType<UITab>(FindObjectsInactive.Include);
+				PanelUIs[PanelType.Setting] = FindFirstObjectByType<UISetting>(FindObjectsInactive.Include);
+				PanelUIs[PanelType.DungeonResult] = FindFirstObjectByType<UIDungeonResult>(FindObjectsInactive.Include);
+				PanelUIs[PanelType.NPC] = FindFirstObjectByType<UINPC>(FindObjectsInactive.Include);
+				PanelUIs[PanelType.Shop] = FindFirstObjectByType<UIShop>(FindObjectsInactive.Include);
+				PanelUIs[PanelType.DungeonEntrance] = FindFirstObjectByType<UIDungeonEntrance>(FindObjectsInactive.Include);
+				PanelUIs[PanelType.Pot] = FindFirstObjectByType<UIPot>(FindObjectsInactive.Include);
+				PanelUIs[PanelType.Anvil] = FindFirstObjectByType<UIAnvil>(FindObjectsInactive.Include);
+				PanelUIs[PanelType.Furnace] = FindFirstObjectByType<UIFurnace>(FindObjectsInactive.Include);
+				PanelUIs[PanelType.CraftingTable] = FindFirstObjectByType<UICraftingTable>(FindObjectsInactive.Include);
+				PanelUIs[PanelType.Map] = FindFirstObjectByType<UIMap>(FindObjectsInactive.Include);
+			}
 		}
 
 		private void Start()
@@ -82,14 +90,14 @@ namespace WitchMendokusai
 				uiPanel.SetActive(false);
 			}
 
-			foreach (UIPanel uiPanel in overlayUIs.Values)
+			foreach (UIPanel uiPanel in PanelUIs.Values)
 			{
 				uiPanel.Init();
 				uiPanel.SetActive(false);
 			}
 
-			SetCanvas(MCanvasType.None);
-			SetOverlay(MPanelType.None);
+			SetCanvas(CanvasType.None);
+			SetPanel(PanelType.None);
 
 			Status.Init();
 		}
@@ -117,55 +125,56 @@ namespace WitchMendokusai
 
 		public void ToggleOverlayUI_Tab()
 		{
-			if (CurOverlay != MPanelType.None)
+			if (CurPanel != PanelType.None)
 			{
-				if (CurOverlay != MPanelType.Setting)
-					SetOverlay(MPanelType.None);
+				if (CurPanel != PanelType.Setting)
+					SetPanel(PanelType.None);
 			}
 			else
 			{
-				SetOverlay(MPanelType.Tab);
+				SetPanel(PanelType.Tab);
 			}
 		}
 
 		public void ToggleOverlayUI_Setting()
 		{
-			if (CurOverlay != MPanelType.None)
+			if (CurPanel != PanelType.None)
 			{
-				SetOverlay(MPanelType.None);
+				SetPanel(PanelType.None);
 			}
 			else
 			{
-				SetOverlay(MPanelType.Setting);
+				SetPanel(PanelType.Setting);
 			}
 		}
 
-		public void SetOverlay(MPanelType overlayUI)
+		public void SetPanel(PanelType overlayUI, NPCObject npcObject = null)
 		{
-			if (CurOverlay == overlayUI)
+			if (CurPanel == overlayUI)
 				return;
 
-			if (CurOverlay != MPanelType.None)
-				overlayUIs[CurOverlay].SetActive(false);
+			if (CurPanel != PanelType.None)
+				PanelUIs[CurPanel].SetActive(false);
 
-			CurOverlay = overlayUI;
-			if (overlayUIs.TryGetValue(overlayUI, out UIPanel uiPanel))
+			CurPanel = overlayUI;
+			if (PanelUIs.TryGetValue(overlayUI, out UIPanel uiPanel))
 			{
+				uiPanel.SetNPC(npcObject);
 				uiPanel.SetActive(true);
 				uiPanel.UpdateUI();
 			}
 		}
 
-		public void SetCanvas(MCanvasType newCanvas)
+		public void SetCanvas(CanvasType newCanvas)
 		{
 			if (CurCanvas == newCanvas)
 				return;
 
-			if (CurCanvas != MCanvasType.None)
+			if (CurCanvas != CanvasType.None)
 				canvasUIs[CurCanvas].SetActive(false);
 
 			CurCanvas = newCanvas;
-			if (CurCanvas == MCanvasType.None)
+			if (CurCanvas == CanvasType.None)
 			{
 				CameraManager.Instance.SetCamera(CameraType.Normal);
 			}

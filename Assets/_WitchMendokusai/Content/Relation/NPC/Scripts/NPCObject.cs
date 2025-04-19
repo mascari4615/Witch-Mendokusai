@@ -6,8 +6,7 @@ namespace WitchMendokusai
 
 		public void OnInteract()
 		{
-			UIManager.Instance.Npc.SetNPC(this);
-			UIManager.Instance.SetOverlay(MPanelType.NPC);
+			UIManager.Instance.SetPanel(PanelType.NPC, this);
 		}
 	}
 }

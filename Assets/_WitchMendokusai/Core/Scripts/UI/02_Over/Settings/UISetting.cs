@@ -71,7 +71,7 @@ namespace WitchMendokusai
 
 		public override void UpdateUI()
 		{
-			dungeonExitButton.gameObject.SetActive(UIManager.Instance.CurCanvas == MCanvasType.Dungeon);
+			dungeonExitButton.gameObject.SetActive(UIManager.Instance.CurCanvas == CanvasType.Dungeon);
 		}
 
 		protected override void OnOpen()

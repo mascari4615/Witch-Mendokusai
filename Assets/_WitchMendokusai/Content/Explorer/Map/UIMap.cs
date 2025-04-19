@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace WitchMendokusai
 {
-	public class UIMap : UIBase
+	public class UIMap : UIPanel
 	{
 		// TODO:
 

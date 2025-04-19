@@ -9,5 +9,7 @@ namespace WitchMendokusai
 		[field: Header("_" + nameof(UIPanel))]
 		[field: SerializeField] public string Name { get; private set; } = "UIPanel";
 		[field: SerializeField] public Sprite PanelIcon { get; private set; } = null;
+
+		public virtual void SetNPC(NPCObject npc) { }
 	}
 }

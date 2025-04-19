@@ -57,7 +57,7 @@ namespace WitchMendokusai
 
 		private void FixedUpdate()
 		{
-			if (GameManager.Instance.Conditions[GameConditionType.IsChatting] || UIManager.Instance.CurOverlay != MPanelType.None)
+			if (GameManager.Instance.Conditions[GameConditionType.IsChatting] || UIManager.Instance.CurPanel != PanelType.None)
 				return;
 
 			if (GameManager.Instance.Conditions[GameConditionType.IsChatting])

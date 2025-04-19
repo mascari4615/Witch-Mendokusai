@@ -47,8 +47,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   dontDestroyOnLoad: 1
-  CurDollID: 0
-  DummyDollCount: 0
   localDisplayName: 
 --- !u!114 &2233538775601197659
 MonoBehaviour:
@@ -62,7 +60,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: eefc0e021eb93e4438fd1f802832b8be, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  GoogleStatusText: {fileID: 8314891099462046203}
 --- !u!1 &2761859447533706271
 GameObject:
   m_ObjectHideFlags: 0
@@ -75,7 +72,7 @@ GameObject:
   - component: {fileID: 6066850588109937546}
   - component: {fileID: 8314891099462046203}
   m_Layer: 0
-  m_Name: GoogleLoginResult
+  m_Name: '[Text] GoogleLoginResult'
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -211,7 +208,7 @@ GameObject:
   - component: {fileID: 2440859894847398664}
   - component: {fileID: 9140689629115161978}
   m_Layer: 0
-  m_Name: Version
+  m_Name: '[Text] Version'
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -347,13 +344,14 @@ GameObject:
   - component: {fileID: 7855213386327539686}
   - component: {fileID: 2185295347758039212}
   - component: {fileID: 1409039712816458431}
+  - component: {fileID: 2626815397518430362}
   m_Layer: 0
   m_Name: Canvas
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &205850940164796050
 RectTransform:
   m_ObjectHideFlags: 0
@@ -438,3 +436,15 @@ MonoBehaviour:
   m_BlockingMask:
     serializedVersion: 2
     m_Bits: 4294967295
+--- !u!225 &2626815397518430362
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9114961121702214280}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 0
+  m_BlocksRaycasts: 0
+  m_IgnoreParentGroups: 0

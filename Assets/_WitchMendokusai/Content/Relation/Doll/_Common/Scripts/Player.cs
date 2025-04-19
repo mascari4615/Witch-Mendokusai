@@ -47,7 +47,7 @@ namespace WitchMendokusai
 
 		public void TryInteract()
 		{
-			if (UIManager.Instance.CurOverlay != MPanelType.None)
+			if (UIManager.Instance.CurPanel != PanelType.None)
 				return;
 
 			interaction.TryInteraction();
