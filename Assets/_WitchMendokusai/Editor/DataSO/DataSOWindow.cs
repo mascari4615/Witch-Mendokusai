@@ -119,6 +119,16 @@ namespace WitchMendokusai
 				SetType(type);
 			});
 
+			Button initDictButton = rootVisualElement.Q<Button>(name: "InitDictButton");
+			initDictButton.RegisterCallback<MouseUpEvent>(ev =>
+			{
+				if (EditorUtility.DisplayDialog("InitDict", "갱신 하시겠습니까?", "Yes", "No") == true)
+				{
+					InitDict();
+					UpdateGrid();
+				}
+			});
+
 			IdChanger = new();
 
 			SetType(AssetPrefixes.Keys.First());
