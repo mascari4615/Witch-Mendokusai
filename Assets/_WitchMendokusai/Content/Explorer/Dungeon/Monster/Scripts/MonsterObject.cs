@@ -5,7 +5,7 @@ using static WitchMendokusai.WMHelper;
 
 namespace WitchMendokusai
 {
-	public class MonsterObject : UnitObject, IHitable
+	public class MonsterObject : UnitObject, IDamageable
 	{
 		[Header("_" + nameof(MonsterObject))]
 		[SerializeField] private GameObject hitEffectPrefab;

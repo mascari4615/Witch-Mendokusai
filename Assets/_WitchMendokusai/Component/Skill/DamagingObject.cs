@@ -14,34 +14,34 @@ namespace WitchMendokusai
 		[SerializeField] private bool useHitCount;
 		[SerializeField] private int hitCount = 1;
 
-		[SerializeField] private bool disableWhenInvaild;
+		[SerializeField] private bool disableWhenInvalid;
 
 		[SerializeField] private bool usedByPlayer = false;
-		private bool vaild = true;
+		private bool valid = true;
 		private int curHitCount;
 
 		private SkillObject skillObject;
 
 		public void OnTriggerEnter(Collider other)
 		{
-			if (vaild == false)
+			if (valid == false)
 				return;
 
-			if (other.TryGetComponent(out IHitable hitable))
+			if (other.TryGetComponent(out IDamageable damageable))
 			{
-				switch (hitable)
+				switch (damageable)
 				{
 					case MonsterObject when usedByPlayer:
 					case PlayerObject when !usedByPlayer:
 						// Debug.Log(nameof(OnTriggerEnter));
-						hitable.ReceiveDamage(CalcDamage());
+						damageable.ReceiveDamage(CalcDamage());
 						if (useHitCount)
 						{
 							if (--curHitCount <= 0)
 							{
-								vaild = false;
+								valid = false;
 
-								if (disableWhenInvaild)
+								if (disableWhenInvalid)
 									TurnOff();
 							}
 						}
@@ -54,14 +54,14 @@ namespace WitchMendokusai
 		{
 			this.skillObject = skillObject;
 			usedByPlayer = skillObject.UsedByPlayer;
-			vaild = true;
+			valid = true;
 			curHitCount = hitCount;
 			damageBonus = 0;
 		}
 
 		private void TurnOff()
 		{
-			vaild = false;
+			valid = false;
 			gameObject.SetActive(false);
 		}
 

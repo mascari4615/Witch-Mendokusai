@@ -5,7 +5,7 @@ using static WitchMendokusai.SOHelper;
 
 namespace WitchMendokusai
 {
-	public class PlayerObject : UnitObject, IHitable
+	public class PlayerObject : UnitObject, IDamageable
 	{
 		private Coroutine invincibleRoutine = null;
 		[SerializeField] private GameObject diedX;

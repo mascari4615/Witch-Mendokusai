@@ -18,7 +18,7 @@ namespace WitchMendokusai
 		}
 	}
 
-	public interface IHitable
+	public interface IDamageable
 	{
 		public void ReceiveDamage(DamageInfo damageInfo);
 	}
