@@ -55,7 +55,7 @@ namespace WitchMendokusai
 
 		public void TryUseSkill(int skillIndex)
 		{
-			if (GameManager.Instance.IsCooling)
+			if (Object.UnitStat[UnitStatType.CASTING_SKILL] > 0)
 				return;
 			Object.UseSkill(skillIndex);
 		}

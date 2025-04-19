@@ -9,14 +9,14 @@ namespace WitchMendokusai
 	{
 		public override void ActualUse(UnitObject unitObject)
 		{
-			unitObject.StartCoroutine(DashLoop());
+			unitObject.StartCoroutine(DashLoop(unitObject));
 		}
 
-		private IEnumerator DashLoop()
+		private IEnumerator DashLoop(UnitObject unitObject)
 		{
-			GameManager.Instance.IsDashing = true;
+			unitObject.UnitStat[UnitStatType.FORCE_MOVE]++;
 			yield return new WaitForSeconds(SOManager.Instance.DashDuration.RuntimeValue);
-			GameManager.Instance.IsDashing = false;
+			unitObject.UnitStat[UnitStatType.FORCE_MOVE]--;
 		}
 	}
 }

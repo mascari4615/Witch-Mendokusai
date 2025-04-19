@@ -25,6 +25,8 @@ namespace WitchMendokusai
 		private int unitID;
 		private Action endAction;
 
+		public static bool IsChatting { get; private set; } = false;
+
 		private void Start()
 		{
 			chatCanvasGroup.alpha = 0;
@@ -47,7 +49,7 @@ namespace WitchMendokusai
 			chatTargetGroup.Targets[1].Object = npc.transform;
 			endAction = action;
 
-			GameManager.Instance.IsChatting = true;
+			IsChatting = true;
 
 			StartCoroutine(ChatLoop(curChatData));
 		}
@@ -94,7 +96,7 @@ namespace WitchMendokusai
 				while (Input.anyKeyDown == false);
 			}
 
-			GameManager.Instance.IsChatting = false;
+			IsChatting = false;
 
 			chatCanvasGroup.DOFade(0, 0.2f);
 			bubbleCanvasGroup.DOFade(0, 0.2f);

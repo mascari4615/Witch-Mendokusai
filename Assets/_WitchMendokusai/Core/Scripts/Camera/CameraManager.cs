@@ -41,10 +41,7 @@ namespace WitchMendokusai
 			posDelegates[0].SetSource(0, new ConstraintSource { sourceTransform = Player.Instance.Object.CameraPosition, weight = 1 });
 			posDelegates[1].SetSource(0, new ConstraintSource { sourceTransform = Player.Instance.Object.SpritePosition, weight = 1 });
 
-			InputManager.Instance.RegisterMouseEvent(InputMouseEventType.ScrollWheel, () =>
-			{
-				Zoom();
-			});
+			InputManager.Instance.RegisterInputEvent(InputEventType.Scroll, InputEventResponseType.Performed, Zoom);
 		}
 
 		public void SetCamera(CameraType cameraType)

@@ -24,7 +24,7 @@ namespace WitchMendokusai
 
 		private Building selectedBuilding;
 		private Vector3Int gridPosition;
-		private bool isBuilding = false;
+		public bool IsBuilding { get; private set; } = false;
 
 		protected override void Awake()
 		{
@@ -46,11 +46,11 @@ namespace WitchMendokusai
 		[ContextMenu(nameof(StartBuilding))]
 		public void StartBuilding()
 		{
-			isBuilding = true;
+			IsBuilding = true;
 			UIManager.Instance.SetCanvas(MCanvasType.Build);
 
-			InputManager.RegisterMouseEvent(InputMouseEventType.Button0Down, ClickCell);
-			InputManager.RegisterMouseEvent(InputMouseEventType.Button1Get, TryRemoveCell);
+			InputManager.RegisterInputEvent(InputEventType.Click0, InputEventResponseType.Started, ClickCell);
+			InputManager.RegisterInputEvent(InputEventType.Click1, InputEventResponseType.Get, TryRemoveCell);
 			gridVisualization.SetActive(true);
 			marker.SetBool(MarkerEnabled, true);
 		}
@@ -58,11 +58,11 @@ namespace WitchMendokusai
 		[ContextMenu(nameof(StopBuilding))]
 		public void StopBuilding()
 		{
-			isBuilding = false;
+			IsBuilding = false;
 			UIManager.Instance.SetCanvas(MCanvasType.None);
 
-			InputManager.UnregisterMouseEvent(InputMouseEventType.Button0Down, ClickCell);
-			InputManager.UnregisterMouseEvent(InputMouseEventType.Button1Get, TryRemoveCell);
+			InputManager.UnregisterInputEvent(InputEventType.Click0, InputEventResponseType.Started, ClickCell);
+			InputManager.UnregisterInputEvent(InputEventType.Click1, InputEventResponseType.Get, TryRemoveCell);
 			gridVisualization.SetActive(false);
 			marker.SetBool(MarkerEnabled, false);
 		}
@@ -72,13 +72,13 @@ namespace WitchMendokusai
 			// TODO: 임시 Build 키
 			if (Input.GetKeyDown(KeyCode.B))
 			{
-				if (isBuilding == true)
+				if (IsBuilding == true)
 					StopBuilding();
 				else
 					StartBuilding();
 			}
 
-			if (isBuilding == false)
+			if (IsBuilding == false)
 				return;
 
 			UpdateCellPos();

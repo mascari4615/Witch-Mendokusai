@@ -23,18 +23,18 @@ namespace WitchMendokusai
 			
 			if (PrevDelay > 0)
 			{
-				GameManager.Instance.IsCooling = true;
+				unitObject.UnitStat[UnitStatType.CASTING_SKILL]++;
 				yield return new WaitForSeconds(PrevDelay);
-				GameManager.Instance.IsCooling = false;
+				unitObject.UnitStat[UnitStatType.CASTING_SKILL]--;
 			}
 
 			ActualUse(unitObject);
 
 			if (AfterDelay > 0)
 			{
-				GameManager.Instance.IsCooling = true;
+				unitObject.UnitStat[UnitStatType.CASTING_SKILL]++;
 				yield return new WaitForSeconds(AfterDelay);
-				GameManager.Instance.IsCooling = false;
+				unitObject.UnitStat[UnitStatType.CASTING_SKILL]--;
 			}
 		}
 

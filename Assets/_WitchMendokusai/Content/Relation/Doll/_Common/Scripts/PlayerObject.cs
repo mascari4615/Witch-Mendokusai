@@ -28,7 +28,6 @@ namespace WitchMendokusai
 			headRenderer.sprite = UnitData.Sprites[0];
 			bodyRenderer.sprite = UnitData.Sprites[1];
 
-			GameManager.Instance.IsDied = false;
 			diedX.SetActive(false);
 
 			GameEventManager.Instance.Raise(GameEventType.OnPlayerDollChange);
@@ -70,7 +69,6 @@ namespace WitchMendokusai
 		protected override void OnDied()
 		{
 			base.OnDied();
-			GameManager.Instance.IsDied = true;
 			GameEventManager.Instance.Raise(GameEventType.OnPlayerDied);
 			TimeManager.Instance.DoSlowMotion();
 			diedX.SetActive(true);

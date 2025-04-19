@@ -32,7 +32,7 @@ namespace WitchMendokusai
 
 		private void Update()
 		{
-			if (GameManager.Instance.IsDashing)
+			if (GameManager.Instance.Conditions[GameConditionType.IsDashing])
 				return;
 
 			Rotate();
@@ -57,10 +57,10 @@ namespace WitchMendokusai
 
 		private void FixedUpdate()
 		{
-			if (GameManager.Instance.IsChatting || UIManager.Instance.CurOverlay != MPanelType.None)
+			if (GameManager.Instance.Conditions[GameConditionType.IsChatting] || UIManager.Instance.CurOverlay != MPanelType.None)
 				return;
 
-			if (GameManager.Instance.IsCooling)
+			if (GameManager.Instance.Conditions[GameConditionType.IsChatting])
 			{
 				playerRigidBody.linearVelocity = Vector3.zero;
 				return;
@@ -69,9 +69,9 @@ namespace WitchMendokusai
 			Vector3 moveDirection = MoveDirection;
 			Vector3 finalVelocity;
 
-			if (GameManager.Instance.IsDied)
+			if (GameManager.Instance.Conditions[GameConditionType.IsDied])
 				finalVelocity = Vector3.zero;
-			else if (GameManager.Instance.IsDashing)
+			else if (GameManager.Instance.Conditions[GameConditionType.IsDashing])
 				finalVelocity = moveDirection * SOManager.Instance.DashSpeed.RuntimeValue;
 			else
 				finalVelocity = moveDirection * playerObject.UnitStat[UnitStatType.MOVEMENT_SPEED];

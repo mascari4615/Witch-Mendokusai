@@ -16,7 +16,7 @@ namespace WitchMendokusai
 
 		private void Update()
 		{
-			if (GameManager.Instance.IsMouseOnUI)
+			if (GameManager.Instance.Conditions[GameConditionType.IsMouseOnUI] == false)
 			{
 				if (mouseType == MouseType.Attack)
 				{
