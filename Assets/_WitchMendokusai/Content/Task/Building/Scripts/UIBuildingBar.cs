@@ -23,7 +23,7 @@ namespace WitchMendokusai
 			foreach (UIBuildingSlot buildingSlot in buildingSlots)
 			{
 				buildingSlot.Init();
-				buildingSlot.SetSelectAction((slot) =>
+				buildingSlot.SetClickAction((slot) =>
 				{
 					Building building = slot.DataSO as Building;
 					BuildManager.Instance.SelectBuilding(building);
