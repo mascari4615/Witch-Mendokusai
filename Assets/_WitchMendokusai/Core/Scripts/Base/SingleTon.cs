@@ -60,7 +60,7 @@ namespace WitchMendokusai
 		{
 			if (instance == this)
 			{
-				if (MHelper.IsPlaying)
+				if (WMHelper.IsPlaying)
 					Debug.Log($"Destroy {typeof(T).Name}. {instance.name}");
 				instance = null;
 			}

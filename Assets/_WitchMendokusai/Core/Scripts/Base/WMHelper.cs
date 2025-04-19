@@ -8,18 +8,17 @@ using UnityEditor;
 
 namespace WitchMendokusai
 {
-	public static class MHelper
+	public static class WMHelper
 	{
-		public static bool IsPlayModeInEditor()
+		public static bool IsPlaying => IsPlaying_();
+		private static bool IsPlaying_()
 		{
 #if UNITY_EDITOR
-			return EditorApplication.isPlaying;
+			return EditorApplication.isPlayingOrWillChangePlaymode;
 #else
-			return false;
+			return Application.isPlaying;
 #endif
 		}
-
-		public static bool IsPlaying => Application.isPlaying || IsPlayModeInEditor();
 
 		#region GetNearest
 		public static T GetNearest<T>(List<T> list, Vector3 targetPosition, float maxDistance) where T : MonoBehaviour

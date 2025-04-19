@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using static WitchMendokusai.MHelper;
+using static WitchMendokusai.WMHelper;
 
 namespace WitchMendokusai
 {

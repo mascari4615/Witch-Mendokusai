@@ -1,7 +1,7 @@
 using System.Collections;
 using FMODUnity;
 using UnityEngine;
-using static WitchMendokusai.MHelper;
+using static WitchMendokusai.WMHelper;
 
 namespace WitchMendokusai
 {

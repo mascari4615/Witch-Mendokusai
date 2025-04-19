@@ -10,7 +10,7 @@ namespace WitchMendokusai
 
 		public static InteractiveObject GetNearest(Vector3 targetPosition, float maxDistance)
 		{
-			return MHelper.GetNearest(ActiveInteractives, element => element.transform.position, targetPosition, maxDistance);
+			return WMHelper.GetNearest(ActiveInteractives, element => element.transform.position, targetPosition, maxDistance);
 		}
 
 		private IInteractable[] interactable;
@@ -33,7 +33,7 @@ namespace WitchMendokusai
 
 		private void OnDisable()
 		{
-			if (MHelper.IsPlaying)
+			if (WMHelper.IsPlaying)
 				ActiveInteractives.Remove(this);
 		}
 	}
