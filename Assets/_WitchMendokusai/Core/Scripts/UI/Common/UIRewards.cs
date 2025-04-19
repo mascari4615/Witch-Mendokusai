@@ -6,6 +6,7 @@ using static WitchMendokusai.SOHelper;
 
 namespace WitchMendokusai
 {
+	[RequireComponent(typeof(CanvasGroup))]
 	public class UIRewards : MonoBehaviour
 	{
 		private CanvasGroup canvasGroup;
@@ -13,7 +14,7 @@ namespace WitchMendokusai
 
 		public void Init()
 		{
-			canvasGroup = gameObject.AddComponent<CanvasGroup>();
+			canvasGroup = GetComponent<CanvasGroup>();
 			slots = GetComponentsInChildren<UISlot>(true);
 
 			foreach (UISlot slot in slots)
