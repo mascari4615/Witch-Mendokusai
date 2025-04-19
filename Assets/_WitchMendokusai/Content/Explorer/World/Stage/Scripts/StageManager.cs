@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
+using static WitchMendokusai.SOHelper;
 
 namespace WitchMendokusai
 {
@@ -11,20 +12,24 @@ namespace WitchMendokusai
 	{
 		public static event Action<Stage, StageObject> OnStageChanged = delegate { };
 
-		[SerializeField] private StageObject homeStageObject;
-		[SerializeField] private Stage homeStage;
-
 		public Stage LastStage { get; private set; } = null;
-		public StageObject CurStageObject { get; private set; } = null;
 		public Stage CurStage { get; private set; } = null;
+		public StageObject CurStageObject { get; private set; } = null;
 		public StageStrategy CurStageStrategy { get; private set; } = null;
 
 		private Vector3 lastPosDiff;
 
 		private void Start()
 		{
+			Stage homeStage = Get<WorldStage>(0);
+			StageObject homeStageObject = ObjectPoolManager.Instance.Spawn(homeStage.Prefab.gameObject).GetComponent<StageObject>();
+
 			CurStageObject = homeStageObject;
 			CurStage = homeStage;
+			CurStageStrategy = StageStrategyFactory.Create(homeStage);
+
+			CurStageObject.gameObject.SetActive(true);
+
 			OnStageChanged(CurStage, CurStageObject);
 		}
 
