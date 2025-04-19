@@ -9,6 +9,7 @@ namespace WitchMendokusai
 	{
 		[field: Header("_" + nameof(EditorSettings))]
 		[field: SerializeField] public bool InitDataSODictOnCompile { get; private set; } = true;
+		[field: SerializeField] public WorldStage StartWorldStage { get; private set; } = null;
 	}
 
 	public static class EditorSetting

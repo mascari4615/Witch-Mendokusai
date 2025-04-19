@@ -4,7 +4,6 @@ using UnityEditor.SceneManagement;
 
 namespace WitchMendokusai
 {
-
 	// https://mentum.tistory.com/657
 	[InitializeOnLoad]
 	public class EditorStartInit

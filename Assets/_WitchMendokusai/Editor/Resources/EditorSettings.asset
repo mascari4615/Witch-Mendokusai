@@ -13,3 +13,4 @@ MonoBehaviour:
   m_Name: EditorSettings
   m_EditorClassIdentifier: 
   <InitDataSODictOnCompile>k__BackingField: 1
+  <StartWorldStage>k__BackingField: {fileID: 11400000, guid: 9be0868af3c253b4d8d59d7a55a26dcc, type: 2}
