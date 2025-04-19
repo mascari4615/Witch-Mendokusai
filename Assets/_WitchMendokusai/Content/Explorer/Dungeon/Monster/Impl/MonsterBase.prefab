@@ -109,9 +109,8 @@ MonoBehaviour:
   stoppingDistance: 0.1
   updateRotation: 0
   acceleration: 40
-  tolerance: 1
-  hitEffectPrefab: {fileID: 3628670476838927055, guid: 3af50fe8b2d44e94f8b5464c4f7f2231, type: 3}
-  dieEffectPrefab: {fileID: 3628670476838927055, guid: d35ef42a36908674e872d1adfc7675bd, type: 3}
+  hitEffectPrefab: {fileID: 0}
+  dieEffectPrefab: {fileID: 0}
   hpBar: {fileID: 5591941910199305167}
   expPrefab: {fileID: 2294495901960982391, guid: f5ae612bf513475408710e27f5207d79, type: 3}
   lootItemPrefab: {fileID: 2678269809200631940, guid: 3b2d778d3303e0647b26b6d6063f89db, type: 3}

@@ -57,6 +57,14 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 11400000, guid: 4f25ead5ae81f4645a28cf31239e5a74, type: 2}
     - target: {fileID: 2785671053450697428, guid: 6eb3e2a012ddb864ab9e88e453c405ea, type: 3}
+      propertyPath: dieEffectPrefab
+      value: 
+      objectReference: {fileID: 7069934045472178342, guid: bcafdc482820aab418d13585db69b162, type: 3}
+    - target: {fileID: 2785671053450697428, guid: 6eb3e2a012ddb864ab9e88e453c405ea, type: 3}
+      propertyPath: hitEffectPrefab
+      value: 
+      objectReference: {fileID: 5730283450965832857, guid: b4607848f044a3f4ba3fd83688c0dfb8, type: 3}
+    - target: {fileID: 2785671053450697428, guid: 6eb3e2a012ddb864ab9e88e453c405ea, type: 3}
       propertyPath: <UnitData>k__BackingField
       value: 
       objectReference: {fileID: 11400000, guid: 4f25ead5ae81f4645a28cf31239e5a74, type: 2}

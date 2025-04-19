@@ -53,6 +53,14 @@ PrefabInstance:
       value: Slime5
       objectReference: {fileID: 0}
     - target: {fileID: 2785671053450697428, guid: 6eb3e2a012ddb864ab9e88e453c405ea, type: 3}
+      propertyPath: dieEffectPrefab
+      value: 
+      objectReference: {fileID: 3897986288003847520, guid: 92ac45d0fb1c10f4da81674f06b26486, type: 3}
+    - target: {fileID: 2785671053450697428, guid: 6eb3e2a012ddb864ab9e88e453c405ea, type: 3}
+      propertyPath: hitEffectPrefab
+      value: 
+      objectReference: {fileID: 3897986288003847520, guid: e6c8d67a42fcd034d80aea1d4d278914, type: 3}
+    - target: {fileID: 2785671053450697428, guid: 6eb3e2a012ddb864ab9e88e453c405ea, type: 3}
       propertyPath: <UnitData>k__BackingField
       value: 
       objectReference: {fileID: 11400000, guid: 473eb54ca0151684ca8411fd1914123f, type: 2}
