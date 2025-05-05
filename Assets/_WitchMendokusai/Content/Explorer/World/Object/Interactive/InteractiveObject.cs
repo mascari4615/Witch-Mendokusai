@@ -6,11 +6,11 @@ namespace WitchMendokusai
 {
 	public class InteractiveObject : MonoBehaviour
 	{
-		public static readonly List<InteractiveObject> ActiveInteractives = new();
+		public static readonly List<InteractiveObject> ActiveInteractive = new();
 
 		public static InteractiveObject GetNearest(Vector3 targetPosition, float maxDistance)
 		{
-			return WMHelper.GetNearest(ActiveInteractives, element => element.transform.position, targetPosition, maxDistance);
+			return WMHelper.GetNearest(ActiveInteractive, element => element.transform.position, targetPosition, maxDistance);
 		}
 
 		private IInteractable[] interactable;
@@ -22,7 +22,7 @@ namespace WitchMendokusai
 
 		private void OnEnable()
 		{
-			ActiveInteractives.Add(this);
+			ActiveInteractive.Add(this);
 		}
 
 		public void Interact()
@@ -33,8 +33,8 @@ namespace WitchMendokusai
 
 		private void OnDisable()
 		{
-			if (WMHelper.IsPlaying)
-				ActiveInteractives.Remove(this);
+			if (WMHelper.IsPlaying == true)
+				ActiveInteractive.Remove(this);
 		}
 	}
 }

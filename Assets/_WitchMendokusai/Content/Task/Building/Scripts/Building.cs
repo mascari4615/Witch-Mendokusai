@@ -6,7 +6,6 @@ namespace WitchMendokusai
 {
 	public enum BuildingType
 	{
-		None = -1,
 		Building = 0,
 		Decoration = 1,
 		Util = 2,
@@ -16,7 +15,7 @@ namespace WitchMendokusai
 	public class Building : DataSO
 	{
 		[field: Header("_" + nameof(Building))]
-		[PropertyOrder(10)][field: SerializeField] public BuildingType Type { get; private set; } = new();
+		[PropertyOrder(10)][field: SerializeField] public BuildingType Type { get; private set; } = BuildingType.Building;
 		[PropertyOrder(11)][field: SerializeField] public int Cost { get; private set; } = 0;
 		[PropertyOrder(12)][field: SerializeField] public GameObject Prefab { get; private set; } = null;
 		[PropertyOrder(13)][field: SerializeField] public Unit Mascot { get; private set; } = null;

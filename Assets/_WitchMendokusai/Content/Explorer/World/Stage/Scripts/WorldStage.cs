@@ -4,6 +4,12 @@ using UnityEngine;
 
 namespace WitchMendokusai
 {
+	[Serializable]
+	public struct WorldStageSaveData
+	{
+		public List<KeyValuePair<Vector3Int, BuildingInstanceData>> BuildingSaveData;
+	}
+
 	[CreateAssetMenu(fileName = "WS_", menuName = "Data/" + nameof(WorldStage))]
 	public class WorldStage : Stage, ISavable<WorldStageSaveData>
 	{

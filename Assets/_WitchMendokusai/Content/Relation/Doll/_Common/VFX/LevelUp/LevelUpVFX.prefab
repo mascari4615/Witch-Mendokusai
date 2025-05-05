@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 2589940368488773931}
   - component: {fileID: 206912469514429384}
   m_Layer: 0
-  m_Name: '[VFX] LevelUp'
+  m_Name: LevelUpVFX
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

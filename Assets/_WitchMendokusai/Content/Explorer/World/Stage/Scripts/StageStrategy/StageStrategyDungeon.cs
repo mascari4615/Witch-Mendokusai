@@ -7,6 +7,15 @@ using UnityEngine;
 
 namespace WitchMendokusai
 {
+	public enum StageDungeonStep
+	{
+		None,
+		Enter,
+		Explore,
+		Battle,
+		Exit,
+	}
+
 	public class StageStrategyDungeon : StageStrategy
 	{
 		public override void Init(Stage stage)

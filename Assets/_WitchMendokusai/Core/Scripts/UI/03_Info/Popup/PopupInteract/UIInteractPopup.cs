@@ -30,7 +30,7 @@ namespace WitchMendokusai
 			Vector3 playerPos = Player.Instance.transform.position;
 			float interactDistance = PlayerInteraction.InteractionDistance;
 
-			InteractiveObject nearestInteractive = WMHelper.GetNearest(InteractiveObject.ActiveInteractives, playerPos, interactDistance);
+			InteractiveObject nearestInteractive = WMHelper.GetNearest(InteractiveObject.ActiveInteractive, playerPos, interactDistance);
 
 			if (nearestInteractive == null)
 			{

@@ -15,7 +15,7 @@ MonoBehaviour:
   <ID>k__BackingField: 0
   <Name>k__BackingField: Home
   <Description>k__BackingField: 
-  <Sprite>k__BackingField: {fileID: 0}
+  <Sprite>k__BackingField: {fileID: 21300000, guid: 3b5b0db8554696045ba299cd57fe2627, type: 3}
   <Sprites>k__BackingField: []
   <Type>k__BackingField: 0
   <Prefab>k__BackingField: {fileID: 7477263321026071975, guid: 542a7047172d4c34d9be71b6ff7a8e56, type: 3}

@@ -4,9 +4,9 @@ using UnityEngine;
 
 namespace WitchMendokusai
 {
-	public class GridData : ISavable<List<KeyValuePair<Vector3Int, RuntimeBuildingData>>>
+	public class GridData : ISavable<List<KeyValuePair<Vector3Int, BuildingInstanceData>>>
 	{
-		public Dictionary<Vector3Int, RuntimeBuildingData> BuildingData { get; private set; } = new();
+		public Dictionary<Vector3Int, BuildingInstanceData> BuildingData { get; private set; } = new();
 
 		public bool HasBuildingAt(Vector3Int pivot)
 		{
@@ -14,7 +14,7 @@ namespace WitchMendokusai
 			return BuildingData.ContainsKey(pivot);
 		}
 
-		public bool TryGetBuildingAt(Vector3Int pivot, out RuntimeBuildingData runtimeBuildingData)
+		public bool TryGetBuildingAt(Vector3Int pivot, out BuildingInstanceData runtimeBuildingData)
 		{
 			// Debug.Log($"{nameof(TryGetObjectAt)}({pivot}) = {BuildingData.TryGetValue(pivot, out runtimeBuildingData)} {runtimeBuildingData}");
 			return BuildingData.TryGetValue(pivot, out runtimeBuildingData);
@@ -29,7 +29,7 @@ namespace WitchMendokusai
 				return;
 			}
 
-			BuildingData[pivot] = new RuntimeBuildingData()
+			BuildingData[pivot] = new BuildingInstanceData()
 			{
 				State = BuildingState.Placed,
 				BuildingID = building.ID
@@ -49,15 +49,15 @@ namespace WitchMendokusai
 			// BuildingObject 관리 클래스에서 Remove
 		}
 
-		public void Load(List<KeyValuePair<Vector3Int, RuntimeBuildingData>> saveData)
+		public void Load(List<KeyValuePair<Vector3Int, BuildingInstanceData>> saveData)
 		{
-			foreach ((Vector3Int key, RuntimeBuildingData value) in saveData)
+			foreach ((Vector3Int key, BuildingInstanceData value) in saveData)
 			{
 				AddBuildingAt(key, SOHelper.Get<Building>(value.BuildingID));
 			}
 		}
 
-		public List<KeyValuePair<Vector3Int, RuntimeBuildingData>> Save()
+		public List<KeyValuePair<Vector3Int, BuildingInstanceData>> Save()
 		{
 			return BuildingData.ToList();
 		}

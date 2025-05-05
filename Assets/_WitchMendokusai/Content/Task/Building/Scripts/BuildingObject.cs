@@ -15,14 +15,14 @@ namespace WitchMendokusai
 	}
 
 	[Serializable]
-	public struct RuntimeBuildingData
+	public struct BuildingInstanceData
 	{
 		public int BuildingID;
 		public BuildingState State;
 		public int Level;
 		public string RuntimeData;
 
-		public RuntimeBuildingData(int buildingID, BuildingState state = BuildingState.Placed, int level = 1, string runtimeData = "")
+		public BuildingInstanceData(int buildingID, BuildingState state = BuildingState.Placed, int level = 1, string runtimeData = "")
 		{
 			BuildingID = buildingID;
 			State = state;
@@ -33,14 +33,14 @@ namespace WitchMendokusai
 
 	public class BuildingObject : MonoBehaviour
 	{
-		public RuntimeBuildingData SaveData { get; private set; } = new();
+		public BuildingInstanceData SaveData { get; private set; } = new();
 		public Building Building => Get<Building>(SaveData.BuildingID);
 
 		public Vector3Int Pivot { get; private set; }
 		public GameObject Model { get; private set; } = null;
 		[SerializeField] private Transform modelParent = null;
 
-		public void Initialize(RuntimeBuildingData saveData, Vector3Int pivot)
+		public void Initialize(BuildingInstanceData saveData, Vector3Int pivot)
 		{
 			SaveData = saveData;
 			Pivot = pivot;

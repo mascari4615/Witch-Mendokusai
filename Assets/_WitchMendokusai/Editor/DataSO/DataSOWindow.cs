@@ -13,6 +13,7 @@ using static WitchMendokusai.DataSODefine;
 
 namespace WitchMendokusai
 {
+	[InitializeOnLoad]
 	public partial class DataSOWindow : EditorWindow
 	{
 		private static DataSOWindow instance;
@@ -558,14 +559,21 @@ namespace WitchMendokusai
 				}
 			}
 
+			List<DataSO> invalidDataSOs = new();
+
 			// 유효하지 않은 데이터 삭제
 			foreach ((int key, DataSO value) in dataSOs)
 			{
 				if (Enum.IsDefined(typeof(TEnum), key) == false)
 				{
 					Debug.Log($"{value.name}을 삭제합니다.");
-					RemoveDataSO(value);
+					invalidDataSOs.Add(value);
 				}
+			}
+
+			foreach (DataSO dataSO in invalidDataSOs)
+			{
+				RemoveDataSO(dataSO);
 			}
 
 			// Debug.Log($"{nameof(InitEnumData)} End");

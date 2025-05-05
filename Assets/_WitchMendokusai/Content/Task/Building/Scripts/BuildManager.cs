@@ -43,11 +43,10 @@ namespace WitchMendokusai
 			StopBuilding();
 		}
 
-		[ContextMenu(nameof(StartBuilding))]
-		public void StartBuilding()
+		private void StartBuilding()
 		{
 			IsBuilding = true;
-			UIManager.Instance.SetCanvas(MCanvasType.Build);
+			UIManager.Instance.SetCanvas(CanvasType.Build);
 
 			InputManager.RegisterInputEvent(InputEventType.Click0, InputEventResponseType.Started, ClickCell);
 			InputManager.RegisterInputEvent(InputEventType.Click1, InputEventResponseType.Get, TryRemoveCell);
@@ -55,11 +54,10 @@ namespace WitchMendokusai
 			marker.SetBool(MarkerEnabled, true);
 		}
 
-		[ContextMenu(nameof(StopBuilding))]
-		public void StopBuilding()
+		private void StopBuilding()
 		{
 			IsBuilding = false;
-			UIManager.Instance.SetCanvas(MCanvasType.None);
+			UIManager.Instance.SetCanvas(CanvasType.None);
 
 			InputManager.UnregisterInputEvent(InputEventType.Click0, InputEventResponseType.Started, ClickCell);
 			InputManager.UnregisterInputEvent(InputEventType.Click1, InputEventResponseType.Get, TryRemoveCell);
@@ -188,7 +186,7 @@ namespace WitchMendokusai
 		{
 			GridData gridData = worldStage.GridData;
 
-			foreach ((Vector3Int coord, RuntimeBuildingData runtimeBuildingData) in gridData.BuildingData)
+			foreach ((Vector3Int coord, BuildingInstanceData runtimeBuildingData) in gridData.BuildingData)
 			{
 				Building building = SOHelper.Get<Building>(runtimeBuildingData.BuildingID);
 				SpawnBuildingObject(coord, building);
@@ -204,7 +202,7 @@ namespace WitchMendokusai
 			buildingObject.transform.position = GetWorldPosition(pivot, building.Size);
 			buildingObject.gameObject.SetActive(true);
 
-			buildingObject.Initialize(new RuntimeBuildingData(building.ID), pivot);
+			buildingObject.Initialize(new BuildingInstanceData(building.ID), pivot);
 
 			GetBuildingCoords(pivot, building.Size).ForEach(c =>
 			{
