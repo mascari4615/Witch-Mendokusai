@@ -25,7 +25,7 @@ namespace WitchMendokusai
 		private Coroutine lifeTimeLoop;
 		private int curElementIndex = 0;
 
-		private readonly WaitForSecondsRealtime popDelay = new(.2f);
+		private readonly WaitForSecondsRealtime popDelay = new(.1f);
 		private readonly Queue<ItemData> toolTipStacks = new();
 
 		private Color originColor = Color.clear;
@@ -73,8 +73,7 @@ namespace WitchMendokusai
 		public void EquipItem()
 		{
 			toolTipStacks.Enqueue(SOManager.Instance.LastEquippedItem.RuntimeValue);
-			if (showToolTipLoop == null)
-				showToolTipLoop = StartCoroutine(ShowToolTips());
+			showToolTipLoop ??= StartCoroutine(ShowToolTips());
 		}
 
 		private IEnumerator ShowToolTips()
@@ -93,8 +92,7 @@ namespace WitchMendokusai
 				StartCoroutine(ShowToolTip(targetItemData, targetSlotIndex, flag));
 
 				expireTime = LIFE_TIME;
-				if (lifeTimeLoop == null)
-					lifeTimeLoop = StartCoroutine(LifeTime());
+				lifeTimeLoop ??= StartCoroutine(LifeTime());
 			
 				yield return popDelay;
 			}
@@ -106,7 +104,7 @@ namespace WitchMendokusai
 		{
 			while (IsLifeTime)
 			{
-				expireTime -= Time.deltaTime;
+				expireTime -= Time.unscaledDeltaTime;
 				yield return null;
 			}
 
@@ -128,19 +126,19 @@ namespace WitchMendokusai
 		
 			{
 				// 진입 애니메이션
-				canvasGroup.DOFade(1, ANIM_TIME);
-				image.DOColor(Color.white, ANIM_TIME);
-				yield return targetSlot.transform.DOScale(Vector3.one * 1.2f, ANIM_TIME).WaitForCompletion();
-				yield return new WaitForSeconds(WHITE_TIME);
+				canvasGroup.DOFade(1, ANIM_TIME).SetUpdate(true);
+				image.DOColor(Color.white, ANIM_TIME).SetUpdate(true);
+				yield return targetSlot.transform.DOScale(Vector3.one * 1.2f, ANIM_TIME).SetUpdate(true).WaitForCompletion();
+				yield return new WaitForSecondsRealtime(WHITE_TIME);
 			
 				// 대기
-				targetSlot.transform.DOScale(Vector3.one, ANIM_TIME);
-				image.DOColor(originColor, ANIM_TIME);
+				targetSlot.transform.DOScale(Vector3.one, ANIM_TIME).SetUpdate(true);
+				image.DOColor(originColor, ANIM_TIME).SetUpdate(true);
 				yield return new WaitWhile(() => IsLifeTime && (flag == this.flag));
 				showingSlotCount--;
 
 				// 퇴장 애니메이션
-				canvasGroup.DOFade(0, .5f);
+				canvasGroup.DOFade(0, .5f).SetUpdate(true);
 			}
 		}
 
