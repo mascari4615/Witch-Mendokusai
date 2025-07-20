@@ -118,11 +118,9 @@ Shader "WitchMendokusai/BillboardShader"
                 else if (_BillboardMode == _BILLBOARD_MODE_POS) 
                 {
                     // 월드 포지션 기준 카메라 방향 벡터 계산
-                    float3 pivotPosOS = float3(0, 0, 0);
-                    float4 pivotPosWS = mul(UNITY_MATRIX_M, float4(pivotPosOS.xyz, 1));
-                    float4 cameraPosWS = float4(_WorldSpaceCameraPos.xyz, 1);
-                    float3 cameraLookDir = normalize(pivotPosWS.xyz - cameraPosWS.xyz);
-                    if (isOnlyYaw ==1.0f) cameraLookDir.y = 0.0f; // Yaw축 빌보드
+                    float4 pivotPosWorldSpace = mul(UNITY_MATRIX_M, float4(0, 0, 0, 1)); // pivotPosObjectSpace 0, 0, 0
+                    float3 cameraLookDir = normalize(pivotPosWorldSpace - _WorldSpaceCameraPos); // 카메라 -> 오브젝트 방향
+                    if (isOnlyYaw == 1.0f) cameraLookDir.y = 0.0f; // Yaw축 빌보드
 
                     // 카메라 방향 벡터를 회전 행렬로 계산
                     float3 upVector = float3(0, 1, 0);
@@ -164,7 +162,7 @@ Shader "WitchMendokusai/BillboardShader"
                 
                 o.positionCS = positionCS;
                 o.uv = v.uv;
-				o.color = v.color;
+                o.color = v.color;
                 return o;
             }
 

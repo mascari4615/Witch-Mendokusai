@@ -19,7 +19,7 @@ MonoBehaviour:
   <Sprites>k__BackingField: []
   <Monsters>k__BackingField:
   - {fileID: 11400000, guid: d3b4b260c0d5fcd478b6ccbf48fc8d43, type: 2}
-  <StartTime>k__BackingField: 20
-  <EndTime>k__BackingField: 80
-  <SpawnDelay>k__BackingField: 1.2
+  <StartTime>k__BackingField: 0
+  <EndTime>k__BackingField: 3600
+  <SpawnDelay>k__BackingField: 0.1
   <Once>k__BackingField: 0
