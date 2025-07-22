@@ -7,24 +7,37 @@ namespace WitchMendokusai
 		HP_CUR = 0, // 런타임
 		HP_MAX = 1, // 런타임
 		HP_MAX_STAT = 2, // 기반
+		HP_REGENERATION = 3,
 
 		// 경험치, 레벨
 		EXP_CUR = 100,
 		EXP_MAX = 101,
 		LEVEL_CUR = 102,
+		EXP_BONUS = 103,
 
 		// 마나
 		MANA_CUR = 200, // 런타임
 		MANA_MAX = 201, // 런타임
 		MANA_MAX_STAT = 202, // 기반
+		MANA_REGENERATION = 203,
 
 		// 이동
 		MOVEMENT_SPEED = 300,
 		MOVEMENT_SPEED_BONUS = 301,
 
+		// 픽업
+		PICKUP_RADIUS = 350, // 픽업 범위
+		PICKUP_RADIUS_BONUS = 351, // 픽업 범위 증가
+
 		// 스킬
 		COOLTIME_BONUS = 400,
 		ATTACK_SPEED_BONUS = 401,
+
+		PROJECTILE_COUNT_BONUS = 450,
+		PROJECTILE_SPEED_BONUS = 451,
+		PROJECTILE_DURATION_BONUS = 452,
+		PROJECTILE_SCALE_BONUS = 453,
+		PROJECTILE_PIERCE_BONUS = 454, // 관통
 
 		// 데미지
 		DAMAGE_BONUS = 500,
@@ -32,6 +45,31 @@ namespace WitchMendokusai
 		// 크리티컬
 		CRITICAL_CHANCE = 600,
 		CRITICAL_DAMAGE = 601,
+
+		// 방어
+		ARMOR = 700,
+		ARMOR_BONUS_INT = 701,
+		ARMOR_BONUS_PERCENT = 702,
+	
+		DODGE = 750,
+
+		INVINCIBLE_TIME = 800,
+
+		// 계수
+		STRENGTH = 1000, // 힘
+		INTELLIGENCE = 1001, // 지능
+		AGILITY = 1002, // 민첩
+		LUCK = 1003, // 행운
+
+		// 게임
+		GOLD_BONUS = 2000, // 골드 획득량 증가
+
+		// 특수
+		REVIVE_COUNT = 3000,
+
+		// 기타
+		KNOCKBACK_RESISTANCE = 4000, // 넉백 저항
+		KNOCKBACK_POWER = 4001, // 넉백 파워
 		#endregion
 
 		#region Keyword

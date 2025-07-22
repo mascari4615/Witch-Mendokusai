@@ -15,6 +15,6 @@ MonoBehaviour:
   <ID>k__BackingField: 202
   <Name>k__BackingField: MANA_MAX_STAT
   <Description>k__BackingField: 
-  <Sprite>k__BackingField: {fileID: 0}
+  <Sprite>k__BackingField: {fileID: 21300000, guid: 1ee6e3eeaa8d65345a3d04220724645c, type: 3}
   <Sprites>k__BackingField: []
   <Type>k__BackingField: 202

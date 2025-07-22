@@ -10,11 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 360940fe8b127d94bb50c7d708cd2c24, type: 3}
-  m_Name: USD_2_HP_MAX_STAT
+  m_Name: USD_450_PROJECTILE_COUNT_BONUS
   m_EditorClassIdentifier: 
-  <ID>k__BackingField: 2
-  <Name>k__BackingField: HP_MAX_STAT
+  <ID>k__BackingField: 450
+  <Name>k__BackingField: PROJECTILE_COUNT_BONUS
   <Description>k__BackingField: 
-  <Sprite>k__BackingField: {fileID: 21300000, guid: ebbccf1f431dfc645a4154311ec92805, type: 3}
+  <Sprite>k__BackingField: {fileID: 0}
   <Sprites>k__BackingField: []
-  <Type>k__BackingField: 2
+  <Type>k__BackingField: 450
