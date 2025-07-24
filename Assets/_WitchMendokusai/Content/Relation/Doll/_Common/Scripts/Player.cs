@@ -34,7 +34,7 @@ namespace WitchMendokusai
 		private void Update()
 		{
 			AutoAimPos = aim.CalcAutoAim();
-			AimDirection = aim.CalcMouseAimDriection();
+			AimDirection = aim.CalcMouseAimDirection();
 
 			if (IsAutoAim && AutoAimPos != Vector3.zero)
 			{

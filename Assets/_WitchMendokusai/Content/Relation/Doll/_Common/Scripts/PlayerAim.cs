@@ -87,7 +87,7 @@ namespace WitchMendokusai
 			return (nearestTarget == null) ? Vector3.zero : nearestTarget.transform.position;
 		}
 
-		public Vector3 CalcMouseAimDriection()
+		public Vector3 CalcMouseAimDirection()
 		{
 			Vector3 mouseWorldPosition = InputManager.Instance.MouseWorldPosition;
 			return (mouseWorldPosition - playerTr.position).normalized;
