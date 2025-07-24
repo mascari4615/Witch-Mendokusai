@@ -13,8 +13,6 @@ namespace WitchMendokusai
 
 		private Coroutine flashRoutine;
 		[SerializeField] private Transform hpBar;
-		[SerializeField] private GameObject expPrefab;
-		[SerializeField] private GameObject lootItemPrefab;
 
 		public new Monster UnitData => base.UnitData as Monster;
 
@@ -118,14 +116,14 @@ namespace WitchMendokusai
 			ItemData dropItem = probability.Get();
 			if (dropItem != default)
 			{
-				GameObject lootItem = ObjectPoolManager.Instance.Spawn(lootItemPrefab);
+				GameObject lootItem = ObjectPoolManager.Instance.Spawn(ResourceManager.Instance.LootItemPrefab);
 				lootItem.transform.position = transform.position;
 				lootItem.SetActive(true);
 				lootItem.GetComponent<ItemObject>().Init(dropItem);
 			}
 
-			GameObject exp = ObjectPoolManager.Instance.Spawn(expPrefab);
-			
+			GameObject exp = ObjectPoolManager.Instance.Spawn(ResourceManager.Instance.EXPPrefab);
+
 			Vector3 pos = transform.position;
 			pos += Vector3.up * 0.3f;
 			pos += new Vector3(Random.Range(-0.3f, 0.3f), 0, Random.Range(-0.3f, 0.3f));
