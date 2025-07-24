@@ -18,9 +18,10 @@ namespace WitchMendokusai
 			else
 				mainAnimator.SetBool("MOVE", false);
 
-			if (rigidbody.linearVelocity.x > 0)
+			Vector3 localVelocity = transform.InverseTransformDirection(rigidbody.linearVelocity);
+			if (localVelocity.x > 0)
 				pivot.localScale = new Vector3(1, 1, 1);
-			else if (rigidbody.linearVelocity.x < 0)
+			else if (localVelocity.x < 0)
 				pivot.localScale = new Vector3(-1, 1, 1);
 
 			handAnimator.SetBool("CHANNELING", Input.GetKey(KeyCode.Mouse0) || Input.GetKey(KeyCode.Mouse1));
