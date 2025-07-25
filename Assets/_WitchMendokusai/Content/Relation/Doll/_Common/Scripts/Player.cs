@@ -6,6 +6,7 @@ namespace WitchMendokusai
 	public class Player : Singleton<Player>
 	{
 		public PlayerObject Object { get; private set; }
+		public PlayerMovement Movement { get; private set; }
 		[field: SerializeField] public GameObject ExpCollider { get; private set; }
 
 		private PlayerInteraction interaction;
@@ -24,6 +25,7 @@ namespace WitchMendokusai
 			interaction = new(transform);
 			aim = new(transform, ObjectBufferManager.GetObjects(ObjectType.Monster));
 			Object = GetComponent<PlayerObject>();
+			Movement = GetComponent<PlayerMovement>();
 		}
 
 		private void Start()

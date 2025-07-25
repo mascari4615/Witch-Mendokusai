@@ -16,7 +16,8 @@ namespace WitchMendokusai
 		private const float CAMERA_ROTATE_SPEED = 15;
 		private float yRotation = 0;
 
-		public Vector3 MoveDirection { get; private set; }
+		public Vector3 MoveDirectionLocal { get; private set; }
+		public Vector3 MoveDirectionWorld { get; private set; }
 		public Vector3 LookDirection { get; private set; }
 
 		private void Awake()
@@ -66,7 +67,7 @@ namespace WitchMendokusai
 				return;
 			}
 
-			Vector3 moveDirection = MoveDirection;
+			Vector3 moveDirection = MoveDirectionWorld;
 			Vector3 finalVelocity;
 
 			if (GameManager.Instance.Conditions[GameConditionType.IsDied])
@@ -97,12 +98,11 @@ namespace WitchMendokusai
 
 			// moveDirection.x = h;
 			// moveDirection.z = v;
-			Vector3 moveDirection = (h * transform.right) + (v * transform.forward);
-			moveDirection = moveDirection.normalized;
-			MoveDirection = moveDirection;
+			MoveDirectionLocal = new Vector3(h, 0, v).normalized;
+			MoveDirectionWorld = ((h * transform.right) + (v * transform.forward)).normalized;
 
 			if (h != 0 || v != 0)
-				UpdateLookDirection(moveDirection);
+				UpdateLookDirection(MoveDirectionWorld);
 		}
 
 		private void UpdateLookDirection(Vector3 newDirection)
@@ -111,7 +111,7 @@ namespace WitchMendokusai
 			float h = Input.GetAxisRaw("Horizontal");
 
 			LookDirection = newDirection;
-			playerSprite.flipX = h == 0 ? playerSprite.flipX : h < 0;
+			playerSprite.flipX = (h == 0) ? playerSprite.flipX : (h < 0);
 		}
 	}
 }
