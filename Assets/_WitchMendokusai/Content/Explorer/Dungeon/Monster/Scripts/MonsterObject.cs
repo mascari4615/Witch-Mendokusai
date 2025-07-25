@@ -102,34 +102,9 @@ namespace WitchMendokusai
 
 		protected virtual void DropLoot()
 		{
-			Probability<ItemData> probability = new(shouldFill100Percent: true);
-			foreach (DataSOWithPercentage item in UnitData.Loots)
-			{
-				if (item.DataSO == null)
-				{
-					Debug.LogError("DataSO is null");
-					continue;
-				}
-				probability.Add(item.DataSO as ItemData, item.Percentage);
-			}
-
-			ItemData dropItem = probability.Get();
-			if (dropItem != default)
-			{
-				GameObject lootItem = ObjectPoolManager.Instance.Spawn(ResourceManager.Instance.LootItemPrefab);
-				lootItem.transform.position = transform.position;
-				lootItem.SetActive(true);
-				lootItem.GetComponent<ItemObject>().Init(dropItem);
-			}
-
-			GameObject exp = ObjectPoolManager.Instance.Spawn(ResourceManager.Instance.EXPPrefab);
-
-			Vector3 pos = transform.position;
-			pos += Vector3.up * 0.3f;
-			pos += new Vector3(Random.Range(-0.3f, 0.3f), 0, Random.Range(-0.3f, 0.3f));
-
-			exp.transform.position = pos;
-			exp.SetActive(true);
+			GameLogic.SpawnLootItem(UnitData.Loots, transform.position);
+			GameLogic.SpawnGameItem(transform.position);
+			GameLogic.SpawnExpOrb(transform.position);
 		}
 
 		private IEnumerator FlashRoutine()

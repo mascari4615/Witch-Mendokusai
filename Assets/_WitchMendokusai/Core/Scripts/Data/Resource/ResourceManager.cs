@@ -23,5 +23,8 @@ namespace WitchMendokusai
 
 		[field: SerializeField] public GameObject EXPPrefab { get; private set; } = null;
 		[field: SerializeField] public GameObject LootItemPrefab { get; private set; } = null;
+
+		[field: SerializeField] public HealObject HealObjectPrefab { get; private set; } = null;
+		[field: SerializeField] public MagnetObject MagnetObjectPrefab { get; private set; } = null;
 	}
 }

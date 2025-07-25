@@ -80,6 +80,16 @@ namespace WitchMendokusai
 			}
 		}
 
+		public virtual void ReceiveHeal(int healAmount)
+		{
+			if (IsAlive == false)
+			{
+				return;
+			}
+
+			SetHp(Mathf.Clamp(UnitStat[UnitStatType.HP_CUR] + healAmount, 0, UnitStat[UnitStatType.HP_MAX]));
+		}
+
 		public virtual void ReceiveDamage(DamageInfo damageInfo)
 		{
 			if (IsAlive == false)

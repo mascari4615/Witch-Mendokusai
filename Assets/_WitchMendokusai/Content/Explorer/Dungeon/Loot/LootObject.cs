@@ -7,12 +7,10 @@ namespace WitchMendokusai
 {
 	public abstract class LootObject : MonoBehaviour
 	{
-		[SerializeField] private float moveSpeed;
-		[SerializeField] private bool useBezierCurve;
+		[SerializeField] private float moveSpeed = 1f;
+		[SerializeField] private bool useBezierCurve = false;
 
 		private Coroutine _moveLoop;
-
-		public abstract void Effect();
 
 		private void OnEnable()
 		{
@@ -28,23 +26,27 @@ namespace WitchMendokusai
 
 			if (other.CompareTag("PlayerExpCollider"))
 			{
-				_moveLoop = StartCoroutine(MoveLoop());
+				Equip();
 			}
+		}
+
+		public void Equip()
+		{
+			if (_moveLoop != null)
+				return;
+
+			_moveLoop = StartCoroutine(MoveLoop());
 		}
 
 		private IEnumerator MoveLoop()
 		{
-			float t = 0;
-			while (true)
+			for (float t = 0; t < 1; t += Time.deltaTime * moveSpeed)
 			{
-				t += Time.deltaTime * moveSpeed;
 				transform.position = Vector3.Lerp(transform.position, Player.Instance.transform.position, t);
 
 				if (Vector3.Distance(transform.position, Player.Instance.transform.position) < .3f)
 				{
 					Effect();
-					gameObject.SetActive(false);
-
 					_moveLoop = null;
 					break;
 				}
@@ -52,6 +54,13 @@ namespace WitchMendokusai
 				yield return null;
 			}
 		}
+
+		public void Effect()
+		{
+			OnEffect();
+			gameObject.SetActive(false);
+		}
+		protected abstract void OnEffect();
 
 		private void OnDisable()
 		{

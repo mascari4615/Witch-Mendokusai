@@ -6,16 +6,14 @@ using UnityEngine;
 
 namespace WitchMendokusai
 {
-	public class ExpObject : LootObject
+	public class HealObject : GameItemObject
 	{
-		[SerializeField] private int amount;
-
-		private UnitStat PlayerStat => Player.Instance.UnitStat;
+		[SerializeField] private int healAmount;
 
 		protected override void OnEffect()
 		{
 			RuntimeManager.PlayOneShot("event:/SFX/EXP", transform.position);
-			PlayerStat[UnitStatType.EXP_CUR] += amount;
+			Player.Instance.Object.ReceiveHeal(healAmount);
 		}
 	}
 }

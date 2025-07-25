@@ -7,7 +7,7 @@ namespace WitchMendokusai
 	public class Probability<T>
 	{
 		private readonly List<ProbabilityElement> probabilityList = new();
-		private bool shouldFill100Percent = false;
+		private readonly bool shouldFill100Percent = false;
 
 		public Probability(bool shouldFill100Percent = false)
 		{

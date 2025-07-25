@@ -17,7 +17,7 @@ namespace WitchMendokusai
 			spriteRenderer.sprite = itemData.Sprite;
 		}
 
-		public override void Effect()
+		protected override void OnEffect()
 		{
 			RuntimeManager.PlayOneShot("event:/SFX/Equip", transform.position);
 			SOManager.Instance.ItemInventory.Add(itemData);
