@@ -36,10 +36,10 @@ namespace WitchMendokusai
 			// 예를 들어, 던전 난이도에 따른 스탯 계산
 			DungeonContext context = DungeonManager.Instance.Context;
 			{
-				double persentage = (double)unitStat[UnitStatType.HP_CUR] / (double)unitStat[UnitStatType.HP_MAX];
-				unitStat[UnitStatType.HP_MAX] = (int)((double)unitStat[UnitStatType.HP_MAX_STAT] * (1 + DIFFICULTY_HP_BONUS_FACTOR * (double)context.CurDifficulty));
-				unitStat[UnitStatType.HP_CUR] = (int)((double)unitStat[UnitStatType.HP_MAX] * persentage);
-				// SetHp((int)(unitStat[UnitStatType.HP_MAX] * persentage));
+				double percentage = (double)unitStat[UnitStatType.HP_CUR] / unitStat[UnitStatType.HP_MAX];
+				unitStat[UnitStatType.HP_MAX] = (int)(unitStat[UnitStatType.HP_MAX_STAT] * (1 + DIFFICULTY_HP_BONUS_FACTOR * (double)context.CurDifficulty));
+				unitStat[UnitStatType.HP_CUR] = (int)(unitStat[UnitStatType.HP_MAX] * percentage);
+				// SetHp((int)(unitStat[UnitStatType.HP_MAX] * percentage));
 
 				// 기반 스탯을 기반으로 런타임 스탯 계산
 				// 예를 들어, HP 스탯과 HP % 스탯을 기반으로 HP_MAX, HP_CUR 계산
