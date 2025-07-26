@@ -10,27 +10,30 @@ namespace WitchMendokusai
 		Build
 	}
 
+	// NPC Unit이 사용 중
 	public enum PanelType
 	{
 		None = -1,
 
-		Tab,
-		MagicBook,
-		Quest,
-		Inventory,
-		Doll,
+#region Tab
+		Tab = 0,
+		MagicBook = 11,
+		Quest = 12,
+		Inventory = 13,
+		Doll = 14,
+		Setting = 1,
+		Map = 2,
+#endregion
 
-		Setting,
-		Map,
-		NPC,
-		DungeonResult,
-	
-		Shop,
-		DungeonEntrance,
-		Pot,
-		Anvil,
-		Furnace,
-		CraftingTable,
+		NPC = 3,
+		DungeonResult = 4,
+
+		Shop = 5,
+		DungeonEntrance = 6,
+		Pot = 7,
+		Anvil = 8,
+		Furnace = 9,
+		CraftingTable = 10,
 
 		Count
 	}
