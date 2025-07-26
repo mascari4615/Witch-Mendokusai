@@ -15,6 +15,11 @@ namespace WitchMendokusai
 		None = -1,
 
 		Tab,
+		MagicBook,
+		Quest,
+		Inventory,
+		Doll,
+
 		Setting,
 		Map,
 		NPC,
@@ -69,6 +74,10 @@ namespace WitchMendokusai
 			// 패널 초기화
 			{
 				PanelUIs[PanelType.Tab] = FindFirstObjectByType<UITab>(FindObjectsInactive.Include);
+				PanelUIs[PanelType.MagicBook] = FindFirstObjectByType<UIMagicBookPanel>(FindObjectsInactive.Include);
+				PanelUIs[PanelType.Quest] = FindFirstObjectByType<UIQuestPanel>(FindObjectsInactive.Include);
+				PanelUIs[PanelType.Inventory] = FindFirstObjectByType<UITabInventoryPanel>(FindObjectsInactive.Include);
+				PanelUIs[PanelType.Doll] = FindFirstObjectByType<UIDollPanel>(FindObjectsInactive.Include);
 				PanelUIs[PanelType.Setting] = FindFirstObjectByType<UISetting>(FindObjectsInactive.Include);
 				PanelUIs[PanelType.DungeonResult] = FindFirstObjectByType<UIDungeonResult>(FindObjectsInactive.Include);
 				PanelUIs[PanelType.NPC] = FindFirstObjectByType<UINPC>(FindObjectsInactive.Include);

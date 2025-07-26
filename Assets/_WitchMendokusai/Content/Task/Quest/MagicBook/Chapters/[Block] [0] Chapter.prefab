@@ -219,8 +219,12 @@ PrefabInstance:
       value: '[Block] [0] Chapter'
       objectReference: {fileID: 0}
     m_RemovedComponents: []
-    m_RemovedGameObjects: []
+    m_RemovedGameObjects:
+    - {fileID: 397839508933955061, guid: 8ab29fc525cfd0346acb6b65fae5c4c6, type: 3}
     m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: 1511885766366560249, guid: 8ab29fc525cfd0346acb6b65fae5c4c6, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 8594418947127648233}
     - targetCorrespondingSourceObject: {fileID: 1511885766366560249, guid: 8ab29fc525cfd0346acb6b65fae5c4c6, type: 3}
       insertIndex: -1
       addedObject: {fileID: 4511245949488589188}
@@ -668,6 +672,120 @@ PrefabInstance:
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 2763544981594231529, guid: 2144377ad012a9544935f897be598887, type: 3}
   m_PrefabInstance: {fileID: 4341198526046737973}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1001 &5845557948307393792
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 29620081588394271}
+    m_Modifications:
+    - target: {fileID: 2763544981594231529, guid: 2144377ad012a9544935f897be598887, type: 3}
+      propertyPath: m_Pivot.y
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 2763544981594231529, guid: 2144377ad012a9544935f897be598887, type: 3}
+      propertyPath: m_AnchorMax.x
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 2763544981594231529, guid: 2144377ad012a9544935f897be598887, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 2763544981594231529, guid: 2144377ad012a9544935f897be598887, type: 3}
+      propertyPath: m_AnchorMin.x
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 2763544981594231529, guid: 2144377ad012a9544935f897be598887, type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 2763544981594231529, guid: 2144377ad012a9544935f897be598887, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 60
+      objectReference: {fileID: 0}
+    - target: {fileID: 2763544981594231529, guid: 2144377ad012a9544935f897be598887, type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 60
+      objectReference: {fileID: 0}
+    - target: {fileID: 2763544981594231529, guid: 2144377ad012a9544935f897be598887, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 1.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 2763544981594231529, guid: 2144377ad012a9544935f897be598887, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 1.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 2763544981594231529, guid: 2144377ad012a9544935f897be598887, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 1.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 2763544981594231529, guid: 2144377ad012a9544935f897be598887, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2763544981594231529, guid: 2144377ad012a9544935f897be598887, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2763544981594231529, guid: 2144377ad012a9544935f897be598887, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2763544981594231529, guid: 2144377ad012a9544935f897be598887, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2763544981594231529, guid: 2144377ad012a9544935f897be598887, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2763544981594231529, guid: 2144377ad012a9544935f897be598887, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2763544981594231529, guid: 2144377ad012a9544935f897be598887, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2763544981594231529, guid: 2144377ad012a9544935f897be598887, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2763544981594231529, guid: 2144377ad012a9544935f897be598887, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2763544981594231529, guid: 2144377ad012a9544935f897be598887, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2763544981594231529, guid: 2144377ad012a9544935f897be598887, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2763544981594231529, guid: 2144377ad012a9544935f897be598887, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5596812194497721370, guid: 2144377ad012a9544935f897be598887, type: 3}
+      propertyPath: defaultDataSO
+      value: 
+      objectReference: {fileID: 11400000, guid: 28f2dfeb4829d364791ef17401807ee8, type: 2}
+    - target: {fileID: 5797557105781993460, guid: 2144377ad012a9544935f897be598887, type: 3}
+      propertyPath: m_Name
+      value: '[Block] ButtonWithQuestSlot_BookShelf (8)'
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 2144377ad012a9544935f897be598887, type: 3}
+--- !u!224 &8594418947127648233 stripped
+RectTransform:
+  m_CorrespondingSourceObject: {fileID: 2763544981594231529, guid: 2144377ad012a9544935f897be598887, type: 3}
+  m_PrefabInstance: {fileID: 5845557948307393792}
   m_PrefabAsset: {fileID: 0}
 --- !u!1001 &6381069935912120447
 PrefabInstance:

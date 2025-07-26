@@ -10,6 +10,7 @@ namespace WitchMendokusai
 	{
 		[SerializeField] private Transform panelsParent;
 		[SerializeField] private Transform panelSelectButtonsParent;
+		[SerializeField] private GameObject panelSelectButtonPrefab;
 
 		protected int curPanelIndex = 0;
 		protected List<UIPanel> panels;
@@ -25,22 +26,26 @@ namespace WitchMendokusai
 				panels[i].SetActive(false);
 			}
 
-			panelSelectButtons = panelSelectButtonsParent.GetComponentsInChildren<UISlot>(true).ToList();
-			for (int i = 0; i < panelSelectButtons.Count; i++)
+			// panelSelectButtons = panelSelectButtonsParent.GetComponentsInChildren<UISlot>(true).ToList();
+			panelSelectButtons = new List<UISlot>();
+			// for (int i = 0; i < panelSelectButtons.Count; i++)
+			for (int i = 0; i < panels.Count; i++)
 			{
+				GameObject buttonInstance = Instantiate(panelSelectButtonPrefab, panelSelectButtonsParent);
+				panelSelectButtons.Add(buttonInstance.GetComponent<UISlot>());
 				panelSelectButtons[i].SetSlotIndex(i);
 				panelSelectButtons[i].Init();
 				panelSelectButtons[i].SetClickAction((slot) => { OpenPanel(slot.Index); });
 
-				if (i < panels.Count)
-				{
-					panelSelectButtons[i].SetSlot(panels[i].PanelIcon, panels[i].Name, string.Empty);
-					panelSelectButtons[i].gameObject.SetActive(true);
-				}
-				else
-				{
-					panelSelectButtons[i].gameObject.SetActive(false);
-				}
+				// if (i < panels.Count)
+				// {
+				panelSelectButtons[i].SetSlot(panels[i].PanelIcon, panels[i].Name, string.Empty);
+				panelSelectButtons[i].gameObject.SetActive(true);
+				// }
+				// else
+				// {
+				// 	panelSelectButtons[i].gameObject.SetActive(false);
+				// }
 			}
 		}
 
