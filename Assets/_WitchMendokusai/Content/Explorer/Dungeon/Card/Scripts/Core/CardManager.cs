@@ -31,6 +31,9 @@ namespace WitchMendokusai
 		private readonly Dictionary<int, UIDeck> deckUIDic = new();
 		[SerializeField] private List<UICardSlot> cardSelectButtons;
 
+		// Level Up Stack
+		private int levelUpStack = 0;
+
 		// Data
 		private CardUIState curState = CardUIState.Wait;
 		private readonly List<List<CardData>> cardDataBuffers = new(4) { new(), new(), new(), new() };
@@ -142,8 +145,17 @@ namespace WitchMendokusai
 				deckSelectButtons[i].SetSlot(equipments[deckIdMapping[i]]);
 		}
 
-		public void LevelUp() => StartCoroutine(LevelUp_());
-		private IEnumerator LevelUp_()
+		public void LevelUp()
+		{
+			levelUpStack++;
+			if (levelUpStack > 1)
+			{
+				return;
+			}
+
+			StartCoroutine(StartSelectCard());
+		}
+		private IEnumerator StartSelectCard()
 		{
 			TimeManager.Instance.Pause();
 			yield return new WaitForSecondsRealtime(1f);
@@ -239,7 +251,16 @@ namespace WitchMendokusai
 				curDeckBuffer.RemoveAt(cardIndex);
 			}
 
-			SetState(CardUIState.Wait);
+			levelUpStack--;
+
+			if (levelUpStack > 0)
+			{
+				StartCoroutine(StartSelectCard());
+			}
+			else
+			{
+				SetState(CardUIState.Wait);
+			}
 		}
 
 		public void ClearCardEffect()
