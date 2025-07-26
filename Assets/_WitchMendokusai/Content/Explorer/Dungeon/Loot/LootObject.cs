@@ -40,9 +40,14 @@ namespace WitchMendokusai
 
 		private IEnumerator MoveLoop()
 		{
-			for (float t = 0; t < 1; t += Time.deltaTime * moveSpeed)
+			// for (float t = 0; t < 1; t += Time.deltaTime * moveSpeed)
+			// {
+			// 	transform.position = Vector3.Lerp(transform.position, Player.Instance.transform.position, t);
+
+			while (true)
 			{
-				transform.position = Vector3.Lerp(transform.position, Player.Instance.transform.position, t);
+				Vector3 direction = (Player.Instance.transform.position - transform.position).normalized;
+				transform.position = transform.position + moveSpeed * Time.deltaTime * direction;
 
 				if (Vector3.Distance(transform.position, Player.Instance.transform.position) < .3f)
 				{

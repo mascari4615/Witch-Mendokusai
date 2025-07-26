@@ -276,7 +276,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c0b514640786ed44293e2dcc32509414, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moveSpeed: 1
+  moveSpeed: 10
   useBezierCurve: 0
   isImmediate: 0
 --- !u!95 &5758404937766944858
