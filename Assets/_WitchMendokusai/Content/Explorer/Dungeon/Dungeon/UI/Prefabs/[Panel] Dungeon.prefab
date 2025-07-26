@@ -1639,7 +1639,6 @@ MonoBehaviour:
   clickToolTip: {fileID: 0}
   noElementInfo: {fileID: 0}
   filtersParent: {fileID: 0}
-  resetFilterOnEnable: 0
 --- !u!1 &2828770665463893072
 GameObject:
   m_ObjectHideFlags: 0
@@ -1798,22 +1797,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 296465009a6d2224ca0acb8481e2dfee, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  EventType: 0
-  Response:
+  <EventType>k__BackingField: 0
+  <Response>k__BackingField:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 5529405557977255323}
-        m_TargetAssemblyTypeName: HPBar, Assembly-CSharp
-        m_MethodName: UpdateUI
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+      m_Calls: []
+  <Effects>k__BackingField: []
 --- !u!1 &3288024550066640222
 GameObject:
   m_ObjectHideFlags: 0
@@ -4965,6 +4953,18 @@ PrefabInstance:
       propertyPath: m_Name
       value: '[Block] [0] CardSelectButton'
       objectReference: {fileID: 0}
+    - target: {fileID: 6055887943821165589, guid: 154830da9178ff0468a93c1636296c40, type: 3}
+      propertyPath: m_Navigation.m_Mode
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 6055887943821165589, guid: 154830da9178ff0468a93c1636296c40, type: 3}
+      propertyPath: m_Navigation.m_SelectOnDown
+      value: 
+      objectReference: {fileID: 8244500349573592688}
+    - target: {fileID: 6628166436707535504, guid: 154830da9178ff0468a93c1636296c40, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 8915710599173108472, guid: 154830da9178ff0468a93c1636296c40, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
@@ -5050,6 +5050,17 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 154830da9178ff0468a93c1636296c40, type: 3}
+--- !u!114 &4711872785735194442 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 6055887943821165589, guid: 154830da9178ff0468a93c1636296c40, type: 3}
+  m_PrefabInstance: {fileID: 1542828850773988191}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!224 &7985952132459028903 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 8915710599173108472, guid: 154830da9178ff0468a93c1636296c40, type: 3}
@@ -5289,6 +5300,14 @@ PrefabInstance:
       propertyPath: m_Name
       value: '[Block] [2] CardSelectButton'
       objectReference: {fileID: 0}
+    - target: {fileID: 6055887943821165589, guid: 154830da9178ff0468a93c1636296c40, type: 3}
+      propertyPath: m_Navigation.m_Mode
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 6055887943821165589, guid: 154830da9178ff0468a93c1636296c40, type: 3}
+      propertyPath: m_Navigation.m_SelectOnUp
+      value: 
+      objectReference: {fileID: 8244500349573592688}
     - target: {fileID: 8915710599173108472, guid: 154830da9178ff0468a93c1636296c40, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
@@ -5379,6 +5398,17 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 8915710599173108472, guid: 154830da9178ff0468a93c1636296c40, type: 3}
   m_PrefabInstance: {fileID: 2625934597275276573}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &8105323079527846152 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 6055887943821165589, guid: 154830da9178ff0468a93c1636296c40, type: 3}
+  m_PrefabInstance: {fileID: 2625934597275276573}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &2765364777778868837
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -5391,6 +5421,18 @@ PrefabInstance:
       propertyPath: m_Name
       value: '[Block] [1] CardSelectButton'
       objectReference: {fileID: 0}
+    - target: {fileID: 6055887943821165589, guid: 154830da9178ff0468a93c1636296c40, type: 3}
+      propertyPath: m_Navigation.m_Mode
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 6055887943821165589, guid: 154830da9178ff0468a93c1636296c40, type: 3}
+      propertyPath: m_Navigation.m_SelectOnUp
+      value: 
+      objectReference: {fileID: 4711872785735194442}
+    - target: {fileID: 6055887943821165589, guid: 154830da9178ff0468a93c1636296c40, type: 3}
+      propertyPath: m_Navigation.m_SelectOnDown
+      value: 
+      objectReference: {fileID: 8105323079527846152}
     - target: {fileID: 8915710599173108472, guid: 154830da9178ff0468a93c1636296c40, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
@@ -5481,6 +5523,17 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 8915710599173108472, guid: 154830da9178ff0468a93c1636296c40, type: 3}
   m_PrefabInstance: {fileID: 2765364777778868837}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &8244500349573592688 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 6055887943821165589, guid: 154830da9178ff0468a93c1636296c40, type: 3}
+  m_PrefabInstance: {fileID: 2765364777778868837}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &3633510741815403159
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -5841,6 +5894,14 @@ PrefabInstance:
       propertyPath: m_Name
       value: '[Block] [0] DeckSelectButton'
       objectReference: {fileID: 0}
+    - target: {fileID: 6123054295043442259, guid: a0972d93c4d8b7541b860f079ad5d935, type: 3}
+      propertyPath: m_Navigation.m_Mode
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 6123054295043442259, guid: a0972d93c4d8b7541b860f079ad5d935, type: 3}
+      propertyPath: m_Navigation.m_SelectOnRight
+      value: 
+      objectReference: {fileID: 2677457591217158421}
     - target: {fileID: 8883727406344663230, guid: a0972d93c4d8b7541b860f079ad5d935, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
@@ -5926,6 +5987,17 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: a0972d93c4d8b7541b860f079ad5d935, type: 3}
+--- !u!114 &1337744512838301448 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 6123054295043442259, guid: a0972d93c4d8b7541b860f079ad5d935, type: 3}
+  m_PrefabInstance: {fileID: 5073844820368879963}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!224 &4404729313838596581 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 8883727406344663230, guid: a0972d93c4d8b7541b860f079ad5d935, type: 3}
@@ -6617,6 +6689,14 @@ PrefabInstance:
       propertyPath: m_Name
       value: '[Block] [2] DeckSelectButton'
       objectReference: {fileID: 0}
+    - target: {fileID: 6123054295043442259, guid: a0972d93c4d8b7541b860f079ad5d935, type: 3}
+      propertyPath: m_Navigation.m_Mode
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 6123054295043442259, guid: a0972d93c4d8b7541b860f079ad5d935, type: 3}
+      propertyPath: m_Navigation.m_SelectOnLeft
+      value: 
+      objectReference: {fileID: 2677457591217158421}
     - target: {fileID: 8883727406344663230, guid: a0972d93c4d8b7541b860f079ad5d935, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
@@ -6707,6 +6787,17 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 8883727406344663230, guid: a0972d93c4d8b7541b860f079ad5d935, type: 3}
   m_PrefabInstance: {fileID: 8116066872973482971}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &2619822441707920776 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 6123054295043442259, guid: a0972d93c4d8b7541b860f079ad5d935, type: 3}
+  m_PrefabInstance: {fileID: 8116066872973482971}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &8201415625509535558
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -6719,6 +6810,18 @@ PrefabInstance:
       propertyPath: m_Name
       value: '[Block] [1] DeckSelectButton'
       objectReference: {fileID: 0}
+    - target: {fileID: 6123054295043442259, guid: a0972d93c4d8b7541b860f079ad5d935, type: 3}
+      propertyPath: m_Navigation.m_Mode
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 6123054295043442259, guid: a0972d93c4d8b7541b860f079ad5d935, type: 3}
+      propertyPath: m_Navigation.m_SelectOnLeft
+      value: 
+      objectReference: {fileID: 1337744512838301448}
+    - target: {fileID: 6123054295043442259, guid: a0972d93c4d8b7541b860f079ad5d935, type: 3}
+      propertyPath: m_Navigation.m_SelectOnRight
+      value: 
+      objectReference: {fileID: 2619822441707920776}
     - target: {fileID: 8883727406344663230, guid: a0972d93c4d8b7541b860f079ad5d935, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
@@ -6809,6 +6912,17 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 8883727406344663230, guid: a0972d93c4d8b7541b860f079ad5d935, type: 3}
   m_PrefabInstance: {fileID: 8201415625509535558}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &2677457591217158421 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 6123054295043442259, guid: a0972d93c4d8b7541b860f079ad5d935, type: 3}
+  m_PrefabInstance: {fileID: 8201415625509535558}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &8444759662161127561
 PrefabInstance:
   m_ObjectHideFlags: 0

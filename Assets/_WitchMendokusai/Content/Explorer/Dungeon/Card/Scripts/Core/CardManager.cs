@@ -94,6 +94,9 @@ namespace WitchMendokusai
 			{
 				selectDeckPanelContent.localScale = Vector3.zero;
 				selectDeckPanelContent.DOScale(Vector3.one, 0.5f).SetEase(Ease.OutBack).SetUpdate(true);
+
+				// SelectDeckPanel이 켜지면 첫 번째 버튼 포커스
+				deckSelectButtons[0].Select();
 			}
 
 			deckPanel.gameObject.SetActive(curState == CardUIState.SelectCard);
@@ -101,6 +104,9 @@ namespace WitchMendokusai
 			{
 				deckPanelContent.localScale = Vector3.zero;
 				deckPanelContent.DOScale(Vector3.one, 0.5f).SetEase(Ease.OutBack).SetUpdate(true);
+
+				// DeckPanel이 켜지면 첫 번째 카드 버튼 포커스
+				cardSelectButtons[0].Select();
 			}
 
 			foreach (UIDeck deckUI in deckUIDic.Values)

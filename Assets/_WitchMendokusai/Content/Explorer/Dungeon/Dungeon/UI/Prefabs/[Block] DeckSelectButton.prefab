@@ -462,6 +462,14 @@ PrefabInstance:
       propertyPath: usePopupToolTip
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 98536095919892836, guid: eed8b00c4feb40541b7657745e266fd5, type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: 21300000, guid: a81b384dcc897144ba22972b7e7034e8, type: 3}
+    - target: {fileID: 98536095919892836, guid: eed8b00c4feb40541b7657745e266fd5, type: 3}
+      propertyPath: m_PixelsPerUnitMultiplier
+      value: 0.25
+      objectReference: {fileID: 0}
     - target: {fileID: 634781642427003200, guid: eed8b00c4feb40541b7657745e266fd5, type: 3}
       propertyPath: m_Name
       value: '[Block] DeckSelectButton'
@@ -479,7 +487,7 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1022445921309221758, guid: eed8b00c4feb40541b7657745e266fd5, type: 3}
-      propertyPath: m_ActiveFontFeatures.Array.data[0]
+      propertyPath: 'm_ActiveFontFeatures.Array.data[0]'
       value: 1801810542
       objectReference: {fileID: 0}
     - target: {fileID: 1238942526798140503, guid: eed8b00c4feb40541b7657745e266fd5, type: 3}
@@ -501,6 +509,22 @@ PrefabInstance:
     - target: {fileID: 1238942526798140503, guid: eed8b00c4feb40541b7657745e266fd5, type: 3}
       propertyPath: m_AnchoredPosition.y
       value: 50
+      objectReference: {fileID: 0}
+    - target: {fileID: 2856694726606009140, guid: eed8b00c4feb40541b7657745e266fd5, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 50
+      objectReference: {fileID: 0}
+    - target: {fileID: 2856694726606009140, guid: eed8b00c4feb40541b7657745e266fd5, type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 50
+      objectReference: {fileID: 0}
+    - target: {fileID: 2856694726606009140, guid: eed8b00c4feb40541b7657745e266fd5, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2856694726606009140, guid: eed8b00c4feb40541b7657745e266fd5, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5448703488014053748, guid: eed8b00c4feb40541b7657745e266fd5, type: 3}
       propertyPath: m_IsActive

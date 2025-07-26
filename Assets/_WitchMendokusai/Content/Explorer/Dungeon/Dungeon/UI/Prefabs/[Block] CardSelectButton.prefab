@@ -458,6 +458,30 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 80238002353230158, guid: 12b57324ed53feb4f851f133fc7a6d87, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 100
+      objectReference: {fileID: 0}
+    - target: {fileID: 80238002353230158, guid: 12b57324ed53feb4f851f133fc7a6d87, type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 100
+      objectReference: {fileID: 0}
+    - target: {fileID: 80238002353230158, guid: 12b57324ed53feb4f851f133fc7a6d87, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 80238002353230158, guid: 12b57324ed53feb4f851f133fc7a6d87, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2874992769167690526, guid: 12b57324ed53feb4f851f133fc7a6d87, type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: 21300000, guid: a81b384dcc897144ba22972b7e7034e8, type: 3}
+    - target: {fileID: 2874992769167690526, guid: 12b57324ed53feb4f851f133fc7a6d87, type: 3}
+      propertyPath: m_PixelsPerUnitMultiplier
+      value: 0.25
+      objectReference: {fileID: 0}
     - target: {fileID: 2920691679473926404, guid: 12b57324ed53feb4f851f133fc7a6d87, type: 3}
       propertyPath: m_fontAsset
       value: 
@@ -483,7 +507,7 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2920691679473926404, guid: 12b57324ed53feb4f851f133fc7a6d87, type: 3}
-      propertyPath: m_ActiveFontFeatures.Array.data[0]
+      propertyPath: 'm_ActiveFontFeatures.Array.data[0]'
       value: 1801810542
       objectReference: {fileID: 0}
     - target: {fileID: 3348186853593944890, guid: 12b57324ed53feb4f851f133fc7a6d87, type: 3}
@@ -579,7 +603,7 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5761763568941680051, guid: 12b57324ed53feb4f851f133fc7a6d87, type: 3}
-      propertyPath: m_ActiveFontFeatures.Array.data[0]
+      propertyPath: 'm_ActiveFontFeatures.Array.data[0]'
       value: 1801810542
       objectReference: {fileID: 0}
     - target: {fileID: 6365904904749854247, guid: 12b57324ed53feb4f851f133fc7a6d87, type: 3}
@@ -608,7 +632,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6365904904749854247, guid: 12b57324ed53feb4f851f133fc7a6d87, type: 3}
       propertyPath: m_SizeDelta.x
-      value: 0
+      value: 150
       objectReference: {fileID: 0}
     - target: {fileID: 6365904904749854247, guid: 12b57324ed53feb4f851f133fc7a6d87, type: 3}
       propertyPath: m_SizeDelta.y
