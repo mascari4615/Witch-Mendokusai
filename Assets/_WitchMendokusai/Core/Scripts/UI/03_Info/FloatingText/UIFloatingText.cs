@@ -78,7 +78,7 @@ namespace WitchMendokusai
 			for (float time = 0; time < 1; time += Time.deltaTime)
 			{
 				animator.transform.position = GetScreenPos();
-				yield return null;
+				yield return new WaitForEndOfFrame(); // 카메라 업데이트 후 위치 조정
 			}
 
 			animator.gameObject.SetActive(false);
