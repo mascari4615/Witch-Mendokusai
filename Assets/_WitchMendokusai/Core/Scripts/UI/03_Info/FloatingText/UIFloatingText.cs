@@ -22,9 +22,17 @@ namespace WitchMendokusai
 
 	public class UIFloatingText : MonoBehaviour
 	{
+		private const int createThreshold = 10;
+
 		[SerializeField] private Transform textsRoot;
 		[SerializeField] private GameObject textPrefab;
 		private readonly Stack<(Animator animator, TextMeshProUGUI text)> texts = new();
+
+		private void Awake()
+		{
+			for (int i = 0; i < createThreshold; i++)
+				CreateTextObject();
+		}
 
 		private void Start()
 		{
@@ -37,18 +45,21 @@ namespace WitchMendokusai
 			}
 		}
 
+		private void CreateTextObject()
+		{
+			GameObject newObject = Instantiate(textPrefab, textsRoot);
+			Animator animator = newObject.GetComponent<Animator>();
+			animator.keepAnimatorStateOnDisable = true;
+			animator.gameObject.SetActive(false);
+			texts.Push((animator, animator.transform.GetChild(0).GetComponent<TextMeshProUGUI>()));
+		}
+
 		private (Animator, TextMeshProUGUI) Pop()
 		{
 			if (texts.Count == 0)
 			{
-				for (int i = 0; i < 10; i++)
-				{
-					GameObject newObject = Instantiate(textPrefab, textsRoot);
-					Animator animator = newObject.GetComponent<Animator>();
-					animator.keepAnimatorStateOnDisable = true;
-					animator.gameObject.SetActive(false);
-					texts.Push((animator, animator.transform.GetChild(0).GetComponent<TextMeshProUGUI>()));
-				}
+				for (int i = 0; i < createThreshold; i++)
+					CreateTextObject();
 			}
 
 			return texts.Pop();
