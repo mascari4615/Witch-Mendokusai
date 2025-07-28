@@ -21,6 +21,7 @@ namespace WitchMendokusai
 			SpriteRenderer.sharedMaterial = UnitData.Material;
 			ObjectBufferManager.AddObject(ObjectType.Monster, gameObject);
 			hpBar.localScale = Vector3.one;
+			hpBar.gameObject.SetActive(false);
 		}
 
 		protected virtual void OnDisable()
@@ -28,6 +29,7 @@ namespace WitchMendokusai
 			if (IsPlaying)
 				ObjectBufferManager.RemoveObject(ObjectType.Monster, gameObject);
 			StopAllCoroutines();
+			hpBar.gameObject.SetActive(false);
 		}
 
 		private void Update()
@@ -44,6 +46,7 @@ namespace WitchMendokusai
 
 			SOManager.Instance.LastHitMonsterObject.RuntimeValue = this;
 			hpBar.localScale = new Vector3((float)UnitStat[UnitStatType.HP_CUR] / UnitStat[UnitStatType.HP_MAX], 1, 1);
+			hpBar.gameObject.SetActive(true);
 
 			GameObject hitEffect = ObjectPoolManager.Instance.Spawn(hitEffectPrefab);
 			hitEffect.transform.position = transform.position + (Vector3.Normalize(Player.Instance.transform.position - transform.position) * .5f);
