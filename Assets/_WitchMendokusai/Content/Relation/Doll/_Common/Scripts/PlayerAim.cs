@@ -81,16 +81,18 @@ namespace WitchMendokusai
 			return nearestAutoTarget;
 		}
 
-		public Vector3 CalcAutoAim()
+		public Vector3 CalcAim(bool useAutoAim)
 		{
 			GameObject nearestTarget = GetNearestTarget();
-			return (nearestTarget == null) ? Vector3.zero : nearestTarget.transform.position;
+			return useAutoAim && (nearestTarget != null) ?
+				nearestTarget.transform.position :
+				InputManager.Instance.MouseWorldPosition;
 		}
 
-		public Vector3 CalcMouseAimDirection()
+		public Vector3 CalcAimDirection(bool useAutoAim)
 		{
-			Vector3 mouseWorldPosition = InputManager.Instance.MouseWorldPosition;
-			return (mouseWorldPosition - playerTr.position).normalized;
+			Vector3 targetPosition = CalcAim(useAutoAim);
+			return (targetPosition - playerTr.position).normalized;
 		}
 	}
 }

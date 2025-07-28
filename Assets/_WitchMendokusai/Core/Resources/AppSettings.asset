@@ -10,6 +10,6 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d9b17a9582bdc9347880d9c15a68c022, type: 3}
-  m_Name: GameSettings
+  m_Name: AppSettings
   m_EditorClassIdentifier: 
   <UseLocalData>k__BackingField: 1

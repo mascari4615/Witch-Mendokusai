@@ -204,7 +204,7 @@ MonoBehaviour:
   damage: 20
   useHitCount: 0
   hitCount: 2
-  disableWhenInvaild: 1
+  disableWhenInvalid: 0
   usedByPlayer: 0
 --- !u!114 &4393124974712460270
 MonoBehaviour:

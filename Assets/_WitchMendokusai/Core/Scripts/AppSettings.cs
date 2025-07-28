@@ -4,27 +4,27 @@ using UnityEngine;
 
 namespace WitchMendokusai
 {
-	[CreateAssetMenu(fileName = nameof(GameSettings), menuName = "GameSettings")]
-	public class GameSettings : ScriptableObject
+	[CreateAssetMenu(fileName = nameof(AppSettings), menuName = "AppSettings")]
+	public class AppSettings : ScriptableObject
 	{
-		[field: Header("_" + nameof(GameSettings))]
+		[field: Header("_" + nameof(AppSettings))]
 		[field: SerializeField] public bool UseLocalData { get; private set; } = true;
 		[field: SerializeField] public bool InitDataSODict { get; private set; } = true;
 	}
 
-	public static class GameSetting
+	public static class AppSetting
 	{
-		public static GameSettings Data { get; private set; }
+		public static AppSettings Data { get; private set; }
 
 		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
 		public static void OnBooting()
 		{
 			Debug.Log("SANS");
 
-			Data = Resources.Load<GameSettings>(nameof(GameSettings));
+			Data = Resources.Load<AppSettings>(nameof(AppSettings));
 			if (Data == null)
 			{
-				Debug.LogError("GameSettings not found");
+				Debug.LogError($"{nameof(AppSettings)} not found");
 				return;
 			}
 		}

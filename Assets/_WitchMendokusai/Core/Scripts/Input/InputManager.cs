@@ -112,7 +112,7 @@ namespace WitchMendokusai
 
 		private void OnEventStart(InputEventType inputEventType, InputAction.CallbackContext ctx)
 		{
-			if (GameManager.Instance.Conditions.CheckGameCondition(inputEventBindings[inputEventType].gameConditionType) == false)
+			if (GameManager.Instance.Conditions.IsGameCondition(inputEventBindings[inputEventType].gameConditionType))
 				return;
 
 			inputEventsWithContent[(inputEventType, InputEventResponseType.Started)]?.Invoke(ctx);
@@ -129,7 +129,7 @@ namespace WitchMendokusai
 			{
 				await UniTask.Yield(PlayerLoopTiming.Update);
 
-				if (GameManager.Instance.Conditions.CheckGameCondition(returnCondition) == false)
+				if (GameManager.Instance.Conditions.IsGameCondition(returnCondition))
 					continue;
 
 				inputEventsWithContent[(inputEventType, InputEventResponseType.Get)]?.Invoke(default);
@@ -139,7 +139,7 @@ namespace WitchMendokusai
 
 		private void OnEventPerformed(InputEventType inputEventType, InputAction.CallbackContext ctx)
 		{
-			if (GameManager.Instance.Conditions.CheckGameCondition(inputEventBindings[inputEventType].gameConditionType) == false)
+			if (GameManager.Instance.Conditions.IsGameCondition(inputEventBindings[inputEventType].gameConditionType))
 				return;
 
 			inputEventsWithContent[(inputEventType, InputEventResponseType.Performed)]?.Invoke(ctx);
@@ -166,15 +166,16 @@ namespace WitchMendokusai
 				static void TryUseSkill(int skillIndex)
 				{
 					GameConditionType skillCondition = GameConditionType.IsMouseOnUI | GameConditionType.IsChatting | GameConditionType.IsPaused | GameConditionType.IsDied | GameConditionType.IsBuilding;
-					if (GameManager.Instance.Conditions.CheckGameCondition(skillCondition) == false)
+					if (GameManager.Instance.Conditions.IsGameCondition(skillCondition))
 						return;
 					Player.Instance.TryUseSkill(skillIndex);
 				}
+
+				RegisterInputEvent(InputEventType.ChangeMode, InputEventResponseType.Performed, () => Player.Instance.SetAutoAim(!Player.Instance.IsAutoAim));
 			}
 
 			// UI
 			{
-				RegisterInputEvent(InputEventType.ChangeMode, InputEventResponseType.Performed, () => Player.Instance.SetAutoAim(!Player.Instance.IsAutoAim));
 				RegisterInputEvent(InputEventType.Submit, InputEventResponseType.Performed, Player.Instance.TryInteract);
 				RegisterInputEvent(InputEventType.Cancel, InputEventResponseType.Performed, UIManager.Instance.ToggleOverlayUI_Setting);
 				RegisterInputEvent(InputEventType.Tab, InputEventResponseType.Performed, UIManager.Instance.ToggleOverlayUI_Tab);

@@ -58,7 +58,7 @@ namespace WitchMendokusai
 			int fairyIndex = 0;
 			while (true)
 			{
-				if (Player.Instance.AutoAimPos == Vector3.zero)
+				if (Player.Instance.AimPos == Vector3.zero)
 				{
 					yield return new WaitForSeconds(.1f);
 					continue;

@@ -39,7 +39,7 @@ namespace WitchMendokusai
 		{
 			Debug.Log($"{nameof(Login)}");
 			
-			if (GameSetting.Data.UseLocalData)
+			if (AppSetting.Data.UseLocalData)
 				return;
 
 			/*#if !UNITY_EDITOR

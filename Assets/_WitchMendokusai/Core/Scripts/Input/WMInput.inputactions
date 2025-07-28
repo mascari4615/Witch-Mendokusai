@@ -1,4 +1,5 @@
 {
+    "version": 1,
     "name": "WMInput",
     "maps": [
         {
@@ -402,7 +403,7 @@
                     "name": "Cancel",
                     "type": "Button",
                     "id": "36ae9648-393f-4654-a50d-d2ffe3352464",
-                    "expectedControlType": "Button",
+                    "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false

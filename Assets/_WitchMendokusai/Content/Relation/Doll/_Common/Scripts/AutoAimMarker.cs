@@ -17,7 +17,7 @@ namespace WitchMendokusai
 
 		private void Update()
 		{
-			if (Player.Instance.AutoAimPos == Vector3.zero)
+			if (Player.Instance.AimPos == Vector3.zero)
 			{
 				animator.SetBool(MarkerEnabled, false);
 				return;
@@ -30,7 +30,7 @@ namespace WitchMendokusai
 			}
 
 			animator.SetBool(MarkerEnabled, true);
-			transform.position = Player.Instance.AutoAimPos;
+			transform.position = Player.Instance.AimPos;
 		}
 	}
 }

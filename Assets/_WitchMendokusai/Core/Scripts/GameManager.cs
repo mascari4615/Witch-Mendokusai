@@ -71,7 +71,7 @@ namespace WitchMendokusai
 			}
 		}
 
-		private static Dictionary<GameConditionType, Func<bool>> gameConditionActions = new()
+		private static readonly Dictionary<GameConditionType, Func<bool>> gameConditionActions = new()
 		{
 			{ GameConditionType.IsPaused, () => TimeManager.Instance.IsPaused },
 			{ GameConditionType.IsChatting, () => UIChat.IsChatting },
@@ -85,15 +85,15 @@ namespace WitchMendokusai
 			{ GameConditionType.IsBuilding, () => BuildManager.Instance.IsBuilding },
 		};
 		
-		public bool CheckGameCondition(GameConditionType gameCondition)
+		public bool IsGameCondition(GameConditionType gameCondition)
 		{
 			foreach (KeyValuePair<GameConditionType, Func<bool>> condition in gameConditionActions)
 			{
 				if (gameCondition.HasFlag(condition.Key) && condition.Value.Invoke())
-					return false;
+					return true;
 			}
 
-			return true;
+			return false;
 		}
 	}
 }

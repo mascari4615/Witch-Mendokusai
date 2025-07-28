@@ -30,10 +30,11 @@ namespace WitchMendokusai
 					moveDirection = Player.Instance.AimDirection;
 					moveDirection.y = 0;
 				}
-				// TODO: Setting, UseAutoAim Option
 				else
 				{
-					moveDirection = (Player.Instance.AutoAimPos - transform.position).normalized;
+					moveDirection = Player.Instance.NearestTarget != null
+						? (Player.Instance.NearestTarget.position - transform.position).normalized
+						: Player.Instance.AimDirection;
 					moveDirection.y = 0;
 				}
 			}

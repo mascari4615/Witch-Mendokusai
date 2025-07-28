@@ -191,7 +191,7 @@ namespace WitchMendokusai
 			ForEach<Dungeon>(dungeon => gameData.dungeons.Add(dungeon.ID, dungeon.Save()));
 			ForEach<WorldStage>(worldStage => gameData.worldStages.Add(worldStage.ID, worldStage.Save()));
 
-			if (GameSetting.Data.UseLocalData)
+			if (AppSetting.Data.UseLocalData)
 			{
 				string json = JsonConvert.SerializeObject(gameData, Formatting.Indented, new JsonSerializerSettings
 				{

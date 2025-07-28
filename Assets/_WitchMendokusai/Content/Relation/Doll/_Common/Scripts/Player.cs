@@ -13,7 +13,7 @@ namespace WitchMendokusai
 		private PlayerAim aim;
 
 		public Vector3 AimDirection { get; private set; }
-		public Vector3 AutoAimPos { get; private set; }
+		public Vector3 AimPos { get; private set; }
 		public bool IsAutoAim { get; private set; }
 		public Transform NearestTarget { get; private set; }
 
@@ -35,15 +35,8 @@ namespace WitchMendokusai
 
 		private void Update()
 		{
-			AutoAimPos = aim.CalcAutoAim();
-			AimDirection = aim.CalcMouseAimDirection();
-
-			if (IsAutoAim && AutoAimPos != Vector3.zero)
-			{
-				Vector3 autoAimDirection = (AutoAimPos - transform.position).normalized;
-				AimDirection = autoAimDirection;
-			}
-
+			AimPos = aim.CalcAim(useAutoAim: IsAutoAim);
+			AimDirection = aim.CalcAimDirection(useAutoAim: IsAutoAim);
 			NearestTarget = aim.GetNearestTarget()?.transform;
 		}
 
@@ -59,11 +52,13 @@ namespace WitchMendokusai
 		{
 			if (Object.UnitStat[UnitStatType.CASTING_SKILL] > 0)
 				return;
+
 			Object.UseSkill(skillIndex);
 		}
 
 		public void SetAutoAim(bool isAutoAim)
 		{
+			Debug.Log($"SetAutoAim: {isAutoAim}");
 			IsAutoAim = isAutoAim;
 		}
 	}
