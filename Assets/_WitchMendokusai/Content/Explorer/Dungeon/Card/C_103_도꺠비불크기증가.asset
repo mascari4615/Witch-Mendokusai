@@ -15,7 +15,7 @@ MonoBehaviour:
   <ID>k__BackingField: 103
   <Name>k__BackingField: "\uB3C4\uAEA0\uBE44 \uBD88 \uD06C\uAE30 \uC99D\uAC00"
   <Description>k__BackingField: "\uC704\uC131 \uD06C\uAE30 +"
-  <Sprite>k__BackingField: {fileID: 21300000, guid: ce811b0cc758a254082230223efc9168, type: 3}
+  <Sprite>k__BackingField: {fileID: 21300000, guid: aff0a23936502334791e2cbeaa38f3a2, type: 3}
   <Sprites>k__BackingField: []
   <Effects>k__BackingField:
   - Type: 0

@@ -17,7 +17,7 @@ MonoBehaviour:
   <Description>k__BackingField: "\uB9C8\uB098 \uD30C\uB3D9\uC744 \uC77C\uC73C\uD0B5\uB2C8\uB2E4"
   <Sprite>k__BackingField: {fileID: 21300000, guid: d31ab82d588ed90479cf9809c7c76b7b, type: 3}
   <Sprites>k__BackingField: []
-  <AutoUse>k__BackingField: 0
+  <AutoUse>k__BackingField: 1
   <Cooltime>k__BackingField: 3
   <PrevDelay>k__BackingField: 0
   <AfterDelay>k__BackingField: 0

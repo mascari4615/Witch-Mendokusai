@@ -36,4 +36,4 @@ MonoBehaviour:
       Amount: 100
     WorkTime: 0
     AutoWork: 0
-    AutoComplete: 0
+    AutoComplete: 1

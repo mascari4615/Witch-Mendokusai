@@ -22,4 +22,4 @@ MonoBehaviour:
     Data: {fileID: 11400000, guid: dc5b66e2b078eba4d918b963cd5668c1, type: 2}
     ArithmeticOperator: 1
     Value: 5
-  <MaxStack>k__BackingField: 5
+  <MaxStack>k__BackingField: 10
