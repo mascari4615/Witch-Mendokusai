@@ -19,18 +19,7 @@ MonoBehaviour:
   <Sprites>k__BackingField: []
   <Grade>k__BackingField: 0
   <Type>k__BackingField: 0
-  <Recipes>k__BackingField:
-  - Type: 1000
-    Amount: 0
-    Items:
-    - ItemData: {fileID: 11400000, guid: 9f556aea0df2f3c4d8b5354017056dbb, type: 2}
-      Amount: 1
-    - ItemData: {fileID: 11400000, guid: 76e6d072f7b07144d9a40a82509d44bb, type: 2}
-      Amount: 1
-    PriceNyang: 0
-    Percentage: 100
-    FailureRewards: []
-    SuccessRewards: []
+  <Recipes>k__BackingField: []
   <MaxAmount>k__BackingField: 500
   <PurchasePrice>k__BackingField: 4
   <SalePrice>k__BackingField: 6
