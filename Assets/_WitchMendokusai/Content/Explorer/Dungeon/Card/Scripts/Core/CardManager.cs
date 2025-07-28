@@ -170,9 +170,9 @@ namespace WitchMendokusai
 			// 선택한 덱에서 카드 뽑기
 			List<CardData> curDeckBuffer = cardDataBuffers[curDeckIndex];
 
-			if (curDeckBuffer.Count < 3)
+			if (curDeckBuffer.Count == 0)
 			{
-				Debug.LogError("Not Enough Card Count");
+				Debug.LogWarning("Not Enough Card Count");
 				return;
 			}
 
@@ -241,12 +241,12 @@ namespace WitchMendokusai
 
 			CardBuffer selectedCardBuffer = SOManager.Instance.SelectedCardBuffer;
 
-			List<CardData> curDeckBuffer = cardDataBuffers[curDeckIndex];
 			selectedCardBuffer.Add(card);
 
 			int sameCardCount = selectedCardBuffer.Data.Where(m => m.ID == card.ID).Count();
 			if (card.MaxStack == sameCardCount)
 			{
+				List<CardData> curDeckBuffer = cardDataBuffers[curDeckIndex];
 				int cardIndex = curDeckBuffer.IndexOf(card);
 				curDeckBuffer.RemoveAt(cardIndex);
 			}

@@ -30,7 +30,7 @@ namespace WitchMendokusai
 		{
 			// HashSet : 고유한 값만 저장하는 자료구조
 			// Convert cards to a HashSet for faster lookup
-			HashSet<int> cardIds = new(cards.Select(m => m.ID));
+			HashSet<int> cardIds = new(cards.Where(m => m != null).Select(m => m.ID));
 
 			foreach (UICardSlot cardSlot in cardSlots)
 			{
