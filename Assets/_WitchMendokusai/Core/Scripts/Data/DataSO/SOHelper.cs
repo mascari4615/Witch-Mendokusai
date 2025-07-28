@@ -19,6 +19,8 @@ namespace WitchMendokusai
 		public static GameStatData GetGameStatData(int id) => Get<GameStatData>(id);
 		public static DungeonStatData GetDungeonStatData(DungeonStatType dungeonStatType) => Get<DungeonStatData>((int)dungeonStatType);
 		public static DungeonStatData GetDungeonStatData(int id) => Get<DungeonStatData>(id);
+		public static AspectData GetAspectData(AspectType aspectType) => Get<AspectData>((int)aspectType);
+		public static AspectData GetAspectData(int id) => Get<AspectData>(id);
 		public static CardData GetCardData(int id) => Get<CardData>(id);
 
 		public static void ForEach<T>(Action<T> action) where T : DataSO

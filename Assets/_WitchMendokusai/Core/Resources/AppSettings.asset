@@ -13,3 +13,4 @@ MonoBehaviour:
   m_Name: AppSettings
   m_EditorClassIdentifier: 
   <UseLocalData>k__BackingField: 1
+  <InitDataSODict>k__BackingField: 1

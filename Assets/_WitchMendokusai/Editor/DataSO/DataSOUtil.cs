@@ -44,7 +44,7 @@ namespace WitchMendokusai
 		public static void SetCorrectAssetName(DataSO dataSO)
 		{
 			string goodName = GetCorrectAssetName(dataSO);
-		
+
 			if (dataSO.name.Equals(goodName))
 				return;
 
@@ -157,11 +157,13 @@ namespace WitchMendokusai
 				return true;
 			}
 
+			// 없는 경우
+
 			// 그룹 이름 (데이터 타입에 따라 다른 그룹 설정)
 			string groupName = $"{type.Name}";
 
 			// 그룹 캐싱 (성능 향상을 위해 정적 딕셔너리 사용)
-			if (!addressableGroups.TryGetValue(groupName, out AddressableAssetGroup group))
+			if (addressableGroups.TryGetValue(groupName, out AddressableAssetGroup group) == false)
 			{
 				group = settings.FindGroup(groupName);
 				if (group == null)
@@ -181,7 +183,7 @@ namespace WitchMendokusai
 			if (entry == null)
 			{
 				// 실패: 이미 다른 주소로 등록되어 있는 경우?
-				Debug.LogError($"Failed to create Addressable entry for {dataSO.name}");
+				Debug.LogError($"Failed to create Addressable entry for {dataSO.name} ({AssetDatabase.GetAssetPath(dataSO)}, {guid}, {type.Name})");
 				return false;
 			}
 

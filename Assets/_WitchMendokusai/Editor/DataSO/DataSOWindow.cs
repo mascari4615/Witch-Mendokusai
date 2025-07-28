@@ -83,10 +83,6 @@ namespace WitchMendokusai
 				return;
 			}
 
-			InitEnumData<UnitStatData, UnitStatType>();
-			InitEnumData<GameStatData, GameStatType>();
-			InitEnumData<DungeonStatData, DungeonStatType>();
-
 			if (isInit)
 				SetType(AssetPrefixes.Keys.First());
 
@@ -195,6 +191,11 @@ namespace WitchMendokusai
 				ForeachDataSO((dataSO) => ProcessDataSO(dataSO), nameof(InitDict), showDialog: false);
 				if (BadIdDataSOs.Count > 0)
 					IdChanger.StartProcessBadIdDataSOs();
+
+				InitEnumData<UnitStatData, UnitStatType>();
+				InitEnumData<GameStatData, GameStatType>();
+				InitEnumData<DungeonStatData, DungeonStatType>();
+				InitEnumData<AspectData, AspectType>();
 
 				return true;
 			}
@@ -520,7 +521,7 @@ namespace WitchMendokusai
 
 		private void InitEnumData<TData, TEnum>() where TData : DataSO
 		{
-			// Debug.Log($"{nameof(InitEnumData)} <{typeof(TData).Name}, {typeof(TEnum).Name}>");
+			Debug.Log($"{nameof(InitEnumData)} <{typeof(TData).Name}, {typeof(TEnum).Name}>");
 
 			const string PropertyName = "Type";
 

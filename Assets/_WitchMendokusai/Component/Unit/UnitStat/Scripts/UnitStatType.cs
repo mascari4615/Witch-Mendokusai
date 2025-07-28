@@ -50,16 +50,10 @@ namespace WitchMendokusai
 		ARMOR = 700,
 		ARMOR_BONUS_INT = 701,
 		ARMOR_BONUS_PERCENT = 702,
-	
+
 		DODGE = 750,
 
 		INVINCIBLE_TIME = 800,
-
-		// 계수
-		STRENGTH = 1000, // 힘
-		INTELLIGENCE = 1001, // 지능
-		AGILITY = 1002, // 민첩
-		LUCK = 1003, // 행운
 
 		// 게임
 		GOLD_BONUS = 2000, // 골드 획득량 증가

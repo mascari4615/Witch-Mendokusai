@@ -20,6 +20,7 @@ namespace WitchMendokusai
 			{ typeof(ObjectData), "O"},
 			{ typeof(SkillData), "SKL" },
 			{ typeof(UnitStatData), "USD"},
+			{ typeof(AspectData), "AD" },
 			{ typeof(GameStatData), "GSD"},
 			{ typeof(WorldStage), "WS" },
 			{ typeof(Dungeon), "D" },
