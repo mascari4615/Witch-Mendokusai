@@ -51,6 +51,12 @@ MonoBehaviour:
     m_SerializedLabels:
     - WorldStage
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: e14593403633af7459468ca884fe22f1
+    m_Address: WorldStage/5
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - WorldStage
+    FlaggedDuringContentUpdateRestriction: 0
   m_ReadOnly: 0
   m_Settings: {fileID: 11400000, guid: 5a4d7636943b8d645af161ef05df63d6, type: 2}
   m_SchemaSet:

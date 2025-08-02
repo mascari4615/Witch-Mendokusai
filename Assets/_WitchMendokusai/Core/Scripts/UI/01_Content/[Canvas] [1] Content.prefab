@@ -1565,6 +1565,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: '[Panel] AdventurerGuild'
       objectReference: {fileID: 0}
+    - target: {fileID: 8913147842482088685, guid: a1489780d9f78e245bb13104aa71a673, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
