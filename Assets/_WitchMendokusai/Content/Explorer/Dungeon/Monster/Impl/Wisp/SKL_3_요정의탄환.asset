@@ -17,7 +17,7 @@ MonoBehaviour:
   <Description>k__BackingField: 
   <Sprite>k__BackingField: {fileID: 21300000, guid: d7c02b3a1fa1c5341b0ed8e608a32b34, type: 3}
   <Sprites>k__BackingField: []
-  <AutoUse>k__BackingField: 0
+  <PlayMode>k__BackingField: 0
   <Cooltime>k__BackingField: 7
   <PrevDelay>k__BackingField: 0
   <AfterDelay>k__BackingField: 0

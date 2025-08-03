@@ -52,7 +52,14 @@ namespace WitchMendokusai
 			{
 				skill.Tick();
 
-				if (skill.IsReady && skill.Data.AutoUse)
+				bool isAutoUse = skill.Data.PlayMode switch
+				{
+					SkillPlayMode.Auto => true,
+					SkillPlayMode.AutoWhenDungeon when DungeonManager.Instance.IsDungeon => skill.IsReady,
+					_ => false,
+				};
+
+				if (isAutoUse && skill.IsReady)
 					skill.Use(unitObject);
 			}
 		}

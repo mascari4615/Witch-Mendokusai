@@ -5,9 +5,16 @@ using UnityEngine;
 
 namespace WitchMendokusai
 {
+	public enum SkillPlayMode
+	{
+		Manual = 0,
+		Auto = 1,
+		AutoWhenDungeon = 2,
+	}
+
 	public abstract class SkillData : DataSO
 	{
-		[field: SerializeField] public bool AutoUse { get; set; }
+		[field: SerializeField] public SkillPlayMode PlayMode { get; set; }
 		[field: SerializeField] public float Cooltime { get; set; }
 		[field: SerializeField] public float PrevDelay { get; set; } = 0;
 		[field: SerializeField] public float AfterDelay { get; set; } = 0;
@@ -20,7 +27,7 @@ namespace WitchMendokusai
 		public IEnumerator SkillCoroutine(UnitObject unitObject)
 		{
 			yield return null;
-			
+
 			if (PrevDelay > 0)
 			{
 				unitObject.UnitStat[UnitStatType.CASTING_SKILL]++;
