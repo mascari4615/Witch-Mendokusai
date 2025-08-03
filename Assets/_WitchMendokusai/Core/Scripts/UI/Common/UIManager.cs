@@ -112,6 +112,7 @@ namespace WitchMendokusai
 			SetPanel(PanelType.None);
 
 			Status.Init();
+			Status.gameObject.SetActive(false);
 		}
 
 		public void PopDamage(DamageInfo damageInfo, Vector3 pos = default)
