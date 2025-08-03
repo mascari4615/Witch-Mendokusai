@@ -124,7 +124,7 @@ Assets/PlayFabSDK/Shared/Public/Resources/PlayFabSharedSettings*
 
 Bakery
 bakery_times.log
-*.hdr*
+# *.hdr*
 
 # ---- ---- ---- ----
 
