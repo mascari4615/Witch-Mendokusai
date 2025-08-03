@@ -17,7 +17,7 @@ namespace WitchMendokusai
 		[SerializeField] private CardManager cardManager;
 		[SerializeField] private MonsterSpawner monsterSpawner;
 		[SerializeField] private ExpManager expChecker;
-	
+
 		private DungeonRecorder dungeonRecorder = null;
 		private DungeonStrategy dungeonStrategy = null;
 		private IDisposable dungeonLoopSubscription;
@@ -69,8 +69,6 @@ namespace WitchMendokusai
 
 				// Create Dungeon Quest
 				{
-					dungeonStrategy.CreateRuntimeQuest(dungeon);
-
 					RuntimeQuest runtimeQuest = dungeonStrategy.CreateRuntimeQuest(dungeon);
 					QuestManager.Instance.AddQuest(runtimeQuest);
 				}
@@ -82,19 +80,28 @@ namespace WitchMendokusai
 				{
 					// RuntimeQuest를 통해 DungeonClear 수치가 1 오르면 던전 종료
 					int targetClearCount = DataManager.Instance.DungeonStat[DungeonStatType.DUNGEON_CLEAR] + 1;
-					bool IsClear() => DataManager.Instance.DungeonStat[DungeonStatType.DUNGEON_CLEAR] == targetClearCount;
+					bool IsClear()
+					{
+						int curClearCount = DataManager.Instance.DungeonStat[DungeonStatType.DUNGEON_CLEAR];
+						if (curClearCount > targetClearCount)
+						{
+							Debug.LogWarning($"Dungeon Clear Count is over target: {curClearCount} > {targetClearCount}");
+						}
+						return curClearCount >= targetClearCount;
+					}
+					;
 
 					dungeonLoopSubscription = Observable.Interval(TimeSpan.FromSeconds(0.1f))
-						.TakeWhile(_ => !IsClear())
+						.TakeWhile(_ => IsClear() == false)
 						.Subscribe(_ =>
 						{
 							Context.UpdateTime();
 							Context.UpdateDifficulty();
 							monsterSpawner.UpdateWaves();
-						}, 
+						},
 						() => EndDungeon());
 				}
-				
+
 				// Context 생성 이후 UI 설정
 				// UIDungeon.UpdateUI(); 에서 Context를 사용합니다.
 				UIManager.Instance.SetPanel(PanelType.None);
