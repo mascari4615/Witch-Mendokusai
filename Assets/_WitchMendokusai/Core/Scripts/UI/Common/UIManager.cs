@@ -20,13 +20,13 @@ namespace WitchMendokusai
 		MagicBook = 11,
 		Quest = 12,
 		Inventory = 13,
-		Doll = 14,
+		Doll = 4, // 14,
 		Setting = 1,
 		Map = 2,
 #endregion
 
 		NPC = 3,
-		DungeonResult = 4,
+		// DungeonResult = 4,
 
 		Shop = 5,
 		DungeonEntrance = 6,
@@ -82,7 +82,7 @@ namespace WitchMendokusai
 				PanelUIs[PanelType.Inventory] = FindFirstObjectByType<UITabInventoryPanel>(FindObjectsInactive.Include);
 				PanelUIs[PanelType.Doll] = FindFirstObjectByType<UIDollPanel>(FindObjectsInactive.Include);
 				PanelUIs[PanelType.Setting] = FindFirstObjectByType<UISetting>(FindObjectsInactive.Include);
-				PanelUIs[PanelType.DungeonResult] = FindFirstObjectByType<UIDungeonResult>(FindObjectsInactive.Include);
+				// PanelUIs[PanelType.DungeonResult] = FindFirstObjectByType<UIDungeonResult>(FindObjectsInactive.Include);
 				PanelUIs[PanelType.NPC] = FindFirstObjectByType<UINPC>(FindObjectsInactive.Include);
 				PanelUIs[PanelType.Shop] = FindFirstObjectByType<UIShop>(FindObjectsInactive.Include);
 				PanelUIs[PanelType.DungeonEntrance] = FindFirstObjectByType<UIDungeonEntrance>(FindObjectsInactive.Include);

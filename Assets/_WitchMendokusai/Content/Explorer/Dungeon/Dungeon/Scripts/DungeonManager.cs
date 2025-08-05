@@ -18,9 +18,21 @@ namespace WitchMendokusai
 		[SerializeField] private MonsterSpawner monsterSpawner;
 		[SerializeField] private ExpManager expChecker;
 
+		private UIDungeonResult dungeonResultUI = null;
+
 		private DungeonRecorder dungeonRecorder = null;
 		private DungeonStrategy dungeonStrategy = null;
 		private IDisposable dungeonLoopSubscription;
+
+		protected override void Awake()
+		{
+			base.Awake();
+
+			dungeonResultUI = FindFirstObjectByType<UIDungeonResult>(FindObjectsInactive.Include);
+			dungeonResultUI.Init();
+			dungeonResultUI.SetActive(false);
+			// PanelUIs[PanelType.DungeonResult] = FindFirstObjectByType<UIDungeonResult>(FindObjectsInactive.Include);
+		}
 
 		private void Start()
 		{
@@ -88,8 +100,7 @@ namespace WitchMendokusai
 							Debug.LogWarning($"Dungeon Clear Count is over target: {curClearCount} > {targetClearCount}");
 						}
 						return curClearCount >= targetClearCount;
-					}
-					;
+					};
 
 					dungeonLoopSubscription = Observable.Interval(TimeSpan.FromSeconds(0.1f))
 						.TakeWhile(_ => IsClear() == false)
@@ -98,8 +109,7 @@ namespace WitchMendokusai
 							Context.UpdateTime();
 							Context.UpdateDifficulty();
 							monsterSpawner.UpdateWaves();
-						},
-						() => EndDungeon());
+						}, () => EndDungeon());
 				}
 
 				// Context 생성 이후 UI 설정
@@ -127,7 +137,9 @@ namespace WitchMendokusai
 
 			IsDungeon = false;
 
-			UIManager.Instance.SetPanel(PanelType.DungeonResult);
+			dungeonResultUI.SetActive(true);
+			dungeonResultUI.UpdateUI();
+			// UIManager.Instance.SetPanel(PanelType.DungeonResult);
 		}
 
 		public void Continue()
