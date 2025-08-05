@@ -37,7 +37,12 @@ namespace WitchMendokusai
 				return;
 
 			Rotate();
-			TryMove();
+			CalcMoveDirection();
+		}
+
+		private void FixedUpdate()
+		{
+			Move();
 		}
 
 		private void Rotate()
@@ -56,37 +61,12 @@ namespace WitchMendokusai
 			Camera.main.transform.parent.rotation = Quaternion.Lerp(Camera.main.transform.parent.rotation, targetRotation, Time.deltaTime * CAMERA_ROTATE_SPEED);
 		}
 
-		private void FixedUpdate()
-		{
-			if (GameManager.Instance.Conditions[GameConditionType.IsChatting] || UIManager.Instance.CurPanel != PanelType.None)
-				return;
-
-			if (GameManager.Instance.Conditions[GameConditionType.IsChatting])
-			{
-				playerRigidBody.linearVelocity = Vector3.zero;
-				return;
-			}
-
-			Vector3 moveDirection = MoveDirectionWorld;
-			Vector3 finalVelocity;
-
-			if (GameManager.Instance.Conditions[GameConditionType.IsDied])
-				finalVelocity = Vector3.zero;
-			else if (GameManager.Instance.Conditions[GameConditionType.IsDashing])
-				finalVelocity = moveDirection * SOManager.Instance.DashSpeed.RuntimeValue;
-			else
-				finalVelocity = moveDirection * playerObject.UnitStat[UnitStatType.MOVEMENT_SPEED];
-
-			playerRigidBody.linearVelocity = finalVelocity;
-			// playerRigidBody.AddForce(finalVelocity, ForceMode.VelocityChange);
-		}
-
 		public void TeleportTo(Vector3 targetPos)
 		{
 			transform.position = targetPos;
 		}
 
-		private void TryMove()
+		private void CalcMoveDirection()
 		{
 			float h = Input.GetAxisRaw("Horizontal");
 			float v = Input.GetAxisRaw("Vertical");
@@ -112,6 +92,27 @@ namespace WitchMendokusai
 
 			LookDirection = newDirection;
 			playerSprite.flipX = (h == 0) ? playerSprite.flipX : (h < 0);
+		}
+
+		private void Move()
+		{
+			if (GameManager.Instance.Conditions[GameConditionType.IsChatting] ||
+				UIManager.Instance.CurPanel != PanelType.None ||
+				TimeManager.Instance.IsPaused)
+				return;
+
+			Vector3 moveDirection = MoveDirectionWorld;
+			Vector3 finalVelocity;
+
+			if (GameManager.Instance.Conditions[GameConditionType.IsDied])
+				finalVelocity = Vector3.zero;
+			else if (GameManager.Instance.Conditions[GameConditionType.IsDashing])
+				finalVelocity = moveDirection * SOManager.Instance.DashSpeed.RuntimeValue;
+			else
+				finalVelocity = moveDirection * playerObject.UnitStat[UnitStatType.MOVEMENT_SPEED];
+
+			playerRigidBody.linearVelocity = finalVelocity;
+			// playerRigidBody.AddForce(finalVelocity, ForceMode.VelocityChange);
 		}
 	}
 }
