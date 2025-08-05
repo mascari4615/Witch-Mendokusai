@@ -18,6 +18,7 @@ namespace WitchMendokusai
 		[SerializeField] private MonsterSpawner monsterSpawner;
 		[SerializeField] private ExpManager expChecker;
 
+		private UIDungeon dungeonUI = null;
 		private UIDungeonResult dungeonResultUI = null;
 
 		private DungeonRecorder dungeonRecorder = null;
@@ -27,6 +28,10 @@ namespace WitchMendokusai
 		protected override void Awake()
 		{
 			base.Awake();
+
+			dungeonUI = FindFirstObjectByType<UIDungeon>(FindObjectsInactive.Include);
+			dungeonUI.Init();
+			dungeonUI.SetActive(false);
 
 			dungeonResultUI = FindFirstObjectByType<UIDungeonResult>(FindObjectsInactive.Include);
 			dungeonResultUI.Init();
@@ -115,7 +120,8 @@ namespace WitchMendokusai
 				// Context 생성 이후 UI 설정
 				// UIDungeon.UpdateUI(); 에서 Context를 사용합니다.
 				UIManager.Instance.SetPanel(PanelType.None);
-				UIManager.Instance.SetCanvas(CanvasType.Dungeon);
+				dungeonUI.SetActive(true);
+				dungeonUI.UpdateUI();
 
 				GameEventManager.Instance.Raise(GameEventType.OnDungeonStart);
 			}
@@ -156,7 +162,8 @@ namespace WitchMendokusai
 			void ResetDungeonAndPlayer()
 			{
 				UIManager.Instance.SetPanel(PanelType.None);
-				UIManager.Instance.SetCanvas(CanvasType.None);
+				dungeonUI.SetActive(false);
+				CameraManager.Instance.SetCamera(CameraType.Normal);
 
 				GameManager.Instance.Init();
 				expChecker.Init();

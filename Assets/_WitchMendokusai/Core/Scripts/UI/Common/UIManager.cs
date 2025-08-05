@@ -3,13 +3,6 @@ using UnityEngine;
 
 namespace WitchMendokusai
 {
-	public enum CanvasType
-	{
-		None,
-		Dungeon,
-		Build
-	}
-
 	// NPC Unit이 사용 중
 	public enum PanelType
 	{
@@ -40,9 +33,6 @@ namespace WitchMendokusai
 
 	public class UIManager : Singleton<UIManager>
 	{
-		public CanvasType CurCanvas { get; private set; }
-		private readonly Dictionary<CanvasType, UIPanel> canvasUIs = new();
-
 		public PanelType CurPanel { get; private set; }
 		public Stack<PanelType> PanelStack { get; private set; } = new();
 		public Dictionary<PanelType, UIPanel> PanelUIs { get; private set; } = new();
@@ -66,9 +56,6 @@ namespace WitchMendokusai
 			popup = FindFirstObjectByType<UIPopup>(FindObjectsInactive.Include);
 			Chat = FindFirstObjectByType<UIChat>(FindObjectsInactive.Include);
 			adventurerGuild = FindFirstObjectByType<UIAdventurerGuild>(FindObjectsInactive.Include);
-
-			canvasUIs[CanvasType.Dungeon] = FindFirstObjectByType<UIDungeon>(FindObjectsInactive.Include);
-			canvasUIs[CanvasType.Build] = FindFirstObjectByType<UIBuild>(FindObjectsInactive.Include);
 
 			Transition = FindFirstObjectByType<UITransition>(FindObjectsInactive.Include);
 			stagePopup = FindFirstObjectByType<UIStagePopup>(FindObjectsInactive.Include);
@@ -96,19 +83,12 @@ namespace WitchMendokusai
 
 		private void Start()
 		{
-			foreach (UIPanel uiPanel in canvasUIs.Values)
-			{
-				uiPanel.Init();
-				uiPanel.SetActive(false);
-			}
-
 			foreach (UIPanel uiPanel in PanelUIs.Values)
 			{
 				uiPanel.Init();
 				uiPanel.SetActive(false);
 			}
 
-			SetCanvas(CanvasType.None);
 			SetPanel(PanelType.None);
 
 			Status.Init();
@@ -175,26 +155,6 @@ namespace WitchMendokusai
 				uiPanel.SetNPC(npcObject);
 				uiPanel.SetActive(true);
 				uiPanel.UpdateUI();
-			}
-		}
-
-		public void SetCanvas(CanvasType newCanvas)
-		{
-			if (CurCanvas == newCanvas)
-				return;
-
-			if (CurCanvas != CanvasType.None)
-				canvasUIs[CurCanvas].SetActive(false);
-
-			CurCanvas = newCanvas;
-			if (CurCanvas == CanvasType.None)
-			{
-				CameraManager.Instance.SetCamera(CameraType.Normal);
-			}
-			else
-			{
-				canvasUIs[CurCanvas].SetActive(true);
-				canvasUIs[CurCanvas].UpdateUI();
 			}
 		}
 

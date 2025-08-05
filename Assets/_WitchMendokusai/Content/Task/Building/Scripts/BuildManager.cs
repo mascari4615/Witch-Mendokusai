@@ -20,10 +20,10 @@ namespace WitchMendokusai
 		[field: SerializeField] public GameObject BuildingObjectPrefab { get; private set; } = null;
 		public Dictionary<Vector3Int, BuildingObject> BuildingObjectsByPos { get; } = new();
 
-		[SerializeField] private UIBuild buildUI;
+		private UIBuild buildUI = null;
 
-		private Building selectedBuilding;
-		private Vector3Int gridPosition;
+		private Building selectedBuilding = null;
+		private Vector3Int gridPosition = Vector3Int.zero;
 		public bool IsBuilding { get; private set; } = false;
 
 		protected override void Awake()
@@ -36,6 +36,10 @@ namespace WitchMendokusai
 		{
 			selectedBuilding = defaultBuilding;
 			StageManager.OnStageChanged += OnStageChanged;
+
+			buildUI = FindFirstObjectByType<UIBuild>(FindObjectsInactive.Include);
+			buildUI.Init();
+			buildUI.SetActive(false);
 		}
 
 		private void Start()
@@ -46,7 +50,8 @@ namespace WitchMendokusai
 		private void StartBuilding()
 		{
 			IsBuilding = true;
-			UIManager.Instance.SetCanvas(CanvasType.Build);
+			buildUI.SetActive(true);
+			buildUI.UpdateUI();
 
 			InputManager.RegisterInputEvent(InputEventType.Click0, InputEventResponseType.Started, ClickCell);
 			InputManager.RegisterInputEvent(InputEventType.Click1, InputEventResponseType.Get, TryRemoveCell);
@@ -57,7 +62,8 @@ namespace WitchMendokusai
 		private void StopBuilding()
 		{
 			IsBuilding = false;
-			UIManager.Instance.SetCanvas(CanvasType.None);
+			buildUI.SetActive(false);
+			CameraManager.Instance.SetCamera(CameraType.Normal);
 
 			InputManager.UnregisterInputEvent(InputEventType.Click0, InputEventResponseType.Started, ClickCell);
 			InputManager.UnregisterInputEvent(InputEventType.Click1, InputEventResponseType.Get, TryRemoveCell);
