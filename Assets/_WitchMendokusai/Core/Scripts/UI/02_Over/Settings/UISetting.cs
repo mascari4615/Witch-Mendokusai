@@ -76,12 +76,12 @@ namespace WitchMendokusai
 
 		protected override void OnOpen()
 		{
-			TimeManager.Instance.Pause();
+			TimeManager.Instance.Pause(gameObject);
 		}
 
 		protected override void OnClose()
 		{
-			TimeManager.Instance.Resume();
+			TimeManager.Instance.Resume(gameObject);
 		}
 	}
 }

@@ -54,7 +54,7 @@ namespace WitchMendokusai
 			AnimatorStateInfo currentStateInfo;
 			// Start
 			aWhenStart?.Invoke();
-			TimeManager.Instance.Pause();
+			TimeManager.Instance.Pause(gameObject);
 			canvasGroup.blocksRaycasts = true;
 
 			// During
@@ -80,7 +80,7 @@ namespace WitchMendokusai
 
 			// End
 			canvasGroup.blocksRaycasts = false;
-			TimeManager.Instance.Resume();
+			TimeManager.Instance.Resume(gameObject);
 			aWhenEnd?.Invoke();
 		}
 

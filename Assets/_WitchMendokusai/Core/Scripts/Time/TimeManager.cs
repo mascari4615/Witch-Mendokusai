@@ -9,15 +9,11 @@ namespace WitchMendokusai
 	// Mathf.Epsilon
 	public class TimeManager : Singleton<TimeManager>
 	{
-		private bool isPaused;
+		private List<GameObject> pausers = new List<GameObject>();
+		private int PauseStackCount => pausers.Count;
 		public bool IsPaused
 		{
-			get => isPaused;
-			set
-			{
-				isPaused = value;
-				UpdateTimeScale();
-			}
+			get => PauseStackCount > 0;
 		}
 
 		public const float TICK = 0.05f;
@@ -68,14 +64,28 @@ namespace WitchMendokusai
 			Time.timeScale = IsPaused ? Mathf.Epsilon : 1;
 		}
 
-		public void Pause()
+		public void Pause(GameObject pauser)
 		{
-			IsPaused = true;
+			if (pauser == null)
+				return;
+
+			if (pausers.Contains(pauser))
+				return; // 이미 등록된 pauser는 추가하지 않습니다.
+
+			pausers.Add(pauser);
+			UpdateTimeScale();
 		}
 
-		public void Resume()
+		public void Resume(GameObject pauser)
 		{
-			IsPaused = false;
+			if (pauser == null)
+				return;
+
+			if (pausers.Contains(pauser) == false)
+				return; // 등록되지 않은 pauser는 무시합니다.
+
+			pausers.Remove(pauser);
+			UpdateTimeScale();
 		}
 
 		[ContextMenu(nameof(DoSlowMotion))]

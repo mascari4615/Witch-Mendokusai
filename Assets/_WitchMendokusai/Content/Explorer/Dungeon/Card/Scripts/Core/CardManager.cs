@@ -80,13 +80,13 @@ namespace WitchMendokusai
 			switch (curState)
 			{
 				case CardUIState.Wait:
-					TimeManager.Instance.Resume();
+					TimeManager.Instance.Resume(gameObject);
 					break;
 				case CardUIState.SelectDeck:
-					TimeManager.Instance.Pause();
+					TimeManager.Instance.Pause(gameObject);
 					break;
 				case CardUIState.SelectCard:
-					TimeManager.Instance.Pause();
+					TimeManager.Instance.Pause(gameObject);
 					break;
 				default:
 					break;
@@ -155,9 +155,10 @@ namespace WitchMendokusai
 
 			StartCoroutine(StartSelectCard());
 		}
+
 		private IEnumerator StartSelectCard()
 		{
-			TimeManager.Instance.Pause();
+			TimeManager.Instance.Pause(gameObject);
 			yield return new WaitForSecondsRealtime(1f);
 			ShuffleDeck();
 			SetState(CardUIState.SelectDeck);
