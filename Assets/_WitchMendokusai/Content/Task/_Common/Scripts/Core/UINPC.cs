@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -49,17 +50,21 @@ namespace WitchMendokusai
 				}
 
 				// NPC 버튼
-				for (int i = 0; i < (int)PanelType.Count; i++)
+				// for (int i = 0; i < (int)PanelType.Count; i++)
+				foreach (PanelType panelType in Enum.GetValues(typeof(PanelType)))
 				{
-					PanelType panelType = (PanelType)i;
+					if (panelType == PanelType.None || panelType == PanelType.NPC)
+						continue;
+
 					UIPanel panel = UIManager.Instance.PanelUIs[panelType];
 
-					options.Add(Instantiate(optionPrefab, optionsParent).GetComponent<UISlot>());
+					UISlot newSlot = Instantiate(optionPrefab, optionsParent).GetComponent<UISlot>();
+					newSlot.Init();
+					newSlot.SetSlotIndex((int)panelType);
+					newSlot.SetSlot(panel.PanelIcon, panel.Name, string.Empty);
+					newSlot.SetClickAction((slot) => { SetPanel(panelType); });
 
-					options[i].Init();
-					options[i].SetSlotIndex(i);
-					options[i].SetSlot(panel.PanelIcon, panel.Name, string.Empty);
-					options[i].SetClickAction((slot) => { SetPanel(panelType); });
+					options.Add(newSlot);
 				}
 			}
 
@@ -105,7 +110,7 @@ namespace WitchMendokusai
 			NPC curNPCData = curNPC.UnitData as NPC;
 			List<PanelType> panelTypes = curNPCData.GetPanelTypeList();
 			for (int i = 0; i < options.Count; i++)
-				options[i].gameObject.SetActive(panelTypes.Contains((PanelType)i));
+				options[i].gameObject.SetActive(panelTypes.Contains((PanelType)options[i].Index)); // Index는 PanelType의 인덱스와 동일
 
 			UpdateQuestButtons();
 			questEachParent.gameObject.SetActive(false);

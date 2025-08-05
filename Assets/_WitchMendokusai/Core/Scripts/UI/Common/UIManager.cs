@@ -13,13 +13,12 @@ namespace WitchMendokusai
 		MagicBook = 11,
 		Quest = 12,
 		Inventory = 13,
-		Doll = 4, // 14,
+		Doll = 14,
 		Setting = 1,
 		Map = 2,
 #endregion
 
 		NPC = 3,
-		// DungeonResult = 4,
 
 		Shop = 5,
 		DungeonEntrance = 6,
@@ -27,8 +26,6 @@ namespace WitchMendokusai
 		Anvil = 8,
 		Furnace = 9,
 		CraftingTable = 10,
-
-		Count
 	}
 
 	public class UIManager : Singleton<UIManager>
