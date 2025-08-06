@@ -24,7 +24,7 @@ namespace WitchMendokusai
 					Type = CriteriaType.DungeonStat,
 					Data = GetDungeonStatData(DungeonStatType.DUNGEON_TIME),
 					ComparisonOperator = ComparisonOperator.GreaterThanOrEqualTo,
-					Value = dungeon.TimeBySecond,
+					Value = dungeon.ClearValue,
 					JustOnce = true,
 				}
 			};
