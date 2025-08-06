@@ -42,7 +42,7 @@ namespace WitchMendokusai
 
 		public void TryInteract()
 		{
-			if (UIManager.Instance.CurPanel != PanelType.None)
+			if (UIManager.Instance.IsPanelOpen)
 				return;
 
 			interaction.TryInteraction();

@@ -12,7 +12,7 @@ namespace WitchMendokusai
 		[field: Header("_" + nameof(UIAdventurerGuild))]
 		private Coroutine loop;
 
-		public override void Init()
+		protected override void OnInit()
 		{
 		}
 

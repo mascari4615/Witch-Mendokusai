@@ -38,8 +38,7 @@ namespace WitchMendokusai
 			StageManager.OnStageChanged += OnStageChanged;
 
 			buildUI = FindFirstObjectByType<UIBuild>(FindObjectsInactive.Include);
-			buildUI.Init();
-			buildUI.SetActive(false);
+			buildUI.StopLoop();
 		}
 
 		private void Start()
@@ -50,7 +49,8 @@ namespace WitchMendokusai
 		private void StartBuilding()
 		{
 			IsBuilding = true;
-			buildUI.SetActive(true);
+			buildUI.StartLoop();
+			buildUI.SetPanel(UIBuildingType.BuildingBar);
 			buildUI.UpdateUI();
 
 			InputManager.RegisterInputEvent(InputEventType.Click0, InputEventResponseType.Started, ClickCell);
@@ -62,7 +62,8 @@ namespace WitchMendokusai
 		private void StopBuilding()
 		{
 			IsBuilding = false;
-			buildUI.SetActive(false);
+			buildUI.ClosePanel();
+			buildUI.StopLoop();
 			CameraManager.Instance.SetCamera(CameraType.Normal);
 
 			InputManager.UnregisterInputEvent(InputEventType.Click0, InputEventResponseType.Started, ClickCell);

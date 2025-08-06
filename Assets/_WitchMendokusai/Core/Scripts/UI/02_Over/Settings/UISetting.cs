@@ -16,7 +16,7 @@ namespace WitchMendokusai
 		[SerializeField] private Button quitButton;
 		[SerializeField] private Button clearDataButton;
 
-		public override void Init()
+		protected override void OnInit()
 		{
 			InitVolumeSliderValue();
 

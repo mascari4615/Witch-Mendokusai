@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace WitchMendokusai
 {
-	public class UIDungeonConstraint : UIPanel
+	public class UIDungeonConstraint : UIBase
 	{
 		// TODO: 던전 난이도/제약
 

@@ -9,7 +9,7 @@ namespace WitchMendokusai
 {
 	public class UICraftingTable : UIPanel
 	{
-		public override void Init()
+		protected override void OnInit()
 		{
 		}
 

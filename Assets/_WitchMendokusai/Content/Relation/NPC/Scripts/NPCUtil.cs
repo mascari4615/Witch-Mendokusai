@@ -11,7 +11,7 @@ namespace WitchMendokusai
 		public static List<Dungeon> GetDungeons(NPC npc)
 		{
 			List<int> ids = npc.PanelInfos
-					.Where(i => i.Type == PanelType.DungeonEntrance)
+					.Where(i => i.Type == NPCPanelType.DungeonEntrance)
 					.SelectMany(i => i.DataSOs)
 					.Select(i => i.ID)
 					.ToList();

@@ -35,7 +35,7 @@ namespace WitchMendokusai
 			UpdateUI();
 		}
 
-		public override void Init()
+		protected override void OnInit()
 		{
 			dollGridUI = GetComponentInChildren<UIDollGrid>(true);
 			dollGridUI.Init();

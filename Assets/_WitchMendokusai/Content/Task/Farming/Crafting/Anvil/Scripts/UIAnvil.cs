@@ -9,7 +9,7 @@ namespace WitchMendokusai
 {
 	public class UIAnvil : UIPanel
 	{
-		public override void Init()
+		protected override void OnInit()
 		{
 		}
 

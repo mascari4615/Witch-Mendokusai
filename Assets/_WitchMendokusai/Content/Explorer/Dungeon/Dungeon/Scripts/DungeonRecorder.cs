@@ -14,6 +14,7 @@ namespace WitchMendokusai
 
 	public class DungeonRecorder
 	{
+		public DungeonRecord ResultRecord { get; private set; }
 		private DungeonRecord startRecord;
 
 		public DungeonRecorder()
@@ -32,7 +33,7 @@ namespace WitchMendokusai
 			record.Nyang = DataManager.Instance.GameStat[GameStatType.NYANG];
 		}
 
-		public DungeonRecord GetResultRecord()
+		public DungeonRecord CaptureResultRecord()
 		{
 			DungeonRecord endRecord = new();
 			SetRecord(ref endRecord);
@@ -44,6 +45,8 @@ namespace WitchMendokusai
 				BossKillCount = endRecord.BossKillCount - startRecord.BossKillCount,
 				Nyang = endRecord.Nyang - startRecord.Nyang
 			};
+
+			ResultRecord = result;
 			return result;
 		}
 	}

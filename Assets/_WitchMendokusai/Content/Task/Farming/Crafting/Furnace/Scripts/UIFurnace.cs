@@ -9,7 +9,7 @@ namespace WitchMendokusai
 {
 	public class UIFurnace : UIPanel
 	{
-		public override void Init()
+		protected override void OnInit()
 		{
 		}
 

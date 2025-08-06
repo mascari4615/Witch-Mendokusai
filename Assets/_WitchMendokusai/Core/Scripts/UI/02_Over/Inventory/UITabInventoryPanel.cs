@@ -8,7 +8,7 @@ namespace WitchMendokusai
 	{
 		private UIItemGrid itemInventoryUI;
 
-		public override void Init()
+		protected override void OnInit()
 		{
 			itemInventoryUI = GetComponentInChildren<UIItemGrid>(true);
 			itemInventoryUI.Init();

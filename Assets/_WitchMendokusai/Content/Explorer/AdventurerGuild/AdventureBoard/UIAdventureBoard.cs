@@ -14,7 +14,7 @@ namespace WitchMendokusai
 		[SerializeField] private UISlot reputationSlot;
 		private Coroutine loop;
 
-		public override void Init()
+		protected override void OnInit()
 		{
 			reputationSlot.Init();
 			reputationSlot.SetSlot(GetGameStatData(GameStatType.VILLAGE_REPUTATION_LEVEL));

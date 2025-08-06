@@ -10,7 +10,7 @@ namespace WitchMendokusai
 	[Serializable]
 	public struct NPCPanelInfo
 	{
-		public PanelType Type;
+		public NPCPanelType Type;
 		public List<DataSO> DataSOs;
 	}
 
@@ -21,9 +21,9 @@ namespace WitchMendokusai
 		[field: SerializeField] public List<NPCPanelInfo> PanelInfos { get; private set; }
 		[field: SerializeField] public List<QuestSO> QuestData { get; private set; }
 
-		public List<ItemDataBuffer> ItemDataBuffers => GetAllDataSOs(PanelType.Shop).Cast<ItemDataBuffer>().ToList();
+		public List<ItemDataBuffer> ItemDataBuffers => GetAllDataSOs(NPCPanelType.Shop).Cast<ItemDataBuffer>().ToList();
 
-		private List<DataSO> GetAllDataSOs(PanelType panelType)
+		private List<DataSO> GetAllDataSOs(NPCPanelType panelType)
 		{
 			return PanelInfos
 					.Where(i => i.Type == panelType)
@@ -31,7 +31,7 @@ namespace WitchMendokusai
 					.ToList();
 		}
 
-		public List<PanelType> GetPanelTypeList()
+		public List<NPCPanelType> GetPanelTypeList()
 		{
 			return PanelInfos.Select(i => i.Type).ToList();
 		}

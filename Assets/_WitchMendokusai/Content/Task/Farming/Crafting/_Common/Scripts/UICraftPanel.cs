@@ -7,7 +7,7 @@ namespace WitchMendokusai
 	{
 		private UICraft craft;
 
-		public override void Init()
+		protected override void OnInit()
 		{
 			craft = GetComponent<UICraft>();
 			craft.Init();

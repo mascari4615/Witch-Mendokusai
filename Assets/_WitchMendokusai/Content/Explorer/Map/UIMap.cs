@@ -8,7 +8,7 @@ namespace WitchMendokusai
 	{
 		// TODO:
 
-		public override void Init()
+		protected override void OnInit()
 		{
 		}
 

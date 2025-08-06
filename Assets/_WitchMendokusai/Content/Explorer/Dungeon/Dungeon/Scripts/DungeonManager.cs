@@ -10,7 +10,7 @@ namespace WitchMendokusai
 	{
 		public Dungeon CurDungeon { get; private set; }
 		public DungeonContext Context { get; private set; }
-		public DungeonRecord Result { get; private set; }
+		public DungeonRecord Result => dungeonRecorder.CaptureResultRecord();
 
 		public bool IsDungeon { get; private set; }
 
@@ -19,7 +19,6 @@ namespace WitchMendokusai
 		[SerializeField] private ExpManager expChecker;
 
 		private UIDungeon dungeonUI = null;
-		private UIDungeonResult dungeonResultUI = null;
 
 		private DungeonRecorder dungeonRecorder = null;
 		private DungeonStrategy dungeonStrategy = null;
@@ -30,13 +29,6 @@ namespace WitchMendokusai
 			base.Awake();
 
 			dungeonUI = FindFirstObjectByType<UIDungeon>(FindObjectsInactive.Include);
-			dungeonUI.Init();
-			dungeonUI.SetActive(false);
-
-			dungeonResultUI = FindFirstObjectByType<UIDungeonResult>(FindObjectsInactive.Include);
-			dungeonResultUI.Init();
-			dungeonResultUI.SetActive(false);
-			// PanelUIs[PanelType.DungeonResult] = FindFirstObjectByType<UIDungeonResult>(FindObjectsInactive.Include);
 		}
 
 		private void Start()
@@ -72,7 +64,7 @@ namespace WitchMendokusai
 				GameManager.Instance.Init();
 				GameManager.Instance.InitEquipment();
 				expChecker.Init();
-				cardManager.Init();
+				cardManager.Reset();
 
 				Context = new DungeonContext
 				(
@@ -119,9 +111,8 @@ namespace WitchMendokusai
 
 				// Context 생성 이후 UI 설정
 				// UIDungeon.UpdateUI(); 에서 Context를 사용합니다.
-				UIManager.Instance.SetPanel(PanelType.None);
-				dungeonUI.SetActive(true);
-				dungeonUI.UpdateUI();
+				dungeonUI.SetPanel(DungeonPanelType.None);
+				dungeonUI.StartLoop();
 
 				GameEventManager.Instance.Raise(GameEventType.OnDungeonStart);
 			}
@@ -139,13 +130,11 @@ namespace WitchMendokusai
 			}
 			monsterSpawner.StopWave();
 
-			Result = dungeonRecorder.GetResultRecord();
+			dungeonRecorder.CaptureResultRecord();
 
 			IsDungeon = false;
 
-			dungeonResultUI.SetActive(true);
-			dungeonResultUI.UpdateUI();
-			// UIManager.Instance.SetPanel(PanelType.DungeonResult);
+			dungeonUI.SetPanel(DungeonPanelType.DungeonResult);
 		}
 
 		public void Continue()
@@ -161,13 +150,13 @@ namespace WitchMendokusai
 
 			void ResetDungeonAndPlayer()
 			{
-				UIManager.Instance.SetPanel(PanelType.None);
-				dungeonUI.SetActive(false);
+				dungeonUI.StopLoop();
+				dungeonUI.ClosePanel();
 				CameraManager.Instance.SetCamera(CameraType.Normal);
 
 				GameManager.Instance.Init();
 				expChecker.Init();
-				cardManager.ClearCardEffect();
+				cardManager.Reset();
 			}
 		}
 	}

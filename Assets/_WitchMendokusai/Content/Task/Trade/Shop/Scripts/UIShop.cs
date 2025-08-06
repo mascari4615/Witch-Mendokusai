@@ -17,7 +17,7 @@ namespace WitchMendokusai
 
 		private NPCObject npc;
 
-		public override void Init()
+		protected override void OnInit()
 		{
 			shopInventoryUI = GetComponentInChildren<UIItemDataGrid>(true);
 			itemInventoryUI = GetComponentInChildren<UIItemGrid>(true);

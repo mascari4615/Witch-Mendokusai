@@ -23,7 +23,7 @@ namespace WitchMendokusai
 
 		private Dungeon CurDungeon => dungeons[curDungeonIndex];
 
-		public override void Init()
+		protected override void OnInit()
 		{
 			rewardUI = GetComponentInChildren<UIRewards>(true);
 			rewardUI.Init();
@@ -118,6 +118,7 @@ namespace WitchMendokusai
 
 		public void EnterTheDungeon()
 		{
+			Content.ClosePanel();
 			DungeonManager.Instance.StartDungeon(CurDungeon);
 		}
 	}

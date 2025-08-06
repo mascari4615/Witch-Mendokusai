@@ -8,7 +8,7 @@ namespace WitchMendokusai
 	{
 		private UIQuestGrid questGrid;
 
-		public override void Init()
+		protected override void OnInit()
 		{
 			questGrid = GetComponentInChildren<UIQuestGrid>(true);
 			questGrid.Init();

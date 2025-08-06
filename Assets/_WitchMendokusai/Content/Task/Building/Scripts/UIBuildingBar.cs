@@ -6,7 +6,7 @@ using static WitchMendokusai.SOHelper;
 
 namespace WitchMendokusai
 {
-	public class UIBuildingBar : UIBase
+	public class UIBuildingBar : UIPanel
 	{
 		[field: Header("_" + nameof(UIBuildingBar))]
 		private UIBuildingSlot[] buildingSlots;
@@ -16,7 +16,7 @@ namespace WitchMendokusai
 			TimeManager.Instance.RegisterCallback(UpdateUI);
 		}
 
-		public override void Init()
+		protected override void OnInit()
 		{
 			buildingSlots = GetComponentsInChildren<UIBuildingSlot>(true);
 

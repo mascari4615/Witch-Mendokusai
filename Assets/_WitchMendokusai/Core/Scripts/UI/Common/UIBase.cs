@@ -24,7 +24,5 @@ namespace WitchMendokusai
 				OnClose();
 			}
 		}
-
-		public void ToggleActive() => SetActive(gameObject.activeSelf);
 	}
 }

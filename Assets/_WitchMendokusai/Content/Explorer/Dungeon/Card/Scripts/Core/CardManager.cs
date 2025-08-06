@@ -12,36 +12,32 @@ using DG.Tweening;
 
 namespace WitchMendokusai
 {
-	public class CardManager : MonoBehaviour
+	public enum CardPanelType
 	{
-		private enum CardUIState
-		{
-			Wait,
-			SelectDeck,
-			SelectCard,
-		}
+		None = -1,
+		SelectDeck = 0,
+		SelectCard = 1,
+	}
 
-		// UI
-		[SerializeField] private Transform selectDeckPanel;
-		[SerializeField] private Transform selectDeckPanelContent;
-		[SerializeField] private List<UISlot> deckSelectButtons;
-
-		[SerializeField] private Transform deckPanel;
-		[SerializeField] private Transform deckPanelContent;
+	public class CardManager : UIContentBase<CardPanelType>
+	{
 		private readonly Dictionary<int, UIDeck> deckUIDic = new();
-		[SerializeField] private List<UICardSlot> cardSelectButtons;
+
+		public override CardPanelType DefaultPanel => CardPanelType.None;
 
 		// Level Up Stack
 		private int levelUpStack = 0;
 
 		// Data
-		private CardUIState curState = CardUIState.Wait;
 		private readonly List<List<CardData>> cardDataBuffers = new(4) { new(), new(), new(), new() };
 		private List<int> deckIdMapping = new() { 0, 1, 2, 3 };
 		private int curDeckIndex;
 
-		private void Awake()
+		public override void Init()
 		{
+			Panels[CardPanelType.SelectDeck] = FindFirstObjectByType<UISelectDeck>(FindObjectsInactive.Include);
+			Panels[CardPanelType.SelectCard] = FindFirstObjectByType<UISelectCard>(FindObjectsInactive.Include);
+
 			UIDeck[] deckUIs = FindObjectsByType<UIDeck>(FindObjectsInactive.Include, FindObjectsSortMode.None);
 			foreach (UIDeck deckUI in deckUIs)
 			{
@@ -49,85 +45,32 @@ namespace WitchMendokusai
 				deckUI.Init();
 				// deckUI.Init(cardSelectAction: (slot) => { SelectCard(slot.DataSO as CardData); });
 			}
-
-			for (int i = 0; i < deckSelectButtons.Count; i++)
-			{
-				deckSelectButtons[i].Init();
-				deckSelectButtons[i].SetSlotIndex(i);
-				deckSelectButtons[i].SetClickAction((slot) => { SelectDeck(slot.Index); });
-			}
-
-			for (int i = 0; i < cardSelectButtons.Count; i++)
-			{
-				// cardSelectAction: (slot) => { SelectCard(cardSlots[i].Artifact as Card); }
-				// 원래 위 코드를 썼는데, 클로저 문제로 인해 아래처럼 바꿈
-				cardSelectButtons[i].Init();
-				cardSelectButtons[i].SetClickAction((slot) => { SelectCard(slot.DataSO as CardData); });
-			}
-
-			SetState(CardUIState.Wait);
 		}
 
-		private void Start()
+		protected override void Start()
 		{
+			base.Start();
 			GameEventManager.Instance.RegisterCallback(GameEventType.OnLevelUp, LevelUp);
 		}
 
-		private void SetState(CardUIState state)
+	
+			// foreach (UIDeck deckUI in deckUIDic.Values)
+			// 	deckUI.gameObject.SetActive(false);
+
+		public void Reset()
 		{
-			curState = state;
+			SetPanel(CardPanelType.None);
+			TimeManager.Instance.Resume(gameObject);
 
-			switch (curState)
-			{
-				case CardUIState.Wait:
-					TimeManager.Instance.Resume(gameObject);
-					break;
-				case CardUIState.SelectDeck:
-					TimeManager.Instance.Pause(gameObject);
-					break;
-				case CardUIState.SelectCard:
-					TimeManager.Instance.Pause(gameObject);
-					break;
-				default:
-					break;
-			}
-
-			selectDeckPanel.gameObject.SetActive(curState == CardUIState.SelectDeck);
-			if (selectDeckPanel.gameObject.activeSelf)
-			{
-				selectDeckPanelContent.localScale = Vector3.zero;
-				selectDeckPanelContent.DOScale(Vector3.one, 0.5f).SetEase(Ease.OutBack).SetUpdate(true);
-
-				// SelectDeckPanel이 켜지면 첫 번째 버튼 포커스
-				deckSelectButtons[0].Select();
-			}
-
-			deckPanel.gameObject.SetActive(curState == CardUIState.SelectCard);
-			if (deckPanel.gameObject.activeSelf)
-			{
-				deckPanelContent.localScale = Vector3.zero;
-				deckPanelContent.DOScale(Vector3.one, 0.5f).SetEase(Ease.OutBack).SetUpdate(true);
-
-				// DeckPanel이 켜지면 첫 번째 카드 버튼 포커스
-				cardSelectButtons[0].Select();
-			}
-
-			foreach (UIDeck deckUI in deckUIDic.Values)
-				deckUI.gameObject.SetActive(false);
-		}
-
-		public void Init()
-		{
-			SetState(CardUIState.Wait);
+			// ClearCardEffect
 			CardBuffer selectedCardBuffer = SOManager.Instance.SelectedCardBuffer;
-
 			while (selectedCardBuffer.Data.Count > 0)
 				selectedCardBuffer.Remove(selectedCardBuffer.Data[^1]);
-			selectedCardBuffer.Clear();
 
 			foreach (List<CardData> cardDataBuffer in cardDataBuffers)
 				cardDataBuffer.Clear();
 
+			// 덱 ID 매핑 초기화
 			List<EquipmentData> equipments = DataManager.Instance.GetEquipmentData(DataManager.Instance.CurDollID);
 			for (int i = 0; i < equipments.Count; i++)
 			{
@@ -141,8 +84,7 @@ namespace WitchMendokusai
 		{
 			List<EquipmentData> equipments = DataManager.Instance.GetEquipmentData(DataManager.Instance.CurDollID);
 			deckIdMapping = deckIdMapping.OrderBy(m => Random.Range(0, 100)).ToList();
-			for (int i = 0; i < deckSelectButtons.Count; i++)
-				deckSelectButtons[i].SetSlot(equipments[deckIdMapping[i]]);
+			(Panels[CardPanelType.SelectDeck] as UISelectDeck).SetDeckSelectButtons(equipments);
 		}
 
 		public void LevelUp()
@@ -161,7 +103,7 @@ namespace WitchMendokusai
 			TimeManager.Instance.Pause(gameObject);
 			yield return new WaitForSecondsRealtime(1f);
 			ShuffleDeck();
-			SetState(CardUIState.SelectDeck);
+			SetPanel(CardPanelType.SelectDeck);
 		}
 
 		public void SelectDeck(int selectIndex)
@@ -182,7 +124,7 @@ namespace WitchMendokusai
 
 			// HACK:
 			int maxLoop = 100;
-			while (randomCards.Count < 3)
+			while (randomCards.Count != 3)
 			{
 				if (--maxLoop < 0)
 					break;
@@ -209,21 +151,12 @@ namespace WitchMendokusai
 					continue;
 				}
 
-				cardSelectButtons[randomCards.Count].SetSlot(randomCard);
 				randomCards.Add(randomCard);
 			}
 
-			// HACK:
-			if (randomCards.Count < 3)
-			{
-				for (int i = randomCards.Count; i < 3; i++)
-				{
-					cardSelectButtons[i].SetSlot(null);
-					randomCards.Add(null);
-				}
-			}
+			(Panels[CardPanelType.SelectCard] as UISelectCard).SetCardSelectButtons(randomCards);
 
-			SetState(CardUIState.SelectCard);
+			SetPanel(CardPanelType.SelectCard);
 
 			List<EquipmentData> equipmentData = DataManager.Instance.GetEquipmentData(DataManager.Instance.CurDollID);
 			int equipmentID = equipmentData[curDeckIndex].ID;
@@ -260,15 +193,9 @@ namespace WitchMendokusai
 			}
 			else
 			{
-				SetState(CardUIState.Wait);
+				SetPanel(CardPanelType.None);
+				TimeManager.Instance.Resume(gameObject);
 			}
-		}
-
-		public void ClearCardEffect()
-		{
-			CardBuffer selectedCardBuffer = SOManager.Instance.SelectedCardBuffer;
-			while (selectedCardBuffer.Data.Count > 0)
-				selectedCardBuffer.Remove(selectedCardBuffer.Data[^1]);
 		}
 	}
 }

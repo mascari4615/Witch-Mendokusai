@@ -7,30 +7,38 @@ using UnityEngine.UI;
 
 namespace WitchMendokusai
 {
-	public class UIBuild : UIPanel
+	public enum UIBuildingType
+	{
+		None = -1,
+		BuildingBar = 0,
+	}
+
+	public class UIBuild : UIContentBase<UIBuildingType>
 	{
 		[field: Header("_" + nameof(UIBuild))]
 		[SerializeField] private UIBuildingBar buildingBar;
 		private Coroutine loop;
 
+		public override UIBuildingType DefaultPanel => UIBuildingType.None;
+
 		public override void Init()
 		{
-			buildingBar.Init();
+			Panels[UIBuildingType.BuildingBar] = buildingBar;
 		}
 
-		public override void UpdateUI()
+		public void UpdateUI()
 		{
 			buildingBar.UpdateUI();
 		}
 
-		protected override void OnOpen()
+		public void StartLoop()
 		{
 			if (loop != null)
 				StopCoroutine(loop);
 			loop = StartCoroutine(Loop());
 		}
 
-		protected override void OnClose()
+		public void StopLoop()
 		{
 			if (loop != null)
 				StopCoroutine(loop);

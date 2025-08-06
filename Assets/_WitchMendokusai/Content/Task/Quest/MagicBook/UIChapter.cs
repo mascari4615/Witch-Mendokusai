@@ -6,7 +6,7 @@ using UnityEngine.UI;
 
 namespace WitchMendokusai
 {
-	public class UIChapter : UIPanel
+	public class UIChapter : UIBase
 	{
 		private UIQuestSlot[] questSlots;
 		[SerializeField] private RectTransform content;

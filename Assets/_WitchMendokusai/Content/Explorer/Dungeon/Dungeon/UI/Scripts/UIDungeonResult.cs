@@ -22,7 +22,7 @@ namespace WitchMendokusai
 			DungeonManager.Instance.Continue();
 		}
 
-		public override void Init()
+		protected override void OnInit()
 		{
 			cardGrid = GetComponentInChildren<UICardDataGrid>(true);
 			cardGrid.Init();

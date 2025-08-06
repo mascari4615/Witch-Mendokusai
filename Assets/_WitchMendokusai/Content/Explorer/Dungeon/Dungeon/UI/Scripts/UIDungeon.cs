@@ -7,7 +7,13 @@ using UnityEngine.UI;
 
 namespace WitchMendokusai
 {
-	public class UIDungeon : UIPanel
+	public enum DungeonPanelType
+	{
+		None = -1,
+		DungeonResult = 0,
+	}
+
+	public class UIDungeon : UIContentBase<DungeonPanelType>
 	{
 		[field: Header("_" + nameof(UIDungeon))]
 		[SerializeField] private Image progressBar;
@@ -17,21 +23,18 @@ namespace WitchMendokusai
 		private UIQuestGrid questGrid;
 		private Coroutine loop;
 
+		public override DungeonPanelType DefaultPanel => DungeonPanelType.None;
+
 		public override void Init()
 		{
+			Panels[DungeonPanelType.DungeonResult] = FindFirstObjectByType<UIDungeonResult>(FindObjectsInactive.Include);
+
 			questGrid = GetComponentInChildren<UIQuestGrid>(true);
 			questGrid.Init();
 			questGrid.SetFilter(QuestType.Dungeon);
 		}
 
-		public override void UpdateUI()
-		{
-			UpdateDifficulty(DungeonManager.Instance.Context.CurDifficulty);
-			UpdateTime(DungeonManager.Instance.Context.DungeonCurTime);
-			questGrid.UpdateUI();
-		}
-
-		protected override void OnOpen()
+		public void StartLoop()
 		{
 			if (loop != null)
 				StopCoroutine(loop);
@@ -39,7 +42,7 @@ namespace WitchMendokusai
 			CameraManager.Instance.SetCamera(CameraType.Dungeon);
 		}
 
-		protected override void OnClose()
+		public void StopLoop()
 		{
 			if (loop != null)
 				StopCoroutine(loop);
@@ -54,6 +57,13 @@ namespace WitchMendokusai
 				UpdateUI();
 				yield return wait;
 			}
+		}
+
+		private void UpdateUI()
+		{
+			UpdateDifficulty(DungeonManager.Instance.Context.CurDifficulty);
+			UpdateTime(DungeonManager.Instance.Context.DungeonCurTime);
+			questGrid.UpdateUI();
 		}
 
 		private void UpdateTime(TimeSpan timeSpan)
@@ -72,7 +82,7 @@ namespace WitchMendokusai
 			{
 				difficultyCircle.fillAmount = (float)(DungeonManager.Instance.Context.DungeonCurTime.TotalSeconds % 180f / 180f);
 			}
-			
+
 			switch (curDifficulty)
 			{
 				case DungeonDifficulty.Easy:
