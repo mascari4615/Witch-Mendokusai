@@ -83,8 +83,14 @@ namespace WitchMendokusai
 		private void ShuffleDeck()
 		{
 			List<EquipmentData> equipments = DataManager.Instance.GetEquipmentData(DataManager.Instance.CurDollID);
+
 			deckIdMapping = deckIdMapping.OrderBy(m => Random.Range(0, 100)).ToList();
-			(Panels[CardPanelType.SelectDeck] as UISelectDeck).SetDeckSelectButtons(equipments);
+		
+			List<EquipmentData> shuffledEquipments = new(deckIdMapping.Count);
+			foreach (int index in deckIdMapping)
+				shuffledEquipments.Add(equipments[index]);
+		
+			(Panels[CardPanelType.SelectDeck] as UISelectDeck).SetDeckSelectButtons(shuffledEquipments);
 		}
 
 		public void LevelUp()

@@ -38,6 +38,7 @@ namespace WitchMendokusai
 				if (i < equipmentList.Count)
 				{
 					deckSelectButtons[i].SetSlot(equipmentList[i]);
+					deckSelectButtons[i].UpdateUI();
 				}
 				else
 				{

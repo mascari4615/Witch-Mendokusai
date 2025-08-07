@@ -39,6 +39,7 @@ namespace WitchMendokusai
 				if (i < cardDataList.Count)
 				{
 					cardSelectButtons[i].SetSlot(cardDataList[i]);
+					cardSelectButtons[i].UpdateUI();
 				}
 				else
 				{
