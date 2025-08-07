@@ -10,23 +10,23 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 30284bfe5bd403f4a94529bd768db142, type: 3}
-  m_Name: MOB_9_Slime6
+  m_Name: MOB_9_Slime9
   m_EditorClassIdentifier: 
   <ID>k__BackingField: 9
-  <Name>k__BackingField: Slime6
+  <Name>k__BackingField: Slime9
   <Description>k__BackingField: 
-  <Sprite>k__BackingField: {fileID: -1494680652, guid: 885dbe964ca2c0541a96474bd66b37b3, type: 3}
+  <Sprite>k__BackingField: {fileID: -741869489, guid: 3b178829f4e2acb4aa7360850649baf0, type: 3}
   <Sprites>k__BackingField: []
   <Affiliation>k__BackingField: -1
-  <Prefab>k__BackingField: {fileID: 6534569428800909803, guid: e0fad62738e5b9348b06c1767795847d, type: 3}
+  <Prefab>k__BackingField: {fileID: 6534569428800909803, guid: fbe700bc88415024f93bd5104aab0995, type: 3}
   <DefaultSkills>k__BackingField: []
   <Material>k__BackingField: {fileID: 2100000, guid: 498f73d56bb87ab4cb040563514df458, type: 2}
   <InitStatInfos>k__BackingField:
     initStats:
     - unitStat: 2
-      value: 12
+      value: 40
     - unitStat: 300
-      value: 2
+      value: 1
   <Type>k__BackingField: 0
   <Loots>k__BackingField:
   - <DataSO>k__BackingField: {fileID: 11400000, guid: 41d3b97fb16981c4f949742deac36232, type: 2}

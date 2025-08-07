@@ -16,7 +16,6 @@ namespace WitchMendokusai
 			{ typeof(QuestSO), "Q" },
 			{ typeof(CardData), "C" },
 			{ typeof(ItemData), "I" },
-			{ typeof(MonsterWave), "MW" },
 			{ typeof(ObjectData), "O"},
 			{ typeof(SkillData), "SKL" },
 			{ typeof(UnitStatData), "USD"},
