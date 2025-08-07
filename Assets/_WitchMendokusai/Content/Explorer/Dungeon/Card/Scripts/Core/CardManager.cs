@@ -167,11 +167,14 @@ namespace WitchMendokusai
 			List<EquipmentData> equipmentData = DataManager.Instance.GetEquipmentData(DataManager.Instance.CurDollID);
 			int equipmentID = equipmentData[curDeckIndex].ID;
 
-			if (deckUIDic.TryGetValue(equipmentID, out UIDeck deckUI))
+			foreach (UIDeck deckUI in deckUIDic.Values)
+				deckUI.gameObject.SetActive(false);
+
+			if (deckUIDic.TryGetValue(equipmentID, out UIDeck targetDeckUI))
 			{
-				deckUI.SetCards(randomCards);
-				deckUI.UpdateUI();
-				deckUI.gameObject.SetActive(true);
+				targetDeckUI.SetCards(randomCards);
+				targetDeckUI.UpdateUI();
+				targetDeckUI.gameObject.SetActive(true);
 			}
 		}
 
