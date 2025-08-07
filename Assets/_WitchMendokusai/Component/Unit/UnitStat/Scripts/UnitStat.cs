@@ -16,6 +16,7 @@ namespace WitchMendokusai
 				int value = statType switch
 				{
 					UnitStatType.CRITICAL_CHANCE => 5,
+					UnitStatType.CRITICAL_DAMAGE => 30,
 					_ => 0,
 				};
 
