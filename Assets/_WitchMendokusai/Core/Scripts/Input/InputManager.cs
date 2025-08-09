@@ -78,6 +78,19 @@ namespace WitchMendokusai
 		{
 			inputActionAsset.Enable();
 
+			ClearInputEvents();
+			BindEvents();
+
+			// TODO: Setup Class 같은 것이 있어야 할 듯 - 2025.04.19 11:38
+			UnityEngine.SceneManagement.SceneManager.sceneLoaded += (scene, mode) =>
+			{
+				Debug.Log($"Scene loaded: {scene.name}");
+				StartCoroutine(InvokeAfterStart(scene, mode));
+			};
+		}
+
+		private void ClearInputEvents()
+		{
 			foreach (InputEventType inputEventType in Enum.GetValues(typeof(InputEventType)))
 			{
 				foreach (InputEventResponseType inputEventResponseType in Enum.GetValues(typeof(InputEventResponseType)))
@@ -87,9 +100,35 @@ namespace WitchMendokusai
 					isPressed[inputEventType] = false;
 				}
 			}
+		}
 
-			BindEvents();
-			InitEvents();
+		private IEnumerator InvokeAfterStart(UnityEngine.SceneManagement.Scene scene, UnityEngine.SceneManagement.LoadSceneMode mode)
+		{
+			yield return new WaitForEndOfFrame(); // Start 실행 후
+
+			IInputStrategy inputStrategy;
+			switch (scene.name)
+			{
+				case "World":
+					inputStrategy = new InputStrategyWorld();
+					break;
+				case "Lobby":
+					inputStrategy = new InputStrategyLobby();
+					break;
+				case "Loading":
+					inputStrategy = new InputStrategyLoading();
+					break;
+				case "loaded":
+				default:
+					Debug.LogWarning($"No input strategy registered for scene: {scene.name}");
+					yield break;
+			}
+
+			ClearInputEvents();
+
+			List<InputRegisterData> inputRegisterDataList = inputStrategy.InputRegisterDataList;
+			foreach (InputRegisterData inputRegisterData in inputRegisterDataList)
+				RegisterInputEvent(inputRegisterData.InputEventType, inputRegisterData.InputEventResponseType, inputRegisterData.Callback);
 		}
 
 		private void BindEvents()
@@ -154,35 +193,6 @@ namespace WitchMendokusai
 			isPressed[inputEventType] = false;
 		}
 
-		private void InitEvents()
-		{
-			// Player
-			{
-				// TODO: Setup Class 같은 것이 있어야 할 듯 - 2025.04.19 11:38
-				RegisterInputEvent(InputEventType.Space, InputEventResponseType.Performed, () => Player.Instance.TryUseSkill(0));
-				RegisterInputEvent(InputEventType.Click0, InputEventResponseType.Get, () => TryUseSkill(1));
-				RegisterInputEvent(InputEventType.Click1, InputEventResponseType.Get, () => TryUseSkill(2));
-
-				static void TryUseSkill(int skillIndex)
-				{
-					GameConditionType skillCondition = GameConditionType.IsMouseOnUI | GameConditionType.IsChatting | GameConditionType.IsPaused | GameConditionType.IsDied | GameConditionType.IsBuilding;
-					if (GameManager.Instance.Conditions.IsGameCondition(skillCondition))
-						return;
-					Player.Instance.TryUseSkill(skillIndex);
-				}
-
-				RegisterInputEvent(InputEventType.ChangeMode, InputEventResponseType.Performed, () => Player.Instance.SetAutoAim(!Player.Instance.IsAutoAim));
-			}
-
-			// UI
-			{
-				RegisterInputEvent(InputEventType.Submit, InputEventResponseType.Performed, Player.Instance.TryInteract);
-				RegisterInputEvent(InputEventType.Cancel, InputEventResponseType.Performed, UIManager.Instance.ToggleOverlayUI_Setting);
-				RegisterInputEvent(InputEventType.Tab, InputEventResponseType.Performed, UIManager.Instance.ToggleOverlayUI_Tab);
-				RegisterInputEvent(InputEventType.Status, InputEventResponseType.Performed, UIManager.Instance.ToggleStatus);
-			}
-		}
-
 		public void RegisterInputEvent(InputEventType inputEventType, InputEventResponseType inputEventResponseType, Action<InputAction.CallbackContext> action)
 		{
 			inputEventsWithContent[(inputEventType, inputEventResponseType)] += action;
@@ -206,11 +216,18 @@ namespace WitchMendokusai
 		private void Update()
 		{
 			UpdateMouseWorldPosition();
-			isPointerOverUI = EventSystem.current.IsPointerOverGameObject();
+			UpdateIsPointerOverUI();
 		}
 
 		private void UpdateMouseWorldPosition()
 		{
+			// Loading 씬은 카메라가 없음 - 2025.08.08 20:24
+			if (Camera.main == null)
+			{
+				MouseWorldPosition = Vector3.zero;
+				return;
+			}
+
 			Vector3 mousePos = Input.mousePosition;
 			mousePos.z = Camera.main.nearClipPlane;
 			Ray ray = Camera.main.ScreenPointToRay(mousePos);
@@ -219,6 +236,18 @@ namespace WitchMendokusai
 				MouseWorldPosition = hit.point;
 			else
 				MouseWorldPosition = Vector3.zero;
+		}
+
+		private void UpdateIsPointerOverUI()
+		{
+			// Loading 씬은 EventSystem이 없음 - 2025.08.08 20:24
+			if (EventSystem.current == null)
+			{
+				isPointerOverUI = false;
+				return;
+			}
+
+			isPointerOverUI = EventSystem.current.IsPointerOverGameObject();
 		}
 	}
 }

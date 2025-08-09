@@ -71,7 +71,12 @@ namespace WitchMendokusai
 
 		public override void UpdateUI()
 		{
-			dungeonExitButton.gameObject.SetActive(DungeonManager.Instance.IsDungeon);
+			// HACK: World 씬 에서만 아래 실행
+			// TODO: 분리해야 할 듯 (= Common(or Dungeon) Pause Panel 만들기) - KarmoDDrine 2025-08-08
+			if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == "World")
+				dungeonExitButton.gameObject.SetActive(DungeonManager.Instance.IsDungeon);
+			else
+				dungeonExitButton.gameObject.SetActive(false);
 		}
 
 		protected override void OnOpen()

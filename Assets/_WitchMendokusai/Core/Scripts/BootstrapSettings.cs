@@ -11,6 +11,7 @@ namespace WitchMendokusai
 		[field: SerializeField] public TimeManager TimeManagerPrefab { get; private set; }
 		[field: SerializeField] public DataManager DataManagerPrefab { get; private set; }
 		[field: SerializeField] public AudioManager AudioManagerPrefab { get; private set; }
+		[field: SerializeField] public InputManager InputManagerPrefab { get; private set; }
 		[field: SerializeField] public bool UseBootstrap { get; private set; } = true;
 	}
 
@@ -31,6 +32,7 @@ namespace WitchMendokusai
 			Object.Instantiate(bootstrapStuff.TimeManagerPrefab);
 			Object.Instantiate(bootstrapStuff.DataManagerPrefab);
 			Object.Instantiate(bootstrapStuff.AudioManagerPrefab);
+			Object.Instantiate(bootstrapStuff.InputManagerPrefab);
 		}
 	}
 }
