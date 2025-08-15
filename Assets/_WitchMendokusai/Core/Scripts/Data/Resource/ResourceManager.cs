@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace WitchMendokusai
 {
-	[CreateAssetMenu(fileName = nameof(ResourceManager), menuName = "ResourceManager")]
+	[CreateAssetMenu(fileName = nameof(ResourceManager), menuName = "WM/ResourceManager")]
 	public class ResourceManager : ScriptableObject
 	{
 		[NonSerialized] private static ResourceManager instance;

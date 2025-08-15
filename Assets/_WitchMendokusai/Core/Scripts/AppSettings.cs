@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace WitchMendokusai
 {
-	[CreateAssetMenu(fileName = nameof(AppSettings), menuName = "AppSettings")]
+	[CreateAssetMenu(fileName = nameof(AppSettings), menuName = "WM/AppSettings")]
 	public class AppSettings : ScriptableObject
 	{
 		[field: Header("_" + nameof(AppSettings))]

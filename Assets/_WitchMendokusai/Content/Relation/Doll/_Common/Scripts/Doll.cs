@@ -6,7 +6,7 @@ using UnityEngine.Serialization;
 
 namespace WitchMendokusai
 {
-	[CreateAssetMenu(fileName = nameof(Doll), menuName = "Variable/" + nameof(Unit) +"/"+ nameof(Doll))]
+	[CreateAssetMenu(fileName = nameof(Doll), menuName = "WM/Variable/" + nameof(Unit) +"/"+ nameof(Doll))]
 	public class Doll : Unit, ISavable<DollSaveData>
 	{
 		public const int DUMMY_ID = 4444;

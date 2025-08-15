@@ -21,7 +21,7 @@ namespace WitchMendokusai
 		// 불타는, 과부하, 
 	}
 
-	[CreateAssetMenu(fileName = nameof(Monster), menuName = "Variable/" + nameof(Unit) + "/" + nameof(Monster))]
+	[CreateAssetMenu(fileName = nameof(Monster), menuName = "WM/Variable/" + nameof(Unit) + "/" + nameof(Monster))]
 	public class Monster : Unit
 	{
 		[field: Header("_" + nameof(Monster))]

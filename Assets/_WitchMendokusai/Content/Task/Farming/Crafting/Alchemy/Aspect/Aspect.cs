@@ -5,7 +5,7 @@ using UnityEngine.Serialization;
 
 namespace WitchMendokusai
 {
-	[CreateAssetMenu(fileName = "AD_", menuName = "Variable/" + nameof(AspectData))]
+	[CreateAssetMenu(fileName = "AD_", menuName = "WM/Variable/" + nameof(AspectData))]
 	public class AspectData : StatData<AspectType>
 	{
 	}

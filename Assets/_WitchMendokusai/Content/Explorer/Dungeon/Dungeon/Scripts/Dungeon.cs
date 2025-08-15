@@ -23,7 +23,7 @@ namespace WitchMendokusai
 		}
 	}
 
-	[CreateAssetMenu(fileName = nameof(Dungeon), menuName = "Variable/Dungeon")]
+	[CreateAssetMenu(fileName = nameof(Dungeon), menuName = "WM/Variable/Dungeon")]
 	public class Dungeon : DataSO, ISavable<DungeonSaveData>
 	{
 		[field: Header("_" + nameof(Dungeon))]

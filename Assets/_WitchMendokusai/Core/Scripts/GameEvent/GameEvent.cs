@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace WitchMendokusai
 {
-	[CreateAssetMenu(fileName = "GameEvent", menuName = "GameSystem/GameEvent")]
+	[CreateAssetMenu(fileName = "GameEvent", menuName = "WM/GameSystem/GameEvent")]
 	public class GameEvent : ScriptableObject
 	{
 		[NonSerialized] private readonly List<GameEventListener> _listeners = new();

@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace WitchMendokusai
 {
-	[CreateAssetMenu(fileName = nameof(SummonSkill), menuName = "Skill/SummonSkill")]
+	[CreateAssetMenu(fileName = nameof(SummonSkill), menuName = "WM/Skill/SummonSkill")]
 	public class SummonSkill : SkillData
 	{
 		[field: SerializeField] public GameObject Prefab { get; private set; }

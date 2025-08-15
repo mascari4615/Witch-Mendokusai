@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace WitchMendokusai
 {
-	[CreateAssetMenu(fileName = nameof(Dash), menuName = "Skill/" + nameof(Dash))]
+	[CreateAssetMenu(fileName = nameof(Dash), menuName = "WM/Skill/" + nameof(Dash))]
 	public class Dash : SkillData
 	{
 		public override void ActualUse(UnitObject unitObject)

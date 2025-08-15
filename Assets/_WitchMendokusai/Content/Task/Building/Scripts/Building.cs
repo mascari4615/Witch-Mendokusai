@@ -11,7 +11,7 @@ namespace WitchMendokusai
 		Util = 2,
 	}
 
-	[CreateAssetMenu(fileName = "BD_", menuName = "Variable/" + nameof(Building))]
+	[CreateAssetMenu(fileName = "BD_", menuName = "WM/Variable/" + nameof(Building))]
 	public class Building : DataSO
 	{
 		[field: Header("_" + nameof(Building))]

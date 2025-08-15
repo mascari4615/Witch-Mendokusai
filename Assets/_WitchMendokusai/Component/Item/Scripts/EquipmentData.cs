@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace WitchMendokusai
 {
-	[CreateAssetMenu(fileName = nameof(EquipmentData), menuName = "Variable/" + nameof(EquipmentData))]
+	[CreateAssetMenu(fileName = nameof(EquipmentData), menuName = "WM/Variable/" + nameof(EquipmentData))]
 	public class EquipmentData : ItemData
 	{
 		[field: Header("_" + nameof(EquipmentData))]

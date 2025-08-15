@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace WitchMendokusai
 {
-	[CreateAssetMenu(fileName = nameof(BootstrapSettings), menuName = "BootstrapSettings")]
+	[CreateAssetMenu(fileName = nameof(BootstrapSettings), menuName = "WM/BootstrapSettings")]
 	public class BootstrapSettings : ScriptableObject
 	{
 		[field: Header("_" + nameof(BootstrapSettings))]
