@@ -34,6 +34,6 @@ MonoBehaviour:
       value: 4
   <SignatureEquipment>k__BackingField: {fileID: 11400000, guid: 558768e4ce1c3d7429e1dfa98df215d5, type: 2}
   <DefaultEquipments>k__BackingField:
-  - {fileID: 11400000, guid: 61cbebb97ff32a049bf1e1b9a2ad2c09, type: 2}
+  - {fileID: 11400000, guid: 16c3f6495ee810747993a8bb3009abdd, type: 2}
   - {fileID: 11400000, guid: 016db4505076ec04ba2de9a282ace381, type: 2}
-  - {fileID: 11400000, guid: 8db60fc7b922f1046862db35f8bfae41, type: 2}
+  - {fileID: 11400000, guid: 61cbebb97ff32a049bf1e1b9a2ad2c09, type: 2}

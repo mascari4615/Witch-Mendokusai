@@ -19,6 +19,7 @@ namespace WitchMendokusai
 		public Vector3 MoveDirectionLocal { get; private set; }
 		public Vector3 MoveDirectionWorld { get; private set; }
 		public Vector3 LookDirection { get; private set; }
+		public bool IsLookingRight => playerSprite.flipX == false;
 
 		private void Awake()
 		{

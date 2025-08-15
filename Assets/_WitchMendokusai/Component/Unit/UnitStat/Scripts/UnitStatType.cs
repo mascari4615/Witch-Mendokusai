@@ -81,6 +81,10 @@ namespace WitchMendokusai
 		TURRET_COUNT = 10_200,
 		TURRET_DAMAGE_BONUS = 10_201,
 		TURRET_ATTACK_SPEED_BONUS = 10_202,
+
+		SWORD_COUNT = 10_300,
+		SWORD_DAMAGE_BONUS = 10_301,
+		SWORD_ATTACK_SPEED_BONUS = 10_302,
 		#endregion
 
 		#region Status
