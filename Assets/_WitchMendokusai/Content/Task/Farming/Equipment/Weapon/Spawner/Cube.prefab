@@ -46,18 +46,26 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   transformChainData:
-  - EndPosition: {x: 0, y: 0, z: 0}
+  - TransformFlags: -1
+    EndPosition: {x: 0, y: 0, z: 0}
     EndScale: {x: 0, y: 0, z: 0}
     IsLocal: 1
     IsRelative: 0
     Duration: 0
     EaseType: 0
-  - EndPosition: {x: 0, y: 0, z: 0}
+    MoveEaseType: 0
+    MovePosType: 0
+    RandomRange: 0
+  - TransformFlags: -1
+    EndPosition: {x: 0, y: 0, z: 0}
     EndScale: {x: 1, y: 1, z: 1}
     IsLocal: 1
     IsRelative: 0
     Duration: 1
     EaseType: 30
+    MoveEaseType: 0
+    MovePosType: 0
+    RandomRange: 0
 --- !u!1 &3065810907856893044
 GameObject:
   m_ObjectHideFlags: 0
@@ -177,18 +185,26 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   transformChainData:
-  - EndPosition: {x: 0, y: 3, z: 0}
+  - TransformFlags: -1
+    EndPosition: {x: 0, y: 3, z: 0}
     EndScale: {x: 1, y: 1, z: 1}
     IsLocal: 1
     IsRelative: 0
     Duration: 0
     EaseType: 0
-  - EndPosition: {x: 0, y: 0, z: 0}
+    MoveEaseType: 0
+    MovePosType: 0
+    RandomRange: 0
+  - TransformFlags: -1
+    EndPosition: {x: 0, y: 0, z: 0}
     EndScale: {x: 1, y: 1, z: 1}
     IsLocal: 1
     IsRelative: 0
     Duration: 1
     EaseType: 30
+    MoveEaseType: 0
+    MovePosType: 0
+    RandomRange: 0
 --- !u!1 &7871332613709997573
 GameObject:
   m_ObjectHideFlags: 0
