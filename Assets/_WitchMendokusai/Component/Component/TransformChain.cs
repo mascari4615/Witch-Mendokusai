@@ -7,60 +7,60 @@ using Random = UnityEngine.Random;
 
 namespace WitchMendokusai
 {
+	public enum MovePosType
+	{
+		Manual,
+		Random
+	}
+
+	public enum MoveEaseType
+	{
+		Ease,
+		Parabola
+	}
+
+	[Flags]
+	public enum TransformFlag
+	{
+		None = 0,
+		DoPosition = 1 << 0,
+		DoRotation = 1 << 1,
+		DoScale = 1 << 2
+	}
+
+	[Serializable]
+	public class TransformChainData
+	{
+		public TransformFlag TransformFlags;
+		public Vector3 EndPosition;
+		public Vector3 EndScale;
+		public bool IsLocal;
+		public bool IsRelative;
+		public float Duration;
+		public Ease EaseType;
+		public MoveEaseType MoveEaseType;
+		public MovePosType MovePosType;
+		public float RandomRange;
+
+		public TransformChainData(TransformFlag transformFlags, Vector3 endPosition, Vector3 endScale, float duration, Ease easeType, bool isRelative, bool isLocal, MoveEaseType moveEaseType, MovePosType movePosType, float randomRange)
+		{
+			TransformFlags = transformFlags;
+			EndPosition = endPosition;
+			EndScale = endScale;
+			Duration = duration;
+			EaseType = easeType;
+			MoveEaseType = moveEaseType;
+			MovePosType = movePosType;
+			IsRelative = isRelative;
+			IsLocal = isLocal;
+			RandomRange = randomRange;
+		}
+	}
+
 	public class TransformChain : MonoBehaviour
 	{
 		// DOTween을 이용하여 이동 체인을 구현합니다.
 		// 이동 체인은 인스펙터에서 설정할 수 있어야 합니다.
-
-		public enum MovePosType
-		{
-			Manual,
-			Random
-		}
-
-		public enum MoveEaseType
-		{
-			Ease,
-			Parabola
-		}
-
-		[Flags]
-		public enum TransformFlag
-		{
-			None = 0,
-			DoPosition = 1 << 0,
-			DoRotation = 1 << 1,
-			DoScale = 1 << 2
-		}
-
-		[Serializable]
-		public class TransformChainData
-		{
-			public TransformFlag TransformFlags;
-			public Vector3 EndPosition;
-			public Vector3 EndScale;
-			public bool IsLocal;
-			public bool IsRelative;
-			public float Duration;
-			public Ease EaseType;
-			public MoveEaseType MoveEaseType;
-			public MovePosType MovePosType;
-			public float RandomRange;
-
-			public TransformChainData(TransformFlag transformFlags, Vector3 endPosition, Vector3 endScale, float duration, Ease easeType, bool isRelative, bool isLocal, MoveEaseType moveEaseType, MovePosType movePosType, float randomRange)
-			{
-				TransformFlags = transformFlags;
-				EndPosition = endPosition;
-				EndScale = endScale;
-				Duration = duration;
-				EaseType = easeType;
-				MoveEaseType = moveEaseType;
-				MovePosType = movePosType;
-				IsRelative = isRelative;
-				IsLocal = isLocal;
-				RandomRange = randomRange;
-			}
-		}
 
 		[SerializeField] private List<TransformChainData> transformChainData;
 
