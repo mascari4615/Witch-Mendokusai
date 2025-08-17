@@ -13,7 +13,10 @@ namespace WitchMendokusai
 	{
 		[SerializeField] private GameObject prefabToSpawn;
 		[SerializeField] private SpawnPositionStrategy spawnPositionStrategy = SpawnPositionStrategy.Random;
-		[SerializeField] private float randomRange = 3f;
+
+		[field: SerializeField] public float RandomRange { get; set; } = 3f;
+		[field: SerializeField] public int SpawnCount { get; set; } = 1;
+		[field: SerializeField] public float SpawnDelay { get; set; } = 0.1f;
 
 		private Coroutine spawnCoroutine;
 
@@ -33,23 +36,32 @@ namespace WitchMendokusai
 			while (true)
 			{
 				yield return new WaitForSeconds(1f);
-				Spawn();
+				StartCoroutine(SpawnLoop());
 			}
 		}
 
-		private void Spawn()
+		private IEnumerator SpawnLoop()
 		{
-			// TODO: 위치도 옵션으로
-			transform.position = Player.Instance.transform.position;
-			Vector3 spawnPosition = GetSpawnPosition();
-			GameObject g = ObjectPoolManager.Instance.Spawn(prefabToSpawn, transform.position + spawnPosition, Quaternion.identity);
-			if (g.TryGetComponent(out SkillObject skillObject))
-				skillObject.InitContext(Player.Instance.Object);
+			for (int i = 0; i < SpawnCount; i++)
+			{
+				Spawn();
+				yield return new WaitForSeconds(SpawnDelay);
+			}
 
-			// if (g.TryGetComponent(out DamagingObject damagingObject))
-			// 	damagingObject.SetDamageBonus(damageBonus);
+			void Spawn()
+			{
+				// TODO: 위치도 옵션으로
+				transform.position = Player.Instance.transform.position;
+				Vector3 spawnPosition = GetSpawnPosition();
+				GameObject g = ObjectPoolManager.Instance.Spawn(prefabToSpawn, transform.position + spawnPosition, Quaternion.identity);
+				if (g.TryGetComponent(out SkillObject skillObject))
+					skillObject.InitContext(Player.Instance.Object);
 
-			g.SetActive(true);
+				// if (g.TryGetComponent(out DamagingObject damagingObject))
+				// 	damagingObject.SetDamageBonus(damageBonus);
+
+				g.SetActive(true);
+			}
 		}
 
 		private Vector3 GetSpawnPosition() => spawnPositionStrategy switch
@@ -61,8 +73,8 @@ namespace WitchMendokusai
 
 		private Vector3 GetRandomPosition()
 		{
-			float x = Random.Range(-randomRange, randomRange);
-			float z = Random.Range(-randomRange, randomRange);
+			float x = Random.Range(-RandomRange, RandomRange);
+			float z = Random.Range(-RandomRange, RandomRange);
 			return new Vector3(x, 0f, z);
 		}
 
@@ -74,7 +86,7 @@ namespace WitchMendokusai
 
 		public override void InitContext(SkillObject skillObject)
 		{
-			
+
 		}
 	}
 }

@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 2642577621796159374}
   - component: {fileID: 8052225126702749883}
   - component: {fileID: 6664745894419640492}
+  - component: {fileID: 436533938232106734}
   m_Layer: 0
   m_Name: CubeObject
   m_TagString: Untagged
@@ -72,4 +73,20 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   prefabToSpawn: {fileID: 3065810907856893044, guid: c1dbb981a3555c845af02c0d9ad05411, type: 3}
   spawnPositionStrategy: 0
-  randomRange: 3
+  <RandomRange>k__BackingField: 10
+  <SpawnCount>k__BackingField: 1
+  <SpawnDelay>k__BackingField: 0.1
+--- !u!114 &436533938232106734
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7776191134503699924}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b6e1957e134e7d446b23c68776da60ef, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  spawner: {fileID: 6664745894419640492}
+  spawnCountStat: 10400
