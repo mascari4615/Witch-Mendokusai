@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fef6d2281070d344d9cdc494d9a13c92, type: 3}
+  m_Name: "C_602_\uD3ED\uD0C4\uACF5\uACA9\uC18D\uB3C4\uC99D\uAC00"
+  m_EditorClassIdentifier: 
+  <ID>k__BackingField: 602
+  <Name>k__BackingField: "\uD3ED\uD0C4 \uACF5\uACA9\uC18D\uB3C4 \uC99D\uAC00"
+  <Description>k__BackingField: "\uD3ED\uD0C4 \uACF5\uACA9\uC18D\uB3C4 +"
+  <Sprite>k__BackingField: {fileID: 919157771, guid: 7ee3e373daba7f346a0660f6b7ae5b00, type: 3}
+  <Sprites>k__BackingField: []
+  <Effects>k__BackingField:
+  - Type: 0
+    Data: {fileID: 11400000, guid: b1fdd1e6e66d38543b0f300e9122ea56, type: 2}
+    ArithmeticOperator: 1
+    Value: 1
+  <MaxStack>k__BackingField: 5

@@ -27,8 +27,26 @@ MonoBehaviour:
     m_SerializedLabels:
     - CardData
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 12af03927d5128346b05a433fdd21380
+    m_Address: CardData/504
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - CardData
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 189a74a067a262b4da696e9c95bb6353
     m_Address: CardData/205
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - CardData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 1d9f2deda82efc54484f793b95e1da39
+    m_Address: CardData/503
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - CardData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 24ca3e1765eb53c4db12be15bbd712d4
+    m_Address: CardData/505
     m_ReadOnly: 0
     m_SerializedLabels:
     - CardData
