@@ -85,6 +85,10 @@ namespace WitchMendokusai
 		SWORD_COUNT = 10_300,
 		SWORD_DAMAGE_BONUS = 10_301,
 		SWORD_ATTACK_SPEED_BONUS = 10_302,
+
+		CUBE_COUNT = 10_400,
+		CUBE_DAMAGE_BONUS = 10_401,
+		CUBE_ATTACK_SPEED_BONUS = 10_402,
 		#endregion
 
 		#region Status
