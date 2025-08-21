@@ -1,15 +1,15 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using Newtonsoft.Json;
-using UnityEngine;
+using KarmoLabs;
 using static WitchMendokusai.SOHelper;
 
 namespace WitchMendokusai
 {
 	public class SaveManager
 	{
+		private const string SaveFileName = "WM.json";
+
 		public bool IsDataLoaded { get; private set; }
 
 		private SOManager SOManager => SOManager.Instance;
@@ -99,15 +99,9 @@ namespace WitchMendokusai
 
 		public void LoadLocalData()
 		{
-			string path = Path.Combine(Application.dataPath, "WM.json");
-
-			if (File.Exists(path))
+			if (SaveTool.TryLoadFile(SaveFileName, out GameData gameData))
 			{
-				string json = File.ReadAllText(path);
-				LoadData(JsonConvert.DeserializeObject<GameData>(json, new JsonSerializerSettings
-				{
-					TypeNameHandling = TypeNameHandling.Auto,
-				}));
+				LoadData(gameData);
 			}
 			else
 			{
@@ -193,12 +187,7 @@ namespace WitchMendokusai
 
 			if (AppSetting.Data.UseLocalData)
 			{
-				string json = JsonConvert.SerializeObject(gameData, Formatting.Indented, new JsonSerializerSettings
-				{
-					TypeNameHandling = TypeNameHandling.Auto,
-				});
-				string path = Path.Combine(Application.dataPath, "WM.json");
-				File.WriteAllText(path, json);
+				SaveTool.SaveFile(SaveFileName, gameData);
 			}
 			else
 			{
