@@ -11,6 +11,8 @@ namespace WitchMendokusai
 		[SerializeField] private int damage;
 		private int damageBonus = 0;
 
+		[SerializeField] private bool isTrigger = true;
+
 		[SerializeField] private bool useHitCount;
 		[SerializeField] private int hitCount = 1;
 
@@ -24,16 +26,29 @@ namespace WitchMendokusai
 
 		public void OnTriggerEnter(Collider other)
 		{
-			if (valid == false)
+			if (isTrigger == false || valid == false)
 				return;
 
+			TryDamage(other.gameObject);
+		}
+
+		private void OnCollisionEnter(Collision collision)
+		{
+			if (isTrigger || valid == false)
+				return;
+
+			TryDamage(collision.gameObject);
+		}
+
+		private void TryDamage(GameObject other)
+		{
 			if (other.TryGetComponent(out IDamageable damageable))
 			{
 				switch (damageable)
 				{
 					case MonsterObject when usedByPlayer:
 					case PlayerObject when !usedByPlayer:
-						// Debug.Log(nameof(OnTriggerEnter));
+						// Debug.Log(nameof(OnCollisionEnter));
 						damageable.ReceiveDamage(CalcDamage());
 						if (useHitCount)
 						{

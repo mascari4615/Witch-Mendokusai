@@ -7,6 +7,7 @@ using DG.Tweening;
 
 namespace WitchMendokusai
 {
+	[RequireComponent(typeof(Rigidbody))]
 	public abstract class UnitObject : MonoBehaviour
 	{
 		[field: SerializeField] public Unit UnitData { get; private set; } = null;
@@ -14,7 +15,9 @@ namespace WitchMendokusai
 		public SkillHandler SkillHandler { get; protected set; } = null;
 		[field: SerializeField] public Transform MeshParent { get; protected set; } = null;
 		[field: SerializeField] public SpriteRenderer SpriteRenderer { get; protected set; } = null;
-		public NavMeshAgent NavMeshAgent { get; protected set; } = null;
+		// public NavMeshAgent NavMeshAgent { get; protected set; } = null;
+		public Rigidbody RigidBody { get; protected set; } = null;
+		public UnitMovement UnitMovement { get; protected set; } = null;
 
 		private Vector3 originScale = Vector3.zero;
 
@@ -29,7 +32,9 @@ namespace WitchMendokusai
 		{
 			originScale = MeshParent.localScale;
 			SpriteRenderer.material.SetFloat("_Emission", 0);
-			NavMeshAgent = GetComponent<NavMeshAgent>();
+			// NavMeshAgent = GetComponent<NavMeshAgent>();
+			RigidBody = GetComponent<Rigidbody>();
+			UnitMovement = GetComponent<UnitMovement>();
 
 			if (UnitData != null)
 				Init(UnitData);
@@ -51,14 +56,14 @@ namespace WitchMendokusai
 
 			MeshParent.localScale = originScale;
 
-			if (NavMeshAgent)
-			{
-				NavMeshAgent.stoppingDistance = stoppingDistance;
-				NavMeshAgent.speed = UnitStat[UnitStatType.MOVEMENT_SPEED];
-				// agent.destination = moveDest;
-				NavMeshAgent.updateRotation = updateRotation;
-				NavMeshAgent.acceleration = acceleration;
-			}
+			// if (NavMeshAgent)
+			// {
+			// 	NavMeshAgent.stoppingDistance = stoppingDistance;
+			// 	NavMeshAgent.speed = UnitStat[UnitStatType.MOVEMENT_SPEED];
+			// 	// agent.destination = moveDest;
+			// 	NavMeshAgent.updateRotation = updateRotation;
+			// 	NavMeshAgent.acceleration = acceleration;
+			// }
 		}
 
 		public void UpdateStat()

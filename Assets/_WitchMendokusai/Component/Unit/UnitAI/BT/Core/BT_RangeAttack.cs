@@ -60,10 +60,12 @@ namespace WitchMendokusai
 
 		private void MoveToDestination()
 		{
-			NavMeshAgent agent = unitObject.NavMeshAgent;
+			// NavMeshAgent agent = unitObject.NavMeshAgent;
 
 			Vector3 dir = (moveDest - unitObject.transform.position).normalized;
-			agent.destination = unitObject.transform.position + dir;
+			// agent.destination = unitObject.transform.position + dir;
+
+			unitObject.UnitMovement.SetMoveDirection(dir);
 		}
 
 		private void UpdateSpriteFlip()

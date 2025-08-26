@@ -15,7 +15,7 @@ namespace WitchMendokusai
 			mainAnimator.SetBool("MOVE", rigidbody.linearVelocity.magnitude > 0.1f);
 			handAnimator.SetBool("CHANNELING", Input.GetKey(KeyCode.Mouse0) || Input.GetKey(KeyCode.Mouse1));
 
-			Vector3 moveDirection = Player.Instance.Movement.MoveDirectionLocal;
+			Vector3 moveDirection = Player.Instance.Object.UnitMovement.MoveDirectionLocal;
 			if (moveDirection.x == 0)
 				return;
 

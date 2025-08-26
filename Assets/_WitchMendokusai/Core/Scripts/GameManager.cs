@@ -54,11 +54,10 @@ namespace WitchMendokusai
 
 		IsMouseOnUI = 1 << 2,
 
-		IsDashing = 1 << 3,
-		IsPlayerCasting = 1 << 4,
-		IsDied = 1 << 5,
+		IsPlayerCasting = 1 << 3,
+		IsDied = 1 << 4,
 
-		IsBuilding = 1 << 6,
+		IsBuilding = 1 << 5,
 	}
 
 	public class GameCondition
@@ -78,7 +77,6 @@ namespace WitchMendokusai
 
 			{ GameConditionType.IsMouseOnUI, () => InputManager.Instance.IsPointerOverUI() },
 
-			{ GameConditionType.IsDashing, () => Player.Instance.Object.UnitStat[UnitStatType.FORCE_MOVE] > 0 },
 			{ GameConditionType.IsPlayerCasting, () => Player.Instance.Object.UnitStat[UnitStatType.CASTING_SKILL] > 0 },
 			{ GameConditionType.IsDied, () => Player.Instance.Object.UnitStat[UnitStatType.HP_CUR] <= 0 },
 

@@ -137,6 +137,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   damage: 2
+  isTrigger: 0
   useHitCount: 0
   hitCount: 1
   disableWhenInvalid: 0

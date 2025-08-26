@@ -55,7 +55,7 @@ namespace WitchMendokusai
 			transform.position = Player.Instance.transform.position;
 			// transform.Rotate(0, rotateSpeed * Time.deltaTime, 0);
 
-			transform.rotation = Player.Instance.Movement.IsLookingRight
+			transform.rotation = Player.Instance.Object.UnitMovement.IsLookingRight
 				? Quaternion.Euler(0, 0, 0)
 				: Quaternion.Euler(0, 180, 0);
 		}
@@ -80,7 +80,7 @@ namespace WitchMendokusai
 		private IEnumerator AttackLoop()
 		{
 			WaitForSeconds wait = new WaitForSeconds(EachAttackDelay);
-			bool playerWasLookingRight = Player.Instance.Movement.IsLookingRight;
+			bool playerWasLookingRight = Player.Instance.Object.UnitMovement.IsLookingRight;
 			for (int i = 0; i < swordTransforms.Count; i++)
 			{
 				Attack(swordTransforms[i], i);
