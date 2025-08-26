@@ -8,11 +8,11 @@ using static WitchMendokusai.SOHelper;
 
 namespace WitchMendokusai
 {
-	public class DungeonStrategyBoss : DungeonStrategy
+	public class DungeonObjectiveStrategyTimeSurvival : DungeonObjectiveStrategy
 	{
 		protected override string GetQuestName(Dungeon dungeon, QuestInfo questInfo)
 		{
-			return "보스 처치";
+			return "시간 동안 생존";
 		}
 
 		protected override void SetQuestInfo(Dungeon dungeon, ref QuestInfo questInfo)
@@ -22,7 +22,7 @@ namespace WitchMendokusai
 				new CriteriaInfo()
 				{
 					Type = CriteriaType.DungeonStat,
-					Data = GetDungeonStatData(DungeonStatType.BOSS_KILL),
+					Data = GetDungeonStatData(DungeonStatType.DUNGEON_TIME),
 					ComparisonOperator = ComparisonOperator.GreaterThanOrEqualTo,
 					Value = dungeon.ClearValue,
 					JustOnce = true,

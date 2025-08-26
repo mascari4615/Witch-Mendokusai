@@ -21,7 +21,7 @@ namespace WitchMendokusai
 		private UIDungeon dungeonUI = null;
 
 		private DungeonRecorder dungeonRecorder = null;
-		private DungeonStrategy dungeonStrategy = null;
+		private DungeonObjectiveStrategy dungeonStrategy = null;
 		private IDisposable dungeonLoopSubscription;
 
 		protected override void Awake()
@@ -42,7 +42,7 @@ namespace WitchMendokusai
 			Debug.Log($"{nameof(StartDungeon)}");
 
 			CurDungeon = dungeon;
-			dungeonStrategy = DungeonStrategyFactory.Create(dungeon);
+			dungeonStrategy = DungeonObjectiveStrategyFactory.Create(dungeon);
 
 			Stage stage = dungeon.Stages[0];
 

@@ -8,7 +8,7 @@ using static WitchMendokusai.SOHelper;
 
 namespace WitchMendokusai
 {
-	public class DungeonStrategyKillCount : DungeonStrategy
+	public class DungeonObjectiveStrategyKillCount : DungeonObjectiveStrategy
 	{
 		protected override string GetQuestName(Dungeon dungeon, QuestInfo questInfo)
 		{

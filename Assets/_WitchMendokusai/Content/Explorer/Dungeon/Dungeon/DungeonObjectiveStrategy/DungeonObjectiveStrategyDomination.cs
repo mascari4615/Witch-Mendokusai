@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace WitchMendokusai
 {
-	public class DungeonStrategyDomination : DungeonStrategy
+	public class DungeonObjectiveStrategyDomination : DungeonObjectiveStrategy
 	{
 		protected override string GetQuestName(Dungeon dungeon, QuestInfo questInfo)
 		{

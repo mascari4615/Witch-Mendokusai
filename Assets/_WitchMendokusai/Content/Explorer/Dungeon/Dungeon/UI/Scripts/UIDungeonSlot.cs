@@ -23,7 +23,7 @@ namespace WitchMendokusai
 			{
 				Dungeon dungeon = DataSO as Dungeon;
 				playTimeText.text = $"{dungeon.TimeBySecond / 60}분";
-				typeText.text = dungeon.Type.ToString();
+				typeText.text = dungeon.ObjectiveType.ToString();
 			}
 			else
 			{

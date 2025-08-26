@@ -8,7 +8,7 @@ using static WitchMendokusai.SOHelper;
 
 namespace WitchMendokusai
 {
-	public abstract class DungeonStrategy
+	public abstract class DungeonObjectiveStrategy
 	{
 		public RuntimeQuest CreateRuntimeQuest(Dungeon dungeon)
 		{
