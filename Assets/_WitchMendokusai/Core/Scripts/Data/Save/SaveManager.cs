@@ -175,7 +175,7 @@ namespace WitchMendokusai
 				works = DataManager.WorkManager.Works,
 				questStates = DataManager.QuestManager.GetQuestStates().ToDictionary(pair => pair.Key, pair => (int)pair.Value),
 				hasRecipe = DataManager.IsRecipeUnlocked,
-				runtimeQuests = DataManager.QuestManager.Quests.Data.Where(quest => quest.Type != QuestType.Dungeon).ToList().ConvertAll(quest => quest.Save()),
+				runtimeQuests = DataManager.QuestManager.Quests.Data.Where(quest => quest.Group != QuestGroup.Dungeon).ToList().ConvertAll(quest => quest.Save()),
 				gameStats = DataManager.GameStat.Save(),
 				dungeons = new(),
 				worldStages = new()

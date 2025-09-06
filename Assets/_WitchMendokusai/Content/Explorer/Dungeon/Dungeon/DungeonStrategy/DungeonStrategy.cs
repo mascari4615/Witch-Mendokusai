@@ -28,7 +28,7 @@ namespace WitchMendokusai
 		{
 			return new()
 			{
-				Type = QuestType.Dungeon,
+				Group = QuestGroup.Dungeon,
 				GameEvents = new()
 				{
 					GameEventType.OnTick,

@@ -22,7 +22,9 @@ MonoBehaviour:
   <Sprite>k__BackingField: {fileID: 1415901615, guid: 0e29ad6274cbc2f4fbbe5da3634a4d81, type: 3}
   <Sprites>k__BackingField: []
   <Data>k__BackingField:
-    Type: 2
+    Group: 0
+    Type: 0
+    Tag: 0
     UnlockEffects:
     - Type: 150
       Data: {fileID: 11400000, guid: 048a22c9da8ed4748859bced337deb20, type: 2}

@@ -18,7 +18,9 @@ MonoBehaviour:
   <Sprite>k__BackingField: {fileID: 21300000, guid: bf5a83dd1283dc54893e51fc7b583401, type: 3}
   <Sprites>k__BackingField: []
   <Data>k__BackingField:
-    Type: 2
+    Group: 0
+    Type: 0
+    Tag: 0
     UnlockEffects: []
     GameEvents: 
     Criteria: []

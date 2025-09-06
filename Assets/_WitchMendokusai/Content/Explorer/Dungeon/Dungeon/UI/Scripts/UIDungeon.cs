@@ -31,7 +31,7 @@ namespace WitchMendokusai
 
 			questGrid = GetComponentInChildren<UIQuestGrid>(true);
 			questGrid.Init();
-			questGrid.SetFilter(QuestType.Dungeon);
+			questGrid.SetFilter(QuestGroup.Dungeon);
 		}
 
 		public void StartLoop()

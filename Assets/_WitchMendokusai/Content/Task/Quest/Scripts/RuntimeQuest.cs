@@ -6,6 +6,15 @@ using static WitchMendokusai.SOHelper;
 
 namespace WitchMendokusai
 {
+	public enum RuntimeQuestState
+	{
+		InProgress,
+		CanWork,
+		Working,
+		CanComplete,
+		Completed,
+	}
+
 	public class RuntimeQuest : ISavable<RuntimeQuestSaveData>
 	{
 		public Guid? Guid { get; private set; }
@@ -16,7 +25,7 @@ namespace WitchMendokusai
 		public string Name { get; private set; }
 		public string Description { get; private set; }
 
-		public QuestType Type { get; private set; }
+		public QuestGroup Group { get; private set; }
 		public List<GameEventType> GameEvents { get; private set; }
 		public List<RuntimeCriteria> Criteria { get; private set; }
 		public List<EffectInfoData> CompleteEffects { get; private set; }
@@ -55,7 +64,7 @@ namespace WitchMendokusai
 			Name = name;
 			Description = description;
 
-			Type = questInfo.Type;
+			Group = questInfo.Group;
 			GameEvents = questInfo.GameEvents.ToList();
 			Criteria = questInfo.Criteria.ConvertAll(criteriaData => new RuntimeCriteria(criteriaData));
 			CompleteEffects = questInfo.CompleteEffects.ConvertAll(effectData => new EffectInfoData(effectData));
@@ -81,7 +90,7 @@ namespace WitchMendokusai
 			if (State == RuntimeQuestState.Completed)
 				return;
 
-			if (Type == QuestType.VillageRequest)
+			if (Group == QuestGroup.VillageRequest)
 			{
 				if (State >= RuntimeQuestState.Working)
 					return;
@@ -97,7 +106,7 @@ namespace WitchMendokusai
 				}
 			}
 
-			if (Type == QuestType.VillageRequest)
+			if (Group == QuestGroup.VillageRequest)
 			{
 				State = RuntimeQuestState.CanWork;
 				if (AutoWork)
@@ -139,7 +148,7 @@ namespace WitchMendokusai
 			if (SO != null)
 			{
 				QuestManager.Instance.SetQuestState(SO.ID, QuestState.Completed);
-				if (Type == QuestType.Achievement)
+				if (Group == QuestGroup.Achievement)
 					UIManager.Instance?.Popup(SO);
 			}
 
@@ -208,7 +217,7 @@ namespace WitchMendokusai
 
 			SO = saveData.SO_ID != -1 ? GetQuestSO(saveData.SO_ID) : null;
 
-			Type = saveData.Type;
+			Group = saveData.Group;
 			GameEvents = saveData.GameEvents;
 			Criteria = saveData.Criteria.ConvertAll(criteriaData => new RuntimeCriteria(criteriaData));
 			CompleteEffects = saveData.CompleteEffects;
@@ -229,7 +238,7 @@ namespace WitchMendokusai
 
 				SO_ID = SO != null ? SO.ID : -1,
 
-				Type = Type,
+				Group = Group,
 				GameEvents = GameEvents,
 				Criteria = Criteria.ConvertAll(criteria => criteria.Save()),
 				CompleteEffects = CompleteEffects,

@@ -75,14 +75,14 @@ namespace WitchMendokusai
 			}
 		}
 
-		public void RemoveQuests(QuestType questType)
+		public void RemoveQuests(QuestGroup questGroup)
 		{
-			Quests.Data.RemoveAll(x => x.Type == questType);
+			Quests.Data.RemoveAll(x => x.Group == questGroup);
 		}
 
-		public int GetQuestCount(QuestType questType)
+		public int GetQuestCount(QuestGroup questGroup)
 		{
-			return Quests.Data.FindAll(x => x.Type == questType).Count;
+			return Quests.Data.FindAll(x => x.Group == questGroup).Count;
 		}
 	}
 }

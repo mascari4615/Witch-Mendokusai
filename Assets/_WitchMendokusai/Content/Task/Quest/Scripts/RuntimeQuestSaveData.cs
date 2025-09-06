@@ -14,7 +14,7 @@ namespace WitchMendokusai
 		public string Name;
 		public string Description;
 
-		public QuestType Type;
+		public QuestGroup Group;
 		public List<GameEventType> GameEvents;
 		public List<RuntimeCriteriaSaveData> Criteria;
 		public List<EffectInfoData> CompleteEffects;

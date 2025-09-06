@@ -9,7 +9,7 @@ namespace WitchMendokusai
 	public class UIQuestGrid : UIDataGrid<RuntimeQuest>
 	{
 		[SerializeField] private Transform filtersParent;
-		private QuestType curFilter = QuestType.None;
+		private QuestGroup curFilter = QuestGroup.None;
 
 		private UIQuestToolTip questToolTip;
 
@@ -31,7 +31,7 @@ namespace WitchMendokusai
 					fillerButtons[i].SetSlotIndex(i);
 					fillerButtons[i].SetClickAction((slot) =>
 					{
-						QuestType newFilter = (QuestType)(slot.Index - 1);
+						QuestGroup newFilter = (QuestGroup)(slot.Index - 1);
 						SetFilter(newFilter);
 					});
 				}
@@ -60,7 +60,7 @@ namespace WitchMendokusai
 				}
 				else
 				{
-					bool slotActive = (curFilter == QuestType.None) || (quest.Type == curFilter);
+					bool slotActive = (curFilter == QuestGroup.None) || (quest.Group == curFilter);
 
 					slot.SetRuntimeQuestState(quest.State);
 					slot.SetQuest(quest);
@@ -89,7 +89,7 @@ namespace WitchMendokusai
 			UpdateNoElementInfo();
 		}
 
-		public void SetFilter(QuestType filter)
+		public void SetFilter(QuestGroup filter)
 		{
 			curFilter = filter;
 			UpdateUI();
