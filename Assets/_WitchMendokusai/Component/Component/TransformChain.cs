@@ -59,17 +59,18 @@ namespace WitchMendokusai
 
 	public class TransformChain : MonoBehaviour
 	{
-		// DOTween을 이용하여 이동 체인을 구현합니다.
-		// 이동 체인은 인스펙터에서 설정할 수 있어야 합니다.
-
 		[SerializeField] private List<TransformChainData> transformChainData;
+		[SerializeField] private bool autoRun = true; // Target을 외부에서 설정해줘야하는 경우가 있을 듯
 
 		private void OnEnable()
 		{
 			DOTween.Kill(transform);
 			StopAllCoroutines();
 
-			StartCoroutine(RunTransformChain());
+			if (autoRun)
+			{
+				StartCoroutine(RunTransformChain());
+			}
 		}
 
 		private void OnDisable()
@@ -89,51 +90,40 @@ namespace WitchMendokusai
 		private IEnumerator DoTransform(TransformChainData data)
 		{
 			if (data.TransformFlags.HasFlag(TransformFlag.DoPosition))
-				StartCoroutine(DoPosition(data));
+				DoPosition(data);
 			if (data.TransformFlags.HasFlag(TransformFlag.DoRotation))
-				StartCoroutine(DoRotation(data));
+				DoRotation(data);
 			if (data.TransformFlags.HasFlag(TransformFlag.DoScale))
-				StartCoroutine(DoScale(data));
+				DoScale(data);
 
 			yield return new WaitForSeconds(data.Duration);
 		}
 
-		private IEnumerator DoPosition(TransformChainData data)
+		private void DoPosition(TransformChainData data)
 		{
 			if (data.Duration == 0)
 			{
 				if (data.IsLocal)
 				{
-					transform.localPosition = data.EndPosition;
+					transform.localPosition = CalcEndPosition(data);
 				}
 				else
 				{
-					transform.position = data.EndPosition;
+					transform.position = CalcEndPosition(data);
 				}
 			}
 			else
 			{
-				switch (data.MoveEaseType)
-				{
-					case MoveEaseType.Ease:
-						yield return StartCoroutine(Move(data));
-						break;
-					case MoveEaseType.Parabola:
-						yield return StartCoroutine(ParabolaMove(data));
-						break;
-				}
+				StartCoroutine(Move(data));
 			}
-
-			yield break;
 		}
 
-		private IEnumerator DoRotation(TransformChainData data)
+		private void DoRotation(TransformChainData data)
 		{
 			// 회전 로직을 여기에 추가할 수 있습니다.
-			yield break;
 		}
 
-		private IEnumerator DoScale(TransformChainData data)
+		private void DoScale(TransformChainData data)
 		{
 			if (data.Duration == 0)
 			{
@@ -145,31 +135,53 @@ namespace WitchMendokusai
 					.SetEase(data.EaseType)
 					.SetRelative(data.IsRelative);
 			}
-			yield break;
 		}
 
 		private IEnumerator Move(TransformChainData data)
 		{
-			if (data.IsLocal)
-				transform.DOLocalMove(data.EndPosition, data.Duration)
-					.SetEase(data.EaseType)
-					.SetRelative(data.IsRelative);
-			else
-				transform.DOMove(data.EndPosition, data.Duration)
-					.SetEase(data.EaseType)
-					.SetRelative(data.IsRelative);
+			Vector3 startPosition = data.IsLocal ? transform.localPosition : transform.position;
+			Vector3 endPosition = CalcEndPosition(data);
 
-			yield return new WaitForSeconds(data.Duration);
+			if (data.IsRelative)
+			{
+				endPosition += startPosition;
+			}
+
+			for (float elapsedTime = 0; elapsedTime < data.Duration; elapsedTime += Time.deltaTime)
+			{
+				float t = elapsedTime / data.Duration;
+
+				Vector3 newPos;
+				switch (data.MoveEaseType)
+				{
+					case MoveEaseType.Ease:
+						float easedT = DOVirtual.EasedValue(0, 1, t, data.EaseType);
+						newPos = Vector3.Lerp(startPosition, endPosition, easedT);
+						break;
+					case MoveEaseType.Parabola:
+						float height = Mathf.Sin(t * Mathf.PI) * 2;
+						newPos = Vector3.Lerp(startPosition, endPosition, t) + Vector3.up * height;
+						break;
+					default:
+						newPos = Vector3.Lerp(startPosition, endPosition, t);
+						break;
+				}
+
+				SetPosition(newPos);
+				yield return null;
+			}
+
+			void SetPosition(Vector3 position)
+			{
+				if (data.IsLocal)
+					transform.localPosition = position;
+				else
+					transform.position = position;
+			}
 		}
 
-		private IEnumerator ParabolaMove(TransformChainData data)
+		public Vector3 CalcEndPosition(TransformChainData data)
 		{
-			Vector3 startPosition;
-			if (data.IsLocal)
-				startPosition = transform.localPosition;
-			else
-				startPosition = transform.position;
-
 			Vector3 endPosition;
 			switch (data.MovePosType)
 			{
@@ -182,34 +194,13 @@ namespace WitchMendokusai
 						0,
 						Random.Range(-data.RandomRange, data.RandomRange)
 					);
-					endPosition = startPosition + randomPosition;
+					endPosition = transform.position + randomPosition;
 					break;
 				default:
 					endPosition = data.EndPosition;
 					break;
 			}
-
-			float elapsedTime = 0;
-
-			while (elapsedTime < data.Duration)
-			{
-				float t = elapsedTime / data.Duration;
-				float height = Mathf.Sin(t * Mathf.PI) * 2; // Parabola height
-				SetPosition(Vector3.Lerp(startPosition, endPosition, t) + Vector3.up * height);
-
-				elapsedTime += Time.deltaTime;
-				yield return null;
-			}
-
-			SetPosition(endPosition);
-
-			void SetPosition(Vector3 position)
-			{
-				if (data.IsLocal)
-					transform.localPosition = position;
-				else
-					transform.position = position;
-			}
+			return endPosition;
 		}
 	}
 }
