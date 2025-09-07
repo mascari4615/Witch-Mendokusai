@@ -23,6 +23,7 @@ namespace WitchMendokusai
 			dungeonExitButton.onClick.AddListener(() =>
 			{
 				// HACK:
+				UIManager.Instance.ToggleOverlayUI_Setting();
 				Player.Instance.Object.ReceiveDamage(new DamageInfo(9999, DamageType.Critical));
 				// DungeonManager.Instance.EndDungeon();
 			});
