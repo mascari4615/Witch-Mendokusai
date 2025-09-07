@@ -34,35 +34,44 @@ namespace WitchMendokusai
 			new(
 				InputEventType.Submit,
 				InputEventResponseType.Performed,
-				Player.Instance.TryInteract
+				() =>
+				{
+					if (GameManager.Instance.Conditions.IsGameConditionAny(
+											GameConditionType.IsInTransition) == true)
+						return;
+
+					if (UIManager.Instance.IsPanelOpen)
+						return;
+
+					Player.Instance.TryInteract();
+				}
 			),
 			new(
 				InputEventType.Cancel,
 				InputEventResponseType.Performed,
-				UIManager.Instance.ToggleOverlayUI_Setting
+				() => UIManager.Instance.ToggleOverlayUI_Setting()
 			),
 			new(
 				InputEventType.Tab,
 				InputEventResponseType.Performed,
-				UIManager.Instance.ToggleOverlayUI_Tab
+				() => UIManager.Instance.ToggleOverlayUI_Tab()
 			),
 			new(
 				InputEventType.Status,
 				InputEventResponseType.Performed,
-				UIManager.Instance.ToggleStatus
+				() => UIManager.Instance.ToggleStatus()
 			)
 			#endregion
 		};
 
 		private static void TryUseSkill(int skillIndex)
 		{
-			GameConditionType skillCondition = GameConditionType.IsMouseOnUI
-											| GameConditionType.IsChatting
-											| GameConditionType.IsPaused
-											| GameConditionType.IsDied
-											| GameConditionType.IsBuilding;
-
-			if (GameManager.Instance.Conditions.IsGameCondition(skillCondition))
+			if (GameManager.Instance.Conditions.IsGameConditionAny(
+											GameConditionType.IsMouseOnUI,
+											GameConditionType.IsChatting,
+											GameConditionType.IsPaused,
+											GameConditionType.IsDied,
+											GameConditionType.IsBuilding) == true)
 				return;
 
 			Player.Instance.TryUseSkill(skillIndex);

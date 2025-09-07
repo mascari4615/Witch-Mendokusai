@@ -42,9 +42,6 @@ namespace WitchMendokusai
 
 		public void TryInteract()
 		{
-			if (UIManager.Instance.IsPanelOpen)
-				return;
-
 			interaction.TryInteraction();
 		}
 
