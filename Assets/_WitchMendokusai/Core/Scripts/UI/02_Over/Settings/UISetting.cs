@@ -24,7 +24,7 @@ namespace WitchMendokusai
 			{
 				// HACK:
 				UIManager.Instance.ToggleOverlayUI_Setting();
-				Player.Instance.Object.ReceiveDamage(new DamageInfo(9999, DamageType.Critical));
+				Player.Instance.Object.ReceiveDamage(new DamageInfo(damage: 9999, DamageType.Critical, ignoreInvincible: true));
 				// DungeonManager.Instance.EndDungeon();
 			});
 
