@@ -53,6 +53,8 @@ SpriteRenderer:
   m_RayTracingAccelStructBuildFlagsOverride: 0
   m_RayTracingAccelStructBuildFlags: 1
   m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -74,6 +76,7 @@ SpriteRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
@@ -156,6 +159,8 @@ SpriteRenderer:
   m_RayTracingAccelStructBuildFlagsOverride: 0
   m_RayTracingAccelStructBuildFlags: 1
   m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -177,6 +182,7 @@ SpriteRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: -1
@@ -261,7 +267,7 @@ PrefabInstance:
       addedObject: {fileID: 1273246012047982629}
     - targetCorrespondingSourceObject: {fileID: 4552526690297205425, guid: 8985bc14129999340bfe02f05cc6a45f, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 6120728245295325875}
+      addedObject: {fileID: 3417651250502740154}
   m_SourcePrefab: {fileID: 100100000, guid: 8985bc14129999340bfe02f05cc6a45f, type: 3}
 --- !u!4 &750914692475566661 stripped
 Transform:
@@ -291,7 +297,6 @@ MonoBehaviour:
   stoppingDistance: 0.1
   updateRotation: 0
   acceleration: 40
-  tolerance: 1
 --- !u!114 &1273246012047982629
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -304,7 +309,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ed192138a06dd474484573115553a37f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &6120728245295325875
+--- !u!114 &3417651250502740154
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -313,9 +318,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 1827634288136616747}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 50b947c6c8b9732498b09cb0ccb40df4, type: 3}
+  m_Script: {fileID: 11500000, guid: 3c32dfdaa9b4c93409474597742af9f0, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: 
+  m_EditorClassIdentifier: Assembly-CSharp::WitchMendokusai.StateMachine
+  fsmType: 2
 --- !u!4 &2210592187617595256 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4097506783380236002, guid: 8985bc14129999340bfe02f05cc6a45f, type: 3}

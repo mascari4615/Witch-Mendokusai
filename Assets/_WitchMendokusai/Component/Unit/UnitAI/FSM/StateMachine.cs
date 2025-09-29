@@ -5,7 +5,14 @@ using UnityEngine;
 
 namespace WitchMendokusai
 {
-	public enum TempState
+	public enum FSMType
+	{
+		Slime = 0,
+		Wisp = 1,
+		NPC = 2,
+	}
+
+	public enum FSMState
 	{
 		Idle,
 		Attack
@@ -18,62 +25,34 @@ namespace WitchMendokusai
 		Exit
 	}
 
-	public abstract class StateMachine<T> : MonoBehaviour where T : Enum
+	[RequireComponent(typeof(UnitObject))]
+	public class StateMachine : MonoBehaviour
 	{
-		private const float TICK = 0.3f;
-
-		protected T currentState;
-		private readonly Dictionary<(T, StateEvent), Action> stateEventDic = new();
-		private readonly Coroutine coroutine;
-
-		/// <summary>
-		/// 상태머신을 쓰기 전에 초기화를 해주는 함수.
-		/// OnEnable에서 호출됩니다.
-		/// </summary>
-		protected abstract void Init();
+		[SerializeField] private FSMType fsmType = FSMType.Slime;
+		private FSM fsm;
 
 		private void OnEnable()
 		{
-			Init();
-			ChangeState(default);
+			UnitObject unitObject = GetComponent<UnitObject>();
+			if (unitObject == null)
+			{
+				Debug.LogError("UnitObject component is missing.");
+				return;
+			}
+
+			fsm = fsmType switch
+			{
+				FSMType.Slime => new FSMSlime(unitObject),
+				FSMType.Wisp => new FSMWisp(unitObject),
+				FSMType.NPC => new FSMNPC(unitObject),
+				_ => throw new ArgumentOutOfRangeException(),
+			};
 		}
 
 		private void OnDisable()
 		{
-			if (coroutine != null)
-				StopCoroutine(coroutine);
-		}
-		
-		public void SetStateEvent(T state, StateEvent stateEvent, Action action)
-		{
-			stateEventDic[(state, stateEvent)] = action;
-		}
-
-		public void ChangeState(T newState)
-		{
-			if (currentState != null)
-			{
-				if (stateEventDic.ContainsKey((currentState, StateEvent.Exit)))
-					stateEventDic[(currentState, StateEvent.Exit)]?.Invoke();
-			}
-			currentState = newState;
-			if (stateEventDic.ContainsKey((currentState, StateEvent.Enter)))
-				stateEventDic[(currentState, StateEvent.Enter)]?.Invoke();
-
-			if (coroutine != null)
-				StopCoroutine(coroutine);
-			StartCoroutine(StateLoop());
-		}
-
-		private IEnumerator StateLoop()
-		{
-			WaitForSeconds waitForTick = new(TICK);
-			while (true)
-			{
-				stateEventDic[(currentState, StateEvent.Update)]?.Invoke();
-				yield return waitForTick;
-				// yield return null;
-			}
+			fsm?.Dispose();
+			fsm = null;
 		}
 	}
 }
