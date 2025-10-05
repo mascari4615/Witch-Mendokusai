@@ -10,7 +10,7 @@ namespace WitchMendokusai
 		public List<KeyValuePair<Vector3Int, BuildingInstanceData>> BuildingSaveData;
 	}
 
-	[CreateAssetMenu(fileName = "WS_", menuName = "Data/" + nameof(WorldStage))]
+	[CreateAssetMenu(fileName = "WS_", menuName = "WM/Data/" + nameof(WorldStage))]
 	public class WorldStage : Stage, ISavable<WorldStageSaveData>
 	{
 		[field: NonSerialized] public GridData GridData { get; private set; } = new();

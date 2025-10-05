@@ -24,7 +24,7 @@ namespace WitchMendokusai
 		}
 	}
 
-	[CreateAssetMenu(fileName = nameof(Inventory), menuName = "DataBuffer/" + nameof(Item))]
+	[CreateAssetMenu(fileName = nameof(Inventory), menuName = "WM/DataBuffer/" + nameof(Item))]
 	public class Inventory : DataBufferSO<Item>, ISavable<List<InventorySlotSaveData>>, ISerializationCallbackReceiver
 	{
 		private const int NONE = -1;

@@ -20,6 +20,8 @@ namespace WitchMendokusai
 		// FadeIn Animation이 다 끝날 때 기다리면 조금 답답한 느낌이 들어서. - 2025.03.19 20:28
 		private const float EarlyResumeRatio = 0.3f;
 
+		public static bool IsInTransition { get; private set; } = false;
+
 		private void Awake()
 		{
 			canvasGroup = GetComponent<CanvasGroup>();
@@ -52,7 +54,9 @@ namespace WitchMendokusai
 			// HACK:
 			Animator transitionAnimator = transitionAnimators[Random.Range(0, transitionAnimators.Length)];
 			AnimatorStateInfo currentStateInfo;
+
 			// Start
+			IsInTransition = true;
 			aWhenStart?.Invoke();
 			TimeManager.Instance.Pause(gameObject);
 			canvasGroup.blocksRaycasts = true;
@@ -79,6 +83,7 @@ namespace WitchMendokusai
 			}
 
 			// End
+			IsInTransition = false;
 			canvasGroup.blocksRaycasts = false;
 			TimeManager.Instance.Resume(gameObject);
 			aWhenEnd?.Invoke();

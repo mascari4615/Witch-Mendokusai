@@ -23,7 +23,7 @@ namespace WitchMendokusai
 		Count,
 	}
 
-	[CreateAssetMenu(fileName = nameof(ItemData), menuName = "Variable/ItemData")]
+	[CreateAssetMenu(fileName = nameof(ItemData), menuName = "WM/Variable/ItemData")]
 	public class ItemData : DataSO
 	{
 		[field: Header("_" + nameof(ItemData))]

@@ -4,6 +4,6 @@ using UnityEngine;
 
 namespace WitchMendokusai
 {
-	[CreateAssetMenu(fileName = nameof(QuestBuffer), menuName = "DataBuffer/" + nameof(RuntimeQuest))]
+	[CreateAssetMenu(fileName = nameof(QuestBuffer), menuName = "WM/DataBuffer/" + nameof(RuntimeQuest))]
 	public class QuestBuffer : DataBufferSO<RuntimeQuest> { }
 }

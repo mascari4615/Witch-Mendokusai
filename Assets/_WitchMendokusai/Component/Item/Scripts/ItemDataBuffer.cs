@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace WitchMendokusai
 {
-	[CreateAssetMenu(fileName = nameof(ItemDataBuffer), menuName = "DataBuffer/" + nameof(ItemData))]
+	[CreateAssetMenu(fileName = nameof(ItemDataBuffer), menuName = "WM/DataBuffer/" + nameof(ItemData))]
 	public class ItemDataBuffer : DataBufferSO<ItemData>
 	{
 		[System.NonSerialized] public Dictionary<int, int> itemCountDic = new();

@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace WitchMendokusai
 {
-	[CreateAssetMenu(fileName = nameof(EditorSettings), menuName = "EditorSettings")]
+	[CreateAssetMenu(fileName = nameof(EditorSettings), menuName = "WM/EditorSettings")]
 	public class EditorSettings : ScriptableObject
 	{
 		[field: Header("_" + nameof(EditorSettings))]

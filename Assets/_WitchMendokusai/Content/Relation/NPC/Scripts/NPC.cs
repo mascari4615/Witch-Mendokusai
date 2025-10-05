@@ -14,7 +14,7 @@ namespace WitchMendokusai
 		public List<DataSO> DataSOs;
 	}
 
-	[CreateAssetMenu(fileName = nameof(NPC), menuName = "Variable/" + nameof(Unit) + "/" + nameof(NPC))]
+	[CreateAssetMenu(fileName = nameof(NPC), menuName = "WM/Variable/" + nameof(Unit) + "/" + nameof(NPC))]
 	public class NPC : Unit
 	{
 		[field: Header("_" + nameof(NPC))]

@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace WitchMendokusai
 {
-	[CreateAssetMenu(fileName = nameof(CardBuffer), menuName = "DataBuffer/" + nameof(CardData))]
+	[CreateAssetMenu(fileName = nameof(CardBuffer), menuName = "WM/DataBuffer/" + nameof(CardData))]
 	public class CardBuffer : DataBufferSO<CardData>
 	{
 		[SerializeField] private bool applyEffect;

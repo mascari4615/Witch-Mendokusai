@@ -10,11 +10,13 @@ namespace WitchMendokusai
 	{
 		public int damage;
 		public DamageType type;
+		public bool ignoreInvincible;
 
-		public DamageInfo(int damage, DamageType type)
+		public DamageInfo(int damage, DamageType type, bool ignoreInvincible = false)
 		{
 			this.damage = damage;
 			this.type = type;
+			this.ignoreInvincible = ignoreInvincible;
 		}
 	}
 

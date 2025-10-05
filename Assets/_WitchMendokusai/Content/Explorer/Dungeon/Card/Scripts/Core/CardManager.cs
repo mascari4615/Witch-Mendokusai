@@ -182,6 +182,12 @@ namespace WitchMendokusai
 		{
 			RuntimeManager.PlayOneShot("event:/SFX/UI/Click", transform.position);
 
+			if (card == null)
+			{
+				Debug.LogWarning("Card is null");
+				return;
+			}
+
 			CardBuffer selectedCardBuffer = SOManager.Instance.SelectedCardBuffer;
 
 			selectedCardBuffer.Add(card);

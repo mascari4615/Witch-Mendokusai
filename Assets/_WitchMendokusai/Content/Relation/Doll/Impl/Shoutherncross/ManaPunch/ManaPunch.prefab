@@ -35,6 +35,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 2375143042128856006}
+  - {fileID: 1610455808590536978}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1320119107605725228
@@ -50,6 +51,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   moveSpeed: 1
+  useAutoAim: 0
 --- !u!114 &5976393549530359583
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -108,12 +110,12 @@ MonoBehaviour:
       Data4: -1771286892
     Path: event:/SFX/Skill/Bubble
   Event: 
-  PlayEvent: 11
-  StopEvent: 0
+  EventPlayTrigger: 11
+  EventStopTrigger: 0
   AllowFadeout: 1
   TriggerOnce: 0
   Preload: 0
-  AllowNonRigidbodyDoppler: 0
+  NonRigidbodyVelocity: 0
   Params: []
   OverrideAttenuation: 0
   OverrideMinDistance: 1
@@ -127,7 +129,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2375143042128856006}
-  - component: {fileID: 5245587264116138888}
+  - component: {fileID: 8323074962419205044}
   - component: {fileID: 1888091097332970154}
   m_Layer: 6
   m_Name: ManaPunch
@@ -145,15 +147,14 @@ Transform:
   m_GameObject: {fileID: 2207404562610634770}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 2}
+  m_LocalPosition: {x: 0, y: 0, z: 3.55}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 1610455808590536978}
+  m_Children: []
   m_Father: {fileID: 2150651391532862835}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!135 &5245587264116138888
-SphereCollider:
+--- !u!65 &8323074962419205044
+BoxCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -171,8 +172,8 @@ SphereCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Radius: 1.5
-  m_Center: {x: 0, y: 1, z: 0}
+  m_Size: {x: 1, y: 1, z: 7}
+  m_Center: {x: 0, y: 0.5, z: 0}
 --- !u!114 &1888091097332970154
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -188,7 +189,7 @@ MonoBehaviour:
   damage: 8
   useHitCount: 0
   hitCount: 2
-  disableWhenInvaild: 1
+  disableWhenInvalid: 0
   usedByPlayer: 0
 --- !u!1 &8881452446649208534
 GameObject:
@@ -217,11 +218,11 @@ Transform:
   m_GameObject: {fileID: 8881452446649208534}
   serializedVersion: 2
   m_LocalRotation: {x: 0.7071063, y: -0, z: -0, w: 0.7071073}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 2, y: 3, z: 2}
+  m_LocalPosition: {x: 0, y: 0.7, z: 3.59}
+  m_LocalScale: {x: 0.46858, y: 11.1093, z: 2}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 2375143042128856006}
+  m_Father: {fileID: 2150651391532862835}
   m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
 --- !u!212 &882540163587079349
 SpriteRenderer:
@@ -240,6 +241,9 @@ SpriteRenderer:
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 0
   m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -277,7 +281,7 @@ SpriteRenderer:
   m_SpriteSortPoint: 0
 --- !u!95 &4106000080538326981
 Animator:
-  serializedVersion: 5
+  serializedVersion: 7
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -291,6 +295,7 @@ Animator:
   m_ApplyRootMotion: 0
   m_LinearVelocityBlending: 0
   m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
   m_WarningMessage: 
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1

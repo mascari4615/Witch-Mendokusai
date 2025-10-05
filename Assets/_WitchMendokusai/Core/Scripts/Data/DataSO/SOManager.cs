@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace WitchMendokusai
 {
-	[CreateAssetMenu(fileName = nameof(SOManager), menuName = "SOManager")]
+	[CreateAssetMenu(fileName = nameof(SOManager), menuName = "WM/SOManager")]
 	public class SOManager : ScriptableObject
 	{
 		public Dictionary<Type, Dictionary<int, DataSO>> DataSOs { get; private set; } = new();

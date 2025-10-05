@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace WitchMendokusai
 {
-	[CreateAssetMenu(fileName = "C_", menuName = "Variable/" + nameof(CardData))]
+	[CreateAssetMenu(fileName = "C_", menuName = "WM/Variable/" + nameof(CardData))]
 	public class CardData : DataSO
 	{
 		[field: Header("_" + nameof(CardData))]

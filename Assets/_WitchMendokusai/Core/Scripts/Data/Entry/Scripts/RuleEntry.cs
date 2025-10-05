@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace WitchMendokusai
 {
-	[CreateAssetMenu(fileName = nameof(RuleEntry), menuName = "Variable/Entry/RuleEntry")]
+	[CreateAssetMenu(fileName = nameof(RuleEntry), menuName = "WM/Variable/Entry/RuleEntry")]
 	public class RuleEntry : BaseEntry
 	{
 		public List<EventEntry> TriggeredBy => triggeredBy;

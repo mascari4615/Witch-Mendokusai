@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace WitchMendokusai
 {
-	[CreateAssetMenu(fileName = "Q_", menuName = "Variable/" + nameof(QuestSO))]
+	[CreateAssetMenu(fileName = "Q_", menuName = "WM/Variable/" + nameof(QuestSO))]
 	public class QuestSO : DataSO
 	{
 		[field: Header("_" + nameof(QuestSO))]
