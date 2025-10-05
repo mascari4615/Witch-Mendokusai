@@ -150,6 +150,7 @@ MonoBehaviour:
   renderDirMode: 1000
   atlasPacker: 1000
   holeFilling: 0
+  vertexSamplingDensity: 0
   computeSSS: 0
   sssSamples: 16
   sssDensity: 10
@@ -668,6 +669,7 @@ MonoBehaviour:
   renderDirMode: 1000
   atlasPacker: 1000
   holeFilling: 0
+  vertexSamplingDensity: 0
   computeSSS: 0
   sssSamples: 16
   sssDensity: 10
@@ -763,6 +765,7 @@ MonoBehaviour:
   renderDirMode: 1000
   atlasPacker: 1000
   holeFilling: 0
+  vertexSamplingDensity: 0
   computeSSS: 0
   sssSamples: 16
   sssDensity: 10
@@ -912,6 +915,7 @@ MonoBehaviour:
   renderDirMode: 1000
   atlasPacker: 1000
   holeFilling: 0
+  vertexSamplingDensity: 0
   computeSSS: 0
   sssSamples: 16
   sssDensity: 10
@@ -990,8 +994,6 @@ MonoBehaviour:
   renderSettingsMinAutoResolution: 16
   renderSettingsUnloadScenes: 1
   renderSettingsAdjustSamples: 1
-  renderSettingsGILODMode: 2
-  renderSettingsGILODModeEnabled: 0
   renderSettingsCheckOverlaps: 0
   renderSettingsSkipOutOfBoundsUVs: 1
   renderSettingsHackEmissiveBoost: 1
@@ -1001,12 +1003,16 @@ MonoBehaviour:
   renderSettingsUseScenePath: 0
   renderSettingsHackAOIntensity: 0
   renderSettingsHackAOSamples: 16
+  renderSettingsHackAOSofter: 0
   renderSettingsHackAORadius: 1
   renderSettingsShowAOSettings: 0
   renderSettingsShowTasks: 1
   renderSettingsShowTasks2: 0
   renderSettingsShowPaths: 1
   renderSettingsShowNet: 1
+  renderSettingsShowSettingsAsset: 0
+  renderSettingsShowAPV: 0
+  renderSettingsUseAPVSkyOcclusion: 0
   renderSettingsOcclusionProbes: 0
   renderSettingsTexelsPerMap: 0
   renderSettingsTexelsColor: 1
@@ -1017,12 +1023,16 @@ MonoBehaviour:
   renderSettingsShowCheckerSettings: 0
   renderSettingsSamplesWarning: 1
   renderSettingsSuppressPopups: 0
+  renderSettingsSectorWarning: 0
   renderSettingsPrefabWarning: 1
   renderSettingsSplitByScene: 0
   renderSettingsSplitByTag: 0
   renderSettingsUVPaddingMax: 0
+  renderSettingsUVPaddingPreserveIfExisted: 0
   renderSettingsPostPacking: 1
   renderSettingsHoleFilling: 0
+  renderSettingsBruteForce: 1
+  renderSettingsAlphaDithering: 0
   renderSettingsBeepOnFinish: 0
   renderSettingsExportTerrainAsHeightmap: 1
   renderSettingsRTXMode: 1
@@ -1039,80 +1049,20 @@ MonoBehaviour:
   renderSettingsCompressVolumes: 0
   renderSettingsBatchAreaLightSampleLimit: 0
   renderSettingsSector: {fileID: 0}
+  renderSettingsAsset: {fileID: 0}
   renderSettingsRTPVExport: 1
   renderSettingsRTPVSceneView: 0
   renderSettingsRTPVHDR: 0
   renderSettingsRTPVWidth: 640
   renderSettingsRTPVHeight: 360
+  renderSettingsRTPVExposure: 1
+  renderSettingsRemoveDuplicateLightmaps: 0
   lastBakeTime: 8
   enlightenWarningShown: 0
   enlightenWarningShown2: 0
   uniqueLights:
   - {fileID: 0}
   - {fileID: 0}
-  lights:
-  - tform:
-      e00: 0.728511
-      e01: -0.09047933
-      e02: 0.67903256
-      e03: 1.1793028
-      e10: 0.4538054
-      e11: 0.80628026
-      e12: -0.3794376
-      e13: 5.4999895
-      e20: -0.5131593
-      e21: 0.5845731
-      e22: 0.628444
-      e23: -14.062588
-      e30: 0
-      e31: 0
-      e32: 0
-      e33: 1
-    color: {r: 1, g: 1, b: 1, a: 1}
-    intensity: 1
-    range: 0
-    radius: 0.01
-    samples: 16
-    samples2: 0
-    bitmask: 0
-    bakeToIndirect: 0
-    selfShadow: 0
-    realisticFalloff: 0
-    projMode: 0
-    cookie: {fileID: 0}
-    angle: 30
-    UID: 1
-  - tform:
-      e00: 0.9945132
-      e01: -0.025943216
-      e02: -0.101342894
-      e03: 0.25
-      e10: 0.0021541798
-      e11: 0.9736341
-      e12: -0.2281052
-      e13: 3.04
-      e20: 0.10458868
-      e21: 0.22663532
-      e22: 0.9683479
-      e23: -1.99
-      e30: 0
-      e31: 0
-      e32: 0
-      e33: 1
-    color: {r: 0.7737533, g: 0.6963925, b: 0.9150943, a: 1}
-    intensity: 15
-    range: 30
-    radius: 0.05
-    samples: 8
-    samples2: 0
-    bitmask: 0
-    bakeToIndirect: 0
-    selfShadow: 0
-    realisticFalloff: 1
-    projMode: 0
-    cookie: {fileID: 0}
-    angle: 30
-    UID: 2
   implicitGroups:
   - {fileID: 1227104249}
   - {fileID: 1227104249}
@@ -1202,18 +1152,71 @@ MonoBehaviour:
   lightmapHasMask: 000000000000000000000000
   lightmapHasDir: 000000
   lightmapHasRNM: 000000
+  lights:
+  - tform:
+      e00: 0.728511
+      e01: -0.09047933
+      e02: 0.67903256
+      e03: 1.1793028
+      e10: 0.4538054
+      e11: 0.80628026
+      e12: -0.3794376
+      e13: 5.4999895
+      e20: -0.5131593
+      e21: 0.5845731
+      e22: 0.628444
+      e23: -14.062588
+      e30: 0
+      e31: 0
+      e32: 0
+      e33: 1
+    color: {r: 1, g: 1, b: 1, a: 1}
+    intensity: 1
+    range: 0
+    radius: 0.01
+    samples: 16
+    samples2: 0
+    bitmask: 0
+    bakeToIndirect: 0
+    selfShadow: 0
+    realisticFalloff: 0
+    projMode: 0
+    cookie: {fileID: 0}
+    angle: 30
+    UID: 1
+  - tform:
+      e00: 0.9945132
+      e01: -0.025943216
+      e02: -0.101342894
+      e03: 0.25
+      e10: 0.0021541798
+      e11: 0.9736341
+      e12: -0.2281052
+      e13: 3.04
+      e20: 0.10458868
+      e21: 0.22663532
+      e22: 0.9683479
+      e23: -1.99
+      e30: 0
+      e31: 0
+      e32: 0
+      e33: 1
+    color: {r: 0.7737533, g: 0.6963925, b: 0.9150943, a: 1}
+    intensity: 15
+    range: 30
+    radius: 0.05
+    samples: 8
+    samples2: 0
+    bitmask: 0
+    bakeToIndirect: 0
+    selfShadow: 0
+    realisticFalloff: 1
+    projMode: 0
+    cookie: {fileID: 0}
+    angle: 30
+    UID: 2
   modifiedAssetPathList: []
   modifiedAssets: []
-  maps:
-  - {fileID: 2800000, guid: 3fd319c22b3d58a4aadefecb61e350b8, type: 3}
-  - {fileID: 2800000, guid: 1e9fa93efd717534d8c517cb41bcb43d, type: 3}
-  - {fileID: 2800000, guid: ef8bef5e709e48a4d942f7cef0443837, type: 3}
-  masks: []
-  dirMaps: []
-  rnmMaps0: []
-  rnmMaps1: []
-  rnmMaps2: []
-  mapsMode: 
   bakedRenderers:
   - {fileID: 0}
   - {fileID: 0}
@@ -1247,6 +1250,21 @@ MonoBehaviour:
   - {fileID: 0}
   - {fileID: 0}
   - {fileID: 0}
+  nonBakedRenderers: []
+  bakedLights:
+  - {fileID: 0}
+  - {fileID: 0}
+  bakedRenderersTerrain: []
+  maps:
+  - {fileID: 2800000, guid: 3fd319c22b3d58a4aadefecb61e350b8, type: 3}
+  - {fileID: 2800000, guid: 1e9fa93efd717534d8c517cb41bcb43d, type: 3}
+  - {fileID: 2800000, guid: ef8bef5e709e48a4d942f7cef0443837, type: 3}
+  masks: []
+  dirMaps: []
+  rnmMaps0: []
+  rnmMaps1: []
+  rnmMaps2: []
+  mapsMode: 
   bakedIDs: 0100000001000000010000000100000001000000010000000100000000000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000200000001000000
   bakedScaleOffset:
   - {x: 0.62584746, y: 0.624713, z: 0.005867489, w: 0.005867496}
@@ -1315,17 +1333,12 @@ MonoBehaviour:
   - {fileID: 0}
   - {fileID: 0}
   - {fileID: 0}
-  nonBakedRenderers: []
-  bakedLights:
-  - {fileID: 0}
-  - {fileID: 0}
   bakedLightChannels: ffffffffffffffff
-  bakedRenderersTerrain: []
   bakedIDsTerrain: 
   bakedScaleOffsetTerrain: []
   assetList: []
   uvOverlapAssetList: 
-  idremap: 000000000000000000000000
+  idremap: 010000000100000001000000
   usesRealtimeGI: 0
   emptyDirectionTex: {fileID: 0}
   anyVolumes: 0
@@ -1590,6 +1603,7 @@ MonoBehaviour:
   renderDirMode: 1000
   atlasPacker: 1000
   holeFilling: 0
+  vertexSamplingDensity: 0
   computeSSS: 0
   sssSamples: 16
   sssDensity: 10
@@ -1748,6 +1762,7 @@ MonoBehaviour:
   renderDirMode: 1000
   atlasPacker: 1000
   holeFilling: 0
+  vertexSamplingDensity: 0
   computeSSS: 0
   sssSamples: 16
   sssDensity: 10
@@ -2070,8 +2085,6 @@ MonoBehaviour:
   renderSettingsMinAutoResolution: 16
   renderSettingsUnloadScenes: 1
   renderSettingsAdjustSamples: 1
-  renderSettingsGILODMode: 2
-  renderSettingsGILODModeEnabled: 0
   renderSettingsCheckOverlaps: 0
   renderSettingsSkipOutOfBoundsUVs: 1
   renderSettingsHackEmissiveBoost: 1
@@ -2081,12 +2094,16 @@ MonoBehaviour:
   renderSettingsUseScenePath: 1
   renderSettingsHackAOIntensity: 0
   renderSettingsHackAOSamples: 16
+  renderSettingsHackAOSofter: 0
   renderSettingsHackAORadius: 1
   renderSettingsShowAOSettings: 0
   renderSettingsShowTasks: 1
   renderSettingsShowTasks2: 0
   renderSettingsShowPaths: 1
   renderSettingsShowNet: 1
+  renderSettingsShowSettingsAsset: 0
+  renderSettingsShowAPV: 0
+  renderSettingsUseAPVSkyOcclusion: 0
   renderSettingsOcclusionProbes: 0
   renderSettingsTexelsPerMap: 0
   renderSettingsTexelsColor: 1
@@ -2097,12 +2114,16 @@ MonoBehaviour:
   renderSettingsShowCheckerSettings: 0
   renderSettingsSamplesWarning: 1
   renderSettingsSuppressPopups: 0
+  renderSettingsSectorWarning: 0
   renderSettingsPrefabWarning: 1
   renderSettingsSplitByScene: 0
   renderSettingsSplitByTag: 0
   renderSettingsUVPaddingMax: 0
+  renderSettingsUVPaddingPreserveIfExisted: 0
   renderSettingsPostPacking: 1
   renderSettingsHoleFilling: 0
+  renderSettingsBruteForce: 1
+  renderSettingsAlphaDithering: 0
   renderSettingsBeepOnFinish: 0
   renderSettingsExportTerrainAsHeightmap: 1
   renderSettingsRTXMode: 1
@@ -2119,80 +2140,20 @@ MonoBehaviour:
   renderSettingsCompressVolumes: 0
   renderSettingsBatchAreaLightSampleLimit: 0
   renderSettingsSector: {fileID: 0}
+  renderSettingsAsset: {fileID: 0}
   renderSettingsRTPVExport: 1
   renderSettingsRTPVSceneView: 0
   renderSettingsRTPVHDR: 0
   renderSettingsRTPVWidth: 640
   renderSettingsRTPVHeight: 360
+  renderSettingsRTPVExposure: 1
+  renderSettingsRemoveDuplicateLightmaps: 0
   lastBakeTime: 8
   enlightenWarningShown: 0
   enlightenWarningShown2: 0
   uniqueLights:
   - {fileID: 0}
   - {fileID: 0}
-  lights:
-  - tform:
-      e00: 0.728511
-      e01: -0.09047933
-      e02: 0.67903256
-      e03: 1.1793028
-      e10: 0.4538054
-      e11: 0.80628026
-      e12: -0.3794376
-      e13: 5.4999895
-      e20: -0.5131593
-      e21: 0.5845731
-      e22: 0.628444
-      e23: -14.062588
-      e30: 0
-      e31: 0
-      e32: 0
-      e33: 1
-    color: {r: 1, g: 1, b: 1, a: 1}
-    intensity: 1
-    range: 0
-    radius: 0.01
-    samples: 16
-    samples2: 0
-    bitmask: 0
-    bakeToIndirect: 0
-    selfShadow: 0
-    realisticFalloff: 0
-    projMode: 0
-    cookie: {fileID: 0}
-    angle: 30
-    UID: 1
-  - tform:
-      e00: 0.9945132
-      e01: -0.025943216
-      e02: -0.101342894
-      e03: 0.25
-      e10: 0.0021541798
-      e11: 0.9736341
-      e12: -0.2281052
-      e13: 3.04
-      e20: 0.10458868
-      e21: 0.22663532
-      e22: 0.9683479
-      e23: -1.99
-      e30: 0
-      e31: 0
-      e32: 0
-      e33: 1
-    color: {r: 0.7737533, g: 0.6963925, b: 0.9150943, a: 1}
-    intensity: 15
-    range: 30
-    radius: 0.05
-    samples: 8
-    samples2: 0
-    bitmask: 0
-    bakeToIndirect: 0
-    selfShadow: 0
-    realisticFalloff: 1
-    projMode: 0
-    cookie: {fileID: 0}
-    angle: 30
-    UID: 2
   implicitGroups:
   - {fileID: 1022663532}
   - {fileID: 1022663532}
@@ -2284,18 +2245,71 @@ MonoBehaviour:
   lightmapHasMask: 000000000000000000000000
   lightmapHasDir: 000000
   lightmapHasRNM: 000000
+  lights:
+  - tform:
+      e00: 0.728511
+      e01: -0.09047933
+      e02: 0.67903256
+      e03: 1.1793028
+      e10: 0.4538054
+      e11: 0.80628026
+      e12: -0.3794376
+      e13: 5.4999895
+      e20: -0.5131593
+      e21: 0.5845731
+      e22: 0.628444
+      e23: -14.062588
+      e30: 0
+      e31: 0
+      e32: 0
+      e33: 1
+    color: {r: 1, g: 1, b: 1, a: 1}
+    intensity: 1
+    range: 0
+    radius: 0.01
+    samples: 16
+    samples2: 0
+    bitmask: 0
+    bakeToIndirect: 0
+    selfShadow: 0
+    realisticFalloff: 0
+    projMode: 0
+    cookie: {fileID: 0}
+    angle: 30
+    UID: 1
+  - tform:
+      e00: 0.9945132
+      e01: -0.025943216
+      e02: -0.101342894
+      e03: 0.25
+      e10: 0.0021541798
+      e11: 0.9736341
+      e12: -0.2281052
+      e13: 3.04
+      e20: 0.10458868
+      e21: 0.22663532
+      e22: 0.9683479
+      e23: -1.99
+      e30: 0
+      e31: 0
+      e32: 0
+      e33: 1
+    color: {r: 0.7737533, g: 0.6963925, b: 0.9150943, a: 1}
+    intensity: 15
+    range: 30
+    radius: 0.05
+    samples: 8
+    samples2: 0
+    bitmask: 0
+    bakeToIndirect: 0
+    selfShadow: 0
+    realisticFalloff: 1
+    projMode: 0
+    cookie: {fileID: 0}
+    angle: 30
+    UID: 2
   modifiedAssetPathList: []
   modifiedAssets: []
-  maps:
-  - {fileID: 2800000, guid: b40abddd48322c14ab99e001e6f574d9, type: 3}
-  - {fileID: 2800000, guid: d9720426063e9a04d8d3df52895ad7dc, type: 3}
-  - {fileID: 2800000, guid: 86b69678f9a55924c864d38db6462703, type: 3}
-  masks: []
-  dirMaps: []
-  rnmMaps0: []
-  rnmMaps1: []
-  rnmMaps2: []
-  mapsMode: 
   bakedRenderers:
   - {fileID: 0}
   - {fileID: 0}
@@ -2330,6 +2344,21 @@ MonoBehaviour:
   - {fileID: 0}
   - {fileID: 0}
   - {fileID: 0}
+  nonBakedRenderers: []
+  bakedLights:
+  - {fileID: 0}
+  - {fileID: 0}
+  bakedRenderersTerrain: []
+  maps:
+  - {fileID: 2800000, guid: b40abddd48322c14ab99e001e6f574d9, type: 3}
+  - {fileID: 2800000, guid: d9720426063e9a04d8d3df52895ad7dc, type: 3}
+  - {fileID: 2800000, guid: 86b69678f9a55924c864d38db6462703, type: 3}
+  masks: []
+  dirMaps: []
+  rnmMaps0: []
+  rnmMaps1: []
+  rnmMaps2: []
+  mapsMode: 
   bakedIDs: 010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000000000000100000002000000
   bakedScaleOffset:
   - {x: 0.62584746, y: 0.62471294, z: 0.0058674896, w: 0.0058674966}
@@ -2400,17 +2429,12 @@ MonoBehaviour:
   - {fileID: 0}
   - {fileID: 0}
   - {fileID: 0}
-  nonBakedRenderers: []
-  bakedLights:
-  - {fileID: 0}
-  - {fileID: 0}
   bakedLightChannels: ffffffffffffffff
-  bakedRenderersTerrain: []
   bakedIDsTerrain: 
   bakedScaleOffsetTerrain: []
   assetList: []
   uvOverlapAssetList: 
-  idremap: 000000000000000000000000
+  idremap: 010000000100000001000000
   usesRealtimeGI: 0
   emptyDirectionTex: {fileID: 0}
   anyVolumes: 0

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using static WitchMendokusai.SOHelper;
 
@@ -46,7 +47,6 @@ namespace WitchMendokusai
 		}
 	}
 
-	[Flags]
 	public enum GameConditionType
 	{
 		IsPaused = 1 << 0,
@@ -58,6 +58,7 @@ namespace WitchMendokusai
 		IsDied = 1 << 4,
 
 		IsBuilding = 1 << 5,
+		IsInTransition = 1 << 6,
 	}
 
 	public class GameCondition
@@ -74,22 +75,31 @@ namespace WitchMendokusai
 		{
 			{ GameConditionType.IsPaused, () => TimeManager.Instance.IsPaused },
 			{ GameConditionType.IsChatting, () => UIChat.IsChatting },
-
 			{ GameConditionType.IsMouseOnUI, () => InputManager.Instance.IsPointerOverUI() },
-
 			{ GameConditionType.IsPlayerCasting, () => Player.Instance.Object.UnitStat[UnitStatType.CASTING_SKILL] > 0 },
 			{ GameConditionType.IsDied, () => Player.Instance.Object.UnitStat[UnitStatType.HP_CUR] <= 0 },
-
 			{ GameConditionType.IsBuilding, () => BuildManager.Instance.IsBuilding },
+			{ GameConditionType.IsInTransition, () => UITransition.IsInTransition },
 		};
-		
+
+		public bool IsGameConditionAny(params GameConditionType[] conditions)
+		{
+			if (conditions.Any(c => IsGameCondition(c) == true))
+				return true;
+
+			return false;
+		}
+
 		public bool IsGameCondition(GameConditionType gameCondition)
 		{
-			foreach (KeyValuePair<GameConditionType, Func<bool>> condition in gameConditionActions)
-			{
-				if (gameCondition.HasFlag(condition.Key) && condition.Value.Invoke())
-					return true;
-			}
+			// foreach (KeyValuePair<GameConditionType, Func<bool>> condition in gameConditionActions)
+			// {
+			// 	if (gameCondition.HasFlag(condition.Key) && condition.Value.Invoke())
+			// 		return true;
+			// }
+
+			if (gameConditionActions.ContainsKey(gameCondition) && gameConditionActions[gameCondition].Invoke())
+				return true;
 
 			return false;
 		}
