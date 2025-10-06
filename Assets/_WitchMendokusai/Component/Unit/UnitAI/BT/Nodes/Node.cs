@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using System.Collections.Generic;
 
 namespace WitchMendokusai
 {
@@ -47,7 +45,7 @@ namespace WitchMendokusai
 		{
 			List<Node> children = new();
 
-			if (parent is DecoraterNode decorator && decorator.child != null)
+			if (parent is DecoratorNode decorator && decorator.child != null)
 			{
 				children.Add(decorator.child);
 			}

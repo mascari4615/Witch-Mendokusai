@@ -1,6 +1,4 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace WitchMendokusai
@@ -12,24 +10,11 @@ namespace WitchMendokusai
 		NPC = 2,
 	}
 
-	public enum FSMState
-	{
-		Idle,
-		Attack
-	}
-
-	public enum StateEvent
-	{
-		Enter,
-		Update,
-		Exit
-	}
-
 	[RequireComponent(typeof(UnitObject))]
 	public class StateMachine : MonoBehaviour
 	{
 		[SerializeField] private FSMType fsmType = FSMType.Slime;
-		private FSM fsm;
+		private IFSM fsm;
 
 		private void OnEnable()
 		{

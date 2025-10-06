@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace WitchMendokusai
 {
-	public class FSMSlime : FSM
+	public class FSMSlime : FSM<FSMStateCommon>
 	{
 		[SerializeField] private float attackRange = 10f;
 		[SerializeField] private bool isSpriteLookLeft = false;
@@ -12,20 +12,20 @@ namespace WitchMendokusai
 		private BT_MoveToPlayer moveToPlayer;
 
 		public FSMSlime(UnitObject unitObject) : base(unitObject) { }
-		protected override FSMState DefaultState => FSMState.Idle;
+		protected override FSMStateCommon DefaultState => FSMStateCommon.Idle;
 
 		protected override void Init()
 		{
 			idle = new(UnitObject);
 			moveToPlayer = new(UnitObject);
 
-			SetStateEvent(FSMState.Idle, StateEvent.Update, () =>
+			SetStateEvent(FSMStateCommon.Idle, StateEvent.Update, () =>
 			{
 				CanSeePlayer();
 				idle.Update();
 			});
 
-			SetStateEvent(FSMState.Attack, StateEvent.Update, () =>
+			SetStateEvent(FSMStateCommon.Attack, StateEvent.Update, () =>
 			{
 				CanSeePlayer();
 				moveToPlayer.Update();
@@ -37,15 +37,15 @@ namespace WitchMendokusai
 
 		private void CanSeePlayer()
 		{
-			if (Vector3.Distance(Transform.position, Player.Instance.transform.position) < attackRange)
+			if (Vector3.Distance(UnitObject.transform.position, Player.Instance.transform.position) < attackRange)
 			{
-				if (IsCurState(FSMState.Attack) == false)
-					ChangeState(FSMState.Attack);
+				if (IsCurState(FSMStateCommon.Attack) == false)
+					ChangeState(FSMStateCommon.Attack);
 			}
 			else
 			{
-				if (IsCurState(FSMState.Idle) == false)
-					ChangeState(FSMState.Idle);
+				if (IsCurState(FSMStateCommon.Idle) == false)
+					ChangeState(FSMStateCommon.Idle);
 			}
 		}
 	}

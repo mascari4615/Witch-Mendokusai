@@ -3,28 +3,28 @@ using UnityEngine;
 
 namespace WitchMendokusai
 {
-	public class FSMWisp : FSM
+	public class FSMWisp : FSM<FSMStateCommon>
 	{
 		[SerializeField] private float attackRange = 10f;
 
 		private BT_Idle idle;
-		private BT_RangeAttack attack;
+		private BT_ProjectileAttack attack;
 
 		public FSMWisp(UnitObject unitObject) : base(unitObject) {}
-		protected override FSMState DefaultState => FSMState.Idle;
+		protected override FSMStateCommon DefaultState => FSMStateCommon.Idle;
 
 		protected override void Init()
 		{
 			idle = new(UnitObject);
 			attack = new(UnitObject);
 
-			SetStateEvent(FSMState.Idle, StateEvent.Update, () =>
+			SetStateEvent(FSMStateCommon.Idle, StateEvent.Update, () =>
 			{
 				CanSeePlayer();
 				idle.Update();
 			});
 
-			SetStateEvent(FSMState.Attack, StateEvent.Update, () =>
+			SetStateEvent(FSMStateCommon.Attack, StateEvent.Update, () =>
 			{
 				// CanSeePlayer();
 				attack.Update();
@@ -36,15 +36,15 @@ namespace WitchMendokusai
 
 		private void CanSeePlayer()
 		{
-			if (Vector3.Distance(Transform.position, Player.Instance.transform.position) < attackRange)
+			if (Vector3.Distance(UnitObject.transform.position, Player.Instance.transform.position) < attackRange)
 			{
-				if (IsCurState(FSMState.Attack) == false)
-					ChangeState(FSMState.Attack);
+				if (IsCurState(FSMStateCommon.Attack) == false)
+					ChangeState(FSMStateCommon.Attack);
 			}
 			else
 			{
-				if (IsCurState(FSMState.Idle) == false)
-					ChangeState(FSMState.Idle);
+				if (IsCurState(FSMStateCommon.Idle) == false)
+					ChangeState(FSMStateCommon.Idle);
 			}
 		}
 	}

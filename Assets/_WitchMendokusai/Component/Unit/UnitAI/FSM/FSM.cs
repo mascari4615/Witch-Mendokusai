@@ -5,17 +5,33 @@ using UnityEngine;
 
 namespace WitchMendokusai
 {
-	public abstract class FSM : IDisposable
+	public enum FSMStateCommon
 	{
-		private const float TICK = 0.3f;
+		Idle,
+		Attack
+	}
 
-		protected FSMState currentState;
-		private readonly Dictionary<(FSMState, StateEvent), Action> stateEventDic = new();
+	public enum StateEvent
+	{
+		Enter,
+		Update,
+		Exit
+	}
+
+	public interface IFSM : IDisposable
+	{
+
+	}
+
+	public abstract class FSM<T> : IFSM where T : Enum
+	{
+		protected T currentState;
+		protected abstract T DefaultState { get; }
+
+		private readonly Dictionary<(T, StateEvent), Action> stateEventDic = new();
 		private Coroutine coroutine;
 
-		protected abstract FSMState DefaultState { get; }
 		protected UnitObject UnitObject { get; private set; }
-		protected Transform Transform => UnitObject.transform;
 
 		public FSM(UnitObject unitObject)
 		{
@@ -25,25 +41,18 @@ namespace WitchMendokusai
 			stateEventDic.Clear();
 
 			Init();
-
 			ChangeState(DefaultState);
 		}
 
 		public void Dispose()
 		{
-			if (coroutine != null)
-				UnitObject.StopCoroutine(coroutine);
+			UnitObject.StopCoroutine(coroutine);
 			stateEventDic.Clear();
 			currentState = DefaultState;
 			UnitObject = null;
 		}
 
-		// ~FSM()
-		// {
-		// 	UnitObject.StopCoroutine(coroutine);
-		// }
-
-		public bool IsCurState(FSMState state) => currentState.Equals(state);
+		public bool IsCurState(T state) => currentState.Equals(state);
 
 		/// <summary>
 		/// 상태머신을 쓰기 전에 초기화를 해주는 함수.
@@ -51,13 +60,12 @@ namespace WitchMendokusai
 		/// </summary>
 		protected abstract void Init();
 
-		public void SetStateEvent(FSMState state, StateEvent stateEvent, Action action)
+		public void SetStateEvent(T state, StateEvent stateEvent, Action action)
 		{
-			Debug.Assert(action != null, "action cannot be null");
 			stateEventDic[(state, stateEvent)] = action;
 		}
 
-		public void ChangeState(FSMState newState)
+		public void ChangeState(T newState)
 		{
 			if (stateEventDic.ContainsKey((currentState, StateEvent.Exit)))
 				stateEventDic[(currentState, StateEvent.Exit)]?.Invoke();
@@ -72,13 +80,14 @@ namespace WitchMendokusai
 
 		private IEnumerator StateLoop()
 		{
+			const float TICK = 0.3f;
 			WaitForSeconds waitForTick = new(TICK);
+
 			while (true)
 			{
 				if (stateEventDic.ContainsKey((currentState, StateEvent.Update)))
 					stateEventDic[(currentState, StateEvent.Update)]?.Invoke();
 				yield return waitForTick;
-				// yield return null;
 			}
 		}
 	}

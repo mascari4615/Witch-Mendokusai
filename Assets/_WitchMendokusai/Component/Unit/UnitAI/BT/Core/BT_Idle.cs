@@ -1,9 +1,5 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using static WitchMendokusai.NodeHelper;
-using UnityEngine.AI;
 
 namespace WitchMendokusai
 {
@@ -41,7 +37,7 @@ namespace WitchMendokusai
 
 		private void SetDestinationRandom()
 		{
-			Vector3 random = UnityEngine.Random.insideUnitCircle * randomMoveDistance;
+			Vector3 random = Random.insideUnitCircle * randomMoveDistance;
 			random.z = random.y;
 			random.y = 0;
 

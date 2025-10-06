@@ -1,19 +1,15 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using static WitchMendokusai.NodeHelper;
-using UnityEngine.AI;
 
 namespace WitchMendokusai
 {
-	public class BT_RangeAttack : BTRunner
+	public class BT_ProjectileAttack : BTRunner
 	{
 		private float attackRange;
 
 		private Vector3 moveDest = Vector3.zero;
 
-		public BT_RangeAttack(UnitObject unitObject) : base(unitObject)
+		public BT_ProjectileAttack(UnitObject unitObject) : base(unitObject)
 		{
 		}
 
