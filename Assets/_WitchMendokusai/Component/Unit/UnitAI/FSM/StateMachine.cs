@@ -8,6 +8,7 @@ namespace WitchMendokusai
 		Slime = 0,
 		Wisp = 1,
 		NPC = 2,
+		SlimeKing = 3
 	}
 
 	[RequireComponent(typeof(UnitObject))]
@@ -30,6 +31,7 @@ namespace WitchMendokusai
 				FSMType.Slime => new FSMSlime(unitObject),
 				FSMType.Wisp => new FSMWisp(unitObject),
 				FSMType.NPC => new FSMNPC(unitObject),
+				FSMType.SlimeKing => new FSMSlimeKing(unitObject),
 				_ => throw new ArgumentOutOfRangeException(),
 			};
 		}
