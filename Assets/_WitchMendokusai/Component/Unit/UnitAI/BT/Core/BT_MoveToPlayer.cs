@@ -8,11 +8,7 @@ namespace WitchMendokusai
 		private Vector3 moveDest = Vector3.zero;
 		private bool isSpriteLookLeft;
 
-		public BT_MoveToPlayer(UnitObject unitObject) : base(unitObject)
-		{
-		}
-
-		public void Init(bool isSpriteLookLeft = true)
+		public BT_MoveToPlayer(UnitObject unitObject, bool isSpriteLookLeft = true) : base(unitObject)
 		{
 			this.isSpriteLookLeft = isSpriteLookLeft;
 		}
@@ -31,12 +27,13 @@ namespace WitchMendokusai
 				);
 		}
 
-		private void SetDestinationPlayer()
+		private BTState SetDestinationPlayer()
 		{
 			moveDest = Player.Instance.transform.position;
+			return BTState.Success;
 		}
 
-		private void MoveToDestination()
+		private BTState MoveToDestination()
 		{
 			// NavMeshAgent agent = unitObject.NavMeshAgent;
 
@@ -44,11 +41,13 @@ namespace WitchMendokusai
 			// agent.destination = unitObject.transform.position + dir;
 
 			unitObject.UnitMovement.SetMoveDirection(dir);
+			return BTState.Success;
 		}
 
-		private void UpdateSpriteFlip()
+		private BTState UpdateSpriteFlip()
 		{
 			unitObject.SpriteRenderer.flipX = isSpriteLookLeft ? !IsPlayerOnLeft() : IsPlayerOnLeft();
+			return BTState.Success;
 		}
 
 		protected bool IsPlayerOnLeft()

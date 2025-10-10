@@ -1,4 +1,3 @@
-using System;
 using UnityEngine;
 
 namespace WitchMendokusai
@@ -11,28 +10,24 @@ namespace WitchMendokusai
 		private BT_Idle idle;
 		private BT_MoveToPlayer moveToPlayer;
 
-		public FSMSlime(UnitObject unitObject) : base(unitObject) { }
 		protected override FSMStateCommon DefaultState => FSMStateCommon.Idle;
 
-		protected override void Init()
+		protected override void InitFSMEvent()
 		{
-			idle = new(UnitObject);
-			moveToPlayer = new(UnitObject);
+			idle = new(UnitObject, isSpriteLookLeft: isSpriteLookLeft);
+			moveToPlayer = new(UnitObject, isSpriteLookLeft);
 
 			SetStateEvent(FSMStateCommon.Idle, StateEvent.Update, () =>
 			{
 				CanSeePlayer();
-				idle.Update();
+				idle.UpdateBT();
 			});
 
 			SetStateEvent(FSMStateCommon.Attack, StateEvent.Update, () =>
 			{
 				CanSeePlayer();
-				moveToPlayer.Update();
+				moveToPlayer.UpdateBT();
 			});
-
-			idle.Init(isSpriteLookLeft: isSpriteLookLeft);
-			moveToPlayer.Init(isSpriteLookLeft: isSpriteLookLeft);
 		}
 
 		private void CanSeePlayer()

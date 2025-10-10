@@ -3,12 +3,14 @@ using UnityEngine;
 
 namespace WitchMendokusai
 {
+	// skillIndex는 unitObject의 skill 슬롯 번호(0, 1, 2, ...)를 의미함.
+	// skillIndex는 skillID가 아님에 주의
 	public class SkillHandler
 	{
-		/// <summary>
-		/// Key : SkillIndex
-		/// </summary>
-		public Dictionary<int, Skill> SkillDic { get; private set; } = new();
+		/// <summary> Key : SkillIndex </summary>
+		public readonly Dictionary<int, Skill> skillDic = new();
+		public IReadOnlyDictionary<int, Skill> SkillDic => skillDic;
+
 		private readonly UnitObject unitObject;
 
 		public SkillHandler(UnitObject unitObject)
@@ -22,13 +24,13 @@ namespace WitchMendokusai
 
 		public void SetSkill(int skillIndex, SkillData skill)
 		{
-			SkillDic[skillIndex] = new Skill(skill);
-			SkillDic[skillIndex].UpdateCooltime(coolTimeBonus: unitObject.UnitStat[UnitStatType.COOLTIME_BONUS]);
+			skillDic[skillIndex] = new Skill(skill);
+			skillDic[skillIndex].UpdateCooltime(coolTimeBonus: unitObject.UnitStat[UnitStatType.COOLTIME_BONUS]);
 		}
 
-		public bool UseSkill(int skillButtonIndex)
+		public bool UseSkill(int skillIndex)
 		{
-			if (SkillDic.TryGetValue(skillButtonIndex, out Skill skill))
+			if (skillDic.TryGetValue(skillIndex, out Skill skill))
 			{
 				if (skill.IsReady)
 				{

@@ -9,7 +9,7 @@ namespace WitchMendokusai
 	{
 		public Func<bool> Condition { get; private set; }
 
-		public IfActionNode(Func<bool> condition, Action action)
+		public IfActionNode(Func<bool> condition, Func<BTState> action)
 			: base(action)
 		{
 			Condition = condition;
@@ -20,10 +20,10 @@ namespace WitchMendokusai
 			Condition = condition.Condition;
 		}
 
-		public override State OnUpdate()
+		public override BTState OnUpdate()
 		{
-			State result = Condition() ? State.Success : State.Failure;
-			if (result == State.Success) Action();
+			BTState result = Condition() ? BTState.Success : BTState.Failure;
+			if (result == BTState.Success) Action();
 			return result;
 		}
 	}

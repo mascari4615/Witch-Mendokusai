@@ -2,9 +2,7 @@ using System.Collections.Generic;
 
 namespace WitchMendokusai
 {
-	/// <summary> 
-	/// <para/> 자식들을 순회하는 노드
-	/// </summary>
+	/// <summary> 자식들을 순회하는 노드 </summary>
 	public abstract class CompositeNode : Node
 	{
 		public List<Node> ChildList { get; protected set; }

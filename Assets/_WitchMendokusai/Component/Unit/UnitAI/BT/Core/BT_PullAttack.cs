@@ -9,11 +9,7 @@ namespace WitchMendokusai
 
 		private Vector3 moveDest = Vector3.zero;
 
-		public BT_PullAttack(UnitObject unitObject) : base(unitObject)
-		{
-		}
-
-		public void Init(float attackRange = 5f)
+		public BT_PullAttack(UnitObject unitObject, float attackRange = 5f) : base(unitObject)
 		{
 			this.attackRange = attackRange;
 		}
@@ -36,14 +32,15 @@ namespace WitchMendokusai
 					Sequence
 					(
 						Condition(IsSkill0Ready),
-						Action(UseSkill0)
+						Action(PullAttack)
 					)
 				);
 		}
 
-		private void SetDestinationPlayer()
+		private BTState SetDestinationPlayer()
 		{
 			moveDest = Player.Instance.transform.position;
+			return BTState.Success;
 		}
 
 		protected bool IsPlayerFar()
@@ -54,7 +51,7 @@ namespace WitchMendokusai
 			return isPlayerFar;
 		}
 
-		private void MoveToDestination()
+		private BTState MoveToDestination()
 		{
 			// NavMeshAgent agent = unitObject.NavMeshAgent;
 
@@ -62,11 +59,13 @@ namespace WitchMendokusai
 			// agent.destination = unitObject.transform.position + dir;
 
 			unitObject.UnitMovement.SetMoveDirection(dir);
+			return BTState.Success;
 		}
 
-		private void UpdateSpriteFlip()
+		private BTState UpdateSpriteFlip()
 		{
 			unitObject.SpriteRenderer.flipX = IsPlayerOnLeft();
+			return BTState.Success;
 		}
 
 		protected bool IsPlayerOnLeft()
@@ -79,9 +78,10 @@ namespace WitchMendokusai
 			return unitObject.SkillHandler.SkillDic[0].IsReady;
 		}
 
-		protected void UseSkill0()
+		protected BTState PullAttack()
 		{
 			unitObject.UseSkill(0);
+			return BTState.Success;
 		}
 	}
 }

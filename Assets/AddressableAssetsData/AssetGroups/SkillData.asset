@@ -33,6 +33,12 @@ MonoBehaviour:
     m_SerializedLabels:
     - SkillData
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: e85f11082632f2544b15bfbaeecd4044
+    m_Address: SkillData/5
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - SkillData
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: f6a29f2c960129f45894db4732554d4b
     m_Address: SkillData/3
     m_ReadOnly: 0

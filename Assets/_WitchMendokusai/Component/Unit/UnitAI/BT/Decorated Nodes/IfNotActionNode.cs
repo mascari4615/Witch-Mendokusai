@@ -1,7 +1,5 @@
 using System;
 
-// 날짜 : 2021-01-13 PM 4:20:16
-
 namespace WitchMendokusai
 {
 	// 조건 거짓일 경우 Action 수행 및 true 리턴
@@ -10,8 +8,8 @@ namespace WitchMendokusai
 	public class IfNotActionNode : DecoratorNode
 	{
 		public Func<bool> Condition { get; private set; }
-		public Action Action { get; private set; }
-		public IfNotActionNode(Func<bool> condition, Action action)
+		public Func<BTState> Action { get; private set; }
+		public IfNotActionNode(Func<bool> condition, Func<BTState> action)
 		{
 			Condition = () => condition() ;
 			Action = action;
@@ -25,10 +23,10 @@ namespace WitchMendokusai
 			Action = action.Action;
 		}
 
-		public override State OnUpdate()
+		public override BTState OnUpdate()
 		{
-			State result = Condition() ? State.Success : State.Failure;
-			if (result == State.Success) Action();
+			BTState result = Condition() ? BTState.Success : BTState.Failure;
+			if (result == BTState.Success) Action();
 			return result;
 		}
 	}

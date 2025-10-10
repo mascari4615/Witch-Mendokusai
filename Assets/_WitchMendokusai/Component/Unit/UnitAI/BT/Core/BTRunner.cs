@@ -1,14 +1,13 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-
 namespace WitchMendokusai
 {
 	public abstract class BTRunner
 	{
+		public const float TICK = 0.1f;
+	
 		private readonly Node rootNode;
 		protected UnitObject unitObject;
+
+		public bool CanChangeState => rootNode.State == BTState.Success || rootNode.State == BTState.Failure;
 
 		public BTRunner(UnitObject unitObject)
 		{
@@ -18,12 +17,9 @@ namespace WitchMendokusai
 
 		protected abstract Node MakeNode();
 		
-		public void Update()
+		public BTState UpdateBT()
 		{
-			if (rootNode == null)
-				return;
-
-			rootNode.Update();
+			return rootNode.UpdateBT();
 		}
 	}
 }

@@ -1,8 +1,5 @@
 using System;
 
-// 날짜 : 2021-01-16 PM 10:20:49
-// 작성자 : Rito
-
 namespace WitchMendokusai
 {
 	/// <summary> 조건에 따른 Composite 수행 노드 </summary>
@@ -18,9 +15,9 @@ namespace WitchMendokusai
 			Composite = composite;
 		}
 
-		public override State OnUpdate()
+		public override BTState OnUpdate()
 		{
-			return Condition() ? Composite.OnUpdate() : State.Failure;
+			return Condition() ? Composite.OnUpdate() : BTState.Failure;
 		}
 	}
 }

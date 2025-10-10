@@ -8,7 +8,8 @@ namespace WitchMendokusai
 	public enum FSMStateCommon
 	{
 		Idle,
-		Attack
+		Attack,
+		Wait
 	}
 
 	public enum StateEvent
@@ -18,77 +19,99 @@ namespace WitchMendokusai
 		Exit
 	}
 
-	public interface IFSM : IDisposable
+	[RequireComponent(typeof(UnitObject))]
+	public abstract class FSM<T> : MonoBehaviour where T : Enum
 	{
+		private readonly Dictionary<(T, StateEvent), Action> stateEvents = new();
+		private Coroutine stateUpdateLoop;
+		private T currentState;
 
-	}
-
-	public abstract class FSM<T> : IFSM where T : Enum
-	{
-		protected T currentState;
 		protected abstract T DefaultState { get; }
+		protected UnitObject UnitObject;
 
-		private readonly Dictionary<(T, StateEvent), Action> stateEventDic = new();
-		private Coroutine coroutine;
-
-		protected UnitObject UnitObject { get; private set; }
-
-		public FSM(UnitObject unitObject)
+		#region Init
+		private void Awake() => Init();
+		private void Init()
 		{
-			Debug.Assert(unitObject != null, "unitObject cannot be null");
+			if (TryGetComponent(out UnitObject) == false)
+			{
+				Debug.LogError("UnitObject component is missing.");
+				return;
+			}
+			stateEvents.Clear();
+			InitFSMEvent();
+		}
 
-			UnitObject = unitObject;
-			stateEventDic.Clear();
+		/// <summary> StateEventDict 초기화 (`SetStateEvent(~)` 이용) </summary>
+		protected abstract void InitFSMEvent();
+		protected void SetStateEvent(T state, StateEvent stateEvent, Action action) =>
+			stateEvents[(state, stateEvent)] = action;
+		#endregion
 
-			Init();
+		#region Start
+		private void OnEnable() => StartFSM();
+		private void StartFSM()
+		{
 			ChangeState(DefaultState);
+			StopStateUpdateLoop(); // 중복 방지
+			stateUpdateLoop = StartCoroutine(UpdateState());
 		}
+		#endregion
 
-		public void Dispose()
+		#region Update
+		protected void ChangeState(T newState)
 		{
-			UnitObject.StopCoroutine(coroutine);
-			stateEventDic.Clear();
-			currentState = DefaultState;
-			UnitObject = null;
-		}
+			if (IsCurState(newState))
+			{
+				Debug.LogWarning($"[FSM] Already in state: {newState}");
+				// 일단 경고만
+			}
 
-		public bool IsCurState(T state) => currentState.Equals(state);
-
-		/// <summary>
-		/// 상태머신을 쓰기 전에 초기화를 해주는 함수.
-		/// OnEnable에서 호출됩니다.
-		/// </summary>
-		protected abstract void Init();
-
-		public void SetStateEvent(T state, StateEvent stateEvent, Action action)
-		{
-			stateEventDic[(state, stateEvent)] = action;
-		}
-
-		public void ChangeState(T newState)
-		{
-			if (stateEventDic.ContainsKey((currentState, StateEvent.Exit)))
-				stateEventDic[(currentState, StateEvent.Exit)]?.Invoke();
+			ExecuteEventIfAvailable(currentState, StateEvent.Exit);
 			currentState = newState;
-			if (stateEventDic.ContainsKey((currentState, StateEvent.Enter)))
-				stateEventDic[(currentState, StateEvent.Enter)]?.Invoke();
-
-			if (coroutine != null)
-				UnitObject.StopCoroutine(coroutine);
-			coroutine = UnitObject.StartCoroutine(StateLoop());
+			ExecuteEventIfAvailable(currentState, StateEvent.Enter);
 		}
 
-		private IEnumerator StateLoop()
+		private IEnumerator UpdateState()
 		{
-			const float TICK = 0.3f;
-			WaitForSeconds waitForTick = new(TICK);
+			WaitForSeconds waitForTick = new(BTRunner.TICK);
 
 			while (true)
 			{
-				if (stateEventDic.ContainsKey((currentState, StateEvent.Update)))
-					stateEventDic[(currentState, StateEvent.Update)]?.Invoke();
+				Debug.Log($"[FSM] Current State: {currentState}");
+				ExecuteEventIfAvailable(currentState, StateEvent.Update);
 				yield return waitForTick;
 			}
 		}
+		#endregion
+
+		#region End
+		private void OnDisable() => Dispose();
+		private void Dispose()
+		{
+			StopStateUpdateLoop();
+
+			// stateEvents.Clear();
+			currentState = DefaultState;
+			// UnitObject = null;
+		}
+		#endregion
+
+		#region Utils
+		protected bool IsCurState(T state) => currentState.Equals(state);
+
+		private void ExecuteEventIfAvailable(T state, StateEvent stateEvent)
+		{
+			if (stateEvents.ContainsKey((state, stateEvent)))
+				stateEvents[(state, stateEvent)]?.Invoke();
+		}
+
+		private void StopStateUpdateLoop()
+		{
+			if (stateUpdateLoop != null)
+				StopCoroutine(stateUpdateLoop);
+			stateUpdateLoop = null;
+		}
+		#endregion
 	}
 }

@@ -5,18 +5,14 @@ namespace WitchMendokusai
 {
 	public class BT_Idle : BTRunner
 	{
-		private float randomMoveDistance;
-		private bool usePivot;
-		private bool isSpriteLookLeft;
-		
+		private readonly float randomMoveDistance;
+		private readonly bool usePivot;
+		private readonly bool isSpriteLookLeft;
+
 		private Vector3 pivot = Vector3.zero;
 		private Vector3 moveDest = Vector3.zero;
 
-		public BT_Idle(UnitObject unitObject) : base(unitObject)
-		{
-		}
-
-		public void Init(float randomMoveDistance = 10, bool usePivot = false, bool isSpriteLookLeft = true)
+		public BT_Idle(UnitObject unitObject, float randomMoveDistance = 10, bool usePivot = false, bool isSpriteLookLeft = true) : base(unitObject)
 		{
 			this.randomMoveDistance = randomMoveDistance;
 			this.usePivot = usePivot;
@@ -28,14 +24,30 @@ namespace WitchMendokusai
 			return
 				Sequence
 				(
-					Action(UpdateSpriteFlip),
-					Wait(3),
-					Action(SetDestinationRandom),
-					Action(MoveToDestination)
+					Sequence // # [제자리]
+					(
+						Action(SetDestinationZero),
+						Action(SetUnitMoveDestination),
+						Action(UpdateSpriteFlip),
+						Wait(3)
+					),
+					Sequence // # [랜덤 이동]
+					(
+						Action(SetDestinationRandom),
+						Action(SetUnitMoveDestination),
+						Action(UpdateSpriteFlip),
+						Wait(3)
+					)
 				);
 		}
 
-		private void SetDestinationRandom()
+		private BTState SetDestinationZero()
+		{
+			moveDest = unitObject.transform.position;
+			return BTState.Success;
+		}
+
+		private BTState SetDestinationRandom()
 		{
 			Vector3 random = Random.insideUnitCircle * randomMoveDistance;
 			random.z = random.y;
@@ -45,9 +57,11 @@ namespace WitchMendokusai
 				moveDest = pivot + random;
 			else
 				moveDest = unitObject.transform.position + random;
+
+			return BTState.Success;
 		}
 
-		private void MoveToDestination()
+		private BTState SetUnitMoveDestination()
 		{
 			// NavMeshAgent agent = unitObject.NavMeshAgent;
 
@@ -55,11 +69,13 @@ namespace WitchMendokusai
 			// agent.destination = unitObject.transform.position + dir;
 
 			unitObject.UnitMovement.SetMoveDirection(dir);
+			return BTState.Success;
 		}
 
-		private void UpdateSpriteFlip()
+		private BTState UpdateSpriteFlip()
 		{
 			unitObject.SpriteRenderer.flipX = isSpriteLookLeft ? !IsPlayerOnLeft() : IsPlayerOnLeft();
+			return BTState.Success;
 		}
 
 		protected bool IsPlayerOnLeft()

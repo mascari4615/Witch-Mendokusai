@@ -28,25 +28,25 @@ MonoBehaviour:
     - CardData
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 12af03927d5128346b05a433fdd21380
-    m_Address: CardData/504
+    m_Address: CardData/601
     m_ReadOnly: 0
     m_SerializedLabels:
     - CardData
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 189a74a067a262b4da696e9c95bb6353
-    m_Address: CardData/205
+    m_Address: CardData/402
     m_ReadOnly: 0
     m_SerializedLabels:
     - CardData
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 1d9f2deda82efc54484f793b95e1da39
-    m_Address: CardData/503
+    m_Address: CardData/600
     m_ReadOnly: 0
     m_SerializedLabels:
     - CardData
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 24ca3e1765eb53c4db12be15bbd712d4
-    m_Address: CardData/505
+    m_Address: CardData/602
     m_ReadOnly: 0
     m_SerializedLabels:
     - CardData
@@ -58,7 +58,7 @@ MonoBehaviour:
     - CardData
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 296916b20c52ff64c87cc4e298b81e21
-    m_Address: CardData/404
+    m_Address: CardData/501
     m_ReadOnly: 0
     m_SerializedLabels:
     - CardData
@@ -100,7 +100,7 @@ MonoBehaviour:
     - CardData
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 820fe3e1c9f58b04386bd5aec856166e
-    m_Address: CardData/403
+    m_Address: CardData/500
     m_ReadOnly: 0
     m_SerializedLabels:
     - CardData
@@ -124,13 +124,19 @@ MonoBehaviour:
     - CardData
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 9d8260d5505883f47b23651761aeedcc
-    m_Address: CardData/405
+    m_Address: CardData/502
     m_ReadOnly: 0
     m_SerializedLabels:
     - CardData
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: b34d411257fa43f4b9c9ee120c79a386
     m_Address: CardData/201
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - CardData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: bce723c013bedaf42a18e51019d040a6
+    m_Address: CardData/401
     m_ReadOnly: 0
     m_SerializedLabels:
     - CardData
@@ -142,7 +148,7 @@ MonoBehaviour:
     - CardData
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: d3e28982df1a30645a0773cd17035370
-    m_Address: CardData/203
+    m_Address: CardData/400
     m_ReadOnly: 0
     m_SerializedLabels:
     - CardData

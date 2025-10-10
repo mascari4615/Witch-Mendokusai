@@ -1,21 +1,22 @@
+using System;
 using UnityEngine;
 using static WitchMendokusai.NodeHelper;
 
 namespace WitchMendokusai
 {
-	public class BT_ProjectileAttack : BTRunner
+	public class BT_Skill : BTRunner
 	{
-		private float attackRange;
+		private readonly int skillIndex;
+		private readonly float attackRange;
+		private event Action OnSkillEnd;
 
 		private Vector3 moveDest = Vector3.zero;
 
-		public BT_ProjectileAttack(UnitObject unitObject) : base(unitObject)
+		public BT_Skill(UnitObject unitObject, int skillIndex, float attackRange, Action onSkillEnd = null) : base(unitObject)
 		{
-		}
-
-		public void Init(float attackRange = 5f)
-		{
+			this.skillIndex = skillIndex;
 			this.attackRange = attackRange;
+			OnSkillEnd = onSkillEnd;
 		}
 
 		protected override Node MakeNode()
@@ -35,15 +36,21 @@ namespace WitchMendokusai
 
 					Sequence
 					(
-						Condition(IsSkill0Ready),
-						Action(UseSkill0)
+						Condition(IsSkillReady),
+						Action(UseSkill),
+						Action(() =>
+						{
+							OnSkillEnd?.Invoke();
+							return BTState.Success;
+						})
 					)
 				);
 		}
 
-		private void SetDestinationPlayer()
+		private BTState SetDestinationPlayer()
 		{
 			moveDest = Player.Instance.transform.position;
+			return BTState.Success;
 		}
 
 		protected bool IsPlayerFar()
@@ -54,7 +61,7 @@ namespace WitchMendokusai
 			return isPlayerFar;
 		}
 
-		private void MoveToDestination()
+		private BTState MoveToDestination()
 		{
 			// NavMeshAgent agent = unitObject.NavMeshAgent;
 
@@ -62,26 +69,30 @@ namespace WitchMendokusai
 			// agent.destination = unitObject.transform.position + dir;
 
 			unitObject.UnitMovement.SetMoveDirection(dir);
+			return BTState.Success;
 		}
 
-		private void UpdateSpriteFlip()
+		private BTState UpdateSpriteFlip()
 		{
 			unitObject.SpriteRenderer.flipX = IsPlayerOnLeft();
+			return BTState.Success;
 		}
 
 		protected bool IsPlayerOnLeft()
 		{
 			return Camera.main.WorldToViewportPoint(unitObject.transform.position).x > .5f;
 		}
-		
-		protected bool IsSkill0Ready()
+
+		protected bool IsSkillReady()
 		{
-			return unitObject.SkillHandler.SkillDic[0].IsReady;
+			if (unitObject.SkillHandler.SkillDic.ContainsKey(skillIndex) == false)
+				return false;
+			return unitObject.SkillHandler.SkillDic[skillIndex].IsReady;
 		}
 
-		protected void UseSkill0()
+		protected BTState UseSkill()
 		{
-			unitObject.UseSkill(0);
+			return unitObject.UseSkill(skillIndex) ? BTState.Success : BTState.Failure;
 		}
 	}
 }

@@ -1,8 +1,5 @@
 using System;
 
-// 날짜 : 2021-01-16 PM 11:23:43
-// 작성자 : Rito
-
 namespace WitchMendokusai
 {
 	public class IfParallelNode : DecoratedCompositeNode

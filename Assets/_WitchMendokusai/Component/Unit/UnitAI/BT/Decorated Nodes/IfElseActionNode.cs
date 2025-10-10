@@ -8,10 +8,10 @@ namespace WitchMendokusai
 	public class IfElseActionNode : Node
 	{
 		public Func<bool> Condition { get; private set; }
-		public Action IfAction { get; private set; }
-		public Action ElseAction { get; private set; }
+		public Func<BTState> IfAction { get; private set; }
+		public Func<BTState> ElseAction { get; private set; }
 
-		public IfElseActionNode(Func<bool> condition, Action ifAction, Action elseAction)
+		public IfElseActionNode(Func<bool> condition, Func<BTState> ifAction, Func<BTState> elseAction)
 		{
 			Condition = condition;
 			IfAction = ifAction;
@@ -25,11 +25,11 @@ namespace WitchMendokusai
 			ElseAction = elseAction.Action;
 		}
 
-		public override State OnUpdate()
+		public override BTState OnUpdate()
 		{
-			State result = Condition()? State.Success : State.Failure;
+			BTState result = Condition()? BTState.Success : BTState.Failure;
 
-			if (result == State.Success) IfAction();
+			if (result == BTState.Success) IfAction();
 			else ElseAction();
 
 			return result;

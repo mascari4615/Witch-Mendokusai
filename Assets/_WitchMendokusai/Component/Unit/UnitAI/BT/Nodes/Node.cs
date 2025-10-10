@@ -2,20 +2,19 @@
 
 namespace WitchMendokusai
 {
-	public enum State
+	public enum BTState
 	{
 		Success,
 		Running,
 		Failure,
-
 	}
 
 	/// <summary> 행동트리 최상위 인터페이스 </summary>
 	public abstract class Node
 	{
-		public State State { get; private set; } = State.Running;
+		public BTState State { get; private set; } = BTState.Running;
 
-		public State Update()
+		public BTState UpdateBT()
 		{
 			State = OnUpdate();
 			return State;
@@ -25,11 +24,11 @@ namespace WitchMendokusai
 		{
 			Traverse(this, (node) =>
 			{
-				node.State = State.Running;
+				node.State = BTState.Running;
 			});
 		}
 
-		public abstract State OnUpdate();
+		public abstract BTState OnUpdate();
 
 		public static void Traverse(Node node, System.Action<Node> visiter)
 		{

@@ -1,4 +1,3 @@
-using System;
 using UnityEngine;
 
 namespace WitchMendokusai
@@ -8,30 +7,26 @@ namespace WitchMendokusai
 		[SerializeField] private float attackRange = 10f;
 
 		private BT_Idle idle;
-		private BT_ProjectileAttack attack;
+		private BT_Skill attack;
 
-		public FSMWisp(UnitObject unitObject) : base(unitObject) {}
 		protected override FSMStateCommon DefaultState => FSMStateCommon.Idle;
 
-		protected override void Init()
+		protected override void InitFSMEvent()
 		{
 			idle = new(UnitObject);
-			attack = new(UnitObject);
+			attack = new(UnitObject, 0, attackRange);
 
 			SetStateEvent(FSMStateCommon.Idle, StateEvent.Update, () =>
 			{
 				CanSeePlayer();
-				idle.Update();
+				idle.UpdateBT();
 			});
 
 			SetStateEvent(FSMStateCommon.Attack, StateEvent.Update, () =>
 			{
 				// CanSeePlayer();
-				attack.Update();
+				attack.UpdateBT();
 			});
-
-			idle.Init();
-			attack.Init(attackRange);
 		}
 
 		private void CanSeePlayer()
