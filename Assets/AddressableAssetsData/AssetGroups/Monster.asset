@@ -21,6 +21,12 @@ MonoBehaviour:
     m_SerializedLabels:
     - Monster
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 2de1f04bcb73e19469c9adb4208868f6
+    m_Address: Monster/10
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Monster
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 44760449275eb004db761ffc958fcd85
     m_Address: Monster/9
     m_ReadOnly: 0
