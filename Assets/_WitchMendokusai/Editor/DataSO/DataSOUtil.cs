@@ -36,9 +36,22 @@ namespace WitchMendokusai
 
 		public static string ConvertToCorrectAssetName(string name)
 		{
-			// 파일 이름에 사용할 수 없는 문자와 공백을 제거
-			Regex regex = new(string.Format("[{0}]", Regex.Escape(new string(Path.GetInvalidFileNameChars()) + " ")));
-			return regex.Replace(name, string.Empty);
+			// 허용되지 않는 문자 정의
+			const string notAllowedChars = "\"\'\\/:*?<>|[],. ";
+			
+			// 각 문자 제거
+			foreach (char c in notAllowedChars)
+			{
+				name = name.Replace(c.ToString(), string.Empty);
+			}
+			
+			// 추가로 시스템 파일명 제한 문자 제거
+			foreach (char c in Path.GetInvalidFileNameChars())
+			{
+				name = name.Replace(c.ToString(), string.Empty);
+			}
+			
+			return name;
 		}
 
 		public static void SetCorrectAssetName(DataSO dataSO)
