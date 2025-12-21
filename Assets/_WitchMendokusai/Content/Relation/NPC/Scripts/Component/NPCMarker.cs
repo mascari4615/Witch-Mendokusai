@@ -60,10 +60,7 @@ namespace WitchMendokusai
 			}
 
 			// 획득 가능한 퀘스트가 있다면
-			bool hasLockedQuest = dataSOs.Exists(i =>
-			{
-				return QuestManager.Instance.GetQuestState(i.ID) == QuestState.Locked;
-			});
+			bool hasLockedQuest = dataSOs.Exists(i => QuestManager.Instance.GetQuestState(i.ID) == QuestState.Locked);
 			
 			if (hasLockedQuest)
 			{
