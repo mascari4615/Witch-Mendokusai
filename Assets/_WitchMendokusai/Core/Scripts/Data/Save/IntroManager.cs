@@ -14,13 +14,28 @@ namespace WitchMendokusai
 		{
 			Debug.Log($"{nameof(IntroManager)} {nameof(Start)}");
 
+			InitView();
+
+			if (AppSetting.Data.UseIntro)
+			{
+				yield return StartCoroutine(Intro());
+			}
+
+			LoadLobby();
+		}
+
+		private void InitView()
+		{
 			for (int i = 0; i < panels.Length; i++)
 			{
 				panels[i].SetActive(false);
 			}
+		}
 
+		private IEnumerator Intro()
+		{
 			yield return new WaitForSeconds(1f);
-		
+
 			for (int i = 0; i < panels.Length; i++)
 			{
 				panels[i].SetActive(true);
@@ -29,7 +44,10 @@ namespace WitchMendokusai
 			}
 
 			yield return new WaitForSeconds(1f); // 마지막 패널 후 잠시 대기
-
+		}
+		
+		private void LoadLobby()
+		{
 			SceneManager.LoadScene("Lobby");
 		}
 	}

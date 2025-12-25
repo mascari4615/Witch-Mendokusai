@@ -27,6 +27,11 @@ namespace WitchMendokusai
 			yield return StartCoroutine(DataManager.Instance.Init());
 			DataManager.Instance.Login();
 			Init();
+
+			if (AppSetting.Data.AutoStart)
+			{
+				StartGame();
+			}
 		}
 
 		private void Init()

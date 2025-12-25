@@ -10,6 +10,8 @@ namespace WitchMendokusai
 		[field: Header("_" + nameof(AppSettings))]
 		[field: SerializeField] public bool UseLocalData { get; private set; } = true;
 		[field: SerializeField] public bool InitDataSODict { get; private set; } = true;
+		[field: SerializeField] public bool UseIntro { get; private set; } = true;
+		[field: SerializeField] public bool AutoStart { get; private set; } = false;
 	}
 
 	public static class AppSetting
