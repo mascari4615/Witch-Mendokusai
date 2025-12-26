@@ -11,7 +11,7 @@ namespace WitchMendokusai
 		[SerializeField] private GameObject selectNewEquipmentPanel;
 		private UIDollGrid dollGridUI;
 		private UIItemGrid selectNewEquipmentInventoryUI;
-		[SerializeField] private GameObject selectDollButton;
+		[SerializeField] private Button selectDollButton;
 		[SerializeField] private List<UISlot> equipmentSlots;
 		private int targetEquipmentIndex;
 
@@ -30,7 +30,7 @@ namespace WitchMendokusai
 
 		public void SetDoll()
 		{
-			DataManager.Instance.SetCurDoll(dollGridUI.CurSlotIndex);
+			DataManager.Instance.SetCurDoll(dollGridUI.CurSlot.DataSO.ID);
 			Player.Instance.Object.SetDoll(DataManager.Instance.CurDollID);
 			UpdateUI();
 		}
@@ -73,6 +73,8 @@ namespace WitchMendokusai
 					ChangeItem(slot.Index);
 				});
 			}
+
+			selectDollButton.onClick.AddListener(SetDoll);
 		}
 
 		public override void UpdateUI()
@@ -84,12 +86,12 @@ namespace WitchMendokusai
 			if (curDollID == Doll.DUMMY_ID)
 			{
 				equipmentSlots[0].transform.parent.gameObject.SetActive(false);
-				selectDollButton.SetActive(false);
+				selectDollButton.gameObject.SetActive(false);
 			}
 			else
 			{
 				equipmentSlots[0].transform.parent.gameObject.SetActive(true);
-				selectDollButton.SetActive(true);
+				selectDollButton.gameObject.SetActive(true);
 
 				List<EquipmentData> equipments = DataManager.Instance.GetEquipmentData(curDollID);
 				for (int i = 0; i < equipments.Count; i++)
