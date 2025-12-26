@@ -28,6 +28,6 @@ MonoBehaviour:
     - unitStat: 2
       value: 20
     - unitStat: 300
-      value: 3
+      value: 30
   <SignatureEquipment>k__BackingField: {fileID: 0}
   <DefaultEquipments>k__BackingField: []

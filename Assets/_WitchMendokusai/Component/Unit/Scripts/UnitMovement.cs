@@ -90,7 +90,7 @@ namespace WitchMendokusai
 			else if (unitObject.UnitStat[UnitStatType.FORCE_MOVE] > 0)
 				finalVelocity = moveDirection * SOManager.Instance.DashSpeed.RuntimeValue;
 			else
-				finalVelocity = moveDirection * unitObject.UnitStat[UnitStatType.MOVEMENT_SPEED];
+				finalVelocity = moveDirection * (unitObject.UnitStat[UnitStatType.MOVEMENT_SPEED] / 10f);
 
 			unitRigidBody.linearVelocity = finalVelocity;
 			// unitRigidBody.AddForce(finalVelocity, ForceMode.VelocityChange);

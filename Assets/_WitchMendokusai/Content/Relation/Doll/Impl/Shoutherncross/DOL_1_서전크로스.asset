@@ -31,7 +31,7 @@ MonoBehaviour:
     - unitStat: 2
       value: 20
     - unitStat: 300
-      value: 3
+      value: 30
   <SignatureEquipment>k__BackingField: {fileID: 11400000, guid: 558768e4ce1c3d7429e1dfa98df215d5, type: 2}
   <DefaultEquipments>k__BackingField:
   - {fileID: 11400000, guid: 61cbebb97ff32a049bf1e1b9a2ad2c09, type: 2}
