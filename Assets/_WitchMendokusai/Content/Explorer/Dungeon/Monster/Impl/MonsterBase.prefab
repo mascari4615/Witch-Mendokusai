@@ -68,6 +68,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: MonsterBase
       objectReference: {fileID: 0}
+    - target: {fileID: 5555776233823352419, guid: 8985bc14129999340bfe02f05cc6a45f, type: 3}
+      propertyPath: m_Radius
+      value: 0.5
+      objectReference: {fileID: 0}
     - target: {fileID: 7832280916129115842, guid: 8985bc14129999340bfe02f05cc6a45f, type: 3}
       propertyPath: m_Controller
       value: 
