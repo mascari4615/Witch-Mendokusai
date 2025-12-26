@@ -39,7 +39,7 @@ namespace WitchMendokusai
 
 		public void StartDungeon(Dungeon dungeon)
 		{
-			Debug.Log($"{nameof(StartDungeon)}");
+			Debug.Log($"{nameof(StartDungeon)} ({dungeon.Name})");
 
 			CurDungeon = dungeon;
 			dungeonStrategy = DungeonObjectiveStrategyFactory.Create(dungeon);

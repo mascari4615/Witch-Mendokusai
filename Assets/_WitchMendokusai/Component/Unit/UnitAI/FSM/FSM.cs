@@ -35,7 +35,7 @@ namespace WitchMendokusai
 		{
 			if (TryGetComponent(out UnitObject) == false)
 			{
-				Debug.LogError("UnitObject component is missing.");
+				Debug.LogError($"[FSM] ({name}) UnitObject component is missing.");
 				return;
 			}
 			stateEvents.Clear();
@@ -63,7 +63,7 @@ namespace WitchMendokusai
 		{
 			if (IsCurState(newState))
 			{
-				Debug.LogWarning($"[FSM] Already in state: {newState}");
+				// Debug.LogWarning($"[FSM] ({name}) Already in state: {newState}");
 				// 일단 경고만
 			}
 
@@ -78,7 +78,7 @@ namespace WitchMendokusai
 
 			while (true)
 			{
-				Debug.Log($"[FSM] Current State: {currentState}");
+				// Debug.Log($"[FSM] ({name}) Current State: {currentState}");
 				ExecuteEventIfAvailable(currentState, StateEvent.Update);
 				yield return waitForTick;
 			}

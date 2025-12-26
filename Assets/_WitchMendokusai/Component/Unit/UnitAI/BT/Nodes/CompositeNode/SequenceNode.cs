@@ -12,7 +12,7 @@ namespace WitchMendokusai
 		{
 			while (current < ChildList.Count)
 			{
-				Debug.Log($"SequenceNode Current : {current}");
+				// Debug.Log($"SequenceNode Current : {current}");
 				Node child = ChildList[current];
 				BTState result = child.UpdateBT();
 

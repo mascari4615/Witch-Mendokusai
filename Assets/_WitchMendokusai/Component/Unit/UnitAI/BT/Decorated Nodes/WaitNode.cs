@@ -20,13 +20,13 @@ namespace WitchMendokusai
 
 			if (timeout)
 			{
-				Debug.Log($"WaitNode Timeout : {duration}");
+				// Debug.Log($"WaitNode Timeout : {duration}");
 				t = 0;
 				return BTState.Success;
 			}
 			else
 			{
-				Debug.Log($"WaitNode Running : {duration}");
+				// Debug.Log($"WaitNode Running : {duration}");
 				return BTState.Running;
 			}
 		}
