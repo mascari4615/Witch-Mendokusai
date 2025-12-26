@@ -10,7 +10,7 @@ namespace WitchMendokusai
 		private BT_Idle idle;
 		private BT_MoveToPlayer moveToPlayer;
 
-		protected override FSMStateCommon DefaultState => FSMStateCommon.Idle;
+		protected override FSMStateCommon DefaultState => FSMStateCommon.Attack;
 
 		protected override void InitFSMEvent()
 		{
@@ -32,16 +32,16 @@ namespace WitchMendokusai
 
 		private void CanSeePlayer()
 		{
-			if (Vector3.Distance(UnitObject.transform.position, Player.Instance.transform.position) < attackRange)
-			{
-				if (IsCurState(FSMStateCommon.Attack) == false)
-					ChangeState(FSMStateCommon.Attack);
-			}
-			else
-			{
-				if (IsCurState(FSMStateCommon.Idle) == false)
-					ChangeState(FSMStateCommon.Idle);
-			}
+			// if (Vector3.Distance(UnitObject.transform.position, Player.Instance.transform.position) < attackRange)
+			// {
+			// 	if (IsCurState(FSMStateCommon.Attack) == false)
+			// 		ChangeState(FSMStateCommon.Attack);
+			// }
+			// else
+			// {
+			// 	if (IsCurState(FSMStateCommon.Idle) == false)
+			// 		ChangeState(FSMStateCommon.Idle);
+			// }
 		}
 	}
 }
