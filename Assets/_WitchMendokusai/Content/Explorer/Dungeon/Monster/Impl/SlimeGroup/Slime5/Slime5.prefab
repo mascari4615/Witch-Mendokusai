@@ -110,4 +110,4 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WitchMendokusai.FSMSlime
   attackRange: 10
-  isSpriteLookLeft: 0
+  isSpriteLookLeft: 1
