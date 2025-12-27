@@ -528,6 +528,15 @@ namespace WitchMendokusai
 			Dictionary<int, DataSO> dataSOs = DataSOs[typeof(TData)];
 			foreach (TEnum enumValue in Enum.GetValues(typeof(TEnum)))
 			{
+				// 값이 -1이면 무시
+				if (Convert.ToInt32(enumValue) == -1)
+					continue;
+
+				// 이름이 NONE이면 무시
+				string enumName = Enum.GetName(typeof(TEnum), enumValue);
+				if (enumName == "NONE")
+					continue;
+
 				if (dataSOs.TryGetValue(Convert.ToInt32(enumValue), out DataSO dataSO))
 				{
 					TData typedData = dataSO as TData;
