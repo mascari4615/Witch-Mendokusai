@@ -35,14 +35,14 @@ namespace WitchMendokusai
 		public Vector3 EndPosition;
 		public Vector3 EndScale;
 		public bool IsLocal;
-		public bool IsRelative;
+		public TransformFlag IsRelative;
 		public float Duration;
 		public Ease EaseType;
 		public MoveEaseType MoveEaseType;
 		public MovePosType MovePosType;
 		public float RandomRange;
 
-		public TransformChainData(TransformFlag transformFlags, Vector3 endPosition, Vector3 endScale, float duration, Ease easeType, bool isRelative, bool isLocal, MoveEaseType moveEaseType, MovePosType movePosType, float randomRange)
+		public TransformChainData(TransformFlag transformFlags, Vector3 endPosition, Vector3 endScale, float duration, Ease easeType, TransformFlag isRelative, bool isLocal, MoveEaseType moveEaseType, MovePosType movePosType, float randomRange)
 		{
 			TransformFlags = transformFlags;
 			EndPosition = endPosition;
@@ -133,7 +133,7 @@ namespace WitchMendokusai
 			{
 				transform.DOScale(data.EndScale, data.Duration)
 					.SetEase(data.EaseType)
-					.SetRelative(data.IsRelative);
+					.SetRelative(data.IsRelative.HasFlag(TransformFlag.DoScale));
 			}
 		}
 
@@ -142,7 +142,7 @@ namespace WitchMendokusai
 			Vector3 startPosition = data.IsLocal ? transform.localPosition : transform.position;
 			Vector3 endPosition = CalcEndPosition(data);
 
-			if (data.IsRelative)
+			if (data.IsRelative.HasFlag(TransformFlag.DoPosition))
 			{
 				endPosition += startPosition;
 			}
@@ -189,12 +189,11 @@ namespace WitchMendokusai
 					endPosition = data.EndPosition;
 					break;
 				case MovePosType.Random:
-					Vector3 randomPosition = new(
+					endPosition = new(
 						Random.Range(-data.RandomRange, data.RandomRange),
 						0,
 						Random.Range(-data.RandomRange, data.RandomRange)
 					);
-					endPosition = transform.position + randomPosition;
 					break;
 				default:
 					endPosition = data.EndPosition;
