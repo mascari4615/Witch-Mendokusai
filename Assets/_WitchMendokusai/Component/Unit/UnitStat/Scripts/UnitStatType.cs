@@ -2,6 +2,8 @@ namespace WitchMendokusai
 {
 	public enum UnitStatType
 	{
+		NONE = -1,
+
 		#region Stat
 		// 체력
 		HP_CUR = 0, // 런타임

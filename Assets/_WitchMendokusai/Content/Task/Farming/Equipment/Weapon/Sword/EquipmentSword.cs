@@ -110,7 +110,7 @@ namespace WitchMendokusai
 				if (g.TryGetComponent(out SkillObject skillObject))
 					skillObject.InitContext(Player.Instance.Object);
 
-				if (g.TryGetComponent(out DamagingObject damagingObject))
+				if (g.GetComponentInChildren<DamagingObject>() is DamagingObject damagingObject)
 					damagingObject.SetDamageBonus(damageBonus);
 
 				g.SetActive(true);
