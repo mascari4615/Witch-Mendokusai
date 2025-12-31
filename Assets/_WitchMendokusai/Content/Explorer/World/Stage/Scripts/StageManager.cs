@@ -12,6 +12,7 @@ namespace WitchMendokusai
 	{
 		public static event Action<Stage, StageObject> OnStageChanged = delegate { };
 
+		[field: SerializeField] public Stage StartStage { get; private set; } = null;
 		public Stage LastStage { get; private set; } = null;
 		public Stage CurStage { get; private set; } = null;
 		public StageObject CurStageObject { get; private set; } = null;
@@ -21,7 +22,7 @@ namespace WitchMendokusai
 
 		private void Start()
 		{
-			Stage homeStage = Get<WorldStage>(0);
+			Stage homeStage = StartStage != null ? StartStage : Get<WorldStage>(0);
 			StageObject homeStageObject = ObjectPoolManager.Instance.Spawn(homeStage.Prefab.gameObject).GetComponent<StageObject>();
 
 			CurStageObject = homeStageObject;
