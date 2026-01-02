@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace WitchMendokusai
 {
@@ -47,6 +48,8 @@ namespace WitchMendokusai
 		{
 			Inventory inventory = DataBufferSO as Inventory;
 
+			base.UpdateUI();
+
 			for (int i = 0; i < Slots.Count; i++)
 			{
 				if (inventory.Capacity <= i)
@@ -54,45 +57,27 @@ namespace WitchMendokusai
 					Slots[i].gameObject.SetActive(false);
 					continue;
 				}
-
-				UIItemSlot slot = Slots[i] as UIItemSlot;
-				Item item = inventory.Data.ElementAtOrDefault(i);
-
-				slot.canHold = filter == ItemType.None;
-
-				if (item == null)
-				{
-					slot.SetSlot(null);
-					slot.gameObject.SetActive((showEmptySlot == false) && (filter == ItemType.None));
-					slot.SetDisable(false);
-				}
-				else
-				{
-					ItemData itemData = item.Data;
-					bool slotDisable = (filter != ItemType.None) && (itemData.Type != filter);
-
-					slot.SetSlot(itemData, item.Amount);
-					slot.gameObject.SetActive(slotDisable == false);
-					// slot.SetDisable(slotDisable);
-				}
 			}
 		}
 
-		public void UpdateSlotUI(int index, Item item)
+		protected override void SetSlotData(int index, Item item)
 		{
-			if (item != null)
-			{
-				Slots[index].SetSlot(item.Data, item.Amount);
-			}
-			else
+			if (item == null)
 			{
 				Slots[index].SetSlot(null);
-			}
+				return;
+			} 
+
+			UIItemSlot slot = Slots[index] as UIItemSlot;
+
+			slot.SetSlot(item.Data, item.Amount);
+			slot.canHold = filter == ItemType.None;
 		}
 
 		public void SetFilter(ItemType newFilter)
 		{
 			filter = newFilter;
+			SetFilterFunc((item) => (filter == ItemType.None) || (item.Data.Type == filter));
 			UpdateUI();
 		}
 

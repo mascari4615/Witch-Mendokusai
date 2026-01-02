@@ -2,6 +2,7 @@ using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine.Serialization;
+using System;
 
 namespace WitchMendokusai
 {
@@ -11,9 +12,9 @@ namespace WitchMendokusai
 		public List<T> Data { get; private set; } = new();
 		public List<UISlot> Slots { get; protected set; } = new();
 		public int CurSlotIndex { get; protected set; } = 0;
+		private Func<T, bool> filterFunc = null;
 
 		[SerializeField] protected Transform slotsParent;
-		[SerializeField] protected bool dontShowEmptySlot = false;
 		[SerializeField] protected bool showEmptySlot = true;
 		[SerializeField] protected ToolTip clickToolTip;
 		[SerializeField] protected GameObject noElementInfo;
@@ -46,27 +47,34 @@ namespace WitchMendokusai
 
 			SelectSlot(0);
 		}
-
 		public override void UpdateUI()
 		{
+			// TODO: CurSlotIndex 보정
+
 			for (int i = 0; i < Slots.Count; i++)
 			{
-				if (i < Data.Count)
-				{
-					Slots[i].SetSlot(Data[i] as DataSO);
-					Slots[i].gameObject.SetActive(true);
-				}
-				else
-				{
-					Slots[i].SetSlot(null);
-					Slots[i].gameObject.SetActive(showEmptySlot);
-				}
+				T data = Data.ElementAtOrDefault(i);
+				bool canDisplaySlot = data != null && (filterFunc == null || filterFunc(data));
+
+				Slots[i].gameObject.SetActive(canDisplaySlot || showEmptySlot);
+				SetSlotData(i, data);
 			}
 
 			if (clickToolTip != null)
 				clickToolTip.SetToolTipContent(CurSlot.Data);
 
 			UpdateNoElementInfo();
+		}
+
+		protected virtual void SetSlotData(int index, T data)
+		{
+			if (data == null)
+			{
+				Slots[index].SetSlot(null);
+				return;
+			}
+
+			Slots[index].SetSlot(data as DataSO);
 		}
 
 		protected void UpdateNoElementInfo()
@@ -96,5 +104,8 @@ namespace WitchMendokusai
 		{
 			CurSlotIndex = index;
 		}
+
+		public void SetFilterFunc(Func<T, bool> newFilterFunc) => filterFunc = newFilterFunc;
+		public void ClearFilterFunc() => SetFilterFunc(null);
 	}
 }

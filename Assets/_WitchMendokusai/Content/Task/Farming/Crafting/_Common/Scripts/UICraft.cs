@@ -73,18 +73,13 @@ namespace WitchMendokusai
 
 		private void UpdateRecipeGrid()
 		{
-			// 현재 가지고 있는 레시피만 보여주도록
-			List<ItemData> availableRecipes = new();
-
-			// 모든 아이템 데이터 중에서 해당 아이템 타입과 레시피 타입이 일치하는 아이템 데이터만 필터링
-			ForEach<ItemData>(itemData =>
+			recipeGrid.SetFilterFunc(itemData =>
 			{
-				if (itemData.Unlocked)
-					if ((itemData.Type == itemType) && (itemData.Recipes[0].Type == recipeType))
-						availableRecipes.Add(itemData);
+				// 1. 현재 가지고 있는 레시피 중
+				// 2. 필터 아이템 타입과 레시피 타입이 일치하는 아이템 데이터
+				return itemData.Unlocked && (itemData.Type == itemType) && (itemData.Recipes[0].Type == recipeType);
 			});
 
-			recipeGrid.SetData(availableRecipes);
 			recipeGrid.UpdateUI();
 		}
 

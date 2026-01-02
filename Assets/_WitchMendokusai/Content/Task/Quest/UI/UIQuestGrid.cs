@@ -48,50 +48,39 @@ namespace WitchMendokusai
 			if (CurSlotIndex >= Data.Count)
 				CurSlotIndex = Data.Count - 1;
 
-			int activeSlotCount = 0;
-			foreach (UIQuestSlot slot in Slots.Cast<UIQuestSlot>())
-			{
-				RuntimeQuest quest = Data.ElementAtOrDefault(slot.Index);
-
-				if (quest == null)
-				{
-					slot.SetSlot(null);
-					slot.gameObject.SetActive(showEmptySlot);
-				}
-				else
-				{
-					bool slotActive = (curFilter == QuestType.None) || (quest.Type == curFilter);
-
-					slot.SetRuntimeQuestState(quest.State);
-					slot.SetQuest(quest);
-					slot.UpdateUI();
-
-					if (quest.SO == null)
-						slot.SetSlot(null, quest.Name, quest.Description);
-					else
-						slot.SetSlot(quest.SO);
-
-					slot.gameObject.SetActive(slotActive);
-				}
-
-				activeSlotCount += slot.gameObject.activeSelf ? 1 : 0;
-			}
-
-			if (clickToolTip != null)
-				clickToolTip.SetToolTipContent(CurSlot.Data);
+			base.UpdateUI();
 
 			if (questToolTip != null)
 			{
 				questToolTip.SetQuest(CurQuest);
 				questToolTip.UpdateUI();
 			}
+		}
 
-			UpdateNoElementInfo();
+		protected override void SetSlotData(int index, RuntimeQuest quest)
+		{
+			if (quest == null)
+			{
+				Slots[index].SetSlot(null);
+				return;
+			}
+
+			UIQuestSlot slot = Slots[index] as UIQuestSlot;
+
+			slot.SetRuntimeQuestState(quest.State);
+			slot.SetQuest(quest);
+			slot.UpdateUI();
+
+			if (quest.SO == null)
+				slot.SetSlot(null, quest.Name, quest.Description);
+			else
+				slot.SetSlot(quest.SO);
 		}
 
 		public void SetFilter(QuestType filter)
 		{
 			curFilter = filter;
+			SetFilterFunc((quest) => (curFilter == QuestType.None) || (quest.Type == curFilter));
 			UpdateUI();
 		}
 

@@ -26,30 +26,6 @@ namespace WitchMendokusai
 			}
 		}
 
-		public override void UpdateUI()
-		{
-			for (int i = 0; i < Slots.Count; i++)
-			{
-				UIItemSlot slot = Slots[i] as UIItemSlot;
-				ItemData itemData = Data.ElementAtOrDefault(i);
-
-				if (itemData == null)
-				{
-					slot.SetSlot(null);
-					slot.gameObject.SetActive(showEmptySlot);
-				}
-				else
-				{
-					bool slotActive = (filter == ItemType.None) || (itemData.Type == filter);
-
-					slot.SetSlot(itemData);
-					slot.gameObject.SetActive(slotActive);
-				}
-			}
-
-			UpdateNoElementInfo();
-		}
-
 		public void UpdateSlotUI(int index, Item item)
 		{
 			if (item != null)
@@ -65,6 +41,7 @@ namespace WitchMendokusai
 		public void SetFilter(ItemType newFilter)
 		{
 			filter = newFilter;
+			SetFilterFunc((itemData) => filter == ItemType.None || itemData.Type == filter);
 			UpdateUI();
 		}
 
