@@ -12,6 +12,8 @@ namespace WitchMendokusai
 	{
 		[SerializeField] private Button buyButton;
 		[SerializeField] private Button returnButton;
+		[SerializeField] private Button resetButton;
+		[SerializeField] private Button resetAllButton;
 		[SerializeField] private TextMeshProUGUI priceText;
 		[SerializeField] private TextMeshProUGUI curLevelText;
 
@@ -47,6 +49,19 @@ namespace WitchMendokusai
 				{
 					ReturnUpgrade(upgradeData.ID);
 				}
+			});
+
+			resetButton.onClick.AddListener(() =>
+			{
+				if (upgradeGridUI.CurSlot != null && upgradeGridUI.CurSlot.DataSO is UpgradeData upgradeData)
+				{
+					ResetUpgrade(upgradeData.ID);
+				}
+			});
+
+			resetAllButton.onClick.AddListener(() =>
+			{
+				ResetUpgradeAll();
 			});
 		}
 
@@ -128,6 +143,42 @@ namespace WitchMendokusai
 						UIManager.Instance.PopText("최소 레벨입니다. 더 이상 내릴 수 없습니다.", TextType.Warning);
 						break;
 				}
+			}
+		}
+
+		public void ResetUpgrade(int slotIndex)
+		{
+			UpgradeData targetUpgrade = Get<UpgradeData>(slotIndex);
+			if (targetUpgrade.TryReset(out DowngradeFailReason reason, out int refundedNyang))
+			{
+				UpdateUI();
+				UIManager.Instance.PopText($"+ {refundedNyang}", TextType.Warning);
+				return;
+			}
+			else
+			{
+				switch (reason)
+				{
+					case DowngradeFailReason.MinLevel:
+						UIManager.Instance.PopText("최소 레벨입니다. 더 이상 내릴 수 없습니다.", TextType.Warning);
+						break;
+				}
+			}
+		}
+
+		public void ResetUpgradeAll()
+		{
+			int totalRefund = 0;
+			ForEach<UpgradeData>(upgradeData =>
+			{
+				upgradeData.TryReset(out _, out int refundedNyang);
+				totalRefund += refundedNyang;
+			});
+
+			if (totalRefund > 0)
+			{
+				UpdateUI();
+				UIManager.Instance.PopText($"+ {totalRefund}", TextType.Warning);
 			}
 		}
 	}

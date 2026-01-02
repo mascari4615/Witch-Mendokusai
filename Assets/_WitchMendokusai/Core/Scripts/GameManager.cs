@@ -45,6 +45,18 @@ namespace WitchMendokusai
 				}
 			}
 		}
+
+		public void ApplyUpgradeEffects()
+		{
+			List<UpgradeData> upgrades = SOManager.Instance.DataSOs[typeof(UpgradeData)].Values.Cast<UpgradeData>().ToList();
+			foreach (UpgradeData upgrade in upgrades)
+			{
+				if (upgrade.CurLevel <= 0)
+					continue;
+
+				upgrade.Apply();
+			}
+		}
 	}
 
 	public enum GameConditionType
