@@ -196,6 +196,7 @@ namespace WitchMendokusai
 				InitEnumData<GameStatData, GameStatType>();
 				InitEnumData<DungeonStatData, DungeonStatType>();
 				InitEnumData<AspectData, AspectType>();
+				InitEnumData<UpgradeData, UpgradeType>();
 
 				return true;
 			}
@@ -563,7 +564,10 @@ namespace WitchMendokusai
 					int newID = Convert.ToInt32(enumValue);
 					string newName = Enum.GetName(typeof(TEnum), enumValue);
 
-					TData typedData = AddDataSO(typeof(TData), newID, newName, BASE_DIR) as TData;
+					string path = AssetFolderOverride.ContainsKey(typeof(TData)) ?
+						AssetFolderOverride[typeof(TData)] : BASE_DIR;
+
+					TData typedData = AddDataSO(typeof(TData), newID, newName, path) as TData;
 					PropertyInfo typeProperty = typeof(TData).GetProperty(PropertyName);
 					typeProperty.SetValue(typedData, newID);
 				}
