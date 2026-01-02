@@ -86,9 +86,9 @@ namespace WitchMendokusai
 				return false;
 			}
 
+			CurLevel--;
 			refundedNyang = PricePerLevel[CurLevel];
 			DataManager.Instance.GameStat[GameStatType.NYANG] += refundedNyang;
-			CurLevel--;
 			return true;
 		}
 
