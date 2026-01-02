@@ -56,7 +56,7 @@ namespace WitchMendokusai
 				if (quest == null)
 				{
 					slot.SetSlot(null);
-					slot.gameObject.SetActive(dontShowEmptySlot == false);
+					slot.gameObject.SetActive(showEmptySlot);
 				}
 				else
 				{

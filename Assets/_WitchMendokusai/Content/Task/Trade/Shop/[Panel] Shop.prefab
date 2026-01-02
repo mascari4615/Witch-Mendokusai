@@ -23666,7 +23666,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   <DataBufferSO>k__BackingField: {fileID: 11400000, guid: ab06591aa08605a48afcc9e28b3bd87b, type: 2}
   slotsParent: {fileID: 4066131456457537021}
-  dontShowEmptySlot: 1
+  showEmptySlot: 0
   clickToolTip: {fileID: 6942415399029504340}
   noElementInfo: {fileID: 0}
   filtersParent: {fileID: 5174846060912979841}

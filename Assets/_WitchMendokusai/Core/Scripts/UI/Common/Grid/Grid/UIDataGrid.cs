@@ -14,6 +14,7 @@ namespace WitchMendokusai
 
 		[SerializeField] protected Transform slotsParent;
 		[SerializeField] protected bool dontShowEmptySlot = false;
+		[SerializeField] protected bool showEmptySlot = true;
 		[SerializeField] protected ToolTip clickToolTip;
 		[SerializeField] protected GameObject noElementInfo;
 
@@ -58,9 +59,7 @@ namespace WitchMendokusai
 				else
 				{
 					Slots[i].SetSlot(null);
-
-					if (dontShowEmptySlot)
-						Slots[i].gameObject.SetActive(false);
+					Slots[i].gameObject.SetActive(showEmptySlot);
 				}
 			}
 

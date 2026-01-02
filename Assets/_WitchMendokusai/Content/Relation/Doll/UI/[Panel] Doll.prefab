@@ -5988,7 +5988,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   <DataBufferSO>k__BackingField: {fileID: 11400000, guid: d32743f508b1fb4498e16b9522cfa5b4, type: 2}
   slotsParent: {fileID: 2255754945874181909}
-  dontShowEmptySlot: 1
+  showEmptySlot: 0
   clickToolTip: {fileID: 5150897696583889852}
   noElementInfo: {fileID: 0}
 --- !u!114 &5150897696583889852 stripped

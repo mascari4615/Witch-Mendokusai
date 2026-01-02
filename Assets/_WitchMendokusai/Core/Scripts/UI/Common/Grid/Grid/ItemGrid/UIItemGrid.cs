@@ -63,7 +63,7 @@ namespace WitchMendokusai
 				if (item == null)
 				{
 					slot.SetSlot(null);
-					slot.gameObject.SetActive((dontShowEmptySlot == false) && (filter == ItemType.None));
+					slot.gameObject.SetActive((showEmptySlot == false) && (filter == ItemType.None));
 					slot.SetDisable(false);
 				}
 				else
