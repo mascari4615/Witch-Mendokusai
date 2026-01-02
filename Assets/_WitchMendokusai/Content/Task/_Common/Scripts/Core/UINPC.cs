@@ -1,7 +1,4 @@
-using System;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace WitchMendokusai
 {
@@ -17,8 +14,9 @@ namespace WitchMendokusai
 		Anvil = 4,
 		Furnace = 5,
 		CraftingTable = 6,
+		Upgrade = 7,
 
-		Count = 7,
+		Count = 8,
 	}
 
 	public class UINPC : UIContentBase<NPCPanelType>
@@ -34,6 +32,7 @@ namespace WitchMendokusai
 			Panels[NPCPanelType.Anvil] = FindFirstObjectByType<UIAnvil>(FindObjectsInactive.Include);
 			Panels[NPCPanelType.Furnace] = FindFirstObjectByType<UIFurnace>(FindObjectsInactive.Include);
 			Panels[NPCPanelType.CraftingTable] = FindFirstObjectByType<UICraftingTable>(FindObjectsInactive.Include);
+			Panels[NPCPanelType.Upgrade] = FindFirstObjectByType<UIUpgrade>(FindObjectsInactive.Include);
 		}
 	}
 }

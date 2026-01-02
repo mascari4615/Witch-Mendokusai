@@ -15,6 +15,6 @@ MonoBehaviour:
   <ID>k__BackingField: 10501
   <Name>k__BackingField: BOMB_DAMAGE_BONUS
   <Description>k__BackingField: 
-  <Sprite>k__BackingField: {fileID: 0}
+  <Sprite>k__BackingField: {fileID: 21300000, guid: e408d3b885a7ac64ab21e74cbe2518ee, type: 3}
   <Sprites>k__BackingField: []
   <Type>k__BackingField: 10501

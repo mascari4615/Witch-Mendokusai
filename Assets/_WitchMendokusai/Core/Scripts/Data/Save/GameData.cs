@@ -24,5 +24,6 @@ namespace WitchMendokusai
 		public Dictionary<GameStatType, int> gameStats = new();
 		public Dictionary<int, DungeonSaveData> dungeons = new(); // DungeonID
 		public Dictionary<int, WorldStageSaveData> worldStages = new(); // WorldStageID, RuntimeBuildingData
+		public Dictionary<int, UpgradeSaveData> upgrades = new(); // UpgradeID, UpgradeSaveData
 	}
 }

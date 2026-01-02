@@ -28,7 +28,13 @@ namespace WitchMendokusai
 			{ typeof(Doll), "DOL" },
 			{ typeof(NPC), "NPC" },
 			{ typeof(Monster), "MOB" },
-			{ typeof(Building), "BD"}
+			{ typeof(Building), "BD"},
+			{ typeof(UpgradeData), "UPG" },
+		};
+
+		public static readonly Dictionary<Type, string> AssetFolderOverride = new()
+		{
+			{ typeof(UpgradeData), "Assets/_WitchMendokusai/Content/Upgrade/ScriptableObject" },
 		};
 	}
 }

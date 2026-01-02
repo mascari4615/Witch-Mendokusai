@@ -187,6 +187,7 @@ namespace WitchMendokusai
 							settings.DefaultGroup.GetSchema<ContentUpdateGroupSchema>(),
 							settings.DefaultGroup.GetSchema<BundledAssetGroupSchema>()
 						});
+				// TODO: 생성하고 바로 등록하면 안되는 것 같음. (밑에 entry == null 나오면서 에러 발생, 다시 InitDict하면 설정됨)
 				}
 				addressableGroups[groupName] = group;
 			}
