@@ -50,35 +50,17 @@ namespace WitchMendokusai
 		{
 			for (int i = 0; i < Slots.Count; i++)
 			{
-				if (DataBufferSO)
+				if (i < Data.Count)
 				{
-					if (i < DataBufferSO.Data.Count)
-					{
-						Slots[i].SetSlot(DataBufferSO.Data[i] as DataSO);
-						Slots[i].gameObject.SetActive(true);
-					}
-					else
-					{
-						Slots[i].SetSlot(null);
-
-						if (dontShowEmptySlot)
-							Slots[i].gameObject.SetActive(false);
-					}
+					Slots[i].SetSlot(Data[i] as DataSO);
+					Slots[i].gameObject.SetActive(true);
 				}
 				else
 				{
-					if (i < Data.Count)
-					{
-						Slots[i].SetSlot(Data[i] as DataSO);
-						Slots[i].gameObject.SetActive(true);
-					}
-					else
-					{
-						Slots[i].SetSlot(null);
+					Slots[i].SetSlot(null);
 
-						if (dontShowEmptySlot)
-							Slots[i].gameObject.SetActive(false);
-					}
+					if (dontShowEmptySlot)
+						Slots[i].gameObject.SetActive(false);
 				}
 			}
 
@@ -102,9 +84,10 @@ namespace WitchMendokusai
 		public void SetDataBuffer(DataBufferSO<T> newDataBuffer)
 		{
 			DataBufferSO = newDataBuffer;
-			SetData(DataBufferSO.Data);
+			Data = newDataBuffer.Data; // 참조 복사
 		}
 
+		/// <summary> DataBuffer를 사용하는 경우 대신 SetDataBuffer 사용 </summary>
 		public void SetData(List<T> newData)
 		{
 			Data = newData;
