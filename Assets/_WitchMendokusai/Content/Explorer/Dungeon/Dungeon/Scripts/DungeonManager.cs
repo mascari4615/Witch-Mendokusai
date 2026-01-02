@@ -63,6 +63,8 @@ namespace WitchMendokusai
 			{
 				GameManager.Instance.Init();
 				GameManager.Instance.InitEquipment();
+				GameManager.Instance.ApplyUpgradeEffects(); // [VamsurLike-Upgrade] - KarmoDDrine 2026-01-12
+
 				expChecker.Init();
 				cardManager.Reset();
 

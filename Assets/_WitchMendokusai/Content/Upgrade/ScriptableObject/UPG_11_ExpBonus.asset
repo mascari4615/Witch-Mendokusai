@@ -15,9 +15,10 @@ MonoBehaviour:
   <ID>k__BackingField: 11
   <Name>k__BackingField: ExpBonus
   <Description>k__BackingField: 
-  <Sprite>k__BackingField: {fileID: 0}
+  <Sprite>k__BackingField: {fileID: 21300000, guid: aff0a23936502334791e2cbeaa38f3a2, type: 3}
   <Sprites>k__BackingField: []
   <Type>k__BackingField: 11
+  <UnitStatType>k__BackingField: 103
   <MaxLevel>k__BackingField: 10
   <PricePerLevel>k__BackingField: 0100000002000000030000000400000005000000060000000700000008000000090000000a000000
   <ValuePerLevel>k__BackingField:

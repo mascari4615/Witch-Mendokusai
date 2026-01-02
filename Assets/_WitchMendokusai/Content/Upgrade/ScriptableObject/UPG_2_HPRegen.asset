@@ -15,9 +15,10 @@ MonoBehaviour:
   <ID>k__BackingField: 2
   <Name>k__BackingField: HPRegen
   <Description>k__BackingField: 
-  <Sprite>k__BackingField: {fileID: 21300000, guid: d33c0f8b948da3c46a1faa64568e71d7, type: 3}
+  <Sprite>k__BackingField: {fileID: 21300000, guid: ebbccf1f431dfc645a4154311ec92805, type: 3}
   <Sprites>k__BackingField: []
   <Type>k__BackingField: 2
+  <UnitStatType>k__BackingField: 3
   <MaxLevel>k__BackingField: 10
   <PricePerLevel>k__BackingField: 0100000002000000030000000400000005000000060000000700000008000000090000000a000000
   <ValuePerLevel>k__BackingField:
