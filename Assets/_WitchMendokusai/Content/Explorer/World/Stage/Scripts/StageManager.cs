@@ -22,16 +22,7 @@ namespace WitchMendokusai
 
 		private void Start()
 		{
-			Stage homeStage = StartStage != null ? StartStage : Get<WorldStage>(0);
-			StageObject homeStageObject = ObjectPoolManager.Instance.Spawn(homeStage.Prefab.gameObject).GetComponent<StageObject>();
-
-			CurStageObject = homeStageObject;
-			CurStage = homeStage;
-			CurStageStrategy = StageStrategyFactory.Create(homeStage);
-
-			CurStageObject.gameObject.SetActive(true);
-
-			OnStageChanged(CurStage, CurStageObject);
+			LoadStage(StartStage);
 		}
 
 		public void LoadStage(Stage stage, int spawnPortalIndex = -1, bool isBackToLastStage = false)
@@ -46,10 +37,12 @@ namespace WitchMendokusai
 			// 함수 시작: 이전 스테이지 Z -> 현재 스테이지 A -> 이동할 스테이지 B
 			// 함수 종료: 이전 스테이지 A -> 현재 스테이지 B (스테이지 Z는 사용되지 않음.)
 
-			Vector3 newLastPosDiff = Player.Instance.transform.position - CurStageObject.gameObject.transform.position;
+			Vector3 curStagePos = CurStageObject != null ? CurStageObject.gameObject.transform.position : Vector3.zero;
+			Vector3 newLastPosDiff = Player.Instance.transform.position - curStagePos;
 
 			// LastStage를 A로 갱신하고, 비활성화
-			CurStageObject.gameObject.SetActive(false);
+			if (CurStageObject != null)
+				CurStageObject.gameObject.SetActive(false);
 			LastStage = CurStage;
 
 			// 새로운 스테이지 B 생성 (비활성화 상태)
@@ -74,7 +67,11 @@ namespace WitchMendokusai
 					}
 					else
 					{
-						Vector3 portalTPPos = stage.Prefab.Portals.Where(p => p.TargetStage == LastStage).First().TpPos.position;
+						Portal targetPortal = stage.Prefab.Portals.FirstOrDefault(p => p.TargetStage == LastStage);
+						if (targetPortal == null)
+							targetPortal = stage.Prefab.Portals[0]; // 임의로 첫 번째 포탈 선택 - KarmoDDrine 2026-01-01
+
+						Vector3 portalTPPos = targetPortal.TpPos.position;
 						newStagePos = Player.Instance.transform.position - portalTPPos;
 					}
 				}

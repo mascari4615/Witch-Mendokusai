@@ -41,6 +41,12 @@ public class PrefabLightmapData : MonoBehaviour
 	{
 		if (rendererInfos == null || rendererInfos.Count == 0)
 			return;
+		
+		if (lightmaps == null || lightmaps.Count == 0 || lightmaps[0] == null)
+			return;
+
+		if (lightmapsDir == null || lightmapsDir.Count == 0 || lightmapsDir[0] == null)
+			return;
 
 		List<Texture2D> savedLightmaps = lightmaps;
 		int[] offsetsIndexes = new int[savedLightmaps.Count];
