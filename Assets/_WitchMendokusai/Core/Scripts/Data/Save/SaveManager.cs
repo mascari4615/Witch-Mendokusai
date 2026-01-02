@@ -34,7 +34,8 @@ namespace WitchMendokusai
 				runtimeQuests = new(),
 				gameStats = new(),
 				dungeons = new(),
-				worldStages = new()
+				worldStages = new(),
+				upgrades = new()
 			};
 
 			// 인형, 인형 아이템(장비) 초기화
@@ -92,6 +93,9 @@ namespace WitchMendokusai
 			// 통계 초기화
 			DataManager.GameStat.Init();
 			DataManager.GameStat[GameStatType.NYANG] = 1000;
+
+			// 업그레이드 초기화
+			ForEach<UpgradeData>(upgradeData => { upgradeData.CurLevel = 0; });
 
 			SaveData();
 			LoadLocalData();
@@ -161,6 +165,13 @@ namespace WitchMendokusai
 				worldStage.Load(worldStageData);
 			}
 
+			// 업그레이드 초기화
+			foreach ((int upgradeID, UpgradeSaveData upgradeData) in saveData.upgrades)
+			{
+				UpgradeData upgrade = Get<UpgradeData>(upgradeID);
+				upgrade.Load(upgradeData);
+			}
+
 			IsDataLoaded = true;
 		}
 
@@ -178,12 +189,14 @@ namespace WitchMendokusai
 				runtimeQuests = DataManager.QuestManager.Quests.Data.Where(quest => quest.Type != QuestType.Dungeon).ToList().ConvertAll(quest => quest.Save()),
 				gameStats = DataManager.GameStat.Save(),
 				dungeons = new(),
-				worldStages = new()
+				worldStages = new(),
+				upgrades = new()
 			};
 
 			ForEach<Doll>(doll => gameData.dolls.Add(doll.Save()));
 			ForEach<Dungeon>(dungeon => gameData.dungeons.Add(dungeon.ID, dungeon.Save()));
 			ForEach<WorldStage>(worldStage => gameData.worldStages.Add(worldStage.ID, worldStage.Save()));
+			ForEach<UpgradeData>(upgradeData => gameData.upgrades.Add(upgradeData.ID, upgradeData.Save()));
 
 			if (AppSetting.Data.UseLocalData)
 			{

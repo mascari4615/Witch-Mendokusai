@@ -24,34 +24,30 @@ namespace WitchMendokusai
 			upgradeGridUI = GetComponentInChildren<UIUpgradeGrid>(true);
 
 			// 임의로 모든 UpgradeData 불러오도록 설정
+			upgradeGridUI.Init();
 			upgradeGridUI.SetData(SOManager.Instance.DataSOs[typeof(UpgradeData)].Values.Cast<UpgradeData>().ToList());
+			upgradeGridUI.UpdateUI();
 
 			upgradeGridUI.OnSelectSlot += (slot, data) =>
 			{
-				UpgradeData upgradeData = data;
-				priceText.text = upgradeData.PricePerLevel[upgradeData.CurLevel].ToString();
-				curLevelText.text = $"Lv. {upgradeData.CurLevel} -> Lv. {upgradeData.CurLevel + 1}";
-
-				// 최대 레벨이때 buy 버튼, price 비활성화, 최소레벨일 때 return 버튼 비활성화
-				if (upgradeData.CurLevel >= upgradeData.MaxLevel)
-				{
-					buyButton.interactable = false;
-					priceText.text = "-";
-				}
-				else
-				{
-					buyButton.interactable = true;
-				}
-
-				if (upgradeData.CurLevel <= 0)
-				{
-					returnButton.interactable = false;
-				}
-				else
-				{
-					returnButton.interactable = true;
-				}
+				UpdateUI();
 			};
+
+			buyButton.onClick.AddListener(() =>
+			{
+				if (upgradeGridUI.CurSlot != null && upgradeGridUI.CurSlot.DataSO is UpgradeData upgradeData)
+				{
+					GetUpgrade(upgradeData.ID);
+				}
+			});
+
+			returnButton.onClick.AddListener(() =>
+			{
+				if (upgradeGridUI.CurSlot != null && upgradeGridUI.CurSlot.DataSO is UpgradeData upgradeData)
+				{
+					ReturnUpgrade(upgradeData.ID);
+				}
+			});
 		}
 
 		public override void SetNPC(NPCObject npc)
@@ -64,39 +60,74 @@ namespace WitchMendokusai
 		{
 			// shopImage.sprite = npc.Data.Sprite;
 
+			UpgradeData upgradeData = upgradeGridUI.CurSlot.DataSO as UpgradeData;
+
+			// 최대 레벨이때 buy 버튼, price 비활성화, 최소레벨일 때 return 버튼 비활성화
+			if (upgradeData.CurLevel >= upgradeData.MaxLevel)
+			{
+				buyButton.interactable = false;
+				priceText.text = "-";
+				curLevelText.text = $"Lv. {upgradeData.CurLevel} (MAX)";
+			}
+			else
+			{
+				buyButton.interactable = true;
+				priceText.text = upgradeData.PricePerLevel[upgradeData.CurLevel].ToString();
+				curLevelText.text = $"Lv. {upgradeData.CurLevel} -> Lv. {upgradeData.CurLevel + 1}";
+			}
+
+			if (upgradeData.CurLevel <= 0)
+			{
+				returnButton.interactable = false;
+			}
+			else
+			{
+				returnButton.interactable = true;
+			}
+
 			upgradeGridUI.UpdateUI();
 		}
 
 		public void GetUpgrade(int upgradeID)
 		{
-			UpgradeType upgradeType = (UpgradeType)GetItemData(upgradeID).Type;
-			
-			ItemData itemData = GetItemData(upgradeID);
-			if (itemData.PurchasePrice <= DataManager.Instance.GameStat[GameStatType.NYANG])
+			UpgradeData targetUpgrade = Get<UpgradeData>(upgradeID);
+			if (targetUpgrade.TryUpgrade(out UpgradeFailReason reason, out int upgradePrice))
 			{
-				DataManager.Instance.GameStat[GameStatType.NYANG] -= itemData.PurchasePrice;
-				SOManager.Instance.ItemInventory.Add(itemData);
 				UpdateUI();
-
-				UIManager.Instance.PopText($"- {itemData.PurchasePrice}", TextType.Warning);
+				UIManager.Instance.PopText($"- {upgradePrice}", TextType.Warning);
+				return;
 			}
 			else
 			{
-				UIManager.Instance.PopText("냥이 부족합니다.", TextType.Warning);
+				switch (reason)
+				{
+					case UpgradeFailReason.MaxLevel:
+						UIManager.Instance.PopText("최대 레벨입니다. 더 이상 올릴 수 없습니다.", TextType.Warning);
+						break;
+					case UpgradeFailReason.InsufficientNyang:
+						UIManager.Instance.PopText("냥 부족!", TextType.Warning);
+						break;
+				}
 			}
 		}
 
 		public void ReturnUpgrade(int slotIndex)
 		{
-			Item item = SOManager.Instance.ItemInventory.GetItem(slotIndex);
-			if (item != null)
+			UpgradeData targetUpgrade = Get<UpgradeData>(slotIndex);
+			if (targetUpgrade.TryDowngrade(out DowngradeFailReason reason, out int refundedNyang))
 			{
-				ItemData itemData = item.Data;
-				DataManager.Instance.GameStat[GameStatType.NYANG] += itemData.SalePrice;
-				SOManager.Instance.ItemInventory.Remove(slotIndex);
 				UpdateUI();
-
-				UIManager.Instance.PopText($"+ {itemData.SalePrice}", TextType.Warning);
+				UIManager.Instance.PopText($"+ {refundedNyang}", TextType.Warning);
+				return;
+			}
+			else
+			{
+				switch (reason)
+				{
+					case DowngradeFailReason.MinLevel:
+						UIManager.Instance.PopText("최소 레벨입니다. 더 이상 내릴 수 없습니다.", TextType.Warning);
+						break;
+				}
 			}
 		}
 	}

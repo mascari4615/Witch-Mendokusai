@@ -15,7 +15,7 @@ MonoBehaviour:
   m_DefaultGroup: a53af4dac55a80241a2f18ecda29de75
   m_currentHash:
     serializedVersion: 2
-    Hash: 58e2e4cda2662181e8dbb087440c8606
+    Hash: 511096b4a7fe6641b726f39e14931cb5
   m_OptimizeCatalogSize: 0
   m_BuildRemoteCatalog: 1
   m_CatalogRequestsTimeout: 0
@@ -68,6 +68,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: b0604adfc6c2d5f4583437fe20393da0, type: 2}
   - {fileID: 11400000, guid: f52e9ff0e498ba9478c9e8a993254e30, type: 2}
   - {fileID: 11400000, guid: c324d413c831b5240b4724ee6cd28156, type: 2}
+  - {fileID: 11400000, guid: 969738d0158edaa4180108f9871688d2, type: 2}
   - {fileID: 11400000, guid: 6c57d967421f03b439276125d718c76b, type: 2}
   - {fileID: 11400000, guid: 088f42ce38ab0384cb5fc43bb636ceee, type: 2}
   - {fileID: 11400000, guid: f2ce833b71c046245868805bf4ac05ec, type: 2}
@@ -134,6 +135,7 @@ MonoBehaviour:
     - Monster
     - SkillData
     - AspectData
+    - UpgradeData
   m_SchemaTemplates: []
   m_GroupTemplateObjects:
   - {fileID: 11400000, guid: 154aea50e355b0e40bc5fc4462b64350, type: 2}

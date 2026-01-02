@@ -19,6 +19,15 @@ MonoBehaviour:
   <Sprites>k__BackingField: []
   <Type>k__BackingField: 5
   <MaxLevel>k__BackingField: 10
-  <PricePerLevel>k__BackingField: 00000000
+  <PricePerLevel>k__BackingField: 0100000002000000030000000400000005000000060000000700000008000000090000000a000000
   <ValuePerLevel>k__BackingField:
-  - 0
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1

@@ -23,14 +23,26 @@ namespace WitchMendokusai
 		Revive
 	}
 
-	public struct UpgradeDataSave
+	public enum UpgradeFailReason
 	{
-		public UpgradeType Type;
+		None,
+		InsufficientNyang,
+		MaxLevel
+	}
+
+	public enum DowngradeFailReason
+	{
+		None,
+		MinLevel
+	}
+
+	public struct UpgradeSaveData
+	{
 		public int Level;
 	}
 
 	[CreateAssetMenu(fileName = nameof(UpgradeData), menuName = "WM/Variable/UpgradeData")]
-	public class UpgradeData : DataSO, ISavable<UpgradeDataSave>
+	public class UpgradeData : DataSO, ISavable<UpgradeSaveData>
 	{
 		[field: Header("_" + nameof(UpgradeData))]
 		[field: SerializeField] public UpgradeType Type { get; private set; } = new();
@@ -40,16 +52,55 @@ namespace WitchMendokusai
 
 		[field: NonSerialized] public int CurLevel { get; set; }
 
-		public void Load(UpgradeDataSave saveData)
+		public bool TryUpgrade(out UpgradeFailReason reason, out int upgradePrice)
+		{
+			reason = UpgradeFailReason.None;
+			upgradePrice = 0;
+
+			if (CurLevel >= MaxLevel)
+			{
+				reason = UpgradeFailReason.MaxLevel;
+				return false;
+			}
+
+			upgradePrice = PricePerLevel[CurLevel];
+			if (upgradePrice > DataManager.Instance.GameStat[GameStatType.NYANG])
+			{
+				reason = UpgradeFailReason.InsufficientNyang;
+				return false;
+			}
+
+			DataManager.Instance.GameStat[GameStatType.NYANG] -= upgradePrice;
+			CurLevel++;
+			return true;
+		}
+
+		public bool TryDowngrade(out DowngradeFailReason reason, out int refundedNyang)
+		{
+			reason = DowngradeFailReason.None;
+
+			if (CurLevel <= 0)
+			{
+				reason = DowngradeFailReason.MinLevel;
+				refundedNyang = 0;
+				return false;
+			}
+
+			refundedNyang = PricePerLevel[CurLevel];
+			DataManager.Instance.GameStat[GameStatType.NYANG] += refundedNyang;
+			CurLevel--;
+			return true;
+		}
+
+		public void Load(UpgradeSaveData saveData)
 		{
 			CurLevel = saveData.Level;
 		}
 
-		public UpgradeDataSave Save()
+		public UpgradeSaveData Save()
 		{
-			return new UpgradeDataSave()
+			return new UpgradeSaveData()
 			{
-				Type = Type,
 				Level = CurLevel
 			};
 		}
