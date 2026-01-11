@@ -93,7 +93,7 @@ namespace WitchMendokusai
 			{ GameConditionType.IsDied, () => Player.Instance.Object.UnitStat[UnitStatType.HP_CUR] <= 0 },
 			{ GameConditionType.IsBuilding, () => BuildManager.Instance.IsBuilding },
 			{ GameConditionType.IsInTransition, () => UITransition.IsInTransition },
-			{ GameConditionType.IsViewingUI, () => UIManager.Instance.IsFullscreenPanelActive },
+			{ GameConditionType.IsViewingUI, () => UIManager.Instance.IsAnyPanelFullscreenOpen },
 		};
 
 		public bool IsGameConditionAny(params GameConditionType[] conditions)

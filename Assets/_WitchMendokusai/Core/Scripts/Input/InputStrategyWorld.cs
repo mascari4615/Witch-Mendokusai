@@ -95,7 +95,15 @@ namespace WitchMendokusai
 				}
 			},
 			{ InputEventType.Cancel, new[] { GameConditionType.IsChatting } },
-			{ InputEventType.Tab, new[] { GameConditionType.IsChatting } },
+			{
+				InputEventType.Tab,
+				new[]
+				{
+					GameConditionType.IsChatting,
+					GameConditionType.IsPaused,
+					// GameConditionType.IsViewingUI, // Tab도 전체화면 UI이므로 제외 - KarmoDDrine 2026-01-12
+				}
+			},
 			{ InputEventType.Status, new[] { GameConditionType.IsChatting } },
 		};
 

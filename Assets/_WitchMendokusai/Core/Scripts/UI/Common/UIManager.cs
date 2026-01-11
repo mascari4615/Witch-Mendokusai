@@ -25,7 +25,7 @@ namespace WitchMendokusai
 		private UIAdventurerGuild adventurerGuild;
 		private UIStagePopup stagePopup;
 
-		public bool IsFullscreenPanelActive => PanelGroups.Any(ui => ui.IsPanelOpen && ui.TryGetCurPanel(out UIPanel panel) && panel.IsFullscreen);
+		public bool IsAnyPanelFullscreenOpen => PanelGroups.Any(ui => ui.IsPanelOpen && ui.TryGetCurPanel(out UIPanel panel) && panel.IsFullscreen);
 
 		protected override void Awake()
 		{
@@ -97,7 +97,7 @@ namespace WitchMendokusai
 
 			if (Tab.IsPanelOpen)
 				Tab.ClosePanel();
-			else
+			else if (IsAnyPanelFullscreenOpen == false)
 				Tab.SetPanel(TabPanelType.TabMenu);
 		}
 
