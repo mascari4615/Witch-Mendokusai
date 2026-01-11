@@ -39,7 +39,7 @@ namespace WitchMendokusai
 			if (loop != null)
 				StopCoroutine(loop);
 			loop = StartCoroutine(Loop());
-			CameraManager.Instance.SetCamera(CameraType.Dungeon);
+			CameraManager.Instance.SetContentCameraMode(ContentCameraMode.Dungeon);
 		}
 
 		public void StopLoop()

@@ -89,12 +89,12 @@ namespace WitchMendokusai
 			{
 				if (CurPanelType == NPCPanelType.None)
 				{
-					CameraManager.Instance.SetCamera(CameraType.Dialogue);
+					// NPC 버튼들 띄우기 (선택지)
 					buttonsParent.SetActive(true);
 				}
 				else
 				{
-					CameraManager.Instance.SetChatCamera();
+					// NPC UI 띄우기
 					UIManager.Instance.NPC.SetPanel(CurPanelType, curNPC);
 				}
 			}
@@ -111,13 +111,14 @@ namespace WitchMendokusai
 
 			UpdateQuestButtons();
 			questEachParent.gameObject.SetActive(false);
+			CameraManager.Instance.SetUICameraMode(UICameraMode.NPC, true);
 
 			Talk();
 		}
 
 		protected override void OnClose()
 		{
-			CameraManager.Instance.SetCamera(CameraType.Normal);
+			CameraManager.Instance.SetUICameraMode(UICameraMode.NPC, false);
 		}
 
 		public override void UpdateUI()
@@ -166,6 +167,9 @@ namespace WitchMendokusai
 		public void Talk()
 		{
 			buttonsParent.SetActive(false);
+
+			CameraManager.Instance.SetSelecting(false);
+
 			UIManager.Instance.Chat.StartChat(curNPC, () =>
 			{
 				canvasGroup.SetVisible(true);
@@ -173,6 +177,8 @@ namespace WitchMendokusai
 				SetPanel(NPCPanelType.None);
 				buttonsParent.SetActive(true);
 				talkOption.Select();
+
+				CameraManager.Instance.SetSelecting(true);
 			});
 		}
 

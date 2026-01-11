@@ -64,7 +64,7 @@ namespace WitchMendokusai
 			IsBuilding = false;
 			buildUI.ClosePanel();
 			buildUI.StopLoop();
-			CameraManager.Instance.SetCamera(CameraType.Normal);
+			CameraManager.Instance.SetContentCameraMode(ContentCameraMode.Normal);
 
 			InputManager.UnregisterInputEvent(InputEventType.Click0, InputEventResponseType.Started, ClickCell);
 			InputManager.UnregisterInputEvent(InputEventType.Click1, InputEventResponseType.Get, TryRemoveCell);

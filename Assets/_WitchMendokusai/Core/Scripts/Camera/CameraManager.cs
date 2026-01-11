@@ -1,28 +1,49 @@
 using System.Collections;
+using System.Linq;
 using Unity.Cinemachine;
 using UnityEngine;
 using UnityEngine.Animations;
 
 namespace WitchMendokusai
 {
-	public enum CameraType
+	// TODO: 둘 중 하나만 보이도록 Editor 스크립트 작성
+	// public enum CameraType
+	// {
+	// 	None = -1,
+
+	// 	Content = 0,
+	// 	UI = 1,
+	// }
+
+	public enum ContentCameraMode
 	{
-		Normal,
-		Dungeon,
-		Dialogue,
+		None = -1,
+
+		Normal = 0,
+		Dungeon = 1,
+	}
+
+	public enum UICameraMode
+	{
+		None = -1,
+
+		NPC = 0,
+
+		Tab = 20,
 	}
 
 	public class CameraManager : Singleton<CameraManager>
 	{
 		[SerializeField] private CinemachineBrain cinemachineBrain;
-		[SerializeField] private MCamera[] cameras;
 		[SerializeField] private PositionConstraint[] posDelegates;
 		[SerializeField] private CinemachineImpulseSource impulseSource;
-		[SerializeField] private float xDiff = .3f;
+		[SerializeField] private CinemachineTargetGroup chatTargetGroup;
+		[SerializeField] private float xDiff = 3f;
 
 		private Coroutine chatXCoroutine;
 		private CinemachinePositionComposer chatPositionTransposer;
 
+		private MCamera[] cameras;
 		private MCamera curCamera;
 
 		protected override void Awake()
@@ -30,9 +51,11 @@ namespace WitchMendokusai
 			base.Awake();
 
 			// Init
+			cameras = GetComponentsInChildren<MCamera>(false); // 활성화된 것만
 			cinemachineBrain.UpdateMethod = CinemachineBrain.UpdateMethods.FixedUpdate;
-			chatPositionTransposer = cameras[2].CinemachineCamera.GetCinemachineComponent(CinemachineCore.Stage.Body) as CinemachinePositionComposer;
-			curCamera = cameras[0];
+			chatPositionTransposer = cameras.First(cam => cam.UICameraMode == UICameraMode.NPC).CinemachineCamera.GetCinemachineComponent(CinemachineCore.Stage.Body) as CinemachinePositionComposer;
+
+			SetContentCameraMode(ContentCameraMode.Normal);
 		}
 
 		private void Start()
@@ -44,26 +67,14 @@ namespace WitchMendokusai
 			InputManager.Instance.RegisterInputEvent(InputEventType.Scroll, InputEventResponseType.Performed, Zoom);
 		}
 
-		public void SetCamera(CameraType cameraType)
+		public void SetContentCameraMode(ContentCameraMode mode)
 		{
 			// 카메라 설정
-			int curCameraIndex = (int)cameraType;
+			int curCameraIndex = (int)mode;
 			curCamera = cameras[curCameraIndex];
 
 			// 카메라 블렌딩 설정 (던전일 경우 Cut, 그 외 EaseInOut)
-			{
-				bool isDungeon = cameraType == CameraType.Dungeon;
-				if (isDungeon)
-				{
-					CinemachineBlendDefinition.Styles styles = CinemachineBlendDefinition.Styles.Cut;
-					cinemachineBrain.DefaultBlend.Style = styles;
-				}
-				else
-				{
-					CinemachineBlendDefinition.Styles styles = CinemachineBlendDefinition.Styles.EaseInOut;
-					cinemachineBrain.DefaultBlend.Style = styles;
-				}
-			}
+			cinemachineBrain.DefaultBlend.Style = curCamera.BlendStyle;
 
 			// 카메라 우선순위 설정 (사실상 카메라 변경)
 			{
@@ -73,31 +84,52 @@ namespace WitchMendokusai
 					cameras[camIndex].CinemachineCamera.Priority = isCurCamera ? 10 : 0;
 				}
 			}
+		}
 
-			// 유닛이 말풍선을 띄울 때 카메라 이동 (2차원 기준 X축)
+		private int uiCameraPriorityStack = 0;
+		public void SetUICameraMode(UICameraMode mode, bool isActive)
+		{
+			const int PriorityOffset = 1000;
+
+			// UI 카메라 우선순위 설정
 			{
-				if (chatXCoroutine != null)
-					StopCoroutine(chatXCoroutine);
-				chatXCoroutine = StartCoroutine(ChatXCoroutine(0));
+				MCamera cam = cameras.FirstOrDefault(c => c.UICameraMode == mode);
+				cam.CinemachineCamera.Priority = isActive ? (++uiCameraPriorityStack + PriorityOffset) : 0;
 			}
 		}
 
-		public void SetChatCamera()
+		public void SetSelecting(bool isSelecting)
 		{
+			// 유닛이 말풍선을 띄울 때 카메라 이동 (2차원 기준 X축)
 			if (chatXCoroutine != null)
 				StopCoroutine(chatXCoroutine);
-			chatXCoroutine = StartCoroutine(ChatXCoroutine(-xDiff));
+
+			if (isSelecting == false)
+			{
+				chatPositionTransposer.TargetOffset.x = 0;
+				return;
+			}
+
+			chatXCoroutine = StartCoroutine(ChatXCoroutine(xDiff));
+		}
+
+		public void SetNPC(Transform npcTransform)
+		{
+			chatTargetGroup.Targets[1].Object = npcTransform;
 		}
 
 		// 유닛이 말풍선을 띄울 때 카메라 이동 (2차원 기준 X축)
 		private IEnumerator ChatXCoroutine(float diff)
 		{
-			const float lerpSpeed = 0.03f;
-			while (true)
+			float startX = chatPositionTransposer.TargetOffset.x;
+			float elapsed = 0f; // 경과 시간
+			const float duration = 0.2f; // 이동에 걸리는 시간
+		
+			while (elapsed < duration)
 			{
-				chatPositionTransposer.Composition.ScreenPosition.x = Mathf.Lerp(chatPositionTransposer.Composition.ScreenPosition.x, diff, lerpSpeed);
-				if (Mathf.Abs(chatPositionTransposer.Composition.ScreenPosition.x - diff) < 0.01f)
-					break;
+				elapsed += Time.deltaTime;
+				float t = Mathf.Clamp01(elapsed / duration);
+				chatPositionTransposer.TargetOffset.x = Mathf.Lerp(startX, diff, t);
 				yield return null;
 			}
 		}
@@ -128,5 +160,20 @@ namespace WitchMendokusai
 		{
 			impulseSource.GenerateImpulse();
 		}
+
+#if UNITY_EDITOR
+		[ContextMenu("SetCameraNormal")]
+		private void SetCameraNormal_Editor() => SetContentCameraMode(ContentCameraMode.Normal);
+		[ContextMenu("SetCameraDungeon")]
+		private void SetCameraDungeon_Editor() => SetContentCameraMode(ContentCameraMode.Dungeon);
+		[ContextMenu("SetCameraDialogue True")]
+		private void SetCameraDialogue_Editor() => SetUICameraMode(UICameraMode.NPC, true);
+		[ContextMenu("SetCameraDialogue False")]
+		private void SetCameraDialogueFalse_Editor() => SetUICameraMode(UICameraMode.NPC, false);
+		[ContextMenu("SetCameraTab True")]
+		private void SetCameraTab_Editor() => SetUICameraMode(UICameraMode.Tab, true);
+		[ContextMenu("SetCameraTab False")]
+		private void SetCameraTabFalse_Editor() => SetUICameraMode(UICameraMode.Tab, false);
+#endif
 	}
 }

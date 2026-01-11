@@ -81,19 +81,21 @@ namespace WitchMendokusai
 
 		public void ToggleOverlayUI_Tab()
 		{
-			foreach (IUIContentBase ui in OverlayUIs)
+			UITab tab = Tab;
+
+			if (tab.CurPanelType == TabPanelType.Setting)
+				return;
+
+			if (tab.IsPanelOpen)
 			{
-				if ((ui is UITab tab) && (tab.CurPanelType == TabPanelType.Setting))
-					continue;
-
-				if (ui.IsPanelOpen)
-				{
-					ui.ClosePanel();
-					return;
-				}
+				CameraManager.Instance.SetUICameraMode(UICameraMode.Tab, false);
+				tab.ClosePanel();
 			}
-
-			Tab.SetPanel(TabPanelType.TabMenu);
+			else
+			{
+				CameraManager.Instance.SetUICameraMode(UICameraMode.Tab, true);
+				tab.SetPanel(TabPanelType.TabMenu);
+			}
 		}
 
 		public void ToggleOverlayUI_Setting()

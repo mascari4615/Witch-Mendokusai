@@ -14,7 +14,6 @@ namespace WitchMendokusai
 {
 	public class UIChat : MonoBehaviour
 	{
-		[SerializeField] private CinemachineTargetGroup chatTargetGroup;
 		[SerializeField] private Image unitImage;
 		[SerializeField] private TextMeshProUGUI unitName;
 		[SerializeField] private TextMeshProUGUI lineText;
@@ -33,21 +32,21 @@ namespace WitchMendokusai
 			bubbleCanvasGroup.alpha = 0;
 		}
 
-		public void StartChat(NPCObject npc, Action action = null)
+		public void StartChat(NPCObject npc, Action onChatFinished = null)
 		{
 			// TODO: CSV가 아니라 스크립터블 오브젝트로 관리 가능하게
 			if (ChatManager.Instance.TryGetChatData(npc.UnitData.ID.ToString(), out List<LineData> curChatData) == false)
 			{
 				Debug.LogWarning($"ChatData not found: {npc.UnitData.ID}");
-				action?.Invoke();
+				onChatFinished?.Invoke();
 				return;
 			}
 
-			CameraManager.Instance.SetCamera(CameraType.Dialogue);
+			CameraManager.Instance.SetUICameraMode(UICameraMode.NPC, true);
+			CameraManager.Instance.SetNPC(npc.transform);
 
 			curNPC = npc;
-			chatTargetGroup.Targets[1].Object = npc.transform;
-			endAction = action;
+			endAction = onChatFinished;
 
 			IsChatting = true;
 
@@ -139,11 +138,9 @@ namespace WitchMendokusai
 			while (true)
 			{
 				// Update Bubble Pos
-				Vector3 targetPos;
-				if (unitID == 0)
-					targetPos = chatTargetGroup.Targets[0].Object.position;
-				else
-					targetPos = chatTargetGroup.Targets[1].Object.position;
+				Vector3 targetPos = unitID == 0 ?
+					Player.Instance.transform.position :
+					curNPC.transform.position;
 				bubbleCanvasGroup.transform.position = GetVec(targetPos + Vector3.up);
 
 				yield return null;

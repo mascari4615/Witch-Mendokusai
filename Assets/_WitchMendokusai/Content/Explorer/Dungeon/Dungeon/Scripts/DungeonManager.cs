@@ -154,7 +154,7 @@ namespace WitchMendokusai
 			{
 				dungeonUI.StopLoop();
 				dungeonUI.ClosePanel();
-				CameraManager.Instance.SetCamera(CameraType.Normal);
+				CameraManager.Instance.SetContentCameraMode(ContentCameraMode.Normal);
 
 				GameManager.Instance.Init();
 				expChecker.Init();
