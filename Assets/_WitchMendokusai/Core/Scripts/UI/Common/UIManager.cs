@@ -6,31 +6,26 @@ namespace WitchMendokusai
 {
 	public class UIManager : Singleton<UIManager>
 	{
-		public bool IsPanelOpen => OverlayUIs.Any(ui => ui.IsPanelOpen);
-
-
-		[Header("Prefabs")]
+		// Public Properties
+		public List<IUIPanelGroup> PanelGroups { get; private set; } = new();
+		public UITab Tab { get; private set; }
+		public UINPC NPC { get; private set; }
+		public UITransition Transition { get; private set; }
+		public UIChat Chat { get; private set; }
+		public UIStatus Status { get; private set; }
+		public CutSceneModule CutSceneModule { get; private set; }
+		[field: SerializeField] public Canvas BaseCanvas { get; private set; }
+	
 		[SerializeField] private UIDungeon dungeonPrefab = null;
 		[SerializeField] private UIBuild buildPrefab = null;
 		[SerializeField] private UIAdventurerGuild adventurerGuildPrefab = null;
 
-		[field: Header("References")]
-		[field: SerializeField] public Canvas BaseCanvas { get; private set; }
-		[field: SerializeField] public CutSceneModule CutSceneModule { get; private set; }
-
 		private UIFloatingText damage;
 		private UIPopup popup;
-		public UIChat Chat { get; private set; }
 		private UIAdventurerGuild adventurerGuild;
-
-		public UITransition Transition { get; private set; }
 		private UIStagePopup stagePopup;
-		public UIStatus Status { get; private set; }
 
-		public List<IUIContentBase> OverlayUIs { get; private set; } = new();
-
-		public UITab Tab { get; private set; }
-		public UINPC NPC { get; private set; }
+		public bool IsFullscreenPanelActive => PanelGroups.Any(ui => ui.IsPanelOpen && ui.TryGetCurPanel(out UIPanel panel) && panel.IsFullscreen);
 
 		protected override void Awake()
 		{
@@ -66,12 +61,12 @@ namespace WitchMendokusai
 			RegisterOverlayUI(NPC);
 		}
 
-		public void RegisterOverlayUI(IUIContentBase ui)
+		public void RegisterOverlayUI(IUIPanelGroup ui)
 		{
-			if (ui == null || OverlayUIs.Contains(ui))
+			if (ui == null || PanelGroups.Contains(ui))
 				return;
 
-			OverlayUIs.Add(ui);
+			PanelGroups.Add(ui);
 		}
 
 		public void PopDamage(DamageInfo damageInfo, Vector3 pos = default)
@@ -109,7 +104,7 @@ namespace WitchMendokusai
 		public void OnCancelInput()
 		{
 			// 닫을 수 있는 UI 닫기
-			foreach (IUIContentBase ui in OverlayUIs)
+			foreach (IUIPanelGroup ui in PanelGroups)
 			{
 				if (ui.IsPanelOpen && ui.CanBeClosedByCancelInput)
 				{

@@ -1,6 +1,4 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -15,6 +13,8 @@ namespace WitchMendokusai
 		[SerializeField] private Button dungeonExitButton;
 		[SerializeField] private Button quitButton;
 		[SerializeField] private Button clearDataButton;
+
+		public override bool IsFullscreen => true;
 
 		protected override void OnInit()
 		{

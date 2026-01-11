@@ -19,7 +19,7 @@ namespace WitchMendokusai
 		Count = 8,
 	}
 
-	public class UINPC : UIContentBase<NPCPanelType>
+	public class UINPC : UIPanelGroup<NPCPanelType>
 	{
 		public override bool CanBeClosedByCancelInput => true;
 		public override NPCPanelType DefaultPanel => NPCPanelType.None;

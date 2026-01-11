@@ -1,7 +1,4 @@
-using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -12,10 +9,11 @@ namespace WitchMendokusai
 		[field: Header("_" + nameof(UITabMenu))]
 		// [SerializeField] private Transform menuButtonsParent;
 		// [SerializeField] private GameObject menuButtonPrefab;
+		[SerializeField] protected List<UISlot> menuButtons;
 
 		protected int curButtonIndex = 0;
 
-		[SerializeField] protected List<UISlot> menuButtons;
+		public override bool IsFullscreen => true;
 
 		protected override void OnInit()
 		{

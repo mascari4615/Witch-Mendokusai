@@ -13,7 +13,7 @@ namespace WitchMendokusai
 		BuildingBar = 0,
 	}
 
-	public class UIBuild : UIContentBase<UIBuildingType>
+	public class UIBuild : UIPanelGroup<UIBuildingType>
 	{
 		[field: Header("_" + nameof(UIBuild))]
 		[SerializeField] private UIBuildingBar buildingBar;

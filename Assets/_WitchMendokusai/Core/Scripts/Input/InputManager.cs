@@ -39,21 +39,26 @@ namespace WitchMendokusai
 		Get, // Custom
 	}
 
+	public enum InputAxisType
+	{
+		Move,
+	}
+
 	public class InputManager : Singleton<InputManager>
 	{
 		[SerializeField] private InputActionAsset inputActionAsset;
-		private readonly Dictionary<InputEventType, (InputMapType inputMapType, GameConditionType gameConditionType)> inputEventBindings = new()
+		private readonly Dictionary<InputEventType, InputMapType> inputEventBindings = new()
 		{
-			{ InputEventType.Space, (InputMapType.Player, GameConditionType.IsChatting) },
-			{ InputEventType.Click0, (InputMapType.Player, GameConditionType.IsChatting) },
-			{ InputEventType.Click1, (InputMapType.Player, GameConditionType.IsChatting) },
-			{ InputEventType.ChangeMode, (InputMapType.Player, GameConditionType.IsChatting) },
-			{ InputEventType.Scroll, (InputMapType.Player, GameConditionType.IsChatting) },
+			{ InputEventType.Space, InputMapType.Player },
+			{ InputEventType.Click0, InputMapType.Player },
+			{ InputEventType.Click1, InputMapType.Player },
+			{ InputEventType.ChangeMode, InputMapType.Player },
+			{ InputEventType.Scroll, InputMapType.Player },
 
-			{ InputEventType.Submit, (InputMapType.UI, GameConditionType.IsChatting) },
-			{ InputEventType.Cancel, (InputMapType.UI, GameConditionType.IsChatting) },
-			{ InputEventType.Tab, (InputMapType.UI, GameConditionType.IsChatting) },
-			{ InputEventType.Status, (InputMapType.UI, GameConditionType.IsChatting) },
+			{ InputEventType.Submit, InputMapType.UI },
+			{ InputEventType.Cancel, InputMapType.UI },
+			{ InputEventType.Tab, InputMapType.UI },
+			{ InputEventType.Status, InputMapType.UI },
 		};
 
 		private readonly Dictionary<(InputEventType, InputEventResponseType), Action<InputAction.CallbackContext>> inputEventsWithContent = new();
@@ -61,6 +66,8 @@ namespace WitchMendokusai
 		private readonly Dictionary<InputEventType, bool> isPressed = new();
 
 		public Vector3 MouseWorldPosition { get; private set; }
+		public Vector2 MoveInput { get; private set; }
+		private IInputStrategy CurrentInputStrategy { get; set; }
 
 		// Calling IsPointerOverGameObject() from within event processing (such as from InputAction callbacks) will not work as expected; it will query UI state from the last frame UnityEngine.EventSystems.EventSystem:IsPointerOverGameObject ()
 		// public bool IsPointerOverUI() => EventSystem.current.IsPointerOverGameObject();
@@ -78,8 +85,10 @@ namespace WitchMendokusai
 		{
 			inputActionAsset.Enable();
 
-			ClearInputEvents();
 			BindEvents();
+
+			// ClearInputEvents();
+			SetInputStrategy(new InputStrategyLoading());
 
 			// TODO: Setup Class 같은 것이 있어야 할 듯 - 2025.04.19 11:38
 			UnityEngine.SceneManagement.SceneManager.sceneLoaded += (scene, mode) =>
@@ -106,27 +115,31 @@ namespace WitchMendokusai
 		{
 			yield return new WaitForEndOfFrame(); // Start 실행 후
 
-			IInputStrategy inputStrategy;
 			switch (scene.name)
 			{
 				case "World":
-					inputStrategy = new InputStrategyWorld();
+					SetInputStrategy(new InputStrategyWorld());
 					break;
 				case "Lobby":
-					inputStrategy = new InputStrategyLobby();
+					SetInputStrategy(new InputStrategyLobby());
 					break;
 				case "Loading":
-					inputStrategy = new InputStrategyLoading();
+					SetInputStrategy(new InputStrategyLoading());
 					break;
 				case "loaded":
 				default:
 					Debug.LogWarning($"No input strategy registered for scene: {scene.name}");
 					yield break;
 			}
+		}
+
+		private void SetInputStrategy(IInputStrategy inputStrategy)
+		{
+			CurrentInputStrategy = inputStrategy;
 
 			ClearInputEvents();
 
-			List<InputRegisterData> inputRegisterDataList = inputStrategy.InputRegisterDataList;
+			List<InputRegisterData> inputRegisterDataList = CurrentInputStrategy.InputRegisterDataList;
 			foreach (InputRegisterData inputRegisterData in inputRegisterDataList)
 				RegisterInputEvent(inputRegisterData.InputEventType, inputRegisterData.InputEventResponseType, inputRegisterData.Callback);
 		}
@@ -140,7 +153,7 @@ namespace WitchMendokusai
 
 			void BindEvent(InputEventType inputEventType)
 			{
-				(InputMapType actionMapType, GameConditionType returnCondition) = inputEventBindings[inputEventType];
+				InputMapType actionMapType = inputEventBindings[inputEventType];
 				string actionName = $"{actionMapType}/{inputEventType}";
 
 				inputActionAsset[actionName].started += ctx => OnEventStart(inputEventType, ctx);
@@ -151,7 +164,8 @@ namespace WitchMendokusai
 
 		private void OnEventStart(InputEventType inputEventType, InputAction.CallbackContext ctx)
 		{
-			if (GameManager.Instance.Conditions.IsGameCondition(inputEventBindings[inputEventType].gameConditionType))
+			if (CurrentInputStrategy.TryGetEventReturnConditions(inputEventType, out var conditions) &&
+				GameManager.Instance.Conditions.IsGameConditionAny(conditions))
 				return;
 
 			inputEventsWithContent[(inputEventType, InputEventResponseType.Started)]?.Invoke(ctx);
@@ -163,12 +177,13 @@ namespace WitchMendokusai
 
 		private async UniTaskVoid GetLoop(InputEventType inputEventType = InputEventType.Space)
 		{
-			(InputMapType actionMapType, GameConditionType returnCondition) = inputEventBindings[inputEventType];
+			InputMapType actionMapType = inputEventBindings[inputEventType];
 			while (isPressed[inputEventType] == true)
 			{
 				await UniTask.Yield(PlayerLoopTiming.Update);
 
-				if (GameManager.Instance.Conditions.IsGameCondition(returnCondition))
+				if (CurrentInputStrategy.TryGetEventReturnConditions(inputEventType, out var conditions) &&
+					GameManager.Instance.Conditions.IsGameConditionAny(conditions))
 					continue;
 
 				inputEventsWithContent[(inputEventType, InputEventResponseType.Get)]?.Invoke(default);
@@ -178,7 +193,8 @@ namespace WitchMendokusai
 
 		private void OnEventPerformed(InputEventType inputEventType, InputAction.CallbackContext ctx)
 		{
-			if (GameManager.Instance.Conditions.IsGameCondition(inputEventBindings[inputEventType].gameConditionType))
+			if (CurrentInputStrategy.TryGetEventReturnConditions(inputEventType, out var conditions) &&
+				GameManager.Instance.Conditions.IsGameConditionAny(conditions))
 				return;
 
 			inputEventsWithContent[(inputEventType, InputEventResponseType.Performed)]?.Invoke(ctx);
@@ -217,6 +233,7 @@ namespace WitchMendokusai
 		{
 			UpdateMouseWorldPosition();
 			UpdateIsPointerOverUI();
+			UpdateMoveInput();
 		}
 
 		private void UpdateMouseWorldPosition()
@@ -248,6 +265,27 @@ namespace WitchMendokusai
 			}
 
 			isPointerOverUI = EventSystem.current.IsPointerOverGameObject();
+		}
+
+		private void UpdateMoveInput()
+		{
+			if (CurrentInputStrategy != null &&
+				CurrentInputStrategy.TryGetAxisReturnConditions(InputAxisType.Move, out var conditions) &&
+				GameManager.Instance.Conditions.IsGameConditionAny(conditions))
+			{
+				MoveInput = Vector2.zero;
+				return;
+			}
+
+			float h = Input.GetAxisRaw("Horizontal");
+			float v = Input.GetAxisRaw("Vertical");
+
+			if (h == 0)
+				h = SOManager.Instance.JoystickX.RuntimeValue;
+			if (v == 0)
+				v = SOManager.Instance.JoystickY.RuntimeValue;
+
+			MoveInput = new Vector2(h, v).normalized;
 		}
 	}
 }

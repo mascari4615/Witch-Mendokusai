@@ -1,9 +1,5 @@
-using System;
 using System.Collections;
-using System.Collections.Generic;
-using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace WitchMendokusai
 {
@@ -11,6 +7,8 @@ namespace WitchMendokusai
 	{
 		[field: Header("_" + nameof(UIAdventurerGuild))]
 		private Coroutine loop;
+
+		public override bool IsFullscreen => true;
 
 		protected override void OnInit()
 		{

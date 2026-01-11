@@ -18,6 +18,8 @@ namespace WitchMendokusai
 		private UIQuestGrid questGrid;
 		private Coroutine loop;
 
+		public override bool IsFullscreen => false;
+
 		protected override void OnInit()
 		{
 			questGrid = GetComponentInChildren<UIQuestGrid>(true);

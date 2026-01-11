@@ -1,11 +1,9 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-
 namespace WitchMendokusai
 {
 	public class UIMap : UIPanel
 	{
+		public override bool IsFullscreen => true;
+
 		// TODO:
 
 		protected override void OnInit()

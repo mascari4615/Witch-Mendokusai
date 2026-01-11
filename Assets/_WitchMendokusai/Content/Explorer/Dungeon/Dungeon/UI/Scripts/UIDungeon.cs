@@ -9,7 +9,7 @@ namespace WitchMendokusai
 		DungeonResult = 1,
 	}
 
-	public class UIDungeon : UIContentBase<DungeonPanelType>
+	public class UIDungeon : UIPanelGroup<DungeonPanelType>
 	{
 		public override bool CanBeClosedByCancelInput => false;
 		public override DungeonPanelType DefaultPanel => DungeonPanelType.None;

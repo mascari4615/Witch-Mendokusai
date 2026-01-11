@@ -1,7 +1,5 @@
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -13,14 +11,15 @@ namespace WitchMendokusai
 		[SerializeField] private GameObject dungeonSelectButtonPrefab;
 		[SerializeField] private Button dungeonEnterButton;
 		[SerializeField] private ToolTip toolTip;
+
 		protected List<UISlot> dungeonSelectButtons;
 
 		private UIRewards rewardUI;
 		private UIDungeonConstraint constraintUI;
-
 		private int curDungeonIndex = 0;
 		private List<Dungeon> dungeons;
 
+		public override bool IsFullscreen => true;
 		private Dungeon CurDungeon => dungeons[curDungeonIndex];
 
 		protected override void OnInit()
@@ -118,7 +117,7 @@ namespace WitchMendokusai
 
 		public void EnterTheDungeon()
 		{
-			Content.ClosePanel();
+			PanelGroup.ClosePanel();
 			DungeonManager.Instance.StartDungeon(CurDungeon);
 		}
 	}

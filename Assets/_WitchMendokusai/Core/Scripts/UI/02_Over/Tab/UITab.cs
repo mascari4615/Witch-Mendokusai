@@ -18,7 +18,7 @@ namespace WitchMendokusai
 		TabMenu = 100,
 	}
 
-	public class UITab : UIContentBase<TabPanelType>
+	public class UITab : UIPanelGroup<TabPanelType>
 	{
 		[Header("Prefabs")]
 		[SerializeField] private UITabMenu tabMenuPrefab = null;

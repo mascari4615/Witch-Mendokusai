@@ -19,7 +19,7 @@ namespace WitchMendokusai
 		SelectCard = 1,
 	}
 
-	public class CardManager : UIContentBase<CardPanelType>
+	public class CardManager : UIPanelGroup<CardPanelType>
 	{
 		private readonly Dictionary<int, UIDeck> deckUIDic = new();
 

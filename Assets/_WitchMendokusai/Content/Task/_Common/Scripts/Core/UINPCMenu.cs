@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -8,7 +7,8 @@ namespace WitchMendokusai
 	[RequireComponent(typeof(CanvasGroup))]
 	public class UINPCMenu : UIPanel
 	{
-		private CanvasGroup canvasGroup;
+		public NPCPanelType CurPanelType { get; private set; } = NPCPanelType.None;
+
 		[SerializeField] private GameObject buttonsParent;
 		[SerializeField] private UISlot talkOption;
 
@@ -20,8 +20,10 @@ namespace WitchMendokusai
 		[SerializeField] private Transform optionsParent;
 		private readonly List<UISlot> options = new();
 
-		public NPCPanelType CurPanelType { get; private set; } = NPCPanelType.None;
+		private CanvasGroup canvasGroup;
 		private NPCObject curNPC = null;
+
+		public override bool IsFullscreen => true;
 
 		protected override void OnInit()
 		{

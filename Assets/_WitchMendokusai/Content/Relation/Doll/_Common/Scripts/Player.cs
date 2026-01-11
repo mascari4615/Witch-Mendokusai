@@ -63,15 +63,7 @@ namespace WitchMendokusai
 
 		private void CalcMoveDirection()
 		{
-			float h = Input.GetAxisRaw("Horizontal");
-			float v = Input.GetAxisRaw("Vertical");
-
-			if (h == 0)
-				h = SOManager.Instance.JoystickX.RuntimeValue;
-			if (v == 0)
-				v = SOManager.Instance.JoystickY.RuntimeValue;
-
-			Object.UnitMovement.SetMoveDirection(new Vector2(h, v));
+			Object.UnitMovement.SetMoveDirection(InputManager.Instance.MoveInput);
 		}
 	}
 }

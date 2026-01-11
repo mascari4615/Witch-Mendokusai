@@ -4,15 +4,16 @@ using UnityEngine;
 
 namespace WitchMendokusai
 {
-	public interface IUIContentBase
+	public interface IUIPanelGroup
 	{
+		bool TryGetCurPanel(out UIPanel panel);
 		bool CanBeClosedByCancelInput { get; }
 		bool IsPanelOpen { get; }
 		void Init();
 		void ClosePanel();
 	}
 
-	public abstract class UIContentBase<T> : MonoBehaviour, IUIContentBase where T : Enum
+	public abstract class UIPanelGroup<T> : MonoBehaviour, IUIPanelGroup where T : Enum
 	{
 		public event Action<T> OnPanelChanged;
 
@@ -21,6 +22,7 @@ namespace WitchMendokusai
 		public Dictionary<T, UIPanel> Panels { get; private set; } = new();
 
 		public abstract bool CanBeClosedByCancelInput { get; }
+		public bool TryGetCurPanel(out UIPanel panel) => Panels.TryGetValue(CurPanelType, out panel);
 		public bool IsPanelOpen => CurPanelType.Equals(DefaultPanel) == false;
 
 		// public PanelType CurPanel => PanelStack.Count > 0 ? PanelStack.Peek() : PanelType.None;

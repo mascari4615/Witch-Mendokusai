@@ -2,9 +2,9 @@ using System.Collections.Generic;
 
 namespace WitchMendokusai
 {
-	public class InputStrategyWorld : IInputStrategy
+	public class InputStrategyWorld : InputStrategyBase
 	{
-		public List<InputRegisterData> InputRegisterDataList { get; } = new List<InputRegisterData>()
+		public override List<InputRegisterData> InputRegisterDataList { get; } = new List<InputRegisterData>()
 		{
 			#region Player
 			new(
@@ -15,12 +15,12 @@ namespace WitchMendokusai
 			new(
 				InputEventType.Click0,
 				InputEventResponseType.Get,
-				() => TryUseSkill(1)
+				() => Player.Instance.TryUseSkill(1)
 			),
 			new(
 				InputEventType.Click1,
 				InputEventResponseType.Get,
-				() => TryUseSkill(2)
+				() => Player.Instance.TryUseSkill(2)
 			),
 
 			new(
@@ -34,17 +34,7 @@ namespace WitchMendokusai
 			new(
 				InputEventType.Submit,
 				InputEventResponseType.Performed,
-				() =>
-				{
-					if (GameManager.Instance.Conditions.IsGameConditionAny(
-											GameConditionType.IsInTransition) == true)
-						return;
-
-					if (UIManager.Instance.IsPanelOpen)
-						return;
-
-					Player.Instance.TryInteract();
-				}
+				() => Player.Instance.TryInteract()
 			),
 			new(
 				InputEventType.Cancel,
@@ -64,17 +54,64 @@ namespace WitchMendokusai
 			#endregion
 		};
 
-		private static void TryUseSkill(int skillIndex)
+		protected override Dictionary<InputEventType, GameConditionType[]> EventReturnConditions => new()
 		{
-			if (GameManager.Instance.Conditions.IsGameConditionAny(
-											GameConditionType.IsMouseOnUI,
-											GameConditionType.IsChatting,
-											GameConditionType.IsPaused,
-											GameConditionType.IsDied,
-											GameConditionType.IsBuilding) == true)
-				return;
+			{ InputEventType.Space, new[] { GameConditionType.IsChatting } },
+			{
+				InputEventType.Click0,
+				new[]
+				{
+					GameConditionType.IsMouseOnUI,
+					GameConditionType.IsChatting,
+					GameConditionType.IsPaused,
+					GameConditionType.IsDied,
+					GameConditionType.IsBuilding
+				}
+			},
+			{
+				InputEventType.Click1,
+				new[]
+				{
+					GameConditionType.IsMouseOnUI,
+					GameConditionType.IsChatting,
+					GameConditionType.IsPaused,
+					GameConditionType.IsDied,
+					GameConditionType.IsBuilding
+				}
+			},
+			{ InputEventType.ChangeMode, new[] { GameConditionType.IsChatting } },
+			{ InputEventType.Scroll, new[] { GameConditionType.IsChatting } },
 
-			Player.Instance.TryUseSkill(skillIndex);
-		}
+			{
+				InputEventType.Submit,
+				new[]
+				{
+					GameConditionType.IsPaused,
+					GameConditionType.IsChatting,
+					GameConditionType.IsDied,
+					GameConditionType.IsBuilding,
+					GameConditionType.IsInTransition,
+					GameConditionType.IsViewingUI
+				}
+			},
+			{ InputEventType.Cancel, new[] { GameConditionType.IsChatting } },
+			{ InputEventType.Tab, new[] { GameConditionType.IsChatting } },
+			{ InputEventType.Status, new[] { GameConditionType.IsChatting } },
+		};
+
+		protected override Dictionary<InputAxisType, GameConditionType[]> AxisReturnConditions => new()
+		{
+			{
+				InputAxisType.Move,
+				new[]
+				{
+					GameConditionType.IsPaused,
+					GameConditionType.IsChatting,
+					GameConditionType.IsDied,
+					GameConditionType.IsInTransition,
+					GameConditionType.IsViewingUI
+				}
+			}
+		};
 	}
 }
