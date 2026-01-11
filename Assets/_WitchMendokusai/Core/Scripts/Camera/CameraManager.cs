@@ -6,6 +6,9 @@ using UnityEngine.Animations;
 
 namespace WitchMendokusai
 {
+	// 빛 설정 낮: 255 190 112
+	// 빛 설정 밤: 114, 73, 137
+
 	// TODO: 둘 중 하나만 보이도록 Editor 스크립트 작성
 	// public enum CameraType
 	// {

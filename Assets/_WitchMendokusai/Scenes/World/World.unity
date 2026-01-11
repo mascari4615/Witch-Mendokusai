@@ -25,7 +25,7 @@ RenderSettings:
   m_AmbientGroundColor: {r: 0.047, g: 0.043, b: 0.035, a: 1}
   m_AmbientIntensity: 1
   m_AmbientMode: 3
-  m_SubtractiveShadowColor: {r: 1, g: 0.9651876, b: 0.6650944, a: 1}
+  m_SubtractiveShadowColor: {r: 0.12177781, g: 0.11280703, b: 0.14150941, a: 1}
   m_SkyboxMaterial: {fileID: 0}
   m_HaloStrength: 0.5
   m_FlareStrength: 1
@@ -441,17 +441,6 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 6603049024029507556, guid: e1f822114d0864b47b15ea39796c9acf, type: 3}
   m_PrefabInstance: {fileID: 8771110380273217770}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &635078216 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 7731349339067779918, guid: e1f822114d0864b47b15ea39796c9acf, type: 3}
-  m_PrefabInstance: {fileID: 8771110380273217770}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5d8ebd8fb235d904ea6369c83678cd83, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &692230403
 GameObject:
   m_ObjectHideFlags: 0
@@ -544,11 +533,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   dontDestroyOnLoad: 0
+  <BaseCanvas>k__BackingField: {fileID: 4616275362954479964}
   dungeonPrefab: {fileID: 1861000773021523334, guid: dc7af30993950d947820761d51d18c0b, type: 3}
   buildPrefab: {fileID: 6107930989581084425, guid: 0a4f4558d09f1894e827ab227be9e2bd, type: 3}
   adventurerGuildPrefab: {fileID: 6009601546454943654, guid: a1489780d9f78e245bb13104aa71a673, type: 3}
-  <BaseCanvas>k__BackingField: {fileID: 4616275362954479964}
-  <CutSceneModule>k__BackingField: {fileID: 635078216}
 --- !u!4 &931047120
 Transform:
   m_ObjectHideFlags: 0
@@ -5307,7 +5295,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4262378341427339055, guid: 7ea2a4bcc0c5a4b41a54e03a94eb3350, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -15.21
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4262378341427339055, guid: 7ea2a4bcc0c5a4b41a54e03a94eb3350, type: 3}
       propertyPath: m_LocalRotation.w
