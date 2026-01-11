@@ -8,7 +8,16 @@ namespace WitchMendokusai
 	{
 		public bool IsPanelOpen => OverlayUIs.Any(ui => ui.IsPanelOpen);
 
+
+		[Header("Prefabs")]
+		[SerializeField] private UIDungeon dungeonPrefab = null;
+		[SerializeField] private UIBuild buildPrefab = null;
+		[SerializeField] private UIAdventurerGuild adventurerGuildPrefab = null;
+
+		[field: Header("References")]
+		[field: SerializeField] public Canvas BaseCanvas { get; private set; }
 		[field: SerializeField] public CutSceneModule CutSceneModule { get; private set; }
+		
 		private UIFloatingText damage;
 		private UIPopup popup;
 		public UIChat Chat { get; private set; }
@@ -27,11 +36,18 @@ namespace WitchMendokusai
 		{
 			base.Awake();
 
+			// Content UIs
+			Instantiate(dungeonPrefab, BaseCanvas.transform);
+			Instantiate(buildPrefab, BaseCanvas.transform);
+			Instantiate(adventurerGuildPrefab, BaseCanvas.transform);
+
+			// Common UIs
 			CutSceneModule = FindFirstObjectByType<CutSceneModule>(FindObjectsInactive.Include);
 			damage = FindFirstObjectByType<UIFloatingText>(FindObjectsInactive.Include);
 			popup = FindFirstObjectByType<UIPopup>(FindObjectsInactive.Include);
 			Chat = FindFirstObjectByType<UIChat>(FindObjectsInactive.Include);
 			adventurerGuild = FindFirstObjectByType<UIAdventurerGuild>(FindObjectsInactive.Include);
+			adventurerGuild.gameObject.SetActive(false);
 
 			Transition = FindFirstObjectByType<UITransition>(FindObjectsInactive.Include);
 			stagePopup = FindFirstObjectByType<UIStagePopup>(FindObjectsInactive.Include);

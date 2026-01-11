@@ -85,7 +85,7 @@ namespace WitchMendokusai
 				}
 			}
 
-			if (clickToolTip != null)
+			if (clickToolTip != null && CurSlot != null && CurSlot.Data != null)
 				clickToolTip.SetToolTipContent(CurSlot.Data);
 
 			UpdateNoElementInfo();

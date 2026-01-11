@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using Cysharp.Threading.Tasks;
 using UniRx;
 using UnityEngine;
@@ -112,9 +111,9 @@ namespace WitchMendokusai
 				}
 
 				// Context 생성 이후 UI 설정
-				// UIDungeon.UpdateUI(); 에서 Context를 사용합니다.
-				dungeonUI.SetPanel(DungeonPanelType.None);
-				dungeonUI.StartLoop();
+				// UIDungeonRuntime.UpdateUI(); 에서 Context를 사용합니다.
+				dungeonUI.SetPanel(DungeonPanelType.DungeonRuntime);
+				CameraManager.Instance.SetContentCameraMode(ContentCameraMode.Dungeon);
 
 				GameEventManager.Instance.Raise(GameEventType.OnDungeonStart);
 			}
@@ -125,11 +124,8 @@ namespace WitchMendokusai
 			Debug.Log($"{nameof(EndDungeon)}");
 
 			// Stop DungeonLoop
-			if (dungeonLoopSubscription != null)
-			{
-				dungeonLoopSubscription.Dispose();
-				dungeonLoopSubscription = null;
-			}
+			dungeonLoopSubscription?.Dispose();
+			dungeonLoopSubscription = null;
 			monsterSpawner.StopWave();
 
 			dungeonRecorder.CaptureResultRecord();
@@ -152,7 +148,6 @@ namespace WitchMendokusai
 
 			void ResetDungeonAndPlayer()
 			{
-				dungeonUI.StopLoop();
 				dungeonUI.ClosePanel();
 				CameraManager.Instance.SetContentCameraMode(ContentCameraMode.Normal);
 

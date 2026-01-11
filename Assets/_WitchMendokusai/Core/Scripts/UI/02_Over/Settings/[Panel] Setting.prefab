@@ -1139,8 +1139,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0eff6f87d1311eb4d8349f3c5eb7bd28, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  <Name>k__BackingField: UIPanel
-  <PanelIcon>k__BackingField: {fileID: 0}
+  <Name>k__BackingField: Settings
+  <PanelIcon>k__BackingField: {fileID: -443297213, guid: fbd184d873518c24aaaa66f4c3d4c2a9, type: 3}
   framerateToggle: {fileID: 2661374534264876116}
   masterVolumeSlider: {fileID: 3352139562935018203}
   bgmVolumeSlider: {fileID: 5220464379669091450}
