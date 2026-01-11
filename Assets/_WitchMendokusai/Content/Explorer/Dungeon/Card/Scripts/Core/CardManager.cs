@@ -23,6 +23,7 @@ namespace WitchMendokusai
 	{
 		private readonly Dictionary<int, UIDeck> deckUIDic = new();
 
+		public override bool CanBeClosedByCancelInput => false;
 		public override CardPanelType DefaultPanel => CardPanelType.None;
 
 		// Level Up Stack

@@ -32,6 +32,7 @@ namespace WitchMendokusai
 		[Header("References")]
 		[SerializeField] private GameObject tabBackground = null;
 
+		public override bool CanBeClosedByCancelInput => true;
 		public override TabPanelType DefaultPanel => TabPanelType.None;
 
 		public override void Init()
@@ -49,6 +50,7 @@ namespace WitchMendokusai
 			{
 				bool isTabOpen = IsPanelOpen;
 				tabBackground.SetActive(isTabOpen);
+				CameraManager.Instance.SetUICameraMode(UICameraMode.Tab, isTabOpen);
 			};
 		}
 	}

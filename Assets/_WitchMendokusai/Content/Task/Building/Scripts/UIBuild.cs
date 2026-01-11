@@ -19,6 +19,7 @@ namespace WitchMendokusai
 		[SerializeField] private UIBuildingBar buildingBar;
 		private Coroutine loop;
 
+		public override bool CanBeClosedByCancelInput => true;
 		public override UIBuildingType DefaultPanel => UIBuildingType.None;
 
 		public override void Init()

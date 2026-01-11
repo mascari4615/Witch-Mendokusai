@@ -17,7 +17,7 @@ namespace WitchMendokusai
 		[field: Header("References")]
 		[field: SerializeField] public Canvas BaseCanvas { get; private set; }
 		[field: SerializeField] public CutSceneModule CutSceneModule { get; private set; }
-		
+
 		private UIFloatingText damage;
 		private UIPopup popup;
 		public UIChat Chat { get; private set; }
@@ -95,36 +95,30 @@ namespace WitchMendokusai
 			popup.Popup(dataSO);
 		}
 
-		public void ToggleOverlayUI_Tab()
+		public void ToggleTabUI()
 		{
-			UITab tab = Tab;
-
-			if (tab.CurPanelType == TabPanelType.Setting)
+			if (Tab.CurPanelType == TabPanelType.Setting)
 				return;
 
-			if (tab.IsPanelOpen)
-			{
-				CameraManager.Instance.SetUICameraMode(UICameraMode.Tab, false);
-				tab.ClosePanel();
-			}
+			if (Tab.IsPanelOpen)
+				Tab.ClosePanel();
 			else
-			{
-				CameraManager.Instance.SetUICameraMode(UICameraMode.Tab, true);
-				tab.SetPanel(TabPanelType.TabMenu);
-			}
+				Tab.SetPanel(TabPanelType.TabMenu);
 		}
 
-		public void ToggleOverlayUI_Setting()
+		public void OnCancelInput()
 		{
+			// 닫을 수 있는 UI 닫기
 			foreach (IUIContentBase ui in OverlayUIs)
 			{
-				if (ui.IsPanelOpen)
+				if (ui.IsPanelOpen && ui.CanBeClosedByCancelInput)
 				{
 					ui.ClosePanel();
 					return;
 				}
 			}
-		
+
+			// 아무것도 닫힌 게 없으면 설정 열기
 			Tab.SetPanel(TabPanelType.Setting);
 		}
 

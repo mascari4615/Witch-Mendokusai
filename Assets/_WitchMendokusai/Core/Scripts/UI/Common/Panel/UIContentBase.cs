@@ -6,6 +6,7 @@ namespace WitchMendokusai
 {
 	public interface IUIContentBase
 	{
+		bool CanBeClosedByCancelInput { get; }
 		bool IsPanelOpen { get; }
 		void Init();
 		void ClosePanel();
@@ -13,12 +14,13 @@ namespace WitchMendokusai
 
 	public abstract class UIContentBase<T> : MonoBehaviour, IUIContentBase where T : Enum
 	{
+		public event Action<T> OnPanelChanged;
+
 		public T CurPanelType { get; private set; } = default;
 		public abstract T DefaultPanel { get; }
 		public Dictionary<T, UIPanel> Panels { get; private set; } = new();
 
-		public event Action<T> OnPanelChanged;
-
+		public abstract bool CanBeClosedByCancelInput { get; }
 		public bool IsPanelOpen => CurPanelType.Equals(DefaultPanel) == false;
 
 		// public PanelType CurPanel => PanelStack.Count > 0 ? PanelStack.Peek() : PanelType.None;

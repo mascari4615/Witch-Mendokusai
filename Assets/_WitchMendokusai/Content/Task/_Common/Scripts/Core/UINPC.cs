@@ -21,11 +21,13 @@ namespace WitchMendokusai
 
 	public class UINPC : UIContentBase<NPCPanelType>
 	{
+		public override bool CanBeClosedByCancelInput => true;
 		public override NPCPanelType DefaultPanel => NPCPanelType.None;
 
 		public override void Init()
 		{
 			Panels[NPCPanelType.NPC] = FindFirstObjectByType<UINPCMenu>(FindObjectsInactive.Include);
+
 			Panels[NPCPanelType.Shop] = FindFirstObjectByType<UIShop>(FindObjectsInactive.Include);
 			Panels[NPCPanelType.DungeonEntrance] = FindFirstObjectByType<UIDungeonEntrance>(FindObjectsInactive.Include);
 			Panels[NPCPanelType.Pot] = FindFirstObjectByType<UIPot>(FindObjectsInactive.Include);

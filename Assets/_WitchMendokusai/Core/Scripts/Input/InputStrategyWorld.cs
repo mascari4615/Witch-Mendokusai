@@ -49,12 +49,12 @@ namespace WitchMendokusai
 			new(
 				InputEventType.Cancel,
 				InputEventResponseType.Performed,
-				() => UIManager.Instance.ToggleOverlayUI_Setting()
+				() => UIManager.Instance.OnCancelInput()
 			),
 			new(
 				InputEventType.Tab,
 				InputEventResponseType.Performed,
-				() => UIManager.Instance.ToggleOverlayUI_Tab()
+				() => UIManager.Instance.ToggleTabUI()
 			),
 			new(
 				InputEventType.Status,

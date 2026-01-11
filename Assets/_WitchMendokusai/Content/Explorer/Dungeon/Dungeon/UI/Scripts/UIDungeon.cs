@@ -11,6 +11,7 @@ namespace WitchMendokusai
 
 	public class UIDungeon : UIContentBase<DungeonPanelType>
 	{
+		public override bool CanBeClosedByCancelInput => false;
 		public override DungeonPanelType DefaultPanel => DungeonPanelType.None;
 
 		public override void Init()
