@@ -1,9 +1,4 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace WitchMendokusai
 {
@@ -25,6 +20,8 @@ namespace WitchMendokusai
 
 	public class UITab : UIContentBase<TabPanelType>
 	{
+		[SerializeField] private GameObject tabBackground = null;
+
 		public override TabPanelType DefaultPanel => TabPanelType.None;
 
 		public override void Init()
@@ -37,6 +34,12 @@ namespace WitchMendokusai
 			Panels[TabPanelType.Doll] = FindFirstObjectByType<UIDollPanel>(FindObjectsInactive.Include);
 			Panels[TabPanelType.Setting] = FindFirstObjectByType<UISetting>(FindObjectsInactive.Include);
 			Panels[TabPanelType.Map] = FindFirstObjectByType<UIMap>(FindObjectsInactive.Include);
+
+			OnPanelChanged += (_) =>
+			{
+				bool isTabOpen = IsPanelOpen;
+				tabBackground.SetActive(isTabOpen);
+			};
 		}
 	}
 }

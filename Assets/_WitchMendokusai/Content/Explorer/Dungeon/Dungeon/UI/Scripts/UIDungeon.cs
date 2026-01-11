@@ -17,6 +17,7 @@ namespace WitchMendokusai
 	{
 		[field: Header("_" + nameof(UIDungeon))]
 		[SerializeField] private Image progressBar;
+		[SerializeField] private GameObject questGridObject;
 		[SerializeField] private TextMeshProUGUI timeText;
 		[SerializeField] private TextMeshProUGUI difficultyText;
 		[SerializeField] private Image difficultyCircle;
@@ -32,6 +33,13 @@ namespace WitchMendokusai
 			questGrid = GetComponentInChildren<UIQuestGrid>(true);
 			questGrid.Init();
 			questGrid.SetFilter(QuestType.Dungeon);
+
+			OnPanelChanged += (_) =>
+			{
+				bool isDungeonUIOpen = IsPanelOpen;
+				progressBar.gameObject.SetActive(!isDungeonUIOpen);
+				questGridObject.SetActive(!isDungeonUIOpen);
+			};
 		}
 
 		public void StartLoop()

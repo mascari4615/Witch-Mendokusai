@@ -19,6 +19,8 @@ namespace WitchMendokusai
 		public abstract T DefaultPanel { get; }
 		public Dictionary<T, UIPanel> Panels { get; private set; } = new();
 
+		public event Action<T> OnPanelChanged;
+
 		public bool IsPanelOpen => CurPanelType.Equals(DefaultPanel) == false;
 
 		// public PanelType CurPanel => PanelStack.Count > 0 ? PanelStack.Peek() : PanelType.None;
@@ -62,6 +64,8 @@ namespace WitchMendokusai
 				newPanel.SetActive(true);
 				newPanel.UpdateUI();
 			}
+
+			OnPanelChanged?.Invoke(newPanelType);
 		}
 
 		public void ClosePanel()
