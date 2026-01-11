@@ -40,8 +40,9 @@ namespace WitchMendokusai
 		[SerializeField] private CinemachineTargetGroup chatTargetGroup;
 		[SerializeField] private float xDiff = 3f;
 
-		private Coroutine chatXCoroutine;
 		private CinemachinePositionComposer chatPositionTransposer;
+		private Coroutine chatXCoroutine;
+		private float targetChatX = 0f;
 
 		private MCamera[] cameras;
 		private MCamera curCamera;
@@ -106,40 +107,61 @@ namespace WitchMendokusai
 			}
 		}
 
-		public void SetSelecting(bool isSelecting)
-		{
-			// 유닛이 말풍선을 띄울 때 카메라 이동 (2차원 기준 X축)
-			if (chatXCoroutine != null)
-				StopCoroutine(chatXCoroutine);
-
-			if (isSelecting == false)
-			{
-				chatPositionTransposer.TargetOffset.x = 0;
-				return;
-			}
-
-			chatXCoroutine = StartCoroutine(ChatXCoroutine(xDiff));
-		}
-
 		public void SetNPC(Transform npcTransform)
 		{
 			chatTargetGroup.Targets[1].Object = npcTransform;
 		}
 
+		public void SetSelecting(bool isSelecting, bool shouldAnimate = true)
+		{
+			// 설정해야하는 경우, 기존 코루틴 중지
+			if (chatXCoroutine != null)
+				StopCoroutine(chatXCoroutine);
+
+			float targetX = isSelecting ? xDiff : 0;
+
+			// 이미 목표 위치가 같은 경우 처리하지 않음
+			if (targetX == targetChatX)
+			{
+				if (shouldAnimate == false)
+				{
+					chatPositionTransposer.TargetOffset.x = targetX;
+				}
+				return;
+			}
+			targetChatX = targetX;
+
+			// 이미 목표 위치에 도달한 경우 처리하지 않음
+			if (Mathf.Approximately(targetX, chatPositionTransposer.TargetOffset.x))
+			{
+				chatPositionTransposer.TargetOffset.x = targetX;
+				return;
+			}
+
+			// 코루틴 실행 또는 즉시 설정
+			if (shouldAnimate)
+				chatXCoroutine = StartCoroutine(ChatXCoroutine(targetX));
+			else
+				chatPositionTransposer.TargetOffset.x = targetX;
+		}
+
 		// 유닛이 말풍선을 띄울 때 카메라 이동 (2차원 기준 X축)
-		private IEnumerator ChatXCoroutine(float diff)
+		private IEnumerator ChatXCoroutine(float targetX)
 		{
 			float startX = chatPositionTransposer.TargetOffset.x;
 			float elapsed = 0f; // 경과 시간
 			const float duration = 0.2f; // 이동에 걸리는 시간
-		
+
 			while (elapsed < duration)
 			{
+				yield return null;
 				elapsed += Time.deltaTime;
 				float t = Mathf.Clamp01(elapsed / duration);
-				chatPositionTransposer.TargetOffset.x = Mathf.Lerp(startX, diff, t);
-				yield return null;
+				chatPositionTransposer.TargetOffset.x = Mathf.Lerp(startX, targetX, t);
 			}
+
+			chatPositionTransposer.TargetOffset.x = targetX;
+			chatXCoroutine = null;
 		}
 
 		private void LateUpdate()

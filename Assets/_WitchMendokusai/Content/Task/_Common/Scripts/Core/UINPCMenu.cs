@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -113,9 +114,27 @@ namespace WitchMendokusai
 
 			UpdateQuestButtons();
 			questEachParent.gameObject.SetActive(false);
-			CameraManager.Instance.SetUICameraMode(UICameraMode.NPC, true);
 
-			Talk();
+			CameraManager.Instance.SetUICameraMode(UICameraMode.NPC, true);
+			CameraManager.Instance.SetSelecting(isSelecting: false, shouldAnimate: false);
+
+			// 대화 불가 시 바로 선택 모드로 전환
+			bool canTalk = ChatManager.Instance.TryGetChatData(curNPC.UnitData.ID.ToString(), out _);
+			talkOption.gameObject.SetActive(canTalk);
+			
+			if (canTalk)
+				Talk();
+			else
+			{
+				Debug.LogWarning($"ChatData not found: {curNPC.UnitData.ID}");
+
+				canvasGroup.SetVisible(true);
+
+				SetPanel(NPCPanelType.None);
+				options.FirstOrDefault(o => o.gameObject.activeSelf)?.Select(); // 첫 번째 활성화된 버튼 선택 (대화 제외)
+
+				CameraManager.Instance.SetSelecting(true);
+			}
 		}
 
 		protected override void OnClose()
@@ -169,7 +188,6 @@ namespace WitchMendokusai
 		public void Talk()
 		{
 			buttonsParent.SetActive(false);
-
 			CameraManager.Instance.SetSelecting(false);
 
 			UIManager.Instance.Chat.StartChat(curNPC, () =>
