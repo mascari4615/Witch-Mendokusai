@@ -1,0 +1,101 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbb281ee3bf0b054c82ac2347e9e782c, type: 3}
+  m_Name: GameStatData
+  m_EditorClassIdentifier: 
+  m_GroupName: GameStatData
+  m_GUID: ac0e17edb6df69c4f9ee79db346cb3a3
+  m_SerializeEntries:
+  - m_GUID: 09eee954d5434844792f6168164e4511
+    m_Address: GameStatData/99
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - GameStatData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 374aa4596857a4940976d0e81d977f46
+    m_Address: GameStatData/2100
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - GameStatData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 46f6f8050891f644ca6f46b8dd67064e
+    m_Address: GameStatData/100
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - GameStatData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 4ce0f779f928999469145e480e01a0c6
+    m_Address: GameStatData/1000
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - GameStatData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 5b9dfd6a63ee21049a73ad28fd908100
+    m_Address: GameStatData/1
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - GameStatData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 5da7d7bdfc6e1464aabc0ffddf986f45
+    m_Address: GameStatData/2102
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - GameStatData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 75815767af30d2d45b8cbe4d920fd576
+    m_Address: GameStatData/2000
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - GameStatData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 9948788b3ea276745a148387bcd15fd5
+    m_Address: GameStatData/0
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - GameStatData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 9b033fc64f6a3b7428062d7310da5eb1
+    m_Address: GameStatData/1100
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - GameStatData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: c5bba92b47b2edb41abf82c4270fd7aa
+    m_Address: GameStatData/2002
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - GameStatData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: d23f70ecd5e226f449791bb3dc20824e
+    m_Address: GameStatData/2101
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - GameStatData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: e107ac46f86e34c48bc994df5e0030ef
+    m_Address: GameStatData/3000
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - GameStatData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: f16a83b7e661ab141ba9cb52ebfc9a1e
+    m_Address: GameStatData/2001
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - GameStatData
+    FlaggedDuringContentUpdateRestriction: 0
+  m_ReadOnly: 0
+  m_Settings: {fileID: 11400000, guid: 5a4d7636943b8d645af161ef05df63d6, type: 2}
+  m_SchemaSet:
+    m_Schemas:
+    - {fileID: 11400000, guid: 7d771d4bb1a77c348bb1951aae0d15c6, type: 2}
+    - {fileID: 11400000, guid: 1dddf59133b61f14ab83a4933847bf71, type: 2}

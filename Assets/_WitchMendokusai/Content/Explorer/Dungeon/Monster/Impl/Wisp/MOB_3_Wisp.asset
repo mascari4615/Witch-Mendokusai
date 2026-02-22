@@ -1,0 +1,40 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 30284bfe5bd403f4a94529bd768db142, type: 3}
+  m_Name: MOB_3_Wisp
+  m_EditorClassIdentifier: 
+  <ID>k__BackingField: 3
+  <Name>k__BackingField: Wisp
+  <Description>k__BackingField: 
+  <Sprite>k__BackingField: {fileID: -47207433, guid: 438fc0e4df0a51d46b48ea614b22384d, type: 3}
+  <Sprites>k__BackingField: []
+  <Affiliation>k__BackingField: -1
+  <Prefab>k__BackingField: {fileID: 7779617929997501086, guid: 54c6440cf176b5b4487277461e2f99aa, type: 3}
+  <DefaultSkills>k__BackingField:
+  - {fileID: 11400000, guid: f6a29f2c960129f45894db4732554d4b, type: 2}
+  <Material>k__BackingField: {fileID: 2100000, guid: 498f73d56bb87ab4cb040563514df458, type: 2}
+  <InitStatInfos>k__BackingField:
+    initStats:
+    - unitStat: 2
+      value: 8
+    - unitStat: 300
+      value: 0
+  <Type>k__BackingField: 0
+  <Loots>k__BackingField:
+  - <DataSO>k__BackingField: {fileID: 11400000, guid: 41d3b97fb16981c4f949742deac36232, type: 2}
+    <Percentage>k__BackingField: 20
+  - <DataSO>k__BackingField: {fileID: 11400000, guid: c93b3b25b6029194dabd908b48701409, type: 2}
+    <Percentage>k__BackingField: 10
+  - <DataSO>k__BackingField: {fileID: 11400000, guid: a4ae19ecc14aeff4384a471b45db6f39, type: 2}
+    <Percentage>k__BackingField: 5
+  - <DataSO>k__BackingField: {fileID: 11400000, guid: fa1e42f560679c74eb12d34c2b39de1f, type: 2}
+    <Percentage>k__BackingField: 1

@@ -1,0 +1,36 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 27295272ebf3533408ef818242e78912, type: 3}
+  m_Name: "NPC_1_\uB358\uC804\uC9C0\uAE30"
+  m_EditorClassIdentifier: 
+  <ID>k__BackingField: 1
+  <Name>k__BackingField: "\uB358\uC804\uC9C0\uAE30"
+  <Description>k__BackingField: 
+  <Sprite>k__BackingField: {fileID: 21300000, guid: 3b5b0db8554696045ba299cd57fe2627, type: 3}
+  <Sprites>k__BackingField: []
+  <Affiliation>k__BackingField: -1
+  <Prefab>k__BackingField: {fileID: 0}
+  <DefaultSkills>k__BackingField: []
+  <Material>k__BackingField: {fileID: 0}
+  <InitStatInfos>k__BackingField:
+    initStats:
+    - unitStat: 2
+      value: 20
+    - unitStat: 300
+      value: 3
+  <PanelInfos>k__BackingField:
+  - Type: 2
+    DataSOs:
+    - {fileID: 11400000, guid: 18b8fc0dced87474a9c8e0e1e099a551, type: 2}
+    - {fileID: 11400000, guid: 6fcb13fa06ab37e4399c866b682eaeaa, type: 2}
+    - {fileID: 11400000, guid: a7ea31bc4fee37f4f83d162660b74062, type: 2}
+  <QuestData>k__BackingField: []

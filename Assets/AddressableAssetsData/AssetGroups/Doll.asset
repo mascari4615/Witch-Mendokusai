@@ -1,0 +1,47 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbb281ee3bf0b054c82ac2347e9e782c, type: 3}
+  m_Name: Doll
+  m_EditorClassIdentifier: 
+  m_GroupName: Doll
+  m_GUID: 4670b1f60c71e4b438d66782ded5e92f
+  m_SerializeEntries:
+  - m_GUID: 9f85001dde9fbdd448c49a3cb01ae69b
+    m_Address: Doll/4444
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Doll
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: dd84603773e6f27479a2c830f5186349
+    m_Address: Doll/1
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Doll
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: e0addc93d4a1ed943b5a232c4650bdcf
+    m_Address: Doll/2
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Doll
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: f47218123e39da3459afd2f23f3b2a41
+    m_Address: Doll/0
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Doll
+    FlaggedDuringContentUpdateRestriction: 0
+  m_ReadOnly: 0
+  m_Settings: {fileID: 11400000, guid: 5a4d7636943b8d645af161ef05df63d6, type: 2}
+  m_SchemaSet:
+    m_Schemas:
+    - {fileID: 11400000, guid: b2f22a1e78ecdc342bfec7a89b897c42, type: 2}
+    - {fileID: 11400000, guid: d264736923dbeb243a20185b3fd92ca0, type: 2}

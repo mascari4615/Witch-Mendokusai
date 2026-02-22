@@ -1,0 +1,37 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0b75fdf0248adbd4392c1e2a8a5f0999, type: 3}
+  m_Name: "I_9000000_\uB098\uBB34\uAC11\uC637"
+  m_EditorClassIdentifier: 
+  <ID>k__BackingField: 9000000
+  <Name>k__BackingField: "\uB098\uBB34 \uAC11\uC637"
+  <Description>k__BackingField: "\uB098\uBB34\uB85C \uB9CC\uB4E4\uC5B4\uC9C4 \uAC11\uC637\uC774\uB2E4."
+  <Sprite>k__BackingField: {fileID: -1016316885, guid: 0d615c72f68bd6d40bd8d180ff6556ec, type: 3}
+  <Sprites>k__BackingField: []
+  <Grade>k__BackingField: 0
+  <Type>k__BackingField: 2
+  <Recipes>k__BackingField:
+  - Type: 0
+    Amount: 0
+    Items:
+    - ItemData: {fileID: 11400000, guid: e26916c612e84b14cb72659bbeb57685, type: 2}
+      Amount: 1
+    PriceNyang: 0
+    Percentage: 100
+    FailureRewards:
+    - Type: 0
+      DataSO: {fileID: 11400000, guid: 9f1652f1011e9184ca1aab4e98390d9b, type: 2}
+      Amount: 1
+    SuccessRewards: []
+  <MaxAmount>k__BackingField: 1
+  <PurchasePrice>k__BackingField: 10
+  <SalePrice>k__BackingField: 5

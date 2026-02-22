@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7d8049ef94e533240bf4b66208d6bb58, type: 3}
+  m_Name: "BD_4003_\uC81C\uC791\uB300"
+  m_EditorClassIdentifier: 
+  <ID>k__BackingField: 4003
+  <Name>k__BackingField: "\uC81C\uC791\uB300"
+  <Description>k__BackingField: 
+  <Sprite>k__BackingField: {fileID: 21300000, guid: fcc7c385be064b54a9ef5e2876dacb7b, type: 3}
+  <Sprites>k__BackingField: []
+  <Type>k__BackingField: 0
+  <Cost>k__BackingField: 0
+  <Prefab>k__BackingField: {fileID: 552270637804228320, guid: 74fa1e80216ef92489fe42d86d7c8b07, type: 3}
+  <Mascot>k__BackingField: {fileID: 11400000, guid: 7adc61e104a0d944da7dfd946107a2c0, type: 2}
+  <Size>k__BackingField: {x: 1, y: 1}

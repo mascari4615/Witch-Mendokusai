@@ -1,0 +1,28 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="True">
+    <Style src="project://database/Assets/_WitchMendokusai/Editor/DataSO/DataSOWindow.uss?fileID=7433441132597879392&amp;guid=10628fedc867f4a4eb552243cab70531&amp;type=3#DataSOWindow" />
+    <ui:VisualElement name="Container" style="flex-grow: 1; background-color: rgb(36, 37, 42); width: 100%; height: 100%; flex-shrink: 0; min-height: 500px;">
+        <ui:VisualElement name="Header" style="flex-direction: row; height: 60px; border-left-color: rgba(255, 255, 255, 0.39); border-right-color: rgba(255, 255, 255, 0.39); border-top-color: rgba(255, 255, 255, 0.39); border-bottom-color: rgba(255, 255, 255, 0.39); border-left-width: 0; border-bottom-width: 1px; padding-right: 10px; padding-left: 10px;">
+            <ui:Label tabindex="-1" text="DataSO" parse-escape-sequences="true" display-tooltip-when-elided="true" name="b_Header" class="m-text" style="-unity-text-align: middle-left; flex-grow: 1;" />
+            <ui:Button text="InitDict Manualy" name="InitDictButton" style="margin-top: 15px; margin-right: 15px; margin-bottom: 15px; margin-left: 15px;" />
+            <ui:DropdownField name="Menu" style="margin-top: 15px; margin-right: 15px; margin-bottom: 15px; margin-left: 15px;" />
+        </ui:VisualElement>
+        <ui:VisualElement name="Body" style="flex-grow: 1; flex-direction: row-reverse; padding-top: 30px; padding-right: 30px; padding-bottom: 30px; padding-left: 30px;">
+            <ui:VisualElement name="DataSOs" style="flex-grow: 1; justify-content: center; align-items: center; border-left-color: rgba(255, 255, 255, 0.39); border-right-color: rgba(255, 255, 255, 0.39); border-top-color: rgba(255, 255, 255, 0.39); border-bottom-color: rgba(255, 255, 255, 0.39); border-top-width: 1px; border-right-width: 1px; border-bottom-width: 1px; border-left-width: 1px; border-top-left-radius: 5px; border-top-right-radius: 5px; border-bottom-right-radius: 5px; border-bottom-left-radius: 5px; padding-top: 10px; padding-right: 10px; padding-bottom: 10px; padding-left: 10px;">
+                <ui:ScrollView style="flex-grow: 1;">
+                    <ui:VisualElement name="Grid" style="flex-direction: row; flex-wrap: wrap; height: 100%; justify-content: center;" />
+                </ui:ScrollView>
+                <ui:VisualElement name="IDChanger" style="position: absolute; width: 100%; height: 100%; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(38, 38, 41, 0.9); display: none;">
+                    <ui:Label tabindex="-1" text="ID-Changer" parse-escape-sequences="true" display-tooltip-when-elided="true" name="b_Header" class="m-text" style="-unity-text-align: middle-left;" />
+                    <ui:Label tabindex="-1" text="BadIdDataSOs" parse-escape-sequences="true" display-tooltip-when-elided="true" name="BadIdDataSOsTitle" class="m-text" style="-unity-text-align: middle-left; font-size: 20px;" />
+                    <ui:VisualElement name="BadIdDataSOs" style="flex-direction: row; align-self: center;" />
+                    <ui:Label tabindex="-1" text="TargetIdDataSOs" parse-escape-sequences="true" display-tooltip-when-elided="true" name="TargetIdDataSOsTitle" class="m-text" style="-unity-text-align: middle-left; font-size: 20px;" />
+                    <ui:VisualElement name="TargetDataSOs" style="flex-direction: row; align-self: center;" />
+                    <ui:IntegerField label="NewID" value="42" name="IdField" style="height: 47px; width: 322px; -unity-font: url(&quot;project://database/Assets/_WitchMendokusai/Fonts/%EA%B0%88%EB%AC%B4%EB%A6%AC/Galmuri11-Bold.ttf?fileID=12800000&amp;guid=bd8884ab213bad048ababd46b67d534a&amp;type=3#Galmuri11-Bold&quot;); -unity-font-definition: url(&quot;project://database/Assets/_WitchMendokusai/Fonts/%EA%B0%88%EB%AC%B4%EB%A6%AC/Galmuri11-Bold%20SDF.asset?fileID=11400000&amp;guid=f9687fba80090c9479c8493176ac8365&amp;type=2#Galmuri11-Bold SDF&quot;); justify-content: center; align-items: center; align-self: center;" />
+                    <ui:Button text="ChangeID" parse-escape-sequences="true" display-tooltip-when-elided="true" name="BTN_ChangeID" />
+                    <ui:Button text="Del" parse-escape-sequences="true" display-tooltip-when-elided="true" name="BTN_Del" />
+                    <ui:Button text="X" parse-escape-sequences="true" display-tooltip-when-elided="true" name="BTN_Close" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: be38740a3daafc8448f574f4a7873c20, type: 3}
+  m_Name: SOManager
+  m_EditorClassIdentifier: 
+  <InvincibleTime>k__BackingField: {fileID: 11400000, guid: 7e722dc07ec340d479558ceb2eec1f67, type: 2}
+  <JoystickX>k__BackingField: {fileID: 11400000, guid: 64d14713df42cdb45bb9d5777014f481, type: 2}
+  <JoystickY>k__BackingField: {fileID: 11400000, guid: f3d01bea6a0a79043b38712d843e2c8a, type: 2}
+  <DashDuration>k__BackingField: {fileID: 11400000, guid: 97b54e68988d58f4ca1991b411678dbc, type: 2}
+  <DashSpeed>k__BackingField: {fileID: 11400000, guid: c44df19b8e3cfdd41a320b9d89a3c3af, type: 2}
+  <LastHitMonsterObject>k__BackingField: {fileID: 11400000, guid: 02651b9ff301b0e4fac2091ae8860410, type: 2}
+  <LastEquippedItem>k__BackingField: {fileID: 11400000, guid: 6a7cb1e0ea5550d43bcc42699083f84d, type: 2}
+  <QuestDataBuffer>k__BackingField: {fileID: 11400000, guid: 34d6a627ec27aeb4c826fd5dcd7fc39f, type: 2}
+  <QuestBuffer>k__BackingField: {fileID: 11400000, guid: 3ec24248882b83e458342ca2d5cc9992, type: 2}
+  <DollBuffer>k__BackingField: {fileID: 11400000, guid: d32743f508b1fb4498e16b9522cfa5b4, type: 2}
+  <ItemDataBuffer>k__BackingField: {fileID: 11400000, guid: 4d0c33ceef025d74f874ac4a13e4f6ab, type: 2}
+  <ItemInventory>k__BackingField: {fileID: 11400000, guid: 4c6d863b03b576e41857bac9c948fd2e, type: 2}
+  <SelectedCardBuffer>k__BackingField: {fileID: 11400000, guid: f13c31923217cf246898171312ed6c19, type: 2}
+  <VQuestLoadQuest>k__BackingField: {fileID: 11400000, guid: d8833ad6264114a4a9063683bb2db8bc, type: 2}
+  <VQuests>k__BackingField: {fileID: 11400000, guid: 6e2d9946ac1317b49bc0ef4f40abdd13, type: 2}

@@ -1,0 +1,18 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 08ea503d4b9ba7f4ba0c9f3d92832042, type: 3}
+  m_Name: ResourceManager
+  m_EditorClassIdentifier: 
+  <EXPPrefab>k__BackingField: {fileID: 2294495901960982391, guid: f5ae612bf513475408710e27f5207d79, type: 3}
+  <LootItemPrefab>k__BackingField: {fileID: 2678269809200631940, guid: 3b2d778d3303e0647b26b6d6063f89db, type: 3}
+  <HealObjectPrefab>k__BackingField: {fileID: -7745759019293435587, guid: d071fbb54dc3aad43abe8da02a6d75d0, type: 3}
+  <MagnetObjectPrefab>k__BackingField: {fileID: 1013125595153812277, guid: de059e3729ee5294eb32d344253d0bdb, type: 3}

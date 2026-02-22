@@ -1,0 +1,91 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 57bcccf40b075204a842ff5fb93c7f74, type: 3}
+  m_Name: "Q_1_\uC2DC\uC791"
+  m_EditorClassIdentifier: 
+  <ID>k__BackingField: 1
+  <Name>k__BackingField: "\uC2DC\uC791"
+  <Description>k__BackingField: "\uD638\uAE30\uC2EC, \uADF8 \uC704\uB300\uD55C \uD798\uC774
+    \uC0DD\uBA85\uC744 \uC6C0\uC9C1\uC600\uB2E4."
+  <Sprite>k__BackingField: {fileID: 21300000, guid: 84407d3f5149c504bbd1ce6f7937395e, type: 3}
+  <Sprites>k__BackingField: []
+  <Data>k__BackingField:
+    Type: 2
+    UnlockEffects: []
+    GameEvents: 
+    Criteria: []
+    CompleteEffects:
+    - Type: 100
+      Data: {fileID: 11400000, guid: 04a784f3ad9f0f742b7c07eaf3ba5fe8, type: 2}
+      ArithmeticOperator: 0
+      Value: 0
+    - Type: 101
+      Data: {fileID: 11400000, guid: 04a784f3ad9f0f742b7c07eaf3ba5fe8, type: 2}
+      ArithmeticOperator: 0
+      Value: 0
+    - Type: 100
+      Data: {fileID: 11400000, guid: 1f31942d902b6424aaa584f98f279888, type: 2}
+      ArithmeticOperator: 0
+      Value: 0
+    - Type: 101
+      Data: {fileID: 11400000, guid: 1f31942d902b6424aaa584f98f279888, type: 2}
+      ArithmeticOperator: 0
+      Value: 0
+    - Type: 150
+      Data: {fileID: 11400000, guid: 142429c3d8fa33f4c86f0d4daaaf2c31, type: 2}
+      ArithmeticOperator: 0
+      Value: 0
+    - Type: 150
+      Data: {fileID: 11400000, guid: 669db162aedf38a45a42c50f14488004, type: 2}
+      ArithmeticOperator: 0
+      Value: 0
+    - Type: 150
+      Data: {fileID: 11400000, guid: e22d8a2ccbaafc942a297c9cd7b53245, type: 2}
+      ArithmeticOperator: 0
+      Value: 0
+    - Type: 150
+      Data: {fileID: 11400000, guid: 87df5deb9e1f9514c8036a4dd6ddcc1e, type: 2}
+      ArithmeticOperator: 0
+      Value: 0
+    - Type: 150
+      Data: {fileID: 11400000, guid: 3a1a1e49a96d107439511d8dc49c3b29, type: 2}
+      ArithmeticOperator: 0
+      Value: 0
+    - Type: 150
+      Data: {fileID: 11400000, guid: 0038c279ad86f864d845e8de090bb472, type: 2}
+      ArithmeticOperator: 0
+      Value: 0
+    - Type: 150
+      Data: {fileID: 11400000, guid: 0c14bd7b0b27b874d8bd17eca092c12d, type: 2}
+      ArithmeticOperator: 0
+      Value: 0
+    - Type: 150
+      Data: {fileID: 11400000, guid: ab9b03e803eea624fa8f136eb61466d7, type: 2}
+      ArithmeticOperator: 0
+      Value: 0
+    - Type: 150
+      Data: {fileID: 11400000, guid: fe41c278e7043724389d56fb1867123d, type: 2}
+      ArithmeticOperator: 0
+      Value: 0
+    - Type: 150
+      Data: {fileID: 11400000, guid: fa1e42f560679c74eb12d34c2b39de1f, type: 2}
+      ArithmeticOperator: 0
+      Value: 0
+    - Type: 150
+      Data: {fileID: 11400000, guid: 003af5cddcdce5741a95f48917cf6328, type: 2}
+      ArithmeticOperator: 0
+      Value: 0
+    RewardEffects: []
+    Rewards: []
+    WorkTime: 0
+    AutoWork: 0
+    AutoComplete: 0

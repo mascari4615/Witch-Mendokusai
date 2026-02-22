@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 434a55e845928a541b5a736c21266c1b, type: 3}
+  m_Name: "I_20000005_\uD3EC\uD0D1"
+  m_EditorClassIdentifier: 
+  <ID>k__BackingField: 20000005
+  <Name>k__BackingField: "\uD3EC\uD0D1"
+  <Description>k__BackingField: "\uC801\uC744 \uACF5\uACA9\uD558\uB294 \uC791\uC740
+    \uD3EC\uD0D1\uC744 \uC124\uCE58\uD569\uB2C8\uB2E4"
+  <Sprite>k__BackingField: {fileID: 21300000, guid: 4ddb2edac5a75254b8dfacd0ae878168, type: 3}
+  <Sprites>k__BackingField: []
+  <Grade>k__BackingField: 0
+  <Type>k__BackingField: 2
+  <Recipes>k__BackingField: []
+  <MaxAmount>k__BackingField: 1
+  <PurchasePrice>k__BackingField: 50
+  <SalePrice>k__BackingField: 20
+  <EffectCards>k__BackingField:
+  - {fileID: 11400000, guid: 0e66e20f971fc7e46884fb3d9d5c648b, type: 2}
+  - {fileID: 11400000, guid: caad026276ba47545b725f96515f950c, type: 2}
+  - {fileID: 11400000, guid: 3a9c886ef72b20f4c9f8134baf09e0b4, type: 2}
+  <Effects>k__BackingField: []
+  <Object>k__BackingField: {fileID: 7776191134503699924, guid: b4a87f14ad13a4d4da0a938d589d24d7, type: 3}

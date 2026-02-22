@@ -11,7 +11,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 05ce0574111032a418688d5d3961cb09, type: 3}
   m_Name: BakeryProjectSettings
-  m_EditorClassIdentifier: 
+  m_EditorClassIdentifier: BakeryRuntimeAssembly::BakeryProjectSettings
   mipmapLightmaps: 0
   format8bit: 0
   formatHDR: 0
@@ -25,8 +25,20 @@ MonoBehaviour:
   deletePreviousLightmapsBeforeBake: 0
   logLevel: 3
   alternativeScaleInLightmap: 0
+  texelRoundingBehaviour: 0
+  alternativeGroupPacking: 0
   alignToTextureBlocksWithXatlas: 1
   generateSmoothPos: 1
   perTriangleSmoothPos: 1
   takeReceiveGIIntoAccount: 1
   removeRinging: 0
+  removeDirectRinging: 1
+  deringL2MaxLaplacian: 0
+  autoRenderRefProbes: 0
+  legacyFixPos3D: 0
+  optimizedLODs: 1
+  streamingMipmaps: 0
+  streamingPriority: 0
+  forceSpecificColorFormat: -1
+  forceSpecificDirFormat: -1
+  forceSpecificMaskFormat: -1

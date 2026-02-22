@@ -1,0 +1,155 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbb281ee3bf0b054c82ac2347e9e782c, type: 3}
+  m_Name: QuestSO
+  m_EditorClassIdentifier: 
+  m_GroupName: QuestSO
+  m_GUID: af53dd59babc8fa49a44a1efe48df9ff
+  m_SerializeEntries:
+  - m_GUID: 04a784f3ad9f0f742b7c07eaf3ba5fe8
+    m_Address: QuestSO/1000
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - QuestSO
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 08a85764d3f3c8a4f9022fff3a1a2301
+    m_Address: QuestSO/10000002
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - QuestSO
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 0e737fd69c8fa6241bc641ebbaad62bf
+    m_Address: QuestSO/3000
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - QuestSO
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 16b3ea3dad07d6e48b2896b14ce171ac
+    m_Address: QuestSO/4000
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - QuestSO
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 1ed0967600a43464ab845b21f88f5bb4
+    m_Address: QuestSO/600
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - QuestSO
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 1f31942d902b6424aaa584f98f279888
+    m_Address: QuestSO/499
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - QuestSO
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 28f2dfeb4829d364791ef17401807ee8
+    m_Address: QuestSO/0
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - QuestSO
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 49169869e7f5a39458bd633281937927
+    m_Address: QuestSO/1
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - QuestSO
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 4caf6c0ad2aa8b641bb463844b30b811
+    m_Address: QuestSO/599
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - QuestSO
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 59b5c5a2d02bd1b46a4509179818a143
+    m_Address: QuestSO/1003
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - QuestSO
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 64c16ac9ae8454b4380659cdf5efc6ab
+    m_Address: QuestSO/1001
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - QuestSO
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 67688915da1f7364ca7bf7f19aa0c27f
+    m_Address: QuestSO/500
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - QuestSO
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 810bb751847ac3749982958f5f81da15
+    m_Address: QuestSO/10000000
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - QuestSO
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 8448b5dd7b36a0349a9e5ca003d30ab3
+    m_Address: QuestSO/1006
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - QuestSO
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 8ca326ead7c577c42a26d028559abff6
+    m_Address: QuestSO/1005
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - QuestSO
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 9963c49cbc84a344ba0dfbc0ba863dcb
+    m_Address: QuestSO/2000
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - QuestSO
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 9b5a1ab92828711408059d72644cfc46
+    m_Address: QuestSO/1002
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - QuestSO
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 9d6b3b5afc20c9c41ac2e2acd625f08a
+    m_Address: QuestSO/1004
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - QuestSO
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 9d6e3a263555ce444969776e52ed630c
+    m_Address: QuestSO/10000004
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - QuestSO
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: ad5ccf40fe782e843ba48b9225b3b288
+    m_Address: QuestSO/501
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - QuestSO
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: d8833ad6264114a4a9063683bb2db8bc
+    m_Address: QuestSO/10000001
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - QuestSO
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: df1788170bec9d845ae67e0c7f41402d
+    m_Address: QuestSO/10000003
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - QuestSO
+    FlaggedDuringContentUpdateRestriction: 0
+  m_ReadOnly: 0
+  m_Settings: {fileID: 11400000, guid: 5a4d7636943b8d645af161ef05df63d6, type: 2}
+  m_SchemaSet:
+    m_Schemas:
+    - {fileID: 11400000, guid: 131ed617ce98601468627f5a172f45b8, type: 2}
+    - {fileID: 11400000, guid: c1ad7a7e43fd08d45a5597f19383c9de, type: 2}

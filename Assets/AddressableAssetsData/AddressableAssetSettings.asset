@@ -15,12 +15,12 @@ MonoBehaviour:
   m_DefaultGroup: a53af4dac55a80241a2f18ecda29de75
   m_currentHash:
     serializedVersion: 2
-    Hash: 3c608e1789909c43c6b4888dab13ce0f
+    Hash: 9eb9c860111926b62e43a951619fd099
   m_OptimizeCatalogSize: 0
   m_BuildRemoteCatalog: 1
   m_CatalogRequestsTimeout: 0
   m_DisableCatalogUpdateOnStart: 0
-  m_InternalIdNamingMode: 0
+  m_InternalIdNamingMode: 2
   m_InternalBundleIdMode: 1
   m_AssetLoadMode: 0
   m_BundledAssetProviderType:
@@ -33,6 +33,7 @@ MonoBehaviour:
   m_UniqueBundleIds: 1
   m_EnableJsonCatalog: 0
   m_NonRecursiveBuilding: 1
+  m_AllowNestedBundleFolders: 0
   m_CCDEnabled: 0
   m_maxConcurrentWebRequests: 3
   m_UseUWRForLocalBundles: 0
@@ -59,8 +60,25 @@ MonoBehaviour:
   m_BuildAddressablesWithPlayerBuild: 0
   m_overridePlayerVersion: '[UnityEditor.PlayerSettings.bundleVersion]'
   m_GroupAssets:
+  - {fileID: 11400000, guid: 480052975348202479502b8c0824192a, type: 2}
+  - {fileID: 11400000, guid: 90888b8b83696db42974ca4b88c524ae, type: 2}
+  - {fileID: 11400000, guid: 6db95007fb50607409ad9e13b1318f56, type: 2}
+  - {fileID: 11400000, guid: d11d829eacdb3ea4fadfbdea2c612459, type: 2}
+  - {fileID: 11400000, guid: a40a69256ea0b604cbe4392793fad19e, type: 2}
+  - {fileID: 11400000, guid: b0604adfc6c2d5f4583437fe20393da0, type: 2}
+  - {fileID: 11400000, guid: f52e9ff0e498ba9478c9e8a993254e30, type: 2}
+  - {fileID: 11400000, guid: c324d413c831b5240b4724ee6cd28156, type: 2}
+  - {fileID: 11400000, guid: 969738d0158edaa4180108f9871688d2, type: 2}
+  - {fileID: 11400000, guid: 6c57d967421f03b439276125d718c76b, type: 2}
+  - {fileID: 11400000, guid: 088f42ce38ab0384cb5fc43bb636ceee, type: 2}
+  - {fileID: 11400000, guid: f2ce833b71c046245868805bf4ac05ec, type: 2}
   - {fileID: 11400000, guid: d071425e6c7e3d24f812527430be29fa, type: 2}
+  - {fileID: 11400000, guid: e20c7ac2a17731449b615fc6228534f8, type: 2}
+  - {fileID: 11400000, guid: 3c90b34179d8c6447812cd7756395c59, type: 2}
   - {fileID: 11400000, guid: 7798150df8cb4574d85185a1c6550ee6, type: 2}
+  - {fileID: 11400000, guid: 53321dfb34aa5f446b9412e23ff021a2, type: 2}
+  - {fileID: 11400000, guid: 02f22e2f06fdc9a4ab8c5f81857b1291, type: 2}
+  - {fileID: 11400000, guid: eb720dc114e67694188de98e6d83bc63, type: 2}
   m_BuildSettings:
     m_LogResourceManagerExceptions: 1
     m_BundleBuildPath: Temp/com.unity.addressables/AssetBundles
@@ -99,22 +117,25 @@ MonoBehaviour:
     m_ProfileVersion: 1
   m_LabelTable:
     m_LabelNames:
-    - ITEM_DATA
-    - MONSTER_WAVE
-    - WORLD_STAGE
-    - CARD_DATA
-    - DUNGEON
-    - EFFECT
-    - QUEST_SO
-    - SKILL_DATA
-    - DOLL
-    - MONSTER
     - NPC
-    - DUNGEON_STAGE
-    - DUNGEON_CONSTRAINT
-    - UNIT_STAT_DATA
-    - GAME_STAT_DATA
-    - DUNGEON_STAT_DATA
+    - CardData
+    - UnitStatData
+    - GameStatData
+    - DungeonStatData
+    - DataSO
+    - Building
+    - Dungeon
+    - DungeonConstraint
+    - MonsterWave
+    - ItemData
+    - QuestSO
+    - WorldStage
+    - ObjectData
+    - Doll
+    - Monster
+    - SkillData
+    - AspectData
+    - UpgradeData
   m_SchemaTemplates: []
   m_GroupTemplateObjects:
   - {fileID: 11400000, guid: 154aea50e355b0e40bc5fc4462b64350, type: 2}
@@ -122,10 +143,9 @@ MonoBehaviour:
   m_CertificateHandlerType:
     m_AssemblyName: 
     m_ClassName: 
-  m_ActivePlayerDataBuilderIndex: 3
+  m_ActivePlayerDataBuilderIndex: 2
   m_DataBuilders:
   - {fileID: 11400000, guid: 13843bf1fc5849f47b9f94bba18c4b6d, type: 2}
-  - {fileID: 11400000, guid: 19874de71b4632a43a92eee8ef3a5483, type: 2}
   - {fileID: 11400000, guid: f32a3480415cfac4d9a7825d92ad652d, type: 2}
   - {fileID: 11400000, guid: 3c85f590e5fcc2d41adeae4ffd4b434f, type: 2}
   m_ActiveProfileId: 9c61a8b9e6d64004d8850d6bb144cea9
