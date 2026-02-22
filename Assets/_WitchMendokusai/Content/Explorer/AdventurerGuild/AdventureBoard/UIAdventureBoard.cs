@@ -1,9 +1,5 @@
-using System;
 using System.Collections;
-using System.Collections.Generic;
-using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
 using static WitchMendokusai.SOHelper;
 
 namespace WitchMendokusai
@@ -13,6 +9,8 @@ namespace WitchMendokusai
 		[field: Header("_" + nameof(UIAdventurerBoard))]
 		[SerializeField] private UISlot reputationSlot;
 		private Coroutine loop;
+
+		public override bool IsFullscreen => true;
 
 		protected override void OnInit()
 		{

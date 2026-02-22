@@ -1,6 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 using static WitchMendokusai.SOHelper;
@@ -14,8 +11,9 @@ namespace WitchMendokusai
 
 		private UIItemDataGrid shopInventoryUI;
 		private UIItemGrid itemInventoryUI;
-
 		private NPCObject npc;
+
+		public override bool IsFullscreen => true;
 
 		protected override void OnInit()
 		{

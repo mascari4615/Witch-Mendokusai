@@ -36,7 +36,8 @@ namespace WitchMendokusai
 				if (curValue - targetValue < 3)
 					curValue = targetValue;
 
-				text.text = curValue.ToString("N0") + "냥";
+				// text.text = curValue.ToString("N0") + "냥";
+				text.text = curValue.ToString("N0");
 				yield return null;
 			}
 		}

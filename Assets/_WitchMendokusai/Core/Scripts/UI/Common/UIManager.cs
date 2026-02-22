@@ -6,32 +6,43 @@ namespace WitchMendokusai
 {
 	public class UIManager : Singleton<UIManager>
 	{
-		public bool IsPanelOpen => OverlayUIs.Any(ui => ui.IsPanelOpen);
-
-		[field: SerializeField] public CutSceneModule CutSceneModule { get; private set; }
-		private UIFloatingText damage;
-		private UIPopup popup;
-		public UIChat Chat { get; private set; }
-		private UIAdventurerGuild adventurerGuild;
-
-		public UITransition Transition { get; private set; }
-		private UIStagePopup stagePopup;
-		public UIStatus Status { get; private set; }
-
-		public List<IUIContentBase> OverlayUIs { get; private set; } = new();
-
+		// Public Properties
+		public List<IUIPanelGroup> PanelGroups { get; private set; } = new();
 		public UITab Tab { get; private set; }
 		public UINPC NPC { get; private set; }
+		public UITransition Transition { get; private set; }
+		public UIChat Chat { get; private set; }
+		public UIStatus Status { get; private set; }
+		public CutSceneModule CutSceneModule { get; private set; }
+		[field: SerializeField] public Canvas BaseCanvas { get; private set; }
+	
+		[SerializeField] private UIDungeon dungeonPrefab = null;
+		[SerializeField] private UIBuild buildPrefab = null;
+		[SerializeField] private UIAdventurerGuild adventurerGuildPrefab = null;
+
+		private UIFloatingText damage;
+		private UIPopup popup;
+		private UIAdventurerGuild adventurerGuild;
+		private UIStagePopup stagePopup;
+
+		public bool IsAnyPanelFullscreenOpen => PanelGroups.Any(ui => ui.IsPanelOpen && ui.TryGetCurPanel(out UIPanel panel) && panel.IsFullscreen);
 
 		protected override void Awake()
 		{
 			base.Awake();
 
+			// Content UIs
+			Instantiate(dungeonPrefab, BaseCanvas.transform);
+			Instantiate(buildPrefab, BaseCanvas.transform);
+			Instantiate(adventurerGuildPrefab, BaseCanvas.transform);
+
+			// Common UIs
 			CutSceneModule = FindFirstObjectByType<CutSceneModule>(FindObjectsInactive.Include);
 			damage = FindFirstObjectByType<UIFloatingText>(FindObjectsInactive.Include);
 			popup = FindFirstObjectByType<UIPopup>(FindObjectsInactive.Include);
 			Chat = FindFirstObjectByType<UIChat>(FindObjectsInactive.Include);
 			adventurerGuild = FindFirstObjectByType<UIAdventurerGuild>(FindObjectsInactive.Include);
+			adventurerGuild.gameObject.SetActive(false);
 
 			Transition = FindFirstObjectByType<UITransition>(FindObjectsInactive.Include);
 			stagePopup = FindFirstObjectByType<UIStagePopup>(FindObjectsInactive.Include);
@@ -50,12 +61,12 @@ namespace WitchMendokusai
 			RegisterOverlayUI(NPC);
 		}
 
-		public void RegisterOverlayUI(IUIContentBase ui)
+		public void RegisterOverlayUI(IUIPanelGroup ui)
 		{
-			if (ui == null || OverlayUIs.Contains(ui))
+			if (ui == null || PanelGroups.Contains(ui))
 				return;
 
-			OverlayUIs.Add(ui);
+			PanelGroups.Add(ui);
 		}
 
 		public void PopDamage(DamageInfo damageInfo, Vector3 pos = default)
@@ -79,34 +90,30 @@ namespace WitchMendokusai
 			popup.Popup(dataSO);
 		}
 
-		public void ToggleOverlayUI_Tab()
+		public void ToggleTabUI()
 		{
-			foreach (IUIContentBase ui in OverlayUIs)
-			{
-				if ((ui is UITab tab) && (tab.CurPanelType == TabPanelType.Setting))
-					continue;
+			if (Tab.CurPanelType == TabPanelType.Setting)
+				return;
 
-				if (ui.IsPanelOpen)
-				{
-					ui.ClosePanel();
-					return;
-				}
-			}
-
-			Tab.SetPanel(TabPanelType.TabMenu);
+			if (Tab.IsPanelOpen)
+				Tab.ClosePanel();
+			else if (IsAnyPanelFullscreenOpen == false)
+				Tab.SetPanel(TabPanelType.TabMenu);
 		}
 
-		public void ToggleOverlayUI_Setting()
+		public void OnCancelInput()
 		{
-			foreach (IUIContentBase ui in OverlayUIs)
+			// 닫을 수 있는 UI 닫기
+			foreach (IUIPanelGroup ui in PanelGroups)
 			{
-				if (ui.IsPanelOpen)
+				if (ui.IsPanelOpen && ui.CanBeClosedByCancelInput)
 				{
 					ui.ClosePanel();
 					return;
 				}
 			}
-		
+
+			// 아무것도 닫힌 게 없으면 설정 열기
 			Tab.SetPanel(TabPanelType.Setting);
 		}
 

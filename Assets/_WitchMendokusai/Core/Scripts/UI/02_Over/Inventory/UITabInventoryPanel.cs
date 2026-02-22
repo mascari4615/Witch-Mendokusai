@@ -1,12 +1,10 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-
 namespace WitchMendokusai
 {
 	public class UITabInventoryPanel : UIPanel
 	{
 		private UIItemGrid itemInventoryUI;
+
+		public override bool IsFullscreen => true;
 
 		protected override void OnInit()
 		{

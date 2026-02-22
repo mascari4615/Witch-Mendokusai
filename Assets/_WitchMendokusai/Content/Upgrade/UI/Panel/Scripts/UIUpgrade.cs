@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using System.Linq;
 using TMPro;
 using UnityEngine;
@@ -18,8 +16,9 @@ namespace WitchMendokusai
 		[SerializeField] private TextMeshProUGUI curLevelText;
 
 		private UIUpgradeGrid upgradeGridUI;
-
 		private NPCObject npc;
+
+		public override bool IsFullscreen => true;
 
 		protected override void OnInit()
 		{

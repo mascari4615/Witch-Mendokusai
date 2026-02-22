@@ -9,21 +9,18 @@ namespace WitchMendokusai
 	// Mathf.Epsilon
 	public class TimeManager : Singleton<TimeManager>
 	{
-		private List<GameObject> pausers = new List<GameObject>();
-		private int PauseStackCount => pausers.Count;
-		public bool IsPaused
-		{
-			get => PauseStackCount > 0;
-		}
-
 		public const float TICK = 0.05f;
 
-		public float slowFactor = 0.05f;
-		public float slowTime = .5f;
-		public float returnSpeed = 4f;
+		[SerializeField] private float slowFactor = 0.05f;
+		[SerializeField] private float slowTime = .5f;
+		[SerializeField] private float returnSpeed = 4f;
 
+		private readonly List<GameObject> pausers = new();
 		private Action callback;
 		private Coroutine timeLoop;
+		private Coroutine slowMotion;
+
+		public bool IsPaused => pausers.Count > 0;
 
 		private void OnEnable()
 		{
@@ -59,7 +56,7 @@ namespace WitchMendokusai
 			this.callback -= callback;
 		}
 
-		public void UpdateTimeScale()
+		private void UpdateTimeScale()
 		{
 			Time.timeScale = IsPaused ? Mathf.Epsilon : 1;
 		}
@@ -71,6 +68,8 @@ namespace WitchMendokusai
 
 			if (pausers.Contains(pauser))
 				return; // 이미 등록된 pauser는 추가하지 않습니다.
+
+			Debug.Log($"[TimeManager] Paused by {pauser.name}");
 
 			pausers.Add(pauser);
 			UpdateTimeScale();
@@ -84,6 +83,8 @@ namespace WitchMendokusai
 			if (pausers.Contains(pauser) == false)
 				return; // 등록되지 않은 pauser는 무시합니다.
 
+			Debug.Log($"[TimeManager] Resumed by {pauser.name}");	
+
 			pausers.Remove(pauser);
 			UpdateTimeScale();
 		}
@@ -95,8 +96,6 @@ namespace WitchMendokusai
 				StopCoroutine(slowMotion);
 			slowMotion = StartCoroutine(SlowMotion());
 		}
-
-		private Coroutine slowMotion;
 
 		// Timescale does not affect coroutines
 		private IEnumerator SlowMotion()

@@ -1,7 +1,4 @@
-using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -10,16 +7,17 @@ namespace WitchMendokusai
 	public class UITabMenu : UIPanel
 	{
 		[field: Header("_" + nameof(UITabMenu))]
-		[SerializeField] private Transform menuButtonsParent;
-		[SerializeField] private GameObject menuButtonPrefab;
+		// [SerializeField] private Transform menuButtonsParent;
+		// [SerializeField] private GameObject menuButtonPrefab;
+		[SerializeField] protected List<UISlot> menuButtons;
 
 		protected int curButtonIndex = 0;
 
-		protected List<UISlot> menuButtons;
+		public override bool IsFullscreen => true;
 
 		protected override void OnInit()
 		{
-			menuButtons = menuButtonsParent.GetComponentsInChildren<UISlot>(true).ToList();
+			// menuButtons = menuButtonsParent.GetComponentsInChildren<UISlot>(true).ToList();
 			int maxButtonIndex = Mathf.Max(menuButtons.Count - 1, (int)TabPanelType.Count - 1);
 			for (int i = 0; i < menuButtons.Count; i++)
 			{

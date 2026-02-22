@@ -71,6 +71,7 @@ namespace WitchMendokusai
 
 		IsBuilding = 1 << 5,
 		IsInTransition = 1 << 6,
+		IsViewingUI = 1 << 7, // 전체화면 UI를 보는 중
 	}
 
 	public class GameCondition
@@ -85,13 +86,14 @@ namespace WitchMendokusai
 
 		private static readonly Dictionary<GameConditionType, Func<bool>> gameConditionActions = new()
 		{
-			{ GameConditionType.IsPaused, () => TimeManager.Instance.IsPaused },
+			{ GameConditionType.IsPaused, () => TimeManager.Instance.IsPaused }, // Setting, Dungeon Card 선택, Transition, ...
 			{ GameConditionType.IsChatting, () => UIChat.IsChatting },
 			{ GameConditionType.IsMouseOnUI, () => InputManager.Instance.IsPointerOverUI() },
 			{ GameConditionType.IsPlayerCasting, () => Player.Instance.Object.UnitStat[UnitStatType.CASTING_SKILL] > 0 },
 			{ GameConditionType.IsDied, () => Player.Instance.Object.UnitStat[UnitStatType.HP_CUR] <= 0 },
 			{ GameConditionType.IsBuilding, () => BuildManager.Instance.IsBuilding },
 			{ GameConditionType.IsInTransition, () => UITransition.IsInTransition },
+			{ GameConditionType.IsViewingUI, () => UIManager.Instance.IsAnyPanelFullscreenOpen },
 		};
 
 		public bool IsGameConditionAny(params GameConditionType[] conditions)

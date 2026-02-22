@@ -1,8 +1,6 @@
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using static WitchMendokusai.SOHelper;
 
 namespace WitchMendokusai
 {
@@ -10,6 +8,8 @@ namespace WitchMendokusai
 	{
 		[field: Header("_" + nameof(UIBuildingBar))]
 		private UIBuildingSlot[] buildingSlots;
+
+		public override bool IsFullscreen => false;
 
 		private void Start()
 		{

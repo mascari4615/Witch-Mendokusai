@@ -13,12 +13,13 @@ namespace WitchMendokusai
 		BuildingBar = 0,
 	}
 
-	public class UIBuild : UIContentBase<UIBuildingType>
+	public class UIBuild : UIPanelGroup<UIBuildingType>
 	{
 		[field: Header("_" + nameof(UIBuild))]
 		[SerializeField] private UIBuildingBar buildingBar;
 		private Coroutine loop;
 
+		public override bool CanBeClosedByCancelInput => true;
 		public override UIBuildingType DefaultPanel => UIBuildingType.None;
 
 		public override void Init()

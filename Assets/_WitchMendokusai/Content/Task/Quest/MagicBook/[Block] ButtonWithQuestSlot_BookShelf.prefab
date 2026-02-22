@@ -29,10 +29,6 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 304440220709932119, guid: 0cb19ba7424443948bde6fdc6ba6e58c, type: 3}
-      propertyPath: m_Sprite
-      value: 
-      objectReference: {fileID: 21300000, guid: e9c26b0fac2e44e499a5c2594b00137d, type: 3}
-    - target: {fileID: 304440220709932119, guid: 0cb19ba7424443948bde6fdc6ba6e58c, type: 3}
       propertyPath: m_RaycastTarget
       value: 1
       objectReference: {fileID: 0}
@@ -116,14 +112,6 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.x
       value: 42.5
       objectReference: {fileID: 0}
-    - target: {fileID: 1868483680310481461, guid: 0cb19ba7424443948bde6fdc6ba6e58c, type: 3}
-      propertyPath: m_Type
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1868483680310481461, guid: 0cb19ba7424443948bde6fdc6ba6e58c, type: 3}
-      propertyPath: m_Sprite
-      value: 
-      objectReference: {fileID: 21300000, guid: e9c26b0fac2e44e499a5c2594b00137d, type: 3}
     - target: {fileID: 1989813281643141976, guid: 0cb19ba7424443948bde6fdc6ba6e58c, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.size
       value: 0
@@ -172,18 +160,14 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 3480707983546902991, guid: 0cb19ba7424443948bde6fdc6ba6e58c, type: 3}
-      propertyPath: m_Sprite
-      value: 
-      objectReference: {fileID: 21300000, guid: 2030eec3e3d021d4d8a5b5e3e67f9f69, type: 3}
     - target: {fileID: 3602351525299764599, guid: 0cb19ba7424443948bde6fdc6ba6e58c, type: 3}
       propertyPath: m_Type
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3602351525299764599, guid: 0cb19ba7424443948bde6fdc6ba6e58c, type: 3}
       propertyPath: m_Sprite
       value: 
-      objectReference: {fileID: 21300000, guid: 7e0506b23e57b6b4281c55c0ef121590, type: 3}
+      objectReference: {fileID: 21300000, guid: 7e6d4d3679661154dac0bb3221de808e, type: 3}
     - target: {fileID: 3602351525299764599, guid: 0cb19ba7424443948bde6fdc6ba6e58c, type: 3}
       propertyPath: m_Color.a
       value: 1
@@ -286,12 +270,12 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4039231223751233540, guid: 0cb19ba7424443948bde6fdc6ba6e58c, type: 3}
       propertyPath: m_Type
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 4039231223751233540, guid: 0cb19ba7424443948bde6fdc6ba6e58c, type: 3}
       propertyPath: m_Sprite
       value: 
-      objectReference: {fileID: 21300000, guid: 7e0506b23e57b6b4281c55c0ef121590, type: 3}
+      objectReference: {fileID: 21300000, guid: 7e6d4d3679661154dac0bb3221de808e, type: 3}
     - target: {fileID: 4039231223751233540, guid: 0cb19ba7424443948bde6fdc6ba6e58c, type: 3}
       propertyPath: m_Color.a
       value: 1
@@ -382,12 +366,12 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7532301925978897800, guid: 0cb19ba7424443948bde6fdc6ba6e58c, type: 3}
       propertyPath: m_Type
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7532301925978897800, guid: 0cb19ba7424443948bde6fdc6ba6e58c, type: 3}
       propertyPath: m_Sprite
       value: 
-      objectReference: {fileID: 21300000, guid: 7e0506b23e57b6b4281c55c0ef121590, type: 3}
+      objectReference: {fileID: 21300000, guid: 7e6d4d3679661154dac0bb3221de808e, type: 3}
     - target: {fileID: 7532301925978897800, guid: 0cb19ba7424443948bde6fdc6ba6e58c, type: 3}
       propertyPath: m_Color.a
       value: 1
@@ -436,10 +420,6 @@ PrefabInstance:
       propertyPath: m_Type
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 8599044403319297679, guid: 0cb19ba7424443948bde6fdc6ba6e58c, type: 3}
-      propertyPath: m_Sprite
-      value: 
-      objectReference: {fileID: 21300000, guid: e9c26b0fac2e44e499a5c2594b00137d, type: 3}
     - target: {fileID: 8599044403319297679, guid: 0cb19ba7424443948bde6fdc6ba6e58c, type: 3}
       propertyPath: m_Enabled
       value: 1

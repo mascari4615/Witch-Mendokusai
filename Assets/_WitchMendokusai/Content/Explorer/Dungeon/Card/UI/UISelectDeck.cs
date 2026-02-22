@@ -1,7 +1,5 @@
-using System.Collections;
 using System.Collections.Generic;
 using DG.Tweening;
-using TMPro;
 using UnityEngine;
 
 namespace WitchMendokusai
@@ -10,6 +8,8 @@ namespace WitchMendokusai
 	{
 		[SerializeField] private Transform selectDeckPanelContent;
 		[SerializeField] private List<UISlot> deckSelectButtons;
+
+		public override bool IsFullscreen => true;
 
 		public override void UpdateUI()
 		{
@@ -22,7 +22,7 @@ namespace WitchMendokusai
 
 		protected override void OnInit()
 		{
-			CardManager cardManager = Content as CardManager;
+			CardManager cardManager = PanelGroup as CardManager;
 			for (int i = 0; i < deckSelectButtons.Count; i++)
 			{
 				deckSelectButtons[i].Init();

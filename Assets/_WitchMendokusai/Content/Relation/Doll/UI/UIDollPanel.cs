@@ -1,5 +1,3 @@
-using System;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -27,6 +25,8 @@ namespace WitchMendokusai
 		// 	DataManager.Instance.CurGameData.curDollIndex = newDollIndex;
 		// 	UpdateUI();
 		// }
+
+		public override bool IsFullscreen => true;
 
 		public void SetDoll()
 		{

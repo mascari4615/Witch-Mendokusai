@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace WitchMendokusai
@@ -10,11 +8,12 @@ namespace WitchMendokusai
 		[field: SerializeField] public string Name { get; private set; } = "UIPanel";
 		[field: SerializeField] public Sprite PanelIcon { get; private set; } = null;
 
-		public IUIContentBase Content { get; private set; }
+		public IUIPanelGroup PanelGroup { get; private set; }
+		public abstract bool IsFullscreen { get; }
 
-		public void Init(IUIContentBase content)
+		public void Init(IUIPanelGroup group)
 		{
-			Content = content;
+			PanelGroup = group;
 			OnInit();
 		}
 		protected abstract void OnInit();

@@ -78,7 +78,6 @@ namespace WitchMendokusai
 		private void Move()
 		{
 			if (GameManager.Instance.Conditions[GameConditionType.IsChatting] ||
-				UIManager.Instance.IsPanelOpen ||
 				TimeManager.Instance.IsPaused)
 				return;
 
