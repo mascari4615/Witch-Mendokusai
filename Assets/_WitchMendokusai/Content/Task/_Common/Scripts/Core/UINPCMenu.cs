@@ -1,5 +1,5 @@
-using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -8,7 +8,8 @@ namespace WitchMendokusai
 	[RequireComponent(typeof(CanvasGroup))]
 	public class UINPCMenu : UIPanel
 	{
-		private CanvasGroup canvasGroup;
+		public NPCPanelType CurPanelType { get; private set; } = NPCPanelType.None;
+
 		[SerializeField] private GameObject buttonsParent;
 		[SerializeField] private UISlot talkOption;
 
@@ -20,8 +21,10 @@ namespace WitchMendokusai
 		[SerializeField] private Transform optionsParent;
 		private readonly List<UISlot> options = new();
 
-		public NPCPanelType CurPanelType { get; private set; } = NPCPanelType.None;
+		private CanvasGroup canvasGroup;
 		private NPCObject curNPC = null;
+
+		public override bool IsFullscreen => true;
 
 		protected override void OnInit()
 		{
@@ -89,12 +92,12 @@ namespace WitchMendokusai
 			{
 				if (CurPanelType == NPCPanelType.None)
 				{
-					CameraManager.Instance.SetCamera(CameraType.Dialogue);
+					// NPC 버튼들 띄우기 (선택지)
 					buttonsParent.SetActive(true);
 				}
 				else
 				{
-					CameraManager.Instance.SetChatCamera();
+					// NPC UI 띄우기
 					UIManager.Instance.NPC.SetPanel(CurPanelType, curNPC);
 				}
 			}
@@ -112,12 +115,31 @@ namespace WitchMendokusai
 			UpdateQuestButtons();
 			questEachParent.gameObject.SetActive(false);
 
-			Talk();
+			CameraManager.Instance.SetUICameraMode(UICameraMode.NPC, true);
+			CameraManager.Instance.SetSelecting(isSelecting: false, shouldAnimate: false);
+
+			// 대화 불가 시 바로 선택 모드로 전환
+			bool canTalk = ChatManager.Instance.TryGetChatData(curNPC.UnitData.ID.ToString(), out _);
+			talkOption.gameObject.SetActive(canTalk);
+			
+			if (canTalk)
+				Talk();
+			else
+			{
+				Debug.LogWarning($"ChatData not found: {curNPC.UnitData.ID}");
+
+				canvasGroup.SetVisible(true);
+
+				SetPanel(NPCPanelType.None);
+				options.FirstOrDefault(o => o.gameObject.activeSelf)?.Select(); // 첫 번째 활성화된 버튼 선택 (대화 제외)
+
+				CameraManager.Instance.SetSelecting(true);
+			}
 		}
 
 		protected override void OnClose()
 		{
-			CameraManager.Instance.SetCamera(CameraType.Normal);
+			CameraManager.Instance.SetUICameraMode(UICameraMode.NPC, false);
 		}
 
 		public override void UpdateUI()
@@ -166,6 +188,8 @@ namespace WitchMendokusai
 		public void Talk()
 		{
 			buttonsParent.SetActive(false);
+			CameraManager.Instance.SetSelecting(false);
+
 			UIManager.Instance.Chat.StartChat(curNPC, () =>
 			{
 				canvasGroup.SetVisible(true);
@@ -173,6 +197,8 @@ namespace WitchMendokusai
 				SetPanel(NPCPanelType.None);
 				buttonsParent.SetActive(true);
 				talkOption.Select();
+
+				CameraManager.Instance.SetSelecting(true);
 			});
 		}
 

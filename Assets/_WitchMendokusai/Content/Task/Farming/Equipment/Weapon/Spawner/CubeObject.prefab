@@ -76,6 +76,7 @@ MonoBehaviour:
   <RandomRange>k__BackingField: 10
   <SpawnCount>k__BackingField: 1
   <SpawnDelay>k__BackingField: 0.1
+  damageBonusStatType: 10401
 --- !u!114 &436533938232106734
 MonoBehaviour:
   m_ObjectHideFlags: 0

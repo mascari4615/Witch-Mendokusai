@@ -35,6 +35,7 @@ namespace WitchMendokusai
 			// 던전 Context 등을 계산
 			// 예를 들어, 던전 난이도에 따른 스탯 계산
 			DungeonContext context = DungeonManager.Instance.Context;
+			if (context != null)
 			{
 				double percentage = (double)unitStat[UnitStatType.HP_CUR] / unitStat[UnitStatType.HP_MAX];
 				unitStat[UnitStatType.HP_MAX] = (int)(unitStat[UnitStatType.HP_MAX_STAT] * (1 + DIFFICULTY_HP_BONUS_FACTOR * (double)context.CurDifficulty));

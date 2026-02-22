@@ -18,8 +18,9 @@ MonoBehaviour:
     \uC2DC\uACF5\uC774\uB2E4."
   <Sprite>k__BackingField: {fileID: 21300000, guid: 52e204c95a6c3184fba7c7c30d427829, type: 3}
   <Sprites>k__BackingField: []
-  <Type>k__BackingField: 0
-  <ClearValue>k__BackingField: 1
+  <ObjectiveType>k__BackingField: 0
+  <MapType>k__BackingField: 1
+  <ClearValue>k__BackingField: 180
   <TimeBySecond>k__BackingField: 180
   <Constraints>k__BackingField:
   - {fileID: 11400000, guid: c5df60f552d80b54786d60d96c339214, type: 2}
@@ -29,62 +30,8 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 80189e44b4e5101489b86446ca51ca47, type: 2}
   <MonsterWaves>k__BackingField:
   - <Monsters>k__BackingField:
-    - {fileID: 11400000, guid: d3b4b260c0d5fcd478b6ccbf48fc8d43, type: 2}
+    - {fileID: 11400000, guid: 2de1f04bcb73e19469c9adb4208868f6, type: 2}
     <StartTime>k__BackingField: 0
-    <EndTime>k__BackingField: 3600
-    <SpawnDelay>k__BackingField: 0.5
-    <Once>k__BackingField: 0
-  - <Monsters>k__BackingField:
-    - {fileID: 11400000, guid: 2ceb99060a689664cac66fc04dc07a75, type: 2}
-    <StartTime>k__BackingField: 30
-    <EndTime>k__BackingField: 3600
-    <SpawnDelay>k__BackingField: 0.5
-    <Once>k__BackingField: 1
-  - <Monsters>k__BackingField:
-    - {fileID: 11400000, guid: 473eb54ca0151684ca8411fd1914123f, type: 2}
-    <StartTime>k__BackingField: 60
-    <EndTime>k__BackingField: 3600
-    <SpawnDelay>k__BackingField: 0.5
-    <Once>k__BackingField: 0
-  - <Monsters>k__BackingField:
-    - {fileID: 11400000, guid: 4f25ead5ae81f4645a28cf31239e5a74, type: 2}
-    <StartTime>k__BackingField: 0
-    <EndTime>k__BackingField: 3600
-    <SpawnDelay>k__BackingField: 8
-    <Once>k__BackingField: 0
-  - <Monsters>k__BackingField:
-    - {fileID: 11400000, guid: ab24c2555a737204a9520c2fcf5da203, type: 2}
-    <StartTime>k__BackingField: 120
-    <EndTime>k__BackingField: 3600
-    <SpawnDelay>k__BackingField: 0.5
-    <Once>k__BackingField: 0
-  - <Monsters>k__BackingField:
-    - {fileID: 11400000, guid: ab005c86dd7da954680b3ab4602b255b, type: 2}
-    <StartTime>k__BackingField: 180
-    <EndTime>k__BackingField: 3600
-    <SpawnDelay>k__BackingField: 0.5
-    <Once>k__BackingField: 0
-  - <Monsters>k__BackingField:
-    - {fileID: 11400000, guid: efd01aa3488c358488a9c5b03a759d41, type: 2}
-    <StartTime>k__BackingField: 240
-    <EndTime>k__BackingField: 3600
-    <SpawnDelay>k__BackingField: 0.5
-    <Once>k__BackingField: 0
-  - <Monsters>k__BackingField:
-    - {fileID: 11400000, guid: ba0d0ca203d10ee4c8882ef82f118415, type: 2}
-    <StartTime>k__BackingField: 300
-    <EndTime>k__BackingField: 3600
-    <SpawnDelay>k__BackingField: 0.5
-    <Once>k__BackingField: 0
-  - <Monsters>k__BackingField:
-    - {fileID: 11400000, guid: c8298ef2b0feb5440a349bcb395b8ab0, type: 2}
-    <StartTime>k__BackingField: 360
-    <EndTime>k__BackingField: 3600
-    <SpawnDelay>k__BackingField: 0.5
-    <Once>k__BackingField: 0
-  - <Monsters>k__BackingField:
-    - {fileID: 11400000, guid: 44760449275eb004db761ffc958fcd85, type: 2}
-    <StartTime>k__BackingField: 420
     <EndTime>k__BackingField: 3600
     <SpawnDelay>k__BackingField: 0.5
     <Once>k__BackingField: 0

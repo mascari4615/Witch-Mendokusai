@@ -1,7 +1,4 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
 
 namespace WitchMendokusai
 {
@@ -19,7 +16,7 @@ namespace WitchMendokusai
 		public static implicit operator Func<bool>(ConditionNode condition) => new(condition.Condition);
 
 		// Decorated Node Creator Methods
-		public IfActionNode Action(Action action)
+		public IfActionNode Action(Func<BTState> action)
 			=> new(Condition, action);
 
 		public IfSequenceNode Sequence(params Node[] nodes)
@@ -31,9 +28,9 @@ namespace WitchMendokusai
 		public IfParallelNode Parallel(params Node[] nodes)
 			=> new(Condition, nodes);
 
-		public override State OnUpdate()
+		public override BTState OnUpdate()
 		{
-			return Condition() ? State.Success : State.Failure;
+			return Condition() ? BTState.Success : BTState.Failure;
 		}
 	}
 }

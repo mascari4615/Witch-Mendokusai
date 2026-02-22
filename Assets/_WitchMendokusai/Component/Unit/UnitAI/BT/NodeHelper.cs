@@ -1,7 +1,4 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
 
 namespace WitchMendokusai
 {
@@ -15,13 +12,14 @@ namespace WitchMendokusai
 
 		public static ConditionNode Condition(Func<bool> condition) => new(condition);
 		public static ConditionNode If(Func<bool> condition) => new(condition);
-		public static ActionNode Action(Action action) => new(action);
+		public static ActionNode Action(Func<BTState> action) => new(action);
 
-		public static IfActionNode IfAction(Func<bool> condition, Action action)
+		public static IfActionNode IfAction(Func<bool> condition, Func<BTState> action)
 			=> new(condition, action);
-		public static IfElseActionNode IfElseAction(Func<bool> condition, Action ifAction, Action ifElseAction)
+		public static IfElseActionNode IfElseAction(Func<bool> condition, Func<BTState> ifAction, Func<BTState> ifElseAction)
 			=> new(condition, ifAction, ifElseAction);
 
 		public static WaitNode Wait(float duration) => new(duration);
+		public static WaitUntilNode WaitUntil(Func<bool> condition) => new(condition);
 	}
 }

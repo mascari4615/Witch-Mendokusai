@@ -1,6 +1,3 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace WitchMendokusai
@@ -13,21 +10,24 @@ namespace WitchMendokusai
 		public WaitNode(float duration)
 		{
 			this.duration = duration;
+			t = 0;
 		}
 
-		public override State OnUpdate()
+		public override BTState OnUpdate()
 		{
-			t += Time.deltaTime;
+			t += BTRunner.TICK;
 			bool timeout = t >= duration;
 
 			if (timeout)
 			{
+				// Debug.Log($"WaitNode Timeout : {duration}");
 				t = 0;
-				return State.Success;
+				return BTState.Success;
 			}
 			else
 			{
-				return State.Failure;
+				// Debug.Log($"WaitNode Running : {duration}");
+				return BTState.Running;
 			}
 		}
 	}

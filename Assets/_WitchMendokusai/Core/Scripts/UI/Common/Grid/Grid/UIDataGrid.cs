@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,6 +8,8 @@ namespace WitchMendokusai
 {
 	public abstract class UIDataGrid<T> : UIBase
 	{
+		public event Action<UISlot, T> OnSelectSlot = delegate { };
+
 		[field: SerializeField] public DataBufferSO<T> DataBufferSO { get; private set; }
 		public List<T> Data { get; private set; } = new();
 		public List<UISlot> Slots { get; protected set; } = new();
@@ -17,7 +20,7 @@ namespace WitchMendokusai
 		[SerializeField] protected ToolTip clickToolTip;
 		[SerializeField] protected GameObject noElementInfo;
 
-		public UISlot CurSlot => Slots[CurSlotIndex];
+		public UISlot CurSlot => Slots.ElementAtOrDefault(CurSlotIndex);
 
 		private void OnEnable()
 		{
@@ -82,7 +85,7 @@ namespace WitchMendokusai
 				}
 			}
 
-			if (clickToolTip != null)
+			if (clickToolTip != null && CurSlot != null && CurSlot.Data != null)
 				clickToolTip.SetToolTipContent(CurSlot.Data);
 
 			UpdateNoElementInfo();
@@ -113,6 +116,7 @@ namespace WitchMendokusai
 		public void SelectSlot(int index)
 		{
 			CurSlotIndex = index;
+			OnSelectSlot?.Invoke(CurSlot, Data.ElementAtOrDefault(index));
 		}
 	}
 }

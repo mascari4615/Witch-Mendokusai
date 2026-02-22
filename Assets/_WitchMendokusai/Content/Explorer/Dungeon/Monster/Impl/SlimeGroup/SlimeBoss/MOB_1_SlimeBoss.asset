@@ -19,14 +19,15 @@ MonoBehaviour:
   <Sprites>k__BackingField: []
   <Affiliation>k__BackingField: -1
   <Prefab>k__BackingField: {fileID: 7779617929997501086, guid: 8779dc0a95ebb974aa994dbd7dbc1168, type: 3}
-  <DefaultSkills>k__BackingField: []
+  <DefaultSkills>k__BackingField:
+  - {fileID: 11400000, guid: e85f11082632f2544b15bfbaeecd4044, type: 2}
   <Material>k__BackingField: {fileID: 2100000, guid: 498f73d56bb87ab4cb040563514df458, type: 2}
   <InitStatInfos>k__BackingField:
     initStats:
     - unitStat: 2
       value: 300
     - unitStat: 300
-      value: 2
+      value: 20
   <Type>k__BackingField: 1
   <Loots>k__BackingField:
   - <DataSO>k__BackingField: {fileID: 11400000, guid: 41d3b97fb16981c4f949742deac36232, type: 2}

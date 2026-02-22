@@ -6,7 +6,7 @@ namespace WitchMendokusai
 	public class Player : Singleton<Player>
 	{
 		public PlayerObject Object { get; private set; }
-		public PlayerMovement Movement { get; private set; }
+		public PlayerRotation Rotation { get; private set; }
 		[field: SerializeField] public GameObject ExpCollider { get; private set; }
 
 		private PlayerInteraction interaction;
@@ -25,7 +25,7 @@ namespace WitchMendokusai
 			interaction = new(transform);
 			aim = new(transform, ObjectBufferManager.GetObjects(ObjectType.Monster));
 			Object = GetComponent<PlayerObject>();
-			Movement = GetComponent<PlayerMovement>();
+			Rotation = GetComponent<PlayerRotation>();
 		}
 
 		private void Start()
@@ -38,6 +38,8 @@ namespace WitchMendokusai
 			AimPos = aim.CalcAim(useAutoAim: IsAutoAim);
 			AimDirection = aim.CalcAimDirection(useAutoAim: IsAutoAim);
 			NearestTarget = aim.GetNearestTarget()?.transform;
+
+			CalcMoveDirection();
 		}
 
 		public void TryInteract()
@@ -57,6 +59,11 @@ namespace WitchMendokusai
 		{
 			Debug.Log($"SetAutoAim: {isAutoAim}");
 			IsAutoAim = isAutoAim;
+		}
+
+		private void CalcMoveDirection()
+		{
+			Object.UnitMovement.SetMoveDirection(InputManager.Instance.MoveInput);
 		}
 	}
 }

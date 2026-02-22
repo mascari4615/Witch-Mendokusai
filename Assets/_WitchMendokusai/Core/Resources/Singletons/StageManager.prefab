@@ -45,5 +45,4 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   dontDestroyOnLoad: 0
-  homeStageObject: {fileID: 0}
-  homeStage: {fileID: 11400000, guid: 9be0868af3c253b4d8d59d7a55a26dcc, type: 2}
+  <StartStage>k__BackingField: {fileID: 11400000, guid: 2c2aefb624d3d0d43a05b0c0f01540be, type: 2}

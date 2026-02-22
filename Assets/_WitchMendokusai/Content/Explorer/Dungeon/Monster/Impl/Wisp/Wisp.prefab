@@ -84,6 +84,10 @@ PrefabInstance:
       propertyPath: m_WasSpriteAssigned
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 4993696442402510046, guid: 6eb3e2a012ddb864ab9e88e453c405ea, type: 3}
+      propertyPath: fsmType
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 5348946906289475510, guid: 6eb3e2a012ddb864ab9e88e453c405ea, type: 3}
       propertyPath: m_Controller
       value: 
@@ -95,14 +99,14 @@ PrefabInstance:
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 1848531686881178565, guid: 6eb3e2a012ddb864ab9e88e453c405ea, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 5176403290960352939}
+      addedObject: {fileID: -9056701973853598524}
   m_SourcePrefab: {fileID: 100100000, guid: 6eb3e2a012ddb864ab9e88e453c405ea, type: 3}
 --- !u!1 &7779617929997501086 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 1848531686881178565, guid: 6eb3e2a012ddb864ab9e88e453c405ea, type: 3}
   m_PrefabInstance: {fileID: 8237519728463704411}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &5176403290960352939
+--- !u!114 &-9056701973853598524
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -113,5 +117,5 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c1c7cc3ffdb7f7a438bf65356a11a5d7, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: 
-  attackRange: 100
+  m_EditorClassIdentifier: Assembly-CSharp::WitchMendokusai.FSMWisp
+  attackRange: 10

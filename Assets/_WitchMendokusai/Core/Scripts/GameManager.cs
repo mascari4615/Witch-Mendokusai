@@ -45,18 +45,33 @@ namespace WitchMendokusai
 				}
 			}
 		}
+
+		public void ApplyUpgradeEffects()
+		{
+			List<UpgradeData> upgrades = SOManager.Instance.DataSOs[typeof(UpgradeData)].Values.Cast<UpgradeData>().ToList();
+			foreach (UpgradeData upgrade in upgrades)
+			{
+				if (upgrade.CurLevel <= 0)
+					continue;
+
+				upgrade.Apply();
+			}
+		}
 	}
 
 	public enum GameConditionType
 	{
-		IsPaused,
-		IsChatting,
-		IsMouseOnUI,
-		IsDashing,
-		IsPlayerCasting,
-		IsDied,
-		IsBuilding,
-		IsInTransition,
+		IsPaused = 1 << 0,
+		IsChatting = 1 << 1,
+
+		IsMouseOnUI = 1 << 2,
+
+		IsPlayerCasting = 1 << 3,
+		IsDied = 1 << 4,
+
+		IsBuilding = 1 << 5,
+		IsInTransition = 1 << 6,
+		IsViewingUI = 1 << 7, // 전체화면 UI를 보는 중
 	}
 
 	public class GameCondition
@@ -71,14 +86,14 @@ namespace WitchMendokusai
 
 		private static readonly Dictionary<GameConditionType, Func<bool>> gameConditionActions = new()
 		{
-			{ GameConditionType.IsPaused, () => TimeManager.Instance.IsPaused },
+			{ GameConditionType.IsPaused, () => TimeManager.Instance.IsPaused }, // Setting, Dungeon Card 선택, Transition, ...
 			{ GameConditionType.IsChatting, () => UIChat.IsChatting },
 			{ GameConditionType.IsMouseOnUI, () => InputManager.Instance.IsPointerOverUI() },
-			{ GameConditionType.IsDashing, () => Player.Instance.Object.UnitStat[UnitStatType.FORCE_MOVE] > 0 },
 			{ GameConditionType.IsPlayerCasting, () => Player.Instance.Object.UnitStat[UnitStatType.CASTING_SKILL] > 0 },
 			{ GameConditionType.IsDied, () => Player.Instance.Object.UnitStat[UnitStatType.HP_CUR] <= 0 },
 			{ GameConditionType.IsBuilding, () => BuildManager.Instance.IsBuilding },
 			{ GameConditionType.IsInTransition, () => UITransition.IsInTransition },
+			{ GameConditionType.IsViewingUI, () => UIManager.Instance.IsAnyPanelFullscreenOpen },
 		};
 
 		public bool IsGameConditionAny(params GameConditionType[] conditions)

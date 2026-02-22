@@ -100,12 +100,12 @@ namespace WitchMendokusai
 				this.button = button;
 			}
 
-			iconImage = transform.Find("[Image] IconBackground").Find("[Image] Icon").GetComponent<Image>();
-			disableImage = transform.Find("[Image] Disable").GetComponent<Image>();
+			iconImage = transform.Find("[Image] IconBackground")?.Find("[Image] Icon")?.GetComponent<Image>();
+			disableImage = transform.Find("[Image] Disable")?.GetComponent<Image>();
 
-			nameText = transform.Find("[Text] Name").GetComponent<TextMeshProUGUI>();
-			amountText = transform.Find("[Text] Amount").GetComponent<TextMeshProUGUI>();
-			descriptionText = transform.Find("[Text] Description").GetComponent<TextMeshProUGUI>();
+			nameText = transform.Find("[Text] Name")?.GetComponent<TextMeshProUGUI>();
+			amountText = transform.Find("[Text] Amount")?.GetComponent<TextMeshProUGUI>();
+			descriptionText = transform.Find("[Text] Description")?.GetComponent<TextMeshProUGUI>();
 
 			ToolTipTrigger = GetComponent<ToolTipTrigger>();
 
@@ -142,18 +142,24 @@ namespace WitchMendokusai
 
 		public override void UpdateUI()
 		{
-			iconImage.sprite = Data.Sprite;
-			iconImage.color = Data.Sprite == null ? Color.clear : Color.white;
-			nameText.text = Data.Name;
-			descriptionText.text = Data.Description;
-
-			amountText.text = (Data.Amount == 1 && showAmountOne == false) ? "" : Data.Amount.ToString();
+			if (iconImage != null)
+			{
+				iconImage.sprite = Data.Sprite;
+				iconImage.color = Data.Sprite == null ? Color.clear : Color.white;
+			}
+			if (nameText != null)
+				nameText.text = Data.Name;
+			if (descriptionText != null)
+				descriptionText.text = Data.Description;
+			if (amountText != null)
+				amountText.text = (Data.Amount == 1 && showAmountOne == false) ? "" : Data.Amount.ToString();
 		}
 
 		public void SetDisable(bool isDisable)
 		{
 			IsDisable = isDisable;
-			disableImage.gameObject.SetActive(isDisable);
+			if (disableImage != null)
+				disableImage.gameObject.SetActive(isDisable);
 
 			if (blockClickWhenDisable)
 			{

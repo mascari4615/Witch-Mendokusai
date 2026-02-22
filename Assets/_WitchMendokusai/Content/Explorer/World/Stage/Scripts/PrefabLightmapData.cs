@@ -31,7 +31,8 @@ public class PrefabLightmapData : MonoBehaviour
 	[SerializeField] private List<Texture2D> shadowMasks = new();
 	[SerializeField] private List<LightInfo> lightInfos = new();
 
-	private void Awake() => Init();
+	// [Unity 6000.3.2f1] Awake였는데 새 버전부터 안돼서 Start에서 초기화 - KarmoDDrine 2025-12-21
+	private void Start() => Init();
 	private void OnEnable() => SceneManager.sceneLoaded += OnSceneLoaded;
 	private void OnDisable() => SceneManager.sceneLoaded -= OnSceneLoaded;
 	private void OnSceneLoaded(Scene _, LoadSceneMode __) => Init();
@@ -39,6 +40,12 @@ public class PrefabLightmapData : MonoBehaviour
 	private void Init()
 	{
 		if (rendererInfos == null || rendererInfos.Count == 0)
+			return;
+		
+		if (lightmaps == null || lightmaps.Count == 0 || lightmaps[0] == null)
+			return;
+
+		if (lightmapsDir == null || lightmapsDir.Count == 0 || lightmapsDir[0] == null)
 			return;
 
 		List<Texture2D> savedLightmaps = lightmaps;
@@ -92,8 +99,8 @@ public class PrefabLightmapData : MonoBehaviour
 		}
 
 		LightmapSettings.lightmapsMode = (lightmapsDir.Count == savedLightmaps.Count && isDirectional) ? LightmapsMode.CombinedDirectional : LightmapsMode.NonDirectional;
-		ApplyRendererInfo(rendererInfos, offsetsIndexes, lightInfos);
 		LightmapSettings.lightmaps = combinedLightmaps.ToArray();
+		ApplyRendererInfo(rendererInfos, offsetsIndexes, lightInfos);
 	}
 
 	private void ApplyRendererInfo(List<RendererInfo> infos, int[] lightmapOffsetIndex, List<LightInfo> lightsInfo)
@@ -131,11 +138,6 @@ public class PrefabLightmapData : MonoBehaviour
 	[MenuItem("Assets/Bake Prefab Lightmaps")]
 	public static void GenerateLightmapInfo()
 	{
-		if (Lightmapping.giWorkflowMode != Lightmapping.GIWorkflowMode.OnDemand)
-		{
-			Debug.LogError("ExtractLightmapData requires that you have baked you lightmaps and Auto mode is disabled.");
-			return;
-		}
 		// UnityEditor.Lightmapping.Bake();
 
 		PrefabLightmapData[] instances = FindObjectsByType<PrefabLightmapData>(FindObjectsInactive.Include, FindObjectsSortMode.None);

@@ -18,7 +18,7 @@ namespace WitchMendokusai
 		[SerializeField] private List<UnitStatInfo> initStats = new()
 		{
 			new() { unitStat = UnitStatType.HP_MAX, value = 20 },
-			new() { unitStat = UnitStatType.MOVEMENT_SPEED, value = 3 },
+			new() { unitStat = UnitStatType.MOVEMENT_SPEED, value = 30 },
 		};
 
 		public UnitStat GetUnitStat()

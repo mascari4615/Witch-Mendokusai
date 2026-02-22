@@ -1,27 +1,23 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
 
 namespace WitchMendokusai
 {
 	/// <summary> 행동 수행 노드 </summary>
 	public class ActionNode : Node
 	{
-		public Action Action { get; protected set; }
-		public ActionNode(Action action)
+		public Func<BTState> Action { get; protected set; }
+		public ActionNode(Func<BTState> action)
 		{
 			Action = action;
 		}
 
-		public override State OnUpdate()
+		public override BTState OnUpdate()
 		{
-			Action();
-			return State.Success;
+			return Action();
 		}
 
 		// Action <=> ActionNode 타입 캐스팅
-		public static implicit operator ActionNode(Action action) => new(action);
-		public static implicit operator Action(ActionNode action) => new(action.Action);
+		public static implicit operator ActionNode(Func<BTState> action) => new(action);
+		public static implicit operator Func<BTState>(ActionNode action) => new(action.Action);
 	}
 }

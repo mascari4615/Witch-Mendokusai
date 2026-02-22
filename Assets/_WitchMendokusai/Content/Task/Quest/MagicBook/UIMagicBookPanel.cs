@@ -1,9 +1,7 @@
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
-using static WitchMendokusai.SOHelper;
 
 namespace WitchMendokusai
 {
@@ -19,6 +17,8 @@ namespace WitchMendokusai
 		[SerializeField] private Button tooltipCloseButton;
 		private ToolTip toolTip;
 		private UIQuestToolTip questToolTip;
+
+		public override bool IsFullscreen => true;
 
 		protected override void OnInit()
 		{

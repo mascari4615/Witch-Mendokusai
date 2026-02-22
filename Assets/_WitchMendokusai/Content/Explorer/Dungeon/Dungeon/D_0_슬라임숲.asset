@@ -18,7 +18,8 @@ MonoBehaviour:
     \uACF3"
   <Sprite>k__BackingField: {fileID: 21300000, guid: c7a51b0d85c056048b11aa66440abaad, type: 3}
   <Sprites>k__BackingField: []
-  <Type>k__BackingField: 0
+  <ObjectiveType>k__BackingField: 0
+  <MapType>k__BackingField: 0
   <ClearValue>k__BackingField: 900
   <TimeBySecond>k__BackingField: 900
   <Constraints>k__BackingField:

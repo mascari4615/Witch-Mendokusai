@@ -12,6 +12,8 @@ namespace WitchMendokusai
 
 		private void Start()
 		{
+			slotUI.Init();
+
 			GameEventManager.Instance.RegisterCallback(GameEventType.OnPlayerDollChange, UpdateUI);
 			UpdateUI();
 		}
@@ -19,6 +21,7 @@ namespace WitchMendokusai
 		public void UpdateUI()
 		{
 			slotUI.SetSlot(Player.Instance.Object.UnitData);
+			slotUI.UpdateUI();
 		}
 	}
 }

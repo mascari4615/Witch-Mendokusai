@@ -26,7 +26,7 @@ MonoBehaviour:
     - unitStat: 2
       value: 10
     - unitStat: 300
-      value: 2
+      value: 15
   <Type>k__BackingField: 0
   <Loots>k__BackingField:
   - <DataSO>k__BackingField: {fileID: 11400000, guid: c93b3b25b6029194dabd908b48701409, type: 2}

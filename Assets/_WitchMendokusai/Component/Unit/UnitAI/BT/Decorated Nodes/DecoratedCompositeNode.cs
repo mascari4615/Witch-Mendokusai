@@ -1,10 +1,4 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-
-// 날짜 : 2021-01-16 PM 10:20:49
-// 작성자 : Rito
 
 namespace WitchMendokusai
 {
@@ -21,9 +15,9 @@ namespace WitchMendokusai
 			Composite = composite;
 		}
 
-		public override State OnUpdate()
+		public override BTState OnUpdate()
 		{
-			return Condition() ? Composite.OnUpdate() : State.Failure;
+			return Condition() ? Composite.OnUpdate() : BTState.Failure;
 		}
 	}
 }

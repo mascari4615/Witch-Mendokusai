@@ -19,10 +19,11 @@ namespace WitchMendokusai
 		SelectCard = 1,
 	}
 
-	public class CardManager : UIContentBase<CardPanelType>
+	public class CardManager : UIPanelGroup<CardPanelType>
 	{
 		private readonly Dictionary<int, UIDeck> deckUIDic = new();
 
+		public override bool CanBeClosedByCancelInput => false;
 		public override CardPanelType DefaultPanel => CardPanelType.None;
 
 		// Level Up Stack

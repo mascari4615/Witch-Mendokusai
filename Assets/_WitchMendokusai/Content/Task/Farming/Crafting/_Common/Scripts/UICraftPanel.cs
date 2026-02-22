@@ -7,6 +7,8 @@ namespace WitchMendokusai
 	{
 		private UICraft craft;
 
+		public override bool IsFullscreen => true;
+
 		protected override void OnInit()
 		{
 			craft = GetComponent<UICraft>();

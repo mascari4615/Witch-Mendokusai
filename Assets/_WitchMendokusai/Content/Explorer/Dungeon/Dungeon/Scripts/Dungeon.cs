@@ -4,7 +4,13 @@ using UnityEngine;
 
 namespace WitchMendokusai
 {
-	public enum DungeonType
+	public enum DungeonMapType
+	{
+		SurvivorsLike,
+		Colosseum,
+	}
+
+	public enum DungeonObjectiveType
 	{
 		TimeSurvival,
 		Domination,
@@ -27,7 +33,8 @@ namespace WitchMendokusai
 	public class Dungeon : DataSO, ISavable<DungeonSaveData>
 	{
 		[field: Header("_" + nameof(Dungeon))]
-		[PropertyOrder(100)][field: SerializeField] public DungeonType Type { get; private set; }
+		[PropertyOrder(100)][field: SerializeField] public DungeonObjectiveType ObjectiveType { get; private set; }
+		[PropertyOrder(100)][field: SerializeField] public DungeonMapType MapType { get; private set; }
 		[PropertyOrder(101)][field: SerializeField] public int ClearValue { get; private set; }
 		[PropertyOrder(102)][field: SerializeField] public int TimeBySecond { get; private set; }
 		[PropertyOrder(103)][field: SerializeField] public List<DungeonConstraint> Constraints { get; private set; }
