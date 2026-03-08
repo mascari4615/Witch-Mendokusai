@@ -8,12 +8,14 @@ namespace WitchMendokusai
 		public InputEventType InputEventType { get; }
 		public InputEventResponseType InputEventResponseType { get; }
 		public Action Callback { get; }
+		public Func<bool> Condition { get; }
 
-		public InputRegisterData(InputEventType inputEventType, InputEventResponseType inputEventResponseType, Action callback)
+		public InputRegisterData(InputEventType inputEventType, InputEventResponseType inputEventResponseType, Action callback, Func<bool> condition)
 		{
 			InputEventType = inputEventType;
 			InputEventResponseType = inputEventResponseType;
 			Callback = callback;
+			Condition = condition;
 		}
 	}
 
@@ -21,7 +23,7 @@ namespace WitchMendokusai
 	{
 		List<InputRegisterData> InputRegisterDataList { get; }
 	
-		bool TryGetEventReturnConditions(InputEventType eventType, out GameConditionType[] conditions);
+		// bool TryGetEventReturnConditions(InputEventType eventType, out GameConditionType[] conditions);
 		bool TryGetAxisReturnConditions(InputAxisType axisType, out GameConditionType[] conditions);
 	}
 
@@ -32,9 +34,14 @@ namespace WitchMendokusai
 		protected abstract Dictionary<InputEventType, GameConditionType[]> EventReturnConditions { get; }
 		protected abstract Dictionary<InputAxisType, GameConditionType[]> AxisReturnConditions { get; }
 
-		public bool TryGetEventReturnConditions(InputEventType eventType, out GameConditionType[] conditions)
+		protected bool TryGetEventReturnConditions(InputEventType eventType, out GameConditionType[] conditions)
 		{
 			return EventReturnConditions.TryGetValue(eventType, out conditions);
+		}
+
+		protected bool CanExecute(InputEventType eventType)
+		{
+			return TryGetEventReturnConditions(eventType, out var conditions) == false || GameManager.Instance.Conditions.IsGameConditionAny(conditions) == false;
 		}
 	
 		public bool TryGetAxisReturnConditions(InputAxisType axisType, out GameConditionType[] conditions)

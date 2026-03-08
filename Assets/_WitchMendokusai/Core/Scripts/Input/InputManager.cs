@@ -61,8 +61,8 @@ namespace WitchMendokusai
 			{ InputEventType.Status, InputMapType.UI },
 		};
 
-		private readonly Dictionary<(InputEventType, InputEventResponseType), Action<InputAction.CallbackContext>> inputEventsWithContent = new();
-		private readonly Dictionary<(InputEventType, InputEventResponseType), Action> inputEvents = new();
+		private readonly Dictionary<(InputEventType, InputEventResponseType), Action<InputAction.CallbackContext>> inputEventsWithContext = new();
+		private readonly Dictionary<(InputEventType, InputEventResponseType), List<(Action action, Func<bool> condition)>> inputEvents = new();
 		private readonly Dictionary<InputEventType, bool> isPressed = new();
 
 		public Vector3 MouseWorldPosition { get; private set; }
@@ -104,8 +104,8 @@ namespace WitchMendokusai
 			{
 				foreach (InputEventResponseType inputEventResponseType in Enum.GetValues(typeof(InputEventResponseType)))
 				{
-					inputEventsWithContent[(inputEventType, inputEventResponseType)] = delegate { };
-					inputEvents[(inputEventType, inputEventResponseType)] = delegate { };
+					inputEventsWithContext[(inputEventType, inputEventResponseType)] = delegate { };
+					inputEvents[(inputEventType, inputEventResponseType)] = new List<(Action action, Func<bool> condition)>();
 					isPressed[inputEventType] = false;
 				}
 			}
@@ -141,7 +141,7 @@ namespace WitchMendokusai
 
 			List<InputRegisterData> inputRegisterDataList = CurrentInputStrategy.InputRegisterDataList;
 			foreach (InputRegisterData inputRegisterData in inputRegisterDataList)
-				RegisterInputEvent(inputRegisterData.InputEventType, inputRegisterData.InputEventResponseType, inputRegisterData.Callback);
+				RegisterInputEvent(inputRegisterData.InputEventType, inputRegisterData.InputEventResponseType, inputRegisterData.Callback, inputRegisterData.Condition);
 		}
 
 		private void BindEvents()
@@ -164,12 +164,12 @@ namespace WitchMendokusai
 
 		private void OnEventStart(InputEventType inputEventType, InputAction.CallbackContext ctx)
 		{
-			if (CurrentInputStrategy.TryGetEventReturnConditions(inputEventType, out var conditions) &&
-				GameManager.Instance.Conditions.IsGameConditionAny(conditions))
-				return;
-
-			inputEventsWithContent[(inputEventType, InputEventResponseType.Started)]?.Invoke(ctx);
-			inputEvents[(inputEventType, InputEventResponseType.Started)]?.Invoke();
+			inputEventsWithContext[(inputEventType, InputEventResponseType.Started)]?.Invoke(ctx);
+			foreach ((Action action, Func<bool> condition) in inputEvents[(inputEventType, InputEventResponseType.Started)])
+			{
+				if (condition == null || condition())
+					action();
+			}
 
 			isPressed[inputEventType] = true;
 			GetLoop(inputEventType).Forget();
@@ -182,51 +182,55 @@ namespace WitchMendokusai
 			{
 				await UniTask.Yield(PlayerLoopTiming.Update);
 
-				if (CurrentInputStrategy.TryGetEventReturnConditions(inputEventType, out var conditions) &&
-					GameManager.Instance.Conditions.IsGameConditionAny(conditions))
-					continue;
-
-				inputEventsWithContent[(inputEventType, InputEventResponseType.Get)]?.Invoke(default);
-				inputEvents[(inputEventType, InputEventResponseType.Get)]?.Invoke();
+				inputEventsWithContext[(inputEventType, InputEventResponseType.Get)]?.Invoke(default);
+				foreach ((Action action, Func<bool> condition) in inputEvents[(inputEventType, InputEventResponseType.Get)])
+				{
+					if (condition == null || condition())
+						action();
+				}
 			}
 		}
 
 		private void OnEventPerformed(InputEventType inputEventType, InputAction.CallbackContext ctx)
 		{
-			if (CurrentInputStrategy.TryGetEventReturnConditions(inputEventType, out var conditions) &&
-				GameManager.Instance.Conditions.IsGameConditionAny(conditions))
-				return;
-
-			inputEventsWithContent[(inputEventType, InputEventResponseType.Performed)]?.Invoke(ctx);
-			inputEvents[(inputEventType, InputEventResponseType.Performed)]?.Invoke();
+			inputEventsWithContext[(inputEventType, InputEventResponseType.Performed)]?.Invoke(ctx);
+			foreach ((Action action, Func<bool> condition) in inputEvents[(inputEventType, InputEventResponseType.Performed)])
+			{
+				if (condition == null || condition())
+					action();
+			}
 		}
 
 		private void OnEventCanceled(InputEventType inputEventType, InputAction.CallbackContext ctx)
 		{
-			inputEventsWithContent[(inputEventType, InputEventResponseType.Canceled)]?.Invoke(ctx);
-			inputEvents[(inputEventType, InputEventResponseType.Canceled)]?.Invoke();
+			inputEventsWithContext[(inputEventType, InputEventResponseType.Canceled)]?.Invoke(ctx);
+			foreach ((Action action, Func<bool> condition) in inputEvents[(inputEventType, InputEventResponseType.Canceled)])
+			{
+				if (condition == null || condition())
+					action();
+			}
 
 			isPressed[inputEventType] = false;
 		}
 
 		public void RegisterInputEvent(InputEventType inputEventType, InputEventResponseType inputEventResponseType, Action<InputAction.CallbackContext> action)
 		{
-			inputEventsWithContent[(inputEventType, inputEventResponseType)] += action;
+			inputEventsWithContext[(inputEventType, inputEventResponseType)] += action;
 		}
 
 		public void UnregisterInputEvent(InputEventType inputEventType, InputEventResponseType inputEventResponseType, Action<InputAction.CallbackContext> action)
 		{
-			inputEventsWithContent[(inputEventType, inputEventResponseType)] -= action;
+			inputEventsWithContext[(inputEventType, inputEventResponseType)] -= action;
 		}
 
-		public void RegisterInputEvent(InputEventType inputEventType, InputEventResponseType inputEventResponseType, Action action)
+		public void RegisterInputEvent(InputEventType inputEventType, InputEventResponseType inputEventResponseType, Action action, Func<bool> condition = null)
 		{
-			inputEvents[(inputEventType, inputEventResponseType)] += action;
+			inputEvents[(inputEventType, inputEventResponseType)].Add((action, condition));
 		}
 
-		public void UnregisterInputEvent(InputEventType inputEventType, InputEventResponseType inputEventResponseType, Action action)
+		public void UnregisterInputEvent(InputEventType inputEventType, InputEventResponseType inputEventResponseType, Action action, Func<bool> condition = null)
 		{
-			inputEvents[(inputEventType, inputEventResponseType)] -= action;
+			inputEvents[(inputEventType, inputEventResponseType)].RemoveAll(x => x.action == action && x.condition == condition);
 		}
 
 		private void Update()

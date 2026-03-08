@@ -69,16 +69,6 @@ namespace WitchMendokusai
 			posDelegates[1].SetSource(0, new ConstraintSource { sourceTransform = Player.Instance.Object.SpritePosition, weight = 1 });
 		}
 
-		private void OnEnable()
-		{
-			InputManager.Instance.RegisterInputEvent(InputEventType.Scroll, InputEventResponseType.Performed, Zoom);
-		}
-
-		private void OnDisable()
-		{
-			InputManager.Instance.UnregisterInputEvent(InputEventType.Scroll, InputEventResponseType.Performed, Zoom);
-		}
-
 		public void SetContentCameraMode(ContentCameraMode mode)
 		{
 			// 카메라 설정

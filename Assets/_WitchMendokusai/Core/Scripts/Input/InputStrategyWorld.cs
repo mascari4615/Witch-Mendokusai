@@ -4,55 +4,79 @@ namespace WitchMendokusai
 {
 	public class InputStrategyWorld : InputStrategyBase
 	{
-		public override List<InputRegisterData> InputRegisterDataList { get; } = new List<InputRegisterData>()
+		private List<InputRegisterData> _inputRegisterDataList;
+		public override List<InputRegisterData> InputRegisterDataList
 		{
-			#region Player
-			new(
-				InputEventType.Space,
-				InputEventResponseType.Performed,
-				() => Player.Instance.TryUseSkill(0)
-			),
-			new(
-				InputEventType.Click0,
-				InputEventResponseType.Get,
-				() => Player.Instance.TryUseSkill(1)
-			),
-			new(
-				InputEventType.Click1,
-				InputEventResponseType.Get,
-				() => Player.Instance.TryUseSkill(2)
-			),
+			get
+			{
+				_inputRegisterDataList ??= new List<InputRegisterData>()
+					{
+						#region Player
+						new(
+							InputEventType.Space,
+							InputEventResponseType.Performed,
+							() => Player.Instance.TryUseSkill(0),
+							() => CanExecute(InputEventType.Space)
+						),
+						new(
+							InputEventType.Click0,
+							InputEventResponseType.Get,
+							() => Player.Instance.TryUseSkill(1),
+							() => CanExecute(InputEventType.Click0)
+						),
+						new(
+							InputEventType.Click1,
+							InputEventResponseType.Get,
+							() => Player.Instance.TryUseSkill(2),
+							() => CanExecute(InputEventType.Click1)
+						),
 
-			new(
-				InputEventType.ChangeMode,
-				InputEventResponseType.Performed,
-				() => Player.Instance.SetAutoAim(!Player.Instance.IsAutoAim)
-			),
-			#endregion
+						new(
+							InputEventType.ChangeMode,
+							InputEventResponseType.Performed,
+							() => Player.Instance.SetAutoAim(!Player.Instance.IsAutoAim),
+							() => CanExecute(InputEventType.ChangeMode)
+						),
 
-			#region UI
-			new(
-				InputEventType.Submit,
-				InputEventResponseType.Performed,
-				() => Player.Instance.TryInteract()
-			),
-			new(
-				InputEventType.Cancel,
-				InputEventResponseType.Performed,
-				() => UIManager.Instance.OnCancelInput()
-			),
-			new(
-				InputEventType.Tab,
-				InputEventResponseType.Performed,
-				() => UIManager.Instance.ToggleTabUI()
-			),
-			new(
-				InputEventType.Status,
-				InputEventResponseType.Performed,
-				() => UIManager.Instance.ToggleStatus()
-			)
-			#endregion
-		};
+						new(
+							InputEventType.Scroll,
+							InputEventResponseType.Performed,
+							() => CameraManager.Instance.Zoom(),
+							() => CanExecute(InputEventType.Scroll)
+						),
+						#endregion
+
+						#region UI
+						new(
+							InputEventType.Submit,
+							InputEventResponseType.Performed,
+							() => Player.Instance.TryInteract(),
+							() => CanExecute(InputEventType.Submit)
+						),
+						new(
+							InputEventType.Cancel,
+							InputEventResponseType.Performed,
+							() => UIManager.Instance.OnCancelInput(),
+							() => CanExecute(InputEventType.Cancel)
+						),
+						new(
+							InputEventType.Tab,
+							InputEventResponseType.Performed,
+							() => UIManager.Instance.ToggleTabUI(),
+							() => CanExecute(InputEventType.Tab)
+						),
+						new(
+							InputEventType.Status,
+							InputEventResponseType.Performed,
+							() => UIManager.Instance.ToggleStatus(),
+							() => CanExecute(InputEventType.Status)
+						)
+						#endregion
+					};
+
+				return _inputRegisterDataList;
+			}
+		}
 
 		protected override Dictionary<InputEventType, GameConditionType[]> EventReturnConditions => new()
 		{
