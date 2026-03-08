@@ -16,6 +16,11 @@ namespace WitchMendokusai
 	[InitializeOnLoad]
 	public partial class DataSOWindow : EditorWindow
 	{
+		static DataSOWindow()
+		{
+			Debug.Log("DataSOWindow static constructor is called.");
+		}
+
 		private static DataSOWindow instance;
 		public static DataSOWindow Instance
 		{
@@ -205,7 +210,7 @@ namespace WitchMendokusai
 				Debug.LogError($"{nameof(InitDict)} 중 오류 발생: {ex.Message}");
 				return false;
 			}
-			
+
 			bool ProcessDataSO(DataSO dataSO)
 			{
 				try
@@ -217,7 +222,7 @@ namespace WitchMendokusai
 					}
 
 					// Debug.Log($"ProcessDataSO({dataSO.ID}, {dataSO.Name}): to {type}");
-				
+
 					Dictionary<int, DataSO> dataSOs = DataSOs[type];
 
 					if (dataSOs.ContainsKey(dataSO.ID) == true)
@@ -320,7 +325,7 @@ namespace WitchMendokusai
 		{
 			if (DataSOs.ContainsKey(type) == false)
 				InitDict();
-				// InitDict(type);
+			// InitDict(type);
 
 			return DataSOs[type];
 		}
@@ -330,7 +335,7 @@ namespace WitchMendokusai
 			// Debug.Log(nameof(CopyDataSO));
 
 			ShowDataSOWindow();
-		
+
 			if (TryGetBaseType(dataSO, out Type type) == false)
 			{
 				Debug.LogError("Base type not found");
@@ -409,7 +414,7 @@ namespace WitchMendokusai
 			Debug.Log(nameof(RemoveDataSO));
 
 			ShowDataSOWindow();
-	
+
 			if (TryGetBaseType(dataSO, out Type type) == false)
 			{
 				Debug.LogError("Base type not found");

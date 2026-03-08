@@ -9,10 +9,8 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d9b17a9582bdc9347880d9c15a68c022, type: 3}
-  m_Name: AppSettings
-  m_EditorClassIdentifier: 
-  <UseLocalData>k__BackingField: 1
-  <InitDataSODict>k__BackingField: 1
-  <UseIntro>k__BackingField: 0
-  <AutoStart>k__BackingField: 1
+  m_Script: {fileID: 11500000, guid: fa70560c15ab0814182244f4789b5191, type: 3}
+  m_Name: KarmoEditorSettings
+  m_EditorClassIdentifier: KarmoEditor::KarmoLab.KarmoEditor.Settings.KarmoEditorSettings
+  ApplicationMutexNames: []
+  ReflectionFieldResets: []

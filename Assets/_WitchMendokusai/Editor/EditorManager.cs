@@ -32,13 +32,13 @@ namespace WitchMendokusai
 			Debug.Log($"{nameof(EditorManager)} : {nameof(WaitForSceneLoaded)}");
 			while (true)
 			{
-				if (EditorSceneManager.GetActiveScene().isLoaded == false)
+				if (SceneManager.GetActiveScene().isLoaded == false)
 				{
 					yield return null;
 					continue;
 				}
 
-				if (EditorSceneManager.GetActiveScene().name.Contains("World") == false)
+				if (SceneManager.GetActiveScene().name.Contains("World") == false)
 				{
 					OpenScene(EditorSetting.Data.StartWorldStage);
 					yield break;
@@ -50,9 +50,9 @@ namespace WitchMendokusai
 		{
 			Debug.Log($"OpenScene : {worldStage.Name}");
 
-			for (int i = 0; i < EditorSceneManager.sceneCount; i++)
+			for (int i = 0; i < SceneManager.sceneCount; i++)
 			{
-				Scene scene = EditorSceneManager.GetSceneAt(i);
+				Scene scene = SceneManager.GetSceneAt(i);
 				if (scene.name.Contains("World") == false && scene.isLoaded)
 				{
 					EditorSceneManager.CloseScene(scene, true);

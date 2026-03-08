@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7e8d48359d0bd314f89d43458c5126c8, type: 3}
+  m_Name: KarmoToolbarSettings
+  m_EditorClassIdentifier: KarmoEditor::KarmoLab.KarmoEditor.Settings.KarmoToolbarSettings
+  FavoriteScenes: []
+  TargetFolders: []
+  ShowOnlyBuildSettingsScenes: 0
+  FavoriteAssets:
+  - {fileID: 11400000, guid: 5f653c231746d3445850d6baf1debead, type: 2}
+  - {fileID: 11400000, guid: ef0f1d4ce4817524e9383a6ee284a7d9, type: 2}
+  - {fileID: 11400000, guid: 406252dc041f1f94ca4c1506ce682af0, type: 2}

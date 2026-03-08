@@ -21,7 +21,7 @@ namespace WitchMendokusai
 		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
 		public static void OnBooting()
 		{
-			Debug.Log("SANS");
+			Debug.Log("Booting AppSettings...");
 
 			Data = Resources.Load<AppSettings>(nameof(AppSettings));
 			if (Data == null)
