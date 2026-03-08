@@ -15,8 +15,9 @@ namespace WitchMendokusai
 		Furnace = 5,
 		CraftingTable = 6,
 		Upgrade = 7,
+		Lab = 8,
 
-		Count = 8,
+		Count = 9,
 	}
 
 	public class UINPC : UIPanelGroup<NPCPanelType>
@@ -35,6 +36,7 @@ namespace WitchMendokusai
 			Panels[NPCPanelType.Furnace] = FindFirstObjectByType<UIFurnace>(FindObjectsInactive.Include);
 			Panels[NPCPanelType.CraftingTable] = FindFirstObjectByType<UICraftingTable>(FindObjectsInactive.Include);
 			Panels[NPCPanelType.Upgrade] = FindFirstObjectByType<UIUpgrade>(FindObjectsInactive.Include);
+			Panels[NPCPanelType.Lab] = FindFirstObjectByType<UILab>(FindObjectsInactive.Include);
 		}
 	}
 }

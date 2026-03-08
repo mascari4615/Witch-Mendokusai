@@ -123,17 +123,13 @@ namespace WitchMendokusai
 			talkOption.gameObject.SetActive(canTalk);
 			
 			if (canTalk)
+			{
 				Talk();
+			}
 			else
 			{
 				Debug.LogWarning($"ChatData not found: {curNPC.UnitData.ID}");
-
-				canvasGroup.SetVisible(true);
-
-				SetPanel(NPCPanelType.None);
-				options.FirstOrDefault(o => o.gameObject.activeSelf)?.Select(); // 첫 번째 활성화된 버튼 선택 (대화 제외)
-
-				CameraManager.Instance.SetSelecting(true);
+				OnChatFinish();
 			}
 		}
 
@@ -190,16 +186,18 @@ namespace WitchMendokusai
 			buttonsParent.SetActive(false);
 			CameraManager.Instance.SetSelecting(false);
 
-			UIManager.Instance.Chat.StartChat(curNPC, () =>
-			{
-				canvasGroup.SetVisible(true);
+			UIManager.Instance.Chat.StartChat(curNPC, OnChatFinish);
+		}
 
-				SetPanel(NPCPanelType.None);
-				buttonsParent.SetActive(true);
-				talkOption.Select();
+		private void OnChatFinish()
+		{
+			canvasGroup.SetVisible(true);
 
-				CameraManager.Instance.SetSelecting(true);
-			});
+			SetPanel(NPCPanelType.None);
+			buttonsParent.SetActive(true);
+			talkOption.Select();
+
+			CameraManager.Instance.SetSelecting(true);
 		}
 
 		private void SelectQuest(int index)
