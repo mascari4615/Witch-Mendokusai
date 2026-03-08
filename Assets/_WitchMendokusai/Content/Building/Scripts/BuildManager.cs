@@ -25,6 +25,8 @@ namespace WitchMendokusai
 		private Building selectedBuilding = null;
 		private Vector3Int gridPosition = Vector3Int.zero;
 		public bool IsBuilding { get; private set; } = false;
+		private float lastClickTime = 0f;
+		private const float clickCooldown = 0.1f; // 클릭 간 최소 시간 간격 (초)
 
 		protected override void Awake()
 		{
@@ -53,7 +55,7 @@ namespace WitchMendokusai
 			buildUI.SetPanel(UIBuildingType.BuildingBar);
 			buildUI.UpdateUI();
 
-			InputManager.RegisterInputEvent(InputEventType.Click0, InputEventResponseType.Started, ClickCell);
+			InputManager.RegisterInputEvent(InputEventType.Click0, InputEventResponseType.Get, ClickCell);
 			InputManager.RegisterInputEvent(InputEventType.Click1, InputEventResponseType.Get, TryRemoveCell);
 			gridVisualization.SetActive(true);
 			marker.SetBool(MarkerEnabled, true);
@@ -66,7 +68,7 @@ namespace WitchMendokusai
 			buildUI.StopLoop();
 			CameraManager.Instance.SetContentCameraMode(ContentCameraMode.Normal);
 
-			InputManager.UnregisterInputEvent(InputEventType.Click0, InputEventResponseType.Started, ClickCell);
+			InputManager.UnregisterInputEvent(InputEventType.Click0, InputEventResponseType.Get, ClickCell);
 			InputManager.UnregisterInputEvent(InputEventType.Click1, InputEventResponseType.Get, TryRemoveCell);
 			gridVisualization.SetActive(false);
 			marker.SetBool(MarkerEnabled, false);
@@ -129,29 +131,25 @@ namespace WitchMendokusai
 			if (StageManager.Instance.CurStage is WorldStage worldStage == false)
 				return;
 
-			if (BuildingObjectsByPos.TryGetValue(gridPosition, out BuildingObject buildingObject))
+			List<Vector3Int> coords = GetBuildingCoords(gridPosition, selectedBuilding.Size);
+			foreach (Vector3Int coord in coords)
 			{
-				// 해당 위치에 이미 건물이 있는 경우
-				Vector3Int pivot = buildingObject.Pivot;
+				if (BuildingObjectsByPos.ContainsKey(coord))
+				{
+					// Debug.LogWarning("Already has object at " + coord);
+					return;
+				}
+			}
 
-				worldStage.GridData.RemoveBuildingAt(gridPosition);
-				DespawnBuildingObject(pivot);
+			if (Time.time - lastClickTime < clickCooldown)
+			{
+				// Debug.LogWarning("Clicking too fast!");
 				return;
 			}
-			else
-			{
-				List<Vector3Int> coords = GetBuildingCoords(gridPosition, selectedBuilding.Size);
-				foreach (Vector3Int coord in coords)
-				{
-					if (BuildingObjectsByPos.ContainsKey(coord))
-					{
-						Debug.LogWarning("Already has object at " + coord);
-						return;
-					}
-				}
-				worldStage.GridData.AddBuildingAt(gridPosition, selectedBuilding);
-				SpawnBuildingObject(gridPosition, selectedBuilding);
-			}
+			lastClickTime = Time.time;
+
+			worldStage.GridData.AddBuildingAt(gridPosition, selectedBuilding);
+			SpawnBuildingObject(gridPosition, selectedBuilding);
 
 			// buildingState.OnAction(gridPosition);
 		}
@@ -166,6 +164,13 @@ namespace WitchMendokusai
 
 			if (BuildingObjectsByPos.TryGetValue(gridPosition, out BuildingObject buildingObject) == false)
 				return;
+
+			if (Time.time - lastClickTime < clickCooldown)
+			{
+				// Debug.LogWarning("Clicking too fast!");
+				return;
+			}
+			lastClickTime = Time.time;
 
 			Vector3Int pivot = buildingObject.Pivot;
 			worldStage.GridData.RemoveBuildingAt(gridPosition);
