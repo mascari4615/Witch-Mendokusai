@@ -44,23 +44,26 @@ namespace WitchMendokusai
 		{
 			if (other.TryGetComponent(out IDamageable damageable))
 			{
-				switch (damageable)
+				if (damageable is UnitHealth unitHealth)
 				{
-					case MonsterObject when usedByPlayer:
-					case PlayerObject when !usedByPlayer:
-						// Debug.Log(nameof(OnCollisionEnter));
-						damageable.ReceiveDamage(CalcDamage());
-						if (useHitCount)
-						{
-							if (--curHitCount <= 0)
+					switch (unitHealth.Unit)
+					{
+						case MonsterObject when usedByPlayer:
+						case PlayerObject when !usedByPlayer:
+							// Debug.Log(nameof(OnCollisionEnter));
+							damageable.ReceiveDamage(CalcDamage());
+							if (useHitCount)
 							{
-								valid = false;
+								if (--curHitCount <= 0)
+								{
+									valid = false;
 
-								if (disableWhenInvalid)
-									TurnOff();
+									if (disableWhenInvalid)
+										TurnOff();
+								}
 							}
-						}
-						break;
+							break;
+					}
 				}
 			}
 		}
