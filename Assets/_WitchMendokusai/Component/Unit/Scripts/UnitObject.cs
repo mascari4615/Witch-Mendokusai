@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 using DG.Tweening;
+using System.Text;
 
 namespace WitchMendokusai
 {
@@ -84,6 +85,24 @@ namespace WitchMendokusai
 		public virtual void ReceiveDamage(DamageInfo damageInfo)
 		{
 			Health.ReceiveDamage(damageInfo);
+		}
+
+		[ContextMenu("Log All Stats")]
+		private void LogAllStats()
+		{
+			StringBuilder sb = new();
+			sb.AppendLine($"[{name}] UnitData: {(UnitData != null ? UnitData.name : "NULL")}");
+			sb.AppendLine($"  UnitData Type: {UnitData?.GetType().Name ?? "N/A"}");
+			sb.AppendLine($"  HP_MAX_STAT = {UnitStat[UnitStatType.HP_MAX_STAT]}");
+			sb.AppendLine($"  HP_MAX = {UnitStat[UnitStatType.HP_MAX]}");
+			sb.AppendLine($"  HP_CUR = {UnitStat[UnitStatType.HP_CUR]}");
+			foreach (UnitStatType statType in Enum.GetValues(typeof(UnitStatType)))
+			{
+				int value = UnitStat[statType];
+				if (value != 0)
+					sb.AppendLine($"  {statType} = {value}");
+			}
+			Debug.Log(sb.ToString());
 		}
 	}
 }
