@@ -18,23 +18,23 @@ namespace WitchMendokusai
 		// public NavMeshAgent NavMeshAgent { get; protected set; } = null;
 		public Rigidbody RigidBody { get; protected set; } = null;
 		public UnitMovement UnitMovement { get; protected set; } = null;
-
-		private Vector3 originScale = Vector3.zero;
+		public UnitHealth Health { get; protected set; } = null;
 
 		[SerializeField] private float stoppingDistance = 0.1f;
 		[SerializeField] private bool updateRotation = false;
 		[SerializeField] private float acceleration = 40.0f;
 		// [SerializeField] private float tolerance = 1.0f;
 
-		public bool IsAlive => UnitStat[UnitStatType.HP_CUR] > 0;
+		public bool IsAlive => Health.IsAlive;
 
 		protected virtual void Awake()
 		{
-			originScale = MeshParent.localScale;
 			SpriteRenderer.material.SetFloat("_Emission", 0);
 			// NavMeshAgent = GetComponent<NavMeshAgent>();
 			RigidBody = GetComponent<Rigidbody>();
 			UnitMovement = GetComponent<UnitMovement>();
+			Health = GetComponent<UnitHealth>();
+			if (Health == null) Health = gameObject.AddComponent<UnitHealth>(); // TODO: UnitObject 프리팹에 UnitHealth 컴포넌트 추가 후 제거 - 2026-03-10.
 
 			if (UnitData != null)
 				Init(UnitData);
@@ -54,7 +54,7 @@ namespace WitchMendokusai
 			UnitStat.Set(UnitData.InitStatInfos.GetUnitStat());
 			UpdateStat();
 
-			MeshParent.localScale = originScale;
+			Health.Init(this);
 
 			// if (NavMeshAgent)
 			// {
@@ -76,46 +76,14 @@ namespace WitchMendokusai
 			return SkillHandler.UseSkill(index);
 		}
 
-		protected virtual void SetHp(int newHp)
-		{
-			UnitStat[UnitStatType.HP_CUR] = newHp;
-			if (UnitStat[UnitStatType.HP_CUR] <= 0)
-			{
-				Die();
-			}
-		}
-
 		public virtual void ReceiveHeal(int healAmount)
 		{
-			if (IsAlive == false)
-			{
-				return;
-			}
-
-			SetHp(Mathf.Clamp(UnitStat[UnitStatType.HP_CUR] + healAmount, 0, UnitStat[UnitStatType.HP_MAX]));
+			Health.ReceiveHeal(healAmount);
 		}
 
 		public virtual void ReceiveDamage(DamageInfo damageInfo)
 		{
-			if (IsAlive == false)
-			{
-				return;
-			}
-
-			SetHp(Mathf.Clamp(UnitStat[UnitStatType.HP_CUR] - damageInfo.damage, 0, int.MaxValue));
-
-			// Pivot 스케일 잠깐 키웠다가 줄이기
-			MeshParent.DOScale(originScale * 1.4f, .1f).OnComplete(() =>
-				MeshParent.DOScale(originScale, .2f));
-		}
-
-		protected virtual void Die()
-		{
-			OnDied();
-		}
-
-		protected virtual void OnDied()
-		{
+			Health.ReceiveDamage(damageInfo);
 		}
 	}
 }

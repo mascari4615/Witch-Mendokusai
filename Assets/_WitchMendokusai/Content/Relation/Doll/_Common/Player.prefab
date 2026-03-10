@@ -1708,6 +1708,7 @@ GameObject:
   - component: {fileID: 1735806719502580175}
   - component: {fileID: 5117333857034090126}
   - component: {fileID: 1709367252608091852}
+  - component: {fileID: 6233685962190346102}
   m_Layer: 6
   m_Name: Player
   m_TagString: Player
@@ -1868,6 +1869,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   nonRigidbodyVelocity: 0
   attenuationObject: {fileID: 0}
+--- !u!114 &6233685962190346102
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6743984011136962783}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eb34caf6f1e8b7d4d92f7b134bddf22d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WitchMendokusai.UnitHealth
 --- !u!1 &7610486861703332194
 GameObject:
   m_ObjectHideFlags: 0

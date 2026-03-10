@@ -5,7 +5,7 @@ using static WitchMendokusai.SOHelper;
 
 namespace WitchMendokusai
 {
-	public class PlayerObject : UnitObject, IDamageable
+	public class PlayerObject : UnitObject
 	{
 		private Coroutine invincibleRoutine = null;
 		[SerializeField] private GameObject diedX;
@@ -33,18 +33,25 @@ namespace WitchMendokusai
 			GameEventManager.Instance.Raise(GameEventType.OnPlayerDollChange);
 		}
 
-		public override void ReceiveDamage(DamageInfo damageInfo)
+		private void OnEnable()
+		{
+			Health.OnTakeDamage += HandleDamageEffects;
+			Health.OnDied += HandleDeathEffects;
+		}
+
+		private void OnDisable()
+		{
+			Health.OnTakeDamage -= HandleDamageEffects;
+			Health.OnDied -= HandleDeathEffects;
+		}
+
+		private void HandleDamageEffects(DamageInfo damageInfo)
 		{
 			if (DungeonManager.Instance.IsDungeon == false)
 				return;
 
 			if (invincibleRoutine != null)
 				return;
-
-			if (!IsAlive)
-				return;
-
-			base.ReceiveDamage(damageInfo);
 
 			RuntimeManager.PlayOneShot("event:/SFX/Monster/Hit", transform.position);
 			GameEventManager.Instance.Raise(GameEventType.OnPlayerHit);
@@ -66,9 +73,8 @@ namespace WitchMendokusai
 			}
 		}
 
-		protected override void OnDied()
+		protected virtual void HandleDeathEffects()
 		{
-			base.OnDied();
 			GameEventManager.Instance.Raise(GameEventType.OnPlayerDied);
 			TimeManager.Instance.DoSlowMotion();
 			diedX.SetActive(true);
@@ -77,12 +83,12 @@ namespace WitchMendokusai
 		private IEnumerator InvincibleTime()
 		{
 			// TODO
-			int invicibleTimeByDeciSec = (int)(SOManager.Instance.InvincibleTime.RuntimeValue * 10);
+			int invincibleTimeByDeciSec = (int)(SOManager.Instance.InvincibleTime.RuntimeValue * 10);
 			bool isWhite = false;
 
-			while (invicibleTimeByDeciSec > 0)
+			while (invincibleTimeByDeciSec > 0)
 			{
-				invicibleTimeByDeciSec--;
+				invincibleTimeByDeciSec--;
 				isWhite = !isWhite;
 
 				SpriteRenderer.material.SetFloat("_Emission", isWhite ? 1 : 0);

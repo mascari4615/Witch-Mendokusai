@@ -5,7 +5,7 @@ using static WitchMendokusai.WMHelper;
 
 namespace WitchMendokusai
 {
-	public class MonsterObject : UnitObject, IDamageable
+	public class MonsterObject : UnitObject
 	{
 		[Header("_" + nameof(MonsterObject))]
 		[SerializeField] private GameObject hitEffectPrefab;
@@ -22,6 +22,9 @@ namespace WitchMendokusai
 			ObjectBufferManager.AddObject(ObjectType.Monster, gameObject);
 			hpBar.localScale = Vector3.one;
 			hpBar.gameObject.SetActive(false);
+
+			Health.OnTakeDamage += HandleDamageEffects;
+			Health.OnDied += HandleDeathEffects;
 		}
 
 		protected virtual void OnDisable()
@@ -30,6 +33,9 @@ namespace WitchMendokusai
 				ObjectBufferManager.RemoveObject(ObjectType.Monster, gameObject);
 			StopAllCoroutines();
 			hpBar.gameObject.SetActive(false);
+
+			Health.OnTakeDamage -= HandleDamageEffects;
+			Health.OnDied -= HandleDeathEffects;
 		}
 
 		private void Update()
@@ -39,9 +45,8 @@ namespace WitchMendokusai
 			hpBar.rotation = Quaternion.Euler(0, hpBar.rotation.eulerAngles.y, 0);
 		}
 
-		public override void ReceiveDamage(DamageInfo damageInfo)
+		private void HandleDamageEffects(DamageInfo damageInfo)
 		{
-			base.ReceiveDamage(damageInfo);
 			UIManager.Instance.PopDamage(damageInfo, transform.position + Vector3.forward * 1);
 
 			SOManager.Instance.LastHitMonsterObject.RuntimeValue = this;
@@ -87,9 +92,8 @@ namespace WitchMendokusai
 			}
 		}
 
-		protected override void OnDied()
+		protected virtual void HandleDeathEffects()
 		{
-			base.OnDied();
 			DropLoot();
 
 			if (UnitData.Type == MonsterType.Boss)
