@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b7b9dec835590574788329d61c4b9b88, type: 3}
+  m_Name: ResourceNode
+  m_EditorClassIdentifier: Assembly-CSharp::WitchMendokusai.ResourceNode
+  <ID>k__BackingField: 0
+  <Name>k__BackingField: "\uB3CC"
+  <Description>k__BackingField: "\uB3CC\uC774\uB2E4"
+  <Sprite>k__BackingField: {fileID: 1956855754, guid: 0d615c72f68bd6d40bd8d180ff6556ec, type: 3}
+  <Sprites>k__BackingField: []
+  <Affiliation>k__BackingField: -1
+  <Prefab>k__BackingField: {fileID: 1587340312555970704, guid: c42077d83ff86c84193b6ad9286bfa4a, type: 3}
+  <DefaultSkills>k__BackingField: []
+  <Material>k__BackingField: {fileID: 0}
+  <InitStatInfos>k__BackingField:
+    initStats:
+    - unitStat: 2
+      value: 20
+    - unitStat: 300
+      value: 0
+  <Type>k__BackingField: 0
+  <Loots>k__BackingField:
+  - <DataSO>k__BackingField: {fileID: 11400000, guid: ed4b4beace462f343ba0a1b4d3144106, type: 2}
+    <Percentage>k__BackingField: 100

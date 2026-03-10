@@ -49,6 +49,7 @@ namespace WitchMendokusai
 					switch (unitHealth.Unit)
 					{
 						case MonsterObject when usedByPlayer:
+						case ResourceNodeObject when usedByPlayer:
 						case PlayerObject when !usedByPlayer:
 							// Debug.Log(nameof(OnCollisionEnter));
 							damageable.ReceiveDamage(CalcDamage());

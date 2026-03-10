@@ -21,6 +21,10 @@ namespace WitchMendokusai
 			{
 				UpdateStatMonster(unitData, unitStat);
 			}
+			else if (unitData is ResourceNode)
+			{
+				UpdateStatResourceNode(unitData, unitStat);
+			}
 		}
 
 		private void UpdateStatDoll(Unit unitData, UnitStat unitStat)
@@ -58,6 +62,11 @@ namespace WitchMendokusai
 				}
 				// SetHp(UnitStat[UnitStatType.HP_MAX]);
 			}
+		}
+
+		private void UpdateStatResourceNode(Unit unitData, UnitStat unitStat)
+		{
+			// ResourceNode는 InitStatInfos 기반 스탯을 그대로 사용
 		}
 	}
 }

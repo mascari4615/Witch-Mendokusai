@@ -1,0 +1,57 @@
+using UnityEngine;
+using static WitchMendokusai.WMHelper;
+
+namespace WitchMendokusai
+{
+	public class ResourceNodeObject : UnitObject
+	{
+		[Header("_" + nameof(ResourceNodeObject))]
+		[SerializeField] private Transform hpBar;
+
+		public new ResourceNode UnitData => base.UnitData as ResourceNode;
+
+		protected virtual void OnEnable()
+		{
+			SpriteRenderer.sprite = UnitData.Sprite;
+			SpriteRenderer.sharedMaterial = UnitData.Material;
+			hpBar.localScale = Vector3.one;
+			hpBar.gameObject.SetActive(false);
+
+			Health.OnTakeDamage += HandleDamageEffects;
+			Health.OnDied += HandleDeathEffects;
+		}
+
+		protected virtual void OnDisable()
+		{
+			StopAllCoroutines();
+			hpBar.gameObject.SetActive(false);
+
+			Health.OnTakeDamage -= HandleDamageEffects;
+			Health.OnDied -= HandleDeathEffects;
+		}
+
+		private void Update()
+		{
+			hpBar.LookAt(Camera.main.transform.position, Vector3.up);
+			hpBar.rotation = Quaternion.Euler(0, hpBar.rotation.eulerAngles.y, 0);
+		}
+
+		private void HandleDamageEffects(DamageInfo damageInfo)
+		{
+			hpBar.localScale = new Vector3((float)UnitStat[UnitStatType.HP_CUR] / UnitStat[UnitStatType.HP_MAX], 1, 1);
+			hpBar.gameObject.SetActive(true);
+		}
+
+		protected virtual void HandleDeathEffects()
+		{
+			DropLoot();
+			StopAllCoroutines();
+			gameObject.SetActive(false);
+		}
+
+		protected virtual void DropLoot()
+		{
+			GameLogic.SpawnLootItem(UnitData.Loots, transform.position);
+		}
+	}
+}
