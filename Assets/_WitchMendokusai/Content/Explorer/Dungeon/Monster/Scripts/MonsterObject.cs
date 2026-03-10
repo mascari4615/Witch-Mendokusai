@@ -8,10 +8,6 @@ namespace WitchMendokusai
 	public class MonsterObject : UnitObject
 	{
 		[Header("_" + nameof(MonsterObject))]
-		[SerializeField] private GameObject hitEffectPrefab;
-		[SerializeField] private GameObject dieEffectPrefab;
-
-		private Coroutine flashRoutine;
 		[SerializeField] private Transform hpBar;
 
 		public new Monster UnitData => base.UnitData as Monster;
@@ -47,49 +43,9 @@ namespace WitchMendokusai
 
 		private void HandleDamageEffects(DamageInfo damageInfo)
 		{
-			UIManager.Instance.PopDamage(damageInfo, transform.position + Vector3.forward * 1);
-
 			SOManager.Instance.LastHitMonsterObject.RuntimeValue = this;
 			hpBar.localScale = new Vector3((float)UnitStat[UnitStatType.HP_CUR] / UnitStat[UnitStatType.HP_MAX], 1, 1);
 			hpBar.gameObject.SetActive(true);
-
-			GameObject hitEffect = ObjectPoolManager.Instance.Spawn(hitEffectPrefab);
-			hitEffect.transform.position = transform.position + (Vector3.Normalize(Player.Instance.transform.position - transform.position) * .5f);
-			hitEffect.SetActive(true);
-
-			/*
-            if (DataManager.Instance.wgItemInven.Items.Contains(DataManager.Instance.ItemDic[36]))
-            {
-                if ((float)hp / MaxHp <= 0.1f * DataManager.Instance.wgItemInven.itemCountDic[36])
-                {
-                    ObjectManager.Instance.PopObject("AnimatedText", transform.position + Vector3.up)
-                        .GetComponent<AnimatedText>().SetText("처형", Color.red);
-                    RuntimeManager.PlayOneShot(hurtSFX, transform.position);
-                    StopAllCoroutines();
-                    Collapse();
-                    return;
-                }
-            }
-            */
-
-			if (IsAlive == false)
-				return;
-
-			if (flashRoutine != null)
-			{
-				StopCoroutine(flashRoutine);
-			}
-
-			flashRoutine = StartCoroutine(FlashRoutine());
-
-			RuntimeManager.PlayOneShot("event:/SFX/Monster/Hit", transform.position);
-
-			switch (UnitStat[UnitStatType.HP_CUR])
-			{
-				case > 0:
-					// Animator.SetTrigger("AHYA");
-					break;
-			}
 		}
 
 		protected virtual void HandleDeathEffects()
@@ -100,16 +56,11 @@ namespace WitchMendokusai
 				DataManager.Instance.DungeonStat[DungeonStatType.BOSS_KILL]++;
 			DataManager.Instance.DungeonStat[DungeonStatType.MONSTER_KILL]++;
 
-			RuntimeManager.PlayOneShot("event:/SFX/Monster/Die", transform.position);
 			StopAllCoroutines();
 
 			// Animator.SetTrigger("COLLAPSE");
 			if (IsPlaying)
 				ObjectBufferManager.RemoveObject(ObjectType.Monster, gameObject);
-
-			GameObject dieEffect = ObjectPoolManager.Instance.Spawn(dieEffectPrefab);
-			dieEffect.transform.position = transform.position + (Vector3.Normalize(Player.Instance.transform.position - transform.position) * .5f);
-			dieEffect.SetActive(true);
 
 			gameObject.SetActive(false);
 		}
@@ -119,14 +70,6 @@ namespace WitchMendokusai
 			GameLogic.SpawnLootItem(UnitData.Loots, transform.position);
 			GameLogic.SpawnGameItem(transform.position);
 			GameLogic.SpawnExpOrb(transform.position);
-		}
-
-		private IEnumerator FlashRoutine()
-		{
-			SpriteRenderer.material.SetFloat("_Emission", 1);
-			yield return new WaitForSeconds(.1f);
-			SpriteRenderer.material.SetFloat("_Emission", 0);
-			flashRoutine = null;
 		}
 
 		protected Vector3 GetRot()
