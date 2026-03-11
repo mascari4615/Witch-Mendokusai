@@ -143,10 +143,11 @@ namespace WitchMendokusai
 			if (existingEntry != null)
 			{
 				// 다른 라벨이 있다면 지우기 (오래된 라벨)
+				// NOTE: labels.Remove() 대신 SetLabel 사용 - labels 컨렉션 직접 조작은 Addressable 내부 직렬화에 반영되지 않음
 				foreach (string label in existingEntry.labels.ToList())
 				{
 					if (label != type.Name)
-						existingEntry.labels.Remove(label);
+						existingEntry.SetLabel(label, false);
 				}
 
 				// 이미 올바른 주소 형식을 가지고 있는지 확인
@@ -161,9 +162,10 @@ namespace WitchMendokusai
 				existingEntry.address = expectedAddress;
 
 				// 라벨 추가
+				// NOTE: labels.Add() 대신 SetLabel 사용 - labels 컨렉션 직접 조작은 Addressable 내부 직렬화에 반영되지 않음
 				if (existingEntry.labels.Contains(type.Name) == false)
 				{
-					existingEntry.labels.Add(type.Name);
+					existingEntry.SetLabel(type.Name, true);
 				}
 
 				settings.SetDirty(AddressableAssetSettings.ModificationEvent.EntryModified, existingEntry, true);
@@ -181,13 +183,12 @@ namespace WitchMendokusai
 				group = settings.FindGroup(groupName);
 				if (group == null)
 				{
-					group = settings.CreateGroup(groupName, false, false, true,
-						new List<AddressableAssetGroupSchema>
-						{
-							settings.DefaultGroup.GetSchema<ContentUpdateGroupSchema>(),
-							settings.DefaultGroup.GetSchema<BundledAssetGroupSchema>()
-						});
-				// TODO: 생성하고 바로 등록하면 안되는 것 같음. (밑에 entry == null 나오면서 에러 발생, 다시 InitDict하면 설정됨)
+					group = settings.CreateGroup(groupName, false, false, true, null,
+						typeof(ContentUpdateGroupSchema), typeof(BundledAssetGroupSchema));
+
+					// 새 그룹 생성 직후 에셋을 저장해야 CreateOrMoveEntry가 정상 동작
+					EditorUtility.SetDirty(settings);
+					AssetDatabase.SaveAssets();
 				}
 				addressableGroups[groupName] = group;
 			}
@@ -205,7 +206,8 @@ namespace WitchMendokusai
 			entry.address = $"{type.Name}/{dataSO.ID}";
 
 			// 레이블 추가
-			entry.labels.Add(type.Name);
+			// NOTE: labels.Add() 대신 SetLabel 사용 - labels 컨렉션 직접 조작은 Addressable 내부 직렬화에 반영되지 않음
+			entry.SetLabel(type.Name, true);
 
 			// Addressable 설정 저장
 			settings.SetDirty(AddressableAssetSettings.ModificationEvent.EntryMoved, entry, true);
