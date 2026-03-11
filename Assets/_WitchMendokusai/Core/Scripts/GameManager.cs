@@ -15,6 +15,7 @@ namespace WitchMendokusai
 		{
 			ObjectBufferManager.ClearObjects(ObjectType.Drop);
 			ObjectBufferManager.ClearObjects(ObjectType.Monster);
+			ObjectBufferManager.ClearObjects(ObjectType.ResourceNode);
 			ObjectBufferManager.ClearObjects(ObjectType.Skill);
 			ObjectBufferManager.ClearObjects(ObjectType.SpawnCircle);
 

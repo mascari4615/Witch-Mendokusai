@@ -29,8 +29,8 @@ namespace WitchMendokusai
 
 		public void InitWaves(Dungeon dungeon)
 		{
-			waves.Clear();
 			StopAllCoroutines();
+			waves.Clear();
 
 			foreach (ResourceNodeWave wave in dungeon.ResourceNodeWaves)
 				waves.Add(new ResourceNodeWaveInstance(wave));
@@ -110,6 +110,7 @@ namespace WitchMendokusai
 		public void StopWave()
 		{
 			StopAllCoroutines();
+			waves.Clear();
 		}
 	}
 }

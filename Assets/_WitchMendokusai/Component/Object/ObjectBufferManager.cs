@@ -9,6 +9,7 @@ namespace WitchMendokusai
 	{
 		SpawnCircle,
 		Monster,
+		ResourceNode,
 		Drop,
 		Skill,
 	}
@@ -19,6 +20,7 @@ namespace WitchMendokusai
 		{
 			{ ObjectType.SpawnCircle, new List<GameObject>() },
 			{ ObjectType.Monster, new List<GameObject>() },
+			{ ObjectType.ResourceNode, new List<GameObject>() },
 			{ ObjectType.Drop, new List<GameObject>() },
 			{ ObjectType.Skill, new List<GameObject>() },
 		};

@@ -17,12 +17,14 @@ namespace WitchMendokusai
 			hpBar.localScale = Vector3.one;
 			hpBar.gameObject.SetActive(false);
 
+			ObjectBufferManager.AddObject(ObjectType.ResourceNode, gameObject);
 			Health.OnTakeDamage += HandleDamageEffects;
 			Health.OnDied += HandleDeathEffects;
 		}
 
 		protected virtual void OnDisable()
 		{
+			ObjectBufferManager.RemoveObject(ObjectType.ResourceNode, gameObject);
 			StopAllCoroutines();
 			hpBar.gameObject.SetActive(false);
 
