@@ -15,6 +15,7 @@ namespace WitchMendokusai
 
 		[SerializeField] private CardManager cardManager;
 		[SerializeField] private MonsterSpawner monsterSpawner;
+		[SerializeField] private ResourceNodeSpawner resourceNodeSpawner;
 		[SerializeField] private ExpManager expChecker;
 
 		private UIDungeon dungeonUI = null;
@@ -85,6 +86,7 @@ namespace WitchMendokusai
 
 				monsterSpawner.transform.position = Player.Instance.transform.position;
 				monsterSpawner.InitWaves(dungeon);
+				resourceNodeSpawner.InitWaves(dungeon);
 
 				// StartDungeonLoop();
 				{
@@ -107,6 +109,7 @@ namespace WitchMendokusai
 							Context.UpdateTime();
 							Context.UpdateDifficulty();
 							monsterSpawner.UpdateWaves();
+							resourceNodeSpawner.UpdateWaves();
 						}, () => EndDungeon());
 				}
 
@@ -127,6 +130,7 @@ namespace WitchMendokusai
 			dungeonLoopSubscription?.Dispose();
 			dungeonLoopSubscription = null;
 			monsterSpawner.StopWave();
+			resourceNodeSpawner.StopWave();
 
 			dungeonRecorder.CaptureResultRecord();
 
