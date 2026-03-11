@@ -19,6 +19,10 @@ namespace WitchMendokusai
 		public void Init(UnitObject unitObject)
 		{
 			Unit = unitObject;
+
+			Unit.MeshParent.DOKill();
+			if (originScale != Vector3.zero)
+				Unit.MeshParent.localScale = originScale;
 			originScale = Unit.MeshParent.localScale;
 			
 			OnHealthChanged?.Invoke(Unit.UnitStat[UnitStatType.HP_CUR], Unit.UnitStat[UnitStatType.HP_MAX]);
