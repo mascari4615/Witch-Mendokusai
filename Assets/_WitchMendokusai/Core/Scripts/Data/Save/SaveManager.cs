@@ -152,6 +152,7 @@ namespace WitchMendokusai
 			DataManager.QuestManager.Init(saveData.runtimeQuests.ConvertAll(questData => new RuntimeQuest(questData)));
 
 			// 던전 초기화
+			ForEach<Dungeon>(dungeon => { dungeon.Init(); }); // 먼저 전부 Init (새로 추가된 던전 포함)
 			foreach ((int id, DungeonSaveData dungeonData) in saveData.dungeons)
 			{
 				Dungeon dungeon = GetDungeon(id);
