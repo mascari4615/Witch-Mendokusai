@@ -89,6 +89,7 @@ MonoBehaviour:
     <EndTime>k__BackingField: 3600
     <SpawnDelay>k__BackingField: 0.5
     <Once>k__BackingField: 0
+  <ResourceNodeWaves>k__BackingField: []
   <Rewards>k__BackingField:
   - Type: 1
     DataSO: {fileID: 0}

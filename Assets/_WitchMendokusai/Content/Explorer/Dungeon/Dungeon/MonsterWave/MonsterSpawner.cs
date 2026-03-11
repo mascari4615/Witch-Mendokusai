@@ -24,7 +24,7 @@ namespace WitchMendokusai
 		[SerializeField] private GameObject spawnCirclePrefab;
 		private readonly List<MonsterWaveInstance> waves = new();
 		[SerializeField] private float spawnDelay = .2f;
-		[SerializeField] private float spawnRange;
+		[SerializeField] private Vector2 spawnDistanceRange = new(10f, 15f);
 
 		public void InitWaves(Dungeon curDungeon)
 		{
@@ -82,11 +82,29 @@ namespace WitchMendokusai
 
 		private IEnumerator SpawnMonster(Monster monster, float spawnDelay, DungeonDifficulty difficulty)
 		{
-			Vector3 randomOffset = Random.insideUnitCircle * spawnRange;
-			randomOffset.z = randomOffset.y;
-			randomOffset.y = 0;
+			// 플레이어가 이동하는 방향 쪽으로 스폰 위치를 랜덤으로 선택 - KarmoDDrine 2025-12-27
+			Vector3 randomOffset;
+			Vector3 playerPosition = Player.Instance.transform.position;
+			Vector3 playerForward = Player.Instance.Object.UnitMovement.MoveDirectionLocal;
 
-			Vector3 spawnPos = transform.position + randomOffset;
+			if (playerForward == Vector3.zero)
+			{
+				// 플레이어 주변 '일정거리 떨어진' 범위 내에서 스폰 위치를 랜덤으로 선택 - KarmoDDrine 2025-12-27
+				Vector2 randomCircle = Random.insideUnitCircle.normalized;
+				float randomDistance = Random.Range(spawnDistanceRange.x, spawnDistanceRange.y);
+				randomOffset = new Vector3(randomCircle.x, 0, randomCircle.y) * randomDistance;
+			}
+			else
+			{
+				// 플레이어가 이동하는 방향 쪽으로 '일정거리 떨어진' 범위 내에서 스폰 위치를 랜덤으로 선택 - KarmoDDrine 2025-12-27
+				float angleOffset = Random.Range(-30f, 30f); // 플레이어 이동 방향 기준 ±30도 이내
+				Quaternion rotation = Quaternion.Euler(0, angleOffset, 0);
+				Vector3 direction = rotation * playerForward;
+				float randomDistance = Random.Range(spawnDistanceRange.x, spawnDistanceRange.y);
+				randomOffset = direction.normalized * randomDistance;
+			}
+
+			Vector3 spawnPos = playerPosition + randomOffset;
 
 			GameObject spawnCircle = ObjectPoolManager.Instance.Spawn(spawnCirclePrefab);
 			spawnCircle.transform.position = spawnPos;
