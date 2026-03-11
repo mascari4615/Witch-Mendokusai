@@ -92,6 +92,18 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 4552526690297205425, guid: 8985bc14129999340bfe02f05cc6a45f, type: 3}
       insertIndex: -1
       addedObject: {fileID: 4601275114766011727}
+    - targetCorrespondingSourceObject: {fileID: 4552526690297205425, guid: 8985bc14129999340bfe02f05cc6a45f, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 8342628594283025483}
+    - targetCorrespondingSourceObject: {fileID: 4552526690297205425, guid: 8985bc14129999340bfe02f05cc6a45f, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 6547949991324373500}
+    - targetCorrespondingSourceObject: {fileID: 4552526690297205425, guid: 8985bc14129999340bfe02f05cc6a45f, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 6030215928482858114}
+    - targetCorrespondingSourceObject: {fileID: 4552526690297205425, guid: 8985bc14129999340bfe02f05cc6a45f, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 3279413516871209930}
   m_SourcePrefab: {fileID: 100100000, guid: 8985bc14129999340bfe02f05cc6a45f, type: 3}
 --- !u!1 &1848531686881178565 stripped
 GameObject:
@@ -116,8 +128,6 @@ MonoBehaviour:
   stoppingDistance: 0.1
   updateRotation: 0
   acceleration: 40
-  hitEffectPrefab: {fileID: 0}
-  dieEffectPrefab: {fileID: 0}
   hpBar: {fileID: 5591941910199305167}
 --- !u!114 &5389770000558939686
 MonoBehaviour:
@@ -161,6 +171,59 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: eb34caf6f1e8b7d4d92f7b134bddf22d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WitchMendokusai.UnitHealth
+--- !u!114 &8342628594283025483
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1848531686881178565}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 90f1c7b58b0c57a479acbd5590ef0075, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WitchMendokusai.DamageAudioFeedback
+  hitEventPath: event:/SFX/Monster/Hit
+  dieEventPath: event:/SFX/Monster/Die
+--- !u!114 &6547949991324373500
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1848531686881178565}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d76093b455d4fef4ab15fe6e6dd7e987, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WitchMendokusai.DamageFlashFeedback
+  spriteRenderer: {fileID: 3636146261913355018}
+--- !u!114 &6030215928482858114
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1848531686881178565}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d6be247bd1a72e24e93f210be6436c8e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WitchMendokusai.DamagePopupFeedback
+--- !u!114 &3279413516871209930
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1848531686881178565}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 29589a554ee292c43b8624136732ee4e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WitchMendokusai.DamageVFXFeedback
+  hitEffectPrefab: {fileID: 3897986288003847520, guid: e6c8d67a42fcd034d80aea1d4d278914, type: 3}
+  dieEffectPrefab: {fileID: 3897986288003847520, guid: 92ac45d0fb1c10f4da81674f06b26486, type: 3}
 --- !u!4 &2186457573704370070 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4097506783380236002, guid: 8985bc14129999340bfe02f05cc6a45f, type: 3}
