@@ -1,4 +1,3 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -8,24 +7,16 @@ namespace WitchMendokusai
 {
 	public class ResourceNodeSpawner : MonoBehaviour
 	{
-		public class ResourceNodeWaveInstance
+		private class WaveInstance
 		{
-			public ResourceNodeWave Data { get; set; }
-			public float SpawnT { get; set; }
-			public int ActiveCount { get; set; }
-
-			public ResourceNodeWaveInstance(ResourceNodeWave wave)
-			{
-				Data = wave;
-				SpawnT = 0f;
-				ActiveCount = 0;
-			}
+			public ResourceNodeWave Data;
+			public int ActiveCount;
 		}
 
 		[field: Header("_" + nameof(ResourceNodeSpawner))]
 		[SerializeField] private Vector2 spawnDistanceRange = new(5f, 12f);
 
-		private readonly List<ResourceNodeWaveInstance> waves = new();
+		private readonly List<WaveInstance> waves = new();
 
 		public void InitWaves(Dungeon dungeon)
 		{
@@ -33,42 +24,16 @@ namespace WitchMendokusai
 			waves.Clear();
 
 			foreach (ResourceNodeWave wave in dungeon.ResourceNodeWaves)
-				waves.Add(new ResourceNodeWaveInstance(wave));
-		}
-
-		public void UpdateWaves()
-		{
-			for (int i = waves.Count - 1; i >= 0; i--)
-				UpdateWave(i);
-		}
-
-		private void UpdateWave(int waveIndex)
-		{
-			ResourceNodeWaveInstance waveInstance = waves[waveIndex];
-
-			TimeSpan dungeonTime = DungeonManager.Instance.Context.InitialDungeonTime - DungeonManager.Instance.Context.DungeonCurTime;
-
-			if (dungeonTime < TimeSpan.FromSeconds(waveInstance.Data.StartTime))
-				return;
-
-			if (dungeonTime > TimeSpan.FromSeconds(waveInstance.Data.EndTime))
 			{
-				waves.RemoveAt(waveIndex);
-				return;
-			}
+				WaveInstance waveInstance = new() { Data = wave, ActiveCount = 0 };
+				waves.Add(waveInstance);
 
-			if (waveInstance.ActiveCount >= waveInstance.Data.MaxNodeCount)
-				return;
-
-			waveInstance.SpawnT += DungeonContext.TimeUpdateInterval.Milliseconds / 1000f;
-			if (waveInstance.SpawnT >= waveInstance.Data.SpawnInterval)
-			{
-				SpawnNode(waveInstance);
-				waveInstance.SpawnT = 0f;
+				for (int i = 0; i < wave.MaxNodeCount; i++)
+					SpawnNode(waveInstance);
 			}
 		}
 
-		private void SpawnNode(ResourceNodeWaveInstance waveInstance)
+		private void SpawnNode(WaveInstance waveInstance)
 		{
 			ResourceNode data = waveInstance.Data.ResourceNodes[Random.Range(0, waveInstance.Data.ResourceNodes.Length)];
 			Vector3 spawnPos = GetSpawnPosition();
@@ -80,18 +45,18 @@ namespace WitchMendokusai
 			nodeObject.SetActive(true);
 
 			waveInstance.ActiveCount++;
-			nodeComponent.Health.OnDied += () => OnNodeDied(waveInstance, data);
+			nodeComponent.Health.OnDied += () => OnNodeDied(waveInstance);
 		}
 
-		private void OnNodeDied(ResourceNodeWaveInstance waveInstance, ResourceNode data)
+		private void OnNodeDied(WaveInstance waveInstance)
 		{
 			waveInstance.ActiveCount--;
 
 			if (waveInstance.Data.RespawnDelay > 0)
-				StartCoroutine(RespawnAfterDelay(waveInstance, data));
+				StartCoroutine(RespawnAfterDelay(waveInstance));
 		}
 
-		private IEnumerator RespawnAfterDelay(ResourceNodeWaveInstance waveInstance, ResourceNode data)
+		private IEnumerator RespawnAfterDelay(WaveInstance waveInstance)
 		{
 			yield return new WaitForSeconds(waveInstance.Data.RespawnDelay);
 

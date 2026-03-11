@@ -109,7 +109,7 @@ namespace WitchMendokusai
 							Context.UpdateTime();
 							Context.UpdateDifficulty();
 							monsterSpawner.UpdateWaves();
-							resourceNodeSpawner.UpdateWaves();
+
 						}, () => EndDungeon());
 				}
 
