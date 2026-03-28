@@ -102,6 +102,10 @@ namespace WitchMendokusai
 		DEAD = 100_000_000,
 		CASTING_SKILL = 100_000_001,
 		FORCE_MOVE = 100_000_002,
+
+		IS_WALKING = 100_000_100,
+		IS_SPRINTING = 100_000_101,
+		IS_CROUCHING = 100_000_102,
 		#endregion
 	}
 }

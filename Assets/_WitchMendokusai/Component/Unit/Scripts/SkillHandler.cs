@@ -34,7 +34,7 @@ namespace WitchMendokusai
 			{
 				if (skill.IsReady)
 				{
-					skill.Use(unitObject);
+					skill.Use(new SkillContext(unitObject));
 					return true;
 				}
 			}
@@ -62,7 +62,7 @@ namespace WitchMendokusai
 				};
 
 				if (isAutoUse && skill.IsReady)
-					skill.Use(unitObject);
+					skill.Use(new SkillContext(unitObject));
 			}
 		}
 	}

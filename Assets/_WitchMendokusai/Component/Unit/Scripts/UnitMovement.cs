@@ -89,7 +89,12 @@ namespace WitchMendokusai
 			else if (unitObject.UnitStat[UnitStatType.FORCE_MOVE] > 0)
 				finalVelocity = moveDirection * SOManager.Instance.DashSpeed.RuntimeValue;
 			else
-				finalVelocity = moveDirection * (unitObject.UnitStat[UnitStatType.MOVEMENT_SPEED] / 10f);
+			{
+				float moveSpeed = unitObject.UnitStat[UnitStatType.MOVEMENT_SPEED] / 10f;
+				if (unitObject.UnitStat[UnitStatType.IS_SPRINTING] > 0)
+					moveSpeed *= 2f; // TODO: 스프린트 속도 하드코딩함 - 2026-03-28. KarmoDDrine
+				finalVelocity = moveDirection * moveSpeed;
+			}
 
 			unitRigidBody.linearVelocity = finalVelocity;
 			// unitRigidBody.AddForce(finalVelocity, ForceMode.VelocityChange);

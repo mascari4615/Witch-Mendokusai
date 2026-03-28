@@ -5,6 +5,7 @@ namespace WitchMendokusai
 	public class DollAnimator : MonoBehaviour
 	{
 		[SerializeField] private Animator mainAnimator;
+		[SerializeField] private Animator animatorOf3DModel;
 		[SerializeField] private Transform pivot;
 
 		[SerializeField] private new Rigidbody rigidbody;
@@ -12,7 +13,10 @@ namespace WitchMendokusai
 
 		private void Update()
 		{
-			mainAnimator.SetBool("MOVE", rigidbody.linearVelocity.magnitude > 0.1f);
+			bool isMoving = rigidbody.linearVelocity.magnitude > 0.1f;
+			mainAnimator.SetBool("MOVE", isMoving);
+			animatorOf3DModel.SetBool("MOVE", isMoving);
+
 			handAnimator.SetBool("CHANNELING", Input.GetKey(KeyCode.Mouse0) || Input.GetKey(KeyCode.Mouse1));
 
 			Vector3 moveDirection = Player.Instance.Object.UnitMovement.MoveDirectionLocal;
