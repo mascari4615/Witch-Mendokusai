@@ -12,6 +12,18 @@ namespace WitchMendokusai
 		AutoWhenDungeon = 2,
 	}
 
+	public class SkillContext
+	{
+		public UnitObject User { get; private set; }
+		public EquipmentData UsedEquipment { get; private set; }
+
+		public SkillContext(UnitObject user, EquipmentData usedEquipment = null)
+		{
+			User = user;
+			UsedEquipment = usedEquipment;
+		}
+	}
+
 	public abstract class SkillData : DataSO
 	{
 		[field: SerializeField] public SkillPlayMode PlayMode { get; set; }
@@ -19,14 +31,16 @@ namespace WitchMendokusai
 		[field: SerializeField] public float PrevDelay { get; set; } = 0;
 		[field: SerializeField] public float AfterDelay { get; set; } = 0;
 
-		public void Use(UnitObject unitObject)
+		public void Use(SkillContext context)
 		{
-			unitObject.StartCoroutine(SkillCoroutine(unitObject));
+			context.User.StartCoroutine(SkillCoroutine(context));
 		}
 
-		public IEnumerator SkillCoroutine(UnitObject unitObject)
+		public IEnumerator SkillCoroutine(SkillContext context)
 		{
 			yield return null;
+
+			UnitObject unitObject = context.User;
 
 			if (PrevDelay > 0)
 			{
@@ -35,7 +49,7 @@ namespace WitchMendokusai
 				unitObject.UnitStat[UnitStatType.CASTING_SKILL]--;
 			}
 
-			ActualUse(unitObject);
+			ActualUse(context);
 
 			if (AfterDelay > 0)
 			{
@@ -45,6 +59,6 @@ namespace WitchMendokusai
 			}
 		}
 
-		public abstract void ActualUse(UnitObject unitObject);
+		public abstract void ActualUse(SkillContext context);
 	}
 }

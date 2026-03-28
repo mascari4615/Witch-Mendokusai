@@ -40,7 +40,7 @@ namespace WitchMendokusai
 			}
 			else
 			{
-				SetMoveDirection((Player.Instance.transform.position - skillObject.User.transform.position).normalized);
+				SetMoveDirection((Player.Instance.transform.position - skillObject.Context.User.transform.position).normalized);
 			}
 		}
 	}

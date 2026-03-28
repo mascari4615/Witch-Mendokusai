@@ -10,10 +10,10 @@ namespace WitchMendokusai
 		[field: SerializeField] public GameObject Prefab { get; private set; }
 		[field: SerializeField] public bool SetRotation { get; private set; }
 
-		public override void ActualUse(UnitObject unitObject)
+		public override void ActualUse(SkillContext context)
 		{
 			GameObject o = ObjectPoolManager.Instance.Spawn(Prefab);
-			o.transform.position = unitObject.transform.position;
+			o.transform.position = context.User.transform.position;
 
 			if (SetRotation)
 			{
@@ -22,7 +22,7 @@ namespace WitchMendokusai
 			}
 
 			if (o.TryGetComponent(out SkillObject skillObject))
-				skillObject.InitContext(unitObject);
+				skillObject.InitContext(context);
 
 			o.SetActive(true);
 		}

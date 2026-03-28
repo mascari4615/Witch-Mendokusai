@@ -21,9 +21,9 @@ namespace WitchMendokusai
 
 		public void Tick() => Cooldown.Tick();
 
-		public void Use(UnitObject unitObject)
+		public void Use(SkillContext context)
 		{
-			Data.Use(unitObject);
+			Data.Use(context);
 			Cooldown.Reset();
 		}
 	}

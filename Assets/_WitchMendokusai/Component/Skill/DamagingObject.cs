@@ -22,7 +22,7 @@ namespace WitchMendokusai
 		private bool valid = true;
 		private int curHitCount;
 
-		private SkillObject skillObject;
+		private SkillObject skillObject = null;
 
 		public void OnTriggerEnter(Collider other)
 		{
@@ -86,9 +86,17 @@ namespace WitchMendokusai
 
 		private DamageInfo CalcDamage()
 		{
+			Debug.Log($"SkillObject {skillObject}");
+			Debug.Log($"SkillContext {skillObject.Context}");
+			Debug.Log($"SkillContext User {skillObject.Context.User}");
+			Debug.Log($"SkillContext UsedEquipment {skillObject.Context.UsedEquipment}");
+
 			DamageInfo damageInfo = new()
 			{
-				type = DamageType.Normal
+				type = DamageType.Normal,
+				// 스킬로 생성하는 경우도 있고, 몸박 데미지도 있고 - 2026-03-22. KarmoDDrine
+				damageSource = skillObject ? skillObject.Context.User : GetComponent<UnitObject>(),
+				equipmentData = skillObject ? skillObject.Context.UsedEquipment : null,
 			};
 
 			int calcDamage = damage + damageBonus;

@@ -4,6 +4,12 @@ using UnityEngine;
 
 namespace WitchMendokusai
 {
+	public enum EquipmentType
+	{
+		Default,
+		Pickaxe
+	}
+
 	[CreateAssetMenu(fileName = nameof(EquipmentData), menuName = "WM/Variable/" + nameof(EquipmentData))]
 	public class EquipmentData : ItemData
 	{
@@ -11,5 +17,6 @@ namespace WitchMendokusai
 		[PropertyOrder(20)][field: SerializeField] public List<CardData> EffectCards { get; private set; }
 		[PropertyOrder(21)][field: SerializeField] public List<EffectInfo> Effects { get; private set; }
 		[PropertyOrder(22)][field: SerializeField] public GameObject Object { get; private set; }
+		[PropertyOrder(23)][field: SerializeField] public EquipmentType EquipmentType { get; private set; } = EquipmentType.Default;
 	}
 }

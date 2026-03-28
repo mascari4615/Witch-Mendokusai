@@ -7,8 +7,9 @@ namespace WitchMendokusai
 	[CreateAssetMenu(fileName = nameof(Dash), menuName = "WM/Skill/" + nameof(Dash))]
 	public class Dash : SkillData
 	{
-		public override void ActualUse(UnitObject unitObject)
+		public override void ActualUse(SkillContext context)
 		{
+			UnitObject unitObject = context.User;
 			unitObject.StartCoroutine(DashLoop(unitObject));
 		}
 

@@ -8,7 +8,7 @@ namespace WitchMendokusai
 	public class SkillObject : MonoBehaviour
 	{
 		[field: Header("Context")]
-		public UnitObject User { get; private set; }
+		public SkillContext Context { get; private set; }
 		public bool UsedByPlayer { get; private set; }
 
 		private SkillComponent[] skillComponents;
@@ -24,10 +24,10 @@ namespace WitchMendokusai
 				ObjectBufferManager.RemoveObject(ObjectType.Skill, gameObject);
 		}
 
-		public void InitContext(UnitObject unitObject)
+		public void InitContext(SkillContext context)
 		{
-			User = unitObject;
-			UsedByPlayer = (unitObject is PlayerObject);
+			Context = context;
+			UsedByPlayer = context.User is PlayerObject;
 
 			skillComponents = GetComponentsInChildren<SkillComponent>(true);
 
