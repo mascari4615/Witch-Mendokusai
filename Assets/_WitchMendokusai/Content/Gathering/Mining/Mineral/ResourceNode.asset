@@ -24,7 +24,7 @@ MonoBehaviour:
   <InitStatInfos>k__BackingField:
     initStats:
     - unitStat: 2
-      value: 20
+      value: 100
     - unitStat: 300
       value: 0
   <Type>k__BackingField: 0

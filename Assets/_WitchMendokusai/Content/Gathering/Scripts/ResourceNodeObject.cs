@@ -1,3 +1,4 @@
+using System.Linq;
 using UnityEngine;
 using static WitchMendokusai.WMHelper;
 
@@ -54,6 +55,19 @@ namespace WitchMendokusai
 		protected virtual void DropLoot()
 		{
 			GameLogic.SpawnLootItem(UnitData.Loots, transform.position);
+		}
+
+		public override void ReceiveDamage(DamageInfo damageInfo)
+		{
+			bool isPickaxe = damageInfo.equipmentData != null && damageInfo.equipmentData.EquipmentType == EquipmentType.Pickaxe;
+
+			// Pickaxe가 아니면 데미지 1/10, 최소 1
+			if (isPickaxe == false)
+			{
+				damageInfo.damage = Mathf.Max(1, damageInfo.damage / 10);
+			}
+
+			base.ReceiveDamage(damageInfo);
 		}
 	}
 }
