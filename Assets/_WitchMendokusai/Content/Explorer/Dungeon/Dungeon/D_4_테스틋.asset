@@ -27,20 +27,11 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 2d63efb33b5a0ef45b4d6d2077774871, type: 2}
   <Stages>k__BackingField:
   - {fileID: 11400000, guid: 80189e44b4e5101489b86446ca51ca47, type: 2}
-  <MonsterWaves>k__BackingField:
-  - <Monsters>k__BackingField:
-    - {fileID: 11400000, guid: d3b4b260c0d5fcd478b6ccbf48fc8d43, type: 2}
-    <StartTime>k__BackingField: 0
-    <EndTime>k__BackingField: 3600
-    <SpawnDelay>k__BackingField: 5
-    <Once>k__BackingField: 0
+  <MonsterWaves>k__BackingField: []
   <ResourceNodeWaves>k__BackingField:
   - <ResourceNodes>k__BackingField:
     - {fileID: 11400000, guid: 8eaf831385858d9479d9168d915ca846, type: 2}
-    <MaxNodeCount>k__BackingField: 100
-    <StartTime>k__BackingField: 0
-    <EndTime>k__BackingField: 3600
-    <SpawnInterval>k__BackingField: 0.1
+    <MaxNodeCount>k__BackingField: 500
     <RespawnDelay>k__BackingField: 1
   <Rewards>k__BackingField:
   - Type: 1

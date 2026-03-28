@@ -109,6 +109,17 @@ namespace WitchMendokusai
 		{
 			TimeManager.Instance.Pause(gameObject);
 			yield return new WaitForSecondsRealtime(1f);
+			
+			// 선택한 덱에서 카드 뽑기
+			List<CardData> curDeckBuffer = cardDataBuffers[curDeckIndex];
+
+			if (curDeckBuffer.Count == 0)
+			{
+				Debug.LogWarning("Not Enough Card Count");
+				TimeManager.Instance.Resume(gameObject);
+				yield break;
+			}
+
 			ShuffleDeck();
 			SetPanel(CardPanelType.SelectDeck);
 		}

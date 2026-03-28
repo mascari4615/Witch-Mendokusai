@@ -36,6 +36,12 @@ MonoBehaviour:
     <SpawnDelay>k__BackingField: 0.5
     <Once>k__BackingField: 0
   - <Monsters>k__BackingField:
+    - {fileID: 11400000, guid: d3b4b260c0d5fcd478b6ccbf48fc8d43, type: 2}
+    <StartTime>k__BackingField: 0
+    <EndTime>k__BackingField: 3600
+    <SpawnDelay>k__BackingField: 0.5
+    <Once>k__BackingField: 0
+  - <Monsters>k__BackingField:
     - {fileID: 11400000, guid: 2ceb99060a689664cac66fc04dc07a75, type: 2}
     <StartTime>k__BackingField: 30
     <EndTime>k__BackingField: 3600

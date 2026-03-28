@@ -87,14 +87,9 @@ namespace WitchMendokusai
 			Vector3 playerPosition = Player.Instance.transform.position;
 			Vector3 playerForward = Player.Instance.Object.UnitMovement.MoveDirectionLocal;
 
-			if (playerForward == Vector3.zero)
-			{
-				// 플레이어 주변 '일정거리 떨어진' 범위 내에서 스폰 위치를 랜덤으로 선택 - KarmoDDrine 2025-12-27
-				Vector2 randomCircle = Random.insideUnitCircle.normalized;
-				float randomDistance = Random.Range(spawnDistanceRange.x, spawnDistanceRange.y);
-				randomOffset = new Vector3(randomCircle.x, 0, randomCircle.y) * randomDistance;
-			}
-			else
+			// 플레이어가 이동 중이면, 플레이어 앞에 스폰. 도망가지마 맞서싸워.
+			bool spawnInFrontOfPlayer = playerForward != Vector3.zero;
+			if (spawnInFrontOfPlayer)
 			{
 				// 플레이어가 이동하는 방향 쪽으로 '일정거리 떨어진' 범위 내에서 스폰 위치를 랜덤으로 선택 - KarmoDDrine 2025-12-27
 				float angleOffset = Random.Range(-30f, 30f); // 플레이어 이동 방향 기준 ±30도 이내
@@ -102,6 +97,13 @@ namespace WitchMendokusai
 				Vector3 direction = rotation * playerForward;
 				float randomDistance = Random.Range(spawnDistanceRange.x, spawnDistanceRange.y);
 				randomOffset = direction.normalized * randomDistance;
+			}
+			else
+			{
+				// 플레이어 주변 '일정거리 떨어진' 범위 내에서 스폰 위치를 랜덤으로 선택 - KarmoDDrine 2025-12-27
+				Vector2 randomCircle = Random.insideUnitCircle.normalized;
+				float randomDistance = Random.Range(spawnDistanceRange.x, spawnDistanceRange.y);
+				randomOffset = new Vector3(randomCircle.x, 0, randomCircle.y) * randomDistance;
 			}
 
 			Vector3 spawnPos = playerPosition + randomOffset;
