@@ -154,6 +154,12 @@ MonoBehaviour:
   positionComposer: {fileID: 5123082678106289827}
   minZoom: 2
   maxZoom: 28
+  zoomWheelSensitivity: 3
+  zoomSmoothTime: 0.12
+  adjustPitchWithZoom: 0
+  pitchAtFarZoom: 25
+  pitchAtNearZoom: 10
+  targetOffsetBonusAtNear: {x: 0, y: 0, z: 0}
 --- !u!114 &1357298894130424496
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -675,6 +681,12 @@ MonoBehaviour:
   positionComposer: {fileID: 4176869629433973148}
   minZoom: 2
   maxZoom: 20
+  zoomWheelSensitivity: 3
+  zoomSmoothTime: 0.12
+  adjustPitchWithZoom: 0
+  pitchAtFarZoom: 25
+  pitchAtNearZoom: 10
+  targetOffsetBonusAtNear: {x: 0, y: 0, z: 0}
 --- !u!114 &2235260484728495236
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -857,6 +869,12 @@ MonoBehaviour:
   positionComposer: {fileID: 407754302289330047}
   minZoom: 2
   maxZoom: 18
+  zoomWheelSensitivity: 3
+  zoomSmoothTime: 0.12
+  adjustPitchWithZoom: 0
+  pitchAtFarZoom: 25
+  pitchAtNearZoom: 10
+  targetOffsetBonusAtNear: {x: 0, y: 0, z: 0}
 --- !u!114 &3616233593415228470
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1026,8 +1044,14 @@ MonoBehaviour:
   <BlendStyle>k__BackingField: 1
   <CinemachineCamera>k__BackingField: {fileID: 1171458456755304594}
   positionComposer: {fileID: 6449674615429622753}
-  minZoom: 2
-  maxZoom: 28
+  minZoom: 4
+  maxZoom: 16
+  zoomWheelSensitivity: 3
+  zoomSmoothTime: 0.12
+  adjustPitchWithZoom: 1
+  pitchAtFarZoom: 25
+  pitchAtNearZoom: 0
+  targetOffsetBonusAtNear: {x: 0, y: 1, z: 0}
 --- !u!114 &8063760352781042478
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1426,6 +1450,12 @@ MonoBehaviour:
   positionComposer: {fileID: 0}
   minZoom: 2
   maxZoom: 18
+  zoomWheelSensitivity: 3
+  zoomSmoothTime: 0.12
+  adjustPitchWithZoom: 0
+  pitchAtFarZoom: 25
+  pitchAtNearZoom: 10
+  targetOffsetBonusAtNear: {x: 0, y: 0, z: 0}
 --- !u!114 &12456093744927451
 MonoBehaviour:
   m_ObjectHideFlags: 0
