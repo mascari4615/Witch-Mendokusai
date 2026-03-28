@@ -67,7 +67,7 @@ namespace WitchMendokusai
 				bulletObject.transform.position = bulletSpawnPos;
 
 				if (bulletObject.TryGetComponent(out SkillObject skillObject))
-					skillObject.InitContext(Player.Instance.Object);
+					skillObject.InitContext(new SkillContext(Player.Instance.Object));
 
 				if (bulletObject.TryGetComponent(out DamagingObject damagingObject))
 					damagingObject.SetDamageBonus(damageBonus);

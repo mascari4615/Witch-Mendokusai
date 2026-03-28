@@ -29,3 +29,4 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 3fa3b816d25e65745b76b2b101540401, type: 2}
   <Effects>k__BackingField: []
   <Object>k__BackingField: {fileID: 0}
+  <EquipmentType>k__BackingField: 0

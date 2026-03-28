@@ -108,7 +108,7 @@ namespace WitchMendokusai
 					g.transform.Rotate(0, 180, 0);
 
 				if (g.TryGetComponent(out SkillObject skillObject))
-					skillObject.InitContext(Player.Instance.Object);
+					skillObject.InitContext(new SkillContext(Player.Instance.Object));
 
 				if (g.GetComponentInChildren<DamagingObject>() is DamagingObject damagingObject)
 					damagingObject.SetDamageBonus(damageBonus);
