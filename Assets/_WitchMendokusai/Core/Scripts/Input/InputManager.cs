@@ -23,6 +23,8 @@ namespace WitchMendokusai
 		Click1,
 		ChangeMode,
 		Scroll,
+		Sprint,
+		Crouch,
 
 		// UI
 		Submit,
@@ -54,6 +56,8 @@ namespace WitchMendokusai
 			{ InputEventType.Click1, InputMapType.Player },
 			{ InputEventType.ChangeMode, InputMapType.Player },
 			{ InputEventType.Scroll, InputMapType.Player },
+			{ InputEventType.Sprint, InputMapType.Player },
+			{ InputEventType.Crouch, InputMapType.Player },
 
 			{ InputEventType.Submit, InputMapType.UI },
 			{ InputEventType.Cancel, InputMapType.UI },

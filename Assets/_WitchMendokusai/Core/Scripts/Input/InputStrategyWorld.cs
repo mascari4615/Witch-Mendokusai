@@ -30,6 +30,30 @@ namespace WitchMendokusai
 							() => Player.Instance.TryUseSkill(2),
 							() => CanExecute(InputEventType.Click1)
 						),
+						new(
+							InputEventType.Sprint,
+							InputEventResponseType.Started,
+							() => Player.Instance.SetSprinting(true),
+							() => CanExecute(InputEventType.Sprint)
+						),
+						new(
+							InputEventType.Sprint,
+							InputEventResponseType.Canceled,
+							() => Player.Instance.SetSprinting(false),
+							() => CanExecute(InputEventType.Sprint)
+						),
+						new(
+							InputEventType.Crouch,
+							InputEventResponseType.Started,
+							() => Player.Instance.SetCrouching(true),
+							() => CanExecute(InputEventType.Crouch)
+						),
+						new(
+							InputEventType.Crouch,
+							InputEventResponseType.Canceled,
+							() => Player.Instance.SetCrouching(false),
+							() => CanExecute(InputEventType.Crouch)
+						),
 
 						new(
 							InputEventType.ChangeMode,
