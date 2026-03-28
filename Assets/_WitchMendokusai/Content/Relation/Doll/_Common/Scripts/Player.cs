@@ -65,5 +65,15 @@ namespace WitchMendokusai
 		{
 			Object.UnitMovement.SetMoveDirection(InputManager.Instance.MoveInput);
 		}
+
+		public void SetSprinting(bool isSprinting)
+		{
+			UnitStat[UnitStatType.IS_SPRINTING] = isSprinting ? 1 : 0;
+		}
+
+		public void SetCrouching(bool isCrouching)
+		{
+			UnitStat[UnitStatType.IS_CROUCHING] = isCrouching ? 1 : 0;
+		}
 	}
 }
