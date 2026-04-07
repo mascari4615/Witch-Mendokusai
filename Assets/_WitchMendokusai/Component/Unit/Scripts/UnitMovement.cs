@@ -12,14 +12,20 @@ namespace WitchMendokusai
 		[SerializeField] private float lowJumpGravityMultiplier = 3.1f;
 		[SerializeField] private float coyoteTime = 0.1f;
 		[SerializeField] private float jumpBufferTime = 0.12f;
+		[SerializeField] private float landingImpactMinFallSpeed = 1.2f;
+		[SerializeField] private float landingImpactMaxFallSpeed = 8f;
 		[SerializeField] private float groundCheckDistance = 0.25f;
 		[SerializeField] private LayerMask groundLayerMask;
 		private bool isJumpHeld;
 		private float coyoteTimer;
 		private float jumpBufferTimer;
+		private bool wasGrounded;
+		private float lastAirborneFallSpeed;
 
 		protected Rigidbody unitRigidBody;
 		protected UnitObject unitObject;
+
+		public event Action<float> OnLanded;
 
 		public float MoveTick { get; set; } = 0.02f;
 		// public Vector3 Destination { get; set; } = Vector3.zero;
@@ -39,6 +45,8 @@ namespace WitchMendokusai
 		private void OnEnable()
 		{
 			UpdateLookDirection(Vector3.right);
+			wasGrounded = IsGrounded();
+			lastAirborneFallSpeed = 0f;
 
 			StartCoroutine(MoveCoroutine());
 		}
@@ -101,6 +109,16 @@ namespace WitchMendokusai
 			jumpBufferTimer = Mathf.Max(0f, jumpBufferTimer - MoveTick);
 			unitObject.UnitStat[UnitStatType.IS_JUMPING] = (!isGrounded && currentVerticalVelocity > 0f) ? 1 : 0;
 
+			if (!isGrounded && currentVerticalVelocity < 0f)
+				lastAirborneFallSpeed = Mathf.Max(lastAirborneFallSpeed, -currentVerticalVelocity);
+
+			if (isGrounded && !wasGrounded)
+			{
+				float impactStrength = Mathf.InverseLerp(landingImpactMinFallSpeed, landingImpactMaxFallSpeed, lastAirborneFallSpeed);
+				OnLanded?.Invoke(impactStrength);
+				lastAirborneFallSpeed = 0f;
+			}
+
 			if (CanUseJumpState() && jumpBufferTimer > 0f && coyoteTimer > 0f)
 			{
 				ExecuteJump();
@@ -141,6 +159,7 @@ namespace WitchMendokusai
 			}
 
 			unitRigidBody.linearVelocity = finalVelocity;
+			wasGrounded = isGrounded;
 			// unitRigidBody.AddForce(finalVelocity, ForceMode.VelocityChange);
 		}
 

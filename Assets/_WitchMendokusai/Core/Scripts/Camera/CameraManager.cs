@@ -184,6 +184,11 @@ namespace WitchMendokusai
 			impulseSource.GenerateImpulse();
 		}
 
+		public void GenerateCameraImpulse(float amplitude)
+		{
+			impulseSource.GenerateImpulse(Mathf.Max(0f, amplitude));
+		}
+
 #if UNITY_EDITOR
 		[ContextMenu("SetCameraNormal")]
 		private void SetCameraNormal_Editor() => SetContentCameraMode(ContentCameraMode.Normal);
