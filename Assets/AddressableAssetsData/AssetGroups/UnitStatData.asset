@@ -33,6 +33,12 @@ MonoBehaviour:
     m_SerializedLabels:
     - UnitStatData
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 1c07253471c37134fad16c6c96384beb
+    m_Address: UnitStatData/100000103
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - UnitStatData
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 1efbc87faebfe5841b552c91d02c5b9e
     m_Address: UnitStatData/10102
     m_ReadOnly: 0
