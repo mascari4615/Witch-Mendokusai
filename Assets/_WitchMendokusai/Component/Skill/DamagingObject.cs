@@ -86,10 +86,17 @@ namespace WitchMendokusai
 
 		private DamageInfo CalcDamage()
 		{
-			Debug.Log($"SkillObject {skillObject}");
-			Debug.Log($"SkillContext {skillObject.Context}");
-			Debug.Log($"SkillContext User {skillObject.Context.User}");
-			Debug.Log($"SkillContext UsedEquipment {skillObject.Context.UsedEquipment}");
+			if (skillObject)
+			{
+				Debug.Log($"SkillObject {skillObject}");
+				Debug.Log($"SkillContext {skillObject.Context}");
+				Debug.Log($"SkillContext User {skillObject.Context.User}");
+				Debug.Log($"SkillContext UsedEquipment {skillObject.Context.UsedEquipment}");
+			}
+			else
+			{
+				Debug.Log("No SkillObject");
+			}
 
 			DamageInfo damageInfo = new()
 			{
