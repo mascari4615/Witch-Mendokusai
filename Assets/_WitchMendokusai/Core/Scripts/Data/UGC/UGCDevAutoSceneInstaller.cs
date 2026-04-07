@@ -27,20 +27,29 @@ namespace WitchMendokusai
 
 		private static void OnSceneLoaded(Scene scene, LoadSceneMode mode)
 		{
-			if (!IsGameplayScene(scene))
+			if (!Application.isPlaying)
+			{
+				UGCLog.Info($"[Installer] Skip scene='{scene.name}' (not playing)");
 				return;
+			}
+
+			if (!IsGameplayScene(scene))
+			{
+				UGCLog.Info($"[Installer] Skip scene='{scene.name}' path='{scene.path}' (not gameplay scene)");
+				return;
+			}
+
+			UGCLog.Info($"[Installer] Install start scene='{scene.name}' mode={mode}");
 
 			UGCObjectRegistry.Clear();
 			UGCConditionRuntime.Clear();
+			GameObject root = GameObject.Find(RootName);
+			if (root == null)
+			{
+				root = new GameObject(RootName);
+			}
 
-			if (GameObject.Find(RootName) != null)
-				return;
-
-			if (Object.FindAnyObjectByType<UGCDevSampleRunner>() != null)
-				return;
-
-			GameObject root = new(RootName);
-			root.hideFlags = HideFlags.DontSave;
+			MarkRuntimeOnly(root);
 
 			if (!UGCJsonLoader.TryLoadMapManifestFromSample(DefaultManifestFile, out UGCMapManifestData manifest, out string manifestError))
 			{
@@ -61,12 +70,22 @@ namespace WitchMendokusai
 					UGCLog.Warn($"Trigger file load failed while creating trigger zones: {triggerError}");
 			}
 
-			GameObject runner = new("UGC_DevRunner");
-			runner.transform.SetParent(root.transform, true);
-			UGCDevSampleRunner sampleRunner = runner.AddComponent<UGCDevSampleRunner>();
+			UGCDevSampleRunner sampleRunner = Object.FindAnyObjectByType<UGCDevSampleRunner>();
+			if (sampleRunner == null)
+			{
+				GameObject runner = new GameObject("UGC_DevRunner");
+				runner.transform.SetParent(root.transform, true);
+				sampleRunner = runner.AddComponent<UGCDevSampleRunner>();
+				UGCLog.Info("[Installer] Created UGC_DevRunner");
+			}
+			else
+			{
+				UGCLog.Info("[Installer] Reused existing UGCDevSampleRunner");
+			}
+			MarkRuntimeOnly(sampleRunner.gameObject);
 			sampleRunner.Setup(DefaultManifestFile, DefaultTriggerFile, false);
 
-			UGCLog.Info($"Test setup auto-installed in scene '{scene.name}'. Hotkeys: F6(open gate), F7(move platform), F8(checkpoint)");
+			UGCLog.Info($"Test setup auto-installed in scene '{scene.name}'. Hotkeys: F6(open gate), F7(move platform), F8(checkpoint), F9(toggle hazard)");
 		}
 
 		private static void InstallFromManifest(UGCMapManifestData manifest, Transform root)
@@ -75,6 +94,7 @@ namespace WitchMendokusai
 			{
 				UGCMapObjectData data = manifest.objects[i];
 				GameObject obj = FindOrCreateMapObject(data, root);
+				SyncMapObjectTransform(data, obj, root);
 				AttachReceiverByTags(data, obj);
 			}
 
@@ -86,10 +106,12 @@ namespace WitchMendokusai
 				{
 					obj = GameObject.CreatePrimitive(PrimitiveType.Sphere);
 					obj.name = checkpoint.id;
-					obj.transform.position = ToVector3(checkpoint.position, Vector3.zero);
-					obj.transform.localScale = Vector3.one * 1.5f;
-					obj.transform.SetParent(root, true);
 				}
+
+				obj.transform.position = ToVector3(checkpoint.position, Vector3.zero);
+				obj.transform.localScale = Vector3.one * 1.5f;
+				obj.transform.SetParent(root, true);
+				MarkRuntimeOnly(obj);
 
 				if (obj.GetComponent<UGCTestCheckpointReceiver>() == null)
 					obj.AddComponent<UGCTestCheckpointReceiver>();
@@ -109,6 +131,10 @@ namespace WitchMendokusai
 			GameObject checkpoint = GetOrCreatePrimitive("checkpoint_03", PrimitiveType.Sphere, new Vector3(35f, 1f, 12f), Vector3.one * 1.5f, root);
 			if (checkpoint.GetComponent<UGCTestCheckpointReceiver>() == null)
 				checkpoint.AddComponent<UGCTestCheckpointReceiver>();
+
+			GameObject hazard = GetOrCreatePrimitive("hazard_spikes_01", PrimitiveType.Cube, new Vector3(26f, 0.6f, 11f), new Vector3(2.4f, 1.2f, 2.4f), root);
+			if (hazard.GetComponent<UGCTestHazardReceiver>() == null)
+				hazard.AddComponent<UGCTestHazardReceiver>();
 		}
 
 		private static void InstallZonesFromManifest(UGCMapManifestData manifest, Transform root)
@@ -152,15 +178,22 @@ namespace WitchMendokusai
 				zone = GameObject.CreatePrimitive(PrimitiveType.Cube);
 				zone.name = zoneId;
 				zone.transform.SetParent(root, true);
-				zone.transform.position = position;
-				zone.transform.localScale = scale;
 			}
+			MarkRuntimeOnly(zone);
+
+			// Always sync transform from data so stale scene objects do not keep old trigger positions.
+			zone.transform.position = position;
+			zone.transform.localScale = scale;
 
 			Collider collider = zone.GetComponent<Collider>();
 			if (collider == null)
 				collider = zone.AddComponent<BoxCollider>();
 
 			collider.isTrigger = true;
+
+			Renderer renderer = zone.GetComponent<Renderer>();
+			if (renderer != null)
+				renderer.enabled = false;
 
 			UGCTriggerZone triggerZone = zone.GetComponent<UGCTriggerZone>();
 			if (triggerZone == null)
@@ -182,8 +215,18 @@ namespace WitchMendokusai
 			obj.transform.eulerAngles = ToVector3(data.rotation, Vector3.zero);
 			obj.transform.localScale = ToVector3(data.scale, Vector3.one);
 			obj.transform.SetParent(root, true);
+			MarkRuntimeOnly(obj);
 
 			return obj;
+		}
+
+		private static void SyncMapObjectTransform(UGCMapObjectData data, GameObject obj, Transform root)
+		{
+			obj.transform.position = ToVector3(data.position, Vector3.zero);
+			obj.transform.eulerAngles = ToVector3(data.rotation, Vector3.zero);
+			obj.transform.localScale = ToVector3(data.scale, Vector3.one);
+			obj.transform.SetParent(root, true);
+			MarkRuntimeOnly(obj);
 		}
 
 		private static void AttachReceiverByTags(UGCMapObjectData data, GameObject obj)
@@ -193,6 +236,9 @@ namespace WitchMendokusai
 
 			if (data.tags != null && data.tags.Contains("moving") && obj.GetComponent<UGCTestPlatformReceiver>() == null)
 				obj.AddComponent<UGCTestPlatformReceiver>();
+
+			if (data.tags != null && data.tags.Contains("hazard") && obj.GetComponent<UGCTestHazardReceiver>() == null)
+				obj.AddComponent<UGCTestHazardReceiver>();
 		}
 
 		private static GameObject GetOrCreatePrimitive(string objectName, PrimitiveType primitiveType, Vector3 position, Vector3 scale, Transform parent)
@@ -209,7 +255,17 @@ namespace WitchMendokusai
 			if (obj.transform.parent == null)
 				obj.transform.SetParent(parent, true);
 
+			MarkRuntimeOnly(obj);
+
 			return obj;
+		}
+
+		private static void MarkRuntimeOnly(GameObject obj)
+		{
+			if (obj == null)
+				return;
+
+			obj.hideFlags = HideFlags.DontSave;
 		}
 
 		private static Vector3 ToVector3(UGCVector3Data value, Vector3 defaultValue)

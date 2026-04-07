@@ -13,6 +13,13 @@ namespace WitchMendokusai
 				if (instance != null)
 					return instance;
 
+				// Do not spawn singleton prefabs while not playing; this can create leaked clones on scene close.
+				if (!Application.isPlaying)
+				{
+					instance = FindAnyObjectByType<T>(FindObjectsInactive.Include);
+					return instance;
+				}
+
 				Debug.Log($"There is no {typeof(T).Name} in the scene. Try to find it.");
 				instance = FindAnyObjectByType<T>(FindObjectsInactive.Include);
 				if (instance != null)
@@ -36,6 +43,20 @@ namespace WitchMendokusai
 				return null;
 			}
 			private set => instance = value;
+		}
+
+		public static bool TryGetExistingInstance(out T existing)
+		{
+			existing = instance;
+			if (existing != null)
+				return true;
+
+			existing = FindAnyObjectByType<T>(FindObjectsInactive.Include);
+			if (existing == null)
+				return false;
+
+			instance = existing;
+			return true;
 		}
 
 		[SerializeField] private bool dontDestroyOnLoad = false;

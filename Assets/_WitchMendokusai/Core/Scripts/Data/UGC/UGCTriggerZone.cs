@@ -6,11 +6,23 @@ namespace WitchMendokusai
 	public class UGCTriggerZone : MonoBehaviour
 	{
 		[SerializeField] private string zoneId;
+		[SerializeField] private float initialIgnoreSec = 0.6f;
+
+		private float armedAt;
+
+		private void Awake()
+		{
+			if (string.IsNullOrWhiteSpace(zoneId))
+				zoneId = gameObject.name;
+
+			armedAt = Time.time + Mathf.Max(0f, initialIgnoreSec);
+		}
 
 		public void Setup(string id)
 		{
 			zoneId = id;
 			gameObject.name = id;
+			armedAt = Time.time + Mathf.Max(0f, initialIgnoreSec);
 			UGCObjectRegistry.Register(zoneId, "Zone", gameObject);
 		}
 
@@ -22,6 +34,9 @@ namespace WitchMendokusai
 		private void OnTriggerEnter(Collider other)
 		{
 			if (string.IsNullOrWhiteSpace(zoneId))
+				return;
+
+			if (Time.time < armedAt)
 				return;
 
 			string actorId = ResolveActorId(other.gameObject);

@@ -14,6 +14,7 @@ namespace WitchMendokusai
 		private void Awake()
 		{
 			startPosition = transform.position;
+			UGCMaterialSafety.EnsureUsableMaterial(GetComponent<Renderer>(), new Color(0.25f, 0.75f, 1f, 1f));
 			UGCObjectRegistry.Register(gameObject.name, "Platform", gameObject);
 		}
 
@@ -45,5 +46,6 @@ namespace WitchMendokusai
 
 			Debug.Log($"[UGC] Platform '{name}' move started. route={command.routeId}, speed={speed}, loop={loop}");
 		}
+
 	}
 }

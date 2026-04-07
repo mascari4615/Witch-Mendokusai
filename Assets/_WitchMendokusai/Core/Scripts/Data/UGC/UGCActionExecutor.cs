@@ -8,6 +8,7 @@ namespace WitchMendokusai
 		private const string DoorKind = "Door";
 		private const string PlatformKind = "Platform";
 		private const string CheckpointKind = "Checkpoint";
+		private const string HazardKind = "Hazard";
 
 		public sealed class MovePlatformCommand
 		{
@@ -40,6 +41,8 @@ namespace WitchMendokusai
 					return TryMovePlatform(action, target, out error);
 				case "ActivateCheckpoint":
 					return TryActivateCheckpoint(action, target, out error);
+				case "ToggleHazard":
+					return TryToggleHazard(action, target, out error);
 				default:
 					error = $"Unsupported action type: {action.type}";
 					return false;
@@ -80,6 +83,8 @@ namespace WitchMendokusai
 					return true;
 				case "ActivateCheckpoint":
 					return TryRequireTargetKind(action, CheckpointKind, out error);
+				case "ToggleHazard":
+					return TryRequireTargetKind(action, HazardKind, out error);
 				default:
 					error = $"Unsupported action type: {action.type}";
 					return false;
@@ -137,6 +142,19 @@ namespace WitchMendokusai
 			bool setAsRespawn = GetBool(action.@params, "setAsRespawn", true);
 			target.SendMessage("UGC_ActivateCheckpoint", setAsRespawn, SendMessageOptions.DontRequireReceiver);
 			UGCLog.Info($"Action ActivateCheckpoint executed. target={target.name}, setAsRespawn={setAsRespawn}");
+
+			error = null;
+			return true;
+		}
+
+		private static bool TryToggleHazard(UGCActionData action, GameObject target, out string error)
+		{
+			if (!TryRequireTargetKind(action, HazardKind, out error))
+				return false;
+
+			bool enabled = GetBool(action.@params, "enabled", true);
+			target.SendMessage("UGC_SetHazardEnabled", enabled, SendMessageOptions.DontRequireReceiver);
+			UGCLog.Info($"Action ToggleHazard executed. target={target.name}, enabled={enabled}");
 
 			error = null;
 			return true;
@@ -212,6 +230,10 @@ namespace WitchMendokusai
 					expectedKind = CheckpointKind;
 					error = null;
 					return true;
+				case "ToggleHazard":
+					expectedKind = HazardKind;
+					error = null;
+					return true;
 				default:
 					expectedKind = null;
 					error = $"Unsupported action type: {actionType}";
@@ -242,6 +264,7 @@ namespace WitchMendokusai
 		private const string PlatformKind = "Platform";
 		private const string CheckpointKind = "Checkpoint";
 		private const string ZoneKind = "Zone";
+		private const string HazardKind = "Hazard";
 
 		private sealed class RegisteredObject
 		{
@@ -340,6 +363,8 @@ namespace WitchMendokusai
 					return gameObject.GetComponent<UGCTestPlatformReceiver>() != null;
 				case CheckpointKind:
 					return gameObject.GetComponent<UGCTestCheckpointReceiver>() != null;
+					case HazardKind:
+						return gameObject.GetComponent<UGCTestHazardReceiver>() != null;
 				case ZoneKind:
 					return gameObject.GetComponent<UGCTriggerZone>() != null;
 				default:

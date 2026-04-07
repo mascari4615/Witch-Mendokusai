@@ -21,7 +21,8 @@ namespace WitchMendokusai
 		private void OnDisable()
 		{
 			// Event.UnregisterListener(this);
-			GameEventManager.Instance.UnregisterCallback(EventType, OnEventRaised);
+			if (GameEventManager.TryGetExistingInstance(out GameEventManager manager))
+				manager.UnregisterCallback(EventType, OnEventRaised);
 		}
 
 		public void OnEventRaised()

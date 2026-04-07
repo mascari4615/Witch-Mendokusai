@@ -9,6 +9,7 @@ namespace WitchMendokusai
 		private const string DoorKind = "Door";
 		private const string PlatformKind = "Platform";
 		private const string CheckpointKind = "Checkpoint";
+		private const string HazardKind = "Hazard";
 
 		public static bool TryValidateTriggerEvent(UGCTriggerEventData data, out string error)
 		{
@@ -251,6 +252,16 @@ namespace WitchMendokusai
 
 					error = null;
 					return true;
+
+					case "ToggleHazard":
+						if (!IsKind(action.target.kind, HazardKind))
+						{
+							error = $"action[{index}] expects target.kind '{HazardKind}' but got '{action.target.kind}'.";
+							return false;
+						}
+
+						error = null;
+						return true;
 
 				default:
 					error = $"action[{index}] has unsupported type: {action.type}";

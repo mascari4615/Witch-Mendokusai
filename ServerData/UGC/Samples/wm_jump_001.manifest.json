@@ -35,12 +35,20 @@
       "rotation": { "x": 0, "y": 0, "z": 0 },
       "scale": { "x": 1, "y": 1, "z": 1 },
       "tags": ["platform", "moving"]
+    },
+    {
+      "id": "hazard_spikes_01",
+      "prefabId": "Hazard/SpikesA",
+      "position": { "x": 26, "y": 0.6, "z": 11 },
+      "rotation": { "x": 0, "y": 0, "z": 0 },
+      "scale": { "x": 2.4, "y": 1.2, "z": 2.4 },
+      "tags": ["hazard"]
     }
   ],
   "zones": [
     {
       "id": "zone_start_01",
-      "position": { "x": 2, "y": 1, "z": 0 },
+      "position": { "x": 8, "y": 1, "z": 0 },
       "scale": { "x": 4, "y": 2, "z": 4 }
     },
     {
@@ -52,12 +60,18 @@
       "id": "zone_checkpoint_03",
       "position": { "x": 33, "y": 1, "z": 12 },
       "scale": { "x": 4, "y": 2, "z": 4 }
+    },
+    {
+      "id": "zone_hazard_toggle_01",
+      "position": { "x": 24, "y": 1, "z": 11 },
+      "scale": { "x": 4, "y": 2, "z": 4 }
     }
   ],
   "triggers": [
     "evt_open_gate_001",
     "evt_start_platform_001",
-    "evt_checkpoint_003"
+    "evt_checkpoint_003",
+    "evt_toggle_hazard_001"
   ],
   "tags": ["tutorial", "jumpmap"],
   "meta": {

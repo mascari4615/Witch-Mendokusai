@@ -13,6 +13,7 @@ namespace WitchMendokusai
 		private void Awake()
 		{
 			cachedRenderer = GetComponent<Renderer>();
+			UGCMaterialSafety.EnsureUsableMaterial(cachedRenderer, openColor);
 			UGCObjectRegistry.Register(gameObject.name, "Door", gameObject);
 			ApplyVisual();
 		}
@@ -34,5 +35,6 @@ namespace WitchMendokusai
 			if (cachedRenderer != null)
 				cachedRenderer.material.color = isOpen ? openColor : closedColor;
 		}
+
 	}
 }

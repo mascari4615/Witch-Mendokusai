@@ -100,5 +100,38 @@
     ],
     "cooldownSec": 0,
     "once": true
+  },
+  {
+    "schemaVersion": 1,
+    "id": "evt_toggle_hazard_001",
+    "enabled": true,
+    "tags": ["hazard", "jumpmap"],
+    "match": "all",
+    "conditions": [
+      {
+        "type": "OnEnterZone",
+        "target": {
+          "kind": "Zone",
+          "id": "zone_hazard_toggle_01"
+        },
+        "params": {
+          "actor": "player"
+        }
+      }
+    ],
+    "actions": [
+      {
+        "type": "ToggleHazard",
+        "target": {
+          "kind": "Hazard",
+          "id": "hazard_spikes_01"
+        },
+        "params": {
+          "enabled": false
+        }
+      }
+    ],
+    "cooldownSec": 0,
+    "once": true
   }
 ]
