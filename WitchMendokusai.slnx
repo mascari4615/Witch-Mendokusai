@@ -10,7 +10,6 @@
   <Project Path="Unity.Timeline.Editor.csproj" />
   <Project Path="Unity.Cinemachine.Editor.csproj" />
   <Project Path="Unity.2D.Psdimporter.Editor.csproj" />
-  <Project Path="Unity.Collections.csproj" />
   <Project Path="Unity.2D.IK.Runtime.csproj" />
   <Project Path="Unity.Addressables.Editor.csproj" />
   <Project Path="Unity.MemoryProfiler.Editor.csproj" />
@@ -73,7 +72,6 @@
   <Project Path="Unity.AppUI.Navigation.csproj" />
   <Project Path="Unity.InputSystem.ForUI.csproj" />
   <Project Path="Unity.AI.Navigation.csproj" />
-  <Project Path="Unity.Collections.CodeGen.csproj" />
   <Project Path="Unity.2D.Tilemap.Extras.csproj" />
   <Project Path="Unity.Addressables.csproj" />
   <Project Path="Unity.2D.Animation.Runtime.csproj" />
@@ -102,6 +100,6 @@
   <Project Path="Unity.AppUI.InternalAPIBridge.csproj" />
   <Project Path="Unity.MemoryProfiler.csproj" />
   <Project Path="BakeryECS.csproj" />
-  <Project Path="Unity.Collections.Editor.csproj" />
+  <Project Path="Unity.2D.Triangulation.Runtime.csproj" />
   <Project Path="Assembly-CSharp-Editor-firstpass.csproj" />
 </Solution>
