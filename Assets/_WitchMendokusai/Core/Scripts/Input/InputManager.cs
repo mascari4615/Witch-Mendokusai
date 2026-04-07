@@ -19,6 +19,7 @@ namespace WitchMendokusai
 	{
 		// Player
 		Space,
+		Jump,
 		Click0,
 		Click1,
 		ChangeMode,
@@ -52,6 +53,7 @@ namespace WitchMendokusai
 		private readonly Dictionary<InputEventType, InputMapType> inputEventBindings = new()
 		{
 			{ InputEventType.Space, InputMapType.Player },
+			{ InputEventType.Jump, InputMapType.Player },
 			{ InputEventType.Click0, InputMapType.Player },
 			{ InputEventType.Click1, InputMapType.Player },
 			{ InputEventType.ChangeMode, InputMapType.Player },

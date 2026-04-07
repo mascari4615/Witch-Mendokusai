@@ -43,6 +43,15 @@
                     "initialStateCheck": false
                 },
                 {
+                    "name": "Jump",
+                    "type": "Button",
+                    "id": "297f71ca-3ff6-4bae-9f0c-1a12787571cd",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
                     "name": "Click0",
                     "type": "Button",
                     "id": "8524eb8b-051c-4c04-b25e-cbbd3e0233c7",
@@ -372,11 +381,22 @@
                 {
                     "name": "",
                     "id": "bf5e9adf-e706-4f41-b054-77557c6e88a6",
-                    "path": "<Keyboard>/space",
+                    "path": "<Keyboard>/leftShift",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
                     "action": "Space",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "5e377510-a891-4586-aece-4eb6df2fc2e7",
+                    "path": "<Keyboard>/space",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Jump",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -680,7 +700,7 @@
                 {
                     "name": "",
                     "id": "487551ab-9303-457b-9a81-c05919661b37",
-                    "path": "<Keyboard>/shift",
+                    "path": "<Keyboard>/c",
                     "interactions": "",
                     "processors": "",
                     "groups": "",

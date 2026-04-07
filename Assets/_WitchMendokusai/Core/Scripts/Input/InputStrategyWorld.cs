@@ -19,6 +19,12 @@ namespace WitchMendokusai
 							() => CanExecute(InputEventType.Space)
 						),
 						new(
+							InputEventType.Jump,
+							InputEventResponseType.Performed,
+							() => Player.Instance.TryJump(),
+							() => CanExecute(InputEventType.Jump)
+						),
+						new(
 							InputEventType.Click0,
 							InputEventResponseType.Get,
 							() => Player.Instance.TryUseSkill(1),
@@ -105,6 +111,18 @@ namespace WitchMendokusai
 		protected override Dictionary<InputEventType, GameConditionType[]> EventReturnConditions => new()
 		{
 			{ InputEventType.Space, new[] { GameConditionType.IsChatting } },
+			
+			{
+				InputEventType.Jump,
+				new[]
+				{
+					GameConditionType.IsPaused,
+					GameConditionType.IsChatting,
+					GameConditionType.IsDied,
+					GameConditionType.IsBuilding,
+					GameConditionType.IsViewingUI
+				}
+			},
 			{
 				InputEventType.Click0,
 				new[]

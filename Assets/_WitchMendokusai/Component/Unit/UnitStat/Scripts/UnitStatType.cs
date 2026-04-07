@@ -106,6 +106,7 @@ namespace WitchMendokusai
 		IS_WALKING = 100_000_100,
 		IS_SPRINTING = 100_000_101,
 		IS_CROUCHING = 100_000_102,
+		IS_JUMPING = 100_000_103,
 		#endregion
 	}
 }

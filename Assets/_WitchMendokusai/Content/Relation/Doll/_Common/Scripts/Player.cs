@@ -55,6 +55,17 @@ namespace WitchMendokusai
 			Object.UseSkill(skillIndex);
 		}
 
+		public void TryJump()
+		{
+			if (Object.UnitStat[UnitStatType.DEAD] > 0)
+				return;
+
+			if (Object.UnitStat[UnitStatType.CASTING_SKILL] > 0)
+				return;
+
+			Object.UnitMovement.TryJump();
+		}
+
 		public void SetAutoAim(bool isAutoAim)
 		{
 			Debug.Log($"SetAutoAim: {isAutoAim}");
