@@ -25,6 +25,12 @@ namespace WitchMendokusai
 							() => CanExecute(InputEventType.Jump)
 						),
 						new(
+							InputEventType.Jump,
+							InputEventResponseType.Canceled,
+							() => Player.Instance.StopJump(),
+							() => CanExecute(InputEventType.Jump)
+						),
+						new(
 							InputEventType.Click0,
 							InputEventResponseType.Get,
 							() => Player.Instance.TryUseSkill(1),

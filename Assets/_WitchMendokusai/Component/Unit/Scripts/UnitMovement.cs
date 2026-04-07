@@ -7,9 +7,12 @@ namespace WitchMendokusai
 {
 	public class UnitMovement : MonoBehaviour
 	{
-		[SerializeField] private float jumpForce = 7f;
+		[SerializeField] private float jumpForce = 5.6f;
+		[SerializeField] private float fallGravityMultiplier = 2.2f;
+		[SerializeField] private float lowJumpGravityMultiplier = 3.1f;
 		[SerializeField] private float groundCheckDistance = 0.25f;
 		[SerializeField] private LayerMask groundLayerMask;
+		private bool isJumpHeld;
 
 		protected Rigidbody unitRigidBody;
 		protected UnitObject unitObject;
@@ -92,6 +95,18 @@ namespace WitchMendokusai
 			bool isGrounded = IsGrounded();
 			unitObject.UnitStat[UnitStatType.IS_JUMPING] = (!isGrounded && currentVerticalVelocity > 0f) ? 1 : 0;
 
+			if (!isGrounded)
+			{
+				float gravityMultiplier = 1f;
+				if (currentVerticalVelocity < 0f)
+					gravityMultiplier = fallGravityMultiplier;
+				else if (currentVerticalVelocity > 0f && !isJumpHeld)
+					gravityMultiplier = lowJumpGravityMultiplier;
+
+				if (gravityMultiplier > 1f)
+					currentVerticalVelocity += Physics.gravity.y * (gravityMultiplier - 1f) * MoveTick;
+			}
+
 			if (unitObject.UnitStat[UnitStatType.DEAD] > 0)
 				finalVelocity = Vector3.zero;
 			else if (unitObject.UnitStat[UnitStatType.FORCE_MOVE] > 0)
@@ -131,10 +146,16 @@ namespace WitchMendokusai
 			if (!IsGrounded())
 				return;
 
+			isJumpHeld = true;
 			Vector3 velocity = unitRigidBody.linearVelocity;
 			velocity.y = jumpForce;
 			unitRigidBody.linearVelocity = velocity;
 			unitObject.UnitStat[UnitStatType.IS_JUMPING] = 1;
+		}
+
+		public void StopJump()
+		{
+			isJumpHeld = false;
 		}
 
 		private bool IsGrounded()

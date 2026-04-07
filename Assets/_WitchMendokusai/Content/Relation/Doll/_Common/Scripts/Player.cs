@@ -66,6 +66,11 @@ namespace WitchMendokusai
 			Object.UnitMovement.TryJump();
 		}
 
+		public void StopJump()
+		{
+			Object.UnitMovement.StopJump();
+		}
+
 		public void SetAutoAim(bool isAutoAim)
 		{
 			Debug.Log($"SetAutoAim: {isAutoAim}");
