@@ -1,0 +1,68 @@
+{
+  "schemaVersion": 1,
+  "mapId": "wm_jump_001",
+  "version": 1,
+  "author": "masca",
+  "mode": "JumpMap",
+  "seed": 1823401,
+  "spawnPoints": [
+    {
+      "id": "spawn_main",
+      "position": { "x": 0, "y": 1, "z": 0 },
+      "rotation": { "x": 0, "y": 0, "z": 0 }
+    }
+  ],
+  "checkpoints": [
+    {
+      "id": "checkpoint_03",
+      "position": { "x": 35, "y": 2, "z": 12 },
+      "isDefault": false
+    }
+  ],
+  "objects": [
+    {
+      "id": "door_gate_01",
+      "prefabId": "Door/GateA",
+      "position": { "x": 12, "y": 0, "z": 8 },
+      "rotation": { "x": 0, "y": 90, "z": 0 },
+      "scale": { "x": 1, "y": 1, "z": 1 },
+      "tags": ["door"]
+    },
+    {
+      "id": "platform_move_01",
+      "prefabId": "Platform/MovingA",
+      "position": { "x": 20, "y": 3, "z": 10 },
+      "rotation": { "x": 0, "y": 0, "z": 0 },
+      "scale": { "x": 1, "y": 1, "z": 1 },
+      "tags": ["platform", "moving"]
+    }
+  ],
+  "zones": [
+    {
+      "id": "zone_start_01",
+      "position": { "x": 2, "y": 1, "z": 0 },
+      "scale": { "x": 4, "y": 2, "z": 4 }
+    },
+    {
+      "id": "zone_platform_trigger_01",
+      "position": { "x": 18, "y": 1, "z": 10 },
+      "scale": { "x": 4, "y": 2, "z": 4 }
+    },
+    {
+      "id": "zone_checkpoint_03",
+      "position": { "x": 33, "y": 1, "z": 12 },
+      "scale": { "x": 4, "y": 2, "z": 4 }
+    }
+  ],
+  "triggers": [
+    "evt_open_gate_001",
+    "evt_start_platform_001",
+    "evt_checkpoint_003"
+  ],
+  "tags": ["tutorial", "jumpmap"],
+  "meta": {
+    "estimatedMinutes": 3,
+    "difficulty": 1,
+    "triggerFile": "wm_jump_001.triggers.json"
+  }
+}

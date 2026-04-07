@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "id": "evt_open_gate_001",
+  "enabled": true,
+  "tags": ["tutorial", "gate"],
+  "match": "all",
+  "conditions": [
+    {
+      "type": "OnEnterZone",
+      "target": {
+        "kind": "Zone",
+        "id": "zone_start_01"
+      },
+      "params": {
+        "actor": "player"
+      }
+    }
+  ],
+  "actions": [
+    {
+      "type": "SetDoorState",
+      "target": {
+        "kind": "Door",
+        "id": "door_gate_01"
+      },
+      "params": {
+        "isOpen": true,
+        "animate": true
+      }
+    }
+  ],
+  "cooldownSec": 0,
+  "once": true
+}
