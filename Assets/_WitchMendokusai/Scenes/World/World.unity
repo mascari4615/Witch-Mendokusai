@@ -1014,6 +1014,30 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 56a0490fb95efdf448799c451d9b1544, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WitchMendokusai.PlayerLandingCameraGlue
+  landingImpulseScale: 0.42
+  landingImpulseMinThreshold: 0.32
+  landingImpulseFloor: 0
+  landingImpulseExponent: 1.8
+  landingImpulseMaxAmplitude: 0.45
+--- !u!114 &1375673763
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1375673753}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 45368125c53014a4c9a770b842659762, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WitchMendokusai.UnitJumpModule
+  jumpForce: 5.6
+  fallGravityMultiplier: 2.2
+  lowJumpGravityMultiplier: 3.1
+  coyoteTime: 0.1
+  jumpBufferTime: 0.12
+  landingImpactMinFallSpeed: 1.2
+  landingImpactMaxFallSpeed: 8
 --- !u!1 &1386303194
 GameObject:
   m_ObjectHideFlags: 0
@@ -5800,6 +5824,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 6743984011136962783, guid: 7ea2a4bcc0c5a4b41a54e03a94eb3350, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1375673762}
+    - targetCorrespondingSourceObject: {fileID: 6743984011136962783, guid: 7ea2a4bcc0c5a4b41a54e03a94eb3350, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1375673763}
   m_SourcePrefab: {fileID: 100100000, guid: 7ea2a4bcc0c5a4b41a54e03a94eb3350, type: 3}
 --- !u!222 &4707824780459749384
 CanvasRenderer:

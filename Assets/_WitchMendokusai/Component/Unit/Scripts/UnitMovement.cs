@@ -1,32 +1,24 @@
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace WitchMendokusai
 {
 	public class UnitMovement : MonoBehaviour
 	{
-		[SerializeField] private float jumpForce = 5.6f;
-		[SerializeField] private float fallGravityMultiplier = 2.2f;
-		[SerializeField] private float lowJumpGravityMultiplier = 3.1f;
-		[SerializeField] private float coyoteTime = 0.1f;
-		[SerializeField] private float jumpBufferTime = 0.12f;
-		[SerializeField] private float landingImpactMinFallSpeed = 1.2f;
-		[SerializeField] private float landingImpactMaxFallSpeed = 8f;
+		// Ground detection
 		[SerializeField] private float groundCheckDistance = 0.25f;
 		[SerializeField] private LayerMask groundLayerMask;
-		private bool isJumpHeld;
-		private float coyoteTimer;
-		private float jumpBufferTimer;
-		private bool wasGrounded;
-		private float lastAirborneFallSpeed;
 
+		// Cached components
 		protected Rigidbody unitRigidBody;
 		protected UnitObject unitObject;
+		private UnitJumpModule jumpModule;
 
+		// Events
 		public event Action<float> OnLanded;
 
+		// Runtime properties
 		public float MoveTick { get; set; } = 0.02f;
 		// public Vector3 Destination { get; set; } = Vector3.zero;
 
@@ -39,14 +31,21 @@ namespace WitchMendokusai
 		{
 			unitRigidBody = GetComponent<Rigidbody>();
 			unitObject = GetComponent<UnitObject>();
+			if (TryGetComponent(out jumpModule))
+			{
+				jumpModule.Setup(unitRigidBody, unitObject);
+				jumpModule.OnLanded += HandleLanded;
+			}
 			unitRigidBody.useGravity = true;
 		}
 
 		private void OnEnable()
 		{
 			UpdateLookDirection(Vector3.right);
-			wasGrounded = IsGrounded();
-			lastAirborneFallSpeed = 0f;
+			if (jumpModule != null)
+				jumpModule.ResetState(IsGrounded());
+			else
+				unitObject.UnitStat[UnitStatType.IS_JUMPING] = 0;
 
 			StartCoroutine(MoveCoroutine());
 		}
@@ -66,6 +65,12 @@ namespace WitchMendokusai
 		private void OnDisable()
 		{
 			StopAllCoroutines();
+		}
+
+		private void OnDestroy()
+		{
+			if (jumpModule != null)
+				jumpModule.OnLanded -= HandleLanded;
 		}
 
 		public void SetMoveDirection(Vector3 input) => SetMoveDirection(new Vector2(input.x, input.z));
@@ -97,88 +102,76 @@ namespace WitchMendokusai
 
 		private void Move()
 		{
-			if (GameManager.Instance.Conditions[GameConditionType.IsChatting] ||
-				TimeManager.Instance.IsPaused)
+			if (IsMovementBlocked())
 				return;
 
 			Vector3 moveDirection = MoveDirectionWorld;
-			Vector3 finalVelocity;
-			float currentVerticalVelocity = unitRigidBody.linearVelocity.y;
+			float verticalVelocity = unitRigidBody.linearVelocity.y;
 			bool isGrounded = IsGrounded();
-			coyoteTimer = isGrounded ? coyoteTime : Mathf.Max(0f, coyoteTimer - MoveTick);
-			jumpBufferTimer = Mathf.Max(0f, jumpBufferTimer - MoveTick);
-			unitObject.UnitStat[UnitStatType.IS_JUMPING] = (!isGrounded && currentVerticalVelocity > 0f) ? 1 : 0;
 
-			if (!isGrounded && currentVerticalVelocity < 0f)
-				lastAirborneFallSpeed = Mathf.Max(lastAirborneFallSpeed, -currentVerticalVelocity);
-
-			if (isGrounded && !wasGrounded)
+			if (jumpModule != null)
 			{
-				float impactStrength = Mathf.InverseLerp(landingImpactMinFallSpeed, landingImpactMaxFallSpeed, lastAirborneFallSpeed);
-				OnLanded?.Invoke(impactStrength);
-				lastAirborneFallSpeed = 0f;
+				jumpModule.Step(ref isGrounded, ref verticalVelocity, CanUseJumpState(), MoveTick);
+				unitObject.UnitStat[UnitStatType.IS_JUMPING] = (!isGrounded && verticalVelocity > 0f) ? 1 : 0;
 			}
-
-			if (CanUseJumpState() && jumpBufferTimer > 0f && coyoteTimer > 0f)
-			{
-				ExecuteJump();
-				isGrounded = false;
-				currentVerticalVelocity = unitRigidBody.linearVelocity.y;
-			}
-
-			if (!isGrounded)
-			{
-				float gravityMultiplier = 1f;
-				if (currentVerticalVelocity < 0f)
-					gravityMultiplier = fallGravityMultiplier;
-				else if (currentVerticalVelocity > 0f && !isJumpHeld)
-					gravityMultiplier = lowJumpGravityMultiplier;
-
-				if (gravityMultiplier > 1f)
-					currentVerticalVelocity += Physics.gravity.y * (gravityMultiplier - 1f) * MoveTick;
-			}
-
-			if (unitObject.UnitStat[UnitStatType.DEAD] > 0)
-				finalVelocity = Vector3.zero;
-			else if (unitObject.UnitStat[UnitStatType.FORCE_MOVE] > 0)
-				finalVelocity = new Vector3(
-					moveDirection.x * SOManager.Instance.DashSpeed.RuntimeValue,
-					currentVerticalVelocity,
-					moveDirection.z * SOManager.Instance.DashSpeed.RuntimeValue
-				);
 			else
 			{
-				float moveSpeed = unitObject.UnitStat[UnitStatType.MOVEMENT_SPEED] / 10f;
-				if (unitObject.UnitStat[UnitStatType.IS_SPRINTING] > 0)
-					moveSpeed *= 2f; // TODO: 스프린트 속도 하드코딩함 - 2026-03-28. KarmoDDrine
-				finalVelocity = new Vector3(
-					moveDirection.x * moveSpeed,
-					currentVerticalVelocity,
-					moveDirection.z * moveSpeed
-				);
+				unitObject.UnitStat[UnitStatType.IS_JUMPING] = 0;
 			}
 
-			unitRigidBody.linearVelocity = finalVelocity;
-			wasGrounded = isGrounded;
+			unitRigidBody.linearVelocity = BuildFinalVelocity(moveDirection, verticalVelocity);
 			// unitRigidBody.AddForce(finalVelocity, ForceMode.VelocityChange);
+		}
+
+		private bool IsMovementBlocked()
+		{
+			return GameManager.Instance.Conditions[GameConditionType.IsChatting] ||
+				TimeManager.Instance.IsPaused;
+		}
+
+		private Vector3 BuildFinalVelocity(Vector3 moveDirection, float verticalVelocity)
+		{
+			if (unitObject.UnitStat[UnitStatType.DEAD] > 0)
+				return Vector3.zero;
+
+			float horizontalSpeed = GetHorizontalSpeed();
+			return new Vector3(
+				moveDirection.x * horizontalSpeed,
+				verticalVelocity,
+				moveDirection.z * horizontalSpeed
+			);
+		}
+
+		private float GetHorizontalSpeed()
+		{
+			if (unitObject.UnitStat[UnitStatType.FORCE_MOVE] > 0)
+				return SOManager.Instance.DashSpeed.RuntimeValue;
+
+			float moveSpeed = unitObject.UnitStat[UnitStatType.MOVEMENT_SPEED] / 10f;
+			if (unitObject.UnitStat[UnitStatType.IS_SPRINTING] > 0)
+				moveSpeed *= 2f; // TODO: 스프린트 속도 하드코딩함 - 2026-03-28. KarmoDDrine
+
+			return moveSpeed;
 		}
 
 		public void TryJump()
 		{
+			if (jumpModule == null)
+				return;
+
 			if (GameManager.Instance.Conditions[GameConditionType.IsChatting] ||
 				TimeManager.Instance.IsPaused)
 				return;
 
-			if (!CanUseJumpState())
-				return;
-
-			jumpBufferTimer = jumpBufferTime;
-			isJumpHeld = true;
+			jumpModule.RequestJump(CanUseJumpState());
 		}
 
 		public void StopJump()
 		{
-			isJumpHeld = false;
+			if (jumpModule == null)
+				return;
+
+			jumpModule.ReleaseJump();
 		}
 
 		private bool CanUseJumpState()
@@ -192,15 +185,9 @@ namespace WitchMendokusai
 			return true;
 		}
 
-		private void ExecuteJump()
+		private void HandleLanded(float impactStrength)
 		{
-			jumpBufferTimer = 0f;
-			coyoteTimer = 0f;
-
-			Vector3 velocity = unitRigidBody.linearVelocity;
-			velocity.y = jumpForce;
-			unitRigidBody.linearVelocity = velocity;
-			unitObject.UnitStat[UnitStatType.IS_JUMPING] = 1;
+			OnLanded?.Invoke(impactStrength);
 		}
 
 		private bool IsGrounded()

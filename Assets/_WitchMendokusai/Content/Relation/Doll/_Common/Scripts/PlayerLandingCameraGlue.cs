@@ -7,10 +7,11 @@ namespace WitchMendokusai
 	[RequireComponent(typeof(UnitMovement))]
 	public class PlayerLandingCameraGlue : MonoBehaviour
 	{
-		[SerializeField] private float landingImpulseScale = 0.95f;
-		[SerializeField] private float landingImpulseMinThreshold = 0.12f;
-		[SerializeField] private float landingImpulseFloor = 0.08f;
-		[SerializeField] private float landingImpulseExponent = 1.35f;
+		[SerializeField] private float landingImpulseScale = 0.42f;
+		[SerializeField] private float landingImpulseMinThreshold = 0.32f;
+		[SerializeField] private float landingImpulseFloor = 0f;
+		[SerializeField] private float landingImpulseExponent = 1.8f;
+		[SerializeField] private float landingImpulseMaxAmplitude = 0.45f;
 
 		private UnitMovement unitMovement;
 
@@ -36,12 +37,20 @@ namespace WitchMendokusai
 			if (CameraManager.Instance == null)
 				return;
 
+			float threshold = Mathf.Max(landingImpulseMinThreshold, 0.32f);
+			float floor = Mathf.Min(landingImpulseFloor, 0.02f);
+			float scale = Mathf.Min(landingImpulseScale, 0.42f);
+			float maxAmplitude = Mathf.Clamp(landingImpulseMaxAmplitude, 0f, 0.45f);
+
 			float clamped = Mathf.Clamp01(impactStrength);
-			if (clamped < landingImpulseMinThreshold)
+			if (clamped < threshold)
 				return;
 
-			float curved = Mathf.Pow(clamped, landingImpulseExponent);
-			float impulse = landingImpulseFloor + (curved * landingImpulseScale);
+			// Remap after threshold so tiny landings stay silent while larger impacts scale smoothly.
+			float normalized = Mathf.InverseLerp(threshold, 1f, clamped);
+			float curved = Mathf.Pow(normalized, landingImpulseExponent);
+			float impulse = floor + (curved * scale);
+			impulse = Mathf.Min(impulse, maxAmplitude);
 			CameraManager.Instance.GenerateCameraImpulse(impulse);
 		}
 	}
