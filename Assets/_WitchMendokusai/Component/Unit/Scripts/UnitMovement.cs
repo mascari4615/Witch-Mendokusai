@@ -10,9 +10,13 @@ namespace WitchMendokusai
 		[SerializeField] private float jumpForce = 5.6f;
 		[SerializeField] private float fallGravityMultiplier = 2.2f;
 		[SerializeField] private float lowJumpGravityMultiplier = 3.1f;
+		[SerializeField] private float coyoteTime = 0.1f;
+		[SerializeField] private float jumpBufferTime = 0.12f;
 		[SerializeField] private float groundCheckDistance = 0.25f;
 		[SerializeField] private LayerMask groundLayerMask;
 		private bool isJumpHeld;
+		private float coyoteTimer;
+		private float jumpBufferTimer;
 
 		protected Rigidbody unitRigidBody;
 		protected UnitObject unitObject;
@@ -93,7 +97,16 @@ namespace WitchMendokusai
 			Vector3 finalVelocity;
 			float currentVerticalVelocity = unitRigidBody.linearVelocity.y;
 			bool isGrounded = IsGrounded();
+			coyoteTimer = isGrounded ? coyoteTime : Mathf.Max(0f, coyoteTimer - MoveTick);
+			jumpBufferTimer = Mathf.Max(0f, jumpBufferTimer - MoveTick);
 			unitObject.UnitStat[UnitStatType.IS_JUMPING] = (!isGrounded && currentVerticalVelocity > 0f) ? 1 : 0;
+
+			if (CanUseJumpState() && jumpBufferTimer > 0f && coyoteTimer > 0f)
+			{
+				ExecuteJump();
+				isGrounded = false;
+				currentVerticalVelocity = unitRigidBody.linearVelocity.y;
+			}
 
 			if (!isGrounded)
 			{
@@ -137,25 +150,38 @@ namespace WitchMendokusai
 				TimeManager.Instance.IsPaused)
 				return;
 
-			if (unitObject.UnitStat[UnitStatType.DEAD] > 0)
+			if (!CanUseJumpState())
 				return;
 
-			if (unitObject.UnitStat[UnitStatType.FORCE_MOVE] > 0)
-				return;
-
-			if (!IsGrounded())
-				return;
-
+			jumpBufferTimer = jumpBufferTime;
 			isJumpHeld = true;
-			Vector3 velocity = unitRigidBody.linearVelocity;
-			velocity.y = jumpForce;
-			unitRigidBody.linearVelocity = velocity;
-			unitObject.UnitStat[UnitStatType.IS_JUMPING] = 1;
 		}
 
 		public void StopJump()
 		{
 			isJumpHeld = false;
+		}
+
+		private bool CanUseJumpState()
+		{
+			if (unitObject.UnitStat[UnitStatType.DEAD] > 0)
+				return false;
+
+			if (unitObject.UnitStat[UnitStatType.FORCE_MOVE] > 0)
+				return false;
+
+			return true;
+		}
+
+		private void ExecuteJump()
+		{
+			jumpBufferTimer = 0f;
+			coyoteTimer = 0f;
+
+			Vector3 velocity = unitRigidBody.linearVelocity;
+			velocity.y = jumpForce;
+			unitRigidBody.linearVelocity = velocity;
+			unitObject.UnitStat[UnitStatType.IS_JUMPING] = 1;
 		}
 
 		private bool IsGrounded()
