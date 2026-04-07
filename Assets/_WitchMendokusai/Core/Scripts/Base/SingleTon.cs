@@ -14,7 +14,7 @@ namespace WitchMendokusai
 					return instance;
 
 				Debug.Log($"There is no {typeof(T).Name} in the scene. Try to find it.");
-				instance = FindFirstObjectByType<T>(FindObjectsInactive.Include);
+				instance = FindAnyObjectByType<T>(FindObjectsInactive.Include);
 				if (instance != null)
 					return instance;
 

@@ -16,8 +16,8 @@ namespace WitchMendokusai
 
 		public override void Init()
 		{
-			Panels[DungeonPanelType.DungeonRuntime] = FindFirstObjectByType<UIDungeonRuntime>(FindObjectsInactive.Include);
-			Panels[DungeonPanelType.DungeonResult] = FindFirstObjectByType<UIDungeonResult>(FindObjectsInactive.Include);
+			Panels[DungeonPanelType.DungeonRuntime] = FindAnyObjectByType<UIDungeonRuntime>(FindObjectsInactive.Include);
+			Panels[DungeonPanelType.DungeonResult] = FindAnyObjectByType<UIDungeonResult>(FindObjectsInactive.Include);
 		}
 	}
 }

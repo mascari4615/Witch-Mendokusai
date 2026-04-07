@@ -27,16 +27,16 @@ namespace WitchMendokusai
 
 		public override void Init()
 		{
-			Panels[NPCPanelType.NPC] = FindFirstObjectByType<UINPCMenu>(FindObjectsInactive.Include);
+			Panels[NPCPanelType.NPC] = FindAnyObjectByType<UINPCMenu>(FindObjectsInactive.Include);
 
-			Panels[NPCPanelType.Shop] = FindFirstObjectByType<UIShop>(FindObjectsInactive.Include);
-			Panels[NPCPanelType.DungeonEntrance] = FindFirstObjectByType<UIDungeonEntrance>(FindObjectsInactive.Include);
-			Panels[NPCPanelType.Pot] = FindFirstObjectByType<UIPot>(FindObjectsInactive.Include);
-			Panels[NPCPanelType.Anvil] = FindFirstObjectByType<UIAnvil>(FindObjectsInactive.Include);
-			Panels[NPCPanelType.Furnace] = FindFirstObjectByType<UIFurnace>(FindObjectsInactive.Include);
-			Panels[NPCPanelType.CraftingTable] = FindFirstObjectByType<UICraftingTable>(FindObjectsInactive.Include);
-			Panels[NPCPanelType.Upgrade] = FindFirstObjectByType<UIUpgrade>(FindObjectsInactive.Include);
-			Panels[NPCPanelType.Lab] = FindFirstObjectByType<UILab>(FindObjectsInactive.Include);
+			Panels[NPCPanelType.Shop] = FindAnyObjectByType<UIShop>(FindObjectsInactive.Include);
+			Panels[NPCPanelType.DungeonEntrance] = FindAnyObjectByType<UIDungeonEntrance>(FindObjectsInactive.Include);
+			Panels[NPCPanelType.Pot] = FindAnyObjectByType<UIPot>(FindObjectsInactive.Include);
+			Panels[NPCPanelType.Anvil] = FindAnyObjectByType<UIAnvil>(FindObjectsInactive.Include);
+			Panels[NPCPanelType.Furnace] = FindAnyObjectByType<UIFurnace>(FindObjectsInactive.Include);
+			Panels[NPCPanelType.CraftingTable] = FindAnyObjectByType<UICraftingTable>(FindObjectsInactive.Include);
+			Panels[NPCPanelType.Upgrade] = FindAnyObjectByType<UIUpgrade>(FindObjectsInactive.Include);
+			Panels[NPCPanelType.Lab] = FindAnyObjectByType<UILab>(FindObjectsInactive.Include);
 		}
 	}
 }

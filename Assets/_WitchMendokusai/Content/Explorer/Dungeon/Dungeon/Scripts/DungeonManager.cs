@@ -28,7 +28,7 @@ namespace WitchMendokusai
 		{
 			base.Awake();
 
-			dungeonUI = FindFirstObjectByType<UIDungeon>(FindObjectsInactive.Include);
+			dungeonUI = FindAnyObjectByType<UIDungeon>(FindObjectsInactive.Include);
 		}
 
 		private void Start()

@@ -10,7 +10,7 @@ namespace WitchMendokusai
 		{
 			// TextMeshProUGUI text = playerData as TextMeshProUGUI;
 #if UNITY_EDITOR
-			TextMeshProUGUI text = Object.FindFirstObjectByType<UIManager>().CutSceneModule.Subtitle;
+			TextMeshProUGUI text = Object.FindAnyObjectByType<UIManager>().CutSceneModule.Subtitle;
 #else
         TextMeshProUGUI text = UIManager.Instance.CutSceneModule.Subtitle;
 #endif

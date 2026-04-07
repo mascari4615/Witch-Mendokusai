@@ -37,19 +37,19 @@ namespace WitchMendokusai
 			Instantiate(adventurerGuildPrefab, BaseCanvas.transform);
 
 			// Common UIs
-			CutSceneModule = FindFirstObjectByType<CutSceneModule>(FindObjectsInactive.Include);
-			damage = FindFirstObjectByType<UIFloatingText>(FindObjectsInactive.Include);
-			popup = FindFirstObjectByType<UIPopup>(FindObjectsInactive.Include);
-			Chat = FindFirstObjectByType<UIChat>(FindObjectsInactive.Include);
-			adventurerGuild = FindFirstObjectByType<UIAdventurerGuild>(FindObjectsInactive.Include);
+			CutSceneModule = FindAnyObjectByType<CutSceneModule>(FindObjectsInactive.Include);
+			damage = FindAnyObjectByType<UIFloatingText>(FindObjectsInactive.Include);
+			popup = FindAnyObjectByType<UIPopup>(FindObjectsInactive.Include);
+			Chat = FindAnyObjectByType<UIChat>(FindObjectsInactive.Include);
+			adventurerGuild = FindAnyObjectByType<UIAdventurerGuild>(FindObjectsInactive.Include);
 			adventurerGuild.gameObject.SetActive(false);
 
-			Transition = FindFirstObjectByType<UITransition>(FindObjectsInactive.Include);
-			stagePopup = FindFirstObjectByType<UIStagePopup>(FindObjectsInactive.Include);
-			Status = FindFirstObjectByType<UIStatus>(FindObjectsInactive.Include);
+			Transition = FindAnyObjectByType<UITransition>(FindObjectsInactive.Include);
+			stagePopup = FindAnyObjectByType<UIStagePopup>(FindObjectsInactive.Include);
+			Status = FindAnyObjectByType<UIStatus>(FindObjectsInactive.Include);
 
-			Tab = FindFirstObjectByType<UITab>(FindObjectsInactive.Include);
-			NPC = FindFirstObjectByType<UINPC>(FindObjectsInactive.Include);
+			Tab = FindAnyObjectByType<UITab>(FindObjectsInactive.Include);
+			NPC = FindAnyObjectByType<UINPC>(FindObjectsInactive.Include);
 		}
 
 		private void Start()

@@ -39,7 +39,7 @@ namespace WitchMendokusai
 			selectedBuilding = defaultBuilding;
 			StageManager.OnStageChanged += OnStageChanged;
 
-			buildUI = FindFirstObjectByType<UIBuild>(FindObjectsInactive.Include);
+			buildUI = FindAnyObjectByType<UIBuild>(FindObjectsInactive.Include);
 			buildUI.StopLoop();
 		}
 

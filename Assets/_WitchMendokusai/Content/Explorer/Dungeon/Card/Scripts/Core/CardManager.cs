@@ -36,8 +36,8 @@ namespace WitchMendokusai
 
 		public override void Init()
 		{
-			Panels[CardPanelType.SelectDeck] = FindFirstObjectByType<UISelectDeck>(FindObjectsInactive.Include);
-			Panels[CardPanelType.SelectCard] = FindFirstObjectByType<UISelectCard>(FindObjectsInactive.Include);
+			Panels[CardPanelType.SelectDeck] = FindAnyObjectByType<UISelectDeck>(FindObjectsInactive.Include);
+			Panels[CardPanelType.SelectCard] = FindAnyObjectByType<UISelectCard>(FindObjectsInactive.Include);
 
 			UIDeck[] deckUIs = FindObjectsByType<UIDeck>(FindObjectsInactive.Include, FindObjectsSortMode.None);
 			foreach (UIDeck deckUI in deckUIs)
