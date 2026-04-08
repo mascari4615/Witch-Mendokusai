@@ -1,0 +1,74 @@
+[
+  {
+    "schemaVersion": 1,
+    "id": "evt_open_gate_001",
+    "enabled": true,
+    "tags": [
+      "gate",
+      "intro"
+    ],
+    "match": "all",
+    "conditions": [
+      {
+        "type": "OnEnterZone",
+        "target": {
+          "kind": "Zone",
+          "id": "zone_start_01"
+        },
+        "params": {
+          "actor": "player"
+        }
+      }
+    ],
+    "actions": [
+      {
+        "type": "SetDoorState",
+        "target": {
+          "kind": "Door",
+          "id": "door_gate_01"
+        },
+        "params": {
+          "isOpen": true,
+          "animate": true
+        }
+      }
+    ],
+    "cooldownSec": 0.0,
+    "once": true
+  },
+  {
+    "schemaVersion": 1,
+    "id": "evt_checkpoint_001",
+    "enabled": true,
+    "tags": [
+      "checkpoint"
+    ],
+    "match": "all",
+    "conditions": [
+      {
+        "type": "OnEnterZone",
+        "target": {
+          "kind": "Zone",
+          "id": "zone_checkpoint_01"
+        },
+        "params": {
+          "actor": "player"
+        }
+      }
+    ],
+    "actions": [
+      {
+        "type": "ActivateCheckpoint",
+        "target": {
+          "kind": "Checkpoint",
+          "id": "checkpoint_01"
+        },
+        "params": {
+          "setAsRespawn": true
+        }
+      }
+    ],
+    "cooldownSec": 0.0,
+    "once": true
+  }
+]

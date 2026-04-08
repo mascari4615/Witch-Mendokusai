@@ -192,11 +192,24 @@ namespace WitchMendokusai
 
 		private bool IsGrounded()
 		{
-			if (groundLayerMask.value == 0)
-				groundLayerMask = LayerMask.GetMask("GROUND");
-
 			Vector3 origin = transform.position + Vector3.up * 0.1f;
-			return Physics.Raycast(origin, Vector3.down, groundCheckDistance + 0.1f, groundLayerMask, QueryTriggerInteraction.Ignore);
+			float distance = groundCheckDistance + 0.1f;
+
+			// Use layer-based detection if explicitly set, otherwise use component-based detection
+			if (groundLayerMask.value != 0)
+			{
+				return Physics.Raycast(origin, Vector3.down, distance, groundLayerMask, QueryTriggerInteraction.Ignore);
+			}
+
+			// Component-based detection: look for GroundSurface
+			if (Physics.Raycast(origin, Vector3.down, out RaycastHit hit, distance, ~0, QueryTriggerInteraction.Ignore))
+			{
+				GroundSurface surface = hit.collider.GetComponent<GroundSurface>();
+				if (surface != null && surface.IsWalkable)
+					return true;
+			}
+
+			return false;
 		}
 	}
 }

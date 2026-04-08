@@ -9,6 +9,11 @@ namespace WitchMendokusai
 		private const string RootName = "UGC_TestSetup";
 		private const string DefaultManifestFile = "wm_jump_001.manifest.json";
 		private const string DefaultTriggerFile = "wm_jump_001.triggers.json";
+		private static readonly Color DoorLabelColor = new Color(0.35f, 0.95f, 0.35f);
+		private static readonly Color PlatformLabelColor = new Color(1f, 0.9f, 0.3f);
+		private static readonly Color HazardLabelColor = new Color(1f, 0.45f, 0.45f);
+		private static readonly Color CheckpointLabelColor = new Color(0.75f, 0.7f, 1f);
+		private static readonly Color ZoneLabelColor = new Color(0.35f, 0.9f, 1f);
 		private static bool isRegistered;
 
 		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
@@ -96,6 +101,8 @@ namespace WitchMendokusai
 				GameObject obj = FindOrCreateMapObject(data, root);
 				SyncMapObjectTransform(data, obj, root);
 				AttachReceiverByTags(data, obj);
+				AttachDebugLabelByTags(data, obj);
+				AttachGroundSurfaceByTags(data, obj);
 			}
 
 			for (int i = 0; i < manifest.checkpoints.Count; i++)
@@ -115,6 +122,9 @@ namespace WitchMendokusai
 
 				if (obj.GetComponent<UGCTestCheckpointReceiver>() == null)
 					obj.AddComponent<UGCTestCheckpointReceiver>();
+
+				EnsureDebugLabel(obj, $"Checkpoint\n{checkpoint.id}", CheckpointLabelColor, 1.8f);
+				EnsureGroundSurface(obj);
 			}
 		}
 
@@ -123,18 +133,24 @@ namespace WitchMendokusai
 			GameObject door = GetOrCreatePrimitive("door_gate_01", PrimitiveType.Cube, new Vector3(12f, 1f, 8f), new Vector3(2f, 2f, 0.5f), root);
 			if (door.GetComponent<UGCTestDoorReceiver>() == null)
 				door.AddComponent<UGCTestDoorReceiver>();
+			EnsureDebugLabel(door, "Door\ndoor_gate_01", DoorLabelColor, 2.2f);
 
 			GameObject platform = GetOrCreatePrimitive("platform_move_01", PrimitiveType.Cube, new Vector3(20f, 2f, 10f), new Vector3(3f, 0.4f, 3f), root);
 			if (platform.GetComponent<UGCTestPlatformReceiver>() == null)
 				platform.AddComponent<UGCTestPlatformReceiver>();
+			EnsureDebugLabel(platform, "Platform\nplatform_move_01", PlatformLabelColor, 1.4f);
+			EnsureGroundSurface(platform);
 
 			GameObject checkpoint = GetOrCreatePrimitive("checkpoint_03", PrimitiveType.Sphere, new Vector3(35f, 1f, 12f), Vector3.one * 1.5f, root);
 			if (checkpoint.GetComponent<UGCTestCheckpointReceiver>() == null)
 				checkpoint.AddComponent<UGCTestCheckpointReceiver>();
+			EnsureDebugLabel(checkpoint, "Checkpoint\ncheckpoint_03", CheckpointLabelColor, 1.8f);
+			EnsureGroundSurface(checkpoint);
 
 			GameObject hazard = GetOrCreatePrimitive("hazard_spikes_01", PrimitiveType.Cube, new Vector3(26f, 0.6f, 11f), new Vector3(2.4f, 1.2f, 2.4f), root);
 			if (hazard.GetComponent<UGCTestHazardReceiver>() == null)
 				hazard.AddComponent<UGCTestHazardReceiver>();
+			EnsureDebugLabel(hazard, "Hazard\nhazard_spikes_01", HazardLabelColor, 1.8f);
 		}
 
 		private static void InstallZonesFromManifest(UGCMapManifestData manifest, Transform root)
@@ -200,6 +216,11 @@ namespace WitchMendokusai
 				triggerZone = zone.AddComponent<UGCTriggerZone>();
 
 			triggerZone.Setup(zoneId);
+			EnsureDebugLabel(zone, $"Zone\n{zoneId}", ZoneLabelColor, scale.y * 0.6f + 0.8f);
+
+			GroundSurface groundSurface = zone.GetComponent<GroundSurface>();
+			if (groundSurface == null)
+				groundSurface = zone.AddComponent<GroundSurface>();
 		}
 
 		private static GameObject FindOrCreateMapObject(UGCMapObjectData data, Transform root)
@@ -239,6 +260,63 @@ namespace WitchMendokusai
 
 			if (data.tags != null && data.tags.Contains("hazard") && obj.GetComponent<UGCTestHazardReceiver>() == null)
 				obj.AddComponent<UGCTestHazardReceiver>();
+		}
+
+		private static void AttachDebugLabelByTags(UGCMapObjectData data, GameObject obj)
+		{
+			if (data == null || obj == null)
+				return;
+
+			if (data.tags != null && data.tags.Contains("door"))
+			{
+				EnsureDebugLabel(obj, $"Door\n{data.id}", DoorLabelColor, obj.transform.localScale.y * 0.7f + 0.9f);
+				return;
+			}
+
+			if (data.tags != null && data.tags.Contains("moving"))
+			{
+				EnsureDebugLabel(obj, $"Platform\n{data.id}", PlatformLabelColor, obj.transform.localScale.y * 0.7f + 0.9f);
+				return;
+			}
+
+			if (data.tags != null && data.tags.Contains("hazard"))
+			{
+				EnsureDebugLabel(obj, $"Hazard\n{data.id}", HazardLabelColor, obj.transform.localScale.y * 0.7f + 0.9f);
+				return;
+			}
+
+			EnsureDebugLabel(obj, $"Object\n{data.id}", Color.white, obj.transform.localScale.y * 0.7f + 0.9f);
+		}
+
+		private static void AttachGroundSurfaceByTags(UGCMapObjectData data, GameObject obj)
+		{
+			if (data == null || obj == null || data.tags == null)
+				return;
+
+			if (data.tags.Contains("platform") || data.tags.Contains("moving"))
+				EnsureGroundSurface(obj);
+		}
+
+		private static void EnsureDebugLabel(GameObject obj, string text, Color color, float yOffset)
+		{
+			if (obj == null)
+				return;
+
+			UGCDebugNameLabel label = obj.GetComponent<UGCDebugNameLabel>();
+			if (label == null)
+				label = obj.AddComponent<UGCDebugNameLabel>();
+
+			label.Setup(text, color, yOffset);
+		}
+
+		private static void EnsureGroundSurface(GameObject obj)
+		{
+			if (obj == null)
+				return;
+
+			GroundSurface groundSurface = obj.GetComponent<GroundSurface>();
+			if (groundSurface == null)
+				obj.AddComponent<GroundSurface>();
 		}
 
 		private static GameObject GetOrCreatePrimitive(string objectName, PrimitiveType primitiveType, Vector3 position, Vector3 scale, Transform parent)

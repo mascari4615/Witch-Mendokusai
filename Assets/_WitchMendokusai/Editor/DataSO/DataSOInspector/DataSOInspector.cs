@@ -12,7 +12,7 @@ namespace WitchMendokusai
 {
 	[CustomEditor(typeof(DataSO), true)]
 	[CanEditMultipleObjects]
-	public class DataSOInspector : Editor
+	public class DataSOInspector : UnityEditor.Editor
 	{
 		protected DataSO dataSO;
 		protected VisualElement root;

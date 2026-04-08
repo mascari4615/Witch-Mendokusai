@@ -133,5 +133,202 @@
     ],
     "cooldownSec": 0,
     "once": true
+  },
+  {
+    "schemaVersion": 1,
+    "id": "evt_disable_hazard_early_001",
+    "enabled": true,
+    "tags": ["hazard", "intro"],
+    "match": "all",
+    "conditions": [
+      {
+        "type": "OnEnterZone",
+        "target": {
+          "kind": "Zone",
+          "id": "zone_start_01"
+        },
+        "params": {
+          "actor": "player"
+        }
+      }
+    ],
+    "actions": [
+      {
+        "type": "ToggleHazard",
+        "target": {
+          "kind": "Hazard",
+          "id": "hazard_spikes_02"
+        },
+        "params": {
+          "enabled": false
+        }
+      }
+    ],
+    "cooldownSec": 0,
+    "once": true
+  },
+  {
+    "schemaVersion": 1,
+    "id": "evt_open_goal_gate_001",
+    "enabled": true,
+    "tags": ["goal", "gate"],
+    "match": "all",
+    "conditions": [
+      {
+        "type": "OnEnterZone",
+        "target": {
+          "kind": "Zone",
+          "id": "zone_goal_gate_01"
+        },
+        "params": {
+          "actor": "player"
+        }
+      }
+    ],
+    "actions": [
+      {
+        "type": "SetDoorState",
+        "target": {
+          "kind": "Door",
+          "id": "door_gate_02"
+        },
+        "params": {
+          "isOpen": true,
+          "animate": true
+        }
+      }
+    ],
+    "cooldownSec": 0,
+    "once": true
+  },
+  {
+    "schemaVersion": 1,
+    "id": "evt_reenable_hazard_001",
+    "enabled": true,
+    "tags": ["hazard", "timed"],
+    "match": "all",
+    "conditions": [
+      {
+        "type": "ElapsedTime",
+        "params": {
+          "sec": 25
+        }
+      }
+    ],
+    "actions": [
+      {
+        "type": "ToggleHazard",
+        "target": {
+          "kind": "Hazard",
+          "id": "hazard_spikes_01"
+        },
+        "params": {
+          "enabled": true
+        }
+      }
+    ],
+    "cooldownSec": 0,
+    "once": true
+  },
+  {
+    "schemaVersion": 1,
+    "id": "evt_start_escape_platform_001",
+    "enabled": true,
+    "tags": ["jumpmap", "platform", "escape"],
+    "match": "all",
+    "conditions": [
+      {
+        "type": "OnEnterZone",
+        "target": {
+          "kind": "Zone",
+          "id": "zone_goal_gate_01"
+        },
+        "params": {
+          "actor": "player"
+        }
+      }
+    ],
+    "actions": [
+      {
+        "type": "MovePlatform",
+        "target": {
+          "kind": "Platform",
+          "id": "platform_move_02"
+        },
+        "params": {
+          "routeId": "route_B",
+          "speed": 2.2,
+          "loop": true
+        }
+      }
+    ],
+    "cooldownSec": 0,
+    "once": false
+  },
+  {
+    "schemaVersion": 1,
+    "id": "evt_disable_final_hazard_001",
+    "enabled": true,
+    "tags": ["hazard", "final"],
+    "match": "all",
+    "conditions": [
+      {
+        "type": "OnEnterZone",
+        "target": {
+          "kind": "Zone",
+          "id": "zone_escape_platform_01"
+        },
+        "params": {
+          "actor": "player"
+        }
+      }
+    ],
+    "actions": [
+      {
+        "type": "ToggleHazard",
+        "target": {
+          "kind": "Hazard",
+          "id": "hazard_spikes_03"
+        },
+        "params": {
+          "enabled": false
+        }
+      }
+    ],
+    "cooldownSec": 0,
+    "once": true
+  },
+  {
+    "schemaVersion": 1,
+    "id": "evt_checkpoint_004",
+    "enabled": true,
+    "tags": ["checkpoint", "final"],
+    "match": "all",
+    "conditions": [
+      {
+        "type": "OnEnterZone",
+        "target": {
+          "kind": "Zone",
+          "id": "zone_final_checkpoint_01"
+        },
+        "params": {
+          "actor": "player"
+        }
+      }
+    ],
+    "actions": [
+      {
+        "type": "ActivateCheckpoint",
+        "target": {
+          "kind": "Checkpoint",
+          "id": "checkpoint_04"
+        },
+        "params": {
+          "setAsRespawn": true
+        }
+      }
+    ],
+    "cooldownSec": 0,
+    "once": true
   }
 ]

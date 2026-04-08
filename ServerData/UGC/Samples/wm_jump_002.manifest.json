@@ -1,0 +1,122 @@
+{
+  "schemaVersion": 1,
+  "mapId": "wm_jump_002",
+  "version": 1,
+  "author": "masca",
+  "mode": "JumpMap",
+  "seed": 1001,
+  "spawnPoints": [
+    {
+      "id": "spawn_main",
+      "position": {
+        "x": 0.0,
+        "y": 1.0,
+        "z": 0.0
+      },
+      "rotation": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      }
+    }
+  ],
+  "checkpoints": [
+    {
+      "id": "checkpoint_01",
+      "position": {
+        "x": 20.0,
+        "y": 2.0,
+        "z": 8.0
+      },
+      "isDefault": false
+    }
+  ],
+  "objects": [
+    {
+      "id": "door_gate_01",
+      "prefabId": "Door/GateA",
+      "position": {
+        "x": 10.0,
+        "y": 0.0,
+        "z": 5.0
+      },
+      "rotation": {
+        "x": 0.0,
+        "y": 90.0,
+        "z": 0.0
+      },
+      "scale": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      },
+      "tags": [
+        "door"
+      ]
+    },
+    {
+      "id": "platform_move_01",
+      "prefabId": "Platform/MovingA",
+      "position": {
+        "x": 14.0,
+        "y": 2.0,
+        "z": 6.0
+      },
+      "rotation": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "scale": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      },
+      "tags": [
+        "platform",
+        "moving"
+      ]
+    }
+  ],
+  "zones": [
+    {
+      "id": "zone_start_01",
+      "position": {
+        "x": 6.0,
+        "y": 1.0,
+        "z": 0.0
+      },
+      "scale": {
+        "x": 4.0,
+        "y": 2.0,
+        "z": 4.0
+      }
+    },
+    {
+      "id": "zone_checkpoint_01",
+      "position": {
+        "x": 20.0,
+        "y": 1.0,
+        "z": 8.0
+      },
+      "scale": {
+        "x": 4.0,
+        "y": 2.0,
+        "z": 4.0
+      }
+    }
+  ],
+  "triggers": [
+    "evt_open_gate_001",
+    "evt_checkpoint_001"
+  ],
+  "tags": [
+    "template",
+    "jumpmap"
+  ],
+  "meta": {
+    "estimatedMinutes": 3,
+    "difficulty": 1,
+    "triggerFile": "wm_jump_002.triggers.json"
+  }
+}

@@ -42,6 +42,8 @@ namespace WitchMendokusai
 			string actorId = ResolveActorId(other.gameObject);
 			UGCConditionRuntime.RegisterZoneEnter(zoneId, actorId);
 			UGCLog.Info($"Zone entered. zone={zoneId}, actor={actorId}");
+
+			UGCRuntimeSession.Instance?.ExecuteTriggersForZoneEnter(zoneId, actorId);
 		}
 
 		private static string ResolveActorId(GameObject obj)

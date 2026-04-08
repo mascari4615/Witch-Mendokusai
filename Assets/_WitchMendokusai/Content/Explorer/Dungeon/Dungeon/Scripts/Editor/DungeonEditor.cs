@@ -4,7 +4,7 @@ using UnityEngine;
 namespace WitchMendokusai
 {
 	[CustomEditor(typeof(Dungeon))]
-	public class DungeonEditor : Editor
+	public class DungeonEditor : UnityEditor.Editor
 	{
 		public override void OnInspectorGUI()
 		{

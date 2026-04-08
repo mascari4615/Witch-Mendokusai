@@ -50,6 +50,8 @@ namespace WitchMendokusai
 	public class InputManager : Singleton<InputManager>
 	{
 		[SerializeField] private InputActionAsset inputActionAsset;
+		[SerializeField] private LayerMask mouseWorldLayerMask;
+		[SerializeField] private float mouseWorldRayDistance = 100f;
 		private readonly Dictionary<InputEventType, InputMapType> inputEventBindings = new()
 		{
 			{ InputEventType.Space, InputMapType.Player },
@@ -259,10 +261,39 @@ namespace WitchMendokusai
 			mousePos.z = Camera.main.nearClipPlane;
 			Ray ray = Camera.main.ScreenPointToRay(mousePos);
 
-			if (Physics.Raycast(ray, out RaycastHit hit, 100, LayerMask.GetMask("GROUND")))
+			if (TryResolveMouseWorldHit(ray, out RaycastHit hit))
 				MouseWorldPosition = hit.point;
 			else
 				MouseWorldPosition = Vector3.zero;
+		}
+
+		private bool TryResolveMouseWorldHit(Ray ray, out RaycastHit hit)
+		{
+			hit = default;
+
+			float distance = Mathf.Max(1f, mouseWorldRayDistance);
+
+			if (mouseWorldLayerMask.value != 0)
+				return Physics.Raycast(ray, out hit, distance, mouseWorldLayerMask, QueryTriggerInteraction.Ignore);
+
+			RaycastHit[] hits = Physics.RaycastAll(ray, distance, ~0, QueryTriggerInteraction.Ignore);
+			if (hits == null || hits.Length == 0)
+				return false;
+
+			Array.Sort(hits, (a, b) => a.distance.CompareTo(b.distance));
+
+			for (int i = 0; i < hits.Length; i++)
+			{
+				GroundSurface surface = hits[i].collider.GetComponent<GroundSurface>();
+				if (surface != null && surface.IsWalkable)
+				{
+					hit = hits[i];
+					return true;
+				}
+			}
+
+			hit = hits[0];
+			return true;
 		}
 
 		private void UpdateIsPointerOverUI()

@@ -248,12 +248,18 @@ namespace WitchMendokusai
 			if (action?.target == null || string.IsNullOrWhiteSpace(action.target.id))
 			{
 				error = $"Action '{action?.type}' has invalid target.";
+				UGCLog.Warn($"[ActionExec] {error}");
 				return false;
 			}
 
+			UGCLog.Info($"[ActionExec] Resolving target: id={action.target.id}, expectedKind={expectedKind}");
 			if (!UGCObjectRegistry.TryResolve(action.target.id, expectedKind, out target, out error))
+			{
+				UGCLog.Warn($"[ActionExec] Target resolution failed: {error}");
 				return false;
+			}
 
+			UGCLog.Info($"[ActionExec] Target resolved: name={target.name}");
 			return true;
 		}
 	}

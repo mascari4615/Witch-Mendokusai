@@ -17,6 +17,7 @@ namespace WitchMendokusai
 		private readonly UGCRuntimeSession session = new();
 		private string lastStatus = "Not loaded";
 		private float nextInputHeartbeatTime;
+		private Vector2 guiScroll = Vector2.zero;
 
 #if ENABLE_INPUT_SYSTEM
 		private InputAction actionToggleGui;
@@ -330,49 +331,55 @@ namespace WitchMendokusai
 
 			GUI.Box(area, "UGC DEV TEST PANEL", boxStyle);
 
-			float y = area.y + 64f;
-			GUI.Label(new Rect(area.x + 20f, y, width - 40f, 30f), $"맵: {session.Manifest?.mapId ?? "(아직 로드 안 됨)"}", labelStyle);
+			Rect scrollRect = new Rect(area.x + 12f, area.y + 48f, area.width - 24f, area.height - 60f);
+			Rect contentRect = new Rect(0f, 0f, scrollRect.width - 22f, 760f);
+			guiScroll = GUI.BeginScrollView(scrollRect, guiScroll, contentRect);
+
+			float x = 8f;
+			float y = 8f;
+			GUI.Label(new Rect(x, y, contentRect.width - 16f, 30f), $"맵: {session.Manifest?.mapId ?? "(아직 로드 안 됨)"}", labelStyle);
 			y += 38f;
-			GUI.Label(new Rect(area.x + 20f, y, width - 40f, 30f), $"트리거 수: {session.TriggerMap.Count}", labelStyle);
+			GUI.Label(new Rect(x, y, contentRect.width - 16f, 30f), $"트리거 수: {session.TriggerMap.Count}", labelStyle);
 			y += 38f;
 
-			Rect helpRect = new Rect(area.x + 20f, y, width - 40f, 108f);
+			Rect helpRect = new Rect(x, y, contentRect.width - 16f, 122f);
 			GUI.Box(helpRect, "", helpBoxStyle);
 			GUI.Label(helpRect,
-				"사용 방법\n" +
-				"1. Game 뷰를 한 번 클릭해서 포커스를 주세요.\n" +
-				"2. Reload를 누르면 샘플 데이터가 다시 로드됩니다.\n" +
-				"3. 일반 버튼은 존 진입 같은 조건을 확인합니다.\n" +
-				"4. Force 버튼은 조건을 무시하고 바로 실행합니다.\n" +
+				"빠른 테스트 순서\n" +
+				"1. Reload -> 시작존(zone_start_01)으로 이동\n" +
+				"2. 문1은 시작존에 들어가면 자동 오픈(evt_open_gate_001)\n" +
+				"3. 안 열리면 Force 문 열기 버튼 또는 F6/6\n" +
+				"4. 플랫폼/위험물/체크포인트는 각 존 진입으로 발동\n" +
+				"5. 전체 루트: 시작존 -> 문1 -> 플랫폼 -> 위험구간 -> 문2 -> 체크포인트3 -> 탈출플랫폼 -> 최종체크포인트4\n" +
 				"단, once / cooldown / 타겟 없음 같은 제한은 여전히 걸릴 수 있습니다.",
 				helpBoxStyle);
-			y += 126f;
+			y += 138f;
 
-			GUI.Label(new Rect(area.x + 20f, y, width - 40f, 28f), $"포커스 상태: {(Application.isFocused ? "Game 뷰 포커스 있음" : "Game 뷰 포커스 없음")}", focusStyle);
+			GUI.Label(new Rect(x, y, contentRect.width - 16f, 28f), $"포커스 상태: {(Application.isFocused ? "Game 뷰 포커스 있음" : "Game 뷰 포커스 없음")}", focusStyle);
 			y += 32f;
 
-			ignoreConditionsInDev = GUI.Toggle(new Rect(area.x + 20f, y, width - 40f, 28f), ignoreConditionsInDev, "개발 모드: 조건 무시하고 실행(Force)");
+			ignoreConditionsInDev = GUI.Toggle(new Rect(x, y, contentRect.width - 16f, 28f), ignoreConditionsInDev, "개발 모드: 조건 무시하고 실행(Force)");
 			y += 34f;
-			GUI.Label(new Rect(area.x + 20f, y, width - 40f, 30f), "단축키: F6/6 문, F7/7 플랫폼, F8/8 체크포인트, F9/9 위험물", labelStyle);
+			GUI.Label(new Rect(x, y, contentRect.width - 16f, 30f), "단축키: F6/6 문, F7/7 플랫폼, F8/8 체크포인트, F9/9 위험물", labelStyle);
 			y += 34f;
-			GUI.Label(new Rect(area.x + 20f, y, width - 40f, 30f), "정상 모드: 존에 먼저 들어가야 반응합니다. Force 모드: 바로 반응합니다.", labelStyle);
+			GUI.Label(new Rect(x, y, contentRect.width - 16f, 30f), "문 열기 핵심: 시작존 진입(일반) 또는 Force 문 열기/F6(강제)", labelStyle);
 			y += 34f;
-			GUI.Label(new Rect(area.x + 20f, y, width - 40f, 48f), $"마지막 결과: {lastStatus}", okStyle);
+			GUI.Label(new Rect(x, y, contentRect.width - 16f, 48f), $"마지막 결과: {lastStatus}", okStyle);
 			y += 60f;
 
-			Rect normalSection = new Rect(area.x + 20f, y, width - 40f, 118f);
+			Rect normalSection = new Rect(x, y, contentRect.width - 16f, 118f);
 			GUI.Box(normalSection, "", helpBoxStyle);
 			GUI.Label(new Rect(normalSection.x + 12f, normalSection.y + 10f, normalSection.width - 24f, 24f), "일반 실행", sectionHeaderStyle);
 			GUI.Label(new Rect(normalSection.x + 12f, normalSection.y + 38f, normalSection.width - 24f, 24f), "존에 들어가야 반응하는 실제 진행 확인용입니다.", labelStyle);
 
-			Rect forceSection = new Rect(area.x + 20f, y + 132f, width - 40f, 118f);
+			Rect forceSection = new Rect(x, y + 132f, contentRect.width - 16f, 118f);
 			GUI.Box(forceSection, "", helpBoxStyle);
 			GUI.Label(new Rect(forceSection.x + 12f, forceSection.y + 10f, forceSection.width - 24f, 24f), "Force 실행", sectionHeaderStyle);
 			GUI.Label(new Rect(forceSection.x + 12f, forceSection.y + 38f, forceSection.width - 24f, 24f), "조건을 건너뛰고 액션 반응만 바로 보는 확인용입니다.", labelStyle);
 
 			y += 264f;
 
-			float buttonX = area.x + 20f;
+			float buttonX = x;
 			float buttonWidth = 188f;
 			float buttonGap = 16f;
 			if (GUI.Button(new Rect(buttonX, y, buttonWidth, 48f), "Reload", normalButtonStyle))
@@ -391,7 +398,7 @@ namespace WitchMendokusai
 				RunHazardToggle();
 
 			y += 58f;
-			buttonX = area.x + 20f;
+			buttonX = x;
 			if (GUI.Button(new Rect(buttonX, y, buttonWidth, 48f), "Force 문 열기", forceButtonStyle))
 				RunOpenGate(true);
 			buttonX += buttonWidth + buttonGap;
@@ -403,6 +410,8 @@ namespace WitchMendokusai
 			buttonX += buttonWidth + buttonGap;
 			if (GUI.Button(new Rect(buttonX, y, buttonWidth, 48f), "Force 위험물", forceButtonStyle))
 				RunHazardToggle(true);
+
+			GUI.EndScrollView();
 		}
 
 		[ContextMenu("UGC/Run evt_open_gate_001")]
