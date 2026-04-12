@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 
 namespace WitchMendokusai
@@ -28,13 +29,24 @@ namespace WitchMendokusai
 
 			if (newActive)
 			{
-				OnOpen();
+				// Animation 트랜지션 버튼의 animator.hasBoundPlayables가
+				// SetActive(true) 직후 프레임에서는 false라 Select() 트리거가 무시됨.
+				// 한 프레임 뒤에 OnOpen()을 호출해 Animator 초기화를 보장한다.
+				StartCoroutine(OpenNextFrame());
 			}
 			else
 			{
 				OnClose();
 			}
 		}
+
+		private IEnumerator OpenNextFrame()
+		{
+			yield return null;
+			if (gameObject.activeInHierarchy)
+				OnOpen();
+		}
+
 		protected virtual void OnOpen() { }
 		protected virtual void OnClose() { }
 
