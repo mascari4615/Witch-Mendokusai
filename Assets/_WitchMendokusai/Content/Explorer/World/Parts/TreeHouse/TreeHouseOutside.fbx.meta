@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 870fa749e65c6514c9d64da60c2cd463
+guid: d886f632f94a6e14cb0b32399b33a8fc
 ModelImporter:
   serializedVersion: 24200
   internalIDToNameTable: []
@@ -7,12 +7,7 @@ ModelImporter:
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
-      name: Leap
-    second: {fileID: 2100000, guid: 4489b195897487d43bb2ed6b4f9ae62f, type: 2}
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
-      name: Trunk
+      name: Wood
     second: {fileID: 2100000, guid: bc77925d5ad875043be19ca55ef3e952, type: 2}
   materials:
     materialImportMode: 2
@@ -39,7 +34,7 @@ ModelImporter:
     animationWrapMode: 0
     extraExposedTransformPaths: []
     extraUserProperties:
-    - '#BAKERY{"meshName":["Tree","Leap"],"padding":[256,256],"unwrapper":[0,0]}'
+    - '#BAKERY{"meshName":["Cylinder.001","Cylinder"],"padding":[230,127],"unwrapper":[0,0]}'
     clipAnimations: []
     isReadable: 0
   meshes:

@@ -3,7 +3,12 @@ guid: cdcee8b7f99e62c41b3bab47cff7e1fa
 ModelImporter:
   serializedVersion: 24200
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Wood
+    second: {fileID: 2100000, guid: bc77925d5ad875043be19ca55ef3e952, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0
@@ -29,7 +34,7 @@ ModelImporter:
     animationWrapMode: 0
     extraExposedTransformPaths: []
     extraUserProperties:
-    - '#BAKERY{"meshName":["Cylinder"],"padding":[140],"unwrapper":[0]}'
+    - '#BAKERY{"meshName":["Cylinder","Cylinder.001"],"padding":[256,44],"unwrapper":[0,0]}'
     clipAnimations: []
     isReadable: 0
   meshes:
