@@ -9,7 +9,7 @@ namespace WitchMendokusai
 	{
 		[SerializeField] private bool loadOnStart = true;
 		[SerializeField] private bool ignoreConditionsInDev = false;
-		[SerializeField] private bool showDebugGui = true;
+		[SerializeField] private bool showDebugGui = false;
 		[SerializeField] private bool verboseInputLog = true;
 		[SerializeField] private string manifestFileName = "wm_jump_001.manifest.json";
 		[SerializeField] private string triggerFileName = "wm_jump_001.triggers.json";
@@ -274,12 +274,24 @@ namespace WitchMendokusai
 
 		private void OnGUI()
 		{
+			GUIStyle toggleButtonStyle = new GUIStyle(GUI.skin.button)
+			{
+				fontSize = 16,
+				fontStyle = FontStyle.Bold,
+				fixedHeight = 32f,
+				fixedWidth = 120f,
+			};
+			toggleButtonStyle.normal.textColor = showDebugGui ? new Color(1f, 0.86f, 0.45f) : new Color(0.6f, 1f, 0.6f);
+
+			if (GUI.Button(new Rect(12, 12, 120f, 32f), showDebugGui ? "▼ UGC DEV" : "▶ UGC DEV", toggleButtonStyle))
+				showDebugGui = !showDebugGui;
+
 			if (!showDebugGui)
 				return;
 
 			const int width = 1040;
 			const int height = 640;
-			Rect area = new Rect(12, 12, width, height);
+			Rect area = new Rect(12, 48, width, height);
 			GUIStyle boxStyle = new GUIStyle(GUI.skin.box)
 			{
 				fontSize = 28,
