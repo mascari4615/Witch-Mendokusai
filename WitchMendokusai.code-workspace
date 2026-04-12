@@ -1,0 +1,35 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "../../memo"
+		}
+	],
+	"settings": {
+		"dotnet.defaultSolution": "WitchMendokusai.slnx",
+		"markdown.validate.enabled": true,
+		"files.exclude": {
+			"**/.git": true,
+			"**/.svn": true,
+			"**/.hg": true,
+			"**/.DS_Store": true,
+			"**/Thumbs.db": true,
+			"**/.classpath": true,
+			"**/.project": true,
+			"**/.settings": true,
+			"**/.factorypath": true,
+			"**/*.meta": true,
+			"**/Library": true,
+			"**/Logs": true,
+			"**/Temp": true,
+			"**/UserSettings": true,
+			"**/*.csproj": true,
+			"**/*.sln": true,
+			"**/bin": true,
+			"**/obj": true,
+			"**/.gitignore": true
+		}
+	}
+}

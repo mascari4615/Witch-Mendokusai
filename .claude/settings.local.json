@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "Bash(mkdir -p \"C:/Users/masca/repos/karmoddrine/WitchMendokusai/.claude/skills/commit-session\")",
+      "Bash(mkdir -p \"C:/Users/masca/repos/karmoddrine/WitchMendokusai/.claude/skills/commit-all\")",
+      "Bash(rm \"C:/Users/masca/repos/karmoddrine/WitchMendokusai/.claude/skills/commit-session.md\")",
+      "Bash(rm \"C:/Users/masca/repos/karmoddrine/WitchMendokusai/.claude/skills/commit-all.md\")"
+    ]
+  }
+}

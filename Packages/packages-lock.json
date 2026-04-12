@@ -17,11 +17,10 @@
       "hash": "06067cd4c83e372310d6f79d1c625f6870ff7a2a"
     },
     "com.mascari4615.karmo-editor": {
-      "version": "https://github.com/Mascari4615/KarmoLab.git?path=/Unity/LocalPackages/com.mascari4615.karmo-editor",
+      "version": "file:com.mascari4615.karmo-editor",
       "depth": 0,
-      "source": "git",
-      "dependencies": {},
-      "hash": "2bbc0601db600d43aecbe9c0e6090df0dbdf77c5"
+      "source": "embedded",
+      "dependencies": {}
     },
     "com.unify.unified-universal-blur": {
       "version": "https://github.com/lukakldiashvili/Unified-Universal-Blur.git",
