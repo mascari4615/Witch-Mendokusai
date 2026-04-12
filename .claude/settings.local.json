@@ -5,7 +5,13 @@
       "Bash(mkdir -p \"C:/Users/masca/repos/karmoddrine/WitchMendokusai/.claude/skills/commit-session\")",
       "Bash(mkdir -p \"C:/Users/masca/repos/karmoddrine/WitchMendokusai/.claude/skills/commit-all\")",
       "Bash(rm \"C:/Users/masca/repos/karmoddrine/WitchMendokusai/.claude/skills/commit-session.md\")",
-      "Bash(rm \"C:/Users/masca/repos/karmoddrine/WitchMendokusai/.claude/skills/commit-all.md\")"
+      "Bash(rm \"C:/Users/masca/repos/karmoddrine/WitchMendokusai/.claude/skills/commit-all.md\")",
+      "Bash(xargs grep:*)",
+      "Bash(python -c \" import sys, json data = json.load\\(sys.stdin\\) for m in data['maps']: if m['name'] == 'UI': print\\('UI Actions:', [a['name'] for a in m['actions']]\\) print\\('UI Navigate bindings:'\\) for b in m.get\\('bindings', []\\): if b.get\\('action'\\) == 'Navigate': print\\(' ', b\\) \")",
+      "Bash(python -c ':*)",
+      "Bash(python:*)",
+      "Bash(git add:*)",
+      "Bash(git commit -m ':*)"
     ]
   }
 }
