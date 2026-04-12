@@ -2,7 +2,7 @@
   "dependencies": {
     "com.boxqkrtm.ide.cursor": "https://github.com/boxqkrtm/com.unity.ide.cursor.git",
     "com.cysharp.unitask": "https://github.com/Cysharp/UniTask.git?path=src/UniTask/Assets/Plugins/UniTask",
-    "com.mascari4615.karmo-editor": "https://github.com/Mascari4615/KarmoLab.git?path=/Unity/LocalPackages/com.mascari4615.karmo-editor",
+    "com.mascari4615.karmo-editor": "file:com.mascari4615.karmo-editor",
     "com.unify.unified-universal-blur": "https://github.com/lukakldiashvili/Unified-Universal-Blur.git",
     "com.unity.2d.animation": "14.0.3",
     "com.unity.addressables": "2.9.1",
