@@ -131,3 +131,6 @@ bakery_times.log
 /Assets/_WitchMendokusai/Sprites*
 
 WM.json*
+
+# Claude Code worktrees
+/.claude/worktrees/
