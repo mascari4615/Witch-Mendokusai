@@ -86,7 +86,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   nodesRoot: {fileID: 1511885766366560249}
+  edgesRoot: {fileID: 1511885766366560249}
   nodePrefab: {fileID: 7620618979635486146, guid: c7e1cb19fe110fe4a872874492d0e2c5, type: 3}
+  edgePrefab: {fileID: 8764671358077596279, guid: c622c8f11162e6a49963f784066fd19d, type: 3}
   content: {fileID: 1511885766366560249}
 --- !u!114 &3520696410192289342
 MonoBehaviour:
@@ -130,6 +132,7 @@ GameObject:
   - component: {fileID: 3824619505161733946}
   - component: {fileID: 1867186751880667165}
   - component: {fileID: 7505299334648167442}
+  - component: {fileID: 6305282714644452750}
   m_Layer: 5
   m_Name: Viewport
   m_TagString: Untagged
@@ -208,3 +211,19 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_ShowMaskGraphic: 1
+--- !u!114 &6305282714644452750
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7734368300933387497}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5bfef2f4f6be62e4a8f07ec8cee93d9d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WitchMendokusai.UIContentZoom
+  target: {fileID: 1511885766366560249}
+  zoomSpeed: 0.1
+  minZoom: 0.3
+  maxZoom: 2
