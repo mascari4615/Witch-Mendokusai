@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 using Unity.Cinemachine;
 
 namespace WitchMendokusai
@@ -82,7 +83,7 @@ namespace WitchMendokusai
 			if (positionComposer == null)
 				return;
 
-			float step = -Input.mouseScrollDelta.y * zoomWheelSensitivity;
+			float step = -(Mouse.current != null ? Mouse.current.scroll.ReadValue().y : 0f) * zoomWheelSensitivity;
 			targetZoom = Mathf.Clamp(targetZoom + step, minZoom, maxZoom);
 		}
 
