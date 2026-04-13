@@ -77,7 +77,7 @@ namespace WitchMendokusai
 				activeSlotCount += slot.gameObject.activeSelf ? 1 : 0;
 			}
 
-			if (clickToolTip != null)
+			if (clickToolTip != null && CurSlot != null && CurSlot.Data != null)
 				clickToolTip.SetToolTipContent(CurSlot.Data);
 
 			if (questToolTip != null)
