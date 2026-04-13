@@ -342,8 +342,6 @@ MonoBehaviour:
   renderSettingsMinAutoResolution: 16
   renderSettingsUnloadScenes: 1
   renderSettingsAdjustSamples: 1
-  renderSettingsGILODMode: 2
-  renderSettingsGILODModeEnabled: 0
   renderSettingsCheckOverlaps: 0
   renderSettingsSkipOutOfBoundsUVs: 1
   renderSettingsHackEmissiveBoost: 1
@@ -353,12 +351,16 @@ MonoBehaviour:
   renderSettingsUseScenePath: 1
   renderSettingsHackAOIntensity: 0
   renderSettingsHackAOSamples: 16
+  renderSettingsHackAOSofter: 0
   renderSettingsHackAORadius: 1
   renderSettingsShowAOSettings: 0
   renderSettingsShowTasks: 1
   renderSettingsShowTasks2: 1
   renderSettingsShowPaths: 1
   renderSettingsShowNet: 1
+  renderSettingsShowSettingsAsset: 0
+  renderSettingsShowAPV: 0
+  renderSettingsUseAPVSkyOcclusion: 0
   renderSettingsOcclusionProbes: 0
   renderSettingsTexelsPerMap: 0
   renderSettingsTexelsColor: 1
@@ -369,12 +371,16 @@ MonoBehaviour:
   renderSettingsShowCheckerSettings: 0
   renderSettingsSamplesWarning: 1
   renderSettingsSuppressPopups: 0
+  renderSettingsSectorWarning: 0
   renderSettingsPrefabWarning: 1
   renderSettingsSplitByScene: 0
   renderSettingsSplitByTag: 0
   renderSettingsUVPaddingMax: 0
+  renderSettingsUVPaddingPreserveIfExisted: 0
   renderSettingsPostPacking: 1
   renderSettingsHoleFilling: 0
+  renderSettingsBruteForce: 1
+  renderSettingsAlphaDithering: 0
   renderSettingsBeepOnFinish: 1
   renderSettingsExportTerrainAsHeightmap: 1
   renderSettingsRTXMode: 1
@@ -391,16 +397,18 @@ MonoBehaviour:
   renderSettingsCompressVolumes: 0
   renderSettingsBatchAreaLightSampleLimit: 0
   renderSettingsSector: {fileID: 0}
+  renderSettingsAsset: {fileID: 0}
   renderSettingsRTPVExport: 1
   renderSettingsRTPVSceneView: 0
   renderSettingsRTPVHDR: 0
   renderSettingsRTPVWidth: 640
   renderSettingsRTPVHeight: 360
+  renderSettingsRTPVExposure: 1
+  renderSettingsRemoveDuplicateLightmaps: 0
   lastBakeTime: 0
   enlightenWarningShown: 0
   enlightenWarningShown2: 0
   uniqueLights: []
-  lights: []
   implicitGroups: []
   implicitGroupedObjects: []
   bounds: []
@@ -420,8 +428,13 @@ MonoBehaviour:
   lightmapHasMask: 
   lightmapHasDir: 
   lightmapHasRNM: 
+  lights: []
   modifiedAssetPathList: []
   modifiedAssets: []
+  bakedRenderers: []
+  nonBakedRenderers: []
+  bakedLights: []
+  bakedRenderersTerrain: []
   maps: []
   masks: []
   dirMaps: []
@@ -429,15 +442,11 @@ MonoBehaviour:
   rnmMaps1: []
   rnmMaps2: []
   mapsMode: 
-  bakedRenderers: []
   bakedIDs: 
   bakedScaleOffset: []
   bakedVertexOffset: 
   bakedVertexColorMesh: []
-  nonBakedRenderers: []
-  bakedLights: []
   bakedLightChannels: 
-  bakedRenderersTerrain: []
   bakedIDsTerrain: 
   bakedScaleOffsetTerrain: []
   assetList: []
@@ -975,7 +984,6 @@ MonoBehaviour:
   m_ScreenCoordScaleBias: {x: 0, y: 0, z: 0, w: 0}
   m_RequiresDepthTexture: 0
   m_RequiresColorTexture: 0
-  m_Version: 2
   m_TaaSettings:
     m_Quality: 3
     m_FrameInfluence: 0.1
@@ -983,6 +991,7 @@ MonoBehaviour:
     m_MipBias: 0
     m_VarianceClampScale: 0.9
     m_ContrastAdaptiveSharpening: 0
+  m_Version: 2
 --- !u!1 &1266926158
 GameObject:
   m_ObjectHideFlags: 0
@@ -1078,6 +1087,7 @@ MonoBehaviour:
   m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
+  m_characterHorizontalScale: 1
   m_wordSpacing: 0
   m_lineSpacing: 0
   m_lineSpacingMax: 0
@@ -1271,6 +1281,7 @@ Canvas:
   m_OverridePixelPerfect: 0
   m_SortingBucketNormalizedSize: 0
   m_VertexColorAlwaysGammaSpace: 0
+  m_UseReflectionProbes: 0
   m_AdditionalShaderChannelsFlag: 25
   m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
@@ -1478,6 +1489,7 @@ MonoBehaviour:
   m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
+  m_characterHorizontalScale: 1
   m_wordSpacing: 0
   m_lineSpacing: 0
   m_lineSpacingMax: 0
@@ -1529,7 +1541,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1592755906}
   - component: {fileID: 1592755905}
-  - component: {fileID: 1592755904}
+  - component: {fileID: 1592755907}
   m_Layer: 0
   m_Name: EventSystem
   m_TagString: Untagged
@@ -1537,26 +1549,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1592755904
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1592755903}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4f231c4fb786f3946a6b90b886c48677, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_SendPointerHoverToParent: 1
-  m_HorizontalAxis: Horizontal
-  m_VerticalAxis: Vertical
-  m_SubmitButton: Submit
-  m_CancelButton: Cancel
-  m_InputActionsPerSecond: 10
-  m_RepeatDelay: 0.5
-  m_ForceModuleActive: 0
 --- !u!114 &1592755905
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1587,6 +1579,37 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1592755907
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1592755903}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 01614664b831546d2ae94a42149d80ac, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.InputSystem::UnityEngine.InputSystem.UI.InputSystemUIInputModule
+  m_SendPointerHoverToParent: 1
+  m_MoveRepeatDelay: 0.5
+  m_MoveRepeatRate: 0.1
+  m_XRTrackingOrigin: {fileID: 0}
+  m_ActionsAsset: {fileID: -944628639613478452, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
+  m_PointAction: {fileID: -1654692200621890270, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
+  m_MoveAction: {fileID: -8784545083839296357, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
+  m_SubmitAction: {fileID: 392368643174621059, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
+  m_CancelAction: {fileID: 7727032971491509709, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
+  m_LeftClickAction: {fileID: 3001919216989983466, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
+  m_MiddleClickAction: {fileID: -2185481485913320682, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
+  m_RightClickAction: {fileID: -4090225696740746782, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
+  m_ScrollWheelAction: {fileID: 6240969308177333660, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
+  m_TrackedDevicePositionAction: {fileID: 6564999863303420839, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
+  m_TrackedDeviceOrientationAction: {fileID: 7970375526676320489, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
+  m_DeselectOnBackgroundClick: 1
+  m_PointerBehavior: 0
+  m_CursorLockBehavior: 0
+  m_ScrollDeltaPerTick: 6
 --- !u!1 &1634585289
 GameObject:
   m_ObjectHideFlags: 0
