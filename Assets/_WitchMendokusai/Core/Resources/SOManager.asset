@@ -22,7 +22,7 @@ MonoBehaviour:
   <QuestDataBuffer>k__BackingField: {fileID: 11400000, guid: 34d6a627ec27aeb4c826fd5dcd7fc39f, type: 2}
   <QuestBuffer>k__BackingField: {fileID: 11400000, guid: 3ec24248882b83e458342ca2d5cc9992, type: 2}
   <DollBuffer>k__BackingField: {fileID: 11400000, guid: d32743f508b1fb4498e16b9522cfa5b4, type: 2}
-  <ItemDataBuffer>k__BackingField: {fileID: 11400000, guid: 4d0c33ceef025d74f874ac4a13e4f6ab, type: 2}
+  <DungeonItemBuffer>k__BackingField: {fileID: 11400000, guid: 4d0c33ceef025d74f874ac4a13e4f6ab, type: 2}
   <ItemInventory>k__BackingField: {fileID: 11400000, guid: 4c6d863b03b576e41857bac9c948fd2e, type: 2}
   <SelectedCardBuffer>k__BackingField: {fileID: 11400000, guid: f13c31923217cf246898171312ed6c19, type: 2}
   <VQuestLoadQuest>k__BackingField: {fileID: 11400000, guid: d8833ad6264114a4a9063683bb2db8bc, type: 2}
