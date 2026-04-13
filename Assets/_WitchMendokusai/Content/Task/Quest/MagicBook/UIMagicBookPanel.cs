@@ -44,13 +44,17 @@ namespace WitchMendokusai
 			}
 
 			chapterSelectButtons = new List<UISlot>();
-			for (int i = 0; i < chapters.Count; i++)
+			for (int i = 0; i < chapterDatas.Count; i++)
 			{
-				int index = i;
+				if (chapterDatas[i] == null)
+					continue;
+
+				int index = chapterSelectButtons.Count;
 				GameObject buttonInstance = Instantiate(panelSelectButtonPrefab, panelSelectButtonsParent);
 				UISlot button = buttonInstance.GetComponent<UISlot>();
 				button.SetSlotIndex(index);
 				button.Init();
+				button.SetSlot(chapterDatas[i]);
 				button.SetClickAction((_) => OpenChapter(index));
 				button.gameObject.SetActive(true);
 				chapterSelectButtons.Add(button);

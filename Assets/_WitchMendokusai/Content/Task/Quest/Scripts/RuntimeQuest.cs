@@ -141,6 +141,8 @@ namespace WitchMendokusai
 				QuestManager.Instance.SetQuestState(SO.ID, QuestState.Completed);
 				if (Type == QuestType.Achievement)
 					UIManager.Instance?.Popup(SO);
+				if (Type == QuestType.Research)
+					GameEventManager.Instance.Raise(GameEventType.OnResearchComplete);
 			}
 
 			foreach (GameEventType gameEventType in GameEvents)
