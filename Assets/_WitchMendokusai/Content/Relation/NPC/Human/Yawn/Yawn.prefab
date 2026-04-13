@@ -78,8 +78,28 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 2210592187617595256, guid: eb337eaf95d6f51429ff4885ecb240c7, type: 3}
       insertIndex: -1
       addedObject: {fileID: 4504875825467116794}
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 1827634288136616747, guid: eb337eaf95d6f51429ff4885ecb240c7, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: -8507316617950757864}
   m_SourcePrefab: {fileID: 100100000, guid: eb337eaf95d6f51429ff4885ecb240c7, type: 3}
+--- !u!1 &221353548052956122 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1827634288136616747, guid: eb337eaf95d6f51429ff4885ecb240c7, type: 3}
+  m_PrefabInstance: {fileID: 1895848672676870385}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &-8507316617950757864
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 221353548052956122}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 16403f40c1fb4eb4bb9a8be297f1f83d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WitchMendokusai.YawnReaction
 --- !u!4 &352109473550022537 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 2210592187617595256, guid: eb337eaf95d6f51429ff4885ecb240c7, type: 3}

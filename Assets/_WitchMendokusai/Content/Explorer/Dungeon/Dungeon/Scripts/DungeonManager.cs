@@ -143,13 +143,16 @@ namespace WitchMendokusai
 		public void Continue()
 		{
 			// 집으로 돌아가기
-			StageManager.Instance.LoadStage
-			(
-				StageManager.Instance.LastStage,
-				isBackToLastStage: true
-			);
-
-			ResetDungeonAndPlayer();
+			UIManager.Instance.Transition.Transition(
+				aDuringTransition: () =>
+				{
+					StageManager.Instance.LoadStage(StageManager.Instance.LastStage, isBackToLastStage: true);
+					ResetDungeonAndPlayer();
+				},
+				aWhenEnd: () =>
+				{
+					GameEventManager.Instance.Raise(GameEventType.OnDungeonReturn);
+				}).Forget();
 
 			void ResetDungeonAndPlayer()
 			{

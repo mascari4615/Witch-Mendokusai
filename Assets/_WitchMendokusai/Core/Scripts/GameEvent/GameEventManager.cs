@@ -9,6 +9,7 @@ namespace WitchMendokusai
 		OnPlayerHit,
 		OnPlayerDied,
 		OnDungeonStart,
+		OnDungeonReturn,
 		OnLastHitMonsterChange,
 		OnTick,
 		OnLevelUp,
