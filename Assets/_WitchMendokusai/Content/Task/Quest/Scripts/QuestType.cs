@@ -6,6 +6,7 @@ namespace WitchMendokusai
 		Normal = 0,
 		VillageRequest = 1,
 		Achievement = 2,
+		Research = 50,
 		Dungeon = 100,
 	}
 }

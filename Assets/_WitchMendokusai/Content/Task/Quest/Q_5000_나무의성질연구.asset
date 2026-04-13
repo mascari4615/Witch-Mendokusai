@@ -1,0 +1,39 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 57bcccf40b075204a842ff5fb93c7f74, type: 3}
+  m_Name: "Q_5000_\ub098\ubb34\uc758\uc131\uc9c8\uc5f0\uad6c"
+  m_EditorClassIdentifier:
+  <ID>k__BackingField: 5000
+  <Name>k__BackingField: "\ub098\ubb34\uc758 \uc131\uc9c8"
+  <Description>k__BackingField: "\ub098\ubb34\ub97c \uc870\uae08 \uc0b4\ud3b4\ubcf4\uae30\ub85c \ud588\ub2e4."
+  <Sprite>k__BackingField: {fileID: 0}
+  <Sprites>k__BackingField: []
+  <Data>k__BackingField:
+    Type: 50
+    UnlockEffects: []
+    GameEvents: 04000000
+    Criteria:
+    - Type: 0
+      Data: {fileID: 11400000, guid: e26916c612e84b14cb72659bbeb57685, type: 2}
+      ComparisonOperator: 4
+      Value: 3
+      JustOnce: 0
+    CompleteEffects:
+    - Type: 201
+      Data: {fileID: 11400000, guid: e26916c612e84b14cb72659bbeb57685, type: 2}
+      ArithmeticOperator: 2
+      Value: 3
+    RewardEffects: []
+    Rewards: []
+    WorkTime: 0
+    AutoWork: 0
+    AutoComplete: 0
