@@ -110,7 +110,7 @@ namespace WitchMendokusai
 
 			bool keyboardPresent = Keyboard.current != null;
 			bool anyKey = keyboardPresent && Keyboard.current.anyKey.wasPressedThisFrame;
-			Debug.Log($"[UGC][Input] heartbeat keyboardPresent={keyboardPresent}, anyKeyThisFrame={anyKey}, focus={Application.isFocused}");
+			// Debug.Log($"[UGC][Input] heartbeat keyboardPresent={keyboardPresent}, anyKeyThisFrame={anyKey}, focus={Application.isFocused}");
 		}
 
 		private void LogHotkey(string action, string key)
