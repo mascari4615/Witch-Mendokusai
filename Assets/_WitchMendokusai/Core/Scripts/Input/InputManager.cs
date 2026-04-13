@@ -257,8 +257,8 @@ namespace WitchMendokusai
 				return;
 			}
 
-			Vector3 mousePos = Input.mousePosition;
-			mousePos.z = Camera.main.nearClipPlane;
+			Vector2 mouseScreen = Mouse.current != null ? Mouse.current.position.ReadValue() : Vector2.zero;
+			Vector3 mousePos = new Vector3(mouseScreen.x, mouseScreen.y, Camera.main.nearClipPlane);
 			Ray ray = Camera.main.ScreenPointToRay(mousePos);
 
 			if (TryResolveMouseWorldHit(ray, out RaycastHit hit))
@@ -318,8 +318,16 @@ namespace WitchMendokusai
 				return;
 			}
 
-			float h = Input.GetAxisRaw("Horizontal");
-			float v = Input.GetAxisRaw("Vertical");
+			Keyboard kb = Keyboard.current;
+			float h = 0f;
+			float v = 0f;
+			if (kb != null)
+			{
+				if (kb.dKey.isPressed || kb.rightArrowKey.isPressed) h += 1f;
+				if (kb.aKey.isPressed || kb.leftArrowKey.isPressed) h -= 1f;
+				if (kb.wKey.isPressed || kb.upArrowKey.isPressed) v += 1f;
+				if (kb.sKey.isPressed || kb.downArrowKey.isPressed) v -= 1f;
+			}
 
 			if (h == 0)
 				h = SOManager.Instance.JoystickX.RuntimeValue;

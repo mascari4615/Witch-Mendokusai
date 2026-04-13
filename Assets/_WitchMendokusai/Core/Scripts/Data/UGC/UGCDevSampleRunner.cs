@@ -1,7 +1,5 @@
 using UnityEngine;
-#if ENABLE_INPUT_SYSTEM
 using UnityEngine.InputSystem;
-#endif
 
 namespace WitchMendokusai
 {
@@ -19,18 +17,15 @@ namespace WitchMendokusai
 		private float nextInputHeartbeatTime;
 		private Vector2 guiScroll = Vector2.zero;
 
-#if ENABLE_INPUT_SYSTEM
 		private InputAction actionToggleGui;
 		private InputAction actionReload;
 		private InputAction actionDoor;
 		private InputAction actionPlatform;
 		private InputAction actionCheckpoint;
 		private InputAction actionHazard;
-#endif
 
 		private void OnEnable()
 		{
-#if ENABLE_INPUT_SYSTEM
 			EnsureInputActions();
 			actionToggleGui.Enable();
 			actionReload.Enable();
@@ -38,20 +33,17 @@ namespace WitchMendokusai
 			actionPlatform.Enable();
 			actionCheckpoint.Enable();
 			actionHazard.Enable();
-#endif
 			LogInputBackend();
 		}
 
 		private void OnDisable()
 		{
-#if ENABLE_INPUT_SYSTEM
 			actionToggleGui?.Disable();
 			actionReload?.Disable();
 			actionDoor?.Disable();
 			actionPlatform?.Disable();
 			actionCheckpoint?.Disable();
 			actionHazard?.Disable();
-#endif
 		}
 
 		private void Start()
@@ -64,69 +56,37 @@ namespace WitchMendokusai
 		{
 			LogInputHeartbeat();
 
-			if (WasPressed(actionToggleGui) || IsKeyPressed(KeyCode.F1
-#if ENABLE_INPUT_SYSTEM
-				, Key.F1
-#endif
-			))
+			if (actionToggleGui.WasPressedThisFrame())
 			{
 				LogHotkey("ToggleGui", "F1");
 				showDebugGui = !showDebugGui;
 			}
 
-			if (WasPressed(actionReload) || IsKeyPressed(KeyCode.F5
-#if ENABLE_INPUT_SYSTEM
-				, Key.F5
-#endif
-			) || IsKeyPressed(KeyCode.R
-#if ENABLE_INPUT_SYSTEM
-				, Key.R
-#endif
-			))
+			if (actionReload.WasPressedThisFrame())
 			{
 				LogHotkey("Reload", "F5/R");
 				LoadSamples();
 			}
 
-			if (WasPressed(actionDoor) || IsAnyKeyPressed(
-				KeyCode.F6, KeyCode.Alpha6, KeyCode.Keypad6
-#if ENABLE_INPUT_SYSTEM
-				, Key.F6, Key.Digit6, Key.Numpad6
-#endif
-			))
+			if (actionDoor.WasPressedThisFrame())
 			{
 				LogHotkey("Door", "F6/6");
 				RunOpenGate();
 			}
 
-			if (WasPressed(actionPlatform) || IsAnyKeyPressed(
-				KeyCode.F7, KeyCode.Alpha7, KeyCode.Keypad7
-#if ENABLE_INPUT_SYSTEM
-				, Key.F7, Key.Digit7, Key.Numpad7
-#endif
-			))
+			if (actionPlatform.WasPressedThisFrame())
 			{
 				LogHotkey("Platform", "F7/7");
 				RunStartPlatform();
 			}
 
-			if (WasPressed(actionCheckpoint) || IsAnyKeyPressed(
-				KeyCode.F8, KeyCode.Alpha8, KeyCode.Keypad8
-#if ENABLE_INPUT_SYSTEM
-				, Key.F8, Key.Digit8, Key.Numpad8
-#endif
-			))
+			if (actionCheckpoint.WasPressedThisFrame())
 			{
 				LogHotkey("Checkpoint", "F8/8");
 				RunCheckpoint();
 			}
 
-			if (WasPressed(actionHazard) || IsAnyKeyPressed(
-				KeyCode.F9, KeyCode.Alpha9, KeyCode.Keypad9
-#if ENABLE_INPUT_SYSTEM
-				, Key.F9, Key.Digit9, Key.Numpad9
-#endif
-			))
+			if (actionHazard.WasPressedThisFrame())
 			{
 				LogHotkey("Hazard", "F9/9");
 				RunHazardToggle();
@@ -138,21 +98,7 @@ namespace WitchMendokusai
 			if (!verboseInputLog)
 				return;
 
-			string legacy =
-#if ENABLE_LEGACY_INPUT_MANAGER
-				"on";
-#else
-				"off";
-#endif
-
-			string inputSystem =
-#if ENABLE_INPUT_SYSTEM
-				"on";
-#else
-				"off";
-#endif
-
-			Debug.Log($"[UGC][Input] Runner enabled. scene={UnityEngine.SceneManagement.SceneManager.GetActiveScene().name}, inputSystem={inputSystem}, legacy={legacy}");
+			Debug.Log($"[UGC][Input] Runner enabled. scene={UnityEngine.SceneManagement.SceneManager.GetActiveScene().name}, inputSystem=on, legacy=off");
 		}
 
 		private void LogInputHeartbeat()
@@ -162,13 +108,9 @@ namespace WitchMendokusai
 
 			nextInputHeartbeatTime = Time.unscaledTime + 2f;
 
-#if ENABLE_INPUT_SYSTEM
 			bool keyboardPresent = Keyboard.current != null;
 			bool anyKey = keyboardPresent && Keyboard.current.anyKey.wasPressedThisFrame;
 			Debug.Log($"[UGC][Input] heartbeat keyboardPresent={keyboardPresent}, anyKeyThisFrame={anyKey}, focus={Application.isFocused}");
-#else
-			Debug.Log($"[UGC][Input] heartbeat inputSystem=off, focus={Application.isFocused}");
-#endif
 		}
 
 		private void LogHotkey(string action, string key)
@@ -179,7 +121,6 @@ namespace WitchMendokusai
 			Debug.Log($"[UGC][Input] hotkey action={action}, key={key}");
 		}
 
-#if ENABLE_INPUT_SYSTEM
 		private void EnsureInputActions()
 		{
 			actionToggleGui ??= CreateKeyboardAction("ToggleGui", "<Keyboard>/f1");
@@ -197,57 +138,6 @@ namespace WitchMendokusai
 				action.AddBinding(bindings[i]);
 
 			return action;
-		}
-
-		private static bool WasPressed(InputAction action)
-		{
-			return action != null && action.WasPressedThisFrame();
-		}
-#else
-		private static bool WasPressed(object action)
-		{
-			return false;
-		}
-#endif
-
-		private static bool IsAnyKeyPressed(KeyCode firstLegacy, KeyCode secondLegacy, KeyCode thirdLegacy
-#if ENABLE_INPUT_SYSTEM
-			, Key firstInputSystem, Key secondInputSystem, Key thirdInputSystem
-#endif
-		)
-		{
-			return IsKeyPressed(firstLegacy
-#if ENABLE_INPUT_SYSTEM
-				, firstInputSystem
-#endif
-			) || IsKeyPressed(secondLegacy
-#if ENABLE_INPUT_SYSTEM
-				, secondInputSystem
-#endif
-			) || IsKeyPressed(thirdLegacy
-#if ENABLE_INPUT_SYSTEM
-				, thirdInputSystem
-#endif
-			);
-		}
-
-		private static bool IsKeyPressed(KeyCode legacyKey
-#if ENABLE_INPUT_SYSTEM
-			, Key inputSystemKey
-#endif
-		)
-		{
-#if ENABLE_INPUT_SYSTEM
-			Keyboard keyboard = Keyboard.current;
-			if (keyboard != null && keyboard[inputSystemKey].wasPressedThisFrame)
-				return true;
-#endif
-
-#if ENABLE_LEGACY_INPUT_MANAGER
-			return Input.GetKeyDown(legacyKey);
-#else
-			return false;
-#endif
 		}
 
 		public void Setup(string manifest, string triggers, bool ignoreConditions)
