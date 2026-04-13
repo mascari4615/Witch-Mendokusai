@@ -6,10 +6,13 @@ namespace WitchMendokusai
 	public class UIChapter : UIBase
 	{
 		[SerializeField] private Transform nodesRoot;
+		[SerializeField] private Transform edgesRoot;
 		[SerializeField] private UIQuestNode nodePrefab;
+		[SerializeField] private UIQuestEdge edgePrefab;
 		[SerializeField] private RectTransform content;
 
 		private readonly List<UIQuestNode> nodes = new();
+		private readonly List<UIQuestEdge> edges = new();
 		private ToolTip toolTip;
 		private UIQuestToolTip questToolTip;
 
@@ -21,6 +24,10 @@ namespace WitchMendokusai
 				Destroy(node.gameObject);
 			nodes.Clear();
 
+			foreach (UIQuestEdge edge in edges)
+				Destroy(edge.gameObject);
+			edges.Clear();
+
 			foreach (QuestNodeData nodeData in chapterSO.Nodes)
 			{
 				UIQuestNode node = Instantiate(nodePrefab, nodesRoot);
@@ -29,8 +36,47 @@ namespace WitchMendokusai
 				nodes.Add(node);
 			}
 
+			BuildEdges();
+
 			if (toolTip != null)
 				ApplyToolTip();
+		}
+
+		private void BuildEdges()
+		{
+			if (edgePrefab == null || edgesRoot == null)
+				return;
+
+			foreach (UIQuestNode fromNode in nodes)
+			{
+				QuestSO questSO = fromNode.DataSO as QuestSO;
+				if (questSO == null)
+					continue;
+
+				foreach (EffectInfo effect in questSO.Data.CompleteEffects)
+				{
+					if (effect.Type != EffectType.UnlockQuest)
+						continue;
+
+					UIQuestNode toNode = null;
+					foreach (UIQuestNode n in nodes)
+					{
+						if (n.DataSO == effect.Data)
+						{
+							toNode = n;
+							break;
+						}
+					}
+
+					if (toNode == null)
+						continue;
+
+					UIQuestEdge edge = Instantiate(edgePrefab, edgesRoot);
+					edge.SetEdge((RectTransform)fromNode.transform, (RectTransform)toNode.transform);
+					edge.transform.SetAsFirstSibling();
+					edges.Add(edge);
+				}
+			}
 		}
 
 		public void SetToolTip(ToolTip toolTip, UIQuestToolTip questToolTip)
@@ -48,6 +94,7 @@ namespace WitchMendokusai
 				node.SetClickAction((slot) =>
 				{
 					slot.ToolTipTrigger.ClickToolTip.gameObject.SetActive(true);
+					toolTip.SetToolTipContent(slot.Data);
 					RuntimeQuest quest = QuestManager.Instance.GetQuest(slot.DataSO as QuestSO);
 					questToolTip.SetQuest(quest);
 					questToolTip.UpdateUI();

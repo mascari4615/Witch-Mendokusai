@@ -30,6 +30,11 @@ namespace WitchMendokusai
 
 			foreach (ChapterSO chapterSO in chapterDatas)
 			{
+				if (chapterSO == null)
+				{
+					Debug.LogWarning("[UIMagicBookPanel] chapterDatas에 null 항목이 있습니다. 인스펙터를 확인해주세요.", this);
+					continue;
+				}
 				UIChapter chapter = Instantiate(chapterPrefab, panelsParent);
 				chapter.Init();
 				chapter.SetData(chapterSO);
