@@ -1,42 +1,54 @@
-using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace WitchMendokusai
 {
 	public class UIChapter : UIBase
 	{
-		private UIQuestSlot[] questSlots;
+		[SerializeField] private Transform nodesRoot;
+		[SerializeField] private UIQuestNode nodePrefab;
 		[SerializeField] private RectTransform content;
 
-		public override void Init()
+		private readonly List<UIQuestNode> nodes = new();
+		private ToolTip toolTip;
+		private UIQuestToolTip questToolTip;
+
+		public override void Init() { }
+
+		public void SetData(ChapterSO chapterSO)
 		{
-			// Debug.Log($"{name} {nameof(Init)}");
+			foreach (UIQuestNode node in nodes)
+				Destroy(node.gameObject);
+			nodes.Clear();
 
-			questSlots = GetComponentsInChildren<UIQuestSlot>(true);
+			foreach (QuestNodeData nodeData in chapterSO.Nodes)
+			{
+				UIQuestNode node = Instantiate(nodePrefab, nodesRoot);
+				node.SetNode(nodeData.Quest, nodeData.Position);
+				node.Init();
+				nodes.Add(node);
+			}
 
-			foreach (UIQuestSlot slot in questSlots)
-				slot.Init();
+			if (toolTip != null)
+				ApplyToolTip();
 		}
 
 		public void SetToolTip(ToolTip toolTip, UIQuestToolTip questToolTip)
 		{
-			// Debug.Log($"{name} {nameof(SetToolTip)}");
+			this.toolTip = toolTip;
+			this.questToolTip = questToolTip;
+			ApplyToolTip();
+		}
 
-			foreach (UIQuestSlot slot in questSlots)
+		private void ApplyToolTip()
+		{
+			foreach (UIQuestNode node in nodes)
 			{
-				slot.ToolTipTrigger.SetClickToolTip(toolTip);
-				slot.SetClickAction((slot) =>
+				node.ToolTipTrigger.SetClickToolTip(toolTip);
+				node.SetClickAction((slot) =>
 				{
 					slot.ToolTipTrigger.ClickToolTip.gameObject.SetActive(true);
-
 					RuntimeQuest quest = QuestManager.Instance.GetQuest(slot.DataSO as QuestSO);
-
-					// QuestManager.Instance.Quests.Data ToString
-					// Debug.Log($"Q {QuestManager.Instance.Quests.Data.Select(x => x.SO.ID.ToString()).Aggregate((x, y) => $"{x}, {y}")}");
-					// Debug.Log($"ClickClick {slot.name} | {quest} | {slot.DataSO as QuestSO} | {slot.DataSO}");
 					questToolTip.SetQuest(quest);
 					questToolTip.UpdateUI();
 				});
@@ -45,37 +57,30 @@ namespace WitchMendokusai
 
 		protected override void OnOpen()
 		{
-			// Debug.Log($"{name} {nameof(OnOpen)}");
-		
-			// 스크롤 위치 초기화
 			content.anchoredPosition = Vector2.zero;
 		}
 
 		public override void UpdateUI()
 		{
-			// Debug.Log($"{name} {nameof(UpdateUI)}");
-			
-			foreach (UIQuestSlot slot in questSlots)
+			foreach (UIQuestNode node in nodes)
 			{
-				RuntimeQuest runtimeQuest = QuestManager.Instance.GetQuest(slot.DataSO as QuestSO);
+				RuntimeQuest runtimeQuest = QuestManager.Instance.GetQuest(node.DataSO as QuestSO);
 
-				// HACK:
-				slot.SetDisable(false);
+				node.SetDisable(false);
 
-				// 진행 중
 				if (runtimeQuest != null)
 				{
-					slot.SetRuntimeQuestState(runtimeQuest.State);
-					slot.SetQuest(runtimeQuest);
+					node.SetRuntimeQuestState(runtimeQuest.State);
+					node.SetQuest(runtimeQuest);
 				}
 				else
 				{
-					QuestSO questData = slot.DataSO as QuestSO;
+					QuestSO questData = node.DataSO as QuestSO;
 					QuestState state = QuestManager.Instance.GetQuestState(questData.ID);
-					slot.SetDisable(state == QuestState.Locked);
+					node.SetDisable(state == QuestState.Locked);
 				}
 
-				slot.UpdateUI();
+				node.UpdateUI();
 			}
 		}
 	}

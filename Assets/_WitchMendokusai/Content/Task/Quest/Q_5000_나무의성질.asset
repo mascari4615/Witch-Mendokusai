@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 57bcccf40b075204a842ff5fb93c7f74, type: 3}
-  m_Name: "Q_5000_\uB098\uBB34\uC758\uC131\uC9C8\uC5F0\uAD6C"
+  m_Name: "Q_5000_\uB098\uBB34\uC758\uC131\uC9C8"
   m_EditorClassIdentifier: 
   <ID>k__BackingField: 5000
   <Name>k__BackingField: "\uB098\uBB34\uC758 \uC131\uC9C8"

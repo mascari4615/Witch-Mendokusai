@@ -104,6 +104,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: '[Block] [2] Chapter'
       objectReference: {fileID: 0}
+    - target: {fileID: 6478743995627530798, guid: 8ab29fc525cfd0346acb6b65fae5c4c6, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 8568232510968290414, guid: 8ab29fc525cfd0346acb6b65fae5c4c6, type: 3}
       propertyPath: defaultDataSO
       value: 
