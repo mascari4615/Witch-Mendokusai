@@ -6,6 +6,7 @@ using Unity.Cinemachine;
 using FMODUnity;
 using TMPro;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.UI;
 using static WitchMendokusai.SOHelper;
 using DG.Tweening;
@@ -86,13 +87,13 @@ namespace WitchMendokusai
 				Coroutine coroutine = StartCoroutine(PrintLine(lineData));
 
 				do yield return null;
-				while (lineText.text != lineData.line && Input.anyKeyDown == false);
+				while (lineText.text != lineData.line && (Keyboard.current == null || !Keyboard.current.anyKey.wasPressedThisFrame));
 
 				StopCoroutine(coroutine);
 				lineText.text = lineData.line;
 
 				do yield return null;
-				while (Input.anyKeyDown == false);
+				while (Keyboard.current == null || !Keyboard.current.anyKey.wasPressedThisFrame);
 			}
 
 			IsChatting = false;

@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.UI;
 using Random = UnityEngine.Random;
 
@@ -81,7 +82,7 @@ namespace WitchMendokusai
 			Vector3 GetScreenPos()
 			{
 				if (worldPos == default)
-					return Input.mousePosition;
+					return Mouse.current != null ? (Vector3)Mouse.current.position.ReadValue() : Vector3.zero;
 				else
 					return Camera.main.WorldToScreenPoint(worldPos);
 			}

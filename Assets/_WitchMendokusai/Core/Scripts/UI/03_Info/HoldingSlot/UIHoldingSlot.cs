@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 namespace WitchMendokusai
 {
@@ -80,7 +81,7 @@ namespace WitchMendokusai
 
 			if (IsHolding)
 			{
-				transform.position = Input.mousePosition;
+				transform.position = Mouse.current != null ? (Vector3)Mouse.current.position.ReadValue() : transform.position;
 				slot.SetSlot(holdingItem.Data, holdingItem.Amount);
 			}
 		}
