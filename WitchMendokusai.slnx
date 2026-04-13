@@ -102,5 +102,4 @@
   <Project Path="Unity.MemoryProfiler.csproj" />
   <Project Path="BakeryECS.csproj" />
   <Project Path="Unity.2D.Triangulation.Runtime.csproj" />
-  <Project Path="Assembly-CSharp-Editor-firstpass.csproj" />
 </Solution>
