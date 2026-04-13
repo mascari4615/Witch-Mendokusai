@@ -12,6 +12,7 @@ namespace WitchMendokusai
 		public UINPC NPC { get; private set; }
 		public UITransition Transition { get; private set; }
 		public UIChat Chat { get; private set; }
+		public UISpeechBubble SpeechBubble { get; private set; }
 		public UIStatus Status { get; private set; }
 		public CutSceneModule CutSceneModule { get; private set; }
 		[field: SerializeField] public Canvas BaseCanvas { get; private set; }
@@ -41,6 +42,7 @@ namespace WitchMendokusai
 			damage = FindAnyObjectByType<UIFloatingText>(FindObjectsInactive.Include);
 			popup = FindAnyObjectByType<UIPopup>(FindObjectsInactive.Include);
 			Chat = FindAnyObjectByType<UIChat>(FindObjectsInactive.Include);
+			SpeechBubble = FindAnyObjectByType<UISpeechBubble>(FindObjectsInactive.Include);
 			adventurerGuild = FindAnyObjectByType<UIAdventurerGuild>(FindObjectsInactive.Include);
 			adventurerGuild.gameObject.SetActive(false);
 
