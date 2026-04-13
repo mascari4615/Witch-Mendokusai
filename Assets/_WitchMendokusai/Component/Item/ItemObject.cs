@@ -21,6 +21,7 @@ namespace WitchMendokusai
 		{
 			RuntimeManager.PlayOneShot("event:/SFX/Equip", transform.position);
 			SOManager.Instance.ItemInventory.Add(itemData);
+			SOManager.Instance.DungeonItemBuffer.Add(itemData);
 		}
 	}
 }

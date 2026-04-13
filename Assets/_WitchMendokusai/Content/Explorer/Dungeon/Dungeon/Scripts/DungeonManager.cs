@@ -67,6 +67,7 @@ namespace WitchMendokusai
 
 				expChecker.Init();
 				cardManager.Reset();
+				SOManager.Instance.DungeonItemBuffer.Clear();
 
 				Context = new DungeonContext
 				(

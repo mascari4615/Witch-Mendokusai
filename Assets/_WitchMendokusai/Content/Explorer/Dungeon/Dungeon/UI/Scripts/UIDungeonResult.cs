@@ -14,6 +14,7 @@ namespace WitchMendokusai
 
 		// Info
 		private UICardDataGrid cardGrid;
+		private UIItemDataGrid itemGrid;
 
 		public override bool IsFullscreen => true;
 
@@ -26,6 +27,10 @@ namespace WitchMendokusai
 		{
 			cardGrid = GetComponentInChildren<UICardDataGrid>(true);
 			cardGrid.Init();
+
+			itemGrid = GetComponentInChildren<UIItemDataGrid>(true);
+			itemGrid.SetData(SOManager.Instance.DungeonItemBuffer.Data);
+			itemGrid.Init();
 		}
 
 		public override void UpdateUI()
@@ -39,6 +44,18 @@ namespace WitchMendokusai
 			nyangText.text = record.Nyang.ToString();
 
 			cardGrid.UpdateUI();
+			itemGrid.UpdateUI();
+			UpdateItemAmounts();
+		}
+		private void UpdateItemAmounts()
+		{
+			ItemDataBuffer buffer = SOManager.Instance.DungeonItemBuffer;
+			for (int i = 0; i < itemGrid.Slots.Count && i < buffer.Data.Count; i++)
+			{
+				ItemData itemData = buffer.Data[i];
+				int count = buffer.itemCountDic.TryGetValue(itemData.ID, out int c) ? c : 1;
+				itemGrid.Slots[i].SetSlot(itemData, count);
+			}
 		}
 	}
 }
