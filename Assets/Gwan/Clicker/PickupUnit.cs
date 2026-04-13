@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using Random = UnityEngine.Random;
 
 public class PickupUnit : MonoBehaviour
@@ -14,7 +15,8 @@ public class PickupUnit : MonoBehaviour
 
     private Vector3 GetMousePoint()
     {
-        var v = _camera.ScreenToWorldPoint(Input.mousePosition);
+        Vector2 mouseScreen = Mouse.current != null ? Mouse.current.position.ReadValue() : Vector2.zero;
+        var v = _camera.ScreenToWorldPoint(new Vector3(mouseScreen.x, mouseScreen.y, 0f));
         v.z = v.y;
         return v;
     }

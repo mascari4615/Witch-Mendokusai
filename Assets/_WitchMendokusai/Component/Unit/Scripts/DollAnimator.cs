@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 namespace WitchMendokusai
 {
@@ -17,7 +18,7 @@ namespace WitchMendokusai
 			mainAnimator.SetBool("MOVE", isMoving);
 			animatorOf3DModel.SetBool("MOVE", isMoving);
 
-			handAnimator.SetBool("CHANNELING", Input.GetKey(KeyCode.Mouse0) || Input.GetKey(KeyCode.Mouse1));
+			handAnimator.SetBool("CHANNELING", Mouse.current != null && (Mouse.current.leftButton.isPressed || Mouse.current.rightButton.isPressed));
 
 			Vector3 moveDirection = Player.Instance.Object.UnitMovement.MoveDirectionLocal;
 			if (moveDirection.x == 0)

@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 namespace WitchMendokusai
 {
@@ -28,9 +29,10 @@ namespace WitchMendokusai
 		private void RotateCamera()
 		{
 			// 카메라 회전
-			if (Input.GetKey(KeyCode.Q))
+			Keyboard keyboard = Keyboard.current;
+			if (keyboard != null && keyboard.qKey.isPressed)
 				yRotation += Time.deltaTime * ROTATE_SPEED;
-			if (Input.GetKey(KeyCode.E))
+			if (keyboard != null && keyboard.eKey.isPressed)
 				yRotation -= Time.deltaTime * ROTATE_SPEED;
 
 			Quaternion targetRotation = Quaternion.Euler(0, yRotation, 0);

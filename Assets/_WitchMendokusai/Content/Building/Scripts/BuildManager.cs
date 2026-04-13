@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 namespace WitchMendokusai
 {
@@ -77,7 +78,7 @@ namespace WitchMendokusai
 		private void Update()
 		{
 			// TODO: 임시 Build 키
-			if (Input.GetKeyDown(KeyCode.B))
+			if (Keyboard.current != null && Keyboard.current.bKey.wasPressedThisFrame)
 			{
 				if (IsBuilding == true)
 					StopBuilding();
