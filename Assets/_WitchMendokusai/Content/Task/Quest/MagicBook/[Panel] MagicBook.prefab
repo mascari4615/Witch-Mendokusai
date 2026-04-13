@@ -1048,6 +1048,7 @@ MonoBehaviour:
   <PanelIcon>k__BackingField: {fileID: -1418086324, guid: fbd184d873518c24aaaa66f4c3d4c2a9, type: 3}
   chapterDatas:
   - {fileID: 11400000, guid: ce536ace0d024ed46a072abc710c8d71, type: 2}
+  - {fileID: 11400000, guid: 4d4a83cb3b0ca364f89f9c550b18945d, type: 2}
   chapterPrefab: {fileID: 4457401705086498096, guid: 8ab29fc525cfd0346acb6b65fae5c4c6, type: 3}
   panelsParent: {fileID: 175477029307816532}
   panelSelectButtonsParent: {fileID: 6603672732526201594}
