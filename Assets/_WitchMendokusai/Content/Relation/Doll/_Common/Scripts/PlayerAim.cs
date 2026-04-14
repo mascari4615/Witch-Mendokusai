@@ -13,12 +13,12 @@ namespace WitchMendokusai
 		private GameObject lastAutoTarget;
 
 		private readonly Transform playerTr;
-		private readonly List<GameObject> targets;
+		private readonly List<List<GameObject>> targetLists;
 
-		public PlayerAim(Transform transform, List<GameObject> targets)
+		public PlayerAim(Transform transform, params List<GameObject>[] targets)
 		{
 			playerTr = transform;
-			this.targets = targets;
+			targetLists = new(targets);
 		}
 
 		public GameObject GetNearestTarget()
@@ -47,9 +47,6 @@ namespace WitchMendokusai
 				return true;
 			}
 
-			if (targets.Count == 0)
-				return null;
-
 			GameObject nearestAutoTarget = null;
 			float minDistance = MaxAimDistance;
 
@@ -68,6 +65,7 @@ namespace WitchMendokusai
 			}
 
 			// 그 다음 나머지 타겟들 검사
+			foreach (List<GameObject> targets in targetLists)
 			foreach (GameObject target in targets)
 			{
 				if (TryItsNearest(target, minDistance, out float distance))

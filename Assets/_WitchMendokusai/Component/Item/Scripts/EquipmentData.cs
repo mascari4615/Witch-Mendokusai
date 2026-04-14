@@ -7,7 +7,8 @@ namespace WitchMendokusai
 	public enum EquipmentType
 	{
 		Default,
-		Pickaxe
+		Pickaxe,
+		Axe
 	}
 
 	[CreateAssetMenu(fileName = nameof(EquipmentData), menuName = "WM/Variable/" + nameof(EquipmentData))]

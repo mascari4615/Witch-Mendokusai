@@ -59,10 +59,11 @@ namespace WitchMendokusai
 
 		public override void ReceiveDamage(DamageInfo damageInfo)
 		{
-			bool isPickaxe = damageInfo.equipmentData != null && damageInfo.equipmentData.EquipmentType == EquipmentType.Pickaxe;
+			bool isCorrectTool = UnitData.RequiredTool == EquipmentType.Default
+				|| (damageInfo.equipmentData != null && damageInfo.equipmentData.EquipmentType == UnitData.RequiredTool);
 
-			// Pickaxe가 아니면 데미지 1/10, 최소 1
-			if (isPickaxe == false)
+			// 올바른 도구가 아니면 데미지 1/10, 최소 1
+			if (isCorrectTool == false)
 			{
 				damageInfo.damage = Mathf.Max(1, damageInfo.damage / 10);
 			}

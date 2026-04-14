@@ -23,7 +23,7 @@ namespace WitchMendokusai
 		{
 			base.Awake();
 			interaction = new(transform);
-			aim = new(transform, ObjectBufferManager.GetObjects(ObjectType.Monster));
+			aim = new(transform, ObjectBufferManager.GetObjects(ObjectType.Monster), ObjectBufferManager.GetObjects(ObjectType.ResourceNode));
 			Object = GetComponent<PlayerObject>();
 			Rotation = GetComponent<PlayerRotation>();
 		}

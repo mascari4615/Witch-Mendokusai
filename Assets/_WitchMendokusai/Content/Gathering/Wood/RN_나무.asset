@@ -10,12 +10,12 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b7b9dec835590574788329d61c4b9b88, type: 3}
-  m_Name: ResourceNode
+  m_Name: "RN_\uB098\uBB34"
   m_EditorClassIdentifier: Assembly-CSharp::WitchMendokusai.ResourceNode
-  <ID>k__BackingField: 0
-  <Name>k__BackingField: "\uB3CC"
-  <Description>k__BackingField: "\uB3CC\uC774\uB2E4"
-  <Sprite>k__BackingField: {fileID: 1956855754, guid: 0d615c72f68bd6d40bd8d180ff6556ec, type: 3}
+  <ID>k__BackingField: 1
+  <Name>k__BackingField: "\uB098\uBB34"
+  <Description>k__BackingField: ""
+  <Sprite>k__BackingField: {fileID: 0}
   <Sprites>k__BackingField: []
   <Affiliation>k__BackingField: -1
   <Prefab>k__BackingField: {fileID: 1587340312555970704, guid: c42077d83ff86c84193b6ad9286bfa4a, type: 3}
@@ -24,11 +24,11 @@ MonoBehaviour:
   <InitStatInfos>k__BackingField:
     initStats:
     - unitStat: 2
-      value: 100
+      value: 30
     - unitStat: 300
       value: 0
-  <Type>k__BackingField: 0
-  <RequiredTool>k__BackingField: 1
+  <Type>k__BackingField: 2
+  <RequiredTool>k__BackingField: 2
   <Loots>k__BackingField:
-  - <DataSO>k__BackingField: {fileID: 11400000, guid: ed4b4beace462f343ba0a1b4d3144106, type: 2}
+  - <DataSO>k__BackingField: {fileID: 11400000, guid: e26916c612e84b14cb72659bbeb57685, type: 2}
     <Percentage>k__BackingField: 100
