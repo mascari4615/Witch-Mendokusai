@@ -1,5 +1,10 @@
 # WitchMendokusai — Claude 작업 지침
 
+## 입력 처리
+
+Unity New Input System(`UnityEngine.InputSystem`)만 사용한다.
+`Input.GetKeyDown`, `Input.GetAxis` 등 레거시 Input API는 사용하지 않는다.
+
 ## 명령어 실행
 
 git, grep, bash 등 명령어는 확인 없이 바로 실행한다.
