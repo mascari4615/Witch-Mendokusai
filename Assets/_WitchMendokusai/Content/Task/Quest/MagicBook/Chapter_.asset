@@ -15,7 +15,7 @@ MonoBehaviour:
   <ID>k__BackingField: 0
   <Name>k__BackingField: 
   <Description>k__BackingField: 
-  <Sprite>k__BackingField: {fileID: 0}
+  <Sprite>k__BackingField: {fileID: 21300000, guid: fcc7c385be064b54a9ef5e2876dacb7b, type: 3}
   <Sprites>k__BackingField: []
   <Nodes>k__BackingField:
   - Quest: {fileID: 11400000, guid: 28f2dfeb4829d364791ef17401807ee8, type: 2}

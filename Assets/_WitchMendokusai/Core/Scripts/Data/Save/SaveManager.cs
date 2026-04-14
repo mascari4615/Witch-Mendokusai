@@ -86,6 +86,7 @@ namespace WitchMendokusai
 			DataManager.QuestManager.Init(new());
 			// DataManager.QuestManager.AddQuest(new RuntimeQuest(GetQuestSO(0)));
 			new RuntimeQuest(GetQuestSO(0));
+			DataManager.QuestManager.UnlockQuest(GetQuestSO(5000));
 
 			// 던전 초기화
 			ForEach<Dungeon>(dungeon => { dungeon.Init(); });
