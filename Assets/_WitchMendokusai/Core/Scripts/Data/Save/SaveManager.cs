@@ -142,6 +142,8 @@ namespace WitchMendokusai
 				if ((QuestState)state >= QuestState.Unlocked)
 					SOManager.QuestDataBuffer.Add(GetQuestSO(id));
 			}
+			// 세이브 이후 추가된 신규 퀘스트는 Locked로 등록
+			ForEach<QuestSO>(questData => { if (!questStates.ContainsKey(questData.ID)) questStates.Add(questData.ID, QuestState.Locked); });
 			DataManager.QuestManager.LoadQuestState(questStates);
 
 			// 레시피 초기화
