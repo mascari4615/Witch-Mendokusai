@@ -4,7 +4,7 @@ namespace WitchMendokusai
 {
 	public static class UGCLog
 	{
-		public static bool Verbose = true;
+		public static bool Verbose = false;
 
 		public static void Info(string message)
 		{
