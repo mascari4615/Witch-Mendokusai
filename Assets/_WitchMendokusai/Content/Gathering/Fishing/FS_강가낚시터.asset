@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 87a4e5e6f2f94d38a2a9d7f47207c112, type: 3}
+  m_Name: "FS_\uAC15\uAC00\uB099\uC2DC\uD130"
+  m_EditorClassIdentifier: Assembly-CSharp::WitchMendokusai.FishingSpotData
+  <Loots>k__BackingField:
+  - <DataSO>k__BackingField: {fileID: 11400000, guid: 506b8dd54e056204786498cb87d9bce2, type: 2}
+    <Percentage>k__BackingField: 100
+  <BiteDelayMin>k__BackingField: 3
+  <BiteDelayMax>k__BackingField: 7
+  <InputWindow>k__BackingField: 1.2
