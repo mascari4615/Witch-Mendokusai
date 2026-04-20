@@ -23,6 +23,12 @@ namespace WitchMendokusai
 			if (isFishing)
 				return;
 
+			if (!SOManager.Instance.ItemInventory.HasEquipment(EquipmentType.FishingRod))
+			{
+				UIManager.Instance.SpeechBubble.Show(transform, "낚싯대가 필요합니다.");
+				return;
+			}
+
 			StartCoroutine(FishingRoutine());
 		}
 

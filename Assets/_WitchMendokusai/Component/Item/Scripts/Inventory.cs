@@ -278,6 +278,16 @@ namespace WitchMendokusai
 			return amount;
 		}
 
+		public bool HasEquipment(EquipmentType equipmentType)
+		{
+			foreach (Item item in Data)
+			{
+				if (item != null && item.Data is EquipmentData eqData && eqData.EquipmentType == equipmentType)
+					return true;
+			}
+			return false;
+		}
+
 		private void UpdateSlot(params int[] indices)
 		{
 			foreach (int i in indices)

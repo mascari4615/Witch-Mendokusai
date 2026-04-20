@@ -8,7 +8,8 @@ namespace WitchMendokusai
 	{
 		Default,
 		Pickaxe,
-		Axe
+		Axe,
+		FishingRod
 	}
 
 	[CreateAssetMenu(fileName = nameof(EquipmentData), menuName = "WM/Variable/" + nameof(EquipmentData))]
