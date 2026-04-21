@@ -73,6 +73,7 @@ namespace WitchMendokusai
 
 					UIQuestEdge edge = Instantiate(edgePrefab, edgesRoot);
 					edge.SetEdge((RectTransform)fromNode.transform, (RectTransform)toNode.transform);
+					edge.SetFromNode(fromNode);
 					edge.transform.SetAsFirstSibling();
 					edges.Add(edge);
 				}
@@ -128,6 +129,14 @@ namespace WitchMendokusai
 				}
 
 				node.UpdateUI();
+			}
+
+			foreach (UIQuestEdge edge in edges)
+			{
+				QuestSO fromQuestSO = edge.FromNode.DataSO as QuestSO;
+				RuntimeQuest rq = QuestManager.Instance.GetQuest(fromQuestSO);
+				QuestState state = rq != null ? rq.State : QuestManager.Instance.GetQuestState(fromQuestSO.ID);
+				edge.SetState(state);
 			}
 		}
 	}
