@@ -16,6 +16,7 @@ namespace WitchMendokusai
 		public QuestManager QuestManager { get; private set; } = new();
 		public GameStat GameStat { get; private set; } = new();
 		public DungeonStat DungeonStat { get; private set; } = new();
+		public ExpeditionManager ExpeditionManager { get; private set; } = new();
 		public readonly Dictionary<string, (Recipe recipe, int itemID)> CraftDic = new();
 
 		public bool IsDataLoaded => SaveManager.IsDataLoaded;
