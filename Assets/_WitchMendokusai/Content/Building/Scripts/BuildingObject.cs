@@ -49,6 +49,11 @@ namespace WitchMendokusai
 			Model.SetActive(true);
 		}
 
+		public void UpdateRuntimeData(string json)
+		{
+			SaveData = new BuildingInstanceData(SaveData.BuildingID, SaveData.State, SaveData.Level, json);
+		}
+
 		public void Despawn()
 		{
 			// Debug.Log($"{nameof(Despawn)} ({Pivot}, {Building.name})");

@@ -150,7 +150,7 @@ namespace WitchMendokusai
 			lastClickTime = Time.time;
 
 			worldStage.GridData.AddBuildingAt(gridPosition, selectedBuilding);
-			SpawnBuildingObject(gridPosition, selectedBuilding);
+			SpawnBuildingObject(gridPosition, worldStage.GridData.BuildingData[gridPosition]);
 
 			// buildingState.OnAction(gridPosition);
 		}
@@ -201,21 +201,20 @@ namespace WitchMendokusai
 
 			foreach ((Vector3Int coord, BuildingInstanceData runtimeBuildingData) in gridData.BuildingData)
 			{
-				Building building = SOHelper.Get<Building>(runtimeBuildingData.BuildingID);
-				SpawnBuildingObject(coord, building);
+				SpawnBuildingObject(coord, runtimeBuildingData);
 			}
 		}
 
 		// GridData는 따로 처리해야 함 - 2025.03.24 00:32
-		private void SpawnBuildingObject(Vector3Int pivot, Building building)
+		private void SpawnBuildingObject(Vector3Int pivot, BuildingInstanceData data)
 		{
-			// Debug.Log($"{nameof(SpawnBuildingObject)} ({pivot}, {building.name})");
+			Building building = SOHelper.Get<Building>(data.BuildingID);
 
 			BuildingObject buildingObject = ObjectPoolManager.Instance.Spawn(BuildingObjectPrefab).GetComponent<BuildingObject>();
 			buildingObject.transform.position = GetWorldPosition(pivot, building.Size);
 			buildingObject.gameObject.SetActive(true);
 
-			buildingObject.Initialize(new BuildingInstanceData(building.ID), pivot);
+			buildingObject.Initialize(data, pivot);
 
 			GetBuildingCoords(pivot, building.Size).ForEach(c =>
 			{

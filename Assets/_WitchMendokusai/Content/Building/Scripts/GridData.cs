@@ -32,7 +32,9 @@ namespace WitchMendokusai
 			BuildingData[pivot] = new BuildingInstanceData()
 			{
 				State = BuildingState.Placed,
-				BuildingID = building.ID
+				BuildingID = building.ID,
+				Level = 1,
+				RuntimeData = ""
 			};
 		}
 
