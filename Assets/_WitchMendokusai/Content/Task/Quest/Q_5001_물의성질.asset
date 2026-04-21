@@ -10,12 +10,12 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 57bcccf40b075204a842ff5fb93c7f74, type: 3}
-  m_Name: "Q_5000_\uB098\uBB34\uC758\uC131\uC9C8"
-  m_EditorClassIdentifier: 
-  <ID>k__BackingField: 5000
-  <Name>k__BackingField: "\uB098\uBB34\uC758 \uC131\uC9C8"
-  <Description>k__BackingField: "\uB098\uBB34\uB97C \uC870\uAE08 \uC0B4\uD3B4\uBCF4\uAE30\uB85C
-    \uD588\uB2E4."
+  m_Name: "Q_5001_물의성질"
+  m_EditorClassIdentifier:
+  <ID>k__BackingField: 5001
+  <Name>k__BackingField: "물의 성질"
+  <Description>k__BackingField: "물고기를 조금 살펴보기로
+    했다."
   <Sprite>k__BackingField: {fileID: 0}
   <Sprites>k__BackingField: []
   <Data>k__BackingField:
@@ -24,19 +24,15 @@ MonoBehaviour:
     GameEvents: 04000000
     Criteria:
     - Type: 0
-      Data: {fileID: 11400000, guid: e26916c612e84b14cb72659bbeb57685, type: 2}
+      Data: {fileID: 11400000, guid: 506b8dd54e056204786498cb87d9bce2, type: 2}
       ComparisonOperator: 4
-      Value: 3
+      Value: 2
       JustOnce: 0
     CompleteEffects:
     - Type: 201
-      Data: {fileID: 11400000, guid: e26916c612e84b14cb72659bbeb57685, type: 2}
+      Data: {fileID: 11400000, guid: 506b8dd54e056204786498cb87d9bce2, type: 2}
       ArithmeticOperator: 2
-      Value: 3
-    - Type: 100
-      Data: {fileID: 11400000, guid: c34c9cb2be1144748d75a52d08428754, type: 2}
-      ArithmeticOperator: 0
-      Value: 0
+      Value: 2
     RewardEffects: []
     Rewards: []
     WorkTime: 0

@@ -20,3 +20,5 @@ MonoBehaviour:
   <Nodes>k__BackingField:
   - Quest: {fileID: 11400000, guid: ca7a7310e4150984a9daa4a41b6bf038, type: 2}
     Position: {x: 0, y: 0}
+  - Quest: {fileID: 11400000, guid: c34c9cb2be1144748d75a52d08428754, type: 2}
+    Position: {x: 300, y: 0}
