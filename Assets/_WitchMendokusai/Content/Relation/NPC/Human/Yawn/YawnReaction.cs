@@ -5,6 +5,16 @@ namespace WitchMendokusai
 {
 	public class YawnReaction : MonoBehaviour
 	{
+		[SerializeField] private string[] returnReactions =
+		{
+			"...수고했어.",
+			"아, 왔구나.",
+			"어 잠깐만, 어디 뒀더라...",
+			"...왔어?"
+		};
+		[SerializeField] private int delayedStateIndex = 3;
+		[SerializeField] private float delaySeconds = 2f;
+
 		private void OnEnable()
 		{
 			GameEventManager.Instance.RegisterCallback(GameEventType.OnDungeonReturn, OnDungeonReturn);
@@ -24,22 +34,17 @@ namespace WitchMendokusai
 
 		private IEnumerator ReturnReactionRoutine()
 		{
-			YawnIdleBehavior idle = GetComponent<YawnIdleBehavior>();
-			YawnIdleState state = idle != null ? idle.CurrentState : YawnIdleState.Zoning;
+			IdleStateBehavior idle = GetComponent<IdleStateBehavior>();
+			int stateIndex = idle != null ? idle.CurrentStateIndex : 0;
 
-			if (state == YonIdleState.WindowGazing)
-				yield return new WaitForSeconds(2f);
+			if (stateIndex == delayedStateIndex)
+				yield return new WaitForSeconds(delaySeconds);
 
-			UIManager.Instance.SpeechBubble.Show(transform, GetReturnReaction(state));
+			string reaction = (returnReactions != null && stateIndex < returnReactions.Length)
+				? returnReactions[stateIndex]
+				: "...수고했어.";
+			UIManager.Instance.SpeechBubble.Show(transform, reaction);
 		}
-
-		private static string GetReturnReaction(YawnIdleState state) => state switch
-		{
-			YawnIdleState.Reading => "아, 왔구나.",
-			YawnIdleState.Searching => "어 잠깐만, 어디 뒀더라...",
-			YawnIdleState.WindowGazing => "...왔어?",
-			_ => "...수고했어."
-		};
 
 		private void OnResearchComplete()
 		{
