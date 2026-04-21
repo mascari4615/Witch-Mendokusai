@@ -24,8 +24,8 @@ namespace WitchMendokusai
 
 		private IEnumerator ReturnReactionRoutine()
 		{
-			YonIdleBehavior idle = GetComponent<YonIdleBehavior>();
-			YonIdleState state = idle != null ? idle.CurrentState : YonIdleState.Zoning;
+			YawnIdleBehavior idle = GetComponent<YawnIdleBehavior>();
+			YawnIdleState state = idle != null ? idle.CurrentState : YawnIdleState.Zoning;
 
 			if (state == YonIdleState.WindowGazing)
 				yield return new WaitForSeconds(2f);
@@ -33,11 +33,11 @@ namespace WitchMendokusai
 			UIManager.Instance.SpeechBubble.Show(transform, GetReturnReaction(state));
 		}
 
-		private static string GetReturnReaction(YonIdleState state) => state switch
+		private static string GetReturnReaction(YawnIdleState state) => state switch
 		{
-			YonIdleState.Reading => "아, 왔구나.",
-			YonIdleState.Searching => "어 잠깐만, 어디 뒀더라...",
-			YonIdleState.WindowGazing => "...왔어?",
+			YawnIdleState.Reading => "아, 왔구나.",
+			YawnIdleState.Searching => "어 잠깐만, 어디 뒀더라...",
+			YawnIdleState.WindowGazing => "...왔어?",
 			_ => "...수고했어."
 		};
 

@@ -1,6 +1,6 @@
 namespace WitchMendokusai
 {
-	public enum YonIdleState
+	public enum YawnIdleState
 	{
 		Zoning,      // 멍때리는 중
 		Reading,     // 책 읽는 중

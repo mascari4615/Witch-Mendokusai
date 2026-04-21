@@ -3,12 +3,14 @@ using UnityEngine;
 
 namespace WitchMendokusai
 {
-	public class YonIdleBehavior : MonoBehaviour
+	public abstract class IdleStateBehavior : MonoBehaviour
 	{
 		[SerializeField] private float minIdleSeconds = 30f;
 		[SerializeField] private float maxIdleSeconds = 120f;
 
-		public YonIdleState CurrentState { get; private set; } = YonIdleState.Zoning;
+		public int CurrentStateIndex { get; private set; }
+
+		protected abstract int StateCount { get; }
 
 		private void OnEnable() => StartCoroutine(IdleRoutine());
 		private void OnDisable() => StopAllCoroutines();
@@ -18,8 +20,11 @@ namespace WitchMendokusai
 			while (true)
 			{
 				yield return new WaitForSeconds(Random.Range(minIdleSeconds, maxIdleSeconds));
-				CurrentState = (YonIdleState)Random.Range(0, System.Enum.GetValues(typeof(YonIdleState)).Length);
+				CurrentStateIndex = Random.Range(0, StateCount);
+				OnStateChanged(CurrentStateIndex);
 			}
 		}
+
+		protected virtual void OnStateChanged(int stateIndex) { }
 	}
 }
