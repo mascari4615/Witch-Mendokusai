@@ -32,7 +32,9 @@ namespace WitchMendokusai
 			BuildingData[pivot] = new BuildingInstanceData()
 			{
 				State = BuildingState.Placed,
-				BuildingID = building.ID
+				BuildingID = building.ID,
+				Level = 1,
+				RuntimeData = ""
 			};
 		}
 
@@ -53,7 +55,7 @@ namespace WitchMendokusai
 		{
 			foreach ((Vector3Int key, BuildingInstanceData value) in saveData)
 			{
-				AddBuildingAt(key, SOHelper.Get<Building>(value.BuildingID));
+				BuildingData[key] = value;
 			}
 		}
 

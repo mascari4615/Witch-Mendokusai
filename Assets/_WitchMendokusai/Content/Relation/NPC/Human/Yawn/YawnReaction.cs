@@ -1,9 +1,20 @@
+using System.Collections;
 using UnityEngine;
 
 namespace WitchMendokusai
 {
 	public class YawnReaction : MonoBehaviour
 	{
+		[SerializeField] private string[] returnReactions =
+		{
+			"...수고했어.",
+			"아, 왔구나.",
+			"어 잠깐만, 어디 뒀더라...",
+			"...왔어?"
+		};
+		[SerializeField] private int delayedStateIndex = 3;
+		[SerializeField] private float delaySeconds = 2f;
+
 		private void OnEnable()
 		{
 			GameEventManager.Instance.RegisterCallback(GameEventType.OnDungeonReturn, OnDungeonReturn);
@@ -18,7 +29,21 @@ namespace WitchMendokusai
 
 		private void OnDungeonReturn()
 		{
-			UIManager.Instance.SpeechBubble.Show(transform, "...수고했어.");
+			StartCoroutine(ReturnReactionRoutine());
+		}
+
+		private IEnumerator ReturnReactionRoutine()
+		{
+			IdleStateBehavior idle = GetComponent<IdleStateBehavior>();
+			int stateIndex = idle != null ? idle.CurrentStateIndex : 0;
+
+			if (stateIndex == delayedStateIndex)
+				yield return new WaitForSeconds(delaySeconds);
+
+			string reaction = (returnReactions != null && stateIndex < returnReactions.Length)
+				? returnReactions[stateIndex]
+				: "...수고했어.";
+			UIManager.Instance.SpeechBubble.Show(transform, reaction);
 		}
 
 		private void OnResearchComplete()
