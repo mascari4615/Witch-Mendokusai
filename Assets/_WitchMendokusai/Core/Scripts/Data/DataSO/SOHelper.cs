@@ -22,7 +22,6 @@ namespace WitchMendokusai
 		public static AspectData GetAspectData(AspectType aspectType) => Get<AspectData>((int)aspectType);
 		public static AspectData GetAspectData(int id) => Get<AspectData>(id);
 		public static CardData GetCardData(int id) => Get<CardData>(id);
-		public static ExpeditionSO GetExpeditionSO(int id) => Get<ExpeditionSO>(id);
 
 		public static void ForEach<T>(Action<T> action) where T : DataSO
 		{

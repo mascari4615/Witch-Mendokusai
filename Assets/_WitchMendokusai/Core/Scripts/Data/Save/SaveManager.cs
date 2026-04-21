@@ -35,8 +35,7 @@ namespace WitchMendokusai
 				gameStats = new(),
 				dungeons = new(),
 				worldStages = new(),
-				upgrades = new(),
-				expeditions = new()
+				upgrades = new()
 			};
 
 			// 인형, 인형 아이템(장비) 초기화
@@ -177,9 +176,6 @@ namespace WitchMendokusai
 				upgrade.Load(upgradeData);
 			}
 
-			// 파견 초기화
-			DataManager.ExpeditionManager.Init(saveData.expeditions);
-
 			IsDataLoaded = true;
 		}
 
@@ -198,8 +194,7 @@ namespace WitchMendokusai
 				gameStats = DataManager.GameStat.Save(),
 				dungeons = new(),
 				worldStages = new(),
-				upgrades = new(),
-				expeditions = DataManager.ExpeditionManager.Save()
+				upgrades = new()
 			};
 
 			ForEach<Doll>(doll => gameData.dolls.Add(doll.Save()));
