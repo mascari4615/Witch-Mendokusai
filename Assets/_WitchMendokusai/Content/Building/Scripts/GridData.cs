@@ -55,7 +55,7 @@ namespace WitchMendokusai
 		{
 			foreach ((Vector3Int key, BuildingInstanceData value) in saveData)
 			{
-				AddBuildingAt(key, SOHelper.Get<Building>(value.BuildingID));
+				BuildingData[key] = value;
 			}
 		}
 

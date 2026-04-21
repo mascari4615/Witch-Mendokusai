@@ -34,6 +34,7 @@ namespace WitchMendokusai
 
 		public void OnInteract()
 		{
+			Refresh();
 			switch (CurrentState)
 			{
 				case State.Empty:   PlantSeed(); break;

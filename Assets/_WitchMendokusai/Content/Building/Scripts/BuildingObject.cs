@@ -52,6 +52,8 @@ namespace WitchMendokusai
 		public void UpdateRuntimeData(string json)
 		{
 			SaveData = new BuildingInstanceData(SaveData.BuildingID, SaveData.State, SaveData.Level, json);
+			if (StageManager.Instance.CurStage is WorldStage worldStage)
+				worldStage.GridData.BuildingData[Pivot] = SaveData;
 		}
 
 		public void Despawn()
