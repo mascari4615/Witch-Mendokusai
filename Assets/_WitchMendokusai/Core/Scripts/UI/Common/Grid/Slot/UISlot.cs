@@ -145,7 +145,8 @@ namespace WitchMendokusai
 			if (iconImage != null)
 			{
 				iconImage.sprite = Data.Sprite;
-				iconImage.color = Data.Sprite == null ? Color.clear : Color.white;
+				// nameText가 있으면 텍스트로 내용을 표시할 수 있으므로 배경을 유지한다
+				iconImage.color = (Data.Sprite == null && nameText == null) ? Color.clear : Color.white;
 			}
 			if (nameText != null)
 				nameText.text = Data.Name;

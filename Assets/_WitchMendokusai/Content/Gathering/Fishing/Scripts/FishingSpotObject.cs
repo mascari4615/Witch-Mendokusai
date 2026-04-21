@@ -18,6 +18,12 @@ namespace WitchMendokusai
 			miniGame = GetComponent<IFishingMiniGame>();
 		}
 
+		private void OnDisable()
+		{
+			StopAllCoroutines();
+			isFishing = false;
+		}
+
 		public void OnInteract()
 		{
 			if (isFishing)
@@ -35,6 +41,13 @@ namespace WitchMendokusai
 		private IEnumerator FishingRoutine()
 		{
 			isFishing = true;
+
+			if (miniGame == null)
+			{
+				Debug.LogError("[FishingSpotObject] IFishingMiniGame 컴포넌트가 없습니다.", this);
+				isFishing = false;
+				yield break;
+			}
 
 			if (!string.IsNullOrEmpty(castEventPath))
 				RuntimeManager.PlayOneShot(castEventPath, transform.position);
