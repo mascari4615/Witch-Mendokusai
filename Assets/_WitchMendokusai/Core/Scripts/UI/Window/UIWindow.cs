@@ -11,6 +11,7 @@ namespace WitchMendokusai
 		[SerializeField] private string windowId;
 		[SerializeField] private RectTransform header;
 		[SerializeField] private Button closeButton;
+		[SerializeField] private WindowChrome chromePrefab;
 		[SerializeField] private bool closeOnStart = false;
 
 		public string WindowId => windowId;
@@ -31,6 +32,7 @@ namespace WitchMendokusai
 				throw new InvalidOperationException($"[UIWindow] '{name}' must be inside a Canvas hierarchy");
 			rootCanvas = canvas.rootCanvas;
 
+			SetupChrome();
 			SetupDragHandle();
 
 			if (closeButton != null)
@@ -52,6 +54,27 @@ namespace WitchMendokusai
 		{
 			if (UIWindowManager.TryGetExistingInstance(out UIWindowManager manager))
 				manager.Unregister(this);
+		}
+
+		private void SetupChrome()
+		{
+			if (chromePrefab == null)
+				return;
+
+			WindowChrome chrome = Instantiate(chromePrefab, transform);
+			chrome.transform.SetAsFirstSibling();
+
+			RectTransform chromeRect = (RectTransform)chrome.transform;
+			chromeRect.anchorMin = Vector2.zero;
+			chromeRect.anchorMax = Vector2.one;
+			chromeRect.pivot = new Vector2(0.5f, 0.5f);
+			chromeRect.anchoredPosition = Vector2.zero;
+			chromeRect.sizeDelta = Vector2.zero;
+
+			if (header == null)
+				header = chrome.Header;
+			if (closeButton == null)
+				closeButton = chrome.CloseButton;
 		}
 
 		private void SetupDragHandle()
