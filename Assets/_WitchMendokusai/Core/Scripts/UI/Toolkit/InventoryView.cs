@@ -4,8 +4,7 @@ namespace WitchMendokusai
 {
 	public class InventoryView : MonoBehaviour
 	{
-		// uGUI 시절 "Inventory" anchoredPosition 데이터와 충돌 회피용 임시 ID. 마이그레이션 끝나면 "Inventory"로 통일.
-		private const string WINDOW_ID = "InventoryToolkit";
+		private const string WINDOW_ID = "Inventory";
 
 		[SerializeField] private Inventory inventory;
 
