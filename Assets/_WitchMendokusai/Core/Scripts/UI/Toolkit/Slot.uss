@@ -15,6 +15,54 @@
     /* 마우스 따라 이동, 본인은 클릭 무시 */
 }
 
+.wm-window {
+    position: absolute;
+    background-color: rgba(20, 20, 25, 0.95);
+    border-color: rgba(80, 80, 95, 1);
+    border-width: 1px;
+    border-radius: 4px;
+    min-width: 200px;
+    min-height: 100px;
+}
+
+.wm-window__header {
+    flex-direction: row;
+    align-items: center;
+    height: 28px;
+    background-color: rgba(40, 40, 55, 1);
+    border-bottom-width: 1px;
+    border-bottom-color: rgba(80, 80, 95, 1);
+    padding-left: 8px;
+    padding-right: 4px;
+}
+
+.wm-window__title {
+    flex-grow: 1;
+    color: rgba(230, 230, 235, 1);
+    font-size: 13px;
+    -unity-font-style: bold;
+}
+
+.wm-window__close {
+    width: 22px;
+    height: 22px;
+    background-color: rgba(150, 50, 50, 1);
+    color: rgba(255, 255, 255, 1);
+    border-width: 0;
+    border-radius: 2px;
+    -unity-font-style: bold;
+    padding: 0;
+    margin: 0;
+}
+
+.wm-window__close:hover {
+    background-color: rgba(200, 70, 70, 1);
+}
+
+.wm-window__content {
+    padding: 6px;
+}
+
 .wm-slot {
     width: 48px;
     height: 48px;
