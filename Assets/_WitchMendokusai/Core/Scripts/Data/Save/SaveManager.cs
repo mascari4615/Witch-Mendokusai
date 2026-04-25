@@ -35,7 +35,8 @@ namespace WitchMendokusai
 				gameStats = new(),
 				dungeons = new(),
 				worldStages = new(),
-				upgrades = new()
+				upgrades = new(),
+				windowLayouts = new()
 			};
 
 			// 인형, 인형 아이템(장비) 초기화
@@ -176,6 +177,9 @@ namespace WitchMendokusai
 				upgrade.Load(upgradeData);
 			}
 
+			// 윈도우 레이아웃 복원
+			SOManager.WindowLayoutData.Load(saveData.windowLayouts);
+
 			IsDataLoaded = true;
 		}
 
@@ -201,6 +205,8 @@ namespace WitchMendokusai
 			ForEach<Dungeon>(dungeon => gameData.dungeons.Add(dungeon.ID, dungeon.Save()));
 			ForEach<WorldStage>(worldStage => gameData.worldStages.Add(worldStage.ID, worldStage.Save()));
 			ForEach<UpgradeData>(upgradeData => gameData.upgrades.Add(upgradeData.ID, upgradeData.Save()));
+
+			gameData.windowLayouts = SOManager.WindowLayoutData.Save();
 
 			if (AppSetting.Data.UseLocalData)
 			{

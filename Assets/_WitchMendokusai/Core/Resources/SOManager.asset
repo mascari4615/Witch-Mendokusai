@@ -25,6 +25,7 @@ MonoBehaviour:
   <DungeonItemBuffer>k__BackingField: {fileID: 11400000, guid: 4d0c33ceef025d74f874ac4a13e4f6ab, type: 2}
   <ItemInventory>k__BackingField: {fileID: 11400000, guid: 4c6d863b03b576e41857bac9c948fd2e, type: 2}
   <Hotbar>k__BackingField: {fileID: 11400000, guid: af99ccbd4f8c89f4e942f09608408e72, type: 2}
+  <WindowLayoutData>k__BackingField: {fileID: 11400000, guid: f969b22b7f0b41739a5a27d4686be072, type: 2}
   <SelectedCardBuffer>k__BackingField: {fileID: 11400000, guid: f13c31923217cf246898171312ed6c19, type: 2}
   <VQuestLoadQuest>k__BackingField: {fileID: 11400000, guid: d8833ad6264114a4a9063683bb2db8bc, type: 2}
   <VQuests>k__BackingField: {fileID: 11400000, guid: 6e2d9946ac1317b49bc0ef4f40abdd13, type: 2}
