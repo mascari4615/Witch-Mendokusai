@@ -22,6 +22,7 @@ namespace WitchMendokusai
 				curDollIndex = 0,
 				dummyDollCount = 1,
 				inventoryItems = new(),
+				hotbarItems = new(),
 				dolls = new(),
 				works = new()
 				{
@@ -125,6 +126,7 @@ namespace WitchMendokusai
 
 			// 아이템 초기화
 			SOManager.ItemInventory.Load(saveData.inventoryItems);
+			SOManager.Hotbar.Load(saveData.hotbarItems);
 
 			// 인형 초기화
 			SOManager.DollBuffer.Clear();
@@ -190,6 +192,7 @@ namespace WitchMendokusai
 				curDollIndex = DataManager.CurDollID,
 				dummyDollCount = DataManager.DummyDollCount,
 				inventoryItems = SOManager.ItemInventory.Save(),
+				hotbarItems = SOManager.Hotbar.Save(),
 				dolls = new(),
 				works = DataManager.WorkManager.Works,
 				questStates = DataManager.QuestManager.GetQuestStates().ToDictionary(pair => pair.Key, pair => (int)pair.Value),

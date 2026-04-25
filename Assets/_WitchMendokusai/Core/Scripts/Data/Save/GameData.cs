@@ -11,6 +11,7 @@ namespace WitchMendokusai
 		public int dummyDollCount = 1;
 
 		public List<InventorySlotSaveData> inventoryItems = new();
+		public List<InventorySlotSaveData> hotbarItems = new();
 		public List<DollSaveData> dolls = new();
 		public Dictionary<WorkListType, List<Work>> works = new()
 		{
