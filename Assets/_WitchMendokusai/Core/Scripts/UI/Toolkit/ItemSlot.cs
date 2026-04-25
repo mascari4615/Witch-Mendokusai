@@ -14,6 +14,8 @@ namespace WitchMendokusai
 		{
 			AddToClassList(ITEM_SLOT_CLASS);
 			RegisterCallback<PointerDownEvent>(OnPointerDown);
+			RegisterCallback<PointerEnterEvent>(OnPointerEnter);
+			RegisterCallback<PointerLeaveEvent>(OnPointerLeave);
 		}
 
 		public void SetInventory(Inventory inventory) => Inventory = inventory;
@@ -39,6 +41,19 @@ namespace WitchMendokusai
 
 			HoldingManager.Instance.HandleSlotClick(this, Inventory, evt.button, evt.clickCount);
 			evt.StopPropagation();
+		}
+
+		private void OnPointerEnter(PointerEnterEvent evt)
+		{
+			if (Item == null || Item.Data == null)
+				return;
+			TooltipController.Instance.Show(Item.Data);
+		}
+
+		private void OnPointerLeave(PointerLeaveEvent evt)
+		{
+			if (TooltipController.TryGetExistingInstance(out TooltipController controller))
+				controller.Hide();
 		}
 	}
 }

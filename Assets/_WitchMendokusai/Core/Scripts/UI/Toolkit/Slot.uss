@@ -156,3 +156,59 @@
     -unity-text-outline-color: rgba(0, 0, 0, 1);
     -unity-font-style: bold;
 }
+
+/* ===== Tooltip ===== */
+
+.wm-tooltip {
+    position: absolute;
+    background-color: rgba(20, 20, 25, 0.95);
+    border-color: rgba(80, 80, 95, 1);
+    border-width: 1px;
+    border-radius: 4px;
+    padding: 6px 8px;
+    min-width: 160px;
+    max-width: 280px;
+    opacity: 0;
+    transition-property: opacity;
+    transition-duration: 0.08s;
+    transition-timing-function: ease-out-cubic;
+}
+
+.wm-tooltip--visible {
+    opacity: 1;
+}
+
+.wm-tooltip__header {
+    flex-direction: row;
+    align-items: center;
+    margin-bottom: 4px;
+}
+
+.wm-tooltip__icon {
+    width: 32px;
+    height: 32px;
+    margin-right: 8px;
+    -unity-background-scale-mode: scale-to-fit;
+    flex-shrink: 0;
+}
+
+.wm-tooltip__name {
+    flex-grow: 1;
+    color: rgba(255, 220, 100, 1);
+    font-size: 13px;
+    -unity-font-style: bold;
+    white-space: normal;
+}
+
+.wm-tooltip__description {
+    color: rgba(210, 210, 215, 1);
+    font-size: 11px;
+    white-space: normal;
+}
+
+.wm-tooltip__grade {
+    color: rgba(150, 200, 255, 1);
+    font-size: 10px;
+    margin-top: 4px;
+    -unity-font-style: italic;
+}
