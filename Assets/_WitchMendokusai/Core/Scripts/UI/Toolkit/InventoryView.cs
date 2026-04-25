@@ -10,6 +10,7 @@ namespace WitchMendokusai
 		[SerializeField] private Inventory inventory;
 
 		private WMWindow window;
+		private FilterBar filterBar;
 		private ItemGrid grid;
 
 		private void Start()
@@ -23,6 +24,10 @@ namespace WitchMendokusai
 			window.style.top = 80;
 			UIRoot.Instance.WindowsLayer.Add(window);
 
+			filterBar = new FilterBar();
+			filterBar.OnFilterChanged += OnFilterChanged;
+			window.Content.Add(filterBar);
+
 			grid = new ItemGrid();
 			window.Content.Add(grid);
 
@@ -31,6 +36,8 @@ namespace WitchMendokusai
 
 			InputManager.Instance.RegisterInputEvent(InputEventType.Inventory, InputEventResponseType.Performed, OnToggle);
 		}
+
+		private void OnFilterChanged(ItemType type) => grid?.SetFilter(type);
 
 		private void OnDestroy()
 		{

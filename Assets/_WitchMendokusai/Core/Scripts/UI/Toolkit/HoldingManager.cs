@@ -8,9 +8,13 @@ namespace WitchMendokusai
 	/// </summary>
 	public class HoldingManager : Singleton<HoldingManager>
 	{
+		private const float DOUBLE_CLICK_THRESHOLD = 0.25f;
+
 		private Item holdingItem;
 		private Inventory holdingInventory;
 		private HoldingOverlay overlay;
+		private float lastClickTime;
+		private ItemSlot lastClickSlot;
 
 		public bool IsHolding => holdingItem != null;
 
@@ -33,13 +37,19 @@ namespace WitchMendokusai
 			bool isLeft = button == 0;
 			bool isRight = button == 1;
 
+			// 같은 슬롯 빠른 두 번 클릭만 더블로 인정 (다른 슬롯 빠르게 클릭은 single x2)
+			float now = Time.unscaledTime;
+			bool isDouble = (slot == lastClickSlot) && (now - lastClickTime < DOUBLE_CLICK_THRESHOLD);
+			lastClickTime = now;
+			lastClickSlot = slot;
+
 			if (IsHolding == false)
 			{
 				HandleClickWithoutHolding(slot, inventory, targetItem, isLeft, isRight);
 			}
 			else
 			{
-				HandleClickWithHolding(slot, inventory, targetItem, isLeft, isRight);
+				HandleClickWithHolding(slot, inventory, targetItem, isLeft, isRight, isDouble);
 			}
 		}
 
@@ -58,8 +68,17 @@ namespace WitchMendokusai
 			}
 		}
 
-		private void HandleClickWithHolding(ItemSlot slot, Inventory inventory, Item targetItem, bool isLeft, bool isRight)
+		private void HandleClickWithHolding(ItemSlot slot, Inventory inventory, Item targetItem, bool isLeft, bool isRight, bool isDouble)
 		{
+			// 더블클릭 + 합칠 게 있으면 FuncA, 없으면 single 동작으로 fall-through (사용자 의도 보호)
+			bool doFuncA = isLeft && isDouble && HasCollectibleSameId();
+
+			if (doFuncA)
+			{
+				CollectAllSameId();
+				return;
+			}
+
 			if (targetItem == null)
 			{
 				if (isLeft)
@@ -74,6 +93,64 @@ namespace WitchMendokusai
 				else if (isRight && targetItem.Data.ID == holdingItem.Data.ID)
 					DropOne(slot, inventory);
 			}
+		}
+
+		/// <summary>
+		/// holding과 같은 ID 아이템이 source 인벤토리에 존재하고 합쳐질 여지가 있는지.
+		/// </summary>
+		private bool HasCollectibleSameId()
+		{
+			if (holdingItem == null || holdingInventory == null)
+				return false;
+
+			if (holdingItem.Amount >= holdingItem.MaxAmount)
+				return false;
+
+			for (int i = 0; i < holdingInventory.Capacity; i++)
+			{
+				Item item = holdingInventory.GetItem(i);
+				if (item != null && item.Data.ID == holdingItem.Data.ID)
+					return true;
+			}
+
+			return false;
+		}
+
+		/// <summary>
+		/// 들고있는 아이템과 같은 ID의 아이템을 source 인벤토리에서 모두 holding으로 모음.
+		/// 마인크래프트 더블클릭 동작.
+		/// </summary>
+		private void CollectAllSameId()
+		{
+			if (holdingItem == null || holdingInventory == null)
+				return;
+
+			int maxAmount = holdingItem.MaxAmount;
+
+			for (int i = 0; i < holdingInventory.Capacity; i++)
+			{
+				if (holdingItem.Amount >= maxAmount)
+					break;
+
+				Item item = holdingInventory.GetItem(i);
+				if (item == null || item.Data.ID != holdingItem.Data.ID)
+					continue;
+
+				int sum = item.Amount + holdingItem.Amount;
+				if (sum <= maxAmount)
+				{
+					holdingItem.SetAmount(sum);
+					holdingInventory.SetItem(i, null);
+				}
+				else
+				{
+					item.SetAmount(sum - maxAmount);
+					holdingItem.SetAmount(maxAmount);
+					holdingInventory.UpdateSlot(i);
+				}
+			}
+
+			overlay?.SetItem(holdingItem);
 		}
 
 		private void HoldFull(ItemSlot slot, Inventory inventory, Item targetItem)

@@ -10,6 +10,7 @@ namespace WitchMendokusai
 
 		private Inventory inventory;
 		private readonly List<ItemSlot> slots = new();
+		private ItemType filter = ItemType.None;
 
 		public ItemGrid()
 		{
@@ -63,13 +64,32 @@ namespace WitchMendokusai
 			}
 		}
 
+		public void SetFilter(ItemType newFilter)
+		{
+			filter = newFilter;
+			Refresh();
+		}
+
 		private void Refresh()
 		{
 			if (inventory == null)
 				return;
 
 			for (int i = 0; i < slots.Count; i++)
-				slots[i].Bind(inventory.GetItem(i));
+			{
+				Item item = inventory.GetItem(i);
+				slots[i].Bind(item);
+				slots[i].style.display = ShouldShow(item) ? DisplayStyle.Flex : DisplayStyle.None;
+			}
+		}
+
+		private bool ShouldShow(Item item)
+		{
+			if (filter == ItemType.None)
+				return true;
+			if (item == null || item.Data == null)
+				return false;
+			return item.Data.Type == filter;
 		}
 	}
 }

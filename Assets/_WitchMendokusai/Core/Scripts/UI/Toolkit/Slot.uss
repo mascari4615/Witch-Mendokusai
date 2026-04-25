@@ -83,6 +83,37 @@
     padding: 0;
 }
 
+.wm-filter-bar {
+    flex-direction: row;
+    margin-bottom: 4px;
+    padding-bottom: 4px;
+    border-bottom-width: 1px;
+    border-bottom-color: rgba(80, 80, 95, 1);
+}
+
+.wm-filter-bar__button {
+    background-color: rgba(40, 40, 55, 1);
+    color: rgba(180, 180, 190, 1);
+    border-color: rgba(80, 80, 95, 1);
+    border-width: 1px;
+    border-radius: 2px;
+    padding: 2px 8px;
+    margin-right: 4px;
+    font-size: 11px;
+    -unity-font-style: bold;
+}
+
+.wm-filter-bar__button:hover {
+    background-color: rgba(55, 55, 70, 1);
+    color: rgba(230, 230, 235, 1);
+}
+
+.wm-filter-bar__button--active {
+    background-color: rgba(255, 220, 100, 1);
+    color: rgba(20, 20, 25, 1);
+    border-color: rgba(255, 220, 100, 1);
+}
+
 .wm-slot {
     width: 48px;
     height: 48px;
