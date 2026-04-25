@@ -42,6 +42,7 @@ namespace WitchMendokusai
 		Cancel,
 		Tab,
 		Status,
+		Inventory,
 	}
 
 	public enum InputEventResponseType
@@ -86,6 +87,7 @@ namespace WitchMendokusai
 			{ InputEventType.Cancel, InputMapType.UI },
 			{ InputEventType.Tab, InputMapType.UI },
 			{ InputEventType.Status, InputMapType.UI },
+			{ InputEventType.Inventory, InputMapType.UI },
 		};
 
 		// Strategy-owned: cleared on every strategy switch

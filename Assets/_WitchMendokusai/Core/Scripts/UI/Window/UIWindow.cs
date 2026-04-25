@@ -11,6 +11,7 @@ namespace WitchMendokusai
 		[SerializeField] private string windowId;
 		[SerializeField] private RectTransform header;
 		[SerializeField] private Button closeButton;
+		[SerializeField] private bool closeOnStart = false;
 
 		public string WindowId => windowId;
 		public bool IsOpen => gameObject.activeSelf;
@@ -39,6 +40,12 @@ namespace WitchMendokusai
 
 			// 시작 시 활성 상태인 prefab도 위치 복원
 			RestorePosition();
+		}
+
+		private void Start()
+		{
+			if (closeOnStart)
+				gameObject.SetActive(false);
 		}
 
 		private void OnDestroy()

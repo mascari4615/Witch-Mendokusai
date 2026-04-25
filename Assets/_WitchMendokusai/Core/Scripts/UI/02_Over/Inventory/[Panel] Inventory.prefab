@@ -203,7 +203,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 9208251872975439782}
-  - component: {fileID: 7027129191676322480}
+  - component: {fileID: 3374565192763033463}
+  - component: {fileID: 7725871112510966294}
+  - component: {fileID: 1771269961254076955}
   m_Layer: 5
   m_Name: '[Panel] Inventory'
   m_TagString: Untagged
@@ -232,7 +234,7 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &7027129191676322480
+--- !u!114 &3374565192763033463
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -241,11 +243,38 @@ MonoBehaviour:
   m_GameObject: {fileID: 335236486175141319}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 562c1d3df7bb32d418aefcef242c2249, type: 3}
+  m_Script: {fileID: 11500000, guid: 4a92c5d03b3f40ba9f2666484d58fc16, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: 
-  <Name>k__BackingField: Inventory
-  <PanelIcon>k__BackingField: {fileID: -954506270, guid: fbd184d873518c24aaaa66f4c3d4c2a9, type: 3}
+  m_EditorClassIdentifier: Assembly-CSharp::WitchMendokusai.UIWindow
+  windowId: Inventory
+  header: {fileID: 0}
+  closeButton: {fileID: 0}
+  closeOnStart: 1
+--- !u!114 &7725871112510966294
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 335236486175141319}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8c3d4e5f60718293a4b5c6d7e8f90123, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WitchMendokusai.UIInventoryPanel
+--- !u!114 &1771269961254076955
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 335236486175141319}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7b2c3d4e5f60718293a4b5c6d7e8f901, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WitchMendokusai.UIWindowToggle
+  toggleKey: 21
 --- !u!1 &989156410861964481
 GameObject:
   m_ObjectHideFlags: 0
