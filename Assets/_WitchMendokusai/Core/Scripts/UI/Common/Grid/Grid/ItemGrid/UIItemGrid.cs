@@ -21,6 +21,8 @@ namespace WitchMendokusai
 			foreach (UIItemSlot slot in Slots.Cast<UIItemSlot>())
 				slot.SetUIItemGrid(this);
 
+			UpdateUI();
+
 			if (filtersParent != null)
 			{
 				UISlot[] fillerButtons = filtersParent.GetComponentsInChildren<UISlot>(true);

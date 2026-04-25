@@ -28,8 +28,8 @@ namespace WitchMendokusai
 	public class Inventory : DataBufferSO<Item>, ISavable<List<InventorySlotSaveData>>, ISerializationCallbackReceiver
 	{
 		private const int NONE = -1;
-		private const int DefaultCapacity = 30;
-		public int Capacity { get; private set; } = DefaultCapacity;
+		protected virtual int DefaultCapacity => 30;
+		public int Capacity { get; protected set; }
 
 		private int FindEmptySlotIndex(int startIndex = 0)
 		{

@@ -10,13 +10,12 @@ namespace WitchMendokusai
 		private UISlot slot = null;
 
 		private Item holdingItem = null;
+		private Inventory holdingInventory = null;
 		public bool IsHolding => holdingItem != null;
 
 		private const float funcATime = 0.2f;
 		private float curFuncATime = 0;
 		public bool CanFuncA => curFuncATime >= 0;
-
-		private Inventory Inventory => SOManager.Instance.ItemInventory;
 
 		private void Start()
 		{
@@ -28,7 +27,7 @@ namespace WitchMendokusai
 
 		public void DoSomething(UIItemSlot targetSlot, bool isLeftClick)
 		{
-			Item targetItem = Inventory.GetItem(targetSlot.Index);
+			Item targetItem = targetSlot.Inventory.GetItem(targetSlot.Index);
 
 			if (IsHolding == false)
 			{
@@ -90,16 +89,17 @@ namespace WitchMendokusai
 		// 들고있지 않은 상태에서, 비어있지 않은 슬롯에 좌클릭
 		public void HoldSlot(UIItemSlot targetSlot)
 		{
-			Item targetItem = Inventory.GetItem(targetSlot.Index);
+			Inventory inventory = targetSlot.Inventory;
+			Item targetItem = inventory.GetItem(targetSlot.Index);
 
 			if (targetSlot == null || targetItem == null)
 				return;
 
 			holdingItem = targetItem;
+			holdingInventory = inventory;
 
-			Inventory.SetItem(targetSlot.Index, null);
-
-			targetSlot.Inventory.UpdateSlot(targetSlot.Index);
+			inventory.SetItem(targetSlot.Index, null);
+			inventory.UpdateSlot(targetSlot.Index);
 
 			curFuncATime = funcATime;
 		}
@@ -107,7 +107,7 @@ namespace WitchMendokusai
 		// 들고있지 않은 상태에서, 비어있지 않은 슬롯에서 우클릭
 		public void HoldSlotHalf(UIItemSlot targetSlot)
 		{
-			Item targetItem = Inventory.GetItem(targetSlot.Index);
+			Item targetItem = targetSlot.Inventory.GetItem(targetSlot.Index);
 
 			if (targetSlot == null)
 				return;
@@ -132,7 +132,8 @@ namespace WitchMendokusai
 			if (targetSlot == null || holdingItem == null)
 				return;
 
-			Item slotItem = Inventory.GetItem(targetSlot.Index);
+			Inventory targetInventory = targetSlot.Inventory;
+			Item slotItem = targetInventory.GetItem(targetSlot.Index);
 
 			if (slotItem.Data.ID == holdingItem.Data.ID)
 			{
@@ -145,6 +146,7 @@ namespace WitchMendokusai
 
 					holdingItem.SetAmount(0);
 					holdingItem = null;
+					holdingInventory = null;
 				}
 				else
 				{
@@ -154,11 +156,12 @@ namespace WitchMendokusai
 			}
 			else
 			{
-				Inventory.SetItem(targetSlot.Index, holdingItem);
+				targetInventory.SetItem(targetSlot.Index, holdingItem);
 				holdingItem = slotItem;
+				holdingInventory = targetInventory;
 			}
 
-			Inventory.UpdateSlot(targetSlot.Index);
+			targetInventory.UpdateSlot(targetSlot.Index);
 		}
 
 		// 들고있는 상태에서, 비어있는 슬롯에 좌클릭
@@ -166,36 +169,37 @@ namespace WitchMendokusai
 		{
 			Item dropItem = holdingItem;
 			holdingItem = null;
+			holdingInventory = null;
 
-			// Debug.Log("DropSlot: " + dropItem);
-			Inventory.SetItem(targetSlot.Index, dropItem);
+			targetSlot.Inventory.SetItem(targetSlot.Index, dropItem);
 		}
 
 		// 들고있는 상태에서, (비어있지 않은/비어있는) 슬롯에 우클릭
 		public void DropSlotOne(UIItemSlot targetSlot)
 		{
-			Item targetItem = Inventory.GetItem(targetSlot.Index);
+			Inventory targetInventory = targetSlot.Inventory;
+			Item targetItem = targetInventory.GetItem(targetSlot.Index);
 
 			if (targetItem != null && targetItem.Data.ID == holdingItem.Data.ID)
 			{
 				if (targetItem.Amount < targetItem.MaxAmount)
 				{
 					holdingItem.SetAmount(holdingItem.Amount - 1);
-					Inventory.SetItemAmount(targetSlot.Index, targetItem.Amount + 1);
-				}
-				else
-				{
+					targetInventory.SetItemAmount(targetSlot.Index, targetItem.Amount + 1);
 				}
 			}
 			else
 			{
 				Item newItem = new(new(), holdingItem.Data, 1);
 				holdingItem.SetAmount(holdingItem.Amount - 1);
-				Inventory.SetItem(targetSlot.Index, newItem);
+				targetInventory.SetItem(targetSlot.Index, newItem);
 			}
 
 			if (holdingItem.Amount <= 0)
+			{
 				holdingItem = null;
+				holdingInventory = null;
+			}
 		}
 
 		// 들고, 빠르게 비어있는 슬롯에 좌클릭
@@ -206,9 +210,9 @@ namespace WitchMendokusai
 
 			curFuncATime = 0;
 
-			for (int i = 0; i < Inventory.Capacity; i++)
+			for (int i = 0; i < holdingInventory.Capacity; i++)
 			{
-				Item item = Inventory.GetItem(i);
+				Item item = holdingInventory.GetItem(i);
 
 				if (item != null && item.Data.ID == holdingItem.Data.ID)
 				{
@@ -218,15 +222,15 @@ namespace WitchMendokusai
 					if (sum <= maxAmount)
 					{
 						holdingItem.SetAmount(sum);
-						Inventory.SetItem(i, null);
-						Inventory.UpdateSlot(i);
+						holdingInventory.SetItem(i, null);
+						holdingInventory.UpdateSlot(i);
 					}
 					else
 					{
 						item.SetAmount(sum - maxAmount);
 						holdingItem.SetAmount(maxAmount);
 
-						Inventory.UpdateSlot(i);
+						holdingInventory.UpdateSlot(i);
 						break;
 					}
 				}

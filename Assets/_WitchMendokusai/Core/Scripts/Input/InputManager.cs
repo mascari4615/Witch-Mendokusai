@@ -26,6 +26,16 @@ namespace WitchMendokusai
 		Scroll,
 		Sprint,
 		Crouch,
+		// HotbarSlot1~9는 연속 정의 유지 — UIHotbar이 (HotbarSlot1 + i) 산수에 의존
+		HotbarSlot1,
+		HotbarSlot2,
+		HotbarSlot3,
+		HotbarSlot4,
+		HotbarSlot5,
+		HotbarSlot6,
+		HotbarSlot7,
+		HotbarSlot8,
+		HotbarSlot9,
 
 		// UI
 		Submit,
@@ -62,6 +72,15 @@ namespace WitchMendokusai
 			{ InputEventType.Scroll, InputMapType.Player },
 			{ InputEventType.Sprint, InputMapType.Player },
 			{ InputEventType.Crouch, InputMapType.Player },
+			{ InputEventType.HotbarSlot1, InputMapType.Player },
+			{ InputEventType.HotbarSlot2, InputMapType.Player },
+			{ InputEventType.HotbarSlot3, InputMapType.Player },
+			{ InputEventType.HotbarSlot4, InputMapType.Player },
+			{ InputEventType.HotbarSlot5, InputMapType.Player },
+			{ InputEventType.HotbarSlot6, InputMapType.Player },
+			{ InputEventType.HotbarSlot7, InputMapType.Player },
+			{ InputEventType.HotbarSlot8, InputMapType.Player },
+			{ InputEventType.HotbarSlot9, InputMapType.Player },
 
 			{ InputEventType.Submit, InputMapType.UI },
 			{ InputEventType.Cancel, InputMapType.UI },
@@ -69,8 +88,14 @@ namespace WitchMendokusai
 			{ InputEventType.Status, InputMapType.UI },
 		};
 
-		private readonly Dictionary<(InputEventType, InputEventResponseType), Action<InputAction.CallbackContext>> inputEventsWithContext = new();
-		private readonly Dictionary<(InputEventType, InputEventResponseType), List<(Action action, Func<bool> condition)>> inputEvents = new();
+		// Strategy-owned: cleared on every strategy switch
+		private readonly Dictionary<(InputEventType, InputEventResponseType), Action<InputAction.CallbackContext>> strategyEventsWithContext = new();
+		private readonly Dictionary<(InputEventType, InputEventResponseType), List<(Action action, Func<bool> condition)>> strategyEvents = new();
+
+		// Component-owned: never touched by strategy management
+		private readonly Dictionary<(InputEventType, InputEventResponseType), Action<InputAction.CallbackContext>> componentEventsWithContext = new();
+		private readonly Dictionary<(InputEventType, InputEventResponseType), List<(Action action, Func<bool> condition)>> componentEvents = new();
+
 		private readonly Dictionary<InputEventType, bool> isPressed = new();
 
 		public Vector3 MouseWorldPosition { get; private set; }
@@ -93,9 +118,8 @@ namespace WitchMendokusai
 		{
 			inputActionAsset.Enable();
 
+			InitEventDictionaries();
 			BindEvents();
-
-			// ClearInputEvents();
 			SetInputStrategy(new InputStrategyLoading());
 
 			// TODO: Setup Class 같은 것이 있어야 할 듯 - 2025.04.19 11:38
@@ -106,14 +130,29 @@ namespace WitchMendokusai
 			};
 		}
 
-		private void ClearInputEvents()
+		private void InitEventDictionaries()
 		{
 			foreach (InputEventType inputEventType in Enum.GetValues(typeof(InputEventType)))
 			{
 				foreach (InputEventResponseType inputEventResponseType in Enum.GetValues(typeof(InputEventResponseType)))
 				{
-					inputEventsWithContext[(inputEventType, inputEventResponseType)] = delegate { };
-					inputEvents[(inputEventType, inputEventResponseType)] = new List<(Action action, Func<bool> condition)>();
+					strategyEventsWithContext[(inputEventType, inputEventResponseType)] = delegate { };
+					strategyEvents[(inputEventType, inputEventResponseType)] = new();
+					componentEventsWithContext[(inputEventType, inputEventResponseType)] = delegate { };
+					componentEvents[(inputEventType, inputEventResponseType)] = new();
+					isPressed[inputEventType] = false;
+				}
+			}
+		}
+
+		private void ClearStrategyEvents()
+		{
+			foreach (InputEventType inputEventType in Enum.GetValues(typeof(InputEventType)))
+			{
+				foreach (InputEventResponseType inputEventResponseType in Enum.GetValues(typeof(InputEventResponseType)))
+				{
+					strategyEventsWithContext[(inputEventType, inputEventResponseType)] = delegate { };
+					strategyEvents[(inputEventType, inputEventResponseType)] = new();
 					isPressed[inputEventType] = false;
 				}
 			}
@@ -145,11 +184,15 @@ namespace WitchMendokusai
 		{
 			CurrentInputStrategy = inputStrategy;
 
-			ClearInputEvents();
+			ClearStrategyEvents();
 
-			List<InputRegisterData> inputRegisterDataList = CurrentInputStrategy.InputRegisterDataList;
-			foreach (InputRegisterData inputRegisterData in inputRegisterDataList)
-				RegisterInputEvent(inputRegisterData.InputEventType, inputRegisterData.InputEventResponseType, inputRegisterData.Callback, inputRegisterData.Condition);
+			foreach (InputRegisterData data in CurrentInputStrategy.InputRegisterDataList)
+			{
+				if (data.CallbackWithContext != null)
+					strategyEventsWithContext[(data.InputEventType, data.InputEventResponseType)] += data.CallbackWithContext;
+				else
+					strategyEvents[(data.InputEventType, data.InputEventResponseType)].Add((data.Callback, data.Condition));
+			}
 		}
 
 		private void BindEvents()
@@ -172,73 +215,64 @@ namespace WitchMendokusai
 
 		private void OnEventStart(InputEventType inputEventType, InputAction.CallbackContext ctx)
 		{
-			inputEventsWithContext[(inputEventType, InputEventResponseType.Started)]?.Invoke(ctx);
-			foreach ((Action action, Func<bool> condition) in inputEvents[(inputEventType, InputEventResponseType.Started)])
-			{
-				if (condition == null || condition())
-					action();
-			}
-
+			Dispatch(inputEventType, InputEventResponseType.Started, ctx);
 			isPressed[inputEventType] = true;
 			GetLoop(inputEventType).Forget();
 		}
 
 		private async UniTaskVoid GetLoop(InputEventType inputEventType = InputEventType.Space)
 		{
-			InputMapType actionMapType = inputEventBindings[inputEventType];
 			while (isPressed[inputEventType] == true)
 			{
 				await UniTask.Yield(PlayerLoopTiming.Update);
-
-				inputEventsWithContext[(inputEventType, InputEventResponseType.Get)]?.Invoke(default);
-				foreach ((Action action, Func<bool> condition) in inputEvents[(inputEventType, InputEventResponseType.Get)])
-				{
-					if (condition == null || condition())
-						action();
-				}
+				Dispatch(inputEventType, InputEventResponseType.Get, default);
 			}
 		}
 
 		private void OnEventPerformed(InputEventType inputEventType, InputAction.CallbackContext ctx)
 		{
-			inputEventsWithContext[(inputEventType, InputEventResponseType.Performed)]?.Invoke(ctx);
-			foreach ((Action action, Func<bool> condition) in inputEvents[(inputEventType, InputEventResponseType.Performed)])
-			{
-				if (condition == null || condition())
-					action();
-			}
+			Dispatch(inputEventType, InputEventResponseType.Performed, ctx);
 		}
 
 		private void OnEventCanceled(InputEventType inputEventType, InputAction.CallbackContext ctx)
 		{
-			inputEventsWithContext[(inputEventType, InputEventResponseType.Canceled)]?.Invoke(ctx);
-			foreach ((Action action, Func<bool> condition) in inputEvents[(inputEventType, InputEventResponseType.Canceled)])
-			{
-				if (condition == null || condition())
-					action();
-			}
-
+			Dispatch(inputEventType, InputEventResponseType.Canceled, ctx);
 			isPressed[inputEventType] = false;
+		}
+
+		private void Dispatch(InputEventType inputEventType, InputEventResponseType responseType, InputAction.CallbackContext ctx)
+		{
+			(InputEventType, InputEventResponseType) key = (inputEventType, responseType);
+
+			strategyEventsWithContext[key]?.Invoke(ctx);
+
+			foreach ((Action action, Func<bool> condition) in strategyEvents[key])
+				if (condition == null || condition()) action();
+
+			componentEventsWithContext[key]?.Invoke(ctx);
+
+			foreach ((Action action, Func<bool> condition) in componentEvents[key])
+				if (condition == null || condition()) action();
 		}
 
 		public void RegisterInputEvent(InputEventType inputEventType, InputEventResponseType inputEventResponseType, Action<InputAction.CallbackContext> action)
 		{
-			inputEventsWithContext[(inputEventType, inputEventResponseType)] += action;
+			componentEventsWithContext[(inputEventType, inputEventResponseType)] += action;
 		}
 
 		public void UnregisterInputEvent(InputEventType inputEventType, InputEventResponseType inputEventResponseType, Action<InputAction.CallbackContext> action)
 		{
-			inputEventsWithContext[(inputEventType, inputEventResponseType)] -= action;
+			componentEventsWithContext[(inputEventType, inputEventResponseType)] -= action;
 		}
 
 		public void RegisterInputEvent(InputEventType inputEventType, InputEventResponseType inputEventResponseType, Action action, Func<bool> condition = null)
 		{
-			inputEvents[(inputEventType, inputEventResponseType)].Add((action, condition));
+			componentEvents[(inputEventType, inputEventResponseType)].Add((action, condition));
 		}
 
 		public void UnregisterInputEvent(InputEventType inputEventType, InputEventResponseType inputEventResponseType, Action action, Func<bool> condition = null)
 		{
-			inputEvents[(inputEventType, inputEventResponseType)].RemoveAll(x => x.action == action && x.condition == condition);
+			componentEvents[(inputEventType, inputEventResponseType)].RemoveAll(x => x.action == action && x.condition == condition);
 		}
 
 		private void Update()
@@ -258,7 +292,7 @@ namespace WitchMendokusai
 			}
 
 			Vector2 mouseScreen = Mouse.current != null ? Mouse.current.position.ReadValue() : Vector2.zero;
-			Vector3 mousePos = new Vector3(mouseScreen.x, mouseScreen.y, Camera.main.nearClipPlane);
+			Vector3 mousePos = new(mouseScreen.x, mouseScreen.y, Camera.main.nearClipPlane);
 			Ray ray = Camera.main.ScreenPointToRay(mousePos);
 
 			if (TryResolveMouseWorldHit(ray, out RaycastHit hit))
@@ -311,7 +345,7 @@ namespace WitchMendokusai
 		private void UpdateMoveInput()
 		{
 			if (CurrentInputStrategy != null &&
-				CurrentInputStrategy.TryGetAxisReturnConditions(InputAxisType.Move, out var conditions) &&
+				CurrentInputStrategy.TryGetAxisReturnConditions(InputAxisType.Move, out GameConditionType[] conditions) &&
 				GameManager.Instance.Conditions.IsGameConditionAny(conditions))
 			{
 				MoveInput = Vector2.zero;

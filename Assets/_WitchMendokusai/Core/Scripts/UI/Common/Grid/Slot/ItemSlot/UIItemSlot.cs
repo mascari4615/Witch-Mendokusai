@@ -30,21 +30,24 @@ namespace WitchMendokusai
 		{
 			base.Init();
 
-			priceText = transform.Find("[Text] Price").GetComponent<TextMeshProUGUI>();
+			priceText = transform.Find("[Text] Price")?.GetComponent<TextMeshProUGUI>();
 		}
 
 		public override void UpdateUI()
 		{
 			base.UpdateUI();
 
-			if (DataSO)
+			if (priceText != null)
 			{
-				ItemData itemData = DataSO as ItemData;
-				priceText.text = (priceType == PriceType.Buy) ? itemData.PurchasePrice.ToString() : itemData.SalePrice.ToString();
-			}
-			else
-			{
-				priceText.text = string.Empty;
+				if (DataSO)
+				{
+					ItemData itemData = DataSO as ItemData;
+					priceText.text = (priceType == PriceType.Buy) ? itemData.PurchasePrice.ToString() : itemData.SalePrice.ToString();
+				}
+				else
+				{
+					priceText.text = string.Empty;
+				}
 			}
 		}
 
@@ -55,7 +58,7 @@ namespace WitchMendokusai
 			UpdateUI();
 		}
 
-		public void OnPointerDown(PointerEventData eventData)
+		public virtual void OnPointerDown(PointerEventData eventData)
 		{
 			if (canPlayerSetItem == false)
 				return;

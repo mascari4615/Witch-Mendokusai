@@ -50,6 +50,7 @@ namespace WitchMendokusai
 		[field: SerializeField] public DollBuffer DollBuffer { get; private set; }
 		[field: SerializeField] public ItemDataBuffer DungeonItemBuffer { get; private set; }
 		[field: SerializeField] public Inventory ItemInventory { get; private set; }
+		[field: SerializeField] public Hotbar Hotbar { get; private set; }
 		[field: SerializeField] public CardBuffer SelectedCardBuffer { get; private set; }
 		[field: SerializeField] public QuestSO VQuestLoadQuest { get; private set; }
 		[field: SerializeField] public QuestSOBuffer VQuests { get; private set; }

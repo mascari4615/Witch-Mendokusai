@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine.InputSystem;
 
 namespace WitchMendokusai
 {
@@ -8,13 +9,24 @@ namespace WitchMendokusai
 		public InputEventType InputEventType { get; }
 		public InputEventResponseType InputEventResponseType { get; }
 		public Action Callback { get; }
+		public Action<InputAction.CallbackContext> CallbackWithContext { get; }
 		public Func<bool> Condition { get; }
 
-		public InputRegisterData(InputEventType inputEventType, InputEventResponseType inputEventResponseType, Action callback, Func<bool> condition)
+		public InputRegisterData(InputEventType inputEventType, InputEventResponseType inputEventResponseType, Action callback, Func<bool> condition = null)
 		{
 			InputEventType = inputEventType;
 			InputEventResponseType = inputEventResponseType;
 			Callback = callback;
+			CallbackWithContext = null;
+			Condition = condition;
+		}
+
+		public InputRegisterData(InputEventType inputEventType, InputEventResponseType inputEventResponseType, Action<InputAction.CallbackContext> callbackWithContext, Func<bool> condition = null)
+		{
+			InputEventType = inputEventType;
+			InputEventResponseType = inputEventResponseType;
+			Callback = null;
+			CallbackWithContext = callbackWithContext;
 			Condition = condition;
 		}
 	}

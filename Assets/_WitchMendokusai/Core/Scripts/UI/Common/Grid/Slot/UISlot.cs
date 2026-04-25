@@ -83,6 +83,7 @@ namespace WitchMendokusai
 
 		[SerializeField] private bool blockClickWhenDisable = false;
 		[SerializeField] private bool showAmountOne = false;
+		[SerializeField] private bool hideIconBackgroundWhenEmpty = false;
 		private Action<UISlot> selectAction = delegate { };
 		private Action<UISlot> deselectAction = delegate { };
 		private Action<UISlot> clickAction = delegate { };
@@ -144,9 +145,17 @@ namespace WitchMendokusai
 		{
 			if (iconImage != null)
 			{
+				bool hasContent = Data.Sprite != null || nameText != null;
 				iconImage.sprite = Data.Sprite;
 				// nameText가 있으면 텍스트로 내용을 표시할 수 있으므로 배경을 유지한다
-				iconImage.color = (Data.Sprite == null && nameText == null) ? Color.clear : Color.white;
+				iconImage.color = hasContent ? Color.white : Color.clear;
+
+				if (hideIconBackgroundWhenEmpty)
+				{
+					Image iconBackground = iconImage.transform.parent.GetComponent<Image>();
+					if (iconBackground != null)
+						iconBackground.enabled = hasContent;
+				}
 			}
 			if (nameText != null)
 				nameText.text = Data.Name;

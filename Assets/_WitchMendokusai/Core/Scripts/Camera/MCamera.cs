@@ -83,6 +83,9 @@ namespace WitchMendokusai
 			if (positionComposer == null)
 				return;
 
+			if (Keyboard.current == null || Keyboard.current.ctrlKey.isPressed == false)
+				return;
+
 			float step = -(Mouse.current != null ? Mouse.current.scroll.ReadValue().y : 0f) * zoomWheelSensitivity;
 			targetZoom = Mathf.Clamp(targetZoom + step, minZoom, maxZoom);
 		}
