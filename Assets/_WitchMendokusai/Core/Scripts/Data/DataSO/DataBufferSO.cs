@@ -13,6 +13,9 @@ namespace WitchMendokusai
 
 		[field: NonSerialized] public List<UIBase> UIs { get; private set; } = new();
 
+		// UI Toolkit View 구독용 (uGUI UIs.ForEach와 별개)
+		public event Action OnDataChanged = delegate { };
+
 		public virtual void Add(T t)
 		{
 			Data.Add(t);
@@ -34,7 +37,11 @@ namespace WitchMendokusai
 
 		public void RegisterUI(UIBase ui) => UIs.Add(ui);
 
-		public void UpdateUI() => UIs.ForEach(ui => ui.UpdateUI());
+		public void UpdateUI()
+		{
+			UIs.ForEach(ui => ui.UpdateUI());
+			OnDataChanged.Invoke();
+		}
 
 		public virtual void OnAfterDeserialize()
 		{

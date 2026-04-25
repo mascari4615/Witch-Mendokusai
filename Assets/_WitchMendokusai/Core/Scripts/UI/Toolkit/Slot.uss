@@ -1,0 +1,59 @@
+.wm-item-grid {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: flex-start;
+    padding: 4px;
+    background-color: rgba(15, 15, 18, 0.6);
+    /* 6 columns × (48 slot + 4 margin) = 312, +8 padding = 320 */
+    width: 320px;
+    align-self: flex-start;
+}
+
+.wm-holding-overlay {
+    position: absolute;
+    /* 마우스 따라 이동, 본인은 클릭 무시 */
+}
+
+.wm-slot {
+    width: 48px;
+    height: 48px;
+    background-color: rgba(20, 20, 25, 0.85);
+    border-color: rgba(80, 80, 95, 1);
+    border-width: 1px;
+    border-radius: 2px;
+    margin: 2px;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.wm-slot:hover {
+    border-color: rgba(180, 180, 200, 1);
+}
+
+.wm-slot--selected {
+    border-color: rgba(255, 220, 100, 1);
+    border-width: 2px;
+}
+
+.wm-slot--empty .wm-slot__icon {
+    background-image: none;
+}
+
+.wm-slot__icon {
+    width: 80%;
+    height: 80%;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.wm-slot__amount {
+    position: absolute;
+    bottom: 2px;
+    right: 4px;
+    color: rgba(255, 255, 255, 1);
+    font-size: 11px;
+    -unity-text-outline-width: 1px;
+    -unity-text-outline-color: rgba(0, 0, 0, 1);
+    -unity-font-style: bold;
+}
