@@ -135,7 +135,9 @@ namespace WitchMendokusai
 			{
 				QuestSO fromQuestSO = edge.FromNode.DataSO as QuestSO;
 				RuntimeQuest rq = QuestManager.Instance.GetQuest(fromQuestSO);
-				QuestState state = rq != null ? rq.State : QuestManager.Instance.GetQuestState(fromQuestSO.ID);
+				QuestState state = rq != null
+					? (rq.State == RuntimeQuestState.Completed ? QuestState.Completed : QuestState.Unlocked)
+					: QuestManager.Instance.GetQuestState(fromQuestSO.ID);
 				edge.SetState(state);
 			}
 		}
