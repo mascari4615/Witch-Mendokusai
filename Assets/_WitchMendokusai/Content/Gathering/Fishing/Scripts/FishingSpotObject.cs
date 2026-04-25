@@ -29,7 +29,7 @@ namespace WitchMendokusai
 			if (isFishing)
 				return;
 
-			if (!SOManager.Instance.ItemInventory.HasEquipment(EquipmentType.FishingRod))
+			if (SOManager.Instance.ItemInventory.HasEquipment(EquipmentType.FishingRod) == false)
 			{
 				UIManager.Instance.SpeechBubble.Show(transform, "낚싯대가 필요합니다.");
 				return;
@@ -49,7 +49,7 @@ namespace WitchMendokusai
 				yield break;
 			}
 
-			if (!string.IsNullOrEmpty(castEventPath))
+			if (string.IsNullOrEmpty(castEventPath) == false)
 				RuntimeManager.PlayOneShot(castEventPath, transform.position);
 
 			bool caught = false;

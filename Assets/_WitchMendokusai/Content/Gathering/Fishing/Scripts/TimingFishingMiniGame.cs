@@ -23,7 +23,7 @@ namespace WitchMendokusai
 			yield return new WaitForSeconds(biteDelay);
 
 			// 입질 신호
-			if (!string.IsNullOrEmpty(biteEventPath))
+			if (string.IsNullOrEmpty(biteEventPath) == false)
 				RuntimeManager.PlayOneShot(biteEventPath, context.Fisherman.position);
 
 			UIManager.Instance.SpeechBubble.Show(context.Fisherman, biteSprite, context.Data.InputWindow);
