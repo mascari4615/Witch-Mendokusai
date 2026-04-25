@@ -105,8 +105,8 @@ namespace WitchMendokusai
 
 		public void OnCancelInput()
 		{
-			// UIWindowManager가 관리하는 윈도우가 열려있으면 그 쪽이 닫음 (중복 처리 방지)
-			if (UIWindowManager.Instance.GetTopmostOpen() != null)
+			// UI Toolkit WindowManager가 관리하는 윈도우가 열려있으면 그 쪽이 닫음 (중복 처리 방지)
+			if (WindowManager.TryGetExistingInstance(out WindowManager windowManager) && windowManager.GetTopmostOpen() != null)
 				return;
 
 			// 닫을 수 있는 UI 닫기
