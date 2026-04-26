@@ -50,55 +50,55 @@ namespace WitchMendokusai
 		{
 			// 메인 스레드 병목(Mesh.SetVertices 등)을 방지하기 위해 프레임당 최대 2개만 적용
 			int maxProcessedPerFrame = 2;
-			while (maxProcessedPerFrame > 0 && completedTasks.TryDequeue(out var result))
+			while (maxProcessedPerFrame > 0 && completedTasks.TryDequeue(out (ChunkPosition pos, ChunkMeshData meshData, Chunk chunkData) result))
 			{
 				generationQueue.Remove(result.pos);
 
 				// 태스크가 완료되는 동안 플레이어가 빠르게 이동하여 시야 밖으로 나갔을 수 있으므로 재검사
-				if (Mathf.Abs(result.pos.X - lastViewerPosition.X) <= renderDistance &&
-					Mathf.Abs(result.pos.Z - lastViewerPosition.Z) <= renderDistance)
+				bool inRange = Mathf.Abs(result.pos.X - lastViewerPosition.X) <= renderDistance
+					&& Mathf.Abs(result.pos.Z - lastViewerPosition.Z) <= renderDistance;
+				if (inRange == false)
+					continue;
+
+				if (activeChunks.TryGetValue(result.pos, out GameObject existingChunk))
 				{
-					if (activeChunks.TryGetValue(result.pos, out GameObject existingChunk))
-					{
-						activeChunkData[result.pos] = result.chunkData;
-						
-						MeshFilter filter = existingChunk.GetComponent<MeshFilter>();
-						result.meshData.ApplyToMesh(filter.sharedMesh);
-						
-						MeshCollider collider = existingChunk.GetComponent<MeshCollider>();
-						if (collider != null)
-						{
-							collider.sharedMesh = null;
-							collider.sharedMesh = filter.sharedMesh;
-						}
+					activeChunkData[result.pos] = result.chunkData;
 
-						maxProcessedPerFrame--;
-					}
-					else
-					{
-						GameObject chunkGo = chunkPool.Get(result.pos);
-						activeChunks[result.pos] = chunkGo;
-						activeChunkData[result.pos] = result.chunkData;
-						
-						MeshFilter filter = chunkGo.GetComponent<MeshFilter>();
-						result.meshData.ApplyToMesh(filter.sharedMesh);
-						
-						MeshCollider collider = chunkGo.GetComponent<MeshCollider>();
-						if (collider != null)
-						{
-							collider.sharedMesh = null; // 강제 갱신을 위해 null 세팅
-							collider.sharedMesh = filter.sharedMesh;
-						}
+					MeshFilter filter = existingChunk.GetComponent<MeshFilter>();
+					result.meshData.ApplyToMesh(filter.sharedMesh);
 
-						maxProcessedPerFrame--;
+					MeshCollider collider = existingChunk.GetComponent<MeshCollider>();
+					if (collider != null)
+					{
+						collider.sharedMesh = null;
+						collider.sharedMesh = filter.sharedMesh;
 					}
+
+					maxProcessedPerFrame--;
+				}
+				else
+				{
+					GameObject chunkGo = chunkPool.Get(result.pos);
+					activeChunks[result.pos] = chunkGo;
+					activeChunkData[result.pos] = result.chunkData;
+
+					MeshFilter filter = chunkGo.GetComponent<MeshFilter>();
+					result.meshData.ApplyToMesh(filter.sharedMesh);
+
+					MeshCollider collider = chunkGo.GetComponent<MeshCollider>();
+					if (collider != null)
+					{
+						collider.sharedMesh = null;
+						collider.sharedMesh = filter.sharedMesh;
+					}
+
+					maxProcessedPerFrame--;
 				}
 			}
 		}
 
 		private void UpdateViewerPosition()
 		{
-			// 플레이어의 실제 월드 좌표를 청크 좌표계로 변환
 			int viewerChunkX = Mathf.FloorToInt(viewer.position.x / VoxelConstants.CHUNK_SIZE_X);
 			int viewerChunkZ = Mathf.FloorToInt(viewer.position.z / VoxelConstants.CHUNK_SIZE_Z);
 			ChunkPosition currentPosition = new(viewerChunkX, viewerChunkZ);
@@ -114,11 +114,11 @@ namespace WitchMendokusai
 		{
 			// 1. 범위 밖 청크 제거 (풀로 반환)
 			List<ChunkPosition> toRemove = new();
-			foreach (var kvp in activeChunks)
+			foreach (KeyValuePair<ChunkPosition, GameObject> kvp in activeChunks)
 			{
 				ChunkPosition pos = kvp.Key;
-				if (Mathf.Abs(pos.X - centerPos.X) > renderDistance || 
-				    Mathf.Abs(pos.Z - centerPos.Z) > renderDistance)
+				if (Mathf.Abs(pos.X - centerPos.X) > renderDistance ||
+					Mathf.Abs(pos.Z - centerPos.Z) > renderDistance)
 				{
 					toRemove.Add(pos);
 					chunkPool.Release(kvp.Value);
@@ -127,17 +127,21 @@ namespace WitchMendokusai
 					{
 						if (chunkData.IsDirty)
 						{
-							Task.Run(() => ChunkStorage.SaveChunk(chunkData));
+							Task.Run(() =>
+							{
+								lock (chunkData.SyncRoot)
+								{
+									ChunkStorage.SaveChunk(chunkData);
+								}
+							});
 						}
 						activeChunkData.Remove(pos);
 					}
 				}
 			}
 
-			foreach (var pos in toRemove)
-			{
+			foreach (ChunkPosition pos in toRemove)
 				activeChunks.Remove(pos);
-			}
 
 			// 2. 범위 내 빈 청크 큐잉
 			for (int x = -renderDistance; x <= renderDistance; x++)
@@ -156,22 +160,21 @@ namespace WitchMendokusai
 
 		private void EnqueueChunkGeneration(ChunkPosition pos)
 		{
-			// 백그라운드 스레드에서 청크 계산 진행 (메인 스레드 렉 제로)
 			Task.Run(() =>
 			{
 				try
 				{
 					Chunk chunk = new(pos);
-					
-					// 세이브 파일이 있다면 불러오고, 없다면 노이즈로 생성
-					if (!ChunkStorage.LoadChunk(chunk))
+
+					// 새 청크라 외부 참조 없음 — lock 불필요
+					if (ChunkStorage.LoadChunk(chunk) == false)
 					{
 						ChunkGenerator.Generate(chunk, terrainParameters);
-						chunk.MarkClean(); // 갓 생성된 자연 상태는 Dirty가 아님
+						chunk.MarkClean();
 					}
-					
+
 					ChunkMeshData meshData = ChunkMesher.GenerateMeshData(chunk);
-					
+
 					completedTasks.Enqueue((pos, meshData, chunk));
 				}
 				catch (System.Exception e)
@@ -181,10 +184,7 @@ namespace WitchMendokusai
 			});
 		}
 
-		/// <summary>
-		/// 특정 월드 좌표의 블록 값을 반환합니다.
-		/// 청크가 로드되어 있지 않다면 Air(0)를 반환합니다.
-		/// </summary>
+		/// <summary>특정 월드 좌표의 블록 값을 반환. 청크가 로드되어 있지 않으면 Air 반환.</summary>
 		public ushort GetBlock(int worldX, int worldY, int worldZ)
 		{
 			int cx = Mathf.FloorToInt((float)worldX / VoxelConstants.CHUNK_SIZE_X);
@@ -200,33 +200,42 @@ namespace WitchMendokusai
 			return VoxelConstants.AIR_RUNTIME_ID;
 		}
 
-		/// <summary>
-		/// 특정 월드 좌표의 블록을 수정하고, 해당 청크의 메쉬를 비동기로 다시 굽습니다.
-		/// </summary>
+		/// <summary>특정 월드 좌표의 블록을 수정하고, 해당 청크의 메쉬를 비동기로 다시 굽는다.</summary>
 		public void SetBlock(int worldX, int worldY, int worldZ, ushort runtimeId)
 		{
 			int cx = Mathf.FloorToInt((float)worldX / VoxelConstants.CHUNK_SIZE_X);
 			int cz = Mathf.FloorToInt((float)worldZ / VoxelConstants.CHUNK_SIZE_Z);
 			ChunkPosition pos = new(cx, cz);
 
-			if (activeChunkData.TryGetValue(pos, out Chunk chunk))
+			if (activeChunkData.TryGetValue(pos, out Chunk chunk) == false)
+				return;
+
+			int lx = worldX - (cx * VoxelConstants.CHUNK_SIZE_X);
+			int lz = worldZ - (cz * VoxelConstants.CHUNK_SIZE_Z);
+
+			bool changed = false;
+			lock (chunk.SyncRoot)
 			{
-				int lx = worldX - (cx * VoxelConstants.CHUNK_SIZE_X);
-				int lz = worldZ - (cz * VoxelConstants.CHUNK_SIZE_Z);
-				
-				// 같은 블록이면 무시
-				if (chunk.GetBlock(lx, worldY, lz) == runtimeId) return;
-
-				chunk.SetBlock(lx, worldY, lz, runtimeId);
-
-				// 블록이 수정되었으므로 렌더링 갱신을 위해 큐에 다시 넣음
-				// (이미 화면에 떠있으므로 existingMesh를 갈아끼우는 방식으로 동작함)
-				Task.Run(() =>
+				if (chunk.GetBlock(lx, worldY, lz) != runtimeId)
 				{
-					ChunkMeshData meshData = ChunkMesher.GenerateMeshData(chunk);
-					completedTasks.Enqueue((pos, meshData, chunk));
-				});
+					chunk.SetBlock(lx, worldY, lz, runtimeId);
+					changed = true;
+				}
 			}
+
+			if (changed == false)
+				return;
+
+			// 메시 굽기는 백그라운드 + 같은 chunk에 대한 GenerateMeshData 동안 SetBlock과 race 안 나도록 lock
+			Task.Run(() =>
+			{
+				ChunkMeshData meshData;
+				lock (chunk.SyncRoot)
+				{
+					meshData = ChunkMesher.GenerateMeshData(chunk);
+				}
+				completedTasks.Enqueue((pos, meshData, chunk));
+			});
 		}
 	}
 }

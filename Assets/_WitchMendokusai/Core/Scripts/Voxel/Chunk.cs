@@ -12,6 +12,9 @@ namespace WitchMendokusai
 		public ChunkPosition Position;
 		public ushort[] Blocks;
 
+		/// <summary>비동기 청크 생성/메시 굽기와 동시 SetBlock 사이의 race 방지용 lock root.</summary>
+		[NonSerialized] public readonly object SyncRoot = new();
+
 		public Chunk(ChunkPosition position)
 		{
 			Position = position;

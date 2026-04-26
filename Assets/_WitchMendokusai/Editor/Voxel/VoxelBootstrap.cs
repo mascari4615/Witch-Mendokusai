@@ -11,7 +11,10 @@ namespace WitchMendokusai
 	/// </summary>
 	public static class VoxelBootstrap
 	{
-		private const string BLOCKS_FOLDER = "Assets/_WitchMendokusai/Core/Scripts/Voxel/Resources/Blocks";
+		private const string RESOURCES_FOLDER = "Assets/_WitchMendokusai/Core/Scripts/Voxel/Resources";
+		private const string BLOCKS_FOLDER = RESOURCES_FOLDER + "/Blocks";
+		private const string MATERIAL_PATH = RESOURCES_FOLDER + "/VoxelMaterial.mat";
+		private const string SHADER_NAME = "WM/VoxelVertexColor";
 
 		[MenuItem("WitchMendokusai/Voxel/Generate Default Blocks")]
 		public static void GenerateDefaultBlocks()
@@ -26,10 +29,40 @@ namespace WitchMendokusai
 			EnsureBlock("wm:wood", "Wood", new Color(0.40f, 0.25f, 0.13f, 1f), true, true);
 			EnsureBlock("wm:leaves", "Leaves", new Color(0.20f, 0.50f, 0.15f, 1f), true, false);
 
+			EnsureDefaultMaterial();
+
 			AssetDatabase.SaveAssets();
 			AssetDatabase.Refresh();
 			BlockBootstrap.Reload();
 			Debug.Log($"[VoxelBootstrap] Default blocks ready. Registry count: {BlockRegistry.Count}");
+		}
+
+		[MenuItem("WitchMendokusai/Voxel/Generate Default Material")]
+		public static void GenerateDefaultMaterialMenu()
+		{
+			EnsureFolder(RESOURCES_FOLDER);
+			EnsureDefaultMaterial();
+			AssetDatabase.SaveAssets();
+			AssetDatabase.Refresh();
+		}
+
+		private static Material EnsureDefaultMaterial()
+		{
+			Material existing = AssetDatabase.LoadAssetAtPath<Material>(MATERIAL_PATH);
+			if (existing != null)
+				return existing;
+
+			Shader shader = Shader.Find(SHADER_NAME);
+			if (shader == null)
+			{
+				Debug.LogError($"[VoxelBootstrap] Shader '{SHADER_NAME}' not found. VoxelVertexColor.shader가 import되었는지 확인.");
+				return null;
+			}
+
+			Material material = new(shader) { name = "VoxelMaterial" };
+			AssetDatabase.CreateAsset(material, MATERIAL_PATH);
+			Debug.Log($"[VoxelBootstrap] Default material created at {MATERIAL_PATH}");
+			return material;
 		}
 
 		[MenuItem("WitchMendokusai/Voxel/Reload Block Registry")]

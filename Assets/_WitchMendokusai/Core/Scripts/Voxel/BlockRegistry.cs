@@ -68,12 +68,5 @@ namespace WitchMendokusai
 			byIdentifier.TryGetValue(identifier, out BlockData block);
 			return block;
 		}
-
-		public static ushort GetRuntimeIdOrAir(string identifier)
-		{
-			if (byIdentifier.TryGetValue(identifier, out BlockData block))
-				return block.RuntimeId;
-			return VoxelConstants.AIR_RUNTIME_ID;
-		}
 	}
 }

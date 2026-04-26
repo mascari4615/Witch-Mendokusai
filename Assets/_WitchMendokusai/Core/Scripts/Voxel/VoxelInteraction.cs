@@ -4,70 +4,111 @@ using UnityEngine.InputSystem;
 namespace WitchMendokusai
 {
 	/// <summary>
-	/// 플레이어/카메라에서 마우스 위치로 레이를 쏴서 블록을 부수거나 설치합니다.
+	/// 카메라 → 마우스 ray로 블록을 부수거나 설치한다.
+	/// Default 모드에서만 동작 (Build/기타 모드는 자체 인터랙션을 갖는다).
 	/// </summary>
 	public class VoxelInteraction : MonoBehaviour
 	{
 		[SerializeField] private ChunkManager chunkManager;
 		[SerializeField] private Camera mainCamera;
 		[SerializeField] private float reachDistance = 50f;
-		
+
 		[Header("Place Settings")]
-		[SerializeField] private ushort placeBlockId = 1; // 1 = Stone
+		[SerializeField] private string placeBlockIdentifier = "wm:stone";
+
+		private bool inputRegistered;
 
 		private void Start()
 		{
 			if (mainCamera == null)
 				mainCamera = Camera.main;
+
+			GameModeManager.Instance.OnModeChanged += OnGameModeChanged;
+			OnGameModeChanged(GameModeManager.Instance.CurrentMode);
 		}
 
-		private void Update()
+		private void OnDestroy()
+		{
+			UnregisterInput();
+
+			if (GameModeManager.TryGetExistingInstance(out GameModeManager gameModeManager))
+				gameModeManager.OnModeChanged -= OnGameModeChanged;
+		}
+
+		private void OnGameModeChanged(GameMode mode)
+		{
+			if (mode == GameMode.Default)
+				RegisterInput();
+			else
+				UnregisterInput();
+		}
+
+		private void RegisterInput()
+		{
+			if (inputRegistered)
+				return;
+			InputManager.Instance.RegisterInputEvent(InputEventType.Click0, InputEventResponseType.Performed, OnBreakBlock);
+			InputManager.Instance.RegisterInputEvent(InputEventType.Click1, InputEventResponseType.Performed, OnPlaceBlock);
+			inputRegistered = true;
+		}
+
+		private void UnregisterInput()
+		{
+			if (inputRegistered == false)
+				return;
+			if (InputManager.TryGetExistingInstance(out InputManager inputManager))
+			{
+				inputManager.UnregisterInputEvent(InputEventType.Click0, InputEventResponseType.Performed, OnBreakBlock);
+				inputManager.UnregisterInputEvent(InputEventType.Click1, InputEventResponseType.Performed, OnPlaceBlock);
+			}
+			inputRegistered = false;
+		}
+
+		private void OnBreakBlock() => HandleClick(true);
+		private void OnPlaceBlock() => HandleClick(false);
+
+		private void HandleClick(bool isBreak)
 		{
 			if (chunkManager == null || mainCamera == null)
 				return;
-
 			if (Mouse.current == null)
 				return;
+			if (InputManager.Instance.IsPointerOverUI())
+				return;
 
-			// 좌클릭: 파괴, 우클릭: 설치
-			bool breakInput = false;
-			bool placeInput = false;
+			Vector2 mousePos = Mouse.current.position.ReadValue();
+			Ray ray = mainCamera.ScreenPointToRay(mousePos);
 
-			if (Mouse.current != null)
+			if (Physics.Raycast(ray, out RaycastHit hit, reachDistance) == false)
+				return;
+
+			Vector3 targetPos = isBreak
+				? hit.point - hit.normal * 0.1f
+				: hit.point + hit.normal * 0.1f;
+
+			float yOffset = VoxelConstants.CHUNK_SIZE_Y / 2f;
+
+			int voxelX = Mathf.FloorToInt(targetPos.x);
+			int voxelY = Mathf.FloorToInt(targetPos.y + yOffset);
+			int voxelZ = Mathf.FloorToInt(targetPos.z);
+
+			ushort newBlockId;
+			if (isBreak)
 			{
-				breakInput = Mouse.current.leftButton.wasPressedThisFrame;
-				placeInput = Mouse.current.rightButton.wasPressedThisFrame;
+				newBlockId = VoxelConstants.AIR_RUNTIME_ID;
 			}
-			
-			if (breakInput || placeInput)
+			else
 			{
-				Vector2 mousePos = Mouse.current.position.ReadValue();
-				Ray ray = mainCamera.ScreenPointToRay(mousePos);
-
-				if (Physics.Raycast(ray, out RaycastHit hit, reachDistance))
+				BlockData placeBlock = BlockRegistry.GetByIdentifier(placeBlockIdentifier);
+				if (placeBlock == null)
 				{
-					Debug.Log($"[VoxelInteraction] Raycast Hit: {hit.collider.gameObject.name} at {hit.point}");
-
-					Vector3 targetPos = breakInput 
-						? hit.point - hit.normal * 0.1f
-						: hit.point + hit.normal * 0.1f;
-
-					float yOffset = VoxelConstants.CHUNK_SIZE_Y / 2f;
-					
-					int voxelX = Mathf.FloorToInt(targetPos.x);
-					int voxelY = Mathf.FloorToInt(targetPos.y + yOffset);
-					int voxelZ = Mathf.FloorToInt(targetPos.z);
-
-					Debug.Log($"[VoxelInteraction] Target Voxel: ({voxelX}, {voxelY}, {voxelZ})");
-
-					ushort newBlockId = breakInput ? VoxelConstants.AIR_RUNTIME_ID : placeBlockId;
-					chunkManager.SetBlock(voxelX, voxelY, voxelZ, newBlockId);
+					Debug.LogError($"[VoxelInteraction] Place block not registered: {placeBlockIdentifier}");
+					return;
 				}
-				else
-				{
-					Debug.Log($"[VoxelInteraction] Raycast missed. Reach distance: {reachDistance}");
-				}
+				newBlockId = placeBlock.RuntimeId;
 			}
+
+			chunkManager.SetBlock(voxelX, voxelY, voxelZ, newBlockId);
 		}
 	}
 }

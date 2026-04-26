@@ -6,9 +6,19 @@ namespace WitchMendokusai
 	{
 		public static void Generate(Chunk chunk, TerrainParameters parameters)
 		{
-			ushort grassId = BlockRegistry.GetRuntimeIdOrAir("wm:grass");
-			ushort dirtId = BlockRegistry.GetRuntimeIdOrAir("wm:dirt");
-			ushort stoneId = BlockRegistry.GetRuntimeIdOrAir("wm:stone");
+			BlockData grass = BlockRegistry.GetByIdentifier("wm:grass");
+			BlockData dirt = BlockRegistry.GetByIdentifier("wm:dirt");
+			BlockData stone = BlockRegistry.GetByIdentifier("wm:stone");
+
+			if (grass == null || dirt == null || stone == null)
+			{
+				Debug.LogError("[ChunkGenerator] Required blocks not registered (wm:grass / wm:dirt / wm:stone). Aborting generation.");
+				return;
+			}
+
+			ushort grassId = grass.RuntimeId;
+			ushort dirtId = dirt.RuntimeId;
+			ushort stoneId = stone.RuntimeId;
 
 			for (int z = 0; z < VoxelConstants.CHUNK_SIZE_Z; z++)
 			{
@@ -17,12 +27,10 @@ namespace WitchMendokusai
 					int worldX = chunk.LocalToWorldX(x);
 					int worldZ = chunk.LocalToWorldZ(z);
 
-					// TerrainGenerator.SampleHeight는 -Amplitude ~ +Amplitude 값을 반환하므로,
-					// 그대로 쓰면 음수일 때 0으로 Clamp되어 광활한 평지(바닥)가 생겨버립니다.
-					// 이를 방지하기 위해 청크의 중간 높이를 기본 베이스라인으로 더해줍니다.
+					// SampleHeight는 -Amplitude ~ +Amplitude. 음수일 때 평지가 깔리는 것을 막기 위해 청크 중간 높이를 베이스라인으로.
 					float baseHeight = VoxelConstants.CHUNK_SIZE_Y / 2f;
 					float heightF = baseHeight + TerrainGenerator.SampleHeight(parameters, worldX, worldZ);
-					
+
 					int surfaceY = Mathf.FloorToInt(heightF);
 					surfaceY = Mathf.Clamp(surfaceY, 0, VoxelConstants.CHUNK_SIZE_Y - 1);
 

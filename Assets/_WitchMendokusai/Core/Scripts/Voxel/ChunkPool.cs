@@ -9,9 +9,19 @@ namespace WitchMendokusai
 	/// </summary>
 	public class ChunkPool : MonoBehaviour
 	{
+		public const string DEFAULT_MATERIAL_RESOURCE = "VoxelMaterial";
+
 		[SerializeField] private Material chunkMaterial;
 
 		private readonly Stack<GameObject> pool = new();
+
+		private void Awake()
+		{
+			if (chunkMaterial == null)
+				chunkMaterial = Resources.Load<Material>(DEFAULT_MATERIAL_RESOURCE);
+			if (chunkMaterial == null)
+				Debug.LogError($"[ChunkPool] {DEFAULT_MATERIAL_RESOURCE} 머티리얼을 찾지 못했다. WitchMendokusai/Voxel/Generate Default Material 메뉴 호출.");
+		}
 
 		public GameObject Get(ChunkPosition position)
 		{

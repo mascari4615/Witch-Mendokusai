@@ -15,7 +15,7 @@ namespace WitchMendokusai
 		public static void Initialize(string basePath)
 		{
 			saveDirectory = Path.Combine(basePath, "Saves", "DefaultWorld", "Chunks");
-			if (!Directory.Exists(saveDirectory))
+			if (Directory.Exists(saveDirectory) == false)
 			{
 				Directory.CreateDirectory(saveDirectory);
 			}
@@ -33,7 +33,7 @@ namespace WitchMendokusai
 
 		public static void SaveChunk(Chunk chunk)
 		{
-			if (chunk == null || !chunk.IsDirty)
+			if (chunk == null || chunk.IsDirty == false)
 				return;
 
 			string path = GetFilePath(chunk.Position);
@@ -53,7 +53,7 @@ namespace WitchMendokusai
 		public static bool LoadChunk(Chunk chunk)
 		{
 			string path = GetFilePath(chunk.Position);
-			if (!File.Exists(path))
+			if (File.Exists(path) == false)
 				return false;
 
 			try
