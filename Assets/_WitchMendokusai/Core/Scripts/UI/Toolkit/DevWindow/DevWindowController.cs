@@ -86,11 +86,20 @@ namespace WitchMendokusai
 			DevCommandRegistry.Instance.Register(new HelpCommand());
 			DevCommandRegistry.Instance.Register(new ClearCommand());
 			DevCommandRegistry.Instance.Register(new GiveItemCommand());
+			DevCommandRegistry.Instance.Register(new SpawnMonsterCommand());
+			DevCommandRegistry.Instance.Register(new StartDungeonCommand());
+			DevCommandRegistry.Instance.Register(new UnlockQuestCommand());
 
 			if (DevModeRegistry.Instance.FindById("console") == null)
 				DevModeRegistry.Instance.Register(new ConsoleMode());
 			if (DevModeRegistry.Instance.FindById("items") == null)
 				DevModeRegistry.Instance.Register(new ItemsMode());
+			if (DevModeRegistry.Instance.FindById("mobs") == null)
+				DevModeRegistry.Instance.Register(new DevDataListMode<Monster>("mobs", "Mobs", "M_", "spawn"));
+			if (DevModeRegistry.Instance.FindById("stages") == null)
+				DevModeRegistry.Instance.Register(new DevDataListMode<Dungeon>("stages", "Stages", "D_", "dungeon"));
+			if (DevModeRegistry.Instance.FindById("quests") == null)
+				DevModeRegistry.Instance.Register(new DevDataListMode<QuestSO>("quests", "Quests", "Q_", "quest", "unlock"));
 		}
 
 		/// <summary>UI 측에서 명령 시스템에 진입할 때 호출. 명령행에 직접 입력한 것과 동일한 경로 (출력/에러 처리 포함).</summary>
