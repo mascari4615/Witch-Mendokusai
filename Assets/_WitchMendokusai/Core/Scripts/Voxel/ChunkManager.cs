@@ -58,7 +58,23 @@ namespace WitchMendokusai
 				if (Mathf.Abs(result.pos.X - lastViewerPosition.X) <= renderDistance &&
 					Mathf.Abs(result.pos.Z - lastViewerPosition.Z) <= renderDistance)
 				{
-					if (activeChunks.TryGetValue(result.pos, out _) == false)
+					if (activeChunks.TryGetValue(result.pos, out GameObject existingChunk))
+					{
+						activeChunkData[result.pos] = result.chunkData;
+						
+						MeshFilter filter = existingChunk.GetComponent<MeshFilter>();
+						result.meshData.ApplyToMesh(filter.sharedMesh);
+						
+						MeshCollider collider = existingChunk.GetComponent<MeshCollider>();
+						if (collider != null)
+						{
+							collider.sharedMesh = null;
+							collider.sharedMesh = filter.sharedMesh;
+						}
+
+						maxProcessedPerFrame--;
+					}
+					else
 					{
 						GameObject chunkGo = chunkPool.Get(result.pos);
 						activeChunks[result.pos] = chunkGo;
