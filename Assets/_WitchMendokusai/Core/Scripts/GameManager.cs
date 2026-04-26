@@ -89,7 +89,7 @@ namespace WitchMendokusai
 		private static readonly Dictionary<GameConditionType, Func<bool>> gameConditionActions = new()
 		{
 			{ GameConditionType.IsPaused, () => TimeManager.Instance.IsPaused }, // Setting, Dungeon Card 선택, Transition, ...
-			{ GameConditionType.IsTyping, () => UIChat.IsChatting },
+			{ GameConditionType.IsTyping, () => UIChat.IsChatting || (DevWindowController.TryGetExistingInstance(out DevWindowController dwc) && dwc.IsCommandLineFocused) },
 			{ GameConditionType.IsMouseOnUI, () => InputManager.Instance.IsPointerOverUI() },
 			{ GameConditionType.IsPlayerCasting, () => Player.Instance.Object.UnitStat[UnitStatType.CASTING_SKILL] > 0 },
 			{ GameConditionType.IsDied, () => Player.Instance.Object.UnitStat[UnitStatType.HP_CUR] <= 0 },

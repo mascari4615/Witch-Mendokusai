@@ -43,6 +43,7 @@ namespace WitchMendokusai
 		Tab,
 		Status,
 		Inventory,
+		DevWindowToggle,
 	}
 
 	public enum InputEventResponseType
@@ -89,6 +90,7 @@ namespace WitchMendokusai
 			{ InputEventType.Tab, InputMapType.UI },
 			{ InputEventType.Status, InputMapType.UI },
 			{ InputEventType.Inventory, InputMapType.UI },
+			{ InputEventType.DevWindowToggle, InputMapType.UI },
 		};
 
 		// Strategy-owned: cleared on every strategy switch
@@ -100,6 +102,13 @@ namespace WitchMendokusai
 		private readonly Dictionary<(InputEventType, InputEventResponseType), List<(Action action, Func<bool> condition)>> componentEvents = new();
 
 		private readonly Dictionary<InputEventType, bool> isPressed = new();
+
+		// IsTyping 글로벌 게이트 화이트리스트 — 텍스트 입력 중에도 항상 통과 (창 닫기·토글 escape).
+		private static readonly HashSet<InputEventType> ALWAYS_DISPATCH_WHILE_TYPING = new()
+		{
+			InputEventType.Cancel,
+			InputEventType.DevWindowToggle,
+		};
 
 		public Vector3 MouseWorldPosition { get; private set; }
 		public Vector2 MoveInput { get; private set; }
@@ -246,6 +255,10 @@ namespace WitchMendokusai
 
 		private void Dispatch(InputEventType inputEventType, InputEventResponseType responseType, InputAction.CallbackContext ctx)
 		{
+			if (GameManager.Instance.Conditions[GameConditionType.IsTyping]
+				&& ALWAYS_DISPATCH_WHILE_TYPING.Contains(inputEventType) == false)
+				return;
+
 			(InputEventType, InputEventResponseType) key = (inputEventType, responseType);
 
 			strategyEventsWithContext[key]?.Invoke(ctx);

@@ -212,3 +212,127 @@
     margin-top: 4px;
     -unity-font-style: italic;
 }
+
+/* ===== Dev Window ===== */
+
+.wm-dev-window {
+    flex-grow: 1;
+    flex-direction: column;
+}
+
+.wm-dev-window__body {
+    flex-direction: row;
+    flex-grow: 1;
+    min-height: 200px;
+}
+
+.wm-dev-window__sidebar {
+    width: 120px;
+    background-color: rgba(15, 15, 20, 0.95);
+    border-right-width: 1px;
+    border-right-color: rgba(80, 80, 95, 1);
+    padding: 4px;
+}
+
+.wm-dev-window__sidebar-button {
+    background-color: rgba(40, 40, 55, 1);
+    color: rgba(200, 200, 210, 1);
+    border-color: rgba(80, 80, 95, 1);
+    border-width: 1px;
+    border-radius: 2px;
+    padding: 4px 8px;
+    margin-bottom: 4px;
+    -unity-text-align: middle-left;
+    font-size: 12px;
+}
+
+.wm-dev-window__sidebar-button:hover {
+    background-color: rgba(55, 55, 70, 1);
+    color: rgba(230, 230, 235, 1);
+}
+
+.wm-dev-window__sidebar-button--active {
+    background-color: rgba(255, 220, 100, 1);
+    color: rgba(20, 20, 25, 1);
+    border-color: rgba(255, 220, 100, 1);
+    -unity-font-style: bold;
+}
+
+.wm-dev-window__content {
+    flex-grow: 1;
+    padding: 6px;
+    background-color: rgba(25, 25, 30, 0.95);
+}
+
+.wm-dev-mode-console__info {
+    color: rgba(180, 180, 190, 1);
+    font-size: 12px;
+    -unity-font-style: italic;
+}
+
+.wm-dev-console {
+    height: 160px;
+    background-color: rgba(10, 10, 14, 0.95);
+    border-top-width: 1px;
+    border-top-color: rgba(80, 80, 95, 1);
+    padding: 4px;
+}
+
+.wm-dev-console__line {
+    font-size: 11px;
+    -unity-font-style: normal;
+    white-space: normal;
+}
+
+.wm-dev-log-info {
+    color: rgba(220, 220, 225, 1);
+}
+
+.wm-dev-log-success {
+    color: rgba(120, 220, 140, 1);
+}
+
+.wm-dev-log-warn {
+    color: rgba(255, 200, 90, 1);
+}
+
+.wm-dev-log-error {
+    color: rgba(255, 110, 110, 1);
+}
+
+.wm-dev-commandline {
+    flex-direction: row;
+    align-items: center;
+    height: 28px;
+    background-color: rgba(15, 15, 20, 0.95);
+    border-top-width: 1px;
+    border-top-color: rgba(80, 80, 95, 1);
+    padding: 0 6px;
+}
+
+.wm-dev-commandline__prompt {
+    color: rgba(120, 220, 140, 1);
+    font-size: 13px;
+    -unity-font-style: bold;
+    margin-right: 4px;
+}
+
+.wm-dev-commandline__input {
+    flex-grow: 1;
+    margin: 0;
+    --unity-cursor-color: rgba(230, 230, 235, 1);
+}
+
+/* UI Toolkit 버전에 따라 클래스명이 다름 — 둘 다 커버 */
+.wm-dev-commandline__input .unity-text-field__input,
+.wm-dev-commandline__input .unity-base-text-field__input,
+.wm-dev-commandline__input > TextElement {
+    background-color: rgba(15, 15, 20, 1);
+    border-width: 0;
+    border-radius: 0;
+    color: rgba(230, 230, 235, 1);
+    font-size: 12px;
+    padding: 4px 6px;
+    --unity-cursor-color: rgba(230, 230, 235, 1);
+    --unity-selection-color: rgba(80, 130, 200, 0.5);
+}
