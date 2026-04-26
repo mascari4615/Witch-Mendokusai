@@ -109,6 +109,36 @@ RegisterInputEvent()로 등록된 콜백들 호출
 git, grep, bash 등 명령어는 확인 없이 바로 실행한다.
 되돌리기 어려운 작업(force push, 파일 삭제 등)은 예외.
 
+## 자동화 우선 — 사용자에게 떠넘기지 말기
+
+`.cs.meta` / `.asset` / `prefab` / Material / 씬 GameObject 등 **도구로 가능한 건 다 한 뒤** GUI/테스트만 사용자에게 요청한다.
+
+- 새 BlockData/Building/Item .asset → 코드(`AssetDatabase.CreateAsset`)나 EditorWindow로 자동 생성. 사용자에게 "Inspector에서 만드세요" X
+- 셰이더 만들었으면 그 Material .asset도 같이 자동 생성. SerializeField 박는 것까지 자동화 시도
+- World 씬 GameObject 추가도 `manage_gameobject` 같은 도구로 자동
+- 자동화 불가능한 것만(시각 검증, 물리 동작 등) 사용자에게 명시 요청
+
+## TASK 단위 — 한 번에 한 단계
+
+TASK 시드의 단계 분할 표(A1/A2/A3...)는 *합의된 작업 단위*다. 한 번에 한 단계만 진행한다.
+
+- 사용자가 "A2 ㄱㄱ" → A2만. A3/A4까지 미리 가지 않는다.
+- 한 단계 끝나면 *동작 검증* 또는 *컨펌* 받고 다음 단계
+- 스코프 초과는 *검증 단위 깨짐* + *버그 위치 추적 어려움* + *사용자 페이스 무시*
+
+예외: 사용자가 명시적으로 "다 묶어서" 또는 "전체 진행"이라고 한 경우.
+
+## 새 시스템 도입 시 — 기존 패턴 확인
+
+새 매니저/시스템을 만들 때 WM 기존 패턴(`Singleton<T>`, `OnXxxChanged` 이벤트, `InputManager.RegisterInputEvent`, `SOManager.DataSOs`, GameMode 구독 등)을 먼저 확인하고 정합성 맞춘다.
+
+- 매니저 만들 때 → `Singleton<T>` 상속 검토 (BuildManager, AudioManager 등 선례)
+- 입력 처리 → `InputManager.RegisterInputEvent` 사용 (Mouse/Keyboard 직접 접근 금지)
+- 모드별 동작 → `GameModeManager.OnModeChanged` 구독 (Default/Build 모드 — TASK-025)
+- 데이터 SO → `DataSO` 상속 + `SOManager` 등록 패턴 검토
+
+새 시스템이 *우리 패턴과 다른 모양*이라면 *이유*를 TASK 시드에 명시한다.
+
 ## 에러 처리 — FastFail 유지
 
 에러를 삼키는 방어 코드(TryGet, null 체크, 기본값 반환)로 증상을 덮지 말고,
