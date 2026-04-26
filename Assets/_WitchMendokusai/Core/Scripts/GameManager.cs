@@ -63,7 +63,8 @@ namespace WitchMendokusai
 	public enum GameConditionType
 	{
 		IsPaused = 1 << 0,
-		IsChatting = 1 << 1,
+		// 텍스트 입력 중 (chat OR dev console 등) — 게임 입력 차단용 단일 게이트
+		IsTyping = 1 << 1,
 
 		IsMouseOnUI = 1 << 2,
 
@@ -88,7 +89,7 @@ namespace WitchMendokusai
 		private static readonly Dictionary<GameConditionType, Func<bool>> gameConditionActions = new()
 		{
 			{ GameConditionType.IsPaused, () => TimeManager.Instance.IsPaused }, // Setting, Dungeon Card 선택, Transition, ...
-			{ GameConditionType.IsChatting, () => UIChat.IsChatting },
+			{ GameConditionType.IsTyping, () => UIChat.IsChatting },
 			{ GameConditionType.IsMouseOnUI, () => InputManager.Instance.IsPointerOverUI() },
 			{ GameConditionType.IsPlayerCasting, () => Player.Instance.Object.UnitStat[UnitStatType.CASTING_SKILL] > 0 },
 			{ GameConditionType.IsDied, () => Player.Instance.Object.UnitStat[UnitStatType.HP_CUR] <= 0 },

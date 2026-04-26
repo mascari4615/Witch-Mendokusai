@@ -125,7 +125,7 @@ namespace WitchMendokusai
 
 		private bool IsMovementBlocked()
 		{
-			return GameManager.Instance.Conditions[GameConditionType.IsChatting] ||
+			return GameManager.Instance.Conditions[GameConditionType.IsTyping] ||
 				TimeManager.Instance.IsPaused;
 		}
 
@@ -159,7 +159,7 @@ namespace WitchMendokusai
 			if (jumpModule == null)
 				return;
 
-			if (GameManager.Instance.Conditions[GameConditionType.IsChatting] ||
+			if (GameManager.Instance.Conditions[GameConditionType.IsTyping] ||
 				TimeManager.Instance.IsPaused)
 				return;
 

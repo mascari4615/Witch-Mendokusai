@@ -116,14 +116,14 @@ namespace WitchMendokusai
 
 		protected override Dictionary<InputEventType, GameConditionType[]> EventReturnConditions => new()
 		{
-			{ InputEventType.Space, new[] { GameConditionType.IsChatting } },
+			{ InputEventType.Space, new[] { GameConditionType.IsTyping } },
 			
 			{
 				InputEventType.Jump,
 				new[]
 				{
 					GameConditionType.IsPaused,
-					GameConditionType.IsChatting,
+					GameConditionType.IsTyping,
 					GameConditionType.IsDied,
 					GameConditionType.IsBuilding,
 					GameConditionType.IsViewingUI
@@ -134,7 +134,7 @@ namespace WitchMendokusai
 				new[]
 				{
 					GameConditionType.IsMouseOnUI,
-					GameConditionType.IsChatting,
+					GameConditionType.IsTyping,
 					GameConditionType.IsPaused,
 					GameConditionType.IsDied,
 					GameConditionType.IsBuilding
@@ -145,38 +145,38 @@ namespace WitchMendokusai
 				new[]
 				{
 					GameConditionType.IsMouseOnUI,
-					GameConditionType.IsChatting,
+					GameConditionType.IsTyping,
 					GameConditionType.IsPaused,
 					GameConditionType.IsDied,
 					GameConditionType.IsBuilding
 				}
 			},
-			{ InputEventType.ChangeMode, new[] { GameConditionType.IsChatting } },
-			{ InputEventType.Scroll, new[] { GameConditionType.IsChatting } },
+			{ InputEventType.ChangeMode, new[] { GameConditionType.IsTyping } },
+			{ InputEventType.Scroll, new[] { GameConditionType.IsTyping } },
 
 			{
 				InputEventType.Submit,
 				new[]
 				{
 					GameConditionType.IsPaused,
-					GameConditionType.IsChatting,
+					GameConditionType.IsTyping,
 					GameConditionType.IsDied,
 					GameConditionType.IsBuilding,
 					GameConditionType.IsInTransition,
 					GameConditionType.IsViewingUI
 				}
 			},
-			{ InputEventType.Cancel, new[] { GameConditionType.IsChatting } },
+			{ InputEventType.Cancel, new[] { GameConditionType.IsTyping } },
 			{
 				InputEventType.Tab,
 				new[]
 				{
-					GameConditionType.IsChatting,
+					GameConditionType.IsTyping,
 					GameConditionType.IsPaused,
 					// GameConditionType.IsViewingUI, // Tab도 전체화면 UI이므로 제외 - KarmoDDrine 2026-01-12
 				}
 			},
-			{ InputEventType.Status, new[] { GameConditionType.IsChatting } },
+			{ InputEventType.Status, new[] { GameConditionType.IsTyping } },
 		};
 
 		protected override Dictionary<InputAxisType, GameConditionType[]> AxisReturnConditions => new()
@@ -186,7 +186,7 @@ namespace WitchMendokusai
 				new[]
 				{
 					GameConditionType.IsPaused,
-					GameConditionType.IsChatting,
+					GameConditionType.IsTyping,
 					GameConditionType.IsDied,
 					GameConditionType.IsInTransition,
 					GameConditionType.IsViewingUI
