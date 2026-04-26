@@ -77,6 +77,8 @@ namespace WitchMendokusai
 			window.Content.Add(view);
 
 			UIRoot.Instance.WindowsLayer.Add(window);
+			// dropdown 은 OverlayLayer 에 (normal flow 밖, 다른 UI 위에 떠있음).
+			UIRoot.Instance.OverlayLayer.Add(view.CommandLine.Dropdown);
 		}
 
 		private void RegisterBuiltins()

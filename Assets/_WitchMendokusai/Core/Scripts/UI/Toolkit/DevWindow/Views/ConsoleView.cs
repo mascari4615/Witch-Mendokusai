@@ -39,22 +39,25 @@ namespace WitchMendokusai
 
 		public void AppendLog(string message, LogLevel level)
 		{
+			// 추가 전 sticky 판정 — 새 line 추가로 highValue 가 늘어나면 value < highValue 가 돼
+			// "위로 스크롤한 것"처럼 보이는 오판 방지.
+			bool wasSticky = IsAtBottom();
+
 			Label line = new(message);
 			line.AddToClassList(USS_LINE);
 			line.AddToClassList(LevelClass(level));
 			scrollView.Add(line);
 
-			// 새 line 의 layout 이 계산된 직후 스크롤 — schedule.StartingIn(0)은 layout 전에 실행되어
-			// scrollView.highValue 가 아직 갱신되지 않아 clamp 됨. GeometryChangedEvent 로 해결.
-			line.RegisterCallback<GeometryChangedEvent>(OnLineGeometryChanged);
-		}
+			if (wasSticky == false)
+				return;
 
-		private void OnLineGeometryChanged(GeometryChangedEvent evt)
-		{
-			if (evt.target is Label line)
-				line.UnregisterCallback<GeometryChangedEvent>(OnLineGeometryChanged);
-
-			TryAutoScroll();
+			// ScrollView.ScrollTo(line) 은 layout 끝난 뒤 element 가 보이도록 스크롤. scrollOffset
+			// 직접 설정은 highValue 가 갱신되기 전에 clamp 돼 안 먹는 경우가 있음 — ScrollTo 가 안전.
+			line.RegisterCallback<GeometryChangedEvent>(evt =>
+			{
+				if (evt.target is Label target)
+					scrollView.ScrollTo(target);
+			});
 		}
 
 		public void Clear()
@@ -62,19 +65,14 @@ namespace WitchMendokusai
 			scrollView.Clear();
 		}
 
-		private void TryAutoScroll()
+		private bool IsAtBottom()
 		{
 			Scroller verticalScroller = scrollView.verticalScroller;
 			if (verticalScroller == null)
-				return;
+				return true;
 
 			float distanceFromBottom = verticalScroller.highValue - verticalScroller.value;
-
-			// 사용자가 위로 스크롤한 상태(거리 큼)면 자동 스크롤 안 함
-			if (distanceFromBottom > AUTO_SCROLL_THRESHOLD && verticalScroller.value > 0)
-				return;
-
-			scrollView.scrollOffset = new UnityEngine.Vector2(0, float.MaxValue);
+			return distanceFromBottom <= AUTO_SCROLL_THRESHOLD;
 		}
 
 		private static string LevelClass(LogLevel level) => level switch

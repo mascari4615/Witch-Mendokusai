@@ -336,3 +336,24 @@
     --unity-cursor-color: rgba(230, 230, 235, 1);
     --unity-selection-color: rgba(80, 130, 200, 0.5);
 }
+
+.wm-dev-autocomplete {
+    background-color: rgba(20, 20, 28, 0.98);
+    border-color: rgba(80, 80, 95, 1);
+    border-width: 1px;
+    border-radius: 2px;
+    padding: 4px 0;
+    max-height: 220px;
+}
+
+.wm-dev-autocomplete__item {
+    color: rgba(200, 200, 210, 1);
+    font-size: 12px;
+    padding: 2px 8px;
+}
+
+.wm-dev-autocomplete__item--selected {
+    background-color: rgba(80, 130, 200, 0.5);
+    color: rgba(255, 255, 255, 1);
+    -unity-font-style: bold;
+}

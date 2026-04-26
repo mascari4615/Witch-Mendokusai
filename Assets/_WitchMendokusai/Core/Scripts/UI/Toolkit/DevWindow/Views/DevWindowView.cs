@@ -48,6 +48,7 @@ namespace WitchMendokusai
 
 			CommandLine = new CommandLineField();
 			Add(CommandLine);
+			// dropdown 은 normal flow 밖 — DevWindowController 가 UIRoot.OverlayLayer 에 attach.
 		}
 
 		public void RebuildSidebar(IReadOnlyList<IDevMode> modes)
