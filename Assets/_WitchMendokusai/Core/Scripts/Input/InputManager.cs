@@ -56,6 +56,7 @@ namespace WitchMendokusai
 	public enum InputAxisType
 	{
 		Move,
+		CameraRotate,
 	}
 
 	public class InputManager : Singleton<InputManager>
@@ -102,6 +103,7 @@ namespace WitchMendokusai
 
 		public Vector3 MouseWorldPosition { get; private set; }
 		public Vector2 MoveInput { get; private set; }
+		public float CameraRotateInput { get; private set; }
 		private IInputStrategy CurrentInputStrategy { get; set; }
 
 		// Calling IsPointerOverGameObject() from within event processing (such as from InputAction callbacks) will not work as expected; it will query UI state from the last frame UnityEngine.EventSystems.EventSystem:IsPointerOverGameObject ()
@@ -282,6 +284,7 @@ namespace WitchMendokusai
 			UpdateMouseWorldPosition();
 			UpdateIsPointerOverUI();
 			UpdateMoveInput();
+			UpdateCameraRotateInput();
 		}
 
 		private void UpdateMouseWorldPosition()
@@ -371,6 +374,29 @@ namespace WitchMendokusai
 				v = SOManager.Instance.JoystickY.RuntimeValue;
 
 			MoveInput = new Vector2(h, v).normalized;
+		}
+
+		private void UpdateCameraRotateInput()
+		{
+			if (CurrentInputStrategy != null &&
+				CurrentInputStrategy.TryGetAxisReturnConditions(InputAxisType.CameraRotate, out GameConditionType[] conditions) &&
+				GameManager.Instance.Conditions.IsGameConditionAny(conditions))
+			{
+				CameraRotateInput = 0f;
+				return;
+			}
+
+			Keyboard kb = Keyboard.current;
+			if (kb == null)
+			{
+				CameraRotateInput = 0f;
+				return;
+			}
+
+			float rotate = 0f;
+			if (kb.qKey.isPressed) rotate += 1f;
+			if (kb.eKey.isPressed) rotate -= 1f;
+			CameraRotateInput = rotate;
 		}
 	}
 }

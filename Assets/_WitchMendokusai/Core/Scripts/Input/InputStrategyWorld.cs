@@ -191,6 +191,17 @@ namespace WitchMendokusai
 					GameConditionType.IsInTransition,
 					GameConditionType.IsViewingUI
 				}
+			},
+			{
+				InputAxisType.CameraRotate,
+				new[]
+				{
+					GameConditionType.IsPaused,
+					GameConditionType.IsTyping,
+					GameConditionType.IsDied,
+					GameConditionType.IsInTransition,
+					GameConditionType.IsViewingUI
+				}
 			}
 		};
 	}

@@ -2,7 +2,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 namespace WitchMendokusai
 {
@@ -28,12 +27,8 @@ namespace WitchMendokusai
 
 		private void RotateCamera()
 		{
-			// 카메라 회전
-			Keyboard keyboard = Keyboard.current;
-			if (keyboard != null && keyboard.qKey.isPressed)
-				yRotation += Time.deltaTime * ROTATE_SPEED;
-			if (keyboard != null && keyboard.eKey.isPressed)
-				yRotation -= Time.deltaTime * ROTATE_SPEED;
+			// CameraRotateInput 은 InputManager 가 axis 게이트(IsTyping 등) 적용 후 노출. 회전 입력 없으면 0.
+			yRotation += Time.deltaTime * ROTATE_SPEED * InputManager.Instance.CameraRotateInput;
 
 			Quaternion targetRotation = Quaternion.Euler(0, yRotation, 0);
 			// transform.rotation = Quaternion.Lerp(transform.rotation, targetRotation, Time.deltaTime * 5);
