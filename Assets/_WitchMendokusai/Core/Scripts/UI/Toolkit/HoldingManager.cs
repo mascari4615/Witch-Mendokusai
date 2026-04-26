@@ -68,6 +68,24 @@ namespace WitchMendokusai
 			}
 		}
 
+		/// <summary>
+		/// source 인벤 없이 holding 슬롯을 채운다 (개발자 윈도우 / 크리에이티브 모드용).
+		/// holdingInventory = null 로 두며, 이후 Drop/Swap 시 source 비우기 분기는 null 가드로 skip.
+		/// 이미 holding 중이면 무시 — 사용자가 holding 비우고 다시 호출해야 함.
+		/// </summary>
+		public void PickFromVoid(ItemData data, int amount)
+		{
+			if (data == null || amount <= 0)
+				return;
+
+			if (IsHolding == true)
+				return;
+
+			holdingItem = new Item(new(), data, amount);
+			holdingInventory = null;
+			overlay?.SetItem(holdingItem);
+		}
+
 		private void HandleClickWithHolding(ItemSlot slot, Inventory inventory, Item targetItem, bool isLeft, bool isRight, bool isDouble)
 		{
 			// 더블클릭 + 합칠 게 있으면 FuncA, 없으면 single 동작으로 fall-through (사용자 의도 보호)
