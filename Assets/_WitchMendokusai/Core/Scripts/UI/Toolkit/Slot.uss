@@ -29,6 +29,7 @@
     flex-direction: row;
     align-items: center;
     height: 28px;
+    flex-shrink: 0;
     background-color: rgba(40, 40, 55, 1);
     border-bottom-width: 1px;
     border-bottom-color: rgba(80, 80, 95, 1);
@@ -60,6 +61,7 @@
 }
 
 .wm-window__content {
+    flex-grow: 1;
     padding: 6px;
 }
 
@@ -223,6 +225,7 @@
 .wm-dev-window__body {
     flex-direction: row;
     flex-grow: 1;
+    flex-shrink: 1;
     min-height: 200px;
 }
 
@@ -272,6 +275,7 @@
 
 .wm-dev-console {
     height: 160px;
+    flex-shrink: 0;
     background-color: rgba(10, 10, 14, 0.95);
     border-top-width: 1px;
     border-top-color: rgba(80, 80, 95, 1);
@@ -304,6 +308,7 @@
     flex-direction: row;
     align-items: center;
     height: 28px;
+    flex-shrink: 0;
     background-color: rgba(15, 15, 20, 0.95);
     border-top-width: 1px;
     border-top-color: rgba(80, 80, 95, 1);
@@ -356,4 +361,52 @@
     background-color: rgba(80, 130, 200, 0.5);
     color: rgba(255, 255, 255, 1);
     -unity-font-style: bold;
+}
+
+/* ===== Dev Items Mode ===== */
+
+.wm-dev-mode-items {
+    flex-grow: 1;
+    flex-direction: column;
+}
+
+.wm-dev-mode-items__search {
+    margin-top: 4px;
+    margin-bottom: 4px;
+}
+
+.wm-dev-mode-items__search > .unity-text-field__input,
+.wm-dev-mode-items__search .unity-text-field__input,
+.wm-dev-mode-items__search .unity-base-text-field__input {
+    background-color: rgba(15, 15, 20, 1);
+    color: rgba(230, 230, 235, 1);
+    border-color: rgba(80, 80, 95, 1);
+    border-width: 1px;
+    padding: 3px 6px;
+    font-size: 12px;
+}
+
+.wm-dev-mode-items__hint {
+    color: rgba(160, 160, 170, 1);
+    font-size: 10px;
+    -unity-font-style: italic;
+    margin-bottom: 4px;
+}
+
+.wm-dev-mode-items__grid-scroll {
+    flex-grow: 1;
+    flex-basis: 0;
+    background-color: rgba(15, 15, 20, 0.6);
+}
+
+.wm-dev-mode-items__grid {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: flex-start;
+    padding: 4px;
+}
+
+.wm-dev-item-slot {
+    /* base .wm-slot 스타일 상속 (48px, dark) — 추가 발신점 없음 */
 }

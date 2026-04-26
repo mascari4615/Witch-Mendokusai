@@ -24,9 +24,8 @@ namespace WitchMendokusai
 		public const string USS_LINE_WARN = "wm-dev-log-warn";
 		public const string USS_LINE_ERROR = "wm-dev-log-error";
 
-		private const float AUTO_SCROLL_THRESHOLD = 4f;
-
 		private readonly ScrollView scrollView;
+		private bool pendingScrollToBottom;
 
 		public ConsoleView()
 		{
@@ -35,44 +34,49 @@ namespace WitchMendokusai
 			scrollView = new ScrollView(ScrollViewMode.Vertical);
 			scrollView.style.flexGrow = 1;
 			Add(scrollView);
+
+			// content 의 layout 변할 때 (새 line 추가 후) 강제로 최하단.
+			scrollView.contentContainer.RegisterCallback<GeometryChangedEvent>(OnContentGeometryChanged);
 		}
 
 		public void AppendLog(string message, LogLevel level)
 		{
-			// 추가 전 sticky 판정 — 새 line 추가로 highValue 가 늘어나면 value < highValue 가 돼
-			// "위로 스크롤한 것"처럼 보이는 오판 방지.
-			bool wasSticky = IsAtBottom();
-
 			Label line = new(message);
 			line.AddToClassList(USS_LINE);
 			line.AddToClassList(LevelClass(level));
 			scrollView.Add(line);
 
-			if (wasSticky == false)
+			// 항상 auto-scroll — sticky 판정 없음. 사용자가 위로 스크롤해도 새 로그 오면 끝까지 내려감.
+			pendingScrollToBottom = true;
+		}
+
+		private void OnContentGeometryChanged(GeometryChangedEvent evt)
+		{
+			if (pendingScrollToBottom == false)
 				return;
 
-			// ScrollView.ScrollTo(line) 은 layout 끝난 뒤 element 가 보이도록 스크롤. scrollOffset
-			// 직접 설정은 highValue 가 갱신되기 전에 clamp 돼 안 먹는 경우가 있음 — ScrollTo 가 안전.
-			line.RegisterCallback<GeometryChangedEvent>(evt =>
+			pendingScrollToBottom = false;
+			ScrollToBottom();
+		}
+
+		private void ScrollToBottom()
+		{
+			Scroller scroller = scrollView.verticalScroller;
+			if (scroller == null)
 			{
-				if (evt.target is Label target)
-					scrollView.ScrollTo(target);
-			});
+				scrollView.scrollOffset = new UnityEngine.Vector2(0, float.MaxValue);
+				return;
+			}
+
+			if (scroller.highValue <= scroller.lowValue)
+				return;
+
+			scroller.value = scroller.highValue;
 		}
 
 		public void Clear()
 		{
 			scrollView.Clear();
-		}
-
-		private bool IsAtBottom()
-		{
-			Scroller verticalScroller = scrollView.verticalScroller;
-			if (verticalScroller == null)
-				return true;
-
-			float distanceFromBottom = verticalScroller.highValue - verticalScroller.value;
-			return distanceFromBottom <= AUTO_SCROLL_THRESHOLD;
 		}
 
 		private static string LevelClass(LogLevel level) => level switch

@@ -69,8 +69,8 @@ namespace WitchMendokusai
 			};
 			window.style.left = 60;
 			window.style.top = 60;
-			window.style.width = 720;
-			window.style.height = 520;
+			window.style.width = 900;
+			window.style.height = 640;
 
 			view = new DevWindowView();
 			view.style.flexGrow = 1;
@@ -85,9 +85,19 @@ namespace WitchMendokusai
 		{
 			DevCommandRegistry.Instance.Register(new HelpCommand());
 			DevCommandRegistry.Instance.Register(new ClearCommand());
+			DevCommandRegistry.Instance.Register(new GiveItemCommand());
 
 			if (DevModeRegistry.Instance.FindById("console") == null)
 				DevModeRegistry.Instance.Register(new ConsoleMode());
+			if (DevModeRegistry.Instance.FindById("items") == null)
+				DevModeRegistry.Instance.Register(new ItemsMode());
+		}
+
+		/// <summary>UI 측에서 명령 시스템에 진입할 때 호출. 명령행에 직접 입력한 것과 동일한 경로 (출력/에러 처리 포함).</summary>
+		public void InvokeCommand(string commandName, params string[] args)
+		{
+			string text = args.Length == 0 ? commandName : $"{commandName} {string.Join(' ', args)}";
+			OnCommandSubmit(text);
 		}
 
 		private void OnModeSelected(IDevMode mode) => view.SetActiveMode(mode);
