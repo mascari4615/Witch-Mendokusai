@@ -81,12 +81,21 @@ namespace WitchMendokusai
 
 			public void CreateObject(int count = 1)
 			{
+				// Instantiate가 활성 상태로 생성되면 OnEnable이 풀의 임시 부모 아래에서 트리거된다.
+				// 자식이 GetComponentInParent 등 부모 의존 초기화를 하면 잘못된 결과를 얻으므로,
+				// prefab을 비활성으로 토글한 채 Instantiate해 OnEnable 호출 자체를 막는다.
+				bool wasActive = prefab.activeSelf;
+				if (wasActive)
+					prefab.SetActive(false);
+
 				for (int i = 0; i < count; i++)
 				{
 					GameObject g = Instantiate(prefab, GetObjectParent(this));
-					g.SetActive(false);
 					Push(g);
 				}
+
+				if (wasActive)
+					prefab.SetActive(true);
 			}
 
 			public void Push(GameObject targetObject)
