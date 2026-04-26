@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace WitchMendokusai
@@ -8,8 +7,7 @@ namespace WitchMendokusai
 		public enum State { Empty, Growing, Ready }
 
 		[Header("_" + nameof(FarmFieldObject))]
-		[SerializeField, Min(1f)] private float growSeconds = 30f;
-		[SerializeField] private List<DataSOWithPercentage> harvestLoots;
+		[SerializeField] private SeedItemData seed;
 
 		[Header("Models")]
 		[SerializeField] private GameObject modelEmpty;
@@ -22,6 +20,11 @@ namespace WitchMendokusai
 
 		private void OnEnable()
 		{
+			if (seed == null)
+			{
+				Debug.LogError("[FarmFieldObject] SeedItemData가 할당되지 않았습니다.", this);
+				return;
+			}
 			buildingObject = GetComponentInParent<BuildingObject>();
 			Refresh();
 			InvokeRepeating(nameof(Refresh), 1f, 1f);
@@ -45,20 +48,29 @@ namespace WitchMendokusai
 
 		private void PlantSeed()
 		{
+			Inventory inventory = SOManager.Instance.ItemInventory;
+			int index = inventory.FindItemIndex(seed);
+			if (index < 0)
+			{
+				UIManager.Instance.SpeechBubble.Show(transform, $"{seed.Name} 씨앗이 없습니다.");
+				return;
+			}
+
+			inventory.Remove(index, 1);
 			WriteRuntime(FarmRuntimeData.Planted());
 			Refresh();
 		}
 
 		private void Harvest()
 		{
-			GameLogic.SpawnLootItem(harvestLoots, transform.position);
+			GameLogic.SpawnLootItem(seed.HarvestLoots, transform.position);
 			WriteRuntime(FarmRuntimeData.Empty);
 			Refresh();
 		}
 
 		private void ShowGrowingBubble()
 		{
-			long remaining = (long)growSeconds - ReadRuntime().ElapsedSeconds;
+			long remaining = (long)seed.GrowSeconds - ReadRuntime().ElapsedSeconds;
 			UIManager.Instance.SpeechBubble.Show(transform, $"...아직 자라는 중 ({remaining}s)");
 		}
 
@@ -66,7 +78,7 @@ namespace WitchMendokusai
 		{
 			FarmRuntimeData runtime = ReadRuntime();
 			CurrentState = runtime.IsEmpty ? State.Empty
-				: runtime.ElapsedSeconds >= growSeconds ? State.Ready
+				: runtime.ElapsedSeconds >= seed.GrowSeconds ? State.Ready
 				: State.Growing;
 			modelEmpty.SetActive(CurrentState == State.Empty);
 			modelGrowing.SetActive(CurrentState == State.Growing);
