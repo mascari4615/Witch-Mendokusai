@@ -35,12 +35,25 @@ namespace WitchMendokusai
 
 			RegisterInputs();
 			SelectSlot(0);
+
+			GameModeManager.Instance.OnModeChanged += OnGameModeChanged;
+			OnGameModeChanged(GameModeManager.Instance.CurrentMode);
 		}
 
 		private void OnDestroy()
 		{
 			grid?.Unbind();
 			UnregisterInputs();
+
+			if (GameModeManager.TryGetExistingInstance(out GameModeManager gameModeManager))
+				gameModeManager.OnModeChanged -= OnGameModeChanged;
+		}
+
+		private void OnGameModeChanged(GameMode mode)
+		{
+			if (hotbarContainer == null)
+				return;
+			hotbarContainer.style.display = mode == GameMode.Default ? DisplayStyle.Flex : DisplayStyle.None;
 		}
 
 		private Hotbar Resolve() => hotbar != null ? hotbar : SOManager.Instance.Hotbar;

@@ -18,7 +18,6 @@ namespace WitchMendokusai
 		[field: SerializeField] public Canvas BaseCanvas { get; private set; }
 	
 		[SerializeField] private UIDungeon dungeonPrefab = null;
-		[SerializeField] private UIBuild buildPrefab = null;
 		[SerializeField] private UIAdventurerGuild adventurerGuildPrefab = null;
 
 		private UIFloatingText damage;
@@ -34,7 +33,6 @@ namespace WitchMendokusai
 
 			// Content UIs
 			Instantiate(dungeonPrefab, BaseCanvas.transform);
-			Instantiate(buildPrefab, BaseCanvas.transform);
 			Instantiate(adventurerGuildPrefab, BaseCanvas.transform);
 
 			// Common UIs

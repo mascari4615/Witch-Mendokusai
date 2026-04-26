@@ -493,6 +493,51 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 2616992427032651575, guid: 7ecf7eabe4d4fe64db0095f2c21383e7, type: 3}
   m_PrefabInstance: {fileID: 5173714650138998439}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &617661624
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 617661626}
+  - component: {fileID: 617661625}
+  m_Layer: 0
+  m_Name: _GameModeManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &617661625
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 617661624}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ea067a046e5ed9742bb9cf7a4ddb0ad1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WitchMendokusai.GameModeManager
+  dontDestroyOnLoad: 0
+--- !u!4 &617661626
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 617661624}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!224 &635078214 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 6603049024029507556, guid: e1f822114d0864b47b15ea39796c9acf, type: 3}
@@ -645,10 +690,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 1000000000000000005, guid: 26aee0048df842218b116a602d575e96, type: 3}
-      propertyPath: biteSprite
-      value: 
-      objectReference: {fileID: 1191039041, guid: fbd184d873518c24aaaa66f4c3d4c2a9, type: 3}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -698,7 +739,6 @@ MonoBehaviour:
   dontDestroyOnLoad: 0
   <BaseCanvas>k__BackingField: {fileID: 4616275362954479964}
   dungeonPrefab: {fileID: 1861000773021523334, guid: dc7af30993950d947820761d51d18c0b, type: 3}
-  buildPrefab: {fileID: 6107930989581084425, guid: 0a4f4558d09f1894e827ab227be9e2bd, type: 3}
   adventurerGuildPrefab: {fileID: 6009601546454943654, guid: a1489780d9f78e245bb13104aa71a673, type: 3}
 --- !u!4 &931047120
 Transform:
@@ -1238,6 +1278,50 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 2616992427032651575, guid: 7ecf7eabe4d4fe64db0095f2c21383e7, type: 3}
   m_PrefabInstance: {fileID: 3337071525945849835}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1465799853
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1465799855}
+  - component: {fileID: 1465799854}
+  m_Layer: 0
+  m_Name: _BuildingBarView
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1465799854
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1465799853}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d6aa8e4151cdf684386f6f1bcec7b083, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WitchMendokusai.BuildingBarView
+--- !u!4 &1465799855
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1465799853}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1533110592
 GameObject:
   m_ObjectHideFlags: 0
@@ -8868,3 +8952,5 @@ SceneRoots:
   - {fileID: 1641868557}
   - {fileID: 1954230061}
   - {fileID: 720442945}
+  - {fileID: 1465799855}
+  - {fileID: 617661626}

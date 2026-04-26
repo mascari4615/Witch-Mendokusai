@@ -21,11 +21,8 @@ namespace WitchMendokusai
 		[field: SerializeField] public GameObject BuildingObjectPrefab { get; private set; } = null;
 		public Dictionary<Vector3Int, BuildingObject> BuildingObjectsByPos { get; } = new();
 
-		private UIBuild buildUI = null;
-
 		private Building selectedBuilding = null;
 		private Vector3Int gridPosition = Vector3Int.zero;
-		public bool IsBuilding { get; private set; } = false;
 		private float lastClickTime = 0f;
 		private const float clickCooldown = 0.1f; // 클릭 간 최소 시간 간격 (초)
 
@@ -39,54 +36,49 @@ namespace WitchMendokusai
 		{
 			selectedBuilding = defaultBuilding;
 			StageManager.OnStageChanged += OnStageChanged;
-
-			buildUI = FindAnyObjectByType<UIBuild>(FindObjectsInactive.Include);
-			buildUI.StopLoop();
 		}
 
 		private void Start()
 		{
-			StopBuilding();
+			GameModeManager.Instance.OnModeChanged += OnGameModeChanged;
+			ApplyMode(GameModeManager.Instance.CurrentMode);
 		}
 
-		private void StartBuilding()
+		private void OnDestroy()
 		{
-			IsBuilding = true;
-			buildUI.StartLoop();
-			buildUI.SetPanel(UIBuildingType.BuildingBar);
-			buildUI.UpdateUI();
-
-			InputManager.RegisterInputEvent(InputEventType.Click0, InputEventResponseType.Get, ClickCell);
-			InputManager.RegisterInputEvent(InputEventType.Click1, InputEventResponseType.Get, TryRemoveCell);
-			gridVisualization.SetActive(true);
-			marker.SetBool(MarkerEnabled, true);
+			if (GameModeManager.TryGetExistingInstance(out GameModeManager gameModeManager))
+				gameModeManager.OnModeChanged -= OnGameModeChanged;
 		}
 
-		private void StopBuilding()
-		{
-			IsBuilding = false;
-			buildUI.ClosePanel();
-			buildUI.StopLoop();
-			CameraManager.Instance.SetContentCameraMode(ContentCameraMode.Normal);
+		private void OnGameModeChanged(GameMode mode) => ApplyMode(mode);
 
-			InputManager.UnregisterInputEvent(InputEventType.Click0, InputEventResponseType.Get, ClickCell);
-			InputManager.UnregisterInputEvent(InputEventType.Click1, InputEventResponseType.Get, TryRemoveCell);
-			gridVisualization.SetActive(false);
-			marker.SetBool(MarkerEnabled, false);
+		private void ApplyMode(GameMode mode)
+		{
+			bool isBuildMode = mode == GameMode.Build;
+
+			if (isBuildMode)
+			{
+				InputManager.RegisterInputEvent(InputEventType.Click0, InputEventResponseType.Get, ClickCell);
+				InputManager.RegisterInputEvent(InputEventType.Click1, InputEventResponseType.Get, TryRemoveCell);
+			}
+			else
+			{
+				InputManager.UnregisterInputEvent(InputEventType.Click0, InputEventResponseType.Get, ClickCell);
+				InputManager.UnregisterInputEvent(InputEventType.Click1, InputEventResponseType.Get, TryRemoveCell);
+				CameraManager.Instance.SetContentCameraMode(ContentCameraMode.Normal);
+			}
+
+			gridVisualization.SetActive(isBuildMode);
+			marker.SetBool(MarkerEnabled, isBuildMode);
 		}
 
 		private void Update()
 		{
 			// TODO: 임시 Build 키
 			if (Keyboard.current != null && Keyboard.current.bKey.wasPressedThisFrame)
-			{
-				if (IsBuilding == true)
-					StopBuilding();
-				else
-					StartBuilding();
-			}
+				GameModeManager.Instance.ToggleBuildMode();
 
-			if (IsBuilding == false)
+			if (GameModeManager.Instance.IsBuildMode == false)
 				return;
 
 			UpdateCellPos();

@@ -93,7 +93,7 @@ namespace WitchMendokusai
 			{ GameConditionType.IsMouseOnUI, () => InputManager.Instance.IsPointerOverUI() },
 			{ GameConditionType.IsPlayerCasting, () => Player.Instance.Object.UnitStat[UnitStatType.CASTING_SKILL] > 0 },
 			{ GameConditionType.IsDied, () => Player.Instance.Object.UnitStat[UnitStatType.HP_CUR] <= 0 },
-			{ GameConditionType.IsBuilding, () => BuildManager.Instance.IsBuilding },
+			{ GameConditionType.IsBuilding, () => GameModeManager.Instance.IsBuildMode },
 			{ GameConditionType.IsInTransition, () => UITransition.IsInTransition },
 			{ GameConditionType.IsViewingUI, () => UIManager.Instance.IsAnyPanelFullscreenOpen },
 		};
