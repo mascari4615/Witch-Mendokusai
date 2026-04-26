@@ -14,6 +14,7 @@ namespace WitchMendokusai
 
 		private readonly VisualElement icon;
 		private readonly Label amountLabel;
+		private object tooltipData;
 
 		public int Index { get; private set; } = -1;
 		public bool IsEmpty { get; private set; } = true;
@@ -34,6 +35,24 @@ namespace WitchMendokusai
 			amountLabel.AddToClassList(AMOUNT_CLASS);
 			amountLabel.pickingMode = PickingMode.Ignore;
 			Add(amountLabel);
+
+			RegisterCallback<PointerEnterEvent>(OnPointerEnterTooltip);
+			RegisterCallback<PointerLeaveEvent>(OnPointerLeaveTooltip);
+		}
+
+		public void SetTooltipData(object data) => tooltipData = data;
+
+		private void OnPointerEnterTooltip(PointerEnterEvent _)
+		{
+			if (tooltipData == null)
+				return;
+			TooltipController.Instance.Show(tooltipData);
+		}
+
+		private void OnPointerLeaveTooltip(PointerLeaveEvent _)
+		{
+			if (TooltipController.TryGetExistingInstance(out TooltipController controller))
+				controller.Hide();
 		}
 
 		public void SetIndex(int index) => Index = index;

@@ -63,6 +63,7 @@ namespace WitchMendokusai
 				slots[i].SetIcon(building.Sprite);
 				slots[i].SetAmount(0);
 				slots[i].SetSelected(i == selectedIndex);
+				slots[i].SetTooltipData(building);
 			}
 		}
 

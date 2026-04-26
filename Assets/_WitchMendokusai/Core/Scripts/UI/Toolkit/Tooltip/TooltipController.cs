@@ -28,6 +28,7 @@ namespace WitchMendokusai
 			base.Awake();
 
 			RegisterBuilder(typeof(ItemData), new ItemTooltipBuilder());
+			RegisterBuilder(typeof(Building), new BuildingTooltipBuilder());
 		}
 
 		private void OnEnable()
