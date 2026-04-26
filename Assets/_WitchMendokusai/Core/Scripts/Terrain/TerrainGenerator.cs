@@ -107,6 +107,66 @@ namespace WitchMendokusai
 			return texture;
 		}
 
+		/// <summary>
+		/// 한 청크 영역을 heightmap surface mesh로 생성. (size+1)^2 vertices.
+		/// 본격 voxel 메시는 TASK-027-C에서. 본 함수는 에디터 미리보기용 빠른 surface 표현.
+		/// 바이옴 색상은 vertex color에 박힘 — vertex color material 필요.
+		/// </summary>
+		public static Mesh GenerateChunkMesh(TerrainParameters parameters, int chunkX, int chunkZ, int size = 16)
+		{
+			int gridSize = size + 1;
+			int vertexCount = gridSize * gridSize;
+
+			Vector3[] vertices = new Vector3[vertexCount];
+			Color[] colors = new Color[vertexCount];
+			Vector2[] uvs = new Vector2[vertexCount];
+			int[] triangles = new int[size * size * 6];
+
+			int worldOriginX = chunkX * size;
+			int worldOriginZ = chunkZ * size;
+
+			for (int z = 0; z < gridSize; z++)
+			{
+				for (int x = 0; x < gridSize; x++)
+				{
+					int worldX = worldOriginX + x;
+					int worldZ = worldOriginZ + z;
+
+					float height = SampleHeight(parameters, worldX, worldZ);
+					BiomeData biome = SampleBiome(parameters, worldX, worldZ);
+
+					int idx = z * gridSize + x;
+					vertices[idx] = new Vector3(x, height, z);
+					colors[idx] = biome != null ? biome.PreviewColor : new Color(0.5f, 0.5f, 0.5f, 1f);
+					uvs[idx] = new Vector2((float)x / size, (float)z / size);
+				}
+			}
+
+			int triIdx = 0;
+			for (int z = 0; z < size; z++)
+			{
+				for (int x = 0; x < size; x++)
+				{
+					int i = z * gridSize + x;
+					triangles[triIdx++] = i;
+					triangles[triIdx++] = i + gridSize;
+					triangles[triIdx++] = i + 1;
+					triangles[triIdx++] = i + 1;
+					triangles[triIdx++] = i + gridSize;
+					triangles[triIdx++] = i + gridSize + 1;
+				}
+			}
+
+			Mesh mesh = new() { name = $"ChunkPreview_{chunkX}_{chunkZ}" };
+			mesh.vertices = vertices;
+			mesh.triangles = triangles;
+			mesh.colors = colors;
+			mesh.uv = uvs;
+			mesh.RecalculateNormals();
+			mesh.RecalculateBounds();
+			return mesh;
+		}
+
 		public static Texture2D GenerateHeightmapTexture(TerrainParameters parameters, int width, int height)
 		{
 			Texture2D texture = new(width, height, TextureFormat.RGBA32, false)

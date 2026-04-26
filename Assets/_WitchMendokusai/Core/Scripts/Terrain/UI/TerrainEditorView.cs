@@ -15,6 +15,7 @@ namespace WitchMendokusai
 	{
 		Heightmap = 0,
 		Biome = 1,
+		Mesh3D = 2,
 	}
 
 	/// <summary>
@@ -29,7 +30,8 @@ namespace WitchMendokusai
 		public const string SIDEBAR_CLASS = "wm-terrain-editor__sidebar";
 		public const string BUTTON_ROW_CLASS = "wm-terrain-editor__button-row";
 
-		private const int PREVIEW_SIZE = 256;
+		private const int PREVIEW_MIN_SIZE = 64;
+		private const int PREVIEW_MAX_SIZE = 1024;
 		private const string LANG_PREF_KEY = "WM.TerrainEditor.Lang";
 
 		private static readonly Dictionary<string, (string ko, string en)> Labels = new()
@@ -48,6 +50,8 @@ namespace WitchMendokusai
 			{ "preview", ("미리보기", "Preview") },
 			{ "previewHeightmap", ("높이맵", "Heightmap") },
 			{ "previewBiome", ("바이옴", "Biome") },
+			{ "previewMesh3D", ("3D", "3D") },
+			{ "mesh3dUnavailable", ("3D 미리보기는 에디터에서만 동작", "3D preview is editor-only") },
 			{ "biome", ("바이옴", "Biome") },
 			{ "biomeFrequency", ("바이옴 빈도", "Biome Freq") },
 			{ "empty", ("TerrainParameters가 비어있음.", "TerrainParameters is null.") },
@@ -61,6 +65,15 @@ namespace WitchMendokusai
 
 		private readonly TerrainParameters parameters;
 		private readonly Action onParameterChanged;
+		private readonly Func<Mesh, Vector2, float, int, int, Texture> renderMesh3D;
+
+		private Vector2 mesh3dRotation = new(30f, 45f);
+		private float mesh3dZoom = 1f;
+		private bool isDragging;
+		private Vector2 lastPointerPosition;
+
+		private int previewPixelWidth = 256;
+		private int previewPixelHeight = 256;
 
 		private TerrainEditorLang lang;
 		private TerrainPreviewMode previewMode = TerrainPreviewMode.Heightmap;
@@ -78,6 +91,7 @@ namespace WitchMendokusai
 		private Button langToggleButton;
 		private Button previewHeightmapButton;
 		private Button previewBiomeButton;
+		private Button previewMesh3DButton;
 
 		private IntegerField seedField;
 		private SliderInt octavesSlider;
@@ -87,10 +101,11 @@ namespace WitchMendokusai
 		private FloatField lacunarityField;
 		private FloatField biomeFrequencyField;
 
-		public TerrainEditorView(TerrainParameters parameters, Action onParameterChanged = null)
+		public TerrainEditorView(TerrainParameters parameters, Action onParameterChanged = null, Func<Mesh, Vector2, float, int, int, Texture> renderMesh3D = null)
 		{
 			this.parameters = parameters;
 			this.onParameterChanged = onParameterChanged ?? (() => { });
+			this.renderMesh3D = renderMesh3D;
 
 			lang = LoadLang();
 
@@ -118,8 +133,15 @@ namespace WitchMendokusai
 
 			previewImage = new VisualElement();
 			previewImage.AddToClassList(PREVIEW_CLASS);
-			previewImage.style.width = PREVIEW_SIZE;
-			previewImage.style.height = PREVIEW_SIZE;
+			previewImage.style.flexGrow = 1;
+			previewImage.style.width = new StyleLength(Length.Percent(100));
+			previewImage.style.height = new StyleLength(Length.Percent(100));
+			previewImage.style.unityBackgroundScaleMode = ScaleMode.ScaleToFit;
+			previewImage.RegisterCallback<PointerDownEvent>(OnPreviewPointerDown);
+			previewImage.RegisterCallback<PointerMoveEvent>(OnPreviewPointerMove);
+			previewImage.RegisterCallback<PointerUpEvent>(OnPreviewPointerUp);
+			previewImage.RegisterCallback<WheelEvent>(OnPreviewWheel);
+			previewImage.RegisterCallback<GeometryChangedEvent>(OnPreviewGeometryChanged);
 			previewArea.Add(previewImage);
 
 			statusLabel = new Label();
@@ -260,6 +282,12 @@ namespace WitchMendokusai
 			previewBiomeButton.style.flexGrow = 1;
 			previewBiomeButton.style.marginLeft = 4;
 			previewModeRow.Add(previewBiomeButton);
+
+			previewMesh3DButton = new Button(() => SetPreviewMode(TerrainPreviewMode.Mesh3D));
+			previewMesh3DButton.style.flexGrow = 1;
+			previewMesh3DButton.style.marginLeft = 4;
+			previewMesh3DButton.SetEnabled(renderMesh3D != null);
+			previewModeRow.Add(previewMesh3DButton);
 		}
 
 		private void SetPreviewMode(TerrainPreviewMode mode)
@@ -277,6 +305,7 @@ namespace WitchMendokusai
 			Color inactive = new(0.22f, 0.22f, 0.22f, 1f);
 			previewHeightmapButton.style.backgroundColor = previewMode == TerrainPreviewMode.Heightmap ? active : inactive;
 			previewBiomeButton.style.backgroundColor = previewMode == TerrainPreviewMode.Biome ? active : inactive;
+			previewMesh3DButton.style.backgroundColor = previewMode == TerrainPreviewMode.Mesh3D ? active : inactive;
 		}
 
 		private void ApplyLang()
@@ -290,6 +319,7 @@ namespace WitchMendokusai
 			previewHeader.text = T("preview");
 			previewHeightmapButton.text = T("previewHeightmap");
 			previewBiomeButton.text = T("previewBiome");
+			previewMesh3DButton.text = T("previewMesh3D");
 
 			seedField.label = T("seed");
 			octavesSlider.label = T("octaves");
@@ -332,9 +362,27 @@ namespace WitchMendokusai
 				return;
 			}
 
+			if (previewMode == TerrainPreviewMode.Mesh3D)
+			{
+				if (renderMesh3D == null)
+				{
+					statusLabel.text = T("mesh3dUnavailable");
+					return;
+				}
+
+				Mesh mesh = TerrainGenerator.GenerateChunkMesh(parameters, 0, 0);
+				Texture rendered = renderMesh3D(mesh, mesh3dRotation, mesh3dZoom, previewPixelWidth, previewPixelHeight);
+				if (rendered is RenderTexture rt)
+					previewImage.style.backgroundImage = Background.FromRenderTexture(rt);
+				else if (rendered is Texture2D tex2D)
+					previewImage.style.backgroundImage = new StyleBackground(tex2D);
+				RefreshStatusLabel();
+				return;
+			}
+
 			Texture2D texture = previewMode == TerrainPreviewMode.Biome
-				? TerrainGenerator.GenerateBiomeTexture(parameters, PREVIEW_SIZE, PREVIEW_SIZE)
-				: TerrainGenerator.GenerateHeightmapTexture(parameters, PREVIEW_SIZE, PREVIEW_SIZE);
+				? TerrainGenerator.GenerateBiomeTexture(parameters, previewPixelWidth, previewPixelHeight)
+				: TerrainGenerator.GenerateHeightmapTexture(parameters, previewPixelWidth, previewPixelHeight);
 			previewImage.style.backgroundImage = new StyleBackground(texture);
 			RefreshStatusLabel();
 		}
@@ -350,6 +398,65 @@ namespace WitchMendokusai
 				$"{T("statusAmp")} {parameters.Amplitude:F1} | " +
 				$"{T("statusPers")} {parameters.Persistence:F2} | " +
 				$"{T("statusLac")} {parameters.Lacunarity:F2}";
+		}
+
+		private void OnPreviewGeometryChanged(GeometryChangedEvent evt)
+		{
+			int newWidth = Mathf.Clamp((int)evt.newRect.width, PREVIEW_MIN_SIZE, PREVIEW_MAX_SIZE);
+			int newHeight = Mathf.Clamp((int)evt.newRect.height, PREVIEW_MIN_SIZE, PREVIEW_MAX_SIZE);
+			if (newWidth == previewPixelWidth && newHeight == previewPixelHeight)
+				return;
+			previewPixelWidth = newWidth;
+			previewPixelHeight = newHeight;
+			Regenerate();
+		}
+
+		private void OnPreviewPointerDown(PointerDownEvent evt)
+		{
+			if (previewMode != TerrainPreviewMode.Mesh3D)
+				return;
+			isDragging = true;
+			lastPointerPosition = evt.position;
+			previewImage.CapturePointer(evt.pointerId);
+			evt.StopPropagation();
+		}
+
+		private void OnPreviewPointerMove(PointerMoveEvent evt)
+		{
+			if (isDragging == false)
+				return;
+			if (previewMode != TerrainPreviewMode.Mesh3D)
+				return;
+
+			Vector2 cur = (Vector2)evt.position;
+			Vector2 delta = cur - lastPointerPosition;
+			lastPointerPosition = cur;
+
+			mesh3dRotation.y += delta.x * 0.4f;
+			mesh3dRotation.x = Mathf.Clamp(mesh3dRotation.x + delta.y * 0.4f, -85f, 85f);
+
+			Regenerate();
+			evt.StopPropagation();
+		}
+
+		private void OnPreviewPointerUp(PointerUpEvent evt)
+		{
+			if (isDragging == false)
+				return;
+			isDragging = false;
+			if (previewImage.HasPointerCapture(evt.pointerId))
+				previewImage.ReleasePointer(evt.pointerId);
+			evt.StopPropagation();
+		}
+
+		private void OnPreviewWheel(WheelEvent evt)
+		{
+			if (previewMode != TerrainPreviewMode.Mesh3D)
+				return;
+			float zoomDelta = -evt.delta.y * 0.1f;
+			mesh3dZoom = Mathf.Clamp(mesh3dZoom + zoomDelta, 0.2f, 4f);
+			Regenerate();
+			evt.StopPropagation();
 		}
 
 		private void RandomizeSeed()
