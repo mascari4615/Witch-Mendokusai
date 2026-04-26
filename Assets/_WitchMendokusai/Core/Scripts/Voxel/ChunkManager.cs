@@ -28,6 +28,10 @@ namespace WitchMendokusai
 		private void Awake()
 		{
 			chunkPool = GetComponent<ChunkPool>();
+			ChunkStorage.Initialize(Application.persistentDataPath);
+
+			if (viewer == null)
+				viewer = Camera.main?.transform;
 		}
 
 		private void Update()

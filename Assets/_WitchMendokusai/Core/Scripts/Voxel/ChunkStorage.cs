@@ -10,14 +10,20 @@ namespace WitchMendokusai
 	/// </summary>
 	public static class ChunkStorage
 	{
+		private static string saveDirectory;
+
+		public static void Initialize(string basePath)
+		{
+			saveDirectory = Path.Combine(basePath, "Saves", "DefaultWorld", "Chunks");
+			if (!Directory.Exists(saveDirectory))
+			{
+				Directory.CreateDirectory(saveDirectory);
+			}
+		}
+
 		private static string GetSaveDirectory()
 		{
-			string path = Path.Combine(Application.persistentDataPath, "Saves", "DefaultWorld", "Chunks");
-			if (!Directory.Exists(path))
-			{
-				Directory.CreateDirectory(path);
-			}
-			return path;
+			return saveDirectory;
 		}
 
 		private static string GetFilePath(ChunkPosition pos)
