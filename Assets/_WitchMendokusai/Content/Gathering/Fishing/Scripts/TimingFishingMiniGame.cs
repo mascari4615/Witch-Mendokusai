@@ -15,6 +15,9 @@ namespace WitchMendokusai
 		[Header("_" + nameof(TimingFishingMiniGame))]
 		[SerializeField] private Sprite biteSprite;
 		[SerializeField] private string biteEventPath = "event:/SFX/Fishing/Bite";
+		[SerializeField] private string missEventPath = "";
+		[SerializeField] private string missMessage = "놓쳤다...";
+		[SerializeField] private float missMessageDuration = 1.0f;
 
 		public IEnumerator Play(FishingContext context, Action<bool> onResult)
 		{
@@ -28,14 +31,29 @@ namespace WitchMendokusai
 
 			UIManager.Instance.SpeechBubble.Show(context.Fisherman, biteSprite, context.Data.InputWindow);
 
-			// 타이밍 입력 윈도우
+			// 타이밍 입력 윈도우 — 입력 즉시 종료
 			bool caught = false;
 			Action onCatch = () => caught = true;
 			InputManager.Instance.RegisterInputEvent(InputEventType.Submit, InputEventResponseType.Performed, onCatch);
 
-			yield return new WaitForSeconds(context.Data.InputWindow);
+			float elapsed = 0f;
+			while (elapsed < context.Data.InputWindow && caught == false)
+			{
+				elapsed += Time.deltaTime;
+				yield return null;
+			}
 
 			InputManager.Instance.UnregisterInputEvent(InputEventType.Submit, InputEventResponseType.Performed, onCatch);
+
+			// 실패 피드백
+			if (caught == false)
+			{
+				if (string.IsNullOrEmpty(missEventPath) == false)
+					RuntimeManager.PlayOneShot(missEventPath, context.Fisherman.position);
+
+				if (string.IsNullOrEmpty(missMessage) == false)
+					UIManager.Instance.SpeechBubble.Show(context.Fisherman, missMessage, missMessageDuration);
+			}
 
 			onResult(caught);
 		}
