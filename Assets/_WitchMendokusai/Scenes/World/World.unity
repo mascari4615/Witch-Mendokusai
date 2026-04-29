@@ -1131,7 +1131,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WitchMendokusai.ChunkManager
   viewer: {fileID: 204981258}
-  terrainParameters: {fileID: 11400000, guid: 63afca65ce3406c479b919b576260036, type: 2}
   renderDistance: 2
 --- !u!114 &1174492931
 MonoBehaviour:
@@ -1474,7 +1473,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 35bf1fed5aba35349a7ad3c1f6f51414, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WitchMendokusai.VoxelTestRunner
-  terrainParameters: {fileID: 11400000, guid: 63afca65ce3406c479b919b576260036, type: 2}
   chunkPosition:
     X: 277
     Z: 31

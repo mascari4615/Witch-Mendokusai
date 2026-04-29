@@ -12,9 +12,9 @@ namespace WitchMendokusai
 	public class ChunkManager : MonoBehaviour
 	{
 		[SerializeField] private Transform viewer;
-		[SerializeField] private TerrainParameters terrainParameters;
 		[SerializeField, Range(1, 10)] private int renderDistance = 2;
 
+		private TerrainParameters terrainParameters;
 		private ChunkPool chunkPool;
 		private ChunkPosition lastViewerPosition = new(int.MinValue, int.MinValue);
 
@@ -29,6 +29,10 @@ namespace WitchMendokusai
 		{
 			chunkPool = GetComponent<ChunkPool>();
 			ChunkStorage.Initialize(Application.persistentDataPath);
+
+			terrainParameters = TerrainParametersService.Active;
+			if (terrainParameters == null)
+				Debug.LogError($"[ChunkManager] Active TerrainParameters를 찾지 못함. Resources/{TerrainParametersService.ACTIVE_RESOURCE_PATH} 확인.");
 
 			if (viewer == null)
 				viewer = Camera.main?.transform;

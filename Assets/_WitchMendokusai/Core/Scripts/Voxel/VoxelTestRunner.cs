@@ -6,7 +6,6 @@ namespace WitchMendokusai
 	[ExecuteAlways]
 	public class VoxelTestRunner : MonoBehaviour
 	{
-		[SerializeField] private TerrainParameters terrainParameters;
 		[SerializeField] private ChunkPosition chunkPosition = new(0, 0);
 
 		private void Start()
@@ -20,9 +19,10 @@ namespace WitchMendokusai
 		[ContextMenu("Generate Mesh")]
 		public void Generate()
 		{
+			TerrainParameters terrainParameters = TerrainParametersService.Active;
 			if (terrainParameters == null)
 			{
-				Debug.LogWarning("[VoxelTestRunner] TerrainParameters is missing.");
+				Debug.LogWarning($"[VoxelTestRunner] Active TerrainParameters 없음 — Resources/{TerrainParametersService.ACTIVE_RESOURCE_PATH} 확인.");
 				return;
 			}
 
