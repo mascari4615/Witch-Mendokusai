@@ -8,13 +8,13 @@ namespace WitchMendokusai
 		[SerializeField] private Animator mainAnimator;
 		[SerializeField] private Animator animatorOf3DModel;
 		[SerializeField] private Transform pivot;
-
-		[SerializeField] private new Rigidbody rigidbody;
 		[SerializeField] private Animator handAnimator;
 
 		private void Update()
 		{
-			bool isMoving = rigidbody.linearVelocity.magnitude > 0.1f;
+			// Kinematic Rigidbody는 linearVelocity가 항상 0 → Motor가 결정한 Velocity를 직접 읽는다.
+			Vector3 velocity = Player.Instance.Object.UnitMovement.Velocity;
+			bool isMoving = new Vector2(velocity.x, velocity.z).sqrMagnitude > 0.01f;
 			mainAnimator.SetBool("MOVE", isMoving);
 			animatorOf3DModel.SetBool("MOVE", isMoving);
 

@@ -4,62 +4,86 @@ using UnityEngine;
 
 namespace WitchMendokusai
 {
+	/// <summary>
+	/// 캐릭터 이동 facade. 내부적으로 Kinematic Motor + IVelocityContributor 레이어로 동작.
+	/// 외부 API(SetMoveDirection / TryJump / OnLanded / IsLookingRight 등)는 보존.
+	///
+	/// 진행 상태:
+	/// - γ1 ✅ Motor + Input/Gravity contributors + horizontal sweep+slide
+	/// - γ2 ✅ JumpContributor — 가변 점프 / coyote / buffer / 착지 impact
+	/// - γ3~ slope / step / external impulse / moving platform / zone (미시작)
+	/// </summary>
 	public class UnitMovement : MonoBehaviour
 	{
-		// Ground detection
-		[SerializeField] private float groundCheckDistance = 0.25f;
-		[SerializeField] private LayerMask groundLayerMask;
+		// Jump tuning. 디폴트는 *비점프 unit 중립 값* (multiplier 1.0 = 추가 중력 없음).
+		// 점프하는 unit(Player 등)은 prefab에서 오버라이드.
+		[Header("Jump Tuning")]
+		[SerializeField] private float jumpForce = 5.6f;
+		[SerializeField] private float fallGravityMultiplier = 1f;
+		[SerializeField] private float lowJumpGravityMultiplier = 1f;
+		[SerializeField] private float coyoteTime = 0.1f;
+		[SerializeField] private float jumpBufferTime = 0.12f;
+		[SerializeField] private float landingImpactMinFallSpeed = 1.2f;
+		[SerializeField] private float landingImpactMaxFallSpeed = 8f;
 
 		// Cached components
 		protected Rigidbody unitRigidBody;
 		protected UnitObject unitObject;
-		private UnitJumpModule jumpModule;
+		private CapsuleCollider unitCapsule;
+
+		// Movement core
+		private Motor motor;
+		private JumpContributor jumpContributor;
 
 		// Events
 		public event Action<float> OnLanded;
 
 		// Runtime properties
 		public float MoveTick { get; set; } = 0.02f;
-		// public Vector3 Destination { get; set; } = Vector3.zero;
 
 		public Vector3 MoveDirectionLocal { get; private set; }
 		public Vector3 MoveDirectionWorld { get; private set; }
 		public Vector3 LookDirection { get; private set; }
 		public bool IsLookingRight => unitObject.SpriteRenderer.flipX == false;
 
+		/// <summary>
+		/// Motor가 이번 tick 결정한 실제 속도. Kinematic Rigidbody는 linearVelocity가 항상 0이라 사용 불가 →
+		/// 애니메이션 / VFX / 로직이 "현재 움직이고 있는가?" 판단할 때 이 값을 사용해야 한다.
+		/// </summary>
+		public Vector3 Velocity => motor != null ? motor.Context.Velocity : Vector3.zero;
+
 		private void Awake()
 		{
 			unitRigidBody = GetComponent<Rigidbody>();
 			unitObject = GetComponent<UnitObject>();
-			if (TryGetComponent(out jumpModule))
-			{
-				jumpModule.Setup(unitRigidBody, unitObject);
-				jumpModule.OnLanded += HandleLanded;
-			}
-			unitRigidBody.useGravity = true;
+			unitCapsule = GetComponent<CapsuleCollider>();
+
+			// Kinematic 캐릭터 — 위치 결정권은 Motor에. Rigidbody는 충돌 트리거 송신용.
+			unitRigidBody.isKinematic = true;
+			unitRigidBody.useGravity = false;
+
+			motor = new Motor(transform, unitRigidBody, unitCapsule);
+			motor.AddContributor(new InputContributor(unitObject));
+			motor.AddContributor(new GravityContributor());
+
+			jumpContributor = new JumpContributor(
+				unitObject,
+				jumpForce,
+				fallGravityMultiplier,
+				lowJumpGravityMultiplier,
+				coyoteTime,
+				jumpBufferTime,
+				landingImpactMinFallSpeed,
+				landingImpactMaxFallSpeed);
+			motor.AddContributor(jumpContributor);
 		}
 
 		private void OnEnable()
 		{
 			UpdateLookDirection(Vector3.right);
-			if (jumpModule != null)
-				jumpModule.ResetState(IsGrounded());
-			else
-				unitObject.UnitStat[UnitStatType.IS_JUMPING] = 0;
-
+			unitObject.UnitStat[UnitStatType.IS_JUMPING] = 0;
+			jumpContributor?.Reset(IsGrounded());
 			StartCoroutine(MoveCoroutine());
-		}
-
-		private IEnumerator MoveCoroutine()
-		{
-			WaitForSeconds wait = new(MoveTick);
-
-			while (true)
-			{
-				// SetDestination
-				Move();
-				yield return wait;
-			}
 		}
 
 		private void OnDisable()
@@ -67,31 +91,45 @@ namespace WitchMendokusai
 			StopAllCoroutines();
 		}
 
-		private void OnDestroy()
+		private IEnumerator MoveCoroutine()
 		{
-			if (jumpModule != null)
-				jumpModule.OnLanded -= HandleLanded;
+			WaitForSeconds wait = new(MoveTick);
+			while (true)
+			{
+				Move();
+				yield return wait;
+			}
+		}
+
+		private void Move()
+		{
+			MotorContext context = motor.Context;
+			context.MoveDirection = MoveDirectionWorld;
+			context.BlockedByExternal = IsMovementBlocked();
+
+			motor.Tick(MoveTick);
+
+			if (jumpContributor.HasPendingLanded)
+			{
+				OnLanded?.Invoke(jumpContributor.ConsumeLandedImpact());
+			}
+
+			unitObject.UnitStat[UnitStatType.IS_JUMPING] = jumpContributor.IsJumping ? 1 : 0;
 		}
 
 		public void SetMoveDirection(Vector3 input) => SetMoveDirection(new Vector2(input.x, input.z));
+
 		public void SetMoveDirection(Vector2 input)
 		{
-			float h = input.x;
-			float v = input.y;
+			float horizontalInput = input.x;
+			float verticalInput = input.y;
 
-			// if (h == 0)
-			// 	h = SOManager.Instance.JoystickX.RuntimeValue;
-			// if (v == 0)
-			// 	v = SOManager.Instance.JoystickY.RuntimeValue;
+			MoveDirectionLocal = new Vector3(horizontalInput, 0f, verticalInput).normalized;
+			MoveDirectionWorld = ((horizontalInput * transform.right) + (verticalInput * transform.forward)).normalized;
 
-			// moveDirection.x = h;
-			// moveDirection.z = v;
-			MoveDirectionLocal = new Vector3(h, 0, v).normalized;
-			MoveDirectionWorld = ((h * transform.right) + (v * transform.forward)).normalized;
+			unitObject.SpriteRenderer.flipX = (horizontalInput == 0f) ? unitObject.SpriteRenderer.flipX : (horizontalInput < 0f);
 
-			unitObject.SpriteRenderer.flipX = (h == 0) ? unitObject.SpriteRenderer.flipX : (h < 0);
-
-			if (h != 0 || v != 0)
+			if (horizontalInput != 0f || verticalInput != 0f)
 				UpdateLookDirection(MoveDirectionWorld);
 		}
 
@@ -100,116 +138,27 @@ namespace WitchMendokusai
 			LookDirection = newDirection;
 		}
 
-		private void Move()
-		{
-			if (IsMovementBlocked())
-				return;
-
-			Vector3 moveDirection = MoveDirectionWorld;
-			float verticalVelocity = unitRigidBody.linearVelocity.y;
-			bool isGrounded = IsGrounded();
-
-			if (jumpModule != null)
-			{
-				jumpModule.Step(ref isGrounded, ref verticalVelocity, CanUseJumpState(), MoveTick);
-				unitObject.UnitStat[UnitStatType.IS_JUMPING] = (!isGrounded && verticalVelocity > 0f) ? 1 : 0;
-			}
-			else
-			{
-				unitObject.UnitStat[UnitStatType.IS_JUMPING] = 0;
-			}
-
-			unitRigidBody.linearVelocity = BuildFinalVelocity(moveDirection, verticalVelocity);
-			// unitRigidBody.AddForce(finalVelocity, ForceMode.VelocityChange);
-		}
-
 		private bool IsMovementBlocked()
 		{
 			return GameManager.Instance.Conditions[GameConditionType.IsTyping] ||
 				TimeManager.Instance.IsPaused;
 		}
 
-		private Vector3 BuildFinalVelocity(Vector3 moveDirection, float verticalVelocity)
+		public bool IsGrounded()
 		{
-			if (unitObject.UnitStat[UnitStatType.DEAD] > 0)
-				return Vector3.zero;
-
-			float horizontalSpeed = GetHorizontalSpeed();
-			return new Vector3(
-				moveDirection.x * horizontalSpeed,
-				verticalVelocity,
-				moveDirection.z * horizontalSpeed
-			);
-		}
-
-		private float GetHorizontalSpeed()
-		{
-			if (unitObject.UnitStat[UnitStatType.FORCE_MOVE] > 0)
-				return SOManager.Instance.DashSpeed.RuntimeValue;
-
-			float moveSpeed = unitObject.UnitStat[UnitStatType.MOVEMENT_SPEED] / 10f;
-			if (unitObject.UnitStat[UnitStatType.IS_SPRINTING] > 0)
-				moveSpeed *= 2f; // TODO: 스프린트 속도 하드코딩함 - 2026-03-28. KarmoDDrine
-
-			return moveSpeed;
+			return motor != null && motor.Context.GroundState == MotorGroundState.Grounded;
 		}
 
 		public void TryJump()
 		{
-			if (jumpModule == null)
+			if (IsMovementBlocked())
 				return;
-
-			if (GameManager.Instance.Conditions[GameConditionType.IsTyping] ||
-				TimeManager.Instance.IsPaused)
-				return;
-
-			jumpModule.RequestJump(CanUseJumpState());
+			jumpContributor.RequestJump();
 		}
 
 		public void StopJump()
 		{
-			if (jumpModule == null)
-				return;
-
-			jumpModule.ReleaseJump();
-		}
-
-		private bool CanUseJumpState()
-		{
-			if (unitObject.UnitStat[UnitStatType.DEAD] > 0)
-				return false;
-
-			if (unitObject.UnitStat[UnitStatType.FORCE_MOVE] > 0)
-				return false;
-
-			return true;
-		}
-
-		private void HandleLanded(float impactStrength)
-		{
-			OnLanded?.Invoke(impactStrength);
-		}
-
-		private bool IsGrounded()
-		{
-			Vector3 origin = transform.position + Vector3.up * 0.1f;
-			float distance = groundCheckDistance + 0.1f;
-
-			// Use layer-based detection if explicitly set, otherwise use component-based detection
-			if (groundLayerMask.value != 0)
-			{
-				return Physics.Raycast(origin, Vector3.down, distance, groundLayerMask, QueryTriggerInteraction.Ignore);
-			}
-
-			// Component-based detection: look for GroundSurface
-			if (Physics.Raycast(origin, Vector3.down, out RaycastHit hit, distance, ~0, QueryTriggerInteraction.Ignore))
-			{
-				GroundSurface surface = hit.collider.GetComponent<GroundSurface>();
-				if (surface != null && surface.IsWalkable)
-					return true;
-			}
-
-			return false;
+			jumpContributor.ReleaseJump();
 		}
 	}
 }

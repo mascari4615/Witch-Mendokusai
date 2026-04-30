@@ -15,6 +15,12 @@ namespace WitchMendokusai
 		private const float CAMERA_ROTATE_SPEED = 15;
 		private float yRotation = 0;
 		private Vector3 lastMoveDir = Vector3.forward;
+		private Rigidbody unitRigidbody;
+
+		private void Awake()
+		{
+			unitRigidbody = GetComponent<Rigidbody>();
+		}
 
 		private void Update()
 		{
@@ -31,8 +37,9 @@ namespace WitchMendokusai
 			yRotation += Time.deltaTime * ROTATE_SPEED * InputManager.Instance.CameraRotateInput;
 
 			Quaternion targetRotation = Quaternion.Euler(0, yRotation, 0);
-			// transform.rotation = Quaternion.Lerp(transform.rotation, targetRotation, Time.deltaTime * 5);
-			transform.rotation = targetRotation;
+			// isKinematic Rigidbody의 회전은 Rigidbody API로. transform.rotation 직접 set은
+			// Motor가 queue한 MovePosition과 충돌해 위치 갱신을 무효화할 수 있다 (Q/E + W 멈춤, 공중 정지 버그 원인).
+			unitRigidbody.MoveRotation(targetRotation);
 			Camera.main.transform.parent.rotation = Quaternion.Lerp(Camera.main.transform.parent.rotation, targetRotation, Time.deltaTime * CAMERA_ROTATE_SPEED);
 		}
 
