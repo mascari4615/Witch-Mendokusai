@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using UnityEngine;
 
 namespace WitchMendokusai
@@ -38,9 +37,6 @@ namespace WitchMendokusai
 		// Events
 		public event Action<float> OnLanded;
 
-		// Runtime properties
-		public float MoveTick { get; set; } = 0.02f;
-
 		public Vector3 MoveDirectionLocal { get; private set; }
 		public Vector3 MoveDirectionWorld { get; private set; }
 		public Vector3 LookDirection { get; private set; }
@@ -61,6 +57,8 @@ namespace WitchMendokusai
 			// Kinematic 캐릭터 — 위치 결정권은 Motor에. Rigidbody는 충돌 트리거 송신용.
 			unitRigidBody.isKinematic = true;
 			unitRigidBody.useGravity = false;
+			// Render frame이 fixed step 사이에 있어도 Unity가 자동 interpolation으로 부드럽게 보여주도록.
+			unitRigidBody.interpolation = RigidbodyInterpolation.Interpolate;
 
 			motor = new Motor(transform, unitRigidBody, unitCapsule);
 			motor.AddContributor(new InputContributor(unitObject));
@@ -83,31 +81,15 @@ namespace WitchMendokusai
 			UpdateLookDirection(Vector3.right);
 			unitObject.UnitStat[UnitStatType.IS_JUMPING] = 0;
 			jumpContributor?.Reset(IsGrounded());
-			StartCoroutine(MoveCoroutine());
 		}
 
-		private void OnDisable()
-		{
-			StopAllCoroutines();
-		}
-
-		private IEnumerator MoveCoroutine()
-		{
-			WaitForSeconds wait = new(MoveTick);
-			while (true)
-			{
-				Move();
-				yield return wait;
-			}
-		}
-
-		private void Move()
+		private void FixedUpdate()
 		{
 			MotorContext context = motor.Context;
 			context.MoveDirection = MoveDirectionWorld;
 			context.BlockedByExternal = IsMovementBlocked();
 
-			motor.Tick(MoveTick);
+			motor.Tick(Time.fixedDeltaTime);
 
 			if (jumpContributor.HasPendingLanded)
 			{

@@ -91,7 +91,9 @@ namespace WitchMendokusai
 			if (isGrounded == false && verticalVelocity < 0f)
 				lastAirborneFallSpeed = Mathf.Max(lastAirborneFallSpeed, -verticalVelocity);
 
-			if (isGrounded && wasGrounded == false)
+			// 진짜 착지 = airborne → grounded 전환 + 떨어지는 중(vy<=0).
+			// vy>0인 grounded는 점프 직후 sphere가 아직 ground에 가까운 잔존 contact일 뿐, 착지 아님.
+			if (isGrounded && wasGrounded == false && verticalVelocity <= 0f)
 			{
 				pendingLandedImpact = Mathf.InverseLerp(landingImpactMinFallSpeed, landingImpactMaxFallSpeed, lastAirborneFallSpeed);
 				hasPendingLanded = true;
