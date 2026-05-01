@@ -14,3 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::WitchMendokusai.BiomeData
   biomeName: Mountain
   previewColor: {r: 0.55, g: 0.55, b: 0.55, a: 1}
+  surfaceBlock: {fileID: 11400000, guid: 376ae8a8f6a5c7b4285e0f2365284d1b, type: 2}
+  subsurfaceBlock: {fileID: 11400000, guid: 376ae8a8f6a5c7b4285e0f2365284d1b, type: 2}
+  subsurfaceDepth: 3

@@ -14,3 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::WitchMendokusai.BiomeData
   biomeName: Forest
   previewColor: {r: 0.2, g: 0.55, b: 0.2, a: 1}
+  surfaceBlock: {fileID: 11400000, guid: c23b89c7031136749bfa09946bc97fec, type: 2}
+  subsurfaceBlock: {fileID: 11400000, guid: 5e27683b2f3f45740ba0211f7a7eff4f, type: 2}
+  subsurfaceDepth: 3
+  entitySpawns:
+  - entity: {fileID: 11400000, guid: 6254ce15f10fba1428294e76959b48fb, type: 2}
+    density: 0.05

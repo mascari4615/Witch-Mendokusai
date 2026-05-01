@@ -30,6 +30,7 @@ namespace WitchMendokusai
 			{ typeof(Monster), "MOB" },
 			{ typeof(Building), "BD"},
 			{ typeof(UpgradeData), "UPG" },
+			{ typeof(EntityData), "ENT" },
 		};
 
 		public static readonly Dictionary<Type, string> AssetFolderOverride = new()
