@@ -96,6 +96,9 @@ namespace WitchMendokusai
 						collider.sharedMesh = filter.sharedMesh;
 					}
 
+					// 자연 entity 인스턴스화 (결정적 RNG). 청크 자식으로 박힘 — Pool.Release가 정리.
+					ChunkEntitySpawner.SpawnEntitiesForChunk(result.chunkData, chunkGo, terrainParameters);
+
 					maxProcessedPerFrame--;
 				}
 			}

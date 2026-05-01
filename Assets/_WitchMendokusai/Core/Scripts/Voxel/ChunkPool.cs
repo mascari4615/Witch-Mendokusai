@@ -65,7 +65,14 @@ namespace WitchMendokusai
 
 			chunkGo.SetActive(false);
 			chunkGo.name = "Chunk_Pooled";
-			
+
+			// 자식 = 자연 entity 인스턴스 (ChunkEntitySpawner가 spawn). 청크 unload 시 함께 destroy.
+			// mesh/collider/GroundSurface는 컴포넌트라 자식 아님 — 보존됨.
+			for (int i = chunkGo.transform.childCount - 1; i >= 0; i--)
+			{
+				Object.Destroy(chunkGo.transform.GetChild(i).gameObject);
+			}
+
 			MeshCollider collider = chunkGo.GetComponent<MeshCollider>();
 			if (collider != null)
 			{
