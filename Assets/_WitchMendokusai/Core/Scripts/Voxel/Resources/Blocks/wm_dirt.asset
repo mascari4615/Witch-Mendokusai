@@ -17,3 +17,6 @@ MonoBehaviour:
   color: {r: 0.45, g: 0.32, b: 0.2, a: 1}
   isSolid: 1
   isOpaque: 1
+  sideTileName: dirt
+  topTileName:
+  bottomTileName:

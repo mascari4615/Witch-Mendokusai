@@ -17,3 +17,6 @@ MonoBehaviour:
   color: {r: 0.2, g: 0.5, b: 0.15, a: 1}
   isSolid: 1
   isOpaque: 0
+  sideTileName: leaves
+  topTileName:
+  bottomTileName:

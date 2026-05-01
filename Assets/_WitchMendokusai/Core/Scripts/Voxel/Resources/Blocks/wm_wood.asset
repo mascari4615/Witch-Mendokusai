@@ -17,3 +17,6 @@ MonoBehaviour:
   color: {r: 0.4, g: 0.25, b: 0.13, a: 1}
   isSolid: 1
   isOpaque: 1
+  sideTileName: wood_side
+  topTileName: wood_top
+  bottomTileName: wood_top

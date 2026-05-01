@@ -17,3 +17,6 @@ MonoBehaviour:
   color: {r: 0, g: 0, b: 0, a: 0}
   isSolid: 0
   isOpaque: 0
+  sideTileName:
+  topTileName:
+  bottomTileName:

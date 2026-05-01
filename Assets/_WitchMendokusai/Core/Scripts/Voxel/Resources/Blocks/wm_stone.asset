@@ -17,3 +17,6 @@ MonoBehaviour:
   color: {r: 0.5, g: 0.5, b: 0.5, a: 1}
   isSolid: 1
   isOpaque: 1
+  sideTileName: stone
+  topTileName:
+  bottomTileName:

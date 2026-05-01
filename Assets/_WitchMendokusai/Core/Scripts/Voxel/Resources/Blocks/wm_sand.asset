@@ -17,3 +17,6 @@ MonoBehaviour:
   color: {r: 0.92, g: 0.85, b: 0.6, a: 1}
   isSolid: 1
   isOpaque: 1
+  sideTileName: sand
+  topTileName:
+  bottomTileName:

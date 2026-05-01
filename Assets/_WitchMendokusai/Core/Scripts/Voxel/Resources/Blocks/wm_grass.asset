@@ -17,3 +17,6 @@ MonoBehaviour:
   color: {r: 0.3, g: 0.65, b: 0.25, a: 1}
   isSolid: 1
   isOpaque: 1
+  sideTileName: grass_side
+  topTileName: grass_top
+  bottomTileName: dirt
