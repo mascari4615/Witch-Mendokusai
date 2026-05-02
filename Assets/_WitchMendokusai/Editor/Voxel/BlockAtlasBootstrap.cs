@@ -16,7 +16,13 @@ namespace WitchMendokusai
 
 		static BlockAtlasBootstrap()
 		{
-			EditorApplication.delayCall += () => EnsureActive();
+			EditorApplication.delayCall += () =>
+			{
+				BlockTextureAtlas atlas = EnsureActive();
+				// atlas 에 이미 build 결과가 있으면 material 자동 wire (Builder 안 돌려도 atlas → material 연결).
+				if (atlas != null && atlas.AtlasTexture != null)
+					BlockAtlasBuilder.WireAtlasToMaterial(atlas.AtlasTexture);
+			};
 		}
 
 		public static BlockTextureAtlas EnsureActive()

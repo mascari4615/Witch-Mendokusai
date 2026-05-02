@@ -16,6 +16,8 @@ namespace WitchMendokusai
 	{
 		public const string SOURCE_FOLDER = "Assets/_WitchMendokusai/Content/Voxel/BlockTextures";
 		public const string ATLAS_PNG_PATH = "Assets/_WitchMendokusai/Core/Scripts/Voxel/Resources/BlockAtlas.png";
+		public const string VOXEL_MATERIAL_PATH = "Assets/_WitchMendokusai/Core/Scripts/Voxel/Resources/VoxelMaterial.mat";
+		public const string MATERIAL_TEXTURE_PROPERTY = "_MainTex";
 
 		[MenuItem("WitchMendokusai/Voxel/Build Block Atlas")]
 		public static void BuildBlockAtlas()
@@ -98,6 +100,9 @@ namespace WitchMendokusai
 				Texture2D persistedAtlas = AssetDatabase.LoadAssetAtPath<Texture2D>(ATLAS_PNG_PATH);
 				atlas.SetAtlas(persistedAtlas, entries);
 				EditorUtility.SetDirty(atlas);
+
+				WireAtlasToMaterial(persistedAtlas);
+
 				AssetDatabase.SaveAssets();
 
 				Debug.Log($"[BlockAtlasBuilder] Atlas built: {entries.Count} tiles → {ATLAS_PNG_PATH}");
@@ -156,6 +161,24 @@ namespace WitchMendokusai
 			importer.mipmapEnabled = false;
 			importer.textureCompression = TextureImporterCompression.Uncompressed;
 			importer.SaveAndReimport();
+		}
+
+		/// <summary>VoxelMaterial 의 _MainTex 에 빌드된 atlas Texture2D 박기. 셰이더 (I4) 가 sample.</summary>
+		public static void WireAtlasToMaterial(Texture2D atlasTexture)
+		{
+			Material material = AssetDatabase.LoadAssetAtPath<Material>(VOXEL_MATERIAL_PATH);
+			if (material == null)
+			{
+				Debug.LogWarning($"[BlockAtlasBuilder] VoxelMaterial 못 찾음 ({VOXEL_MATERIAL_PATH}). VoxelBootstrap.GenerateDefaultMaterial 먼저 실행 필요.");
+				return;
+			}
+			if (material.HasProperty(MATERIAL_TEXTURE_PROPERTY) == false)
+			{
+				Debug.LogWarning($"[BlockAtlasBuilder] VoxelMaterial 에 {MATERIAL_TEXTURE_PROPERTY} 프로퍼티 없음. 셰이더 (VoxelVertexColor) 가 atlas 안 받는 버전일 수 있음.");
+				return;
+			}
+			material.SetTexture(MATERIAL_TEXTURE_PROPERTY, atlasTexture);
+			EditorUtility.SetDirty(material);
 		}
 
 		private static void EnsureFolder(string path)
