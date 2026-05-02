@@ -53,53 +53,60 @@ namespace WitchMendokusai
 				name = "BlockAtlas"
 			};
 
-			// 투명 배경 초기화
-			Color32[] clearPixels = new Color32[atlasPixelSize * atlasPixelSize];
-			atlasTexture.SetPixels32(clearPixels);
-
-			List<AtlasTileEntry> entries = new();
-
-			for (int i = 0; i < paths.Length; i++)
+			try
 			{
-				string sourcePath = paths[i];
-				EnsureReadablePixelArt(sourcePath);
+				// 투명 배경 초기화
+				Color32[] clearPixels = new Color32[atlasPixelSize * atlasPixelSize];
+				atlasTexture.SetPixels32(clearPixels);
 
-				Texture2D source = AssetDatabase.LoadAssetAtPath<Texture2D>(sourcePath);
-				if (source == null)
+				List<AtlasTileEntry> entries = new();
+
+				for (int i = 0; i < paths.Length; i++)
 				{
-					Debug.LogError($"[BlockAtlasBuilder] Failed to load {sourcePath}");
-					continue;
-				}
-				if (source.width != tileSize || source.height != tileSize)
-				{
-					Debug.LogError($"[BlockAtlasBuilder] {sourcePath}: 크기 {source.width}x{source.height} ≠ tileSize {tileSize}. 건너뜀.");
-					continue;
+					string sourcePath = paths[i];
+					EnsureReadablePixelArt(sourcePath);
+
+					Texture2D source = AssetDatabase.LoadAssetAtPath<Texture2D>(sourcePath);
+					if (source == null)
+					{
+						Debug.LogError($"[BlockAtlasBuilder] Failed to load {sourcePath}");
+						continue;
+					}
+					if (source.width != tileSize || source.height != tileSize)
+					{
+						Debug.LogError($"[BlockAtlasBuilder] {sourcePath}: 크기 {source.width}x{source.height} ≠ tileSize {tileSize}. 건너뜀.");
+						continue;
+					}
+
+					int column = i % tilesPerRow;
+					int rowIndex = i / tilesPerRow;
+					Color[] sourcePixels = source.GetPixels();
+					atlasTexture.SetPixels(column * tileSize, rowIndex * tileSize, tileSize, tileSize, sourcePixels);
+
+					string tileName = Path.GetFileNameWithoutExtension(sourcePath);
+					entries.Add(new AtlasTileEntry(i, tileName));
 				}
 
-				int column = i % tilesPerRow;
-				int rowIndex = i / tilesPerRow;
-				Color[] sourcePixels = source.GetPixels();
-				atlasTexture.SetPixels(column * tileSize, rowIndex * tileSize, tileSize, tileSize, sourcePixels);
+				atlasTexture.Apply(updateMipmaps: false);
 
-				string tileName = Path.GetFileNameWithoutExtension(sourcePath);
-				entries.Add(new AtlasTileEntry(i, tileName));
+				byte[] pngBytes = atlasTexture.EncodeToPNG();
+				File.WriteAllBytes(ATLAS_PNG_PATH, pngBytes);
+
+				AssetDatabase.ImportAsset(ATLAS_PNG_PATH, ImportAssetOptions.ForceSynchronousImport);
+				ConfigurePersistedAtlasImporter(ATLAS_PNG_PATH);
+
+				Texture2D persistedAtlas = AssetDatabase.LoadAssetAtPath<Texture2D>(ATLAS_PNG_PATH);
+				atlas.SetAtlas(persistedAtlas, entries);
+				EditorUtility.SetDirty(atlas);
+				AssetDatabase.SaveAssets();
+
+				Debug.Log($"[BlockAtlasBuilder] Atlas built: {entries.Count} tiles → {ATLAS_PNG_PATH}");
 			}
-
-			atlasTexture.Apply(updateMipmaps: false);
-
-			byte[] pngBytes = atlasTexture.EncodeToPNG();
-			File.WriteAllBytes(ATLAS_PNG_PATH, pngBytes);
-			Object.DestroyImmediate(atlasTexture);
-
-			AssetDatabase.ImportAsset(ATLAS_PNG_PATH, ImportAssetOptions.ForceSynchronousImport);
-			ConfigurePersistedAtlasImporter(ATLAS_PNG_PATH);
-
-			Texture2D persistedAtlas = AssetDatabase.LoadAssetAtPath<Texture2D>(ATLAS_PNG_PATH);
-			atlas.SetAtlas(persistedAtlas, entries);
-			EditorUtility.SetDirty(atlas);
-			AssetDatabase.SaveAssets();
-
-			Debug.Log($"[BlockAtlasBuilder] Atlas built: {entries.Count} tiles → {ATLAS_PNG_PATH}");
+			finally
+			{
+				// in-memory atlasTexture 는 항상 destroy — encode/write 단계 에러여도 누수 방지.
+				Object.DestroyImmediate(atlasTexture);
+			}
 		}
 
 		private static void EnsureReadablePixelArt(string path)
@@ -108,30 +115,34 @@ namespace WitchMendokusai
 			if (importer == null)
 				return;
 
-			bool changed = false;
+			List<string> changes = new();
 			if (importer.isReadable == false)
 			{
 				importer.isReadable = true;
-				changed = true;
+				changes.Add("isReadable=true");
 			}
 			if (importer.textureCompression != TextureImporterCompression.Uncompressed)
 			{
 				importer.textureCompression = TextureImporterCompression.Uncompressed;
-				changed = true;
+				changes.Add("compression=Uncompressed");
 			}
 			if (importer.filterMode != FilterMode.Point)
 			{
 				importer.filterMode = FilterMode.Point;
-				changed = true;
+				changes.Add("filter=Point");
 			}
 			if (importer.mipmapEnabled)
 			{
 				importer.mipmapEnabled = false;
-				changed = true;
+				changes.Add("mipmaps=off");
 			}
 
-			if (changed)
+			if (changes.Count > 0)
+			{
+				// 사용자에게 import 설정 변경 사실을 명시 — pixel art atlas 빌드용으로 강제 적용됨.
+				Debug.Log($"[BlockAtlasBuilder] {path}: import 설정 변경 [{string.Join(", ", changes)}] (pixel art atlas 요건).");
 				importer.SaveAndReimport();
+			}
 		}
 
 		private static void ConfigurePersistedAtlasImporter(string path)

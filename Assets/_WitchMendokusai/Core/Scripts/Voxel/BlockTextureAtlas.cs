@@ -27,6 +27,9 @@ namespace WitchMendokusai
 		{
 			if (tileIndex < 0 || tilesPerRow <= 0)
 				return new Rect(0f, 0f, 0f, 0f);
+			// 슬롯 범위 (tilesPerRow²) 초과는 atlas 그리드 밖 → 빈 rect 반환 (UV (0,0) sentinel 효과).
+			if (tileIndex >= tilesPerRow * tilesPerRow)
+				return new Rect(0f, 0f, 0f, 0f);
 			int row = tileIndex / tilesPerRow;
 			int col = tileIndex % tilesPerRow;
 			float size = 1f / tilesPerRow;
