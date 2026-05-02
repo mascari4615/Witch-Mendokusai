@@ -11,6 +11,7 @@ namespace WitchMendokusai
 		public Vector3[] Vertices;
 		public int[] Triangles;
 		public Color[] Colors;
+		public Vector2[] Uvs;
 
 		public void ApplyToMesh(Mesh mesh)
 		{
@@ -19,6 +20,7 @@ namespace WitchMendokusai
 			mesh.vertices = Vertices;
 			mesh.triangles = Triangles;
 			mesh.colors = Colors;
+			mesh.uv = Uvs;
 			mesh.RecalculateNormals();
 			mesh.RecalculateBounds();
 		}

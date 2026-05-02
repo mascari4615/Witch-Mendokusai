@@ -15,6 +15,7 @@ namespace WitchMendokusai
 		[SerializeField, Range(1, 10)] private int renderDistance = 2;
 
 		private TerrainParameters terrainParameters;
+		private BlockTextureAtlas blockAtlas;
 		private ChunkPool chunkPool;
 		private ChunkPosition lastViewerPosition = new(int.MinValue, int.MinValue);
 
@@ -33,6 +34,12 @@ namespace WitchMendokusai
 			terrainParameters = TerrainParametersService.Active;
 			if (terrainParameters == null)
 				Debug.LogError($"[ChunkManager] Active TerrainParameters를 찾지 못함. Resources/{TerrainParametersService.ACTIVE_RESOURCE_PATH} 확인.");
+
+			// atlas 는 main thread 에서 로드 → background mesher 가 read-only 데이터 접근.
+			// 못 찾아도 fatal 아님 — mesher 가 (-1,-1) UV 센티널 emit, 셰이더 (I4) 가 vertex color fallback.
+			blockAtlas = Resources.Load<BlockTextureAtlas>("BlockTextureAtlas_Active");
+			if (blockAtlas == null)
+				Debug.LogWarning("[ChunkManager] BlockTextureAtlas_Active 못 찾음. atlas 적용 없이 진행 (mesher UV 센티널).");
 
 			if (viewer == null)
 				viewer = Camera.main?.transform;
@@ -180,7 +187,7 @@ namespace WitchMendokusai
 						chunk.MarkClean();
 					}
 
-					ChunkMeshData meshData = ChunkMesher.GenerateMeshData(chunk);
+					ChunkMeshData meshData = ChunkMesher.GenerateMeshData(chunk, blockAtlas);
 
 					completedTasks.Enqueue((pos, meshData, chunk));
 				}
@@ -239,7 +246,7 @@ namespace WitchMendokusai
 				ChunkMeshData meshData;
 				lock (chunk.SyncRoot)
 				{
-					meshData = ChunkMesher.GenerateMeshData(chunk);
+					meshData = ChunkMesher.GenerateMeshData(chunk, blockAtlas);
 				}
 				completedTasks.Enqueue((pos, meshData, chunk));
 			});

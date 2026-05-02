@@ -34,7 +34,8 @@ namespace WitchMendokusai
 			Chunk chunk = new(chunkPosition);
 			ChunkGenerator.Generate(chunk, terrainParameters);
 
-			ChunkMeshData meshData = ChunkMesher.GenerateMeshData(chunk);
+			BlockTextureAtlas blockAtlas = Resources.Load<BlockTextureAtlas>("BlockTextureAtlas_Active");
+			ChunkMeshData meshData = ChunkMesher.GenerateMeshData(chunk, blockAtlas);
 
 			MeshFilter filter = GetComponent<MeshFilter>();
 			if (filter.sharedMesh == null)
