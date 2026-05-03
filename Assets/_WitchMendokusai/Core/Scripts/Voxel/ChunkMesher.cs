@@ -27,11 +27,11 @@ namespace WitchMendokusai
 		};
 
 		/// <summary>
-		/// chunk → mesh data. atlas 가 null 이거나 BlockData 의 tile name 이 atlas 에 없으면
-		/// 해당 face UV 는 (-1,-1) 센티널 → I4 셰이더가 vertex color fallback 분기.
-		/// 이 메서드는 background thread 에서 호출됨 — atlas 는 read-only 데이터 접근만 (Texture 객체는 만지지 않음).
+		/// chunk → mesh data. UV 는 BlockData 가 직접 보유한 face UV rect 에서 emit.
+		/// 텍스쳐 미할당 (rect.width == 0) 이면 (-1,-1) 센티널 → 셰이더가 vertex color fallback.
+		/// background thread 에서 호출됨 — BlockData read-only 데이터 접근만.
 		/// </summary>
-		public static ChunkMeshData GenerateMeshData(Chunk chunk, BlockTextureAtlas atlas)
+		public static ChunkMeshData GenerateMeshData(Chunk chunk)
 		{
 			List<Vector3> vertices = new();
 			List<int> triangles = new();
@@ -104,12 +104,10 @@ namespace WitchMendokusai
 								colors.Add(color);
 								colors.Add(color);
 
-								// UV: 면 방향에 맞는 tile name → atlas rect. 못 찾으면 (-1,-1) 센티널 (I4 shader fallback).
-								string tileName = GetTileNameForFace(blockData, d);
-								int tileIndex = atlas != null ? atlas.FindIndexByName(tileName) : -1;
-								if (tileIndex >= 0)
+								// UV: BlockData 가 자기 face UV rect 직접 보유. width 0 이면 텍스쳐 미할당 → 센티널.
+								Rect rect = GetUVRectForFace(blockData, d);
+								if (rect.width > 0f)
 								{
-									Rect rect = atlas.GetTileUVRect(tileIndex);
 									uvs.Add(new Vector2(rect.xMin, rect.yMin));
 									uvs.Add(new Vector2(rect.xMax, rect.yMin));
 									uvs.Add(new Vector2(rect.xMax, rect.yMax));
@@ -147,14 +145,14 @@ namespace WitchMendokusai
 			};
 		}
 
-		/// <summary>Dirs 인덱스 0=Up / 1=Down / 2~5=Side. BlockData 의 fallback getter 가 빈 문자열 처리.</summary>
-		private static string GetTileNameForFace(BlockData block, int dirIndex)
+		/// <summary>Dirs 인덱스 0=Up / 1=Down / 2~5=Side. BlockData 의 fallback getter 가 null texture 처리.</summary>
+		private static Rect GetUVRectForFace(BlockData block, int dirIndex)
 		{
 			if (dirIndex == 0)
-				return block.TopTileName;
+				return block.TopUVRect;
 			if (dirIndex == 1)
-				return block.BottomTileName;
-			return block.SideTileName;
+				return block.BottomUVRect;
+			return block.SideUVRect;
 		}
 	}
 }

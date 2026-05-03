@@ -17,6 +17,21 @@ MonoBehaviour:
   color: {r: 0.45, g: 0.32, b: 0.2, a: 1}
   isSolid: 1
   isOpaque: 1
-  sideTileName: dirt
-  topTileName:
-  bottomTileName:
+  sideTexture: {fileID: 0}
+  topTexture: {fileID: 0}
+  bottomTexture: {fileID: 0}
+  sideUVRect:
+    x: 0
+    y: 0
+    width: 0
+    height: 0
+  topUVRect:
+    x: 0
+    y: 0
+    width: 0
+    height: 0
+  bottomUVRect:
+    x: 0
+    y: 0
+    width: 0
+    height: 0

@@ -17,6 +17,21 @@ MonoBehaviour:
   color: {r: 0.4, g: 0.25, b: 0.13, a: 1}
   isSolid: 1
   isOpaque: 1
-  sideTileName: wood_side
-  topTileName: wood_top
-  bottomTileName: wood_top
+  sideTexture: {fileID: 0}
+  topTexture: {fileID: 0}
+  bottomTexture: {fileID: 0}
+  sideUVRect:
+    x: 0
+    y: 0
+    width: 0
+    height: 0
+  topUVRect:
+    x: 0
+    y: 0
+    width: 0
+    height: 0
+  bottomUVRect:
+    x: 0
+    y: 0
+    width: 0
+    height: 0

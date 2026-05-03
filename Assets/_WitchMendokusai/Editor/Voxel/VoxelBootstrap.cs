@@ -29,15 +29,15 @@ namespace WitchMendokusai
 			EnsureBlock("wm:wood", "Wood", new Color(0.40f, 0.25f, 0.13f, 1f), true, true);
 			EnsureBlock("wm:leaves", "Leaves", new Color(0.20f, 0.50f, 0.15f, 1f), true, false);
 
-			// Atlas tile name 시드 — atlas 가 비어있어도 안전 (mesher 가 -1 인덱스 시 vertex color fallback).
-			// 재실행 안전 — 항상 표준 값으로 동기화.
-			SyncTileNames("wm:air", "", "", "");
-			SyncTileNames("wm:stone", "stone", "", "");
-			SyncTileNames("wm:dirt", "dirt", "", "");
-			SyncTileNames("wm:grass", "grass_side", "grass_top", "dirt");
-			SyncTileNames("wm:sand", "sand", "", "");
-			SyncTileNames("wm:wood", "wood_side", "wood_top", "wood_top");
-			SyncTileNames("wm:leaves", "leaves", "", "");
+			// Atlas Texture 시드 — convention 경로에서 PNG 찾으면 BlockData 에 박는다.
+			// PNG 없으면 null 박힘 (vertex color fallback). 재실행 안전 (idempotent).
+			SyncTextures("wm:air", null, null, null);
+			SyncTextures("wm:stone", "stone", null, null);
+			SyncTextures("wm:dirt", "dirt", null, null);
+			SyncTextures("wm:grass", "grass_side", "grass_top", "dirt");
+			SyncTextures("wm:sand", "sand", null, null);
+			SyncTextures("wm:wood", "wood_side", "wood_top", "wood_top");
+			SyncTextures("wm:leaves", "leaves", null, null);
 
 			EnsureDefaultMaterial();
 
@@ -47,17 +47,26 @@ namespace WitchMendokusai
 			Debug.Log($"[VoxelBootstrap] Default blocks ready. Registry count: {BlockRegistry.Count}");
 		}
 
-		private static void SyncTileNames(string identifier, string sideTileName, string topTileName, string bottomTileName)
+		private const string BLOCK_TEXTURES_FOLDER = "Assets/_WitchMendokusai/Content/Voxel/BlockTextures";
+
+		private static void SyncTextures(string identifier, string sideTextureName, string topTextureName, string bottomTextureName)
 		{
 			string fileName = identifier.Replace(":", "_");
 			string path = $"{BLOCKS_FOLDER}/{fileName}.asset";
 			BlockData block = AssetDatabase.LoadAssetAtPath<BlockData>(path);
 			if (block == null)
 				return;
-			block.SetSideTileName(sideTileName);
-			block.SetTopTileName(topTileName);
-			block.SetBottomTileName(bottomTileName);
+			block.SetSideTexture(LoadBlockTexture(sideTextureName));
+			block.SetTopTexture(LoadBlockTexture(topTextureName));
+			block.SetBottomTexture(LoadBlockTexture(bottomTextureName));
 			EditorUtility.SetDirty(block);
+		}
+
+		private static Texture2D LoadBlockTexture(string textureName)
+		{
+			if (string.IsNullOrEmpty(textureName))
+				return null;
+			return AssetDatabase.LoadAssetAtPath<Texture2D>($"{BLOCK_TEXTURES_FOLDER}/{textureName}.png");
 		}
 
 		[MenuItem("WitchMendokusai/Voxel/Generate Default Material")]

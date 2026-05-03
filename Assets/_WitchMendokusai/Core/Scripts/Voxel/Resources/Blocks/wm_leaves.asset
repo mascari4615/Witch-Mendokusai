@@ -17,6 +17,21 @@ MonoBehaviour:
   color: {r: 0.2, g: 0.5, b: 0.15, a: 1}
   isSolid: 1
   isOpaque: 0
-  sideTileName: leaves
-  topTileName:
-  bottomTileName:
+  sideTexture: {fileID: 0}
+  topTexture: {fileID: 0}
+  bottomTexture: {fileID: 0}
+  sideUVRect:
+    x: 0
+    y: 0
+    width: 0
+    height: 0
+  topUVRect:
+    x: 0
+    y: 0
+    width: 0
+    height: 0
+  bottomUVRect:
+    x: 0
+    y: 0
+    width: 0
+    height: 0
