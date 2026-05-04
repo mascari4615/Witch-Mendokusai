@@ -12,6 +12,20 @@ namespace WitchMendokusai
 		public string Id => "item";
 		public string DisplayName => "아이템";
 		public Sprite Icon => null;
+		public IReadOnlyList<string> SubGroups => SUB_GROUPS;
+
+		private static readonly Dictionary<ItemType, string> ITEM_TYPE_LABELS = new()
+		{
+			{ ItemType.Loot, "전리품" },
+			{ ItemType.Potion, "포션" },
+			{ ItemType.Equipment, "장비" },
+			{ ItemType.Aspects, "특성" },
+		};
+
+		private static readonly List<string> SUB_GROUPS = new()
+		{
+			"전리품", "포션", "장비", "특성",
+		};
 
 		private readonly List<CodexEntry> entries = new();
 
@@ -24,11 +38,15 @@ namespace WitchMendokusai
 				if (item == null)
 					return;
 
+				string subGroup = ITEM_TYPE_LABELS.TryGetValue(item.Type, out string label) ? label : null;
+
 				entries.Add(new CodexEntry(
 					id: $"I_{item.ID}",
 					displayName: item.Name,
 					icon: item.Sprite,
-					source: item));
+					source: item,
+					gradeKey: item.Grade.ToString().ToLowerInvariant(),
+					subGroup: subGroup));
 			});
 
 			entries.Sort((a, b) => string.CompareOrdinal(a.Id, b.Id));

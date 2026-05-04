@@ -12,6 +12,18 @@ namespace WitchMendokusai
 		public string Id => "entity";
 		public string DisplayName => "주민";
 		public Sprite Icon => null;
+		public IReadOnlyList<string> SubGroups => SUB_GROUPS;
+
+		private static readonly Dictionary<MonsterType, string> MONSTER_TYPE_LABELS = new()
+		{
+			{ MonsterType.Normal, "일반" },
+			{ MonsterType.Boss, "보스" },
+		};
+
+		private static readonly List<string> SUB_GROUPS = new()
+		{
+			"일반", "보스",
+		};
 
 		private readonly List<CodexEntry> entries = new();
 
@@ -24,11 +36,14 @@ namespace WitchMendokusai
 				if (monster == null)
 					return;
 
+				string subGroup = MONSTER_TYPE_LABELS.TryGetValue(monster.Type, out string label) ? label : null;
+
 				entries.Add(new CodexEntry(
 					id: $"M_{monster.ID}",
 					displayName: monster.Name,
 					icon: monster.Sprite,
-					source: monster));
+					source: monster,
+					subGroup: subGroup));
 			});
 
 			entries.Sort((a, b) => string.CompareOrdinal(a.Id, b.Id));

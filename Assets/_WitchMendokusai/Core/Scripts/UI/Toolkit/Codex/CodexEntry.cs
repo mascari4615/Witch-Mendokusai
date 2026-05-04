@@ -18,17 +18,31 @@ namespace WitchMendokusai
 		public object Source { get; }
 
 		/// <summary>
+		/// grade 테두리 USS class 변환용 (`wm-codex-card--grade-{key}`). nullable.
+		/// ItemData 만 채움 (`item.Grade.ToString().ToLowerInvariant()`). 다른 카테고리는 null = default 테두리.
+		/// </summary>
+		public string GradeKey { get; }
+
+		/// <summary>
+		/// 어느 세부 분류(SubGroup)에 속하는지. nullable — null 이면 "전체" 에서만 표시.
+		/// 카테고리의 `SubGroups` 라벨과 일치해야 사이드바 필터 동작.
+		/// </summary>
+		public string SubGroup { get; }
+
+		/// <summary>
 		/// 골격 단계 = 항상 true. 후속 TASK 에서 unlock 레이어 도입 시
 		/// `ICodexUnlockProvider` 같은 분리 인터페이스로 위임 예정.
 		/// </summary>
 		public bool IsUnlocked => true;
 
-		public CodexEntry(string id, string displayName, Sprite icon, object source)
+		public CodexEntry(string id, string displayName, Sprite icon, object source, string gradeKey = null, string subGroup = null)
 		{
 			Id = id;
 			DisplayName = displayName;
 			Icon = icon;
 			Source = source;
+			GradeKey = gradeKey;
+			SubGroup = subGroup;
 		}
 	}
 }

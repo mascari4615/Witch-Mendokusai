@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UIElements;
 
 namespace WitchMendokusai
 {
@@ -36,10 +37,7 @@ namespace WitchMendokusai
 		{
 			BuildWindow();
 			RegisterBuiltins();
-			view.RebuildSidebar(CodexCategoryRegistry.Instance.Categories);
-
-			if (CodexCategoryRegistry.Instance.Categories.Count > 0)
-				view.SetActiveCategory(CodexCategoryRegistry.Instance.Categories[0]);
+			view.RebuildRoot(CodexCategoryRegistry.Instance.Categories);
 
 			view.OnCategorySelected += OnCategorySelected;
 			view.OnEntrySelected += OnEntrySelected;
@@ -81,6 +79,11 @@ namespace WitchMendokusai
 
 			view = new CodexView();
 			view.style.flexGrow = 1;
+
+			StyleSheet codexStyleSheet = Resources.Load<StyleSheet>("Codex/CodexWindow");
+			if (codexStyleSheet != null)
+				view.styleSheets.Add(codexStyleSheet);
+
 			window.Content.Add(view);
 
 			UIRoot.Instance.WindowsLayer.Add(window);

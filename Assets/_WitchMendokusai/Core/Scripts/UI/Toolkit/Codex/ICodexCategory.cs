@@ -19,8 +19,14 @@ namespace WitchMendokusai
 		/// <summary>사이드바에 표시될 라벨. 예: "블록", "아이템", "주민"</summary>
 		string DisplayName { get; }
 
-		/// <summary>사이드바 아이콘. null 허용 (텍스트 only fallback).</summary>
+		/// <summary>Root 화면 큰 주제 버튼 아이콘. null 허용 (텍스트 only fallback).</summary>
 		Sprite Icon { get; }
+
+		/// <summary>
+		/// Category 모드 좌측 사이드바에 표시할 세부 분류 라벨. null/empty 면 "전체" 한 항목만.
+		/// 사이드바 클릭 시 entry.SubGroup 가 일치하는 것만 그리드 표시.
+		/// </summary>
+		IReadOnlyList<string> SubGroups { get; }
 
 		/// <summary>카테고리 활성화 시 한 번 호출. 데이터 reload 등 lazy 초기화 hook.</summary>
 		void OnActivate();
