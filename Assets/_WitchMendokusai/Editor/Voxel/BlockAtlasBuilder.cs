@@ -14,7 +14,9 @@ namespace WitchMendokusai
 	/// </summary>
 	public static class BlockAtlasBuilder
 	{
-		public const int TILE_SIZE = 16;
+		// 32 px/tile = 마크 HD / 인디 표준. 픽셀 미감 + 적당한 디테일.
+		// 작은 입력 (16) 은 Point upscale, 큰 입력 (64+) 은 nearest-neighbor down — pixel art 미감 보존.
+		public const int TILE_SIZE = 32;
 		public const int TILES_PER_ROW = 16;
 		public const string ATLAS_PNG_PATH = "Assets/_WitchMendokusai/Core/Scripts/Voxel/Resources/BlockAtlas.png";
 		public const string VOXEL_SHADER_NAME = "WM/VoxelVertexColor";
