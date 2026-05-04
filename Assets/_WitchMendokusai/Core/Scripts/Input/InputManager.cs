@@ -44,6 +44,7 @@ namespace WitchMendokusai
 		Status,
 		Inventory,
 		DevWindowToggle,
+		CodexToggle,
 	}
 
 	public enum InputEventResponseType
@@ -91,6 +92,7 @@ namespace WitchMendokusai
 			{ InputEventType.Status, InputMapType.UI },
 			{ InputEventType.Inventory, InputMapType.UI },
 			{ InputEventType.DevWindowToggle, InputMapType.UI },
+			{ InputEventType.CodexToggle, InputMapType.UI },
 		};
 
 		// Strategy-owned: cleared on every strategy switch

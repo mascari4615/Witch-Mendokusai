@@ -1019,6 +1019,15 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "CodexToggle",
+                    "type": "Button",
+                    "id": "ce58a49d-f643-4ecf-ba21-6de5bb9c9e28",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -1503,6 +1512,17 @@
                     "processors": "",
                     "groups": "",
                     "action": "DevWindowToggle",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "f1f68569-f49a-4926-b9f6-e71ab1903f01",
+                    "path": "<Keyboard>/b",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "CodexToggle",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }
