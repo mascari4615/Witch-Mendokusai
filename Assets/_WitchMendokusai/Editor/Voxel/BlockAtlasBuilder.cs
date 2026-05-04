@@ -17,7 +17,7 @@ namespace WitchMendokusai
 		public const int TILE_SIZE = 16;
 		public const int TILES_PER_ROW = 16;
 		public const string ATLAS_PNG_PATH = "Assets/_WitchMendokusai/Core/Scripts/Voxel/Resources/BlockAtlas.png";
-		public const string VOXEL_MATERIAL_PATH = "Assets/_WitchMendokusai/Core/Scripts/Voxel/Resources/VoxelMaterial.mat";
+		public const string VOXEL_SHADER_NAME = "WM/VoxelVertexColor";
 		public const string MATERIAL_TEXTURE_PROPERTY = "_MainTex";
 
 		[MenuItem("WitchMendokusai/Voxel/Build Block Atlas")]
@@ -64,7 +64,7 @@ namespace WitchMendokusai
 				ConfigurePersistedAtlasImporter(ATLAS_PNG_PATH);
 
 				Texture2D persistedAtlas = AssetDatabase.LoadAssetAtPath<Texture2D>(ATLAS_PNG_PATH);
-				WireAtlasToMaterial(persistedAtlas);
+				WireAtlasToAllVoxelMaterials(persistedAtlas);
 
 				// 변경된 BlockData 들 디스크 저장
 				foreach (BlockData block in blocks)
@@ -114,24 +114,20 @@ namespace WitchMendokusai
 
 				EnsureReadablePixelArt(faceTexture);
 
-				if (faceTexture.width != TILE_SIZE || faceTexture.height != TILE_SIZE)
-				{
-					Debug.LogError($"[BlockAtlasBuilder] {AssetDatabase.GetAssetPath(faceTexture)}: 크기 {faceTexture.width}x{faceTexture.height} ≠ TILE_SIZE {TILE_SIZE}. 슬롯 할당 안 함.");
-					ClearUVRect(block, face);
-					return;
-				}
-
 				int column = newSlot % TILES_PER_ROW;
 				int rowIndex = newSlot / TILES_PER_ROW;
-				Color[] sourcePixels = faceTexture.GetPixels();
-				atlasTexture.SetPixels(column * TILE_SIZE, rowIndex * TILE_SIZE, TILE_SIZE, TILE_SIZE, sourcePixels);
+				Color[] tilePixels = ResampleToTileSize(faceTexture);
+				atlasTexture.SetPixels(column * TILE_SIZE, rowIndex * TILE_SIZE, TILE_SIZE, TILE_SIZE, tilePixels);
 
 				textureToSlot[faceTexture] = newSlot;
 				existingSlot = newSlot;
+
+				Debug.Log($"[BlockAtlasBuilder] slot {newSlot} (col={column}, row={rowIndex}) ← {AssetDatabase.GetAssetPath(faceTexture)} ({faceTexture.width}×{faceTexture.height} → 16×16)");
 			}
 
 			Rect uvRect = SlotToUVRect(existingSlot);
 			SetUVRect(block, face, uvRect);
+			Debug.Log($"[BlockAtlasBuilder] {block.Identifier}.{face} → slot {existingSlot}, UV rect {uvRect}");
 		}
 
 		/// <summary>fallback 적용 안 한 raw 필드 텍스쳐 — Builder 가 *명시 할당된* 면만 패킹하도록.</summary>
@@ -167,6 +163,26 @@ namespace WitchMendokusai
 			SetUVRect(block, face, zero);
 		}
 
+		/// <summary>입력 텍스쳐를 TILE_SIZE×TILE_SIZE 로 변환. 같은 크기면 그대로, 아니면 nearest-neighbor 리샘플 (pixel art 스타일 보존, 결정적).</summary>
+		private static Color[] ResampleToTileSize(Texture2D source)
+		{
+			Color[] sourcePixels = source.GetPixels();
+			if (source.width == TILE_SIZE && source.height == TILE_SIZE)
+				return sourcePixels;
+
+			Color[] tilePixels = new Color[TILE_SIZE * TILE_SIZE];
+			for (int dy = 0; dy < TILE_SIZE; dy++)
+			{
+				int sy = dy * source.height / TILE_SIZE;
+				for (int dx = 0; dx < TILE_SIZE; dx++)
+				{
+					int sx = dx * source.width / TILE_SIZE;
+					tilePixels[dy * TILE_SIZE + dx] = sourcePixels[sy * source.width + sx];
+				}
+			}
+			return tilePixels;
+		}
+
 		private static Rect SlotToUVRect(int slot)
 		{
 			int column = slot % TILES_PER_ROW;
@@ -175,22 +191,39 @@ namespace WitchMendokusai
 			return new Rect(column * size, rowIndex * size, size, size);
 		}
 
-		/// <summary>VoxelMaterial 의 _MainTex 에 빌드된 atlas Texture2D 박기. 셰이더 (I4) 가 sample.</summary>
-		public static void WireAtlasToMaterial(Texture2D atlasTexture)
+		/// <summary>
+		/// 프로젝트 내 *모든* `WM/VoxelVertexColor` 셰이더 사용 material 의 `_MainTex` 에 빌드된 atlas 박기.
+		/// 단일 정본 material 외에도 씬·프리팹에서 직접 만든 material 이 있을 수 있어 (과거 함정 사례)
+		/// 셰이더 사용처를 자동 wire — atlas 빌드 1회로 모든 voxel material 동기화.
+		/// </summary>
+		public static void WireAtlasToAllVoxelMaterials(Texture2D atlasTexture)
 		{
-			Material material = AssetDatabase.LoadAssetAtPath<Material>(VOXEL_MATERIAL_PATH);
-			if (material == null)
+			string[] guids = AssetDatabase.FindAssets("t:Material");
+			int wired = 0;
+			int skippedNoProperty = 0;
+			foreach (string guid in guids)
 			{
-				Debug.LogWarning($"[BlockAtlasBuilder] VoxelMaterial 못 찾음 ({VOXEL_MATERIAL_PATH}). VoxelBootstrap.GenerateDefaultMaterial 먼저 실행 필요.");
-				return;
+				string path = AssetDatabase.GUIDToAssetPath(guid);
+				Material material = AssetDatabase.LoadAssetAtPath<Material>(path);
+				if (material == null || material.shader == null)
+					continue;
+				if (material.shader.name != VOXEL_SHADER_NAME)
+					continue;
+				if (material.HasProperty(MATERIAL_TEXTURE_PROPERTY) == false)
+				{
+					skippedNoProperty++;
+					continue;
+				}
+				material.SetTexture(MATERIAL_TEXTURE_PROPERTY, atlasTexture);
+				EditorUtility.SetDirty(material);
+				wired++;
+				Debug.Log($"[BlockAtlasBuilder] {path} ← atlas wire");
 			}
-			if (material.HasProperty(MATERIAL_TEXTURE_PROPERTY) == false)
-			{
-				Debug.LogWarning($"[BlockAtlasBuilder] VoxelMaterial 에 {MATERIAL_TEXTURE_PROPERTY} 프로퍼티 없음. 셰이더 (VoxelVertexColor) 가 atlas 안 받는 버전일 수 있음.");
-				return;
-			}
-			material.SetTexture(MATERIAL_TEXTURE_PROPERTY, atlasTexture);
-			EditorUtility.SetDirty(material);
+
+			if (wired == 0)
+				Debug.LogWarning($"[BlockAtlasBuilder] '{VOXEL_SHADER_NAME}' 셰이더 사용 material 없음 — VoxelBootstrap.GenerateDefaultMaterial 먼저 실행.");
+			else
+				Debug.Log($"[BlockAtlasBuilder] {wired} material atlas wire 완료 (no-{MATERIAL_TEXTURE_PROPERTY}: {skippedNoProperty}).");
 		}
 
 		private static void EnsureReadablePixelArt(Texture2D texture)

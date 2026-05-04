@@ -39,6 +39,8 @@ namespace WitchMendokusai
 			List<Vector2> uvs = new();
 
 			int vertexOffset = 0;
+			int atlasFaceCount = 0;
+			int sentinelFaceCount = 0;
 
 			for (int y = 0; y < VoxelConstants.CHUNK_SIZE_Y; y++)
 			{
@@ -55,13 +57,6 @@ namespace WitchMendokusai
 							continue;
 
 						Vector3 pos = new(x, y, z);
-						Color color = blockData.Color;
-
-						// 블록 간 경계를 쉽게 알아볼 수 있도록 로컬 좌표 기반 체커보드 패턴(밝기 차이) 적용
-						if ((x + y + z) % 2 != 0)
-						{
-							color = new Color(color.r * 0.85f, color.g * 0.85f, color.b * 0.85f, color.a);
-						}
 
 						for (int d = 0; d < 6; d++)
 						{
@@ -93,20 +88,36 @@ namespace WitchMendokusai
 
 							if (generateFace)
 							{
+								Rect rect = GetUVRectForFace(blockData, d);
+								bool hasAtlas = rect.width > 0f;
+
+								// vertex color: atlas 면이면 white (atlas 색만 보임). vertex color path 면 block.Color × 체커보드 명도.
+								Color faceColor;
+								if (hasAtlas)
+								{
+									faceColor = Color.white;
+									atlasFaceCount++;
+								}
+								else
+								{
+									faceColor = blockData.Color;
+									if ((x + y + z) % 2 != 0)
+										faceColor = new Color(faceColor.r * 0.85f, faceColor.g * 0.85f, faceColor.b * 0.85f, faceColor.a);
+									sentinelFaceCount++;
+								}
+
 								Vector3[] faceVerts = FaceVertices[d];
 								vertices.Add(pos + faceVerts[0]);
 								vertices.Add(pos + faceVerts[1]);
 								vertices.Add(pos + faceVerts[2]);
 								vertices.Add(pos + faceVerts[3]);
 
-								colors.Add(color);
-								colors.Add(color);
-								colors.Add(color);
-								colors.Add(color);
+								colors.Add(faceColor);
+								colors.Add(faceColor);
+								colors.Add(faceColor);
+								colors.Add(faceColor);
 
-								// UV: BlockData 가 자기 face UV rect 직접 보유. width 0 이면 텍스쳐 미할당 → 센티널.
-								Rect rect = GetUVRectForFace(blockData, d);
-								if (rect.width > 0f)
+								if (hasAtlas)
 								{
 									uvs.Add(new Vector2(rect.xMin, rect.yMin));
 									uvs.Add(new Vector2(rect.xMax, rect.yMin));
@@ -135,6 +146,8 @@ namespace WitchMendokusai
 					}
 				}
 			}
+
+			Debug.Log($"[ChunkMesher] chunk({chunk.Position.X},{chunk.Position.Z}): {vertexOffset / 4} faces, atlas={atlasFaceCount}, sentinel={sentinelFaceCount}");
 
 			return new ChunkMeshData
 			{

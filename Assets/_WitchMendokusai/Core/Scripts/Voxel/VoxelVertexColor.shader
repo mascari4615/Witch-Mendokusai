@@ -61,10 +61,9 @@ Shader "WM/VoxelVertexColor"
                 // step(0, uv.x) = 1 when uv.x >= 0 (atlas 면), 0 when sentinel.
                 half hasAtlas = step(0, IN.uv.x);
                 half4 atlasSample = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, IN.uv);
-                // hasAtlas=0: 1 (atlas 무시) → 결과 = vertex color * base * diffuse
-                // hasAtlas=1: atlasSample → 결과 = vertex color * atlas * base * diffuse (biome tint 등 vertex color 유지)
+                // hasAtlas=0: 1 (atlas 무시) → vertex color * base * diffuse 그대로
+                // hasAtlas=1: atlasSample → vertex color (white 셋) * atlas * base * diffuse — biome tint 등 vertex color path 유지
                 half4 textureMod = lerp(half4(1, 1, 1, 1), atlasSample, hasAtlas);
-
                 return IN.color * textureMod * _BaseColor * diffuse;
             }
             ENDHLSL
