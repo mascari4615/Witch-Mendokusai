@@ -34,7 +34,7 @@ namespace WitchMendokusai
 			Chunk chunk = new(chunkPosition);
 			ChunkGenerator.Generate(chunk, terrainParameters);
 
-			ChunkMeshData meshData = ChunkMesher.GenerateMeshData(chunk);
+			ChunkMeshData meshData = ChunkMesher.GenerateMeshData(chunk, terrainParameters);
 
 			MeshFilter filter = GetComponent<MeshFilter>();
 			if (filter.sharedMesh == null)

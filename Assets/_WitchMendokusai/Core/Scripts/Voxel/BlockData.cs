@@ -20,6 +20,8 @@ namespace WitchMendokusai
 		[SerializeField] private Color color = Color.gray;
 		[SerializeField] private bool isSolid = true;
 		[SerializeField] private bool isOpaque = true;
+		[Tooltip("식물성 블록 (잔디·잎 등) 만 true. mesher 가 column biome.PreviewColor 을 vertex color 에 곱 → atlas/sentinel 모두 색조 변화. 돌·모래 등 무관 블록은 false.")]
+		[SerializeField] private bool acceptsBiomeTint = false;
 
 		[Header("Atlas Faces (drag Texture2D — null = atlas 미할당, vertex color fallback)")]
 		[SerializeField] private Texture2D sideTexture;
@@ -38,6 +40,7 @@ namespace WitchMendokusai
 		public Color Color => color;
 		public bool IsSolid => isSolid;
 		public bool IsOpaque => isOpaque;
+		public bool AcceptsBiomeTint => acceptsBiomeTint;
 		public ushort RuntimeId => runtimeId;
 
 		public Texture2D SideTexture => sideTexture;
@@ -60,6 +63,7 @@ namespace WitchMendokusai
 		public void SetColor(Color value) => color = value;
 		public void SetIsSolid(bool value) => isSolid = value;
 		public void SetIsOpaque(bool value) => isOpaque = value;
+		public void SetAcceptsBiomeTint(bool value) => acceptsBiomeTint = value;
 		public void SetSideTexture(Texture2D value) => sideTexture = value;
 		public void SetTopTexture(Texture2D value) => topTexture = value;
 		public void SetBottomTexture(Texture2D value) => bottomTexture = value;

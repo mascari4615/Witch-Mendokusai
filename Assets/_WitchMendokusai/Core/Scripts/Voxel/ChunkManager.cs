@@ -180,7 +180,7 @@ namespace WitchMendokusai
 						chunk.MarkClean();
 					}
 
-					ChunkMeshData meshData = ChunkMesher.GenerateMeshData(chunk);
+					ChunkMeshData meshData = ChunkMesher.GenerateMeshData(chunk, terrainParameters);
 
 					completedTasks.Enqueue((pos, meshData, chunk));
 				}
@@ -239,7 +239,7 @@ namespace WitchMendokusai
 				ChunkMeshData meshData;
 				lock (chunk.SyncRoot)
 				{
-					meshData = ChunkMesher.GenerateMeshData(chunk);
+					meshData = ChunkMesher.GenerateMeshData(chunk, terrainParameters);
 				}
 				completedTasks.Enqueue((pos, meshData, chunk));
 			});

@@ -29,9 +29,11 @@ namespace WitchMendokusai
 		/// <summary>
 		/// chunk → mesh data. UV 는 BlockData 가 직접 보유한 face UV rect 에서 emit.
 		/// 텍스쳐 미할당 (rect.width == 0) 이면 (-1,-1) 센티널 → 셰이더가 vertex color fallback.
-		/// background thread 에서 호출됨 — BlockData read-only 데이터 접근만.
+		/// `parameters` 가 있으면 column 별 biome 을 prefetch 해 `BlockData.AcceptsBiomeTint` 블록 면의
+		/// vertex color 에 `biome.PreviewColor` 곱 (식물성 블록만 — atlas/sentinel 양쪽 적용).
+		/// background thread 에서 호출됨 — BlockData/BiomeData read-only 데이터 접근만.
 		/// </summary>
-		public static ChunkMeshData GenerateMeshData(Chunk chunk)
+		public static ChunkMeshData GenerateMeshData(Chunk chunk, TerrainParameters parameters)
 		{
 			List<Vector3> vertices = new();
 			List<int> triangles = new();
@@ -41,6 +43,23 @@ namespace WitchMendokusai
 			int vertexOffset = 0;
 			int atlasFaceCount = 0;
 			int sentinelFaceCount = 0;
+			int biomeTintFaceCount = 0;
+
+			// column 단위 biome prefetch — face emit 마다 sample 하지 않게.
+			// parameters 가 null (test runner 등) 이면 모두 null → tint X.
+			BiomeData[] biomeColumns = new BiomeData[VoxelConstants.CHUNK_SIZE_X * VoxelConstants.CHUNK_SIZE_Z];
+			if (parameters != null)
+			{
+				for (int cz = 0; cz < VoxelConstants.CHUNK_SIZE_Z; cz++)
+				{
+					for (int cx = 0; cx < VoxelConstants.CHUNK_SIZE_X; cx++)
+					{
+						int worldX = chunk.LocalToWorldX(cx);
+						int worldZ = chunk.LocalToWorldZ(cz);
+						biomeColumns[cz * VoxelConstants.CHUNK_SIZE_X + cx] = TerrainGenerator.SampleBiome(parameters, worldX, worldZ);
+					}
+				}
+			}
 
 			for (int y = 0; y < VoxelConstants.CHUNK_SIZE_Y; y++)
 			{
@@ -91,7 +110,7 @@ namespace WitchMendokusai
 								Rect rect = GetUVRectForFace(blockData, d);
 								bool hasAtlas = rect.width > 0f;
 
-								// vertex color: atlas 면이면 white (atlas 색만 보임). vertex color path 면 block.Color × 체커보드 명도.
+								// vertex color base: atlas 면 = white (atlas 색만 보임), sentinel 면 = block.Color × 체커보드.
 								Color faceColor;
 								if (hasAtlas)
 								{
@@ -104,6 +123,18 @@ namespace WitchMendokusai
 									if ((x + y + z) % 2 != 0)
 										faceColor = new Color(faceColor.r * 0.85f, faceColor.g * 0.85f, faceColor.b * 0.85f, faceColor.a);
 									sentinelFaceCount++;
+								}
+
+								// Biome tint: 식물성 블록만. column biome.PreviewColor 곱 → atlas / sentinel 양쪽 적용.
+								if (blockData.AcceptsBiomeTint)
+								{
+									BiomeData biome = biomeColumns[z * VoxelConstants.CHUNK_SIZE_X + x];
+									if (biome != null)
+									{
+										Color tint = biome.PreviewColor;
+										faceColor = new Color(faceColor.r * tint.r, faceColor.g * tint.g, faceColor.b * tint.b, faceColor.a);
+										biomeTintFaceCount++;
+									}
 								}
 
 								Vector3[] faceVerts = FaceVertices[d];
@@ -147,7 +178,7 @@ namespace WitchMendokusai
 				}
 			}
 
-			Debug.Log($"[ChunkMesher] chunk({chunk.Position.X},{chunk.Position.Z}): {vertexOffset / 4} faces, atlas={atlasFaceCount}, sentinel={sentinelFaceCount}");
+			Debug.Log($"[ChunkMesher] chunk({chunk.Position.X},{chunk.Position.Z}): {vertexOffset / 4} faces, atlas={atlasFaceCount}, sentinel={sentinelFaceCount}, biomeTint={biomeTintFaceCount}");
 
 			return new ChunkMeshData
 			{
