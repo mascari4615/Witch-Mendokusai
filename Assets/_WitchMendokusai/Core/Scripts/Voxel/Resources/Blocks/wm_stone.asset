@@ -17,6 +17,8 @@ MonoBehaviour:
   color: {r: 0.5, g: 0.5, b: 0.5, a: 1}
   isSolid: 1
   isOpaque: 1
+  acceptsBiomeTint: 0
+  textureWorldScale: 1
   sideTexture: {fileID: 0}
   topTexture: {fileID: 0}
   bottomTexture: {fileID: 0}

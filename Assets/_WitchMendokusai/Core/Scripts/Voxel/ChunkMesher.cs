@@ -27,8 +27,9 @@ namespace WitchMendokusai
 		};
 
 		/// <summary>
-		/// chunk → mesh data. UV 는 BlockData 가 직접 보유한 face UV rect 에서 emit.
-		/// 텍스쳐 미할당 (rect.width == 0) 이면 (-1,-1) 센티널 → 셰이더가 vertex color fallback.
+		/// chunk → mesh data. **Worldspace UV**: TEXCOORD0 = face 방향 worldUV (frac 으로 wrap), TEXCOORD1 = atlas tile rect + worldScale.
+		/// 셰이더가 `frac(uv / worldScale) * atlasSize + atlasOrigin` 으로 atlas sample.
+		/// 텍스쳐 미할당 (rect.width == 0) 이면 tileRect.z = 0 → 셰이더 vertex color path.
 		/// `parameters` 가 있으면 column 별 biome 을 prefetch 해 `BlockData.AcceptsBiomeTint` 블록 면의
 		/// vertex color 에 `biome.PreviewColor` 곱 (식물성 블록만 — atlas/sentinel 양쪽 적용).
 		/// background thread 에서 호출됨 — BlockData/BiomeData read-only 데이터 접근만.
@@ -39,6 +40,7 @@ namespace WitchMendokusai
 			List<int> triangles = new();
 			List<Color> colors = new();
 			List<Vector2> uvs = new();
+			List<Vector4> tileRects = new();
 
 			int vertexOffset = 0;
 			int atlasFaceCount = 0;
@@ -137,31 +139,24 @@ namespace WitchMendokusai
 									}
 								}
 
+								// TEXCOORD1 = (atlas xMin, yMin, atlasSize, worldScale). atlasSize=0 = sentinel (셰이더 vertex color path).
+								// worldScale 은 sentinel 도 1f 안전값 (셰이더 frac(uv / 1) 안전).
+								float worldScaleSafe = blockData.TextureWorldScale > 0f ? blockData.TextureWorldScale : 1f;
+								Vector4 tileRect = new(rect.xMin, rect.yMin, rect.width, worldScaleSafe);
+
 								Vector3[] faceVerts = FaceVertices[d];
-								vertices.Add(pos + faceVerts[0]);
-								vertices.Add(pos + faceVerts[1]);
-								vertices.Add(pos + faceVerts[2]);
-								vertices.Add(pos + faceVerts[3]);
-
-								colors.Add(faceColor);
-								colors.Add(faceColor);
-								colors.Add(faceColor);
-								colors.Add(faceColor);
-
-								if (hasAtlas)
+								for (int v = 0; v < 4; v++)
 								{
-									uvs.Add(new Vector2(rect.xMin, rect.yMin));
-									uvs.Add(new Vector2(rect.xMax, rect.yMin));
-									uvs.Add(new Vector2(rect.xMax, rect.yMax));
-									uvs.Add(new Vector2(rect.xMin, rect.yMax));
-								}
-								else
-								{
-									Vector2 sentinel = new(-1f, -1f);
-									uvs.Add(sentinel);
-									uvs.Add(sentinel);
-									uvs.Add(sentinel);
-									uvs.Add(sentinel);
+									Vector3 localOffset = faceVerts[v];
+									vertices.Add(pos + localOffset);
+									colors.Add(faceColor);
+									Vector3 worldVertex = new(
+										chunk.LocalToWorldX(x) + localOffset.x,
+										y + localOffset.y,
+										chunk.LocalToWorldZ(z) + localOffset.z
+									);
+									uvs.Add(GetWorldUV(d, worldVertex));
+									tileRects.Add(tileRect);
 								}
 
 								triangles.Add(vertexOffset + 0);
@@ -185,7 +180,8 @@ namespace WitchMendokusai
 				Vertices = vertices.ToArray(),
 				Triangles = triangles.ToArray(),
 				Colors = colors.ToArray(),
-				Uvs = uvs.ToArray()
+				Uvs = uvs.ToArray(),
+				TileRects = tileRects.ToArray()
 			};
 		}
 
@@ -197,6 +193,17 @@ namespace WitchMendokusai
 			if (dirIndex == 1)
 				return block.BottomUVRect;
 			return block.SideUVRect;
+		}
+
+		/// <summary>face 방향에 맞는 평면 좌표 — 셰이더가 frac wrap 후 atlas tile rect 매핑.
+		/// Up/Down (d 0/1): XZ 평면. Left/Right (2/3): ZY 평면. Forward/Back (4/5): XY 평면.</summary>
+		private static Vector2 GetWorldUV(int dirIndex, Vector3 worldPos)
+		{
+			if (dirIndex == 0 || dirIndex == 1)
+				return new Vector2(worldPos.x, worldPos.z);
+			if (dirIndex == 2 || dirIndex == 3)
+				return new Vector2(worldPos.z, worldPos.y);
+			return new Vector2(worldPos.x, worldPos.y);
 		}
 	}
 }

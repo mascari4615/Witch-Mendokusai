@@ -18,6 +18,7 @@ MonoBehaviour:
   isSolid: 1
   isOpaque: 1
   acceptsBiomeTint: 1
+  textureWorldScale: 4
   sideTexture: {fileID: 2800000, guid: a5469200cecca8f41afc02ccc41e8618, type: 3}
   topTexture: {fileID: 2800000, guid: a5469200cecca8f41afc02ccc41e8618, type: 3}
   bottomTexture: {fileID: 2800000, guid: a5469200cecca8f41afc02ccc41e8618, type: 3}

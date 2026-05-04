@@ -12,6 +12,9 @@ namespace WitchMendokusai
 		public int[] Triangles;
 		public Color[] Colors;
 		public Vector2[] Uvs;
+		/// <summary>UV 채널 1 — atlas tile rect + worldScale 묶음. (xMin, yMin, atlasSize, worldScale).
+		/// atlasSize == 0 = sentinel (텍스쳐 미할당 → 셰이더 vertex color path).</summary>
+		public Vector4[] TileRects;
 
 		public void ApplyToMesh(Mesh mesh)
 		{
@@ -21,6 +24,7 @@ namespace WitchMendokusai
 			mesh.triangles = Triangles;
 			mesh.colors = Colors;
 			mesh.uv = Uvs;
+			mesh.SetUVs(1, TileRects);
 			mesh.RecalculateNormals();
 			mesh.RecalculateBounds();
 		}

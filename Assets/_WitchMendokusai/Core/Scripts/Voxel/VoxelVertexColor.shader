@@ -21,7 +21,10 @@ Shader "WM/VoxelVertexColor"
                 float4 positionOS : POSITION;
                 float3 normalOS : NORMAL;
                 float4 color : COLOR;
+                // mesher worldspace UV — face 방향에 맞는 평면 좌표 (큰 절대값. 셰이더가 frac 으로 wrap)
                 float2 uv : TEXCOORD0;
+                // atlas 슬롯 + 반복 주기 — (xMin, yMin, atlasSize, worldScale). atlasSize=0 = sentinel
+                float4 tileRect : TEXCOORD1;
             };
 
             struct Varyings
@@ -30,6 +33,7 @@ Shader "WM/VoxelVertexColor"
                 float3 normalWS : TEXCOORD0;
                 float4 color : COLOR;
                 float2 uv : TEXCOORD1;
+                float4 tileRect : TEXCOORD2;
             };
 
             TEXTURE2D(_MainTex);
@@ -47,6 +51,7 @@ Shader "WM/VoxelVertexColor"
                 OUT.normalWS = TransformObjectToWorldNormal(IN.normalOS);
                 OUT.color = IN.color;
                 OUT.uv = IN.uv;
+                OUT.tileRect = IN.tileRect;
                 return OUT;
             }
 
@@ -57,12 +62,17 @@ Shader "WM/VoxelVertexColor"
                 half ambient = 0.3; // 너무 어둡지 않게 기본 앰비언트 0.3
                 half diffuse = ambient + (NdotL * (1.0 - ambient));
 
-                // mesher 가 atlas tile 못 찾으면 UV (-1,-1) sentinel emit → vertex color path.
-                // step(0, uv.x) = 1 when uv.x >= 0 (atlas 면), 0 when sentinel.
-                half hasAtlas = step(0, IN.uv.x);
-                half4 atlasSample = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, IN.uv);
-                // hasAtlas=0: 1 (atlas 무시) → vertex color * base * diffuse 그대로
-                // hasAtlas=1: atlasSample → vertex color (white 셋) * atlas * base * diffuse — biome tint 등 vertex color path 유지
+                // tileRect = (atlas xMin, yMin, atlasSize, worldScale).
+                // atlasSize > 0 → atlas 면, == 0 → sentinel (텍스쳐 미할당) → vertex color path.
+                half hasAtlas = step(0.0001, IN.tileRect.z);
+
+                // worldspace UV → frac wrap (worldScale m 마다 반복) → atlas tile rect 안 매핑.
+                // worldScale 보장 > 0 (mesher 안전값 1f 처리) — divide-by-zero 없음.
+                float2 wrappedUV = frac(IN.uv / IN.tileRect.w);
+                float2 atlasUV = IN.tileRect.xy + wrappedUV * IN.tileRect.z;
+                half4 atlasSample = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, atlasUV);
+
+                // atlas 면 = vertex color × atlas, sentinel = vertex color × 1 (atlas 무시)
                 half4 textureMod = lerp(half4(1, 1, 1, 1), atlasSample, hasAtlas);
                 return IN.color * textureMod * _BaseColor * diffuse;
             }
