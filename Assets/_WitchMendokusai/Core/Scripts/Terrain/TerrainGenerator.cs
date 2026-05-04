@@ -108,9 +108,10 @@ namespace WitchMendokusai
 		}
 
 		/// <summary>
-		/// 한 청크 영역을 heightmap surface mesh로 생성. (size+1)^2 vertices.
-		/// 본격 voxel 메시는 TASK-027-C에서. 본 함수는 에디터 미리보기용 빠른 surface 표현.
-		/// 바이옴 색상은 vertex color에 박힘 — vertex color material 필요.
+		/// 한 영역을 heightmap surface mesh로 생성. (size+1)^2 vertices.
+		/// 에디터 미리보기용 빠른 surface 표현 — 본격 voxel 메시와 별개.
+		/// `chunkX/chunkZ` 는 worldOrigin 청크 좌표 (worldOrigin = chunk * size). size 는 실제 grid 길이.
+		/// 바이옴 색상은 vertex color, atlas tileRect 는 sentinel(0,0,0,1) — `WM/VoxelVertexColor` 셰이더가 vertex color path 로 fallback.
 		/// </summary>
 		public static Mesh GenerateChunkMesh(TerrainParameters parameters, int chunkX, int chunkZ, int size = 16)
 		{
@@ -120,10 +121,14 @@ namespace WitchMendokusai
 			Vector3[] vertices = new Vector3[vertexCount];
 			Color[] colors = new Color[vertexCount];
 			Vector2[] uvs = new Vector2[vertexCount];
+			Vector4[] tileRects = new Vector4[vertexCount];
 			int[] triangles = new int[size * size * 6];
 
 			int worldOriginX = chunkX * size;
 			int worldOriginZ = chunkZ * size;
+
+			// 셰이더가 atlas size=0 = sentinel (vertex color path). worldScale=1 = divide-by-zero 방지.
+			Vector4 sentinelTileRect = new(0f, 0f, 0f, 1f);
 
 			for (int z = 0; z < gridSize; z++)
 			{
@@ -139,6 +144,7 @@ namespace WitchMendokusai
 					vertices[idx] = new Vector3(x, height, z);
 					colors[idx] = biome != null ? biome.PreviewColor : new Color(0.5f, 0.5f, 0.5f, 1f);
 					uvs[idx] = new Vector2((float)x / size, (float)z / size);
+					tileRects[idx] = sentinelTileRect;
 				}
 			}
 
@@ -158,10 +164,13 @@ namespace WitchMendokusai
 			}
 
 			Mesh mesh = new() { name = $"ChunkPreview_{chunkX}_{chunkZ}" };
+			// size 큰 미리보기 (예: 256+) 의 vertex 수 65535 초과 가능 — UInt32 강제.
+			mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
 			mesh.vertices = vertices;
 			mesh.triangles = triangles;
 			mesh.colors = colors;
 			mesh.uv = uvs;
+			mesh.SetUVs(1, tileRects);
 			mesh.RecalculateNormals();
 			mesh.RecalculateBounds();
 			return mesh;

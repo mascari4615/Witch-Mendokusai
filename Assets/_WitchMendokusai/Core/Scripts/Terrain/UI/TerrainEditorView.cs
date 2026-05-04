@@ -52,6 +52,7 @@ namespace WitchMendokusai
 			{ "previewBiome", ("바이옴", "Biome") },
 			{ "previewMesh3D", ("3D", "3D") },
 			{ "mesh3dUnavailable", ("3D 미리보기는 에디터에서만 동작", "3D preview is editor-only") },
+			{ "mesh3dSize", ("미리보기 크기 (m)", "Preview Size (m)") },
 			{ "biome", ("바이옴", "Biome") },
 			{ "biomeFrequency", ("바이옴 빈도", "Biome Freq") },
 			{ "empty", ("TerrainParameters가 비어있음.", "TerrainParameters is null.") },
@@ -69,6 +70,8 @@ namespace WitchMendokusai
 
 		private Vector2 mesh3dRotation = new(30f, 45f);
 		private float mesh3dZoom = 1f;
+		// Mesh3D preview 영역 한 변 길이 (m). 큰 값일수록 biome 분포가 넓게 보임. UInt32 인덱스 사용 — 안전.
+		private int mesh3dSize = 128;
 		private bool isDragging;
 		private Vector2 lastPointerPosition;
 
@@ -92,6 +95,8 @@ namespace WitchMendokusai
 		private Button previewHeightmapButton;
 		private Button previewBiomeButton;
 		private Button previewMesh3DButton;
+		private SliderInt mesh3dSizeSlider;
+		private Label mesh3dSizeHeader;
 
 		private IntegerField seedField;
 		private SliderInt octavesSlider;
@@ -288,6 +293,26 @@ namespace WitchMendokusai
 			previewMesh3DButton.style.marginLeft = 4;
 			previewMesh3DButton.SetEnabled(renderMesh3D != null);
 			previewModeRow.Add(previewMesh3DButton);
+
+			// Mesh3D preview 영역 크기 슬라이더 — 큰 값에서 biome 분포·지형 모양 보임. 16 (1 청크) ~ 256 (대형 영역).
+			mesh3dSizeHeader = new Label();
+			mesh3dSizeHeader.style.marginTop = 8;
+			mesh3dSizeHeader.style.unityFontStyleAndWeight = FontStyle.Bold;
+			sidebar.Add(mesh3dSizeHeader);
+
+			mesh3dSizeSlider = new SliderInt(16, 256) { value = mesh3dSize, showInputField = true };
+			mesh3dSizeSlider.RegisterValueChangedCallback(evt =>
+			{
+				int snapped = Mathf.Clamp(Mathf.RoundToInt(evt.newValue / 16f) * 16, 16, 256);
+				if (snapped == mesh3dSize)
+					return;
+				mesh3dSize = snapped;
+				if (mesh3dSizeSlider.value != snapped)
+					mesh3dSizeSlider.SetValueWithoutNotify(snapped);
+				if (previewMode == TerrainPreviewMode.Mesh3D)
+					Regenerate();
+			});
+			sidebar.Add(mesh3dSizeSlider);
 		}
 
 		private void SetPreviewMode(TerrainPreviewMode mode)
@@ -320,6 +345,7 @@ namespace WitchMendokusai
 			previewHeightmapButton.text = T("previewHeightmap");
 			previewBiomeButton.text = T("previewBiome");
 			previewMesh3DButton.text = T("previewMesh3D");
+			mesh3dSizeHeader.text = T("mesh3dSize");
 
 			seedField.label = T("seed");
 			octavesSlider.label = T("octaves");
@@ -370,7 +396,7 @@ namespace WitchMendokusai
 					return;
 				}
 
-				Mesh mesh = TerrainGenerator.GenerateChunkMesh(parameters, 0, 0);
+				Mesh mesh = TerrainGenerator.GenerateChunkMesh(parameters, 0, 0, mesh3dSize);
 				Texture rendered = renderMesh3D(mesh, mesh3dRotation, mesh3dZoom, previewPixelWidth, previewPixelHeight);
 				if (rendered is RenderTexture rt)
 					previewImage.style.backgroundImage = Background.FromRenderTexture(rt);
