@@ -38,6 +38,8 @@ namespace WitchMendokusai
 		// 이번 tick 발생한 벽 충돌 노멀들 (디버그/이벤트 송출용)
 		public readonly List<Vector3> WallContactNormals = new();
 
+		public System.Action<Collider> OnHitCollider = delegate { };
+
 		public void ResetPerTick()
 		{
 			WallContactNormals.Clear();

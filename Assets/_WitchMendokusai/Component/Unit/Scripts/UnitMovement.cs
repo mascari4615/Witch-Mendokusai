@@ -38,6 +38,9 @@ namespace WitchMendokusai
 		// Hit-stop — motor tick skip 동안 victim 만 멈춤. timescale 안 건드림.
 		private float pauseRemaining;
 
+		private System.Collections.Generic.HashSet<Collider> currentHits = new();
+		private System.Collections.Generic.HashSet<Collider> previousHits = new();
+
 		// Events
 		public event Action<float> OnLanded;
 
@@ -65,6 +68,7 @@ namespace WitchMendokusai
 			unitRigidBody.interpolation = RigidbodyInterpolation.Interpolate;
 
 			motor = new Motor(transform, unitRigidBody, unitCapsule);
+			motor.Context.OnHitCollider = HandleMotorHit;
 
 			// ExternalImpulse는 Input 보다 *먼저* 등록 — horizontal velocity를 먼저 채우고
 			// IsExternallyDriven=true 표시. Input은 그 플래그 보고 자기 기여 보류.
@@ -99,6 +103,11 @@ namespace WitchMendokusai
 				pauseRemaining -= Time.fixedDeltaTime;
 				return;
 			}
+
+			var temp = previousHits;
+			previousHits = currentHits;
+			currentHits = temp;
+			currentHits.Clear();
 
 			MotorContext context = motor.Context;
 			context.MoveDirection = MoveDirectionWorld;
@@ -144,6 +153,23 @@ namespace WitchMendokusai
 		public bool IsGrounded()
 		{
 			return motor != null && motor.Context.GroundState == MotorGroundState.Grounded;
+		}
+
+		private void HandleMotorHit(Collider other)
+		{
+			if (other == null) return;
+			
+			if (currentHits.Add(other))
+			{
+				if (previousHits.Contains(other) == false)
+				{
+					foreach (IKinematicCollisionReceiver receiver in other.GetComponentsInParent<IKinematicCollisionReceiver>())
+						receiver.OnKinematicCollisionEnter(unitCapsule);
+
+					foreach (IKinematicCollisionReceiver receiver in GetComponents<IKinematicCollisionReceiver>())
+						receiver.OnKinematicCollisionEnter(other);
+				}
+			}
 		}
 
 		public void TryJump()

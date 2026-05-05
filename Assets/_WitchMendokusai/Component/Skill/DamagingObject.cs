@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace WitchMendokusai
 {
-	public class DamagingObject : SkillComponent
+	public class DamagingObject : SkillComponent, IKinematicCollisionReceiver
 	{
 		[field: Header("_" + nameof(DamagingObject))]
 		[SerializeField] private int damage;
@@ -30,6 +30,7 @@ namespace WitchMendokusai
 		private int curHitCount;
 
 		private SkillObject skillObject = null;
+		private Dictionary<GameObject, int> hitFrames = new();
 
 		public void OnTriggerEnter(Collider other)
 		{
@@ -47,8 +48,20 @@ namespace WitchMendokusai
 			TryDamage(collision.gameObject);
 		}
 
+		public void OnKinematicCollisionEnter(Collider other)
+		{
+			if (isTrigger || valid == false)
+				return;
+
+			TryDamage(other.gameObject);
+		}
+
 		private void TryDamage(GameObject other)
 		{
+			if (hitFrames.TryGetValue(other, out int frame) && frame == Time.frameCount)
+				return;
+			hitFrames[other] = Time.frameCount;
+
 			if (other.TryGetComponent(out IDamageable damageable))
 			{
 				if (damageable is UnitHealth unitHealth)

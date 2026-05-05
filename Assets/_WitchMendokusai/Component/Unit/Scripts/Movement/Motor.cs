@@ -159,6 +159,7 @@ namespace WitchMendokusai
 						out Vector3 direction,
 						out float distance))
 					{
+						context.OnHitCollider.Invoke(other);
 						totalCorrection += direction * distance;
 						anyCorrection = true;
 					}
@@ -475,6 +476,7 @@ namespace WitchMendokusai
 				return false;
 			}
 			closestHit = HIT_BUFFER[closestIndex];
+			context.OnHitCollider.Invoke(closestHit.collider);
 			return true;
 		}
 
