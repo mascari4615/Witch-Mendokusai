@@ -34,6 +34,7 @@ extend-exclude = [
     "*.anim",
     "*.controller",
     "*.wlt",
+    "*.shadergraph",
     "package-lock.json", # NPM 패키지 락 파일 (해시 덩어리)
     "yarn.lock"
 ]
