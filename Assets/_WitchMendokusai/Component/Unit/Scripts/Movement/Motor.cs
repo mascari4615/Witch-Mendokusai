@@ -146,7 +146,7 @@ namespace WitchMendokusai
 					Collider other = OVERLAP_BUFFER[i];
 					if (other == null)
 						continue;
-					if (other.transform.root == unitTransform.root)
+					if (other.transform.IsChildOf(unitTransform))
 						continue;
 
 					if (Physics.ComputePenetration(
@@ -210,7 +210,7 @@ namespace WitchMendokusai
 				RaycastHit hit = HIT_BUFFER[i];
 				if (hit.collider == null)
 					continue;
-				if (hit.collider.transform.root == unitTransform.root)
+				if (hit.collider.transform.IsChildOf(unitTransform))
 					continue;
 				if (IsWalkable(hit) == false)
 					continue;
@@ -460,7 +460,7 @@ namespace WitchMendokusai
 				RaycastHit hit = HIT_BUFFER[i];
 				if (hit.collider == null)
 					continue;
-				if (hit.collider.transform.root == unitTransform.root)
+				if (hit.collider.transform.IsChildOf(unitTransform))
 					continue;
 				if (hit.distance < closestDistance)
 				{
@@ -511,7 +511,7 @@ namespace WitchMendokusai
 				RaycastHit hit = HIT_BUFFER[i];
 				if (hit.collider == null)
 					continue;
-				if (hit.collider.transform.root == unitTransform.root)
+				if (hit.collider.transform.IsChildOf(unitTransform))
 					continue;
 				if (hit.distance < closestDistance)
 				{
