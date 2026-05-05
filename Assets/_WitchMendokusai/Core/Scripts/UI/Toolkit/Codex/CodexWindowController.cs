@@ -18,6 +18,8 @@ namespace WitchMendokusai
 		private WMWindow window;
 		private CodexView view;
 
+		public EntryProviderRegistry Providers { get; } = new();
+
 		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
 		private static void Bootstrap()
 		{
@@ -37,7 +39,7 @@ namespace WitchMendokusai
 		{
 			BuildWindow();
 			RegisterBuiltins();
-			view.RebuildRoot(CodexCategoryRegistry.Instance.Categories);
+			view.RebuildRoot(Providers.Providers);
 
 			view.OnCategorySelected += OnCategorySelected;
 			view.OnEntrySelected += OnEntrySelected;
@@ -57,12 +59,12 @@ namespace WitchMendokusai
 
 		private void RegisterBuiltins()
 		{
-			if (CodexCategoryRegistry.Instance.FindById("block") == null)
-				CodexCategoryRegistry.Instance.Register(new BlockCodexCategory());
-			if (CodexCategoryRegistry.Instance.FindById("item") == null)
-				CodexCategoryRegistry.Instance.Register(new ItemCodexCategory());
-			if (CodexCategoryRegistry.Instance.FindById("entity") == null)
-				CodexCategoryRegistry.Instance.Register(new EntityCodexCategory());
+			if (Providers.FindById("block") == null)
+				Providers.Register(new BlockCodexCategory());
+			if (Providers.FindById("item") == null)
+				Providers.Register(new ItemCodexCategory());
+			if (Providers.FindById("entity") == null)
+				Providers.Register(new EntityCodexCategory());
 		}
 
 		private void BuildWindow()
@@ -93,7 +95,7 @@ namespace WitchMendokusai
 		public void Open() => window?.Open();
 		public void Close() => window?.Close();
 
-		private void OnCategorySelected(ICodexCategory category) => view.SetActiveCategory(category);
-		private void OnEntrySelected(CodexEntry entry) => view.SetActiveEntry(entry);
+		private void OnCategorySelected(IEntryProvider category) => view.SetActiveCategory(category);
+		private void OnEntrySelected(EntryDescriptor entry) => view.SetActiveEntry(entry);
 	}
 }

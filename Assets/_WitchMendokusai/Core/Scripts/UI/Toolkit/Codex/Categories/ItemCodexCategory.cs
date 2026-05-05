@@ -7,7 +7,7 @@ namespace WitchMendokusai
 	/// <summary>
 	/// 아이템 카테고리. SOHelper.ForEach&lt;ItemData&gt; 자동 인덱스.
 	/// </summary>
-	public class ItemCodexCategory : ICodexCategory
+	public class ItemCodexCategory : IEntryProvider
 	{
 		public string Id => "item";
 		public string DisplayName => "아이템";
@@ -27,7 +27,7 @@ namespace WitchMendokusai
 			"전리품", "포션", "장비", "특성",
 		};
 
-		private readonly List<CodexEntry> entries = new();
+		private readonly List<EntryDescriptor> entries = new();
 
 		public void OnActivate()
 		{
@@ -40,7 +40,7 @@ namespace WitchMendokusai
 
 				string subGroup = ITEM_TYPE_LABELS.TryGetValue(item.Type, out string label) ? label : null;
 
-				entries.Add(new CodexEntry(
+				entries.Add(new EntryDescriptor(
 					id: $"I_{item.ID}",
 					displayName: item.Name,
 					icon: item.Sprite,
@@ -54,9 +54,9 @@ namespace WitchMendokusai
 
 		public void OnDeactivate() => entries.Clear();
 
-		public IReadOnlyList<CodexEntry> GetEntries() => entries;
+		public IReadOnlyList<EntryDescriptor> GetEntries() => entries;
 
-		public VisualElement BuildDetail(CodexEntry entry)
+		public VisualElement BuildDetail(EntryDescriptor entry)
 		{
 			ItemData item = entry.Source as ItemData;
 			VisualElement detail = new();

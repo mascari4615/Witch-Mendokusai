@@ -7,7 +7,7 @@ namespace WitchMendokusai
 	/// <summary>
 	/// entity 카테고리. 골격은 Monster 만 (DevWindowController 가 같은 선택). Doll/NPC 는 후속 — 별도 카테고리 또는 sub-grouping 결정.
 	/// </summary>
-	public class EntityCodexCategory : ICodexCategory
+	public class EntityCodexCategory : IEntryProvider
 	{
 		public string Id => "entity";
 		public string DisplayName => "주민";
@@ -25,7 +25,7 @@ namespace WitchMendokusai
 			"일반", "보스",
 		};
 
-		private readonly List<CodexEntry> entries = new();
+		private readonly List<EntryDescriptor> entries = new();
 
 		public void OnActivate()
 		{
@@ -38,7 +38,7 @@ namespace WitchMendokusai
 
 				string subGroup = MONSTER_TYPE_LABELS.TryGetValue(monster.Type, out string label) ? label : null;
 
-				entries.Add(new CodexEntry(
+				entries.Add(new EntryDescriptor(
 					id: $"M_{monster.ID}",
 					displayName: monster.Name,
 					icon: monster.Sprite,
@@ -51,9 +51,9 @@ namespace WitchMendokusai
 
 		public void OnDeactivate() => entries.Clear();
 
-		public IReadOnlyList<CodexEntry> GetEntries() => entries;
+		public IReadOnlyList<EntryDescriptor> GetEntries() => entries;
 
-		public VisualElement BuildDetail(CodexEntry entry)
+		public VisualElement BuildDetail(EntryDescriptor entry)
 		{
 			Monster monster = entry.Source as Monster;
 			VisualElement detail = new();

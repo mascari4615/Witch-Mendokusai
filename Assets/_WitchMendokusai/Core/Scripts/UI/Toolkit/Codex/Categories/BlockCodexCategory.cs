@@ -9,14 +9,14 @@ namespace WitchMendokusai
 	/// Air 블록은 게임상 의미 없어 제외.
 	/// SideTexture → Sprite 변환 후 캐시 (instance dict). 같은 블록 재진입 시 같은 Sprite 재사용.
 	/// </summary>
-	public class BlockCodexCategory : ICodexCategory
+	public class BlockCodexCategory : IEntryProvider
 	{
 		public string Id => "block";
 		public string DisplayName => "블록";
 		public Sprite Icon => null;
 		public IReadOnlyList<string> SubGroups => null;
 
-		private readonly List<CodexEntry> entries = new();
+		private readonly List<EntryDescriptor> entries = new();
 		private readonly Dictionary<string, Sprite> spriteCache = new();
 		private static readonly Dictionary<string, GameObject> previewPrefabCache = new();
 
@@ -34,7 +34,7 @@ namespace WitchMendokusai
 				Sprite icon = ResolveIcon(block);
 				GameObject previewPrefab = ResolvePreviewPrefab(block);
 
-				entries.Add(new CodexEntry(
+				entries.Add(new EntryDescriptor(
 					id: block.Identifier,
 					displayName: block.BlockName,
 					icon: icon,
@@ -92,9 +92,9 @@ namespace WitchMendokusai
 
 		public void OnDeactivate() => entries.Clear();
 
-		public IReadOnlyList<CodexEntry> GetEntries() => entries;
+		public IReadOnlyList<EntryDescriptor> GetEntries() => entries;
 
-		public VisualElement BuildDetail(CodexEntry entry)
+		public VisualElement BuildDetail(EntryDescriptor entry)
 		{
 			BlockData block = entry.Source as BlockData;
 			VisualElement detail = new();

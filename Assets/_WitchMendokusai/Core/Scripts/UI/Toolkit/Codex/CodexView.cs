@@ -30,8 +30,8 @@ namespace WitchMendokusai
 		private const string ALL_KEY = "__all__";
 		private const string ALL_LABEL = "전체";
 
-		public event Action<ICodexCategory> OnCategorySelected = delegate { };
-		public event Action<CodexEntry> OnEntrySelected = delegate { };
+		public event Action<IEntryProvider> OnCategorySelected = delegate { };
+		public event Action<EntryDescriptor> OnEntrySelected = delegate { };
 
 		private enum CodexMode
 		{
@@ -54,13 +54,13 @@ namespace WitchMendokusai
 		private readonly Dictionary<string, Button> sidebarButtons = new();
 		private readonly Dictionary<string, CodexCard> cards = new();
 
-		private ICodexCategory activeCategory;
-		private CodexEntry activeEntry;
+		private IEntryProvider activeCategory;
+		private EntryDescriptor activeEntry;
 		private CodexMode currentMode;
 		private string currentSubGroup;
 
-		public ICodexCategory ActiveCategory => activeCategory;
-		public CodexEntry ActiveEntry => activeEntry;
+		public IEntryProvider ActiveCategory => activeCategory;
+		public EntryDescriptor ActiveEntry => activeEntry;
 
 		public CodexView()
 		{
@@ -142,14 +142,14 @@ namespace WitchMendokusai
 				Add(detailArea);
 		}
 
-		public void RebuildRoot(IReadOnlyList<ICodexCategory> categories)
+		public void RebuildRoot(IReadOnlyList<IEntryProvider> categories)
 		{
 			rootArea.Clear();
 
 			for (int i = 0; i < categories.Count; i++)
 			{
-				ICodexCategory category = categories[i];
-				ICodexCategory captured = category;
+				IEntryProvider category = categories[i];
+				IEntryProvider captured = category;
 				Button button = new(() => OnCategorySelected.Invoke(captured))
 				{
 					text = category.DisplayName,
@@ -159,7 +159,7 @@ namespace WitchMendokusai
 			}
 		}
 
-		public void SetActiveCategory(ICodexCategory category)
+		public void SetActiveCategory(IEntryProvider category)
 		{
 			if (activeCategory != null)
 				activeCategory.OnDeactivate();
@@ -238,14 +238,14 @@ namespace WitchMendokusai
 			if (activeCategory == null)
 				return;
 
-			IReadOnlyList<CodexEntry> entries = activeCategory.GetEntries();
+			IReadOnlyList<EntryDescriptor> entries = activeCategory.GetEntries();
 			for (int i = 0; i < entries.Count; i++)
 			{
-				CodexEntry entry = entries[i];
+				EntryDescriptor entry = entries[i];
 				if (currentSubGroup != null && entry.SubGroup != currentSubGroup)
 					continue;
 
-				CodexEntry captured = entry;
+				EntryDescriptor captured = entry;
 				CodexCard card = new(entry);
 				card.OnClicked += () => OnEntrySelected.Invoke(captured);
 				cards[entry.Id] = card;
@@ -253,7 +253,7 @@ namespace WitchMendokusai
 			}
 		}
 
-		public void SetActiveEntry(CodexEntry entry)
+		public void SetActiveEntry(EntryDescriptor entry)
 		{
 			if (activeEntry != null && cards.TryGetValue(activeEntry.Id, out CodexCard previousCard))
 				previousCard.SetActive(false);

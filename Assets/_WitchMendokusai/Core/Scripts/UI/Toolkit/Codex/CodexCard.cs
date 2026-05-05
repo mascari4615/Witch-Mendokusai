@@ -21,12 +21,12 @@ namespace WitchMendokusai
 
 		public event Action OnClicked = delegate { };
 
-		public CodexEntry Entry { get; }
+		public EntryDescriptor Entry { get; }
 
 		private readonly Image iconImage;
 		private readonly Label nameLabel;
 
-		public CodexCard(CodexEntry entry)
+		public CodexCard(EntryDescriptor entry)
 		{
 			Entry = entry;
 

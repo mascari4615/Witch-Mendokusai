@@ -22,7 +22,7 @@ namespace WitchMendokusai
 		public const string USS_META_GRADE_PREFIX = "wm-codex-detail__meta--grade-";
 		public const string USS_BODY = "wm-codex-detail__body";
 
-		public CodexDetailPanel(CodexEntry entry, ICodexCategory category)
+		public CodexDetailPanel(EntryDescriptor entry, IEntryProvider category)
 		{
 			AddToClassList(USS_CLASS);
 			style.flexDirection = FlexDirection.Row;
@@ -115,7 +115,7 @@ namespace WitchMendokusai
 				body.Add(categoryDetail);
 		}
 
-private static string BuildMetaText(CodexEntry entry, ICodexCategory category)
+private static string BuildMetaText(EntryDescriptor entry, IEntryProvider category)
 		{
 			string categoryLabel = category.DisplayName;
 			string subGroup = string.IsNullOrEmpty(entry.SubGroup) ? null : entry.SubGroup;
