@@ -1796,8 +1796,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9f67cc09feccff944bfd88c4f9bfe2d2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WitchMendokusai.UnitMovement
+  jumpForce: 5.6
   fallGravityMultiplier: 2.2
   lowJumpGravityMultiplier: 3.1
+  coyoteTime: 0.1
+  jumpBufferTime: 0.12
+  landingImpactMinFallSpeed: 1.2
+  landingImpactMaxFallSpeed: 8
 --- !u!114 &1960143077941209161
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1896,7 +1901,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6743984011136962783}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 56a0490fb95efdf448799c451d9b1544, type: 3}
   m_Name: 
@@ -7305,7 +7310,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &6217981888261230299
 Transform:
   m_ObjectHideFlags: 0
