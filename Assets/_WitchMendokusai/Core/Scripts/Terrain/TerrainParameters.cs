@@ -16,6 +16,10 @@ namespace WitchMendokusai
 		[SerializeField, Range(0f, 1f)] private float persistence = 0.5f;
 		[SerializeField] private float lacunarity = 2f;
 
+		[Header("Terrain Graph (노드 그래프 — null = heightmap PNG 또는 Perlin 사용)")]
+		[Tooltip("WM/Terrain/TerrainGraph SO. WorldPositionInputNode + HeightOutputNode 가 진입/출구. 우선순위 1 — graph 있으면 PNG/Perlin 무시.")]
+		[SerializeField] private TerrainGraph terrainGraph;
+
 		[Header("Heightmap Texture (외부 툴 import — null = Perlin 사용)")]
 		[Tooltip("World Machine / WorldPainter / 손그림 PNG 등. R 채널 grayscale = [0,1] → ±Amplitude. Inspector 에서 isReadable=true 필수. null 이면 Perlin 노이즈 그대로.")]
 		[SerializeField] private Texture2D heightmapTexture;
@@ -43,6 +47,8 @@ namespace WitchMendokusai
 		public Texture2D HeightmapTexture => heightmapTexture;
 		public float HeightmapWorldScale => heightmapWorldScale;
 		public bool HasHeightmapCache => heightmapCache != null;
+		public TerrainGraph TerrainGraph => terrainGraph;
+		public bool HasTerrainGraph => terrainGraph != null;
 
 		public void SetSeed(int value) => seed = value;
 		public void SetOctaves(int value) => octaves = Mathf.Clamp(value, 1, 8);

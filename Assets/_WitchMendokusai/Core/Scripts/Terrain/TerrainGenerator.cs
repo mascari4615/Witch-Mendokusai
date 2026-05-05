@@ -13,6 +13,11 @@ namespace WitchMendokusai
 
 		public static float SampleHeight(TerrainParameters parameters, int x, int z)
 		{
+			// 우선순위: TerrainGraph > heightmap PNG > Perlin (fallback).
+			// 그래프 있으면 그래프 실행 결과 — TASK-WM-032 D 부터 가능.
+			if (parameters.HasTerrainGraph)
+				return parameters.TerrainGraph.SampleHeight(x, z);
+
 			// heightmap PNG 캐시 있으면 그쪽 우선 (외부 툴 import escape hatch). null 캐시 = Perlin path.
 			if (parameters.HasHeightmapCache)
 			{
