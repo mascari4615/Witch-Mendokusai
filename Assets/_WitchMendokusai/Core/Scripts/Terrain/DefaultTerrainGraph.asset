@@ -13,71 +13,84 @@ MonoBehaviour:
   m_Name: DefaultTerrainGraph
   m_EditorClassIdentifier: Assembly-CSharp::WitchMendokusai.TerrainGraph
   nodes:
-  - rid: 3717169671054032980
-  - rid: 3717169671054032981
-  - rid: 3717169671054032982
-  - rid: 3717169671054032983
-  - rid: 3717169671054032984
+  - rid: 3717169671054032985
+  - rid: 3717169671054032986
+  - rid: 3717169671054032987
+  - rid: 3717169671054032988
+  - rid: 3717169671054032989
+  - rid: 3717169671054032990
   connections:
-  - sourceNodeId: 38737f214ab745e99fd7fc27a9236e7d
+  - sourceNodeId: 575465d92acf4a7bb7641543d68924da
     sourcePortId: x
-    targetNodeId: 733037a924794ad8ab31b4369aa409c0
+    targetNodeId: 6f76d4a79e4d4643a4808d29a0b956c2
     targetPortId: x
-  - sourceNodeId: 38737f214ab745e99fd7fc27a9236e7d
+  - sourceNodeId: 575465d92acf4a7bb7641543d68924da
     sourcePortId: z
-    targetNodeId: 733037a924794ad8ab31b4369aa409c0
+    targetNodeId: 6f76d4a79e4d4643a4808d29a0b956c2
     targetPortId: z
-  - sourceNodeId: 38737f214ab745e99fd7fc27a9236e7d
+  - sourceNodeId: 575465d92acf4a7bb7641543d68924da
     sourcePortId: x
-    targetNodeId: a67cba86ff7044e5be8c031fdc42c3ab
+    targetNodeId: b63a891ca6e348239cfece63c5a01e40
     targetPortId: x
-  - sourceNodeId: 38737f214ab745e99fd7fc27a9236e7d
+  - sourceNodeId: 575465d92acf4a7bb7641543d68924da
     sourcePortId: z
-    targetNodeId: a67cba86ff7044e5be8c031fdc42c3ab
+    targetNodeId: b63a891ca6e348239cfece63c5a01e40
     targetPortId: z
-  - sourceNodeId: 38737f214ab745e99fd7fc27a9236e7d
+  - sourceNodeId: 575465d92acf4a7bb7641543d68924da
     sourcePortId: x
-    targetNodeId: ee6cea66a601489195a39f06c0b28d21
+    targetNodeId: f1a7ab014b084fcc981e67038978729f
     targetPortId: x
-  - sourceNodeId: 38737f214ab745e99fd7fc27a9236e7d
+  - sourceNodeId: 575465d92acf4a7bb7641543d68924da
     sourcePortId: z
-    targetNodeId: ee6cea66a601489195a39f06c0b28d21
+    targetNodeId: f1a7ab014b084fcc981e67038978729f
     targetPortId: z
-  - sourceNodeId: 733037a924794ad8ab31b4369aa409c0
+  - sourceNodeId: 575465d92acf4a7bb7641543d68924da
+    sourcePortId: x
+    targetNodeId: ec8a1abf320f49cf83bbe1029a49b16c
+    targetPortId: x
+  - sourceNodeId: 575465d92acf4a7bb7641543d68924da
+    sourcePortId: z
+    targetNodeId: ec8a1abf320f49cf83bbe1029a49b16c
+    targetPortId: z
+  - sourceNodeId: 6f76d4a79e4d4643a4808d29a0b956c2
     sourcePortId: height
-    targetNodeId: a67cba86ff7044e5be8c031fdc42c3ab
+    targetNodeId: b63a891ca6e348239cfece63c5a01e40
     targetPortId: height
-  - sourceNodeId: a67cba86ff7044e5be8c031fdc42c3ab
+  - sourceNodeId: b63a891ca6e348239cfece63c5a01e40
     sourcePortId: height
-    targetNodeId: ee6cea66a601489195a39f06c0b28d21
+    targetNodeId: f1a7ab014b084fcc981e67038978729f
     targetPortId: height
-  - sourceNodeId: ee6cea66a601489195a39f06c0b28d21
+  - sourceNodeId: f1a7ab014b084fcc981e67038978729f
     sourcePortId: height
-    targetNodeId: 7ba88fbcff8b417fbc61e3dc7d83ff8c
+    targetNodeId: ec8a1abf320f49cf83bbe1029a49b16c
+    targetPortId: height
+  - sourceNodeId: ec8a1abf320f49cf83bbe1029a49b16c
+    sourcePortId: height
+    targetNodeId: 789198df3549400f8632e170b8ab29a1
     targetPortId: height
   references:
     version: 2
     RefIds:
-    - rid: 3717169671054032980
+    - rid: 3717169671054032985
       type: {class: WorldPositionInputNode, ns: WitchMendokusai, asm: Assembly-CSharp}
       data:
-        id: 38737f214ab745e99fd7fc27a9236e7d
+        id: 575465d92acf4a7bb7641543d68924da
         editorPosition: {x: 0, y: 0}
-    - rid: 3717169671054032981
+    - rid: 3717169671054032986
       type: {class: FractalPerlinNode, ns: WitchMendokusai, asm: Assembly-CSharp}
       data:
-        id: 733037a924794ad8ab31b4369aa409c0
-        editorPosition: {x: 256, y: 0}
+        id: 6f76d4a79e4d4643a4808d29a0b956c2
+        editorPosition: {x: 260, y: 0}
         octaves: 4
         frequency: 0.01
         amplitude: 32
         persistence: 0.5
         lacunarity: 2
         seed: 0
-    - rid: 3717169671054032982
+    - rid: 3717169671054032987
       type: {class: HydraulicErosionNode, ns: WitchMendokusai, asm: Assembly-CSharp}
       data:
-        id: a67cba86ff7044e5be8c031fdc42c3ab
+        id: b63a891ca6e348239cfece63c5a01e40
         editorPosition: {x: 540, y: 0}
         regionSize: 256
         parameters:
@@ -93,18 +106,26 @@ MonoBehaviour:
           erosionRate: 0.5
           evaporRate: 0.01
           seed: 0
-    - rid: 3717169671054032983
+    - rid: 3717169671054032988
       type: {class: ThermalErosionNode, ns: WitchMendokusai, asm: Assembly-CSharp}
       data:
-        id: ee6cea66a601489195a39f06c0b28d21
+        id: f1a7ab014b084fcc981e67038978729f
         editorPosition: {x: 820, y: 0}
         regionSize: 256
         parameters:
           iterations: 8
           talusAngle: 35
           strength: 0.5
-    - rid: 3717169671054032984
+    - rid: 3717169671054032989
+      type: {class: SmoothFilterNode, ns: WitchMendokusai, asm: Assembly-CSharp}
+      data:
+        id: ec8a1abf320f49cf83bbe1029a49b16c
+        editorPosition: {x: 1100, y: 0}
+        regionSize: 256
+        parameters:
+          iterations: 4
+    - rid: 3717169671054032990
       type: {class: HeightOutputNode, ns: WitchMendokusai, asm: Assembly-CSharp}
       data:
-        id: 7ba88fbcff8b417fbc61e3dc7d83ff8c
-        editorPosition: {x: 1100, y: 0}
+        id: 789198df3549400f8632e170b8ab29a1
+        editorPosition: {x: 1380, y: 0}
