@@ -33,23 +33,24 @@
     color: rgb(220, 235, 255);
 }
 
-/* === Category 모드: 뒤로 + 좌 사이드바(세부 분류) + 우 그리드 === */
+/* === Category 모드: 뒤로 + DataExplorerView (좌 사이드바 + 우 그리드) === */
 .wm-codex__category {
     padding: 12px;
 }
 
-.wm-codex__category-body {
+/* === DataExplorerView 베이스 — Codex/DataSOWindow 공유 (TASK-WM-038 단계 A) === */
+.wm-data-explorer {
     background-color: rgba(0, 0, 0, 0.15);
 }
 
-.wm-codex__sidebar {
+.wm-data-explorer__sidebar {
     background-color: rgb(15, 16, 22);
     border-right-width: 1px;
     border-right-color: rgb(45, 48, 58);
     padding: 8px 6px;
 }
 
-.wm-codex__sidebar-button {
+.wm-data-explorer__sidebar-button {
     background-color: rgba(0, 0, 0, 0);
     color: rgb(170, 175, 190);
     border-width: 0;
@@ -60,17 +61,17 @@
     transition-duration: 0.1s;
 }
 
-.wm-codex__sidebar-button:hover {
+.wm-data-explorer__sidebar-button:hover {
     background-color: rgba(255, 255, 255, 0.06);
     color: rgb(220, 225, 240);
 }
 
-.wm-codex__sidebar-button--active {
+.wm-data-explorer__sidebar-button--active {
     background-color: rgba(80, 140, 220, 0.18);
     color: rgb(160, 200, 255);
 }
 
-.wm-codex__grid-content {
+.wm-data-explorer__grid-content {
     padding: 8px;
 }
 

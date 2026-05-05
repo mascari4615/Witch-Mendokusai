@@ -5,11 +5,13 @@ using UnityEngine.UIElements;
 namespace WitchMendokusai
 {
 	/// <summary>
-	/// 도감 윈도우 본체 — 엔드필드식. 3 모드 전환.
+	/// 도감 윈도우 본체 — 엔드필드식 3 모드 전환.
 	/// - Root: 큰 주제 버튼 (블록/아이템/주민)
-	/// - Category: 뒤로 + 좌 사이드바(세부 분류) + 우 카드 그리드
-	/// - Detail: 뒤로 + BuildDetail
-	/// 시각 톤은 `Resources/Codex/CodexWindow.uss`.
+	/// - Category: 뒤로 + DataExplorerView (좌 사이드바 + 우 카드 그리드)
+	/// - Detail: 뒤로 + CodexDetailPanel
+	///
+	/// 사이드바/그리드 베이스는 DataExplorerView (TASK-WM-038 단계 A 추출).
+	/// CodexView 는 *Codex 도메인 흐름* (Root/Detail 모드 + 모드 전환) 만 담당.
 	/// </summary>
 	public class CodexView : VisualElement
 	{
@@ -17,18 +19,9 @@ namespace WitchMendokusai
 		public const string USS_ROOT = "wm-codex__root";
 		public const string USS_ROOT_BUTTON = "wm-codex__root-button";
 		public const string USS_CATEGORY = "wm-codex__category";
-		public const string USS_CATEGORY_BODY = "wm-codex__category-body";
-		public const string USS_SIDEBAR = "wm-codex__sidebar";
-		public const string USS_SIDEBAR_BUTTON = "wm-codex__sidebar-button";
-		public const string USS_SIDEBAR_BUTTON_ACTIVE = "wm-codex__sidebar-button--active";
 		public const string USS_BACK_BUTTON = "wm-codex__back-button";
-		public const string USS_GRID = "wm-codex__grid";
-		public const string USS_GRID_CONTENT = "wm-codex__grid-content";
 		public const string USS_DETAIL = "wm-codex__detail";
 		public const string USS_DETAIL_CONTENT = "wm-codex__detail-content";
-
-		private const string ALL_KEY = "__all__";
-		private const string ALL_LABEL = "전체";
 
 		public event Action<IEntryProvider> OnCategorySelected = delegate { };
 		public event Action<EntryDescriptor> OnEntrySelected = delegate { };
@@ -42,22 +35,13 @@ namespace WitchMendokusai
 
 		private readonly VisualElement rootArea;
 		private readonly VisualElement categoryArea;
-		private readonly Button categoryBackButton;
-		private readonly VisualElement categoryBody;
-		private readonly VisualElement sidebar;
-		private readonly ScrollView gridScroll;
-		private readonly VisualElement gridContent;
+		private readonly DataExplorerView dataExplorerView;
 		private readonly VisualElement detailArea;
-		private readonly Button detailBackButton;
 		private readonly VisualElement detailContent;
-
-		private readonly Dictionary<string, Button> sidebarButtons = new();
-		private readonly Dictionary<string, CodexCard> cards = new();
 
 		private IEntryProvider activeCategory;
 		private EntryDescriptor activeEntry;
 		private CodexMode currentMode;
-		private string currentSubGroup;
 
 		public IEntryProvider ActiveCategory => activeCategory;
 		public EntryDescriptor ActiveEntry => activeEntry;
@@ -80,41 +64,23 @@ namespace WitchMendokusai
 			categoryArea.style.flexGrow = 1;
 			categoryArea.style.flexDirection = FlexDirection.Column;
 
-			categoryBackButton = new Button(BackToRoot)
+			Button categoryBackButton = new(BackToRoot)
 			{
 				text = "← 뒤로",
 			};
 			categoryBackButton.AddToClassList(USS_BACK_BUTTON);
 			categoryArea.Add(categoryBackButton);
 
-			categoryBody = new VisualElement();
-			categoryBody.AddToClassList(USS_CATEGORY_BODY);
-			categoryBody.style.flexDirection = FlexDirection.Row;
-			categoryBody.style.flexGrow = 1;
-			categoryArea.Add(categoryBody);
-
-			sidebar = new VisualElement();
-			sidebar.AddToClassList(USS_SIDEBAR);
-			sidebar.style.width = 140;
-			sidebar.style.flexShrink = 0;
-			categoryBody.Add(sidebar);
-
-			gridScroll = new ScrollView(ScrollViewMode.Vertical);
-			gridScroll.AddToClassList(USS_GRID);
-			gridScroll.style.flexGrow = 1;
-			gridContent = new VisualElement();
-			gridContent.AddToClassList(USS_GRID_CONTENT);
-			gridContent.style.flexDirection = FlexDirection.Row;
-			gridContent.style.flexWrap = Wrap.Wrap;
-			gridScroll.Add(gridContent);
-			categoryBody.Add(gridScroll);
+			dataExplorerView = new DataExplorerView();
+			dataExplorerView.OnEntrySelected += entry => OnEntrySelected.Invoke(entry);
+			categoryArea.Add(dataExplorerView);
 
 			detailArea = new VisualElement();
 			detailArea.AddToClassList(USS_DETAIL);
 			detailArea.style.flexGrow = 1;
 			detailArea.style.flexDirection = FlexDirection.Column;
 
-			detailBackButton = new Button(BackToCategory)
+			Button detailBackButton = new(BackToCategory)
 			{
 				text = "← 뒤로",
 			};
@@ -145,7 +111,6 @@ namespace WitchMendokusai
 		public void RebuildRoot(IReadOnlyList<IEntryProvider> categories)
 		{
 			rootArea.Clear();
-
 			for (int i = 0; i < categories.Count; i++)
 			{
 				IEntryProvider category = categories[i];
@@ -161,102 +126,25 @@ namespace WitchMendokusai
 
 		public void SetActiveCategory(IEntryProvider category)
 		{
-			if (activeCategory != null)
-				activeCategory.OnDeactivate();
-
 			detailContent.Clear();
 			activeEntry = null;
-			currentSubGroup = null;
-
 			activeCategory = category;
+
+			dataExplorerView.SetActiveProvider(category);
+
 			if (category == null)
 			{
 				SetMode(CodexMode.Root);
 				return;
 			}
 
-			category.OnActivate();
-			RebuildSidebar();
-			RebuildGrid();
-
-			if (sidebarButtons.TryGetValue(ALL_KEY, out Button allButton))
-				allButton.AddToClassList(USS_SIDEBAR_BUTTON_ACTIVE);
-
 			SetMode(CodexMode.Category);
-		}
-
-		private void RebuildSidebar()
-		{
-			sidebar.Clear();
-			sidebarButtons.Clear();
-
-			Button allButton = new(() => SetSubGroup(null))
-			{
-				text = ALL_LABEL,
-			};
-			allButton.AddToClassList(USS_SIDEBAR_BUTTON);
-			sidebarButtons[ALL_KEY] = allButton;
-			sidebar.Add(allButton);
-
-			IReadOnlyList<string> subGroups = activeCategory.SubGroups;
-			if (subGroups == null)
-				return;
-
-			for (int i = 0; i < subGroups.Count; i++)
-			{
-				string subGroup = subGroups[i];
-				string captured = subGroup;
-				Button button = new(() => SetSubGroup(captured))
-				{
-					text = subGroup,
-				};
-				button.AddToClassList(USS_SIDEBAR_BUTTON);
-				sidebarButtons[subGroup] = button;
-				sidebar.Add(button);
-			}
-		}
-
-		private void SetSubGroup(string subGroup)
-		{
-			string previousKey = currentSubGroup ?? ALL_KEY;
-			if (sidebarButtons.TryGetValue(previousKey, out Button previousButton))
-				previousButton.RemoveFromClassList(USS_SIDEBAR_BUTTON_ACTIVE);
-
-			currentSubGroup = subGroup;
-			string currentKey = currentSubGroup ?? ALL_KEY;
-			if (sidebarButtons.TryGetValue(currentKey, out Button currentButton))
-				currentButton.AddToClassList(USS_SIDEBAR_BUTTON_ACTIVE);
-
-			RebuildGrid();
-		}
-
-		private void RebuildGrid()
-		{
-			gridContent.Clear();
-			cards.Clear();
-
-			if (activeCategory == null)
-				return;
-
-			IReadOnlyList<EntryDescriptor> entries = activeCategory.GetEntries();
-			for (int i = 0; i < entries.Count; i++)
-			{
-				EntryDescriptor entry = entries[i];
-				if (currentSubGroup != null && entry.SubGroup != currentSubGroup)
-					continue;
-
-				EntryDescriptor captured = entry;
-				CodexCard card = new(entry);
-				card.OnClicked += () => OnEntrySelected.Invoke(captured);
-				cards[entry.Id] = card;
-				gridContent.Add(card);
-			}
 		}
 
 		public void SetActiveEntry(EntryDescriptor entry)
 		{
-			if (activeEntry != null && cards.TryGetValue(activeEntry.Id, out CodexCard previousCard))
-				previousCard.SetActive(false);
+			if (activeEntry != null)
+				dataExplorerView.SetEntryActive(activeEntry, false);
 
 			detailContent.Clear();
 			activeEntry = entry;
@@ -266,8 +154,7 @@ namespace WitchMendokusai
 				return;
 			}
 
-			if (cards.TryGetValue(entry.Id, out CodexCard currentCard))
-				currentCard.SetActive(true);
+			dataExplorerView.SetEntryActive(entry, true);
 
 			if (entry.IsUnlocked == false)
 			{
@@ -287,23 +174,17 @@ namespace WitchMendokusai
 
 		private void BackToRoot()
 		{
-			if (activeCategory != null)
-				activeCategory.OnDeactivate();
+			dataExplorerView.SetActiveProvider(null);
 			activeCategory = null;
 			activeEntry = null;
-			currentSubGroup = null;
-			gridContent.Clear();
-			cards.Clear();
 			detailContent.Clear();
-			sidebar.Clear();
-			sidebarButtons.Clear();
 			SetMode(CodexMode.Root);
 		}
 
 		private void BackToCategory()
 		{
-			if (activeEntry != null && cards.TryGetValue(activeEntry.Id, out CodexCard previousCard))
-				previousCard.SetActive(false);
+			if (activeEntry != null)
+				dataExplorerView.SetEntryActive(activeEntry, false);
 			activeEntry = null;
 			detailContent.Clear();
 			SetMode(CodexMode.Category);
