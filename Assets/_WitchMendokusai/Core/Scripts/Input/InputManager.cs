@@ -26,6 +26,7 @@ namespace WitchMendokusai
 		Scroll,
 		Sprint,
 		Crouch,
+		BuildModeToggle,
 		// HotbarSlot1~9는 연속 정의 유지 — UIHotbar이 (HotbarSlot1 + i) 산수에 의존
 		HotbarSlot1,
 		HotbarSlot2,
@@ -76,6 +77,7 @@ namespace WitchMendokusai
 			{ InputEventType.Scroll, InputMapType.Player },
 			{ InputEventType.Sprint, InputMapType.Player },
 			{ InputEventType.Crouch, InputMapType.Player },
+			{ InputEventType.BuildModeToggle, InputMapType.Player },
 			{ InputEventType.HotbarSlot1, InputMapType.Player },
 			{ InputEventType.HotbarSlot2, InputMapType.Player },
 			{ InputEventType.HotbarSlot3, InputMapType.Player },
