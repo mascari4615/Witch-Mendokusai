@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6e4173d472d45e146a63d4b7f86c074c, type: 3}
+  m_Name: TerrainParameters_New
+  m_EditorClassIdentifier: Assembly-CSharp::WitchMendokusai.TerrainParameters
+  seed: 0
+  octaves: 4
+  frequency: 0.01
+  amplitude: 32
+  persistence: 0.5
+  lacunarity: 2
+  biomeFrequency: 0.005
+  biomes:
+  - biome: {fileID: 11400000, guid: f2d306c0becdd2a4eaaf1f3308e0cc47, type: 2}
+    weight: 0.5
+  - biome: {fileID: 11400000, guid: b7c39b5bc1f67124495bc08f6a2af87d, type: 2}
+    weight: 0.3
+  - biome: {fileID: 11400000, guid: c850e8b2ccbacc54a983630c4beb4017, type: 2}
+    weight: 0.2
