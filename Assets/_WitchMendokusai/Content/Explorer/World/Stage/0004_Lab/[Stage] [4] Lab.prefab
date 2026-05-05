@@ -322,7 +322,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WitchMendokusai.ChunkManager
   viewer: {fileID: 0}
-  renderDistance: 2
+  renderDistance: 8
 --- !u!114 &726089919721775877
 MonoBehaviour:
   m_ObjectHideFlags: 0
