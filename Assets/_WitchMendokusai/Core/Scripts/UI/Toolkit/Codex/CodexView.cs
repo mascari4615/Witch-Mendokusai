@@ -279,9 +279,8 @@ namespace WitchMendokusai
 			if (activeCategory == null)
 				return;
 
-			VisualElement detail = activeCategory.BuildDetail(entry);
-			if (detail != null)
-				detailContent.Add(detail);
+			CodexDetailPanel panel = new(entry, activeCategory);
+			detailContent.Add(panel);
 
 			SetMode(CodexMode.Detail);
 		}

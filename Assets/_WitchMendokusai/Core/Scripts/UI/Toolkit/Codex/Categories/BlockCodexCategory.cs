@@ -70,17 +70,14 @@ namespace WitchMendokusai
 			BlockData block = entry.Source as BlockData;
 			VisualElement detail = new();
 
-			Label nameLabel = new(block != null ? block.BlockName : entry.DisplayName);
-			detail.Add(nameLabel);
+			if (block == null)
+				return detail;
 
-			if (block != null)
-			{
-				Label identifierLabel = new($"id: {block.Identifier}");
-				detail.Add(identifierLabel);
+			Label identifierLabel = new($"식별자: {block.Identifier}");
+			detail.Add(identifierLabel);
 
-				Label solidLabel = new($"solid: {block.IsSolid}  /  opaque: {block.IsOpaque}");
-				detail.Add(solidLabel);
-			}
+			Label propsLabel = new($"solid: {block.IsSolid}  ·  opaque: {block.IsOpaque}");
+			detail.Add(propsLabel);
 
 			return detail;
 		}

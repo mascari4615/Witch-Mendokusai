@@ -100,6 +100,79 @@
     flex-grow: 1;
 }
 
+/* === 디테일 패널 (CodexDetailPanel) — 좌 일러스트 + 우 정보 === */
+.wm-codex-detail {
+    flex-direction: row;
+    flex-grow: 1;
+}
+
+.wm-codex-detail__illustration {
+    width: 240px;
+    height: 240px;
+    margin-right: 16px;
+    background-color: rgb(28, 30, 38);
+    border-width: 1px;
+    border-color: rgb(60, 64, 78);
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.wm-codex-detail__illustration--fallback {
+    background-color: rgb(45, 48, 60);
+}
+
+.wm-codex-detail__illustration-image {
+    width: 200px;
+    height: 200px;
+}
+
+.wm-codex-detail__info {
+    padding: 4px 8px;
+}
+
+.wm-codex-detail__name {
+    color: rgb(230, 235, 245);
+    font-size: 22px;
+    -unity-font-style: bold;
+    margin-bottom: 4px;
+}
+
+.wm-codex-detail__meta {
+    color: rgb(150, 155, 170);
+    font-size: 11px;
+    margin-bottom: 16px;
+}
+
+.wm-codex-detail__meta--grade-common {
+    color: rgb(170, 175, 190);
+}
+
+.wm-codex-detail__meta--grade-uncommon {
+    color: rgb(140, 220, 140);
+}
+
+.wm-codex-detail__meta--grade-rare {
+    color: rgb(130, 180, 250);
+}
+
+.wm-codex-detail__meta--grade-legendary {
+    color: rgb(250, 190, 110);
+}
+
+.wm-codex-detail__body {
+    background-color: rgba(0, 0, 0, 0.2);
+    padding: 12px 14px;
+    flex-grow: 1;
+}
+
+.wm-codex-detail__body Label {
+    color: rgb(210, 215, 230);
+    font-size: 12px;
+    margin-bottom: 6px;
+    white-space: normal;
+}
+
 /* === 카드 (Category 모드 안 그리드) === */
 .wm-codex-card {
     width: 110px;

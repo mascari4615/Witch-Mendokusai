@@ -58,23 +58,20 @@ namespace WitchMendokusai
 			Monster monster = entry.Source as Monster;
 			VisualElement detail = new();
 
-			Label nameLabel = new(monster != null ? monster.Name : entry.DisplayName);
-			detail.Add(nameLabel);
+			if (monster == null)
+				return detail;
 
-			if (monster != null)
+			if (string.IsNullOrEmpty(monster.Description) == false)
 			{
-				Label idLabel = new($"id: M_{monster.ID}");
-				detail.Add(idLabel);
+				Label descLabel = new(monster.Description);
+				descLabel.style.whiteSpace = WhiteSpace.Normal;
+				detail.Add(descLabel);
+			}
 
-				Label typeLabel = new($"타입: {monster.Type}");
-				detail.Add(typeLabel);
-
-				if (string.IsNullOrEmpty(monster.Description) == false)
-				{
-					Label descLabel = new(monster.Description);
-					descLabel.style.whiteSpace = WhiteSpace.Normal;
-					detail.Add(descLabel);
-				}
+			if (monster.Loots != null && monster.Loots.Count > 0)
+			{
+				Label lootsLabel = new($"드롭 아이템: {monster.Loots.Count}종");
+				detail.Add(lootsLabel);
 			}
 
 			return detail;

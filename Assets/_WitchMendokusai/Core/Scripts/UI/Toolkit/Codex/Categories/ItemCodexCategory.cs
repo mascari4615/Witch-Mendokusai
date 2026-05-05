@@ -61,23 +61,23 @@ namespace WitchMendokusai
 			ItemData item = entry.Source as ItemData;
 			VisualElement detail = new();
 
-			Label nameLabel = new(item != null ? item.Name : entry.DisplayName);
-			detail.Add(nameLabel);
+			if (item == null)
+				return detail;
 
-			if (item != null)
+			if (string.IsNullOrEmpty(item.Description) == false)
 			{
-				Label idLabel = new($"id: I_{item.ID}");
-				detail.Add(idLabel);
+				Label descLabel = new(item.Description);
+				descLabel.style.whiteSpace = WhiteSpace.Normal;
+				detail.Add(descLabel);
+			}
 
-				Label gradeLabel = new($"등급: {item.Grade}  /  타입: {item.Type}");
-				detail.Add(gradeLabel);
+			Label priceLabel = new($"구매가: {item.PurchasePrice}  ·  판매가: {item.SalePrice}  ·  최대보유: {item.MaxAmount}");
+			detail.Add(priceLabel);
 
-				if (string.IsNullOrEmpty(item.Description) == false)
-				{
-					Label descLabel = new(item.Description);
-					descLabel.style.whiteSpace = WhiteSpace.Normal;
-					detail.Add(descLabel);
-				}
+			if (item.Recipes != null && item.Recipes.Count > 0)
+			{
+				Label recipesLabel = new($"제작 레시피: {item.Recipes.Count}개");
+				detail.Add(recipesLabel);
 			}
 
 			return detail;
