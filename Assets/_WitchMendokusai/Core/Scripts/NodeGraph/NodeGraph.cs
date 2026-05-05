@@ -47,6 +47,15 @@ namespace WitchMendokusai.NodeGraph
 			return null;
 		}
 
+		/// <summary>도메인 헬퍼 — 그래프 안 첫 T 타입 노드. 없으면 null.</summary>
+		public T FindNode<T>() where T : NodeBase
+		{
+			foreach (NodeBase n in nodes)
+				if (n is T typed)
+					return typed;
+			return null;
+		}
+
 		/// <summary>
 		/// 두 포트 연결 — 타입 + 방향 검증. 같은 input 에 기존 연결 있으면 교체 (단일 input 의미, ShaderGraph 식).
 		/// 성공 true. 검증 실패 시 false.

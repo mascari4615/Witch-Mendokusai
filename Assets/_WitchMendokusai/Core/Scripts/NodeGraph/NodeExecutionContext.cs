@@ -15,6 +15,7 @@ namespace WitchMendokusai.NodeGraph
 		private readonly Dictionary<(string nodeId, string portId), object> outputCache = new();
 		private readonly HashSet<string> evaluating = new();
 		private readonly HashSet<string> evaluated = new();
+		private readonly Dictionary<string, object> globalInputs = new();
 
 		public NodeGraph Graph => graph;
 
@@ -54,6 +55,28 @@ namespace WitchMendokusai.NodeGraph
 			if (output == null)
 				return;
 			outputCache[(output.Owner.Id, output.PortId)] = value;
+		}
+
+		/// <summary>
+		/// per-eval 글로벌 입력 — 호출자가 evaluate 전에 값 넣고, 도메인별 input 노드 (예: WorldPositionInputNode)
+		/// 가 OnEvaluate 안에서 읽음. context 인스턴스가 per-eval 이라 thread-safe (background chunk gen 다발 호출).
+		/// </summary>
+		public void SetGlobalInput<T>(string key, T value)
+		{
+			if (key == null)
+				return;
+			globalInputs[key] = value;
+		}
+
+		public bool TryGetGlobalInput<T>(string key, out T value)
+		{
+			if (key != null && globalInputs.TryGetValue(key, out object raw) && raw is T typed)
+			{
+				value = typed;
+				return true;
+			}
+			value = default;
+			return false;
 		}
 
 		/// <summary>그래프 안 노드 1개 평가 — pull 시작점. 보통 terminal/output 노드.
