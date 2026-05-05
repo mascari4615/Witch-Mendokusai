@@ -42,6 +42,9 @@ namespace WitchMendokusai
 		private TerrainGraph lastSeenGraph;
 		// F2 후속 — graph SO dirty count polling (Inspector 안 노드 파라미터 변경 시 preview 자동 새로고침)
 		private int lastGraphDirtyCount = -1;
+		// G1 후속 — 슬라이더 드래그 중 매 변경마다 erosion sim 재실행 폭주 방지. 마지막 dirty 변경 후 N초 무 변동 시 1회 Refresh.
+		private double lastDirtyChangeTime = -1.0;
+		private const double DIRTY_REFRESH_DEBOUNCE_SECONDS = 0.3;
 
 		private void CreateGUI()
 		{
@@ -193,15 +196,29 @@ namespace WitchMendokusai
 		/// <summary>
 		/// Editor 가 초당 ~10회 호출. graph SO 의 dirty count 가 바뀌면 (사용자가 Inspector 에서 노드 필드
 		/// 편집 등) terrainView preview 새로고침. 통합 창 UX — "그래프 편집 → 즉시 시각 반영" 자연.
+		///
+		/// G1 — debounce 적용. 슬라이더 드래그 중 매 변경마다 erosion sim 재실행 폭주 방지.
+		/// dirty 변경 감지 시 시간만 기록 + return → 마지막 변경 후 0.3초 무 변동 시 Refresh 1회.
 		/// </summary>
 		private void OnInspectorUpdate()
 		{
 			if (terrainView == null || editing == null || editing.TerrainGraph == null)
 				return;
+
 			int dirty = EditorUtility.GetDirtyCount(editing.TerrainGraph);
-			if (dirty == lastGraphDirtyCount)
+			if (dirty != lastGraphDirtyCount)
+			{
+				lastGraphDirtyCount = dirty;
+				lastDirtyChangeTime = EditorApplication.timeSinceStartup;
 				return;
-			lastGraphDirtyCount = dirty;
+			}
+
+			if (lastDirtyChangeTime < 0.0)
+				return;
+			if (EditorApplication.timeSinceStartup - lastDirtyChangeTime < DIRTY_REFRESH_DEBOUNCE_SECONDS)
+				return;
+
+			lastDirtyChangeTime = -1.0;
 			terrainView.Refresh();
 		}
 
