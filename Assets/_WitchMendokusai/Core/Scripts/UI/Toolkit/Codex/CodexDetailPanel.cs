@@ -30,7 +30,49 @@ namespace WitchMendokusai
 
 			VisualElement illustration = new();
 			illustration.AddToClassList(USS_ILLUSTRATION);
-			if (entry.Icon != null)
+			bool usingPreview = entry.PreviewPrefab != null;
+			if (usingPreview)
+			{
+				CodexPreviewController.Instance.Show(entry.PreviewPrefab);
+				CodexPreviewController.Instance.Activate();
+				Image rtImage = new()
+				{
+					image = CodexPreviewController.Instance.RenderTexture,
+					scaleMode = ScaleMode.ScaleToFit,
+				};
+				rtImage.AddToClassList(USS_ILLUSTRATION_IMAGE);
+				rtImage.pickingMode = PickingMode.Position;
+				illustration.Add(rtImage);
+
+				rtImage.RegisterCallback<PointerDownEvent>(evt =>
+				{
+					rtImage.CapturePointer(evt.pointerId);
+					CodexPreviewController.Instance.BeginDrag();
+				});
+				rtImage.RegisterCallback<PointerMoveEvent>(evt =>
+				{
+					if (rtImage.HasPointerCapture(evt.pointerId))
+						CodexPreviewController.Instance.DragYawDelta(evt.deltaPosition.x);
+				});
+				rtImage.RegisterCallback<PointerUpEvent>(evt =>
+				{
+					if (rtImage.HasPointerCapture(evt.pointerId))
+						rtImage.ReleasePointer(evt.pointerId);
+					if (CodexPreviewController.TryGetExistingInstance(out CodexPreviewController dragController))
+						dragController.EndDrag();
+				});
+
+				// Detail 패널이 detach (다른 entry / Category 뒤로 / 윈도우 닫기) 될 때 카메라 비활성.
+				RegisterCallback<DetachFromPanelEvent>(_ =>
+				{
+					if (CodexPreviewController.TryGetExistingInstance(out CodexPreviewController controller))
+					{
+						controller.EndDrag();
+						controller.Deactivate();
+					}
+				});
+			}
+			else if (entry.Icon != null)
 			{
 				Image image = new()
 				{
@@ -73,7 +115,7 @@ namespace WitchMendokusai
 				body.Add(categoryDetail);
 		}
 
-		private static string BuildMetaText(CodexEntry entry, ICodexCategory category)
+private static string BuildMetaText(CodexEntry entry, ICodexCategory category)
 		{
 			string categoryLabel = category.DisplayName;
 			string subGroup = string.IsNullOrEmpty(entry.SubGroup) ? null : entry.SubGroup;

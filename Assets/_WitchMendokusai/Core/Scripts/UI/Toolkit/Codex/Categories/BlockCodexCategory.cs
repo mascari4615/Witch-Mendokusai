@@ -18,6 +18,7 @@ namespace WitchMendokusai
 
 		private readonly List<CodexEntry> entries = new();
 		private readonly Dictionary<string, Sprite> spriteCache = new();
+		private static readonly Dictionary<string, GameObject> previewPrefabCache = new();
 
 		public void OnActivate()
 		{
@@ -31,13 +32,41 @@ namespace WitchMendokusai
 					continue;
 
 				Sprite icon = ResolveIcon(block);
+				GameObject previewPrefab = ResolvePreviewPrefab(block);
 
 				entries.Add(new CodexEntry(
 					id: block.Identifier,
 					displayName: block.BlockName,
 					icon: icon,
-					source: block));
+					source: block,
+					previewPrefab: previewPrefab));
 			}
+		}
+
+		private GameObject ResolvePreviewPrefab(BlockData block)
+		{
+			if (previewPrefabCache.TryGetValue(block.Identifier, out GameObject cached) && cached != null)
+				return cached;
+
+			GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+			cube.name = $"BlockPreview_{block.Identifier}";
+			cube.SetActive(false);
+			Object.DontDestroyOnLoad(cube);
+
+			Renderer renderer = cube.GetComponent<Renderer>();
+			Shader unlitShader = Shader.Find("Universal Render Pipeline/Unlit");
+			if (unlitShader != null)
+			{
+				Material material = new(unlitShader);
+				if (block.SideTexture != null)
+					material.SetTexture("_BaseMap", block.SideTexture);
+				else
+					material.SetColor("_BaseColor", block.Color);
+				renderer.sharedMaterial = material;
+			}
+
+			previewPrefabCache[block.Identifier] = cube;
+			return cube;
 		}
 
 		private Sprite ResolveIcon(BlockData block)

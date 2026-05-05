@@ -30,12 +30,19 @@ namespace WitchMendokusai
 		public string SubGroup { get; }
 
 		/// <summary>
+		/// 디테일 일러스트 영역에 표시할 3D 모델 prefab. nullable.
+		/// non-null = `CodexPreviewController` 가 instantiate + 회전. null = 정적 Icon 표시.
+		/// 카테고리가 entry 만들 때 채움 (Block/Entity 등). Item 은 일반적으로 null.
+		/// </summary>
+		public GameObject PreviewPrefab { get; }
+
+		/// <summary>
 		/// 골격 단계 = 항상 true. 후속 TASK 에서 unlock 레이어 도입 시
 		/// `ICodexUnlockProvider` 같은 분리 인터페이스로 위임 예정.
 		/// </summary>
 		public bool IsUnlocked => true;
 
-		public CodexEntry(string id, string displayName, Sprite icon, object source, string gradeKey = null, string subGroup = null)
+		public CodexEntry(string id, string displayName, Sprite icon, object source, string gradeKey = null, string subGroup = null, GameObject previewPrefab = null)
 		{
 			Id = id;
 			DisplayName = displayName;
@@ -43,6 +50,7 @@ namespace WitchMendokusai
 			Source = source;
 			GradeKey = gradeKey;
 			SubGroup = subGroup;
+			PreviewPrefab = previewPrefab;
 		}
 	}
 }
