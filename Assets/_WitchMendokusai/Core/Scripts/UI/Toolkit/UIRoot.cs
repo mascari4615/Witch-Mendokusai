@@ -30,6 +30,19 @@ namespace WitchMendokusai
 		{
 			base.Awake();
 			Document = GetComponent<UIDocument>();
+			CreateViews();
+		}
+
+		/// <summary>
+		/// UI Toolkit View 컴포넌트를 동적으로 생성.
+		/// 새 View 추가 시 이곳에 한 줄 추가하면 됨.
+		/// </summary>
+		private void CreateViews()
+		{
+			gameObject.AddComponent<InventoryView>();
+			gameObject.AddComponent<HotbarView>();
+			gameObject.AddComponent<BuildingBarView>();
+			gameObject.AddComponent<SettingView>();
 		}
 
 		private void OnEnable()

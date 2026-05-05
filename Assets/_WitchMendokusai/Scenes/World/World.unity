@@ -493,51 +493,6 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 2616992427032651575, guid: 7ecf7eabe4d4fe64db0095f2c21383e7, type: 3}
   m_PrefabInstance: {fileID: 5173714650138998439}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &617661624
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 617661626}
-  - component: {fileID: 617661625}
-  m_Layer: 0
-  m_Name: _GameModeManager
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &617661625
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 617661624}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ea067a046e5ed9742bb9cf7a4ddb0ad1, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::WitchMendokusai.GameModeManager
-  dontDestroyOnLoad: 0
---- !u!4 &617661626
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 617661624}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!224 &635078214 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 6603049024029507556, guid: e1f822114d0864b47b15ea39796c9acf, type: 3}
@@ -588,51 +543,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   levelUpEffect: {fileID: 2988881587425804723, guid: dd838e106a921ef4e81424570984b343, type: 3}
---- !u!1 &720442943
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 720442945}
-  - component: {fileID: 720442944}
-  m_Layer: 0
-  m_Name: _HotbarView
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &720442944
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 720442943}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7e8f0102030405060708a9b0c1d2e3f4, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::WitchMendokusai.HotbarView
-  hotbar: {fileID: 0}
---- !u!4 &720442945
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 720442943}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!224 &763986645 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 2840327154295400494, guid: 842823bdc566bea43a638aca4900be96, type: 3}
@@ -1035,50 +945,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WitchMendokusai.FollowTransform
   target: {fileID: 204981258}
---- !u!1 &1076550099
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1076550101}
-  - component: {fileID: 1076550100}
-  m_Layer: 0
-  m_Name: _SettingView
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &1076550100
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1076550099}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 894d1fbd5e149be4586dc0fbaf1115c7, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::WitchMendokusai.SettingView
---- !u!4 &1076550101
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1076550099}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1099597011
 GameObject:
   m_ObjectHideFlags: 0
@@ -1322,50 +1188,6 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 2616992427032651575, guid: 7ecf7eabe4d4fe64db0095f2c21383e7, type: 3}
   m_PrefabInstance: {fileID: 3337071525945849835}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &1465799853
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1465799855}
-  - component: {fileID: 1465799854}
-  m_Layer: 0
-  m_Name: _BuildingBarView
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &1465799854
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1465799853}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d6aa8e4151cdf684386f6f1bcec7b083, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::WitchMendokusai.BuildingBarView
---- !u!4 &1465799855
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1465799853}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1533110592
 GameObject:
   m_ObjectHideFlags: 0
@@ -2422,51 +2244,6 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 3650879631936288370, guid: aaecc93bfc8007e46a0003f84fa5003c, type: 3}
   m_PrefabInstance: {fileID: 882756967368914496}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &1954230059
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1954230061}
-  - component: {fileID: 1954230060}
-  m_Layer: 0
-  m_Name: _InventoryView
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &1954230060
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1954230059}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e5f60718293a4b5c6d7e8f0102030405, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::WitchMendokusai.InventoryView
-  inventory: {fileID: 0}
---- !u!4 &1954230061
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1954230059}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!224 &2003915130 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 6667166270119161753, guid: 04434c12420602b4aa92f5d667a10e66, type: 3}
@@ -8994,8 +8771,3 @@ SceneRoots:
   - {fileID: 801156660}
   - {fileID: 1232065274}
   - {fileID: 1641868557}
-  - {fileID: 1954230061}
-  - {fileID: 720442945}
-  - {fileID: 1465799855}
-  - {fileID: 617661626}
-  - {fileID: 1076550101}
