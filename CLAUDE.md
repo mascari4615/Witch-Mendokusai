@@ -174,11 +174,32 @@ TASK 기반으로 시작한 작업은 `memo/wm/tasks/TASK-NNN-*.md`를 작업 �
 - 사용자가 코드 보고 검증하기 전에 *컴파일 통과* 자체가 사전 조건
 - "사용자에게 빨리 넘기기" 보다 *검증 가능한 상태로 넘기기* 가 우선
 
+### Editor.log stale 체크 — focus 안 됐으면 신뢰 X
+
+Unity Editor 가 **foreground (focus)** 상태가 아니면 .cs 변경 reimport 안 함 → Editor.log 가 *내 최근 변경을 반영 안 한 상태*. "에러 없어 보임" 이 거짓일 수 있음.
+
+확인 방법:
+- 새로 만든 *심볼* (클래스명 / 메서드명 / enum 항목) 이 Editor.log 에 잡히는지 grep — 안 잡히면 reimport 안 됨
+- `Reloading assemblies after forced synchronous recompile.` 로그의 *시점* — 내 변경 후인지 확인
+- `Refresh completed in ...` 으로 import 세션 끝 시점 확인
+
+stale 이면:
+- 사용자에게 **Unity Editor focus 명시 요청** — "Editor 창 클릭해서 자동 reimport 시켜주세요"
+- 또는 `Ctrl+R` (Refresh) 안내
+- reimport 후 다시 grep "error CS" 로 본인 검증
+
+### 새 .cs 파일 만들었을 때
+
+- `.cs.meta` 는 Unity 가 Editor focus 시 자동 생성 — 그 전엔 partial 또는 없음
+- `[RequireComponent]` 자동 attach 도 Editor 가 prefab 인지해야 작동 — 사용자에게 *해당 prefab 한 번 열어 자동 보강 트리거* 요청
+
 작업 완료 보고 흐름:
 1. 코드 변경
-2. **Editor.log 컴파일 에러 확인** ← 빠뜨리지 말 것
-3. 에러 있으면 fix → 다시 1
+2. **Editor.log 컴파일 에러 확인** + **stale 여부 확인** ← 둘 다 빠뜨리지 말 것
+3. 에러 있으면 fix → 다시 1. stale 이면 사용자에게 reimport 요청 후 재확인
 4. 통과 시 사용자에게 동작 검증 요청
 5. 사용자 OK → commit
 
 이전 사례: TASK-WM-034 B (NodeGraph GraphView UI) — `Func<GraphViewChange, GraphViewChange>` vs `GraphView.GraphViewChanged` delegate 타입 mismatch 컴파일 에러를 사용자가 먼저 발견. 본인이 Editor.log 안 보고 검증 요청해버림. 룰 추가 계기.
+
+이전 사례 2: TASK-WM-039 Knockback A+B+C — `PlayerKnockbackCameraGlue` 신규 .cs 만든 후 Editor.log 봤는데 Unity foreground 안 와서 import 안 됨. 다른 (`HitstopFeedback`, `KnockbackFeedback`) 은 import 됐고 새로 만든 것만 안 됨 = stale 일 가능성 인지. 사용자에게 reimport 요청 → 통과 확인 후 검증 진행.
