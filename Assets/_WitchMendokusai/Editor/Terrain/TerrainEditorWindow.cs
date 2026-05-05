@@ -35,6 +35,11 @@ namespace WitchMendokusai
 		private PreviewRenderUtility previewUtility;
 		private Material previewMaterial;
 
+		// F2 — TwoPaneSplitView 우측 그래프 패널 + reference 변화 감지
+		private VisualElement graphPaneContainer;
+		private NodeGraph.NodeGraphView graphView;
+		private TerrainGraph lastSeenGraph;
+
 		private void CreateGUI()
 		{
 			rootVisualElement.style.flexGrow = 1;
@@ -117,7 +122,59 @@ namespace WitchMendokusai
 		private void BuildView()
 		{
 			viewContainer.Clear();
-			viewContainer.Add(new TerrainEditorView(editing, OnParameterChanged, RenderMesh3D));
+
+			// 좌: TerrainEditorView (사이드바 + preview), 우: NodeGraphView (그래프 편집)
+			// fixedPaneIndex=0 (좌측 고정 600px), 우측은 flex.
+			TwoPaneSplitView splitView = new(0, 600, TwoPaneSplitViewOrientation.Horizontal);
+
+			TerrainEditorView terrainView = new(editing, OnParameterChanged, RenderMesh3D);
+			splitView.Add(terrainView);
+
+			graphPaneContainer = new VisualElement { style = { flexGrow = 1 } };
+			splitView.Add(graphPaneContainer);
+
+			viewContainer.Add(splitView);
+
+			RebuildGraphPane();
+		}
+
+		private void RebuildGraphPane()
+		{
+			if (graphPaneContainer == null)
+				return;
+			graphPaneContainer.Clear();
+			graphView = null;
+			lastSeenGraph = editing != null ? editing.TerrainGraph : null;
+
+			if (editing == null || editing.TerrainGraph == null)
+			{
+				Label hint = new("그래프 미할당\n\nWitchMendokusai → Terrain → Build Default Terrain Graph")
+				{
+					style =
+					{
+						color = new StyleColor(new Color(0.7f, 0.7f, 0.7f)),
+						alignSelf = Align.Center,
+						marginTop = 60,
+						unityTextAlign = TextAnchor.MiddleCenter,
+						whiteSpace = WhiteSpace.Normal,
+					}
+				};
+				graphPaneContainer.Add(hint);
+				return;
+			}
+
+			graphView = new NodeGraph.NodeGraphView(editing.TerrainGraph);
+			graphView.style.flexGrow = 1;
+			graphPaneContainer.Add(graphView);
+		}
+
+		private void OnFocus()
+		{
+			// 사용자가 외부에서 (Inspector / 'Build Default Terrain Graph' 메뉴) terrainGraph 슬롯 변경 시 detect.
+			if (editing == null)
+				return;
+			if (editing.TerrainGraph != lastSeenGraph)
+				RebuildGraphPane();
 		}
 
 		private void OnParameterChanged()
