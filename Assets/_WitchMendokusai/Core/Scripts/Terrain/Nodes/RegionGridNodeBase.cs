@@ -8,9 +8,9 @@ using NodeGraphAsset = WitchMendokusai.NodeGraph.NodeGraph;
 namespace WitchMendokusai
 {
 	/// <summary>
-	/// 영역 단위 erosion 노드 베이스. Hydraulic / Thermal / (후속 Compute) 등 모든 erosion 노드 공통 인프라.
+	/// 영역 단위 그리드 변환 노드 베이스. Hydraulic / Thermal / Smooth / (후속 Compute) 등 region 기반 grid 처리 공통 인프라.
 	///
-	/// 노드 그래프는 *점 단위* (Pull) 모델, erosion 은 *영역 단위* — 한 점 평가 위해 영역 전체 sim 필요.
+	/// 노드 그래프는 *점 단위* (Pull) 모델, 그리드 변환은 *영역 단위* — 한 점 평가 위해 영역 전체 sim 필요.
 	/// 해결: 노드 자체에 영역 캐시 (서브 결정 옵션 3) — `[NonSerialized]` Dictionary + lock.
 	/// 첫 호출 시 영역 N×N input height sample → sub class `Simulate` → 캐시. 이후 같은 영역 점 호출은 lookup.
 	///
@@ -18,9 +18,11 @@ namespace WitchMendokusai
 	///
 	/// region 좌표: worldX / regionSize 의 floor (음수 worldX 도 자연). 1 cell = 1 m 가정.
 	/// region 마다 다른 결과 — sub class hash 가 region 좌표 안 섞도록 책임 (또는 베이스가 처리).
+	///
+	/// H1 (2026-05-06) RegionErosionNodeBase 에서 rename — Smooth filter 도입 시 의미 일반화 (erosion 만 X).
 	/// </summary>
 	[Serializable]
-	public abstract class RegionErosionNodeBase : NodeBase
+	public abstract class RegionGridNodeBase : NodeBase
 	{
 		[Header("Region")]
 		[SerializeField, Tooltip("영역 한 변 길이 (m). 1 m = 1 cell. 디폴트 256.")]
@@ -84,7 +86,7 @@ namespace WitchMendokusai
 		}
 
 		/// <summary>
-		/// sub class 가 알고리즘 본체 구현 — heightmap[regionSize, regionSize] in-place erosion.
+		/// sub class 가 알고리즘 본체 구현 — heightmap[regionSize, regionSize] in-place 변환.
 		/// regionX/regionZ 는 region 격자 좌표 (deterministic seed 변형 등에 사용).
 		/// </summary>
 		protected abstract void Simulate(float[,] heightmap, int regionX, int regionZ);
