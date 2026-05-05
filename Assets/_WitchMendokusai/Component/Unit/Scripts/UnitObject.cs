@@ -1,14 +1,10 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.AI;
-using DG.Tweening;
 using System.Text;
 
 namespace WitchMendokusai
 {
-	[RequireComponent(typeof(Rigidbody), typeof(KnockbackFeedback), typeof(HitstopFeedback))]
+	[RequireComponent(typeof(Rigidbody), typeof(UnitMovement), typeof(UnitHealth))]
 	public abstract class UnitObject : MonoBehaviour
 	{
 		[field: SerializeField] public Unit UnitData { get; private set; } = null;
@@ -31,14 +27,22 @@ namespace WitchMendokusai
 		protected virtual void Awake()
 		{
 			SpriteRenderer.material.SetFloat("_Emission", 0);
+			BindComponents();
+
+			if (UnitData != null)
+				Init(UnitData);
+		}
+		
+		private void BindComponents()
+		{
+			if (RigidBody != null && UnitMovement != null && Health != null)
+				return;
+
 			// NavMeshAgent = GetComponent<NavMeshAgent>();
 			RigidBody = GetComponent<Rigidbody>();
 			UnitMovement = GetComponent<UnitMovement>();
 			Health = GetComponent<UnitHealth>();
-			if (Health == null) Health = gameObject.AddComponent<UnitHealth>(); // TODO: UnitObject 프리팹에 UnitHealth 컴포넌트 추가 후 제거 - 2026-03-10.
-
-			if (UnitData != null)
-				Init(UnitData);
+			Health.Init(this);
 		}
 
 		public virtual void Init(Unit unitData)
@@ -54,8 +58,6 @@ namespace WitchMendokusai
 
 			UnitStat.Set(UnitData.InitStatInfos.GetUnitStat());
 			UpdateStat();
-
-			Health.Init(this);
 
 			// if (NavMeshAgent)
 			// {
