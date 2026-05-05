@@ -1,20 +1,34 @@
 [default.extend-words]
-# 게임 개발/Unity 도메인 특화 단어 오탐지 제외 (왼쪽: 검사 단어, 오른쪽: 원래 단어 유지)
+# 1. 게임 엔진 고유 명사 (엔진이 제공하는 고정 키워드)
 lod = "lod"
-LOD = "LOD"
-Lod = "Lod"
+navmesh = "navmesh"
+
+# 2. 우리 게임(Witch-Mendokusai) 고유 명사 (세계관 캐릭터, 지명 등)
+# (typos가 영어 사전에 없는 이름이라고 걸고 넘어지는 것을 방지)
+Yon = "Yon"
+Alisa = "Alisa"
+Mendokusai = "Mendokusai"
+Karmolab = "Karmolab"   
+KarmoDDrine = "KarmoDDrine"
 
 [files]
-# 오타 검사를 수행하지 않을 Unity 특화/자동 생성 폴더와 파일 확장자
+# 3. 절대 검사하면 안 되는 영역 (코드나 텍스트가 아닌 에셋, 빌드 결과물)
+# Github의 공식 Unity.gitignore에 기반한 표준 제외 리스트
 extend-exclude = [
     "Library/**",
     "Logs/**",
     "Temp/**",
     "obj/**",
+    "bin/**",
+    "Build/**",
     "UserSettings/**",
     "Packages/**",
-    "*.meta",
-    "*.asset",
+    "*.meta",          # Unity 메타데이터 (랜덤 해시값이 오타로 잡힘)
+    "*.asset",         # Unity 직렬화 에셋
     "*.prefab",
-    "*.unity"
+    "*.unity",         # Scene 파일
+    "*.anim",
+    "*.controller",
+    "package-lock.json", # NPM 패키지 락 파일 (해시 덩어리)
+    "yarn.lock"
 ]
