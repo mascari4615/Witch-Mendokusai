@@ -164,3 +164,21 @@ TASK 기반으로 시작한 작업은 `memo/wm/tasks/TASK-NNN-*.md`를 작업 �
 해당 TASK 문서의 `## 에디터에서 남은 작업` 체크리스트에 즉시 기록한다.
 
 대화 말미에 별도로 안내하는 것으로 끝내지 않고, 문서에 남겨 추적 가능하게 한다.
+
+## 컴파일 에러 확인 — 사용자 검증 요청 전 본인 먼저
+
+코드 작성 후 사용자에게 "검증해주세요" 요청 *전*에 본인이 먼저 컴파일 에러 확인.
+
+- Editor.log 위치: `C:\Users\masca\AppData\Local\Unity\Editor\Editor.log`
+- `grep "error CS" Editor.log` 으로 컴파일 에러 검색
+- 사용자가 코드 보고 검증하기 전에 *컴파일 통과* 자체가 사전 조건
+- "사용자에게 빨리 넘기기" 보다 *검증 가능한 상태로 넘기기* 가 우선
+
+작업 완료 보고 흐름:
+1. 코드 변경
+2. **Editor.log 컴파일 에러 확인** ← 빠뜨리지 말 것
+3. 에러 있으면 fix → 다시 1
+4. 통과 시 사용자에게 동작 검증 요청
+5. 사용자 OK → commit
+
+이전 사례: TASK-WM-034 B (NodeGraph GraphView UI) — `Func<GraphViewChange, GraphViewChange>` vs `GraphView.GraphViewChanged` delegate 타입 mismatch 컴파일 에러를 사용자가 먼저 발견. 본인이 Editor.log 안 보고 검증 요청해버림. 룰 추가 계기.

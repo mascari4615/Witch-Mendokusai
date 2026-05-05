@@ -41,7 +41,7 @@ namespace WitchMendokusai.NodeGraph
 		{
 			// DeleteElements 는 graphViewChanged callback 을 fire — 그 callback 이 graph 에서 실제 노드 삭제.
 			// Refresh 는 *시각만* 재구성해야 하므로 callback 일시 무효화.
-			System.Func<GraphViewChange, GraphViewChange> previous = graphViewChanged;
+			GraphViewChanged previous = graphViewChanged;
 			graphViewChanged = null;
 			try
 			{
