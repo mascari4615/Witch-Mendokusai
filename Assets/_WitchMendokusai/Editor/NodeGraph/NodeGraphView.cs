@@ -50,7 +50,7 @@ namespace WitchMendokusai.NodeGraph
 
 				foreach (NodeBase node in graph.Nodes)
 				{
-					NodeView view = new(node);
+					NodeView view = new(node, graph);
 					AddElement(view);
 					nodeViews[node.Id] = view;
 				}

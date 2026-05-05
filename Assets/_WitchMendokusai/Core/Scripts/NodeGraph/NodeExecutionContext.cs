@@ -57,6 +57,16 @@ namespace WitchMendokusai.NodeGraph
 			outputCache[(output.Owner.Id, output.PortId)] = value;
 		}
 
+		/// <summary>output port cached 값 직접 읽기 (Editor preview 등 외부 호출용). 없거나 타입 불일치 시 default.</summary>
+		public T GetOutput<T>(NodePort<T> output)
+		{
+			if (output == null)
+				return default;
+			if (outputCache.TryGetValue((output.Owner.Id, output.PortId), out object cached) && cached is T typed)
+				return typed;
+			return default;
+		}
+
 		/// <summary>
 		/// per-eval 글로벌 입력 — 호출자가 evaluate 전에 값 넣고, 도메인별 input 노드 (예: WorldPositionInputNode)
 		/// 가 OnEvaluate 안에서 읽음. context 인스턴스가 per-eval 이라 thread-safe (background chunk gen 다발 호출).

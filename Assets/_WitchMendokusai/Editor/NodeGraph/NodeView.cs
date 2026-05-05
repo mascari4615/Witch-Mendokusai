@@ -1,6 +1,8 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 // `WitchMendokusai.Node` (BT 행동트리) 가 enclosing namespace 에 있어 GraphView Node 와 충돌 — alias 로 명시.
 using GraphViewNode = UnityEditor.Experimental.GraphView.Node;
@@ -10,6 +12,7 @@ namespace WitchMendokusai.NodeGraph
 	/// <summary>
 	/// `NodeBase` 의 GraphView 시각 표현 — GraphView `Node` 상속. 포트는 `NodePort` ↔ `Port` 1:1 매핑.
 	/// `Owner.Id` + `PortId` 가 모델 키, Port 인스턴스가 view 키. 양방향 lookup 지원.
+	/// `graph` 가 있고 노드에 float 출력 포트 있으면 64×64 grayscale 미리보기 (extensionContainer).
 	/// </summary>
 	public class NodeView : GraphViewNode
 	{
@@ -19,7 +22,7 @@ namespace WitchMendokusai.NodeGraph
 		private readonly Dictionary<string, Port> outputPortsByPortId = new();
 		private readonly Dictionary<Port, NodePort> portViewToModel = new();
 
-		public NodeView(NodeBase node)
+		public NodeView(NodeBase node, NodeGraph graph)
 		{
 			Node = node;
 			title = NicifyTypeName(node.GetType().Name);
@@ -47,8 +50,32 @@ namespace WitchMendokusai.NodeGraph
 				portViewToModel[portView] = port;
 			}
 
+			// float-output 노드면 64×64 grayscale 미리보기 — extension 영역 (노드 expand 시 보임)
+			NodePort floatOutput = node.OutputPorts.FirstOrDefault(p => p.DataType == typeof(float));
+			if (floatOutput != null && graph != null)
+			{
+				Texture2D preview = NodePreview.RenderFloatOutputPreview(node, graph);
+				if (preview != null)
+				{
+					VisualElement previewElement = new()
+					{
+						style =
+						{
+							width = NodePreview.PREVIEW_SIZE,
+							height = NodePreview.PREVIEW_SIZE,
+							marginTop = 4,
+							marginBottom = 4,
+							alignSelf = Align.Center,
+							backgroundImage = new StyleBackground(preview),
+						}
+					};
+					extensionContainer.Add(previewElement);
+				}
+			}
+
 			RefreshExpandedState();
 			RefreshPorts();
+			expanded = true; // extension (preview) 기본 노출
 		}
 
 		public Port GetInputPortView(string portId) => inputPortsByPortId.TryGetValue(portId, out Port p) ? p : null;
