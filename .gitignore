@@ -134,3 +134,6 @@ WM.json*
 
 # Claude Code worktrees
 /.claude/worktrees/
+
+# Local editor and shell crash artifacts
+bash.exe.stackdump
