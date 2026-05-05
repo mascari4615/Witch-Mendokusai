@@ -1,0 +1,57 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 42c182696ce49c74693be3cda5bea9f1, type: 3}
+  m_Name: TestGraph
+  m_EditorClassIdentifier: Assembly-CSharp::WitchMendokusai.NodeGraph
+  nodes:
+  - rid: 3717169638049054806
+  - rid: 3717169638049054807
+  - rid: 3717169638049054808
+  - rid: 3717169638049054809
+  connections:
+  - sourceNodeId: ebbfea1da2d641ce85006b817fc77bd4
+    sourcePortId: out
+    targetNodeId: fbc4f03656884617aaf408ceca01d765
+    targetPortId: a
+  - sourceNodeId: 29edc60cdc814be79b727071f3cab5a7
+    sourcePortId: out
+    targetNodeId: fbc4f03656884617aaf408ceca01d765
+    targetPortId: b
+  - sourceNodeId: fbc4f03656884617aaf408ceca01d765
+    sourcePortId: result
+    targetNodeId: bda26c4107ed417b8799e3f877d199fc
+    targetPortId: in
+  references:
+    version: 2
+    RefIds:
+    - rid: 3717169638049054806
+      type: {class: ConstantFloatNode, ns: WitchMendokusai, asm: Assembly-CSharp}
+      data:
+        id: ebbfea1da2d641ce85006b817fc77bd4
+        editorPosition: {x: 0, y: 0}
+        value: 3
+    - rid: 3717169638049054807
+      type: {class: ConstantFloatNode, ns: WitchMendokusai, asm: Assembly-CSharp}
+      data:
+        id: 29edc60cdc814be79b727071f3cab5a7
+        editorPosition: {x: 0, y: 120}
+        value: 5
+    - rid: 3717169638049054808
+      type: {class: AddFloatNode, ns: WitchMendokusai, asm: Assembly-CSharp}
+      data:
+        id: fbc4f03656884617aaf408ceca01d765
+        editorPosition: {x: 220, y: 60}
+    - rid: 3717169638049054809
+      type: {class: OutputFloatNode, ns: WitchMendokusai, asm: Assembly-CSharp}
+      data:
+        id: bda26c4107ed417b8799e3f877d199fc
+        editorPosition: {x: 440, y: 60}

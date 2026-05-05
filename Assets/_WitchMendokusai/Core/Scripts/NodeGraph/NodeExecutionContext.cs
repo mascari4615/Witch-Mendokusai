@@ -1,0 +1,87 @@
+using System;
+using System.Collections.Generic;
+
+namespace WitchMendokusai
+{
+	/// <summary>
+	/// Pull-based 그래프 실행기. terminal 노드 <see cref="Evaluate"/> 호출 → 그 노드가 input 평가 시
+	/// `GetInput&lt;T&gt;` 호출 → context 가 source 노드 재귀 evaluate + output 캐시.
+	///
+	/// 1회 그래프 평가 안 같은 노드는 1번만 evaluate (캐시). cycle 검출 → throw.
+	/// </summary>
+	public class NodeExecutionContext
+	{
+		private readonly NodeGraph graph;
+		private readonly Dictionary<(string nodeId, string portId), object> outputCache = new();
+		private readonly HashSet<string> evaluating = new();
+		private readonly HashSet<string> evaluated = new();
+
+		public NodeGraph Graph => graph;
+
+		public NodeExecutionContext(NodeGraph graph)
+		{
+			this.graph = graph;
+		}
+
+		/// <summary>해당 input port 의 값 — connected source 노드를 재귀 평가 (캐시).
+		/// 미연결 input 또는 source 노드 누락이면 default(T).</summary>
+		public T GetInput<T>(NodePort<T> input)
+		{
+			if (input == null || graph == null)
+				return default;
+			NodeConnection conn = graph.FindConnectionToInput(input);
+			if (conn == null)
+				return default;
+
+			(string, string) key = (conn.SourceNodeId, conn.SourcePortId);
+			if (outputCache.TryGetValue(key, out object cached) && cached is T typedCached)
+				return typedCached;
+
+			NodeBase sourceNode = graph.FindNode(conn.SourceNodeId);
+			if (sourceNode == null)
+				return default;
+
+			EvaluateNodeOnce(sourceNode);
+
+			if (outputCache.TryGetValue(key, out cached) && cached is T resolved)
+				return resolved;
+			return default;
+		}
+
+		/// <summary>output port 결과 캐시 — 노드 OnEvaluate 안에서 호출.</summary>
+		public void SetOutput<T>(NodePort<T> output, T value)
+		{
+			if (output == null)
+				return;
+			outputCache[(output.Owner.Id, output.PortId)] = value;
+		}
+
+		/// <summary>그래프 안 노드 1개 평가 — pull 시작점. 보통 terminal/output 노드.
+		/// 같은 노드 중복 evaluate 안 되게 cycle 검출 + 캐시 검사.</summary>
+		public void Evaluate(NodeBase node)
+		{
+			if (node == null)
+				return;
+			EvaluateNodeOnce(node);
+		}
+
+		private void EvaluateNodeOnce(NodeBase node)
+		{
+			if (evaluated.Contains(node.Id))
+				return;
+			if (evaluating.Contains(node.Id))
+				throw new InvalidOperationException($"[NodeExecutionContext] Cycle detected at node {node.Id} ({node.GetType().Name}).");
+
+			evaluating.Add(node.Id);
+			try
+			{
+				node.Evaluate(this);
+				evaluated.Add(node.Id);
+			}
+			finally
+			{
+				evaluating.Remove(node.Id);
+			}
+		}
+	}
+}
