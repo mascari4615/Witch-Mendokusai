@@ -37,8 +37,10 @@ namespace WitchMendokusai
 		}
 
 		public static DataSO_IdChanger IdChanger { get; private set; } = null;
-		public Dictionary<int, DataSOSlot> DataSOSlots { get; private set; } = new();
-		public DataSOSlot CurSlot { get; private set; } = null;
+
+		private DataExplorerView dataExplorerView;
+		private DataSOTypeProvider currentProvider;
+		public EntryDescriptor ActiveEntry { get; private set; }
 
 		public Dictionary<Type, Dictionary<int, DataSO>> DataSOs { get; private set; } = new(); // 직접 접근하기 보다는, GetDataSOs(Type type)를 사용할 것
 		public Dictionary<Type, Dictionary<int, List<DataSO>>> BadIdDataSOs { get; private set; } = new();
@@ -144,39 +146,64 @@ namespace WitchMendokusai
 		{
 			VisualElement grid = rootVisualElement.Q<VisualElement>(name: "Grid");
 			if (grid == null)
-			{
-				// 아직 창이 열리지 않아 Grid가 만들어지지 않은 경우
-				// Debug.LogWarning("Grid가 없습니다.");
-				// CreateGUI();
 				return false;
-			}
-			grid.Clear();
 
-			// InitDict(CurType);
-			Dictionary<int, DataSO> dataSOs = DataSOs[CurType];
-
-			DataSOSlots.Clear();
-
-			List<DataSO> dataSOsSortByID = dataSOs.Values.ToList();
-			dataSOsSortByID.Sort((a, b) => a.ID.CompareTo(b.ID));
-
-			foreach (DataSO dataSO in dataSOsSortByID)
+			if (dataExplorerView == null)
 			{
-				DataSOSlot slot = new((slot) => Selection.activeObject = slot.DataSO);
-				slot.SetDataSO(dataSO);
-				DataSOSlots.Add(dataSO.ID, slot);
-				grid.Add(slot.VisualElement);
+				dataExplorerView = new DataExplorerView();
+				dataExplorerView.OnEntrySelected += entry =>
+				{
+					currentProvider?.OnEntryActivated(entry);
+					ActivateEntry(entry);
+				};
+				grid.Clear();
+				grid.Add(dataExplorerView);
 			}
+
+			currentProvider = new DataSOTypeProvider(CurType, DataSOs[CurType]);
+			dataExplorerView.SetActiveProvider(currentProvider);
+			ActiveEntry = null;
 
 			if (selectFirst)
 			{
-				if (DataSOSlots.Count > 0)
-					SelectDataSOSlot(DataSOSlots.Values.First());
+				IReadOnlyList<EntryDescriptor> entries = currentProvider.GetEntries();
+				if (entries.Count > 0)
+					SelectEntryByDataSO(entries[0].Source as DataSO);
 			}
 
 			Repaint();
 			return true;
 		}
+
+		/// <summary>외부 (DataSOInspector, DataSO_IdChanger) 가 DataSO 선택 시 카드 강조 + Inspector 연동.</summary>
+		public void SelectEntryByDataSO(DataSO dataSO)
+		{
+			if (dataSO == null || currentProvider == null)
+				return;
+
+			IReadOnlyList<EntryDescriptor> entries = currentProvider.GetEntries();
+			for (int i = 0; i < entries.Count; i++)
+			{
+				if (entries[i].Source == dataSO)
+				{
+					ActivateEntry(entries[i]);
+					currentProvider.OnEntryActivated(entries[i]);
+					return;
+				}
+			}
+		}
+
+		private void ActivateEntry(EntryDescriptor entry)
+		{
+			if (ActiveEntry != null)
+				dataExplorerView.SetEntryActive(ActiveEntry, false);
+			ActiveEntry = entry;
+			if (entry != null)
+				dataExplorerView.SetEntryActive(entry, true);
+		}
+
+		/// <summary>DataSOInspector 가 entry 메타 갱신 시 호출 — 그리드 재빌드 (현재 Type 의 entry list 다시).</summary>
+		public void RefreshGrid() => UpdateGrid(selectFirst: false);
 
 		public void SetType(Type type)
 		{
@@ -315,7 +342,7 @@ namespace WitchMendokusai
 			// if (isInit == true)
 			// {
 			// 	SetType(type);
-			// 	SelectDataSOSlot(DataSOSlots[newID]);
+			// 	SelectEntryByDataSO(newDataSO);
 			// }
 
 			return newDataSO;
@@ -393,12 +420,10 @@ namespace WitchMendokusai
 				if (UpdateGrid())
 				{
 					if (CurType != type)
-					{
 						SetType(type);
-					}
 
 					Selection.activeObject = newDataSO;
-					SelectDataSOSlot(DataSOSlots[newDataSO.ID]);
+					SelectEntryByDataSO(newDataSO);
 				}
 				return newDataSO;
 			}
@@ -438,91 +463,25 @@ namespace WitchMendokusai
 
 			UpdateGrid();
 
-			SelectDataSOSlot(GetNearSlot(id));
+			DataSO nearDataSO = GetNearDataSO(id);
+			if (nearDataSO != null)
+				SelectEntryByDataSO(nearDataSO);
 		}
 
-		private DataSOSlot GetNearSlot(int startID)
+		private DataSO GetNearDataSO(int startID)
 		{
-			DataSOSlot slot = null;
+			Dictionary<int, DataSO> dataSOs = DataSOs[CurType];
 			for (int newID = startID; newID < ID_MAX; newID++)
 			{
-				if (DataSOSlots.TryGetValue(newID, out slot))
-					break;
+				if (dataSOs.TryGetValue(newID, out DataSO found))
+					return found;
 			}
-			if (slot == null)
+			for (int newID = startID; newID >= 0; newID--)
 			{
-				for (int newID = startID; newID >= 0; newID--)
-				{
-					if (DataSOSlots.TryGetValue(newID, out slot))
-						break;
-				}
+				if (dataSOs.TryGetValue(newID, out DataSO found))
+					return found;
 			}
-			return slot;
-		}
-
-		public DataSOSlot GetDataSOSlot(DataSO dataSO)
-		{
-			if (TryGetBaseType(dataSO, out Type type) == false)
-			{
-				Debug.LogError("Base type not found");
-				return null;
-			}
-
-			if (DataSOs.ContainsKey(type) == false)
-				return null;
-
-			Dictionary<int, DataSO> dataSOs = GetDataSOs(type);
-			if (dataSOs.ContainsKey(dataSO.ID) == false)
-				return null;
-
-			if (isInit == false)
-			{
-				// Debug.LogWarning("초기화되지 않았습니다.");
-				return null;
-			}
-
-			if (DataSOSlots.ContainsKey(dataSO.ID) == false)
-			{
-				// Debug.LogWarning("선택할 슬롯이 없습니다.");
-				return null;
-			}
-
-			return DataSOSlots[dataSO.ID];
-		}
-
-		public void SelectDataSOSlot(DataSOSlot slot)
-		{
-			// Debug.Log(nameof(SelectDataSOSlot));
-
-			ShowDataSOWindow();
-
-			if (isInit == false)
-			{
-				// Debug.LogWarning("초기화되지 않았습니다.");
-				return;
-			}
-
-			if (slot == null)
-			{
-				// Debug.LogWarning("선택할 슬롯이 없습니다.");
-				return;
-			}
-
-			if (TryGetBaseType(slot.DataSO, out Type type) == false)
-			{
-				Debug.LogError("Base type not found");
-				return;
-			}
-
-			if (CurType != type)
-				SetType(type);
-
-			DataSOSlot oldSlot = CurSlot;
-			CurSlot = slot;
-			oldSlot?.UpdateUI();
-			CurSlot.UpdateUI();
-
-			// Debug.Log($"{nameof(SelectDataSOSlot)} End");
+			return null;
 		}
 
 		private void InitEnumData<TData, TEnum>() where TData : DataSO

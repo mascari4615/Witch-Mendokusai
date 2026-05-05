@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine;
@@ -22,8 +21,7 @@ namespace WitchMendokusai
 		private VisualElement badIdDataSOsRoot = null;
 		private VisualElement targetDataSOsRoot = null;
 
-		private DataSOSlot origin = null;
-		private DataSOSlot target = null;
+		private DataSO targetDataSO = null;
 
 		private Button changeButton = null;
 		private Button deleteButton = null;
@@ -42,11 +40,6 @@ namespace WitchMendokusai
 			badIdDataSOsTitle = thisRoot.Q<VisualElement>(name: "BadIdDataSOsTitle");
 			badIdDataSOsRoot = thisRoot.Q<VisualElement>(name: "BadIdDataSOs");
 			targetDataSOsRoot = thisRoot.Q<VisualElement>(name: "TargetDataSOs");
-
-			origin = new DataSOSlot(null);
-			target = new DataSOSlot(null);
-			targetDataSOsRoot.Add(origin.VisualElement);
-			targetDataSOsRoot.Add(target.VisualElement);
 
 			changeButton = thisRoot.Q<Button>(name: "BTN_ChangeID");
 			changeButton.clicked += ChangeID;
@@ -89,9 +82,10 @@ namespace WitchMendokusai
 			badIdDataSOsRoot.Clear();
 			foreach (DataSO badIdData in curBadIdDataSOs)
 			{
-				DataSOSlot target = new((slot) => Selection.activeObject = slot.DataSO);
-				target.SetDataSO(badIdData);
-				badIdDataSOsRoot.Add(target.VisualElement);
+				CodexCard card = new(ToEntry(badIdData));
+				DataSO captured = badIdData;
+				card.OnClicked += () => Selection.activeObject = captured;
+				badIdDataSOsRoot.Add(card);
 			}
 
 			DataSOWindow.Instance.Repaint();
@@ -101,18 +95,23 @@ namespace WitchMendokusai
 
 		private void UpdateUI()
 		{
-			// Debug.Log($"{nameof(DataSOWindow_IdChanger)}.{nameof(UpdateUI)}");
-
-			origin.SetDataSO(CurDataSO);
-			target.SetDataSO(null);
+			targetDataSO = null;
+			RebuildTargetCards();
 
 			badIdDataSOsTitle.style.display = processBadIdDataSOs ? DisplayStyle.Flex : DisplayStyle.None;
 			badIdDataSOsRoot.style.display = processBadIdDataSOs ? DisplayStyle.Flex : DisplayStyle.None;
 			thisRoot.style.display = CurDataSO == null ? DisplayStyle.None : DisplayStyle.Flex;
 			deleteButton.SetEnabled(processBadIdDataSOs);
 			closeButton.SetEnabled(processBadIdDataSOs == false);
+		}
 
-			// Debug.Log($"{nameof(DataSOWindow_IdChanger)}.{nameof(UpdateUI)} End");
+		private void RebuildTargetCards()
+		{
+			targetDataSOsRoot.Clear();
+			if (CurDataSO != null)
+				targetDataSOsRoot.Add(new CodexCard(ToEntry(CurDataSO)));
+			if (targetDataSO != null)
+				targetDataSOsRoot.Add(new CodexCard(ToEntry(targetDataSO)));
 		}
 
 		private void CheckID(ChangeEvent<int> evt)
@@ -136,16 +135,16 @@ namespace WitchMendokusai
 			if (dataSOs.TryGetValue(newID, out DataSO existingDataSO))
 			{
 				Debug.Log("ID already exists");
-				target.SetDataSO(existingDataSO);
+				targetDataSO = existingDataSO;
+				RebuildTargetCards();
 				changeButton.SetEnabled(false);
 			}
 			else
 			{
-				target.SetDataSO(null);
+				targetDataSO = null;
+				RebuildTargetCards();
 				changeButton.SetEnabled(true);
 			}
-
-			Debug.Log($"{nameof(DataSO_IdChanger)}.{nameof(CheckID)} End");
 		}
 
 		private void ChangeID()
@@ -176,8 +175,6 @@ namespace WitchMendokusai
 			dataSOs.TryGetValue(CurDataSO.ID, out DataSO dataSO);
 			if (processBadIdDataSOs && (CurDataSO != dataSO))
 			{
-				// processBadIdDataSOs
-
 				CurDataSO.ID = newID;
 				SetCorrectAssetName(CurDataSO);
 
@@ -198,29 +195,21 @@ namespace WitchMendokusai
 			}
 			else
 			{
-				// (단순 ID 변경) 혹은 (processBadIdDataSOs이지만, DataSOs에 등록된 DataSO의 ID 변경)
-
 				dataSOs.Remove(CurDataSO.ID);
 				CurDataSO.ID = newID;
 				dataSOs.Add(newID, CurDataSO);
 				SaveAsset(CurDataSO);
 
 				if (DataSOWindow.Instance.CurType != type)
-				{
 					DataSOWindow.Instance.SetType(type);
-				}
 				else
-				{
 					DataSOWindow.Instance.UpdateGrid();
-				}
 
-				DataSOWindow.Instance.SelectDataSOSlot(DataSOWindow.Instance.DataSOSlots[CurDataSO.ID]);
+				DataSOWindow.Instance.SelectEntryByDataSO(CurDataSO);
 
 				CurDataSO = null;
 				UpdateUI();
 			}
-
-			Debug.Log($"{nameof(DataSO_IdChanger)}.{nameof(ChangeID)} End");
 		}
 
 		private void Delete()
@@ -264,6 +253,15 @@ namespace WitchMendokusai
 		{
 			CurDataSO = null;
 			UpdateUI();
+		}
+
+		private static EntryDescriptor ToEntry(DataSO dataSO)
+		{
+			return new EntryDescriptor(
+				id: dataSO.ID.ToString(),
+				displayName: dataSO.Name,
+				icon: dataSO.Sprite,
+				source: dataSO);
 		}
 	}
 }

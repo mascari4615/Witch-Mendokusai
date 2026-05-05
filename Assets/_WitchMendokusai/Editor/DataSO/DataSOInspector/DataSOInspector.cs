@@ -60,9 +60,7 @@ namespace WitchMendokusai
 				if (DataSOWindow.Instance.CurType != type)
 					DataSOWindow.Instance.SetType(type);
 
-				DataSOSlot dataSOSlot = DataSOWindow.Instance.GetDataSOSlot(dataSO);
-				if (dataSOSlot != null)
-					DataSOWindow.Instance.SelectDataSOSlot(dataSOSlot);
+				DataSOWindow.Instance.SelectEntryByDataSO(dataSO);
 			}
 
 			// Debug.Log($"{nameof(Init)} End");
@@ -150,7 +148,7 @@ namespace WitchMendokusai
 						// Debug.Log("Value Changed");
 						EditorUtility.SetDirty(dataSO);
 						serializedObject.ApplyModifiedProperties();
-						UpdateMDataSOSlot();
+						RefreshActiveEntry();
 					});
 
 					// 보이지만 수정은 불가능한 프로퍼티
@@ -243,22 +241,17 @@ namespace WitchMendokusai
 			// Debug.Log($"{nameof(UpdateUI)} End");
 		}
 
-		private void UpdateMDataSOSlot()
+		private void RefreshActiveEntry()
 		{
-			if (DataSOWindow.Instance)
+			if (DataSOWindow.Instance == false)
+				return;
+			if (TryGetBaseType(dataSO, out Type type) == false)
 			{
-				if (TryGetBaseType(dataSO, out Type type) == false)
-				{
-					Debug.LogError($"Base type not found for {dataSO.name}");
-					return;
-				}
-
-				if (DataSOWindow.Instance.CurType == type)
-				{
-					DataSOSlot dataSOSlot = DataSOWindow.Instance.GetDataSOSlot(dataSO);
-					dataSOSlot?.UpdateUI();
-				}
+				Debug.LogError($"Base type not found for {dataSO.name}");
+				return;
 			}
+			if (DataSOWindow.Instance.CurType == type)
+				DataSOWindow.Instance.RefreshGrid();
 		}
 	}
 }
