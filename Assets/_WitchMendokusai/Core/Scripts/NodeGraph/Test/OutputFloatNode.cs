@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace WitchMendokusai
+namespace WitchMendokusai.NodeGraph
 {
 	/// <summary>
 	/// 검증용 dummy 노드 — float 입력 1개. terminal (output port X) → graph.Execute 의 진입점.

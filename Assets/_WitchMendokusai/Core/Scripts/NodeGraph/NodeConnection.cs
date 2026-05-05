@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace WitchMendokusai
+namespace WitchMendokusai.NodeGraph
 {
 	/// <summary>
 	/// 그래프 안 한 연결 — output port 에서 input port 로. 안정 식별은 (Owner.Id, PortId) 페어.

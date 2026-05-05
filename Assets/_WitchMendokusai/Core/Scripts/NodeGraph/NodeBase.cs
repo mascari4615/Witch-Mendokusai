@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-namespace WitchMendokusai
+namespace WitchMendokusai.NodeGraph
 {
 	/// <summary>
 	/// 노드 베이스. ScriptableObject 가 아니라 plain class — `NodeGraph` SO 안에서 `[SerializeReference]` 으로

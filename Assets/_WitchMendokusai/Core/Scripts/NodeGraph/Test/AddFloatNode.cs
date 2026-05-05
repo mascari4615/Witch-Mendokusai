@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace WitchMendokusai
+namespace WitchMendokusai.NodeGraph
 {
 	/// <summary>
 	/// 검증용 dummy 노드 — float 2개 더해 1개 output.

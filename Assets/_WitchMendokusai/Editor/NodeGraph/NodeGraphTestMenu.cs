@@ -2,7 +2,7 @@ using System.IO;
 using UnityEditor;
 using UnityEngine;
 
-namespace WitchMendokusai
+namespace WitchMendokusai.NodeGraph
 {
 	/// <summary>
 	/// TASK-WM-034 단계 A 검증 — `Constant(3) + Constant(5) → Add → Output` 그래프를

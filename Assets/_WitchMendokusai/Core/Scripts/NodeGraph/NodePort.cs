@@ -1,6 +1,6 @@
 using System;
 
-namespace WitchMendokusai
+namespace WitchMendokusai.NodeGraph
 {
 	public enum PortDirection
 	{

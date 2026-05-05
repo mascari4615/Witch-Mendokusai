@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace WitchMendokusai
+namespace WitchMendokusai.NodeGraph
 {
 	/// <summary>
 	/// Pull-based 그래프 실행기. terminal 노드 <see cref="Evaluate"/> 호출 → 그 노드가 input 평가 시
