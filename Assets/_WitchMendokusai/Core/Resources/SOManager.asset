@@ -15,8 +15,6 @@ MonoBehaviour:
   <InvincibleTime>k__BackingField: {fileID: 11400000, guid: 7e722dc07ec340d479558ceb2eec1f67, type: 2}
   <JoystickX>k__BackingField: {fileID: 11400000, guid: 64d14713df42cdb45bb9d5777014f481, type: 2}
   <JoystickY>k__BackingField: {fileID: 11400000, guid: f3d01bea6a0a79043b38712d843e2c8a, type: 2}
-  <DashDuration>k__BackingField: {fileID: 11400000, guid: 97b54e68988d58f4ca1991b411678dbc, type: 2}
-  <DashSpeed>k__BackingField: {fileID: 11400000, guid: c44df19b8e3cfdd41a320b9d89a3c3af, type: 2}
   <LastHitMonsterObject>k__BackingField: {fileID: 11400000, guid: 02651b9ff301b0e4fac2091ae8860410, type: 2}
   <LastEquippedItem>k__BackingField: {fileID: 11400000, guid: 6a7cb1e0ea5550d43bcc42699083f84d, type: 2}
   <QuestDataBuffer>k__BackingField: {fileID: 11400000, guid: 34d6a627ec27aeb4c826fd5dcd7fc39f, type: 2}

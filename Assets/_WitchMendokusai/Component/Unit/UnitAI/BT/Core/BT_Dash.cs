@@ -1,6 +1,5 @@
 using System;
 using UnityEngine;
-using UnityEngine.Rendering;
 using static WitchMendokusai.NodeHelper;
 
 namespace WitchMendokusai
@@ -8,13 +7,17 @@ namespace WitchMendokusai
 	public class BT_Dash : BTRunner
 	{
 		private readonly float attackRange;
+		private readonly float dashSpeed;
+		private readonly float dashDuration;
 		private event Action OnDashEnd;
 
 		private Vector3 moveDest = Vector3.zero;
 
-		public BT_Dash(UnitObject unitObject, float attackRange, Action onDashEnd = null) : base(unitObject)
+		public BT_Dash(UnitObject unitObject, float attackRange, float dashSpeed, float dashDuration, Action onDashEnd = null) : base(unitObject)
 		{
 			this.attackRange = attackRange;
+			this.dashSpeed = dashSpeed;
+			this.dashDuration = dashDuration;
 			OnDashEnd = onDashEnd;
 		}
 
@@ -25,9 +28,6 @@ namespace WitchMendokusai
 				(
 					Sequence // [#] 근처에 있으면 Player향해서 Move
 					(
-						// Action(UpdateDestinationToPlayer),
-						// Action(UpdateMovementDirection),
-						// Action(UpdateSpriteFlip)
 						Action(ChasePlayer),
 						Condition(() => IsPlayerFar() == false)
 					),
@@ -39,7 +39,7 @@ namespace WitchMendokusai
 						}),
 						Wait(0.2f), // 대쉬 전 딜레이
 						Action(Dash),
-						Wait(0.5f), // 대쉬 시간
+						Wait(dashDuration), // 대쉬 시간
 						Action(StopDash),
 						Wait(0.5f), // 대쉬 후 딜레이
 						Action(EndDash)
@@ -71,11 +71,7 @@ namespace WitchMendokusai
 
 		private BTState UpdateMovementDirection()
 		{
-			// NavMeshAgent agent = unitObject.NavMeshAgent;
-
 			Vector3 dir = (moveDest - unitObject.transform.position).normalized;
-			// agent.destination = unitObject.transform.position + dir;
-
 			unitObject.UnitMovement.SetMoveDirection(dir);
 			return BTState.Success;
 		}
@@ -94,14 +90,19 @@ namespace WitchMendokusai
 		private BTState Dash()
 		{
 			UpdateDestinationToPlayer();
-			UpdateMovementDirection();
-			unitObject.UnitStat[UnitStatType.FORCE_MOVE]++; // 초기화
+			Vector3 direction = moveDest - unitObject.transform.position;
+			direction.y = 0f;
+			if (direction.sqrMagnitude < 0.0001f)
+				return BTState.Success;
+			direction.Normalize();
+
+			unitObject.UnitMovement.ApplyImpulse(direction * dashSpeed, dashDuration);
 			return BTState.Success;
 		}
 
 		private BTState StopDash()
 		{
-			unitObject.UnitStat[UnitStatType.FORCE_MOVE] = 0;
+			unitObject.UnitMovement.CancelImpulse();
 			unitObject.UnitMovement.SetMoveDirection(Vector3.zero);
 			return BTState.Success;
 		}

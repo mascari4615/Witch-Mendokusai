@@ -24,7 +24,7 @@ namespace WitchMendokusai
 			BT_Idle _idle = new(UnitObject, isSpriteLookLeft: isSpriteLookLeft);
 			BT_MoveToPlayer _moveToPlayer = new(UnitObject, isSpriteLookLeft);
 			BT_Skill _projectileAttack = new(UnitObject, 0, attackRange, () => ChangeState(FSMStateCommon.Wait));
-			BT_Dash _dash = new(UnitObject, attackRange, () => ChangeState(FSMStateCommon.Wait));
+			BT_Dash _dash = new(UnitObject, attackRange, dashSpeed: 15f, dashDuration: 0.5f, () => ChangeState(FSMStateCommon.Wait));
 			// BT_PullAttack _pullAttack = new(UnitObject, attackRange);
 
 			// --- 상태별 이벤트 설정 ---

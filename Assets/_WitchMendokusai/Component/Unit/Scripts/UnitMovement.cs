@@ -33,6 +33,7 @@ namespace WitchMendokusai
 		// Movement core
 		private Motor motor;
 		private JumpContributor jumpContributor;
+		private ExternalImpulseContributor externalImpulse;
 
 		// Events
 		public event Action<float> OnLanded;
@@ -61,6 +62,11 @@ namespace WitchMendokusai
 			unitRigidBody.interpolation = RigidbodyInterpolation.Interpolate;
 
 			motor = new Motor(transform, unitRigidBody, unitCapsule);
+
+			// ExternalImpulse는 Input 보다 *먼저* 등록 — horizontal velocity를 먼저 채우고
+			// IsExternallyDriven=true 표시. Input은 그 플래그 보고 자기 기여 보류.
+			externalImpulse = new ExternalImpulseContributor();
+			motor.AddContributor(externalImpulse);
 			motor.AddContributor(new InputContributor(unitObject));
 			motor.AddContributor(new GravityContributor());
 
@@ -142,5 +148,21 @@ namespace WitchMendokusai
 		{
 			jumpContributor.ReleaseJump();
 		}
+
+		/// <summary>
+		/// 외부 horizontal impulse 적용 (dash / knockback / 폭발 등). duration 동안 InputContributor의
+		/// horizontal 기여를 덮어쓰고 점프를 차단한다.
+		/// </summary>
+		public void ApplyImpulse(Vector3 worldHorizontalVelocity, float duration)
+		{
+			externalImpulse?.Push(worldHorizontalVelocity, duration);
+		}
+
+		public void CancelImpulse()
+		{
+			externalImpulse?.Cancel();
+		}
+
+		public bool IsExternallyDriven => externalImpulse != null && externalImpulse.IsActive;
 	}
 }

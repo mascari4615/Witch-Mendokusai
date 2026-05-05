@@ -219,12 +219,6 @@ MonoBehaviour:
     m_SerializedLabels:
     - UnitStatData
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: a39006e219934024394d620ca3ab16ba
-    m_Address: UnitStatData/100000002
-    m_ReadOnly: 0
-    m_SerializedLabels:
-    - UnitStatData
-    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: a6af2e11f50bbe348882f6a19496d664
     m_Address: UnitStatData/10401
     m_ReadOnly: 0

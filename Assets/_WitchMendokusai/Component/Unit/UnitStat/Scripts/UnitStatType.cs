@@ -101,7 +101,6 @@ namespace WitchMendokusai
 		// 상태
 		DEAD = 100_000_000,
 		CASTING_SKILL = 100_000_001,
-		FORCE_MOVE = 100_000_002,
 
 		IS_WALKING = 100_000_100,
 		IS_SPRINTING = 100_000_101,

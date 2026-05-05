@@ -25,6 +25,10 @@ namespace WitchMendokusai
 				return;
 			}
 
+			// ExternalImpulse(dash/knockback)가 이미 horizontal을 채웠으면 input 기여 보류.
+			if (context.IsExternallyDriven)
+				return;
+
 			float horizontalSpeed = GetHorizontalSpeed();
 			Vector3 direction = context.MoveDirection;
 
@@ -34,9 +38,6 @@ namespace WitchMendokusai
 
 		private float GetHorizontalSpeed()
 		{
-			if (unitObject.UnitStat[UnitStatType.FORCE_MOVE] > 0)
-				return SOManager.Instance.DashSpeed.RuntimeValue;
-
 			float moveSpeed = unitObject.UnitStat[UnitStatType.MOVEMENT_SPEED] / 10f;
 			if (unitObject.UnitStat[UnitStatType.IS_SPRINTING] > 0)
 				moveSpeed *= 2f; // TODO: 스프린트 속도 하드코딩 — 2026-03-28. KarmoDDrine

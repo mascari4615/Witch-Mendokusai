@@ -38,9 +38,6 @@ namespace WitchMendokusai
 		}
 
 		[field: Header("_" + nameof(SOManager))]
-		[field: SerializeField] public FloatVariable DashDuration { get; private set; }
-		[field: SerializeField] public FloatVariable DashSpeed { get; private set; }
-
 		[field: SerializeField] public MonsterObjectVariable LastHitMonsterObject { get; private set; }
 		[field: SerializeField] public ItemVariable LastEquippedItem { get; private set; }
 

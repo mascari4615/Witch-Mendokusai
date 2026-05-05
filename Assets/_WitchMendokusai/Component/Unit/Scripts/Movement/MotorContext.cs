@@ -27,7 +27,13 @@ namespace WitchMendokusai
 
 		// 입력 (외부에서 매 tick 주입)
 		public Vector3 MoveDirection;
+
+		// 게임 컨디션 (typing / paused / dead 등) 으로 입력이 차단된 상태. InputContributor가 horizontal=0 set.
 		public bool BlockedByExternal;
+
+		// ExternalImpulseContributor가 horizontal velocity를 채우는 중 (dash / knockback 등).
+		// Input은 자기 기여 보류, Jump는 점프 차단. ExternalImpulseContributor가 매 tick set/clear.
+		public bool IsExternallyDriven;
 
 		// 이번 tick 발생한 벽 충돌 노멀들 (디버그/이벤트 송출용)
 		public readonly List<Vector3> WallContactNormals = new();

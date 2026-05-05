@@ -63,8 +63,7 @@ namespace WitchMendokusai
 
 		public void RequestJump()
 		{
-			if (CanUseJumpState() == false)
-				return;
+			// RequestJump 시점엔 MotorContext 미상 — buffer만 채우고 실제 점프 가능 여부는 Contribute에서 판정.
 			jumpBufferTimer = jumpBufferTime;
 			isJumpHeld = true;
 		}
@@ -102,7 +101,7 @@ namespace WitchMendokusai
 			}
 
 			bool jumpExecutedThisTick = false;
-			if (CanUseJumpState() && jumpBufferTimer > 0f && coyoteTimer > 0f)
+			if (CanUseJumpState(context) && jumpBufferTimer > 0f && coyoteTimer > 0f)
 			{
 				jumpBufferTimer = 0f;
 				coyoteTimer = 0f;
@@ -129,11 +128,11 @@ namespace WitchMendokusai
 			wasGrounded = isGrounded;
 		}
 
-		private bool CanUseJumpState()
+		private bool CanUseJumpState(MotorContext context)
 		{
 			if (unitObject.UnitStat[UnitStatType.DEAD] > 0)
 				return false;
-			if (unitObject.UnitStat[UnitStatType.FORCE_MOVE] > 0)
+			if (context.IsExternallyDriven)
 				return false;
 			return true;
 		}
