@@ -23,12 +23,17 @@ extend-exclude = [
     "Build/**",
     "UserSettings/**",
     "Packages/**",
+    "FMODAssets/**",
+    "Assets/PlayFabEditorExtensions/**",
+    "Assets/PlayFabSDK/**",
+    "Assets/Plugins/**",
     "*.meta",          # Unity 메타데이터 (랜덤 해시값이 오타로 잡힘)
     "*.asset",         # Unity 직렬화 에셋
     "*.prefab",
     "*.unity",         # Scene 파일
     "*.anim",
     "*.controller",
+    "*.wlt",
     "package-lock.json", # NPM 패키지 락 파일 (해시 덩어리)
     "yarn.lock"
 ]
