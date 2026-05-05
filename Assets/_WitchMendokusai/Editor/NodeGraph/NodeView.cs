@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor;
 using UnityEditor.Experimental.GraphView;
+using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -73,9 +75,47 @@ namespace WitchMendokusai.NodeGraph
 				}
 			}
 
+			// SerializeField 인스펙터 embed — ShaderGraph 식. 노드 펼침 시 슬라이더 직접 편집.
+			// `[SerializeReference]` 안 노드의 SerializeField 들을 PropertyField 가 자동 펼쳐줌.
+			// parameter hash 변경 → 영역 캐시 invalidate (노드 자체 책임) → preview 재 sim.
+			if (graph != null)
+			{
+				int nodeIndex = -1;
+				for (int i = 0; i < graph.Nodes.Count; i++)
+				{
+					if (ReferenceEquals(graph.Nodes[i], node))
+					{
+						nodeIndex = i;
+						break;
+					}
+				}
+				if (nodeIndex >= 0)
+				{
+					SerializedObject serializedGraph = new(graph);
+					SerializedProperty nodesProp = serializedGraph.FindProperty("nodes");
+					if (nodesProp != null && nodeIndex < nodesProp.arraySize)
+					{
+						SerializedProperty nodeProp = nodesProp.GetArrayElementAtIndex(nodeIndex);
+						PropertyField propertyField = new(nodeProp)
+						{
+							style =
+							{
+								marginTop = 4,
+								marginBottom = 4,
+								marginLeft = 4,
+								marginRight = 4,
+								minWidth = 220,
+							},
+						};
+						propertyField.Bind(serializedGraph);
+						extensionContainer.Add(propertyField);
+					}
+				}
+			}
+
 			RefreshExpandedState();
 			RefreshPorts();
-			expanded = true; // extension (preview) 기본 노출
+			expanded = true; // extension (preview + 인스펙터) 기본 노출
 		}
 
 		public Port GetInputPortView(string portId) => inputPortsByPortId.TryGetValue(portId, out Port p) ? p : null;
