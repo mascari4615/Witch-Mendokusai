@@ -85,6 +85,8 @@ namespace WitchMendokusai
 		private VisualElement previewArea;
 		private VisualElement previewImage;
 		private Label statusLabel;
+		// splitter / window resize 같은 빈번한 GeometryChangedEvent 시 Regenerate 폭주 방지 — 150ms debounce.
+		private IVisualElementScheduledItem geometryRegenerateSchedule;
 
 		/// <summary>
 		/// 외부 layout (예: TerrainEditorWindow 의 3-pane 구조) 가 sidebar 를 가져가 쓸 수 있게 노출.
@@ -453,7 +455,11 @@ namespace WitchMendokusai
 				return;
 			previewPixelWidth = newWidth;
 			previewPixelHeight = newHeight;
-			Regenerate();
+
+			// splitter 드래그 등 GeometryChangedEvent 가 매 frame fire — Regenerate 폭주 방지.
+			// 마지막 변경 후 150ms 무 변동 시 1회만 Regenerate.
+			geometryRegenerateSchedule?.Pause();
+			geometryRegenerateSchedule = schedule.Execute(Regenerate).StartingIn(150);
 		}
 
 		private void OnPreviewPointerDown(PointerDownEvent evt)
