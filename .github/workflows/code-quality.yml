@@ -1,0 +1,18 @@
+name: Code Quality (Typo & Lint)
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  typos:
+    name: Check Typos
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Typos Check
+        uses: crate-ci/typos@master
+        
+  # 향후 SonarCloud나 .NET 포맷 체크(기계적 var 체크) 등을 여기에 추가할 수 있습니다.

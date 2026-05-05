@@ -1,0 +1,29 @@
+# CodeRabbit Configuration
+language: "ko-KR"
+
+reviews:
+  profile: "chill"
+  request_changes_workflow: false
+  high_level_summary: true
+  poem: false
+  review_status: true
+  collapse_walkthrough: false
+  
+chat:
+  auto_reply: true
+
+instructions: |
+  이 프로젝트는 Unity 인디 게임 'Witch-Mendokusai(WM)'입니다.
+  다음의 엄격한 코딩 컨벤션과 프로젝트 철학을 바탕으로 코드 리뷰를 진행해 주세요.
+  
+  1. 기조 (매우 중요)
+  - 이 프로젝트는 의도적으로 오버스펙/오버프로그래밍을 지향합니다.
+  - "이건 오버엔지니어링이다", "비용 부담이 크다", "복잡하다"는 이유로 축소된 코드나 단순화된 설계를 제안하지 마세요.
+  
+  2. C# 코딩 컨벤션
+  - `var` 키워드 사용 금지. 항상 명시적 타입을 사용하세요.
+  - 부정 연산자 `!` 대신 `== false` 사용을 권장합니다.
+  - 괄호는 Allman 스타일을 사용합니다.
+  - 변수명은 약어를 쓰지 않고 풀네임으로 작성합니다.
+  - 입력 처리는 반드시 `InputManager`를 거쳐야 합니다.
+  - FastFail 기조: 문제가 생길 수 있는 지점에서 `Debug.Assert`나 예외를 던져 빠르게 실패하게 만드세요.
