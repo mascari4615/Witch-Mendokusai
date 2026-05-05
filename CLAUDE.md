@@ -203,3 +203,41 @@ stale 이면:
 이전 사례: TASK-WM-034 B (NodeGraph GraphView UI) — `Func<GraphViewChange, GraphViewChange>` vs `GraphView.GraphViewChanged` delegate 타입 mismatch 컴파일 에러를 사용자가 먼저 발견. 본인이 Editor.log 안 보고 검증 요청해버림. 룰 추가 계기.
 
 이전 사례 2: TASK-WM-039 Knockback A+B+C — `PlayerKnockbackCameraGlue` 신규 .cs 만든 후 Editor.log 봤는데 Unity foreground 안 와서 import 안 됨. 다른 (`HitstopFeedback`, `KnockbackFeedback`) 은 import 됐고 새로 만든 것만 안 됨 = stale 일 가능성 인지. 사용자에게 reimport 요청 → 통과 확인 후 검증 진행.
+
+## Git Workflow
+
+본 § 가 본 레포 git workflow 의 정본. CodeRabbit 이 자동 픽업해 같은 룰로 PR 리뷰.
+
+### 브랜치 + PR 강제 (AI Native 게이트)
+
+`main` 직접 push 금지. 작업마다 브랜치 분기 후 PR.
+
+- `feature/<주제>` — 새 기능
+- `fix/<주제>` — 버그 fix
+- `chore/<주제>` — 빌드·CI·의존성·환경 설정·문서
+- `refactor/<주제>` — 동작 변화 없는 정리
+
+**첫 커밋 시 바로 Draft PR 생성** + `.github/pull_request_template.md` 의도 채움 →
+작업 진행하며 push → CodeRabbit 코멘트 대응 → 완료 시 PR 리뷰 후 머지.
+
+### 예외 — `main` 직접 push 허용
+
+다음 경우만 PR 생략:
+- 1~3줄 chore (오타 fix / 주석 갱신 / 단일 const 값 변경)
+- README · CLAUDE.md 자체 minor 보강 (룰 한 줄 추가 등)
+
+판단 기준: *코드 동작 변경 0* + *CodeRabbit 리뷰 가치 0*. 애매하면 PR 분기.
+
+### Commit 메시지
+
+Conventional Commits — `feat: / fix: / chore: / refactor: / docs: / style: / test: / perf:`.
+한 commit 한 주제. 메시지 = 실제 변경 일치.
+
+### Branch Protection (사용자 GitHub 측 설정)
+
+룰을 *기계적으로 강제* 하려면 GitHub repo → Settings → Branches 에서 `main` 에 다음 protection rule:
+- Require a pull request before merging
+- Require status checks to pass (Code Quality CI 통과 필수)
+- Restrict who can push to matching branches (직접 push 차단)
+
+이 설정 안 되어있으면 본 § 룰은 *수동 약속* 만 됨.
