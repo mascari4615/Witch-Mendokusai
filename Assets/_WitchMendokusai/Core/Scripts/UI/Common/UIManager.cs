@@ -25,7 +25,14 @@ namespace WitchMendokusai
 		private UIAdventurerGuild adventurerGuild;
 		private UIStagePopup stagePopup;
 
-		public bool IsAnyPanelFullscreenOpen => PanelGroups.Any(ui => ui.IsPanelOpen && ui.TryGetCurPanel(out UIPanel panel) && panel.IsFullscreen);
+		public bool IsAnyPanelFullscreenOpen
+		{
+			get
+			{
+				PanelGroups.RemoveAll(ui => ui == null || ui.Equals(null));
+				return PanelGroups.Any(ui => ui.IsPanelOpen && ui.TryGetCurPanel(out UIPanel panel) && panel != null && panel.Equals(null) == false && panel.IsFullscreen);
+			}
+		}
 
 		protected override void Awake()
 		{
@@ -106,6 +113,8 @@ namespace WitchMendokusai
 			// UI Toolkit WindowManager가 관리하는 윈도우가 열려있으면 그 쪽이 닫음 (중복 처리 방지)
 			if (WindowManager.TryGetExistingInstance(out WindowManager windowManager) && windowManager.GetTopmostOpen() != null)
 				return;
+
+			PanelGroups.RemoveAll(ui => ui == null || ui.Equals(null));
 
 			// 닫을 수 있는 UI 닫기
 			foreach (IUIPanelGroup ui in PanelGroups)
