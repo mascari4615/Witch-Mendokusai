@@ -14,7 +14,11 @@
 ## 🤔 리뷰어(CodeRabbit)에게 특별히 확인 받고 싶은 부분
 
 
-## ✅ 체크리스트 (로컬 품질 검증)
-- [ ] `WitchMendokusai/CLAUDE.md`의 컨벤션(var 금지, Allman 등)을 준수했는가?
-- [ ] 에디터에서 필요한 수동 설정(컴포넌트 할당 등)이 있다면 TASK 파일에 추가했는가?
-- [ ] 오버엔지니어링 기조를 해치거나 임의로 축소 구현한 스펙은 없는가?
+## ✅ 체크리스트 — 룰 정본은 `WitchMendokusai/CLAUDE.md`
+<!-- CodeRabbit 도 이 파일을 자동 픽업해 같은 룰로 리뷰. 항목별 § 표기는 CLAUDE.md 의 섹션. -->
+- [ ] § 코딩 스타일 — `var` 금지 / Allman / `== false` / 변수명 풀네임
+- [ ] § 입력 처리 — `InputManager.RegisterInputEvent` 경유 (`Keyboard.current` 직접 접근 X)
+- [ ] § 에러 처리 — FastFail 유지 (방어 코드로 증상 덮지 X)
+- [ ] § 사용자 작업 기록 — 에디터 수동 설정은 TASK 의 `## 에디터에서 남은 작업` 에 기록
+- [ ] § 컴파일 에러 확인 — Editor.log `error CS` grep 통과
+- [ ] 오버스펙 지향 — 축소·단순화 자체 검열 X
