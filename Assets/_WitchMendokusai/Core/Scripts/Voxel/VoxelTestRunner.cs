@@ -25,6 +25,7 @@ namespace WitchMendokusai
 				Debug.LogWarning($"[VoxelTestRunner] Active TerrainParameters 없음 — Resources/{TerrainParametersService.ACTIVE_RESOURCE_PATH} 확인.");
 				return;
 			}
+			terrainParameters.EnsureHeightmapCache(); // main thread 1회 캐시 — heightmap PNG 옵션 사용 시 필요
 
 			if (BlockRegistry.IsInitialized == false)
 			{

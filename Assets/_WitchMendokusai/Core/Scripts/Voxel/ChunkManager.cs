@@ -33,6 +33,8 @@ namespace WitchMendokusai
 			terrainParameters = TerrainParametersService.Active;
 			if (terrainParameters == null)
 				Debug.LogError($"[ChunkManager] Active TerrainParameters를 찾지 못함. Resources/{TerrainParametersService.ACTIVE_RESOURCE_PATH} 확인.");
+			else
+				terrainParameters.EnsureHeightmapCache(); // main thread 에서 1회 캐시 — background chunk gen 안전
 
 			if (viewer == null)
 				viewer = Camera.main?.transform;

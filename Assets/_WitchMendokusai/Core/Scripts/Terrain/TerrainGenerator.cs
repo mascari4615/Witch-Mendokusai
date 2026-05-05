@@ -13,6 +13,13 @@ namespace WitchMendokusai
 
 		public static float SampleHeight(TerrainParameters parameters, int x, int z)
 		{
+			// heightmap PNG 캐시 있으면 그쪽 우선 (외부 툴 import escape hatch). null 캐시 = Perlin path.
+			if (parameters.HasHeightmapCache)
+			{
+				float grayscale = parameters.SampleHeightmapCache(x, z);
+				return (grayscale * 2f - 1f) * parameters.Amplitude;
+			}
+
 			float total = 0f;
 			float maxValue = 0f;
 			float curAmplitude = 1f;

@@ -388,6 +388,9 @@ namespace WitchMendokusai
 				return;
 			}
 
+			// heightmap PNG 캐시 보장 (main thread). 텍스쳐 변경 시 즉시 반영.
+			parameters.EnsureHeightmapCache();
+
 			if (previewMode == TerrainPreviewMode.Mesh3D)
 			{
 				if (renderMesh3D == null)
