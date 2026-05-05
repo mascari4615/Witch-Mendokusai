@@ -18,6 +18,13 @@ namespace WitchMendokusai
 
 		[SerializeField] private bool disableWhenInvalid;
 
+		// Knockback / Hit-stop 디폴트 톤 — 중간. caller가 동적 보정 가능.
+		// 0 으로 두면 knockback / hit-stop 없음 (예: 환경 데미지, 약 hit).
+		[Header("Hit Feedback")]
+		[SerializeField] private float knockbackForce = 12f;
+		[SerializeField] private float knockbackDuration = 0.15f;
+		[SerializeField] private float hitstopDuration = 0.05f;
+
 		[SerializeField] private bool usedByPlayer = false;
 		private bool valid = true;
 		private int curHitCount;
@@ -104,6 +111,9 @@ namespace WitchMendokusai
 				// 스킬로 생성하는 경우도 있고, 몸박 데미지도 있고 - 2026-03-22. KarmoDDrine
 				damageSource = skillObject ? skillObject.Context.User : GetComponent<UnitObject>(),
 				equipmentData = skillObject ? skillObject.Context.UsedEquipment : null,
+				knockbackForce = knockbackForce,
+				knockbackDuration = knockbackDuration,
+				hitstopDuration = hitstopDuration,
 			};
 
 			int calcDamage = damage + damageBonus;

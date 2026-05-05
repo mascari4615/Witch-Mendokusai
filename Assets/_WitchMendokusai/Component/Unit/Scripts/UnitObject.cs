@@ -8,7 +8,7 @@ using System.Text;
 
 namespace WitchMendokusai
 {
-	[RequireComponent(typeof(Rigidbody))]
+	[RequireComponent(typeof(Rigidbody), typeof(KnockbackFeedback), typeof(HitstopFeedback))]
 	public abstract class UnitObject : MonoBehaviour
 	{
 		[field: SerializeField] public Unit UnitData { get; private set; } = null;

@@ -1,3 +1,5 @@
+using UnityEngine;
+
 namespace WitchMendokusai
 {
 	public enum DamageType
@@ -29,6 +31,14 @@ namespace WitchMendokusai
 		public SkillData skillData;
 		public bool ignoreInvincible;
 
+		// Knockback / hit-stop 채널 — caller가 매 hit 채움. 0이면 효과 없음.
+		// SO 디폴트(무기/스킬)값 + caller 동적 보정 (charge / 약점 / 페이즈) 둘 다 가능.
+		public float knockbackForce;
+		public float knockbackDuration;
+		public float hitstopDuration;
+		// null이면 damageSource → victim 자동 계산. 폭발/AOE caller가 자기 중심 기반으로 override 가능.
+		public Vector3? knockbackDirectionOverride;
+
 		public DamageInfo(int damage, DamageType type, DamageContext context, bool ignoreInvincible = false)
 		{
 			this.damage = damage;
@@ -37,6 +47,10 @@ namespace WitchMendokusai
 			this.equipmentData = context.EquipmentData;
 			this.skillData = context.SkillData;
 			this.ignoreInvincible = ignoreInvincible;
+			this.knockbackForce = 0f;
+			this.knockbackDuration = 0f;
+			this.hitstopDuration = 0f;
+			this.knockbackDirectionOverride = null;
 		}
 	}
 

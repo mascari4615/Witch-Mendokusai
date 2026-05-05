@@ -35,6 +35,9 @@ namespace WitchMendokusai
 		private JumpContributor jumpContributor;
 		private ExternalImpulseContributor externalImpulse;
 
+		// Hit-stop — motor tick skip 동안 victim 만 멈춤. timescale 안 건드림.
+		private float pauseRemaining;
+
 		// Events
 		public event Action<float> OnLanded;
 
@@ -91,6 +94,12 @@ namespace WitchMendokusai
 
 		private void FixedUpdate()
 		{
+			if (pauseRemaining > 0f)
+			{
+				pauseRemaining -= Time.fixedDeltaTime;
+				return;
+			}
+
 			MotorContext context = motor.Context;
 			context.MoveDirection = MoveDirectionWorld;
 			context.BlockedByExternal = IsMovementBlocked();
@@ -164,5 +173,18 @@ namespace WitchMendokusai
 		}
 
 		public bool IsExternallyDriven => externalImpulse != null && externalImpulse.IsActive;
+
+		/// <summary>
+		/// Hit-stop 등으로 이 unit 만 잠깐 정지. timescale 손대지 않음. 매 호출은 *latest wins* 가 아닌 *max* —
+		/// 짧은 hitstop 진행 중에 더 긴 hitstop 들어오면 더 긴 쪽으로 연장.
+		/// </summary>
+		public void Pause(float duration)
+		{
+			if (duration <= 0f)
+				return;
+			pauseRemaining = Mathf.Max(pauseRemaining, duration);
+		}
+
+		public bool IsPaused => pauseRemaining > 0f;
 	}
 }

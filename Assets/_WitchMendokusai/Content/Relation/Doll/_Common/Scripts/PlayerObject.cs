@@ -5,6 +5,7 @@ using static WitchMendokusai.SOHelper;
 
 namespace WitchMendokusai
 {
+	[RequireComponent(typeof(PlayerKnockbackCameraGlue))]
 	public class PlayerObject : UnitObject
 	{
 		private Coroutine invincibleRoutine = null;
@@ -55,7 +56,7 @@ namespace WitchMendokusai
 
 			RuntimeManager.PlayOneShot("event:/SFX/Monster/Hit", transform.position);
 			GameEventManager.Instance.Raise(GameEventType.OnPlayerHit);
-			CameraManager.Instance.뽀삐뽀삐뽀();
+			// 카메라 셰이크는 PlayerKnockbackCameraGlue가 force 비례로 처리 — 여기서 호출 X.
 
 			if (invincibleRoutine != null)
 				StopCoroutine(invincibleRoutine);
