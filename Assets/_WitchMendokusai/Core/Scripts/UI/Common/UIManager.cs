@@ -24,6 +24,7 @@ namespace WitchMendokusai
 		private UIPopup popup;
 		private UIAdventurerGuild adventurerGuild;
 		private UIStagePopup stagePopup;
+		private SettingView settingView;
 
 		public bool IsAnyPanelFullscreenOpen
 		{
@@ -57,6 +58,7 @@ namespace WitchMendokusai
 
 			Tab = FindAnyObjectByType<UITab>(FindObjectsInactive.Include);
 			NPC = FindAnyObjectByType<UINPC>(FindObjectsInactive.Include);
+			settingView = FindAnyObjectByType<SettingView>(FindObjectsInactive.Include);
 		}
 
 		private void Start()
@@ -110,6 +112,13 @@ namespace WitchMendokusai
 
 		public void OnCancelInput()
 		{
+			// SettingView가 열려있으면 먼저 닫음
+			if (settingView != null && settingView.IsOpen)
+			{
+				settingView.Close();
+				return;
+			}
+
 			// UI Toolkit WindowManager가 관리하는 윈도우가 열려있으면 그 쪽이 닫음 (중복 처리 방지)
 			if (WindowManager.TryGetExistingInstance(out WindowManager windowManager) && windowManager.GetTopmostOpen() != null)
 				return;
@@ -127,7 +136,7 @@ namespace WitchMendokusai
 			}
 
 			// 아무것도 닫힌 게 없으면 설정 열기
-			Tab.SetPanel(TabPanelType.Setting);
+			settingView?.Open();
 		}
 
 		public void ToggleStatus()

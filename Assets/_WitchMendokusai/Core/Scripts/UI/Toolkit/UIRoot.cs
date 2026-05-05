@@ -7,6 +7,7 @@ namespace WitchMendokusai
 	/// <summary>
 	/// UI Toolkit 글로벌 panel 관리. 단일 UIDocument에 layer 분리:
 	/// - WindowsLayer: WMWindow들 (BringToFront 영향 받음)
+	/// - ScreenLayer: 전체화면 메뉴 패널 (SettingView 등)
 	/// - HudLayer: 항상 보이는 HUD (핫바 등)
 	/// - OverlayLayer: 최상단 floating (HoldingOverlay)
 	/// 각 view 컴포넌트(InventoryView, HotbarView 등)가 적절한 layer에 자기 element 추가.
@@ -20,6 +21,7 @@ namespace WitchMendokusai
 		public UIDocument Document { get; private set; }
 		public VisualElement Root => Document.rootVisualElement;
 		public VisualElement WindowsLayer { get; private set; }
+		public VisualElement ScreenLayer { get; private set; }
 		public VisualElement HudLayer { get; private set; }
 		public VisualElement OverlayLayer { get; private set; }
 		public HoldingOverlay HoldingOverlay { get; private set; }
@@ -38,10 +40,12 @@ namespace WitchMendokusai
 				root.styleSheets.Add(styleSheet);
 
 			WindowsLayer = MakeLayer("WindowsLayer", PickingMode.Ignore);
+			ScreenLayer = MakeLayer("ScreenLayer", PickingMode.Ignore);
 			HudLayer = MakeLayer("HudLayer", PickingMode.Ignore);
 			OverlayLayer = MakeLayer("OverlayLayer", PickingMode.Ignore);
 
 			root.Add(WindowsLayer);
+			root.Add(ScreenLayer);
 			root.Add(HudLayer);
 			root.Add(OverlayLayer);
 
