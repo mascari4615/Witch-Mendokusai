@@ -69,5 +69,16 @@ namespace WitchMendokusai.NodeGraph
 					return p;
 			return null;
 		}
+
+		/// <summary>
+		/// 같은 portId 가 input/output 둘 다 있는 노드 (예: pass-through erosion / filter) 에서 명시 lookup.
+		/// </summary>
+		public NodePort FindPort(string portId, PortDirection direction)
+		{
+			foreach (NodePort p in Ports)
+				if (p.PortId == portId && p.Direction == direction)
+					return p;
+			return null;
+		}
 	}
 }

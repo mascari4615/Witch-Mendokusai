@@ -13,34 +13,47 @@ MonoBehaviour:
   m_Name: DefaultTerrainGraph
   m_EditorClassIdentifier: Assembly-CSharp::WitchMendokusai.TerrainGraph
   nodes:
-  - rid: 3717169638049054817
-  - rid: 3717169638049054818
-  - rid: 3717169638049054819
+  - rid: 3717169662100504807
+  - rid: 3717169662100504808
+  - rid: 3717169662100504809
+  - rid: 3717169662100504810
   connections:
-  - sourceNodeId: 84385132dec24ff9864092f9c9ba5ff8
+  - sourceNodeId: 9591d493d39c4a05a4f0cd35cd764159
     sourcePortId: x
-    targetNodeId: e77948ef92e048c881a8d49366cc8424
+    targetNodeId: 5d8615f2cc9c4e12a4a6260d0dcb42f0
     targetPortId: x
-  - sourceNodeId: 84385132dec24ff9864092f9c9ba5ff8
+  - sourceNodeId: 9591d493d39c4a05a4f0cd35cd764159
     sourcePortId: z
-    targetNodeId: e77948ef92e048c881a8d49366cc8424
+    targetNodeId: 5d8615f2cc9c4e12a4a6260d0dcb42f0
     targetPortId: z
-  - sourceNodeId: e77948ef92e048c881a8d49366cc8424
+  - sourceNodeId: 9591d493d39c4a05a4f0cd35cd764159
+    sourcePortId: x
+    targetNodeId: a3b39e90cbc446eb846bf50ca4e4b136
+    targetPortId: x
+  - sourceNodeId: 9591d493d39c4a05a4f0cd35cd764159
+    sourcePortId: z
+    targetNodeId: a3b39e90cbc446eb846bf50ca4e4b136
+    targetPortId: z
+  - sourceNodeId: 5d8615f2cc9c4e12a4a6260d0dcb42f0
     sourcePortId: height
-    targetNodeId: cd012140c9e8415ca6726a581a626d1d
+    targetNodeId: a3b39e90cbc446eb846bf50ca4e4b136
+    targetPortId: height
+  - sourceNodeId: a3b39e90cbc446eb846bf50ca4e4b136
+    sourcePortId: height
+    targetNodeId: 2b3fc09f56ba4774953c097b66b534fa
     targetPortId: height
   references:
     version: 2
     RefIds:
-    - rid: 3717169638049054817
+    - rid: 3717169662100504807
       type: {class: WorldPositionInputNode, ns: WitchMendokusai, asm: Assembly-CSharp}
       data:
-        id: 84385132dec24ff9864092f9c9ba5ff8
+        id: 9591d493d39c4a05a4f0cd35cd764159
         editorPosition: {x: 0, y: 0}
-    - rid: 3717169638049054818
+    - rid: 3717169662100504808
       type: {class: FractalPerlinNode, ns: WitchMendokusai, asm: Assembly-CSharp}
       data:
-        id: e77948ef92e048c881a8d49366cc8424
+        id: 5d8615f2cc9c4e12a4a6260d0dcb42f0
         editorPosition: {x: 260, y: 0}
         octaves: 4
         frequency: 0.01
@@ -48,8 +61,27 @@ MonoBehaviour:
         persistence: 0.5
         lacunarity: 2
         seed: 0
-    - rid: 3717169638049054819
+    - rid: 3717169662100504809
+      type: {class: HydraulicErosionNode, ns: WitchMendokusai, asm: Assembly-CSharp}
+      data:
+        id: a3b39e90cbc446eb846bf50ca4e4b136
+        editorPosition: {x: 540, y: 0}
+        regionSize: 256
+        parameters:
+          particleCount: 100000
+          maxParticleIterations: 50
+          initialWater: 1
+          initialVelocity: 1
+          inertia: 0.05
+          gravity: 4
+          sedimentCapacityFactor: 4
+          minSedimentCapacity: 0.01
+          depositRate: 0.3
+          erosionRate: 0.5
+          evaporRate: 0.01
+          seed: 0
+    - rid: 3717169662100504810
       type: {class: HeightOutputNode, ns: WitchMendokusai, asm: Assembly-CSharp}
       data:
-        id: cd012140c9e8415ca6726a581a626d1d
-        editorPosition: {x: 540, y: 0}
+        id: 2b3fc09f56ba4774953c097b66b534fa
+        editorPosition: {x: 820, y: 0}

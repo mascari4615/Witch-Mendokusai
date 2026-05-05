@@ -40,17 +40,25 @@ namespace WitchMendokusai
 			};
 			perlinNode.EditorPosition = new Vector2(260f, 0f);
 
+			HydraulicErosionNode erosionNode = new();
+			erosionNode.EditorPosition = new Vector2(540f, 0f);
+
 			HeightOutputNode outputNode = new();
-			outputNode.EditorPosition = new Vector2(540f, 0f);
+			outputNode.EditorPosition = new Vector2(820f, 0f);
 
 			graph.AddNode(posNode);
 			graph.AddNode(perlinNode);
+			graph.AddNode(erosionNode);
 			graph.AddNode(outputNode);
 
 			bool ok = true;
 			ok &= graph.Connect(posNode.FindPort("x"), perlinNode.FindPort("x"));
 			ok &= graph.Connect(posNode.FindPort("z"), perlinNode.FindPort("z"));
-			ok &= graph.Connect(perlinNode.FindPort("height"), outputNode.FindPort("height"));
+			ok &= graph.Connect(posNode.FindPort("x"), erosionNode.FindPort("x"));
+			ok &= graph.Connect(posNode.FindPort("z"), erosionNode.FindPort("z"));
+			// erosion 은 "height" 가 input/output 둘 다 — direction 명시 필수.
+			ok &= graph.Connect(perlinNode.FindPort("height"), erosionNode.FindPort("height", PortDirection.Input));
+			ok &= graph.Connect(erosionNode.FindPort("height", PortDirection.Output), outputNode.FindPort("height"));
 
 			if (ok == false)
 				Debug.LogError("[TerrainGraphMenu] 연결 실패 — port 타입/방향 검증 실패.");
