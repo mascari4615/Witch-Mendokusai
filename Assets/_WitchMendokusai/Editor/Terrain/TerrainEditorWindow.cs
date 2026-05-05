@@ -36,9 +36,12 @@ namespace WitchMendokusai
 		private Material previewMaterial;
 
 		// F2 — TwoPaneSplitView 우측 그래프 패널 + reference 변화 감지
+		private TerrainEditorView terrainView;
 		private VisualElement graphPaneContainer;
 		private NodeGraph.NodeGraphView graphView;
 		private TerrainGraph lastSeenGraph;
+		// F2 후속 — graph SO dirty count polling (Inspector 안 노드 파라미터 변경 시 preview 자동 새로고침)
+		private int lastGraphDirtyCount = -1;
 
 		private void CreateGUI()
 		{
@@ -127,7 +130,7 @@ namespace WitchMendokusai
 			// fixedPaneIndex=0 (좌측 고정 600px), 우측은 flex.
 			TwoPaneSplitView splitView = new(0, 600, TwoPaneSplitViewOrientation.Horizontal);
 
-			TerrainEditorView terrainView = new(editing, OnParameterChanged, RenderMesh3D);
+			terrainView = new TerrainEditorView(editing, OnParameterChanged, RenderMesh3D);
 			splitView.Add(terrainView);
 
 			graphPaneContainer = new VisualElement { style = { flexGrow = 1 } };
@@ -175,6 +178,21 @@ namespace WitchMendokusai
 				return;
 			if (editing.TerrainGraph != lastSeenGraph)
 				RebuildGraphPane();
+		}
+
+		/// <summary>
+		/// Editor 가 초당 ~10회 호출. graph SO 의 dirty count 가 바뀌면 (사용자가 Inspector 에서 노드 필드
+		/// 편집 등) terrainView preview 새로고침. 통합 창 UX — "그래프 편집 → 즉시 시각 반영" 자연.
+		/// </summary>
+		private void OnInspectorUpdate()
+		{
+			if (terrainView == null || editing == null || editing.TerrainGraph == null)
+				return;
+			int dirty = EditorUtility.GetDirtyCount(editing.TerrainGraph);
+			if (dirty == lastGraphDirtyCount)
+				return;
+			lastGraphDirtyCount = dirty;
+			terrainView.Refresh();
 		}
 
 		private void OnParameterChanged()

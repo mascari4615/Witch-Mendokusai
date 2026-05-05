@@ -380,6 +380,12 @@ namespace WitchMendokusai
 			onParameterChanged();
 		}
 
+		/// <summary>외부 호출용 (TerrainEditorWindow 의 graph dirty polling 등) — preview 강제 갱신.</summary>
+		public void Refresh()
+		{
+			Regenerate();
+		}
+
 		private void Regenerate()
 		{
 			if (parameters == null)
