@@ -126,5 +126,4 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WitchMendokusai.FSMSlimeKing
   attackRange: 15
-  attackPatternCooldown: 4
   isSpriteLookLeft: 0

@@ -210,6 +210,9 @@ MonoBehaviour:
   useHitCount: 1
   hitCount: 1
   disableWhenInvalid: 1
+  knockbackForce: 12
+  knockbackDuration: 0.15
+  hitstopDuration: 0.05
   usedByPlayer: 0
 --- !u!114 &4393124974712460270
 MonoBehaviour:
