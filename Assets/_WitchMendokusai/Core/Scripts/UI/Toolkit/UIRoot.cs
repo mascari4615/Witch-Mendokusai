@@ -25,6 +25,7 @@ namespace WitchMendokusai
 		public VisualElement HudLayer { get; private set; }
 		public VisualElement OverlayLayer { get; private set; }
 		public HoldingOverlay HoldingOverlay { get; private set; }
+		public SettingView SettingView { get; private set; }
 
 		protected override void Awake()
 		{
@@ -34,15 +35,12 @@ namespace WitchMendokusai
 		}
 
 		/// <summary>
-		/// UI Toolkit View 컴포넌트를 동적으로 생성.
-		/// 새 View 추가 시 이곳에 한 줄 추가하면 됨.
+		/// 글로벌 View 컴포넌트를 동적으로 생성. 씬 무관 시스템 메뉴.
+		/// 씬별 view (Inventory/Hotbar/BuildingBar 등) 는 해당 씬 매니저 (UIManager 등) 가 직접 AddComponent / OnDestroy 정리.
 		/// </summary>
 		private void CreateViews()
 		{
-			gameObject.AddComponent<InventoryView>();
-			gameObject.AddComponent<HotbarView>();
-			gameObject.AddComponent<BuildingBarView>();
-			gameObject.AddComponent<SettingView>();
+			SettingView = gameObject.AddComponent<SettingView>();
 		}
 
 		private void OnEnable()

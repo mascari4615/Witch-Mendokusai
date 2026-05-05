@@ -24,7 +24,11 @@ namespace WitchMendokusai
 		private UIPopup popup;
 		private UIAdventurerGuild adventurerGuild;
 		private UIStagePopup stagePopup;
-		private SettingView settingView;
+
+		// 씬(World) 한정 UI Toolkit View — 글로벌 UIRoot 에 AddComponent 후 OnDestroy 에서 정리.
+		private InventoryView inventoryView;
+		private HotbarView hotbarView;
+		private BuildingBarView buildingBarView;
 
 		public bool IsAnyPanelFullscreenOpen
 		{
@@ -58,7 +62,24 @@ namespace WitchMendokusai
 
 			Tab = FindAnyObjectByType<UITab>(FindObjectsInactive.Include);
 			NPC = FindAnyObjectByType<UINPC>(FindObjectsInactive.Include);
-			settingView = FindAnyObjectByType<SettingView>(FindObjectsInactive.Include);
+
+			// 씬 한정 view 등록 — 글로벌 UIRoot 에 AddComponent
+			GameObject uiRootGameObject = UIRoot.Instance.gameObject;
+			inventoryView = uiRootGameObject.AddComponent<InventoryView>();
+			hotbarView = uiRootGameObject.AddComponent<HotbarView>();
+			buildingBarView = uiRootGameObject.AddComponent<BuildingBarView>();
+		}
+
+		protected override void OnDestroy()
+		{
+			if (inventoryView != null)
+				Destroy(inventoryView);
+			if (hotbarView != null)
+				Destroy(hotbarView);
+			if (buildingBarView != null)
+				Destroy(buildingBarView);
+
+			base.OnDestroy();
 		}
 
 		private void Start()
@@ -101,9 +122,6 @@ namespace WitchMendokusai
 
 		public void ToggleTabUI()
 		{
-			if (Tab.CurPanelType == TabPanelType.Setting)
-				return;
-
 			if (Tab.IsPanelOpen)
 				Tab.ClosePanel();
 			else if (IsAnyPanelFullscreenOpen == false)
@@ -112,8 +130,10 @@ namespace WitchMendokusai
 
 		public void OnCancelInput()
 		{
+			SettingView settingView = UIRoot.Instance.SettingView;
+
 			// SettingView가 열려있으면 먼저 닫음
-			if (settingView != null && settingView.IsOpen)
+			if (settingView.IsOpen)
 			{
 				settingView.Close();
 				return;
@@ -135,8 +155,7 @@ namespace WitchMendokusai
 				}
 			}
 
-			// 아무것도 닫힌 게 없으면 설정 열기
-			settingView?.Open();
+			settingView.Open();
 		}
 
 		public void ToggleStatus()

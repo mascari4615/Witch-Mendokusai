@@ -14,7 +14,6 @@ namespace WitchMendokusai
 		[SerializeField] private TextMeshProUGUI copyRightText;
 		[SerializeField] private int year;
 
-		[SerializeField] private UISetting setting;
 		[SerializeField] private Button startButton, settingButton, exitButton;
 
 		private IEnumerator Start()
@@ -36,18 +35,11 @@ namespace WitchMendokusai
 
 		private void Init()
 		{
-			// Bind Event
-			{
-				startButton.onClick.AddListener(StartGame);
-				settingButton.onClick.AddListener(ToggleSettings);
-				exitButton.onClick.AddListener(ExitGame);
-			}
+			startButton.onClick.AddListener(StartGame);
+			settingButton.onClick.AddListener(ToggleSettings);
+			exitButton.onClick.AddListener(ExitGame);
 
-			// Init
-			{
-				setting.Init(null);
-				UpdateText();
-			}
+			UpdateText();
 		}
 
 		private void UpdateText()
@@ -71,8 +63,7 @@ namespace WitchMendokusai
 		public void ToggleSettings()
 		{
 			Debug.Log(nameof(ToggleSettings));
-			setting.SetActive(!setting.gameObject.activeSelf);
-			setting.UpdateUI();
+			UIRoot.Instance.SettingView.Toggle();
 		}
 
 		public void ExitGame()
