@@ -126,17 +126,27 @@ namespace WitchMendokusai
 		{
 			viewContainer.Clear();
 
-			// 좌: TerrainEditorView (사이드바 + preview), 우: NodeGraphView (그래프 편집)
-			// fixedPaneIndex=0 (좌측 고정 600px), 우측은 flex.
-			TwoPaneSplitView splitView = new(0, 600, TwoPaneSplitViewOrientation.Horizontal);
-
+			// 3-pane: Inspector(sidebar) | Graph | Preview. 사용자 결정 (인스펙터 → 그래프 → 미리보기 순).
+			// terrainView 는 상태/이벤트 holder — 실제 children (sidebar/preview) 를 추출해 외부 layout 에 재배치.
 			terrainView = new TerrainEditorView(editing, OnParameterChanged, RenderMesh3D);
-			splitView.Add(terrainView);
+			VisualElement sidebar = terrainView.SidebarPane;
+			VisualElement preview = terrainView.PreviewPane;
+			sidebar.RemoveFromHierarchy();
+			preview.RemoveFromHierarchy();
 
 			graphPaneContainer = new VisualElement { style = { flexGrow = 1 } };
-			splitView.Add(graphPaneContainer);
 
-			viewContainer.Add(splitView);
+			// 안 쪽 split: Graph (flex) | Preview (380px 고정)
+			TwoPaneSplitView innerSplit = new(1, 380f, TwoPaneSplitViewOrientation.Horizontal);
+			innerSplit.Add(graphPaneContainer);
+			innerSplit.Add(preview);
+
+			// 바깥 split: Sidebar (280px 고정) | 안 쪽 split
+			TwoPaneSplitView outerSplit = new(0, 280f, TwoPaneSplitViewOrientation.Horizontal);
+			outerSplit.Add(sidebar);
+			outerSplit.Add(innerSplit);
+
+			viewContainer.Add(outerSplit);
 
 			RebuildGraphPane();
 		}

@@ -81,8 +81,18 @@ namespace WitchMendokusai
 		private TerrainEditorLang lang;
 		private TerrainPreviewMode previewMode = TerrainPreviewMode.Heightmap;
 
+		private VisualElement sidebar;
+		private VisualElement previewArea;
 		private VisualElement previewImage;
 		private Label statusLabel;
+
+		/// <summary>
+		/// 외부 layout (예: TerrainEditorWindow 의 3-pane 구조) 가 sidebar 를 가져가 쓸 수 있게 노출.
+		/// `RemoveFromHierarchy()` 로 자기 view 에서 떼고 다른 곳 child 로 add 가능. 이벤트 핸들러는 view instance
+		/// 메서드라 view 인스턴스가 GC 안 되는 동안 정상 동작.
+		/// </summary>
+		public VisualElement SidebarPane => sidebar;
+		public VisualElement PreviewPane => previewArea;
 
 		private Label titleLabel;
 		private Label previewHeader;
@@ -118,7 +128,7 @@ namespace WitchMendokusai
 			style.flexDirection = FlexDirection.Row;
 			style.flexGrow = 1;
 
-			VisualElement sidebar = new();
+			sidebar = new VisualElement();
 			sidebar.AddToClassList(SIDEBAR_CLASS);
 			sidebar.style.width = 280;
 			sidebar.style.paddingLeft = 8;
@@ -129,7 +139,7 @@ namespace WitchMendokusai
 
 			BuildSidebar(sidebar);
 
-			VisualElement previewArea = new();
+			previewArea = new VisualElement();
 			previewArea.style.flexGrow = 1;
 			previewArea.style.alignItems = Align.Center;
 			previewArea.style.justifyContent = Justify.Center;
