@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
 using WitchMendokusai.NodeGraph;
@@ -6,10 +6,8 @@ using WitchMendokusai.NodeGraph;
 namespace WitchMendokusai
 {
 	/// <summary>
-	/// Ridged multifractal Perlin — 표준 Perlin (-1~1) 을 `1 - |perlin|` 로 변환 (peak at perlin=0) 후 제곱 → 산봉우리 ridge.
-	/// 옥타브 누적으로 multifractal 효과. 부드러운 FractalPerlin 과 달리 *날카로운 산맥* 모양.
-	///
-	/// 출력 0~amplitude (이미 양수 — ridge = 봉우리). 정점 ridge, 골짜기 0.
+	/// Ridged multifractal generator. 1 - |perlin| -> 제곱 -> 날카로운 산맥·능선.
+	/// 일반 Perlin(부드러운 언덕) 과 다른 날카로운 지형 표현. FractalPerlinNode 와 교체해 사용.
 	/// </summary>
 	[Serializable]
 	public class RidgedPerlinNode : NodeBase
@@ -49,21 +47,23 @@ namespace WitchMendokusai
 			float x = context.GetInput(inX);
 			float z = context.GetInput(inZ);
 
+			float seedOffsetX = (seed * 0.7341f) % 10000f;
+			float seedOffsetZ = (seed * 1.2917f) % 10000f;
+
 			float total = 0f;
 			float maxValue = 0f;
 			float curAmplitude = 1f;
 			float curFrequency = frequency;
 
-			float seedOffsetX = (seed * 0.7341f) % 10000f;
-			float seedOffsetZ = (seed * 1.2917f) % 10000f;
-
 			for (int i = 0; i < octaves; i++)
 			{
 				float sampleX = (x + COORD_OFFSET + seedOffsetX) * curFrequency;
 				float sampleZ = (z + COORD_OFFSET + seedOffsetZ) * curFrequency;
-				float perlin = Mathf.PerlinNoise(sampleX, sampleZ) * 2f - 1f; // -1 ~ 1
-				float ridged = 1f - Mathf.Abs(perlin);                         // 0 ~ 1, peak at perlin=0
-				ridged *= ridged;                                              // 강조 — sharp ridge
+				float perlin = Mathf.PerlinNoise(sampleX, sampleZ) * 2f - 1f;
+
+				// ridged: 절댓값 반전 + 제곱으로 능선 날카롭게
+				float ridged = 1f - Mathf.Abs(perlin);
+				ridged = ridged * ridged;
 
 				total += ridged * curAmplitude;
 				maxValue += curAmplitude;
