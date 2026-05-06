@@ -29,6 +29,7 @@ namespace WitchMendokusai
 		private InventoryView inventoryView;
 		private HotbarView hotbarView;
 		private BuildingBarView buildingBarView;
+		private QuestView questView;
 
 		public bool IsAnyPanelFullscreenOpen
 		{
@@ -68,6 +69,7 @@ namespace WitchMendokusai
 			inventoryView = uiRootGameObject.AddComponent<InventoryView>();
 			hotbarView = uiRootGameObject.AddComponent<HotbarView>();
 			buildingBarView = uiRootGameObject.AddComponent<BuildingBarView>();
+			questView = uiRootGameObject.AddComponent<QuestView>();
 		}
 
 		protected override void OnDestroy()
@@ -78,6 +80,8 @@ namespace WitchMendokusai
 				Destroy(hotbarView);
 			if (buildingBarView != null)
 				Destroy(buildingBarView);
+			if (questView != null)
+				Destroy(questView);
 
 			base.OnDestroy();
 		}
