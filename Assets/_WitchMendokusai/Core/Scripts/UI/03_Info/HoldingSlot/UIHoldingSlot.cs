@@ -80,7 +80,7 @@ namespace WitchMendokusai
 
 			if (IsHolding)
 			{
-				transform.position = Mouse.current != null ? (Vector3)Mouse.current.position.ReadValue() : transform.position;
+				transform.position = (Vector3)InputManager.Instance.MouseScreenPosition;
 				slot.SetSlot(holdingItem.Data, holdingItem.Amount);
 			}
 		}
