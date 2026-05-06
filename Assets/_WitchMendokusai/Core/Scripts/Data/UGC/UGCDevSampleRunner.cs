@@ -108,8 +108,7 @@ namespace WitchMendokusai
 
 			nextInputHeartbeatTime = Time.unscaledTime + 2f;
 
-			bool keyboardPresent = Keyboard.current != null;
-			bool anyKey = keyboardPresent && Keyboard.current.anyKey.wasPressedThisFrame;
+			bool anyKey = InputManager.Instance.IsAnyKeyPressedThisFrame;
 			// Debug.Log($"[UGC][Input] heartbeat keyboardPresent={keyboardPresent}, anyKeyThisFrame={anyKey}, focus={Application.isFocused}");
 		}
 

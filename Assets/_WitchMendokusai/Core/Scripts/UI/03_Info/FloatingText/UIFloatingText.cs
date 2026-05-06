@@ -82,7 +82,7 @@ namespace WitchMendokusai
 			Vector3 GetScreenPos()
 			{
 				if (worldPos == default)
-					return Mouse.current != null ? (Vector3)Mouse.current.position.ReadValue() : Vector3.zero;
+					return (Vector3)InputManager.Instance.MouseScreenPosition;
 				else
 					return Camera.main.WorldToScreenPoint(worldPos);
 			}

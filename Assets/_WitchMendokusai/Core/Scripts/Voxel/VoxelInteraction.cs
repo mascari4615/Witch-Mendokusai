@@ -76,7 +76,7 @@ namespace WitchMendokusai
 			if (InputManager.Instance.IsPointerOverUI())
 				return;
 
-			Vector2 mousePos = Mouse.current.position.ReadValue();
+			Vector2 mousePos = InputManager.Instance.MouseScreenPosition;
 			Ray ray = mainCamera.ScreenPointToRay(mousePos);
 
 			if (Physics.Raycast(ray, out RaycastHit hit, reachDistance) == false)
