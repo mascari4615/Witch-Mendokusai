@@ -15,15 +15,7 @@ namespace WitchMendokusai
 	/// 3. swap (input, output) 후 다음 pass
 	/// 4. iterations 회 반복 후 결과를 heightmap 에 복사 (홀수 pass 인 경우)
 	///
-<<<<<<< HEAD
-	/// NodeGraph / Unity 의존 X (Mathf 만) — 단위 테스트 가능.
-=======
-<<<<<<< HEAD
-	/// NodeGraph / Unity 의존 X (Mathf 만) — 단위 테스트 가능.
-=======
 	/// UnityEngine(Mathf, Tooltip/Range attribute) 의존. NodeGraph 의존 X.
->>>>>>> origin/main
->>>>>>> origin/main
 	/// </summary>
 	public static class SmoothGridSimulator
 	{
