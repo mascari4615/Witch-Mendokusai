@@ -104,7 +104,7 @@ namespace WitchMendokusai
 			if (Mouse.current == null)
 				return;
 
-			Vector2 screen = Mouse.current.position.ReadValue();
+			Vector2 screen = InputManager.Instance.MouseScreenPosition;
 			screen.y = Screen.height - screen.y;
 			Vector2 panelPosition = RuntimePanelUtils.ScreenToPanel(view.panel, screen);
 

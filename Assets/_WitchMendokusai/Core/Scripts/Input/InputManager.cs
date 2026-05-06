@@ -115,6 +115,8 @@ namespace WitchMendokusai
 		};
 
 		public Vector3 MouseWorldPosition { get; private set; }
+		public Vector2 MouseScreenPosition { get; private set; }
+		public bool IsAnyKeyPressedThisFrame => Keyboard.current != null && Keyboard.current.anyKey.wasPressedThisFrame;
 		public Vector2 MoveInput { get; private set; }
 		public float CameraRotateInput { get; private set; }
 		private IInputStrategy CurrentInputStrategy { get; set; }
@@ -314,6 +316,7 @@ namespace WitchMendokusai
 			}
 
 			Vector2 mouseScreen = Mouse.current != null ? Mouse.current.position.ReadValue() : Vector2.zero;
+			MouseScreenPosition = mouseScreen;
 			Vector3 mousePos = new(mouseScreen.x, mouseScreen.y, Camera.main.nearClipPlane);
 			Ray ray = Camera.main.ScreenPointToRay(mousePos);
 
