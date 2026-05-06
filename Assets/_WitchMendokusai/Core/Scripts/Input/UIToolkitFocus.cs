@@ -7,9 +7,22 @@ namespace WitchMendokusai
 	// IsTyping GameCondition 의 일반화 — UIChat/DevWindow CommandLine 외 모든 TextField 가 자동 보호.
 	public static class UIToolkitFocus
 	{
+		private static int cachedFrame = -1;
+		private static bool cachedResult;
+
 		public static bool IsAnyTextFieldFocused()
 		{
-			UIDocument[] documents = Object.FindObjectsByType<UIDocument>(FindObjectsInactive.Exclude);
+			if (Time.frameCount == cachedFrame)
+				return cachedResult;
+
+			cachedFrame = Time.frameCount;
+			cachedResult = CheckAnyTextFieldFocused();
+			return cachedResult;
+		}
+
+		private static bool CheckAnyTextFieldFocused()
+		{
+			UIDocument[] documents = Object.FindObjectsByType<UIDocument>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
 
 			for (int i = 0; i < documents.Length; i++)
 			{
@@ -39,3 +52,4 @@ namespace WitchMendokusai
 		}
 	}
 }
+
