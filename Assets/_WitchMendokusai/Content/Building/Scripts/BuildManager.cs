@@ -74,10 +74,6 @@ namespace WitchMendokusai
 
 		private void Update()
 		{
-			// TODO: 임시 Build 키
-			if (Keyboard.current != null && Keyboard.current.bKey.wasPressedThisFrame)
-				GameModeManager.Instance.ToggleBuildMode();
-
 			if (GameModeManager.Instance.IsBuildMode == false)
 				return;
 

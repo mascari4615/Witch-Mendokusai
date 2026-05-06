@@ -75,6 +75,13 @@ namespace WitchMendokusai
 						),
 
 						new(
+							InputEventType.BuildModeToggle,
+							InputEventResponseType.Performed,
+							() => GameModeManager.Instance.ToggleBuildMode(),
+							() => CanExecute(InputEventType.BuildModeToggle)
+						),
+
+						new(
 							InputEventType.Scroll,
 							InputEventResponseType.Performed,
 							() => CameraManager.Instance.Zoom(),
@@ -152,6 +159,16 @@ namespace WitchMendokusai
 				}
 			},
 			{ InputEventType.ChangeMode, new[] { GameConditionType.IsTyping } },
+			{
+				InputEventType.BuildModeToggle,
+				new[]
+				{
+					GameConditionType.IsTyping,
+					GameConditionType.IsPaused,
+					GameConditionType.IsDied,
+					GameConditionType.IsViewingUI
+				}
+			},
 			{ InputEventType.Scroll, new[] { GameConditionType.IsTyping } },
 
 			{
