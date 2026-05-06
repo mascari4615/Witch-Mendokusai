@@ -39,3 +39,31 @@ jobs:
         uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+
+  claude-coderabbit:
+    if: github.event_name == 'pull_request_review' && github.event.review.user.login == 'coderabbitai[bot]'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+      id-token: write
+      actions: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+
+      - name: Apply CodeRabbit suggestions
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          prompt: |
+            CodeRabbit이 이 PR에 코드 리뷰를 남겼습니다. 리뷰의 actionable 제안을 검토해 적절한 것만 적용하세요.
+
+            적용 기준:
+            - 버그, 명백한 코딩 스타일 위반, 논리 오류 → 적용
+            - nitpick / 주관적 스타일 의견 → 건너뜀
+            - 아키텍처·설계 변경이 필요한 큰 지적 → 코드 변경 없이 코멘트로 설명만
+            - WitchMendokusai CLAUDE.md 룰 (Allman, == false, var 금지, 변수명 풀네임) 준수
