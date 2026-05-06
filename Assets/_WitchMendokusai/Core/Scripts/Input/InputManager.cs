@@ -26,6 +26,7 @@ namespace WitchMendokusai
 		Scroll,
 		Sprint,
 		Crouch,
+		BuildModeToggle,
 		// HotbarSlot1~9는 연속 정의 유지 — UIHotbar이 (HotbarSlot1 + i) 산수에 의존
 		HotbarSlot1,
 		HotbarSlot2,
@@ -76,6 +77,7 @@ namespace WitchMendokusai
 			{ InputEventType.Scroll, InputMapType.Player },
 			{ InputEventType.Sprint, InputMapType.Player },
 			{ InputEventType.Crouch, InputMapType.Player },
+			{ InputEventType.BuildModeToggle, InputMapType.Player },
 			{ InputEventType.HotbarSlot1, InputMapType.Player },
 			{ InputEventType.HotbarSlot2, InputMapType.Player },
 			{ InputEventType.HotbarSlot3, InputMapType.Player },
@@ -113,6 +115,8 @@ namespace WitchMendokusai
 		};
 
 		public Vector3 MouseWorldPosition { get; private set; }
+		public Vector2 MouseScreenPosition { get; private set; }
+		public bool IsAnyKeyPressedThisFrame => Keyboard.current != null && Keyboard.current.anyKey.wasPressedThisFrame;
 		public Vector2 MoveInput { get; private set; }
 		public float CameraRotateInput { get; private set; }
 		private IInputStrategy CurrentInputStrategy { get; set; }
@@ -312,6 +316,7 @@ namespace WitchMendokusai
 			}
 
 			Vector2 mouseScreen = Mouse.current != null ? Mouse.current.position.ReadValue() : Vector2.zero;
+			MouseScreenPosition = mouseScreen;
 			Vector3 mousePos = new(mouseScreen.x, mouseScreen.y, Camera.main.nearClipPlane);
 			Ray ray = Camera.main.ScreenPointToRay(mousePos);
 

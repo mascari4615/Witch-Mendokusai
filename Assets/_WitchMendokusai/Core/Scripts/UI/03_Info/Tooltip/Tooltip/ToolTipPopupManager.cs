@@ -54,7 +54,7 @@ namespace WitchMendokusai
 
 		private Vector3 GetVec()
 		{
-			Vector2 mousePos = Mouse.current != null ? Mouse.current.position.ReadValue() : Vector2.zero;
+			Vector2 mousePos = InputManager.Instance.MouseScreenPosition;
 			return new Vector3(
 				Mathf.Clamp(mousePos.x, toolTipWidth / 2 + ToolTipPadding, Screen.width - toolTipWidth / 2 - ToolTipPadding),
 				Mathf.Clamp(mousePos.y + 40, ToolTipPadding, Screen.height - toolTipHeight - ToolTipPadding), 0);
