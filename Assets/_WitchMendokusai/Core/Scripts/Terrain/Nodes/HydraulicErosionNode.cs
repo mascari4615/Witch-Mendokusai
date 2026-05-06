@@ -6,12 +6,12 @@ namespace WitchMendokusai
 	/// <summary>
 	/// 입자 기반 hydraulic erosion 노드. 강·V자 골짜기·토사 둑 패턴.
 	///
-	/// 영역 캐시 / lock / sub-context 인프라는 <see cref="RegionErosionNodeBase"/> 베이스 책임.
+	/// 영역 캐시 / lock / sub-context 인프라는 <see cref="RegionGridNodeBase"/> 베이스 책임.
 	/// 본 sub class 는 알고리즘 위임 (`HydraulicErosionParticleSimulator`) + parameter hash 만 정의.
 	/// G3 (2026-05-06) refactor — 코드 230줄 → 50줄.
 	/// </summary>
 	[Serializable]
-	public class HydraulicErosionNode : RegionErosionNodeBase
+	public class HydraulicErosionNode : RegionGridNodeBase
 	{
 		[Header("Hydraulic Parameters")]
 		[SerializeField] private HydraulicErosionParticleSimulator.Parameters parameters = HydraulicErosionParticleSimulator.Parameters.Default;
