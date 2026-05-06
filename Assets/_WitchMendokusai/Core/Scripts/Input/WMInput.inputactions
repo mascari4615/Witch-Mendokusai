@@ -1057,6 +1057,24 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "DollToggle",
+                    "type": "Button",
+                    "id": "de54bf9a-2c1b-4c00-9f3d-a90c0e84fa01",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "KeybindHelpToggle",
+                    "type": "Button",
+                    "id": "8f3b1c5a-90a7-4f02-bd8e-72a4e1c3e8b9",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -1563,6 +1581,28 @@
                     "processors": "",
                     "groups": "",
                     "action": "QuestToggle",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "be75d8a1-f08c-4e36-9b22-01a2c39b40d2",
+                    "path": "<Keyboard>/k",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "DollToggle",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "0a9f73c2-4d81-4e91-a230-bb6d52f87c11",
+                    "path": "<Keyboard>/f1",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "KeybindHelpToggle",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

@@ -7,10 +7,9 @@ namespace WitchMendokusai
 		None = -1,
 
 		MagicBook = 0,
-		Doll = 1,
-		Map = 2,
+		Map = 1,
 
-		Count = 3,
+		Count = 2,
 
 		TabMenu = 100,
 	}
@@ -20,7 +19,6 @@ namespace WitchMendokusai
 		[Header("Prefabs")]
 		[SerializeField] private UITabMenu tabMenuPrefab = null;
 		[SerializeField] private UIMagicBookPanel magicBookPanelPrefab = null;
-		[SerializeField] private UIDollPanel dollPanelPrefab = null;
 		[SerializeField] private UIMap mapPanelPrefab = null;
 
 		[Header("References")]
@@ -34,7 +32,6 @@ namespace WitchMendokusai
 			Panels[TabPanelType.TabMenu] = Instantiate(tabMenuPrefab, transform);
 
 			Panels[TabPanelType.MagicBook] = Instantiate(magicBookPanelPrefab, transform);
-			Panels[TabPanelType.Doll] = Instantiate(dollPanelPrefab, transform);
 			Panels[TabPanelType.Map] = Instantiate(mapPanelPrefab, transform);
 
 			OnPanelChanged += (_) =>
