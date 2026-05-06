@@ -166,7 +166,8 @@ namespace WitchMendokusai
 					GameConditionType.IsTyping,
 					GameConditionType.IsPaused,
 					GameConditionType.IsDied,
-					GameConditionType.IsViewingUI
+					// IsViewingUI 제외 — Tab 패턴과 동일. 빌드 모드는 플레이어 상태라
+					// fullscreen UI 뒤에서도 G 로 해제 가능해야.
 				}
 			},
 			{ InputEventType.Scroll, new[] { GameConditionType.IsTyping } },

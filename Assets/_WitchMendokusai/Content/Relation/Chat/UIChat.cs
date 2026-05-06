@@ -87,13 +87,13 @@ namespace WitchMendokusai
 				Coroutine coroutine = StartCoroutine(PrintLine(lineData));
 
 				do yield return null;
-				while (lineText.text != lineData.line && (Keyboard.current == null || !Keyboard.current.anyKey.wasPressedThisFrame));
+				while (lineText.text != lineData.line && InputManager.Instance.IsAnyKeyPressedThisFrame == false);
 
 				StopCoroutine(coroutine);
 				lineText.text = lineData.line;
 
 				do yield return null;
-				while (Keyboard.current == null || !Keyboard.current.anyKey.wasPressedThisFrame);
+				while (InputManager.Instance.IsAnyKeyPressedThisFrame == false);
 			}
 
 			IsChatting = false;

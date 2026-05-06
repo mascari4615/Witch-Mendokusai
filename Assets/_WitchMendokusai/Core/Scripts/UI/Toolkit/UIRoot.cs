@@ -76,7 +76,7 @@ namespace WitchMendokusai
 			if (Mouse.current == null || HoldingOverlay == null || HoldingOverlay.panel == null)
 				return;
 
-			Vector2 screen = Mouse.current.position.ReadValue();
+			Vector2 screen = InputManager.Instance.MouseScreenPosition;
 			screen.y = Screen.height - screen.y;
 			Vector2 panelPosition = RuntimePanelUtils.ScreenToPanel(HoldingOverlay.panel, screen);
 			HoldingManager.Instance.OnPointerMove(panelPosition);
