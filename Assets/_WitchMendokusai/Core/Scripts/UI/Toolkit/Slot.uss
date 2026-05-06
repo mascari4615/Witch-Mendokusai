@@ -817,3 +817,32 @@
     width: 48px;
     height: 48px;
 }
+
+/* === Status Window === */
+.wm-stat-row {
+    flex-direction: row;
+    align-items: center;
+    padding: 3px 6px;
+    border-bottom-width: 1px;
+    border-bottom-color: rgba(60, 60, 75, 0.4);
+}
+
+.wm-stat-row__icon {
+    width: 20px;
+    height: 20px;
+    margin-right: 8px;
+    background-color: rgba(15, 15, 18, 0.6);
+    -unity-background-scale-mode: scale-to-fit;
+    flex-shrink: 0;
+}
+
+.wm-stat-row__name {
+    flex-grow: 1;
+}
+
+.wm-stat-row__value {
+    color: rgba(255, 220, 130, 1);
+    -unity-font-style: bold;
+    -unity-text-align: middle-right;
+    min-width: 60px;
+}
