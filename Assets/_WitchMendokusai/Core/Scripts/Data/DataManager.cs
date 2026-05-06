@@ -62,13 +62,9 @@ namespace WitchMendokusai
 				doll.SignatureEquipment
 			};
 
-			List<Guid?> guids = doll.EquipmentGuids;
-			foreach (Guid? guid in guids)
+			foreach (Item item in doll.Equipment)
 			{
-				if (guid == null)
-					equipmentData.Add(null);
-				else
-					equipmentData.Add(SOManager.Instance.ItemInventory.GetItem(guid)?.Data as EquipmentData);
+				equipmentData.Add(item?.Data as EquipmentData);
 			}
 
 			return equipmentData;
