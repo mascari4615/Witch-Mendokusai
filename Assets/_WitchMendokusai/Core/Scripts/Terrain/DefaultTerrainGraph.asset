@@ -13,73 +13,78 @@ MonoBehaviour:
   m_Name: DefaultTerrainGraph
   m_EditorClassIdentifier: Assembly-CSharp::WitchMendokusai.TerrainGraph
   nodes:
-  - rid: 3717169671054032985
-  - rid: 3717169671054032986
-  - rid: 3717169671054032987
-  - rid: 3717169671054032988
-  - rid: 3717169671054032989
-  - rid: 3717169671054032990
+  - rid: 3717169683694092372
+  - rid: 3717169683694092373
+  - rid: 3717169683694092374
+  - rid: 3717169683694092375
+  - rid: 3717169683694092376
+  - rid: 3717169683694092377
+  - rid: 3717169683694092378
   connections:
-  - sourceNodeId: 575465d92acf4a7bb7641543d68924da
+  - sourceNodeId: 9e756e3ac33a4c35a30749d263b9b5ae
     sourcePortId: x
-    targetNodeId: 6f76d4a79e4d4643a4808d29a0b956c2
+    targetNodeId: 40cf72e0a4834d90aa10441251b2f73a
     targetPortId: x
-  - sourceNodeId: 575465d92acf4a7bb7641543d68924da
+  - sourceNodeId: 9e756e3ac33a4c35a30749d263b9b5ae
     sourcePortId: z
-    targetNodeId: 6f76d4a79e4d4643a4808d29a0b956c2
+    targetNodeId: 40cf72e0a4834d90aa10441251b2f73a
     targetPortId: z
-  - sourceNodeId: 575465d92acf4a7bb7641543d68924da
+  - sourceNodeId: 9e756e3ac33a4c35a30749d263b9b5ae
     sourcePortId: x
-    targetNodeId: b63a891ca6e348239cfece63c5a01e40
+    targetNodeId: 6cc8c3859d3e4598abef87b6a442f324
     targetPortId: x
-  - sourceNodeId: 575465d92acf4a7bb7641543d68924da
+  - sourceNodeId: 9e756e3ac33a4c35a30749d263b9b5ae
     sourcePortId: z
-    targetNodeId: b63a891ca6e348239cfece63c5a01e40
+    targetNodeId: 6cc8c3859d3e4598abef87b6a442f324
     targetPortId: z
-  - sourceNodeId: 575465d92acf4a7bb7641543d68924da
+  - sourceNodeId: 9e756e3ac33a4c35a30749d263b9b5ae
     sourcePortId: x
-    targetNodeId: f1a7ab014b084fcc981e67038978729f
+    targetNodeId: 8c41c1fba54e4104b2750e67ae87809a
     targetPortId: x
-  - sourceNodeId: 575465d92acf4a7bb7641543d68924da
+  - sourceNodeId: 9e756e3ac33a4c35a30749d263b9b5ae
     sourcePortId: z
-    targetNodeId: f1a7ab014b084fcc981e67038978729f
+    targetNodeId: 8c41c1fba54e4104b2750e67ae87809a
     targetPortId: z
-  - sourceNodeId: 575465d92acf4a7bb7641543d68924da
+  - sourceNodeId: 9e756e3ac33a4c35a30749d263b9b5ae
     sourcePortId: x
-    targetNodeId: ec8a1abf320f49cf83bbe1029a49b16c
+    targetNodeId: fa9e335156fc4c73a0a302dae83d4a27
     targetPortId: x
-  - sourceNodeId: 575465d92acf4a7bb7641543d68924da
+  - sourceNodeId: 9e756e3ac33a4c35a30749d263b9b5ae
     sourcePortId: z
-    targetNodeId: ec8a1abf320f49cf83bbe1029a49b16c
+    targetNodeId: fa9e335156fc4c73a0a302dae83d4a27
     targetPortId: z
-  - sourceNodeId: 6f76d4a79e4d4643a4808d29a0b956c2
+  - sourceNodeId: 40cf72e0a4834d90aa10441251b2f73a
     sourcePortId: height
-    targetNodeId: b63a891ca6e348239cfece63c5a01e40
+    targetNodeId: 6cc8c3859d3e4598abef87b6a442f324
     targetPortId: height
-  - sourceNodeId: b63a891ca6e348239cfece63c5a01e40
+  - sourceNodeId: 6cc8c3859d3e4598abef87b6a442f324
     sourcePortId: height
-    targetNodeId: f1a7ab014b084fcc981e67038978729f
+    targetNodeId: 8c41c1fba54e4104b2750e67ae87809a
     targetPortId: height
-  - sourceNodeId: f1a7ab014b084fcc981e67038978729f
+  - sourceNodeId: 8c41c1fba54e4104b2750e67ae87809a
     sourcePortId: height
-    targetNodeId: ec8a1abf320f49cf83bbe1029a49b16c
+    targetNodeId: fa9e335156fc4c73a0a302dae83d4a27
     targetPortId: height
-  - sourceNodeId: ec8a1abf320f49cf83bbe1029a49b16c
+  - sourceNodeId: fa9e335156fc4c73a0a302dae83d4a27
     sourcePortId: height
-    targetNodeId: 789198df3549400f8632e170b8ab29a1
+    targetNodeId: a43eb808838e4da288be655d700ed832
+    targetPortId: height
+  - sourceNodeId: a43eb808838e4da288be655d700ed832
+    sourcePortId: height
+    targetNodeId: 958440cc3ebe422e97fc4f93d5cac4e5
     targetPortId: height
   references:
     version: 2
     RefIds:
-    - rid: 3717169671054032985
+    - rid: 3717169683694092372
       type: {class: WorldPositionInputNode, ns: WitchMendokusai, asm: Assembly-CSharp}
       data:
-        id: 575465d92acf4a7bb7641543d68924da
+        id: 9e756e3ac33a4c35a30749d263b9b5ae
         editorPosition: {x: 0, y: 0}
-    - rid: 3717169671054032986
+    - rid: 3717169683694092373
       type: {class: FractalPerlinNode, ns: WitchMendokusai, asm: Assembly-CSharp}
       data:
-        id: 6f76d4a79e4d4643a4808d29a0b956c2
+        id: 40cf72e0a4834d90aa10441251b2f73a
         editorPosition: {x: 260, y: 0}
         octaves: 4
         frequency: 0.01
@@ -87,10 +92,10 @@ MonoBehaviour:
         persistence: 0.5
         lacunarity: 2
         seed: 0
-    - rid: 3717169671054032987
+    - rid: 3717169683694092374
       type: {class: HydraulicErosionNode, ns: WitchMendokusai, asm: Assembly-CSharp}
       data:
-        id: b63a891ca6e348239cfece63c5a01e40
+        id: 6cc8c3859d3e4598abef87b6a442f324
         editorPosition: {x: 540, y: 0}
         regionSize: 256
         parameters:
@@ -106,26 +111,57 @@ MonoBehaviour:
           erosionRate: 0.5
           evaporRate: 0.01
           seed: 0
-    - rid: 3717169671054032988
+    - rid: 3717169683694092375
       type: {class: ThermalErosionNode, ns: WitchMendokusai, asm: Assembly-CSharp}
       data:
-        id: f1a7ab014b084fcc981e67038978729f
+        id: 8c41c1fba54e4104b2750e67ae87809a
         editorPosition: {x: 820, y: 0}
         regionSize: 256
         parameters:
           iterations: 8
           talusAngle: 35
           strength: 0.5
-    - rid: 3717169671054032989
+    - rid: 3717169683694092376
       type: {class: SmoothFilterNode, ns: WitchMendokusai, asm: Assembly-CSharp}
       data:
-        id: ec8a1abf320f49cf83bbe1029a49b16c
+        id: fa9e335156fc4c73a0a302dae83d4a27
         editorPosition: {x: 1100, y: 0}
         regionSize: 256
         parameters:
           iterations: 4
-    - rid: 3717169671054032990
+    - rid: 3717169683694092377
+      type: {class: CurveFilterNode, ns: WitchMendokusai, asm: Assembly-CSharp}
+      data:
+        id: a43eb808838e4da288be655d700ed832
+        editorPosition: {x: 1380, y: 0}
+        curve:
+          serializedVersion: 2
+          m_Curve:
+          - serializedVersion: 3
+            time: 0
+            value: 0
+            inSlope: 2
+            outSlope: 2
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 1
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+        minHeight: 0
+        maxHeight: 50
+    - rid: 3717169683694092378
       type: {class: HeightOutputNode, ns: WitchMendokusai, asm: Assembly-CSharp}
       data:
-        id: 789198df3549400f8632e170b8ab29a1
-        editorPosition: {x: 1380, y: 0}
+        id: 958440cc3ebe422e97fc4f93d5cac4e5
+        editorPosition: {x: 1660, y: 0}
