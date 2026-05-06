@@ -15,5 +15,21 @@ jobs:
       - name: Typos Check
         uses: crate-ci/typos@master
         continue-on-error: true
-        
+
+  merge-markers:
+    name: Check Merge Conflict Markers
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Scan tracked files for unresolved markers
+        run: |
+          # 머지 conflict 의 sentinel ("less-than" 7개 + space + branch명) 검사.
+          # "equals" 7개 라인은 markdown table separator 등 false-positive 많아 제외.
+          # 본 step 자체에 sentinel 문자열을 그대로 적으면 self-trigger 되므로 패턴은 정규식으로만 표현.
+          if git grep -nE '^<{7}[ ]' -- '*.cs' '*.md' '*.yml' '*.yaml' '*.json' '*.shader' '*.cginc' '*.asset' '*.prefab'; then
+            echo "::error::Unresolved merge conflict markers found in tracked files."
+            exit 1
+          fi
+          echo "No conflict markers found."
+
   # 향후 SonarCloud나 .NET 포맷 체크(기계적 var 체크) 등을 여기에 추가할 수 있습니다.
