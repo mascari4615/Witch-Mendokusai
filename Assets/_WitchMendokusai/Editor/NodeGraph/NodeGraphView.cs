@@ -197,6 +197,104 @@ namespace WitchMendokusai.NodeGraph
 			Refresh();
 		}
 
+		/// <summary>
+		/// 연결 방향 기반 위상 정렬 후 겹침 없이 재배치. 열 간격 420px, 행 간격 260px.
+		/// 이동 후 SO dirty 마킹 + FrameAll 로 전체 보이게 줌.
+		/// </summary>
+		public void AutoLayout()
+		{
+			if (graph.Nodes.Count == 0)
+				return;
+
+			// 각 노드의 in-degree (incoming 연결 수) 계산
+			Dictionary<string, int> inDegree = new();
+			Dictionary<string, List<string>> successors = new();
+
+			foreach (NodeBase node in graph.Nodes)
+			{
+				inDegree[node.Id] = 0;
+				successors[node.Id] = new List<string>();
+			}
+
+			foreach (NodeConnection conn in graph.Connections)
+			{
+				inDegree[conn.TargetNodeId]++;
+				successors[conn.SourceNodeId].Add(conn.TargetNodeId);
+			}
+
+			// Kahn's BFS — 위상 정렬하며 depth 할당
+			Dictionary<string, int> depth = new();
+			Queue<string> queue = new();
+
+			foreach (NodeBase node in graph.Nodes)
+			{
+				if (inDegree[node.Id] == 0)
+				{
+					queue.Enqueue(node.Id);
+					depth[node.Id] = 0;
+				}
+			}
+
+			while (queue.Count > 0)
+			{
+				string current = queue.Dequeue();
+				foreach (string successor in successors[current])
+				{
+					if (depth.ContainsKey(successor) == false)
+						depth[successor] = 0;
+					depth[successor] = Mathf.Max(depth[successor], depth[current] + 1);
+					inDegree[successor]--;
+					if (inDegree[successor] == 0)
+						queue.Enqueue(successor);
+				}
+			}
+
+			// 사이클 있는 노드 — depth 미할당. 마지막 열에 배치.
+			int maxDepth = depth.Count > 0 ? depth.Values.Max() : 0;
+			foreach (NodeBase node in graph.Nodes)
+			{
+				if (depth.ContainsKey(node.Id) == false)
+					depth[node.Id] = maxDepth + 1;
+			}
+
+			// 같은 depth 내 행 인덱스 할당
+			Dictionary<int, List<string>> columns = new();
+			foreach (KeyValuePair<string, int> kv in depth)
+			{
+				if (columns.ContainsKey(kv.Value) == false)
+					columns[kv.Value] = new List<string>();
+				columns[kv.Value].Add(kv.Key);
+			}
+
+			const float COLUMN_SPACING = 420f;
+			const float ROW_SPACING = 260f;
+
+			Dictionary<string, NodeBase> nodeById = graph.Nodes.ToDictionary(n => n.Id);
+
+			foreach (KeyValuePair<int, List<string>> col in columns)
+			{
+				float x = col.Key * COLUMN_SPACING;
+				float totalHeight = (col.Value.Count - 1) * ROW_SPACING;
+				float startY = -totalHeight * 0.5f;
+
+				for (int i = 0; i < col.Value.Count; i++)
+				{
+					string nodeId = col.Value[i];
+					if (nodeById.TryGetValue(nodeId, out NodeBase node) == false)
+						continue;
+
+					Vector2 newPos = new(x, startY + i * ROW_SPACING);
+					node.EditorPosition = newPos;
+
+					if (nodeViews.TryGetValue(nodeId, out NodeView view))
+						view.SetPosition(new Rect(newPos, view.GetPosition().size));
+				}
+			}
+
+			EditorUtility.SetDirty(graph);
+			FrameAll();
+		}
+
 		private static string NicifyTypeName(string typeName)
 		{
 			if (typeName.EndsWith("Node"))
