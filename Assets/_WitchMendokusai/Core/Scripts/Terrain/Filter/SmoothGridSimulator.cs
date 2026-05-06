@@ -18,7 +18,11 @@ namespace WitchMendokusai
 <<<<<<< HEAD
 	/// NodeGraph / Unity 의존 X (Mathf 만) — 단위 테스트 가능.
 =======
+<<<<<<< HEAD
+	/// NodeGraph / Unity 의존 X (Mathf 만) — 단위 테스트 가능.
+=======
 	/// UnityEngine(Mathf, Tooltip/Range attribute) 의존. NodeGraph 의존 X.
+>>>>>>> origin/main
 >>>>>>> origin/main
 	/// </summary>
 	public static class SmoothGridSimulator
