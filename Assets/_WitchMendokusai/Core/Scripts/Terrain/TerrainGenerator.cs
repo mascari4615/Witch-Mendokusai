@@ -188,6 +188,57 @@ namespace WitchMendokusai
 			return mesh;
 		}
 
+		/// <summary>
+		/// central difference 로 경사 크기 계산 (gradient magnitude). 단위: m/m.
+		/// </summary>
+		public static float SampleSlope(TerrainParameters parameters, int x, int z)
+		{
+			float dx = (SampleHeight(parameters, x + 1, z) - SampleHeight(parameters, x - 1, z)) * 0.5f;
+			float dz = (SampleHeight(parameters, x, z + 1) - SampleHeight(parameters, x, z - 1)) * 0.5f;
+			return Mathf.Sqrt(dx * dx + dz * dz);
+		}
+
+		/// <summary>
+		/// 경사 열지도 텍스쳐. flat=파랑(H:0.667), steep=빨강(H:0). 전체 최대 경사 기준 정규화.
+		/// </summary>
+		public static Texture2D GenerateSlopeTexture(TerrainParameters parameters, int width, int height)
+		{
+			Texture2D texture = new(width, height, TextureFormat.RGBA32, false)
+			{
+				filterMode = FilterMode.Point,
+				wrapMode = TextureWrapMode.Clamp,
+			};
+
+			float[] slopes = new float[width * height];
+			float maxSlope = 0f;
+
+			for (int z = 0; z < height; z++)
+			{
+				for (int x = 0; x < width; x++)
+				{
+					float slope = SampleSlope(parameters, x, z);
+					slopes[z * width + x] = slope;
+					if (slope > maxSlope)
+						maxSlope = slope;
+				}
+			}
+
+			if (maxSlope < 0.0001f)
+				maxSlope = 1f;
+
+			Color[] pixels = new Color[width * height];
+			for (int i = 0; i < slopes.Length; i++)
+			{
+				float t = slopes[i] / maxSlope;
+				// flat(t=0)=파랑(H=0.667) → steep(t=1)=빨강(H=0)
+				pixels[i] = Color.HSVToRGB((1f - t) * 0.667f, 1f, 1f);
+			}
+
+			texture.SetPixels(pixels);
+			texture.Apply();
+			return texture;
+		}
+
 		public static Texture2D GenerateHeightmapTexture(TerrainParameters parameters, int width, int height)
 		{
 			Texture2D texture = new(width, height, TextureFormat.RGBA32, false)

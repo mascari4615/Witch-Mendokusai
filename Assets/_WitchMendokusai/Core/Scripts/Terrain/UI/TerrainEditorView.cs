@@ -14,8 +14,9 @@ namespace WitchMendokusai
 	public enum TerrainPreviewMode
 	{
 		Heightmap = 0,
-		Biome = 1,
-		Mesh3D = 2,
+		Slope = 1,
+		Biome = 2,
+		Mesh3D = 3,
 	}
 
 	/// <summary>
@@ -49,6 +50,7 @@ namespace WitchMendokusai
 			{ "lacunarity", ("주파수 배수", "Lacunarity") },
 			{ "preview", ("미리보기", "Preview") },
 			{ "previewHeightmap", ("높이맵", "Heightmap") },
+			{ "previewSlope", ("경사", "Slope") },
 			{ "previewBiome", ("바이옴", "Biome") },
 			{ "previewMesh3D", ("3D", "3D") },
 			{ "mesh3dUnavailable", ("3D 미리보기는 에디터에서만 동작", "3D preview is editor-only") },
@@ -105,6 +107,7 @@ namespace WitchMendokusai
 		private Button resetButton;
 		private Button langToggleButton;
 		private Button previewHeightmapButton;
+		private Button previewSlopeButton;
 		private Button previewBiomeButton;
 		private Button previewMesh3DButton;
 		private SliderInt mesh3dSizeSlider;
@@ -295,6 +298,11 @@ namespace WitchMendokusai
 			previewHeightmapButton.style.flexGrow = 1;
 			previewModeRow.Add(previewHeightmapButton);
 
+			previewSlopeButton = new Button(() => SetPreviewMode(TerrainPreviewMode.Slope));
+			previewSlopeButton.style.flexGrow = 1;
+			previewSlopeButton.style.marginLeft = 4;
+			previewModeRow.Add(previewSlopeButton);
+
 			previewBiomeButton = new Button(() => SetPreviewMode(TerrainPreviewMode.Biome));
 			previewBiomeButton.style.flexGrow = 1;
 			previewBiomeButton.style.marginLeft = 4;
@@ -341,6 +349,7 @@ namespace WitchMendokusai
 			Color active = new(0.32f, 0.55f, 0.78f, 1f);
 			Color inactive = new(0.22f, 0.22f, 0.22f, 1f);
 			previewHeightmapButton.style.backgroundColor = previewMode == TerrainPreviewMode.Heightmap ? active : inactive;
+			previewSlopeButton.style.backgroundColor = previewMode == TerrainPreviewMode.Slope ? active : inactive;
 			previewBiomeButton.style.backgroundColor = previewMode == TerrainPreviewMode.Biome ? active : inactive;
 			previewMesh3DButton.style.backgroundColor = previewMode == TerrainPreviewMode.Mesh3D ? active : inactive;
 		}
@@ -355,6 +364,7 @@ namespace WitchMendokusai
 			biomeHeader.text = T("biome");
 			previewHeader.text = T("preview");
 			previewHeightmapButton.text = T("previewHeightmap");
+			previewSlopeButton.text = T("previewSlope");
 			previewBiomeButton.text = T("previewBiome");
 			previewMesh3DButton.text = T("previewMesh3D");
 			mesh3dSizeHeader.text = T("mesh3dSize");
@@ -427,9 +437,13 @@ namespace WitchMendokusai
 				return;
 			}
 
-			Texture2D texture = previewMode == TerrainPreviewMode.Biome
-				? TerrainGenerator.GenerateBiomeTexture(parameters, previewPixelWidth, previewPixelHeight)
-				: TerrainGenerator.GenerateHeightmapTexture(parameters, previewPixelWidth, previewPixelHeight);
+			Texture2D texture;
+			if (previewMode == TerrainPreviewMode.Slope)
+				texture = TerrainGenerator.GenerateSlopeTexture(parameters, previewPixelWidth, previewPixelHeight);
+			else if (previewMode == TerrainPreviewMode.Biome)
+				texture = TerrainGenerator.GenerateBiomeTexture(parameters, previewPixelWidth, previewPixelHeight);
+			else
+				texture = TerrainGenerator.GenerateHeightmapTexture(parameters, previewPixelWidth, previewPixelHeight);
 			previewImage.style.backgroundImage = new StyleBackground(texture);
 			RefreshStatusLabel();
 		}
