@@ -32,6 +32,11 @@ RegisterInputEvent()로 등록된 콜백들 호출
 
 ### 새 입력 이벤트 추가 절차
 
+**0. 키 중복 확인 (필수, 먼저 수행)**
+- `WMInput.inputactions`에서 `"path": "<Keyboard>/` grep으로 사용 중인 키 전체 목록 확인
+- `InputManager.cs`의 `UpdateCameraRotateInput` / `UpdateMoveInput`에서 직접 읽는 키 확인 (Q, E, W, A, S, D, 방향키)
+- 위 두 곳 모두 충돌 없는 키를 선택한 뒤 진행
+
 1. **`InputManager.cs`** — `InputEventType` 열거형에 항목 추가
    ```csharp
    public enum InputEventType { ..., MyAction }

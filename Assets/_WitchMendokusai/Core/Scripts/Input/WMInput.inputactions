@@ -1048,6 +1048,15 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "QuestToggle",
+                    "type": "Button",
+                    "id": "adc4d35c-c4bb-4fed-b53c-20856dcdf571",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -1543,6 +1552,17 @@
                     "processors": "",
                     "groups": "",
                     "action": "CodexToggle",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "aa9c217c-8ff7-41e5-8a62-dc20e8b72a4f",
+                    "path": "<Keyboard>/j",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "QuestToggle",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }
