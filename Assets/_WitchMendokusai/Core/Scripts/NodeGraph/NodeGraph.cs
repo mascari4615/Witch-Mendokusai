@@ -5,7 +5,8 @@ namespace WitchMendokusai.NodeGraph
 {
 	/// <summary>
 	/// 노드 그래프 SO — 노드 + 연결 묶음. `[SerializeReference]` 으로 다양한 도메인 노드 polymorphic 직렬화.
-	/// 도메인별 그래프는 이를 상속해서 표시 / 카탈로그 분리 (TASK-WM-034 단계 C). 1차는 generic.
+	/// 도메인별 그래프는 이를 상속해서 <see cref="Domain"/> override (예: <c>TerrainGraph</c>, <c>MagicBookGraph</c>).
+	/// 직접 `NodeGraph` 인스턴스 자산 = `Generic` 도메인 — fallback / 마이그레이션 (모든 노드 카탈로그 보임).
 	/// </summary>
 	[CreateAssetMenu(fileName = nameof(NodeGraph), menuName = "WM/NodeGraph/" + nameof(NodeGraph))]
 	public class NodeGraph : ScriptableObject
@@ -15,6 +16,12 @@ namespace WitchMendokusai.NodeGraph
 
 		public IReadOnlyList<NodeBase> Nodes => nodes;
 		public IReadOnlyList<NodeConnection> Connections => connections;
+
+		/// <summary>
+		/// 그래프 도메인 — 카탈로그 (Editor) 필터링에 사용. 서브클래스가 override.
+		/// 기본 = `Generic` 으로, 직접 NodeGraph 인스턴스 자산 (마이그레이션 전) 호환성 유지.
+		/// </summary>
+		public virtual NodeDomain Domain => NodeDomain.Generic;
 
 		public void AddNode(NodeBase node)
 		{
