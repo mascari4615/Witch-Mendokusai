@@ -93,14 +93,15 @@ namespace WitchMendokusai
 			new RuntimeQuest(GetQuestSO(0));
 			DataManager.QuestManager.UnlockQuest(GetQuestSO(5000));
 
-			// TASK-WM-013 prototype — 마도서 챕터1 첫 노드 자동 unlock (Grimoire1Bootstrap 으로 생성된 Q_6000).
-			// Q_6000 .asset 미존재 시 GetQuestSO(6000) 가 null 반환 → UnlockQuest 가 NullReferenceException → 사용자가 메뉴 안 돌린 신호.
+			// TASK-WM-013 prototype — *프로토타입 챕터 1* 첫 노드 자동 unlock (PrototypeChapter1Bootstrap 으로 생성된 Q_6000).
+			// 사용자 정사 마도서 챕터 X — 시스템 데이터 흐름 (cascade unlock + RewardEffects) 검증 전용.
+			// Q_6000 .asset 미존재 시 GetQuestSO(6000) 가 null 반환 → 사용자가 메뉴 안 돌린 신호.
 			// 정사 단계에서 첫 unlock 트리거를 NPC 대화 / 챕터 진입 이벤트로 옮김.
-			QuestSO grimoire1FirstQuest = GetQuestSO(6000);
-			if (grimoire1FirstQuest != null)
-				DataManager.QuestManager.UnlockQuest(grimoire1FirstQuest);
+			QuestSO prototypeChapter1FirstQuest = GetQuestSO(6000);
+			if (prototypeChapter1FirstQuest != null)
+				DataManager.QuestManager.UnlockQuest(prototypeChapter1FirstQuest);
 			else
-				Debug.LogWarning("[SaveManager] Q_6000 미존재 — WitchMendokusai/Prototype/Generate Grimoire1 메뉴를 먼저 실행하세요 (TASK-WM-013).");
+				Debug.LogWarning("[SaveManager] Q_6000 미존재 — WitchMendokusai/Prototype/Generate Prototype Chapter 1 메뉴를 먼저 실행하세요 (TASK-WM-013).");
 
 			// 던전 초기화
 			ForEach<Dungeon>(dungeon => { dungeon.Init(); });

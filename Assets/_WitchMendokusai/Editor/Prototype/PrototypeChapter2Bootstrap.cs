@@ -5,13 +5,13 @@ using UnityEngine;
 namespace WitchMendokusai
 {
 	/// <summary>
-	/// TASK-WM-013 prototype 단계 D' — 마도서 챕터2 placeholder 데이터 자동 생성.
-	/// Grimoire1Bootstrap 의 동일 패턴, ID/이름만 chapter2 로. cascade unlock 검증 1회 더 + narrative slice 추가.
-	/// 메뉴: WitchMendokusai/Prototype/Generate Grimoire2
+	/// TASK-WM-013 prototype 단계 D' — *기능 테스트용 프로토타입 챕터 2* 데이터 자동 생성.
+	/// PrototypeChapter1Bootstrap 의 동일 패턴, ID/이름만 chapter2 로. cascade 검증 1회 더 + narrative slice 추가.
+	/// 메뉴: WitchMendokusai/Prototype/Generate Prototype Chapter 2
 	/// </summary>
-	public static class Grimoire2Bootstrap
+	public static class PrototypeChapter2Bootstrap
 	{
-		private const string CHAPTER_PATH = "Assets/_WitchMendokusai/Content/Task/Quest/MagicBook/Chapter_Grimoire2.asset";
+		private const string CHAPTER_PATH = "Assets/_WitchMendokusai/Content/Task/Quest/MagicBook/Chapter_Prototype2.asset";
 		private const string QUEST_DIR = "Assets/_WitchMendokusai/Content/Task/Quest/";
 		private const string DIALOGUE_DIR = "Assets/_WitchMendokusai/Content/Narrative/Demo/";
 
@@ -21,8 +21,8 @@ namespace WitchMendokusai
 		private const float NODE_X_SPACING = 240f;
 		private const int FADE_DURATION_MS = 1500;
 
-		[MenuItem("WitchMendokusai/Prototype/Generate Grimoire2")]
-		public static void GenerateGrimoire2()
+		[MenuItem("WitchMendokusai/Prototype/Generate Prototype Chapter 2")]
+		public static void GeneratePrototypeChapter2()
 		{
 			EnsureDirectory(Path.GetDirectoryName(CHAPTER_PATH));
 			EnsureDirectory(QUEST_DIR);
@@ -32,9 +32,9 @@ namespace WitchMendokusai
 			DialogueLine[] dialogueLines = new DialogueLine[NODE_COUNT];
 			for (int i = 0; i < NODE_COUNT; i++)
 			{
-				string path = $"{DIALOGUE_DIR}DialogueLine_Grimoire2_{i + 1}.asset";
+				string path = $"{DIALOGUE_DIR}DialogueLine_Prototype2_{i + 1}.asset";
 				DialogueLine line = ScriptableObject.CreateInstance<DialogueLine>();
-				line.name = $"DialogueLine_Grimoire2_{i + 1}";
+				line.name = $"DialogueLine_Prototype2_{i + 1}";
 				AssetDatabase.CreateAsset(line, path);
 
 				SerializedObject so = new SerializedObject(line);
@@ -49,11 +49,11 @@ namespace WitchMendokusai
 			for (int i = 0; i < NODE_COUNT; i++)
 			{
 				int id = QUEST_ID_START + i;
-				string path = $"{QUEST_DIR}Q_{id}_chapter2_{i + 1}.asset";
+				string path = $"{QUEST_DIR}Q_{id}_prototype2_{i + 1}.asset";
 				QuestSO quest = ScriptableObject.CreateInstance<QuestSO>();
-				quest.name = $"Q_{id}_chapter2_{i + 1}";
+				quest.name = $"Q_{id}_prototype2_{i + 1}";
 				quest.ID = id;
-				quest.Name = $"[prototype] 챕터2 {i + 1}";
+				quest.Name = $"[prototype] 챕터2 노드 {i + 1}";
 				quest.Description = $"prototype 챕터2 노드 {i + 1} — placeholder";
 				AssetDatabase.CreateAsset(quest, path);
 				quests[i] = quest;
@@ -95,10 +95,10 @@ namespace WitchMendokusai
 
 			// 4. ChapterSO + 5 노드 배치
 			ChapterSO chapter = ScriptableObject.CreateInstance<ChapterSO>();
-			chapter.name = "Chapter_Grimoire2";
+			chapter.name = "Chapter_Prototype2";
 			chapter.ID = CHAPTER_ID;
-			chapter.Name = "[prototype] 마도서 2장";
-			chapter.Description = "prototype — 챕터 cascade + narrative slice 검증";
+			chapter.Name = "[prototype] 프로토타입 챕터 2";
+			chapter.Description = "prototype — 챕터 cascade + narrative slice 검증 (사용자 정사 챕터 X)";
 			AssetDatabase.CreateAsset(chapter, CHAPTER_PATH);
 
 			SerializedObject chapterSO = new SerializedObject(chapter);
@@ -115,7 +115,7 @@ namespace WitchMendokusai
 			AssetDatabase.SaveAssets();
 			AssetDatabase.Refresh();
 
-			Debug.Log($"[Grimoire2Bootstrap] Generated: 1 ChapterSO + {NODE_COUNT} QuestSO + {NODE_COUNT} DialogueLine. 「에디터에서 남은 작업」: UIMagicBookPanel.chapterDatas Inspector 에 Chapter_Grimoire2 추가.");
+			Debug.Log($"[PrototypeChapter2Bootstrap] Generated: 1 ChapterSO + {NODE_COUNT} QuestSO + {NODE_COUNT} DialogueLine. 「에디터에서 남은 작업」: UIMagicBookPanel.chapterDatas Inspector 에 Chapter_Prototype2 추가.");
 
 			EditorUtility.FocusProjectWindow();
 			Selection.activeObject = chapter;
