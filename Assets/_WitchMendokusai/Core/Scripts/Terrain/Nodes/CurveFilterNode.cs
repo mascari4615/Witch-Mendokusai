@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using WitchMendokusai.NodeGraph;
 
 namespace WitchMendokusai
 {
@@ -14,6 +15,7 @@ namespace WitchMendokusai
 	/// H2 (2026-05-06) 신규.
 	/// </summary>
 	[Serializable]
+	[NodeDomain(NodeDomain.Terrain)]
 	public class CurveFilterNode : PointFilterNodeBase
 	{
 		[Header("Curve Parameters")]

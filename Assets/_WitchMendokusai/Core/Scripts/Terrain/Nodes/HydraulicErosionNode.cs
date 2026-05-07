@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using WitchMendokusai.NodeGraph;
 
 namespace WitchMendokusai
 {
@@ -11,6 +12,7 @@ namespace WitchMendokusai
 	/// G3 (2026-05-06) refactor — 코드 230줄 → 50줄.
 	/// </summary>
 	[Serializable]
+	[NodeDomain(NodeDomain.Terrain)]
 	public class HydraulicErosionNode : RegionGridNodeBase
 	{
 		[Header("Hydraulic Parameters")]

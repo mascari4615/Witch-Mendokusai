@@ -12,6 +12,7 @@ namespace WitchMendokusai
 	/// 출력 0~amplitude (이미 양수 — ridge = 봉우리). 정점 ridge, 골짜기 0.
 	/// </summary>
 	[Serializable]
+	[NodeDomain(NodeDomain.Terrain)]
 	public class RidgedPerlinNode : NodeBase
 	{
 		[SerializeField, Range(1, 8)] private int octaves = 4;

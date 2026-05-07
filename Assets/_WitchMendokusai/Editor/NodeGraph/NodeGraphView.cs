@@ -174,7 +174,8 @@ namespace WitchMendokusai.NodeGraph
 		{
 			Vector2 mousePos = evt.localMousePosition;
 
-			foreach (Type nodeType in NodeRegistry.AllNodeTypes())
+			// 그래프 자기 도메인 노드만 카탈로그 — Generic 도메인 (마이그레이션 전 NodeGraph) 은 모든 노드 fallback.
+			foreach (Type nodeType in NodeRegistry.NodeTypesForDomain(graph.Domain))
 			{
 				Type capturedType = nodeType;
 				evt.menu.AppendAction($"Create/{NicifyTypeName(nodeType.Name)}", action =>
