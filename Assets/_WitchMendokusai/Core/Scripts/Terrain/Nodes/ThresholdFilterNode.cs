@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using WitchMendokusai.NodeGraph;
 
 namespace WitchMendokusai
 {
@@ -13,6 +14,7 @@ namespace WitchMendokusai
 	/// H3 (2026-05-06) 신규.
 	/// </summary>
 	[Serializable]
+	[NodeDomain(NodeDomain.Terrain)]
 	public class ThresholdFilterNode : PointFilterNodeBase
 	{
 		[Header("Threshold Parameters")]
