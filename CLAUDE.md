@@ -232,10 +232,12 @@ stale 이면:
 판단표 (모두 충족 시 Ready 자동):
 - 변경 ≤ 150 LOC
 - 단일 sub TASK
-- 게이트 통과 (Code Quality + Unity build gate, `error CS` 0)
+- 게이트 통과 (Code Quality typo check)
 - stack 의존 base 없음 (또는 base 가 main)
 - 새 인터페이스 = 첫 사용처 동봉 (데드 인터페이스 회피)
 - Test plan 의 "사용자 검증 필요" 항목 0
+
+C# 컴파일 검증은 *사용자 로컬 Unity Editor* 에서 (CI 게이트 보류 — § Branch Protection 참고).
 
 호출:
 ```bash
@@ -290,19 +292,31 @@ Conventional Commits — `feat: / fix: / chore: / refactor: / docs: / style: / t
 - Require a pull request before merging
 - Require status checks to pass:
   - `Check Typos` (현재 등록됨, 단 `continue-on-error: true` — 사실상 게이트 0. workflow 에서 `continue-on-error` 제거 필요)
-  - `EditMode tests (compile gate)` — TASK-WM-047 (PR #89) 머지 + Unity license secrets (`UNITY_LICENSE`/`UNITY_EMAIL`/`UNITY_PASSWORD`) 등록 후 추가
 - Restrict who can push to matching branches (직접 push 차단)
 
-이 설정 안 되어있으면 본 § 룰은 *수동 약속* 만 됨. *auto-merge* 도 게이트가 약하면 위험 — Unity build gate 머지 후 protection 강화 필수.
-
-설정 명령 (사용자 실행, 게이트 등록 후):
+설정 명령:
 
 ```bash
 gh api -X PUT repos/Mascari4615/Witch-Mendokusai/branches/main/protection \
-  -f required_status_checks.strict=true \
+  -F 'required_status_checks.strict=true' \
   -F 'required_status_checks.contexts[]=Check Typos' \
-  -F 'required_status_checks.contexts[]=EditMode tests (compile gate)' \
   -F enforce_admins=false \
   -F required_pull_request_reviews=null \
   -F restrictions=null
 ```
+
+### C# 컴파일 검증 — 보류 + 추후 self-hosted runner
+
+**현 시점 (2026-05-07): Unity Build Gate 인프라 보류**.
+
+이유:
+- Unity 가 GitHub Actions 공식 action 미제공 (third-party 만 존재)
+- Personal license + Unity 6.x = `game-ci/*`, `buildalon/*`, `RageAgainstThePixel/*` 등 third-party 의존 강제
+- third-party action 에 Unity credentials 넘기는 신뢰 비용 > 게이트 효용
+- C# 컴파일 권위 = 사용자 로컬 Unity Editor (본인 작업 시 매번 reimport + 컴파일). CI 가 *대체* 하려는 게 무리수
+
+대안 (추후 검토):
+- **Self-hosted runner** — 사용자 PC 를 GitHub Actions runner 로 등록 → 본인 Unity 본인 license 그대로, third-party 의존 0. 단 PC 항상 켜둬야 함.
+- **Unity Cloud Build** — Unity 공식 CI 서비스 (cloud.unity.com), GitHub 와 별도 시스템.
+
+현 게이트 = *Code Quality (typo) + auto-merge + CodeRabbit/Copilot 리뷰* 만으로도 적체 해소 효과 검증됨 (PR #89/#96/#97/#98 자동 머지 흐름).
