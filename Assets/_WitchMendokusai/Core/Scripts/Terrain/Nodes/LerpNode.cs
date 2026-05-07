@@ -14,6 +14,7 @@ namespace WitchMendokusai
 	/// H3 (2026-05-06) 신규.
 	/// </summary>
 	[Serializable]
+	[NodeDomain(NodeDomain.Terrain)]
 	public class LerpNode : NodeBase
 	{
 		private NodePort<float> inA;
