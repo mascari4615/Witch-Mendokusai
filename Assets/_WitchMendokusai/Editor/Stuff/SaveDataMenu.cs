@@ -16,6 +16,7 @@ namespace WitchMendokusai
 			if (File.Exists(path))
 			{
 				File.Delete(path);
+				File.Delete(path + ".meta"); // Delete the meta file as well
 				Debug.Log("All save data has been deleted.");
 			}
 			else
