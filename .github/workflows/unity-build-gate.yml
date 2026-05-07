@@ -1,0 +1,42 @@
+name: Unity Build Gate
+
+# C# 컴파일 게이트 — main assembly 가 컴파일 통과해야 PR 머지 가능.
+# 직전 사고 (TASK-WM-047): 다른 세션이 working tree 에서 UIStatus.Status 제거 후 사용처 fix
+# 안 한 채 commit/머지 → main broken. typos check 만으로는 못 잡음.
+# 본 게이트가 진짜 근본 차단 — game-ci/unity-test-runner 로 EditMode test 1개 (compile smoke) 실행.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    # base 제한 없음 — chained PR 도 게이트.
+
+jobs:
+  editmode-tests:
+    name: EditMode tests (compile gate)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Cache Library
+        uses: actions/cache@v4
+        with:
+          path: Library
+          key: Library-${{ runner.os }}-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
+          restore-keys: |
+            Library-${{ runner.os }}-
+
+      - name: Run EditMode tests
+        uses: game-ci/unity-test-runner@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          unityVersion: 6000.4.5f1
+          testMode: EditMode
+          githubToken: ${{ secrets.GITHUB_TOKEN }}
+          checkName: EditMode test results
