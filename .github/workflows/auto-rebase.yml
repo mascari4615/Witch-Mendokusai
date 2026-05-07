@@ -21,7 +21,9 @@ jobs:
     steps:
       - name: Update all open PRs base=main
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # BOT_TOKEN (PAT) 사용 — GITHUB_TOKEN 으로 만든 코멘트는 GitHub 의 재귀 방지로
+          # 다른 workflow (claude.yml) 를 trigger 안 시킴. PAT 으로 만든 코멘트는 정상 trigger.
+          GH_TOKEN: ${{ secrets.BOT_TOKEN }}
           GH_REPO: ${{ github.repository }}
         run: |
           set -e
