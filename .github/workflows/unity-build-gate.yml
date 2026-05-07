@@ -31,10 +31,20 @@ jobs:
           restore-keys: |
             Library-${{ runner.os }}-
 
+      # Personal license fresh activation — credentials 만으로 runner 안에서 활성화.
+      # game-ci/unity-request-activation-file (.alf 발급) 흐름은 deprecated (2023-12) + Unity 6.x Personal manual 활성화 자체 폐지 (Unity 2022.1+).
+      # buildalon/activate-unity-license@v2 가 Unity 6.x Personal/Pro/Floating 모두 지원 + Verified action.
+      - name: Activate Unity license
+        uses: buildalon/activate-unity-license@v2
+        with:
+          license: 'Personal'
+          username: ${{ secrets.UNITY_EMAIL }}
+          password: ${{ secrets.UNITY_PASSWORD }}
+          license-version: '6.x'
+
       - name: Run EditMode tests
         uses: game-ci/unity-test-runner@v4
         env:
-          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
