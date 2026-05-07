@@ -144,6 +144,17 @@ TASK 시드의 단계 분할 표(A1/A2/A3...)는 *합의된 작업 단위*다. �
 
 새 시스템이 *우리 패턴과 다른 모양*이라면 *이유*를 TASK 시드에 명시한다.
 
+## 수치 노출 / 런타임 tweak
+
+게임 시스템의 모든 *수치·시간·길이·가중치·확률* 은 하드코딩 금지. SO / `[SerializeField]` / `Variable<T>` 로 노출하고, **인스펙터에서 런타임 변경 → 즉시 반영** 되는 구조로 작성한다.
+
+- 매니저는 SO 값 캐싱 X — 매 사용 시 다시 읽거나, 캐싱하면 변경 감지 후 갱신
+- 자주 tweak 하는 값은 디버그 HUD 슬라이더 노출 (인스펙터 안 열어도 in-play tweak 가능해야)
+- 같은 수치 두 곳에 박기 X — SO 가 정본, 매니저는 참조만
+- 예외: 컴파일 타임 상수 (`const`) — frame 0, GameObject 키 문자열 등
+
+이유: 런타임에 수치 못 바꾸면 디자인 iteration 비용 폭증. tweak 가능성은 *시스템 가치의 일부*. WM 의 "다른 게임 좋은 시스템 다 흡수" 비전과 직결.
+
 ## 에러 처리 — FastFail 유지
 
 에러를 삼키는 방어 코드(TryGet, null 체크, 기본값 반환)로 증상을 덮지 말고,
@@ -188,10 +199,15 @@ Unity Editor 가 **foreground (focus)** 상태가 아니면 .cs 변경 reimport 
 - `Reloading assemblies after forced synchronous recompile.` 로그의 *시점* — 내 변경 후인지 확인
 - `Refresh completed in ...` 으로 import 세션 끝 시점 확인
 
-stale 이면:
-- 사용자에게 **Unity Editor focus 명시 요청** — "Editor 창 클릭해서 자동 reimport 시켜주세요"
-- 또는 `Ctrl+R` (Refresh) 안내
-- reimport 후 다시 grep "error CS" 로 본인 검증
+stale 이면 — **자동화 우선**:
+1. **`pwsh memo/dotfiles/scripts/unity-refresh.ps1`** 호출 — Unity 창 `SetForegroundWindow` → Auto Refresh 트리거. 사용자에게 "Editor 창 클릭" 요청 X
+2. **sleep ~25초** — 컴파일 + Domain Reload + `[InitializeOnLoadMethod]` 까지 충분 (4~5 신규 .cs 기준; 더 많으면 30초 이상)
+3. **Editor.log grep** — `error CS` 0 + `Reloading assemblies after forced synchronous recompile` 새 매치 (이전 max line 보다 큰 line) 으로 컴파일 완료 검증
+
+자동화 한계 (이때만 사용자 손 요청):
+- Unity 창이 *이미 foreground* 면 `SetForegroundWindow` no-op (focus 이벤트 X) — 우회: PowerShell `SendKeys ^r` 또는 사용자가 다른 창 잠시 클릭 후 재호출
+- Auto Refresh OFF 면 무용 — `Edit > Preferences > Asset Pipeline > Auto Refresh` 설정 사용자 컨펌 1회
+- 신규 폴더의 파일은 fsnotify 가 가끔 누락 → Project 패널에서 폴더 한 번 클릭 또는 Editor 재시작
 
 ### 새 .cs 파일 만들었을 때
 
@@ -208,6 +224,22 @@ stale 이면:
 이전 사례: TASK-WM-034 B (NodeGraph GraphView UI) — `Func<GraphViewChange, GraphViewChange>` vs `GraphView.GraphViewChanged` delegate 타입 mismatch 컴파일 에러를 사용자가 먼저 발견. 본인이 Editor.log 안 보고 검증 요청해버림. 룰 추가 계기.
 
 이전 사례 2: TASK-WM-039 Knockback A+B+C — `PlayerKnockbackCameraGlue` 신규 .cs 만든 후 Editor.log 봤는데 Unity foreground 안 와서 import 안 됨. 다른 (`HitstopFeedback`, `KnockbackFeedback`) 은 import 됐고 새로 만든 것만 안 됨 = stale 일 가능성 인지. 사용자에게 reimport 요청 → 통과 확인 후 검증 진행.
+
+### Play Mode 진입 자동 lazy load — `RuntimeInitializeOnLoadMethod` 한계
+
+새 매니저 prefab + `[RuntimeInitializeOnLoadMethod(AfterSceneLoad)]` 로 Play Mode 시 자동 ensure 시:
+
+- **컴파일 끝나기 *전* Play 진입하면 옛 .dll 사용** → 새 코드 적용 X. Play Mode 시작 후 *forced sync recompile* 발생 (Editor.log 의 `Reloading assemblies after forced synchronous recompile`) = 옛 .dll 시점에 RuntimeInitializeOnLoadMethod 이미 호출됨
+- Unity well-known 한계: **assembly reload 시 RuntimeInitializeOnLoadMethod 재호출 X**
+
+해결 흐름:
+1. `unity-refresh.ps1` 호출 + sleep ~25초 + Editor.log grep (`error CS` 0 + `Reloading assemblies` 새 매치) 으로 *컴파일 완료 검증*
+2. 검증 OK 면 사용자에게 Play 요청
+3. Play 들어갔는데 새 코드 반영 안 되면 → Stop → 다시 Play (이번엔 새 .dll 로딩됨)
+
+**`Singleton<T>` 매니저의 `dontDestroyOnLoad`** — prefab 의 `[SerializeField] dontDestroyOnLoad` 노브를 *true* 로 박는다. 씬 전환 시 destroy 되면 RuntimeInitializeOnLoadMethod(AfterSceneLoad) 1회만 호출이라 재인스턴스화 트리거 0. **코드로 `DontDestroyOnLoad()` 강제 호출은 X** — Singleton 베이스 SerializedField 가 정본 (수치 노출 / 런타임 tweak 룰 정합). 자동 부트스트랩 메뉴가 prefab 생성 시 SerializedField 박는 패턴.
+
+이전 사례: TASK-WM-054-A WorldClock (2026-05-08) — Awake 에서 `DontDestroyOnLoad` 코드 강제 호출했다가 사용자가 "Singleton 베이스에 노브 있는데 왜 코드 강제냐" 지적. `WorldClockBootstrapMenu` 가 prefab 생성 시 SerializedField = true 박는 + idempotent `EnsurePrefabFlags` 패턴으로 정정.
 
 ## Git Workflow
 
@@ -304,6 +336,22 @@ git worktree remove ../.worktrees/<name>
 - README · CLAUDE.md 자체 minor 보강 (룰 한 줄 추가 등)
 
 판단 기준: *코드 동작 변경 0* + *CodeRabbit 리뷰 가치 0*. 애매하면 PR 분기.
+
+#### main 워크트리 더러울 때 — worktree 우회 패턴
+
+다른 세션 dirty/untracked 가 main 워크트리에서 ff 를 막고 있을 때, "main 직접 push" 의 *근본 경로* 는 main 워크트리에서 commit 이 아니라:
+
+```bash
+git worktree add -b chore/<주제> ../.worktrees/<name> origin/main
+# <name> 에서 편집 + commit
+git push origin chore/<주제>:main      # 로컬 브랜치 → 원격 main 직접 푸시
+git worktree remove ../.worktrees/<name>
+git branch -D chore/<주제>
+```
+
+parallel 세션 dirty 안 건드리면서 chore 푸시. 1~3줄 chore 라도 워크트리 비용 정합 — 다른 세션 잔재 정리 시도 X (잔재 안전성은 `git hash-object <local>` vs `git rev-parse origin/main:<path>` 비교 후에만; 1개라도 diff 나면 잔재 정리 X, 즉시 worktree 우회).
+
+이전 사례: 2026-05-08 ChunkMesher 로그 chore — 054-A 머지 후 WorldClock untracked 잔재 16개 중 `WorldClock.prefab` 1개에 살아있는 local 변경 발견. "잔재 정리 → ff" 가설 깨지고 worktree 우회로 전환 (커밋 `649023a8`).
 
 ### Commit 메시지
 
