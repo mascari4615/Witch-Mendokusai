@@ -16,7 +16,7 @@ namespace WitchMendokusai
 		private const string TERRAIN_FOLDER = "Assets/_WitchMendokusai/Core/Scripts/Terrain";
 		private const string BIOMES_FOLDER = TERRAIN_FOLDER + "/Biomes";
 
-		[MenuItem("WitchMendokusai/Terrain Editor")]
+		[MenuItem("WM/Terrain Editor")]
 		public static void Open()
 		{
 			TerrainEditorWindow window = GetWindow<TerrainEditorWindow>();

@@ -49,7 +49,7 @@ namespace WitchMendokusai
 
 		private bool isInit = false;
 
-		[MenuItem("WitchMendokusai/DataSOWindow")]
+		[MenuItem("WM/DataSOWindow")]
 		public static void ShowDataSOWindow()
 		{
 			// Debug.Log(nameof(ShowDataSOWindow));
