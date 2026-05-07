@@ -137,3 +137,6 @@ WM.json*
 
 # Local editor and shell crash artifacts
 bash.exe.stackdump
+
+# Shader pack build output (TASK-WM-055 P1-F)
+/Shaderpacks_Output/

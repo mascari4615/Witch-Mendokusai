@@ -144,6 +144,16 @@ TASK 시드의 단계 분할 표(A1/A2/A3...)는 *합의된 작업 단위*다. �
 
 새 시스템이 *우리 패턴과 다른 모양*이라면 *이유*를 TASK 시드에 명시한다.
 
+## Editor 메뉴
+
+`MenuItem` path 의 top-level root 는 **`WM/`** 단일화 (TASK-WM-057). `WitchMendokusai/...` 사용 X.
+
+```csharp
+[MenuItem("WM/<카테고리>/<항목>")]
+```
+
+카테고리 예: `WM/Setup/...` (부트스트랩), `WM/Voxel/...`, `WM/UGC/...`, `WM/Terrain/...`, `WM/ShaderModdingSDK/...` 등. grep 게이트: `MenuItem.*"WitchMendokusai/` 결과 0.
+
 ## 수치 노출 / 런타임 tweak
 
 게임 시스템의 모든 *수치·시간·길이·가중치·확률* 은 하드코딩 금지. SO / `[SerializeField]` / `Variable<T>` 로 노출하고, **인스펙터에서 런타임 변경 → 즉시 반영** 되는 구조로 작성한다.
