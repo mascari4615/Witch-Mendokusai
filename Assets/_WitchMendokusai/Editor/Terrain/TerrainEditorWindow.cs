@@ -179,6 +179,20 @@ namespace WitchMendokusai
 				return;
 			}
 
+			VisualElement graphToolbar = new();
+			graphToolbar.style.flexDirection = FlexDirection.Row;
+			graphToolbar.style.paddingLeft = 6;
+			graphToolbar.style.paddingRight = 6;
+			graphToolbar.style.paddingTop = 4;
+			graphToolbar.style.paddingBottom = 4;
+			graphToolbar.style.borderBottomWidth = 1;
+			graphToolbar.style.borderBottomColor = new Color(0f, 0f, 0f, 0.3f);
+			graphPaneContainer.Add(graphToolbar);
+
+			Button autoLayoutButton = new(() => graphView?.AutoLayout()) { text = "Auto Layout" };
+			autoLayoutButton.style.marginRight = 4;
+			graphToolbar.Add(autoLayoutButton);
+
 			graphView = new NodeGraph.NodeGraphView(editing.TerrainGraph);
 			graphView.style.flexGrow = 1;
 			graphPaneContainer.Add(graphView);
