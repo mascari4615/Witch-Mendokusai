@@ -31,6 +31,8 @@ namespace WitchMendokusai
 		private void RegisterSlots()
 		{
 			RegisterSlot(new PostProcessSlot());
+			RegisterSlot(new SkyboxSlot());
+			RegisterSlot(new WaterSlot());
 		}
 
 		private void RegisterSlot(IShaderPackSlot slot)
