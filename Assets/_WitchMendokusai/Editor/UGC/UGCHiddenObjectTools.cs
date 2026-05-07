@@ -10,7 +10,7 @@ namespace WitchMendokusai
 	{
 		private const string RootName = "UGC_TestSetup";
 
-		[MenuItem("WitchMendokusai/UGC/Select Hidden Runtime Objects")]
+		[MenuItem("WM/UGC/Select Hidden Runtime Objects")]
 		public static void SelectHiddenRuntimeObjects()
 		{
 			Object[] objects = FindHiddenRuntimeObjects().ToArray();
@@ -18,7 +18,7 @@ namespace WitchMendokusai
 			LogObjects("Selected hidden runtime objects", objects);
 		}
 
-		[MenuItem("WitchMendokusai/UGC/Clear Hidden Runtime Objects")]
+		[MenuItem("WM/UGC/Clear Hidden Runtime Objects")]
 		public static void ClearHiddenRuntimeObjects()
 		{
 			List<GameObject> objects = FindHiddenRuntimeObjects();
@@ -38,7 +38,7 @@ namespace WitchMendokusai
 			EditorSceneManager.MarkAllScenesDirty();
 		}
 
-		[MenuItem("WitchMendokusai/UGC/Refresh Hidden Runtime Objects")]
+		[MenuItem("WM/UGC/Refresh Hidden Runtime Objects")]
 		public static void RefreshHiddenRuntimeObjects()
 		{
 			List<GameObject> objects = FindHiddenRuntimeObjects();

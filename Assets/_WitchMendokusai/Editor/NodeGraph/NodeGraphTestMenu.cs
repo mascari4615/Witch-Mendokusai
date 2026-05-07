@@ -13,7 +13,7 @@ namespace WitchMendokusai.NodeGraph
 		private const string TEST_GRAPH_FOLDER = "Assets/_WitchMendokusai/Core/Scripts/NodeGraph/Test";
 		private const string TEST_GRAPH_PATH = TEST_GRAPH_FOLDER + "/TestGraph.asset";
 
-		[MenuItem("WitchMendokusai/NodeGraph/Build Test Graph")]
+		[MenuItem("WM/NodeGraph/Build Test Graph")]
 		public static void BuildTestGraph()
 		{
 			EnsureFolder(TEST_GRAPH_FOLDER);
@@ -54,7 +54,7 @@ namespace WitchMendokusai.NodeGraph
 			Debug.Log($"[NodeGraphTestMenu] TestGraph built — {graph.Nodes.Count} 노드, {graph.Connections.Count} 연결. Run Test Graph 메뉴로 실행.");
 		}
 
-		[MenuItem("WitchMendokusai/NodeGraph/Run Test Graph")]
+		[MenuItem("WM/NodeGraph/Run Test Graph")]
 		public static void RunTestGraph()
 		{
 			NodeGraph graph = AssetDatabase.LoadAssetAtPath<NodeGraph>(TEST_GRAPH_PATH);
