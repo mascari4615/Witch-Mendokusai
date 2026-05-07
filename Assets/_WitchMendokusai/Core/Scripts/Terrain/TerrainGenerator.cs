@@ -191,12 +191,12 @@ namespace WitchMendokusai
 		/// <summary>
 		/// central difference 로 경사 크기 계산 (gradient magnitude). 단위: m/m.
 		/// </summary>
-		public static float SampleSlope(TerrainParameters parameters, int x, int z)
-		{
-			float dx = (SampleHeight(parameters, x + 1, z) - SampleHeight(parameters, x - 1, z)) * 0.5f;
-			float dz = (SampleHeight(parameters, x, z + 1) - SampleHeight(parameters, x, z - 1)) * 0.5f;
-			return Mathf.Sqrt(dx * dx + dz * dz);
-		}
+public static float SampleSlope(TerrainParameters parameters, int x, int z)
+{
+    float gradientX = (SampleHeight(parameters, x + 1, z) - SampleHeight(parameters, x - 1, z)) * 0.5f;
+    float gradientZ = (SampleHeight(parameters, x, z + 1) - SampleHeight(parameters, x, z - 1)) * 0.5f;
+    return Mathf.Sqrt(gradientX * gradientX + gradientZ * gradientZ);
+}
 
 		/// <summary>
 		/// 경사 열지도 텍스쳐. flat=파랑(H:0.667), steep=빨강(H:0). 전체 최대 경사 기준 정규화.
