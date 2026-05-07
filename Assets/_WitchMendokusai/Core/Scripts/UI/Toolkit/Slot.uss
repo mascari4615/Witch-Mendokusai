@@ -610,3 +610,239 @@
     background-color: rgba(40, 40, 55, 1);
     color: rgba(230, 230, 235, 1);
 }
+
+/* WMWindow Content 내 Label 기본 텍스트 색 — 어두운 창 배경 위 가독성 */
+.wm-window__content Label {
+    color: rgba(220, 220, 225, 1);
+    font-size: 12px;
+}
+
+/* === Keybind Help === */
+.wm-keybind-help {
+    flex-grow: 1;
+}
+
+.wm-keybind-help__category {
+    margin-bottom: 8px;
+    border-bottom-width: 1px;
+    border-bottom-color: rgba(80, 80, 95, 0.6);
+    padding-bottom: 4px;
+}
+
+.wm-keybind-help__category-label {
+    color: rgba(180, 200, 230, 1);
+    font-size: 13px;
+    -unity-font-style: bold;
+    margin-bottom: 2px;
+}
+
+.wm-keybind-help__row {
+    flex-direction: row;
+    justify-content: space-between;
+    padding: 2px 4px;
+}
+
+.wm-keybind-help__display-name {
+    flex-grow: 1;
+}
+
+.wm-keybind-help__key {
+    color: rgba(255, 220, 130, 1);
+    -unity-font-style: bold;
+    min-width: 80px;
+    -unity-text-align: middle-right;
+}
+
+/* === Quest Window === */
+.wm-quest-grid {
+    flex-grow: 1;
+    flex-direction: column;
+}
+
+.wm-quest-grid__list {
+    flex-grow: 1;
+}
+
+.wm-quest-entry {
+    padding: 4px 6px;
+    margin-bottom: 2px;
+    border-left-width: 2px;
+    border-left-color: rgba(80, 80, 95, 0.6);
+}
+
+.wm-quest-entry:hover {
+    background-color: rgba(60, 60, 80, 0.4);
+}
+
+.wm-quest-entry--selected {
+    background-color: rgba(70, 100, 140, 0.5);
+    border-left-color: rgba(180, 200, 230, 1);
+}
+
+.wm-quest-entry__name {
+    -unity-font-style: bold;
+}
+
+.wm-quest-entry__type {
+    color: rgba(160, 180, 200, 1);
+    font-size: 10px;
+    margin-right: 8px;
+}
+
+.wm-quest-entry__state {
+    color: rgba(255, 220, 130, 1);
+    font-size: 10px;
+}
+
+.wm-quest-entry__progress {
+    height: 3px;
+    background-color: rgba(40, 40, 50, 1);
+    margin-top: 2px;
+}
+
+.wm-quest-entry__progress-fill {
+    height: 100%;
+    background-color: rgba(120, 200, 140, 1);
+}
+
+.wm-quest-filter-bar {
+    flex-direction: row;
+    flex-wrap: wrap;
+    padding: 4px;
+}
+
+.wm-quest-filter-bar__button {
+    margin: 2px;
+    padding: 2px 6px;
+    font-size: 11px;
+}
+
+.wm-quest-filter-bar__button--active {
+    background-color: rgba(70, 100, 140, 0.8);
+    color: rgba(255, 255, 255, 1);
+}
+
+.wm-quest-detail {
+    padding: 8px;
+}
+
+.wm-quest-detail__name {
+    font-size: 14px;
+    -unity-font-style: bold;
+    margin-bottom: 4px;
+}
+
+.wm-quest-detail__desc {
+    color: rgba(180, 180, 190, 1);
+    margin-bottom: 6px;
+}
+
+.wm-quest-detail__criteria {
+    margin-top: 6px;
+    margin-bottom: 6px;
+}
+
+/* === Doll Window === */
+.wm-doll-list {
+    flex-grow: 1;
+    flex-direction: column;
+    padding: 4px;
+}
+
+.wm-doll-list__scroll {
+    flex-grow: 1;
+}
+
+.wm-doll-entry {
+    flex-direction: row;
+    padding: 4px;
+    margin-bottom: 2px;
+    border-left-width: 2px;
+    border-left-color: rgba(80, 80, 95, 0.6);
+}
+
+.wm-doll-entry:hover {
+    background-color: rgba(60, 60, 80, 0.4);
+}
+
+.wm-doll-entry--selected {
+    background-color: rgba(70, 100, 140, 0.5);
+    border-left-color: rgba(180, 200, 230, 1);
+}
+
+.wm-doll-entry__icon {
+    width: 32px;
+    height: 32px;
+    margin-right: 6px;
+    background-color: rgba(15, 15, 18, 0.6);
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.wm-doll-entry__name {
+    -unity-font-style: bold;
+}
+
+.wm-doll-entry__level {
+    color: rgba(160, 180, 200, 1);
+    font-size: 10px;
+}
+
+.wm-doll-detail {
+    padding: 8px;
+    flex-grow: 1;
+}
+
+.wm-doll-detail__name {
+    font-size: 14px;
+    -unity-font-style: bold;
+}
+
+.wm-doll-detail__level {
+    color: rgba(160, 180, 200, 1);
+    margin-bottom: 6px;
+}
+
+.wm-doll-detail__section {
+    margin-top: 6px;
+}
+
+.wm-doll-detail__section-label {
+    color: rgba(180, 200, 230, 1);
+    font-size: 11px;
+    -unity-font-style: bold;
+    margin-bottom: 2px;
+}
+
+.wm-doll-detail__signature {
+    width: 48px;
+    height: 48px;
+}
+
+/* === Status Window === */
+.wm-stat-row {
+    flex-direction: row;
+    align-items: center;
+    padding: 3px 6px;
+    border-bottom-width: 1px;
+    border-bottom-color: rgba(60, 60, 75, 0.4);
+}
+
+.wm-stat-row__icon {
+    width: 20px;
+    height: 20px;
+    margin-right: 8px;
+    background-color: rgba(15, 15, 18, 0.6);
+    -unity-background-scale-mode: scale-to-fit;
+    flex-shrink: 0;
+}
+
+.wm-stat-row__name {
+    flex-grow: 1;
+}
+
+.wm-stat-row__value {
+    color: rgba(255, 220, 130, 1);
+    -unity-font-style: bold;
+    -unity-text-align: middle-right;
+    min-width: 60px;
+}

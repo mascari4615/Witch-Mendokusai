@@ -13,6 +13,7 @@ namespace WitchMendokusai
 	/// 1차 minimal — 파라미터는 *필드* (인스펙터에서 직접 편집). 향후 input port 화 시 `Constant` 노드 연결 가능.
 	/// </summary>
 	[Serializable]
+	[NodeDomain(NodeDomain.Terrain)]
 	public class FractalPerlinNode : NodeBase
 	{
 		[SerializeField, Range(1, 8)] private int octaves = 4;

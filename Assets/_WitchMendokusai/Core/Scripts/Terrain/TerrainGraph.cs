@@ -12,6 +12,8 @@ namespace WitchMendokusai
 	[CreateAssetMenu(fileName = nameof(TerrainGraph), menuName = "WM/Terrain/" + nameof(TerrainGraph))]
 	public class TerrainGraph : NodeGraphAsset
 	{
+		public override NodeDomain Domain => NodeDomain.Terrain;
+
 		/// <summary>
 		/// (worldX, worldZ) 기준 그래프 평가 결과 height. terminal `HeightOutputNode` 누락 시 0.
 		/// **background thread 안전** — context per-call 인스턴스, NodeBase 데이터 read-only.

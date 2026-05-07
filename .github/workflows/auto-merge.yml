@@ -15,5 +15,8 @@ jobs:
       - name: Enable auto-merge
         run: gh pr merge --auto --squash "${{ github.event.pull_request.number }}"
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # BOT_TOKEN (PAT) 사용 — GITHUB_TOKEN 으로 머지된 squash commit 의 main push event 는
+          # GitHub 의 재귀 방지로 다른 workflow (Auto Rebase) 를 trigger 안 시킴.
+          # PAT 으로 머지하면 정상 push event trigger.
+          GH_TOKEN: ${{ secrets.BOT_TOKEN }}
           GH_REPO: ${{ github.repository }}

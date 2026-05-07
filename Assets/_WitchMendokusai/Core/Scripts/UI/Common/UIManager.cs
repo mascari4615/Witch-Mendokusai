@@ -13,7 +13,6 @@ namespace WitchMendokusai
 		public UITransition Transition { get; private set; }
 		public UIChat Chat { get; private set; }
 		public UISpeechBubble SpeechBubble { get; private set; }
-		public UIStatus Status { get; private set; }
 		public CutSceneModule CutSceneModule { get; private set; }
 		[field: SerializeField] public Canvas BaseCanvas { get; private set; }
 	
@@ -30,6 +29,8 @@ namespace WitchMendokusai
 		private HotbarView hotbarView;
 		private BuildingBarView buildingBarView;
 		private QuestView questView;
+		private DollView dollView;
+		private StatusView statusView;
 
 		public bool IsAnyPanelFullscreenOpen
 		{
@@ -59,7 +60,6 @@ namespace WitchMendokusai
 
 			Transition = FindAnyObjectByType<UITransition>(FindObjectsInactive.Include);
 			stagePopup = FindAnyObjectByType<UIStagePopup>(FindObjectsInactive.Include);
-			Status = FindAnyObjectByType<UIStatus>(FindObjectsInactive.Include);
 
 			Tab = FindAnyObjectByType<UITab>(FindObjectsInactive.Include);
 			NPC = FindAnyObjectByType<UINPC>(FindObjectsInactive.Include);
@@ -70,6 +70,8 @@ namespace WitchMendokusai
 			hotbarView = uiRootGameObject.AddComponent<HotbarView>();
 			buildingBarView = uiRootGameObject.AddComponent<BuildingBarView>();
 			questView = uiRootGameObject.AddComponent<QuestView>();
+			dollView = uiRootGameObject.AddComponent<DollView>();
+			statusView = uiRootGameObject.AddComponent<StatusView>();
 		}
 
 		protected override void OnDestroy()
@@ -82,15 +84,16 @@ namespace WitchMendokusai
 				Destroy(buildingBarView);
 			if (questView != null)
 				Destroy(questView);
+			if (dollView != null)
+				Destroy(dollView);
+			if (statusView != null)
+				Destroy(statusView);
 
 			base.OnDestroy();
 		}
 
 		private void Start()
 		{
-			Status.Init();
-			Status.gameObject.SetActive(false);
-
 			RegisterOverlayUI(Tab);
 			RegisterOverlayUI(NPC);
 		}
@@ -162,12 +165,5 @@ namespace WitchMendokusai
 			settingView.Open();
 		}
 
-		public void ToggleStatus()
-		{
-			Status.gameObject.SetActive(!Status.gameObject.activeSelf);
-
-			if (Status.gameObject.activeSelf)
-				Status.UpdateUI();
-		}
 	}
 }

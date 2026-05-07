@@ -26,6 +26,7 @@ namespace WitchMendokusai
 		public VisualElement OverlayLayer { get; private set; }
 		public HoldingOverlay HoldingOverlay { get; private set; }
 		public SettingView SettingView { get; private set; }
+		public KeybindHelpView KeybindHelpView { get; private set; }
 
 		protected override void Awake()
 		{
@@ -41,6 +42,7 @@ namespace WitchMendokusai
 		private void CreateViews()
 		{
 			SettingView = gameObject.AddComponent<SettingView>();
+			KeybindHelpView = gameObject.AddComponent<KeybindHelpView>();
 		}
 
 		private void OnEnable()
