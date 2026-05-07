@@ -610,3 +610,409 @@
     background-color: rgba(40, 40, 55, 1);
     color: rgba(230, 230, 235, 1);
 }
+
+/* WMWindow Content 내 Label 기본 텍스트 색 — 어두운 창 배경 위 가독성 */
+.wm-window__content Label {
+    color: rgba(220, 220, 225, 1);
+    font-size: 12px;
+}
+
+/* === Keybind Help === */
+.wm-keybind-help {
+    flex-grow: 1;
+}
+
+.wm-keybind-help__category {
+    margin-bottom: 8px;
+    border-bottom-width: 1px;
+    border-bottom-color: rgba(80, 80, 95, 0.6);
+    padding-bottom: 4px;
+}
+
+.wm-keybind-help__category-label {
+    color: rgba(180, 200, 230, 1);
+    font-size: 13px;
+    -unity-font-style: bold;
+    margin-bottom: 2px;
+}
+
+.wm-keybind-help__row {
+    flex-direction: row;
+    justify-content: space-between;
+    padding: 2px 4px;
+}
+
+.wm-keybind-help__display-name {
+    flex-grow: 1;
+}
+
+.wm-keybind-help__key {
+    color: rgba(255, 220, 130, 1);
+    -unity-font-style: bold;
+    min-width: 80px;
+    -unity-text-align: middle-right;
+}
+
+/* === Quest Window === */
+.wm-quest-grid {
+    flex-grow: 1;
+    flex-direction: column;
+}
+
+.wm-quest-grid__list {
+    flex-grow: 1;
+}
+
+.wm-quest-entry {
+    padding: 4px 6px;
+    margin-bottom: 2px;
+    border-left-width: 2px;
+    border-left-color: rgba(80, 80, 95, 0.6);
+}
+
+.wm-quest-entry:hover {
+    background-color: rgba(60, 60, 80, 0.4);
+}
+
+.wm-quest-entry--selected {
+    background-color: rgba(70, 100, 140, 0.5);
+    border-left-color: rgba(180, 200, 230, 1);
+}
+
+.wm-quest-entry__name {
+    -unity-font-style: bold;
+}
+
+.wm-quest-entry__type {
+    color: rgba(160, 180, 200, 1);
+    font-size: 10px;
+    margin-right: 8px;
+}
+
+.wm-quest-entry__state {
+    color: rgba(255, 220, 130, 1);
+    font-size: 10px;
+}
+
+.wm-quest-entry__progress {
+    height: 3px;
+    background-color: rgba(40, 40, 50, 1);
+    margin-top: 2px;
+}
+
+.wm-quest-entry__progress-fill {
+    height: 100%;
+    background-color: rgba(120, 200, 140, 1);
+}
+
+.wm-quest-filter-bar {
+    flex-direction: row;
+    flex-wrap: wrap;
+    padding: 4px;
+}
+
+.wm-quest-filter-bar__button {
+    margin: 2px;
+    padding: 2px 6px;
+    font-size: 11px;
+}
+
+.wm-quest-filter-bar__button--active {
+    background-color: rgba(70, 100, 140, 0.8);
+    color: rgba(255, 255, 255, 1);
+}
+
+.wm-quest-detail {
+    padding: 8px;
+}
+
+.wm-quest-detail__name {
+    font-size: 14px;
+    -unity-font-style: bold;
+    margin-bottom: 4px;
+}
+
+.wm-quest-detail__desc {
+    color: rgba(180, 180, 190, 1);
+    margin-bottom: 6px;
+}
+
+.wm-quest-detail__criteria {
+    margin-top: 6px;
+    margin-bottom: 6px;
+}
+
+/* === Doll Window === */
+.wm-doll-list {
+    flex-grow: 1;
+    flex-direction: column;
+    padding: 4px;
+}
+
+.wm-doll-list__scroll {
+    flex-grow: 1;
+}
+
+.wm-doll-entry {
+    flex-direction: row;
+    padding: 4px;
+    margin-bottom: 2px;
+    border-left-width: 2px;
+    border-left-color: rgba(80, 80, 95, 0.6);
+}
+
+.wm-doll-entry:hover {
+    background-color: rgba(60, 60, 80, 0.4);
+}
+
+.wm-doll-entry--selected {
+    background-color: rgba(70, 100, 140, 0.5);
+    border-left-color: rgba(180, 200, 230, 1);
+}
+
+.wm-doll-entry__icon {
+    width: 32px;
+    height: 32px;
+    margin-right: 6px;
+    background-color: rgba(15, 15, 18, 0.6);
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.wm-doll-entry__name {
+    -unity-font-style: bold;
+}
+
+.wm-doll-entry__level {
+    color: rgba(160, 180, 200, 1);
+    font-size: 10px;
+}
+
+.wm-doll-detail {
+    padding: 8px;
+    flex-grow: 1;
+}
+
+.wm-doll-detail__name {
+    font-size: 14px;
+    -unity-font-style: bold;
+}
+
+.wm-doll-detail__level {
+    color: rgba(160, 180, 200, 1);
+    margin-bottom: 6px;
+}
+
+.wm-doll-detail__section {
+    margin-top: 6px;
+}
+
+.wm-doll-detail__section-label {
+    color: rgba(180, 200, 230, 1);
+    font-size: 11px;
+    -unity-font-style: bold;
+    margin-bottom: 2px;
+}
+
+.wm-doll-detail__signature {
+    width: 48px;
+    height: 48px;
+}
+
+/* === Status Window === */
+.wm-stat-row {
+    flex-direction: row;
+    align-items: center;
+    padding: 3px 6px;
+    border-bottom-width: 1px;
+    border-bottom-color: rgba(60, 60, 75, 0.4);
+}
+
+.wm-stat-row__icon {
+    width: 20px;
+    height: 20px;
+    margin-right: 8px;
+    background-color: rgba(15, 15, 18, 0.6);
+    -unity-background-scale-mode: scale-to-fit;
+    flex-shrink: 0;
+}
+
+.wm-stat-row__name {
+    flex-grow: 1;
+}
+
+.wm-stat-row__value {
+    color: rgba(255, 220, 130, 1);
+    -unity-font-style: bold;
+    -unity-text-align: middle-right;
+    min-width: 60px;
+}
+
+/* === Popup Card === */
+.wm-popup-card {
+    position: absolute;
+    top: 60px;
+    left: 50%;
+    translate: -50% -10px;
+    flex-direction: row;
+    align-items: center;
+    padding: 10px 16px;
+    background-color: rgba(20, 20, 28, 0.92);
+    border-color: rgba(255, 220, 130, 1);
+    border-width: 1px;
+    border-radius: 6px;
+    opacity: 0;
+    scale: 0.85 0.85;
+    transition-property: opacity, scale, translate;
+    transition-duration: 0.22s;
+    transition-timing-function: ease-out-cubic;
+}
+
+.wm-popup-card--active {
+    opacity: 1;
+    scale: 1 1;
+    translate: -50% 0;
+}
+
+.wm-popup-card__icon {
+    width: 40px;
+    height: 40px;
+    margin-right: 12px;
+    background-color: rgba(15, 15, 18, 0.6);
+    -unity-background-scale-mode: scale-to-fit;
+    flex-shrink: 0;
+}
+
+.wm-popup-card__name {
+    color: rgba(255, 235, 180, 1);
+    font-size: 14px;
+    -unity-font-style: bold;
+}
+
+.wm-popup-card__desc {
+    color: rgba(180, 180, 190, 1);
+    font-size: 11px;
+    margin-top: 2px;
+    white-space: normal;
+}
+
+/* Stage 변형: 더 큰 배너 + 가운데 */
+.wm-popup-card--stage {
+    top: 35%;
+    padding: 24px 32px;
+    border-width: 2px;
+    border-color: rgba(255, 200, 100, 1);
+    flex-direction: column;
+    align-items: center;
+}
+
+.wm-popup-card--stage .wm-popup-card__icon {
+    width: 64px;
+    height: 64px;
+    margin-right: 0;
+    margin-bottom: 8px;
+}
+
+.wm-popup-card--stage .wm-popup-card__name {
+    font-size: 22px;
+    -unity-text-align: middle-center;
+}
+
+.wm-popup-card--stage .wm-popup-card__desc {
+    font-size: 13px;
+    -unity-text-align: middle-center;
+}
+
+/* === Speech Bubble === */
+.wm-speech-bubble {
+    position: absolute;
+    translate: -50% -100%;
+    padding: 6px 10px;
+    background-color: rgba(20, 20, 28, 0.85);
+    border-color: rgba(255, 235, 180, 0.6);
+    border-width: 1px;
+    border-radius: 8px;
+    opacity: 0;
+    transition-property: opacity;
+    transition-duration: 0.3s;
+}
+
+.wm-speech-bubble--active {
+    opacity: 1;
+    transition-duration: 0.2s;
+}
+
+.wm-speech-bubble__text {
+    color: rgba(245, 245, 250, 1);
+    font-size: 13px;
+    -unity-text-align: middle-center;
+    white-space: normal;
+}
+
+.wm-speech-bubble__emoji {
+    width: 32px;
+    height: 32px;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+/* === Floating Text === */
+.wm-floating-text {
+    position: absolute;
+    translate: -50% -50%;
+    opacity: 0;
+    scale: 0.6 0.6;
+    transition-property: opacity, scale, translate;
+    transition-duration: 0.18s;
+    transition-timing-function: ease-out-cubic;
+}
+
+.wm-floating-text--active {
+    opacity: 1;
+    scale: 1 1;
+    translate: -50% -120%;
+}
+
+.wm-floating-text Label {
+    -unity-text-align: middle-center;
+    -unity-font-style: bold;
+    font-size: 22px;
+}
+
+.wm-floating-text--normal Label {
+    color: rgba(255, 255, 255, 1);
+}
+
+.wm-floating-text--critical Label {
+    color: rgba(255, 110, 86, 1);
+    font-size: 26px;
+}
+
+.wm-floating-text--heal Label {
+    color: rgba(120, 220, 130, 1);
+}
+
+.wm-floating-text--exp Label {
+    color: rgba(180, 200, 230, 1);
+    font-size: 16px;
+}
+
+.wm-floating-text--warning Label {
+    color: rgba(255, 230, 80, 1);
+}
+
+/* === Transition === */
+.wm-transition {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 1);
+    opacity: 0;
+    transition-property: opacity;
+    transition-duration: 0.4s;
+    transition-timing-function: ease-in-out;
+}
+
+.wm-transition--active {
+    opacity: 1;
+}

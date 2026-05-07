@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using WitchMendokusai.NodeGraph;
 
 namespace WitchMendokusai
 {
@@ -12,6 +13,7 @@ namespace WitchMendokusai
 	/// G3 (2026-05-06) 신규.
 	/// </summary>
 	[Serializable]
+	[NodeDomain(NodeDomain.Terrain)]
 	public class ThermalErosionNode : RegionGridNodeBase
 	{
 		[Header("Thermal Parameters")]

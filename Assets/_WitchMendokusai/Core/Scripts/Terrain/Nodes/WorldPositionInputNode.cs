@@ -10,6 +10,7 @@ namespace WitchMendokusai
 	/// background chunk gen 다발 호출 thread-safe.
 	/// </summary>
 	[Serializable]
+	[NodeDomain(NodeDomain.Terrain)]
 	public class WorldPositionInputNode : NodeBase
 	{
 		public const string KEY_WORLD_X = "worldX";

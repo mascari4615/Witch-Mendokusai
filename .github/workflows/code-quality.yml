@@ -4,9 +4,7 @@ on:
   push:
     branches: [ "main" ]
   pull_request:
-    # base 제한 없음 — chained PR (feature 위 분기) 도 게이트 통과 보장.
-    # 직전 사고: PR #74 squash 시 conflict marker 누락 → main 박힘.
-    # 모든 PR 검사로 누적 사고 차단.
+    branches: [ "main" ]
 
 jobs:
   typos:
@@ -16,7 +14,6 @@ jobs:
       - uses: actions/checkout@v4
       - name: Typos Check
         uses: crate-ci/typos@master
-        continue-on-error: true
 
   merge-markers:
     name: Check Merge Conflict Markers

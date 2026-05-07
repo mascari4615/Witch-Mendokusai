@@ -18,35 +18,65 @@ namespace WitchMendokusai
 	public enum InputEventType
 	{
 		// Player
+		[InputEvent("이동", "스킬", "<Keyboard>/leftShift")]
 		Space,
+		[InputEvent("이동", "점프", "<Keyboard>/space")]
 		Jump,
+		[InputEvent("전투", "기본 공격", "<Mouse>/leftButton")]
 		Click0,
+		[InputEvent("전투", "보조 공격", "<Mouse>/rightButton")]
 		Click1,
+		[InputEvent("전투", "조준 모드 전환", "<Keyboard>/y")]
 		ChangeMode,
+		[InputEvent("월드", "스크롤", "<Mouse>/scroll")]
 		Scroll,
+		[InputEvent("이동", "달리기", "<Keyboard>/ctrl")]
 		Sprint,
+		[InputEvent("이동", "앉기", "<Keyboard>/c")]
 		Crouch,
+		[InputEvent("월드", "건축 모드", "<Keyboard>/g")]
 		BuildModeToggle,
 		// HotbarSlot1~9는 연속 정의 유지 — UIHotbar이 (HotbarSlot1 + i) 산수에 의존
+		[InputEvent("핫바", "핫바 슬롯 1", "<Keyboard>/1")]
 		HotbarSlot1,
+		[InputEvent("핫바", "핫바 슬롯 2", "<Keyboard>/2")]
 		HotbarSlot2,
+		[InputEvent("핫바", "핫바 슬롯 3", "<Keyboard>/3")]
 		HotbarSlot3,
+		[InputEvent("핫바", "핫바 슬롯 4", "<Keyboard>/4")]
 		HotbarSlot4,
+		[InputEvent("핫바", "핫바 슬롯 5", "<Keyboard>/5")]
 		HotbarSlot5,
+		[InputEvent("핫바", "핫바 슬롯 6", "<Keyboard>/6")]
 		HotbarSlot6,
+		[InputEvent("핫바", "핫바 슬롯 7", "<Keyboard>/7")]
 		HotbarSlot7,
+		[InputEvent("핫바", "핫바 슬롯 8", "<Keyboard>/8")]
 		HotbarSlot8,
+		[InputEvent("핫바", "핫바 슬롯 9", "<Keyboard>/9")]
 		HotbarSlot9,
 
 		// UI
+		[InputEvent("UI 탐색", "확인", "<Keyboard>/z")]
 		Submit,
+		[InputEvent("UI 탐색", "취소", "<Keyboard>/x")]
 		Cancel,
+		[InputEvent("창", "탭 UI", "<Keyboard>/tab")]
 		Tab,
+		[InputEvent("창", "스탯", "<Keyboard>/v")]
 		Status,
+		[InputEvent("창", "인벤토리", "<Keyboard>/i")]
 		Inventory,
+		[InputEvent("창", "개발자 창", "<Keyboard>/slash")]
 		DevWindowToggle,
+		[InputEvent("창", "도감", "<Keyboard>/b")]
 		CodexToggle,
+		[InputEvent("창", "퀘스트", "<Keyboard>/j")]
 		QuestToggle,
+		[InputEvent("창", "인형", "<Keyboard>/k")]
+		DollToggle,
+		[InputEvent("창", "단축키 안내", "<Keyboard>/f1")]
+		KeybindHelpToggle,
 	}
 
 	public enum InputEventResponseType
@@ -97,6 +127,8 @@ namespace WitchMendokusai
 			{ InputEventType.DevWindowToggle, InputMapType.UI },
 			{ InputEventType.CodexToggle, InputMapType.UI },
 			{ InputEventType.QuestToggle, InputMapType.UI },
+			{ InputEventType.DollToggle, InputMapType.UI },
+			{ InputEventType.KeybindHelpToggle, InputMapType.UI },
 		};
 
 		// Strategy-owned: cleared on every strategy switch
@@ -141,6 +173,7 @@ namespace WitchMendokusai
 
 			InitEventDictionaries();
 			BindEvents();
+			KeybindRegistry.ValidateAgainstAsset(inputActionAsset);
 			SetInputStrategy(new InputStrategyLoading());
 
 			// TODO: Setup Class 같은 것이 있어야 할 듯 - 2025.04.19 11:38

@@ -1,0 +1,34 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d662a50555e14dadb856579bbc59a469, type: 3}
+  m_Name: PortraitData_Yawn
+  m_EditorClassIdentifier: Assembly-CSharp::WitchMendokusai.PortraitData
+  <ID>k__BackingField: 0
+  <Name>k__BackingField: "욘"
+  <Description>k__BackingField: "욘의 표정 모음 — Sprite 는 Editor 에서 할당"
+  <Sprite>k__BackingField: {fileID: 0}
+  <Sprites>k__BackingField: []
+  <Moods>k__BackingField:
+  - Mood: 0
+    Sprite: {fileID: 0}
+  - Mood: 1
+    Sprite: {fileID: 0}
+  - Mood: 2
+    Sprite: {fileID: 0}
+  - Mood: 3
+    Sprite: {fileID: 0}
+  - Mood: 4
+    Sprite: {fileID: 0}
+  - Mood: 5
+    Sprite: {fileID: 0}
+  - Mood: 6
+    Sprite: {fileID: 0}

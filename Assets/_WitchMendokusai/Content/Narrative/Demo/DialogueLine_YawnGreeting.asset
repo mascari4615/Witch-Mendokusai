@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f0ebc576b69c4346913885306e7755d4, type: 3}
+  m_Name: DialogueLine_YawnGreeting
+  m_EditorClassIdentifier: Assembly-CSharp::WitchMendokusai.DialogueLine
+  <ID>k__BackingField: 0
+  <Name>k__BackingField: "욘 귀환 인사"
+  <Description>k__BackingField: "데모 — 욘이 던전에서 돌아온 플레이어에게 던지는 인사"
+  <Sprite>k__BackingField: {fileID: 0}
+  <Sprites>k__BackingField: []
+  <Speaker>k__BackingField: {fileID: 0}
+  <Text>k__BackingField: "오, 돌아왔어? 수고했어."
+  <Portrait>k__BackingField: {fileID: 0}
+  <Sfx>k__BackingField: {fileID: 0}
+  <Wait>k__BackingField: 1
+  <Choices>k__BackingField: []

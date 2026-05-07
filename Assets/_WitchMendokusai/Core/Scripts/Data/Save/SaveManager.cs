@@ -59,14 +59,17 @@ namespace WitchMendokusai
 						DollID = doll.ID,
 						Level = 1,
 						Exp = 0,
-						EquipmentGuids = new()
+						Equipment = new()
 					};
 
+					int slotIndex = 0;
 					foreach (EquipmentData equipmentData in doll.DefaultEquipments)
 					{
-						inventory.Add(equipmentData);
-						Guid? guid = inventory.GetItem(inventory.FindItemIndex(equipmentData)).Guid;
-						newDollData.EquipmentGuids.Add(guid);
+						if (slotIndex >= Doll.EQUIPMENT_SLOT_COUNT)
+							break;
+						Item newItem = equipmentData.CreateItem();
+						newDollData.Equipment.Add(new DollEquipmentSlotSaveData(slotIndex, newItem));
+						slotIndex++;
 					}
 
 					doll.Load(newDollData);
