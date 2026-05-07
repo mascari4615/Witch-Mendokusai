@@ -51,10 +51,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   tabMenuPrefab: {fileID: 4812667536845356643, guid: b028f1525b87fbc45b33d42e7380b9e2, type: 3}
   magicBookPanelPrefab: {fileID: 3776693714211163665, guid: bf9eee376e091224482fb700c2a13f2b, type: 3}
-  questPanelPrefab: {fileID: 8376365206862456200, guid: f1683221324cde147921e5ef171b52c3, type: 3}
-  inventoryPanelPrefab: {fileID: 7027129191676322480, guid: 57a9ef542df7db649aff901d91f1b4bf, type: 3}
-  dollPanelPrefab: {fileID: 927866637780857143, guid: 12db1fd27c028f64e97797824c6d24dd, type: 3}
-  settingPanelPrefab: {fileID: 5533335147634710664, guid: ad64d5167287a404d8076adb4cc8df91, type: 3}
   mapPanelPrefab: {fileID: 4705025059669312704, guid: 0549a3a1d1ddd884991a85b1f260007f, type: 3}
   tabBackground: {fileID: 1512421411859981430}
 --- !u!1001 &8328060235572860129
