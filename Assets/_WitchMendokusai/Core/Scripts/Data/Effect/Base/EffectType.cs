@@ -19,5 +19,8 @@ namespace WitchMendokusai
 		Item = 201,
 
 		SpawnObject = 300,
+
+		PlayDialogue = 400,
+		PlayFade = 401,
 	}
 }
