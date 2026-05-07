@@ -123,6 +123,12 @@ namespace WitchMendokusai
 				case EffectType.DungeonStat:
 					effect = new DungeonStatEffect();
 					break;
+				case EffectType.PlayDialogue:
+					effect = new PlayDialogueEffect();
+					break;
+				case EffectType.PlayFade:
+					effect = new PlayFadeEffect();
+					break;
 			}
 
 			if (effect != null)
