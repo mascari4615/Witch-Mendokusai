@@ -222,8 +222,80 @@ stale 이면:
 - `chore/<주제>` — 빌드·CI·의존성·환경 설정·문서
 - `refactor/<주제>` — 동작 변화 없는 정리
 
-**첫 커밋 시 바로 Draft PR 생성** + `.github/pull_request_template.md` 의도 채움 →
-작업 진행하며 push → CodeRabbit 코멘트 대응 → 완료 시 PR 리뷰 후 머지.
+**Default Ready PR 생성** (`gh pr create` 에 `--draft` *제거*) + `.github/pull_request_template.md` 의도 채움 → push → 자동 폐쇄 루프가 머지 + cascade 처리. AI Native 라 사용자 검토 슬롯 = AI 리뷰 (CodeRabbit / Copilot / Claude review-fix) 가 대체.
+
+### AI Native 자동 폐쇄 루프 (2026-05-07 도입)
+
+```
+PR opened (Default Ready)
+  ↓ auto-merge.yml (BOT_TOKEN, user actor)  ─── ready_for_review 이벤트 받아 gh pr merge --auto --squash
+  ↓ 게이트 통과 (Code Quality typo strict + GitGuardian)
+  ↓ squash 머지 (user actor → push event 발생)
+main push event
+  ├─ auto-rebase.yml (BOT_TOKEN)  ─── 모든 open Ready PR update-branch
+  │    ├─ 통과 PR: 자동 stale 해소
+  │    └─ conflict PR: @claude 멘션 코멘트 (BOT_TOKEN)
+  │       ↓
+  │       claude.yml의 claude job (anthropics/claude-code-action@v1)
+  │       ↓
+  │       Claude 자동 conflict 해결 + push → 다시 게이트
+  └─ Stack PR: GitHub 자동 retarget (base=feature → main) → 자동 머지 cascade
+```
+
+호출 (autopilot / 사람 PR 동일):
+```bash
+gh pr create --base main --head <branch> --title "..." --body "..."   # Default Ready (--draft X)
+```
+
+`auto-merge.yml` 이 자동으로 squash 머지 enable. 추가 호출 불필요.
+
+### Draft 명시 사유 — *예외* 만 Draft
+
+다음 명시적 사유 있을 때만 `--draft` 사용. PR description 에 "**Draft 사유**: <한 줄>" 명시:
+- **Architectural / breaking change** — 사용자 비전 결정 슬롯 필요
+- **stack PR base 가 미머지** — base 머지 후 GitHub 자동 retarget 까지 대기
+- **검증 불가 + 사용자 플레이 검증 필요** — Test plan 사용자 검증 항목 1+
+- **WIP 진행 중** — commit 누적, 완료 후 Ready 전환 (autopilot 자체는 매 iteration 단위 PR 분리라 흔치 X)
+
+미명시 → 항상 Ready.
+
+### BOT_TOKEN — GitHub 재귀 방지 우회
+
+`auto-merge.yml` / `auto-rebase.yml` 의 `GH_TOKEN` 은 `secrets.BOT_TOKEN` (PAT) 사용. **`secrets.GITHUB_TOKEN` X**.
+
+이유: GitHub 의 well-known 한계 — `GITHUB_TOKEN` 으로 만든 commit / merge / comment 는 *재귀 방지* 룰로 다른 workflow 를 trigger 안 시킴.
+- bot actor 머지 → main push event 가 auto-rebase trigger 안 함
+- bot actor 코멘트 → claude.yml 의 claude job trigger 안 함
+
+PAT (Personal Access Token, fine-grained, repo: Pull requests + Issues + Contents write) → user actor → 정상 trigger. 사용자 1회 발급 + `BOT_TOKEN` secret 등록.
+
+자세한 진단: 2026-05-07 PR #102 (auto-rebase) / #103 (auto-merge) commit 메시지 참고.
+
+### Closes #NN — Issue 자동 종료
+
+PR description 에 관련 GitHub Issue 명시:
+- TASK 시드에 Issue link 가 있거나 1:1 매핑이면 PR 본문 끝에 `Closes #NN`
+- 머지 시 Issue 자동 close — wishlist 누적 방지
+- 매핑 없으면 박지 X (스팸 X)
+
+### Stack PR 자동 promote
+
+base 가 다른 feature 브랜치인 stack PR 은 base 머지 시 GitHub 가 자동으로 main 으로 retarget. retarget 된 PR 도 Ready + auto-merge enabled 면 게이트 통과 후 자동 머지 → 연쇄. **stack 깊어도 base 만 풀리면 다 풀림**.
+
+### Post-merge 정리
+
+`delete_branch_on_merge: true` (repo 설정 — 원격 자동 삭제). 로컬 잔여만 정리:
+
+```powershell
+git fetch -p
+git branch -vv | Select-String ': gone\]' | ForEach-Object { ($_ -split '\s+')[1] } | ForEach-Object { git branch -D $_ }
+```
+
+자율 모드는 자기 워크트리도 정리:
+
+```bash
+git worktree remove ../.worktrees/<name>
+```
 
 ### 예외 — `main` 직접 push 허용
 
@@ -242,7 +314,33 @@ Conventional Commits — `feat: / fix: / chore: / refactor: / docs: / style: / t
 
 룰을 *기계적으로 강제* 하려면 GitHub repo → Settings → Branches 에서 `main` 에 다음 protection rule:
 - Require a pull request before merging
-- Require status checks to pass (Code Quality CI 통과 필수)
+- Require status checks to pass:
+  - `Check Typos` (현재 등록됨, 단 `continue-on-error: true` — 사실상 게이트 0. workflow 에서 `continue-on-error` 제거 필요)
 - Restrict who can push to matching branches (직접 push 차단)
 
-이 설정 안 되어있으면 본 § 룰은 *수동 약속* 만 됨.
+설정 명령:
+
+```bash
+gh api -X PUT repos/Mascari4615/Witch-Mendokusai/branches/main/protection \
+  -F 'required_status_checks.strict=true' \
+  -F 'required_status_checks.contexts[]=Check Typos' \
+  -F enforce_admins=false \
+  -F required_pull_request_reviews=null \
+  -F restrictions=null
+```
+
+### C# 컴파일 검증 — 보류 + 추후 self-hosted runner
+
+**현 시점 (2026-05-07): Unity Build Gate 인프라 보류**.
+
+이유:
+- Unity 가 GitHub Actions 공식 action 미제공 (third-party 만 존재)
+- Personal license + Unity 6.x = `game-ci/*`, `buildalon/*`, `RageAgainstThePixel/*` 등 third-party 의존 강제
+- third-party action 에 Unity credentials 넘기는 신뢰 비용 > 게이트 효용
+- C# 컴파일 권위 = 사용자 로컬 Unity Editor (본인 작업 시 매번 reimport + 컴파일). CI 가 *대체* 하려는 게 무리수
+
+대안 (추후 검토):
+- **Self-hosted runner** — 사용자 PC 를 GitHub Actions runner 로 등록 → 본인 Unity 본인 license 그대로, third-party 의존 0. 단 PC 항상 켜둬야 함.
+- **Unity Cloud Build** — Unity 공식 CI 서비스 (cloud.unity.com), GitHub 와 별도 시스템.
+
+현 게이트 = *Code Quality (typo) + auto-merge + CodeRabbit/Copilot 리뷰* 만으로도 적체 해소 효과 검증됨 (PR #89/#96/#97/#98 자동 머지 흐름).
