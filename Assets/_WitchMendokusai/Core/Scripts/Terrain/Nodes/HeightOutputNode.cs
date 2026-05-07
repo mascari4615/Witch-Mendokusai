@@ -11,6 +11,7 @@ namespace WitchMendokusai
 	/// SO 인스턴스 mutation 없음 → background 다발 호출 thread-safe.
 	/// </summary>
 	[Serializable]
+	[NodeDomain(NodeDomain.Terrain)]
 	public class HeightOutputNode : NodeBase
 	{
 		private NodePort<float> inHeight;

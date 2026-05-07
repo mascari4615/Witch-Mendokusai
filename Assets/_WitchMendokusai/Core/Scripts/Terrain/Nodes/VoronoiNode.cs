@@ -13,6 +13,7 @@ namespace WitchMendokusai
 	/// 0 (셀 중심) ~ ~1 (셀 경계) 범위 정규화 → ±amplitude.
 	/// </summary>
 	[Serializable]
+	[NodeDomain(NodeDomain.Terrain)]
 	public class VoronoiNode : NodeBase
 	{
 		[SerializeField] private float cellSize = 32f;

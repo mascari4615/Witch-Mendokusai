@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using WitchMendokusai.NodeGraph;
 
 namespace WitchMendokusai
 {
@@ -11,6 +12,7 @@ namespace WitchMendokusai
 	/// H1 (2026-05-06) 신규.
 	/// </summary>
 	[Serializable]
+	[NodeDomain(NodeDomain.Terrain)]
 	public class SmoothFilterNode : RegionGridNodeBase
 	{
 		[Header("Smooth Parameters")]
