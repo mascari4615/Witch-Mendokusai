@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4457045229014371833}
   - component: {fileID: 652733864428144517}
+  - component: {fileID: 2822021318945403856}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -45,9 +46,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   dontDestroyOnLoad: 0
-  <IsChatting>k__BackingField: 0
-  <IsDashing>k__BackingField: 0
-  <IsCooling>k__BackingField: 0
-  <IsPaused>k__BackingField: 0
-  <IsDied>k__BackingField: 0
-  <IsMouseOnUI>k__BackingField: 0
+--- !u!114 &2822021318945403856
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 556839675072279456}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ea067a046e5ed9742bb9cf7a4ddb0ad1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WitchMendokusai.GameModeManager
+  dontDestroyOnLoad: 0
