@@ -1,6 +1,8 @@
 name: Auto Rebase Open PRs
 
-# main 머지 후 모든 open PR (non-draft, base=main) 자동 update — main 의 변경을 PR 브랜치로 merge.
+# main 머지 후 모든 open PR (Draft 포함, base=main) 자동 update — main 의 변경을 PR 브랜치로 merge.
+# Draft 도 포함: 사용자 검증 시점 main 신선도 유지 가치. .coderabbit.yaml 의 auto_review.drafts=true 와 같은 정신.
+# Draft = 머지 자체는 안 됨 (auto-merge.yml 의 ready_for_review 트리거 별개). rebase 만 받음.
 # stack PR (base=다른 feature) 은 GitHub 가 자동 retarget 처리하니 본 워크플로 대상 X.
 # conflict 시 PR 코멘트로 @claude 멘션 → claude.yml 의 claude job trigger → Claude 가 자동 conflict 해결.
 
@@ -39,12 +41,13 @@ jobs:
         run: |
           set -e
 
+          # Draft 포함 — main 신선도 유지가 머지 가능성과 직교. Draft 가 머지되는 건 auto-merge.yml 의 ready_for_review 별개 흐름.
           PR_NUMBERS=$(gh pr list --base main --state open --limit 100 \
-            --json number,isDraft \
-            --jq '.[] | select(.isDraft == false) | .number')
+            --json number \
+            --jq '.[].number')
 
           if [ -z "$PR_NUMBERS" ]; then
-            echo "No open Ready PRs to update."
+            echo "No open PRs to update."
             exit 0
           fi
 
