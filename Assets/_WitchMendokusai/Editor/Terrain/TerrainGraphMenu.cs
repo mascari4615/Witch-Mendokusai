@@ -40,22 +40,22 @@ namespace WitchMendokusai
 				Lacunarity = 2f,
 				Seed = 0,
 			};
-			perlinNode.EditorPosition = new Vector2(260f, 0f);
+			perlinNode.EditorPosition = new Vector2(420f, 0f);
 
 			HydraulicErosionNode hydraulicNode = new();
-			hydraulicNode.EditorPosition = new Vector2(540f, 0f);
+			hydraulicNode.EditorPosition = new Vector2(840f, 0f);
 
 			ThermalErosionNode thermalNode = new();
-			thermalNode.EditorPosition = new Vector2(820f, 0f);
+			thermalNode.EditorPosition = new Vector2(1260f, 0f);
 
 			SmoothFilterNode smoothNode = new();
-			smoothNode.EditorPosition = new Vector2(1100f, 0f);
+			smoothNode.EditorPosition = new Vector2(1680f, 0f);
 
 			CurveFilterNode curveNode = new();
-			curveNode.EditorPosition = new Vector2(1380f, 0f);
+			curveNode.EditorPosition = new Vector2(2100f, 0f);
 
 			HeightOutputNode outputNode = new();
-			outputNode.EditorPosition = new Vector2(1660f, 0f);
+			outputNode.EditorPosition = new Vector2(2520f, 0f);
 
 			graph.AddNode(posNode);
 			graph.AddNode(perlinNode);
@@ -138,7 +138,7 @@ namespace WitchMendokusai
 				Lacunarity = 2f,
 				Seed = 0,
 			};
-			perlinA.EditorPosition = new Vector2(260f, -100f);
+			perlinA.EditorPosition = new Vector2(420f, -150f);
 
 			// Perlin B — 고지대 (높은 주파수, 험준)
 			FractalPerlinNode perlinB = new()
@@ -150,18 +150,18 @@ namespace WitchMendokusai
 				Lacunarity = 2f,
 				Seed = 42,
 			};
-			perlinB.EditorPosition = new Vector2(260f, 100f);
+			perlinB.EditorPosition = new Vector2(420f, 150f);
 
 			// Threshold — 25m 기준, 5m blend 폭
 			ThresholdFilterNode thresholdNode = new();
-			thresholdNode.EditorPosition = new Vector2(540f, 0f);
+			thresholdNode.EditorPosition = new Vector2(840f, 0f);
 
 			// Lerp — Perlin_A(저지대) ↔ Perlin_B(고지대) blend
 			LerpNode lerpNode = new();
-			lerpNode.EditorPosition = new Vector2(820f, 0f);
+			lerpNode.EditorPosition = new Vector2(1260f, 0f);
 
 			HeightOutputNode outputNode = new();
-			outputNode.EditorPosition = new Vector2(1100f, 0f);
+			outputNode.EditorPosition = new Vector2(1680f, 0f);
 
 			graph.AddNode(posNode);
 			graph.AddNode(perlinA);

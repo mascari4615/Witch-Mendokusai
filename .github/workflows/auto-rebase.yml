@@ -5,8 +5,19 @@ name: Auto Rebase Open PRs
 # conflict 시 PR 코멘트로 @claude 멘션 → claude.yml 의 claude job trigger → Claude 가 자동 conflict 해결.
 
 on:
+  # 1. main push event — 사용자 직접 머지 (user actor) 시 trigger.
   push:
     branches: [main]
+  # 2. workflow_run — Auto Merge 가 끝난 후 보강. bot enabledBy 머지 케이스 (push event 가 다른 workflow trigger 안 시키는 GitHub 한계) 우회.
+  workflow_run:
+    workflows: ["Auto Merge"]
+    types: [completed]
+    branches: [main]
+  # 3. schedule cron — 30분마다 안전망. 위 두 trigger 가 모두 놓친 경우 정기 stale 체크.
+  schedule:
+    - cron: '*/30 * * * *'
+  # 4. manual dispatch — 사용자가 GitHub UI 에서 직접 trigger 가능.
+  workflow_dispatch:
 
 concurrency:
   group: auto-rebase
