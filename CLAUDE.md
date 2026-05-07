@@ -337,6 +337,22 @@ git worktree remove ../.worktrees/<name>
 
 판단 기준: *코드 동작 변경 0* + *CodeRabbit 리뷰 가치 0*. 애매하면 PR 분기.
 
+#### main 워크트리 더러울 때 — worktree 우회 패턴
+
+다른 세션 dirty/untracked 가 main 워크트리에서 ff 를 막고 있을 때, "main 직접 push" 의 *근본 경로* 는 main 워크트리에서 commit 이 아니라:
+
+```bash
+git worktree add -b chore/<주제> ../.worktrees/<name> origin/main
+# <name> 에서 편집 + commit
+git push origin chore/<주제>:main      # 로컬 브랜치 → 원격 main 직접 푸시
+git worktree remove ../.worktrees/<name>
+git branch -D chore/<주제>
+```
+
+parallel 세션 dirty 안 건드리면서 chore 푸시. 1~3줄 chore 라도 워크트리 비용 정합 — 다른 세션 잔재 정리 시도 X (잔재 안전성은 `git hash-object <local>` vs `git rev-parse origin/main:<path>` 비교 후에만; 1개라도 diff 나면 잔재 정리 X, 즉시 worktree 우회).
+
+이전 사례: 2026-05-08 ChunkMesher 로그 chore — 054-A 머지 후 WorldClock untracked 잔재 16개 중 `WorldClock.prefab` 1개에 살아있는 local 변경 발견. "잔재 정리 → ff" 가설 깨지고 worktree 우회로 전환 (커밋 `649023a8`).
+
 ### Commit 메시지
 
 Conventional Commits — `feat: / fix: / chore: / refactor: / docs: / style: / test: / perf:`.
