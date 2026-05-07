@@ -10,6 +10,7 @@ namespace WitchMendokusai
 		public string author;
 		public string version;
 		public string description;
+		public string bundleFile;
 		public ShaderPackSlotInfo[] slots;
 	}
 
