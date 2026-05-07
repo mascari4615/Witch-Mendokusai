@@ -846,3 +846,173 @@
     -unity-text-align: middle-right;
     min-width: 60px;
 }
+
+/* === Popup Card === */
+.wm-popup-card {
+    position: absolute;
+    top: 60px;
+    left: 50%;
+    translate: -50% -10px;
+    flex-direction: row;
+    align-items: center;
+    padding: 10px 16px;
+    background-color: rgba(20, 20, 28, 0.92);
+    border-color: rgba(255, 220, 130, 1);
+    border-width: 1px;
+    border-radius: 6px;
+    opacity: 0;
+    scale: 0.85 0.85;
+    transition-property: opacity, scale, translate;
+    transition-duration: 0.22s;
+    transition-timing-function: ease-out-cubic;
+}
+
+.wm-popup-card--active {
+    opacity: 1;
+    scale: 1 1;
+    translate: -50% 0;
+}
+
+.wm-popup-card__icon {
+    width: 40px;
+    height: 40px;
+    margin-right: 12px;
+    background-color: rgba(15, 15, 18, 0.6);
+    -unity-background-scale-mode: scale-to-fit;
+    flex-shrink: 0;
+}
+
+.wm-popup-card__name {
+    color: rgba(255, 235, 180, 1);
+    font-size: 14px;
+    -unity-font-style: bold;
+}
+
+.wm-popup-card__desc {
+    color: rgba(180, 180, 190, 1);
+    font-size: 11px;
+    margin-top: 2px;
+    white-space: normal;
+}
+
+/* Stage 변형: 더 큰 배너 + 가운데 */
+.wm-popup-card--stage {
+    top: 35%;
+    padding: 24px 32px;
+    border-width: 2px;
+    border-color: rgba(255, 200, 100, 1);
+    flex-direction: column;
+    align-items: center;
+}
+
+.wm-popup-card--stage .wm-popup-card__icon {
+    width: 64px;
+    height: 64px;
+    margin-right: 0;
+    margin-bottom: 8px;
+}
+
+.wm-popup-card--stage .wm-popup-card__name {
+    font-size: 22px;
+    -unity-text-align: middle-center;
+}
+
+.wm-popup-card--stage .wm-popup-card__desc {
+    font-size: 13px;
+    -unity-text-align: middle-center;
+}
+
+/* === Speech Bubble === */
+.wm-speech-bubble {
+    position: absolute;
+    translate: -50% -100%;
+    padding: 6px 10px;
+    background-color: rgba(20, 20, 28, 0.85);
+    border-color: rgba(255, 235, 180, 0.6);
+    border-width: 1px;
+    border-radius: 8px;
+    opacity: 0;
+    transition-property: opacity;
+    transition-duration: 0.3s;
+}
+
+.wm-speech-bubble--active {
+    opacity: 1;
+    transition-duration: 0.2s;
+}
+
+.wm-speech-bubble__text {
+    color: rgba(245, 245, 250, 1);
+    font-size: 13px;
+    -unity-text-align: middle-center;
+    white-space: normal;
+}
+
+.wm-speech-bubble__emoji {
+    width: 32px;
+    height: 32px;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+/* === Floating Text === */
+.wm-floating-text {
+    position: absolute;
+    translate: -50% -50%;
+    opacity: 0;
+    scale: 0.6 0.6;
+    transition-property: opacity, scale, translate;
+    transition-duration: 0.18s;
+    transition-timing-function: ease-out-cubic;
+}
+
+.wm-floating-text--active {
+    opacity: 1;
+    scale: 1 1;
+    translate: -50% -120%;
+}
+
+.wm-floating-text Label {
+    -unity-text-align: middle-center;
+    -unity-font-style: bold;
+    font-size: 22px;
+}
+
+.wm-floating-text--normal Label {
+    color: rgba(255, 255, 255, 1);
+}
+
+.wm-floating-text--critical Label {
+    color: rgba(255, 110, 86, 1);
+    font-size: 26px;
+}
+
+.wm-floating-text--heal Label {
+    color: rgba(120, 220, 130, 1);
+}
+
+.wm-floating-text--exp Label {
+    color: rgba(180, 200, 230, 1);
+    font-size: 16px;
+}
+
+.wm-floating-text--warning Label {
+    color: rgba(255, 230, 80, 1);
+}
+
+/* === Transition === */
+.wm-transition {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 1);
+    opacity: 0;
+    transition-property: opacity;
+    transition-duration: 0.4s;
+    transition-timing-function: ease-in-out;
+}
+
+.wm-transition--active {
+    opacity: 1;
+}

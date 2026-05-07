@@ -10,19 +10,17 @@ namespace WitchMendokusai
 		public List<IUIPanelGroup> PanelGroups { get; private set; } = new();
 		public UITab Tab { get; private set; }
 		public UINPC NPC { get; private set; }
-		public UITransition Transition { get; private set; }
+		public TransitionView Transition { get; private set; }
 		public UIChat Chat { get; private set; }
-		public UISpeechBubble SpeechBubble { get; private set; }
+		public SpeechBubbleView SpeechBubble { get; private set; }
 		public CutSceneModule CutSceneModule { get; private set; }
 		[field: SerializeField] public Canvas BaseCanvas { get; private set; }
 	
 		[SerializeField] private UIDungeon dungeonPrefab = null;
 		[SerializeField] private UIAdventurerGuild adventurerGuildPrefab = null;
 
-		private UIFloatingText damage;
-		private UIPopup popup;
+		private FloatingTextView floatingText;
 		private UIAdventurerGuild adventurerGuild;
-		private UIStagePopup stagePopup;
 
 		// 씬(World) 한정 UI Toolkit View — 글로벌 UIRoot 에 AddComponent 후 OnDestroy 에서 정리.
 		private InventoryView inventoryView;
@@ -31,6 +29,8 @@ namespace WitchMendokusai
 		private QuestView questView;
 		private DollView dollView;
 		private StatusView statusView;
+		private PopupView popupView;
+		private StagePopupView stagePopupView;
 
 		public bool IsAnyPanelFullscreenOpen
 		{
@@ -51,15 +51,9 @@ namespace WitchMendokusai
 
 			// Common UIs
 			CutSceneModule = FindAnyObjectByType<CutSceneModule>(FindObjectsInactive.Include);
-			damage = FindAnyObjectByType<UIFloatingText>(FindObjectsInactive.Include);
-			popup = FindAnyObjectByType<UIPopup>(FindObjectsInactive.Include);
 			Chat = FindAnyObjectByType<UIChat>(FindObjectsInactive.Include);
-			SpeechBubble = FindAnyObjectByType<UISpeechBubble>(FindObjectsInactive.Include);
 			adventurerGuild = FindAnyObjectByType<UIAdventurerGuild>(FindObjectsInactive.Include);
 			adventurerGuild.gameObject.SetActive(false);
-
-			Transition = FindAnyObjectByType<UITransition>(FindObjectsInactive.Include);
-			stagePopup = FindAnyObjectByType<UIStagePopup>(FindObjectsInactive.Include);
 
 			Tab = FindAnyObjectByType<UITab>(FindObjectsInactive.Include);
 			NPC = FindAnyObjectByType<UINPC>(FindObjectsInactive.Include);
@@ -72,6 +66,11 @@ namespace WitchMendokusai
 			questView = uiRootGameObject.AddComponent<QuestView>();
 			dollView = uiRootGameObject.AddComponent<DollView>();
 			statusView = uiRootGameObject.AddComponent<StatusView>();
+			popupView = uiRootGameObject.AddComponent<PopupView>();
+			stagePopupView = uiRootGameObject.AddComponent<StagePopupView>();
+			floatingText = uiRootGameObject.AddComponent<FloatingTextView>();
+			SpeechBubble = uiRootGameObject.AddComponent<SpeechBubbleView>();
+			Transition = uiRootGameObject.AddComponent<TransitionView>();
 		}
 
 		protected override void OnDestroy()
@@ -88,6 +87,16 @@ namespace WitchMendokusai
 				Destroy(dollView);
 			if (statusView != null)
 				Destroy(statusView);
+			if (popupView != null)
+				Destroy(popupView);
+			if (stagePopupView != null)
+				Destroy(stagePopupView);
+			if (floatingText != null)
+				Destroy(floatingText);
+			if (SpeechBubble != null)
+				Destroy(SpeechBubble);
+			if (Transition != null)
+				Destroy(Transition);
 
 			base.OnDestroy();
 		}
@@ -109,22 +118,22 @@ namespace WitchMendokusai
 		public void PopDamage(DamageInfo damageInfo, Vector3 pos = default)
 		{
 			TextType textType = DamageUtil.DamageTypeToTextType(damageInfo.type);
-			StartCoroutine(damage.AniTextUI(textType, damageInfo.damage.ToString(), pos));
+			StartCoroutine(floatingText.AniTextUI(textType, damageInfo.damage.ToString(), pos));
 		}
 
 		public void PopText(string msg, TextType textType, Vector3 pos = default)
 		{
-			StartCoroutine(damage.AniTextUI(textType, msg, pos));
+			StartCoroutine(floatingText.AniTextUI(textType, msg, pos));
 		}
 
 		public void StagePopup(Stage stage)
 		{
-			stagePopup.Popup(stage);
+			stagePopupView.Popup(stage);
 		}
 
 		public void Popup(DataSO dataSO)
 		{
-			popup.Popup(dataSO);
+			popupView.Popup(dataSO);
 		}
 
 		public void ToggleTabUI()
