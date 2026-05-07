@@ -15,6 +15,7 @@ namespace WitchMendokusai
 		private const string USS_CLASS = "wm-setting-view";
 		private const string ACTIVE_CLASS = "wm-setting-view--active";
 		private const string TAB_KEY_GENERAL = "general";
+		private const string TAB_KEY_SHADERPACKS = "shaderpacks";
 
 		private VisualElement container;
 		private VisualElement sidebar;
@@ -33,6 +34,11 @@ namespace WitchMendokusai
 
 		// System
 		private Toggle framerateToggle;
+
+		// Shaderpacks
+		private VisualElement shaderPackListContainer;
+		private VisualElement shaderPackDetailContainer;
+		private ShaderPackEntry selectedShaderPack;
 
 		public bool IsOpen { get; private set; }
 
@@ -66,6 +72,7 @@ namespace WitchMendokusai
 			contentArea.AddToClassList("wm-setting-content-area");
 
 			RegisterTab(TAB_KEY_GENERAL, "환경설정", BuildGeneralContent);
+			RegisterTab(TAB_KEY_SHADERPACKS, "쉐이더팩", BuildShaderPackContent);
 
 			SwitchTab(TAB_KEY_GENERAL);
 
@@ -162,6 +169,168 @@ namespace WitchMendokusai
 			return content;
 		}
 
+		private VisualElement BuildShaderPackContent()
+		{
+			VisualElement root = new VisualElement();
+
+			// 헤더 + 액션 버튼 (폴더 열기 / 재스캔)
+			VisualElement header = new VisualElement();
+			header.AddToClassList("wm-setting-shaderpack-header");
+
+			Label title = new Label("쉐이더팩");
+			title.AddToClassList("wm-setting-header");
+			header.Add(title);
+
+			Button btnOpenFolder = new Button(OnOpenShaderPacksFolder) { text = "폴더 열기" };
+			btnOpenFolder.AddToClassList("wm-setting-btn");
+			header.Add(btnOpenFolder);
+
+			Button btnRescan = new Button(OnRescanShaderPacks) { text = "재스캔" };
+			btnRescan.AddToClassList("wm-setting-btn");
+			header.Add(btnRescan);
+
+			root.Add(header);
+
+			// Split: 좌측 list / 우측 detail
+			VisualElement split = new VisualElement();
+			split.AddToClassList("wm-setting-shaderpack-split");
+
+			shaderPackListContainer = new VisualElement();
+			shaderPackListContainer.AddToClassList("wm-setting-shaderpack-list");
+			split.Add(shaderPackListContainer);
+
+			shaderPackDetailContainer = new VisualElement();
+			shaderPackDetailContainer.AddToClassList("wm-setting-shaderpack-detail");
+			split.Add(shaderPackDetailContainer);
+
+			root.Add(split);
+
+			RebuildShaderPackList();
+			RebuildShaderPackDetail();
+
+			return root;
+		}
+
+		private void RebuildShaderPackList()
+		{
+			if (shaderPackListContainer == null)
+				return;
+
+			shaderPackListContainer.Clear();
+
+			IReadOnlyList<ShaderPackEntry> packs = ShaderPackManager.Instance.AvailablePacks;
+
+			if (packs.Count == 0)
+			{
+				Label emptyLabel = new Label("(셰이더팩 없음 — '폴더 열기' 로 셰이더팩 추가)");
+				emptyLabel.AddToClassList("wm-setting-shaderpack-empty");
+				shaderPackListContainer.Add(emptyLabel);
+				return;
+			}
+
+			ShaderPackEntry activePack = ShaderPackManager.Instance.ActivePack;
+
+			foreach (ShaderPackEntry pack in packs)
+			{
+				ShaderPackEntry capturedPack = pack;
+				Button packButton = new Button(() => SelectShaderPack(capturedPack)) { text = pack.Manifest.name };
+				packButton.AddToClassList("wm-setting-shaderpack-item");
+				if (activePack == pack)
+					packButton.AddToClassList("wm-setting-shaderpack-item--active");
+				if (selectedShaderPack == pack)
+					packButton.AddToClassList("wm-setting-shaderpack-item--selected");
+				shaderPackListContainer.Add(packButton);
+			}
+		}
+
+		private void SelectShaderPack(ShaderPackEntry pack)
+		{
+			selectedShaderPack = pack;
+			RebuildShaderPackList();
+			RebuildShaderPackDetail();
+		}
+
+		private void RebuildShaderPackDetail()
+		{
+			if (shaderPackDetailContainer == null)
+				return;
+
+			shaderPackDetailContainer.Clear();
+
+			if (selectedShaderPack == null)
+			{
+				Label hint = new Label("좌측에서 셰이더팩을 선택하세요");
+				hint.AddToClassList("wm-setting-shaderpack-hint");
+				shaderPackDetailContainer.Add(hint);
+				return;
+			}
+
+			ShaderPackManifest manifest = selectedShaderPack.Manifest;
+
+			Label nameLabel = new Label(manifest.name);
+			nameLabel.AddToClassList("wm-setting-shaderpack-detail-name");
+			shaderPackDetailContainer.Add(nameLabel);
+
+			Label authorLabel = new Label($"by {manifest.author}");
+			authorLabel.AddToClassList("wm-setting-shaderpack-detail-author");
+			shaderPackDetailContainer.Add(authorLabel);
+
+			Label versionLabel = new Label($"v{manifest.version}");
+			versionLabel.AddToClassList("wm-setting-shaderpack-detail-version");
+			shaderPackDetailContainer.Add(versionLabel);
+
+			if (string.IsNullOrEmpty(manifest.description) == false)
+			{
+				Label descLabel = new Label(manifest.description);
+				descLabel.AddToClassList("wm-setting-shaderpack-detail-desc");
+				shaderPackDetailContainer.Add(descLabel);
+			}
+
+			bool isActive = ShaderPackManager.Instance.ActivePack == selectedShaderPack;
+
+			if (isActive)
+			{
+				Button btnRevert = new Button(OnRevertShaderPack) { text = "언로드" };
+				btnRevert.AddToClassList("wm-setting-btn");
+				shaderPackDetailContainer.Add(btnRevert);
+			}
+			else
+			{
+				Button btnApply = new Button(OnApplyShaderPack) { text = "적용" };
+				btnApply.AddToClassList("wm-setting-btn");
+				shaderPackDetailContainer.Add(btnApply);
+			}
+		}
+
+		private void OnOpenShaderPacksFolder()
+		{
+			string folder = ShaderPackManager.Instance.ShaderPacksDirectory;
+			if (System.IO.Directory.Exists(folder) == false)
+				System.IO.Directory.CreateDirectory(folder);
+			Application.OpenURL("file://" + folder);
+		}
+
+		private void OnRescanShaderPacks()
+		{
+			ShaderPackManager.Instance.ScanShaderPacks();
+			RebuildShaderPackList();
+			RebuildShaderPackDetail();
+		}
+
+		private void OnApplyShaderPack()
+		{
+			ShaderPackManager.Instance.Apply(selectedShaderPack.Id);
+			RebuildShaderPackList();
+			RebuildShaderPackDetail();
+		}
+
+		private void OnRevertShaderPack()
+		{
+			ShaderPackManager.Instance.Revert();
+			RebuildShaderPackList();
+			RebuildShaderPackDetail();
+		}
+
 		private static Slider CreateSlider(string label, float min, float max, float value)
 		{
 			Slider slider = new Slider(label, min, max)
@@ -193,6 +362,10 @@ namespace WitchMendokusai
 			bool isWorld = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == "World";
 			bool isDungeon = DungeonManager.TryGetExistingInstance(out DungeonManager dm) && dm.IsDungeon;
 			btnDungeonExit.style.display = (isWorld && isDungeon) ? DisplayStyle.Flex : DisplayStyle.None;
+
+			// 쉐이더팩 탭 진입 시 최신 상태 반영 (다른 곳에서 ShaderPackManager 변경했을 수 있음)
+			RebuildShaderPackList();
+			RebuildShaderPackDetail();
 
 			TimeManager.Instance.Pause(gameObject);
 		}
