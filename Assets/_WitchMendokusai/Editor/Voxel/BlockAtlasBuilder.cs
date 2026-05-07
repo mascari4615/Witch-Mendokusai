@@ -22,7 +22,7 @@ namespace WitchMendokusai
 		public const string VOXEL_SHADER_NAME = "WM/VoxelVertexColor";
 		public const string MATERIAL_TEXTURE_PROPERTY = "_MainTex";
 
-		[MenuItem("WitchMendokusai/Voxel/Build Block Atlas")]
+		[MenuItem("WM/Voxel/Build Block Atlas")]
 		public static void BuildBlockAtlas()
 		{
 			BlockData[] blocks = LoadAllBlockDataSorted();

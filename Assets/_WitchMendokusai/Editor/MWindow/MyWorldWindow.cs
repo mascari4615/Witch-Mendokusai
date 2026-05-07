@@ -16,7 +16,7 @@ namespace WitchMendokusai
 		private List<EventEntry> eventEntries = new();
 
 
-		[MenuItem("WitchMendokusai/MyWorld")]
+		[MenuItem("WM/MyWorld")]
 		static void CreateMenu()
 		{
 			MyWorldWindow window = GetWindow<MyWorldWindow>();

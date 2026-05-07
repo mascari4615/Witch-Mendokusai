@@ -14,7 +14,7 @@ namespace WitchMendokusai
 		private const float FOREST_TREE_DENSITY = 0.05f;
 		private const float PLAINS_TREE_DENSITY = 0.02f;
 
-		[MenuItem("WitchMendokusai/Biome/Backfill Default Entity Spawns")]
+		[MenuItem("WM/Biome/Backfill Default Entity Spawns")]
 		public static void BackfillDefaultEntitySpawns()
 		{
 			// 자연 entity 자산이 없으면 먼저 시드 (멱등 — 이미 있으면 no-op)

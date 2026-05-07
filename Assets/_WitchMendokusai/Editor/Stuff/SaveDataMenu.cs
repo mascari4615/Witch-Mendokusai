@@ -8,7 +8,7 @@ namespace WitchMendokusai
 {
 	public class SaveDataMenu
 	{
-		[MenuItem("WitchMendokusai/Delete Save Data")]
+		[MenuItem("WM/Delete Save Data")]
 		public static void DeleteSaveData()
 		{
 			string path = Path.Combine(Application.dataPath, "WM.json");
