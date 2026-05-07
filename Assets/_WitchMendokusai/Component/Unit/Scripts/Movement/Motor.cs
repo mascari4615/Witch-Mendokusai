@@ -4,17 +4,17 @@ using UnityEngine;
 namespace WitchMendokusai
 {
 	/// <summary>
-	/// Kinematic Character Motor — sweep+slide 기반 위치 결정 엔진.
+	/// Kinematic Character Motor — sweep 기반 위치 결정 엔진.
 	/// 캐릭터는 자기 위치를 자기가 결정한다. Rigidbody는 isKinematic=true / useGravity=false 전제.
 	///
-	/// 표준 KCC 패턴 통합:
-	/// - Sweep + slide (collide-and-slide)
-	/// - Depenetration via ComputePenetration (시작 + sweep 후)
-	/// - Ground stability check (hit point가 capsule 중심에서 horizontal radius * STABLE_GROUND_FACTOR 안에 있어야 stable)
-	/// - Ground stick (직전 grounded면 발 아래 짧은 거리 sweep으로 ground 찾아 snap)
-	/// - Step offset (horizontal wall hit 시 stepHeight 위로 capsule 들어올려 재sweep, walkable이면 step-up)
-	/// - Slope sliding (unwalkable / unstable contact: velocity의 normal 성분 제거 → 자동 tangent 미끄러짐)
-	/// - Crease handling (직전 wall normal과의 외적이 0이 아니면 corner — 잔여 velocity를 crease 방향으로 projection)
+	/// 구조 (TASK-WM-029 — vertical 을 horizontal slide-iterate 프레임워크에서 분리):
+	/// - Horizontal: <see cref="SweepAndSlide"/> — capsule cast 기반 collide-and-slide.
+	///   Step offset / crease handling / wall slide / floor tangent slide 포함.
+	/// - Vertical descent: <see cref="SweepDescend"/> — 발 중심 raycast 로 walkable + stable floor 찾기.
+	///   CapsuleCast 의 sphere edge 가 cliff face 모서리를 잡는 spurious contact 회피.
+	/// - Vertical ascent: <see cref="SweepAscend"/> — 머리 중심 raycast 로 ceiling 찾기.
+	/// - Depenetration via ComputePenetration (시작 + sweep 후).
+	/// - Ground stick (직전 grounded면 발 아래 짧은 거리 sweep 으로 ground 찾아 snap).
 	/// </summary>
 	public class Motor
 	{
@@ -32,7 +32,6 @@ namespace WitchMendokusai
 		private const float MIN_CREASE_SIN_SQR = 0.01f;      // 두 wall normal 외적 크기 제곱이 이 값 이상이면 crease 처리
 		private const float MIN_STEP_MAGNITUDE = 0.001f;     // step offset 시도할 잔여 horizontal 이동 최소량
 		private const float STABILITY_PROBE_DISTANCE = 0.2f; // 발 정 직 아래 raycast 거리 (stable ground 검증)
-		private const float EDGE_PUSH_SPEED = 1.5f;          // unstable ground contact (모서리 걸침)에서 capsule 안쪽 → 너머 방향으로 강제 horizontal 속도
 
 		private static readonly RaycastHit[] HIT_BUFFER = new RaycastHit[8];
 		private static readonly Collider[] OVERLAP_BUFFER = new Collider[16];
@@ -71,10 +70,13 @@ namespace WitchMendokusai
 
 			Vector3 velocity = context.Velocity;
 			Vector3 horizontalDelta = new(velocity.x * deltaTime, 0f, velocity.z * deltaTime);
-			Vector3 verticalDelta = new(0f, velocity.y * deltaTime, 0f);
+			float verticalDeltaY = velocity.y * deltaTime;
 
-			Vector3 newPosition = SweepAndSlide(position, horizontalDelta, isVertical: false);
-			newPosition = SweepAndSlide(newPosition, verticalDelta, isVertical: true);
+			Vector3 newPosition = SweepAndSlide(position, horizontalDelta);
+			if (verticalDeltaY < 0f)
+				newPosition = SweepDescend(newPosition, verticalDeltaY);
+			else if (verticalDeltaY > 0f)
+				newPosition = SweepAscend(newPosition, verticalDeltaY);
 
 			// Ground stick: 직전 grounded + 떨어지는 중(vy<=0) + sweep 결과 Airborne이면 발 아래 ground 찾아 snap.
 			if (wasGroundedPrevTick &&
@@ -235,7 +237,7 @@ namespace WitchMendokusai
 			}
 		}
 
-		private Vector3 SweepAndSlide(Vector3 startPosition, Vector3 delta, bool isVertical)
+		private Vector3 SweepAndSlide(Vector3 startPosition, Vector3 delta)
 		{
 			Vector3 currentPosition = startPosition;
 			Vector3 remaining = delta;
@@ -263,38 +265,6 @@ namespace WitchMendokusai
 
 				bool isWall = Mathf.Abs(hit.normal.y) < WALL_NORMAL_Y_MAX;
 				bool isFloor = hit.normal.y >= GROUND_NORMAL_Y_MIN;
-				bool isCeiling = hit.normal.y <= -GROUND_NORMAL_Y_MIN;
-
-				if (isVertical)
-				{
-					if (isFloor)
-					{
-						// Stability check — 발 정 직 아래에 ground가 있어야 stable. 절벽 모서리만 걸침 = unstable.
-						GetCapsuleEnds(currentPosition, out Vector3 capsuleBottom, out _, out float radius);
-						if (IsStableGroundDirectlyBelow(capsuleBottom, radius))
-						{
-							context.Velocity.y = 0f;
-							context.GroundState = MotorGroundState.Grounded;
-							context.GroundNormal = hit.normal;
-							context.HasGroundNormal = true;
-							break;
-						}
-						// Unstable contact — capsule이 모서리에 막혔지만 grounded 아님.
-						// 1) velocity normal 성분 제거 → 자연 미끄러짐.
-						// 2) Edge push — capsule이 너머 방향으로 최소 속도 보장 → 빠르게 모서리 벗어남.
-						SlideAlongSurface(hit.normal);
-						ApplyEdgePush(capsuleBottom, hit.point);
-						break;
-					}
-					if (isCeiling)
-					{
-						context.Velocity.y = 0f;
-						break;
-					}
-					// 가파른 경사 hit (walkable 미만이지만 normal.y > 0): slope sliding.
-					SlideAlongSurface(hit.normal);
-					break;
-				}
 
 				if (isWall)
 				{
@@ -352,7 +322,7 @@ namespace WitchMendokusai
 					continue;
 				}
 
-				// 그 외 — 안전 break (이론상 isWall/isFloor/isCeiling으로 다 분류됨)
+				// 그 외 (예: ceiling — horizontal sweep 에선 사실상 발생 안 함) — 안전 break.
 				break;
 			}
 
@@ -372,26 +342,117 @@ namespace WitchMendokusai
 		}
 
 		/// <summary>
-		/// Edge push (Ledge slip) — unstable ground contact일 때 hit point에서 발 방향(절벽 너머)으로
-		/// 최소 EDGE_PUSH_SPEED만큼 horizontal velocity 보장. SlideAlongSurface만으로는 normal y가 거의
-		/// 1이라 horizontal 성분이 작아 시각적으로 "정지"처럼 보이는 걸 방지.
+		/// 떨어지는 캐릭터의 vertical 이동 — 발 중심 raycast 로 walkable + stable floor 찾기.
+		/// CapsuleCast 의 sphere edge 가 cliff face 모서리를 잡는 spurious contact (TASK-WM-029) 회피.
+		/// 발 중심 ray 라 capsule volume 밖 모서리는 안 잡고, 정 직 아래에 *진짜* ground 있을 때만 land.
 		/// </summary>
-		private void ApplyEdgePush(Vector3 capsuleBottom, Vector3 hitPoint)
+		private Vector3 SweepDescend(Vector3 startPosition, float verticalDeltaY)
 		{
-			Vector3 fromHitToFeet = capsuleBottom - hitPoint;
-			fromHitToFeet.y = 0f;
-			if (fromHitToFeet.sqrMagnitude < MIN_REMAINING_SQR)
-				return;
+			GetCapsuleEnds(startPosition, out Vector3 capsuleBottom, out _, out float radius);
+			Vector3 feet = capsuleBottom - Vector3.up * radius;
+			Vector3 origin = feet + Vector3.up * SKIN_WIDTH;
+			float fallDistance = -verticalDeltaY;
+			float castDistance = fallDistance + SKIN_WIDTH * 2f;
 
-			Vector3 pushDirection = fromHitToFeet.normalized;
-			Vector3 horizontalVelocity = new(context.Velocity.x, 0f, context.Velocity.z);
-			float currentSpeedAlongPush = Vector3.Dot(horizontalVelocity, pushDirection);
-			if (currentSpeedAlongPush >= EDGE_PUSH_SPEED)
-				return;
+			int hitCount = Physics.RaycastNonAlloc(
+				origin,
+				Vector3.down,
+				HIT_BUFFER,
+				castDistance,
+				~0,
+				QueryTriggerInteraction.Ignore);
 
-			float deficit = EDGE_PUSH_SPEED - currentSpeedAlongPush;
-			context.Velocity.x += pushDirection.x * deficit;
-			context.Velocity.z += pushDirection.z * deficit;
+			float closestDistance = float.PositiveInfinity;
+			int closestIndex = -1;
+			for (int i = 0; i < hitCount; i++)
+			{
+				RaycastHit hit = HIT_BUFFER[i];
+				if (hit.collider == null)
+					continue;
+				if (hit.collider.transform.IsChildOf(unitTransform))
+					continue;
+				if (hit.distance < closestDistance)
+				{
+					closestDistance = hit.distance;
+					closestIndex = i;
+				}
+			}
+
+			if (closestIndex < 0)
+			{
+				// 발 정 직 아래 fallDistance 안에 surface 없음 — 자연 낙하 (Airborne, JumpContributor 가 g 누적).
+				context.GroundState = MotorGroundState.Airborne;
+				context.HasGroundNormal = false;
+				return startPosition + Vector3.down * fallDistance;
+			}
+
+			RaycastHit closestHit = HIT_BUFFER[closestIndex];
+			context.OnHitCollider.Invoke(closestHit.collider);
+
+			float rayMoveDistance = Mathf.Max(0f, closestHit.distance - SKIN_WIDTH);
+			Vector3 stoppedPosition = startPosition + Vector3.down * rayMoveDistance;
+
+			if (IsWalkable(closestHit))
+			{
+				// Walkable — land grounded.
+				context.Velocity.y = 0f;
+				context.GroundState = MotorGroundState.Grounded;
+				context.GroundNormal = closestHit.normal;
+				context.HasGroundNormal = true;
+				return stoppedPosition;
+			}
+
+			// 비-walkable surface (가파른 경사 등) — 충돌 정지 + slope tangent slide. 다음 tick 에 g 가 다시 누적.
+			SlideAlongSurface(closestHit.normal);
+			context.GroundState = MotorGroundState.Airborne;
+			context.HasGroundNormal = false;
+			return stoppedPosition;
+		}
+
+		/// <summary>
+		/// 올라가는 캐릭터의 vertical 이동 — 머리 중심 raycast 로 ceiling 찾기. hit 시 vy=0 + 그 위치 정지.
+		/// </summary>
+		private Vector3 SweepAscend(Vector3 startPosition, float verticalDeltaY)
+		{
+			GetCapsuleEnds(startPosition, out _, out Vector3 capsuleTop, out float radius);
+			Vector3 head = capsuleTop + Vector3.up * radius;
+			Vector3 origin = head - Vector3.up * SKIN_WIDTH;
+			float riseDistance = verticalDeltaY;
+			float castDistance = riseDistance + SKIN_WIDTH * 2f;
+
+			int hitCount = Physics.RaycastNonAlloc(
+				origin,
+				Vector3.up,
+				HIT_BUFFER,
+				castDistance,
+				~0,
+				QueryTriggerInteraction.Ignore);
+
+			float closestDistance = float.PositiveInfinity;
+			int closestIndex = -1;
+			for (int i = 0; i < hitCount; i++)
+			{
+				RaycastHit hit = HIT_BUFFER[i];
+				if (hit.collider == null)
+					continue;
+				if (hit.collider.transform.IsChildOf(unitTransform))
+					continue;
+				if (hit.distance < closestDistance)
+				{
+					closestDistance = hit.distance;
+					closestIndex = i;
+				}
+			}
+
+			if (closestIndex < 0)
+				return startPosition + Vector3.up * riseDistance;
+
+			RaycastHit closestHit = HIT_BUFFER[closestIndex];
+			context.OnHitCollider.Invoke(closestHit.collider);
+
+			float moveDistance = Mathf.Max(0f, closestHit.distance - SKIN_WIDTH);
+			context.Velocity.y = 0f;
+			return startPosition + Vector3.up * moveDistance;
 		}
 
 		/// <summary>
