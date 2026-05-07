@@ -109,9 +109,9 @@ namespace WitchMendokusai
 			}
 		}
 
-		private void UpdateDamageBonus(int fairyDamamgeBonus)
+		private void UpdateDamageBonus(int fairyDamageBonus)
 		{
-			damageBonus = fairyDamamgeBonus;
+			damageBonus = fairyDamageBonus;
 		}
 
 		private void UpdateAttackSpeedBonus(int fairyAttackSpeedBonus)

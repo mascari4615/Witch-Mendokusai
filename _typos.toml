@@ -8,8 +8,19 @@ navmesh = "navmesh"
 Yon = "Yon"
 Alisa = "Alisa"
 Mendokusai = "Mendokusai"
-Karmolab = "Karmolab"   
+Karmolab = "Karmolab"
 KarmoDDrine = "KarmoDDrine"
+
+# 3. 도메인 변수명 — Unity DataSO + 한국식 영문 표현 (의도된 명명, fix 안 함)
+Datas = "Datas"          # DataSO 의 plural 변수 (e.g., monsterDatas)
+datas = "datas"
+equipments = "equipments"
+Equipments = "Equipments"
+SOID = "SOID"            # ScriptableObject ID 약어
+soid = "soid"
+
+# 4. CC 라이선스 약어 (NoDerivatives — 외부 음악 README 등에 자주 등장)
+ND = "ND"
 
 [files]
 # 3. 절대 검사하면 안 되는 영역 (코드나 텍스트가 아닌 에셋, 빌드 결과물)
@@ -36,5 +47,15 @@ extend-exclude = [
     "*.wlt",
     "*.shadergraph",
     "package-lock.json", # NPM 패키지 락 파일 (해시 덩어리)
-    "yarn.lock"
+    "yarn.lock",
+    # 외부 라이선스 / 외부 자산 텍스트 — 원문 보존 (수정 시 저작권 위반 위험)
+    "**/LICENSE",
+    "**/LICENSE.*",
+    "**/license.*",
+    "**/License.*",
+    # 외부 자산 폴더 (third-party 스프라이트·아이콘 패키지)
+    "Assets/_WitchMendokusai/Component/Item/_Common/Sprite/**",
+    # 외부 패키지 (Unity Asset Store / 라이선스 텍스트 / shader)
+    "Assets/TextMesh Pro/**",
+    "FMODAssets/**",
 ]

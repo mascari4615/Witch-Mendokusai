@@ -107,7 +107,7 @@ namespace WitchMendokusai
 			}
 		}
 
-		public void CancleWork(int dollID)
+		public void CancelWork(int dollID)
 		{
 			for (int i = Works[WorkListType.DollWork].Count - 1; i >= 0; i--)
 			{
