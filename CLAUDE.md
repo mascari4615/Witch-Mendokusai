@@ -222,30 +222,54 @@ stale 이면:
 - `chore/<주제>` — 빌드·CI·의존성·환경 설정·문서
 - `refactor/<주제>` — 동작 변화 없는 정리
 
-**첫 커밋 시 바로 Draft PR 생성** + `.github/pull_request_template.md` 의도 채움 →
-작업 진행하며 push → CodeRabbit 코멘트 대응 → **「§ Ready 전환 + auto-merge」 판단표 따라 Ready 자동 전환** (작은·격리 변경) 또는 Draft 유지 (큰·멀티 / 게이트 fail).
+**Default Ready PR 생성** (`gh pr create` 에 `--draft` *제거*) + `.github/pull_request_template.md` 의도 채움 → push → 자동 폐쇄 루프가 머지 + cascade 처리. AI Native 라 사용자 검토 슬롯 = AI 리뷰 (CodeRabbit / Copilot / Claude review-fix) 가 대체.
 
-### Ready 전환 + auto-merge
+### AI Native 자동 폐쇄 루프 (2026-05-07 도입)
 
-`.github/workflows/auto-merge.yml` 가 `on: ready_for_review` + `if: draft == false` → `gh pr merge --auto --squash` 자동 호출. **Ready 전환만 되면 게이트 통과 후 squash 머지**. 따라서 모든 PR 을 Draft 로 두면 적체 — autopilot 룰 정본은 `karmoddrine/memo/dotfiles/claude-commands/autopilot.md` § Ready 전환 + auto-merge 게이트.
-
-판단표 (모두 충족 시 Ready 자동):
-- 변경 ≤ 150 LOC
-- 단일 sub TASK
-- 게이트 통과 (Code Quality typo check)
-- stack 의존 base 없음 (또는 base 가 main)
-- 새 인터페이스 = 첫 사용처 동봉 (데드 인터페이스 회피)
-- Test plan 의 "사용자 검증 필요" 항목 0
-
-C# 컴파일 검증은 *사용자 로컬 Unity Editor* 에서 (CI 게이트 보류 — § Branch Protection 참고).
-
-호출:
-```bash
-gh pr ready <num>
-gh pr merge --auto --squash <num>   # idempotent — auto-merge.yml 이 중복 호출해도 OK
+```
+PR opened (Default Ready)
+  ↓ auto-merge.yml (BOT_TOKEN, user actor)  ─── ready_for_review 이벤트 받아 gh pr merge --auto --squash
+  ↓ 게이트 통과 (Code Quality typo strict + GitGuardian)
+  ↓ squash 머지 (user actor → push event 발생)
+main push event
+  ├─ auto-rebase.yml (BOT_TOKEN)  ─── 모든 open Ready PR update-branch
+  │    ├─ 통과 PR: 자동 stale 해소
+  │    └─ conflict PR: @claude 멘션 코멘트 (BOT_TOKEN)
+  │       ↓
+  │       claude.yml의 claude job (anthropics/claude-code-action@v1)
+  │       ↓
+  │       Claude 자동 conflict 해결 + push → 다시 게이트
+  └─ Stack PR: GitHub 자동 retarget (base=feature → main) → 자동 머지 cascade
 ```
 
-미충족 시 PR description 에 "**Draft 사유**: <한 줄>" 명시 후 Draft 유지.
+호출 (autopilot / 사람 PR 동일):
+```bash
+gh pr create --base main --head <branch> --title "..." --body "..."   # Default Ready (--draft X)
+```
+
+`auto-merge.yml` 이 자동으로 squash 머지 enable. 추가 호출 불필요.
+
+### Draft 명시 사유 — *예외* 만 Draft
+
+다음 명시적 사유 있을 때만 `--draft` 사용. PR description 에 "**Draft 사유**: <한 줄>" 명시:
+- **Architectural / breaking change** — 사용자 비전 결정 슬롯 필요
+- **stack PR base 가 미머지** — base 머지 후 GitHub 자동 retarget 까지 대기
+- **검증 불가 + 사용자 플레이 검증 필요** — Test plan 사용자 검증 항목 1+
+- **WIP 진행 중** — commit 누적, 완료 후 Ready 전환 (autopilot 자체는 매 iteration 단위 PR 분리라 흔치 X)
+
+미명시 → 항상 Ready.
+
+### BOT_TOKEN — GitHub 재귀 방지 우회
+
+`auto-merge.yml` / `auto-rebase.yml` 의 `GH_TOKEN` 은 `secrets.BOT_TOKEN` (PAT) 사용. **`secrets.GITHUB_TOKEN` X**.
+
+이유: GitHub 의 well-known 한계 — `GITHUB_TOKEN` 으로 만든 commit / merge / comment 는 *재귀 방지* 룰로 다른 workflow 를 trigger 안 시킴.
+- bot actor 머지 → main push event 가 auto-rebase trigger 안 함
+- bot actor 코멘트 → claude.yml 의 claude job trigger 안 함
+
+PAT (Personal Access Token, fine-grained, repo: Pull requests + Issues + Contents write) → user actor → 정상 trigger. 사용자 1회 발급 + `BOT_TOKEN` secret 등록.
+
+자세한 진단: 2026-05-07 PR #102 (auto-rebase) / #103 (auto-merge) commit 메시지 참고.
 
 ### Closes #NN — Issue 자동 종료
 
