@@ -5,6 +5,9 @@ namespace WitchMendokusai
 {
 	public static class ChunkMesher
 	{
+		/// <summary>chunk 별 face 통계 로그 토글. 디버깅 시 런타임에 true 로 바꾸면 즉시 켜짐.</summary>
+		public static bool VerboseLogging = false;
+
 		private static readonly Vector3Int[] Dirs = new Vector3Int[]
 		{
 			new(0, 1, 0),   // Up
@@ -173,7 +176,10 @@ namespace WitchMendokusai
 				}
 			}
 
-			Debug.Log($"[ChunkMesher] chunk({chunk.Position.X},{chunk.Position.Z}): {vertexOffset / 4} faces, atlas={atlasFaceCount}, sentinel={sentinelFaceCount}, biomeTint={biomeTintFaceCount}");
+			if (VerboseLogging)
+			{
+				Debug.Log($"[ChunkMesher] chunk({chunk.Position.X},{chunk.Position.Z}): {vertexOffset / 4} faces, atlas={atlasFaceCount}, sentinel={sentinelFaceCount}, biomeTint={biomeTintFaceCount}");
+			}
 
 			return new ChunkMeshData
 			{
