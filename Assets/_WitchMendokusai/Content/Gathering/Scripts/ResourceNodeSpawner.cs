@@ -42,22 +42,19 @@ namespace WitchMendokusai
 		{
 			if (waveInstance.Data.ResourceNodes == null || waveInstance.Data.ResourceNodes.Length == 0)
 			{
-				Debug.LogWarning("[ResourceNodeSpawner] Wave has no ResourceNodes — skip spawn");
-				return;
+				throw new System.InvalidOperationException("[ResourceNodeSpawner] ResourceNodes is not configured.");
 			}
 
 			ResourceNode data = waveInstance.Data.ResourceNodes[Random.Range(0, waveInstance.Data.ResourceNodes.Length)];
 
 			if (data == null)
 			{
-				Debug.LogWarning("[ResourceNodeSpawner] ResourceNode is null — skip spawn");
-				return;
+				throw new System.InvalidOperationException("[ResourceNodeSpawner] ResourceNode entry is null.");
 			}
 
 			if (data.Prefab == null)
 			{
-				Debug.LogWarning($"[ResourceNodeSpawner] {data.Name}.Prefab is null — skip spawn");
-				return;
+				throw new System.InvalidOperationException($"[ResourceNodeSpawner] {data.Name}.Prefab is null.");
 			}
 
 			Vector3 spawnPos = GetSpawnPosition();
