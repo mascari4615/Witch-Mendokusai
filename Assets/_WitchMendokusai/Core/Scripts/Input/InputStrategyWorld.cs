@@ -107,12 +107,6 @@ namespace WitchMendokusai
 							InputEventResponseType.Performed,
 							() => UIManager.Instance.ToggleTabUI(),
 							() => CanExecute(InputEventType.Tab)
-						),
-						new(
-							InputEventType.Status,
-							InputEventResponseType.Performed,
-							() => UIManager.Instance.ToggleStatus(),
-							() => CanExecute(InputEventType.Status)
 						)
 						#endregion
 					};
