@@ -12,7 +12,7 @@ on:
       - 'Assets/**/*.shadergraph'
       - 'Assembly-CSharp.csproj'
       - 'Packages/**'
-      - '.github/workflows/unity-build-gate.yml'
+      # workflow yml 자체는 paths filter 에서 제외 — self-trigger 방지 (사용자 셋업 전엔 self-hosted runner 미존재라 영원 pending)
 
 concurrency:
   group: unity-build-gate-${{ github.ref }}
