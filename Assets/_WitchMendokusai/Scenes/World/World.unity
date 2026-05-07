@@ -1047,7 +1047,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8a755766c85e3fa4dab0c5db1c49cb0f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WitchMendokusai.ResourceNodeSpawner
-  spawnDistanceRange: {x: 5, y: 100}
+  spawnDistanceRange: {x: 5, y: 15}
 --- !u!1 &1232065272
 GameObject:
   m_ObjectHideFlags: 0

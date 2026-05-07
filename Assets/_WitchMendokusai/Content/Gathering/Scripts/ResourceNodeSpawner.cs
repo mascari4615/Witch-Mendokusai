@@ -23,10 +23,15 @@ namespace WitchMendokusai
 			StopAllCoroutines();
 			waves.Clear();
 
+			Debug.Log($"[ResourceNodeSpawner] InitWaves: {dungeon.ResourceNodeWaves?.Count ?? 0} waves in {dungeon.Name}");
+
 			foreach (ResourceNodeWave wave in dungeon.ResourceNodeWaves)
 			{
 				WaveInstance waveInstance = new() { Data = wave, ActiveCount = 0 };
 				waves.Add(waveInstance);
+
+				int nodeTypeCount = wave.ResourceNodes?.Length ?? 0;
+				Debug.Log($"[ResourceNodeSpawner] Wave: MaxNodeCount={wave.MaxNodeCount}, NodeTypes={nodeTypeCount}");
 
 				for (int i = 0; i < wave.MaxNodeCount; i++)
 					SpawnNode(waveInstance);
@@ -35,14 +40,47 @@ namespace WitchMendokusai
 
 		private void SpawnNode(WaveInstance waveInstance)
 		{
+			if (waveInstance.Data.ResourceNodes == null || waveInstance.Data.ResourceNodes.Length == 0)
+			{
+				Debug.LogWarning("[ResourceNodeSpawner] Wave has no ResourceNodes — skip spawn");
+				return;
+			}
+
 			ResourceNode data = waveInstance.Data.ResourceNodes[Random.Range(0, waveInstance.Data.ResourceNodes.Length)];
+
+			if (data == null)
+			{
+				Debug.LogWarning("[ResourceNodeSpawner] ResourceNode is null — skip spawn");
+				return;
+			}
+
+			if (data.Prefab == null)
+			{
+				Debug.LogWarning($"[ResourceNodeSpawner] {data.Name}.Prefab is null — skip spawn");
+				return;
+			}
+
 			Vector3 spawnPos = GetSpawnPosition();
 
 			GameObject nodeObject = ObjectPoolManager.Instance.Spawn(data.Prefab);
+			if (nodeObject == null)
+			{
+				Debug.LogWarning($"[ResourceNodeSpawner] ObjectPoolManager returned null for prefab {data.Prefab.name}");
+				return;
+			}
+
 			ResourceNodeObject nodeComponent = nodeObject.GetComponent<ResourceNodeObject>();
+			if (nodeComponent == null)
+			{
+				Debug.LogWarning($"[ResourceNodeSpawner] {data.Prefab.name} has no ResourceNodeObject component");
+				return;
+			}
+
 			nodeObject.transform.position = spawnPos;
 			nodeComponent.Init(data);
 			nodeObject.SetActive(true);
+
+			Debug.Log($"[ResourceNodeSpawner] Spawned {data.Name} at {spawnPos} using {data.Prefab.name}");
 
 			waveInstance.ActiveCount++;
 			nodeComponent.Health.OnDied += () => OnNodeDied(waveInstance);
