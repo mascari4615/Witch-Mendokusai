@@ -8,6 +8,7 @@ namespace WitchMendokusai
 	{
 		public const string SHADERPACKS_FOLDER_NAME = "shaderpacks";
 		public const string MANIFEST_FILE_NAME = "manifest.json";
+		public const string PREF_KEY_ACTIVE_PACK = "shadermod.active_pack_id";
 
 		private readonly Dictionary<string, IShaderPackSlot> registeredSlots = new();
 		private readonly List<ShaderPackEntry> availablePacks = new();
@@ -24,6 +25,7 @@ namespace WitchMendokusai
 			base.Awake();
 			RegisterSlots();
 			ScanShaderPacks();
+			RestoreActivePack();
 		}
 
 		private void RegisterSlots()
@@ -114,6 +116,8 @@ namespace WitchMendokusai
 			}
 
 			activePack = target;
+			PlayerPrefs.SetString(PREF_KEY_ACTIVE_PACK, packId);
+			PlayerPrefs.Save();
 			Debug.Log($"[ShaderPackManager] Applied pack: {target.Manifest.name} ({packId})");
 		}
 
@@ -136,6 +140,27 @@ namespace WitchMendokusai
 
 			Debug.Log($"[ShaderPackManager] Reverted pack: {activePack.Manifest.name}");
 			activePack = null;
+			PlayerPrefs.DeleteKey(PREF_KEY_ACTIVE_PACK);
+			PlayerPrefs.Save();
+		}
+
+		private void RestoreActivePack()
+		{
+			if (PlayerPrefs.HasKey(PREF_KEY_ACTIVE_PACK) == false)
+				return;
+
+			string savedId = PlayerPrefs.GetString(PREF_KEY_ACTIVE_PACK);
+			if (string.IsNullOrEmpty(savedId))
+				return;
+
+			Apply(savedId);
+
+			if (activePack == null)
+			{
+				Debug.LogWarning($"[ShaderPackManager] Saved active pack '{savedId}' not found, clearing preference.");
+				PlayerPrefs.DeleteKey(PREF_KEY_ACTIVE_PACK);
+				PlayerPrefs.Save();
+			}
 		}
 	}
 
