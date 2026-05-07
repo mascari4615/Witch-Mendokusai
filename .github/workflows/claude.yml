@@ -59,6 +59,7 @@ jobs:
         uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          allowed_bots: "coderabbitai[bot]"
           prompt: |
             CodeRabbit이 이 PR에 코드 리뷰를 남겼습니다. 리뷰의 actionable 제안을 검토해 적절한 것만 적용하세요.
 
@@ -87,6 +88,7 @@ jobs:
         uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          allowed_bots: "copilot-pull-request-reviewer[bot]"
           prompt: |
             GitHub Copilot이 이 PR에 코드 리뷰를 남겼습니다. 리뷰의 actionable 제안을 검토해 적절한 것만 적용하세요.
 
