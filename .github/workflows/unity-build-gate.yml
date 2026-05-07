@@ -10,6 +10,8 @@ on:
     branches: [main]
   pull_request:
     # base 제한 없음 — chained PR 도 게이트.
+    # ready_for_review 추가: autopilot 룰이 Draft → 즉시 Ready 전환 흐름 — 그때도 게이트 trigger.
+    types: [opened, synchronize, reopened, ready_for_review]
 
 jobs:
   editmode-tests:
