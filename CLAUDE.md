@@ -296,10 +296,10 @@ gh pr create --base main --head <branch> --title "..." --body "..."   # Default 
 다음 명시적 사유 있을 때만 `--draft` 사용. PR description 에 "**Draft 사유**: <한 줄>" 명시:
 - **Architectural / breaking change** — 사용자 비전 결정 슬롯 필요
 - **stack PR base 가 미머지** — base 머지 후 GitHub 자동 retarget 까지 대기
-- **검증 불가 + 사용자 플레이 검증 필요** — Test plan 사용자 검증 항목 1+
+- **큰 비주얼·런타임 신규 시스템** — sub-C C1 같은 *처음 도입* 비주얼/런타임 시스템 + 사용자 *플레이 흐름 자체* 검증 필요. 작은 변경 (SerializedField default toggle, ContextMenu, 5줄 fix) 은 Default Ready 머지 후 사용자 main pull 시점 검증으로 충분 — Unity Build Gate (TASK-WM-060) 가 컴파일 안전성 자동.
 - **WIP 진행 중** — commit 누적, 완료 후 Ready 전환 (autopilot 자체는 매 iteration 단위 PR 분리라 흔치 X)
 
-미명시 → 항상 Ready.
+미명시 → 항상 Ready. *시각 검증* 자체는 PR 머지 후 사용자 흐름이 정합 — Draft 로 머지 지연 X.
 
 ### BOT_TOKEN — GitHub 재귀 방지 우회
 
@@ -387,18 +387,31 @@ gh api -X PUT repos/Mascari4615/Witch-Mendokusai/branches/main/protection \
   -F restrictions=null
 ```
 
-### C# 컴파일 검증 — 보류 + 추후 self-hosted runner
+### C# 컴파일 검증 — `Unity Build Gate` (self-hosted runner)
 
-**현 시점 (2026-05-07): Unity Build Gate 인프라 보류**.
+**(TASK-WM-060, 2026-05-08 도입)**
 
-이유:
-- Unity 가 GitHub Actions 공식 action 미제공 (third-party 만 존재)
-- Personal license + Unity 6.x = `game-ci/*`, `buildalon/*`, `RageAgainstThePixel/*` 등 third-party 의존 강제
-- third-party action 에 Unity credentials 넘기는 신뢰 비용 > 게이트 효용
-- C# 컴파일 권위 = 사용자 로컬 Unity Editor (본인 작업 시 매번 reimport + 컴파일). CI 가 *대체* 하려는 게 무리수
+`.github/workflows/unity-build-gate.yml` 가 PR 마다 self-hosted runner 위에서 Unity batchmode 컴파일 검증. third-party action 0 (Unity credentials 외부 노출 X), 사용자 PC 의 Personal license 그대로.
 
-대안 (추후 검토):
-- **Self-hosted runner** — 사용자 PC 를 GitHub Actions runner 로 등록 → 본인 Unity 본인 license 그대로, third-party 의존 0. 단 PC 항상 켜둬야 함.
-- **Unity Cloud Build** — Unity 공식 CI 서비스 (cloud.unity.com), GitHub 와 별도 시스템.
+```yaml
+runs-on: [self-hosted, windows, wm-unity]
+```
 
-현 게이트 = *Code Quality (typo) + auto-merge + CodeRabbit/Copilot 리뷰* 만으로도 적체 해소 효과 검증됨 (PR #89/#96/#97/#98 자동 머지 흐름).
+흐름:
+1. PR push → workflow 트리거 (paths filter: `Assets/**/*.cs`, `Assets/**/*.shader`, `Packages/**`, csproj)
+2. Self-hosted runner (사용자 PC) Unity batchmode 실행 — `-projectPath . -batchmode -nographics -quit -logFile -`
+3. Unity exit code + log 의 `error CS` grep → check pass / fail
+4. fail 시 `unity-batchmode-log` artifact 업로드 (사용자 진단)
+
+**사용자 1회 셋업**:
+
+1. GitHub repo *Settings > Actions > Runners > New self-hosted runner* 등록 — 라벨 `self-hosted, windows, wm-unity`
+2. Branch Protection (`main`) 의 *Required status checks* 에 `Unity Build Gate / compile` 추가
+3. runner 첫 실행 시 Library/PackageCache 캐시 회복 (Unity 한 번 batchmode 또는 Hub 에서 import)
+
+**한계**:
+- self-hosted runner = 사용자 PC. PC 꺼져있으면 PR check `queued`.
+- 시각·런타임 검증 X — 컴파일 only. 시각은 사용자 main pull 후 Play Mode (현재 흐름 그대로).
+- Unity 두 인스턴스 동시 실행 — 같은 PC 에서 가능 (다른 projectPath). main worktree Unity 와 runner Unity 별도 worktree 라 OK.
+
+**현 게이트** (Unity Build Gate 추가 후): `Code Quality typo + GitGuardian + Unity Build Gate + CodeRabbit/Copilot 리뷰` — auto-merge 자동 폐쇄 루프.
