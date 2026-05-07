@@ -61,7 +61,7 @@ namespace WitchMendokusai
 		{
 			Debug.Log($"{nameof(Next)}");
 			// 다음 유닛 체크
-			// TDOO : UI Update
+			// TODO : UI Update
 
 			curTurnUnit = null;
 
