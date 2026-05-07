@@ -1,0 +1,15 @@
+<Project>
+  <!--
+    TASK-WM-056-E1 — 빌드 시 EditorConfig 코드 룰 enforce.
+
+    Unity 가 .csproj 자동 생성하는 환경에서 모든 csproj 에 공통 적용.
+    .editorconfig 의 dotnet_diagnostic.* severity 가 빌드 단계에서 검출됨.
+
+    severity = warning (현 단계). E2 dotnet format 자동 fix 후 E5+ 단계에서
+    핵심 룰 일부를 error 로 escalate 결정 슬롯 진입.
+  -->
+  <PropertyGroup>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <AnalysisLevel>latest</AnalysisLevel>
+  </PropertyGroup>
+</Project>
