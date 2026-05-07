@@ -191,33 +191,50 @@ TASK 기반으로 시작한 작업은 `memo/wm/tasks/TASK-NNN-*.md`를 작업 �
 
 대화 말미에 별도로 안내하는 것으로 끝내지 않고, 문서에 남겨 추적 가능하게 한다.
 
-## 컴파일 에러 확인 — 사용자 검증 요청 전 본인 먼저
+## 컴파일 에러 확인 — `dotnet build` 우선
 
-코드 작성 후 사용자에게 "검증해주세요" 요청 *전*에 본인이 먼저 컴파일 에러 확인.
+코드 작성 후 사용자에게 "검증해주세요" 요청 *전*에 본인이 먼저 컴파일 검증.
 
-- Editor.log 위치: `C:\Users\masca\AppData\Local\Unity\Editor\Editor.log`
-- `grep "error CS" Editor.log` 으로 컴파일 에러 검색
+- 컴파일 검증 = **`dotnet build`** (Unity foreground / stuck state 무관, 30~40초)
+- Unity 가 필요한 건 *.meta / .prefab / .asset / 씬 / shader / Play Mode* 만 — `unity-refresh.ps1` 사용
 - 사용자가 코드 보고 검증하기 전에 *컴파일 통과* 자체가 사전 조건
 - "사용자에게 빨리 넘기기" 보다 *검증 가능한 상태로 넘기기* 가 우선
 
-### Editor.log stale 체크 — focus 안 됐으면 신뢰 X
+### 컴파일 검증 = `dotnet build` (Unity 무관)
 
-Unity Editor 가 **foreground (focus)** 상태가 아니면 .cs 변경 reimport 안 함 → Editor.log 가 *내 최근 변경을 반영 안 한 상태*. "에러 없어 보임" 이 거짓일 수 있음.
+```bash
+cd WitchMendokusai
+dotnet build Assembly-CSharp.csproj -v quiet --nologo 2>&1 | tail -20
+```
 
-확인 방법:
-- 새로 만든 *심볼* (클래스명 / 메서드명 / enum 항목) 이 Editor.log 에 잡히는지 grep — 안 잡히면 reimport 안 됨
-- `Reloading assemblies after forced synchronous recompile.` 로그의 *시점* — 내 변경 후인지 확인
-- `Refresh completed in ...` 으로 import 세션 끝 시점 확인
+- **Unity 가 stuck state 여도 작동** — Library/ScriptAssemblies / Editor.log 무관
+- WM 의 `Assembly-CSharp.csproj` 는 Unity 가 자동 생성 — 모든 패키지 references 박아둠
+- `오류 0개` / `error 0` 면 통과. warning 도 직접 출력 (deprecated API 등)
+- 모든 `.cs` (멀티 worktree / 멀티 sub) 즉시 검증
 
-stale 이면 — **자동화 우선**:
-1. **`pwsh memo/dotfiles/scripts/unity-refresh.ps1`** 호출 — Unity 창 `SetForegroundWindow` → Auto Refresh 트리거. 사용자에게 "Editor 창 클릭" 요청 X
-2. **sleep ~25초** — 컴파일 + Domain Reload + `[InitializeOnLoadMethod]` 까지 충분 (4~5 신규 .cs 기준; 더 많으면 30초 이상)
-3. **Editor.log grep** — `error CS` 0 + `Reloading assemblies after forced synchronous recompile` 새 매치 (이전 max line 보다 큰 line) 으로 컴파일 완료 검증
+### Unity 가 필요한 경우 = `unity-refresh.ps1`
 
-자동화 한계 (이때만 사용자 손 요청):
-- Unity 창이 *이미 foreground* 면 `SetForegroundWindow` no-op (focus 이벤트 X) — 우회: PowerShell `SendKeys ^r` 또는 사용자가 다른 창 잠시 클릭 후 재호출
-- Auto Refresh OFF 면 무용 — `Edit > Preferences > Asset Pipeline > Auto Refresh` 설정 사용자 컨펌 1회
-- 신규 폴더의 파일은 fsnotify 가 가끔 누락 → Project 패널에서 폴더 한 번 클릭 또는 Editor 재시작
+자산 + Play Mode 시만:
+
+```bash
+pwsh memo/dotfiles/scripts/unity-refresh.ps1
+# sleep ~25초 (Domain Reload + [InitializeOnLoadMethod])
+```
+
+용도:
+- `.meta` 자동 생성 (새 .cs / 폴더)
+- `.prefab` / `.asset` 자동 생성 (Bootstrap menu `[InitializeOnLoadMethod]`)
+- 씬 / `RenderSettings` / Volume Profile / shader 컴파일
+- Play Mode 진입 검증
+
+검증: Editor.log grep — `Reloading assemblies after forced synchronous recompile` 새 매치 + Bootstrap 로그
+
+### unity-refresh 한계 (이때만 사용자 손)
+
+- Unity 창이 *이미 foreground* 면 `SetForegroundWindow` no-op (focus 이벤트 X) — 우회: PowerShell `SendKeys ^r` 또는 사용자가 다른 창 잠시 클릭
+- Auto Refresh OFF → `Edit > Preferences > Asset Pipeline > Auto Refresh` 1회 컨펌
+- 신규 폴더 파일은 fsnotify 가 가끔 누락 → Project 패널에서 폴더 한 번 클릭
+- **Unity 컴파일 stuck state** (빈 .cs 가 일시 존재 후 컴파일 무응답) — `dotnet build` 로 코드 OK 검증 후 사용자에게 *Assets > Refresh* 메뉴 또는 Editor 재시작 1회 (unity-refresh / SendKeys 다 무효)
 
 ### 새 .cs 파일 만들었을 때
 

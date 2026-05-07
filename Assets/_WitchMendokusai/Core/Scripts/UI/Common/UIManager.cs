@@ -13,6 +13,7 @@ namespace WitchMendokusai
 		public TransitionView Transition { get; private set; }
 		public UIChat Chat { get; private set; }
 		public SpeechBubbleView SpeechBubble { get; private set; }
+		public DialogueRunner DialogueRunner { get; private set; }
 		public CutSceneModule CutSceneModule { get; private set; }
 		[field: SerializeField] public Canvas BaseCanvas { get; private set; }
 	
@@ -70,6 +71,7 @@ namespace WitchMendokusai
 			stagePopupView = uiRootGameObject.AddComponent<StagePopupView>();
 			floatingText = uiRootGameObject.AddComponent<FloatingTextView>();
 			SpeechBubble = uiRootGameObject.AddComponent<SpeechBubbleView>();
+			DialogueRunner = uiRootGameObject.AddComponent<DialogueRunner>();
 			Transition = uiRootGameObject.AddComponent<TransitionView>();
 		}
 
@@ -95,6 +97,8 @@ namespace WitchMendokusai
 				Destroy(floatingText);
 			if (SpeechBubble != null)
 				Destroy(SpeechBubble);
+			if (DialogueRunner != null)
+				Destroy(DialogueRunner);
 			if (Transition != null)
 				Destroy(Transition);
 

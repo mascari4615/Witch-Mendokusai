@@ -16,7 +16,7 @@ namespace WitchMendokusai.NodeGraph
 		private NodeGraphView graphView;
 		private Label headerLabel;
 
-		[MenuItem("WitchMendokusai/NodeGraph/Open Active Graph (Test)")]
+		[MenuItem("WM/NodeGraph/Open Active Graph (Test)")]
 		public static void OpenActive()
 		{
 			NodeGraph asset = AssetDatabase.LoadAssetAtPath<NodeGraph>("Assets/_WitchMendokusai/Core/Scripts/NodeGraph/Test/TestGraph.asset");

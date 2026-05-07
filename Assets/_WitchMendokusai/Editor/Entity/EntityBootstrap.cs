@@ -16,7 +16,7 @@ namespace WitchMendokusai
 		private const string ENTITY_FOLDER = "Assets/_WitchMendokusai/Content/Entity";
 		private const string PREFABS_FOLDER = ENTITY_FOLDER + "/Prefabs";
 
-		[MenuItem("WitchMendokusai/Entity/Generate Default Entities")]
+		[MenuItem("WM/Entity/Generate Default Entities")]
 		public static void GenerateDefaultEntities()
 		{
 			EnsureFolder(ENTITY_FOLDER);
@@ -33,7 +33,7 @@ namespace WitchMendokusai
 			Debug.Log("[EntityBootstrap] Default entities ready.");
 		}
 
-		[MenuItem("WitchMendokusai/Entity/Sync Addressables Group")]
+		[MenuItem("WM/Entity/Sync Addressables Group")]
 		public static void SyncAddressablesGroup()
 		{
 			AddressableAssetSettings settings = AddressableAssetSettingsDefaultObject.Settings;

@@ -16,7 +16,7 @@ namespace WitchMendokusai
 		private const string MATERIAL_PATH = RESOURCES_FOLDER + "/VoxelMaterial.mat";
 		private const string SHADER_NAME = "WM/VoxelVertexColor";
 
-		[MenuItem("WitchMendokusai/Voxel/Generate Default Blocks")]
+		[MenuItem("WM/Voxel/Generate Default Blocks")]
 		public static void GenerateDefaultBlocks()
 		{
 			EnsureFolder(BLOCKS_FOLDER);
@@ -37,7 +37,7 @@ namespace WitchMendokusai
 			Debug.Log($"[VoxelBootstrap] Default blocks ready. Registry count: {BlockRegistry.Count}");
 		}
 
-		[MenuItem("WitchMendokusai/Voxel/Generate Default Material")]
+		[MenuItem("WM/Voxel/Generate Default Material")]
 		public static void GenerateDefaultMaterialMenu()
 		{
 			EnsureFolder(RESOURCES_FOLDER);
@@ -65,7 +65,7 @@ namespace WitchMendokusai
 			return material;
 		}
 
-		[MenuItem("WitchMendokusai/Voxel/Reload Block Registry")]
+		[MenuItem("WM/Voxel/Reload Block Registry")]
 		public static void ReloadRegistry()
 		{
 			BlockBootstrap.Reload();

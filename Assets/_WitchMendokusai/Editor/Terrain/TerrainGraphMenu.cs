@@ -16,7 +16,7 @@ namespace WitchMendokusai
 		private const string GRAPH_PATH = TERRAIN_FOLDER + "/DefaultTerrainGraph.asset";
 		private const string DEMO_GRAPH_PATH = TERRAIN_FOLDER + "/ThresholdLerpDemoGraph.asset";
 
-		[MenuItem("WitchMendokusai/Terrain/Build Default Terrain Graph")]
+		[MenuItem("WM/Terrain/Build Default Terrain Graph")]
 		public static void BuildDefaultTerrainGraph()
 		{
 			TerrainGraph graph = AssetDatabase.LoadAssetAtPath<TerrainGraph>(GRAPH_PATH);
@@ -113,7 +113,7 @@ namespace WitchMendokusai
 		/// H3 DAG 데모 — WorldPositionInput → Perlin_A + Perlin_B → Threshold → Lerp(A, B, t) → Output.
 		/// DefaultTerrainGraph 의 linear chain 정합 유지를 위해 별도 asset.
 		/// </summary>
-		[MenuItem("WitchMendokusai/Terrain/Build Threshold+Lerp Demo Graph")]
+		[MenuItem("WM/Terrain/Build Threshold+Lerp Demo Graph")]
 		public static void BuildThresholdLerpDemoGraph()
 		{
 			TerrainGraph graph = AssetDatabase.LoadAssetAtPath<TerrainGraph>(DEMO_GRAPH_PATH);
