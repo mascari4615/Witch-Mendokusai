@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -6,14 +8,21 @@ namespace WitchMendokusai
 	/// <summary>
 	/// 전체화면 환경설정 UI (엔드필드/오버워치 스타일).
 	/// UIRoot.ScreenLayer에 직접 VisualElement를 추가함.
-	/// InventoryView와 동일한 MonoBehaviour 패턴 사용.
+	/// 좌측 사이드바의 탭 버튼 클릭 → 우측 컨텐츠 swap (data-driven, RegisterTab).
 	/// </summary>
 	public class SettingView : MonoBehaviour
 	{
 		private const string USS_CLASS = "wm-setting-view";
 		private const string ACTIVE_CLASS = "wm-setting-view--active";
+		private const string TAB_KEY_GENERAL = "general";
 
 		private VisualElement container;
+		private VisualElement sidebar;
+		private VisualElement contentArea;
+
+		private readonly Dictionary<string, VisualElement> tabContents = new();
+		private readonly Dictionary<string, Button> tabButtons = new();
+		private string currentTabKey;
 
 		private Button btnDungeonExit;
 
@@ -46,22 +55,57 @@ namespace WitchMendokusai
 
 		private void BuildUI()
 		{
-			// 좌측 사이드바
-			VisualElement sidebar = new VisualElement();
+			sidebar = new VisualElement();
 			sidebar.AddToClassList("wm-setting-sidebar");
 
 			Label titleLabel = new Label("환경설정");
 			titleLabel.AddToClassList("wm-setting-title");
 			sidebar.Add(titleLabel);
 
-			Button tabSystem = new Button { text = "시스템 설정" };
-			tabSystem.AddToClassList("wm-setting-tab");
-			tabSystem.AddToClassList("wm-setting-tab--active");
-			sidebar.Add(tabSystem);
+			contentArea = new VisualElement();
+			contentArea.AddToClassList("wm-setting-content-area");
 
-			// 우측 컨텐츠
-			VisualElement content = new VisualElement();
+			RegisterTab(TAB_KEY_GENERAL, "환경설정", BuildGeneralContent);
+
+			SwitchTab(TAB_KEY_GENERAL);
+
+			container.Add(sidebar);
+			container.Add(contentArea);
+		}
+
+		protected void RegisterTab(string tabKey, string title, Func<VisualElement> contentBuilder)
+		{
+			Button tabButton = new Button(() => SwitchTab(tabKey)) { text = title };
+			tabButton.AddToClassList("wm-setting-tab");
+			sidebar.Add(tabButton);
+			tabButtons[tabKey] = tabButton;
+
+			VisualElement content = contentBuilder();
 			content.AddToClassList("wm-setting-content");
+			content.style.display = DisplayStyle.None;
+			contentArea.Add(content);
+			tabContents[tabKey] = content;
+		}
+
+		private void SwitchTab(string tabKey)
+		{
+			if (currentTabKey == tabKey)
+				return;
+
+			if (currentTabKey != null)
+			{
+				tabContents[currentTabKey].style.display = DisplayStyle.None;
+				tabButtons[currentTabKey].RemoveFromClassList("wm-setting-tab--active");
+			}
+
+			tabContents[tabKey].style.display = DisplayStyle.Flex;
+			tabButtons[tabKey].AddToClassList("wm-setting-tab--active");
+			currentTabKey = tabKey;
+		}
+
+		private VisualElement BuildGeneralContent()
+		{
+			VisualElement content = new VisualElement();
 
 			// Audio
 			Label audioHeader = new Label("오디오");
@@ -115,8 +159,7 @@ namespace WitchMendokusai
 			btnClose.AddToClassList("wm-setting-close");
 			content.Add(btnClose);
 
-			container.Add(sidebar);
-			container.Add(content);
+			return content;
 		}
 
 		private static Slider CreateSlider(string label, float min, float max, float value)
