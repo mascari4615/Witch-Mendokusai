@@ -30,6 +30,12 @@ namespace WitchMendokusai
 		private static readonly int SunDiscColorId = Shader.PropertyToID("_SunDiscColor");
 		private static readonly int SunDirectionId = Shader.PropertyToID("_SunDirection");
 		private static readonly int StarAlphaId = Shader.PropertyToID("_StarAlpha");
+		private static readonly int CloudColorId = Shader.PropertyToID("_CloudColor");
+		private static readonly int CloudCoverageId = Shader.PropertyToID("_CloudCoverage");
+		private static readonly int CloudSoftnessId = Shader.PropertyToID("_CloudSoftness");
+		private static readonly int CloudHeightId = Shader.PropertyToID("_CloudHeight");
+		private static readonly int CloudScaleId = Shader.PropertyToID("_CloudScale");
+		private static readonly int CloudSpeedId = Shader.PropertyToID("_CloudSpeed");
 
 		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
 		private static void EnsureSingletonOnPlay()
@@ -149,6 +155,13 @@ namespace WitchMendokusai
 			SkyboxMaterial.SetVector(SunDirectionId, sunDirection);
 
 			SkyboxMaterial.SetFloat(StarAlphaId, ActivePreset.StarAlpha.Evaluate(t));
+
+			SkyboxMaterial.SetColor(CloudColorId, ActivePreset.CloudColor.Evaluate(t));
+			SkyboxMaterial.SetFloat(CloudCoverageId, ActivePreset.CloudCoverage.Evaluate(t));
+			SkyboxMaterial.SetFloat(CloudSoftnessId, ActivePreset.CloudSoftness);
+			SkyboxMaterial.SetFloat(CloudHeightId, ActivePreset.CloudHeight);
+			SkyboxMaterial.SetFloat(CloudScaleId, ActivePreset.CloudScale);
+			SkyboxMaterial.SetFloat(CloudSpeedId, ActivePreset.CloudSpeed);
 		}
 
 		private static Vector3 ComputeSunDirection(float altitude)
