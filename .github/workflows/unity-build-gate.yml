@@ -1,0 +1,93 @@
+# Unity Build Gate — PR 머지 전 .cs 컴파일 검증 자동화.
+# self-hosted runner (사용자 PC) + Unity batchmode → exit code 0 = 컴파일 OK.
+# (TASK-WM-060)
+name: Unity Build Gate
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'Assets/**/*.cs'
+      - 'Assets/**/*.shader'
+      - 'Assets/**/*.shadergraph'
+      - 'Assembly-CSharp.csproj'
+      - 'Packages/**'
+      # workflow yml 자체는 paths filter 에서 제외 — self-trigger 방지 (사용자 셋업 전엔 self-hosted runner 미존재라 영원 pending)
+
+concurrency:
+  group: unity-build-gate-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  compile:
+    runs-on: [self-hosted, windows, wm-unity]
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout PR
+        uses: actions/checkout@v4
+
+      - name: Locate Unity
+        id: unity
+        shell: pwsh
+        run: |
+          $candidates = @(
+            "C:\Program Files\Unity\Hub\Editor\6000.4.5f1\Editor\Unity.exe"
+          )
+          foreach ($path in $candidates) {
+            if (Test-Path $path) {
+              "path=$path" >> $env:GITHUB_OUTPUT
+              Write-Host "Unity: $path"
+              exit 0
+            }
+          }
+          Write-Error "Unity 6000.4.5f1 미발견. self-hosted runner 의 Unity Hub 에 해당 버전 설치 필요."
+          exit 1
+
+      - name: Unity batchmode compile
+        shell: pwsh
+        env:
+          UNITY: ${{ steps.unity.outputs.path }}
+        run: |
+          $logFile = "$env:GITHUB_WORKSPACE\unity-batchmode.log"
+          & $env:UNITY `
+            -batchmode `
+            -nographics `
+            -projectPath "$env:GITHUB_WORKSPACE" `
+            -quit `
+            -logFile $logFile `
+            -accept-apiupdate
+          $unityExit = $LASTEXITCODE
+
+          # log 출력
+          if (Test-Path $logFile) {
+            Write-Host "=== Unity batchmode log (last 80 lines) ==="
+            Get-Content $logFile -Tail 80
+          }
+
+          # error CS grep
+          if (Test-Path $logFile) {
+            $errors = Select-String -Path $logFile -Pattern "error CS" -SimpleMatch
+            if ($errors) {
+              Write-Host ""
+              Write-Host "=== Compile errors ==="
+              $errors | ForEach-Object { Write-Host $_.Line }
+              Write-Host "::error::Unity batchmode 컴파일 에러 $($errors.Count) 건"
+              exit 1
+            }
+          }
+
+          if ($unityExit -ne 0) {
+            Write-Host "::error::Unity batchmode exit code $unityExit"
+            exit $unityExit
+          }
+
+          Write-Host "✅ Unity batchmode 컴파일 OK (exit 0, error CS 0)"
+
+      - name: Upload Unity log on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unity-batchmode-log
+          path: unity-batchmode.log
+          retention-days: 7
