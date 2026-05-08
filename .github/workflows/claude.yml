@@ -3,6 +3,8 @@ name: Claude Code
 on:
   issue_comment:
     types: [created]
+  pull_request:
+    types: [opened, synchronize, ready_for_review]
   pull_request_review_comment:
     types: [created]
   issues:
@@ -39,6 +41,52 @@ jobs:
         uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+
+  claude-review:
+    if: github.event_name == 'pull_request' && github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      id-token: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Run Claude Primary Review
+        uses: anthropics/claude-code-action@v1
+        with:
+          mode: review
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          prompt: |
+            이 PR 을 primary code reviewer 로 검토하고 GitHub PR review 를 submit 해라.
+
+            검토 영역:
+            - 버그 / 논리 오류 / edge case
+            - 보안 (injection, 권한, 데이터 노출)
+            - 성능 (알고리즘, 메모리)
+            - 코드 품질 / 가독성 / 유지보수성
+            - WitchMendokusai CLAUDE.md 룰 준수:
+              * Allman 중괄호 (항상 새 줄)
+              * `== false` (`!` 연산자 금지)
+              * `var` 금지 (명시적 타입)
+              * 변수명 풀네임 (for 의 i, j 외 한 글자 축약 X)
+              * 상수 UPPER_SNAKE_CASE
+              * 이벤트/델리게이트 `delegate { }` 초기화
+              * FastFail (TryGet/null 체크/기본값으로 증상 덮기 X)
+              * 수치는 SO / [SerializeField] / Variable<T>
+              * 입력은 InputManager.RegisterInputEvent (직접 Keyboard.current X)
+              * MenuItem path top-level `WM/...` (`WitchMendokusai/...` X)
+
+            원칙:
+            - Actionable 한 변경 제안만 — nitpick / 주관적 스타일 의견 X
+            - 큰 아키텍처 지적은 코멘트로만 (코드 변경 X)
+            - 검토 결과 review submit:
+              * 문제 없음 → approve
+              * actionable 지적 1+ → request_changes
+              * 큰 아키텍처 지적만 → comment
 
   claude-coderabbit:
     if: github.event_name == 'pull_request_review' && github.event.review.user.login == 'coderabbitai[bot]'
