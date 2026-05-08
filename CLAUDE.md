@@ -291,7 +291,7 @@ PR opened (Default Ready)
   │    ↓ Claude primary review — 버그/보안/성능/품질 + WM 룰 체크 → review submit
   │      (approve / request_changes / comment)
   └─ auto-merge.yml (BOT_TOKEN, user actor)  ─── ready_for_review 이벤트 받아 gh pr merge --auto --squash
-       ↓ Required 게이트 통과 (Code Quality typo strict + GitGuardian + claude-review + 옵셔널 Unity Build Gate)
+       ↓ Required 게이트 통과 (Code Quality typo strict + GitGuardian + claude-review)
        ↓ squash 머지 (user actor → push event 발생)
 main push event
   ├─ auto-rebase.yml (BOT_TOKEN)  ─── 모든 open Ready PR update-branch
@@ -395,7 +395,8 @@ Conventional Commits — `feat: / fix: / chore: / refactor: / docs: / style: / t
 룰을 *기계적으로 강제* 하려면 GitHub repo → Settings → Branches 에서 `main` 에 다음 protection rule:
 - Require a pull request before merging
 - Require status checks to pass:
-  - `Check Typos` (현재 등록됨, 단 `continue-on-error: true` — 사실상 게이트 0. workflow 에서 `continue-on-error` 제거 필요)
+  - `Check Typos`
+  - `claude-review` (TASK-WM-062 sub-E, 2026-05-08 등록 — Claude primary review 가 끝나야 머지)
 - Restrict who can push to matching branches (직접 push 차단)
 
 설정 명령:
@@ -404,39 +405,34 @@ Conventional Commits — `feat: / fix: / chore: / refactor: / docs: / style: / t
 gh api -X PUT repos/Mascari4615/Witch-Mendokusai/branches/main/protection \
   -F 'required_status_checks.strict=true' \
   -F 'required_status_checks.contexts[]=Check Typos' \
+  -F 'required_status_checks.contexts[]=claude-review' \
   -F enforce_admins=false \
   -F required_pull_request_reviews=null \
   -F restrictions=null
 ```
 
-### C# 컴파일 검증 — `Unity Build Gate` (self-hosted runner)
+### C# 컴파일 검증 — *CI 게이트 폐기, 로컬 검증만*
 
-**(TASK-WM-060, 2026-05-08 도입)**
+**(TASK-WM-060, 2026-05-08 도입 → 같은 날 폐기 — public repo + self-hosted runner 보안 위험)**
 
-`.github/workflows/unity-build-gate.yml` 가 PR 마다 self-hosted runner 위에서 Unity batchmode 컴파일 검증. third-party action 0 (Unity credentials 외부 노출 X), 사용자 PC 의 Personal license 그대로.
+PR 단계 컴파일 검증 CI 는 폐기. 검증 = *사용자 로컬* (`dotnet build Assembly-CSharp.csproj` + Unity reimport).
 
-```yaml
-runs-on: [self-hosted, windows, wm-unity]
-```
+**폐기 사유**:
 
-흐름:
-1. PR push → workflow 트리거 (paths filter: `Assets/**/*.cs`, `Assets/**/*.shader`, `Packages/**`, csproj)
-2. Self-hosted runner (사용자 PC) Unity batchmode 실행 — `-projectPath . -batchmode -nographics -quit -logFile -`
-3. Unity exit code + log 의 `error CS` grep → check pass / fail
-4. fail 시 `unity-batchmode-log` artifact 업로드 (사용자 진단)
+GitHub 공식 경고 — *"Using self-hosted runners in public repositories is not recommended. Forks of your public repository can potentially run dangerous code on your self-hosted runner by creating a pull request."* — WM 가 public repo 라 fork PR 이 사용자 PC 에서 임의 코드 실행 가능. credentials/local file 노출 + lateral movement 위험.
 
-**사용자 1회 셋업**:
+WM = 솔로 indie repo (fork 거의 0) 라 게이트 효용보다 위험 비-zero 우선. 로컬 검증 흐름이 충분.
 
-1. GitHub repo *Settings > Actions > Runners > New self-hosted runner* 등록 — 라벨 `self-hosted, windows, wm-unity`
-2. Branch Protection (`main`) 의 *Required status checks* 에 `Unity Build Gate / compile` 추가
-3. runner 첫 실행 시 Library/PackageCache 캐시 회복 (Unity 한 번 batchmode 또는 Hub 에서 import)
+**대안 (검토했으나 폐기)**:
+- GitHub-hosted runner + game-ci action — Unity credentials 외부 노출 (메모리 룰 「유료 에셋 / 폐쇄 SDK 금지 — public 레포 유지」 정합성 깨짐)
+- Ephemeral container runner (Docker/WSL) — overengineering, 솔로 repo 비용 정당화 X
+- Manual approval workflow — 사용자 매 PR approval 클릭 비용
 
-**한계**:
-- self-hosted runner = 사용자 PC. PC 꺼져있으면 PR check `queued`.
-- 시각·런타임 검증 X — 컴파일 only. 시각은 사용자 main pull 후 Play Mode (현재 흐름 그대로).
-- Unity 두 인스턴스 동시 실행 — 같은 PC 에서 가능 (다른 projectPath). main worktree Unity 와 runner Unity 별도 worktree 라 OK.
+**현 흐름** (CI 검증 X):
+- 본인 코드 = `dotnet build Assembly-CSharp.csproj` (worktree 안, csproj 있을 때) 또는 Unity reimport (main worktree 사용자 직접)
+- 머지 후 시각·런타임 검증 = 사용자 main pull → Play Mode (기존 흐름 유지)
 
-**현 게이트**: `Code Quality typo + GitGuardian + Unity Build Gate + Claude primary review` — auto-merge 자동 폐쇄 루프. CodeRabbit/Copilot 자동 review 는 비활성화 (TASK-WM-062 sub-G).
+**현 게이트**: `Code Quality typo + GitGuardian + Claude primary review` — auto-merge 자동 폐쇄 루프. CodeRabbit/Copilot 자동 review 비활성화 (TASK-WM-062 sub-G).
 
 ### AI 리뷰 게이트 — Claude primary review
 
