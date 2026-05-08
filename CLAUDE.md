@@ -281,15 +281,21 @@ pwsh memo/dotfiles/scripts/unity-refresh.ps1
 - `chore/<주제>` — 빌드·CI·의존성·환경 설정·문서
 - `refactor/<주제>` — 동작 변화 없는 정리
 
-**Default Ready PR 생성** (`gh pr create` 에 `--draft` *제거*) + `.github/pull_request_template.md` 의도 채움 → push → 자동 폐쇄 루프가 머지 + cascade 처리. AI Native 라 사용자 검토 슬롯 = AI 리뷰 (CodeRabbit / Copilot / Claude review-fix) 가 대체.
+**Default Ready PR 생성** (`gh pr create` 에 `--draft` *제거*) + `.github/pull_request_template.md` 의도 채움 → push → 자동 폐쇄 루프가 머지 + cascade 처리. AI Native 라 사용자 검토 슬롯 = AI 리뷰 (**Claude primary review** + CodeRabbit/Copilot secondary + Claude review-fix) 가 대체.
 
-### AI Native 자동 폐쇄 루프 (2026-05-07 도입)
+### AI Native 자동 폐쇄 루프 (2026-05-07 도입, 2026-05-08 Claude primary review 추가)
 
 ```
 PR opened (Default Ready)
-  ↓ auto-merge.yml (BOT_TOKEN, user actor)  ─── ready_for_review 이벤트 받아 gh pr merge --auto --squash
-  ↓ 게이트 통과 (Code Quality typo strict + GitGuardian)
-  ↓ squash 머지 (user actor → push event 발생)
+  ├─ claude.yml `claude-review` job (anthropics/claude-code-action@v1, mode=review)
+  │    ↓ Claude primary review — 버그/보안/성능/품질 + WM 룰 체크 → review submit
+  │      (approve / request_changes / comment)
+  ├─ CodeRabbit / Copilot review (secondary informative — 무료 플랜 쿨타임 종속)
+  │    ↓ review.submitted 이벤트 → claude.yml `claude-coderabbit` / `claude-copilot` job
+  │      → Claude 가 actionable 제안만 fix-loop
+  └─ auto-merge.yml (BOT_TOKEN, user actor)  ─── ready_for_review 이벤트 받아 gh pr merge --auto --squash
+       ↓ Required 게이트 통과 (Code Quality typo strict + GitGuardian + claude-review + 옵셔널 Unity Build Gate)
+       ↓ squash 머지 (user actor → push event 발생)
 main push event
   ├─ auto-rebase.yml (BOT_TOKEN)  ─── 모든 open Ready PR update-branch
   │    ├─ 통과 PR: 자동 stale 해소
@@ -431,4 +437,44 @@ runs-on: [self-hosted, windows, wm-unity]
 - 시각·런타임 검증 X — 컴파일 only. 시각은 사용자 main pull 후 Play Mode (현재 흐름 그대로).
 - Unity 두 인스턴스 동시 실행 — 같은 PC 에서 가능 (다른 projectPath). main worktree Unity 와 runner Unity 별도 worktree 라 OK.
 
-**현 게이트** (Unity Build Gate 추가 후): `Code Quality typo + GitGuardian + Unity Build Gate + CodeRabbit/Copilot 리뷰` — auto-merge 자동 폐쇄 루프.
+**현 게이트** (Unity Build Gate 추가 후): `Code Quality typo + GitGuardian + Unity Build Gate + Claude primary review + CodeRabbit/Copilot 리뷰 (secondary)` — auto-merge 자동 폐쇄 루프.
+
+### AI 리뷰 게이트 — Claude primary review
+
+**(TASK-WM-062, 2026-05-08 도입)**
+
+`.github/workflows/claude.yml` 의 `claude-review` job 이 PR 마다 *primary code reviewer* 로 자동 review 코멘트 + submit.
+
+```yaml
+on:
+  pull_request:
+    types: [opened, synchronize, ready_for_review]
+
+jobs:
+  claude-review:
+    if: github.event_name == 'pull_request' && github.event.pull_request.draft == false
+    steps:
+      - uses: anthropics/claude-code-action@v1
+        with:
+          mode: review
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          prompt: |
+            (버그/보안/성능/품질 + WM CLAUDE.md 룰 준수 — Allman, == false, var 금지, 변수명 풀네임, FastFail, 수치 SO 노출, InputManager, MenuItem WM/)
+            ...
+```
+
+**배경**: PR #119 (TASK-WM-058 P2-C) 가 push 후 26초 만에 머지됐는데 CodeRabbit 무료 플랜 45분 쿨타임으로 review 시작 X → AI 리뷰 0 으로 머지. 룰 본문 「AI 리뷰가 사용자 검토 슬롯 대체」 정합 깨짐.
+
+**해결 흐름**:
+- Claude = *primary reviewer* (쿨타임 X, OAuth 구독 비용 0)
+- CodeRabbit / Copilot = *secondary informative* (review 도착 시 Claude 가 actionable fix-loop)
+- `claude-review` job 의 status check 가 Branch Protection 의 Required 로 등록되면 머지 차단 게이트로 작동
+
+**사용자 1회 셋업**:
+
+1. `CLAUDE_CODE_OAUTH_TOKEN` secret — 이미 등록 (TASK-WM-062 sub-A 진단 결과)
+2. Branch Protection (`main`) 의 *Required status checks* 에 `claude-review` 추가 (sub-B 머지 후 1번 작동 시 check name 등록 → 그 후 추가 가능)
+
+**한계**:
+- claude-review job 의 *job success* 만 status check 통과 신호 — review state (request_changes) 는 *관찰* 만, 머지 차단 X (GitHub 한계 — Required reviews 는 human reviewer 만 인정)
+- 즉 Claude 가 *부정적 review* (request_changes) 를 남기더라도 Required check 통과는 됨. **review 코멘트** 가 머지 후 사용자에게 정합성 신호 역할.
