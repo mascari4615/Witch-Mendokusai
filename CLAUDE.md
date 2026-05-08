@@ -270,7 +270,7 @@ pwsh memo/dotfiles/scripts/unity-refresh.ps1
 
 ## Git Workflow
 
-본 § 가 본 레포 git workflow 의 정본. CodeRabbit 이 자동 픽업해 같은 룰로 PR 리뷰.
+본 § 가 본 레포 git workflow 의 정본. CodeRabbit / Copilot 자동 review 는 비활성화 (TASK-WM-062 sub-G, 2026-05-08) — Claude primary review (`claude.yml` claude-review job) 가 *유일한 AI 리뷰어*.
 
 ### 브랜치 + PR 강제 (AI Native 게이트)
 
@@ -281,18 +281,15 @@ pwsh memo/dotfiles/scripts/unity-refresh.ps1
 - `chore/<주제>` — 빌드·CI·의존성·환경 설정·문서
 - `refactor/<주제>` — 동작 변화 없는 정리
 
-**Default Ready PR 생성** (`gh pr create` 에 `--draft` *제거*) + `.github/pull_request_template.md` 의도 채움 → push → 자동 폐쇄 루프가 머지 + cascade 처리. AI Native 라 사용자 검토 슬롯 = AI 리뷰 (**Claude primary review** + CodeRabbit/Copilot secondary + Claude review-fix) 가 대체.
+**Default Ready PR 생성** (`gh pr create` 에 `--draft` *제거*) + `.github/pull_request_template.md` 의도 채움 → push → 자동 폐쇄 루프가 머지 + cascade 처리. AI Native 라 사용자 검토 슬롯 = AI 리뷰 (**Claude primary review**) 가 대체.
 
-### AI Native 자동 폐쇄 루프 (2026-05-07 도입, 2026-05-08 Claude primary review 추가)
+### AI Native 자동 폐쇄 루프 (2026-05-07 도입, 2026-05-08 Claude primary review 단일화)
 
 ```
 PR opened (Default Ready)
   ├─ claude.yml `claude-review` job (anthropics/claude-code-action@v1, mode=review)
   │    ↓ Claude primary review — 버그/보안/성능/품질 + WM 룰 체크 → review submit
   │      (approve / request_changes / comment)
-  ├─ CodeRabbit / Copilot review (secondary informative — 무료 플랜 쿨타임 종속)
-  │    ↓ review.submitted 이벤트 → claude.yml `claude-coderabbit` / `claude-copilot` job
-  │      → Claude 가 actionable 제안만 fix-loop
   └─ auto-merge.yml (BOT_TOKEN, user actor)  ─── ready_for_review 이벤트 받아 gh pr merge --auto --squash
        ↓ Required 게이트 통과 (Code Quality typo strict + GitGuardian + claude-review + 옵셔널 Unity Build Gate)
        ↓ squash 머지 (user actor → push event 발생)
@@ -306,6 +303,8 @@ main push event
   │       Claude 자동 conflict 해결 + push → 다시 게이트
   └─ Stack PR: GitHub 자동 retarget (base=feature → main) → 자동 머지 cascade
 ```
+
+> *CodeRabbit / Copilot 자동 review 비활성화 (TASK-WM-062 sub-G)* — 다중 AI primary review = 노이즈 + 의견 충돌 + fix-loop 비효율 + CodeRabbit 무료 쿨타임 게이트 빠짐. 후속 활용 검토 사항은 § AI 리뷰 게이트 참고.
 
 호출 (autopilot / 사람 PR 동일):
 ```bash
@@ -437,7 +436,7 @@ runs-on: [self-hosted, windows, wm-unity]
 - 시각·런타임 검증 X — 컴파일 only. 시각은 사용자 main pull 후 Play Mode (현재 흐름 그대로).
 - Unity 두 인스턴스 동시 실행 — 같은 PC 에서 가능 (다른 projectPath). main worktree Unity 와 runner Unity 별도 worktree 라 OK.
 
-**현 게이트** (Unity Build Gate 추가 후): `Code Quality typo + GitGuardian + Unity Build Gate + Claude primary review + CodeRabbit/Copilot 리뷰 (secondary)` — auto-merge 자동 폐쇄 루프.
+**현 게이트**: `Code Quality typo + GitGuardian + Unity Build Gate + Claude primary review` — auto-merge 자동 폐쇄 루프. CodeRabbit/Copilot 자동 review 는 비활성화 (TASK-WM-062 sub-G).
 
 ### AI 리뷰 게이트 — Claude primary review
 
@@ -465,16 +464,32 @@ jobs:
 
 **배경**: PR #119 (TASK-WM-058 P2-C) 가 push 후 26초 만에 머지됐는데 CodeRabbit 무료 플랜 45분 쿨타임으로 review 시작 X → AI 리뷰 0 으로 머지. 룰 본문 「AI 리뷰가 사용자 검토 슬롯 대체」 정합 깨짐.
 
-**해결 흐름**:
-- Claude = *primary reviewer* (쿨타임 X, OAuth 구독 비용 0)
-- CodeRabbit / Copilot = *secondary informative* (review 도착 시 Claude 가 actionable fix-loop)
+**해결 흐름** (sub-G, 2026-05-08 단일화):
+- Claude = *유일한 AI 리뷰어* (쿨타임 X, OAuth 구독 비용 0)
+- CodeRabbit / Copilot 자동 review 비활성화 — `.coderabbit.yaml` `auto_review.enabled: false` + GitHub repo Settings > Code review > Copilot off
+- claude.yml 의 `claude-coderabbit` / `claude-copilot` fix-loop job 도 제거 (트리거 X)
 - `claude-review` job 의 status check 가 Branch Protection 의 Required 로 등록되면 머지 차단 게이트로 작동
 
 **사용자 1회 셋업**:
 
 1. `CLAUDE_CODE_OAUTH_TOKEN` secret — 이미 등록 (TASK-WM-062 sub-A 진단 결과)
 2. Branch Protection (`main`) 의 *Required status checks* 에 `claude-review` 추가 (sub-B 머지 후 1번 작동 시 check name 등록 → 그 후 추가 가능)
+3. GitHub repo Settings > Code review > Copilot review off (자동 review 트리거 차단)
 
 **한계**:
 - claude-review job 의 *job success* 만 status check 통과 신호 — review state (request_changes) 는 *관찰* 만, 머지 차단 X (GitHub 한계 — Required reviews 는 human reviewer 만 인정)
 - 즉 Claude 가 *부정적 review* (request_changes) 를 남기더라도 Required check 통과는 됨. **review 코멘트** 가 머지 후 사용자에게 정합성 신호 역할.
+
+**CodeRabbit / Copilot 후속 활용 검토** (sub-G, 비활성화 상태):
+
+비활성화 사유 = *primary review 중복* + *쿨타임 게이트 빠짐* + *fix-loop 비효율*. *secondary 가치 자체* 는 부정 X — 후속 활용 시점 검토:
+
+- **수동 invoke** — PR 코멘트 `@coderabbitai review` / Copilot `Re-request review` 로 *필요 시* 호출. Claude 가 미스 한 영역 (예: 라이브러리 deprecation 패턴 / 문서 표현) 보강.
+- **유료 플랜** — CodeRabbit Pro ($20/mo) / Copilot Pro 로 쿨타임 제거 + secondary 자동화 재개. 비용 대비 *Claude review 가 안 잡는 영역 가치* 가 정당화 시점에.
+- **영역 분담** — Claude = 코드 품질·룰 체크, CodeRabbit = 보안 audit / 의존성 freshness, Copilot = 일반 best practice. paths filter 로 영역별 트리거.
+- **Claude review 사후 보완** — Claude 가 끝낸 후 CodeRabbit 에 사후 invoke → "Claude 가 놓친 게 있나?" 식 cross-check. 무료 플랜 쿨타임 OK (한 PR 당 1번).
+
+재활성화 시 변경:
+- `.coderabbit.yaml` `auto_review.enabled: true` (또는 `paths` filter 로 영역 한정)
+- claude.yml `claude-coderabbit` / `claude-copilot` job 복원 (allowed_bots 패턴)
+- WM CLAUDE.md § AI Native 자동 폐쇄 루프 도식 갱신
