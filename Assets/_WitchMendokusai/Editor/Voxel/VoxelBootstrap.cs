@@ -11,7 +11,7 @@ namespace WitchMendokusai
 	/// </summary>
 	public static class VoxelBootstrap
 	{
-		private const string RESOURCES_FOLDER = "Assets/_WitchMendokusai/Core/Scripts/Voxel/Resources";
+		private const string RESOURCES_FOLDER = "Assets/_WitchMendokusai/Domain/Voxel/Scripts/Resources";
 		private const string BLOCKS_FOLDER = RESOURCES_FOLDER + "/Blocks";
 		private const string MATERIAL_PATH = RESOURCES_FOLDER + "/VoxelMaterial.mat";
 		private const string SHADER_NAME = "WM/VoxelVertexColor";
