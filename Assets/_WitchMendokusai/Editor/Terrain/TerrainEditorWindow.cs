@@ -13,7 +13,7 @@ namespace WitchMendokusai
 	/// </summary>
 	public class TerrainEditorWindow : EditorWindow
 	{
-		private const string TERRAIN_FOLDER = "Assets/_WitchMendokusai/Core/Scripts/Terrain";
+		private const string TERRAIN_FOLDER = "Assets/_WitchMendokusai/Domain/Terrain/Scripts";
 		private const string BIOMES_FOLDER = TERRAIN_FOLDER + "/Biomes";
 
 		[MenuItem("WM/Terrain Editor")]
@@ -440,7 +440,7 @@ namespace WitchMendokusai
 
 		private static BlockData LoadBlock(string fileName)
 		{
-			string path = $"Assets/_WitchMendokusai/Core/Scripts/Voxel/Resources/Blocks/{fileName}.asset";
+			string path = $"Assets/_WitchMendokusai/Domain/Voxel/Scripts/Resources/Blocks/{fileName}.asset";
 			return AssetDatabase.LoadAssetAtPath<BlockData>(path);
 		}
 

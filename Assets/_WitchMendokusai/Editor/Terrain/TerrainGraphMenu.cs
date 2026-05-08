@@ -12,7 +12,7 @@ namespace WitchMendokusai
 	/// </summary>
 	public static class TerrainGraphMenu
 	{
-		private const string TERRAIN_FOLDER = "Assets/_WitchMendokusai/Core/Scripts/Terrain";
+		private const string TERRAIN_FOLDER = "Assets/_WitchMendokusai/Domain/Terrain/Scripts";
 		private const string GRAPH_PATH = TERRAIN_FOLDER + "/DefaultTerrainGraph.asset";
 		private const string DEMO_GRAPH_PATH = TERRAIN_FOLDER + "/ThresholdLerpDemoGraph.asset";
 
