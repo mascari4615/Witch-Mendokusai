@@ -4,9 +4,9 @@ using UnityEngine.Rendering;
 namespace WitchMendokusai
 {
 	// 시간대별 하늘·라이팅 lerp. WorldClock 의 시간 → SkyPresetSO 의 Gradient 평가
-	// → Skybox material property + DirLight + Fog/Ambient 적용.
+	// → Skybox material property + DirLight + Fog/Ambient + Shader Global 적용.
 	// SO 값 캐싱 X — 인스펙터 런타임 변경 즉시 반영.
-	// (TASK-WM-054-C C1: Skybox 만 / C2: DirLight / C3a: Fog/Ambient)
+	// (TASK-WM-054-C C1: Skybox 만 / C2: DirLight / C3a: Fog/Ambient / C6: Shader Modding Contract)
 	public class SkyDirector : Singleton<SkyDirector>
 	{
 		[field: SerializeField] public SkyPresetSO ActivePreset { get; set; }
@@ -30,6 +30,17 @@ namespace WitchMendokusai
 		private static readonly int SunDiscColorId = Shader.PropertyToID("_SunDiscColor");
 		private static readonly int SunDirectionId = Shader.PropertyToID("_SunDirection");
 		private static readonly int StarAlphaId = Shader.PropertyToID("_StarAlpha");
+
+		// Shader Modding Contract (C6) — 모더 ShaderGraph 가 받을 standard global uniform 7개.
+		// 매 프레임 SetGlobal 로 노출 → WM-058 P2-B SkyboxSlot 가 RenderSettings.skybox 교체 시
+		// 모더 Material 이 자동으로 base 시간대 색감 받음 (base+overlay 합성 모델).
+		private static readonly int WMSkyZenithId = Shader.PropertyToID("_WMSkyZenith");
+		private static readonly int WMSkyHorizonId = Shader.PropertyToID("_WMSkyHorizon");
+		private static readonly int WMSkySunId = Shader.PropertyToID("_WMSkySun");
+		private static readonly int WMSkyStarAlphaId = Shader.PropertyToID("_WMSkyStarAlpha");
+		private static readonly int WMSunAltitudeId = Shader.PropertyToID("_WMSunAltitude");
+		private static readonly int WMSunDirectionId = Shader.PropertyToID("_WMSunDirection");
+		private static readonly int WMNormalizedTimeId = Shader.PropertyToID("_WMNormalizedTime");
 
 		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
 		private static void EnsureSingletonOnPlay()
@@ -120,12 +131,29 @@ namespace WitchMendokusai
 			cachedNormalizedTime = normalizedTime;
 
 			ApplySky(normalizedTime);
+			ApplyShaderGlobals(normalizedTime);
 
 			if (applyDirectionalLight == true)
 				ApplyDirectionalLight(normalizedTime);
 
 			if (applyEnvironment == true)
 				ApplyEnvironment(normalizedTime);
+		}
+
+		// 모더 ShaderGraph contract — SkyboxMaterial 유무와 무관하게 항상 노출.
+		// 모더 Skybox/Water/PostFX 등 셰이더가 _WM* 글로벌 받아 시간대 색감 합성.
+		private void ApplyShaderGlobals(float normalizedTime)
+		{
+			Shader.SetGlobalColor(WMSkyZenithId, ActivePreset.ZenithColor.Evaluate(normalizedTime));
+			Shader.SetGlobalColor(WMSkyHorizonId, ActivePreset.HorizonColor.Evaluate(normalizedTime));
+			Shader.SetGlobalColor(WMSkySunId, ActivePreset.SunDiscColor.Evaluate(normalizedTime));
+			Shader.SetGlobalFloat(WMSkyStarAlphaId, ActivePreset.StarAlpha.Evaluate(normalizedTime));
+
+			float altitude = ActivePreset.SunAltitude.Evaluate(normalizedTime);
+			Shader.SetGlobalFloat(WMSunAltitudeId, altitude);
+			Shader.SetGlobalVector(WMSunDirectionId, ComputeSunDirection(altitude));
+
+			Shader.SetGlobalFloat(WMNormalizedTimeId, normalizedTime);
 		}
 
 		private static float ComputeNormalizedTime(WorldClock worldClock)
@@ -215,6 +243,7 @@ namespace WitchMendokusai
 		{
 			cachedNormalizedTime = -1f;
 			ApplySky(t);
+			ApplyShaderGlobals(t);
 			if (applyDirectionalLight == true)
 				ApplyDirectionalLight(t);
 			if (applyEnvironment == true)
