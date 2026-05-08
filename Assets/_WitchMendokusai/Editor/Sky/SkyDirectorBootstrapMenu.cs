@@ -106,6 +106,13 @@ namespace WitchMendokusai
 					changed = true;
 				}
 
+				SerializedProperty applyEnvProp = serializedObject.FindProperty("applyEnvironment");
+				if (applyEnvProp != null && applyEnvProp.boolValue == false)
+				{
+					applyEnvProp.boolValue = true;
+					changed = true;
+				}
+
 				if (changed == false)
 					return;
 
