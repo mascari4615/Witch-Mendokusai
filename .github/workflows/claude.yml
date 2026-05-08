@@ -13,8 +13,10 @@ on:
     types: [submitted]
 
 concurrency:
+  # cancel-in-progress: true — auto-rebase 가 매 main push 마다 모든 open PR 에 update-branch 를 푸시 → synchronize 폭발.
+  # 같은 PR 의 이전 in_progress review 는 stale (어차피 최신 sync 가 머지될 상태) → 마지막 sync 만 review.
   group: ${{ github.workflow }}-${{ github.event.issue.number || github.event.pull_request.number }}
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   claude:
