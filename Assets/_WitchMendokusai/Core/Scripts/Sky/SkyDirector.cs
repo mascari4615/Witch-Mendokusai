@@ -21,7 +21,6 @@ namespace WitchMendokusai
 
 		[Header("Debug")]
 		[SerializeField] private bool debugLogStartup = false;
-		[SerializeField] private bool debugLogSkyboxRestore = false;
 
 		private Light directionalLight;
 		private float cachedNormalizedTime = -1f;
@@ -62,16 +61,8 @@ namespace WitchMendokusai
 			}
 		}
 
-		// 씬 전환 시 Unity 가 RenderSettings.skybox 를 그 씬의 Lighting Settings Skybox Material 로 자동 reset.
-		// 매 프레임 guard 로 SkyboxGradient 복구. (근본 fix = 모든 씬의 Lighting Settings 의 Skybox Material 변경 — follow-up)
 		private void Update()
 		{
-			if (RenderSettings.skybox != SkyboxMaterial && SkyboxMaterial != null)
-			{
-				if (debugLogSkyboxRestore == true)
-					Debug.Log($"[SkyDirector] RenderSettings.skybox 가 '{(RenderSettings.skybox != null ? RenderSettings.skybox.name : "null")}' 로 변경 → SkyboxGradient 복구");
-				RenderSettings.skybox = SkyboxMaterial;
-			}
 			ApplyPreset(force: false);
 		}
 
