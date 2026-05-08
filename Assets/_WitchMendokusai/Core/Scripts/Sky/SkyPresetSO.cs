@@ -43,6 +43,25 @@ namespace WitchMendokusai
 		[field: Tooltip("Fog density 시간대별 (ExponentialSquared 권장 0.005~0.02)")]
 		[field: SerializeField] public AnimationCurve FogDensity { get; private set; } = DefaultFogDensity();
 
+		[field: Header("Cloud (C5)")]
+		[field: Tooltip("구름 색 시간대별 (정오 흰 / sunset 분홍 / 밤 어두운 회보라)")]
+		[field: SerializeField] public Gradient CloudColor { get; private set; } = DefaultCloudColor();
+
+		[field: Tooltip("구름 양 (0=없음, 1=가득). 시간대별 흐림 정도.")]
+		[field: SerializeField] public AnimationCurve CloudCoverage { get; private set; } = DefaultCloudCoverage();
+
+		[field: Tooltip("구름이 시작하는 수평선 기준 높이 (0=수평선, 1=천정)")]
+		[field: SerializeField, Range(0f, 0.8f)] public float CloudHeight { get; private set; } = 0.05f;
+
+		[field: Tooltip("구름 noise 크기 (작을수록 큰 구름 덩어리)")]
+		[field: SerializeField, Range(0.5f, 20f)] public float CloudScale { get; private set; } = 4f;
+
+		[field: Tooltip("구름 흐름 속도 (0=정지, 0.5=빠름)")]
+		[field: SerializeField, Range(0f, 0.5f)] public float CloudSpeed { get; private set; } = 0.05f;
+
+		[field: Tooltip("구름 가장자리 부드러움")]
+		[field: SerializeField, Range(0.001f, 0.5f)] public float CloudSoftness { get; private set; } = 0.15f;
+
 		// ─── 모동숲 디폴트 색 (사용자 인스펙터 조정 전제) ───
 
 		private static Gradient DefaultZenith()
@@ -148,6 +167,29 @@ namespace WitchMendokusai
 			curve.AddKey(0.50f, 0.005f); // 정오 맑음
 			curve.AddKey(0.78f, 0.010f); // sunset 약간
 			curve.AddKey(1.00f, 0.012f);
+			return curve;
+		}
+
+		private static Gradient DefaultCloudColor()
+		{
+			return MakeGradient(
+				(0.00f, new Color(0.30f, 0.28f, 0.45f)),  // 한밤 어두운 회보라
+				(0.22f, new Color(0.95f, 0.80f, 0.85f)),  // dawn 분홍빛 흰
+				(0.50f, new Color(1.00f, 1.00f, 1.00f)),  // 정오 흰
+				(0.78f, new Color(1.00f, 0.65f, 0.55f)),  // sunset 분홍빛 주황
+				(0.88f, new Color(0.45f, 0.35f, 0.55f)),  // twilight
+				(1.00f, new Color(0.30f, 0.28f, 0.45f))
+			);
+		}
+
+		private static AnimationCurve DefaultCloudCoverage()
+		{
+			AnimationCurve curve = new AnimationCurve();
+			curve.AddKey(0.00f, 0.30f); // 한밤 옅음
+			curve.AddKey(0.20f, 0.50f); // dawn 적당
+			curve.AddKey(0.50f, 0.40f); // 정오 모동숲 톤 (가벼운 구름)
+			curve.AddKey(0.78f, 0.45f); // sunset 약간
+			curve.AddKey(1.00f, 0.30f);
 			return curve;
 		}
 
