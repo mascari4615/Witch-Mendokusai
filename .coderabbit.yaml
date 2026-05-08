@@ -2,6 +2,11 @@
 # 코드 리뷰 룰의 정본은 WitchMendokusai/CLAUDE.md — CodeRabbit 이 자동 픽업.
 # 본 yaml 은 CodeRabbit 자체에 대한 메타 설정만 (language, profile 등).
 # https://docs.coderabbit.ai/knowledge-base/code-guidelines
+
+# 2026-05-08 (TASK-WM-062 sub-G): 자동 review + chat 비활성화.
+# 사유: Claude primary review (claude.yml claude-review job) 도입 후 secondary 가
+# 중복 + 무료 플랜 45분 쿨타임으로 게이트 의미 빠짐. 다중 AI primary review = 노이즈
+# + 의견 충돌 + fix-loop 비효율. 수동 invoke (`@coderabbitai review`) 는 가능.
 language: "ko-KR"
 
 reviews:
@@ -12,8 +17,8 @@ reviews:
   review_status: true
   collapse_walkthrough: false
   auto_review:
-    enabled: true
-    drafts: true
+    enabled: false
+    drafts: false
 
 chat:
-  auto_reply: true
+  auto_reply: false
