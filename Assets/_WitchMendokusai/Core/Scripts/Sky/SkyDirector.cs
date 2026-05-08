@@ -14,7 +14,7 @@ namespace WitchMendokusai
 
 		[Header("C2 / C3a — 단계별 활성")]
 		[SerializeField] private bool applyDirectionalLight = true;
-		[SerializeField] private bool applyEnvironment = false;
+		[SerializeField] private bool applyEnvironment = true;
 
 		[Header("C2 — Sun Rotation")]
 		[SerializeField, Range(0f, 360f)] private float sunAzimuth = 30f;
@@ -188,7 +188,11 @@ namespace WitchMendokusai
 		{
 			RenderSettings.ambientMode = AmbientMode.Flat;
 			RenderSettings.ambientLight = ActivePreset.AmbientColor.Evaluate(t);
+
+			RenderSettings.fog = true;
+			RenderSettings.fogMode = ActivePreset.FogMode;
 			RenderSettings.fogColor = ActivePreset.FogColor.Evaluate(t);
+			RenderSettings.fogDensity = ActivePreset.FogDensity.Evaluate(t);
 		}
 
 		[ContextMenu("Debug/Reapply Now")]

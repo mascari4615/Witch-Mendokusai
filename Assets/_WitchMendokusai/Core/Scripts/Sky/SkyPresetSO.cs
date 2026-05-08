@@ -36,6 +36,13 @@ namespace WitchMendokusai
 		[field: Tooltip("PostFX saturation (-100~100). C3b 에서 사용 (sub-C 후속)")]
 		[field: SerializeField] public AnimationCurve PostSaturation { get; private set; } = AnimationCurve.Constant(0f, 1f, 0f);
 
+		[field: Header("Fog (C3a)")]
+		[field: Tooltip("Fog mode (Linear / Exponential / ExponentialSquared 권장)")]
+		[field: SerializeField] public FogMode FogMode { get; private set; } = UnityEngine.FogMode.ExponentialSquared;
+
+		[field: Tooltip("Fog density 시간대별 (ExponentialSquared 권장 0.005~0.02)")]
+		[field: SerializeField] public AnimationCurve FogDensity { get; private set; } = DefaultFogDensity();
+
 		// ─── 모동숲 디폴트 색 (사용자 인스펙터 조정 전제) ───
 
 		private static Gradient DefaultZenith()
@@ -130,6 +137,17 @@ namespace WitchMendokusai
 			curve.AddKey(0.50f, 1.00f);  // 정오 천정
 			curve.AddKey(0.75f, 0.00f);  // sunset 수평선
 			curve.AddKey(1.00f, -0.30f);
+			return curve;
+		}
+
+		private static AnimationCurve DefaultFogDensity()
+		{
+			AnimationCurve curve = new AnimationCurve();
+			curve.AddKey(0.00f, 0.012f); // 한밤 약간 진한 안개
+			curve.AddKey(0.20f, 0.018f); // dawn 아침안개 가장 진함
+			curve.AddKey(0.50f, 0.005f); // 정오 맑음
+			curve.AddKey(0.78f, 0.010f); // sunset 약간
+			curve.AddKey(1.00f, 0.012f);
 			return curve;
 		}
 
