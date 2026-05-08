@@ -13,8 +13,11 @@ namespace WitchMendokusai
 		[field: SerializeField] public Material SkyboxMaterial { get; private set; }
 
 		[Header("C2 / C3a — 단계별 활성")]
-		[SerializeField] private bool applyDirectionalLight = false;
+		[SerializeField] private bool applyDirectionalLight = true;
 		[SerializeField] private bool applyEnvironment = false;
+
+		[Header("C2 — Sun Rotation")]
+		[SerializeField, Range(0f, 360f)] private float sunAzimuth = 30f;
 
 		[Header("Debug")]
 		[SerializeField] private bool debugLogStartup = false;
@@ -178,7 +181,7 @@ namespace WitchMendokusai
 
 			float altitude = ActivePreset.SunAltitude.Evaluate(t);
 			float pitchDegrees = altitude * 90f;
-			directionalLight.transform.rotation = Quaternion.Euler(pitchDegrees, 30f, 0f);
+			directionalLight.transform.rotation = Quaternion.Euler(pitchDegrees, sunAzimuth, 0f);
 		}
 
 		private void ApplyEnvironment(float t)
