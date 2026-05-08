@@ -18,7 +18,7 @@ namespace WitchMendokusai
 		// 작은 입력 (16) 은 Point upscale, 큰 입력 (64+) 은 nearest-neighbor down — pixel art 미감 보존.
 		public const int TILE_SIZE = 32;
 		public const int TILES_PER_ROW = 16;
-		public const string ATLAS_PNG_PATH = "Assets/_WitchMendokusai/Core/Scripts/Voxel/Resources/BlockAtlas.png";
+		public const string ATLAS_PNG_PATH = "Assets/_WitchMendokusai/Domain/Voxel/Scripts/Resources/BlockAtlas.png";
 		public const string VOXEL_SHADER_NAME = "WM/VoxelVertexColor";
 		public const string MATERIAL_TEXTURE_PROPERTY = "_MainTex";
 
