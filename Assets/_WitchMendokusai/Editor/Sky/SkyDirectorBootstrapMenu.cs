@@ -90,14 +90,28 @@ namespace WitchMendokusai
 					return;
 
 				SerializedObject serializedObject = new SerializedObject(skyDirector);
+				bool changed = false;
+
 				SerializedProperty dontDestroyProp = serializedObject.FindProperty("dontDestroyOnLoad");
-				if (dontDestroyProp == null || dontDestroyProp.boolValue == true)
+				if (dontDestroyProp != null && dontDestroyProp.boolValue == false)
+				{
+					dontDestroyProp.boolValue = true;
+					changed = true;
+				}
+
+				SerializedProperty applyDirLightProp = serializedObject.FindProperty("applyDirectionalLight");
+				if (applyDirLightProp != null && applyDirLightProp.boolValue == false)
+				{
+					applyDirLightProp.boolValue = true;
+					changed = true;
+				}
+
+				if (changed == false)
 					return;
 
-				dontDestroyProp.boolValue = true;
 				serializedObject.ApplyModifiedProperties();
 				PrefabUtility.SaveAsPrefabAsset(prefabRoot, PREFAB_PATH);
-				Debug.Log($"[SkyDirectorBootstrap] Updated {PREFAB_PATH} (dontDestroyOnLoad=true)");
+				Debug.Log($"[SkyDirectorBootstrap] Updated {PREFAB_PATH}");
 			}
 			finally
 			{
