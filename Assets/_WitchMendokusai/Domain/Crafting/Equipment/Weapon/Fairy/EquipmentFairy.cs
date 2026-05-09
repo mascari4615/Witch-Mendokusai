@@ -73,7 +73,7 @@ namespace WitchMendokusai
 				g.transform.position = spawnPosition;
 
 				if (g.TryGetComponent(out SkillObject skillObject))
-					skillObject.InitContext(new SkillContext(PlayerProvider.Instance.Current.Object));
+					skillObject.InitContext(new SkillContext(PlayerProvider.Instance.CurrentObject));
 
 				if (g.TryGetComponent(out DamagingObject damagingObject))
 					damagingObject.SetDamageBonus(damageBonus);

@@ -55,7 +55,7 @@ namespace WitchMendokusai
 			transform.position = PlayerProvider.Instance.Current.transform.position;
 			// transform.Rotate(0, rotateSpeed * Time.deltaTime, 0);
 
-			transform.rotation = PlayerProvider.Instance.Current.Object.UnitMovement.IsLookingRight
+			transform.rotation = PlayerProvider.Instance.CurrentObject.UnitMovement.IsLookingRight
 				? Quaternion.Euler(0, 0, 0)
 				: Quaternion.Euler(0, 180, 0);
 		}
@@ -80,7 +80,7 @@ namespace WitchMendokusai
 		private IEnumerator AttackLoop()
 		{
 			WaitForSeconds wait = new WaitForSeconds(EachAttackDelay);
-			bool playerWasLookingRight = PlayerProvider.Instance.Current.Object.UnitMovement.IsLookingRight;
+			bool playerWasLookingRight = PlayerProvider.Instance.CurrentObject.UnitMovement.IsLookingRight;
 			for (int i = 0; i < swordTransforms.Count; i++)
 			{
 				Attack(swordTransforms[i], i);
@@ -108,7 +108,7 @@ namespace WitchMendokusai
 					g.transform.Rotate(0, 180, 0);
 
 				if (g.TryGetComponent(out SkillObject skillObject))
-					skillObject.InitContext(new SkillContext(PlayerProvider.Instance.Current.Object));
+					skillObject.InitContext(new SkillContext(PlayerProvider.Instance.CurrentObject));
 
 				if (g.GetComponentInChildren<DamagingObject>() is DamagingObject damagingObject)
 					damagingObject.SetDamageBonus(damageBonus);

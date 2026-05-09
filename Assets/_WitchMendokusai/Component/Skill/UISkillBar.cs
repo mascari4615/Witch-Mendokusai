@@ -27,7 +27,7 @@ namespace WitchMendokusai
 		{
 			int skillCount = 0;
 
-			var skills = PlayerProvider.Instance.Current.Object.SkillHandler.SkillDic.Values;
+			var skills = PlayerProvider.Instance.CurrentObject.SkillHandler.SkillDic.Values;
 			foreach (Skill skill in skills)
 			{
 				curSkillSlots[skillCount].SetSlot(skill.Data);

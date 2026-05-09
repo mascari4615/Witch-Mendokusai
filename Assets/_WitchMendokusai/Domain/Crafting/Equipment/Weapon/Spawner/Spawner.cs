@@ -68,7 +68,7 @@ namespace WitchMendokusai
 				Vector3 spawnPosition = GetSpawnPosition();
 				GameObject g = ObjectPoolManager.Instance.Spawn(prefabToSpawn, transform.position + spawnPosition, Quaternion.identity);
 				if (g.TryGetComponent(out SkillObject skillObject))
-					skillObject.InitContext(new SkillContext(PlayerProvider.Instance.Current.Object));
+					skillObject.InitContext(new SkillContext(PlayerProvider.Instance.CurrentObject));
 
 				if (g.GetComponentInChildren<DamagingObject>() is DamagingObject damagingObject)
 					damagingObject.SetDamageBonus(damageBonus);
