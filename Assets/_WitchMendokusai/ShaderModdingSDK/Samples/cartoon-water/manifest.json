@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "name": "Cartoon Water",
+  "author": "Mascari4615",
+  "version": "0.1.0",
+  "description": "Water sample — flat 카툰 톤 + sin wave 파동 + 흰 거품 (foam) + _WMSkyHorizon 옵션 mix",
+  "bundleFile": "cartoon-water.shaderbundle",
+  "slots": [
+    {
+      "id": "water",
+      "assetName": "CartoonWaterMaterial",
+      "blendMode": "replace",
+      "priority": 0
+    }
+  ]
+}
