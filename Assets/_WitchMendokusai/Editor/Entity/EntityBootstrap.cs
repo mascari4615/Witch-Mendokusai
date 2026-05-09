@@ -13,7 +13,7 @@ namespace WitchMendokusai
 	/// </summary>
 	public static class EntityBootstrap
 	{
-		private const string ENTITY_FOLDER = "Assets/_WitchMendokusai/Content/Entity";
+		private const string ENTITY_FOLDER = "Assets/_WitchMendokusai/Domain/World/Entity";
 		private const string PREFABS_FOLDER = ENTITY_FOLDER + "/Prefabs";
 
 		[MenuItem("WM/Entity/Generate Default Entities")]
