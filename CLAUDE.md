@@ -375,17 +375,25 @@ trunk-based 전환 (TASK-WM-063) 으로 **protection 자체 폐기** — pre-pus
 gh api -X DELETE repos/Mascari4615/Witch-Mendokusai/branches/main/protection
 ```
 
-#### 폐기된 게이트의 software-side 보강
+#### 폐기된 게이트의 대체
 
 protection 폐기로 사라지는 안전망 + 대체:
 
 | 사라진 게이트 | 위험 | 대체 |
 | --- | --- | --- |
-| `Check Typos` required | 오타 직접 push | code-quality.yml 의 push 트리거 + claude-audit 본문 (별 가치는 작음 — 오타는 audit 가 잡음) |
-| `claude-review` required | (이미 의미 X — 본 TASK 가 폐기) | claude-audit (post-push) |
-| Force push 차단 | 실수 force push → main 히스토리 손실 | autopilot.md § 안전 가드 3 「force-push 금지」 + 일반 세션도 동일 룰. 사고 시 `git reflog` 복구 (24-90일) |
+| `Check Typos` required | 오타 직접 push | code-quality.yml 의 push 트리거 (workflow 자체는 그대로 동작) + claude-audit 가 audit 시점에 잡음 |
+| `claude-review` required | (이미 의미 X — 본 TASK 가 polish job 자체 폐기) | claude-audit (post-push) |
+| Force push 차단 | 실수 force push → main 히스토리 손실 | **절대 금지 룰** — autopilot.md § 안전 가드 3 「force-push 금지」 + 일반 세션도 동일. 모든 push 는 fast-forward only |
 
-force push 는 *git 룰 위반* 으로 다룸 — software 측 가드. 이런 사고는 *드물게 발생하면 reflog 복구* 가 정합 (사용자 risk tolerance: "나중에 뭐 복구하든지").
+#### Force push — 절대 금지
+
+`main` 에 대한 `git push --force` / `git push -f` / `git push --force-with-lease` **절대 금지**. 어떤 상황에서도 X.
+
+- 평상 시 main 직접 push 는 *fast-forward only* — local main 이 origin/main 후속이어야 push 가능
+- 충돌 / divergence 발생 시 → `git pull --rebase` 또는 worktree 새로 만들어 origin/main 기반으로 cherry-pick. *force push 로 우회 X*
+- main 히스토리는 단방향. 손상 시 다른 사용자/세션의 local clone 도 깨짐 (clone divergence)
+
+reflog 복구는 *사고 대응 최후 수단* — 정상 흐름의 일부 X. force push 가 *실수로* 발생한 직후 즉시 인지·복구 시에만 의미. 사용자/Claude 누구도 *의도적* force push 시도 금지.
 
 ### Post-push 정리
 
