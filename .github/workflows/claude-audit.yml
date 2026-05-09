@@ -79,30 +79,50 @@ jobs:
             mv /tmp/commit-truncated.txt /tmp/commit.txt
           fi
 
-          # Audit prompt — 마지막 줄에 정해진 포맷 강제
-          PROMPT='이 commit 을 audit 한다. 검토 영역:
+          # Audit prompt — v2: 형식 강제 + 메타 금지 + stdin 명시
+          PROMPT='# 임무: WitchMendokusai commit audit
 
-          1. 버그 / 논리 오류 / edge case
+          stdin 으로 들어오는 git commit 내용을 audit 한다. **diff 의 코드/문서 자체만** 검토 — 본 워크플로 / audit 시스템 / prompt 자체에 대한 메타 코멘트는 절대 하지 X.
+
+          ## 검토 영역
+
+          1. 버그 / 논리 오류 / edge case (실제 diff 의 코드)
           2. 보안 (injection, 권한, 데이터 노출)
           3. 성능 (알고리즘, 메모리)
-          4. WitchMendokusai CLAUDE.md 룰 (`.cs` 변경 시):
-             - Allman 중괄호
+          4. WitchMendokusai CLAUDE.md 룰 (`.cs` 파일 변경 시만):
+             - Allman 중괄호 (항상 새 줄)
              - `== false` (`!` 연산자 금지)
              - `var` 금지 (명시적 타입)
-             - 변수명 풀네임
+             - 변수명 풀네임 (for 의 i, j 외)
+             - 상수 UPPER_SNAKE_CASE
              - FastFail (TryGet/null 체크/기본값으로 증상 덮기 X)
              - 수치 SO/[SerializeField]/Variable<T>
-             - InputManager.RegisterInputEvent 경유
+             - InputManager.RegisterInputEvent 경유 (`Keyboard.current` 직접 X)
              - MenuItem path top-level `WM/`
 
-          원칙:
-          - Actionable 한 지적만 — nitpick/주관 X
-          - 큰 아키텍처 지적은 Issue 본문 「영향」 에만 (revert 제안 X)
-          - chore/docs 만 변경 = 룰 grep 면제
+          ## 원칙
 
-          출력 형식 (반드시 마지막 줄 둘 중 하나):
-          - 문제 *없음* → 마지막 줄 = `AUDIT_RESULT: PASS`
-          - 문제 *발견* → 본문에 actionable 지적 (한 항목씩 bullet) + 마지막 줄 = `AUDIT_RESULT: FAIL`'
+          - Actionable 한 지적만 — nitpick/주관/스타일 X
+          - 큰 아키텍처 지적은 「영향」 섹션에만 (revert 제안 X)
+          - chore/docs/yaml/.md 만 변경 = 룰 grep 면제 → PASS
+          - 의심 약함 = PASS (false positive 비용 ↑)
+
+          ## 출력 형식 (절대 룰)
+
+          모든 응답은 **반드시 마지막 줄** 이 다음 두 중 하나:
+
+          ```
+          AUDIT_RESULT: PASS
+          ```
+          또는
+          ```
+          AUDIT_RESULT: FAIL
+          ```
+
+          - PASS = 본문 비워둠 또는 짧게 "no issue"
+          - FAIL = 본문에 actionable 지적 (한 항목씩 `-` bullet) + 마지막 줄 마커
+
+          마커 외 다른 형식 / 메타 / 부연설명 금지.'
 
           # CLI 실행
           echo "=== Running audit ==="
