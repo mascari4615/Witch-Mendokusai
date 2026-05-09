@@ -4,8 +4,9 @@ using UnityEngine.UIElements;
 namespace WitchMendokusai.NodeGraph.Runtime
 {
 	/// <summary>
-	/// 단일 노드 비주얼 (런타임). H1: generic 라벨+박스 — 노드 타입 이름 표시.
-	/// H3 (Provider 패턴) 진입 시: NodeRuntimeProviderRegistry lookup → 도메인별 커스텀 VisualElement 로 본문 교체.
+	/// 단일 노드 비주얼 (런타임). 타이틀 라벨 (노드 타입 이름) + body (Provider 가 채움).
+	/// H3 (2026-05-09): Bind 시 <see cref="NodeRuntimeProviderRegistry"/> lookup → Provider.Build 결과를 body 에 주입.
+	/// 미등록 타입은 <see cref="DefaultNodeRuntimeViewProvider"/> 가 null 반환 → body 비어있음 (타이틀만).
 	/// </summary>
 	public class NodeRuntimeElement : VisualElement
 	{
@@ -54,14 +55,23 @@ namespace WitchMendokusai.NodeGraph.Runtime
 			Add(body);
 		}
 
-		/// <summary>노드 데이터 바인딩 — 라벨 갱신. H3 진입 시 Provider 가 body 교체.</summary>
+		/// <summary>노드 데이터 바인딩 — 타이틀 라벨 + Provider 로 body 채움. 호출마다 body 전체 재구성.</summary>
 		public void Bind(NodeBase node)
 		{
 			Node = node;
 			titleLabel.text = node == null ? "?" : node.GetType().Name;
+
+			body.Clear();
+			if (node == null)
+				return;
+
+			INodeRuntimeViewProvider provider = NodeRuntimeProviderRegistry.GetProvider(node.GetType());
+			VisualElement bodyView = provider.Build(node);
+			if (bodyView != null)
+				body.Add(bodyView);
 		}
 
-		/// <summary>H3 Provider 패턴 진입 시 — body 안에 도메인별 비주얼 주입.</summary>
+		/// <summary>외부에서 body 직접 조작 시 (Provider 우회) — 일반 사용처는 Bind 로.</summary>
 		public VisualElement Body => body;
 	}
 }
