@@ -79,6 +79,11 @@ namespace WitchMendokusai
 			File.Move(sourceBundlePath, targetBundlePath);
 
 			string manifestSource = Path.Combine(sourceFolderPath, "manifest.json");
+			if (File.Exists(manifestSource) == false)
+			{
+				Debug.LogError($"[ShaderPackBuilder] manifest.json missing in {sourceFolderPath} — run 'WM/Setup/Recreate {packId} Sample' menu 또는 Editor reimport 후 재시도.");
+				return;
+			}
 			string manifestTarget = Path.Combine(outputRoot, "manifest.json");
 			File.Copy(manifestSource, manifestTarget, true);
 

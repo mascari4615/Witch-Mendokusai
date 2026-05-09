@@ -140,29 +140,8 @@ namespace WitchMendokusai
 			if (Directory.Exists(AURORA_FOLDER) == false)
 				Directory.CreateDirectory(AURORA_FOLDER);
 
-			Material auroraMaterial = AssetDatabase.LoadAssetAtPath<Material>(AURORA_MATERIAL_PATH);
-			if (auroraMaterial == null)
-			{
-				Shader auroraShader = AssetDatabase.LoadAssetAtPath<Shader>(AURORA_SHADER_PATH);
-				if (auroraShader == null)
-				{
-					// shader 가 아직 import 안 됨 — 다음 Domain Reload 에서 재시도. silent skip.
-					return;
-				}
-
-				auroraMaterial = new Material(auroraShader);
-				auroraMaterial.SetColor("_AuroraColor", new Color(0.30f, 1.00f, 0.60f, 1.00f));
-				auroraMaterial.SetFloat("_AuroraIntensity", 2.0f);
-				auroraMaterial.SetFloat("_AuroraHeight", 0.55f);
-				auroraMaterial.SetFloat("_AuroraThickness", 0.18f);
-				auroraMaterial.SetFloat("_AuroraWaveAmount", 0.08f);
-				auroraMaterial.SetFloat("_AuroraWaveSpeed", 1.0f);
-				auroraMaterial.SetFloat("_AuroraWaveFrequency", 8.0f);
-				AssetDatabase.CreateAsset(auroraMaterial, AURORA_MATERIAL_PATH);
-				EditorUtility.SetDirty(auroraMaterial);
-				Debug.Log($"[ShaderModdingSDK] Created sample Material {AURORA_MATERIAL_PATH}");
-			}
-
+			// manifest 먼저 작성 — shader import 진행 상태 무관. Builder 가 manifest 의존하니
+			// Material 생성 실패와 별개로 작성되어야 한다 (이중 Reload race 방지).
 			if (File.Exists(AURORA_MANIFEST_PATH) == false)
 			{
 				string auroraManifest = @"{
@@ -186,6 +165,30 @@ namespace WitchMendokusai
 				Debug.Log($"[ShaderModdingSDK] Created sample manifest {AURORA_MANIFEST_PATH}");
 			}
 
+			// Material 생성 — shader import 끝나야 가능. 안 되면 다음 Domain Reload 에서 재시도.
+			Material auroraMaterial = AssetDatabase.LoadAssetAtPath<Material>(AURORA_MATERIAL_PATH);
+			if (auroraMaterial == null)
+			{
+				Shader auroraShader = AssetDatabase.LoadAssetAtPath<Shader>(AURORA_SHADER_PATH);
+				if (auroraShader == null)
+				{
+					AssetDatabase.SaveAssets();
+					return;
+				}
+
+				auroraMaterial = new Material(auroraShader);
+				auroraMaterial.SetColor("_AuroraColor", new Color(0.30f, 1.00f, 0.60f, 1.00f));
+				auroraMaterial.SetFloat("_AuroraIntensity", 2.0f);
+				auroraMaterial.SetFloat("_AuroraHeight", 0.55f);
+				auroraMaterial.SetFloat("_AuroraThickness", 0.18f);
+				auroraMaterial.SetFloat("_AuroraWaveAmount", 0.08f);
+				auroraMaterial.SetFloat("_AuroraWaveSpeed", 1.0f);
+				auroraMaterial.SetFloat("_AuroraWaveFrequency", 8.0f);
+				AssetDatabase.CreateAsset(auroraMaterial, AURORA_MATERIAL_PATH);
+				EditorUtility.SetDirty(auroraMaterial);
+				Debug.Log($"[ShaderModdingSDK] Created sample Material {AURORA_MATERIAL_PATH}");
+			}
+
 			AssetDatabase.SaveAssets();
 			AssetDatabase.Refresh();
 		}
@@ -195,33 +198,7 @@ namespace WitchMendokusai
 			if (Directory.Exists(WATER_FOLDER) == false)
 				Directory.CreateDirectory(WATER_FOLDER);
 
-			Material waterMaterial = AssetDatabase.LoadAssetAtPath<Material>(WATER_MATERIAL_PATH);
-			if (waterMaterial == null)
-			{
-				Shader waterShader = AssetDatabase.LoadAssetAtPath<Shader>(WATER_SHADER_PATH);
-				if (waterShader == null)
-				{
-					// shader 가 아직 import 안 됨 — 다음 Domain Reload 에서 재시도. silent skip.
-					return;
-				}
-
-				waterMaterial = new Material(waterShader);
-				waterMaterial.SetColor("_DeepColor", new Color(0.05f, 0.30f, 0.45f, 1.0f));
-				waterMaterial.SetColor("_ShallowColor", new Color(0.40f, 0.85f, 0.95f, 1.0f));
-				waterMaterial.SetFloat("_DepthBlend", 0.6f);
-				waterMaterial.SetColor("_FoamColor", new Color(1.0f, 1.0f, 1.0f, 1.0f));
-				waterMaterial.SetFloat("_FoamIntensity", 1.0f);
-				waterMaterial.SetFloat("_FoamThreshold", 0.65f);
-				waterMaterial.SetFloat("_FoamSoftness", 0.08f);
-				waterMaterial.SetFloat("_WaveAmount", 0.06f);
-				waterMaterial.SetFloat("_WaveSpeed", 1.2f);
-				waterMaterial.SetFloat("_WaveFrequency", 12.0f);
-				waterMaterial.SetFloat("_SkyTintAmount", 0.25f);
-				AssetDatabase.CreateAsset(waterMaterial, WATER_MATERIAL_PATH);
-				EditorUtility.SetDirty(waterMaterial);
-				Debug.Log($"[ShaderModdingSDK] Created sample Material {WATER_MATERIAL_PATH}");
-			}
-
+			// manifest 먼저 (shader import 무관) — aurora-sky 패턴 정합.
 			if (File.Exists(WATER_MANIFEST_PATH) == false)
 			{
 				string waterManifest = @"{
@@ -243,6 +220,34 @@ namespace WitchMendokusai
 				File.WriteAllText(WATER_MANIFEST_PATH, waterManifest);
 				AssetDatabase.ImportAsset(WATER_MANIFEST_PATH);
 				Debug.Log($"[ShaderModdingSDK] Created sample manifest {WATER_MANIFEST_PATH}");
+			}
+
+			// Material 생성 — shader import 끝나야 가능. 안 되면 다음 Domain Reload 에서 재시도.
+			Material waterMaterial = AssetDatabase.LoadAssetAtPath<Material>(WATER_MATERIAL_PATH);
+			if (waterMaterial == null)
+			{
+				Shader waterShader = AssetDatabase.LoadAssetAtPath<Shader>(WATER_SHADER_PATH);
+				if (waterShader == null)
+				{
+					AssetDatabase.SaveAssets();
+					return;
+				}
+
+				waterMaterial = new Material(waterShader);
+				waterMaterial.SetColor("_DeepColor", new Color(0.05f, 0.30f, 0.45f, 1.0f));
+				waterMaterial.SetColor("_ShallowColor", new Color(0.40f, 0.85f, 0.95f, 1.0f));
+				waterMaterial.SetFloat("_DepthBlend", 0.6f);
+				waterMaterial.SetColor("_FoamColor", new Color(1.0f, 1.0f, 1.0f, 1.0f));
+				waterMaterial.SetFloat("_FoamIntensity", 1.0f);
+				waterMaterial.SetFloat("_FoamThreshold", 0.65f);
+				waterMaterial.SetFloat("_FoamSoftness", 0.08f);
+				waterMaterial.SetFloat("_WaveAmount", 0.06f);
+				waterMaterial.SetFloat("_WaveSpeed", 1.2f);
+				waterMaterial.SetFloat("_WaveFrequency", 12.0f);
+				waterMaterial.SetFloat("_SkyTintAmount", 0.25f);
+				AssetDatabase.CreateAsset(waterMaterial, WATER_MATERIAL_PATH);
+				EditorUtility.SetDirty(waterMaterial);
+				Debug.Log($"[ShaderModdingSDK] Created sample Material {WATER_MATERIAL_PATH}");
 			}
 
 			AssetDatabase.SaveAssets();
