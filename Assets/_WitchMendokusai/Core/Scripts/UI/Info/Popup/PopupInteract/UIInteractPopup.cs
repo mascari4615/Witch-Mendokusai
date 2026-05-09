@@ -27,7 +27,7 @@ namespace WitchMendokusai
 
 		public void UpdatePopup()
 		{
-			Vector3 playerPos = Player.Instance.transform.position;
+			Vector3 playerPos = PlayerRegistry.Instance.CurrentPlayer.transform.position;
 			float interactDistance = PlayerInteraction.InteractionDistance;
 
 			InteractiveObject nearestInteractive = WMHelper.GetNearest(InteractiveObject.ActiveInteractive, playerPos, interactDistance);
