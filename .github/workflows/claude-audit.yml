@@ -87,63 +87,130 @@ jobs:
             mv /tmp/commit-truncated.txt /tmp/commit.txt
           fi
 
-          # Audit prompt — v2: 형식 강제 + 메타 금지 + stdin 명시
-          PROMPT='# 임무: WitchMendokusai commit audit
+          # ===== TIER 1: Mechanical 룰 grep (결정적, 시각 스캔 의존 X) =====
+          # diff 의 added 라인 (+) 만 추출해서 새로 들어온 위반만 감지.
+          # 기존 main 의 잔재는 본 audit 영역 X (별 정리 task).
 
-          stdin 으로 들어오는 git commit 내용을 audit 한다. **diff 의 코드/문서 자체만** 검토 — 본 워크플로 / audit 시스템 / prompt 자체에 대한 메타 코멘트는 절대 하지 X.
+          ADDED_CS=$(git show "$SHA" -- '*.cs' | grep -E '^\+[^+]' || true)
 
-          ## 검토 영역
+          echo "=== Tier 1: Mechanical grep results ==="
+          MECHANICAL_VIOLATIONS=""
 
-          1. 버그 / 논리 오류 / edge case (실제 diff 의 코드)
+          # var 금지 (`var x = ...` 패턴)
+          VAR_HITS=$(echo "$ADDED_CS" | grep -nE '\bvar\s+\w+\s*=' || true)
+          if [ -n "$VAR_HITS" ]; then
+            echo "❌ var 금지 위반:"
+            echo "$VAR_HITS" | head -5
+            MECHANICAL_VIOLATIONS+="- \`var\` 금지 위반:\n$(echo "$VAR_HITS" | head -5 | sed 's/^/  /')\n"
+          fi
+
+          # ! 연산자 금지 (`if (!...)` `while (!...)` 패턴)
+          NOT_HITS=$(echo "$ADDED_CS" | grep -nE '(if|while)\s*\(\s*!' || true)
+          if [ -n "$NOT_HITS" ]; then
+            echo "❌ ! 연산자 금지 위반 (== false 사용):"
+            echo "$NOT_HITS" | head -5
+            MECHANICAL_VIOLATIONS+="- \`!\` 연산자 금지 위반 (\`== false\` 사용):\n$(echo "$NOT_HITS" | head -5 | sed 's/^/  /')\n"
+          fi
+
+          # 한 글자 변수명 금지 (i, j 외) — `int t = ...` 식
+          # 정확성: int/string/float/double/bool/<Type> 다음 공백 + 한 글자 + 공백 + =
+          ONELETTER_HITS=$(echo "$ADDED_CS" | grep -nE '\b(int|string|float|double|bool|long|char|byte|short)\s+[a-hk-z]\s*=' || true)
+          if [ -n "$ONELETTER_HITS" ]; then
+            echo "❌ 한 글자 변수명 위반 (i, j 외):"
+            echo "$ONELETTER_HITS" | head -5
+            MECHANICAL_VIOLATIONS+="- 한 글자 변수명 위반 (i, j 외):\n$(echo "$ONELETTER_HITS" | head -5 | sed 's/^/  /')\n"
+          fi
+
+          # 상수 UPPER_SNAKE_CASE — `const <Type> camelCase` 위반
+          CONST_HITS=$(echo "$ADDED_CS" | grep -nE 'const\s+\w+\s+[a-z][a-zA-Z]*\s*=' || true)
+          if [ -n "$CONST_HITS" ]; then
+            echo "❌ 상수 UPPER_SNAKE_CASE 위반:"
+            echo "$CONST_HITS" | head -5
+            MECHANICAL_VIOLATIONS+="- 상수 UPPER_SNAKE_CASE 위반:\n$(echo "$CONST_HITS" | head -5 | sed 's/^/  /')\n"
+          fi
+
+          # Keyboard.current / Mouse.current 직접 접근 (InputManager.cs 외)
+          # diff 의 file path 가 InputManager.cs 가 아니면 위반
+          KEYBOARD_HITS=$(git show "$SHA" --name-only | grep -E '\.cs$' | grep -v 'InputManager\.cs' | xargs -I {} sh -c "git show '$SHA':{} 2>/dev/null | grep -nE '(Keyboard|Mouse)\.current\b'" 2>/dev/null || true)
+          if [ -n "$KEYBOARD_HITS" ]; then
+            echo "❌ Keyboard.current / Mouse.current 직접 접근 위반:"
+            echo "$KEYBOARD_HITS" | head -5
+            MECHANICAL_VIOLATIONS+="- \`Keyboard.current\`/\`Mouse.current\` 직접 접근 (InputManager 외):\n$(echo "$KEYBOARD_HITS" | head -5 | sed 's/^/  /')\n"
+          fi
+
+          # MenuItem path top-level 위반 (WitchMendokusai/ 사용)
+          MENUITEM_HITS=$(echo "$ADDED_CS" | grep -nE 'MenuItem.*"WitchMendokusai/' || true)
+          if [ -n "$MENUITEM_HITS" ]; then
+            echo "❌ MenuItem path top-level 위반 (WM/ 사용해야):"
+            echo "$MENUITEM_HITS" | head -5
+            MECHANICAL_VIOLATIONS+="- MenuItem path top-level 위반 (\`WM/...\` 사용):\n$(echo "$MENUITEM_HITS" | head -5 | sed 's/^/  /')\n"
+          fi
+
+          if [ -z "$MECHANICAL_VIOLATIONS" ]; then
+            echo "✅ Mechanical 룰 위반 0"
+            MECHANICAL_RESULT="모든 mechanical 룰 통과 (var/!/한글자/UPPER_SNAKE/Keyboard.current/MenuItem)"
+          else
+            MECHANICAL_RESULT="$MECHANICAL_VIOLATIONS"
+          fi
+
+          # ===== TIER 2: Semantic 분석 (Claude) =====
+          # Tier 1 grep 결과를 Claude 에게 *사실 입력* 으로 주고, semantic 룰만 추가.
+          # mechanical 룰 catch 는 Tier 1 책임 — Claude 가 잊거나 시각 스캔 miss 해도 OK.
+
+          PROMPT="# 임무: WitchMendokusai commit audit (semantic)
+
+          Tier 1 (mechanical grep) 이 이미 결정적 룰 (var/!/한글자 변수명/UPPER_SNAKE/Keyboard.current/MenuItem) 을 검사함. 결과는 아래 「Mechanical 결과」 섹션 에 그대로 입력. 본인은 *사실로 받아들이고* 그 외 semantic 룰만 검사.
+
+          ## 본인이 검사할 영역 (semantic 만)
+
+          1. 버그 / 논리 오류 / edge case (실제 diff 의 코드 흐름)
           2. 보안 (injection, 권한, 데이터 노출)
           3. 성능 (알고리즘, 메모리)
-          4. WitchMendokusai CLAUDE.md 룰 (`.cs` 파일 변경 시만):
-             - Allman 중괄호 (항상 새 줄)
-             - `== false` (`!` 연산자 금지)
-             - `var` 금지 (명시적 타입)
-             - 변수명 풀네임 (for 의 i, j 외)
-             - 상수 UPPER_SNAKE_CASE
+          4. WitchMendokusai CLAUDE.md semantic 룰:
+             - Allman 중괄호 (항상 새 줄, 시각 검토)
              - FastFail (TryGet/null 체크/기본값으로 증상 덮기 X)
-             - 수치 SO/[SerializeField]/Variable<T>
-             - InputManager.RegisterInputEvent 경유 (`Keyboard.current` 직접 X)
-             - MenuItem path top-level `WM/`
+             - 수치 하드코딩 (SO/[SerializeField]/Variable<T> 미노출)
+             - 이벤트/델리게이트 \`delegate { }\` 초기화 안 한 케이스
+             - InputManager.RegisterInputEvent 경유 안 한 입력 이벤트 (Tier 1 의 Keyboard.current grep 보다 더 넓은 영역)
 
           ## 원칙
 
           - Actionable 한 지적만 — nitpick/주관/스타일 X
           - 큰 아키텍처 지적은 「영향」 섹션에만 (revert 제안 X)
-          - chore/docs/yaml/.md 만 변경 = 룰 grep 면제 → PASS
+          - chore/docs/yaml/.md 만 변경 = semantic 검사 면제 → PASS
           - 의심 약함 = PASS (false positive 비용 ↑)
+          - Tier 1 결과는 *사실* — 의심하거나 재해석 X
 
           ## 출력 형식 (절대 룰)
 
           모든 응답은 **반드시 마지막 줄** 이 다음 두 중 하나:
 
-          ```
+          \`\`\`
           AUDIT_RESULT: PASS
-          ```
+          \`\`\`
           또는
-          ```
+          \`\`\`
           AUDIT_RESULT: FAIL
-          ```
+          \`\`\`
 
-          - PASS = 본문 비워둠 또는 짧게 "no issue"
-          - FAIL = 본문에 actionable 지적 (한 항목씩 `-` bullet) + 마지막 줄 마커
+          - PASS = Mechanical 결과 = 위반 0 + 본인 semantic 검사 = 위반 0
+          - FAIL = Mechanical 결과 위반 1+ OR 본인 semantic 위반 1+
+          - FAIL 본문 = Tier 1 결과 그대로 인용 + 본인 semantic 지적 (각각 \`-\` bullet)
 
-          마커 외 다른 형식 / 메타 / 부연설명 금지.'
+          마커 외 다른 형식 / 메타 / 부연설명 금지.
 
-          # CLI 실행 — diff 를 prompt 에 직접 포함 (stdin 의존 제거, silent false-pass 회피)
-          DIFF_CONTENT=$(cat /tmp/commit.txt)
-          FULL_PROMPT="$PROMPT
+          === Mechanical 결과 (Tier 1 grep) ===
+
+          $MECHANICAL_RESULT
 
           === Audit 대상 commit (git show 출력) ===
 
-          $DIFF_CONTENT
+          $(cat /tmp/commit.txt)
 
           === Audit 대상 끝 ==="
 
-          echo "=== Running audit ==="
-          OUTPUT=$(claude --print "$FULL_PROMPT") || {
+          echo "=== Running audit (Tier 2) ==="
+          OUTPUT=$(claude --print "$PROMPT") || {
             echo "❌ Claude audit invocation failed"
             exit 1
           }
@@ -152,20 +219,29 @@ jobs:
           echo "$OUTPUT"
           echo ""
 
-          # 결과 파싱
-          if echo "$OUTPUT" | tail -5 | grep -q "AUDIT_RESULT: PASS"; then
-            echo "✅ PASS — no issue"
+          # 결과 파싱 — Tier 1 결정적 + Tier 2 semantic 둘 다 OR 결합
+          CLAUDE_FAIL=$(echo "$OUTPUT" | tail -5 | grep -q "AUDIT_RESULT: FAIL" && echo "yes" || echo "no")
+          MECHANICAL_FAIL=$([ -n "$MECHANICAL_VIOLATIONS" ] && echo "yes" || echo "no")
+
+          if [ "$MECHANICAL_FAIL" = "no" ] && [ "$CLAUDE_FAIL" = "no" ]; then
+            echo "✅ PASS — Tier 1 + Tier 2 모두 위반 0"
             exit 0
-          elif echo "$OUTPUT" | tail -5 | grep -q "AUDIT_RESULT: FAIL"; then
-            echo "⚠ FAIL — creating Issue"
-            COMMIT_SUBJECT=$(git log -1 --format=%s "$SHA")
-            COMMIT_AUTHOR=$(git log -1 --format=%an "$SHA")
-            ISSUE_BODY=$(cat <<EOF
+          fi
+
+          # 둘 중 하나라도 FAIL → Issue 생성
+          echo "⚠ FAIL — Tier 1: $MECHANICAL_FAIL / Tier 2: $CLAUDE_FAIL — creating Issue"
+          COMMIT_SUBJECT=$(git log -1 --format=%s "$SHA")
+          COMMIT_AUTHOR=$(git log -1 --format=%an "$SHA")
+          ISSUE_BODY=$(cat <<EOF
           **Commit**: \`$SHA\`
           **Author**: $COMMIT_AUTHOR
           **Subject**: $COMMIT_SUBJECT
 
-          ## 발견된 문제
+          ## Tier 1 — Mechanical grep 결과
+
+          $MECHANICAL_RESULT
+
+          ## Tier 2 — Semantic 분석 (Claude)
 
           $OUTPUT
 
@@ -180,17 +256,12 @@ jobs:
           위 지적 사항 fix 후 main 직접 push.
 
           ---
-          🤖 Generated by Claude post-push audit (TASK-WM-063 sub-K)
+          🤖 Generated by Claude post-push audit (TASK-WM-063 sub-K, 2-tier)
           EOF
           )
-            gh issue create \
-              --title "[main audit] $COMMIT_SUBJECT" \
-              --label "audit,trunk-based" \
-              --body "$ISSUE_BODY" \
-              --repo "${{ github.repository }}"
-            echo "✅ Issue created"
-          else
-            echo "❌ Unparseable output (no AUDIT_RESULT marker)"
-            echo "Will be treated as run failure."
-            exit 1
-          fi
+          gh issue create \
+            --title "[main audit] $COMMIT_SUBJECT" \
+            --label "audit,trunk-based" \
+            --body "$ISSUE_BODY" \
+            --repo "${{ github.repository }}"
+          echo "✅ Issue created"
