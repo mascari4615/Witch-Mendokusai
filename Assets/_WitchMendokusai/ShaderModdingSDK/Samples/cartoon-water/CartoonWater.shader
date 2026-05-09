@@ -36,6 +36,7 @@ Shader "WM/Sample/CartoonWater"
 			HLSLPROGRAM
 			#pragma vertex vert
 			#pragma fragment frag
+			#pragma multi_compile_fog
 
 			#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 
@@ -50,6 +51,7 @@ Shader "WM/Sample/CartoonWater"
 				float4 positionHCS : SV_POSITION;
 				float3 worldPos : TEXCOORD0;
 				float2 uv : TEXCOORD1;
+				float fogCoord : TEXCOORD2;
 			};
 
 			// SkyDirector C6 standard uniforms (옵션 사용).
@@ -75,6 +77,7 @@ Shader "WM/Sample/CartoonWater"
 				OUT.positionHCS = TransformObjectToHClip(IN.positionOS.xyz);
 				OUT.worldPos = TransformObjectToWorld(IN.positionOS.xyz);
 				OUT.uv = IN.uv;
+				OUT.fogCoord = ComputeFogFactor(OUT.positionHCS.z);
 				return OUT;
 			}
 
@@ -100,6 +103,9 @@ Shader "WM/Sample/CartoonWater"
 
 				// 4. SkyDirector horizon 색 살짝 mix — 시간대 자동 반영 (옵션).
 				surface = lerp(surface, _WMSkyHorizon.rgb, _SkyTintAmount * 0.3);
+
+				// 5. fog 적용 — URP RenderSettings.fog 정합 (SkyDirector C3a 가 fog 박음).
+				surface = MixFog(surface, IN.fogCoord);
 
 				return half4(surface, 1.0);
 			}
