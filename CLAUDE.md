@@ -282,55 +282,54 @@ pwsh memo/dotfiles/scripts/unity-refresh.ps1
 
 이유: 솔로 indie + Claude 가 코드 작성자라 PR-bound review hook = self-review (작성자 = 리뷰어) 가치 약함. 사용자 시각 검증 시점은 main pull → Unity Play 단계 (PR 단계 아님). PR 1회 비용 (~3-5분 idle) + auto-rebase cascade 폭발 자체 제거.
 
-### Worktree 우회 패턴 — 멀티 세션 보호 (예외 없음)
+### Multi 세션 협업 — main worktree 사용 가이드
 
-main worktree (`WitchMendokusai/`) 는 **사용자 Unity Editor 전용 worktree**. Claude 세션은 *어떤 작업도* main worktree 에서 commit X — **항상 worktree 우회**. 1줄 chore 도, .md 1글자 수정도 동일.
+main worktree (`WitchMendokusai/`) 는 *공유 검증 베이스* + 사용자 Unity Editor 프로젝트 폴더. Claude 세션의 main 사용은 *충돌 가능성 평가* 후 결정.
 
-#### 근본의 근 — 예외 없음
+#### Worktree 우회 강제 (race 위험)
 
-"1~3줄 chore 면 main 직접 OK" 같은 carve-out **금지**. 사유:
-- *상호 신뢰 가정* (다른 세션 / 사용자 Editor 가 그 순간 main worktree 안 만질 거) 에 의존 — 보드 봐도 5+ 세션 병렬 = 가정 깨지기 쉬움
-- 결정 트리 자체가 race window — "보드 깨끗한지 확인 → 만들기 시작 → 그 사이 다른 세션 진입" 시나리오
-- 1줄 chore 의 30-60s worktree 비용은 *filesystem cost*, *패턴 cost* 아님
+다른 세션 영역과 겹침 — `memo/.claude/active-sessions.md` 의 다른 행 타겟 파일 / 폴더 / 시스템. **예외 없음** — 보드 race window 의 근본 위험.
 
-설계 weakness 의 근본: "main worktree" 가 *공유 상태* 라는 것. 사용자 Unity Editor + Claude 세션 N개 + 외부 도구 모두 거기 모이는 게 race condition 의 근원. 모든 actor 가 *isolated worktree* 를 갖는 게 정합 (`WitchMendokusai/` 자체를 "사용자 Unity Editor 전용 worktree" 로 의미화 → Claude 절대 안 만짐, 모든 Claude 세션은 `.worktrees/<branch>/`).
-
-#### Persistent scratch worktree 패턴
-
-세션마다 worktree 1개 생성 후 *여러 commit 재사용*. 매 chore 마다 fresh 만드는 게 아니라:
+Persistent scratch 패턴 — 세션마다 worktree 1개 생성 후 여러 commit 재사용 (매 chore 마다 fresh X):
 
 ```bash
-# 세션 시작 시 1회 (또는 첫 chore 직전)
-git worktree add -b <branch-name> ../.worktrees/<name> origin/main
+# 세션 시작 시 1회
+git worktree add -b <branch> ../.worktrees/<name> origin/main
 
-# 매 commit 직전 main 신선도 동기화 (이미 .worktrees 안)
+# 매 commit 직전 main 신선도 동기화
 git fetch origin main
-git reset --hard origin/main          # 깨끗한 상태로 refresh
+git reset --hard origin/main
+
 # 편집 → commit → push origin <branch>:main
 
-# 세션 종료 시 1회
-git worktree remove ../.worktrees/<name> && git branch -D <branch-name>
+# 세션 종료 시
+git worktree remove ../.worktrees/<name> && git branch -D <branch>
 ```
 
-활성 보드의 세션 worktree 들 (wm-013-prototype, wm-034-h-runtime-view 등) 이 이미 persistent — 한 세션이 자기 worktree 에서 여러 commit 누적.
+브랜치 prefix: `feat/` `fix/` `chore/` `refactor/`. 임시 staging — push 후 즉시 삭제 (PR 안 만듦, trunk-based).
 
-#### 명령 (1회 chore)
+#### Main 직접 OK (대부분 케이스)
 
-```bash
-git worktree add -b chore/<주제> ../.worktrees/<name> origin/main
-# <name> 에서 편집 + commit
-git push origin chore/<주제>:main      # 로컬 브랜치 → 원격 main 직접 푸시
-git worktree remove ../.worktrees/<name>
-git branch -D chore/<주제>
-```
+다른 세션 영역과 분리되면 main 에서 직접 commit + push:
 
-브랜치 이름 prefix:
-- `feat/<주제>` — 새 기능
-- `fix/<주제>` — 버그 fix
-- `chore/<주제>` — 빌드·CI·의존성·환경 설정·문서
-- `refactor/<주제>` — 동작 변화 없는 정리
+- **새 파일 추가** (시스템 SO 신설 / 새 .md 등).
+- **기존 파일 의미 있는 수정** (1줄 typo 부터 큰 리팩토링까지).
+- **Unity 트리거 파일** (`.cs` / `.meta` / `.asset` / 씬 / `.prefab` / `.material` / `.shader` 등) — *함께 commit 해야 자연 단위* 라 main 이 정답. `.cs` 작성 + Unity focus → `.meta` 자동 생성 → 묶어 commit. worktree 분리 = 단위 분해 + 사용자 pull 시 race 재발.
+- **read-only cp from main → worktree → main push** — Editor 자동 생성 cleanup 표준 흐름. 변경이 이미 main 에 있을 때 (예: asmdef .meta 누락 보충).
 
-브랜치는 *임시 staging* — push 후 즉시 삭제. PR 만들지 X.
+#### Unity Editor 사용 시점 주의 (race 와 별개)
+
+사용자 Unity Play Mode / unsaved 씬 편집 / Inspector 작업 중일 때 main 의 Unity 트리거 파일 변경 → reload (~5-30s) + 사용자 작업 방해 (Play Mode 강제 종료 / 씬 / SO / Inspector reference 손실).
+
+- 가능하면 사용자 Unity 미사용 시간대에 진행.
+- 진행 시 사용자에게 사전 명시 (작업 영역 + 영향 파일).
+- 변경 자체는 OK — *시점 / 컨펌* 이슈, race 와 분리.
+
+#### 056-E1 사례 (반례 — race window)
+
+main 에 임시 .editorconfig 복사 → 다른 세션 dirty 와 섞임 → abort. → 「Worktree 우회 강제」 카테고리 (다른 세션 영역과 겹침). 룰 정합.
+
+TASK-WM-065 (2026-05-09 사용자 ★ 옵션 1 + 「Unity 자연 단위 commit」 통찰 결정).
 
 ### Post-push audit — *active (sub-K, 2026-05-09 검증 완료)*
 
