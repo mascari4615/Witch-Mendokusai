@@ -10,7 +10,7 @@ namespace WitchMendokusai
 	{
 		protected override Stat<UnitStatType> GetStat()
 		{
-			return Player.Instance.UnitStat;
+			return PlayerRegistry.Instance.CurrentPlayer.UnitStat;
 		}
 	}
 }

@@ -19,7 +19,7 @@ namespace WitchMendokusai
 			ObjectBufferManager.ClearObjects(ObjectType.Skill);
 			ObjectBufferManager.ClearObjects(ObjectType.SpawnCircle);
 
-			Player.Instance.Object.Init(GetDoll(DataManager.Instance.CurDollID));
+			PlayerRegistry.Instance.CurrentPlayer.Object.Init(GetDoll(DataManager.Instance.CurDollID));
 
 			QuestManager.Instance.RemoveQuests(QuestType.Dungeon);
 			DataManager.Instance.GameStat.UpdateData();
@@ -40,7 +40,7 @@ namespace WitchMendokusai
 					GameObject g = ObjectPoolManager.Instance.Spawn(equipment.Object);
 
 					if (g.TryGetComponent(out SkillObject skillObject))
-						skillObject.InitContext(new SkillContext(Player.Instance.Object));
+						skillObject.InitContext(new SkillContext(PlayerRegistry.Instance.CurrentPlayer.Object));
 
 					g.SetActive(true);
 				}
@@ -91,8 +91,8 @@ namespace WitchMendokusai
 			{ GameConditionType.IsPaused, () => TimeManager.Instance.IsPaused }, // Setting, Dungeon Card 선택, Transition, ...
 			{ GameConditionType.IsTyping, () => UIChat.IsChatting || (DevWindowController.TryGetExistingInstance(out DevWindowController dwc) && dwc.IsCommandLineFocused) || UIToolkitFocus.IsAnyTextFieldFocused() },
 			{ GameConditionType.IsMouseOnUI, () => InputManager.Instance.IsPointerOverUI() },
-			{ GameConditionType.IsPlayerCasting, () => Player.Instance.Object.UnitStat[UnitStatType.CASTING_SKILL] > 0 },
-			{ GameConditionType.IsDied, () => Player.Instance.Object.UnitStat[UnitStatType.HP_CUR] <= 0 },
+			{ GameConditionType.IsPlayerCasting, () => PlayerRegistry.Instance.CurrentPlayer.Object.UnitStat[UnitStatType.CASTING_SKILL] > 0 },
+			{ GameConditionType.IsDied, () => PlayerRegistry.Instance.CurrentPlayer.Object.UnitStat[UnitStatType.HP_CUR] <= 0 },
 			{ GameConditionType.IsBuilding, () => GameModeManager.Instance.IsBuildMode },
 			{ GameConditionType.IsInTransition, () => UITransition.IsInTransition },
 			{ GameConditionType.IsViewingUI, () => UIManager.Instance.IsAnyPanelFullscreenOpen },
