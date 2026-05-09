@@ -101,16 +101,14 @@ namespace WitchMendokusai
 			chapter.Description = "prototype — 시스템 데이터 흐름 검증 전용 (사용자 정사 챕터 X)";
 			AssetDatabase.CreateAsset(chapter, CHAPTER_PATH);
 
-			SerializedObject chapterSO = new SerializedObject(chapter);
-			SerializedProperty nodes = chapterSO.FindProperty("<Nodes>k__BackingField");
-			nodes.arraySize = NODE_COUNT;
 			for (int i = 0; i < NODE_COUNT; i++)
 			{
-				SerializedProperty nodeData = nodes.GetArrayElementAtIndex(i);
-				nodeData.FindPropertyRelative("Quest").objectReferenceValue = quests[i];
-				nodeData.FindPropertyRelative("Position").vector2Value = new Vector2(i * NODE_X_SPACING, 0f);
+				QuestNode questNode = new QuestNode();
+				questNode.Target = quests[i];
+				questNode.EditorPosition = new Vector2(i * NODE_X_SPACING, 0f);
+				chapter.AddNode(questNode);
 			}
-			chapterSO.ApplyModifiedProperties();
+			EditorUtility.SetDirty(chapter);
 
 			AssetDatabase.SaveAssets();
 			AssetDatabase.Refresh();

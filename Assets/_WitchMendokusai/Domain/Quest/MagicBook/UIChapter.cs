@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using WitchMendokusai.NodeGraph;
 
 namespace WitchMendokusai
 {
@@ -28,10 +29,13 @@ namespace WitchMendokusai
 				Destroy(edge.gameObject);
 			edges.Clear();
 
-			foreach (QuestNodeData nodeData in chapterSO.Nodes)
+			foreach (NodeBase nodeBase in chapterSO.Nodes)
 			{
+				if (nodeBase is QuestNode questNode == false)
+					continue;
+
 				UIQuestNode node = Instantiate(nodePrefab, nodesRoot);
-				node.SetNode(nodeData.Quest, nodeData.Position);
+				node.SetNode(questNode.Target, questNode.EditorPosition);
 				node.Init();
 				nodes.Add(node);
 			}
