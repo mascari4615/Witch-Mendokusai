@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace WitchMendokusai
 {
-	public class QuestManager
+	public class QuestManager : IQuestManager
 	{
 		public static QuestManager Instance => DataManager.Instance.QuestManager;
 
