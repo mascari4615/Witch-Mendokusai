@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Serialization;
 using WitchMendokusai.NodeGraph;
+using NodeGraphAsset = WitchMendokusai.NodeGraph.NodeGraph;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -16,7 +17,7 @@ namespace WitchMendokusai
 	/// nodes (NodeBase List, base 의 [SerializeReference]) 안에 <see cref="QuestNode"/> wrapper 들이 들어감.
 	/// </summary>
 	[CreateAssetMenu(fileName = "Chapter_", menuName = "WM/Variable/ChapterSO")]
-	public class ChapterSO : NodeGraph
+	public class ChapterSO : NodeGraphAsset
 	{
 		public override NodeDomain Domain => NodeDomain.MagicBook;
 

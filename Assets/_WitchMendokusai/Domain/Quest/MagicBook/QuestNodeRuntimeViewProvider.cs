@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UIElements;
+using WitchMendokusai.NodeGraph;
 using WitchMendokusai.NodeGraph.Runtime;
 
 namespace WitchMendokusai
