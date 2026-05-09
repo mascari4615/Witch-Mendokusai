@@ -27,6 +27,8 @@ namespace WitchMendokusai
 			Object = GetComponent<PlayerObject>();
 			Rotation = GetComponent<PlayerRotation>();
 
+			PlayerProvider.Instance.SetCurrent(this);
+
 			EventBus eventBus = EventBus.Instance;
 			eventBus.Subscribe<PlayerJumpRequestedEvent>(OnJumpRequested);
 			eventBus.Subscribe<PlayerJumpReleasedEvent>(OnJumpReleased);
@@ -51,6 +53,9 @@ namespace WitchMendokusai
 
 		protected override void OnDestroy()
 		{
+			if (PlayerProvider.TryGetExistingInstance(out PlayerProvider playerProvider))
+				playerProvider.Clear();
+
 			if (EventBus.TryGetExistingInstance(out EventBus eventBus))
 			{
 				eventBus.Publish(new PlayerDespawnedEvent());
