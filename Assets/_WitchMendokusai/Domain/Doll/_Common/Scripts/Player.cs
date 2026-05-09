@@ -26,6 +26,15 @@ namespace WitchMendokusai
 			aim = new(transform, ObjectBufferManager.GetObjects(ObjectType.Monster), ObjectBufferManager.GetObjects(ObjectType.ResourceNode));
 			Object = GetComponent<PlayerObject>();
 			Rotation = GetComponent<PlayerRotation>();
+
+			EventBus eventBus = EventBus.Instance;
+			eventBus.Subscribe<PlayerJumpRequestedEvent>(OnJumpRequested);
+			eventBus.Subscribe<PlayerJumpReleasedEvent>(OnJumpReleased);
+			eventBus.Subscribe<PlayerSkillUseRequestedEvent>(OnSkillUseRequested);
+			eventBus.Subscribe<PlayerSprintChangedEvent>(OnSprintChanged);
+			eventBus.Subscribe<PlayerCrouchChangedEvent>(OnCrouchChanged);
+			eventBus.Subscribe<PlayerAutoAimToggledEvent>(OnAutoAimToggled);
+			eventBus.Subscribe<PlayerInteractRequestedEvent>(OnInteractRequested);
 		}
 
 		private void Start()
@@ -43,10 +52,27 @@ namespace WitchMendokusai
 		protected override void OnDestroy()
 		{
 			if (EventBus.TryGetExistingInstance(out EventBus eventBus))
+			{
 				eventBus.Publish(new PlayerDespawnedEvent());
+				eventBus.Unsubscribe<PlayerJumpRequestedEvent>(OnJumpRequested);
+				eventBus.Unsubscribe<PlayerJumpReleasedEvent>(OnJumpReleased);
+				eventBus.Unsubscribe<PlayerSkillUseRequestedEvent>(OnSkillUseRequested);
+				eventBus.Unsubscribe<PlayerSprintChangedEvent>(OnSprintChanged);
+				eventBus.Unsubscribe<PlayerCrouchChangedEvent>(OnCrouchChanged);
+				eventBus.Unsubscribe<PlayerAutoAimToggledEvent>(OnAutoAimToggled);
+				eventBus.Unsubscribe<PlayerInteractRequestedEvent>(OnInteractRequested);
+			}
 
 			base.OnDestroy();
 		}
+
+		private void OnJumpRequested(PlayerJumpRequestedEvent evt) => TryJump();
+		private void OnJumpReleased(PlayerJumpReleasedEvent evt) => StopJump();
+		private void OnSkillUseRequested(PlayerSkillUseRequestedEvent evt) => TryUseSkill(evt.SkillIndex);
+		private void OnSprintChanged(PlayerSprintChangedEvent evt) => SetSprinting(evt.IsSprinting);
+		private void OnCrouchChanged(PlayerCrouchChangedEvent evt) => SetCrouching(evt.IsCrouching);
+		private void OnAutoAimToggled(PlayerAutoAimToggledEvent evt) => SetAutoAim(IsAutoAim == false);
+		private void OnInteractRequested(PlayerInteractRequestedEvent evt) => TryInteract();
 
 		private void Update()
 		{

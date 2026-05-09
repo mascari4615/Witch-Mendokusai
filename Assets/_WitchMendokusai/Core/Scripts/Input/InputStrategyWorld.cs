@@ -15,62 +15,62 @@ namespace WitchMendokusai
 						new(
 							InputEventType.Space,
 							InputEventResponseType.Performed,
-							() => Player.Instance.TryUseSkill(0),
+							() => EventBus.Instance.Publish(new PlayerSkillUseRequestedEvent { SkillIndex = 0 }),
 							() => CanExecute(InputEventType.Space)
 						),
 						new(
 							InputEventType.Jump,
 							InputEventResponseType.Performed,
-							() => Player.Instance.TryJump(),
+							() => EventBus.Instance.Publish(new PlayerJumpRequestedEvent()),
 							() => CanExecute(InputEventType.Jump)
 						),
 						new(
 							InputEventType.Jump,
 							InputEventResponseType.Canceled,
-							() => Player.Instance.StopJump(),
+							() => EventBus.Instance.Publish(new PlayerJumpReleasedEvent()),
 							() => CanExecute(InputEventType.Jump)
 						),
 						new(
 							InputEventType.Click0,
 							InputEventResponseType.Get,
-							() => Player.Instance.TryUseSkill(1),
+							() => EventBus.Instance.Publish(new PlayerSkillUseRequestedEvent { SkillIndex = 1 }),
 							() => CanExecute(InputEventType.Click0)
 						),
 						new(
 							InputEventType.Click1,
 							InputEventResponseType.Get,
-							() => Player.Instance.TryUseSkill(2),
+							() => EventBus.Instance.Publish(new PlayerSkillUseRequestedEvent { SkillIndex = 2 }),
 							() => CanExecute(InputEventType.Click1)
 						),
 						new(
 							InputEventType.Sprint,
 							InputEventResponseType.Started,
-							() => Player.Instance.SetSprinting(true),
+							() => EventBus.Instance.Publish(new PlayerSprintChangedEvent { IsSprinting = true }),
 							() => CanExecute(InputEventType.Sprint)
 						),
 						new(
 							InputEventType.Sprint,
 							InputEventResponseType.Canceled,
-							() => Player.Instance.SetSprinting(false),
+							() => EventBus.Instance.Publish(new PlayerSprintChangedEvent { IsSprinting = false }),
 							() => CanExecute(InputEventType.Sprint)
 						),
 						new(
 							InputEventType.Crouch,
 							InputEventResponseType.Started,
-							() => Player.Instance.SetCrouching(true),
+							() => EventBus.Instance.Publish(new PlayerCrouchChangedEvent { IsCrouching = true }),
 							() => CanExecute(InputEventType.Crouch)
 						),
 						new(
 							InputEventType.Crouch,
 							InputEventResponseType.Canceled,
-							() => Player.Instance.SetCrouching(false),
+							() => EventBus.Instance.Publish(new PlayerCrouchChangedEvent { IsCrouching = false }),
 							() => CanExecute(InputEventType.Crouch)
 						),
 
 						new(
 							InputEventType.ChangeMode,
 							InputEventResponseType.Performed,
-							() => Player.Instance.SetAutoAim(!Player.Instance.IsAutoAim),
+							() => EventBus.Instance.Publish(new PlayerAutoAimToggledEvent()),
 							() => CanExecute(InputEventType.ChangeMode)
 						),
 
@@ -93,7 +93,7 @@ namespace WitchMendokusai
 						new(
 							InputEventType.Submit,
 							InputEventResponseType.Performed,
-							() => Player.Instance.TryInteract(),
+							() => EventBus.Instance.Publish(new PlayerInteractRequestedEvent()),
 							() => CanExecute(InputEventType.Submit)
 						),
 						new(
