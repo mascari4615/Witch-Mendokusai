@@ -26,16 +26,6 @@ namespace WitchMendokusai
 			aim = new(transform, ObjectBufferManager.GetObjects(ObjectType.Monster), ObjectBufferManager.GetObjects(ObjectType.ResourceNode));
 			Object = GetComponent<PlayerObject>();
 			Rotation = GetComponent<PlayerRotation>();
-
-			PlayerRegistry.Instance.Register(this);
-		}
-
-		protected override void OnDestroy()
-		{
-			if (PlayerRegistry.TryGetExistingInstance(out PlayerRegistry registry))
-				registry.Unregister(this);
-
-			base.OnDestroy();
 		}
 
 		private void Start()

@@ -344,8 +344,8 @@ namespace WitchMendokusai
 		private void OnDungeonExit()
 		{
 			Close();
-			if (PlayerRegistry.Instance.CurrentPlayer != null && PlayerRegistry.Instance.CurrentPlayer.Object != null)
-				PlayerRegistry.Instance.CurrentPlayer.Object.ReceiveDamage(new DamageInfo(damage: 9999, DamageType.Critical, new DamageContext(PlayerRegistry.Instance.CurrentPlayer.Object), ignoreInvincible: true));
+			if (Player.Instance != null && Player.Instance.Object != null)
+				Player.Instance.Object.ReceiveDamage(new DamageInfo(damage: 9999, DamageType.Critical, new DamageContext(Player.Instance.Object), ignoreInvincible: true));
 		}
 
 		private void OnClearData() => DataManager.Instance.CreateNewGameData();
