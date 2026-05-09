@@ -30,6 +30,7 @@ namespace WitchMendokusai
 		public void AddQuest(RuntimeQuest quest)
 		{
 			Quests.Add(quest);
+			EventBus.Instance.Publish(new QuestAddedEvent(quest));
 		}
 
 		public RuntimeQuest GetQuest(QuestSO questData)
@@ -57,6 +58,7 @@ namespace WitchMendokusai
 		public void CompleteQuest(Guid? guid)
 		{
 			GetQuest(guid).Complete();
+			EventBus.Instance.Publish(new QuestCompletedEvent(guid));
 		}
 
 		public void EndQuestWork(Guid? guid)
