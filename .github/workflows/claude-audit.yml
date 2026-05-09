@@ -124,9 +124,18 @@ jobs:
 
           마커 외 다른 형식 / 메타 / 부연설명 금지.'
 
-          # CLI 실행
+          # CLI 실행 — diff 를 prompt 에 직접 포함 (stdin 의존 제거, silent false-pass 회피)
+          DIFF_CONTENT=$(cat /tmp/commit.txt)
+          FULL_PROMPT="$PROMPT
+
+          === Audit 대상 commit (git show 출력) ===
+
+          $DIFF_CONTENT
+
+          === Audit 대상 끝 ==="
+
           echo "=== Running audit ==="
-          OUTPUT=$(claude --print "$PROMPT" < /tmp/commit.txt) || {
+          OUTPUT=$(claude --print "$FULL_PROMPT") || {
             echo "❌ Claude audit invocation failed"
             exit 1
           }
