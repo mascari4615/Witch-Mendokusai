@@ -1034,7 +1034,7 @@
                 {
                     "name": "MagicBookToggle",
                     "type": "Button",
-                    "id": "wm059e000-0000-0000-0000-000000000001",
+                    "id": "aa059e00-0000-0000-0000-000000000001",
                     "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
@@ -1562,7 +1562,7 @@
                 },
                 {
                     "name": "",
-                    "id": "wm059e001-0000-0000-0000-000000000002",
+                    "id": "aa059e01-0000-0000-0000-000000000002",
                     "path": "<Keyboard>/m",
                     "interactions": "",
                     "processors": "",
