@@ -56,6 +56,10 @@ extend-exclude = [
     "*.shadergraph",
     "package-lock.json", # NPM 패키지 락 파일 (해시 덩어리)
     "yarn.lock",
+    # CHANGELOG.md — release.yml workflow 자동 생성 (commit msg 인용).
+    # 옛 commit message 의 typo 가 자동 생성 결과에 박혀서 매 release 마다 typos CI fail.
+    # 검사 의미 약함 (commit msg 가 정본, CHANGELOG 는 derived).
+    "CHANGELOG.md",
     # 외부 라이선스 / 외부 자산 텍스트 — 원문 보존 (수정 시 저작권 위반 위험)
     "**/LICENSE",
     "**/LICENSE.*",
