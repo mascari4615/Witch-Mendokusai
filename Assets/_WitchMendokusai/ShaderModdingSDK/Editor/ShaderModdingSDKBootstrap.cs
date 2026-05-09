@@ -62,25 +62,26 @@ namespace WitchMendokusai
 				profile = ScriptableObject.CreateInstance<VolumeProfile>();
 				AssetDatabase.CreateAsset(profile, PROFILE_ASSET_PATH);
 
-				// 명백히 눈에 보이는 강도 — 검증용 sample (모더는 자기 셰이더팩에서 자유 조정)
+				// 부드러운 따뜻한 톤 — 플레이어 적용 시 시각 충격 X (모더는 자기 셰이더팩에서 자유 강화).
+				// 모더 onboarding 강한 톤 시연 = design doc 「P2-D 모더 가이드」 예시 코드 참고.
 				// VolumeComponent 들은 sub-asset 으로 추가 (URP Editor 패턴 — profile.Add<T> 만으론 .asset 저장 안 됨).
 				ColorAdjustments colorAdjust = ScriptableObject.CreateInstance<ColorAdjustments>();
 				colorAdjust.hideFlags = HideFlags.HideInHierarchy;
 				colorAdjust.postExposure.overrideState = true;
-				colorAdjust.postExposure.value = 0.5f;
+				colorAdjust.postExposure.value = 0.2f;
 				colorAdjust.colorFilter.overrideState = true;
-				colorAdjust.colorFilter.value = new Color(1.0f, 0.65f, 0.45f, 1.0f);
+				colorAdjust.colorFilter.value = new Color(1.0f, 0.85f, 0.75f, 1.0f);
 				colorAdjust.saturation.overrideState = true;
-				colorAdjust.saturation.value = 30f;
+				colorAdjust.saturation.value = 10f;
 				AssetDatabase.AddObjectToAsset(colorAdjust, profile);
 				profile.components.Add(colorAdjust);
 
 				Vignette vignette = ScriptableObject.CreateInstance<Vignette>();
 				vignette.hideFlags = HideFlags.HideInHierarchy;
 				vignette.intensity.overrideState = true;
-				vignette.intensity.value = 0.5f;
+				vignette.intensity.value = 0.25f;
 				vignette.color.overrideState = true;
-				vignette.color.value = new Color(0.2f, 0.0f, 0.3f, 1.0f);
+				vignette.color.value = new Color(0.15f, 0.05f, 0.20f, 1.0f);
 				AssetDatabase.AddObjectToAsset(vignette, profile);
 				profile.components.Add(vignette);
 
