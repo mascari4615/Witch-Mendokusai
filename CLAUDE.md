@@ -332,20 +332,50 @@ git branch -D chore/<주제>
 
 브랜치는 *임시 staging* — push 후 즉시 삭제. PR 만들지 X.
 
-### Post-push audit — *deferred (sub-K 후속)*
+### Post-push audit — *active (sub-K, 2026-05-09 검증 완료)*
 
-trunk-based 의 안전망으로 *post-push audit* 설계했으나, 시도한 `anthropics/claude-code-action@v1` mode=agent + push 트리거가 **action 자체 미지원** (`Unsupported event type: push` error). 2026-05-09 cutover 직후 발견 → claude-audit job 자체 폐기.
+`main` 에 push 가 발생하면 `.github/workflows/claude-audit.yml` 의 audit job 이 자동 트리거. raw `claude --print` CLI 직접 호출 — action wrapper 의존 X (직전 시도 `anthropics/claude-code-action@v1` 가 push event 미지원이라 자체 구현).
 
-현 상태:
-- main push 자동 audit *없음* — 사용자 신뢰 기반 trunk
-- `@claude` 멘션 (Issue / 사용자 수동) 만 작동
-- code-quality.yml 의 typo + merge marker check 는 push 트리거로 정상 작동 (필수 게이트는 X, just visibility)
+```
+main push
+  ↓
+claude-audit job (raw npx @anthropic-ai/claude-code)
+  ├─ git show HEAD 추출 → prompt 에 직접 포함 (stdin 의존 X, silent false-pass 회피)
+  ├─ 검토 영역: 버그 / 보안 / 성능 / WM 룰 (Allman / == false / var 금지 / FastFail / 수치 SO 노출 / InputManager / MenuItem WM/)
+  └─ 결과:
+       ├─ 마지막 줄 `AUDIT_RESULT: PASS` → no-op
+       └─ 마지막 줄 `AUDIT_RESULT: FAIL` → gh issue create
+            ├─ title: [main audit] <commit subject>
+            ├─ label: audit, trunk-based
+            └─ body: 발견된 문제 + 영향 + revert 제안 (옵션 A) 또는 후속 fix commit 제안 (옵션 B)
+```
 
-후속 (sub-K, 별 TASK 로 분리 가능): raw claude CLI 직접 호출 패턴 — `npx @anthropic-ai/claude-code` 를 GitHub Actions step 에서 호출 + 결과 분석 → `gh issue create`. action 의존 X.
+**POC 검증 흐름** (sub-K, 2026-05-09):
+- v1: action wrapper → raw CLI 전환
+- v2: prompt 형식 강제 + 메타 코멘트 금지
+- v3: stdin 의존 제거 (diff 를 prompt 에 직접 포함)
+- v4: 의도적 위반 commit (var + `!` 연산자) 으로 catch 검증 → Issue #135 자동 생성 ✅
 
-대안:
-- **CodeRabbit 재활성화** — `.coderabbit.yaml` `auto_review.enabled: true` + paths filter (이미 비활성화 상태, secondary audit 가능)
-- **manual @claude 멘션** — 사용자가 의심되는 commit 에 직접 Issue 만들어 `@claude audit this`
+**사용자 응답 흐름**:
+- Issue 받음 → 검토 → 옵션 선택
+- 옵션 A (revert): `git revert <sha>` worktree 안 + main 직접 push
+- 옵션 B (fix commit): worktree 에서 fix → main 직접 push (그 fix commit 도 다시 audit 받음)
+- Issue 코멘트에 `@claude 이거 fix 해` → claude.yml 의 `claude` job 트리거 → 자동 fix
+
+**Audit prompt 원칙** (claude-audit.yml 본문):
+- Actionable 한 지적만 — nitpick/주관 X
+- 큰 아키텍처 지적은 「영향」 섹션에만 (revert 제안 X)
+- chore/docs/yaml/.md 만 변경 = 룰 grep 면제 → PASS
+- 의심 약함 = PASS (false positive 비용 ↑)
+
+**한계** (관찰된 + 후속):
+- 모든 위반을 catch 하지 X — POC 검증에서 var + `!` 는 catch, 한 글자 변수명 / 상수 UPPER_SNAKE 은 miss. *주요 위반* 만 잡음 (균형: false positive 비용 vs catch 비율)
+- diff 가 50KB 초과 시 truncate (token 비용)
+- 사용자 1회 셋업: `gh label create audit` + `gh label create trunk-based`
+
+**대안 (병행 가능, 미사용)**:
+- CodeRabbit 재활성화 (`.coderabbit.yaml` `auto_review.enabled: true`) — secondary audit
+- manual `@claude` 멘션 — 사용자가 의심되는 commit 에 직접 Issue + `@claude audit this`
 
 ### Autopilot 예외 — Draft PR 유지 (TASK-WM-063 sub-H 옵션 B)
 
@@ -397,7 +427,7 @@ protection 폐기로 사라지는 안전망 + 대체:
 | 사라진 게이트 | 위험 | 대체 |
 | --- | --- | --- |
 | `Check Typos` required | 오타 직접 push | code-quality.yml 의 push 트리거 (workflow 자체는 그대로 동작, just visibility) |
-| `claude-review` required | (의미 X — 본 TASK 가 job 자체 폐기) | post-push audit *deferred* (sub-K) — 현재 사용자 신뢰 기반 |
+| `claude-review` required | (의미 X — 본 TASK 가 job 자체 폐기) | claude-audit (post-push, sub-K active) — FAIL 시 Issue 자동 |
 | Force push 차단 | 실수 force push → main 히스토리 손실 | **절대 금지 룰** — autopilot.md § 안전 가드 3 「force-push 금지」 + 일반 세션도 동일. 모든 push 는 fast-forward only |
 
 #### Force push — 절대 금지
@@ -425,7 +455,7 @@ git branch -D <임시 브랜치>               # push 후 임시 브랜치 삭�
 
 (TASK-WM-060, 2026-05-08 도입 → 같은 날 폐기 — public repo + self-hosted runner 보안 위험. § 본문은 본 레포 § 컴파일 에러 확인 — `dotnet build` 우선 참고.)
 
-현 trunk-based 에서 자동 검증 = code-quality.yml typo + merge marker 만. *룰/논리/보안* 자동 검토는 *deferred* (sub-K). worktree 안 `dotnet build` 가 작성자 책임.
+현 trunk-based 에서 자동 검증 = code-quality.yml typo + merge marker + claude-audit (룰/논리/보안). *컴파일* 검증은 X (worktree 안 `dotnet build` 가 작성자 책임 — sub-K audit 는 룰/논리만).
 
 ### CodeRabbit / Copilot — 자동 review 비활성화 (TASK-WM-062 sub-G, 2026-05-08)
 
