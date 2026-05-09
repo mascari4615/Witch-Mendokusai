@@ -35,7 +35,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v6
         with:
-          fetch-depth: 2  # HEAD~1 diff 비교용
+          fetch-depth: 0  # workflow_dispatch 로 임의 SHA audit 시 전체 history 필요
 
       - name: Resolve target SHA
         id: target
