@@ -1,37 +1,37 @@
 name: Claude Code
 
+# TASK-WM-063 (Trunk-based AI Native, 2026-05-09):
+# - PR/auto-merge/auto-rebase 폐기 → main 직접 push.
+# - claude-review (PR-bound) 폐기 → claude-audit (post-push) 신설.
+# - claude (@claude on-demand) 유지 — Issue / 사용자 수동 호출 hook.
+
 on:
+  push:
+    branches: [main]
   issue_comment:
-    types: [created]
-  pull_request:
-    types: [opened, synchronize, ready_for_review]
-  pull_request_review_comment:
     types: [created]
   issues:
     types: [opened, assigned]
-  pull_request_review:
-    types: [submitted]
 
 concurrency:
-  # cancel-in-progress: true — auto-rebase 가 매 main push 마다 모든 open PR 에 update-branch 를 푸시 → synchronize 폭발.
-  # 같은 PR 의 이전 in_progress review 는 stale (어차피 최신 sync 가 머지될 상태) → 마지막 sync 만 review.
-  group: ${{ github.workflow }}-${{ github.event.issue.number || github.event.pull_request.number }}
-  cancel-in-progress: true
+  # claude (on-demand) = issue.number 기반 직렬화 (같은 Issue 중복 호출 큐).
+  # claude-audit = SHA 별 독립 (모든 commit audit 필요, 취소 X).
+  group: ${{ github.workflow }}-${{ github.event.issue.number || github.sha }}
+  cancel-in-progress: false
 
 jobs:
   claude:
+    # @claude 멘션 on-demand — Issue 본문/코멘트로 Claude 직접 호출.
+    # post-push audit 결과 Issue 에서 "@claude 이 문제 fix 해" 식 follow-up 도 본 job 이 받음.
     if: |
       (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude')) ||
-      (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '@claude')) ||
-      (github.event_name == 'pull_request_review' && contains(github.event.review.body, '@claude')) ||
       (github.event_name == 'issues' && (contains(github.event.issue.body, '@claude') || contains(github.event.issue.title, '@claude')))
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      pull-requests: write
       issues: write
       id-token: write
-      actions: read # Required for Claude to read CI results on PRs
+      actions: read
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
@@ -44,33 +44,39 @@ jobs:
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
 
-  claude-review:
-    if: github.event_name == 'pull_request' && github.event.pull_request.draft == false
+  claude-audit:
+    # Post-push audit — main 에 push 된 HEAD commit diff 를 review.
+    # 정상 → no-op. 이상 발견 → gh issue create + revert 제안.
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      pull-requests: write
+      issues: write
       id-token: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
         with:
-          fetch-depth: 0
+          fetch-depth: 2  # HEAD~1 diff 비교용
 
-      - name: Run Claude Primary Review
+      - name: Run Claude Post-Push Audit
         uses: anthropics/claude-code-action@v1
         with:
-          mode: review
+          mode: agent
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           prompt: |
-            이 PR 을 primary code reviewer 로 검토하고 GitHub PR review 를 submit 해라.
+            방금 main 에 push 된 HEAD commit 을 audit 한다.
+
+            컨텍스트:
+            - 커밋 SHA: ${{ github.sha }}
+            - 커밋 메시지 첫 줄: ${{ github.event.head_commit.message }}
+            - 작성자: ${{ github.event.head_commit.author.name }}
 
             검토 영역:
             - 버그 / 논리 오류 / edge case
             - 보안 (injection, 권한, 데이터 노출)
             - 성능 (알고리즘, 메모리)
-            - 코드 품질 / 가독성 / 유지보수성
-            - WitchMendokusai CLAUDE.md 룰 준수:
+            - WitchMendokusai CLAUDE.md 룰 준수 (`.cs` 변경 시):
               * Allman 중괄호 (항상 새 줄)
               * `== false` (`!` 연산자 금지)
               * `var` 금지 (명시적 타입)
@@ -82,15 +88,51 @@ jobs:
               * 입력은 InputManager.RegisterInputEvent (직접 Keyboard.current X)
               * MenuItem path top-level `WM/...` (`WitchMendokusai/...` X)
 
-            원칙:
-            - Actionable 한 변경 제안만 — nitpick / 주관적 스타일 의견 X
-            - 큰 아키텍처 지적은 코멘트로만 (코드 변경 X)
-            - 검토 결과 review submit:
-              * 문제 없음 → approve
-              * actionable 지적 1+ → request_changes
-              * 큰 아키텍처 지적만 → comment
+            ## 워크플로
 
-# claude-coderabbit / claude-copilot fix-loop job 은 TASK-WM-062 sub-G (2026-05-08) 에서 제거.
-# 사유: Claude primary review (claude-review job) 도입 + .coderabbit.yaml auto_review.enabled=false
-# + GitHub repo Copilot review off → secondary review 자체 비활성화 → fix-loop 트리거 없음.
-# 후속 활용 시 다시 추가 — anthropics/claude-code-action 의 allowed_bots 패턴 사용.
+            1. `git show HEAD --stat` 으로 변경 범위 파악
+            2. `git show HEAD` 또는 `git diff HEAD~1 HEAD -- <path>` 로 상세 diff 분석
+            3. 문제 *없음* → 종료 (no-op, Issue 생성 X)
+            4. 문제 *발견* → `gh issue create` 로 Issue 생성 (아래 템플릿)
+
+            ## Issue 본문 템플릿
+
+            제목: `[main audit] <commit subject 70자 이내>`
+            라벨: `audit,trunk-based`
+
+            본문:
+            ```markdown
+            **Commit**: ${{ github.sha }}
+            **Author**: ${{ github.event.head_commit.author.name }}
+            **Subject**: <commit subject>
+
+            ## 발견된 문제
+
+            <actionable 한 지적, 한 항목씩 bullet>
+
+            ## 영향
+
+            <prod 위험도 / 룰 위반 정도 / blocking 여부>
+
+            ## 제안
+
+            ### 옵션 A — Revert (위험도 ↑ 시 권장)
+            \`\`\`bash
+            git revert ${{ github.sha }}
+            \`\`\`
+
+            ### 옵션 B — 후속 fix commit
+            <구체적 fix 제안>
+
+            ---
+            🤖 Generated by Claude post-push audit (TASK-WM-063)
+            ```
+
+            ## 원칙
+
+            - **Actionable 한 지적만** — nitpick / 주관 X
+            - **큰 아키텍처 지적** = Issue 본문 「영향」 에만 (revert 제안 X — architectural fix 는 후속 TASK)
+            - **의심 정도 약함** = Issue 생성 X (false positive 비용 ↑, 사용자 신호 노이즈)
+            - **chore / docs / 룰 본문 변경** = 룰 grep 면제 (자기 자신 정의 변경 가능성)
+            - 메시지 prefix `chore(board):` / `chore(ci):` (단순 yaml 1줄) 등 = 검토 가볍게
+            - 메시지 prefix `feat:` / `fix:` (코드 변경) = 검토 깊게
