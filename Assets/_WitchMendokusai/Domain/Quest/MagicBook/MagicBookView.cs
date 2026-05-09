@@ -28,10 +28,25 @@ namespace WitchMendokusai
 
 		public bool IsOpen { get; private set; }
 
+		private static readonly Color BACKGROUND_COLOR = new Color(0.08f, 0.08f, 0.12f, 0.97f);
+		private static readonly Color SIDEBAR_COLOR = new Color(0.13f, 0.13f, 0.18f, 1f);
+		private const float SIDEBAR_WIDTH = 220f;
+
 		private void Start()
 		{
 			container = new VisualElement();
 			container.AddToClassList(USS_CLASS);
+
+			// inline layout (USS stylesheet 없이도 작동) — 풀스크린 + flex row + default 닫힘
+			container.style.position = Position.Absolute;
+			container.style.left = 0;
+			container.style.top = 0;
+			container.style.right = 0;
+			container.style.bottom = 0;
+			container.style.flexDirection = FlexDirection.Row;
+			container.style.backgroundColor = BACKGROUND_COLOR;
+			container.style.display = DisplayStyle.None;
+
 			UIRoot.Instance.ScreenLayer.Add(container);
 
 			BuildUI();
@@ -52,14 +67,25 @@ namespace WitchMendokusai
 		{
 			chapterListContainer = new VisualElement();
 			chapterListContainer.AddToClassList("wm-magic-book-list");
+			chapterListContainer.style.width = SIDEBAR_WIDTH;
+			chapterListContainer.style.flexShrink = 0;
+			chapterListContainer.style.backgroundColor = SIDEBAR_COLOR;
+			chapterListContainer.style.paddingTop = 12;
+			chapterListContainer.style.paddingBottom = 12;
+			chapterListContainer.style.paddingLeft = 12;
+			chapterListContainer.style.paddingRight = 12;
 			container.Add(chapterListContainer);
 
 			chapterContentContainer = new VisualElement();
 			chapterContentContainer.AddToClassList("wm-magic-book-content");
+			chapterContentContainer.style.flexGrow = 1;
 			container.Add(chapterContentContainer);
 
 			Button btnClose = new Button(Close) { text = "닫기 (M)" };
 			btnClose.AddToClassList("wm-magic-book-close");
+			btnClose.style.position = Position.Absolute;
+			btnClose.style.top = 12;
+			btnClose.style.right = 12;
 			container.Add(btnClose);
 
 			CollectChapters();
@@ -74,7 +100,10 @@ namespace WitchMendokusai
 			chapters.Clear();
 
 			if (SOManager.Instance.DataSOs.TryGetValue(typeof(ChapterSO), out Dictionary<int, DataSO> chapterDict) == false)
+			{
+				Debug.LogWarning("[MagicBookView] SOManager.DataSOs[ChapterSO] 미등록 — DataLoader 가 Addressable 라벨 'ChapterSO' 로 자동 load. ChapterSO 자산 Inspector 에서 Addressable 라벨 'ChapterSO' 추가 필요");
 				return;
+			}
 
 			foreach (DataSO dataSO in chapterDict.Values)
 			{
@@ -82,6 +111,9 @@ namespace WitchMendokusai
 					continue;
 				chapters.Add(chapterSO);
 			}
+
+			if (chapters.Count == 0)
+				Debug.LogWarning("[MagicBookView] ChapterSO 자산 0개 — Addressable 라벨 'ChapterSO' 등록된 자산 없음");
 		}
 
 		private void BuildChapterButtons()
@@ -128,6 +160,7 @@ namespace WitchMendokusai
 				OpenChapter(chapters[0]);
 
 			container.AddToClassList(ACTIVE_CLASS);
+			container.style.display = DisplayStyle.Flex;
 			TimeManager.Instance.Pause(gameObject);
 		}
 
@@ -137,6 +170,7 @@ namespace WitchMendokusai
 				return;
 			IsOpen = false;
 			container.RemoveFromClassList(ACTIVE_CLASS);
+			container.style.display = DisplayStyle.None;
 			TimeManager.Instance.Resume(gameObject);
 		}
 
