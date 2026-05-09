@@ -355,22 +355,33 @@ post-push audit Issue 또는 사용자 발견 Issue 와 1:1 매핑이면 commit 
 
 매핑 없으면 박지 X (스팸).
 
-### Branch Protection — 직접 push 허용
+### Branch Protection — required status checks 제거
 
-GitHub repo Settings > Branches 의 main 룰:
-- ❌ Require a pull request before merging — *해제* (PR 폐기)
-- ❌ Required status checks — *해제* (post-push audit 가 게이트 역할)
-- ❌ Restrict who can push to matching branches — *해제* (직접 push 허용)
-- ✅ Force push 차단 — 유지 (안전)
+WM main 의 protection 실제 상태 (2026-05-09):
+- ❌ Require a pull request before merging — *원래부터 설정 X* (즉 main 직접 push 가능)
+- ✅ Required status checks (strict): `Check Typos`, `claude-review`
+- ❌ enforce_admins (admin bypass 가능)
+- ✅ Force push 차단
 
-설정 명령 (사용자 1회):
+trunk-based 전환 시 **`claude-review` 가 필수 게이트인데 본 TASK 가 그 job 자체를 폐기** → `claude-review` check 가 영원히 "expected" 상태 → admin bypass 외 모든 push BLOCKED.
+
+따라서 cutover 직전 **`claude-review` 를 required contexts 에서 제거** 필수. `Check Typos` 는 유지 (typo 검증 가치).
+
+사용자 1회 (둘 중 하나):
+
+**옵션 A — GitHub UI** (권장, 시각적):
+Settings > Branches > main 룰 Edit > Require status checks > "claude-review" 태그 제거.
+
+**옵션 B — `gh api` 명령**:
 
 ```bash
-gh api -X DELETE repos/Mascari4615/Witch-Mendokusai/branches/main/protection
-# 또는 GitHub UI 에서 룰 자체 삭제
+gh api -X PATCH repos/Mascari4615/Witch-Mendokusai/branches/main/protection/required_status_checks \
+  --input - <<'EOF'
+{"strict": true, "contexts": ["Check Typos"]}
+EOF
 ```
 
-(이전 룰의 `gh api -X PUT ... required_status_checks ...` 명령은 폐기.)
+Force push 차단은 유지. PR 룰은 원래부터 없었으므로 변경 X.
 
 ### Post-push 정리
 
