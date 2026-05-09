@@ -13342,7 +13342,7 @@ MonoBehaviour:
   renderSettingsHackEmissiveBoost: 1
   renderSettingsHackIndirectBoost: 1
   renderSettingsTempPath: 
-  renderSettingsOutPath: _WitchMendokusai/Content/Explorer/World/Stage/0005_StartTown/Stage_StartTown
+  renderSettingsOutPath: _WitchMendokusai/Domain/World/Stage/0005_StartTown/Stage_StartTown
   renderSettingsUseScenePath: 1
   renderSettingsHackAOIntensity: 0
   renderSettingsHackAOSamples: 16

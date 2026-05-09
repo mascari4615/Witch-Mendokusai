@@ -224,7 +224,7 @@ MonoBehaviour:
   renderSettingsHackEmissiveBoost: 1
   renderSettingsHackIndirectBoost: 1
   renderSettingsTempPath: 
-  renderSettingsOutPath: _WitchMendokusai/Content/Explorer/World/Stage/1000_TempCombat/Stage_TempCombat
+  renderSettingsOutPath: _WitchMendokusai/Domain/World/Stage/1000_TempCombat/Stage_TempCombat
   renderSettingsUseScenePath: 1
   renderSettingsHackAOIntensity: 0
   renderSettingsHackAOSamples: 16
@@ -3976,7 +3976,7 @@ MonoBehaviour:
   lightmapHasDir: 00000000
   lightmapHasRNM: 00000000
   modifiedAssetPathList:
-  - Assets/_WitchMendokusai/Content/Explorer/World/Parts/Tree/Tree.fbx
+  - Assets/_WitchMendokusai/Domain/World/Parts/Tree/Tree.fbx
   modifiedAssets:
   - meshName:
     - Tree

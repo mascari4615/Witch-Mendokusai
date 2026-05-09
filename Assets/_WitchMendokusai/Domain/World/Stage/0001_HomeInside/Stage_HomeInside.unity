@@ -676,7 +676,7 @@ MonoBehaviour:
   renderSettingsHackEmissiveBoost: 1
   renderSettingsHackIndirectBoost: 1
   renderSettingsTempPath: 
-  renderSettingsOutPath: _WitchMendokusai/Content/Explorer/World/Stage/0001_HomeInside/Stage_HomeInside
+  renderSettingsOutPath: _WitchMendokusai/Domain/World/Stage/0001_HomeInside/Stage_HomeInside
   renderSettingsUseScenePath: 1
   renderSettingsHackAOIntensity: 1
   renderSettingsHackAOSamples: 4
@@ -873,7 +873,7 @@ MonoBehaviour:
     angle: 30
     UID: 3
   modifiedAssetPathList:
-  - Assets/_WitchMendokusai/Content/Explorer/World/Parts/TreeHouse/TreeHouse.fbx
+  - Assets/_WitchMendokusai/Domain/World/Parts/TreeHouse/TreeHouse.fbx
   modifiedAssets:
   - meshName:
     - Cylinder

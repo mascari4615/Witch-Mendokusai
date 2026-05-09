@@ -268,7 +268,7 @@ MonoBehaviour:
   renderSettingsHackEmissiveBoost: 1
   renderSettingsHackIndirectBoost: 1
   renderSettingsTempPath: 
-  renderSettingsOutPath: _WitchMendokusai/Content/Explorer/World/Stage/0003_LandOfRest/Stage_LandOfRest
+  renderSettingsOutPath: _WitchMendokusai/Domain/World/Stage/0003_LandOfRest/Stage_LandOfRest
   renderSettingsUseScenePath: 1
   renderSettingsHackAOIntensity: 0
   renderSettingsHackAOSamples: 16
