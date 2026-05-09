@@ -1,24 +1,32 @@
 name: Claude Post-Push Audit
 
-# TASK-WM-063 sub-K — post-push audit 재구현 (raw Claude CLI 직접 호출).
+# TASK-WM-063 sub-K — post-push audit (raw Claude CLI 직접 호출).
 #
 # 직전 시도 (claude-audit job in claude.yml, anthropics/claude-code-action@v1
 # mode=agent + push trigger) 가 action 의 push event 미지원으로 실패.
 # 본 워크플로는 raw `claude --print` CLI 직접 호출 패턴 — action wrapper X.
 #
-# POC 단계 (현재): workflow_dispatch 만. 수동 트리거 → 작동 확인 → push 트리거 추가.
+# POC 검증 완료 (Issue #135, 의도적 위반 commit 으로 var + ! 연산자 catch 확인).
+# push trigger 활성화 — 매 main push 마다 자동 audit + FAIL 시 Issue 자동 생성.
 
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
     inputs:
       sha:
-        description: 'Audit 대상 commit SHA (default = HEAD)'
+        description: 'Audit 대상 commit SHA (default = HEAD). workflow_dispatch 전용.'
         required: false
         default: ''
 
 permissions:
   contents: read
   issues: write
+
+concurrency:
+  # SHA 별 직렬화 — 같은 commit 의 audit 중복 방지 (workflow_dispatch + push 동시 트리거 등).
+  group: ${{ github.workflow }}-${{ inputs.sha || github.sha }}
+  cancel-in-progress: false
 
 jobs:
   audit:
