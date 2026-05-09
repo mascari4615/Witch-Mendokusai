@@ -22,3 +22,4 @@ MonoBehaviour:
   <IsWet>k__BackingField: 1
   <SfxKey>k__BackingField: weather_storm
   <DebugTint>k__BackingField: {r: 0.25, g: 0.3, b: 0.5, a: 1}
+  <VisualPrefab>k__BackingField: {fileID: 3388953125358586290, guid: f2cb369fcaa4ba5468ca11d82b7fa279, type: 3}

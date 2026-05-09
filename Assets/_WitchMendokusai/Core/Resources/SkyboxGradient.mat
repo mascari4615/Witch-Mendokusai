@@ -25,14 +25,20 @@ Material:
     m_TexEnvs: []
     m_Ints: []
     m_Floats:
+    - _CloudCoverage: 0.50292563
+    - _CloudHeight: 0.05
+    - _CloudScale: 4
+    - _CloudSoftness: 0.15
+    - _CloudSpeed: 0.05
     - _HorizonExponent: 2.5
-    - _StarAlpha: -0.20859763
+    - _StarAlpha: 0.05401236
     - _SunSize: 0.04
     - _SunSoftness: 0.05
     m_Colors:
-    - _HorizonColor: {r: 0.9291657, g: 0.76805717, b: 0.6833372, a: 1}
-    - _SunDirection: {r: 0, g: 0.75412303, b: 0.65673316, a: 0}
-    - _SunDiscColor: {r: 1, g: 0.7720862, b: 0.5908272, a: 1}
-    - _ZenithColor: {r: 0.4989526, g: 0.6010474, b: 0.88403165, a: 1}
+    - _CloudColor: {r: 0.95734036, g: 0.8293615, b: 0.87202114, a: 1}
+    - _HorizonColor: {r: 1, g: 0.8527661, b: 0.81110644, a: 1}
+    - _SunDirection: {r: 0, g: 0.050445735, b: 0.9987268, a: 0}
+    - _SunDiscColor: {r: 1, g: 0.82495725, b: 0.7220211, a: 1}
+    - _ZenithColor: {r: 0.5194468, g: 0.6333193, b: 0.8027661, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
