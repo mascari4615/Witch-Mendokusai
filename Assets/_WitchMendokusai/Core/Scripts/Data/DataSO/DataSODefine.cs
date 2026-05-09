@@ -35,7 +35,7 @@ namespace WitchMendokusai
 
 		public static readonly Dictionary<Type, string> AssetFolderOverride = new()
 		{
-			{ typeof(UpgradeData), "Assets/_WitchMendokusai/Content/Upgrade/ScriptableObject" },
+			{ typeof(UpgradeData), "Assets/_WitchMendokusai/Domain/Upgrade/ScriptableObject" },
 		};
 	}
 }
