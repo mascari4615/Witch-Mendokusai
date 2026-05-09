@@ -465,11 +465,97 @@ git branch -D <임시 브랜치>               # push 후 임시 브랜치 삭�
 - 수동 invoke (PR 코멘트 `@coderabbitai review`) 는 PR 부활 시점 — 본 단계엔 의미 X
 - claude-audit 결과 보강용 secondary audit — 비용 대비 가치 평가 후 도입
 
-### Release branch + 통합 PR — *후속 단계 검토 (현 단계 도입 X)*
+### Release flow — Tag-only on main (TASK-WM-066, 2026-05-09)
 
-사용자 idea (TASK-WM-063 시드, 2026-05-09): "릴리즈 브랜치 같은 거에 합칠 때 PR로 통합 검토".
+trunk-based 정착 (TASK-WM-063) 후속. release branch 안 만듦 — release = main 의 특정 commit 에 `v*` tag 박는 것. `.github/workflows/release.yml` 가 tag push 받아 자동 처리.
 
-WM = early dev (Steam/itch.io 발행 사이클 없음) 라 release branch 도입은 의미 약함 (release = de facto main). publish 사이클 도달 시 별도 TASK 로 진입:
-- `release/v0.x` 브랜치 + tag 자동화
-- `main → release` 통합 PR — milestone 단위 review
-- 그 시점에 본 § 추가
+#### Trigger + 흐름
+
+```
+사용자: git tag v0.0.5 && git push origin v0.0.5
+          ↓
+release.yml (on: push tag v[0-9]*)
+  1. 직전 tag (v:refname 정렬) 찾기
+  2. range = prev..tag, git log Conventional Commits 분류 (feat/fix/perf/refactor/docs/test/build/ci/chore/style/revert/other)
+  3. CHANGELOG.md 상단 (line 5+) 에 새 release 섹션 prepend
+  4. ProjectSettings/ProjectSettings.asset 의 bundleVersion 을 tag (v 제외) 로 sed
+  5. main 직접 commit "chore(release): vX.Y.Z — auto bump bundleVersion + CHANGELOG"
+  6. main push
+  7. gh release create vX.Y.Z --notes-file <fragment> --verify-tag
+          ↓
+GitHub Release 페이지 + main 후속 commit (claude-audit 도 발동 — workflow 변경 X 라 PASS 기대)
+```
+
+#### 결정 매트릭스 (TASK-WM-066 시드)
+
+| sub | 채택 | 사유 |
+|---|---|---|
+| 브랜치 구조 | Tag-only on main | trunk-based 100% 정합. early dev + 사용자 1명 → release branch = 데드 인프라 |
+| Trigger | A1 — tag push (`v[0-9]*`) | 단순 / 외부 action 없음 |
+| bundleVersion sync | B1 — workflow auto-bump (post-tag commit) | tag = 정본, ProjectSettings 자동 추종 |
+| CHANGELOG 형식 | C1 — Conventional Commits 자동 분류 | commit 메시지 = 단일 출처 |
+| semver bump | D1 — 사용자 수동 tag | 자유도 ↑, 외부 action 0 |
+| Release artifact | E1 — 메타만 (build 분리) | TASK-WM-067 시드 (game-ci vs UCB) |
+
+#### Tag ↔ bundleVersion drift (의도된 한계)
+
+`v0.0.5` tag 가 가리키는 commit 은 **사용자가 push 한 시점의 main HEAD**. workflow 의 bump commit 은 그 *다음* main commit 으로 들어감. 따라서:
+
+- tag commit 의 `ProjectSettings.asset` `bundleVersion` 은 *이전* 값 (예: 0.0.4).
+- main HEAD post-release = bumped 값 (0.0.5).
+- 게임 빌드는 **main HEAD post-release 기반** (tag commit 기반 X) — TASK-WM-067 (build 자동화) 에서 적용.
+
+대안 (force-update tag) 검토 후 폐기 — `force push 절대 금지` 룰 (위 § Force push) 우선. 1-commit drift 는 빌드 흐름에서 자연 흡수.
+
+#### CHANGELOG.md 구조
+
+`CHANGELOG.md` 상단 4줄 = 헤더 (보존). line 5+ 에 release 섹션이 *역순* 누적 (newest first).
+
+```markdown
+# Changelog                               ← line 1 (header preserved)
+                                          ← line 2
+All notable changes ...                   ← line 3
+Format: Conventional Commits ...          ← line 4
+## [v0.0.5] - 2026-05-09                  ← line 5+ (workflow prepend 위치)
+### Features
+- ... (`abc1234`)
+## [v0.0.4] - 2026-05-08
+...
+## Pre-CHANGELOG history                  ← 초기 backfill
+- [`v0.0.3`] — 2025-03-03
+- [`v0.0.2`] — 2024-06-19
+- [`v0.0.1`] — 2024-06-05
+```
+
+#### 사용자 사용법
+
+```bash
+# 1) 보내려는 commit 들이 main 에 있는지 확인 (worktree 안에서 fetch + log)
+git fetch origin main
+git log origin/main --oneline -10
+
+# 2) 다음 버전 결정 (semver — 사용자 판단)
+#    기존: bundleVersion = 0.0.4, 마지막 tag = v0.0.3
+#    예: v0.0.4 (catch-up release) 또는 v0.0.5
+
+# 3) tag 박고 push (main 자체는 push 불필요 — 이미 origin/main 동기화)
+git tag v0.0.4
+git push origin v0.0.4
+
+# 4) Actions 페이지에서 release.yml 진행 확인 (~1분)
+#    완료 시: GitHub Release 페이지 + 새 commit "chore(release): v0.0.4 ..." 가 main 에
+```
+
+#### 폐기·revert
+
+```bash
+# workflow 폐기 (release flow 자체 중단)
+rm .github/workflows/release.yml
+# CHANGELOG.md 폐기 (옵션 — 유지해도 무관)
+rm CHANGELOG.md
+# 잘못된 tag 회수
+git tag -d vX.Y.Z
+git push origin --delete vX.Y.Z
+# Release 회수
+gh release delete vX.Y.Z --yes
+```
