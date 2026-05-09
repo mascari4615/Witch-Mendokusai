@@ -4,11 +4,10 @@ using UnityEngine;
 
 namespace WitchMendokusai
 {
-	// 시간대 (4 hour bucket: Dawn/Morning/Afternoon/Night) 별 weather 가중치 행렬.
+	// 계절 (4: Spring/Summer/Autumn/Winter) × 시간대 (4: Dawn/Morning/Afternoon/Night) × weather (7) 가중치 행렬.
 	// 매 시간 (WorldClock.OnHourChanged) 마다 RollNext 호출 → weighted random.
 	// Magical = 가중치 0 (ForceTriggerMagical 만 발동 — sub-G 의식 호출).
-	// 계절 축 (Spring/Summer/Autumn/Winter) 은 D 머지 + 사용자 컨펌 후 후속 단계.
-	// (TASK-WM-054-D D2)
+	// (TASK-WM-054-D D2 + 계절 축 추가)
 	[CreateAssetMenu(fileName = nameof(WeatherTransitionTableSO), menuName = "WM/Weather/WeatherTransitionTableSO")]
 	public class WeatherTransitionTableSO : ScriptableObject
 	{
@@ -20,16 +19,18 @@ namespace WitchMendokusai
 		}
 
 		[Serializable]
-		public struct HourBucketProfile
+		public struct SeasonHourProfile
 		{
+			[Tooltip("0=Spring / 1=Summer / 2=Autumn / 3=Winter")]
+			[Range(0, 3)] public int Season;
 			[Tooltip("0=Dawn (4-7) / 1=Morning (7-12) / 2=Afternoon (12-17) / 3=Night (17-24+0-4)")]
 			[Range(0, 3)] public int HourBucket;
 			public List<WeatherWeight> Weights;
 		}
 
 		[field: Header("_" + nameof(WeatherTransitionTableSO))]
-		[field: Tooltip("hour bucket 4개 × weather 7개 가중치. Bootstrap 이 모동숲 톤 default 박음.")]
-		[field: SerializeField] public List<HourBucketProfile> Profiles { get; private set; } = new List<HourBucketProfile>();
+		[field: Tooltip("계절 4 × hour bucket 4 = 16 profile. Bootstrap 이 모동숲/스타듀 톤 default 박음.")]
+		[field: SerializeField] public List<SeasonHourProfile> Profiles { get; private set; } = new List<SeasonHourProfile>();
 
 		// hour 0~23 → bucket 0~3
 		public static int HourToBucket(int hour)
@@ -43,12 +44,12 @@ namespace WitchMendokusai
 			return 3;
 		}
 
-		// hour bucket 의 가중치 합 기반 weighted random.
+		// (season, hour bucket) profile 의 가중치 합 기반 weighted random.
 		// 가중치 합 0 또는 profile 미존재 시 fallback = Clear.
-		public WeatherType RollNext(int hour)
+		public WeatherType RollNext(int hour, int season)
 		{
 			int bucket = HourToBucket(hour);
-			HourBucketProfile profile = FindProfile(bucket);
+			SeasonHourProfile profile = FindProfile(season, bucket);
 
 			if (profile.Weights == null || profile.Weights.Count == 0)
 				return WeatherType.Clear;
@@ -72,11 +73,11 @@ namespace WitchMendokusai
 			return WeatherType.Clear;
 		}
 
-		// dominant (최대 가중치) weather — 일기예보 (sub-D D5 PreviewNext) 에 사용.
-		public WeatherType DominantAt(int hour)
+		// dominant (최대 가중치) weather — 일기예보 (sub-D D5 PreviewNext).
+		public WeatherType DominantAt(int hour, int season)
 		{
 			int bucket = HourToBucket(hour);
-			HourBucketProfile profile = FindProfile(bucket);
+			SeasonHourProfile profile = FindProfile(season, bucket);
 
 			if (profile.Weights == null || profile.Weights.Count == 0)
 				return WeatherType.Clear;
@@ -95,11 +96,18 @@ namespace WitchMendokusai
 			return dominant;
 		}
 
-		private HourBucketProfile FindProfile(int bucket)
+		public List<WeatherWeight> GetWeights(int hour, int season)
 		{
-			foreach (HourBucketProfile profile in Profiles)
+			int bucket = HourToBucket(hour);
+			SeasonHourProfile profile = FindProfile(season, bucket);
+			return profile.Weights;
+		}
+
+		private SeasonHourProfile FindProfile(int season, int bucket)
+		{
+			foreach (SeasonHourProfile profile in Profiles)
 			{
-				if (profile.HourBucket == bucket)
+				if (profile.Season == season && profile.HourBucket == bucket)
 					return profile;
 			}
 			return default;

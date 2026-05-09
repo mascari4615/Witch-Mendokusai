@@ -55,7 +55,10 @@ namespace WitchMendokusai
 			if (Table == null)
 				return;
 
-			WeatherType next = Table.RollNext(hour);
+			if (WorldClock.TryGetExistingInstance(out WorldClock worldClock) == false)
+				return;
+
+			WeatherType next = Table.RollNext(hour, worldClock.Season);
 			if (next == Current)
 				return;
 
@@ -79,7 +82,7 @@ namespace WitchMendokusai
 				return WeatherType.Clear;
 
 			int nextHour = (worldClock.Hour + 1) % worldClock.Config.HoursPerDay;
-			return Table.DominantAt(nextHour);
+			return Table.DominantAt(nextHour, worldClock.Season);
 		}
 
 		// 디버그 / sub-G 의식 호출처.

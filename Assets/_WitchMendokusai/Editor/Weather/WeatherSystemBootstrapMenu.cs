@@ -107,7 +107,17 @@ namespace WitchMendokusai
 			WeatherTransitionTableSO existing = AssetDatabase.LoadAssetAtPath<WeatherTransitionTableSO>(TABLE_PATH);
 
 			if (existing != null && force == false)
+			{
+				// schema migration — Profiles 비어진 .asset (옛 schema 깨짐) 자동 재초기화
+				if (existing.Profiles == null || existing.Profiles.Count == 0)
+				{
+					InitializeTable(existing);
+					EditorUtility.SetDirty(existing);
+					AssetDatabase.SaveAssets();
+					Debug.Log($"[WeatherSystemBootstrap] Re-initialized {TABLE_PATH} (schema migration — 4 hour bucket → 16 season×hour profile)");
+				}
 				return;
+			}
 
 			if (existing == null)
 			{
@@ -135,21 +145,38 @@ namespace WitchMendokusai
 
 			profilesProp.ClearArray();
 
-			// 모동숲 톤 default — 시간대 만 (계절 축은 후속).
-			AddProfile(profilesProp, 0, DawnDefault());        // Dawn (4-7)
-			AddProfile(profilesProp, 1, MorningDefault());     // Morning (7-12)
-			AddProfile(profilesProp, 2, AfternoonDefault());   // Afternoon (12-17)
-			AddProfile(profilesProp, 3, NightDefault());       // Night (17-24+0-4)
+			// 모동숲/스타듀 톤 default — 계절 4 × hour bucket 4 = 16 profile.
+			// Spring (0)
+			AddProfile(profilesProp, 0, 0, SpringDawn());
+			AddProfile(profilesProp, 0, 1, SpringMorning());
+			AddProfile(profilesProp, 0, 2, SpringAfternoon());
+			AddProfile(profilesProp, 0, 3, SpringNight());
+			// Summer (1)
+			AddProfile(profilesProp, 1, 0, SummerDawn());
+			AddProfile(profilesProp, 1, 1, SummerMorning());
+			AddProfile(profilesProp, 1, 2, SummerAfternoon());
+			AddProfile(profilesProp, 1, 3, SummerNight());
+			// Autumn (2)
+			AddProfile(profilesProp, 2, 0, AutumnDawn());
+			AddProfile(profilesProp, 2, 1, AutumnMorning());
+			AddProfile(profilesProp, 2, 2, AutumnAfternoon());
+			AddProfile(profilesProp, 2, 3, AutumnNight());
+			// Winter (3)
+			AddProfile(profilesProp, 3, 0, WinterDawn());
+			AddProfile(profilesProp, 3, 1, WinterMorning());
+			AddProfile(profilesProp, 3, 2, WinterAfternoon());
+			AddProfile(profilesProp, 3, 3, WinterNight());
 
 			serializedObject.ApplyModifiedProperties();
 		}
 
-		private static void AddProfile(SerializedProperty profilesProp, int hourBucket, List<(WeatherType type, float weight)> weights)
+		private static void AddProfile(SerializedProperty profilesProp, int season, int hourBucket, List<(WeatherType type, float weight)> weights)
 		{
 			int profileIndex = profilesProp.arraySize;
 			profilesProp.InsertArrayElementAtIndex(profileIndex);
 
 			SerializedProperty profileElement = profilesProp.GetArrayElementAtIndex(profileIndex);
+			profileElement.FindPropertyRelative("Season").intValue = season;
 			profileElement.FindPropertyRelative("HourBucket").intValue = hourBucket;
 
 			SerializedProperty weightsProp = profileElement.FindPropertyRelative("Weights");
@@ -164,37 +191,76 @@ namespace WitchMendokusai
 			}
 		}
 
-		private static List<(WeatherType type, float weight)> DawnDefault() => new()
+		// ─── Spring (0) — 봄, 비/구름 잦음 ───
+		private static List<(WeatherType type, float weight)> SpringDawn() => new()
 		{
-			(WeatherType.Clear, 0.40f),
-			(WeatherType.Cloudy, 0.30f),
-			(WeatherType.Fog, 0.20f),
-			(WeatherType.Rain, 0.10f),
+			(WeatherType.Cloudy, 0.40f), (WeatherType.Clear, 0.30f), (WeatherType.Fog, 0.20f), (WeatherType.Rain, 0.10f),
+		};
+		private static List<(WeatherType type, float weight)> SpringMorning() => new()
+		{
+			(WeatherType.Clear, 0.55f), (WeatherType.Cloudy, 0.30f), (WeatherType.Rain, 0.15f),
+		};
+		private static List<(WeatherType type, float weight)> SpringAfternoon() => new()
+		{
+			(WeatherType.Clear, 0.50f), (WeatherType.Cloudy, 0.30f), (WeatherType.Rain, 0.15f), (WeatherType.Storm, 0.05f),
+		};
+		private static List<(WeatherType type, float weight)> SpringNight() => new()
+		{
+			(WeatherType.Cloudy, 0.40f), (WeatherType.Clear, 0.35f), (WeatherType.Rain, 0.20f), (WeatherType.Fog, 0.05f),
 		};
 
-		private static List<(WeatherType type, float weight)> MorningDefault() => new()
+		// ─── Summer (1) — 여름, 맑음 + 강한 storm ───
+		private static List<(WeatherType type, float weight)> SummerDawn() => new()
 		{
-			(WeatherType.Clear, 0.60f),
-			(WeatherType.Cloudy, 0.25f),
-			(WeatherType.Rain, 0.10f),
-			(WeatherType.Fog, 0.05f),
+			(WeatherType.Clear, 0.50f), (WeatherType.Cloudy, 0.30f), (WeatherType.Fog, 0.15f), (WeatherType.Storm, 0.05f),
+		};
+		private static List<(WeatherType type, float weight)> SummerMorning() => new()
+		{
+			(WeatherType.Clear, 0.70f), (WeatherType.Cloudy, 0.20f), (WeatherType.Storm, 0.10f),
+		};
+		private static List<(WeatherType type, float weight)> SummerAfternoon() => new()
+		{
+			(WeatherType.Clear, 0.60f), (WeatherType.Cloudy, 0.20f), (WeatherType.Storm, 0.20f),
+		};
+		private static List<(WeatherType type, float weight)> SummerNight() => new()
+		{
+			(WeatherType.Clear, 0.50f), (WeatherType.Cloudy, 0.30f), (WeatherType.Storm, 0.15f), (WeatherType.Rain, 0.05f),
 		};
 
-		private static List<(WeatherType type, float weight)> AfternoonDefault() => new()
+		// ─── Autumn (2) — 가을, 흐림/비/안개 ───
+		private static List<(WeatherType type, float weight)> AutumnDawn() => new()
 		{
-			(WeatherType.Clear, 0.55f),
-			(WeatherType.Cloudy, 0.30f),
-			(WeatherType.Rain, 0.10f),
-			(WeatherType.Storm, 0.05f),
+			(WeatherType.Cloudy, 0.40f), (WeatherType.Fog, 0.30f), (WeatherType.Rain, 0.20f), (WeatherType.Clear, 0.10f),
+		};
+		private static List<(WeatherType type, float weight)> AutumnMorning() => new()
+		{
+			(WeatherType.Cloudy, 0.40f), (WeatherType.Clear, 0.30f), (WeatherType.Rain, 0.20f), (WeatherType.Fog, 0.10f),
+		};
+		private static List<(WeatherType type, float weight)> AutumnAfternoon() => new()
+		{
+			(WeatherType.Cloudy, 0.40f), (WeatherType.Rain, 0.30f), (WeatherType.Clear, 0.20f), (WeatherType.Fog, 0.10f),
+		};
+		private static List<(WeatherType type, float weight)> AutumnNight() => new()
+		{
+			(WeatherType.Cloudy, 0.40f), (WeatherType.Rain, 0.30f), (WeatherType.Fog, 0.20f), (WeatherType.Storm, 0.10f),
 		};
 
-		private static List<(WeatherType type, float weight)> NightDefault() => new()
+		// ─── Winter (3) — 겨울, 눈 위주 ───
+		private static List<(WeatherType type, float weight)> WinterDawn() => new()
 		{
-			(WeatherType.Clear, 0.40f),
-			(WeatherType.Cloudy, 0.35f),
-			(WeatherType.Rain, 0.15f),
-			(WeatherType.Snow, 0.05f),
-			(WeatherType.Fog, 0.05f),
+			(WeatherType.Snow, 0.50f), (WeatherType.Cloudy, 0.30f), (WeatherType.Clear, 0.20f),
+		};
+		private static List<(WeatherType type, float weight)> WinterMorning() => new()
+		{
+			(WeatherType.Snow, 0.40f), (WeatherType.Cloudy, 0.30f), (WeatherType.Clear, 0.30f),
+		};
+		private static List<(WeatherType type, float weight)> WinterAfternoon() => new()
+		{
+			(WeatherType.Snow, 0.35f), (WeatherType.Cloudy, 0.35f), (WeatherType.Clear, 0.30f),
+		};
+		private static List<(WeatherType type, float weight)> WinterNight() => new()
+		{
+			(WeatherType.Snow, 0.50f), (WeatherType.Cloudy, 0.30f), (WeatherType.Storm, 0.15f), (WeatherType.Clear, 0.05f),
 		};
 
 		// ─── D3: WeatherSystem prefab ───
@@ -212,6 +278,7 @@ namespace WitchMendokusai
 
 			GameObject root = new GameObject(nameof(WeatherSystem));
 			WeatherSystem weatherSystem = root.AddComponent<WeatherSystem>();
+			root.AddComponent<WeatherHUD>();
 
 			SerializedObject serializedObject = new SerializedObject(weatherSystem);
 
@@ -247,8 +314,15 @@ namespace WitchMendokusai
 				if (weatherSystem == null)
 					return;
 
-				SerializedObject serializedObject = new SerializedObject(weatherSystem);
 				bool changed = false;
+
+				if (prefabRoot.GetComponent<WeatherHUD>() == null)
+				{
+					prefabRoot.AddComponent<WeatherHUD>();
+					changed = true;
+				}
+
+				SerializedObject serializedObject = new SerializedObject(weatherSystem);
 
 				SerializedProperty dontDestroyProp = serializedObject.FindProperty("dontDestroyOnLoad");
 				if (dontDestroyProp != null && dontDestroyProp.boolValue == false)
