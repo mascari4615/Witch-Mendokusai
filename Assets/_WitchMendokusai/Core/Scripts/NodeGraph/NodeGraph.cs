@@ -5,11 +5,14 @@ namespace WitchMendokusai.NodeGraph
 {
 	/// <summary>
 	/// 노드 그래프 SO — 노드 + 연결 묶음. `[SerializeReference]` 으로 다양한 도메인 노드 polymorphic 직렬화.
-	/// 도메인별 그래프는 이를 상속해서 <see cref="Domain"/> override (예: <c>TerrainGraph</c>, <c>MagicBookGraph</c>).
+	/// 도메인별 그래프는 이를 상속해서 <see cref="Domain"/> override (예: <c>TerrainGraph</c>, <c>ChapterSO</c>).
 	/// 직접 `NodeGraph` 인스턴스 자산 = `Generic` 도메인 — fallback / 마이그레이션 (모든 노드 카탈로그 보임).
+	///
+	/// TASK-WM-059 B1 (2026-05-09): <see cref="DataSO"/> 상속 — 그래프 자체가 카탈로그 메타 호스트 (ID/Name/Description/Sprite).
+	/// 도메인 SO (ChapterSO 등) 가 NodeGraph 상속 = 데이터 = 그래프 단일 정본 (변환 어댑터 폐기). DataSOInspector 는 AssetPrefixes 미등록 시 default fallback.
 	/// </summary>
 	[CreateAssetMenu(fileName = nameof(NodeGraph), menuName = "WM/NodeGraph/" + nameof(NodeGraph))]
-	public class NodeGraph : ScriptableObject
+	public class NodeGraph : DataSO
 	{
 		[SerializeReference] private List<NodeBase> nodes = new();
 		[SerializeField] private List<NodeConnection> connections = new();
