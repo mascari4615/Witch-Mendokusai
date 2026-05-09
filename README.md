@@ -1,5 +1,16 @@
 # 마녀: 귀찮아
 
+## Release
+
+새 버전 박는 절차 — tag 만 push 하면 끝:
+
+```bash
+git tag v0.0.5
+git push origin v0.0.5
+```
+
+[`.github/workflows/release.yml`](.github/workflows/release.yml) 가 자동으로 [`CHANGELOG.md`](CHANGELOG.md) 갱신 + `ProjectSettings/ProjectSettings.asset` 의 `bundleVersion` sync + [GitHub Release](https://github.com/mascari4615/Witch-Mendokusai/releases) 생성. 자세한 흐름·결정 배경·revert 는 [`CLAUDE.md` § Git Workflow → Release flow](CLAUDE.md).
+
 ## 사용한 리소스/에셋
 
 - [Galmuri (Font)](https://galmuri.quiple.dev/), [(Github)](https://github.com/quiple/galmuri)
