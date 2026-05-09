@@ -1,12 +1,12 @@
 {
   "dependencies": {
     "com.boxqkrtm.ide.cursor": "https://github.com/boxqkrtm/com.unity.ide.cursor.git",
-    "com.coplaydev.unity-mcp": "https://github.com/CoplayDev/unity-mcp.git?path=/MCPForUnity#main",
     "com.cysharp.unitask": "https://github.com/Cysharp/UniTask.git?path=src/UniTask/Assets/Plugins/UniTask",
     "com.mascari4615.karmo-editor": "file:com.mascari4615.karmo-editor",
     "com.unify.unified-universal-blur": "https://github.com/lukakldiashvili/Unified-Universal-Blur.git",
     "com.unity.2d.animation": "14.0.4",
     "com.unity.addressables": "2.9.1",
+    "com.unity.ai.assistant": "2.7.0-pre.3",
     "com.unity.ai.navigation": "2.0.12",
     "com.unity.behavior": "1.0.15",
     "com.unity.cinemachine": "3.1.6",
