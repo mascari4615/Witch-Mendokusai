@@ -1,0 +1,19 @@
+{
+    "name": "WM.ShaderModdingSDK.Editor",
+    "rootNamespace": "WitchMendokusai",
+    "references": [
+        "WM.Core",
+        "WM.Domain"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
