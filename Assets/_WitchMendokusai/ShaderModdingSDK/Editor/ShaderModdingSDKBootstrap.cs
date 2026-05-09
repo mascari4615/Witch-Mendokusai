@@ -250,7 +250,7 @@ namespace WitchMendokusai
 			propertiesChanged |= EnsureMaterialFloat(waterMaterial, "_FoamIntensity", 1.0f);
 			propertiesChanged |= EnsureMaterialFloat(waterMaterial, "_FoamThreshold", 0.65f);
 			propertiesChanged |= EnsureMaterialFloat(waterMaterial, "_FoamSoftness", 0.08f);
-			propertiesChanged |= EnsureMaterialFloat(waterMaterial, "_WaveAmount", 0.06f);
+			propertiesChanged |= EnsureMaterialFloat(waterMaterial, "_WaveAmount", 0.5f);
 			propertiesChanged |= EnsureMaterialFloat(waterMaterial, "_WaveSpeed", 1.2f);
 			propertiesChanged |= EnsureMaterialFloat(waterMaterial, "_WaveFrequency", 1.5f);
 			propertiesChanged |= EnsureMaterialFloat(waterMaterial, "_SkyTintAmount", 0.25f);

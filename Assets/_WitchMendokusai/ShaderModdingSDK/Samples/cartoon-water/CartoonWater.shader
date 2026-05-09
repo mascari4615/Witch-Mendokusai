@@ -16,7 +16,7 @@ Shader "WM/Sample/CartoonWater"
 		_FoamIntensity ("Foam Intensity", Range(0, 2)) = 1.0
 		_FoamThreshold ("Foam Threshold", Range(0, 1)) = 0.65
 		_FoamSoftness ("Foam Softness", Range(0.001, 0.3)) = 0.08
-		_WaveAmount ("Wave Amount", Range(0, 0.3)) = 0.06
+		_WaveAmount ("Wave Amount", Range(0, 1)) = 0.5
 		_WaveSpeed ("Wave Speed", Range(0, 5)) = 1.2
 		_WaveFrequency ("Wave Frequency (world space, cycles per ~6m)", Range(0.1, 10)) = 1.5
 		_SkyTintAmount ("Sky Tint Amount (0=무시, 1=황혼 분홍 강함)", Range(0, 1)) = 0.25
@@ -89,9 +89,14 @@ Shader "WM/Sample/CartoonWater"
 				float waveZ = sin(IN.worldPos.z * _WaveFrequency * 0.7 + _Time.y * _WaveSpeed * 1.3) * _WaveAmount;
 				float waveCombined = waveX + waveZ;
 
+				// 2b. wave 가 base color 변조 — wave 영역에 deep tint mix (큰 mesh 단색 회피).
+				//     waveCombined ∈ [-2*amount, +2*amount]. 정규화 후 _ShallowColor 위에 _DeepColor mix.
+				float waveTintFactor = saturate(waveCombined * 0.5 + 0.5);
+				float3 baseTinted = lerp(baseColor, _DeepColor.rgb, waveTintFactor * 0.4);
+
 				// 3. foam — wave 값이 threshold 넘으면 흰 거품. soft edge.
 				float foamMask = smoothstep(_FoamThreshold, _FoamThreshold + _FoamSoftness, waveCombined + 0.5);
-				float3 surface = lerp(baseColor, _FoamColor.rgb, foamMask * _FoamIntensity * _FoamColor.a);
+				float3 surface = lerp(baseTinted, _FoamColor.rgb, foamMask * _FoamIntensity * _FoamColor.a);
 
 				// 4. SkyDirector horizon 색 살짝 mix — 시간대 자동 반영 (옵션).
 				surface = lerp(surface, _WMSkyHorizon.rgb, _SkyTintAmount * 0.3);
