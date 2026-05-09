@@ -3,8 +3,11 @@ using static WitchMendokusai.SOHelper;
 
 namespace WitchMendokusai
 {
-	public class Player : Singleton<Player>
+	[DefaultExecutionOrder(-100)]
+	public class Player : MonoBehaviour
 	{
+		[SerializeField] private bool dontDestroyOnLoad = false;
+
 		public PlayerObject Object { get; private set; }
 		public PlayerRotation Rotation { get; private set; }
 		[field: SerializeField] public GameObject ExpCollider { get; private set; }
@@ -19,13 +22,15 @@ namespace WitchMendokusai
 
 		public UnitStat UnitStat => Object.UnitStat;
 
-		protected override void Awake()
+		private void Awake()
 		{
-			base.Awake();
 			interaction = new(transform);
 			aim = new(transform, ObjectBufferManager.GetObjects(ObjectType.Monster), ObjectBufferManager.GetObjects(ObjectType.ResourceNode));
 			Object = GetComponent<PlayerObject>();
 			Rotation = GetComponent<PlayerRotation>();
+
+			if (dontDestroyOnLoad == true)
+				DontDestroyOnLoad(gameObject);
 
 			PlayerProvider.Instance.SetCurrent(this);
 
@@ -51,7 +56,7 @@ namespace WitchMendokusai
 			});
 		}
 
-		protected override void OnDestroy()
+		private void OnDestroy()
 		{
 			if (PlayerProvider.TryGetExistingInstance(out PlayerProvider playerProvider))
 				playerProvider.Clear();
@@ -69,8 +74,6 @@ namespace WitchMendokusai
 				eventBus.Unsubscribe<PlayerAutoAimToggledEvent>(OnAutoAimToggled);
 				eventBus.Unsubscribe<PlayerInteractRequestedEvent>(OnInteractRequested);
 			}
-
-			base.OnDestroy();
 		}
 
 		private void OnJumpRequested(PlayerJumpRequestedEvent evt) => TryJump();
