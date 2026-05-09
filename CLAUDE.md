@@ -355,33 +355,37 @@ post-push audit Issue 또는 사용자 발견 Issue 와 1:1 매핑이면 commit 
 
 매핑 없으면 박지 X (스팸).
 
-### Branch Protection — required status checks 제거
+### Branch Protection — 폐기 (근본의 근)
 
-WM main 의 protection 실제 상태 (2026-05-09):
-- ❌ Require a pull request before merging — *원래부터 설정 X* (즉 main 직접 push 가능)
+WM main 의 원 protection 상태 (2026-05-09):
+- ❌ Require a pull request before merging — *원래부터 설정 X*
 - ✅ Required status checks (strict): `Check Typos`, `claude-review`
 - ❌ enforce_admins (admin bypass 가능)
 - ✅ Force push 차단
 
-trunk-based 전환 시 **`claude-review` 가 필수 게이트인데 본 TASK 가 그 job 자체를 폐기** → `claude-review` check 가 영원히 "expected" 상태 → admin bypass 외 모든 push BLOCKED.
-
-따라서 cutover 직전 **`claude-review` 를 required contexts 에서 제거** 필수. `Check Typos` 는 유지 (typo 검증 가치).
+trunk-based 전환 (TASK-WM-063) 으로 **protection 자체 폐기** — pre-push 게이트 0, 모든 검증을 post-push audit 에 맡김. 옵션 C (근본의 근, 사용자 컨펌 2026-05-09).
 
 사용자 1회 (둘 중 하나):
 
-**옵션 A — GitHub UI** (권장, 시각적):
-Settings > Branches > main 룰 Edit > Require status checks > "claude-review" 태그 제거.
+**GitHub UI**: Settings > Branches > main 룰 Delete.
 
-**옵션 B — `gh api` 명령**:
+**`gh api` 명령**:
 
 ```bash
-gh api -X PATCH repos/Mascari4615/Witch-Mendokusai/branches/main/protection/required_status_checks \
-  --input - <<'EOF'
-{"strict": true, "contexts": ["Check Typos"]}
-EOF
+gh api -X DELETE repos/Mascari4615/Witch-Mendokusai/branches/main/protection
 ```
 
-Force push 차단은 유지. PR 룰은 원래부터 없었으므로 변경 X.
+#### 폐기된 게이트의 software-side 보강
+
+protection 폐기로 사라지는 안전망 + 대체:
+
+| 사라진 게이트 | 위험 | 대체 |
+| --- | --- | --- |
+| `Check Typos` required | 오타 직접 push | code-quality.yml 의 push 트리거 + claude-audit 본문 (별 가치는 작음 — 오타는 audit 가 잡음) |
+| `claude-review` required | (이미 의미 X — 본 TASK 가 폐기) | claude-audit (post-push) |
+| Force push 차단 | 실수 force push → main 히스토리 손실 | autopilot.md § 안전 가드 3 「force-push 금지」 + 일반 세션도 동일 룰. 사고 시 `git reflog` 복구 (24-90일) |
+
+force push 는 *git 룰 위반* 으로 다룸 — software 측 가드. 이런 사고는 *드물게 발생하면 reflog 복구* 가 정합 (사용자 risk tolerance: "나중에 뭐 복구하든지").
 
 ### Post-push 정리
 
