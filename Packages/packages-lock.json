@@ -22,15 +22,6 @@
       "source": "embedded",
       "dependencies": {}
     },
-    "com.unify.unified-universal-blur": {
-      "version": "https://github.com/lukakldiashvili/Unified-Universal-Blur.git",
-      "depth": 0,
-      "source": "git",
-      "dependencies": {
-        "com.unity.render-pipelines.universal": "14.0.11"
-      },
-      "hash": "3f7b28476cb83f2d56cf73a13c81de798a94f005"
-    },
     "com.unity.2d.animation": {
       "version": "14.0.4",
       "depth": 0,
@@ -491,6 +482,13 @@
         "com.unity.shadergraph": "17.4.0",
         "com.unity.render-pipelines.core": "17.4.0"
       }
+    },
+    "jp.hadashikick.vcontainer": {
+      "version": "https://github.com/hadashiA/VContainer.git?path=VContainer/Assets/VContainer#1.17.0",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "177dbda557fd652ce7f5d1647a3621653e094373"
     },
     "com.unity.modules.accessibility": {
       "version": "1.0.0",
