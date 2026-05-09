@@ -8,8 +8,9 @@ namespace WitchMendokusai
 {
 	// 셰이더팩 빌드 — 폴더 안 모든 자산 (VolumeProfile / Material / Shader / etc.) 을
 	// AssetBundle (.shaderbundle) 로 출력 + manifest.json 같이 묶음.
-	// 출력 위치 = {repo_root}/Shaderpacks_Output/{packId}/  (repo .gitignore 권장 — follow-up)
-	// 사용자는 그 폴더 내용을 {persistentDataPath}/shaderpacks/{packId}/ 로 복사.
+	// 출력 위치 = {repo_root}/Shaderpacks_Output/{packId}/  (모더 배포용 zip 만들 때 사용)
+	// 자동 install = {persistentDataPath}/shaderpacks/{packId}/ 에 자동 복사 → 사용자 수동 복사 X.
+	// (모더 다른 사용자에게 배포 시점에는 출력 폴더 zip → 사용자 copy 흐름)
 	public static class ShaderPackBuilder
 	{
 		private const string OUTPUT_FOLDER_NAME = "Shaderpacks_Output";
@@ -74,8 +75,36 @@ namespace WitchMendokusai
 			Directory.Delete(tempBuildFolder, true);
 
 			Debug.Log($"[ShaderPackBuilder] Built {packId} ({assetPaths.Count} asset{(assetPaths.Count == 1 ? "" : "s")}) → {outputRoot}");
-			Debug.Log($"[ShaderPackBuilder] Drop into: {Application.persistentDataPath}/shaderpacks/{packId}/");
+
+			AutoInstall(packId, targetBundlePath, manifestTarget, bundleFileName);
+
 			EditorUtility.RevealInFinder(outputRoot);
+		}
+
+		// 빌드 직후 {persistentDataPath}/shaderpacks/{packId}/ 로 manifest + bundle 자동 복사.
+		// 사용자 수동 폴더 복사 단계 제거 — Build 메뉴 클릭만으로 즉시 적용 가능.
+		// 게임 실행 중이면 bundle file lock 으로 fail — 명시적 안내 후 사용자 Revert 또는 Stop 후 재시도.
+		private static void AutoInstall(string packId, string sourceBundlePath, string sourceManifestPath, string bundleFileName)
+		{
+			string installRoot = Path.Combine(Application.persistentDataPath, "shaderpacks", packId);
+			string installBundlePath = Path.Combine(installRoot, bundleFileName);
+			string installManifestPath = Path.Combine(installRoot, "manifest.json");
+
+			try
+			{
+				if (Directory.Exists(installRoot) == false)
+					Directory.CreateDirectory(installRoot);
+
+				File.Copy(sourceBundlePath, installBundlePath, true);
+				File.Copy(sourceManifestPath, installManifestPath, true);
+
+				Debug.Log($"[ShaderPackBuilder] Auto-installed → {installRoot}");
+				Debug.Log($"[ShaderPackBuilder] Game restart 또는 ESC > 환경설정 > 쉐이더팩 탭 > 재스캔 → 적용");
+			}
+			catch (IOException exception)
+			{
+				Debug.LogError($"[ShaderPackBuilder] Auto-install fail (file locked?) — '{packId}' 활성 중이면 Revert 후 재시도, 또는 게임 Stop. {exception.Message}");
+			}
 		}
 
 		// 폴더 안 모든 자산 수집 — 폴더 / manifest.json / readme.md 제외.
