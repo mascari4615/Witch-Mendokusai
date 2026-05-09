@@ -2,7 +2,7 @@
 
 ## 세계관
 
-세계관은 `karmoddrine/memo/CLAUDE.md` 및 `karmoddrine/memo/wm/design/vision.md` 참고.
+세계관은 `karmoddrine/memo/CLAUDE.md` 및 `karmoddrine/memo/wm/design/vision/` 디렉토리 (9 파일 — one-liner / branding / references / design-goals / core-loop / mdd / sub-elements / conflict / developer-notes) 참고.
 
 ## 입력 처리
 
