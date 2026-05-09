@@ -12,4 +12,11 @@ namespace WitchMendokusai
 	public struct PlayerDespawnedEvent
 	{
 	}
+
+	public struct PlayerObjectBoundEvent
+	{
+		public UnitStat UnitStat;
+		public Unit UnitData;
+		public Transform Transform;
+	}
 }

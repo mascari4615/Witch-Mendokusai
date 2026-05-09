@@ -1,16 +1,26 @@
-using System.Collections;
-using System.Collections.Generic;
-using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace WitchMendokusai
 {
 	public class UIBarUnitStat : UIBarStat<UnitStatType>
 	{
-		protected override Stat<UnitStatType> GetStat()
+		private void Awake()
 		{
-			return Player.Instance.UnitStat;
+			EventBus eventBus = EventBus.Instance;
+			eventBus.Subscribe<PlayerObjectBoundEvent>(OnObjectBound);
+			eventBus.Subscribe<PlayerDespawnedEvent>(OnDespawned);
 		}
+
+		private void OnDestroy()
+		{
+			if (EventBus.TryGetExistingInstance(out EventBus eventBus))
+			{
+				eventBus.Unsubscribe<PlayerObjectBoundEvent>(OnObjectBound);
+				eventBus.Unsubscribe<PlayerDespawnedEvent>(OnDespawned);
+			}
+		}
+
+		private void OnObjectBound(PlayerObjectBoundEvent evt) => BindStat(evt.UnitStat);
+		private void OnDespawned(PlayerDespawnedEvent evt) => BindStat(null);
 	}
 }

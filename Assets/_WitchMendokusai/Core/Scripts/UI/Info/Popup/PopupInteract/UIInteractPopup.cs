@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 
@@ -13,10 +11,16 @@ namespace WitchMendokusai
 		[SerializeField] private TextMeshProUGUI keyCodeText;
 		[SerializeField] private TextMeshProUGUI nameText;
 
+		private Transform playerTransform;
+
 		private void Awake()
 		{
 			canvasGroup = GetComponent<CanvasGroup>();
 			contentFitterRefresh = GetComponent<ContentFitterRefresh>();
+
+			EventBus eventBus = EventBus.Instance;
+			eventBus.Subscribe<PlayerSpawnedEvent>(OnPlayerSpawned);
+			eventBus.Subscribe<PlayerDespawnedEvent>(OnPlayerDespawned);
 		}
 
 		private void Start()
@@ -25,9 +29,27 @@ namespace WitchMendokusai
 			TimeManager.Instance.RegisterCallback(UpdatePopup);
 		}
 
+		private void OnDestroy()
+		{
+			if (EventBus.TryGetExistingInstance(out EventBus eventBus))
+			{
+				eventBus.Unsubscribe<PlayerSpawnedEvent>(OnPlayerSpawned);
+				eventBus.Unsubscribe<PlayerDespawnedEvent>(OnPlayerDespawned);
+			}
+		}
+
+		private void OnPlayerSpawned(PlayerSpawnedEvent evt) => playerTransform = evt.Transform;
+		private void OnPlayerDespawned(PlayerDespawnedEvent evt) => playerTransform = null;
+
 		public void UpdatePopup()
 		{
-			Vector3 playerPos = Player.Instance.transform.position;
+			if (playerTransform == null)
+			{
+				canvasGroup.SetVisible(false);
+				return;
+			}
+
+			Vector3 playerPos = playerTransform.position;
 			float interactDistance = PlayerInteraction.InteractionDistance;
 
 			InteractiveObject nearestInteractive = WMHelper.GetNearest(InteractiveObject.ActiveInteractive, playerPos, interactDistance);

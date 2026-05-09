@@ -12,7 +12,6 @@ namespace WitchMendokusai
 		OnLastHitMonsterChange = 3,
 		OnTick                 = 4,
 		OnLevelUp              = 5,
-		OnPlayerDollChange     = 6,
 		OnDungeonReturn        = 7,
 		OnResearchComplete     = 8,
 	}

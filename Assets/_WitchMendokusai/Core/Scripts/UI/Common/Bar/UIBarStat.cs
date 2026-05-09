@@ -19,17 +19,29 @@ namespace WitchMendokusai
 		[SerializeField] private bool isExpType;
 		private Coroutine routine;
 
-		private int Text => GetStat()[textType];
-		private int Cur => GetStat()[curType];
-		private int Max => GetStat()[maxType];
+		private Stat<T> currentStat;
 
-		protected abstract Stat<T> GetStat();
+		private int Text => currentStat[textType];
+		private int Cur => currentStat[curType];
+		private int Max => currentStat[maxType];
 
-		private void Start()
+		protected void BindStat(Stat<T> stat)
 		{
-			GetStat().AddListener(textType, UpdateUI);
-			GetStat().AddListener(curType, UpdateUI);
-			GetStat().AddListener(maxType, UpdateUI);
+			if (currentStat != null)
+			{
+				currentStat.RemoveListener(textType, UpdateUI);
+				currentStat.RemoveListener(curType, UpdateUI);
+				currentStat.RemoveListener(maxType, UpdateUI);
+			}
+
+			currentStat = stat;
+
+			if (stat == null)
+				return;
+
+			stat.AddListener(textType, UpdateUI);
+			stat.AddListener(curType, UpdateUI);
+			stat.AddListener(maxType, UpdateUI);
 
 			UpdateUI();
 		}
@@ -44,7 +56,6 @@ namespace WitchMendokusai
 			}
 			else
 			{
-				// Debug.Log(gameObject.name + "UpdateUI");
 				if (routine != null)
 					StopCoroutine(routine);
 				routine = StartCoroutine(UpdateBarLerp());
@@ -55,11 +66,9 @@ namespace WitchMendokusai
 
 		private IEnumerator UpdateBarLerp()
 		{
-			// Debug.Log(gameObject.name + "UpdateBarLerp");
 			float t = 0;
 			float origin = bar.fillAmount;
 			float target = (Max == 0) ? 0 : ((float)Cur / Max);
-			// Debug.Log(gameObject.name + " UpdateBarLerp Start: " + $"{Cur} / {Max} = [{target}]");
 
 			if (isExpType)
 				if (origin > target)
@@ -80,7 +89,6 @@ namespace WitchMendokusai
 			{
 				bar.fillAmount = Mathf.Lerp(origin, target, t);
 				t += Time.deltaTime * lerpSpeed;
-				// Debug.Log(gameObject.name + " UpdateBarLerp Tick: " + $"{origin} / {target} ({t}) = [{Mathf.Lerp(origin, target, t)}]");
 				yield return null;
 
 				if (t >= 1)

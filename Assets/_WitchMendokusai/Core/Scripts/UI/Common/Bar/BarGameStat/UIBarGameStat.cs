@@ -1,16 +1,12 @@
-using System.Collections;
-using System.Collections.Generic;
-using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace WitchMendokusai
 {
 	public class UIBarGameStat : UIBarStat<GameStatType>
 	{
-		protected override Stat<GameStatType> GetStat()
+		private void Start()
 		{
-			return DataManager.Instance.GameStat;
+			BindStat(DataManager.Instance.GameStat);
 		}
 	}
 }

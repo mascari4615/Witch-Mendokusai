@@ -31,7 +31,12 @@ namespace WitchMendokusai
 
 			diedX.SetActive(false);
 
-			GameEventManager.Instance.Raise(GameEventType.OnPlayerDollChange);
+			EventBus.Instance.Publish(new PlayerObjectBoundEvent
+			{
+				UnitStat = UnitStat,
+				UnitData = UnitData,
+				Transform = transform,
+			});
 		}
 
 		private void OnEnable()
