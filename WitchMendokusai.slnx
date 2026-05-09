@@ -1,10 +1,10 @@
 ﻿<Solution>
   <Project Path="Unity.Timeline.csproj" />
+  <Project Path="Assembly-CSharp.csproj" />
   <Project Path="Unity.AppUI.csproj" />
   <Project Path="Unity.2D.Aseprite.Editor.csproj" />
   <Project Path="Unity.Localization.csproj" />
   <Project Path="Unity.Behavior.GraphFramework.csproj" />
-  <Project Path="Assembly-CSharp.csproj" />
   <Project Path="Unity.Behavior.Authoring.csproj" />
   <Project Path="Unity.Mathematics.csproj" />
   <Project Path="Unity.Timeline.Editor.csproj" />

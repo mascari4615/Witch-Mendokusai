@@ -21,3 +21,5 @@ MonoBehaviour:
   <Cooltime>k__BackingField: 1
   <PrevDelay>k__BackingField: 0
   <AfterDelay>k__BackingField: 0
+  dashSpeed: 15
+  dashDuration: 0.1

@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!114 &-6788900527947969116
+--- !u!114 &-7515426139061894209
 MonoBehaviour:
   m_ObjectHideFlags: 1
   m_CorrespondingSourceObject: {fileID: 0}
@@ -41,9 +41,9 @@ MonoBehaviour:
   m_Name: CozyNightVolumeProfile
   m_EditorClassIdentifier: Unity.RenderPipelines.Core.Runtime::UnityEngine.Rendering.VolumeProfile
   components:
-  - {fileID: -6788900527947969116}
-  - {fileID: 1731048374473128387}
---- !u!114 &1731048374473128387
+  - {fileID: -7515426139061894209}
+  - {fileID: 7919429355741928945}
+--- !u!114 &7919429355741928945
 MonoBehaviour:
   m_ObjectHideFlags: 1
   m_CorrespondingSourceObject: {fileID: 0}

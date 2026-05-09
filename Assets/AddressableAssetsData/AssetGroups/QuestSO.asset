@@ -135,6 +135,12 @@ MonoBehaviour:
     m_SerializedLabels:
     - QuestSO
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: c34c9cb2be1144748d75a52d08428754
+    m_Address: QuestSO/5001
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - QuestSO
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: ca7a7310e4150984a9daa4a41b6bf038
     m_Address: QuestSO/5000
     m_ReadOnly: 0
