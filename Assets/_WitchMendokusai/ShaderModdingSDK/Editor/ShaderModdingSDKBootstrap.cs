@@ -6,21 +6,29 @@ using UnityEngine.Rendering.Universal;
 
 namespace WitchMendokusai
 {
-	// cozy-night 샘플 셰이더팩 자동 생성. Domain Reload 시 missing 검사 + 누락이면 자동. (TASK-WM-055 P1-F)
+	// 샘플 셰이더팩 자동 생성. Domain Reload 시 missing 검사 + 누락이면 자동. (TASK-WM-055 P1-F + WM-058 P2-D)
 	// 모더가 자기 셰이더팩 만들 때 이 폴더를 복사해서 시작점으로 사용.
+	//   - cozy-night : PostProcess 슬롯 (P1)
+	//   - aurora-sky : Skybox 슬롯 (P2-D) — uniform contract 시연
 	public static class ShaderModdingSDKBootstrap
 	{
 		private const string SAMPLE_FOLDER = "Assets/_WitchMendokusai/ShaderModdingSDK/Samples/cozy-night";
 		private const string PROFILE_ASSET_PATH = SAMPLE_FOLDER + "/CozyNightVolumeProfile.asset";
 		private const string MANIFEST_PATH = SAMPLE_FOLDER + "/manifest.json";
 
+		private const string AURORA_FOLDER = "Assets/_WitchMendokusai/ShaderModdingSDK/Samples/aurora-sky";
+		private const string AURORA_SHADER_PATH = AURORA_FOLDER + "/AuroraSky.shader";
+		private const string AURORA_MATERIAL_PATH = AURORA_FOLDER + "/AuroraSkyMaterial.mat";
+		private const string AURORA_MANIFEST_PATH = AURORA_FOLDER + "/manifest.json";
+
 		[InitializeOnLoadMethod]
 		private static void AutoBootstrapIfMissing()
 		{
-			if (AssetDatabase.LoadAssetAtPath<VolumeProfile>(PROFILE_ASSET_PATH) != null && File.Exists(MANIFEST_PATH))
-				return;
+			if (AssetDatabase.LoadAssetAtPath<VolumeProfile>(PROFILE_ASSET_PATH) == null || File.Exists(MANIFEST_PATH) == false)
+				CreateSample();
 
-			CreateSample();
+			if (AssetDatabase.LoadAssetAtPath<Material>(AURORA_MATERIAL_PATH) == null || File.Exists(AURORA_MANIFEST_PATH) == false)
+				CreateAuroraSkySample();
 		}
 
 		[MenuItem("WM/Setup/Recreate cozy-night Sample")]
@@ -31,6 +39,16 @@ namespace WitchMendokusai
 			if (File.Exists(MANIFEST_PATH))
 				File.Delete(MANIFEST_PATH);
 			CreateSample();
+		}
+
+		[MenuItem("WM/Setup/Recreate aurora-sky Sample")]
+		private static void RecreateAuroraSkyMenuItem()
+		{
+			if (AssetDatabase.LoadAssetAtPath<Material>(AURORA_MATERIAL_PATH) != null)
+				AssetDatabase.DeleteAsset(AURORA_MATERIAL_PATH);
+			if (File.Exists(AURORA_MANIFEST_PATH))
+				File.Delete(AURORA_MANIFEST_PATH);
+			CreateAuroraSkySample();
 		}
 
 		private static void CreateSample()
@@ -91,6 +109,61 @@ namespace WitchMendokusai
 				File.WriteAllText(MANIFEST_PATH, manifestJson);
 				AssetDatabase.ImportAsset(MANIFEST_PATH);
 				Debug.Log($"[ShaderModdingSDK] Created sample manifest {MANIFEST_PATH}");
+			}
+
+			AssetDatabase.SaveAssets();
+			AssetDatabase.Refresh();
+		}
+
+		private static void CreateAuroraSkySample()
+		{
+			if (Directory.Exists(AURORA_FOLDER) == false)
+				Directory.CreateDirectory(AURORA_FOLDER);
+
+			Material auroraMaterial = AssetDatabase.LoadAssetAtPath<Material>(AURORA_MATERIAL_PATH);
+			if (auroraMaterial == null)
+			{
+				Shader auroraShader = AssetDatabase.LoadAssetAtPath<Shader>(AURORA_SHADER_PATH);
+				if (auroraShader == null)
+				{
+					// shader 가 아직 import 안 됨 — 다음 Domain Reload 에서 재시도. silent skip.
+					return;
+				}
+
+				auroraMaterial = new Material(auroraShader);
+				auroraMaterial.SetColor("_AuroraColor", new Color(0.30f, 1.00f, 0.60f, 1.00f));
+				auroraMaterial.SetFloat("_AuroraIntensity", 2.0f);
+				auroraMaterial.SetFloat("_AuroraHeight", 0.55f);
+				auroraMaterial.SetFloat("_AuroraThickness", 0.18f);
+				auroraMaterial.SetFloat("_AuroraWaveAmount", 0.08f);
+				auroraMaterial.SetFloat("_AuroraWaveSpeed", 1.0f);
+				auroraMaterial.SetFloat("_AuroraWaveFrequency", 8.0f);
+				AssetDatabase.CreateAsset(auroraMaterial, AURORA_MATERIAL_PATH);
+				EditorUtility.SetDirty(auroraMaterial);
+				Debug.Log($"[ShaderModdingSDK] Created sample Material {AURORA_MATERIAL_PATH}");
+			}
+
+			if (File.Exists(AURORA_MANIFEST_PATH) == false)
+			{
+				string auroraManifest = @"{
+  ""schemaVersion"": 1,
+  ""name"": ""Aurora Sky"",
+  ""author"": ""Mascari4615"",
+  ""version"": ""0.1.0"",
+  ""description"": ""Skybox sample — _WMSkyZenith/Horizon base + green aurora ribbon (밤만)"",
+  ""bundleFile"": ""aurora-sky.shaderbundle"",
+  ""slots"": [
+    {
+      ""id"": ""skybox"",
+      ""assetName"": ""AuroraSkyMaterial"",
+      ""blendMode"": ""uniform"",
+      ""priority"": 0
+    }
+  ]
+}";
+				File.WriteAllText(AURORA_MANIFEST_PATH, auroraManifest);
+				AssetDatabase.ImportAsset(AURORA_MANIFEST_PATH);
+				Debug.Log($"[ShaderModdingSDK] Created sample manifest {AURORA_MANIFEST_PATH}");
 			}
 
 			AssetDatabase.SaveAssets();
