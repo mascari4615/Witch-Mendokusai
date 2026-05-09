@@ -2,16 +2,20 @@ using UnityEngine;
 
 namespace WitchMendokusai
 {
-	// 시각 풀세트 매니저. WeatherSystem.OnWeatherChanged 구독 → 현재 WeatherSO 해석.
-	// E1 단독 = Singleton + SO 해석 + Console log (sub-E 시각 검증 신호).
-	// E2 후속 = particle layer 4 (Rain/Snow/Fog/Storm) instantiate + 페이드.
+	// 시각 풀세트 매니저. WeatherSystem.OnWeatherChanged 구독 → WeatherSO.VisualPrefab Instantiate.
+	// E1 = Singleton + SO 해석 + Console log.
+	// E2 = Visual prefab Instantiate (Rain/Snow/Fog/Storm) + 이전 visual destroy.
 	// E3 후속 = wet shader (sub-C6 SetGlobal `_Wetness` 활용).
-	// (TASK-WM-054-E E1)
+	// E4 후속 = SFX. E5 후속 = Storm 번개.
+	// (TASK-WM-054-E E1+E2)
 	public class WeatherDirector : Singleton<WeatherDirector>
 	{
-		// 현재 적용된 WeatherSO — sub-E E2 가 sfxKey / IsWet flag 등을 읽음.
+		// 현재 적용된 WeatherSO — sub-E 후속 (E3 wet shader / E4 SFX) 가 읽음.
 		public WeatherSO CurrentWeatherSO { get; private set; }
 		public WeatherType LastApplied { get; private set; } = WeatherType.Clear;
+
+		// E2: 현재 instantiate 된 visual instance. 다음 weather 전이 시 destroy.
+		private GameObject currentVisualInstance;
 
 		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
 		private static void EnsureSingletonOnPlay()
@@ -38,6 +42,8 @@ namespace WitchMendokusai
 			if (WeatherSystem.TryGetExistingInstance(out WeatherSystem weatherSystem) == true)
 				weatherSystem.OnWeatherChanged -= HandleWeatherChanged;
 
+			DestroyCurrentVisual();
+
 			base.OnDestroy();
 		}
 
@@ -48,6 +54,33 @@ namespace WitchMendokusai
 
 			string soName = CurrentWeatherSO != null ? CurrentWeatherSO.Name : "<not loaded>";
 			Debug.Log($"[{nameof(WeatherDirector)}] applied {type} → SO '{soName}' (sfx={GetSfxKey()}, isWet={GetIsWet()})");
+
+			// E2: 이전 visual destroy + 새 visual instantiate.
+			DestroyCurrentVisual();
+			SpawnCurrentVisual();
+		}
+
+		private void SpawnCurrentVisual()
+		{
+			if (CurrentWeatherSO == null)
+				return;
+
+			GameObject prefab = CurrentWeatherSO.VisualPrefab;
+			if (prefab == null)
+				return;
+
+			// WeatherDirector child 로 attach — Singleton 이 dontDestroyOnLoad 라 visual 도 자동 보존.
+			currentVisualInstance = Instantiate(prefab, transform);
+			currentVisualInstance.name = $"{prefab.name}_Active";
+		}
+
+		private void DestroyCurrentVisual()
+		{
+			if (currentVisualInstance == null)
+				return;
+
+			Destroy(currentVisualInstance);
+			currentVisualInstance = null;
 		}
 
 		// Resources/Weather/{type}.asset 직접 로드 (캐싱 X — SO 값 런타임 변경 시 즉시 반영).

@@ -24,5 +24,8 @@ namespace WitchMendokusai
 
 		[field: Tooltip("디버그 HUD 표시 색 (sub-D D4).")]
 		[field: SerializeField] public Color DebugTint { get; private set; } = Color.white;
+
+		[field: Tooltip("시각 풀세트 prefab (sub-E E2). null 면 visual 없음 (Clear/Cloudy default). WeatherDirector 가 OnWeatherChanged 시 Instantiate.")]
+		[field: SerializeField] public GameObject VisualPrefab { get; private set; }
 	}
 }
