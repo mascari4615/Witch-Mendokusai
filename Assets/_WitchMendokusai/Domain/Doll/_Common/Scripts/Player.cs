@@ -54,6 +54,8 @@ namespace WitchMendokusai
 			if (EventBus.TryGetExistingInstance(out EventBus eventBus))
 			{
 				eventBus.Publish(new PlayerDespawnedEvent());
+				eventBus.ClearSticky<PlayerSpawnedEvent>();
+				eventBus.ClearSticky<PlayerObjectBoundEvent>();
 				eventBus.Unsubscribe<PlayerJumpRequestedEvent>(OnJumpRequested);
 				eventBus.Unsubscribe<PlayerJumpReleasedEvent>(OnJumpReleased);
 				eventBus.Unsubscribe<PlayerSkillUseRequestedEvent>(OnSkillUseRequested);

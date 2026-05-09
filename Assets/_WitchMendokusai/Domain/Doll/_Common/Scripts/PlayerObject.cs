@@ -36,6 +36,7 @@ namespace WitchMendokusai
 				UnitStat = UnitStat,
 				UnitData = UnitData,
 				Transform = transform,
+				Object = this,
 			});
 		}
 

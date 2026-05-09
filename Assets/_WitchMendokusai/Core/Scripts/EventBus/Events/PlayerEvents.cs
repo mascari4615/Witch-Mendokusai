@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace WitchMendokusai
 {
-	public struct PlayerSpawnedEvent
+	public struct PlayerSpawnedEvent : IStickyEvent
 	{
 		public Transform Transform;
 		public Transform CameraPosition;
@@ -13,10 +13,11 @@ namespace WitchMendokusai
 	{
 	}
 
-	public struct PlayerObjectBoundEvent
+	public struct PlayerObjectBoundEvent : IStickyEvent
 	{
 		public UnitStat UnitStat;
 		public Unit UnitData;
 		public Transform Transform;
+		public UnitObject Object;
 	}
 }
