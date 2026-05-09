@@ -222,36 +222,77 @@ namespace WitchMendokusai
 				Debug.Log($"[ShaderModdingSDK] Created sample manifest {WATER_MANIFEST_PATH}");
 			}
 
-			// Material 생성 — shader import 끝나야 가능. 안 되면 다음 Domain Reload 에서 재시도.
+			// Material — shader import 끝나야. 매 Reload 시 *코드 default 와 비교 → mismatch 시 reset*.
+			// sample 정본 = 코드 default. 모더는 자기 셰이더팩 폴더에서 tweak (sample 폴더 X).
+			// 값 변경 시점에만 dirty mark → AssetDatabase 비용 회피 (idempotent).
 			Material waterMaterial = AssetDatabase.LoadAssetAtPath<Material>(WATER_MATERIAL_PATH);
-			if (waterMaterial == null)
+			Shader waterShader = AssetDatabase.LoadAssetAtPath<Shader>(WATER_SHADER_PATH);
+			if (waterShader == null)
 			{
-				Shader waterShader = AssetDatabase.LoadAssetAtPath<Shader>(WATER_SHADER_PATH);
-				if (waterShader == null)
-				{
-					AssetDatabase.SaveAssets();
-					return;
-				}
-
-				waterMaterial = new Material(waterShader);
-				waterMaterial.SetColor("_DeepColor", new Color(0.05f, 0.30f, 0.45f, 1.0f));
-				waterMaterial.SetColor("_ShallowColor", new Color(0.40f, 0.85f, 0.95f, 1.0f));
-				waterMaterial.SetFloat("_DepthBlend", 0.6f);
-				waterMaterial.SetColor("_FoamColor", new Color(1.0f, 1.0f, 1.0f, 1.0f));
-				waterMaterial.SetFloat("_FoamIntensity", 1.0f);
-				waterMaterial.SetFloat("_FoamThreshold", 0.65f);
-				waterMaterial.SetFloat("_FoamSoftness", 0.08f);
-				waterMaterial.SetFloat("_WaveAmount", 0.06f);
-				waterMaterial.SetFloat("_WaveSpeed", 1.2f);
-				waterMaterial.SetFloat("_WaveFrequency", 1.5f);
-				waterMaterial.SetFloat("_SkyTintAmount", 0.25f);
-				AssetDatabase.CreateAsset(waterMaterial, WATER_MATERIAL_PATH);
-				EditorUtility.SetDirty(waterMaterial);
-				Debug.Log($"[ShaderModdingSDK] Created sample Material {WATER_MATERIAL_PATH}");
+				// shader 가 아직 import 안 됨 — 다음 Domain Reload 에서 재시도.
+				AssetDatabase.SaveAssets();
+				return;
 			}
 
-			AssetDatabase.SaveAssets();
+			bool materialCreated = false;
+			if (waterMaterial == null)
+			{
+				waterMaterial = new Material(waterShader);
+				AssetDatabase.CreateAsset(waterMaterial, WATER_MATERIAL_PATH);
+				materialCreated = true;
+			}
+
+			bool propertiesChanged = false;
+			propertiesChanged |= EnsureMaterialColor(waterMaterial, "_DeepColor", new Color(0.05f, 0.30f, 0.45f, 1.0f));
+			propertiesChanged |= EnsureMaterialColor(waterMaterial, "_ShallowColor", new Color(0.40f, 0.85f, 0.95f, 1.0f));
+			propertiesChanged |= EnsureMaterialFloat(waterMaterial, "_DepthBlend", 0.6f);
+			propertiesChanged |= EnsureMaterialColor(waterMaterial, "_FoamColor", new Color(1.0f, 1.0f, 1.0f, 1.0f));
+			propertiesChanged |= EnsureMaterialFloat(waterMaterial, "_FoamIntensity", 1.0f);
+			propertiesChanged |= EnsureMaterialFloat(waterMaterial, "_FoamThreshold", 0.65f);
+			propertiesChanged |= EnsureMaterialFloat(waterMaterial, "_FoamSoftness", 0.08f);
+			propertiesChanged |= EnsureMaterialFloat(waterMaterial, "_WaveAmount", 0.06f);
+			propertiesChanged |= EnsureMaterialFloat(waterMaterial, "_WaveSpeed", 1.2f);
+			propertiesChanged |= EnsureMaterialFloat(waterMaterial, "_WaveFrequency", 1.5f);
+			propertiesChanged |= EnsureMaterialFloat(waterMaterial, "_SkyTintAmount", 0.25f);
+
+			if (materialCreated)
+				Debug.Log($"[ShaderModdingSDK] Created sample Material {WATER_MATERIAL_PATH}");
+			else if (propertiesChanged)
+				Debug.Log($"[ShaderModdingSDK] cartoon-water Material reset to code defaults");
+
+			if (materialCreated || propertiesChanged)
+			{
+				EditorUtility.SetDirty(waterMaterial);
+				AssetDatabase.SaveAssets();
+
+				// 자산 변경 시 자동 Build + persistentDataPath install. delayCall = 다음 Editor frame
+				// (InitializeOnLoadMethod 시점 BuildPipeline.BuildAssetBundles 안전성 회피).
+				EditorApplication.delayCall += ShaderPackBuilder.BuildCartoonWaterSample;
+			}
+
 			AssetDatabase.Refresh();
+		}
+
+		// Material 의 Float / Color property 가 expected 와 다르면 SetFloat/SetColor + true 반환.
+		// 같으면 no-op + false 반환 — AssetDatabase dirty mark 회피.
+		private static bool EnsureMaterialFloat(Material material, string propertyName, float expected)
+		{
+			if (Mathf.Approximately(material.GetFloat(propertyName), expected))
+				return false;
+			material.SetFloat(propertyName, expected);
+			return true;
+		}
+
+		private static bool EnsureMaterialColor(Material material, string propertyName, Color expected)
+		{
+			Color current = material.GetColor(propertyName);
+			if (Mathf.Approximately(current.r, expected.r)
+				&& Mathf.Approximately(current.g, expected.g)
+				&& Mathf.Approximately(current.b, expected.b)
+				&& Mathf.Approximately(current.a, expected.a))
+				return false;
+			material.SetColor(propertyName, expected);
+			return true;
 		}
 	}
 }
