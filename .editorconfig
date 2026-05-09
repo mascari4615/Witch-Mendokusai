@@ -43,3 +43,11 @@ dotnet_diagnostic.IDE0055.severity = warning
 # dotnet_diagnostic.WM0002.severity = warning   # delegate { } 초기값 누락 (custom)
 # dotnet_diagnostic.WM0003.severity = warning   # Input.GetKey 등 레거시 InputAPI 금지 (custom)
 # dotnet_diagnostic.WM0004.severity = warning   # Keyboard.current / Mouse.current 직접 접근 (custom)
+
+# ── 외부 SDK — IDE0007/0008 silence (TASK-KAR-003 sub-A2-1) ─────────────
+# 외부 코드는 WM 의 var 금지 룰 적용 X. post-commit 백그라운드 dotnet build
+# 가 PlayFab SDK 만으로 warning 수만 줄 → log 58MB+ / build 5분+ 폭주.
+# WM 자체 코드 (Assets/_WitchMendokusai/) 는 위 [*.cs] 룰 그대로.
+[Assets/PlayFabSDK/**/*.cs]
+dotnet_diagnostic.IDE0007.severity = none
+dotnet_diagnostic.IDE0008.severity = none
