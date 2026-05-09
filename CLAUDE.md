@@ -217,7 +217,7 @@ dotnet build Assembly-CSharp.csproj -v quiet --nologo 2>&1 | tail -20
 자산 + Play Mode 시만:
 
 ```bash
-pwsh memo/dotfiles/scripts/unity-refresh.ps1
+powershell -File memo/dotfiles/scripts/unity-refresh.ps1
 # sleep ~25초 (Domain Reload + [InitializeOnLoadMethod])
 ```
 
@@ -303,7 +303,7 @@ git fetch origin main
 git reset --hard origin/main
 
 # 편집 → commit → push (race 회피 자동: safe-push)
-pwsh memo/dotfiles/scripts/safe-push.ps1 -Branch main
+powershell -File memo/dotfiles/scripts/safe-push.ps1 -Branch main
 
 # 세션 종료 시
 git worktree remove ../.worktrees/<name> && git branch -D <branch>
@@ -324,7 +324,7 @@ git worktree remove ../.worktrees/<name> && git branch -D <branch>
 
 ```bash
 # main 직접 commit 후
-pwsh memo/dotfiles/scripts/safe-push.ps1 -Branch main
+powershell -File memo/dotfiles/scripts/safe-push.ps1 -Branch main
 ```
 
 fetch + (behind 면) merge --no-edit + push retry (max 3회) 자동. 다른 세션이 같은 시점에 push 중인 race 자동 chase. conflict 발생 시 manual resolve 후 retry.
