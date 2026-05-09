@@ -23,6 +23,10 @@ namespace WitchMendokusai
 		private const string AURORA_SKY_ID = "aurora-sky";
 		private const string AURORA_SKY_BUNDLE = "aurora-sky.shaderbundle";
 
+		private const string CARTOON_WATER_PATH = "Assets/_WitchMendokusai/ShaderModdingSDK/Samples/cartoon-water";
+		private const string CARTOON_WATER_ID = "cartoon-water";
+		private const string CARTOON_WATER_BUNDLE = "cartoon-water.shaderbundle";
+
 		[MenuItem("WM/ShaderModdingSDK/Build cozy-night Sample")]
 		public static void BuildCozyNightSample()
 		{
@@ -33,6 +37,12 @@ namespace WitchMendokusai
 		public static void BuildAuroraSkySample()
 		{
 			BuildShaderPack(AURORA_SKY_ID, AURORA_SKY_PATH, AURORA_SKY_BUNDLE);
+		}
+
+		[MenuItem("WM/ShaderModdingSDK/Build cartoon-water Sample")]
+		public static void BuildCartoonWaterSample()
+		{
+			BuildShaderPack(CARTOON_WATER_ID, CARTOON_WATER_PATH, CARTOON_WATER_BUNDLE);
 		}
 
 		public static void BuildShaderPack(string packId, string sourceFolderPath, string bundleFileName)

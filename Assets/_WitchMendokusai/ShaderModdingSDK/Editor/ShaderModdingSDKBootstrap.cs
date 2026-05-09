@@ -8,8 +8,9 @@ namespace WitchMendokusai
 {
 	// 샘플 셰이더팩 자동 생성. Domain Reload 시 missing 검사 + 누락이면 자동. (TASK-WM-055 P1-F + WM-058 P2-D)
 	// 모더가 자기 셰이더팩 만들 때 이 폴더를 복사해서 시작점으로 사용.
-	//   - cozy-night : PostProcess 슬롯 (P1)
-	//   - aurora-sky : Skybox 슬롯 (P2-D) — uniform contract 시연
+	//   - cozy-night    : PostProcess 슬롯 (P1)
+	//   - aurora-sky    : Skybox 슬롯 (P2-D) — uniform contract 시연
+	//   - cartoon-water : Water 슬롯 (P2-D) — MeshRenderer.sharedMaterial 교체 시연
 	public static class ShaderModdingSDKBootstrap
 	{
 		private const string SAMPLE_FOLDER = "Assets/_WitchMendokusai/ShaderModdingSDK/Samples/cozy-night";
@@ -21,6 +22,11 @@ namespace WitchMendokusai
 		private const string AURORA_MATERIAL_PATH = AURORA_FOLDER + "/AuroraSkyMaterial.mat";
 		private const string AURORA_MANIFEST_PATH = AURORA_FOLDER + "/manifest.json";
 
+		private const string WATER_FOLDER = "Assets/_WitchMendokusai/ShaderModdingSDK/Samples/cartoon-water";
+		private const string WATER_SHADER_PATH = WATER_FOLDER + "/CartoonWater.shader";
+		private const string WATER_MATERIAL_PATH = WATER_FOLDER + "/CartoonWaterMaterial.mat";
+		private const string WATER_MANIFEST_PATH = WATER_FOLDER + "/manifest.json";
+
 		[InitializeOnLoadMethod]
 		private static void AutoBootstrapIfMissing()
 		{
@@ -29,6 +35,9 @@ namespace WitchMendokusai
 
 			if (AssetDatabase.LoadAssetAtPath<Material>(AURORA_MATERIAL_PATH) == null || File.Exists(AURORA_MANIFEST_PATH) == false)
 				CreateAuroraSkySample();
+
+			if (AssetDatabase.LoadAssetAtPath<Material>(WATER_MATERIAL_PATH) == null || File.Exists(WATER_MANIFEST_PATH) == false)
+				CreateCartoonWaterSample();
 		}
 
 		[MenuItem("WM/Setup/Recreate cozy-night Sample")]
@@ -49,6 +58,16 @@ namespace WitchMendokusai
 			if (File.Exists(AURORA_MANIFEST_PATH))
 				File.Delete(AURORA_MANIFEST_PATH);
 			CreateAuroraSkySample();
+		}
+
+		[MenuItem("WM/Setup/Recreate cartoon-water Sample")]
+		private static void RecreateCartoonWaterMenuItem()
+		{
+			if (AssetDatabase.LoadAssetAtPath<Material>(WATER_MATERIAL_PATH) != null)
+				AssetDatabase.DeleteAsset(WATER_MATERIAL_PATH);
+			if (File.Exists(WATER_MANIFEST_PATH))
+				File.Delete(WATER_MANIFEST_PATH);
+			CreateCartoonWaterSample();
 		}
 
 		private static void CreateSample()
@@ -165,6 +184,65 @@ namespace WitchMendokusai
 				File.WriteAllText(AURORA_MANIFEST_PATH, auroraManifest);
 				AssetDatabase.ImportAsset(AURORA_MANIFEST_PATH);
 				Debug.Log($"[ShaderModdingSDK] Created sample manifest {AURORA_MANIFEST_PATH}");
+			}
+
+			AssetDatabase.SaveAssets();
+			AssetDatabase.Refresh();
+		}
+
+		private static void CreateCartoonWaterSample()
+		{
+			if (Directory.Exists(WATER_FOLDER) == false)
+				Directory.CreateDirectory(WATER_FOLDER);
+
+			Material waterMaterial = AssetDatabase.LoadAssetAtPath<Material>(WATER_MATERIAL_PATH);
+			if (waterMaterial == null)
+			{
+				Shader waterShader = AssetDatabase.LoadAssetAtPath<Shader>(WATER_SHADER_PATH);
+				if (waterShader == null)
+				{
+					// shader 가 아직 import 안 됨 — 다음 Domain Reload 에서 재시도. silent skip.
+					return;
+				}
+
+				waterMaterial = new Material(waterShader);
+				waterMaterial.SetColor("_DeepColor", new Color(0.05f, 0.30f, 0.45f, 1.0f));
+				waterMaterial.SetColor("_ShallowColor", new Color(0.40f, 0.85f, 0.95f, 1.0f));
+				waterMaterial.SetFloat("_DepthBlend", 0.6f);
+				waterMaterial.SetColor("_FoamColor", new Color(1.0f, 1.0f, 1.0f, 1.0f));
+				waterMaterial.SetFloat("_FoamIntensity", 1.0f);
+				waterMaterial.SetFloat("_FoamThreshold", 0.65f);
+				waterMaterial.SetFloat("_FoamSoftness", 0.08f);
+				waterMaterial.SetFloat("_WaveAmount", 0.06f);
+				waterMaterial.SetFloat("_WaveSpeed", 1.2f);
+				waterMaterial.SetFloat("_WaveFrequency", 12.0f);
+				waterMaterial.SetFloat("_SkyTintAmount", 0.25f);
+				AssetDatabase.CreateAsset(waterMaterial, WATER_MATERIAL_PATH);
+				EditorUtility.SetDirty(waterMaterial);
+				Debug.Log($"[ShaderModdingSDK] Created sample Material {WATER_MATERIAL_PATH}");
+			}
+
+			if (File.Exists(WATER_MANIFEST_PATH) == false)
+			{
+				string waterManifest = @"{
+  ""schemaVersion"": 1,
+  ""name"": ""Cartoon Water"",
+  ""author"": ""Mascari4615"",
+  ""version"": ""0.1.0"",
+  ""description"": ""Water sample — flat 카툰 톤 + sin wave 파동 + 흰 거품 (foam) + _WMSkyHorizon 옵션 mix"",
+  ""bundleFile"": ""cartoon-water.shaderbundle"",
+  ""slots"": [
+    {
+      ""id"": ""water"",
+      ""assetName"": ""CartoonWaterMaterial"",
+      ""blendMode"": ""replace"",
+      ""priority"": 0
+    }
+  ]
+}";
+				File.WriteAllText(WATER_MANIFEST_PATH, waterManifest);
+				AssetDatabase.ImportAsset(WATER_MANIFEST_PATH);
+				Debug.Log($"[ShaderModdingSDK] Created sample manifest {WATER_MANIFEST_PATH}");
 			}
 
 			AssetDatabase.SaveAssets();
