@@ -83,6 +83,12 @@ namespace WitchMendokusai
 
 		public void Apply(string packId)
 		{
+			if (activePack != null && activePack.Id == packId)
+			{
+				Debug.Log($"[ShaderPackManager] Pack '{packId}' already active, skipping Apply (idempotent).");
+				return;
+			}
+
 			ShaderPackEntry target = availablePacks.Find(entry => entry.Id == packId);
 			if (target == null)
 			{
@@ -144,6 +150,19 @@ namespace WitchMendokusai
 			activePack = null;
 			PlayerPrefs.DeleteKey(PREF_KEY_ACTIVE_PACK);
 			PlayerPrefs.Save();
+		}
+
+		// 씬 전환 시 ShaderPackManager destroy → activeBundle 메모리 잔존 → 다음 인스턴스 Awake 의
+		// AssetBundle.LoadFromFile 가 "another AssetBundle with the same files is already loaded" fail.
+		// destroy 시점에 명시적 unload 로 file handle 정리. Singleton 패턴 정합 (base.OnDestroy 마지막 호출).
+		protected override void OnDestroy()
+		{
+			if (activeBundle != null)
+			{
+				activeBundle.Unload(true);
+				activeBundle = null;
+			}
+			base.OnDestroy();
 		}
 
 		private void RestoreActivePack()
