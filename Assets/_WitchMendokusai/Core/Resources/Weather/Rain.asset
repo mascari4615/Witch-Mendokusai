@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 59a7c5c6a3b870049b273b622c4f36a4, type: 3}
+  m_Name: Rain
+  m_EditorClassIdentifier: Assembly-CSharp::WitchMendokusai.WeatherSO
+  <ID>k__BackingField: 2
+  <Name>k__BackingField: Rain
+  <Description>k__BackingField: 
+  <Sprite>k__BackingField: {fileID: 0}
+  <Sprites>k__BackingField: []
+  <Type>k__BackingField: 2
+  <FadeMinutes>k__BackingField: 30
+  <IsWet>k__BackingField: 1
+  <SfxKey>k__BackingField: weather_rain
+  <DebugTint>k__BackingField: {r: 0.4, g: 0.55, b: 0.75, a: 1}
