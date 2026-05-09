@@ -1,5 +1,7 @@
 // CartoonWater — WM-058 P2-D Water 샘플 셰이더팩.
 // 모더 SDK Water slot 시연 — flat 카툰 톤 + sin wave 파동 + 가장자리 흰 거품 (foam).
+// wave / foam = world XZ 기반 (mesh 크기 무관 일정 패턴 보장 — 큰 지형 plane 이라도 패턴 보임).
+// depth = uv.y 기반 mesh-local (모더 자유, plane uv 0~1 가정).
 // SkyDirector C6 standard uniform 도 일부 받아 시간대 색감 살짝 반영 (옵션):
 //   _WMSkyHorizon (Color) → reflectionTint mix (낮 = 옅은 청록, 황혼 = 분홍빛 surface)
 // WaterRenderer 마커 attach 된 MeshRenderer 의 sharedMaterial 교체 — base+overlay 모델.
@@ -16,7 +18,7 @@ Shader "WM/Sample/CartoonWater"
 		_FoamSoftness ("Foam Softness", Range(0.001, 0.3)) = 0.08
 		_WaveAmount ("Wave Amount", Range(0, 0.3)) = 0.06
 		_WaveSpeed ("Wave Speed", Range(0, 5)) = 1.2
-		_WaveFrequency ("Wave Frequency", Range(1, 30)) = 12.0
+		_WaveFrequency ("Wave Frequency (world space, cycles per ~6m)", Range(0.1, 10)) = 1.5
 		_SkyTintAmount ("Sky Tint Amount (0=무시, 1=황혼 분홍 강함)", Range(0, 1)) = 0.25
 	}
 
@@ -40,14 +42,13 @@ Shader "WM/Sample/CartoonWater"
 			struct Attributes
 			{
 				float4 positionOS : POSITION;
-				float3 normalOS : NORMAL;
 				float2 uv : TEXCOORD0;
 			};
 
 			struct Varyings
 			{
 				float4 positionHCS : SV_POSITION;
-				float3 worldNormal : TEXCOORD0;
+				float3 worldPos : TEXCOORD0;
 				float2 uv : TEXCOORD1;
 			};
 
@@ -72,21 +73,21 @@ Shader "WM/Sample/CartoonWater"
 			{
 				Varyings OUT;
 				OUT.positionHCS = TransformObjectToHClip(IN.positionOS.xyz);
-				OUT.worldNormal = TransformObjectToWorldNormal(IN.normalOS);
+				OUT.worldPos = TransformObjectToWorld(IN.positionOS.xyz);
 				OUT.uv = IN.uv;
 				return OUT;
 			}
 
 			half4 frag(Varyings IN) : SV_Target
 			{
-				// 1. base — depth gradient (얕은색 ↔ 깊은색).
+				// 1. base — depth gradient (얕은색 ↔ 깊은색). uv.y 기반 mesh-local.
 				float depthFactor = saturate(IN.uv.y * _DepthBlend);
 				float3 baseColor = lerp(_ShallowColor.rgb, _DeepColor.rgb, depthFactor);
 
-				// 2. cross sin wave — 두 축 sin 합성으로 자연 물결 패턴.
-				float waveX = sin(IN.uv.x * _WaveFrequency + _Time.y * _WaveSpeed) * _WaveAmount;
-				float waveY = sin(IN.uv.y * _WaveFrequency * 0.7 + _Time.y * _WaveSpeed * 1.3) * _WaveAmount;
-				float waveCombined = waveX + waveY;
+				// 2. cross sin wave — world XZ 기반 (mesh 크기 무관 일정 frequency 패턴 보장).
+				float waveX = sin(IN.worldPos.x * _WaveFrequency + _Time.y * _WaveSpeed) * _WaveAmount;
+				float waveZ = sin(IN.worldPos.z * _WaveFrequency * 0.7 + _Time.y * _WaveSpeed * 1.3) * _WaveAmount;
+				float waveCombined = waveX + waveZ;
 
 				// 3. foam — wave 값이 threshold 넘으면 흰 거품. soft edge.
 				float foamMask = smoothstep(_FoamThreshold, _FoamThreshold + _FoamSoftness, waveCombined + 0.5);

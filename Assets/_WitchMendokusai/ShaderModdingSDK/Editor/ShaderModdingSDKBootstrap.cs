@@ -243,7 +243,7 @@ namespace WitchMendokusai
 				waterMaterial.SetFloat("_FoamSoftness", 0.08f);
 				waterMaterial.SetFloat("_WaveAmount", 0.06f);
 				waterMaterial.SetFloat("_WaveSpeed", 1.2f);
-				waterMaterial.SetFloat("_WaveFrequency", 12.0f);
+				waterMaterial.SetFloat("_WaveFrequency", 1.5f);
 				waterMaterial.SetFloat("_SkyTintAmount", 0.25f);
 				AssetDatabase.CreateAsset(waterMaterial, WATER_MATERIAL_PATH);
 				EditorUtility.SetDirty(waterMaterial);
