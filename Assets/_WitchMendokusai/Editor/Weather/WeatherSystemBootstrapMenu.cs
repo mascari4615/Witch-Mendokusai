@@ -15,6 +15,7 @@ namespace WitchMendokusai
 		private const string WEATHER_DIR = "Assets/_WitchMendokusai/Core/Resources/Weather";
 		private const string TABLE_PATH = "Assets/_WitchMendokusai/Core/Resources/Weather/WeatherTransitionTable.asset";
 		private const string PREFAB_PATH = "Assets/_WitchMendokusai/Core/Resources/Singletons/WeatherSystem.prefab";
+		private const string DIRECTOR_PREFAB_PATH = "Assets/_WitchMendokusai/Core/Resources/Singletons/WeatherDirector.prefab";
 		private const string SINGLETONS_DIR = "Assets/_WitchMendokusai/Core/Resources/Singletons";
 
 		[InitializeOnLoadMethod]
@@ -23,6 +24,7 @@ namespace WitchMendokusai
 			CreateMissingWeatherSOs(force: false);
 			CreateMissingTransitionTable(force: false);
 			EnsureSingletonPrefab();
+			EnsureDirectorPrefab();
 		}
 
 		[MenuItem("WM/Setup/Recreate Weather SOs")]
@@ -33,6 +35,9 @@ namespace WitchMendokusai
 
 		[MenuItem("WM/Setup/Recreate WeatherSystem Prefab")]
 		private static void RecreatePrefabMenuItem() => EnsureSingletonPrefab(force: true);
+
+		[MenuItem("WM/Setup/Recreate WeatherDirector Prefab")]
+		private static void RecreateDirectorMenuItem() => EnsureDirectorPrefab(force: true);
 
 		// ─── D1: WeatherSO 7 .asset ───
 
@@ -348,6 +353,62 @@ namespace WitchMendokusai
 				serializedObject.ApplyModifiedProperties();
 				PrefabUtility.SaveAsPrefabAsset(prefabRoot, PREFAB_PATH);
 				Debug.Log($"[WeatherSystemBootstrap] Updated {PREFAB_PATH}");
+			}
+			finally
+			{
+				PrefabUtility.UnloadPrefabContents(prefabRoot);
+			}
+		}
+
+		// ─── E1: WeatherDirector prefab ───
+
+		private static void EnsureDirectorPrefab(bool force = false)
+		{
+			EnsureFolder(SINGLETONS_DIR);
+
+			GameObject existing = AssetDatabase.LoadAssetAtPath<GameObject>(DIRECTOR_PREFAB_PATH);
+			if (existing != null && force == false)
+			{
+				EnsureDirectorFlags();
+				return;
+			}
+
+			GameObject root = new GameObject(nameof(WeatherDirector));
+			WeatherDirector director = root.AddComponent<WeatherDirector>();
+
+			SerializedObject serializedObject = new SerializedObject(director);
+			SerializedProperty dontDestroyProp = serializedObject.FindProperty("dontDestroyOnLoad");
+			if (dontDestroyProp != null)
+				dontDestroyProp.boolValue = true;
+			serializedObject.ApplyModifiedProperties();
+
+			PrefabUtility.SaveAsPrefabAsset(root, DIRECTOR_PREFAB_PATH);
+			UnityEngine.Object.DestroyImmediate(root);
+
+			AssetDatabase.SaveAssets();
+			AssetDatabase.Refresh();
+
+			Debug.Log($"[WeatherSystemBootstrap] Created {DIRECTOR_PREFAB_PATH}");
+		}
+
+		private static void EnsureDirectorFlags()
+		{
+			GameObject prefabRoot = PrefabUtility.LoadPrefabContents(DIRECTOR_PREFAB_PATH);
+			try
+			{
+				WeatherDirector director = prefabRoot.GetComponent<WeatherDirector>();
+				if (director == null)
+					return;
+
+				SerializedObject serializedObject = new SerializedObject(director);
+				SerializedProperty dontDestroyProp = serializedObject.FindProperty("dontDestroyOnLoad");
+				if (dontDestroyProp == null || dontDestroyProp.boolValue == true)
+					return;
+
+				dontDestroyProp.boolValue = true;
+				serializedObject.ApplyModifiedProperties();
+				PrefabUtility.SaveAsPrefabAsset(prefabRoot, DIRECTOR_PREFAB_PATH);
+				Debug.Log($"[WeatherSystemBootstrap] Updated {DIRECTOR_PREFAB_PATH} (dontDestroyOnLoad=true)");
 			}
 			finally
 			{
