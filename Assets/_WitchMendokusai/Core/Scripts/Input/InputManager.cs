@@ -77,6 +77,8 @@ namespace WitchMendokusai
 		DollToggle,
 		[InputEvent("창", "단축키 안내", "<Keyboard>/f1")]
 		KeybindHelpToggle,
+		[InputEvent("창", "마도서", "<Keyboard>/m")]
+		MagicBookToggle,
 	}
 
 	public enum InputEventResponseType
@@ -129,6 +131,7 @@ namespace WitchMendokusai
 			{ InputEventType.QuestToggle, InputMapType.UI },
 			{ InputEventType.DollToggle, InputMapType.UI },
 			{ InputEventType.KeybindHelpToggle, InputMapType.UI },
+			{ InputEventType.MagicBookToggle, InputMapType.UI },
 		};
 
 		// Strategy-owned: cleared on every strategy switch

@@ -1032,6 +1032,15 @@
                     "initialStateCheck": false
                 },
                 {
+                    "name": "MagicBookToggle",
+                    "type": "Button",
+                    "id": "wm059e000-0000-0000-0000-000000000001",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
                     "name": "DevWindowToggle",
                     "type": "Button",
                     "id": "dc010001-0000-0000-0000-000000000001",
@@ -1548,6 +1557,17 @@
                     "processors": "",
                     "groups": "",
                     "action": "Inventory",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "wm059e001-0000-0000-0000-000000000002",
+                    "path": "<Keyboard>/m",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "MagicBookToggle",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },

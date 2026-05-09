@@ -36,10 +36,15 @@ namespace WitchMendokusai
 
 			BuildUI();
 			IsOpen = false;
+
+			InputManager.Instance.RegisterInputEvent(InputEventType.MagicBookToggle, InputEventResponseType.Performed, Toggle);
 		}
 
 		private void OnDestroy()
 		{
+			if (InputManager.TryGetExistingInstance(out InputManager inputManager))
+				inputManager.UnregisterInputEvent(InputEventType.MagicBookToggle, InputEventResponseType.Performed, Toggle);
+
 			container?.RemoveFromHierarchy();
 		}
 
