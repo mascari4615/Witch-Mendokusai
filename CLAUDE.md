@@ -270,108 +270,21 @@ pwsh memo/dotfiles/scripts/unity-refresh.ps1
 
 ## Git Workflow
 
-본 § 가 본 레포 git workflow 의 정본. CodeRabbit / Copilot 자동 review 는 비활성화 (TASK-WM-062 sub-G, 2026-05-08) — Claude primary review (`claude.yml` claude-review job) 가 *유일한 AI 리뷰어*.
+본 § 가 본 레포 git workflow 의 정본. **2026-05-09 TASK-WM-063 으로 trunk-based AI Native 로 전환** — PR / auto-merge / auto-rebase 폐기, claude-review (PR-bound) → claude-audit (post-push) 전환.
 
-### 브랜치 + PR 강제 (AI Native 게이트)
+### Trunk-based — main 직접 push (default)
 
-`main` 직접 push 금지. 작업마다 브랜치 분기 후 PR.
+`main` 직접 push 가 *기본*. 모든 작업 (feat / fix / chore / refactor / docs) 모두 main 직접. PR 자체 만들지 X.
 
-- `feature/<주제>` — 새 기능
-- `fix/<주제>` — 버그 fix
-- `chore/<주제>` — 빌드·CI·의존성·환경 설정·문서
-- `refactor/<주제>` — 동작 변화 없는 정리
+판단 기준 = *작성자 self-verify* 가능한지:
+- ✅ Claude (또는 사용자) 가 `dotnet build Assembly-CSharp.csproj` 통과 + WM 룰 grep 통과 + 룰 본문 위배 검토 끝 → main 직접 push
+- ⏸ 컴파일 안 되거나 룰 위배 의심 → push 보류, fix 후 재시도
 
-**Default Ready PR 생성** (`gh pr create` 에 `--draft` *제거*) + `.github/pull_request_template.md` 의도 채움 → push → 자동 폐쇄 루프가 머지 + cascade 처리. AI Native 라 사용자 검토 슬롯 = AI 리뷰 (**Claude primary review**) 가 대체.
+이유: 솔로 indie + Claude 가 코드 작성자라 PR-bound review hook = self-review (작성자 = 리뷰어) 가치 약함. 사용자 시각 검증 시점은 main pull → Unity Play 단계 (PR 단계 아님). PR 1회 비용 (~3-5분 idle) + auto-rebase cascade 폭발 자체 제거.
 
-### AI Native 자동 폐쇄 루프 (2026-05-07 도입, 2026-05-08 Claude primary review 단일화)
+### Worktree 우회 패턴 — 멀티 세션 보호
 
-```
-PR opened (Default Ready)
-  ├─ claude.yml `claude-review` job (anthropics/claude-code-action@v1, mode=review)
-  │    ↓ Claude primary review — 버그/보안/성능/품질 + WM 룰 체크 → review submit
-  │      (approve / request_changes / comment)
-  └─ auto-merge.yml (BOT_TOKEN, user actor)  ─── ready_for_review 이벤트 받아 gh pr merge --auto --squash
-       ↓ Required 게이트 통과 (Code Quality typo strict + GitGuardian + claude-review)
-       ↓ squash 머지 (user actor → push event 발생)
-main push event
-  ├─ auto-rebase.yml (BOT_TOKEN)  ─── 모든 open Ready PR update-branch
-  │    ├─ 통과 PR: 자동 stale 해소
-  │    └─ conflict PR: @claude 멘션 코멘트 (BOT_TOKEN)
-  │       ↓
-  │       claude.yml의 claude job (anthropics/claude-code-action@v1)
-  │       ↓
-  │       Claude 자동 conflict 해결 + push → 다시 게이트
-  └─ Stack PR: GitHub 자동 retarget (base=feature → main) → 자동 머지 cascade
-```
-
-> *CodeRabbit / Copilot 자동 review 비활성화 (TASK-WM-062 sub-G)* — 다중 AI primary review = 노이즈 + 의견 충돌 + fix-loop 비효율 + CodeRabbit 무료 쿨타임 게이트 빠짐. 후속 활용 검토 사항은 § AI 리뷰 게이트 참고.
-
-호출 (autopilot / 사람 PR 동일):
-```bash
-gh pr create --base main --head <branch> --title "..." --body "..."   # Default Ready (--draft X)
-```
-
-`auto-merge.yml` 이 자동으로 squash 머지 enable. 추가 호출 불필요.
-
-### Draft 명시 사유 — *예외* 만 Draft
-
-다음 명시적 사유 있을 때만 `--draft` 사용. PR description 에 "**Draft 사유**: <한 줄>" 명시:
-- **Architectural / breaking change** — 사용자 비전 결정 슬롯 필요
-- **stack PR base 가 미머지** — base 머지 후 GitHub 자동 retarget 까지 대기
-- **큰 비주얼·런타임 신규 시스템** — sub-C C1 같은 *처음 도입* 비주얼/런타임 시스템 + 사용자 *플레이 흐름 자체* 검증 필요. 작은 변경 (SerializedField default toggle, ContextMenu, 5줄 fix) 은 Default Ready 머지 후 사용자 main pull 시점 검증으로 충분 — Unity Build Gate (TASK-WM-060) 가 컴파일 안전성 자동.
-- **WIP 진행 중** — commit 누적, 완료 후 Ready 전환 (autopilot 자체는 매 iteration 단위 PR 분리라 흔치 X)
-
-미명시 → 항상 Ready. *시각 검증* 자체는 PR 머지 후 사용자 흐름이 정합 — Draft 로 머지 지연 X.
-
-### BOT_TOKEN — GitHub 재귀 방지 우회
-
-`auto-merge.yml` / `auto-rebase.yml` 의 `GH_TOKEN` 은 `secrets.BOT_TOKEN` (PAT) 사용. **`secrets.GITHUB_TOKEN` X**.
-
-이유: GitHub 의 well-known 한계 — `GITHUB_TOKEN` 으로 만든 commit / merge / comment 는 *재귀 방지* 룰로 다른 workflow 를 trigger 안 시킴.
-- bot actor 머지 → main push event 가 auto-rebase trigger 안 함
-- bot actor 코멘트 → claude.yml 의 claude job trigger 안 함
-
-PAT (Personal Access Token, fine-grained, repo: Pull requests + Issues + Contents write) → user actor → 정상 trigger. 사용자 1회 발급 + `BOT_TOKEN` secret 등록.
-
-자세한 진단: 2026-05-07 PR #102 (auto-rebase) / #103 (auto-merge) commit 메시지 참고.
-
-### Closes #NN — Issue 자동 종료
-
-PR description 에 관련 GitHub Issue 명시:
-- TASK 시드에 Issue link 가 있거나 1:1 매핑이면 PR 본문 끝에 `Closes #NN`
-- 머지 시 Issue 자동 close — wishlist 누적 방지
-- 매핑 없으면 박지 X (스팸 X)
-
-### Stack PR 자동 promote
-
-base 가 다른 feature 브랜치인 stack PR 은 base 머지 시 GitHub 가 자동으로 main 으로 retarget. retarget 된 PR 도 Ready + auto-merge enabled 면 게이트 통과 후 자동 머지 → 연쇄. **stack 깊어도 base 만 풀리면 다 풀림**.
-
-### Post-merge 정리
-
-`delete_branch_on_merge: true` (repo 설정 — 원격 자동 삭제). 로컬 잔여만 정리:
-
-```powershell
-git fetch -p
-git branch -vv | Select-String ': gone\]' | ForEach-Object { ($_ -split '\s+')[1] } | ForEach-Object { git branch -D $_ }
-```
-
-자율 모드는 자기 워크트리도 정리:
-
-```bash
-git worktree remove ../.worktrees/<name>
-```
-
-### 예외 — `main` 직접 push 허용
-
-다음 경우만 PR 생략:
-- 1~3줄 chore (오타 fix / 주석 갱신 / 단일 const 값 변경)
-- README · CLAUDE.md 자체 minor 보강 (룰 한 줄 추가 등)
-
-판단 기준: *코드 동작 변경 0* + *CodeRabbit 리뷰 가치 0*. 애매하면 PR 분기.
-
-#### main 워크트리 더러울 때 — worktree 우회 패턴
-
-다른 세션 dirty/untracked 가 main 워크트리에서 ff 를 막고 있을 때, "main 직접 push" 의 *근본 경로* 는 main 워크트리에서 commit 이 아니라:
+main worktree 는 *공유 검증 베이스* (다른 세션 dirty 와 본인 검증 의도 충돌). 따라서 main 직접 push 라도 main worktree 에서 직접 commit X — 항상 worktree 우회:
 
 ```bash
 git worktree add -b chore/<주제> ../.worktrees/<name> origin/main
@@ -381,111 +294,114 @@ git worktree remove ../.worktrees/<name>
 git branch -D chore/<주제>
 ```
 
-parallel 세션 dirty 안 건드리면서 chore 푸시. 1~3줄 chore 라도 워크트리 비용 정합 — 다른 세션 잔재 정리 시도 X (잔재 안전성은 `git hash-object <local>` vs `git rev-parse origin/main:<path>` 비교 후에만; 1개라도 diff 나면 잔재 정리 X, 즉시 worktree 우회).
+브랜치 이름 prefix:
+- `feat/<주제>` — 새 기능
+- `fix/<주제>` — 버그 fix
+- `chore/<주제>` — 빌드·CI·의존성·환경 설정·문서
+- `refactor/<주제>` — 동작 변화 없는 정리
 
-이전 사례: 2026-05-08 ChunkMesher 로그 chore — 054-A 머지 후 WorldClock untracked 잔재 16개 중 `WorldClock.prefab` 1개에 살아있는 local 변경 발견. "잔재 정리 → ff" 가설 깨지고 worktree 우회로 전환 (커밋 `649023a8`).
+브랜치는 *임시 staging* — push 후 즉시 삭제. PR 만들지 X.
+
+### Post-push audit (claude-audit)
+
+`main` 에 push 가 발생하면 `.github/workflows/claude.yml` 의 `claude-audit` job 이 자동 트리거 (`on: push: branches: [main]`).
+
+```
+main push
+  ↓
+claude-audit job (anthropics/claude-code-action@v1, mode=agent)
+  ├─ git show HEAD --stat + git diff HEAD~1 HEAD 분석
+  ├─ 검토 영역: 버그 / 보안 / 성능 / WM 룰 (Allman / == false / var 금지 / FastFail / 수치 SO 노출 / InputManager / MenuItem WM/)
+  └─ 결과:
+       ├─ 정상 → no-op (Issue 생성 X)
+       └─ 이상 발견 → gh issue create
+            ├─ title: [main audit] <commit subject>
+            ├─ label: audit, trunk-based
+            └─ body: 발견된 문제 + 영향 + revert 제안 (옵션 A) 또는 후속 fix commit 제안 (옵션 B)
+```
+
+**사용자 응답 흐름**:
+- Issue 받음 → 검토 → 옵션 선택
+- 옵션 A (revert): `git revert <sha> && git push origin main`
+- 옵션 B (fix commit): worktree 에서 fix → main 직접 push (그 fix commit 도 다시 audit 받음)
+- Issue 코멘트에 `@claude 이거 fix 해` → claude.yml 의 `claude` job 트리거 → 자동 fix
+
+**audit 원칙** (claude-audit prompt 본문):
+- Actionable 한 지적만 — nitpick / 주관 X
+- 큰 아키텍처 지적 = Issue 본문 「영향」 에만 (revert 제안 X — architectural fix 는 후속 TASK)
+- 의심 약함 = Issue 생성 X (false positive 비용 ↑)
+- chore / docs / 룰 본문 변경 = 룰 grep 면제
+
+### Autopilot 예외 — Draft PR 유지 (TASK-WM-063 sub-H 옵션 B)
+
+자율 모드 (`~/.claude/commands/autopilot.md`) 는 trunk-based 적용 *제외*. 자율 모드는 *사용자 인터럽트 X 환경* 이라 main 직접 push 면 사용자 잠든 사이 main 회귀 위험 ↑.
+
+자율 모드 룰:
+- `master`/`main` 직접 commit 금지 (autopilot 한정)
+- feature 브랜치 + Draft PR 까지만 (사용자 검토 슬롯 보존)
+- merge / push --force 금지
+
+→ 자율 모드 PR 은 사용자 검토 후 *수동* 머지. 자율 모드 PR 도 main 머지 시 claude-audit 트리거 (정합).
 
 ### Commit 메시지
 
-Conventional Commits — `feat: / fix: / chore: / refactor: / docs: / style: / test: / perf:`.
-한 commit 한 주제. 메시지 = 실제 변경 일치.
+Conventional Commits — `feat: / fix: / chore: / refactor: / docs: / style: / test: / perf:`. 한 commit 한 주제. 메시지 = 실제 변경 일치.
 
-### Branch Protection (사용자 GitHub 측 설정)
+PR 폐기로 *commit 단위 자유도 ↑* — PR 단위 묶음 강제 사라져 더 잘게 쪼갤 가치 ↑. 1줄 fix 도 별 commit 정합. 하루 commit 수 증가는 cascade 정합 (claude-audit 가 commit 별 독립 실행).
 
-룰을 *기계적으로 강제* 하려면 GitHub repo → Settings → Branches 에서 `main` 에 다음 protection rule:
-- Require a pull request before merging
-- Require status checks to pass:
-  - `Check Typos`
-  - `claude-review` (TASK-WM-062 sub-E, 2026-05-08 등록 — Claude primary review 가 끝나야 머지)
-- Restrict who can push to matching branches (직접 push 차단)
+#### Closes #NN — Issue 자동 종료
 
-설정 명령:
+post-push audit Issue 또는 사용자 발견 Issue 와 1:1 매핑이면 commit 메시지 본문 마지막에 `Closes #NN` 박는다 — main push 시 GitHub 가 Issue 자동 close.
+
+매핑 없으면 박지 X (스팸).
+
+### Branch Protection — 직접 push 허용
+
+GitHub repo Settings > Branches 의 main 룰:
+- ❌ Require a pull request before merging — *해제* (PR 폐기)
+- ❌ Required status checks — *해제* (post-push audit 가 게이트 역할)
+- ❌ Restrict who can push to matching branches — *해제* (직접 push 허용)
+- ✅ Force push 차단 — 유지 (안전)
+
+설정 명령 (사용자 1회):
 
 ```bash
-gh api -X PUT repos/Mascari4615/Witch-Mendokusai/branches/main/protection \
-  -F 'required_status_checks.strict=true' \
-  -F 'required_status_checks.contexts[]=Check Typos' \
-  -F 'required_status_checks.contexts[]=claude-review' \
-  -F enforce_admins=false \
-  -F required_pull_request_reviews=null \
-  -F restrictions=null
+gh api -X DELETE repos/Mascari4615/Witch-Mendokusai/branches/main/protection
+# 또는 GitHub UI 에서 룰 자체 삭제
 ```
 
-### C# 컴파일 검증 — *CI 게이트 폐기, 로컬 검증만*
+(이전 룰의 `gh api -X PUT ... required_status_checks ...` 명령은 폐기.)
 
-**(TASK-WM-060, 2026-05-08 도입 → 같은 날 폐기 — public repo + self-hosted runner 보안 위험)**
+### Post-push 정리
 
-PR 단계 컴파일 검증 CI 는 폐기. 검증 = *사용자 로컬* (`dotnet build Assembly-CSharp.csproj` + Unity reimport).
+`delete_branch_on_merge: true` (repo 설정 — 자동 삭제, PR merge 흐름 잔재라 trunk-based 에서 무관). 로컬 잔여 worktree/branch 정리:
 
-**폐기 사유**:
-
-GitHub 공식 경고 — *"Using self-hosted runners in public repositories is not recommended. Forks of your public repository can potentially run dangerous code on your self-hosted runner by creating a pull request."* — WM 가 public repo 라 fork PR 이 사용자 PC 에서 임의 코드 실행 가능. credentials/local file 노출 + lateral movement 위험.
-
-WM = 솔로 indie repo (fork 거의 0) 라 게이트 효용보다 위험 비-zero 우선. 로컬 검증 흐름이 충분.
-
-**대안 (검토했으나 폐기)**:
-- GitHub-hosted runner + game-ci action — Unity credentials 외부 노출 (메모리 룰 「유료 에셋 / 폐쇄 SDK 금지 — public 레포 유지」 정합성 깨짐)
-- Ephemeral container runner (Docker/WSL) — overengineering, 솔로 repo 비용 정당화 X
-- Manual approval workflow — 사용자 매 PR approval 클릭 비용
-
-**현 흐름** (CI 검증 X):
-- 본인 코드 = `dotnet build Assembly-CSharp.csproj` (worktree 안, csproj 있을 때) 또는 Unity reimport (main worktree 사용자 직접)
-- 머지 후 시각·런타임 검증 = 사용자 main pull → Play Mode (기존 흐름 유지)
-
-**현 게이트**: `Code Quality typo + GitGuardian + Claude primary review` — auto-merge 자동 폐쇄 루프. CodeRabbit/Copilot 자동 review 비활성화 (TASK-WM-062 sub-G).
-
-### AI 리뷰 게이트 — Claude primary review
-
-**(TASK-WM-062, 2026-05-08 도입)**
-
-`.github/workflows/claude.yml` 의 `claude-review` job 이 PR 마다 *primary code reviewer* 로 자동 review 코멘트 + submit.
-
-```yaml
-on:
-  pull_request:
-    types: [opened, synchronize, ready_for_review]
-
-jobs:
-  claude-review:
-    if: github.event_name == 'pull_request' && github.event.pull_request.draft == false
-    steps:
-      - uses: anthropics/claude-code-action@v1
-        with:
-          mode: review
-          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          prompt: |
-            (버그/보안/성능/품질 + WM CLAUDE.md 룰 준수 — Allman, == false, var 금지, 변수명 풀네임, FastFail, 수치 SO 노출, InputManager, MenuItem WM/)
-            ...
+```bash
+git fetch -p
+git worktree list                       # 활성 worktree 확인
+git worktree remove ../.worktrees/<name>  # 끝난 worktree 정리
+git branch -D <임시 브랜치>               # push 후 임시 브랜치 삭제
 ```
 
-**배경**: PR #119 (TASK-WM-058 P2-C) 가 push 후 26초 만에 머지됐는데 CodeRabbit 무료 플랜 45분 쿨타임으로 review 시작 X → AI 리뷰 0 으로 머지. 룰 본문 「AI 리뷰가 사용자 검토 슬롯 대체」 정합 깨짐.
+### C# 컴파일 검증 — *로컬 검증 (CI 게이트 X)*
 
-**해결 흐름** (sub-G, 2026-05-08 단일화):
-- Claude = *유일한 AI 리뷰어* (쿨타임 X, OAuth 구독 비용 0)
-- CodeRabbit / Copilot 자동 review 비활성화 — `.coderabbit.yaml` `auto_review.enabled: false` + GitHub repo Settings > Code review > Copilot off
-- claude.yml 의 `claude-coderabbit` / `claude-copilot` fix-loop job 도 제거 (트리거 X)
-- `claude-review` job 의 status check 가 Branch Protection 의 Required 로 등록되면 머지 차단 게이트로 작동
+(TASK-WM-060, 2026-05-08 도입 → 같은 날 폐기 — public repo + self-hosted runner 보안 위험. § 본문은 본 레포 § 컴파일 에러 확인 — `dotnet build` 우선 참고.)
 
-**사용자 1회 셋업**:
+claude-audit 은 *룰/논리/보안* 검토만 — *컴파일* 검증은 X (worktree 안 dotnet build 가 작성자 책임).
 
-1. `CLAUDE_CODE_OAUTH_TOKEN` secret — 이미 등록 (TASK-WM-062 sub-A 진단 결과)
-2. Branch Protection (`main`) 의 *Required status checks* 에 `claude-review` 추가 (sub-B 머지 후 1번 작동 시 check name 등록 → 그 후 추가 가능)
-3. GitHub repo Settings > Code review > Copilot review off (자동 review 트리거 차단)
+### CodeRabbit / Copilot — 자동 review 비활성화 (TASK-WM-062 sub-G, 2026-05-08)
 
-**한계**:
-- claude-review job 의 *job success* 만 status check 통과 신호 — review state (request_changes) 는 *관찰* 만, 머지 차단 X (GitHub 한계 — Required reviews 는 human reviewer 만 인정)
-- 즉 Claude 가 *부정적 review* (request_changes) 를 남기더라도 Required check 통과는 됨. **review 코멘트** 가 머지 후 사용자에게 정합성 신호 역할.
+`.coderabbit.yaml` `auto_review.enabled: false` + GitHub repo Settings > Code review > Copilot review off. PR 폐기로 secondary AI review 자체 호출 시점 사라짐 — 룰 본문은 historical reference.
 
-**CodeRabbit / Copilot 후속 활용 검토** (sub-G, 비활성화 상태):
+후속 활용 (재활성화 검토):
+- 수동 invoke (PR 코멘트 `@coderabbitai review`) 는 PR 부활 시점 — 본 단계엔 의미 X
+- claude-audit 결과 보강용 secondary audit — 비용 대비 가치 평가 후 도입
 
-비활성화 사유 = *primary review 중복* + *쿨타임 게이트 빠짐* + *fix-loop 비효율*. *secondary 가치 자체* 는 부정 X — 후속 활용 시점 검토:
+### Release branch + 통합 PR — *후속 단계 검토 (현 단계 도입 X)*
 
-- **수동 invoke** — PR 코멘트 `@coderabbitai review` / Copilot `Re-request review` 로 *필요 시* 호출. Claude 가 미스 한 영역 (예: 라이브러리 deprecation 패턴 / 문서 표현) 보강.
-- **유료 플랜** — CodeRabbit Pro ($20/mo) / Copilot Pro 로 쿨타임 제거 + secondary 자동화 재개. 비용 대비 *Claude review 가 안 잡는 영역 가치* 가 정당화 시점에.
-- **영역 분담** — Claude = 코드 품질·룰 체크, CodeRabbit = 보안 audit / 의존성 freshness, Copilot = 일반 best practice. paths filter 로 영역별 트리거.
-- **Claude review 사후 보완** — Claude 가 끝낸 후 CodeRabbit 에 사후 invoke → "Claude 가 놓친 게 있나?" 식 cross-check. 무료 플랜 쿨타임 OK (한 PR 당 1번).
+사용자 idea (TASK-WM-063 시드, 2026-05-09): "릴리즈 브랜치 같은 거에 합칠 때 PR로 통합 검토".
 
-재활성화 시 변경:
-- `.coderabbit.yaml` `auto_review.enabled: true` (또는 `paths` filter 로 영역 한정)
-- claude.yml `claude-coderabbit` / `claude-copilot` job 복원 (allowed_bots 패턴)
-- WM CLAUDE.md § AI Native 자동 폐쇄 루프 도식 갱신
+WM = early dev (Steam/itch.io 발행 사이클 없음) 라 release branch 도입은 의미 약함 (release = de facto main). publish 사이클 도달 시 별도 TASK 로 진입:
+- `release/v0.x` 브랜치 + tag 자동화
+- `main → release` 통합 PR — milestone 단위 review
+- 그 시점에 본 § 추가
