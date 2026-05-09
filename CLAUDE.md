@@ -290,6 +290,8 @@ main worktree (`WitchMendokusai/`) 는 *공유 검증 베이스* + 사용자 Uni
 
 다른 세션 영역과 겹침 — `memo/.claude/active-sessions.md` 의 다른 행 타겟 파일 / 폴더 / 시스템. **예외 없음** — 보드 race window 의 근본 위험.
 
+**처음부터 worktree 안에서 작성 — main worktree 에 local commit 박지 X.** main 직접 commit 후 worktree cherry-pick + push 하는 *hybrid 흐름* 은 ❌ — local 의 commit 과 origin 의 cherry-pick 결과가 *동일 patch 다른 hash* 라 다이버전스 자기 자초. 사용자 main pull 시 conflict (TASK-WM-065 sub 사례, 2026-05-09).
+
 Persistent scratch 패턴 — 세션마다 worktree 1개 생성 후 여러 commit 재사용 (매 chore 마다 fresh X):
 
 ```bash
@@ -300,7 +302,8 @@ git worktree add -b <branch> ../.worktrees/<name> origin/main
 git fetch origin main
 git reset --hard origin/main
 
-# 편집 → commit → push origin <branch>:main
+# 편집 → commit → push (race 회피 자동: safe-push)
+pwsh memo/dotfiles/scripts/safe-push.ps1 -Branch main
 
 # 세션 종료 시
 git worktree remove ../.worktrees/<name> && git branch -D <branch>
@@ -316,6 +319,15 @@ git worktree remove ../.worktrees/<name> && git branch -D <branch>
 - **기존 파일 의미 있는 수정** (1줄 typo 부터 큰 리팩토링까지).
 - **Unity 트리거 파일** (`.cs` / `.meta` / `.asset` / 씬 / `.prefab` / `.material` / `.shader` 등) — *함께 commit 해야 자연 단위* 라 main 이 정답. `.cs` 작성 + Unity focus → `.meta` 자동 생성 → 묶어 commit. worktree 분리 = 단위 분해 + 사용자 pull 시 race 재발.
 - **read-only cp from main → worktree → main push** — Editor 자동 생성 cleanup 표준 흐름. 변경이 이미 main 에 있을 때 (예: asmdef .meta 누락 보충).
+
+**Push 직전 race 회피 — `safe-push.ps1`**:
+
+```bash
+# main 직접 commit 후
+pwsh memo/dotfiles/scripts/safe-push.ps1 -Branch main
+```
+
+fetch + (behind 면) merge --no-edit + push retry (max 3회) 자동. 다른 세션이 같은 시점에 push 중인 race 자동 chase. conflict 발생 시 manual resolve 후 retry.
 
 #### Unity Editor 사용 시점 주의 (race 와 별개)
 
