@@ -268,6 +268,60 @@ powershell -File memo/dotfiles/scripts/unity-refresh.ps1
 
 이전 사례: TASK-WM-054-A WorldClock (2026-05-08) — Awake 에서 `DontDestroyOnLoad` 코드 강제 호출했다가 사용자가 "Singleton 베이스에 노브 있는데 왜 코드 강제냐" 지적. `WorldClockBootstrapMenu` 가 prefab 생성 시 SerializedField = true 박는 + idempotent `EnsurePrefabFlags` 패턴으로 정정.
 
+## Unity-MCP layer (TASK-WM-071, 2026-05-09)
+
+**Unity 공식 MCP server 도입** (`com.unity.ai.assistant 2.7+`) — Claude 가 Unity Editor 직접 조작 가능. 기존 `dotnet build` + `unity-refresh.ps1` + Editor.log grep 흐름을 **보완·대체**.
+
+### 사용 우선순위 — read 자율 / write 신중
+
+**Read 도구 (자율 사용 OK)** — 읽기만, 부작용 0:
+- `read_console` — Editor.log grep 대체. 실시간 + 구조화 (types, count, format)
+- `mcpforunity://editor/state` — `is_compiling` / `ready_for_tools` / `is_domain_reload_pending` 직접 polling. Editor.log grep 보다 정확
+- `find_gameobjects` — 씬 정합성 검증 (사용자에게 "Hierarchy 봐달라" 요청 X)
+- `manage_camera(action="screenshot", include_image=True)` — 시각 검증 자동 (사용자에게 "어떻게 보여요?" X)
+- `run_tests` — EditMode / PlayMode 자동
+- `unity_reflect` / `unity_docs` — API 정확도 (추측 박지 X)
+- `mcpforunity://scene/...` 리소스 시리즈 — hierarchy / volumes / cameras 등
+
+**Write 도구 (사용자 컨펌)** — destructive 가능, 영향 면적 ↑:
+- `create_script` / `script_apply_edits` — `.cs` 신설/수정 (자동 reimport + 컴파일)
+- `manage_gameobject(action="create"/"modify"/"delete")` — 씬 GameObject 변경
+- `manage_components.set_property` — Inspector 값 변경 (★ **수치 노출 룰 위반 위험** — SO 정본 우회 가능. 디버그 외에는 SO 통해 변경)
+- `manage_assets` / `manage_prefabs` — 에셋 / prefab 변경
+- `manage_packages` — 패키지 변경
+
+### 기존 흐름과 결합
+
+| 작업 | 기존 | + MCP layer |
+|---|---|---|
+| 컴파일 검증 | `dotnet build Assembly-CSharp.csproj` (Unity 무관) | + `read_console(types=["error"])` 보완 |
+| Reimport 트리거 | `unity-refresh.ps1` (focus + sleep 25초) | `create_script` / `script_apply_edits` 자동 처리 (refresh_unity 불필요). polling = `mcpforunity://editor/state.is_compiling` |
+| 씬 정합성 | 사용자 Hierarchy 시각 | `find_gameobjects` + `mcpforunity://scene/gameobject/{id}` |
+| Play Mode 검증 | 사용자 Play 클릭 + Console 봐달라 | `run_tests` (EditMode/PlayMode) 자동 + `read_console` |
+| 시각 검증 (회귀) | 사용자 "이상해 보여요" | `manage_camera(action="screenshot", include_image=True)` 자동 비교 |
+
+### Multi-instance + worktree 정합
+
+- `mcpforunity://instances` 로 활성 Unity Editor 목록 확인
+- `set_active_instance(instance="...")` 으로 *현재 작업 worktree* 의 Unity 인스턴스 선택
+- Multi-worktree 환경 (TASK-WM-069 인프라) 정합 — 각 worktree Editor 별 MCP routing
+
+### 사용자 손 보존 영역 (MCP 도입 후에도)
+
+**MDD 정합 — Yon (개발자) 이 게임을 *놀이처럼* 만지는 비전 보존**:
+- **비전 결정** — "어색한 거 있어?", "이 디자인 OK?", "다음에 뭐 만들지?"
+- **외부 GUI** — Unity Hub Add, GitHub UI, Slack 등
+- **특수 시각 검증** — Custom Inspector / Editor Window / Animation 미세 조정 (MCP 가 다 못 잡음)
+- **수치 tweak 의 *최종 OK*** — SO 값 변경은 Inspector / 디버그 HUD, 사용자가 *느낌* 확인
+
+자동화 영역 = *기계적 검증* (회귀 / 룰 grep / 씬 정합성 / 컴파일). *비전 결정 / "어색한 거 발견"* 은 사용자 손 보존.
+
+### 사례 / 패턴 (후속에서 누적)
+
+- 새 .cs 작성 시: `create_script` → `mcpforunity://editor/state` polling → `read_console(types=["error"])` → 통과 시 사용자 컨펌
+- prefab 생성 시: 기존 Bootstrap menu `[InitializeOnLoadMethod]` + MCP `manage_gameobject` 둘 다 가능 — Bootstrap 패턴 우선 (수치 노출 / 런타임 tweak 룰 정합)
+- 검증 회귀: `manage_camera screenshot` 후 baseline 비교 (후속 인프라 — 별 TASK)
+
 ## Git Workflow
 
 본 레포 git workflow 정본은 **`wm-git-workflow` skill** (canonical: `memo/dotfiles/claude-skills/wm-git-workflow/SKILL.md`, deployed: `~/.claude/skills/wm-git-workflow/SKILL.md`). commit / push / release / worktree / audit / branch / tag 작업 시 자동 매칭 로드.
