@@ -18,7 +18,7 @@ namespace WitchMendokusai
 
 		private Coroutine loop;
 
-		private UnitStat PlayerStat => Player.Instance.UnitStat;
+		private UnitStat PlayerStat => PlayerProvider.Instance.Current.UnitStat;
 
 		public override void InitContext(SkillObject skillObject)
 		{
@@ -49,7 +49,7 @@ namespace WitchMendokusai
 
 		private void Update()
 		{
-			transform.position = Player.Instance.transform.position;
+			transform.position = PlayerProvider.Instance.Current.transform.position;
 			transform.Rotate(0, rotateSpeed * Time.deltaTime, 0);
 		}
 
@@ -58,7 +58,7 @@ namespace WitchMendokusai
 			int fairyIndex = 0;
 			while (true)
 			{
-				if (Player.Instance.AimPos == Vector3.zero)
+				if (PlayerProvider.Instance.Current.AimPos == Vector3.zero)
 				{
 					yield return new WaitForSeconds(.1f);
 					continue;
@@ -73,7 +73,7 @@ namespace WitchMendokusai
 				g.transform.position = spawnPosition;
 
 				if (g.TryGetComponent(out SkillObject skillObject))
-					skillObject.InitContext(new SkillContext(Player.Instance.Object));
+					skillObject.InitContext(new SkillContext(PlayerProvider.Instance.Current.Object));
 
 				if (g.TryGetComponent(out DamagingObject damagingObject))
 					damagingObject.SetDamageBonus(damageBonus);

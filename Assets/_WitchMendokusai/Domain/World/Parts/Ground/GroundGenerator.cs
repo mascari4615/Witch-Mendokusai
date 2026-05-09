@@ -42,7 +42,7 @@ namespace WitchMendokusai
 			while (true)
 			{
 				// 플레이어 위치를 Chunk 좌표로 변환 (현재 안에 있는 청크 좌표)
-				Vector3 playerPos = Player.Instance.transform.position;
+				Vector3 playerPos = PlayerProvider.Instance.Current.transform.position;
 
 				// 안에 있는지 확인하는 방법: x랑 y가 -(chunkSize / 2) ~ +(chunkSize / 2) 안에 있다면 청크 안에 있는거임
 				// 청크사이즈 100이면, x -50 ~ 50, y -50 ~ 50은 (0, 0, 0)

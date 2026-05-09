@@ -35,9 +35,9 @@ namespace WitchMendokusai
 			
 			// 플레이어를 향하는 방향으로 약간 이동해서 이펙트 생성 (기존 MonsterObject 로직)
 			Vector3 offset = Vector3.zero;
-			if (Player.Instance != null)
+			if (PlayerProvider.Instance.Current != null)
 			{
-				offset = Vector3.Normalize(Player.Instance.transform.position - transform.position) * 0.5f;
+				offset = Vector3.Normalize(PlayerProvider.Instance.Current.transform.position - transform.position) * 0.5f;
 			}
 			
 			hitEffect.transform.position = transform.position + offset;
@@ -51,9 +51,9 @@ namespace WitchMendokusai
 			GameObject dieEffect = ObjectPoolManager.Instance.Spawn(dieEffectPrefab);
 			
 			Vector3 offset = Vector3.zero;
-			if (Player.Instance != null)
+			if (PlayerProvider.Instance.Current != null)
 			{
-				offset = Vector3.Normalize(Player.Instance.transform.position - transform.position) * 0.5f;
+				offset = Vector3.Normalize(PlayerProvider.Instance.Current.transform.position - transform.position) * 0.5f;
 			}
 			
 			dieEffect.transform.position = transform.position + offset;

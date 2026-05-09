@@ -46,7 +46,7 @@ namespace WitchMendokusai
 		private void RotateMesh()
 		{
 			// 1. 이동 방향
-			Vector3 moveDirectionLocal = Player.Instance.Object.UnitMovement.MoveDirectionLocal;
+			Vector3 moveDirectionLocal = PlayerProvider.Instance.Current.Object.UnitMovement.MoveDirectionLocal;
 			float h = moveDirectionLocal.x;
 			float v = moveDirectionLocal.z;
 

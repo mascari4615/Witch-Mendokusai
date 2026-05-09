@@ -176,7 +176,7 @@ namespace WitchMendokusai
 
 		private void SpawnMonsterNearPlayer(Monster monster)
 		{
-			Vector3 pos = Player.Instance.transform.position;
+			Vector3 pos = PlayerProvider.Instance.Current.transform.position;
 			Vector2 rand = Random.insideUnitCircle.normalized;
 			pos += new Vector3(rand.x, 0f, rand.y) * 5f;
 

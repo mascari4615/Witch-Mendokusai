@@ -36,12 +36,12 @@ namespace WitchMendokusai
 			else
 				terrainParameters.EnsureHeightmapCache(); // main thread 에서 1회 캐시 — background chunk gen 안전
 
-			// Inspector 미할당 시 — WM 표준 싱글톤 Player.Instance 우선, 그것도 없으면 Camera.main 안전망.
+			// Inspector 미할당 시 — WM 표준 싱글톤 PlayerProvider.Instance.Current 우선, 그것도 없으면 Camera.main 안전망.
 			// 3인칭 게임 (카메라 ≠ 플레이어 위치) 에서도 청크 LOD 가 플레이어 따라가도록.
 			if (viewer == null)
 			{
-				if (Player.Instance != null)
-					viewer = Player.Instance.transform;
+				if (PlayerProvider.Instance.Current != null)
+					viewer = PlayerProvider.Instance.Current.transform;
 				else
 					viewer = Camera.main?.transform;
 			}

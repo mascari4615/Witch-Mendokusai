@@ -32,7 +32,7 @@ namespace WitchMendokusai
 
 		private void CanSeePlayer()
 		{
-			// if (Vector3.Distance(UnitObject.transform.position, Player.Instance.transform.position) < attackRange)
+			// if (Vector3.Distance(UnitObject.transform.position, PlayerProvider.Instance.Current.transform.position) < attackRange)
 			// {
 			// 	if (IsCurState(FSMStateCommon.Attack) == false)
 			// 		ChangeState(FSMStateCommon.Attack);

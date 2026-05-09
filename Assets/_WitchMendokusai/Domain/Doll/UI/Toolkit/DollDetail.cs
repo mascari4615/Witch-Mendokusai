@@ -139,7 +139,7 @@ namespace WitchMendokusai
 				return;
 
 			DataManager.Instance.SetCurDoll(doll.ID);
-			Player.Instance.Object.SetDoll(doll.ID);
+			PlayerProvider.Instance.Current.Object.SetDoll(doll.ID);
 			Refresh();
 		}
 	}

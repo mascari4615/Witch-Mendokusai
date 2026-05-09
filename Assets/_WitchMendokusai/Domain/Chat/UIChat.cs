@@ -140,7 +140,7 @@ namespace WitchMendokusai
 			{
 				// Update Bubble Pos
 				Vector3 targetPos = unitID == 0 ?
-					Player.Instance.transform.position :
+					PlayerProvider.Instance.Current.transform.position :
 					curNPC.transform.position;
 				bubbleCanvasGroup.transform.position = GetVec(targetPos + Vector3.up);
 

@@ -88,8 +88,8 @@ namespace WitchMendokusai
 
 		private void CanSeePlayer()
 		{
-			if (Player.Instance == null) return;
-			float distanceToPlayer = Vector3.Distance(UnitObject.transform.position, Player.Instance.transform.position);
+			if (PlayerProvider.Instance.Current == null) return;
+			float distanceToPlayer = Vector3.Distance(UnitObject.transform.position, PlayerProvider.Instance.Current.transform.position);
 
 			if (distanceToPlayer < attackRange)
 			{

@@ -71,11 +71,11 @@ namespace WitchMendokusai
 		{
 			if (window == null || window.IsOpen == false)
 				return;
-			if (Player.Instance == null)
+			if (PlayerProvider.Instance.Current == null)
 				return;
 
 			foreach (StatRow row in rows)
-				row.Refresh(Player.Instance.UnitStat);
+				row.Refresh(PlayerProvider.Instance.Current.UnitStat);
 		}
 
 		private void OnToggle()

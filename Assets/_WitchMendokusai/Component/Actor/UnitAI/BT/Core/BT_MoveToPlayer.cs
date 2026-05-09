@@ -29,7 +29,7 @@ namespace WitchMendokusai
 
 		private BTState SetDestinationPlayer()
 		{
-			moveDest = Player.Instance.transform.position;
+			moveDest = PlayerProvider.Instance.Current.transform.position;
 			return BTState.Success;
 		}
 

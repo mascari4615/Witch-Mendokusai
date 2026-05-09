@@ -9,7 +9,7 @@ namespace WitchMendokusai
 			Type = (criteriaInfo.Data as UnitStatData).Type;
 		}
 
-		private UnitStat PlayerStat => Player.Instance.UnitStat;
+		private UnitStat PlayerStat => PlayerProvider.Instance.Current.UnitStat;
 
 		public override int GetCurValue()
 		{

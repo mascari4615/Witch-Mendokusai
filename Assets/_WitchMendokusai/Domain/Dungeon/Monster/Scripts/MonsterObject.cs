@@ -75,18 +75,18 @@ namespace WitchMendokusai
 		protected Vector3 GetRot()
 		{
 			return new Vector3(0, 0,
-				(Mathf.Atan2(Player.Instance.transform.position.y - (transform.position.y + 0.8f),
-					Player.Instance.transform.position.x - transform.position.x) * Mathf.Rad2Deg) - 90);
+				(Mathf.Atan2(PlayerProvider.Instance.Current.transform.position.y - (transform.position.y + 0.8f),
+					PlayerProvider.Instance.Current.transform.position.x - transform.position.x) * Mathf.Rad2Deg) - 90);
 		}
 
 		protected Vector3 GetDirection()
 		{
-			return (Player.Instance.transform.position - transform.position).normalized;
+			return (PlayerProvider.Instance.Current.transform.position - transform.position).normalized;
 		}
 
 		protected bool IsPlayerRight()
 		{
-			return Player.Instance.transform.position.x > transform.position.x;
+			return PlayerProvider.Instance.Current.transform.position.x > transform.position.x;
 		}
 	}
 }

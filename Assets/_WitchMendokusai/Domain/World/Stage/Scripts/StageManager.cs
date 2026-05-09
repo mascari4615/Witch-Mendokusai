@@ -38,7 +38,7 @@ namespace WitchMendokusai
 			// 함수 종료: 이전 스테이지 A -> 현재 스테이지 B (스테이지 Z는 사용되지 않음.)
 
 			Vector3 curStagePos = CurStageObject != null ? CurStageObject.gameObject.transform.position : Vector3.zero;
-			Vector3 newLastPosDiff = Player.Instance.transform.position - curStagePos;
+			Vector3 newLastPosDiff = PlayerProvider.Instance.Current.transform.position - curStagePos;
 
 			// LastStage를 A로 갱신하고, 비활성화
 			if (CurStageObject != null)
@@ -56,14 +56,14 @@ namespace WitchMendokusai
 			{
 				if (isBackToLastStage == true)
 				{
-					newStagePos = Player.Instance.transform.position - lastPosDiff;
+					newStagePos = PlayerProvider.Instance.Current.transform.position - lastPosDiff;
 				}
 				else
 				{
 					Portal[] portals = stage.Prefab.Portals;
 					if (portals.Length == 0)
 					{
-						newStagePos = Player.Instance.transform.position;
+						newStagePos = PlayerProvider.Instance.Current.transform.position;
 					}
 					else
 					{
@@ -72,7 +72,7 @@ namespace WitchMendokusai
 							targetPortal = stage.Prefab.Portals[0]; // 임의로 첫 번째 포탈 선택 - KarmoDDrine 2026-01-01
 
 						Vector3 portalTPPos = targetPortal.TpPos.position;
-						newStagePos = Player.Instance.transform.position - portalTPPos;
+						newStagePos = PlayerProvider.Instance.Current.transform.position - portalTPPos;
 					}
 				}
 			}

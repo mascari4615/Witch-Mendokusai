@@ -18,7 +18,7 @@ namespace WitchMendokusai
 			if (SetRotation)
 			{
 				// 공격 위치를 향하도록 회전
-				o.transform.rotation = Quaternion.LookRotation(Player.Instance.AimDirection);
+				o.transform.rotation = Quaternion.LookRotation(PlayerProvider.Instance.Current.AimDirection);
 			}
 
 			if (o.TryGetComponent(out SkillObject skillObject))

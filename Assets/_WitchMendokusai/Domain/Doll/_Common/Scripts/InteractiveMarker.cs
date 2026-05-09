@@ -18,7 +18,7 @@ namespace WitchMendokusai
 
 		private void Update()
 		{
-			InteractiveObject nearest = InteractiveObject.GetNearest(Player.Instance.transform.position, PlayerInteraction.InteractionDistance);
+			InteractiveObject nearest = InteractiveObject.GetNearest(PlayerProvider.Instance.Current.transform.position, PlayerInteraction.InteractionDistance);
 
 			if (nearest == null)
 			{

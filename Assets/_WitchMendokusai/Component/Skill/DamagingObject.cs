@@ -133,7 +133,7 @@ namespace WitchMendokusai
 
 			if (usedByPlayer)
 			{
-				UnitStat unitStat = Player.Instance.UnitStat;
+				UnitStat unitStat = PlayerProvider.Instance.Current.UnitStat;
 
 				calcDamage = (int)(calcDamage * (1 + (unitStat[UnitStatType.DAMAGE_BONUS] / 100f)));
 

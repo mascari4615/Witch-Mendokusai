@@ -13,7 +13,7 @@ namespace WitchMendokusai
 		protected override void OnEffect()
 		{
 			RuntimeManager.PlayOneShot("event:/SFX/EXP", transform.position);
-			Player.Instance.Object.ReceiveHeal(healAmount);
+			PlayerProvider.Instance.Current.Object.ReceiveHeal(healAmount);
 		}
 	}
 }

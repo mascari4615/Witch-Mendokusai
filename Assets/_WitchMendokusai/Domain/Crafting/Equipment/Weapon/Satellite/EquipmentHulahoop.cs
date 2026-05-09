@@ -13,7 +13,7 @@ namespace WitchMendokusai
 		private readonly List<DamagingObject> satellites = new();
 		private float rotateSpeed;
 
-		private UnitStat PlayerStat => Player.Instance.UnitStat;
+		private UnitStat PlayerStat => PlayerProvider.Instance.Current.UnitStat;
 
 		private void OnEnable()
 		{
@@ -33,7 +33,7 @@ namespace WitchMendokusai
 
 		private void Update()
 		{
-			transform.position = Player.Instance.transform.position;
+			transform.position = PlayerProvider.Instance.Current.transform.position;
 			transform.Rotate(0, rotateSpeed * Time.deltaTime, 0);
 		}
 

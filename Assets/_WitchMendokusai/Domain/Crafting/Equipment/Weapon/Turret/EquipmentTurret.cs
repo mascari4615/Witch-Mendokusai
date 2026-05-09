@@ -16,7 +16,7 @@ namespace WitchMendokusai
 
 		private Coroutine loop;
 
-		private UnitStat PlayerStat => Player.Instance.UnitStat;
+		private UnitStat PlayerStat => PlayerProvider.Instance.Current.UnitStat;
 
 		public override void InitContext(SkillObject skillObject)
 		{
@@ -31,7 +31,7 @@ namespace WitchMendokusai
 
 			loop = StartCoroutine(Loop());
 
-			transform.position = Player.Instance.transform.position;
+			transform.position = PlayerProvider.Instance.Current.transform.position;
 		}
 
 		private void OnDisable()
@@ -52,7 +52,7 @@ namespace WitchMendokusai
 			int turretIndex = 0;
 			while (true)
 			{
-				if (Player.Instance.AimPos == Vector3.zero)
+				if (PlayerProvider.Instance.Current.AimPos == Vector3.zero)
 				{
 					yield return new WaitForSeconds(.1f);
 					continue;
@@ -67,7 +67,7 @@ namespace WitchMendokusai
 				bulletObject.transform.position = bulletSpawnPos;
 
 				if (bulletObject.TryGetComponent(out SkillObject skillObject))
-					skillObject.InitContext(new SkillContext(Player.Instance.Object));
+					skillObject.InitContext(new SkillContext(PlayerProvider.Instance.Current.Object));
 
 				if (bulletObject.TryGetComponent(out DamagingObject damagingObject))
 					damagingObject.SetDamageBonus(damageBonus);

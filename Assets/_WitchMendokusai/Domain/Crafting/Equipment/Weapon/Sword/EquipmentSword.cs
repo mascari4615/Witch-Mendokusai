@@ -21,7 +21,7 @@ namespace WitchMendokusai
 
 		private Coroutine loop;
 
-		private UnitStat PlayerStat => Player.Instance.UnitStat;
+		private UnitStat PlayerStat => PlayerProvider.Instance.Current.UnitStat;
 
 		public override void InitContext(SkillObject skillObject)
 		{
@@ -52,10 +52,10 @@ namespace WitchMendokusai
 
 		private void Update()
 		{
-			transform.position = Player.Instance.transform.position;
+			transform.position = PlayerProvider.Instance.Current.transform.position;
 			// transform.Rotate(0, rotateSpeed * Time.deltaTime, 0);
 
-			transform.rotation = Player.Instance.Object.UnitMovement.IsLookingRight
+			transform.rotation = PlayerProvider.Instance.Current.Object.UnitMovement.IsLookingRight
 				? Quaternion.Euler(0, 0, 0)
 				: Quaternion.Euler(0, 180, 0);
 		}
@@ -64,7 +64,7 @@ namespace WitchMendokusai
 		{
 			while (true)
 			{
-				if (Player.Instance.AimPos == Vector3.zero)
+				if (PlayerProvider.Instance.Current.AimPos == Vector3.zero)
 				{
 					yield return new WaitForSeconds(.1f);
 					continue;
@@ -80,7 +80,7 @@ namespace WitchMendokusai
 		private IEnumerator AttackLoop()
 		{
 			WaitForSeconds wait = new WaitForSeconds(EachAttackDelay);
-			bool playerWasLookingRight = Player.Instance.Object.UnitMovement.IsLookingRight;
+			bool playerWasLookingRight = PlayerProvider.Instance.Current.Object.UnitMovement.IsLookingRight;
 			for (int i = 0; i < swordTransforms.Count; i++)
 			{
 				Attack(swordTransforms[i], i);
@@ -99,7 +99,7 @@ namespace WitchMendokusai
 				// 근데 x축 y축만
 				// Vector3 onlyXYSpawnPos = swordTransform.position;
 				// onlyXYSpawnPos.y = 0;
-				// Vector3 onlyXYPlayerPos = Player.Instance.transform.position;
+				// Vector3 onlyXYPlayerPos = PlayerProvider.Instance.Current.transform.position;
 				// onlyXYPlayerPos.y = 0;
 				// g.transform.rotation = Quaternion.LookRotation(onlyXYSpawnPos - onlyXYPlayerPos);
 
@@ -108,7 +108,7 @@ namespace WitchMendokusai
 					g.transform.Rotate(0, 180, 0);
 
 				if (g.TryGetComponent(out SkillObject skillObject))
-					skillObject.InitContext(new SkillContext(Player.Instance.Object));
+					skillObject.InitContext(new SkillContext(PlayerProvider.Instance.Current.Object));
 
 				if (g.GetComponentInChildren<DamagingObject>() is DamagingObject damagingObject)
 					damagingObject.SetDamageBonus(damageBonus);

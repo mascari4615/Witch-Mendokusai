@@ -13,14 +13,14 @@ namespace WitchMendokusai
 		private void Update()
 		{
 			// Kinematic Rigidbody는 linearVelocity가 항상 0 → Motor가 결정한 Velocity를 직접 읽는다.
-			Vector3 velocity = Player.Instance.Object.UnitMovement.Velocity;
+			Vector3 velocity = PlayerProvider.Instance.Current.Object.UnitMovement.Velocity;
 			bool isMoving = new Vector2(velocity.x, velocity.z).sqrMagnitude > 0.01f;
 			mainAnimator.SetBool("MOVE", isMoving);
 			animatorOf3DModel.SetBool("MOVE", isMoving);
 
 			handAnimator.SetBool("CHANNELING", Mouse.current != null && (Mouse.current.leftButton.isPressed || Mouse.current.rightButton.isPressed));
 
-			Vector3 moveDirection = Player.Instance.Object.UnitMovement.MoveDirectionLocal;
+			Vector3 moveDirection = PlayerProvider.Instance.Current.Object.UnitMovement.MoveDirectionLocal;
 			if (moveDirection.x == 0)
 				return;
 

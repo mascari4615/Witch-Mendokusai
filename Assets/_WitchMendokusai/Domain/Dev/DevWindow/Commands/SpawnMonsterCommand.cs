@@ -46,7 +46,7 @@ namespace WitchMendokusai
 				return;
 			}
 
-			Vector3 origin = Player.Instance != null ? Player.Instance.transform.position : Vector3.zero;
+			Vector3 origin = PlayerProvider.Instance.Current != null ? PlayerProvider.Instance.Current.transform.position : Vector3.zero;
 			Vector2 randomDir = Random.insideUnitCircle.normalized;
 			Vector3 spawnPos = origin + new Vector3(randomDir.x, 0f, randomDir.y) * SPAWN_RADIUS;
 

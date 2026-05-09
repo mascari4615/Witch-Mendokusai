@@ -101,7 +101,7 @@ namespace WitchMendokusai
 
 		private Vector3 GetSpawnPosition()
 		{
-			Vector3 playerPos = Player.Instance.transform.position;
+			Vector3 playerPos = PlayerProvider.Instance.Current.transform.position;
 			Vector2 randomCircle = Random.insideUnitCircle.normalized;
 			float randomDist = Random.Range(spawnDistanceRange.x, spawnDistanceRange.y);
 			return playerPos + new Vector3(randomCircle.x, 0, randomCircle.y) * randomDist;

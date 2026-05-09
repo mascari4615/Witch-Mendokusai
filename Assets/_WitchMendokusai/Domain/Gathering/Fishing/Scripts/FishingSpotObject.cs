@@ -53,7 +53,7 @@ namespace WitchMendokusai
 				RuntimeManager.PlayOneShot(castEventPath, transform.position);
 
 			bool caught = false;
-			FishingContext context = new() { Fisherman = Player.Instance.transform, Data = data };
+			FishingContext context = new() { Fisherman = PlayerProvider.Instance.Current.transform, Data = data };
 			yield return StartCoroutine(miniGame.Play(context, result => caught = result));
 
 			if (caught)

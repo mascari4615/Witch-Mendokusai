@@ -42,14 +42,14 @@ namespace WitchMendokusai
 		{
 			// for (float t = 0; t < 1; t += Time.deltaTime * moveSpeed)
 			// {
-			// 	transform.position = Vector3.Lerp(transform.position, Player.Instance.transform.position, t);
+			// 	transform.position = Vector3.Lerp(transform.position, PlayerProvider.Instance.Current.transform.position, t);
 
 			while (true)
 			{
-				Vector3 direction = (Player.Instance.transform.position - transform.position).normalized;
+				Vector3 direction = (PlayerProvider.Instance.Current.transform.position - transform.position).normalized;
 				transform.position = transform.position + moveSpeed * Time.deltaTime * direction;
 
-				if (Vector3.Distance(transform.position, Player.Instance.transform.position) < .3f)
+				if (Vector3.Distance(transform.position, PlayerProvider.Instance.Current.transform.position) < .3f)
 				{
 					Effect();
 					_moveLoop = null;

@@ -24,7 +24,7 @@ namespace WitchMendokusai
 		private Coroutine spawnCoroutine;
 
 		[SerializeField] private UnitStatType damageBonusStatType = UnitStatType.NONE;
-		private UnitStat PlayerStat => Player.Instance.UnitStat;
+		private UnitStat PlayerStat => PlayerProvider.Instance.Current.UnitStat;
 		private int damageBonus = 0;
 
 		private void Start()
@@ -64,11 +64,11 @@ namespace WitchMendokusai
 			void Spawn()
 			{
 				// TODO: 위치도 옵션으로
-				transform.position = Player.Instance.transform.position;
+				transform.position = PlayerProvider.Instance.Current.transform.position;
 				Vector3 spawnPosition = GetSpawnPosition();
 				GameObject g = ObjectPoolManager.Instance.Spawn(prefabToSpawn, transform.position + spawnPosition, Quaternion.identity);
 				if (g.TryGetComponent(out SkillObject skillObject))
-					skillObject.InitContext(new SkillContext(Player.Instance.Object));
+					skillObject.InitContext(new SkillContext(PlayerProvider.Instance.Current.Object));
 
 				if (g.GetComponentInChildren<DamagingObject>() is DamagingObject damagingObject)
 					damagingObject.SetDamageBonus(damageBonus);

@@ -17,20 +17,20 @@ namespace WitchMendokusai
 
 		private void Update()
 		{
-			if (Player.Instance.AimPos == Vector3.zero)
+			if (PlayerProvider.Instance.Current.AimPos == Vector3.zero)
 			{
 				animator.SetBool(MarkerEnabled, false);
 				return;
 			}
 
-			if (lastNearestTarget != Player.Instance.NearestTarget)
+			if (lastNearestTarget != PlayerProvider.Instance.Current.NearestTarget)
 			{
-				lastNearestTarget = Player.Instance.NearestTarget;
+				lastNearestTarget = PlayerProvider.Instance.Current.NearestTarget;
 				animator.SetTrigger(MarkerResetTrigger);
 			}
 
 			animator.SetBool(MarkerEnabled, true);
-			transform.position = Player.Instance.AimPos;
+			transform.position = PlayerProvider.Instance.Current.AimPos;
 		}
 	}
 }

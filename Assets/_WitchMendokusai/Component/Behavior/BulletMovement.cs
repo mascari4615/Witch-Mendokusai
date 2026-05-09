@@ -27,20 +27,20 @@ namespace WitchMendokusai
 			{
 				if (useAutoAim == false)
 				{
-					moveDirection = Player.Instance.AimDirection;
+					moveDirection = PlayerProvider.Instance.Current.AimDirection;
 					moveDirection.y = 0;
 				}
 				else
 				{
-					moveDirection = Player.Instance.NearestTarget != null
-						? (Player.Instance.NearestTarget.position - transform.position).normalized
-						: Player.Instance.AimDirection;
+					moveDirection = PlayerProvider.Instance.Current.NearestTarget != null
+						? (PlayerProvider.Instance.Current.NearestTarget.position - transform.position).normalized
+						: PlayerProvider.Instance.Current.AimDirection;
 					moveDirection.y = 0;
 				}
 			}
 			else
 			{
-				SetMoveDirection((Player.Instance.transform.position - skillObject.Context.User.transform.position).normalized);
+				SetMoveDirection((PlayerProvider.Instance.Current.transform.position - skillObject.Context.User.transform.position).normalized);
 			}
 		}
 	}

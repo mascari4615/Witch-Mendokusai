@@ -85,7 +85,7 @@ namespace WitchMendokusai
 					QuestManager.Instance.AddQuest(runtimeQuest);
 				}
 
-				monsterSpawner.transform.position = Player.Instance.transform.position;
+				monsterSpawner.transform.position = PlayerProvider.Instance.Current.transform.position;
 				monsterSpawner.InitWaves(dungeon);
 				resourceNodeSpawner.InitWaves(dungeon);
 

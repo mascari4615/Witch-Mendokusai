@@ -49,13 +49,13 @@ namespace WitchMendokusai
 
 		private BTState SetDestinationPlayer()
 		{
-			moveDest = Player.Instance.transform.position;
+			moveDest = PlayerProvider.Instance.Current.transform.position;
 			return BTState.Success;
 		}
 
 		protected bool IsPlayerFar()
 		{
-			float distance = Vector3.Distance(Player.Instance.transform.position, unitObject.transform.position);
+			float distance = Vector3.Distance(PlayerProvider.Instance.Current.transform.position, unitObject.transform.position);
 			bool isPlayerFar = distance > attackRange;
 
 			return isPlayerFar;

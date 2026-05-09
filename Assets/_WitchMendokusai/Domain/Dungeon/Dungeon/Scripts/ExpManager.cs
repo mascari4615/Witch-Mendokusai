@@ -11,7 +11,7 @@ namespace WitchMendokusai
 		
 		[SerializeField] private GameObject levelUpEffect;
 		
-		private UnitStat PlayerStat => Player.Instance.UnitStat;
+		private UnitStat PlayerStat => PlayerProvider.Instance.Current.UnitStat;
 
 		private void Start()
 		{
@@ -42,7 +42,7 @@ namespace WitchMendokusai
 				GameEventManager.Instance.Raise(GameEventType.OnLevelUp);
 
 				GameObject l = ObjectPoolManager.Instance.Spawn(levelUpEffect);
-				l.transform.position = Player.Instance.transform.position;
+				l.transform.position = PlayerProvider.Instance.Current.transform.position;
 				l.SetActive(true);
 			}
 		}

@@ -14,8 +14,8 @@ namespace WitchMendokusai
 
 		private void Start()
 		{
-			Player.Instance.UnitStat.AddListener(spawnCountStat, OnSpawnCountStatChanged);
-			OnSpawnCountStatChanged(Player.Instance.UnitStat[spawnCountStat]);
+			PlayerProvider.Instance.Current.UnitStat.AddListener(spawnCountStat, OnSpawnCountStatChanged);
+			OnSpawnCountStatChanged(PlayerProvider.Instance.Current.UnitStat[spawnCountStat]);
 		}
 
 		private void OnSpawnCountStatChanged(int newValue)
