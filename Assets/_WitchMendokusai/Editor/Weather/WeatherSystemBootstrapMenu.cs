@@ -6,25 +6,32 @@ using UnityEngine;
 namespace WitchMendokusai
 {
 	// 자동 생성:
-	// - Resources/Weather/{Clear,Cloudy,Rain,Storm,Snow,Fog,Magical}.asset (D1)
-	// - Resources/Weather/WeatherTransitionTable.asset (D2 — 4 hour bucket × 7 weather 모동숲 톤 default)
+	// - Resources/Weather/{Clear,Cloudy,Rain,Storm,Snow,Fog,Magical}.asset (D1) + visual 노브 (E2-fix)
+	// - Resources/Weather/Materials/{Rain,Snow,Fog,Storm}Mat.mat (E2-fix, URP Particle Unlit)
+	// - Resources/Weather/Visuals/{Rain,Snow,Fog,Storm}Visual.prefab (E2 — empty ParticleSystem shell, SO 가 정본)
+	// - Resources/Weather/WeatherTransitionTable.asset (D2 — 4 hour bucket × 7 weather × 4 season 모동숲 톤 default)
 	// - Resources/Singletons/WeatherSystem.prefab + Table reference + dontDestroyOnLoad=true (D3)
-	// (TASK-WM-054-D D1+D2+D3)
+	// - Resources/Singletons/WeatherDirector.prefab (E1)
+	// (TASK-WM-054-D D1+D2+D3 + sub-E E1+E2+E2-fix)
 	public static class WeatherSystemBootstrapMenu
 	{
 		private const string WEATHER_DIR = "Assets/_WitchMendokusai/Core/Resources/Weather";
 		private const string VISUALS_DIR = "Assets/_WitchMendokusai/Core/Resources/Weather/Visuals";
+		private const string MATERIALS_DIR = "Assets/_WitchMendokusai/Core/Resources/Weather/Materials";
 		private const string TABLE_PATH = "Assets/_WitchMendokusai/Core/Resources/Weather/WeatherTransitionTable.asset";
 		private const string PREFAB_PATH = "Assets/_WitchMendokusai/Core/Resources/Singletons/WeatherSystem.prefab";
 		private const string DIRECTOR_PREFAB_PATH = "Assets/_WitchMendokusai/Core/Resources/Singletons/WeatherDirector.prefab";
 		private const string SINGLETONS_DIR = "Assets/_WitchMendokusai/Core/Resources/Singletons";
+		private const string URP_PARTICLE_SHADER = "Universal Render Pipeline/Particles/Unlit";
 
 		[InitializeOnLoadMethod]
 		private static void AutoBootstrapIfMissing()
 		{
+			CreateMissingMaterials(force: false);
 			CreateMissingVisualPrefabs(force: false);
+			EnsureVisualPrefabSchema();
 			CreateMissingWeatherSOs(force: false);
-			EnsureWeatherSOVisuals();
+			EnsureWeatherSOVisualKnobs();
 			CreateMissingTransitionTable(force: false);
 			EnsureSingletonPrefab();
 			EnsureDirectorPrefab();
@@ -44,6 +51,49 @@ namespace WitchMendokusai
 
 		[MenuItem("WM/Setup/Recreate Weather Visual Prefabs")]
 		private static void RecreateVisualPrefabsMenuItem() => CreateMissingVisualPrefabs(force: true);
+
+		[MenuItem("WM/Setup/Recreate Weather Materials")]
+		private static void RecreateMaterialsMenuItem() => CreateMissingMaterials(force: true);
+
+		// ─── E2-fix: URP Particle Material 4 (Rain/Snow/Fog/Storm) ───
+
+		private static void CreateMissingMaterials(bool force)
+		{
+			EnsureFolder(MATERIALS_DIR);
+
+			Shader urpUnlit = Shader.Find(URP_PARTICLE_SHADER);
+			if (urpUnlit == null)
+			{
+				Debug.LogWarning($"[WeatherSystemBootstrap] '{URP_PARTICLE_SHADER}' shader 미발견 — URP 패키지 import 안 됨? Material 생성 skip");
+				return;
+			}
+
+			foreach (WeatherType type in VisualWeatherTypes)
+			{
+				string matPath = $"{MATERIALS_DIR}/{type}Mat.mat";
+				Material existing = AssetDatabase.LoadAssetAtPath<Material>(matPath);
+
+				if (existing != null && force == false)
+					continue;
+
+				Material mat = new Material(urpUnlit);
+
+				if (existing == null)
+				{
+					AssetDatabase.CreateAsset(mat, matPath);
+					Debug.Log($"[WeatherSystemBootstrap] Created {matPath}");
+				}
+				else
+				{
+					AssetDatabase.DeleteAsset(matPath);
+					AssetDatabase.CreateAsset(mat, matPath);
+					Debug.Log($"[WeatherSystemBootstrap] Recreated {matPath} (force)");
+				}
+			}
+
+			AssetDatabase.SaveAssets();
+			AssetDatabase.Refresh();
+		}
 
 		// ─── D1: WeatherSO 7 .asset ───
 
@@ -113,7 +163,116 @@ namespace WitchMendokusai
 			if (idProp != null)
 				idProp.intValue = (int)type;
 
+			ApplyVisualKnobDefaults(serializedObject, type);
+
 			serializedObject.ApplyModifiedProperties();
+		}
+
+		// E2-fix: 시각 노브 default — 4 weather × visual 노브 11개. force / 신규 생성 시 모두 박기.
+		private static void ApplyVisualKnobDefaults(SerializedObject serializedObject, WeatherType type)
+		{
+			Material mat = AssetDatabase.LoadAssetAtPath<Material>($"{MATERIALS_DIR}/{type}Mat.mat");
+			SetObjectRef(serializedObject, "<ParticleMaterial>k__BackingField", mat);
+
+			switch (type)
+			{
+				case WeatherType.Rain:
+					SetColor(serializedObject, "<ParticleColor>k__BackingField", new Color(0.55f, 0.65f, 0.85f, 0.85f));
+					SetFloat(serializedObject, "<ParticleStartSize>k__BackingField", 0.05f);
+					SetFloat(serializedObject, "<ParticleStartSpeed>k__BackingField", 18f);
+					SetFloat(serializedObject, "<ParticleStartLifetime>k__BackingField", 1.5f);
+					SetFloat(serializedObject, "<ParticleEmissionRate>k__BackingField", 400f);
+					SetFloat(serializedObject, "<ParticleGravityModifier>k__BackingField", 0.5f);
+					SetEnum(serializedObject, "<ParticleShapeType>k__BackingField", (int)ParticleSystemShapeType.Box);
+					SetVector3(serializedObject, "<ParticleShapeScale>k__BackingField", new Vector3(40f, 0.1f, 40f));
+					SetVector3(serializedObject, "<ParticleShapePosition>k__BackingField", new Vector3(0f, 18f, 0f));
+					SetVector3(serializedObject, "<ParticleShapeRotation>k__BackingField", Vector3.zero);
+					SetFloat(serializedObject, "<ParticleShapeRadius>k__BackingField", 12f);
+					break;
+
+				case WeatherType.Snow:
+					SetColor(serializedObject, "<ParticleColor>k__BackingField", new Color(1f, 1f, 1f, 0.9f));
+					SetFloat(serializedObject, "<ParticleStartSize>k__BackingField", 0.12f);
+					SetFloat(serializedObject, "<ParticleStartSpeed>k__BackingField", 1.5f);
+					SetFloat(serializedObject, "<ParticleStartLifetime>k__BackingField", 6f);
+					SetFloat(serializedObject, "<ParticleEmissionRate>k__BackingField", 200f);
+					SetFloat(serializedObject, "<ParticleGravityModifier>k__BackingField", 0.05f);
+					SetEnum(serializedObject, "<ParticleShapeType>k__BackingField", (int)ParticleSystemShapeType.Box);
+					SetVector3(serializedObject, "<ParticleShapeScale>k__BackingField", new Vector3(40f, 0.1f, 40f));
+					SetVector3(serializedObject, "<ParticleShapePosition>k__BackingField", new Vector3(0f, 18f, 0f));
+					SetVector3(serializedObject, "<ParticleShapeRotation>k__BackingField", Vector3.zero);
+					SetFloat(serializedObject, "<ParticleShapeRadius>k__BackingField", 12f);
+					break;
+
+				case WeatherType.Fog:
+					SetColor(serializedObject, "<ParticleColor>k__BackingField", new Color(0.85f, 0.87f, 0.9f, 0.18f));
+					SetFloat(serializedObject, "<ParticleStartSize>k__BackingField", 6f);
+					SetFloat(serializedObject, "<ParticleStartSpeed>k__BackingField", 0.3f);
+					SetFloat(serializedObject, "<ParticleStartLifetime>k__BackingField", 8f);
+					SetFloat(serializedObject, "<ParticleEmissionRate>k__BackingField", 12f);
+					SetFloat(serializedObject, "<ParticleGravityModifier>k__BackingField", 0f);
+					SetEnum(serializedObject, "<ParticleShapeType>k__BackingField", (int)ParticleSystemShapeType.Sphere);
+					SetVector3(serializedObject, "<ParticleShapePosition>k__BackingField", new Vector3(0f, 1.5f, 0f));
+					SetVector3(serializedObject, "<ParticleShapeRotation>k__BackingField", Vector3.zero);
+					SetFloat(serializedObject, "<ParticleShapeRadius>k__BackingField", 12f);
+					break;
+
+				case WeatherType.Storm:
+					SetColor(serializedObject, "<ParticleColor>k__BackingField", new Color(0.4f, 0.5f, 0.7f, 0.95f));
+					SetFloat(serializedObject, "<ParticleStartSize>k__BackingField", 0.07f);
+					SetFloat(serializedObject, "<ParticleStartSpeed>k__BackingField", 24f);
+					SetFloat(serializedObject, "<ParticleStartLifetime>k__BackingField", 1.2f);
+					SetFloat(serializedObject, "<ParticleEmissionRate>k__BackingField", 700f);
+					SetFloat(serializedObject, "<ParticleGravityModifier>k__BackingField", 0.7f);
+					SetEnum(serializedObject, "<ParticleShapeType>k__BackingField", (int)ParticleSystemShapeType.Box);
+					SetVector3(serializedObject, "<ParticleShapeScale>k__BackingField", new Vector3(50f, 0.1f, 50f));
+					SetVector3(serializedObject, "<ParticleShapePosition>k__BackingField", new Vector3(0f, 20f, 0f));
+					SetVector3(serializedObject, "<ParticleShapeRotation>k__BackingField", Vector3.zero);
+					SetFloat(serializedObject, "<ParticleShapeRadius>k__BackingField", 12f);
+					break;
+
+				// Clear / Cloudy / Magical = visual 없음 (VisualPrefab null) → 노브 default 0 OK.
+			}
+		}
+
+		// E2-fix: 기존 SO 의 visual 노브 schema migration. ParticleMaterial null + ParticleStartSize == 0
+		// 둘 다 만족 시 = 첫 schema 진입 → type 별 default 박기. 사용자 인스펙터 tweak 보존 (이미 채워진 노브 건들지 X).
+		private static void EnsureWeatherSOVisualKnobs()
+		{
+			foreach (WeatherType type in Enum.GetValues(typeof(WeatherType)))
+			{
+				string assetPath = $"{WEATHER_DIR}/{type}.asset";
+				WeatherSO existing = AssetDatabase.LoadAssetAtPath<WeatherSO>(assetPath);
+				if (existing == null)
+					continue;
+
+				SerializedObject serializedObject = new SerializedObject(existing);
+
+				SerializedProperty matProp = serializedObject.FindProperty("<ParticleMaterial>k__BackingField");
+				SerializedProperty sizeProp = serializedObject.FindProperty("<ParticleStartSize>k__BackingField");
+
+				bool needsMigration = matProp != null
+					&& matProp.objectReferenceValue == null
+					&& sizeProp != null
+					&& sizeProp.floatValue == 0f;
+
+				if (needsMigration == false)
+					continue;
+
+				// VisualPrefab 도 null 일 수 있어 같이 채움.
+				SerializedProperty visualProp = serializedObject.FindProperty("<VisualPrefab>k__BackingField");
+				if (visualProp != null && visualProp.objectReferenceValue == null)
+				{
+					GameObject visualPrefab = AssetDatabase.LoadAssetAtPath<GameObject>($"{VISUALS_DIR}/{type}Visual.prefab");
+					visualProp.objectReferenceValue = visualPrefab;
+				}
+
+				ApplyVisualKnobDefaults(serializedObject, type);
+				serializedObject.ApplyModifiedProperties();
+				EditorUtility.SetDirty(existing);
+				Debug.Log($"[WeatherSystemBootstrap] Migrated visual knobs → {assetPath}");
+			}
+			AssetDatabase.SaveAssets();
 		}
 
 		// ─── D2: TransitionTable .asset (4 hour bucket × 7 weather, 모동숲 톤) ───
@@ -429,40 +588,8 @@ namespace WitchMendokusai
 			}
 		}
 
-		// 기존 SO 의 VisualPrefab 가 null 이면 자동 갱신 (idempotent — 다른 필드 보존).
-		// schema 변경 (E2 도입 시 VisualPrefab 신규 SerializeField) 흐름의 migration.
-		private static void EnsureWeatherSOVisuals()
-		{
-			foreach (WeatherType type in Enum.GetValues(typeof(WeatherType)))
-			{
-				string assetPath = $"{WEATHER_DIR}/{type}.asset";
-				WeatherSO existing = AssetDatabase.LoadAssetAtPath<WeatherSO>(assetPath);
-
-				if (existing == null)
-					continue;
-
-				if (existing.VisualPrefab != null)
-					continue;
-
-				GameObject visualPrefab = AssetDatabase.LoadAssetAtPath<GameObject>($"{VISUALS_DIR}/{type}Visual.prefab");
-				if (visualPrefab == null)
-					continue;
-
-				SerializedObject serializedObject = new SerializedObject(existing);
-				SerializedProperty visualProp = serializedObject.FindProperty("<VisualPrefab>k__BackingField");
-				if (visualProp == null)
-					continue;
-
-				visualProp.objectReferenceValue = visualPrefab;
-				serializedObject.ApplyModifiedProperties();
-				EditorUtility.SetDirty(existing);
-				Debug.Log($"[WeatherSystemBootstrap] Linked VisualPrefab → {assetPath}");
-			}
-
-			AssetDatabase.SaveAssets();
-		}
-
-		// ─── E2: Visual prefab 4 (Rain/Snow/Fog/Storm) ───
+		// ─── E2: Visual prefab 4 (Rain/Snow/Fog/Storm) — empty ParticleSystem shell ───
+		// E2-fix: SO 가 visual 정본. prefab 은 main.loop=true / playOnAwake=true / simulationSpace=World 만 박은 shell.
 
 		private static readonly WeatherType[] VisualWeatherTypes =
 		{
@@ -486,7 +613,7 @@ namespace WitchMendokusai
 
 				GameObject root = new GameObject($"{type}Visual");
 				ParticleSystem particleSystem = root.AddComponent<ParticleSystem>();
-				ConfigureParticle(particleSystem, type);
+				ConfigureParticleEmpty(particleSystem);
 
 				PrefabUtility.SaveAsPrefabAsset(root, prefabPath);
 				UnityEngine.Object.DestroyImmediate(root);
@@ -498,69 +625,60 @@ namespace WitchMendokusai
 			AssetDatabase.Refresh();
 		}
 
-		// 모동숲/스타듀 톤 placeholder. 사용자 시각 검증 후 tweak (color / shape / emission rate).
-		private static void ConfigureParticle(ParticleSystem particleSystem, WeatherType type)
+		// E2-fix: empty ParticleSystem shell — main.loop / playOnAwake / simulationSpace 만 박고 나머지 모두 SO 가 set.
+		private static void ConfigureParticleEmpty(ParticleSystem particleSystem)
 		{
 			ParticleSystem.MainModule main = particleSystem.main;
-			ParticleSystem.EmissionModule emission = particleSystem.emission;
-			ParticleSystem.ShapeModule shape = particleSystem.shape;
-
 			main.loop = true;
 			main.playOnAwake = true;
 			main.simulationSpace = ParticleSystemSimulationSpace.World;
+		}
 
-			switch (type)
+		// E2-fix: 옛 schema (ConfigureParticle 박힌 prefab — shape.rotation == (90,0,0)) → empty shell migration.
+		private static void EnsureVisualPrefabSchema()
+		{
+			foreach (WeatherType type in VisualWeatherTypes)
 			{
-				case WeatherType.Rain:
-					main.startLifetime = 1.5f;
-					main.startSpeed = 18f;
-					main.startSize = 0.05f;
-					main.startColor = new Color(0.55f, 0.65f, 0.85f, 0.85f);
-					main.gravityModifier = 0.5f;
-					emission.rateOverTime = 400f;
-					shape.shapeType = ParticleSystemShapeType.Box;
-					shape.scale = new Vector3(40f, 0.1f, 40f);
-					shape.position = new Vector3(0f, 18f, 0f);
-					shape.rotation = new Vector3(90f, 0f, 0f);
-					break;
+				string prefabPath = $"{VISUALS_DIR}/{type}Visual.prefab";
+				GameObject prefabRoot = PrefabUtility.LoadPrefabContents(prefabPath);
+				if (prefabRoot == null)
+					continue;
+				try
+				{
+					ParticleSystem particleSystem = prefabRoot.GetComponent<ParticleSystem>();
+					if (particleSystem == null)
+						continue;
 
-				case WeatherType.Snow:
-					main.startLifetime = 6f;
-					main.startSpeed = 1.5f;
-					main.startSize = 0.12f;
-					main.startColor = new Color(1f, 1f, 1f, 0.9f);
-					main.gravityModifier = 0.05f;
-					emission.rateOverTime = 200f;
-					shape.shapeType = ParticleSystemShapeType.Box;
-					shape.scale = new Vector3(40f, 0.1f, 40f);
-					shape.position = new Vector3(0f, 18f, 0f);
-					shape.rotation = new Vector3(90f, 0f, 0f);
-					break;
+					ParticleSystem.ShapeModule shape = particleSystem.shape;
 
-				case WeatherType.Fog:
-					main.startLifetime = 8f;
-					main.startSpeed = 0.3f;
-					main.startSize = 6f;
-					main.startColor = new Color(0.85f, 0.87f, 0.9f, 0.18f);
+					// rotation X 가 0.01 보다 크면 옛 schema (90도 회전 박힘) — empty shell 로 reset
+					if (Mathf.Abs(shape.rotation.x) < 0.01f)
+						continue;
+
+					ConfigureParticleEmpty(particleSystem);
+
+					// shape / emission / 나머지 모듈 모두 default reset — SO 가 spawn 시 set
+					ParticleSystem.EmissionModule emission = particleSystem.emission;
+					emission.rateOverTime = 0f;
+					shape.rotation = Vector3.zero;
+					shape.scale = Vector3.one;
+					shape.position = Vector3.zero;
+					shape.shapeType = ParticleSystemShapeType.Cone;
+
+					ParticleSystem.MainModule main = particleSystem.main;
+					main.startLifetime = 5f;
+					main.startSpeed = 5f;
+					main.startSize = 1f;
+					main.startColor = Color.white;
 					main.gravityModifier = 0f;
-					emission.rateOverTime = 12f;
-					shape.shapeType = ParticleSystemShapeType.Sphere;
-					shape.radius = 12f;
-					shape.position = new Vector3(0f, 1.5f, 0f);
-					break;
 
-				case WeatherType.Storm:
-					main.startLifetime = 1.2f;
-					main.startSpeed = 24f;
-					main.startSize = 0.07f;
-					main.startColor = new Color(0.4f, 0.5f, 0.7f, 0.95f);
-					main.gravityModifier = 0.7f;
-					emission.rateOverTime = 700f;
-					shape.shapeType = ParticleSystemShapeType.Box;
-					shape.scale = new Vector3(50f, 0.1f, 50f);
-					shape.position = new Vector3(0f, 20f, 0f);
-					shape.rotation = new Vector3(90f, 0f, 0f);
-					break;
+					PrefabUtility.SaveAsPrefabAsset(prefabRoot, prefabPath);
+					Debug.Log($"[WeatherSystemBootstrap] Migrated {prefabPath} → empty shell (E2-fix schema)");
+				}
+				finally
+				{
+					PrefabUtility.UnloadPrefabContents(prefabRoot);
+				}
 			}
 		}
 
@@ -590,6 +708,43 @@ namespace WitchMendokusai
 				case WeatherType.Magical: return new Color(0.7f, 0.5f, 1f);
 				default: return Color.white;
 			}
+		}
+
+		// ─── SerializedProperty setter helpers (E2-fix) ───
+
+		private static void SetFloat(SerializedObject serializedObject, string path, float value)
+		{
+			SerializedProperty property = serializedObject.FindProperty(path);
+			if (property != null)
+				property.floatValue = value;
+		}
+
+		private static void SetColor(SerializedObject serializedObject, string path, Color value)
+		{
+			SerializedProperty property = serializedObject.FindProperty(path);
+			if (property != null)
+				property.colorValue = value;
+		}
+
+		private static void SetVector3(SerializedObject serializedObject, string path, Vector3 value)
+		{
+			SerializedProperty property = serializedObject.FindProperty(path);
+			if (property != null)
+				property.vector3Value = value;
+		}
+
+		private static void SetEnum(SerializedObject serializedObject, string path, int value)
+		{
+			SerializedProperty property = serializedObject.FindProperty(path);
+			if (property != null)
+				property.enumValueIndex = value;
+		}
+
+		private static void SetObjectRef(SerializedObject serializedObject, string path, UnityEngine.Object value)
+		{
+			SerializedProperty property = serializedObject.FindProperty(path);
+			if (property != null)
+				property.objectReferenceValue = value;
 		}
 	}
 }
