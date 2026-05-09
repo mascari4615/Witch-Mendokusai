@@ -50,6 +50,8 @@ namespace WitchMendokusai
 		private MCamera[] cameras;
 		private MCamera curCamera;
 
+		private Transform target;
+
 		protected override void Awake()
 		{
 			base.Awake();
@@ -60,13 +62,32 @@ namespace WitchMendokusai
 			chatPositionTransposer = cameras.First(cam => cam.UICameraMode == UICameraMode.NPC).CinemachineCamera.GetCinemachineComponent(CinemachineCore.Stage.Body) as CinemachinePositionComposer;
 
 			SetContentCameraMode(ContentCameraMode.Normal);
+
+			EventBus.Instance.Subscribe<PlayerSpawnedEvent>(OnPlayerSpawned);
+			EventBus.Instance.Subscribe<PlayerDespawnedEvent>(OnPlayerDespawned);
 		}
 
-		private void Start()
+		protected override void OnDestroy()
 		{
-			// Init
-			posDelegates[0].SetSource(0, new ConstraintSource { sourceTransform = Player.Instance.Object.CameraPosition, weight = 1 });
-			posDelegates[1].SetSource(0, new ConstraintSource { sourceTransform = Player.Instance.Object.SpritePosition, weight = 1 });
+			if (EventBus.TryGetExistingInstance(out EventBus eventBus))
+			{
+				eventBus.Unsubscribe<PlayerSpawnedEvent>(OnPlayerSpawned);
+				eventBus.Unsubscribe<PlayerDespawnedEvent>(OnPlayerDespawned);
+			}
+
+			base.OnDestroy();
+		}
+
+		private void OnPlayerSpawned(PlayerSpawnedEvent evt)
+		{
+			target = evt.Transform;
+			posDelegates[0].SetSource(0, new ConstraintSource { sourceTransform = evt.CameraPosition, weight = 1 });
+			posDelegates[1].SetSource(0, new ConstraintSource { sourceTransform = evt.SpritePosition, weight = 1 });
+		}
+
+		private void OnPlayerDespawned(PlayerDespawnedEvent evt)
+		{
+			target = null;
 		}
 
 		public void SetContentCameraMode(ContentCameraMode mode)
@@ -159,7 +180,10 @@ namespace WitchMendokusai
 
 		private void LateUpdate()
 		{
-			Vector3 direction = (Player.Instance.transform.position - cinemachineBrain.transform.position).normalized;
+			if (target == null)
+				return;
+
+			Vector3 direction = (target.position - cinemachineBrain.transform.position).normalized;
 			// RaycastHit[] hits = Physics.RaycastAll(cinemachineBrain.transform.position, direction, Mathf.Infinity, 1 << LayerMask.NameToLayer("EnvironmentObject"));
 			RaycastHit[] hits = Physics.RaycastAll(cinemachineBrain.transform.position, direction, Mathf.Infinity);
 

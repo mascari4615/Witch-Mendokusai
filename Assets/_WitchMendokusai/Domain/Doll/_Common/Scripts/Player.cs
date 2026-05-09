@@ -31,6 +31,21 @@ namespace WitchMendokusai
 		private void Start()
 		{
 			Object.Init(GetDoll(DataManager.Instance.CurDollID));
+
+			EventBus.Instance.Publish(new PlayerSpawnedEvent
+			{
+				Transform = transform,
+				CameraPosition = Object.CameraPosition,
+				SpritePosition = Object.SpritePosition,
+			});
+		}
+
+		protected override void OnDestroy()
+		{
+			if (EventBus.TryGetExistingInstance(out EventBus eventBus))
+				eventBus.Publish(new PlayerDespawnedEvent());
+
+			base.OnDestroy();
 		}
 
 		private void Update()
