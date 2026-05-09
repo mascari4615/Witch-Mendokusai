@@ -5,8 +5,8 @@ using WitchMendokusai.NodeGraph.Runtime;
 namespace WitchMendokusai.NodeGraph
 {
 	/// <summary>
-	/// <see cref="ConstantFloatNode"/> 의 런타임 비주얼 Provider — 첫 사용처 (TASK-WM-034 H3 데드 인터페이스 방지).
-	/// body 안에 `= 1.23` 형식 라벨 1줄 표시. 후속 도메인 Provider (QuestNode 등) 의 패턴 demo.
+	/// <see cref="ConstantFloatNode"/> 의 런타임 비주얼 + 인터랙션 Provider — 첫 사용처 (TASK-WM-034 H3/H4 데드 인터페이스 방지).
+	/// body 안에 `= 1.23` 형식 라벨 1줄 표시 (H3) + 클릭 시 Debug.Log demo (H4). 후속 도메인 Provider (QuestNode 등) 의 패턴 demo.
 	/// </summary>
 	[NodeRuntimeView(typeof(ConstantFloatNode))]
 	public sealed class ConstantFloatNodeRuntimeViewProvider : INodeRuntimeViewProvider
@@ -25,6 +25,14 @@ namespace WitchMendokusai.NodeGraph
 			valueLabel.style.color = VALUE_COLOR;
 			valueLabel.style.unityTextAlign = TextAnchor.MiddleRight;
 			return valueLabel;
+		}
+
+		public void OnClicked(NodeBase node)
+		{
+			if (node is ConstantFloatNode constantNode == false)
+				return;
+
+			Debug.Log($"[ConstantFloatNode] clicked — value = {constantNode.Value:F2}");
 		}
 	}
 }

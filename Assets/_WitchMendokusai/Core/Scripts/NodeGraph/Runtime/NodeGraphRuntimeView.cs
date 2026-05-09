@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -8,8 +9,10 @@ namespace WitchMendokusai.NodeGraph.Runtime
 	/// 런타임 노드 그래프 시각 (UI Toolkit). NodeGraph SO 받아 노드/엣지 인스턴스화 + 화면 표시.
 	/// Editor 측 GraphView (단계 B) 와 sibling — 데이터 모델 (NodeGraph + NodeBase + NodeConnection) 공유.
 	///
-	/// H1 단계 (2026-05-08): generic only — 라벨+박스 노드 + Painter2D 라인 엣지. read-only.
-	/// 후속 단계: H2 줌/팬, H3 Provider 패턴 (도메인별 커스텀 비주얼), H4 클릭/hover 이벤트.
+	/// H1 (2026-05-08): generic only — 라벨+박스 노드 + Painter2D 라인 엣지. read-only.
+	/// H3 (2026-05-09): Provider 패턴 — 도메인별 커스텀 비주얼.
+	/// H4 (2026-05-09): 인터랙션 dispatcher — element Pointer event 받아 Provider OnClicked/OnHovered 호출 + selection 단일 관리 + cross-cutting <see cref="OnNodeClicked"/> event 노출 (디버그/분석/로깅).
+	/// 후속: H2 줌/팬, H5 검증 씬, H6 TASK-WM-059 hand-off.
 	/// </summary>
 	public class NodeGraphRuntimeView : VisualElement
 	{
@@ -21,8 +24,21 @@ namespace WitchMendokusai.NodeGraph.Runtime
 		private readonly List<EdgeRuntimeElement> edgeElements = new();
 
 		private NodeGraph boundGraph;
+		private NodeRuntimeElement selectedElement;
 
 		public IReadOnlyDictionary<string, NodeRuntimeElement> NodeElementsById => nodeElementsById;
+
+		public NodeRuntimeElement SelectedElement => selectedElement;
+		public NodeBase SelectedNode => selectedElement?.Node;
+
+		/// <summary>좌클릭 cross-cutting event — 디버그/분석/로깅. 도메인 행동은 Provider.OnClicked 가 책임.</summary>
+		public event Action<NodeBase> OnNodeClicked = delegate { };
+		/// <summary>Hover 시작 cross-cutting event.</summary>
+		public event Action<NodeBase> OnNodeHovered = delegate { };
+		/// <summary>Hover 해제 cross-cutting event.</summary>
+		public event Action<NodeBase> OnNodeUnhovered = delegate { };
+		/// <summary>Selection 변경 — null = 선택 해제.</summary>
+		public event Action<NodeBase> OnSelectionChanged = delegate { };
 
 		public NodeGraphRuntimeView()
 		{
@@ -52,6 +68,8 @@ namespace WitchMendokusai.NodeGraph.Runtime
 		/// <summary>그래프 데이터 변동 시 명시 호출. (자동 hot reload 는 1차 X — 후속 H 후속.)</summary>
 		public void Refresh()
 		{
+			ClearSelection();
+
 			canvas.Clear();
 			nodeElementsById.Clear();
 			edgeElements.Clear();
@@ -69,6 +87,9 @@ namespace WitchMendokusai.NodeGraph.Runtime
 				nodeElement.style.position = Position.Absolute;
 				nodeElement.style.left = node.EditorPosition.x;
 				nodeElement.style.top = node.EditorPosition.y;
+				nodeElement.Clicked += OnElementClicked;
+				nodeElement.Hovered += OnElementHovered;
+				nodeElement.Unhovered += OnElementUnhovered;
 				nodeElementsById[node.Id] = nodeElement;
 			}
 
@@ -91,6 +112,67 @@ namespace WitchMendokusai.NodeGraph.Runtime
 
 			foreach (NodeRuntimeElement nodeElement in nodeElementsById.Values)
 				canvas.Add(nodeElement);
+		}
+
+		/// <summary>현재 선택 해제. 외부 호출 가능 (예: 빈 영역 클릭 시).</summary>
+		public void ClearSelection()
+		{
+			if (selectedElement == null)
+				return;
+
+			selectedElement.SetSelected(false);
+			selectedElement = null;
+			OnSelectionChanged.Invoke(null);
+		}
+
+		private void OnElementClicked(NodeRuntimeElement element)
+		{
+			SelectElement(element);
+
+			NodeBase node = element.Node;
+			if (node == null)
+				return;
+
+			INodeRuntimeViewProvider provider = NodeRuntimeProviderRegistry.GetProvider(node.GetType());
+			provider.OnClicked(node);
+			OnNodeClicked.Invoke(node);
+		}
+
+		private void OnElementHovered(NodeRuntimeElement element)
+		{
+			NodeBase node = element.Node;
+			if (node == null)
+				return;
+
+			INodeRuntimeViewProvider provider = NodeRuntimeProviderRegistry.GetProvider(node.GetType());
+			provider.OnHovered(node);
+			OnNodeHovered.Invoke(node);
+		}
+
+		private void OnElementUnhovered(NodeRuntimeElement element)
+		{
+			NodeBase node = element.Node;
+			if (node == null)
+				return;
+
+			INodeRuntimeViewProvider provider = NodeRuntimeProviderRegistry.GetProvider(node.GetType());
+			provider.OnUnhovered(node);
+			OnNodeUnhovered.Invoke(node);
+		}
+
+		private void SelectElement(NodeRuntimeElement element)
+		{
+			if (selectedElement == element)
+				return;
+
+			if (selectedElement != null)
+				selectedElement.SetSelected(false);
+
+			selectedElement = element;
+			if (element != null)
+				element.SetSelected(true);
+
+			OnSelectionChanged.Invoke(element?.Node);
 		}
 	}
 }
