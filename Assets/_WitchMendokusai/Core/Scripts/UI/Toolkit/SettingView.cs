@@ -42,6 +42,15 @@ namespace WitchMendokusai
 
 		public bool IsOpen { get; private set; }
 
+		private UnitObject playerObject;
+
+		private void Awake()
+		{
+			EventBus eventBus = EventBus.Instance;
+			eventBus.Subscribe<PlayerObjectBoundEvent>(OnPlayerObjectBound);
+			eventBus.Subscribe<PlayerDespawnedEvent>(OnPlayerDespawned);
+		}
+
 		private void Start()
 		{
 			container = new VisualElement();
@@ -56,8 +65,17 @@ namespace WitchMendokusai
 
 		private void OnDestroy()
 		{
+			if (EventBus.TryGetExistingInstance(out EventBus eventBus))
+			{
+				eventBus.Unsubscribe<PlayerObjectBoundEvent>(OnPlayerObjectBound);
+				eventBus.Unsubscribe<PlayerDespawnedEvent>(OnPlayerDespawned);
+			}
+
 			container?.RemoveFromHierarchy();
 		}
+
+		private void OnPlayerObjectBound(PlayerObjectBoundEvent evt) => playerObject = evt.Object;
+		private void OnPlayerDespawned(PlayerDespawnedEvent evt) => playerObject = null;
 
 		private void BuildUI()
 		{
@@ -344,8 +362,9 @@ namespace WitchMendokusai
 		private void OnDungeonExit()
 		{
 			Close();
-			if (Player.Instance != null && Player.Instance.Object != null)
-				Player.Instance.Object.ReceiveDamage(new DamageInfo(damage: 9999, DamageType.Critical, new DamageContext(Player.Instance.Object), ignoreInvincible: true));
+			if (playerObject == null)
+				return;
+			playerObject.ReceiveDamage(new DamageInfo(damage: 9999, DamageType.Critical, new DamageContext(playerObject), ignoreInvincible: true));
 		}
 
 		private void OnClearData() => DataManager.Instance.CreateNewGameData();

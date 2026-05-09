@@ -8,7 +8,34 @@ namespace WitchMendokusai
 {
 	public class GameManager : Singleton<GameManager>
 	{
-		public GameCondition Conditions { get; private set; } = new GameCondition();
+		public GameCondition Conditions { get; private set; }
+
+		private UnitObject playerObject;
+
+		protected override void Awake()
+		{
+			base.Awake();
+
+			Conditions = new GameCondition(() => playerObject);
+
+			EventBus eventBus = EventBus.Instance;
+			eventBus.Subscribe<PlayerObjectBoundEvent>(OnPlayerObjectBound);
+			eventBus.Subscribe<PlayerDespawnedEvent>(OnPlayerDespawned);
+		}
+
+		protected override void OnDestroy()
+		{
+			if (EventBus.TryGetExistingInstance(out EventBus eventBus))
+			{
+				eventBus.Unsubscribe<PlayerObjectBoundEvent>(OnPlayerObjectBound);
+				eventBus.Unsubscribe<PlayerDespawnedEvent>(OnPlayerDespawned);
+			}
+
+			base.OnDestroy();
+		}
+
+		private void OnPlayerObjectBound(PlayerObjectBoundEvent evt) => playerObject = evt.Object;
+		private void OnPlayerDespawned(PlayerDespawnedEvent evt) => playerObject = null;
 
 		// 게임 상태 초기화
 		public void Init()
@@ -19,7 +46,7 @@ namespace WitchMendokusai
 			ObjectBufferManager.ClearObjects(ObjectType.Skill);
 			ObjectBufferManager.ClearObjects(ObjectType.SpawnCircle);
 
-			Player.Instance.Object.Init(GetDoll(DataManager.Instance.CurDollID));
+			playerObject.Init(GetDoll(DataManager.Instance.CurDollID));
 
 			QuestManager.Instance.RemoveQuests(QuestType.Dungeon);
 			DataManager.Instance.GameStat.UpdateData();
@@ -40,7 +67,7 @@ namespace WitchMendokusai
 					GameObject g = ObjectPoolManager.Instance.Spawn(equipment.Object);
 
 					if (g.TryGetComponent(out SkillObject skillObject))
-						skillObject.InitContext(new SkillContext(Player.Instance.Object));
+						skillObject.InitContext(new SkillContext(playerObject));
 
 					g.SetActive(true);
 				}
@@ -78,6 +105,38 @@ namespace WitchMendokusai
 
 	public class GameCondition
 	{
+		private readonly Func<UnitObject> getPlayerObject;
+		private readonly Dictionary<GameConditionType, Func<bool>> gameConditionActions;
+
+		public GameCondition(Func<UnitObject> getPlayerObject)
+		{
+			this.getPlayerObject = getPlayerObject;
+
+			gameConditionActions = new()
+			{
+				{ GameConditionType.IsPaused, () => TimeManager.Instance.IsPaused }, // Setting, Dungeon Card 선택, Transition, ...
+				{ GameConditionType.IsTyping, () => UIChat.IsChatting || (DevWindowController.TryGetExistingInstance(out DevWindowController dwc) && dwc.IsCommandLineFocused) || UIToolkitFocus.IsAnyTextFieldFocused() },
+				{ GameConditionType.IsMouseOnUI, () => InputManager.Instance.IsPointerOverUI() },
+				{ GameConditionType.IsPlayerCasting, IsPlayerCasting },
+				{ GameConditionType.IsDied, IsDied },
+				{ GameConditionType.IsBuilding, () => GameModeManager.Instance.IsBuildMode },
+				{ GameConditionType.IsInTransition, () => UITransition.IsInTransition },
+				{ GameConditionType.IsViewingUI, () => UIManager.Instance.IsAnyPanelFullscreenOpen },
+			};
+		}
+
+		private bool IsPlayerCasting()
+		{
+			UnitObject playerObject = getPlayerObject();
+			return playerObject != null && playerObject.UnitStat[UnitStatType.CASTING_SKILL] > 0;
+		}
+
+		private bool IsDied()
+		{
+			UnitObject playerObject = getPlayerObject();
+			return playerObject != null && playerObject.UnitStat[UnitStatType.HP_CUR] <= 0;
+		}
+
 		public bool this[GameConditionType conditionType]
 		{
 			get
@@ -85,18 +144,6 @@ namespace WitchMendokusai
 				return gameConditionActions[conditionType].Invoke();
 			}
 		}
-
-		private static readonly Dictionary<GameConditionType, Func<bool>> gameConditionActions = new()
-		{
-			{ GameConditionType.IsPaused, () => TimeManager.Instance.IsPaused }, // Setting, Dungeon Card 선택, Transition, ...
-			{ GameConditionType.IsTyping, () => UIChat.IsChatting || (DevWindowController.TryGetExistingInstance(out DevWindowController dwc) && dwc.IsCommandLineFocused) || UIToolkitFocus.IsAnyTextFieldFocused() },
-			{ GameConditionType.IsMouseOnUI, () => InputManager.Instance.IsPointerOverUI() },
-			{ GameConditionType.IsPlayerCasting, () => Player.Instance.Object.UnitStat[UnitStatType.CASTING_SKILL] > 0 },
-			{ GameConditionType.IsDied, () => Player.Instance.Object.UnitStat[UnitStatType.HP_CUR] <= 0 },
-			{ GameConditionType.IsBuilding, () => GameModeManager.Instance.IsBuildMode },
-			{ GameConditionType.IsInTransition, () => UITransition.IsInTransition },
-			{ GameConditionType.IsViewingUI, () => UIManager.Instance.IsAnyPanelFullscreenOpen },
-		};
 
 		public bool IsGameConditionAny(params GameConditionType[] conditions)
 		{
