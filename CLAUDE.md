@@ -332,35 +332,20 @@ git branch -D chore/<주제>
 
 브랜치는 *임시 staging* — push 후 즉시 삭제. PR 만들지 X.
 
-### Post-push audit (claude-audit)
+### Post-push audit — *deferred (sub-K 후속)*
 
-`main` 에 push 가 발생하면 `.github/workflows/claude.yml` 의 `claude-audit` job 이 자동 트리거 (`on: push: branches: [main]`).
+trunk-based 의 안전망으로 *post-push audit* 설계했으나, 시도한 `anthropics/claude-code-action@v1` mode=agent + push 트리거가 **action 자체 미지원** (`Unsupported event type: push` error). 2026-05-09 cutover 직후 발견 → claude-audit job 자체 폐기.
 
-```
-main push
-  ↓
-claude-audit job (anthropics/claude-code-action@v1, mode=agent)
-  ├─ git show HEAD --stat + git diff HEAD~1 HEAD 분석
-  ├─ 검토 영역: 버그 / 보안 / 성능 / WM 룰 (Allman / == false / var 금지 / FastFail / 수치 SO 노출 / InputManager / MenuItem WM/)
-  └─ 결과:
-       ├─ 정상 → no-op (Issue 생성 X)
-       └─ 이상 발견 → gh issue create
-            ├─ title: [main audit] <commit subject>
-            ├─ label: audit, trunk-based
-            └─ body: 발견된 문제 + 영향 + revert 제안 (옵션 A) 또는 후속 fix commit 제안 (옵션 B)
-```
+현 상태:
+- main push 자동 audit *없음* — 사용자 신뢰 기반 trunk
+- `@claude` 멘션 (Issue / 사용자 수동) 만 작동
+- code-quality.yml 의 typo + merge marker check 는 push 트리거로 정상 작동 (필수 게이트는 X, just visibility)
 
-**사용자 응답 흐름**:
-- Issue 받음 → 검토 → 옵션 선택
-- 옵션 A (revert): `git revert <sha> && git push origin main`
-- 옵션 B (fix commit): worktree 에서 fix → main 직접 push (그 fix commit 도 다시 audit 받음)
-- Issue 코멘트에 `@claude 이거 fix 해` → claude.yml 의 `claude` job 트리거 → 자동 fix
+후속 (sub-K, 별 TASK 로 분리 가능): raw claude CLI 직접 호출 패턴 — `npx @anthropic-ai/claude-code` 를 GitHub Actions step 에서 호출 + 결과 분석 → `gh issue create`. action 의존 X.
 
-**audit 원칙** (claude-audit prompt 본문):
-- Actionable 한 지적만 — nitpick / 주관 X
-- 큰 아키텍처 지적 = Issue 본문 「영향」 에만 (revert 제안 X — architectural fix 는 후속 TASK)
-- 의심 약함 = Issue 생성 X (false positive 비용 ↑)
-- chore / docs / 룰 본문 변경 = 룰 grep 면제
+대안:
+- **CodeRabbit 재활성화** — `.coderabbit.yaml` `auto_review.enabled: true` + paths filter (이미 비활성화 상태, secondary audit 가능)
+- **manual @claude 멘션** — 사용자가 의심되는 commit 에 직접 Issue 만들어 `@claude audit this`
 
 ### Autopilot 예외 — Draft PR 유지 (TASK-WM-063 sub-H 옵션 B)
 
@@ -371,13 +356,13 @@ claude-audit job (anthropics/claude-code-action@v1, mode=agent)
 - feature 브랜치 + Draft PR 까지만 (사용자 검토 슬롯 보존)
 - merge / push --force 금지
 
-→ 자율 모드 PR 은 사용자 검토 후 *수동* 머지. 자율 모드 PR 도 main 머지 시 claude-audit 트리거 (정합).
+→ 자율 모드 PR 은 사용자 검토 후 *수동* 머지.
 
 ### Commit 메시지
 
 Conventional Commits — `feat: / fix: / chore: / refactor: / docs: / style: / test: / perf:`. 한 commit 한 주제. 메시지 = 실제 변경 일치.
 
-PR 폐기로 *commit 단위 자유도 ↑* — PR 단위 묶음 강제 사라져 더 잘게 쪼갤 가치 ↑. 1줄 fix 도 별 commit 정합. 하루 commit 수 증가는 cascade 정합 (claude-audit 가 commit 별 독립 실행).
+PR 폐기로 *commit 단위 자유도 ↑* — PR 단위 묶음 강제 사라져 더 잘게 쪼갤 가치 ↑. 1줄 fix 도 별 commit 정합.
 
 #### Closes #NN — Issue 자동 종료
 
@@ -411,8 +396,8 @@ protection 폐기로 사라지는 안전망 + 대체:
 
 | 사라진 게이트 | 위험 | 대체 |
 | --- | --- | --- |
-| `Check Typos` required | 오타 직접 push | code-quality.yml 의 push 트리거 (workflow 자체는 그대로 동작) + claude-audit 가 audit 시점에 잡음 |
-| `claude-review` required | (이미 의미 X — 본 TASK 가 polish job 자체 폐기) | claude-audit (post-push) |
+| `Check Typos` required | 오타 직접 push | code-quality.yml 의 push 트리거 (workflow 자체는 그대로 동작, just visibility) |
+| `claude-review` required | (의미 X — 본 TASK 가 job 자체 폐기) | post-push audit *deferred* (sub-K) — 현재 사용자 신뢰 기반 |
 | Force push 차단 | 실수 force push → main 히스토리 손실 | **절대 금지 룰** — autopilot.md § 안전 가드 3 「force-push 금지」 + 일반 세션도 동일. 모든 push 는 fast-forward only |
 
 #### Force push — 절대 금지
@@ -440,7 +425,7 @@ git branch -D <임시 브랜치>               # push 후 임시 브랜치 삭�
 
 (TASK-WM-060, 2026-05-08 도입 → 같은 날 폐기 — public repo + self-hosted runner 보안 위험. § 본문은 본 레포 § 컴파일 에러 확인 — `dotnet build` 우선 참고.)
 
-claude-audit 은 *룰/논리/보안* 검토만 — *컴파일* 검증은 X (worktree 안 dotnet build 가 작성자 책임).
+현 trunk-based 에서 자동 검증 = code-quality.yml typo + merge marker 만. *룰/논리/보안* 자동 검토는 *deferred* (sub-K). worktree 안 `dotnet build` 가 작성자 책임.
 
 ### CodeRabbit / Copilot — 자동 review 비활성화 (TASK-WM-062 sub-G, 2026-05-08)
 
