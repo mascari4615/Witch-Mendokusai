@@ -11,8 +11,8 @@ namespace WitchMendokusai
 	/// </summary>
 	public static class PrototypeChapter1Bootstrap
 	{
-		private const string CHAPTER_PATH = "Assets/_WitchMendokusai/Content/Task/Quest/MagicBook/Chapter_Prototype1.asset";
-		private const string QUEST_DIR = "Assets/_WitchMendokusai/Content/Task/Quest/";
+		private const string CHAPTER_PATH = "Assets/_WitchMendokusai/Domain/Quest/MagicBook/Chapter_Prototype1.asset";
+		private const string QUEST_DIR = "Assets/_WitchMendokusai/Domain/Quest/";
 		private const string DIALOGUE_DIR = "Assets/_WitchMendokusai/Content/Narrative/Demo/";
 
 		private const int QUEST_ID_START = 6000;
