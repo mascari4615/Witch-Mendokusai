@@ -254,6 +254,8 @@ namespace WitchMendokusai
 			propertiesChanged |= EnsureMaterialFloat(waterMaterial, "_WaveSpeed", 1.2f);
 			propertiesChanged |= EnsureMaterialFloat(waterMaterial, "_WaveFrequency", 1.5f);
 			propertiesChanged |= EnsureMaterialFloat(waterMaterial, "_SkyTintAmount", 0.25f);
+			propertiesChanged |= EnsureMaterialFloat(waterMaterial, "_Alpha", 0.7f);
+			propertiesChanged |= EnsureMaterialFloat(waterMaterial, "_WaveColorMix", 0.7f);
 
 			if (materialCreated)
 				Debug.Log($"[ShaderModdingSDK] Created sample Material {WATER_MATERIAL_PATH}");

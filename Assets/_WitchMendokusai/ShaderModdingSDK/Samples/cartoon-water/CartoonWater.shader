@@ -20,19 +20,24 @@ Shader "WM/Sample/CartoonWater"
 		_WaveSpeed ("Wave Speed", Range(0, 5)) = 1.2
 		_WaveFrequency ("Wave Frequency (world space, cycles per ~6m)", Range(0.1, 10)) = 1.5
 		_SkyTintAmount ("Sky Tint Amount (0=무시, 1=황혼 분홍 강함)", Range(0, 1)) = 0.25
+		_Alpha ("Alpha (0=완전 투명, 1=불투명)", Range(0, 1)) = 0.7
+		_WaveColorMix ("Wave Color Mix (0=base 그대로, 1=wave 가 deep 색)", Range(0, 1)) = 0.7
 	}
 
 	SubShader
 	{
 		Tags
 		{
-			"Queue" = "Geometry"
-			"RenderType" = "Opaque"
+			"Queue" = "Transparent"
+			"RenderType" = "Transparent"
 			"RenderPipeline" = "UniversalPipeline"
 		}
 
 		Pass
 		{
+			Blend SrcAlpha OneMinusSrcAlpha
+			ZWrite Off
+			Cull Back
 			HLSLPROGRAM
 			#pragma vertex vert
 			#pragma fragment frag
@@ -69,6 +74,8 @@ Shader "WM/Sample/CartoonWater"
 				float _WaveSpeed;
 				float _WaveFrequency;
 				float _SkyTintAmount;
+				float _Alpha;
+				float _WaveColorMix;
 			CBUFFER_END
 
 			Varyings vert(Attributes IN)
@@ -95,7 +102,7 @@ Shader "WM/Sample/CartoonWater"
 				// 2b. wave 가 base color 변조 — wave 영역에 deep tint mix (큰 mesh 단색 회피).
 				//     waveCombined ∈ [-2*amount, +2*amount]. 정규화 후 _ShallowColor 위에 _DeepColor mix.
 				float waveTintFactor = saturate(waveCombined * 0.5 + 0.5);
-				float3 baseTinted = lerp(baseColor, _DeepColor.rgb, waveTintFactor * 0.4);
+				float3 baseTinted = lerp(baseColor, _DeepColor.rgb, waveTintFactor * _WaveColorMix);
 
 				// 3. foam — wave 값이 threshold 넘으면 흰 거품. soft edge.
 				float foamMask = smoothstep(_FoamThreshold, _FoamThreshold + _FoamSoftness, waveCombined + 0.5);
@@ -107,7 +114,10 @@ Shader "WM/Sample/CartoonWater"
 				// 5. fog 적용 — URP RenderSettings.fog 정합 (SkyDirector C3a 가 fog 박음).
 				surface = MixFog(surface, IN.fogCoord);
 
-				return half4(surface, 1.0);
+				// 6. alpha — base 의 _Alpha + foam 영역은 더 불투명 (foam = 거품 = 불투명).
+				float alphaOut = lerp(_Alpha, 1.0, foamMask * _FoamIntensity);
+
+				return half4(surface, alphaOut);
 			}
 			ENDHLSL
 		}
