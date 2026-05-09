@@ -282,9 +282,39 @@ pwsh memo/dotfiles/scripts/unity-refresh.ps1
 
 이유: 솔로 indie + Claude 가 코드 작성자라 PR-bound review hook = self-review (작성자 = 리뷰어) 가치 약함. 사용자 시각 검증 시점은 main pull → Unity Play 단계 (PR 단계 아님). PR 1회 비용 (~3-5분 idle) + auto-rebase cascade 폭발 자체 제거.
 
-### Worktree 우회 패턴 — 멀티 세션 보호
+### Worktree 우회 패턴 — 멀티 세션 보호 (예외 없음)
 
-main worktree 는 *공유 검증 베이스* (다른 세션 dirty 와 본인 검증 의도 충돌). 따라서 main 직접 push 라도 main worktree 에서 직접 commit X — 항상 worktree 우회:
+main worktree (`WitchMendokusai/`) 는 **사용자 Unity Editor 전용 worktree**. Claude 세션은 *어떤 작업도* main worktree 에서 commit X — **항상 worktree 우회**. 1줄 chore 도, .md 1글자 수정도 동일.
+
+#### 근본의 근 — 예외 없음
+
+"1~3줄 chore 면 main 직접 OK" 같은 carve-out **금지**. 사유:
+- *상호 신뢰 가정* (다른 세션 / 사용자 Editor 가 그 순간 main worktree 안 만질 거) 에 의존 — 보드 봐도 5+ 세션 병렬 = 가정 깨지기 쉬움
+- 결정 트리 자체가 race window — "보드 깨끗한지 확인 → 만들기 시작 → 그 사이 다른 세션 진입" 시나리오
+- 1줄 chore 의 30-60s worktree 비용은 *filesystem cost*, *패턴 cost* 아님
+
+설계 weakness 의 근본: "main worktree" 가 *공유 상태* 라는 것. 사용자 Unity Editor + Claude 세션 N개 + 외부 도구 모두 거기 모이는 게 race condition 의 근원. 모든 actor 가 *isolated worktree* 를 갖는 게 정합 (`WitchMendokusai/` 자체를 "사용자 Unity Editor 전용 worktree" 로 의미화 → Claude 절대 안 만짐, 모든 Claude 세션은 `.worktrees/<branch>/`).
+
+#### Persistent scratch worktree 패턴
+
+세션마다 worktree 1개 생성 후 *여러 commit 재사용*. 매 chore 마다 fresh 만드는 게 아니라:
+
+```bash
+# 세션 시작 시 1회 (또는 첫 chore 직전)
+git worktree add -b <branch-name> ../.worktrees/<name> origin/main
+
+# 매 commit 직전 main 신선도 동기화 (이미 .worktrees 안)
+git fetch origin main
+git reset --hard origin/main          # 깨끗한 상태로 refresh
+# 편집 → commit → push origin <branch>:main
+
+# 세션 종료 시 1회
+git worktree remove ../.worktrees/<name> && git branch -D <branch-name>
+```
+
+활성 보드의 세션 worktree 들 (wm-013-prototype, wm-034-h-runtime-view 등) 이 이미 persistent — 한 세션이 자기 worktree 에서 여러 commit 누적.
+
+#### 명령 (1회 chore)
 
 ```bash
 git worktree add -b chore/<주제> ../.worktrees/<name> origin/main
