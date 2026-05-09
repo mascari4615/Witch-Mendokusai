@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "name": "Aurora Sky",
+  "author": "Mascari4615",
+  "version": "0.1.0",
+  "description": "Skybox sample — _WMSkyZenith/Horizon base + green aurora ribbon (밤만)",
+  "bundleFile": "aurora-sky.shaderbundle",
+  "slots": [
+    {
+      "id": "skybox",
+      "assetName": "AuroraSkyMaterial",
+      "blendMode": "uniform",
+      "priority": 0
+    }
+  ]
+}
