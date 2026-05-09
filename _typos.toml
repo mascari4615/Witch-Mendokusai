@@ -1,3 +1,11 @@
+[default]
+extend-ignore-re = [
+    # Git commit hash (SHA-1 hex, 7-40 chars) wrapped in backticks.
+    # CHANGELOG / TASK 본문 / commit msg 인용에 다수 등장.
+    # 일부 영단어 닮은 hex (dead/face/cafe 등) 가 typos 에 잡히는 것 회피.
+    "`[0-9a-f]{7,40}`",
+]
+
 [default.extend-words]
 # 1. 게임 엔진 고유 명사 (엔진이 제공하는 고정 키워드)
 lod = "lod"

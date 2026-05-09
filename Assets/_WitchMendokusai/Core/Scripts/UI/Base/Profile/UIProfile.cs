@@ -20,7 +20,7 @@ namespace WitchMendokusai
 
 		public void UpdateUI()
 		{
-			slotUI.SetSlot(PlayerRegistry.Instance.CurrentPlayer.Object.UnitData);
+			slotUI.SetSlot(Player.Instance.Object.UnitData);
 			slotUI.UpdateUI();
 		}
 	}

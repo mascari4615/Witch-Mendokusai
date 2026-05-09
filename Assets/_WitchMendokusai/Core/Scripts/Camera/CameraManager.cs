@@ -65,8 +65,8 @@ namespace WitchMendokusai
 		private void Start()
 		{
 			// Init
-			posDelegates[0].SetSource(0, new ConstraintSource { sourceTransform = PlayerRegistry.Instance.CurrentPlayer.Object.CameraPosition, weight = 1 });
-			posDelegates[1].SetSource(0, new ConstraintSource { sourceTransform = PlayerRegistry.Instance.CurrentPlayer.Object.SpritePosition, weight = 1 });
+			posDelegates[0].SetSource(0, new ConstraintSource { sourceTransform = Player.Instance.Object.CameraPosition, weight = 1 });
+			posDelegates[1].SetSource(0, new ConstraintSource { sourceTransform = Player.Instance.Object.SpritePosition, weight = 1 });
 		}
 
 		public void SetContentCameraMode(ContentCameraMode mode)
@@ -159,7 +159,7 @@ namespace WitchMendokusai
 
 		private void LateUpdate()
 		{
-			Vector3 direction = (PlayerRegistry.Instance.CurrentPlayer.transform.position - cinemachineBrain.transform.position).normalized;
+			Vector3 direction = (Player.Instance.transform.position - cinemachineBrain.transform.position).normalized;
 			// RaycastHit[] hits = Physics.RaycastAll(cinemachineBrain.transform.position, direction, Mathf.Infinity, 1 << LayerMask.NameToLayer("EnvironmentObject"));
 			RaycastHit[] hits = Physics.RaycastAll(cinemachineBrain.transform.position, direction, Mathf.Infinity);
 
