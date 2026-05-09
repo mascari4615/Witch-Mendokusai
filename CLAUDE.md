@@ -316,11 +316,99 @@ powershell -File memo/dotfiles/scripts/unity-refresh.ps1
 
 자동화 영역 = *기계적 검증* (회귀 / 룰 grep / 씬 정합성 / 컴파일). *비전 결정 / "어색한 거 발견"* 은 사용자 손 보존.
 
-### 사례 / 패턴 (후속에서 누적)
+### 사례 / 패턴 (TASK-WM-073 — 검증 자동화 인프라)
 
-- 새 .cs 작성 시: `create_script` → `mcpforunity://editor/state` polling → `read_console(types=["error"])` → 통과 시 사용자 컨펌
-- prefab 생성 시: 기존 Bootstrap menu `[InitializeOnLoadMethod]` + MCP `manage_gameobject` 둘 다 가능 — Bootstrap 패턴 우선 (수치 노출 / 런타임 tweak 룰 정합)
-- 검증 회귀: `manage_camera screenshot` 후 baseline 비교 (후속 인프라 — 별 TASK)
+#### 1. 새 .cs 작성 흐름
+
+```
+dotnet build (Unity 무관, 코드 컴파일) — 통과 검증
+  ↓
+mcpforunity://editor/state — is_compiling 끝까지 polling
+  ↓
+read_console(types=["error", "warning"], count=10, format="detailed") — Unity 측 에러 grep
+  ↓
+(사용자 검증 단계는 비전 / 비주얼 / 동작 일 때만)
+```
+
+`create_script` / `script_apply_edits` 가 자동으로 import + 컴파일 트리거 — `unity-refresh.ps1` 호출 불필요. 단 `dotnet build` 는 *Unity stuck state 무관* 이라 첫 검증은 여전히 그것 우선.
+
+#### 2. 신규 매니저 / prefab 도입 흐름 (Bootstrap 패턴)
+
+```
+.cs 작성 (Singleton<T> 베이스 + DataSO 등) → dotnet build
+  ↓
+Bootstrap menu (.cs 의 [InitializeOnLoadMethod] 또는 EditorWindow) — prefab/asset 자동 생성
+  ↓
+unity-refresh.ps1 (Bootstrap 트리거)  또는  Unity Editor focus
+  ↓
+read_console (Bootstrap 로그 + error 0 검증)
+  ↓
+find_gameobjects(search_term="<매니저이름>", search_method="by_component") — 등록 검증
+  ↓
+mcpforunity://scene/gameobject/{id} — 정확한 SerializeField 값 검증 (특히 dontDestroyOnLoad=true)
+```
+
+★ MCP `manage_gameobject create` 직접 사용 X — Bootstrap menu 패턴 우선 (수치 노출 / 런타임 tweak 룰 정합). MCP write 는 *디버그 / 일회성 시각 검증* 만.
+
+#### 3. 씬 정합성 자동 검증 (NULL ref / 등록 누락)
+
+```
+find_gameobjects(search_method="by_component", search_term="MissingScript")  → 결과 0 검증
+find_gameobjects(search_term="<핵심 매니저들>") → SOManager / EventBus / WorldClock / WeatherDirector / GameModeManager 등 모두 존재 검증
+mcpforunity://scene/cameras → 카메라 셋업 (TASK-WM-056-F Camera IoC 검증)
+mcpforunity://scene/volumes → URP Volume Profile (Sky / Weather)
+```
+
+특히 **WM-056-F IoC 마이그레이션 진행 중** 이라 Singleton 폐기 후속 worktree 마다 검증 필요 — `find_gameobjects` 자동.
+
+#### 4. 시각 회귀 (스크린샷)
+
+```python
+# 빠른 시각 검증 — AI 가 스크린샷 보고 자연어 비교
+manage_camera(action="screenshot", camera="MainCamera", include_image=True, max_resolution=512)
+
+# 6각도 contact sheet (씬 전체 overview)
+manage_camera(action="screenshot", batch="surround", max_resolution=256)
+
+# Scene View (gizmo / wireframe / debug overlay 포함)
+manage_camera(action="screenshot", capture_source="scene_view", view_target="<핵심 GameObject>", include_image=True)
+```
+
+baseline 비교 = 후속 (TASK-WM-073 sub-C). 지금은 AI 자연어 비교 ("baseline 과 다른가?") default — *비전 결정 / "어색한 거 발견"* 은 사용자 손 보존.
+
+#### 5. EditMode / PlayMode 테스트 (TASK-WM-073 sub-D, 후속)
+
+```python
+# 신규 시스템 도입 시 첫 테스트 박는 패턴
+run_tests(mode="EditMode", test_names=["TestSomething"])
+result = get_test_job(job_id=..., wait_timeout=60, include_failed_tests=True)
+```
+
+WM 에 `com.unity.test-framework 1.6.0` 박혀있음. 현재 테스트 코드 0 — sub-D 시점에 첫 테스트 박힘 (`Variable<T>` / `WorldClock` / `EventBus` 후보).
+
+#### 6. 작업 완료 보고 흐름 (MCP 도입 후 갱신)
+
+```
+1. 코드 변경 (create_script / Edit)
+2. dotnet build — 통과 검증
+3. (Unity 트리거 파일 — .meta / .prefab / .asset / 씬) unity-refresh.ps1 + sleep
+4. read_console — error / warning grep
+5. find_gameobjects — 씬 정합성 (해당 시)
+6. (시각 검증 필요 시) manage_camera screenshot — AI 자연어 비교
+7. 통과 시 사용자에게 *비전 / 비주얼 / 동작* 컨펌 요청 (남은 사용자 손)
+8. 사용자 OK → commit
+```
+
+#### 7. Multi-instance + worktree race
+
+여러 Unity Editor 띄울 때 (TASK-WM-069 인프라):
+```
+mcpforunity://instances → 활성 Editor 목록
+set_active_instance(instance="WitchMendokusai@<hash>")  # main worktree
+set_active_instance(instance="<branch>@<hash>")          # sub worktree
+```
+
+각 작업이 자기 worktree 의 Editor 만 조작 — 다른 세션 영역 침범 X.
 
 ## Git Workflow
 
