@@ -28,8 +28,20 @@ namespace WitchMendokusai
 			if (settings == null)
 				return;
 
-			DataSOUtil.ForeachDataSO(DataSOUtil.SetAddressableAsset, "DataSO Addressable 자동 sync (Editor load)", showDialog: false);
-			EditorUtility.SetDirty(settings);
+			bool anyChanged = false;
+			DataSOUtil.ForeachDataSO(
+				dataSO =>
+				{
+					bool changed = DataSOUtil.SetAddressableAsset(dataSO);
+					if (changed)
+						anyChanged = true;
+					return changed;
+				},
+				"DataSO Addressable 자동 sync (Editor load)",
+				showDialog: false);
+
+			if (anyChanged)
+				EditorUtility.SetDirty(settings);
 		}
 
 
