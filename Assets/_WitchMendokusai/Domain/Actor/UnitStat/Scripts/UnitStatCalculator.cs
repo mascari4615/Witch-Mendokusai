@@ -60,9 +60,11 @@ namespace WitchMendokusai
 		{
 			// TODO: 몬스터 스탯 계산
 
-			// 던전 Context 등을 계산
-			// 예를 들어, 던전 난이도에 따른 스탯 계산
-			DungeonContext context = DungeonManager.Instance.Context;
+			// 던전 Context 등을 계산. DungeonManager 가 spawn 안 된 상태 (Lobby / Loading / World
+			// 안 DungeonManager.Awake 전 race) = 일반 monster default — Context 무관 스탯 그대로.
+			if (DungeonManager.TryGetExistingInstance(out DungeonManager dungeonManager) == false)
+				return;
+			DungeonContext context = dungeonManager.Context;
 			if (context != null)
 			{
 				double percentage = (double)unitStat[UnitStatType.HP_CUR] / unitStat[UnitStatType.HP_MAX];
