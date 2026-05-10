@@ -137,7 +137,7 @@ namespace WitchMendokusai
 			}
 			lastClickTime = Time.time;
 
-			worldStage.GridData.AddBuildingAt(gridPosition, selectedBuilding);
+			worldStage.GridData.AddBuildingAt(gridPosition, new BuildingInstanceData(selectedBuilding.ID));
 			SpawnBuildingObject(gridPosition, worldStage.GridData.BuildingData[gridPosition]);
 
 			// buildingState.OnAction(gridPosition);
