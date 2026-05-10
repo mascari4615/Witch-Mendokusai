@@ -1,31 +1,28 @@
 using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using VContainer;
 
 namespace WitchMendokusai
 {
 	public class InputStrategySelector : MonoBehaviour
 	{
-		public static InputStrategySelector Instance { get; private set; }
+		private InputManager inputManager;
 
-		public static bool TryGetExistingInstance(out InputStrategySelector mgr)
+		[Inject]
+		public void Construct(InputManager inputManager)
 		{
-			mgr = Instance;
-			return mgr != null;
+			this.inputManager = inputManager;
 		}
 
 		private void Awake()
 		{
-			if (Instance != null && Instance != this) { Destroy(gameObject); return; }
-			Instance = this;
 			SceneManager.sceneLoaded += OnSceneLoaded;
 		}
 
 		private void OnDestroy()
 		{
 			SceneManager.sceneLoaded -= OnSceneLoaded;
-			if (Instance == this)
-				Instance = null;
 		}
 
 		private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
@@ -41,13 +38,13 @@ namespace WitchMendokusai
 			switch (sceneName)
 			{
 				case "World":
-					InputManager.Instance.SetInputStrategy(new InputStrategyWorld());
+					inputManager.SetInputStrategy(new InputStrategyWorld());
 					break;
 				case "Lobby":
-					InputManager.Instance.SetInputStrategy(new InputStrategyLobby());
+					inputManager.SetInputStrategy(new InputStrategyLobby());
 					break;
 				case "Loading":
-					InputManager.Instance.SetInputStrategy(new InputStrategyLoading());
+					inputManager.SetInputStrategy(new InputStrategyLoading());
 					break;
 				default:
 					Debug.LogWarning($"[InputStrategySelector] No strategy for scene: {sceneName}");
