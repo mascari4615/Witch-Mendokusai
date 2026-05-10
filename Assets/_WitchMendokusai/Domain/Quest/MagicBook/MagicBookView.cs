@@ -215,13 +215,7 @@ namespace WitchMendokusai
 				return;
 
 			RuntimeQuest quest = QuestManager.Instance.GetQuest(questSO);
-			if (quest == null)
-			{
-				Debug.Log($"[MagicBookView] {questSO.Name} (ID={questSO.ID}) — RuntimeQuest 없음 (Locked / 미생성). 잠긴 상태 표시는 후속 polish.");
-				return;
-			}
-
-			questDetail.Bind(quest);
+			questDetail.Bind(questSO, quest);
 		}
 
 		[ContextMenu("Open MagicBook")]
