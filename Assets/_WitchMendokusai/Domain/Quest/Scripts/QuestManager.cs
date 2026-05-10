@@ -38,6 +38,13 @@ namespace WitchMendokusai
 				return;
 			}
 
+			Effect.ApplyEffects(quest.CompleteEffects);
+			Effect.ApplyEffects(quest.RewardEffects);
+			foreach (RewardInfoData rewardData in quest.Rewards)
+			{
+				Reward.GetReward(rewardData);
+			}
+
 			Quests.Remove(quest);
 
 			if (evt.QuestSOID != -1)

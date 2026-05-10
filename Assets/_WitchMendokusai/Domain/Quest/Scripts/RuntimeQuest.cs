@@ -133,8 +133,6 @@ namespace WitchMendokusai
 		{
 			State = RuntimeQuestState.Completed;
 
-			EventBus.Instance.Publish(new QuestCompletedEvent(Guid, QuestSOID, Type));
-
 			if (QuestSOID != -1 && Type == QuestType.Research)
 			{
 				GameEventManager.Instance.Raise(GameEventType.OnResearchComplete);
@@ -142,16 +140,8 @@ namespace WitchMendokusai
 
 			foreach (GameEventType gameEventType in GameEvents)
 				GameEventManager.Instance.UnregisterCallback(gameEventType, Evaluate);
-			Effect.ApplyEffects(CompleteEffects);
-			GetReward();
-		}
 
-		private void GetReward()
-		{
-			Effect.ApplyEffects(RewardEffects);
-
-			foreach (RewardInfoData rewardData in Rewards)
-				Reward.GetReward(rewardData);
+			EventBus.Instance.Publish(new QuestCompletedEvent(Guid, QuestSOID, Type));
 		}
 
 		public void Load(RuntimeQuestSaveData saveData)
