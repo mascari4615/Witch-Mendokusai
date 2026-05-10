@@ -73,8 +73,6 @@ namespace WitchMendokusai.NodeGraph
 
 		public void Add(NodeGraphIssue issue)
 		{
-			if (issue == null)
-				return;
 			issues.Add(issue);
 			switch (issue.Severity)
 			{

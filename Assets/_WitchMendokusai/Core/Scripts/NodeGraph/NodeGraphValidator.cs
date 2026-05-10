@@ -26,10 +26,12 @@ namespace WitchMendokusai.NodeGraph
 	{
 		public static NodeGraphValidationResult Validate(NodeGraph graph)
 		{
-			NodeGraphValidationResult result = new();
 			if (graph == null)
-				return result;
+			{
+				throw new System.ArgumentNullException(nameof(graph));
+			}
 
+			NodeGraphValidationResult result = new();
 			Dictionary<string, NodeBase> nodesById = BuildNodeIndex(graph, result);
 			ValidateConnections(graph, nodesById, result);
 			DetectCycles(graph, result);
@@ -77,7 +79,9 @@ namespace WitchMendokusai.NodeGraph
 			{
 				NodeConnection connection = connections[i];
 				if (connection == null)
+				{
 					continue;
+				}
 
 				bool sourceFound = nodesById.TryGetValue(connection.SourceNodeId, out NodeBase sourceNode);
 				bool targetFound = nodesById.TryGetValue(connection.TargetNodeId, out NodeBase targetNode);
@@ -97,7 +101,9 @@ namespace WitchMendokusai.NodeGraph
 						$"Connection [{i}] target node '{connection.TargetNodeId}' not found in graph."));
 				}
 				if (sourceFound == false || targetFound == false)
+				{
 					continue;
+				}
 
 				NodePort sourcePort = sourceNode.FindPort(connection.SourcePortId, PortDirection.Output);
 				NodePort targetPort = targetNode.FindPort(connection.TargetPortId, PortDirection.Input);
@@ -172,7 +178,9 @@ namespace WitchMendokusai.NodeGraph
 			foreach (KeyValuePair<(string nodeId, string portId), int> entry in targetCounts)
 			{
 				if (entry.Value <= 1)
+				{
 					continue;
+				}
 				result.Add(new NodeGraphIssue(
 					NodeGraphIssueKind.DuplicateTargetConnection,
 					NodeGraphIssueSeverity.Warning,
@@ -195,9 +203,13 @@ namespace WitchMendokusai.NodeGraph
 			{
 				NodeBase node = nodes[i];
 				if (node == null)
+				{
 					continue;
+				}
 				if (visited.Contains(node.Id))
+				{
 					continue;
+				}
 				DfsCycle(node.Id, outgoing, visited, visiting, path, reportedCycleSignatures, result);
 			}
 		}
@@ -210,7 +222,9 @@ namespace WitchMendokusai.NodeGraph
 			{
 				NodeConnection connection = connections[i];
 				if (connection == null)
+				{
 					continue;
+				}
 				if (outgoing.TryGetValue(connection.SourceNodeId, out List<string> targets) == false)
 				{
 					targets = new List<string>();
@@ -256,7 +270,9 @@ namespace WitchMendokusai.NodeGraph
 						continue;
 					}
 					if (visited.Contains(target))
+					{
 						continue;
+					}
 					DfsCycle(target, outgoing, visited, visiting, path, reportedCycleSignatures, result);
 				}
 			}
@@ -273,9 +289,13 @@ namespace WitchMendokusai.NodeGraph
 			for (int i = 0; i < path.Count; i++)
 			{
 				if (found == false && path[i] == startNodeId)
+				{
 					found = true;
+				}
 				if (found)
+				{
 					cycle.Add(path[i]);
+				}
 			}
 			return cycle;
 		}
@@ -299,7 +319,9 @@ namespace WitchMendokusai.NodeGraph
 			{
 				NodeConnection connection = connections[i];
 				if (connection == null)
+				{
 					continue;
+				}
 				connectedTargets.Add((connection.TargetNodeId, connection.TargetPortId));
 			}
 
@@ -309,7 +331,9 @@ namespace WitchMendokusai.NodeGraph
 				foreach (NodePort port in node.InputPorts)
 				{
 					if (connectedTargets.Contains((node.Id, port.PortId)))
+					{
 						continue;
+					}
 					result.Add(new NodeGraphIssue(
 						NodeGraphIssueKind.UnconnectedInput,
 						NodeGraphIssueSeverity.Info,
