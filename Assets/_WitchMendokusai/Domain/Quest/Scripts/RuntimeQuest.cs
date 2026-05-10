@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
+
 namespace WitchMendokusai
 {
 	public class RuntimeQuest : ISavable<RuntimeQuestSaveData>
@@ -56,7 +57,7 @@ namespace WitchMendokusai
 
 			Type = questInfo.Type;
 			GameEvents = questInfo.GameEvents.ToList();
-			Criteria = questInfo.Criteria.ConvertAll(criteriaData => new RuntimeCriteria(criteriaData));
+			Criteria = questInfo.Criteria.ConvertAll(RuntimeCriteriaFactory.FromCriteriaInfo);
 			CompleteEffects = questInfo.CompleteEffects.ConvertAll(effectData => effectData.ToInfoData());
 			RewardEffects = questInfo.RewardEffects.ConvertAll(effectData => effectData.ToInfoData());
 			Rewards = questInfo.Rewards.ConvertAll(rewardData => rewardData.ToInfoData());
@@ -156,7 +157,7 @@ namespace WitchMendokusai
 
 			Type = saveData.Type;
 			GameEvents = saveData.GameEvents;
-			Criteria = saveData.Criteria.ConvertAll(criteriaData => new RuntimeCriteria(criteriaData));
+			Criteria = saveData.Criteria.ConvertAll(RuntimeCriteriaFactory.FromSaveData);
 			CompleteEffects = saveData.CompleteEffects;
 			RewardEffects = saveData.RewardEffects;
 			Rewards = saveData.Rewards;
