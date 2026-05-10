@@ -1,0 +1,14 @@
+{
+  "name": "com.firstgeargames.fishyfacepunch",
+  "version": "4.1.0",
+  "displayName": "FishyFacepunch",
+  "description": "FishNet transport for Facepunch.Steamworks (Steam)",
+  "unity": "2021.3",
+  "author": {
+    "name": "FirstGearGames",
+    "url": "https://github.com/FirstGearGames/FishyFacepunch"
+  },
+  "dependencies": {
+    "com.firstgeargames.fishnet": "*"
+  }
+}

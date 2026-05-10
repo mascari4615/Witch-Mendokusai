@@ -4,6 +4,7 @@
     "com.coplaydev.unity-mcp": "https://github.com/CoplayDev/unity-mcp.git?path=/MCPForUnity#main",
     "com.cysharp.unitask": "https://github.com/Cysharp/UniTask.git?path=src/UniTask/Assets/Plugins/UniTask",
     "com.firstgeargames.fishnet": "https://github.com/FirstGearGames/FishNet.git?path=Assets/FishNet",
+    "com.firstgeargames.fishyfacepunch": "file:com.firstgeargames.fishyfacepunch",
     "com.mascari4615.karmo-editor": "file:com.mascari4615.karmo-editor",
     "com.unity.2d.animation": "14.0.4",
     "com.unity.addressables": "2.9.1",

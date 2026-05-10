@@ -1,7 +1,3 @@
-4.1.0
-    - Fixed steam being redundantly initialized.
-    - Fish-Networking 4.x support.
-
 2.1.1
 	- Added deinitializer to FishyFacepunch.
 
