@@ -50,7 +50,7 @@ namespace WitchMendokusai
 
 		public override void UpdateUI()
 		{
-			if (curQuest?.SO)
+			if (curQuest != null && curQuest.QuestSOID != -1)
 			{
 				// Debug.Log($"A {curQuest.State == RuntimeQuestState.CanWork}, {curQuest.State == RuntimeQuestState.CanComplete}");
 				if (workButton != null)

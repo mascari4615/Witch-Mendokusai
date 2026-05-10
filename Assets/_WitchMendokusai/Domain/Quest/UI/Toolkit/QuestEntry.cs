@@ -68,7 +68,7 @@ namespace WitchMendokusai
 			if (Quest == null)
 				return;
 
-			nameLabel.text = Quest.Name ?? Quest.SO?.Name ?? "?";
+			nameLabel.text = Quest.Name ?? "?";
 			typeLabel.text = Quest.Type.ToString();
 			stateLabel.text = Quest.State.ToString();
 			progressFill.style.width = new StyleLength(new Length(Quest.GetProgress() * 100f, LengthUnit.Percent));

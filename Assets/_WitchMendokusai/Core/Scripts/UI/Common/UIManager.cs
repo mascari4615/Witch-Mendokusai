@@ -73,10 +73,25 @@ namespace WitchMendokusai
 			SpeechBubble = uiRootGameObject.AddComponent<SpeechBubbleView>();
 			DialogueRunner = uiRootGameObject.AddComponent<DialogueRunner>();
 			Transition = uiRootGameObject.AddComponent<TransitionView>();
+
+			EventBus.Instance.Unsubscribe<QuestCompletedEvent>(OnQuestCompleted);
+			EventBus.Instance.Subscribe<QuestCompletedEvent>(OnQuestCompleted);
+		}
+
+		private void OnQuestCompleted(QuestCompletedEvent evt)
+		{
+			if (evt.Type != QuestType.Achievement || evt.QuestSOID == -1)
+				return;
+
+			QuestSO questSO = SOHelper.GetQuestSO(evt.QuestSOID);
+			if (questSO != null)
+				Popup(questSO);
 		}
 
 		protected override void OnDestroy()
 		{
+			EventBus.Instance.Unsubscribe<QuestCompletedEvent>(OnQuestCompleted);
+
 			if (inventoryView != null)
 				Destroy(inventoryView);
 			if (hotbarView != null)

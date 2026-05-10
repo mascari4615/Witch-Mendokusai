@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using static WitchMendokusai.SOHelper;
 
 namespace WitchMendokusai
 {
@@ -11,7 +10,7 @@ namespace WitchMendokusai
 		public Guid? Guid { get; private set; }
 		public RuntimeQuestState State { get; private set; }
 
-		public QuestSO SO { get; private set; }
+		public int QuestSOID { get; private set; } = -1;
 
 		public string Name { get; private set; }
 		public string Description { get; private set; }
@@ -37,7 +36,7 @@ namespace WitchMendokusai
 		public RuntimeQuest(QuestSO questSO)
 		{
 			Debug.Log(nameof(RuntimeQuest) + " " + questSO.ID);
-			SO = questSO;
+			QuestSOID = questSO.ID;
 			Initialize(questSO.Data, questSO.Name, questSO.Description);
 			StartQuest();
 		}
@@ -134,16 +133,10 @@ namespace WitchMendokusai
 		{
 			State = RuntimeQuestState.Completed;
 
-			int questSOID = SO != null ? SO.ID : -1;
-			EventBus.Instance.Publish(new QuestCompletedEvent(Guid, questSOID));
+			EventBus.Instance.Publish(new QuestCompletedEvent(Guid, QuestSOID, Type));
 
-			if (SO != null)
-			{
-				if (Type == QuestType.Achievement)
-					UIManager.Instance?.Popup(SO);
-				if (Type == QuestType.Research)
-					GameEventManager.Instance.Raise(GameEventType.OnResearchComplete);
-			}
+			if (QuestSOID != -1 && Type == QuestType.Research)
+				GameEventManager.Instance.Raise(GameEventType.OnResearchComplete);
 
 			foreach (GameEventType gameEventType in GameEvents)
 				GameEventManager.Instance.UnregisterCallback(gameEventType, Evaluate);
@@ -208,7 +201,10 @@ namespace WitchMendokusai
 			Guid = saveData.Guid;
 			State = saveData.State;
 
-			SO = saveData.SO_ID != -1 ? GetQuestSO(saveData.SO_ID) : null;
+			QuestSOID = saveData.SO_ID;
+
+			Name = saveData.Name;
+			Description = saveData.Description;
 
 			Type = saveData.Type;
 			GameEvents = saveData.GameEvents;
@@ -229,7 +225,10 @@ namespace WitchMendokusai
 				Guid = Guid,
 				State = State,
 
-				SO_ID = SO != null ? SO.ID : -1,
+				SO_ID = QuestSOID,
+
+				Name = Name,
+				Description = Description,
 
 				Type = Type,
 				GameEvents = GameEvents,
