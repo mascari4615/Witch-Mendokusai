@@ -27,6 +27,15 @@ namespace WitchMendokusai
 			RegisterLeaf<PlayerProvider>(builder);
 			RegisterLeaf<TimeManager>(builder);
 			RegisterLeaf<WeatherSystem>(builder);
+
+			// γ root 매니저 7 등록 (TASK-WM-078 P2, 2026-05-11)
+			RegisterLeaf<WindowManager>(builder);
+			RegisterLeaf<DataLoader>(builder);
+			RegisterLeaf<TooltipController>(builder);
+			RegisterLeaf<DataManager>(builder);
+			RegisterLeaf<WeatherDirector>(builder);
+			RegisterLeaf<GameManager>(builder);
+			RegisterLeaf<UIRoot>(builder);
 		}
 
 		private static void RegisterLeaf<T>(IContainerBuilder builder) where T : MonoBehaviour

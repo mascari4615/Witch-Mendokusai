@@ -12,8 +12,16 @@ namespace WitchMendokusai
 	/// 등록되지 않은 타입은 base type을 거슬러 올라가며 검색.
 	/// </summary>
 	[DefaultExecutionOrder(-40)]
-	public class TooltipController : Singleton<TooltipController>
+	public class TooltipController : MonoBehaviour
 	{
+		public static TooltipController Instance { get; private set; }
+
+		public static bool TryGetExistingInstance(out TooltipController mgr)
+		{
+			mgr = Instance;
+			return mgr != null;
+		}
+
 		private const float OFFSET_X = 16f;
 		private const float OFFSET_Y = 16f;
 		private const float EDGE_PADDING = 8f;
@@ -23,12 +31,19 @@ namespace WitchMendokusai
 		private TooltipView view;
 		private bool isShowing;
 
-		protected override void Awake()
+		private void Awake()
 		{
-			base.Awake();
+			if (Instance != null && Instance != this) { Destroy(gameObject); return; }
+			Instance = this;
 
 			RegisterBuilder(typeof(ItemData), new ItemTooltipBuilder());
 			RegisterBuilder(typeof(Building), new BuildingTooltipBuilder());
+		}
+
+		private void OnDestroy()
+		{
+			if (Instance == this)
+				Instance = null;
 		}
 
 		private void OnEnable()

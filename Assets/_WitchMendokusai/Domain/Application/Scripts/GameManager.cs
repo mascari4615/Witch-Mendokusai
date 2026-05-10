@@ -6,15 +6,24 @@ using static WitchMendokusai.SOHelper;
 
 namespace WitchMendokusai
 {
-	public class GameManager : Singleton<GameManager>
+	public class GameManager : MonoBehaviour
 	{
+		public static GameManager Instance { get; private set; }
+
+		public static bool TryGetExistingInstance(out GameManager mgr)
+		{
+			mgr = Instance;
+			return mgr != null;
+		}
+
 		public GameCondition Conditions { get; private set; }
 
 		private UnitObject playerObject;
 
-		protected override void Awake()
+		private void Awake()
 		{
-			base.Awake();
+			if (Instance != null && Instance != this) { Destroy(gameObject); return; }
+			Instance = this;
 
 			Conditions = new GameCondition(() => playerObject);
 			GameConditionBridge.Register(Conditions);
@@ -31,7 +40,7 @@ namespace WitchMendokusai
 			eventBus.Subscribe<PlayerDespawnedEvent>(OnPlayerDespawned);
 		}
 
-		protected override void OnDestroy()
+		private void OnDestroy()
 		{
 			if (EventBusBridge.TryGetInstance(out IEventBus eventBus))
 			{
@@ -39,7 +48,8 @@ namespace WitchMendokusai
 				eventBus.Unsubscribe<PlayerDespawnedEvent>(OnPlayerDespawned);
 			}
 
-			base.OnDestroy();
+			if (Instance == this)
+				Instance = null;
 		}
 
 		private void OnPlayerObjectBound(PlayerObjectBoundEvent evt) => playerObject = evt.Object;

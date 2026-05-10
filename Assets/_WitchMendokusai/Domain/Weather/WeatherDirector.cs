@@ -11,8 +11,16 @@ namespace WitchMendokusai
 	// E4 (2026-05-10) = SFX ambient — AudioManager.PlayAmbient(SfxKey).
 	// E5 (2026-05-10) = Storm 번개 — random interval Coroutine + flash Light + thunder SFX delay.
 	// (TASK-WM-054-E E1~E5)
-	public class WeatherDirector : Singleton<WeatherDirector>
+	public class WeatherDirector : MonoBehaviour
 	{
+		public static WeatherDirector Instance { get; private set; }
+
+		public static bool TryGetExistingInstance(out WeatherDirector mgr)
+		{
+			mgr = Instance;
+			return mgr != null;
+		}
+
 		private static readonly int WetnessId = Shader.PropertyToID("_Wetness");
 
 		// 현재 적용된 WeatherSO — sub-E 후속이 읽음.
@@ -32,10 +40,10 @@ namespace WitchMendokusai
 		private Light lightningLight;
 		private Coroutine stormCoroutine;
 
-		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
-		private static void EnsureSingletonOnPlay()
+		private void Awake()
 		{
-			_ = Instance;
+			if (Instance != null && Instance != this) { Destroy(gameObject); return; }
+			Instance = this;
 		}
 
 		private void Start()
@@ -52,7 +60,7 @@ namespace WitchMendokusai
 			HandleWeatherChanged(weatherSystem.Current);
 		}
 
-		protected override void OnDestroy()
+		private void OnDestroy()
 		{
 			if (WeatherSystem.TryGetExistingInstance(out WeatherSystem weatherSystem) == true)
 				weatherSystem.OnWeatherChanged -= HandleWeatherChanged;
@@ -60,9 +68,11 @@ namespace WitchMendokusai
 			StopStormLightning();
 			DestroyCurrentVisual();
 			Shader.SetGlobalFloat(WetnessId, 0f);
-			AudioManager.Instance.StopAmbient();
+			if (AudioManager.TryGetExistingInstance(out AudioManager audioManager))
+				audioManager.StopAmbient();
 
-			base.OnDestroy();
+			if (Instance == this)
+				Instance = null;
 		}
 
 		// 룰 「수치 노출 / 런타임 tweak」 — 인스펙터에서 ParticleStartSize / wetnessLerpSpeed 슬라이더 변경 시 즉시 반영.

@@ -14,8 +14,16 @@ namespace WitchMendokusai
 	/// </summary>
 	[DefaultExecutionOrder(-50)]
 	[RequireComponent(typeof(UIDocument))]
-	public class UIRoot : Singleton<UIRoot>
+	public class UIRoot : MonoBehaviour
 	{
+		public static UIRoot Instance { get; private set; }
+
+		public static bool TryGetExistingInstance(out UIRoot mgr)
+		{
+			mgr = Instance;
+			return mgr != null;
+		}
+
 		[SerializeField] private StyleSheet styleSheet;
 
 		public UIDocument Document { get; private set; }
@@ -29,11 +37,18 @@ namespace WitchMendokusai
 		public KeybindHelpView KeybindHelpView { get; private set; }
 		public MagicBookView MagicBookView { get; private set; }
 
-		protected override void Awake()
+		private void Awake()
 		{
-			base.Awake();
+			if (Instance != null && Instance != this) { Destroy(gameObject); return; }
+			Instance = this;
 			Document = GetComponent<UIDocument>();
 			CreateViews();
+		}
+
+		private void OnDestroy()
+		{
+			if (Instance == this)
+				Instance = null;
 		}
 
 		/// <summary>

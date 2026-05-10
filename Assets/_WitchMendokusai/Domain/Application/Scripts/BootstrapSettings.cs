@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using VContainer;
 using VContainer.Unity;
@@ -10,7 +8,6 @@ namespace WitchMendokusai
 	public class BootstrapSettings : ScriptableObject
 	{
 		[field: Header("_" + nameof(BootstrapSettings))]
-		[field: SerializeField] public DataManager DataManagerPrefab { get; private set; }
 		[field: SerializeField] public bool UseBootstrap { get; private set; } = true;
 	}
 
@@ -40,9 +37,7 @@ namespace WitchMendokusai
 			// 이게 없으면 caller Awake 시 EventBusBridge.instance == null → NPE.
 			rootScope.Container.Resolve<IEventBus>();
 
-			// γ leaf 매니저 13 eager spawn — Container.Resolve 강제 (lazy spawn 트리거)
-			// caller Awake 가 X.Instance 호출 시 raw Instance accessor 박혀있어야 race 0.
-			// (TASK-WM-078 P1, 2026-05-11)
+			// γ P1 leaf 매니저 13 eager spawn (TASK-WM-078 P1, 2026-05-11)
 			rootScope.Container.Resolve<AudioManager>();
 			rootScope.Container.Resolve<ShaderPackManager>();
 			rootScope.Container.Resolve<SkyDirector>();
@@ -57,21 +52,21 @@ namespace WitchMendokusai
 			rootScope.Container.Resolve<TimeManager>();
 			rootScope.Container.Resolve<WeatherSystem>();
 
-			// DataManager 는 leaf 13 안 들어감 (root 매니저, root γ 후속). BootstrapSettings 보존.
-			Object.Instantiate(bootstrapStuff.DataManagerPrefab);
-
-			// GameManager.Awake 가 GameConditionBridge.Register / JoystickBridge / WindowLayoutBridge wire 담당.
-			// InputManager 가 input 바인딩 시 Bridge 호출하므로 그 전에 GameManager 가 Awake 돼야 함.
-			// Singleton<T>.Instance 접근 = Resources/Singletons/{T}.prefab lazy-load + Awake 트리거.
-			_ = GameManager.Instance;
-
-			// World-state lazy-load — γ leaf 외 root 매니저 (WeatherDirector 등) 보존.
-			// (TASK-WM-078 P2 후속에서 root 매니저들도 Container spawn 으로 마이그)
-			_ = WeatherDirector.Instance;
+			// γ P2 root 매니저 7 eager spawn (TASK-WM-078 P2, 2026-05-11)
+			// GameManager / WeatherDirector lazy-load 폐기 — Container spawn 책임.
+			// DataManager Object.Instantiate(DataManagerPrefab) 폐기 — Container 가 Resources/Singletons/DataManager.prefab spawn.
+			rootScope.Container.Resolve<WindowManager>();
+			rootScope.Container.Resolve<DataLoader>();
+			rootScope.Container.Resolve<TooltipController>();
+			rootScope.Container.Resolve<DataManager>();
+			rootScope.Container.Resolve<WeatherDirector>();
+			rootScope.Container.Resolve<GameManager>();
+			rootScope.Container.Resolve<UIRoot>();
 
 			// InputStrategySelector 가 SceneManager.sceneLoaded 구독 → 씬별 InputStrategy 설정
 			// (World→InputStrategyWorld, Lobby→InputStrategyLobby). Resources prefab 없으므로
 			// 직접 GameObject + AddComponent. 첫 sceneLoaded 이벤트 잡으려면 BeforeSceneLoad 시점 등록 필수.
+			// (P3 후속 — Container 로 마이그)
 			GameObject inputStrategySelectorGo = new GameObject(nameof(InputStrategySelector));
 			inputStrategySelectorGo.AddComponent<InputStrategySelector>();
 			Object.DontDestroyOnLoad(inputStrategySelectorGo);

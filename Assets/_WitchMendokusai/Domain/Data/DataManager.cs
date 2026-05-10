@@ -9,8 +9,16 @@ using static WitchMendokusai.SOHelper;
 namespace WitchMendokusai
 {
 	[DefaultExecutionOrder(-100)]
-	public class DataManager : Singleton<DataManager>
+	public class DataManager : MonoBehaviour
 	{
+		public static DataManager Instance { get; private set; }
+
+		public static bool TryGetExistingInstance(out DataManager mgr)
+		{
+			mgr = Instance;
+			return mgr != null;
+		}
+
 		public SaveManager SaveManager { get; private set; } = new();
 		public WorkManager WorkManager { get; private set; } = new();
 		public QuestManager QuestManager { get; private set; } = new();
@@ -28,10 +36,22 @@ namespace WitchMendokusai
 
 		private PlayFabManager playFabManager;
 
+		private void Awake()
+		{
+			if (Instance != null && Instance != this) { Destroy(gameObject); return; }
+			Instance = this;
+		}
+
+		private void OnDestroy()
+		{
+			if (Instance == this)
+				Instance = null;
+		}
+
 		public IEnumerator Init()
 		{
 			Debug.Log($"{nameof(DataManager)} {nameof(Init)}");
-			
+
 			playFabManager = GetComponent<PlayFabManager>();
 			TimeManager.Instance.RegisterCallback(WorkManager.TickEachWorks);
 

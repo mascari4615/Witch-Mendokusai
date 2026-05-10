@@ -33,6 +33,7 @@ namespace WitchMendokusai
 
 		private void Awake()
 		{
+			if (Instance != null && Instance != this) { Destroy(gameObject); return; }
 			Instance = this;
 
 			buses[(int)BusType.Master] = RuntimeManager.GetBus("bus:/");
