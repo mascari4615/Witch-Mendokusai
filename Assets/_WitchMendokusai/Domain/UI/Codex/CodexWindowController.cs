@@ -9,31 +9,28 @@ namespace WitchMendokusai
 	/// World 씬 진입 시 Resources/Singletons/CodexWindowController.prefab 에서 자동 스폰 (단계 D 에서 prefab 추가).
 	/// DevWindowController 와 같은 모양.
 	/// </summary>
-	public class CodexWindowController : Singleton<CodexWindowController>
+	public class CodexWindowController : MonoBehaviour
 	{
+		public static CodexWindowController Instance { get; private set; }
+
+		public static bool TryGetExistingInstance(out CodexWindowController mgr)
+		{
+			mgr = Instance;
+			return mgr != null;
+		}
+
 		private const string WINDOW_ID = "Codex";
 		private const string WINDOW_TITLE = "도감";
-		private const string WORLD_SCENE_NAME = "World";
 
 		private WMWindow window;
 		private CodexView view;
 
 		public EntryProviderRegistry Providers { get; } = new();
 
-		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
-		private static void Bootstrap()
+		private void Awake()
 		{
-			SceneManager.sceneLoaded -= OnSceneLoaded;
-			SceneManager.sceneLoaded += OnSceneLoaded;
-			Scene active = SceneManager.GetActiveScene();
-			if (active.name == WORLD_SCENE_NAME)
-				_ = Instance;
-		}
-
-		private static void OnSceneLoaded(Scene scene, LoadSceneMode mode)
-		{
-			if (scene.name == WORLD_SCENE_NAME && TryGetExistingInstance(out _) == false)
-				_ = Instance;
+			if (Instance != null && Instance != this) { Destroy(gameObject); return; }
+			Instance = this;
 		}
 
 		private void Start()
@@ -48,12 +45,13 @@ namespace WitchMendokusai
 			InputManager.Instance.RegisterInputEvent(InputEventType.CodexToggle, InputEventResponseType.Performed, OnToggle);
 		}
 
-		protected override void OnDestroy()
+		private void OnDestroy()
 		{
 			if (InputManager.TryGetExistingInstance(out InputManager inputManager))
 				inputManager.UnregisterInputEvent(InputEventType.CodexToggle, InputEventResponseType.Performed, OnToggle);
 
-			base.OnDestroy();
+			if (Instance == this)
+				Instance = null;
 		}
 
 		private void OnToggle() => Toggle();

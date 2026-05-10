@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using VContainer;
 using VContainer.Unity;
 
@@ -13,6 +14,8 @@ namespace WitchMendokusai
 
 	public static class Bootstrap
 	{
+		private const string WORLD_SCENE_NAME = "World";
+
 		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
 		public static void OnBooting()
 		{
@@ -70,6 +73,22 @@ namespace WitchMendokusai
 			GameObject inputStrategySelectorGo = new GameObject(nameof(InputStrategySelector));
 			inputStrategySelectorGo.AddComponent<InputStrategySelector>();
 			Object.DontDestroyOnLoad(inputStrategySelectorGo);
+
+			// ζ World 씬 한정 4 매니저 (StageManager / DevWindowController / CodexWindowController / DungeonManager)
+			// — SceneLifetimeScope 자율 spawn (TASK-WM-078 ζ, 2026-05-11). World 씬 진입 시 GameObject 생성
+			// → 4 매니저 Lifetime.Scoped spawn. 씬 unload 시 자동 dispose → 4 매니저 destroy.
+			SceneManager.sceneLoaded -= OnSceneLoaded;
+			SceneManager.sceneLoaded += OnSceneLoaded;
+		}
+
+		private static void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+		{
+			if (scene.name != WORLD_SCENE_NAME)
+				return;
+
+			GameObject sceneLifetimeScopeGo = new GameObject(nameof(SceneLifetimeScope));
+			SceneManager.MoveGameObjectToScene(sceneLifetimeScopeGo, scene);
+			sceneLifetimeScopeGo.AddComponent<SceneLifetimeScope>();
 		}
 	}
 }

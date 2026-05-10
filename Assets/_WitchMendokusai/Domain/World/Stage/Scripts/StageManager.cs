@@ -8,8 +8,16 @@ using static WitchMendokusai.SOHelper;
 
 namespace WitchMendokusai
 {
-	public class StageManager : Singleton<StageManager>
+	public class StageManager : MonoBehaviour
 	{
+		public static StageManager Instance { get; private set; }
+
+		public static bool TryGetExistingInstance(out StageManager mgr)
+		{
+			mgr = Instance;
+			return mgr != null;
+		}
+
 		public static event Action<Stage, StageObject> OnStageChanged = delegate { };
 
 		[field: SerializeField] public Stage StartStage { get; private set; } = null;
@@ -19,6 +27,18 @@ namespace WitchMendokusai
 		public StageStrategy CurStageStrategy { get; private set; } = null;
 
 		private Vector3 lastPosDiff;
+
+		private void Awake()
+		{
+			if (Instance != null && Instance != this) { Destroy(gameObject); return; }
+			Instance = this;
+		}
+
+		private void OnDestroy()
+		{
+			if (Instance == this)
+				Instance = null;
+		}
 
 		private void Start()
 		{
