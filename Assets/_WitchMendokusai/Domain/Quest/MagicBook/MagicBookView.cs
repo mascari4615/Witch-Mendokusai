@@ -207,13 +207,17 @@ namespace WitchMendokusai
 			if (IsOpen == false)
 				return;
 
-			if (evt.Quest == null)
+			if (evt.QuestSOID == -1)
 				return;
 
-			RuntimeQuest quest = QuestManager.Instance.GetQuest(evt.Quest);
+			QuestSO questSO = SOHelper.GetQuestSO(evt.QuestSOID);
+			if (questSO == null)
+				return;
+
+			RuntimeQuest quest = QuestManager.Instance.GetQuest(questSO);
 			if (quest == null)
 			{
-				Debug.Log($"[MagicBookView] {evt.Quest.Name} (ID={evt.Quest.ID}) — RuntimeQuest 없음 (Locked / 미생성). 잠긴 상태 표시는 후속 polish.");
+				Debug.Log($"[MagicBookView] {questSO.Name} (ID={questSO.ID}) — RuntimeQuest 없음 (Locked / 미생성). 잠긴 상태 표시는 후속 polish.");
 				return;
 			}
 

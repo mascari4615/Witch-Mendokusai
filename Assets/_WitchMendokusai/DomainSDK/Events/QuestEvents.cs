@@ -8,5 +8,5 @@ namespace WitchMendokusai
 
 	public record QuestWorkStartedEvent(Guid? QuestGuid, int WorkerID, float WorkTime) : IEvent;
 
-	public record QuestDetailRequestedEvent(QuestSO Quest) : IEvent;
+	public record QuestDetailRequestedEvent(int QuestSOID) : IEvent;
 }
