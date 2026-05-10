@@ -65,10 +65,11 @@ namespace WitchMendokusai
 				return directionOverride;
 			}
 
-			if (damageInfo.damageSource == null)
+			// Domain 안에서만 UnitObject downcast — DomainSDK 의 IDamageSource marker 위.
+			if (damageInfo.damageSource is UnitObject sourceUnit == false)
 				return Vector3.zero;
 
-			Vector3 fromSourceToVictim = transform.position - damageInfo.damageSource.transform.position;
+			Vector3 fromSourceToVictim = transform.position - sourceUnit.transform.position;
 			fromSourceToVictim.y = 0f;
 			return fromSourceToVictim;
 		}
@@ -76,9 +77,9 @@ namespace WitchMendokusai
 		// attacker 의 KNOCKBACK_POWER stat 비례 강도 보정. UPG_6_Knockback 레벨 1당 +10% (ValuePerLevel=1, /10f 패턴).
 		private static float GetAttackerPowerMultiplier(DamageInfo damageInfo)
 		{
-			if (damageInfo.damageSource == null)
+			if (damageInfo.damageSource is UnitObject sourceUnit == false)
 				return 1f;
-			int knockbackPower = damageInfo.damageSource.UnitStat[UnitStatType.KNOCKBACK_POWER];
+			int knockbackPower = sourceUnit.UnitStat[UnitStatType.KNOCKBACK_POWER];
 			return 1f + (knockbackPower / 10f);
 		}
 	}

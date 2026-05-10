@@ -118,12 +118,18 @@ namespace WitchMendokusai
 				Debug.Log("No SkillObject");
 			}
 
+			// 스킬로 생성하는 경우도 있고, 몸박 데미지도 있고 - 2026-03-22. KarmoDDrine
+			// equipmentData / skillData 는 DataID 매핑 (DamageInfo dep 분리 — DomainSDK Combat 격상, TASK-WM-089).
+			int equipmentDataId = (skillObject != null && skillObject.Context.UsedEquipment != null)
+				? skillObject.Context.UsedEquipment.ID
+				: DamageInfo.NO_DATA_ID;
+
 			DamageInfo damageInfo = new()
 			{
 				type = DamageType.Normal,
-				// 스킬로 생성하는 경우도 있고, 몸박 데미지도 있고 - 2026-03-22. KarmoDDrine
-				damageSource = skillObject ? skillObject.Context.User : GetComponent<UnitObject>(),
-				equipmentData = skillObject ? skillObject.Context.UsedEquipment : null,
+				damageSource = skillObject != null ? skillObject.Context.User : GetComponent<UnitObject>(),
+				equipmentDataId = equipmentDataId,
+				skillDataId = DamageInfo.NO_DATA_ID,
 				knockbackForce = knockbackForce,
 				knockbackDuration = knockbackDuration,
 				hitstopDuration = hitstopDuration,

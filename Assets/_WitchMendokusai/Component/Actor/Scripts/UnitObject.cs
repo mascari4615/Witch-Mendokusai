@@ -5,7 +5,7 @@ using System.Text;
 namespace WitchMendokusai
 {
 	[RequireComponent(typeof(Rigidbody), typeof(UnitMovement), typeof(UnitHealth))]
-	public abstract class UnitObject : MonoBehaviour
+	public abstract class UnitObject : MonoBehaviour, IDamageSource
 	{
 		[field: SerializeField] public Unit UnitData { get; private set; } = null;
 		public UnitStat UnitStat { get; private set; } = new();

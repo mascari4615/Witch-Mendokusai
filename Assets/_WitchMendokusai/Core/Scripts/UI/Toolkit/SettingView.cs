@@ -371,7 +371,15 @@ namespace WitchMendokusai
 			Close();
 			if (playerObject == null)
 				return;
-			playerObject.ReceiveDamage(new DamageInfo(damage: 9999, DamageType.Critical, new DamageContext(playerObject), ignoreInvincible: true));
+			playerObject.ReceiveDamage(new DamageInfo
+			{
+				damage = 9999,
+				type = DamageType.Critical,
+				damageSource = playerObject,
+				equipmentDataId = DamageInfo.NO_DATA_ID,
+				skillDataId = DamageInfo.NO_DATA_ID,
+				ignoreInvincible = true,
+			});
 		}
 
 		private void OnClearData() => DataManager.Instance.CreateNewGameData();
