@@ -4,13 +4,6 @@ using UnityEngine;
 
 namespace WitchMendokusai
 {
-	public enum BuildingType
-	{
-		Building = 0,
-		Decoration = 1,
-		Util = 2,
-	}
-
 	[CreateAssetMenu(fileName = "BD_", menuName = "WM/Variable/" + nameof(Building))]
 	public class Building : DataSO
 	{

@@ -191,26 +191,34 @@ TASK 기반으로 시작한 작업은 `memo/wm/tasks/TASK-NNN-*.md`를 작업 �
 
 대화 말미에 별도로 안내하는 것으로 끝내지 않고, 문서에 남겨 추적 가능하게 한다.
 
-## 컴파일 에러 확인 — `dotnet build` 우선
+## 컴파일 에러 확인 — Unity Editor.log + MCP `read_console` 정본
 
 코드 작성 후 사용자에게 "검증해주세요" 요청 *전*에 본인이 먼저 컴파일 검증.
 
-- 컴파일 검증 = **`dotnet build`** (Unity foreground / stuck state 무관, 30~40초)
-- Unity 가 필요한 건 *.meta / .prefab / .asset / 씬 / shader / Play Mode* 만 — `unity-refresh.ps1` 사용
+- 컴파일 검증 정본 = **Unity Editor.log + Unity-MCP `read_console`** (Mono runtime 정본)
+- `dotnet build` 폐기 (2026-05-10) — .NET 8+ runtime ≠ Unity Mono → false confidence (record `CS0518 IsExternalInit` / `CS0453 EventBus<T:struct>` 못 잡음). + post-commit hook 누적 사고 (73 process / 7.81 GB)
+- 자동 발견 채널 = TASK-WM-087 (KarmoLab Tauri Editor.log watcher → yawnbot webhook). 외부 push 검증 = TASK-WM-088 (Unity Build Automation)
 - 사용자가 코드 보고 검증하기 전에 *컴파일 통과* 자체가 사전 조건
 - "사용자에게 빨리 넘기기" 보다 *검증 가능한 상태로 넘기기* 가 우선
 
-### 컴파일 검증 = `dotnet build` (Unity 무관)
+### 컴파일 검증 = Editor.log grep / MCP `read_console`
 
 ```bash
-cd WitchMendokusai
-dotnet build Assembly-CSharp.csproj -v quiet --nologo 2>&1 | tail -20
+# Editor.log path (Windows)
+grep -E "error CS|warning CS|Reloading assemblies" "C:/Users/masca/AppData/Local/Unity/Editor/Editor.log" | tail -30
 ```
 
-- **Unity 가 stuck state 여도 작동** — Library/ScriptAssemblies / Editor.log 무관
-- WM 의 `Assembly-CSharp.csproj` 는 Unity 가 자동 생성 — 모든 패키지 references 박아둠
-- `오류 0개` / `error 0` 면 통과. warning 도 직접 출력 (deprecated API 등)
-- 모든 `.cs` (멀티 worktree / 멀티 sub) 즉시 검증
+또는 Unity-MCP:
+
+```python
+# 구조화 + 실시간 (Unity 활성 시 default)
+read_console(types=["error", "warning"], count=20, format="detailed")
+mcpforunity://editor/state  # is_compiling / ready_for_tools polling
+```
+
+- Mono runtime 진짜 결과 — record / null check / Unity API 모두 정확
+- `error CS` 0 + 새 `Reloading assemblies after forced synchronous recompile` 매치 = 통과
+- 모든 `.cs` (멀티 worktree / 멀티 sub) Unity 가 자동 reimport
 
 ### Unity 가 필요한 경우 = `unity-refresh.ps1`
 
@@ -234,7 +242,7 @@ powershell -File memo/dotfiles/scripts/unity-refresh.ps1
 - Unity 창이 *이미 foreground* 면 `SetForegroundWindow` no-op (focus 이벤트 X) — 우회: PowerShell `SendKeys ^r` 또는 사용자가 다른 창 잠시 클릭
 - Auto Refresh OFF → `Edit > Preferences > Asset Pipeline > Auto Refresh` 1회 컨펌
 - 신규 폴더 파일은 fsnotify 가 가끔 누락 → Project 패널에서 폴더 한 번 클릭
-- **Unity 컴파일 stuck state** (빈 .cs 가 일시 존재 후 컴파일 무응답) — `dotnet build` 로 코드 OK 검증 후 사용자에게 *Assets > Refresh* 메뉴 또는 Editor 재시작 1회 (unity-refresh / SendKeys 다 무효)
+- **Unity 컴파일 stuck state** (빈 .cs 가 일시 존재 후 컴파일 무응답) — Editor.log + MCP `read_console` 로 코드 OK 검증 후 사용자에게 *Assets > Refresh* 메뉴 또는 Editor 재시작 1회 (unity-refresh / SendKeys 다 무효)
 
 ### 새 .cs 파일 만들었을 때
 
@@ -270,7 +278,7 @@ powershell -File memo/dotfiles/scripts/unity-refresh.ps1
 
 ## Unity-MCP layer (TASK-WM-071, 2026-05-09)
 
-**Unity 공식 MCP server 도입** (`com.unity.ai.assistant 2.7+`) — Claude 가 Unity Editor 직접 조작 가능. 기존 `dotnet build` + `unity-refresh.ps1` + Editor.log grep 흐름을 **보완·대체**.
+**Unity 공식 MCP server 도입** (`com.unity.ai.assistant 2.7+`) — Claude 가 Unity Editor 직접 조작 가능. Editor.log grep + `unity-refresh.ps1` 흐름의 *정본 채널*. (`dotnet build` 는 2026-05-10 폐기 — Mono runtime mismatch.)
 
 ### 사용 우선순위 — read 자율 / write 신중
 
@@ -294,7 +302,7 @@ powershell -File memo/dotfiles/scripts/unity-refresh.ps1
 
 | 작업 | 기존 | + MCP layer |
 |---|---|---|
-| 컴파일 검증 | `dotnet build Assembly-CSharp.csproj` (Unity 무관) | + `read_console(types=["error"])` 보완 |
+| 컴파일 검증 | Editor.log grep (`grep "error CS" Editor.log`) | `read_console(types=["error"])` 정본 — 구조화 + 실시간 |
 | Reimport 트리거 | `unity-refresh.ps1` (focus + sleep 25초) | `create_script` / `script_apply_edits` 자동 처리 (refresh_unity 불필요). polling = `mcpforunity://editor/state.is_compiling` |
 | 씬 정합성 | 사용자 Hierarchy 시각 | `find_gameobjects` + `mcpforunity://scene/gameobject/{id}` |
 | Play Mode 검증 | 사용자 Play 클릭 + Console 봐달라 | `run_tests` (EditMode/PlayMode) 자동 + `read_console` |
@@ -321,21 +329,23 @@ powershell -File memo/dotfiles/scripts/unity-refresh.ps1
 #### 1. 새 .cs 작성 흐름
 
 ```
-dotnet build (Unity 무관, 코드 컴파일) — 통과 검증
+.cs 작성 (Edit / create_script)
   ↓
 mcpforunity://editor/state — is_compiling 끝까지 polling
   ↓
-read_console(types=["error", "warning"], count=10, format="detailed") — Unity 측 에러 grep
+read_console(types=["error", "warning"], count=10, format="detailed") — Mono runtime 정본 검증
+  ↓ (MCP 미가용 시 fallback)
+grep "error CS" Editor.log 직접
   ↓
 (사용자 검증 단계는 비전 / 비주얼 / 동작 일 때만)
 ```
 
-`create_script` / `script_apply_edits` 가 자동으로 import + 컴파일 트리거 — `unity-refresh.ps1` 호출 불필요. 단 `dotnet build` 는 *Unity stuck state 무관* 이라 첫 검증은 여전히 그것 우선.
+`create_script` / `script_apply_edits` 가 자동 import + 컴파일 트리거. Unity stuck state 면 사용자에게 *Assets > Refresh* 또는 Editor 재시작 1회 요청.
 
 #### 2. 신규 매니저 / prefab 도입 흐름 (Bootstrap 패턴)
 
 ```
-.cs 작성 (Singleton<T> 베이스 + DataSO 등) → dotnet build
+.cs 작성 (Singleton<T> 베이스 + DataSO 등) → 자동 reimport
   ↓
 Bootstrap menu (.cs 의 [InitializeOnLoadMethod] 또는 EditorWindow) — prefab/asset 자동 생성
   ↓
@@ -390,9 +400,9 @@ WM 에 `com.unity.test-framework 1.6.0` 박혀있음. 현재 테스트 코드 0 
 
 ```
 1. 코드 변경 (create_script / Edit)
-2. dotnet build — 통과 검증
-3. (Unity 트리거 파일 — .meta / .prefab / .asset / 씬) unity-refresh.ps1 + sleep
-4. read_console — error / warning grep
+2. (Unity 트리거 파일 — .meta / .prefab / .asset / 씬) unity-refresh.ps1 + sleep
+3. mcpforunity://editor/state — is_compiling 끝까지 polling
+4. read_console(types=["error","warning"]) — Mono runtime 정본 검증 (또는 Editor.log grep fallback)
 5. find_gameobjects — 씬 정합성 (해당 시)
 6. (시각 검증 필요 시) manage_camera screenshot — AI 자연어 비교
 7. 통과 시 사용자에게 *비전 / 비주얼 / 동작* 컨펌 요청 (남은 사용자 손)
@@ -416,7 +426,7 @@ set_active_instance(instance="<branch>@<hash>")          # sub worktree
 
 ### Critical guard (매 세션 항상 의식)
 
-- ★ **Trunk-based main 직접 push (default)** — PR 안 만듦. self-verify (`dotnet build` + 룰 검토) 통과 시 main 직접 (TASK-WM-063, 2026-05-09).
+- ★ **Trunk-based main 직접 push (default)** — PR 안 만듦. self-verify (Editor.log + MCP `read_console` + 룰 검토) 통과 시 main 직접 (TASK-WM-063, 2026-05-09).
 - ★ **Multi 세션 race — worktree 우회 강제** — `memo/.claude/active-sessions.md` 다른 행과 영역 겹침 시 *처음부터* worktree 안에서 작성. main local commit 후 cherry-pick hybrid 흐름 ❌ (동일 patch 다른 hash → 다이버전스 자기 자초).
 - ★ **Push 직전 race 회피** — `powershell -File memo/dotfiles/scripts/safe-push.ps1 -Branch main` (fetch + merge + push retry).
 - ★ **Force push 절대 금지** — `--force` / `-f` / `--force-with-lease` 모두 X. fast-forward only.

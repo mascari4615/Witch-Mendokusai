@@ -18,7 +18,6 @@ namespace WitchMendokusai
 	{
 		[Header("Prefabs")]
 		[SerializeField] private UITabMenu tabMenuPrefab = null;
-		[SerializeField] private UIMagicBookPanel magicBookPanelPrefab = null;
 		[SerializeField] private UIMap mapPanelPrefab = null;
 
 		[Header("References")]
@@ -31,7 +30,6 @@ namespace WitchMendokusai
 		{
 			Panels[TabPanelType.TabMenu] = Instantiate(tabMenuPrefab, transform);
 
-			Panels[TabPanelType.MagicBook] = Instantiate(magicBookPanelPrefab, transform);
 			Panels[TabPanelType.Map] = Instantiate(mapPanelPrefab, transform);
 
 			OnPanelChanged += (_) =>

@@ -1,13 +1,19 @@
 name: Claude Post-Push Audit
 
-# TASK-WM-063 sub-K — post-push audit (raw Claude CLI 직접 호출).
+# TASK-WM-063 sub-K + TASK-WM-093 — post-push audit + 자동 fix push.
 #
-# 직전 시도 (claude-audit job in claude.yml, anthropics/claude-code-action@v1
-# mode=agent + push trigger) 가 action 의 push event 미지원으로 실패.
-# 본 워크플로는 raw `claude --print` CLI 직접 호출 패턴 — action wrapper X.
+# 동작:
+#   1. main push → audit (Tier 1 grep + Tier 2 Claude semantic)
+#   2. PASS → exit 0
+#   3. FAIL → 같은 run 안에서 Claude CLI 직접 fix → commit (`chore(audit-fix):` prefix) → push to main
+#      알림 = main push event → yawnbot Discord 자동 (별도 webhook 호출 0)
+#   4. fix 실패 (Claude 응답 무효 / push race / SHA != HEAD) → Issue fallback (label: audit, fix-failed)
 #
-# POC 검증 완료 (Issue #135, 의도적 위반 commit 으로 var + ! 연산자 catch 확인).
-# push trigger 활성화 — 매 main push 마다 자동 audit + FAIL 시 Issue 자동 생성.
+# 무한 루프 가드:
+#   - GITHUB_TOKEN 으로 push 시 workflow 재트리거 X (GitHub 정책) — primary 보호
+#   - 추가 방어: commit subject `chore(audit-fix):` + author `github-actions[bot]` 시 audit skip
+#
+# 직전 흐름 (Issue 만 만들고 해결 X — dead interface, OPEN 10개 쌓임) 폐기 (TASK-WM-093, 2026-05-10).
 
 on:
   push:
@@ -20,8 +26,8 @@ on:
         default: ''
 
 permissions:
-  contents: read
-  issues: write
+  contents: write    # auto-fix push
+  issues: write      # fix 실패 fallback
 
 concurrency:
   # SHA 별 직렬화 — 같은 commit 의 audit 중복 방지 (workflow_dispatch + push 동시 트리거 등).
@@ -35,9 +41,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v6
         with:
-          fetch-depth: 0  # workflow_dispatch 로 임의 SHA audit 시 전체 history 필요
+          fetch-depth: 0  # workflow_dispatch 임의 SHA + auto-fix push 위해 full history
+          token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Resolve target SHA
+      - name: Resolve target SHA + loop guard
         id: target
         run: |
           SHA="${{ inputs.sha }}"
@@ -48,15 +55,40 @@ jobs:
           echo "Target SHA: $SHA"
           git show --stat "$SHA"
 
+          # 무한 루프 가드 — audit-fix commit 자기 자신 재감사 방지
+          # (GITHUB_TOKEN push 자체가 재트리거 X 라 primary 가드는 GitHub 정책. 본 가드는
+          #  workflow_dispatch 수동 재실행 + 미래 PAT 도입 시 방어망)
+          SUBJECT=$(git log -1 --format=%s "$SHA")
+          AUTHOR=$(git log -1 --format=%an "$SHA")
+          if [[ "$SUBJECT" == chore\(audit-fix\):* ]] && [ "$AUTHOR" = "github-actions[bot]" ]; then
+            echo "skip=yes" >> "$GITHUB_OUTPUT"
+            echo "::notice::audit-fix commit ($SUBJECT) — skip (loop guard)"
+          else
+            echo "skip=no" >> "$GITHUB_OUTPUT"
+          fi
+
+          # SHA == HEAD of origin/main 인지 — auto-fix push 가능 여부
+          # (workflow_dispatch 로 옛 SHA 감사 시 push 차단, Issue fallback 만)
+          HEAD_SHA=$(git rev-parse origin/main)
+          if [ "$SHA" = "$HEAD_SHA" ]; then
+            echo "is_head=yes" >> "$GITHUB_OUTPUT"
+          else
+            echo "is_head=no" >> "$GITHUB_OUTPUT"
+            echo "::notice::SHA != origin/main HEAD — auto-fix 비활성, Issue fallback only"
+          fi
+
       - name: Setup Node.js
+        if: steps.target.outputs.skip != 'yes'
         uses: actions/setup-node@v4
         with:
           node-version: '20'
 
       - name: Install Claude CLI
+        if: steps.target.outputs.skip != 'yes'
         run: npm install -g @anthropic-ai/claude-code
 
       - name: Verify Claude CLI auth
+        if: steps.target.outputs.skip != 'yes'
         env:
           CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
         run: |
@@ -69,11 +101,13 @@ jobs:
             exit 1
           }
 
-      - name: Run audit on target SHA
+      - name: Run audit + auto-fix
+        if: steps.target.outputs.skip != 'yes'
         env:
           CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           GH_TOKEN: ${{ github.token }}
           SHA: ${{ steps.target.outputs.sha }}
+          IS_HEAD: ${{ steps.target.outputs.is_head }}
         run: |
           # diff 추출 (file 로 파이프해서 prompt 안전하게 처리)
           git show "$SHA" > /tmp/commit.txt
@@ -88,15 +122,12 @@ jobs:
           fi
 
           # ===== TIER 1: Mechanical 룰 grep (결정적, 시각 스캔 의존 X) =====
-          # diff 의 added 라인 (+) 만 추출해서 새로 들어온 위반만 감지.
-          # 기존 main 의 잔재는 본 audit 영역 X (별 정리 task).
-
           ADDED_CS=$(git show "$SHA" -- '*.cs' | grep -E '^\+[^+]' || true)
 
           echo "=== Tier 1: Mechanical grep results ==="
           MECHANICAL_VIOLATIONS=""
 
-          # var 금지 (`var x = ...` 패턴)
+          # var 금지
           VAR_HITS=$(echo "$ADDED_CS" | grep -nE '\bvar\s+\w+\s*=' || true)
           if [ -n "$VAR_HITS" ]; then
             echo "❌ var 금지 위반:"
@@ -104,7 +135,7 @@ jobs:
             MECHANICAL_VIOLATIONS+="- \`var\` 금지 위반:\n$(echo "$VAR_HITS" | head -5 | sed 's/^/  /')\n"
           fi
 
-          # ! 연산자 금지 (`if (!...)` `while (!...)` 패턴)
+          # ! 연산자 금지
           NOT_HITS=$(echo "$ADDED_CS" | grep -nE '(if|while)\s*\(\s*!' || true)
           if [ -n "$NOT_HITS" ]; then
             echo "❌ ! 연산자 금지 위반 (== false 사용):"
@@ -112,8 +143,7 @@ jobs:
             MECHANICAL_VIOLATIONS+="- \`!\` 연산자 금지 위반 (\`== false\` 사용):\n$(echo "$NOT_HITS" | head -5 | sed 's/^/  /')\n"
           fi
 
-          # 한 글자 변수명 금지 (i, j 외) — `int t = ...` 식
-          # 정확성: int/string/float/double/bool/<Type> 다음 공백 + 한 글자 + 공백 + =
+          # 한 글자 변수명 금지 (i, j 외)
           ONELETTER_HITS=$(echo "$ADDED_CS" | grep -nE '\b(int|string|float|double|bool|long|char|byte|short)\s+[a-hk-z]\s*=' || true)
           if [ -n "$ONELETTER_HITS" ]; then
             echo "❌ 한 글자 변수명 위반 (i, j 외):"
@@ -121,7 +151,7 @@ jobs:
             MECHANICAL_VIOLATIONS+="- 한 글자 변수명 위반 (i, j 외):\n$(echo "$ONELETTER_HITS" | head -5 | sed 's/^/  /')\n"
           fi
 
-          # 상수 UPPER_SNAKE_CASE — `const <Type> camelCase` 위반
+          # 상수 UPPER_SNAKE_CASE
           CONST_HITS=$(echo "$ADDED_CS" | grep -nE 'const\s+\w+\s+[a-z][a-zA-Z]*\s*=' || true)
           if [ -n "$CONST_HITS" ]; then
             echo "❌ 상수 UPPER_SNAKE_CASE 위반:"
@@ -129,8 +159,7 @@ jobs:
             MECHANICAL_VIOLATIONS+="- 상수 UPPER_SNAKE_CASE 위반:\n$(echo "$CONST_HITS" | head -5 | sed 's/^/  /')\n"
           fi
 
-          # Keyboard.current / Mouse.current 직접 접근 (InputManager.cs 외)
-          # diff 의 file path 가 InputManager.cs 가 아니면 위반
+          # Keyboard.current / Mouse.current (InputManager 외)
           KEYBOARD_HITS=$(git show "$SHA" --name-only | grep -E '\.cs$' | grep -v 'InputManager\.cs' | xargs -I {} sh -c "git show '$SHA':{} 2>/dev/null | grep -nE '(Keyboard|Mouse)\.current\b'" 2>/dev/null || true)
           if [ -n "$KEYBOARD_HITS" ]; then
             echo "❌ Keyboard.current / Mouse.current 직접 접근 위반:"
@@ -138,7 +167,7 @@ jobs:
             MECHANICAL_VIOLATIONS+="- \`Keyboard.current\`/\`Mouse.current\` 직접 접근 (InputManager 외):\n$(echo "$KEYBOARD_HITS" | head -5 | sed 's/^/  /')\n"
           fi
 
-          # MenuItem path top-level 위반 (WitchMendokusai/ 사용)
+          # MenuItem path top-level
           MENUITEM_HITS=$(echo "$ADDED_CS" | grep -nE 'MenuItem.*"WitchMendokusai/' || true)
           if [ -n "$MENUITEM_HITS" ]; then
             echo "❌ MenuItem path top-level 위반 (WM/ 사용해야):"
@@ -154,9 +183,6 @@ jobs:
           fi
 
           # ===== TIER 2: Semantic 분석 (Claude) =====
-          # Tier 1 grep 결과를 Claude 에게 *사실 입력* 으로 주고, semantic 룰만 추가.
-          # mechanical 룰 catch 는 Tier 1 책임 — Claude 가 잊거나 시각 스캔 miss 해도 OK.
-
           PROMPT="# 임무: WitchMendokusai commit audit (semantic)
 
           Tier 1 (mechanical grep) 이 이미 결정적 룰 (var/!/한글자 변수명/UPPER_SNAKE/Keyboard.current/MenuItem) 을 검사함. 결과는 아래 「Mechanical 결과」 섹션 에 그대로 입력. 본인은 *사실로 받아들이고* 그 외 semantic 룰만 검사.
@@ -219,7 +245,7 @@ jobs:
           echo "$OUTPUT"
           echo ""
 
-          # 결과 파싱 — Tier 1 결정적 + Tier 2 semantic 둘 다 OR 결합
+          # 결과 파싱
           CLAUDE_FAIL=$(echo "$OUTPUT" | tail -5 | grep -q "AUDIT_RESULT: FAIL" && echo "yes" || echo "no")
           MECHANICAL_FAIL=$([ -n "$MECHANICAL_VIOLATIONS" ] && echo "yes" || echo "no")
 
@@ -228,10 +254,152 @@ jobs:
             exit 0
           fi
 
-          # 둘 중 하나라도 FAIL → Issue 생성
-          echo "⚠ FAIL — Tier 1: $MECHANICAL_FAIL / Tier 2: $CLAUDE_FAIL — creating Issue"
+          # ===== FAIL → AUTO-FIX 시도 =====
+          echo "⚠ FAIL — Tier 1: $MECHANICAL_FAIL / Tier 2: $CLAUDE_FAIL"
+
           COMMIT_SUBJECT=$(git log -1 --format=%s "$SHA")
           COMMIT_AUTHOR=$(git log -1 --format=%an "$SHA")
+
+          # SHA != HEAD 면 auto-fix 차단 (workflow_dispatch 옛 SHA 감사) — Issue fallback only
+          if [ "$IS_HEAD" != "yes" ]; then
+            echo "::notice::SHA != HEAD — auto-fix skip, Issue fallback"
+            FIX_FAILED=yes
+            FIX_REASON="SHA ($SHA) != origin/main HEAD — auto-fix 차단 (workflow_dispatch 옛 SHA 감사)"
+            FIX_DIFF=""
+          else
+            echo "=== Auto-fix attempt (Claude CLI direct edit) ==="
+
+            FIX_PROMPT="# 임무: WitchMendokusai audit 위반 자동 fix
+
+            commit \`$SHA\` 가 audit FAIL. Tier 1 (mechanical grep) + Tier 2 (semantic Claude 분석) 결과 아래. 위반된 .cs 파일들을 직접 Edit 으로 fix.
+
+            ## 적용 룰
+
+            **Tier 1 (mechanical, 결정적)** — 항상 fix:
+            - \`var x = ...\` → 명시 타입 (\`Type x = ...\`). 우변 추론으로 정확한 타입 박기.
+            - \`if (!x)\` / \`while (!x)\` → \`if (x == false)\` / \`while (x == false)\`.
+            - 단일 글자 변수명 (i,j 외) → 의미 있는 풀네임 (예: \`int t = ...\` → \`int targetCount = ...\`, 우변/사용처 보고 결정).
+            - \`const Type lowercaseName\` → \`const Type UPPER_SNAKE_CASE\` (호출처도 모두 갱신).
+            - \`Keyboard.current\` / \`Mouse.current\` (InputManager 외 파일) → \`InputManager.RegisterInputEvent\` 패턴 으로 변환. 단순 변환 어려우면 SKIP 표시.
+            - \`MenuItem(\"WitchMendokusai/...\")\` → \`MenuItem(\"WM/...\")\`.
+
+            **Tier 2 (semantic, 판단 필요)** — 안전한 local fix 만:
+            - Allman 중괄호 위반 → 줄바꿈 정정.
+            - 수치 하드코딩 → SO/SerializeField 도입은 *큰 변경* — SKIP 표시 (human 신호).
+            - FastFail 위반 (TryGet/null 체크) → 등록 누락 추적 필요 → SKIP 표시.
+            - 델리게이트 null 초기화 누락 → \`= delegate { }\` 추가.
+
+            ## 원칙
+
+            - 위반된 코드 외 *건드리지 마라*. 무관 리팩터 X.
+            - 코드 주석 추가 X. fix 한 줄에 \`// audit-fix\` 같은 메타 X.
+            - 한 위반이라도 fix 했으면 마지막 줄 \`AUDIT_FIX_RESULT: APPLIED\`.
+            - 모든 위반이 SKIP (human 필요) 이면 마지막 줄 \`AUDIT_FIX_RESULT: SKIPPED\`.
+            - SKIP 사유는 출력 본문에 짧게 (1-2 줄).
+
+            === Tier 1 결과 ===
+
+            $MECHANICAL_RESULT
+
+            === Tier 2 결과 ===
+
+            $OUTPUT
+
+            === Audit 대상 commit (참고) ===
+
+            $(cat /tmp/commit.txt)
+
+            === 끝 — 위 위반 fix 시작 ==="
+
+            FIX_OUTPUT=$(claude --print --permission-mode bypassPermissions "$FIX_PROMPT" 2>&1) || {
+              echo "❌ Claude fix invocation failed"
+              FIX_FAILED=yes
+              FIX_REASON="Claude CLI 호출 실패"
+              FIX_DIFF=""
+            }
+
+            if [ -z "${FIX_FAILED:-}" ]; then
+              echo "=== Fix output ==="
+              echo "$FIX_OUTPUT"
+              echo ""
+
+              # Claude 가 SKIPPED 라고 명시 → human 신호
+              if echo "$FIX_OUTPUT" | tail -5 | grep -q "AUDIT_FIX_RESULT: SKIPPED"; then
+                echo "::notice::Claude marked SKIPPED — human 신호"
+                FIX_FAILED=yes
+                FIX_REASON="Claude SKIPPED — semantic 위반은 human 결정 필요 (FastFail / 수치 하드코딩 / Keyboard.current 패턴 변환 등)"
+                FIX_DIFF=""
+              elif git diff --quiet; then
+                # Claude APPLIED 라 했지만 실제 변경 0 — 비정합
+                echo "::warning::Claude APPLIED 응답이지만 git diff 비어있음"
+                FIX_FAILED=yes
+                FIX_REASON="Claude APPLIED 응답이지만 실제 파일 변경 0 (비정합)"
+                FIX_DIFF=""
+              else
+                # 실제 변경 있음 → commit + push 시도
+                FIX_DIFF=$(git diff --stat)
+                echo "=== Fix diff stat ==="
+                echo "$FIX_DIFF"
+
+                git config user.name "github-actions[bot]"
+                git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+                # 변경된 .cs 와 .meta 만 staging (audit 영역)
+                git add -A -- '*.cs' '*.cs.meta'
+
+                # 비정합: Claude 가 audit 무관 파일 만짐 → fail
+                UNTRACKED=$(git status --porcelain | grep -vE '^[AM]  .*\.(cs|cs\.meta)$' || true)
+                if [ -n "$UNTRACKED" ]; then
+                  echo "::warning::Claude 가 .cs/.cs.meta 외 파일 만짐:"
+                  echo "$UNTRACKED"
+                  git reset --hard HEAD
+                  FIX_FAILED=yes
+                  FIX_REASON="Claude 가 audit 영역 (*.cs / *.cs.meta) 밖 파일 변경 시도 — 거부"
+                  FIX_DIFF=""
+                else
+                  COMMIT_MSG="chore(audit-fix): $COMMIT_SUBJECT
+
+          Auto-fix by Claude post-push audit (TASK-WM-093). 원본 commit: $SHA.
+
+          Tier 1 mechanical + Tier 2 safe-local violations fixed automatically.
+          See workflow run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+
+                  if git commit -m "$COMMIT_MSG"; then
+                    # push race 회피 — fetch + rebase + push retry (max 2회)
+                    PUSH_OK=no
+                    for attempt in 1 2; do
+                      git fetch origin main
+                      if git rebase origin/main; then
+                        if git push origin main; then
+                          PUSH_OK=yes
+                          break
+                        fi
+                      else
+                        git rebase --abort
+                      fi
+                      echo "::warning::push attempt $attempt 실패 — retry"
+                      sleep 2
+                    done
+
+                    if [ "$PUSH_OK" = "yes" ]; then
+                      echo "✅ Auto-fix push 성공 — yawnbot Discord 알림은 push event 자동 도착"
+                      exit 0
+                    else
+                      FIX_FAILED=yes
+                      FIX_REASON="Fix commit 생성 OK, push 2회 실패 (race / rebase conflict)"
+                    fi
+                  else
+                    FIX_FAILED=yes
+                    FIX_REASON="git commit 실패 (pre-commit hook 등)"
+                  fi
+                fi
+              fi
+            fi
+          fi
+
+          # ===== FIX 실패 → Issue fallback =====
+          echo "⚠ Auto-fix 실패 → Issue fallback"
+
           ISSUE_BODY=$(cat <<EOF
           **Commit**: \`$SHA\`
           **Author**: $COMMIT_AUTHOR
@@ -245,23 +413,31 @@ jobs:
 
           $OUTPUT
 
-          ## 제안
+          ## Auto-fix 시도 결과 — 실패
 
-          ### 옵션 A — Revert (위험도 ↑ 시)
+          **사유**: $FIX_REASON
+
+          $(if [ -n "${FIX_OUTPUT:-}" ]; then echo "**Claude fix output (요약)**:"; echo ""; echo '\`\`\`'; echo "$FIX_OUTPUT" | tail -30; echo '\`\`\`'; fi)
+
+          $(if [ -n "$FIX_DIFF" ]; then echo "**시도된 diff stat**:"; echo ""; echo '\`\`\`'; echo "$FIX_DIFF"; echo '\`\`\`'; fi)
+
+          ## 사용자 액션
+
+          ### 옵션 A — Manual fix
+          위 Tier 1/2 지적 사항 수동 fix → main 직접 push.
+
+          ### 옵션 B — Revert (위험도 ↑ 시)
           \`\`\`bash
           git revert $SHA
           \`\`\`
 
-          ### 옵션 B — 후속 fix commit
-          위 지적 사항 fix 후 main 직접 push.
-
           ---
-          🤖 Generated by Claude post-push audit (TASK-WM-063 sub-K, 2-tier)
+          🤖 Generated by Claude post-push audit + auto-fix (TASK-WM-093). Auto-fix 가 실패 (위 사유) → human 신호로 Issue 생성.
           EOF
           )
           gh issue create \
-            --title "[main audit] $COMMIT_SUBJECT" \
-            --label "audit,trunk-based" \
+            --title "[audit fix-failed] $COMMIT_SUBJECT" \
+            --label "audit,trunk-based,fix-failed" \
             --body "$ISSUE_BODY" \
             --repo "${{ github.repository }}"
-          echo "✅ Issue created"
+          echo "✅ Fix-failed Issue 생성"

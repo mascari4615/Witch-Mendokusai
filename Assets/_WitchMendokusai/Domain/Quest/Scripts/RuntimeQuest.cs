@@ -134,11 +134,11 @@ namespace WitchMendokusai
 		{
 			State = RuntimeQuestState.Completed;
 
-			QuestManager.Instance.RemoveQuest(this);
+			int questSOID = SO != null ? SO.ID : -1;
+			EventBus.Instance.Publish(new QuestCompletedEvent(Guid, questSOID));
 
 			if (SO != null)
 			{
-				QuestManager.Instance.SetQuestState(SO.ID, QuestState.Completed);
 				if (Type == QuestType.Achievement)
 					UIManager.Instance?.Popup(SO);
 				if (Type == QuestType.Research)

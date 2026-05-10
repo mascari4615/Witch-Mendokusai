@@ -7,7 +7,8 @@ namespace WitchMendokusai
 {
 	/// <summary>
 	/// <see cref="QuestNode"/> 의 런타임 비주얼 + 인터랙션 Provider — TASK-WM-059 B 첫 사용처 (데드 hook 방지).
-	/// body = QuestSO Sprite + Name 라벨. OnClicked = Debug.Log (단계 D 에서 QuestDetail 통합 예정).
+	/// body = QuestSO Sprite + Name 라벨. OnClicked = <see cref="QuestDetailRequestedEvent"/> 발행
+	/// (TASK-WM-059 D, 2026-05-10) — Provider ↔ Host 결합 0, EventBus (086 IEvent 인프라) 첫 도메인 사용처.
 	/// </summary>
 	[NodeRuntimeView(typeof(QuestNode))]
 	public sealed class QuestNodeRuntimeViewProvider : INodeRuntimeViewProvider
@@ -53,7 +54,7 @@ namespace WitchMendokusai
 			if (target == null)
 				return;
 
-			Debug.Log($"[QuestNode] clicked — Quest: {target.Name} (ID={target.ID})");
+			EventBus.Instance.Publish(new QuestDetailRequestedEvent(target));
 		}
 	}
 }
