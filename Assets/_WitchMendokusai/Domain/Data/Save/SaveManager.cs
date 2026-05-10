@@ -77,9 +77,6 @@ namespace WitchMendokusai
 					newGameData.dolls.Add(doll.Save());
 				}
 
-				// TASK-WM-023 — 새 게임 시작 시 낚싯대(I_20000012) 1개. 낚시 컨텐츠 진입 경로.
-				inventory.Add(GetItemData(20000012));
-
 				newGameData.inventoryItems = inventory.Save();
 			}
 
