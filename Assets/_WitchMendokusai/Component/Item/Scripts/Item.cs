@@ -36,10 +36,4 @@ namespace WitchMendokusai
 		public bool IsMax => Amount >= Data.MaxAmount;
 		public bool IsEmpty => Amount <= 0;
 	}
-
-	interface IUsableItem
-	{
-		// 아이템 사용 : 성공 여부 리턴
-		bool Use();
-	}
 }
