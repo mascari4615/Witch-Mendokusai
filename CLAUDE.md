@@ -321,9 +321,28 @@ powershell -File memo/dotfiles/scripts/unity-refresh.ps1
 
 이전 사례: TASK-WM-054-A WorldClock (2026-05-08) — Awake 에서 `DontDestroyOnLoad` 코드 강제 호출했다가 사용자가 "Singleton 베이스에 노브 있는데 왜 코드 강제냐" 지적. `WorldClockBootstrapMenu` 가 prefab 생성 시 SerializedField = true 박는 + idempotent `EnsurePrefabFlags` 패턴으로 정정.
 
-## Unity-MCP layer (TASK-WM-071, 2026-05-09)
+## Unity-MCP layer (TASK-WM-071, 2026-05-09 → 2026-05-10 CoplayDev 영구 회귀)
 
-**Unity 공식 MCP server 도입** (`com.unity.ai.assistant 2.7+`) — Claude 가 Unity Editor 직접 조작 가능. Editor.log grep + `unity-refresh.ps1` 흐름의 *정본 채널*. (`dotnet build` 는 2026-05-10 폐기 — Mono runtime mismatch.)
+**현재 정본 = CoplayDev `com.coplaydev.unity-mcp`** (community, MIT) — Claude 가 Unity Editor 직접 조작. Editor.log grep + `unity-refresh.ps1` 흐름의 *정본 채널*. (`dotnet build` 는 2026-05-10 폐기 — Mono runtime mismatch.)
+
+**Unity AI Package (`com.unity.ai.assistant`) 자체는 계속 사용** — Editor 안 IDE 보조 기능. *하지만 그 안의 공식 MCP server 는 폐기*. 사유 (2026-05-10 사용자 명시): **Unity Personal 계정 요청 한도** — 외부 client 가 공식 MCP 거치면 Unity AI Cloud cap 빠르게 도달. CoplayDev 는 Unity Cloud 우회 (Editor 안 직접 처리) — cap 무관.
+
+### Claude Code 등록 (`.mcp.json`)
+
+프로젝트 루트 `karmoddrine/.mcp.json`:
+
+```json
+{
+  "mcpServers": {
+    "unityMCP": {
+      "type": "http",
+      "url": "http://localhost:8080/mcp"
+    }
+  }
+}
+```
+
+⚠ `type: "http"` 빠뜨리면 `/doctor` 가 `command: expected string, received undefined` 검증 실패 (Claude Code `.mcp.json` 은 stdio 가 default schema). Unity 쪽 `Window > MCP for Unity > Start Server` (port 8080) up 상태 필수. 자동 승인 = `~/.claude/settings.json` 의 `enableAllProjectMcpServers: true`. 메모리 정본 = `reference_unity_mcp_coplay_setup.md`.
 
 ### 사용 우선순위 — read 자율 / write 신중
 
