@@ -144,6 +144,51 @@ TASK 시드의 단계 분할 표(A1/A2/A3...)는 *합의된 작업 단위*다. �
 
 새 시스템이 *우리 패턴과 다른 모양*이라면 *이유*를 TASK 시드에 명시한다.
 
+## DomainSDK / Mods SDK — 6 동기 first-use 패턴
+
+비전 정본: `memo/wm/design/vision/architecture.md` § DomainSDK 모델 / Mods 모델. 본 § 는 *코드 룰* 측면 — 다른 도메인 (Item / Building / Combat) 격상 시 재사용.
+
+### asmdef sandbox = 컴파일러 강제 단방향
+
+- `Assets/_WitchMendokusai/DomainSDK/WitchMendokusai.DomainSDK.asmdef` — `references=[]` (외부 package 의존 0). `autoReferenced=true` (Domain/Core 가 자동 참조).
+- `Assets/_WitchMendokusai/Mods/Sample/WitchMendokusai.Mods.Sample.asmdef` — `references=[WitchMendokusai.DomainSDK]` 만. `autoReferenced=false` (별 dll, `ModLoader` 명시 책임).
+- 모드 .cs 가 Domain type 호출 시 *컴파일 fail* — runtime check / 권한 시스템 0. 진짜 단방향 검증의 근본.
+
+### DomainSDK 격상 패턴 (bottom-up, TASK-WM-086 검증)
+
+순서: `enum` → `SaveData` (POCO) → `InfoData` (POCO) → `RuntimeXxxSaveData` → `record class XxxEvent : IEvent` → `RuntimeXxx` → asmdef split.
+
+- **Inspector 디자이너 인터페이스 (DataSO drag&drop) 보존** — `Info` type 은 Domain 잔존, `SaveData` 만 DomainSDK 격상, Domain extension `ToSaveData()` / `ToInfoData()` 가 변환.
+- **RuntimeXxx 격상 시 생성자 단순화** — `RuntimeXxx(RuntimeXxxSaveData saveData)` 만. SO/Info → SaveData 변환은 **Domain factory** (`RuntimeXxxFactory.FromXxxSO` / `FromXxxInfo` / `FromSaveData`) 책임.
+- **EventBus 새 event** — `record class XxxEvent(...) : IEvent`. `Publish<T:IEvent>` 제약. struct 회귀 X. `IsExternalInit` polyfill 박혀있음.
+
+### Bridge 패턴 — DomainSDK 가 Singleton 호출 시
+
+DomainSDK POCO 가 `EventBus.Instance` / `GameEventManager.Instance` 직접 호출하면 *DomainSDK → Core* 단방향 깨짐. 해법:
+
+1. DomainSDK 안 `IXxxBridge` interface — 시그니처만
+2. DomainSDK 안 `XxxBridge` static accessor — `Register(IXxxBridge)` + facade 메서드
+3. Core/Domain 매니저가 `IXxxBridge` 구현 + `Awake` 에 `XxxBridge.Register(this)`
+
+검증된 사용처:
+- `DomainSDK/EventBus/{IEventBus, EventBusBridge}` ↔ `Core/Scripts/EventBus/EventBus.cs`
+- `DomainSDK/GameEvent/{IGameEventBridge, GameEventBridge}` ↔ Core 의 `GameEventManager`
+
+다른 매니저 (DataManager / SOManager / UIManager) 도 같은 패턴 재사용. **null check 제거** — `instance.Method()` (FastFail). Bootstrap 후 호출 보장 영역만, Bootstrap 전 호출 가능 영역은 register 시점 검토 필요.
+
+### Mods SDK 진입점
+
+- `DomainSDK/Mods/IMod.cs` — `Name` / `Version` / `Initialize` 만 (POCO interface, Unity 의존 0).
+- `Domain/Mods/ModLoader.cs` — `[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterAssembliesLoaded)]` + `AppDomain.CurrentDomain.GetAssemblies()` + assembly name `WitchMendokusai.Mods.*` 필터 + reflection 발견 + `Activator.CreateInstance` + `Initialize()`. `ReflectionTypeLoadException` 안전 처리.
+- 새 mod 추가 = `Assets/_WitchMendokusai/Mods/<name>/WitchMendokusai.Mods.<name>.asmdef` (references=DomainSDK, autoReferenced=false) + `IMod` 구현 .cs.
+
+### 격상 시 주의 (TASK-WM-086 사고)
+
+- **Unity 6.x csproj stale** — 신규 `.cs` 후 CS0246 지속 + `.meta` 생성 OK + csproj include 0 = Unity 재시작 필요. `Library/ScriptAssemblies/` 삭제 X (시간 ↑).
+- **git mv + main 직접 push race** — origin merge 가 옛 위치 working tree 재등장. fix = 옛 위치 file system rm + new commit. main 직접 push + git mv 동시 = race 위험 ↑, worktree 사용이 안전.
+- **Unity fsnotify 미스 — 신규 폴더 + 다중 파일** — `.meta` 자동 생성 누락. *Assets > Refresh* 메뉴 1회 / *Project 패널 폴더 클릭* / Unity 재시작.
+- **caller 다 정정** — `RuntimeXxx` 생성자 시그니처 변경 시 `SaveManager.LoadData` / `XxxManager.Init` 등 모든 caller 를 factory 호출로 갱신. 빠뜨리면 NPE (Criteria 등 외부 책임 field 가 null).
+
 ## Editor 메뉴
 
 `MenuItem` path 의 top-level root 는 **`WM/`** 단일화 (TASK-WM-057). `WitchMendokusai/...` 사용 X.
