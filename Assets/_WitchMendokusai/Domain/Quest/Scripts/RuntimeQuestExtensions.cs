@@ -7,7 +7,9 @@ namespace WitchMendokusai
 			if (quest.State == RuntimeQuestState.Working)
 			{
 				if (DataManager.Instance.WorkManager.TryGetWorkByQuestGuid(quest.Guid, out Work work))
+				{
 					return work.GetProgress();
+				}
 				return 0f;
 			}
 
@@ -16,7 +18,9 @@ namespace WitchMendokusai
 
 			float progress = 0f;
 			foreach (RuntimeCriteria runtimeCriteria in quest.Criteria)
+			{
 				progress += runtimeCriteria.GetProgress();
+			}
 			return progress / quest.Criteria.Count;
 		}
 
@@ -25,7 +29,9 @@ namespace WitchMendokusai
 			if (quest.State == RuntimeQuestState.Working)
 			{
 				if (DataManager.Instance.WorkManager.TryGetWorkByQuestGuid(quest.Guid, out Work work))
+				{
 					return work.GetProgress().ToString("P0");
+				}
 				return string.Empty;
 			}
 
