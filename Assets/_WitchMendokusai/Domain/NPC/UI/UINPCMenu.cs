@@ -210,7 +210,7 @@ namespace WitchMendokusai
 			{
 				case QuestState.Locked:
 					QuestManager.Instance.UnlockQuest(questData);
-					QuestManager.Instance.AddQuest(new RuntimeQuest(questData));
+					QuestManager.Instance.AddQuest(RuntimeQuestFactory.FromQuestSO(questData));
 					break;
 				case QuestState.Unlocked:
 					// TODO: 퀘스트 진행 중 대사 출력

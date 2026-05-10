@@ -17,7 +17,7 @@ namespace WitchMendokusai
 			SetQuestInfo(dungeon, ref questInfo);
 			string questName = GetQuestName(dungeon, questInfo);
 
-			RuntimeQuest runtimeQuest = new(questInfo, questName);
+			RuntimeQuest runtimeQuest = RuntimeQuestFactory.FromQuestInfo(questInfo, questName);
 			return runtimeQuest;
 		}
 
