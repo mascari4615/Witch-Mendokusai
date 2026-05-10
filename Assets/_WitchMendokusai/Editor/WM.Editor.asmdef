@@ -18,7 +18,8 @@
         "DOTween.Modules",
         "PlayFab",
         "UniRx",
-        "WitchMendokusai.DomainSDK"
+        "WitchMendokusai.DomainSDK",
+        "VContainer"
     ],
     "includePlatforms": [
         "Editor"

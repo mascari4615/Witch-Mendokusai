@@ -11,7 +11,8 @@
         "Unity.Timeline",
         "FMODUnity",
         "DOTween.Modules",
-        "WitchMendokusai.DomainSDK"
+        "WitchMendokusai.DomainSDK",
+        "VContainer"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
