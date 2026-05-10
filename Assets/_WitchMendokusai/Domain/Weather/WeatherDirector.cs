@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 
 namespace WitchMendokusai
@@ -7,13 +8,14 @@ namespace WitchMendokusai
 	// E2 = Visual prefab Instantiate (Rain/Snow/Fog/Storm) + 이전 visual destroy.
 	// E2-fix (2026-05-09) = WeatherSO 가 visual 정본 — Material / startSize / shape 등 모두 SO 노브로 ApplyCurrentSOToParticle.
 	// E3 (2026-05-10) = Wet shader — IsWet 날씨 시 Shader.SetGlobalFloat("_Wetness", 0→1 lerp).
-	// E4 후속 = SFX. E5 후속 = Storm 번개.
-	// (TASK-WM-054-E E1~E3)
+	// E4 (2026-05-10) = SFX ambient — AudioManager.PlayAmbient(SfxKey).
+	// E5 (2026-05-10) = Storm 번개 — random interval Coroutine + flash Light + thunder SFX delay.
+	// (TASK-WM-054-E E1~E5)
 	public class WeatherDirector : Singleton<WeatherDirector>
 	{
 		private static readonly int WetnessId = Shader.PropertyToID("_Wetness");
 
-		// 현재 적용된 WeatherSO — sub-E 후속 (E4 SFX / E5 Storm) 가 읽음.
+		// 현재 적용된 WeatherSO — sub-E 후속이 읽음.
 		public WeatherSO CurrentWeatherSO { get; private set; }
 		public WeatherType LastApplied { get; private set; } = WeatherType.Clear;
 
@@ -25,6 +27,10 @@ namespace WitchMendokusai
 		// E3: wetness 0~1 lerp 상태. SO의 FadeMinutes 기반 실시간 속도.
 		[SerializeField] private float wetnessLerpSpeed = 0.033f; // 1 / ~30s ≈ 기본 FadeMinutes 체감
 		private float currentWetness;
+
+		// E5: Storm 번개 — flash Light + Coroutine.
+		private Light lightningLight;
+		private Coroutine stormCoroutine;
 
 		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
 		private static void EnsureSingletonOnPlay()
@@ -51,6 +57,7 @@ namespace WitchMendokusai
 			if (WeatherSystem.TryGetExistingInstance(out WeatherSystem weatherSystem) == true)
 				weatherSystem.OnWeatherChanged -= HandleWeatherChanged;
 
+			StopStormLightning();
 			DestroyCurrentVisual();
 			Shader.SetGlobalFloat(WetnessId, 0f);
 			AudioManager.Instance.StopAmbient();
@@ -79,6 +86,11 @@ namespace WitchMendokusai
 
 			// E4: SFX ambient — SfxKey null/empty 면 PlayAmbient 가 stop 만 처리.
 			AudioManager.Instance.PlayAmbient(CurrentWeatherSO?.SfxKey);
+
+			// E5: Storm 번개 — Storm 이면 coroutine 시작, 아니면 중단.
+			StopStormLightning();
+			if (type == WeatherType.Storm)
+				StartStormLightning();
 		}
 
 		private void SpawnCurrentVisual()
@@ -144,6 +156,62 @@ namespace WitchMendokusai
 			currentVisualInstance = null;
 			currentParticleSystem = null;
 			currentParticleRenderer = null;
+		}
+
+		// E5: Storm 번개 coroutine 시작 — 자식 Light 자동 생성.
+		private void StartStormLightning()
+		{
+			GameObject lightGo = new GameObject("LightningLight");
+			lightGo.transform.SetParent(transform, false);
+			lightningLight = lightGo.AddComponent<Light>();
+			lightningLight.type = LightType.Directional;
+			lightningLight.color = new Color(0.85f, 0.9f, 1f);
+			lightningLight.intensity = 4f;
+			lightningLight.enabled = false;
+
+			stormCoroutine = StartCoroutine(StormLightningRoutine());
+		}
+
+		private void StopStormLightning()
+		{
+			if (stormCoroutine != null)
+			{
+				StopCoroutine(stormCoroutine);
+				stormCoroutine = null;
+			}
+
+			if (lightningLight != null)
+			{
+				Destroy(lightningLight.gameObject);
+				lightningLight = null;
+			}
+		}
+
+		// 번개 루프 — flash → thunder SFX 딜레이 → 다음 interval 대기.
+		private IEnumerator StormLightningRoutine()
+		{
+			while (true)
+			{
+				float interval = CurrentWeatherSO != null
+					? Random.Range(CurrentWeatherSO.LightningIntervalMin, CurrentWeatherSO.LightningIntervalMax)
+					: Random.Range(8f, 30f);
+
+				yield return new WaitForSeconds(interval);
+
+				if (lightningLight != null)
+					lightningLight.enabled = true;
+
+				float flashDuration = CurrentWeatherSO != null ? CurrentWeatherSO.LightningFlashDuration : 0.08f;
+				yield return new WaitForSeconds(flashDuration);
+
+				if (lightningLight != null)
+					lightningLight.enabled = false;
+
+				float thunderDelay = CurrentWeatherSO != null ? CurrentWeatherSO.LightningThunderDelay : 2f;
+				yield return new WaitForSeconds(thunderDelay);
+
+				AudioManager.Instance.PlaySfx(CurrentWeatherSO?.ThunderSfxKey);
+			}
 		}
 
 		// Resources/Weather/{type}.asset 직접 로드 (캐싱 X — SO 값 런타임 변경 시 즉시 반영).

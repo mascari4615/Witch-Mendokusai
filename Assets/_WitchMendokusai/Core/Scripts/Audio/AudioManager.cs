@@ -94,6 +94,12 @@ namespace WitchMendokusai
 
 		public void StopAmbient() => ambientEvent.stop(FMOD.Studio.STOP_MODE.ALLOWFADEOUT);
 
+		public void PlaySfx(string eventPath)
+		{
+			if (string.IsNullOrEmpty(eventPath) == false)
+				RuntimeManager.PlayOneShot(eventPath);
+		}
+
 		public void PlayMusic(string eventPath)
 		{
 			bgmEvent.stop(FMOD.Studio.STOP_MODE.ALLOWFADEOUT);
