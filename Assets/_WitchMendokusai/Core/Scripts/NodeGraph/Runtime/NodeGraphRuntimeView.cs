@@ -40,12 +40,25 @@ namespace WitchMendokusai.NodeGraph.Runtime
 		/// <summary>Selection 변경 — null = 선택 해제.</summary>
 		public event Action<NodeBase> OnSelectionChanged = delegate { };
 
+		private const float ZOOM_MIN = 0.3f;
+		private const float ZOOM_MAX = 3f;
+		private const float ZOOM_STEP = 0.1f;
+
+		private float currentZoom = 1f;
+		private Vector2 panOffset = Vector2.zero;
+		private bool isPanning;
+		private Vector2 panStartPointer;
+		private Vector2 panStartOffset;
+
 		public NodeGraphRuntimeView()
 		{
 			AddToClassList(USS_CLASS);
 
 			style.overflow = Overflow.Hidden;
 			style.flexGrow = 1;
+
+			// 빈 영역에서도 Pan/Zoom 입력 받음 (좌클릭은 자식 NodeRuntimeElement 가 우선 캐치).
+			pickingMode = PickingMode.Position;
 
 			canvas = new VisualElement();
 			canvas.AddToClassList(USS_CANVAS);
@@ -55,7 +68,82 @@ namespace WitchMendokusai.NodeGraph.Runtime
 			canvas.style.right = 0;
 			canvas.style.bottom = 0;
 			canvas.pickingMode = PickingMode.Ignore;
+			canvas.style.transformOrigin = new TransformOrigin(0, 0);
 			Add(canvas);
+
+			RegisterCallback<WheelEvent>(OnWheel);
+			RegisterCallback<PointerDownEvent>(OnPanDown);
+			RegisterCallback<PointerMoveEvent>(OnPanMove);
+			RegisterCallback<PointerUpEvent>(OnPanUp);
+			RegisterCallback<PointerCaptureOutEvent>(OnPanCaptureLost);
+		}
+
+		private void OnWheel(WheelEvent evt)
+		{
+			float delta = (evt.delta.y < 0f ? 1f : -1f) * ZOOM_STEP;
+			float newZoom = Mathf.Clamp(currentZoom + delta, ZOOM_MIN, ZOOM_MAX);
+			if (Mathf.Approximately(newZoom, currentZoom))
+				return;
+
+			// 마우스 커서 기준 zoom — 커서 위치 worldspace 가 그대로 유지되도록 panOffset 보정.
+			Vector2 cursor = (Vector2)evt.localMousePosition;
+			Vector2 worldBefore = (cursor - panOffset) / currentZoom;
+			currentZoom = newZoom;
+			Vector2 worldAfter = (cursor - panOffset) / currentZoom;
+			panOffset += (worldAfter - worldBefore) * currentZoom;
+
+			ApplyTransform();
+			evt.StopPropagation();
+		}
+
+		private void OnPanDown(PointerDownEvent evt)
+		{
+			// 우클릭 (1) / 중클릭 (2) 만 Pan — 좌클릭은 노드 선택에 양보.
+			if (evt.button != 1 && evt.button != 2)
+				return;
+
+			isPanning = true;
+			panStartPointer = (Vector2)evt.position;
+			panStartOffset = panOffset;
+			this.CapturePointer(evt.pointerId);
+			evt.StopPropagation();
+		}
+
+		private void OnPanMove(PointerMoveEvent evt)
+		{
+			if (isPanning == false)
+				return;
+
+			Vector2 delta = (Vector2)evt.position - panStartPointer;
+			panOffset = panStartOffset + delta;
+			ApplyTransform();
+		}
+
+		private void OnPanUp(PointerUpEvent evt)
+		{
+			if (isPanning == false)
+				return;
+			isPanning = false;
+			this.ReleasePointer(evt.pointerId);
+		}
+
+		private void OnPanCaptureLost(PointerCaptureOutEvent evt)
+		{
+			isPanning = false;
+		}
+
+		private void ApplyTransform()
+		{
+			canvas.style.translate = new Translate(panOffset.x, panOffset.y);
+			canvas.style.scale = new Scale(new Vector3(currentZoom, currentZoom, 1f));
+		}
+
+		/// <summary>Pan/Zoom 초기화 — 그래프 재바인드 시 호출 가치.</summary>
+		public void ResetView()
+		{
+			currentZoom = 1f;
+			panOffset = Vector2.zero;
+			ApplyTransform();
 		}
 
 		/// <summary>그래프 바인딩 — 호출마다 전체 재구성. 노드/엣지 위치는 NodeBase.EditorPosition + NodeConnection.</summary>
