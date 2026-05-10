@@ -7,10 +7,16 @@ namespace WitchMendokusai
 	{
 	}
 
-	public class EventBus : Singleton<EventBus>
+	public class EventBus : Singleton<EventBus>, IEventBus
 	{
 		private readonly Dictionary<Type, List<Delegate>> handlers = new();
 		private readonly Dictionary<Type, object> stickyValues = new();
+
+		protected override void Awake()
+		{
+			base.Awake();
+			EventBusBridge.Register(this);
+		}
 
 		public void Subscribe<T>(Action<T> handler) where T : IEvent
 		{

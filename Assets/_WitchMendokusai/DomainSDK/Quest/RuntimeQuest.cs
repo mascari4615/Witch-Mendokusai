@@ -102,7 +102,7 @@ namespace WitchMendokusai
 				GameEventBridge.UnregisterCallback(gameEventType, Evaluate);
 			}
 
-			EventBus.Instance.Publish(new QuestWorkStartedEvent(Guid, workerID, WorkTime));
+			EventBusBridge.Publish(new QuestWorkStartedEvent(Guid, workerID, WorkTime));
 		}
 
 		public void EndWork()
@@ -129,7 +129,7 @@ namespace WitchMendokusai
 				GameEventBridge.UnregisterCallback(gameEventType, Evaluate);
 			}
 
-			EventBus.Instance.Publish(new QuestCompletedEvent(Guid, QuestSOID, Type));
+			EventBusBridge.Publish(new QuestCompletedEvent(Guid, QuestSOID, Type));
 		}
 
 		public void Load(RuntimeQuestSaveData saveData)
