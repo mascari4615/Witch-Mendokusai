@@ -16,7 +16,8 @@
         "PlayFab",
         "UniRx",
         "DOTween.Modules",
-        "WitchMendokusai.DomainSDK"
+        "WitchMendokusai.DomainSDK",
+        "VContainer"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

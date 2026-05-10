@@ -34,13 +34,13 @@ namespace WitchMendokusai
 
 			SetContentCameraMode(ContentCameraMode.Normal);
 
-			EventBus.Instance.Subscribe<PlayerSpawnedEvent>(OnPlayerSpawned);
-			EventBus.Instance.Subscribe<PlayerDespawnedEvent>(OnPlayerDespawned);
+			EventBusBridge.Subscribe<PlayerSpawnedEvent>(OnPlayerSpawned);
+			EventBusBridge.Subscribe<PlayerDespawnedEvent>(OnPlayerDespawned);
 		}
 
 		protected override void OnDestroy()
 		{
-			if (EventBus.TryGetExistingInstance(out EventBus eventBus))
+			if (EventBusBridge.TryGetInstance(out IEventBus eventBus))
 			{
 				eventBus.Unsubscribe<PlayerSpawnedEvent>(OnPlayerSpawned);
 				eventBus.Unsubscribe<PlayerDespawnedEvent>(OnPlayerDespawned);

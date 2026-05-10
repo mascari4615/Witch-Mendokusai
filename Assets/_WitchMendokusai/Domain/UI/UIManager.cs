@@ -72,8 +72,8 @@ namespace WitchMendokusai
 			DialogueRunner = uiRootGameObject.AddComponent<DialogueRunner>();
 			Transition = uiRootGameObject.AddComponent<TransitionView>();
 
-			EventBus.Instance.Unsubscribe<QuestCompletedEvent>(OnQuestCompleted);
-			EventBus.Instance.Subscribe<QuestCompletedEvent>(OnQuestCompleted);
+			EventBusBridge.Unsubscribe<QuestCompletedEvent>(OnQuestCompleted);
+			EventBusBridge.Subscribe<QuestCompletedEvent>(OnQuestCompleted);
 		}
 
 		private void OnQuestCompleted(QuestCompletedEvent evt)
@@ -90,7 +90,7 @@ namespace WitchMendokusai
 
 		protected override void OnDestroy()
 		{
-			EventBus.Instance.Unsubscribe<QuestCompletedEvent>(OnQuestCompleted);
+			EventBusBridge.Unsubscribe<QuestCompletedEvent>(OnQuestCompleted);
 
 			if (inventoryView != null)
 				Destroy(inventoryView);

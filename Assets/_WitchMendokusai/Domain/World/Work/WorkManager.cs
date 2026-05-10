@@ -24,8 +24,8 @@ namespace WitchMendokusai
 		{
 			Works = works;
 
-			EventBus.Instance.Unsubscribe<QuestWorkStartedEvent>(OnQuestWorkStarted);
-			EventBus.Instance.Subscribe<QuestWorkStartedEvent>(OnQuestWorkStarted);
+			EventBusBridge.Unsubscribe<QuestWorkStartedEvent>(OnQuestWorkStarted);
+			EventBusBridge.Subscribe<QuestWorkStartedEvent>(OnQuestWorkStarted);
 		}
 
 		private void OnQuestWorkStarted(QuestWorkStartedEvent evt)

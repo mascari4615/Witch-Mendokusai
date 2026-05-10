@@ -34,7 +34,7 @@ namespace WitchMendokusai
 
 			PlayerProvider.Instance.SetCurrent(this);
 
-			EventBus eventBus = EventBus.Instance;
+			IEventBus eventBus = EventBusBridge.Instance;
 			eventBus.Subscribe<PlayerJumpRequestedEvent>(OnJumpRequested);
 			eventBus.Subscribe<PlayerJumpReleasedEvent>(OnJumpReleased);
 			eventBus.Subscribe<PlayerSkillUseRequestedEvent>(OnSkillUseRequested);
@@ -48,7 +48,7 @@ namespace WitchMendokusai
 		{
 			Object.Init(GetDoll(DataManager.Instance.CurDollID));
 
-			EventBus.Instance.Publish(new PlayerSpawnedEvent
+			EventBusBridge.Publish(new PlayerSpawnedEvent
 			{
 				Transform = transform,
 				CameraPosition = Object.CameraPosition,
@@ -61,7 +61,7 @@ namespace WitchMendokusai
 			if (PlayerProvider.TryGetExistingInstance(out PlayerProvider playerProvider))
 				playerProvider.Clear();
 
-			if (EventBus.TryGetExistingInstance(out EventBus eventBus))
+			if (EventBusBridge.TryGetInstance(out IEventBus eventBus))
 			{
 				eventBus.Publish(new PlayerDespawnedEvent());
 				eventBus.ClearSticky<PlayerSpawnedEvent>();

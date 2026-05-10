@@ -1,6 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using VContainer;
+using VContainer.Unity;
 
 namespace WitchMendokusai
 {
@@ -30,6 +32,18 @@ namespace WitchMendokusai
 				return;
 			}
 
+			// RootLifetimeScope spawn 강제 — caller 매니저 Awake (씬 안 GameObject + 아래 lazy-load)
+			// 가 EventBusBridge 호출 시 Container ready 보장. VContainerSettings.OnFirstSceneLoaded
+			// (AfterSceneLoad) 보다 먼저 spawn 해야 race 0. (TASK-WM-078 γ EventBus)
+			if (VContainerSettings.Instance == null)
+			{
+				VContainerSettings.LoadInstanceFromPreloadAssets();
+			}
+			LifetimeScope rootScope = VContainerSettings.Instance.GetOrCreateRootLifetimeScopeInstance();
+			// VContainer Lifetime.Singleton = lazy spawn — Resolve 강제로 EventBus instance + Awake + Bridge.Register 트리거.
+			// 이게 없으면 caller Awake 시 EventBusBridge.instance == null → NPE.
+			rootScope.Container.Resolve<IEventBus>();
+
 			Object.Instantiate(bootstrapStuff.TimeManagerPrefab);
 			Object.Instantiate(bootstrapStuff.DataManagerPrefab);
 			Object.Instantiate(bootstrapStuff.AudioManagerPrefab);
@@ -42,10 +56,10 @@ namespace WitchMendokusai
 			Object.Instantiate(bootstrapStuff.InputManagerPrefab);
 			Object.Instantiate(bootstrapStuff.ShaderPackManagerPrefab);
 
-			// World-state Singleton lazy-load 강제 — Sky/Weather/EventBus/Player 흐름은
+			// World-state Singleton lazy-load 강제 — Sky/Weather/Player 흐름은
 			// 기존엔 씬 배치 또는 다른 매니저 접근으로 우연히 트리거되던 것을 명시적으로 ensure.
 			// (asmdef 분할 이후 load 순서 불확정성 회복용. WM-056-A 후속.)
-			_ = EventBus.Instance;
+			// EventBus = TASK-WM-078 γ 에서 Container 가 spawn 책임 (위 RootLifetimeScope).
 			_ = PlayerProvider.Instance;
 			_ = WorldClock.Instance;
 			_ = SkyDirector.Instance;

@@ -31,7 +31,7 @@ namespace WitchMendokusai
 
 			diedX.SetActive(false);
 
-			EventBus.Instance.Publish(new PlayerObjectBoundEvent
+			EventBusBridge.Publish(new PlayerObjectBoundEvent
 			{
 				UnitStat = UnitStat,
 				UnitData = UnitData,

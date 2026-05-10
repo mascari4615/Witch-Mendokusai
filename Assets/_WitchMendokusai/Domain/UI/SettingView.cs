@@ -46,7 +46,7 @@ namespace WitchMendokusai
 
 		private void Awake()
 		{
-			EventBus eventBus = EventBus.Instance;
+			IEventBus eventBus = EventBusBridge.Instance;
 			eventBus.Subscribe<PlayerObjectBoundEvent>(OnPlayerObjectBound);
 			eventBus.Subscribe<PlayerDespawnedEvent>(OnPlayerDespawned);
 		}
@@ -72,7 +72,7 @@ namespace WitchMendokusai
 
 		private void OnDestroy()
 		{
-			if (EventBus.TryGetExistingInstance(out EventBus eventBus))
+			if (EventBusBridge.TryGetInstance(out IEventBus eventBus))
 			{
 				eventBus.Unsubscribe<PlayerObjectBoundEvent>(OnPlayerObjectBound);
 				eventBus.Unsubscribe<PlayerDespawnedEvent>(OnPlayerDespawned);

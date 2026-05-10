@@ -6,6 +6,14 @@ namespace WitchMendokusai
 	{
 		private static IEventBus instance;
 
+		public static IEventBus Instance => instance;
+
+		public static bool TryGetInstance(out IEventBus bus)
+		{
+			bus = instance;
+			return bus != null;
+		}
+
 		public static void Register(IEventBus bus)
 		{
 			instance = bus;

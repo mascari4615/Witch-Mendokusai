@@ -18,7 +18,7 @@ namespace WitchMendokusai
 			canvasGroup = GetComponent<CanvasGroup>();
 			contentFitterRefresh = GetComponent<ContentFitterRefresh>();
 
-			EventBus eventBus = EventBus.Instance;
+			IEventBus eventBus = EventBusBridge.Instance;
 			eventBus.Subscribe<PlayerSpawnedEvent>(OnPlayerSpawned);
 			eventBus.Subscribe<PlayerDespawnedEvent>(OnPlayerDespawned);
 		}
@@ -31,7 +31,7 @@ namespace WitchMendokusai
 
 		private void OnDestroy()
 		{
-			if (EventBus.TryGetExistingInstance(out EventBus eventBus))
+			if (EventBusBridge.TryGetInstance(out IEventBus eventBus))
 			{
 				eventBus.Unsubscribe<PlayerSpawnedEvent>(OnPlayerSpawned);
 				eventBus.Unsubscribe<PlayerDespawnedEvent>(OnPlayerDespawned);

@@ -12,14 +12,14 @@ namespace WitchMendokusai
 		{
 			slotUI.Init();
 
-			EventBus eventBus = EventBus.Instance;
+			IEventBus eventBus = EventBusBridge.Instance;
 			eventBus.Subscribe<PlayerObjectBoundEvent>(OnObjectBound);
 			eventBus.Subscribe<PlayerDespawnedEvent>(OnDespawned);
 		}
 
 		private void OnDestroy()
 		{
-			if (EventBus.TryGetExistingInstance(out EventBus eventBus))
+			if (EventBusBridge.TryGetInstance(out IEventBus eventBus))
 			{
 				eventBus.Unsubscribe<PlayerObjectBoundEvent>(OnObjectBound);
 				eventBus.Unsubscribe<PlayerDespawnedEvent>(OnDespawned);
