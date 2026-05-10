@@ -13,7 +13,9 @@ namespace WitchMendokusai
 		public static readonly int BlurParamsId = Shader.PropertyToID("_BlurParams");
 
 		[Header("Blur Settings")]
-		[Range(1, 12)]
+		[SerializeField] private bool useDualKawase = true;
+
+		[Range(1, 8)]
 		[SerializeField] private int iterations = 4;
 
 		[Range(1f, 10f)]
@@ -39,6 +41,7 @@ namespace WitchMendokusai
 		private Material runtimeMaterial;
 		private CustomBlurPass blurPass;
 
+		public bool UseDualKawase => useDualKawase;
 		public int Iterations => iterations;
 		public float Downsample => downsample;
 		public float Intensity => intensity;

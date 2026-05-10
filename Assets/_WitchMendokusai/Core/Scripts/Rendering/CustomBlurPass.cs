@@ -36,6 +36,10 @@ namespace WitchMendokusai
 			lastExternalRT = null;
 		}
 
+		private const int PASS_KAWASE = 0;
+		private const int PASS_DUAL_DOWN = 1;
+		private const int PASS_DUAL_UP = 2;
+
 		private class PassData
 		{
 			public TextureHandle ColorSource;
@@ -44,6 +48,7 @@ namespace WitchMendokusai
 			public RTHandle ExternalRT;
 			public Material BlurMaterial;
 			public MaterialPropertyBlock PropertyBlock;
+			public bool UseDualKawase;
 			public int Iterations;
 			public float Intensity;
 			public float Offset;
@@ -99,6 +104,7 @@ namespace WitchMendokusai
 				passData.Destination = destination;
 				passData.BlurMaterial = feature.BlurMaterial;
 				passData.PropertyBlock = propertyBlock;
+				passData.UseDualKawase = feature.UseDualKawase;
 				passData.Iterations = feature.Iterations;
 				passData.Intensity = feature.Intensity;
 				passData.Offset = feature.Offset;
@@ -115,29 +121,51 @@ namespace WitchMendokusai
 			}
 		}
 
-		// Kawase ping-pong loop. UnsafeCommandBuffer 직접 — SetRenderTarget + DrawProcedural fullscreen triangle.
-		// Unity 6 RG 정합: MeshTopology.Triangles 3 vertex + _BlitScaleBias=(1,1,0,0) 명시 (Blit.hlsl 의 GetFullScreenTriangleTexCoord 가 사용).
-		// destination = imported external RT (TargetRT 있을 때) → iterations 짝수 시 마지막 결과가 external 에 직접 박힘.
+		// ping-pong blit helper.
+		private static void Blit(UnsafeCommandBuffer cmd, PassData data, Texture source, Texture target, int passIndex, float iterationScale)
+		{
+			data.PropertyBlock.SetTexture(BlitTextureId, source);
+			data.PropertyBlock.SetVector(CustomBlurFeature.BlurParamsId, new Vector4(data.Intensity, iterationScale, 0f, 0f));
+			data.PropertyBlock.SetVector(BlitScaleBiasId, new Vector4(1f, 1f, 0f, 0f));
+			cmd.SetRenderTarget(target, 0, CubemapFace.Unknown, 0);
+			cmd.DrawProcedural(Matrix4x4.identity, data.BlurMaterial, passIndex, MeshTopology.Triangles, 3, 1, data.PropertyBlock);
+		}
+
+		// DualKawase: N down passes + N up passes (ARM GDC 2015).
+		// Kawase fallback: legacy ping-pong.
+		// Unity 6 RG: MeshTopology.Triangles 3 vertex + _BlitScaleBias=(1,1,0,0) (Blit.hlsl GetFullScreenTriangleTexCoord).
 		private static void Execute(PassData data, UnsafeCommandBuffer cmd)
 		{
 			data.PropertyBlock.Clear();
 
-			Texture current = data.ColorSource;
-
-			for (int i = 0; i < data.Iterations; i++)
+			if (data.UseDualKawase == true)
 			{
-				Texture target = (i % 2 == 0) ? (Texture)data.Source : (Texture)data.Destination;
-				float iterationScale = (i + 0.5f) * data.Offset;
-
-				data.PropertyBlock.SetTexture(BlitTextureId, current);
-				data.PropertyBlock.SetVector(CustomBlurFeature.BlurParamsId,
-					new Vector4(data.Intensity, iterationScale, 0f, 0f));
-				data.PropertyBlock.SetVector(BlitScaleBiasId, new Vector4(1f, 1f, 0f, 0f));
-
-				cmd.SetRenderTarget(target, 0, CubemapFace.Unknown, 0);
-				cmd.DrawProcedural(Matrix4x4.identity, data.BlurMaterial, 0, MeshTopology.Triangles, 3, 1, data.PropertyBlock);
-
-				current = target;
+				// down pass (0..N-1): source→source/destination ping-pong with Down shader
+				Texture current = data.ColorSource;
+				for (int i = 0; i < data.Iterations; i++)
+				{
+					Texture target = (i % 2 == 0) ? (Texture)data.Source : (Texture)data.Destination;
+					Blit(cmd, data, current, target, PASS_DUAL_DOWN, (i + 0.5f) * data.Offset);
+					current = target;
+				}
+				// up pass (N-1..0): reverse with Up shader, final result lands on Destination
+				for (int i = data.Iterations - 1; i >= 0; i--)
+				{
+					Texture target = (i % 2 == 0) ? (Texture)data.Destination : (Texture)data.Source;
+					Blit(cmd, data, current, target, PASS_DUAL_UP, (i + 0.5f) * data.Offset);
+					current = target;
+				}
+			}
+			else
+			{
+				// Kawase legacy ping-pong
+				Texture current = data.ColorSource;
+				for (int i = 0; i < data.Iterations; i++)
+				{
+					Texture target = (i % 2 == 0) ? (Texture)data.Source : (Texture)data.Destination;
+					Blit(cmd, data, current, target, PASS_KAWASE, (i + 0.5f) * data.Offset);
+					current = target;
+				}
 			}
 		}
 
