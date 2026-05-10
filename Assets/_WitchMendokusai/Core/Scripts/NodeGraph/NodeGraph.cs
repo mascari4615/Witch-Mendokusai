@@ -18,7 +18,12 @@ namespace WitchMendokusai.NodeGraph
 		[SerializeField] private List<NodeConnection> connections = new();
 
 		public IReadOnlyList<NodeBase> Nodes => nodes;
-		public IReadOnlyList<NodeConnection> Connections => connections;
+
+		/// <summary>
+		/// 그래프 연결 — base = SerializeField 직렬화 connections. 서브클래스가 override 시
+		/// 도메인 데이터에서 derived connections 합산 가능 (예: ChapterSO 의 UnlockEffects → from→to, TASK-WM-059 polish B).
+		/// </summary>
+		public virtual IReadOnlyList<NodeConnection> Connections => connections;
 
 		/// <summary>
 		/// 그래프 도메인 — 카탈로그 (Editor) 필터링에 사용. 서브클래스가 override.
