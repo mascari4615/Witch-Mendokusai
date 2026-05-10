@@ -36,6 +36,34 @@ namespace WitchMendokusai
 			RegisterLeaf<WeatherDirector>(builder);
 			RegisterLeaf<GameManager>(builder);
 			RegisterLeaf<UIRoot>(builder);
+
+			// θ eager spawn — Bootstrap.OnBooting 의 20 Container.Resolve 명시 호출 흡수 (TASK-WM-078 θ, 2026-05-11).
+			// Lifetime.Singleton = lazy default — Resolve 강제로 prefab Instantiate + Awake + raw Instance 셋 트리거.
+			// 순서 = caller 의존 정합 (EventBus 우선, 그 다음 leaf 13, 마지막 root 7).
+			builder.RegisterBuildCallback(container =>
+			{
+				container.Resolve<IEventBus>();
+				container.Resolve<AudioManager>();
+				container.Resolve<ShaderPackManager>();
+				container.Resolve<SkyDirector>();
+				container.Resolve<GameEventManager>();
+				container.Resolve<HoldingManager>();
+				container.Resolve<InputManager>();
+				container.Resolve<ObjectPoolManager>();
+				container.Resolve<UnitStatCalculator>();
+				container.Resolve<CodexPreviewController>();
+				container.Resolve<WorldClock>();
+				container.Resolve<PlayerProvider>();
+				container.Resolve<TimeManager>();
+				container.Resolve<WeatherSystem>();
+				container.Resolve<WindowManager>();
+				container.Resolve<DataLoader>();
+				container.Resolve<TooltipController>();
+				container.Resolve<DataManager>();
+				container.Resolve<WeatherDirector>();
+				container.Resolve<GameManager>();
+				container.Resolve<UIRoot>();
+			});
 		}
 
 		private static void RegisterLeaf<T>(IContainerBuilder builder) where T : MonoBehaviour
