@@ -22,14 +22,6 @@ namespace WitchMendokusai
 			}
 			VContainerSettings.Instance.GetOrCreateRootLifetimeScopeInstance();
 
-			// InputStrategySelector 가 SceneManager.sceneLoaded 구독 → 씬별 InputStrategy 설정
-			// (World→InputStrategyWorld, Lobby→InputStrategyLobby). Resources prefab 없으므로
-			// 직접 GameObject + AddComponent. 첫 sceneLoaded 이벤트 잡으려면 BeforeSceneLoad 시점 등록 필수.
-			// (P3 후속 — Container 로 마이그)
-			GameObject inputStrategySelectorGo = new GameObject(nameof(InputStrategySelector));
-			inputStrategySelectorGo.AddComponent<InputStrategySelector>();
-			Object.DontDestroyOnLoad(inputStrategySelectorGo);
-
 			// ζ World 씬 한정 4 매니저 (StageManager / DevWindowController / CodexWindowController / DungeonManager)
 			// — SceneLifetimeScope 자율 spawn (TASK-WM-078 ζ, 2026-05-11). World 씬 진입 시 GameObject 생성
 			// → 4 매니저 Lifetime.Scoped spawn. 씬 unload 시 자동 dispose → 4 매니저 destroy.

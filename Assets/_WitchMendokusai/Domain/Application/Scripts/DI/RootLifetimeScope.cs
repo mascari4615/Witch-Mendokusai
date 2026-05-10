@@ -37,9 +37,14 @@ namespace WitchMendokusai
 			RegisterLeaf<GameManager>(builder);
 			RegisterLeaf<UIRoot>(builder);
 
-			// θ eager spawn — Bootstrap.OnBooting 의 20 Container.Resolve 명시 호출 흡수 (TASK-WM-078 θ, 2026-05-11).
+			// θ-5a InputStrategySelector — 새 GameObject + AddComponent (코드 spawn 의 VContainer 표준 흡수, TASK-WM-078 θ-5a, 2026-05-11).
+			// Bootstrap.OnBooting 의 직접 GameObject 생성 폐기.
+			builder.RegisterComponentOnNewGameObject<InputStrategySelector>(Lifetime.Singleton, nameof(InputStrategySelector))
+				.DontDestroyOnLoad();
+
+			// θ eager spawn — Bootstrap.OnBooting 의 21 Container.Resolve 명시 호출 흡수 (TASK-WM-078 θ + θ-5a, 2026-05-11).
 			// Lifetime.Singleton = lazy default — Resolve 강제로 prefab Instantiate + Awake + raw Instance 셋 트리거.
-			// 순서 = caller 의존 정합 (EventBus 우선, 그 다음 leaf 13, 마지막 root 7).
+			// 순서 = caller 의존 정합 (EventBus 우선, 그 다음 leaf 13, 마지막 root 7, InputStrategySelector 끝).
 			builder.RegisterBuildCallback(container =>
 			{
 				container.Resolve<IEventBus>();
@@ -63,6 +68,7 @@ namespace WitchMendokusai
 				container.Resolve<WeatherDirector>();
 				container.Resolve<GameManager>();
 				container.Resolve<UIRoot>();
+				container.Resolve<InputStrategySelector>();
 			});
 		}
 
