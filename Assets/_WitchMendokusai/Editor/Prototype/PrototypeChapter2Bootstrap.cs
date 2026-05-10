@@ -113,7 +113,7 @@ namespace WitchMendokusai
 			AssetDatabase.SaveAssets();
 			AssetDatabase.Refresh();
 
-			Debug.Log($"[PrototypeChapter2Bootstrap] Generated: 1 ChapterSO + {NODE_COUNT} QuestSO + {NODE_COUNT} DialogueLine. 「에디터에서 남은 작업」: UIMagicBookPanel.chapterDatas Inspector 에 Chapter_Prototype2 추가.");
+			Debug.Log($"[PrototypeChapter2Bootstrap] Generated: 1 ChapterSO + {NODE_COUNT} QuestSO + {NODE_COUNT} DialogueLine. 「에디터에서 남은 작업」: Window > Asset Management > Addressables > Groups → Chapter_Prototype2.asset 추가 + Label 'ChapterSO' 등록 (TASK-WM-059 D 후 자동 수집).");
 
 			EditorUtility.FocusProjectWindow();
 			Selection.activeObject = chapter;
