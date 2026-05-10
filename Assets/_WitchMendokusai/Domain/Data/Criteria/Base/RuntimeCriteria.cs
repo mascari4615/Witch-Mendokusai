@@ -47,7 +47,7 @@ namespace WitchMendokusai
 		{
 			return new RuntimeCriteriaSaveData
 			{
-				CriteriaInfo = new CriteriaInfoSaveData(CriteriaInfo),
+				CriteriaInfo = CriteriaInfo.ToSaveData(),
 				JustOnce = JustOnce,
 				IsCompleted = IsCompleted
 			};
