@@ -10,7 +10,6 @@ GameObject:
   m_Component:
   - component: {fileID: 141052861788948987}
   - component: {fileID: 1301833761920605747}
-  - component: {fileID: 2218574384161391574}
   m_Layer: 0
   m_Name: WeatherSystem
   m_TagString: Untagged
@@ -48,17 +47,3 @@ MonoBehaviour:
   dontDestroyOnLoad: 1
   <Table>k__BackingField: {fileID: 11400000, guid: dc8ebf2955628ef4dab836d0aed8673e, type: 2}
   <StartWeather>k__BackingField: 0
---- !u!114 &2218574384161391574
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8624280920865624328}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 02b2a48c60e9b034cbf385a29779202c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::WitchMendokusai.WeatherHUD
-  show: 1
-  anchor: {x: 10, y: 150}

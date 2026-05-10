@@ -10,7 +10,6 @@ GameObject:
   m_Component:
   - component: {fileID: 2010681962905894300}
   - component: {fileID: 6770155674362151715}
-  - component: {fileID: 7795926539809232741}
   m_Layer: 0
   m_Name: WorldClock
   m_TagString: Untagged
@@ -47,17 +46,3 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::WitchMendokusai.WorldClock
   dontDestroyOnLoad: 1
   <Config>k__BackingField: {fileID: 11400000, guid: 8540101b38ba61f4cb71505de2da30a3, type: 2}
---- !u!114 &7795926539809232741
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 840407556034966104}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 706120d0e901d04469015d9a0bab265a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::WitchMendokusai.WorldClockHUD
-  show: 1
-  anchor: {x: 10, y: 10}
