@@ -455,7 +455,7 @@ namespace WitchMendokusai
 
 			GameObject root = new GameObject(nameof(WeatherSystem));
 			WeatherSystem weatherSystem = root.AddComponent<WeatherSystem>();
-			root.AddComponent<WeatherHUD>();
+			// WeatherHUD 제거 — TASK-WM-096 (DevWindow TimeWeatherMode 로 마이그)
 
 			SerializedObject serializedObject = new SerializedObject(weatherSystem);
 
@@ -493,11 +493,7 @@ namespace WitchMendokusai
 
 				bool changed = false;
 
-				if (prefabRoot.GetComponent<WeatherHUD>() == null)
-				{
-					prefabRoot.AddComponent<WeatherHUD>();
-					changed = true;
-				}
+				// WeatherHUD ensure 제거 — TASK-WM-096 (DevWindow TimeWeatherMode 로 마이그)
 
 				SerializedObject serializedObject = new SerializedObject(weatherSystem);
 

@@ -37,7 +37,7 @@ namespace WitchMendokusai
 
 			GameObject root = new GameObject(nameof(WorldClock));
 			WorldClock worldClock = root.AddComponent<WorldClock>();
-			root.AddComponent<WorldClockHUD>();
+			// WorldClockHUD 제거 — TASK-WM-096 (DevWindow TimeWeatherMode 로 마이그)
 
 			SerializedObject serializedObject = new SerializedObject(worldClock);
 

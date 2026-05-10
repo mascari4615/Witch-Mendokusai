@@ -100,6 +100,8 @@ namespace WitchMendokusai
 				DevModeRegistry.Instance.Register(new DevDataListMode<Dungeon>("stages", "Stages", "D_", "dungeon"));
 			if (DevModeRegistry.Instance.FindById("quests") == null)
 				DevModeRegistry.Instance.Register(new DevDataListMode<QuestSO>("quests", "Quests", "Q_", "quest", "unlock"));
+			if (DevModeRegistry.Instance.FindById("timeweather") == null)
+				DevModeRegistry.Instance.Register(new TimeWeatherMode());
 		}
 
 		/// <summary>UI 측에서 명령 시스템에 진입할 때 호출. 명령행에 직접 입력한 것과 동일한 경로 (출력/에러 처리 포함).</summary>
