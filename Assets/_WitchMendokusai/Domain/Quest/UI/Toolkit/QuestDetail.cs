@@ -70,8 +70,8 @@ namespace WitchMendokusai
 			if (hasQuest == false)
 				return;
 
-			nameLabel.text = quest.Name ?? quest.SO?.Name ?? "?";
-			descLabel.text = quest.Description ?? quest.SO?.Description ?? string.Empty;
+			nameLabel.text = quest.Name ?? "?";
+			descLabel.text = quest.Description ?? string.Empty;
 			stateLabel.text = quest.State.ToString();
 			progressLabel.text = quest.GetProgressText();
 

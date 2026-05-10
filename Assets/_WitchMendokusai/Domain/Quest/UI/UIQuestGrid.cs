@@ -66,10 +66,18 @@ namespace WitchMendokusai
 					slot.SetQuest(quest);
 					slot.UpdateUI();
 
-					if (quest.SO == null)
+					if (quest.QuestSOID == -1)
+					{
 						slot.SetSlot(null, quest.Name, quest.Description);
+					}
 					else
-						slot.SetSlot(quest.SO);
+					{
+						QuestSO questSO = SOHelper.GetQuestSO(quest.QuestSOID);
+						if (questSO != null)
+							slot.SetSlot(questSO);
+						else
+							slot.SetSlot(null, quest.Name, quest.Description);
+					}
 
 					slot.gameObject.SetActive(slotActive);
 				}

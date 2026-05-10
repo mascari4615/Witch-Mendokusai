@@ -59,8 +59,13 @@ namespace WitchMendokusai
 
 		public override void ReceiveDamage(DamageInfo damageInfo)
 		{
+			// equipmentData lookup — DataID 매핑 (DomainSDK Combat 격상, TASK-WM-089).
+			EquipmentData equipmentData = damageInfo.equipmentDataId != DamageInfo.NO_DATA_ID
+				? SOHelper.Get<EquipmentData>(damageInfo.equipmentDataId)
+				: null;
+
 			bool isCorrectTool = UnitData.RequiredTool == EquipmentType.Default
-				|| (damageInfo.equipmentData != null && damageInfo.equipmentData.EquipmentType == UnitData.RequiredTool);
+				|| (equipmentData != null && equipmentData.EquipmentType == UnitData.RequiredTool);
 
 			// 올바른 도구가 아니면 데미지 1/10, 최소 1
 			if (isCorrectTool == false)

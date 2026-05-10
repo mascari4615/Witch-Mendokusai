@@ -54,7 +54,7 @@ namespace WitchMendokusai
 
 		public RuntimeQuest GetQuest(QuestSO questData)
 		{
-			return Quests.Data.Find(x => x.SO?.ID == questData.ID);
+			return Quests.Data.Find(x => x.QuestSOID == questData.ID);
 		}
 
 		public RuntimeQuest GetQuest(Guid? guid)

@@ -736,8 +736,12 @@ namespace WitchMendokusai
 		private static void SetEnum(SerializedObject serializedObject, string path, int value)
 		{
 			SerializedProperty property = serializedObject.FindProperty(path);
-			if (property != null)
-				property.enumValueIndex = value;
+			if (property == null)
+			{
+				Debug.LogError($"[WeatherSystemBootstrap] SerializedProperty 누락 — path='{path}'");
+				return;
+			}
+			property.intValue = value;
 		}
 
 		private static void SetObjectRef(SerializedObject serializedObject, string path, UnityEngine.Object value)
