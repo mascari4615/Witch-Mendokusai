@@ -6,10 +6,9 @@ namespace WitchMendokusai
 	{
 		None = -1,
 
-		MagicBook = 0,
-		Map = 1,
+		Map = 0,
 
-		Count = 2,
+		Count = 1,
 
 		TabMenu = 100,
 	}
