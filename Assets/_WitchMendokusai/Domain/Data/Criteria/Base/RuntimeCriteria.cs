@@ -38,7 +38,7 @@ namespace WitchMendokusai
 		public void Load(RuntimeCriteriaSaveData saveData)
 		{
 			CriteriaInfo = new CriteriaInfo(saveData.CriteriaInfo);
-			Criteria = Criteria.CreateCriteria(CriteriaInfo);
+			Criteria = CriteriaFactory.Create(CriteriaInfo);
 			JustOnce = saveData.JustOnce;
 			IsCompleted = saveData.IsCompleted;
 		}
@@ -57,7 +57,7 @@ namespace WitchMendokusai
 		public RuntimeCriteria(CriteriaInfo criteriaInfo)
 		{
 			CriteriaInfo = criteriaInfo;
-			Criteria = Criteria.CreateCriteria(criteriaInfo);
+			Criteria = CriteriaFactory.Create(criteriaInfo);
 			JustOnce = criteriaInfo.JustOnce;
 		}
 
