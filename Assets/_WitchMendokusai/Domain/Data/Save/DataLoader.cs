@@ -27,7 +27,11 @@ namespace WitchMendokusai
 
 		private void Awake()
 		{
-			if (Instance != null && Instance != this) { Destroy(gameObject); return; }
+			if (Instance != null && Instance != this)
+			{
+				Destroy(gameObject);
+				return;
+			}
 			Instance = this;
 			// prefab m_IsActive=1 (Container spawn 시 Awake 보장) + Awake 직후 self-deactivate
 			// — Lobby 시 progress UI 안 보이게. LoadData() 의 SetActive(true) 가 보이게 만듦.
