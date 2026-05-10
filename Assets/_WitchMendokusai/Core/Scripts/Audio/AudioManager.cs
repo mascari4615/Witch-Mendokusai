@@ -18,6 +18,7 @@ namespace WitchMendokusai
 		private readonly Bus[] buses = new Bus[3];
 		private EventInstance sfxVolumeTestEvent;
 		private EventInstance bgmEvent;
+		private EventInstance ambientEvent;
 		private PLAYBACK_STATE pbState;
 		private readonly List<string> bgmTitles = new();
 		private int bgmIndex = 0;
@@ -80,6 +81,18 @@ namespace WitchMendokusai
 		}
 
 		public void StopMusic() => bgmEvent.stop(FMOD.Studio.STOP_MODE.ALLOWFADEOUT);
+
+		public void PlayAmbient(string eventPath)
+		{
+			ambientEvent.stop(FMOD.Studio.STOP_MODE.ALLOWFADEOUT);
+			if (string.IsNullOrEmpty(eventPath) == false)
+			{
+				ambientEvent = RuntimeManager.CreateInstance(eventPath);
+				ambientEvent.start();
+			}
+		}
+
+		public void StopAmbient() => ambientEvent.stop(FMOD.Studio.STOP_MODE.ALLOWFADEOUT);
 
 		public void PlayMusic(string eventPath)
 		{

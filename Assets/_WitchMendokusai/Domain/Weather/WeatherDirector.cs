@@ -53,6 +53,7 @@ namespace WitchMendokusai
 
 			DestroyCurrentVisual();
 			Shader.SetGlobalFloat(WetnessId, 0f);
+			AudioManager.Instance.StopAmbient();
 
 			base.OnDestroy();
 		}
@@ -75,6 +76,9 @@ namespace WitchMendokusai
 			// E2: 이전 visual destroy + 새 visual instantiate + SO 노브 즉시 적용.
 			DestroyCurrentVisual();
 			SpawnCurrentVisual();
+
+			// E4: SFX ambient — SfxKey null/empty 면 PlayAmbient 가 stop 만 처리.
+			AudioManager.Instance.PlayAmbient(CurrentWeatherSO?.SfxKey);
 		}
 
 		private void SpawnCurrentVisual()
