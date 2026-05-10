@@ -42,12 +42,14 @@ MonoBehaviour:
     probeVolumeBlendStatesCS: {fileID: 0}
   m_RendererFeatures:
   - {fileID: 8116458559962093481}
-  - {fileID: 8009472877475435230}
-  m_RendererFeatureMap: a917b8b40e74a370de920c64255d276f
+  - {fileID: 7771435283215533630}
+  m_RendererFeatureMap: a917b8b40e74a3703ec6ff1a37afd96b
   m_UseNativeRenderPass: 0
-  xrSystemData: {fileID: 11400000, guid: 60e1133243b97e347b653163a8c01b64, type: 2}
   postProcessData: {fileID: 11400000, guid: 41439944d30ece34e96484bdb6645b55, type: 2}
-  m_AssetVersion: 2
+  m_AssetVersion: 3
+  m_PrepassLayerMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
   m_OpaqueLayerMask:
     serializedVersion: 2
     m_Bits: 4294967295
@@ -68,7 +70,27 @@ MonoBehaviour:
   m_DepthAttachmentFormat: 0
   m_DepthTextureFormat: 0
   m_AccurateGbufferNormals: 0
-  m_IntermediateTextureMode: 1
+  m_IntermediateTextureMode: 0
+--- !u!114 &7771435283215533630
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5661be86df3612f46a79b507777efedd, type: 3}
+  m_Name: CustomBlurFeature
+  m_EditorClassIdentifier: Assembly-CSharp::WitchMendokusai.CustomBlurFeature
+  m_Active: 1
+  iterations: 4
+  downsample: 2
+  intensity: 1
+  offset: 1
+  injectionPoint: 600
+  blurShader: {fileID: 0}
+  targetRT: {fileID: 8400000, guid: 4f1f5a32ebefe5041a43447ad1711148, type: 2}
 --- !u!114 &8009472877475435230
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -32,6 +32,10 @@ namespace WitchMendokusai
 		[Header("Material")]
 		[SerializeField] private Shader blurShader;
 
+		[Header("Output")]
+		[Tooltip("Blur 결과를 외부에서 sample 할 RT asset. UI Toolkit USS background-image 등 사용처가 reference. 미할당 시 globaltexture 만 출력 (76 호환).")]
+		[SerializeField] private RenderTexture targetRT;
+
 		private Material runtimeMaterial;
 		private CustomBlurPass blurPass;
 
@@ -40,6 +44,7 @@ namespace WitchMendokusai
 		public float Intensity => intensity;
 		public float Offset => offset;
 		public Material BlurMaterial => runtimeMaterial;
+		public RenderTexture TargetRT => targetRT;
 
 		public override void Create()
 		{
@@ -58,6 +63,18 @@ namespace WitchMendokusai
 			if (renderingData.cameraData.isPreviewCamera == true || renderingData.cameraData.isSceneViewCamera == true)
 			{
 				Shader.SetGlobalTexture(GlobalBlurTextureId, Texture2D.linearGrayTexture);
+				return;
+			}
+
+			// Game 카메라만 blur pass 활성. Reflection Probe / sub-camera 등 다른 type 은 skip — RT overwrite 방지.
+			if (renderingData.cameraData.cameraType != CameraType.Game)
+			{
+				return;
+			}
+
+			// 사용처 (SettingView 등) 가 BlurRequest.Add() 한 동안만 pass 활성화. 닫혀있으면 GPU 비용 0.
+			if (BlurRequest.Count == 0)
+			{
 				return;
 			}
 

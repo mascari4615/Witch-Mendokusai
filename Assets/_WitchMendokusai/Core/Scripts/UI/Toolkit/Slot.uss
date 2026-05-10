@@ -473,7 +473,8 @@
     top: 0;
     right: 0;
     bottom: 0;
-    background-color: rgba(10, 10, 15, 0.95);
+    background-color: rgba(10, 10, 15, 0.5);
+    -unity-background-scale-mode: stretch-to-fill;
     flex-direction: row;
     opacity: 0;
     transition-property: opacity;

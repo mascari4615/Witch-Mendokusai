@@ -19,6 +19,9 @@ namespace WitchMendokusai
 		private readonly ProfilingSampler profilingSampler;
 		private readonly MaterialPropertyBlock propertyBlock;
 
+		private RTHandle externalRTHandle;
+		private RenderTexture lastExternalRT;
+
 		public CustomBlurPass(CustomBlurFeature feature)
 		{
 			this.feature = feature;
@@ -28,6 +31,9 @@ namespace WitchMendokusai
 
 		public void Dispose()
 		{
+			externalRTHandle?.Release();
+			externalRTHandle = null;
+			lastExternalRT = null;
 		}
 
 		private class PassData
@@ -35,6 +41,7 @@ namespace WitchMendokusai
 			public TextureHandle ColorSource;
 			public TextureHandle Source;
 			public TextureHandle Destination;
+			public RTHandle ExternalRT;
 			public Material BlurMaterial;
 			public MaterialPropertyBlock PropertyBlock;
 			public int Iterations;
@@ -54,7 +61,8 @@ namespace WitchMendokusai
 
 			TextureHandle cameraColorSource = resourceData.activeColorTexture;
 
-			RenderTextureDescriptor cameraDescriptor = renderGraph.GetTextureDesc(cameraColorSource).ToDescriptor();
+			UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
+			RenderTextureDescriptor cameraDescriptor = cameraData.cameraTargetDescriptor;
 			int width = Mathf.Max(1, Mathf.RoundToInt(cameraDescriptor.width / feature.Downsample));
 			int height = Mathf.Max(1, Mathf.RoundToInt(cameraDescriptor.height / feature.Downsample));
 
@@ -64,7 +72,25 @@ namespace WitchMendokusai
 			TextureDesc destDesc = new TextureDesc(blurDescriptor) { name = DEST_RT_NAME };
 
 			TextureHandle source = renderGraph.CreateTexture(sourceDesc);
-			TextureHandle destination = renderGraph.CreateTexture(destDesc);
+
+			// destination 자체를 external RT 로 (있을 때) — RG 가 처음부터 인식. ping-pong 마지막 결과가 직접 external 에 박힘.
+			RenderTexture currentExternalRT = feature.TargetRT;
+			TextureHandle destination;
+			bool useExternal = (currentExternalRT != null);
+			if (useExternal == true)
+			{
+				if (externalRTHandle == null || lastExternalRT != currentExternalRT)
+				{
+					externalRTHandle?.Release();
+					externalRTHandle = RTHandles.Alloc(currentExternalRT);
+					lastExternalRT = currentExternalRT;
+				}
+				destination = renderGraph.ImportTexture(externalRTHandle);
+			}
+			else
+			{
+				destination = renderGraph.CreateTexture(destDesc);
+			}
 
 			using (IUnsafeRenderGraphBuilder builder = renderGraph.AddUnsafePass<PassData>(PASS_NAME, out PassData passData, profilingSampler))
 			{
@@ -89,44 +115,33 @@ namespace WitchMendokusai
 			}
 		}
 
-		private static void Execute(PassData data, UnityEngine.Rendering.CommandBuffer cmd)
+		// Kawase ping-pong loop. UnsafeCommandBuffer 직접 — SetRenderTarget + DrawProcedural fullscreen triangle.
+		// Unity 6 RG 정합: MeshTopology.Triangles 3 vertex + _BlitScaleBias=(1,1,0,0) 명시 (Blit.hlsl 의 GetFullScreenTriangleTexCoord 가 사용).
+		// destination = imported external RT (TargetRT 있을 때) → iterations 짝수 시 마지막 결과가 external 에 직접 박힘.
+		private static void Execute(PassData data, UnsafeCommandBuffer cmd)
 		{
-			// Initial blit: cameraColor → source (downsample)
-			Blitter.BlitCameraTexture(cmd, data.ColorSource, data.Source);
+			data.PropertyBlock.Clear();
 
-			TextureHandle current = data.Source;
-			TextureHandle target = data.Destination;
+			Texture current = data.ColorSource;
 
-			// Kawase iterations — 매 iteration 의 offset 증가 (1.5, 2.5, 3.5, ...) for typical Kawase progression
 			for (int i = 0; i < data.Iterations; i++)
 			{
+				Texture target = (i % 2 == 0) ? (Texture)data.Source : (Texture)data.Destination;
 				float iterationScale = (i + 0.5f) * data.Offset;
 
+				data.PropertyBlock.SetTexture(BlitTextureId, current);
 				data.PropertyBlock.SetVector(CustomBlurFeature.BlurParamsId,
 					new Vector4(data.Intensity, iterationScale, 0f, 0f));
+				data.PropertyBlock.SetVector(BlitScaleBiasId, new Vector4(1f, 1f, 0f, 0f));
 
-				Blitter.BlitTexture(cmd, current, target, data.BlurMaterial, 0);
+				cmd.SetRenderTarget(target, 0, CubemapFace.Unknown, 0);
+				cmd.DrawProcedural(Matrix4x4.identity, data.BlurMaterial, 0, MeshTopology.Triangles, 3, 1, data.PropertyBlock);
 
-				// ping-pong swap
-				(current, target) = (target, current);
-			}
-
-			// 최종 결과는 current (마지막 iteration 의 destination → swap 후 current). SetGlobalTextureAfterPass 의 destination 과 일치하도록 마지막 swap 후 current 를 destination 처럼 처리.
-			// 단 SetGlobalTextureAfterPass 의 ref 가 *처음 declare* 된 destination handle — iteration 홀수/짝수 따라 미스매치 가능.
-			// 보장: iteration 짝수 시 final = source, 홀수 시 final = destination.
-			// 짝수 케이스 1회 추가 blit 으로 destination 박음.
-			if (data.Iterations % 2 == 0)
-			{
-				Blitter.BlitTexture(cmd, current, target, data.BlurMaterial, 0);
+				current = target;
 			}
 		}
-	}
 
-	internal static class TextureDescriptorExtensions
-	{
-		public static RenderTextureDescriptor ToDescriptor(this TextureDesc desc)
-		{
-			return new RenderTextureDescriptor((int)desc.width, (int)desc.height);
-		}
+		private static readonly int BlitTextureId = Shader.PropertyToID("_BlitTexture");
+		private static readonly int BlitScaleBiasId = Shader.PropertyToID("_BlitScaleBias");
 	}
 }

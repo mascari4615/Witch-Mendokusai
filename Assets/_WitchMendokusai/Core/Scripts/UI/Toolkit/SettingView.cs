@@ -57,6 +57,13 @@ namespace WitchMendokusai
 			container.AddToClassList(USS_CLASS);
 			UIRoot.Instance.ScreenLayer.Add(container);
 
+			// Frosted glass — RT 직접 reference (USS URL 의존 X). CustomBlurFeature 가 매 frame 그림 (Settings open 동안).
+			RenderTexture blurOutput = Resources.Load<RenderTexture>("Rendering/CustomBlurOutput");
+			if (blurOutput != null)
+			{
+				container.style.backgroundImage = Background.FromRenderTexture(blurOutput);
+			}
+
 			BuildUI();
 
 			// 초기 상태: 닫힘 (display: none 으로 처리됨)
@@ -385,6 +392,16 @@ namespace WitchMendokusai
 			// 쉐이더팩 탭 진입 시 최신 상태 반영 (다른 곳에서 ShaderPackManager 변경했을 수 있음)
 			RebuildShaderPackList();
 			RebuildShaderPackDetail();
+
+			// Frosted glass — blur pass capture 동안 panel repaint 매 frame (RT update 따라가기).
+			// paused 후엔 씬 변화 0 이라 100ms 면 충분 → 그 후 BlurRequest.Remove + repaint 종료.
+			BlurRequest.Add();
+			IVisualElementScheduledItem repaintItem = container.schedule.Execute(() => container.MarkDirtyRepaint()).Every(16);
+			container.schedule.Execute(() =>
+			{
+				BlurRequest.Remove();
+				repaintItem.Pause();
+			}).ExecuteLater(100);
 
 			TimeManager.Instance.Pause(gameObject);
 		}
