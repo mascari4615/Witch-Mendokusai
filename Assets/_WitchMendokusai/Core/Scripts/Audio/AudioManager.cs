@@ -85,6 +85,7 @@ namespace WitchMendokusai
 		public void PlayAmbient(string eventPath)
 		{
 			ambientEvent.stop(FMOD.Studio.STOP_MODE.ALLOWFADEOUT);
+			ambientEvent.release();
 			if (string.IsNullOrEmpty(eventPath) == false)
 			{
 				ambientEvent = RuntimeManager.CreateInstance(eventPath);
@@ -92,7 +93,11 @@ namespace WitchMendokusai
 			}
 		}
 
-		public void StopAmbient() => ambientEvent.stop(FMOD.Studio.STOP_MODE.ALLOWFADEOUT);
+		public void StopAmbient()
+		{
+			ambientEvent.stop(FMOD.Studio.STOP_MODE.ALLOWFADEOUT);
+			ambientEvent.release();
+		}
 
 		public void PlaySfx(string eventPath)
 		{
