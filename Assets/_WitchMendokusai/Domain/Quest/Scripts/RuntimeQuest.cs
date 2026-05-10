@@ -58,9 +58,9 @@ namespace WitchMendokusai
 			Type = questInfo.Type;
 			GameEvents = questInfo.GameEvents.ToList();
 			Criteria = questInfo.Criteria.ConvertAll(criteriaData => new RuntimeCriteria(criteriaData));
-			CompleteEffects = questInfo.CompleteEffects.ConvertAll(effectData => new EffectInfoData(effectData));
-			RewardEffects = questInfo.RewardEffects.ConvertAll(effectData => new EffectInfoData(effectData));
-			Rewards = questInfo.Rewards.ConvertAll(rewardData => new RewardInfoData(rewardData));
+			CompleteEffects = questInfo.CompleteEffects.ConvertAll(effectData => effectData.ToInfoData());
+			RewardEffects = questInfo.RewardEffects.ConvertAll(effectData => effectData.ToInfoData());
+			Rewards = questInfo.Rewards.ConvertAll(rewardData => rewardData.ToInfoData());
 
 			WorkTime = questInfo.WorkTime;
 			AutoWork = questInfo.AutoWork;
