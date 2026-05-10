@@ -81,11 +81,13 @@ namespace WitchMendokusai
 		private void OnQuestCompleted(QuestCompletedEvent evt)
 		{
 			if (evt.Type != QuestType.Achievement || evt.QuestSOID == -1)
+			{
 				return;
+			}
 
 			QuestSO questSO = SOHelper.GetQuestSO(evt.QuestSOID);
-			if (questSO != null)
-				Popup(questSO);
+			Debug.Assert(questSO != null, $"OnQuestCompleted: QuestSO ID={evt.QuestSOID} not registered in SOManager");
+			Popup(questSO);
 		}
 
 		protected override void OnDestroy()
