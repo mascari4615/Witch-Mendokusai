@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace WitchMendokusai
 {
@@ -10,6 +11,7 @@ namespace WitchMendokusai
 
 		private WMWindow window;
 		private FilterBar filterBar;
+		private ScrollView scroll;
 		private ItemGrid grid;
 
 		private void Start()
@@ -22,13 +24,19 @@ namespace WitchMendokusai
 			window.style.left = 80;
 			window.style.top = 80;
 			UIRoot.Instance.WindowsLayer.Add(window);
+			window.EnableSizeToggle();
 
 			filterBar = new FilterBar();
 			filterBar.OnFilterChanged += OnFilterChanged;
 			window.Content.Add(filterBar);
 
+			scroll = new ScrollView(ScrollViewMode.Vertical);
+			scroll.AddToClassList("wm-inventory-scroll");
+			window.Content.Add(scroll);
+
 			grid = new ItemGrid();
-			window.Content.Add(grid);
+			grid.AddToClassList("wm-inventory-grid");
+			scroll.Add(grid);
 
 			Inventory bound = inventory != null ? inventory : SOManager.Instance.ItemInventory;
 			grid.Bind(bound);
