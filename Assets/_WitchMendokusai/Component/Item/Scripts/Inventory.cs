@@ -25,7 +25,7 @@ namespace WitchMendokusai
 	}
 
 	[CreateAssetMenu(fileName = nameof(Inventory), menuName = "WM/DataBuffer/" + nameof(Item))]
-	public class Inventory : DataBufferSO<Item>, ISavable<List<InventorySlotSaveData>>, ISerializationCallbackReceiver
+	public class Inventory : DataBufferSO<Item>, IInventory, ISavable<List<InventorySlotSaveData>>, ISerializationCallbackReceiver
 	{
 		private const int NONE = -1;
 		protected virtual int DefaultCapacity => 30;
@@ -57,7 +57,7 @@ namespace WitchMendokusai
 			return NONE;
 		}
 
-		public int FindItemIndex(ItemData target, int startIndex = 0)
+		public int FindItemIndex(IItemData target, int startIndex = 0)
 		{
 			for (int i = startIndex; i < Capacity; i++)
 			{
@@ -77,7 +77,7 @@ namespace WitchMendokusai
 		/// <para/> 넣는 데 실패한 잉여 아이템 개수 리턴
 		/// <para/> 리턴이 0이면 넣는데 모두 성공했다는 의미
 		/// </summary>
-		public int Add(ItemData itemData, int amount = 1)
+		public int Add(IItemData itemData, int amount = 1)
 		{
 			// 1. 수량이 있는 아이템
 			if (itemData.IsCountable)
@@ -178,7 +178,7 @@ namespace WitchMendokusai
 				}
 			}
 
-			SOManager.Instance.LastEquippedItem.RuntimeValue = itemData;
+			SOManager.Instance.LastEquippedItem.RuntimeValue = (ItemData)itemData;
 			return amount;
 		}
 
@@ -210,10 +210,10 @@ namespace WitchMendokusai
 			return index >= 0 && index < Capacity;
 		}
 
-		public ItemData GetItemData(int index)
+		public IItemData GetItemData(int index)
 		{
 			if (!IsValidIndex(index)) return null;
-			return Data[index]?.Data as ItemData;
+			return Data[index]?.Data;
 		}
 
 		public Item GetItem(Guid? guid)
