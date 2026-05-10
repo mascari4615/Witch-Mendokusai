@@ -1,5 +1,6 @@
 ﻿<Solution>
   <Project Path="Unity.AI.Sound.csproj" />
+  <Project Path="Unity.AI.Toolkit.Asset.csproj" />
   <Project Path="Unity.AppUI.csproj" />
   <Project Path="WM.Domain.csproj" />
   <Project Path="Unity.Localization.csproj" />
@@ -58,8 +59,8 @@
   <Project Path="HFDownloader.csproj" />
   <Project Path="Unity.AI.Navigation.Updater.csproj" />
   <Project Path="Unity.AI.Assistant.Integrations.Profiler.Editor.csproj" />
-  <Project Path="PlayFab.csproj" />
   <Project Path="Unity.2D.Tooling.Editor.csproj" />
+  <Project Path="PlayFab.csproj" />
   <Project Path="Unity.AI.Search.Editor.csproj" />
   <Project Path="Unity.AppUI.Redux.csproj" />
   <Project Path="Unity.AI.Assistant.Agent.Dynamic.Extension.Editor.csproj" />
@@ -86,7 +87,6 @@
   <Project Path="Unity.2D.Tilemap.Extras.Editor.csproj" />
   <Project Path="Unity.AppUI.Navigation.csproj" />
   <Project Path="Unity.AI.Generators.Asset.csproj" />
-  <Project Path="Unity.AI.Toolkit.Asset.csproj" />
   <Project Path="Unity.2D.Tilemap.Extras.csproj" />
   <Project Path="Unity.2D.Animation.Runtime.csproj" />
   <Project Path="Unity.AI.Assistant.AssetGenerators.Editor.csproj" />
