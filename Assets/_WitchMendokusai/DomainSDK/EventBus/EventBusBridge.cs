@@ -13,22 +13,22 @@ namespace WitchMendokusai
 
 		public static void Subscribe<T>(Action<T> handler) where T : IEvent
 		{
-			instance?.Subscribe(handler);
+			instance.Subscribe(handler);
 		}
 
 		public static void Unsubscribe<T>(Action<T> handler) where T : IEvent
 		{
-			instance?.Unsubscribe(handler);
+			instance.Unsubscribe(handler);
 		}
 
 		public static void Publish<T>(T evt) where T : IEvent
 		{
-			instance?.Publish(evt);
+			instance.Publish(evt);
 		}
 
 		public static void ClearSticky<T>() where T : IEvent
 		{
-			instance?.ClearSticky<T>();
+			instance.ClearSticky<T>();
 		}
 	}
 }
