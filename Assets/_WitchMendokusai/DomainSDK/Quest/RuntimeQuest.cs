@@ -31,6 +31,11 @@ namespace WitchMendokusai
 
 		public void StartQuest()
 		{
+			if (State == RuntimeQuestState.Completed || State == RuntimeQuestState.Working)
+			{
+				return;
+			}
+
 			if (AutoComplete)
 			{
 				GameEvents.Add(GameEventType.OnTick);
@@ -138,7 +143,7 @@ namespace WitchMendokusai
 			Description = saveData.Description;
 
 			Type = saveData.Type;
-			GameEvents = saveData.GameEvents;
+			GameEvents = new List<GameEventType>(saveData.GameEvents);
 			CompleteEffects = saveData.CompleteEffects;
 			RewardEffects = saveData.RewardEffects;
 			Rewards = saveData.Rewards;

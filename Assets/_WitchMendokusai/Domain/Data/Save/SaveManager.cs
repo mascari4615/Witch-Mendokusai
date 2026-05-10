@@ -92,7 +92,6 @@ namespace WitchMendokusai
 			// 초기 퀘스트 추가
 			DataManager.QuestManager.Init(new());
 			// DataManager.QuestManager.AddQuest(RuntimeQuestFactory.FromQuestSO(GetQuestSO(0)));
-			RuntimeQuestFactory.FromQuestSO(GetQuestSO(0));
 			DataManager.QuestManager.UnlockQuest(GetQuestSO(5000));
 
 			// TASK-WM-013 prototype — *프로토타입 챕터 1* 첫 노드 자동 unlock (PrototypeChapter1Bootstrap 으로 생성된 Q_6000).

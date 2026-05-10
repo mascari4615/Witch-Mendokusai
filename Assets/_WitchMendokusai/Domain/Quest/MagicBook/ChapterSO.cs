@@ -24,6 +24,10 @@ namespace WitchMendokusai
 			get
 			{
 				List<NodeConnection> all = new(base.Connections);
+				HashSet<(string, string)> seen = new();
+
+				foreach (NodeConnection existing in base.Connections)
+					seen.Add((existing.SourceNodeId, existing.TargetNodeId));
 
 				foreach (NodeBase node in Nodes)
 				{
@@ -47,7 +51,9 @@ namespace WitchMendokusai
 						if (targetNode == null)
 							continue;
 
-						all.Add(new NodeConnection(node.Id, string.Empty, targetNode.Id, string.Empty));
+						(string, string) key = (node.Id, targetNode.Id);
+						if (seen.Add(key))
+							all.Add(new NodeConnection(node.Id, string.Empty, targetNode.Id, string.Empty));
 					}
 				}
 
