@@ -3,10 +3,30 @@ using UnityEngine;
 
 namespace WitchMendokusai
 {
-	public class ChatManager : Singleton<ChatManager>
+	public class ChatManager : MonoBehaviour
 	{
+		public static ChatManager Instance { get; private set; }
+
+		public static bool TryGetExistingInstance(out ChatManager mgr)
+		{
+			mgr = Instance;
+			return mgr != null;
+		}
+
 		[SerializeField] private TextAsset chatScripts;
 		private readonly Dictionary<string, List<LineData>> chatDataDic = new();
+
+		private void Awake()
+		{
+			if (Instance != null && Instance != this) { Destroy(gameObject); return; }
+			Instance = this;
+		}
+
+		private void OnDestroy()
+		{
+			if (Instance == this)
+				Instance = null;
+		}
 
 		public bool TryGetChatData(string eventName, out List<LineData> chatData)
 		{

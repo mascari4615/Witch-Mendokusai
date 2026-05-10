@@ -4,8 +4,16 @@ using UnityEngine.InputSystem;
 
 namespace WitchMendokusai
 {
-	public class ToolTipPopupManager : Singleton<ToolTipPopupManager>
+	public class ToolTipPopupManager : MonoBehaviour
 	{
+		public static ToolTipPopupManager Instance { get; private set; }
+
+		public static bool TryGetExistingInstance(out ToolTipPopupManager mgr)
+		{
+			mgr = Instance;
+			return mgr != null;
+		}
+
 		[SerializeField] private ToolTip popupToolTip;
 		[SerializeField] private CanvasGroup canvasGroup;
 
@@ -16,13 +24,20 @@ namespace WitchMendokusai
 		private float toolTipHeight;
 		private const float ToolTipPadding = 30f;
 
-		protected override void Awake()
+		private void Awake()
 		{
-			base.Awake();
+			if (Instance != null && Instance != this) { Destroy(gameObject); return; }
+			Instance = this;
 
 			RectTransform rectTransform = popupToolTip.GetComponent<RectTransform>();
 			toolTipWidth = rectTransform.sizeDelta.x;
 			toolTipHeight = rectTransform.sizeDelta.y;
+		}
+
+		private void OnDestroy()
+		{
+			if (Instance == this)
+				Instance = null;
 		}
 
 		public void Show(SlotData slotData)

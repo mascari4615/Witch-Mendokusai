@@ -4,8 +4,16 @@ using UnityEngine.InputSystem;
 namespace WitchMendokusai
 {
 	[RequireComponent(typeof(UISlot), typeof(CanvasGroup))]
-	public class UIHoldingSlot : Singleton<UIHoldingSlot>
+	public class UIHoldingSlot : MonoBehaviour
 	{
+		public static UIHoldingSlot Instance { get; private set; }
+
+		public static bool TryGetExistingInstance(out UIHoldingSlot mgr)
+		{
+			mgr = Instance;
+			return mgr != null;
+		}
+
 		private CanvasGroup canvasGroup = null;
 		private UISlot slot = null;
 
@@ -16,6 +24,18 @@ namespace WitchMendokusai
 		private const float funcATime = 0.2f;
 		private float curFuncATime = 0;
 		public bool CanFuncA => curFuncATime >= 0;
+
+		private void Awake()
+		{
+			if (Instance != null && Instance != this) { Destroy(gameObject); return; }
+			Instance = this;
+		}
+
+		private void OnDestroy()
+		{
+			if (Instance == this)
+				Instance = null;
+		}
 
 		private void Start()
 		{

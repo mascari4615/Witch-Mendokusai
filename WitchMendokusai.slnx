@@ -59,6 +59,7 @@
   <Project Path="HFDownloader.csproj" />
   <Project Path="Unity.AI.Navigation.Updater.csproj" />
   <Project Path="Unity.AI.Assistant.Integrations.Profiler.Editor.csproj" />
+  <Project Path="FishyFacepunch.Runtime.csproj" />
   <Project Path="Unity.2D.Tooling.Editor.csproj" />
   <Project Path="PlayFab.csproj" />
   <Project Path="Unity.AI.Search.Editor.csproj" />

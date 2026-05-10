@@ -4,18 +4,28 @@ using UnityEngine.SceneManagement;
 
 namespace WitchMendokusai
 {
-	public class InputStrategySelector : Singleton<InputStrategySelector>
+	public class InputStrategySelector : MonoBehaviour
 	{
-		protected override void Awake()
+		public static InputStrategySelector Instance { get; private set; }
+
+		public static bool TryGetExistingInstance(out InputStrategySelector mgr)
 		{
-			base.Awake();
+			mgr = Instance;
+			return mgr != null;
+		}
+
+		private void Awake()
+		{
+			if (Instance != null && Instance != this) { Destroy(gameObject); return; }
+			Instance = this;
 			SceneManager.sceneLoaded += OnSceneLoaded;
 		}
 
-		protected override void OnDestroy()
+		private void OnDestroy()
 		{
 			SceneManager.sceneLoaded -= OnSceneLoaded;
-			base.OnDestroy();
+			if (Instance == this)
+				Instance = null;
 		}
 
 		private void OnSceneLoaded(Scene scene, LoadSceneMode mode)

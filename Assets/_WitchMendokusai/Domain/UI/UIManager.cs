@@ -4,8 +4,16 @@ using UnityEngine;
 
 namespace WitchMendokusai
 {
-	public class UIManager : Singleton<UIManager>
+	public class UIManager : MonoBehaviour
 	{
+		public static UIManager Instance { get; private set; }
+
+		public static bool TryGetExistingInstance(out UIManager mgr)
+		{
+			mgr = Instance;
+			return mgr != null;
+		}
+
 		// Public Properties
 		public List<IUIPanelGroup> PanelGroups { get; private set; } = new();
 		public UINPC NPC { get; private set; }
@@ -41,9 +49,10 @@ namespace WitchMendokusai
 			}
 		}
 
-		protected override void Awake()
+		private void Awake()
 		{
-			base.Awake();
+			if (Instance != null && Instance != this) { Destroy(gameObject); return; }
+			Instance = this;
 
 			// Content UIs
 			Instantiate(dungeonPrefab, BaseCanvas.transform);
@@ -88,7 +97,7 @@ namespace WitchMendokusai
 			Popup(questSO);
 		}
 
-		protected override void OnDestroy()
+		private void OnDestroy()
 		{
 			EventBusBridge.Unsubscribe<QuestCompletedEvent>(OnQuestCompleted);
 
@@ -117,7 +126,8 @@ namespace WitchMendokusai
 			if (Transition != null)
 				Destroy(Transition);
 
-			base.OnDestroy();
+			if (Instance == this)
+				Instance = null;
 		}
 
 		private void Start()

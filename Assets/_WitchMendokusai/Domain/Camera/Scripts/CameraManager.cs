@@ -6,8 +6,16 @@ using UnityEngine.Animations;
 
 namespace WitchMendokusai
 {
-	public class CameraManager : Singleton<CameraManager>
+	public class CameraManager : MonoBehaviour
 	{
+		public static CameraManager Instance { get; private set; }
+
+		public static bool TryGetExistingInstance(out CameraManager mgr)
+		{
+			mgr = Instance;
+			return mgr != null;
+		}
+
 		[SerializeField] private CinemachineBrain cinemachineBrain;
 		[SerializeField] private PositionConstraint[] posDelegates;
 		[SerializeField] private CinemachineImpulseSource impulseSource;
@@ -23,9 +31,10 @@ namespace WitchMendokusai
 
 		private Transform target;
 
-		protected override void Awake()
+		private void Awake()
 		{
-			base.Awake();
+			if (Instance != null && Instance != this) { Destroy(gameObject); return; }
+			Instance = this;
 
 			// Init
 			cameras = GetComponentsInChildren<MCamera>(false); // 활성화된 것만
@@ -38,7 +47,7 @@ namespace WitchMendokusai
 			EventBusBridge.Subscribe<PlayerDespawnedEvent>(OnPlayerDespawned);
 		}
 
-		protected override void OnDestroy()
+		private void OnDestroy()
 		{
 			if (EventBusBridge.TryGetInstance(out IEventBus eventBus))
 			{
@@ -46,7 +55,8 @@ namespace WitchMendokusai
 				eventBus.Unsubscribe<PlayerDespawnedEvent>(OnPlayerDespawned);
 			}
 
-			base.OnDestroy();
+			if (Instance == this)
+				Instance = null;
 		}
 
 		private void OnPlayerSpawned(PlayerSpawnedEvent evt)
