@@ -6,13 +6,14 @@ namespace WitchMendokusai
 	// E1 = Singleton + SO 해석 + Console log.
 	// E2 = Visual prefab Instantiate (Rain/Snow/Fog/Storm) + 이전 visual destroy.
 	// E2-fix (2026-05-09) = WeatherSO 가 visual 정본 — Material / startSize / shape 등 모두 SO 노브로 ApplyCurrentSOToParticle.
-	//   매 frame Update 재적용 = 룰 「수치 노출 / 런타임 tweak」 정합 (인스펙터 슬라이더 in-play 즉시 반영).
-	// E3 후속 = wet shader (sub-C6 SetGlobal `_Wetness` 활용).
+	// E3 (2026-05-10) = Wet shader — IsWet 날씨 시 Shader.SetGlobalFloat("_Wetness", 0→1 lerp).
 	// E4 후속 = SFX. E5 후속 = Storm 번개.
-	// (TASK-WM-054-E E1+E2+E2-fix)
+	// (TASK-WM-054-E E1~E3)
 	public class WeatherDirector : Singleton<WeatherDirector>
 	{
-		// 현재 적용된 WeatherSO — sub-E 후속 (E3 wet shader / E4 SFX) 가 읽음.
+		private static readonly int WetnessId = Shader.PropertyToID("_Wetness");
+
+		// 현재 적용된 WeatherSO — sub-E 후속 (E4 SFX / E5 Storm) 가 읽음.
 		public WeatherSO CurrentWeatherSO { get; private set; }
 		public WeatherType LastApplied { get; private set; } = WeatherType.Clear;
 
@@ -20,6 +21,10 @@ namespace WitchMendokusai
 		private GameObject currentVisualInstance;
 		private ParticleSystem currentParticleSystem;
 		private ParticleSystemRenderer currentParticleRenderer;
+
+		// E3: wetness 0~1 lerp 상태. SO의 FadeMinutes 기반 실시간 속도.
+		[SerializeField] private float wetnessLerpSpeed = 0.033f; // 1 / ~30s ≈ 기본 FadeMinutes 체감
+		private float currentWetness;
 
 		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
 		private static void EnsureSingletonOnPlay()
@@ -47,14 +52,16 @@ namespace WitchMendokusai
 				weatherSystem.OnWeatherChanged -= HandleWeatherChanged;
 
 			DestroyCurrentVisual();
+			Shader.SetGlobalFloat(WetnessId, 0f);
 
 			base.OnDestroy();
 		}
 
-		// 룰 「수치 노출 / 런타임 tweak」 — 인스펙터에서 ParticleStartSize 슬라이더 변경 시 즉시 반영.
+		// 룰 「수치 노출 / 런타임 tweak」 — 인스펙터에서 ParticleStartSize / wetnessLerpSpeed 슬라이더 변경 시 즉시 반영.
 		private void Update()
 		{
 			ApplyCurrentSOToParticle();
+			ApplyWetnessGlobal();
 		}
 
 		private void HandleWeatherChanged(WeatherType type)
@@ -114,6 +121,14 @@ namespace WitchMendokusai
 
 			if (currentParticleRenderer != null)
 				currentParticleRenderer.sharedMaterial = CurrentWeatherSO.ParticleMaterial;
+		}
+
+		// E3: IsWet 상태에 따라 _Wetness 0↔1 lerp → Shader.SetGlobalFloat broadcast.
+		private void ApplyWetnessGlobal()
+		{
+			float target = GetIsWet() ? 1f : 0f;
+			currentWetness = Mathf.MoveTowards(currentWetness, target, wetnessLerpSpeed * Time.deltaTime);
+			Shader.SetGlobalFloat(WetnessId, currentWetness);
 		}
 
 		private void DestroyCurrentVisual()
