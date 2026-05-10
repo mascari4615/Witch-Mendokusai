@@ -54,7 +54,7 @@ namespace WitchMendokusai
 		{
 			if (item != null)
 			{
-				Slots[index].SetSlot(item.Data, item.Amount);
+				Slots[index].SetSlot((ItemData)item.Data, item.Amount);
 			}
 			else
 			{
