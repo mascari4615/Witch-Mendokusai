@@ -44,10 +44,12 @@ namespace WitchMendokusai
 			ApplyMode(GameModeManager.Instance.CurrentMode);
 		}
 
-		private void OnDestroy()
+		protected override void OnDestroy()
 		{
+			StageManager.OnStageChanged -= OnStageChanged;
 			if (GameModeManager.TryGetExistingInstance(out GameModeManager gameModeManager))
 				gameModeManager.OnModeChanged -= OnGameModeChanged;
+			base.OnDestroy();
 		}
 
 		private void OnGameModeChanged(GameMode mode) => ApplyMode(mode);
