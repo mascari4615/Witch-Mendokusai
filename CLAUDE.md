@@ -236,38 +236,58 @@ TASK 기반으로 시작한 작업은 `memo/wm/tasks/TASK-NNN-*.md`를 작업 �
 
 대화 말미에 별도로 안내하는 것으로 끝내지 않고, 문서에 남겨 추적 가능하게 한다.
 
-## 컴파일 에러 확인 — Unity Editor.log + MCP `read_console` 정본
+## 컴파일 에러 확인 — MCP `read_console` 정본 (Editor.log 폐기 영역)
 
 코드 작성 후 사용자에게 "검증해주세요" 요청 *전*에 본인이 먼저 컴파일 검증.
 
-- 컴파일 검증 정본 = **Unity Editor.log + Unity-MCP `read_console`** (Mono runtime 정본)
+- **정본 = Unity-MCP `read_console`** (Mono runtime *현재 Console* 직접 pull) — append 누적 0, 정확
+- **fallback = Editor.log grep** *MCP 미가용 시만*. append-only 누적 구조 → *옛 컴파일 시도 결과가 섞여서 보임* = 부정확 (사례 ↓)
 - `dotnet build` 폐기 (2026-05-10) — .NET 8+ runtime ≠ Unity Mono → false confidence (record `CS0518 IsExternalInit` / `CS0453 EventBus<T:struct>` 못 잡음). + post-commit hook 누적 사고 (73 process / 7.81 GB)
-- 자동 발견 채널 = TASK-WM-087 (KarmoLab Tauri Editor.log watcher → yawnbot webhook). 외부 push 검증 = TASK-WM-088 (Unity Build Automation)
-- 사용자가 코드 보고 검증하기 전에 *컴파일 통과* 자체가 사전 조건
-- "사용자에게 빨리 넘기기" 보다 *검증 가능한 상태로 넘기기* 가 우선
+- 사용자가 코드 보고 검증하기 전에 *컴파일 통과* 자체가 사전 조건. "빨리 넘기기" 보다 *검증 가능한 상태로 넘기기* 가 우선
 
-### 컴파일 검증 = Editor.log grep / MCP `read_console`
-
-```bash
-# Editor.log path (Windows)
-grep -E "error CS|warning CS|Reloading assemblies" "C:/Users/masca/AppData/Local/Unity/Editor/Editor.log" | tail -30
-```
-
-또는 Unity-MCP:
+### 정본 — MCP `read_console`
 
 ```python
-# 구조화 + 실시간 (Unity 활성 시 default)
-read_console(types=["error", "warning"], count=20, format="detailed")
+# 현재 Console 그대로, 누적 X, Mono runtime 정본
+read_console(types=["error"], count=30, format="detailed")
+read_console(types=["error"], count=50, filter_text="CS0", format="plain")  # CS 만 필터
 mcpforunity://editor/state  # is_compiling / ready_for_tools polling
+
+# Refresh + compile 동시 트리거
+refresh_unity(mode="force", scope="all", compile="request", wait_for_ready=true)
 ```
 
-- Mono runtime 진짜 결과 — record / null check / Unity API 모두 정확
-- `error CS` 0 + 새 `Reloading assemblies after forced synchronous recompile` 매치 = 통과
-- 모든 `.cs` (멀티 worktree / 멀티 sub) Unity 가 자동 reimport
+- 출력 = *지금 Unity Console 에 보이는 그대로*. 사용자가 Console 봐서 본 것과 일치
+- 0 entries with `types=["error"]` = 컴파일 통과
+- Console clear 가 깨끗한 baseline — 필요시 `read_console(action="clear")`
 
-### Unity 가 필요한 경우 = `unity-refresh.ps1`
+### Editor.log 의 append-only 한계 (왜 부정확한가)
 
-자산 + Play Mode 시만:
+- Editor.log path: `C:/Users/masca/AppData/Local/Unity/Editor/Editor.log`
+- **append-only** — Editor 시작 시 truncate 도 안 함 (사용자 시스템 따라). 한 세션 동안 *모든 컴파일 시도* 의 에러가 시간순으로 누적
+- *실패한* 컴파일 시도는 "Reloading assemblies after forced synchronous recompile" 마커를 안 찍음 → "마커 이후 line" grep 도 옛 실패 결과 다 노출
+- `grep "error CS"` 결과 = *지금 에러 + 그 전 시도들 에러 다 합친 것*. 어느게 현재인지 구분 어려움
+- → fallback 으로만 사용. MCP 가용하면 무조건 MCP
+
+### Editor.log 부정확 사례 (TASK-WM-056-A 4차 cascade, 2026-05-10)
+
+asmdef 분할 cascade fix 진행 중:
+- Editor.log grep = **259 unique CS 에러** 보고 (마지막 reload 라인 이후 grep)
+- 사용자가 Console 직접 확인 = **6 에러** 만 (실제 현재 상태)
+- → Editor.log 의 254 가 *옛 시도들의 누적*. 실제 fix 가 진행되며 사라진 에러도 grep 결과에 그대로
+- 결과: 사용자 시간 낭비 + 잘못된 cascade depth 판단 + 부정확 대화
+- MCP 등록 후 `read_console` 한 번 호출 → 30 에러 (당시 시점) 정확 보고 + 이후 fix cycle 매번 정확
+- **교훈**: MCP 미가용 fallback 으로 Editor.log grep 쓰면 *반드시 사용자에게 Console 교차 검증 요청*. 자기 grep 결과만 신뢰 X
+
+### Refresh / 컴파일 트리거
+
+자산 + 컴파일 동시 트리거:
+
+```python
+refresh_unity(mode="force", scope="all", compile="request", wait_for_ready=true)
+```
+
+또는 fallback PS1 (MCP 미가용 시):
 
 ```bash
 powershell -File memo/dotfiles/scripts/unity-refresh.ps1
@@ -280,30 +300,32 @@ powershell -File memo/dotfiles/scripts/unity-refresh.ps1
 - 씬 / `RenderSettings` / Volume Profile / shader 컴파일
 - Play Mode 진입 검증
 
-검증: Editor.log grep — `Reloading assemblies after forced synchronous recompile` 새 매치 + Bootstrap 로그
+### 트리거 한계 (이때만 사용자 손)
 
-### unity-refresh 한계 (이때만 사용자 손)
-
-- Unity 창이 *이미 foreground* 면 `SetForegroundWindow` no-op (focus 이벤트 X) — 우회: PowerShell `SendKeys ^r` 또는 사용자가 다른 창 잠시 클릭
-- Auto Refresh OFF → `Edit > Preferences > Asset Pipeline > Auto Refresh` 1회 컨펌
+- Unity 창이 *이미 foreground* 면 `unity-refresh.ps1` 의 `SetForegroundWindow` no-op (focus 이벤트 X) — MCP `refresh_unity` 우선 (이 한계 무관)
+- Auto Refresh OFF → `Edit > Preferences > Asset Pipeline > Auto Refresh` 1회 컨펌. MCP `refresh_unity(mode="force")` 도 동작 (사용자 클릭 불필요)
 - 신규 폴더 파일은 fsnotify 가 가끔 누락 → Project 패널에서 폴더 한 번 클릭
-- **Unity 컴파일 stuck state** (빈 .cs 가 일시 존재 후 컴파일 무응답) — Editor.log + MCP `read_console` 로 코드 OK 검증 후 사용자에게 *Assets > Refresh* 메뉴 또는 Editor 재시작 1회 (unity-refresh / SendKeys 다 무효)
+- **Unity 컴파일 stuck state** — MCP `read_console` 로 에러 0 검증 후에도 reimport 안 되는 경우 사용자에게 Editor 재시작 1회 요청
 
 ### 새 .cs 파일 만들었을 때
 
 - `.cs.meta` 는 Unity 가 Editor focus 시 자동 생성 — 그 전엔 partial 또는 없음
 - `[RequireComponent]` 자동 attach 도 Editor 가 prefab 인지해야 작동 — 사용자에게 *해당 prefab 한 번 열어 자동 보강 트리거* 요청
 
-작업 완료 보고 흐름:
-1. 코드 변경
-2. **Editor.log 컴파일 에러 확인** + **stale 여부 확인** ← 둘 다 빠뜨리지 말 것
-3. 에러 있으면 fix → 다시 1. stale 이면 사용자에게 reimport 요청 후 재확인
-4. 통과 시 사용자에게 동작 검증 요청
-5. 사용자 OK → commit
+### 작업 완료 보고 흐름
 
-이전 사례: TASK-WM-034 B (NodeGraph GraphView UI) — `Func<GraphViewChange, GraphViewChange>` vs `GraphView.GraphViewChanged` delegate 타입 mismatch 컴파일 에러를 사용자가 먼저 발견. 본인이 Editor.log 안 보고 검증 요청해버림. 룰 추가 계기.
+1. 코드 변경 (`Edit` / `script_apply_edits` / `create_script`)
+2. `refresh_unity(mode="force", compile="request", wait_for_ready=true)`
+3. `read_console(types=["error"])` — 0 entries 검증
+4. 에러 1+ 면 즉시 fix → 다시 2. (Editor.log fallback 시 사용자 Console 교차 검증)
+5. 통과 시 사용자에게 *비전 / 비주얼 / 동작* 검증 요청
+6. 사용자 OK → commit
 
-이전 사례 2: TASK-WM-039 Knockback A+B+C — `PlayerKnockbackCameraGlue` 신규 .cs 만든 후 Editor.log 봤는데 Unity foreground 안 와서 import 안 됨. 다른 (`HitstopFeedback`, `KnockbackFeedback`) 은 import 됐고 새로 만든 것만 안 됨 = stale 일 가능성 인지. 사용자에게 reimport 요청 → 통과 확인 후 검증 진행.
+### 이전 사례
+
+- **TASK-WM-034 B (NodeGraph GraphView UI)** — `Func<GraphViewChange, GraphViewChange>` vs `GraphView.GraphViewChanged` delegate 타입 mismatch 컴파일 에러를 사용자가 먼저 발견. 본인이 Editor.log 안 보고 검증 요청해버림. 룰 추가 계기.
+- **TASK-WM-039 Knockback A+B+C** — `PlayerKnockbackCameraGlue` 신규 .cs 만든 후 Editor.log 봤는데 Unity foreground 안 와서 import 안 됨. 다른 (`HitstopFeedback`, `KnockbackFeedback`) 은 import 됐고 새로 만든 것만 안 됨 = stale 일 가능성 인지. 사용자에게 reimport 요청 → 통과 확인 후 검증 진행.
+- **TASK-WM-056-A 4차 cascade (2026-05-10)** — Editor.log grep 259 vs Console 6 mismatch. MCP 등록 후 `read_console` 정본 채택. *append-only Editor.log 는 fallback 으로만* 룰 박힘.
 
 ### Play Mode 진입 자동 lazy load — `RuntimeInitializeOnLoadMethod` 한계
 

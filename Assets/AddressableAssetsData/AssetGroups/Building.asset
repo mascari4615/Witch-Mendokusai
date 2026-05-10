@@ -57,6 +57,12 @@ MonoBehaviour:
     m_SerializedLabels:
     - Building
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: d32743f508b1fb4498e16b9522cfa5b4
+    m_Address: Building/0
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Building
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: def1bc4f73b449a58c1c129fc1c3e88d
     m_Address: Building/5000
     m_ReadOnly: 0

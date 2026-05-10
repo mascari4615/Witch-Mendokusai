@@ -1,9 +1,3 @@
-using System;
-using System.Collections.Generic;
-using UnityEngine;
-using static WitchMendokusai.SOHelper;
-using Random = UnityEngine.Random;
-
 namespace WitchMendokusai
 {
 	public static class GameDefine

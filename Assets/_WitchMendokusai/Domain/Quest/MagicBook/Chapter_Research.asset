@@ -21,18 +21,17 @@ MonoBehaviour:
   - rid: 3717169744695263324
   - rid: 3717169744695263325
   connections: []
-  nodesLegacy: []
   references:
     version: 2
     RefIds:
     - rid: 3717169744695263324
-      type: {class: QuestNode, ns: WitchMendokusai, asm: Assembly-CSharp}
+      type: {class: QuestNode, ns: WitchMendokusai, asm: WM.Domain}
       data:
         id: 095cd4f0af4e4532a7737cc2d0d57fb4
         editorPosition: {x: 0, y: 0}
         target: {fileID: 11400000, guid: ca7a7310e4150984a9daa4a41b6bf038, type: 2}
     - rid: 3717169744695263325
-      type: {class: QuestNode, ns: WitchMendokusai, asm: Assembly-CSharp}
+      type: {class: QuestNode, ns: WitchMendokusai, asm: WM.Domain}
       data:
         id: 7466dd38d9334fd2b241cd97f0cb61a9
         editorPosition: {x: 300, y: 0}

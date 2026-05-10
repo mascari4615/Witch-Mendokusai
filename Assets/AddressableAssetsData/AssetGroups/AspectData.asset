@@ -81,6 +81,12 @@ MonoBehaviour:
     m_SerializedLabels:
     - AspectData
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 64d14713df42cdb45bb9d5777014f481
+    m_Address: AspectData/0
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - AspectData
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 74fe543077aa0a54bb976943fbf9e00c
     m_Address: AspectData/17
     m_ReadOnly: 0
@@ -89,6 +95,12 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 76e4d1edafa119e4da54e24fd96b176d
     m_Address: AspectData/26
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - AspectData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 7e722dc07ec340d479558ceb2eec1f67
+    m_Address: AspectData/0
     m_ReadOnly: 0
     m_SerializedLabels:
     - AspectData
@@ -227,6 +239,12 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: f342131772ffd1949a29094773d71734
     m_Address: AspectData/7
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - AspectData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: f3d01bea6a0a79043b38712d843e2c8a
+    m_Address: AspectData/0
     m_ReadOnly: 0
     m_SerializedLabels:
     - AspectData

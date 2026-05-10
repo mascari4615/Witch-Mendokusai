@@ -7,7 +7,7 @@ namespace WitchMendokusai
 	/// <summary>
 	/// TASK-WM-013 prototype 단계 D — *기능 테스트용 프로토타입 챕터 1* 데이터 자동 생성.
 	/// 진짜 마도서 챕터 (사용자 정사) 와 명확히 구분 — 시스템 데이터 흐름 (cascade unlock + RewardEffects + DialogueRunner + TransitionView) 검증 전용.
-	/// 메뉴: WitchMendokusai/Prototype/Generate Prototype Chapter 1
+	/// 메뉴: WM/Prototype/Generate Prototype Chapter 1
 	/// </summary>
 	public static class PrototypeChapter1Bootstrap
 	{
@@ -21,7 +21,7 @@ namespace WitchMendokusai
 		private const float NODE_X_SPACING = 240f;
 		private const int FADE_DURATION_MS = 1000;
 
-		[MenuItem("WitchMendokusai/Prototype/Generate Prototype Chapter 1")]
+		[MenuItem("WM/Prototype/Generate Prototype Chapter 1")]
 		public static void GeneratePrototypeChapter1()
 		{
 			EnsureDirectory(Path.GetDirectoryName(CHAPTER_PATH));

@@ -27,54 +27,53 @@ MonoBehaviour:
   - rid: 3717169744695263322
   - rid: 3717169744695263323
   connections: []
-  nodesLegacy: []
   references:
     version: 2
     RefIds:
     - rid: 3717169744695263316
-      type: {class: QuestNode, ns: WitchMendokusai, asm: Assembly-CSharp}
+      type: {class: QuestNode, ns: WitchMendokusai, asm: WM.Domain}
       data:
         id: 535dd4f4e2eb4c8db5c985cc761e7b9d
         editorPosition: {x: 0, y: 0}
         target: {fileID: 11400000, guid: 28f2dfeb4829d364791ef17401807ee8, type: 2}
     - rid: 3717169744695263317
-      type: {class: QuestNode, ns: WitchMendokusai, asm: Assembly-CSharp}
+      type: {class: QuestNode, ns: WitchMendokusai, asm: WM.Domain}
       data:
         id: 0015df3a23474df887cd807b50a085cd
         editorPosition: {x: 300, y: 0}
         target: {fileID: 11400000, guid: 49169869e7f5a39458bd633281937927, type: 2}
     - rid: 3717169744695263318
-      type: {class: QuestNode, ns: WitchMendokusai, asm: Assembly-CSharp}
+      type: {class: QuestNode, ns: WitchMendokusai, asm: WM.Domain}
       data:
         id: 2f6c1dec5cdd4cb2b728d233f353e771
         editorPosition: {x: 600, y: 200}
         target: {fileID: 11400000, guid: 04a784f3ad9f0f742b7c07eaf3ba5fe8, type: 2}
     - rid: 3717169744695263319
-      type: {class: QuestNode, ns: WitchMendokusai, asm: Assembly-CSharp}
+      type: {class: QuestNode, ns: WitchMendokusai, asm: WM.Domain}
       data:
         id: f88cc086b4bf496195c26f06d92aee95
         editorPosition: {x: 600, y: -200}
         target: {fileID: 11400000, guid: 1f31942d902b6424aaa584f98f279888, type: 2}
     - rid: 3717169744695263320
-      type: {class: QuestNode, ns: WitchMendokusai, asm: Assembly-CSharp}
+      type: {class: QuestNode, ns: WitchMendokusai, asm: WM.Domain}
       data:
         id: 7ad263cbc4c74f08a3afbfdf5966f2ab
         editorPosition: {x: 900, y: 300}
         target: {fileID: 11400000, guid: 67688915da1f7364ca7bf7f19aa0c27f, type: 2}
     - rid: 3717169744695263321
-      type: {class: QuestNode, ns: WitchMendokusai, asm: Assembly-CSharp}
+      type: {class: QuestNode, ns: WitchMendokusai, asm: WM.Domain}
       data:
         id: 3358a86eca9b46a69a9cbbe9b0771849
         editorPosition: {x: 900, y: 100}
         target: {fileID: 11400000, guid: ad5ccf40fe782e843ba48b9225b3b288, type: 2}
     - rid: 3717169744695263322
-      type: {class: QuestNode, ns: WitchMendokusai, asm: Assembly-CSharp}
+      type: {class: QuestNode, ns: WitchMendokusai, asm: WM.Domain}
       data:
         id: d2ffc58120194e68a70b4f535fc08b05
         editorPosition: {x: 900, y: -100}
         target: {fileID: 11400000, guid: 4caf6c0ad2aa8b641bb463844b30b811, type: 2}
     - rid: 3717169744695263323
-      type: {class: QuestNode, ns: WitchMendokusai, asm: Assembly-CSharp}
+      type: {class: QuestNode, ns: WitchMendokusai, asm: WM.Domain}
       data:
         id: 47cae10bb0c94a2caf5ef73ea5911573
         editorPosition: {x: 900, y: -300}

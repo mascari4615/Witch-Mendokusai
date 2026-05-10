@@ -88,8 +88,17 @@ namespace WitchMendokusai
 			ambientEvent.release();
 			if (string.IsNullOrEmpty(eventPath) == false)
 			{
-				ambientEvent = RuntimeManager.CreateInstance(eventPath);
-				ambientEvent.start();
+				try
+				{
+					ambientEvent = RuntimeManager.CreateInstance(eventPath);
+					ambientEvent.start();
+				}
+				catch (EventNotFoundException)
+				{
+					// FMOD 뱅크에 등록 안 된 event — silent skip (warning 로그). WeatherSO SfxKey
+					// (e.g. weather_clear) 가 실제 FMOD event 명과 mismatch 일 때 Play 중단 방지.
+					Debug.LogWarning($"[AudioManager] FMOD event not found: '{eventPath}' — ambient skip");
+				}
 			}
 		}
 

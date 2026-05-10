@@ -77,12 +77,12 @@ MonoBehaviour:
     version: 2
     RefIds:
     - rid: 3717169683694092372
-      type: {class: WorldPositionInputNode, ns: WitchMendokusai, asm: Assembly-CSharp}
+      type: {class: WorldPositionInputNode, ns: WitchMendokusai, asm: WM.Domain}
       data:
         id: 9e756e3ac33a4c35a30749d263b9b5ae
         editorPosition: {x: 0, y: 0}
     - rid: 3717169683694092373
-      type: {class: FractalPerlinNode, ns: WitchMendokusai, asm: Assembly-CSharp}
+      type: {class: FractalPerlinNode, ns: WitchMendokusai, asm: WM.Domain}
       data:
         id: 40cf72e0a4834d90aa10441251b2f73a
         editorPosition: {x: 260, y: 0}
@@ -93,7 +93,7 @@ MonoBehaviour:
         lacunarity: 2
         seed: 0
     - rid: 3717169683694092374
-      type: {class: HydraulicErosionNode, ns: WitchMendokusai, asm: Assembly-CSharp}
+      type: {class: HydraulicErosionNode, ns: WitchMendokusai, asm: WM.Domain}
       data:
         id: 6cc8c3859d3e4598abef87b6a442f324
         editorPosition: {x: 540, y: 0}
@@ -112,7 +112,7 @@ MonoBehaviour:
           evaporRate: 0.01
           seed: 0
     - rid: 3717169683694092375
-      type: {class: ThermalErosionNode, ns: WitchMendokusai, asm: Assembly-CSharp}
+      type: {class: ThermalErosionNode, ns: WitchMendokusai, asm: WM.Domain}
       data:
         id: 8c41c1fba54e4104b2750e67ae87809a
         editorPosition: {x: 820, y: 0}
@@ -122,7 +122,7 @@ MonoBehaviour:
           talusAngle: 35
           strength: 0.5
     - rid: 3717169683694092376
-      type: {class: SmoothFilterNode, ns: WitchMendokusai, asm: Assembly-CSharp}
+      type: {class: SmoothFilterNode, ns: WitchMendokusai, asm: WM.Domain}
       data:
         id: fa9e335156fc4c73a0a302dae83d4a27
         editorPosition: {x: 1100, y: 0}
@@ -130,7 +130,7 @@ MonoBehaviour:
         parameters:
           iterations: 4
     - rid: 3717169683694092377
-      type: {class: CurveFilterNode, ns: WitchMendokusai, asm: Assembly-CSharp}
+      type: {class: CurveFilterNode, ns: WitchMendokusai, asm: WM.Domain}
       data:
         id: a43eb808838e4da288be655d700ed832
         editorPosition: {x: 1380, y: 0}
@@ -161,7 +161,7 @@ MonoBehaviour:
         minHeight: 0
         maxHeight: 50
     - rid: 3717169683694092378
-      type: {class: HeightOutputNode, ns: WitchMendokusai, asm: Assembly-CSharp}
+      type: {class: HeightOutputNode, ns: WitchMendokusai, asm: WM.Domain}
       data:
         id: 958440cc3ebe422e97fc4f93d5cac4e5
         editorPosition: {x: 1660, y: 0}

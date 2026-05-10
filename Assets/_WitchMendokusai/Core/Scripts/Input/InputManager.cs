@@ -178,20 +178,6 @@ namespace WitchMendokusai
 			BindEvents();
 			KeybindRegistry.ValidateAgainstAsset(inputActionAsset);
 			SetInputStrategy(new InputStrategyLoading());
-
-			UnityEngine.SceneManagement.SceneManager.sceneLoaded += OnSceneLoaded;
-		}
-
-		protected override void OnDestroy()
-		{
-			UnityEngine.SceneManagement.SceneManager.sceneLoaded -= OnSceneLoaded;
-			base.OnDestroy();
-		}
-
-		private void OnSceneLoaded(UnityEngine.SceneManagement.Scene scene, UnityEngine.SceneManagement.LoadSceneMode mode)
-		{
-			Debug.Log($"Scene loaded: {scene.name}");
-			StartCoroutine(InvokeAfterStart(scene, mode));
 		}
 
 		private void InitEventDictionaries()
@@ -222,29 +208,7 @@ namespace WitchMendokusai
 			}
 		}
 
-		private IEnumerator InvokeAfterStart(UnityEngine.SceneManagement.Scene scene, UnityEngine.SceneManagement.LoadSceneMode mode)
-		{
-			yield return new WaitForEndOfFrame(); // Start 실행 후
-
-			switch (scene.name)
-			{
-				case "World":
-					SetInputStrategy(new InputStrategyWorld());
-					break;
-				case "Lobby":
-					SetInputStrategy(new InputStrategyLobby());
-					break;
-				case "Loading":
-					SetInputStrategy(new InputStrategyLoading());
-					break;
-				case "loaded":
-				default:
-					Debug.LogWarning($"No input strategy registered for scene: {scene.name}");
-					yield break;
-			}
-		}
-
-		private void SetInputStrategy(IInputStrategy inputStrategy)
+		public void SetInputStrategy(IInputStrategy inputStrategy)
 		{
 			CurrentInputStrategy = inputStrategy;
 
@@ -306,7 +270,7 @@ namespace WitchMendokusai
 
 		private void Dispatch(InputEventType inputEventType, InputEventResponseType responseType, InputAction.CallbackContext ctx)
 		{
-			if (GameManager.Instance.Conditions[GameConditionType.IsTyping]
+			if (GameConditionBridge.Get(GameConditionType.IsTyping)
 				&& ALWAYS_DISPATCH_WHILE_TYPING.Contains(inputEventType) == false)
 				return;
 
@@ -416,7 +380,7 @@ namespace WitchMendokusai
 		{
 			if (CurrentInputStrategy != null &&
 				CurrentInputStrategy.TryGetAxisReturnConditions(InputAxisType.Move, out GameConditionType[] conditions) &&
-				GameManager.Instance.Conditions.IsGameConditionAny(conditions))
+				GameConditionBridge.IsGameConditionAny(conditions))
 			{
 				MoveInput = Vector2.zero;
 				return;
@@ -434,9 +398,9 @@ namespace WitchMendokusai
 			}
 
 			if (h == 0)
-				h = SOManager.Instance.JoystickX.RuntimeValue;
+				h = JoystickBridge.GetX();
 			if (v == 0)
-				v = SOManager.Instance.JoystickY.RuntimeValue;
+				v = JoystickBridge.GetY();
 
 			MoveInput = new Vector2(h, v).normalized;
 		}
@@ -445,7 +409,7 @@ namespace WitchMendokusai
 		{
 			if (CurrentInputStrategy != null &&
 				CurrentInputStrategy.TryGetAxisReturnConditions(InputAxisType.CameraRotate, out GameConditionType[] conditions) &&
-				GameManager.Instance.Conditions.IsGameConditionAny(conditions))
+				GameConditionBridge.IsGameConditionAny(conditions))
 			{
 				CameraRotateInput = 0f;
 				return;

@@ -122,7 +122,7 @@ namespace WitchMendokusai
 			if (string.IsNullOrEmpty(WindowId))
 				return;
 
-			Vector2? saved = SOManager.Instance.WindowLayoutData.Get(WindowId);
+			Vector2? saved = WindowLayoutBridge.GetPosition(WindowId);
 			if (saved.HasValue == false)
 				return;
 
@@ -144,7 +144,7 @@ namespace WitchMendokusai
 				return;
 
 			Vector2 position = new(resolvedStyle.left, resolvedStyle.top);
-			SOManager.Instance.WindowLayoutData.Set(WindowId, position);
+			WindowLayoutBridge.SetPosition(WindowId, position);
 		}
 
 		public void EnableSizeToggle()
@@ -197,7 +197,7 @@ namespace WitchMendokusai
 			if (string.IsNullOrEmpty(WindowId) || IsSizeToggleEnabled == false)
 				return;
 
-			SOManager.Instance.WindowLayoutData.SetExpanded(WindowId, CurrentSize == WindowSize.Large);
+			WindowLayoutBridge.SetExpanded(WindowId, CurrentSize == WindowSize.Large);
 		}
 
 		private void RestoreSize()
@@ -205,7 +205,7 @@ namespace WitchMendokusai
 			if (string.IsNullOrEmpty(WindowId) || IsSizeToggleEnabled == false)
 				return;
 
-			bool? saved = SOManager.Instance.WindowLayoutData.GetExpanded(WindowId);
+			bool? saved = WindowLayoutBridge.GetExpanded(WindowId);
 			if (saved.HasValue == false)
 				return;
 

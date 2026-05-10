@@ -15,6 +15,12 @@ MonoBehaviour:
   m_GroupName: EntityData
   m_GUID: 9c6dbf0b383e400418b8c6ab4d5ad1ec
   m_SerializeEntries:
+  - m_GUID: 3ec24248882b83e458342ca2d5cc9992
+    m_Address: EntityData/0
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - EntityData
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 6254ce15f10fba1428294e76959b48fb
     m_Address: EntityData/50000000
     m_ReadOnly: 0
