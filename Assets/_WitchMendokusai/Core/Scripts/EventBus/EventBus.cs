@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace WitchMendokusai
 {
-	public interface IStickyEvent
+	public interface IStickyEvent : IEvent
 	{
 	}
 
@@ -12,7 +12,7 @@ namespace WitchMendokusai
 		private readonly Dictionary<Type, List<Delegate>> handlers = new();
 		private readonly Dictionary<Type, object> stickyValues = new();
 
-		public void Subscribe<T>(Action<T> handler) where T : struct
+		public void Subscribe<T>(Action<T> handler) where T : IEvent
 		{
 			Type type = typeof(T);
 			if (handlers.ContainsKey(type) == false)
@@ -26,7 +26,7 @@ namespace WitchMendokusai
 				handler.Invoke((T)stickyValue);
 		}
 
-		public void Unsubscribe<T>(Action<T> handler) where T : struct
+		public void Unsubscribe<T>(Action<T> handler) where T : IEvent
 		{
 			Type type = typeof(T);
 			if (handlers.ContainsKey(type) == false)
@@ -34,7 +34,7 @@ namespace WitchMendokusai
 			handlers[type].Remove(handler);
 		}
 
-		public void Publish<T>(T evt) where T : struct
+		public void Publish<T>(T evt) where T : IEvent
 		{
 			Type type = typeof(T);
 
@@ -48,7 +48,7 @@ namespace WitchMendokusai
 				((Action<T>)list[i]).Invoke(evt);
 		}
 
-		public void ClearSticky<T>() where T : struct
+		public void ClearSticky<T>() where T : IEvent
 		{
 			stickyValues.Remove(typeof(T));
 		}

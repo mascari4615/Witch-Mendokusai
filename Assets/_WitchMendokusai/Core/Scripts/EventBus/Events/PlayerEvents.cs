@@ -9,7 +9,7 @@ namespace WitchMendokusai
 		public Transform SpritePosition;
 	}
 
-	public struct PlayerDespawnedEvent
+	public struct PlayerDespawnedEvent : IEvent
 	{
 	}
 
