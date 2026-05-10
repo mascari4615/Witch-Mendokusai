@@ -13,17 +13,17 @@ namespace WitchMendokusai
 
 		public static void Raise(GameEventType gameEventType)
 		{
-			instance?.Raise(gameEventType);
+			instance.Raise(gameEventType);
 		}
 
 		public static void RegisterCallback(GameEventType gameEventType, Action action)
 		{
-			instance?.RegisterCallback(gameEventType, action);
+			instance.RegisterCallback(gameEventType, action);
 		}
 
 		public static void UnregisterCallback(GameEventType gameEventType, Action action)
 		{
-			instance?.UnregisterCallback(gameEventType, action);
+			instance.UnregisterCallback(gameEventType, action);
 		}
 	}
 }
