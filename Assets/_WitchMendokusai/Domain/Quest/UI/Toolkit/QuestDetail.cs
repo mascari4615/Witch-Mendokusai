@@ -22,35 +22,57 @@ namespace WitchMendokusai
 
 		private RuntimeQuest quest;
 
+		private static readonly Color NAME_COLOR = new(0.95f, 0.95f, 1f, 1f);
+		private static readonly Color DESC_COLOR = new(0.78f, 0.78f, 0.88f, 1f);
+		private static readonly Color STATE_COLOR = new(0.85f, 0.95f, 1f, 1f);
+		private static readonly Color PROGRESS_COLOR = new(0.95f, 0.85f, 0.5f, 1f);
+
 		public QuestDetail()
 		{
 			AddToClassList(USS_CLASS);
 
 			nameLabel = new Label();
 			nameLabel.AddToClassList(USS_NAME);
+			nameLabel.style.fontSize = 18;
+			nameLabel.style.color = NAME_COLOR;
+			nameLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
+			nameLabel.style.marginBottom = 8;
+			nameLabel.style.whiteSpace = WhiteSpace.Normal;
 			Add(nameLabel);
 
 			descLabel = new Label();
 			descLabel.AddToClassList(USS_DESC);
 			descLabel.style.whiteSpace = WhiteSpace.Normal;
+			descLabel.style.fontSize = 12;
+			descLabel.style.color = DESC_COLOR;
+			descLabel.style.marginBottom = 12;
 			Add(descLabel);
 
 			stateLabel = new Label();
 			stateLabel.AddToClassList(USS_STATE);
+			stateLabel.style.fontSize = 13;
+			stateLabel.style.color = STATE_COLOR;
+			stateLabel.style.marginBottom = 4;
 			Add(stateLabel);
 
 			progressLabel = new Label();
 			progressLabel.AddToClassList(USS_PROGRESS);
+			progressLabel.style.fontSize = 13;
+			progressLabel.style.color = PROGRESS_COLOR;
+			progressLabel.style.marginBottom = 8;
 			Add(progressLabel);
 
 			criteriaContainer = new VisualElement();
 			criteriaContainer.AddToClassList(USS_CRITERIA);
+			criteriaContainer.style.marginBottom = 12;
 			Add(criteriaContainer);
 
 			workButton = new Button(OnWorkClicked) { text = "작업 시작" };
+			workButton.style.marginTop = 4;
 			Add(workButton);
 
 			completeButton = new Button(OnCompleteClicked) { text = "보상 받기" };
+			completeButton.style.marginTop = 4;
 			Add(completeButton);
 
 			style.display = DisplayStyle.None;
