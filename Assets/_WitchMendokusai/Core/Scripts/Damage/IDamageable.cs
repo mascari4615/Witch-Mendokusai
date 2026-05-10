@@ -2,12 +2,6 @@ using UnityEngine;
 
 namespace WitchMendokusai
 {
-	public enum DamageType
-	{
-		Normal = 0,
-		Critical = 1
-	}
-
 	public class DamageContext
 	{
 		public UnitObject DamageSource { get; set; }
