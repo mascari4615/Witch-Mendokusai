@@ -7,8 +7,6 @@ namespace WitchMendokusai
 {
 	public static class DataSODefine
 	{
-		public const string BASE_DIR = "Assets/_WitchMendokusai/";
-		public const string EDITOR_DIR = BASE_DIR + "Editor/";
 		public const int ID_MAX = 100_000_000;
 
 		public static readonly Dictionary<Type, string> AssetPrefixes = new()
