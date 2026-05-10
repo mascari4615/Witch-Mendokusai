@@ -8,7 +8,6 @@ namespace WitchMendokusai
 	{
 		// Public Properties
 		public List<IUIPanelGroup> PanelGroups { get; private set; } = new();
-		public UITab Tab { get; private set; }
 		public UINPC NPC { get; private set; }
 		public TransitionView Transition { get; private set; }
 		public UIChat Chat { get; private set; }
@@ -56,7 +55,6 @@ namespace WitchMendokusai
 			adventurerGuild = FindAnyObjectByType<UIAdventurerGuild>(FindObjectsInactive.Include);
 			adventurerGuild.gameObject.SetActive(false);
 
-			Tab = FindAnyObjectByType<UITab>(FindObjectsInactive.Include);
 			NPC = FindAnyObjectByType<UINPC>(FindObjectsInactive.Include);
 
 			// 씬 한정 view 등록 — 글로벌 UIRoot 에 AddComponent
@@ -124,7 +122,6 @@ namespace WitchMendokusai
 
 		private void Start()
 		{
-			RegisterOverlayUI(Tab);
 			RegisterOverlayUI(NPC);
 		}
 
@@ -155,14 +152,6 @@ namespace WitchMendokusai
 		public void Popup(DataSO dataSO)
 		{
 			popupView.Popup(dataSO);
-		}
-
-		public void ToggleTabUI()
-		{
-			if (Tab.IsPanelOpen)
-				Tab.ClosePanel();
-			else if (IsAnyPanelFullscreenOpen == false)
-				Tab.SetPanel(TabPanelType.TabMenu);
 		}
 
 		public void OnCancelInput()

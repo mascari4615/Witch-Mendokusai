@@ -102,12 +102,6 @@ namespace WitchMendokusai
 							() => UIManager.Instance.OnCancelInput(),
 							() => CanExecute(InputEventType.Cancel)
 						),
-						new(
-							InputEventType.Tab,
-							InputEventResponseType.Performed,
-							() => UIManager.Instance.ToggleTabUI(),
-							() => CanExecute(InputEventType.Tab)
-						)
 						#endregion
 					};
 
@@ -179,15 +173,6 @@ namespace WitchMendokusai
 				}
 			},
 			{ InputEventType.Cancel, new[] { GameConditionType.IsTyping } },
-			{
-				InputEventType.Tab,
-				new[]
-				{
-					GameConditionType.IsTyping,
-					GameConditionType.IsPaused,
-					// GameConditionType.IsViewingUI, // Tab도 전체화면 UI이므로 제외 - KarmoDDrine 2026-01-12
-				}
-			},
 			{ InputEventType.Status, new[] { GameConditionType.IsTyping } },
 		};
 
