@@ -20,8 +20,7 @@ namespace WitchMendokusai
 
 		private void OnDisable()
 		{
-			if (IsPlaying)
-				ObjectBufferManager.RemoveObject(ObjectType.Skill, gameObject);
+			ObjectBufferManager.RemoveObject(ObjectType.Skill, gameObject);
 		}
 
 		public void InitContext(SkillContext context)

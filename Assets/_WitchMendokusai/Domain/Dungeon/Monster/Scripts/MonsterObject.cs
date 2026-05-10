@@ -25,8 +25,7 @@ namespace WitchMendokusai
 
 		protected virtual void OnDisable()
 		{
-			if (IsPlaying)
-				ObjectBufferManager.RemoveObject(ObjectType.Monster, gameObject);
+			ObjectBufferManager.RemoveObject(ObjectType.Monster, gameObject);
 			StopAllCoroutines();
 			hpBar.gameObject.SetActive(false);
 
@@ -59,8 +58,7 @@ namespace WitchMendokusai
 			StopAllCoroutines();
 
 			// Animator.SetTrigger("COLLAPSE");
-			if (IsPlaying)
-				ObjectBufferManager.RemoveObject(ObjectType.Monster, gameObject);
+			ObjectBufferManager.RemoveObject(ObjectType.Monster, gameObject);
 
 			gameObject.SetActive(false);
 		}

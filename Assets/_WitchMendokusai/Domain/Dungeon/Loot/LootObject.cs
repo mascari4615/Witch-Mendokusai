@@ -69,8 +69,7 @@ namespace WitchMendokusai
 
 		private void OnDisable()
 		{
-			if (IsPlaying)
-				ObjectBufferManager.RemoveObject(ObjectType.Drop, gameObject);
+			ObjectBufferManager.RemoveObject(ObjectType.Drop, gameObject);
 		}
 	}
 }
