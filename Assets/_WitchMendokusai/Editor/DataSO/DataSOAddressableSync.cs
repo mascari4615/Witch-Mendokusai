@@ -11,14 +11,28 @@ namespace WitchMendokusai
 	/// 「Addressable 그룹 .asset 은 DataSO GUID + AssetPrefixes 컨벤션으로 *deterministic 재생성 가능*」 인데
 	/// git 정본으로 박혀서 폴더 재구조 / DataSO 추가·삭제 시 *transient drift* 노출 (사용자 발화 「entry 빠진거」, 2026-05-09).
 	///
-	/// 본 postprocessor 가 4 hook (imported/deleted/moved/movedFromAssetPaths) 처리 →
-	/// `WM/Setup All Addressables` 메뉴 클릭 자체 폐기 (Phase D 격하). 사용자 손 0 (자동화 우선 룰).
+	/// 본 클래스가 두 hook 처리 → `WM/Setup All Addressables` 메뉴 클릭 자체 폐기 (Phase D 격하). 사용자 손 0:
+	/// 1. <see cref="OnPostprocessAllAssets"/> — DataSO 자산 import/move 즉시 sync (신규 / 변경)
+	/// 2. <see cref="MassSyncOnLoad"/> — Editor reload 마다 1회 mass sync (기존 자산 보장 — `[InitializeOnLoadMethod]`)
 	///
-	/// Phase A 스코프 = imported/moved 만 (등록·갱신). orphan 제거 (deletedAssets) = Phase B 에서
-	/// <see cref="DataSOUtil"/> 의 SetAddressableAsset 양방향 확장 후 활성. 본 hook 의 deletedAssets 분기는 placeholder.
+	/// Phase A 스코프 = imported/moved + mass sync. orphan 제거 (deletedAssets / 옛 entry) = Phase B 에서
+	/// <see cref="DataSOUtil"/> 의 SetAddressableAsset 양방향 확장 후 활성.
 	/// </summary>
+	[InitializeOnLoad]
 	public sealed class DataSOAddressableSync : AssetPostprocessor
 	{
+		[InitializeOnLoadMethod]
+		private static void MassSyncOnLoad()
+		{
+			AddressableAssetSettings settings = AddressableAssetSettingsDefaultObject.Settings;
+			if (settings == null)
+				return;
+
+			DataSOUtil.ForeachDataSO(DataSOUtil.SetAddressableAsset, "DataSO Addressable 자동 sync (Editor load)", showDialog: false);
+			EditorUtility.SetDirty(settings);
+		}
+
+
 		private static void OnPostprocessAllAssets(
 			string[] importedAssets,
 			string[] deletedAssets,
