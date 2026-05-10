@@ -1,28 +1,8 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using static WitchMendokusai.SOHelper;
 
 namespace WitchMendokusai
 {
-	[Serializable]
-	public struct BuildingInstanceData
-	{
-		public int BuildingID;
-		public BuildingState State;
-		public int Level;
-		public string RuntimeData;
-
-		public BuildingInstanceData(int buildingID, BuildingState state = BuildingState.Placed, int level = 1, string runtimeData = "")
-		{
-			BuildingID = buildingID;
-			State = state;
-			Level = level;
-			RuntimeData = runtimeData;
-		}
-	}
-
 	public class BuildingObject : MonoBehaviour
 	{
 		public BuildingInstanceData SaveData { get; private set; } = new();
