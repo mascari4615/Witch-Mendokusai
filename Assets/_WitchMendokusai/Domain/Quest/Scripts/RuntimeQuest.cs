@@ -71,7 +71,7 @@ namespace WitchMendokusai
 			if (AutoComplete)
 				GameEvents.Add(GameEventType.OnTick);
 			foreach (GameEventType gameEventType in GameEvents)
-				GameEventManager.Instance.RegisterCallback(gameEventType, Evaluate);
+				GameEventBridge.RegisterCallback(gameEventType, Evaluate);
 			Evaluate();
 		}
 
@@ -116,7 +116,7 @@ namespace WitchMendokusai
 			State = RuntimeQuestState.Working;
 
 			foreach (GameEventType gameEventType in GameEvents)
-				GameEventManager.Instance.UnregisterCallback(gameEventType, Evaluate);
+				GameEventBridge.UnregisterCallback(gameEventType, Evaluate);
 
 			EventBus.Instance.Publish(new QuestWorkStartedEvent(Guid, workerID, WorkTime));
 		}
@@ -135,11 +135,11 @@ namespace WitchMendokusai
 
 			if (QuestSOID != -1 && Type == QuestType.Research)
 			{
-				GameEventManager.Instance.Raise(GameEventType.OnResearchComplete);
+				GameEventBridge.Raise(GameEventType.OnResearchComplete);
 			}
 
 			foreach (GameEventType gameEventType in GameEvents)
-				GameEventManager.Instance.UnregisterCallback(gameEventType, Evaluate);
+				GameEventBridge.UnregisterCallback(gameEventType, Evaluate);
 
 			EventBus.Instance.Publish(new QuestCompletedEvent(Guid, QuestSOID, Type));
 		}

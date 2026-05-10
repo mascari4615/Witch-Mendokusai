@@ -4,9 +4,15 @@ using static WitchMendokusai.WMHelper;
 
 namespace WitchMendokusai
 {
-	public class GameEventManager : Singleton<GameEventManager>
+	public class GameEventManager : Singleton<GameEventManager>, IGameEventBridge
 	{
 		public Dictionary<GameEventType, Action> Callback { get; } = new();
+
+		protected override void Awake()
+		{
+			base.Awake();
+			GameEventBridge.Register(this);
+		}
 
 		public void Raise(GameEventType gameEventType)
 		{
