@@ -67,7 +67,7 @@ namespace WitchMendokusai
 		}
 
 		#region Save
-		[MenuItem("WM/SaveAssets")]
+		[MenuItem("WM/Setup/Save All DataSO Assets")]
 		public static void SaveAssets()
 		{
 			ForeachDataSO(SetDirty, "SaveAssets");
@@ -97,7 +97,7 @@ namespace WitchMendokusai
 		// 그룹 캐싱을 위한 정적 딕셔너리
 		private static readonly Dictionary<string, AddressableAssetGroup> addressableGroups = new();
 
-		[MenuItem("WM/Setup All Addressables")]
+		[MenuItem("WM/Setup/Re-sync All DataSO Addressables")]
 		public static void SetupAllAddressables()
 		{
 			AddressableAssetSettings settings = AddressableAssetSettingsDefaultObject.Settings;
