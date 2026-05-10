@@ -30,6 +30,7 @@ namespace WitchMendokusai
 		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
 		private static void Bootstrap()
 		{
+			SceneManager.sceneLoaded -= OnSceneLoaded;
 			SceneManager.sceneLoaded += OnSceneLoaded;
 			Scene active = SceneManager.GetActiveScene();
 			if (active.name == WORLD_SCENE_NAME)
