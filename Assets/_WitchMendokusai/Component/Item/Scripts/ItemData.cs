@@ -5,24 +5,6 @@ using UnityEngine.Serialization;
 
 namespace WitchMendokusai
 {
-	public enum ItemGrade
-	{
-		Common,
-		Uncommon,
-		Rare,
-		Legendary
-	}
-
-	public enum ItemType
-	{
-		None = -1,
-		Loot = 0,
-		Potion = 1,
-		Equipment = 2,
-		Aspects = 3,
-		Count,
-	}
-
 	[CreateAssetMenu(fileName = nameof(ItemData), menuName = "WM/Variable/ItemData")]
 	public class ItemData : DataSO
 	{
