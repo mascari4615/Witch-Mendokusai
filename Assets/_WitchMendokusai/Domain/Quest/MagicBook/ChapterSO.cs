@@ -11,8 +11,10 @@ namespace WitchMendokusai
 	/// nodes (NodeBase List, base 의 [SerializeReference]) 안에 <see cref="QuestNode"/> wrapper 들이 들어감.
 	///
 	/// TASK-WM-059 polish B (2026-05-10) — Connections override.
-	/// 디자이너 SerializeField 박은 connections (base) + UnlockEffects 자동 도출 connections 합산.
+	/// 디자이너 SerializeField 박은 connections (base) + CompleteEffects + UnlockEffects 자동 도출 합산.
 	/// EffectType.UnlockQuest 효과 (effect.Data = 다음 QuestSO) → from QuestNode → to QuestNode 자동 edge.
+	/// 정본 = CompleteEffects (Quest 완료 시 다음 unlock = cascade 핵심, PrototypeChapter*Bootstrap 데이터 정합).
+	/// UnlockEffects 도 검사 — 미래 패턴 (unlock 직후 cascade) 호환.
 	/// </summary>
 	[CreateAssetMenu(fileName = "Chapter_", menuName = "WM/Variable/ChapterSO")]
 	public class ChapterSO : NodeGraphAsset
@@ -35,29 +37,38 @@ namespace WitchMendokusai
 						continue;
 
 					QuestSO source = questNode.Target;
-					if (source == null || source.Data.UnlockEffects == null)
+					if (source == null)
 						continue;
 
-					foreach (EffectInfo effect in source.Data.UnlockEffects)
-					{
-						if (effect.Type != EffectType.UnlockQuest)
-							continue;
-
-						QuestSO targetSO = effect.Data as QuestSO;
-						if (targetSO == null)
-							continue;
-
-						NodeBase targetNode = FindQuestNode(targetSO);
-						if (targetNode == null)
-							continue;
-
-						(string, string) key = (node.Id, targetNode.Id);
-						if (seen.Add(key))
-							all.Add(new NodeConnection(node.Id, string.Empty, targetNode.Id, string.Empty));
-					}
+					AddDerivedFromEffects(source.Data.CompleteEffects, node, all, seen);
+					AddDerivedFromEffects(source.Data.UnlockEffects, node, all, seen);
 				}
 
 				return all;
+			}
+		}
+
+		private void AddDerivedFromEffects(List<EffectInfo> effects, NodeBase fromNode, List<NodeConnection> all, HashSet<(string, string)> seen)
+		{
+			if (effects == null)
+				return;
+
+			foreach (EffectInfo effect in effects)
+			{
+				if (effect.Type != EffectType.UnlockQuest)
+					continue;
+
+				QuestSO targetSO = effect.Data as QuestSO;
+				if (targetSO == null)
+					continue;
+
+				NodeBase targetNode = FindQuestNode(targetSO);
+				if (targetNode == null)
+					continue;
+
+				(string, string) key = (fromNode.Id, targetNode.Id);
+				if (seen.Add(key))
+					all.Add(new NodeConnection(fromNode.Id, string.Empty, targetNode.Id, string.Empty));
 			}
 		}
 
