@@ -29,7 +29,7 @@ namespace WitchMendokusai
 				return;
 			}
 
-			SetIcon(item.Data.Sprite);
+			SetIcon(((ItemData)item.Data).Sprite);
 			SetAmount(item.Amount);
 			SetTooltipData(item.Data);
 		}

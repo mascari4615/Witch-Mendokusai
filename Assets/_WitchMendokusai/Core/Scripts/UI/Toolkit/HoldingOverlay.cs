@@ -34,7 +34,7 @@ namespace WitchMendokusai
 				return;
 			}
 
-			slot.SetIcon(item.Data.Sprite);
+			slot.SetIcon(((ItemData)item.Data).Sprite);
 			slot.SetAmount(item.Amount);
 			SetVisible(true);
 		}

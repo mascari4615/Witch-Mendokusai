@@ -6,7 +6,7 @@ using UnityEngine.Serialization;
 namespace WitchMendokusai
 {
 	[CreateAssetMenu(fileName = nameof(ItemData), menuName = "WM/Variable/ItemData")]
-	public class ItemData : DataSO
+	public class ItemData : DataSO, IItemData
 	{
 		[field: Header("_" + nameof(ItemData))]
 		[PropertyOrder(10)][field: SerializeField] public ItemGrade Grade { get; private set; } = new ();

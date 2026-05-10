@@ -136,7 +136,9 @@ namespace WitchMendokusai
 			EventBus.Instance.Publish(new QuestCompletedEvent(Guid, QuestSOID, Type));
 
 			if (QuestSOID != -1 && Type == QuestType.Research)
+			{
 				GameEventManager.Instance.Raise(GameEventType.OnResearchComplete);
+			}
 
 			foreach (GameEventType gameEventType in GameEvents)
 				GameEventManager.Instance.UnregisterCallback(gameEventType, Evaluate);

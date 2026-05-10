@@ -70,7 +70,7 @@ namespace WitchMendokusai
 				}
 				else
 				{
-					ItemData itemData = item.Data;
+					ItemData itemData = (ItemData)item.Data;
 					bool slotDisable = (filter != ItemType.None) && (itemData.Type != filter);
 
 					slot.SetSlot(itemData, item.Amount);
@@ -84,7 +84,7 @@ namespace WitchMendokusai
 		{
 			if (item != null)
 			{
-				Slots[index].SetSlot(item.Data, item.Amount);
+				Slots[index].SetSlot((ItemData)item.Data, item.Amount);
 			}
 			else
 			{

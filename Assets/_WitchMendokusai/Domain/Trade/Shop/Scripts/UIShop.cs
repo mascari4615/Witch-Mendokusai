@@ -80,7 +80,7 @@ namespace WitchMendokusai
 			Item item = SOManager.Instance.ItemInventory.GetItem(slotIndex);
 			if (item != null)
 			{
-				ItemData itemData = item.Data;
+				ItemData itemData = (ItemData)item.Data;
 				DataManager.Instance.GameStat[GameStatType.NYANG] += itemData.SalePrice;
 				SOManager.Instance.ItemInventory.Remove(slotIndex);
 				UpdateUI();
