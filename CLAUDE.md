@@ -197,6 +197,7 @@ TASK 기반으로 시작한 작업은 `memo/wm/tasks/TASK-NNN-*.md`를 작업 �
 
 - 컴파일 검증 정본 = **Unity Editor.log + Unity-MCP `read_console`** (Mono runtime 정본)
 - `dotnet build` 폐기 (2026-05-10) — .NET 8+ runtime ≠ Unity Mono → false confidence (record `CS0518 IsExternalInit` / `CS0453 EventBus<T:struct>` 못 잡음). + post-commit hook 누적 사고 (73 process / 7.81 GB)
+- **dotnet build edge case (autopilot 등) — wrapper 경유 강제** (TASK-KAR-008): `powershell -File memo/dotfiles/scripts/dotnet-build-wm.ps1 -Csproj WitchMendokusai/Assembly-CSharp.csproj` — Bash tool timeout 시 child process tree orphan 한계 우회 + build-server shutdown 자동. 직접 `dotnet build` 호출 X. 누적 발견 시 `memo/dotfiles/scripts/dotnet-cleanup.ps1` (-DryRun → apply). SessionStart hook (`check-dotnet-stuck.sh`) 가 5+ proc 또는 1500MB+ 누적 시 자동 알림.
 - 자동 발견 채널 = TASK-WM-087 (KarmoLab Tauri Editor.log watcher → yawnbot webhook). 외부 push 검증 = TASK-WM-088 (Unity Build Automation)
 - 사용자가 코드 보고 검증하기 전에 *컴파일 통과* 자체가 사전 조건
 - "사용자에게 빨리 넘기기" 보다 *검증 가능한 상태로 넘기기* 가 우선
