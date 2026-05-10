@@ -251,7 +251,7 @@ namespace WitchMendokusai
 					int nonTargetCount = 0;
 
 					// 에셋 검색 시작
-					string[] guids = AssetDatabase.FindAssets("t:DataSO", new[] { BASE_DIR });
+					string[] guids = AssetDatabase.FindAssets("t:DataSO");
 
 					// 진행 상황 표시
 					EditorUtility.DisplayProgressBar($"{taskName} 중", "DataSO 에셋을 처리하고 있습니다", 0f);
