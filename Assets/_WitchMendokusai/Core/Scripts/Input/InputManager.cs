@@ -179,12 +179,19 @@ namespace WitchMendokusai
 			KeybindRegistry.ValidateAgainstAsset(inputActionAsset);
 			SetInputStrategy(new InputStrategyLoading());
 
-			// TODO: Setup Class 같은 것이 있어야 할 듯 - 2025.04.19 11:38
-			UnityEngine.SceneManagement.SceneManager.sceneLoaded += (scene, mode) =>
-			{
-				Debug.Log($"Scene loaded: {scene.name}");
-				StartCoroutine(InvokeAfterStart(scene, mode));
-			};
+			UnityEngine.SceneManagement.SceneManager.sceneLoaded += OnSceneLoaded;
+		}
+
+		protected override void OnDestroy()
+		{
+			UnityEngine.SceneManagement.SceneManager.sceneLoaded -= OnSceneLoaded;
+			base.OnDestroy();
+		}
+
+		private void OnSceneLoaded(UnityEngine.SceneManagement.Scene scene, UnityEngine.SceneManagement.LoadSceneMode mode)
+		{
+			Debug.Log($"Scene loaded: {scene.name}");
+			StartCoroutine(InvokeAfterStart(scene, mode));
 		}
 
 		private void InitEventDictionaries()
