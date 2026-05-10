@@ -13,8 +13,6 @@ namespace WitchMendokusai
 
 	public class WorkManager
 	{
-		public const int NONE_WORKER_ID = -1;
-
 		public Dictionary<WorkListType, List<Work>> Works { get; private set; } = new()
 		{
 			{WorkListType.DollWork, new()},
@@ -25,6 +23,15 @@ namespace WitchMendokusai
 		public void Init(Dictionary<WorkListType, List<Work>> works)
 		{
 			Works = works;
+
+			EventBus.Instance.Unsubscribe<QuestWorkStartedEvent>(OnQuestWorkStarted);
+			EventBus.Instance.Subscribe<QuestWorkStartedEvent>(OnQuestWorkStarted);
+		}
+
+		private void OnQuestWorkStarted(QuestWorkStartedEvent evt)
+		{
+			Work work = new(evt.WorkerID, WorkType.QuestWork, evt.QuestGuid, evt.WorkTime);
+			AddWork(work);
 		}
 
 		public void TickEachWorks()
@@ -91,7 +98,7 @@ namespace WitchMendokusai
 
 		public void AddWork(Work work)
 		{
-			if (work.WorkerID == NONE_WORKER_ID)
+			if (work.WorkerID == WorkConstants.NONE_WORKER_ID)
 			{
 				Works[WorkListType.VQuestWork].Add(work);
 			}

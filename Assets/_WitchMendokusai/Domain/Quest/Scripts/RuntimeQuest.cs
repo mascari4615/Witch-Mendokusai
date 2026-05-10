@@ -111,14 +111,14 @@ namespace WitchMendokusai
 			}
 		}
 
-		public void StartWork(int workerID = WorkManager.NONE_WORKER_ID)
+		public void StartWork(int workerID = WorkConstants.NONE_WORKER_ID)
 		{
 			State = RuntimeQuestState.Working;
 
 			foreach (GameEventType gameEventType in GameEvents)
 				GameEventManager.Instance.UnregisterCallback(gameEventType, Evaluate);
-			Work work = new(workerID, WorkType.QuestWork, Guid, WorkTime);
-			DataManager.Instance.WorkManager.AddWork(work);
+
+			EventBus.Instance.Publish(new QuestWorkStartedEvent(Guid, workerID, WorkTime));
 		}
 
 		public void EndWork()
@@ -152,50 +152,6 @@ namespace WitchMendokusai
 
 			foreach (RewardInfoData rewardData in Rewards)
 				Reward.GetReward(rewardData);
-		}
-
-		public float GetProgress()
-		{
-			if (State == RuntimeQuestState.Working)
-			{
-				if (DataManager.Instance.WorkManager.TryGetWorkByQuestGuid(Guid, out Work work))
-				{
-					return work.GetProgress();
-				}
-				return 0;
-			}
-
-			if (Criteria.Count == 0)
-				return 1;
-
-			float progress = 0;
-			foreach (RuntimeCriteria runtimeCriteria in Criteria)
-				progress += runtimeCriteria.GetProgress();
-			return progress /= Criteria.Count;
-		}
-
-		public string GetProgressText()
-		{
-			if (State == RuntimeQuestState.Working)
-			{
-				if (DataManager.Instance.WorkManager.TryGetWorkByQuestGuid(Guid, out Work work))
-				{
-					return work.GetProgress().ToString("P0");
-				}
-				return string.Empty;
-			}
-
-			if (Criteria.Count == 0)
-				return "100%";
-
-			float curValue = 0;
-			float targetValue = 0;
-			foreach (RuntimeCriteria runtimeCriteria in Criteria)
-			{
-				curValue += runtimeCriteria.GetCurValue();
-				targetValue += runtimeCriteria.GetTargetValue();
-			}
-			return $"{curValue} / {targetValue}";
 		}
 
 		public void Load(RuntimeQuestSaveData saveData)

@@ -6,5 +6,7 @@ namespace WitchMendokusai
 
 	public record QuestCompletedEvent(Guid? Guid, int QuestSOID, QuestType Type) : IEvent;
 
+	public record QuestWorkStartedEvent(Guid? QuestGuid, int WorkerID, float WorkTime) : IEvent;
+
 	public record QuestDetailRequestedEvent(QuestSO Quest) : IEvent;
 }
