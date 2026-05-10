@@ -20,11 +20,26 @@ namespace WitchMendokusai
 		{
 			Quests.Clear();
 
+			EventBus.Instance.Unsubscribe<QuestCompletedEvent>(OnQuestCompleted);
+			EventBus.Instance.Subscribe<QuestCompletedEvent>(OnQuestCompleted);
+
 			foreach (RuntimeQuest quest in quests)
 			{
 				Quests.Add(quest);
 				quest.StartQuest();
 			}
+		}
+
+		private void OnQuestCompleted(QuestCompletedEvent evt)
+		{
+			RuntimeQuest quest = GetQuest(evt.Guid);
+			if (quest == null)
+				return;
+
+			Quests.Remove(quest);
+
+			if (evt.QuestSOID != -1)
+				questStates[evt.QuestSOID] = QuestState.Completed;
 		}
 
 		public void AddQuest(RuntimeQuest quest)
@@ -58,23 +73,11 @@ namespace WitchMendokusai
 		public void CompleteQuest(Guid? guid)
 		{
 			GetQuest(guid).Complete();
-			EventBus.Instance.Publish(new QuestCompletedEvent(guid));
 		}
 
 		public void EndQuestWork(Guid? guid)
 		{
 			GetQuest(guid).EndWork();
-		}
-
-		public void RemoveQuest(RuntimeQuest quest)
-		{
-			Guid? guid = quest.Guid;
-			RuntimeQuest runtimeQuest = GetQuest(guid);
-
-			if (Quests.Remove(runtimeQuest) == false)
-			{
-				Debug.Log("Quest not found");
-			}
 		}
 
 		public void RemoveQuests(QuestType questType)
