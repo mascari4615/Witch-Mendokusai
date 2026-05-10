@@ -34,12 +34,16 @@ namespace WitchMendokusai
 		{
 			RuntimeQuest quest = GetQuest(evt.Guid);
 			if (quest == null)
+			{
 				return;
+			}
 
 			Quests.Remove(quest);
 
 			if (evt.QuestSOID != -1)
+			{
 				questStates[evt.QuestSOID] = QuestState.Completed;
+			}
 		}
 
 		public void AddQuest(RuntimeQuest quest)
