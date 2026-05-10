@@ -214,6 +214,31 @@ namespace WitchMendokusai
 
 			return true;
 		}
+
+		/// <summary>
+		/// DataSO 자산 삭제 시 Addressable group 의 orphan entry 제거 — TASK-WM-064 Phase B (2026-05-10).
+		/// path 기반 GUID lookup → settings.RemoveAssetEntry. entry 없으면 no-op (false 반환).
+		/// </summary>
+		public static bool RemoveAddressableEntryByPath(string deletedPath)
+		{
+			AddressableAssetSettings settings = AddressableAssetSettingsDefaultObject.Settings;
+			if (settings == null)
+				return false;
+
+			string guid = AssetDatabase.AssetPathToGUID(deletedPath);
+			if (string.IsNullOrEmpty(guid))
+				return false;
+
+			AddressableAssetEntry entry = settings.FindAssetEntry(guid);
+			if (entry == null)
+				return false;
+
+			bool removed = settings.RemoveAssetEntry(entry.guid);
+			if (removed)
+				settings.SetDirty(AddressableAssetSettings.ModificationEvent.EntryRemoved, entry, true);
+
+			return removed;
+		}
 		#endregion
 
 		public static void ForeachDataSO(Func<DataSO, bool> action, string taskName = "무언가", bool showDialog = true)
