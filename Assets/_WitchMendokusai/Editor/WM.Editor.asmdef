@@ -1,0 +1,35 @@
+{
+    "name": "WM.Editor",
+    "rootNamespace": "WitchMendokusai",
+    "references": [
+        "WM.Core",
+        "WM.Domain",
+        "Unity.Addressables",
+        "Unity.Addressables.Editor",
+        "Unity.ResourceManager",
+        "Unity.EditorCoroutines.Editor",
+        "Unity.RenderPipelines.Universal.Runtime",
+        "Unity.RenderPipelines.Core.Runtime",
+        "Unity.InputSystem",
+        "UniTask",
+        "Unity.TextMeshPro",
+        "Unity.Timeline",
+        "FMODUnity",
+        "DOTween.Modules",
+        "PlayFab",
+        "UniRx",
+        "WitchMendokusai.DomainSDK",
+        "VContainer"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

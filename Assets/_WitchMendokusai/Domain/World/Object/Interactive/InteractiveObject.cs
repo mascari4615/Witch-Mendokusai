@@ -33,8 +33,7 @@ namespace WitchMendokusai
 
 		private void OnDisable()
 		{
-			if (WMHelper.IsPlaying == true)
-				ActiveInteractive.Remove(this);
+			ActiveInteractive.Remove(this);
 		}
 	}
 }

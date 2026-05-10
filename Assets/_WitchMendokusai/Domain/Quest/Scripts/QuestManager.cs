@@ -20,8 +20,8 @@ namespace WitchMendokusai
 		{
 			Quests.Clear();
 
-			EventBus.Instance.Unsubscribe<QuestCompletedEvent>(OnQuestCompleted);
-			EventBus.Instance.Subscribe<QuestCompletedEvent>(OnQuestCompleted);
+			EventBusBridge.Unsubscribe<QuestCompletedEvent>(OnQuestCompleted);
+			EventBusBridge.Subscribe<QuestCompletedEvent>(OnQuestCompleted);
 
 			foreach (RuntimeQuest quest in quests)
 			{
@@ -56,7 +56,7 @@ namespace WitchMendokusai
 		public void AddQuest(RuntimeQuest quest)
 		{
 			Quests.Add(quest);
-			EventBus.Instance.Publish(new QuestAddedEvent(quest));
+			EventBusBridge.Publish(new QuestAddedEvent(quest));
 		}
 
 		public RuntimeQuest GetQuest(QuestSO questData)

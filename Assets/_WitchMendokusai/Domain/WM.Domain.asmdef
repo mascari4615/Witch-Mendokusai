@@ -1,0 +1,31 @@
+{
+    "name": "WM.Domain",
+    "rootNamespace": "WitchMendokusai",
+    "references": [
+        "WM.Core",
+        "Unity.InputSystem",
+        "UniTask",
+        "Unity.Cinemachine",
+        "Unity.RenderPipelines.Universal.Runtime",
+        "Unity.RenderPipelines.Core.Runtime",
+        "Unity.TextMeshPro",
+        "Unity.Timeline",
+        "Unity.Addressables",
+        "Unity.ResourceManager",
+        "FMODUnity",
+        "PlayFab",
+        "UniRx",
+        "DOTween.Modules",
+        "WitchMendokusai.DomainSDK",
+        "VContainer"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

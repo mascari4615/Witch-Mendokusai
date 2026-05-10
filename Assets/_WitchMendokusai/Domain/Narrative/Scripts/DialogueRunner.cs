@@ -8,11 +8,31 @@ namespace WitchMendokusai
 	/// 정사 (TASK-WM-052 Phase 2 — 노드 그래프 통합) 에서 Choice 분기 / Branch / Wait 노드 등으로 확장 예정.
 	/// UIManager 가 Awake 시 AddComponent — UIRoot GameObject 에 attach.
 	/// </summary>
-	public class DialogueRunner : Singleton<DialogueRunner>
+	public class DialogueRunner : MonoBehaviour
 	{
+		public static DialogueRunner Instance { get; private set; }
+
+		public static bool TryGetExistingInstance(out DialogueRunner mgr)
+		{
+			mgr = Instance;
+			return mgr != null;
+		}
+
 		private const float DEFAULT_LINE_DURATION = 3f;
 
 		private Coroutine activeCoroutine;
+
+		private void Awake()
+		{
+			if (Instance != null && Instance != this) { Destroy(gameObject); return; }
+			Instance = this;
+		}
+
+		private void OnDestroy()
+		{
+			if (Instance == this)
+				Instance = null;
+		}
 
 		public void Play(DialogueLine first)
 		{

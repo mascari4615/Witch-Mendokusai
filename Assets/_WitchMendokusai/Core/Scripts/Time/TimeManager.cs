@@ -7,8 +7,16 @@ namespace WitchMendokusai
 {
 	// https://twitter.com/BinaryImpactG/status/1686306273061482496
 	// Mathf.Epsilon
-	public class TimeManager : Singleton<TimeManager>
+	public class TimeManager : MonoBehaviour
 	{
+		public static TimeManager Instance { get; private set; }
+
+		public static bool TryGetExistingInstance(out TimeManager mgr)
+		{
+			mgr = Instance;
+			return mgr != null;
+		}
+
 		public const float TICK = 0.05f;
 
 		[SerializeField] private float slowFactor = 0.05f;
@@ -21,6 +29,22 @@ namespace WitchMendokusai
 		private Coroutine slowMotion;
 
 		public bool IsPaused => pausers.Count > 0;
+
+		private void Awake()
+		{
+			if (Instance != null && Instance != this)
+			{
+				Destroy(gameObject);
+				return;
+			}
+			Instance = this;
+		}
+
+		private void OnDestroy()
+		{
+			if (Instance == this)
+				Instance = null;
+		}
 
 		private void OnEnable()
 		{
@@ -83,7 +107,7 @@ namespace WitchMendokusai
 			if (pausers.Contains(pauser) == false)
 				return; // 등록되지 않은 pauser는 무시합니다.
 
-			Debug.Log($"[TimeManager] Resumed by {pauser.name}");	
+			Debug.Log($"[TimeManager] Resumed by {pauser.name}");
 
 			pausers.Remove(pauser);
 			UpdateTimeScale();

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace WitchMendokusai
 {
@@ -7,10 +8,15 @@ namespace WitchMendokusai
 	{
 	}
 
-	public class EventBus : Singleton<EventBus>
+	public class EventBus : MonoBehaviour, IEventBus
 	{
 		private readonly Dictionary<Type, List<Delegate>> handlers = new();
 		private readonly Dictionary<Type, object> stickyValues = new();
+
+		private void Awake()
+		{
+			EventBusBridge.Register(this);
+		}
 
 		public void Subscribe<T>(Action<T> handler) where T : IEvent
 		{

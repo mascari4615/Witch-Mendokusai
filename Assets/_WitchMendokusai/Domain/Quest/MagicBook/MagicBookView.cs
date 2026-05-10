@@ -56,7 +56,7 @@ namespace WitchMendokusai
 			IsOpen = false;
 
 			InputManager.Instance.RegisterInputEvent(InputEventType.MagicBookToggle, InputEventResponseType.Performed, Toggle);
-			EventBus.Instance.Subscribe<QuestDetailRequestedEvent>(OnQuestDetailRequested);
+			EventBusBridge.Subscribe<QuestDetailRequestedEvent>(OnQuestDetailRequested);
 		}
 
 		private void OnDestroy()
@@ -64,7 +64,7 @@ namespace WitchMendokusai
 			if (InputManager.TryGetExistingInstance(out InputManager inputManager))
 				inputManager.UnregisterInputEvent(InputEventType.MagicBookToggle, InputEventResponseType.Performed, Toggle);
 
-			if (EventBus.TryGetExistingInstance(out EventBus eventBus))
+			if (EventBusBridge.TryGetInstance(out IEventBus eventBus))
 				eventBus.Unsubscribe<QuestDetailRequestedEvent>(OnQuestDetailRequested);
 
 			container?.RemoveFromHierarchy();
@@ -215,13 +215,7 @@ namespace WitchMendokusai
 				return;
 
 			RuntimeQuest quest = QuestManager.Instance.GetQuest(questSO);
-			if (quest == null)
-			{
-				Debug.Log($"[MagicBookView] {questSO.Name} (ID={questSO.ID}) — RuntimeQuest 없음 (Locked / 미생성). 잠긴 상태 표시는 후속 polish.");
-				return;
-			}
-
-			questDetail.Bind(quest);
+			questDetail.Bind(questSO, quest);
 		}
 
 		[ContextMenu("Open MagicBook")]

@@ -7,7 +7,7 @@ namespace WitchMendokusai
 	/// <summary>
 	/// TASK-WM-013 prototype 단계 D' — *기능 테스트용 프로토타입 챕터 2* 데이터 자동 생성.
 	/// PrototypeChapter1Bootstrap 의 동일 패턴, ID/이름만 chapter2 로. cascade 검증 1회 더 + narrative slice 추가.
-	/// 메뉴: WitchMendokusai/Prototype/Generate Prototype Chapter 2
+	/// 메뉴: WM/Prototype/Generate Prototype Chapter 2
 	/// </summary>
 	public static class PrototypeChapter2Bootstrap
 	{
@@ -21,7 +21,7 @@ namespace WitchMendokusai
 		private const float NODE_X_SPACING = 240f;
 		private const int FADE_DURATION_MS = 1500;
 
-		[MenuItem("WitchMendokusai/Prototype/Generate Prototype Chapter 2")]
+		[MenuItem("WM/Prototype/Generate Prototype Chapter 2")]
 		public static void GeneratePrototypeChapter2()
 		{
 			EnsureDirectory(Path.GetDirectoryName(CHAPTER_PATH));

@@ -9,28 +9,30 @@ namespace WitchMendokusai
 	/// 모든 모드와 명령은 이 컨트롤러가 시작 시 일괄 Register.
 	/// World 씬 진입 시 Resources/Singletons/DevWindowController.prefab 에서 자동 스폰.
 	/// </summary>
-	public class DevWindowController : Singleton<DevWindowController>
+	public class DevWindowController : MonoBehaviour
 	{
+		public static DevWindowController Instance { get; private set; }
+
+		public static bool TryGetExistingInstance(out DevWindowController mgr)
+		{
+			mgr = Instance;
+			return mgr != null;
+		}
+
 		private const string WINDOW_ID = "DevWindow";
 		private const string WINDOW_TITLE = "WM Dev";
-		private const string WORLD_SCENE_NAME = "World";
 
 		private WMWindow window;
 		private DevWindowView view;
 
-		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
-		private static void Bootstrap()
+		private void Awake()
 		{
-			SceneManager.sceneLoaded += OnSceneLoaded;
-			Scene active = SceneManager.GetActiveScene();
-			if (active.name == WORLD_SCENE_NAME)
-				_ = Instance;
-		}
-
-		private static void OnSceneLoaded(Scene scene, LoadSceneMode mode)
-		{
-			if (scene.name == WORLD_SCENE_NAME && TryGetExistingInstance(out _) == false)
-				_ = Instance;
+			if (Instance != null && Instance != this)
+			{
+				Destroy(gameObject);
+				return;
+			}
+			Instance = this;
 		}
 
 		private void Start()
@@ -49,12 +51,13 @@ namespace WitchMendokusai
 			InputManager.Instance.RegisterInputEvent(InputEventType.DevWindowToggle, InputEventResponseType.Performed, OnToggle);
 		}
 
-		protected override void OnDestroy()
+		private void OnDestroy()
 		{
 			if (InputManager.TryGetExistingInstance(out InputManager inputManager))
 				inputManager.UnregisterInputEvent(InputEventType.DevWindowToggle, InputEventResponseType.Performed, OnToggle);
 
-			base.OnDestroy();
+			if (Instance == this)
+				Instance = null;
 		}
 
 		/// <summary>GameCondition.IsTyping 이 호출. 명령행에 포커스가 있으면 true.</summary>
@@ -100,6 +103,8 @@ namespace WitchMendokusai
 				DevModeRegistry.Instance.Register(new DevDataListMode<Dungeon>("stages", "Stages", "D_", "dungeon"));
 			if (DevModeRegistry.Instance.FindById("quests") == null)
 				DevModeRegistry.Instance.Register(new DevDataListMode<QuestSO>("quests", "Quests", "Q_", "quest", "unlock"));
+			if (DevModeRegistry.Instance.FindById("timeweather") == null)
+				DevModeRegistry.Instance.Register(new TimeWeatherMode());
 		}
 
 		/// <summary>UI 측에서 명령 시스템에 진입할 때 호출. 명령행에 직접 입력한 것과 동일한 경로 (출력/에러 처리 포함).</summary>

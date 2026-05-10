@@ -108,7 +108,10 @@ namespace WitchMendokusai
 			// Debug.Log(nameof(CreateGUI));
 
 			VisualElement root = rootVisualElement;
-			VisualTreeAsset visualTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>($"{EDITOR_DIR}{nameof(DataSO)}/{nameof(DataSOWindow)}.uxml");
+			string[] uxmlGuids = AssetDatabase.FindAssets($"t:VisualTreeAsset {nameof(DataSOWindow)}");
+			VisualTreeAsset visualTree = uxmlGuids.Length > 0
+				? AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(AssetDatabase.GUIDToAssetPath(uxmlGuids[0]))
+				: null;
 
 			// Instantiate UXML
 			VisualElement labelFromUXML = visualTree.Instantiate();
@@ -529,7 +532,7 @@ namespace WitchMendokusai
 					string newName = Enum.GetName(typeof(TEnum), enumValue);
 
 					string path = AssetFolderOverride.ContainsKey(typeof(TData)) ?
-						AssetFolderOverride[typeof(TData)] : BASE_DIR;
+						AssetFolderOverride[typeof(TData)] : GetSelectedFolderPath();
 
 					TData typedData = AddDataSO(typeof(TData), newID, newName, path) as TData;
 					PropertyInfo typeProperty = typeof(TData).GetProperty(PropertyName);
@@ -555,6 +558,16 @@ namespace WitchMendokusai
 			}
 
 			// Debug.Log($"{nameof(InitEnumData)} End");
+		}
+
+		private static string GetSelectedFolderPath()
+		{
+			string assetPath = AssetDatabase.GetAssetPath(Selection.activeObject);
+			if (string.IsNullOrEmpty(assetPath))
+				return "Assets/";
+			if (Directory.Exists(assetPath))
+				return assetPath + "/";
+			return Path.GetDirectoryName(assetPath).Replace("\\", "/") + "/";
 		}
 
 		// private void OnValidate() => Debug.Log("OnValidate is executed.");

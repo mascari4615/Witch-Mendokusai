@@ -84,12 +84,13 @@ MonoBehaviour:
   m_Name: CustomBlurFeature
   m_EditorClassIdentifier: Assembly-CSharp::WitchMendokusai.CustomBlurFeature
   m_Active: 1
+  useDualKawase: 1
   iterations: 4
   downsample: 2
   intensity: 1
   offset: 1
   injectionPoint: 600
-  blurShader: {fileID: 0}
+  blurShader: {fileID: 4800000, guid: 19d97fd34ccf84c4db219049793f3601, type: 3}
   targetRT: {fileID: 8400000, guid: 4f1f5a32ebefe5041a43447ad1711148, type: 2}
 --- !u!114 &8009472877475435230
 MonoBehaviour:

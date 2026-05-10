@@ -53,7 +53,7 @@ namespace WitchMendokusai
 
 		protected bool CanExecute(InputEventType eventType)
 		{
-			return TryGetEventReturnConditions(eventType, out var conditions) == false || GameManager.Instance.Conditions.IsGameConditionAny(conditions) == false;
+			return TryGetEventReturnConditions(eventType, out GameConditionType[] conditions) == false || GameConditionBridge.IsGameConditionAny(conditions) == false;
 		}
 	
 		public bool TryGetAxisReturnConditions(InputAxisType axisType, out GameConditionType[] conditions)

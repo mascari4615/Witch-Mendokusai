@@ -102,7 +102,7 @@ namespace WitchMendokusai
 			if (target == null)
 				return;
 
-			EventBus.Instance.Publish(new QuestDetailRequestedEvent(target.ID));
+			EventBusBridge.Publish(new QuestDetailRequestedEvent(target.ID));
 		}
 	}
 }

@@ -6,8 +6,16 @@ using UnityEngine.InputSystem;
 namespace WitchMendokusai
 {
 	// TODO: 이미 있는 곳에 배치하려고 하는 경우 Text 알림
-	public class BuildManager : Singleton<BuildManager>
+	public class BuildManager : MonoBehaviour
 	{
+		public static BuildManager Instance { get; private set; }
+
+		public static bool TryGetExistingInstance(out BuildManager mgr)
+		{
+			mgr = Instance;
+			return mgr != null;
+		}
+
 		private const string MarkerEnabled = "ENABLED";
 		private const string MarkerResetTrigger = "RESET";
 
@@ -26,9 +34,10 @@ namespace WitchMendokusai
 		private float lastClickTime = 0f;
 		private const float clickCooldown = 0.1f; // 클릭 간 최소 시간 간격 (초)
 
-		protected override void Awake()
+		private void Awake()
 		{
-			base.Awake();
+			if (Instance != null && Instance != this) { Destroy(gameObject); return; }
+			Instance = this;
 			Init();
 		}
 
@@ -46,8 +55,11 @@ namespace WitchMendokusai
 
 		private void OnDestroy()
 		{
+			StageManager.OnStageChanged -= OnStageChanged;
 			if (GameModeManager.TryGetExistingInstance(out GameModeManager gameModeManager))
 				gameModeManager.OnModeChanged -= OnGameModeChanged;
+			if (Instance == this)
+				Instance = null;
 		}
 
 		private void OnGameModeChanged(GameMode mode) => ApplyMode(mode);

@@ -95,8 +95,16 @@ namespace WitchMendokusai
 		CameraRotate,
 	}
 
-	public class InputManager : Singleton<InputManager>
+	public class InputManager : MonoBehaviour
 	{
+		public static InputManager Instance { get; private set; }
+
+		public static bool TryGetExistingInstance(out InputManager mgr)
+		{
+			mgr = Instance;
+			return mgr != null;
+		}
+
 		[SerializeField] private InputActionAsset inputActionAsset;
 		[SerializeField] private LayerMask mouseWorldLayerMask;
 		[SerializeField] private float mouseWorldRayDistance = 100f;
@@ -164,10 +172,21 @@ namespace WitchMendokusai
 		private bool isPointerOverUI;
 		public bool IsPointerOverUI() => isPointerOverUI;
 
-		protected override void Awake()
+		private void Awake()
 		{
-			base.Awake();
+			if (Instance != null && Instance != this)
+			{
+				Destroy(gameObject);
+				return;
+			}
+			Instance = this;
 			Init();
+		}
+
+		private void OnDestroy()
+		{
+			if (Instance == this)
+				Instance = null;
 		}
 
 		private void Init()
@@ -178,13 +197,6 @@ namespace WitchMendokusai
 			BindEvents();
 			KeybindRegistry.ValidateAgainstAsset(inputActionAsset);
 			SetInputStrategy(new InputStrategyLoading());
-
-			// TODO: Setup Class 같은 것이 있어야 할 듯 - 2025.04.19 11:38
-			UnityEngine.SceneManagement.SceneManager.sceneLoaded += (scene, mode) =>
-			{
-				Debug.Log($"Scene loaded: {scene.name}");
-				StartCoroutine(InvokeAfterStart(scene, mode));
-			};
 		}
 
 		private void InitEventDictionaries()
@@ -215,29 +227,7 @@ namespace WitchMendokusai
 			}
 		}
 
-		private IEnumerator InvokeAfterStart(UnityEngine.SceneManagement.Scene scene, UnityEngine.SceneManagement.LoadSceneMode mode)
-		{
-			yield return new WaitForEndOfFrame(); // Start 실행 후
-
-			switch (scene.name)
-			{
-				case "World":
-					SetInputStrategy(new InputStrategyWorld());
-					break;
-				case "Lobby":
-					SetInputStrategy(new InputStrategyLobby());
-					break;
-				case "Loading":
-					SetInputStrategy(new InputStrategyLoading());
-					break;
-				case "loaded":
-				default:
-					Debug.LogWarning($"No input strategy registered for scene: {scene.name}");
-					yield break;
-			}
-		}
-
-		private void SetInputStrategy(IInputStrategy inputStrategy)
+		public void SetInputStrategy(IInputStrategy inputStrategy)
 		{
 			CurrentInputStrategy = inputStrategy;
 
@@ -299,7 +289,7 @@ namespace WitchMendokusai
 
 		private void Dispatch(InputEventType inputEventType, InputEventResponseType responseType, InputAction.CallbackContext ctx)
 		{
-			if (GameManager.Instance.Conditions[GameConditionType.IsTyping]
+			if (GameConditionBridge.Get(GameConditionType.IsTyping)
 				&& ALWAYS_DISPATCH_WHILE_TYPING.Contains(inputEventType) == false)
 				return;
 
@@ -409,7 +399,7 @@ namespace WitchMendokusai
 		{
 			if (CurrentInputStrategy != null &&
 				CurrentInputStrategy.TryGetAxisReturnConditions(InputAxisType.Move, out GameConditionType[] conditions) &&
-				GameManager.Instance.Conditions.IsGameConditionAny(conditions))
+				GameConditionBridge.IsGameConditionAny(conditions))
 			{
 				MoveInput = Vector2.zero;
 				return;
@@ -427,9 +417,9 @@ namespace WitchMendokusai
 			}
 
 			if (h == 0)
-				h = SOManager.Instance.JoystickX.RuntimeValue;
+				h = JoystickBridge.GetX();
 			if (v == 0)
-				v = SOManager.Instance.JoystickY.RuntimeValue;
+				v = JoystickBridge.GetY();
 
 			MoveInput = new Vector2(h, v).normalized;
 		}
@@ -438,7 +428,7 @@ namespace WitchMendokusai
 		{
 			if (CurrentInputStrategy != null &&
 				CurrentInputStrategy.TryGetAxisReturnConditions(InputAxisType.CameraRotate, out GameConditionType[] conditions) &&
-				GameManager.Instance.Conditions.IsGameConditionAny(conditions))
+				GameConditionBridge.IsGameConditionAny(conditions))
 			{
 				CameraRotateInput = 0f;
 				return;

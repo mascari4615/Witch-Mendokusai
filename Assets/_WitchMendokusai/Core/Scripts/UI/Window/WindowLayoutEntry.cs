@@ -8,5 +8,6 @@ namespace WitchMendokusai
 		public string windowId;
 		public float x;
 		public float y;
+		public bool isExpanded;
 	}
 }

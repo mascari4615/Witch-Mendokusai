@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 
 namespace WitchMendokusai
 {
@@ -7,21 +8,36 @@ namespace WitchMendokusai
 	/// UI Toolkit 윈도우(WMWindow) 등록 관리. ESC = 최상단 윈도우 닫기.
 	/// 기존 uGUI UIWindowManager의 UI Toolkit 버전.
 	/// </summary>
-	public class WindowManager : Singleton<WindowManager>
+	public class WindowManager : MonoBehaviour
 	{
+		public static WindowManager Instance { get; private set; }
+
+		public static bool TryGetExistingInstance(out WindowManager mgr)
+		{
+			mgr = Instance;
+			return mgr != null;
+		}
+
 		private readonly List<WMWindow> windows = new();
 
-		protected override void Awake()
+		private void Awake()
 		{
-			base.Awake();
+			if (Instance != null && Instance != this)
+			{
+				Destroy(gameObject);
+				return;
+			}
+			Instance = this;
 			InputManager.Instance.RegisterInputEvent(InputEventType.Cancel, InputEventResponseType.Performed, OnCancel);
 		}
 
-		protected override void OnDestroy()
+		private void OnDestroy()
 		{
 			if (InputManager.TryGetExistingInstance(out InputManager inputManager))
 				inputManager.UnregisterInputEvent(InputEventType.Cancel, InputEventResponseType.Performed, OnCancel);
-			base.OnDestroy();
+
+			if (Instance == this)
+				Instance = null;
 		}
 
 		public void Register(WMWindow window)

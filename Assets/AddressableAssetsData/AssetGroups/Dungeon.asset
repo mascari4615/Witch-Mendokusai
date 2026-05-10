@@ -21,6 +21,12 @@ MonoBehaviour:
     m_SerializedLabels:
     - Dungeon
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 33ebc3dfb05044099481d3a5f5c3009c
+    m_Address: Dungeon/0
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Dungeon
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 6fcb13fa06ab37e4399c866b682eaeaa
     m_Address: Dungeon/1
     m_ReadOnly: 0

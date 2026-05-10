@@ -144,6 +144,51 @@ TASK 시드의 단계 분할 표(A1/A2/A3...)는 *합의된 작업 단위*다. �
 
 새 시스템이 *우리 패턴과 다른 모양*이라면 *이유*를 TASK 시드에 명시한다.
 
+## DomainSDK / Mods SDK — 6 동기 first-use 패턴
+
+비전 정본: `memo/wm/design/vision/architecture.md` § DomainSDK 모델 / Mods 모델. 본 § 는 *코드 룰* 측면 — 다른 도메인 (Item / Building / Combat) 격상 시 재사용.
+
+### asmdef sandbox = 컴파일러 강제 단방향
+
+- `Assets/_WitchMendokusai/DomainSDK/WitchMendokusai.DomainSDK.asmdef` — `references=[]` (외부 package 의존 0). `autoReferenced=true` (Domain/Core 가 자동 참조).
+- `Assets/_WitchMendokusai/Mods/Sample/WitchMendokusai.Mods.Sample.asmdef` — `references=[WitchMendokusai.DomainSDK]` 만. `autoReferenced=false` (별 dll, `ModLoader` 명시 책임).
+- 모드 .cs 가 Domain type 호출 시 *컴파일 fail* — runtime check / 권한 시스템 0. 진짜 단방향 검증의 근본.
+
+### DomainSDK 격상 패턴 (bottom-up, TASK-WM-086 검증)
+
+순서: `enum` → `SaveData` (POCO) → `InfoData` (POCO) → `RuntimeXxxSaveData` → `record class XxxEvent : IEvent` → `RuntimeXxx` → asmdef split.
+
+- **Inspector 디자이너 인터페이스 (DataSO drag&drop) 보존** — `Info` type 은 Domain 잔존, `SaveData` 만 DomainSDK 격상, Domain extension `ToSaveData()` / `ToInfoData()` 가 변환.
+- **RuntimeXxx 격상 시 생성자 단순화** — `RuntimeXxx(RuntimeXxxSaveData saveData)` 만. SO/Info → SaveData 변환은 **Domain factory** (`RuntimeXxxFactory.FromXxxSO` / `FromXxxInfo` / `FromSaveData`) 책임.
+- **EventBus 새 event** — `record class XxxEvent(...) : IEvent`. `Publish<T:IEvent>` 제약. struct 회귀 X. `IsExternalInit` polyfill 박혀있음.
+
+### Bridge 패턴 — DomainSDK 가 Singleton 호출 시
+
+DomainSDK POCO 가 `EventBus.Instance` / `GameEventManager.Instance` 직접 호출하면 *DomainSDK → Core* 단방향 깨짐. 해법:
+
+1. DomainSDK 안 `IXxxBridge` interface — 시그니처만
+2. DomainSDK 안 `XxxBridge` static accessor — `Register(IXxxBridge)` + facade 메서드
+3. Core/Domain 매니저가 `IXxxBridge` 구현 + `Awake` 에 `XxxBridge.Register(this)`
+
+검증된 사용처:
+- `DomainSDK/EventBus/{IEventBus, EventBusBridge}` ↔ `Core/Scripts/EventBus/EventBus.cs`
+- `DomainSDK/GameEvent/{IGameEventBridge, GameEventBridge}` ↔ Core 의 `GameEventManager`
+
+다른 매니저 (DataManager / SOManager / UIManager) 도 같은 패턴 재사용. **null check 제거** — `instance.Method()` (FastFail). Bootstrap 후 호출 보장 영역만, Bootstrap 전 호출 가능 영역은 register 시점 검토 필요.
+
+### Mods SDK 진입점
+
+- `DomainSDK/Mods/IMod.cs` — `Name` / `Version` / `Initialize` 만 (POCO interface, Unity 의존 0).
+- `Domain/Mods/ModLoader.cs` — `[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterAssembliesLoaded)]` + `AppDomain.CurrentDomain.GetAssemblies()` + assembly name `WitchMendokusai.Mods.*` 필터 + reflection 발견 + `Activator.CreateInstance` + `Initialize()`. `ReflectionTypeLoadException` 안전 처리.
+- 새 mod 추가 = `Assets/_WitchMendokusai/Mods/<name>/WitchMendokusai.Mods.<name>.asmdef` (references=DomainSDK, autoReferenced=false) + `IMod` 구현 .cs.
+
+### 격상 시 주의 (TASK-WM-086 사고)
+
+- **Unity 6.x csproj stale** — 신규 `.cs` 후 CS0246 지속 + `.meta` 생성 OK + csproj include 0 = Unity 재시작 필요. `Library/ScriptAssemblies/` 삭제 X (시간 ↑).
+- **git mv + main 직접 push race** — origin merge 가 옛 위치 working tree 재등장. fix = 옛 위치 file system rm + new commit. main 직접 push + git mv 동시 = race 위험 ↑, worktree 사용이 안전.
+- **Unity fsnotify 미스 — 신규 폴더 + 다중 파일** — `.meta` 자동 생성 누락. *Assets > Refresh* 메뉴 1회 / *Project 패널 폴더 클릭* / Unity 재시작.
+- **caller 다 정정** — `RuntimeXxx` 생성자 시그니처 변경 시 `SaveManager.LoadData` / `XxxManager.Init` 등 모든 caller 를 factory 호출로 갱신. 빠뜨리면 NPE (Criteria 등 외부 책임 field 가 null).
+
 ## Editor 메뉴
 
 `MenuItem` path 의 top-level root 는 **`WM/`** 단일화 (TASK-WM-057). `WitchMendokusai/...` 사용 X.
@@ -191,39 +236,59 @@ TASK 기반으로 시작한 작업은 `memo/wm/tasks/TASK-NNN-*.md`를 작업 �
 
 대화 말미에 별도로 안내하는 것으로 끝내지 않고, 문서에 남겨 추적 가능하게 한다.
 
-## 컴파일 에러 확인 — Unity Editor.log + MCP `read_console` 정본
+## 컴파일 에러 확인 — MCP `read_console` 정본 (Editor.log 폐기 영역)
 
 코드 작성 후 사용자에게 "검증해주세요" 요청 *전*에 본인이 먼저 컴파일 검증.
 
-- 컴파일 검증 정본 = **Unity Editor.log + Unity-MCP `read_console`** (Mono runtime 정본)
+- **정본 = Unity-MCP `read_console`** (Mono runtime *현재 Console* 직접 pull) — append 누적 0, 정확
+- **fallback = Editor.log grep** *MCP 미가용 시만*. append-only 누적 구조 → *옛 컴파일 시도 결과가 섞여서 보임* = 부정확 (사례 ↓)
 - `dotnet build` 폐기 (2026-05-10) — .NET 8+ runtime ≠ Unity Mono → false confidence (record `CS0518 IsExternalInit` / `CS0453 EventBus<T:struct>` 못 잡음). + post-commit hook 누적 사고 (73 process / 7.81 GB)
 - **dotnet build edge case (autopilot 등) — wrapper 경유 강제** (TASK-KAR-008): `powershell -File memo/dotfiles/scripts/dotnet-build-wm.ps1 -Csproj WitchMendokusai/Assembly-CSharp.csproj` — Bash tool timeout 시 child process tree orphan 한계 우회 + build-server shutdown 자동. 직접 `dotnet build` 호출 X. 누적 발견 시 `memo/dotfiles/scripts/dotnet-cleanup.ps1` (-DryRun → apply). SessionStart hook (`check-dotnet-stuck.sh`) 가 5+ proc 또는 1500MB+ 누적 시 자동 알림.
-- 자동 발견 채널 = TASK-WM-087 (KarmoLab Tauri Editor.log watcher → yawnbot webhook). 외부 push 검증 = TASK-WM-088 (Unity Build Automation)
-- 사용자가 코드 보고 검증하기 전에 *컴파일 통과* 자체가 사전 조건
-- "사용자에게 빨리 넘기기" 보다 *검증 가능한 상태로 넘기기* 가 우선
+- 사용자가 코드 보고 검증하기 전에 *컴파일 통과* 자체가 사전 조건. "빨리 넘기기" 보다 *검증 가능한 상태로 넘기기* 가 우선
 
-### 컴파일 검증 = Editor.log grep / MCP `read_console`
-
-```bash
-# Editor.log path (Windows)
-grep -E "error CS|warning CS|Reloading assemblies" "C:/Users/masca/AppData/Local/Unity/Editor/Editor.log" | tail -30
-```
-
-또는 Unity-MCP:
+### 정본 — MCP `read_console`
 
 ```python
-# 구조화 + 실시간 (Unity 활성 시 default)
-read_console(types=["error", "warning"], count=20, format="detailed")
+# 현재 Console 그대로, 누적 X, Mono runtime 정본
+read_console(types=["error"], count=30, format="detailed")
+read_console(types=["error"], count=50, filter_text="CS0", format="plain")  # CS 만 필터
 mcpforunity://editor/state  # is_compiling / ready_for_tools polling
+
+# Refresh + compile 동시 트리거
+refresh_unity(mode="force", scope="all", compile="request", wait_for_ready=true)
 ```
 
-- Mono runtime 진짜 결과 — record / null check / Unity API 모두 정확
-- `error CS` 0 + 새 `Reloading assemblies after forced synchronous recompile` 매치 = 통과
-- 모든 `.cs` (멀티 worktree / 멀티 sub) Unity 가 자동 reimport
+- 출력 = *지금 Unity Console 에 보이는 그대로*. 사용자가 Console 봐서 본 것과 일치
+- 0 entries with `types=["error"]` = 컴파일 통과
+- Console clear 가 깨끗한 baseline — 필요시 `read_console(action="clear")`
 
-### Unity 가 필요한 경우 = `unity-refresh.ps1`
+### Editor.log 의 append-only 한계 (왜 부정확한가)
 
-자산 + Play Mode 시만:
+- Editor.log path: `C:/Users/masca/AppData/Local/Unity/Editor/Editor.log`
+- **append-only** — Editor 시작 시 truncate 도 안 함 (사용자 시스템 따라). 한 세션 동안 *모든 컴파일 시도* 의 에러가 시간순으로 누적
+- *실패한* 컴파일 시도는 "Reloading assemblies after forced synchronous recompile" 마커를 안 찍음 → "마커 이후 line" grep 도 옛 실패 결과 다 노출
+- `grep "error CS"` 결과 = *지금 에러 + 그 전 시도들 에러 다 합친 것*. 어느게 현재인지 구분 어려움
+- → fallback 으로만 사용. MCP 가용하면 무조건 MCP
+
+### Editor.log 부정확 사례 (TASK-WM-056-A 4차 cascade, 2026-05-10)
+
+asmdef 분할 cascade fix 진행 중:
+- Editor.log grep = **259 unique CS 에러** 보고 (마지막 reload 라인 이후 grep)
+- 사용자가 Console 직접 확인 = **6 에러** 만 (실제 현재 상태)
+- → Editor.log 의 254 가 *옛 시도들의 누적*. 실제 fix 가 진행되며 사라진 에러도 grep 결과에 그대로
+- 결과: 사용자 시간 낭비 + 잘못된 cascade depth 판단 + 부정확 대화
+- MCP 등록 후 `read_console` 한 번 호출 → 30 에러 (당시 시점) 정확 보고 + 이후 fix cycle 매번 정확
+- **교훈**: MCP 미가용 fallback 으로 Editor.log grep 쓰면 *반드시 사용자에게 Console 교차 검증 요청*. 자기 grep 결과만 신뢰 X
+
+### Refresh / 컴파일 트리거
+
+자산 + 컴파일 동시 트리거:
+
+```python
+refresh_unity(mode="force", scope="all", compile="request", wait_for_ready=true)
+```
+
+또는 fallback PS1 (MCP 미가용 시):
 
 ```bash
 powershell -File memo/dotfiles/scripts/unity-refresh.ps1
@@ -236,30 +301,32 @@ powershell -File memo/dotfiles/scripts/unity-refresh.ps1
 - 씬 / `RenderSettings` / Volume Profile / shader 컴파일
 - Play Mode 진입 검증
 
-검증: Editor.log grep — `Reloading assemblies after forced synchronous recompile` 새 매치 + Bootstrap 로그
+### 트리거 한계 (이때만 사용자 손)
 
-### unity-refresh 한계 (이때만 사용자 손)
-
-- Unity 창이 *이미 foreground* 면 `SetForegroundWindow` no-op (focus 이벤트 X) — 우회: PowerShell `SendKeys ^r` 또는 사용자가 다른 창 잠시 클릭
-- Auto Refresh OFF → `Edit > Preferences > Asset Pipeline > Auto Refresh` 1회 컨펌
+- Unity 창이 *이미 foreground* 면 `unity-refresh.ps1` 의 `SetForegroundWindow` no-op (focus 이벤트 X) — MCP `refresh_unity` 우선 (이 한계 무관)
+- Auto Refresh OFF → `Edit > Preferences > Asset Pipeline > Auto Refresh` 1회 컨펌. MCP `refresh_unity(mode="force")` 도 동작 (사용자 클릭 불필요)
 - 신규 폴더 파일은 fsnotify 가 가끔 누락 → Project 패널에서 폴더 한 번 클릭
-- **Unity 컴파일 stuck state** (빈 .cs 가 일시 존재 후 컴파일 무응답) — Editor.log + MCP `read_console` 로 코드 OK 검증 후 사용자에게 *Assets > Refresh* 메뉴 또는 Editor 재시작 1회 (unity-refresh / SendKeys 다 무효)
+- **Unity 컴파일 stuck state** — MCP `read_console` 로 에러 0 검증 후에도 reimport 안 되는 경우 사용자에게 Editor 재시작 1회 요청
 
 ### 새 .cs 파일 만들었을 때
 
 - `.cs.meta` 는 Unity 가 Editor focus 시 자동 생성 — 그 전엔 partial 또는 없음
 - `[RequireComponent]` 자동 attach 도 Editor 가 prefab 인지해야 작동 — 사용자에게 *해당 prefab 한 번 열어 자동 보강 트리거* 요청
 
-작업 완료 보고 흐름:
-1. 코드 변경
-2. **Editor.log 컴파일 에러 확인** + **stale 여부 확인** ← 둘 다 빠뜨리지 말 것
-3. 에러 있으면 fix → 다시 1. stale 이면 사용자에게 reimport 요청 후 재확인
-4. 통과 시 사용자에게 동작 검증 요청
-5. 사용자 OK → commit
+### 작업 완료 보고 흐름
 
-이전 사례: TASK-WM-034 B (NodeGraph GraphView UI) — `Func<GraphViewChange, GraphViewChange>` vs `GraphView.GraphViewChanged` delegate 타입 mismatch 컴파일 에러를 사용자가 먼저 발견. 본인이 Editor.log 안 보고 검증 요청해버림. 룰 추가 계기.
+1. 코드 변경 (`Edit` / `script_apply_edits` / `create_script`)
+2. `refresh_unity(mode="force", compile="request", wait_for_ready=true)`
+3. `read_console(types=["error"])` — 0 entries 검증
+4. 에러 1+ 면 즉시 fix → 다시 2. (Editor.log fallback 시 사용자 Console 교차 검증)
+5. 통과 시 사용자에게 *비전 / 비주얼 / 동작* 검증 요청
+6. 사용자 OK → commit
 
-이전 사례 2: TASK-WM-039 Knockback A+B+C — `PlayerKnockbackCameraGlue` 신규 .cs 만든 후 Editor.log 봤는데 Unity foreground 안 와서 import 안 됨. 다른 (`HitstopFeedback`, `KnockbackFeedback`) 은 import 됐고 새로 만든 것만 안 됨 = stale 일 가능성 인지. 사용자에게 reimport 요청 → 통과 확인 후 검증 진행.
+### 이전 사례
+
+- **TASK-WM-034 B (NodeGraph GraphView UI)** — `Func<GraphViewChange, GraphViewChange>` vs `GraphView.GraphViewChanged` delegate 타입 mismatch 컴파일 에러를 사용자가 먼저 발견. 본인이 Editor.log 안 보고 검증 요청해버림. 룰 추가 계기.
+- **TASK-WM-039 Knockback A+B+C** — `PlayerKnockbackCameraGlue` 신규 .cs 만든 후 Editor.log 봤는데 Unity foreground 안 와서 import 안 됨. 다른 (`HitstopFeedback`, `KnockbackFeedback`) 은 import 됐고 새로 만든 것만 안 됨 = stale 일 가능성 인지. 사용자에게 reimport 요청 → 통과 확인 후 검증 진행.
+- **TASK-WM-056-A 4차 cascade (2026-05-10)** — Editor.log grep 259 vs Console 6 mismatch. MCP 등록 후 `read_console` 정본 채택. *append-only Editor.log 는 fallback 으로만* 룰 박힘.
 
 ### Play Mode 진입 자동 lazy load — `RuntimeInitializeOnLoadMethod` 한계
 
@@ -277,9 +344,28 @@ powershell -File memo/dotfiles/scripts/unity-refresh.ps1
 
 이전 사례: TASK-WM-054-A WorldClock (2026-05-08) — Awake 에서 `DontDestroyOnLoad` 코드 강제 호출했다가 사용자가 "Singleton 베이스에 노브 있는데 왜 코드 강제냐" 지적. `WorldClockBootstrapMenu` 가 prefab 생성 시 SerializedField = true 박는 + idempotent `EnsurePrefabFlags` 패턴으로 정정.
 
-## Unity-MCP layer (TASK-WM-071, 2026-05-09)
+## Unity-MCP layer (TASK-WM-071, 2026-05-09 → 2026-05-10 CoplayDev 영구 회귀)
 
-**Unity 공식 MCP server 도입** (`com.unity.ai.assistant 2.7+`) — Claude 가 Unity Editor 직접 조작 가능. Editor.log grep + `unity-refresh.ps1` 흐름의 *정본 채널*. (`dotnet build` 는 2026-05-10 폐기 — Mono runtime mismatch.)
+**현재 정본 = CoplayDev `com.coplaydev.unity-mcp`** (community, MIT) — Claude 가 Unity Editor 직접 조작. Editor.log grep + `unity-refresh.ps1` 흐름의 *정본 채널*. (`dotnet build` 는 2026-05-10 폐기 — Mono runtime mismatch.)
+
+**Unity AI Package (`com.unity.ai.assistant`) 자체는 계속 사용** — Editor 안 IDE 보조 기능. *하지만 그 안의 공식 MCP server 는 폐기*. 사유 (2026-05-10 사용자 명시): **Unity Personal 계정 요청 한도** — 외부 client 가 공식 MCP 거치면 Unity AI Cloud cap 빠르게 도달. CoplayDev 는 Unity Cloud 우회 (Editor 안 직접 처리) — cap 무관.
+
+### Claude Code 등록 (`.mcp.json`)
+
+프로젝트 루트 `karmoddrine/.mcp.json`:
+
+```json
+{
+  "mcpServers": {
+    "unityMCP": {
+      "type": "http",
+      "url": "http://localhost:8080/mcp"
+    }
+  }
+}
+```
+
+⚠ `type: "http"` 빠뜨리면 `/doctor` 가 `command: expected string, received undefined` 검증 실패 (Claude Code `.mcp.json` 은 stdio 가 default schema). Unity 쪽 `Window > MCP for Unity > Start Server` (port 8080) up 상태 필수. 자동 승인 = `~/.claude/settings.json` 의 `enableAllProjectMcpServers: true`. 메모리 정본 = `reference_unity_mcp_coplay_setup.md`.
 
 ### 사용 우선순위 — read 자율 / write 신중
 
@@ -436,4 +522,3 @@ set_active_instance(instance="<branch>@<hash>")          # sub worktree
 - ★ **Conventional Commits + 한 commit 한 주제** — `feat: / fix: / chore: / refactor: / docs: / style:`. PR 폐기로 단위 자유도 ↑, 더 잘게.
 
 세부 (worktree persistent scratch 패턴 / claude-audit POC v1-v4 검증 / Branch Protection 폐기 1회용 gh api / Release flow Tag-only `release.yml` / CHANGELOG 구조 / `Closes #NN` Issue 자동 종료 / CodeRabbit historical / Post-push 정리 / Tag↔bundleVersion drift 등) = wm-git-workflow skill 참고.
-

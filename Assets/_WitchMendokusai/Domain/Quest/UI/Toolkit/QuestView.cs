@@ -52,7 +52,7 @@ namespace WitchMendokusai
 				inputManager.UnregisterInputEvent(InputEventType.QuestToggle, InputEventResponseType.Performed, OnToggle);
 		}
 
-		private void OnQuestSelected(RuntimeQuest quest) => questDetail?.Bind(quest);
+		private void OnQuestSelected(RuntimeQuest quest) => questDetail?.Bind(SOHelper.GetQuestSO(quest.QuestSOID), quest);
 
 		private void OnToggle() => window?.Toggle();
 	}

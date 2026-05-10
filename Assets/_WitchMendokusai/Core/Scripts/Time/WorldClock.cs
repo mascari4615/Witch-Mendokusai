@@ -6,8 +6,16 @@ namespace WitchMendokusai
 {
 	// 게임 내부 시각 (시·분·일·계절·년) 모델. TimeManager.OnTick 에 hook 해서 advance.
 	// SO 값 캐싱 X — 인스펙터 런타임 변경 즉시 반영. (TASK-WM-054-A)
-	public class WorldClock : Singleton<WorldClock>
+	public class WorldClock : MonoBehaviour
 	{
+		public static WorldClock Instance { get; private set; }
+
+		public static bool TryGetExistingInstance(out WorldClock mgr)
+		{
+			mgr = Instance;
+			return mgr != null;
+		}
+
 		[field: SerializeField] public WorldClockSO Config { get; private set; }
 
 		public int Year { get; private set; }
@@ -28,9 +36,14 @@ namespace WitchMendokusai
 		// TICK 단위 누적 sub-minute (실수 분량의 게임 분)
 		private float minuteAccumulator;
 
-		protected override void Awake()
+		private void Awake()
 		{
-			base.Awake();
+			if (Instance != null && Instance != this)
+			{
+				Destroy(gameObject);
+				return;
+			}
+			Instance = this;
 			ResetToConfigStart();
 		}
 
@@ -39,12 +52,13 @@ namespace WitchMendokusai
 			TimeManager.Instance.RegisterCallback(AdvanceTick);
 		}
 
-		protected override void OnDestroy()
+		private void OnDestroy()
 		{
 			if (TimeManager.TryGetExistingInstance(out TimeManager timeManager) == true)
 				timeManager.RemoveCallback(AdvanceTick);
 
-			base.OnDestroy();
+			if (Instance == this)
+				Instance = null;
 		}
 
 		private void ResetToConfigStart()
@@ -171,14 +185,6 @@ namespace WitchMendokusai
 				return;
 
 			ApplyDays(days);
-		}
-
-		// Play Mode 시작 + 씬 로드 후 Singleton 자동 ensure (lazy load 트리거).
-		// 없으면 prefab 안의 WorldClockHUD 가 활성화 안 돼 시계가 흐르지 않는다.
-		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
-		private static void EnsureSingletonOnPlay()
-		{
-			_ = Instance;
 		}
 
 		[ContextMenu(nameof(SkipToNextDay))]

@@ -5,8 +5,16 @@ using UnityEngine;
 
 namespace WitchMendokusai
 {
-	public class DungeonManager : Singleton<DungeonManager>
+	public class DungeonManager : MonoBehaviour
 	{
+		public static DungeonManager Instance { get; private set; }
+
+		public static bool TryGetExistingInstance(out DungeonManager mgr)
+		{
+			mgr = Instance;
+			return mgr != null;
+		}
+
 		public Dungeon CurDungeon { get; private set; }
 		public DungeonContext Context { get; private set; }
 		public DungeonRecord Result => dungeonRecorder.CaptureResultRecord();
@@ -24,11 +32,22 @@ namespace WitchMendokusai
 		private DungeonObjectiveStrategy dungeonStrategy = null;
 		private IDisposable dungeonLoopSubscription;
 
-		protected override void Awake()
+		private void Awake()
 		{
-			base.Awake();
+			if (Instance != null && Instance != this)
+			{
+				Destroy(gameObject);
+				return;
+			}
+			Instance = this;
 
 			dungeonUI = FindAnyObjectByType<UIDungeon>(FindObjectsInactive.Include);
+		}
+
+		private void OnDestroy()
+		{
+			if (Instance == this)
+				Instance = null;
 		}
 
 		private void Start()

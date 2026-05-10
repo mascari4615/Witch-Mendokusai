@@ -6,8 +6,16 @@ using Random = UnityEngine.Random;
 
 namespace WitchMendokusai
 {
-	public class AudioManager : Singleton<AudioManager>
+	public class AudioManager : MonoBehaviour
 	{
+		public static AudioManager Instance { get; private set; }
+
+		public static bool TryGetExistingInstance(out AudioManager mgr)
+		{
+			mgr = Instance;
+			return mgr != null;
+		}
+
 		public enum BusType
 		{
 			Master = 0,
@@ -18,13 +26,19 @@ namespace WitchMendokusai
 		private readonly Bus[] buses = new Bus[3];
 		private EventInstance sfxVolumeTestEvent;
 		private EventInstance bgmEvent;
+		private EventInstance ambientEvent;
 		private PLAYBACK_STATE pbState;
 		private readonly List<string> bgmTitles = new();
 		private int bgmIndex = 0;
 
-		protected override void Awake()
+		private void Awake()
 		{
-			base.Awake();
+			if (Instance != null && Instance != this)
+			{
+				Destroy(gameObject);
+				return;
+			}
+			Instance = this;
 
 			buses[(int)BusType.Master] = RuntimeManager.GetBus("bus:/");
 			buses[(int)BusType.BGM] = RuntimeManager.GetBus("bus:/BGM");
@@ -45,6 +59,12 @@ namespace WitchMendokusai
 						bgmTitles.Add(eventPath);
 				}
 			}
+		}
+
+		private void OnDestroy()
+		{
+			if (Instance == this)
+				Instance = null;
 		}
 
 		private void Start()
@@ -80,6 +100,38 @@ namespace WitchMendokusai
 		}
 
 		public void StopMusic() => bgmEvent.stop(FMOD.Studio.STOP_MODE.ALLOWFADEOUT);
+
+		public void PlayAmbient(string eventPath)
+		{
+			ambientEvent.stop(FMOD.Studio.STOP_MODE.ALLOWFADEOUT);
+			ambientEvent.release();
+			if (string.IsNullOrEmpty(eventPath) == false)
+			{
+				try
+				{
+					ambientEvent = RuntimeManager.CreateInstance(eventPath);
+					ambientEvent.start();
+				}
+				catch (EventNotFoundException)
+				{
+					// FMOD 뱅크에 등록 안 된 event — silent skip (warning 로그). WeatherSO SfxKey
+					// (e.g. weather_clear) 가 실제 FMOD event 명과 mismatch 일 때 Play 중단 방지.
+					Debug.LogWarning($"[AudioManager] FMOD event not found: '{eventPath}' — ambient skip");
+				}
+			}
+		}
+
+		public void StopAmbient()
+		{
+			ambientEvent.stop(FMOD.Studio.STOP_MODE.ALLOWFADEOUT);
+			ambientEvent.release();
+		}
+
+		public void PlaySfx(string eventPath)
+		{
+			if (string.IsNullOrEmpty(eventPath) == false)
+				RuntimeManager.PlayOneShot(eventPath);
+		}
 
 		public void PlayMusic(string eventPath)
 		{

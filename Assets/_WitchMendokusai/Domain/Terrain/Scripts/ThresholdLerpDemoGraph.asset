@@ -60,12 +60,12 @@ MonoBehaviour:
     version: 2
     RefIds:
     - rid: 3717169683694092386
-      type: {class: WorldPositionInputNode, ns: WitchMendokusai, asm: Assembly-CSharp}
+      type: {class: WorldPositionInputNode, ns: WitchMendokusai, asm: WM.Domain}
       data:
         id: 4a0458432394411a8f1a22bc14a00017
         editorPosition: {x: 0, y: 0}
     - rid: 3717169683694092387
-      type: {class: FractalPerlinNode, ns: WitchMendokusai, asm: Assembly-CSharp}
+      type: {class: FractalPerlinNode, ns: WitchMendokusai, asm: WM.Domain}
       data:
         id: 58480258e09c4ce4b7cc60a7e990f2c0
         editorPosition: {x: 260, y: -100}
@@ -76,7 +76,7 @@ MonoBehaviour:
         lacunarity: 2
         seed: 0
     - rid: 3717169683694092388
-      type: {class: FractalPerlinNode, ns: WitchMendokusai, asm: Assembly-CSharp}
+      type: {class: FractalPerlinNode, ns: WitchMendokusai, asm: WM.Domain}
       data:
         id: 3285b2ecf62d482ca13d25afb0169dee
         editorPosition: {x: 260, y: 100}
@@ -87,19 +87,19 @@ MonoBehaviour:
         lacunarity: 2
         seed: 42
     - rid: 3717169683694092389
-      type: {class: ThresholdFilterNode, ns: WitchMendokusai, asm: Assembly-CSharp}
+      type: {class: ThresholdFilterNode, ns: WitchMendokusai, asm: WM.Domain}
       data:
         id: 40d5a7f57bfa4a999208f8d411bdda74
         editorPosition: {x: 540, y: 0}
         threshold: 25
         blendWidth: 5
     - rid: 3717169683694092390
-      type: {class: LerpNode, ns: WitchMendokusai, asm: Assembly-CSharp}
+      type: {class: LerpNode, ns: WitchMendokusai, asm: WM.Domain}
       data:
         id: d28e3cddb3634b238b0d51259c56919e
         editorPosition: {x: 820, y: 0}
     - rid: 3717169683694092391
-      type: {class: HeightOutputNode, ns: WitchMendokusai, asm: Assembly-CSharp}
+      type: {class: HeightOutputNode, ns: WitchMendokusai, asm: WM.Domain}
       data:
         id: f20a30d33d9448ef81af3cee6b33a00e
         editorPosition: {x: 1100, y: 0}

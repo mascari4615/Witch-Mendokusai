@@ -21,6 +21,7 @@ namespace WitchMendokusai
 		private readonly Button completeButton;
 
 		private RuntimeQuest quest;
+		private QuestSO questSOFallback;
 
 		private static readonly Color NAME_COLOR = new(0.95f, 0.95f, 1f, 1f);
 		private static readonly Color DESC_COLOR = new(0.78f, 0.78f, 0.88f, 1f);
@@ -78,38 +79,47 @@ namespace WitchMendokusai
 			style.display = DisplayStyle.None;
 		}
 
-		public void Bind(RuntimeQuest newQuest)
+		/// <summary>
+		/// QuestSO + RuntimeQuest (nullable) 통합 Bind — TASK-WM-059 polish 후속 (2026-05-10).
+		/// RuntimeQuest 미생성 (Locked / 미발견) 일 때 so fallback 으로 Name/Description 표시.
+		/// 086 F7 RuntimeQuest 격상 (SO field 제거 — QuestSOID int 만) 에 따라 caller 가 둘 다 전달.
+		/// </summary>
+		public void Bind(QuestSO so, RuntimeQuest runtimeOrNull)
 		{
-			quest = newQuest;
+			quest = runtimeOrNull;
+			questSOFallback = so;
 			Refresh();
 		}
 
 		public void Refresh()
 		{
-			bool hasQuest = quest != null;
-			style.display = hasQuest ? DisplayStyle.Flex : DisplayStyle.None;
+			bool hasContext = quest != null || questSOFallback != null;
+			style.display = hasContext ? DisplayStyle.Flex : DisplayStyle.None;
 
-			if (hasQuest == false)
+			if (hasContext == false)
 				return;
 
-			nameLabel.text = quest.Name ?? "?";
-			descLabel.text = quest.Description ?? string.Empty;
-			stateLabel.text = quest.State.ToString();
-			progressLabel.text = quest.GetProgressText();
+			nameLabel.text = quest?.Name ?? questSOFallback?.Name ?? "?";
+			descLabel.text = quest?.Description ?? questSOFallback?.Description ?? string.Empty;
+			stateLabel.text = quest != null ? quest.State.ToString() : "잠김";
+			progressLabel.text = quest != null ? quest.GetProgressText() : string.Empty;
 
 			criteriaContainer.Clear();
-			foreach (RuntimeCriteria criteria in quest.Criteria)
+			if (quest != null)
 			{
-				Label label = new(BuildCriteriaText(criteria));
-				label.style.color = criteria.IsCompleted
-					? new Color(0.3f, 0.9f, 0.3f)
-					: Color.white;
-				criteriaContainer.Add(label);
+				foreach (RuntimeCriteria criteria in quest.Criteria)
+				{
+					Label label = new(BuildCriteriaText(criteria));
+					label.style.color = criteria.IsCompleted
+						? new Color(0.3f, 0.9f, 0.3f)
+						: Color.white;
+					criteriaContainer.Add(label);
+				}
 			}
 
-			workButton.style.display = quest.State == RuntimeQuestState.CanWork
+			workButton.style.display = quest != null && quest.State == RuntimeQuestState.CanWork
 				? DisplayStyle.Flex : DisplayStyle.None;
-			completeButton.style.display = quest.State == RuntimeQuestState.CanComplete
+			completeButton.style.display = quest != null && quest.State == RuntimeQuestState.CanComplete
 				? DisplayStyle.Flex : DisplayStyle.None;
 		}
 

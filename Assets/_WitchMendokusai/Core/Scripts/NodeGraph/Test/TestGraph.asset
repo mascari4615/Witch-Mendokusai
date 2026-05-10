@@ -35,29 +35,29 @@ MonoBehaviour:
     version: 2
     RefIds:
     - rid: 3717169638049054812
-      type: {class: ConstantFloatNode, ns: WitchMendokusai.NodeGraph, asm: Assembly-CSharp}
+      type: {class: ConstantFloatNode, ns: WitchMendokusai.NodeGraph, asm: WM.Domain}
       data:
         id: 3a402fa7ca644182b9e673e130d530e8
         editorPosition: {x: 0, y: 0}
         value: 3
     - rid: 3717169638049054813
-      type: {class: ConstantFloatNode, ns: WitchMendokusai.NodeGraph, asm: Assembly-CSharp}
+      type: {class: ConstantFloatNode, ns: WitchMendokusai.NodeGraph, asm: WM.Domain}
       data:
         id: 076bf9d5392948c4b78401e63ca8b2f2
         editorPosition: {x: 0, y: 120}
         value: 5
     - rid: 3717169638049054814
-      type: {class: AddFloatNode, ns: WitchMendokusai.NodeGraph, asm: Assembly-CSharp}
+      type: {class: AddFloatNode, ns: WitchMendokusai.NodeGraph, asm: WM.Domain}
       data:
         id: fd3d4479cf81470783bb4a21e88f1c52
         editorPosition: {x: 220, y: 60}
     - rid: 3717169638049054815
-      type: {class: OutputFloatNode, ns: WitchMendokusai.NodeGraph, asm: Assembly-CSharp}
+      type: {class: OutputFloatNode, ns: WitchMendokusai.NodeGraph, asm: WM.Domain}
       data:
         id: b348ae5ca73a49d597fb033b71da8ec0
         editorPosition: {x: 440, y: 60}
     - rid: 3717169638049054816
-      type: {class: VoronoiNode, ns: WitchMendokusai, asm: Assembly-CSharp}
+      type: {class: VoronoiNode, ns: WitchMendokusai, asm: WM.Domain}
       data:
         id: 01910f94e6a2490cbc3a5d338f7dd49f
         editorPosition: {x: 196, y: 239}

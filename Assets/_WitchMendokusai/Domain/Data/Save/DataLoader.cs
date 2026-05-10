@@ -12,10 +12,37 @@ using TMPro;
 
 namespace WitchMendokusai
 {
-	public class DataLoader : Singleton<DataLoader>
+	public class DataLoader : MonoBehaviour
 	{
+		public static DataLoader Instance { get; private set; }
+
+		public static bool TryGetExistingInstance(out DataLoader mgr)
+		{
+			mgr = Instance;
+			return mgr != null;
+		}
+
 		[SerializeField] private Image progressBar;
 		[SerializeField] private TextMeshProUGUI progressText;
+
+		private void Awake()
+		{
+			if (Instance != null && Instance != this)
+			{
+				Destroy(gameObject);
+				return;
+			}
+			Instance = this;
+			// prefab m_IsActive=1 (Container spawn 시 Awake 보장) + Awake 직후 self-deactivate
+			// — Lobby 시 progress UI 안 보이게. LoadData() 의 SetActive(true) 가 보이게 만듦.
+			gameObject.SetActive(false);
+		}
+
+		private void OnDestroy()
+		{
+			if (Instance == this)
+				Instance = null;
+		}
 
 		public IEnumerator LoadData()
 		{
@@ -44,7 +71,7 @@ namespace WitchMendokusai
 
 			progressBar.fillAmount = 1f;
 			progressText.text = "로딩 완료";
-			
+
 			yield return new WaitForSeconds(0.5f); // 완료된 상태 잠시 표시
 			gameObject.SetActive(false);
 		}

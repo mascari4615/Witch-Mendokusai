@@ -1,17 +1,37 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 using static WitchMendokusai.WMHelper;
 
 namespace WitchMendokusai
 {
-	public class GameEventManager : Singleton<GameEventManager>, IGameEventBridge
+	public class GameEventManager : MonoBehaviour, IGameEventBridge
 	{
+		public static GameEventManager Instance { get; private set; }
+
+		public static bool TryGetExistingInstance(out GameEventManager mgr)
+		{
+			mgr = Instance;
+			return mgr != null;
+		}
+
 		public Dictionary<GameEventType, Action> Callback { get; } = new();
 
-		protected override void Awake()
+		private void Awake()
 		{
-			base.Awake();
+			if (Instance != null && Instance != this)
+			{
+				Destroy(gameObject);
+				return;
+			}
+			Instance = this;
 			GameEventBridge.Register(this);
+		}
+
+		private void OnDestroy()
+		{
+			if (Instance == this)
+				Instance = null;
 		}
 
 		public void Raise(GameEventType gameEventType)
