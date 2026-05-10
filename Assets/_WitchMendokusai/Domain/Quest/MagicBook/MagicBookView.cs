@@ -6,12 +6,12 @@ namespace WitchMendokusai
 {
 	/// <summary>
 	/// 마도서 풀스크린 view (UI Toolkit). <see cref="UIRoot"/>.ScreenLayer 통합 — <see cref="SettingView"/> 패턴.
-	/// 챕터 리스트 (좌측 사이드바) + 선택 챕터의 노드 그래프 (우측, <see cref="ChapterView"/>).
+	/// 챕터 리스트 (좌측 사이드바) + 선택 챕터의 노드 그래프 (우측, <see cref="ChapterView"/>) + 우측 floating <see cref="QuestDetail"/>.
 	///
 	/// TASK-WM-059 C (2026-05-09) — uGUI UIMagicBookPanel 의 UI Toolkit 대체.
+	/// TASK-WM-059 D (2026-05-10) — <see cref="QuestDetailRequestedEvent"/> 구독 → <see cref="QuestDetail"/> 띄움.
+	/// EventBus (086 IEvent 인프라) 첫 도메인 사용처. Provider ↔ Host 결합 0.
 	/// 챕터 데이터 = <see cref="SOManager"/>.DataSOs 자동 수집 (ChapterSO : DataSO 정합).
-	///
-	/// 단축키 'm' (Open/Toggle) 은 단계 E (별 commit), 노드 클릭 → QuestDetail 은 단계 D (Provider OnClicked 갱신) 후속.
 	/// </summary>
 	public class MagicBookView : MonoBehaviour
 	{
@@ -21,6 +21,7 @@ namespace WitchMendokusai
 		private VisualElement container;
 		private VisualElement chapterListContainer;
 		private VisualElement chapterContentContainer;
+		private QuestDetail questDetail;
 
 		private readonly List<ChapterSO> chapters = new();
 		private readonly Dictionary<ChapterSO, ChapterView> chapterViewsByChapter = new();
@@ -30,7 +31,9 @@ namespace WitchMendokusai
 
 		private static readonly Color BACKGROUND_COLOR = new Color(0.08f, 0.08f, 0.12f, 0.97f);
 		private static readonly Color SIDEBAR_COLOR = new Color(0.13f, 0.13f, 0.18f, 1f);
+		private static readonly Color DETAIL_BACKGROUND_COLOR = new Color(0.13f, 0.13f, 0.18f, 0.95f);
 		private const float SIDEBAR_WIDTH = 220f;
+		private const float DETAIL_WIDTH = 280f;
 
 		private void Start()
 		{
@@ -53,12 +56,16 @@ namespace WitchMendokusai
 			IsOpen = false;
 
 			InputManager.Instance.RegisterInputEvent(InputEventType.MagicBookToggle, InputEventResponseType.Performed, Toggle);
+			EventBus.Instance.Subscribe<QuestDetailRequestedEvent>(OnQuestDetailRequested);
 		}
 
 		private void OnDestroy()
 		{
 			if (InputManager.TryGetExistingInstance(out InputManager inputManager))
 				inputManager.UnregisterInputEvent(InputEventType.MagicBookToggle, InputEventResponseType.Performed, Toggle);
+
+			if (EventBus.TryGetExistingInstance(out EventBus eventBus))
+				eventBus.Unsubscribe<QuestDetailRequestedEvent>(OnQuestDetailRequested);
 
 			container?.RemoveFromHierarchy();
 		}
@@ -87,6 +94,19 @@ namespace WitchMendokusai
 			btnClose.style.top = 12;
 			btnClose.style.right = 12;
 			container.Add(btnClose);
+
+			questDetail = new QuestDetail();
+			questDetail.style.position = Position.Absolute;
+			questDetail.style.top = 60;
+			questDetail.style.right = 12;
+			questDetail.style.bottom = 12;
+			questDetail.style.width = DETAIL_WIDTH;
+			questDetail.style.backgroundColor = DETAIL_BACKGROUND_COLOR;
+			questDetail.style.paddingTop = 12;
+			questDetail.style.paddingBottom = 12;
+			questDetail.style.paddingLeft = 12;
+			questDetail.style.paddingRight = 12;
+			container.Add(questDetail);
 
 			CollectChapters();
 			BuildChapterButtons();
@@ -180,6 +200,24 @@ namespace WitchMendokusai
 				Close();
 			else
 				Open();
+		}
+
+		private void OnQuestDetailRequested(QuestDetailRequestedEvent evt)
+		{
+			if (IsOpen == false)
+				return;
+
+			if (evt.Quest == null)
+				return;
+
+			RuntimeQuest quest = QuestManager.Instance.GetQuest(evt.Quest);
+			if (quest == null)
+			{
+				Debug.Log($"[MagicBookView] {evt.Quest.Name} (ID={evt.Quest.ID}) — RuntimeQuest 없음 (Locked / 미생성). 잠긴 상태 표시는 후속 polish.");
+				return;
+			}
+
+			questDetail.Bind(quest);
 		}
 
 		[ContextMenu("Open MagicBook")]
