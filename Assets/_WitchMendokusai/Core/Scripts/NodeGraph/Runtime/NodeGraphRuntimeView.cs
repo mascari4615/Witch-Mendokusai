@@ -117,6 +117,7 @@ namespace WitchMendokusai.NodeGraph.Runtime
 			Vector2 delta = (Vector2)evt.position - panStartPointer;
 			panOffset = panStartOffset + delta;
 			ApplyTransform();
+			evt.StopPropagation();
 		}
 
 		private void OnPanUp(PointerUpEvent evt)
@@ -125,6 +126,7 @@ namespace WitchMendokusai.NodeGraph.Runtime
 				return;
 			isPanning = false;
 			this.ReleasePointer(evt.pointerId);
+			evt.StopPropagation();
 		}
 
 		private void OnPanCaptureLost(PointerCaptureOutEvent evt)
