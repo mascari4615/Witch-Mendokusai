@@ -1,15 +1,8 @@
 using System;
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace WitchMendokusai
 {
-	[Serializable]
-	public struct WorldStageSaveData
-	{
-		public List<KeyValuePair<Vector3Int, BuildingInstanceData>> BuildingSaveData;
-	}
-
 	[CreateAssetMenu(fileName = "WS_", menuName = "WM/Data/" + nameof(WorldStage))]
 	public class WorldStage : Stage, ISavable<WorldStageSaveData>
 	{
