@@ -4,8 +4,16 @@ using UnityEngine;
 
 namespace WitchMendokusai
 {
-	public class ShaderPackManager : Singleton<ShaderPackManager>
+	public class ShaderPackManager : MonoBehaviour
 	{
+		public static ShaderPackManager Instance { get; private set; }
+
+		public static bool TryGetExistingInstance(out ShaderPackManager mgr)
+		{
+			mgr = Instance;
+			return mgr != null;
+		}
+
 		public const string SHADERPACKS_FOLDER_NAME = "shaderpacks";
 		public const string MANIFEST_FILE_NAME = "manifest.json";
 		public const string PREF_KEY_ACTIVE_PACK = "shadermod.active_pack_id";
@@ -20,9 +28,9 @@ namespace WitchMendokusai
 
 		public string ShaderPacksDirectory => Path.Combine(Application.persistentDataPath, SHADERPACKS_FOLDER_NAME);
 
-		protected override void Awake()
+		private void Awake()
 		{
-			base.Awake();
+			Instance = this;
 			RegisterSlots();
 			ScanShaderPacks();
 			RestoreActivePack();
@@ -154,15 +162,17 @@ namespace WitchMendokusai
 
 		// 씬 전환 시 ShaderPackManager destroy → activeBundle 메모리 잔존 → 다음 인스턴스 Awake 의
 		// AssetBundle.LoadFromFile 가 "another AssetBundle with the same files is already loaded" fail.
-		// destroy 시점에 명시적 unload 로 file handle 정리. Singleton 패턴 정합 (base.OnDestroy 마지막 호출).
-		protected override void OnDestroy()
+		// destroy 시점에 명시적 unload 로 file handle 정리.
+		private void OnDestroy()
 		{
 			if (activeBundle != null)
 			{
 				activeBundle.Unload(true);
 				activeBundle = null;
 			}
-			base.OnDestroy();
+
+			if (Instance == this)
+				Instance = null;
 		}
 
 		private void RestoreActivePack()

@@ -5,10 +5,18 @@ namespace WitchMendokusai
 {
 	// 게임 내부 날씨 매니저. WorldClock.OnHourChanged hook 으로 자동 전이.
 	// 시각 풀세트 (rain/snow particle / wet shader / SFX) 는 sub-E (WeatherDirector) 가 OnWeatherChanged event 구독해 페이드.
-	// 본 Singleton 은 *데이터 + 전이 로직* 만 — 게임플레이 hook (sub-F) 도 OnWeatherChanged 사용처.
+	// 본 매니저는 *데이터 + 전이 로직* 만 — 게임플레이 hook (sub-F) 도 OnWeatherChanged 사용처.
 	// (TASK-WM-054-D D3)
-	public class WeatherSystem : Singleton<WeatherSystem>
+	public class WeatherSystem : MonoBehaviour
 	{
+		public static WeatherSystem Instance { get; private set; }
+
+		public static bool TryGetExistingInstance(out WeatherSystem mgr)
+		{
+			mgr = Instance;
+			return mgr != null;
+		}
+
 		[field: SerializeField] public WeatherTransitionTableSO Table { get; private set; }
 
 		[field: Tooltip("게임 시작 시 weather (Bootstrap default = Clear)")]
@@ -19,15 +27,9 @@ namespace WitchMendokusai
 		// payload 채널 — 새 weather 직접 전달 (sub-E 시각 / sub-F gameplay 구독)
 		public event Action<WeatherType> OnWeatherChanged = delegate { };
 
-		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
-		private static void EnsureSingletonOnPlay()
+		private void Awake()
 		{
-			_ = Instance;
-		}
-
-		protected override void Awake()
-		{
-			base.Awake();
+			Instance = this;
 			Current = StartWeather;
 		}
 
@@ -42,12 +44,13 @@ namespace WitchMendokusai
 			worldClock.OnHourChanged += OnHourTick;
 		}
 
-		protected override void OnDestroy()
+		private void OnDestroy()
 		{
 			if (WorldClock.TryGetExistingInstance(out WorldClock worldClock) == true)
 				worldClock.OnHourChanged -= OnHourTick;
 
-			base.OnDestroy();
+			if (Instance == this)
+				Instance = null;
 		}
 
 		private void OnHourTick(int hour)

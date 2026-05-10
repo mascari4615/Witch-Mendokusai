@@ -7,8 +7,16 @@ namespace WitchMendokusai
 	// → Skybox material property + DirLight + Fog/Ambient + Shader Global 적용.
 	// SO 값 캐싱 X — 인스펙터 런타임 변경 즉시 반영.
 	// (TASK-WM-054-C C1: Skybox 만 / C2: DirLight / C3a: Fog/Ambient / C6: Shader Modding Contract)
-	public class SkyDirector : Singleton<SkyDirector>
+	public class SkyDirector : MonoBehaviour
 	{
+		public static SkyDirector Instance { get; private set; }
+
+		public static bool TryGetExistingInstance(out SkyDirector mgr)
+		{
+			mgr = Instance;
+			return mgr != null;
+		}
+
 		[field: SerializeField] public SkyPresetSO ActivePreset { get; set; }
 		[field: SerializeField] public Material SkyboxMaterial { get; private set; }
 
@@ -48,16 +56,16 @@ namespace WitchMendokusai
 		private static readonly int WMSunDirectionId = Shader.PropertyToID("_WMSunDirection");
 		private static readonly int WMNormalizedTimeId = Shader.PropertyToID("_WMNormalizedTime");
 
-		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
-		private static void EnsureSingletonOnPlay()
+		private void Awake()
 		{
-			_ = Instance;
+			Instance = this;
+			ApplySkyboxMaterial();
 		}
 
-		protected override void Awake()
+		private void OnDestroy()
 		{
-			base.Awake();
-			ApplySkyboxMaterial();
+			if (Instance == this)
+				Instance = null;
 		}
 
 		private void Start()

@@ -12,11 +12,18 @@ namespace WitchMendokusai
 	/// 단계 B (예정): entry.PreviewPrefab 로 swap. PreviewPrefab null 이면 Hide() — Detail Panel 이 정적 Icon 폴백.
 	/// 단계 C (예정): World Space UIDocument 추가 (모델 옆 라벨 3D anchor).
 	/// </summary>
-	public class CodexPreviewController : Singleton<CodexPreviewController>
+	public class CodexPreviewController : MonoBehaviour
 	{
+		public static CodexPreviewController Instance { get; private set; }
+
+		public static bool TryGetExistingInstance(out CodexPreviewController mgr)
+		{
+			mgr = Instance;
+			return mgr != null;
+		}
+
 		private const int RT_RESOLUTION = 512;
 		private const int CAMERA_LAYER = 30; // 도감 미리보기 전용 layer (다른 씬 객체 안 비춤)
-		private const string WORLD_SCENE_NAME = "World";
 
 		private Camera previewCamera;
 		private GameObject modelMount;
@@ -27,27 +34,17 @@ namespace WitchMendokusai
 
 		public RenderTexture RenderTexture => renderTexture;
 
-		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
-		private static void Bootstrap()
+		private void Awake()
 		{
-			SceneManager.sceneLoaded -= OnSceneLoaded;
-			SceneManager.sceneLoaded += OnSceneLoaded;
-			Scene active = SceneManager.GetActiveScene();
-			if (active.name == WORLD_SCENE_NAME)
-				_ = Instance;
-		}
-
-		private static void OnSceneLoaded(Scene scene, LoadSceneMode mode)
-		{
-			if (scene.name == WORLD_SCENE_NAME && TryGetExistingInstance(out _) == false)
-				_ = Instance;
-		}
-
-		protected override void Awake()
-		{
-			base.Awake();
+			Instance = this;
 			BuildStage();
 			ShowPlaceholder();
+		}
+
+		private void OnDestroy()
+		{
+			if (Instance == this)
+				Instance = null;
 		}
 
 		private void BuildStage()

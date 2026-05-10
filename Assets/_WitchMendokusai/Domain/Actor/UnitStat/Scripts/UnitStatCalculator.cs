@@ -2,9 +2,28 @@ using UnityEngine;
 
 namespace WitchMendokusai
 {
-	public class UnitStatCalculator : Singleton<UnitStatCalculator>
+	public class UnitStatCalculator : MonoBehaviour
 	{
+		public static UnitStatCalculator Instance { get; private set; }
+
+		public static bool TryGetExistingInstance(out UnitStatCalculator mgr)
+		{
+			mgr = Instance;
+			return mgr != null;
+		}
+
 		private const double DIFFICULTY_HP_BONUS_FACTOR = .7f;
+
+		private void Awake()
+		{
+			Instance = this;
+		}
+
+		private void OnDestroy()
+		{
+			if (Instance == this)
+				Instance = null;
+		}
 
 		public void CalcStat(Unit unitData, UnitStat unitStat)
 		{

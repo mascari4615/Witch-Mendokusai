@@ -95,8 +95,16 @@ namespace WitchMendokusai
 		CameraRotate,
 	}
 
-	public class InputManager : Singleton<InputManager>
+	public class InputManager : MonoBehaviour
 	{
+		public static InputManager Instance { get; private set; }
+
+		public static bool TryGetExistingInstance(out InputManager mgr)
+		{
+			mgr = Instance;
+			return mgr != null;
+		}
+
 		[SerializeField] private InputActionAsset inputActionAsset;
 		[SerializeField] private LayerMask mouseWorldLayerMask;
 		[SerializeField] private float mouseWorldRayDistance = 100f;
@@ -164,10 +172,16 @@ namespace WitchMendokusai
 		private bool isPointerOverUI;
 		public bool IsPointerOverUI() => isPointerOverUI;
 
-		protected override void Awake()
+		private void Awake()
 		{
-			base.Awake();
+			Instance = this;
 			Init();
+		}
+
+		private void OnDestroy()
+		{
+			if (Instance == this)
+				Instance = null;
 		}
 
 		private void Init()

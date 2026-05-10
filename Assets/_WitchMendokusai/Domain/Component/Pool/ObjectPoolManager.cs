@@ -7,9 +7,28 @@ using static WitchMendokusai.WMHelper;
 
 namespace WitchMendokusai
 {
-	public class ObjectPoolManager : Singleton<ObjectPoolManager>
+	public class ObjectPoolManager : MonoBehaviour
 	{
+		public static ObjectPoolManager Instance { get; private set; }
+
+		public static bool TryGetExistingInstance(out ObjectPoolManager mgr)
+		{
+			mgr = Instance;
+			return mgr != null;
+		}
+
 		private readonly Dictionary<string, ObjectPool> poolDic = new();
+
+		private void Awake()
+		{
+			Instance = this;
+		}
+
+		private void OnDestroy()
+		{
+			if (Instance == this)
+				Instance = null;
+		}
 
 		public void Despawn(GameObject targetObject)
 		{

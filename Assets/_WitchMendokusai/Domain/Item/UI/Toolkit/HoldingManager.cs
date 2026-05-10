@@ -6,8 +6,16 @@ namespace WitchMendokusai
 	/// 슬롯 인터액션의 글로벌 holding 상태 관리. 마인크래프트식 좌/우/더블 매트릭스.
 	/// HoldingOverlay는 별도 — 각 패널(InventoryView)이 자기 root에 부착하고 RegisterOverlay로 등록.
 	/// </summary>
-	public class HoldingManager : Singleton<HoldingManager>
+	public class HoldingManager : MonoBehaviour
 	{
+		public static HoldingManager Instance { get; private set; }
+
+		public static bool TryGetExistingInstance(out HoldingManager mgr)
+		{
+			mgr = Instance;
+			return mgr != null;
+		}
+
 		private const float DOUBLE_CLICK_THRESHOLD = 0.25f;
 
 		private Item holdingItem;
@@ -17,6 +25,17 @@ namespace WitchMendokusai
 		private ItemSlot lastClickSlot;
 
 		public bool IsHolding => holdingItem != null;
+
+		private void Awake()
+		{
+			Instance = this;
+		}
+
+		private void OnDestroy()
+		{
+			if (Instance == this)
+				Instance = null;
+		}
 
 		public void RegisterOverlay(HoldingOverlay newOverlay) => overlay = newOverlay;
 

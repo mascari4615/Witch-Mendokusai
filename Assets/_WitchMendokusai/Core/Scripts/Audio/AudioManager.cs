@@ -6,8 +6,16 @@ using Random = UnityEngine.Random;
 
 namespace WitchMendokusai
 {
-	public class AudioManager : Singleton<AudioManager>
+	public class AudioManager : MonoBehaviour
 	{
+		public static AudioManager Instance { get; private set; }
+
+		public static bool TryGetExistingInstance(out AudioManager mgr)
+		{
+			mgr = Instance;
+			return mgr != null;
+		}
+
 		public enum BusType
 		{
 			Master = 0,
@@ -23,9 +31,9 @@ namespace WitchMendokusai
 		private readonly List<string> bgmTitles = new();
 		private int bgmIndex = 0;
 
-		protected override void Awake()
+		private void Awake()
 		{
-			base.Awake();
+			Instance = this;
 
 			buses[(int)BusType.Master] = RuntimeManager.GetBus("bus:/");
 			buses[(int)BusType.BGM] = RuntimeManager.GetBus("bus:/BGM");
@@ -46,6 +54,12 @@ namespace WitchMendokusai
 						bgmTitles.Add(eventPath);
 				}
 			}
+		}
+
+		private void OnDestroy()
+		{
+			if (Instance == this)
+				Instance = null;
 		}
 
 		private void Start()

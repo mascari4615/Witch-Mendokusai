@@ -10,11 +10,7 @@ namespace WitchMendokusai
 	public class BootstrapSettings : ScriptableObject
 	{
 		[field: Header("_" + nameof(BootstrapSettings))]
-		[field: SerializeField] public TimeManager TimeManagerPrefab { get; private set; }
 		[field: SerializeField] public DataManager DataManagerPrefab { get; private set; }
-		[field: SerializeField] public AudioManager AudioManagerPrefab { get; private set; }
-		[field: SerializeField] public InputManager InputManagerPrefab { get; private set; }
-		[field: SerializeField] public ShaderPackManager ShaderPackManagerPrefab { get; private set; }
 		[field: SerializeField] public bool UseBootstrap { get; private set; } = true;
 	}
 
@@ -44,27 +40,34 @@ namespace WitchMendokusai
 			// 이게 없으면 caller Awake 시 EventBusBridge.instance == null → NPE.
 			rootScope.Container.Resolve<IEventBus>();
 
-			Object.Instantiate(bootstrapStuff.TimeManagerPrefab);
+			// γ leaf 매니저 13 eager spawn — Container.Resolve 강제 (lazy spawn 트리거)
+			// caller Awake 가 X.Instance 호출 시 raw Instance accessor 박혀있어야 race 0.
+			// (TASK-WM-078 P1, 2026-05-11)
+			rootScope.Container.Resolve<AudioManager>();
+			rootScope.Container.Resolve<ShaderPackManager>();
+			rootScope.Container.Resolve<SkyDirector>();
+			rootScope.Container.Resolve<GameEventManager>();
+			rootScope.Container.Resolve<HoldingManager>();
+			rootScope.Container.Resolve<InputManager>();
+			rootScope.Container.Resolve<ObjectPoolManager>();
+			rootScope.Container.Resolve<UnitStatCalculator>();
+			rootScope.Container.Resolve<CodexPreviewController>();
+			rootScope.Container.Resolve<WorldClock>();
+			rootScope.Container.Resolve<PlayerProvider>();
+			rootScope.Container.Resolve<TimeManager>();
+			rootScope.Container.Resolve<WeatherSystem>();
+
+			// DataManager 는 leaf 13 안 들어감 (root 매니저, root γ 후속). BootstrapSettings 보존.
 			Object.Instantiate(bootstrapStuff.DataManagerPrefab);
-			Object.Instantiate(bootstrapStuff.AudioManagerPrefab);
 
 			// GameManager.Awake 가 GameConditionBridge.Register / JoystickBridge / WindowLayoutBridge wire 담당.
 			// InputManager 가 input 바인딩 시 Bridge 호출하므로 그 전에 GameManager 가 Awake 돼야 함.
 			// Singleton<T>.Instance 접근 = Resources/Singletons/{T}.prefab lazy-load + Awake 트리거.
 			_ = GameManager.Instance;
 
-			Object.Instantiate(bootstrapStuff.InputManagerPrefab);
-			Object.Instantiate(bootstrapStuff.ShaderPackManagerPrefab);
-
-			// World-state Singleton lazy-load 강제 — Sky/Weather/Player 흐름은
-			// 기존엔 씬 배치 또는 다른 매니저 접근으로 우연히 트리거되던 것을 명시적으로 ensure.
-			// (asmdef 분할 이후 load 순서 불확정성 회복용. WM-056-A 후속.)
-			// EventBus = TASK-WM-078 γ 에서 Container 가 spawn 책임 (위 RootLifetimeScope).
-			_ = PlayerProvider.Instance;
-			_ = WorldClock.Instance;
-			_ = SkyDirector.Instance;
+			// World-state lazy-load — γ leaf 외 root 매니저 (WeatherDirector 등) 보존.
+			// (TASK-WM-078 P2 후속에서 root 매니저들도 Container spawn 으로 마이그)
 			_ = WeatherDirector.Instance;
-			_ = WeatherSystem.Instance;
 
 			// InputStrategySelector 가 SceneManager.sceneLoaded 구독 → 씬별 InputStrategy 설정
 			// (World→InputStrategyWorld, Lobby→InputStrategyLobby). Resources prefab 없으므로
