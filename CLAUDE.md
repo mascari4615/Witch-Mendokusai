@@ -243,6 +243,7 @@ TASK 기반으로 시작한 작업은 `memo/wm/tasks/TASK-NNN-*.md`를 작업 �
 - **정본 = Unity-MCP `read_console`** (Mono runtime *현재 Console* 직접 pull) — append 누적 0, 정확
 - **fallback = Editor.log grep** *MCP 미가용 시만*. append-only 누적 구조 → *옛 컴파일 시도 결과가 섞여서 보임* = 부정확 (사례 ↓)
 - `dotnet build` 폐기 (2026-05-10) — .NET 8+ runtime ≠ Unity Mono → false confidence (record `CS0518 IsExternalInit` / `CS0453 EventBus<T:struct>` 못 잡음). + post-commit hook 누적 사고 (73 process / 7.81 GB)
+- **dotnet build edge case (autopilot 등) — wrapper 경유 강제** (TASK-KAR-008): `powershell -File memo/dotfiles/scripts/dotnet-build-wm.ps1 -Csproj WitchMendokusai/Assembly-CSharp.csproj` — Bash tool timeout 시 child process tree orphan 한계 우회 + build-server shutdown 자동. 직접 `dotnet build` 호출 X. 누적 발견 시 `memo/dotfiles/scripts/dotnet-cleanup.ps1` (-DryRun → apply). SessionStart hook (`check-dotnet-stuck.sh`) 가 5+ proc 또는 1500MB+ 누적 시 자동 알림.
 - 사용자가 코드 보고 검증하기 전에 *컴파일 통과* 자체가 사전 조건. "빨리 넘기기" 보다 *검증 가능한 상태로 넘기기* 가 우선
 
 ### 정본 — MCP `read_console`
@@ -521,4 +522,3 @@ set_active_instance(instance="<branch>@<hash>")          # sub worktree
 - ★ **Conventional Commits + 한 commit 한 주제** — `feat: / fix: / chore: / refactor: / docs: / style:`. PR 폐기로 단위 자유도 ↑, 더 잘게.
 
 세부 (worktree persistent scratch 패턴 / claude-audit POC v1-v4 검증 / Branch Protection 폐기 1회용 gh api / Release flow Tag-only `release.yml` / CHANGELOG 구조 / `Closes #NN` Issue 자동 종료 / CodeRabbit historical / Post-push 정리 / Tag↔bundleVersion drift 등) = wm-git-workflow skill 참고.
-
