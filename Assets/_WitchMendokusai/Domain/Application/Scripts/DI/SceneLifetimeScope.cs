@@ -8,8 +8,7 @@ namespace WitchMendokusai
 	{
 		protected override void Configure(IContainerBuilder builder)
 		{
-			StageManager stageManagerPrefab = Resources.Load<StageManager>("Singletons/StageManager");
-			builder.RegisterComponentInNewPrefab(stageManagerPrefab, Lifetime.Scoped);
+			builder.RegisterComponentInHierarchy<StageManager>();
 
 			DevWindowController devWindowControllerPrefab = Resources.Load<DevWindowController>("Singletons/DevWindowController");
 			builder.RegisterComponentInNewPrefab(devWindowControllerPrefab, Lifetime.Scoped);
