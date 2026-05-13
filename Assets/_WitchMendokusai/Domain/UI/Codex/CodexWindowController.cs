@@ -1,6 +1,6 @@
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using UnityEngine.UIElements;
+using VContainer;
 
 namespace WitchMendokusai
 {
@@ -22,10 +22,19 @@ namespace WitchMendokusai
 		private const string WINDOW_ID = "Codex";
 		private const string WINDOW_TITLE = "도감";
 
+		private InputManager inputManager;
+		private UIRoot uiRoot;
 		private WMWindow window;
 		private CodexView view;
 
 		public EntryProviderRegistry Providers { get; } = new();
+
+		[Inject]
+		public void Construct(InputManager inputManager, UIRoot uiRoot)
+		{
+			this.inputManager = inputManager;
+			this.uiRoot = uiRoot;
+		}
 
 		private void Awake()
 		{
@@ -46,12 +55,12 @@ namespace WitchMendokusai
 			view.OnCategorySelected += OnCategorySelected;
 			view.OnEntrySelected += OnEntrySelected;
 
-			InputManager.Instance.RegisterInputEvent(InputEventType.CodexToggle, InputEventResponseType.Performed, OnToggle);
+			inputManager.RegisterInputEvent(InputEventType.CodexToggle, InputEventResponseType.Performed, OnToggle);
 		}
 
 		private void OnDestroy()
 		{
-			if (InputManager.TryGetExistingInstance(out InputManager inputManager))
+			if (inputManager != null)
 				inputManager.UnregisterInputEvent(InputEventType.CodexToggle, InputEventResponseType.Performed, OnToggle);
 
 			if (Instance == this)
@@ -91,7 +100,7 @@ namespace WitchMendokusai
 
 			window.Content.Add(view);
 
-			UIRoot.Instance.WindowsLayer.Add(window);
+			uiRoot.WindowsLayer.Add(window);
 		}
 
 		public void Toggle() => window?.Toggle();

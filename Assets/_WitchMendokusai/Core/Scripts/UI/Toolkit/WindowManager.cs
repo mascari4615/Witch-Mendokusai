@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using VContainer;
 
 namespace WitchMendokusai
 {
@@ -18,7 +19,14 @@ namespace WitchMendokusai
 			return mgr != null;
 		}
 
+		private InputManager inputManager;
 		private readonly List<WMWindow> windows = new();
+
+		[Inject]
+		public void Construct(InputManager inputManager)
+		{
+			this.inputManager = inputManager;
+		}
 
 		private void Awake()
 		{
@@ -28,12 +36,12 @@ namespace WitchMendokusai
 				return;
 			}
 			Instance = this;
-			InputManager.Instance.RegisterInputEvent(InputEventType.Cancel, InputEventResponseType.Performed, OnCancel);
+			inputManager.RegisterInputEvent(InputEventType.Cancel, InputEventResponseType.Performed, OnCancel);
 		}
 
 		private void OnDestroy()
 		{
-			if (InputManager.TryGetExistingInstance(out InputManager inputManager))
+			if (inputManager != null)
 				inputManager.UnregisterInputEvent(InputEventType.Cancel, InputEventResponseType.Performed, OnCancel);
 
 			if (Instance == this)

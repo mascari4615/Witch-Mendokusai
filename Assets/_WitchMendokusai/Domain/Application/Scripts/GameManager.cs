@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using VContainer;
 using static WitchMendokusai.SOHelper;
 
 namespace WitchMendokusai
@@ -18,7 +19,14 @@ namespace WitchMendokusai
 
 		public GameCondition Conditions { get; private set; }
 
+		private InputManager inputManager;
 		private UnitObject playerObject;
+
+		[Inject]
+		public void Construct(InputManager inputManager)
+		{
+			this.inputManager = inputManager;
+		}
 
 		private void Awake()
 		{
@@ -29,7 +37,7 @@ namespace WitchMendokusai
 			}
 			Instance = this;
 
-			Conditions = new GameCondition(() => playerObject);
+			Conditions = new GameCondition(() => playerObject, inputManager);
 			GameConditionBridge.Register(Conditions);
 
 			SOManager soManager = SOManager.Instance;
@@ -114,7 +122,7 @@ namespace WitchMendokusai
 		private readonly Func<UnitObject> getPlayerObject;
 		private readonly Dictionary<GameConditionType, Func<bool>> gameConditionActions;
 
-		public GameCondition(Func<UnitObject> getPlayerObject)
+		public GameCondition(Func<UnitObject> getPlayerObject, InputManager inputManager)
 		{
 			this.getPlayerObject = getPlayerObject;
 
@@ -122,7 +130,7 @@ namespace WitchMendokusai
 			{
 				{ GameConditionType.IsPaused, () => TimeManager.Instance.IsPaused }, // Setting, Dungeon Card 선택, Transition, ...
 				{ GameConditionType.IsTyping, () => UIChat.IsChatting || (DevWindowController.TryGetExistingInstance(out DevWindowController dwc) && dwc.IsCommandLineFocused) || UIToolkitFocus.IsAnyTextFieldFocused() },
-				{ GameConditionType.IsMouseOnUI, () => InputManager.Instance.IsPointerOverUI() },
+				{ GameConditionType.IsMouseOnUI, () => inputManager.IsPointerOverUI() },
 				{ GameConditionType.IsPlayerCasting, IsPlayerCasting },
 				{ GameConditionType.IsDied, IsDied },
 				{ GameConditionType.IsBuilding, () => GameModeManager.Instance.IsBuildMode },

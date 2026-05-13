@@ -1,6 +1,6 @@
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using UnityEngine.UIElements;
+using VContainer;
 
 namespace WitchMendokusai
 {
@@ -22,8 +22,17 @@ namespace WitchMendokusai
 		private const string WINDOW_ID = "DevWindow";
 		private const string WINDOW_TITLE = "WM Dev";
 
+		private InputManager inputManager;
+		private UIRoot uiRoot;
 		private WMWindow window;
 		private DevWindowView view;
+
+		[Inject]
+		public void Construct(InputManager inputManager, UIRoot uiRoot)
+		{
+			this.inputManager = inputManager;
+			this.uiRoot = uiRoot;
+		}
 
 		private void Awake()
 		{
@@ -48,12 +57,12 @@ namespace WitchMendokusai
 			view.OnModeSelected += OnModeSelected;
 			view.CommandLine.OnSubmit += OnCommandSubmit;
 
-			InputManager.Instance.RegisterInputEvent(InputEventType.DevWindowToggle, InputEventResponseType.Performed, OnToggle);
+			inputManager.RegisterInputEvent(InputEventType.DevWindowToggle, InputEventResponseType.Performed, OnToggle);
 		}
 
 		private void OnDestroy()
 		{
-			if (InputManager.TryGetExistingInstance(out InputManager inputManager))
+			if (inputManager != null)
 				inputManager.UnregisterInputEvent(InputEventType.DevWindowToggle, InputEventResponseType.Performed, OnToggle);
 
 			if (Instance == this)
@@ -79,9 +88,9 @@ namespace WitchMendokusai
 			view.style.flexGrow = 1;
 			window.Content.Add(view);
 
-			UIRoot.Instance.WindowsLayer.Add(window);
+			uiRoot.WindowsLayer.Add(window);
 			// dropdown 은 OverlayLayer 에 (normal flow 밖, 다른 UI 위에 떠있음).
-			UIRoot.Instance.OverlayLayer.Add(view.CommandLine.Dropdown);
+			uiRoot.OverlayLayer.Add(view.CommandLine.Dropdown);
 		}
 
 		private void RegisterBuiltins()
