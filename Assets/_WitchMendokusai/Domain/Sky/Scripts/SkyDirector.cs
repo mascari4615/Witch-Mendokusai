@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.Rendering;
+using VContainer;
 
 namespace WitchMendokusai
 {
@@ -15,6 +16,14 @@ namespace WitchMendokusai
 		{
 			mgr = Instance;
 			return mgr != null;
+		}
+
+		private WorldClock worldClock;
+
+		[Inject]
+		public void Construct(WorldClock worldClock)
+		{
+			this.worldClock = worldClock;
 		}
 
 		[field: SerializeField] public SkyPresetSO ActivePreset { get; set; }
@@ -134,9 +143,6 @@ namespace WitchMendokusai
 		private void ApplyPreset(bool force)
 		{
 			if (ActivePreset == null)
-				return;
-
-			if (WorldClock.TryGetExistingInstance(out WorldClock worldClock) == false)
 				return;
 
 			if (worldClock.Config == null)

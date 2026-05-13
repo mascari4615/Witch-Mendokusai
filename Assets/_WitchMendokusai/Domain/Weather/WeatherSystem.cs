@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using VContainer;
 
 namespace WitchMendokusai
 {
@@ -15,6 +16,14 @@ namespace WitchMendokusai
 		{
 			mgr = Instance;
 			return mgr != null;
+		}
+
+		private WorldClock worldClock;
+
+		[Inject]
+		public void Construct(WorldClock worldClock)
+		{
+			this.worldClock = worldClock;
 		}
 
 		[field: SerializeField] public WeatherTransitionTableSO Table { get; private set; }
@@ -40,18 +49,12 @@ namespace WitchMendokusai
 
 		private void Start()
 		{
-			if (WorldClock.TryGetExistingInstance(out WorldClock worldClock) == false)
-			{
-				Debug.LogWarning($"[{nameof(WeatherSystem)}] WorldClock 미발견 — OnHourChanged hook 미등록");
-				return;
-			}
-
 			worldClock.OnHourChanged += OnHourTick;
 		}
 
 		private void OnDestroy()
 		{
-			if (WorldClock.TryGetExistingInstance(out WorldClock worldClock) == true)
+			if (worldClock != null)
 				worldClock.OnHourChanged -= OnHourTick;
 
 			if (Instance == this)
@@ -61,9 +64,6 @@ namespace WitchMendokusai
 		private void OnHourTick(int hour)
 		{
 			if (Table == null)
-				return;
-
-			if (WorldClock.TryGetExistingInstance(out WorldClock worldClock) == false)
 				return;
 
 			WeatherType next = Table.RollNext(hour, worldClock.Season);
@@ -84,9 +84,6 @@ namespace WitchMendokusai
 		public WeatherType PreviewNext()
 		{
 			if (Table == null)
-				return WeatherType.Clear;
-
-			if (WorldClock.TryGetExistingInstance(out WorldClock worldClock) == false)
 				return WeatherType.Clear;
 
 			int nextHour = (worldClock.Hour + 1) % worldClock.Config.HoursPerDay;

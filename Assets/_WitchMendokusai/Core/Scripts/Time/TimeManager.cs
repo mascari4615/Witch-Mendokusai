@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using VContainer;
 
 namespace WitchMendokusai
 {
@@ -15,6 +16,14 @@ namespace WitchMendokusai
 		{
 			mgr = Instance;
 			return mgr != null;
+		}
+
+		private GameEventManager gameEventManager;
+
+		[Inject]
+		public void Construct(GameEventManager gameEventManager)
+		{
+			this.gameEventManager = gameEventManager;
 		}
 
 		public const float TICK = 0.05f;
@@ -57,7 +66,7 @@ namespace WitchMendokusai
 
 			while (true)
 			{
-				GameEventManager.Instance.Raise(GameEventType.OnTick);
+				gameEventManager.Raise(GameEventType.OnTick);
 				callback?.Invoke();
 				yield return wait;
 			}

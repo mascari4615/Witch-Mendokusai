@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using VContainer;
 
 namespace WitchMendokusai
 {
@@ -14,6 +15,14 @@ namespace WitchMendokusai
 		{
 			mgr = Instance;
 			return mgr != null;
+		}
+
+		private TimeManager timeManager;
+
+		[Inject]
+		public void Construct(TimeManager timeManager)
+		{
+			this.timeManager = timeManager;
 		}
 
 		[field: SerializeField] public WorldClockSO Config { get; private set; }
@@ -49,12 +58,12 @@ namespace WitchMendokusai
 
 		private void Start()
 		{
-			TimeManager.Instance.RegisterCallback(AdvanceTick);
+			timeManager.RegisterCallback(AdvanceTick);
 		}
 
 		private void OnDestroy()
 		{
-			if (TimeManager.TryGetExistingInstance(out TimeManager timeManager) == true)
+			if (timeManager != null)
 				timeManager.RemoveCallback(AdvanceTick);
 
 			if (Instance == this)
