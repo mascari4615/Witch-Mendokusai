@@ -8,7 +8,9 @@ namespace WitchMendokusai
 	public abstract class LootObject : MonoBehaviour
 	{
 		[SerializeField] private float moveSpeed = 1f;
+#pragma warning disable CS0414 // 베지어 커브 이동 미구현 예약 필드
 		[SerializeField] private bool useBezierCurve = false;
+#pragma warning restore CS0414
 
 		private Coroutine _moveLoop;
 

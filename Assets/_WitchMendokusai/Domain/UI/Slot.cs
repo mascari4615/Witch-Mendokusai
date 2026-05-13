@@ -78,7 +78,7 @@ namespace WitchMendokusai
 			amountLabel.text = amount > 1 ? amount.ToString() : string.Empty;
 		}
 
-		public void Clear()
+		public new void Clear()
 		{
 			SetIcon(null);
 			SetAmount(0);

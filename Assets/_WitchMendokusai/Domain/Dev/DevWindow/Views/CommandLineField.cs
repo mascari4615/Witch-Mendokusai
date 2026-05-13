@@ -61,14 +61,12 @@ namespace WitchMendokusai
 		{
 			// 이미 OnKeyDown 에서 ↑↓ 처리 — 여기선 포커스 이동 차단만.
 			evt.StopPropagation();
-			evt.PreventDefault();
 		}
 
 		private void OnNavigationSubmit(NavigationSubmitEvent evt)
 		{
 			// Enter 는 OnKeyDown 에서 처리 — navigation 측은 차단.
 			evt.StopPropagation();
-			evt.PreventDefault();
 		}
 
 		public void FocusInput() => inputField.Focus();
@@ -100,7 +98,6 @@ namespace WitchMendokusai
 			{
 				HandleTab();
 				evt.StopPropagation();
-				evt.PreventDefault();
 				return;
 			}
 
@@ -111,7 +108,6 @@ namespace WitchMendokusai
 				else
 					NavigateHistory(true);
 				evt.StopPropagation();
-				evt.PreventDefault();
 				return;
 			}
 
@@ -122,7 +118,6 @@ namespace WitchMendokusai
 				else
 					NavigateHistory(false);
 				evt.StopPropagation();
-				evt.PreventDefault();
 				return;
 			}
 
@@ -132,7 +127,6 @@ namespace WitchMendokusai
 				{
 					ConfirmDropdownSelection();
 					evt.StopPropagation();
-					evt.PreventDefault();
 					return;
 				}
 
@@ -140,7 +134,6 @@ namespace WitchMendokusai
 				ClearInput();
 				history.ResetCursor();
 				evt.StopPropagation();
-				evt.PreventDefault();
 
 				// 다음 입력 바로 받을 수 있도록 re-focus + cursor 0 (Focus() 의 기본 전체선택 해제).
 				inputField.schedule.Execute(() =>

@@ -244,6 +244,7 @@ TASK 기반으로 시작한 작업은 `memo/wm/tasks/TASK-NNN-*.md`를 작업 �
 - **fallback = Editor.log grep** *MCP 미가용 시만*. append-only 누적 구조 → *옛 컴파일 시도 결과가 섞여서 보임* = 부정확 (사례 ↓)
 - `dotnet build` 폐기 (2026-05-10) — .NET 8+ runtime ≠ Unity Mono → false confidence (record `CS0518 IsExternalInit` / `CS0453 EventBus<T:struct>` 못 잡음). + post-commit hook 누적 사고 (73 process / 7.81 GB)
 - **dotnet build edge case (autopilot 등) — wrapper 경유 강제** (TASK-KAR-008): `powershell -File memo/dotfiles/scripts/dotnet-build-wm.ps1 -Csproj WitchMendokusai/Assembly-CSharp.csproj` — Bash tool timeout 시 child process tree orphan 한계 우회 + build-server shutdown 자동. 직접 `dotnet build` 호출 X. 누적 발견 시 `memo/dotfiles/scripts/dotnet-cleanup.ps1` (-DryRun → apply). SessionStart hook (`check-dotnet-stuck.sh`) 가 5+ proc 또는 1500MB+ 누적 시 자동 알림.
+- **Warning 도 error 와 동급 — `types=["error", "warning"]` 검증** (§ Warning 도 무시 X ↓). error 0 만 보고 통과 처리 X. Warning 누적 = 미래 error / dead code / 의도 비명시 시그널.
 - 사용자가 코드 보고 검증하기 전에 *컴파일 통과* 자체가 사전 조건. "빨리 넘기기" 보다 *검증 가능한 상태로 넘기기* 가 우선
 
 ### 정본 — MCP `read_console`
@@ -259,7 +260,7 @@ refresh_unity(mode="force", scope="all", compile="request", wait_for_ready=true)
 ```
 
 - 출력 = *지금 Unity Console 에 보이는 그대로*. 사용자가 Console 봐서 본 것과 일치
-- 0 entries with `types=["error"]` = 컴파일 통과
+- 0 entries with `types=["error", "warning"]` = 클린 통과 (error 0 만으로 부족, § Warning 도 무시 X 정합)
 - Console clear 가 깨끗한 baseline — 필요시 `read_console(action="clear")`
 
 ### Editor.log 의 append-only 한계 (왜 부정확한가)
@@ -279,6 +280,25 @@ asmdef 분할 cascade fix 진행 중:
 - 결과: 사용자 시간 낭비 + 잘못된 cascade depth 판단 + 부정확 대화
 - MCP 등록 후 `read_console` 한 번 호출 → 30 에러 (당시 시점) 정확 보고 + 이후 fix cycle 매번 정확
 - **교훈**: MCP 미가용 fallback 으로 Editor.log grep 쓰면 *반드시 사용자에게 Console 교차 검증 요청*. 자기 grep 결과만 신뢰 X
+
+### Warning 도 무시 X — 0 Warning 보장
+
+`read_console(types=["error"])` 만 보고 「통과」 처리 X. **컴파일 검증 default = `types=["error", "warning"]`**.
+
+**왜**:
+- Warning = 미래의 error 시그널 (deprecated API, nullable mismatch, unreachable code, async without await)
+- Warning 누적 = *진짜 새 warning* 이 노이즈에 묻힘 → 회귀 감지 0
+- "지금 동작은 되니까" 로 미루면 dead code / 의도 비명시가 코드베이스에 박힘 (`code-style.md § 데드 인터페이스` 정합)
+- 6 동기 「퀄리티 9.5/10 ceiling」 + 「미래 변경 비용 ↓」 직결 (`domain-wm.md`)
+
+**적용**:
+- error 와 warning 1+ 둘 다 즉시 fix. error 만 fix 하고 warning 누적 채로 commit X
+- *fallback Editor.log grep* 도 `error CS|warning CS` 둘 다 grep — `error CS` 만 grep X
+- *보존 의도 warning* (3rd-party API deprecated 경고 등) = `#pragma warning disable <CSxxxx>` + **사유 주석** + `#pragma warning restore <CSxxxx>` 최소 범위. silent 무시 X
+- *프로젝트 전역 disable* (`csc.rsp` / `.csproj <NoWarn>`) 은 사용자 컨펌 필수 — case-by-case `#pragma` 우선
+- 새 코드 작성 시 warning 0 baseline 유지. legacy warning 잔재 발견 시 분리 sub TASK 시드 (한 commit 다 fix X)
+
+**Treat-warnings-as-errors 안 박는 이유**: Unity Mono / Roslyn 분석기 / 3rd-party package 가 *외부 warning* 노출 — 강제 error 화 시 build 자체 fail. 룰 = 본인 작성 코드 warning 0 보장 + 외부 warning 은 사유 박고 disable.
 
 ### Refresh / 컴파일 트리거
 
@@ -317,8 +337,8 @@ powershell -File memo/dotfiles/scripts/unity-refresh.ps1
 
 1. 코드 변경 (`Edit` / `script_apply_edits` / `create_script`)
 2. `refresh_unity(mode="force", compile="request", wait_for_ready=true)`
-3. `read_console(types=["error"])` — 0 entries 검증
-4. 에러 1+ 면 즉시 fix → 다시 2. (Editor.log fallback 시 사용자 Console 교차 검증)
+3. `read_console(types=["error", "warning"])` — 0 entries 검증 (error + warning 둘 다, § Warning 도 무시 X)
+4. error / warning 1+ 면 즉시 fix → 다시 2. (Editor.log fallback 시 사용자 Console 교차 검증)
 5. 통과 시 사용자에게 *비전 / 비주얼 / 동작* 검증 요청
 6. 사용자 OK → commit
 

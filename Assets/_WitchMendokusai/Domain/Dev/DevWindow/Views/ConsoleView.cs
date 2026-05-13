@@ -74,7 +74,7 @@ namespace WitchMendokusai
 			scroller.value = scroller.highValue;
 		}
 
-		public void Clear()
+		public new void Clear()
 		{
 			scrollView.Clear();
 		}

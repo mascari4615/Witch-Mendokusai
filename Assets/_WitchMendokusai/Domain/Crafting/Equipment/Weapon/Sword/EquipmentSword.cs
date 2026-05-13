@@ -13,7 +13,9 @@ namespace WitchMendokusai
 		[SerializeField] private float originCoolTime = 1.5f;
 		[SerializeField] private GameObject bulletPrefab;
 		[SerializeField] private GameObject swordPrefab;
+#pragma warning disable CS0414 // 칼 회전 미구현 예약 필드
 		[SerializeField] private float rotateSpeed = -30f;
+#pragma warning restore CS0414
 
 		private readonly List<Transform> swordTransforms = new();
 		private float coolTime;

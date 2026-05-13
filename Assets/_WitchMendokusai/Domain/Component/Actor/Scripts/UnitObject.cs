@@ -17,9 +17,11 @@ namespace WitchMendokusai
 		public UnitMovement UnitMovement { get; protected set; } = null;
 		public UnitHealth Health { get; protected set; } = null;
 
+#pragma warning disable CS0414 // NavMeshAgent 주석처리 상태 — NavMesh 재도입 시 사용
 		[SerializeField] private float stoppingDistance = 0.1f;
 		[SerializeField] private bool updateRotation = false;
 		[SerializeField] private float acceleration = 40.0f;
+#pragma warning restore CS0414
 		// [SerializeField] private float tolerance = 1.0f;
 
 		public bool IsAlive => Health.IsAlive;

@@ -4,7 +4,9 @@ namespace WitchMendokusai
 {
 	public class FSMSlime : FSM<FSMStateCommon>
 	{
+#pragma warning disable CS0414 // FSM 공격 범위 미구현 예약 필드
 		[SerializeField] private float attackRange = 10f;
+#pragma warning restore CS0414
 		[SerializeField] private bool isSpriteLookLeft = false;
 	
 		private BT_Idle idle;

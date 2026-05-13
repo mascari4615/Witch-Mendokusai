@@ -156,7 +156,9 @@ namespace WitchMendokusai
 			previewImage.style.flexGrow = 1;
 			previewImage.style.width = new StyleLength(Length.Percent(100));
 			previewImage.style.height = new StyleLength(Length.Percent(100));
+#pragma warning disable CS0618 // unityBackgroundScaleMode deprecated; background-* 대체 API 마이그 미검증
 			previewImage.style.unityBackgroundScaleMode = ScaleMode.ScaleToFit;
+#pragma warning restore CS0618
 			previewImage.RegisterCallback<PointerDownEvent>(OnPreviewPointerDown);
 			previewImage.RegisterCallback<PointerMoveEvent>(OnPreviewPointerMove);
 			previewImage.RegisterCallback<PointerUpEvent>(OnPreviewPointerUp);

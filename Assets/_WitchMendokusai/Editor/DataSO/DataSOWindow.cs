@@ -187,7 +187,7 @@ namespace WitchMendokusai
 			IReadOnlyList<EntryDescriptor> entries = currentProvider.GetEntries();
 			for (int i = 0; i < entries.Count; i++)
 			{
-				if (entries[i].Source == dataSO)
+				if (((UnityEngine.Object)entries[i].Source) == dataSO)
 				{
 					ActivateEntry(entries[i]);
 					currentProvider.OnEntryActivated(entries[i]);

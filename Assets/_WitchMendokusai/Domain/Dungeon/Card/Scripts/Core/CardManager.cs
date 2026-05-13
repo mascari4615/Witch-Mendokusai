@@ -9,6 +9,7 @@ using UnityEngine.UI;
 using Random = UnityEngine.Random;
 using static WitchMendokusai.SOHelper;
 using DG.Tweening;
+using VContainer;
 
 namespace WitchMendokusai
 {
@@ -47,7 +48,7 @@ namespace WitchMendokusai
 			Panels[CardPanelType.SelectDeck] = selectDeckPanel;
 			Panels[CardPanelType.SelectCard] = selectCardPanel;
 
-			UIDeck[] deckUIs = FindObjectsByType<UIDeck>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+			UIDeck[] deckUIs = FindObjectsByType<UIDeck>(FindObjectsInactive.Include);
 			foreach (UIDeck deckUI in deckUIs)
 			{
 				deckUIDic.Add(deckUI.EquipmentData.ID, deckUI);
