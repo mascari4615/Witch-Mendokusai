@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using VContainer;
 
 namespace WitchMendokusai
 {
@@ -19,6 +20,14 @@ namespace WitchMendokusai
 			{WorkListType.DummyWork, new()},
 			{WorkListType.VQuestWork, new()}
 		};
+
+		private QuestManager questManager;
+
+		[Inject]
+		public void Construct(QuestManager questManager)
+		{
+			this.questManager = questManager;
+		}
 
 		public void Init(Dictionary<WorkListType, List<Work>> works)
 		{
@@ -51,7 +60,7 @@ namespace WitchMendokusai
 					switch (work.WorkType)
 					{
 						case WorkType.QuestWork:
-							QuestManager.Instance.EndQuestWork(work.Value);
+							questManager.EndQuestWork(work.Value);
 							break;
 					}
 					works.RemoveAt(i);

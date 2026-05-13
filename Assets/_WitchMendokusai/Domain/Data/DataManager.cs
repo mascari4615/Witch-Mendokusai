@@ -20,9 +20,10 @@ namespace WitchMendokusai
 			return mgr != null;
 		}
 
-		public SaveManager SaveManager { get; private set; } = new();
-		public WorkManager WorkManager { get; private set; } = new();
-		public QuestManager QuestManager { get; private set; } = new();
+		// γ P3-K — VContainer 관리로 이관. Construct 에서 주입 (TASK-WM-078, 2026-05-13).
+		public SaveManager SaveManager { get; private set; }
+		public WorkManager WorkManager { get; private set; }
+		public QuestManager QuestManager { get; private set; }
 		public GameStat GameStat { get; private set; } = new();
 		public DungeonStat DungeonStat { get; private set; } = new();
 		public readonly Dictionary<string, (Recipe recipe, int itemID)> CraftDic = new();
@@ -39,10 +40,13 @@ namespace WitchMendokusai
 		private DataLoader dataLoader;
 
 		[Inject]
-		public void Construct(TimeManager timeManager, DataLoader dataLoader)
+		public void Construct(TimeManager timeManager, DataLoader dataLoader, SaveManager saveManager, WorkManager workManager, QuestManager questManager)
 		{
 			this.timeManager = timeManager;
 			this.dataLoader = dataLoader;
+			SaveManager = saveManager;
+			WorkManager = workManager;
+			QuestManager = questManager;
 		}
 
 		private PlayFabManager playFabManager;

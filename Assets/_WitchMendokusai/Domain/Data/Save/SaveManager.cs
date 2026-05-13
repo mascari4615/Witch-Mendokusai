@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using KarmoLabs;
 using UnityEngine;
+using VContainer;
 using static WitchMendokusai.SOHelper;
 
 namespace WitchMendokusai
@@ -13,8 +14,15 @@ namespace WitchMendokusai
 
 		public bool IsDataLoaded { get; private set; }
 
-		private SOManager SOManager => SOManager.Instance;
+		private SOManager soManager;
+		// DataManager → SaveManager → DataManager 순환 — lazy Instance 로 회피 (TASK-WM-078 γ P3-K).
 		private DataManager DataManager => DataManager.Instance;
+
+		[Inject]
+		public void Construct(SOManager soManager)
+		{
+			this.soManager = soManager;
+		}
 
 		public void CreateNewGameData()
 		{
@@ -43,7 +51,7 @@ namespace WitchMendokusai
 
 			// 인형, 인형 아이템(장비) 초기화
 			{
-				Inventory inventory = SOManager.ItemInventory;
+				Inventory inventory = soManager.ItemInventory;
 				inventory.Load(newGameData.inventoryItems);
 
 				ForEach<Doll>(doll =>
@@ -82,7 +90,7 @@ namespace WitchMendokusai
 
 			// 레시피 초기화
 			// 모든 아이템 ID에 대해 bool
-			DataManager.IsRecipeUnlocked = SOManager.DataSOs[typeof(ItemData)].Values.ToDictionary(itemData => itemData.ID, itemData => false);
+			DataManager.IsRecipeUnlocked = soManager.DataSOs[typeof(ItemData)].Values.ToDictionary(itemData => itemData.ID, itemData => false);
 
 			// 퀘스트 상태 초기화 이후 저장
 			Dictionary<int, QuestState> questStates = new();
@@ -128,18 +136,18 @@ namespace WitchMendokusai
 			DataManager.GameStat.Load(saveData.gameStats);
 
 			// 아이템 초기화
-			SOManager.ItemInventory.Load(saveData.inventoryItems);
-			SOManager.Hotbar.Load(saveData.hotbarItems);
+			soManager.ItemInventory.Load(saveData.inventoryItems);
+			soManager.Hotbar.Load(saveData.hotbarItems);
 
 			// 인형 초기화
-			SOManager.DollBuffer.Clear();
+			soManager.DollBuffer.Clear();
 			foreach (DollSaveData dollData in saveData.dolls)
 			{
 				GetDoll(dollData.DollID).Load(dollData);
-				SOManager.DollBuffer.Add(GetDoll(dollData.DollID));
+				soManager.DollBuffer.Add(GetDoll(dollData.DollID));
 			}
 			for (int i = 0; i < saveData.dummyDollCount - 1; i++)
-				SOManager.DollBuffer.Add(GetDoll(Doll.DUMMY_ID));
+				soManager.DollBuffer.Add(GetDoll(Doll.DUMMY_ID));
 
 			// 퀘스트 초기화
 			Dictionary<int, QuestState> questStates = new();
@@ -147,7 +155,7 @@ namespace WitchMendokusai
 			{
 				questStates.Add(id, (QuestState)state);
 				if ((QuestState)state >= QuestState.Unlocked)
-					SOManager.QuestDataBuffer.Add(GetQuestSO(id));
+					soManager.QuestDataBuffer.Add(GetQuestSO(id));
 			}
 			// 세이브 이후 추가된 신규 퀘스트는 Locked로 등록
 			ForEach<QuestSO>(questData => { if (!questStates.ContainsKey(questData.ID)) questStates.Add(questData.ID, QuestState.Locked); });
@@ -183,7 +191,7 @@ namespace WitchMendokusai
 			}
 
 			// 윈도우 레이아웃 복원
-			SOManager.WindowLayoutData.Load(saveData.windowLayouts);
+			soManager.WindowLayoutData.Load(saveData.windowLayouts);
 
 			IsDataLoaded = true;
 		}
@@ -194,8 +202,8 @@ namespace WitchMendokusai
 			{
 				curDollIndex = DataManager.CurDollID,
 				dummyDollCount = DataManager.DummyDollCount,
-				inventoryItems = SOManager.ItemInventory.Save(),
-				hotbarItems = SOManager.Hotbar.Save(),
+				inventoryItems = soManager.ItemInventory.Save(),
+				hotbarItems = soManager.Hotbar.Save(),
 				dolls = new(),
 				works = DataManager.WorkManager.Works,
 				questStates = DataManager.QuestManager.GetQuestStates().ToDictionary(pair => pair.Key, pair => (int)pair.Value),
@@ -212,7 +220,7 @@ namespace WitchMendokusai
 			ForEach<WorldStage>(worldStage => gameData.worldStages.Add(worldStage.ID, worldStage.Save()));
 			ForEach<UpgradeData>(upgradeData => gameData.upgrades.Add(upgradeData.ID, upgradeData.Save()));
 
-			gameData.windowLayouts = SOManager.WindowLayoutData.Save();
+			gameData.windowLayouts = soManager.WindowLayoutData.Save();
 
 			if (AppSetting.Data.UseLocalData)
 			{

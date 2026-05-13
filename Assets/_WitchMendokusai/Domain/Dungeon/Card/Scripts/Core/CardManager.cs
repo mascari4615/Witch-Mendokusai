@@ -27,6 +27,20 @@ namespace WitchMendokusai
 		public override bool CanBeClosedByCancelInput => false;
 		public override CardPanelType DefaultPanel => CardPanelType.None;
 
+		private GameEventManager gameEventManager;
+		private TimeManager timeManager;
+		private SOManager soManager;
+		private DataManager dataManager;
+
+		[Inject]
+		public void Construct(GameEventManager gameEventManager, TimeManager timeManager, SOManager soManager, DataManager dataManager)
+		{
+			this.gameEventManager = gameEventManager;
+			this.timeManager = timeManager;
+			this.soManager = soManager;
+			this.dataManager = dataManager;
+		}
+
 		// Level Up Stack
 		private int levelUpStack = 0;
 
@@ -60,7 +74,7 @@ namespace WitchMendokusai
 		protected override void Start()
 		{
 			base.Start();
-			GameEventManager.Instance.RegisterCallback(GameEventType.OnLevelUp, LevelUp);
+			gameEventManager.RegisterCallback(GameEventType.OnLevelUp, LevelUp);
 		}
 
 	
@@ -70,10 +84,10 @@ namespace WitchMendokusai
 		public void Reset()
 		{
 			SetPanel(CardPanelType.None);
-			TimeManager.Instance.Resume(gameObject);
+			timeManager.Resume(gameObject);
 
 			// ClearCardEffect
-			CardBuffer selectedCardBuffer = SOManager.Instance.SelectedCardBuffer;
+			CardBuffer selectedCardBuffer = soManager.SelectedCardBuffer;
 			while (selectedCardBuffer.Data.Count > 0)
 				selectedCardBuffer.Remove(selectedCardBuffer.Data[^1]);
 
@@ -81,7 +95,7 @@ namespace WitchMendokusai
 				cardDataBuffer.Clear();
 
 			// 덱 ID 매핑 초기화
-			List<EquipmentData> equipments = DataManager.Instance.GetEquipmentData(DataManager.Instance.CurDollID);
+			List<EquipmentData> equipments = dataManager.GetEquipmentData(dataManager.CurDollID);
 			for (int i = 0; i < equipments.Count; i++)
 			{
 				if (equipments[i] == null)
@@ -92,7 +106,7 @@ namespace WitchMendokusai
 
 		private void ShuffleDeck()
 		{
-			List<EquipmentData> equipments = DataManager.Instance.GetEquipmentData(DataManager.Instance.CurDollID);
+			List<EquipmentData> equipments = dataManager.GetEquipmentData(dataManager.CurDollID);
 
 			deckIdMapping = deckIdMapping.OrderBy(m => Random.Range(0, 100)).ToList();
 		
@@ -116,7 +130,7 @@ namespace WitchMendokusai
 
 		private IEnumerator StartSelectCard()
 		{
-			TimeManager.Instance.Pause(gameObject);
+			timeManager.Pause(gameObject);
 			yield return new WaitForSecondsRealtime(1f);
 			
 			// 선택한 덱에서 카드 뽑기
@@ -125,7 +139,7 @@ namespace WitchMendokusai
 			if (curDeckBuffer.Count == 0)
 			{
 				Debug.LogWarning("Not Enough Card Count");
-				TimeManager.Instance.Resume(gameObject);
+				timeManager.Resume(gameObject);
 				yield break;
 			}
 
@@ -147,7 +161,7 @@ namespace WitchMendokusai
 			}
 
 			List<CardData> randomCards = new();
-			CardBuffer selectedCardBuffer = SOManager.Instance.SelectedCardBuffer;
+			CardBuffer selectedCardBuffer = soManager.SelectedCardBuffer;
 
 			// HACK:
 			int maxLoop = 100;
@@ -185,7 +199,7 @@ namespace WitchMendokusai
 
 			SetPanel(CardPanelType.SelectCard);
 
-			List<EquipmentData> equipmentData = DataManager.Instance.GetEquipmentData(DataManager.Instance.CurDollID);
+			List<EquipmentData> equipmentData = dataManager.GetEquipmentData(dataManager.CurDollID);
 			int equipmentID = equipmentData[curDeckIndex].ID;
 
 			foreach (UIDeck deckUI in deckUIDic.Values)
@@ -209,7 +223,7 @@ namespace WitchMendokusai
 				return;
 			}
 
-			CardBuffer selectedCardBuffer = SOManager.Instance.SelectedCardBuffer;
+			CardBuffer selectedCardBuffer = soManager.SelectedCardBuffer;
 
 			selectedCardBuffer.Add(card);
 
@@ -230,7 +244,7 @@ namespace WitchMendokusai
 			else
 			{
 				SetPanel(CardPanelType.None);
-				TimeManager.Instance.Resume(gameObject);
+				timeManager.Resume(gameObject);
 			}
 		}
 	}

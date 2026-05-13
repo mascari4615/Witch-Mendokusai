@@ -42,6 +42,12 @@ namespace WitchMendokusai
 			RegisterLeaf<GameManager>(builder);
 			RegisterLeaf<UIRoot>(builder);
 
+			// γ P3-K POCO 매니저 3 등록 — DataManager 가 소유권 대신 VContainer 소유로 이관 (TASK-WM-078, 2026-05-13).
+			// Register<T> = POCO new + VContainer Singleton 관리. 에거 Resolve 불필요 (DataManager.Construct 가 트리거).
+			builder.Register<QuestManager>(Lifetime.Singleton);
+			builder.Register<WorkManager>(Lifetime.Singleton);
+			builder.Register<SaveManager>(Lifetime.Singleton);
+
 			// θ-5a InputStrategySelector — 새 GameObject + AddComponent (코드 spawn 의 VContainer 표준 흡수, TASK-WM-078 θ-5a, 2026-05-11).
 			// Bootstrap.OnBooting 의 직접 GameObject 생성 폐기.
 			builder.RegisterComponentOnNewGameObject<InputStrategySelector>(Lifetime.Singleton, nameof(InputStrategySelector))
