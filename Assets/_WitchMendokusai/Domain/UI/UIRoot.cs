@@ -37,6 +37,9 @@ namespace WitchMendokusai
 			this.inputManager = inputManager;
 			this.holdingManager = holdingManager;
 			this.container = container;
+			// VContainer: prefab 비활성화 후 Instantiate → Awake 는 SetActive(true) 이후 발화.
+			// CreateViews 를 Construct 선두로 이동 — inactive GO 에서도 AddComponent 정상 작동.
+			CreateViews();
 			container.Inject(SettingView);
 			container.Inject(KeybindHelpView);
 			container.Inject(WorldClockView);
@@ -63,7 +66,6 @@ namespace WitchMendokusai
 			}
 			Instance = this;
 			Document = GetComponent<UIDocument>();
-			CreateViews();
 		}
 
 		private void OnDestroy()
