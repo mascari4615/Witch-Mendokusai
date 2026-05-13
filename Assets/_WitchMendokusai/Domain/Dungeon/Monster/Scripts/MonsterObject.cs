@@ -1,6 +1,7 @@
 using System.Collections;
 using FMODUnity;
 using UnityEngine;
+using VContainer;
 using static WitchMendokusai.WMHelper;
 
 namespace WitchMendokusai
@@ -11,6 +12,18 @@ namespace WitchMendokusai
 		[SerializeField] private Transform hpBar;
 
 		public new Monster UnitData => base.UnitData as Monster;
+
+		private PlayerProvider playerProvider;
+		private SOManager soManager;
+		private DataManager dataManager;
+
+		[Inject]
+		public void Construct(PlayerProvider playerProvider, SOManager soManager, DataManager dataManager)
+		{
+			this.playerProvider = playerProvider;
+			this.soManager = soManager;
+			this.dataManager = dataManager;
+		}
 
 		protected virtual void OnEnable()
 		{
@@ -42,7 +55,7 @@ namespace WitchMendokusai
 
 		private void HandleDamageEffects(DamageInfo damageInfo)
 		{
-			SOManager.Instance.LastHitMonsterObject.RuntimeValue = this;
+			soManager.LastHitMonsterObject.RuntimeValue = this;
 			hpBar.localScale = new Vector3((float)UnitStat[UnitStatType.HP_CUR] / UnitStat[UnitStatType.HP_MAX], 1, 1);
 			hpBar.gameObject.SetActive(true);
 		}
@@ -52,8 +65,8 @@ namespace WitchMendokusai
 			DropLoot();
 
 			if (UnitData.Type == MonsterType.Boss)
-				DataManager.Instance.DungeonStat[DungeonStatType.BOSS_KILL]++;
-			DataManager.Instance.DungeonStat[DungeonStatType.MONSTER_KILL]++;
+				dataManager.DungeonStat[DungeonStatType.BOSS_KILL]++;
+			dataManager.DungeonStat[DungeonStatType.MONSTER_KILL]++;
 
 			StopAllCoroutines();
 
@@ -73,18 +86,18 @@ namespace WitchMendokusai
 		protected Vector3 GetRot()
 		{
 			return new Vector3(0, 0,
-				(Mathf.Atan2(PlayerProvider.Instance.Current.transform.position.y - (transform.position.y + 0.8f),
-					PlayerProvider.Instance.Current.transform.position.x - transform.position.x) * Mathf.Rad2Deg) - 90);
+				(Mathf.Atan2(playerProvider.Current.transform.position.y - (transform.position.y + 0.8f),
+					playerProvider.Current.transform.position.x - transform.position.x) * Mathf.Rad2Deg) - 90);
 		}
 
 		protected Vector3 GetDirection()
 		{
-			return (PlayerProvider.Instance.Current.transform.position - transform.position).normalized;
+			return (playerProvider.Current.transform.position - transform.position).normalized;
 		}
 
 		protected bool IsPlayerRight()
 		{
-			return PlayerProvider.Instance.Current.transform.position.x > transform.position.x;
+			return playerProvider.Current.transform.position.x > transform.position.x;
 		}
 	}
 }

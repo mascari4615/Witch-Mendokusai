@@ -1,6 +1,7 @@
 using System.Collections;
 using FMODUnity;
 using UnityEngine;
+using VContainer;
 using static WitchMendokusai.SOHelper;
 
 namespace WitchMendokusai
@@ -16,6 +17,20 @@ namespace WitchMendokusai
 
 		[SerializeField] private SpriteRenderer headRenderer;
 		[SerializeField] private SpriteRenderer bodyRenderer;
+
+		private DungeonManager dungeonManager;
+		private GameEventManager gameEventManager;
+		private TimeManager timeManager;
+		private SOManager soManager;
+
+		[Inject]
+		public void Construct(DungeonManager dungeonManager, GameEventManager gameEventManager, TimeManager timeManager, SOManager soManager)
+		{
+			this.dungeonManager = dungeonManager;
+			this.gameEventManager = gameEventManager;
+			this.timeManager = timeManager;
+			this.soManager = soManager;
+		}
 
 		public void SetDoll(int dollID)
 		{
@@ -54,14 +69,14 @@ namespace WitchMendokusai
 
 		private void HandleDamageEffects(DamageInfo damageInfo)
 		{
-			if (DungeonManager.Instance.IsDungeon == false)
+			if (dungeonManager.IsDungeon == false)
 				return;
 
 			if (invincibleRoutine != null)
 				return;
 
 			RuntimeManager.PlayOneShot("event:/SFX/Monster/Hit", transform.position);
-			GameEventManager.Instance.Raise(GameEventType.OnPlayerHit);
+			gameEventManager.Raise(GameEventType.OnPlayerHit);
 			// 카메라 셰이크는 PlayerKnockbackCameraGlue가 force 비례로 처리 — 여기서 호출 X.
 
 			if (invincibleRoutine != null)
@@ -82,15 +97,15 @@ namespace WitchMendokusai
 
 		protected virtual void HandleDeathEffects()
 		{
-			GameEventManager.Instance.Raise(GameEventType.OnPlayerDied);
-			TimeManager.Instance.DoSlowMotion();
+			gameEventManager.Raise(GameEventType.OnPlayerDied);
+			timeManager.DoSlowMotion();
 			diedX.SetActive(true);
 		}
 
 		private IEnumerator InvincibleTime()
 		{
 			// TODO
-			int invincibleTimeByDeciSec = (int)(SOManager.Instance.InvincibleTime.RuntimeValue * 10);
+			int invincibleTimeByDeciSec = (int)(soManager.InvincibleTime.RuntimeValue * 10);
 			bool isWhite = false;
 
 			while (invincibleTimeByDeciSec > 0)

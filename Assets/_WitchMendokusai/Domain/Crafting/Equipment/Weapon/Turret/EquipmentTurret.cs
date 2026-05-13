@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using VContainer;
 
 namespace WitchMendokusai
 {
@@ -16,7 +17,17 @@ namespace WitchMendokusai
 
 		private Coroutine loop;
 
-		private UnitStat PlayerStat => PlayerProvider.Instance.Current.UnitStat;
+		private PlayerProvider playerProvider;
+		private ObjectPoolManager objectPoolManager;
+
+		[Inject]
+		public void Construct(PlayerProvider playerProvider, ObjectPoolManager objectPoolManager)
+		{
+			this.playerProvider = playerProvider;
+			this.objectPoolManager = objectPoolManager;
+		}
+
+		private UnitStat PlayerStat => playerProvider.Current.UnitStat;
 
 		public override void InitContext(SkillObject skillObject)
 		{
@@ -31,7 +42,7 @@ namespace WitchMendokusai
 
 			loop = StartCoroutine(Loop());
 
-			transform.position = PlayerProvider.Instance.Current.transform.position;
+			transform.position = playerProvider.Current.transform.position;
 		}
 
 		private void OnDisable()
@@ -52,7 +63,7 @@ namespace WitchMendokusai
 			int turretIndex = 0;
 			while (true)
 			{
-				if (PlayerProvider.Instance.Current.AimPos == Vector3.zero)
+				if (playerProvider.Current.AimPos == Vector3.zero)
 				{
 					yield return new WaitForSeconds(.1f);
 					continue;
@@ -60,14 +71,14 @@ namespace WitchMendokusai
 
 				turretIndex = ++turretIndex % turretTransforms.Count;
 
-				GameObject bulletObject = ObjectPoolManager.Instance.Spawn(bulletPrefab);
+				GameObject bulletObject = objectPoolManager.Spawn(bulletPrefab);
 
 				Vector3 bulletSpawnPos = turretTransforms[turretIndex].position;
 				bulletSpawnPos.y = 0;
 				bulletObject.transform.position = bulletSpawnPos;
 
 				if (bulletObject.TryGetComponent(out SkillObject skillObject))
-					skillObject.InitContext(new SkillContext(PlayerProvider.Instance.CurrentObject));
+					skillObject.InitContext(new SkillContext(playerProvider.CurrentObject));
 
 				if (bulletObject.TryGetComponent(out DamagingObject damagingObject))
 					damagingObject.SetDamageBonus(damageBonus);
@@ -87,7 +98,7 @@ namespace WitchMendokusai
 				int diff = turretCount - turretTransforms.Count;
 				for (int i = 0; i < diff; i++)
 				{
-					GameObject g = ObjectPoolManager.Instance.Spawn(turretPrefab);
+					GameObject g = objectPoolManager.Spawn(turretPrefab);
 					g.transform.SetParent(transform);
 					// g.transform.localPosition = Vector3.zero;
 					Vector3 randomPos = Random.insideUnitSphere * 2;

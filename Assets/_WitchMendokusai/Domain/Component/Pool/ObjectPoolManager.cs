@@ -1,8 +1,8 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
+using VContainer;
 using static WitchMendokusai.WMHelper;
 
 namespace WitchMendokusai
@@ -17,7 +17,14 @@ namespace WitchMendokusai
 			return mgr != null;
 		}
 
+		private IObjectResolver container;
 		private readonly Dictionary<string, ObjectPool> poolDic = new();
+
+		[Inject]
+		public void Construct(IObjectResolver container)
+		{
+			this.container = container;
+		}
 
 		private void Awake()
 		{
@@ -40,18 +47,16 @@ namespace WitchMendokusai
 			if (targetObject == null)
 				return;
 
-			// Debug.Log($"PushObject: {targetObject.name}");
 			string objectName = GetActualObjectName(targetObject);
 
 			if (poolDic.ContainsKey(objectName) == false)
-				poolDic[objectName] = new ObjectPool(targetObject);
+				poolDic[objectName] = new ObjectPool(targetObject, container, transform);
 
 			poolDic[objectName].Push(targetObject);
 		}
 
 		public GameObject Spawn(GameObject targetObject)
 		{
-			// Debug.Log($"PopObject: {targetObject.name}");
 			string objectName = GetActualObjectName(targetObject);
 
 			if (poolDic.TryGetValue(objectName, out ObjectPool pool))
@@ -60,7 +65,7 @@ namespace WitchMendokusai
 			}
 			else
 			{
-				poolDic[objectName] = new ObjectPool(targetObject);
+				poolDic[objectName] = new ObjectPool(targetObject, container, transform);
 				poolDic[objectName].CreateObject(1);
 				return poolDic[objectName].Pop();
 			}
@@ -83,7 +88,6 @@ namespace WitchMendokusai
 
 		private static string GetActualObjectName(GameObject targetObject)
 		{
-			// 프리팹 이름에서 "(Clone)"을 제거
 			return targetObject.name.Contains("(Clone)")
 				? targetObject.name.Remove(targetObject.name.IndexOf("(", StringComparison.Ordinal), 7)
 				: targetObject.name;
@@ -96,10 +100,14 @@ namespace WitchMendokusai
 
 			private readonly GameObject prefab;
 			private readonly Stack<GameObject> stack;
+			private readonly IObjectResolver container;
+			private readonly Transform managerTransform;
 
-			public ObjectPool(GameObject prefab)
+			public ObjectPool(GameObject prefab, IObjectResolver container, Transform managerTransform)
 			{
 				this.prefab = prefab;
+				this.container = container;
+				this.managerTransform = managerTransform;
 				stack = new();
 			}
 
@@ -115,6 +123,8 @@ namespace WitchMendokusai
 				for (int i = 0; i < count; i++)
 				{
 					GameObject g = Instantiate(prefab, GetObjectParent(this));
+					foreach (MonoBehaviour component in g.GetComponentsInChildren<MonoBehaviour>(true))
+						container.Inject(component);
 					Push(g);
 				}
 
@@ -126,7 +136,6 @@ namespace WitchMendokusai
 			{
 				if (stack.Contains(targetObject))
 				{
-					// Debug.Log($"{targetObject.name}, 이미 스택에 존재합니다");
 					return;
 				}
 
@@ -176,7 +185,7 @@ namespace WitchMendokusai
 				if (ObjectParent.ContainsKey(objectPool) == false)
 				{
 					GameObject poolParentObject = new($"[{nameof(ObjectPool)}] {objectPool.prefab.name}");
-					poolParentObject.transform.SetParent(Instance.transform);
+					poolParentObject.transform.SetParent(objectPool.managerTransform);
 
 					ObjectParent[objectPool] = poolParentObject.transform;
 				}

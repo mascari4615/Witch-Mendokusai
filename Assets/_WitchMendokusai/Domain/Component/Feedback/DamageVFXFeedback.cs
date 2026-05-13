@@ -1,4 +1,5 @@
 using UnityEngine;
+using VContainer;
 
 namespace WitchMendokusai
 {
@@ -7,8 +8,17 @@ namespace WitchMendokusai
 	{
 		[SerializeField] private GameObject hitEffectPrefab;
 		[SerializeField] private GameObject dieEffectPrefab;
-		
+
 		private UnitHealth health;
+		private ObjectPoolManager objectPoolManager;
+		private PlayerProvider playerProvider;
+
+		[Inject]
+		public void Construct(ObjectPoolManager objectPoolManager, PlayerProvider playerProvider)
+		{
+			this.objectPoolManager = objectPoolManager;
+			this.playerProvider = playerProvider;
+		}
 
 		private void Awake()
 		{
@@ -30,16 +40,16 @@ namespace WitchMendokusai
 		private void PlayHitEffect(DamageInfo damageInfo)
 		{
 			if (hitEffectPrefab == null) return;
-			
-			GameObject hitEffect = ObjectPoolManager.Instance.Spawn(hitEffectPrefab);
-			
+
+			GameObject hitEffect = objectPoolManager.Spawn(hitEffectPrefab);
+
 			// 플레이어를 향하는 방향으로 약간 이동해서 이펙트 생성 (기존 MonsterObject 로직)
 			Vector3 offset = Vector3.zero;
-			if (PlayerProvider.Instance.Current != null)
+			if (playerProvider.Current != null)
 			{
-				offset = Vector3.Normalize(PlayerProvider.Instance.Current.transform.position - transform.position) * 0.5f;
+				offset = Vector3.Normalize(playerProvider.Current.transform.position - transform.position) * 0.5f;
 			}
-			
+
 			hitEffect.transform.position = transform.position + offset;
 			hitEffect.SetActive(true);
 		}
@@ -47,15 +57,15 @@ namespace WitchMendokusai
 		private void PlayDieEffect()
 		{
 			if (dieEffectPrefab == null) return;
-			
-			GameObject dieEffect = ObjectPoolManager.Instance.Spawn(dieEffectPrefab);
-			
+
+			GameObject dieEffect = objectPoolManager.Spawn(dieEffectPrefab);
+
 			Vector3 offset = Vector3.zero;
-			if (PlayerProvider.Instance.Current != null)
+			if (playerProvider.Current != null)
 			{
-				offset = Vector3.Normalize(PlayerProvider.Instance.Current.transform.position - transform.position) * 0.5f;
+				offset = Vector3.Normalize(playerProvider.Current.transform.position - transform.position) * 0.5f;
 			}
-			
+
 			dieEffect.transform.position = transform.position + offset;
 			dieEffect.SetActive(true);
 		}

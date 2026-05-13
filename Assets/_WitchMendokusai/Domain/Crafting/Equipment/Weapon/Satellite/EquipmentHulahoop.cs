@@ -1,7 +1,7 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using VContainer;
 
 namespace WitchMendokusai
 {
@@ -13,7 +13,17 @@ namespace WitchMendokusai
 		private readonly List<DamagingObject> satellites = new();
 		private float rotateSpeed;
 
-		private UnitStat PlayerStat => PlayerProvider.Instance.Current.UnitStat;
+		private PlayerProvider playerProvider;
+		private ObjectPoolManager objectPoolManager;
+
+		[Inject]
+		public void Construct(PlayerProvider playerProvider, ObjectPoolManager objectPoolManager)
+		{
+			this.playerProvider = playerProvider;
+			this.objectPoolManager = objectPoolManager;
+		}
+
+		private UnitStat PlayerStat => playerProvider.Current.UnitStat;
 
 		private void OnEnable()
 		{
@@ -33,7 +43,7 @@ namespace WitchMendokusai
 
 		private void Update()
 		{
-			transform.position = PlayerProvider.Instance.Current.transform.position;
+			transform.position = playerProvider.Current.transform.position;
 			transform.Rotate(0, rotateSpeed * Time.deltaTime, 0);
 		}
 
@@ -51,7 +61,7 @@ namespace WitchMendokusai
 				int diff = satelliteCount - transform.childCount;
 				for (int i = 0; i < diff; i++)
 				{
-					GameObject g = ObjectPoolManager.Instance.Spawn(satellitePrefab);
+					GameObject g = objectPoolManager.Spawn(satellitePrefab);
 					g.transform.SetParent(transform);
 					g.transform.localPosition = Vector3.zero;
 					g.SetActive(true);

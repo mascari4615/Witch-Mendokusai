@@ -1,8 +1,7 @@
-using System;
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using Random = UnityEngine.Random;
+using VContainer;
 
 namespace WitchMendokusai
 {
@@ -24,8 +23,19 @@ namespace WitchMendokusai
 		private Coroutine spawnCoroutine;
 
 		[SerializeField] private UnitStatType damageBonusStatType = UnitStatType.NONE;
-		private UnitStat PlayerStat => PlayerProvider.Instance.Current.UnitStat;
 		private int damageBonus = 0;
+
+		private PlayerProvider playerProvider;
+		private ObjectPoolManager objectPoolManager;
+
+		[Inject]
+		public void Construct(PlayerProvider playerProvider, ObjectPoolManager objectPoolManager)
+		{
+			this.playerProvider = playerProvider;
+			this.objectPoolManager = objectPoolManager;
+		}
+
+		private UnitStat PlayerStat => playerProvider.Current.UnitStat;
 
 		private void Start()
 		{
@@ -64,11 +74,11 @@ namespace WitchMendokusai
 			void Spawn()
 			{
 				// TODO: 위치도 옵션으로
-				transform.position = PlayerProvider.Instance.Current.transform.position;
+				transform.position = playerProvider.Current.transform.position;
 				Vector3 spawnPosition = GetSpawnPosition();
-				GameObject g = ObjectPoolManager.Instance.Spawn(prefabToSpawn, transform.position + spawnPosition, Quaternion.identity);
+				GameObject g = objectPoolManager.Spawn(prefabToSpawn, transform.position + spawnPosition, Quaternion.identity);
 				if (g.TryGetComponent(out SkillObject skillObject))
-					skillObject.InitContext(new SkillContext(PlayerProvider.Instance.CurrentObject));
+					skillObject.InitContext(new SkillContext(playerProvider.CurrentObject));
 
 				if (g.GetComponentInChildren<DamagingObject>() is DamagingObject damagingObject)
 					damagingObject.SetDamageBonus(damageBonus);

@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using VContainer;
 
 namespace WitchMendokusai
 {
@@ -18,7 +19,17 @@ namespace WitchMendokusai
 
 		private Coroutine loop;
 
-		private UnitStat PlayerStat => PlayerProvider.Instance.Current.UnitStat;
+		private PlayerProvider playerProvider;
+		private ObjectPoolManager objectPoolManager;
+
+		[Inject]
+		public void Construct(PlayerProvider playerProvider, ObjectPoolManager objectPoolManager)
+		{
+			this.playerProvider = playerProvider;
+			this.objectPoolManager = objectPoolManager;
+		}
+
+		private UnitStat PlayerStat => playerProvider.Current.UnitStat;
 
 		public override void InitContext(SkillObject skillObject)
 		{
@@ -49,7 +60,7 @@ namespace WitchMendokusai
 
 		private void Update()
 		{
-			transform.position = PlayerProvider.Instance.Current.transform.position;
+			transform.position = playerProvider.Current.transform.position;
 			transform.Rotate(0, rotateSpeed * Time.deltaTime, 0);
 		}
 
@@ -58,7 +69,7 @@ namespace WitchMendokusai
 			int fairyIndex = 0;
 			while (true)
 			{
-				if (PlayerProvider.Instance.Current.AimPos == Vector3.zero)
+				if (playerProvider.Current.AimPos == Vector3.zero)
 				{
 					yield return new WaitForSeconds(.1f);
 					continue;
@@ -66,14 +77,14 @@ namespace WitchMendokusai
 
 				fairyIndex = ++fairyIndex % fairyTransforms.Count;
 
-				GameObject g = ObjectPoolManager.Instance.Spawn(bulletPrefab);
+				GameObject g = objectPoolManager.Spawn(bulletPrefab);
 
 				Vector3 spawnPosition = fairyTransforms[fairyIndex].position;
 				spawnPosition.y = 0;
 				g.transform.position = spawnPosition;
 
 				if (g.TryGetComponent(out SkillObject skillObject))
-					skillObject.InitContext(new SkillContext(PlayerProvider.Instance.CurrentObject));
+					skillObject.InitContext(new SkillContext(playerProvider.CurrentObject));
 
 				if (g.TryGetComponent(out DamagingObject damagingObject))
 					damagingObject.SetDamageBonus(damageBonus);
@@ -93,7 +104,7 @@ namespace WitchMendokusai
 				int diff = actualFairyCount - fairyTransforms.Count;
 				for (int i = 0; i < diff; i++)
 				{
-					GameObject g = ObjectPoolManager.Instance.Spawn(fairyPrefab);
+					GameObject g = objectPoolManager.Spawn(fairyPrefab);
 					g.transform.SetParent(transform);
 					g.transform.localPosition = Vector3.zero;
 					g.SetActive(true);

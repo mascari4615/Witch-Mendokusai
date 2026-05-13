@@ -1,19 +1,25 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
+using VContainer;
 using static WitchMendokusai.WMHelper;
 
 namespace WitchMendokusai
 {
 	public class PoolingObject : MonoBehaviour
 	{
+		private ObjectPoolManager objectPoolManager;
+
+		[Inject]
+		public void Construct(ObjectPoolManager objectPoolManager)
+		{
+			this.objectPoolManager = objectPoolManager;
+		}
+
 		private void OnDisable()
 		{
 			if (IsPlaying == false)
 				return;
 
-			ObjectPoolManager.Instance.Despawn(gameObject);
+			objectPoolManager.Despawn(gameObject);
 		}
 	}
 }

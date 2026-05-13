@@ -1,6 +1,6 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
+using VContainer;
 using static WitchMendokusai.WMHelper;
 
 namespace WitchMendokusai
@@ -13,6 +13,14 @@ namespace WitchMendokusai
 #pragma warning restore CS0414
 
 		private Coroutine _moveLoop;
+
+		protected PlayerProvider playerProvider;
+
+		[Inject]
+		public void Construct(PlayerProvider playerProvider)
+		{
+			this.playerProvider = playerProvider;
+		}
 
 		private void OnEnable()
 		{
@@ -44,14 +52,14 @@ namespace WitchMendokusai
 		{
 			// for (float t = 0; t < 1; t += Time.deltaTime * moveSpeed)
 			// {
-			// 	transform.position = Vector3.Lerp(transform.position, PlayerProvider.Instance.Current.transform.position, t);
+			// 	transform.position = Vector3.Lerp(transform.position, playerProvider.Current.transform.position, t);
 
 			while (true)
 			{
-				Vector3 direction = (PlayerProvider.Instance.Current.transform.position - transform.position).normalized;
+				Vector3 direction = (playerProvider.Current.transform.position - transform.position).normalized;
 				transform.position = transform.position + moveSpeed * Time.deltaTime * direction;
 
-				if (Vector3.Distance(transform.position, PlayerProvider.Instance.Current.transform.position) < .3f)
+				if (Vector3.Distance(transform.position, playerProvider.Current.transform.position) < .3f)
 				{
 					Effect();
 					_moveLoop = null;

@@ -1,7 +1,7 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using VContainer;
 
 namespace WitchMendokusai
 {
@@ -31,6 +31,14 @@ namespace WitchMendokusai
 
 		private SkillObject skillObject = null;
 		private Dictionary<GameObject, int> hitFrames = new();
+
+		private PlayerProvider playerProvider;
+
+		[Inject]
+		public void Construct(PlayerProvider playerProvider)
+		{
+			this.playerProvider = playerProvider;
+		}
 
 		public void OnTriggerEnter(Collider other)
 		{
@@ -139,7 +147,7 @@ namespace WitchMendokusai
 
 			if (usedByPlayer)
 			{
-				UnitStat unitStat = PlayerProvider.Instance.Current.UnitStat;
+				UnitStat unitStat = playerProvider.Current.UnitStat;
 
 				calcDamage = (int)(calcDamage * (1 + (unitStat[UnitStatType.DAMAGE_BONUS] / 100f)));
 

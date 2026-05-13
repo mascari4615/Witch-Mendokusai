@@ -1,6 +1,5 @@
-using System;
 using UnityEngine;
-using UnityEngine.Serialization;
+using VContainer;
 
 namespace WitchMendokusai
 {
@@ -10,12 +9,19 @@ namespace WitchMendokusai
 		[SerializeField] private float moveSpeed;
 		[SerializeField] private bool useAutoAim;
 
+		private PlayerProvider playerProvider;
+
+		[Inject]
+		public void Construct(PlayerProvider playerProvider)
+		{
+			this.playerProvider = playerProvider;
+		}
+
 		public void SetMoveDirection(Vector3 newDirection)
 		{
 			moveDirection = newDirection;
 		}
 
-		// Update is called once per frame
 		private void Update()
 		{
 			transform.position += moveSpeed * Time.deltaTime * moveDirection;
@@ -27,20 +33,20 @@ namespace WitchMendokusai
 			{
 				if (useAutoAim == false)
 				{
-					moveDirection = PlayerProvider.Instance.Current.AimDirection;
+					moveDirection = playerProvider.Current.AimDirection;
 					moveDirection.y = 0;
 				}
 				else
 				{
-					moveDirection = PlayerProvider.Instance.Current.NearestTarget != null
-						? (PlayerProvider.Instance.Current.NearestTarget.position - transform.position).normalized
-						: PlayerProvider.Instance.Current.AimDirection;
+					moveDirection = playerProvider.Current.NearestTarget != null
+						? (playerProvider.Current.NearestTarget.position - transform.position).normalized
+						: playerProvider.Current.AimDirection;
 					moveDirection.y = 0;
 				}
 			}
 			else
 			{
-				SetMoveDirection((PlayerProvider.Instance.Current.transform.position - skillObject.Context.User.transform.position).normalized);
+				SetMoveDirection((playerProvider.Current.transform.position - skillObject.Context.User.transform.position).normalized);
 			}
 		}
 	}
