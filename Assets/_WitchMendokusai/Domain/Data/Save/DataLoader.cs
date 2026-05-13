@@ -69,7 +69,7 @@ namespace WitchMendokusai
 			List<AsyncOperationHandle> handles = new();
 			LoadAssetsAsync(handles);
 
-			while (!handles.All(handle => handle.IsDone))
+			while (handles.All(handle => handle.IsDone) == false)
 			{
 				float totalPercent = handles.Sum(handle => handle.PercentComplete) / handles.Count;
 				progressBar.fillAmount = totalPercent;
@@ -102,7 +102,7 @@ namespace WitchMendokusai
 
 		private void LoadAsset<T>(string label, List<AsyncOperationHandle> handles) where T : DataSO
 		{
-			var handle = Addressables.LoadAssetsAsync<T>(label, null);
+			AsyncOperationHandle<IList<T>> handle = Addressables.LoadAssetsAsync<T>(label, null);
 			handle.Completed += OnAssetsLoaded;
 			handles.Add(handle);
 		}
