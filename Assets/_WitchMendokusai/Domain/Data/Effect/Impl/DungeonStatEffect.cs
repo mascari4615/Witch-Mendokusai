@@ -2,7 +2,7 @@ namespace WitchMendokusai
 {
 	public class DungeonStatEffect : IEffect
 	{
-		private DungeonStat DungeonStat => DataManager.Instance.DungeonStat;
+		private DungeonStat DungeonStat => DataManagerBridge.DungeonStat;
 
 		public void Apply(EffectInfo effectInfo)
 		{

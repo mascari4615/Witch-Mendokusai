@@ -26,6 +26,7 @@ namespace WitchMendokusai
 				return;
 			}
 			Instance = this;
+			PlayerProviderBridge.Register(this);
 		}
 
 		private void OnDestroy()

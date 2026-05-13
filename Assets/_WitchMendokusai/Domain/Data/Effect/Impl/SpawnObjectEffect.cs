@@ -7,7 +7,7 @@ namespace WitchMendokusai
 		public void Apply(EffectInfo effectInfo)
 		{
 			GameObject prefab = (effectInfo.Data as ObjectData).GameObject;
-			GameObject instance = ObjectPoolManager.Instance.Spawn(prefab);
+			GameObject instance = ObjectPoolManagerBridge.Spawn(prefab);
 			instance.SetActive(true);
 		}
 	}

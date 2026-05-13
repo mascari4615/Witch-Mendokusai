@@ -6,7 +6,7 @@ namespace WitchMendokusai
 {
 	public class GameStatEffect : IEffect
 	{
-		private GameStat GameStat => DataManager.Instance.GameStat;
+		private GameStat GameStat => DataManagerBridge.GameStat;
 
 		public void Apply(EffectInfo effectInfo)
 		{

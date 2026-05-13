@@ -1,4 +1,5 @@
 using UnityEngine;
+using VContainer;
 
 namespace WitchMendokusai
 {
@@ -6,15 +7,22 @@ namespace WitchMendokusai
 	{
 		[SerializeField] private float attackRange = 10f;
 
+		private PlayerProvider playerProvider;
 		private BT_Idle idle;
 		private BT_Skill attack;
+
+		[Inject]
+		public void Construct(PlayerProvider playerProvider)
+		{
+			this.playerProvider = playerProvider;
+		}
 
 		protected override FSMStateCommon DefaultState => FSMStateCommon.Idle;
 
 		protected override void InitFSMEvent()
 		{
 			idle = new(UnitObject);
-			attack = new(UnitObject, 0, attackRange);
+			attack = new(UnitObject, playerProvider, 0, attackRange);
 
 			SetStateEvent(FSMStateCommon.Idle, StateEvent.Update, () =>
 			{
@@ -31,7 +39,7 @@ namespace WitchMendokusai
 
 		private void CanSeePlayer()
 		{
-			if (Vector3.Distance(UnitObject.transform.position, PlayerProvider.Instance.Current.transform.position) < attackRange)
+			if (Vector3.Distance(UnitObject.transform.position, playerProvider.Current.transform.position) < attackRange)
 			{
 				if (IsCurState(FSMStateCommon.Attack) == false)
 					ChangeState(FSMStateCommon.Attack);

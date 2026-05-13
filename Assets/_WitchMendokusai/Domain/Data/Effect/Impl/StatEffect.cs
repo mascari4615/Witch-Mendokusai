@@ -6,7 +6,7 @@ namespace WitchMendokusai
 {
 	public class StatEffect : IEffect
 	{
-		private UnitStat PlayerStat => PlayerProvider.Instance.Current.UnitStat;
+		private UnitStat PlayerStat => PlayerProviderBridge.Current.UnitStat;
 
 		public void Apply(EffectInfo effectInfo)
 		{

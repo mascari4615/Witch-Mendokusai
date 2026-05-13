@@ -12,13 +12,13 @@ namespace WitchMendokusai
 
 		public override void ActualUse(SkillContext context)
 		{
-			GameObject o = ObjectPoolManager.Instance.Spawn(Prefab);
+			GameObject o = ObjectPoolManagerBridge.Spawn(Prefab);
 			o.transform.position = context.User.transform.position;
 
 			if (SetRotation)
 			{
 				// 공격 위치를 향하도록 회전
-				o.transform.rotation = Quaternion.LookRotation(PlayerProvider.Instance.Current.AimDirection);
+				o.transform.rotation = Quaternion.LookRotation(PlayerProviderBridge.Current.AimDirection);
 			}
 
 			if (o.TryGetComponent(out SkillObject skillObject))

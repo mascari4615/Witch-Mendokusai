@@ -9,7 +9,7 @@ namespace WitchMendokusai
 		public void Apply(EffectInfo effectInfo)
 		{
 			CardData targetCard = effectInfo.Data as CardData;
-			SOManager.Instance.SelectedCardBuffer.Add(targetCard);
+			SOManagerBridge.SelectedCardBuffer.Add(targetCard);
 		}
 	}
 }

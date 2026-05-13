@@ -13,7 +13,7 @@ namespace WitchMendokusai
 
 		public override int GetCurValue()
 		{
-			return DataManager.Instance.GameStat[Type];
+			return DataManagerBridge.GameStat[Type];
 		}
 	}
 }

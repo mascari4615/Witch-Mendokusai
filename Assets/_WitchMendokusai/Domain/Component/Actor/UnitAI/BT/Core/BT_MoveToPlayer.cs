@@ -8,8 +8,9 @@ namespace WitchMendokusai
 		private Vector3 moveDest = Vector3.zero;
 		private bool isSpriteLookLeft;
 
-		public BT_MoveToPlayer(UnitObject unitObject, bool isSpriteLookLeft = true) : base(unitObject)
+		public BT_MoveToPlayer(UnitObject unitObject, PlayerProvider playerProvider, bool isSpriteLookLeft = true) : base(unitObject)
 		{
+			this.playerProvider = playerProvider;
 			this.isSpriteLookLeft = isSpriteLookLeft;
 		}
 
@@ -29,7 +30,7 @@ namespace WitchMendokusai
 
 		private BTState SetDestinationPlayer()
 		{
-			moveDest = PlayerProvider.Instance.Current.transform.position;
+			moveDest = playerProvider.Current.transform.position;
 			return BTState.Success;
 		}
 

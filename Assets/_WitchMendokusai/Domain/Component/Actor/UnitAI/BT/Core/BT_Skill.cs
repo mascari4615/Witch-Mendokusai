@@ -12,8 +12,9 @@ namespace WitchMendokusai
 
 		private Vector3 moveDest = Vector3.zero;
 
-		public BT_Skill(UnitObject unitObject, int skillIndex, float attackRange, Action onSkillEnd = null) : base(unitObject)
+		public BT_Skill(UnitObject unitObject, PlayerProvider playerProvider, int skillIndex, float attackRange, Action onSkillEnd = null) : base(unitObject)
 		{
+			this.playerProvider = playerProvider;
 			this.skillIndex = skillIndex;
 			this.attackRange = attackRange;
 			OnSkillEnd = onSkillEnd;
@@ -24,7 +25,7 @@ namespace WitchMendokusai
 			return
 				Selector
 				(
-					// ±ÙÃ³¿¡ ÀÖÀ¸¸é PlayerÇâÇØ¼­ Move
+					// ï¿½ï¿½Ã³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Playerï¿½ï¿½ï¿½Ø¼ï¿½ Move
 					Sequence
 					(
 						Condition(IsPlayerFar),
@@ -49,13 +50,13 @@ namespace WitchMendokusai
 
 		private BTState SetDestinationPlayer()
 		{
-			moveDest = PlayerProvider.Instance.Current.transform.position;
+			moveDest = playerProvider.Current.transform.position;
 			return BTState.Success;
 		}
 
 		protected bool IsPlayerFar()
 		{
-			float distance = Vector3.Distance(PlayerProvider.Instance.Current.transform.position, unitObject.transform.position);
+			float distance = Vector3.Distance(playerProvider.Current.transform.position, unitObject.transform.position);
 			bool isPlayerFar = distance > attackRange;
 
 			return isPlayerFar;

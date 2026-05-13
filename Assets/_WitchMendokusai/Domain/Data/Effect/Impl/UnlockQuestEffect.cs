@@ -6,7 +6,7 @@ namespace WitchMendokusai
 	{
 		public void Apply(EffectInfo effectInfo)
 		{
-			QuestManager.Instance.UnlockQuest(effectInfo.Data as QuestSO);
+			QuestManagerBridge.UnlockQuest(effectInfo.Data as QuestSO);
 		}
 	}
 }

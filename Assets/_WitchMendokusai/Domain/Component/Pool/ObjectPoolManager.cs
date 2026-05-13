@@ -24,6 +24,7 @@ namespace WitchMendokusai
 		public void Construct(IObjectResolver container)
 		{
 			this.container = container;
+			ObjectPoolManagerBridge.Register(this);
 		}
 
 		private void Awake()

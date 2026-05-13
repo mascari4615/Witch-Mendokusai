@@ -1,4 +1,5 @@
 using UnityEngine;
+using VContainer;
 
 namespace WitchMendokusai
 {
@@ -8,16 +9,23 @@ namespace WitchMendokusai
 		[SerializeField] private float attackRange = 10f;
 #pragma warning restore CS0414
 		[SerializeField] private bool isSpriteLookLeft = false;
-	
+
+		private PlayerProvider playerProvider;
 		private BT_Idle idle;
 		private BT_MoveToPlayer moveToPlayer;
+
+		[Inject]
+		public void Construct(PlayerProvider playerProvider)
+		{
+			this.playerProvider = playerProvider;
+		}
 
 		protected override FSMStateCommon DefaultState => FSMStateCommon.Attack;
 
 		protected override void InitFSMEvent()
 		{
 			idle = new(UnitObject, isSpriteLookLeft: isSpriteLookLeft);
-			moveToPlayer = new(UnitObject, isSpriteLookLeft);
+			moveToPlayer = new(UnitObject, playerProvider, isSpriteLookLeft);
 
 			SetStateEvent(FSMStateCommon.Idle, StateEvent.Update, () =>
 			{

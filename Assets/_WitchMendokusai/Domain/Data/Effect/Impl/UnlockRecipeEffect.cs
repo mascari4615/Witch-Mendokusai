@@ -6,7 +6,7 @@ namespace WitchMendokusai
 	{
 		public void Apply(EffectInfo effectInfo)
 		{
-			DataManager.Instance.IsRecipeUnlocked[(effectInfo.Data as ItemData).ID] = true;
+			DataManagerBridge.IsRecipeUnlocked[(effectInfo.Data as ItemData).ID] = true;
 		}
 	}
 }

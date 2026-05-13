@@ -12,9 +12,9 @@ namespace WitchMendokusai
 			int amount = effectInfo.Value;
 
 			if (effectInfo.ArithmeticOperator == ArithmeticOperator.Add)
-				SOManager.Instance.ItemInventory.Add(targetItem, amount);
+				SOManagerBridge.ItemInventory.Add(targetItem, amount);
 			else if (effectInfo.ArithmeticOperator == ArithmeticOperator.Subtract)
-				SOManager.Instance.ItemInventory.Remove(SOManager.Instance.ItemInventory.FindItemIndex(targetItem), amount);
+				SOManagerBridge.ItemInventory.Remove(SOManagerBridge.ItemInventory.FindItemIndex(targetItem), amount);
 		}
 	}
 }

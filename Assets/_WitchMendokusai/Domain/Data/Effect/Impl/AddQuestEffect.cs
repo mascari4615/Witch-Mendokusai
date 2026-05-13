@@ -9,7 +9,7 @@ namespace WitchMendokusai
 		public void Apply(EffectInfo effectInfo)
 		{
 			QuestSO quest = effectInfo.Data as QuestSO;
-			QuestManager.Instance.AddQuest(RuntimeQuestFactory.FromQuestSO(quest));
+			QuestManagerBridge.AddQuest(RuntimeQuestFactory.FromQuestSO(quest));
 		}
 	}
 }

@@ -3,9 +3,10 @@ namespace WitchMendokusai
 	public abstract class BTRunner
 	{
 		public const float TICK = 0.1f;
-	
+
 		private readonly Node rootNode;
 		protected UnitObject unitObject;
+		protected PlayerProvider playerProvider;
 
 		public bool CanChangeState => rootNode.State == BTState.Success || rootNode.State == BTState.Failure;
 

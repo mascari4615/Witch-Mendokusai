@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using VContainer;
 using Random = UnityEngine.Random;
 
 namespace WitchMendokusai
@@ -16,15 +17,23 @@ namespace WitchMendokusai
 		}
 		private AttackPattern _currentPattern;
 
+		private PlayerProvider playerProvider;
+
+		[Inject]
+		public void Construct(PlayerProvider playerProvider)
+		{
+			this.playerProvider = playerProvider;
+		}
+
 		protected override FSMStateCommon DefaultState => FSMStateCommon.Idle;
 
 		protected override void InitFSMEvent()
 		{
 			// BT 노드 인스턴스 생성
 			BT_Idle _idle = new(UnitObject, isSpriteLookLeft: isSpriteLookLeft);
-			BT_MoveToPlayer _moveToPlayer = new(UnitObject, isSpriteLookLeft);
-			BT_Skill _projectileAttack = new(UnitObject, 0, attackRange, () => ChangeState(FSMStateCommon.Wait));
-			BT_Dash _dash = new(UnitObject, attackRange, dashSpeed: 15f, dashDuration: 0.5f, () => ChangeState(FSMStateCommon.Wait));
+			BT_MoveToPlayer _moveToPlayer = new(UnitObject, playerProvider, isSpriteLookLeft);
+			BT_Skill _projectileAttack = new(UnitObject, playerProvider, 0, attackRange, () => ChangeState(FSMStateCommon.Wait));
+			BT_Dash _dash = new(UnitObject, playerProvider, attackRange, dashSpeed: 15f, dashDuration: 0.5f, onDashEnd: () => ChangeState(FSMStateCommon.Wait));
 			// BT_PullAttack _pullAttack = new(UnitObject, attackRange);
 
 			// --- 상태별 이벤트 설정 ---
@@ -88,8 +97,8 @@ namespace WitchMendokusai
 
 		private void CanSeePlayer()
 		{
-			if (PlayerProvider.Instance.Current == null) return;
-			float distanceToPlayer = Vector3.Distance(UnitObject.transform.position, PlayerProvider.Instance.Current.transform.position);
+			if (playerProvider.Current == null) return;
+			float distanceToPlayer = Vector3.Distance(UnitObject.transform.position, playerProvider.Current.transform.position);
 
 			if (distanceToPlayer < attackRange)
 			{

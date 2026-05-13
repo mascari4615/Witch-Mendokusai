@@ -11,7 +11,7 @@ namespace WitchMendokusai
 
 		public override int GetCurValue()
 		{
-			Inventory inventory = SOManager.Instance.ItemInventory;
+			Inventory inventory = SOManagerBridge.ItemInventory;
 			return inventory.GetItemAmount(ItemID);
 		}
 	}

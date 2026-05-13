@@ -33,7 +33,7 @@ namespace WitchMendokusai
 						break;
 					case EffectType.AddRandomVillageQuest:
 						effectType = EffectType.AddQuest;
-						dataSO = SOManager.Instance.VQuests.Data[Random.Range(0, SOManager.Instance.VQuests.Data.Count)];
+						dataSO = SOManagerBridge.VQuests.Data[Random.Range(0, SOManagerBridge.VQuests.Data.Count)];
 						break;
 					case EffectType.FloatVariable:
 						break;

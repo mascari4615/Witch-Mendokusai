@@ -47,6 +47,8 @@ namespace WitchMendokusai
 			SaveManager = saveManager;
 			WorkManager = workManager;
 			QuestManager = questManager;
+			DataManagerBridge.Register(this);
+			QuestManagerBridge.Register(questManager);
 		}
 
 		private PlayFabManager playFabManager;

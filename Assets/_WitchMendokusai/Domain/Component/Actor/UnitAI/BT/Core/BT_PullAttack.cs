@@ -9,8 +9,9 @@ namespace WitchMendokusai
 
 		private Vector3 moveDest = Vector3.zero;
 
-		public BT_PullAttack(UnitObject unitObject, float attackRange = 5f) : base(unitObject)
+		public BT_PullAttack(UnitObject unitObject, PlayerProvider playerProvider, float attackRange = 5f) : base(unitObject)
 		{
+			this.playerProvider = playerProvider;
 			this.attackRange = attackRange;
 		}
 
@@ -39,13 +40,13 @@ namespace WitchMendokusai
 
 		private BTState SetDestinationPlayer()
 		{
-			moveDest = PlayerProvider.Instance.Current.transform.position;
+			moveDest = playerProvider.Current.transform.position;
 			return BTState.Success;
 		}
 
 		protected bool IsPlayerFar()
 		{
-			float distance = Vector3.Distance(PlayerProvider.Instance.Current.transform.position, unitObject.transform.position);
+			float distance = Vector3.Distance(playerProvider.Current.transform.position, unitObject.transform.position);
 			bool isPlayerFar = distance > attackRange;
 
 			return isPlayerFar;
