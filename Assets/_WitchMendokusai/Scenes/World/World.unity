@@ -641,7 +641,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3e0f18a2a51d08945a88a5a38eaf5630, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  dontDestroyOnLoad: 0
   <BaseCanvas>k__BackingField: {fileID: 4616275362954479964}
   dungeonPrefab: {fileID: 1861000773021523334, guid: dc7af30993950d947820761d51d18c0b, type: 3}
   adventurerGuildPrefab: {fileID: 6009601546454943654, guid: a1489780d9f78e245bb13104aa71a673, type: 3}
@@ -814,7 +813,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e633f59a3f6d50e4ba9c6cc1f59d2b05, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  dontDestroyOnLoad: 0
   cardManager: {fileID: 1099597015}
   monsterSpawner: {fileID: 1032405773}
   resourceNodeSpawner: {fileID: 1200864842}
@@ -1132,7 +1130,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 52e36a610f80ca0489fe9ce1503c5716, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  dontDestroyOnLoad: 0
   chatScripts: {fileID: 4900000, guid: f3abd13677b7eac4b86e87e1c01261e9, type: 3}
 --- !u!224 &1438871352 stripped
 RectTransform:
@@ -2307,6 +2304,54 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 3650879631936288370, guid: aaecc93bfc8007e46a0003f84fa5003c, type: 3}
   m_PrefabInstance: {fileID: 882756967368914496}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1973609352
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1973609354}
+  - component: {fileID: 1973609353}
+  m_Layer: 0
+  m_Name: SceneLifetimeScope
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1973609353
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1973609352}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 38632275a2409064d9a73fc8220d485d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: WM.Domain::WitchMendokusai.SceneLifetimeScope
+  parentReference:
+    TypeName: 
+  autoRun: 1
+  autoInjectGameObjects: []
+--- !u!4 &1973609354
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1973609352}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!224 &2003915130 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 6667166270119161753, guid: 04434c12420602b4aa92f5d667a10e66, type: 3}
@@ -8736,3 +8781,4 @@ SceneRoots:
   - {fileID: 801156660}
   - {fileID: 1802403936}
   - {fileID: 1633717828}
+  - {fileID: 1973609354}
