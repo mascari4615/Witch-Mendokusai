@@ -13,6 +13,11 @@ namespace WitchMendokusai
 				.DontDestroyOnLoad()
 				.AsImplementedInterfaces();
 
+			// SOManager — ScriptableObject = RegisterInstance pattern (cross-scene global, TASK-WM-078 γ P2-2, 2026-05-13).
+			// Resources.Load 의 lazy singleton ↔ VContainer RegisterInstance 가 같은 SO 가리킴 (caller transitional 0 변경).
+			SOManager soManager = Resources.Load<SOManager>(nameof(SOManager));
+			builder.RegisterInstance(soManager);
+
 			// γ leaf 매니저 13 등록 (TASK-WM-078 P1, 2026-05-11)
 			RegisterLeaf<AudioManager>(builder);
 			RegisterLeaf<ShaderPackManager>(builder);

@@ -20,7 +20,6 @@ namespace WitchMendokusai
 		public TransitionView Transition { get; private set; }
 		public UIChat Chat { get; private set; }
 		public SpeechBubbleView SpeechBubble { get; private set; }
-		public DialogueRunner DialogueRunner { get; private set; }
 		public CutSceneModule CutSceneModule { get; private set; }
 		[field: SerializeField] public Canvas BaseCanvas { get; private set; }
 	
@@ -78,7 +77,7 @@ namespace WitchMendokusai
 			stagePopupView = uiRootGameObject.AddComponent<StagePopupView>();
 			floatingText = uiRootGameObject.AddComponent<FloatingTextView>();
 			SpeechBubble = uiRootGameObject.AddComponent<SpeechBubbleView>();
-			DialogueRunner = uiRootGameObject.AddComponent<DialogueRunner>();
+			// DialogueRunner — TASK-WM-078 γ P2-2 (2026-05-13) 에서 SceneLifetimeScope.RegisterComponentOnNewGameObject 로 추출. 여기서 AddComponent X.
 			Transition = uiRootGameObject.AddComponent<TransitionView>();
 
 			EventBusBridge.Unsubscribe<QuestCompletedEvent>(OnQuestCompleted);
@@ -121,8 +120,6 @@ namespace WitchMendokusai
 				Destroy(floatingText);
 			if (SpeechBubble != null)
 				Destroy(SpeechBubble);
-			if (DialogueRunner != null)
-				Destroy(DialogueRunner);
 			if (Transition != null)
 				Destroy(Transition);
 
