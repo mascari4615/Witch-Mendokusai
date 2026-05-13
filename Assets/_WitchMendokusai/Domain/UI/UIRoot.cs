@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UIElements;
+using VContainer;
 
 namespace WitchMendokusai
 {
@@ -25,6 +26,16 @@ namespace WitchMendokusai
 		}
 
 		[SerializeField] private StyleSheet styleSheet;
+
+		private InputManager inputManager;
+		private HoldingManager holdingManager;
+
+		[Inject]
+		public void Construct(InputManager inputManager, HoldingManager holdingManager)
+		{
+			this.inputManager = inputManager;
+			this.holdingManager = holdingManager;
+		}
 
 		public UIDocument Document { get; private set; }
 		public VisualElement Root => Document.rootVisualElement;
@@ -85,12 +96,12 @@ namespace WitchMendokusai
 
 			HoldingOverlay = new HoldingOverlay();
 			OverlayLayer.Add(HoldingOverlay);
-			HoldingManager.Instance.RegisterOverlay(HoldingOverlay);
+			holdingManager.RegisterOverlay(HoldingOverlay);
 		}
 
 		private void OnDisable()
 		{
-			if (HoldingManager.TryGetExistingInstance(out HoldingManager holdingManager) && HoldingOverlay != null)
+			if (holdingManager != null && HoldingOverlay != null)
 				holdingManager.UnregisterOverlay(HoldingOverlay);
 		}
 
@@ -99,10 +110,10 @@ namespace WitchMendokusai
 			if (Mouse.current == null || HoldingOverlay == null || HoldingOverlay.panel == null)
 				return;
 
-			Vector2 screen = InputManager.Instance.MouseScreenPosition;
+			Vector2 screen = inputManager.MouseScreenPosition;
 			screen.y = Screen.height - screen.y;
 			Vector2 panelPosition = RuntimePanelUtils.ScreenToPanel(HoldingOverlay.panel, screen);
-			HoldingManager.Instance.OnPointerMove(panelPosition);
+			holdingManager.OnPointerMove(panelPosition);
 		}
 
 		private static VisualElement MakeLayer(string name, PickingMode pickingMode)

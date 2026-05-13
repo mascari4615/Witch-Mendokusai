@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UIElements;
+using VContainer;
 
 namespace WitchMendokusai
 {
@@ -25,6 +26,16 @@ namespace WitchMendokusai
 		private const float OFFSET_X = 16f;
 		private const float OFFSET_Y = 16f;
 		private const float EDGE_PADDING = 8f;
+
+		private InputManager inputManager;
+		private UIRoot uiRoot;
+
+		[Inject]
+		public void Construct(InputManager inputManager, UIRoot uiRoot)
+		{
+			this.inputManager = inputManager;
+			this.uiRoot = uiRoot;
+		}
 
 		private readonly Dictionary<Type, ITooltipBuilder> builders = new();
 
@@ -59,9 +70,7 @@ namespace WitchMendokusai
 		{
 			if (view != null)
 				return;
-			if (UIRoot.TryGetExistingInstance(out UIRoot uiRoot) == false)
-				return;
-			if (uiRoot.OverlayLayer == null)
+			if (uiRoot == null || uiRoot.OverlayLayer == null)
 				return;
 
 			view = new TooltipView();
@@ -123,7 +132,7 @@ namespace WitchMendokusai
 			if (Mouse.current == null)
 				return;
 
-			Vector2 screen = InputManager.Instance.MouseScreenPosition;
+			Vector2 screen = inputManager.MouseScreenPosition;
 			screen.y = Screen.height - screen.y;
 			Vector2 panelPosition = RuntimePanelUtils.ScreenToPanel(view.panel, screen);
 
