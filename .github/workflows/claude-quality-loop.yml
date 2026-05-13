@@ -1,5 +1,8 @@
 name: Claude Quality Loop (Scheduled)
 
+# 정본: memo/dotfiles/workflows/claude-quality-loop.yml (sync-workflows.ps1 로 배포).
+# 본 파일 직접 편집 X — 정본에서 편집 후 `powershell -File memo/dotfiles/sync-workflows.ps1 -Apply`.
+#
 # 정기 코드 품질 개선 루틴 — 사용자 컴퓨터 꺼져 있어도 GitHub Actions 서버에서 실행.
 #
 # 동작:
