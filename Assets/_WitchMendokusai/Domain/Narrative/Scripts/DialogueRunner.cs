@@ -1,12 +1,13 @@
 using System.Collections;
 using UnityEngine;
+using VContainer;
 
 namespace WitchMendokusai
 {
 	/// <summary>
 	/// DialogueLine 시퀀스 출력기. TASK-WM-013 prototype — SpeechBubble 위로 텍스트 출력 + Wait 대기 + Choices[0] 자동 다음 라인.
 	/// 정사 (TASK-WM-052 Phase 2 — 노드 그래프 통합) 에서 Choice 분기 / Branch / Wait 노드 등으로 확장 예정.
-	/// UIManager 가 Awake 시 AddComponent — UIRoot GameObject 에 attach.
+	/// TASK-WM-078 γ P2-2 (2026-05-13) 부터 SceneLifetimeScope.RegisterComponentOnNewGameObject 가 spawn (UIManager AddComponent 폐기).
 	/// </summary>
 	public class DialogueRunner : MonoBehaviour
 	{
@@ -21,6 +22,14 @@ namespace WitchMendokusai
 		private const float DEFAULT_LINE_DURATION = 3f;
 
 		private Coroutine activeCoroutine;
+
+		private UIManager uiManager;
+
+		[Inject]
+		public void Construct(UIManager uiManager)
+		{
+			this.uiManager = uiManager;
+		}
 
 		private void Awake()
 		{
@@ -69,7 +78,6 @@ namespace WitchMendokusai
 
 				float duration = current.Wait > 0f ? current.Wait : DEFAULT_LINE_DURATION;
 
-				UIManager uiManager = UIManager.Instance;
 				if (uiManager != null && uiManager.SpeechBubble != null && target != null)
 					uiManager.SpeechBubble.Show(target, current.Text, duration);
 

@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using VContainer;
 
 namespace WitchMendokusai
 {
@@ -24,6 +25,14 @@ namespace WitchMendokusai
 		private const float funcATime = 0.2f;
 		private float curFuncATime = 0;
 		public bool CanFuncA => curFuncATime >= 0;
+
+		private InputManager inputManager;
+
+		[Inject]
+		public void Construct(InputManager inputManager)
+		{
+			this.inputManager = inputManager;
+		}
 
 		private void Awake()
 		{
@@ -100,7 +109,7 @@ namespace WitchMendokusai
 
 			if (IsHolding)
 			{
-				transform.position = (Vector3)InputManager.Instance.MouseScreenPosition;
+				transform.position = (Vector3)inputManager.MouseScreenPosition;
 				slot.SetSlot((ItemData)holdingItem.Data, holdingItem.Amount);
 			}
 		}

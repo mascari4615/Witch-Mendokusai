@@ -9,6 +9,7 @@ using UnityEngine.SceneManagement;
 using System;
 using System.Reflection;
 using TMPro;
+using VContainer;
 
 namespace WitchMendokusai
 {
@@ -24,6 +25,14 @@ namespace WitchMendokusai
 
 		[SerializeField] private Image progressBar;
 		[SerializeField] private TextMeshProUGUI progressText;
+
+		private SOManager soManager;
+
+		[Inject]
+		public void Construct(SOManager soManager)
+		{
+			this.soManager = soManager;
+		}
 
 		private void Awake()
 		{
@@ -55,7 +64,7 @@ namespace WitchMendokusai
 			progressBar.fillAmount = 0f;
 
 			// 데이터 초기화
-			SOManager.Instance.DataSOs.Clear();
+			soManager.DataSOs.Clear();
 
 			List<AsyncOperationHandle> handles = new();
 			LoadAssetsAsync(handles);
@@ -105,13 +114,13 @@ namespace WitchMendokusai
 				List<T> assets = obj.Result.ToList();
 				Type type = typeof(T);
 
-				if (SOManager.Instance.DataSOs.ContainsKey(type) == false)
-					SOManager.Instance.DataSOs[type] = new();
+				if (soManager.DataSOs.ContainsKey(type) == false)
+					soManager.DataSOs[type] = new();
 
 				foreach (T asset in assets)
 				{
-					SOManager.Instance.DataSOs[type][asset.ID] = asset;
-					// Debug.Log($"Load {type.Name}: {asset.ID}, {SOManager.Instance.DataSOs[type][asset.ID].name}");
+					soManager.DataSOs[type][asset.ID] = asset;
+					// Debug.Log($"Load {type.Name}: {asset.ID}, {soManager.DataSOs[type][asset.ID].name}");
 				}
 
 				// Debug.Log($"{typeof(T).Name} 로드 완료, {assets.Count}개");

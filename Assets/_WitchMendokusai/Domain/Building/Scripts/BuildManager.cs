@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using VContainer;
 
 namespace WitchMendokusai
 {
@@ -19,7 +20,19 @@ namespace WitchMendokusai
 		private const string MarkerEnabled = "ENABLED";
 		private const string MarkerResetTrigger = "RESET";
 
-		private InputManager InputManager => InputManager.Instance;
+		private InputManager inputManager;
+		private GameModeManager gameModeManager;
+		private CameraManager cameraManager;
+		private StageManager stageManager;
+
+		[Inject]
+		public void Construct(InputManager inputManager, GameModeManager gameModeManager, CameraManager cameraManager, StageManager stageManager)
+		{
+			this.inputManager = inputManager;
+			this.gameModeManager = gameModeManager;
+			this.cameraManager = cameraManager;
+			this.stageManager = stageManager;
+		}
 
 		[SerializeField] private Grid grid;
 		[SerializeField] private Transform gridParent;
@@ -49,14 +62,14 @@ namespace WitchMendokusai
 
 		private void Start()
 		{
-			GameModeManager.Instance.OnModeChanged += OnGameModeChanged;
-			ApplyMode(GameModeManager.Instance.CurrentMode);
+			gameModeManager.OnModeChanged += OnGameModeChanged;
+			ApplyMode(gameModeManager.CurrentMode);
 		}
 
 		private void OnDestroy()
 		{
 			StageManager.OnStageChanged -= OnStageChanged;
-			if (GameModeManager.TryGetExistingInstance(out GameModeManager gameModeManager))
+			if (gameModeManager != null)
 				gameModeManager.OnModeChanged -= OnGameModeChanged;
 			if (Instance == this)
 				Instance = null;
@@ -70,14 +83,14 @@ namespace WitchMendokusai
 
 			if (isBuildMode)
 			{
-				InputManager.RegisterInputEvent(InputEventType.Click0, InputEventResponseType.Get, ClickCell);
-				InputManager.RegisterInputEvent(InputEventType.Click1, InputEventResponseType.Get, TryRemoveCell);
+				inputManager.RegisterInputEvent(InputEventType.Click0, InputEventResponseType.Get, ClickCell);
+				inputManager.RegisterInputEvent(InputEventType.Click1, InputEventResponseType.Get, TryRemoveCell);
 			}
 			else
 			{
-				InputManager.UnregisterInputEvent(InputEventType.Click0, InputEventResponseType.Get, ClickCell);
-				InputManager.UnregisterInputEvent(InputEventType.Click1, InputEventResponseType.Get, TryRemoveCell);
-				CameraManager.Instance.SetContentCameraMode(ContentCameraMode.Normal);
+				inputManager.UnregisterInputEvent(InputEventType.Click0, InputEventResponseType.Get, ClickCell);
+				inputManager.UnregisterInputEvent(InputEventType.Click1, InputEventResponseType.Get, TryRemoveCell);
+				cameraManager.SetContentCameraMode(ContentCameraMode.Normal);
 			}
 
 			gridVisualization.SetActive(isBuildMode);
@@ -86,7 +99,7 @@ namespace WitchMendokusai
 
 		private void Update()
 		{
-			if (GameModeManager.Instance.IsBuildMode == false)
+			if (gameModeManager.IsBuildMode == false)
 				return;
 
 			UpdateCellPos();
@@ -120,16 +133,16 @@ namespace WitchMendokusai
 
 		private void UpdateCellPos()
 		{
-			Vector3 mousePosition = InputManager.MouseWorldPosition;
+			Vector3 mousePosition = inputManager.MouseWorldPosition;
 			gridPosition = grid.WorldToCell(mousePosition);
 		}
 
 		private void ClickCell()
 		{
-			if (InputManager.IsPointerOverUI())
+			if (inputManager.IsPointerOverUI())
 				return;
 
-			if (StageManager.Instance.CurStage is WorldStage worldStage == false)
+			if (stageManager.CurStage is WorldStage worldStage == false)
 				return;
 
 			List<Vector3Int> coords = GetBuildingCoords(gridPosition, selectedBuilding.Size);
@@ -157,10 +170,10 @@ namespace WitchMendokusai
 
 		private void TryRemoveCell()
 		{
-			if (InputManager.IsPointerOverUI())
+			if (inputManager.IsPointerOverUI())
 				return;
 
-			if (StageManager.Instance.CurStage is WorldStage worldStage == false)
+			if (stageManager.CurStage is WorldStage worldStage == false)
 				return;
 
 			if (BuildingObjectsByPos.TryGetValue(gridPosition, out BuildingObject buildingObject) == false)

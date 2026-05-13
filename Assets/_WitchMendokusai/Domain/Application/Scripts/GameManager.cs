@@ -23,15 +23,17 @@ namespace WitchMendokusai
 		private DataManager dataManager;
 		private ObjectPoolManager objectPoolManager;
 		private TimeManager timeManager;
+		private SOManager soManager;
 		private UnitObject playerObject;
 
 		[Inject]
-		public void Construct(InputManager inputManager, DataManager dataManager, ObjectPoolManager objectPoolManager, TimeManager timeManager)
+		public void Construct(InputManager inputManager, DataManager dataManager, ObjectPoolManager objectPoolManager, TimeManager timeManager, SOManager soManager)
 		{
 			this.inputManager = inputManager;
 			this.dataManager = dataManager;
 			this.objectPoolManager = objectPoolManager;
 			this.timeManager = timeManager;
+			this.soManager = soManager;
 		}
 
 		private void Awake()
@@ -46,7 +48,6 @@ namespace WitchMendokusai
 			Conditions = new GameCondition(() => playerObject, inputManager, timeManager);
 			GameConditionBridge.Register(Conditions);
 
-			SOManager soManager = SOManager.Instance;
 			FloatVariable joystickX = soManager.JoystickX;
 			FloatVariable joystickY = soManager.JoystickY;
 			JoystickBridge.GetX = () => joystickX.RuntimeValue;
@@ -84,7 +85,7 @@ namespace WitchMendokusai
 
 			playerObject.Init(GetDoll(dataManager.CurDollID));
 
-			QuestManager.Instance.RemoveQuests(QuestType.Dungeon);
+			dataManager.QuestManager.RemoveQuests(QuestType.Dungeon);
 			dataManager.GameStat.UpdateData();
 		}
 
@@ -112,7 +113,7 @@ namespace WitchMendokusai
 
 		public void ApplyUpgradeEffects()
 		{
-			List<UpgradeData> upgrades = SOManager.Instance.DataSOs[typeof(UpgradeData)].Values.Cast<UpgradeData>().ToList();
+			List<UpgradeData> upgrades = soManager.DataSOs[typeof(UpgradeData)].Values.Cast<UpgradeData>().ToList();
 			foreach (UpgradeData upgrade in upgrades)
 			{
 				if (upgrade.CurLevel <= 0)

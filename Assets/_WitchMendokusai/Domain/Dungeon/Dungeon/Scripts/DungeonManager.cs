@@ -2,6 +2,7 @@ using System;
 using Cysharp.Threading.Tasks;
 using UniRx;
 using UnityEngine;
+using VContainer;
 
 namespace WitchMendokusai
 {
@@ -32,6 +33,28 @@ namespace WitchMendokusai
 		private DungeonObjectiveStrategy dungeonStrategy = null;
 		private IDisposable dungeonLoopSubscription;
 
+		private SOManager soManager;
+		private UIManager uiManager;
+		private CameraManager cameraManager;
+		private StageManager stageManager;
+		private GameEventManager gameEventManager;
+		private PlayerProvider playerProvider;
+		private DataManager dataManager;
+		private GameManager gameManager;
+
+		[Inject]
+		public void Construct(SOManager soManager, UIManager uiManager, CameraManager cameraManager, StageManager stageManager, GameEventManager gameEventManager, PlayerProvider playerProvider, DataManager dataManager, GameManager gameManager)
+		{
+			this.soManager = soManager;
+			this.uiManager = uiManager;
+			this.cameraManager = cameraManager;
+			this.stageManager = stageManager;
+			this.gameEventManager = gameEventManager;
+			this.playerProvider = playerProvider;
+			this.dataManager = dataManager;
+			this.gameManager = gameManager;
+		}
+
 		private void Awake()
 		{
 			if (Instance != null && Instance != this)
@@ -53,7 +76,7 @@ namespace WitchMendokusai
 		private void Start()
 		{
 			// 당장 게임 이벤트 변화가 많아서, 인스펙터에서 GameEventListener 넣는 것보다, 이렇게 하드 코딩하는게 나은 듯
-			GameEventManager.Instance.RegisterCallback(GameEventType.OnPlayerDied, EndDungeon);
+			gameEventManager.RegisterCallback(GameEventType.OnPlayerDied, EndDungeon);
 		}
 
 		public void StartDungeon(Dungeon dungeon)
@@ -66,27 +89,27 @@ namespace WitchMendokusai
 			Stage stage = dungeon.Stages[0];
 
 			// TODO: 던전 Transition
-			UIManager.Instance.Transition.Transition(
+			uiManager.Transition.Transition(
 				aDuringTransition: () =>
 				{
-					StageManager.Instance.LoadStage(stage);
+					stageManager.LoadStage(stage);
 					InitDungeonAndPlayer();
 				},
 				aWhenEnd: () =>
 				{
-					UIManager.Instance.StagePopup(stage);
+					uiManager.StagePopup(stage);
 					// TODO: 던전 Intro?
 				}).Forget();
 
 			void InitDungeonAndPlayer()
 			{
-				GameManager.Instance.Init();
-				GameManager.Instance.InitEquipment();
-				GameManager.Instance.ApplyUpgradeEffects(); // [VamsurLike-Upgrade] - KarmoDDrine 2026-01-12
+				gameManager.Init();
+				gameManager.InitEquipment();
+				gameManager.ApplyUpgradeEffects(); // [VamsurLike-Upgrade] - KarmoDDrine 2026-01-12
 
 				expChecker.Init();
 				cardManager.Reset();
-				SOManager.Instance.DungeonItemBuffer.Clear();
+				soManager.DungeonItemBuffer.Clear();
 
 				Context = new DungeonContext
 				(
@@ -101,20 +124,20 @@ namespace WitchMendokusai
 				// Create Dungeon Quest
 				{
 					RuntimeQuest runtimeQuest = dungeonStrategy.CreateRuntimeQuest(dungeon);
-					QuestManager.Instance.AddQuest(runtimeQuest);
+					dataManager.QuestManager.AddQuest(runtimeQuest);
 				}
 
-				monsterSpawner.transform.position = PlayerProvider.Instance.Current.transform.position;
+				monsterSpawner.transform.position = playerProvider.Current.transform.position;
 				monsterSpawner.InitWaves(dungeon);
 				resourceNodeSpawner.InitWaves(dungeon);
 
 				// StartDungeonLoop();
 				{
 					// RuntimeQuest를 통해 DungeonClear 수치가 1 오르면 던전 종료
-					int targetClearCount = DataManager.Instance.DungeonStat[DungeonStatType.DUNGEON_CLEAR] + 1;
+					int targetClearCount = dataManager.DungeonStat[DungeonStatType.DUNGEON_CLEAR] + 1;
 					bool IsClear()
 					{
-						int curClearCount = DataManager.Instance.DungeonStat[DungeonStatType.DUNGEON_CLEAR];
+						int curClearCount = dataManager.DungeonStat[DungeonStatType.DUNGEON_CLEAR];
 						if (curClearCount > targetClearCount)
 						{
 							Debug.LogWarning($"Dungeon Clear Count is over target: {curClearCount} > {targetClearCount}");
@@ -136,9 +159,9 @@ namespace WitchMendokusai
 				// Context 생성 이후 UI 설정
 				// UIDungeonRuntime.UpdateUI(); 에서 Context를 사용합니다.
 				dungeonUI.SetPanel(DungeonPanelType.DungeonRuntime);
-				CameraManager.Instance.SetContentCameraMode(ContentCameraMode.Dungeon);
+				cameraManager.SetContentCameraMode(ContentCameraMode.Dungeon);
 
-				GameEventManager.Instance.Raise(GameEventType.OnDungeonStart);
+				gameEventManager.Raise(GameEventType.OnDungeonStart);
 			}
 		}
 
@@ -162,23 +185,23 @@ namespace WitchMendokusai
 		public void Continue()
 		{
 			// 집으로 돌아가기
-			UIManager.Instance.Transition.Transition(
+			uiManager.Transition.Transition(
 				aDuringTransition: () =>
 				{
-					StageManager.Instance.LoadStage(StageManager.Instance.LastStage, isBackToLastStage: true);
+					stageManager.LoadStage(stageManager.LastStage, isBackToLastStage: true);
 					ResetDungeonAndPlayer();
 				},
 				aWhenEnd: () =>
 				{
-					GameEventManager.Instance.Raise(GameEventType.OnDungeonReturn);
+					gameEventManager.Raise(GameEventType.OnDungeonReturn);
 				}).Forget();
 
 			void ResetDungeonAndPlayer()
 			{
 				dungeonUI.ClosePanel();
-				CameraManager.Instance.SetContentCameraMode(ContentCameraMode.Normal);
+				cameraManager.SetContentCameraMode(ContentCameraMode.Normal);
 
-				GameManager.Instance.Init();
+				gameManager.Init();
 				expChecker.Init();
 				cardManager.Reset();
 			}

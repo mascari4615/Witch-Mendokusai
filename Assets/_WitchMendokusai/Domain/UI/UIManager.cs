@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using VContainer;
 
 namespace WitchMendokusai
 {
@@ -22,6 +23,16 @@ namespace WitchMendokusai
 		public SpeechBubbleView SpeechBubble { get; private set; }
 		public CutSceneModule CutSceneModule { get; private set; }
 		[field: SerializeField] public Canvas BaseCanvas { get; private set; }
+
+		private UIRoot uiRoot;
+		private WindowManager windowManager;
+
+		[Inject]
+		public void Construct(UIRoot uiRoot, WindowManager windowManager)
+		{
+			this.uiRoot = uiRoot;
+			this.windowManager = windowManager;
+		}
 	
 		[SerializeField] private UIDungeon dungeonPrefab = null;
 		[SerializeField] private UIAdventurerGuild adventurerGuildPrefab = null;
@@ -163,7 +174,7 @@ namespace WitchMendokusai
 
 		public void OnCancelInput()
 		{
-			SettingView settingView = UIRoot.Instance.SettingView;
+			SettingView settingView = uiRoot.SettingView;
 
 			// SettingView가 열려있으면 먼저 닫음
 			if (settingView.IsOpen)
@@ -173,7 +184,7 @@ namespace WitchMendokusai
 			}
 
 			// UI Toolkit WindowManager가 관리하는 윈도우가 열려있으면 그 쪽이 닫음 (중복 처리 방지)
-			if (WindowManager.TryGetExistingInstance(out WindowManager windowManager) && windowManager.GetTopmostOpen() != null)
+			if (windowManager != null && windowManager.GetTopmostOpen() != null)
 				return;
 
 			PanelGroups.RemoveAll(ui => ui == null || ui.Equals(null));
