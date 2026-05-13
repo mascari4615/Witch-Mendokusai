@@ -45,7 +45,7 @@ namespace WitchMendokusai
 		private Building selectedBuilding = null;
 		private Vector3Int gridPosition = Vector3Int.zero;
 		private float lastClickTime = 0f;
-		private const float clickCooldown = 0.1f; // 클릭 간 최소 시간 간격 (초)
+		private const float CLICK_COOLDOWN = 0.1f; // 클릭 간 최소 시간 간격 (초)
 
 		private void Awake()
 		{
@@ -155,7 +155,7 @@ namespace WitchMendokusai
 				}
 			}
 
-			if (Time.time - lastClickTime < clickCooldown)
+			if (Time.time - lastClickTime < CLICK_COOLDOWN)
 			{
 				// Debug.LogWarning("Clicking too fast!");
 				return;
@@ -179,7 +179,7 @@ namespace WitchMendokusai
 			if (BuildingObjectsByPos.TryGetValue(gridPosition, out BuildingObject buildingObject) == false)
 				return;
 
-			if (Time.time - lastClickTime < clickCooldown)
+			if (Time.time - lastClickTime < CLICK_COOLDOWN)
 			{
 				// Debug.LogWarning("Clicking too fast!");
 				return;

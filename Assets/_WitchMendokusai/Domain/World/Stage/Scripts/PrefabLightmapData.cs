@@ -137,7 +137,7 @@ public class PrefabLightmapData : MonoBehaviour
 
 	private LightmapData[] BuildLightmapDataArrayForPrefab(List<Texture2D> savedLightmaps, bool useCombinedDirectional)
 	{
-		var arr = new LightmapData[savedLightmaps.Count];
+		LightmapData[] arr = new LightmapData[savedLightmaps.Count];
 		for (int i = 0; i < savedLightmaps.Count; i++)
 		{
 			Texture2D dirTex = null;
@@ -187,7 +187,7 @@ public class PrefabLightmapData : MonoBehaviour
 
 		foreach (LightInfo lightInfo in lightsInfo)
 		{
-			if (!lightInfo.light)
+			if (lightInfo.light == false)
 				continue;
 
 			LightBakingOutput bakingOutput = new()
