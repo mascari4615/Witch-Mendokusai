@@ -45,6 +45,7 @@ namespace WitchMendokusai
 			builder.Register<QuestManager>(Lifetime.Singleton);
 			builder.Register<WorkManager>(Lifetime.Singleton);
 			builder.Register<SaveManager>(Lifetime.Singleton);
+			builder.Register<WorldClockViewModel>(Lifetime.Singleton);
 
 			// θ-5a InputStrategySelector — 새 GameObject + AddComponent (코드 spawn 의 VContainer 표준 흡수, TASK-WM-078 θ-5a, 2026-05-11).
 			// Bootstrap.OnBooting 의 직접 GameObject 생성 폐기.

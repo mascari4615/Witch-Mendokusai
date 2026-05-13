@@ -39,6 +39,7 @@ namespace WitchMendokusai
 			this.container = container;
 			container.Inject(SettingView);
 			container.Inject(KeybindHelpView);
+			container.Inject(WorldClockView);
 		}
 
 		public UIDocument Document { get; private set; }
@@ -51,6 +52,7 @@ namespace WitchMendokusai
 		public SettingView SettingView { get; private set; }
 		public KeybindHelpView KeybindHelpView { get; private set; }
 		public MagicBookView MagicBookView { get; private set; }
+		public WorldClockView WorldClockView { get; private set; }
 
 		private void Awake()
 		{
@@ -79,6 +81,7 @@ namespace WitchMendokusai
 			SettingView = gameObject.AddComponent<SettingView>();
 			KeybindHelpView = gameObject.AddComponent<KeybindHelpView>();
 			MagicBookView = gameObject.AddComponent<MagicBookView>();
+			WorldClockView = gameObject.AddComponent<WorldClockView>();
 		}
 
 		private void OnEnable()

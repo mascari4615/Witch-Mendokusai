@@ -19,7 +19,9 @@
         "WitchMendokusai.DomainSDK",
         "VContainer",
         "MessagePipe",
-        "MessagePipe.VContainer"
+        "MessagePipe.VContainer",
+        "R3.Unity",
+        "WM.ViewModel"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

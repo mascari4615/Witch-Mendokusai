@@ -36,6 +36,7 @@ namespace WitchMendokusai
 		public int Minute { get; private set; }
 
 		// payload 채널 — 변경된 새 값 직접 전달
+		public event Action<int> OnMinuteChanged = delegate { };
 		public event Action<int> OnHourChanged = delegate { };
 		public event Action<int> OnDayChanged = delegate { };
 		public event Action<int> OnSeasonChanged = delegate { };
@@ -97,6 +98,8 @@ namespace WitchMendokusai
 
 			minuteAccumulator -= wholeMinutes;
 			ApplyMinutes(wholeMinutes);
+			// Hour/Day/Season 포함 모든 상태 갱신 후 발화 — ViewModel이 풀 상태 읽기 가능
+			OnMinuteChanged.Invoke(Minute);
 		}
 
 		private void ApplyMinutes(int minutesToAdd)
