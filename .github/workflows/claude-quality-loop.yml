@@ -7,30 +7,27 @@ name: Claude Quality Loop (Scheduled)
 #
 # 동작:
 #   1. 매시 정각 (UTC) 실행 — push 없어도 프로액티브 스캔
-#   2. Claude CLI 가 .cs 코드베이스 직접 스캔 (Grep/Read 도구) + 위반 발견 즉시 Edit 으로 수정
-#   3. 변경 있으면 commit (chore(quality-loop):) + push to main
-#   4. yawnbot Discord 알림 (변경 있는 경우만)
-#
-# 통합 설계 (이전 bash grep + Claude fix 2단계 → Claude 단일 단계):
-#   - 룰 추가 시 본 워크플로우 수정 X — WitchMendokusai/CLAUDE.md / memo/rules/code-style.md 갱신만으로 반영
-#   - Claude 컨텍스트 이해로 grep 으로 못 잡는 semantic 위반 (Allman / 델리게이트 초기화 / 안티패턴) 검출
+#   2. Claude 가 .cs 코드베이스 3가지 작업 수행:
+#      (A) 자동 fix 가능 위반 → Edit 즉시 수정 → WM commit
+#      (B) 자동 fix 불가 위반 → _memo/wm/tasks/ 에 TASK 시드 생성 → memo commit
+#      (C) STALE TASK status 감지 (WM git log 기반) → memo TASK frontmatter 갱신 → memo commit
 #
 # 무한 루프 가드:
-#   - chore(quality-loop): commit 은 loop guard 로 skip
-#   - 변경 없으면 조용히 종료 (알림 X)
+#   - 마지막 WM commit 이 quality-loop bot → 전체 skip (변경 없으면 조용히 종료)
 #
 # push 시 실행되는 claude-audit.yml 과 역할 분리:
 #   - claude-audit.yml: 새 commit 의 변경분만 (reactive)
 #   - 본 워크플로우: 전체 코드베이스 proactive 스캔 (역사적 위반 포함)
+#
+# 필요 secrets:
+#   - CLAUDE_CODE_OAUTH_TOKEN: Claude API 인증
+#   - MEMO_GITHUB_PAT: memo 레포 write 권한 PAT
+#     → GitHub: WM repo Settings → Secrets → Actions → MEMO_GITHUB_PAT
+#     → PAT 권한: Contents (read+write) for Mascari4615/memo
 
 on:
   schedule:
-    # cron 문법: 분 시 일 월 요일 (UTC 기준)
-    #   '0 * * * *'    = 매시 정각 (1시간마다)
-    #   '0 */2 * * *'  = 짝수 시각마다 (2시간마다)
-    #   '*/30 * * * *' = 30분마다
-    #   '0 18 * * *'   = 매일 UTC 18:00 (KST 03:00)
-    - cron: '0 * * * *'  # 매시 정각
+    - cron: '0 * * * *'  # 매시 정각 (UTC)
   workflow_dispatch:
 
 permissions:
@@ -45,11 +42,19 @@ jobs:
   quality-sweep:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
+      - name: Checkout WitchMendokusai
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Checkout memo
+        uses: actions/checkout@v4
+        with:
+          repository: Mascari4615/memo
+          path: _memo
+          token: ${{ secrets.MEMO_GITHUB_PAT }}
+          fetch-depth: 0
 
       - name: Loop guard — quality-loop commit 자기 재실행 방지
         id: guard
@@ -101,122 +106,174 @@ jobs:
             exit 1
           }
 
-      - name: Claude scan + auto-fix (통합)
+      - name: Claude scan + fix + seed + stale-sync
         if: steps.guard.outputs.skip != 'yes'
-        id: fix
+        id: claude
         env:
           CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
         run: |
-          PROMPT='# 임무: WitchMendokusai 정기 quality-loop — 스캔 + 자동 수정 통합
+          PROMPT=$(cat <<'PROMPT_EOF'
+# 임무: WitchMendokusai quality-loop — 스캔 + fix + TASK 시드 + STALE sync
 
-          매시간 실행되는 자동 품질 루프. .cs 코드베이스를 Grep/Read 도구로 직접 스캔해서 룰 위반 찾고 Edit 도구로 즉시 수정.
+## 환경
 
-          ## 스캔 범위
+- WM 레포 루트: 현재 작업 디렉토리 (Assets/_WitchMendokusai/ 포함)
+- memo 레포: _memo/ 서브디렉토리 (TASK 파일 위치: _memo/wm/tasks/)
 
-          - 디렉토리: `Assets/_WitchMendokusai/`
-          - 우선순위: 최근 30일 수정된 .cs (`git log --since="30 days ago" --name-only -- "Assets/_WitchMendokusai/**/*.cs" | sort -u` 활용)
-          - 본 실행 안 최대 10 파일까지만 fix — 더 큰 변경은 다음 hourly 루프에 위임
+## 작업 A — .cs 자동 fix
 
-          ## 룰 출처
+스캔 범위:
+- 디렉토리: Assets/_WitchMendokusai/
+- 우선순위: 최근 30일 수정 .cs (`git log --since="30 days ago" --name-only -- "Assets/_WitchMendokusai/**/*.cs" | sort -u`)
+- 본 실행당 최대 10 파일 fix
 
-          정본: `WitchMendokusai/CLAUDE.md` (§ 코딩 스타일 / § 입력 처리 / § Editor 메뉴 / § 수치 노출 / § 에러 처리 FastFail).
-          본 프롬프트는 *룰 요약* — 정본 룰이 우선. 룰 추가/변경되면 본 프롬프트 수정 없이 CLAUDE.md 만 갱신.
+룰 정본: WitchMendokusai/CLAUDE.md (§ 코딩 스타일 / § 입력 처리 / § Editor 메뉴 / § 수치 노출 / § 에러 처리 FastFail)
+본 프롬프트는 요약 — 정본 룰 우선. 룰 추가/변경 시 CLAUDE.md 만 갱신.
 
-          ## 자동 fix 대상 (mechanical + 안전한 semantic)
+자동 fix 대상 (mechanical + 안전한 semantic):
+1. `var x = ...` → 명시 타입 (우변/사용처로 정확한 타입 추론)
+2. `if (!x)` / `while (!x)` → `if (x == false)` / `while (x == false)`
+3. `MenuItem("WitchMendokusai/...")` → `MenuItem("WM/...")`
+4. 한 글자 변수명 (i, j 제외) → 의미 있는 풀네임
+5. `const Type lowercaseName` → `const Type UPPER_SNAKE_CASE` (호출처 모두 갱신)
+6. Allman 중괄호 위반 (중괄호 같은 줄) → 새 줄로 분리
+7. 이벤트/델리게이트 null 초기화 누락 → `= delegate { }` 추가
 
-          1. `var x = ...` → 명시 타입 `Type x = ...` (우변/사용처로 정확한 타입 추론)
-          2. `if (!x)` / `while (!x)` → `if (x == false)` / `while (x == false)`
-          3. `MenuItem("WitchMendokusai/...")` → `MenuItem("WM/...")`
-          4. 한 글자 변수명 (i, j 외) → 의미 있는 풀네임
-          5. `const Type lowercaseName` → `const Type UPPER_SNAKE_CASE` (호출처 모두 갱신)
-          6. Allman 중괄호 위반 (중괄호 같은 줄) → 새 줄로 분리
-          7. 이벤트/델리게이트 `null` 초기화 누락 → `= delegate { }` 추가
+원칙: 위반 외 코드 건드리지 마라 / 주석 추가 X / 위반 한 줄에 fix 한 줄 / 면적 최소화
 
-          ## SKIP 대상 (human 결정 필요 — 본 루프 fix X)
+SKIP 대상 (human 결정 필요 — fix X, 작업 B 에서 시드화):
+- Keyboard.current / Mouse.current 직접 접근 (InputManager 외)
+- 수치 하드코딩 (SO/SerializeField 도입 필요)
+- FastFail 위반 (TryGet/null 체크로 증상 덮기)
 
-          - `Keyboard.current` / `Mouse.current` 직접 접근 (InputManager 외) → InputManager.RegisterInputEvent 패턴 변환은 큰 변경
-          - 수치 하드코딩 → SO/SerializeField 도입은 큰 변경
-          - FastFail 위반 (TryGet/null 체크로 증상 덮기) → 등록 누락 추적 필요
+## 작업 B — SKIP 위반 → TASK 시드화
 
-          ## 원칙
+작업 A 스캔 중 SKIP 대상 위반 발견 시 _memo/wm/tasks/ 에 TASK 시드 작성.
 
-          - 위반 *외* 코드 건드리지 마라 (무관 리팩터 X)
-          - 주석 추가 X (`// audit-fix` 같은 메타 X)
-          - 위반 한 줄에 fix 한 줄 — 면적 최소화
-          - 변경 .cs.meta 같이 staging 안 함 — 워크플로우의 git add 가 처리
+중복 방지:
+- _memo/wm/tasks/TASK-WM-*.md 를 Grep 해서 같은 위반 패턴 + status=seed/ready 인 기존 TASK 있으면 → 해당 파일 하단 `## 추가 위반 (quality-loop)` 섹션에 append (중복 시드 X)
+- 없으면 신규 파일 생성
 
-          ## 출력 형식 (마지막 줄 절대 룰)
+신규 TASK ID 결정:
+- `ls _memo/wm/tasks/TASK-WM-*.md` 로 현재 최고 번호 확인 후 +1
 
-          - 한 건이라도 fix 했으면 마지막 줄: `QUALITY_FIX_RESULT: APPLIED`
-          - 스캔 결과 위반 0 (또는 모두 SKIP 영역) 이면 마지막 줄: `QUALITY_FIX_RESULT: CLEAN`
-          - 마커 외 다른 형식 / 메타 / 부연설명 금지
+신규 파일 형식 (_memo/wm/tasks/TASK-WM-NNN-<kebab-slug>.md):
+```
+---
+id: TASK-WM-NNN
+status: seed
+priority: low
+machine: local
+path: [wm, quality]
+tags: [quality-loop, <위반종류>]
+---
 
-          시작.'
+## 목표
+
+> quality-loop 자동 감지: <위반 패턴 요약 1줄>
+
+## 위반 목록
+
+| 파일 | 라인 | 위반 내용 |
+|------|------|-----------|
+| path/to/File.cs | 42 | Keyboard.current 직접 접근 |
+```
+
+## 작업 C — STALE TASK status 감지 + 갱신
+
+WM git log 에서 TASK ID 추출:
+`git log --oneline -50 | grep -oE "TASK-WM-[0-9]+" | sort -u`
+
+각 TASK-WM-NNN 에 대해:
+1. _memo/wm/tasks/TASK-WM-NNN-*.md 찾기 (glob)
+2. frontmatter status 확인
+3. status=seed 또는 status=ready 이고, WM 커밋 메시지에 feat:/fix:/chore(di): 등 실질 구현 커밋이 있으면 → frontmatter `status: done` 으로 갱신
+4. 불확실하면 skip (잘못된 갱신 > 누락)
+
+## 출력 마커 (응답 마지막 3줄 — 반드시 이 형식, 다른 텍스트 X)
+
+CS_FIX_RESULT: APPLIED|CLEAN
+TASK_SEED_RESULT: SEEDED:<N>|NONE
+STALE_SYNC_RESULT: SYNCED:<N>|NONE
+
+시작.
+PROMPT_EOF
+)
 
           set +e
-          FIX_OUTPUT=$(claude --print --permission-mode bypassPermissions "$PROMPT" 2>&1)
+          OUTPUT=$(claude --print --permission-mode bypassPermissions "$PROMPT" 2>&1)
           CLAUDE_EXIT=$?
           set -e
 
+          echo "=== Claude output ==="
+          echo "$OUTPUT"
+          echo "=== /output ==="
+
           if [ "$CLAUDE_EXIT" -ne 0 ]; then
             echo "::warning::Claude CLI 호출 실패 (exit=$CLAUDE_EXIT) — 다음 루프 재시도"
-            echo "applied=no" >> "$GITHUB_OUTPUT"
+            echo "cs_applied=no" >> "$GITHUB_OUTPUT"
+            echo "memo_changed=no" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
-          echo "=== Claude scan+fix output ==="
-          echo "$FIX_OUTPUT"
-          echo "=== /output ==="
-
-          if echo "$FIX_OUTPUT" | tail -10 | grep -q "QUALITY_FIX_RESULT: APPLIED"; then
-            if git diff --quiet; then
-              echo "::warning::APPLIED 응답이지만 실제 변경 0 — 비정합"
-              echo "applied=no" >> "$GITHUB_OUTPUT"
+          # CS fix 결과 파싱
+          if echo "$OUTPUT" | tail -5 | grep -q "CS_FIX_RESULT: APPLIED"; then
+            if ! git diff --quiet; then
+              git diff --stat > /tmp/wm_diff_stat.txt
+              CS_COUNT=$(git diff --name-only | grep -c '\.cs$' || echo 0)
+              echo "cs_applied=yes" >> "$GITHUB_OUTPUT"
+              echo "cs_fixed=${CS_COUNT}" >> "$GITHUB_OUTPUT"
             else
-              echo "applied=yes" >> "$GITHUB_OUTPUT"
-              # diff stat 캡처
-              git diff --stat > /tmp/diff_stat.txt
-              FIXED_COUNT=$(git diff --name-only | grep -c '\.cs$' || echo 0)
-              echo "fixed_files=$FIXED_COUNT" >> "$GITHUB_OUTPUT"
+              echo "::warning::CS_FIX_RESULT: APPLIED 이지만 실제 변경 없음 — 비정합"
+              echo "cs_applied=no" >> "$GITHUB_OUTPUT"
             fi
-          elif echo "$FIX_OUTPUT" | tail -10 | grep -q "QUALITY_FIX_RESULT: CLEAN"; then
-            echo "applied=no" >> "$GITHUB_OUTPUT"
-            echo "::notice::CLEAN — 위반 없음 또는 모두 SKIP 영역"
           else
-            echo "applied=no" >> "$GITHUB_OUTPUT"
-            echo "::warning::Claude 응답에 마커 없음 — 다음 루프 재시도"
+            echo "cs_applied=no" >> "$GITHUB_OUTPUT"
+            echo "::notice::CLEAN — CS 위반 없음 또는 모두 SKIP 영역"
           fi
 
-      - name: Commit + push
-        if: steps.guard.outputs.skip != 'yes' && steps.fix.outputs.applied == 'yes'
-        id: commit
+          # memo 변경 감지 (신규 TASK 시드 or STALE 갱신)
+          MEMO_DIRTY=$(git -C _memo status --porcelain 2>/dev/null | grep 'wm/tasks/TASK-WM-' || true)
+          if [ -n "$MEMO_DIRTY" ]; then
+            echo "memo_changed=yes" >> "$GITHUB_OUTPUT"
+            SEED_N=$(echo "$OUTPUT" | grep -oE 'SEEDED:[0-9]+' | grep -oE '[0-9]+' | head -1 || echo 0)
+            SYNC_N=$(echo "$OUTPUT" | grep -oE 'SYNCED:[0-9]+' | grep -oE '[0-9]+' | head -1 || echo 0)
+            echo "seed_count=${SEED_N}" >> "$GITHUB_OUTPUT"
+            echo "sync_count=${SYNC_N}" >> "$GITHUB_OUTPUT"
+          else
+            echo "memo_changed=no" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Commit + push WM (.cs fix)
+        if: steps.guard.outputs.skip != 'yes' && steps.claude.outputs.cs_applied == 'yes'
+        id: wm_commit
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          # .cs / .cs.meta 만 staging (audit 영역)
+          # .cs / .cs.meta 만 staging
           git add -A -- '*.cs' '*.cs.meta'
 
-          # 비정합: Claude 가 audit 무관 파일 만짐 → 거부
-          UNTRACKED=$(git status --porcelain | grep -vE '^[AM]  .*\.(cs|cs\.meta)$' || true)
-          if [ -n "$UNTRACKED" ]; then
+          # 비정합: Claude 가 .cs/.cs.meta 외 파일 만짐 → 거부
+          EXTRA=$(git status --porcelain | grep -vE '^[AM]  .*\.(cs|cs\.meta)$' || true)
+          if [ -n "$EXTRA" ]; then
             echo "::warning::Claude 가 .cs/.cs.meta 외 파일 변경 시도:"
-            echo "$UNTRACKED"
+            echo "$EXTRA"
             git reset --hard HEAD
-            echo "pushed=no" >> "$GITHUB_OUTPUT"
+            echo "wm_pushed=no" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
-          FIXED_FILES="${{ steps.fix.outputs.fixed_files }}"
-          DIFF_STAT=$(cat /tmp/diff_stat.txt 2>/dev/null || echo "(diff stat 없음)")
+          CS_COUNT="${{ steps.claude.outputs.cs_fixed }}"
+          DIFF_STAT=$(cat /tmp/wm_diff_stat.txt 2>/dev/null || echo "(없음)")
 
-          git commit -m "chore(quality-loop): Claude scan+fix ${FIXED_FILES} .cs
+          git commit -m "chore(quality-loop): Claude scan+fix ${CS_COUNT} .cs
 
           Auto-fix by Claude scheduled quality-loop (proactive scan).
           룰 정본: WitchMendokusai/CLAUDE.md (스캔+수정 통합).
 
           diff stat:
-          $DIFF_STAT
+          ${DIFF_STAT}
 
           Workflow: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
 
@@ -226,30 +283,80 @@ jobs:
             if git rebase origin/main; then
               if git push origin main; then
                 PUSH_OK=yes
-                echo "pushed=yes" >> "$GITHUB_OUTPUT"
-                echo "fixed_files=$FIXED_FILES" >> "$GITHUB_OUTPUT"
+                echo "wm_pushed=yes" >> "$GITHUB_OUTPUT"
                 break
               fi
             else
               git rebase --abort
             fi
-            echo "::warning::push attempt $attempt 실패 — retry"
+            echo "::warning::WM push attempt ${attempt} 실패 — retry"
             sleep 3
           done
 
           if [ "$PUSH_OK" = "no" ]; then
-            echo "pushed=no" >> "$GITHUB_OUTPUT"
-            echo "::error::push 3회 실패"
+            echo "wm_pushed=no" >> "$GITHUB_OUTPUT"
+            echo "::error::WM push 3회 실패"
           fi
 
-      - name: yawnbot Discord 알림
-        if: steps.guard.outputs.skip != 'yes' && steps.commit.outputs.pushed == 'yes'
+      - name: Commit + push memo (TASK 시드 / STALE sync)
+        if: steps.guard.outputs.skip != 'yes' && steps.claude.outputs.memo_changed == 'yes'
+        id: memo_commit
+        env:
+          MEMO_GITHUB_PAT: ${{ secrets.MEMO_GITHUB_PAT }}
         run: |
-          FIXED="${{ steps.commit.outputs.fixed_files }}"
+          git -C _memo config user.name "github-actions[bot]"
+          git -C _memo config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          # TASK-WM-*.md 만 staging
+          git -C _memo add -- 'wm/tasks/TASK-WM-*.md'
+
+          STAGED=$(git -C _memo status --porcelain | grep -E '^[AM]' || true)
+          if [ -z "$STAGED" ]; then
+            echo "::notice::memo: staging 후 변경 없음"
+            echo "memo_pushed=no" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          SEED="${{ steps.claude.outputs.seed_count }}"
+          SYNC="${{ steps.claude.outputs.sync_count }}"
+
+          git -C _memo commit -m "chore(quality-loop): WM TASK 시드 ${SEED}개 + stale sync ${SYNC}개
+
+          WitchMendokusai quality-loop 자동 생성/갱신.
+          Workflow: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+
+          PUSH_OK=no
+          for attempt in 1 2 3; do
+            git -C _memo fetch origin main
+            if git -C _memo rebase origin/main; then
+              if git -C _memo push "https://x-access-token:${MEMO_GITHUB_PAT}@github.com/Mascari4615/memo.git" main; then
+                PUSH_OK=yes
+                echo "memo_pushed=yes" >> "$GITHUB_OUTPUT"
+                break
+              fi
+            else
+              git -C _memo rebase --abort
+            fi
+            echo "::warning::memo push attempt ${attempt} 실패 — retry"
+            sleep 3
+          done
+
+          if [ "$PUSH_OK" = "no" ]; then
+            echo "memo_pushed=no" >> "$GITHUB_OUTPUT"
+            echo "::error::memo push 3회 실패"
+          fi
+
+      - name: Discord 알림
+        if: >
+          steps.guard.outputs.skip != 'yes' &&
+          (steps.wm_commit.outputs.wm_pushed == 'yes' ||
+           steps.memo_commit.outputs.memo_pushed == 'yes')
+        run: |
+          WM_PUSHED="${{ steps.wm_commit.outputs.wm_pushed }}"
+          MEMO_PUSHED="${{ steps.memo_commit.outputs.memo_pushed }}"
           RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           HEAD_SHA=$(git rev-parse --short HEAD)
 
-          # yawnbot webhook (github.io submodule 또는 별도 secret 미정 — 현재 skip)
-          # 후속: WM repo secret 으로 YAWNBOT_WEBHOOK_URL 박으면 직접 호출.
-          # 현재는 main push event 자체가 yawnbot 알림 자동 (TASK-WM-093 Phase F 정합).
-          echo "::notice::push 완료 — yawnbot 알림은 main push event 가 자동 전달 ($HEAD_SHA)"
+          # yawnbot webhook (WM repo secret YAWNBOT_WEBHOOK_URL 박히면 직접 호출)
+          # 현재는 main push event 자체가 yawnbot 알림 자동 (TASK-WM-093 정합).
+          echo "::notice::quality-loop 완료 — WM=${WM_PUSHED}, memo=${MEMO_PUSHED}, sha=${HEAD_SHA}"
