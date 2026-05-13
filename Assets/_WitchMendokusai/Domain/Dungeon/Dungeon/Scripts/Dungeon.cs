@@ -60,7 +60,7 @@ namespace WitchMendokusai
 
 			if (saveData.ConstraintSelected != null)
 			{
-				foreach (var kvp in saveData.ConstraintSelected)
+				foreach (KeyValuePair<int, bool> kvp in saveData.ConstraintSelected)
 				{
 					if (ConstraintSelected.ContainsKey(kvp.Key))
 						ConstraintSelected[kvp.Key] = kvp.Value;

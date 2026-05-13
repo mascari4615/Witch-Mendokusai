@@ -39,7 +39,7 @@ namespace WitchMendokusai
 			if (IsPlaying == false)
 				return;
 
-			if (Callback.TryGetValue(gameEventType, out var action))
+			if (Callback.TryGetValue(gameEventType, out Action action))
 			{
 				action?.Invoke();
 			}
