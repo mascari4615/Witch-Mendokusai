@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using VContainer;
 
 namespace WitchMendokusai
 {
@@ -17,10 +18,18 @@ namespace WitchMendokusai
 		private PopupCard card;
 		private bool playing;
 
+		private UIRoot uiRoot;
+
+		[Inject]
+		public void Construct(UIRoot uiRoot)
+		{
+			this.uiRoot = uiRoot;
+		}
+
 		private void Start()
 		{
 			card = new PopupCard();
-			UIRoot.Instance.OverlayLayer.Add(card);
+			uiRoot.OverlayLayer.Add(card);
 		}
 
 		private void OnDestroy()

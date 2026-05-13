@@ -29,12 +29,16 @@ namespace WitchMendokusai
 
 		private InputManager inputManager;
 		private HoldingManager holdingManager;
+		private IObjectResolver container;
 
 		[Inject]
-		public void Construct(InputManager inputManager, HoldingManager holdingManager)
+		public void Construct(InputManager inputManager, HoldingManager holdingManager, IObjectResolver container)
 		{
 			this.inputManager = inputManager;
 			this.holdingManager = holdingManager;
+			this.container = container;
+			container.Inject(SettingView);
+			container.Inject(KeybindHelpView);
 		}
 
 		public UIDocument Document { get; private set; }

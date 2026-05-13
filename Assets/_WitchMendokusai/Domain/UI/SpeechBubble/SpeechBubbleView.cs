@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using VContainer;
 
 namespace WitchMendokusai
 {
@@ -16,6 +17,14 @@ namespace WitchMendokusai
 
 		private readonly Stack<SpeechBubbleItem> pool = new();
 
+		private UIRoot uiRoot;
+
+		[Inject]
+		public void Construct(UIRoot uiRoot)
+		{
+			this.uiRoot = uiRoot;
+		}
+
 		private void Start()
 		{
 			for (int i = 0; i < INITIAL_POOL_SIZE; i++)
@@ -26,7 +35,7 @@ namespace WitchMendokusai
 		{
 			SpeechBubbleItem item = new();
 			item.style.display = UnityEngine.UIElements.DisplayStyle.None;
-			UIRoot.Instance.OverlayLayer.Add(item);
+			uiRoot.OverlayLayer.Add(item);
 			return item;
 		}
 

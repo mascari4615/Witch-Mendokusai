@@ -33,6 +33,12 @@ namespace WitchMendokusai
 			// γ P3-K CardManager — dungeon scene hierarchy 에 배치된 컴포넌트 (TASK-WM-078, 2026-05-13).
 			builder.RegisterComponentInHierarchy<CardManager>();
 
+			// η A그룹 — [Inject] 마이그된 씬 배치 UI 컴포넌트 (TASK-WM-102, 2026-05-14).
+			builder.RegisterComponentInHierarchy<UIBarGameStat>();
+			builder.RegisterComponentInHierarchy<UINyang>();
+			builder.RegisterComponentInHierarchy<UIWorkableDollCount>();
+			builder.RegisterComponentInHierarchy<UIInteractPopup>();
+
 			// Lifetime.Scoped 의 RegisterComponentInNewPrefab / RegisterComponentOnNewGameObject 는 default lazy — 명시 Resolve 가 없으면 prefab Instantiate 가 일어나지 X.
 			// RootLifetimeScope 의 eager Resolve 패턴 따라 build 시점 강제 instantiate.
 			// Hierarchy 등록도 raw Instance accessor 셋 트리거 위해 Resolve 호출 (caller transitional 보존).
@@ -51,6 +57,10 @@ namespace WitchMendokusai
 				container.Resolve<GameModeManager>();
 				container.Resolve<DialogueRunner>();
 				container.Resolve<CardManager>();
+				container.Resolve<UIBarGameStat>();
+				container.Resolve<UINyang>();
+				container.Resolve<UIWorkableDollCount>();
+				container.Resolve<UIInteractPopup>();
 
 				// θ — Scene→Root 역방향 .Instance 제거: child scope 가 parent GameManager 에 씬 의존 조건 바인딩.
 				// VContainer child scope 는 parent scope 싱글턴 리졸브 가능 (TASK-WM-078, 2026-05-13).

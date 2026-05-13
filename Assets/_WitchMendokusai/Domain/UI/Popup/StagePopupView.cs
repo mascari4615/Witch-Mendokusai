@@ -1,5 +1,6 @@
 using System.Collections;
 using UnityEngine;
+using VContainer;
 
 namespace WitchMendokusai
 {
@@ -15,11 +16,19 @@ namespace WitchMendokusai
 		private PopupCard card;
 		private Coroutine current;
 
+		private UIRoot uiRoot;
+
+		[Inject]
+		public void Construct(UIRoot uiRoot)
+		{
+			this.uiRoot = uiRoot;
+		}
+
 		private void Start()
 		{
 			card = new PopupCard();
 			card.AddToClassList(PopupCard.USS_VARIANT_STAGE);
-			UIRoot.Instance.OverlayLayer.Add(card);
+			uiRoot.OverlayLayer.Add(card);
 		}
 
 		private void OnDestroy()

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
+using VContainer;
 
 namespace WitchMendokusai
 {
@@ -44,18 +45,33 @@ namespace WitchMendokusai
 
 		private UnitObject playerObject;
 
+		private UIRoot uiRoot;
+		private AudioManager audioManager;
+		private ShaderPackManager shaderPackManager;
+		private DataManager dataManager;
+		private TimeManager timeManager;
+
+		[Inject]
+		public void Construct(AudioManager audioManager, ShaderPackManager shaderPackManager, DataManager dataManager, TimeManager timeManager)
+		{
+			this.audioManager = audioManager;
+			this.shaderPackManager = shaderPackManager;
+			this.dataManager = dataManager;
+			this.timeManager = timeManager;
+		}
+
 		private void Awake()
 		{
-			IEventBus eventBus = EventBusBridge.Instance;
-			eventBus.Subscribe<PlayerObjectBoundEvent>(OnPlayerObjectBound);
-			eventBus.Subscribe<PlayerDespawnedEvent>(OnPlayerDespawned);
+			uiRoot = GetComponent<UIRoot>();
+			EventBusBridge.Subscribe<PlayerObjectBoundEvent>(OnPlayerObjectBound);
+			EventBusBridge.Subscribe<PlayerDespawnedEvent>(OnPlayerDespawned);
 		}
 
 		private void Start()
 		{
 			container = new VisualElement();
 			container.AddToClassList(USS_CLASS);
-			UIRoot.Instance.ScreenLayer.Add(container);
+			uiRoot.ScreenLayer.Add(container);
 
 			// Frosted glass — RT 직접 reference (USS URL 의존 X). CustomBlurFeature 가 매 frame 그림 (Settings open 동안).
 			RenderTexture blurOutput = Resources.Load<RenderTexture>("Rendering/CustomBlurOutput");
@@ -72,11 +88,8 @@ namespace WitchMendokusai
 
 		private void OnDestroy()
 		{
-			if (EventBusBridge.TryGetInstance(out IEventBus eventBus))
-			{
-				eventBus.Unsubscribe<PlayerObjectBoundEvent>(OnPlayerObjectBound);
-				eventBus.Unsubscribe<PlayerDespawnedEvent>(OnPlayerDespawned);
-			}
+			EventBusBridge.Unsubscribe<PlayerObjectBoundEvent>(OnPlayerObjectBound);
+			EventBusBridge.Unsubscribe<PlayerDespawnedEvent>(OnPlayerDespawned);
 
 			container?.RemoveFromHierarchy();
 		}
@@ -144,16 +157,16 @@ namespace WitchMendokusai
 			audioHeader.AddToClassList("wm-setting-header");
 			content.Add(audioHeader);
 
-			masterVolume = CreateSlider("마스터 볼륨", 0f, 1f, AudioManager.Instance.GetVolume(AudioManager.BusType.Master));
-			masterVolume.RegisterValueChangedCallback(evt => AudioManager.Instance.SetVolume(AudioManager.BusType.Master, evt.newValue));
+			masterVolume = CreateSlider("마스터 볼륨", 0f, 1f, audioManager.GetVolume(AudioManager.BusType.Master));
+			masterVolume.RegisterValueChangedCallback(evt => audioManager.SetVolume(AudioManager.BusType.Master, evt.newValue));
 			content.Add(masterVolume);
 
-			bgmVolume = CreateSlider("배경음악 (BGM)", 0f, 1f, AudioManager.Instance.GetVolume(AudioManager.BusType.BGM));
-			bgmVolume.RegisterValueChangedCallback(evt => AudioManager.Instance.SetVolume(AudioManager.BusType.BGM, evt.newValue));
+			bgmVolume = CreateSlider("배경음악 (BGM)", 0f, 1f, audioManager.GetVolume(AudioManager.BusType.BGM));
+			bgmVolume.RegisterValueChangedCallback(evt => audioManager.SetVolume(AudioManager.BusType.BGM, evt.newValue));
 			content.Add(bgmVolume);
 
-			sfxVolume = CreateSlider("효과음 (SFX)", 0f, 1f, AudioManager.Instance.GetVolume(AudioManager.BusType.SFX));
-			sfxVolume.RegisterValueChangedCallback(evt => AudioManager.Instance.SetVolume(AudioManager.BusType.SFX, evt.newValue));
+			sfxVolume = CreateSlider("효과음 (SFX)", 0f, 1f, audioManager.GetVolume(AudioManager.BusType.SFX));
+			sfxVolume.RegisterValueChangedCallback(evt => audioManager.SetVolume(AudioManager.BusType.SFX, evt.newValue));
 			content.Add(sfxVolume);
 
 			// System
@@ -243,7 +256,7 @@ namespace WitchMendokusai
 
 			shaderPackListContainer.Clear();
 
-			IReadOnlyList<ShaderPackEntry> packs = ShaderPackManager.Instance.AvailablePacks;
+			IReadOnlyList<ShaderPackEntry> packs = shaderPackManager.AvailablePacks;
 
 			if (packs.Count == 0)
 			{
@@ -253,7 +266,7 @@ namespace WitchMendokusai
 				return;
 			}
 
-			ShaderPackEntry activePack = ShaderPackManager.Instance.ActivePack;
+			ShaderPackEntry activePack = shaderPackManager.ActivePack;
 
 			foreach (ShaderPackEntry pack in packs)
 			{
@@ -311,7 +324,7 @@ namespace WitchMendokusai
 				shaderPackDetailContainer.Add(descLabel);
 			}
 
-			bool isActive = ShaderPackManager.Instance.ActivePack == selectedShaderPack;
+			bool isActive = shaderPackManager.ActivePack == selectedShaderPack;
 
 			if (isActive)
 			{
@@ -329,7 +342,7 @@ namespace WitchMendokusai
 
 		private void OnOpenShaderPacksFolder()
 		{
-			string folder = ShaderPackManager.Instance.ShaderPacksDirectory;
+			string folder = shaderPackManager.ShaderPacksDirectory;
 			if (System.IO.Directory.Exists(folder) == false)
 				System.IO.Directory.CreateDirectory(folder);
 			Application.OpenURL("file://" + folder);
@@ -337,21 +350,21 @@ namespace WitchMendokusai
 
 		private void OnRescanShaderPacks()
 		{
-			ShaderPackManager.Instance.ScanShaderPacks();
+			shaderPackManager.ScanShaderPacks();
 			RebuildShaderPackList();
 			RebuildShaderPackDetail();
 		}
 
 		private void OnApplyShaderPack()
 		{
-			ShaderPackManager.Instance.Apply(selectedShaderPack.Id);
+			shaderPackManager.Apply(selectedShaderPack.Id);
 			RebuildShaderPackList();
 			RebuildShaderPackDetail();
 		}
 
 		private void OnRevertShaderPack()
 		{
-			ShaderPackManager.Instance.Revert();
+			shaderPackManager.Revert();
 			RebuildShaderPackList();
 			RebuildShaderPackDetail();
 		}
@@ -382,7 +395,7 @@ namespace WitchMendokusai
 			});
 		}
 
-		private void OnClearData() => DataManager.Instance.CreateNewGameData();
+		private void OnClearData() => dataManager.CreateNewGameData();
 
 		private void OnQuit() => Application.Quit();
 
@@ -411,7 +424,7 @@ namespace WitchMendokusai
 				repaintItem.Pause();
 			}).ExecuteLater(100);
 
-			TimeManager.Instance.Pause(gameObject);
+			timeManager.Pause(gameObject);
 		}
 
 		public void Close()
@@ -419,7 +432,7 @@ namespace WitchMendokusai
 			if (IsOpen == false) return;
 			IsOpen = false;
 			container.RemoveFromClassList(ACTIVE_CLASS);
-			TimeManager.Instance.Resume(gameObject);
+			timeManager.Resume(gameObject);
 		}
 
 		public void Toggle()

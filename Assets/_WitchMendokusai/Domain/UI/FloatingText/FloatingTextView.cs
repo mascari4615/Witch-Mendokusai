@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
+using VContainer;
 using Random = UnityEngine.Random;
 
 namespace WitchMendokusai
@@ -17,6 +18,16 @@ namespace WitchMendokusai
 
 		private readonly Stack<FloatingTextItem> pool = new();
 
+		private UIRoot uiRoot;
+		private InputManager inputManager;
+
+		[Inject]
+		public void Construct(UIRoot uiRoot, InputManager inputManager)
+		{
+			this.uiRoot = uiRoot;
+			this.inputManager = inputManager;
+		}
+
 		private void Start()
 		{
 			for (int i = 0; i < INITIAL_POOL_SIZE; i++)
@@ -27,7 +38,7 @@ namespace WitchMendokusai
 		{
 			FloatingTextItem item = new();
 			item.style.display = DisplayStyle.None;
-			UIRoot.Instance.OverlayLayer.Add(item);
+			uiRoot.OverlayLayer.Add(item);
 			return item;
 		}
 
@@ -51,7 +62,7 @@ namespace WitchMendokusai
 			Vector3 GetScreenPos()
 			{
 				if (worldPos == default)
-					return InputManager.Instance.MouseScreenPosition;
+					return inputManager.MouseScreenPosition;
 				if (Camera.main == null)
 					return Vector3.zero;
 				return Camera.main.WorldToScreenPoint(jitteredWorldPos);

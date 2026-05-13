@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UIElements;
+using VContainer;
 
 namespace WitchMendokusai
 {
@@ -22,6 +23,16 @@ namespace WitchMendokusai
 
 		private VisualElement overlay;
 
+		private UIRoot uiRoot;
+		private TimeManager timeManager;
+
+		[Inject]
+		public void Construct(UIRoot uiRoot, TimeManager timeManager)
+		{
+			this.uiRoot = uiRoot;
+			this.timeManager = timeManager;
+		}
+
 		public static bool IsInTransition { get; private set; } = false;
 
 		private void Start()
@@ -30,7 +41,7 @@ namespace WitchMendokusai
 			overlay.AddToClassList(USS_CLASS);
 			overlay.pickingMode = PickingMode.Position;
 			overlay.style.display = DisplayStyle.None;
-			UIRoot.Instance.OverlayLayer.Add(overlay);
+			uiRoot.OverlayLayer.Add(overlay);
 		}
 
 		private void OnDestroy()
@@ -58,7 +69,7 @@ namespace WitchMendokusai
 		{
 			IsInTransition = true;
 			aWhenStart?.Invoke();
-			TimeManager.Instance.Pause(gameObject);
+			timeManager.Pause(gameObject);
 			overlay.style.display = DisplayStyle.Flex;
 			overlay.pickingMode = PickingMode.Position;
 
@@ -77,7 +88,7 @@ namespace WitchMendokusai
 			// 시각 fade in 은 진행 중 — 입력은 미리 풀어줌 (체감 답답함 완화)
 			IsInTransition = false;
 			overlay.pickingMode = PickingMode.Ignore;
-			TimeManager.Instance.Resume(gameObject);
+			timeManager.Resume(gameObject);
 			aWhenEnd?.Invoke();
 
 			// 남은 fade in 시간 — 시각 완료까지 대기 후 element 숨김

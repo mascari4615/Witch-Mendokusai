@@ -1,6 +1,7 @@
 using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using VContainer;
 
 namespace WitchMendokusai
 {
@@ -16,6 +17,14 @@ namespace WitchMendokusai
 
 		[SerializeField] private ToolTip popupToolTip;
 		[SerializeField] private CanvasGroup canvasGroup;
+
+		private InputManager inputManager;
+
+		[Inject]
+		public void Construct(InputManager inputManager)
+		{
+			this.inputManager = inputManager;
+		}
 
 		private bool isShow;
 		private float disappearTimer;
@@ -69,7 +78,7 @@ namespace WitchMendokusai
 
 		private Vector3 GetVec()
 		{
-			Vector2 mousePos = InputManager.Instance.MouseScreenPosition;
+			Vector2 mousePos = inputManager.MouseScreenPosition;
 			return new Vector3(
 				Mathf.Clamp(mousePos.x, toolTipWidth / 2 + ToolTipPadding, Screen.width - toolTipWidth / 2 - ToolTipPadding),
 				Mathf.Clamp(mousePos.y + 40, ToolTipPadding, Screen.height - toolTipHeight - ToolTipPadding), 0);

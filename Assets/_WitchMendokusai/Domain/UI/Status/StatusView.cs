@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
+using VContainer;
 
 namespace WitchMendokusai
 {
@@ -32,6 +33,20 @@ namespace WitchMendokusai
 		private WMWindow window;
 		private readonly List<StatRow> rows = new();
 
+		private UIRoot uiRoot;
+		private InputManager inputManager;
+		private TimeManager timeManager;
+		private PlayerProvider playerProvider;
+
+		[Inject]
+		public void Construct(UIRoot uiRoot, InputManager inputManager, TimeManager timeManager, PlayerProvider playerProvider)
+		{
+			this.uiRoot = uiRoot;
+			this.inputManager = inputManager;
+			this.timeManager = timeManager;
+			this.playerProvider = playerProvider;
+		}
+
 		private void Start()
 		{
 			window = new WMWindow
@@ -43,7 +58,7 @@ namespace WitchMendokusai
 			window.style.top = 100;
 			window.style.width = 320;
 			window.style.height = 480;
-			UIRoot.Instance.WindowsLayer.Add(window);
+			uiRoot.WindowsLayer.Add(window);
 
 			ScrollView scrollView = new();
 			window.Content.Add(scrollView);
@@ -55,27 +70,25 @@ namespace WitchMendokusai
 				rows.Add(row);
 			}
 
-			InputManager.Instance.RegisterInputEvent(InputEventType.Status, InputEventResponseType.Performed, OnToggle);
-			TimeManager.Instance.RegisterCallback(Refresh);
+			inputManager.RegisterInputEvent(InputEventType.Status, InputEventResponseType.Performed, OnToggle);
+			timeManager.RegisterCallback(Refresh);
 		}
 
 		private void OnDestroy()
 		{
-			if (InputManager.TryGetExistingInstance(out InputManager inputManager))
-				inputManager.UnregisterInputEvent(InputEventType.Status, InputEventResponseType.Performed, OnToggle);
-			if (TimeManager.TryGetExistingInstance(out TimeManager timeManager))
-				timeManager.RemoveCallback(Refresh);
+			inputManager.UnregisterInputEvent(InputEventType.Status, InputEventResponseType.Performed, OnToggle);
+			timeManager.RemoveCallback(Refresh);
 		}
 
 		private void Refresh()
 		{
 			if (window == null || window.IsOpen == false)
 				return;
-			if (PlayerProvider.Instance.Current == null)
+			if (playerProvider.Current == null)
 				return;
 
 			foreach (StatRow row in rows)
-				row.Refresh(PlayerProvider.Instance.Current.UnitStat);
+				row.Refresh(playerProvider.Current.UnitStat);
 		}
 
 		private void OnToggle()

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Serialization;
+using VContainer;
 
 namespace WitchMendokusai
 {
@@ -13,10 +14,18 @@ namespace WitchMendokusai
 		private int curValue;
 		private Coroutine coroutine;
 
+		private DataManager dataManager;
+
+		[Inject]
+		public void Construct(DataManager dataManager)
+		{
+			this.dataManager = dataManager;
+		}
+
 		private void Start()
 		{
 			text.text = "0냥";
-			DataManager.Instance.GameStat.AddListener(GameStatType.NYANG, UpdateNyang);
+			dataManager.GameStat.AddListener(GameStatType.NYANG, UpdateNyang);
 			UpdateNyang();
 		}
 
@@ -29,7 +38,7 @@ namespace WitchMendokusai
 
 		private IEnumerator UpdateGoldCoroutine()
 		{
-			int targetValue = DataManager.Instance.GameStat[GameStatType.NYANG];
+			int targetValue = dataManager.GameStat[GameStatType.NYANG];
 			while (curValue != targetValue)
 			{
 				curValue = (int)Mathf.Ceil(Mathf.SmoothStep(curValue, targetValue, .5f));

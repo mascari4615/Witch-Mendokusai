@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using VContainer;
 
 namespace WitchMendokusai
 {
@@ -12,9 +13,19 @@ namespace WitchMendokusai
 		private Coroutine coroutine;
 		private WorkManager workManager;
 
+		private DataManager dataManager;
+		private SOManager soManager;
+
+		[Inject]
+		public void Construct(DataManager dataManager, SOManager soManager)
+		{
+			this.dataManager = dataManager;
+			this.soManager = soManager;
+			workManager = dataManager.WorkManager;
+		}
+
 		private void OnEnable()
 		{
-			workManager = DataManager.Instance.WorkManager;
 			coroutine = StartCoroutine(UpdateUI());
 		}
 
@@ -29,14 +40,14 @@ namespace WitchMendokusai
 			while (true)
 			{
 				yield return wait;
-				
-				if (DataManager.Instance.IsDataLoaded == false)
+
+				if (dataManager.IsDataLoaded == false)
 					continue;
 
-				int workableDollCount = SOManager.Instance.DollBuffer.Data.Count;
+				int workableDollCount = soManager.DollBuffer.Data.Count;
 				workableDollCount -= workManager.GetWorkCount(WorkListType.DollWork) + workManager.GetWorkCount(WorkListType.DummyWork);
-				// text.text = $"{workableDollCount}/{SOManager.Instance.DollBuffer.Data.Count} 인형";
-				text.text = $"{workableDollCount}/{SOManager.Instance.DollBuffer.Data.Count}";
+				// text.text = $"{workableDollCount}/{soManager.DollBuffer.Data.Count} 인형";
+				text.text = $"{workableDollCount}/{soManager.DollBuffer.Data.Count}";
 			}
 		}
 	}

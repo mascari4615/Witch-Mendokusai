@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.UIElements;
+using VContainer;
 
 namespace WitchMendokusai
 {
@@ -21,9 +22,18 @@ namespace WitchMendokusai
 		public const string USS_KEY = "wm-keybind-help__key";
 
 		private WMWindow window;
+		private UIRoot uiRoot;
+		private InputManager inputManager;
+
+		[Inject]
+		public void Construct(InputManager inputManager)
+		{
+			this.inputManager = inputManager;
+		}
 
 		private void Start()
 		{
+			uiRoot = GetComponent<UIRoot>();
 			window = new WMWindow
 			{
 				WindowId = WINDOW_ID,
@@ -33,17 +43,16 @@ namespace WitchMendokusai
 			window.style.top = 60;
 			window.style.width = 360;
 			window.style.height = 520;
-			UIRoot.Instance.WindowsLayer.Add(window);
+			uiRoot.WindowsLayer.Add(window);
 
 			BuildContent();
 
-			InputManager.Instance.RegisterInputEvent(InputEventType.KeybindHelpToggle, InputEventResponseType.Performed, OnToggle);
+			inputManager.RegisterInputEvent(InputEventType.KeybindHelpToggle, InputEventResponseType.Performed, OnToggle);
 		}
 
 		private void OnDestroy()
 		{
-			if (InputManager.TryGetExistingInstance(out InputManager inputManager))
-				inputManager.UnregisterInputEvent(InputEventType.KeybindHelpToggle, InputEventResponseType.Performed, OnToggle);
+			inputManager.UnregisterInputEvent(InputEventType.KeybindHelpToggle, InputEventResponseType.Performed, OnToggle);
 		}
 
 		private void BuildContent()

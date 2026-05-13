@@ -1,5 +1,6 @@
 using TMPro;
 using UnityEngine;
+using VContainer;
 
 namespace WitchMendokusai
 {
@@ -12,30 +13,34 @@ namespace WitchMendokusai
 		[SerializeField] private TextMeshProUGUI nameText;
 
 		private Transform playerTransform;
+		private TimeManager timeManager;
+
+		[Inject]
+		public void Construct(TimeManager timeManager)
+		{
+			this.timeManager = timeManager;
+		}
 
 		private void Awake()
 		{
 			canvasGroup = GetComponent<CanvasGroup>();
 			contentFitterRefresh = GetComponent<ContentFitterRefresh>();
 
-			IEventBus eventBus = EventBusBridge.Instance;
-			eventBus.Subscribe<PlayerSpawnedEvent>(OnPlayerSpawned);
-			eventBus.Subscribe<PlayerDespawnedEvent>(OnPlayerDespawned);
+			EventBusBridge.Subscribe<PlayerSpawnedEvent>(OnPlayerSpawned);
+			EventBusBridge.Subscribe<PlayerDespawnedEvent>(OnPlayerDespawned);
 		}
 
 		private void Start()
 		{
 			canvasGroup.SetVisible(false);
-			TimeManager.Instance.RegisterCallback(UpdatePopup);
+			timeManager.RegisterCallback(UpdatePopup);
 		}
 
 		private void OnDestroy()
 		{
-			if (EventBusBridge.TryGetInstance(out IEventBus eventBus))
-			{
-				eventBus.Unsubscribe<PlayerSpawnedEvent>(OnPlayerSpawned);
-				eventBus.Unsubscribe<PlayerDespawnedEvent>(OnPlayerDespawned);
-			}
+			EventBusBridge.Unsubscribe<PlayerSpawnedEvent>(OnPlayerSpawned);
+			EventBusBridge.Unsubscribe<PlayerDespawnedEvent>(OnPlayerDespawned);
+			timeManager.RemoveCallback(UpdatePopup);
 		}
 
 		private void OnPlayerSpawned(PlayerSpawnedEvent evt) => playerTransform = evt.Transform;
