@@ -36,8 +36,16 @@ namespace WitchMendokusai
 
 		public override void Init()
 		{
-			Panels[CardPanelType.SelectDeck] = FindAnyObjectByType<UISelectDeck>(FindObjectsInactive.Include);
-			Panels[CardPanelType.SelectCard] = FindAnyObjectByType<UISelectCard>(FindObjectsInactive.Include);
+			UISelectDeck selectDeckPanel = FindAnyObjectByType<UISelectDeck>(FindObjectsInactive.Include);
+			UISelectCard selectCardPanel = FindAnyObjectByType<UISelectCard>(FindObjectsInactive.Include);
+
+			if (selectDeckPanel == null)
+				Debug.LogError($"[{nameof(CardManager)}] {nameof(UISelectDeck)} 미발견 — 씬 hierarchy 에 UISelectDeck 컴포넌트 가진 GameObject 없음. SetPanel(SelectDeck) 시 NPE.");
+			if (selectCardPanel == null)
+				Debug.LogError($"[{nameof(CardManager)}] {nameof(UISelectCard)} 미발견 — 씬 hierarchy 에 UISelectCard 컴포넌트 가진 GameObject 없음. SetPanel(SelectCard) 시 NPE.");
+
+			Panels[CardPanelType.SelectDeck] = selectDeckPanel;
+			Panels[CardPanelType.SelectCard] = selectCardPanel;
 
 			UIDeck[] deckUIs = FindObjectsByType<UIDeck>(FindObjectsInactive.Include, FindObjectsSortMode.None);
 			foreach (UIDeck deckUI in deckUIs)
