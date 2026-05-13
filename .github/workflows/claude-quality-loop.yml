@@ -1,0 +1,319 @@
+name: Claude Quality Loop (Scheduled)
+
+# 정기 코드 품질 개선 루틴 — 사용자 컴퓨터 꺼져 있어도 GitHub Actions 서버에서 실행.
+#
+# 동작:
+#   1. 매일 KST 03:00 (UTC 18:00) 실행 — push 없어도 프로액티브 스캔
+#   2. Assets/ 전체 .cs 파일 Tier 1 mechanical grep
+#   3. 위반 발견 시 Claude CLI → auto-fix (Edit 도구)
+#   4. 변경 있으면 commit (chore(quality-loop):) + push
+#   5. yawnbot Discord 알림 (변경 있는 경우만)
+#
+# 무한 루프 가드:
+#   - chore(quality-loop): commit 은 loop guard 로 skip
+#   - 변경 없으면 조용히 종료 (알림 X)
+#
+# push 시 실행되는 claude-audit.yml 과 역할 분리:
+#   - claude-audit.yml: 새 commit 의 변경분만 (reactive)
+#   - 본 워크플로우: 전체 코드베이스 proactive 스캔 (역사적 위반 포함)
+
+on:
+  schedule:
+    - cron: '0 18 * * *'  # KST 03:00 (UTC 18:00)
+  workflow_dispatch:
+    inputs:
+      scan_scope:
+        description: 'all = 전체 .cs / recent = 최근 30일 수정 파일'
+        required: false
+        default: 'recent'
+
+permissions:
+  contents: write
+  issues: write
+
+concurrency:
+  group: claude-quality-loop
+  cancel-in-progress: true  # 이전 루프 실행 중이면 새 것 우선
+
+jobs:
+  quality-sweep:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Loop guard — quality-loop commit 자기 재실행 방지
+        id: guard
+        run: |
+          SUBJECT=$(git log -1 --format=%s)
+          AUTHOR=$(git log -1 --format=%an)
+          if [[ "$SUBJECT" == chore\(quality-loop\):* ]] && [ "$AUTHOR" = "github-actions[bot]" ]; then
+            echo "skip=yes" >> "$GITHUB_OUTPUT"
+            echo "::notice::quality-loop commit — loop guard skip"
+          else
+            echo "skip=no" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Collect .cs target files
+        if: steps.guard.outputs.skip != 'yes'
+        id: targets
+        run: |
+          CS_DIR="Assets/_WitchMendokusai"
+          SCOPE="${{ inputs.scan_scope }}"
+          SCOPE="${SCOPE:-recent}"  # schedule 트리거 시 default = recent
+
+          if [ "$SCOPE" = "all" ]; then
+            echo "스캔 모드: 전체 .cs"
+            find "$CS_DIR" -name "*.cs" > /tmp/cs_targets.txt
+          else
+            echo "스캔 모드: 최근 30일 수정 .cs"
+            # git log 기반 + find fallback (새 파일 포함)
+            git log --since="30 days ago" --name-only --format= -- "$CS_DIR/**/*.cs" \
+              | grep '\.cs$' | sort -u > /tmp/cs_targets_git.txt || true
+            find "$CS_DIR" -name "*.cs" -newer <(date -d "30 days ago" +%Y%m%d) \
+              >> /tmp/cs_targets_git.txt 2>/dev/null || true
+            sort -u /tmp/cs_targets_git.txt > /tmp/cs_targets.txt
+          fi
+
+          COUNT=$(wc -l < /tmp/cs_targets.txt | tr -d ' ')
+          echo "count=$COUNT" >> "$GITHUB_OUTPUT"
+          echo "대상 파일 수: $COUNT"
+
+          if [ "$COUNT" -eq 0 ]; then
+            echo "has_targets=no" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_targets=yes" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Tier 1 — Mechanical grep 전체 스캔
+        if: steps.guard.outputs.skip != 'yes' && steps.targets.outputs.has_targets == 'yes'
+        id: tier1
+        run: |
+          VIOLATIONS_FOUND=no
+          > /tmp/violations.txt
+
+          while IFS= read -r CS_FILE; do
+            [ -f "$CS_FILE" ] || continue
+
+            # var 금지
+            VAR_HITS=$(grep -nE '\bvar\s+\w+\s*=' "$CS_FILE" 2>/dev/null || true)
+            if [ -n "$VAR_HITS" ]; then
+              echo "### var 금지: $CS_FILE" >> /tmp/violations.txt
+              echo "$VAR_HITS" | head -5 | sed 's/^/  /' >> /tmp/violations.txt
+              echo "" >> /tmp/violations.txt
+              VIOLATIONS_FOUND=yes
+            fi
+
+            # ! 연산자 금지
+            NOT_HITS=$(grep -nE '(if|while)\s*\(\s*!' "$CS_FILE" 2>/dev/null || true)
+            if [ -n "$NOT_HITS" ]; then
+              echo "### ! 연산자 금지: $CS_FILE" >> /tmp/violations.txt
+              echo "$NOT_HITS" | head -5 | sed 's/^/  /' >> /tmp/violations.txt
+              echo "" >> /tmp/violations.txt
+              VIOLATIONS_FOUND=yes
+            fi
+
+            # MenuItem top-level 금지
+            MENUITEM_HITS=$(grep -nE 'MenuItem.*"WitchMendokusai/' "$CS_FILE" 2>/dev/null || true)
+            if [ -n "$MENUITEM_HITS" ]; then
+              echo "### MenuItem path 위반 (WM/ 사용해야): $CS_FILE" >> /tmp/violations.txt
+              echo "$MENUITEM_HITS" | head -5 | sed 's/^/  /' >> /tmp/violations.txt
+              echo "" >> /tmp/violations.txt
+              VIOLATIONS_FOUND=yes
+            fi
+
+            # Keyboard.current / Mouse.current (InputManager 외)
+            if [[ "$CS_FILE" != *"InputManager.cs" ]]; then
+              INPUT_HITS=$(grep -nE '(Keyboard|Mouse)\.current\b' "$CS_FILE" 2>/dev/null || true)
+              if [ -n "$INPUT_HITS" ]; then
+                echo "### Keyboard/Mouse.current 직접 접근 위반: $CS_FILE" >> /tmp/violations.txt
+                echo "$INPUT_HITS" | head -5 | sed 's/^/  /' >> /tmp/violations.txt
+                echo "" >> /tmp/violations.txt
+                VIOLATIONS_FOUND=yes
+              fi
+            fi
+
+            # 상수 UPPER_SNAKE_CASE
+            CONST_HITS=$(grep -nE 'const\s+\w+\s+[a-z][a-zA-Z0-9]*\s*=' "$CS_FILE" 2>/dev/null || true)
+            if [ -n "$CONST_HITS" ]; then
+              echo "### 상수 UPPER_SNAKE_CASE 위반: $CS_FILE" >> /tmp/violations.txt
+              echo "$CONST_HITS" | head -5 | sed 's/^/  /' >> /tmp/violations.txt
+              echo "" >> /tmp/violations.txt
+              VIOLATIONS_FOUND=yes
+            fi
+
+          done < /tmp/cs_targets.txt
+
+          if [ "$VIOLATIONS_FOUND" = "yes" ]; then
+            echo "has_violations=yes" >> "$GITHUB_OUTPUT"
+            VCOUNT=$(grep -c '^###' /tmp/violations.txt || echo 0)
+            echo "violation_count=$VCOUNT" >> "$GITHUB_OUTPUT"
+            echo "⚠ Tier 1 위반 $VCOUNT 건:"
+            cat /tmp/violations.txt
+          else
+            echo "has_violations=no" >> "$GITHUB_OUTPUT"
+            echo "violation_count=0" >> "$GITHUB_OUTPUT"
+            echo "✅ Tier 1: 위반 없음"
+          fi
+
+      - name: Setup Node.js
+        if: steps.guard.outputs.skip != 'yes' && steps.tier1.outputs.has_violations == 'yes'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Claude CLI
+        if: steps.guard.outputs.skip != 'yes' && steps.tier1.outputs.has_violations == 'yes'
+        run: npm install -g @anthropic-ai/claude-code
+
+      - name: Verify Claude auth
+        if: steps.guard.outputs.skip != 'yes' && steps.tier1.outputs.has_violations == 'yes'
+        env:
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+        run: |
+          claude --version
+          claude --print "Reply with just OK." || {
+            echo "❌ Claude auth 실패"
+            exit 1
+          }
+
+      - name: Claude auto-fix
+        if: steps.guard.outputs.skip != 'yes' && steps.tier1.outputs.has_violations == 'yes'
+        id: fix
+        env:
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+        run: |
+          VIOLATIONS=$(cat /tmp/violations.txt)
+
+          FIX_PROMPT="# 임무: WitchMendokusai 정기 quality-loop — mechanical 위반 fix
+
+          매일 실행되는 자동 품질 루프. 전체 .cs 스캔에서 발견된 mechanical 위반 목록 아래. 해당 파일들을 Edit 도구로 직접 수정.
+
+          ## 적용 룰 (결정적, 기계적)
+
+          1. \`var x = ...\` → 명시 타입 (\`Type x = ...\`). 우변으로 정확한 타입 추론.
+          2. \`if (!x)\` / \`while (!x)\` → \`if (x == false)\` / \`while (x == false)\`.
+          3. \`MenuItem(\"WitchMendokusai/...\"\` → \`MenuItem(\"WM/...\"\`.
+          4. \`Keyboard.current\` / \`Mouse.current\` — InputManager 패턴으로 변환 어려우면 SKIP 표시.
+          5. \`const Type lowercaseName\` → \`const Type UPPER_SNAKE_CASE\` (호출처도 모두 갱신).
+
+          ## 원칙
+
+          - 위반 외 코드 건드리지 마라 (무관 리팩터 X).
+          - 주석 추가 X, audit-fix 메타 X.
+          - 한 건이라도 fix 했으면 마지막 줄: \`QUALITY_FIX_RESULT: APPLIED\`
+          - 모두 SKIP 이면 마지막 줄: \`QUALITY_FIX_RESULT: SKIPPED\`
+
+          ## 위반 목록 (파일별)
+
+          $VIOLATIONS
+
+          위 파일들 fix 시작."
+
+          FIX_OUTPUT=$(claude --print --permission-mode bypassPermissions "$FIX_PROMPT" 2>&1) || {
+            echo "❌ Claude CLI 호출 실패 — 다음 루프에 재시도"
+            echo "applied=no" >> "$GITHUB_OUTPUT"
+            exit 0
+          }
+
+          echo "=== Fix output ==="
+          echo "$FIX_OUTPUT"
+
+          if echo "$FIX_OUTPUT" | tail -5 | grep -q "QUALITY_FIX_RESULT: APPLIED"; then
+            if git diff --quiet; then
+              echo "::warning::APPLIED 응답이지만 실제 변경 0"
+              echo "applied=no" >> "$GITHUB_OUTPUT"
+            else
+              echo "applied=yes" >> "$GITHUB_OUTPUT"
+            fi
+          else
+            echo "applied=no" >> "$GITHUB_OUTPUT"
+            echo "::notice::SKIPPED 또는 응답 미정합 — 다음 루프 재시도"
+          fi
+
+      - name: Commit + push
+        if: steps.guard.outputs.skip != 'yes' && steps.fix.outputs.applied == 'yes'
+        id: commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          # .cs / .cs.meta 만 staging (audit 영역)
+          git add -A -- '*.cs' '*.cs.meta'
+
+          FIXED_FILES=$(git diff --cached --name-only | grep '\.cs$' | wc -l | tr -d ' ')
+          VCOUNT="${{ steps.tier1.outputs.violation_count }}"
+
+          git commit -m "chore(quality-loop): fix $FIXED_FILES .cs (${VCOUNT} 위반 → mechanical fix)
+
+          Auto-fix by Claude daily quality-loop (proactive scan).
+          Tier 1: var→type / !→==false / MenuItem path / UPPER_SNAKE.
+          Workflow: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+
+          PUSH_OK=no
+          for attempt in 1 2 3; do
+            git fetch origin main
+            if git rebase origin/main; then
+              if git push origin main; then
+                PUSH_OK=yes
+                echo "pushed=yes" >> "$GITHUB_OUTPUT"
+                echo "fixed_files=$FIXED_FILES" >> "$GITHUB_OUTPUT"
+                break
+              fi
+            else
+              git rebase --abort
+            fi
+            echo "::warning::push attempt $attempt 실패 — retry"
+            sleep 3
+          done
+
+          if [ "$PUSH_OK" = "no" ]; then
+            echo "pushed=no" >> "$GITHUB_OUTPUT"
+            echo "::error::push 3회 실패"
+          fi
+
+      - name: yawnbot Discord 알림
+        if: steps.guard.outputs.skip != 'yes' && steps.commit.outputs.pushed == 'yes'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          FIXED="${{ steps.commit.outputs.fixed_files }}"
+          VCOUNT="${{ steps.tier1.outputs.violation_count }}"
+          RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          HEAD_SHA=$(git rev-parse --short HEAD)
+
+          # yawnbot webhook (discord embed)
+          WEBHOOK_URL=$(cat Mascari4615.github.io/apps/discord-bots/apps/yawnbot/data/webhook-routes.json \
+            2>/dev/null | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('wm-auto',''))" || echo "")
+
+          if [ -z "$WEBHOOK_URL" ]; then
+            echo "::notice::yawnbot webhook URL 없음 — 알림 스킵"
+            exit 0
+          fi
+
+          # github.io submodule 없는 경우 대비
+          if [[ "$WEBHOOK_URL" != http* ]]; then
+            echo "::notice::webhook URL 파싱 실패 — 알림 스킵"
+            exit 0
+          fi
+
+          PAYLOAD=$(cat <<EOF
+          {
+            "embeds": [{
+              "title": "🔁 Quality Loop — $FIXED 파일 자동 수정",
+              "description": "**위반 $VCOUNT 건** mechanical fix (var→type / !→==false / MenuItem / UPPER_SNAKE)\n\`$HEAD_SHA\` · [워크플로우]($RUN_URL)",
+              "color": 8421504,
+              "footer": { "text": "claude-quality-loop · WitchMendokusai" }
+            }]
+          }
+          EOF
+          )
+
+          curl -sf -X POST "$WEBHOOK_URL" \
+            -H "Content-Type: application/json" \
+            -d "$PAYLOAD" \
+            && echo "✅ yawnbot 알림 전송" \
+            || echo "::warning::yawnbot 알림 실패 (webhook 오류)"

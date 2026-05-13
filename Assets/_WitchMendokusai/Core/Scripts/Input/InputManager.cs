@@ -195,6 +195,7 @@ namespace WitchMendokusai
 
 			InitEventDictionaries();
 			BindEvents();
+
 			KeybindRegistry.ValidateAgainstAsset(inputActionAsset);
 			SetInputStrategy(new InputStrategyLoading());
 		}
@@ -229,6 +230,8 @@ namespace WitchMendokusai
 
 		public void SetInputStrategy(IInputStrategy inputStrategy)
 		{
+			inputActionAsset?.Enable();
+
 			CurrentInputStrategy = inputStrategy;
 
 			ClearStrategyEvents();
@@ -289,17 +292,6 @@ namespace WitchMendokusai
 
 		private void Dispatch(InputEventType inputEventType, InputEventResponseType responseType, InputAction.CallbackContext ctx)
 		{
-			// TASK-WM-078 진단 (2026-05-11) — 회귀 입력 안 됨 추적용. 검증 끝나면 폐기.
-			if (inputEventType == InputEventType.Inventory && responseType == InputEventResponseType.Performed)
-			{
-				bool typing = GameConditionBridge.Get(GameConditionType.IsTyping);
-				int compCtx = componentEventsWithContext[(inputEventType, responseType)]?.GetInvocationList()?.Length ?? 0;
-				int compAct = componentEvents[(inputEventType, responseType)]?.Count ?? 0;
-				int stratCtx = strategyEventsWithContext[(inputEventType, responseType)]?.GetInvocationList()?.Length ?? 0;
-				int stratAct = strategyEvents[(inputEventType, responseType)]?.Count ?? 0;
-				Debug.Log($"[DispatchDiag] Inv|Performed typing={typing} uit={UIToolkitFocus.IsAnyTextFieldFocused()} compCtx={compCtx} comp={compAct} stratCtx={stratCtx} strat={stratAct}");
-			}
-
 			if (GameConditionBridge.Get(GameConditionType.IsTyping)
 				&& ALWAYS_DISPATCH_WHILE_TYPING.Contains(inputEventType) == false)
 				return;

@@ -27,7 +27,6 @@ namespace WitchMendokusai
 
 		private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
 		{
-			Debug.Log($"[InputStrategySelector] Scene loaded: {scene.name}");
 			StartCoroutine(SetStrategyAfterStart(scene.name));
 		}
 
