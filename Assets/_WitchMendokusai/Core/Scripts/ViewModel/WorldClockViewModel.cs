@@ -21,6 +21,7 @@ namespace WitchMendokusai
             _dateText = new ReactiveProperty<string>(FormatDate(worldClock.Season, worldClock.Day));
 
             worldClock.OnMinuteChanged += OnMinuteChanged;
+            worldClock.OnHourChanged += OnHourChanged;
             worldClock.OnDayChanged += OnDayChanged;
             worldClock.OnSeasonChanged += OnSeasonChanged;
         }
@@ -28,6 +29,12 @@ namespace WitchMendokusai
         private void OnMinuteChanged(int minute)
         {
             _timeText.Value = FormatTime(_worldClock.Hour, minute);
+        }
+
+        // SkipTo 등 직접 hour 변경 시 (OnMinuteChanged 미발화) 표시 갱신
+        private void OnHourChanged(int hour)
+        {
+            _timeText.Value = FormatTime(hour, _worldClock.Minute);
         }
 
         private void OnDayChanged(int day)
@@ -46,6 +53,7 @@ namespace WitchMendokusai
         public void Dispose()
         {
             _worldClock.OnMinuteChanged -= OnMinuteChanged;
+            _worldClock.OnHourChanged -= OnHourChanged;
             _worldClock.OnDayChanged -= OnDayChanged;
             _worldClock.OnSeasonChanged -= OnSeasonChanged;
             _timeText.Dispose();
