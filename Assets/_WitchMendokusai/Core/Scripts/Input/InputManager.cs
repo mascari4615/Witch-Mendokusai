@@ -230,7 +230,7 @@ namespace WitchMendokusai
 
 		public void SetInputStrategy(IInputStrategy inputStrategy)
 		{
-			inputActionAsset?.Enable();
+			inputActionAsset.Enable();
 
 			CurrentInputStrategy = inputStrategy;
 
