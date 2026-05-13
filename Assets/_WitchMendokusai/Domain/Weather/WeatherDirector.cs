@@ -1,5 +1,6 @@
 using System.Collections;
 using UnityEngine;
+using VContainer;
 
 namespace WitchMendokusai
 {
@@ -22,6 +23,16 @@ namespace WitchMendokusai
 		}
 
 		private static readonly int WetnessId = Shader.PropertyToID("_Wetness");
+
+		private AudioManager audioManager;
+		private WeatherSystem weatherSystem;
+
+		[Inject]
+		public void Construct(AudioManager audioManager, WeatherSystem weatherSystem)
+		{
+			this.audioManager = audioManager;
+			this.weatherSystem = weatherSystem;
+		}
 
 		// 현재 적용된 WeatherSO — sub-E 후속이 읽음.
 		public WeatherSO CurrentWeatherSO { get; private set; }
@@ -52,27 +63,19 @@ namespace WitchMendokusai
 
 		private void Start()
 		{
-			if (WeatherSystem.TryGetExistingInstance(out WeatherSystem weatherSystem) == false)
-			{
-				Debug.LogWarning($"[{nameof(WeatherDirector)}] WeatherSystem 미발견 — OnWeatherChanged hook 미등록");
-				return;
-			}
-
 			weatherSystem.OnWeatherChanged += HandleWeatherChanged;
-
-			// 초기 sync — Start 가 WeatherSystem.Awake 보다 먼저 호출될 수도 있어 현재 weather 직접 적용.
 			HandleWeatherChanged(weatherSystem.Current);
 		}
 
 		private void OnDestroy()
 		{
-			if (WeatherSystem.TryGetExistingInstance(out WeatherSystem weatherSystem) == true)
+			if (weatherSystem != null)
 				weatherSystem.OnWeatherChanged -= HandleWeatherChanged;
 
 			StopStormLightning();
 			DestroyCurrentVisual();
 			Shader.SetGlobalFloat(WetnessId, 0f);
-			if (AudioManager.TryGetExistingInstance(out AudioManager audioManager))
+			if (audioManager != null)
 				audioManager.StopAmbient();
 
 			if (Instance == this)
@@ -99,7 +102,7 @@ namespace WitchMendokusai
 			SpawnCurrentVisual();
 
 			// E4: SFX ambient — SfxKey null/empty 면 PlayAmbient 가 stop 만 처리.
-			AudioManager.Instance.PlayAmbient(CurrentWeatherSO?.SfxKey);
+			audioManager.PlayAmbient(CurrentWeatherSO?.SfxKey);
 
 			// E5: Storm 번개 — Storm 이면 coroutine 시작, 아니면 중단.
 			StopStormLightning();
@@ -224,7 +227,7 @@ namespace WitchMendokusai
 				float thunderDelay = CurrentWeatherSO != null ? CurrentWeatherSO.LightningThunderDelay : 2f;
 				yield return new WaitForSeconds(thunderDelay);
 
-				AudioManager.Instance.PlaySfx(CurrentWeatherSO?.ThunderSfxKey);
+				audioManager.PlaySfx(CurrentWeatherSO?.ThunderSfxKey);
 			}
 		}
 
