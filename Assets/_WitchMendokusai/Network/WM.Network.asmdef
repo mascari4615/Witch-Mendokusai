@@ -1,0 +1,17 @@
+{
+    "name": "WM.Network",
+    "rootNamespace": "WitchMendokusai",
+    "references": [
+        "FishNet.Runtime",
+        "WM.Core"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
