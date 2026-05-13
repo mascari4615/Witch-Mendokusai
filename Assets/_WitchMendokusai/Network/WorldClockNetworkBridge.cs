@@ -3,9 +3,8 @@ using FishNet.Object.Synchronizing;
 
 namespace WitchMendokusai
 {
-    public class WorldClockNetworkBridge : WMNetworkBehaviour, IAuthorityAware
+    public class WorldClockNetworkBridge : WMNetworkBehaviour
     {
-        public Authority RequiredAuthority => Authority.Server;
 
         private readonly SyncVar<int> _syncYear = new SyncVar<int>();
         private readonly SyncVar<int> _syncSeason = new SyncVar<int>();

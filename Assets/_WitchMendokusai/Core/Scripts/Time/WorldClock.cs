@@ -7,7 +7,7 @@ namespace WitchMendokusai
 {
 	// 게임 내부 시각 (시·분·일·계절·년) 모델. TimeManager.OnTick 에 hook 해서 advance.
 	// SO 값 캐싱 X — 인스펙터 런타임 변경 즉시 반영. (TASK-WM-054-A)
-	public class WorldClock : MonoBehaviour
+	public class WorldClock : MonoBehaviour, IAuthorityAware
 	{
 		public static WorldClock Instance { get; private set; }
 
@@ -24,6 +24,8 @@ namespace WitchMendokusai
 		{
 			this.timeManager = timeManager;
 		}
+
+		public Authority RequiredAuthority => Authority.Server;
 
 		[field: SerializeField] public WorldClockSO Config { get; private set; }
 
