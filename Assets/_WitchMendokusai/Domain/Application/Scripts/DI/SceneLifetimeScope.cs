@@ -34,7 +34,7 @@ namespace WitchMendokusai
 			builder.RegisterComponentInHierarchy<CardManager>();
 
 			// η A그룹 — [Inject] 마이그된 씬 배치 UI 컴포넌트 (TASK-WM-102, 2026-05-14).
-			builder.RegisterComponentInHierarchy<UIBarGameStat>();
+			// UIBarGameStat 제외 — 어떤 씬에도 배치 안 됨 (배치 후 재추가 필요).
 			builder.RegisterComponentInHierarchy<UINyang>();
 			builder.RegisterComponentInHierarchy<UIWorkableDollCount>();
 			builder.RegisterComponentInHierarchy<UIInteractPopup>();
@@ -57,7 +57,6 @@ namespace WitchMendokusai
 				container.Resolve<GameModeManager>();
 				container.Resolve<DialogueRunner>();
 				container.Resolve<CardManager>();
-				container.Resolve<UIBarGameStat>();
 				container.Resolve<UINyang>();
 				container.Resolve<UIWorkableDollCount>();
 				container.Resolve<UIInteractPopup>();
