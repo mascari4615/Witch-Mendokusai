@@ -25,6 +25,15 @@ namespace WitchMendokusai
 			{ ObjectType.Skill, new List<GameObject>() },
 		};
 
+		// domain reload disabled 시 static bufferDic 이 이전 Play 세션의 파괴된 오브젝트 참조를 유지함 → NullRef.
+		// SubsystemRegistration = domain reload 유무와 무관하게 매 Play 시작 전 호출.
+		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+		private static void ResetStatics()
+		{
+			foreach (ObjectType type in Enum.GetValues(typeof(ObjectType)))
+				bufferDic[type].Clear();
+		}
+
 		public static void AddObject(ObjectType type, GameObject obj)
 		{
 			bufferDic[type].Add(obj);

@@ -53,6 +53,7 @@ namespace WitchMendokusai
 			this.playerProvider = playerProvider;
 			this.dataManager = dataManager;
 			this.gameManager = gameManager;
+			DungeonManagerBridge.Register(this);
 		}
 
 		private void Awake()
@@ -71,6 +72,7 @@ namespace WitchMendokusai
 		{
 			if (Instance == this)
 				Instance = null;
+			DungeonManagerBridge.Register(null);
 		}
 
 		private void Start()

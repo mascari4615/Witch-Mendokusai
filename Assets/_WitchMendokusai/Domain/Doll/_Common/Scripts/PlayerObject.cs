@@ -18,15 +18,13 @@ namespace WitchMendokusai
 		[SerializeField] private SpriteRenderer headRenderer;
 		[SerializeField] private SpriteRenderer bodyRenderer;
 
-		private DungeonManager dungeonManager;
 		private GameEventManager gameEventManager;
 		private TimeManager timeManager;
 		private SOManager soManager;
 
 		[Inject]
-		public void Construct(DungeonManager dungeonManager, GameEventManager gameEventManager, TimeManager timeManager, SOManager soManager)
+		public void Construct(GameEventManager gameEventManager, TimeManager timeManager, SOManager soManager)
 		{
-			this.dungeonManager = dungeonManager;
 			this.gameEventManager = gameEventManager;
 			this.timeManager = timeManager;
 			this.soManager = soManager;
@@ -69,7 +67,7 @@ namespace WitchMendokusai
 
 		private void HandleDamageEffects(DamageInfo damageInfo)
 		{
-			if (dungeonManager.IsDungeon == false)
+			if (DungeonManagerBridge.IsDungeon == false)
 				return;
 
 			if (invincibleRoutine != null)
