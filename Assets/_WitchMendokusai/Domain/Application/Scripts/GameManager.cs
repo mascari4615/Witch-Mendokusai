@@ -20,12 +20,18 @@ namespace WitchMendokusai
 		public GameCondition Conditions { get; private set; }
 
 		private InputManager inputManager;
+		private DataManager dataManager;
+		private ObjectPoolManager objectPoolManager;
+		private TimeManager timeManager;
 		private UnitObject playerObject;
 
 		[Inject]
-		public void Construct(InputManager inputManager)
+		public void Construct(InputManager inputManager, DataManager dataManager, ObjectPoolManager objectPoolManager, TimeManager timeManager)
 		{
 			this.inputManager = inputManager;
+			this.dataManager = dataManager;
+			this.objectPoolManager = objectPoolManager;
+			this.timeManager = timeManager;
 		}
 
 		private void Awake()
@@ -37,7 +43,7 @@ namespace WitchMendokusai
 			}
 			Instance = this;
 
-			Conditions = new GameCondition(() => playerObject, inputManager);
+			Conditions = new GameCondition(() => playerObject, inputManager, timeManager);
 			GameConditionBridge.Register(Conditions);
 
 			SOManager soManager = SOManager.Instance;
@@ -76,15 +82,15 @@ namespace WitchMendokusai
 			ObjectBufferManager.ClearObjects(ObjectType.Skill);
 			ObjectBufferManager.ClearObjects(ObjectType.SpawnCircle);
 
-			playerObject.Init(GetDoll(DataManager.Instance.CurDollID));
+			playerObject.Init(GetDoll(dataManager.CurDollID));
 
 			QuestManager.Instance.RemoveQuests(QuestType.Dungeon);
-			DataManager.Instance.GameStat.UpdateData();
+			dataManager.GameStat.UpdateData();
 		}
 
 		public void InitEquipment()
 		{
-			List<EquipmentData> equipments = DataManager.Instance.GetEquipmentData(DataManager.Instance.CurDollID);
+			List<EquipmentData> equipments = dataManager.GetEquipmentData(dataManager.CurDollID);
 			foreach (EquipmentData equipment in equipments)
 			{
 				if (equipment == null)
@@ -94,7 +100,7 @@ namespace WitchMendokusai
 
 				if (equipment.Object != null)
 				{
-					GameObject g = ObjectPoolManager.Instance.Spawn(equipment.Object);
+					GameObject g = objectPoolManager.Spawn(equipment.Object);
 
 					if (g.TryGetComponent(out SkillObject skillObject))
 						skillObject.InitContext(new SkillContext(playerObject));
@@ -122,13 +128,13 @@ namespace WitchMendokusai
 		private readonly Func<UnitObject> getPlayerObject;
 		private readonly Dictionary<GameConditionType, Func<bool>> gameConditionActions;
 
-		public GameCondition(Func<UnitObject> getPlayerObject, InputManager inputManager)
+		public GameCondition(Func<UnitObject> getPlayerObject, InputManager inputManager, TimeManager timeManager)
 		{
 			this.getPlayerObject = getPlayerObject;
 
 			gameConditionActions = new()
 			{
-				{ GameConditionType.IsPaused, () => TimeManager.Instance.IsPaused }, // Setting, Dungeon Card 선택, Transition, ...
+				{ GameConditionType.IsPaused, () => timeManager.IsPaused }, // Setting, Dungeon Card 선택, Transition, ...
 				{ GameConditionType.IsTyping, () => UIChat.IsChatting || (DevWindowController.TryGetExistingInstance(out DevWindowController dwc) && dwc.IsCommandLineFocused) || UIToolkitFocus.IsAnyTextFieldFocused() },
 				{ GameConditionType.IsMouseOnUI, () => inputManager.IsPointerOverUI() },
 				{ GameConditionType.IsPlayerCasting, IsPlayerCasting },

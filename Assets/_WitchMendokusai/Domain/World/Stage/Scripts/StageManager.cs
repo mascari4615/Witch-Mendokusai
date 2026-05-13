@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
+using VContainer;
 using static WitchMendokusai.SOHelper;
 
 namespace WitchMendokusai
@@ -27,6 +28,16 @@ namespace WitchMendokusai
 		public StageStrategy CurStageStrategy { get; private set; } = null;
 
 		private Vector3 lastPosDiff;
+
+		private PlayerProvider playerProvider;
+		private ObjectPoolManager objectPoolManager;
+
+		[Inject]
+		public void Construct(PlayerProvider playerProvider, ObjectPoolManager objectPoolManager)
+		{
+			this.playerProvider = playerProvider;
+			this.objectPoolManager = objectPoolManager;
+		}
 
 		private void Awake()
 		{
@@ -62,7 +73,7 @@ namespace WitchMendokusai
 			// 함수 종료: 이전 스테이지 A -> 현재 스테이지 B (스테이지 Z는 사용되지 않음.)
 
 			Vector3 curStagePos = CurStageObject != null ? CurStageObject.gameObject.transform.position : Vector3.zero;
-			Vector3 newLastPosDiff = PlayerProvider.Instance.Current.transform.position - curStagePos;
+			Vector3 newLastPosDiff = playerProvider.Current.transform.position - curStagePos;
 
 			// LastStage를 A로 갱신하고, 비활성화
 			if (CurStageObject != null)
@@ -71,7 +82,7 @@ namespace WitchMendokusai
 
 			// 새로운 스테이지 B 생성 (비활성화 상태)
 			GameObject targetStage = stage.Prefab.gameObject;
-			CurStageObject = ObjectPoolManager.Instance.Spawn(targetStage).GetComponent<StageObject>();
+			CurStageObject = objectPoolManager.Spawn(targetStage).GetComponent<StageObject>();
 
 			// 새로운 스테이지 B 위치 변환
 			// TODO:
@@ -80,14 +91,14 @@ namespace WitchMendokusai
 			{
 				if (isBackToLastStage == true)
 				{
-					newStagePos = PlayerProvider.Instance.Current.transform.position - lastPosDiff;
+					newStagePos = playerProvider.Current.transform.position - lastPosDiff;
 				}
 				else
 				{
 					Portal[] portals = stage.Prefab.Portals;
 					if (portals.Length == 0)
 					{
-						newStagePos = PlayerProvider.Instance.Current.transform.position;
+						newStagePos = playerProvider.Current.transform.position;
 					}
 					else
 					{
@@ -96,7 +107,7 @@ namespace WitchMendokusai
 							targetPortal = stage.Prefab.Portals[0]; // 임의로 첫 번째 포탈 선택 - KarmoDDrine 2026-01-01
 
 						Vector3 portalTPPos = targetPortal.TpPos.position;
-						newStagePos = PlayerProvider.Instance.Current.transform.position - portalTPPos;
+						newStagePos = playerProvider.Current.transform.position - portalTPPos;
 					}
 				}
 			}

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Serialization;
+using VContainer;
 using static WitchMendokusai.SOHelper;
 
 namespace WitchMendokusai
@@ -34,6 +35,16 @@ namespace WitchMendokusai
 
 		public string localDisplayName = "";
 
+		private TimeManager timeManager;
+		private DataLoader dataLoader;
+
+		[Inject]
+		public void Construct(TimeManager timeManager, DataLoader dataLoader)
+		{
+			this.timeManager = timeManager;
+			this.dataLoader = dataLoader;
+		}
+
 		private PlayFabManager playFabManager;
 
 		private void Awake()
@@ -57,9 +68,9 @@ namespace WitchMendokusai
 			Debug.Log($"{nameof(DataManager)} {nameof(Init)}");
 
 			playFabManager = GetComponent<PlayFabManager>();
-			TimeManager.Instance.RegisterCallback(WorkManager.TickEachWorks);
+			timeManager.RegisterCallback(WorkManager.TickEachWorks);
 
-			yield return StartCoroutine(DataLoader.Instance.LoadData());
+			yield return StartCoroutine(dataLoader.LoadData());
 
 			ForEach<ItemData>(itemData =>
 			{
