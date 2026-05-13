@@ -1,3 +1,4 @@
+using MessagePipe;
 using UnityEngine;
 using VContainer;
 using VContainer.Unity;
@@ -8,10 +9,7 @@ namespace WitchMendokusai
 	{
 		protected override void Configure(IContainerBuilder builder)
 		{
-			EventBus eventBusPrefab = Resources.Load<EventBus>("Singletons/EventBus");
-			builder.RegisterComponentInNewPrefab(eventBusPrefab, Lifetime.Singleton)
-				.DontDestroyOnLoad()
-				.AsImplementedInterfaces();
+			builder.RegisterMessagePipe();
 
 			// SOManager — ScriptableObject = RegisterInstance pattern (cross-scene global, TASK-WM-078 γ P2-2, 2026-05-13).
 			// Resources.Load 의 lazy singleton ↔ VContainer RegisterInstance 가 같은 SO 가리킴 (caller transitional 0 변경).
@@ -58,7 +56,7 @@ namespace WitchMendokusai
 			// 순서 = caller 의존 정합 (EventBus 우선, 그 다음 leaf 13, 마지막 root 7, InputStrategySelector 끝).
 			builder.RegisterBuildCallback(container =>
 			{
-				container.Resolve<IEventBus>();
+				GlobalMessagePipe.SetProvider(container.AsServiceProvider());
 				container.Resolve<AudioManager>();
 				container.Resolve<ShaderPackManager>();
 				container.Resolve<SkyDirector>();

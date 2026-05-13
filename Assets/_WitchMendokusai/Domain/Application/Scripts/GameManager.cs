@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using MessagePipe;
 using UnityEngine;
 using VContainer;
 using static WitchMendokusai.SOHelper;
@@ -26,14 +27,20 @@ namespace WitchMendokusai
 		private SOManager soManager;
 		private UnitObject playerObject;
 
+		private IDisposable objectBoundSub;
+		private IDisposable despawnedSub;
+
 		[Inject]
-		public void Construct(InputManager inputManager, DataManager dataManager, ObjectPoolManager objectPoolManager, TimeManager timeManager, SOManager soManager)
+		public void Construct(InputManager inputManager, DataManager dataManager, ObjectPoolManager objectPoolManager, TimeManager timeManager, SOManager soManager,
+			ISubscriber<PlayerObjectBoundEvent> objectBoundSubscriber, ISubscriber<PlayerDespawnedEvent> despawnedSubscriber)
 		{
 			this.inputManager = inputManager;
 			this.dataManager = dataManager;
 			this.objectPoolManager = objectPoolManager;
 			this.timeManager = timeManager;
 			this.soManager = soManager;
+			objectBoundSub = objectBoundSubscriber.Subscribe(OnPlayerObjectBound);
+			despawnedSub = despawnedSubscriber.Subscribe(OnPlayerDespawned);
 		}
 
 		private void Awake()
@@ -54,18 +61,12 @@ namespace WitchMendokusai
 			JoystickBridge.GetY = () => joystickY.RuntimeValue;
 			WindowLayoutBridge.Register(soManager.WindowLayoutData);
 
-			IEventBus eventBus = EventBusBridge.Instance;
-			eventBus.Subscribe<PlayerObjectBoundEvent>(OnPlayerObjectBound);
-			eventBus.Subscribe<PlayerDespawnedEvent>(OnPlayerDespawned);
 		}
 
 		private void OnDestroy()
 		{
-			if (EventBusBridge.TryGetInstance(out IEventBus eventBus))
-			{
-				eventBus.Unsubscribe<PlayerObjectBoundEvent>(OnPlayerObjectBound);
-				eventBus.Unsubscribe<PlayerDespawnedEvent>(OnPlayerDespawned);
-			}
+			objectBoundSub?.Dispose();
+			despawnedSub?.Dispose();
 
 			if (Instance == this)
 				Instance = null;

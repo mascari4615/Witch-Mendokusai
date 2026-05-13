@@ -3,7 +3,8 @@
     "rootNamespace": "WitchMendokusai",
     "references": [
         "FishNet.Runtime",
-        "WM.Core"
+        "WM.Core",
+        "WitchMendokusai.DomainSDK"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

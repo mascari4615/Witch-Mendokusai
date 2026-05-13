@@ -1,7 +1,10 @@
 {
     "name": "WitchMendokusai.DomainSDK",
     "rootNamespace": "WitchMendokusai",
-    "references": [],
+    "references": [
+        "UniTask",
+        "MessagePipe"
+    ],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,

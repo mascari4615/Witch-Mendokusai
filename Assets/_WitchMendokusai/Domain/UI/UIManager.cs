@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using MessagePipe;
 using UnityEngine;
 using VContainer;
 
@@ -26,12 +28,16 @@ namespace WitchMendokusai
 
 		private UIRoot uiRoot;
 		private WindowManager windowManager;
+		private IObjectResolver container;
+		private IDisposable questCompletedSub;
 
 		[Inject]
-		public void Construct(UIRoot uiRoot, WindowManager windowManager)
+		public void Construct(UIRoot uiRoot, WindowManager windowManager, IObjectResolver container, ISubscriber<QuestCompletedEvent> questCompletedSubscriber)
 		{
 			this.uiRoot = uiRoot;
 			this.windowManager = windowManager;
+			this.container = container;
+			questCompletedSub = questCompletedSubscriber.Subscribe(OnQuestCompleted);
 		}
 	
 		[SerializeField] private UIDungeon dungeonPrefab = null;
@@ -77,22 +83,26 @@ namespace WitchMendokusai
 			NPC = FindAnyObjectByType<UINPC>(FindObjectsInactive.Include);
 
 			// 씬 한정 view 등록 — 글로벌 UIRoot 에 AddComponent
-			GameObject uiRootGameObject = UIRoot.Instance.gameObject;
+			GameObject uiRootGameObject = uiRoot.gameObject;
 			inventoryView = uiRootGameObject.AddComponent<InventoryView>();
 			hotbarView = uiRootGameObject.AddComponent<HotbarView>();
 			buildingBarView = uiRootGameObject.AddComponent<BuildingBarView>();
 			questView = uiRootGameObject.AddComponent<QuestView>();
 			dollView = uiRootGameObject.AddComponent<DollView>();
 			statusView = uiRootGameObject.AddComponent<StatusView>();
+			container.Inject(statusView);
 			popupView = uiRootGameObject.AddComponent<PopupView>();
+			container.Inject(popupView);
 			stagePopupView = uiRootGameObject.AddComponent<StagePopupView>();
+			container.Inject(stagePopupView);
 			floatingText = uiRootGameObject.AddComponent<FloatingTextView>();
+			container.Inject(floatingText);
 			SpeechBubble = uiRootGameObject.AddComponent<SpeechBubbleView>();
+			container.Inject(SpeechBubble);
 			// DialogueRunner — TASK-WM-078 γ P2-2 (2026-05-13) 에서 SceneLifetimeScope.RegisterComponentOnNewGameObject 로 추출. 여기서 AddComponent X.
 			Transition = uiRootGameObject.AddComponent<TransitionView>();
+			container.Inject(Transition);
 
-			EventBusBridge.Unsubscribe<QuestCompletedEvent>(OnQuestCompleted);
-			EventBusBridge.Subscribe<QuestCompletedEvent>(OnQuestCompleted);
 		}
 
 		private void OnQuestCompleted(QuestCompletedEvent evt)
@@ -109,7 +119,7 @@ namespace WitchMendokusai
 
 		private void OnDestroy()
 		{
-			EventBusBridge.Unsubscribe<QuestCompletedEvent>(OnQuestCompleted);
+			questCompletedSub?.Dispose();
 
 			if (inventoryView != null)
 				Destroy(inventoryView);

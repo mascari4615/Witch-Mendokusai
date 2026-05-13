@@ -2,18 +2,18 @@ using UnityEngine;
 
 namespace WitchMendokusai
 {
-	public struct PlayerSpawnedEvent : IStickyEvent
+	public struct PlayerSpawnedEvent
 	{
 		public Transform Transform;
 		public Transform CameraPosition;
 		public Transform SpritePosition;
 	}
 
-	public struct PlayerDespawnedEvent : IEvent
+	public struct PlayerDespawnedEvent
 	{
 	}
 
-	public struct PlayerObjectBoundEvent : IStickyEvent
+	public struct PlayerObjectBoundEvent
 	{
 		public UnitStat UnitStat;
 		public Unit UnitData;

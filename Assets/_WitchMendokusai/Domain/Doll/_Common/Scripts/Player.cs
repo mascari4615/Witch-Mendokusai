@@ -34,14 +34,13 @@ namespace WitchMendokusai
 
 			PlayerProvider.Instance.SetCurrent(this);
 
-			IEventBus eventBus = EventBusBridge.Instance;
-			eventBus.Subscribe<PlayerJumpRequestedEvent>(OnJumpRequested);
-			eventBus.Subscribe<PlayerJumpReleasedEvent>(OnJumpReleased);
-			eventBus.Subscribe<PlayerSkillUseRequestedEvent>(OnSkillUseRequested);
-			eventBus.Subscribe<PlayerSprintChangedEvent>(OnSprintChanged);
-			eventBus.Subscribe<PlayerCrouchChangedEvent>(OnCrouchChanged);
-			eventBus.Subscribe<PlayerAutoAimToggledEvent>(OnAutoAimToggled);
-			eventBus.Subscribe<PlayerInteractRequestedEvent>(OnInteractRequested);
+			EventBusBridge.Subscribe<PlayerJumpRequestedEvent>(OnJumpRequested);
+			EventBusBridge.Subscribe<PlayerJumpReleasedEvent>(OnJumpReleased);
+			EventBusBridge.Subscribe<PlayerSkillUseRequestedEvent>(OnSkillUseRequested);
+			EventBusBridge.Subscribe<PlayerSprintChangedEvent>(OnSprintChanged);
+			EventBusBridge.Subscribe<PlayerCrouchChangedEvent>(OnCrouchChanged);
+			EventBusBridge.Subscribe<PlayerAutoAimToggledEvent>(OnAutoAimToggled);
+			EventBusBridge.Subscribe<PlayerInteractRequestedEvent>(OnInteractRequested);
 		}
 
 		private void Start()
@@ -61,19 +60,14 @@ namespace WitchMendokusai
 			if (PlayerProvider.TryGetExistingInstance(out PlayerProvider playerProvider))
 				playerProvider.Clear();
 
-			if (EventBusBridge.TryGetInstance(out IEventBus eventBus))
-			{
-				eventBus.Publish(new PlayerDespawnedEvent());
-				eventBus.ClearSticky<PlayerSpawnedEvent>();
-				eventBus.ClearSticky<PlayerObjectBoundEvent>();
-				eventBus.Unsubscribe<PlayerJumpRequestedEvent>(OnJumpRequested);
-				eventBus.Unsubscribe<PlayerJumpReleasedEvent>(OnJumpReleased);
-				eventBus.Unsubscribe<PlayerSkillUseRequestedEvent>(OnSkillUseRequested);
-				eventBus.Unsubscribe<PlayerSprintChangedEvent>(OnSprintChanged);
-				eventBus.Unsubscribe<PlayerCrouchChangedEvent>(OnCrouchChanged);
-				eventBus.Unsubscribe<PlayerAutoAimToggledEvent>(OnAutoAimToggled);
-				eventBus.Unsubscribe<PlayerInteractRequestedEvent>(OnInteractRequested);
-			}
+			EventBusBridge.Publish(new PlayerDespawnedEvent());
+			EventBusBridge.Unsubscribe<PlayerJumpRequestedEvent>(OnJumpRequested);
+			EventBusBridge.Unsubscribe<PlayerJumpReleasedEvent>(OnJumpReleased);
+			EventBusBridge.Unsubscribe<PlayerSkillUseRequestedEvent>(OnSkillUseRequested);
+			EventBusBridge.Unsubscribe<PlayerSprintChangedEvent>(OnSprintChanged);
+			EventBusBridge.Unsubscribe<PlayerCrouchChangedEvent>(OnCrouchChanged);
+			EventBusBridge.Unsubscribe<PlayerAutoAimToggledEvent>(OnAutoAimToggled);
+			EventBusBridge.Unsubscribe<PlayerInteractRequestedEvent>(OnInteractRequested);
 		}
 
 		private void OnJumpRequested(PlayerJumpRequestedEvent evt) => TryJump();

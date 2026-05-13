@@ -1,33 +1,33 @@
 namespace WitchMendokusai
 {
-	public struct PlayerJumpRequestedEvent : IEvent
+	public struct PlayerJumpRequestedEvent
 	{
 	}
 
-	public struct PlayerJumpReleasedEvent : IEvent
+	public struct PlayerJumpReleasedEvent
 	{
 	}
 
-	public struct PlayerSkillUseRequestedEvent : IEvent
+	public struct PlayerSkillUseRequestedEvent
 	{
 		public int SkillIndex;
 	}
 
-	public struct PlayerSprintChangedEvent : IEvent
+	public struct PlayerSprintChangedEvent
 	{
 		public bool IsSprinting;
 	}
 
-	public struct PlayerCrouchChangedEvent : IEvent
+	public struct PlayerCrouchChangedEvent
 	{
 		public bool IsCrouching;
 	}
 
-	public struct PlayerAutoAimToggledEvent : IEvent
+	public struct PlayerAutoAimToggledEvent
 	{
 	}
 
-	public struct PlayerInteractRequestedEvent : IEvent
+	public struct PlayerInteractRequestedEvent
 	{
 	}
 }

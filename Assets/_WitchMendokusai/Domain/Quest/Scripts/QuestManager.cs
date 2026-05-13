@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
+using MessagePipe;
 using UnityEngine;
+using VContainer;
 
 namespace WitchMendokusai
 {
-	public class QuestManager : IQuestManager
+	public class QuestManager : IQuestManager, IDisposable
 	{
 		public static QuestManager Instance => DataManager.Instance.QuestManager;
 
@@ -16,12 +18,21 @@ namespace WitchMendokusai
 		public void SetQuestState(int questID, QuestState state) => questStates[questID] = state;
 		public QuestState GetQuestState(int questID) => questStates[questID];
 
+		private IPublisher<QuestAddedEvent> questAddedPublisher;
+		private IDisposable questCompletedSub;
+
+		[Inject]
+		public void Construct(IPublisher<QuestAddedEvent> questAddedPublisher, ISubscriber<QuestCompletedEvent> questCompletedSubscriber)
+		{
+			this.questAddedPublisher = questAddedPublisher;
+			questCompletedSub = questCompletedSubscriber.Subscribe(OnQuestCompleted);
+		}
+
+		public void Dispose() => questCompletedSub?.Dispose();
+
 		public void Init(List<RuntimeQuest> quests)
 		{
 			Quests.Clear();
-
-			EventBusBridge.Unsubscribe<QuestCompletedEvent>(OnQuestCompleted);
-			EventBusBridge.Subscribe<QuestCompletedEvent>(OnQuestCompleted);
 
 			foreach (RuntimeQuest quest in quests)
 			{
@@ -56,7 +67,7 @@ namespace WitchMendokusai
 		public void AddQuest(RuntimeQuest quest)
 		{
 			Quests.Add(quest);
-			EventBusBridge.Publish(new QuestAddedEvent(quest));
+			questAddedPublisher.Publish(new QuestAddedEvent(quest));
 		}
 
 		public RuntimeQuest GetQuest(QuestSO questData)

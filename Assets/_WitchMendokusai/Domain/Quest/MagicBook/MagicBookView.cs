@@ -64,8 +64,7 @@ namespace WitchMendokusai
 			if (InputManager.TryGetExistingInstance(out InputManager inputManager))
 				inputManager.UnregisterInputEvent(InputEventType.MagicBookToggle, InputEventResponseType.Performed, Toggle);
 
-			if (EventBusBridge.TryGetInstance(out IEventBus eventBus))
-				eventBus.Unsubscribe<QuestDetailRequestedEvent>(OnQuestDetailRequested);
+			EventBusBridge.Unsubscribe<QuestDetailRequestedEvent>(OnQuestDetailRequested);
 
 			container?.RemoveFromHierarchy();
 		}

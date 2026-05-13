@@ -1,42 +1,32 @@
 using System;
+using System.Collections.Generic;
+using MessagePipe;
 
 namespace WitchMendokusai
 {
 	public static class EventBusBridge
 	{
-		private static IEventBus instance;
+		private static readonly Dictionary<(Type, Delegate), IDisposable> subscriptions = new();
 
-		public static IEventBus Instance => instance;
-
-		public static bool TryGetInstance(out IEventBus bus)
+		public static void Subscribe<T>(Action<T> handler)
 		{
-			bus = instance;
-			return bus != null;
+			ISubscriber<T> subscriber = GlobalMessagePipe.GetSubscriber<T>();
+			IDisposable sub = subscriber.Subscribe(handler);
+			subscriptions[(typeof(T), handler)] = sub;
 		}
 
-		public static void Register(IEventBus bus)
+		public static void Unsubscribe<T>(Action<T> handler)
 		{
-			instance = bus;
+			if (subscriptions.TryGetValue((typeof(T), handler), out IDisposable sub))
+			{
+				sub.Dispose();
+				subscriptions.Remove((typeof(T), handler));
+			}
 		}
 
-		public static void Subscribe<T>(Action<T> handler) where T : IEvent
+		public static void Publish<T>(T evt)
 		{
-			instance.Subscribe(handler);
-		}
-
-		public static void Unsubscribe<T>(Action<T> handler) where T : IEvent
-		{
-			instance.Unsubscribe(handler);
-		}
-
-		public static void Publish<T>(T evt) where T : IEvent
-		{
-			instance.Publish(evt);
-		}
-
-		public static void ClearSticky<T>() where T : IEvent
-		{
-			instance.ClearSticky<T>();
+			GlobalMessagePipe.GetPublisher<T>().Publish(evt);
 		}
 	}
 }

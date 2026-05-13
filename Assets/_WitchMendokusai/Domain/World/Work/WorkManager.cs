@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using MessagePipe;
 using UnityEngine;
 using VContainer;
 
@@ -12,7 +13,7 @@ namespace WitchMendokusai
 		VQuestWork
 	}
 
-	public class WorkManager
+	public class WorkManager : IDisposable
 	{
 		public Dictionary<WorkListType, List<Work>> Works { get; private set; } = new()
 		{
@@ -22,19 +23,20 @@ namespace WitchMendokusai
 		};
 
 		private QuestManager questManager;
+		private IDisposable questWorkStartedSub;
 
 		[Inject]
-		public void Construct(QuestManager questManager)
+		public void Construct(QuestManager questManager, ISubscriber<QuestWorkStartedEvent> questWorkStartedSubscriber)
 		{
 			this.questManager = questManager;
+			questWorkStartedSub = questWorkStartedSubscriber.Subscribe(OnQuestWorkStarted);
 		}
+
+		public void Dispose() => questWorkStartedSub?.Dispose();
 
 		public void Init(Dictionary<WorkListType, List<Work>> works)
 		{
 			Works = works;
-
-			EventBusBridge.Unsubscribe<QuestWorkStartedEvent>(OnQuestWorkStarted);
-			EventBusBridge.Subscribe<QuestWorkStartedEvent>(OnQuestWorkStarted);
 		}
 
 		private void OnQuestWorkStarted(QuestWorkStartedEvent evt)

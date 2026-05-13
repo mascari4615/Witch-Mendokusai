@@ -1,8 +1,12 @@
+using System;
 using System.Collections;
 using System.Linq;
+using MessagePipe;
 using Unity.Cinemachine;
 using UnityEngine;
 using UnityEngine.Animations;
+using VContainer;
+using VContainer.Unity;
 
 namespace WitchMendokusai
 {
@@ -30,6 +34,15 @@ namespace WitchMendokusai
 		private MCamera curCamera;
 
 		private Transform target;
+		private IDisposable playerSpawnedSub;
+		private IDisposable playerDespawnedSub;
+
+		[Inject]
+		public void Construct(ISubscriber<PlayerSpawnedEvent> spawnedSubscriber, ISubscriber<PlayerDespawnedEvent> despawnedSubscriber)
+		{
+			playerSpawnedSub = spawnedSubscriber.Subscribe(OnPlayerSpawned);
+			playerDespawnedSub = despawnedSubscriber.Subscribe(OnPlayerDespawned);
+		}
 
 		private void Awake()
 		{
@@ -42,18 +55,12 @@ namespace WitchMendokusai
 			chatPositionTransposer = cameras.First(cam => cam.UICameraMode == UICameraMode.NPC).CinemachineCamera.GetCinemachineComponent(CinemachineCore.Stage.Body) as CinemachinePositionComposer;
 
 			SetContentCameraMode(ContentCameraMode.Normal);
-
-			EventBusBridge.Subscribe<PlayerSpawnedEvent>(OnPlayerSpawned);
-			EventBusBridge.Subscribe<PlayerDespawnedEvent>(OnPlayerDespawned);
 		}
 
 		private void OnDestroy()
 		{
-			if (EventBusBridge.TryGetInstance(out IEventBus eventBus))
-			{
-				eventBus.Unsubscribe<PlayerSpawnedEvent>(OnPlayerSpawned);
-				eventBus.Unsubscribe<PlayerDespawnedEvent>(OnPlayerDespawned);
-			}
+			playerSpawnedSub?.Dispose();
+			playerDespawnedSub?.Dispose();
 
 			if (Instance == this)
 				Instance = null;
