@@ -51,6 +51,13 @@ namespace WitchMendokusai
 				container.Resolve<GameModeManager>();
 				container.Resolve<DialogueRunner>();
 				container.Resolve<CardManager>();
+
+				// θ — Scene→Root 역방향 .Instance 제거: child scope 가 parent GameManager 에 씬 의존 조건 바인딩.
+				// VContainer child scope 는 parent scope 싱글턴 리졸브 가능 (TASK-WM-078, 2026-05-13).
+				GameManager gameManager = container.Resolve<GameManager>();
+				GameModeManager gameModeManager = container.Resolve<GameModeManager>();
+				UIManager uiManager = container.Resolve<UIManager>();
+				gameManager.BindSceneConditions(gameModeManager, uiManager);
 			});
 		}
 	}

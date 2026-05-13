@@ -111,6 +111,10 @@ namespace WitchMendokusai
 			}
 		}
 
+		// θ — SceneLifetimeScope 에서 씬 의존 조건을 Root 스코프로 바인딩 (TASK-WM-078, 2026-05-13).
+		public void BindSceneConditions(GameModeManager gameModeManager, UIManager uiManager)
+			=> Conditions.BindSceneDependencies(gameModeManager, uiManager);
+
 		public void ApplyUpgradeEffects()
 		{
 			List<UpgradeData> upgrades = soManager.DataSOs[typeof(UpgradeData)].Values.Cast<UpgradeData>().ToList();
@@ -140,10 +144,19 @@ namespace WitchMendokusai
 				{ GameConditionType.IsMouseOnUI, () => inputManager.IsPointerOverUI() },
 				{ GameConditionType.IsPlayerCasting, IsPlayerCasting },
 				{ GameConditionType.IsDied, IsDied },
-				{ GameConditionType.IsBuilding, () => GameModeManager.Instance.IsBuildMode },
+				// 씬 의존 조건 — SceneLifetimeScope.RegisterBuildCallback 에서 BindSceneDependencies 로 교체 (TASK-WM-078 θ).
+				{ GameConditionType.IsBuilding, () => false },
 				{ GameConditionType.IsInTransition, () => UITransition.IsInTransition },
-				{ GameConditionType.IsViewingUI, () => UIManager.Instance.IsAnyPanelFullscreenOpen },
+				{ GameConditionType.IsViewingUI, () => false },
 			};
+		}
+
+		// θ — Root 스코프에서 static Instance 없이 Scene 의존 조건 수신 (TASK-WM-078, 2026-05-13).
+		// 호출자: SceneLifetimeScope.RegisterBuildCallback (child scope 가 parent GameManager 리졸브 후 바인딩).
+		public void BindSceneDependencies(GameModeManager gameModeManager, UIManager uiManager)
+		{
+			gameConditionActions[GameConditionType.IsBuilding] = () => gameModeManager.IsBuildMode;
+			gameConditionActions[GameConditionType.IsViewingUI] = () => uiManager.IsAnyPanelFullscreenOpen;
 		}
 
 		private bool IsPlayerCasting()
