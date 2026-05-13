@@ -125,7 +125,7 @@ namespace WitchMendokusai
 				.OrderBy(
 					p =>
 					{
-						var attribute = p.GetCustomAttribute(typeof(PropertyOrderAttribute));
+						Attribute attribute = p.GetCustomAttribute(typeof(PropertyOrderAttribute));
 						if (attribute == null)
 							return int.MaxValue;
 						else

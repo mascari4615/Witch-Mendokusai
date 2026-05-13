@@ -20,7 +20,7 @@ namespace WitchMendokusai
 			int fieldCount = 0;
 			int labelCount = 0;
 
-			if (!string.IsNullOrEmpty(label.text))
+			if (string.IsNullOrEmpty(label.text) == false)
 			{
 				labelCount++; // Element 섹션 라벨
 			}
@@ -105,7 +105,7 @@ namespace WitchMendokusai
 			}
 
 			// Label
-			if (!string.IsNullOrEmpty(label.text))
+			if (string.IsNullOrEmpty(label.text) == false)
 			{
 				EditorGUI.LabelField(new Rect(position.x, y, position.width, lineHeight), label.text, EditorStyles.boldLabel);
 				y += lineHeight + space;

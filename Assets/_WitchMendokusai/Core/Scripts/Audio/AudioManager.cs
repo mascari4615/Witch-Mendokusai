@@ -144,7 +144,7 @@ namespace WitchMendokusai
 		{
 			string key = $"Volume{(int)busType}";
 
-			if (!PlayerPrefs.HasKey(key))
+			if (PlayerPrefs.HasKey(key) == false)
 				PlayerPrefs.SetFloat(key, 1);
 
 			float volume = PlayerPrefs.GetFloat(key);
@@ -153,7 +153,7 @@ namespace WitchMendokusai
 
 		public void SetVolume(BusType busType, float volume)
 		{
-			var key = $"Volume{(int)busType}";
+			string key = $"Volume{(int)busType}";
 			PlayerPrefs.SetFloat(key, volume);
 			buses[(int)busType].setVolume(volume);
 

@@ -22,7 +22,7 @@ namespace WitchMendokusai
 		private Inventory holdingInventory = null;
 		public bool IsHolding => holdingItem != null;
 
-		private const float funcATime = 0.2f;
+		private const float FUNC_A_TIME = 0.2f;
 		private float curFuncATime = 0;
 		public bool CanFuncA => curFuncATime >= 0;
 
@@ -130,7 +130,7 @@ namespace WitchMendokusai
 			inventory.SetItem(targetSlot.Index, null);
 			inventory.UpdateSlot(targetSlot.Index);
 
-			curFuncATime = funcATime;
+			curFuncATime = FUNC_A_TIME;
 		}
 
 		// 들고있지 않은 상태에서, 비어있지 않은 슬롯에서 우클릭

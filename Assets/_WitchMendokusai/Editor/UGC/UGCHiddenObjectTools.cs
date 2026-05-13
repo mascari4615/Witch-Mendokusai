@@ -88,7 +88,7 @@ namespace WitchMendokusai
 				if (EditorUtility.IsPersistent(obj))
 					continue;
 
-				if (!IsHiddenRuntimeObject(obj))
+				if (IsHiddenRuntimeObject(obj) == false)
 					continue;
 
 				results.Add(obj);
