@@ -2,12 +2,10 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 using VContainer;
-using VContainer.Unity;
 namespace WitchMendokusai
 {
 	public class NPCMarker : MonoBehaviour
 	{
-		// HACK:
 		[SerializeField] private List<Sprite> sprites;
 
 		private NPCObject npcObject;
@@ -26,7 +24,6 @@ namespace WitchMendokusai
 		{
 			npcObject = GetComponentInParent<NPCObject>(true);
 			spriteRenderer = GetComponent<SpriteRenderer>();
-			LifetimeScope.Find<SceneLifetimeScope>()?.Container.Inject(this);
 		}
 
 		private void OnEnable()

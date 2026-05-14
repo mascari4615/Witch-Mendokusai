@@ -9,7 +9,6 @@ namespace WitchMendokusai
 	{
 		private const float EachAttackDelay = 0.1f;
 
-		// [SerializeField] private int originDamage = 2;
 		[SerializeField] private float originCoolTime = 1.5f;
 		[SerializeField] private GameObject bulletPrefab;
 		[SerializeField] private GameObject swordPrefab;
@@ -139,7 +138,6 @@ namespace WitchMendokusai
 				for (int i = 0; i < diff; i++)
 				{
 					GameObject g = objectPoolManager.Spawn(swordPrefab);
-					// GameObject g = new("SwordParent");
 					g.transform.SetParent(transform);
 					g.transform.localPosition = Vector3.zero;
 					g.SetActive(true);

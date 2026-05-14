@@ -3,7 +3,6 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 using VContainer;
-using VContainer.Unity;
 
 namespace WitchMendokusai
 {
@@ -40,11 +39,6 @@ namespace WitchMendokusai
 			this.cameraManager = cameraManager;
 			this.chatManager = chatManager;
 			this.questManager = questManager;
-		}
-
-		private void Awake()
-		{
-			LifetimeScope.Find<SceneLifetimeScope>()?.Container.Inject(this);
 		}
 
 		protected override void OnInit()
@@ -242,7 +236,6 @@ namespace WitchMendokusai
 					break;
 			}
 
-			// HACK:
 			Invoke(nameof(Close), .1f);
 		}
 

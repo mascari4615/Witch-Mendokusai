@@ -50,14 +50,6 @@ namespace WitchMendokusai
 				pick -= t.Probability;
 			}
 
-			/*float sum = 0;
-	        foreach (ProbabilityElement t in probabilityList)
-	        {
-	            sum += t.probability;
-	            if (pick >= sum)
-	                return t.target;
-	        }*/
-
 			return default;
 		}
 	}

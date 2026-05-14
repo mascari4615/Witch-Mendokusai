@@ -13,7 +13,7 @@ namespace WitchMendokusai
 		// 공격 패턴 정의
 		private enum AttackPattern
 		{
-			Projectile, Dash, // Pull
+			Projectile, Dash,
 		}
 		private AttackPattern _currentPattern;
 
@@ -34,7 +34,6 @@ namespace WitchMendokusai
 			BT_MoveToPlayer _moveToPlayer = new(UnitObject, playerProvider, isSpriteLookLeft);
 			BT_Skill _projectileAttack = new(UnitObject, playerProvider, 0, attackRange, () => ChangeState(FSMStateCommon.Wait));
 			BT_Dash _dash = new(UnitObject, playerProvider, attackRange, dashSpeed: 15f, dashDuration: 0.5f, onDashEnd: () => ChangeState(FSMStateCommon.Wait));
-			// BT_PullAttack _pullAttack = new(UnitObject, attackRange);
 
 			// --- 상태별 이벤트 설정 ---
 			SetStateEvent(FSMStateCommon.Idle, StateEvent.Update, () =>
@@ -55,11 +54,6 @@ namespace WitchMendokusai
 				{
 					return;
 				}
-
-				// 플레이어가 범위를 벗어나면 Idle로 전환
-				// CanSeePlayer();
-				// if (IsCurState(FSMStateCommon.Idle))
-				// 	return;
 			});
 			BTRunner GetCurrentBehaviorTree()
 			{
@@ -67,7 +61,6 @@ namespace WitchMendokusai
 				{
 					AttackPattern.Projectile => _projectileAttack,
 					AttackPattern.Dash => _dash,
-					// AttackPattern.Pull => _pullAttack,
 					_ => throw new ArgumentOutOfRangeException()
 				};
 			}

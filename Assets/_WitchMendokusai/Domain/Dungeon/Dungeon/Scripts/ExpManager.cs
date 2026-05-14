@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using FMODUnity;
 using UnityEngine;
 using VContainer;
-using VContainer.Unity;
 
 namespace WitchMendokusai
 {
@@ -23,11 +22,6 @@ namespace WitchMendokusai
 			this.playerProvider = playerProvider;
 			this.gameEventManager = gameEventManager;
 			this.objectPoolManager = objectPoolManager;
-		}
-
-		private void Awake()
-		{
-			LifetimeScope.Find<SceneLifetimeScope>()?.Container.Inject(this);
 		}
 
 		private UnitStat PlayerStat => playerProvider.Current.UnitStat;

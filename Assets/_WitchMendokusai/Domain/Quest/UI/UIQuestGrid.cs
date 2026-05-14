@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using VContainer;
-using VContainer.Unity;
 
 namespace WitchMendokusai
 {
@@ -21,11 +20,6 @@ namespace WitchMendokusai
 		public void Construct(TimeManager timeManager)
 		{
 			this.timeManager = timeManager;
-		}
-
-		private void Awake()
-		{
-			LifetimeScope.Find<SceneLifetimeScope>()?.Container.Inject(this);
 		}
 
 		// TODO: [SerializeField] private bool resetFilterOnEnable = true;

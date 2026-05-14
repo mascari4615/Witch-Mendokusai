@@ -12,13 +12,11 @@ namespace WitchMendokusai
 		public List<EventEntry> Triggers => triggers;
 		public List<Criteria> Criteria => criteria;
 		public List<Modification> Modifications => modifications;
-		// public List<> Execute => execute;
 
 		[SerializeField] private List<EventEntry> triggeredBy;
 		[SerializeField] private List<EventEntry> triggers;
 		[SerializeField] private List<Criteria> criteria;
 		[SerializeField] private List<Modification> modifications;
-		// [SerializeField] private List<> execute;
 	}
 
 

@@ -49,11 +49,6 @@ namespace WitchMendokusai
 				children.Add(decorator.child);
 			}
 
-			/*if (parent is RootNode rootNode && rootNode.child != null)
-			{
-				children.Add(rootNode.child);
-			}*/
-
 			if (parent is CompositeNode composite)
 			{
 				return composite.ChildList;

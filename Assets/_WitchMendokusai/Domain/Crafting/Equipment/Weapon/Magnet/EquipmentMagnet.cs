@@ -2,7 +2,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using VContainer;
-using VContainer.Unity;
 
 namespace WitchMendokusai
 {
@@ -14,11 +13,6 @@ namespace WitchMendokusai
 		public void Construct(PlayerProvider playerProvider)
 		{
 			this.playerProvider = playerProvider;
-		}
-
-		private void Awake()
-		{
-			LifetimeScope.Find<SceneLifetimeScope>()?.Container.Inject(this);
 		}
 
 		private UnitStat PlayerStat => playerProvider.Current.UnitStat;

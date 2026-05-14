@@ -7,7 +7,6 @@ using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using TMPro;
 using VContainer;
-using VContainer.Unity;
 
 namespace WitchMendokusai
 {
@@ -34,11 +33,6 @@ namespace WitchMendokusai
 		public void Construct(UIHoldingSlot uiHoldingSlot)
 		{
 			this.uiHoldingSlot = uiHoldingSlot;
-		}
-
-		protected virtual void Awake()
-		{
-			LifetimeScope.Find<SceneLifetimeScope>()?.Container.Inject(this);
 		}
 
 		public override void Init()

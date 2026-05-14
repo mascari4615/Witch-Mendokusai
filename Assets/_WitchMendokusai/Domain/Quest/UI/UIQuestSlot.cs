@@ -4,7 +4,6 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using VContainer;
-using VContainer.Unity;
 
 namespace WitchMendokusai
 {
@@ -22,11 +21,6 @@ namespace WitchMendokusai
 		public void Construct(QuestManager questManager)
 		{
 			this.questManager = questManager;
-		}
-
-		private void Awake()
-		{
-			LifetimeScope.Find<SceneLifetimeScope>()?.Container.Inject(this);
 		}
 
 		public override void UpdateUI()

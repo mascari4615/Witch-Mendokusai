@@ -5,7 +5,6 @@ using System.Linq;
 using TMPro;
 using UnityEngine;
 using VContainer;
-using VContainer.Unity;
 using Random = UnityEngine.Random;
 using static WitchMendokusai.SOHelper;
 
@@ -37,11 +36,6 @@ namespace WitchMendokusai
 			this.uiManager = uiManager;
 			this.soManager = soManager;
 			this.dataManager = dataManager;
-		}
-
-		private void Awake()
-		{
-			LifetimeScope.Find<SceneLifetimeScope>()?.Container.Inject(this);
 		}
 
 		protected override void OnOpen()

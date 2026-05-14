@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using VContainer;
-using VContainer.Unity;
 
 namespace WitchMendokusai
 {
@@ -27,9 +26,6 @@ namespace WitchMendokusai
 		public bool TryGetCurPanel(out UIPanel panel) => Panels.TryGetValue(CurPanelType, out panel);
 		public bool IsPanelOpen => CurPanelType.Equals(DefaultPanel) == false;
 
-		// public PanelType CurPanel => PanelStack.Count > 0 ? PanelStack.Peek() : PanelType.None;
-		// public Stack<PanelType> PanelStack { get; private set; } = new();
-
 		private UIManager uiManager;
 
 		[Inject]
@@ -40,7 +36,6 @@ namespace WitchMendokusai
 
 		protected virtual void Awake()
 		{
-			LifetimeScope.Find<SceneLifetimeScope>()?.Container.Inject(this);
 			Init();
 		}
 

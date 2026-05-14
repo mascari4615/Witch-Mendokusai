@@ -1,7 +1,6 @@
 using System.Collections;
 using UnityEngine;
 using VContainer;
-using VContainer.Unity;
 
 namespace WitchMendokusai
 {
@@ -25,11 +24,6 @@ namespace WitchMendokusai
 		{
 			this.gameEventManager = gameEventManager;
 			this.uiManager = uiManager;
-		}
-
-		private void Awake()
-		{
-			LifetimeScope.Find<SceneLifetimeScope>()?.Container.Inject(this);
 		}
 
 		private void OnEnable()

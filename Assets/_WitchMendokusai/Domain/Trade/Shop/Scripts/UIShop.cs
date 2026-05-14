@@ -1,7 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
 using VContainer;
-using VContainer.Unity;
 using static WitchMendokusai.SOHelper;
 
 namespace WitchMendokusai
@@ -27,11 +26,6 @@ namespace WitchMendokusai
 			this.uiManager = uiManager;
 			this.soManager = soManager;
 			this.dataManager = dataManager;
-		}
-
-		private void Awake()
-		{
-			LifetimeScope.Find<SceneLifetimeScope>()?.Container.Inject(this);
 		}
 
 		protected override void OnInit()

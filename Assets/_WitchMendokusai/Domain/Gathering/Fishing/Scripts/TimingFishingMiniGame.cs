@@ -3,7 +3,6 @@ using System.Collections;
 using FMODUnity;
 using UnityEngine;
 using VContainer;
-using VContainer.Unity;
 using Random = UnityEngine.Random;
 
 namespace WitchMendokusai
@@ -29,11 +28,6 @@ namespace WitchMendokusai
 		{
 			this.uiManager = uiManager;
 			this.inputManager = inputManager;
-		}
-
-		private void Awake()
-		{
-			LifetimeScope.Find<SceneLifetimeScope>()?.Container.Inject(this);
 		}
 
 		public IEnumerator Play(FishingContext context, Action<bool> onResult)

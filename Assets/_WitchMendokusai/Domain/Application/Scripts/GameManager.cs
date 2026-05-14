@@ -190,12 +190,6 @@ namespace WitchMendokusai
 
 		public bool IsGameCondition(GameConditionType gameCondition)
 		{
-			// foreach (KeyValuePair<GameConditionType, Func<bool>> condition in gameConditionActions)
-			// {
-			// 	if (gameCondition.HasFlag(condition.Key) && condition.Value.Invoke())
-			// 		return true;
-			// }
-
 			if (gameConditionActions.ContainsKey(gameCondition) && gameConditionActions[gameCondition].Invoke())
 				return true;
 

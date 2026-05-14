@@ -1,7 +1,6 @@
 using System;
 using UnityEngine;
 using VContainer;
-using VContainer.Unity;
 
 namespace WitchMendokusai
 {
@@ -69,8 +68,6 @@ namespace WitchMendokusai
 
 		private void Awake()
 		{
-			LifetimeScope.Find<SceneLifetimeScope>()?.Container.Inject(this);
-
 			unitRigidBody = GetComponent<Rigidbody>();
 			unitObject = GetComponent<UnitObject>();
 			unitCapsule = GetComponent<CapsuleCollider>();

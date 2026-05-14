@@ -1,7 +1,6 @@
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using VContainer;
-using VContainer.Unity;
 
 namespace WitchMendokusai
 {
@@ -19,11 +18,6 @@ namespace WitchMendokusai
 		{
 			this.uiManager = uiManager;
 			this.stageManager = stageManager;
-		}
-
-		private void Awake()
-		{
-			LifetimeScope.Find<SceneLifetimeScope>()?.Container.Inject(this);
 		}
 
 		public void OnTriggerEnter(Collider other)

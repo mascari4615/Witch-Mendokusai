@@ -2,7 +2,6 @@ using System.Collections;
 using FMODUnity;
 using UnityEngine;
 using VContainer;
-using VContainer.Unity;
 
 namespace WitchMendokusai
 {
@@ -29,7 +28,6 @@ namespace WitchMendokusai
 		private void Awake()
 		{
 			miniGame = GetComponent<IFishingMiniGame>();
-			LifetimeScope.Find<SceneLifetimeScope>()?.Container.Inject(this);
 		}
 
 		private void OnDisable()

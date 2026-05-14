@@ -43,6 +43,26 @@ namespace WitchMendokusai
 			builder.RegisterComponentInHierarchy<VoxelInteraction>();
 			builder.RegisterComponentInHierarchy<ChunkManager>();
 
+			// WM-108 — service locator 제거: 씬 배치 자식 컴포넌트 일괄 RegisterComponentInHierarchy (2026-05-14).
+			// caller Awake() 의 `LifetimeScope.Find<SceneLifetimeScope>()?.Container.Inject(this)` self-inject 안티패턴 제거 대상.
+			// 부모 cascade 로 처리되는 자식 컴포넌트 (UnitMovement / NPCMarker / Portal / TimingFishingMiniGame) 는
+			// ObjectPoolManager.CreateObject 의 GetComponentsInChildren<MonoBehaviour>(true) cascade Inject 가 이미 처리.
+			builder.RegisterComponentInHierarchy<GameEventListener>();
+			builder.RegisterComponentInHierarchy<ExpManager>();
+			builder.RegisterComponentInHierarchy<GroundGenerator>();
+			builder.RegisterComponentInHierarchy<SpawnerInitializer>();
+			builder.RegisterComponentInHierarchy<UItemEquipPopup>();
+			builder.RegisterComponentInHierarchy<UIQuestGrid>();
+			builder.RegisterComponentInHierarchy<MagicBookView>();
+			// UI Toolkit / NPC menu / Slot 자식들은 hierarchy 등록 (씬에 미리 배치된 prefab instance)
+			builder.RegisterComponentInHierarchy<UINPCMenu>();
+			builder.RegisterComponentInHierarchy<UIUpgrade>();
+			builder.RegisterComponentInHierarchy<UIShop>();
+			builder.RegisterComponentInHierarchy<UICraft>();
+			builder.RegisterComponentInHierarchy<UIItemSlot>();
+			builder.RegisterComponentInHierarchy<UIQuestSlot>();
+			builder.RegisterComponentInHierarchy<ToolTipTrigger>();
+
 			// Lifetime.Scoped 의 RegisterComponentInNewPrefab / RegisterComponentOnNewGameObject 는 default lazy — 명시 Resolve 가 없으면 prefab Instantiate 가 일어나지 X.
 			// RootLifetimeScope 의 eager Resolve 패턴 따라 build 시점 강제 instantiate.
 			// Hierarchy 등록도 raw Instance accessor 셋 트리거 위해 Resolve 호출 (caller transitional 보존).

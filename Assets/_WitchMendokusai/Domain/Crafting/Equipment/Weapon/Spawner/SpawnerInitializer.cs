@@ -1,6 +1,5 @@
 using UnityEngine;
 using VContainer;
-using VContainer.Unity;
 
 namespace WitchMendokusai
 {
@@ -20,7 +19,6 @@ namespace WitchMendokusai
 		private void Awake()
 		{
 			spawner = GetComponent<Spawner>();
-			LifetimeScope.Find<SceneLifetimeScope>()?.Container.Inject(this);
 		}
 
 		private void Start()

@@ -10,7 +10,7 @@ namespace WitchMendokusai
 	{
 		public static QuestManager Instance => DataManager.Instance.QuestManager;
 
-		public QuestBuffer Quests => SOManager.Instance.QuestBuffer;
+		public QuestBuffer Quests => soManager.QuestBuffer;
 
 		private Dictionary<int, QuestState> questStates = new();
 		public void LoadQuestState(Dictionary<int, QuestState> questStates) => this.questStates = questStates;
@@ -20,12 +20,14 @@ namespace WitchMendokusai
 
 		private IPublisher<QuestAddedEvent> questAddedPublisher;
 		private IDisposable questCompletedSub;
+		private SOManager soManager;
 
 		[Inject]
-		public void Construct(IPublisher<QuestAddedEvent> questAddedPublisher, ISubscriber<QuestCompletedEvent> questCompletedSubscriber)
+		public void Construct(IPublisher<QuestAddedEvent> questAddedPublisher, ISubscriber<QuestCompletedEvent> questCompletedSubscriber, SOManager soManager)
 		{
 			this.questAddedPublisher = questAddedPublisher;
 			questCompletedSub = questCompletedSubscriber.Subscribe(OnQuestCompleted);
+			this.soManager = soManager;
 		}
 
 		public void Dispose() => questCompletedSub?.Dispose();

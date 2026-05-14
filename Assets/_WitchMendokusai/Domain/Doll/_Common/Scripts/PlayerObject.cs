@@ -79,10 +79,6 @@ namespace WitchMendokusai
 				StopCoroutine(invincibleRoutine);
 			invincibleRoutine = StartCoroutine(InvincibleTime());
 
-			/*
-			ObjectManager.Instance.PopObject("Effect_Hit",
-				transform.position + (Vector3.Normalize(Wakgood.Instance.transform.position - transform.position) * .5f));*/
-
 			switch (UnitStat[UnitStatType.HP_CUR])
 			{
 				case > 0:

@@ -8,7 +8,6 @@ using FMODUnity;
 using DG.Tweening;
 using System.Linq;
 using VContainer;
-using VContainer.Unity;
 
 namespace WitchMendokusai
 {
@@ -54,7 +53,6 @@ namespace WitchMendokusai
 		private void Awake()
 		{
 			Init();
-			LifetimeScope.Find<SceneLifetimeScope>()?.Container.Inject(this);
 		}
 
 		private void Init()

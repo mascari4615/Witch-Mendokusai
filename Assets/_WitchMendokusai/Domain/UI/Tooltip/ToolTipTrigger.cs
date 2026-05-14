@@ -2,7 +2,6 @@ using System;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using VContainer;
-using VContainer.Unity;
 
 namespace WitchMendokusai
 {
@@ -21,11 +20,6 @@ namespace WitchMendokusai
 		public void Construct(ToolTipPopupManager toolTipPopupManager)
 		{
 			this.toolTipPopupManager = toolTipPopupManager;
-		}
-
-		private void Awake()
-		{
-			LifetimeScope.Find<SceneLifetimeScope>()?.Container.Inject(this);
 		}
 
 		public void SetClickToolTip(ToolTip toolTip) => ClickToolTip = toolTip;

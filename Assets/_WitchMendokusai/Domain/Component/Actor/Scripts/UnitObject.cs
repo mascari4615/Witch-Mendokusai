@@ -2,7 +2,6 @@ using System;
 using UnityEngine;
 using System.Text;
 using VContainer;
-using VContainer.Unity;
 
 namespace WitchMendokusai
 {
@@ -24,7 +23,6 @@ namespace WitchMendokusai
 		[SerializeField] private bool updateRotation = false;
 		[SerializeField] private float acceleration = 40.0f;
 #pragma warning restore CS0414
-		// [SerializeField] private float tolerance = 1.0f;
 
 		public bool IsAlive => Health.IsAlive;
 
@@ -40,7 +38,6 @@ namespace WitchMendokusai
 
 		protected virtual void Awake()
 		{
-			LifetimeScope.Find<SceneLifetimeScope>()?.Container.Inject(this);
 			SpriteRenderer.material.SetFloat("_Emission", 0);
 			BindComponents();
 

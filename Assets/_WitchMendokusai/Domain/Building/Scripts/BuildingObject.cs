@@ -1,6 +1,5 @@
 using UnityEngine;
 using VContainer;
-using VContainer.Unity;
 using static WitchMendokusai.SOHelper;
 
 namespace WitchMendokusai
@@ -22,11 +21,6 @@ namespace WitchMendokusai
 		{
 			this.objectPoolManager = objectPoolManager;
 			this.stageManager = stageManager;
-		}
-
-		private void Awake()
-		{
-			LifetimeScope.Find<SceneLifetimeScope>()?.Container.Inject(this);
 		}
 
 		public void Initialize(BuildingInstanceData saveData, Vector3Int pivot)
