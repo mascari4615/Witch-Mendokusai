@@ -405,12 +405,23 @@ powershell -File memo/dotfiles/scripts/unity-refresh.ps1
 - `manage_assets` / `manage_prefabs` — 에셋 / prefab 변경
 - `manage_packages` — 패키지 변경
 
+**외부 `.unity` / `.asset` / `.prefab` 직접 편집 = 최후 fallback** (MCP `Unity_RunCommand` / `manage_assets` 불가 시에만):
+- MCP API 가 있으면 반드시 MCP 우선 (SerializeField/GUID/fileID race 없음, dirty marker 정확)
+- 외부 편집 후 Unity Editor 가 "Scene has changed on disk. Reload?" modal dialog 띄움
+- `unity-refresh.ps1 -HandleReloadDialog` 로 자동 dismiss (TASK-WM-096 Phase A1):
+  ```powershell
+  powershell -File memo/dotfiles/scripts/unity-refresh.ps1 -HandleReloadDialog
+  # 기본 2초 polling. 오래 걸리면: -DialogPollMs 4000
+  ```
+- **skip 대상** (자동 dismiss X, 사용자 직접): Save dirty / Discard / UnappliedImport dialog
+
 ### 기존 흐름과 결합
 
 | 작업 | 기존 | + MCP layer |
 |---|---|---|
 | 컴파일 검증 | Editor.log grep (`grep "error CS" Editor.log`) | `read_console(types=["error"])` 정본 — 구조화 + 실시간 |
 | Reimport 트리거 | `unity-refresh.ps1` (focus + sleep 25초) | `create_script` / `script_apply_edits` 자동 처리 (refresh_unity 불필요). polling = `mcpforunity://editor/state.is_compiling` |
+| 씬/에셋 외부 편집 dialog | 사용자 수동 클릭 ("Reload?") | `unity-refresh.ps1 -HandleReloadDialog` (TASK-WM-096). MCP 차단 시 외부 편집 fallback 으로 자동 처리 |
 | 씬 정합성 | 사용자 Hierarchy 시각 | `find_gameobjects` + `mcpforunity://scene/gameobject/{id}` |
 | Play Mode 검증 | 사용자 Play 클릭 + Console 봐달라 | `run_tests` (EditMode/PlayMode) 자동 + `read_console` |
 | 시각 검증 (회귀) | 사용자 "이상해 보여요" | `manage_camera(action="screenshot", include_image=True)` 자동 비교 |
@@ -514,6 +525,18 @@ WM 에 `com.unity.test-framework 1.6.0` 박혀있음. 현재 테스트 코드 0 
 6. (시각 검증 필요 시) manage_camera screenshot — AI 자연어 비교
 7. 통과 시 사용자에게 *비전 / 비주얼 / 동작* 컨펌 요청 (남은 사용자 손)
 8. 사용자 OK → commit
+```
+
+**MCP 차단 시 fallback** (`connection revoked` / `not available` / 권한 없음 검출 시):
+```
+외부 .unity / .asset 직접 편집 (Edit 도구)
+  ↓
+powershell -File memo/dotfiles/scripts/unity-refresh.ps1 -HandleReloadDialog
+  ↓ (reload dialog 자동 dismiss — SceneReload / ChangedOnDisk / Reimport)
+  ↓ (SaveDirty / Discard dialog 는 skip — 사용자 클릭 필요)
+Editor.log grep ("error CS" 0 확인)
+  ↓
+정상 시 commit
 ```
 
 #### 7. Multi-instance + worktree race
