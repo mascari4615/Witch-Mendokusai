@@ -49,7 +49,10 @@ namespace WitchMendokusai
 
 		private void Awake()
 		{
-			LifetimeScope.Find<SceneLifetimeScope>()?.Container.Inject(this);
+			LifetimeScope scope = LifetimeScope.Find<SceneLifetimeScope>();
+			if (scope == null)
+				scope = LifetimeScope.Find<RootLifetimeScope>();
+			scope?.Container.Inject(this);
 		}
 
 		private static readonly Color BACKGROUND_COLOR = new Color(0.08f, 0.08f, 0.12f, 0.97f);

@@ -30,7 +30,10 @@ namespace WitchMendokusai
 
 		private void Awake()
 		{
-			LifetimeScope.Find<SceneLifetimeScope>()?.Container.Inject(this);
+			LifetimeScope scope = LifetimeScope.Find<SceneLifetimeScope>();
+			if (scope == null)
+				scope = LifetimeScope.Find<RootLifetimeScope>();
+			scope?.Container.Inject(this);
 		}
 
 		private IEnumerator Start()
