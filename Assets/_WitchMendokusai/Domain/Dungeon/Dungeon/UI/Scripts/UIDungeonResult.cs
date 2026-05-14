@@ -1,5 +1,6 @@
 using TMPro;
 using UnityEngine;
+using VContainer;
 
 namespace WitchMendokusai
 {
@@ -16,11 +17,21 @@ namespace WitchMendokusai
 		private UICardDataGrid cardGrid;
 		private UIItemDataGrid itemGrid;
 
+		private DungeonManager dungeonManager;
+		private SOManager soManager;
+
+		[Inject]
+		public void Construct(DungeonManager dungeonManager, SOManager soManager)
+		{
+			this.dungeonManager = dungeonManager;
+			this.soManager = soManager;
+		}
+
 		public override bool IsFullscreen => true;
 
 		public void Continue()
 		{
-			DungeonManager.Instance.Continue();
+			dungeonManager.Continue();
 		}
 
 		protected override void OnInit()
@@ -29,13 +40,13 @@ namespace WitchMendokusai
 			cardGrid.Init();
 
 			itemGrid = GetComponentInChildren<UIItemDataGrid>(true);
-			itemGrid.SetData(SOManager.Instance.DungeonItemBuffer.Data);
+			itemGrid.SetData(soManager.DungeonItemBuffer.Data);
 			itemGrid.Init();
 		}
 
 		public override void UpdateUI()
 		{
-			DungeonRecord record = DungeonManager.Instance.Result;
+			DungeonRecord record = dungeonManager.Result;
 
 			playTimeText.text = record.PlayTime.ToString(@"mm\:ss");
 			levelText.text = record.Level.ToString();
@@ -47,9 +58,10 @@ namespace WitchMendokusai
 			itemGrid.UpdateUI();
 			UpdateItemAmounts();
 		}
+
 		private void UpdateItemAmounts()
 		{
-			ItemDataBuffer buffer = SOManager.Instance.DungeonItemBuffer;
+			ItemDataBuffer buffer = soManager.DungeonItemBuffer;
 			for (int i = 0; i < itemGrid.Slots.Count && i < buffer.Data.Count; i++)
 			{
 				ItemData itemData = buffer.Data[i];

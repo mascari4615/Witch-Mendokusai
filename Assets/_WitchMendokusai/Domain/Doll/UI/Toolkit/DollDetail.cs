@@ -23,8 +23,16 @@ namespace WitchMendokusai
 		private Doll doll;
 		private readonly DollEquipmentInventory equipmentInventory;
 
-		public DollDetail()
+		// VisualElement 는 MonoBehaviour 가 아니라 [Inject] 사용 불가 — caller (DollView, MonoBehaviour)
+		// 가 inject 받은 인스턴스를 생성자로 전달한다.
+		private readonly DataManager dataManager;
+		private readonly PlayerProvider playerProvider;
+
+		public DollDetail(DataManager dataManager, PlayerProvider playerProvider)
 		{
+			this.dataManager = dataManager;
+			this.playerProvider = playerProvider;
+
 			AddToClassList(USS_CLASS);
 
 			nameLabel = new Label();
@@ -130,7 +138,7 @@ namespace WitchMendokusai
 
 			bool isDummy = doll.ID == Doll.DUMMY_ID;
 			selectButton.style.display = isDummy ? DisplayStyle.None : DisplayStyle.Flex;
-			selectButton.SetEnabled(DataManager.Instance.CurDollID != doll.ID);
+			selectButton.SetEnabled(dataManager.CurDollID != doll.ID);
 		}
 
 		private void OnSelectClicked()
@@ -138,8 +146,8 @@ namespace WitchMendokusai
 			if (doll == null || doll.ID == Doll.DUMMY_ID)
 				return;
 
-			DataManager.Instance.SetCurDoll(doll.ID);
-			PlayerProvider.Instance.CurrentObject.SetDoll(doll.ID);
+			dataManager.SetCurDoll(doll.ID);
+			playerProvider.CurrentObject.SetDoll(doll.ID);
 			Refresh();
 		}
 	}

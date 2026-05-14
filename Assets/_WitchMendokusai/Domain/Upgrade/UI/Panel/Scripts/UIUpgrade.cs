@@ -2,6 +2,8 @@ using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using VContainer;
+using VContainer.Unity;
 using static WitchMendokusai.SOHelper;
 
 namespace WitchMendokusai
@@ -18,7 +20,22 @@ namespace WitchMendokusai
 		private UIUpgradeGrid upgradeGridUI;
 		private NPCObject npc;
 
+		private UIManager uiManager;
+		private SOManager soManager;
+
 		public override bool IsFullscreen => true;
+
+		[Inject]
+		public void Construct(UIManager uiManager, SOManager soManager)
+		{
+			this.uiManager = uiManager;
+			this.soManager = soManager;
+		}
+
+		private void Awake()
+		{
+			LifetimeScope.Find<SceneLifetimeScope>()?.Container.Inject(this);
+		}
 
 		protected override void OnInit()
 		{
@@ -26,7 +43,7 @@ namespace WitchMendokusai
 
 			// 임의로 모든 UpgradeData 불러오도록 설정
 			upgradeGridUI.Init();
-			upgradeGridUI.SetData(SOManager.Instance.DataSOs[typeof(UpgradeData)].Values.Cast<UpgradeData>().ToList());
+			upgradeGridUI.SetData(soManager.DataSOs[typeof(UpgradeData)].Values.Cast<UpgradeData>().ToList());
 			upgradeGridUI.UpdateUI();
 
 			upgradeGridUI.OnSelectSlot += (slot, data) =>
@@ -108,7 +125,7 @@ namespace WitchMendokusai
 			if (targetUpgrade.TryUpgrade(out UpgradeFailReason reason, out int upgradePrice))
 			{
 				UpdateUI();
-				UIManager.Instance.PopText($"- {upgradePrice}", TextType.Warning);
+				uiManager.PopText($"- {upgradePrice}", TextType.Warning);
 				return;
 			}
 			else
@@ -116,10 +133,10 @@ namespace WitchMendokusai
 				switch (reason)
 				{
 					case UpgradeFailReason.MaxLevel:
-						UIManager.Instance.PopText("최대 레벨입니다. 더 이상 올릴 수 없습니다.", TextType.Warning);
+						uiManager.PopText("최대 레벨입니다. 더 이상 올릴 수 없습니다.", TextType.Warning);
 						break;
 					case UpgradeFailReason.InsufficientNyang:
-						UIManager.Instance.PopText("냥 부족!", TextType.Warning);
+						uiManager.PopText("냥 부족!", TextType.Warning);
 						break;
 				}
 			}
@@ -131,7 +148,7 @@ namespace WitchMendokusai
 			if (targetUpgrade.TryDowngrade(out DowngradeFailReason reason, out int refundedNyang))
 			{
 				UpdateUI();
-				UIManager.Instance.PopText($"+ {refundedNyang}", TextType.Warning);
+				uiManager.PopText($"+ {refundedNyang}", TextType.Warning);
 				return;
 			}
 			else
@@ -139,7 +156,7 @@ namespace WitchMendokusai
 				switch (reason)
 				{
 					case DowngradeFailReason.MinLevel:
-						UIManager.Instance.PopText("최소 레벨입니다. 더 이상 내릴 수 없습니다.", TextType.Warning);
+						uiManager.PopText("최소 레벨입니다. 더 이상 내릴 수 없습니다.", TextType.Warning);
 						break;
 				}
 			}
@@ -151,7 +168,7 @@ namespace WitchMendokusai
 			if (targetUpgrade.TryReset(out DowngradeFailReason reason, out int refundedNyang))
 			{
 				UpdateUI();
-				UIManager.Instance.PopText($"+ {refundedNyang}", TextType.Warning);
+				uiManager.PopText($"+ {refundedNyang}", TextType.Warning);
 				return;
 			}
 			else
@@ -159,7 +176,7 @@ namespace WitchMendokusai
 				switch (reason)
 				{
 					case DowngradeFailReason.MinLevel:
-						UIManager.Instance.PopText("최소 레벨입니다. 더 이상 내릴 수 없습니다.", TextType.Warning);
+						uiManager.PopText("최소 레벨입니다. 더 이상 내릴 수 없습니다.", TextType.Warning);
 						break;
 				}
 			}
@@ -177,7 +194,7 @@ namespace WitchMendokusai
 			if (totalRefund > 0)
 			{
 				UpdateUI();
-				UIManager.Instance.PopText($"+ {totalRefund}", TextType.Warning);
+				uiManager.PopText($"+ {totalRefund}", TextType.Warning);
 			}
 		}
 	}

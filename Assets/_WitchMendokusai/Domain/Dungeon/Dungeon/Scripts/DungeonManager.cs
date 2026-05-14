@@ -43,7 +43,7 @@ namespace WitchMendokusai
 		private GameManager gameManager;
 
 		[Inject]
-		public void Construct(SOManager soManager, UIManager uiManager, CameraManager cameraManager, StageManager stageManager, GameEventManager gameEventManager, PlayerProvider playerProvider, DataManager dataManager, GameManager gameManager)
+		public void Construct(SOManager soManager, UIManager uiManager, CameraManager cameraManager, StageManager stageManager, GameEventManager gameEventManager, PlayerProvider playerProvider, DataManager dataManager, GameManager gameManager, IObjectResolver container)
 		{
 			this.soManager = soManager;
 			this.uiManager = uiManager;
@@ -54,6 +54,8 @@ namespace WitchMendokusai
 			this.dataManager = dataManager;
 			this.gameManager = gameManager;
 			DungeonManagerBridge.Register(this);
+			container.Inject(monsterSpawner);
+			container.Inject(resourceNodeSpawner);
 		}
 
 		private void Awake()
@@ -119,7 +121,7 @@ namespace WitchMendokusai
 					constraints: dungeon.Constraints
 				);
 
-				dungeonRecorder = new DungeonRecorder();
+				dungeonRecorder = new DungeonRecorder(this, dataManager);
 
 				IsDungeon = true;
 

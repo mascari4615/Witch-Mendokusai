@@ -1,5 +1,7 @@
 using System;
 using UnityEngine;
+using VContainer;
+using VContainer.Unity;
 
 namespace WitchMendokusai
 {
@@ -55,8 +57,20 @@ namespace WitchMendokusai
 		/// </summary>
 		public Vector3 Velocity => motor != null ? motor.Context.Velocity : Vector3.zero;
 
+		private GameManager gameManager;
+		private TimeManager timeManager;
+
+		[Inject]
+		public void Construct(GameManager gameManager, TimeManager timeManager)
+		{
+			this.gameManager = gameManager;
+			this.timeManager = timeManager;
+		}
+
 		private void Awake()
 		{
+			LifetimeScope.Find<SceneLifetimeScope>()?.Container.Inject(this);
+
 			unitRigidBody = GetComponent<Rigidbody>();
 			unitObject = GetComponent<UnitObject>();
 			unitCapsule = GetComponent<CapsuleCollider>();
@@ -146,8 +160,8 @@ namespace WitchMendokusai
 
 		private bool IsMovementBlocked()
 		{
-			return GameManager.Instance.Conditions[GameConditionType.IsTyping] ||
-				TimeManager.Instance.IsPaused;
+			return gameManager.Conditions[GameConditionType.IsTyping] ||
+				timeManager.IsPaused;
 		}
 
 		public bool IsGrounded()

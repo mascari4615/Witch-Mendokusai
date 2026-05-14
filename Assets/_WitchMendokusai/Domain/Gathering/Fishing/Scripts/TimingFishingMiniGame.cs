@@ -2,6 +2,8 @@ using System;
 using System.Collections;
 using FMODUnity;
 using UnityEngine;
+using VContainer;
+using VContainer.Unity;
 using Random = UnityEngine.Random;
 
 namespace WitchMendokusai
@@ -19,6 +21,21 @@ namespace WitchMendokusai
 		[SerializeField] private string missMessage = "놓쳤다...";
 		[SerializeField] private float missMessageDuration = 1.0f;
 
+		private UIManager uiManager;
+		private InputManager inputManager;
+
+		[Inject]
+		public void Construct(UIManager uiManager, InputManager inputManager)
+		{
+			this.uiManager = uiManager;
+			this.inputManager = inputManager;
+		}
+
+		private void Awake()
+		{
+			LifetimeScope.Find<SceneLifetimeScope>()?.Container.Inject(this);
+		}
+
 		public IEnumerator Play(FishingContext context, Action<bool> onResult)
 		{
 			// 입질까지 랜덤 대기
@@ -29,12 +46,12 @@ namespace WitchMendokusai
 			if (string.IsNullOrEmpty(biteEventPath) == false)
 				RuntimeManager.PlayOneShot(biteEventPath, context.Fisherman.position);
 
-			UIManager.Instance.SpeechBubble.Show(context.Fisherman, biteSprite, context.Data.InputWindow);
+			uiManager.SpeechBubble.Show(context.Fisherman, biteSprite, context.Data.InputWindow);
 
 			// 타이밍 입력 윈도우 — 입력 즉시 종료
 			bool caught = false;
 			Action onCatch = () => caught = true;
-			InputManager.Instance.RegisterInputEvent(InputEventType.Submit, InputEventResponseType.Performed, onCatch);
+			inputManager.RegisterInputEvent(InputEventType.Submit, InputEventResponseType.Performed, onCatch);
 
 			float elapsed = 0f;
 			while (elapsed < context.Data.InputWindow && caught == false)
@@ -43,7 +60,7 @@ namespace WitchMendokusai
 				yield return null;
 			}
 
-			InputManager.Instance.UnregisterInputEvent(InputEventType.Submit, InputEventResponseType.Performed, onCatch);
+			inputManager.UnregisterInputEvent(InputEventType.Submit, InputEventResponseType.Performed, onCatch);
 
 			// 실패 피드백
 			if (caught == false)
@@ -52,7 +69,7 @@ namespace WitchMendokusai
 					RuntimeManager.PlayOneShot(missEventPath, context.Fisherman.position);
 
 				if (string.IsNullOrEmpty(missMessage) == false)
-					UIManager.Instance.SpeechBubble.Show(context.Fisherman, missMessage, missMessageDuration);
+					uiManager.SpeechBubble.Show(context.Fisherman, missMessage, missMessageDuration);
 			}
 
 			onResult(caught);

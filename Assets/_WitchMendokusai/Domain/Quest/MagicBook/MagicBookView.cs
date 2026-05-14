@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
+using VContainer;
+using VContainer.Unity;
 
 namespace WitchMendokusai
 {
@@ -29,6 +31,27 @@ namespace WitchMendokusai
 
 		public bool IsOpen { get; private set; }
 
+		private UIRoot uiRoot;
+		private InputManager inputManager;
+		private SOManager soManager;
+		private TimeManager timeManager;
+		private QuestManager questManager;
+
+		[Inject]
+		public void Construct(UIRoot uiRoot, InputManager inputManager, SOManager soManager, TimeManager timeManager, QuestManager questManager)
+		{
+			this.uiRoot = uiRoot;
+			this.inputManager = inputManager;
+			this.soManager = soManager;
+			this.timeManager = timeManager;
+			this.questManager = questManager;
+		}
+
+		private void Awake()
+		{
+			LifetimeScope.Find<SceneLifetimeScope>()?.Container.Inject(this);
+		}
+
 		private static readonly Color BACKGROUND_COLOR = new Color(0.08f, 0.08f, 0.12f, 0.97f);
 		private static readonly Color SIDEBAR_COLOR = new Color(0.13f, 0.13f, 0.18f, 1f);
 		private static readonly Color DETAIL_BACKGROUND_COLOR = new Color(0.13f, 0.13f, 0.18f, 0.95f);
@@ -50,12 +73,12 @@ namespace WitchMendokusai
 			container.style.backgroundColor = BACKGROUND_COLOR;
 			container.style.display = DisplayStyle.None;
 
-			UIRoot.Instance.ScreenLayer.Add(container);
+			uiRoot.ScreenLayer.Add(container);
 
 			BuildUI();
 			IsOpen = false;
 
-			InputManager.Instance.RegisterInputEvent(InputEventType.MagicBookToggle, InputEventResponseType.Performed, Toggle);
+			inputManager.RegisterInputEvent(InputEventType.MagicBookToggle, InputEventResponseType.Performed, Toggle);
 			EventBusBridge.Subscribe<QuestDetailRequestedEvent>(OnQuestDetailRequested);
 		}
 
@@ -118,7 +141,7 @@ namespace WitchMendokusai
 		{
 			chapters.Clear();
 
-			if (SOManager.Instance.DataSOs.TryGetValue(typeof(ChapterSO), out Dictionary<int, DataSO> chapterDict) == false)
+			if (soManager.DataSOs.TryGetValue(typeof(ChapterSO), out Dictionary<int, DataSO> chapterDict) == false)
 			{
 				Debug.LogWarning("[MagicBookView] SOManager.DataSOs[ChapterSO] 미등록 — DataLoader 가 Addressable 라벨 'ChapterSO' 로 자동 load. ChapterSO 자산 Inspector 에서 Addressable 라벨 'ChapterSO' 추가 필요");
 				return;
@@ -180,7 +203,7 @@ namespace WitchMendokusai
 
 			container.AddToClassList(ACTIVE_CLASS);
 			container.style.display = DisplayStyle.Flex;
-			TimeManager.Instance.Pause(gameObject);
+			timeManager.Pause(gameObject);
 		}
 
 		public void Close()
@@ -190,7 +213,7 @@ namespace WitchMendokusai
 			IsOpen = false;
 			container.RemoveFromClassList(ACTIVE_CLASS);
 			container.style.display = DisplayStyle.None;
-			TimeManager.Instance.Resume(gameObject);
+			timeManager.Resume(gameObject);
 		}
 
 		public void Toggle()
@@ -213,7 +236,7 @@ namespace WitchMendokusai
 			if (questSO == null)
 				return;
 
-			RuntimeQuest quest = QuestManager.Instance.GetQuest(questSO);
+			RuntimeQuest quest = questManager.GetQuest(questSO);
 			questDetail.Bind(questSO, quest);
 		}
 

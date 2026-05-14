@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using VContainer;
+using VContainer.Unity;
 
 namespace WitchMendokusai
 {
@@ -28,8 +30,17 @@ namespace WitchMendokusai
 		// public PanelType CurPanel => PanelStack.Count > 0 ? PanelStack.Peek() : PanelType.None;
 		// public Stack<PanelType> PanelStack { get; private set; } = new();
 
+		private UIManager uiManager;
+
+		[Inject]
+		public void Construct(UIManager uiManager)
+		{
+			this.uiManager = uiManager;
+		}
+
 		protected virtual void Awake()
 		{
+			LifetimeScope.Find<SceneLifetimeScope>()?.Container.Inject(this);
 			Init();
 		}
 
@@ -37,7 +48,7 @@ namespace WitchMendokusai
 
 		protected virtual void Start()
 		{
-			UIManager.Instance.RegisterOverlayUI(this);
+			uiManager.RegisterOverlayUI(this);
 
 			foreach (UIPanel uiPanel in Panels.Values)
 			{

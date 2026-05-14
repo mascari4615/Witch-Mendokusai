@@ -1,4 +1,6 @@
 using UnityEngine;
+using VContainer;
+using VContainer.Unity;
 
 namespace WitchMendokusai
 {
@@ -17,6 +19,20 @@ namespace WitchMendokusai
 		public State CurrentState { get; private set; }
 
 		private BuildingObject buildingObject;
+		private UIManager uiManager;
+		private SOManager soManager;
+
+		[Inject]
+		public void Construct(UIManager uiManager, SOManager soManager)
+		{
+			this.uiManager = uiManager;
+			this.soManager = soManager;
+		}
+
+		private void Awake()
+		{
+			LifetimeScope.Find<SceneLifetimeScope>()?.Container.Inject(this);
+		}
 
 		private void OnEnable()
 		{
@@ -48,11 +64,11 @@ namespace WitchMendokusai
 
 		private void PlantSeed()
 		{
-			Inventory inventory = SOManager.Instance.ItemInventory;
+			Inventory inventory = soManager.ItemInventory;
 			int index = inventory.FindItemIndex(seed);
 			if (index < 0)
 			{
-				UIManager.Instance.SpeechBubble.Show(transform, $"{seed.Name} 씨앗이 없습니다.");
+				uiManager.SpeechBubble.Show(transform, $"{seed.Name} 씨앗이 없습니다.");
 				return;
 			}
 
@@ -71,7 +87,7 @@ namespace WitchMendokusai
 		private void ShowGrowingBubble()
 		{
 			long remaining = (long)seed.GrowSeconds - ReadRuntime().ElapsedSeconds;
-			UIManager.Instance.SpeechBubble.Show(transform, $"...아직 자라는 중 ({remaining}s)");
+			uiManager.SpeechBubble.Show(transform, $"...아직 자라는 중 ({remaining}s)");
 		}
 
 		private void Refresh()

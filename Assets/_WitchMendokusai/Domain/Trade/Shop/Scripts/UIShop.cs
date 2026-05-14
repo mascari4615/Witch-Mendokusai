@@ -1,5 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
+using VContainer;
+using VContainer.Unity;
 using static WitchMendokusai.SOHelper;
 
 namespace WitchMendokusai
@@ -13,7 +15,24 @@ namespace WitchMendokusai
 		private UIItemGrid itemInventoryUI;
 		private NPCObject npc;
 
+		private UIManager uiManager;
+		private SOManager soManager;
+		private DataManager dataManager;
+
 		public override bool IsFullscreen => true;
+
+		[Inject]
+		public void Construct(UIManager uiManager, SOManager soManager, DataManager dataManager)
+		{
+			this.uiManager = uiManager;
+			this.soManager = soManager;
+			this.dataManager = dataManager;
+		}
+
+		private void Awake()
+		{
+			LifetimeScope.Find<SceneLifetimeScope>()?.Container.Inject(this);
+		}
 
 		protected override void OnInit()
 		{
@@ -52,7 +71,7 @@ namespace WitchMendokusai
 		public override void UpdateUI()
 		{
 			shopImage.sprite = npc.Data.Sprite;
-			dollImage.sprite = GetDoll(DataManager.Instance.CurDollID).Sprite;
+			dollImage.sprite = GetDoll(dataManager.CurDollID).Sprite;
 
 			shopInventoryUI.UpdateUI();
 			itemInventoryUI.UpdateUI();
@@ -61,31 +80,31 @@ namespace WitchMendokusai
 		public void BuyItem(int itemID)
 		{
 			ItemData itemData = GetItemData(itemID);
-			if (itemData.PurchasePrice <= DataManager.Instance.GameStat[GameStatType.NYANG])
+			if (itemData.PurchasePrice <= dataManager.GameStat[GameStatType.NYANG])
 			{
-				DataManager.Instance.GameStat[GameStatType.NYANG] -= itemData.PurchasePrice;
-				SOManager.Instance.ItemInventory.Add(itemData);
+				dataManager.GameStat[GameStatType.NYANG] -= itemData.PurchasePrice;
+				soManager.ItemInventory.Add(itemData);
 				UpdateUI();
 
-				UIManager.Instance.PopText($"- {itemData.PurchasePrice}", TextType.Warning);
+				uiManager.PopText($"- {itemData.PurchasePrice}", TextType.Warning);
 			}
 			else
 			{
-				UIManager.Instance.PopText("냥이 부족합니다.", TextType.Warning);
+				uiManager.PopText("냥이 부족합니다.", TextType.Warning);
 			}
 		}
 
 		public void SellItem(int slotIndex)
 		{
-			Item item = SOManager.Instance.ItemInventory.GetItem(slotIndex);
+			Item item = soManager.ItemInventory.GetItem(slotIndex);
 			if (item != null)
 			{
 				ItemData itemData = (ItemData)item.Data;
-				DataManager.Instance.GameStat[GameStatType.NYANG] += itemData.SalePrice;
-				SOManager.Instance.ItemInventory.Remove(slotIndex);
+				dataManager.GameStat[GameStatType.NYANG] += itemData.SalePrice;
+				soManager.ItemInventory.Remove(slotIndex);
 				UpdateUI();
 
-				UIManager.Instance.PopText($"+ {itemData.SalePrice}", TextType.Warning);
+				uiManager.PopText($"+ {itemData.SalePrice}", TextType.Warning);
 			}
 		}
 	}

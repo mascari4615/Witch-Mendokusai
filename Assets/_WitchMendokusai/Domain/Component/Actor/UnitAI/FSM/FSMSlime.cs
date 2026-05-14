@@ -29,29 +29,13 @@ namespace WitchMendokusai
 
 			SetStateEvent(FSMStateCommon.Idle, StateEvent.Update, () =>
 			{
-				CanSeePlayer();
 				idle.UpdateBT();
 			});
 
 			SetStateEvent(FSMStateCommon.Attack, StateEvent.Update, () =>
 			{
-				CanSeePlayer();
 				moveToPlayer.UpdateBT();
 			});
-		}
-
-		private void CanSeePlayer()
-		{
-			// if (Vector3.Distance(UnitObject.transform.position, PlayerProvider.Instance.Current.transform.position) < attackRange)
-			// {
-			// 	if (IsCurState(FSMStateCommon.Attack) == false)
-			// 		ChangeState(FSMStateCommon.Attack);
-			// }
-			// else
-			// {
-			// 	if (IsCurState(FSMStateCommon.Idle) == false)
-			// 		ChangeState(FSMStateCommon.Idle);
-			// }
 		}
 	}
 }

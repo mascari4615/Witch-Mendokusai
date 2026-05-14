@@ -2,6 +2,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using VContainer;
+using VContainer.Unity;
 
 namespace WitchMendokusai
 {
@@ -16,9 +18,22 @@ namespace WitchMendokusai
 
 		[SerializeField] private List<CriteriaInfo> criteria;
 
+		private SOManager soManager;
+
+		[Inject]
+		public void Construct(SOManager soManager)
+		{
+			this.soManager = soManager;
+		}
+
+		private void Awake()
+		{
+			LifetimeScope.Find<SceneLifetimeScope>()?.Container.Inject(this);
+		}
+
 		public void OnInteract()
 		{
-			SOManager.Instance.ItemInventory.Add(itemData, amount);
+			soManager.ItemInventory.Add(itemData, amount);
 			gameObject.SetActive(false);
 		}
 	}

@@ -70,16 +70,20 @@ namespace WitchMendokusai
 			if (Instance != null && Instance != this) { Destroy(gameObject); return; }
 			Instance = this;
 
-			// Content UIs
-			Instantiate(dungeonPrefab, BaseCanvas.transform);
-			Instantiate(adventurerGuildPrefab, BaseCanvas.transform);
+			// Content UIs — 계층 전체 inject (UIDungeonRuntime / UIDungeonResult / UIDungeonEntrance 등)
+			UIDungeon dungeonInst = Instantiate(dungeonPrefab, BaseCanvas.transform);
+			foreach (MonoBehaviour mb in dungeonInst.GetComponentsInChildren<MonoBehaviour>(true))
+				container.Inject(mb);
+
+			adventurerGuild = Instantiate(adventurerGuildPrefab, BaseCanvas.transform);
+			foreach (MonoBehaviour mb in adventurerGuild.GetComponentsInChildren<MonoBehaviour>(true))
+				container.Inject(mb);
+			adventurerGuild.gameObject.SetActive(false);
 
 			// Common UIs
 			CutSceneModule = FindAnyObjectByType<CutSceneModule>(FindObjectsInactive.Include);
 			Chat = FindAnyObjectByType<UIChat>(FindObjectsInactive.Include);
 			container.Inject(Chat);
-			adventurerGuild = FindAnyObjectByType<UIAdventurerGuild>(FindObjectsInactive.Include);
-			adventurerGuild.gameObject.SetActive(false);
 
 			NPC = FindAnyObjectByType<UINPC>(FindObjectsInactive.Include);
 

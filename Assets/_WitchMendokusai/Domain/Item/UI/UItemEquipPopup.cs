@@ -7,6 +7,8 @@ using UnityEngine.UI;
 using FMODUnity;
 using DG.Tweening;
 using System.Linq;
+using VContainer;
+using VContainer.Unity;
 
 namespace WitchMendokusai
 {
@@ -41,9 +43,18 @@ namespace WitchMendokusai
 		private int showingSlotCount = 0;
 		private int flag = 0;
 
+		private SOManager soManager;
+
+		[Inject]
+		public void Construct(SOManager soManager)
+		{
+			this.soManager = soManager;
+		}
+
 		private void Awake()
 		{
 			Init();
+			LifetimeScope.Find<SceneLifetimeScope>()?.Container.Inject(this);
 		}
 
 		private void Init()
@@ -67,12 +78,12 @@ namespace WitchMendokusai
 
 		private void Start()
 		{
-			SOManager.Instance.LastEquippedItem.OnValueChanged += EquipItem;
+			soManager.LastEquippedItem.OnValueChanged += EquipItem;
 		}
 
 		public void EquipItem()
 		{
-			toolTipStacks.Enqueue(SOManager.Instance.LastEquippedItem.RuntimeValue);
+			toolTipStacks.Enqueue(soManager.LastEquippedItem.RuntimeValue);
 			showToolTipLoop ??= StartCoroutine(ShowToolTips());
 		}
 

@@ -1,5 +1,7 @@
 using System.Collections;
 using UnityEngine;
+using VContainer;
+using VContainer.Unity;
 
 namespace WitchMendokusai
 {
@@ -15,16 +17,31 @@ namespace WitchMendokusai
 		[SerializeField] private int delayedStateIndex = 3;
 		[SerializeField] private float delaySeconds = 2f;
 
+		private GameEventManager gameEventManager;
+		private UIManager uiManager;
+
+		[Inject]
+		public void Construct(GameEventManager gameEventManager, UIManager uiManager)
+		{
+			this.gameEventManager = gameEventManager;
+			this.uiManager = uiManager;
+		}
+
+		private void Awake()
+		{
+			LifetimeScope.Find<SceneLifetimeScope>()?.Container.Inject(this);
+		}
+
 		private void OnEnable()
 		{
-			GameEventManager.Instance.RegisterCallback(GameEventType.OnDungeonReturn, OnDungeonReturn);
-			GameEventManager.Instance.RegisterCallback(GameEventType.OnResearchComplete, OnResearchComplete);
+			gameEventManager.RegisterCallback(GameEventType.OnDungeonReturn, OnDungeonReturn);
+			gameEventManager.RegisterCallback(GameEventType.OnResearchComplete, OnResearchComplete);
 		}
 
 		private void OnDisable()
 		{
-			GameEventManager.Instance.UnregisterCallback(GameEventType.OnDungeonReturn, OnDungeonReturn);
-			GameEventManager.Instance.UnregisterCallback(GameEventType.OnResearchComplete, OnResearchComplete);
+			gameEventManager.UnregisterCallback(GameEventType.OnDungeonReturn, OnDungeonReturn);
+			gameEventManager.UnregisterCallback(GameEventType.OnResearchComplete, OnResearchComplete);
 		}
 
 		private void OnDungeonReturn()
@@ -43,12 +60,12 @@ namespace WitchMendokusai
 			string reaction = (returnReactions != null && stateIndex < returnReactions.Length)
 				? returnReactions[stateIndex]
 				: "...수고했어.";
-			UIManager.Instance.SpeechBubble.Show(transform, reaction);
+			uiManager.SpeechBubble.Show(transform, reaction);
 		}
 
 		private void OnResearchComplete()
 		{
-			UIManager.Instance.SpeechBubble.Show(transform, "오, 뭔가 알아냈어?");
+			uiManager.SpeechBubble.Show(transform, "오, 뭔가 알아냈어?");
 		}
 
 		[ContextMenu("Test/OnDungeonReturn")]

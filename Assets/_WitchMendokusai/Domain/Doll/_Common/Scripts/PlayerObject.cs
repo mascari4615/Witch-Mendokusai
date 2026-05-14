@@ -19,14 +19,12 @@ namespace WitchMendokusai
 		[SerializeField] private SpriteRenderer bodyRenderer;
 
 		private GameEventManager gameEventManager;
-		private TimeManager timeManager;
 		private SOManager soManager;
 
 		[Inject]
-		public void Construct(GameEventManager gameEventManager, TimeManager timeManager, SOManager soManager)
+		public void Construct(GameEventManager gameEventManager, SOManager soManager)
 		{
 			this.gameEventManager = gameEventManager;
-			this.timeManager = timeManager;
 			this.soManager = soManager;
 		}
 

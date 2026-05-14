@@ -1,12 +1,22 @@
+using VContainer;
+
 namespace WitchMendokusai
 {
 	public class NPCObject : UnitObject, IInteractable
 	{
 		public NPC Data => UnitData as NPC;
 
+		private UIManager uiManager;
+
+		[Inject]
+		public void Construct(UIManager uiManager)
+		{
+			this.uiManager = uiManager;
+		}
+
 		public void OnInteract()
 		{
-			UIManager.Instance.NPC.SetPanel(NPCPanelType.NPC, this);
+			uiManager.NPC.SetPanel(NPCPanelType.NPC, this);
 		}
 	}
 }

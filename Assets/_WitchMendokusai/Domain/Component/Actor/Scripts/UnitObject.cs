@@ -1,6 +1,8 @@
 using System;
 using UnityEngine;
 using System.Text;
+using VContainer;
+using VContainer.Unity;
 
 namespace WitchMendokusai
 {
@@ -26,8 +28,19 @@ namespace WitchMendokusai
 
 		public bool IsAlive => Health.IsAlive;
 
+		protected TimeManager timeManager;
+		protected UnitStatCalculator unitStatCalculator;
+
+		[Inject]
+		public void Construct(TimeManager timeManager, UnitStatCalculator unitStatCalculator)
+		{
+			this.timeManager = timeManager;
+			this.unitStatCalculator = unitStatCalculator;
+		}
+
 		protected virtual void Awake()
 		{
+			LifetimeScope.Find<SceneLifetimeScope>()?.Container.Inject(this);
 			SpriteRenderer.material.SetFloat("_Emission", 0);
 			BindComponents();
 
@@ -53,10 +66,10 @@ namespace WitchMendokusai
 
 			if (SkillHandler != null)
 			{
-				TimeManager.Instance.RemoveCallback(SkillHandler.Tick);
+				timeManager.RemoveCallback(SkillHandler.Tick);
 			}
 			SkillHandler = new(this);
-			TimeManager.Instance.RegisterCallback(SkillHandler.Tick);
+			timeManager.RegisterCallback(SkillHandler.Tick);
 
 			UnitStat.Set(UnitData.InitStatInfos.GetUnitStat());
 			UpdateStat();
@@ -73,7 +86,7 @@ namespace WitchMendokusai
 
 		public void UpdateStat()
 		{
-			UnitStatCalculator.Instance.CalcStat(UnitData, UnitStat);
+			unitStatCalculator.CalcStat(UnitData, UnitStat);
 		}
 
 		public virtual bool UseSkill(int index)

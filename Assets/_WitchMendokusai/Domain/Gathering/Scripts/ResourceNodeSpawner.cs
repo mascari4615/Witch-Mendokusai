@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using VContainer;
 using Random = UnityEngine.Random;
 
 namespace WitchMendokusai
@@ -17,6 +18,16 @@ namespace WitchMendokusai
 		[SerializeField] private Vector2 spawnDistanceRange = new(5f, 12f);
 
 		private readonly List<WaveInstance> waves = new();
+
+		private PlayerProvider playerProvider;
+		private ObjectPoolManager objectPoolManager;
+
+		[Inject]
+		public void Construct(PlayerProvider playerProvider, ObjectPoolManager objectPoolManager)
+		{
+			this.playerProvider = playerProvider;
+			this.objectPoolManager = objectPoolManager;
+		}
 
 		public void InitWaves(Dungeon dungeon)
 		{
@@ -59,7 +70,7 @@ namespace WitchMendokusai
 
 			Vector3 spawnPos = GetSpawnPosition();
 
-			GameObject nodeObject = ObjectPoolManager.Instance.Spawn(data.Prefab);
+			GameObject nodeObject = objectPoolManager.Spawn(data.Prefab);
 			if (nodeObject == null)
 			{
 				Debug.LogWarning($"[ResourceNodeSpawner] ObjectPoolManager returned null for prefab {data.Prefab.name}");
@@ -101,7 +112,7 @@ namespace WitchMendokusai
 
 		private Vector3 GetSpawnPosition()
 		{
-			Vector3 playerPos = PlayerProvider.Instance.Current.transform.position;
+			Vector3 playerPos = playerProvider.Current.transform.position;
 			Vector2 randomCircle = Random.insideUnitCircle.normalized;
 			float randomDist = Random.Range(spawnDistanceRange.x, spawnDistanceRange.y);
 			return playerPos + new Vector3(randomCircle.x, 0, randomCircle.y) * randomDist;

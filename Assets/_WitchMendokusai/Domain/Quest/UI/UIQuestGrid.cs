@@ -3,6 +3,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using VContainer;
+using VContainer.Unity;
 
 namespace WitchMendokusai
 {
@@ -12,6 +14,19 @@ namespace WitchMendokusai
 		private QuestType curFilter = QuestType.None;
 
 		private UIQuestToolTip questToolTip;
+
+		private TimeManager timeManager;
+
+		[Inject]
+		public void Construct(TimeManager timeManager)
+		{
+			this.timeManager = timeManager;
+		}
+
+		private void Awake()
+		{
+			LifetimeScope.Find<SceneLifetimeScope>()?.Container.Inject(this);
+		}
 
 		// TODO: [SerializeField] private bool resetFilterOnEnable = true;
 
@@ -103,7 +118,7 @@ namespace WitchMendokusai
 			UpdateUI();
 		}
 
-		private void OnEnable() => TimeManager.Instance.RegisterCallback(UpdateUI);
-		private void OnDisable() => TimeManager.Instance.RemoveCallback(UpdateUI);
+		private void OnEnable() => timeManager.RegisterCallback(UpdateUI);
+		private void OnDisable() => timeManager.RemoveCallback(UpdateUI);
 	}
 }

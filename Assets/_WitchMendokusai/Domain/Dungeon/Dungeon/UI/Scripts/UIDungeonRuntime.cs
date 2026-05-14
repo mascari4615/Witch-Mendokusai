@@ -3,6 +3,7 @@ using System.Collections;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using VContainer;
 
 namespace WitchMendokusai
 {
@@ -17,6 +18,14 @@ namespace WitchMendokusai
 		[SerializeField] private Image difficultyCircle;
 		private UIQuestGrid questGrid;
 		private Coroutine loop;
+
+		private DungeonManager dungeonManager;
+
+		[Inject]
+		public void Construct(DungeonManager dungeonManager)
+		{
+			this.dungeonManager = dungeonManager;
+		}
 
 		public override bool IsFullscreen => false;
 
@@ -63,7 +72,7 @@ namespace WitchMendokusai
 
 		private void UpdateTime(TimeSpan timeSpan)
 		{
-			progressBar.fillAmount = 1 - (float)(timeSpan.TotalSeconds / DungeonManager.Instance.Context.InitialDungeonTime.TotalSeconds);
+			progressBar.fillAmount = 1 - (float)(timeSpan.TotalSeconds / dungeonManager.Context.InitialDungeonTime.TotalSeconds);
 			timeText.text = timeSpan.ToString(@"mm\:ss");
 		}
 
@@ -75,7 +84,7 @@ namespace WitchMendokusai
 			}
 			else
 			{
-				difficultyCircle.fillAmount = (float)(DungeonManager.Instance.Context.DungeonCurTime.TotalSeconds % 180f / 180f);
+				difficultyCircle.fillAmount = (float)(dungeonManager.Context.DungeonCurTime.TotalSeconds % 180f / 180f);
 			}
 
 			switch (curDifficulty)
@@ -96,8 +105,8 @@ namespace WitchMendokusai
 
 		public override void UpdateUI()
 		{
-			UpdateDifficulty(DungeonManager.Instance.Context.CurDifficulty);
-			UpdateTime(DungeonManager.Instance.Context.DungeonCurTime);
+			UpdateDifficulty(dungeonManager.Context.CurDifficulty);
+			UpdateTime(dungeonManager.Context.DungeonCurTime);
 			questGrid.UpdateUI();
 		}
 	}

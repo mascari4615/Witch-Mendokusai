@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using VContainer;
+using VContainer.Unity;
 
 namespace WitchMendokusai
 {
@@ -16,6 +18,21 @@ namespace WitchMendokusai
 
 		[SerializeField] private Button startButton, settingButton, exitButton;
 
+		private DataManager dataManager;
+		private UIRoot uiRoot;
+
+		[Inject]
+		public void Construct(DataManager dataManager, UIRoot uiRoot)
+		{
+			this.dataManager = dataManager;
+			this.uiRoot = uiRoot;
+		}
+
+		private void Awake()
+		{
+			LifetimeScope.Find<SceneLifetimeScope>()?.Container.Inject(this);
+		}
+
 		private IEnumerator Start()
 		{
 			Debug.Log($"{nameof(LobbyManager)} {nameof(Start)}");
@@ -23,8 +40,8 @@ namespace WitchMendokusai
 
 			Instance = this;
 
-			yield return StartCoroutine(DataManager.Instance.Init());
-			DataManager.Instance.Login();
+			yield return StartCoroutine(dataManager.Init());
+			dataManager.Login();
 			Init();
 
 			if (AppSetting.Data.AutoStart)
@@ -63,7 +80,7 @@ namespace WitchMendokusai
 		public void ToggleSettings()
 		{
 			Debug.Log(nameof(ToggleSettings));
-			UIRoot.Instance.SettingView.Toggle();
+			uiRoot.SettingView.Toggle();
 		}
 
 		public void ExitGame()

@@ -1,6 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using VContainer;
+using VContainer.Unity;
 
 namespace WitchMendokusai
 {
@@ -22,6 +24,21 @@ namespace WitchMendokusai
 		private readonly Dictionary<Vector3Int, GameObject> chunks = new();
 		private Vector3Int currentChunkCoord = Vector3Int.zero;
 
+		private PlayerProvider playerProvider;
+		private ObjectPoolManager objectPoolManager;
+
+		[Inject]
+		public void Construct(PlayerProvider playerProvider, ObjectPoolManager objectPoolManager)
+		{
+			this.playerProvider = playerProvider;
+			this.objectPoolManager = objectPoolManager;
+		}
+
+		private void Awake()
+		{
+			LifetimeScope.Find<SceneLifetimeScope>()?.Container.Inject(this);
+		}
+
 		private void OnEnable()
 		{
 			StartCoroutine(GenerateChunks());
@@ -42,7 +59,7 @@ namespace WitchMendokusai
 			while (true)
 			{
 				// 플레이어 위치를 Chunk 좌표로 변환 (현재 안에 있는 청크 좌표)
-				Vector3 playerPos = PlayerProvider.Instance.Current.transform.position;
+				Vector3 playerPos = playerProvider.Current.transform.position;
 
 				// 안에 있는지 확인하는 방법: x랑 y가 -(chunkSize / 2) ~ +(chunkSize / 2) 안에 있다면 청크 안에 있는거임
 				// 청크사이즈 100이면, x -50 ~ 50, y -50 ~ 50은 (0, 0, 0)
@@ -76,7 +93,7 @@ namespace WitchMendokusai
 
 						if (chunks.ContainsKey(chunkPosition) == false)
 						{
-							GameObject chunk = ObjectPoolManager.Instance.Spawn(groundPrefab);
+							GameObject chunk = objectPoolManager.Spawn(groundPrefab);
 							chunk.transform.position = chunkPosition;
 							chunks[chunkPosition] = chunk;
 							chunk.SetActive(true);

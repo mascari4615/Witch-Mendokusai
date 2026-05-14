@@ -1,6 +1,8 @@
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using VContainer;
+using VContainer.Unity;
 namespace WitchMendokusai
 {
 	public class NPCMarker : MonoBehaviour
@@ -12,10 +14,19 @@ namespace WitchMendokusai
 		private SpriteRenderer spriteRenderer;
 		private Coroutine loop;
 
+		private QuestManager questManager;
+
+		[Inject]
+		public void Construct(QuestManager questManager)
+		{
+			this.questManager = questManager;
+		}
+
 		private void Awake()
 		{
 			npcObject = GetComponentInParent<NPCObject>(true);
 			spriteRenderer = GetComponent<SpriteRenderer>();
+			LifetimeScope.Find<SceneLifetimeScope>()?.Container.Inject(this);
 		}
 
 		private void OnEnable()
@@ -48,8 +59,6 @@ namespace WitchMendokusai
 			if (dataSOs.Count == 0)
 				return;
 
-			QuestManager questManager = QuestManager.Instance;
-
 			// 클리어 가능한 퀘스트가 있다면
 			bool hasCompletableQuest = dataSOs.Exists(i => questManager.GetQuest(i)?.State == RuntimeQuestState.CanComplete);
 			if (hasCompletableQuest)
@@ -60,7 +69,7 @@ namespace WitchMendokusai
 			}
 
 			// 획득 가능한 퀘스트가 있다면
-			bool hasLockedQuest = dataSOs.Exists(i => QuestManager.Instance.GetQuestState(i.ID) == QuestState.Locked);
+			bool hasLockedQuest = dataSOs.Exists(i => questManager.GetQuestState(i.ID) == QuestState.Locked);
 			
 			if (hasLockedQuest)
 			{

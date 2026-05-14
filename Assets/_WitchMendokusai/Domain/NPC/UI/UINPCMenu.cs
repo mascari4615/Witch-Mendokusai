@@ -2,6 +2,8 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
+using VContainer;
+using VContainer.Unity;
 
 namespace WitchMendokusai
 {
@@ -24,7 +26,26 @@ namespace WitchMendokusai
 		private CanvasGroup canvasGroup;
 		private NPCObject curNPC = null;
 
+		private UIManager uiManager;
+		private CameraManager cameraManager;
+		private ChatManager chatManager;
+		private QuestManager questManager;
+
 		public override bool IsFullscreen => true;
+
+		[Inject]
+		public void Construct(UIManager uiManager, CameraManager cameraManager, ChatManager chatManager, QuestManager questManager)
+		{
+			this.uiManager = uiManager;
+			this.cameraManager = cameraManager;
+			this.chatManager = chatManager;
+			this.questManager = questManager;
+		}
+
+		private void Awake()
+		{
+			LifetimeScope.Find<SceneLifetimeScope>()?.Container.Inject(this);
+		}
 
 		protected override void OnInit()
 		{
@@ -56,7 +77,7 @@ namespace WitchMendokusai
 				for (int i = 0; i < (int)NPCPanelType.Count; i++)
 				{
 					NPCPanelType panelType = (NPCPanelType)i;
-					UIPanel panel = UIManager.Instance.NPC.Panels[panelType];
+					UIPanel panel = uiManager.NPC.Panels[panelType];
 
 					UISlot newSlot = Instantiate(optionPrefab, optionsParent).GetComponent<UISlot>();
 					newSlot.Init();
@@ -98,7 +119,7 @@ namespace WitchMendokusai
 				else
 				{
 					// NPC UI 띄우기
-					UIManager.Instance.NPC.SetPanel(CurPanelType, curNPC);
+					uiManager.NPC.SetPanel(CurPanelType, curNPC);
 				}
 			}
 		}
@@ -115,11 +136,11 @@ namespace WitchMendokusai
 			UpdateQuestButtons();
 			questEachParent.gameObject.SetActive(false);
 
-			CameraManager.Instance.SetUICameraMode(UICameraMode.NPC, true);
-			CameraManager.Instance.SetSelecting(isSelecting: false, shouldAnimate: false);
+			cameraManager.SetUICameraMode(UICameraMode.NPC, true);
+			cameraManager.SetSelecting(isSelecting: false, shouldAnimate: false);
 
 			// 대화 불가 시 바로 선택 모드로 전환
-			bool canTalk = ChatManager.Instance.TryGetChatData(curNPC.UnitData.ID.ToString(), out _);
+			bool canTalk = chatManager.TryGetChatData(curNPC.UnitData.ID.ToString(), out _);
 			talkOption.gameObject.SetActive(canTalk);
 			
 			if (canTalk)
@@ -135,7 +156,7 @@ namespace WitchMendokusai
 
 		protected override void OnClose()
 		{
-			CameraManager.Instance.SetUICameraMode(UICameraMode.NPC, false);
+			cameraManager.SetUICameraMode(UICameraMode.NPC, false);
 		}
 
 		public override void UpdateUI()
@@ -162,7 +183,7 @@ namespace WitchMendokusai
 			questOption.gameObject.SetActive(questCount > 0);
 			for (int i = 0; i < questEachOptions.Length; i++)
 			{
-				if (i < questCount && QuestManager.Instance.GetQuestState(questData[i].ID) != QuestState.Completed)
+				if (i < questCount && questManager.GetQuestState(questData[i].ID) != QuestState.Completed)
 				{
 					questEachOptions[i].gameObject.SetActive(true);
 					questEachOptions[i].SetSlot(questData[i]);
@@ -184,9 +205,9 @@ namespace WitchMendokusai
 		public void Talk()
 		{
 			buttonsParent.SetActive(false);
-			CameraManager.Instance.SetSelecting(false);
+			cameraManager.SetSelecting(false);
 
-			UIManager.Instance.Chat.StartChat(curNPC, OnChatFinish);
+			uiManager.Chat.StartChat(curNPC, OnChatFinish);
 		}
 
 		private void OnChatFinish()
@@ -197,7 +218,7 @@ namespace WitchMendokusai
 			buttonsParent.SetActive(true);
 			talkOption.Select();
 
-			CameraManager.Instance.SetSelecting(true);
+			cameraManager.SetSelecting(true);
 		}
 
 		private void SelectQuest(int index)
@@ -205,12 +226,12 @@ namespace WitchMendokusai
 			NPC curNPCData = curNPC.UnitData as NPC;
 			QuestSO questData = curNPCData.QuestData[index];
 
-			QuestState state = QuestManager.Instance.GetQuestState(questData.ID);
+			QuestState state = questManager.GetQuestState(questData.ID);
 			switch (state)
 			{
 				case QuestState.Locked:
-					QuestManager.Instance.UnlockQuest(questData);
-					QuestManager.Instance.AddQuest(RuntimeQuestFactory.FromQuestSO(questData));
+					questManager.UnlockQuest(questData);
+					questManager.AddQuest(RuntimeQuestFactory.FromQuestSO(questData));
 					break;
 				case QuestState.Unlocked:
 					// TODO: 퀘스트 진행 중 대사 출력

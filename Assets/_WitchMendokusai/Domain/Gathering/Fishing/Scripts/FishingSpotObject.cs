@@ -1,6 +1,8 @@
 using System.Collections;
 using FMODUnity;
 using UnityEngine;
+using VContainer;
+using VContainer.Unity;
 
 namespace WitchMendokusai
 {
@@ -12,10 +14,22 @@ namespace WitchMendokusai
 
 		private IFishingMiniGame miniGame;
 		private bool isFishing;
+		private UIManager uiManager;
+		private SOManager soManager;
+		private PlayerProvider playerProvider;
+
+		[Inject]
+		public void Construct(UIManager uiManager, SOManager soManager, PlayerProvider playerProvider)
+		{
+			this.uiManager = uiManager;
+			this.soManager = soManager;
+			this.playerProvider = playerProvider;
+		}
 
 		private void Awake()
 		{
 			miniGame = GetComponent<IFishingMiniGame>();
+			LifetimeScope.Find<SceneLifetimeScope>()?.Container.Inject(this);
 		}
 
 		private void OnDisable()
@@ -29,9 +43,9 @@ namespace WitchMendokusai
 			if (isFishing)
 				return;
 
-			if (SOManager.Instance.ItemInventory.HasEquipment(EquipmentType.FishingRod) == false)
+			if (soManager.ItemInventory.HasEquipment(EquipmentType.FishingRod) == false)
 			{
-				UIManager.Instance.SpeechBubble.Show(transform, "낚싯대가 필요합니다.");
+				uiManager.SpeechBubble.Show(transform, "낚싯대가 필요합니다.");
 				return;
 			}
 
@@ -53,7 +67,7 @@ namespace WitchMendokusai
 				RuntimeManager.PlayOneShot(castEventPath, transform.position);
 
 			bool caught = false;
-			FishingContext context = new() { Fisherman = PlayerProvider.Instance.Current.transform, Data = data };
+			FishingContext context = new() { Fisherman = playerProvider.Current.transform, Data = data };
 			yield return StartCoroutine(miniGame.Play(context, result => caught = result));
 
 			if (caught)

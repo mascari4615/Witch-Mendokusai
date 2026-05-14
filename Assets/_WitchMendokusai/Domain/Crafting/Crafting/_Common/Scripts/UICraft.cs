@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Linq;
 using TMPro;
 using UnityEngine;
+using VContainer;
+using VContainer.Unity;
 using Random = UnityEngine.Random;
 using static WitchMendokusai.SOHelper;
 
@@ -24,6 +26,23 @@ namespace WitchMendokusai
 		[SerializeField] private TextMeshProUGUI[] resultAmounts;
 
 		[SerializeField] private UIItemDataGrid recipeGrid;
+
+		private UIManager uiManager;
+		private SOManager soManager;
+		private DataManager dataManager;
+
+		[Inject]
+		public void Construct(UIManager uiManager, SOManager soManager, DataManager dataManager)
+		{
+			this.uiManager = uiManager;
+			this.soManager = soManager;
+			this.dataManager = dataManager;
+		}
+
+		private void Awake()
+		{
+			LifetimeScope.Find<SceneLifetimeScope>()?.Container.Inject(this);
+		}
 
 		protected override void OnOpen()
 		{
@@ -116,7 +135,7 @@ namespace WitchMendokusai
 						craftTableSlots[i].SetSlot(ingredientInfo.ItemData, ingredientInfo.Amount);
 
 						// 인벤토리에 있는 해당 아이템의 양
-						int amount = SOManager.Instance.ItemInventory.GetItemAmount(ingredientInfo.ItemData.ID);
+						int amount = soManager.ItemInventory.GetItemAmount(ingredientInfo.ItemData.ID);
 						craftTableAmounts[i].text = $"{(amount >= ingredientInfo.Amount ? "<color=white>" : "<color=red>")}{amount}</color>";
 						craftTableAmounts[i].text += $"/{ingredientInfo.Amount}";
 					}
@@ -138,7 +157,7 @@ namespace WitchMendokusai
 				craftTableSlots[0].SetSlot(itemData);
 
 				// 인벤토리에 있는 해당 아이템의 양
-				int inventoryAmount = SOManager.Instance.ItemInventory.GetItemAmount(itemData.ID);
+				int inventoryAmount = soManager.ItemInventory.GetItemAmount(itemData.ID);
 				craftTableAmounts[0].text = $"{(inventoryAmount >= recipe.Amount ? "<color=white>" : "<color=red>")}{inventoryAmount}</color>";
 				craftTableAmounts[0].text += $"/{recipe.Amount}";
 
@@ -165,7 +184,7 @@ namespace WitchMendokusai
 			// Check Recipe
 			if (recipeGrid.CurSlot == null)
 			{
-				UIManager.Instance.PopText("레시피를 선택해주세요.", TextType.Warning);
+				uiManager.PopText("레시피를 선택해주세요.", TextType.Warning);
 				return;
 			}
 
@@ -177,20 +196,20 @@ namespace WitchMendokusai
 			{
 				foreach (ItemInfo ingredientInfo in recipe.Items)
 				{
-					int inventoryAmount = SOManager.Instance.ItemInventory.GetItemAmount(ingredientInfo.ItemData.ID);
+					int inventoryAmount = soManager.ItemInventory.GetItemAmount(ingredientInfo.ItemData.ID);
 					if (inventoryAmount < ingredientInfo.Amount)
 					{
-						UIManager.Instance.PopText($"제작에 필요한 재료가 부족합니다. ({ingredientInfo.ItemData.Name})", TextType.Warning);
+						uiManager.PopText($"제작에 필요한 재료가 부족합니다. ({ingredientInfo.ItemData.Name})", TextType.Warning);
 						return;
 					}
 				}
 
 				// Check Nyang
 				int recipePrice = recipe.PriceNyang;
-				if (recipePrice > DataManager.Instance.GameStat[GameStatType.NYANG])
+				if (recipePrice > dataManager.GameStat[GameStatType.NYANG])
 				{
-					int diff = recipePrice - DataManager.Instance.GameStat[GameStatType.NYANG];
-					UIManager.Instance.PopText($"제작에 필요한 냥이 부족합니다. ({diff}냥)", TextType.Warning);
+					int diff = recipePrice - dataManager.GameStat[GameStatType.NYANG];
+					uiManager.PopText($"제작에 필요한 냥이 부족합니다. ({diff}냥)", TextType.Warning);
 				}
 
 				// Craft
@@ -201,59 +220,59 @@ namespace WitchMendokusai
 
 					while (remain > 0)
 					{
-						int slotIndex = SOManager.Instance.ItemInventory.FindItemIndex(ingredientInfo.ItemData.ID);
+						int slotIndex = soManager.ItemInventory.FindItemIndex(ingredientInfo.ItemData.ID);
 
-						Item item = SOManager.Instance.ItemInventory.GetItem(slotIndex);
+						Item item = soManager.ItemInventory.GetItem(slotIndex);
 						int slotAmount = item.Amount;
 
 						if (slotAmount > remain)
 						{
-							SOManager.Instance.ItemInventory.SetItemAmount(slotIndex, slotAmount - remain);
+							soManager.ItemInventory.SetItemAmount(slotIndex, slotAmount - remain);
 							break;
 						}
 						else
 						{
-							SOManager.Instance.ItemInventory.Remove(slotIndex);
+							soManager.ItemInventory.Remove(slotIndex);
 							remain -= slotAmount;
 						}
 					}
 				}
 
-				DataManager.Instance.GameStat[GameStatType.NYANG] -= recipePrice;
-				UIManager.Instance.PopText($"- {recipePrice}", TextType.Warning);
+				dataManager.GameStat[GameStatType.NYANG] -= recipePrice;
+				uiManager.PopText($"- {recipePrice}", TextType.Warning);
 
 				// 2. Craft
 				if (Random.Range(0, 100) > recipe.Percentage)
 				{
 					// Fail
 					Reward.GetReward(recipe.FailureRewards);
-					UIManager.Instance.PopText("제작 실패 !", TextType.Warning);
+					uiManager.PopText("제작 실패 !", TextType.Warning);
 				}
 				else
 				{
 					// Success
 					Reward.GetReward(recipe.SuccessRewards);
-					UIManager.Instance.PopText("제작 성공 !", TextType.Heal);
-					SOManager.Instance.ItemInventory.Add(itemData, 1);
+					uiManager.PopText("제작 성공 !", TextType.Heal);
+					soManager.ItemInventory.Add(itemData, 1);
 				}
 
 				UpdateUI();
 			}
 			else
 			{
-				int inventoryAmount = SOManager.Instance.ItemInventory.GetItemAmount(itemData.ID);
+				int inventoryAmount = soManager.ItemInventory.GetItemAmount(itemData.ID);
 				if (inventoryAmount < recipe.Amount)
 				{
-					UIManager.Instance.PopText($"제작에 필요한 재료가 부족합니다. ({itemData.Name})", TextType.Warning);
+					uiManager.PopText($"제작에 필요한 재료가 부족합니다. ({itemData.Name})", TextType.Warning);
 					return;
 				}
 
 				// Check Nyang
 				int recipePrice = recipe.PriceNyang;
-				if (recipePrice > DataManager.Instance.GameStat[GameStatType.NYANG])
+				if (recipePrice > dataManager.GameStat[GameStatType.NYANG])
 				{
-					int diff = recipePrice - DataManager.Instance.GameStat[GameStatType.NYANG];
-					UIManager.Instance.PopText($"제작에 필요한 냥이 부족합니다. ({diff}냥)", TextType.Warning);
+					int diff = recipePrice - dataManager.GameStat[GameStatType.NYANG];
+					uiManager.PopText($"제작에 필요한 냥이 부족합니다. ({diff}냥)", TextType.Warning);
 				}
 
 				// Craft
@@ -262,41 +281,41 @@ namespace WitchMendokusai
 
 				while (remain > 0)
 				{
-					int slotIndex = SOManager.Instance.ItemInventory.FindItemIndex(itemData.ID);
+					int slotIndex = soManager.ItemInventory.FindItemIndex(itemData.ID);
 
-					Item item = SOManager.Instance.ItemInventory.GetItem(slotIndex);
+					Item item = soManager.ItemInventory.GetItem(slotIndex);
 					int slotAmount = item.Amount;
 
 					if (slotAmount > remain)
 					{
-						SOManager.Instance.ItemInventory.SetItemAmount(slotIndex, slotAmount - remain);
+						soManager.ItemInventory.SetItemAmount(slotIndex, slotAmount - remain);
 						break;
 					}
 					else
 					{
-						SOManager.Instance.ItemInventory.Remove(slotIndex);
+						soManager.ItemInventory.Remove(slotIndex);
 						remain -= slotAmount;
 					}
 				}
 
-				DataManager.Instance.GameStat[GameStatType.NYANG] -= recipePrice;
-				UIManager.Instance.PopText($"- {recipePrice}", TextType.Warning);
+				dataManager.GameStat[GameStatType.NYANG] -= recipePrice;
+				uiManager.PopText($"- {recipePrice}", TextType.Warning);
 
 				// 2. Craft
 				if (Random.Range(0, 100) > recipe.Percentage)
 				{
 					// Fail
 					Reward.GetReward(recipe.FailureRewards);
-					UIManager.Instance.PopText("제작 실패 !", TextType.Warning);
+					uiManager.PopText("제작 실패 !", TextType.Warning);
 				}
 				else
 				{
 					// Success
 					Reward.GetReward(recipe.SuccessRewards);
-					UIManager.Instance.PopText("제작 성공 !", TextType.Heal);
+					uiManager.PopText("제작 성공 !", TextType.Heal);
 
 					foreach (ItemInfo resultInfo in recipe.Items)
-						SOManager.Instance.ItemInventory.Add(resultInfo.ItemData, resultInfo.Amount);
+						soManager.ItemInventory.Add(resultInfo.ItemData, resultInfo.Amount);
 				}
 
 				UpdateUI();

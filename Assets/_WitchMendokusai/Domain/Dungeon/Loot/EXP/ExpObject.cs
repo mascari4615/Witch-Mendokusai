@@ -10,7 +10,7 @@ namespace WitchMendokusai
 	{
 		[SerializeField] private int amount;
 
-		private UnitStat PlayerStat => PlayerProvider.Instance.Current.UnitStat;
+		private UnitStat PlayerStat => playerProvider.Current.UnitStat;
 
 		protected override void OnEffect()
 		{

@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
+using VContainer;
 
 namespace WitchMendokusai
 {
@@ -18,6 +19,14 @@ namespace WitchMendokusai
 		private UIDungeonConstraint constraintUI;
 		private int curDungeonIndex = 0;
 		private List<Dungeon> dungeons;
+
+		private DungeonManager dungeonManager;
+
+		[Inject]
+		public void Construct(DungeonManager dungeonManager)
+		{
+			this.dungeonManager = dungeonManager;
+		}
 
 		public override bool IsFullscreen => true;
 		private Dungeon CurDungeon => dungeons[curDungeonIndex];
@@ -118,7 +127,7 @@ namespace WitchMendokusai
 		public void EnterTheDungeon()
 		{
 			PanelGroup.ClosePanel();
-			DungeonManager.Instance.StartDungeon(CurDungeon);
+			dungeonManager.StartDungeon(CurDungeon);
 		}
 	}
 }

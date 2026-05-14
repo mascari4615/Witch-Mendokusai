@@ -1,8 +1,7 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
+using VContainer;
+using VContainer.Unity;
 
 namespace WitchMendokusai
 {
@@ -12,18 +11,33 @@ namespace WitchMendokusai
 		[field: SerializeField] public Stage TargetStage { get; private set; }
 		[field: SerializeField] private int targetPortalIndex = -1;
 
+		private UIManager uiManager;
+		private StageManager stageManager;
+
+		[Inject]
+		public void Construct(UIManager uiManager, StageManager stageManager)
+		{
+			this.uiManager = uiManager;
+			this.stageManager = stageManager;
+		}
+
+		private void Awake()
+		{
+			LifetimeScope.Find<SceneLifetimeScope>()?.Container.Inject(this);
+		}
+
 		public void OnTriggerEnter(Collider other)
 		{
 			if (other.CompareTag("Player"))
 			{
-				UIManager.Instance.Transition.Transition(
+				uiManager.Transition.Transition(
 					aDuringTransition: () =>
 					{
-						StageManager.Instance.LoadStage(TargetStage, targetPortalIndex);
+						stageManager.LoadStage(TargetStage, targetPortalIndex);
 					},
 					aWhenEnd: () =>
 					{
-						UIManager.Instance.StagePopup(TargetStage);
+						uiManager.StagePopup(TargetStage);
 					}).Forget();
 			}
 		}

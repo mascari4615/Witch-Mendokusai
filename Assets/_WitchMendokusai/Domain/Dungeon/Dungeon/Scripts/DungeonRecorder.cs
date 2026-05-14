@@ -17,20 +17,25 @@ namespace WitchMendokusai
 		public DungeonRecord ResultRecord { get; private set; }
 		private DungeonRecord startRecord;
 
-		public DungeonRecorder()
+		private readonly DungeonManager dungeonManager;
+		private readonly DataManager dataManager;
+
+		public DungeonRecorder(DungeonManager dungeonManager, DataManager dataManager)
 		{
+			this.dungeonManager = dungeonManager;
+			this.dataManager = dataManager;
 			startRecord = new DungeonRecord();
 			SetRecord(ref startRecord);
 		}
 
 		private void SetRecord(ref DungeonRecord record)
 		{
-			DungeonContext dungeonContext = DungeonManager.Instance.Context;
+			DungeonContext dungeonContext = dungeonManager.Context;
 
 			record.PlayTime = dungeonContext.DungeonCurTime;
-			record.KillCount = DataManager.Instance.DungeonStat[DungeonStatType.MONSTER_KILL];
-			record.BossKillCount = DataManager.Instance.DungeonStat[DungeonStatType.BOSS_KILL];
-			record.Nyang = DataManager.Instance.GameStat[GameStatType.NYANG];
+			record.KillCount = dataManager.DungeonStat[DungeonStatType.MONSTER_KILL];
+			record.BossKillCount = dataManager.DungeonStat[DungeonStatType.BOSS_KILL];
+			record.Nyang = dataManager.GameStat[GameStatType.NYANG];
 		}
 
 		public DungeonRecord CaptureResultRecord()

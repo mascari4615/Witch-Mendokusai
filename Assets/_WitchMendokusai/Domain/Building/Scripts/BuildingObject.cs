@@ -1,4 +1,6 @@
 using UnityEngine;
+using VContainer;
+using VContainer.Unity;
 using static WitchMendokusai.SOHelper;
 
 namespace WitchMendokusai
@@ -12,19 +14,34 @@ namespace WitchMendokusai
 		public GameObject Model { get; private set; } = null;
 		[SerializeField] private Transform modelParent = null;
 
+		private ObjectPoolManager objectPoolManager;
+		private StageManager stageManager;
+
+		[Inject]
+		public void Construct(ObjectPoolManager objectPoolManager, StageManager stageManager)
+		{
+			this.objectPoolManager = objectPoolManager;
+			this.stageManager = stageManager;
+		}
+
+		private void Awake()
+		{
+			LifetimeScope.Find<SceneLifetimeScope>()?.Container.Inject(this);
+		}
+
 		public void Initialize(BuildingInstanceData saveData, Vector3Int pivot)
 		{
 			SaveData = saveData;
 			Pivot = pivot;
 
-			Model = ObjectPoolManager.Instance.Spawn(Building.Prefab, modelParent);
+			Model = objectPoolManager.Spawn(Building.Prefab, modelParent);
 			Model.SetActive(true);
 		}
 
 		public void UpdateRuntimeData(string json)
 		{
 			SaveData = new BuildingInstanceData(SaveData.BuildingID, SaveData.State, SaveData.Level, json);
-			if (StageManager.Instance.CurStage is WorldStage worldStage)
+			if (stageManager.CurStage is WorldStage worldStage)
 				worldStage.GridData.BuildingData[Pivot] = SaveData;
 		}
 
@@ -32,7 +49,7 @@ namespace WitchMendokusai
 		{
 			// Debug.Log($"{nameof(Despawn)} ({Pivot}, {Building.name})");
 			Model.SetActive(false);
-			ObjectPoolManager.Instance.Despawn(Model);
+			objectPoolManager.Despawn(Model);
 			Model = null;
 		}
 	}

@@ -15,13 +15,17 @@ namespace WitchMendokusai
 		private UIRoot uiRoot;
 		private SOManager soManager;
 		private InputManager inputManager;
+		private DataManager dataManager;
+		private PlayerProvider playerProvider;
 
 		[Inject]
-		public void Construct(UIRoot uiRoot, SOManager soManager, InputManager inputManager)
+		public void Construct(UIRoot uiRoot, SOManager soManager, InputManager inputManager, DataManager dataManager, PlayerProvider playerProvider)
 		{
 			this.uiRoot = uiRoot;
 			this.soManager = soManager;
 			this.inputManager = inputManager;
+			this.dataManager = dataManager;
+			this.playerProvider = playerProvider;
 		}
 
 		private void Start()
@@ -48,7 +52,7 @@ namespace WitchMendokusai
 			dollList.OnDollSelected += OnDollSelected;
 			body.Add(dollList);
 
-			dollDetail = new DollDetail();
+			dollDetail = new DollDetail(dataManager, playerProvider);
 			dollDetail.style.flexGrow = 1;
 			body.Add(dollDetail);
 

@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using VContainer;
+using VContainer.Unity;
 
 namespace WitchMendokusai
 {
@@ -14,6 +16,19 @@ namespace WitchMendokusai
 		[SerializeField] private Image progress;
 		[SerializeField] private TextMeshProUGUI progressText;
 
+		private QuestManager questManager;
+
+		[Inject]
+		public void Construct(QuestManager questManager)
+		{
+			this.questManager = questManager;
+		}
+
+		private void Awake()
+		{
+			LifetimeScope.Find<SceneLifetimeScope>()?.Container.Inject(this);
+		}
+
 		public override void UpdateUI()
 		{
 			// Debug.Log($"{name} {nameof(UpdateUI)}");
@@ -22,7 +37,7 @@ namespace WitchMendokusai
 			if (DataSO)
 			{
 				QuestSO questData = DataSO as QuestSO;
-				QuestState state = QuestManager.Instance.GetQuestState(questData.ID);
+				QuestState state = questManager.GetQuestState(questData.ID);
 				SetQuestState(state);
 			}
 		}

@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
+using VContainer;
+using VContainer.Unity;
 
 namespace WitchMendokusai
 {
@@ -12,10 +14,23 @@ namespace WitchMendokusai
 		[field: SerializeField] public UnityEvent Response { get; private set; }
 		[field: SerializeField] public List<EffectInfo> Effects { get; private set; }
 
+		private GameEventManager gameEventManager;
+
+		[Inject]
+		public void Construct(GameEventManager gameEventManager)
+		{
+			this.gameEventManager = gameEventManager;
+		}
+
+		private void Awake()
+		{
+			LifetimeScope.Find<SceneLifetimeScope>()?.Container.Inject(this);
+		}
+
 		private void OnEnable()
 		{
 			// Event.RegisterListener(this);
-			GameEventManager.Instance.RegisterCallback(EventType, OnEventRaised);
+			gameEventManager.RegisterCallback(EventType, OnEventRaised);
 		}
 
 		private void OnDisable()

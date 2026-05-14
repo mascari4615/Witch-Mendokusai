@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using FMODUnity;
 using UnityEngine;
+using VContainer;
 
 namespace WitchMendokusai
 {
@@ -10,6 +11,14 @@ namespace WitchMendokusai
 	{
 		[SerializeField] private SpriteRenderer spriteRenderer;
 		private ItemData itemData;
+
+		private SOManager soManager;
+
+		[Inject]
+		public void Construct(SOManager soManager)
+		{
+			this.soManager = soManager;
+		}
 
 		public void Init(ItemData itemData)
 		{
@@ -20,8 +29,8 @@ namespace WitchMendokusai
 		protected override void OnEffect()
 		{
 			RuntimeManager.PlayOneShot("event:/SFX/Equip", transform.position);
-			SOManager.Instance.ItemInventory.Add(itemData);
-			SOManager.Instance.DungeonItemBuffer.Add(itemData);
+			soManager.ItemInventory.Add(itemData);
+			soManager.DungeonItemBuffer.Add(itemData);
 		}
 	}
 }

@@ -6,6 +6,8 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using TMPro;
+using VContainer;
+using VContainer.Unity;
 
 namespace WitchMendokusai
 {
@@ -25,6 +27,19 @@ namespace WitchMendokusai
 		public bool canPlayerSetItem = true;
 		public bool canHold = true;
 		private PriceType priceType = PriceType.Buy;
+
+		private UIHoldingSlot uiHoldingSlot;
+
+		[Inject]
+		public void Construct(UIHoldingSlot uiHoldingSlot)
+		{
+			this.uiHoldingSlot = uiHoldingSlot;
+		}
+
+		protected virtual void Awake()
+		{
+			LifetimeScope.Find<SceneLifetimeScope>()?.Container.Inject(this);
+		}
 
 		public override void Init()
 		{
@@ -66,7 +81,7 @@ namespace WitchMendokusai
 			if (canHold == false)
 				return;
 
-			UIHoldingSlot.Instance.DoSomething(this, eventData.button == PointerEventData.InputButton.Left);
+			uiHoldingSlot.DoSomething(this, eventData.button == PointerEventData.InputButton.Left);
 		}
 	}
 }

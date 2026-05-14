@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using VContainer;
 using Random = UnityEngine.Random;
 
 namespace WitchMendokusai
@@ -25,6 +26,18 @@ namespace WitchMendokusai
 		private readonly List<MonsterWaveInstance> waves = new();
 		[SerializeField] private float spawnDelay = .2f;
 		[SerializeField] private Vector2 spawnDistanceRange = new(10f, 15f);
+
+		private DungeonManager dungeonManager;
+		private PlayerProvider playerProvider;
+		private ObjectPoolManager objectPoolManager;
+
+		[Inject]
+		public void Construct(DungeonManager dungeonManager, PlayerProvider playerProvider, ObjectPoolManager objectPoolManager)
+		{
+			this.dungeonManager = dungeonManager;
+			this.playerProvider = playerProvider;
+			this.objectPoolManager = objectPoolManager;
+		}
 
 		public void InitWaves(Dungeon curDungeon)
 		{
@@ -51,14 +64,14 @@ namespace WitchMendokusai
 
 			// 요소가 삭제되면 waves.Count가 줄어들기 때문에 UpdateWaves에서
 			// 그냥 waves.Count를 기준으로 i++ for문을 돌리면 예외가 발생한다.
-			// 그래서 waves.Count - 1부터 0까지 역순으로 for문을 돌린다.
+			// 그래서 waves.Count - 1부터 0까지 역순으로 for문을 돈다.
 
 			// 어차피 index만 알고 있으면 현재 단계에서 처리할 waveInstance에 접근할 수 있으므로
 			// 굳이 처리할 waveInstance까지는 전달받지 않아도 된다.
 			MonsterWaveInstance waveInstance = waves[waveIndex];
 
-			TimeSpan dungeonTime = DungeonManager.Instance.Context.InitialDungeonTime - DungeonManager.Instance.Context.DungeonCurTime;
-			DungeonDifficulty curDifficulty = DungeonManager.Instance.Context.CurDifficulty;
+			TimeSpan dungeonTime = dungeonManager.Context.InitialDungeonTime - dungeonManager.Context.DungeonCurTime;
+			DungeonDifficulty curDifficulty = dungeonManager.Context.CurDifficulty;
 
 			if (dungeonTime < TimeSpan.FromSeconds(waveInstance.Data.StartTime))
 				return;
@@ -84,8 +97,8 @@ namespace WitchMendokusai
 		{
 			// 플레이어가 이동하는 방향 쪽으로 스폰 위치를 랜덤으로 선택 - KarmoDDrine 2025-12-27
 			Vector3 randomOffset;
-			Vector3 playerPosition = PlayerProvider.Instance.Current.transform.position;
-			Vector3 playerForward = PlayerProvider.Instance.CurrentObject.UnitMovement.MoveDirectionLocal;
+			Vector3 playerPosition = playerProvider.Current.transform.position;
+			Vector3 playerForward = playerProvider.CurrentObject.UnitMovement.MoveDirectionLocal;
 
 			// 플레이어가 이동 중이면, 플레이어 앞에 스폰. 도망가지마 맞서싸워.
 			bool spawnInFrontOfPlayer = playerForward != Vector3.zero;
@@ -108,14 +121,14 @@ namespace WitchMendokusai
 
 			Vector3 spawnPos = playerPosition + randomOffset;
 
-			GameObject spawnCircle = ObjectPoolManager.Instance.Spawn(spawnCirclePrefab);
+			GameObject spawnCircle = objectPoolManager.Spawn(spawnCirclePrefab);
 			spawnCircle.transform.position = spawnPos;
 			spawnCircle.SetActive(true);
 			ObjectBufferManager.AddObject(ObjectType.SpawnCircle, spawnCircle);
 
 			yield return new WaitForSeconds(spawnDelay);
 
-			GameObject monsterObject = ObjectPoolManager.Instance.Spawn(monster.Prefab);
+			GameObject monsterObject = objectPoolManager.Spawn(monster.Prefab);
 			MonsterObject monsterObjectComponent = monsterObject.GetComponent<MonsterObject>();
 			monsterObject.transform.position = spawnPos;
 			monsterObjectComponent.Init(monster);

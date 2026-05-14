@@ -1,6 +1,8 @@
 using System;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using VContainer;
+using VContainer.Unity;
 
 namespace WitchMendokusai
 {
@@ -12,6 +14,19 @@ namespace WitchMendokusai
 		private SlotData slotData;
 
 		private bool isPopupTooltipShowingThis = false;
+
+		private ToolTipPopupManager toolTipPopupManager;
+
+		[Inject]
+		public void Construct(ToolTipPopupManager toolTipPopupManager)
+		{
+			this.toolTipPopupManager = toolTipPopupManager;
+		}
+
+		private void Awake()
+		{
+			LifetimeScope.Find<SceneLifetimeScope>()?.Container.Inject(this);
+		}
 
 		public void SetClickToolTip(ToolTip toolTip) => ClickToolTip = toolTip;
 
@@ -28,7 +43,7 @@ namespace WitchMendokusai
 			if (slotData == null || slotData.IsEmpty)
 				return;
 
-			ToolTipPopupManager.Instance.Show(slotData);
+			toolTipPopupManager.Show(slotData);
 			isPopupTooltipShowingThis = true;
 		}
 
@@ -40,14 +55,14 @@ namespace WitchMendokusai
 			if (slotData == null || slotData.IsEmpty)
 				return;
 
-			ToolTipPopupManager.Instance.Hide();
+			toolTipPopupManager.Hide();
 			isPopupTooltipShowingThis = false;
 		}
 
 		private void OnDisable()
 		{
 			if (isPopupTooltipShowingThis)
-				ToolTipPopupManager.Instance.Hide();
+				toolTipPopupManager.Hide();
 		}
 
 		public void Trigger()
