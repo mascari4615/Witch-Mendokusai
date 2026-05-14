@@ -30,7 +30,7 @@ namespace WitchMendokusai
 
 		public void ReceiveDamage(DamageInfo damageInfo)
 		{
-			if (!IsAlive) return;
+			if (IsAlive == false) return;
 
 			SetHp(Unit.UnitStat[UnitStatType.HP_CUR] - damageInfo.damage);
 
@@ -43,7 +43,7 @@ namespace WitchMendokusai
 
 		public void ReceiveHeal(int healAmount)
 		{
-			if (!IsAlive) return;
+			if (IsAlive == false) return;
 
 			SetHp(Unit.UnitStat[UnitStatType.HP_CUR] + healAmount);
 			OnHealed?.Invoke(healAmount);

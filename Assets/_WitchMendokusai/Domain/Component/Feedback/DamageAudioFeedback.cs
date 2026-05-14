@@ -30,7 +30,7 @@ namespace WitchMendokusai
 
 		private void PlayHitSound(DamageInfo damageInfo)
 		{
-			if (!string.IsNullOrEmpty(hitEventPath))
+			if (string.IsNullOrEmpty(hitEventPath) == false)
 			{
 				RuntimeManager.PlayOneShot(hitEventPath, transform.position);
 			}
@@ -38,7 +38,7 @@ namespace WitchMendokusai
 
 		private void PlayDieSound()
 		{
-			if (!string.IsNullOrEmpty(dieEventPath))
+			if (string.IsNullOrEmpty(dieEventPath) == false)
 			{
 				RuntimeManager.PlayOneShot(dieEventPath, transform.position);
 			}

@@ -104,7 +104,7 @@ namespace WitchMendokusai
 				return;
 			}
 
-			var temp = previousHits;
+			System.Collections.Generic.HashSet<Collider> temp = previousHits;
 			previousHits = currentHits;
 			currentHits = temp;
 			currentHits.Clear();

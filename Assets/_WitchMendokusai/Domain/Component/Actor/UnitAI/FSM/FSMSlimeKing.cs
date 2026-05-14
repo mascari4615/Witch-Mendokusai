@@ -90,7 +90,7 @@ namespace WitchMendokusai
 		/// <summary> 다음 공격 패턴을 랜덤하게 선택하고 타이머를 리셋합니다. </summary>
 		private void ChooseNextAttackPattern()
 		{
-			var patterns = Enum.GetValues(typeof(AttackPattern));
+			System.Array patterns = Enum.GetValues(typeof(AttackPattern));
 			_currentPattern = (AttackPattern)patterns.GetValue(Random.Range(0, patterns.Length));
 			Debug.Log($"Next Pattern: {_currentPattern}");
 		}
