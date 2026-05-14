@@ -35,7 +35,7 @@ namespace WitchMendokusai
 			if (node != null)
 			{
 				visitor.Invoke(node);
-				var children = GetChildren(node);
+				List<Node> children = GetChildren(node);
 				children.ForEach((n) => Traverse(n, visitor));
 			}
 		}

@@ -11,7 +11,7 @@ namespace WitchMendokusai
 
 		public override Playable CreatePlayable(PlayableGraph graph, GameObject owner)
 		{
-			var playable = ScriptPlayable<FadeBehaviour>.Create(graph);
+			ScriptPlayable<FadeBehaviour> playable = ScriptPlayable<FadeBehaviour>.Create(graph);
 
 			FadeBehaviour fadeBehaviour = playable.GetBehaviour();
 			// fadeBehaviour.alpha = alpha;

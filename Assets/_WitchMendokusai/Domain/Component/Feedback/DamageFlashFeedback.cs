@@ -20,7 +20,7 @@ namespace WitchMendokusai
 
 		private void OnTakeDamage(DamageInfo damageInfo)
 		{
-			if (!health.IsAlive) return;
+			if (health.IsAlive == false) return;
 			
 			if (flashRoutine != null)
 			{

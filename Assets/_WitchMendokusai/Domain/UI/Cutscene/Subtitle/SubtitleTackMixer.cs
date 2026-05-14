@@ -18,7 +18,7 @@ namespace WitchMendokusai
 			string currentText = string.Empty;
 			float currentAlpha = 0f;
 
-			if (!text)
+			if (text == false)
 				return;
 
 			int inputCount = playable.GetInputCount();

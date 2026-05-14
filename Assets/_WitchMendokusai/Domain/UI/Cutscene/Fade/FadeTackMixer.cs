@@ -15,7 +15,7 @@ namespace WitchMendokusai
 
 			float currentAlpha = 0f;
 
-			if (!canvasGroup)
+			if (canvasGroup == false)
 				return;
 
 			int inputCount = playable.GetInputCount();

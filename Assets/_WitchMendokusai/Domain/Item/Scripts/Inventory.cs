@@ -212,7 +212,7 @@ namespace WitchMendokusai
 
 		public IItemData GetItemData(int index)
 		{
-			if (!IsValidIndex(index)) return null;
+			if (IsValidIndex(index) == false) return null;
 			return Data[index]?.Data;
 		}
 
