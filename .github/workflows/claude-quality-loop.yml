@@ -112,90 +112,61 @@ jobs:
         env:
           CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
         run: |
-          PROMPT=$(cat <<'PROMPT_EOF'
-# 임무: WitchMendokusai quality-loop — 스캔 + fix + TASK 시드 + STALE sync
+          PROMPT='# 임무: WitchMendokusai quality-loop — 스캔 + fix + TASK 시드 + STALE sync
 
-## 환경
+          ## 환경
+          - WM 레포 루트: 현재 작업 디렉토리 (Assets/_WitchMendokusai/ 포함)
+          - memo 레포: _memo/ 서브디렉토리 (TASK 파일 위치: _memo/wm/tasks/)
 
-- WM 레포 루트: 현재 작업 디렉토리 (Assets/_WitchMendokusai/ 포함)
-- memo 레포: _memo/ 서브디렉토리 (TASK 파일 위치: _memo/wm/tasks/)
+          ## 작업 A — .cs 자동 fix
+          스캔 범위:
+          - 디렉토리: Assets/_WitchMendokusai/
+          - 우선순위: 최근 30일 수정 .cs (git log --since="30 days ago" --name-only -- "Assets/_WitchMendokusai/**/*.cs" | sort -u)
+          - 본 실행당 최대 10 파일 fix
 
-## 작업 A — .cs 자동 fix
+          룰 정본: WitchMendokusai/CLAUDE.md (§ 코딩 스타일 / § 입력 처리 / § Editor 메뉴)
+          본 프롬프트는 요약 — 정본 룰 우선.
 
-스캔 범위:
-- 디렉토리: Assets/_WitchMendokusai/
-- 우선순위: 최근 30일 수정 .cs (`git log --since="30 days ago" --name-only -- "Assets/_WitchMendokusai/**/*.cs" | sort -u`)
-- 본 실행당 최대 10 파일 fix
+          자동 fix 대상:
+          1. var x = ... → 명시 타입
+          2. if (!x) / while (!x) → if (x == false) / while (x == false)
+          3. MenuItem("WitchMendokusai/...") → MenuItem("WM/...")
+          4. 한 글자 변수명 (i, j 제외) → 의미 있는 풀네임
+          5. const Type lowercaseName → const Type UPPER_SNAKE_CASE (호출처 모두 갱신)
+          6. Allman 중괄호 위반 (중괄호 같은 줄) → 새 줄로 분리
+          7. 이벤트/델리게이트 null 초기화 누락 → = delegate { } 추가
 
-룰 정본: WitchMendokusai/CLAUDE.md (§ 코딩 스타일 / § 입력 처리 / § Editor 메뉴 / § 수치 노출 / § 에러 처리 FastFail)
-본 프롬프트는 요약 — 정본 룰 우선. 룰 추가/변경 시 CLAUDE.md 만 갱신.
+          원칙: 위반 외 코드 건드리지 마라 / 주석 추가 X / 면적 최소화
 
-자동 fix 대상 (mechanical + 안전한 semantic):
-1. `var x = ...` → 명시 타입 (우변/사용처로 정확한 타입 추론)
-2. `if (!x)` / `while (!x)` → `if (x == false)` / `while (x == false)`
-3. `MenuItem("WitchMendokusai/...")` → `MenuItem("WM/...")`
-4. 한 글자 변수명 (i, j 제외) → 의미 있는 풀네임
-5. `const Type lowercaseName` → `const Type UPPER_SNAKE_CASE` (호출처 모두 갱신)
-6. Allman 중괄호 위반 (중괄호 같은 줄) → 새 줄로 분리
-7. 이벤트/델리게이트 null 초기화 누락 → `= delegate { }` 추가
+          SKIP 대상 (fix X, 작업 B 에서 시드화):
+          - Keyboard.current / Mouse.current 직접 접근 (InputManager 외)
+          - 수치 하드코딩 (SO/SerializeField 도입 필요)
+          - FastFail 위반 (TryGet/null 체크로 증상 덮기)
 
-원칙: 위반 외 코드 건드리지 마라 / 주석 추가 X / 위반 한 줄에 fix 한 줄 / 면적 최소화
+          ## 작업 B — SKIP 위반 → TASK 시드화
+          작업 A 스캔 중 SKIP 위반 발견 시 _memo/wm/tasks/ 에 TASK 시드 작성.
 
-SKIP 대상 (human 결정 필요 — fix X, 작업 B 에서 시드화):
-- Keyboard.current / Mouse.current 직접 접근 (InputManager 외)
-- 수치 하드코딩 (SO/SerializeField 도입 필요)
-- FastFail 위반 (TryGet/null 체크로 증상 덮기)
+          중복 방지: _memo/wm/tasks/TASK-WM-*.md Grep → 같은 위반 패턴 + status=seed/ready 기존 TASK 있으면 하단 추가 위반 섹션에 append. 없으면 신규 파일.
 
-## 작업 B — SKIP 위반 → TASK 시드화
+          신규 TASK ID: ls _memo/wm/tasks/TASK-WM-*.md 최고 번호 +1
 
-작업 A 스캔 중 SKIP 대상 위반 발견 시 _memo/wm/tasks/ 에 TASK 시드 작성.
+          신규 파일 (_memo/wm/tasks/TASK-WM-NNN-<kebab>.md) 형식:
+          frontmatter: id/status(seed)/priority(low)/machine(local)/path([wm,quality])/tags([quality-loop,<위반종류>])
+          ## 목표 섹션: quality-loop 자동 감지 — 위반 패턴 요약
+          ## 위반 목록 섹션: 파일/라인/내용 표
 
-중복 방지:
-- _memo/wm/tasks/TASK-WM-*.md 를 Grep 해서 같은 위반 패턴 + status=seed/ready 인 기존 TASK 있으면 → 해당 파일 하단 `## 추가 위반 (quality-loop)` 섹션에 append (중복 시드 X)
-- 없으면 신규 파일 생성
+          ## 작업 C — STALE TASK status 감지 + 갱신
+          WM git log 탐색: git log --oneline -50
+          각 TASK-WM-NNN 에 대해 _memo/wm/tasks/ 의 status 확인.
+          status=seed/ready 이고 feat:/fix: 등 실질 구현 커밋 있으면 → status: done 으로 갱신.
+          불확실하면 skip.
 
-신규 TASK ID 결정:
-- `ls _memo/wm/tasks/TASK-WM-*.md` 로 현재 최고 번호 확인 후 +1
+          ## 출력 마커 (응답 마지막 3줄 — 반드시 이 형식)
+          CS_FIX_RESULT: APPLIED|CLEAN
+          TASK_SEED_RESULT: SEEDED:<N>|NONE
+          STALE_SYNC_RESULT: SYNCED:<N>|NONE
 
-신규 파일 형식 (_memo/wm/tasks/TASK-WM-NNN-<kebab-slug>.md):
-frontmatter (id/status/priority/machine/path/tags) + 본문 2섹션.
-예시 구조 (frontmatter 구분자는 하이픈 3개):
-  id: TASK-WM-NNN
-  status: seed
-  priority: low
-  machine: local
-  path: [wm, quality]
-  tags: [quality-loop, <위반종류>]
-
-본문:
-  ## 목표
-  > quality-loop 자동 감지: <위반 패턴 요약 1줄>
-
-  ## 위반 목록
-  | 파일 | 라인 | 위반 내용 |
-  |------|------|-----------|
-  | path/to/File.cs | 42 | Keyboard.current 직접 접근 |
-
-## 작업 C — STALE TASK status 감지 + 갱신
-
-WM git log 에서 TASK ID 추출:
-`git log --oneline -50 | grep -oE "TASK-WM-[0-9]+" | sort -u`
-
-각 TASK-WM-NNN 에 대해:
-1. _memo/wm/tasks/TASK-WM-NNN-*.md 찾기 (glob)
-2. frontmatter status 확인
-3. status=seed 또는 status=ready 이고, WM 커밋 메시지에 feat:/fix:/chore(di): 등 실질 구현 커밋이 있으면 → frontmatter `status: done` 으로 갱신
-4. 불확실하면 skip (잘못된 갱신 > 누락)
-
-## 출력 마커 (응답 마지막 3줄 — 반드시 이 형식, 다른 텍스트 X)
-
-CS_FIX_RESULT: APPLIED|CLEAN
-TASK_SEED_RESULT: SEEDED:<N>|NONE
-STALE_SYNC_RESULT: SYNCED:<N>|NONE
-
-시작.
-PROMPT_EOF
-)
+          시작.'
 
           set +e
           OUTPUT=$(claude --print --permission-mode bypassPermissions "$PROMPT" 2>&1)
@@ -344,10 +315,7 @@ PROMPT_EOF
           fi
 
       - name: Discord 알림
-        if: >
-          steps.guard.outputs.skip != 'yes' &&
-          (steps.wm_commit.outputs.wm_pushed == 'yes' ||
-           steps.memo_commit.outputs.memo_pushed == 'yes')
+        if: steps.guard.outputs.skip != 'yes' && (steps.wm_commit.outputs.wm_pushed == 'yes' || steps.memo_commit.outputs.memo_pushed == 'yes')
         run: |
           WM_PUSHED="${{ steps.wm_commit.outputs.wm_pushed }}"
           MEMO_PUSHED="${{ steps.memo_commit.outputs.memo_pushed }}"
