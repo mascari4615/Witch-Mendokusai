@@ -38,6 +38,10 @@ namespace WitchMendokusai
 			builder.RegisterComponentInHierarchy<UINyang>();
 			builder.RegisterComponentInHierarchy<UIWorkableDollCount>();
 			builder.RegisterComponentInHierarchy<UIInteractPopup>();
+			// WM-106 — UISkillBar / VoxelInteraction / ChunkManager 씬 배치 컴포넌트 (2026-05-14).
+			builder.RegisterComponentInHierarchy<UISkillBar>();
+			builder.RegisterComponentInHierarchy<VoxelInteraction>();
+			builder.RegisterComponentInHierarchy<ChunkManager>();
 
 			// Lifetime.Scoped 의 RegisterComponentInNewPrefab / RegisterComponentOnNewGameObject 는 default lazy — 명시 Resolve 가 없으면 prefab Instantiate 가 일어나지 X.
 			// RootLifetimeScope 의 eager Resolve 패턴 따라 build 시점 강제 instantiate.
@@ -60,6 +64,9 @@ namespace WitchMendokusai
 				container.Resolve<UINyang>();
 				container.Resolve<UIWorkableDollCount>();
 				container.Resolve<UIInteractPopup>();
+				container.Resolve<UISkillBar>();
+				container.Resolve<VoxelInteraction>();
+				container.Resolve<ChunkManager>();
 
 				// θ — Scene→Root 역방향 .Instance 제거: child scope 가 parent GameManager 에 씬 의존 조건 바인딩.
 				// VContainer child scope 는 parent scope 싱글턴 리졸브 가능 (TASK-WM-078, 2026-05-13).

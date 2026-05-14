@@ -24,14 +24,16 @@ namespace WitchMendokusai
 		private GameModeManager gameModeManager;
 		private CameraManager cameraManager;
 		private StageManager stageManager;
+		private ObjectPoolManager objectPoolManager;
 
 		[Inject]
-		public void Construct(InputManager inputManager, GameModeManager gameModeManager, CameraManager cameraManager, StageManager stageManager)
+		public void Construct(InputManager inputManager, GameModeManager gameModeManager, CameraManager cameraManager, StageManager stageManager, ObjectPoolManager objectPoolManager)
 		{
 			this.inputManager = inputManager;
 			this.gameModeManager = gameModeManager;
 			this.cameraManager = cameraManager;
 			this.stageManager = stageManager;
+			this.objectPoolManager = objectPoolManager;
 		}
 
 		[SerializeField] private Grid grid;
@@ -223,7 +225,7 @@ namespace WitchMendokusai
 		{
 			Building building = SOHelper.Get<Building>(data.BuildingID);
 
-			BuildingObject buildingObject = ObjectPoolManager.Instance.Spawn(BuildingObjectPrefab).GetComponent<BuildingObject>();
+			BuildingObject buildingObject = objectPoolManager.Spawn(BuildingObjectPrefab).GetComponent<BuildingObject>();
 			buildingObject.transform.position = GetWorldPosition(pivot, building.Size);
 			buildingObject.gameObject.SetActive(true);
 
@@ -264,7 +266,7 @@ namespace WitchMendokusai
 
 			// Debug.Log($"{nameof(DespawnBuildingObject)} ({pivot}, {buildingObject.name})");
 			buildingObject.Despawn();
-			ObjectPoolManager.Instance.Despawn(buildingObject.gameObject);
+			objectPoolManager.Despawn(buildingObject.gameObject);
 		}
 
 		public List<Vector3Int> GetBuildingCoords(Vector3Int pivot, Vector2 size)

@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UIElements;
+using VContainer;
 
 namespace WitchMendokusai
 {
@@ -10,6 +11,18 @@ namespace WitchMendokusai
 		private WMWindow window;
 		private QuestGrid questGrid;
 		private QuestDetail questDetail;
+
+		private UIRoot uiRoot;
+		private QuestManager questManager;
+		private InputManager inputManager;
+
+		[Inject]
+		public void Construct(UIRoot uiRoot, QuestManager questManager, InputManager inputManager)
+		{
+			this.uiRoot = uiRoot;
+			this.questManager = questManager;
+			this.inputManager = inputManager;
+		}
 
 		private void Start()
 		{
@@ -22,7 +35,7 @@ namespace WitchMendokusai
 			window.style.top = 100;
 			window.style.width = 600;
 			window.style.height = 400;
-			UIRoot.Instance.WindowsLayer.Add(window);
+			uiRoot.WindowsLayer.Add(window);
 
 			VisualElement body = new();
 			body.style.flexDirection = FlexDirection.Row;
@@ -39,16 +52,16 @@ namespace WitchMendokusai
 			questDetail.style.flexGrow = 1;
 			body.Add(questDetail);
 
-			questGrid.Bind(QuestManager.Instance.Quests);
+			questGrid.Bind(questManager.Quests);
 
-			InputManager.Instance.RegisterInputEvent(InputEventType.QuestToggle, InputEventResponseType.Performed, OnToggle);
+			inputManager.RegisterInputEvent(InputEventType.QuestToggle, InputEventResponseType.Performed, OnToggle);
 		}
 
 		private void OnDestroy()
 		{
 			questGrid?.Unbind();
 
-			if (InputManager.TryGetExistingInstance(out InputManager inputManager))
+			if (inputManager != null)
 				inputManager.UnregisterInputEvent(InputEventType.QuestToggle, InputEventResponseType.Performed, OnToggle);
 		}
 

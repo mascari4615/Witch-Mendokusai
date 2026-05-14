@@ -2,6 +2,7 @@ using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UIElements;
+using VContainer;
 
 namespace WitchMendokusai
 {
@@ -18,6 +19,20 @@ namespace WitchMendokusai
 		private int selectedIndex = 0;
 		private readonly Action[] hotbarSlotActions = new Action[SLOT_COUNT];
 
+		private UIRoot uiRoot;
+		private SOManager soManager;
+		private InputManager inputManager;
+		private GameModeManager gameModeManager;
+
+		[Inject]
+		public void Construct(UIRoot uiRoot, SOManager soManager, InputManager inputManager, GameModeManager gameModeManager)
+		{
+			this.uiRoot = uiRoot;
+			this.soManager = soManager;
+			this.inputManager = inputManager;
+			this.gameModeManager = gameModeManager;
+		}
+
 		public int SelectedIndex => selectedIndex;
 		public Item SelectedItem => Resolve()?.GetItem(selectedIndex);
 
@@ -25,7 +40,7 @@ namespace WitchMendokusai
 		{
 			hotbarContainer = new VisualElement { name = "Hotbar" };
 			hotbarContainer.AddToClassList(USS_CLASS);
-			UIRoot.Instance.HudLayer.Add(hotbarContainer);
+			uiRoot.HudLayer.Add(hotbarContainer);
 
 			grid = new ItemGrid();
 			hotbarContainer.Add(grid);
@@ -36,8 +51,8 @@ namespace WitchMendokusai
 			RegisterInputs();
 			SelectSlot(0);
 
-			GameModeManager.Instance.OnModeChanged += OnGameModeChanged;
-			OnGameModeChanged(GameModeManager.Instance.CurrentMode);
+			gameModeManager.OnModeChanged += OnGameModeChanged;
+			OnGameModeChanged(gameModeManager.CurrentMode);
 		}
 
 		private void OnDestroy()
@@ -45,7 +60,7 @@ namespace WitchMendokusai
 			grid?.Unbind();
 			UnregisterInputs();
 
-			if (GameModeManager.TryGetExistingInstance(out GameModeManager gameModeManager))
+			if (gameModeManager != null)
 				gameModeManager.OnModeChanged -= OnGameModeChanged;
 		}
 
@@ -56,23 +71,23 @@ namespace WitchMendokusai
 			hotbarContainer.style.display = mode == GameMode.Default ? DisplayStyle.Flex : DisplayStyle.None;
 		}
 
-		private Hotbar Resolve() => hotbar != null ? hotbar : SOManager.Instance.Hotbar;
+		private Hotbar Resolve() => hotbar != null ? hotbar : soManager.Hotbar;
 
 		private void RegisterInputs()
 		{
-			InputManager.Instance.RegisterInputEvent(InputEventType.Scroll, InputEventResponseType.Performed, OnScroll);
+			inputManager.RegisterInputEvent(InputEventType.Scroll, InputEventResponseType.Performed, OnScroll);
 
 			for (int i = 0; i < SLOT_COUNT; i++)
 			{
 				int slotIndex = i;
 				hotbarSlotActions[i] = () => SelectSlot(slotIndex);
-				InputManager.Instance.RegisterInputEvent(InputEventType.HotbarSlot1 + i, InputEventResponseType.Performed, hotbarSlotActions[i]);
+				inputManager.RegisterInputEvent(InputEventType.HotbarSlot1 + i, InputEventResponseType.Performed, hotbarSlotActions[i]);
 			}
 		}
 
 		private void UnregisterInputs()
 		{
-			if (InputManager.TryGetExistingInstance(out InputManager inputManager) == false)
+			if (inputManager == null)
 				return;
 
 			inputManager.UnregisterInputEvent(InputEventType.Scroll, InputEventResponseType.Performed, OnScroll);

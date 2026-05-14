@@ -1,4 +1,5 @@
 using UnityEngine;
+using VContainer;
 
 namespace WitchMendokusai
 {
@@ -13,16 +14,23 @@ namespace WitchMendokusai
 	public class PlayerKnockbackCameraGlue : MonoBehaviour
 	{
 		[SerializeField] private float minimumAmplitude = 0.18f;
-		[SerializeField] private float forceScale = 0.04f;       // force 12 → +0.48, force 18 → +0.72
+		[SerializeField] private float forceScale = 0.04f;
 		[SerializeField] private float maxAmplitude = 0.9f;
-		[SerializeField] private float forceExponent = 0.85f;    // < 1: 작은 force도 어느정도 시원함, 큰 force는 cap
-		[SerializeField] private float forceThreshold = 0f;       // 이 값 이하의 force 는 minimum 만 적용
+		[SerializeField] private float forceExponent = 0.85f;
+		[SerializeField] private float forceThreshold = 0f;
 
 		private UnitHealth unitHealth;
+		private CameraManager cameraManager;
 
 		private void Awake()
 		{
 			unitHealth = GetComponent<UnitHealth>();
+		}
+
+		[Inject]
+		public void Construct(CameraManager cameraManager)
+		{
+			this.cameraManager = cameraManager;
 		}
 
 		private void OnEnable()
@@ -39,7 +47,7 @@ namespace WitchMendokusai
 
 		private void HandleHitShake(DamageInfo damageInfo)
 		{
-			if (CameraManager.Instance == null)
+			if (cameraManager == null)
 				return;
 
 			float force = Mathf.Max(0f, damageInfo.knockbackForce);
@@ -48,7 +56,7 @@ namespace WitchMendokusai
 				forceAmplitude = Mathf.Pow(force - forceThreshold, forceExponent) * forceScale;
 
 			float amplitude = Mathf.Clamp(Mathf.Max(minimumAmplitude, forceAmplitude), 0f, maxAmplitude);
-			CameraManager.Instance.GenerateCameraImpulse(amplitude);
+			cameraManager.GenerateCameraImpulse(amplitude);
 		}
 	}
 }

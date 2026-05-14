@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using VContainer;
 
 namespace WitchMendokusai
 {
@@ -18,20 +19,30 @@ namespace WitchMendokusai
 
 		private bool inputRegistered;
 
+		private GameModeManager gameModeManager;
+		private InputManager inputManager;
+
+		[Inject]
+		public void Construct(GameModeManager gameModeManager, InputManager inputManager)
+		{
+			this.gameModeManager = gameModeManager;
+			this.inputManager = inputManager;
+		}
+
 		private void Start()
 		{
 			if (mainCamera == null)
 				mainCamera = Camera.main;
 
-			GameModeManager.Instance.OnModeChanged += OnGameModeChanged;
-			OnGameModeChanged(GameModeManager.Instance.CurrentMode);
+			gameModeManager.OnModeChanged += OnGameModeChanged;
+			OnGameModeChanged(gameModeManager.CurrentMode);
 		}
 
 		private void OnDestroy()
 		{
 			UnregisterInput();
 
-			if (GameModeManager.TryGetExistingInstance(out GameModeManager gameModeManager))
+			if (gameModeManager != null)
 				gameModeManager.OnModeChanged -= OnGameModeChanged;
 		}
 
@@ -47,8 +58,8 @@ namespace WitchMendokusai
 		{
 			if (inputRegistered)
 				return;
-			InputManager.Instance.RegisterInputEvent(InputEventType.Click0, InputEventResponseType.Performed, OnBreakBlock);
-			InputManager.Instance.RegisterInputEvent(InputEventType.Click1, InputEventResponseType.Performed, OnPlaceBlock);
+			inputManager.RegisterInputEvent(InputEventType.Click0, InputEventResponseType.Performed, OnBreakBlock);
+			inputManager.RegisterInputEvent(InputEventType.Click1, InputEventResponseType.Performed, OnPlaceBlock);
 			inputRegistered = true;
 		}
 
@@ -56,7 +67,7 @@ namespace WitchMendokusai
 		{
 			if (inputRegistered == false)
 				return;
-			if (InputManager.TryGetExistingInstance(out InputManager inputManager))
+			if (inputManager != null)
 			{
 				inputManager.UnregisterInputEvent(InputEventType.Click0, InputEventResponseType.Performed, OnBreakBlock);
 				inputManager.UnregisterInputEvent(InputEventType.Click1, InputEventResponseType.Performed, OnPlaceBlock);
@@ -73,10 +84,10 @@ namespace WitchMendokusai
 				return;
 			if (Mouse.current == null)
 				return;
-			if (InputManager.Instance.IsPointerOverUI())
+			if (inputManager.IsPointerOverUI())
 				return;
 
-			Vector2 mousePos = InputManager.Instance.MouseScreenPosition;
+			Vector2 mousePos = inputManager.MouseScreenPosition;
 			Ray ray = mainCamera.ScreenPointToRay(mousePos);
 
 			if (Physics.Raycast(ray, out RaycastHit hit, reachDistance) == false)

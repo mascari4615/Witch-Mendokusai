@@ -8,6 +8,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
+using VContainer;
 using static WitchMendokusai.SOHelper;
 using DG.Tweening;
 
@@ -25,7 +26,23 @@ namespace WitchMendokusai
 		private int unitID;
 		private Action endAction;
 
+		private ChatManager chatManager;
+		private CameraManager cameraManager;
+		private DataManager dataManager;
+		private InputManager inputManager;
+		private PlayerProvider playerProvider;
+
 		public static bool IsChatting { get; private set; } = false;
+
+		[Inject]
+		public void Construct(ChatManager chatManager, CameraManager cameraManager, DataManager dataManager, InputManager inputManager, PlayerProvider playerProvider)
+		{
+			this.chatManager = chatManager;
+			this.cameraManager = cameraManager;
+			this.dataManager = dataManager;
+			this.inputManager = inputManager;
+			this.playerProvider = playerProvider;
+		}
 
 		private void Start()
 		{
@@ -35,16 +52,15 @@ namespace WitchMendokusai
 
 		public void StartChat(NPCObject npc, Action onChatFinished = null)
 		{
-			// TODO: CSV가 아니라 스크립터블 오브젝트로 관리 가능하게
-			if (ChatManager.Instance.TryGetChatData(npc.UnitData.ID.ToString(), out List<LineData> curChatData) == false)
+			if (chatManager.TryGetChatData(npc.UnitData.ID.ToString(), out List<LineData> curChatData) == false)
 			{
 				Debug.LogWarning($"ChatData not found: {npc.UnitData.ID}");
 				onChatFinished?.Invoke();
 				return;
 			}
 
-			CameraManager.Instance.SetUICameraMode(UICameraMode.NPC, true);
-			CameraManager.Instance.SetNPC(npc.transform);
+			cameraManager.SetUICameraMode(UICameraMode.NPC, true);
+			cameraManager.SetNPC(npc.transform);
 
 			curNPC = npc;
 			endAction = onChatFinished;
@@ -71,11 +87,10 @@ namespace WitchMendokusai
 
 			foreach (LineData lineData in curChatData)
 			{
-				// TODO: 유닛 이미지 바리에이션 어떻게 저장하고 불러온 것인지?
 				Unit unit = null;
 
 				if (lineData.unitID == 0)
-					unit = Get<Doll>(DataManager.Instance.CurDollID);
+					unit = Get<Doll>(dataManager.CurDollID);
 				else if (lineData.unitID == -1)
 					unit = curNPC.Data;
 
@@ -87,13 +102,13 @@ namespace WitchMendokusai
 				Coroutine coroutine = StartCoroutine(PrintLine(lineData));
 
 				do yield return null;
-				while (lineText.text != lineData.line && InputManager.Instance.IsAnyKeyPressedThisFrame == false);
+				while (lineText.text != lineData.line && inputManager.IsAnyKeyPressedThisFrame == false);
 
 				StopCoroutine(coroutine);
 				lineText.text = lineData.line;
 
 				do yield return null;
-				while (InputManager.Instance.IsAnyKeyPressedThisFrame == false);
+				while (inputManager.IsAnyKeyPressedThisFrame == false);
 			}
 
 			IsChatting = false;
@@ -105,10 +120,6 @@ namespace WitchMendokusai
 
 			endAction?.Invoke();
 		}
-
-		// 바로 null로 만드니 블렌드 전에 뚝 끊김
-		// 어차피 새로 Chat 시작하면 target을 그 때 설정하니까
-		// chatTargetGroup.m_Targets[1].target = null;
 
 		private IEnumerator PrintLine(LineData lineData)
 		{
@@ -125,9 +136,6 @@ namespace WitchMendokusai
 					RuntimeManager.PlayOneShot("event:/SFX/Equip");
 				yield return wait;
 			}
-
-			// EndLine
-			// if (lineData.additionalData.Equals("0"))
 		}
 
 		public IEnumerator BubbleLoop()
@@ -138,9 +146,8 @@ namespace WitchMendokusai
 
 			while (true)
 			{
-				// Update Bubble Pos
 				Vector3 targetPos = unitID == 0 ?
-					PlayerProvider.Instance.Current.transform.position :
+					playerProvider.Current.transform.position :
 					curNPC.transform.position;
 				bubbleCanvasGroup.transform.position = GetVec(targetPos + Vector3.up);
 

@@ -77,6 +77,7 @@ namespace WitchMendokusai
 			// Common UIs
 			CutSceneModule = FindAnyObjectByType<CutSceneModule>(FindObjectsInactive.Include);
 			Chat = FindAnyObjectByType<UIChat>(FindObjectsInactive.Include);
+			container.Inject(Chat);
 			adventurerGuild = FindAnyObjectByType<UIAdventurerGuild>(FindObjectsInactive.Include);
 			adventurerGuild.gameObject.SetActive(false);
 
@@ -85,10 +86,15 @@ namespace WitchMendokusai
 			// 씬 한정 view 등록 — 글로벌 UIRoot 에 AddComponent
 			GameObject uiRootGameObject = uiRoot.gameObject;
 			inventoryView = uiRootGameObject.AddComponent<InventoryView>();
+			container.Inject(inventoryView);
 			hotbarView = uiRootGameObject.AddComponent<HotbarView>();
+			container.Inject(hotbarView);
 			buildingBarView = uiRootGameObject.AddComponent<BuildingBarView>();
+			container.Inject(buildingBarView);
 			questView = uiRootGameObject.AddComponent<QuestView>();
+			container.Inject(questView);
 			dollView = uiRootGameObject.AddComponent<DollView>();
+			container.Inject(dollView);
 			statusView = uiRootGameObject.AddComponent<StatusView>();
 			container.Inject(statusView);
 			popupView = uiRootGameObject.AddComponent<PopupView>();

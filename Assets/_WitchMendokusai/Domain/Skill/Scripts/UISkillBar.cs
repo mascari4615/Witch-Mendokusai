@@ -1,13 +1,23 @@
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using VContainer;
 
 namespace WitchMendokusai
 {
 	public class UISkillBar : UIBase
 	{
 		private List<UISkillSlot> curSkillSlots;
+
+		private PlayerProvider playerProvider;
+		private TimeManager timeManager;
+
+		[Inject]
+		public void Construct(PlayerProvider playerProvider, TimeManager timeManager)
+		{
+			this.playerProvider = playerProvider;
+			this.timeManager = timeManager;
+		}
 
 		private void Start()
 		{
@@ -27,7 +37,7 @@ namespace WitchMendokusai
 		{
 			int skillCount = 0;
 
-			IEnumerable<Skill> skills = PlayerProvider.Instance.CurrentObject.SkillHandler.SkillDic.Values;
+			IEnumerable<Skill> skills = playerProvider.CurrentObject.SkillHandler.SkillDic.Values;
 			foreach (Skill skill in skills)
 			{
 				curSkillSlots[skillCount].SetSlot(skill.Data);
@@ -42,12 +52,12 @@ namespace WitchMendokusai
 
 		protected override void OnOpen()
 		{
-			TimeManager.Instance.RegisterCallback(UpdateUI);
+			timeManager.RegisterCallback(UpdateUI);
 		}
 
 		protected override void OnClose()
 		{
-			TimeManager.Instance.RemoveCallback(UpdateUI);
+			timeManager.RemoveCallback(UpdateUI);
 		}
 	}
 }

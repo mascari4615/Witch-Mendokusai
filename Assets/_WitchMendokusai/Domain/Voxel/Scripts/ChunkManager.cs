@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
+using VContainer;
 
 namespace WitchMendokusai
 {
@@ -25,6 +26,14 @@ namespace WitchMendokusai
 		// Task.Run 스레드에서 메인 스레드로 넘겨주기 위한 스레드 세이프 큐
 		private readonly ConcurrentQueue<(ChunkPosition pos, ChunkMeshData meshData, Chunk chunkData)> completedTasks = new();
 
+		private PlayerProvider playerProvider;
+
+		[Inject]
+		public void Construct(PlayerProvider playerProvider)
+		{
+			this.playerProvider = playerProvider;
+		}
+
 		private void Awake()
 		{
 			chunkPool = GetComponent<ChunkPool>();
@@ -36,12 +45,12 @@ namespace WitchMendokusai
 			else
 				terrainParameters.EnsureHeightmapCache(); // main thread 에서 1회 캐시 — background chunk gen 안전
 
-			// Inspector 미할당 시 — WM 표준 싱글톤 PlayerProvider.Instance.Current 우선, 그것도 없으면 Camera.main 안전망.
+			// Inspector 미할당 시 — 플레이어 위치 우선, 그것도 없으면 Camera.main 안전망.
 			// 3인칭 게임 (카메라 ≠ 플레이어 위치) 에서도 청크 LOD 가 플레이어 따라가도록.
 			if (viewer == null)
 			{
-				if (PlayerProvider.Instance.Current != null)
-					viewer = PlayerProvider.Instance.Current.transform;
+				if (playerProvider.Current != null)
+					viewer = playerProvider.Current.transform;
 				else
 					viewer = Camera.main?.transform;
 			}

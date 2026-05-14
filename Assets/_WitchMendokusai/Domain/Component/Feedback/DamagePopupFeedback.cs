@@ -1,4 +1,5 @@
 using UnityEngine;
+using VContainer;
 
 namespace WitchMendokusai
 {
@@ -6,6 +7,13 @@ namespace WitchMendokusai
 	public class DamagePopupFeedback : MonoBehaviour
 	{
 		private UnitHealth health;
+		private UIManager uiManager;
+
+		[Inject]
+		public void Construct(UIManager uiManager)
+		{
+			this.uiManager = uiManager;
+		}
 
 		private void Awake()
 		{
@@ -24,10 +32,7 @@ namespace WitchMendokusai
 
 		private void PopDamage(DamageInfo damageInfo)
 		{
-			if (UIManager.Instance != null)
-			{
-				UIManager.Instance.PopDamage(damageInfo, transform.position + Vector3.forward * 1);
-			}
+			uiManager?.PopDamage(damageInfo, transform.position + Vector3.forward * 1);
 		}
 	}
 }

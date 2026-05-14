@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UIElements;
+using VContainer;
 
 namespace WitchMendokusai
 {
@@ -14,6 +15,18 @@ namespace WitchMendokusai
 		private ScrollView scroll;
 		private ItemGrid grid;
 
+		private UIRoot uiRoot;
+		private SOManager soManager;
+		private InputManager inputManager;
+
+		[Inject]
+		public void Construct(UIRoot uiRoot, SOManager soManager, InputManager inputManager)
+		{
+			this.uiRoot = uiRoot;
+			this.soManager = soManager;
+			this.inputManager = inputManager;
+		}
+
 		private void Start()
 		{
 			window = new WMWindow
@@ -23,7 +36,7 @@ namespace WitchMendokusai
 			};
 			window.style.left = 80;
 			window.style.top = 80;
-			UIRoot.Instance.WindowsLayer.Add(window);
+			uiRoot.WindowsLayer.Add(window);
 			window.EnableSizeToggle();
 
 			filterBar = new FilterBar();
@@ -38,10 +51,10 @@ namespace WitchMendokusai
 			grid.AddToClassList("wm-inventory-grid");
 			scroll.Add(grid);
 
-			Inventory bound = inventory != null ? inventory : SOManager.Instance.ItemInventory;
+			Inventory bound = inventory != null ? inventory : soManager.ItemInventory;
 			grid.Bind(bound);
 
-			InputManager.Instance.RegisterInputEvent(InputEventType.Inventory, InputEventResponseType.Performed, OnToggle);
+			inputManager.RegisterInputEvent(InputEventType.Inventory, InputEventResponseType.Performed, OnToggle);
 		}
 
 		private void OnFilterChanged(ItemType type) => grid?.SetFilter(type);
@@ -50,7 +63,7 @@ namespace WitchMendokusai
 		{
 			grid?.Unbind();
 
-			if (InputManager.TryGetExistingInstance(out InputManager inputManager))
+			if (inputManager != null)
 				inputManager.UnregisterInputEvent(InputEventType.Inventory, InputEventResponseType.Performed, OnToggle);
 		}
 

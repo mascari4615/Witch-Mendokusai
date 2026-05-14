@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.UIElements;
+using VContainer;
 
 namespace WitchMendokusai
 {
@@ -13,6 +14,20 @@ namespace WitchMendokusai
 		private readonly List<Slot> slots = new();
 		private readonly List<Building> cachedBuildings = new();
 		private int selectedIndex = -1;
+
+		private UIRoot uiRoot;
+		private GameModeManager gameModeManager;
+		private SOManager soManager;
+		private BuildManager buildManager;
+
+		[Inject]
+		public void Construct(UIRoot uiRoot, GameModeManager gameModeManager, SOManager soManager, BuildManager buildManager)
+		{
+			this.uiRoot = uiRoot;
+			this.gameModeManager = gameModeManager;
+			this.soManager = soManager;
+			this.buildManager = buildManager;
+		}
 
 		private void Start()
 		{
@@ -27,15 +42,15 @@ namespace WitchMendokusai
 			container.style.justifyContent = Justify.Center;
 			container.style.display = DisplayStyle.None;
 
-			UIRoot.Instance.HudLayer.Add(container);
+			uiRoot.HudLayer.Add(container);
 
-			GameModeManager.Instance.OnModeChanged += OnGameModeChanged;
-			OnGameModeChanged(GameModeManager.Instance.CurrentMode);
+			gameModeManager.OnModeChanged += OnGameModeChanged;
+			OnGameModeChanged(gameModeManager.CurrentMode);
 		}
 
 		private void OnDestroy()
 		{
-			if (GameModeManager.TryGetExistingInstance(out GameModeManager gameModeManager))
+			if (gameModeManager != null)
 				gameModeManager.OnModeChanged -= OnGameModeChanged;
 
 			if (container != null)
@@ -53,7 +68,7 @@ namespace WitchMendokusai
 		private void Refresh()
 		{
 			cachedBuildings.Clear();
-			cachedBuildings.AddRange(SOManager.Instance.DataSOs[typeof(Building)].Values.Cast<Building>());
+			cachedBuildings.AddRange(soManager.DataSOs[typeof(Building)].Values.Cast<Building>());
 
 			BuildSlots(cachedBuildings.Count);
 
@@ -93,7 +108,7 @@ namespace WitchMendokusai
 				return;
 
 			selectedIndex = index;
-			BuildManager.Instance.SelectBuilding(cachedBuildings[index]);
+			buildManager.SelectBuilding(cachedBuildings[index]);
 
 			for (int i = 0; i < slots.Count; i++)
 				slots[i].SetSelected(i == selectedIndex);

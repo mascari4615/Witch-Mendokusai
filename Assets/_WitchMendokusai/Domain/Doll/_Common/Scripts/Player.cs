@@ -1,4 +1,5 @@
 using UnityEngine;
+using VContainer;
 using static WitchMendokusai.SOHelper;
 
 namespace WitchMendokusai
@@ -22,17 +23,28 @@ namespace WitchMendokusai
 
 		public UnitStat UnitStat => Object.UnitStat;
 
+		private PlayerProvider playerProvider;
+		private DataManager dataManager;
+		private InputManager inputManager;
+
+		[Inject]
+		public void Construct(PlayerProvider playerProvider, DataManager dataManager, InputManager inputManager)
+		{
+			this.playerProvider = playerProvider;
+			this.dataManager = dataManager;
+			this.inputManager = inputManager;
+			playerProvider.SetCurrent(this);
+			aim = new(transform, inputManager, ObjectBufferManager.GetObjects(ObjectType.Monster), ObjectBufferManager.GetObjects(ObjectType.ResourceNode));
+		}
+
 		private void Awake()
 		{
 			interaction = new(transform);
-			aim = new(transform, ObjectBufferManager.GetObjects(ObjectType.Monster), ObjectBufferManager.GetObjects(ObjectType.ResourceNode));
 			Object = GetComponent<PlayerObject>();
 			Rotation = GetComponent<PlayerRotation>();
 
 			if (dontDestroyOnLoad == true)
 				DontDestroyOnLoad(gameObject);
-
-			PlayerProvider.Instance.SetCurrent(this);
 
 			EventBusBridge.Subscribe<PlayerJumpRequestedEvent>(OnJumpRequested);
 			EventBusBridge.Subscribe<PlayerJumpReleasedEvent>(OnJumpReleased);
@@ -45,7 +57,7 @@ namespace WitchMendokusai
 
 		private void Start()
 		{
-			Object.Init(GetDoll(DataManager.Instance.CurDollID));
+			Object.Init(GetDoll(dataManager.CurDollID));
 
 			EventBusBridge.Publish(new PlayerSpawnedEvent
 			{
@@ -57,7 +69,7 @@ namespace WitchMendokusai
 
 		private void OnDestroy()
 		{
-			if (PlayerProvider.TryGetExistingInstance(out PlayerProvider playerProvider))
+			if (playerProvider != null)
 				playerProvider.Clear();
 
 			EventBusBridge.Publish(new PlayerDespawnedEvent());
@@ -124,7 +136,7 @@ namespace WitchMendokusai
 
 		private void CalcMoveDirection()
 		{
-			Object.UnitMovement.SetMoveDirection(InputManager.Instance.MoveInput);
+			Object.UnitMovement.SetMoveDirection(inputManager.MoveInput);
 		}
 
 		public void SetSprinting(bool isSprinting)

@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UIElements;
+using VContainer;
 
 namespace WitchMendokusai
 {
@@ -10,6 +11,18 @@ namespace WitchMendokusai
 		private WMWindow window;
 		private DollList dollList;
 		private DollDetail dollDetail;
+
+		private UIRoot uiRoot;
+		private SOManager soManager;
+		private InputManager inputManager;
+
+		[Inject]
+		public void Construct(UIRoot uiRoot, SOManager soManager, InputManager inputManager)
+		{
+			this.uiRoot = uiRoot;
+			this.soManager = soManager;
+			this.inputManager = inputManager;
+		}
 
 		private void Start()
 		{
@@ -22,7 +35,7 @@ namespace WitchMendokusai
 			window.style.top = 120;
 			window.style.width = 640;
 			window.style.height = 440;
-			UIRoot.Instance.WindowsLayer.Add(window);
+			uiRoot.WindowsLayer.Add(window);
 
 			VisualElement body = new();
 			body.style.flexDirection = FlexDirection.Row;
@@ -39,17 +52,17 @@ namespace WitchMendokusai
 			dollDetail.style.flexGrow = 1;
 			body.Add(dollDetail);
 
-			dollList.Bind(SOManager.Instance.DollBuffer);
+			dollList.Bind(soManager.DollBuffer);
 			dollList.SelectFirst();
 
-			InputManager.Instance.RegisterInputEvent(InputEventType.DollToggle, InputEventResponseType.Performed, OnToggle);
+			inputManager.RegisterInputEvent(InputEventType.DollToggle, InputEventResponseType.Performed, OnToggle);
 		}
 
 		private void OnDestroy()
 		{
 			dollList?.Unbind();
 
-			if (InputManager.TryGetExistingInstance(out InputManager inputManager))
+			if (inputManager != null)
 				inputManager.UnregisterInputEvent(InputEventType.DollToggle, InputEventResponseType.Performed, OnToggle);
 		}
 

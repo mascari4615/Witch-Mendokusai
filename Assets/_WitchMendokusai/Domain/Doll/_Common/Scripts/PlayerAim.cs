@@ -14,10 +14,12 @@ namespace WitchMendokusai
 
 		private readonly Transform playerTr;
 		private readonly List<List<GameObject>> targetLists;
+		private readonly InputManager inputManager;
 
-		public PlayerAim(Transform transform, params List<GameObject>[] targets)
+		public PlayerAim(Transform transform, InputManager inputManager, params List<GameObject>[] targets)
 		{
 			playerTr = transform;
+			this.inputManager = inputManager;
 			targetLists = new(targets);
 		}
 
@@ -84,7 +86,7 @@ namespace WitchMendokusai
 			GameObject nearestTarget = GetNearestTarget();
 			return useAutoAim && (nearestTarget != null) ?
 				nearestTarget.transform.position :
-				InputManager.Instance.MouseWorldPosition;
+				inputManager.MouseWorldPosition;
 		}
 
 		public Vector3 CalcAimDirection(bool useAutoAim)

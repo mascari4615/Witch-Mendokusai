@@ -1,4 +1,5 @@
 using UnityEngine;
+using VContainer;
 
 namespace WitchMendokusai
 {
@@ -14,10 +15,17 @@ namespace WitchMendokusai
 		[SerializeField] private float landingImpulseMaxAmplitude = 0.45f;
 
 		private UnitMovement unitMovement;
+		private CameraManager cameraManager;
 
 		private void Awake()
 		{
 			unitMovement = GetComponent<UnitMovement>();
+		}
+
+		[Inject]
+		public void Construct(CameraManager cameraManager)
+		{
+			this.cameraManager = cameraManager;
 		}
 
 		private void OnEnable()
@@ -34,7 +42,7 @@ namespace WitchMendokusai
 
 		private void HandleLanded(float impactStrength)
 		{
-			if (CameraManager.Instance == null)
+			if (cameraManager == null)
 				return;
 
 			float threshold = Mathf.Max(landingImpulseMinThreshold, 0.32f);
@@ -46,12 +54,11 @@ namespace WitchMendokusai
 			if (clamped < threshold)
 				return;
 
-			// Remap after threshold so tiny landings stay silent while larger impacts scale smoothly.
 			float normalized = Mathf.InverseLerp(threshold, 1f, clamped);
 			float curved = Mathf.Pow(normalized, landingImpulseExponent);
 			float impulse = floor + (curved * scale);
 			impulse = Mathf.Min(impulse, maxAmplitude);
-			CameraManager.Instance.GenerateCameraImpulse(impulse);
+			cameraManager.GenerateCameraImpulse(impulse);
 		}
 	}
 }

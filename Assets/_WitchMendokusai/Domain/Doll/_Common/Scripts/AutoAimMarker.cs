@@ -1,4 +1,5 @@
 using UnityEngine;
+using VContainer;
 
 namespace WitchMendokusai
 {
@@ -9,28 +10,35 @@ namespace WitchMendokusai
 
 		private Animator animator;
 		private Transform lastNearestTarget;
+		private PlayerProvider playerProvider;
 
 		private void Awake()
 		{
 			animator = GetComponent<Animator>();
 		}
 
+		[Inject]
+		public void Construct(PlayerProvider playerProvider)
+		{
+			this.playerProvider = playerProvider;
+		}
+
 		private void Update()
 		{
-			if (PlayerProvider.Instance.Current.AimPos == Vector3.zero)
+			if (playerProvider.Current.AimPos == Vector3.zero)
 			{
 				animator.SetBool(MarkerEnabled, false);
 				return;
 			}
 
-			if (lastNearestTarget != PlayerProvider.Instance.Current.NearestTarget)
+			if (lastNearestTarget != playerProvider.Current.NearestTarget)
 			{
-				lastNearestTarget = PlayerProvider.Instance.Current.NearestTarget;
+				lastNearestTarget = playerProvider.Current.NearestTarget;
 				animator.SetTrigger(MarkerResetTrigger);
 			}
 
 			animator.SetBool(MarkerEnabled, true);
-			transform.position = PlayerProvider.Instance.Current.AimPos;
+			transform.position = playerProvider.Current.AimPos;
 		}
 	}
 }
