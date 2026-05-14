@@ -404,6 +404,35 @@ powershell -File memo/dotfiles/scripts/unity-refresh.ps1
 - `manage_components.set_property` — Inspector 값 변경 (★ **수치 노출 룰 위반 위험** — SO 정본 우회 가능. 디버그 외에는 SO 통해 변경)
 - `manage_assets` / `manage_prefabs` — 에셋 / prefab 변경
 - `manage_packages` — 패키지 변경
+- **`.unity` / `.asset` / `.prefab` 외부 직접 편집 (Write 도구)** — *최후 fallback* (MCP 차단·미지원 시만). 외부 편집 후 Unity 가 "Scene has been modified on disk. Reload?" 다이얼로그를 띄우면 `unity-refresh.ps1 -HandleReloadDialog` 가 자동 dismiss. MCP `RunCommand` (EditorSceneManager API) 로 할 수 있으면 외부 편집 X.
+
+### `.unity` / `.asset` 씬 데이터 편집 — 결정 흐름 (B2 + C1)
+
+MCP 사용 가능 여부로 분기:
+
+```
+씬/에셋 데이터 변경 필요
+   │
+   ├─ MCP 연결 OK?
+   │    YES → manage_scene / manage_gameobject / manage_assets 사용
+   │           → 다이얼로그 안 뜸 (Unity 내부 API 경로)
+   │
+   └─ MCP 차단 / connection revoked / 미지원
+         → Write 도구로 .unity / .asset 직접 편집
+         → 편집 직후: unity-refresh.ps1 -HandleReloadDialog
+              → Win32 "Scene changed on disk" 다이얼로그 자동 dismiss
+              → danger 키워드(save/delete/quit) 포함 다이얼로그는 건드리지 않음
+```
+
+**MCP RunCommand 패턴 예시** (씬에서 GameObject 제거):
+```csharp
+// execute_code 또는 Unity_RunCommand 로 전달
+using UnityEditor.SceneManagement;
+var go = GameObject.Find("TargetObject");
+if (go != null) { Object.DestroyImmediate(go); }
+EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
+EditorSceneManager.SaveOpenScenes();
+```
 
 ### 기존 흐름과 결합
 
@@ -411,6 +440,7 @@ powershell -File memo/dotfiles/scripts/unity-refresh.ps1
 |---|---|---|
 | 컴파일 검증 | Editor.log grep (`grep "error CS" Editor.log`) | `read_console(types=["error"])` 정본 — 구조화 + 실시간 |
 | Reimport 트리거 | `unity-refresh.ps1` (focus + sleep 25초) | `create_script` / `script_apply_edits` 자동 처리 (refresh_unity 불필요). polling = `mcpforunity://editor/state.is_compiling` |
+| Scene reload 다이얼로그 | 사용자 직접 클릭 | `unity-refresh.ps1 -HandleReloadDialog` (Win32 EnumWindows + BM_CLICK 자동 dismiss, timeout 5s) |
 | 씬 정합성 | 사용자 Hierarchy 시각 | `find_gameobjects` + `mcpforunity://scene/gameobject/{id}` |
 | Play Mode 검증 | 사용자 Play 클릭 + Console 봐달라 | `run_tests` (EditMode/PlayMode) 자동 + `read_console` |
 | 시각 검증 (회귀) | 사용자 "이상해 보여요" | `manage_camera(action="screenshot", include_image=True)` 자동 비교 |
