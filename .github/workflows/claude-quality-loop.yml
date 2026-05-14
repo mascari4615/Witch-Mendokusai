@@ -158,26 +158,23 @@ SKIP 대상 (human 결정 필요 — fix X, 작업 B 에서 시드화):
 - `ls _memo/wm/tasks/TASK-WM-*.md` 로 현재 최고 번호 확인 후 +1
 
 신규 파일 형식 (_memo/wm/tasks/TASK-WM-NNN-<kebab-slug>.md):
-```
----
-id: TASK-WM-NNN
-status: seed
-priority: low
-machine: local
-path: [wm, quality]
-tags: [quality-loop, <위반종류>]
----
+frontmatter (id/status/priority/machine/path/tags) + 본문 2섹션.
+예시 구조 (frontmatter 구분자는 하이픈 3개):
+  id: TASK-WM-NNN
+  status: seed
+  priority: low
+  machine: local
+  path: [wm, quality]
+  tags: [quality-loop, <위반종류>]
 
-## 목표
+본문:
+  ## 목표
+  > quality-loop 자동 감지: <위반 패턴 요약 1줄>
 
-> quality-loop 자동 감지: <위반 패턴 요약 1줄>
-
-## 위반 목록
-
-| 파일 | 라인 | 위반 내용 |
-|------|------|-----------|
-| path/to/File.cs | 42 | Keyboard.current 직접 접근 |
-```
+  ## 위반 목록
+  | 파일 | 라인 | 위반 내용 |
+  |------|------|-----------|
+  | path/to/File.cs | 42 | Keyboard.current 직접 접근 |
 
 ## 작업 C — STALE TASK status 감지 + 갱신
 
