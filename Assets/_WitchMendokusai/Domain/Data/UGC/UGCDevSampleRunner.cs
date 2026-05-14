@@ -95,7 +95,7 @@ namespace WitchMendokusai
 
 		private void LogInputBackend()
 		{
-			if (!verboseInputLog)
+			if (verboseInputLog == false)
 				return;
 
 			Debug.Log($"[UGC][Input] Runner enabled. scene={UnityEngine.SceneManagement.SceneManager.GetActiveScene().name}, inputSystem=on, legacy=off");
@@ -103,7 +103,7 @@ namespace WitchMendokusai
 
 		private void LogInputHeartbeat()
 		{
-			if (!verboseInputLog || Time.unscaledTime < nextInputHeartbeatTime)
+			if (verboseInputLog == false || Time.unscaledTime < nextInputHeartbeatTime)
 				return;
 
 			nextInputHeartbeatTime = Time.unscaledTime + 2f;
@@ -114,7 +114,7 @@ namespace WitchMendokusai
 
 		private void LogHotkey(string action, string key)
 		{
-			if (!verboseInputLog)
+			if (verboseInputLog == false)
 				return;
 
 			Debug.Log($"[UGC][Input] hotkey action={action}, key={key}");
@@ -175,7 +175,7 @@ namespace WitchMendokusai
 			if (GUI.Button(new Rect(12, 12, 120f, 32f), showDebugGui ? "▼ UGC DEV" : "▶ UGC DEV", toggleButtonStyle))
 				showDebugGui = !showDebugGui;
 
-			if (!showDebugGui)
+			if (showDebugGui == false)
 				return;
 
 			const int width = 1040;

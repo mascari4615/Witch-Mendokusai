@@ -8,7 +8,7 @@ namespace WitchMendokusai
 
 		public static void Info(string message)
 		{
-			if (!Verbose)
+			if (Verbose == false)
 				return;
 
 			Debug.Log($"[UGC] {message}");

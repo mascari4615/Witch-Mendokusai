@@ -25,10 +25,10 @@ namespace WitchMendokusai
 				return false;
 			}
 
-			if (!TryGetExpectedKind(action.type, out string expectedKind, out error))
+			if (TryGetExpectedKind(action.type, out string expectedKind, out error) == false)
 				return false;
 
-			if (!TryResolveTarget(action, expectedKind, out GameObject target, out error))
+			if (TryResolveTarget(action, expectedKind, out GameObject target, out error) == false)
 			{
 				return false;
 			}
@@ -57,10 +57,10 @@ namespace WitchMendokusai
 				return false;
 			}
 
-			if (!TryGetExpectedKind(action.type, out string expectedKind, out error))
+			if (TryGetExpectedKind(action.type, out string expectedKind, out error) == false)
 				return false;
 
-			if (!TryResolveTarget(action, expectedKind, out GameObject target, out error))
+			if (TryResolveTarget(action, expectedKind, out GameObject target, out error) == false)
 			{
 				return false;
 			}
@@ -70,7 +70,7 @@ namespace WitchMendokusai
 				case "SetDoorState":
 					return TryRequireTargetKind(action, DoorKind, out error);
 				case "MovePlatform":
-					if (!TryRequireTargetKind(action, PlatformKind, out error))
+					if (TryRequireTargetKind(action, PlatformKind, out error) == false)
 						return false;
 
 					if (string.IsNullOrWhiteSpace(GetString(action.@params, "routeId", string.Empty)))
@@ -93,7 +93,7 @@ namespace WitchMendokusai
 
 		private static bool TrySetDoorState(UGCActionData action, GameObject target, out string error)
 		{
-			if (!TryRequireTargetKind(action, DoorKind, out error))
+			if (TryRequireTargetKind(action, DoorKind, out error) == false)
 				return false;
 
 			bool isOpen = GetBool(action.@params, "isOpen", true);
@@ -111,7 +111,7 @@ namespace WitchMendokusai
 
 		private static bool TryMovePlatform(UGCActionData action, GameObject target, out string error)
 		{
-			if (!TryRequireTargetKind(action, PlatformKind, out error))
+			if (TryRequireTargetKind(action, PlatformKind, out error) == false)
 				return false;
 
 			MovePlatformCommand command = new()
@@ -136,7 +136,7 @@ namespace WitchMendokusai
 
 		private static bool TryActivateCheckpoint(UGCActionData action, GameObject target, out string error)
 		{
-			if (!TryRequireTargetKind(action, CheckpointKind, out error))
+			if (TryRequireTargetKind(action, CheckpointKind, out error) == false)
 				return false;
 
 			bool setAsRespawn = GetBool(action.@params, "setAsRespawn", true);
@@ -149,7 +149,7 @@ namespace WitchMendokusai
 
 		private static bool TryToggleHazard(UGCActionData action, GameObject target, out string error)
 		{
-			if (!TryRequireTargetKind(action, HazardKind, out error))
+			if (TryRequireTargetKind(action, HazardKind, out error) == false)
 				return false;
 
 			bool enabled = GetBool(action.@params, "enabled", true);
@@ -162,7 +162,7 @@ namespace WitchMendokusai
 
 		private static bool GetBool(JObject obj, string key, bool defaultValue)
 		{
-			if (obj == null || !obj.TryGetValue(key, out JToken token))
+			if (obj == null || obj.TryGetValue(key, out JToken token) == false)
 				return defaultValue;
 
 			return token.Type switch
@@ -176,7 +176,7 @@ namespace WitchMendokusai
 
 		private static float GetFloat(JObject obj, string key, float defaultValue)
 		{
-			if (obj == null || !obj.TryGetValue(key, out JToken token))
+			if (obj == null || obj.TryGetValue(key, out JToken token) == false)
 				return defaultValue;
 
 			return token.Type switch
@@ -190,7 +190,7 @@ namespace WitchMendokusai
 
 		private static string GetString(JObject obj, string key, string defaultValue)
 		{
-			if (obj == null || !obj.TryGetValue(key, out JToken token))
+			if (obj == null || obj.TryGetValue(key, out JToken token) == false)
 				return defaultValue;
 
 			return token.Value<string>() ?? defaultValue;
@@ -204,7 +204,7 @@ namespace WitchMendokusai
 				return false;
 			}
 
-			if (!string.Equals(action.target.kind, expectedKind, System.StringComparison.OrdinalIgnoreCase))
+			if (string.Equals(action.target.kind, expectedKind, System.StringComparison.OrdinalIgnoreCase) == false)
 			{
 				error = $"Action '{action.type}' expects target kind '{expectedKind}' but got '{action.target.kind}'.";
 				return false;
@@ -253,7 +253,7 @@ namespace WitchMendokusai
 			}
 
 			UGCLog.Info($"[ActionExec] Resolving target: id={action.target.id}, expectedKind={expectedKind}");
-			if (!UGCObjectRegistry.TryResolve(action.target.id, expectedKind, out target, out error))
+			if (UGCObjectRegistry.TryResolve(action.target.id, expectedKind, out target, out error) == false)
 			{
 				UGCLog.Warn($"[ActionExec] Target resolution failed: {error}");
 				return false;
@@ -302,7 +302,7 @@ namespace WitchMendokusai
 
 		public static void Unregister(string id, GameObject gameObject)
 		{
-			if (string.IsNullOrWhiteSpace(id) || !registry.TryGetValue(id, out RegisteredObject existing))
+			if (string.IsNullOrWhiteSpace(id) || registry.TryGetValue(id, out RegisteredObject existing) == false)
 				return;
 
 			if (gameObject == null || existing.gameObject == gameObject)
@@ -345,7 +345,7 @@ namespace WitchMendokusai
 				return false;
 			}
 
-			if (!MatchesKind(gameObject, expectedKind))
+			if (MatchesKind(gameObject, expectedKind) == false)
 			{
 				error = $"UGC object '{id}' does not match expected kind '{expectedKind}'.";
 				return false;

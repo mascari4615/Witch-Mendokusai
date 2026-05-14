@@ -23,10 +23,10 @@ namespace WitchMendokusai
 		{
 			Instance = this;
 			
-			if (!UGCJsonLoader.TryLoadMapManifestFromSample(manifestFileName, out UGCMapManifestData manifest, out error))
+			if (UGCJsonLoader.TryLoadMapManifestFromSample(manifestFileName, out UGCMapManifestData manifest, out error) == false)
 				return false;
 
-			if (!UGCJsonLoader.TryLoadTriggerEventsFromSample(triggerFileName, out List<UGCTriggerEventData> triggerEvents, out error))
+			if (UGCJsonLoader.TryLoadTriggerEventsFromSample(triggerFileName, out List<UGCTriggerEventData> triggerEvents, out error) == false)
 				return false;
 
 			Manifest = manifest;
@@ -54,13 +54,13 @@ namespace WitchMendokusai
 				for (int i = 0; i < manifest.triggers.Count; i++)
 				{
 					string triggerId = manifest.triggers[i];
-					if (!triggerRefs.Add(triggerId))
+					if (triggerRefs.Add(triggerId) == false)
 					{
 						error = $"Duplicate trigger reference in manifest: {triggerId}";
 						return false;
 					}
 
-					if (!triggerMap.ContainsKey(triggerId))
+					if (triggerMap.ContainsKey(triggerId) == false)
 					{
 						error = $"Manifest references unknown trigger id: {triggerId}";
 						return false;
@@ -80,7 +80,7 @@ namespace WitchMendokusai
 			UGCLog.Info($"[ZoneListener] Zone entered: {zoneId}, actor={actorId}. Checking for linked triggers...");
 
 			int executedCount = 0;
-			foreach (var kvp in triggerMap)
+			foreach (KeyValuePair<string, UGCTriggerEventData> kvp in triggerMap)
 			{
 				UGCTriggerEventData evt = kvp.Value;
 				if (evt?.conditions == null || evt.conditions.Count == 0)
@@ -97,7 +97,7 @@ namespace WitchMendokusai
 					}
 				}
 
-				if (!isLinkedToZone)
+				if (isLinkedToZone == false)
 					continue;
 
 				UGCLog.Info($"[ZoneListener] Found zone trigger: {evt.id}. Attempting auto-execution...");
@@ -122,14 +122,14 @@ namespace WitchMendokusai
 		{
 			UGCLog.Info($"[TriggerExec] Evaluating trigger: {triggerId}");
 			
-			if (!triggerMap.TryGetValue(triggerId, out UGCTriggerEventData evt))
+			if (triggerMap.TryGetValue(triggerId, out UGCTriggerEventData evt) == false)
 			{
 				error = $"Trigger not found: {triggerId}";
 				UGCLog.Warn($"[TriggerExec] {triggerId}: {error}");
 				return false;
 			}
 
-			if (!evt.enabled)
+			if (evt.enabled == false)
 			{
 				error = $"Trigger is disabled: {triggerId}";
 				UGCLog.Warn($"[TriggerExec] {triggerId}: {error}");
@@ -157,7 +157,7 @@ namespace WitchMendokusai
 				return false;
 			}
 
-			if (!runningTriggers.Add(triggerId))
+			if (runningTriggers.Add(triggerId) == false)
 			{
 				error = $"Trigger is already running: {triggerId}";
 				UGCLog.Warn($"[TriggerExec] {triggerId}: {error}");
@@ -166,10 +166,10 @@ namespace WitchMendokusai
 
 			try
 			{
-				if (!ignoreConditions)
+				if (ignoreConditions == false)
 				{
 					UGCLog.Info($"[TriggerExec] {triggerId}: Evaluating conditions...");
-					if (!TryEvaluateConditions(evt, out error))
+					if (TryEvaluateConditions(evt, out error) == false)
 					{
 						UGCLog.Warn($"[TriggerExec] {triggerId}: Condition failed: {error}");
 						return false;
@@ -182,7 +182,7 @@ namespace WitchMendokusai
 				}
 
 				UGCLog.Info($"[TriggerExec] {triggerId}: Running preflight check ({evt.actions.Count} actions)...");
-				if (!TryPreflightActions(evt, out error))
+				if (TryPreflightActions(evt, out error) == false)
 				{
 					UGCLog.Warn($"[TriggerExec] {triggerId}: Preflight failed: {error}");
 					return false;
@@ -191,7 +191,7 @@ namespace WitchMendokusai
 				for (int i = 0; i < evt.actions.Count; i++)
 				{
 					UGCLog.Info($"[TriggerExec] {triggerId}: Executing action[{i}]: {evt.actions[i].type}");
-					if (!UGCActionExecutor.TryExecute(evt.actions[i], out error))
+					if (UGCActionExecutor.TryExecute(evt.actions[i], out error) == false)
 					{
 						UGCLog.Warn($"[TriggerExec] {triggerId}: Action[{i}] failed: {error}");
 						error = $"{triggerId} action[{i}] {error}";
@@ -227,7 +227,7 @@ namespace WitchMendokusai
 
 			for (int i = 0; i < evt.actions.Count; i++)
 			{
-				if (!UGCActionExecutor.TryPreflight(evt.actions[i], out error))
+				if (UGCActionExecutor.TryPreflight(evt.actions[i], out error) == false)
 				{
 					error = $"action[{i}] {error}";
 					return false;
@@ -254,14 +254,14 @@ namespace WitchMendokusai
 				bool isTrue = TryEvaluateCondition(evt.conditions[i]);
 				hasAnyTrue |= isTrue;
 
-				if (isAll && !isTrue)
+				if (isAll && isTrue == false)
 				{
 					error = $"Condition failed at index {i}.";
 					return false;
 				}
 			}
 
-			if (!isAll && !hasAnyTrue)
+			if (isAll == false && hasAnyTrue == false)
 			{
 				error = "No condition matched (match=any).";
 				return false;
@@ -302,7 +302,7 @@ namespace WitchMendokusai
 
 		private static string GetParamString(JObject obj, string key, string defaultValue)
 		{
-			if (obj == null || !obj.TryGetValue(key, out JToken token))
+			if (obj == null || obj.TryGetValue(key, out JToken token) == false)
 				return defaultValue;
 
 			return token.Value<string>() ?? defaultValue;
@@ -310,7 +310,7 @@ namespace WitchMendokusai
 
 		private static float GetParamFloat(JObject obj, string key, float defaultValue)
 		{
-			if (obj == null || !obj.TryGetValue(key, out JToken token))
+			if (obj == null || obj.TryGetValue(key, out JToken token) == false)
 				return defaultValue;
 
 			return token.Type switch

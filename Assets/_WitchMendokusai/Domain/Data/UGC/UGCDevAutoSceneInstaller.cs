@@ -20,7 +20,7 @@ namespace WitchMendokusai
 		private static void Register()
 		{
 #if !UNITY_EDITOR
-			if (!Debug.isDebugBuild)
+			if (Debug.isDebugBuild == false)
 				return;
 #endif
 			if (isRegistered)
@@ -32,13 +32,13 @@ namespace WitchMendokusai
 
 		private static void OnSceneLoaded(Scene scene, LoadSceneMode mode)
 		{
-			if (!Application.isPlaying)
+			if (Application.isPlaying == false)
 			{
 				UGCLog.Info($"[Installer] Skip scene='{scene.name}' (not playing)");
 				return;
 			}
 
-			if (!IsGameplayScene(scene))
+			if (IsGameplayScene(scene) == false)
 			{
 				UGCLog.Info($"[Installer] Skip scene='{scene.name}' path='{scene.path}' (not gameplay scene)");
 				return;
@@ -56,7 +56,7 @@ namespace WitchMendokusai
 
 			MarkRuntimeOnly(root);
 
-			if (!UGCJsonLoader.TryLoadMapManifestFromSample(DefaultManifestFile, out UGCMapManifestData manifest, out string manifestError))
+			if (UGCJsonLoader.TryLoadMapManifestFromSample(DefaultManifestFile, out UGCMapManifestData manifest, out string manifestError) == false)
 			{
 				UGCLog.Warn($"Manifest load failed, fallback setup will be used: {manifestError}");
 				CreateFallbackObjects(root.transform);
@@ -178,7 +178,7 @@ namespace WitchMendokusai
 						continue;
 
 					string zoneId = condition.target?.id;
-					if (string.IsNullOrWhiteSpace(zoneId) || !zoneIds.Add(zoneId))
+					if (string.IsNullOrWhiteSpace(zoneId) || zoneIds.Add(zoneId) == false)
 						continue;
 
 					EnsureZone(zoneId, root, new Vector3(0f, 1f, 0f), new Vector3(4f, 2f, 4f));
@@ -362,7 +362,7 @@ namespace WitchMendokusai
 			if (scene.name.StartsWith("Stage_"))
 				return true;
 
-			if (!string.IsNullOrEmpty(scene.path) && scene.path.Contains("/Stage/"))
+			if (string.IsNullOrEmpty(scene.path) == false && scene.path.Contains("/Stage/"))
 				return true;
 
 			return false;

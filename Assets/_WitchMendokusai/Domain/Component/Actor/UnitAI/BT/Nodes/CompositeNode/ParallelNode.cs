@@ -9,7 +9,7 @@ namespace WitchMendokusai
 
 		public override BTState OnUpdate()
 		{
-			foreach (var node in ChildList)
+			foreach (Node node in ChildList)
 			{
 				node.OnUpdate();
 			}

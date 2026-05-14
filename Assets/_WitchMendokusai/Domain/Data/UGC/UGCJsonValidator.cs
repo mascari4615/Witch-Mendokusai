@@ -48,13 +48,13 @@ namespace WitchMendokusai
 
 			for (int i = 0; i < data.conditions.Count; i++)
 			{
-				if (!TryValidateCondition(data.conditions[i], i, out error))
+				if (TryValidateCondition(data.conditions[i], i, out error) == false)
 					return false;
 			}
 
 			for (int i = 0; i < data.actions.Count; i++)
 			{
-				if (!TryValidateAction(data.actions[i], i, out error))
+				if (TryValidateAction(data.actions[i], i, out error) == false)
 					return false;
 			}
 
@@ -88,16 +88,16 @@ namespace WitchMendokusai
 				return false;
 			}
 
-			if (!TryValidateUniqueIds(data.spawnPoints, p => p?.id, "spawnPoints", out error))
+			if (TryValidateUniqueIds(data.spawnPoints, p => p?.id, "spawnPoints", out error) == false)
 				return false;
 
-			if (!TryValidateUniqueIds(data.checkpoints, p => p?.id, "checkpoints", out error))
+			if (TryValidateUniqueIds(data.checkpoints, p => p?.id, "checkpoints", out error) == false)
 				return false;
 
-			if (!TryValidateUniqueIds(data.objects, p => p?.id, "objects", out error))
+			if (TryValidateUniqueIds(data.objects, p => p?.id, "objects", out error) == false)
 				return false;
 
-			if (!TryValidateUniqueIds(data.zones, p => p?.id, "zones", out error))
+			if (TryValidateUniqueIds(data.zones, p => p?.id, "zones", out error) == false)
 				return false;
 
 			if (data.triggers != null)
@@ -112,7 +112,7 @@ namespace WitchMendokusai
 						return false;
 					}
 
-					if (!uniqueTriggers.Add(triggerId))
+					if (uniqueTriggers.Add(triggerId) == false)
 					{
 						error = $"Duplicate trigger reference found: {triggerId}";
 						return false;
@@ -142,7 +142,7 @@ namespace WitchMendokusai
 					return false;
 				}
 
-				if (!uniqueIds.Add(id))
+				if (uniqueIds.Add(id) == false)
 				{
 					error = $"Duplicate id found in {context}: {id}";
 					return false;
@@ -182,10 +182,10 @@ namespace WitchMendokusai
 			switch (condition.type)
 			{
 				case "OnEnterZone":
-					if (!TryValidateTarget(condition.target, $"condition[{index}]", out error))
+					if (TryValidateTarget(condition.target, $"condition[{index}]", out error) == false)
 						return false;
 
-					if (!IsKind(condition.target.kind, ZoneKind))
+					if (IsKind(condition.target.kind, ZoneKind) == false)
 					{
 						error = $"condition[{index}] expects target.kind '{ZoneKind}' but got '{condition.target.kind}'.";
 						return false;
@@ -195,7 +195,7 @@ namespace WitchMendokusai
 					return true;
 
 				case "ElapsedTime":
-					if (condition.target != null && (!string.IsNullOrWhiteSpace(condition.target.kind) || !string.IsNullOrWhiteSpace(condition.target.id)))
+					if (condition.target != null && (string.IsNullOrWhiteSpace(condition.target.kind) == false || string.IsNullOrWhiteSpace(condition.target.id) == false))
 					{
 						error = $"condition[{index}] type 'ElapsedTime' should not define target.";
 						return false;
@@ -218,13 +218,13 @@ namespace WitchMendokusai
 				return false;
 			}
 
-			if (!TryValidateTarget(action.target, $"action[{index}]", out error))
+			if (TryValidateTarget(action.target, $"action[{index}]", out error) == false)
 				return false;
 
 			switch (action.type)
 			{
 				case "SetDoorState":
-					if (!IsKind(action.target.kind, DoorKind))
+					if (IsKind(action.target.kind, DoorKind) == false)
 					{
 						error = $"action[{index}] expects target.kind '{DoorKind}' but got '{action.target.kind}'.";
 						return false;
@@ -234,7 +234,7 @@ namespace WitchMendokusai
 					return true;
 
 				case "MovePlatform":
-					if (!IsKind(action.target.kind, PlatformKind))
+					if (IsKind(action.target.kind, PlatformKind) == false)
 					{
 						error = $"action[{index}] expects target.kind '{PlatformKind}' but got '{action.target.kind}'.";
 						return false;
@@ -244,7 +244,7 @@ namespace WitchMendokusai
 					return true;
 
 				case "ActivateCheckpoint":
-					if (!IsKind(action.target.kind, CheckpointKind))
+					if (IsKind(action.target.kind, CheckpointKind) == false)
 					{
 						error = $"action[{index}] expects target.kind '{CheckpointKind}' but got '{action.target.kind}'.";
 						return false;
@@ -254,7 +254,7 @@ namespace WitchMendokusai
 					return true;
 
 					case "ToggleHazard":
-						if (!IsKind(action.target.kind, HazardKind))
+						if (IsKind(action.target.kind, HazardKind) == false)
 						{
 							error = $"action[{index}] expects target.kind '{HazardKind}' but got '{action.target.kind}'.";
 							return false;

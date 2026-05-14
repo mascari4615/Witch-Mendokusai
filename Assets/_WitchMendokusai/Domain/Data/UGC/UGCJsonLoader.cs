@@ -17,7 +17,7 @@ namespace WitchMendokusai
 		public static bool TryLoadTriggerEventsFromSample(string fileName, out List<UGCTriggerEventData> events, out string error)
 		{
 			string path = UGCPathResolver.GetSamplePath(fileName);
-			if (!TryReadJsonFile(path, out string json, out error))
+			if (TryReadJsonFile(path, out string json, out error) == false)
 			{
 				events = null;
 				return false;
@@ -42,7 +42,7 @@ namespace WitchMendokusai
 
 			for (int i = 0; i < events.Count; i++)
 			{
-				if (!UGCJsonValidator.TryValidateTriggerEvent(events[i], out error))
+				if (UGCJsonValidator.TryValidateTriggerEvent(events[i], out error) == false)
 				{
 					error = $"{Path.GetFileName(path)}[{i}] {error}";
 					return false;
@@ -56,7 +56,7 @@ namespace WitchMendokusai
 		public static bool TryLoadMapManifestFromSample(string fileName, out UGCMapManifestData manifest, out string error)
 		{
 			string path = UGCPathResolver.GetSamplePath(fileName);
-			if (!TryReadJsonFile(path, out string json, out error))
+			if (TryReadJsonFile(path, out string json, out error) == false)
 			{
 				manifest = null;
 				return false;
@@ -73,7 +73,7 @@ namespace WitchMendokusai
 				return false;
 			}
 
-			if (!UGCJsonValidator.TryValidateManifest(manifest, out error))
+			if (UGCJsonValidator.TryValidateManifest(manifest, out error) == false)
 			{
 				error = $"{Path.GetFileName(path)} {error}";
 				return false;
@@ -85,7 +85,7 @@ namespace WitchMendokusai
 
 		private static bool TryReadJsonFile(string path, out string json, out string error)
 		{
-			if (!File.Exists(path))
+			if (File.Exists(path) == false)
 			{
 				json = null;
 				error = $"File not found: {path}";
