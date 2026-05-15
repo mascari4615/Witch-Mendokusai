@@ -17,8 +17,8 @@ namespace WitchMendokusai
 			return mgr != null;
 		}
 
-		private const string MarkerEnabled = "ENABLED";
-		private const string MarkerResetTrigger = "RESET";
+		private const string MARKER_ENABLED = "ENABLED";
+		private const string MARKER_RESET_TRIGGER = "RESET";
 
 		private InputManager inputManager;
 		private GameModeManager gameModeManager;
@@ -51,7 +51,11 @@ namespace WitchMendokusai
 
 		private void Awake()
 		{
-			if (Instance != null && Instance != this) { Destroy(gameObject); return; }
+			if (Instance != null && Instance != this)
+			{
+				Destroy(gameObject);
+				return;
+			}
 			Instance = this;
 			Init();
 		}
@@ -96,7 +100,7 @@ namespace WitchMendokusai
 			}
 
 			gridVisualization.SetActive(isBuildMode);
-			marker.SetBool(MarkerEnabled, isBuildMode);
+			marker.SetBool(MARKER_ENABLED, isBuildMode);
 		}
 
 		private void Update()
@@ -109,10 +113,10 @@ namespace WitchMendokusai
 			Vector3 worldPos = GetWorldPosition(gridPosition);
 			if (marker.transform.position != worldPos)
 			{
-				if (marker.GetBool(MarkerEnabled) == true)
+				if (marker.GetBool(MARKER_ENABLED) == true)
 				{
 					marker.transform.position = worldPos;
-					marker.SetTrigger(MarkerResetTrigger);
+					marker.SetTrigger(MARKER_RESET_TRIGGER);
 				}
 			}
 		}

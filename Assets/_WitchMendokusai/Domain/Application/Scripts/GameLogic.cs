@@ -9,9 +9,9 @@ namespace WitchMendokusai
 {
 	public static class GameLogic
 	{
-		public static Vector3 GetRandomSpawnPosOffset(Vector3 position, float offset = LootItemSpawnPosOffsetXZ)
+		public static Vector3 GetRandomSpawnPosOffset(Vector3 position, float offset = LOOT_ITEM_SPAWN_POS_OFFSET_XZ)
 		{
-			Vector3 randomOffset = new(Random.Range(-offset, offset), LootItemSpawnPosOffsetY, Random.Range(-offset, offset));
+			Vector3 randomOffset = new(Random.Range(-offset, offset), LOOT_ITEM_SPAWN_POS_OFFSET_Y, Random.Range(-offset, offset));
 			return position + randomOffset;
 		}
 
@@ -55,8 +55,8 @@ namespace WitchMendokusai
 		public static void SpawnGameItem(Vector3 position)
 		{
 			Probability<GameItemObject> gameItemProbability = new(shouldFill100Percent: true);
-			gameItemProbability.Add(ResourceManager.Instance.HealObjectPrefab, HealPercentage);
-			gameItemProbability.Add(ResourceManager.Instance.MagnetObjectPrefab, MagnetPercentage);
+			gameItemProbability.Add(ResourceManager.Instance.HealObjectPrefab, HEAL_PERCENTAGE);
+			gameItemProbability.Add(ResourceManager.Instance.MagnetObjectPrefab, MAGNET_PERCENTAGE);
 
 			GameItemObject gameItem = gameItemProbability.Get();
 

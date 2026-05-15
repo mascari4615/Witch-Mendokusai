@@ -33,7 +33,7 @@ namespace WitchMendokusai
 
 		public T Get()
 		{
-			float totalProbability = probabilityList.Sum(t => t.Probability);
+			float totalProbability = probabilityList.Sum(probabilityElement => probabilityElement.Probability);
 
 			if (shouldFill100Percent && (totalProbability < 100))
 			{
@@ -43,11 +43,11 @@ namespace WitchMendokusai
 			}
 
 			float pick = Random.value * totalProbability;
-			foreach (ProbabilityElement t in probabilityList)
+			foreach (ProbabilityElement probabilityElement in probabilityList)
 			{
-				if (pick < t.Probability)
-					return t.Target;
-				pick -= t.Probability;
+				if (pick < probabilityElement.Probability)
+					return probabilityElement.Target;
+				pick -= probabilityElement.Probability;
 			}
 
 			return default;

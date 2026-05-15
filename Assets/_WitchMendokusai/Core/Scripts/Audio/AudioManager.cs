@@ -159,7 +159,7 @@ namespace WitchMendokusai
 
 			if (busType == BusType.SFX)
 			{
-				sfxVolumeTestEvent.getPlaybackState(out var playbackState);
+				sfxVolumeTestEvent.getPlaybackState(out PLAYBACK_STATE playbackState);
 				if (playbackState != PLAYBACK_STATE.PLAYING)
 					sfxVolumeTestEvent.start();
 			}
