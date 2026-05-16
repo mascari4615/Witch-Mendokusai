@@ -28,13 +28,23 @@ namespace WitchMendokusai
 		private InputManager inputManager;
 
 		[Inject]
-		public void Construct(PlayerProvider playerProvider, DataManager dataManager, InputManager inputManager)
+		public void Construct(PlayerProvider playerProvider, DataManager dataManager, InputManager inputManager, IObjectResolver container)
 		{
 			this.playerProvider = playerProvider;
 			this.dataManager = dataManager;
 			this.inputManager = inputManager;
 			playerProvider.SetCurrent(this);
 			aim = new(transform, inputManager, ObjectBufferManager.GetObjects(ObjectType.Monster), ObjectBufferManager.GetObjects(ObjectType.ResourceNode));
+
+			// Player.prefab 자식/형제 컴포넌트 cascade Inject (PlayerObject/PlayerRotation/DollAnimator/
+			// InteractiveMarker/AutoAimMarker/UnitMovement 등). RegisterComponentInHierarchy<Player> 는 Player
+			// 컴포넌트만 inject — 자식은 컨테이너가 모름. 컨테이너 주입 root 가 비등록 자식 cascade =
+			// UIRoot.Construct / ObjectPoolManager.InjectGameObject 와 동일 canonical 패턴 (TASK-WM-078, 2026-05-16).
+			foreach (MonoBehaviour childComponent in GetComponentsInChildren<MonoBehaviour>(true))
+			{
+				if (childComponent != this)
+					container.Inject(childComponent);
+			}
 		}
 
 		private void Awake()

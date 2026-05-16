@@ -125,6 +125,16 @@ namespace WitchMendokusai
 					container.Inject(monsterObject);
 				foreach (ResourceNodeObject resourceNodeObject in FindObjectsByType<ResourceNodeObject>(FindObjectsInactive.Include))
 					container.Inject(resourceNodeObject);
+				// 씬배치 Player/doll/Marker — Editor-dev(EditorManager additive Stage_Home) 와 production(pooled
+				// stage prefab, #4 InjectGameObject) 의 DI 진입을 동일 established 패턴으로 수렴 (발산 제거).
+				// Player inject → Player.Construct 가 자식 cascade (PlayerObject/PlayerRotation/DollAnimator/
+				// UnitMovement 등). Marker 류는 Player.prefab 자식 아닐 수 있어 명시 (캐스케이드 ac9b1d12 증거). TASK-WM-078 2026-05-16.
+				foreach (Player player in FindObjectsByType<Player>(FindObjectsInactive.Include))
+					container.Inject(player);
+				foreach (InteractiveMarker interactiveMarker in FindObjectsByType<InteractiveMarker>(FindObjectsInactive.Include))
+					container.Inject(interactiveMarker);
+				foreach (AutoAimMarker autoAimMarker in FindObjectsByType<AutoAimMarker>(FindObjectsInactive.Include))
+					container.Inject(autoAimMarker);
 
 				// θ — Scene→Root 역방향 .Instance 제거: child scope 가 parent GameManager 에 씬 의존 조건 바인딩.
 				GameManager gameManager = container.Resolve<GameManager>();
