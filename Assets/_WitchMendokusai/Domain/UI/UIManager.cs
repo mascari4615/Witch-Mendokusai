@@ -20,7 +20,16 @@ namespace WitchMendokusai
 
 		// Public Properties
 		public List<IUIPanelGroup> PanelGroups { get; private set; } = new();
-		public UINPC NPC { get; private set; }
+		// TASK-WM-118 I3 — NPC = *cross-wiring*(씬 sibling 참조), 콘텐츠 X.
+		// 구: UIManager.Start 가 할당 → 다른 패널그룹(UINPC) Start 가 uiManager.NPC
+		// 읽음 = 무보장 Start 순서 → uiManager.NPC null → UINPCMenu.OnInit:74 NRE
+		// (마스킹 체인 :51→:47→:74 의 메커니즘). lazy 프로퍼티 = 접근 시 self-resolve
+		// → Start 순서 무관(WM-115 R1/R5 eager→lazy 정합). 콘텐츠 생성은 Start 잔존
+		// (WM-078 #5b ValueFactory 재앙 회피 제약 보존). R4 자식주입=InjectGameObject 불변.
+		private UINPC _npc;
+		public UINPC NPC => _npc != null
+			? _npc
+			: (_npc = FindAnyObjectByType<UINPC>(FindObjectsInactive.Include));
 		public TransitionView Transition { get; private set; }
 		public UIChat Chat { get; private set; }
 		public SpeechBubbleView SpeechBubble { get; private set; }
@@ -157,7 +166,8 @@ namespace WitchMendokusai
 			Chat = FindAnyObjectByType<UIChat>(FindObjectsInactive.Include);
 			container.Inject(Chat);
 
-			NPC = FindAnyObjectByType<UINPC>(FindObjectsInactive.Include);
+			// TASK-WM-118 I3 — NPC 할당 제거(이제 lazy 프로퍼티, 접근 시 self-resolve =
+			// Start 순서 무관). 아래 NPC 접근이 lazy resolve 트리거 + 자식 주입.
 			// TASK-WM-115 R4 — container.Inject(NPC) = UINPC 컴포넌트만 → 씬배치 자식 패널
 			// ([Panel] NPC/DungeonEntrance·Shop·Pot·… 의 [Inject] Construct) 미주입 →
 			// UIDungeonEntrance.dungeonManager null → EnterTheDungeon NRE. R3b 와 동일 root.
