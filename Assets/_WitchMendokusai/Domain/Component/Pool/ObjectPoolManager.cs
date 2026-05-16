@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using VContainer;
+using VContainer.Unity;
 using static WitchMendokusai.WMHelper;
 
 namespace WitchMendokusai
@@ -25,6 +26,13 @@ namespace WitchMendokusai
 		{
 			this.container = container;
 			ObjectPoolManagerBridge.Register(this);
+		}
+
+		// SceneLifetimeScope.Build 가 호출 — pool-spawned 컴포넌트가 scene-scope deps (UIManager 등) 도 resolve.
+		// root container 만으로는 scene scope dep 못 봄 (VContainerException: No such registration). TASK-WM-078 2026-05-16.
+		public void SetContainer(IObjectResolver container)
+		{
+			this.container = container;
 		}
 
 		private void Awake()
@@ -51,7 +59,7 @@ namespace WitchMendokusai
 			string objectName = GetActualObjectName(targetObject);
 
 			if (poolDic.ContainsKey(objectName) == false)
-				poolDic[objectName] = new ObjectPool(targetObject, container, transform);
+				poolDic[objectName] = new ObjectPool(targetObject, this, transform);
 
 			poolDic[objectName].Push(targetObject);
 		}
@@ -66,7 +74,7 @@ namespace WitchMendokusai
 			}
 			else
 			{
-				poolDic[objectName] = new ObjectPool(targetObject, container, transform);
+				poolDic[objectName] = new ObjectPool(targetObject, this, transform);
 				poolDic[objectName].CreateObject(1);
 				return poolDic[objectName].Pop();
 			}
@@ -101,13 +109,15 @@ namespace WitchMendokusai
 
 			private readonly GameObject prefab;
 			private readonly Stack<GameObject> stack;
-			private readonly IObjectResolver container;
+			// container 를 manager 참조로 — SetContainer 갱신 자동 반영. 생성 시점 캐시 = SceneLifetimeScope.Build 전 root container race.
+			private readonly ObjectPoolManager manager;
+			private IObjectResolver Container => manager.container;
 			private readonly Transform managerTransform;
 
-			public ObjectPool(GameObject prefab, IObjectResolver container, Transform managerTransform)
+			public ObjectPool(GameObject prefab, ObjectPoolManager manager, Transform managerTransform)
 			{
 				this.prefab = prefab;
-				this.container = container;
+				this.manager = manager;
 				this.managerTransform = managerTransform;
 				stack = new();
 			}
@@ -124,8 +134,8 @@ namespace WitchMendokusai
 				for (int i = 0; i < count; i++)
 				{
 					GameObject g = Instantiate(prefab, GetObjectParent(this));
-					foreach (MonoBehaviour component in g.GetComponentsInChildren<MonoBehaviour>(true))
-						container.Inject(component);
+					// InjectGameObject = VContainer 표준 cascade primitive (자식 재귀 + inactive 포함).
+					Container.InjectGameObject(g);
 					Push(g);
 				}
 
