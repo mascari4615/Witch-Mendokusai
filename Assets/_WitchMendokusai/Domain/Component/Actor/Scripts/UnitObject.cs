@@ -1,7 +1,6 @@
 using System;
 using UnityEngine;
 using System.Text;
-using VContainer;
 
 namespace WitchMendokusai
 {
@@ -26,11 +25,12 @@ namespace WitchMendokusai
 
 		public bool IsAlive => Health.IsAlive;
 
+		// VContainer source generator 는 abstract/base 의 [Inject] member 를 생성하지 않음 (검증된 한계, VCON0010).
+		// 자식 concrete 클래스가 [Inject] Construct 에 TimeManager/UnitStatCalculator 받아 SetBaseDeps 로 base 전달.
 		protected TimeManager timeManager;
 		protected UnitStatCalculator unitStatCalculator;
 
-		[Inject]
-		public void Construct(TimeManager timeManager, UnitStatCalculator unitStatCalculator)
+		protected void SetBaseDeps(TimeManager timeManager, UnitStatCalculator unitStatCalculator)
 		{
 			this.timeManager = timeManager;
 			this.unitStatCalculator = unitStatCalculator;
@@ -40,7 +40,12 @@ namespace WitchMendokusai
 		{
 			SpriteRenderer.material.SetFloat("_Emission", 0);
 			BindComponents();
+		}
 
+		protected virtual void Start()
+		{
+			// Init() 이 timeManager (자식 Construct → SetBaseDeps) 사용 — Awake 시점은 [Inject] 전이라 NRE.
+			// Start = Awake/[Inject] 완료 후 → deps 보장 (TASK-WM-078, 2026-05-16).
 			if (UnitData != null)
 				Init(UnitData);
 		}

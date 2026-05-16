@@ -1,5 +1,6 @@
 using System.Linq;
 using UnityEngine;
+using VContainer;
 using static WitchMendokusai.WMHelper;
 
 namespace WitchMendokusai
@@ -10,6 +11,12 @@ namespace WitchMendokusai
 		[SerializeField] private Transform hpBar;
 
 		public new ResourceNode UnitData => base.UnitData as ResourceNode;
+
+		[Inject]
+		public void Construct(TimeManager timeManager, UnitStatCalculator unitStatCalculator)
+		{
+			SetBaseDeps(timeManager, unitStatCalculator);
+		}
 
 		protected virtual void OnEnable()
 		{

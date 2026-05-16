@@ -9,9 +9,10 @@ namespace WitchMendokusai
 		private UIManager uiManager;
 
 		[Inject]
-		public void Construct(UIManager uiManager)
+		public void Construct(UIManager uiManager, TimeManager timeManager, UnitStatCalculator unitStatCalculator)
 		{
 			this.uiManager = uiManager;
+			SetBaseDeps(timeManager, unitStatCalculator);
 		}
 
 		public void OnInteract()

@@ -18,11 +18,12 @@ namespace WitchMendokusai
 		private DataManager dataManager;
 
 		[Inject]
-		public void Construct(PlayerProvider playerProvider, SOManager soManager, DataManager dataManager)
+		public void Construct(PlayerProvider playerProvider, SOManager soManager, DataManager dataManager, TimeManager timeManager, UnitStatCalculator unitStatCalculator)
 		{
 			this.playerProvider = playerProvider;
 			this.soManager = soManager;
 			this.dataManager = dataManager;
+			SetBaseDeps(timeManager, unitStatCalculator);
 		}
 
 		protected virtual void OnEnable()
