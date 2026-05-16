@@ -47,7 +47,7 @@ namespace WitchMendokusai
 		private void OnQuestAddRequested(QuestAddRequestedEvent evt)
 		{
 			QuestSO questSO = SOHelper.GetQuestSO(evt.QuestSOID);
-			AddQuest(RuntimeQuestFactory.FromQuestSO(questSO));
+			AddQuest(RuntimeQuestFactory.FromQuestSO(questSO, new CriteriaContext(soManager)));
 		}
 
 		private void OnQuestUnlockRequested(QuestUnlockRequestedEvent evt) => UnlockQuest(SOHelper.GetQuestSO(evt.QuestSOID));

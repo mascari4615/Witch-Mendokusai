@@ -6,12 +6,12 @@ namespace WitchMendokusai
 {
 	public static class RuntimeQuestFactory
 	{
-		public static RuntimeQuest FromQuestSO(QuestSO questSO)
+		public static RuntimeQuest FromQuestSO(QuestSO questSO, CriteriaContext context = null)
 		{
-			return FromQuestInfo(questSO.Data, questSO.Name, questSO.Description, questSO.ID);
+			return FromQuestInfo(questSO.Data, questSO.Name, questSO.Description, questSO.ID, context);
 		}
 
-		public static RuntimeQuest FromQuestInfo(QuestInfo questInfo, string name = null, string description = null, int questSOID = -1)
+		public static RuntimeQuest FromQuestInfo(QuestInfo questInfo, string name = null, string description = null, int questSOID = -1, CriteriaContext context = null)
 		{
 			RuntimeQuestSaveData saveData = new()
 			{
@@ -40,7 +40,7 @@ namespace WitchMendokusai
 				AutoComplete = questInfo.AutoComplete,
 			};
 
-			List<RuntimeCriteria> criteria = questInfo.Criteria.ConvertAll(RuntimeCriteriaFactory.FromCriteriaInfo);
+			List<RuntimeCriteria> criteria = questInfo.Criteria.ConvertAll(criteriaInfo => RuntimeCriteriaFactory.FromCriteriaInfo(criteriaInfo, context));
 
 			RuntimeQuest runtimeQuest = new(saveData)
 			{
@@ -50,9 +50,9 @@ namespace WitchMendokusai
 			return runtimeQuest;
 		}
 
-		public static RuntimeQuest FromSaveData(RuntimeQuestSaveData saveData)
+		public static RuntimeQuest FromSaveData(RuntimeQuestSaveData saveData, CriteriaContext context = null)
 		{
-			List<RuntimeCriteria> criteria = saveData.Criteria.ConvertAll(RuntimeCriteriaFactory.FromSaveData);
+			List<RuntimeCriteria> criteria = saveData.Criteria.ConvertAll(criteriaSaveData => RuntimeCriteriaFactory.FromSaveData(criteriaSaveData, context));
 
 			RuntimeQuest runtimeQuest = new(saveData)
 			{
