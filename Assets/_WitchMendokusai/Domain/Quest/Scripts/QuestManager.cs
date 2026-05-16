@@ -25,6 +25,9 @@ namespace WitchMendokusai
 		private SOManager soManager;
 		private IEffectRunner effectRunner;
 		private PlayerProvider playerProvider;
+		// TASK-WM-107 Slice 2C-3 — DataManager↔QuestManager 순환 회피: [Inject] pull 대신 소유자(DataManager.Construct) push.
+		private DataManager dataManager;
+		public void BindDataManager(DataManager dataManager) => this.dataManager = dataManager;
 
 		[Inject]
 		public void Construct(IPublisher<QuestAddedEvent> questAddedPublisher, ISubscriber<QuestCompletedEvent> questCompletedSubscriber, ISubscriber<QuestAddRequestedEvent> questAddRequestedSubscriber, ISubscriber<QuestUnlockRequestedEvent> questUnlockRequestedSubscriber, SOManager soManager, IEffectRunner effectRunner, PlayerProvider playerProvider)
@@ -49,7 +52,7 @@ namespace WitchMendokusai
 		private void OnQuestAddRequested(QuestAddRequestedEvent evt)
 		{
 			QuestSO questSO = SOHelper.GetQuestSO(evt.QuestSOID);
-			AddQuest(RuntimeQuestFactory.FromQuestSO(questSO, new CriteriaContext(soManager, playerProvider)));
+			AddQuest(RuntimeQuestFactory.FromQuestSO(questSO, new CriteriaContext(soManager, playerProvider, dataManager)));
 		}
 
 		private void OnQuestUnlockRequested(QuestUnlockRequestedEvent evt) => UnlockQuest(SOHelper.GetQuestSO(evt.QuestSOID));

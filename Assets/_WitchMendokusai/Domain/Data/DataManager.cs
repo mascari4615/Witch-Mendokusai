@@ -48,6 +48,8 @@ namespace WitchMendokusai
 			WorkManager = workManager;
 			QuestManager = questManager;
 			DataManagerBridge.Register(this);
+			// TASK-WM-107 Slice 2C-3 — 소유자 push (QuestManager↔DataManager 순환 회피, [Inject] pull X).
+			questManager.BindDataManager(this);
 		}
 
 		private PlayFabManager playFabManager;

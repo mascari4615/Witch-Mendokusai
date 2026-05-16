@@ -10,8 +10,8 @@ namespace WitchMendokusai
 			{
 				CriteriaType.ItemCount => new ItemCountCriteria(criteriaInfo, context),
 				CriteriaType.UnitStat => new StatCriteria(criteriaInfo, context),
-				CriteriaType.GameStat => new GameStatCriteria(criteriaInfo),
-				CriteriaType.DungeonStat => new DungeonStatCriteria(criteriaInfo),
+				CriteriaType.GameStat => new GameStatCriteria(criteriaInfo, context),
+				CriteriaType.DungeonStat => new DungeonStatCriteria(criteriaInfo, context),
 				_ => throw new ArgumentOutOfRangeException(),
 			};
 		}
