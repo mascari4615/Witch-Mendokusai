@@ -18,9 +18,9 @@ namespace WitchMendokusai
 		private readonly EffectContext context;
 
 		[Inject]
-		public EffectRunner(SOManager soManager)
+		public EffectRunner(SOManager soManager, PlayerProvider playerProvider, ObjectPoolManager objectPoolManager)
 		{
-			context = new EffectContext(soManager);
+			context = new EffectContext(soManager, playerProvider, objectPoolManager);
 		}
 
 		public void ApplyEffects(List<EffectInfoData> effectInfoData)
