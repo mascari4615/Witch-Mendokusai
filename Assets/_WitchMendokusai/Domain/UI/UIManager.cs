@@ -4,6 +4,7 @@ using System.Linq;
 using MessagePipe;
 using UnityEngine;
 using VContainer;
+using VContainer.Unity;
 
 namespace WitchMendokusai
 {
@@ -157,7 +158,11 @@ namespace WitchMendokusai
 			container.Inject(Chat);
 
 			NPC = FindAnyObjectByType<UINPC>(FindObjectsInactive.Include);
-			container.Inject(NPC);
+			// TASK-WM-115 R4 — container.Inject(NPC) = UINPC 컴포넌트만 → 씬배치 자식 패널
+			// ([Panel] NPC/DungeonEntrance·Shop·Pot·… 의 [Inject] Construct) 미주입 →
+			// UIDungeonEntrance.dungeonManager null → EnterTheDungeon NRE. R3b 와 동일 root.
+			// InjectGameObject = VContainer 표준 계층-재귀 (established 패턴 수렴).
+			container.InjectGameObject(NPC.gameObject);
 
 			// 씬 한정 view 등록 — 글로벌 UIRoot 에 AddComponent
 			GameObject uiRootGameObject = uiRoot.gameObject;
