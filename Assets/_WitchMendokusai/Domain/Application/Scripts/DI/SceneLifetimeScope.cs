@@ -119,12 +119,15 @@ namespace WitchMendokusai
 				// pool-spawned 컴포넌트가 scene-scope deps (UIManager 등) resolve 가능하게 pool container = scene container.
 				container.Resolve<ObjectPoolManager>().SetContainer(container);
 
-				// 씬 직접배치 MonsterObject/ResourceNodeObject (World.unity Dummy/MineralBase 등) — RegisterComponentInHierarchy
-				// 단일 FindObjectOfType 한계 우회, 명시 type 다중 인스턴스 cascade Inject.
+				// 씬 직접배치 MonsterObject/ResourceNodeObject (World.unity Dummy/MineralBase 등).
+				// TASK-WM-115 R3b — container.Inject(x) = *컴포넌트만* → sibling UnitMovement
+				// ([RequireComponent], [Inject] GameManager/TimeManager) 미주입 → MineralBase NRE.
+				// InjectGameObject = VContainer 표준 계층-재귀 primitive (ObjectPoolManager 와 동일
+				// established 패턴). 발산 제거 — 씬배치 actor 도 whole-hierarchy 주입으로 수렴.
 				foreach (MonsterObject monsterObject in FindObjectsByType<MonsterObject>(FindObjectsInactive.Include))
-					container.Inject(monsterObject);
+					container.InjectGameObject(monsterObject.gameObject);
 				foreach (ResourceNodeObject resourceNodeObject in FindObjectsByType<ResourceNodeObject>(FindObjectsInactive.Include))
-					container.Inject(resourceNodeObject);
+					container.InjectGameObject(resourceNodeObject.gameObject);
 				// 씬배치 Player/doll/Marker — Editor-dev(EditorManager additive Stage_Home) 와 production(pooled
 				// stage prefab, #4 InjectGameObject) 의 DI 진입을 동일 established 패턴으로 수렴 (발산 제거).
 				// Player inject → Player.Construct 가 자식 cascade (PlayerObject/PlayerRotation/DollAnimator/
