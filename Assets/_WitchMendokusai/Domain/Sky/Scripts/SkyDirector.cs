@@ -89,7 +89,8 @@ namespace WitchMendokusai
 
 			if (debugLogStartup == true)
 			{
-				Camera[] allCameras = FindObjectsByType<Camera>(FindObjectsInactive.Include);
+				// init-order-ok: debugLogStartup-gated 디버그 진단 로그 전용 — find 결과에 기능 의존 0 (WM-118 적용외).
+				Camera[] allCameras = FindObjectsByType<Camera>(FindObjectsInactive.Include); // init-order-ok
 				Debug.Log($"[SkyDirector] Camera scan: {allCameras.Length} cameras");
 				foreach (Camera cam in allCameras)
 				{

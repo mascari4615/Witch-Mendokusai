@@ -58,7 +58,8 @@ namespace WitchMendokusai
 		// Panels[..] 직접 인덱스(line 118/199)가 자연 FastFail (방어코드 X).
 		public override void Init()
 		{
-			UIDeck[] deckUIs = FindObjectsByType<UIDeck>(FindObjectsInactive.Include);
+			// init-order-ok: UIDeck = 씬배치 정적 UI(동적 스폰 X), Awake-invoked Init 시점 존재 보장. cross-manager Start-order 의존 아님 = 마스킹체인 클래스 외 (WM-118 적용외).
+			UIDeck[] deckUIs = FindObjectsByType<UIDeck>(FindObjectsInactive.Include); // init-order-ok
 			foreach (UIDeck deckUI in deckUIs)
 			{
 				deckUIDic.Add(deckUI.EquipmentData.ID, deckUI);

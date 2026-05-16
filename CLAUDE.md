@@ -237,7 +237,12 @@ WM-078~115 의 NRE 다발(부팅 9건 + NPC→던전 흐름)이 **단일 안티�
 
 ### 게이트
 
-`memo/dotfiles/scripts/wm-init-order-audit.ps1` — Awake/Construct 내 `Find*ObjectByType` + 의심 `container.Inject(` 후보를 grep 으로 surface. 신규 PR 작성·리뷰 시 0 또는 *명시 정당화 주석* 확인. 새 매니저/UI 도입 시 § 「새 시스템 도입 시 — 기존 패턴 확인」 과 함께 본 규약 통과.
+`memo/dotfiles/scripts/wm-init-order-audit.ps1` — 3 tier:
+- **[BLOCK]** (exit 1, 하드): `Find*ObjectByType` in `Awake`/`[Inject] Construct` = 확정 too-early. root fix 또는 `// init-order-ok` 필수.
+- **[ORDER-RISK]** (정보, exit 무관, TASK-WM-118): `Find*ObjectByType` in `Start`/`OnEnable`/`Init`/`OnInit` = cross-ref-at-lifecycle 클래스(마스킹체인 `:51→:47→:74` 의 메커니즘 — sibling 을 무보장 순서에 Find). 진짜 cross-manager Start-order 의존이면 root fix(lazy/owner-push/scope 결정합성, I3 정합), *씬배치 정적 sibling/디버그-전용* 등 「적용외」면 `// init-order-ok` (같은 라인 trailing marker, 사유는 위 줄).
+- **[REVIEW]** (정보): `container.Inject(` → `InjectGameObject` 검토.
+
+신규 PR 작성·리뷰 시 [BLOCK] 0 + [ORDER-RISK] 0(또는 정당화 annotate) 확인. 새 매니저/UI 도입 시 § 「새 시스템 도입 시 — 기존 패턴 확인」 과 함께 본 규약 통과. (현 main: BLOCK 0 / ORDER-RISK 0 = 클래스 systemic 클린, TASK-WM-118.)
 
 ### 적용 외 (정당)
 
