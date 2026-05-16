@@ -13,7 +13,9 @@ namespace WitchMendokusai
 		}
 
 		public Player Current { get; private set; }
-		public PlayerObject CurrentObject { get; private set; }
+		// TASK-WM-115 R3a — live 파생 (stale 스냅샷 X). SetCurrent 시점에 player.Object 가
+		// 아직 null(Player.Awake<Construct 순서, 데이터 입증)이어도, 소비 시점엔 valid.
+		public PlayerObject CurrentObject => Current != null ? Current.Object : null;
 
 		public bool HasPlayer => Current != null;
 		public bool HasObject => CurrentObject != null;
@@ -37,13 +39,11 @@ namespace WitchMendokusai
 		public void SetCurrent(Player player)
 		{
 			Current = player;
-			CurrentObject = player != null ? player.Object : null;
 		}
 
 		public void Clear()
 		{
 			Current = null;
-			CurrentObject = null;
 		}
 	}
 }

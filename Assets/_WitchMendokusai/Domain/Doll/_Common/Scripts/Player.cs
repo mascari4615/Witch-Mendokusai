@@ -33,6 +33,11 @@ namespace WitchMendokusai
 			this.playerProvider = playerProvider;
 			this.dataManager = dataManager;
 			this.inputManager = inputManager;
+			// TASK-WM-115 R3a — Object/Rotation 을 SetCurrent *전* 확정.
+			// injected Player 는 Construct 가 Awake 보다 먼저 (데이터 입증) → Awake 에서 set 하면
+			// SetCurrent 시 Object null. 자식 cascade(아래) 도 Construct 시작이라 여기가 최早 단일 정본.
+			Object = GetComponent<PlayerObject>();
+			Rotation = GetComponent<PlayerRotation>();
 			playerProvider.SetCurrent(this);
 			aim = new(transform, inputManager, ObjectBufferManager.GetObjects(ObjectType.Monster), ObjectBufferManager.GetObjects(ObjectType.ResourceNode));
 
@@ -50,8 +55,7 @@ namespace WitchMendokusai
 		private void Awake()
 		{
 			interaction = new(transform);
-			Object = GetComponent<PlayerObject>();
-			Rotation = GetComponent<PlayerRotation>();
+			// Object/Rotation = Construct 단일 정본 (TASK-WM-115 R3a — Awake<Construct 순서).
 
 			if (dontDestroyOnLoad == true)
 				DontDestroyOnLoad(gameObject);
