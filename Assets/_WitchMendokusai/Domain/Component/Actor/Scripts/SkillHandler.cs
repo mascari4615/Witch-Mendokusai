@@ -12,10 +12,15 @@ namespace WitchMendokusai
 		public IReadOnlyDictionary<int, Skill> SkillDic => skillDic;
 
 		private readonly UnitObject unitObject;
+		// TASK-WM-107 Slice 4 — SkillContext 가 운반할 app 서비스 (UnitObject base-deps 채널 경유 push).
+		private readonly PlayerProvider playerProvider;
+		private readonly ObjectPoolManager objectPoolManager;
 
-		public SkillHandler(UnitObject unitObject)
+		public SkillHandler(UnitObject unitObject, PlayerProvider playerProvider, ObjectPoolManager objectPoolManager)
 		{
 			this.unitObject = unitObject;
+			this.playerProvider = playerProvider;
+			this.objectPoolManager = objectPoolManager;
 
 			for (int i = 0; i < unitObject.UnitData.DefaultSkills.Length; i++)
 				SetSkill(i, unitObject.UnitData.DefaultSkills[i]);
@@ -34,7 +39,7 @@ namespace WitchMendokusai
 			{
 				if (skill.IsReady)
 				{
-					skill.Use(new SkillContext(unitObject));
+					skill.Use(new SkillContext(unitObject, playerProvider, objectPoolManager));
 					return true;
 				}
 			}
@@ -62,7 +67,7 @@ namespace WitchMendokusai
 				};
 
 				if (isAutoUse && skill.IsReady)
-					skill.Use(new SkillContext(unitObject));
+					skill.Use(new SkillContext(unitObject, playerProvider, objectPoolManager));
 			}
 		}
 	}

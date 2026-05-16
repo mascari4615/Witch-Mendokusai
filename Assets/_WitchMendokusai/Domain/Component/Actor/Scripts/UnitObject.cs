@@ -26,14 +26,21 @@ namespace WitchMendokusai
 		public bool IsAlive => Health.IsAlive;
 
 		// VContainer source generator 는 abstract/base 의 [Inject] member 를 생성하지 않음 (검증된 한계, VCON0010).
-		// 자식 concrete 클래스가 [Inject] Construct 에 TimeManager/UnitStatCalculator 받아 SetBaseDeps 로 base 전달.
+		// 자식 concrete 클래스가 [Inject] Construct 에 base-deps 받아 SetBaseDeps 로 base 전달.
+		// TASK-WM-107 Slice 4 — SkillHandler(모든 UnitObject 균일 capability)→SkillContext 가
+		// objectPoolManager/playerProvider 필요 → 기존 base-deps 채널 확장(새 메커니즘 X).
 		protected TimeManager timeManager;
 		protected UnitStatCalculator unitStatCalculator;
+		protected ObjectPoolManager objectPoolManager;
+		protected PlayerProvider playerProvider;
 
-		protected void SetBaseDeps(TimeManager timeManager, UnitStatCalculator unitStatCalculator)
+		protected void SetBaseDeps(TimeManager timeManager, UnitStatCalculator unitStatCalculator,
+			ObjectPoolManager objectPoolManager, PlayerProvider playerProvider)
 		{
 			this.timeManager = timeManager;
 			this.unitStatCalculator = unitStatCalculator;
+			this.objectPoolManager = objectPoolManager;
+			this.playerProvider = playerProvider;
 		}
 
 		protected virtual void Awake()
@@ -70,7 +77,7 @@ namespace WitchMendokusai
 			{
 				timeManager.RemoveCallback(SkillHandler.Tick);
 			}
-			SkillHandler = new(this);
+			SkillHandler = new(this, playerProvider, objectPoolManager);
 			timeManager.RegisterCallback(SkillHandler.Tick);
 
 			UnitStat.Set(UnitData.InitStatInfos.GetUnitStat());

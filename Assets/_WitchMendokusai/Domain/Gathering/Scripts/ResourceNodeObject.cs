@@ -13,9 +13,10 @@ namespace WitchMendokusai
 		public new ResourceNode UnitData => base.UnitData as ResourceNode;
 
 		[Inject]
-		public void Construct(TimeManager timeManager, UnitStatCalculator unitStatCalculator)
+		public void Construct(TimeManager timeManager, UnitStatCalculator unitStatCalculator,
+			ObjectPoolManager objectPoolManager, PlayerProvider playerProvider)
 		{
-			SetBaseDeps(timeManager, unitStatCalculator);
+			SetBaseDeps(timeManager, unitStatCalculator, objectPoolManager, playerProvider);
 		}
 
 		protected virtual void OnEnable()

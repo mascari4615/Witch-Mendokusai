@@ -12,14 +12,21 @@ namespace WitchMendokusai
 		AutoWhenDungeon = 2,
 	}
 
+	// TASK-WM-107 Slice 4 — POCO Skill 이 static Bridge 안 알도록 app 서비스를 ctx 운반
+	// (EffectContext/CriteriaContext 동형). PlayerProvider/ObjectPoolManager 는
+	// VContainer 싱글턴 — *Bridge.Register(this) 동일 인스턴스라 behavior 무변경.
 	public class SkillContext
 	{
 		public UnitObject User { get; private set; }
+		public PlayerProvider PlayerProvider { get; private set; }
+		public ObjectPoolManager ObjectPoolManager { get; private set; }
 		public IItemData UsedEquipment { get; private set; }
 
-		public SkillContext(UnitObject user, IItemData usedEquipment = null)
+		public SkillContext(UnitObject user, PlayerProvider playerProvider, ObjectPoolManager objectPoolManager, IItemData usedEquipment = null)
 		{
 			User = user;
+			PlayerProvider = playerProvider;
+			ObjectPoolManager = objectPoolManager;
 			UsedEquipment = usedEquipment;
 		}
 	}

@@ -13,17 +13,17 @@ namespace WitchMendokusai
 
 		public new Monster UnitData => base.UnitData as Monster;
 
-		private PlayerProvider playerProvider;
+		// TASK-WM-107 Slice 4 — playerProvider 는 base UnitObject.playerProvider (protected) 재사용 (CS0108 hide 해소).
 		private SOManager soManager;
 		private DataManager dataManager;
 
 		[Inject]
-		public void Construct(PlayerProvider playerProvider, SOManager soManager, DataManager dataManager, TimeManager timeManager, UnitStatCalculator unitStatCalculator)
+		public void Construct(PlayerProvider playerProvider, SOManager soManager, DataManager dataManager, TimeManager timeManager, UnitStatCalculator unitStatCalculator,
+			ObjectPoolManager objectPoolManager)
 		{
-			this.playerProvider = playerProvider;
 			this.soManager = soManager;
 			this.dataManager = dataManager;
-			SetBaseDeps(timeManager, unitStatCalculator);
+			SetBaseDeps(timeManager, unitStatCalculator, objectPoolManager, playerProvider);
 		}
 
 		protected virtual void OnEnable()

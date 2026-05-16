@@ -27,13 +27,15 @@ namespace WitchMendokusai
 		private SOManager soManager;
 		private IEffectRunner effectRunner;
 		private UnitObject playerObject;
+		// TASK-WM-107 Slice 4 — SkillContext 가 운반할 app 서비스 (PlayerProvider 는 RegisterLeaf 싱글턴).
+		private PlayerProvider playerProvider;
 
 		private IDisposable objectBoundSub;
 		private IDisposable despawnedSub;
 
 		[Inject]
 		public void Construct(InputManager inputManager, DataManager dataManager, ObjectPoolManager objectPoolManager, TimeManager timeManager, SOManager soManager,
-			IEffectRunner effectRunner,
+			IEffectRunner effectRunner, PlayerProvider playerProvider,
 			ISubscriber<PlayerObjectBoundEvent> objectBoundSubscriber, ISubscriber<PlayerDespawnedEvent> despawnedSubscriber)
 		{
 			this.inputManager = inputManager;
@@ -42,6 +44,7 @@ namespace WitchMendokusai
 			this.timeManager = timeManager;
 			this.soManager = soManager;
 			this.effectRunner = effectRunner;
+			this.playerProvider = playerProvider;
 			objectBoundSub = objectBoundSubscriber.Subscribe(OnPlayerObjectBound);
 			despawnedSub = despawnedSubscriber.Subscribe(OnPlayerDespawned);
 		}
@@ -108,7 +111,7 @@ namespace WitchMendokusai
 					GameObject g = objectPoolManager.Spawn(equipment.Object);
 
 					if (g.TryGetComponent(out SkillObject skillObject))
-						skillObject.InitContext(new SkillContext(playerObject));
+						skillObject.InitContext(new SkillContext(playerObject, playerProvider, objectPoolManager));
 
 					g.SetActive(true);
 				}

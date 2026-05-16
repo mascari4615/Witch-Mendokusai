@@ -22,11 +22,12 @@ namespace WitchMendokusai
 		private SOManager soManager;
 
 		[Inject]
-		public void Construct(GameEventManager gameEventManager, SOManager soManager, TimeManager timeManager, UnitStatCalculator unitStatCalculator)
+		public void Construct(GameEventManager gameEventManager, SOManager soManager, TimeManager timeManager, UnitStatCalculator unitStatCalculator,
+			ObjectPoolManager objectPoolManager, PlayerProvider playerProvider)
 		{
 			this.gameEventManager = gameEventManager;
 			this.soManager = soManager;
-			SetBaseDeps(timeManager, unitStatCalculator);
+			SetBaseDeps(timeManager, unitStatCalculator, objectPoolManager, playerProvider);
 		}
 
 		public void SetDoll(int dollID)
