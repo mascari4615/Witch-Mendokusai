@@ -9,7 +9,7 @@ namespace WitchMendokusai
 			return criteriaInfo.Type switch
 			{
 				CriteriaType.ItemCount => new ItemCountCriteria(criteriaInfo, context),
-				CriteriaType.UnitStat => new StatCriteria(criteriaInfo),
+				CriteriaType.UnitStat => new StatCriteria(criteriaInfo, context),
 				CriteriaType.GameStat => new GameStatCriteria(criteriaInfo),
 				CriteriaType.DungeonStat => new DungeonStatCriteria(criteriaInfo),
 				_ => throw new ArgumentOutOfRangeException(),

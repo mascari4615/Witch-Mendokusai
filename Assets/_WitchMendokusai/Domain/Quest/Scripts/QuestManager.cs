@@ -24,9 +24,10 @@ namespace WitchMendokusai
 		private IDisposable questUnlockRequestedSub;
 		private SOManager soManager;
 		private IEffectRunner effectRunner;
+		private PlayerProvider playerProvider;
 
 		[Inject]
-		public void Construct(IPublisher<QuestAddedEvent> questAddedPublisher, ISubscriber<QuestCompletedEvent> questCompletedSubscriber, ISubscriber<QuestAddRequestedEvent> questAddRequestedSubscriber, ISubscriber<QuestUnlockRequestedEvent> questUnlockRequestedSubscriber, SOManager soManager, IEffectRunner effectRunner)
+		public void Construct(IPublisher<QuestAddedEvent> questAddedPublisher, ISubscriber<QuestCompletedEvent> questCompletedSubscriber, ISubscriber<QuestAddRequestedEvent> questAddRequestedSubscriber, ISubscriber<QuestUnlockRequestedEvent> questUnlockRequestedSubscriber, SOManager soManager, IEffectRunner effectRunner, PlayerProvider playerProvider)
 		{
 			this.questAddedPublisher = questAddedPublisher;
 			questCompletedSub = questCompletedSubscriber.Subscribe(OnQuestCompleted);
@@ -34,6 +35,7 @@ namespace WitchMendokusai
 			questUnlockRequestedSub = questUnlockRequestedSubscriber.Subscribe(OnQuestUnlockRequested);
 			this.soManager = soManager;
 			this.effectRunner = effectRunner;
+			this.playerProvider = playerProvider;
 		}
 
 		public void Dispose()
@@ -47,7 +49,7 @@ namespace WitchMendokusai
 		private void OnQuestAddRequested(QuestAddRequestedEvent evt)
 		{
 			QuestSO questSO = SOHelper.GetQuestSO(evt.QuestSOID);
-			AddQuest(RuntimeQuestFactory.FromQuestSO(questSO, new CriteriaContext(soManager)));
+			AddQuest(RuntimeQuestFactory.FromQuestSO(questSO, new CriteriaContext(soManager, playerProvider)));
 		}
 
 		private void OnQuestUnlockRequested(QuestUnlockRequestedEvent evt) => UnlockQuest(SOHelper.GetQuestSO(evt.QuestSOID));
