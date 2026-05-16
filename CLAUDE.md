@@ -219,6 +219,32 @@ FastFail을 유지한 채 등록 누락 등 근본 원인을 고친다.
 초기화·등록 경로가 누락된 것이면 그쪽을 고친다.
 FastFail 메서드(직접 `[]` 접근 등)는 그대로 둔다.
 
+## 객체 참조 획득 — init-order 안전 규약 (TASK-WM-115 정본)
+
+WM-078~115 의 NRE 다발(부팅 9건 + NPC→던전 흐름)이 **단일 안티패턴의 변주**로 수렴 확정됨:
+> **"Awake/`[Inject] Construct` 에서, 아직 생성·등록 안 된 대상을 eager Find/Inject → null/empty 가 영구 고정"**
+
+`FastFail 유지` 와 동근(증상 은폐 X, 등록·순서 root 를 고친다). 객체 참조를 잡을 때 아래 규약을 따른다 — 위반은 *방어 null-가드가 아니라* 구조 수정으로 해소.
+
+### 금지 / 대체
+
+1. **Awake/Construct 에서 `FindAnyObjectByType<T>` / `FindObjectsByType<T>` 금지** — 대상이 *나중에* 생성되면(예: UI 패널은 `UIManager.Start` 가 Instantiate, pooled stage 등) Awake-find 는 항상 null (Unity 생명주기 = 모든 Awake < 모든 Start). **대체**: ① 사용 시점 lazy resolve (`EnsureX()` 멱등, 던전 진입 등 — 대상이 존재 보장되는 시점) ② 소유자 push (대상을 만드는 쪽이 `BindX(this)`) ③ DI 등록 + `[Inject]`.
+   - 선례: `CardManager`(R1 `2d32abbc`) / `DungeonManager.dungeonUI`(R5 `e9cc1208`) eager(Awake)→lazy(`EnsureDungeonUI`/`EnsureCardPanels`).
+2. **계층 주입은 `container.Inject(component)` 가 아니라 `container.InjectGameObject(go)`** — `Inject(x)` 는 그 *컴포넌트 1개만*. 자식·형제 컴포넌트의 `[Inject] Construct` 는 미호출 → 그들 deps null. **대체**: `container.InjectGameObject(x.gameObject)` (VContainer 표준 계층-재귀, `using VContainer.Unity;`). ObjectPoolManager 가 쓰는 정본 패턴.
+   - 선례: 씬배치 actor(R3b `3f9ea2fe`) / UINPC 자식 패널(R4 `ec592181`).
+3. **준비 안 된 값의 스냅샷 캐싱 금지** — `X = source.Value` 를 source 가 아직 null 일 때 박으면 영구 stale. **대체**: live 파생 프로퍼티(`X => source != null ? source.Value : null`).
+   - 선례: `PlayerProvider.CurrentObject`(R3a `26fa8841`).
+
+### 게이트
+
+`memo/dotfiles/scripts/wm-init-order-audit.ps1` — Awake/Construct 내 `Find*ObjectByType` + 의심 `container.Inject(` 후보를 grep 으로 surface. 신규 PR 작성·리뷰 시 0 또는 *명시 정당화 주석* 확인. 새 매니저/UI 도입 시 § 「새 시스템 도입 시 — 기존 패턴 확인」 과 함께 본 규약 통과.
+
+### 적용 외 (정당)
+
+- Start/OnEnable 이후 시점의 Find (대상 존재 보장) — 단 lazy `Ensure` 가 더 견고.
+- 1회성 부트스트랩/에디터 코드.
+- `[Inject] Construct(T t)` 로 *DI 컨테이너가 직접 주입* (Find 아님) — 권장 경로.
+
 ## TASK 문서 갱신
 
 TASK 기반으로 시작한 작업은 `memo/wm/tasks/TASK-NNN-*.md`를 작업 내내 갱신한다.
