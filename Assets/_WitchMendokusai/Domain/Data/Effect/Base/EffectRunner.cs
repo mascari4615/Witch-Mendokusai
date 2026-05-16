@@ -11,16 +11,31 @@ namespace WitchMendokusai
 		void ApplyEffects(List<EffectInfo> effectInfos);
 		void ApplyEffects(List<EffectInfoData> effectInfoData);
 		void ApplyEffect(EffectInfo effectInfo);
+		// TASK-WM-107 Slice 3-2 — 사이클-브레이크 seam (QuestManager.BindDataManager 와 동일 패턴).
+		void BindDataManager(DataManager dataManager);
 	}
 
 	public class EffectRunner : IEffectRunner
 	{
-		private readonly EffectContext context;
+		private readonly SOManager soManager;
+		private readonly PlayerProvider playerProvider;
+		private readonly ObjectPoolManager objectPoolManager;
+		private EffectContext context;
 
 		[Inject]
 		public EffectRunner(SOManager soManager, PlayerProvider playerProvider, ObjectPoolManager objectPoolManager)
 		{
-			context = new EffectContext(soManager, playerProvider, objectPoolManager);
+			this.soManager = soManager;
+			this.playerProvider = playerProvider;
+			this.objectPoolManager = objectPoolManager;
+			context = new EffectContext(soManager, playerProvider, objectPoolManager, null);
+		}
+
+		// DataManager↔QuestManager↔IEffectRunner 순환 회피: [Inject] pull 대신 소유자(DataManager.Construct) push.
+		// DataManager.Construct 가 IEffectRunner 주입(3-1 후 EffectRunner↛DataManager 라 비순환)받아 호출.
+		public void BindDataManager(DataManager dataManager)
+		{
+			context = new EffectContext(soManager, playerProvider, objectPoolManager, dataManager);
 		}
 
 		public void ApplyEffects(List<EffectInfoData> effectInfoData)

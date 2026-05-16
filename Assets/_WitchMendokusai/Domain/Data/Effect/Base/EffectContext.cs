@@ -9,12 +9,14 @@ namespace WitchMendokusai
 		public SOManager SOManager { get; }
 		public PlayerProvider PlayerProvider { get; }
 		public ObjectPoolManager ObjectPoolManager { get; }
+		public DataManager DataManager { get; }
 
-		public EffectContext(SOManager soManager, PlayerProvider playerProvider, ObjectPoolManager objectPoolManager)
+		public EffectContext(SOManager soManager, PlayerProvider playerProvider, ObjectPoolManager objectPoolManager, DataManager dataManager)
 		{
 			SOManager = soManager;
 			PlayerProvider = playerProvider;
 			ObjectPoolManager = objectPoolManager;
+			DataManager = dataManager;
 		}
 	}
 }
