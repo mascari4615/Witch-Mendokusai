@@ -114,20 +114,42 @@ namespace WitchMendokusai
 				Instance = null;
 		}
 
+		// TASK-WM-115 R2 — Instantiate-before-Inject NRE 차단 seam.
+		// prefab 을 비활성 토글한 채 Instantiate → 인스턴스 자식 OnEnable 미발화 →
+		// container.Inject 로 deps 주입 완료 후 활성 → OnEnable 이 valid deps 로 실행.
+		// (ObjectPoolManager.ObjectPool.CreateObject 와 동일 canonical 패턴.)
+		private T InstantiateInjectedActive<T>(T prefab, Transform parent, bool activateAfter) where T : Component
+		{
+			bool prefabWasActive = prefab.gameObject.activeSelf;
+			if (prefabWasActive)
+				prefab.gameObject.SetActive(false);
+
+			T inst = Instantiate(prefab, parent);
+
+			if (prefabWasActive)
+				prefab.gameObject.SetActive(true);
+
+			foreach (MonoBehaviour mb in inst.GetComponentsInChildren<MonoBehaviour>(true))
+				container.Inject(mb);
+
+			if (activateAfter)
+				inst.gameObject.SetActive(true);
+
+			return inst;
+		}
+
 		private void Start()
 		{
 			// container 의존 UI 생성/주입 — Awake(container null) 도 Construct(SceneLifetimeScope Build 중 →
 			// 대량 container.Inject 재진입 = ValueFactory catastrophe) 도 아닌 Start.
 			// Start = Construct 후 + Build 완료 후 → container valid, 재진입 0 (캐스케이드 d405bfde 검증 패턴, TASK-WM-078 2026-05-16).
 			// Content UIs — 계층 전체 inject (UIDungeonRuntime / UIDungeonResult / UIDungeonEntrance 등)
-			UIDungeon dungeonInst = Instantiate(dungeonPrefab, BaseCanvas.transform);
-			foreach (MonoBehaviour mb in dungeonInst.GetComponentsInChildren<MonoBehaviour>(true))
-				container.Inject(mb);
+			// TASK-WM-115 R2 — 비활성 Instantiate → 자식 전체 Inject → 활성. active prefab 을
+			// 그냥 Instantiate 하면 자식 OnEnable 이 container.Inject *전* 발화 → deps null NRE
+			// (UIQuestGrid.OnEnable timeManager null). ObjectPoolManager.CreateObject 와 동일 검증 패턴.
+			UIDungeon dungeonInst = InstantiateInjectedActive(dungeonPrefab, BaseCanvas.transform, activateAfter: true);
 
-			adventurerGuild = Instantiate(adventurerGuildPrefab, BaseCanvas.transform);
-			foreach (MonoBehaviour mb in adventurerGuild.GetComponentsInChildren<MonoBehaviour>(true))
-				container.Inject(mb);
-			adventurerGuild.gameObject.SetActive(false);
+			adventurerGuild = InstantiateInjectedActive(adventurerGuildPrefab, BaseCanvas.transform, activateAfter: false);
 
 			// Common UIs
 			CutSceneModule = FindAnyObjectByType<CutSceneModule>(FindObjectsInactive.Include);
