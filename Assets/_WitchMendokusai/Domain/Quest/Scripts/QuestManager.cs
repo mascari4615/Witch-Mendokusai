@@ -48,11 +48,15 @@ namespace WitchMendokusai
 			questUnlockRequestedSub?.Dispose();
 		}
 
+		// TASK-WM-107 Slice 2C-4 — ctx 조립 단일 지점. 모든 RuntimeQuestFactory 호출처(OnQuestAddRequested /
+		// UINPCMenu / DungeonManager / SaveManager Load)가 여기서 ctx 획득 = DRY, POCO Criteria Bridge 의존 완전 폐기.
+		public CriteriaContext CreateCriteriaContext() => new(soManager, playerProvider, dataManager);
+
 		// POCO Effect 가 발행한 명령 이벤트 구독 — QuestManagerBridge static 폐기 (TASK-WM-107 Slice 1).
 		private void OnQuestAddRequested(QuestAddRequestedEvent evt)
 		{
 			QuestSO questSO = SOHelper.GetQuestSO(evt.QuestSOID);
-			AddQuest(RuntimeQuestFactory.FromQuestSO(questSO, new CriteriaContext(soManager, playerProvider, dataManager)));
+			AddQuest(RuntimeQuestFactory.FromQuestSO(questSO, CreateCriteriaContext()));
 		}
 
 		private void OnQuestUnlockRequested(QuestUnlockRequestedEvent evt) => UnlockQuest(SOHelper.GetQuestSO(evt.QuestSOID));

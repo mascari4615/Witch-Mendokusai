@@ -10,14 +10,15 @@ namespace WitchMendokusai
 {
 	public abstract class DungeonObjectiveStrategy
 	{
-		public RuntimeQuest CreateRuntimeQuest(Dungeon dungeon)
+		// TASK-WM-107 Slice 2C-4 — ctx 는 호출자(DungeonManager) 가 QuestManager.CreateCriteriaContext() 로 공급.
+		public RuntimeQuest CreateRuntimeQuest(Dungeon dungeon, CriteriaContext context)
 		{
 			QuestInfo questInfo = CreateQuestInfo(dungeon);
 
 			SetQuestInfo(dungeon, ref questInfo);
 			string questName = GetQuestName(dungeon, questInfo);
 
-			RuntimeQuest runtimeQuest = RuntimeQuestFactory.FromQuestInfo(questInfo, questName);
+			RuntimeQuest runtimeQuest = RuntimeQuestFactory.FromQuestInfo(questInfo, questName, context: context);
 			return runtimeQuest;
 		}
 

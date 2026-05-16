@@ -128,7 +128,7 @@ namespace WitchMendokusai
 
 				// Create Dungeon Quest
 				{
-					RuntimeQuest runtimeQuest = dungeonStrategy.CreateRuntimeQuest(dungeon);
+					RuntimeQuest runtimeQuest = dungeonStrategy.CreateRuntimeQuest(dungeon, dataManager.QuestManager.CreateCriteriaContext());
 					dataManager.QuestManager.AddQuest(runtimeQuest);
 				}
 

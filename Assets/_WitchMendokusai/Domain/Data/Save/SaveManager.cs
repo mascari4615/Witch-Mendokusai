@@ -166,7 +166,8 @@ namespace WitchMendokusai
 
 			// 작업 초기화
 			DataManager.WorkManager.Init(saveData.works);
-			DataManager.QuestManager.Init(saveData.runtimeQuests.ConvertAll((RuntimeQuestSaveData questSaveData) => RuntimeQuestFactory.FromSaveData(questSaveData)));
+			CriteriaContext criteriaContext = DataManager.QuestManager.CreateCriteriaContext();
+			DataManager.QuestManager.Init(saveData.runtimeQuests.ConvertAll((RuntimeQuestSaveData questSaveData) => RuntimeQuestFactory.FromSaveData(questSaveData, criteriaContext)));
 
 			// 던전 초기화
 			ForEach<Dungeon>(dungeon => { dungeon.Init(); }); // 먼저 전부 Init (새로 추가된 던전 포함)

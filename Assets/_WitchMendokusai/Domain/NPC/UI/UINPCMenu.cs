@@ -225,7 +225,7 @@ namespace WitchMendokusai
 			{
 				case QuestState.Locked:
 					questManager.UnlockQuest(questData);
-					questManager.AddQuest(RuntimeQuestFactory.FromQuestSO(questData));
+					questManager.AddQuest(RuntimeQuestFactory.FromQuestSO(questData, questManager.CreateCriteriaContext()));
 					break;
 				case QuestState.Unlocked:
 					// TODO: 퀘스트 진행 중 대사 출력

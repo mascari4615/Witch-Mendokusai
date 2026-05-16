@@ -1,7 +1,7 @@
 namespace WitchMendokusai
 {
-	// TASK-WM-107 Slice 2C — ctx 경로 = ctx.SOManager (DI caller thread).
-	// ctx null = SOManagerBridge transitional fallback (미thread 호출처 — 후속 수렴 시 제거).
+	// TASK-WM-107 Slice 2C-4 — Bridge 의존 완전 폐기. ctx 는 QuestManager.CreateCriteriaContext() 단일 지점에서
+	// 모든 호출처가 공급 (null 시 NRE = FastFail, 방어 fallback X — WM FastFail 룰).
 	public class ItemCountCriteria : NumCriteria
 	{
 		public int ItemID { get; private set; } = DataSO.NONE_ID;
@@ -16,7 +16,7 @@ namespace WitchMendokusai
 
 		public override int GetCurValue()
 		{
-			Inventory inventory = context == null ? SOManagerBridge.ItemInventory : context.SOManager.ItemInventory;
+			Inventory inventory = context.SOManager.ItemInventory;
 			return inventory.GetItemAmount(ItemID);
 		}
 	}

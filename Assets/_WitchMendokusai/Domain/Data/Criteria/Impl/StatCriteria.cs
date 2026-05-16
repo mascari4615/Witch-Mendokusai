@@ -1,7 +1,7 @@
 namespace WitchMendokusai
 {
-	// TASK-WM-107 Slice 2C-2 — ctx 경로 = ctx.PlayerProvider.Current.UnitStat (DI caller thread).
-	// ctx null = PlayerProviderBridge transitional fallback (미thread 호출처 — 후속 수렴 시 제거).
+	// TASK-WM-107 Slice 2C-4 — Bridge 의존 완전 폐기. ctx 단일 지점(QuestManager.CreateCriteriaContext()) 공급,
+	// null 시 NRE = FastFail (방어 fallback X — WM FastFail 룰).
 	public class StatCriteria : NumCriteria
 	{
 		public UnitStatType Type { get; private set; }
@@ -14,7 +14,7 @@ namespace WitchMendokusai
 			this.context = context;
 		}
 
-		private UnitStat PlayerStat => context == null ? PlayerProviderBridge.Current.UnitStat : context.PlayerProvider.Current.UnitStat;
+		private UnitStat PlayerStat => context.PlayerProvider.Current.UnitStat;
 
 		public override int GetCurValue()
 		{

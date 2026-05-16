@@ -2,8 +2,8 @@ using UnityEngine;
 
 namespace WitchMendokusai
 {
-	// TASK-WM-107 Slice 2C-3 — ctx 경로 = ctx.DataManager.GameStat (DI caller thread).
-	// ctx null = DataManagerBridge transitional fallback (미thread 호출처 — 후속 수렴 시 제거).
+	// TASK-WM-107 Slice 2C-4 — Bridge 의존 완전 폐기. ctx 단일 지점(QuestManager.CreateCriteriaContext()) 공급,
+	// null 시 NRE = FastFail (방어 fallback X — WM FastFail 룰).
 	public class GameStatCriteria : NumCriteria
 	{
 		public GameStatType Type { get; private set; }
@@ -18,7 +18,7 @@ namespace WitchMendokusai
 
 		public override int GetCurValue()
 		{
-			GameStat gameStat = context == null ? DataManagerBridge.GameStat : context.DataManager.GameStat;
+			GameStat gameStat = context.DataManager.GameStat;
 			return gameStat[Type];
 		}
 	}
