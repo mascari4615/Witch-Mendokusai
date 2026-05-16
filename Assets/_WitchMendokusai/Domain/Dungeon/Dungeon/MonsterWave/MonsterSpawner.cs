@@ -32,12 +32,17 @@ namespace WitchMendokusai
 		private ObjectPoolManager objectPoolManager;
 
 		[Inject]
-		public void Construct(DungeonManager dungeonManager, PlayerProvider playerProvider, ObjectPoolManager objectPoolManager)
+		public void Construct(PlayerProvider playerProvider, ObjectPoolManager objectPoolManager)
 		{
-			this.dungeonManager = dungeonManager;
 			this.playerProvider = playerProvider;
 			this.objectPoolManager = objectPoolManager;
 		}
+
+		// dungeonManager 는 owner DungeonManager 가 직접 주입 (DungeonManager.Construct).
+		// 과거 [Inject] Construct(DungeonManager,...) 는 DungeonManager ⇄ MonsterSpawner 순환
+		// → SceneLifetimeScope Build 중 Lazy 재진입. 비-container 경로로 순환 엣지 제거
+		// (fix#1 SettingView 미러 원리, TASK-WM-078, 2026-05-16).
+		public void SetDungeonManager(DungeonManager dungeonManager) => this.dungeonManager = dungeonManager;
 
 		public void InitWaves(Dungeon curDungeon)
 		{

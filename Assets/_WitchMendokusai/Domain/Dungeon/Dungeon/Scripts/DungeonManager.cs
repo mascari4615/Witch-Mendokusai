@@ -54,6 +54,7 @@ namespace WitchMendokusai
 			this.dataManager = dataManager;
 			this.gameManager = gameManager;
 			DungeonManagerBridge.Register(this);
+			monsterSpawner.SetDungeonManager(this);
 			container.Inject(monsterSpawner);
 			container.Inject(resourceNodeSpawner);
 		}
