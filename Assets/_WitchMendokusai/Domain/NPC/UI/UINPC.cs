@@ -1,4 +1,5 @@
 using UnityEngine;
+using VContainer;
 
 namespace WitchMendokusai
 {
@@ -22,6 +23,9 @@ namespace WitchMendokusai
 
 	public class UINPC : UIPanelGroup<NPCPanelType>
 	{
+		[Inject]
+		public void Construct(UIManager uiManager) => SetUIManager(uiManager);
+
 		public override bool CanBeClosedByCancelInput => true;
 		public override NPCPanelType DefaultPanel => NPCPanelType.None;
 

@@ -33,12 +33,13 @@ namespace WitchMendokusai
 		private DataManager dataManager;
 
 		[Inject]
-		public void Construct(GameEventManager gameEventManager, TimeManager timeManager, SOManager soManager, DataManager dataManager)
+		public void Construct(GameEventManager gameEventManager, TimeManager timeManager, SOManager soManager, DataManager dataManager, UIManager uiManager)
 		{
 			this.gameEventManager = gameEventManager;
 			this.timeManager = timeManager;
 			this.soManager = soManager;
 			this.dataManager = dataManager;
+			SetUIManager(uiManager);
 		}
 
 		// Level Up Stack

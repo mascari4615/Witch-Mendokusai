@@ -1,4 +1,5 @@
 using UnityEngine;
+using VContainer;
 
 namespace WitchMendokusai
 {
@@ -11,6 +12,9 @@ namespace WitchMendokusai
 
 	public class UIDungeon : UIPanelGroup<DungeonPanelType>
 	{
+		[Inject]
+		public void Construct(UIManager uiManager) => SetUIManager(uiManager);
+
 		public override bool CanBeClosedByCancelInput => false;
 		public override DungeonPanelType DefaultPanel => DungeonPanelType.None;
 

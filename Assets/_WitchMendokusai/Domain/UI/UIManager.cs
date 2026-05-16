@@ -69,50 +69,6 @@ namespace WitchMendokusai
 		{
 			if (Instance != null && Instance != this) { Destroy(gameObject); return; }
 			Instance = this;
-
-			// Content UIs — 계층 전체 inject (UIDungeonRuntime / UIDungeonResult / UIDungeonEntrance 등)
-			UIDungeon dungeonInst = Instantiate(dungeonPrefab, BaseCanvas.transform);
-			foreach (MonoBehaviour mb in dungeonInst.GetComponentsInChildren<MonoBehaviour>(true))
-				container.Inject(mb);
-
-			adventurerGuild = Instantiate(adventurerGuildPrefab, BaseCanvas.transform);
-			foreach (MonoBehaviour mb in adventurerGuild.GetComponentsInChildren<MonoBehaviour>(true))
-				container.Inject(mb);
-			adventurerGuild.gameObject.SetActive(false);
-
-			// Common UIs
-			CutSceneModule = FindAnyObjectByType<CutSceneModule>(FindObjectsInactive.Include);
-			Chat = FindAnyObjectByType<UIChat>(FindObjectsInactive.Include);
-			container.Inject(Chat);
-
-			NPC = FindAnyObjectByType<UINPC>(FindObjectsInactive.Include);
-
-			// 씬 한정 view 등록 — 글로벌 UIRoot 에 AddComponent
-			GameObject uiRootGameObject = uiRoot.gameObject;
-			inventoryView = uiRootGameObject.AddComponent<InventoryView>();
-			container.Inject(inventoryView);
-			hotbarView = uiRootGameObject.AddComponent<HotbarView>();
-			container.Inject(hotbarView);
-			buildingBarView = uiRootGameObject.AddComponent<BuildingBarView>();
-			container.Inject(buildingBarView);
-			questView = uiRootGameObject.AddComponent<QuestView>();
-			container.Inject(questView);
-			dollView = uiRootGameObject.AddComponent<DollView>();
-			container.Inject(dollView);
-			statusView = uiRootGameObject.AddComponent<StatusView>();
-			container.Inject(statusView);
-			popupView = uiRootGameObject.AddComponent<PopupView>();
-			container.Inject(popupView);
-			stagePopupView = uiRootGameObject.AddComponent<StagePopupView>();
-			container.Inject(stagePopupView);
-			floatingText = uiRootGameObject.AddComponent<FloatingTextView>();
-			container.Inject(floatingText);
-			SpeechBubble = uiRootGameObject.AddComponent<SpeechBubbleView>();
-			container.Inject(SpeechBubble);
-			// DialogueRunner — TASK-WM-078 γ P2-2 (2026-05-13) 에서 SceneLifetimeScope.RegisterComponentOnNewGameObject 로 추출. 여기서 AddComponent X.
-			Transition = uiRootGameObject.AddComponent<TransitionView>();
-			container.Inject(Transition);
-
 		}
 
 		private void OnQuestCompleted(QuestCompletedEvent evt)
@@ -160,6 +116,53 @@ namespace WitchMendokusai
 
 		private void Start()
 		{
+			// container 의존 UI 생성/주입 — Awake(container null) 도 Construct(SceneLifetimeScope Build 중 →
+			// 대량 container.Inject 재진입 = ValueFactory catastrophe) 도 아닌 Start.
+			// Start = Construct 후 + Build 완료 후 → container valid, 재진입 0 (캐스케이드 d405bfde 검증 패턴, TASK-WM-078 2026-05-16).
+			// Content UIs — 계층 전체 inject (UIDungeonRuntime / UIDungeonResult / UIDungeonEntrance 등)
+			UIDungeon dungeonInst = Instantiate(dungeonPrefab, BaseCanvas.transform);
+			foreach (MonoBehaviour mb in dungeonInst.GetComponentsInChildren<MonoBehaviour>(true))
+				container.Inject(mb);
+
+			adventurerGuild = Instantiate(adventurerGuildPrefab, BaseCanvas.transform);
+			foreach (MonoBehaviour mb in adventurerGuild.GetComponentsInChildren<MonoBehaviour>(true))
+				container.Inject(mb);
+			adventurerGuild.gameObject.SetActive(false);
+
+			// Common UIs
+			CutSceneModule = FindAnyObjectByType<CutSceneModule>(FindObjectsInactive.Include);
+			Chat = FindAnyObjectByType<UIChat>(FindObjectsInactive.Include);
+			container.Inject(Chat);
+
+			NPC = FindAnyObjectByType<UINPC>(FindObjectsInactive.Include);
+			container.Inject(NPC);
+
+			// 씬 한정 view 등록 — 글로벌 UIRoot 에 AddComponent
+			GameObject uiRootGameObject = uiRoot.gameObject;
+			inventoryView = uiRootGameObject.AddComponent<InventoryView>();
+			container.Inject(inventoryView);
+			hotbarView = uiRootGameObject.AddComponent<HotbarView>();
+			container.Inject(hotbarView);
+			buildingBarView = uiRootGameObject.AddComponent<BuildingBarView>();
+			container.Inject(buildingBarView);
+			questView = uiRootGameObject.AddComponent<QuestView>();
+			container.Inject(questView);
+			dollView = uiRootGameObject.AddComponent<DollView>();
+			container.Inject(dollView);
+			statusView = uiRootGameObject.AddComponent<StatusView>();
+			container.Inject(statusView);
+			popupView = uiRootGameObject.AddComponent<PopupView>();
+			container.Inject(popupView);
+			stagePopupView = uiRootGameObject.AddComponent<StagePopupView>();
+			container.Inject(stagePopupView);
+			floatingText = uiRootGameObject.AddComponent<FloatingTextView>();
+			container.Inject(floatingText);
+			SpeechBubble = uiRootGameObject.AddComponent<SpeechBubbleView>();
+			container.Inject(SpeechBubble);
+			// DialogueRunner — SceneLifetimeScope.RegisterComponentOnNewGameObject 추출. 여기서 AddComponent X.
+			Transition = uiRootGameObject.AddComponent<TransitionView>();
+			container.Inject(Transition);
+
 			RegisterOverlayUI(NPC);
 		}
 
