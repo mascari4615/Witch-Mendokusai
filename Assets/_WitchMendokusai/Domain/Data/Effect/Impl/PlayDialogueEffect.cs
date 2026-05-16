@@ -2,9 +2,10 @@ using UnityEngine;
 
 namespace WitchMendokusai
 {
+	// TASK-WM-107 Slice 3-4b — 단일 ctx dispatch (ctx 불요 Effect — context 무시).
 	public class PlayDialogueEffect : IEffect
 	{
-		public void Apply(EffectInfo effectInfo)
+		public void Apply(EffectInfo effectInfo, EffectContext context)
 		{
 			DialogueLine dialogueLine = effectInfo.Data as DialogueLine;
 			if (dialogueLine == null)

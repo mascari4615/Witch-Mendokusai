@@ -4,24 +4,17 @@ using static WitchMendokusai.SOHelper;
 
 namespace WitchMendokusai
 {
+	// TASK-WM-107 Slice 3-4b — 단일 ctx-dispatch 인터페이스. static Effect 파사드/IContextualEffect dual
+	// 폐기 완료 (모든 dispatch = IEffectRunner 경유, ctx 항상 주입). ctx 불요 Effect 는 context 무시.
 	public interface IEffect
-	{
-		void Apply(EffectInfo effectInfo);
-	}
-
-	// TASK-WM-107 Slice 2A — DI-managed dispatch seam (자기소멸 transitional).
-	// EffectRunner 가 ctx 주입 가능하면 이 경로로, 정적 SO 호출처는 IEffect.Apply 구 경로.
-	// 모든 Effect 가 IContextualEffect 로 수렴하면 IEffect.Apply(EffectInfo) 폐기 + 단일화.
-	public interface IContextualEffect : IEffect
 	{
 		void Apply(EffectInfo effectInfo, EffectContext context);
 	}
 
 	public class Effect
 	{
-		// EffectInfoData → EffectInfo 해석 (dataSO lookup). 정적 경로 + EffectRunner 공용 (분기 무발산).
-		// VQuests = SOManagerBridge 잔존 (transitional — Slice 2 후속 ctx 흡수 대상).
-		public static EffectInfo ResolveEffectInfo(EffectInfoData data)
+		// EffectInfoData → EffectInfo 해석 (dataSO lookup). EffectRunner 전용 (정적 파사드 폐기).
+		public static EffectInfo ResolveEffectInfo(EffectInfoData data, EffectContext context)
 		{
 			Debug.Log(data.Type + " " + data.DataSoID + " " + data.ArithmeticOperator + " " + data.Value);
 
@@ -39,7 +32,7 @@ namespace WitchMendokusai
 					break;
 				case EffectType.AddRandomVillageQuest:
 					effectType = EffectType.AddQuest;
-					dataSO = SOManagerBridge.VQuests.Data[Random.Range(0, SOManagerBridge.VQuests.Data.Count)];
+					dataSO = context.SOManager.VQuests.Data[Random.Range(0, context.SOManager.VQuests.Data.Count)];
 					break;
 				case EffectType.FloatVariable:
 					break;
@@ -78,7 +71,7 @@ namespace WitchMendokusai
 			};
 		}
 
-		// EffectType → IEffect 인스턴스. 정적 경로 + EffectRunner 공용.
+		// EffectType → IEffect 인스턴스. EffectRunner 전용 (Bridge無 — 단순 팩토리).
 		public static IEffect CreateEffect(EffectType effectType)
 		{
 			switch (effectType)
@@ -114,33 +107,7 @@ namespace WitchMendokusai
 					return null;
 			}
 		}
-
-		// 정적 경로 (CardData/UpgradeData 등 SO POCO 호출처 — ctx 없음, transitional).
-		// DI-managed 호출처는 IEffectRunner 경유 (ctx 주입).
-		public static void ApplyEffects(List<EffectInfoData> effectInfoData)
-		{
-			Debug.Log("Applying effects...");
-
-			foreach (EffectInfoData data in effectInfoData)
-				ApplyEffect(ResolveEffectInfo(data));
-		}
-
-		public static void ApplyEffects(List<EffectInfo> effectInfos)
-		{
-			Debug.Log("Applying effects...");
-
-			foreach (EffectInfo effectInfo in effectInfos)
-				ApplyEffect(effectInfo);
-		}
-
-		public static void ApplyEffect(EffectInfo effectInfo)
-		{
-			Debug.Log($"Applying effect: {effectInfo.Type} {effectInfo.Data} {effectInfo.ArithmeticOperator} {effectInfo.Value}");
-
-			IEffect effect = CreateEffect(effectInfo.Type);
-
-			if (effect != null)
-				effect.Apply(effectInfo);
-		}
+		// TASK-WM-107 Slice 3-4b — 정적 ApplyEffect/ApplyEffects 파사드 폐기 (호출처 0:
+		// UpgradeData=3-3 / CardData=3-4a 라우팅). 유일 dispatch = IEffectRunner (ctx 주입).
 	}
 }

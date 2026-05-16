@@ -44,7 +44,7 @@ namespace WitchMendokusai
 		public void ApplyEffects(List<EffectInfoData> effectInfoData)
 		{
 			foreach (EffectInfoData data in effectInfoData)
-				ApplyEffect(Effect.ResolveEffectInfo(data));
+				ApplyEffect(Effect.ResolveEffectInfo(data, context));
 		}
 
 		public void ApplyEffects(List<EffectInfo> effectInfos)
@@ -60,10 +60,7 @@ namespace WitchMendokusai
 			if (effect == null)
 				return;
 
-			if (effect is IContextualEffect contextualEffect)
-				contextualEffect.Apply(effectInfo, context);
-			else
-				effect.Apply(effectInfo);
+			effect.Apply(effectInfo, context);
 		}
 	}
 }
