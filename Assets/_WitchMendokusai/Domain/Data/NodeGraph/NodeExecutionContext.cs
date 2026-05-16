@@ -24,6 +24,20 @@ namespace WitchMendokusai.NodeGraph
 			this.graph = graph;
 		}
 
+		/// <summary>
+		/// 컨텍스트 재사용 — 4개 상태 컬렉션 클리어 후 같은 graph 로 다음 평가.
+		/// per-call `new` 폐기용 (TASK-WM-119: RegionGridNodeBase 가 256m 영역당 65536 셀
+		/// 각각 new → 26만 alloc). 같은 thread / lock 보호 구간에서만 재사용 — graph 불변.
+		/// 결과·평가순서 불변 (fresh context 와 동일 — 빈 상태에서 시작).
+		/// </summary>
+		public void Reset()
+		{
+			outputCache.Clear();
+			evaluating.Clear();
+			evaluated.Clear();
+			globalInputs.Clear();
+		}
+
 		/// <summary>해당 input port 의 값 — connected source 노드를 재귀 평가 (캐시).
 		/// 미연결 input 또는 source 노드 누락이면 default(T).</summary>
 		public T GetInput<T>(NodePort<T> input)

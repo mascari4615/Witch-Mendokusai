@@ -14,6 +14,11 @@ namespace WitchMendokusai
 	{
 		public override NodeDomain Domain => NodeDomain.Terrain;
 
+		// TASK-WM-119: SampleHeight 콜당 new NodeExecutionContext (256/청크 × 백그라운드 다발)
+		// → thread-static 풀. [ThreadStatic] = 스레드별 인스턴스라 background chunk gen 다발
+		// 호출 thread-safe (per-thread 격리). Reset() 으로 재사용 — 결과·평가순서 불변.
+		[System.ThreadStatic] private static NodeExecutionContext tlsContext;
+
 		/// <summary>
 		/// (worldX, worldZ) 기준 그래프 평가 결과 height. terminal `HeightOutputNode` 누락 시 0.
 		/// **background thread 안전** — context per-call 인스턴스, NodeBase 데이터 read-only.
@@ -27,11 +32,20 @@ namespace WitchMendokusai
 				return 0f;
 			}
 
-			NodeExecutionContext context = new(this);
+			NodeExecutionContext context = tlsContext;
+			if (context == null || context.Graph != this)
+			{
+				context = new NodeExecutionContext(this);
+				tlsContext = context;
+			}
+			else
+			{
+				context.Reset();
+			}
 			context.SetGlobalInput(WorldPositionInputNode.KEY_WORLD_X, worldX);
 			context.SetGlobalInput(WorldPositionInputNode.KEY_WORLD_Z, worldZ);
 			context.Evaluate(output);
-			// terminal 인스턴스 mutation 없음 — context cache 에서 cached 값 읽음 (thread-safe).
+			// terminal 인스턴스 mutation 없음 — context cache 에서 cached 값 읽음 (per-thread 격리).
 			return context.GetInput(output.HeightInput);
 		}
 	}

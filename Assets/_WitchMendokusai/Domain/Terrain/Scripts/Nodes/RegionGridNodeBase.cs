@@ -102,6 +102,21 @@ namespace WitchMendokusai
 			NodeGraphAsset graph = context.Graph;
 			if (graph == null)
 				return null;
+			int regionX = Mathf.FloorToInt(worldX / regionSize);
+			int regionZ = Mathf.FloorToInt(worldZ / regionSize);
+			return GetRegionArray(graph, regionX, regionZ);
+		}
+
+		/// <summary>
+		/// (regionX, regionZ) 영역의 *시뮬레이션 완료* height 배열 — 캐시 우선.
+		/// 다운스트림 region 노드가 캐스케이드 collapse 위해 직접 호출 (TASK-WM-119).
+		/// background 다발 호출 안전 (per-instance cacheLock). graph DAG = 잠금 순서
+		/// 다운→업 단방향이라 데드락 X.
+		/// </summary>
+		internal float[,] GetRegionArray(NodeGraphAsset graph, int regionX, int regionZ)
+		{
+			if (graph == null)
+				return null;
 
 			NodeConnection heightConn = graph.FindConnectionToInput(inHeight);
 			if (heightConn == null)
@@ -111,8 +126,6 @@ namespace WitchMendokusai
 			if (sourceNode == null)
 				return null;
 
-			int regionX = Mathf.FloorToInt(worldX / regionSize);
-			int regionZ = Mathf.FloorToInt(worldZ / regionSize);
 			(int, int) regionKey = (regionX, regionZ);
 
 			int currentHash = HashCode.Combine(regionSize, ComputeAlgorithmHash());
@@ -144,9 +157,27 @@ namespace WitchMendokusai
 		private float[,] SampleSourceRegion(NodeGraphAsset graph, NodeBase sourceNode, int regionX, int regionZ)
 		{
 			float[,] heights = new float[regionSize, regionSize];
+
+			// TASK-WM-119 캐스케이드 collapse — source 가 같은 regionSize 의 region 노드면
+			// 그 시뮬 완료 배열을 직접 복사 (현재 점-pull 은 정수 cell 에서 bilinear =
+			// 정확히 같은 grid 값 → 결과·평가순서 불변, O(N²×depth) → O(N²)).
+			if (sourceNode is RegionGridNodeBase srcRegion && srcRegion.regionSize == regionSize)
+			{
+				float[,] srcArray = srcRegion.GetRegionArray(graph, regionX, regionZ);
+				if (srcArray != null)
+				{
+					System.Array.Copy(srcArray, heights, srcArray.Length);
+					return heights;
+				}
+			}
+
 			float regionWorldX = regionX * regionSize;
 			float regionWorldZ = regionZ * regionSize;
 
+			// 셀당 new NodeExecutionContext (regionSize² = 65536, 26만 컬렉션 alloc) →
+			// 컨텍스트 1개 재사용 + Reset(). 호출자가 cacheLock 보유 = 단일 스레드 구간이라
+			// 재사용 안전. graph 불변. 결과·평가순서 불변. (source 가 비-region 일 때만 도달.)
+			NodeExecutionContext subContext = new(graph);
 			for (int cellX = 0; cellX < regionSize; cellX++)
 			{
 				for (int cellZ = 0; cellZ < regionSize; cellZ++)
@@ -154,7 +185,7 @@ namespace WitchMendokusai
 					float sampleWorldX = regionWorldX + cellX;
 					float sampleWorldZ = regionWorldZ + cellZ;
 
-					NodeExecutionContext subContext = new(graph);
+					subContext.Reset();
 					subContext.SetGlobalInput(WorldPositionInputNode.KEY_WORLD_X, sampleWorldX);
 					subContext.SetGlobalInput(WorldPositionInputNode.KEY_WORLD_Z, sampleWorldZ);
 					subContext.Evaluate(sourceNode);

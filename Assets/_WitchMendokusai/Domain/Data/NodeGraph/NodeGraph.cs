@@ -17,6 +17,47 @@ namespace WitchMendokusai.NodeGraph
 		[SerializeReference] private List<NodeBase> nodes = new();
 		[SerializeField] private List<NodeConnection> connections = new();
 
+		// --- O(1) lookup 캐시 (TASK: voxel gen 속도 — RegionGridNodeBase 가 256m 영역당 65536 셀
+		// 각각 FindNode/FindConnectionToInput 선형 스캔 재귀 → O(N) → O(1)). [NonSerialized] = SO
+		// 로드 후 첫 접근 시 lazy build (deserialize 는 mutator 안 거치므로 lazy 가 정답). mutator
+		// (AddNode/RemoveNode/Connect/Disconnect/Clear) = 에디터만 → invalidate. 런타임 그래프 불변
+		// = build 후 lock-free 동시 read 안전 (background chunk gen 다발 호출). 결과·평가순서 불변. -->
+		[System.NonSerialized] private Dictionary<string, NodeBase> nodeByIdCache;
+		[System.NonSerialized] private Dictionary<(string targetNodeId, string targetPortId), NodeConnection> connByInputCache;
+		[System.NonSerialized] private volatile bool cacheReady;
+		[System.NonSerialized] private readonly object cacheBuildLock = new();
+
+		private void EnsureLookupCache()
+		{
+			if (cacheReady)
+				return;
+			lock (cacheBuildLock)
+			{
+				if (cacheReady)
+					return;
+				Dictionary<string, NodeBase> byId = new(nodes.Count);
+				foreach (NodeBase n in nodes)
+					if (n != null && string.IsNullOrEmpty(n.Id) == false)
+						byId[n.Id] = n;
+				Dictionary<(string, string), NodeConnection> byInput = new(connections.Count);
+				foreach (NodeConnection c in connections)
+					if (c != null)
+						byInput[(c.TargetNodeId, c.TargetPortId)] = c;
+				nodeByIdCache = byId;
+				connByInputCache = byInput;
+				cacheReady = true;
+			}
+		}
+
+		/// <summary>mutator (에디터 그래프 편집) 후 lookup 캐시 무효화. 런타임 호출 X.</summary>
+		private void InvalidateLookupCache()
+		{
+			lock (cacheBuildLock)
+			{
+				cacheReady = false;
+			}
+		}
+
 		public IReadOnlyList<NodeBase> Nodes => nodes;
 
 		/// <summary>
@@ -36,6 +77,7 @@ namespace WitchMendokusai.NodeGraph
 			if (node == null)
 				return;
 			nodes.Add(node);
+			InvalidateLookupCache();
 		}
 
 		public void RemoveNode(NodeBase node)
@@ -44,22 +86,22 @@ namespace WitchMendokusai.NodeGraph
 				return;
 			connections.RemoveAll(c => c.SourceNodeId == node.Id || c.TargetNodeId == node.Id);
 			nodes.Remove(node);
+			InvalidateLookupCache();
 		}
 
 		public void Clear()
 		{
 			nodes.Clear();
 			connections.Clear();
+			InvalidateLookupCache();
 		}
 
 		public NodeBase FindNode(string nodeId)
 		{
 			if (string.IsNullOrEmpty(nodeId))
 				return null;
-			foreach (NodeBase n in nodes)
-				if (n != null && n.Id == nodeId)
-					return n;
-			return null;
+			EnsureLookupCache();
+			return nodeByIdCache.TryGetValue(nodeId, out NodeBase n) ? n : null;
 		}
 
 		/// <summary>도메인 헬퍼 — 그래프 안 첫 T 타입 노드. 없으면 null.</summary>
@@ -88,6 +130,7 @@ namespace WitchMendokusai.NodeGraph
 
 			connections.RemoveAll(c => c.TargetNodeId == target.Owner.Id && c.TargetPortId == target.PortId);
 			connections.Add(new NodeConnection(source.Owner.Id, source.PortId, target.Owner.Id, target.PortId));
+			InvalidateLookupCache();
 			return true;
 		}
 
@@ -96,6 +139,7 @@ namespace WitchMendokusai.NodeGraph
 			if (c == null)
 				return;
 			connections.Remove(c);
+			InvalidateLookupCache();
 		}
 
 		/// <summary>특정 input port 에 연결된 connection (단일 — 단일 input 의미). 없으면 null.</summary>
@@ -103,10 +147,8 @@ namespace WitchMendokusai.NodeGraph
 		{
 			if (input == null)
 				return null;
-			foreach (NodeConnection c in connections)
-				if (c.TargetNodeId == input.Owner.Id && c.TargetPortId == input.PortId)
-					return c;
-			return null;
+			EnsureLookupCache();
+			return connByInputCache.TryGetValue((input.Owner.Id, input.PortId), out NodeConnection c) ? c : null;
 		}
 	}
 }
