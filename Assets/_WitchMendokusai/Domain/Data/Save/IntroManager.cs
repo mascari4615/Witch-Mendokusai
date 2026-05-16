@@ -13,6 +13,7 @@ namespace WitchMendokusai
 		private IEnumerator Start()
 		{
 			Debug.Log($"{nameof(IntroManager)} {nameof(Start)}");
+			BootObserver.Enter(BootPhase.Intro); // TASK-WM-118 B1
 
 			InitView();
 

@@ -42,9 +42,11 @@ namespace WitchMendokusai
 			Debug.Log($"Application.version: {Application.version}");
 
 			Instance = this;
+			BootObserver.Enter(BootPhase.Lobby); // TASK-WM-118 B1
 
 			yield return StartCoroutine(dataManager.Init());
 			dataManager.Login();
+			BootObserver.Enter(BootPhase.DataReady); // TASK-WM-118 B1
 			Init();
 
 			if (AppSetting.Data.AutoStart)

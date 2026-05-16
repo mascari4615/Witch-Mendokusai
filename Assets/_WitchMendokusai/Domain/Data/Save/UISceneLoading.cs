@@ -19,6 +19,7 @@ namespace WitchMendokusai
 		public static void LoadScene(string targetSceneName)
 		{
 			sceneName = targetSceneName;
+			BootObserver.Enter(BootPhase.SceneLoading); // TASK-WM-118 B1
 			SceneManager.LoadScene("Loading");
 		}
 

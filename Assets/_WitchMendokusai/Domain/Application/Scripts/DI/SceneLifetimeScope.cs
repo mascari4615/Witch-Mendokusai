@@ -150,10 +150,12 @@ namespace WitchMendokusai
 					container.Inject(autoAimMarker);
 
 				// θ — Scene→Root 역방향 .Instance 제거: child scope 가 parent GameManager 에 씬 의존 조건 바인딩.
+				BootObserver.Enter(BootPhase.WorldScopeBuilt); // TASK-WM-118 B1
 				GameManager gameManager = BootGuard.EagerResolve<GameManager>(container, "Scene");
 				GameModeManager gameModeManager = BootGuard.EagerResolve<GameModeManager>(container, "Scene");
 				UIManager uiManager = BootGuard.EagerResolve<UIManager>(container, "Scene");
 				gameManager.BindSceneConditions(gameModeManager, uiManager);
+				BootObserver.Enter(BootPhase.WorldReady); // TASK-WM-118 B1 — 부팅 완료 센티넬 (I5 회귀 판정점)
 			});
 		}
 	}

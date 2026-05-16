@@ -86,6 +86,7 @@ namespace WitchMendokusai
 				BootGuard.EagerResolve<GameManager>(container, "Root");
 				BootGuard.EagerResolve<UIRoot>(container, "Root");
 				BootGuard.EagerResolve<InputStrategySelector>(container, "Root");
+				BootObserver.Enter(BootPhase.RootContainerBuilt); // TASK-WM-118 B1
 			});
 		}
 
