@@ -126,6 +126,13 @@ namespace WitchMendokusai
 
 		public void Login()
 		{
+			// TASK-WM-118 B3 — 결정적 부팅 = PlayFab 네트워크 critical-path 우회(오프라인).
+			// UseLocalData=true 라 로컬 세이브로 진행, 부팅이 네트워크 없이 WorldReady 도달.
+			if (BootMode.IsDeterministic)
+			{
+				Debug.Log("[BOOT] deterministic — PlayFab Login skipped (offline, local data)");
+				return;
+			}
 			playFabManager.Login();
 		}
 
