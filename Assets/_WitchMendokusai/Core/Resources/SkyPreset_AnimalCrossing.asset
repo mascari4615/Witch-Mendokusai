@@ -11,7 +11,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 8066ad0830248a94e8849559d47406e3, type: 3}
   m_Name: SkyPreset_AnimalCrossing
-  m_EditorClassIdentifier: Assembly-CSharp::WitchMendokusai.SkyPresetSO
+  m_EditorClassIdentifier: WM.Domain:WitchMendokusai:SkyPresetSO
   <DisplayName>k__BackingField: Animal Crossing
   <ZenithColor>k__BackingField:
     serializedVersion: 2
@@ -388,3 +388,140 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+  <FogMode>k__BackingField: 3
+  <FogDensity>k__BackingField:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0.012
+      inSlope: 0.029999996
+      outSlope: 0.029999996
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 0.2
+      value: 0.018
+      inSlope: -0.006666667
+      outSlope: -0.006666667
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 0.5
+      value: 0.005
+      inSlope: -0.012738093
+      outSlope: -0.012738093
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 0.78
+      value: 0.01
+      inSlope: 0.013474027
+      outSlope: 0.013474027
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0.012
+      inSlope: 0.00909091
+      outSlope: 0.00909091
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  <CloudColor>k__BackingField:
+    serializedVersion: 2
+    key0: {r: 0.3, g: 0.28, b: 0.45, a: 1}
+    key1: {r: 0.95, g: 0.8, b: 0.85, a: 1}
+    key2: {r: 1, g: 1, b: 1, a: 1}
+    key3: {r: 1, g: 0.65, b: 0.55, a: 1}
+    key4: {r: 0.45, g: 0.35, b: 0.55, a: 1}
+    key5: {r: 0.3, g: 0.28, b: 0.45, a: 1}
+    key6: {r: 0, g: 0, b: 0, a: 0}
+    key7: {r: 0, g: 0, b: 0, a: 0}
+    ctime0: 0
+    ctime1: 14418
+    ctime2: 32768
+    ctime3: 51117
+    ctime4: 57671
+    ctime5: 65535
+    ctime6: 0
+    ctime7: 0
+    atime0: 0
+    atime1: 14418
+    atime2: 32768
+    atime3: 51117
+    atime4: 57671
+    atime5: 65535
+    atime6: 0
+    atime7: 0
+    m_Mode: 0
+    m_ColorSpace: -1
+    m_NumColorKeys: 6
+    m_NumAlphaKeys: 6
+  <CloudCoverage>k__BackingField:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0.3
+      inSlope: 0.99999994
+      outSlope: 0.99999994
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 0.2
+      value: 0.5
+      inSlope: 0.3333333
+      outSlope: 0.3333333
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 0.5
+      value: 0.4
+      inSlope: -0.07738096
+      outSlope: -0.07738096
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 0.78
+      value: 0.45
+      inSlope: -0.2516233
+      outSlope: -0.2516233
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0.3
+      inSlope: -0.681818
+      outSlope: -0.681818
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  <CloudHeight>k__BackingField: 0.05
+  <CloudScale>k__BackingField: 4
+  <CloudSpeed>k__BackingField: 0.05
+  <CloudSoftness>k__BackingField: 0.15
