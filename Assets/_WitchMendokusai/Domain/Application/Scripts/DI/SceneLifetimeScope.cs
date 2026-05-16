@@ -64,6 +64,13 @@ namespace WitchMendokusai
 			RegisterInHierarchyIfPresent<UIQuestGrid>(builder);
 			RegisterInHierarchyIfPresent<MagicBookView>(builder);
 			RegisterInHierarchyIfPresent<UINPCMenu>(builder);
+			// TASK-WM-118 I2 — UINPC(UIPanelGroup<NPCPanelType>) 도 CardManager 정본처럼
+			// scope 등록 → Construct 가 build callback(모든 Start 전)서 결정적 실행.
+			// 구: UINPC 가 UIManager.Start InjectGameObject(R4) 로만 주입 → UINPC.Start vs
+			// UIManager.Start 무보장순서 → uiManager null → UIPanelGroup.Start:47 NRE.
+			// 자식 패널(UIDungeonEntrance 등)은 여전히 R4 InjectGameObject 경로(불변).
+			// UINPC.Construct=멱등(SetUIManager 재호출 무해).
+			RegisterInHierarchyIfPresent<UINPC>(builder);
 			RegisterInHierarchyIfPresent<UIUpgrade>(builder);
 			RegisterInHierarchyIfPresent<UIShop>(builder);
 			RegisterInHierarchyIfPresent<UICraft>(builder);
@@ -111,6 +118,7 @@ namespace WitchMendokusai
 				ResolveIfPresent<UIQuestGrid>(container);
 				ResolveIfPresent<MagicBookView>(container);
 				ResolveIfPresent<UINPCMenu>(container);
+				ResolveIfPresent<UINPC>(container); // TASK-WM-118 I2 — Construct 결정화
 				ResolveIfPresent<UIUpgrade>(container);
 				ResolveIfPresent<UIShop>(container);
 				ResolveIfPresent<UICraft>(container);
