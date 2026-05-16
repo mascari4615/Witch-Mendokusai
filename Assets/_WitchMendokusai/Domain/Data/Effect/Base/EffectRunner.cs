@@ -29,6 +29,9 @@ namespace WitchMendokusai
 			this.playerProvider = playerProvider;
 			this.objectPoolManager = objectPoolManager;
 			context = new EffectContext(soManager, playerProvider, objectPoolManager, null);
+			// TASK-WM-107 Slice 3-4a — card 효과 dispatch 권위를 SO 에 push (static Effect 파사드 폐기).
+			// SelectedCardBuffer = 코드 내 유일 effect-dispatch CardBuffer. 순환無(soManager=RegisterInstance).
+			soManager.SelectedCardBuffer.BindEffectRunner(this);
 		}
 
 		// DataManager↔QuestManager↔IEffectRunner 순환 회피: [Inject] pull 대신 소유자(DataManager.Construct) push.
