@@ -68,16 +68,15 @@ namespace WitchMendokusai
 			}
 		}
 
-		public void Apply()
+		// TASK-WM-107 Slice 3-3 — static Effect.ApplyEffect 우회 폐기. UpgradeData 는 순수 데이터,
+		// dispatch 는 DI caller(GameManager.effectRunner) 책임 (POCO 가 매니저/static 안 앎 = seed 정수).
+		public EffectInfo ToEffectInfo() => new EffectInfo
 		{
-			Effect.ApplyEffect(new EffectInfo
-			{
-				Type = EffectType.UnitStat,
-				Data = Get<UnitStatData>((int)UnitStatType),
-				ArithmeticOperator = ArithmeticOperator.Add,
-				Value = TotalValue
-			});
-		}
+			Type = EffectType.UnitStat,
+			Data = Get<UnitStatData>((int)UnitStatType),
+			ArithmeticOperator = ArithmeticOperator.Add,
+			Value = TotalValue
+		};
 
 		public bool TryUpgrade(out UpgradeFailReason reason, out int upgradePrice)
 		{

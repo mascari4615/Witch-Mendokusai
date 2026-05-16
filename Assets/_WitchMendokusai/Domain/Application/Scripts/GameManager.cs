@@ -127,7 +127,8 @@ namespace WitchMendokusai
 				if (upgrade.CurLevel <= 0)
 					continue;
 
-				upgrade.Apply();
+				// TASK-WM-107 Slice 3-3 — static Effect 우회 폐기: DI runner 경유 dispatch.
+				effectRunner.ApplyEffect(upgrade.ToEffectInfo());
 			}
 		}
 	}
