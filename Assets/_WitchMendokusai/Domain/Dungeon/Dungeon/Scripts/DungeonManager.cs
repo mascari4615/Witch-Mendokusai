@@ -67,8 +67,18 @@ namespace WitchMendokusai
 				return;
 			}
 			Instance = this;
+			// TASK-WM-115 R5 — dungeonUI(=UIDungeon) 는 UIManager.Start 가 Instantiate.
+			// Awake 는 모든 Start *전* → 여기서 FindAnyObjectByType<UIDungeon> = 항상 null
+			// → StartDungeon 의 dungeonUI.SetPanel(:166) 항상 NRE (deterministic pre-existing).
+			// 근본: eager(Awake)→lazy(사용시점, 던전 진입 = UIManager.Start 후). R1 동형.
+		}
 
-			dungeonUI = FindAnyObjectByType<UIDungeon>(FindObjectsInactive.Include);
+		// dungeonUI lazy 확정 — 던전 생명주기 진입 시(UIManager.Start 이후) 1회 resolve. 멱등.
+		// 던전-time 에도 진짜 없으면 dungeonUI.SetPanel 이 자연 FastFail (마스킹 X).
+		private void EnsureDungeonUI()
+		{
+			if (dungeonUI == null)
+				dungeonUI = FindAnyObjectByType<UIDungeon>(FindObjectsInactive.Include);
 		}
 
 		private void OnDestroy()
@@ -88,6 +98,7 @@ namespace WitchMendokusai
 		{
 			Debug.Log($"{nameof(StartDungeon)} ({dungeon.Name})");
 
+			EnsureDungeonUI();
 			CurDungeon = dungeon;
 			dungeonStrategy = DungeonObjectiveStrategyFactory.Create(dungeon);
 
