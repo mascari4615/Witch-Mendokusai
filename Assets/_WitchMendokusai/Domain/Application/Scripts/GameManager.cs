@@ -25,6 +25,7 @@ namespace WitchMendokusai
 		private ObjectPoolManager objectPoolManager;
 		private TimeManager timeManager;
 		private SOManager soManager;
+		private IEffectRunner effectRunner;
 		private UnitObject playerObject;
 
 		private IDisposable objectBoundSub;
@@ -32,6 +33,7 @@ namespace WitchMendokusai
 
 		[Inject]
 		public void Construct(InputManager inputManager, DataManager dataManager, ObjectPoolManager objectPoolManager, TimeManager timeManager, SOManager soManager,
+			IEffectRunner effectRunner,
 			ISubscriber<PlayerObjectBoundEvent> objectBoundSubscriber, ISubscriber<PlayerDespawnedEvent> despawnedSubscriber)
 		{
 			this.inputManager = inputManager;
@@ -39,6 +41,7 @@ namespace WitchMendokusai
 			this.objectPoolManager = objectPoolManager;
 			this.timeManager = timeManager;
 			this.soManager = soManager;
+			this.effectRunner = effectRunner;
 			objectBoundSub = objectBoundSubscriber.Subscribe(OnPlayerObjectBound);
 			despawnedSub = despawnedSubscriber.Subscribe(OnPlayerDespawned);
 		}
@@ -98,7 +101,7 @@ namespace WitchMendokusai
 				if (equipment == null)
 					continue;
 
-				Effect.ApplyEffects(equipment.Effects);
+				effectRunner.ApplyEffects(equipment.Effects);
 
 				if (equipment.Object != null)
 				{

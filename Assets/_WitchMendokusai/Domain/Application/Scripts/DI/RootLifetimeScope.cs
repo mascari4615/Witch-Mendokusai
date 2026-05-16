@@ -48,6 +48,9 @@ namespace WitchMendokusai
 			builder.Register<SaveManager>(Lifetime.Singleton);
 			builder.Register<WorldClockViewModel>(Lifetime.Singleton);
 
+			// TASK-WM-107 Slice 2A — POCO Effect dispatch DI 진입점 (static Effect.ApplyEffect 우회 대체).
+			builder.Register<EffectRunner>(Lifetime.Singleton).As<IEffectRunner>();
+
 			// θ-5a InputStrategySelector — 새 GameObject + AddComponent (코드 spawn 의 VContainer 표준 흡수, TASK-WM-078 θ-5a, 2026-05-11).
 			// Bootstrap.OnBooting 의 직접 GameObject 생성 폐기.
 			builder.RegisterComponentOnNewGameObject<InputStrategySelector>(Lifetime.Singleton, nameof(InputStrategySelector))

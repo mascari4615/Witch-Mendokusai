@@ -23,15 +23,17 @@ namespace WitchMendokusai
 		private IDisposable questAddRequestedSub;
 		private IDisposable questUnlockRequestedSub;
 		private SOManager soManager;
+		private IEffectRunner effectRunner;
 
 		[Inject]
-		public void Construct(IPublisher<QuestAddedEvent> questAddedPublisher, ISubscriber<QuestCompletedEvent> questCompletedSubscriber, ISubscriber<QuestAddRequestedEvent> questAddRequestedSubscriber, ISubscriber<QuestUnlockRequestedEvent> questUnlockRequestedSubscriber, SOManager soManager)
+		public void Construct(IPublisher<QuestAddedEvent> questAddedPublisher, ISubscriber<QuestCompletedEvent> questCompletedSubscriber, ISubscriber<QuestAddRequestedEvent> questAddRequestedSubscriber, ISubscriber<QuestUnlockRequestedEvent> questUnlockRequestedSubscriber, SOManager soManager, IEffectRunner effectRunner)
 		{
 			this.questAddedPublisher = questAddedPublisher;
 			questCompletedSub = questCompletedSubscriber.Subscribe(OnQuestCompleted);
 			questAddRequestedSub = questAddRequestedSubscriber.Subscribe(OnQuestAddRequested);
 			questUnlockRequestedSub = questUnlockRequestedSubscriber.Subscribe(OnQuestUnlockRequested);
 			this.soManager = soManager;
+			this.effectRunner = effectRunner;
 		}
 
 		public void Dispose()
@@ -69,8 +71,8 @@ namespace WitchMendokusai
 				return;
 			}
 
-			Effect.ApplyEffects(quest.CompleteEffects);
-			Effect.ApplyEffects(quest.RewardEffects);
+			effectRunner.ApplyEffects(quest.CompleteEffects);
+			effectRunner.ApplyEffects(quest.RewardEffects);
 			foreach (RewardInfoData rewardData in quest.Rewards)
 			{
 				Reward.GetReward(rewardData);
@@ -108,7 +110,7 @@ namespace WitchMendokusai
 
 			foreach (EffectInfo effect in effects)
 			{
-				Effect.ApplyEffect(effect);
+				effectRunner.ApplyEffect(effect);
 			}
 		}
 

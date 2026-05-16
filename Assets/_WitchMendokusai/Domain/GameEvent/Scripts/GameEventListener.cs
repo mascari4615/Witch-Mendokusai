@@ -14,11 +14,13 @@ namespace WitchMendokusai
 		[field: SerializeField] public List<EffectInfo> Effects { get; private set; }
 
 		private GameEventManager gameEventManager;
+		private IEffectRunner effectRunner;
 
 		[Inject]
-		public void Construct(GameEventManager gameEventManager)
+		public void Construct(GameEventManager gameEventManager, IEffectRunner effectRunner)
 		{
 			this.gameEventManager = gameEventManager;
+			this.effectRunner = effectRunner;
 		}
 
 		private void OnEnable()
@@ -38,7 +40,7 @@ namespace WitchMendokusai
 		{
 			// Debug.Log($"{name} : OnEventRaised");
 			Response.Invoke();
-			Effect.ApplyEffects(Effects);
+			effectRunner.ApplyEffects(Effects);
 			// Debug.Log($"{name} : OnEventRaisedEnd");
 		}
 	}
