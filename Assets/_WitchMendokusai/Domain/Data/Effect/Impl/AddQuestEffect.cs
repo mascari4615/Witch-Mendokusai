@@ -1,7 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-
 namespace WitchMendokusai
 {
 	public class AddQuestEffect : IEffect
@@ -9,7 +5,7 @@ namespace WitchMendokusai
 		public void Apply(EffectInfo effectInfo)
 		{
 			QuestSO quest = effectInfo.Data as QuestSO;
-			QuestManagerBridge.AddQuest(RuntimeQuestFactory.FromQuestSO(quest));
+			EventBusBridge.Publish(new QuestAddRequestedEvent(quest.ID));
 		}
 	}
 }

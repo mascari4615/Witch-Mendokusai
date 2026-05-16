@@ -20,17 +20,35 @@ namespace WitchMendokusai
 
 		private IPublisher<QuestAddedEvent> questAddedPublisher;
 		private IDisposable questCompletedSub;
+		private IDisposable questAddRequestedSub;
+		private IDisposable questUnlockRequestedSub;
 		private SOManager soManager;
 
 		[Inject]
-		public void Construct(IPublisher<QuestAddedEvent> questAddedPublisher, ISubscriber<QuestCompletedEvent> questCompletedSubscriber, SOManager soManager)
+		public void Construct(IPublisher<QuestAddedEvent> questAddedPublisher, ISubscriber<QuestCompletedEvent> questCompletedSubscriber, ISubscriber<QuestAddRequestedEvent> questAddRequestedSubscriber, ISubscriber<QuestUnlockRequestedEvent> questUnlockRequestedSubscriber, SOManager soManager)
 		{
 			this.questAddedPublisher = questAddedPublisher;
 			questCompletedSub = questCompletedSubscriber.Subscribe(OnQuestCompleted);
+			questAddRequestedSub = questAddRequestedSubscriber.Subscribe(OnQuestAddRequested);
+			questUnlockRequestedSub = questUnlockRequestedSubscriber.Subscribe(OnQuestUnlockRequested);
 			this.soManager = soManager;
 		}
 
-		public void Dispose() => questCompletedSub?.Dispose();
+		public void Dispose()
+		{
+			questCompletedSub?.Dispose();
+			questAddRequestedSub?.Dispose();
+			questUnlockRequestedSub?.Dispose();
+		}
+
+		// POCO Effect 가 발행한 명령 이벤트 구독 — QuestManagerBridge static 폐기 (TASK-WM-107 Slice 1).
+		private void OnQuestAddRequested(QuestAddRequestedEvent evt)
+		{
+			QuestSO questSO = SOHelper.GetQuestSO(evt.QuestSOID);
+			AddQuest(RuntimeQuestFactory.FromQuestSO(questSO));
+		}
+
+		private void OnQuestUnlockRequested(QuestUnlockRequestedEvent evt) => UnlockQuest(SOHelper.GetQuestSO(evt.QuestSOID));
 
 		public void Init(List<RuntimeQuest> quests)
 		{
