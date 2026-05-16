@@ -50,25 +50,46 @@ namespace WitchMendokusai
 		private List<int> deckIdMapping = new() { 0, 1, 2, 3 };
 		private int curDeckIndex;
 
+		// TASK-WM-115 R1 — 카드 선택 UI = 던전전용 (사용자 확정: World 부재=정상).
+		// 구: Init(World Awake) 이 eager Find → 미발견 LogError + Panels 에 null 저장
+		//   → UIPanelGroup.Start 가 Panels.Values 순회 null.Init() NRE (#2/#3/#5).
+		// 근본: eager → lazy. 사용 시점(던전 카드 흐름)에 Find→register→per-panel 셋업.
+		// World 부재는 정상이라 무음(LogError X, null 저장 X). 던전인데 진짜 없으면
+		// Panels[..] 직접 인덱스(line 118/199)가 자연 FastFail (방어코드 X).
 		public override void Init()
 		{
-			UISelectDeck selectDeckPanel = FindAnyObjectByType<UISelectDeck>(FindObjectsInactive.Include);
-			UISelectCard selectCardPanel = FindAnyObjectByType<UISelectCard>(FindObjectsInactive.Include);
-
-			if (selectDeckPanel == null)
-				Debug.LogError($"[{nameof(CardManager)}] {nameof(UISelectDeck)} 미발견 — 씬 hierarchy 에 UISelectDeck 컴포넌트 가진 GameObject 없음. SetPanel(SelectDeck) 시 NPE.");
-			if (selectCardPanel == null)
-				Debug.LogError($"[{nameof(CardManager)}] {nameof(UISelectCard)} 미발견 — 씬 hierarchy 에 UISelectCard 컴포넌트 가진 GameObject 없음. SetPanel(SelectCard) 시 NPE.");
-
-			Panels[CardPanelType.SelectDeck] = selectDeckPanel;
-			Panels[CardPanelType.SelectCard] = selectCardPanel;
-
 			UIDeck[] deckUIs = FindObjectsByType<UIDeck>(FindObjectsInactive.Include);
 			foreach (UIDeck deckUI in deckUIs)
 			{
 				deckUIDic.Add(deckUI.EquipmentData.ID, deckUI);
 				deckUI.Init();
-				// deckUI.Init(cardSelectAction: (slot) => { SelectCard(slot.DataSO as CardData); });
+			}
+		}
+
+		// 던전 카드 흐름 진입 시 패널 lazy 확정. UIPanelGroup.Start 의 per-panel
+		// 셋업(Init(this)+SetActive(false))을 lazy-add 패널에 복제. 멱등.
+		private void EnsureCardPanels()
+		{
+			if (Panels.ContainsKey(CardPanelType.SelectDeck) == false)
+			{
+				UISelectDeck selectDeckPanel = FindAnyObjectByType<UISelectDeck>(FindObjectsInactive.Include);
+				if (selectDeckPanel != null)
+				{
+					Panels[CardPanelType.SelectDeck] = selectDeckPanel;
+					selectDeckPanel.Init(this);
+					selectDeckPanel.SetActive(false);
+				}
+			}
+
+			if (Panels.ContainsKey(CardPanelType.SelectCard) == false)
+			{
+				UISelectCard selectCardPanel = FindAnyObjectByType<UISelectCard>(FindObjectsInactive.Include);
+				if (selectCardPanel != null)
+				{
+					Panels[CardPanelType.SelectCard] = selectCardPanel;
+					selectCardPanel.Init(this);
+					selectCardPanel.SetActive(false);
+				}
 			}
 		}
 
@@ -144,6 +165,7 @@ namespace WitchMendokusai
 				yield break;
 			}
 
+			EnsureCardPanels();
 			ShuffleDeck();
 			SetPanel(CardPanelType.SelectDeck);
 		}
