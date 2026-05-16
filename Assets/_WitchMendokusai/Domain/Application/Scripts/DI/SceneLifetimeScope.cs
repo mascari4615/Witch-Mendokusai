@@ -33,8 +33,10 @@ namespace WitchMendokusai
 
 		private void ResolveIfPresent<T>(IObjectResolver container) where T : Component
 		{
+			// TASK-WM-118 I1 — eager Resolve 를 BootGuard 경유 (손-순서↔위상 불일치/
+			// dep 미해결/순환 시 부팅 시점 타입 귀속 명시 차단). 성공 시 동작 무변경.
 			if (IsInScene<T>())
-				container.Resolve<T>();
+				BootGuard.EagerResolve<T>(container, "Scene");
 		}
 
 		protected override void Configure(IContainerBuilder builder)
@@ -85,16 +87,16 @@ namespace WitchMendokusai
 			{
 				ResolveIfPresent<StageManager>(container);
 				ResolveIfPresent<DungeonManager>(container);
-				container.Resolve<DevWindowController>();
-				container.Resolve<CodexWindowController>();
+				BootGuard.EagerResolve<DevWindowController>(container, "Scene");
+				BootGuard.EagerResolve<CodexWindowController>(container, "Scene");
 				ResolveIfPresent<UIManager>(container);
 				ResolveIfPresent<CameraManager>(container);
 				ResolveIfPresent<BuildManager>(container);
 				ResolveIfPresent<ChatManager>(container);
 				ResolveIfPresent<ToolTipPopupManager>(container);
 				ResolveIfPresent<UIHoldingSlot>(container);
-				container.Resolve<GameModeManager>();
-				container.Resolve<DialogueRunner>();
+				BootGuard.EagerResolve<GameModeManager>(container, "Scene");
+				BootGuard.EagerResolve<DialogueRunner>(container, "Scene");
 				ResolveIfPresent<CardManager>(container);
 				ResolveIfPresent<UINyang>(container);
 				ResolveIfPresent<UIWorkableDollCount>(container);
@@ -117,7 +119,7 @@ namespace WitchMendokusai
 				ResolveIfPresent<ToolTipTrigger>(container);
 
 				// pool-spawned 컴포넌트가 scene-scope deps (UIManager 등) resolve 가능하게 pool container = scene container.
-				container.Resolve<ObjectPoolManager>().SetContainer(container);
+				BootGuard.EagerResolve<ObjectPoolManager>(container, "Scene").SetContainer(container);
 
 				// 씬 직접배치 MonsterObject/ResourceNodeObject (World.unity Dummy/MineralBase 등).
 				// TASK-WM-115 R3b — container.Inject(x) = *컴포넌트만* → sibling UnitMovement
@@ -140,9 +142,9 @@ namespace WitchMendokusai
 					container.Inject(autoAimMarker);
 
 				// θ — Scene→Root 역방향 .Instance 제거: child scope 가 parent GameManager 에 씬 의존 조건 바인딩.
-				GameManager gameManager = container.Resolve<GameManager>();
-				GameModeManager gameModeManager = container.Resolve<GameModeManager>();
-				UIManager uiManager = container.Resolve<UIManager>();
+				GameManager gameManager = BootGuard.EagerResolve<GameManager>(container, "Scene");
+				GameModeManager gameModeManager = BootGuard.EagerResolve<GameModeManager>(container, "Scene");
+				UIManager uiManager = BootGuard.EagerResolve<UIManager>(container, "Scene");
 				gameManager.BindSceneConditions(gameModeManager, uiManager);
 			});
 		}

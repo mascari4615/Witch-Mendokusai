@@ -62,27 +62,30 @@ namespace WitchMendokusai
 			builder.RegisterBuildCallback(container =>
 			{
 				GlobalMessagePipe.SetProvider(container.AsServiceProvider());
-				container.Resolve<AudioManager>();
-				container.Resolve<ShaderPackManager>();
-				container.Resolve<SkyDirector>();
-				container.Resolve<GameEventManager>();
-				container.Resolve<HoldingManager>();
-				container.Resolve<InputManager>();
-				container.Resolve<ObjectPoolManager>();
-				container.Resolve<UnitStatCalculator>();
-				container.Resolve<CodexPreviewController>();
-				container.Resolve<WorldClock>();
-				container.Resolve<PlayerProvider>();
-				container.Resolve<TimeManager>();
-				container.Resolve<WeatherSystem>();
-				container.Resolve<WindowManager>();
-				container.Resolve<DataLoader>();
-				container.Resolve<TooltipController>();
-				container.Resolve<DataManager>();
-				container.Resolve<WeatherDirector>();
-				container.Resolve<GameManager>();
-				container.Resolve<UIRoot>();
-				container.Resolve<InputStrategySelector>();
+				// TASK-WM-118 I1 — 손-순서 eager 리스트를 BootGuard 경유: 순서가 진짜
+				// [Inject] 위상과 어긋나거나 dep 미해결/순환이면 *부팅 시점에 타입 귀속
+				// 명시 차단* (조용한 NRE 가 게임플레이까지 잠복 X). 성공 시 동작 무변경.
+				BootGuard.EagerResolve<AudioManager>(container, "Root");
+				BootGuard.EagerResolve<ShaderPackManager>(container, "Root");
+				BootGuard.EagerResolve<SkyDirector>(container, "Root");
+				BootGuard.EagerResolve<GameEventManager>(container, "Root");
+				BootGuard.EagerResolve<HoldingManager>(container, "Root");
+				BootGuard.EagerResolve<InputManager>(container, "Root");
+				BootGuard.EagerResolve<ObjectPoolManager>(container, "Root");
+				BootGuard.EagerResolve<UnitStatCalculator>(container, "Root");
+				BootGuard.EagerResolve<CodexPreviewController>(container, "Root");
+				BootGuard.EagerResolve<WorldClock>(container, "Root");
+				BootGuard.EagerResolve<PlayerProvider>(container, "Root");
+				BootGuard.EagerResolve<TimeManager>(container, "Root");
+				BootGuard.EagerResolve<WeatherSystem>(container, "Root");
+				BootGuard.EagerResolve<WindowManager>(container, "Root");
+				BootGuard.EagerResolve<DataLoader>(container, "Root");
+				BootGuard.EagerResolve<TooltipController>(container, "Root");
+				BootGuard.EagerResolve<DataManager>(container, "Root");
+				BootGuard.EagerResolve<WeatherDirector>(container, "Root");
+				BootGuard.EagerResolve<GameManager>(container, "Root");
+				BootGuard.EagerResolve<UIRoot>(container, "Root");
+				BootGuard.EagerResolve<InputStrategySelector>(container, "Root");
 			});
 		}
 
