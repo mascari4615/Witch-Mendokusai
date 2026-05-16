@@ -25,7 +25,6 @@ namespace WitchMendokusai
 		public void Construct(IObjectResolver container)
 		{
 			this.container = container;
-			ObjectPoolManagerBridge.Register(this);
 		}
 
 		// SceneLifetimeScope.Build 가 호출 — pool-spawned 컴포넌트가 scene-scope deps (UIManager 등) 도 resolve.

@@ -47,7 +47,6 @@ namespace WitchMendokusai
 			SaveManager = saveManager;
 			WorkManager = workManager;
 			QuestManager = questManager;
-			DataManagerBridge.Register(this);
 			// TASK-WM-107 Slice 2C-3/3-2 — 소유자 push (↔QuestManager·↔IEffectRunner 순환 회피, [Inject] pull X).
 			// IEffectRunner 주입은 3-1 후 EffectRunner↛DataManager 라 비순환 (EffectRunner→{SOMgr,Player,Pool}만).
 			questManager.BindDataManager(this);
