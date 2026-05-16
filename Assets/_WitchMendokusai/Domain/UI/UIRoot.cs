@@ -42,6 +42,7 @@ namespace WitchMendokusai
 			CreateViews();
 			container.Inject(SettingView);
 			container.Inject(KeybindHelpView);
+			container.Inject(MagicBookView);
 			container.Inject(WorldClockView);
 		}
 

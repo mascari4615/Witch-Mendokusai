@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
 using VContainer;
-using VContainer.Unity;
 
 namespace WitchMendokusai
 {
@@ -38,9 +37,8 @@ namespace WitchMendokusai
 		private QuestManager questManager;
 
 		[Inject]
-		public void Construct(UIRoot uiRoot, InputManager inputManager, SOManager soManager, TimeManager timeManager, QuestManager questManager)
+		public void Construct(InputManager inputManager, SOManager soManager, TimeManager timeManager, QuestManager questManager)
 		{
-			this.uiRoot = uiRoot;
 			this.inputManager = inputManager;
 			this.soManager = soManager;
 			this.timeManager = timeManager;
@@ -49,10 +47,10 @@ namespace WitchMendokusai
 
 		private void Awake()
 		{
-			LifetimeScope scope = LifetimeScope.Find<SceneLifetimeScope>();
-			if (scope == null)
-				scope = LifetimeScope.Find<RootLifetimeScope>();
-			scope?.Container.Inject(this);
+			// SettingView 정본 패턴 — uiRoot 는 같은 GameObject (UIRoot.CreateViews 가 AddComponent).
+			// 과거 Construct(UIRoot,...) [Inject] 는 UIRoot ⇄ MagicBookView 순환 → Build 중 Lazy 재진입.
+			// GetComponent 로 획득해 순환 엣지 제거 (TASK-WM-078, 2026-05-16).
+			uiRoot = GetComponent<UIRoot>();
 		}
 
 		private static readonly Color BACKGROUND_COLOR = new Color(0.08f, 0.08f, 0.12f, 0.97f);
