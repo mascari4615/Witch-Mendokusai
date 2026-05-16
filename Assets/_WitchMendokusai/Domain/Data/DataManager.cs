@@ -126,13 +126,10 @@ namespace WitchMendokusai
 
 		public void Login()
 		{
-			// TASK-WM-118 B3 — 결정적 부팅 = PlayFab 네트워크 critical-path 우회(오프라인).
-			// UseLocalData=true 라 로컬 세이브로 진행, 부팅이 네트워크 없이 WorldReady 도달.
-			if (BootMode.IsDeterministic)
-			{
-				Debug.Log("[BOOT] deterministic — PlayFab Login skipped (offline, local data)");
-				return;
-			}
+			// TASK-WM-118 B3b — 전제오류 시인: 결정적 PlayFab 우회 가드 제거.
+			// PlayFabManager.Login() 이 이미 `if (AppSetting.Data.UseLocalData) return;`
+			// 이고 결정 부팅이 UseLocalData=true 를 세팅 → 여기 BootMode 가드는
+			// redundant + 오해유발(캐스케이드 원인을 Login-skip 으로 오귀속)이었다.
 			playFabManager.Login();
 		}
 
