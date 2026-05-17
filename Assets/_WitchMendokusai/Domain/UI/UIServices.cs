@@ -14,11 +14,13 @@ namespace WitchMendokusai
 	{
 		public CodexPreviewController CodexPreview { get; }
 		public WindowManager WindowManager { get; }
+		public TooltipController Tooltip { get; }
 
-		public UIServices(CodexPreviewController codexPreview, WindowManager windowManager)
+		public UIServices(CodexPreviewController codexPreview, WindowManager windowManager, TooltipController tooltip)
 		{
 			CodexPreview = codexPreview;
 			WindowManager = windowManager;
+			Tooltip = tooltip;
 		}
 	}
 }

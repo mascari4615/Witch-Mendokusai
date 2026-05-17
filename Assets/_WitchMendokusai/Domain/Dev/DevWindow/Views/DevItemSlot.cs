@@ -83,13 +83,13 @@ namespace WitchMendokusai
 		{
 			if (Data == null)
 				return;
-			TooltipController.Instance.Show(Data);
+			// TASK-WM-133 — panel-context TooltipController (Slot 동형).
+			this.GetUIServices()?.Tooltip?.Show(Data);
 		}
 
 		private void OnPointerLeave(PointerLeaveEvent evt)
 		{
-			if (TooltipController.TryGetExistingInstance(out TooltipController controller))
-				controller.Hide();
+			this.GetUIServices()?.Tooltip?.Hide();
 		}
 	}
 }

@@ -14,14 +14,9 @@ namespace WitchMendokusai
 	[DefaultExecutionOrder(-40)]
 	public class TooltipController : MonoBehaviour
 	{
-		public static TooltipController Instance { get; private set; }
-
-		public static bool TryGetExistingInstance(out TooltipController mgr)
-		{
-			mgr = Instance;
-			return mgr != null;
-		}
-
+		// TASK-WM-133 — static Instance/TryGetExistingInstance 삭제. RegisterLeaf
+		// prefab + DontDestroyOnLoad 가 단일성 보장(DI 소유), Slot/DevItemSlot 은
+		// UIRoot panel-root owner-push 된 UIServices.Tooltip 경유 획득.
 		private const float OFFSET_X = 16f;
 		private const float OFFSET_Y = 16f;
 		private const float EDGE_PADDING = 8f;
@@ -47,22 +42,9 @@ namespace WitchMendokusai
 
 		private void Awake()
 		{
-			if (Instance != null && Instance != this)
-			{
-				Destroy(gameObject);
-				return;
-			}
-			Instance = this;
-
 			RegisterBuilder(typeof(ItemData), new ItemTooltipBuilder());
 			RegisterBuilder(typeof(Building), new BuildingTooltipBuilder());
 			RegisterBuilder(typeof(SlotData), new SlotDataTooltipBuilder());
-		}
-
-		private void OnDestroy()
-		{
-			if (Instance == this)
-				Instance = null;
 		}
 
 		private void OnEnable()

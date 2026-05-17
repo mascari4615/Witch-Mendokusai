@@ -46,13 +46,14 @@ namespace WitchMendokusai
 		{
 			if (tooltipData == null)
 				return;
-			TooltipController.Instance.Show(tooltipData);
+			// TASK-WM-133 — panel-root owner-push 된 TooltipController(panel-context)
+			// 경유. pointer 이벤트 = 부착 보장 시점이라 event-time resolve.
+			this.GetUIServices()?.Tooltip?.Show(tooltipData);
 		}
 
 		private void OnPointerLeaveTooltip(PointerLeaveEvent _)
 		{
-			if (TooltipController.TryGetExistingInstance(out TooltipController controller))
-				controller.Hide();
+			this.GetUIServices()?.Tooltip?.Hide();
 		}
 
 		public void SetIndex(int index) => Index = index;
