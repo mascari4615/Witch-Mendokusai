@@ -135,16 +135,16 @@ namespace WitchMendokusai
 
 		private void OnPointerLeave(PointerLeaveEvent evt)
 		{
-			if (TooltipController.TryGetExistingInstance(out TooltipController controller))
-				controller.Hide();
+			// TASK-WM-133 — static Instance/TryGetExistingInstance 삭제 → panel-root
+			// owner-push 된 UIServices.Tooltip 경유 (Slot.cs/DevItemSlot.cs 동형).
+			this.GetUIServices()?.Tooltip?.Hide();
 		}
 
 		private void ShowTooltip()
 		{
 			if (Data == null || Data.IsEmpty)
 				return;
-			if (TooltipController.TryGetExistingInstance(out TooltipController controller))
-				controller.Show(Data);
+			this.GetUIServices()?.Tooltip?.Show(Data);
 		}
 	}
 }
