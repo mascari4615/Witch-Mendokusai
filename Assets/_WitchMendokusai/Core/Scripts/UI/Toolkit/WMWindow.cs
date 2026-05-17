@@ -38,6 +38,7 @@ namespace WitchMendokusai
 		private readonly Label titleLabel;
 		private readonly Button closeButton;
 		private Button sizeToggleButton;
+		private WindowManager windowManager;
 
 		public WMWindow()
 		{
@@ -77,15 +78,19 @@ namespace WitchMendokusai
 		private void OnAttached(AttachToPanelEvent evt)
 		{
 			titleLabel.text = Title ?? string.Empty;
-			WindowManager.Instance?.Register(this);
+			// TASK-WM-133 — panel-root owner-push 된 WindowManager 를 attach 시
+			// 1회 해결·캐싱(Core IUIWindowServices facet). detach 시 조상 walk
+			// 불가 타이밍 안전. static Instance reach 제거.
+			windowManager = this.GetUIWindowServices()?.WindowManager;
+			windowManager?.Register(this);
 			RestorePosition();
 			RestoreSize();
 		}
 
 		private void OnDetached(DetachFromPanelEvent evt)
 		{
-			if (WindowManager.TryGetExistingInstance(out WindowManager manager))
-				manager.Unregister(this);
+			windowManager?.Unregister(this);
+			windowManager = null;
 		}
 
 		public void Open()

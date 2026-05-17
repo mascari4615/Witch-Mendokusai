@@ -11,14 +11,9 @@ namespace WitchMendokusai
 	/// </summary>
 	public class WindowManager : MonoBehaviour
 	{
-		public static WindowManager Instance { get; private set; }
-
-		public static bool TryGetExistingInstance(out WindowManager mgr)
-		{
-			mgr = Instance;
-			return mgr != null;
-		}
-
+		// TASK-WM-133 — static Instance/TryGetExistingInstance 삭제. RegisterLeaf
+		// prefab + DontDestroyOnLoad 가 단일성 보장(DI 소유), WMWindow 는 UIRoot
+		// panel-root owner-push 된 IUIWindowServices facet 경유 획득.
 		private InputManager inputManager;
 		private readonly List<WMWindow> windows = new();
 
@@ -30,12 +25,6 @@ namespace WitchMendokusai
 
 		private void Awake()
 		{
-			if (Instance != null && Instance != this)
-			{
-				Destroy(gameObject);
-				return;
-			}
-			Instance = this;
 			inputManager.RegisterInputEvent(InputEventType.Cancel, InputEventResponseType.Performed, OnCancel);
 		}
 
@@ -43,9 +32,6 @@ namespace WitchMendokusai
 		{
 			if (inputManager != null)
 				inputManager.UnregisterInputEvent(InputEventType.Cancel, InputEventResponseType.Performed, OnCancel);
-
-			if (Instance == this)
-				Instance = null;
 		}
 
 		public void Register(WMWindow window)

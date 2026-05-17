@@ -30,14 +30,16 @@ namespace WitchMendokusai
 		private HoldingManager holdingManager;
 		private IObjectResolver container;
 		private CodexPreviewController codexPreviewController;
+		private WindowManager windowManager;
 
 		[Inject]
-		public void Construct(InputManager inputManager, HoldingManager holdingManager, IObjectResolver container, CodexPreviewController codexPreviewController)
+		public void Construct(InputManager inputManager, HoldingManager holdingManager, IObjectResolver container, CodexPreviewController codexPreviewController, WindowManager windowManager)
 		{
 			this.inputManager = inputManager;
 			this.holdingManager = holdingManager;
 			this.container = container;
 			this.codexPreviewController = codexPreviewController;
+			this.windowManager = windowManager;
 			// VContainer: prefab 비활성화 후 Instantiate → Awake 는 SetActive(true) 이후 발화.
 			// CreateViews 를 Construct 선두로 이동 — inactive GO 에서도 AddComponent 정상 작동.
 			CreateViews();
@@ -108,7 +110,7 @@ namespace WitchMendokusai
 			// TASK-WM-133 — panel-root 에 UI 서비스 1회 owner-push. UXML-cloned
 			// VisualElement(CodexDetailPanel 등)가 static Instance reach 대신
 			// 조상 walk 로 panel-scoped 획득 (global Singleton 결합 제거).
-			root.userData = new UIServices(codexPreviewController);
+			root.userData = new UIServices(codexPreviewController, windowManager);
 
 			HoldingOverlay = new HoldingOverlay();
 			OverlayLayer.Add(HoldingOverlay);
