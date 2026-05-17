@@ -5,6 +5,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
+using VContainer;
 using Random = UnityEngine.Random;
 
 namespace WitchMendokusai
@@ -28,6 +29,14 @@ namespace WitchMendokusai
 		[SerializeField] private Transform textsRoot;
 		[SerializeField] private GameObject textPrefab;
 		private readonly Stack<(Animator animator, TextMeshProUGUI text)> texts = new();
+
+		private InputManager inputManager;
+
+		[Inject]
+		public void Construct(InputManager inputManager)
+		{
+			this.inputManager = inputManager;
+		}
 
 		private void Awake()
 		{
@@ -82,7 +91,7 @@ namespace WitchMendokusai
 			Vector3 GetScreenPos()
 			{
 				if (worldPos == default)
-					return (Vector3)InputManager.Instance.MouseScreenPosition;
+					return (Vector3)inputManager.MouseScreenPosition;
 				else
 					return Camera.main.WorldToScreenPoint(worldPos);
 			}

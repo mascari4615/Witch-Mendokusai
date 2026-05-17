@@ -70,7 +70,10 @@ namespace WitchMendokusai
 				BootGuard.EagerResolve<SkyDirector>(container, "Root");
 				BootGuard.EagerResolve<GameEventManager>(container, "Root");
 				BootGuard.EagerResolve<HoldingManager>(container, "Root");
-				BootGuard.EagerResolve<InputManager>(container, "Root");
+				// InputManager — TASK-WM-120 γ 2-b: DI caller(UIFloatingText) [Inject]
+				// 마이그. GameManager(eager) Construct(InputManager...) 가 transitive
+				// 해소 → graph-derived. 잔존 static = UGCDevSampleRunner(dev 샘플,
+				// 적용외 — dev 툴링은 SpawnMonsterCommand 류 static accessor 정당).
 				BootGuard.EagerResolve<ObjectPoolManager>(container, "Root");
 				BootGuard.EagerResolve<UnitStatCalculator>(container, "Root");
 				BootGuard.EagerResolve<CodexPreviewController>(container, "Root");
