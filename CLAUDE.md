@@ -425,7 +425,10 @@ powershell -File memo/dotfiles/scripts/unity-refresh.ps1
 - `mcpforunity://editor/state` — `is_compiling` / `ready_for_tools` / `is_domain_reload_pending` 직접 polling. Editor.log grep 보다 정확
 - `find_gameobjects` — 씬 정합성 검증 (사용자에게 "Hierarchy 봐달라" 요청 X)
 - `manage_camera(action="screenshot", include_image=True)` — 시각 검증 자동 (사용자에게 "어떻게 보여요?" X)
-- `run_tests` — EditMode / PlayMode 자동
+- `run_tests` — EditMode 자동. ★ **PlayMode = WM heavy-boot 비-정본**
+  (TASK-WM-134): 15s init-cap + Play 중 HTTP 브릿지 by-design 정지 →
+  verdict unpollable·wedge. 부팅 회귀 verdict 정본 = `wm-boot-smoke.ps1`
+  (결정 standalone superset), DI-graph = `wm-editmode-smoke.ps1`
 - `unity_reflect` / `unity_docs` — API 정확도 (추측 박지 X)
 - `mcpforunity://scene/...` 리소스 시리즈 — hierarchy / volumes / cameras 등
 
@@ -562,7 +565,10 @@ run_tests(mode="EditMode", test_names=["TestSomething"])
 result = get_test_job(job_id=..., wait_timeout=60, include_failed_tests=True)
 ```
 
-WM 에 `com.unity.test-framework 1.6.0` 박혀있음. 현재 테스트 코드 0 — sub-D 시점에 첫 테스트 박힘 (`Variable<T>` / `WorldClock` / `EventBus` 후보).
+WM 에 `com.unity.test-framework 1.6.0` 박혀있음. **검증 정본 (TASK-WM-134):**
+- **DI-graph (결정 ms)** = `WM.Tests.EditMode` (`CompositionRootResolveTest` 등) → `wm-editmode-smoke.ps1` batchmode (fresh proc, editor-lock·MCP cap 무관).
+- **Runtime-boot 회귀 (결정 standalone superset)** = `wm-boot-smoke.ps1` (`WM_BOOT_DETERMINISTIC=1` → Intro skip/AutoStart/offline, `BootSmokeSentinel` 가 WorldReady+nre0+bootInvariants(플레이어 바인드)+ddol baseline 판정). CI 게이트.
+- **PlayMode UTF 러너 = 폐기.** `WM.Tests.PlayMode`/`BootCoreFlowSmokeTest`/`SmokeTestRunner`/`wm-playmode-smoke.ps1` 삭제 — UTF PlayMode 부팅 테스트는 게임생명주기↔테스트프레임워크 불일치(`BootSmokeSentinel` 정본 주석이 선언한 비-viable)로 wedge 하는 비결정 평행 표면. MCP `run_tests` PlayMode 도 WM heavy-boot 엔 비-정본(상동).
 
 #### 6. 작업 완료 보고 흐름 (MCP 도입 후 갱신)
 

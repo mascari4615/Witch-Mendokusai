@@ -52,6 +52,9 @@ namespace WitchMendokusai
         private bool _done;
         private string _scenarioResult;
         private string _scenarioReason;
+        // TASK-WM-134 — 삭제된 평행 표면(BootCoreFlowSmokeTest) 흡수. probe 도달
+        // 전(timeout/nre-fail) = "NONE"(미평가), 도달 후 = "PASS" 또는 실패 사유.
+        private string _bootInvariants = "NONE";
 
         private static BootSmokeSentinel _inst;
 
@@ -176,6 +179,22 @@ namespace WitchMendokusai
                 yield break;
             }
 
+            // TASK-WM-134 — 부팅 불변식 probe (삭제된 BootCoreFlowSmokeTest
+            // 의 고유 회귀망 흡수). ddol baseline = DDOL 매니저 *존재*만 →
+            // 플레이어 실제 스폰·바인드(WM-115 R3a/R5)는 별개 distinct
+            // 회귀 클래스라 여기서 1회 결정 검증. UIManager/DungeonManager
+            // presence = WorldReady 에 implied(부재면 NRE/조립실패→미도달)
+            // → over-gate X (measured distinct 만, data-gate 정합).
+            string invariantFail = BootInvariantFailure();
+            if (invariantFail != null)
+            {
+                _bootInvariants = invariantFail;
+                WriteResult("FAIL", $"worldReady but bootInvariant: {invariantFail}", true, DdolManifest());
+                Finish(1);
+                yield break;
+            }
+            _bootInvariants = "PASS";
+
             // 시나리오 미등록 = 기존 부팅 PASS 경로 (TASK-WM-118 I5 / Tier-A
             // 회귀망 100% 무변경 — WM_BOOT_SCENARIO 미설정 시 여기로).
             if (ScenarioRoutine == null)
@@ -241,6 +260,26 @@ namespace WitchMendokusai
             }
         }
 
+        /// <summary>
+        /// TASK-WM-134 — WorldReady+settle+nre0 후 1회 결정 불변식 검증.
+        /// 삭제된 BootCoreFlowSmokeTest 의 유일 distinct 커버리지(플레이어
+        /// 실제 스폰·바인드 = WM-115 R3a/R5)를 substrate 로 흡수. null = PASS.
+        /// </summary>
+        private static string BootInvariantFailure()
+        {
+            PlayerProvider playerProvider =
+                UnityEngine.Object.FindAnyObjectByType<PlayerProvider>(FindObjectsInactive.Include);
+            if (playerProvider == null)
+            {
+                return "PlayerProvider 부재 (DI/부팅 와이어 회귀)";
+            }
+            if (playerProvider.CurrentObject == null)
+            {
+                return "playerProvider.CurrentObject==null — 플레이어 미스폰/미바인드 (WM-115 R3a/R5)";
+            }
+            return null;
+        }
+
         private IEnumerator TimeoutWatch()
         {
             float deadline = Time.realtimeSinceStartup + TimeoutSec;
@@ -270,6 +309,7 @@ namespace WitchMendokusai
                 $"reason={reason}\n" +
                 $"worldReady={(worldReady ? "true" : "false")}\n" +
                 $"nre={_nreCount}\n" +
+                $"bootInvariants={_bootInvariants}\n" +
                 $"frame={Time.frameCount}\n" +
                 $"t={Time.realtimeSinceStartup.ToString("F1", CultureInfo.InvariantCulture)}\n" +
                 $"ddol={ddol}\n" +
