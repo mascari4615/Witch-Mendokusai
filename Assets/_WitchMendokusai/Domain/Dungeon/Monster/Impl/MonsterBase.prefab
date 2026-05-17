@@ -104,6 +104,15 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 4552526690297205425, guid: 8985bc14129999340bfe02f05cc6a45f, type: 3}
       insertIndex: -1
       addedObject: {fileID: 3279413516871209930}
+    - targetCorrespondingSourceObject: {fileID: 4552526690297205425, guid: 8985bc14129999340bfe02f05cc6a45f, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1111111111111111001}
+    - targetCorrespondingSourceObject: {fileID: 4552526690297205425, guid: 8985bc14129999340bfe02f05cc6a45f, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1111111111111111002}
+    - targetCorrespondingSourceObject: {fileID: 4552526690297205425, guid: 8985bc14129999340bfe02f05cc6a45f, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1111111111111111003}
   m_SourcePrefab: {fileID: 100100000, guid: 8985bc14129999340bfe02f05cc6a45f, type: 3}
 --- !u!1 &1848531686881178565 stripped
 GameObject:
@@ -224,6 +233,42 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::WitchMendokusai.DamageVFXFeedback
   hitEffectPrefab: {fileID: 3897986288003847520, guid: e6c8d67a42fcd034d80aea1d4d278914, type: 3}
   dieEffectPrefab: {fileID: 3897986288003847520, guid: 92ac45d0fb1c10f4da81674f06b26486, type: 3}
+--- !u!114 &1111111111111111001
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1848531686881178565}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: df875c7811e84e45b3018f593c30bccf, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::WitchMendokusai.DamageReaction
+--- !u!114 &1111111111111111002
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1848531686881178565}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e6fbd2d3b3a94e64dbc7063017c06d97, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::WitchMendokusai.HitstopFeedback
+--- !u!114 &1111111111111111003
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1848531686881178565}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fa8447fa523215040a21411030cdd401, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::WitchMendokusai.KnockbackFeedback
 --- !u!4 &2186457573704370070 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4097506783380236002, guid: 8985bc14129999340bfe02f05cc6a45f, type: 3}

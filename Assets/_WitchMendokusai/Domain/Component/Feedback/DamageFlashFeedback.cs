@@ -3,8 +3,8 @@ using UnityEngine;
 
 namespace WitchMendokusai
 {
-	[RequireComponent(typeof(UnitHealth))]
-	public class DamageFlashFeedback : MonoBehaviour
+	[RequireComponent(typeof(DamageReaction))]
+	public class DamageFlashFeedback : MonoBehaviour, IDamageReaction
 	{
 		[SerializeField] private SpriteRenderer spriteRenderer;
 		private UnitHealth health;
@@ -15,13 +15,10 @@ namespace WitchMendokusai
 			health = GetComponent<UnitHealth>();
 		}
 
-		private void OnEnable() => health.OnTakeDamage += OnTakeDamage;
-		private void OnDisable() => health.OnTakeDamage -= OnTakeDamage;
-
-		private void OnTakeDamage(DamageInfo damageInfo)
+		public void OnDamaged(DamageInfo damageInfo)
 		{
 			if (health.IsAlive == false) return;
-			
+
 			if (flashRoutine != null)
 			{
 				StopCoroutine(flashRoutine);

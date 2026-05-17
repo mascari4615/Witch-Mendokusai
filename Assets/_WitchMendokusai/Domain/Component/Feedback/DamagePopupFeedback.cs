@@ -3,10 +3,9 @@ using VContainer;
 
 namespace WitchMendokusai
 {
-	[RequireComponent(typeof(UnitHealth))]
-	public class DamagePopupFeedback : MonoBehaviour
+	[RequireComponent(typeof(DamageReaction))]
+	public class DamagePopupFeedback : MonoBehaviour, IDamageReaction
 	{
-		private UnitHealth health;
 		private UIManager uiManager;
 
 		[Inject]
@@ -15,22 +14,7 @@ namespace WitchMendokusai
 			this.uiManager = uiManager;
 		}
 
-		private void Awake()
-		{
-			health = GetComponent<UnitHealth>();
-		}
-
-		private void OnEnable()
-		{
-			health.OnTakeDamage += PopDamage;
-		}
-
-		private void OnDisable()
-		{
-			health.OnTakeDamage -= PopDamage;
-		}
-
-		private void PopDamage(DamageInfo damageInfo)
+		public void OnDamaged(DamageInfo damageInfo)
 		{
 			uiManager?.PopDamage(damageInfo, transform.position + Vector3.forward * 1);
 		}

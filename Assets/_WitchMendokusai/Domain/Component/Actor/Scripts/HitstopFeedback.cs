@@ -8,35 +8,23 @@ namespace WitchMendokusai
 	/// - UnitMovement.Pause(duration) — Motor tick skip
 	/// - DG Tween (스케일 부풀림 등) 일시 정지/재개
 	///
+	/// 구독 boilerplate 는 같은 GO 의 <see cref="DamageReaction"/> 디스패처가 소유.
 	/// Animator 정지는 캐릭터마다 Animator 위치 다르고 옵션이라 단계 follow-up.
 	/// </summary>
 	[DisallowMultipleComponent]
-	public class HitstopFeedback : MonoBehaviour
+	[RequireComponent(typeof(DamageReaction))]
+	public class HitstopFeedback : MonoBehaviour, IDamageReaction
 	{
 		private UnitObject unitObject;
-		private UnitHealth unitHealth;
 		private UnitMovement unitMovement;
 
 		private void Awake()
 		{
 			unitObject = GetComponent<UnitObject>();
-			unitHealth = GetComponent<UnitHealth>();
 			unitMovement = GetComponent<UnitMovement>();
 		}
 
-		private void OnEnable()
-		{
-			if (unitHealth != null)
-				unitHealth.OnTakeDamage += HandleHitstop;
-		}
-
-		private void OnDisable()
-		{
-			if (unitHealth != null)
-				unitHealth.OnTakeDamage -= HandleHitstop;
-		}
-
-		private void HandleHitstop(DamageInfo damageInfo)
+		public void OnDamaged(DamageInfo damageInfo)
 		{
 			if (damageInfo.hitstopDuration <= 0f)
 				return;
