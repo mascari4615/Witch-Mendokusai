@@ -16,13 +16,15 @@ namespace WitchMendokusai
 		// TASK-WM-107 Slice 4 — playerProvider 는 base UnitObject.playerProvider (protected) 재사용 (CS0108 hide 해소).
 		private SOManager soManager;
 		private DataManager dataManager;
+		private GameLogic gameLogic;
 
 		[Inject]
 		public void Construct(PlayerProvider playerProvider, SOManager soManager, DataManager dataManager, TimeManager timeManager, UnitStatCalculator unitStatCalculator,
-			ObjectPoolManager objectPoolManager)
+			ObjectPoolManager objectPoolManager, GameLogic gameLogic)
 		{
 			this.soManager = soManager;
 			this.dataManager = dataManager;
+			this.gameLogic = gameLogic;
 			SetBaseDeps(timeManager, unitStatCalculator, objectPoolManager, playerProvider);
 		}
 
@@ -79,9 +81,9 @@ namespace WitchMendokusai
 
 		protected virtual void DropLoot()
 		{
-			GameLogic.SpawnLootItem(UnitData.Loots, transform.position);
-			GameLogic.SpawnGameItem(transform.position);
-			GameLogic.SpawnExpOrb(transform.position);
+			gameLogic.SpawnLootItem(UnitData.Loots, transform.position);
+			gameLogic.SpawnGameItem(transform.position);
+			gameLogic.SpawnExpOrb(transform.position);
 		}
 
 		protected Vector3 GetRot()

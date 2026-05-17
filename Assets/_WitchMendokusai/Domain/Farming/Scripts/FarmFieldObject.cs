@@ -20,12 +20,14 @@ namespace WitchMendokusai
 		private BuildingObject buildingObject;
 		private UIManager uiManager;
 		private SOManager soManager;
+		private GameLogic gameLogic;
 
 		[Inject]
-		public void Construct(UIManager uiManager, SOManager soManager)
+		public void Construct(UIManager uiManager, SOManager soManager, GameLogic gameLogic)
 		{
 			this.uiManager = uiManager;
 			this.soManager = soManager;
+			this.gameLogic = gameLogic;
 		}
 
 		private void OnEnable()
@@ -73,7 +75,7 @@ namespace WitchMendokusai
 
 		private void Harvest()
 		{
-			GameLogic.SpawnLootItem(seed.HarvestLoots, transform.position);
+			gameLogic.SpawnLootItem(seed.HarvestLoots, transform.position);
 			WriteRuntime(FarmRuntimeData.Empty);
 			Refresh();
 		}

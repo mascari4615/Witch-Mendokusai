@@ -12,10 +12,13 @@ namespace WitchMendokusai
 
 		public new ResourceNode UnitData => base.UnitData as ResourceNode;
 
+		private GameLogic gameLogic;
+
 		[Inject]
 		public void Construct(TimeManager timeManager, UnitStatCalculator unitStatCalculator,
-			ObjectPoolManager objectPoolManager, PlayerProvider playerProvider)
+			ObjectPoolManager objectPoolManager, PlayerProvider playerProvider, GameLogic gameLogic)
 		{
+			this.gameLogic = gameLogic;
 			SetBaseDeps(timeManager, unitStatCalculator, objectPoolManager, playerProvider);
 		}
 
@@ -62,7 +65,7 @@ namespace WitchMendokusai
 
 		protected virtual void DropLoot()
 		{
-			GameLogic.SpawnLootItem(UnitData.Loots, transform.position);
+			gameLogic.SpawnLootItem(UnitData.Loots, transform.position);
 		}
 
 		public override void ReceiveDamage(DamageInfo damageInfo)

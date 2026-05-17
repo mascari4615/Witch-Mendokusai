@@ -3,28 +3,42 @@ using System.Collections.Generic;
 using UnityEngine;
 using static WitchMendokusai.SOHelper;
 using static WitchMendokusai.GameDefine;
+using VContainer;
 using Random = UnityEngine.Random;
 
 namespace WitchMendokusai
 {
-	public static class GameLogic
+	// TASK-WM-120 γ — static class → 주입 서비스. ObjectPoolManager(DI 매니저)
+	// 의 static `.Instance` reach 제거 = Composition Root graph-derived. POCO
+	// 서비스로 RootLifetimeScope 등록(EffectRunner 패턴), DI-거주 caller 4종이
+	// [Inject]. ResourceManager 는 :ScriptableObject = SO 데이터 컨테이너
+	// (SOManager/RegisterInstance 카테고리, γ 대상 매니저 아님) → SO 패턴 유지.
+	public class GameLogic
 	{
+		private readonly ObjectPoolManager objectPoolManager;
+
+		[Inject]
+		public GameLogic(ObjectPoolManager objectPoolManager)
+		{
+			this.objectPoolManager = objectPoolManager;
+		}
+
 		public static Vector3 GetRandomSpawnPosOffset(Vector3 position, float offset = LOOT_ITEM_SPAWN_POS_OFFSET_XZ)
 		{
 			Vector3 randomOffset = new(Random.Range(-offset, offset), LOOT_ITEM_SPAWN_POS_OFFSET_Y, Random.Range(-offset, offset));
 			return position + randomOffset;
 		}
 
-		public static void SpawnExpOrb(Vector3 position)
+		public void SpawnExpOrb(Vector3 position)
 		{
-			GameObject exp = ObjectPoolManager.Instance.Spawn(
+			GameObject exp = objectPoolManager.Spawn(
 				ResourceManager.Instance.EXPPrefab,
 				GetRandomSpawnPosOffset(position)
 			);
 			exp.SetActive(true);
 		}
 
-		public static void SpawnLootItem(List<DataSOWithPercentage> lootTable, Vector3 position)
+		public void SpawnLootItem(List<DataSOWithPercentage> lootTable, Vector3 position)
 		{
 			Probability<ItemData> probability = new(shouldFill100Percent: true);
 			foreach (DataSOWithPercentage item in lootTable)
@@ -44,7 +58,7 @@ namespace WitchMendokusai
 				return;
 			}
 
-			GameObject lootItem = ObjectPoolManager.Instance.Spawn(
+			GameObject lootItem = objectPoolManager.Spawn(
 				ResourceManager.Instance.LootItemPrefab,
 				GetRandomSpawnPosOffset(position)
 			);
@@ -52,7 +66,7 @@ namespace WitchMendokusai
 			lootItem.GetComponent<ItemObject>().Init(dropItem);
 		}
 
-		public static void SpawnGameItem(Vector3 position)
+		public void SpawnGameItem(Vector3 position)
 		{
 			Probability<GameItemObject> gameItemProbability = new(shouldFill100Percent: true);
 			gameItemProbability.Add(ResourceManager.Instance.HealObjectPrefab, HEAL_PERCENTAGE);
@@ -65,7 +79,7 @@ namespace WitchMendokusai
 				return;
 			}
 
-			GameObject gameItemObject = ObjectPoolManager.Instance.Spawn(
+			GameObject gameItemObject = objectPoolManager.Spawn(
 				gameItem.gameObject,
 				GetRandomSpawnPosOffset(position)
 			);

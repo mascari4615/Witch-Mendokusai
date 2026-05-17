@@ -16,13 +16,15 @@ namespace WitchMendokusai
 		private UIManager uiManager;
 		private SOManager soManager;
 		private PlayerProvider playerProvider;
+		private GameLogic gameLogic;
 
 		[Inject]
-		public void Construct(UIManager uiManager, SOManager soManager, PlayerProvider playerProvider)
+		public void Construct(UIManager uiManager, SOManager soManager, PlayerProvider playerProvider, GameLogic gameLogic)
 		{
 			this.uiManager = uiManager;
 			this.soManager = soManager;
 			this.playerProvider = playerProvider;
+			this.gameLogic = gameLogic;
 		}
 
 		private void Awake()
@@ -69,7 +71,7 @@ namespace WitchMendokusai
 			yield return StartCoroutine(miniGame.Play(context, result => caught = result));
 
 			if (caught)
-				GameLogic.SpawnLootItem(data.Loots, transform.position);
+				gameLogic.SpawnLootItem(data.Loots, transform.position);
 
 			isFishing = false;
 		}
