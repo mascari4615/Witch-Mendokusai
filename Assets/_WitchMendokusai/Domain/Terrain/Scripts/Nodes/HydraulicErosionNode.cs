@@ -28,20 +28,20 @@ namespace WitchMendokusai
 
 		protected override int ComputeAlgorithmHash()
 		{
-			HashCode hash = new();
-			hash.Add(parameters.particleCount);
-			hash.Add(parameters.maxParticleIterations);
-			hash.Add(parameters.initialWater);
-			hash.Add(parameters.initialVelocity);
-			hash.Add(parameters.inertia);
-			hash.Add(parameters.gravity);
-			hash.Add(parameters.sedimentCapacityFactor);
-			hash.Add(parameters.minSedimentCapacity);
-			hash.Add(parameters.depositRate);
-			hash.Add(parameters.erosionRate);
-			hash.Add(parameters.evaporRate);
-			hash.Add(parameters.seed);
-			return hash.ToHashCode();
+			// 결정적 해시 (디스크 영속 키 — System.HashCode 금지, TASK-WM-119).
+			return StableCombine(
+				parameters.particleCount,
+				parameters.maxParticleIterations,
+				FloatBits(parameters.initialWater),
+				FloatBits(parameters.initialVelocity),
+				FloatBits(parameters.inertia),
+				FloatBits(parameters.gravity),
+				FloatBits(parameters.sedimentCapacityFactor),
+				FloatBits(parameters.minSedimentCapacity),
+				FloatBits(parameters.depositRate),
+				FloatBits(parameters.erosionRate),
+				FloatBits(parameters.evaporRate),
+				parameters.seed);
 		}
 	}
 }

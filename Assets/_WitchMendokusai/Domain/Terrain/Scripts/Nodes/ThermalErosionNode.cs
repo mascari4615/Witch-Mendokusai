@@ -27,11 +27,11 @@ namespace WitchMendokusai
 
 		protected override int ComputeAlgorithmHash()
 		{
-			HashCode hash = new();
-			hash.Add(parameters.iterations);
-			hash.Add(parameters.talusAngle);
-			hash.Add(parameters.strength);
-			return hash.ToHashCode();
+			// 결정적 해시 (디스크 영속 키 — System.HashCode 금지, TASK-WM-119).
+			return StableCombine(
+				parameters.iterations,
+				FloatBits(parameters.talusAngle),
+				FloatBits(parameters.strength));
 		}
 	}
 }

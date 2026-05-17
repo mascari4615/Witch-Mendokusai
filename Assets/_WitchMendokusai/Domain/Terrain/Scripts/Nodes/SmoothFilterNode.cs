@@ -26,7 +26,8 @@ namespace WitchMendokusai
 
 		protected override int ComputeAlgorithmHash()
 		{
-			return parameters.iterations.GetHashCode();
+			// 결정적 해시 (디스크 영속 키 일관성 — int.GetHashCode 도 결정적이나 정규화, TASK-WM-119).
+			return StableCombine(parameters.iterations);
 		}
 	}
 }

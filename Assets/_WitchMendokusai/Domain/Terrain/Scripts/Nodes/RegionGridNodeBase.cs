@@ -94,8 +94,37 @@ namespace WitchMendokusai
 		/// <summary>
 		/// sub class 의 parameter hash — 베이스 regionSize 와 함께 캐시 invalidation 키.
 		/// parameter 변경 시 hash 다르면 캐시 전체 클리어.
+		/// **결정적이어야 함** (디스크 영속 키 — `System.HashCode` 금지, run 마다 랜덤시드).
+		/// 서브클래스는 <see cref="StableCombine"/> + <see cref="FloatBits"/> 로 구현.
 		/// </summary>
 		protected abstract int ComputeAlgorithmHash();
+
+		/// <summary>
+		/// 결정적 해시 결합 (FNV-1a) — `System.HashCode` 는 프로세스/도메인리로드마다
+		/// 랜덤 시드라 크로스세션 디스크 키로 못 씀 (TASK-WM-119 회귀 root). 본 메서드는
+		/// 같은 입력 → 같은 출력 영구 보장.
+		/// </summary>
+		protected static int StableCombine(params int[] values)
+		{
+			unchecked
+			{
+				int hash = (int)2166136261u;
+				for (int i = 0; i < values.Length; i++)
+				{
+					hash = (hash ^ values[i]) * 16777619;
+				}
+				return hash;
+			}
+		}
+
+		/// <summary>float 의 결정적 비트 표현 (NaN 정규화). GetBytes/ToInt32 = 전 .NET
+		/// 프로파일 가용 (SingleToInt32Bits 는 .NET Std 2.1+ 한정 — 호환 우선).</summary>
+		protected static int FloatBits(float value)
+		{
+			if (float.IsNaN(value))
+				return unchecked((int)0x7FC00000);
+			return BitConverter.ToInt32(BitConverter.GetBytes(value), 0);
+		}
 
 		private float[,] GetOrComputeRegion(NodeExecutionContext context, float worldX, float worldZ)
 		{
@@ -128,7 +157,7 @@ namespace WitchMendokusai
 
 			(int, int) regionKey = (regionX, regionZ);
 
-			int currentHash = HashCode.Combine(regionSize, ComputeAlgorithmHash());
+			int currentHash = StableCombine(regionSize, ComputeAlgorithmHash());
 
 			lock (cacheLock)
 			{
@@ -142,8 +171,19 @@ namespace WitchMendokusai
 				if (regionCache.TryGetValue(regionKey, out float[,] cached))
 					return cached;
 
+				// TASK-WM-119: 디스크 영속 — erosion 결정적이라 (region+algoHash) 평생 1회
+				// 계산. NonSerialized 캐시가 세션/도메인리로드마다 소실되어 매 플레이 재계산하던
+				// 근본 해소. 손상/미초기화 = false → 아래 재계산 fallback (동작 동일).
+				string diskKey = TerrainRegionStorage.MakeKey(GetType().Name, currentHash, regionSize, regionX, regionZ);
+				if (TerrainRegionStorage.TryLoad(diskKey, regionSize, out float[,] loaded))
+				{
+					regionCache[regionKey] = loaded;
+					return loaded;
+				}
+
 				float[,] sampled = SampleSourceRegion(graph, sourceNode, regionX, regionZ);
 				Simulate(sampled, regionX, regionZ);
+				TerrainRegionStorage.Save(diskKey, sampled, regionSize);
 
 				regionCache[regionKey] = sampled;
 				return sampled;

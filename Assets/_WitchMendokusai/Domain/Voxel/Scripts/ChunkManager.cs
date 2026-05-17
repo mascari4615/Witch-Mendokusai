@@ -38,6 +38,7 @@ namespace WitchMendokusai
 		{
 			chunkPool = GetComponent<ChunkPool>();
 			ChunkStorage.Initialize(Application.persistentDataPath);
+			TerrainRegionStorage.Initialize(Application.persistentDataPath); // TASK-WM-119: erosion 영역 영속 (main thread 1회)
 
 			terrainParameters = TerrainParametersService.Active;
 			if (terrainParameters == null)
