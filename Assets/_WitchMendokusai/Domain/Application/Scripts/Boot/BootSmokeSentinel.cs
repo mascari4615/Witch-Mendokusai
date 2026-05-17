@@ -136,8 +136,42 @@ namespace WitchMendokusai
             WriteResult(
                 pass ? "PASS" : "FAIL",
                 pass ? "worldReady + nre0" : $"worldReady but nre={_nreCount}",
-                true);
+                true,
+                DdolManifest());
             Finish(pass ? 0 : 1);
+        }
+
+        /// <summary>
+        /// TASK-WM-118 broader-A unblocker — WorldReady 시점 DontDestroyOnLoad
+        /// 루트 GameObject 매니페스트(정렬·결정적). eager-resolve 매니저는
+        /// .DontDestroyOnLoad() 라 여기 나타남 = "Awake 실행됨(활성)"의 헤드리스
+        /// 관측가능 신호. broader-A 가 eager 제거 시 매니저 활성을 떨구면(NRE
+        /// 아닌 무음 회귀) 이 매니페스트 diff 로 포착 — 스크린샷/타입하드코딩 X.
+        /// </summary>
+        private static string DdolManifest()
+        {
+            try
+            {
+                GameObject probe = new GameObject("__ddol_probe__");
+                DontDestroyOnLoad(probe);
+                UnityEngine.SceneManagement.Scene ddol = probe.scene;
+                GameObject[] roots = ddol.GetRootGameObjects();
+                var names = new System.Collections.Generic.List<string>(roots.Length);
+                foreach (GameObject go in roots)
+                {
+                    if (go != probe)
+                    {
+                        names.Add(go.name);
+                    }
+                }
+                Destroy(probe);
+                names.Sort(System.StringComparer.Ordinal);
+                return names.Count + ":" + string.Join("|", names);
+            }
+            catch (Exception ex)
+            {
+                return "ERR:" + ex.GetType().Name;
+            }
         }
 
         private IEnumerator TimeoutWatch()
@@ -158,11 +192,11 @@ namespace WitchMendokusai
             }
             _done = true;
             WriteResult("FAIL", $"timeout {TimeoutSec}s — WorldReady 미도달 (last phase {BootObserver.Current})",
-                BootObserver.ReachedWorld);
+                BootObserver.ReachedWorld, DdolManifest());
             Finish(1);
         }
 
-        private void WriteResult(string result, string reason, bool worldReady)
+        private void WriteResult(string result, string reason, bool worldReady, string ddol)
         {
             string body =
                 $"result={result}\n" +
@@ -170,7 +204,8 @@ namespace WitchMendokusai
                 $"worldReady={(worldReady ? "true" : "false")}\n" +
                 $"nre={_nreCount}\n" +
                 $"frame={Time.frameCount}\n" +
-                $"t={Time.realtimeSinceStartup.ToString("F1", CultureInfo.InvariantCulture)}\n";
+                $"t={Time.realtimeSinceStartup.ToString("F1", CultureInfo.InvariantCulture)}\n" +
+                $"ddol={ddol}\n";
             try
             {
                 string path = ResultPath;
