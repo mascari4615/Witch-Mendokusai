@@ -79,13 +79,7 @@ namespace WitchMendokusai
 				BootGuard.EagerResolve<TimeManager>(container, "Root");
 				BootGuard.EagerResolve<WeatherSystem>(container, "Root");
 				BootGuard.EagerResolve<WindowManager>(container, "Root");
-				// TASK-WM-118 broader-A 증분 1 — DataLoader eager 라인 제거(증명된 no-op).
-				// 근거(가설 X): DataManager(static.Instance 11 사이트 → eager 잔존
-				// 확정)의 [Inject] Construct(TimeManager, DataLoader, ...) 가
-				// DataLoader 를 받음 → DataManager eager-resolve 시 VContainer 가
-				// DataLoader 를 transitive 로 인스턴스화. DataLoader 는 static.Instance
-				// 접근 0(순서의존 경로 없음) → 자체 eager 라인은 cargo. 검증 =
-				// wm-boot-smoke ddol 게이트(DataLoader(Clone) 잔존) + nre0/WorldReady.
+				BootGuard.EagerResolve<DataLoader>(container, "Root");
 				BootGuard.EagerResolve<TooltipController>(container, "Root");
 				BootGuard.EagerResolve<DataManager>(container, "Root");
 				BootGuard.EagerResolve<WeatherDirector>(container, "Root");
