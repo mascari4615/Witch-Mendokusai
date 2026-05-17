@@ -14,14 +14,9 @@ namespace WitchMendokusai
 	/// </summary>
 	public class CodexPreviewController : MonoBehaviour
 	{
-		public static CodexPreviewController Instance { get; private set; }
-
-		public static bool TryGetExistingInstance(out CodexPreviewController mgr)
-		{
-			mgr = Instance;
-			return mgr != null;
-		}
-
+		// TASK-WM-133 — static Instance/TryGetExistingInstance 삭제. RegisterLeaf
+		// prefab + DontDestroyOnLoad 가 단일성 보장(DI 소유), caller 는
+		// UIRoot panel-root owner-push 된 UIServices 경유 획득.
 		private const int RT_RESOLUTION = 512;
 		private const int CAMERA_LAYER = 30; // 도감 미리보기 전용 layer (다른 씬 객체 안 비춤)
 
@@ -36,20 +31,8 @@ namespace WitchMendokusai
 
 		private void Awake()
 		{
-			if (Instance != null && Instance != this)
-			{
-				Destroy(gameObject);
-				return;
-			}
-			Instance = this;
 			BuildStage();
 			ShowPlaceholder();
-		}
-
-		private void OnDestroy()
-		{
-			if (Instance == this)
-				Instance = null;
 		}
 
 		private void BuildStage()

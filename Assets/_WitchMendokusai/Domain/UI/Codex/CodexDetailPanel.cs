@@ -33,43 +33,56 @@ namespace WitchMendokusai
 			bool usingPreview = entry.PreviewPrefab != null;
 			if (usingPreview)
 			{
-				CodexPreviewController.Instance.Show(entry.PreviewPrefab);
-				CodexPreviewController.Instance.Activate();
 				Image rtImage = new()
 				{
-					image = CodexPreviewController.Instance.RenderTexture,
 					scaleMode = ScaleMode.ScaleToFit,
 				};
 				rtImage.AddToClassList(USS_ILLUSTRATION_IMAGE);
 				rtImage.pickingMode = PickingMode.Position;
 				illustration.Add(rtImage);
 
+				// TASK-WM-133 — ctor 시점엔 panel == null(아직 미부착) 이라
+				// panel-context 미해결. AttachToPanelEvent 에서 panel-root
+				// owner-push 된 CodexPreviewController 를 1회 해결·캐싱 →
+				// 드래그/detach 콜백은 캡처된 ref 사용(detach 시 조상 walk
+				// 불가 타이밍 안전). static Instance reach 제거.
+				CodexPreviewController previewController = null;
+
+				RegisterCallback<AttachToPanelEvent>(_ =>
+				{
+					previewController = this.GetUIServices()?.CodexPreview;
+					if (previewController == null)
+						return;
+					previewController.Show(entry.PreviewPrefab);
+					previewController.Activate();
+					rtImage.image = previewController.RenderTexture;
+				});
+
 				rtImage.RegisterCallback<PointerDownEvent>(evt =>
 				{
 					rtImage.CapturePointer(evt.pointerId);
-					CodexPreviewController.Instance.BeginDrag();
+					previewController?.BeginDrag();
 				});
 				rtImage.RegisterCallback<PointerMoveEvent>(evt =>
 				{
 					if (rtImage.HasPointerCapture(evt.pointerId))
-						CodexPreviewController.Instance.DragYawDelta(evt.deltaPosition.x);
+						previewController?.DragYawDelta(evt.deltaPosition.x);
 				});
 				rtImage.RegisterCallback<PointerUpEvent>(evt =>
 				{
 					if (rtImage.HasPointerCapture(evt.pointerId))
 						rtImage.ReleasePointer(evt.pointerId);
-					if (CodexPreviewController.TryGetExistingInstance(out CodexPreviewController dragController))
-						dragController.EndDrag();
+					previewController?.EndDrag();
 				});
 
 				// Detail 패널이 detach (다른 entry / Category 뒤로 / 윈도우 닫기) 될 때 카메라 비활성.
 				RegisterCallback<DetachFromPanelEvent>(_ =>
 				{
-					if (CodexPreviewController.TryGetExistingInstance(out CodexPreviewController controller))
-					{
-						controller.EndDrag();
-						controller.Deactivate();
-					}
+					if (previewController == null)
+						return;
+					previewController.EndDrag();
+					previewController.Deactivate();
+					previewController = null;
 				});
 			}
 			else if (entry.Icon != null)
