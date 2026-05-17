@@ -50,6 +50,40 @@ namespace WitchMendokusai
 
         private int _nreCount;
         private bool _done;
+        private string _scenarioResult;
+        private string _scenarioReason;
+
+        private static BootSmokeSentinel _inst;
+
+        // ── TASK-WM-117 Tier-B 시나리오 seam ──────────────────────────────
+        // 부팅(WM-118 I5)을 *게임로직 회귀*로 확장하는 최소 정적 핸드오프.
+        // 인터페이스 X (1 시나리오 speculative interface = 데드 인터페이스;
+        // 후속 Effect/전투 시나리오도 같은 delegate set = 더 lean root).
+        //
+        // 계약: 시나리오는 결정 모드 + 자기 env 일 때만 self-install 하여
+        //   ScenarioRoutine/ScenarioName 을 set. WorldReady+settle+부팅 nre0
+        //   이면 센티넬이 그 coroutine 을 1회 구동, 시나리오는 *마지막에*
+        //   ReportScenario(pass,reason) 1회 호출 후 yield break. WriteResult/
+        //   Quit 은 센티넬 단독 권위(이중 종료 0). 모든 대기는 시나리오 내부
+        //   realtime-deadline 으로 self-bound (hang 0). 미등록 = 기존 부팅
+        //   PASS 경로 완전 무변경(Tier-A 회귀망 0 영향).
+        public static Func<IEnumerator> ScenarioRoutine;
+        public static string ScenarioName;
+
+        /// <summary>시나리오가 NRE delta 측정에 쓰는 전역 누적 NRE 수.</summary>
+        public static int CurrentNreCount => _inst != null ? _inst._nreCount : 0;
+
+        /// <summary>시나리오 종료 시 1회 호출(기록만 — 종료/판정은 센티넬).</summary>
+        public static void ReportScenario(bool pass, string reason)
+        {
+            if (_inst == null)
+            {
+                return;
+            }
+            _inst._scenarioResult = pass ? "PASS" : "FAIL";
+            _inst._scenarioReason = reason ?? string.Empty;
+            Debug.Log($"[BOOT-SMOKE] scenario report: {(pass ? "PASS" : "FAIL")} — {reason}");
+        }
 
         private float TimeoutSec
         {
@@ -92,6 +126,7 @@ namespace WitchMendokusai
 
         private void Awake()
         {
+            _inst = this;
             UnityEngine.Application.logMessageReceived += OnLog;
             BootObserver.OnBootComplete += OnBootComplete;
             Debug.Log($"[BOOT-SMOKE] sentinel armed — timeout={TimeoutSec}s settle={SettleFrames}f "
@@ -132,13 +167,45 @@ namespace WitchMendokusai
                 yield return null;
             }
 
-            bool pass = _nreCount == 0;
+            // 부팅 자체 회귀(nre>0) = 게임로직 시나리오 무의미 → 부팅 판정 종료
+            // (시나리오 스킵). 부팅이 깨졌는데 던전 구동은 의미 없음.
+            if (_nreCount != 0)
+            {
+                WriteResult("FAIL", $"worldReady but nre={_nreCount}", true, DdolManifest());
+                Finish(1);
+                yield break;
+            }
+
+            // 시나리오 미등록 = 기존 부팅 PASS 경로 (TASK-WM-118 I5 / Tier-A
+            // 회귀망 100% 무변경 — WM_BOOT_SCENARIO 미설정 시 여기로).
+            if (ScenarioRoutine == null)
+            {
+                WriteResult("PASS", "worldReady + nre0", true, DdolManifest());
+                Finish(0);
+                yield break;
+            }
+
+            // 시나리오 등록 = 부팅 OK 후 게임로직 회귀 구동 (TASK-WM-117 Tier-B).
+            // 시나리오 내부 대기는 전부 realtime-deadline self-bound → hang 0.
+            Debug.Log($"[BOOT-SMOKE] 부팅 OK(nre0) — scenario '{ScenarioName}' 구동");
+            yield return StartCoroutine(ScenarioRoutine());
+
+            if (_scenarioResult == null)
+            {
+                _scenarioResult = "FAIL";
+                _scenarioReason = "scenario completed without ReportScenario";
+            }
+            // 시나리오 중 발생 NRE 도 전역 _nreCount 에 누적 → 종합 판정에 반영.
+            bool scenarioPass = string.Equals(_scenarioResult, "PASS", StringComparison.Ordinal);
+            bool overallPass = scenarioPass && _nreCount == 0;
             WriteResult(
-                pass ? "PASS" : "FAIL",
-                pass ? "worldReady + nre0" : $"worldReady but nre={_nreCount}",
+                overallPass ? "PASS" : "FAIL",
+                overallPass
+                    ? $"worldReady + nre0 + scenario({ScenarioName}) PASS"
+                    : $"scenario({ScenarioName}) {_scenarioResult} nre={_nreCount} — {_scenarioReason}",
                 true,
                 DdolManifest());
-            Finish(pass ? 0 : 1);
+            Finish(overallPass ? 0 : 1);
         }
 
         /// <summary>
@@ -205,7 +272,10 @@ namespace WitchMendokusai
                 $"nre={_nreCount}\n" +
                 $"frame={Time.frameCount}\n" +
                 $"t={Time.realtimeSinceStartup.ToString("F1", CultureInfo.InvariantCulture)}\n" +
-                $"ddol={ddol}\n";
+                $"ddol={ddol}\n" +
+                $"scenario={ScenarioName ?? "none"}\n" +
+                $"scenarioResult={_scenarioResult ?? "NONE"}\n" +
+                $"scenarioReason={_scenarioReason ?? string.Empty}\n";
             try
             {
                 string path = ResultPath;
