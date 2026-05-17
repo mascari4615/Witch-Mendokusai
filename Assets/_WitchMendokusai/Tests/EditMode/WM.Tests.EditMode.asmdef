@@ -4,7 +4,8 @@
     "references": [
         "WitchMendokusai.DomainSDK",
         "WM.Domain",
-        "WM.Core"
+        "WM.Core",
+        "VContainer"
     ],
     "includePlatforms": [
         "Editor"
