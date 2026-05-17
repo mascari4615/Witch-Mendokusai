@@ -10,5 +10,6 @@ namespace WitchMendokusai.NodeGraph
 		Generic = 0,
 		Terrain = 1,
 		MagicBook = 2,
+		Dialogue = 3,
 	}
 }
