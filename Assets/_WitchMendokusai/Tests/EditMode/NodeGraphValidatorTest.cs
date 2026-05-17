@@ -3,6 +3,9 @@ using System.Reflection;
 using NUnit.Framework;
 using UnityEngine;
 using WitchMendokusai.NodeGraph;
+// `WitchMendokusai.Tests` 에서 unqualified `NodeGraph` 는 *네임스페이스*
+// `WitchMendokusai.NodeGraph` 로 바인딩(CS0118) — ChapterSO 와 동일 alias 패턴으로 타입 명시.
+using NodeGraphAsset = WitchMendokusai.NodeGraph.NodeGraph;
 
 namespace WitchMendokusai.Tests
 {
@@ -21,15 +24,15 @@ namespace WitchMendokusai.Tests
 	/// </summary>
 	public sealed class NodeGraphValidatorTest
 	{
-		private static NodeGraph NewGraph()
+		private static NodeGraphAsset NewGraph()
 		{
-			return ScriptableObject.CreateInstance<NodeGraph>();
+			return ScriptableObject.CreateInstance<NodeGraphAsset>();
 		}
 
 		[Test]
 		public void ValidGraph_HasNoErrorsOrWarnings()
 		{
-			NodeGraph graph = NewGraph();
+			NodeGraphAsset graph = NewGraph();
 			ConstantFloatNode c3 = new() { Value = 3f };
 			ConstantFloatNode c5 = new() { Value = 5f };
 			AddFloatNode add = new();
@@ -53,7 +56,7 @@ namespace WitchMendokusai.Tests
 		[Test]
 		public void Cycle_ReportsCycleError()
 		{
-			NodeGraph graph = NewGraph();
+			NodeGraphAsset graph = NewGraph();
 			AddFloatNode add1 = new();
 			AddFloatNode add2 = new();
 			graph.AddNode(add1);
@@ -71,7 +74,7 @@ namespace WitchMendokusai.Tests
 		[Test]
 		public void UnconnectedInput_IsInfoNotError()
 		{
-			NodeGraph graph = NewGraph();
+			NodeGraphAsset graph = NewGraph();
 			AddFloatNode add = new();
 			graph.AddNode(add);
 
@@ -84,7 +87,7 @@ namespace WitchMendokusai.Tests
 		[Test]
 		public void DanglingConnection_ReportsError()
 		{
-			NodeGraph graph = NewGraph();
+			NodeGraphAsset graph = NewGraph();
 			OutputFloatNode output = new();
 			graph.AddNode(output);
 
@@ -110,9 +113,9 @@ namespace WitchMendokusai.Tests
 			return false;
 		}
 
-		private static void InjectConnection(NodeGraph graph, NodeConnection connection)
+		private static void InjectConnection(NodeGraphAsset graph, NodeConnection connection)
 		{
-			FieldInfo field = typeof(NodeGraph).GetField(
+			FieldInfo field = typeof(NodeGraphAsset).GetField(
 				"connections",
 				BindingFlags.Instance | BindingFlags.NonPublic);
 			Assert.That(field, Is.Not.Null, "NodeGraph.connections 필드 이름이 바뀜 — 테스트 주입 경로 회귀.");
