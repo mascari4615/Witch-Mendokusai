@@ -3,13 +3,12 @@ using VContainer;
 
 namespace WitchMendokusai
 {
-	[RequireComponent(typeof(UnitHealth))]
-	public class DamageVFXFeedback : MonoBehaviour
+	[RequireComponent(typeof(DamageReaction))]
+	public class DamageVFXFeedback : MonoBehaviour, IDamageReaction, IDeathReaction
 	{
 		[SerializeField] private GameObject hitEffectPrefab;
 		[SerializeField] private GameObject dieEffectPrefab;
 
-		private UnitHealth health;
 		private ObjectPoolManager objectPoolManager;
 		private PlayerProvider playerProvider;
 
@@ -20,24 +19,7 @@ namespace WitchMendokusai
 			this.playerProvider = playerProvider;
 		}
 
-		private void Awake()
-		{
-			health = GetComponent<UnitHealth>();
-		}
-
-		private void OnEnable()
-		{
-			health.OnTakeDamage += PlayHitEffect;
-			health.OnDied += PlayDieEffect;
-		}
-
-		private void OnDisable()
-		{
-			health.OnTakeDamage -= PlayHitEffect;
-			health.OnDied -= PlayDieEffect;
-		}
-
-		private void PlayHitEffect(DamageInfo damageInfo)
+		public void OnDamaged(DamageInfo damageInfo)
 		{
 			if (hitEffectPrefab == null) return;
 
@@ -54,7 +36,7 @@ namespace WitchMendokusai
 			hitEffect.SetActive(true);
 		}
 
-		private void PlayDieEffect()
+		public void OnDeath()
 		{
 			if (dieEffectPrefab == null) return;
 

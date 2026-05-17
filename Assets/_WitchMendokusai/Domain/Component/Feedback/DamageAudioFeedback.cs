@@ -3,32 +3,13 @@ using FMODUnity;
 
 namespace WitchMendokusai
 {
-	[RequireComponent(typeof(UnitHealth))]
-	public class DamageAudioFeedback : MonoBehaviour
+	[RequireComponent(typeof(DamageReaction))]
+	public class DamageAudioFeedback : MonoBehaviour, IDamageReaction, IDeathReaction
 	{
 		[SerializeField] private string hitEventPath = "event:/SFX/Monster/Hit";
 		[SerializeField] private string dieEventPath = "event:/SFX/Monster/Die";
-		
-		private UnitHealth health;
 
-		private void Awake()
-		{
-			health = GetComponent<UnitHealth>();
-		}
-
-		private void OnEnable()
-		{
-			health.OnTakeDamage += PlayHitSound;
-			health.OnDied += PlayDieSound;
-		}
-
-		private void OnDisable()
-		{
-			health.OnTakeDamage -= PlayHitSound;
-			health.OnDied -= PlayDieSound;
-		}
-
-		private void PlayHitSound(DamageInfo damageInfo)
+		public void OnDamaged(DamageInfo damageInfo)
 		{
 			if (string.IsNullOrEmpty(hitEventPath) == false)
 			{
@@ -36,7 +17,7 @@ namespace WitchMendokusai
 			}
 		}
 
-		private void PlayDieSound()
+		public void OnDeath()
 		{
 			if (string.IsNullOrEmpty(dieEventPath) == false)
 			{

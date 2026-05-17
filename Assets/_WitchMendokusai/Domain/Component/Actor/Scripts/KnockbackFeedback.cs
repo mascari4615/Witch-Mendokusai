@@ -3,7 +3,8 @@ using UnityEngine;
 namespace WitchMendokusai
 {
 	/// <summary>
-	/// Hit 시 victim 에게 knockback impulse 적용. UnitHealth.OnTakeDamage 구독 → UnitMovement.ApplyImpulse.
+	/// Hit 시 victim 에게 knockback impulse 적용. UnitMovement.ApplyImpulse.
+	/// 구독 boilerplate 는 같은 GO 의 <see cref="DamageReaction"/> 디스패처가 소유.
 	///
 	/// 디자인:
 	/// - Knockback 강도/시간 = caller 가 채운 DamageInfo 값 (per-hit 동적). SO 디폴트 + 런타임 override.
@@ -13,32 +14,19 @@ namespace WitchMendokusai
 	/// - DEAD victim 은 skip.
 	/// </summary>
 	[DisallowMultipleComponent]
-	public class KnockbackFeedback : MonoBehaviour
+	[RequireComponent(typeof(DamageReaction))]
+	public class KnockbackFeedback : MonoBehaviour, IDamageReaction
 	{
 		private UnitObject unitObject;
-		private UnitHealth unitHealth;
 		private UnitMovement unitMovement;
 
 		private void Awake()
 		{
 			unitObject = GetComponent<UnitObject>();
-			unitHealth = GetComponent<UnitHealth>();
 			unitMovement = GetComponent<UnitMovement>();
 		}
 
-		private void OnEnable()
-		{
-			if (unitHealth != null)
-				unitHealth.OnTakeDamage += HandleKnockback;
-		}
-
-		private void OnDisable()
-		{
-			if (unitHealth != null)
-				unitHealth.OnTakeDamage -= HandleKnockback;
-		}
-
-		private void HandleKnockback(DamageInfo damageInfo)
+		public void OnDamaged(DamageInfo damageInfo)
 		{
 			if (damageInfo.knockbackForce <= 0f || damageInfo.knockbackDuration <= 0f)
 				return;
