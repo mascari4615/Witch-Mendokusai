@@ -42,6 +42,10 @@ namespace WitchMendokusai
 		private TooltipView view;
 		private bool isShowing;
 
+		// anchored 모드 (역할② — 고정 인라인 상세, 마우스추종/자동숨김 X). false = hover 팝업(기존).
+		private bool isAnchored;
+		private Vector2 anchorScreenPos;
+
 		private void Awake()
 		{
 			if (Instance != null && Instance != this)
@@ -84,7 +88,28 @@ namespace WitchMendokusai
 			builders[dataType] = builder;
 		}
 
+		/// <summary>
+		/// hover 팝업 (역할① — 마우스 추종, pointer-exit 시 caller 가 Hide). 기존 동작.
+		/// </summary>
 		public void Show(object data, TooltipMode mode = TooltipMode.Simple)
+		{
+			isAnchored = false;
+			BuildAndShow(data, mode);
+		}
+
+		/// <summary>
+		/// anchored (역할② — 고정 화면좌표, 선택 시 갱신되는 인라인 상세 패널).
+		/// caller 가 screenPos(스크린 좌표, 좌하 원점) 를 계산해 전달 — uGUI/UIElements 무관.
+		/// 마우스 추종/자동숨김 없음. caller 가 명시 Show/Hide 로 수명 제어.
+		/// </summary>
+		public void ShowAnchored(object data, Vector2 screenPos, TooltipMode mode = TooltipMode.Simple)
+		{
+			isAnchored = true;
+			anchorScreenPos = screenPos;
+			BuildAndShow(data, mode);
+		}
+
+		private void BuildAndShow(object data, TooltipMode mode)
 		{
 			if (data == null)
 			{
@@ -130,10 +155,18 @@ namespace WitchMendokusai
 		{
 			if (isShowing == false || view == null || view.panel == null)
 				return;
-			if (Mouse.current == null)
-				return;
 
-			Vector2 screen = inputManager.MouseScreenPosition;
+			Vector2 screen;
+			if (isAnchored)
+			{
+				screen = anchorScreenPos;
+			}
+			else
+			{
+				if (Mouse.current == null)
+					return;
+				screen = inputManager.MouseScreenPosition;
+			}
 			screen.y = Screen.height - screen.y;
 			Vector2 panelPosition = RuntimePanelUtils.ScreenToPanel(view.panel, screen);
 
