@@ -7,7 +7,7 @@ namespace WitchMendokusai
 {
 	public interface IUIPanelGroup
 	{
-		bool TryGetCurPanel(out UIPanel panel);
+		bool TryGetCurPanel(out IUIPanel panel);
 		bool CanBeClosedByCancelInput { get; }
 		bool IsPanelOpen { get; }
 		void Init();
@@ -20,10 +20,10 @@ namespace WitchMendokusai
 
 		public T CurPanelType { get; private set; } = default;
 		public abstract T DefaultPanel { get; }
-		public Dictionary<T, UIPanel> Panels { get; private set; } = new();
+		public Dictionary<T, IUIPanel> Panels { get; private set; } = new();
 
 		public abstract bool CanBeClosedByCancelInput { get; }
-		public bool TryGetCurPanel(out UIPanel panel) => Panels.TryGetValue(CurPanelType, out panel);
+		public bool TryGetCurPanel(out IUIPanel panel) => Panels.TryGetValue(CurPanelType, out panel);
 		public bool IsPanelOpen => CurPanelType.Equals(DefaultPanel) == false;
 
 		private UIManager uiManager;
@@ -46,7 +46,7 @@ namespace WitchMendokusai
 		{
 			uiManager.RegisterOverlayUI(this);
 
-			foreach (UIPanel uiPanel in Panels.Values)
+			foreach (IUIPanel uiPanel in Panels.Values)
 			{
 				uiPanel.Init(this);
 				uiPanel.SetActive(false);
@@ -60,14 +60,14 @@ namespace WitchMendokusai
 			if (CurPanelType.Equals(newPanelType))
 				return;
 
-			if (Panels.TryGetValue(CurPanelType, out UIPanel oldPanel))
+			if (Panels.TryGetValue(CurPanelType, out IUIPanel oldPanel))
 			{
 				oldPanel.SetActive(false);
 			}
 
 			CurPanelType = newPanelType;
 
-			if (Panels.TryGetValue(newPanelType, out UIPanel newPanel))
+			if (Panels.TryGetValue(newPanelType, out IUIPanel newPanel))
 			{
 				newPanel.SetNPC(npcObject);
 				newPanel.SetActive(true);

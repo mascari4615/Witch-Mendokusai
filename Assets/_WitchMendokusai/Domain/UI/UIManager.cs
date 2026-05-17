@@ -71,7 +71,7 @@ namespace WitchMendokusai
 			get
 			{
 				PanelGroups.RemoveAll(ui => ui == null || ui.Equals(null));
-				return PanelGroups.Any(ui => ui.IsPanelOpen && ui.TryGetCurPanel(out UIPanel panel) && panel != null && panel.Equals(null) == false && panel.IsFullscreen);
+				return PanelGroups.Any(ui => ui.IsPanelOpen && ui.TryGetCurPanel(out IUIPanel panel) && panel != null && panel.Equals(null) == false && panel.IsFullscreen);
 			}
 		}
 

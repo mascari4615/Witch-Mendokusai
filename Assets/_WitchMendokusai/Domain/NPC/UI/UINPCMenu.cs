@@ -71,7 +71,7 @@ namespace WitchMendokusai
 				for (int i = 0; i < (int)NPCPanelType.Count; i++)
 				{
 					NPCPanelType panelType = (NPCPanelType)i;
-					UIPanel panel = uiManager.NPC.Panels[panelType];
+					IUIPanel panel = uiManager.NPC.Panels[panelType];
 
 					UISlot newSlot = Instantiate(optionPrefab, optionsParent).GetComponent<UISlot>();
 					newSlot.Init();

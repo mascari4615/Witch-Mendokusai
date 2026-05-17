@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace WitchMendokusai
 {
-	public abstract class UIPanel : MonoBehaviour
+	public abstract class UIPanel : MonoBehaviour, IUIPanel
 	{
 		[field: Header("_" + nameof(UIPanel))]
 		[field: SerializeField] public string Name { get; private set; } = "UIPanel";
