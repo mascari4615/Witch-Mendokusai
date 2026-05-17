@@ -6,23 +6,34 @@ namespace WitchMendokusai
 	public enum DialogueStepKind
 	{
 		Speak,
+		Choice,
 		End,
 	}
 
-	/// <summary>traversal 이 방출하는 한 스텝. Speak 면 <see cref="SpeakLine"/> 유효, End 면 null.</summary>
+	/// <summary>
+	/// traversal 이 방출하는 한 스텝.
+	/// Speak → <see cref="SpeakLine"/> 유효. Choice → <see cref="Prompt"/> + <see cref="Options"/>
+	/// 유효(소비자는 <see cref="DialogueGraphTraversal.SelectChoice"/> 로 분기 선택). End → 전부 null.
+	/// </summary>
 	public readonly struct DialogueStep
 	{
 		public DialogueStepKind Kind { get; }
 		public DialogueLine SpeakLine { get; }
+		public string Prompt { get; }
+		public IReadOnlyList<string> Options { get; }
 
-		private DialogueStep(DialogueStepKind kind, DialogueLine speakLine)
+		private DialogueStep(DialogueStepKind kind, DialogueLine speakLine, string prompt, IReadOnlyList<string> options)
 		{
 			Kind = kind;
 			SpeakLine = speakLine;
+			Prompt = prompt;
+			Options = options;
 		}
 
-		public static DialogueStep Speak(DialogueLine line) => new(DialogueStepKind.Speak, line);
-		public static readonly DialogueStep End = new(DialogueStepKind.End, null);
+		public static DialogueStep Speak(DialogueLine line) => new(DialogueStepKind.Speak, line, null, null);
+		public static DialogueStep Choice(string prompt, IReadOnlyList<string> options) =>
+			new(DialogueStepKind.Choice, null, prompt, options);
+		public static readonly DialogueStep End = new(DialogueStepKind.End, null, null, null);
 	}
 
 	/// <summary>
@@ -31,14 +42,16 @@ namespace WitchMendokusai
 	/// MonoBehaviour 러너(DialogueRunner Phase 2 통합 — 다음 단계)는 이 스텝 시퀀스를 소비해
 	/// 버블/typewriter/sfx 연출만 담당(traversal 로직과 분리).
 	///
-	/// 현 단계(tracer-bullet): <see cref="DialogueStartNode"/> → <see cref="DialogueSpeakNode"/>* → 종료.
-	/// Choice/Wait/Branch 는 다음 단계에서 *노드 타입 + 스텝 종류 추가* 만으로 확장 — 코어
-	/// "현재 노드의 출력 포트 → 연결 → 타깃" 따라가기 로직은 불변(확장 seam).
+	/// 현 단계: <see cref="DialogueStartNode"/> → (<see cref="DialogueSpeakNode"/> |
+	/// <see cref="DialogueChoiceNode"/>)* → 종료. #6 Choice 추가 시 코어 "현재 노드의 출력
+	/// 포트 → 연결 → 타깃"(<see cref="FollowFlow"/>) 는 *불변* — 따라갈 출력 포트 id 만
+	/// 노드 타입별로 분기(<see cref="OutputPortToFollow"/>). Wait/Branch 도 동일 패턴 확장.
 	/// </summary>
 	public sealed class DialogueGraphTraversal
 	{
 		private readonly DialogueGraph graph;
 		private NodeBase currentNode;
+		private int pendingChoice = -1;
 
 		public DialogueGraphTraversal(DialogueGraph graph)
 		{
@@ -63,7 +76,10 @@ namespace WitchMendokusai
 			return StepForCurrent();
 		}
 
-		/// <summary>현재 노드의 `next` 플로우 엣지를 따라 다음 스텝. 연결 없거나 끝이면 End.</summary>
+		/// <summary>
+		/// 현재 노드의 진행 플로우 엣지를 따라 다음 스텝. Speak→`next` / Choice→선택된
+		/// `choice{i}`(미선택이면 End). 연결 없거나 끝이면 End.
+		/// </summary>
 		public DialogueStep Next()
 		{
 			if (currentNode == null)
@@ -71,8 +87,46 @@ namespace WitchMendokusai
 				return DialogueStep.End;
 			}
 
-			currentNode = FollowFlow(currentNode, DialogueSpeakNode.PORT_NEXT);
+			string outputPortId = OutputPortToFollow(currentNode);
+			if (outputPortId == null)
+			{
+				return DialogueStep.End;
+			}
+
+			currentNode = FollowFlow(currentNode, outputPortId);
 			return StepForCurrent();
+		}
+
+		/// <summary>
+		/// Choice 스텝에서 분기 선택 — i 번째 옵션 포트(`choice{i}`)를 다음 <see cref="Next"/> 가 따라감.
+		/// 현재 노드가 Choice 아니거나 index 범위 밖이면 false(상태 불변).
+		/// </summary>
+		public bool SelectChoice(int index)
+		{
+			if (currentNode is DialogueChoiceNode choiceNode == false)
+			{
+				return false;
+			}
+			if (index < 0 || index >= choiceNode.Options.Count)
+			{
+				return false;
+			}
+			pendingChoice = index;
+			return true;
+		}
+
+		/// <summary>노드 타입별 진행 출력 포트 id. 미선택 Choice / 미지원 타입 = null(=End).</summary>
+		private string OutputPortToFollow(NodeBase node)
+		{
+			if (node is DialogueSpeakNode)
+			{
+				return DialogueSpeakNode.PORT_NEXT;
+			}
+			if (node is DialogueChoiceNode)
+			{
+				return pendingChoice >= 0 ? DialogueChoiceNode.ChoicePortId(pendingChoice) : null;
+			}
+			return null;
 		}
 
 		private DialogueStep StepForCurrent()
@@ -80,6 +134,11 @@ namespace WitchMendokusai
 			if (currentNode is DialogueSpeakNode speakNode)
 			{
 				return DialogueStep.Speak(speakNode.Line);
+			}
+			if (currentNode is DialogueChoiceNode choiceNode)
+			{
+				pendingChoice = -1;
+				return DialogueStep.Choice(choiceNode.Prompt, choiceNode.Options);
 			}
 			return DialogueStep.End;
 		}

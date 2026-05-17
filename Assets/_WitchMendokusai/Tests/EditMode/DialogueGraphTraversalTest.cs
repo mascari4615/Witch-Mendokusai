@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using NUnit.Framework;
 using UnityEngine;
 
@@ -66,6 +67,68 @@ namespace WitchMendokusai.Tests
 
 			Assert.That(traversal.Start().Kind, Is.EqualTo(DialogueStepKind.End),
 				"DialogueStartNode 없으면 진입점 없음 → 즉시 End");
+		}
+
+		// --- #6 Choice (TASK-WM-052 Phase 2 #6) ---
+
+		[Test]
+		public void Choice_SelectsBranchByIndex()
+		{
+			DialogueGraph graph = NewGraph();
+			DialogueStartNode start = new();
+			DialogueLine intro = NewLine();
+			DialogueSpeakNode speakIntro = new() { Line = intro };
+			DialogueChoiceNode choice = new() { Prompt = "pick", Options = new List<string> { "A", "B" } };
+			DialogueLine lineA = NewLine();
+			DialogueLine lineB = NewLine();
+			DialogueSpeakNode speakA = new() { Line = lineA };
+			DialogueSpeakNode speakB = new() { Line = lineB };
+			graph.AddNode(start);
+			graph.AddNode(speakIntro);
+			graph.AddNode(choice);
+			graph.AddNode(speakA);
+			graph.AddNode(speakB);
+
+			Assert.That(graph.Connect(start.FindPort(DialogueStartNode.PORT_NEXT), speakIntro.FindPort(DialogueSpeakNode.PORT_IN)), Is.True);
+			Assert.That(graph.Connect(speakIntro.FindPort(DialogueSpeakNode.PORT_NEXT), choice.FindPort(DialogueChoiceNode.PORT_IN)), Is.True);
+			Assert.That(graph.Connect(choice.FindPort(DialogueChoiceNode.ChoicePortId(0)), speakA.FindPort(DialogueSpeakNode.PORT_IN)), Is.True);
+			Assert.That(graph.Connect(choice.FindPort(DialogueChoiceNode.ChoicePortId(1)), speakB.FindPort(DialogueSpeakNode.PORT_IN)), Is.True);
+
+			DialogueGraphTraversal traversal = new(graph);
+			Assert.That(traversal.Start().SpeakLine, Is.SameAs(intro));
+
+			DialogueStep choiceStep = traversal.Next();
+			Assert.That(choiceStep.Kind, Is.EqualTo(DialogueStepKind.Choice));
+			Assert.That(choiceStep.Prompt, Is.EqualTo("pick"));
+			Assert.That(choiceStep.Options, Is.EquivalentTo(new[] { "A", "B" }));
+
+			Assert.That(traversal.SelectChoice(5), Is.False, "범위 밖 선택 = false");
+			Assert.That(traversal.SelectChoice(1), Is.True);
+
+			DialogueStep branch = traversal.Next();
+			Assert.That(branch.Kind, Is.EqualTo(DialogueStepKind.Speak));
+			Assert.That(branch.SpeakLine, Is.SameAs(lineB), "choice1 → speakB 분기");
+			Assert.That(traversal.Next().Kind, Is.EqualTo(DialogueStepKind.End));
+		}
+
+		[Test]
+		public void Choice_NoSelection_Ends()
+		{
+			DialogueGraph graph = NewGraph();
+			DialogueStartNode start = new();
+			DialogueChoiceNode choice = new() { Prompt = "p", Options = new List<string> { "X" } };
+			DialogueSpeakNode after = new() { Line = NewLine() };
+			graph.AddNode(start);
+			graph.AddNode(choice);
+			graph.AddNode(after);
+
+			Assert.That(graph.Connect(start.FindPort(DialogueStartNode.PORT_NEXT), choice.FindPort(DialogueChoiceNode.PORT_IN)), Is.True);
+			Assert.That(graph.Connect(choice.FindPort(DialogueChoiceNode.ChoicePortId(0)), after.FindPort(DialogueSpeakNode.PORT_IN)), Is.True);
+
+			DialogueGraphTraversal traversal = new(graph);
+			Assert.That(traversal.Start().Kind, Is.EqualTo(DialogueStepKind.Choice));
+			Assert.That(traversal.Next().Kind, Is.EqualTo(DialogueStepKind.End),
+				"SelectChoice 안 하면 진행 불가 → End");
 		}
 	}
 }
