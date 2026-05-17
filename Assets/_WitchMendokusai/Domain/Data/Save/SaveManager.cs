@@ -15,8 +15,13 @@ namespace WitchMendokusai
 		public bool IsDataLoaded { get; private set; }
 
 		private SOManager soManager;
-		// DataManager → SaveManager → DataManager 순환 — lazy Instance 로 회피 (TASK-WM-078 γ P3-K).
-		private DataManager DataManager => DataManager.Instance;
+		// DataManager → SaveManager → DataManager 순환 — 소유자 push (TASK-WM-120 γ).
+		// WM-078 γ P3-K 의 lazy `DataManager.Instance` 폐기: DataManager 가 이미
+		// SaveManager 를 DI 로 받아 소유(Construct) → WM-107 의 QuestManager·
+		// IEffectRunner 와 동일한 BindDataManager 소유자-push 로 통일 (static
+		// back-ref 제거, [Inject] pull X — 생성자 순환 미도입).
+		private DataManager DataManager;
+		public void BindDataManager(DataManager dataManager) => DataManager = dataManager;
 
 		[Inject]
 		public void Construct(SOManager soManager)

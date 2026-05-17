@@ -47,10 +47,13 @@ namespace WitchMendokusai
 			SaveManager = saveManager;
 			WorkManager = workManager;
 			QuestManager = questManager;
-			// TASK-WM-107 Slice 2C-3/3-2 — 소유자 push (↔QuestManager·↔IEffectRunner 순환 회피, [Inject] pull X).
+			// TASK-WM-107 Slice 2C-3/3-2 + TASK-WM-120 γ — 소유자 push (↔QuestManager·
+			// ↔IEffectRunner·↔SaveManager 순환 회피, [Inject] pull X / static back-ref X).
 			// IEffectRunner 주입은 3-1 후 EffectRunner↛DataManager 라 비순환 (EffectRunner→{SOMgr,Player,Pool}만).
+			// SaveManager 는 WM-078 γ P3-K 의 lazy `DataManager.Instance` 를 본 push 로 대체 (WM-120).
 			questManager.BindDataManager(this);
 			effectRunner.BindDataManager(this);
+			saveManager.BindDataManager(this);
 		}
 
 		private PlayFabManager playFabManager;
