@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.InputSystem;
 using UnityEngine.UIElements;
 using VContainer;
 
@@ -163,7 +162,7 @@ namespace WitchMendokusai
 			}
 			else
 			{
-				if (Mouse.current == null)
+				if (inputManager.IsMouseAvailable == false)
 					return;
 				screen = inputManager.MouseScreenPosition;
 			}

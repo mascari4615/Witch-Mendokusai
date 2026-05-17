@@ -162,6 +162,10 @@ namespace WitchMendokusai
 		public Vector3 MouseWorldPosition { get; private set; }
 		public Vector2 MouseScreenPosition { get; private set; }
 		public bool IsAnyKeyPressedThisFrame => Keyboard.current != null && Keyboard.current.anyKey.wasPressedThisFrame;
+		// TASK-WM-135 — Mouse.current 직접 접근 캡슐화 (DollAnimator 폴링 / 잔존 null guard 정리).
+		public bool IsMouseAvailable => Mouse.current != null;
+		public bool IsMouseLeftButtonPressed => Mouse.current != null && Mouse.current.leftButton.isPressed;
+		public bool IsMouseRightButtonPressed => Mouse.current != null && Mouse.current.rightButton.isPressed;
 		public Vector2 MoveInput { get; private set; }
 		public float CameraRotateInput { get; private set; }
 		private IInputStrategy CurrentInputStrategy { get; set; }

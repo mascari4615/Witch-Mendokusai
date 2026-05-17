@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.InputSystem;
 using VContainer;
 
 namespace WitchMendokusai
@@ -82,7 +81,7 @@ namespace WitchMendokusai
 		{
 			if (chunkManager == null || mainCamera == null)
 				return;
-			if (Mouse.current == null)
+			if (inputManager.IsMouseAvailable == false)
 				return;
 			if (inputManager.IsPointerOverUI())
 				return;

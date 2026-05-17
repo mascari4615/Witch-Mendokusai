@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.InputSystem;
 using UnityEngine.UIElements;
 using VContainer;
 
@@ -117,7 +116,7 @@ namespace WitchMendokusai
 
 		private void Update()
 		{
-			if (Mouse.current == null || HoldingOverlay == null || HoldingOverlay.panel == null)
+			if (inputManager.IsMouseAvailable == false || HoldingOverlay == null || HoldingOverlay.panel == null)
 				return;
 
 			Vector2 screen = inputManager.MouseScreenPosition;
