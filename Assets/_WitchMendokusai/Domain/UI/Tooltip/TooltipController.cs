@@ -53,6 +53,7 @@ namespace WitchMendokusai
 
 			RegisterBuilder(typeof(ItemData), new ItemTooltipBuilder());
 			RegisterBuilder(typeof(Building), new BuildingTooltipBuilder());
+			RegisterBuilder(typeof(SlotData), new SlotDataTooltipBuilder());
 		}
 
 		private void OnDestroy()
