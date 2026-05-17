@@ -16,13 +16,25 @@ namespace WitchMendokusai
 			// need to load the Preload asset manually") — player 에선 preloaded
 			// asset 의 OnEnable(if isPlaying → Instance=this)을 Unity 가 자동 처리
 			// 하므로 수동 호출 불요. 가드 = VContainer 설계 패턴과 동형.
+			// [DEBUG-wm121] TASK-WM-121 — player 조립루트 미빌드 sub-path 판별.
+			// 단일 grep cleanup. 동작 무변경(로깅만 + 기존 호출 유지).
+			UnityEngine.Debug.Log("[DEBUG-wm121] Bootstrap.OnBooting 진입");
+			UnityEngine.Debug.Log($"[DEBUG-wm121] pre: Instance null? {VContainerSettings.Instance == null}");
 			if (VContainerSettings.Instance == null)
 			{
 #if UNITY_EDITOR
 				VContainerSettings.LoadInstanceFromPreloadAssets();
 #endif
 			}
-			VContainerSettings.Instance.GetOrCreateRootLifetimeScopeInstance();
+			UnityEngine.Debug.Log($"[DEBUG-wm121] post-#if: Instance null? {VContainerSettings.Instance == null}");
+			if (VContainerSettings.Instance != null)
+			{
+				UnityEngine.Debug.Log($"[DEBUG-wm121] RootLifetimeScope ref null? {VContainerSettings.Instance.RootLifetimeScope == null}");
+			}
+			VContainer.Unity.LifetimeScope wm121Scope =
+				VContainerSettings.Instance.GetOrCreateRootLifetimeScopeInstance();
+			UnityEngine.Debug.Log($"[DEBUG-wm121] GetOrCreate 반환 null? {wm121Scope == null} "
+				+ $"container null? {(wm121Scope == null ? "n/a" : (wm121Scope.Container == null).ToString())}");
 		}
 	}
 }
