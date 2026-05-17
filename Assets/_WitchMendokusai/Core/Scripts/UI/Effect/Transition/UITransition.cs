@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
+using VContainer;
 using Random = UnityEngine.Random;
 
 namespace WitchMendokusai
@@ -11,6 +12,14 @@ namespace WitchMendokusai
 	{
 		private CanvasGroup canvasGroup;
 		private Animator[] transitionAnimators;
+
+		private TimeManager timeManager;
+
+		[Inject]
+		public void Construct(TimeManager timeManager)
+		{
+			this.timeManager = timeManager;
+		}
 
 		private const float FadeWaitTime = 0.5f;
 		private const float AnimWaitTime = 0.01f;
@@ -58,7 +67,7 @@ namespace WitchMendokusai
 			// Start
 			IsInTransition = true;
 			aWhenStart?.Invoke();
-			TimeManager.Instance.Pause(gameObject);
+			timeManager.Pause(gameObject);
 			canvasGroup.blocksRaycasts = true;
 
 			// During
@@ -85,7 +94,7 @@ namespace WitchMendokusai
 			// End
 			IsInTransition = false;
 			canvasGroup.blocksRaycasts = false;
-			TimeManager.Instance.Resume(gameObject);
+			timeManager.Resume(gameObject);
 			aWhenEnd?.Invoke();
 		}
 

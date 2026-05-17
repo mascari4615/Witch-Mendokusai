@@ -76,7 +76,9 @@ namespace WitchMendokusai
 				BootGuard.EagerResolve<CodexPreviewController>(container, "Root");
 				BootGuard.EagerResolve<WorldClock>(container, "Root");
 				BootGuard.EagerResolve<PlayerProvider>(container, "Root");
-				BootGuard.EagerResolve<TimeManager>(container, "Root");
+				// TimeManager — TASK-WM-120 γ 2-a: 마지막 static caller(UITransition)
+				// → [Inject] 마이그 완료. GameManager/DataManager.Construct(TimeManager)
+				// 가 eager 라 graph-derived 로 transitive 해소 (손-리스트 eager 불요).
 				BootGuard.EagerResolve<WeatherSystem>(container, "Root");
 				BootGuard.EagerResolve<WindowManager>(container, "Root");
 				BootGuard.EagerResolve<DataLoader>(container, "Root");
