@@ -1,0 +1,72 @@
+name: WM asmdef boundary gate
+
+# 정본: memo/dotfiles/workflows/wm-asmdef-boundary.yml (sync-workflows.ps1 로 배포).
+# 본 파일 직접 편집 X — 정본에서 편집 후 `powershell -File memo/dotfiles/sync-workflows.ps1 -Apply`.
+#
+# TASK-WM-104 Phase C — NetCode asmdef 단방향 게이트.
+# WM.Core 가 FishNet 을 (asmdef references / .cs using 어느 쪽으로도) 침범하면
+# 빌드 fail. 6 동기 「분리」(모듈화·asmdef 단방향) first-use baseline 의
+# machine-checkable contract. Claude LLM 스캔(claude-quality-loop.yml)과
+# 별개 — 이건 *결정적*(grep, Unity 무관, ~수초) push/PR 게이트.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'Assets/_WitchMendokusai/Core/**'
+      - '.github/workflows/wm-asmdef-boundary.yml'
+  pull_request:
+    paths:
+      - 'Assets/_WitchMendokusai/Core/**'
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: wm-asmdef-boundary-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  boundary:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    env:
+      CORE_DIR: 'Assets/_WitchMendokusai/Core'
+      CORE_ASMDEF: 'Assets/_WitchMendokusai/Core/WM.Core.asmdef'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Gate — WM.Core 가 FishNet 을 참조하지 않음 (단방향)
+        run: |
+          set -euo pipefail
+          FAIL=0
+
+          # 1) WM.Core.asmdef 의 references 에 FishNet 어셈블리 없음.
+          if [ ! -f "$CORE_ASMDEF" ]; then
+            echo "::error::$CORE_ASMDEF 없음 — 경로 회귀 (asmdef 이동?). 게이트 갱신 필요."
+            exit 1
+          fi
+          if grep -q 'FishNet' "$CORE_ASMDEF"; then
+            echo "::error::WM.Core.asmdef references 에 FishNet 어셈블리 침범:"
+            grep -n 'FishNet' "$CORE_ASMDEF" || true
+            FAIL=1
+          fi
+
+          # 2) Core/ 하위 .cs 에 FishNet using / 타입 토큰 없음.
+          #    (WM.Core → FishNet 컴파일 의존 = 단방향 위반. NetCode 결합은
+          #     WM.Network 계층에만 — WorldClockNetworkBridge 등.)
+          MATCHES=$(grep -rnE '(^|[^A-Za-z_])(using[[:space:]]+FishNet|FishNet\.)' \
+            "$CORE_DIR" --include='*.cs' || true)
+          if [ -n "$MATCHES" ]; then
+            echo "::error::WM.Core .cs 가 FishNet 을 직접 참조 (asmdef 단방향 위반):"
+            echo "$MATCHES"
+            FAIL=1
+          fi
+
+          if [ "$FAIL" -ne 0 ]; then
+            echo "::error::asmdef 단방향 게이트 FAIL — NetCode 결합은 WM.Network 계층에만 둘 것 (TASK-WM-104 / 6 동기 분리)."
+            exit 1
+          fi
+          echo "asmdef 단방향 OK — WM.Core 는 FishNet 무결합 (clean)."
