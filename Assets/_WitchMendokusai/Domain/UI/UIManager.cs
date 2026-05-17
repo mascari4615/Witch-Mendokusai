@@ -49,6 +49,19 @@ namespace WitchMendokusai
 			this.container = container;
 			questCompletedSub = questCompletedSubscriber.Subscribe(OnQuestCompleted);
 		}
+
+		/// <summary>
+		/// Toolkit IUIPanel 을 글로벌 UIRoot 에 AddComponent + DI 주입해 생성.
+		/// 씬 prefab 미배치 Toolkit 패널의 owner-push 생성 경로 (InventoryView 등 선례 동형).
+		/// 호출 시점 = panel-group Init(Awake, Construct 후) → uiRoot/container 보장.
+		/// TASK-WM-113 S2 substrate.
+		/// </summary>
+		public T CreateToolkitPanel<T>() where T : UIToolkitPanel
+		{
+			T panel = uiRoot.gameObject.AddComponent<T>();
+			container.Inject(panel);
+			return panel;
+		}
 	
 		[SerializeField] private UIDungeon dungeonPrefab = null;
 		[SerializeField] private UIAdventurerGuild adventurerGuildPrefab = null;

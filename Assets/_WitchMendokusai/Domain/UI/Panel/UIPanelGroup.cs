@@ -35,6 +35,9 @@ namespace WitchMendokusai
 			this.uiManager = uiManager;
 		}
 
+		// Toolkit 패널 생성용 (Init 시점 = Construct 후이므로 uiManager 보장). TASK-WM-113 S2.
+		protected UIManager UIManager => uiManager;
+
 		protected virtual void Awake()
 		{
 			Init();

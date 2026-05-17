@@ -35,7 +35,7 @@ namespace WitchMendokusai
 
 			Panels[NPCPanelType.Shop] = FindAnyObjectByType<UIShop>(FindObjectsInactive.Include);
 			Panels[NPCPanelType.DungeonEntrance] = FindAnyObjectByType<UIDungeonEntrance>(FindObjectsInactive.Include);
-			Panels[NPCPanelType.Pot] = FindAnyObjectByType<UIPot>(FindObjectsInactive.Include);
+			Panels[NPCPanelType.Pot] = UIManager.CreateToolkitPanel<UIPotToolkit>(); // WM-113 S2: 구 빈 uGUI UIPot 스텁 → Toolkit (잠복크래시 해소·substrate first-use)
 			Panels[NPCPanelType.Anvil] = FindAnyObjectByType<UIAnvil>(FindObjectsInactive.Include);
 			Panels[NPCPanelType.Furnace] = FindAnyObjectByType<UIFurnace>(FindObjectsInactive.Include);
 			Panels[NPCPanelType.CraftingTable] = FindAnyObjectByType<UICraftingTable>(FindObjectsInactive.Include);
