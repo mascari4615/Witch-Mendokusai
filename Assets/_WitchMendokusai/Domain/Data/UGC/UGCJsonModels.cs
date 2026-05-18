@@ -102,6 +102,18 @@ namespace WitchMendokusai
 		public JObject meta;
 	}
 
+	// 월드젠 노이즈 시드 — TerrainParameters 의 직렬화 서브셋 (FBM 파라미터). 기본값 = TerrainParameters 기본값 정합.
+	[Serializable]
+	public class SeedSaveData
+	{
+		public string name;
+		public int octaves = 4;
+		public float frequency = 0.01f;
+		public float persistence = 0.5f;
+		public float lacunarity = 2f;
+		public float biomeFrequency = 0.005f;
+	}
+
 	[Serializable]
 	public class UGCSeedManifestData
 	{
