@@ -4,17 +4,22 @@ using UnityEngine;
 namespace WitchMendokusai
 {
 	/// <summary>
-	/// Kinematic Character Motor — sweep 기반 위치 결정 엔진.
+	/// Kinematic Character Motor — sweep 기반 위치 결정 엔진. 단일 ground-state determination 파이프라인 (TASK-WM-029-B).
 	/// 캐릭터는 자기 위치를 자기가 결정한다. Rigidbody는 isKinematic=true / useGravity=false 전제.
 	///
-	/// 구조 (TASK-WM-029 — vertical 을 horizontal slide-iterate 프레임워크에서 분리):
+	/// Ground state 결정 (single source of truth):
+	/// 1. Tick 시작: <see cref="DetectGround"/> — 시작 위치 기준, IsStableGroundDirectlyBelow로 grounded 판정.
+	///    Contributors 가 jump/gravity 계산 시 사용.
+	/// 2. Vertical descent: <see cref="SweepDescend"/> — 발 중심 raycast로 ground 감지. IsWalkable + IsStableGroundDirectlyBelow 둘 다 검증.
+	///    walk-off-edge: ray hit 있어도 unstable → Airborne 판정 → TryGroundStick 대기.
+	/// 3. Ground stick recovery: <see cref="TryGroundStick"/> — wasGroundedPrevTick && Airborne 시 발 아래 0.3f 범위에서
+	///    snap 시도. 낮은 절벽(0.3f 미만)은 복구, 높은 절벽은 유지.
+	///
+	/// 부수 (horizontal sweep 후 stale 방지):
 	/// - Horizontal: <see cref="SweepAndSlide"/> — capsule cast 기반 collide-and-slide.
 	///   Step offset / crease handling / wall slide / floor tangent slide 포함.
-	/// - Vertical descent: <see cref="SweepDescend"/> — 발 중심 raycast 로 walkable + stable floor 찾기.
-	///   CapsuleCast 의 sphere edge 가 cliff face 모서리를 잡는 spurious contact 회피.
 	/// - Vertical ascent: <see cref="SweepAscend"/> — 머리 중심 raycast 로 ceiling 찾기.
 	/// - Depenetration via ComputePenetration (시작 + sweep 후).
-	/// - Ground stick (직전 grounded면 발 아래 짧은 거리 sweep 으로 ground 찾아 snap).
 	/// </summary>
 	public class Motor
 	{
@@ -344,7 +349,9 @@ namespace WitchMendokusai
 		/// <summary>
 		/// 떨어지는 캐릭터의 vertical 이동 — 발 중심 raycast 로 walkable + stable floor 찾기.
 		/// CapsuleCast 의 sphere edge 가 cliff face 모서리를 잡는 spurious contact (TASK-WM-029) 회피.
-		/// 발 중심 ray 라 capsule volume 밖 모서리는 안 잡고, 정 직 아래에 *진짜* ground 있을 때만 land.
+		/// 발 중심 ray 라 capsule volume 밖 모서리는 안 잡고, 정 직 아래에 *진짜* stable ground 있을 때만 land.
+		/// walk-off-edge 시나리오: capsule이 절벽 끝에만 걸친 경우, ray hit은 발생하지만
+		/// IsStableGroundDirectlyBelow 는 fail → Airborne 판정 → TryGroundStick 이 stick 시도 (같은 tick 해결).
 		/// </summary>
 		private Vector3 SweepDescend(Vector3 startPosition, float verticalDeltaY)
 		{
@@ -394,7 +401,19 @@ namespace WitchMendokusai
 
 			if (IsWalkable(closestHit))
 			{
-				// Walkable — land grounded.
+				// Walkable ray hit — stability 추가 검증 필수.
+				// walk-off-edge 에서 capsule이 절벽 끝에만 걸친 경우, ray는 hit이지만 stable하지 않음.
+				// IsStableGroundDirectlyBelow 실패 → Airborne 판정 → TryGroundStick 이 snap.
+				GetCapsuleEnds(stoppedPosition, out Vector3 stoppedCapsuleBottom, out _, out _);
+				if (IsStableGroundDirectlyBelow(stoppedCapsuleBottom, radius) == false)
+				{
+					// Walkable이지만 unstable — airborne 판정, TryGroundStick 대기.
+					context.GroundState = MotorGroundState.Airborne;
+					context.HasGroundNormal = false;
+					return stoppedPosition;
+				}
+
+				// Walkable + Stable — land grounded.
 				context.Velocity.y = 0f;
 				context.GroundState = MotorGroundState.Grounded;
 				context.GroundNormal = closestHit.normal;
