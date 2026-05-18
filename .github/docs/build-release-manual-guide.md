@@ -69,8 +69,9 @@ build_platform() {
   unity -projectPath "$PROJECT_PATH" \
     -executeMethod BuildScript.BuildPlayer \
     -logFile - \
-    --headless \
-    --quit \
+    -batchmode \
+    -nographics \
+    -quit \
     -buildTarget "$PLATFORM" \
     BUILD_OUTPUT="$OUTPUT" \
     BUNDLEVERSION="$RELEASE_VERSION"
