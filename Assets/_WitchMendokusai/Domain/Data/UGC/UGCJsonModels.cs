@@ -101,4 +101,16 @@ namespace WitchMendokusai
 		public List<string> tags = new();
 		public JObject meta;
 	}
+
+	[Serializable]
+	public class UGCSeedManifestData
+	{
+		public int schemaVersion;
+		public int seedId;
+		public int version;
+		public string author;
+		public SeedSaveData seedData;
+		public List<string> tags = new();
+		public JObject meta;
+	}
 }

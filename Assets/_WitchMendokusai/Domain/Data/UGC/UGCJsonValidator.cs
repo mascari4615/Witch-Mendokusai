@@ -10,6 +10,7 @@ namespace WitchMendokusai
 		private const string PlatformKind = "Platform";
 		private const string CheckpointKind = "Checkpoint";
 		private const string HazardKind = "Hazard";
+		private const float EPSILON = 0.0001f;
 
 		public static bool TryValidateTriggerEvent(UGCTriggerEventData data, out string error)
 		{
@@ -267,6 +268,68 @@ namespace WitchMendokusai
 					error = $"action[{index}] has unsupported type: {action.type}";
 					return false;
 			}
+		}
+
+		public static bool TryValidateSeed(UGCSeedManifestData manifest, out string error)
+		{
+			if (manifest == null)
+			{
+				error = "Manifest is null";
+				return false;
+			}
+
+			if (manifest.schemaVersion != CurrentSchemaVersion)
+			{
+				error = $"Schema version mismatch: expected {CurrentSchemaVersion}, got {manifest.schemaVersion}";
+				return false;
+			}
+
+			if (manifest.seedId < 0)
+			{
+				error = $"Invalid seedId: {manifest.seedId} (must be >= 0)";
+				return false;
+			}
+
+			var seedData = manifest.seedData;
+
+			if (string.IsNullOrWhiteSpace(seedData.name))
+			{
+				error = "Seed name is required and must not be empty";
+				return false;
+			}
+
+			if (seedData.octaves < 1 || seedData.octaves > 8)
+			{
+				error = $"Invalid octaves: {seedData.octaves} (must be 1~8)";
+				return false;
+			}
+
+			if (seedData.frequency < EPSILON)
+			{
+				error = $"Invalid frequency: {seedData.frequency} (must be > {EPSILON})";
+				return false;
+			}
+
+			if (seedData.persistence < 0.0f || seedData.persistence > 1.0f)
+			{
+				error = $"Invalid persistence: {seedData.persistence} (must be 0~1)";
+				return false;
+			}
+
+			if (seedData.lacunarity < 1.0f)
+			{
+				error = $"Invalid lacunarity: {seedData.lacunarity} (must be >= 1.0)";
+				return false;
+			}
+
+			if (seedData.biomeFrequency < EPSILON)
+			{
+				error = $"Invalid biomeFrequency: {seedData.biomeFrequency} (must be > {EPSILON})";
+				return false;
+			}
+
+			error = null;
+			return true;
 		}
 
 		private static bool IsKind(string actual, string expected)

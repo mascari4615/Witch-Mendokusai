@@ -83,6 +83,86 @@ namespace WitchMendokusai
 			return true;
 		}
 
+		public static bool TryLoadSeedFromPath(string path, out SeedSaveData seedData, out string error)
+		{
+			seedData = default;
+			error = null;
+
+			if (string.IsNullOrWhiteSpace(path))
+			{
+				error = "Path is null or empty";
+				return false;
+			}
+
+			if (!File.Exists(path))
+			{
+				error = $"File not found: {path}";
+				return false;
+			}
+
+			try
+			{
+				string jsonContent = File.ReadAllText(path);
+				var manifest = JsonConvert.DeserializeObject<UGCSeedManifestData>(jsonContent, JsonSettings);
+
+				if (!UGCJsonValidator.TryValidateSeed(manifest, out string validationError))
+				{
+					error = $"Validation failed: {validationError}";
+					return false;
+				}
+
+				seedData = manifest.seedData;
+				return true;
+			}
+			catch (Exception ex)
+			{
+				error = $"Failed to load JSON: {ex.Message}";
+				return false;
+			}
+		}
+
+		public static bool TrySaveSeedToPath(string path, SeedSaveData seedData, int seedId, string author, out string error)
+		{
+			error = null;
+
+			if (string.IsNullOrWhiteSpace(path))
+			{
+				error = "Path is null or empty";
+				return false;
+			}
+
+			try
+			{
+				Directory.CreateDirectory(Path.GetDirectoryName(path) ?? ".");
+
+				var manifest = new UGCSeedManifestData
+				{
+					schemaVersion = 1,
+					seedId = seedId,
+					version = 1,
+					author = author ?? "unknown",
+					seedData = seedData,
+					tags = new(),
+					meta = null
+				};
+
+				if (!UGCJsonValidator.TryValidateSeed(manifest, out string validationError))
+				{
+					error = $"Validation failed: {validationError}";
+					return false;
+				}
+
+				string jsonContent = JsonConvert.SerializeObject(manifest, JsonSettings);
+				File.WriteAllText(path, jsonContent);
+				return true;
+			}
+			catch (Exception ex)
+			{
+				error = $"Failed to save JSON: {ex.Message}";
+				return false;
+			}
+		}
+
 		private static bool TryReadJsonFile(string path, out string json, out string error)
 		{
 			if (File.Exists(path) == false)
