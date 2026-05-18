@@ -6,8 +6,13 @@ namespace WitchMendokusai
 {
 	public class SceneLifetimeScope : LifetimeScope
 	{
+		// ★ source 인증 (TASK-WM-109-A, VContainer 1.17.0): RegisterComponentInHierarchy<T>
+		// 는 빌드 콜백서 Resolve 강제 → FindComponentProvider 가 scene root 들을 순회하며
+		// GetComponentInChildren(type, true) — *첫 매치 1개만* (FindComponentProvider.cs:48-49,
+		// `true`=inactive 포함), 없으면 VContainerException throw (:54). → 다중 인스턴스
+		// cascade X (나머지는 아래 InjectGameObject 루프). 정본: DI/VCONTAINER-MECHANISM.md §5.
 		// ★ 진짜 근본 (TASK-WM-078, 2026-05-16) — RegisterComponentInHierarchy<T> 는 BuildScope 시점
-		// FindObjectsByType 실행. World.unity 에 *없는* registered 타입 1개가 VContainerException →
+		// 등록타입을 씬에서 강제 Resolve. World.unity 에 *없는* registered 타입 1개가 VContainerException →
 		// Build callback 전체 abort → 후속 모든 inject 차단 (마스킹 체인: VoxelInteraction→ChunkManager
 		// →GroundGenerator→SpawnerInitializer→…). 개별 제거 = 원 캐스케이드 14커밋 함정 (씬 가변 + 미래 drift).
 		// 블라인드 catch = FastFail 위반. 근본 = 등록을 씬 실재에 *동적 일치*: 존재할 때만 등록/Resolve.
