@@ -1,4 +1,3 @@
-using System;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -10,6 +9,7 @@ namespace WitchMendokusai
 		{
 			PropertyNameCaseInsensitive = true,
 			WriteIndented = true,
+			IncludeFields = true,
 			Converters = { new JsonStringEnumConverter() }
 		};
 
