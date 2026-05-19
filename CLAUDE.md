@@ -1,4 +1,6 @@
-# WitchMendokusai — Claude 작업 지침
+# WitchMendokusai — AI 에이전트 작업 지침
+
+> Claude Code 자동 로드용 호환 문서다. Codex 등 다른 에이전트는 `AGENTS.md`를 입구로 삼고, 상세 규칙은 이 문서를 함께 참고한다.
 
 ## 세계관
 
@@ -397,7 +399,7 @@ powershell -File memo/dotfiles/scripts/unity-refresh.ps1
 
 ## Unity-MCP layer (TASK-WM-071, 2026-05-09 → 2026-05-10 CoplayDev 영구 회귀)
 
-**현재 정본 = CoplayDev `com.coplaydev.unity-mcp`** (community, MIT) — Claude 가 Unity Editor 직접 조작. Editor.log grep + `unity-refresh.ps1` 흐름의 *정본 채널*. (`dotnet build` 는 2026-05-10 폐기 — Mono runtime mismatch.)
+**현재 정본 = CoplayDev `com.coplaydev.unity-mcp`** (community, MIT) — AI 에이전트가 Unity Editor 직접 조작. Editor.log grep + `unity-refresh.ps1` 흐름의 *정본 채널*. (`dotnet build` 는 2026-05-10 폐기 — Mono runtime mismatch.)
 
 **Unity AI Package (`com.unity.ai.assistant`) 자체는 계속 사용** — Editor 안 IDE 보조 기능. *하지만 그 안의 공식 MCP server 는 폐기*. 사유 (2026-05-10 사용자 명시): **Unity Personal 계정 요청 한도** — 외부 client 가 공식 MCP 거치면 Unity AI Cloud cap 빠르게 도달. CoplayDev 는 Unity Cloud 우회 (Editor 안 직접 처리) — cap 무관.
 
