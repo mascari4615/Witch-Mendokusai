@@ -32,10 +32,10 @@ namespace WitchMendokusai.Editor.Infra.MCPRouting
 {
     public static class McpWorktreeBinder
     {
-        private const string MenuRoot = "WM/MCP/";
-        private const string DefaultLoopbackUrl = "http://127.0.0.1:8080";
+        private const string MENU_ROOT = "WM/MCP/";
+        private const string DEFAULT_LOOPBACK_URL = "http://127.0.0.1:8080";
 
-        [MenuItem(MenuRoot + "Bind Claude session to this Editor")]
+        [MenuItem(MENU_ROOT + "Bind Claude session to this Editor")]
         public static void BindClaudeSessionToThisEditor()
         {
             string projectRoot = GetProjectRoot();
@@ -83,7 +83,7 @@ namespace WitchMendokusai.Editor.Infra.MCPRouting
                 "OK");
         }
 
-        [MenuItem(MenuRoot + "Show Routing Status")]
+        [MenuItem(MENU_ROOT + "Show Routing Status")]
         public static void ShowRoutingStatus()
         {
             string projectRoot = GetProjectRoot();
@@ -116,12 +116,12 @@ namespace WitchMendokusai.Editor.Infra.MCPRouting
             EditorUtility.DisplayDialog("MCP Routing Status", body, "OK");
         }
 
-        [MenuItem(MenuRoot + "Run wm-mcp-route.ps1 (-Status)")]
+        [MenuItem(MENU_ROOT + "Run wm-mcp-route.ps1 (-Status)")]
         public static void RunRouterScriptStatus()
         {
             string projectRoot = GetProjectRoot();
             string scriptPath = Path.Combine(projectRoot, ".claude", "scripts", "wm-mcp-route.ps1");
-            if (!File.Exists(scriptPath))
+            if (File.Exists(scriptPath) == false)
             {
                 EditorUtility.DisplayDialog(
                     "MCP Worktree Binder",
@@ -132,7 +132,7 @@ namespace WitchMendokusai.Editor.Infra.MCPRouting
 
             try
             {
-                var psi = new ProcessStartInfo
+                ProcessStartInfo psi = new ProcessStartInfo
                 {
                     FileName = "powershell.exe",
                     Arguments = $"-NoProfile -ExecutionPolicy Bypass -File \"{scriptPath}\" -Status",
@@ -143,7 +143,7 @@ namespace WitchMendokusai.Editor.Infra.MCPRouting
                     CreateNoWindow = true
                 };
 
-                using (var proc = Process.Start(psi))
+                using (Process proc = Process.Start(psi))
                 {
                     string stdout = proc.StandardOutput.ReadToEnd();
                     string stderr = proc.StandardError.ReadToEnd();
@@ -178,6 +178,7 @@ namespace WitchMendokusai.Editor.Infra.MCPRouting
         //   3. Default 8080.
         private static int DiscoverHttpPort(string projectRoot)
         {
+            const string MCP_HTTP_PREFIX = "mcp_http_";
             string runStateDir = Path.Combine(projectRoot, "Library", "MCPForUnity", "RunState");
             if (Directory.Exists(runStateDir))
             {
@@ -187,9 +188,14 @@ namespace WitchMendokusai.Editor.Infra.MCPRouting
                 foreach (string file in candidates)
                 {
                     string name = Path.GetFileNameWithoutExtension(file);
-                    const string prefix = "mcp_http_";
-                    if (!name.StartsWith(prefix, StringComparison.Ordinal)) { continue; }
-                    if (int.TryParse(name.Substring(prefix.Length), out int port) == false) { continue; }
+                    if (name.StartsWith(MCP_HTTP_PREFIX, StringComparison.Ordinal) == false)
+                    {
+                        continue;
+                    }
+                    if (int.TryParse(name.Substring(MCP_HTTP_PREFIX.Length), out int port) == false)
+                    {
+                        continue;
+                    }
                     DateTime mtime = File.GetLastWriteTimeUtc(file);
                     if (mtime > latestMtime)
                     {
@@ -197,10 +203,13 @@ namespace WitchMendokusai.Editor.Infra.MCPRouting
                         latestPort = port;
                     }
                 }
-                if (latestPort > 0) { return latestPort; }
+                if (latestPort > 0)
+                {
+                    return latestPort;
+                }
             }
 
-            string baseUrl = EditorPrefs.GetString("MCPForUnity.HttpBaseUrl", DefaultLoopbackUrl);
+            string baseUrl = EditorPrefs.GetString("MCPForUnity.HttpBaseUrl", DEFAULT_LOOPBACK_URL);
             if (Uri.TryCreate(baseUrl, UriKind.Absolute, out Uri uri) && uri.Port > 0)
             {
                 return uri.Port;
