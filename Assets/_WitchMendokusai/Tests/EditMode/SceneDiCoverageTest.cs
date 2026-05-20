@@ -6,20 +6,6 @@ using WitchMendokusai.Editor.DI;
 
 namespace WitchMendokusai.Tests
 {
-	/// <summary>
-	/// TASK-WM-109-C — 씬 직접배치 컴포넌트의 DI 등록 누락 *CI 게이트*.
-	///
-	/// 배경: TASK-WM-109 이슈 3 — 새 컴포넌트가 World.unity 에 직접 배치됐는데 SceneLifetimeScope
-	/// 누락 → 부팅 [Inject] 0 → 사용 시점 NRE → cascade. 매번 stack trace → meta GUID → grep
-	/// 사이클. 본 테스트가 그 사이클의 *진입* 자체를 차단 — Composition Root 그래프 검증
-	/// (CompositionRootResolveTest) 과 동급의 *씬 실재* 검증.
-	///
-	/// 검증 단위: `SceneDiAuditor.AuditScene` — 씬 additive open + walk + close.
-	/// SceneLifetimeScope.cs 소스 *정본* 자기참조 → 새 registration 추가 시 audit 자동 인식.
-	///
-	/// 실행: `unity -runTests -batchmode -testPlatform EditMode -assemblyNames WM.Tests.EditMode`
-	/// (격리 worktree = MCP / 에디터 락 무관, ~1-2분).
-	/// </summary>
 	public sealed class SceneDiCoverageTest
 	{
 		[Test]

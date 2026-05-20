@@ -6,13 +6,6 @@ using UnityEngine;
 
 namespace WitchMendokusai.Editor.DI
 {
-	/// <summary>
-	/// TASK-WM-109-C — SceneDiAuditor 의 Editor 메뉴 진입점.
-	///
-	/// Menu = `WM/Audit/Scene DI Coverage` — `Assets/_WitchMendokusai/Scenes/` 하위
-	/// 모든 .unity 를 audit, Console 에 「누락 컴포넌트 + GameObject path + 타입」
-	/// 보고. 부작용 0 (씬 저장 X, 씬 상태 복원).
-	/// </summary>
 	public static class SceneDiAuditorMenu
 	{
 		private const string MENU_AUDIT_ALL = "WM/Audit/Scene DI Coverage (모든 씬)";
