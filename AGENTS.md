@@ -16,6 +16,17 @@
 - 작업 중 사용자에게 필요한 Unity 에디터 작업은 해당 TASK 문서의 체크리스트에 즉시 기록한다.
 - 새 Unity 파일을 추가하면 `.meta`까지 함께 추적한다.
 
+## 다중 worktree 의 MCP 라우팅 (TASK-WM-109-G)
+
+여러 worktree 가 동시에 살아 있을 때는 Claude session 마다 그 worktree
+의 Unity Editor 로만 MCP 요청이 가야 한다. 자동화 정본:
+
+- 외부 (Unity 없이): `powershell -NoProfile -ExecutionPolicy Bypass -File .claude/scripts/wm-mcp-route.ps1`
+- 내부 (Editor 열려 있을 때): `WM > MCP > Bind Claude session to this Editor`
+- 상세 / 진단: `.claude/scripts/README.md`
+
+`.mcp.json` 은 `.gitignore` 됨 (worktree 별 포트 다름).
+
 ## Git
 
 이 폴더는 독립 git repo다. 코드 변경 커밋은 `WitchMendokusai/` repo에서 한다.
