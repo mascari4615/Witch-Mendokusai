@@ -7,13 +7,17 @@ namespace WitchMendokusai
 	{
 		Speak,
 		Choice,
+		Wait,
 		End,
 	}
 
 	/// <summary>
 	/// traversal 이 방출하는 한 스텝.
 	/// Speak → <see cref="SpeakLine"/> 유효. Choice → <see cref="Prompt"/> + <see cref="Options"/>
-	/// 유효(소비자는 <see cref="DialogueGraphTraversal.SelectChoice"/> 로 분기 선택). End → 전부 null.
+	/// 유효(소비자는 <see cref="DialogueGraphTraversal.SelectChoice"/> 로 분기 선택).
+	/// Wait → <see cref="WaitKind"/> + <see cref="WaitSeconds"/> + <see cref="WaitEventId"/> 유효
+	/// (소비자가 시간/이벤트 만족 후 <see cref="DialogueGraphTraversal.Next"/> = 대기 완료 신호).
+	/// End → 전부 기본값.
 	/// </summary>
 	public readonly struct DialogueStep
 	{
@@ -21,19 +25,29 @@ namespace WitchMendokusai
 		public DialogueLine SpeakLine { get; }
 		public string Prompt { get; }
 		public IReadOnlyList<string> Options { get; }
+		public DialogueWaitKind WaitKind { get; }
+		public float WaitSeconds { get; }
+		public string WaitEventId { get; }
 
-		private DialogueStep(DialogueStepKind kind, DialogueLine speakLine, string prompt, IReadOnlyList<string> options)
+		private DialogueStep(DialogueStepKind kind, DialogueLine speakLine, string prompt, IReadOnlyList<string> options,
+			DialogueWaitKind waitKind, float waitSeconds, string waitEventId)
 		{
 			Kind = kind;
 			SpeakLine = speakLine;
 			Prompt = prompt;
 			Options = options;
+			WaitKind = waitKind;
+			WaitSeconds = waitSeconds;
+			WaitEventId = waitEventId;
 		}
 
-		public static DialogueStep Speak(DialogueLine line) => new(DialogueStepKind.Speak, line, null, null);
+		public static DialogueStep Speak(DialogueLine line) =>
+			new(DialogueStepKind.Speak, line, null, null, default, 0f, null);
 		public static DialogueStep Choice(string prompt, IReadOnlyList<string> options) =>
-			new(DialogueStepKind.Choice, null, prompt, options);
-		public static readonly DialogueStep End = new(DialogueStepKind.End, null, null, null);
+			new(DialogueStepKind.Choice, null, prompt, options, default, 0f, null);
+		public static DialogueStep Wait(DialogueWaitKind waitKind, float waitSeconds, string waitEventId) =>
+			new(DialogueStepKind.Wait, null, null, null, waitKind, waitSeconds, waitEventId);
+		public static readonly DialogueStep End = new(DialogueStepKind.End, null, null, null, default, 0f, null);
 	}
 
 	/// <summary>
@@ -126,6 +140,10 @@ namespace WitchMendokusai
 			{
 				return pendingChoice >= 0 ? DialogueChoiceNode.ChoicePortId(pendingChoice) : null;
 			}
+			if (node is DialogueWaitNode)
+			{
+				return DialogueWaitNode.PORT_NEXT;
+			}
 			return null;
 		}
 
@@ -139,6 +157,10 @@ namespace WitchMendokusai
 			{
 				pendingChoice = -1;
 				return DialogueStep.Choice(choiceNode.Prompt, choiceNode.Options);
+			}
+			if (currentNode is DialogueWaitNode waitNode)
+			{
+				return DialogueStep.Wait(waitNode.Kind, waitNode.Seconds, waitNode.EventId);
 			}
 			return DialogueStep.End;
 		}

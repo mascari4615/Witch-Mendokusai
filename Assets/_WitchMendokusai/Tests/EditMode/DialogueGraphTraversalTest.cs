@@ -130,5 +130,55 @@ namespace WitchMendokusai.Tests
 			Assert.That(traversal.Next().Kind, Is.EqualTo(DialogueStepKind.End),
 				"SelectChoice 안 하면 진행 불가 → End");
 		}
+
+		// --- #8 Wait (TASK-WM-052 Phase 2 #8) ---
+
+		[Test]
+		public void Wait_Time_EmitsWaitStepThenContinuesOnNext()
+		{
+			DialogueGraph graph = NewGraph();
+			DialogueStartNode start = new();
+			DialogueWaitNode wait = new() { Kind = DialogueWaitKind.Time, Seconds = 1.5f };
+			DialogueLine afterLine = NewLine();
+			DialogueSpeakNode after = new() { Line = afterLine };
+			graph.AddNode(start);
+			graph.AddNode(wait);
+			graph.AddNode(after);
+
+			Assert.That(graph.Connect(start.FindPort(DialogueStartNode.PORT_NEXT), wait.FindPort(DialogueWaitNode.PORT_IN)), Is.True);
+			Assert.That(graph.Connect(wait.FindPort(DialogueWaitNode.PORT_NEXT), after.FindPort(DialogueSpeakNode.PORT_IN)), Is.True);
+
+			DialogueGraphTraversal traversal = new(graph);
+
+			DialogueStep waitStep = traversal.Start();
+			Assert.That(waitStep.Kind, Is.EqualTo(DialogueStepKind.Wait));
+			Assert.That(waitStep.WaitKind, Is.EqualTo(DialogueWaitKind.Time));
+			Assert.That(waitStep.WaitSeconds, Is.EqualTo(1.5f));
+
+			DialogueStep nextStep = traversal.Next();
+			Assert.That(nextStep.Kind, Is.EqualTo(DialogueStepKind.Speak), "소비자가 시간 만족 후 Next() 호출 = 다음 노드 진행");
+			Assert.That(nextStep.SpeakLine, Is.SameAs(afterLine));
+		}
+
+		[Test]
+		public void Wait_Event_EmitsWaitStepWithEventId()
+		{
+			DialogueGraph graph = NewGraph();
+			DialogueStartNode start = new();
+			DialogueWaitNode wait = new() { Kind = DialogueWaitKind.Event, EventId = "boss-defeated" };
+			graph.AddNode(start);
+			graph.AddNode(wait);
+
+			Assert.That(graph.Connect(start.FindPort(DialogueStartNode.PORT_NEXT), wait.FindPort(DialogueWaitNode.PORT_IN)), Is.True);
+
+			DialogueGraphTraversal traversal = new(graph);
+
+			DialogueStep waitStep = traversal.Start();
+			Assert.That(waitStep.Kind, Is.EqualTo(DialogueStepKind.Wait));
+			Assert.That(waitStep.WaitKind, Is.EqualTo(DialogueWaitKind.Event));
+			Assert.That(waitStep.WaitEventId, Is.EqualTo("boss-defeated"));
+
+			Assert.That(traversal.Next().Kind, Is.EqualTo(DialogueStepKind.End), "Wait 의 next 미연결 → 대화 종료");
+		}
 	}
 }
