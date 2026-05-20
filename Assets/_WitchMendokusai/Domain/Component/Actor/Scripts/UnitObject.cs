@@ -25,7 +25,15 @@ namespace WitchMendokusai
 
 		public bool IsAlive => Health.IsAlive;
 
-		// VContainer source generator 는 abstract/base 의 [Inject] member 를 생성하지 않음 (검증된 한계, VCON0010).
+		// base-deps relay 패턴. ★ 진짜 이유 (TASK-WM-109-A, VContainer 1.17.0 source 정독):
+		// "generator 가 abstract/base 의 [Inject] 를 안 만든다"는 *틀린* 모델이었다 —
+		// 구체 서브클래스의 generated injector 는 base [Inject] 멤버를 *포함*한다
+		// (TypeMeta.GetAllMembers 가 base 타입 walk, SymbolExtensions.cs:14). 릴레이가
+		// 필요한 진짜 제약은 [Inject] *메서드는 타입당 1개*룰 (Emitter.cs:161, base+derived
+		// 합산): 자식 [Inject] Construct 1개를 단일 진입점으로 쓰려면 base 에 또 다른
+		// [Inject] 메서드를 둘 수 없다. (대안: base deps 를 [Inject] public/internal
+		// field/property 로 노출하면 개수 제한 없어 릴레이 불요 — 이건 설계 선택.)
+		// 정본: Assets/_WitchMendokusai/Domain/Application/Scripts/DI/VCONTAINER-MECHANISM.md
 		// 자식 concrete 클래스가 [Inject] Construct 에 base-deps 받아 SetBaseDeps 로 base 전달.
 		// TASK-WM-107 Slice 4 — SkillHandler(모든 UnitObject 균일 capability)→SkillContext 가
 		// objectPoolManager/playerProvider 필요 → 기존 base-deps 채널 확장(새 메커니즘 X).
@@ -51,8 +59,11 @@ namespace WitchMendokusai
 
 		protected virtual void Start()
 		{
-			// Init() 이 timeManager (자식 Construct → SetBaseDeps) 사용 — Awake 시점은 [Inject] 전이라 NRE.
-			// Start = Awake/[Inject] 완료 후 → deps 보장 (TASK-WM-078, 2026-05-16).
+			// Init() 이 timeManager (자식 Construct → SetBaseDeps) 사용. ★ race 가 아니라
+			// *결정적 순서* (TASK-WM-109-A 소스 정독): scope-build inject(scope.Awake -5000)
+			// 와 pool inject(ObjectPoolManager 비활성 Instantiate 후 InjectGameObject) 가
+			// 끝나는 지점이 일반 컴포넌트 Awake 보다 *경로마다 다르게* 앞/뒤. Start 는 두
+			// inject 경로가 모두 끝난 뒤 결정적으로 도는 유일 지점이라 견고 (TASK-WM-078).
 			if (UnitData != null)
 				Init(UnitData);
 		}

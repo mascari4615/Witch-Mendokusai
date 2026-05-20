@@ -28,8 +28,12 @@ namespace WitchMendokusai
 
 		private UIManager uiManager;
 
-		// VContainer source generator 는 제네릭 클래스의 [Inject] member 를 생성 못 함 (VCON0010, #3a abstract-base 동류).
-		// 구체 서브클래스 (UINPC/UIDungeon/CardManager) 가 [Inject] Construct 에 UIManager 받아 SetUIManager 호출.
+		// VContainer source generator 는 *제네릭* 클래스의 injector 를 안 만듦 — 소스 인증된
+		// 진짜 한계 (Emitter.cs:44-47 `if (typeMeta.IsGenerics) return false`, 진단 VCON0010
+		// GenericsNotSupported). ※ abstract-base 와 동류 아님 — abstract 서브클래스는 base
+		// [Inject] 가 자식 injector 에 *포함*된다 (TASK-WM-109-A, DI/VCONTAINER-MECHANISM.md
+		// §1·§4①). 제네릭만 별개 한계라 UIPanelGroup<T> 의 비제네릭 구체 서브클래스
+		// (UINPC/UIDungeon/CardManager) 가 [Inject] Construct 에 UIManager 받아 SetUIManager 호출.
 		protected void SetUIManager(UIManager uiManager)
 		{
 			this.uiManager = uiManager;
