@@ -486,6 +486,7 @@ EditorSceneManager.SaveOpenScenes();
 - `mcpforunity://instances` 로 활성 Unity Editor 목록 확인
 - `set_active_instance(instance="...")` 으로 *현재 작업 worktree* 의 Unity 인스턴스 선택
 - Multi-worktree 환경 (TASK-WM-069 인프라) 정합 — 각 worktree Editor 별 MCP routing
+- **자동 라우팅 (TASK-WM-109-G)** — Claude session 시작 시 `.claude/scripts/wm-mcp-route.ps1` 가 현재 worktree 의 `Library/MCPForUnity/RunState/mcp_http_<port>.pid` 를 읽어 worktree-local `.mcp.json` 을 자동 생성. Editor 안에서는 `WM > MCP > Bind Claude session to this Editor` 메뉴 한 클릭. 진단/사용법 = `.claude/scripts/README.md`. `.mcp.json` 은 `.gitignore` 됨 (포트 worktree 별 상이).
 
 ### 사용자 손 보존 영역 (MCP 도입 후에도)
 
