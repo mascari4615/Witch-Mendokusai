@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "seedId": 1,
+  "version": 1,
+  "author": "WM_System",
+  "seedData": {
+    "name": "Forest Starter",
+    "octaves": 4,
+    "frequency": 0.05,
+    "persistence": 0.5,
+    "lacunarity": 2.0,
+    "biomeFrequency": 0.02
+  },
+  "tags": ["forest", "procedural", "starter"],
+  "meta": {
+    "description": "First-use UGC seed — Forest biome procedural starter preset",
+    "biome": "forest"
+  }
+}

@@ -83,6 +83,12 @@ namespace WitchMendokusai
 			return true;
 		}
 
+		public static bool TryLoadSeedFromSample(string fileName, out SeedSaveData seedData, out string error)
+		{
+			string path = UGCPathResolver.GetSamplePath(fileName);
+			return TryLoadSeedFromPath(path, out seedData, out error);
+		}
+
 		public static bool TryLoadSeedFromPath(string path, out SeedSaveData seedData, out string error)
 		{
 			seedData = default;
