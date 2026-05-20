@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+# WitchMendokusai post-commit hook (TASK-WM-109-F).
+#
+# Records commit metadata + lightweight integrity checks via PowerShell.
+# Non-blocking — exits 0 regardless of script outcome (post-commit cannot
+# undo the commit anyway; goal is information, not enforcement).
+#
+# Canonical version tracked at Tools/git-hooks/post-commit.
+# Install: powershell -File Tools/git-hooks/install.ps1
+
+set -u
+
+repo_root="$(git rev-parse --show-toplevel 2>/dev/null || true)"
+if [ -z "$repo_root" ]; then
+  exit 0
+fi
+
+verify="$repo_root/Tools/git-hooks/wm-commit-verify.ps1"
+if [ ! -f "$verify" ]; then
+  # Tools/ not present (older checkout, partial sync) — silent skip.
+  exit 0
+fi
+
+# Pick PowerShell — prefer pwsh (cross-plat 7+), fallback to Windows PowerShell.
+ps_exe=""
+if command -v pwsh >/dev/null 2>&1; then
+  ps_exe="pwsh"
+elif command -v powershell >/dev/null 2>&1; then
+  ps_exe="powershell"
+else
+  echo "[wm-post-commit] no pwsh/powershell on PATH — verify skipped"
+  exit 0
+fi
+
+sha="$(git rev-parse HEAD 2>/dev/null || true)"
+if [ -z "$sha" ]; then
+  exit 0
+fi
+
+# Run verify; swallow non-zero so a buggy script never blocks the workflow.
+WM_COMMIT_SHA="$sha" "$ps_exe" -NoProfile -ExecutionPolicy Bypass -File "$verify" -Sha "$sha" || true
+
+exit 0

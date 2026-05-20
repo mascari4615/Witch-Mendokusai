@@ -486,6 +486,7 @@ EditorSceneManager.SaveOpenScenes();
 - `mcpforunity://instances` 로 활성 Unity Editor 목록 확인
 - `set_active_instance(instance="...")` 으로 *현재 작업 worktree* 의 Unity 인스턴스 선택
 - Multi-worktree 환경 (TASK-WM-069 인프라) 정합 — 각 worktree Editor 별 MCP routing
+- **자동 라우팅 (TASK-WM-109-G)** — Claude session 시작 시 `.claude/scripts/wm-mcp-route.ps1` 가 현재 worktree 의 `Library/MCPForUnity/RunState/mcp_http_<port>.pid` 를 읽어 worktree-local `.mcp.json` 을 자동 생성. Editor 안에서는 `WM > MCP > Bind Claude session to this Editor` 메뉴 한 클릭. 진단/사용법 = `.claude/scripts/README.md`. `.mcp.json` 은 `.gitignore` 됨 (포트 worktree 별 상이).
 
 ### 사용자 손 보존 영역 (MCP 도입 후에도)
 
@@ -609,5 +610,6 @@ set_active_instance(instance="<branch>@<hash>")          # sub worktree
 - ★ **Autopilot 한정 예외** — 자율 모드는 main 직접 push 금지, feature 브랜치 + Draft PR 까지만 (TASK-WM-063 sub-H 옵션 B).
 - ★ **Unity 자연 단위 commit** — `.cs` + 자동생성 `.meta` + 의존 `.asset` / 씬 / `.prefab` 묶어 한 commit (분리 = 빌드 깨짐 / pull race).
 - ★ **Conventional Commits + 한 commit 한 주제** — `feat: / fix: / chore: / refactor: / docs: / style:`. PR 폐기로 단위 자유도 ↑, 더 잘게.
+- ★ **Post-commit advisory + commit 규율 (TASK-WM-109-F)** — bisect 친화 commit 규율 5원칙 + 옵트인 advisory hook(`Tools/git-hooks/`). hook 은 차단 X, ledger(`<git-common-dir>/wm-commit-log.tsv`) 에 `.cs`/`.meta`/MCP 응답 여부 기록 + big-commit(`.cs` > 10) hint + `.cs` ↔ `.cs.meta` 짝 검사 + MCP `:8080` TCP probe. 설치 = `powershell -File Tools/git-hooks/install.ps1`. 상세 = `Tools/git-hooks/README.md`.
 
 세부 (worktree persistent scratch 패턴 / claude-audit POC v1-v4 검증 / Branch Protection 폐기 1회용 gh api / Release flow Tag-only `release.yml` / CHANGELOG 구조 / `Closes #NN` Issue 자동 종료 / CodeRabbit historical / Post-push 정리 / Tag↔bundleVersion drift 등) = wm-git-workflow skill 참고.
