@@ -219,9 +219,9 @@ gh release list --limit 5
 Stick to:
 ```
 WitchMendokusai-<version>-<platform>.zip
-  v0.0.5-Windows.zip
-  v0.0.5-Linux.zip
-  v0.0.5-macOS.zip
+  WitchMendokusai-v0.0.5-Windows.zip
+  WitchMendokusai-v0.0.5-Linux.zip
+  WitchMendokusai-v0.0.5-macOS.zip
 ```
 
 Rationale: Consistent, sortable, clear platform.

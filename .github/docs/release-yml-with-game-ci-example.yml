@@ -62,8 +62,8 @@ jobs:
         id: changelog
         run: |
           set -euo pipefail
-          PREV='$(git tag --list 'v[0-9]*' --sort=-v:refname | grep -vFx "${{ needs.release-info.outputs.tag }}" | head -1 || true)'
-          TAG='${{ needs.release-info.outputs.tag }}'
+          PREV=$(git tag --list 'v[0-9]*' --sort=-v:refname | grep -vFx "${{ needs.release-info.outputs.tag }}" | head -1 || true)
+          TAG="${{ needs.release-info.outputs.tag }}"
           if [ -z "$PREV" ]; then
             RANGE="$TAG"
           else
