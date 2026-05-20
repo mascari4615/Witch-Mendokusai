@@ -609,5 +609,6 @@ set_active_instance(instance="<branch>@<hash>")          # sub worktree
 - ★ **Autopilot 한정 예외** — 자율 모드는 main 직접 push 금지, feature 브랜치 + Draft PR 까지만 (TASK-WM-063 sub-H 옵션 B).
 - ★ **Unity 자연 단위 commit** — `.cs` + 자동생성 `.meta` + 의존 `.asset` / 씬 / `.prefab` 묶어 한 commit (분리 = 빌드 깨짐 / pull race).
 - ★ **Conventional Commits + 한 commit 한 주제** — `feat: / fix: / chore: / refactor: / docs: / style:`. PR 폐기로 단위 자유도 ↑, 더 잘게.
+- ★ **Post-commit advisory + commit 규율 (TASK-WM-109-F)** — bisect 친화 commit 규율 5원칙 + 옵트인 advisory hook(`Tools/git-hooks/`). hook 은 차단 X, ledger(`<git-common-dir>/wm-commit-log.tsv`) 에 `.cs`/`.meta`/MCP 응답 여부 기록 + big-commit(`.cs` > 10) hint + `.cs` ↔ `.cs.meta` 짝 검사 + MCP `:8080` TCP probe. 설치 = `powershell -File Tools/git-hooks/install.ps1`. 상세 = `Tools/git-hooks/README.md`.
 
 세부 (worktree persistent scratch 패턴 / claude-audit POC v1-v4 검증 / Branch Protection 폐기 1회용 gh api / Release flow Tag-only `release.yml` / CHANGELOG 구조 / `Closes #NN` Issue 자동 종료 / CodeRabbit historical / Post-push 정리 / Tag↔bundleVersion drift 등) = wm-git-workflow skill 참고.
