@@ -54,14 +54,10 @@ namespace WitchMendokusai
 		/// Toolkit IUIPanel 을 글로벌 UIRoot 에 AddComponent + DI 주입해 생성.
 		/// 씬 prefab 미배치 Toolkit 패널의 owner-push 생성 경로 (InventoryView 등 선례 동형).
 		/// 호출 시점 = panel-group Init(Awake, Construct 후) → uiRoot/container 보장.
-		/// TASK-WM-113 S2 substrate.
+		/// TASK-WM-113 S2 substrate. TASK-WM-109-E — DiCascade 통합.
 		/// </summary>
 		public T CreateToolkitPanel<T>() where T : UIToolkitPanel
-		{
-			T panel = uiRoot.gameObject.AddComponent<T>();
-			container.Inject(panel);
-			return panel;
-		}
+			=> DiCascade.AddInjected<T>(container, uiRoot.gameObject);
 	
 		[SerializeField] private UIDungeon dungeonPrefab = null;
 		[SerializeField] private UIAdventurerGuild adventurerGuildPrefab = null;
@@ -137,42 +133,16 @@ namespace WitchMendokusai
 				Instance = null;
 		}
 
-		// TASK-WM-115 R2 — Instantiate-before-Inject NRE 차단 seam.
-		// prefab 을 비활성 토글한 채 Instantiate → 인스턴스 자식 OnEnable 미발화 →
-		// container.Inject 로 deps 주입 완료 후 활성 → OnEnable 이 valid deps 로 실행.
-		// (ObjectPoolManager.ObjectPool.CreateObject 와 동일 canonical 패턴.)
-		private T InstantiateInjectedActive<T>(T prefab, Transform parent, bool activateAfter) where T : Component
-		{
-			bool prefabWasActive = prefab.gameObject.activeSelf;
-			if (prefabWasActive)
-				prefab.gameObject.SetActive(false);
-
-			T inst = Instantiate(prefab, parent);
-
-			if (prefabWasActive)
-				prefab.gameObject.SetActive(true);
-
-			foreach (MonoBehaviour mb in inst.GetComponentsInChildren<MonoBehaviour>(true))
-				container.Inject(mb);
-
-			if (activateAfter)
-				inst.gameObject.SetActive(true);
-
-			return inst;
-		}
-
 		private void Start()
 		{
 			// container 의존 UI 생성/주입 — Awake(container null) 도 Construct(SceneLifetimeScope Build 중 →
 			// 대량 container.Inject 재진입 = ValueFactory catastrophe) 도 아닌 Start.
 			// Start = Construct 후 + Build 완료 후 → container valid, 재진입 0 (캐스케이드 d405bfde 검증 패턴, TASK-WM-078 2026-05-16).
 			// Content UIs — 계층 전체 inject (UIDungeonRuntime / UIDungeonResult / UIDungeonEntrance 등)
-			// TASK-WM-115 R2 — 비활성 Instantiate → 자식 전체 Inject → 활성. active prefab 을
-			// 그냥 Instantiate 하면 자식 OnEnable 이 container.Inject *전* 발화 → deps null NRE
-			// (UIQuestGrid.OnEnable timeManager null). ObjectPoolManager.CreateObject 와 동일 검증 패턴.
-			UIDungeon dungeonInst = InstantiateInjectedActive(dungeonPrefab, BaseCanvas.transform, activateAfter: true);
+			// TASK-WM-109-E — DiCascade 로 owner-push / 비활성-Instantiate 패턴 통일.
+			UIDungeon dungeonInst = DiCascade.InstantiateInjected(container, dungeonPrefab, BaseCanvas.transform, activateAfter: true);
 
-			adventurerGuild = InstantiateInjectedActive(adventurerGuildPrefab, BaseCanvas.transform, activateAfter: false);
+			adventurerGuild = DiCascade.InstantiateInjected(container, adventurerGuildPrefab, BaseCanvas.transform, activateAfter: false);
 
 			// Common UIs
 			CutSceneModule = FindAnyObjectByType<CutSceneModule>(FindObjectsInactive.Include);
@@ -187,31 +157,20 @@ namespace WitchMendokusai
 			// InjectGameObject = VContainer 표준 계층-재귀 (established 패턴 수렴).
 			container.InjectGameObject(NPC.gameObject);
 
-			// 씬 한정 view 등록 — 글로벌 UIRoot 에 AddComponent
+			// 씬 한정 view 등록 — 글로벌 UIRoot 에 AddComponent + Inject (DiCascade.AddInjected).
 			GameObject uiRootGameObject = uiRoot.gameObject;
-			inventoryView = uiRootGameObject.AddComponent<InventoryView>();
-			container.Inject(inventoryView);
-			hotbarView = uiRootGameObject.AddComponent<HotbarView>();
-			container.Inject(hotbarView);
-			buildingBarView = uiRootGameObject.AddComponent<BuildingBarView>();
-			container.Inject(buildingBarView);
-			questView = uiRootGameObject.AddComponent<QuestView>();
-			container.Inject(questView);
-			dollView = uiRootGameObject.AddComponent<DollView>();
-			container.Inject(dollView);
-			statusView = uiRootGameObject.AddComponent<StatusView>();
-			container.Inject(statusView);
-			popupView = uiRootGameObject.AddComponent<PopupView>();
-			container.Inject(popupView);
-			stagePopupView = uiRootGameObject.AddComponent<StagePopupView>();
-			container.Inject(stagePopupView);
-			floatingText = uiRootGameObject.AddComponent<FloatingTextView>();
-			container.Inject(floatingText);
-			SpeechBubble = uiRootGameObject.AddComponent<SpeechBubbleView>();
-			container.Inject(SpeechBubble);
+			inventoryView = DiCascade.AddInjected<InventoryView>(container, uiRootGameObject);
+			hotbarView = DiCascade.AddInjected<HotbarView>(container, uiRootGameObject);
+			buildingBarView = DiCascade.AddInjected<BuildingBarView>(container, uiRootGameObject);
+			questView = DiCascade.AddInjected<QuestView>(container, uiRootGameObject);
+			dollView = DiCascade.AddInjected<DollView>(container, uiRootGameObject);
+			statusView = DiCascade.AddInjected<StatusView>(container, uiRootGameObject);
+			popupView = DiCascade.AddInjected<PopupView>(container, uiRootGameObject);
+			stagePopupView = DiCascade.AddInjected<StagePopupView>(container, uiRootGameObject);
+			floatingText = DiCascade.AddInjected<FloatingTextView>(container, uiRootGameObject);
+			SpeechBubble = DiCascade.AddInjected<SpeechBubbleView>(container, uiRootGameObject);
 			// DialogueRunner — SceneLifetimeScope.RegisterComponentOnNewGameObject 추출. 여기서 AddComponent X.
-			Transition = uiRootGameObject.AddComponent<TransitionView>();
-			container.Inject(Transition);
+			Transition = DiCascade.AddInjected<TransitionView>(container, uiRootGameObject);
 
 			RegisterOverlayUI(NPC);
 		}

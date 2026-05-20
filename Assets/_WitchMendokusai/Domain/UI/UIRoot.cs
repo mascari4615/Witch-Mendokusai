@@ -42,11 +42,8 @@ namespace WitchMendokusai
 			this.windowManager = windowManager;
 			// VContainer: prefab 비활성화 후 Instantiate → Awake 는 SetActive(true) 이후 발화.
 			// CreateViews 를 Construct 선두로 이동 — inactive GO 에서도 AddComponent 정상 작동.
+			// CreateViews 자체가 DiCascade.AddInjected 로 AddComponent+Inject 동시 수행 (TASK-WM-109-E).
 			CreateViews();
-			container.Inject(SettingView);
-			container.Inject(KeybindHelpView);
-			container.Inject(MagicBookView);
-			container.Inject(WorldClockView);
 		}
 
 		public UIDocument Document { get; private set; }
@@ -79,15 +76,16 @@ namespace WitchMendokusai
 		}
 
 		/// <summary>
-		/// 글로벌 View 컴포넌트를 동적으로 생성. 씬 무관 시스템 메뉴.
+		/// 글로벌 View 컴포넌트를 동적으로 생성 + DI 주입. 씬 무관 시스템 메뉴.
 		/// 씬별 view (Inventory/Hotbar/BuildingBar 등) 는 해당 씬 매니저 (UIManager 등) 가 직접 AddComponent / OnDestroy 정리.
+		/// TASK-WM-109-E — DiCascade.AddInjected 로 owner-push 패턴 통일 (전 17 callsite 중 4건).
 		/// </summary>
 		private void CreateViews()
 		{
-			SettingView = gameObject.AddComponent<SettingView>();
-			KeybindHelpView = gameObject.AddComponent<KeybindHelpView>();
-			MagicBookView = gameObject.AddComponent<MagicBookView>();
-			WorldClockView = gameObject.AddComponent<WorldClockView>();
+			SettingView = DiCascade.AddInjected<SettingView>(container, gameObject);
+			KeybindHelpView = DiCascade.AddInjected<KeybindHelpView>(container, gameObject);
+			MagicBookView = DiCascade.AddInjected<MagicBookView>(container, gameObject);
+			WorldClockView = DiCascade.AddInjected<WorldClockView>(container, gameObject);
 		}
 
 		private void OnEnable()
