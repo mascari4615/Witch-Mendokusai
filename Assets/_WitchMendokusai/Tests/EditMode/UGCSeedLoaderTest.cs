@@ -4,15 +4,6 @@ using UnityEngine;
 
 namespace WitchMendokusai.Tests
 {
-	/// <summary>
-	/// TASK-WM-084 Phase B + C — UGC Seed first-use 회귀 게이트.
-	/// Phase A (SeedSaveData POCO + UGCJsonLoader + UGCJsonValidator) 위에서:
-	///   - Phase B: 첫 sample (ServerData/UGC/Samples/seed_001_forest.json) 가 *게임 안* (TerrainParameters DataSO) 로 흐른다는 것
-	///   - Phase C: UGC JSON 이 SeedSaveData schema 밖 필드를 *건드릴 수 없다* 는 것 (sandbox)
-	/// 을 결정적으로 잠근다.
-	///
-	/// 실행: unity -runTests -batchmode -testPlatform EditMode -assemblyNames WM.Tests.EditMode
-	/// </summary>
 	public sealed class UGCSeedLoaderTest
 	{
 		private const string SAMPLE_FILE = "seed_001_forest.json";
@@ -98,8 +89,6 @@ namespace WitchMendokusai.Tests
 			Assert.That(error, Does.Contain("name"));
 		}
 
-		// Phase C — sandbox 증명: SeedSaveData 에 *없는 필드* 를 JSON 에 박아도 deserialize 결과 객체엔 안 들어옴.
-		// MissingMemberHandling.Ignore + POCO 필드 화이트리스트 = 컴파일러 강제 sandbox 의 *실증*.
 		[Test]
 		public void Deserialize_DropsOutOfSchemaFields()
 		{
@@ -126,8 +115,7 @@ namespace WitchMendokusai.Tests
 			Assert.That(parsed.name, Is.EqualTo("Sandbox Probe"));
 			Assert.That(parsed.octaves, Is.EqualTo(4));
 
-			// SeedSaveData 에 amplitude/arbitraryEvilField 같은 필드가 없으므로 컴파일 자체로 도달 불가 —
-			// 그 사실 자체가 sandbox. 본 테스트는 JSON 페이로드가 *조용히 삭제됨* 을 회귀 게이트로 잠근다.
+			// amplitude 필드 부재 자체가 sandbox 증명 — 생기면 sandbox 표면 확장이므로 의도적 결정 필요.
 			System.Reflection.FieldInfo amplitudeField = typeof(SeedSaveData).GetField("amplitude");
 			Assert.That(amplitudeField, Is.Null, "SeedSaveData 에 amplitude 필드가 생기면 sandbox 표면 확장 — 의도적 결정 필요");
 		}
