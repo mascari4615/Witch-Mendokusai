@@ -7,7 +7,18 @@ namespace WitchMendokusai
 	/// <summary>
 	/// TASK-WM-109-E — cascade inject 분산(17 callsite) 통합 helper.
 	/// 시점·owner 별 분산은 SRP 정합 결과로 유지(중앙 집중 X), 공통 boilerplate 만 추출.
-	/// 결정 트리는 PR #WM-109-E / `DI/VCONTAINER-MECHANISM.md` § cascade 결정 트리 참고.
+	///
+	/// 결정 트리 (새 컴포넌트 추가 시):
+	/// <list type="bullet">
+	/// <item>씬 정적 배치 → <c>SceneLifetimeScope.RegisterInHierarchyIfPresent</c> / foreach <c>InjectGameObject</c></item>
+	/// <item>런타임 spawn (pool) → <c>ObjectPoolManager</c> (자동, <c>InjectGameObject</c>)</item>
+	/// <item>런타임 spawn (명시) → <c>DiCascade.InstantiateInjected</c></item>
+	/// <item>code spawn (AddComponent) → <c>DiCascade.AddInjected</c></item>
+	/// <item>자기 자식 cascade (Construct 안) → <c>container.InjectGameObjectExcludingSelf(gameObject, this)</c>
+	///   (TASK-WM-109-B / <c>ObjectResolverHierarchyExtensions</c>)</item>
+	/// </list>
+	/// 동등성 인증: <c>InjectGameObject(go)</c> ≡ <c>foreach GetComponentsInChildren&lt;MonoBehaviour&gt;(true) Inject(mb)</c>
+	/// (DI/VCONTAINER-MECHANISM.md §5).
 	/// </summary>
 	public static class DiCascade
 	{
@@ -51,24 +62,6 @@ namespace WitchMendokusai
 				instance.gameObject.SetActive(true);
 
 			return instance;
-		}
-
-		/// <summary>
-		/// self-cascade: root 의 자식 MonoBehaviour 들을 inject. root 자신은 *이미 inject 중*
-		/// (예: root.Construct 안에서 호출 — VContainer 가 root 를 inject 하면서 Construct 가
-		/// 발화) 라 제외. Player.Construct 의 canonical 패턴 (TASK-WM-078 2026-05-16).
-		///
-		/// 왜 InjectGameObject(root.gameObject) 가 아니라 foreach 인가:
-		/// InjectGameObject 는 root 자체 도 다시 inject 시도 (VContainer 멱등이지만 비효율).
-		/// self-cascade 는 *root 의 Construct 진행 중*이라 root 자신 재inject 의미 X.
-		/// </summary>
-		public static void InjectChildren(IObjectResolver container, MonoBehaviour root)
-		{
-			foreach (MonoBehaviour childComponent in root.GetComponentsInChildren<MonoBehaviour>(true))
-			{
-				if (childComponent != root)
-					container.Inject(childComponent);
-			}
 		}
 	}
 }
