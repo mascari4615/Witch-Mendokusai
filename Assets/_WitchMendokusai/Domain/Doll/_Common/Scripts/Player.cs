@@ -45,11 +45,9 @@ namespace WitchMendokusai
 			// InteractiveMarker/AutoAimMarker/UnitMovement 등). RegisterComponentInHierarchy<Player> 는 Player
 			// 컴포넌트만 inject — 자식은 컨테이너가 모름. 컨테이너 주입 root 가 비등록 자식 cascade =
 			// UIRoot.Construct / ObjectPoolManager.InjectGameObject 와 동일 canonical 패턴 (TASK-WM-078, 2026-05-16).
-			foreach (MonoBehaviour childComponent in GetComponentsInChildren<MonoBehaviour>(true))
-			{
-				if (childComponent != this)
-					container.Inject(childComponent);
-			}
+			// raw InjectGameObject(gameObject) 는 *자기 자신* 도 재귀 inject → Construct 재호출 → StackOverflow
+			// (TASK-WM-109 이슈 2, ad920ca2 도입 → bcb59577 revert). self-exclude 헬퍼로 차단 (TASK-WM-109-B).
+			container.InjectGameObjectExcludingSelf(gameObject, this);
 		}
 
 		private void Awake()
