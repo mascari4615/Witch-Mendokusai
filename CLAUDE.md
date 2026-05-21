@@ -487,6 +487,8 @@ EditorSceneManager.SaveOpenScenes();
 - `set_active_instance(instance="...")` 으로 *현재 작업 worktree* 의 Unity 인스턴스 선택
 - Multi-worktree 환경 (TASK-WM-069 인프라) 정합 — 각 worktree Editor 별 MCP routing
 - **자동 라우팅 (TASK-WM-109-G)** — Claude session 시작 시 `.claude/scripts/wm-mcp-route.ps1` 가 현재 worktree 의 `Library/MCPForUnity/RunState/mcp_http_<port>.pid` 를 읽어 worktree-local `.mcp.json` 을 자동 생성. Editor 안에서는 `WM > MCP > Bind Claude session to this Editor` 메뉴 한 클릭. 진단/사용법 = `.claude/scripts/README.md`. `.mcp.json` 은 `.gitignore` 됨 (포트 worktree 별 상이).
+- **Editor-side 자동 바인드 (TASK-WM-109-D)** — `Assets/_WitchMendokusai/Editor/Infra/MCPRouting/McpAutoBinder.cs` 가 `[InitializeOnLoad]` 로 등록, Editor 시작 직후 ~2 분간 ~3 초 간격으로 `mcp_http_*.pid` 폴링 → 발견 즉시 `.mcp.json` 갱신 (idempotent — 포트 동일 시 no-op, batchmode 차단). 메뉴: `WM > MCP > Auto-Bind on Editor Startup` (토글, 기본 ON, `EditorPrefs "WM.MCP.AutoBindEnabled"`) · `WM > MCP > Run Auto-Bind Now` (강제 실행). 109-G 의 수동 경로(스크립트/Bind 메뉴)와 공존 — 자동 경로 = 평시 default, 수동 경로 = 명시 트리거 / 디버그.
+- **Editor.log 폴백 (MCP 미가용 시, TASK-WM-109-D)** — `.claude/scripts/wm-editor-log-tail.ps1` 가 Editor.log 의 마지막 `Reloading assemblies after forced synchronous recompile` 마커 이후 라인만 잘라 `error CS|warning CS` 필터링. append-only 누적 → 옛 컴파일 결과 섞임 문제(§ Editor.log 부정확 사례 TASK-WM-056-A) 해소. *MCP `read_console` 정본은 그대로* — 본 폴백은 MCP 서버 미기동 / 패키지 일시 고장 시만 사용 (CLAUDE.md § Unity-MCP layer Editor.log 의 append-only 한계 정합).
 
 ### 사용자 손 보존 영역 (MCP 도입 후에도)
 

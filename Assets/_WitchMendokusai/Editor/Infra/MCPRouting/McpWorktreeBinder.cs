@@ -162,7 +162,7 @@ namespace WitchMendokusai.Editor.Infra.MCPRouting
             }
         }
 
-        private static string GetProjectRoot()
+        internal static string GetProjectRoot()
         {
             // Application.dataPath = "<root>/Assets"
             return Path.GetFullPath(Path.Combine(Application.dataPath, ".."));
@@ -176,7 +176,10 @@ namespace WitchMendokusai.Editor.Infra.MCPRouting
         //   1. Library/MCPForUnity/RunState/mcp_http_<port>.pid -- filename encodes port.
         //   2. EditorPrefs "MCPForUnity.HttpBaseUrl" -- user-set base URL.
         //   3. Default 8080.
-        private static int DiscoverHttpPort(string projectRoot)
+        //
+        // internal: shared with McpAutoBinder so both menu (explicit) and
+        // auto-bind (background) paths use exactly the same resolution order.
+        internal static int DiscoverHttpPort(string projectRoot)
         {
             const string MCP_HTTP_PREFIX = "mcp_http_";
             string runStateDir = Path.Combine(projectRoot, "Library", "MCPForUnity", "RunState");
