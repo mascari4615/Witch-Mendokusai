@@ -1,0 +1,78 @@
+name: Agent Team Graduate (WM)
+
+# wm-support / wm-worker Draft PR 자동 졸업.
+# github.io 정본 (.github/workflows/agent-team-graduate.yml) 의 WM 적응판.
+#
+# 차이:
+#   - 토큰: GITHUB_TOKEN 사용 (WM repo 에 PAT_FOR_AUTO_MERGE / GH_APP_* 미보유).
+#     anti-recursion 영향: WM 트리거 중 push:branches:[main] 은 wm-asmdef-boundary 뿐이고
+#     paths:[Assets/_WitchMendokusai/Core/**] 만 → 대부분 worker PR 무관. release.yml 은
+#     tag push 라 머지 무관.
+#   - verify (master invariant) 가드 없음: WM repo 미보유. 대신 *FAILED status 무존재* 가드.
+#   - claude-pr-review SUCCESS 코멘트 가드 동일 (LLM 리뷰 통과 + autopilot fix 반영 분명).
+#
+# 화이트리스트 = head_branch prefix (author 무관, spoof 불가):
+#   - `feature/agent-team-*` (LT 워커 정본 prefix)
+#   - `fix/issue-*` / `feature/issue-*` (claude.yml § claude-triage 자동 fix PR)
+#
+# 정본 정렬: github.io/.github/workflows/agent-team-graduate.yml (대응 fix 시 양쪽 sync).
+
+on:
+  workflow_run:
+    workflows: ["Claude Code"]
+    types: [completed]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  graduate:
+    if: github.event.workflow_run.event == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Resolve PR + guards + ready + merge
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
+        run: |
+          set -euo pipefail
+
+          pr=$(gh pr list --head "$HEAD_BRANCH" --state open \
+                --json number,isDraft,headRefName,headRefOid,comments --jq '.[0] // empty')
+          if [ -z "$pr" ]; then
+            echo "branch '$HEAD_BRANCH' 에 open PR 없음 — skip"; exit 0
+          fi
+
+          num=$(echo "$pr"       | jq -r '.number')
+          isDraft=$(echo "$pr"   | jq -r '.isDraft')
+          headRef=$(echo "$pr"   | jq -r '.headRefName')
+          headOid=$(echo "$pr"   | jq -r '.headRefOid')
+          reviewed=$(echo "$pr"  | jq -r '[.comments[] | select(.body | contains("claude.yml § claude-pr-review"))] | length')
+
+          # 가드 1 — Draft 만 졸업 대상
+          if [ "$isDraft" != "true" ]; then
+            echo "PR #$num not draft — skip"; exit 0
+          fi
+          # 가드 2 — head_branch prefix 화이트리스트
+          case "$headRef" in
+            feature/agent-team-*|fix/issue-*|feature/issue-*) ;;
+            *) echo "PR #$num head '$headRef' = 화이트리스트 prefix 아님 — skip"; exit 0 ;;
+          esac
+          # 가드 3 — claude-pr-review 리뷰 완료 (코멘트 푸터 존재)
+          if [ "$reviewed" -lt 1 ]; then
+            echo "PR #$num — claude-pr-review 코멘트 없음(리뷰 미완) — 상대 워크플로 완료 시 재평가, skip"
+            exit 0
+          fi
+          # 가드 4 — *현재 PR head commit* 에 FAILED check-run 없음 (WM 변형: verify 부재)
+          failed=$(gh api "repos/${GH_REPO}/commits/${headOid}/check-runs" --paginate \
+            --jq '[.check_runs[] | select(.conclusion=="failure" or .conclusion=="cancelled" or .conclusion=="timed_out")] | length')
+          if [ "${failed:-0}" -gt 0 ]; then
+            echo "PR #$num — head $headOid 에 FAILED check-run $failed 건 — skip"
+            exit 0
+          fi
+
+          echo "PR #$num: reviewed + 화이트리스트 prefix Draft + FAILED 0 → 졸업 (ready + squash merge)"
+          gh pr ready "$num"
+          gh pr merge "$num" --squash --delete-branch
