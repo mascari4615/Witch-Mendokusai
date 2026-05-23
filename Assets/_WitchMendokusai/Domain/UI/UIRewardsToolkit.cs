@@ -25,7 +25,7 @@ namespace WitchMendokusai
 		}
 
 		public void UpdateUI(List<RewardInfo> infos) =>
-			UpdateUI(infos.ConvertAll(x => x.ToInfoData()));
+			UpdateUI(infos.ConvertAll(rewardInfo => rewardInfo.ToInfoData()));
 
 		public void UpdateUI(List<RewardInfoData> data)
 		{

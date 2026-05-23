@@ -7,7 +7,7 @@ namespace WitchMendokusai
 {
 	public class EquipmentSword : SkillComponent
 	{
-		private const float EachAttackDelay = 0.1f;
+		private const float EACH_ATTACK_DELAY = 0.1f;
 
 		[SerializeField] private float originCoolTime = 1.5f;
 		[SerializeField] private GameObject bulletPrefab;
@@ -90,7 +90,7 @@ namespace WitchMendokusai
 
 		private IEnumerator AttackLoop()
 		{
-			WaitForSeconds wait = new WaitForSeconds(EachAttackDelay);
+			WaitForSeconds wait = new WaitForSeconds(EACH_ATTACK_DELAY);
 			bool playerWasLookingRight = playerProvider.CurrentObject.UnitMovement.IsLookingRight;
 			for (int i = 0; i < swordTransforms.Count; i++)
 			{

@@ -21,13 +21,13 @@ namespace WitchMendokusai
 			this.timeManager = timeManager;
 		}
 
-		private const float FadeWaitTime = 0.5f;
-		private const float AnimWaitTime = 0.01f;
-	
-		// EarlyResumeRatio = 0.3f = FadeIn 애니메이션의 30% 지점에서 Resume
-		// FadeIn Animation이 전부 끝나기 전에, 시간 정지를 풀고 입력을 받기 위해서 EarlyResumeRatio를 사용합니다.
+		private const float FADE_WAIT_TIME = 0.5f;
+		private const float ANIM_WAIT_TIME = 0.01f;
+
+		// EARLY_RESUME_RATIO = 0.3f = FadeIn 애니메이션의 30% 지점에서 Resume
+		// FadeIn Animation이 전부 끝나기 전에, 시간 정지를 풀고 입력을 받기 위해서 EARLY_RESUME_RATIO를 사용합니다.
 		// FadeIn Animation이 다 끝날 때 기다리면 조금 답답한 느낌이 들어서. - 2025.03.19 20:28
-		private const float EarlyResumeRatio = 0.3f;
+		private const float EARLY_RESUME_RATIO = 0.3f;
 
 		public static bool IsInTransition { get; private set; } = false;
 
@@ -74,21 +74,21 @@ namespace WitchMendokusai
 			{
 				// Fade Out
 				transitionAnimator.SetTrigger("OUT");
-				await UniTask.Delay(ToMilliseconds(AnimWaitTime), DelayType.Realtime);
+				await UniTask.Delay(ToMilliseconds(ANIM_WAIT_TIME), DelayType.Realtime);
 				currentStateInfo = transitionAnimator.GetCurrentAnimatorStateInfo(0); // UpdateMode: UnscaledTime
 				float fadeOutDuration = currentStateInfo.length / currentStateInfo.speedMultiplier;
 				await UniTask.Delay(ToMilliseconds(fadeOutDuration), DelayType.Realtime);
 
 				// Execute Action
 				await tDuringTransition.Invoke();
-				await UniTask.Delay(ToMilliseconds(FadeWaitTime), DelayType.Realtime);
+				await UniTask.Delay(ToMilliseconds(FADE_WAIT_TIME), DelayType.Realtime);
 
 				// Fade In
 				transitionAnimator.SetTrigger("IN");
-				await UniTask.Delay(ToMilliseconds(AnimWaitTime), DelayType.Realtime);
+				await UniTask.Delay(ToMilliseconds(ANIM_WAIT_TIME), DelayType.Realtime);
 				currentStateInfo = transitionAnimator.GetCurrentAnimatorStateInfo(0); // UpdateMode: UnscaledTime
 				float fadeInDuration = currentStateInfo.length / currentStateInfo.speedMultiplier;
-				await UniTask.Delay(ToMilliseconds(fadeInDuration * EarlyResumeRatio), DelayType.Realtime);
+				await UniTask.Delay(ToMilliseconds(fadeInDuration * EARLY_RESUME_RATIO), DelayType.Realtime);
 			}
 
 			// End

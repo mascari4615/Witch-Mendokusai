@@ -100,7 +100,7 @@ namespace WitchMendokusai
 				return false;
 			}
 
-			if (!File.Exists(path))
+			if (File.Exists(path) == false)
 			{
 				error = $"File not found: {path}";
 				return false;
@@ -109,9 +109,9 @@ namespace WitchMendokusai
 			try
 			{
 				string jsonContent = File.ReadAllText(path);
-				var manifest = JsonConvert.DeserializeObject<UGCSeedManifestData>(jsonContent, JsonSettings);
+				UGCSeedManifestData manifest = JsonConvert.DeserializeObject<UGCSeedManifestData>(jsonContent, JsonSettings);
 
-				if (!UGCJsonValidator.TryValidateSeed(manifest, out string validationError))
+				if (UGCJsonValidator.TryValidateSeed(manifest, out string validationError) == false)
 				{
 					error = $"Validation failed: {validationError}";
 					return false;
@@ -141,7 +141,7 @@ namespace WitchMendokusai
 			{
 				Directory.CreateDirectory(Path.GetDirectoryName(path) ?? ".");
 
-				var manifest = new UGCSeedManifestData
+				UGCSeedManifestData manifest = new UGCSeedManifestData
 				{
 					schemaVersion = 1,
 					seedId = seedId,
@@ -152,7 +152,7 @@ namespace WitchMendokusai
 					meta = null
 				};
 
-				if (!UGCJsonValidator.TryValidateSeed(manifest, out string validationError))
+				if (UGCJsonValidator.TryValidateSeed(manifest, out string validationError) == false)
 				{
 					error = $"Validation failed: {validationError}";
 					return false;

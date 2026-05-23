@@ -10,7 +10,7 @@ namespace WitchMendokusai
 {
 	public class SaveManager
 	{
-		private const string SaveFileName = "WM.json";
+		private const string SAVE_FILE_NAME = "WM.json";
 
 		public bool IsDataLoaded { get; private set; }
 
@@ -122,7 +122,7 @@ namespace WitchMendokusai
 
 		public void LoadLocalData()
 		{
-			if (SaveTool.TryLoadFile(SaveFileName, out GameData gameData))
+			if (SaveTool.TryLoadFile(SAVE_FILE_NAME, out GameData gameData))
 			{
 				LoadData(gameData);
 			}
@@ -230,7 +230,7 @@ namespace WitchMendokusai
 
 			if (AppSetting.Data.UseLocalData)
 			{
-				SaveTool.SaveFile(SaveFileName, gameData);
+				SaveTool.SaveFile(SAVE_FILE_NAME, gameData);
 			}
 			else
 			{

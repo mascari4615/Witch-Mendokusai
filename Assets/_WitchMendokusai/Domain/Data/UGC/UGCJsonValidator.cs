@@ -4,12 +4,12 @@ namespace WitchMendokusai
 {
 	public static class UGCJsonValidator
 	{
-		public const int CurrentSchemaVersion = 1;
-		private const string ZoneKind = "Zone";
-		private const string DoorKind = "Door";
-		private const string PlatformKind = "Platform";
-		private const string CheckpointKind = "Checkpoint";
-		private const string HazardKind = "Hazard";
+		public const int CURRENT_SCHEMA_VERSION = 1;
+		private const string ZONE_KIND = "Zone";
+		private const string DOOR_KIND = "Door";
+		private const string PLATFORM_KIND = "Platform";
+		private const string CHECKPOINT_KIND = "Checkpoint";
+		private const string HAZARD_KIND = "Hazard";
 		private const float EPSILON = 0.0001f;
 
 		public static bool TryValidateTriggerEvent(UGCTriggerEventData data, out string error)
@@ -20,7 +20,7 @@ namespace WitchMendokusai
 				return false;
 			}
 
-			if (data.schemaVersion != CurrentSchemaVersion)
+			if (data.schemaVersion != CURRENT_SCHEMA_VERSION)
 			{
 				error = $"Unsupported trigger schemaVersion: {data.schemaVersion}";
 				return false;
@@ -71,7 +71,7 @@ namespace WitchMendokusai
 				return false;
 			}
 
-			if (data.schemaVersion != CurrentSchemaVersion)
+			if (data.schemaVersion != CURRENT_SCHEMA_VERSION)
 			{
 				error = $"Unsupported manifest schemaVersion: {data.schemaVersion}";
 				return false;
@@ -186,9 +186,9 @@ namespace WitchMendokusai
 					if (TryValidateTarget(condition.target, $"condition[{index}]", out error) == false)
 						return false;
 
-					if (IsKind(condition.target.kind, ZoneKind) == false)
+					if (IsKind(condition.target.kind, ZONE_KIND) == false)
 					{
-						error = $"condition[{index}] expects target.kind '{ZoneKind}' but got '{condition.target.kind}'.";
+						error = $"condition[{index}] expects target.kind '{ZONE_KIND}' but got '{condition.target.kind}'.";
 						return false;
 					}
 
@@ -225,9 +225,9 @@ namespace WitchMendokusai
 			switch (action.type)
 			{
 				case "SetDoorState":
-					if (IsKind(action.target.kind, DoorKind) == false)
+					if (IsKind(action.target.kind, DOOR_KIND) == false)
 					{
-						error = $"action[{index}] expects target.kind '{DoorKind}' but got '{action.target.kind}'.";
+						error = $"action[{index}] expects target.kind '{DOOR_KIND}' but got '{action.target.kind}'.";
 						return false;
 					}
 
@@ -235,9 +235,9 @@ namespace WitchMendokusai
 					return true;
 
 				case "MovePlatform":
-					if (IsKind(action.target.kind, PlatformKind) == false)
+					if (IsKind(action.target.kind, PLATFORM_KIND) == false)
 					{
-						error = $"action[{index}] expects target.kind '{PlatformKind}' but got '{action.target.kind}'.";
+						error = $"action[{index}] expects target.kind '{PLATFORM_KIND}' but got '{action.target.kind}'.";
 						return false;
 					}
 
@@ -245,9 +245,9 @@ namespace WitchMendokusai
 					return true;
 
 				case "ActivateCheckpoint":
-					if (IsKind(action.target.kind, CheckpointKind) == false)
+					if (IsKind(action.target.kind, CHECKPOINT_KIND) == false)
 					{
-						error = $"action[{index}] expects target.kind '{CheckpointKind}' but got '{action.target.kind}'.";
+						error = $"action[{index}] expects target.kind '{CHECKPOINT_KIND}' but got '{action.target.kind}'.";
 						return false;
 					}
 
@@ -255,9 +255,9 @@ namespace WitchMendokusai
 					return true;
 
 					case "ToggleHazard":
-						if (IsKind(action.target.kind, HazardKind) == false)
+						if (IsKind(action.target.kind, HAZARD_KIND) == false)
 						{
-							error = $"action[{index}] expects target.kind '{HazardKind}' but got '{action.target.kind}'.";
+							error = $"action[{index}] expects target.kind '{HAZARD_KIND}' but got '{action.target.kind}'.";
 							return false;
 						}
 
@@ -278,9 +278,9 @@ namespace WitchMendokusai
 				return false;
 			}
 
-			if (manifest.schemaVersion != CurrentSchemaVersion)
+			if (manifest.schemaVersion != CURRENT_SCHEMA_VERSION)
 			{
-				error = $"Schema version mismatch: expected {CurrentSchemaVersion}, got {manifest.schemaVersion}";
+				error = $"Schema version mismatch: expected {CURRENT_SCHEMA_VERSION}, got {manifest.schemaVersion}";
 				return false;
 			}
 
@@ -290,7 +290,7 @@ namespace WitchMendokusai
 				return false;
 			}
 
-			var seedData = manifest.seedData;
+			SeedSaveData seedData = manifest.seedData;
 
 			if (string.IsNullOrWhiteSpace(seedData.name))
 			{

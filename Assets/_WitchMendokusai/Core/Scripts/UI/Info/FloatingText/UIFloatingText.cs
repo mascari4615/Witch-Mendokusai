@@ -24,7 +24,7 @@ namespace WitchMendokusai
 
 	public class UIFloatingText : MonoBehaviour
 	{
-		private const int createThreshold = 10;
+		private const int CREATE_THRESHOLD = 10;
 
 		[SerializeField] private Transform textsRoot;
 		[SerializeField] private GameObject textPrefab;
@@ -40,7 +40,7 @@ namespace WitchMendokusai
 
 		private void Awake()
 		{
-			for (int i = 0; i < createThreshold; i++)
+			for (int i = 0; i < CREATE_THRESHOLD; i++)
 				CreateTextObject();
 		}
 
@@ -68,7 +68,7 @@ namespace WitchMendokusai
 		{
 			if (texts.Count == 0)
 			{
-				for (int i = 0; i < createThreshold; i++)
+				for (int i = 0; i < CREATE_THRESHOLD; i++)
 					CreateTextObject();
 			}
 

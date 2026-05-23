@@ -242,7 +242,7 @@ namespace WitchMendokusai
                 DontDestroyOnLoad(probe);
                 UnityEngine.SceneManagement.Scene ddol = probe.scene;
                 GameObject[] roots = ddol.GetRootGameObjects();
-                var names = new System.Collections.Generic.List<string>(roots.Length);
+                System.Collections.Generic.List<string> names = new System.Collections.Generic.List<string>(roots.Length);
                 foreach (GameObject go in roots)
                 {
                     if (go != probe)

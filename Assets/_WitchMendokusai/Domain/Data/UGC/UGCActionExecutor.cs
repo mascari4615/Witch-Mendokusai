@@ -5,10 +5,10 @@ namespace WitchMendokusai
 {
 	public static class UGCActionExecutor
 	{
-		private const string DoorKind = "Door";
-		private const string PlatformKind = "Platform";
-		private const string CheckpointKind = "Checkpoint";
-		private const string HazardKind = "Hazard";
+		private const string DOOR_KIND = "Door";
+		private const string PLATFORM_KIND = "Platform";
+		private const string CHECKPOINT_KIND = "Checkpoint";
+		private const string HAZARD_KIND = "Hazard";
 
 		public sealed class MovePlatformCommand
 		{
@@ -68,9 +68,9 @@ namespace WitchMendokusai
 			switch (action.type)
 			{
 				case "SetDoorState":
-					return TryRequireTargetKind(action, DoorKind, out error);
+					return TryRequireTargetKind(action, DOOR_KIND, out error);
 				case "MovePlatform":
-					if (TryRequireTargetKind(action, PlatformKind, out error) == false)
+					if (TryRequireTargetKind(action, PLATFORM_KIND, out error) == false)
 						return false;
 
 					if (string.IsNullOrWhiteSpace(GetString(action.@params, "routeId", string.Empty)))
@@ -82,9 +82,9 @@ namespace WitchMendokusai
 					error = null;
 					return true;
 				case "ActivateCheckpoint":
-					return TryRequireTargetKind(action, CheckpointKind, out error);
+					return TryRequireTargetKind(action, CHECKPOINT_KIND, out error);
 				case "ToggleHazard":
-					return TryRequireTargetKind(action, HazardKind, out error);
+					return TryRequireTargetKind(action, HAZARD_KIND, out error);
 				default:
 					error = $"Unsupported action type: {action.type}";
 					return false;
@@ -93,7 +93,7 @@ namespace WitchMendokusai
 
 		private static bool TrySetDoorState(UGCActionData action, GameObject target, out string error)
 		{
-			if (TryRequireTargetKind(action, DoorKind, out error) == false)
+			if (TryRequireTargetKind(action, DOOR_KIND, out error) == false)
 				return false;
 
 			bool isOpen = GetBool(action.@params, "isOpen", true);
@@ -111,7 +111,7 @@ namespace WitchMendokusai
 
 		private static bool TryMovePlatform(UGCActionData action, GameObject target, out string error)
 		{
-			if (TryRequireTargetKind(action, PlatformKind, out error) == false)
+			if (TryRequireTargetKind(action, PLATFORM_KIND, out error) == false)
 				return false;
 
 			MovePlatformCommand command = new()
@@ -136,7 +136,7 @@ namespace WitchMendokusai
 
 		private static bool TryActivateCheckpoint(UGCActionData action, GameObject target, out string error)
 		{
-			if (TryRequireTargetKind(action, CheckpointKind, out error) == false)
+			if (TryRequireTargetKind(action, CHECKPOINT_KIND, out error) == false)
 				return false;
 
 			bool setAsRespawn = GetBool(action.@params, "setAsRespawn", true);
@@ -149,7 +149,7 @@ namespace WitchMendokusai
 
 		private static bool TryToggleHazard(UGCActionData action, GameObject target, out string error)
 		{
-			if (TryRequireTargetKind(action, HazardKind, out error) == false)
+			if (TryRequireTargetKind(action, HAZARD_KIND, out error) == false)
 				return false;
 
 			bool enabled = GetBool(action.@params, "enabled", true);
@@ -219,19 +219,19 @@ namespace WitchMendokusai
 			switch (actionType)
 			{
 				case "SetDoorState":
-					expectedKind = DoorKind;
+					expectedKind = DOOR_KIND;
 					error = null;
 					return true;
 				case "MovePlatform":
-					expectedKind = PlatformKind;
+					expectedKind = PLATFORM_KIND;
 					error = null;
 					return true;
 				case "ActivateCheckpoint":
-					expectedKind = CheckpointKind;
+					expectedKind = CHECKPOINT_KIND;
 					error = null;
 					return true;
 				case "ToggleHazard":
-					expectedKind = HazardKind;
+					expectedKind = HAZARD_KIND;
 					error = null;
 					return true;
 				default:
@@ -266,11 +266,11 @@ namespace WitchMendokusai
 
 	public static class UGCObjectRegistry
 	{
-		private const string DoorKind = "Door";
-		private const string PlatformKind = "Platform";
-		private const string CheckpointKind = "Checkpoint";
-		private const string ZoneKind = "Zone";
-		private const string HazardKind = "Hazard";
+		private const string DOOR_KIND = "Door";
+		private const string PLATFORM_KIND = "Platform";
+		private const string CHECKPOINT_KIND = "Checkpoint";
+		private const string ZONE_KIND = "Zone";
+		private const string HAZARD_KIND = "Hazard";
 
 		private sealed class RegisteredObject
 		{
@@ -363,15 +363,15 @@ namespace WitchMendokusai
 
 			switch (expectedKind)
 			{
-				case DoorKind:
+				case DOOR_KIND:
 					return gameObject.GetComponent<UGCTestDoorReceiver>() != null;
-				case PlatformKind:
+				case PLATFORM_KIND:
 					return gameObject.GetComponent<UGCTestPlatformReceiver>() != null;
-				case CheckpointKind:
+				case CHECKPOINT_KIND:
 					return gameObject.GetComponent<UGCTestCheckpointReceiver>() != null;
-					case HazardKind:
+					case HAZARD_KIND:
 						return gameObject.GetComponent<UGCTestHazardReceiver>() != null;
-				case ZoneKind:
+				case ZONE_KIND:
 					return gameObject.GetComponent<UGCTriggerZone>() != null;
 				default:
 					return true;
