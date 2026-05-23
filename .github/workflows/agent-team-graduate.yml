@@ -50,8 +50,9 @@ jobs:
           headRef=$(echo "$pr"   | jq -r '.headRefName')
           headOid=$(echo "$pr"   | jq -r '.headRefOid')
           # PR reviews API — gh pr list --json comments 는 issue comment 만 반환, review body 미포함.
+          # "claude.yml §" 포함 review 전부 accept (§ claude-pr-review / § wm-pr-review 구버전 포함).
           reviewed=$(gh api "repos/${GH_REPO}/pulls/${num}/reviews" \
-            --jq '[.[] | select(.body | contains("claude.yml § claude-pr-review"))] | length')
+            --jq '[.[] | select(.body | contains("claude.yml §"))] | length')
 
           # 가드 1 — Draft 만 졸업 대상
           if [ "$isDraft" != "true" ]; then
