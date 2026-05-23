@@ -40,7 +40,7 @@ jobs:
           set -euo pipefail
 
           pr=$(gh pr list --head "$HEAD_BRANCH" --state open \
-                --json number,isDraft,headRefName,headRefOid,comments --jq '.[0] // empty')
+                --json number,isDraft,headRefName,headRefOid --jq '.[0] // empty')
           if [ -z "$pr" ]; then
             echo "branch '$HEAD_BRANCH' 에 open PR 없음 — skip"; exit 0
           fi
@@ -49,7 +49,9 @@ jobs:
           isDraft=$(echo "$pr"   | jq -r '.isDraft')
           headRef=$(echo "$pr"   | jq -r '.headRefName')
           headOid=$(echo "$pr"   | jq -r '.headRefOid')
-          reviewed=$(echo "$pr"  | jq -r '[.comments[] | select(.body | contains("claude.yml § claude-pr-review"))] | length')
+          # PR reviews API — gh pr list --json comments 는 issue comment 만 반환, review body 미포함.
+          reviewed=$(gh api "repos/${GH_REPO}/pulls/${num}/reviews" \
+            --jq '[.[] | select(.body | contains("claude.yml § claude-pr-review"))] | length')
 
           # 가드 1 — Draft 만 졸업 대상
           if [ "$isDraft" != "true" ]; then
