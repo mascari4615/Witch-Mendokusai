@@ -15,6 +15,12 @@ namespace WitchMendokusai
 
 		public void Load(WorldStageSaveData saveData)
 		{
+			// Load = replace, not merge. WorldStage 는 SO 자산이라 인스턴스가 stage 재진입/재로드
+			// 간 살아남음 → 비우지 않으면 이전 도시 데이터가 누적(예: 게임 두 번 로드). 셋 다 clear 선행.
+			GridData.BuildingData.Clear();
+			RoadGraph.RoadData.Clear();
+			ZoneGrid.ZoneData.Clear();
+
 			GridData.Load(saveData.BuildingSaveData);
 
 			// 옛 세이브엔 Road/Zone 필드 부재(null) — Phase 1 이전 도시는 도로/존 없음. null skip.

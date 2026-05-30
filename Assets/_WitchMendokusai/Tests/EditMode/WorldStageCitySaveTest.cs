@@ -66,6 +66,56 @@ namespace WitchMendokusai.Tests
 		}
 
 		[Test]
+		public void Load_Twice_ReplacesNotAccumulates()
+		{
+			// WorldStage 는 SO 자산 → 인스턴스가 재로드 간 살아남음. Load 가 merge 면 이전 도시가
+			// 누적된다(review major finding). Load = replace 여야 함 — 두 번째 Load 후 첫 도시 잔존 X.
+			WorldStage stage = NewStage();
+
+			WorldStageSaveData cityA = new()
+			{
+				BuildingSaveData = new List<KeyValuePair<Vector3Int, BuildingInstanceData>>
+				{
+					new(new Vector3Int(0, 0, 0), new BuildingInstanceData(1))
+				},
+				RoadSaveData = new List<KeyValuePair<Vector3Int, RoadCellData>>
+				{
+					new(new Vector3Int(0, 0, 0), new RoadCellData(RoadType.Basic))
+				},
+				ZoneSaveData = new List<KeyValuePair<Vector3Int, ZoneCellData>>
+				{
+					new(new Vector3Int(0, 0, 0), new ZoneCellData(ZoneType.Residential))
+				}
+			};
+			WorldStageSaveData cityB = new()
+			{
+				BuildingSaveData = new List<KeyValuePair<Vector3Int, BuildingInstanceData>>
+				{
+					new(new Vector3Int(9, 9, 0), new BuildingInstanceData(2))
+				},
+				RoadSaveData = new List<KeyValuePair<Vector3Int, RoadCellData>>
+				{
+					new(new Vector3Int(9, 9, 0), new RoadCellData(RoadType.Basic))
+				},
+				ZoneSaveData = new List<KeyValuePair<Vector3Int, ZoneCellData>>
+				{
+					new(new Vector3Int(9, 9, 0), new ZoneCellData(ZoneType.Commercial))
+				}
+			};
+
+			stage.Load(cityA);
+			stage.Load(cityB); // 재로드 = 도시 교체
+
+			Assert.That(stage.GridData.BuildingData.Count, Is.EqualTo(1), "건물: cityA 잔존 X (replace)");
+			Assert.That(stage.GridData.HasBuildingAt(new Vector3Int(0, 0, 0)), Is.False, "cityA 건물 제거됨");
+			Assert.That(stage.GridData.HasBuildingAt(new Vector3Int(9, 9, 0)), Is.True, "cityB 건물만");
+			Assert.That(stage.RoadGraph.RoadData.Count, Is.EqualTo(1), "도로: cityA 잔존 X");
+			Assert.That(stage.RoadGraph.HasRoad(new Vector3Int(9, 9, 0)), Is.True);
+			Assert.That(stage.ZoneGrid.ZoneData.Count, Is.EqualTo(1), "존: cityA 잔존 X");
+			Assert.That(stage.ZoneGrid.GetZone(new Vector3Int(9, 9, 0)), Is.EqualTo(ZoneType.Commercial));
+		}
+
+		[Test]
 		public void Save_EmptyCity_ProducesNonNullLayers()
 		{
 			// 새 WorldStage Save → Road/Zone 빈 리스트(null 아님) → 다음 Load 안전.

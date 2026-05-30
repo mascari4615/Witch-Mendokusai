@@ -11,21 +11,25 @@ namespace WitchMendokusai
 	// 비전-중립 — 마법진/사역마 스킨 무관(순수 수학). 계수는 RciDemandCoefficients 주입(수치 노출).
 	public sealed class RciDemandModel
 	{
+		// 수요 정규화 범위 — RciDemand 출력 계약(+성장압/-쇠퇴압). 튜닝 수치 아닌 타입 범위 상수.
+		private const float DEMAND_MIN = -1f;
+		private const float DEMAND_MAX = 1f;
+
 		public RciDemand Evaluate(int residential, int commercial, int industrial, RciDemandCoefficients coefficients)
 		{
 			int jobs = commercial + industrial;
 
 			// 주거: 일자리가 부양 가능한 주민 - 현재 주민.
 			float residentialGap = jobs * coefficients.ResidentsPerJob - residential;
-			float demandResidential = Mathf.Clamp(residentialGap * coefficients.DemandGain, -1f, 1f);
+			float demandResidential = Mathf.Clamp(residentialGap * coefficients.DemandGain, DEMAND_MIN, DEMAND_MAX);
 
 			// 상업: 주민이 요구하는 상업 - 현재 상업.
 			float commercialGap = residential * coefficients.ShopsPerResident - commercial;
-			float demandCommercial = Mathf.Clamp(commercialGap * coefficients.DemandGain, -1f, 1f);
+			float demandCommercial = Mathf.Clamp(commercialGap * coefficients.DemandGain, DEMAND_MIN, DEMAND_MAX);
 
 			// 산업: 외부 수출 + 주민이 요구하는 산업 - 현재 산업.
 			float industrialGap = coefficients.ExportBaseline + residential * coefficients.IndustryPerResident - industrial;
-			float demandIndustrial = Mathf.Clamp(industrialGap * coefficients.DemandGain, -1f, 1f);
+			float demandIndustrial = Mathf.Clamp(industrialGap * coefficients.DemandGain, DEMAND_MIN, DEMAND_MAX);
 
 			return new RciDemand(demandResidential, demandCommercial, demandIndustrial);
 		}
