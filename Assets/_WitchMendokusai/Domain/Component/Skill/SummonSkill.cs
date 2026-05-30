@@ -18,8 +18,13 @@ namespace WitchMendokusai
 
 			if (SetRotation)
 			{
-				// 공격 위치를 향하도록 회전
-				o.transform.rotation = Quaternion.LookRotation(context.PlayerProvider.Current.AimDirection);
+				// WM-165: 전술 타겟(context.Target) 우선 조준, 없으면 레거시 플레이어 조준(Current null 가드).
+				Vector3? targetPosition = context.Target != null ? context.Target.transform.position : (Vector3?)null;
+				Vector3? fallbackAim = (context.PlayerProvider != null && context.PlayerProvider.Current != null)
+					? context.PlayerProvider.Current.AimDirection
+					: (Vector3?)null;
+				o.transform.rotation = Quaternion.LookRotation(
+					ProjectileAim.Resolve(o.transform.position, targetPosition, fallbackAim, o.transform.forward));
 			}
 
 			if (o.TryGetComponent(out SkillObject skillObject))

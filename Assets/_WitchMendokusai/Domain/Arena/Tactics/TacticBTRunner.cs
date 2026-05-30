@@ -76,7 +76,7 @@ namespace WitchMendokusai
 					context.Actuator.UseSkill(rule.Action.SkillSlot, target);
 					break;
 				case ActionKind.MoveToTarget:
-				case ActionKind.Approach:
+				case ActionKind.Approach: // v1 동일 — Approach 사거리-정지 미구현(TacticEnums 주석 참조)
 					context.Actuator.MoveToward(target);
 					break;
 				case ActionKind.Retreat:

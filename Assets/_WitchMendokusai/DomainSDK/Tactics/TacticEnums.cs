@@ -22,7 +22,7 @@ namespace WitchMendokusai
 		Hold = 0,         // 제자리 대기
 		UseSkill = 1,     // SkillSlot 스킬 시전 (타겟 = 룰의 TargetQuery)
 		MoveToTarget = 2, // 선정된 타겟에게 이동
-		Approach = 3,     // 타겟에게 접근 (사거리까지)
+		Approach = 3,     // v1 = MoveToTarget 과 동일(사거리-정지 미구현 — 후속 stopAtRange 자리)
 		Retreat = 4,      // 타겟 반대 방향으로 후퇴
 	}
 

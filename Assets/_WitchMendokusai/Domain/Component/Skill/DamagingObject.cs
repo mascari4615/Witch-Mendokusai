@@ -173,6 +173,7 @@ namespace WitchMendokusai
 
 				if (unitStat[UnitStatType.CRITICAL_CHANCE] > 0)
 				{
+					// NONDETERMINISTIC: UnityEngine.Random 전역 — 아레나 리플레이/lockstep(P6) 진입 시 per-match seeded RNG 격리 필요 (WM-165 후속 / TASK-WM-085).
 					if (UnityEngine.Random.Range(0, 100) < unitStat[UnitStatType.CRITICAL_CHANCE])
 					{
 						calcDamage = (int)(calcDamage * (1 + (unitStat[UnitStatType.CRITICAL_DAMAGE] / 100f)));

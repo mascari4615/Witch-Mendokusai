@@ -54,7 +54,7 @@ namespace WitchMendokusai
 			tickAccum += TimeManager.TICK;
 			if (tickAccum < BTRunner.TICK)
 				return;
-			tickAccum = 0f;
+			tickAccum -= BTRunner.TICK; // 잔여 보존(WorldClock house 패턴) — 비정수 비율 드리프트 방지
 
 			runner.UpdateBT();
 		}
