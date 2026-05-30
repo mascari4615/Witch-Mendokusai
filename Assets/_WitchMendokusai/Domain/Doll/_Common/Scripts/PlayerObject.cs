@@ -13,7 +13,7 @@ namespace WitchMendokusai
 		[SerializeField] private GameObject diedX;
 
 		[field: SerializeField] public Transform CameraPosition { get; private set; }
-		[field: SerializeField] public Transform SpritePosition { get; private set; }
+		[field: SerializeField] public Transform HeadAnchor { get; private set; }
 
 		[SerializeField] private SpriteRenderer headRenderer;
 		[SerializeField] private SpriteRenderer bodyRenderer;
@@ -33,6 +33,16 @@ namespace WitchMendokusai
 		public void SetDoll(int dollID)
 		{
 			Init(GetDoll(dollID));
+		}
+
+		// TASK-WM-163 — 1인칭 시 자기 스프라이트 숨김 (머리·몸통 빌보드).
+		public void SetSelfVisible(bool visible)
+		{
+			if (headRenderer != null)
+				headRenderer.enabled = visible;
+
+			if (bodyRenderer != null)
+				bodyRenderer.enabled = visible;
 		}
 
 		public override void Init(Unit unitData)

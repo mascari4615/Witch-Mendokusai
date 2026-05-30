@@ -87,6 +87,20 @@ namespace WitchMendokusai
 							() => CameraManager.Instance.Zoom(),
 							() => CanExecute(InputEventType.Scroll)
 						),
+
+						// TASK-WM-163 — 카메라 2축 매트릭스 토글 (Scroll→Zoom 패턴 동일).
+						new(
+							InputEventType.CameraControlModeToggle,
+							InputEventResponseType.Performed,
+							() => CameraManager.Instance.ToggleControlMode(),
+							() => CanExecute(InputEventType.CameraControlModeToggle)
+						),
+						new(
+							InputEventType.CameraPerspectiveToggle,
+							InputEventResponseType.Performed,
+							() => CameraManager.Instance.TogglePerspective(),
+							() => CanExecute(InputEventType.CameraPerspectiveToggle)
+						),
 						#endregion
 
 						#region UI
@@ -159,6 +173,8 @@ namespace WitchMendokusai
 				}
 			},
 			{ InputEventType.Scroll, new[] { GameConditionType.IsTyping } },
+			{ InputEventType.CameraControlModeToggle, new[] { GameConditionType.IsPaused, GameConditionType.IsTyping } },
+			{ InputEventType.CameraPerspectiveToggle, new[] { GameConditionType.IsPaused, GameConditionType.IsTyping } },
 
 			{
 				InputEventType.Submit,
@@ -191,6 +207,17 @@ namespace WitchMendokusai
 			},
 			{
 				InputAxisType.CameraRotate,
+				new[]
+				{
+					GameConditionType.IsPaused,
+					GameConditionType.IsTyping,
+					GameConditionType.IsDied,
+					GameConditionType.IsInTransition,
+					GameConditionType.IsViewingUI
+				}
+			},
+			{
+				InputAxisType.Look,
 				new[]
 				{
 					GameConditionType.IsPaused,

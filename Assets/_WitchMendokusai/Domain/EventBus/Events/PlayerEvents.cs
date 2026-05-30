@@ -6,7 +6,7 @@ namespace WitchMendokusai
 	{
 		public Transform Transform;
 		public Transform CameraPosition;
-		public Transform SpritePosition;
+		public Transform HeadAnchor;
 	}
 
 	public struct PlayerDespawnedEvent

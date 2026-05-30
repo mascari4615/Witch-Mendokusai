@@ -101,7 +101,7 @@ GameObject:
   - component: {fileID: 719466480940623808}
   - component: {fileID: 5534887127165330206}
   m_Layer: 6
-  m_Name: PlayerSprite
+  m_Name: HeadAnchor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -116,7 +116,7 @@ Transform:
   m_GameObject: {fileID: 554635109665356792}
   serializedVersion: 2
   m_LocalRotation: {x: 0.14780942, y: 0, z: 0, w: 0.9890159}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 0.806, z: 0.241}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1713,6 +1713,7 @@ GameObject:
   - component: {fileID: 1709367252608091852}
   - component: {fileID: 6233685962190346102}
   - component: {fileID: 1428065535421132943}
+  - component: {fileID: 7002777524952623377}
   m_Layer: 6
   m_Name: Player
   m_TagString: Player
@@ -1781,7 +1782,7 @@ MonoBehaviour:
   acceleration: 40
   diedX: {fileID: 9165254187291573225}
   <CameraPosition>k__BackingField: {fileID: 7133439200021920221}
-  <SpritePosition>k__BackingField: {fileID: 719466480940623808}
+  <HeadAnchor>k__BackingField: {fileID: 719466480940623808}
   headRenderer: {fileID: 8321919602916171231}
   bodyRenderer: {fileID: 5613304670366075000}
 --- !u!114 &200384828261594185
@@ -1842,7 +1843,7 @@ Rigidbody:
   m_ImplicitTensor: 1
   m_UseGravity: 0
   m_IsKinematic: 1
-  m_Interpolate: 0
+  m_Interpolate: 1
   m_Constraints: 112
   m_CollisionDetection: 0
 --- !u!136 &5117333857034090126
@@ -1911,6 +1912,23 @@ MonoBehaviour:
   landingImpulseFloor: 0
   landingImpulseExponent: 1.8
   landingImpulseMaxAmplitude: 0.45
+--- !u!114 &7002777524952623377
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6743984011136962783}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5081210ff2a42bb48a17dff0e2bae1cd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: WM.Domain::WitchMendokusai.PlayerKnockbackCameraGlue
+  minimumAmplitude: 0.18
+  forceScale: 0.04
+  maxAmplitude: 0.9
+  forceExponent: 0.85
+  forceThreshold: 0
 --- !u!1 &7610486861703332194
 GameObject:
   m_ObjectHideFlags: 0

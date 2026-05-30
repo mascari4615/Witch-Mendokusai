@@ -1005,9 +1005,18 @@
                     "initialStateCheck": false
                 },
                 {
-                    "name": "Tab",
+                    "name": "CameraControlModeToggle",
                     "type": "Button",
                     "id": "d63a6020-c9e0-4a89-8b65-d5edfa8d04ec",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "CameraPerspectiveToggle",
+                    "type": "Button",
+                    "id": "c4e7a000-0000-0000-0000-000000000f05",
                     "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
@@ -1534,7 +1543,18 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "Tab",
+                    "action": "CameraControlModeToggle",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "c4e7b000-0000-0000-0000-000000000f05",
+                    "path": "<Keyboard>/f5",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "CameraPerspectiveToggle",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },

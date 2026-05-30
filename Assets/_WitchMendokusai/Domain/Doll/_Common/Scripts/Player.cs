@@ -66,6 +66,7 @@ namespace WitchMendokusai
 			EventBusBridge.Subscribe<PlayerCrouchChangedEvent>(OnCrouchChanged);
 			EventBusBridge.Subscribe<PlayerAutoAimToggledEvent>(OnAutoAimToggled);
 			EventBusBridge.Subscribe<PlayerInteractRequestedEvent>(OnInteractRequested);
+			EventBusBridge.Subscribe<CameraPerspectiveChangedEvent>(OnCameraPerspectiveChanged);
 		}
 
 		private void Start()
@@ -76,7 +77,7 @@ namespace WitchMendokusai
 			{
 				Transform = transform,
 				CameraPosition = Object.CameraPosition,
-				SpritePosition = Object.SpritePosition,
+				HeadAnchor = Object.HeadAnchor,
 			});
 		}
 
@@ -93,6 +94,7 @@ namespace WitchMendokusai
 			EventBusBridge.Unsubscribe<PlayerCrouchChangedEvent>(OnCrouchChanged);
 			EventBusBridge.Unsubscribe<PlayerAutoAimToggledEvent>(OnAutoAimToggled);
 			EventBusBridge.Unsubscribe<PlayerInteractRequestedEvent>(OnInteractRequested);
+			EventBusBridge.Unsubscribe<CameraPerspectiveChangedEvent>(OnCameraPerspectiveChanged);
 		}
 
 		private void OnJumpRequested(PlayerJumpRequestedEvent evt) => TryJump();
@@ -102,6 +104,7 @@ namespace WitchMendokusai
 		private void OnCrouchChanged(PlayerCrouchChangedEvent evt) => SetCrouching(evt.IsCrouching);
 		private void OnAutoAimToggled(PlayerAutoAimToggledEvent evt) => SetAutoAim(IsAutoAim == false);
 		private void OnInteractRequested(PlayerInteractRequestedEvent evt) => TryInteract();
+		private void OnCameraPerspectiveChanged(CameraPerspectiveChangedEvent evt) => Object.SetSelfVisible(evt.IsFirstPerson == false);
 
 		private void Update()
 		{

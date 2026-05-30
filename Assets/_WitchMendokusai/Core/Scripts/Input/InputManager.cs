@@ -61,8 +61,10 @@ namespace WitchMendokusai
 		Submit,
 		[InputEvent("UI 탐색", "취소", "<Keyboard>/x")]
 		Cancel,
-		[InputEvent("창", "탭 UI", "<Keyboard>/tab")]
-		Tab,
+		[InputEvent("카메라", "시점 조작 모드 (Tab)", "<Keyboard>/tab")]
+		CameraControlModeToggle,
+		[InputEvent("카메라", "1인칭/3인칭 (F5)", "<Keyboard>/f5")]
+		CameraPerspectiveToggle,
 		[InputEvent("창", "스탯", "<Keyboard>/v")]
 		Status,
 		[InputEvent("창", "인벤토리", "<Keyboard>/i")]
@@ -93,6 +95,7 @@ namespace WitchMendokusai
 	{
 		Move,
 		CameraRotate,
+		Look,
 	}
 
 	public class InputManager : MonoBehaviour
@@ -131,7 +134,8 @@ namespace WitchMendokusai
 
 			{ InputEventType.Submit, InputMapType.UI },
 			{ InputEventType.Cancel, InputMapType.UI },
-			{ InputEventType.Tab, InputMapType.UI },
+			{ InputEventType.CameraControlModeToggle, InputMapType.UI },
+			{ InputEventType.CameraPerspectiveToggle, InputMapType.UI },
 			{ InputEventType.Status, InputMapType.UI },
 			{ InputEventType.Inventory, InputMapType.UI },
 			{ InputEventType.DevWindowToggle, InputMapType.UI },
@@ -168,6 +172,9 @@ namespace WitchMendokusai
 		public bool IsMouseRightButtonPressed => Mouse.current != null && Mouse.current.rightButton.isPressed;
 		public Vector2 MoveInput { get; private set; }
 		public float CameraRotateInput { get; private set; }
+		// TASK-WM-163 — MouseLook 모드 시야 회전용 마우스 델타 (픽셀/프레임).
+		// 캡슐화 경계(InputManager) 내부에서 Mouse.current 직접 read — UpdateMoveInput 패턴과 동일.
+		public Vector2 LookDelta { get; private set; }
 		private IInputStrategy CurrentInputStrategy { get; set; }
 
 		// Calling IsPointerOverGameObject() from within event processing (such as from InputAction callbacks) will not work as expected; it will query UI state from the last frame UnityEngine.EventSystems.EventSystem:IsPointerOverGameObject ()
@@ -339,6 +346,7 @@ namespace WitchMendokusai
 			UpdateIsPointerOverUI();
 			UpdateMoveInput();
 			UpdateCameraRotateInput();
+			UpdateLookInput();
 		}
 
 		private void UpdateMouseWorldPosition()
@@ -452,6 +460,19 @@ namespace WitchMendokusai
 			if (kb.qKey.isPressed) rotate += 1f;
 			if (kb.eKey.isPressed) rotate -= 1f;
 			CameraRotateInput = rotate;
+		}
+
+		private void UpdateLookInput()
+		{
+			if (CurrentInputStrategy != null &&
+				CurrentInputStrategy.TryGetAxisReturnConditions(InputAxisType.Look, out GameConditionType[] conditions) &&
+				GameConditionBridge.IsGameConditionAny(conditions))
+			{
+				LookDelta = Vector2.zero;
+				return;
+			}
+
+			LookDelta = Mouse.current != null ? Mouse.current.delta.ReadValue() : Vector2.zero;
 		}
 	}
 }
