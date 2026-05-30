@@ -16,8 +16,6 @@ namespace WitchMendokusai
 	// 는 후속 step. 수동 트리거 = 「모든 자동화는 수동 트리거 전제」 정합).
 	public class CityPaintManager : MonoBehaviour
 	{
-		[SerializeField] private Grid grid;
-
 		[Tooltip("페인트 셀 큐브 한 변 비율 (1 = 셀 꽉 참).")]
 		[SerializeField] private float cellTileScale = 0.9f;
 		[Tooltip("타일 두께 (납작한 판).")]
@@ -31,13 +29,18 @@ namespace WitchMendokusai
 		private InputManager inputManager;
 		private GameModeManager gameModeManager;
 		private StageManager stageManager;
+		// BuildManager 의 런타임 Grid 재사용 — 도시 페인트가 건물 배치와 *정확히 같은 셀 좌표계* 를 쓰게
+		// 보장(자체 Grid SerializeField 연결 시 prefab/런타임 인스턴스 불일치로 위치 어긋남). known-good
+		// 재사용 = 좌표 정합 > City→Building 결합 회피. 사용자 Grid 연결 불요(BuildManager 가 이미 보유).
+		private BuildManager buildManager;
 
 		[Inject]
-		public void Construct(InputManager inputManager, GameModeManager gameModeManager, StageManager stageManager)
+		public void Construct(InputManager inputManager, GameModeManager gameModeManager, StageManager stageManager, BuildManager buildManager)
 		{
 			this.inputManager = inputManager;
 			this.gameModeManager = gameModeManager;
 			this.stageManager = stageManager;
+			this.buildManager = buildManager;
 		}
 
 		// 셀 → 시각 큐브 (ZoneGrid/RoadGraph 가 데이터 진실, 이건 그 투영 = 렌더 캐시).
@@ -99,7 +102,8 @@ namespace WitchMendokusai
 				return false;
 
 			worldStage = stage;
-			cell = grid.WorldToCell(inputManager.MouseWorldPosition);
+			// BuildManager 의 Grid = 건물 배치와 동일 좌표계 (런타임 stage prefab 내 Grid, stage 오프셋 반영).
+			cell = buildManager.Grid.WorldToCell(inputManager.MouseWorldPosition);
 			return true;
 		}
 

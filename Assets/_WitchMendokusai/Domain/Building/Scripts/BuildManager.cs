@@ -37,6 +37,8 @@ namespace WitchMendokusai
 		}
 
 		[SerializeField] private Grid grid;
+		// TASK-WM-164 — City 페인트가 동일 Grid 좌표계 재사용(런타임 stage prefab 내 Grid). 읽기 전용 노출.
+		public Grid Grid => grid;
 		[SerializeField] private Transform gridParent;
 		[SerializeField] private GameObject gridVisualization;
 		[SerializeField] private Animator marker;
