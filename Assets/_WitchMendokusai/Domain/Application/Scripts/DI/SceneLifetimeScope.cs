@@ -52,6 +52,7 @@ namespace WitchMendokusai
 			RegisterInHierarchyIfPresent<UIManager>(builder);
 			RegisterInHierarchyIfPresent<CameraManager>(builder);
 			RegisterInHierarchyIfPresent<BuildManager>(builder);
+			RegisterInHierarchyIfPresent<CityPaintManager>(builder); // TASK-WM-164 SimCity Phase1 step5
 			RegisterInHierarchyIfPresent<ChatManager>(builder);
 			RegisterInHierarchyIfPresent<ToolTipPopupManager>(builder);
 			RegisterInHierarchyIfPresent<UIHoldingSlot>(builder);
@@ -104,6 +105,7 @@ namespace WitchMendokusai
 				ResolveIfPresent<UIManager>(container);
 				ResolveIfPresent<CameraManager>(container);
 				ResolveIfPresent<BuildManager>(container);
+				ResolveIfPresent<CityPaintManager>(container); // TASK-WM-164 step5 — 등록↔해소 짝
 				ResolveIfPresent<ChatManager>(container);
 				ResolveIfPresent<ToolTipPopupManager>(container);
 				ResolveIfPresent<UIHoldingSlot>(container);
