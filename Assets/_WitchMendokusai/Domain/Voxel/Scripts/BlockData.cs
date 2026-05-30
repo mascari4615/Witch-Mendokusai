@@ -22,8 +22,11 @@ namespace WitchMendokusai
 		[SerializeField] private bool isOpaque = true;
 		[Tooltip("식물성 블록 (잔디·잎 등) 만 true. mesher 가 column biome.PreviewColor 을 vertex color 에 곱 → atlas/sentinel 모두 색조 변화. 돌·모래 등 무관 블록은 false.")]
 		[SerializeField] private bool acceptsBiomeTint = false;
-		[Tooltip("월드 단위 텍스쳐 반복 주기 (m). 1 = 매 1m 마다 반복 = per-block tile (현재 / 마인크래프트식). 2/4/8 등 = 더 큰 worldspace 텍스쳐 — 4 면 4×4 블록 = 1 텍스쳐 → 그리드 패턴 약화. atlas 픽셀 해상도 ÷ scale = 픽셀 밀도 (큰 scale 은 흐려짐).")]
+		[Tooltip("월드 단위 텍스쳐 반복 주기 (m). 1 = 매 1m 마다 반복 = per-block tile (마인크래프트식). 2/4/8 = 더 큰 worldspace 텍스쳐. 실효 텍셀 밀도 = Resolution ÷ scale (큰 scale 은 흐려짐). 선명 원하면 작게.")]
 		[SerializeField, Min(0.25f)] private float textureWorldScale = 1f;
+
+		[Tooltip("Stochastic (hex-tiling) 샘플링 — 텍스쳐 반복 패턴을 영역별 랜덤 오프셋·블렌드로 분해. **연속 자연 지형**(그리드 숨김 + 선명) 용: worldScale 작게(1~2) + 이 토글 ON. **마인크래프트식 블록감**이면 OFF(블록마다 또렷한 1장). 픽셀당 3 샘플 비용.")]
+		[SerializeField] private bool useStochasticTiling = false;
 
 		[Header("Atlas Faces (drag Texture2D — null = atlas 미할당, vertex color fallback)")]
 		[SerializeField] private Texture2D sideTexture;
@@ -44,6 +47,7 @@ namespace WitchMendokusai
 		public bool IsOpaque => isOpaque;
 		public bool AcceptsBiomeTint => acceptsBiomeTint;
 		public float TextureWorldScale => textureWorldScale;
+		public bool UseStochasticTiling => useStochasticTiling;
 		public ushort RuntimeId => runtimeId;
 
 		public Texture2D SideTexture => sideTexture;
@@ -68,6 +72,7 @@ namespace WitchMendokusai
 		public void SetIsOpaque(bool value) => isOpaque = value;
 		public void SetAcceptsBiomeTint(bool value) => acceptsBiomeTint = value;
 		public void SetTextureWorldScale(float value) => textureWorldScale = Mathf.Max(0.25f, value);
+		public void SetUseStochasticTiling(bool value) => useStochasticTiling = value;
 		public void SetSideTexture(Texture2D value) => sideTexture = value;
 		public void SetTopTexture(Texture2D value) => topTexture = value;
 		public void SetBottomTexture(Texture2D value) => bottomTexture = value;

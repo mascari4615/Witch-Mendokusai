@@ -142,10 +142,11 @@ namespace WitchMendokusai
 									}
 								}
 
-								// TEXCOORD1 = (layer, worldScale, 0, 0). layer<0 = sentinel (셰이더 vertex color path).
-								// worldScale 은 sentinel 도 1f 안전값 (셰이더 uv / 1 안전).
+								// TEXCOORD1 = (layer, worldScale, stochastic, 0). layer<0 = sentinel (셰이더 vertex color path).
+								// worldScale 은 sentinel 도 1f 안전값 (셰이더 uv / 1 안전). stochastic 1 = hex-tiling 샘플.
 								float worldScaleSafe = blockData.TextureWorldScale > 0f ? blockData.TextureWorldScale : 1f;
-								Vector4 faceData = new(faceLayer, worldScaleSafe, 0f, 0f);
+								float stochasticFlag = blockData.UseStochasticTiling ? 1f : 0f;
+								Vector4 faceData = new(faceLayer, worldScaleSafe, stochasticFlag, 0f);
 
 								Vector3[] faceVerts = FaceVertices[d];
 								for (int v = 0; v < 4; v++)

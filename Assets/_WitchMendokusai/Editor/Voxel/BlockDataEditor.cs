@@ -115,13 +115,14 @@ namespace WitchMendokusai
 			int[] triangles = new int[36];
 
 			float worldScale = block.TextureWorldScale > 0f ? block.TextureWorldScale : 1f;
+			float stochasticFlag = block.UseStochasticTiling ? 1f : 0f;
 
 			for (int d = 0; d < 6; d++)
 			{
 				int layer = GetLayerForFace(block, d);
 				Color faceColor = layer >= 0 ? Color.white : block.Color;
 				Vector3 normal = Dirs[d];
-				Vector4 perFace = new(layer, worldScale, 0f, 0f);
+				Vector4 perFace = new(layer, worldScale, stochasticFlag, 0f);
 
 				for (int v = 0; v < 4; v++)
 				{
