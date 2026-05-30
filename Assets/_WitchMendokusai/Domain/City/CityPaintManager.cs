@@ -1,0 +1,221 @@
+using System.Collections.Generic;
+using UnityEngine;
+using VContainer;
+
+namespace WitchMendokusai
+{
+	// SimCity Phase 1 step5 — 존/도로 페인트 (화면 가시화 tracer).
+	//
+	// GameMode.Zone/Road 진입 시 Click0=페인트 / Click1=해제. 데이터 진실 = WorldStage.ZoneGrid /
+	// RoadGraph (substrate step1-4), 이 매니저는 거기에 쓰고 셀마다 색 큐브를 *코드로* spawn 해 보이게
+	// 한다(프리팹 0 = tracer; 정식 타일 비주얼은 후속). BuildManager 와 형제 — 같은 Grid·InputManager 를
+	// 재사용하되 GridData(건물) 아닌 ZoneGrid/RoadGraph 에 페인트(책임 분리, 6 동기 「분리」).
+	//
+	// BuildManager 비의존(City→Building 결합 회피) — 자체 [SerializeField] Grid + InputManager 주입만.
+	// 모드 진입 = [ContextMenu] 수동 트리거 (입력 시스템·slot A InputManager enum 무접촉 — 정식 단축키
+	// 는 후속 step. 수동 트리거 = 「모든 자동화는 수동 트리거 전제」 정합).
+	public class CityPaintManager : MonoBehaviour
+	{
+		[SerializeField] private Grid grid;
+
+		[Tooltip("페인트 셀 큐브 한 변 비율 (1 = 셀 꽉 참).")]
+		[SerializeField] private float cellTileScale = 0.9f;
+		[Tooltip("타일 두께 (납작한 판).")]
+		[SerializeField] private float cellTileHeight = 0.1f;
+
+		[SerializeField] private Color residentialColor = new(0.40f, 0.85f, 0.40f);
+		[SerializeField] private Color commercialColor = new(0.40f, 0.60f, 1.00f);
+		[SerializeField] private Color industrialColor = new(1.00f, 0.85f, 0.30f);
+		[SerializeField] private Color roadColor = new(0.35f, 0.35f, 0.35f);
+
+		private InputManager inputManager;
+		private GameModeManager gameModeManager;
+		private StageManager stageManager;
+
+		[Inject]
+		public void Construct(InputManager inputManager, GameModeManager gameModeManager, StageManager stageManager)
+		{
+			this.inputManager = inputManager;
+			this.gameModeManager = gameModeManager;
+			this.stageManager = stageManager;
+		}
+
+		// 셀 → 시각 큐브 (ZoneGrid/RoadGraph 가 데이터 진실, 이건 그 투영 = 렌더 캐시).
+		private readonly Dictionary<Vector3Int, GameObject> cellVisuals = new();
+		private readonly Dictionary<Color, Material> materialCache = new();
+		private Material templateMaterial;
+		private Transform visualRoot;
+
+		public ZoneType SelectedZoneType { get; set; } = ZoneType.Residential;
+
+		private void Awake()
+		{
+			visualRoot = new GameObject("CityPaintVisuals").transform;
+			visualRoot.SetParent(transform, false);
+
+			// URP 기본 머티리얼 템플릿 1회 확보 — Shader.Find 회피(파이프라인 의존 X), primitive 기본
+			// 머티리얼을 복제해 색만 바꿔 씀.
+			GameObject probe = GameObject.CreatePrimitive(PrimitiveType.Cube);
+			templateMaterial = probe.GetComponent<Renderer>().sharedMaterial;
+			Destroy(probe);
+		}
+
+		private void Start()
+		{
+			gameModeManager.OnModeChanged += OnModeChanged;
+			ApplyMode(gameModeManager.CurrentMode);
+		}
+
+		private void OnDestroy()
+		{
+			if (gameModeManager != null)
+				gameModeManager.OnModeChanged -= OnModeChanged;
+		}
+
+		private void OnModeChanged(GameMode mode) => ApplyMode(mode);
+
+		private void ApplyMode(GameMode mode)
+		{
+			// 모드 진입/이탈마다 멱등 재배선 (BuildManager.ApplyMode 패턴).
+			inputManager.UnregisterInputEvent(InputEventType.Click0, InputEventResponseType.Get, OnClickPaint);
+			inputManager.UnregisterInputEvent(InputEventType.Click1, InputEventResponseType.Get, OnClickErase);
+
+			if (mode == GameMode.Zone || mode == GameMode.Road)
+			{
+				inputManager.RegisterInputEvent(InputEventType.Click0, InputEventResponseType.Get, OnClickPaint);
+				inputManager.RegisterInputEvent(InputEventType.Click1, InputEventResponseType.Get, OnClickErase);
+			}
+		}
+
+		private bool TryGetTargetCell(out Vector3Int cell, out WorldStage worldStage)
+		{
+			cell = default;
+			worldStage = null;
+
+			if (inputManager.IsPointerOverUI())
+				return false;
+
+			if (stageManager.CurStage is WorldStage stage == false)
+				return false;
+
+			worldStage = stage;
+			cell = grid.WorldToCell(inputManager.MouseWorldPosition);
+			return true;
+		}
+
+		private void OnClickPaint()
+		{
+			if (TryGetTargetCell(out Vector3Int cell, out WorldStage worldStage) == false)
+				return;
+
+			if (gameModeManager.CurrentMode == GameMode.Zone)
+			{
+				worldStage.ZoneGrid.Paint(cell, SelectedZoneType);
+				SetCellVisual(cell, ZoneColor(SelectedZoneType));
+			}
+			else if (gameModeManager.CurrentMode == GameMode.Road)
+			{
+				worldStage.RoadGraph.AddRoad(cell);
+				SetCellVisual(cell, roadColor);
+			}
+		}
+
+		private void OnClickErase()
+		{
+			if (TryGetTargetCell(out Vector3Int cell, out WorldStage worldStage) == false)
+				return;
+
+			worldStage.ZoneGrid.Clear(cell);
+			worldStage.RoadGraph.RemoveRoad(cell);
+			ClearCellVisual(cell);
+		}
+
+		private Color ZoneColor(ZoneType type)
+		{
+			switch (type)
+			{
+				case ZoneType.Residential: return residentialColor;
+				case ZoneType.Commercial: return commercialColor;
+				case ZoneType.Industrial: return industrialColor;
+				default: return Color.gray;
+			}
+		}
+
+		private void SetCellVisual(Vector3Int cell, Color color)
+		{
+			if (cellVisuals.TryGetValue(cell, out GameObject visual) == false)
+			{
+				visual = GameObject.CreatePrimitive(PrimitiveType.Cube);
+				visual.name = $"Cell_{cell.x}_{cell.y}";
+				visual.transform.SetParent(visualRoot, false);
+
+				// 큐브 콜라이더 제거 — 지면 raycast(MouseWorldPosition) 를 막지 않게.
+				Collider cubeCollider = visual.GetComponent<Collider>();
+				if (cubeCollider != null)
+					Destroy(cubeCollider);
+
+				Vector3 worldPos = grid.GetCellCenterWorld(cell);
+				worldPos.y = cellTileHeight * 0.5f;
+				visual.transform.position = worldPos;
+				visual.transform.localScale = new Vector3(cellTileScale, cellTileHeight, cellTileScale);
+
+				cellVisuals[cell] = visual;
+			}
+
+			visual.GetComponent<Renderer>().sharedMaterial = GetMaterial(color);
+		}
+
+		private void ClearCellVisual(Vector3Int cell)
+		{
+			if (cellVisuals.TryGetValue(cell, out GameObject visual))
+			{
+				cellVisuals.Remove(cell);
+				Destroy(visual);
+			}
+		}
+
+		private Material GetMaterial(Color color)
+		{
+			if (materialCache.TryGetValue(color, out Material material))
+				return material;
+
+			Material created = new(templateMaterial);
+			created.color = color;
+			// URP Lit 은 _BaseColor 사용 — 빌트인(_Color, .color)·URP 둘 다 set (파이프라인 무관 색 적용).
+			if (created.HasProperty("_BaseColor"))
+				created.SetColor("_BaseColor", color);
+
+			materialCache[color] = created;
+			return created;
+		}
+
+#if UNITY_EDITOR
+		[ContextMenu("Enter Zone Mode (Residential)")]
+		private void EnterZoneResidential_Editor()
+		{
+			SelectedZoneType = ZoneType.Residential;
+			gameModeManager.SetMode(GameMode.Zone);
+		}
+
+		[ContextMenu("Enter Zone Mode (Commercial)")]
+		private void EnterZoneCommercial_Editor()
+		{
+			SelectedZoneType = ZoneType.Commercial;
+			gameModeManager.SetMode(GameMode.Zone);
+		}
+
+		[ContextMenu("Enter Zone Mode (Industrial)")]
+		private void EnterZoneIndustrial_Editor()
+		{
+			SelectedZoneType = ZoneType.Industrial;
+			gameModeManager.SetMode(GameMode.Zone);
+		}
+
+		[ContextMenu("Enter Road Mode")]
+		private void EnterRoadMode_Editor() => gameModeManager.SetMode(GameMode.Road);
+
+		[ContextMenu("Exit to Default")]
+		private void ExitMode_Editor() => gameModeManager.SetMode(GameMode.Default);
+#endif
+	}
+}

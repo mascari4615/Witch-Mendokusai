@@ -7,6 +7,11 @@ namespace WitchMendokusai
 	{
 		Default = 0,
 		Build = 1,
+
+		// SimCity Phase 1 (TASK-WM-164): 도시 빌더 모드. append-only (slot C WM-165 Arena 와 enum 값
+		// 합의 — session-bus 2026-05-30 21:00. Arena 는 그 다음 값).
+		Zone = 2,
+		Road = 3,
 	}
 
 	public class GameModeManager : MonoBehaviour
