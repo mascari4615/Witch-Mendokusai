@@ -1,16 +1,19 @@
 namespace WitchMendokusai
 {
-	/// <summary> 전술 룰의 조건 종류. EvalConditions(Domain) 가 ConditionKind 별로 평가. </summary>
+	/// <summary>
+	/// 전술 룰의 조건 주제. TacticConditions(Domain) 가 Kind 별로 평가.
+	/// 수치 비교형(SelfHp/SelfHpRatio/TargetHpRatio/AllyCount)은 Operator+Value 로 방향 지정,
+	/// 불리언형(Always/EnemyInRange/SkillReady)은 Operator 무시.
+	/// </summary>
 	public enum ConditionKind
 	{
-		Always = 0,           // 무조건 true (fallback 룰 — 맨 아래)
-		SelfHpBelow = 1,      // 내 HP 절대값 vs Value
-		SelfHpRatioBelow = 2, // 내 HP 비율(0~1) vs Value
-		EnemyInRange = 3,     // 사거리(Value) 내 적 존재
-		TargetHpBelow = 4,    // 선정된 타겟 HP 비율 vs Value
-		AllyDown = 5,         // 쓰러진 아군 존재
-		AllyCount = 6,        // 생존 아군 수 vs Value
-		SkillReady = 7,       // SkillSlot 스킬 쿨다운 준비됨
+		Always = 0,        // 무조건 true (fallback 룰 — 맨 아래)
+		SelfHp = 1,        // 내 현재 HP vs Value (Operator)
+		SelfHpRatio = 2,   // 내 HP 비율(0~1) vs Value (Operator)
+		TargetHpRatio = 3, // 선정된 타겟 HP 비율 vs Value (Operator)
+		EnemyInRange = 4,  // 사거리 내 적 존재(타겟 해석 성공) — 불리언
+		SkillReady = 5,    // SkillSlot 스킬 쿨다운 준비됨 — 불리언
+		AllyCount = 6,     // 생존 아군 수 vs Value (v1 미구현 — 항상 false)
 	}
 
 	/// <summary> 전술 룰의 행동 종류. ExecAction(Domain) 가 ActionKind 별로 수행. </summary>
