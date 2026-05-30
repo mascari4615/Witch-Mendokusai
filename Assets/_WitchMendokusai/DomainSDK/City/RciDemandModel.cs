@@ -1,0 +1,33 @@
+using UnityEngine;
+
+namespace WitchMendokusai
+{
+	// RCI 3변수 수요 피드백 — 순수 함수(상태 0, new() 후 Evaluate 만). GlassBox 고전 균형식:
+	//  주거 R = 일자리 총량(c+i)이 부양 가능한 주민 대비 현재 주민(r) 부족분 → 일자리 많으면 R+.
+	//  상업 C = 현재 주민(r)이 부양 가능한 상업 대비 현재 상업(c) 부족분 → 인구 많으면 C+.
+	//  산업 I = 외부 수출 baseline + 주민 대비 산업 부족분 → 빈 도시도 baseline 으로 I+(부트스트랩).
+	// 셋이 서로 균형: i↑ → 일자리↑ → R↑ → r↑ → C↑ 순환. 각 항 clamp[-1,1].
+	//
+	// 비전-중립 — 마법진/사역마 스킨 무관(순수 수학). 계수는 RciDemandCoefficients 주입(수치 노출).
+	public sealed class RciDemandModel
+	{
+		public RciDemand Evaluate(int residential, int commercial, int industrial, RciDemandCoefficients coefficients)
+		{
+			int jobs = commercial + industrial;
+
+			// 주거: 일자리가 부양 가능한 주민 - 현재 주민.
+			float residentialGap = jobs * coefficients.ResidentsPerJob - residential;
+			float demandResidential = Mathf.Clamp(residentialGap * coefficients.DemandGain, -1f, 1f);
+
+			// 상업: 주민이 요구하는 상업 - 현재 상업.
+			float commercialGap = residential * coefficients.ShopsPerResident - commercial;
+			float demandCommercial = Mathf.Clamp(commercialGap * coefficients.DemandGain, -1f, 1f);
+
+			// 산업: 외부 수출 + 주민이 요구하는 산업 - 현재 산업.
+			float industrialGap = coefficients.ExportBaseline + residential * coefficients.IndustryPerResident - industrial;
+			float demandIndustrial = Mathf.Clamp(industrialGap * coefficients.DemandGain, -1f, 1f);
+
+			return new RciDemand(demandResidential, demandCommercial, demandIndustrial);
+		}
+	}
+}
