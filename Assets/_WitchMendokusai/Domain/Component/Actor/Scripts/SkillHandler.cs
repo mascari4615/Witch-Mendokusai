@@ -16,6 +16,10 @@ namespace WitchMendokusai
 		private readonly PlayerProvider playerProvider;
 		private readonly ObjectPoolManager objectPoolManager;
 
+		// WM-165 — 아레나 출전 유닛은 전술 코어가 시전 권위자 → 자동시전(Auto/AutoWhenDungeon) 억제.
+		// 기본 true = 레거시(던전 Auto) 무변경. 아레나 셋업이 false 로 설정.
+		public bool AutoCastEnabled { get; set; } = true;
+
 		public SkillHandler(UnitObject unitObject, PlayerProvider playerProvider, ObjectPoolManager objectPoolManager)
 		{
 			this.unitObject = unitObject;
@@ -35,11 +39,17 @@ namespace WitchMendokusai
 
 		public bool UseSkill(int skillIndex)
 		{
+			return UseSkill(skillIndex, null);
+		}
+
+		// WM-165 — 아레나 전술 코어가 타겟 지정 시전. target=null 이면 레거시(던전/플레이어) 동작.
+		public bool UseSkill(int skillIndex, UnitObject target)
+		{
 			if (skillDic.TryGetValue(skillIndex, out Skill skill))
 			{
 				if (skill.IsReady)
 				{
-					skill.Use(new SkillContext(unitObject, playerProvider, objectPoolManager));
+					skill.Use(new SkillContext(unitObject, playerProvider, objectPoolManager, target: target));
 					return true;
 				}
 			}
@@ -58,6 +68,9 @@ namespace WitchMendokusai
 			foreach (Skill skill in SkillDic.Values)
 			{
 				skill.Tick();
+
+				if (AutoCastEnabled == false)
+					continue;
 
 				bool isAutoUse = skill.Data.PlayMode switch
 				{

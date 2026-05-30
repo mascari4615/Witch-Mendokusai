@@ -30,6 +30,8 @@ namespace WitchMendokusai
 		private int curHitCount;
 
 		private SkillObject skillObject = null;
+		// 아레나 매치 중이면 공격자의 ArenaCombatant(팀 판정용). 비-아레나면 null → 레거시 적아판정.
+		private ArenaCombatant ownerCombatant = null;
 		private Dictionary<GameObject, int> hitFrames = new();
 
 		private PlayerProvider playerProvider;
@@ -74,24 +76,35 @@ namespace WitchMendokusai
 			{
 				if (damageable is UnitHealth unitHealth)
 				{
-					switch (unitHealth.Unit)
+					VictimKind victimKind = unitHealth.Unit switch
 					{
-						case MonsterObject when usedByPlayer:
-						case ResourceNodeObject when usedByPlayer:
-						case PlayerObject when !usedByPlayer:
-							// Debug.Log(nameof(OnCollisionEnter));
-							damageable.ReceiveDamage(CalcDamage());
-							if (useHitCount)
-							{
-								if (--curHitCount <= 0)
-								{
-									valid = false;
+						MonsterObject => VictimKind.Monster,
+						ResourceNodeObject => VictimKind.ResourceNode,
+						PlayerObject => VictimKind.Player,
+						_ => VictimKind.Other,
+					};
 
-									if (disableWhenInvalid)
-										TurnOff();
-								}
+					bool ownerInArena = ownerCombatant != null;
+					bool victimInArena = other.TryGetComponent(out ArenaCombatant victimCombatant);
+
+					bool shouldDamage = ArenaCombatRules.ShouldDamage(
+						ownerInArena, ownerInArena ? ownerCombatant.TeamId : -1,
+						victimInArena, victimInArena ? victimCombatant.TeamId : -1,
+						usedByPlayer, victimKind);
+
+					if (shouldDamage)
+					{
+						damageable.ReceiveDamage(CalcDamage());
+						if (useHitCount)
+						{
+							if (--curHitCount <= 0)
+							{
+								valid = false;
+
+								if (disableWhenInvalid)
+									TurnOff();
 							}
-							break;
+						}
 					}
 				}
 			}
@@ -104,6 +117,10 @@ namespace WitchMendokusai
 			valid = true;
 			curHitCount = hitCount;
 			damageBonus = 0;
+
+			// 아레나 경로 판정용 — 공격자(skill User)의 ArenaCombatant 캐싱. 비-아레나면 null.
+			UnitObject owner = skillObject.Context != null ? skillObject.Context.User : null;
+			ownerCombatant = owner != null ? owner.GetComponent<ArenaCombatant>() : null;
 		}
 
 		private void TurnOff()
@@ -145,9 +162,12 @@ namespace WitchMendokusai
 
 			int calcDamage = damage + damageBonus;
 
-			if (usedByPlayer)
+			if (usedByPlayer || ownerCombatant != null)
 			{
-				UnitStat unitStat = playerProvider.Current.UnitStat;
+				// 아레나면 공격자 본인 스탯(플레이어 하드코딩 대체), 레거시면 기존 플레이어 스탯.
+				UnitStat unitStat = ownerCombatant != null
+					? ownerCombatant.UnitObject.UnitStat
+					: playerProvider.Current.UnitStat;
 
 				calcDamage = (int)(calcDamage * (1 + (unitStat[UnitStatType.DAMAGE_BONUS] / 100f)));
 

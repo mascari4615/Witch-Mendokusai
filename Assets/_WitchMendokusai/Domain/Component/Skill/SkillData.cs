@@ -18,13 +18,16 @@ namespace WitchMendokusai
 	public class SkillContext
 	{
 		public UnitObject User { get; private set; }
+		// WM-165 — 아레나 전술 코어가 지정한 타겟. null = 레거시(플레이어 조준/타겟 없음).
+		public UnitObject Target { get; private set; }
 		public PlayerProvider PlayerProvider { get; private set; }
 		public ObjectPoolManager ObjectPoolManager { get; private set; }
 		public IItemData UsedEquipment { get; private set; }
 
-		public SkillContext(UnitObject user, PlayerProvider playerProvider, ObjectPoolManager objectPoolManager, IItemData usedEquipment = null)
+		public SkillContext(UnitObject user, PlayerProvider playerProvider, ObjectPoolManager objectPoolManager, IItemData usedEquipment = null, UnitObject target = null)
 		{
 			User = user;
+			Target = target;
 			PlayerProvider = playerProvider;
 			ObjectPoolManager = objectPoolManager;
 			UsedEquipment = usedEquipment;
