@@ -180,6 +180,10 @@ namespace WitchMendokusai
 				Vector3 buildPos = buildManager.GetWorldPosition(cell);
 				Vector3 worldPos = new(buildPos.x, cellTileHeight * 0.5f, buildPos.z);
 				visual.transform.position = worldPos;
+				// 큐브 회전 = Grid 회전 (Grid 가 Y축 45° 회전돼 있어 셀이 다이아몬드 — 큐브도 같은 회전을
+				// 물려야 칸 경계에 모서리가 딱 맞음). "루트(Grid) 한 곳의 회전을 전 타일이 따라감" = 개별
+				// 타일 회전 계산 0, Grid 각도 바꿔도 자동 추종(사용자 의도 정합).
+				visual.transform.rotation = buildManager.Grid.transform.rotation;
 				// X/Z 는 셀 크기만큼(인접 타일 seamless), Y 는 얇은 판.
 				Vector3 cellSize = buildManager.Grid.cellSize;
 				visual.transform.localScale = new Vector3(cellSize.x * cellTileScale, cellTileHeight, cellSize.y * cellTileScale);
