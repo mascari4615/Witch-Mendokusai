@@ -9,8 +9,8 @@ namespace WitchMendokusai
 	///
 	/// 텍스쳐: 6면을 top/side/bottom 3개로 분리. side 만 채우면 6면 동일 (마인크래프트식 단순 블록).
 	/// top/bottom 이 null 이면 side 사용 (잔디 = top: grass_top, side: grass_side, bottom: dirt).
-	/// Texture2D 가 null 이면 atlas 미할당 → mesher 가 (-1,-1) UV 센티널 emit → 셰이더 fallback.
-	/// UV rect 는 BlockAtlasBuilder 가 atlas 빌드 시 직접 채움 (직렬화).
+	/// Texture2D 가 null 이면 layer 미할당(-1) → mesher 가 sentinel emit → 셰이더 vertex color fallback.
+	/// layer index 는 VoxelTextureArrayBuilder 가 Texture2DArray 빌드 시 직접 채움 (직렬화).
 	/// </summary>
 	[CreateAssetMenu(fileName = nameof(BlockData), menuName = "WM/Voxel/" + nameof(BlockData))]
 	public class BlockData : ScriptableObject
@@ -30,10 +30,10 @@ namespace WitchMendokusai
 		[SerializeField] private Texture2D topTexture;
 		[SerializeField] private Texture2D bottomTexture;
 
-		[Header("UV Rect (BlockAtlasBuilder 결과 — 수동 편집 X)")]
-		[SerializeField] private Rect sideUVRect;
-		[SerializeField] private Rect topUVRect;
-		[SerializeField] private Rect bottomUVRect;
+		[Header("Texture Array Layer (VoxelTextureArrayBuilder 결과 — 수동 편집 X / -1 = 미할당)")]
+		[SerializeField] private int sideLayer = -1;
+		[SerializeField] private int topLayer = -1;
+		[SerializeField] private int bottomLayer = -1;
 
 		[System.NonSerialized] private ushort runtimeId;
 
@@ -52,12 +52,12 @@ namespace WitchMendokusai
 		/// <summary>아랫면 텍스쳐. null 이면 side 사용.</summary>
 		public Texture2D BottomTexture => bottomTexture != null ? bottomTexture : sideTexture;
 
-		public Rect SideUVRect => sideUVRect;
-		/// <summary>윗면 UV. Builder 가 면별로 할당 안 한 경우 width==0 → side UV fallback.
+		public int SideLayer => sideLayer;
+		/// <summary>윗면 array layer. Builder 가 면별로 할당 안 한 경우(-1) → side layer fallback.
 		/// **background thread 안전** — Unity Object null 검사 안 함 (`topTexture != null` 은 main thread 만 가능).</summary>
-		public Rect TopUVRect => topUVRect.width > 0f ? topUVRect : sideUVRect;
-		/// <summary>아랫면 UV. width==0 이면 side UV fallback. background thread 안전.</summary>
-		public Rect BottomUVRect => bottomUVRect.width > 0f ? bottomUVRect : sideUVRect;
+		public int TopLayer => topLayer >= 0 ? topLayer : sideLayer;
+		/// <summary>아랫면 array layer. -1 이면 side layer fallback. background thread 안전.</summary>
+		public int BottomLayer => bottomLayer >= 0 ? bottomLayer : sideLayer;
 
 		public bool IsAir => identifier == VoxelConstants.AIR_IDENTIFIER;
 
@@ -71,9 +71,9 @@ namespace WitchMendokusai
 		public void SetSideTexture(Texture2D value) => sideTexture = value;
 		public void SetTopTexture(Texture2D value) => topTexture = value;
 		public void SetBottomTexture(Texture2D value) => bottomTexture = value;
-		public void SetSideUVRect(Rect value) => sideUVRect = value;
-		public void SetTopUVRect(Rect value) => topUVRect = value;
-		public void SetBottomUVRect(Rect value) => bottomUVRect = value;
+		public void SetSideLayer(int value) => sideLayer = value;
+		public void SetTopLayer(int value) => topLayer = value;
+		public void SetBottomLayer(int value) => bottomLayer = value;
 
 		/// <summary>BlockRegistry 전용. 외부 호출 금지.</summary>
 		public void AssignRuntimeId(ushort id) => runtimeId = id;

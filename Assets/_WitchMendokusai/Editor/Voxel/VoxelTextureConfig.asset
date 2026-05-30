@@ -1,0 +1,18 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bf28010c75a9ee241ac3b3c91c751f4b, type: 3}
+  m_Name: VoxelTextureConfig
+  m_EditorClassIdentifier: WM.Editor::WitchMendokusai.VoxelTextureConfig
+  resolution: 512
+  generateMipmaps: 1
+  filterMode: 0
+  anisoLevel: 4

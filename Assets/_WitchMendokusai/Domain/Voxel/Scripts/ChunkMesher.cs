@@ -30,11 +30,11 @@ namespace WitchMendokusai
 		};
 
 		/// <summary>
-		/// chunk → mesh data. **Worldspace UV**: TEXCOORD0 = face 방향 worldUV (frac 으로 wrap), TEXCOORD1 = atlas tile rect + worldScale.
-		/// 셰이더가 `frac(uv / worldScale) * atlasSize + atlasOrigin` 으로 atlas sample.
-		/// 텍스쳐 미할당 (rect.width == 0) 이면 tileRect.z = 0 → 셰이더 vertex color path.
+		/// chunk → mesh data. **Worldspace UV**: TEXCOORD0 = face 방향 worldUV, TEXCOORD1 = (layer, worldScale, 0, 0).
+		/// 셰이더가 `worldUV / worldScale` 를 uv 로, layer 로 Texture2DArray sample (하드웨어 Repeat wrap = seamless).
+		/// 텍스쳐 미할당 (layer < 0) 이면 셰이더 vertex color path.
 		/// `parameters` 가 있으면 column 별 biome 을 prefetch 해 `BlockData.AcceptsBiomeTint` 블록 면의
-		/// vertex color 에 `biome.PreviewColor` 곱 (식물성 블록만 — atlas/sentinel 양쪽 적용).
+		/// vertex color 에 `biome.PreviewColor` 곱 (식물성 블록만 — textured/sentinel 양쪽 적용).
 		/// background thread 에서 호출됨 — BlockData/BiomeData read-only 데이터 접근만.
 		/// </summary>
 		public static ChunkMeshData GenerateMeshData(Chunk chunk, TerrainParameters parameters)
@@ -43,10 +43,10 @@ namespace WitchMendokusai
 			List<int> triangles = new();
 			List<Color> colors = new();
 			List<Vector2> uvs = new();
-			List<Vector4> tileRects = new();
+			List<Vector4> faceTexData = new();
 
 			int vertexOffset = 0;
-			int atlasFaceCount = 0;
+			int texturedFaceCount = 0;
 			int sentinelFaceCount = 0;
 			int biomeTintFaceCount = 0;
 
@@ -112,15 +112,15 @@ namespace WitchMendokusai
 
 							if (generateFace)
 							{
-								Rect rect = GetUVRectForFace(blockData, d);
-								bool hasAtlas = rect.width > 0f;
+								int faceLayer = GetLayerForFace(blockData, d);
+								bool hasTexture = faceLayer >= 0;
 
-								// vertex color base: atlas 면 = white (atlas 색만 보임), sentinel 면 = block.Color × 체커보드.
+								// vertex color base: textured 면 = white (텍스쳐 색만 보임), sentinel 면 = block.Color × 체커보드.
 								Color faceColor;
-								if (hasAtlas)
+								if (hasTexture)
 								{
 									faceColor = Color.white;
-									atlasFaceCount++;
+									texturedFaceCount++;
 								}
 								else
 								{
@@ -130,7 +130,7 @@ namespace WitchMendokusai
 									sentinelFaceCount++;
 								}
 
-								// Biome tint: 식물성 블록만. column biome.PreviewColor 곱 → atlas / sentinel 양쪽 적용.
+								// Biome tint: 식물성 블록만. column biome.PreviewColor 곱 → textured / sentinel 양쪽 적용.
 								if (blockData.AcceptsBiomeTint)
 								{
 									BiomeData biome = biomeColumns[z * VoxelConstants.CHUNK_SIZE_X + x];
@@ -142,10 +142,10 @@ namespace WitchMendokusai
 									}
 								}
 
-								// TEXCOORD1 = (atlas xMin, yMin, atlasSize, worldScale). atlasSize=0 = sentinel (셰이더 vertex color path).
-								// worldScale 은 sentinel 도 1f 안전값 (셰이더 frac(uv / 1) 안전).
+								// TEXCOORD1 = (layer, worldScale, 0, 0). layer<0 = sentinel (셰이더 vertex color path).
+								// worldScale 은 sentinel 도 1f 안전값 (셰이더 uv / 1 안전).
 								float worldScaleSafe = blockData.TextureWorldScale > 0f ? blockData.TextureWorldScale : 1f;
-								Vector4 tileRect = new(rect.xMin, rect.yMin, rect.width, worldScaleSafe);
+								Vector4 faceData = new(faceLayer, worldScaleSafe, 0f, 0f);
 
 								Vector3[] faceVerts = FaceVertices[d];
 								for (int v = 0; v < 4; v++)
@@ -159,7 +159,7 @@ namespace WitchMendokusai
 										chunk.LocalToWorldZ(z) + localOffset.z
 									);
 									uvs.Add(GetWorldUV(d, worldVertex));
-									tileRects.Add(tileRect);
+									faceTexData.Add(faceData);
 								}
 
 								triangles.Add(vertexOffset + 0);
@@ -178,7 +178,7 @@ namespace WitchMendokusai
 
 			if (VerboseLogging)
 			{
-				Debug.Log($"[ChunkMesher] chunk({chunk.Position.X},{chunk.Position.Z}): {vertexOffset / 4} faces, atlas={atlasFaceCount}, sentinel={sentinelFaceCount}, biomeTint={biomeTintFaceCount}");
+				Debug.Log($"[ChunkMesher] chunk({chunk.Position.X},{chunk.Position.Z}): {vertexOffset / 4} faces, textured={texturedFaceCount}, sentinel={sentinelFaceCount}, biomeTint={biomeTintFaceCount}");
 			}
 
 			return new ChunkMeshData
@@ -187,21 +187,21 @@ namespace WitchMendokusai
 				Triangles = triangles.ToArray(),
 				Colors = colors.ToArray(),
 				Uvs = uvs.ToArray(),
-				TileRects = tileRects.ToArray()
+				FaceTexData = faceTexData.ToArray()
 			};
 		}
 
-		/// <summary>Dirs 인덱스 0=Up / 1=Down / 2~5=Side. BlockData 의 fallback getter 가 null texture 처리.</summary>
-		private static Rect GetUVRectForFace(BlockData block, int dirIndex)
+		/// <summary>Dirs 인덱스 0=Up / 1=Down / 2~5=Side. BlockData 의 fallback getter 가 미할당(-1) 처리.</summary>
+		private static int GetLayerForFace(BlockData block, int dirIndex)
 		{
 			if (dirIndex == 0)
-				return block.TopUVRect;
+				return block.TopLayer;
 			if (dirIndex == 1)
-				return block.BottomUVRect;
-			return block.SideUVRect;
+				return block.BottomLayer;
+			return block.SideLayer;
 		}
 
-		/// <summary>face 방향에 맞는 평면 좌표 — 셰이더가 frac wrap 후 atlas tile rect 매핑.
+		/// <summary>face 방향에 맞는 평면 좌표 — 셰이더가 worldScale 나눈 뒤 Texture2DArray Repeat wrap.
 		/// Up/Down (d 0/1): XZ 평면. Left/Right (2/3): ZY 평면. Forward/Back (4/5): XY 평면.</summary>
 		private static Vector2 GetWorldUV(int dirIndex, Vector3 worldPos)
 		{

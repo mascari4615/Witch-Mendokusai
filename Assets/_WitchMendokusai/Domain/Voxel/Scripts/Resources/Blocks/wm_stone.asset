@@ -22,21 +22,6 @@ MonoBehaviour:
   sideTexture: {fileID: 0}
   topTexture: {fileID: 0}
   bottomTexture: {fileID: 0}
-  sideUVRect:
-    serializedVersion: 2
-    x: 0
-    y: 0
-    width: 0
-    height: 0
-  topUVRect:
-    serializedVersion: 2
-    x: 0
-    y: 0
-    width: 0
-    height: 0
-  bottomUVRect:
-    serializedVersion: 2
-    x: 0
-    y: 0
-    width: 0
-    height: 0
+  sideLayer: -1
+  topLayer: -1
+  bottomLayer: -1
