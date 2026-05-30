@@ -8,10 +8,9 @@ namespace WitchMendokusai
 	//
 	// GameMode.Zone/Road 진입 시 Click0=페인트 / Click1=해제. 데이터 진실 = WorldStage.ZoneGrid /
 	// RoadGraph (substrate step1-4), 이 매니저는 거기에 쓰고 셀마다 색 큐브를 *코드로* spawn 해 보이게
-	// 한다(프리팹 0 = tracer; 정식 타일 비주얼은 후속). BuildManager 와 형제 — 같은 Grid·InputManager 를
-	// 재사용하되 GridData(건물) 아닌 ZoneGrid/RoadGraph 에 페인트(책임 분리, 6 동기 「분리」).
+	// 한다(프리팹 0 = tracer; 정식 타일 비주얼은 후속). 좌표계는 BuildManager 의 런타임 Grid 를 재사용 —
+	// 건물 배치와 *정확히 같은 셀 좌표계* (자체 Grid 연결 시 prefab/런타임 인스턴스 불일치로 위치 어긋남).
 	//
-	// BuildManager 비의존(City→Building 결합 회피) — 자체 [SerializeField] Grid + InputManager 주입만.
 	// 모드 진입 = [ContextMenu] 수동 트리거 (입력 시스템·slot A InputManager enum 무접촉 — 정식 단축키
 	// 는 후속 step. 수동 트리거 = 「모든 자동화는 수동 트리거 전제」 정합).
 	public class CityPaintManager : MonoBehaviour
@@ -56,8 +55,8 @@ namespace WitchMendokusai
 			visualRoot = new GameObject("CityPaintVisuals").transform;
 			visualRoot.SetParent(transform, false);
 
-			// URP 기본 머티리얼 템플릿 1회 확보 — Shader.Find 회피(파이프라인 의존 X), primitive 기본
-			// 머티리얼을 복제해 색만 바꿔 씀.
+			// 머티리얼 템플릿 1회 확보 — Shader.Find 회피(파이프라인 의존 X), primitive 기본 머티리얼을
+			// 복제해 색만 바꿔 씀.
 			GameObject probe = GameObject.CreatePrimitive(PrimitiveType.Cube);
 			templateMaterial = probe.GetComponent<Renderer>().sharedMaterial;
 			Destroy(probe);
@@ -153,16 +152,23 @@ namespace WitchMendokusai
 				visual.name = $"Cell_{cell.x}_{cell.y}";
 				visual.transform.SetParent(visualRoot, false);
 
-				// 큐브 콜라이더 제거 — 지면 raycast(MouseWorldPosition) 를 막지 않게.
+				// 콜라이더 제거 + Ignore Raycast 레이어(2) — Destroy 는 프레임 끝 지연이라 드래그 중
+				// 직전 프레임 큐브를 MouseWorldPosition raycast 가 맞혀 셀이 점점 어긋나는 드리프트를
+				// 차단(즉시 레이어 격리가 근본, Destroy 타이밍 비의존).
+				visual.layer = 2; // Builtin "Ignore Raycast"
 				Collider cubeCollider = visual.GetComponent<Collider>();
 				if (cubeCollider != null)
 					Destroy(cubeCollider);
 
-				Vector3 worldPos = grid.GetCellCenterWorld(cell);
-				worldPos.y = cellTileHeight * 0.5f;
+				// XZ = BuildManager.GetWorldPosition(cell) = 건물이 놓이는 바로 그 월드 좌표(검증된 known-good,
+				// stage 오프셋·셀 중심 포함). Y 만 타일용 납작 높이로 덮어씀. 클릭 셀 ↔ 타일 위치 정합 =
+				// BuildManager 와 동일하므로 어긋남 0.
+				Vector3 buildPos = buildManager.GetWorldPosition(cell);
+				Vector3 worldPos = new(buildPos.x, cellTileHeight * 0.5f, buildPos.z);
 				visual.transform.position = worldPos;
-				visual.transform.localScale = new Vector3(cellTileScale, cellTileHeight, cellTileScale);
-
+				// X/Z 는 셀 크기만큼(인접 타일 seamless), Y 는 얇은 판.
+				Vector3 cellSize = buildManager.Grid.cellSize;
+				visual.transform.localScale = new Vector3(cellSize.x * cellTileScale, cellTileHeight, cellSize.y * cellTileScale);
 				cellVisuals[cell] = visual;
 			}
 
