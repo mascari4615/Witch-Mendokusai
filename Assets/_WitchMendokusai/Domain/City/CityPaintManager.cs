@@ -9,7 +9,12 @@ namespace WitchMendokusai
 	// GameMode.Zone/Road 진입 시 Click0=페인트 / Click1=해제. 데이터 진실 = WorldStage.ZoneGrid /
 	// RoadGraph (substrate step1-4), 이 매니저는 거기에 쓰고 셀마다 색 큐브를 *코드로* spawn 해 보이게
 	// 한다(프리팹 0 = tracer; 정식 타일 비주얼은 후속). 좌표계는 BuildManager 의 런타임 Grid 를 재사용 —
-	// 건물 배치와 *정확히 같은 셀 좌표계* (자체 Grid 연결 시 prefab/런타임 인스턴스 불일치로 위치 어긋남).
+	// 건물 배치와 *정확히 같은 셀 좌표계*.
+	//
+	// 클릭 → 셀 = **카메라 ray ∩ 도시 평면(grid Y)**. InputManager.MouseWorldPosition(지형 표면 raycast)은
+	// 울퉁불퉁한 지면/엉뚱한 높이 콜라이더(y=-3 등)를 맞춰 perspective 카메라에서 화면 클릭점과 타일
+	// (평면 y≈0)이 어긋난다(WM-164 위치버그 근본). 도시는 평면 빌드라 ray-plane 교차가 정본 — 클릭
+	// 픽셀↔평면점↔셀↔타일이 전부 같은 평면이라 정합(top-down 카메라 와도 불변).
 	//
 	// 모드 진입 = [ContextMenu] 수동 트리거 (입력 시스템·slot A InputManager enum 무접촉 — 정식 단축키
 	// 는 후속 step. 수동 트리거 = 「모든 자동화는 수동 트리거 전제」 정합).
@@ -29,8 +34,7 @@ namespace WitchMendokusai
 		private GameModeManager gameModeManager;
 		private StageManager stageManager;
 		// BuildManager 의 런타임 Grid 재사용 — 도시 페인트가 건물 배치와 *정확히 같은 셀 좌표계* 를 쓰게
-		// 보장(자체 Grid SerializeField 연결 시 prefab/런타임 인스턴스 불일치로 위치 어긋남). known-good
-		// 재사용 = 좌표 정합 > City→Building 결합 회피. 사용자 Grid 연결 불요(BuildManager 가 이미 보유).
+		// 보장. known-good 재사용 = 좌표 정합 > City→Building 결합 회피. 사용자 Grid 연결 불요.
 		private BuildManager buildManager;
 
 		[Inject]
@@ -101,8 +105,20 @@ namespace WitchMendokusai
 				return false;
 
 			worldStage = stage;
-			// BuildManager 의 Grid = 건물 배치와 동일 좌표계 (런타임 stage prefab 내 Grid, stage 오프셋 반영).
-			cell = buildManager.Grid.WorldToCell(inputManager.MouseWorldPosition);
+
+			// 카메라 ray ∩ 도시 평면(grid Y) — 표면 raycast 가 아닌 평면 교차라 화면 클릭점과 타일이 정합.
+			Camera camera = Camera.main;
+			if (camera == null)
+				return false;
+
+			Grid grid = buildManager.Grid;
+			Ray ray = camera.ScreenPointToRay(inputManager.MouseScreenPosition);
+			Plane groundPlane = new(Vector3.up, grid.transform.position);
+			if (groundPlane.Raycast(ray, out float enter) == false)
+				return false;
+
+			Vector3 groundPoint = ray.GetPoint(enter);
+			cell = grid.WorldToCell(groundPoint);
 			return true;
 		}
 
@@ -152,17 +168,15 @@ namespace WitchMendokusai
 				visual.name = $"Cell_{cell.x}_{cell.y}";
 				visual.transform.SetParent(visualRoot, false);
 
-				// 콜라이더 제거 + Ignore Raycast 레이어(2) — Destroy 는 프레임 끝 지연이라 드래그 중
-				// 직전 프레임 큐브를 MouseWorldPosition raycast 가 맞혀 셀이 점점 어긋나는 드리프트를
-				// 차단(즉시 레이어 격리가 근본, Destroy 타이밍 비의존).
+				// 콜라이더 제거 + Ignore Raycast 레이어(2) — 타일이 다음 클릭 raycast/평면판정을 방해하지
+				// 않게(평면 교차라 영향 적지만 안전).
 				visual.layer = 2; // Builtin "Ignore Raycast"
 				Collider cubeCollider = visual.GetComponent<Collider>();
 				if (cubeCollider != null)
 					Destroy(cubeCollider);
 
-				// XZ = BuildManager.GetWorldPosition(cell) = 건물이 놓이는 바로 그 월드 좌표(검증된 known-good,
-				// stage 오프셋·셀 중심 포함). Y 만 타일용 납작 높이로 덮어씀. 클릭 셀 ↔ 타일 위치 정합 =
-				// BuildManager 와 동일하므로 어긋남 0.
+				// XZ = BuildManager.GetWorldPosition(cell) = 건물이 놓이는 바로 그 월드 좌표(셀 중심, 검증된
+				// known-good). Y 만 타일용 납작 높이. 클릭 셀 ↔ 타일 위치 정합.
 				Vector3 buildPos = buildManager.GetWorldPosition(cell);
 				Vector3 worldPos = new(buildPos.x, cellTileHeight * 0.5f, buildPos.z);
 				visual.transform.position = worldPos;
