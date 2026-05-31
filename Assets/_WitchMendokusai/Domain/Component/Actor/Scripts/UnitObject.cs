@@ -84,11 +84,15 @@ namespace WitchMendokusai
 		{
 			UnitData = unitData;
 
+			// 재-Init(예: 아레나 스폰 후 Start 자동 Init) 간 AutoCastEnabled 보존 — 안 그러면 새 SkillHandler 가
+			// 디폴트 true 로 리셋돼 전술 코어(아레나)가 끈 자동시전이 부활한다(WM-165 트랩#1). 비-아레나는 항상 true 라 무변경.
+			bool autoCastEnabled = SkillHandler != null ? SkillHandler.AutoCastEnabled : true;
 			if (SkillHandler != null)
 			{
 				timeManager.RemoveCallback(SkillHandler.Tick);
 			}
 			SkillHandler = new(this, playerProvider, objectPoolManager);
+			SkillHandler.AutoCastEnabled = autoCastEnabled;
 			timeManager.RegisterCallback(SkillHandler.Tick);
 
 			UnitStat.Set(UnitData.InitStatInfos.GetUnitStat());

@@ -39,6 +39,14 @@ namespace WitchMendokusai
 			runner?.SetProgram(program);
 		}
 
+		/// <summary> 매치 종료 시 호출 — 전술 구동 정지(종료 후 좀비 틱/actuation 방지). </summary>
+		public void StopDriving()
+		{
+			runner = null;
+			if (timeManager != null)
+				timeManager.RemoveCallback(OnTick);
+		}
+
 		private void OnDestroy()
 		{
 			if (timeManager != null)

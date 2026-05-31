@@ -75,7 +75,7 @@ namespace WitchMendokusai
 				bool isAutoUse = skill.Data.PlayMode switch
 				{
 					SkillPlayMode.Auto => true,
-					SkillPlayMode.AutoWhenDungeon when DungeonManager.Instance.IsDungeon => skill.IsReady,
+					SkillPlayMode.AutoWhenDungeon when DungeonManager.Instance != null && DungeonManager.Instance.IsDungeon => skill.IsReady,
 					_ => false,
 				};
 

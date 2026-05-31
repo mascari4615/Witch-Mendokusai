@@ -18,18 +18,6 @@ namespace WitchMendokusai
 			Members = members ?? new List<ICombatant>();
 		}
 
-		/// <summary> 생존 멤버 수. </summary>
-		public int AliveCount()
-		{
-			int count = 0;
-			foreach (ICombatant member in Members)
-			{
-				if (member != null && member.IsAlive)
-					count++;
-			}
-			return count;
-		}
-
 		/// <summary> 한 명이라도 살아있으면 true (전멸 판정용). </summary>
 		public bool AnyAlive()
 		{

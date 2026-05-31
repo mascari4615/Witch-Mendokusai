@@ -6,11 +6,12 @@ namespace WitchMendokusai
 {
 	/// <summary>
 	/// 아레나 매치 오케스트레이터 — 맵 생성 → 유닛 스폰(기존 풀, 자동 DI) → ArenaCombatant/TacticDriver 부착
-	/// → TargetingSystem 등록 → TimeManager 틱으로 ArenaMatchCore 폴 → 종료 시 MatchEnded.
-	/// 스코프 불요: ObjectPoolManager/TimeManager static Instance 사용(World 부팅 후 가용).
-	/// ⚠ init-order: 스폰 활성화 후 1프레임 양보(UnitObject.Start 의 Init 정착) 뒤 드라이버 부착 —
-	///   Start 재-Init 이 SkillHandler 재생성하므로 그 후 AutoCastEnabled=false 가 안정적으로 적용(트랩#1).
-	/// ⚠ 라이브 거동(스폰/전투/종료)은 PlayMode 검증 필요(콘텐츠 로스터 + 관전). 코드코어 = ArenaMatchCore(검증됨).
+	/// → TargetingSystem 등록 → TimeManager 틱으로 ArenaMatchCore 폴 → 종료 시 MatchEnded + 드라이버 정지.
+	/// 스코프 미배선(콘텐츠/item 9 슬라이스) — ObjectPoolManager/TimeManager 는 static Instance 로 캡처
+	/// (World 부팅 후 보장). item 9 에서 스코프 등록 시 [Inject] Construct 로 전환 예정.
+	/// ⚠ 라이브 거동(스폰/전투/종료)은 PlayMode 검증 필요. 코드코어 ArenaMatchCore 는 EditMode 검증됨.
+	/// ⚠ 로스터 prefab 컴포넌트가 MonsterObject 면 던전 전용 side-effect(loot/stat/Camera.main)가 샐 수 있음 —
+	///   실 유닛 타입 확정 + PlayMode 검증 시 ArenaUnitObject 또는 IsDungeon 가드로 격리(WM-165 후속).
 	/// </summary>
 	public class ArenaMatch : MonoBehaviour
 	{
@@ -21,6 +22,7 @@ namespace WitchMendokusai
 		private TargetingSystem targeting;
 		private ArenaMatchCore core;
 		private readonly List<TacticDriver> drivers = new();
+		private bool started;
 		private bool ticking;
 
 		public event System.Action<int> MatchEnded = delegate { };
@@ -30,40 +32,95 @@ namespace WitchMendokusai
 
 		public void Begin()
 		{
-			if (config == null || arenaRoot == null)
+			if (started)
 			{
-				Debug.LogError($"{nameof(ArenaMatch)}: config/arenaRoot 미할당 — 시작 불가.");
+				Debug.LogWarning($"{nameof(ArenaMatch)}: 이미 진행 중 — 중복 Begin 무시(재진입 가드).");
 				return;
 			}
+			if (config == null || arenaRoot == null || config.Map == null || config.Mode == null)
+			{
+				Debug.LogError($"{nameof(ArenaMatch)}: config/arenaRoot/Map/Mode 미할당 — 시작 불가.");
+				return;
+			}
+			if (ValidateRoster() == false)
+				return;
+
+			started = true;
 			StartCoroutine(BeginRoutine());
 		}
 
-		private IEnumerator BeginRoutine()
+		/// <summary> 로스터 ↔ 맵 정합 FastFail 검증 — 맵이 선언한 팀 수/팀당 스폰과 로스터를 대조(silent 겹침/0틱종료 차단). </summary>
+		private bool ValidateRoster()
 		{
-			config.Map.Build(arenaRoot);
-			targeting = new TargetingSystem();
-
-			ObjectPoolManager pool = ObjectPoolManager.Instance;
-			if (pool == null)
-			{
-				Debug.LogError($"{nameof(ArenaMatch)}: ObjectPoolManager.Instance null — World 부팅 후 호출 필요.");
-				yield break;
-			}
-
-			// 1) 스폰 + 위치 + Init + 활성화 (MonsterSpawner 패턴).
-			List<UnitObject> spawnedUnits = new();
-			List<ArenaMatchConfig.ArenaUnitEntry> spawnedEntries = new();
-			Dictionary<int, int> teamSpawnIndex = new();
+			int teamCount = config.Map.TeamCount;
+			int spawnsPerTeam = config.Map.SpawnsPerTeam;
+			Dictionary<int, int> perTeam = new();
 
 			foreach (ArenaMatchConfig.ArenaUnitEntry entry in config.Roster)
 			{
 				if (entry.UnitData == null || entry.UnitData.Prefab == null)
 					continue;
 
+				if (entry.TeamId < 0 || entry.TeamId >= teamCount)
+				{
+					Debug.LogError($"{nameof(ArenaMatch)}: 로스터 TeamId {entry.TeamId} 가 맵 TeamCount({teamCount}) 범위 밖 — 시작 불가.");
+					return false;
+				}
+				perTeam[entry.TeamId] = (perTeam.TryGetValue(entry.TeamId, out int count) ? count : 0) + 1;
+			}
+
+			if (perTeam.Count < 2)
+			{
+				Debug.LogError($"{nameof(ArenaMatch)}: 유효 팀 {perTeam.Count} 개 — 한타는 최소 2팀 필요. 시작 불가.");
+				return false;
+			}
+
+			foreach (KeyValuePair<int, int> pair in perTeam)
+			{
+				if (pair.Value > spawnsPerTeam)
+				{
+					Debug.LogError($"{nameof(ArenaMatch)}: 팀 {pair.Key} 유닛 {pair.Value} > 맵 SpawnsPerTeam({spawnsPerTeam}) — 스폰 겹침. 시작 불가.");
+					return false;
+				}
+			}
+
+			return true;
+		}
+
+		private IEnumerator BeginRoutine()
+		{
+			// init-order-ok: World 부팅 후 호출 보장(스코프 미배선 v1 — item 9 에서 [Inject] 전환). 진입부 1회 캡처(fail-fast).
+			ObjectPoolManager pool = ObjectPoolManager.Instance;
+			TimeManager timeManager = TimeManager.Instance;
+			if (pool == null || timeManager == null)
+			{
+				Debug.LogError($"{nameof(ArenaMatch)}: ObjectPoolManager/TimeManager Instance null — World 부팅 후 호출 필요.");
+				started = false;
+				yield break;
+			}
+
+			config.Map.Build(arenaRoot);
+			targeting = new TargetingSystem();
+
+			Dictionary<int, List<ICombatant>> teamMembers = new();
+			Dictionary<int, int> teamSpawnIndex = new();
+			int combatantId = 0;
+
+			foreach (ArenaMatchConfig.ArenaUnitEntry entry in config.Roster)
+			{
+				if (entry.UnitData == null || entry.UnitData.Prefab == null)
+				{
+					Debug.LogWarning($"{nameof(ArenaMatch)}: 로스터 entry skip — UnitData/Prefab 누락.");
+					continue;
+				}
+
 				GameObject unitGameObject = pool.Spawn(entry.UnitData.Prefab);
 				UnitObject unitObject = unitGameObject.GetComponent<UnitObject>();
 				if (unitObject == null)
+				{
+					Debug.LogWarning($"{nameof(ArenaMatch)}: {entry.UnitData.Prefab.name} 에 UnitObject 컴포넌트 없음 — skip.");
 					continue;
+				}
 
 				int memberIndex = teamSpawnIndex.TryGetValue(entry.TeamId, out int existing) ? existing : 0;
 				teamSpawnIndex[entry.TeamId] = memberIndex + 1;
@@ -73,38 +130,24 @@ namespace WitchMendokusai
 				unitGameObject.transform.position = arenaRoot.TransformPoint(localSpawn);
 
 				unitObject.Init(entry.UnitData);
-				unitGameObject.SetActive(true);
-
-				spawnedUnits.Add(unitObject);
-				spawnedEntries.Add(entry);
-			}
-
-			// 2) UnitObject.Start(자동 Init) 정착 대기 — 드라이버를 안정된 SkillHandler 에 부착.
-			yield return null;
-
-			// 3) 전투 래핑 + 전술 드라이버 + 타겟팅 등록 + 팀 구성.
-			Dictionary<int, List<ICombatant>> teamMembers = new();
-			int combatantId = 0;
-
-			for (int i = 0; i < spawnedUnits.Count; i++)
-			{
-				UnitObject unitObject = spawnedUnits[i];
-				ArenaMatchConfig.ArenaUnitEntry entry = spawnedEntries[i];
-				if (unitObject == null)
-					continue;
+				// 트랩#1: 전술 코어가 유일 시전자 → 자동시전 즉시 차단. UnitObject.Init 보존 패치로 Start 재-Init 후도 유지.
+				unitObject.SkillHandler.AutoCastEnabled = false;
 
 				ArenaCombatant combatant = unitObject.GetComponent<ArenaCombatant>();
 				if (combatant == null)
 					combatant = unitObject.gameObject.AddComponent<ArenaCombatant>();
 				combatant.SetTeam(entry.TeamId, combatantId);
 				combatantId++;
-				targeting.Register(combatant);
+
+				unitGameObject.SetActive(true);
 
 				TacticDriver driver = unitObject.GetComponent<TacticDriver>();
 				if (driver == null)
 					driver = unitObject.gameObject.AddComponent<TacticDriver>();
-				driver.Initialize(entry.Tactic, targeting, TimeManager.Instance);
+				driver.Initialize(entry.Tactic, targeting, timeManager);
 				drivers.Add(driver);
+
+				targeting.Register(combatant);
 
 				if (teamMembers.ContainsKey(entry.TeamId) == false)
 					teamMembers[entry.TeamId] = new List<ICombatant>();
@@ -116,9 +159,7 @@ namespace WitchMendokusai
 				teams.Add(new ArenaTeam(pair.Key, pair.Value));
 
 			core = new ArenaMatchCore(teams, config.Mode);
-
-			if (TimeManager.Instance != null)
-				TimeManager.Instance.RegisterCallback(Tick);
+			timeManager.RegisterCallback(Tick);
 			ticking = true;
 		}
 
@@ -130,8 +171,16 @@ namespace WitchMendokusai
 			if (core.Poll())
 			{
 				ticking = false;
-				if (TimeManager.Instance != null)
-					TimeManager.Instance.RemoveCallback(Tick);
+				if (TimeManager.TryGetExistingInstance(out TimeManager timeManager))
+					timeManager.RemoveCallback(Tick);
+
+				// 종료 = 브레인(core)이 actuation 정지 권한 행사 — 전 드라이버 정지(좀비 틱 방지).
+				foreach (TacticDriver driver in drivers)
+				{
+					if (driver != null)
+						driver.StopDriving();
+				}
+
 				MatchEnded(core.WinnerTeamId);
 			}
 		}
