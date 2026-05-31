@@ -19,21 +19,35 @@ namespace WitchMendokusai.Tests
 				residentsPerJob: 1f,
 				shopsPerResident: 0.3f,
 				industryPerResident: 0.2f,
+				immigrationBaseline: 5f,
 				exportBaseline: 5f,
 				demandGain: 0.1f);
 		}
 
 		[Test]
-		public void EmptyCity_HasIndustryBaselineDemand()
+		public void EmptyCity_BootstrapsResidentialAndIndustry()
 		{
 			RciDemandModel model = new();
 
 			RciDemand demand = model.Evaluate(0, 0, 0, Coeffs());
 
-			// 빈 도시: 주거·상업 수요 0(부양할 일자리·인구 없음), 산업만 외부수출 baseline 으로 + (부트스트랩).
-			Assert.That(demand.Residential, Is.Zero, "빈 도시 = 주거 수요 0");
-			Assert.That(demand.Commercial, Is.Zero, "빈 도시 = 상업 수요 0");
-			Assert.That(demand.Industrial, Is.GreaterThan(0f), "빈 도시 = 산업 baseline 으로 첫 수요");
+			// 빈 도시: 주거(외부 이주 baseline)·산업(외부 수출 baseline) 둘 다 + 로 부트스트랩,
+			// 상업만 0(부양할 인구 없음 — 주민 생긴 뒤 따라옴).
+			Assert.That(demand.Residential, Is.GreaterThan(0f), "빈 도시 = 주거 immigration baseline 으로 첫 수요");
+			Assert.That(demand.Commercial, Is.Zero, "빈 도시 = 상업 수요 0(인구 없음)");
+			Assert.That(demand.Industrial, Is.GreaterThan(0f), "빈 도시 = 산업 export baseline 으로 첫 수요");
+		}
+
+		[Test]
+		public void NoJobs_StillHasResidentialDemand_ImmigrationBootstrap()
+		{
+			RciDemandModel model = new();
+
+			// 회귀 잠금(버그: 주거만 안 자람) — 일자리(c+i)=0 이고 주민이 baseline 미만이면
+			// 주거 수요는 여전히 + (외부 이주). 이게 0/음수면 주거 위주 도시가 영영 안 자람.
+			RciDemand demand = model.Evaluate(2, 0, 0, Coeffs());
+
+			Assert.That(demand.Residential, Is.GreaterThan(0f), "일자리 0 이어도 baseline 미만 주민이면 주거 수요 +");
 		}
 
 		[Test]
@@ -95,9 +109,9 @@ namespace WitchMendokusai.Tests
 			RciDemandModel model = new();
 			RciDemandCoefficients coeffs = Coeffs();
 
-			// 균형점 근사: 일자리(c+i=10)=주민(r=10) → 주거 gap 0. 상업 c=3 ≈ r*0.3=3 → 상업 gap 0.
-			// 산업 i=7, baseline5 + r*0.2=2 = 7 → 산업 gap 0. 셋 다 ~0(수렴).
-			RciDemand demand = model.Evaluate(10, 3, 7, coeffs);
+			// 균형점: 주거 r = immigrationBaseline5 + 일자리(c+i=15) = 20 → 주거 gap 0.
+			// 상업 c=6 = r*0.3=6 → 상업 gap 0. 산업 i=9 = exportBaseline5 + r*0.2=4 = 9 → 산업 gap 0. 셋 다 ~0(수렴).
+			RciDemand demand = model.Evaluate(20, 6, 9, coeffs);
 
 			Assert.That(demand.Residential, Is.EqualTo(0f).Within(0.001f), "일자리=주민 → 주거 수렴");
 			Assert.That(demand.Commercial, Is.EqualTo(0f).Within(0.001f), "상업=수요 → 상업 수렴");

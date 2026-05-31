@@ -35,6 +35,8 @@ namespace WitchMendokusai
 		[SerializeField] private float residentsPerJob = 1.0f;
 		[SerializeField] private float shopsPerResident = 0.3f;
 		[SerializeField] private float industryPerResident = 0.2f;
+		[Tooltip("외부 이주 기반 주거 수요 — 일자리 없어도 새 도시로 사람 유입(빈 도시 주거 부트스트랩, 산업 exportBaseline 의 주거 대응).")]
+		[SerializeField] private float immigrationBaseline = 5.0f;
 		[SerializeField] private float exportBaseline = 5.0f;
 		[SerializeField] private float demandGain = 0.1f;
 		[Tooltip("수요가 이 값 넘으면 성장, -이 값 밑이면 쇠퇴.")]
@@ -167,22 +169,38 @@ namespace WitchMendokusai
 		}
 
 		// step6 — 매일 호출. 수요 평가 후 존타입별 성장/쇠퇴.
+		// ★ 수요 입력 = "지은 건물 수"(occupancy) — 칠한 존 칸 수(capacity)가 아님. capacity 를 넣으면
+		//   주거칸 ≫ 일자리칸인 자연스러운 도시에서 주거 gap 영구 음수 → 주거 영영 미성장(RciDemandModel 주석).
 		private void OnDayChanged(int day)
 		{
 			if (stageManager.CurStage is WorldStage worldStage == false)
 				return;
 
-			ZoneGrid zoneGrid = worldStage.ZoneGrid;
-			RciDemandCoefficients coefficients = new(residentsPerJob, shopsPerResident, industryPerResident, exportBaseline, demandGain);
+			RciDemandCoefficients coefficients = new(residentsPerJob, shopsPerResident, industryPerResident, immigrationBaseline, exportBaseline, demandGain);
 			RciDemand demand = demandModel.Evaluate(
-				zoneGrid.CountByType(ZoneType.Residential),
-				zoneGrid.CountByType(ZoneType.Commercial),
-				zoneGrid.CountByType(ZoneType.Industrial),
+				CountBuiltByType(worldStage, ZoneType.Residential),
+				CountBuiltByType(worldStage, ZoneType.Commercial),
+				CountBuiltByType(worldStage, ZoneType.Industrial),
 				coefficients);
 
 			ApplyDemand(worldStage, ZoneType.Residential, demand.Residential);
 			ApplyDemand(worldStage, ZoneType.Commercial, demand.Commercial);
 			ApplyDemand(worldStage, ZoneType.Industrial, demand.Industrial);
+		}
+
+		// 현재 점유(자동 성장한 건물) 수 — 존타입별. RciDemandModel 의 occupancy 입력원(capacity = CountByType 와 구분).
+		// buildingVisuals = 자동 성장 건물의 진실(GridData 미러). 각 셀의 존타입은 ZoneGrid 가 진실.
+		private int CountBuiltByType(WorldStage worldStage, ZoneType zoneType)
+		{
+			ZoneGrid zoneGrid = worldStage.ZoneGrid;
+			int count = 0;
+			foreach (Vector3Int cell in buildingVisuals.Keys)
+			{
+				if (zoneGrid.GetZone(cell) == zoneType)
+					count++;
+			}
+
+			return count;
 		}
 
 		private void ApplyDemand(WorldStage worldStage, ZoneType zoneType, float demand)

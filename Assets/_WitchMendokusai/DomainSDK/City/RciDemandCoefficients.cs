@@ -8,14 +8,16 @@ namespace WitchMendokusai
 		public readonly float ResidentsPerJob;     // 일자리 1칸이 부양하는 주민 수
 		public readonly float ShopsPerResident;    // 주민 1명당 필요 상업 칸
 		public readonly float IndustryPerResident; // 주민 1명당 필요 산업 칸
+		public readonly float ImmigrationBaseline; // 외부 이주 기반 주거 수요(빈 도시 부트스트랩 — ExportBaseline 의 주거 대응)
 		public readonly float ExportBaseline;      // 외부 수출 기반 산업 수요(빈 도시 부트스트랩)
 		public readonly float DemandGain;          // gap → 수요 정규화 scale
 
-		public RciDemandCoefficients(float residentsPerJob, float shopsPerResident, float industryPerResident, float exportBaseline, float demandGain)
+		public RciDemandCoefficients(float residentsPerJob, float shopsPerResident, float industryPerResident, float immigrationBaseline, float exportBaseline, float demandGain)
 		{
 			ResidentsPerJob = residentsPerJob;
 			ShopsPerResident = shopsPerResident;
 			IndustryPerResident = industryPerResident;
+			ImmigrationBaseline = immigrationBaseline;
 			ExportBaseline = exportBaseline;
 			DemandGain = demandGain;
 		}
