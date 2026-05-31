@@ -149,6 +149,10 @@ namespace WitchMendokusai
 
 				unitGameObject.SetActive(true);
 
+				// 팀 식별 틴트 — 팀0(욘/아군)=하늘색, 팀1(라이벌)=빨강. v1: 풀 반환 시 색 잔존(teardown/ArenaUnitObject 후속서 리셋).
+				if (unitObject.SpriteRenderer != null)
+					unitObject.SpriteRenderer.color = entry.TeamId == 0 ? new Color(0.45f, 0.75f, 1f) : new Color(1f, 0.45f, 0.45f);
+
 				TacticDriver driver = unitObject.GetComponent<TacticDriver>();
 				if (driver == null)
 					driver = unitObject.gameObject.AddComponent<TacticDriver>();

@@ -19,7 +19,7 @@ MonoBehaviour:
   <Sprites>k__BackingField: []
   <Map>k__BackingField: {fileID: 11400000, guid: f2f5ce32b5504cb448357ece471f6195, type: 2}
   <Mode>k__BackingField: {fileID: 11400000, guid: b2367863e4b4e264b87343f3e8fc3c87, type: 2}
-  <TimeLimitSeconds>k__BackingField: 60
+  <TimeLimitSeconds>k__BackingField: 20
   <Roster>k__BackingField:
   - <UnitData>k__BackingField: {fileID: 11400000, guid: d3b4b260c0d5fcd478b6ccbf48fc8d43, type: 2}
     <Tactic>k__BackingField:
