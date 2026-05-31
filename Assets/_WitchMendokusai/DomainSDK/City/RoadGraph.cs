@@ -177,6 +177,54 @@ namespace WitchMendokusai
 			return path;
 		}
 
+		// ② 유틸 전파 도관 — 여러 소스 셀에서 도로 따라 maxRange 홉 안에 도달하는 도로 셀 집합 (멀티소스 BFS).
+		// 전기/물/마나 무관한 순수 그래프 질의(전파 도관). maxRange < 0 = 무한(전역). maxRange 0 = 소스만.
+		// 도로 아닌 소스는 무시(전파는 도로 위만). Neighbors 재사용 → 도로 단절 구역은 자동 미도달.
+		// (Phase 1 deferred 실현 — AreConnected/CountConnectedComponents BFS 골격의 멀티소스+range 일반화.)
+		public HashSet<Vector3Int> FloodFill(IEnumerable<Vector3Int> sources, int maxRange)
+		{
+			HashSet<Vector3Int> visited = new();
+			Dictionary<Vector3Int, int> distance = new();
+			Queue<Vector3Int> frontier = new();
+
+			foreach (Vector3Int source in sources)
+			{
+				if (RoadData.ContainsKey(source) == false)
+				{
+					continue;
+				}
+
+				if (visited.Add(source))
+				{
+					distance[source] = 0;
+					frontier.Enqueue(source);
+				}
+			}
+
+			while (frontier.Count > 0)
+			{
+				Vector3Int current = frontier.Dequeue();
+				int currentDistance = distance[current];
+
+				// range 도달 셀에선 더 안 퍼짐 (maxRange 음수 = 무한이라 게이트 통과).
+				if (maxRange >= 0 && currentDistance >= maxRange)
+				{
+					continue;
+				}
+
+				foreach (Vector3Int neighbor in Neighbors(current))
+				{
+					if (visited.Add(neighbor))
+					{
+						distance[neighbor] = currentDistance + 1;
+						frontier.Enqueue(neighbor);
+					}
+				}
+			}
+
+			return visited;
+		}
+
 		// 분리된 도로 덩어리 개수 (연결 컴포넌트). 도로망이 몇 조각으로 끊겨 있나 — Phase 2 유틸
 		// 커버리지·고립 구역 진단의 토대.
 		public int CountConnectedComponents()
