@@ -10,15 +10,14 @@ namespace WitchMendokusai
 	/// 가장 급한 욕구·시간대에 맞는 활동을 고른다(ActivitySelector). 활동이 바뀌면 OnActivityChanged 통지.
 	///
 	/// deps 주입 = TacticDriver 패턴(외부 Initialize) — init-order 룰(Awake Find 금지) 정합.
-	/// 실제 이동·애니는 INC-5b, 관계·개입(INC-3~4 다체 조정)은 LifeDirector 레벨 — 본 컴포넌트는 단일 캐릭터 욕구/활동.
+	/// 욕구·활동만 책임(UnitObject 비의존 → EditMode 직접 테스트 가능). 실제 이동·애니는 INC-5c 에서
+	/// UnitObject(UnitMovement) lazy 연동, 관계·개입(INC-3~4 다체 조정)은 LifeDirector 레벨.
 	/// </summary>
-	[RequireComponent(typeof(UnitObject))]
 	public class LifeAgent : MonoBehaviour
 	{
 		// 틱(TimeManager.TICK=0.05s) 1회당 흐르는 게임 내 분. 수치노출 — 시간 스케일 디자인 손잡이.
 		[SerializeField] private float minutesPerTick = 1f;
 
-		private UnitObject unitObject;
 		private TimeManager timeManager;
 		private NeedProfile profile;
 		private NeedState needState;
@@ -33,16 +32,17 @@ namespace WitchMendokusai
 
 		public NeedState NeedState => needState;
 
-		private void Awake()
-		{
-			unitObject = GetComponent<UnitObject>();
-		}
-
-		/// <summary>외부(LifeDirector/부트스트랩)가 욕구 프로필·초기 상태·틱 소스를 주입하고 구동 시작.</summary>
-		public void Initialize(NeedProfile profile, NeedState initialState, TimeManager timeManager)
+		/// <summary>욕구 프로필·초기 상태 주입(초기 활동 1회 산정). 틱 구동은 AttachClock 으로 분리 — 테스트 가능.</summary>
+		public void Initialize(NeedProfile profile, NeedState initialState)
 		{
 			this.profile = profile;
 			this.needState = initialState;
+			RefreshActivity();
+		}
+
+		/// <summary>TimeManager 틱에 구독해 자율 구동 시작 — 외부(LifeDirector/부트스트랩)가 호출.</summary>
+		public void AttachClock(TimeManager timeManager)
+		{
 			this.timeManager = timeManager;
 			this.timeManager.RegisterCallback(OnTick);
 		}
@@ -67,14 +67,9 @@ namespace WitchMendokusai
 			}
 		}
 
+		// 0.05s 틱마다 게임 분 누적 → 정수 분 쌓일 때만 모델 1스텝(잔여 보존, WorldClock house 패턴).
 		private void OnTick()
 		{
-			if (profile == null || needState == null)
-			{
-				return;
-			}
-
-			// 0.05s 틱마다 게임 분 누적 → 정수 분 쌓일 때만 모델 1스텝(잔여 보존, WorldClock house 패턴).
 			accumulatedMinutes += minutesPerTick;
 			int wholeMinutes = (int)accumulatedMinutes;
 			if (wholeMinutes <= 0)
@@ -83,7 +78,18 @@ namespace WitchMendokusai
 			}
 
 			accumulatedMinutes -= wholeMinutes;
-			NeedModel.Step(needState, profile, wholeMinutes);
+			TickMinutes(wholeMinutes);
+		}
+
+		/// <summary>게임 내 minutes 만큼 욕구를 진행시키고 활동을 갱신 — 자율 구동·테스트 공통 진입점.</summary>
+		public void TickMinutes(int minutes)
+		{
+			if (profile == null || needState == null || minutes <= 0)
+			{
+				return;
+			}
+
+			NeedModel.Step(needState, profile, minutes);
 			RefreshActivity();
 		}
 
