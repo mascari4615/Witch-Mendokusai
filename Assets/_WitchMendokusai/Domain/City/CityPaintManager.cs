@@ -147,13 +147,22 @@ namespace WitchMendokusai
 			if (TryGetTargetCell(out Vector3Int cell, out WorldStage worldStage) == false)
 				return;
 
+			// 셀 점유 규칙 중앙 판정 (road XOR zone/building) — 충돌 페인트 차단.
+			CityPlacementService placement = new(worldStage.GridData, worldStage.ZoneGrid, worldStage.RoadGraph);
+
 			if (gameModeManager.CurrentMode == GameMode.Zone)
 			{
+				if (placement.CanPlaceZone(cell) == false)
+					return; // 도로 셀엔 존 X
+
 				worldStage.ZoneGrid.Paint(cell, SelectedZoneType);
 				SetCellVisual(cell, ZoneColor(SelectedZoneType));
 			}
 			else if (gameModeManager.CurrentMode == GameMode.Road)
 			{
+				if (placement.CanPlaceRoad(cell) == false)
+					return; // 존/건물 셀엔 도로 X
+
 				worldStage.RoadGraph.AddRoad(cell);
 				SetCellVisual(cell, roadColor);
 			}
