@@ -20,7 +20,7 @@ namespace WitchMendokusai.Tests
 		// 테스트 계수 — 명시 주입(POCO 디폴트 없음). 게임에선 RefiningCoefficientsSO 가 공급.
 		// 비대칭이 의도: Careful 의 품질 델타(0.2) > Fast(0.05) / Fast 온기(-0.2) vs Careful(+0.2).
 		// "효율 vs 윤리"가 단순 손익이 아니라 톤 정합 — 수치 자체가 비대칭이어야 의미 있는 선택.
-		private static RefiningCoefficients Coeffs()
+		private static RefiningCoefficients DefaultCoefficients()
 		{
 			return new RefiningCoefficients(
 				initialQuality: 0.0f,
@@ -33,7 +33,7 @@ namespace WitchMendokusai.Tests
 		[Test]
 		public void Initial_StartsAtCoefficientBaseline_WithNeutralWarmth()
 		{
-			RefiningState state = RefiningChain.Initial(Coeffs());
+			RefiningState state = RefiningChain.Initial(DefaultCoefficients());
 
 			Assert.That(state.Quality, Is.EqualTo(0f), "잔재 원자재 = baseline 품질");
 			Assert.That(state.Warmth, Is.EqualTo(0f), "정련 0회 = 온기 중립(아직 손대지 않음)");
@@ -43,7 +43,7 @@ namespace WitchMendokusai.Tests
 		[Test]
 		public void EmptyChain_ReturnsInitialState()
 		{
-			RefiningState state = RefiningChain.Evaluate(new List<RefiningStage>(), Coeffs());
+			RefiningState state = RefiningChain.Evaluate(new List<RefiningStage>(), DefaultCoefficients());
 
 			Assert.That(state.Quality, Is.EqualTo(0f), "빈 체인 = Initial 그대로");
 			Assert.That(state.Warmth, Is.EqualTo(0f));
@@ -54,7 +54,7 @@ namespace WitchMendokusai.Tests
 		[Test]
 		public void Evaluate_IsDeterministic_SameInputSameOutput()
 		{
-			RefiningCoefficients coeffs = Coeffs();
+			RefiningCoefficients coefficients = DefaultCoefficients();
 			List<RefiningStage> stages = new()
 			{
 				new RefiningStage(RefiningStageKind.Dissection, RefiningApproach.Careful),
@@ -62,8 +62,8 @@ namespace WitchMendokusai.Tests
 				new RefiningStage(RefiningStageKind.Refinement, RefiningApproach.Careful),
 			};
 
-			RefiningState first = RefiningChain.Evaluate(stages, coeffs);
-			RefiningState second = RefiningChain.Evaluate(stages, coeffs);
+			RefiningState first = RefiningChain.Evaluate(stages, coefficients);
+			RefiningState second = RefiningChain.Evaluate(stages, coefficients);
 
 			Assert.That(second.Quality, Is.EqualTo(first.Quality), "결정성 — 품질");
 			Assert.That(second.Warmth, Is.EqualTo(first.Warmth), "결정성 — 온기");
@@ -74,12 +74,12 @@ namespace WitchMendokusai.Tests
 		[Test]
 		public void AllCareful_AchievesHigherQuality_ThanAllFast()
 		{
-			RefiningCoefficients coeffs = Coeffs();
+			RefiningCoefficients coefficients = DefaultCoefficients();
 			List<RefiningStage> fastChain = MakeChain(RefiningApproach.Fast, 3);
 			List<RefiningStage> carefulChain = MakeChain(RefiningApproach.Careful, 3);
 
-			float fastQuality = RefiningChain.Evaluate(fastChain, coeffs).Quality;
-			float carefulQuality = RefiningChain.Evaluate(carefulChain, coeffs).Quality;
+			float fastQuality = RefiningChain.Evaluate(fastChain, coefficients).Quality;
+			float carefulQuality = RefiningChain.Evaluate(carefulChain, coefficients).Quality;
 
 			Assert.That(carefulQuality, Is.GreaterThan(fastQuality), "정성 = 등급 더 높이 끌어올림");
 		}
@@ -87,8 +87,8 @@ namespace WitchMendokusai.Tests
 		[Test]
 		public void AllCareful_AccumulatesWarmth()
 		{
-			RefiningCoefficients coeffs = Coeffs();
-			RefiningState state = RefiningChain.Evaluate(MakeChain(RefiningApproach.Careful, 3), coeffs);
+			RefiningCoefficients coefficients = DefaultCoefficients();
+			RefiningState state = RefiningChain.Evaluate(MakeChain(RefiningApproach.Careful, 3), coefficients);
 
 			Assert.That(state.Warmth, Is.GreaterThan(0f), "애도하며 정련 = 온기 +");
 		}
@@ -96,8 +96,8 @@ namespace WitchMendokusai.Tests
 		[Test]
 		public void AllFast_DepletesWarmth()
 		{
-			RefiningCoefficients coeffs = Coeffs();
-			RefiningState state = RefiningChain.Evaluate(MakeChain(RefiningApproach.Fast, 3), coeffs);
+			RefiningCoefficients coefficients = DefaultCoefficients();
+			RefiningState state = RefiningChain.Evaluate(MakeChain(RefiningApproach.Fast, 3), coefficients);
 
 			Assert.That(state.Warmth, Is.LessThan(0f), "함부로 정련 = 온기 - (마을 식어감)");
 		}
@@ -106,11 +106,11 @@ namespace WitchMendokusai.Tests
 		[Test]
 		public void SingleStageChain_EqualsOneManualApply()
 		{
-			RefiningCoefficients coeffs = Coeffs();
+			RefiningCoefficients coefficients = DefaultCoefficients();
 			RefiningStage stage = new(RefiningStageKind.Dissection, RefiningApproach.Careful);
 
-			RefiningState viaChain = RefiningChain.Evaluate(new List<RefiningStage> { stage }, coeffs);
-			RefiningState viaManual = RefiningChain.ApplyStage(RefiningChain.Initial(coeffs), stage, coeffs);
+			RefiningState viaChain = RefiningChain.Evaluate(new List<RefiningStage> { stage }, coefficients);
+			RefiningState viaManual = RefiningChain.ApplyStage(RefiningChain.Initial(coefficients), stage, coefficients);
 
 			Assert.That(viaChain.Quality, Is.EqualTo(viaManual.Quality), "단순제작(1단계) = 체인 1회 — 숨은 보너스 0");
 			Assert.That(viaChain.Warmth, Is.EqualTo(viaManual.Warmth));
@@ -120,7 +120,7 @@ namespace WitchMendokusai.Tests
 		[Test]
 		public void MixedApproach_AccumulatesIndependently_NoCancel()
 		{
-			RefiningCoefficients coeffs = Coeffs();
+			RefiningCoefficients coefficients = DefaultCoefficients();
 			// Fast +0.05, Careful +0.2 → 합 0.25. 서로 상쇄 X, 단순 합산.
 			List<RefiningStage> mixed = new()
 			{
@@ -128,7 +128,7 @@ namespace WitchMendokusai.Tests
 				new RefiningStage(RefiningStageKind.Purification, RefiningApproach.Careful),
 			};
 
-			RefiningState state = RefiningChain.Evaluate(mixed, coeffs);
+			RefiningState state = RefiningChain.Evaluate(mixed, coefficients);
 
 			Assert.That(state.Quality, Is.EqualTo(0.25f).Within(0.0001f), "Fast(0.05) + Careful(0.2) = 0.25");
 			Assert.That(state.Warmth, Is.EqualTo(0f).Within(0.0001f), "Fast(-0.2) + Careful(+0.2) = 0 (상쇄)");
@@ -138,24 +138,24 @@ namespace WitchMendokusai.Tests
 		[Test]
 		public void CompletedStages_IncrementsPerApply()
 		{
-			RefiningCoefficients coeffs = Coeffs();
-			RefiningState state = RefiningChain.Initial(coeffs);
+			RefiningCoefficients coefficients = DefaultCoefficients();
+			RefiningState state = RefiningChain.Initial(coefficients);
 			RefiningStage stage = new(RefiningStageKind.Refinement, RefiningApproach.Fast);
 
-			state = RefiningChain.ApplyStage(state, stage, coeffs);
+			state = RefiningChain.ApplyStage(state, stage, coefficients);
 			Assert.That(state.CompletedStages, Is.EqualTo(1));
-			state = RefiningChain.ApplyStage(state, stage, coeffs);
+			state = RefiningChain.ApplyStage(state, stage, coefficients);
 			Assert.That(state.CompletedStages, Is.EqualTo(2));
-			state = RefiningChain.ApplyStage(state, stage, coeffs);
+			state = RefiningChain.ApplyStage(state, stage, coefficients);
 			Assert.That(state.CompletedStages, Is.EqualTo(3));
 		}
 
 		[Test]
 		public void Quality_ClampedToValidRange_NoOverflow()
 		{
-			RefiningCoefficients coeffs = Coeffs();
+			RefiningCoefficients coefficients = DefaultCoefficients();
 			// 정성 단계(0.2)를 20회 거치면 4.0 이지만, [0,1] clamp 로 정확히 1.0.
-			RefiningState state = RefiningChain.Evaluate(MakeChain(RefiningApproach.Careful, 20), coeffs);
+			RefiningState state = RefiningChain.Evaluate(MakeChain(RefiningApproach.Careful, 20), coefficients);
 
 			Assert.That(state.Quality, Is.EqualTo(1f), "Quality 는 [0,1] clamp — 최고 등급 초과 X");
 		}
@@ -163,10 +163,10 @@ namespace WitchMendokusai.Tests
 		[Test]
 		public void Warmth_ClampedToSignedUnitRange()
 		{
-			RefiningCoefficients coeffs = Coeffs();
+			RefiningCoefficients coefficients = DefaultCoefficients();
 			// Fast(-0.2) 20회 = -4.0 이지만 clamp -1. 반대로 Careful 20회 = +4 → clamp +1.
-			RefiningState callous = RefiningChain.Evaluate(MakeChain(RefiningApproach.Fast, 20), coeffs);
-			RefiningState mourning = RefiningChain.Evaluate(MakeChain(RefiningApproach.Careful, 20), coeffs);
+			RefiningState callous = RefiningChain.Evaluate(MakeChain(RefiningApproach.Fast, 20), coefficients);
+			RefiningState mourning = RefiningChain.Evaluate(MakeChain(RefiningApproach.Careful, 20), coefficients);
 
 			Assert.That(callous.Warmth, Is.EqualTo(-1f), "온기 [-1,1] clamp — 함부로 누적 바닥");
 			Assert.That(mourning.Warmth, Is.EqualTo(1f), "온기 [-1,1] clamp — 애도 누적 천장");
@@ -188,7 +188,7 @@ namespace WitchMendokusai.Tests
 		public void StageOrder_IndependentOfKind_InPhase0()
 		{
 			// Phase 0 = 단계 Kind 별 가중치 X (Phase 1+ 에서 SO 로 들어옴). Kind 만 바뀌고 Approach 동일이면 결과 동일.
-			RefiningCoefficients coeffs = Coeffs();
+			RefiningCoefficients coefficients = DefaultCoefficients();
 			List<RefiningStage> order1 = new()
 			{
 				new RefiningStage(RefiningStageKind.Dissection, RefiningApproach.Careful),
@@ -202,8 +202,8 @@ namespace WitchMendokusai.Tests
 				new RefiningStage(RefiningStageKind.Purification, RefiningApproach.Careful),
 			};
 
-			RefiningState s1 = RefiningChain.Evaluate(order1, coeffs);
-			RefiningState s2 = RefiningChain.Evaluate(order2, coeffs);
+			RefiningState s1 = RefiningChain.Evaluate(order1, coefficients);
+			RefiningState s2 = RefiningChain.Evaluate(order2, coefficients);
 
 			Assert.That(s1.Quality, Is.EqualTo(s2.Quality), "Phase 0 = Kind 가중치 0, 순서 무관");
 			Assert.That(s1.Warmth, Is.EqualTo(s2.Warmth));
