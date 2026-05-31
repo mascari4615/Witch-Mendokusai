@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
@@ -42,9 +43,29 @@ namespace WitchMendokusai
 			GameObject matchGameObject = new GameObject(nameof(ArenaMatch));
 			ArenaMatch match = matchGameObject.AddComponent<ArenaMatch>();
 			match.MatchEnded += winnerTeamId => Debug.Log("[ArenaTestLauncher] 매치 종료 — 승리 팀 = " + winnerTeamId + " (-1 = 무승부)");
-			match.Begin(config, rootGameObject.transform);
 
-			Debug.Log("ArenaTestLauncher: 매치 시작 — z=" + ARENA_OFFSET_Z + " 관전(ArenaSpectatorCamera). 슬라임 6기 스폰→접근→전투→전멸 승패.");
+			// 프리-매치 전술 에디터 — 로스터 전술을 행 리스트로 편집 후 [매치 시작]. UIRoot 없으면 바로 시작.
+			if (UIRoot.TryGetExistingInstance(out UIRoot uiRoot) && uiRoot.ScreenLayer != null)
+			{
+				List<TacticEditorView.Entry> entries = new List<TacticEditorView.Entry>();
+				foreach (ArenaMatchConfig.ArenaUnitEntry rosterEntry in config.Roster)
+				{
+					if (rosterEntry.UnitData == null || rosterEntry.Tactic == null)
+						continue;
+					entries.Add(new TacticEditorView.Entry
+					{
+						Label = rosterEntry.UnitData.Name + " (팀" + rosterEntry.TeamId + ")",
+						Authoring = new RowListAuthoring(rosterEntry.Tactic),
+					});
+				}
+				new TacticEditorView(uiRoot.ScreenLayer, entries, () => match.Begin(config, rootGameObject.transform));
+				Debug.Log("ArenaTestLauncher: 전술 에디터 열림 — 행 편집 후 [매치 시작] 클릭. z=" + ARENA_OFFSET_Z + " 관전.");
+			}
+			else
+			{
+				Debug.LogWarning("ArenaTestLauncher: UIRoot 없음 — 에디터 생략, 바로 매치 시작.");
+				match.Begin(config, rootGameObject.transform);
+			}
 		}
 	}
 }
