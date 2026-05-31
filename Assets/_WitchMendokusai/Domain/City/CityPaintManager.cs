@@ -67,6 +67,11 @@ namespace WitchMendokusai
 		[SerializeField] private float citizenSpeed = 2.0f;
 		[SerializeField] private Color citizenColor = new(0.95f, 0.85f, 0.55f);
 
+		[Header("INC-5 전력 (발전소 placeholder — 실 prefab/스킨=마법진? deferred)")]
+		[Tooltip("발전소 1기가 도로 따라 전력 보내는 홉 거리.")]
+		[SerializeField] private int powerSourceRange = 6;
+		[SerializeField] private Color powerSourceColor = new(1.00f, 0.95f, 0.30f);
+
 		private InputManager inputManager;
 		private GameModeManager gameModeManager;
 		private StageManager stageManager;
@@ -93,6 +98,9 @@ namespace WitchMendokusai
 		private readonly RciDemandModel demandModel = new();
 		private readonly CityGrowthSystem growthSystem = new();
 		private readonly CitySimulationSystem simulationSystem = new();
+		private readonly PowerGrid powerGrid = new();
+		// 발전소 시각 마커 (PowerSourceRegistry 가 데이터 진실, 이건 투영).
+		private readonly Dictionary<Vector3Int, GameObject> powerSourceVisuals = new();
 
 		// INC-7 — 통근 시민 placeholder 에이전트. key = 집 셀(1 주거 = 1 시민). 진실 = CitizenRegistry,
 		// 이건 그 시각 투영(렌더+이동). CitizenRegistry 가 비면 여기도 빔.
@@ -146,7 +154,7 @@ namespace WitchMendokusai
 			inputManager.UnregisterInputEvent(InputEventType.Click0, InputEventResponseType.Get, OnClickPaint);
 			inputManager.UnregisterInputEvent(InputEventType.Click1, InputEventResponseType.Get, OnClickErase);
 
-			if (mode == GameMode.Zone || mode == GameMode.Road)
+			if (mode == GameMode.Zone || mode == GameMode.Road || mode == GameMode.Power)
 			{
 				inputManager.RegisterInputEvent(InputEventType.Click0, InputEventResponseType.Get, OnClickPaint);
 				inputManager.RegisterInputEvent(InputEventType.Click1, InputEventResponseType.Get, OnClickErase);
@@ -205,6 +213,14 @@ namespace WitchMendokusai
 				worldStage.RoadGraph.AddRoad(cell);
 				SetCellVisual(cell, roadColor);
 			}
+			else if (gameModeManager.CurrentMode == GameMode.Power)
+			{
+				if (placement.CanPlaceZone(cell) == false)
+					return; // 도로 위엔 발전소 X (도로 인접 셀에 두면 전력이 도로로 퍼짐)
+
+				worldStage.PowerSourceRegistry.Add(cell, powerSourceRange);
+				SetPowerSourceVisual(cell);
+			}
 		}
 
 		private void OnClickErase()
@@ -214,8 +230,10 @@ namespace WitchMendokusai
 
 			worldStage.ZoneGrid.Clear(cell);
 			worldStage.RoadGraph.RemoveRoad(cell);
+			worldStage.PowerSourceRegistry.Remove(cell);
 			ClearCellVisual(cell);
 			ClearBuildingVisual(cell);
+			ClearPowerSourceVisual(cell);
 		}
 
 		// step6 — 매일 호출. 수요 평가 → 성장/쇠퇴 결정(CityGrowthSystem 순수) → 적용(GridData + 시각).
@@ -235,7 +253,11 @@ namespace WitchMendokusai
 				query.CountBuildingsByZone(ZoneType.Industrial),
 				coefficients);
 
-			CityGrowthDecision decision = growthSystem.Decide(demand, query, growthThreshold, maxChangePerDayPerZone);
+			// INC-5(Phase3) — 발전소 있으면 전력 게이트(전력 받는 셀만 성장), 없으면 Phase2 그대로(비파괴).
+			HashSet<Vector3Int> energizedRoads = ComputeEnergizedRoads(worldStage);
+			CityGrowthDecision decision = worldStage.PowerSourceRegistry.Sources.Count > 0
+				? growthSystem.Decide(demand, query, growthThreshold, maxChangePerDayPerZone, powerGrid, energizedRoads)
+				: growthSystem.Decide(demand, query, growthThreshold, maxChangePerDayPerZone);
 			ApplyGrowth(worldStage, decision);
 
 			// INC-5c — 성장 반영된 도시로 하루치 생산/소비 → CityEconomy 재고 갱신 (query 는 live = post-growth 카운트).
@@ -465,6 +487,24 @@ namespace WitchMendokusai
 			}
 		}
 
+		// INC-5 — 발전소들 → 각자 인접도로 진입점 → 그 source range 로 flood → union = 전력 흐르는 도로 셀.
+		// 발전소가 도로에 안 닿으면(인접도로 없음) 그 발전소는 전력 0 (dead) — TryRoadNeighbor false.
+		private HashSet<Vector3Int> ComputeEnergizedRoads(WorldStage worldStage)
+		{
+			HashSet<Vector3Int> energized = new();
+			RoadGraph roadGraph = worldStage.RoadGraph;
+
+			foreach (KeyValuePair<Vector3Int, PowerSourceData> entry in worldStage.PowerSourceRegistry.Sources)
+			{
+				if (TryRoadNeighbor(roadGraph, entry.Key, out Vector3Int roadEntry))
+				{
+					energized.UnionWith(powerGrid.ComputeEnergizedRoads(roadGraph, new[] { roadEntry }, entry.Value.Range));
+				}
+			}
+
+			return energized;
+		}
+
 		private Color ZoneColor(ZoneType type)
 		{
 			switch (type)
@@ -540,6 +580,28 @@ namespace WitchMendokusai
 			}
 		}
 
+		// 발전소 시각 마커 (건물보다 높은 노란 큐브 — placeholder, 실 prefab/스킨=마법진? deferred).
+		private void SetPowerSourceVisual(Vector3Int cell)
+		{
+			if (powerSourceVisuals.TryGetValue(cell, out GameObject visual) == false)
+			{
+				visual = CreateCellCube(cell, buildingHeight * 1.5f);
+				visual.name = $"PowerSource_{cell.x}_{cell.y}";
+				powerSourceVisuals[cell] = visual;
+			}
+
+			visual.GetComponent<Renderer>().sharedMaterial = GetMaterial(powerSourceColor);
+		}
+
+		private void ClearPowerSourceVisual(Vector3Int cell)
+		{
+			if (powerSourceVisuals.TryGetValue(cell, out GameObject visual))
+			{
+				powerSourceVisuals.Remove(cell);
+				Destroy(visual);
+			}
+		}
+
 		private Material GetMaterial(Color color)
 		{
 			if (materialCache.TryGetValue(color, out Material material))
@@ -578,6 +640,9 @@ namespace WitchMendokusai
 
 		[ContextMenu("Enter Road Mode")]
 		private void EnterRoadMode_Editor() => gameModeManager.SetMode(GameMode.Road);
+
+		[ContextMenu("Enter Power Mode (발전소)")]
+		private void EnterPowerMode_Editor() => gameModeManager.SetMode(GameMode.Power);
 
 		[ContextMenu("Exit to Default")]
 		private void ExitMode_Editor() => gameModeManager.SetMode(GameMode.Default);

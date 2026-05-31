@@ -12,6 +12,10 @@ namespace WitchMendokusai
 		// 합의 — session-bus 2026-05-30 21:00. Arena 는 그 다음 값).
 		Zone = 2,
 		Road = 3,
+
+		// 4 = Arena 예약 (slot C WM-165, session-bus 합의). 충돌 회피 위해 비움.
+		// SimCity Phase 3 (TASK-WM-176): 발전소(전력원) 페인트 모드.
+		Power = 5,
 	}
 
 	public class GameModeManager : MonoBehaviour
