@@ -78,6 +78,7 @@ namespace WitchMendokusai
 		private StatusView statusView;
 		private PopupView popupView;
 		private StagePopupView stagePopupView;
+		private ChestStorageView chestStorageView;
 
 		public bool IsAnyPanelFullscreenOpen
 		{
@@ -130,6 +131,8 @@ namespace WitchMendokusai
 				Destroy(popupView);
 			if (stagePopupView != null)
 				Destroy(stagePopupView);
+			if (chestStorageView != null)
+				Destroy(chestStorageView);
 			if (floatingText != null)
 				Destroy(floatingText);
 			if (SpeechBubble != null)
@@ -209,6 +212,8 @@ namespace WitchMendokusai
 			container.Inject(popupView);
 			stagePopupView = uiRootGameObject.AddComponent<StagePopupView>();
 			container.Inject(stagePopupView);
+			chestStorageView = uiRootGameObject.AddComponent<ChestStorageView>();
+			container.Inject(chestStorageView);
 			floatingText = uiRootGameObject.AddComponent<FloatingTextView>();
 			container.Inject(floatingText);
 			SpeechBubble = uiRootGameObject.AddComponent<SpeechBubbleView>();

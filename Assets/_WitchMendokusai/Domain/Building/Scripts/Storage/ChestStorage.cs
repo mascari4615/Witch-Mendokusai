@@ -18,8 +18,8 @@ namespace WitchMendokusai
 		// 보관 UI(P1c) 가 바인딩. ChestStorageInventory 는 Inventory 라 기존 위젯(ItemGrid/UIItemGrid) 그대로 사용.
 		public Inventory Inventory => inventory;
 
-		// 플레이어 상호작용(클릭) 시 발행 — 보관 UI 가 구독해 오픈.
-		public event Action<ChestStorage> OnOpenRequested = delegate { };
+		// 상자 클릭 시 발행 (전역) — 단일 공유 보관 UI(ChestStorageView)가 구독해 그 상자를 오픈.
+		public static event Action<ChestStorage> AnyOpenRequested = delegate { };
 
 		private void OnEnable()
 		{
@@ -44,7 +44,7 @@ namespace WitchMendokusai
 			owner.UpdateRuntimeData(JsonConvert.SerializeObject(inventory.Save()));
 		}
 
-		public void OnInteract() => OnOpenRequested(this);
+		public void OnInteract() => AnyOpenRequested(this);
 
 		private void LoadFromRuntimeData(string json)
 		{
