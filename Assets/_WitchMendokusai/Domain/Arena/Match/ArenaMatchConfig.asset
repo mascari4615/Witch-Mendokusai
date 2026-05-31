@@ -1,0 +1,166 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3e6dcf1027142304d89042acdc71a838, type: 3}
+  m_Name: ArenaMatchConfig
+  m_EditorClassIdentifier: WM.Domain::WitchMendokusai.ArenaMatchConfig
+  <ID>k__BackingField: 2200
+  <Name>k__BackingField: "v1 \uC2AC\uB77C\uC784 \uD55C\uD0C0 3v3"
+  <Description>k__BackingField: 
+  <Sprite>k__BackingField: {fileID: 0}
+  <Sprites>k__BackingField: []
+  <Map>k__BackingField: {fileID: 11400000, guid: f2f5ce32b5504cb448357ece471f6195, type: 2}
+  <Mode>k__BackingField: {fileID: 11400000, guid: b2367863e4b4e264b87343f3e8fc3c87, type: 2}
+  <Roster>k__BackingField:
+  - <UnitData>k__BackingField: {fileID: 11400000, guid: d3b4b260c0d5fcd478b6ccbf48fc8d43, type: 2}
+    <Tactic>k__BackingField:
+      Rules:
+      - Conditions:
+        - Kind: 4
+          Operator: 0
+          Value: 0
+          SkillSlot: 0
+        Target:
+          Side: 0
+          Priority: 0
+          MaxRange: 3
+        Action:
+          Kind: 1
+          SkillSlot: 0
+      - Conditions: []
+        Target:
+          Side: 0
+          Priority: 0
+          MaxRange: 0
+        Action:
+          Kind: 2
+          SkillSlot: 0
+    <TeamId>k__BackingField: 0
+  - <UnitData>k__BackingField: {fileID: 11400000, guid: d3b4b260c0d5fcd478b6ccbf48fc8d43, type: 2}
+    <Tactic>k__BackingField:
+      Rules:
+      - Conditions:
+        - Kind: 4
+          Operator: 0
+          Value: 0
+          SkillSlot: 0
+        Target:
+          Side: 0
+          Priority: 0
+          MaxRange: 3
+        Action:
+          Kind: 1
+          SkillSlot: 0
+      - Conditions: []
+        Target:
+          Side: 0
+          Priority: 0
+          MaxRange: 0
+        Action:
+          Kind: 2
+          SkillSlot: 0
+    <TeamId>k__BackingField: 0
+  - <UnitData>k__BackingField: {fileID: 11400000, guid: d3b4b260c0d5fcd478b6ccbf48fc8d43, type: 2}
+    <Tactic>k__BackingField:
+      Rules:
+      - Conditions:
+        - Kind: 4
+          Operator: 0
+          Value: 0
+          SkillSlot: 0
+        Target:
+          Side: 0
+          Priority: 0
+          MaxRange: 3
+        Action:
+          Kind: 1
+          SkillSlot: 0
+      - Conditions: []
+        Target:
+          Side: 0
+          Priority: 0
+          MaxRange: 0
+        Action:
+          Kind: 2
+          SkillSlot: 0
+    <TeamId>k__BackingField: 0
+  - <UnitData>k__BackingField: {fileID: 11400000, guid: d3b4b260c0d5fcd478b6ccbf48fc8d43, type: 2}
+    <Tactic>k__BackingField:
+      Rules:
+      - Conditions:
+        - Kind: 4
+          Operator: 0
+          Value: 0
+          SkillSlot: 0
+        Target:
+          Side: 0
+          Priority: 0
+          MaxRange: 3
+        Action:
+          Kind: 1
+          SkillSlot: 0
+      - Conditions: []
+        Target:
+          Side: 0
+          Priority: 0
+          MaxRange: 0
+        Action:
+          Kind: 2
+          SkillSlot: 0
+    <TeamId>k__BackingField: 1
+  - <UnitData>k__BackingField: {fileID: 11400000, guid: d3b4b260c0d5fcd478b6ccbf48fc8d43, type: 2}
+    <Tactic>k__BackingField:
+      Rules:
+      - Conditions:
+        - Kind: 4
+          Operator: 0
+          Value: 0
+          SkillSlot: 0
+        Target:
+          Side: 0
+          Priority: 0
+          MaxRange: 3
+        Action:
+          Kind: 1
+          SkillSlot: 0
+      - Conditions: []
+        Target:
+          Side: 0
+          Priority: 0
+          MaxRange: 0
+        Action:
+          Kind: 2
+          SkillSlot: 0
+    <TeamId>k__BackingField: 1
+  - <UnitData>k__BackingField: {fileID: 11400000, guid: 4f25ead5ae81f4645a28cf31239e5a74, type: 2}
+    <Tactic>k__BackingField:
+      Rules:
+      - Conditions:
+        - Kind: 4
+          Operator: 0
+          Value: 0
+          SkillSlot: 0
+        Target:
+          Side: 0
+          Priority: 0
+          MaxRange: 3
+        Action:
+          Kind: 1
+          SkillSlot: 0
+      - Conditions: []
+        Target:
+          Side: 0
+          Priority: 0
+          MaxRange: 0
+        Action:
+          Kind: 2
+          SkillSlot: 0
+    <TeamId>k__BackingField: 1
