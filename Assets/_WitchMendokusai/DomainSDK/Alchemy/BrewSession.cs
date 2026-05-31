@@ -13,9 +13,16 @@ namespace WitchMendokusai.DomainSDK.Alchemy
     public sealed class BrewSession
     {
         private readonly List<BrewStep> steps = new List<BrewStep>();
+        private IReadOnlyList<HazardZone> hazards;
 
         public BrewRecipe Recipe { get; private set; }
         public BrewState State { get; private set; }
+
+        /// <summary>현재 경로가 위험지대를 통과하며 누적한 부작용(UI 경고 표시용).</summary>
+        public float AccruedSideEffect
+        {
+            get { return State.AccruedSideEffect; }
+        }
 
         /// <summary>지금까지 투입한 재료 step 수(= UI 경로 점 개수).</summary>
         public int StepCount
@@ -35,10 +42,17 @@ namespace WitchMendokusai.DomainSDK.Alchemy
             get { return BrewEngine.DistanceTo(State, Recipe.Target); }
         }
 
-        /// <summary>레시피(목표 효과 좌표)로 새 제조 세션 시작 — 마커는 솥 중앙(원점).</summary>
+        /// <summary>레시피(목표 효과 좌표)로 새 제조 세션 시작 — 마커는 솥 중앙(원점). 위험지대 없음.</summary>
         public void Start(BrewRecipe recipe)
         {
+            Start(recipe, null);
+        }
+
+        /// <summary>레시피 + 위험지대(저주 폭주 구역)로 시작. 경로가 위험지대 통과 시 부작용 누적.</summary>
+        public void Start(BrewRecipe recipe, IReadOnlyList<HazardZone> hazardZones)
+        {
             Recipe = recipe;
+            hazards = hazardZones;
             State = BrewState.Start;
             steps.Clear();
         }
@@ -55,11 +69,11 @@ namespace WitchMendokusai.DomainSDK.Alchemy
             return AddStep(ingredient.ToDefaultStep());
         }
 
-        /// <summary>이미 만들어진 step 직접 투입(테스트·재생용).</summary>
+        /// <summary>이미 만들어진 step 직접 투입(테스트·재생용). 위험지대 있으면 통과 부작용 누적.</summary>
         public BrewState AddStep(BrewStep step)
         {
             steps.Add(step);
-            State = BrewEngine.Apply(State, step);
+            State = hazards == null ? BrewEngine.Apply(State, step) : BrewEngine.Apply(State, step, hazards);
             return State;
         }
 
@@ -69,7 +83,7 @@ namespace WitchMendokusai.DomainSDK.Alchemy
             get { return steps; }
         }
 
-        /// <summary>같은 레시피로 다시 시작(재료만 비우고 목표 유지).</summary>
+        /// <summary>같은 레시피·위험지대로 다시 시작(재료만 비우고 목표·위험지대 유지).</summary>
         public void Reset()
         {
             State = BrewState.Start;
