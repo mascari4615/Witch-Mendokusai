@@ -16,7 +16,20 @@ namespace WitchMendokusai
 		// 하루에 흐르는 게임 분(성장·시듦 진행량). SO 캐싱 X — 런타임 변경 즉시 반영(수치노출 룰).
 		[SerializeField, Min(1)] private int minutesPerDay = 480;
 
+		[Header("자립 배선 (씬 드롭 시 자동) — 실 배선 전 placeholder")]
+		[SerializeField] private bool autoWireOnStart = true;
+		[SerializeField, Min(1)] private int autoPlotCount = 4;
+		// 빈 칸 간격(placeholder 큐브 배치 m). 실 밭 레이아웃 = Grey Box.
+		[SerializeField, Min(0.1f)] private float autoPlotSpacing = 1.5f;
+		// 자립 시 심을 마도작물. null = 런타임 기본작물(ApplyDefaults) 생성 → asset 없이도 동작.
+		[SerializeField] private WitchPlantSO samplePlant;
+		// 자립 시 인형 carer 수(매일 이만큼 자동돌봄). 실 인형 풀 연결 전 placeholder.
+		[SerializeField, Min(0)] private int autoCarerCount = 2;
+		// placeholder 큐브 시각 생성 여부(실 모델 붙이면 false).
+		[SerializeField] private bool spawnPlaceholderVisuals = true;
+
 		private readonly Greenhouse greenhouse = new();
+		private readonly Dictionary<int, GameObject> plotVisuals = new();
 
 		// 이번 틱에 돌볼 인형 id 들을 주는 콜백(인형 풀=상위 소유). null/빈 = 돌봄 0(전부 시간만).
 		private System.Func<IReadOnlyList<int>> carerProvider;
@@ -33,6 +46,69 @@ namespace WitchMendokusai
 		public void Initialize(System.Func<IReadOnlyList<int>> carerProvider)
 		{
 			this.carerProvider = carerProvider;
+		}
+
+		// 씬 드롭 자립 — Start 자동 호출. 칸 생성 + 작물 심기 + 인형 carer 기본값 + WorldClock 구독.
+		private void Start()
+		{
+			if (autoWireOnStart == false)
+			{
+				return;
+			}
+
+			BuildSelfContained(autoPlotCount, ResolvePlant(), spawnPlaceholderVisuals);
+
+			if (carerProvider == null)
+			{
+				int carers = autoCarerCount;
+				carerProvider = () => BuildCarerIds(carers);
+			}
+
+			if (clock == null && WorldClock.Instance != null)
+			{
+				AttachClock(WorldClock.Instance);
+			}
+		}
+
+		// 자립 작물 결정 — samplePlant 있으면 그것, 없으면 런타임 기본작물(asset 없이도 동작).
+		private WitchPlantSO ResolvePlant()
+		{
+			if (samplePlant != null)
+			{
+				return samplePlant;
+			}
+
+			WitchPlantSO runtimePlant = ScriptableObject.CreateInstance<WitchPlantSO>();
+			runtimePlant.ApplyDefaults();
+			return runtimePlant;
+		}
+
+		private static IReadOnlyList<int> BuildCarerIds(int count)
+		{
+			List<int> ids = new(count);
+			for (int index = 0; index < count; index++)
+			{
+				ids.Add(index);
+			}
+
+			return ids;
+		}
+
+		// ★ 자립 구축(EditMode 검증 진입점) — plotCount 칸 생성 + plant 심기 (+선택 placeholder 큐브).
+		// withVisuals=false 면 GameObject 생성 0 = 순수 로직만(테스트용). Start 가 play 에서 visuals=true 로 호출.
+		public void BuildSelfContained(int plotCount, WitchPlantSO plant, bool withVisuals)
+		{
+			for (int plotId = 0; plotId < plotCount; plotId++)
+			{
+				greenhouse.AddPlot(plotId).Plant(plant.ID, plant.ToGrowthParams(), plant.StartVitality);
+
+				if (withVisuals)
+				{
+					SpawnPlaceholderVisual(plotId);
+				}
+			}
+
+			RefreshVisuals();
 		}
 
 		// 틱 소스(WorldClock) 구독 분리 — 클럭 없이도 Initialize+TickDay 로 상태 검증 가능.
@@ -105,11 +181,61 @@ namespace WitchMendokusai
 					OnPlotWithered.Invoke(entry.Key);
 				}
 			}
+
+			RefreshVisuals();
 		}
 
 		private void HandleDayChanged(int day)
 		{
 			TickDay();
+		}
+
+		// placeholder 큐브 1개 생성(한 칸). 실 모델 = Grey Box. 색은 RefreshVisuals 가 phase 로 칠함.
+		private void SpawnPlaceholderVisual(int plotId)
+		{
+			if (plotVisuals.ContainsKey(plotId))
+			{
+				return;
+			}
+
+			GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+			cube.name = $"Plot_{plotId}";
+			cube.transform.SetParent(transform, worldPositionStays: false);
+			cube.transform.localPosition = new Vector3(plotId * autoPlotSpacing, 0f, 0f);
+			plotVisuals[plotId] = cube;
+		}
+
+		// 칸 phase 로 placeholder 큐브 색 갱신(Growing 초록 / Bloomed 노랑 / Withered 갈색 / Empty 회색).
+		// 시각=placeholder(사용자 비전 아님). visual 없으면(EditMode) no-op.
+		private void RefreshVisuals()
+		{
+			if (plotVisuals.Count == 0)
+			{
+				return;
+			}
+
+			foreach (KeyValuePair<int, GameObject> entry in plotVisuals)
+			{
+				GreenhousePlot plot = greenhouse.GetPlot(entry.Key);
+				Renderer renderer = entry.Value == null ? null : entry.Value.GetComponent<Renderer>();
+				if (plot == null || renderer == null)
+				{
+					continue;
+				}
+
+				renderer.material.color = ColorFor(plot.Phase);
+			}
+		}
+
+		private static Color ColorFor(PlotPhase phase)
+		{
+			switch (phase)
+			{
+				case PlotPhase.Growing: return new Color(0.4f, 0.8f, 0.4f);
+				case PlotPhase.Bloomed: return new Color(0.95f, 0.85f, 0.3f);
+				case PlotPhase.Withered: return new Color(0.45f, 0.32f, 0.2f);
+				default: return new Color(0.6f, 0.6f, 0.6f);
+			}
 		}
 
 		private void OnDestroy()
