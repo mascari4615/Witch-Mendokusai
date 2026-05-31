@@ -182,6 +182,23 @@ namespace WitchMendokusai
 			RefreshVisuals();
 		}
 
+		// 칸마다 다른 작물을 심는 자립 구축(혼합 정원 — 코지/마도 대비 데모용, WM-177). plants[i] = 칸 i 작물.
+		public void BuildSelfContained(IReadOnlyList<WitchPlantSO> plants, bool withVisuals)
+		{
+			for (int plotId = 0; plotId < plants.Count; plotId++)
+			{
+				WitchPlantSO plant = plants[plotId];
+				greenhouse.AddPlot(plotId).Plant(plant.ID, plant.ToGrowthParams(), plant.StartVitality);
+
+				if (withVisuals)
+				{
+					SpawnPlaceholderVisual(plotId);
+				}
+			}
+
+			RefreshVisuals();
+		}
+
 		// 마도작물을 한 칸에 심는다(SO 수치 → 성장 파라미터). 빈 칸 없으면 먼저 AddPlot.
 		public bool Plant(int plotId, WitchPlantSO plant)
 		{

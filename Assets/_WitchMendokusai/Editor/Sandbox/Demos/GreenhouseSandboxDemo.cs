@@ -8,8 +8,6 @@ namespace WitchMendokusai.Sandbox.Demos
 	// 결합분리 진입점(CoerceDefaults/Initialize/BuildSelfContained/TickDay)을 Play 없이 에디터 틱으로 그대로 구동.
 	public sealed class GreenhouseSandboxDemo : ISandboxAnimatedDemo
 	{
-		private const int PLOT_COUNT = 4;
-		private const int CARER_COUNT = 2;
 		private const float TICK_INTERVAL = 1.2f;
 
 		private WitchGreenhouseObject house;
@@ -18,17 +16,19 @@ namespace WitchMendokusai.Sandbox.Demos
 		public string Category => "Farming";
 		public float TickInterval => TICK_INTERVAL;
 
+		// 절충 톤 가시화: 일반(코지) 작물 = 안 시듦 / 마도 작물 = 돌봄 없으면 시듦.
+		// 인형 0(방치) + 칸 교차(코지·마도·코지·마도) → 코지 2 개화(노랑), 마도 2 시듦(갈색) = "마도작물만 상실"이 눈에.
 		public GameObject Build()
 		{
 			GameObject go = new("마도 온실 (Sandbox)");
 			house = go.AddComponent<WitchGreenhouseObject>();
 			house.CoerceDefaults(); // Start 안 도는 에디트 모드 — 수치(분/하루 등) 보장
 
-			WitchPlantSO plant = ScriptableObject.CreateInstance<WitchPlantSO>();
-			plant.ApplyDefaults(); // asset 불요 — 기본 마도작물(시듦 있음)
+			WitchPlantSO cozy = MakePlant(true);
+			WitchPlantSO magical = MakePlant(false);
 
-			house.Initialize(() => CarerIds(CARER_COUNT));
-			house.BuildSelfContained(PLOT_COUNT, plant, true);
+			house.Initialize(() => System.Array.Empty<int>()); // 인형 0 = 방치
+			house.BuildSelfContained(new List<WitchPlantSO> { cozy, magical, cozy, magical }, true);
 
 			return go;
 		}
@@ -41,15 +41,19 @@ namespace WitchMendokusai.Sandbox.Demos
 			}
 		}
 
-		private static IReadOnlyList<int> CarerIds(int count)
+		// 코지=DrainPerMinute 0(안 시듦), 마도=ApplyDefaults 기본(시듦 있음). asset 불요.
+		private static WitchPlantSO MakePlant(bool cozy)
 		{
-			List<int> ids = new(count);
-			for (int index = 0; index < count; index++)
+			WitchPlantSO plant = ScriptableObject.CreateInstance<WitchPlantSO>();
+			plant.ApplyDefaults();
+			if (cozy)
 			{
-				ids.Add(index);
+				UnityEditor.SerializedObject serialized = new(plant);
+				serialized.FindProperty("<DrainPerMinute>k__BackingField").floatValue = 0f;
+				serialized.ApplyModifiedProperties();
 			}
 
-			return ids;
+			return plant;
 		}
 	}
 }
