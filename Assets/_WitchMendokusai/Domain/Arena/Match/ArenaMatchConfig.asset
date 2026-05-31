@@ -31,7 +31,7 @@ MonoBehaviour:
         Target:
           Side: 0
           Priority: 0
-          MaxRange: 3
+          MaxRange: 7
         Action:
           Kind: 1
           SkillSlot: 0
@@ -55,7 +55,7 @@ MonoBehaviour:
         Target:
           Side: 0
           Priority: 0
-          MaxRange: 3
+          MaxRange: 7
         Action:
           Kind: 1
           SkillSlot: 0
@@ -79,7 +79,7 @@ MonoBehaviour:
         Target:
           Side: 0
           Priority: 0
-          MaxRange: 3
+          MaxRange: 7
         Action:
           Kind: 1
           SkillSlot: 0
@@ -103,7 +103,7 @@ MonoBehaviour:
         Target:
           Side: 0
           Priority: 0
-          MaxRange: 3
+          MaxRange: 7
         Action:
           Kind: 1
           SkillSlot: 0
@@ -127,7 +127,7 @@ MonoBehaviour:
         Target:
           Side: 0
           Priority: 0
-          MaxRange: 3
+          MaxRange: 7
         Action:
           Kind: 1
           SkillSlot: 0
@@ -151,7 +151,7 @@ MonoBehaviour:
         Target:
           Side: 0
           Priority: 0
-          MaxRange: 3
+          MaxRange: 7
         Action:
           Kind: 1
           SkillSlot: 0
