@@ -31,7 +31,9 @@ namespace WitchMendokusai
 		private void OnDisable()
 		{
 			if (Chest != null)
+			{
 				Chest.OnDataChanged -= PersistToRuntimeData;
+			}
 			Chest = null;
 			persistOnChange = false;
 		}
@@ -57,7 +59,9 @@ namespace WitchMendokusai
 		private void PersistToRuntimeData()
 		{
 			if (persistOnChange == false || buildingObject == null)
+			{
 				return;
+			}
 			buildingObject.UpdateRuntimeData(ChestSaveData.FromChest(Chest).ToJson());
 		}
 	}

@@ -24,7 +24,9 @@ namespace WitchMendokusai
 			Capacity = capacity;
 			Slots = new List<Item>(capacity);
 			for (int i = 0; i < capacity; i++)
+			{
 				Slots.Add(null);
+			}
 		}
 
 		private int FindEmptySlotIndex(int startIndex = 0)
@@ -32,7 +34,9 @@ namespace WitchMendokusai
 			for (int i = startIndex; i < Capacity; i++)
 			{
 				if (Slots[i] == null)
+				{
 					return i;
+				}
 			}
 			return NONE;
 		}
@@ -43,9 +47,13 @@ namespace WitchMendokusai
 			{
 				Item current = Slots[i];
 				if (current == null)
+				{
 					continue;
+				}
 				if (current.Data.ID == targetID)
+				{
 					return i;
+				}
 			}
 			return NONE;
 		}
@@ -56,9 +64,13 @@ namespace WitchMendokusai
 			{
 				Item current = Slots[i];
 				if (current == null)
+				{
 					continue;
+				}
 				if (current.Data == target)
+				{
 					return i;
+				}
 			}
 			return NONE;
 		}
@@ -96,7 +108,9 @@ namespace WitchMendokusai
 					{
 						index = FindEmptySlotIndex(index + 1);
 						if (index == NONE)
+						{
 							break;
+						}
 
 						Item newItem = itemData.CreateItem();
 						newItem.SetAmount(amount);
@@ -124,7 +138,9 @@ namespace WitchMendokusai
 				{
 					index = FindEmptySlotIndex(index + 1);
 					if (index == NONE)
+					{
 						break;
+					}
 
 					Slots[index] = itemData.CreateItem();
 				}
@@ -137,17 +153,23 @@ namespace WitchMendokusai
 		public void Remove(int index, int amount = 1)
 		{
 			if (IsValidIndex(index) == false)
+			{
 				return;
+			}
 
 			Item item = Slots[index];
 			if (item == null)
+			{
 				return;
+			}
 
 			if (item.Data.IsCountable)
 			{
 				item.SetAmount(item.Amount - amount);
 				if (item.IsEmpty)
+				{
 					Slots[index] = null;
+				}
 			}
 			else
 			{
@@ -160,21 +182,29 @@ namespace WitchMendokusai
 		public Item GetItem(int index)
 		{
 			if (IsValidIndex(index) == false)
+			{
 				return null;
+			}
 			return Slots[index];
 		}
 
 		public Item GetItem(Guid? guid)
 		{
 			if (guid == null)
+			{
 				return null;
+			}
 
 			foreach (Item item in Slots)
 			{
 				if (item == null)
+				{
 					continue;
+				}
 				if (item.Guid == guid)
+				{
 					return item;
+				}
 			}
 			return null;
 		}
@@ -182,7 +212,9 @@ namespace WitchMendokusai
 		public void SetItem(int index, Item item)
 		{
 			if (IsValidIndex(index) == false)
+			{
 				return;
+			}
 			Slots[index] = item;
 			OnDataChanged.Invoke();
 		}
@@ -190,9 +222,13 @@ namespace WitchMendokusai
 		public void SetItemAmount(int index, int amount)
 		{
 			if (IsValidIndex(index) == false)
+			{
 				return;
+			}
 			if (Slots[index] != null)
+			{
 				Slots[index].SetAmount(amount);
+			}
 			OnDataChanged.Invoke();
 		}
 
@@ -202,9 +238,13 @@ namespace WitchMendokusai
 			foreach (Item item in Slots)
 			{
 				if (item == null)
+				{
 					continue;
+				}
 				if (item.Data.ID == itemID)
+				{
 					amount += item.Amount;
+				}
 			}
 			return amount;
 		}
@@ -212,7 +252,9 @@ namespace WitchMendokusai
 		public IItemData GetItemData(int index)
 		{
 			if (IsValidIndex(index) == false)
+			{
 				return null;
+			}
 			return Slots[index]?.Data;
 		}
 

@@ -46,7 +46,9 @@ namespace WitchMendokusai
 			{
 				Item item = chest.Slots[i];
 				if (item == null)
+				{
 					continue;
+				}
 				slots.Add(new ChestSlotSaveData(i, item));
 			}
 			return new ChestSaveData
@@ -59,15 +61,21 @@ namespace WitchMendokusai
 		public void ApplyTo(ChestInventory chest)
 		{
 			for (int i = 0; i < chest.Capacity; i++)
+			{
 				chest.Slots[i] = null;
+			}
 
 			if (Slots == null)
+			{
 				return;
+			}
 
 			foreach (ChestSlotSaveData slot in Slots)
 			{
 				if (slot.SlotIndex < 0 || slot.SlotIndex >= chest.Capacity)
+				{
 					continue;
+				}
 				chest.Slots[slot.SlotIndex] = slot.ToItem();
 			}
 		}
@@ -77,7 +85,9 @@ namespace WitchMendokusai
 		public static ChestSaveData FromJson(string json)
 		{
 			if (string.IsNullOrEmpty(json))
+			{
 				return new ChestSaveData { Capacity = 0, Slots = new List<ChestSlotSaveData>() };
+			}
 			return JsonUtility.FromJson<ChestSaveData>(json);
 		}
 	}
