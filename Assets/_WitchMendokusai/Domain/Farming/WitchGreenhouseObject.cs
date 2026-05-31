@@ -40,6 +40,10 @@ namespace WitchMendokusai
 
 		private readonly Greenhouse greenhouse = new();
 		private readonly Dictionary<int, GameObject> plotVisuals = new();
+		// placeholder 큐브 색 = MaterialPropertyBlock(에디트 모드 material 인스턴스화 경고·런타임 누수 방지). URP = _BaseColor.
+		private static readonly int BASE_COLOR_ID = Shader.PropertyToID("_BaseColor");
+		private static readonly int COLOR_ID = Shader.PropertyToID("_Color");
+		private MaterialPropertyBlock colorBlock;
 
 		// 이번 틱에 돌볼 인형 id 들을 주는 콜백(인형 풀=상위 소유). null/빈 = 돌봄 0(전부 시간만).
 		private System.Func<IReadOnlyList<int>> carerProvider;
@@ -96,8 +100,9 @@ namespace WitchMendokusai
 			}
 		}
 
-		// 직렬화 디폴트(0) 자가보정 — AddComponent 함정 소급 방어.
-		private void CoerceDefaults()
+		// 직렬화 디폴트(0) 자가보정 — AddComponent 함정 소급 방어. public = 에디트 모드 드라이버(Sandbox)도
+		// Start 없이 호출해 수치를 보장(WM-177). 멱등 — 0 이 아니면 no-op.
+		public void CoerceDefaults()
 		{
 			if (minutesPerDay <= 0)
 			{
@@ -280,6 +285,11 @@ namespace WitchMendokusai
 				return;
 			}
 
+			if (colorBlock == null)
+			{
+				colorBlock = new MaterialPropertyBlock();
+			}
+
 			foreach (KeyValuePair<int, GameObject> entry in plotVisuals)
 			{
 				GreenhousePlot plot = greenhouse.GetPlot(entry.Key);
@@ -289,7 +299,11 @@ namespace WitchMendokusai
 					continue;
 				}
 
-				renderer.material.color = ColorFor(plot.Phase);
+				Color color = ColorFor(plot.Phase);
+				renderer.GetPropertyBlock(colorBlock);
+				colorBlock.SetColor(BASE_COLOR_ID, color);
+				colorBlock.SetColor(COLOR_ID, color);
+				renderer.SetPropertyBlock(colorBlock);
 			}
 		}
 
