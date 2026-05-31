@@ -20,5 +20,8 @@ namespace WitchMendokusai
 
 		// SimCity Phase 2 (TASK-WM-166 INC-6): 통근 시민 명부. 옛 세이브엔 부재(null) → WorldStage.Load null skip.
 		public List<CitizenSaveData> CitizensSaveData;
+
+		// SimCity Phase 3 (TASK-WM-176 INC-3): 발전소(전력원) 명부. 옛 세이브엔 부재(null) → Load null skip.
+		public List<KeyValuePair<Vector3Int, PowerSourceData>> PowerSourceSaveData;
 	}
 }

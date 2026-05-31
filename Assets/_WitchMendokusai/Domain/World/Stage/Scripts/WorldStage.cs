@@ -20,6 +20,9 @@ namespace WitchMendokusai
 		// SimCity Phase 2 (TASK-WM-166 INC-6): 통근 시민 명부. 도시 레이어 형제. INC-7 이동이 여기서 spawn/추종.
 		[field: NonSerialized] public CitizenRegistry CitizenRegistry { get; private set; } = new();
 
+		// SimCity Phase 3 (TASK-WM-176 INC-3): 발전소(전력원) 명부. 도시 레이어 형제. INC-5 가 매일 전력 전파 시드.
+		[field: NonSerialized] public PowerSourceRegistry PowerSourceRegistry { get; private set; } = new();
+
 		public void Load(WorldStageSaveData saveData)
 		{
 			// Load = replace, not merge. WorldStage 는 SO 자산이라 인스턴스가 stage 재진입/재로드
@@ -29,6 +32,7 @@ namespace WitchMendokusai
 			ZoneGrid.ZoneData.Clear();
 			CityEconomy.Stock.Clear();
 			CitizenRegistry.Citizens.Clear();
+			PowerSourceRegistry.Sources.Clear();
 
 			GridData.Load(saveData.BuildingSaveData);
 
@@ -50,6 +54,12 @@ namespace WitchMendokusai
 			{
 				CitizenRegistry.Load(saveData.CitizensSaveData);
 			}
+
+			// 옛 세이브엔 발전소 부재(null) — null skip.
+			if (saveData.PowerSourceSaveData != null)
+			{
+				PowerSourceRegistry.Load(saveData.PowerSourceSaveData);
+			}
 		}
 
 		public WorldStageSaveData Save()
@@ -60,7 +70,8 @@ namespace WitchMendokusai
 				RoadSaveData = RoadGraph.Save(),
 				ZoneSaveData = ZoneGrid.Save(),
 				EconomySaveData = CityEconomy.Save(),
-				CitizensSaveData = CitizenRegistry.Save()
+				CitizensSaveData = CitizenRegistry.Save(),
+				PowerSourceSaveData = PowerSourceRegistry.Save()
 			};
 		}
 	}

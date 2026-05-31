@@ -65,6 +65,7 @@ namespace WitchMendokusai.Tests
 			Assert.That(stage.ZoneGrid.ZoneData.Count, Is.Zero, "존 없음(빈 격자)");
 			Assert.That(stage.CityEconomy.Stock.Count, Is.Zero, "경제 없음(legacy EconomySaveData=default → CityEconomy.Load skip)");
 			Assert.That(stage.CitizenRegistry.Citizens.Count, Is.Zero, "시민 없음(legacy CitizensSaveData=null → skip)");
+			Assert.That(stage.PowerSourceRegistry.Sources.Count, Is.Zero, "발전소 없음(legacy PowerSourceSaveData=null → skip)");
 		}
 
 		[Test]
@@ -133,6 +134,8 @@ namespace WitchMendokusai.Tests
 			Assert.That(saved.EconomySaveData.StockSaveData.Count, Is.Zero);
 			Assert.That(saved.CitizensSaveData, Is.Not.Null, "빈 도시도 시민 명부 비-null");
 			Assert.That(saved.CitizensSaveData.Count, Is.Zero);
+			Assert.That(saved.PowerSourceSaveData, Is.Not.Null, "빈 도시도 발전소 명부 비-null");
+			Assert.That(saved.PowerSourceSaveData.Count, Is.Zero);
 		}
 
 		[Test]
@@ -203,6 +206,41 @@ namespace WitchMendokusai.Tests
 
 			Assert.That(stage.CitizenRegistry.Citizens.Count, Is.EqualTo(1), "cityA 시민 2명 잔존 X (replace)");
 			Assert.That(stage.CitizenRegistry.Citizens[0].HomeCell, Is.EqualTo(new Vector3Int(9, 9, 0)), "cityB 시민만");
+		}
+
+		[Test]
+		public void SaveLoad_RoundTrip_PreservesPowerSources()
+		{
+			WorldStage original = NewStage();
+			original.PowerSourceRegistry.Add(new Vector3Int(0, 0, 0), range: 5);
+			original.PowerSourceRegistry.Add(new Vector3Int(3, 0, 0), range: 8);
+
+			WorldStageSaveData saved = original.Save();
+
+			WorldStage restored = NewStage();
+			restored.Load(saved);
+
+			Assert.That(restored.PowerSourceRegistry.Has(new Vector3Int(0, 0, 0)), Is.True, "발전소 복원");
+			Assert.That(restored.PowerSourceRegistry.Sources[new Vector3Int(3, 0, 0)].Range, Is.EqualTo(8), "range 복원");
+			Assert.That(restored.PowerSourceRegistry.Sources.Count, Is.EqualTo(2));
+		}
+
+		[Test]
+		public void Load_Twice_ReplacesPowerSources()
+		{
+			WorldStage stage = NewStage();
+
+			WorldStage seedA = NewStage();
+			seedA.PowerSourceRegistry.Add(new Vector3Int(0, 0, 0), 5);
+			stage.Load(seedA.Save());
+
+			WorldStage seedB = NewStage();
+			seedB.PowerSourceRegistry.Add(new Vector3Int(9, 9, 0), 3);
+			stage.Load(seedB.Save());
+
+			Assert.That(stage.PowerSourceRegistry.Has(new Vector3Int(0, 0, 0)), Is.False, "cityA 발전소 잔존 X (replace)");
+			Assert.That(stage.PowerSourceRegistry.Has(new Vector3Int(9, 9, 0)), Is.True, "cityB 발전소만");
+			Assert.That(stage.PowerSourceRegistry.Sources.Count, Is.EqualTo(1));
 		}
 	}
 }
