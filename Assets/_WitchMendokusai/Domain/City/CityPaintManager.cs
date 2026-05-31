@@ -61,12 +61,14 @@ namespace WitchMendokusai
 
 		// 셀 → 시각 큐브 (ZoneGrid/RoadGraph 가 데이터 진실, 이건 그 투영 = 렌더 캐시).
 		private readonly Dictionary<Vector3Int, GameObject> cellVisuals = new();
-		// 자동 성장한 건물 시각 큐브 (존 타일과 별개 레이어 — 같은 셀에 타일+건물 공존).
+		// 자동 성장한 건물 시각 큐브 — **projection only (렌더 캐시)**. 집계/성장/쇠퇴 판정의 진실은
+		// GridData(CityCellQuery 경유). (구조 리뷰: 시각 캐시를 진실로 쓰면 save/load 후 갈라짐.)
 		private readonly Dictionary<Vector3Int, GameObject> buildingVisuals = new();
 		private readonly Dictionary<Color, Material> materialCache = new();
 		private Material templateMaterial;
 		private Transform visualRoot;
 		private readonly RciDemandModel demandModel = new();
+		private readonly CityGrowthSystem growthSystem = new();
 
 		public ZoneType SelectedZoneType { get; set; } = ZoneType.Residential;
 
@@ -168,93 +170,40 @@ namespace WitchMendokusai
 			ClearBuildingVisual(cell);
 		}
 
-		// step6 — 매일 호출. 수요 평가 후 존타입별 성장/쇠퇴.
-		// ★ 수요 입력 = "지은 건물 수"(occupancy) — 칠한 존 칸 수(capacity)가 아님. capacity 를 넣으면
-		//   주거칸 ≫ 일자리칸인 자연스러운 도시에서 주거 gap 영구 음수 → 주거 영영 미성장(RciDemandModel 주석).
+		// step6 — 매일 호출. 수요 평가 → 성장/쇠퇴 결정(CityGrowthSystem 순수) → 적용(GridData + 시각).
+		// ★ 수요 입력·성장 판정 = GridData(진실, CityCellQuery 경유) — buildingVisuals(시각 캐시) 아님.
+		//   (구조 리뷰 2026-05-31: 시각 캐시를 진실로 쓰면 save/load 후 갈라짐. 집계/판정은 데이터 소스로 통일.
+		//    결정(순수 CityGrowthSystem)과 적용(여기 MonoBehaviour)도 분리 — EditMode 검증 가능.)
 		private void OnDayChanged(int day)
 		{
 			if (stageManager.CurStage is WorldStage worldStage == false)
 				return;
 
+			CityCellQuery query = new(worldStage.GridData, worldStage.ZoneGrid, worldStage.RoadGraph);
 			RciDemandCoefficients coefficients = new(residentsPerJob, shopsPerResident, industryPerResident, immigrationBaseline, exportBaseline, demandGain);
 			RciDemand demand = demandModel.Evaluate(
-				CountBuiltByType(worldStage, ZoneType.Residential),
-				CountBuiltByType(worldStage, ZoneType.Commercial),
-				CountBuiltByType(worldStage, ZoneType.Industrial),
+				query.CountBuildingsByZone(ZoneType.Residential),
+				query.CountBuildingsByZone(ZoneType.Commercial),
+				query.CountBuildingsByZone(ZoneType.Industrial),
 				coefficients);
 
-			ApplyDemand(worldStage, ZoneType.Residential, demand.Residential);
-			ApplyDemand(worldStage, ZoneType.Commercial, demand.Commercial);
-			ApplyDemand(worldStage, ZoneType.Industrial, demand.Industrial);
+			CityGrowthDecision decision = growthSystem.Decide(demand, query, growthThreshold, maxChangePerDayPerZone);
+			ApplyGrowth(worldStage, decision);
 		}
 
-		// 현재 점유(자동 성장한 건물) 수 — 존타입별. RciDemandModel 의 occupancy 입력원(capacity = CountByType 와 구분).
-		// buildingVisuals = 자동 성장 건물의 진실(GridData 미러). 각 셀의 존타입은 ZoneGrid 가 진실.
-		private int CountBuiltByType(WorldStage worldStage, ZoneType zoneType)
+		// 성장 결정 적용 — GridData(진실) mutate + 시각 큐브 projection(캐시). 시각은 데이터의 투영일 뿐.
+		private void ApplyGrowth(WorldStage worldStage, CityGrowthDecision decision)
 		{
-			ZoneGrid zoneGrid = worldStage.ZoneGrid;
-			int count = 0;
-			foreach (Vector3Int cell in buildingVisuals.Keys)
+			foreach (GrowthChange change in decision.Grow)
 			{
-				if (zoneGrid.GetZone(cell) == zoneType)
-					count++;
+				worldStage.GridData.AddBuildingAt(change.Cell, new BuildingInstanceData(0));
+				SetBuildingVisual(change.Cell, ZoneColor(change.ZoneType));
 			}
 
-			return count;
-		}
-
-		private void ApplyDemand(WorldStage worldStage, ZoneType zoneType, float demand)
-		{
-			if (demand > growthThreshold)
-				GrowZone(worldStage, zoneType);
-			else if (demand < -growthThreshold)
-				ShrinkZone(worldStage, zoneType);
-		}
-
-		// 성장 = 해당 존타입의 "빈 존셀(건물 0) + 도로 인접" 셀 중 cap 만큼 건물 세움.
-		private void GrowZone(WorldStage worldStage, ZoneType zoneType)
-		{
-			ZoneGrid zoneGrid = worldStage.ZoneGrid;
-			RoadGraph roadGraph = worldStage.RoadGraph;
-			int grown = 0;
-
-			foreach (KeyValuePair<Vector3Int, ZoneCellData> entry in zoneGrid.ZoneData)
+			foreach (GrowthChange change in decision.Shrink)
 			{
-				if (grown >= maxChangePerDayPerZone)
-					break;
-
-				Vector3Int cell = entry.Key;
-				if (entry.Value.Type != zoneType)
-					continue;
-				if (buildingVisuals.ContainsKey(cell))
-					continue; // 이미 건물 있음
-				if (roadGraph.IsRoadAdjacent(cell) == false)
-					continue; // 도로 안 닿음 = 성장 불가 (최소 공간 규칙)
-
-				worldStage.GridData.AddBuildingAt(cell, new BuildingInstanceData(0));
-				SetBuildingVisual(cell, ZoneColor(zoneType));
-				grown++;
-			}
-		}
-
-		// 쇠퇴 = 해당 존타입 건물 1개 철거 (cap 만큼).
-		private void ShrinkZone(WorldStage worldStage, ZoneType zoneType)
-		{
-			ZoneGrid zoneGrid = worldStage.ZoneGrid;
-			List<Vector3Int> toRemove = new();
-
-			foreach (KeyValuePair<Vector3Int, GameObject> entry in buildingVisuals)
-			{
-				if (toRemove.Count >= maxChangePerDayPerZone)
-					break;
-				if (zoneGrid.GetZone(entry.Key) == zoneType)
-					toRemove.Add(entry.Key);
-			}
-
-			foreach (Vector3Int cell in toRemove)
-			{
-				worldStage.GridData.RemoveBuildingAt(cell);
-				ClearBuildingVisual(cell);
+				worldStage.GridData.RemoveBuildingAt(change.Cell);
+				ClearBuildingVisual(change.Cell);
 			}
 		}
 
