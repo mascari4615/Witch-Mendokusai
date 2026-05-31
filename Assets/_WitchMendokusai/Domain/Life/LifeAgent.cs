@@ -19,11 +19,13 @@ namespace WitchMendokusai
 		[SerializeField] private float minutesPerTick = 1f;
 		// 배회(Idle) 시 새 방향을 고르는 주기(초). 수치노출.
 		[SerializeField] private float wanderInterval = 2f;
+		// 이동 속도(유닛/초). 자체 transform 이동 — 큐브든 캐릭터든 의존 없이 어슬렁. 수치노출.
+		[SerializeField] private float moveSpeed = 2f;
 
 		private TimeManager timeManager;
-		private UnitObject unitObject;
-		private bool unitResolved;
 		private float wanderTimer;
+		private Vector3 currentMoveDirection;
+		private MeshRenderer bodyRenderer;
 		private NeedProfile profile;
 		private NeedState needState;
 		private TimeOfDay timeOfDay = TimeOfDay.Morning;
@@ -107,45 +109,50 @@ namespace WitchMendokusai
 			}
 
 			CurrentActivity = next;
+			ApplyActivityVisual(next);
 			OnActivityChanged(next);
 		}
 
-		// 활동의 시각 표현(INC-5c) — Idle 은 마을을 어슬렁(주기적 새 방향), 그 외 활동은 제자리.
-		// UnitObject(UnitMovement) 가 붙은 캐릭터에서만 동작 — 없으면(순수 테스트) 무시.
-		private void Update()
+		// 활동의 색 표현(INC-5c 시연) — 자율 두뇌가 고른 활동을 한눈에. 가구·애니 연동 전 임시 가시화.
+		// (Bootstrap 후 1회 lazy 캐싱 — 에셋 없는 큐브엔 sharedMaterial 인스턴스가 생긴다.)
+		private void ApplyActivityVisual(ActivityKind activity)
 		{
-			UnitObject unit = ResolveUnit();
-			if (unit == null)
+			if (bodyRenderer == null)
 			{
-				return;
-			}
-
-			if (CurrentActivity == ActivityKind.Idle)
-			{
-				wanderTimer -= Time.deltaTime;
-				if (wanderTimer <= 0f)
+				bodyRenderer = GetComponent<MeshRenderer>();
+				if (bodyRenderer == null)
 				{
-					wanderTimer = wanderInterval;
-					Vector2 direction = UnityEngine.Random.insideUnitCircle.normalized;
-					unit.UnitMovement.SetMoveDirection(direction);
+					return;
 				}
-
-				return;
 			}
 
-			// 활동 중(먹기·자기 등)은 일단 제자리 — 가구·목적지 연동은 후속.
-			unit.UnitMovement.SetMoveDirection(Vector2.zero);
+			bodyRenderer.material.color = ColorForActivity(activity);
 		}
 
-		private UnitObject ResolveUnit()
+		// 활동별 식별 색 — 수치노출(시연 손잡이). Idle=흰 / 먹기=주황 / 자기=파랑 / 취미=초록 / 사교=분홍.
+		private static Color ColorForActivity(ActivityKind activity) => activity switch
 		{
-			if (unitResolved == false)
+			ActivityKind.Eat => new Color(1f, 0.6f, 0.2f),
+			ActivityKind.Sleep => new Color(0.3f, 0.4f, 0.9f),
+			ActivityKind.Hobby => new Color(0.4f, 0.8f, 0.4f),
+			ActivityKind.Socialize => new Color(0.95f, 0.5f, 0.7f),
+			_ => Color.white,
+		};
+
+		// 시각 이동(INC-5c) — 활동 무관 늘 마을을 어슬렁(주기적 새 방향 XZ 평면). 활동은 색으로 구분.
+		// 자체 transform 이동 — UnitObject/물리 의존 0이라 큐브든 캐릭터든 붙이면 움직인다(시연 우선).
+		// (활동별 목적지·가구 이동, 자는 동안 정지 등 의미적 이동은 후속 — 지금은 "살아있음"을 보이는 게 우선.)
+		private void Update()
+		{
+			wanderTimer -= Time.deltaTime;
+			if (wanderTimer <= 0f)
 			{
-				unitObject = GetComponent<UnitObject>();
-				unitResolved = true;
+				wanderTimer = wanderInterval;
+				Vector2 random = UnityEngine.Random.insideUnitCircle.normalized;
+				currentMoveDirection = new Vector3(random.x, 0f, random.y);
 			}
 
-			return unitObject;
+			transform.position += currentMoveDirection * (moveSpeed * Time.deltaTime);
 		}
 	}
 }
