@@ -122,26 +122,28 @@ namespace WitchMendokusai.Tests
         [Test]
         public void Session_ThroughHazard_AccruesSideEffect_DetourDoesNot()
         {
+            // 위험지대는 출발(원점)·목표 *사이* 옆에 — (2,0). 출발점(0,0)은 원 밖(거리2>1).
             BrewRecipe recipe = new BrewRecipe
             {
                 Id = 1,
                 EffectName = "더미",
-                Target = new EffectTarget { Position = new BrewVector(2f, 0f), Radius = 0.5f },
+                Target = new EffectTarget { Position = new BrewVector(4f, 0f), Radius = 0.5f },
             };
-            List<HazardZone> hazards = new List<HazardZone> { Zone(0f, 0f, 1f, 10f) };
+            List<HazardZone> hazards = new List<HazardZone> { Zone(2f, 0f, 1f, 10f) };
 
-            // 질러가기: 중앙(0,0) → (2,0) = 원 통과(반지름1) × 10 = 10.
+            // 질러가기: (0,0) → (4,0) 직선 = 원(2,0)r1 지름 관통(길이2) × 10 = 20.
             BrewSession through = new BrewSession();
             through.Start(recipe, hazards);
-            through.AddStep(new BrewStep { Direction = new BrewVector(1f, 0f), Grind = 2f });
+            through.AddStep(new BrewStep { Direction = new BrewVector(1f, 0f), Grind = 4f });
             Assert.Greater(through.AccruedSideEffect, 0f, "질러가면 세션 부작용 누적");
+            Assert.IsTrue(through.IsComplete, "질러가도 목표 도달");
 
-            // 우회: 원 밖으로 빙 돌아 목표 도달 — 부작용 0.
+            // 우회: (0,0)→(0,2)→(4,2)→(4,0). 세 변 모두 원(2,0)r1 에서 거리2>1 = 미통과 = 부작용 0.
             BrewSession detour = new BrewSession();
             detour.Start(recipe, hazards);
-            detour.AddStep(new BrewStep { Direction = new BrewVector(0f, 1f), Grind = 3f });   // (0,0)→(0,3) 위로
-            detour.AddStep(new BrewStep { Direction = new BrewVector(1f, 0f), Grind = 2f });   // (0,3)→(2,3) 오른쪽
-            detour.AddStep(new BrewStep { Direction = new BrewVector(0f, -1f), Grind = 3f });  // (2,3)→(2,0) 아래
+            detour.AddStep(new BrewStep { Direction = new BrewVector(0f, 1f), Grind = 2f });   // (0,0)→(0,2)
+            detour.AddStep(new BrewStep { Direction = new BrewVector(1f, 0f), Grind = 4f });   // (0,2)→(4,2)
+            detour.AddStep(new BrewStep { Direction = new BrewVector(0f, -1f), Grind = 2f });  // (4,2)→(4,0)
             Assert.AreEqual(0f, detour.AccruedSideEffect, 1e-3f, "우회 경로 = 부작용 0");
             Assert.IsTrue(detour.IsComplete, "우회해도 목표 도달");
         }
