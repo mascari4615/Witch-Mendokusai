@@ -44,6 +44,20 @@ namespace WitchMendokusai
 		[Tooltip("하루에 한 존타입당 성장/쇠퇴할 최대 셀 수 (폭증 방지).")]
 		[SerializeField] private int maxChangePerDayPerZone = 2;
 
+		[Header("INC-5c 경제 틱 (임시 코드 레시피 — ResourceSO/ProductionSO·스킨 deferred)")]
+		[Tooltip("산업 1동이 하루 채취하는 원자재(무입력 = 외부 수출).")]
+		[SerializeField] private float industrialRawOutput = 2f;
+		[Tooltip("상업 1동이 하루 소비하는 원자재.")]
+		[SerializeField] private float commercialRawInput = 1f;
+		[Tooltip("상업 1동이 하루 생산하는 재화.")]
+		[SerializeField] private float commercialGoodsOutput = 1f;
+		[Tooltip("상업 1동 만가동에 필요한 노동력.")]
+		[SerializeField] private float commercialLaborPerBuilding = 2f;
+		[Tooltip("주거 1동이 하루 소비하는 재화.")]
+		[SerializeField] private float residentialGoodsConsumption = 0.5f;
+		[Tooltip("주거 1동이 공급하는 노동력.")]
+		[SerializeField] private float workersPerResidence = 4f;
+
 		private InputManager inputManager;
 		private GameModeManager gameModeManager;
 		private StageManager stageManager;
@@ -69,6 +83,7 @@ namespace WitchMendokusai
 		private Transform visualRoot;
 		private readonly RciDemandModel demandModel = new();
 		private readonly CityGrowthSystem growthSystem = new();
+		private readonly CitySimulationSystem simulationSystem = new();
 
 		public ZoneType SelectedZoneType { get; set; } = ZoneType.Residential;
 
@@ -198,6 +213,49 @@ namespace WitchMendokusai
 
 			CityGrowthDecision decision = growthSystem.Decide(demand, query, growthThreshold, maxChangePerDayPerZone);
 			ApplyGrowth(worldStage, decision);
+
+			// INC-5c — 성장 반영된 도시로 하루치 생산/소비 → CityEconomy 재고 갱신 (query 는 live = post-growth 카운트).
+			RunEconomyTick(worldStage, query, day);
+		}
+
+		// 자원 카탈로그 임시 id (ResourceSO 도입 전 — 스킨 deferred). 0=원자재, 1=재화.
+		private const int RAW_RESOURCE = 0;
+		private const int GOODS_RESOURCE = 1;
+
+		// INC-5c — 하루치 경제 흐름: 산업(원자재 채취) → 상업(원자재+노동→재화) → 주거(재화 소비). 공급망 순서.
+		private void RunEconomyTick(WorldStage worldStage, CityCellQuery query, int day)
+		{
+			int residential = query.CountBuildingsByZone(ZoneType.Residential);
+			int commercial = query.CountBuildingsByZone(ZoneType.Commercial);
+			int industrial = query.CountBuildingsByZone(ZoneType.Industrial);
+
+			ResourceId raw = new(RAW_RESOURCE);
+			ResourceId goods = new(GOODS_RESOURCE);
+
+			List<ProductionOrder> orders = new()
+			{
+				// 산업: 무입력 → 원자재 (채취/외부 수출, 부트스트랩).
+				new ProductionOrder(new ProductionRecipe(
+					new List<ResourceFlow>(),
+					new List<ResourceFlow> { new(raw, industrialRawOutput) },
+					0f), industrial),
+				// 상업: 원자재 + 노동 → 재화.
+				new ProductionOrder(new ProductionRecipe(
+					new List<ResourceFlow> { new(raw, commercialRawInput) },
+					new List<ResourceFlow> { new(goods, commercialGoodsOutput) },
+					commercialLaborPerBuilding), commercial),
+				// 주거: 재화 소비 (출력 없음) — 노동력 공급원.
+				new ProductionOrder(new ProductionRecipe(
+					new List<ResourceFlow> { new(goods, residentialGoodsConsumption) },
+					new List<ResourceFlow>(),
+					0f), residential),
+			};
+
+			float availableLabor = residential * workersPerResidence;
+			simulationSystem.RunDay(worldStage.CityEconomy, orders, availableLabor);
+
+			// no-news=bad-news: 매일 1줄 (0건이어도) — 경제 흐름 가시화.
+			Debug.Log($"[City/Econ day{day}] R{residential} C{commercial} I{industrial} labor{availableLabor:F0} | RAW {worldStage.CityEconomy.GetStock(raw):F1} GOODS {worldStage.CityEconomy.GetStock(goods):F1}");
 		}
 
 		// 성장 결정 적용 — GridData(진실) mutate + 시각 큐브 projection(캐시). 시각은 데이터의 투영일 뿐.
