@@ -8,25 +8,35 @@ namespace WitchMendokusai
 	// 무거운 의존 0(RequireComponent X, abstract 의존 X) → EditMode 에서 new GameObject + AddComponent +
 	// TickDay 로 직접 behavior 검증 가능(D 세션 [[wm-monobehaviour-editmode-decouple]] 패턴).
 	//
-	// 역할: ① WorldClock.OnDayChanged 구독 → 매일 ② carerProvider 가 주는 인형 id 들로 자동돌봄 틱
-	// (게으른 욘 대신 인형이 살림) ③ 시듦/개화 시 GardenEvents 발행(상위 UI·Codex·마도서 구독).
-	// 씬/프리팹/모델/SO 인스턴스 배선 = 사용자 Grey Box. 본 컴포넌트 = 시간 구동 + 이벤트 표면만.
+	// ★ 씬 드롭 = 즉시 동작: 빈 GameObject 에 이 컴포넌트만 붙이고 Play → Start 가 스스로 칸 생성+작물 심기
+	//   +placeholder 큐브(색=phase)+인형 carer 기본값. demoTick 으로 WorldClock 없어도 N초마다 자라고 색 변함
+	//   (눈에 보임). WorldClock 있으면 OnDayChanged 도 같이 구동.
+	//
+	// ⚠ SerializeField 직렬화 함정 방어: 인스펙터로 AddComponent 하면 모든 [SerializeField] 가 직렬화
+	//   디폴트(0/false/null)로 덮인다(이니셜라이저 무시 — WitchPlantSO 0값 버그와 동일). 그래서 bool 자동
+	//   플래그를 두지 않고 Start 가 *항상* 자립(칸 0개일 때만) + 모든 수치 0이면 기본값 자가보정 → 이미 붙은
+	//   컴포넌트도 Play 만 다시 누르면 동작(소급). Reset() = 신규 추가 시 인스펙터 디폴트 보강.
 	public sealed class WitchGreenhouseObject : MonoBehaviour
 	{
-		// 하루에 흐르는 게임 분(성장·시듦 진행량). SO 캐싱 X — 런타임 변경 즉시 반영(수치노출 룰).
-		[SerializeField, Min(1)] private int minutesPerDay = 480;
+		private const int DEFAULT_MINUTES_PER_DAY = 30;
+		private const int DEFAULT_PLOT_COUNT = 4;
+		private const float DEFAULT_SPACING = 1.5f;
+		private const int DEFAULT_CARER_COUNT = 2;
+		private const float DEFAULT_DEMO_TICK = 2f;
 
-		[Header("자립 배선 (씬 드롭 시 자동) — 실 배선 전 placeholder")]
-		[SerializeField] private bool autoWireOnStart = true;
-		[SerializeField, Min(1)] private int autoPlotCount = 4;
+		// 한 틱(하루)에 흐르는 게임 분(성장·시듦 진행량). SO 캐싱 X(수치노출 룰).
+		[SerializeField, Min(1)] private int minutesPerDay = DEFAULT_MINUTES_PER_DAY;
+
+		[Header("자립 데모 (씬 드롭 시 자동) — 실 배선 전 placeholder")]
+		[SerializeField, Min(1)] private int autoPlotCount = DEFAULT_PLOT_COUNT;
 		// 빈 칸 간격(placeholder 큐브 배치 m). 실 밭 레이아웃 = Grey Box.
-		[SerializeField, Min(0.1f)] private float autoPlotSpacing = 1.5f;
+		[SerializeField, Min(0.1f)] private float autoPlotSpacing = DEFAULT_SPACING;
 		// 자립 시 심을 마도작물. null = 런타임 기본작물(ApplyDefaults) 생성 → asset 없이도 동작.
 		[SerializeField] private WitchPlantSO samplePlant;
-		// 자립 시 인형 carer 수(매일 이만큼 자동돌봄). 실 인형 풀 연결 전 placeholder.
-		[SerializeField, Min(0)] private int autoCarerCount = 2;
-		// placeholder 큐브 시각 생성 여부(실 모델 붙이면 false).
-		[SerializeField] private bool spawnPlaceholderVisuals = true;
+		// 자립 시 인형 carer 수(매 틱 이만큼 자동돌봄). 실 인형 풀 연결 전 placeholder.
+		[SerializeField, Min(0)] private int autoCarerCount = DEFAULT_CARER_COUNT;
+		// 데모 틱 간격(초). 이 주기마다 TickDay = WorldClock 없어도 눈에 보임. <=0 면 기본값 자가보정.
+		[SerializeField] private float demoTickSeconds = DEFAULT_DEMO_TICK;
 
 		private readonly Greenhouse greenhouse = new();
 		private readonly Dictionary<int, GameObject> plotVisuals = new();
@@ -34,6 +44,8 @@ namespace WitchMendokusai
 		// 이번 틱에 돌볼 인형 id 들을 주는 콜백(인형 풀=상위 소유). null/빈 = 돌봄 0(전부 시간만).
 		private System.Func<IReadOnlyList<int>> carerProvider;
 		private WorldClock clock;
+		private float demoAccumulator;
+		private bool selfWired;
 
 		// 개화·시듦이 일어난 칸을 상위에 알림(이벤트 발행 표면 — 연출은 구독자 몫). 초기값 = NRE 방지.
 		public System.Action<int> OnPlotBloomed = delegate { };
@@ -42,31 +54,85 @@ namespace WitchMendokusai
 		public Greenhouse Model => greenhouse;
 		public int MinutesPerDay => minutesPerDay;
 
+		// 인스펙터 컴포넌트 추가/우클릭 Reset 시 호출 — 직렬화 디폴트(0/null) 덮어쓰기 방지.
+		private void Reset()
+		{
+			minutesPerDay = DEFAULT_MINUTES_PER_DAY;
+			autoPlotCount = DEFAULT_PLOT_COUNT;
+			autoPlotSpacing = DEFAULT_SPACING;
+			autoCarerCount = DEFAULT_CARER_COUNT;
+			demoTickSeconds = DEFAULT_DEMO_TICK;
+		}
+
 		// 상태 주입(틱 소스 없이도 검증 가능하게 분리 — D 패턴). carer 풀 콜백 등록.
 		public void Initialize(System.Func<IReadOnlyList<int>> carerProvider)
 		{
 			this.carerProvider = carerProvider;
 		}
 
-		// 씬 드롭 자립 — Start 자동 호출. 칸 생성 + 작물 심기 + 인형 carer 기본값 + WorldClock 구독.
+		// 씬 드롭 자립 — Start 자동. 칸 0개면 스스로 구축(외부 Initialize/BuildSelfContained 와 공존).
 		private void Start()
 		{
-			if (autoWireOnStart == false)
+			CoerceDefaults();
+
+			// 이미 외부에서 칸을 채웠으면(테스트/실배선) 자동 구축 skip — 중복 방지.
+			if (greenhouse.PlotCount == 0)
+			{
+				BuildSelfContained(autoPlotCount, ResolvePlant(), withVisuals: true);
+				selfWired = true;
+
+				if (carerProvider == null)
+				{
+					int carers = autoCarerCount;
+					carerProvider = () => BuildCarerIds(carers);
+				}
+
+				if (clock == null && WorldClock.Instance != null)
+				{
+					AttachClock(WorldClock.Instance);
+				}
+
+				Debug.Log($"[WitchGreenhouse] 자립 구축: {greenhouse.PlotCount}칸 / carer {autoCarerCount} / demoTick {demoTickSeconds}s / WorldClock {(clock == null ? "없음(데모틱만)" : "구독")}", this);
+			}
+		}
+
+		// 직렬화 디폴트(0) 자가보정 — AddComponent 함정 소급 방어.
+		private void CoerceDefaults()
+		{
+			if (minutesPerDay <= 0)
+			{
+				minutesPerDay = DEFAULT_MINUTES_PER_DAY;
+			}
+
+			if (autoPlotCount <= 0)
+			{
+				autoPlotCount = DEFAULT_PLOT_COUNT;
+			}
+
+			if (autoPlotSpacing <= 0f)
+			{
+				autoPlotSpacing = DEFAULT_SPACING;
+			}
+
+			if (demoTickSeconds <= 0f)
+			{
+				demoTickSeconds = DEFAULT_DEMO_TICK;
+			}
+		}
+
+		// 데모 틱 — WorldClock 없어도 demoTickSeconds 마다 하루 진행(눈에 보이는 성장·시듦). 자립 시만.
+		private void Update()
+		{
+			if (selfWired == false)
 			{
 				return;
 			}
 
-			BuildSelfContained(autoPlotCount, ResolvePlant(), spawnPlaceholderVisuals);
-
-			if (carerProvider == null)
+			demoAccumulator += Time.deltaTime;
+			if (demoAccumulator >= demoTickSeconds)
 			{
-				int carers = autoCarerCount;
-				carerProvider = () => BuildCarerIds(carers);
-			}
-
-			if (clock == null && WorldClock.Instance != null)
-			{
-				AttachClock(WorldClock.Instance);
+				demoAccumulator = 0f;
+				TickDay();
 			}
 		}
 
@@ -95,7 +161,7 @@ namespace WitchMendokusai
 		}
 
 		// ★ 자립 구축(EditMode 검증 진입점) — plotCount 칸 생성 + plant 심기 (+선택 placeholder 큐브).
-		// withVisuals=false 면 GameObject 생성 0 = 순수 로직만(테스트용). Start 가 play 에서 visuals=true 로 호출.
+		// withVisuals=false 면 GameObject 생성 0 = 순수 로직만(테스트용).
 		public void BuildSelfContained(int plotCount, WitchPlantSO plant, bool withVisuals)
 		{
 			for (int plotId = 0; plotId < plotCount; plotId++)
@@ -109,32 +175,6 @@ namespace WitchMendokusai
 			}
 
 			RefreshVisuals();
-		}
-
-		// 틱 소스(WorldClock) 구독 분리 — 클럭 없이도 Initialize+TickDay 로 상태 검증 가능.
-		public void AttachClock(WorldClock worldClock)
-		{
-			DetachClock();
-			clock = worldClock;
-			if (clock != null)
-			{
-				clock.OnDayChanged += HandleDayChanged;
-			}
-		}
-
-		public void DetachClock()
-		{
-			if (clock != null)
-			{
-				clock.OnDayChanged -= HandleDayChanged;
-				clock = null;
-			}
-		}
-
-		// 빈 칸 추가(상위 배선용 — 씬의 밭 한 칸 = 한 plotId).
-		public GreenhousePlot AddPlot(int plotId)
-		{
-			return greenhouse.AddPlot(plotId);
 		}
 
 		// 마도작물을 한 칸에 심는다(SO 수치 → 성장 파라미터). 빈 칸 없으면 먼저 AddPlot.
@@ -188,6 +228,32 @@ namespace WitchMendokusai
 		private void HandleDayChanged(int day)
 		{
 			TickDay();
+		}
+
+		// 틱 소스(WorldClock) 구독 분리 — 클럭 없이도 Initialize+TickDay 로 상태 검증 가능.
+		public void AttachClock(WorldClock worldClock)
+		{
+			DetachClock();
+			clock = worldClock;
+			if (clock != null)
+			{
+				clock.OnDayChanged += HandleDayChanged;
+			}
+		}
+
+		public void DetachClock()
+		{
+			if (clock != null)
+			{
+				clock.OnDayChanged -= HandleDayChanged;
+				clock = null;
+			}
+		}
+
+		// 빈 칸 추가(상위 배선용 — 씬의 밭 한 칸 = 한 plotId).
+		public GreenhousePlot AddPlot(int plotId)
+		{
+			return greenhouse.AddPlot(plotId);
 		}
 
 		// placeholder 큐브 1개 생성(한 칸). 실 모델 = Grey Box. 색은 RefreshVisuals 가 phase 로 칠함.
