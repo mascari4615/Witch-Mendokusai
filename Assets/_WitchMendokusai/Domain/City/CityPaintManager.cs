@@ -4,37 +4,48 @@ using VContainer;
 
 namespace WitchMendokusai
 {
-	// SimCity Phase 1 step5 — 존/도로 페인트 (화면 가시화 tracer).
+	// SimCity Phase 1 step5+6 — 존/도로 페인트 (가시화) + 시간 흐르면 건물 자동 성장.
 	//
-	// GameMode.Zone/Road 진입 시 Click0=페인트 / Click1=해제. 데이터 진실 = WorldStage.ZoneGrid /
-	// RoadGraph (substrate step1-4), 이 매니저는 거기에 쓰고 셀마다 색 큐브를 *코드로* spawn 해 보이게
-	// 한다(프리팹 0 = tracer; 정식 타일 비주얼은 후속). 좌표계는 BuildManager 의 런타임 Grid 를 재사용 —
-	// 건물 배치와 *정확히 같은 셀 좌표계*.
+	// step5: GameMode.Zone/Road 진입 시 Click0=페인트 / Click1=해제 → WorldStage.ZoneGrid / RoadGraph
+	// (substrate step1-4) 에 쓰고 셀마다 색 큐브 spawn. 좌표계 = BuildManager 의 런타임 Grid 재사용
+	// (건물 배치와 동일 셀). 클릭 셀 = 카메라 ray ∩ 도시 평면(grid Y) — perspective 카메라 정합.
 	//
-	// 클릭 → 셀 = **카메라 ray ∩ 도시 평면(grid Y)**. InputManager.MouseWorldPosition(지형 표면 raycast)은
-	// 울퉁불퉁한 지면/엉뚱한 높이 콜라이더(y=-3 등)를 맞춰 perspective 카메라에서 화면 클릭점과 타일
-	// (평면 y≈0)이 어긋난다(WM-164 위치버그 근본). 도시는 평면 빌드라 ray-plane 교차가 정본 — 클릭
-	// 픽셀↔평면점↔셀↔타일이 전부 같은 평면이라 정합(top-down 카메라 와도 불변).
+	// step6: WorldClock.OnDayChanged 구독 → 매일 (ZoneGrid 카운트 → RciDemandModel 수요) 평가 →
+	// 수요>임계 인 존타입의 "빈 존셀(존 칠해졌으나 건물 0) + 도로 인접" 셀을 cap 만큼 건물로 승격(시각
+	// 건물 큐브 spawn). 수요<-임계 면 해당 존타입 건물 1개 쇠퇴(철거). 공간 신호 정교화(셀별
+	// desirability)·전용 Building SO 매핑은 Phase 2 deferred(TASK-WM-164 기록) — 여기선 MVP 단순화.
 	//
-	// 모드 진입 = [ContextMenu] 수동 트리거 (입력 시스템·slot A InputManager enum 무접촉 — 정식 단축키
-	// 는 후속 step. 수동 트리거 = 「모든 자동화는 수동 트리거 전제」 정합).
+	// 모드 진입 = [ContextMenu] 수동 트리거 (정식 단축키는 후속 — slot A InputManager enum 무접촉).
 	public class CityPaintManager : MonoBehaviour
 	{
+		[Header("Tile Visual")]
 		[Tooltip("페인트 셀 큐브 한 변 비율 (1 = 셀 꽉 참).")]
 		[SerializeField] private float cellTileScale = 0.9f;
-		[Tooltip("타일 두께 (납작한 판).")]
+		[Tooltip("존/도로 타일 두께 (납작한 판).")]
 		[SerializeField] private float cellTileHeight = 0.1f;
+		[Tooltip("자동 성장한 건물 큐브 높이.")]
+		[SerializeField] private float buildingHeight = 1.0f;
 
 		[SerializeField] private Color residentialColor = new(0.40f, 0.85f, 0.40f);
 		[SerializeField] private Color commercialColor = new(0.40f, 0.60f, 1.00f);
 		[SerializeField] private Color industrialColor = new(1.00f, 0.85f, 0.30f);
 		[SerializeField] private Color roadColor = new(0.35f, 0.35f, 0.35f);
 
+		[Header("RCI Demand 계수 (수치 노출 — RciDemandSO 도입 전 코드 기본값)")]
+		[SerializeField] private float residentsPerJob = 1.0f;
+		[SerializeField] private float shopsPerResident = 0.3f;
+		[SerializeField] private float industryPerResident = 0.2f;
+		[SerializeField] private float exportBaseline = 5.0f;
+		[SerializeField] private float demandGain = 0.1f;
+		[Tooltip("수요가 이 값 넘으면 성장, -이 값 밑이면 쇠퇴.")]
+		[SerializeField] private float growthThreshold = 0.2f;
+		[Tooltip("하루에 한 존타입당 성장/쇠퇴할 최대 셀 수 (폭증 방지).")]
+		[SerializeField] private int maxChangePerDayPerZone = 2;
+
 		private InputManager inputManager;
 		private GameModeManager gameModeManager;
 		private StageManager stageManager;
-		// BuildManager 의 런타임 Grid 재사용 — 도시 페인트가 건물 배치와 *정확히 같은 셀 좌표계* 를 쓰게
-		// 보장. known-good 재사용 = 좌표 정합 > City→Building 결합 회피. 사용자 Grid 연결 불요.
+		// BuildManager 의 런타임 Grid 재사용 — 도시 페인트가 건물 배치와 동일 셀 좌표계. 사용자 Grid 연결 불요.
 		private BuildManager buildManager;
 
 		[Inject]
@@ -48,9 +59,12 @@ namespace WitchMendokusai
 
 		// 셀 → 시각 큐브 (ZoneGrid/RoadGraph 가 데이터 진실, 이건 그 투영 = 렌더 캐시).
 		private readonly Dictionary<Vector3Int, GameObject> cellVisuals = new();
+		// 자동 성장한 건물 시각 큐브 (존 타일과 별개 레이어 — 같은 셀에 타일+건물 공존).
+		private readonly Dictionary<Vector3Int, GameObject> buildingVisuals = new();
 		private readonly Dictionary<Color, Material> materialCache = new();
 		private Material templateMaterial;
 		private Transform visualRoot;
+		private readonly RciDemandModel demandModel = new();
 
 		public ZoneType SelectedZoneType { get; set; } = ZoneType.Residential;
 
@@ -59,8 +73,6 @@ namespace WitchMendokusai
 			visualRoot = new GameObject("CityPaintVisuals").transform;
 			visualRoot.SetParent(transform, false);
 
-			// 머티리얼 템플릿 1회 확보 — Shader.Find 회피(파이프라인 의존 X), primitive 기본 머티리얼을
-			// 복제해 색만 바꿔 씀.
 			GameObject probe = GameObject.CreatePrimitive(PrimitiveType.Cube);
 			templateMaterial = probe.GetComponent<Renderer>().sharedMaterial;
 			Destroy(probe);
@@ -70,19 +82,24 @@ namespace WitchMendokusai
 		{
 			gameModeManager.OnModeChanged += OnModeChanged;
 			ApplyMode(gameModeManager.CurrentMode);
+
+			// step6 — 매일 수요 평가 + 자동 성장. WorldClock(MonoBehaviour singleton)은 Bootstrap 후 존재.
+			if (WorldClock.Instance != null)
+				WorldClock.Instance.OnDayChanged += OnDayChanged;
 		}
 
 		private void OnDestroy()
 		{
 			if (gameModeManager != null)
 				gameModeManager.OnModeChanged -= OnModeChanged;
+			if (WorldClock.Instance != null)
+				WorldClock.Instance.OnDayChanged -= OnDayChanged;
 		}
 
 		private void OnModeChanged(GameMode mode) => ApplyMode(mode);
 
 		private void ApplyMode(GameMode mode)
 		{
-			// 모드 진입/이탈마다 멱등 재배선 (BuildManager.ApplyMode 패턴).
 			inputManager.UnregisterInputEvent(InputEventType.Click0, InputEventResponseType.Get, OnClickPaint);
 			inputManager.UnregisterInputEvent(InputEventType.Click1, InputEventResponseType.Get, OnClickErase);
 
@@ -106,7 +123,6 @@ namespace WitchMendokusai
 
 			worldStage = stage;
 
-			// 카메라 ray ∩ 도시 평면(grid Y) — 표면 raycast 가 아닌 평면 교차라 화면 클릭점과 타일이 정합.
 			Camera camera = Camera.main;
 			if (camera == null)
 				return false;
@@ -147,6 +163,81 @@ namespace WitchMendokusai
 			worldStage.ZoneGrid.Clear(cell);
 			worldStage.RoadGraph.RemoveRoad(cell);
 			ClearCellVisual(cell);
+			ClearBuildingVisual(cell);
+		}
+
+		// step6 — 매일 호출. 수요 평가 후 존타입별 성장/쇠퇴.
+		private void OnDayChanged(int day)
+		{
+			if (stageManager.CurStage is WorldStage worldStage == false)
+				return;
+
+			ZoneGrid zoneGrid = worldStage.ZoneGrid;
+			RciDemandCoefficients coefficients = new(residentsPerJob, shopsPerResident, industryPerResident, exportBaseline, demandGain);
+			RciDemand demand = demandModel.Evaluate(
+				zoneGrid.CountByType(ZoneType.Residential),
+				zoneGrid.CountByType(ZoneType.Commercial),
+				zoneGrid.CountByType(ZoneType.Industrial),
+				coefficients);
+
+			ApplyDemand(worldStage, ZoneType.Residential, demand.Residential);
+			ApplyDemand(worldStage, ZoneType.Commercial, demand.Commercial);
+			ApplyDemand(worldStage, ZoneType.Industrial, demand.Industrial);
+		}
+
+		private void ApplyDemand(WorldStage worldStage, ZoneType zoneType, float demand)
+		{
+			if (demand > growthThreshold)
+				GrowZone(worldStage, zoneType);
+			else if (demand < -growthThreshold)
+				ShrinkZone(worldStage, zoneType);
+		}
+
+		// 성장 = 해당 존타입의 "빈 존셀(건물 0) + 도로 인접" 셀 중 cap 만큼 건물 세움.
+		private void GrowZone(WorldStage worldStage, ZoneType zoneType)
+		{
+			ZoneGrid zoneGrid = worldStage.ZoneGrid;
+			RoadGraph roadGraph = worldStage.RoadGraph;
+			int grown = 0;
+
+			foreach (KeyValuePair<Vector3Int, ZoneCellData> entry in zoneGrid.ZoneData)
+			{
+				if (grown >= maxChangePerDayPerZone)
+					break;
+
+				Vector3Int cell = entry.Key;
+				if (entry.Value.Type != zoneType)
+					continue;
+				if (buildingVisuals.ContainsKey(cell))
+					continue; // 이미 건물 있음
+				if (roadGraph.IsRoadAdjacent(cell) == false)
+					continue; // 도로 안 닿음 = 성장 불가 (최소 공간 규칙)
+
+				worldStage.GridData.AddBuildingAt(cell, new BuildingInstanceData(0));
+				SetBuildingVisual(cell, ZoneColor(zoneType));
+				grown++;
+			}
+		}
+
+		// 쇠퇴 = 해당 존타입 건물 1개 철거 (cap 만큼).
+		private void ShrinkZone(WorldStage worldStage, ZoneType zoneType)
+		{
+			ZoneGrid zoneGrid = worldStage.ZoneGrid;
+			List<Vector3Int> toRemove = new();
+
+			foreach (KeyValuePair<Vector3Int, GameObject> entry in buildingVisuals)
+			{
+				if (toRemove.Count >= maxChangePerDayPerZone)
+					break;
+				if (zoneGrid.GetZone(entry.Key) == zoneType)
+					toRemove.Add(entry.Key);
+			}
+
+			foreach (Vector3Int cell in toRemove)
+			{
+				worldStage.GridData.RemoveBuildingAt(cell);
+				ClearBuildingVisual(cell);
+			}
 		}
 
 		private Color ZoneColor(ZoneType type)
@@ -160,37 +251,50 @@ namespace WitchMendokusai
 			}
 		}
 
+		// 존/도로 타일 (납작한 판).
 		private void SetCellVisual(Vector3Int cell, Color color)
 		{
 			if (cellVisuals.TryGetValue(cell, out GameObject visual) == false)
 			{
-				visual = GameObject.CreatePrimitive(PrimitiveType.Cube);
-				visual.name = $"Cell_{cell.x}_{cell.y}";
-				visual.transform.SetParent(visualRoot, false);
-
-				// 콜라이더 제거 + Ignore Raycast 레이어(2) — 타일이 다음 클릭 raycast/평면판정을 방해하지
-				// 않게(평면 교차라 영향 적지만 안전).
-				visual.layer = 2; // Builtin "Ignore Raycast"
-				Collider cubeCollider = visual.GetComponent<Collider>();
-				if (cubeCollider != null)
-					Destroy(cubeCollider);
-
-				// XZ = BuildManager.GetWorldPosition(cell) = 건물이 놓이는 바로 그 월드 좌표(셀 중심, 검증된
-				// known-good). Y 만 타일용 납작 높이. 클릭 셀 ↔ 타일 위치 정합.
-				Vector3 buildPos = buildManager.GetWorldPosition(cell);
-				Vector3 worldPos = new(buildPos.x, cellTileHeight * 0.5f, buildPos.z);
-				visual.transform.position = worldPos;
-				// 큐브 회전 = Grid 회전 (Grid 가 Y축 45° 회전돼 있어 셀이 다이아몬드 — 큐브도 같은 회전을
-				// 물려야 칸 경계에 모서리가 딱 맞음). "루트(Grid) 한 곳의 회전을 전 타일이 따라감" = 개별
-				// 타일 회전 계산 0, Grid 각도 바꿔도 자동 추종(사용자 의도 정합).
-				visual.transform.rotation = buildManager.Grid.transform.rotation;
-				// X/Z 는 셀 크기만큼(인접 타일 seamless), Y 는 얇은 판.
-				Vector3 cellSize = buildManager.Grid.cellSize;
-				visual.transform.localScale = new Vector3(cellSize.x * cellTileScale, cellTileHeight, cellSize.y * cellTileScale);
+				visual = CreateCellCube(cell, cellTileHeight);
 				cellVisuals[cell] = visual;
 			}
 
 			visual.GetComponent<Renderer>().sharedMaterial = GetMaterial(color);
+		}
+
+		// 자동 성장 건물 (높은 큐브) — 존 타일 위에.
+		private void SetBuildingVisual(Vector3Int cell, Color color)
+		{
+			if (buildingVisuals.TryGetValue(cell, out GameObject visual) == false)
+			{
+				visual = CreateCellCube(cell, buildingHeight);
+				visual.name = $"Bldg_{cell.x}_{cell.y}";
+				buildingVisuals[cell] = visual;
+			}
+
+			// 건물은 존 색을 어둡게 (타일과 구분).
+			visual.GetComponent<Renderer>().sharedMaterial = GetMaterial(color * 0.6f);
+		}
+
+		// 셀 좌표에 큐브 1개 생성 (height = Y 크기·바닥에서 띄움). Grid 회전 상속.
+		private GameObject CreateCellCube(Vector3Int cell, float height)
+		{
+			GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+			cube.transform.SetParent(visualRoot, false);
+			cube.name = $"Cell_{cell.x}_{cell.y}";
+
+			cube.layer = 2; // Ignore Raycast — 클릭 평면판정 무방해
+			Collider cubeCollider = cube.GetComponent<Collider>();
+			if (cubeCollider != null)
+				Destroy(cubeCollider);
+
+			Vector3 buildPos = buildManager.GetWorldPosition(cell);
+			cube.transform.position = new Vector3(buildPos.x, height * 0.5f, buildPos.z);
+			cube.transform.rotation = buildManager.Grid.transform.rotation; // 다이아몬드 칸 정합
+			Vector3 cellSize = buildManager.Grid.cellSize;
+			cube.transform.localScale = new Vector3(cellSize.x * cellTileScale, height, cellSize.y * cellTileScale);
+			return cube;
 		}
 
 		private void ClearCellVisual(Vector3Int cell)
@@ -202,6 +306,15 @@ namespace WitchMendokusai
 			}
 		}
 
+		private void ClearBuildingVisual(Vector3Int cell)
+		{
+			if (buildingVisuals.TryGetValue(cell, out GameObject visual))
+			{
+				buildingVisuals.Remove(cell);
+				Destroy(visual);
+			}
+		}
+
 		private Material GetMaterial(Color color)
 		{
 			if (materialCache.TryGetValue(color, out Material material))
@@ -209,7 +322,6 @@ namespace WitchMendokusai
 
 			Material created = new(templateMaterial);
 			created.color = color;
-			// URP Lit 은 _BaseColor 사용 — 빌트인(_Color, .color)·URP 둘 다 set (파이프라인 무관 색 적용).
 			if (created.HasProperty("_BaseColor"))
 				created.SetColor("_BaseColor", color);
 
@@ -244,6 +356,10 @@ namespace WitchMendokusai
 
 		[ContextMenu("Exit to Default")]
 		private void ExitMode_Editor() => gameModeManager.SetMode(GameMode.Default);
+
+		// 시간 안 기다리고 즉시 하루 성장 테스트 (수동 트리거 — 자동화는 수동 짝 룰).
+		[ContextMenu("DEBUG: Force One Day Growth")]
+		private void ForceGrowth_Editor() => OnDayChanged(0);
 #endif
 	}
 }
