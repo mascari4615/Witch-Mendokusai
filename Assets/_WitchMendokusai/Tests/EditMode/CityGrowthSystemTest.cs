@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
 using UnityEngine;
@@ -89,6 +90,47 @@ namespace WitchMendokusai.Tests
 
 			Assert.That(decision.Grow.Count, Is.EqualTo(1));
 			Assert.That(decision.Grow[0].ZoneType, Is.EqualTo(ZoneType.Residential), "수요 있는 주거만");
+		}
+
+		[Test]
+		public void PowerGate_OnlyPoweredCellsGrow()
+		{
+			GridData grid = new();
+			ZoneGrid zones = new();
+			RoadGraph roads = new();
+			roads.AddRoad(new Vector3Int(0, 0, 0));
+			roads.AddRoad(new Vector3Int(2, 0, 0));
+			zones.Paint(new Vector3Int(0, 1, 0), ZoneType.Residential); // (0,0) 인접
+			zones.Paint(new Vector3Int(2, 1, 0), ZoneType.Residential); // (2,0) 인접
+			CityCellQuery query = new(grid, zones, roads);
+			CityGrowthSystem system = new();
+			PowerGrid powerGrid = new();
+			HashSet<Vector3Int> energized = new() { new Vector3Int(0, 0, 0) }; // (0,0) 만 전력
+
+			// 전력 게이트 주입 → 전력 받는 셀만 성장. cap 5.
+			CityGrowthDecision decision = system.Decide(new RciDemand(0.5f, 0f, 0f), query, 0.2f, 5, powerGrid, energized);
+
+			Assert.That(decision.Grow.Count, Is.EqualTo(1), "전력 받는 (0,1) 만 성장");
+			Assert.That(decision.Grow[0].Cell, Is.EqualTo(new Vector3Int(0, 1, 0)));
+		}
+
+		[Test]
+		public void NoPowerGate_AllGrowable_Phase2Compat()
+		{
+			GridData grid = new();
+			ZoneGrid zones = new();
+			RoadGraph roads = new();
+			roads.AddRoad(new Vector3Int(0, 0, 0));
+			roads.AddRoad(new Vector3Int(2, 0, 0));
+			zones.Paint(new Vector3Int(0, 1, 0), ZoneType.Residential);
+			zones.Paint(new Vector3Int(2, 1, 0), ZoneType.Residential);
+			CityCellQuery query = new(grid, zones, roads);
+			CityGrowthSystem system = new();
+
+			// 전력 게이트 미주입(Phase2 호출) → 전체 growable 성장(하위호환).
+			CityGrowthDecision decision = system.Decide(new RciDemand(0.5f, 0f, 0f), query, 0.2f, 5);
+
+			Assert.That(decision.Grow.Count, Is.EqualTo(2), "전력 게이트 없으면 둘 다 성장(Phase2 무회귀)");
 		}
 	}
 }

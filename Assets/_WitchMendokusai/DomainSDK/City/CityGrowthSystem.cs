@@ -36,24 +36,31 @@ namespace WitchMendokusai
 	// 수요 > 임계 → 성장 가능 셀을 cap 만큼 / 수요 < -임계 → 건물 있는 셀을 cap 만큼 쇠퇴.
 	public sealed class CityGrowthSystem
 	{
-		public CityGrowthDecision Decide(RciDemand demand, CityCellQuery query, float growthThreshold, int maxChangePerZone)
+		// Phase 3 INC-4 — powerGrid+energizedRoads 주입 시 성장 후보를 "전력 받는 셀"로 게이트(PoweredGrowableCells).
+		// 둘 다 null(Phase 2 호출) = 전력 게이트 없음(GrowableCells) — 비파괴 하위호환.
+		public CityGrowthDecision Decide(RciDemand demand, CityCellQuery query, float growthThreshold, int maxChangePerZone, PowerGrid powerGrid = null, HashSet<Vector3Int> energizedRoads = null)
 		{
 			List<GrowthChange> grow = new();
 			List<GrowthChange> shrink = new();
 
-			EvaluateZone(ZoneType.Residential, demand.Residential, query, growthThreshold, maxChangePerZone, grow, shrink);
-			EvaluateZone(ZoneType.Commercial, demand.Commercial, query, growthThreshold, maxChangePerZone, grow, shrink);
-			EvaluateZone(ZoneType.Industrial, demand.Industrial, query, growthThreshold, maxChangePerZone, grow, shrink);
+			EvaluateZone(ZoneType.Residential, demand.Residential, query, growthThreshold, maxChangePerZone, grow, shrink, powerGrid, energizedRoads);
+			EvaluateZone(ZoneType.Commercial, demand.Commercial, query, growthThreshold, maxChangePerZone, grow, shrink, powerGrid, energizedRoads);
+			EvaluateZone(ZoneType.Industrial, demand.Industrial, query, growthThreshold, maxChangePerZone, grow, shrink, powerGrid, energizedRoads);
 
 			return new CityGrowthDecision(grow, shrink);
 		}
 
-		private static void EvaluateZone(ZoneType zoneType, float demand, CityCellQuery query, float growthThreshold, int maxChangePerZone, List<GrowthChange> grow, List<GrowthChange> shrink)
+		private static void EvaluateZone(ZoneType zoneType, float demand, CityCellQuery query, float growthThreshold, int maxChangePerZone, List<GrowthChange> grow, List<GrowthChange> shrink, PowerGrid powerGrid, HashSet<Vector3Int> energizedRoads)
 		{
 			if (demand > growthThreshold)
 			{
+				// 전력 게이트 주입 시 powered 후보만 (Phase 3), 아니면 전체 growable (Phase 2 하위호환).
+				IEnumerable<Vector3Int> candidates = (powerGrid != null && energizedRoads != null)
+					? query.PoweredGrowableCells(zoneType, powerGrid, energizedRoads)
+					: query.GrowableCells(zoneType);
+
 				int count = 0;
-				foreach (Vector3Int cell in query.GrowableCells(zoneType))
+				foreach (Vector3Int cell in candidates)
 				{
 					if (count >= maxChangePerZone)
 					{

@@ -75,5 +75,27 @@ namespace WitchMendokusai.Tests
 
 			Assert.That(built, Is.EqualTo(new List<Vector3Int> { new Vector3Int(0, 0, 0) }), "건물 있는 산업셀만(데이터 진실)");
 		}
+
+		[Test]
+		public void PoweredGrowableCells_OnlyEnergizedAdjacent()
+		{
+			GridData grid = new();
+			ZoneGrid zones = new();
+			RoadGraph roads = new();
+			roads.AddRoad(new Vector3Int(0, 0, 0));
+			roads.AddRoad(new Vector3Int(2, 0, 0));
+			zones.Paint(new Vector3Int(0, 1, 0), ZoneType.Residential); // 도로 (0,0) 인접 = growable
+			zones.Paint(new Vector3Int(2, 1, 0), ZoneType.Residential); // 도로 (2,0) 인접 = growable
+
+			CityCellQuery query = new(grid, zones, roads);
+			PowerGrid powerGrid = new();
+			HashSet<Vector3Int> energized = new() { new Vector3Int(0, 0, 0) }; // (0,0) 만 전력, (2,0) 무전력
+
+			List<Vector3Int> powered = query.PoweredGrowableCells(ZoneType.Residential, powerGrid, energized).ToList();
+
+			Assert.That(powered, Has.Member(new Vector3Int(0, 1, 0)), "전력 도로 인접 = 성장 후보");
+			Assert.That(powered, Has.No.Member(new Vector3Int(2, 1, 0)), "무전력 도로 인접 = 제외(전력 게이트)");
+			Assert.That(powered.Count, Is.EqualTo(1));
+		}
 	}
 }

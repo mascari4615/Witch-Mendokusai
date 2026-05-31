@@ -64,5 +64,18 @@ namespace WitchMendokusai
 				}
 			}
 		}
+
+		// Phase 3 INC-4 — 전력 받는 성장 후보 = GrowableCells ∩ (전력 흐르는 도로 인접). 전력 게이트.
+		// PowerGrid.IsCellPowered 로 energized 인접 판정(중복 X). GrowableCells 비파괴 확장(Phase2 무회귀).
+		public IEnumerable<Vector3Int> PoweredGrowableCells(ZoneType zoneType, PowerGrid powerGrid, HashSet<Vector3Int> energizedRoads)
+		{
+			foreach (Vector3Int cell in GrowableCells(zoneType))
+			{
+				if (powerGrid.IsCellPowered(cell, energizedRoads))
+				{
+					yield return cell;
+				}
+			}
+		}
 	}
 }
