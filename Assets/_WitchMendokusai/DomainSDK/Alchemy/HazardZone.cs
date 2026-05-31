@@ -20,9 +20,7 @@ namespace WitchMendokusai
 		}
 
 		public bool Contains(AlchemyVector point)
-		{
-			return (point - Center).Magnitude <= Radius;
-		}
+			=> (point - Center).Magnitude <= Radius;
 
 		public bool IntersectsSegment(AlchemyVector from, AlchemyVector to)
 		{

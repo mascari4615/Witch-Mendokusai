@@ -22,13 +22,9 @@ namespace WitchMendokusai
 		public float Magnitude => Mathf.Sqrt(X * X + Y * Y);
 
 		public static AlchemyVector operator +(AlchemyVector a, AlchemyVector b)
-		{
-			return new AlchemyVector(a.X + b.X, a.Y + b.Y);
-		}
+			=> new AlchemyVector(a.X + b.X, a.Y + b.Y);
 
 		public static AlchemyVector operator -(AlchemyVector a, AlchemyVector b)
-		{
-			return new AlchemyVector(a.X - b.X, a.Y - b.Y);
-		}
+			=> new AlchemyVector(a.X - b.X, a.Y - b.Y);
 	}
 }

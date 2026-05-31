@@ -37,9 +37,7 @@ namespace WitchMendokusai
 		}
 
 		public bool HasArrived(EffectCoord target)
-		{
-			return target.ContainsArrival(Position);
-		}
+			=> target.ContainsArrival(Position);
 
 		// 자취가 위험지대를 관통한 선분 수. 같은 지대를 들락날락하면 다중 카운트 — 오래 머무를수록
 		// 부작용 ↑ 의 디제틱 시그널(Phase3 정량화 시드). Phase0 은 횟수만 노출.

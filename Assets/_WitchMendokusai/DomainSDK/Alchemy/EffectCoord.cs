@@ -16,8 +16,6 @@ namespace WitchMendokusai
 		}
 
 		public bool ContainsArrival(AlchemyVector point)
-		{
-			return (point - Position).Magnitude <= Tolerance;
-		}
+			=> (point - Position).Magnitude <= Tolerance;
 	}
 }
