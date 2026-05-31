@@ -26,11 +26,14 @@ namespace WitchMendokusai.Tests
 			return plant;
 		}
 
+		// CreateInstance 는 [field: SerializeField] 이니셜라이저를 직렬화 디폴트(0)로 덮음(Unity 현실).
+		// 디자이너 안전망 = Reset()→ApplyDefaults(). 그게 sane 기본값을 보장하는지 검증.
 		[Test]
-		public void DefaultInstance_HasSaneParams()
+		public void ApplyDefaults_GivesSaneParams()
 		{
 			WitchPlantSO plant = ScriptableObject.CreateInstance<WitchPlantSO>();
 
+			plant.ApplyDefaults();
 			PlantGrowthParams parameters = plant.ToGrowthParams();
 
 			Assert.That(parameters.MinutesPerStage, Is.EqualTo(60), "기본 성장시간");
