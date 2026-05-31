@@ -151,5 +151,45 @@ namespace WitchMendokusai.Tests
 
 			Object.DestroyImmediate(house.gameObject);
 		}
+
+		// ── 자립 배선 (씬 드롭 시 살아 동작) ──
+
+		[Test]
+		public void BuildSelfContained_NoVisuals_PlantsAllPlots()
+		{
+			WitchGreenhouseObject house = MakeGreenhouse(minutesPerDay: 60);
+			WitchPlantSO plant = WitchPlant(maxVitality: 100f, drainPerMinute: 1f, tendRestore: 60f);
+
+			house.BuildSelfContained(plotCount: 4, plant, withVisuals: false);
+
+			Assert.That(house.Model.PlotCount, Is.EqualTo(4), "자립 시 칸 4개 생성");
+			for (int plotId = 0; plotId < 4; plotId++)
+			{
+				Assert.That(house.Model.GetPlot(plotId).Phase, Is.EqualTo(PlotPhase.Growing), $"칸 {plotId} 작물 심김");
+			}
+
+			Object.DestroyImmediate(house.gameObject);
+			Object.DestroyImmediate(plant);
+		}
+
+		[Test]
+		public void SelfContained_WithCarer_TickKeepsAlive()
+		{
+			// 자립 구축 후 carer 주고 틱 → 인형이 살림(드롭→동작 핵심).
+			WitchGreenhouseObject house = MakeGreenhouse(minutesPerDay: 60);
+			WitchPlantSO plant = WitchPlant(maxVitality: 100f, drainPerMinute: 1f, tendRestore: 60f, maxStage: 3);
+			house.BuildSelfContained(plotCount: 2, plant, withVisuals: false);
+			house.Initialize(() => new List<int> { 0, 1 }); // 칸당 인형 1
+
+			house.TickDay();
+			house.TickDay();
+			house.TickDay(); // 180분 → 개화
+
+			Assert.That(house.Model.GetPlot(0).Phase, Is.EqualTo(PlotPhase.Bloomed));
+			Assert.That(house.Model.GetPlot(1).Phase, Is.EqualTo(PlotPhase.Bloomed));
+
+			Object.DestroyImmediate(house.gameObject);
+			Object.DestroyImmediate(plant);
+		}
 	}
 }
