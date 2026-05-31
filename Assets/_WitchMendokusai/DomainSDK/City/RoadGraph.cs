@@ -113,6 +113,70 @@ namespace WitchMendokusai
 			return false;
 		}
 
+		// ① pathfinding 경로 — from→to 를 도로만 밟아 도달하는 셀 시퀀스 (BFS 최단, predecessor 역추적).
+		// from→to 순서 정렬. 둘 다 도로여야 하고, 미연결이면 빈 리스트 (IsRoadAdjacent 동형 정상 경로 —
+		// FastFail 아님, "경로 없음"은 정상 질의 결과). from==to 면 단일 원소. AreConnected 의 BFS frontier
+		// 를 predecessor 맵으로 일반화 (Phase 2 통근 에이전트·유틸 전파 경로의 단일 토대).
+		public List<Vector3Int> FindPath(Vector3Int from, Vector3Int to)
+		{
+			List<Vector3Int> path = new();
+
+			if (RoadData.ContainsKey(from) == false || RoadData.ContainsKey(to) == false)
+			{
+				return path;
+			}
+
+			if (from == to)
+			{
+				path.Add(from);
+				return path;
+			}
+
+			Dictionary<Vector3Int, Vector3Int> predecessor = new();
+			HashSet<Vector3Int> visited = new() { from };
+			Queue<Vector3Int> frontier = new();
+			frontier.Enqueue(from);
+
+			bool reached = false;
+			while (frontier.Count > 0 && reached == false)
+			{
+				Vector3Int current = frontier.Dequeue();
+				foreach (Vector3Int neighbor in Neighbors(current))
+				{
+					if (visited.Add(neighbor) == false)
+					{
+						continue;
+					}
+
+					predecessor[neighbor] = current;
+					if (neighbor == to)
+					{
+						reached = true;
+						break;
+					}
+
+					frontier.Enqueue(neighbor);
+				}
+			}
+
+			if (reached == false)
+			{
+				return path;
+			}
+
+			// to → from 역추적 후 뒤집어 from→to 순서로.
+			Vector3Int step = to;
+			path.Add(step);
+			while (step != from)
+			{
+				step = predecessor[step];
+				path.Add(step);
+			}
+
+			path.Reverse();
+			return path;
+		}
+
 		// 분리된 도로 덩어리 개수 (연결 컴포넌트). 도로망이 몇 조각으로 끊겨 있나 — Phase 2 유틸
 		// 커버리지·고립 구역 진단의 토대.
 		public int CountConnectedComponents()
