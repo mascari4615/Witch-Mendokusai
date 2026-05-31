@@ -178,8 +178,15 @@ namespace WitchMendokusai
 				}
 			}
 
-			SOManager.Instance.LastEquippedItem.RuntimeValue = (ItemData)itemData;
+			OnItemAdded((ItemData)itemData);
 			return amount;
+		}
+
+		// Add 직후 호출. 기본 = '마지막 장착 아이템' 전역 갱신(플레이어 인벤토리 용도).
+		// 보관 상자 등 비-플레이어 per-instance 인벤토리는 override 로 무력화 (TASK-WM-169).
+		protected virtual void OnItemAdded(ItemData itemData)
+		{
+			SOManager.Instance.LastEquippedItem.RuntimeValue = itemData;
 		}
 
 		public void Remove(int index, int amount = 1)

@@ -3,61 +3,35 @@ using UnityEngine;
 
 namespace WitchMendokusai.Tests
 {
-	// TASK-WM-169 Phase 1c — 보관 상자 내용물이 실제 세이브 경로(BuildingInstanceData.RuntimeData →
-	// GridData → WorldStageSaveData)를 왕복해도 유지됨을 잠근다.
-	// = "상자에 넣고 → 리로드 → 유지" 약속의 데이터층 behavior-verify (Play/DI/UI 불요).
-	// WorldStage 는 Stage:DataSO(ScriptableObject) — CreateInstance + GridData=new() 즉시 사용 (WorldStageCitySaveTest 선례).
+	// TASK-WM-169 P1c — 상자 영속 seam: 상자 인벤토리 JSON 이 BuildingInstanceData.RuntimeData 에 실려
+	// 실제 세이브 경로(GridData → WorldStageSaveData)를 왕복해도 보존됨을 잠근다 (model-agnostic 문자열 왕복).
+	// 상자는 ChestStorageInventory.Save()(List<InventorySlotSaveData>)를 JSON 으로 RuntimeData 에 싣는다.
+	// Item 재구성(SOHelper.GetItemData)은 런타임 레지스트리 전용 → Play 검증 영역, 여기선 seam(문자열 보존)만 잠금.
+	// WorldStage = Stage:DataSO(ScriptableObject), Save/Load = POCO 왕복 (WorldStageCitySaveTest 선례).
 	public sealed class ChestPersistenceTest
 	{
 		private static WorldStage NewStage() => ScriptableObject.CreateInstance<WorldStage>();
 
 		[Test]
-		public void ChestContents_SurviveWorldStageSaveLoad()
+		public void ChestRuntimeData_SurvivesWorldStageSaveLoad()
 		{
 			Vector3Int pivot = new(0, 0, 0);
-
-			ChestInventory chest = new();
-			chest.Add(100, 3);
-			chest.Add(205, 1);
+			// 상자 인벤토리 직렬화 결과 모사 (실제 = ChestStorageInventory.Save() JSON).
+			string chestJson = "[{\"slotIndex\":0,\"itemID\":10000000,\"itemAmount\":3}]";
 
 			WorldStage original = NewStage();
-			original.GridData.AddBuildingAt(pivot, new BuildingInstanceData(9000, runtimeData: chest.ToJson()));
-
-			WorldStageSaveData saved = original.Save();
-
-			WorldStage restored = NewStage();
-			restored.Load(saved);
-
-			BuildingInstanceData restoredData = restored.GridData.BuildingData[pivot];
-			ChestInventory restoredChest = ChestInventory.FromJson(restoredData.RuntimeData);
-
-			Assert.AreEqual(3, restoredChest.GetCount(100), "상자 아이템100 x3 세이브/로드 후 유지");
-			Assert.AreEqual(1, restoredChest.GetCount(205), "상자 아이템205 x1 유지");
-		}
-
-		[Test]
-		public void EmptyChest_RuntimeDataRoundTrips_NoError()
-		{
-			Vector3Int pivot = new(2, 2, 0);
-
-			ChestInventory empty = new();
-
-			WorldStage original = NewStage();
-			original.GridData.AddBuildingAt(pivot, new BuildingInstanceData(9000, runtimeData: empty.ToJson()));
+			original.GridData.AddBuildingAt(pivot, new BuildingInstanceData(9000, runtimeData: chestJson));
 
 			WorldStage restored = NewStage();
 			restored.Load(original.Save());
 
 			BuildingInstanceData restoredData = restored.GridData.BuildingData[pivot];
-			ChestInventory restoredChest = ChestInventory.FromJson(restoredData.RuntimeData);
-
-			Assert.AreEqual(0, restoredChest.GetCount(100), "빈 상자 round-trip 후도 비어있음");
+			Assert.AreEqual(chestJson, restoredData.RuntimeData, "상자 RuntimeData(인벤토리 JSON) 세이브/로드 후 보존");
 		}
 
 		[Test]
-		public void LegacyBuilding_NoRuntimeData_GivesEmptyChest()
+		public void Building_EmptyRuntimeData_SafeRoundTrip()
 		{
-			// 옛 세이브/일반 건물 = RuntimeData 기본값("") → FromJson 빈 인벤토리 (NRE/throw 금지).
 			Vector3Int pivot = new(4, 4, 0);
 
 			WorldStage original = NewStage();
@@ -67,8 +41,7 @@ namespace WitchMendokusai.Tests
 			restored.Load(original.Save());
 
 			BuildingInstanceData restoredData = restored.GridData.BuildingData[pivot];
-			Assert.DoesNotThrow(() => ChestInventory.FromJson(restoredData.RuntimeData));
-			Assert.AreEqual(0, ChestInventory.FromJson(restoredData.RuntimeData).GetCount(100));
+			Assert.That(string.IsNullOrEmpty(restoredData.RuntimeData), Is.True, "RuntimeData 없는 건물도 안전 왕복");
 		}
 	}
 }

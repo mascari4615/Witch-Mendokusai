@@ -1,53 +1,70 @@
 using System;
+using System.Collections.Generic;
+using Newtonsoft.Json;
 using UnityEngine;
 
 namespace WitchMendokusai
 {
 	// 보관 상자 1개의 런타임 보관 동작. 상자 Building 의 model prefab 에 부착.
-	// 내용물(ChestInventory)을 부모 BuildingObject.RuntimeData(JSON)에 영속 → GridData 세이브 편승.
-	// BuildingObject(범용 풀링 객체)에 상자 로직을 박지 않는다 — Feedback 컴포넌트 패턴 정합.
+	// per-instance ChestStorageInventory(게임 Inventory 재사용) 보유 → 보관 UI 가 그대로 바인딩.
+	// 영속: Inventory.Save()(List<InventorySlotSaveData>) → JSON → 부모 BuildingObject.RuntimeData → GridData 세이브.
+	// BuildingObject(범용 풀링)에 상자 로직 안 박음 (Feedback 컴포넌트 패턴, TASK-WM-169).
 	[DisallowMultipleComponent]
 	public class ChestStorage : MonoBehaviour, IInteractable
 	{
-		private ChestInventory inventory = new();
+		private ChestStorageInventory inventory;
 		private BuildingObject owner;
 
-		public ChestInventory Inventory => inventory;
+		// 보관 UI(P1c) 가 바인딩. ChestStorageInventory 는 Inventory 라 기존 위젯(ItemGrid/UIItemGrid) 그대로 사용.
+		public Inventory Inventory => inventory;
 
-		// 내용물 변경 시 발행 — 상자 UI(P1c)가 구독해 갱신.
-		public event Action OnContentsChanged = delegate { };
-
-		// 플레이어 상호작용(클릭) 시 발행 — 상자 UI(P1c)가 구독해 보관창 오픈.
+		// 플레이어 상호작용(클릭) 시 발행 — 보관 UI 가 구독해 오픈.
 		public event Action<ChestStorage> OnOpenRequested = delegate { };
 
 		private void OnEnable()
 		{
 			// Model 은 BuildingObject 의 자식으로 spawn → 부모 존재 보장. // init-order-ok
 			owner = GetComponentInParent<BuildingObject>();
-			inventory = ChestInventory.FromJson(owner.SaveData.RuntimeData);
-			OnContentsChanged();
+			inventory = ScriptableObject.CreateInstance<ChestStorageInventory>();
+			LoadFromRuntimeData(owner.SaveData.RuntimeData);
 		}
 
-		public void Add(int itemID, int count = 1)
+		private void OnDisable()
 		{
-			inventory.Add(itemID, count);
-			Persist();
+			if (inventory != null)
+			{
+				Destroy(inventory);
+				inventory = null;
+			}
 		}
 
-		public bool Remove(int itemID, int count = 1)
+		// 보관 내용 변경 후 호출 — 현재 인벤토리를 RuntimeData 에 직렬화해 세이브에 반영.
+		public void Persist()
 		{
-			bool removed = inventory.Remove(itemID, count);
-			if (removed)
-				Persist();
-			return removed;
+			owner.UpdateRuntimeData(JsonConvert.SerializeObject(inventory.Save()));
 		}
 
 		public void OnInteract() => OnOpenRequested(this);
 
-		private void Persist()
+		private void LoadFromRuntimeData(string json)
 		{
-			owner.UpdateRuntimeData(inventory.ToJson());
-			OnContentsChanged();
+			List<InventorySlotSaveData> slots = new();
+
+			if (string.IsNullOrEmpty(json) == false)
+			{
+				try
+				{
+					slots = JsonConvert.DeserializeObject<List<InventorySlotSaveData>>(json) ?? new List<InventorySlotSaveData>();
+				}
+				catch (JsonException)
+				{
+					// 손상 세이브 — 상자 1개 깨짐이 GridData 전체 로드를 안 죽이게 빈 인벤토리 폴백.
+					Debug.LogWarning($"[ChestStorage] RuntimeData 파싱 실패 → 빈 상자: {json}");
+					slots = new List<InventorySlotSaveData>();
+				}
+			}
+
+			inventory.Load(slots);
 		}
 	}
 }
