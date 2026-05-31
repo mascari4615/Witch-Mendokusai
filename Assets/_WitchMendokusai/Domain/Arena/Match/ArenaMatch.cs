@@ -30,6 +30,14 @@ namespace WitchMendokusai
 		public bool IsConcluded => core != null && core.IsConcluded;
 		public int WinnerTeamId => core != null ? core.WinnerTeamId : ArenaModeSO.NO_WINNER;
 
+		/// <summary> 프로그래매틱 시작(런처/모드 진입용) — config·arenaRoot 주입 후 Begin. </summary>
+		public void Begin(ArenaMatchConfig matchConfig, Transform root)
+		{
+			config = matchConfig;
+			arenaRoot = root;
+			Begin();
+		}
+
 		public void Begin()
 		{
 			if (started)
