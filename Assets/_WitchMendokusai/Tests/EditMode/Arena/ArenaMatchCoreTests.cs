@@ -92,5 +92,60 @@ namespace WitchMendokusai.Tests
 			Assert.IsFalse(core.Poll(), "모드 없음 = 종료 안 함(방어)");
 			Assert.IsFalse(core.IsConcluded);
 		}
+
+		[Test]
+		public void Timeout_MoreAliveTeamWins()
+		{
+			FakeCombatant a0 = new() { CombatantId = 0, TeamId = 0 };
+			FakeCombatant a1 = new() { CombatantId = 1, TeamId = 0 };
+			FakeCombatant b0 = new() { CombatantId = 2, TeamId = 1 };
+			List<ArenaTeam> teams = new()
+			{
+				new ArenaTeam(0, new List<ICombatant> { a0, a1 }), // 2 생존
+				new ArenaTeam(1, new List<ICombatant> { b0 }),      // 1 생존
+			};
+			ArenaMatchCore core = new(teams, Mode(), 1.0f);
+
+			Assert.IsFalse(core.Poll(0.5f), "0.5s — 양 팀 생존, 미종료");
+			Assert.IsTrue(core.Poll(0.6f), "누적 1.1s ≥ 1.0 — 시간초과 종료");
+			Assert.IsTrue(core.ConcludedByTimeout);
+			Assert.AreEqual(0, core.WinnerTeamId, "팀0(2 생존) > 팀1(1) → 팀0 승");
+		}
+
+		[Test]
+		public void Timeout_EqualAlive_Draw()
+		{
+			FakeCombatant a = new() { CombatantId = 0, TeamId = 0 };
+			FakeCombatant b = new() { CombatantId = 1, TeamId = 1 };
+			List<ArenaTeam> teams = new()
+			{
+				new ArenaTeam(0, new List<ICombatant> { a }),
+				new ArenaTeam(1, new List<ICombatant> { b }),
+			};
+			ArenaMatchCore core = new(teams, Mode(), 1.0f);
+
+			Assert.IsTrue(core.Poll(1.0f), "시간초과 종료");
+			Assert.IsTrue(core.ConcludedByTimeout);
+			Assert.AreEqual(ArenaModeSO.NO_WINNER, core.WinnerTeamId, "각 1 생존 동률 → 무승부");
+		}
+
+		[Test]
+		public void EliminationBeforeTimeout_ModeWinsNotTimeout()
+		{
+			FakeCombatant a = new() { CombatantId = 0, TeamId = 0 };
+			FakeCombatant b = new() { CombatantId = 1, TeamId = 1 };
+			List<ArenaTeam> teams = new()
+			{
+				new ArenaTeam(0, new List<ICombatant> { a }),
+				new ArenaTeam(1, new List<ICombatant> { b }),
+			};
+			ArenaMatchCore core = new(teams, Mode(), 10f);
+
+			Assert.IsFalse(core.Poll(1f), "진행 중");
+			b.IsAlive = false;
+			Assert.IsTrue(core.Poll(1f), "전멸 = 모드 승리(타임아웃 전)");
+			Assert.IsFalse(core.ConcludedByTimeout, "타임아웃 아님 — 모드 종료");
+			Assert.AreEqual(0, core.WinnerTeamId);
+		}
 	}
 }

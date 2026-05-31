@@ -18,6 +18,9 @@ namespace WitchMendokusai
 		[field: Tooltip("승패 규칙/목표 (ArenaModeSO — 전멸/점령/넥서스 등).")]
 		[field: SerializeField] public ArenaModeSO Mode { get; private set; }
 
+		[field: Tooltip("매치 제한시간(초). 초과 시 최다 생존 팀 승(동률 무승부) — 교착 무한 방지. 0 이하 = 무제한.")]
+		[field: SerializeField, Min(0f)] public float TimeLimitSeconds { get; private set; } = 60f;
+
 		[field: Tooltip("출전 로스터 — 각 엔트리 = 유닛 데이터 + 전술 + 팀.")]
 		[field: SerializeField] public List<ArenaUnitEntry> Roster { get; private set; } = new();
 

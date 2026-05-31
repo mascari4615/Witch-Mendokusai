@@ -166,7 +166,7 @@ namespace WitchMendokusai
 			foreach (KeyValuePair<int, List<ICombatant>> pair in teamMembers)
 				teams.Add(new ArenaTeam(pair.Key, pair.Value));
 
-			core = new ArenaMatchCore(teams, config.Mode);
+			core = new ArenaMatchCore(teams, config.Mode, config.TimeLimitSeconds);
 			timeManager.RegisterCallback(Tick);
 			ticking = true;
 		}
@@ -176,7 +176,7 @@ namespace WitchMendokusai
 			if (ticking == false || core == null)
 				return;
 
-			if (core.Poll())
+			if (core.Poll(TimeManager.TICK))
 			{
 				ticking = false;
 				if (TimeManager.TryGetExistingInstance(out TimeManager timeManager))
