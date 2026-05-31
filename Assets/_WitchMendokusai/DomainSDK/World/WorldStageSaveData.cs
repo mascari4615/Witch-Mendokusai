@@ -17,5 +17,8 @@ namespace WitchMendokusai
 		// SimCity Phase 2 (TASK-WM-166 INC-4): GlassBox 경제 상태(자원 재고). 옛 세이브엔 부재 →
 		// default(struct).StockSaveData = null → CityEconomy.Load 자체 skip. wrapper struct(미래 필드 확장).
 		public CityEconomySaveData EconomySaveData;
+
+		// SimCity Phase 2 (TASK-WM-166 INC-6): 통근 시민 명부. 옛 세이브엔 부재(null) → WorldStage.Load null skip.
+		public List<CitizenSaveData> CitizensSaveData;
 	}
 }

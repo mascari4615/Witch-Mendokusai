@@ -64,6 +64,7 @@ namespace WitchMendokusai.Tests
 			Assert.That(stage.RoadGraph.RoadData.Count, Is.Zero, "도로 없음(빈 그래프)");
 			Assert.That(stage.ZoneGrid.ZoneData.Count, Is.Zero, "존 없음(빈 격자)");
 			Assert.That(stage.CityEconomy.Stock.Count, Is.Zero, "경제 없음(legacy EconomySaveData=default → CityEconomy.Load skip)");
+			Assert.That(stage.CitizenRegistry.Citizens.Count, Is.Zero, "시민 없음(legacy CitizensSaveData=null → skip)");
 		}
 
 		[Test]
@@ -130,6 +131,8 @@ namespace WitchMendokusai.Tests
 			Assert.That(saved.ZoneSaveData.Count, Is.Zero);
 			Assert.That(saved.EconomySaveData.StockSaveData, Is.Not.Null, "빈 도시도 경제 재고 비-null");
 			Assert.That(saved.EconomySaveData.StockSaveData.Count, Is.Zero);
+			Assert.That(saved.CitizensSaveData, Is.Not.Null, "빈 도시도 시민 명부 비-null");
+			Assert.That(saved.CitizensSaveData.Count, Is.Zero);
 		}
 
 		[Test]
@@ -165,6 +168,41 @@ namespace WitchMendokusai.Tests
 			Assert.That(stage.CityEconomy.GetStock(new ResourceId(0)), Is.EqualTo(0f), "cityA 재고(자원0) 잔존 X (replace)");
 			Assert.That(stage.CityEconomy.GetStock(new ResourceId(1)), Is.EqualTo(7f).Within(0.0001f), "cityB 재고만");
 			Assert.That(stage.CityEconomy.Stock.Count, Is.EqualTo(1), "재고 키 1개(자원1)만");
+		}
+
+		[Test]
+		public void SaveLoad_RoundTrip_PreservesCitizens()
+		{
+			WorldStage original = NewStage();
+			original.CitizenRegistry.Add(new CitizenSaveData(new Vector3Int(0, 0, 0), new Vector3Int(5, 0, 0), CitizenState.GoingToWork));
+			original.CitizenRegistry.Add(new CitizenSaveData(new Vector3Int(1, 0, 0), new Vector3Int(5, 0, 0), CitizenState.AtHome));
+
+			WorldStageSaveData saved = original.Save();
+
+			WorldStage restored = NewStage();
+			restored.Load(saved);
+
+			Assert.That(restored.CitizenRegistry.Citizens.Count, Is.EqualTo(2), "시민 2명 복원");
+			Assert.That(restored.CitizenRegistry.Citizens[0].HomeCell, Is.EqualTo(new Vector3Int(0, 0, 0)), "집 셀 복원");
+			Assert.That(restored.CitizenRegistry.Citizens[0].State, Is.EqualTo(CitizenState.GoingToWork), "상태 복원");
+		}
+
+		[Test]
+		public void Load_Twice_ReplacesCitizens()
+		{
+			WorldStage stage = NewStage();
+
+			WorldStage seedA = NewStage();
+			seedA.CitizenRegistry.Add(new CitizenSaveData(new Vector3Int(0, 0, 0), new Vector3Int(5, 0, 0), CitizenState.AtHome));
+			seedA.CitizenRegistry.Add(new CitizenSaveData(new Vector3Int(2, 0, 0), new Vector3Int(5, 0, 0), CitizenState.AtHome));
+			stage.Load(seedA.Save());
+
+			WorldStage seedB = NewStage();
+			seedB.CitizenRegistry.Add(new CitizenSaveData(new Vector3Int(9, 9, 0), new Vector3Int(8, 8, 0), CitizenState.AtWork));
+			stage.Load(seedB.Save());
+
+			Assert.That(stage.CitizenRegistry.Citizens.Count, Is.EqualTo(1), "cityA 시민 2명 잔존 X (replace)");
+			Assert.That(stage.CitizenRegistry.Citizens[0].HomeCell, Is.EqualTo(new Vector3Int(9, 9, 0)), "cityB 시민만");
 		}
 	}
 }
