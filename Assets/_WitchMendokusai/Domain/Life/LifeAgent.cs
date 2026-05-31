@@ -17,8 +17,13 @@ namespace WitchMendokusai
 	{
 		// 틱(TimeManager.TICK=0.05s) 1회당 흐르는 게임 내 분. 수치노출 — 시간 스케일 디자인 손잡이.
 		[SerializeField] private float minutesPerTick = 1f;
+		// 배회(Idle) 시 새 방향을 고르는 주기(초). 수치노출.
+		[SerializeField] private float wanderInterval = 2f;
 
 		private TimeManager timeManager;
+		private UnitObject unitObject;
+		private bool unitResolved;
+		private float wanderTimer;
 		private NeedProfile profile;
 		private NeedState needState;
 		private TimeOfDay timeOfDay = TimeOfDay.Morning;
@@ -103,6 +108,44 @@ namespace WitchMendokusai
 
 			CurrentActivity = next;
 			OnActivityChanged(next);
+		}
+
+		// 활동의 시각 표현(INC-5c) — Idle 은 마을을 어슬렁(주기적 새 방향), 그 외 활동은 제자리.
+		// UnitObject(UnitMovement) 가 붙은 캐릭터에서만 동작 — 없으면(순수 테스트) 무시.
+		private void Update()
+		{
+			UnitObject unit = ResolveUnit();
+			if (unit == null)
+			{
+				return;
+			}
+
+			if (CurrentActivity == ActivityKind.Idle)
+			{
+				wanderTimer -= Time.deltaTime;
+				if (wanderTimer <= 0f)
+				{
+					wanderTimer = wanderInterval;
+					Vector2 direction = UnityEngine.Random.insideUnitCircle.normalized;
+					unit.UnitMovement.SetMoveDirection(direction);
+				}
+
+				return;
+			}
+
+			// 활동 중(먹기·자기 등)은 일단 제자리 — 가구·목적지 연동은 후속.
+			unit.UnitMovement.SetMoveDirection(Vector2.zero);
+		}
+
+		private UnitObject ResolveUnit()
+		{
+			if (unitResolved == false)
+			{
+				unitObject = GetComponent<UnitObject>();
+				unitResolved = true;
+			}
+
+			return unitObject;
 		}
 	}
 }
