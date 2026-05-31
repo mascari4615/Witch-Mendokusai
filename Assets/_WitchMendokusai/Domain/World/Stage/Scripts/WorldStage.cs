@@ -13,17 +13,22 @@ namespace WitchMendokusai
 		[field: NonSerialized] public RoadGraph RoadGraph { get; private set; } = new();
 		[field: NonSerialized] public ZoneGrid ZoneGrid { get; private set; } = new();
 
+		// SimCity Phase 2 (TASK-WM-166 INC-4): GlassBox 경제 상태(자원 누계 재고). 도시 레이어 형제 —
+		// WorldStage 가 소유(NonSerialized 런타임, ISavable 영속). INC-5 일일 틱이 생산/소비를 여기 누적.
+		[field: NonSerialized] public CityEconomy CityEconomy { get; private set; } = new();
+
 		public void Load(WorldStageSaveData saveData)
 		{
 			// Load = replace, not merge. WorldStage 는 SO 자산이라 인스턴스가 stage 재진입/재로드
-			// 간 살아남음 → 비우지 않으면 이전 도시 데이터가 누적(예: 게임 두 번 로드). 셋 다 clear 선행.
+			// 간 살아남음 → 비우지 않으면 이전 도시 데이터가 누적(예: 게임 두 번 로드). 전부 clear 선행.
 			GridData.BuildingData.Clear();
 			RoadGraph.RoadData.Clear();
 			ZoneGrid.ZoneData.Clear();
+			CityEconomy.Stock.Clear();
 
 			GridData.Load(saveData.BuildingSaveData);
 
-			// 옛 세이브엔 Road/Zone 필드 부재(null) — Phase 1 이전 도시는 도로/존 없음. null skip.
+			// 옛 세이브엔 Road/Zone/Economy 필드 부재(null) — 이전 도시는 도로/존/경제 없음. null skip.
 			if (saveData.RoadSaveData != null)
 			{
 				RoadGraph.Load(saveData.RoadSaveData);
@@ -32,6 +37,9 @@ namespace WitchMendokusai
 			{
 				ZoneGrid.Load(saveData.ZoneSaveData);
 			}
+
+			// EconomySaveData 는 struct(항상 비-null) — 내부 StockSaveData null 가드는 CityEconomy.Load 가 자체 처리(legacy 세이브 = default → skip).
+			CityEconomy.Load(saveData.EconomySaveData);
 		}
 
 		public WorldStageSaveData Save()
@@ -40,7 +48,8 @@ namespace WitchMendokusai
 			{
 				BuildingSaveData = GridData.Save(),
 				RoadSaveData = RoadGraph.Save(),
-				ZoneSaveData = ZoneGrid.Save()
+				ZoneSaveData = ZoneGrid.Save(),
+				EconomySaveData = CityEconomy.Save()
 			};
 		}
 	}

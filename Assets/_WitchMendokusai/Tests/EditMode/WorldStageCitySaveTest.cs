@@ -63,6 +63,7 @@ namespace WitchMendokusai.Tests
 			Assert.That(stage.GridData.HasBuildingAt(new Vector3Int(5, 5, 0)), Is.True, "건물은 복원");
 			Assert.That(stage.RoadGraph.RoadData.Count, Is.Zero, "도로 없음(빈 그래프)");
 			Assert.That(stage.ZoneGrid.ZoneData.Count, Is.Zero, "존 없음(빈 격자)");
+			Assert.That(stage.CityEconomy.Stock.Count, Is.Zero, "경제 없음(legacy EconomySaveData=default → CityEconomy.Load skip)");
 		}
 
 		[Test]
@@ -127,6 +128,43 @@ namespace WitchMendokusai.Tests
 			Assert.That(saved.ZoneSaveData, Is.Not.Null, "빈 도시도 ZoneSaveData 비-null");
 			Assert.That(saved.RoadSaveData.Count, Is.Zero);
 			Assert.That(saved.ZoneSaveData.Count, Is.Zero);
+			Assert.That(saved.EconomySaveData.StockSaveData, Is.Not.Null, "빈 도시도 경제 재고 비-null");
+			Assert.That(saved.EconomySaveData.StockSaveData.Count, Is.Zero);
+		}
+
+		[Test]
+		public void SaveLoad_RoundTrip_PreservesEconomyStock()
+		{
+			WorldStage original = NewStage();
+			original.CityEconomy.AddStock(new ResourceId(0), 50f);
+			original.CityEconomy.AddStock(new ResourceId(1), 12.5f);
+
+			WorldStageSaveData saved = original.Save();
+
+			WorldStage restored = NewStage();
+			restored.Load(saved);
+
+			Assert.That(restored.CityEconomy.GetStock(new ResourceId(0)), Is.EqualTo(50f).Within(0.0001f), "자원0 재고 복원");
+			Assert.That(restored.CityEconomy.GetStock(new ResourceId(1)), Is.EqualTo(12.5f).Within(0.0001f), "자원1 재고 복원");
+		}
+
+		[Test]
+		public void Load_Twice_ReplacesEconomyStock()
+		{
+			// 경제도 도시 레이어 형제 — 재로드 = replace(누적 X). GridData/Road/Zone 동일 계약.
+			WorldStage stage = NewStage();
+
+			WorldStage seedA = NewStage();
+			seedA.CityEconomy.AddStock(new ResourceId(0), 99f);
+			stage.Load(seedA.Save());
+
+			WorldStage seedB = NewStage();
+			seedB.CityEconomy.AddStock(new ResourceId(1), 7f);
+			stage.Load(seedB.Save());
+
+			Assert.That(stage.CityEconomy.GetStock(new ResourceId(0)), Is.EqualTo(0f), "cityA 재고(자원0) 잔존 X (replace)");
+			Assert.That(stage.CityEconomy.GetStock(new ResourceId(1)), Is.EqualTo(7f).Within(0.0001f), "cityB 재고만");
+			Assert.That(stage.CityEconomy.Stock.Count, Is.EqualTo(1), "재고 키 1개(자원1)만");
 		}
 	}
 }
