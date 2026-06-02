@@ -17,6 +17,9 @@ namespace WitchMendokusai
 		public bool IsConcluded { get; private set; }
 		public int WinnerTeamId { get; private set; } = ArenaModeSO.NO_WINNER;
 		public bool ConcludedByTimeout { get; private set; }
+		// 모드 규칙(BrawlArenaMode = 전멸)으로 결착 = true / 시간초과 most-alive = false(ConcludedByTimeout).
+		// ⚠ v1 BrawlArenaMode 전제 — 미래 Objective/Lane 모드 추가 시 "전멸" 라벨 매핑 분기 필요.
+		public bool ConcludedByElimination { get; private set; }
 
 		public ArenaMatchCore(IReadOnlyList<ArenaTeam> teams, ArenaModeSO mode, float timeLimitSeconds = 0f)
 		{
@@ -46,6 +49,7 @@ namespace WitchMendokusai
 			{
 				IsConcluded = true;
 				WinnerTeamId = winnerTeamId;
+				ConcludedByElimination = true; // 규칙 결착 = 전멸(생존팀 ≤1). 상호전멸(winner=NO_WINNER)도 elimination 으로 정확 분류.
 				return true;
 			}
 

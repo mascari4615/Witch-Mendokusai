@@ -21,9 +21,19 @@ namespace WitchMendokusai
 
 		private TargetingSystem targeting;
 		private ArenaMatchCore core;
+		private List<ArenaTeam> teams;
 		private readonly List<TacticDriver> drivers = new();
 		private bool started;
 		private bool ticking;
+
+		// behavior-verify 계측([Arena-Verify]) — 패트롤 vs 전진·교전 결착을 Editor.log 단독 판별(MCP wedge 직교).
+		// 관측 누적치(수치 설정값 X) → 수치노출 룰 무관. 종결 1줄 + 첫교전 시각으로 완결.
+		private readonly List<UnitHealth> hookedHealths = new();
+		private int hitCount;
+		private int tickCount;
+		private bool firstContactLogged;
+		private int runId;
+		private static int nextRunId = 0;
 
 		public event System.Action<int> MatchEnded = delegate { };
 
@@ -107,6 +117,12 @@ namespace WitchMendokusai
 				yield break;
 			}
 
+			hitCount = 0;
+			tickCount = 0;
+			firstContactLogged = false;
+			runId = ++nextRunId;
+			Debug.Log($"[Arena-Verify] MATCH-START runId={runId} z={arenaRoot.position.z}");
+
 			config.Map.Build(arenaRoot);
 			targeting = new TargetingSystem();
 
@@ -168,12 +184,16 @@ namespace WitchMendokusai
 
 				targeting.Register(combatant);
 
+				// behavior-verify 교전 구독 — 첫 피격 = 유닛이 실제 교전(패트롤이면 영영 안 찍힘). 종결 시 UnhookHealths 로 해제.
+				unitObject.Health.OnTakeDamage += OnCombatHit;
+				hookedHealths.Add(unitObject.Health);
+
 				if (teamMembers.ContainsKey(entry.TeamId) == false)
 					teamMembers[entry.TeamId] = new List<ICombatant>();
 				teamMembers[entry.TeamId].Add(combatant);
 			}
 
-			List<ArenaTeam> teams = new();
+			teams = new List<ArenaTeam>();
 			foreach (KeyValuePair<int, List<ICombatant>> pair in teamMembers)
 				teams.Add(new ArenaTeam(pair.Key, pair.Value));
 
@@ -186,6 +206,8 @@ namespace WitchMendokusai
 		{
 			if (ticking == false || core == null)
 				return;
+
+			tickCount++;
 
 			if (core.Poll(TimeManager.TICK))
 			{
@@ -200,14 +222,49 @@ namespace WitchMendokusai
 						driver.StopDriving();
 				}
 
+				// behavior-verify 종결 1줄 — reason=ELIMINATION(전진·교전 결착) vs TIMEOUT(교착=패트롤 의심).
+				// alive snapshot 으로 누가 죽었나 + hits 로 교전 강도 노출. Editor.log grep 1방.
+				string reason = core.ConcludedByElimination ? "ELIMINATION" : "TIMEOUT";
+				string aliveSnapshot = "";
+				if (teams != null)
+				{
+					foreach (ArenaTeam team in teams)
+						aliveSnapshot += team.TeamId + ":" + team.AliveCount() + " ";
+				}
+				Debug.Log($"[Arena-Verify] MATCH-END runId={runId} reason={reason} winner={core.WinnerTeamId} hits={hitCount} ticks={tickCount} alive=[{aliveSnapshot.Trim()}]");
+				UnhookHealths();
+
 				MatchEnded(core.WinnerTeamId);
 			}
+		}
+
+		// 첫 피격 = 유닛이 실제 교전(전진 증거). 패트롤이면 FIRST-CONTACT 영영 안 찍힘.
+		private void OnCombatHit(DamageInfo damageInfo)
+		{
+			hitCount++;
+			if (firstContactLogged == false)
+			{
+				firstContactLogged = true;
+				Debug.Log($"[Arena-Verify] FIRST-CONTACT runId={runId} atTick={tickCount}");
+			}
+		}
+
+		// 교전 구독 일괄 해제 — 풀 재사용 유닛 좀비 구독 방지(명시 teardown, FastFail 정합). 멱등.
+		private void UnhookHealths()
+		{
+			foreach (UnitHealth health in hookedHealths)
+			{
+				if (health != null)
+					health.OnTakeDamage -= OnCombatHit;
+			}
+			hookedHealths.Clear();
 		}
 
 		private void OnDestroy()
 		{
 			if (ticking && TimeManager.TryGetExistingInstance(out TimeManager timeManager))
 				timeManager.RemoveCallback(Tick);
+			UnhookHealths();
 		}
 	}
 }
