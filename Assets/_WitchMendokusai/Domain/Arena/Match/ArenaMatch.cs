@@ -149,6 +149,13 @@ namespace WitchMendokusai
 
 				unitGameObject.SetActive(true);
 
+				// 자율 brain 격리 — prefab 내장 FSM(FSMSlime/FSMWisp 등)이 BT_MoveToPlayer 로 같은 UnitMovement 채널을
+				// TacticDriver 와 last-writer-wins 경쟁(패트롤/지터/전진실패) → 아레나 출전 유닛은 brain 비활성.
+				// SetActive(true) 직후라 OnEnable→코루틴 시작됨 → enabled=false 가 OnDisable→Dispose 로 코루틴 정지.
+				// UnitBrain 마커 베이스로 일괄(구체 타입 enumerate X = 새 brain 자동 격리).
+				foreach (UnitBrain brain in unitObject.GetComponents<UnitBrain>())
+					brain.enabled = false;
+
 				// 팀 식별 틴트 — 팀0(욘/아군)=하늘색, 팀1(라이벌)=빨강. v1: 풀 반환 시 색 잔존(teardown/ArenaUnitObject 후속서 리셋).
 				if (unitObject.SpriteRenderer != null)
 					unitObject.SpriteRenderer.color = entry.TeamId == 0 ? new Color(0.45f, 0.75f, 1f) : new Color(1f, 0.45f, 0.45f);

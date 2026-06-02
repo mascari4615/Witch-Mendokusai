@@ -19,8 +19,16 @@ namespace WitchMendokusai
 		Exit
 	}
 
+	/// <summary>
+	/// 유닛 자율 brain 의 비제네릭 마커 베이스. FSM&lt;T&gt; 가 상속.
+	/// 아레나 등 외부 드라이버(TacticDriver)가 이동/행동을 권위적으로 구동하는 컨텍스트에서
+	/// 구체 brain 타입을 enumerate 하지 않고 일괄 비활성(`GetComponents&lt;UnitBrain&gt;()` → enabled=false)하기 위한 seam.
+	/// 새 brain 타입도 자동 격리(회귀 안전).
+	/// </summary>
+	public abstract class UnitBrain : MonoBehaviour { }
+
 	[RequireComponent(typeof(UnitObject))]
-	public abstract class FSM<T> : MonoBehaviour where T : Enum
+	public abstract class FSM<T> : UnitBrain where T : Enum
 	{
 		private readonly Dictionary<(T, StateEvent), Action> stateEvents = new();
 		private Coroutine stateUpdateLoop;
