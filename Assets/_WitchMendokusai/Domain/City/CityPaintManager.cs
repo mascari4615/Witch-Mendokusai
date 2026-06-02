@@ -72,6 +72,16 @@ namespace WitchMendokusai
 		[SerializeField] private int powerSourceRange = 6;
 		[SerializeField] private Color powerSourceColor = new(1.00f, 0.95f, 0.30f);
 
+		[Header("INC-6 진단 히트맵 (데이터뷰 오버레이 — 색 팔레트=HeatmapGradient 기본)")]
+		[Tooltip("오버레이 타일 두께 — 존 타일보다 약간 위에 떠 데이터뷰가 가시.")]
+		[SerializeField] private float overlayTileHeight = 0.14f;
+		[Tooltip("욕망도 히트맵 — 전역 존 수요 기여 가중.")]
+		[SerializeField] private float desirabilityDemandWeight = 1.0f;
+		[Tooltip("욕망도 히트맵 — 도로 접근 기여 가중.")]
+		[SerializeField] private float desirabilityRoadWeight = 1.0f;
+		[Tooltip("욕망도 히트맵 — 전력 공급 기여 가중.")]
+		[SerializeField] private float desirabilityPowerWeight = 1.0f;
+
 		private InputManager inputManager;
 		private GameModeManager gameModeManager;
 		private StageManager stageManager;
@@ -101,6 +111,19 @@ namespace WitchMendokusai
 		private readonly PowerGrid powerGrid = new();
 		// 발전소 시각 마커 (PowerSourceRegistry 가 데이터 진실, 이건 투영).
 		private readonly Dictionary<Vector3Int, GameObject> powerSourceVisuals = new();
+
+		// INC-6 진단 히트맵 — 데이터뷰 오버레이. 순수 필드(CityMetricField) + 색(HeatmapGradient).
+		// 오버레이 타일 = 칠해진 셀 위 투영(렌더 캐시) — 데이터 진실은 grid/registry, 토글 끄면 전부 제거.
+		private enum OverlayKind
+		{
+			Off,          // 데이터뷰 끔 (평소 존/도로 색)
+			PowerCoverage, // 전력 닿는 곳 hot
+			Desirability,  // 선택 존 성장 잠재(수요·도로·전력 투영) hot
+		}
+		private OverlayKind overlayKind = OverlayKind.Off;
+		private readonly Dictionary<Vector3Int, GameObject> overlayVisuals = new();
+		private readonly CityMetricField metricField = new();
+		private readonly HeatmapGradient heatmap = new();
 
 		// INC-7 — 통근 시민 placeholder 에이전트. key = 집 셀(1 주거 = 1 시민). 진실 = CitizenRegistry,
 		// 이건 그 시각 투영(렌더+이동). CitizenRegistry 가 비면 여기도 빔.
@@ -234,6 +257,7 @@ namespace WitchMendokusai
 			ClearCellVisual(cell);
 			ClearBuildingVisual(cell);
 			ClearPowerSourceVisual(cell);
+			ClearOverlayVisual(cell);
 		}
 
 		// step6 — 매일 호출. 수요 평가 → 성장/쇠퇴 결정(CityGrowthSystem 순수) → 적용(GridData + 시각).
@@ -265,6 +289,10 @@ namespace WitchMendokusai
 
 			// INC-7 — 주거↔직장 통근 시민 동기화 (registry = 진실, 시각 에이전트 spawn/despawn).
 			SyncCitizens(worldStage, query);
+
+			// INC-6 — 데이터뷰 켜져 있으면 변경된 도시로 히트맵 갱신 (no-news 룰: 도시 흐르면 진단도 따라감).
+			if (overlayKind != OverlayKind.Off)
+				RefreshOverlay();
 		}
 
 		// 자원 카탈로그 임시 id (ResourceSO 도입 전 — 스킨 deferred). 0=원자재, 1=재화.
@@ -505,6 +533,90 @@ namespace WitchMendokusai
 			return energized;
 		}
 
+		// INC-6 — 진단 히트맵 재계산 + 그리기. 평가 대상 = 칠해진 발자취(존 ∪ 도로). 끄면 전부 제거.
+		// 순수부(CityMetricField 값 → HeatmapGradient 색)는 EditMode 검증 — 여기선 수집·투영만.
+		private void RefreshOverlay()
+		{
+			ClearOverlay();
+
+			if (overlayKind == OverlayKind.Off)
+				return;
+			if (stageManager.CurStage is WorldStage worldStage == false)
+				return;
+
+			HashSet<Vector3Int> cells = new(worldStage.ZoneGrid.ZoneData.Keys);
+			foreach (Vector3Int road in worldStage.RoadGraph.RoadData.Keys)
+				cells.Add(road);
+			if (cells.Count == 0)
+				return;
+
+			HashSet<Vector3Int> energizedRoads = ComputeEnergizedRoads(worldStage);
+			Dictionary<Vector3Int, float> field;
+
+			if (overlayKind == OverlayKind.PowerCoverage)
+			{
+				field = metricField.PowerCoverage(cells, powerGrid, energizedRoads);
+			}
+			else
+			{
+				// 선택 존 전역 수요를 공간 투영 — "이 존을 어디에 깔면 자랄까" 데이터뷰.
+				CityCellQuery query = new(worldStage.GridData, worldStage.ZoneGrid, worldStage.RoadGraph);
+				RciDemandCoefficients coefficients = new(residentsPerJob, shopsPerResident, industryPerResident, immigrationBaseline, exportBaseline, demandGain);
+				RciDemand demand = demandModel.Evaluate(
+					query.CountBuildingsByZone(ZoneType.Residential),
+					query.CountBuildingsByZone(ZoneType.Commercial),
+					query.CountBuildingsByZone(ZoneType.Industrial),
+					coefficients);
+
+				DesirabilityWeights weights = new(desirabilityDemandWeight, desirabilityRoadWeight, desirabilityPowerWeight);
+				field = metricField.Desirability(cells, ZoneDemand(demand, SelectedZoneType), worldStage.RoadGraph, powerGrid, energizedRoads, weights);
+			}
+
+			foreach (KeyValuePair<Vector3Int, float> entry in field)
+				SetOverlayVisual(entry.Key, heatmap.Evaluate(entry.Value));
+		}
+
+		// 선택 존타입의 전역 수요값 추출 (욕망도 공간 투영의 base).
+		private static float ZoneDemand(RciDemand demand, ZoneType type)
+		{
+			switch (type)
+			{
+				case ZoneType.Residential: return demand.Residential;
+				case ZoneType.Commercial: return demand.Commercial;
+				case ZoneType.Industrial: return demand.Industrial;
+				default: return 0f;
+			}
+		}
+
+		// 오버레이 타일 — 존 타일 위에 뜬 납작한 히트맵 색판(데이터뷰 = 평소 색 위 진단 오버레이).
+		private void SetOverlayVisual(Vector3Int cell, Color color)
+		{
+			if (overlayVisuals.TryGetValue(cell, out GameObject visual) == false)
+			{
+				visual = CreateCellCube(cell, overlayTileHeight);
+				visual.name = $"Overlay_{cell.x}_{cell.y}";
+				overlayVisuals[cell] = visual;
+			}
+
+			visual.GetComponent<Renderer>().sharedMaterial = GetMaterial(color);
+		}
+
+		private void ClearOverlayVisual(Vector3Int cell)
+		{
+			if (overlayVisuals.TryGetValue(cell, out GameObject visual))
+			{
+				overlayVisuals.Remove(cell);
+				Destroy(visual);
+			}
+		}
+
+		private void ClearOverlay()
+		{
+			foreach (GameObject visual in overlayVisuals.Values)
+				Destroy(visual);
+			overlayVisuals.Clear();
+		}
+
 		private Color ZoneColor(ZoneType type)
 		{
 			switch (type)
@@ -650,6 +762,15 @@ namespace WitchMendokusai
 		// 시간 안 기다리고 즉시 하루 성장 테스트 (수동 트리거 — 자동화는 수동 짝 룰).
 		[ContextMenu("DEBUG: Force One Day Growth")]
 		private void ForceGrowth_Editor() => OnDayChanged(0);
+
+		// INC-6 — 진단 히트맵 순환 (Off → 전력 커버리지 → 욕망도 → Off). 데이터뷰 토글(수동 트리거).
+		[ContextMenu("Cycle Diagnostic Overlay (Off/Power/Desire)")]
+		private void CycleOverlay_Editor()
+		{
+			overlayKind = (OverlayKind)(((int)overlayKind + 1) % 3);
+			RefreshOverlay();
+			Debug.Log($"[City/Overlay] 데이터뷰 = {overlayKind}");
+		}
 #endif
 	}
 }
