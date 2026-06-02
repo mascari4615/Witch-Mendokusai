@@ -9,14 +9,31 @@ namespace WitchMendokusai
 	/// (ObjectPoolManager/TimeManager) 안에 아레나(데이터=ArenaMapSO)를 z=1000 오프셋으로 생성·스폰·관전.
 	/// Arena.unity 씬 불요(맵은 데이터 빌드). 콘텐츠 PlayMode 검증/튜닝용 수동 트리거.
 	///
-	/// 두 진입점: (v1)=전술 에디터 UI 거쳐 시작 / (Headless)=UI 게이트 우회 즉시 시작.
-	/// Headless = behavior-verify 자동화용 — 사용자 클릭 1회면 매치가 UI 없이 돌고 `[Arena-Verify]`
-	/// 로그가 Editor.log 에 남아 MCP wedge 중에도 패트롤/전진 판별 가능(ArenaMatch 계측).
+	/// 진입점 3:
+	/// - (v1) = 전술 에디터 UI 거쳐 시작.
+	/// - (Headless) = UI 게이트 우회 즉시 시작(behavior-verify 자동화).
+	/// - (Arm Auto-Verify) = 다음 Play 진입 시 World 부팅 감지→자동 매치→종결 로그→Play 자동 종료.
+	///   WM heavy-boot 중 MCP HTTP 브릿지 wedge 라 Play 중 메뉴/MCP 호출 불가 → edit 모드(브릿지 생존)서
+	///   플래그만 박고 Play 누르면 에디터 내부 핸들러가 전부 자동 = Claude 가 사용자 클릭 없이 Editor.log 만으로
+	///   패트롤/전진 behavior-verify(`[Arena-Verify]` 라인). 플래그 = 진입 즉시 1회성 소거(정상 play 비파괴).
 	/// </summary>
 	public static class ArenaTestLauncher
 	{
 		private const string CONFIG_PATH = "Assets/_WitchMendokusai/Domain/Arena/Match/ArenaMatchConfig.asset";
 		private const float ARENA_OFFSET_Z = 1000f;
+		private const string AUTOVERIFY_KEY = "WM_ARENA_AUTOVERIFY"; // EditorPrefs 1회성 플래그.
+		private const int AUTOVERIFY_READY_TIMEOUT_FRAMES = 6000; // World 부팅(BootObserver.WorldReady) 대기 상한. 초과 = 포기+경고.
+		private const int AUTOVERIFY_SETTLE_FRAMES = 30; // WorldReady 도달 후 정착 대기(씬/매니저 안정).
+
+		private static int autoVerifyWaitFrames;
+		private static int autoVerifySettleFrames;
+
+		[InitializeOnLoadMethod]
+		private static void HookPlayModeStateChanged()
+		{
+			EditorApplication.playModeStateChanged -= OnPlayModeStateChanged;
+			EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
+		}
 
 		[MenuItem("WM/Arena/Begin Test Match (v1)")]
 		public static void BeginTestMatch()
@@ -51,12 +68,25 @@ namespace WitchMendokusai
 		[MenuItem("WM/Arena/Begin Test Match (Headless, no UI)")]
 		public static void BeginTestMatchHeadless()
 		{
-			if (TryPrepareMatch(out ArenaMatch match, out Transform root, out ArenaMatchConfig config) == false)
-				return;
+			StartHeadlessMatch();
+		}
 
-			// 헤드리스: UIRoot 전술 에디터 게이트 전부 우회 — 즉시 시작(behavior-verify 자동화).
+		[MenuItem("WM/Arena/Arm Auto-Verify (next Play)")]
+		public static void ArmAutoVerify()
+		{
+			EditorPrefs.SetBool(AUTOVERIFY_KEY, true);
+			Debug.Log("[Arena-Verify] ARMED — 다음 Play 진입 시 자동 매치+종결+Play 종료. 이제 Play(▶) 를 누르세요.");
+		}
+
+		/// <summary> 헤드리스 매치 시작 — UI 게이트 우회 즉시 Begin. 실패 시 null. </summary>
+		private static ArenaMatch StartHeadlessMatch()
+		{
+			if (TryPrepareMatch(out ArenaMatch match, out Transform root, out ArenaMatchConfig config) == false)
+				return null;
+
 			match.Begin(config, root);
 			Debug.Log("[Arena-Verify] HEADLESS — UI 게이트 우회, 즉시 매치 시작. z=" + ARENA_OFFSET_Z);
+			return match;
 		}
 
 		/// <summary> 공통 셋업 — config 로드 + 아레나 루트(z 오프셋) + 관전 카메라 + ArenaMatch 컴포넌트 생성. 실패 시 false. </summary>
@@ -95,6 +125,72 @@ namespace WitchMendokusai
 			match.MatchEnded += winnerTeamId => Debug.Log("[ArenaTestLauncher] 매치 종료 — 승리 팀 = " + winnerTeamId + " (-1 = 무승부)");
 
 			return true;
+		}
+
+		// --- Auto-Verify: edit 모드서 ARM → 다음 Play 진입 시 자동 구동 (MCP wedge 무관, 에디터 내부 핸들러) ---
+
+		private static void OnPlayModeStateChanged(PlayModeStateChange change)
+		{
+			if (change != PlayModeStateChange.EnteredPlayMode)
+				return;
+			if (EditorPrefs.GetBool(AUTOVERIFY_KEY, false) == false)
+				return;
+
+			// 1회성 — 진입 즉시 소거(이후 정상 play 는 절대 자동 매치 X).
+			EditorPrefs.SetBool(AUTOVERIFY_KEY, false);
+			autoVerifyWaitFrames = 0;
+			autoVerifySettleFrames = 0;
+			EditorApplication.update -= AutoVerifyWaitForBoot;
+			EditorApplication.update += AutoVerifyWaitForBoot;
+			Debug.Log("[Arena-Verify] AUTO-START armed — World 부팅 대기 중...");
+		}
+
+		// World 부팅(매니저 준비) 폴 → 준비되면 헤드리스 매치 시작 + 종결 시 Play 자동 종료.
+		private static void AutoVerifyWaitForBoot()
+		{
+			if (Application.isPlaying == false)
+			{
+				EditorApplication.update -= AutoVerifyWaitForBoot;
+				return;
+			}
+
+			autoVerifyWaitFrames++;
+			if (autoVerifyWaitFrames > AUTOVERIFY_READY_TIMEOUT_FRAMES)
+			{
+				EditorApplication.update -= AutoVerifyWaitForBoot;
+				Debug.LogWarning("[Arena-Verify] AUTO-START 포기 — 매니저(ObjectPoolManager/TimeManager) 미준비(타임아웃). World 씬 맞나 확인.");
+				return;
+			}
+
+			// World 조립 완료(WorldReady) 까지 대기 — Boot/Lobby/Loading 씬 전환 중 시작하면 씬 언로드가 아레나 GO 파괴.
+			// BootObserver.ReachedWorld = WM 부팅 완료 센티넬(BootSmokeSentinel 와 동일 훅).
+			if (BootObserver.ReachedWorld == false)
+				return;
+
+			// WorldReady 후 정착 — 매니저/씬 안정 몇 프레임.
+			autoVerifySettleFrames++;
+			if (autoVerifySettleFrames < AUTOVERIFY_SETTLE_FRAMES)
+				return;
+
+			if (TimeManager.Instance == null || ObjectPoolManager.Instance == null)
+				return; // 안전 가드 — 보통 WorldReady 면 준비됨.
+
+			EditorApplication.update -= AutoVerifyWaitForBoot;
+
+			ArenaMatch match = StartHeadlessMatch();
+			if (match == null)
+				return;
+
+			// 종결 시 Play 자동 종료 → 도메인 리로드 → MCP 브릿지 회복(Editor.log 결론을 read_console 로 교차검증 가능).
+			match.MatchEnded += _ =>
+			{
+				EditorApplication.delayCall += () =>
+				{
+					if (Application.isPlaying)
+						EditorApplication.isPlaying = false;
+					Debug.Log("[Arena-Verify] AUTO-END — Play 자동 종료. Editor.log 의 [Arena-Verify] MATCH-END 로 판정.");
+				};
+			};
 		}
 	}
 }
