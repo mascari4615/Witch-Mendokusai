@@ -14,8 +14,9 @@ namespace WitchMendokusai.Sandbox.Demos
 	public sealed class LifeSandboxDemo : ISandboxAnimatedDemo
 	{
 		private const float TICK_INTERVAL = 0.5f;
-		private const int MINUTES_PER_TICK = 12;   // 한 틱당 흐르는 게임 분 — 욕구가 눈에 보이게 줄도록.
-		private const float SATISFY_PER_TICK = 9f;  // 활동이 그 욕구를 채우는 양(데모 글루) — 색이 순환하도록.
+		private const int MINUTES_PER_TICK = 12;    // 한 틱당 흐르는 게임 분 — 욕구가 눈에 보이게 줄도록.
+		private const float SATISFY_PER_TICK = 60f; // 활동이 그 욕구를 채우는 양(데모 글루). 소진(decay×분)을 넘겨 욕구가
+		                                            // 임계 위로 회복 → 다음 급한 욕구로 넘어가야 색이 순환(검증: 24틱 5색 전환).
 		private const float WANDER_STEP = 0.6f;     // 틱당 무작위 보행 거리(에디트 모드엔 Update 가 없어 여기서 이동).
 		private const float WANDER_RADIUS = 4f;     // 마을 광장 반경 — 너무 멀리 못 가게 중심으로 당김.
 
@@ -26,7 +27,8 @@ namespace WitchMendokusai.Sandbox.Demos
 		public string Category => "Life";
 		public float TickInterval => TICK_INTERVAL;
 
-		// 큐브 3체를 광장에 깔고 각자 다른 욕구 상태로 시작 → 첫 프레임부터 색이 제각각(주황/파랑/초록).
+		// 큐브 3체를 광장에 깔고 각자 위상이 어긋난 욕구 상태로 시작 → 첫 프레임부터 색이 제각각(주황/파랑/초록),
+		// 이후 셋 다 자율로 활동을 순환(색이 휙휙). 위상차 = 같은 순간에 셋이 다른 일을 한다는 "각자 산다"가 한눈에.
 		public GameObject Build()
 		{
 			residents.Clear();
@@ -34,10 +36,10 @@ namespace WitchMendokusai.Sandbox.Demos
 
 			GameObject root = new("자율 삶 마을 (Sandbox)");
 
-			// 셋이 서로 다른 욕구가 급하도록 어긋난 초기 상태 — 동시에 다른 색을 보여 "각자 산다"가 한눈에.
-			SpawnResident(root, "주민 A", new Vector3(-2.5f, 0.5f, 0f), startLow: NeedKind.Hunger);
-			SpawnResident(root, "주민 B", new Vector3(0f, 0.5f, 0f), startLow: NeedKind.Energy);
-			SpawnResident(root, "주민 C", new Vector3(2.5f, 0.5f, 0f), startLow: NeedKind.Mood);
+			// phase 0/1/2 = 시작 시 가장 급한 욕구를 회전 → t0 색 = 주황(A=Eat)·분홍(B=Socialize)·초록(C=Hobby). (라이브 검증)
+			SpawnResident(root, "주민 A", new Vector3(-2.5f, 0.5f, 0f), phase: 0);
+			SpawnResident(root, "주민 B", new Vector3(0f, 0.5f, 0f), phase: 1);
+			SpawnResident(root, "주민 C", new Vector3(2.5f, 0.5f, 0f), phase: 2);
 
 			return root;
 		}
@@ -66,7 +68,7 @@ namespace WitchMendokusai.Sandbox.Demos
 			}
 		}
 
-		private void SpawnResident(GameObject root, string name, Vector3 position, NeedKind startLow)
+		private void SpawnResident(GameObject root, string name, Vector3 position, int phase)
 		{
 			GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
 			cube.name = name;
@@ -75,7 +77,7 @@ namespace WitchMendokusai.Sandbox.Demos
 
 			LifeAgent agent = cube.AddComponent<LifeAgent>();
 			NeedProfile profile = BuildProfile();
-			agent.Initialize(profile, BuildState(startLow));
+			agent.Initialize(profile, BuildState(phase));
 
 			residents.Add(new Resident { Agent = agent, Profile = profile });
 		}
@@ -106,29 +108,33 @@ namespace WitchMendokusai.Sandbox.Demos
 			_ => null,
 		};
 
-		// 데모용 욕구 프로필 — 빠른 감소(눈에 보이게). 캐릭터별 개성은 미래 INC-7 LifeProfileSO.
+		// 데모용 욕구 프로필 — 4 욕구가 비슷한 속도로 감소(임계 50 공통)해 어느 하나에 막히지 않고 순환.
+		// SATISFY_PER_TICK(60) > decay×분(최대 1.4×12≈17)이라 활동 시 욕구가 임계 위로 회복 → 다음 욕구로 넘어감.
+		// 검증(24틱 트레이스): Eat>Sleep>Hobby>Eat>Socialize>… 5 활동 23 전환. 캐릭터별 개성은 미래 INC-7 LifeProfileSO.
 		private static NeedProfile BuildProfile()
 		{
 			Dictionary<NeedKind, NeedSpec> specs = new()
 			{
-				{ NeedKind.Hunger, new NeedSpec(2.0f, 40f, 100f) },
-				{ NeedKind.Energy, new NeedSpec(1.6f, 35f, 100f) },
-				{ NeedKind.Mood, new NeedSpec(1.3f, 30f, 100f) },
-				{ NeedKind.Social, new NeedSpec(1.1f, 30f, 100f) },
+				{ NeedKind.Hunger, new NeedSpec(1.4f, 50f, 100f) },
+				{ NeedKind.Energy, new NeedSpec(1.2f, 50f, 100f) },
+				{ NeedKind.Mood, new NeedSpec(1.0f, 50f, 100f) },
+				{ NeedKind.Social, new NeedSpec(0.9f, 50f, 100f) },
 			};
 			return new NeedProfile(specs);
 		}
 
-		// 한 욕구만 임계 아래로 시작 → 첫 활동(색)이 주민마다 다르게.
-		private static NeedState BuildState(NeedKind low)
+		// 위상차 시작 상태 — phase 만큼 욕구 사다리를 회전시켜 셋이 같은 순간 다른 활동(색)을 하게.
+		// phase 0 = Hunger 가장 낮음(Eat 주황) / 1 = Social(Socialize 분홍) / 2 = Mood(Hobby 초록). (라이브 t0 검증)
+		private static NeedState BuildState(int phase)
 		{
-			return new NeedState(new Dictionary<NeedKind, float>
+			float[] ladder = { 40f, 55f, 70f, 85f }; // 낮을수록 먼저 급함 — 가장 낮은 게 첫 활동을 정함.
+			NeedKind[] order = { NeedKind.Hunger, NeedKind.Energy, NeedKind.Mood, NeedKind.Social };
+			Dictionary<NeedKind, float> values = new();
+			for (int index = 0; index < order.Length; index++)
 			{
-				{ NeedKind.Hunger, low == NeedKind.Hunger ? 20f : 85f },
-				{ NeedKind.Energy, low == NeedKind.Energy ? 20f : 85f },
-				{ NeedKind.Mood, low == NeedKind.Mood ? 20f : 80f },
-				{ NeedKind.Social, low == NeedKind.Social ? 20f : 80f },
-			});
+				values[order[index]] = ladder[(index + phase) % ladder.Length];
+			}
+			return new NeedState(values);
 		}
 
 		// 결정적 난수(LCG) — Math.Random/Date 금지 정합 + 데모 재현성. 0~1.
