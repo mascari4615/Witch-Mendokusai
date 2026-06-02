@@ -120,5 +120,80 @@ namespace WitchMendokusai.DomainSDK.Alchemy
             BrewVector diff = state.Position - target.Position;
             return diff.Magnitude;
         }
+
+        /// <summary>
+        /// 솥 항해가 끝난 마커 상태를 목표·부작용으로 채점 → 결과 등급.
+        /// 미도달 = Failed(품질 0). 도달 = 강도(중심 근접 0~1, 반경 0 점목표는 도달 시 1)
+        /// − 부작용 페널티(부작용 × SideEffectWeight), 0~1 clamp → 임계값으로 등급.
+        /// 순수 함수(결정성) — 같은 상태·규칙 = 같은 등급.
+        /// </summary>
+        public static BrewOutcome Evaluate(BrewState state, EffectTarget target, BrewOutcomeRules rules)
+        {
+            bool reached = IsReached(state, target);
+            float sideEffect = state.AccruedSideEffect;
+
+            if (reached == false)
+            {
+                return new BrewOutcome
+                {
+                    Reached = false,
+                    Potency = 0f,
+                    SideEffect = sideEffect,
+                    Quality = 0f,
+                    Grade = BrewGrade.Failed,
+                };
+            }
+
+            // 강도: 반경 안에서 중심에 가까울수록 1, 가장자리 0. 반경 0(점목표)은 도달 = 정확히 중심 = 1.
+            float potency;
+            if (target.Radius > 0f)
+            {
+                float distance = DistanceTo(state, target);
+                potency = Clamp01(1f - distance / target.Radius);
+            }
+            else
+            {
+                potency = 1f;
+            }
+
+            float penalty = sideEffect * rules.SideEffectWeight;
+            float quality = Clamp01(potency - penalty);
+
+            BrewGrade grade;
+            if (quality >= rules.MasterworkThreshold)
+            {
+                grade = BrewGrade.Masterwork;
+            }
+            else if (quality >= rules.FineThreshold)
+            {
+                grade = BrewGrade.Fine;
+            }
+            else
+            {
+                grade = BrewGrade.Crude;
+            }
+
+            return new BrewOutcome
+            {
+                Reached = true,
+                Potency = potency,
+                SideEffect = sideEffect,
+                Quality = quality,
+                Grade = grade,
+            };
+        }
+
+        private static float Clamp01(float value)
+        {
+            if (value < 0f)
+            {
+                return 0f;
+            }
+            if (value > 1f)
+            {
+                return 1f;
+            }
+            return value;
+        }
     }
 }

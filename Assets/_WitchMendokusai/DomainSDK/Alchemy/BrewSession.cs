@@ -83,6 +83,12 @@ namespace WitchMendokusai.DomainSDK.Alchemy
             get { return steps; }
         }
 
+        /// <summary>현재 마커 상태를 채점해 제조 결과 등급 산출(항해 종료 시점 호출).</summary>
+        public BrewOutcome Evaluate(BrewOutcomeRules rules)
+        {
+            return BrewEngine.Evaluate(State, Recipe.Target, rules);
+        }
+
         /// <summary>같은 레시피·위험지대로 다시 시작(재료만 비우고 목표·위험지대 유지).</summary>
         public void Reset()
         {
