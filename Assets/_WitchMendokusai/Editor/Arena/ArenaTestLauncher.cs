@@ -31,6 +31,13 @@ namespace WitchMendokusai
 		private static int autoVerifySettleFrames;
 		private static int autoVerifyMatchesLeft; // 남은 연속 매치 수(체이닝).
 
+		// TASK-WM-165 item9 — 모드 검증 상태기 (마도서→투기장 경로 = SetMode(Arena)→ArenaModeController).
+		private const string MODEVERIFY_KEY = "WM_ARENA_MODE_VERIFY";
+		private const int MODEVERIFY_ENTER_FRAMES = 120; // SetMode(Arena) 후 매치 스폰/틱/카메라 블렌드 대기.
+		private const int MODEVERIFY_EXIT_FRAMES = 40;   // SetMode(Default) 후 복귀 대기.
+		private static int modeVerifyPhase;
+		private static int modeVerifyFrames;
+
 		[InitializeOnLoadMethod]
 		private static void HookPlayModeStateChanged()
 		{
@@ -88,6 +95,13 @@ namespace WitchMendokusai
 			EditorPrefs.SetBool(AUTOVERIFY_KEY, true);
 			EditorPrefs.SetInt(AUTOVERIFY_COUNT_KEY, 2);
 			Debug.Log("[Arena-Verify] ARMED (x2 rematch) — 다음 Play 진입 시 자동 매치 2연속+Play 종료(재매치 검증). 이제 Play(▶) 를 누르세요.");
+		}
+
+		[MenuItem("WM/Arena/Arm Mode-Verify (마도서→투기장, next Play)")]
+		public static void ArmModeVerify()
+		{
+			EditorPrefs.SetBool(MODEVERIFY_KEY, true);
+			Debug.Log("[Arena-Mode-Verify] ARMED — 다음 Play 진입 시 자동 SetMode(Arena)→카메라/매치/입력 확인→SetMode(Default)→복귀+Play 종료. 이제 Play(▶) 를 누르세요.");
 		}
 
 		/// <summary> 헤드리스 매치 시작 — UI 게이트 우회 즉시 Begin. 실패 시 null. </summary>
@@ -161,6 +175,19 @@ namespace WitchMendokusai
 		{
 			if (change != PlayModeStateChange.EnteredPlayMode)
 				return;
+
+			// TASK-WM-165 item9 — 모드 검증(마도서→투기장 경로). SetMode(Arena)→ArenaModeController→카메라/매치/입력.
+			if (EditorPrefs.GetBool(MODEVERIFY_KEY, false))
+			{
+				EditorPrefs.SetBool(MODEVERIFY_KEY, false);
+				autoVerifyWaitFrames = 0;
+				autoVerifySettleFrames = 0;
+				EditorApplication.update -= ModeVerifyWaitForBoot;
+				EditorApplication.update += ModeVerifyWaitForBoot;
+				Debug.Log("[Arena-Mode-Verify] AUTO-START armed — World 부팅 대기 중...");
+				return;
+			}
+
 			if (EditorPrefs.GetBool(AUTOVERIFY_KEY, false) == false)
 				return;
 
@@ -242,5 +269,93 @@ namespace WitchMendokusai
 				};
 			};
 		}
+
+		// --- Mode-Verify: 마도서→투기장 경로(SetMode(Arena)→ArenaModeController) 자율 검증. Editor.log ground-truth. ---
+
+		private static void ModeVerifyWaitForBoot()
+		{
+			if (Application.isPlaying == false)
+			{
+				EditorApplication.update -= ModeVerifyWaitForBoot;
+				return;
+			}
+
+			autoVerifyWaitFrames++;
+			if (autoVerifyWaitFrames > AUTOVERIFY_READY_TIMEOUT_FRAMES)
+			{
+				EditorApplication.update -= ModeVerifyWaitForBoot;
+				Debug.LogWarning("[Arena-Mode-Verify] 포기 — World 미준비(타임아웃). World 씬 맞나 확인.");
+				return;
+			}
+
+			if (BootObserver.ReachedWorld == false)
+				return;
+
+			autoVerifySettleFrames++;
+			if (autoVerifySettleFrames < AUTOVERIFY_SETTLE_FRAMES)
+				return;
+
+			if (GameModeManager.Instance == null || CameraManager.Instance == null)
+				return;
+
+			EditorApplication.update -= ModeVerifyWaitForBoot;
+			StartModeVerify();
+		}
+
+		private static void StartModeVerify()
+		{
+			bool controllerExists = ArenaModeController.TryGetExistingInstance(out _);
+			Debug.Log($"[Arena-Mode-Verify] BOOT-OK controllerExists={controllerExists} mode={GameModeManager.Instance.CurrentMode}");
+
+			GameModeManager.Instance.SetMode(GameMode.Arena);
+			Debug.Log($"[Arena-Mode-Verify] ENTER-CALLED mode={GameModeManager.Instance.CurrentMode}");
+
+			modeVerifyPhase = 0;
+			modeVerifyFrames = 0;
+			EditorApplication.update -= ModeVerifyTick;
+			EditorApplication.update += ModeVerifyTick;
+		}
+
+		private static void ModeVerifyTick()
+		{
+			if (Application.isPlaying == false)
+			{
+				EditorApplication.update -= ModeVerifyTick;
+				return;
+			}
+
+			modeVerifyFrames++;
+
+			if (modeVerifyPhase == 0)
+			{
+				if (modeVerifyFrames < MODEVERIFY_ENTER_FRAMES)
+					return;
+
+				bool spectatorActive = UnityEngine.GameObject.Find("ArenaSpectatorCamera") != null;
+				bool isSpectating = GameConditionBridge.Get(GameConditionType.IsSpectating);
+				Debug.Log($"[Arena-Mode-Verify] ENTER-STATE mode={GameModeManager.Instance.CurrentMode} spectatorCamActive={spectatorActive} isSpectating={isSpectating} (spectatorCamActive=True + 별도 MATCH-START 로그 = 관전화면+매치 구동)");
+
+				GameModeManager.Instance.SetMode(GameMode.Default);
+				modeVerifyPhase = 1;
+				modeVerifyFrames = 0;
+				return;
+			}
+
+			if (modeVerifyFrames < MODEVERIFY_EXIT_FRAMES)
+				return;
+
+			bool spectatorActiveAfter = UnityEngine.GameObject.Find("ArenaSpectatorCamera") != null;
+			bool isSpectatingAfter = GameConditionBridge.Get(GameConditionType.IsSpectating);
+			Debug.Log($"[Arena-Mode-Verify] EXIT-STATE mode={GameModeManager.Instance.CurrentMode} spectatorCamActive={spectatorActiveAfter} isSpectating={isSpectatingAfter} (mode=Default+spectating=false+spectatorCamActive=false = 복귀 OK)");
+
+			EditorApplication.update -= ModeVerifyTick;
+			Debug.Log("[Arena-Mode-Verify] DONE — Play 자동 종료. Editor.log 의 ENTER-STATE/EXIT-STATE 로 판정.");
+			EditorApplication.delayCall += () =>
+			{
+				if (Application.isPlaying)
+					EditorApplication.isPlaying = false;
+			};
+		}
+
 	}
 }
