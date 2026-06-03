@@ -47,11 +47,9 @@ namespace WitchMendokusai
 		public Dictionary<Vector3Int, BuildingObject> BuildingObjectsByPos { get; } = new();
 
 		private Building selectedBuilding = null;
-		// TASK-WM-181 INC-2 — gridPosition = 배치 셀(맞은 면 바깥 인접, 마크식) / removeGridPosition = 제거 셀(맞은 셀).
-		private Vector3Int gridPosition = Vector3Int.zero;
-		private Vector3Int removeGridPosition = Vector3Int.zero;
 		private float lastClickTime = 0f;
 		private const float CLICK_COOLDOWN = 0.1f; // 클릭 간 최소 시간 간격 (초)
+		private const float BUILD_REACH_DISTANCE = 100f; // 빌더 레이캐스트 도달 거리
 
 		private void Awake()
 		{
@@ -111,17 +109,16 @@ namespace WitchMendokusai
 		{
 			if (gameModeManager.IsBuildMode == false)
 				return;
+			if (TryBuildRaycast(out RaycastHit hit) == false)
+				return;
 
-			UpdateCellPos();
-
-			Vector3 worldPos = BuildCellToWorld(gridPosition);
-			if (marker.transform.position != worldPos)
+			// 미리보기 마커 = 맞은 면 바깥 인접 셀 (복셀 동형 — 건물 위/옆/복셀 옆 어디든).
+			Vector3Int placeCell = Vector3Int.FloorToInt(hit.point + hit.normal * 0.5f);
+			Vector3 worldPos = BuildCellToWorld(placeCell);
+			if (marker.GetBool(MARKER_ENABLED) == true && marker.transform.position != worldPos)
 			{
-				if (marker.GetBool(MARKER_ENABLED) == true)
-				{
-					marker.transform.position = worldPos;
-					marker.SetTrigger(MARKER_RESET_TRIGGER);
-				}
+				marker.transform.position = worldPos;
+				marker.SetTrigger(MARKER_RESET_TRIGGER);
 			}
 		}
 
@@ -161,69 +158,62 @@ namespace WitchMendokusai
 			return new Vector3(centerX, pivot.y, centerZ);
 		}
 
-		private void UpdateCellPos()
+		// TASK-WM-181 INC-2 — 빌더 자체 레이캐스트: 복셀 블록·건물·지면 전 레이어 다 맞춤(InputManager 레이어마스크
+		// 우회). 이게 있어야 건물 위 적층·건물 제거·복셀 인접 배치가 다 동작. VoxelInteraction 과 동일 모델.
+		private bool TryBuildRaycast(out RaycastHit hit)
 		{
-			// TASK-WM-181 INC-2 — 마크식 면-인접: 배치 = 맞은 면 *바깥* 인접 셀(hit+normal), 제거 = 맞은 셀(hit-normal).
-			// 그리드 swizzle=XZY 라 셀이 3D (cell.z=world Y 레벨) → 블록 위/옆 어디든 자연 정합 (VoxelInteraction 동형).
-			Vector3 hitPoint = inputManager.MouseWorldPosition;
-			Vector3 hitNormal = inputManager.MouseWorldNormal;
-			// 복셀 VoxelInteraction 과 동일 월드-정수 판정 (그리드 lattice/swizzle/스테이지오프셋 경유 X →
-			// 같은 클릭에 복셀 블록과 빌더 건물이 같은 셀에 떨어짐 = 진짜 통합).
-			gridPosition = Vector3Int.FloorToInt(hitPoint + hitNormal * 0.5f);
-			removeGridPosition = Vector3Int.FloorToInt(hitPoint - hitNormal * 0.5f);
+			hit = default;
+			Camera camera = Camera.main;
+			if (camera == null)
+				return false;
+
+			Ray ray = camera.ScreenPointToRay(inputManager.MouseScreenPosition);
+			return Physics.Raycast(ray, out hit, BUILD_REACH_DISTANCE, ~0, QueryTriggerInteraction.Ignore);
 		}
 
 		private void ClickCell()
 		{
 			if (inputManager.IsPointerOverUI())
 				return;
-
 			if (stageManager.CurStage is WorldStage worldStage == false)
 				return;
-
-			List<Vector3Int> coords = GetBuildingCoords(gridPosition, selectedBuilding.Size);
-			foreach (Vector3Int coord in coords)
-			{
-				if (BuildingObjectsByPos.ContainsKey(coord))
-				{
-					// Debug.LogWarning("Already has object at " + coord);
-					return;
-				}
-			}
-
 			if (Time.time - lastClickTime < CLICK_COOLDOWN)
-			{
-				// Debug.LogWarning("Clicking too fast!");
 				return;
-			}
+			if (TryBuildRaycast(out RaycastHit hit) == false)
+				return;
+
+			// 배치 셀 = 맞은 면 바깥 인접 (복셀 동형). 건물 윗면 클릭=위 적층, 옆면=옆, 복셀 옆=복셀 인접.
+			Vector3Int placeCell = Vector3Int.FloorToInt(hit.point + hit.normal * 0.5f);
+			List<Vector3Int> coords = GetBuildingCoords(placeCell, selectedBuilding.Size);
+			foreach (Vector3Int coord in coords)
+				if (BuildingObjectsByPos.ContainsKey(coord))
+					return; // 이미 건물 점유
+
 			lastClickTime = Time.time;
-
-			worldStage.GridData.AddBuildingAt(gridPosition, new BuildingInstanceData(selectedBuilding.ID));
-			SpawnBuildingObject(gridPosition, worldStage.GridData.BuildingData[gridPosition]);
-
-			// buildingState.OnAction(gridPosition);
+			worldStage.GridData.AddBuildingAt(placeCell, new BuildingInstanceData(selectedBuilding.ID));
+			SpawnBuildingObject(placeCell, worldStage.GridData.BuildingData[placeCell]);
 		}
 
 		private void TryRemoveCell()
 		{
 			if (inputManager.IsPointerOverUI())
 				return;
-
 			if (stageManager.CurStage is WorldStage worldStage == false)
 				return;
-
-			if (BuildingObjectsByPos.TryGetValue(removeGridPosition, out BuildingObject buildingObject) == false)
-				return;
-
 			if (Time.time - lastClickTime < CLICK_COOLDOWN)
-			{
-				// Debug.LogWarning("Clicking too fast!");
 				return;
-			}
-			lastClickTime = Time.time;
+			if (TryBuildRaycast(out RaycastHit hit) == false)
+				return;
 
+			// 맞은 콜라이더가 건물이면 그 건물 직접 제거 (셀 조회 X — 건물 높이/멀티셀 무관 견고).
+			// 복셀/지면을 맞췄으면 buildingObject==null → 빌더는 무시 (복셀 파괴는 VoxelInteraction 담당).
+			BuildingObject buildingObject = hit.collider.GetComponentInParent<BuildingObject>();
+			if (buildingObject == null)
+				return;
+
+			lastClickTime = Time.time;
 			Vector3Int pivot = buildingObject.Pivot;
-			worldStage.GridData.RemoveBuildingAt(removeGridPosition);
+			worldStage.GridData.RemoveBuildingAt(pivot);
 			DespawnBuildingObject(pivot);
 		}
 
@@ -261,6 +251,8 @@ namespace WitchMendokusai
 
 			BuildingObject buildingObject = objectPoolManager.Spawn(BuildingObjectPrefab).GetComponent<BuildingObject>();
 			buildingObject.transform.position = BuildCellToWorld(pivot, building.Size);
+			// TASK-WM-181 INC-2 — voxel-native 축정렬: 건물은 항상 정방향(복셀 블록과 동형). 풀 재사용 stale 회전 방어.
+			buildingObject.transform.rotation = Quaternion.identity;
 			buildingObject.gameObject.SetActive(true);
 
 			buildingObject.Initialize(data, pivot);
