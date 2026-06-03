@@ -20,7 +20,7 @@ MonoBehaviour:
   - {fileID: 21300000, guid: ba9fefa3b11e0b84199fa46528f99159, type: 3}
   - {fileID: 21300000, guid: 8737daa2002ab9f48a10b78330223f0c, type: 3}
   <Affiliation>k__BackingField: -1
-  <Prefab>k__BackingField: {fileID: 0}
+  <Prefab>k__BackingField: {fileID: 4424679600471619191, guid: 48984c858f60ded4bb21f7e787490808, type: 3}
   <DefaultSkills>k__BackingField:
   - {fileID: 11400000, guid: bdff7f8626f406d469febaa04df93e5e, type: 2}
   - {fileID: 11400000, guid: 9d1694d91fc6f574586f05df89ed2319, type: 2}

@@ -19,7 +19,8 @@ namespace WitchMendokusai
 	/// </summary>
 	public static class ArenaTestLauncher
 	{
-		private const string CONFIG_PATH = "Assets/_WitchMendokusai/Domain/Arena/Match/ArenaMatchConfig.asset";
+		// v1 콘텐츠 = 인형 3v3(알리사/서전크로스/티메토 vs 혼합). 슬라임 config(ArenaMatchConfig.asset)는 회귀 베이스라인으로 보존.
+		private const string CONFIG_PATH = "Assets/_WitchMendokusai/Domain/Arena/Match/ArenaMatchConfig_Dolls.asset";
 		private const float ARENA_OFFSET_Z = 1000f;
 		private const string AUTOVERIFY_KEY = "WM_ARENA_AUTOVERIFY"; // EditorPrefs 1회성 플래그.
 		private const string AUTOVERIFY_COUNT_KEY = "WM_ARENA_AUTOVERIFY_COUNT"; // 연속 매치 수(재매치 검증 = 2).
