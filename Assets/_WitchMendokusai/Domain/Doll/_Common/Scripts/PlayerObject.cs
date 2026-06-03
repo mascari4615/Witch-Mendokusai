@@ -101,9 +101,16 @@ namespace WitchMendokusai
 
 		protected virtual void HandleDeathEffects()
 		{
-			gameEventManager.Raise(GameEventType.OnPlayerDied);
-			timeManager.DoSlowMotion();
-			diedX.SetActive(true);
+			// 플레이어 사망 = 게임오버 이벤트 + 슬로모 = 전역 게임상태 → 던전에서만.
+			// 아레나에 출전한 인형(Doll)이 죽어도 본진 게임이 끝나면 안 됨(MonsterObject 던전격리 선례 정합).
+			// HandleDamageEffects 는 이미 IsDungeon 가드 — death 만 누락이었음(비대칭 해소).
+			if (DungeonManagerBridge.IsDungeon)
+			{
+				gameEventManager.Raise(GameEventType.OnPlayerDied);
+				timeManager.DoSlowMotion();
+			}
+
+			diedX.SetActive(true); // 사망 시각 표시(died X)는 컨텍스트 무관.
 		}
 
 		private IEnumerator InvincibleTime()
