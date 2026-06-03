@@ -5,8 +5,8 @@ using WitchMendokusai.DomainSDK.Life;
 namespace WitchMendokusai.Tests
 {
 	/// <summary>
-	/// TASK-WM-168 INC-7 — LifeProfileSO(데이터 주도 성격)가 순수 NeedProfile 로 바르게 변환되는지 잠금.
-	/// 격상순서(SO authoring → 순수 모델)의 변환 한 겹.
+	/// TASK-WM-168 INC-7 / WM-183 INC-W3 — LifeProfileSO(데이터 주도 성격)가 순수 NeedProfile·WorkProfile 로
+	/// 바르게 변환되는지 잠금. 격상순서(SO authoring → 순수 모델)의 변환 한 겹.
 	/// </summary>
 	public sealed class LifeProfileSOTest
 	{
@@ -39,6 +39,16 @@ namespace WitchMendokusai.Tests
 		{
 			profile = ScriptableObject.CreateInstance<LifeProfileSO>();
 			Assert.That(profile.SelfSatisfyPerMinute, Is.GreaterThan(0f), "기본 자가회복 > 0(활동이 욕구 채움)");
+		}
+
+		[Test]
+		public void ToWorkProfile_DefaultsToForageAndBaselineEfficiency()
+		{
+			profile = ScriptableObject.CreateInstance<LifeProfileSO>();
+			WorkProfile workProfile = profile.ToWorkProfile();
+
+			Assert.That(workProfile.DefaultWork, Is.EqualTo(WorkKind.Forage), "기본 자율 일 = Forage");
+			Assert.That(workProfile.EfficiencyOf(WorkKind.Mine), Is.EqualTo(1f).Within(0.001f), "미지정 효율 = 기본 1.0(누구나 기본 숙련)");
 		}
 	}
 }
