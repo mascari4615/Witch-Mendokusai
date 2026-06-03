@@ -114,7 +114,7 @@ namespace WitchMendokusai
 
 			UpdateCellPos();
 
-			Vector3 worldPos = GetWorldPosition(gridPosition);
+			Vector3 worldPos = BuildCellToWorld(gridPosition);
 			if (marker.transform.position != worldPos)
 			{
 				if (marker.GetBool(MARKER_ENABLED) == true)
@@ -146,14 +146,31 @@ namespace WitchMendokusai
 			return worldPos;
 		}
 
+		// TASK-WM-181 INC-2 — 빌더 셀(월드 정수, 복셀 동형) → 월드 위치. 복셀 블록과 동일 lattice:
+		// 셀 [n,n+1) 의 XZ 중심 + 바닥 Y(cell.y). GroundProbe 불요(cell.y 가 hit 에서 이미 높이 박음).
+		private Vector3 BuildCellToWorld(Vector3Int cell)
+		{
+			return new Vector3(cell.x + 0.5f, cell.y, cell.z + 0.5f);
+		}
+
+		// 다중 셀 건물 footprint 중심 (GetBuildingCoords 동형 — pivot 기준 -X, +Z 확장).
+		private Vector3 BuildCellToWorld(Vector3Int pivot, Vector2 size)
+		{
+			float centerX = pivot.x + 0.5f - (size.x - 1) * 0.5f;
+			float centerZ = pivot.z + 0.5f + (size.y - 1) * 0.5f;
+			return new Vector3(centerX, pivot.y, centerZ);
+		}
+
 		private void UpdateCellPos()
 		{
 			// TASK-WM-181 INC-2 — 마크식 면-인접: 배치 = 맞은 면 *바깥* 인접 셀(hit+normal), 제거 = 맞은 셀(hit-normal).
 			// 그리드 swizzle=XZY 라 셀이 3D (cell.z=world Y 레벨) → 블록 위/옆 어디든 자연 정합 (VoxelInteraction 동형).
 			Vector3 hitPoint = inputManager.MouseWorldPosition;
 			Vector3 hitNormal = inputManager.MouseWorldNormal;
-			gridPosition = grid.WorldToCell(hitPoint + hitNormal * 0.5f);
-			removeGridPosition = grid.WorldToCell(hitPoint - hitNormal * 0.5f);
+			// 복셀 VoxelInteraction 과 동일 월드-정수 판정 (그리드 lattice/swizzle/스테이지오프셋 경유 X →
+			// 같은 클릭에 복셀 블록과 빌더 건물이 같은 셀에 떨어짐 = 진짜 통합).
+			gridPosition = Vector3Int.FloorToInt(hitPoint + hitNormal * 0.5f);
+			removeGridPosition = Vector3Int.FloorToInt(hitPoint - hitNormal * 0.5f);
 		}
 
 		private void ClickCell()
@@ -243,7 +260,7 @@ namespace WitchMendokusai
 			Building building = SOHelper.Get<Building>(data.BuildingID);
 
 			BuildingObject buildingObject = objectPoolManager.Spawn(BuildingObjectPrefab).GetComponent<BuildingObject>();
-			buildingObject.transform.position = GetWorldPosition(pivot, building.Size);
+			buildingObject.transform.position = BuildCellToWorld(pivot, building.Size);
 			buildingObject.gameObject.SetActive(true);
 
 			buildingObject.Initialize(data, pivot);
@@ -292,10 +309,10 @@ namespace WitchMendokusai
 
 			for (int x = 0; x < size.x; x++)
 			{
-				for (int y = 0; y < size.y; y++)
+				for (int z = 0; z < size.y; z++)
 				{
-					Vector3Int coord = pivot + new Vector3Int(-x, y, 0);
-					// Debug.Log($"{nameof(GetBuildingCoords)} {coord} ({-x}, {y})");
+					// TASK-WM-181 INC-2 — 월드-정수 셀이라 footprint 도 월드 XZ (-X, +Z). 옛 그리드 XY(-x, y, 0) 폐기.
+					Vector3Int coord = pivot + new Vector3Int(-x, 0, z);
 					coords.Add(coord);
 				}
 			}
