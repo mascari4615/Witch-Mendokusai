@@ -39,11 +39,13 @@ namespace WitchMendokusai
 						),
 						#endregion
 
-						#region UI (취소만 — 관전 중 패널 닫기)
+						#region UI (X = 투기장 나가기 → 일반 모드 복귀)
+						// 관전 이탈 = SetMode(Default) → ArenaModeController.ApplyMode 가 매치 정리+카메라/입력 복귀.
+						// 입력 이벤트라 매치 Tick 밖에서 실행 → mid-Tick teardown 타이밍 안전.
 						new(
 							InputEventType.Cancel,
 							InputEventResponseType.Performed,
-							() => UIManager.Instance.OnCancelInput(),
+							() => GameModeManager.Instance.SetMode(GameMode.Default),
 							() => CanExecute(InputEventType.Cancel)
 						),
 						#endregion
@@ -66,34 +68,21 @@ namespace WitchMendokusai
 
 		protected override Dictionary<InputAxisType, GameConditionType[]> AxisReturnConditions => new()
 		{
-			// 이동 = 관전 중 차단 (IsSpectating = GameMode.Arena 파생 → 이 전략 활성 동안 항상 true).
+			// v1 관전 = 고정 카메라뷰(autobattler 방송 스타일) — 전 축 차단(IsSpectating = GameMode.Arena 파생,
+			// 이 전략 활성 동안 항상 true). 플레이어 카메라 리그(원점 기준 추종)에 정적 아레나 카메라를 얹어
+			// spectator 회전 시 아레나가 아닌 원점 기준 orbit 되는 리그 결합 회피. 자유 관전 카메라(아레나 중심
+			// 궤도)는 전용 리그(후속). 이동(Move)은 본디 관전 중 불가.
 			{
 				InputAxisType.Move,
-				new[]
-				{
-					GameConditionType.IsSpectating,
-				}
+				new[] { GameConditionType.IsSpectating }
 			},
-			// 시점 회전/마우스룩 = 관전자 카메라 자유 (일반 게이트만 — 일시정지/타이핑/전환/UI).
 			{
 				InputAxisType.CameraRotate,
-				new[]
-				{
-					GameConditionType.IsPaused,
-					GameConditionType.IsTyping,
-					GameConditionType.IsInTransition,
-					GameConditionType.IsViewingUI
-				}
+				new[] { GameConditionType.IsSpectating }
 			},
 			{
 				InputAxisType.Look,
-				new[]
-				{
-					GameConditionType.IsPaused,
-					GameConditionType.IsTyping,
-					GameConditionType.IsInTransition,
-					GameConditionType.IsViewingUI
-				}
+				new[] { GameConditionType.IsSpectating }
 			}
 		};
 	}

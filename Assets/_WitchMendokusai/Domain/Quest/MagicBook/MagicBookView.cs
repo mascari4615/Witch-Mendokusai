@@ -170,6 +170,19 @@ namespace WitchMendokusai
 				button.AddToClassList("wm-magic-book-chapter-btn");
 				chapterListContainer.Add(button);
 			}
+
+			// TASK-WM-165 item9 — 투기장(관전 모드) 진입 항목 (★사용자 컨펌 진입점). 스펠 연구 챕터와 구분해 하단 분리 배치.
+			Button arenaButton = new Button(EnterArena) { text = "⚔ 투기장" };
+			arenaButton.AddToClassList("wm-magic-book-arena-btn");
+			arenaButton.style.marginTop = 16;
+			chapterListContainer.Add(arenaButton);
+		}
+
+		// TASK-WM-165 item9 — 마도서 → 투기장 진입. 마도서 닫고 GameMode.Arena 로 (ArenaModeController 가 카메라/입력/매치 처리).
+		private void EnterArena()
+		{
+			Close();
+			GameModeManager.Instance.SetMode(GameMode.Arena);
 		}
 
 		private void OpenChapter(ChapterSO chapter)

@@ -23,6 +23,9 @@ namespace WitchMendokusai
 		// TASK-WM-174 Phase 5b-2 — 솥 지도 prefab 등록 여부(미생성 시 eager resolve 스킵, cross-session build-red 회피).
 		private bool cauldronMapRegistered;
 
+		// TASK-WM-165 item9 — 투기장 모드 컨트롤러 prefab 등록 여부 (미생성 시 eager resolve 스킵, cross-session build-red 회피).
+		private bool arenaModeControllerRegistered;
+
 		private bool IsInScene<T>() where T : Component
 		{
 			foreach (T component in FindObjectsByType<T>(FindObjectsInactive.Include))
@@ -55,7 +58,6 @@ namespace WitchMendokusai
 			RegisterInHierarchyIfPresent<UIManager>(builder);
 			RegisterInHierarchyIfPresent<CameraManager>(builder);
 			RegisterInHierarchyIfPresent<BuildManager>(builder);
-			RegisterInHierarchyIfPresent<ArenaModeController>(builder); // TASK-WM-165 item9 — 투기장 모드 진입/이탈
 			RegisterInHierarchyIfPresent<CityPaintManager>(builder); // TASK-WM-164 SimCity Phase1 step5
 			RegisterInHierarchyIfPresent<ChatManager>(builder);
 			RegisterInHierarchyIfPresent<ToolTipPopupManager>(builder);
@@ -104,6 +106,16 @@ namespace WitchMendokusai
 				cauldronMapRegistered = true;
 			}
 
+			// TASK-WM-165 item9 — 투기장 모드 컨트롤러 (Resources/Singletons prefab, CauldronMapController 미러).
+			// Lifetime.Scoped = GameModeManager 구독 라이프사이클 정합 + World.unity 미배치(다세션 씬 경합 면역).
+			// prefab 미생성(코드 먼저 push)에 World boot 안 깨지게 null-guard.
+			ArenaModeController arenaModeControllerPrefab = Resources.Load<ArenaModeController>("Singletons/ArenaModeController");
+			if (arenaModeControllerPrefab != null)
+			{
+				builder.RegisterComponentInNewPrefab(arenaModeControllerPrefab, Lifetime.Scoped);
+				arenaModeControllerRegistered = true;
+			}
+
 			builder.RegisterComponentOnNewGameObject<GameModeManager>(Lifetime.Scoped, nameof(GameModeManager));
 			builder.RegisterComponentOnNewGameObject<DialogueRunner>(Lifetime.Scoped, nameof(DialogueRunner));
 
@@ -120,7 +132,8 @@ namespace WitchMendokusai
 				ResolveIfPresent<UIManager>(container);
 				ResolveIfPresent<CameraManager>(container);
 				ResolveIfPresent<BuildManager>(container);
-				ResolveIfPresent<ArenaModeController>(container); // TASK-WM-165 item9 — 등록↔해소 짝
+				if (arenaModeControllerRegistered)
+					BootGuard.EagerResolve<ArenaModeController>(container, "Scene"); // TASK-WM-165 item9 — prefab 등록↔해소 짝
 				ResolveIfPresent<CityPaintManager>(container); // TASK-WM-164 step5 — 등록↔해소 짝
 				ResolveIfPresent<ChatManager>(container);
 				ResolveIfPresent<ToolTipPopupManager>(container);
