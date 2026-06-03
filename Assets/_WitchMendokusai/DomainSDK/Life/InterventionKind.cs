@@ -5,6 +5,7 @@ namespace WitchMendokusai.DomainSDK.Life
     ///
     /// 욕구 해소 4종(Feed→Hunger / Rest→Energy / Cheer→Mood / Socialize→Social): 아이템·돌봄으로 채움.
     /// Mediate: 다툰 둘의 친밀도 회복(중재). Bond: 관계 단계 도약(연애·결혼 게이트 통과) — 핵심.
+    /// AssignWork: 한 주민에게 일을 지정(override) — 자율 노동 위에 4호가 원할 때만(TASK-WM-183 INC-W2).
     /// 4호 = 관찰자 인형 = 욘의 의지 대리. 큰 인연(Bond)은 세계가 아니라 4호가 정한다(INC-3 invariant).
     /// </summary>
     public enum InterventionKind
@@ -15,5 +16,6 @@ namespace WitchMendokusai.DomainSDK.Life
         Socialize = 3,
         Mediate = 4,
         Bond = 5,
+        AssignWork = 6,
     }
 }

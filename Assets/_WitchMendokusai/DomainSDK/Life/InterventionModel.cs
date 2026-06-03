@@ -83,5 +83,21 @@ namespace WitchMendokusai.DomainSDK.Life
         {
             RelationshipModel.AddAffinity(state, parameters, restore);
         }
+
+        /// <summary>
+        /// 4호가 한 주민에게 일을 지정(override) — 만료 전까지 그 일을 우선(<see cref="WorkState.Assign"/>).
+        /// 자율-우선 정신: 평소엔 안 박고 4호가 *원할 때만*. Idle 지정·시간 ≤ 0 은 무효(false) — "일"을 시키는 것이라 무위는 거절.
+        /// 일을 멈추게 하려면 override 가 아니라 <see cref="WorkState.ClearAssignment"/>(자율 복귀).
+        /// </summary>
+        public static bool ApplyWorkOverride(WorkState workState, WorkKind kind, int minutes)
+        {
+            if (minutes <= 0 || kind == WorkKind.Idle)
+            {
+                return false;
+            }
+
+            workState.Assign(kind, minutes);
+            return true;
+        }
     }
 }
