@@ -40,6 +40,8 @@ namespace WitchMendokusai
 
 		private readonly Greenhouse greenhouse = new();
 		private readonly Dictionary<int, GameObject> plotVisuals = new();
+		// 칸별 IInteractable 래퍼 — Fourth 가 클릭(Z키)해 관찰·수확하는 씬 진입점(plotId → 그 칸 오브젝트).
+		private readonly Dictionary<int, WitchGreenhousePlotObject> plotObjects = new();
 		// placeholder 큐브 색 = MaterialPropertyBlock(에디트 모드 material 인스턴스화 경고·런타임 누수 방지). URP = _BaseColor.
 		private static readonly int BASE_COLOR_ID = Shader.PropertyToID("_BaseColor");
 		private static readonly int COLOR_ID = Shader.PropertyToID("_Color");
@@ -177,7 +179,7 @@ namespace WitchMendokusai
 
 				if (withVisuals)
 				{
-					SpawnPlaceholderVisual(plotId);
+					SpawnPlaceholderVisual(plotId, plant);
 				}
 			}
 
@@ -194,7 +196,7 @@ namespace WitchMendokusai
 
 				if (withVisuals)
 				{
-					SpawnPlaceholderVisual(plotId);
+					SpawnPlaceholderVisual(plotId, plant);
 				}
 			}
 
@@ -246,16 +248,34 @@ namespace WitchMendokusai
 
 			if (result.IsSpecimen)
 			{
-				OnPlotBecameSpecimen.Invoke(plotId, result.PlantDataId);
+				HandleSpecimen(plotId, result.PlantDataId);
+			}
+			else
+			{
+				RefreshVisuals();
+			}
 
-				if (DataManager.TryGetExistingInstance(out DataManager dataManager))
-				{
-					dataManager.SpecimenCollected[result.PlantDataId] = true;
-				}
+			return true;
+		}
+
+		// 표본 「진짜화」 영구 기록 — Harvest(시스템) + WitchGreenhousePlotObject(플레이어 클릭) 공통 경로(DRY).
+		// 도감(DataManager.SpecimenCollected)에 박고 상위 알림 + 시각 갱신. 부트 전(EditMode 등)엔 이벤트만.
+		private void HandleSpecimen(int plotId, int plantDataId)
+		{
+			OnPlotBecameSpecimen.Invoke(plotId, plantDataId);
+
+			if (DataManager.TryGetExistingInstance(out DataManager dataManager))
+			{
+				dataManager.SpecimenCollected[plantDataId] = true;
 			}
 
 			RefreshVisuals();
-			return true;
+		}
+
+		// 칸별 IInteractable 오브젝트 접근(상위 배선·쿼리·테스트). 미생성(withVisuals=false)이면 null.
+		public WitchGreenhousePlotObject GetPlotObject(int plotId)
+		{
+			return plotObjects.TryGetValue(plotId, out WitchGreenhousePlotObject plotObject) ? plotObject : null;
 		}
 
 		// ★ 핵심 public 진입점(틱 소스 무관 — EditMode 직접 호출). 하루치 시간 경과 + 인형 자동돌봄 +
@@ -325,8 +345,8 @@ namespace WitchMendokusai
 			return greenhouse.AddPlot(plotId);
 		}
 
-		// placeholder 큐브 1개 생성(한 칸). 실 모델 = Grey Box. 색은 RefreshVisuals 가 phase 로 칠함.
-		private void SpawnPlaceholderVisual(int plotId)
+		// placeholder 큐브 1개 생성(한 칸) + 클릭 가능하게 배선. 실 모델 = Grey Box. 색은 RefreshVisuals 가 phase 로.
+		private void SpawnPlaceholderVisual(int plotId, WitchPlantSO plant)
 		{
 			if (plotVisuals.ContainsKey(plotId))
 			{
@@ -337,7 +357,41 @@ namespace WitchMendokusai
 			cube.name = $"Plot_{plotId}";
 			cube.transform.SetParent(transform, worldPositionStays: false);
 			cube.transform.localPosition = new Vector3(plotId * autoPlotSpacing, 0f, 0f);
+
+			// 상호작용은 거리 기반(InteractiveObject.GetNearest 1.5f) — 물리 충돌 불요. placeholder 콜라이더 제거.
+			Collider primitiveCollider = cube.GetComponent<Collider>();
+			if (primitiveCollider != null)
+			{
+				if (Application.isPlaying)
+				{
+					Destroy(primitiveCollider);
+				}
+				else
+				{
+					DestroyImmediate(primitiveCollider);
+				}
+			}
+
+			WireInteractable(cube, plotId, plant);
 			plotVisuals[plotId] = cube;
+		}
+
+		// 칸 GameObject 를 Fourth 클릭 대상으로 배선. WitchGreenhousePlotObject(IInteractable — phase별 동사:
+		// Empty=심기/Growing=관찰/Bloomed=수확/Withered=치움) + InteractiveObject(PlayerInteraction 이 1.5f 내 탐색→OnInteract).
+		// 칸과 같은 GreenhousePlot 을 공유(인형 자동돌봄과 동일 모델) — 칸 이벤트를 온실로 끌어올려 시각·표본 영구화.
+		private void WireInteractable(GameObject cube, int plotId, WitchPlantSO plant)
+		{
+			// WitchGreenhousePlotObject 를 먼저 붙여야 InteractiveObject.Awake 의 GetComponents<IInteractable>() 가 잡는다.
+			WitchGreenhousePlotObject plotObject = cube.AddComponent<WitchGreenhousePlotObject>();
+			plotObject.Bind(plotId, greenhouse.GetPlot(plotId));
+			plotObject.SetPlant(plant); // 수확 후 빈 칸 재심기용
+
+			plotObject.OnObserved += _ => RefreshVisuals();
+			plotObject.OnHarvested += _ => RefreshVisuals();
+			plotObject.OnBecameSpecimen += specimen => HandleSpecimen(specimen.FieldId, specimen.PlantDataId);
+
+			cube.AddComponent<InteractiveObject>();
+			plotObjects[plotId] = plotObject;
 		}
 
 		// 칸 phase 로 placeholder 큐브 색 갱신(Growing 초록 / Bloomed 노랑 / Withered 갈색 / Empty 회색).
