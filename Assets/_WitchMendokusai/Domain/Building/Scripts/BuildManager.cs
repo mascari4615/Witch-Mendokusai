@@ -126,7 +126,8 @@ namespace WitchMendokusai
 		public Vector3 GetWorldPosition(Vector3Int gridPosition)
 		{
 			Vector3 worldPos = grid.GetCellCenterWorld(gridPosition);
-			worldPos.y = 0.01f;
+			// TASK-WM-181 INC-1 — 평탄 0.01 대신 실제 지면(복셀 GroundSurface) 높이 샘플. 깊이 있는 월드 정합.
+			worldPos.y = GroundProbe.SampleSurfaceY(worldPos.x, worldPos.z, worldPos.y);
 			return worldPos;
 		}
 
@@ -135,7 +136,8 @@ namespace WitchMendokusai
 			Vector3 pivotPos = grid.GetCellCenterWorld(gridPosition);
 			Vector3 endPos = grid.GetCellCenterWorld(gridPosition + new Vector3Int(-size.x + 1, size.y - 1, 0));
 			Vector3 worldPos = Vector3.Lerp(pivotPos, endPos, 0.5f);
-			worldPos.y = 0.01f;
+			// TASK-WM-181 INC-1 — 다중 셀 건물 중심도 지면 높이 따라감 (평탄 0.01 폐기).
+			worldPos.y = GroundProbe.SampleSurfaceY(worldPos.x, worldPos.z, worldPos.y);
 			return worldPos;
 		}
 

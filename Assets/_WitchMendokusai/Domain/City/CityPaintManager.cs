@@ -366,7 +366,8 @@ namespace WitchMendokusai
 				Vector3 fromPos = buildManager.GetWorldPosition(fromCell);
 				Vector3 toPos = buildManager.GetWorldPosition(toCell);
 				Vector3 pos = Vector3.Lerp(fromPos, toPos, t);
-				agent.Visual.transform.position = new Vector3(pos.x, citizenHeight, pos.z);
+				// TASK-WM-181 INC-1 — pos.y = 지면(GetWorldPosition 보간) → 시민도 지형 위로 떠 따라감(평탄 X).
+				agent.Visual.transform.position = new Vector3(pos.x, pos.y + citizenHeight, pos.z);
 			}
 		}
 
@@ -682,13 +683,15 @@ namespace WitchMendokusai
 		{
 			Transform tr = cube.transform;
 			float fullScaleY = tr.localScale.y; // = buildingHeight
-			float fullPosY = tr.position.y;     // = buildingHeight * 0.5 (밑면 y=0)
+			float fullPosY = tr.position.y;     // = groundY + buildingHeight*0.5 (밑면이 지면 위)
 			float startScaleY = fullScaleY * 0.02f; // 거의 납작하게 시작
+			// TASK-WM-181 INC-1 — 밑면을 지면(groundY)에 고정. 평탄 0 가정 폐기 → 깊이 있는 월드에서 지면 위 솟음.
+			float groundY = fullPosY - fullScaleY * 0.5f;
 
 			Vector3 scale = tr.localScale;
 			tr.localScale = new Vector3(scale.x, startScaleY, scale.z);
 			Vector3 pos = tr.position;
-			tr.position = new Vector3(pos.x, startScaleY * 0.5f, pos.z);
+			tr.position = new Vector3(pos.x, groundY + startScaleY * 0.5f, pos.z);
 
 			tr.DOKill();
 			tr.DOScaleY(fullScaleY, buildingRiseDuration).SetEase(buildingRiseEase);
@@ -731,7 +734,8 @@ namespace WitchMendokusai
 				Destroy(cubeCollider);
 
 			Vector3 buildPos = buildManager.GetWorldPosition(cell);
-			cube.transform.position = new Vector3(buildPos.x, height * 0.5f, buildPos.z);
+			// TASK-WM-181 INC-1 — buildPos.y = 실제 지면(GroundProbe). 밑면을 지면에 올리고 height/2 만큼 띄움(평탄 0 폐기).
+			cube.transform.position = new Vector3(buildPos.x, buildPos.y + height * 0.5f, buildPos.z);
 			cube.transform.rotation = buildManager.Grid.transform.rotation; // 다이아몬드 칸 정합
 			Vector3 cellSize = buildManager.Grid.cellSize;
 			cube.transform.localScale = new Vector3(cellSize.x * cellTileScale, height, cellSize.y * cellTileScale);
