@@ -22,11 +22,13 @@ namespace WitchMendokusai
 		private const string CONFIG_PATH = "Assets/_WitchMendokusai/Domain/Arena/Match/ArenaMatchConfig.asset";
 		private const float ARENA_OFFSET_Z = 1000f;
 		private const string AUTOVERIFY_KEY = "WM_ARENA_AUTOVERIFY"; // EditorPrefs 1회성 플래그.
+		private const string AUTOVERIFY_COUNT_KEY = "WM_ARENA_AUTOVERIFY_COUNT"; // 연속 매치 수(재매치 검증 = 2).
 		private const int AUTOVERIFY_READY_TIMEOUT_FRAMES = 6000; // World 부팅(BootObserver.WorldReady) 대기 상한. 초과 = 포기+경고.
 		private const int AUTOVERIFY_SETTLE_FRAMES = 30; // WorldReady 도달 후 정착 대기(씬/매니저 안정).
 
 		private static int autoVerifyWaitFrames;
 		private static int autoVerifySettleFrames;
+		private static int autoVerifyMatchesLeft; // 남은 연속 매치 수(체이닝).
 
 		[InitializeOnLoadMethod]
 		private static void HookPlayModeStateChanged()
@@ -75,7 +77,16 @@ namespace WitchMendokusai
 		public static void ArmAutoVerify()
 		{
 			EditorPrefs.SetBool(AUTOVERIFY_KEY, true);
-			Debug.Log("[Arena-Verify] ARMED — 다음 Play 진입 시 자동 매치+종결+Play 종료. 이제 Play(▶) 를 누르세요.");
+			EditorPrefs.SetInt(AUTOVERIFY_COUNT_KEY, 1);
+			Debug.Log("[Arena-Verify] ARMED (x1) — 다음 Play 진입 시 자동 매치+종결+Play 종료. 이제 Play(▶) 를 누르세요.");
+		}
+
+		[MenuItem("WM/Arena/Arm Auto-Verify Rematch (x2, next Play)")]
+		public static void ArmAutoVerifyRematch()
+		{
+			EditorPrefs.SetBool(AUTOVERIFY_KEY, true);
+			EditorPrefs.SetInt(AUTOVERIFY_COUNT_KEY, 2);
+			Debug.Log("[Arena-Verify] ARMED (x2 rematch) — 다음 Play 진입 시 자동 매치 2연속+Play 종료(재매치 검증). 이제 Play(▶) 를 누르세요.");
 		}
 
 		/// <summary> 헤드리스 매치 시작 — UI 게이트 우회 즉시 Begin. 실패 시 null. </summary>
@@ -109,10 +120,15 @@ namespace WitchMendokusai
 				return false;
 			}
 
-			// 이전 매치 잔재 정리(같은 Play 세션 재매치 누수 방지) — ArenaMatch 파괴 시 OnDestroy→Dispose 가
-			// 스폰 유닛 풀 반환 + targeting unregister + 맵 기하 정리. 그 뒤 빈 루트/카메라 파괴.
+			// 이전 매치 잔재 정리(같은 Play 세션 재매치 누수 방지). ★ Dispose() 를 *동기* 호출 —
+			// Object.Destroy 는 end-of-frame 이라 OnDestroy→Dispose 가 다음 매치 스폰 *후* 실행됨.
+			// 다음 매치가 같은 풀 인스턴스를 재사용하면, 늦은 Dispose 의 StopDriving(RemoveCallback+runner=null)이
+			// 방금 등록한 OnTick 콜백/runner 를 clobber → 재사용 유닛이 안 tick(미전투). 동기 Dispose 로 스폰 전 완결.
 			foreach (ArenaMatch existing in Object.FindObjectsByType<ArenaMatch>(FindObjectsSortMode.None))
+			{
+				existing.Dispose();
 				Object.Destroy(existing.gameObject);
+			}
 			GameObject priorRoot = GameObject.Find("ArenaMatchRoot");
 			if (priorRoot != null)
 				Object.Destroy(priorRoot);
@@ -149,11 +165,12 @@ namespace WitchMendokusai
 
 			// 1회성 — 진입 즉시 소거(이후 정상 play 는 절대 자동 매치 X).
 			EditorPrefs.SetBool(AUTOVERIFY_KEY, false);
+			autoVerifyMatchesLeft = Mathf.Max(1, EditorPrefs.GetInt(AUTOVERIFY_COUNT_KEY, 1));
 			autoVerifyWaitFrames = 0;
 			autoVerifySettleFrames = 0;
 			EditorApplication.update -= AutoVerifyWaitForBoot;
 			EditorApplication.update += AutoVerifyWaitForBoot;
-			Debug.Log("[Arena-Verify] AUTO-START armed — World 부팅 대기 중...");
+			Debug.Log($"[Arena-Verify] AUTO-START armed (x{autoVerifyMatchesLeft}) — World 부팅 대기 중...");
 		}
 
 		// World 부팅(매니저 준비) 폴 → 준비되면 헤드리스 매치 시작 + 종결 시 Play 자동 종료.
@@ -187,14 +204,35 @@ namespace WitchMendokusai
 				return; // 안전 가드 — 보통 WorldReady 면 준비됨.
 
 			EditorApplication.update -= AutoVerifyWaitForBoot;
+			StartNextAutoVerifyMatch();
+		}
 
+		// 연속 매치 체이닝 — 한 매치 종결 시 남은 카운트 있으면 다음 매치(재매치 검증), 없으면 Play 자동 종료.
+		private static void StartNextAutoVerifyMatch()
+		{
 			ArenaMatch match = StartHeadlessMatch();
 			if (match == null)
+			{
+				if (Application.isPlaying)
+					EditorApplication.isPlaying = false;
 				return;
+			}
 
-			// 종결 시 Play 자동 종료 → 도메인 리로드 → MCP 브릿지 회복(Editor.log 결론을 read_console 로 교차검증 가능).
 			match.MatchEnded += _ =>
 			{
+				autoVerifyMatchesLeft--;
+				if (autoVerifyMatchesLeft > 0)
+				{
+					// 다음 매치 — 한 프레임 양보(이전 매치 Dispose/teardown 정착 후).
+					EditorApplication.delayCall += () =>
+					{
+						if (Application.isPlaying)
+							StartNextAutoVerifyMatch();
+					};
+					return;
+				}
+
+				// 마지막 매치 종결 → Play 자동 종료 → 도메인 리로드 → MCP 브릿지 회복.
 				EditorApplication.delayCall += () =>
 				{
 					if (Application.isPlaying)

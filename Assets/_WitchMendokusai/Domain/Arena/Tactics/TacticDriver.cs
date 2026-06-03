@@ -25,6 +25,7 @@ namespace WitchMendokusai
 		public void Initialize(TacticProgram program, ITargetResolver targeting, TimeManager timeManager)
 		{
 			this.timeManager = timeManager;
+			tickAccum = 0f; // 풀 재사용 driver 의 잔여 누적 리셋(재매치 첫 게이트 타이밍 결정성).
 			TacticContext context = new(self, targeting, this, IsSkillReady);
 			runner = new TacticBTRunner(context, program);
 
