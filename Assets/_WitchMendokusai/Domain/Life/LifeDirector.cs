@@ -26,10 +26,11 @@ namespace WitchMendokusai
 
 			NeedProfile profile = BuildDefaultProfile();
 			agents = FindObjectsByType<LifeAgent>(FindObjectsSortMode.None);
-			foreach (LifeAgent agent in agents)
+			for (int index = 0; index < agents.Length; index++)
 			{
-				agent.Initialize(profile, BuildDefaultState());
-				agent.AttachClock(timeManager);
+				// index = 위상 → 같은 순간 서로 다른 활동(색). self-care(LifeAgent) 가 욕구를 채워 자연 순환.
+				agents[index].Initialize(profile, BuildDefaultState(index));
+				agents[index].AttachClock(timeManager);
 			}
 
 			if (WorldClock.TryGetExistingInstance(out worldClock))
@@ -58,26 +59,31 @@ namespace WitchMendokusai
 			}
 		}
 
-		// 공통 디폴트 욕구 프로필 — 분당 감소·문제 임계·상한(수치노출). INC-7 에서 캐릭터별 SO 로 대체.
+		// 공통 디폴트 욕구 프로필 — 분당 감소·문제 임계(50 공통)·상한(수치노출). INC-7 에서 캐릭터별 SO 로 대체.
+		// decay 1.4/1.2/1.0/0.9 = self-care(LifeAgent.selfSatisfyPerMinute) 와 균형 잡혀 어느 하나 독점 없이 순환.
 		private static NeedProfile BuildDefaultProfile()
 		{
 			Dictionary<NeedKind, NeedSpec> specs = new()
 			{
-				{ NeedKind.Hunger, new NeedSpec(0.6f, 30f, 100f) },
-				{ NeedKind.Energy, new NeedSpec(0.4f, 25f, 100f) },
-				{ NeedKind.Mood, new NeedSpec(0.3f, 20f, 100f) },
-				{ NeedKind.Social, new NeedSpec(0.3f, 25f, 100f) },
+				{ NeedKind.Hunger, new NeedSpec(1.4f, 50f, 100f) },
+				{ NeedKind.Energy, new NeedSpec(1.2f, 50f, 100f) },
+				{ NeedKind.Mood, new NeedSpec(1.0f, 50f, 100f) },
+				{ NeedKind.Social, new NeedSpec(0.9f, 50f, 100f) },
 			};
 			return new NeedProfile(specs);
 		}
 
-		// 초기엔 적당히 채워진 상태로 시작 — 시간이 흐르며 자연스레 결핍이 생기도록.
-		private static NeedState BuildDefaultState()
+		// 위상차 시작 상태 — phase 만큼 욕구 사다리를 회전(여럿이 같은 순간 다른 활동·색). 시간이 흐르며 결핍 발생.
+		private static NeedState BuildDefaultState(int phase)
 		{
-			return new NeedState(new Dictionary<NeedKind, float>
+			float[] ladder = { 40f, 55f, 70f, 85f };
+			NeedKind[] order = { NeedKind.Hunger, NeedKind.Energy, NeedKind.Mood, NeedKind.Social };
+			Dictionary<NeedKind, float> values = new();
+			for (int index = 0; index < order.Length; index++)
 			{
-				{ NeedKind.Hunger, 80f }, { NeedKind.Energy, 80f }, { NeedKind.Mood, 70f }, { NeedKind.Social, 70f },
-			});
+				values[order[index]] = ladder[(index + phase) % ladder.Length];
+			}
+			return new NeedState(values);
 		}
 	}
 }

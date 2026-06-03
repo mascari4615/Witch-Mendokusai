@@ -21,6 +21,9 @@ namespace WitchMendokusai
 		[SerializeField] private float wanderInterval = 2f;
 		// 이동 속도(유닛/초). 자체 transform 이동 — 큐브든 캐릭터든 의존 없이 어슬렁. 수치노출.
 		[SerializeField] private float moveSpeed = 2f;
+		// 지금 하는 활동이 그 욕구를 분당 채우는 양(자율 self-care). 소진보다 커야 욕구가 회복돼 다음 활동으로 순환.
+		// 0 = self-care 끔(욕구는 4호 개입(INC-4)으로만 채워짐). 수치노출 — 자율 일상 리듬 손잡이.
+		[SerializeField] private float selfSatisfyPerMinute = 6f;
 
 		private TimeManager timeManager;
 		private float wanderTimer;
@@ -38,6 +41,9 @@ namespace WitchMendokusai
 		public event Action<ActivityKind> OnActivityChanged = delegate { };
 
 		public NeedState NeedState => needState;
+
+		/// <summary>true 면 활동 전환마다 `[Life]` 로그(헤드리스 검증·디버그). 더미/프리뷰에서만 켬(런타임 set).</summary>
+		public bool LogActivityChanges { get; set; }
 
 		/// <summary>욕구 프로필·초기 상태 주입(초기 활동 1회 산정). 틱 구동은 AttachClock 으로 분리 — 테스트 가능.</summary>
 		public void Initialize(NeedProfile profile, NeedState initialState)
@@ -98,6 +104,18 @@ namespace WitchMendokusai
 
 			NeedModel.Step(needState, profile, minutes);
 			RefreshActivity();
+
+			// 자율 self-care — 지금 고른 활동이 그 욕구를 스스로 채운다(밥 먹으면 배부름). 기본 일상 회복.
+			// 소진(Step)보다 회복이 크면 욕구가 임계 위로 올라 다음 급한 욕구로 넘어가 활동이 순환(살아있음).
+			// 4호 개입(INC-4)과 별개: 여긴 캐릭터가 혼자 푸는 기본 욕구, 개입은 못 푸는 문제·관계 도약.
+			if (selfSatisfyPerMinute > 0f)
+			{
+				NeedKind? selfCare = ActivitySelector.NeedForActivity(CurrentActivity);
+				if (selfCare.HasValue)
+				{
+					NeedModel.Satisfy(needState, profile, selfCare.Value, selfSatisfyPerMinute * minutes);
+				}
+			}
 		}
 
 		private void RefreshActivity()
@@ -110,6 +128,11 @@ namespace WitchMendokusai
 
 			CurrentActivity = next;
 			ApplyActivityVisual(next);
+			if (LogActivityChanges)
+			{
+				// 자율 두뇌 heartbeat — 전환마다 1줄(greppable `[Life]`). 헤드리스 검증·디버그용(Play 시 Editor.log).
+				Debug.Log($"[Life] {name} → {next}");
+			}
 			OnActivityChanged(next);
 		}
 

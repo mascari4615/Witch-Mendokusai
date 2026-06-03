@@ -1,0 +1,86 @@
+using UnityEngine;
+using UnityEngine.SceneManagement;
+
+namespace WitchMendokusai
+{
+	/// <summary>
+	/// TASK-WM-168 INC-5d — 자율 삶 레이어를 *실제 게임*(World 씬)에 런타임 스폰하는 부트스트랩.
+	/// World.unity 를 직접 편집하지 않는다(5세션 공유 씬 commit race 회피) — Play 시 코드로 더미 주민을 깐다.
+	///
+	/// 지금은 메커니즘 first-use 더미(캡슐 N체, 로어 미정 — 사용자 결정 2026-05-31). 색이 휙휙 = 자율 두뇌 가시 증거.
+	/// 위치·개수·외형 = 시각(사용자 영역) → 수치 노출 + <see cref="Enabled"/> 토글로 쉽게 끄거나 옮긴다.
+	/// 미래(INC-7): LifeProfileSO + UGC 입주가 이 하드코딩 더미를 대체.
+	/// </summary>
+	public static class LifeWorldBootstrap
+	{
+		// 자율 삶 더미를 깔 게임 씬 이름. 이 씬이 로드될 때만 스폰(Boot/로딩 씬엔 안 깖).
+		private const string WORLD_SCENE = "World";
+		// 스폰 더미 수(수치노출 — 시각 손잡이). 위상차로 같은 순간 다른 색.
+		private const int DUMMY_COUNT = 3;
+		// 광장 중심(월드 좌표) + 더미 간격(수치노출). 월드 레이아웃 모르는 dev 디폴트 — 사용자가 옮김.
+		private static readonly Vector3 PLAZA_CENTER = new(0f, 1f, 6f);
+		private const float DUMMY_SPACING = 2.5f;
+		private const string VILLAGE_ROOT_NAME = "[Life] 더미 마을 (프리뷰)";
+
+		/// <summary>false 면 게임에 더미를 안 깖(로어 캐릭터 배선 후 끄기 등). 코드 토글 — 수동 경로.</summary>
+		public static bool Enabled { get; set; } = true;
+
+		// Play 진입(AfterSceneLoad) 시 구독 + 즉시 검사. WM 부트는 Boot→World(나중 로드)지만, World 로 바로 Play 시작하면
+		// 그 sceneLoaded 가 이 훅 *전*에 끝나 놓친다 → 이미 로드된 World 도 즉시 검사(둘 다 커버).
+		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+		private static void Hook()
+		{
+			SceneManager.sceneLoaded -= OnSceneLoaded; // 도메인 재로드 잔여 중복 구독 방지.
+			SceneManager.sceneLoaded += OnSceneLoaded;
+
+			for (int index = 0; index < SceneManager.sceneCount; index++)
+			{
+				Scene scene = SceneManager.GetSceneAt(index);
+				if (scene.isLoaded)
+				{
+					TrySpawn(scene); // 훅 시점에 World 가 이미 떠 있으면 지금 스폰(이벤트 미발화 케이스).
+				}
+			}
+		}
+
+		private static void OnSceneLoaded(Scene scene, LoadSceneMode mode) => TrySpawn(scene);
+
+		private static void TrySpawn(Scene scene)
+		{
+			if (Enabled == false || scene.name != WORLD_SCENE)
+			{
+				return;
+			}
+
+			if (GameObject.Find(VILLAGE_ROOT_NAME) != null)
+			{
+				return; // 이미 깔림(재진입·중복 경로) — 1회만.
+			}
+
+			SpawnVillage(scene);
+		}
+
+		private static void SpawnVillage(Scene worldScene)
+		{
+			GameObject root = new(VILLAGE_ROOT_NAME);
+			SceneManager.MoveGameObjectToScene(root, worldScene); // World 씬 소속(씬 언로드 시 같이 정리).
+
+			float start = -(DUMMY_COUNT - 1) * DUMMY_SPACING * 0.5f;
+			for (int index = 0; index < DUMMY_COUNT; index++)
+			{
+				GameObject dummy = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+				dummy.name = $"[Life] 더미 주민 {index + 1}";
+				dummy.transform.SetParent(root.transform);
+				dummy.transform.position = PLAZA_CENTER + new Vector3(start + index * DUMMY_SPACING, 0f, 0f);
+
+				LifeAgent agent = dummy.AddComponent<LifeAgent>();
+				agent.LogActivityChanges = true; // 헤드리스 검증: 전환마다 `[Life]` 로그.
+			}
+
+			// LifeDirector 가 같은 씬 LifeAgent 들을 발견→프로필/위상/시계 주입(자기 Start). 더미와 같은 루트에 부착.
+			root.AddComponent<LifeDirector>();
+
+			Debug.Log($"[Life] 더미 마을 스폰: {DUMMY_COUNT}체 @ {PLAZA_CENTER} (World). 끄기 = LifeWorldBootstrap.Enabled=false.");
+		}
+	}
+}

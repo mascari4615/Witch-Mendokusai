@@ -31,5 +31,18 @@ namespace WitchMendokusai.DomainSDK.Life
             NeedKind.Social => ActivityKind.Socialize,
             _ => ActivityKind.Idle,
         };
+
+        /// <summary>
+        /// 한 활동이 채우는 욕구 — <see cref="ActivityForNeed"/> 의 역. 자율 self-care(활동 수행 = 그 욕구 자가 회복)의 입력.
+        /// Idle 은 채울 욕구 없음(배회·쉼) → null. 관계 도약은 활동이 아니라 4호 개입(INC-4)이라 여기 없음.
+        /// </summary>
+        public static NeedKind? NeedForActivity(ActivityKind activity) => activity switch
+        {
+            ActivityKind.Eat => NeedKind.Hunger,
+            ActivityKind.Sleep => NeedKind.Energy,
+            ActivityKind.Hobby => NeedKind.Mood,
+            ActivityKind.Socialize => NeedKind.Social,
+            _ => null,
+        };
     }
 }
