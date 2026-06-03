@@ -254,22 +254,24 @@ namespace WitchMendokusai
             StrokeCircle(painter, targetPixels, Mathf.Max(target.Radius * pixelsPerUnit, 6f), TargetColor, 2f);
             FillCircle(painter, targetPixels, 3f, TargetColor);
 
-            // 누적 경로 (원점 → 각 step 끝점, 보랏빛 잉크 선).
+            // 누적 경로 (원점 → 각 step 끝점, 보랏빛 잉크 선). 재료 0개 = 경로 없음(빈 stroke 아티팩트 회피).
             IReadOnlyList<BrewStep> steps = session.Steps;
-            BrewVector cursor = BrewVector.Zero;
-            Vector2 fromPixels = EffectToPixels(cursor);
-            painter.strokeColor = PathColor;
-            painter.lineWidth = 2.5f;
-            painter.lineCap = LineCap.Round;
-            painter.lineJoin = LineJoin.Round;
-            painter.BeginPath();
-            painter.MoveTo(fromPixels);
-            for (int i = 0; i < steps.Count; i++)
+            if (steps.Count > 0)
             {
-                cursor = cursor + steps[i].Direction * steps[i].Grind;
-                painter.LineTo(EffectToPixels(cursor));
+                BrewVector cursor = BrewVector.Zero;
+                painter.strokeColor = PathColor;
+                painter.lineWidth = 2.5f;
+                painter.lineCap = LineCap.Round;
+                painter.lineJoin = LineJoin.Round;
+                painter.BeginPath();
+                painter.MoveTo(EffectToPixels(cursor));
+                for (int i = 0; i < steps.Count; i++)
+                {
+                    cursor = cursor + steps[i].Direction * steps[i].Grind;
+                    painter.LineTo(EffectToPixels(cursor));
+                }
+                painter.Stroke();
             }
-            painter.Stroke();
 
             // 드래그 미리보기 (갈기 방향 점선 느낌 = 실선 회색).
             if (dragging)
