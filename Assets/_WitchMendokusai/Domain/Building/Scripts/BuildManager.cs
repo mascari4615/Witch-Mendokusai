@@ -47,7 +47,9 @@ namespace WitchMendokusai
 		public Dictionary<Vector3Int, BuildingObject> BuildingObjectsByPos { get; } = new();
 
 		private Building selectedBuilding = null;
+		// TASK-WM-181 INC-2 — gridPosition = 배치 셀(맞은 면 바깥 인접, 마크식) / removeGridPosition = 제거 셀(맞은 셀).
 		private Vector3Int gridPosition = Vector3Int.zero;
+		private Vector3Int removeGridPosition = Vector3Int.zero;
 		private float lastClickTime = 0f;
 		private const float CLICK_COOLDOWN = 0.1f; // 클릭 간 최소 시간 간격 (초)
 
@@ -126,8 +128,10 @@ namespace WitchMendokusai
 		public Vector3 GetWorldPosition(Vector3Int gridPosition)
 		{
 			Vector3 worldPos = grid.GetCellCenterWorld(gridPosition);
-			// TASK-WM-181 INC-1 — 평탄 0.01 대신 실제 지면(복셀 GroundSurface) 높이 샘플. 깊이 있는 월드 정합.
-			worldPos.y = GroundProbe.SampleSurfaceY(worldPos.x, worldPos.z, worldPos.y);
+			// TASK-WM-181 INC-2 — 셀 z(=world Y 레벨, swizzle XZY)가 0이면 평지/도시 → 지면 샘플(GroundProbe).
+			// z≠0 = 마크식 면-인접으로 높이 박힌 3D 셀 → 셀 자체 Y(GetCellCenterWorld) 그대로 (블록 위/옆 정합).
+			if (gridPosition.z == 0)
+				worldPos.y = GroundProbe.SampleSurfaceY(worldPos.x, worldPos.z, worldPos.y);
 			return worldPos;
 		}
 
@@ -136,15 +140,20 @@ namespace WitchMendokusai
 			Vector3 pivotPos = grid.GetCellCenterWorld(gridPosition);
 			Vector3 endPos = grid.GetCellCenterWorld(gridPosition + new Vector3Int(-size.x + 1, size.y - 1, 0));
 			Vector3 worldPos = Vector3.Lerp(pivotPos, endPos, 0.5f);
-			// TASK-WM-181 INC-1 — 다중 셀 건물 중심도 지면 높이 따라감 (평탄 0.01 폐기).
-			worldPos.y = GroundProbe.SampleSurfaceY(worldPos.x, worldPos.z, worldPos.y);
+			// TASK-WM-181 INC-2 — z=0(평지/도시) = 지면 샘플 / z≠0(면-인접 3D) = 셀 자체 Y.
+			if (gridPosition.z == 0)
+				worldPos.y = GroundProbe.SampleSurfaceY(worldPos.x, worldPos.z, worldPos.y);
 			return worldPos;
 		}
 
 		private void UpdateCellPos()
 		{
-			Vector3 mousePosition = inputManager.MouseWorldPosition;
-			gridPosition = grid.WorldToCell(mousePosition);
+			// TASK-WM-181 INC-2 — 마크식 면-인접: 배치 = 맞은 면 *바깥* 인접 셀(hit+normal), 제거 = 맞은 셀(hit-normal).
+			// 그리드 swizzle=XZY 라 셀이 3D (cell.z=world Y 레벨) → 블록 위/옆 어디든 자연 정합 (VoxelInteraction 동형).
+			Vector3 hitPoint = inputManager.MouseWorldPosition;
+			Vector3 hitNormal = inputManager.MouseWorldNormal;
+			gridPosition = grid.WorldToCell(hitPoint + hitNormal * 0.5f);
+			removeGridPosition = grid.WorldToCell(hitPoint - hitNormal * 0.5f);
 		}
 
 		private void ClickCell()
@@ -186,7 +195,7 @@ namespace WitchMendokusai
 			if (stageManager.CurStage is WorldStage worldStage == false)
 				return;
 
-			if (BuildingObjectsByPos.TryGetValue(gridPosition, out BuildingObject buildingObject) == false)
+			if (BuildingObjectsByPos.TryGetValue(removeGridPosition, out BuildingObject buildingObject) == false)
 				return;
 
 			if (Time.time - lastClickTime < CLICK_COOLDOWN)
@@ -197,7 +206,7 @@ namespace WitchMendokusai
 			lastClickTime = Time.time;
 
 			Vector3Int pivot = buildingObject.Pivot;
-			worldStage.GridData.RemoveBuildingAt(gridPosition);
+			worldStage.GridData.RemoveBuildingAt(removeGridPosition);
 			DespawnBuildingObject(pivot);
 		}
 

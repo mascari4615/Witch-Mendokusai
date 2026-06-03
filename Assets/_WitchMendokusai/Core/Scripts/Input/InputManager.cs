@@ -167,6 +167,9 @@ namespace WitchMendokusai
 		};
 
 		public Vector3 MouseWorldPosition { get; private set; }
+		// TASK-WM-181 INC-2 — 마우스 ray 가 맞은 표면의 법선. 마크식 면-인접 배치(빌더가 hit+normal 로 인접 셀 계산)용.
+		// 히트 없으면 Vector3.up (지면 위 폴백).
+		public Vector3 MouseWorldNormal { get; private set; } = Vector3.up;
 		public Vector2 MouseScreenPosition { get; private set; }
 		public bool IsAnyKeyPressedThisFrame => Keyboard.current != null && Keyboard.current.anyKey.wasPressedThisFrame;
 		// TASK-WM-135 — Mouse.current 직접 접근 캡슐화 (DollAnimator 폴링 / 잔존 null guard 정리).
@@ -367,9 +370,15 @@ namespace WitchMendokusai
 			Ray ray = Camera.main.ScreenPointToRay(mousePos);
 
 			if (TryResolveMouseWorldHit(ray, out RaycastHit hit))
+			{
 				MouseWorldPosition = hit.point;
+				MouseWorldNormal = hit.normal; // 면-인접 배치용 (빌더가 hit+normal 로 인접 셀 결정)
+			}
 			else
+			{
 				MouseWorldPosition = Vector3.zero;
+				MouseWorldNormal = Vector3.up;
+			}
 		}
 
 		private bool TryResolveMouseWorldHit(Ray ray, out RaycastHit hit)
