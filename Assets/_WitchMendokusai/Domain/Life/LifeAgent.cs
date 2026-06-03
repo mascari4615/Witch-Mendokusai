@@ -87,6 +87,28 @@ namespace WitchMendokusai
 		/// <summary>자가회복 속도 주입 — 캐릭터 성격(LifeProfileSO)이 정함(INC-7). 하드코딩 디폴트를 덮는다.</summary>
 		public void SetSelfSatisfyPerMinute(float value) => selfSatisfyPerMinute = value;
 
+		/// <summary>지금 결핍(문제) 욕구가 있는가 — 4호 도움이 의미 있는 상태(INC-9). 머리 위 ⚠ 표시의 입력.</summary>
+		public bool HasProblem => profile != null && needState != null
+			&& NeedModel.TryGetMostUrgent(needState, profile, out NeedKind _);
+
+		/// <summary>4호(플레이어)가 도와줌 — 지금 가장 급한 욕구를 amount 만큼 채운다(InterventionModel). 문제 없으면 false.</summary>
+		public bool TryHelp(float amount)
+		{
+			if (profile == null || needState == null)
+			{
+				return false;
+			}
+
+			if (InterventionModel.TryGetSuggestedRelief(needState, profile, out InterventionKind relief) == false)
+			{
+				return false; // 결핍 없음 — 도울 게 없다.
+			}
+
+			InterventionModel.ApplyRelief(needState, profile, relief, amount);
+			RefreshActivity(); // 채워졌으니 활동(색)도 즉시 갱신.
+			return true;
+		}
+
 		private void OnDestroy()
 		{
 			if (timeManager != null)

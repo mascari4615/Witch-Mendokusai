@@ -74,6 +74,8 @@ namespace WitchMendokusai
 			root.AddComponent<LifeDirector>();
 			// LifeRelationshipDirector = 주민쌍 친밀도(가까이 함께 있으면)→자율 친구·동거 + 선·라벨 가시화.
 			root.AddComponent<LifeRelationshipDirector>();
+			// LifeInterventionDirector = 결핍 주민 머리 위 "도와줘!" 표시 + 4호 도와주기 코어(클릭/근접키 공통 진입점).
+			root.AddComponent<LifeInterventionDirector>();
 
 			Debug.Log($"[Life] 더미 마을 스폰: 주민 {DUMMY_COUNT} + 장소 4(식당/침대/공방/수다터) @ {PLAZA_CENTER} (World). 끄기 = LifeWorldBootstrap.Enabled=false.");
 		}

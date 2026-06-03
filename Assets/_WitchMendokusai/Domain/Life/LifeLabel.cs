@@ -54,6 +54,17 @@ namespace WitchMendokusai
 			label.text = text;
 		}
 
+		/// <summary>글자 색 — 관계/문제 라벨이 단계·신호 색을 쓴다.</summary>
+		public void SetColor(Color color)
+		{
+			if (label == null)
+			{
+				label = GetComponent<TMP_Text>();
+			}
+
+			label.color = color;
+		}
+
 		private void Apply(ActivityKind activity)
 		{
 			if (label != null)
