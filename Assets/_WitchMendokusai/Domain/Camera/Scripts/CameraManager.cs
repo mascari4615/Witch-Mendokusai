@@ -241,21 +241,18 @@ namespace WitchMendokusai
 
 		public void SetContentCameraMode(ContentCameraMode mode)
 		{
-			// 카메라 설정
-			int curCameraIndex = (int)mode;
-			curCamera = cameras[curCameraIndex];
+			// content 카메라 선택 = enum 값(ContentCameraMode 필드) 기반 — 위치 인덱싱(cameras[(int)mode]) 폐기.
+			// cameras[] = GetComponentsInChildren<MCamera> 라 content(Adventure/Dungeon) + UI(NPC/Tab) 혼합 배열 →
+			// 위치 ≠ enum (CityView=2→Camera_NPC, Arena=3→Camera_Tab 오선택 잠복버그). 필드 기반은 계층 순서 무관 +
+			// content 카메라 추가/재배치에 견고. Normal/Dungeon 은 필드로도 동일 카메라(동작 무변경). TASK-WM-165 item9.
+			curCamera = cameras.First(cam => cam.ContentCameraMode == mode);
 
 			// 카메라 블렌딩 설정 (던전일 경우 Cut, 그 외 EaseInOut)
 			cinemachineBrain.DefaultBlend.Style = curCamera.BlendStyle;
 
-			// 카메라 우선순위 설정 (사실상 카메라 변경)
-			{
-				for (int camIndex = 0; camIndex < cameras.Length; camIndex++)
-				{
-					bool isCurCamera = camIndex == curCameraIndex;
-					cameras[camIndex].CinemachineCamera.Priority = isCurCamera ? 10 : 0;
-				}
-			}
+			// 카메라 우선순위 설정 (사실상 카메라 변경) — 기존 동작 보존: current=10, 그 외 전부 0. 식별만 필드 기반.
+			foreach (MCamera cam in cameras)
+				cam.CinemachineCamera.Priority = cam == curCamera ? 10 : 0;
 
 			// content 루프가 firstPersonCamera priority 도 0 으로 덮으므로 1인칭 상태 재확정.
 			ApplyPerspective();
