@@ -30,6 +30,9 @@ namespace WitchMendokusai
         private BrewOutcomeRules rules = BrewOutcomeRules.Default;
         private float pixelsPerUnit = 56f;
 
+        /// <summary>"완성" 클릭 시 현재 채점 결과 통지 — 호스트가 보상(인벤토리)·이벤트 처리. UI 는 채점만, 보상은 호스트.</summary>
+        public System.Action<BrewOutcome> BrewCompleted;
+
         private VisualElement mapCanvas;
         private VisualElement ingredientRow;
         private Label spellLabel;
@@ -123,6 +126,11 @@ namespace WitchMendokusai
             statusLabel.style.marginBottom = 8f;
             leftPage.Add(statusLabel);
 
+            Button complete = new Button(OnCompleteClicked) { text = "✦ 완성 (포션 거두기)" };
+            complete.style.alignSelf = Align.FlexStart;
+            complete.style.marginBottom = 4f;
+            leftPage.Add(complete);
+
             Button restart = new Button(RestartSession) { text = "↺ 다시 젓기" };
             restart.style.alignSelf = Align.FlexStart;
             leftPage.Add(restart);
@@ -211,6 +219,13 @@ namespace WitchMendokusai
         {
             session.Start(session.Recipe, hazards);
             Refresh();
+        }
+
+        // "완성" = 현재 채점 결과를 호스트에 통지(보상/이벤트는 호스트 책임 — UI 는 제조 행위만) + 솥 리셋(중복 수확 방지).
+        private void OnCompleteClicked()
+        {
+            BrewCompleted?.Invoke(session.Evaluate(rules));
+            RestartSession();
         }
 
         // ── 좌표 변환 (효과공간 ↔ 캔버스 픽셀) ───────────────────────────

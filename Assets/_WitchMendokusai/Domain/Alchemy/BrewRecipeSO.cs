@@ -18,6 +18,10 @@ namespace WitchMendokusai
         [PropertyOrder(11)][field: SerializeField] public List<HazardZone> Hazards { get; private set; } = new List<HazardZone>();
         [PropertyOrder(12)][field: SerializeField] public List<BrewIngredientSO> Ingredients { get; private set; } = new List<BrewIngredientSO>();
 
+        [field: Header("보상 (제조 완료 시)")]
+        [PropertyOrder(20)][field: SerializeField] public ItemData ResultItem { get; private set; }
+        [PropertyOrder(21)][field: SerializeField] public int BaseAmount { get; private set; } = 1;
+
         /// <summary>SO → DomainSDK 런타임 레시피 POCO 변환 (EffectName = DataSO.Name).</summary>
         public BrewRecipe ToRecipe()
         {

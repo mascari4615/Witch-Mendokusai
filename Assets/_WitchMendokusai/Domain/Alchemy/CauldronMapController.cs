@@ -78,6 +78,45 @@ namespace WitchMendokusai
             {
                 map.Setup(BuildRecipe(), BuildHazards(), BuildIngredients(), BrewOutcomeRules.Default, spell);
             }
+
+            map.BrewCompleted = HandleBrewComplete;
+        }
+
+        // 제조 "완성" = 보상 루프 닫기: 등급별 포션을 인벤토리에 투입 + PotionBrewedEvent 발행 + 패널 닫기.
+        private void HandleBrewComplete(BrewOutcome outcome)
+        {
+            int recipeId = recipeSO != null ? recipeSO.ID : -1;
+            int resultId = (recipeSO != null && recipeSO.ResultItem != null) ? recipeSO.ResultItem.ID : -1;
+
+            int baseAmount = (recipeSO != null && recipeSO.BaseAmount > 0) ? recipeSO.BaseAmount : 1;
+            int produced = outcome.Reached ? baseAmount * AmountByGrade(outcome.Grade) : 0;
+
+            if (produced > 0 && recipeSO != null && recipeSO.ResultItem != null)
+            {
+                SOManager.Instance.ItemInventory.Add(recipeSO.ResultItem, produced);
+            }
+
+            EventBusBridge.Publish(new PotionBrewedEvent(recipeId, outcome.Grade, outcome.Potency, outcome.SideEffect, resultId, produced));
+
+            Close();
+        }
+
+        // 등급 → 생산 배수 (Masterwork 명품일수록 더 많이, 실패 = 0).
+        private static int AmountByGrade(BrewGrade grade)
+        {
+            switch (grade)
+            {
+                case BrewGrade.Masterwork: return 3;
+                case BrewGrade.Fine: return 2;
+                case BrewGrade.Crude: return 1;
+                default: return 0;
+            }
+        }
+
+        private void Close()
+        {
+            isOpen = false;
+            container.style.display = DisplayStyle.None;
         }
 
         // SO 레시피의 재료 목록 → UI 팔레트(코드 변경 0 으로 새 재료 반영).
