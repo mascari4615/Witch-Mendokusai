@@ -6,7 +6,7 @@ namespace WitchMendokusai
 {
 	public class InventoryView : MonoBehaviour
 	{
-		private const string WINDOW_ID = "Inventory";
+		public const string WINDOW_ID = "Inventory";
 
 		[SerializeField] private Inventory inventory;
 

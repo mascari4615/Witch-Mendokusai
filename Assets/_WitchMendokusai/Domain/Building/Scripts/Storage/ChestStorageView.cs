@@ -17,11 +17,13 @@ namespace WitchMendokusai
 		private ItemGrid grid;
 
 		private UIRoot uiRoot;
+		private WindowManager windowManager;
 
 		[Inject]
-		public void Construct(UIRoot uiRoot)
+		public void Construct(UIRoot uiRoot, WindowManager windowManager)
 		{
 			this.uiRoot = uiRoot;
+			this.windowManager = windowManager;
 		}
 
 		private void OnEnable() => ChestStorage.AnyOpenRequested += Open;
@@ -60,6 +62,13 @@ namespace WitchMendokusai
 		{
 			EnsureWindow();
 			grid.Bind(chest.Inventory);
+
+			// 보관함과 나란히 아이템을 옮기도록, 플레이어 인벤토리가 닫혀 있으면 같이 연다.
+			// (상자 창이 위로 오게 인벤토리를 먼저 연다.)
+			WMWindow inventoryWindow = windowManager.Find(InventoryView.WINDOW_ID);
+			if (inventoryWindow != null && inventoryWindow.IsOpen == false)
+				inventoryWindow.Open();
+
 			window.Open();
 		}
 	}
