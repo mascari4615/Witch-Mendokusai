@@ -24,12 +24,15 @@ namespace WitchMendokusai
 				return;
 			}
 
+			Dictionary<ActivityKind, Vector3> zones = CollectZones();
+
 			NeedProfile profile = BuildDefaultProfile();
 			agents = FindObjectsByType<LifeAgent>(FindObjectsSortMode.None);
 			for (int index = 0; index < agents.Length; index++)
 			{
 				// index = 위상 → 같은 순간 서로 다른 활동(색). self-care(LifeAgent) 가 욕구를 채워 자연 순환.
 				agents[index].Initialize(profile, BuildDefaultState(index));
+				agents[index].SetActivityZones(zones); // 활동별 장소 → 목적 이동(랜덤 어슬렁 대신).
 				agents[index].AttachClock(timeManager);
 			}
 
@@ -46,6 +49,17 @@ namespace WitchMendokusai
 			{
 				worldClock.OnHourChanged -= OnHourChanged;
 			}
+		}
+
+		// 씬의 모든 LifeZone → 활동별 위치 맵. 같은 활동 장소가 여럿이면 마지막 것(드묾). 없으면 빈 맵(주민은 어슬렁 폴백).
+		private static Dictionary<ActivityKind, Vector3> CollectZones()
+		{
+			Dictionary<ActivityKind, Vector3> map = new();
+			foreach (LifeZone zone in FindObjectsByType<LifeZone>(FindObjectsSortMode.None))
+			{
+				map[zone.Activity] = zone.Position;
+			}
+			return map;
 		}
 
 		private void OnHourChanged(int hour) => PushTimeOfDay(hour);

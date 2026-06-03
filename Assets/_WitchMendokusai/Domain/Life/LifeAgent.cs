@@ -28,12 +28,15 @@ namespace WitchMendokusai
 		[SerializeField] private float contentLevel = 85f;
 		// 어슬렁 반경(집/스폰 기준 유닛). 이 밖으론 안 나감 — 마을 주민답게 떠돌지 않고 광장 근처를 맴돈다. 수치노출.
 		[SerializeField] private float wanderRadius = 6f;
+		// 활동 장소 도착 판정 반경 — 이 안에 들면 "도착"으로 보고 머문다(랜덤 어슬렁 대신 목적 이동). 수치노출.
+		[SerializeField] private float arriveRadius = 1.2f;
 
 		private TimeManager timeManager;
 		private float wanderTimer;
 		private Vector3 currentMoveDirection;
 		private Vector3 home;
 		private bool homeSet;
+		private System.Collections.Generic.IReadOnlyDictionary<ActivityKind, Vector3> activityZones;
 		private MeshRenderer bodyRenderer;
 		private NeedProfile profile;
 		private NeedState needState;
@@ -77,6 +80,9 @@ namespace WitchMendokusai
 
 		/// <summary>현재 시간대 갱신 — INC-5b 에서 WorldClock 이 push.</summary>
 		public void SetTimeOfDay(TimeOfDay value) => timeOfDay = value;
+
+		/// <summary>활동별 목적지(장소) 주입 — 활동 고르면 그 장소로 걸어가 머문다(랜덤 어슬렁 대신). LifeDirector 가 push.</summary>
+		public void SetActivityZones(System.Collections.Generic.IReadOnlyDictionary<ActivityKind, Vector3> zones) => activityZones = zones;
 
 		private void OnDestroy()
 		{
@@ -160,7 +166,8 @@ namespace WitchMendokusai
 		}
 
 		// 활동별 식별 색 — 수치노출(시연 손잡이). Idle=흰 / 먹기=주황 / 자기=파랑 / 취미=초록 / 사교=분홍.
-		private static Color ColorForActivity(ActivityKind activity) => activity switch
+		// public: 활동 장소 패드(LifeZone)가 같은 색을 써 "이 색 캐릭터 = 이 색 장소"로 읽히게(LifeWorldBootstrap).
+		public static Color ColorForActivity(ActivityKind activity) => activity switch
 		{
 			ActivityKind.Eat => new Color(1f, 0.6f, 0.2f),
 			ActivityKind.Sleep => new Color(0.3f, 0.4f, 0.9f),
@@ -169,17 +176,41 @@ namespace WitchMendokusai
 			_ => Color.white,
 		};
 
-		// 시각 이동(INC-5c) — 활동 무관 늘 마을을 어슬렁(주기적 새 방향 XZ 평면). 활동은 색으로 구분.
-		// 자체 transform 이동 — UnitObject/물리 의존 0이라 큐브든 캐릭터든 붙이면 움직인다(시연 우선).
-		// (활동별 목적지·가구 이동, 자는 동안 정지 등 의미적 이동은 후속 — 지금은 "살아있음"을 보이는 게 우선.)
+		// 시각 이동 — 활동에 *목적지*가 있으면(LifeDirector 가 주입한 장소) 그리로 걸어가 머문다 = "뭘 하는지" 읽힘.
+		// 배고프면 식당으로 걸어가 거기 있음 → 위치·모임이 곧 행동. 목적지 없는 활동(Idle)·장소 미주입 = 집 근처 어슬렁.
 		private void Update()
 		{
 			if (homeSet == false)
 			{
-				home = transform.position; // 첫 프레임 위치 = 집(스폰 지점). 이후 이 반경 안에서만 어슬렁.
+				home = transform.position;
 				homeSet = true;
 			}
 
+			if (activityZones != null && activityZones.TryGetValue(CurrentActivity, out Vector3 spot))
+			{
+				MoveTowardSpot(spot); // 활동 장소로 이동 후 머묾.
+			}
+			else
+			{
+				WanderNearHome(); // Idle/장소 없음 = 광장 어슬렁.
+			}
+		}
+
+		// 활동 장소로 걸어감 → 도착 반경 안이면 멈춰 머문다(같은 활동인 주민끼리 거기 모임 = "밥시간"이 눈에).
+		private void MoveTowardSpot(Vector3 spot)
+		{
+			Vector3 to = new(spot.x - transform.position.x, 0f, spot.z - transform.position.z);
+			if (to.magnitude <= arriveRadius)
+			{
+				return; // 도착 — 머문다.
+			}
+
+			transform.position += to.normalized * (moveSpeed * Time.deltaTime);
+		}
+
+		// 광장(집) 반경 안 무작위 어슬렁 — 떠돌지 않게 경계서 되당김.
+		private void WanderNearHome()
+		{
 			wanderTimer -= Time.deltaTime;
 			if (wanderTimer <= 0f)
 			{
@@ -193,7 +224,6 @@ namespace WitchMendokusai
 			fromHome.y = 0f;
 			if (fromHome.magnitude > wanderRadius)
 			{
-				// 집 반경 밖 = 경계로 되돌리고 다음 방향을 집 쪽으로(떠돌지 않게).
 				currentMoveDirection = -fromHome.normalized;
 				next = new Vector3(home.x, next.y, home.z) + fromHome.normalized * wanderRadius;
 			}

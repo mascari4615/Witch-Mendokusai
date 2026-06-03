@@ -65,22 +65,86 @@ namespace WitchMendokusai
 			GameObject root = new(VILLAGE_ROOT_NAME);
 			SceneManager.MoveGameObjectToScene(root, worldScene); // World 씬 소속(씬 언로드 시 같이 정리).
 
+			GameObject labelPrefab = Resources.Load<GameObject>("Life/LifeLabel"); // 한글 라벨(갈무리). 없으면 색+위치만.
+
+			SpawnZones(root, labelPrefab);
+			SpawnDummies(root, labelPrefab);
+
+			// LifeDirector 가 같은 씬 LifeAgent·LifeZone 발견→프로필/위상/장소/시계 주입(자기 Start). 더미·존 *뒤* 부착.
+			root.AddComponent<LifeDirector>();
+
+			Debug.Log($"[Life] 더미 마을 스폰: 주민 {DUMMY_COUNT} + 장소 4(식당/침대/공방/수다터) @ {PLAZA_CENTER} (World). 끄기 = LifeWorldBootstrap.Enabled=false.");
+		}
+
+		// 활동 장소 4곳 — 활동 색 패드 + 한글 라벨. 캐릭터가 그 활동을 고르면 같은 색 패드로 걸어가 머문다.
+		private static void SpawnZones(GameObject root, GameObject labelPrefab)
+		{
+			(WitchMendokusai.DomainSDK.Life.ActivityKind activity, Vector3 offset, string label)[] zones =
+			{
+				(WitchMendokusai.DomainSDK.Life.ActivityKind.Eat, new Vector3(-6f, 0f, 3f), "식당"),
+				(WitchMendokusai.DomainSDK.Life.ActivityKind.Sleep, new Vector3(-6f, 0f, -3f), "침대"),
+				(WitchMendokusai.DomainSDK.Life.ActivityKind.Hobby, new Vector3(6f, 0f, 3f), "공방"),
+				(WitchMendokusai.DomainSDK.Life.ActivityKind.Socialize, new Vector3(6f, 0f, -3f), "수다터"),
+			};
+
+			foreach ((WitchMendokusai.DomainSDK.Life.ActivityKind activity, Vector3 offset, string label) zone in zones)
+			{
+				GameObject pad = GameObject.CreatePrimitive(PrimitiveType.Cube);
+				pad.name = $"장소 [{zone.label}]";
+				pad.transform.SetParent(root.transform);
+				pad.transform.localScale = new Vector3(3f, 0.1f, 3f); // 납작한 패드.
+				pad.transform.position = PLAZA_CENTER + zone.offset + new Vector3(0f, -0.95f, 0f); // 바닥에 깔림.
+
+				MeshRenderer renderer = pad.GetComponent<MeshRenderer>();
+				if (renderer != null)
+				{
+					renderer.material.color = LifeAgent.ColorForActivity(zone.activity); // 캐릭터 색과 동일 = "이 색=이 장소".
+				}
+
+				LifeZone lifeZone = pad.AddComponent<LifeZone>();
+				lifeZone.SetActivity(zone.activity);
+
+				// 라벨은 root(스케일1) 자식으로 패드 위에 — 패드 비균일 스케일에 글자 찌그러짐 방지.
+				AttachLabel(labelPrefab, root.transform, pad.transform.position + new Vector3(0f, 1.5f, 0f), zone.label);
+			}
+		}
+
+		// 더미 주민 N체 — 광장 중앙 근처서 시작, 위상차로 첫 활동이 제각각. 머리 위 한글 상태 라벨.
+		private static void SpawnDummies(GameObject root, GameObject labelPrefab)
+		{
 			float start = -(DUMMY_COUNT - 1) * DUMMY_SPACING * 0.5f;
 			for (int index = 0; index < DUMMY_COUNT; index++)
 			{
 				GameObject dummy = GameObject.CreatePrimitive(PrimitiveType.Capsule);
-				dummy.name = $"더미 주민 {index + 1}"; // 루트에 이미 [Life] — 여기 중복 X(로그 `[Life] 더미 주민 N` 깔끔).
+				dummy.name = $"더미 주민 {index + 1}"; // 루트에 이미 [Life] — 로그 `[Life] 더미 주민 N` 깔끔.
 				dummy.transform.SetParent(root.transform);
 				dummy.transform.position = PLAZA_CENTER + new Vector3(start + index * DUMMY_SPACING, 0f, 0f);
 
 				LifeAgent agent = dummy.AddComponent<LifeAgent>();
 				agent.LogActivityChanges = true; // 헤드리스 검증: 전환마다 `[Life]` 로그.
+
+				AttachLabel(labelPrefab, dummy.transform, new Vector3(0f, 1.6f, 0f), null); // 머리 위 상태(자동: 부모 LifeAgent).
+			}
+		}
+
+		// 라벨 프리팹 인스턴스를 부모에 붙임. staticText 있으면 장소 고정 라벨, null 이면 부모 LifeAgent 상태 자동.
+		private static void AttachLabel(GameObject labelPrefab, Transform parent, Vector3 localOffset, string staticText)
+		{
+			if (labelPrefab == null)
+			{
+				return; // 프리팹 없음(미생성) → 라벨 생략, 색+위치만으로 동작.
 			}
 
-			// LifeDirector 가 같은 씬 LifeAgent 들을 발견→프로필/위상/시계 주입(자기 Start). 더미와 같은 루트에 부착.
-			root.AddComponent<LifeDirector>();
-
-			Debug.Log($"[Life] 더미 마을 스폰: {DUMMY_COUNT}체 @ {PLAZA_CENTER} (World). 끄기 = LifeWorldBootstrap.Enabled=false.");
+			GameObject label = Object.Instantiate(labelPrefab, parent);
+			label.transform.localPosition = localOffset;
+			if (staticText != null)
+			{
+				LifeLabel lifeLabel = label.GetComponent<LifeLabel>();
+				if (lifeLabel != null)
+				{
+					lifeLabel.SetStaticText(staticText);
+				}
+			}
 		}
 	}
 }
