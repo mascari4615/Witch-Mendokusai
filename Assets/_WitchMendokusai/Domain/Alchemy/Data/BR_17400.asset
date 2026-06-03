@@ -1,0 +1,37 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 44c70ed3eda5d514892c5904e761f0e5, type: 3}
+  m_Name: BR_17400
+  m_EditorClassIdentifier: WM.Domain::WitchMendokusai.BrewRecipeSO
+  <ID>k__BackingField: 17400
+  <Name>k__BackingField: "\uCE58\uC720\uC758 \uD6A8\uACFC"
+  <Description>k__BackingField: 
+  <Sprite>k__BackingField: {fileID: 0}
+  <Sprites>k__BackingField: []
+  <Target>k__BackingField:
+    Position:
+      X: 4
+      Y: 0
+    Radius: 0.5
+  <Hazards>k__BackingField:
+  - Id: 1
+    Name: "\uC800\uC8FC-\uD3ED\uC8FC"
+    Center:
+      X: 2
+      Y: 0
+    Radius: 1
+    SeverityPerUnit: 10
+  <Ingredients>k__BackingField:
+  - {fileID: 11400000, guid: 91bada3e55cbba64d942112101a7c265, type: 2}
+  - {fileID: 11400000, guid: dae3d5ada0befdd469b432df73a1ad89, type: 2}
+  - {fileID: 11400000, guid: 974c3849cc7f99042b60407667df1635, type: 2}
+  - {fileID: 11400000, guid: 267fee41189067c47b73b14b8b866dd0, type: 2}

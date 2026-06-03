@@ -15,6 +15,9 @@ namespace WitchMendokusai
     /// </summary>
     public sealed class CauldronMapController : MonoBehaviour
     {
+        [Header("레시피 SO — 비우면 더미 placeholder 로 동작")]
+        [SerializeField] private BrewRecipeSO recipeSO;
+
         private InputManager inputManager;
         private UIRoot uiRoot;
 
@@ -66,8 +69,41 @@ namespace WitchMendokusai
 
             uiRoot.ScreenLayer.Add(container);
 
-            map.Setup(BuildRecipe(), BuildHazards(), BuildIngredients(), BrewOutcomeRules.Default,
-                "재료를 갈아 효과 좌표에 닿게 하라.\n질러가면 강하나 부작용, 돌아가면 안전하나 약하다.");
+            string spell = "재료를 갈아 효과 좌표에 닿게 하라.\n질러가면 강하나 부작용, 돌아가면 안전하나 약하다.";
+            if (recipeSO != null)
+            {
+                map.Setup(recipeSO.ToRecipe(), recipeSO.Hazards, BuildPalette(recipeSO), BrewOutcomeRules.Default, spell);
+            }
+            else
+            {
+                map.Setup(BuildRecipe(), BuildHazards(), BuildIngredients(), BrewOutcomeRules.Default, spell);
+            }
+        }
+
+        // SO 레시피의 재료 목록 → UI 팔레트(코드 변경 0 으로 새 재료 반영).
+        private static List<CauldronMapElement.Ingredient> BuildPalette(BrewRecipeSO recipe)
+        {
+            List<CauldronMapElement.Ingredient> list = new List<CauldronMapElement.Ingredient>();
+            if (recipe.Ingredients == null)
+            {
+                return list;
+            }
+            for (int i = 0; i < recipe.Ingredients.Count; i++)
+            {
+                BrewIngredientSO ingredientSO = recipe.Ingredients[i];
+                if (ingredientSO == null)
+                {
+                    continue;
+                }
+                BrewIngredient ingredient = ingredientSO.ToRuntime();
+                list.Add(new CauldronMapElement.Ingredient
+                {
+                    Label = ingredient.Name,
+                    Direction = ingredient.Direction,
+                    Grind = ingredient.DefaultGrind,
+                });
+            }
+            return list;
         }
 
         private void OnToggle()

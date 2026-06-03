@@ -44,3 +44,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: db691f38954b1024dbaed6e0d1892cbf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: WM.Domain::WitchMendokusai.CauldronMapController
+  recipeSO: {fileID: 11400000, guid: 89e0909cb8c88c948a9ee59f809c3e1f, type: 2}
