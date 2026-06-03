@@ -169,6 +169,15 @@ namespace WitchMendokusai
 				}
 			}
 
+			// 등록 종 0개. Play 중(부트 후)인데도 없으면 = 도감 표본이 안 뜨는 *무음 실패*(사용자가 밟은 그 버그)의
+			// 재발 — 무음 폴백으로 덮지 말고 큰 소리로 알린다(FastFail / No-news is bad-news). 종 asset 삭제·등록 깨짐
+			// 같은 회귀를 에러 없이 흘려보내지 않게. EditMode·부트 전(SOManager 미로드)은 정상이라 경고 X.
+			if (Application.isPlaying)
+			{
+				Debug.LogWarning("[WitchGreenhouse] 등록된 WitchPlantSO 종이 0개 — 임시 종으로 자립하지만 도감(Codex) 표본엔 안 뜬다. "
+					+ "WM/Farming/Ensure Sample Plant 실행 또는 WitchPlantSO .asset 을 Addressable(label WitchPlantSO)로 등록할 것.", this);
+			}
+
 			WitchPlantSO runtimePlant = ScriptableObject.CreateInstance<WitchPlantSO>();
 			runtimePlant.ApplyDefaults();
 			return runtimePlant;
