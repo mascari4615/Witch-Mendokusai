@@ -84,6 +84,9 @@ namespace WitchMendokusai
 		/// <summary>활동별 목적지(장소) 주입 — 활동 고르면 그 장소로 걸어가 머문다(랜덤 어슬렁 대신). LifeDirector 가 push.</summary>
 		public void SetActivityZones(System.Collections.Generic.IReadOnlyDictionary<ActivityKind, Vector3> zones) => activityZones = zones;
 
+		/// <summary>자가회복 속도 주입 — 캐릭터 성격(LifeProfileSO)이 정함(INC-7). 하드코딩 디폴트를 덮는다.</summary>
+		public void SetSelfSatisfyPerMinute(float value) => selfSatisfyPerMinute = value;
+
 		private void OnDestroy()
 		{
 			if (timeManager != null)

@@ -26,12 +26,21 @@ namespace WitchMendokusai
 
 			Dictionary<ActivityKind, Vector3> zones = CollectZones();
 
-			NeedProfile profile = BuildDefaultProfile();
+			// INC-7: 캐릭터별 성격 = LifeProfileSO(Resources/Life/Profiles). 있으면 데이터 주도, 없으면 하드코딩 폴백.
+			LifeProfileSO[] profiles = Resources.LoadAll<LifeProfileSO>("Life/Profiles");
 			agents = FindObjectsByType<LifeAgent>(FindObjectsSortMode.None);
 			for (int index = 0; index < agents.Length; index++)
 			{
-				// index = 위상 → 같은 순간 서로 다른 활동(색). self-care(LifeAgent) 가 욕구를 채워 자연 순환.
+				// 주민마다 다른 성격(미식가/수다쟁이…) — 프로필을 순환 배정. 없으면 공통 디폴트.
+				LifeProfileSO profileSO = profiles.Length > 0 ? profiles[index % profiles.Length] : null;
+				NeedProfile profile = profileSO != null ? profileSO.ToNeedProfile() : BuildDefaultProfile();
+
 				agents[index].Initialize(profile, BuildDefaultState(index));
+				if (profileSO != null)
+				{
+					agents[index].SetSelfSatisfyPerMinute(profileSO.SelfSatisfyPerMinute);
+					agents[index].name = profileSO.DisplayName; // 성격 이름 = 로그·라벨·관계선에 보이게.
+				}
 				agents[index].SetActivityZones(zones); // 활동별 장소 → 목적 이동(랜덤 어슬렁 대신).
 				agents[index].AttachClock(timeManager);
 			}
