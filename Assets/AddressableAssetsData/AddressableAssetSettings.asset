@@ -15,7 +15,7 @@ MonoBehaviour:
   m_DefaultGroup: a53af4dac55a80241a2f18ecda29de75
   m_currentHash:
     serializedVersion: 2
-    Hash: 3bb400566eab94173386c74f2806bebe
+    Hash: 8ce2ed417578b3d84cbc2904e8680394
   m_OptimizeCatalogSize: 0
   m_BuildRemoteCatalog: 1
   m_CatalogRequestsTimeout: 0
@@ -78,6 +78,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: d071425e6c7e3d24f812527430be29fa, type: 2}
   - {fileID: 11400000, guid: e20c7ac2a17731449b615fc6228534f8, type: 2}
   - {fileID: 11400000, guid: 3c90b34179d8c6447812cd7756395c59, type: 2}
+  - {fileID: 11400000, guid: abcea394050d2624091316c504a81183, type: 2}
   - {fileID: 11400000, guid: 7798150df8cb4574d85185a1c6550ee6, type: 2}
   - {fileID: 11400000, guid: 53321dfb34aa5f446b9412e23ff021a2, type: 2}
   - {fileID: 11400000, guid: 02f22e2f06fdc9a4ab8c5f81857b1291, type: 2}
@@ -141,6 +142,7 @@ MonoBehaviour:
     - UpgradeData
     - EntityData
     - ChapterSO
+    - WitchPlantSO
   m_SchemaTemplates: []
   m_GroupTemplateObjects:
   - {fileID: 11400000, guid: 154aea50e355b0e40bc5fc4462b64350, type: 2}

@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbb281ee3bf0b054c82ac2347e9e782c, type: 3}
+  m_Name: WitchPlantSO
+  m_EditorClassIdentifier: Unity.Addressables.Editor::UnityEditor.AddressableAssets.Settings.AddressableAssetGroup
+  m_GroupName: WitchPlantSO
+  m_GUID: c8f993de03650e64f97ef275ad1e61e2
+  m_SerializeEntries:
+  - m_GUID: ef82faa13eab91f43a6c487520da427e
+    m_Address: WitchPlantSO/0
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - WitchPlantSO
+    FlaggedDuringContentUpdateRestriction: 0
+  m_ReadOnly: 0
+  m_Settings: {fileID: 11400000, guid: 5a4d7636943b8d645af161ef05df63d6, type: 2}
+  m_SchemaSet:
+    m_Schemas:
+    - {fileID: 11400000, guid: 364f67b800678e54fae2893cbeba3f1d, type: 2}
+    - {fileID: 11400000, guid: 89c563b7958eae04eaa56f81a0082dca, type: 2}

@@ -145,12 +145,28 @@ namespace WitchMendokusai
 			}
 		}
 
-		// 자립 작물 결정 — samplePlant 있으면 그것, 없으면 런타임 기본작물(asset 없이도 동작).
+		// 자립 작물 결정 — ① 인스펙터 samplePlant ② 등록된 마도 식물 종(SOManager) ③ 런타임 기본작물.
+		// ②가 핵심: 수확이 기록하는 종 ID(DataManager.SpecimenCollected)가 Codex(박물관)에 나열되는 *등록된*
+		// WitchPlantSO 의 ID 와 일치해야 「봐줘야 진짜 → 영구 표본」이 도감에 보인다. 런타임 throwaway 는
+		// SOManager 미등록이라 도감에 안 떠서 "수확했는데 도감 비었다" 가 됨(루프 단절). 등록 종이 0개이거나
+		// 부트 전(EditMode)일 때만 ③ 런타임 폴백 — asset 없이도 자립 데모는 굴러간다.
 		private WitchPlantSO ResolvePlant()
 		{
 			if (samplePlant != null)
 			{
 				return samplePlant;
+			}
+
+			if (SOManagerBridge.HasInstance
+				&& SOManagerBridge.DataSOs.TryGetValue(typeof(WitchPlantSO), out Dictionary<int, DataSO> plants))
+			{
+				foreach (DataSO dataSO in plants.Values)
+				{
+					if (dataSO is WitchPlantSO registered)
+					{
+						return registered;
+					}
+				}
 			}
 
 			WitchPlantSO runtimePlant = ScriptableObject.CreateInstance<WitchPlantSO>();

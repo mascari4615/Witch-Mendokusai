@@ -30,6 +30,7 @@ namespace WitchMendokusai
 			{ typeof(UpgradeData), "UPG" },
 			{ typeof(EntityData), "ENT" },
 			{ typeof(ChapterSO), "Chapter" },
+			{ typeof(WitchPlantSO), "PLANT" },
 		};
 
 		public static readonly Dictionary<Type, string> AssetFolderOverride = new()
