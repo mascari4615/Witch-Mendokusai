@@ -25,6 +25,19 @@ namespace WitchMendokusai
         private CauldronMapElement map;
         private bool isOpen;
 
+        // 디제틱 트리거(솥 오브젝트 상호작용)가 외부에서 Open 호출하는 진입점 (CodexWindowController 패턴).
+        public static CauldronMapController Instance { get; private set; }
+
+        private void Awake()
+        {
+            if (Instance != null && Instance != this)
+            {
+                Destroy(gameObject);
+                return;
+            }
+            Instance = this;
+        }
+
         [Inject]
         public void Construct(InputManager inputManager, UIRoot uiRoot)
         {
@@ -43,6 +56,10 @@ namespace WitchMendokusai
             if (inputManager != null)
             {
                 inputManager.UnregisterInputEvent(InputEventType.CauldronMapToggle, InputEventResponseType.Performed, OnToggle);
+            }
+            if (Instance == this)
+            {
+                Instance = null;
             }
         }
 
@@ -113,10 +130,32 @@ namespace WitchMendokusai
             }
         }
 
-        private void Close()
+        // 외부 진입점(디제틱 솥 상호작용 / 단축키 공용) — CodexWindowController 패턴.
+        public void Open()
+        {
+            isOpen = true;
+            if (container != null)
+            {
+                container.style.display = DisplayStyle.Flex;
+            }
+        }
+
+        public void Toggle()
+        {
+            isOpen = isOpen == false;
+            if (container != null)
+            {
+                container.style.display = isOpen ? DisplayStyle.Flex : DisplayStyle.None;
+            }
+        }
+
+        public void Close()
         {
             isOpen = false;
-            container.style.display = DisplayStyle.None;
+            if (container != null)
+            {
+                container.style.display = DisplayStyle.None;
+            }
         }
 
         // SO 레시피의 재료 목록 → UI 팔레트(코드 변경 0 으로 새 재료 반영).
@@ -145,11 +184,8 @@ namespace WitchMendokusai
             return list;
         }
 
-        private void OnToggle()
-        {
-            isOpen = isOpen == false;
-            container.style.display = isOpen ? DisplayStyle.Flex : DisplayStyle.None;
-        }
+        // 'n' 단축키(dev/fallback) → 공용 Toggle. 디제틱 트리거(솥)는 Open() 직접 호출.
+        private void OnToggle() => Toggle();
 
         // 후속에 SO/레시피로 대체될 placeholder 더미.
         private static BrewRecipe BuildRecipe()
