@@ -42,6 +42,7 @@ namespace WitchMendokusai.Tests
 			LifeAgent agent = go.AddComponent<LifeAgent>();
 			agent.Initialize(MakeProfile(), state);
 			agent.SetTimeOfDay(timeOfDay);
+			agent.SetSelfSatisfyPerMinute(0f); // 이 묶음은 순수 소진→활동 전환 검증 — 자가회복(INC-5d)은 LifeSelfCareTest 가 별도로.
 			return agent;
 		}
 
