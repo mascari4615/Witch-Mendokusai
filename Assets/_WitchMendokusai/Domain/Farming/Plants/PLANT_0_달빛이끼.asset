@@ -23,3 +23,7 @@ MonoBehaviour:
   <DrainPerMinute>k__BackingField: 1
   <TendRestore>k__BackingField: 50
   <StartVitality>k__BackingField: 100
+  <HarvestLoots>k__BackingField:
+  - <DataSO>k__BackingField: {fileID: 11400000, guid: 0b141f7df9b3b2c4e8abbb3134c93f65, type: 2}
+    <Percentage>k__BackingField: 100
+  <CarerLoots>k__BackingField: []

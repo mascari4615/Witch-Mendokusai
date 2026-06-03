@@ -271,6 +271,8 @@ namespace WitchMendokusai
 				return false;
 			}
 
+			GrantHarvestItem(result);
+
 			if (result.IsSpecimen)
 			{
 				HandleSpecimen(plotId, result.PlantDataId);
@@ -281,6 +283,38 @@ namespace WitchMendokusai
 			}
 
 			return true;
+		}
+
+		// 수확물을 플레이어 인벤토리에 넣는다 — 변이(누가 길렀나=DominantCarerId) 반영. 종 SO 의 HarvestLoots/CarerLoots 기반.
+		// DomainSDK 순수 plot 은 ItemData/Inventory 를 모르므로 Domain 측(여기)이 책임(단방향 정합). 부트 전·종 미등록·
+		// ItemInventory 미등록·수확물 표 빔 = 무음 skip(데모/EditMode 안전 — Inventory 는 런타임 부트 후에만 존재).
+		private void GrantHarvestItem(HarvestResult result)
+		{
+			WitchPlantSO plant = PlantById(result.PlantDataId);
+			if (plant == null)
+			{
+				return;
+			}
+
+			ItemData loot = plant.ResolveHarvestItem(result.HasDominantCarer, result.DominantCarerId);
+			if (loot != null && SOManagerBridge.HasInstance && SOManagerBridge.ItemInventory != null)
+			{
+				SOManagerBridge.ItemInventory.Add(loot, 1);
+			}
+		}
+
+		// 수확된 plotDataId 의 종 SO 조회 — 수확물·변이 데이터 소유자. 등록 종 우선, 미등록(런타임 데모종)이면 samplePlant.
+		private WitchPlantSO PlantById(int plantDataId)
+		{
+			if (SOManagerBridge.HasInstance
+				&& SOManagerBridge.DataSOs.TryGetValue(typeof(WitchPlantSO), out Dictionary<int, DataSO> plants)
+				&& plants.TryGetValue(plantDataId, out DataSO dataSO)
+				&& dataSO is WitchPlantSO registered)
+			{
+				return registered;
+			}
+
+			return samplePlant;
 		}
 
 		// 표본 「진짜화」 영구 기록 — Harvest(시스템) + WitchGreenhousePlotObject(플레이어 클릭) 공통 경로(DRY).
