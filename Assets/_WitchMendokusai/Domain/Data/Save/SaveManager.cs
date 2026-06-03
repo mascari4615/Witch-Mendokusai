@@ -46,6 +46,7 @@ namespace WitchMendokusai
 				},
 				questStates = new(),
 				hasRecipe = new(),
+				hasSpecimen = new(),
 				runtimeQuests = new(),
 				gameStats = new(),
 				dungeons = new(),
@@ -96,6 +97,9 @@ namespace WitchMendokusai
 			// 레시피 초기화
 			// 모든 아이템 ID에 대해 bool
 			DataManager.IsRecipeUnlocked = soManager.DataSOs[typeof(ItemData)].Values.ToDictionary(itemData => itemData.ID, itemData => false);
+
+			// 마도 온실 표본(TASK-WM-167) 초기화 — 새 게임 = 채집 0(빈 dict, 봐준 게 없음). 작물 .asset 없어도 안전.
+			DataManager.SpecimenCollected = new();
 
 			// 퀘스트 상태 초기화 이후 저장
 			Dictionary<int, QuestState> questStates = new();
@@ -169,6 +173,9 @@ namespace WitchMendokusai
 			// 레시피 초기화
 			DataManager.IsRecipeUnlocked = saveData.hasRecipe;
 
+			// 마도 온실 표본(TASK-WM-167) — 옛 세이브엔 필드 부재 → null 가드(빈 dict).
+			DataManager.SpecimenCollected = saveData.hasSpecimen ?? new();
+
 			// 작업 초기화
 			DataManager.WorkManager.Init(saveData.works);
 			CriteriaContext criteriaContext = DataManager.QuestManager.CreateCriteriaContext();
@@ -214,6 +221,7 @@ namespace WitchMendokusai
 				works = DataManager.WorkManager.Works,
 				questStates = DataManager.QuestManager.GetQuestStates().ToDictionary(pair => pair.Key, pair => (int)pair.Value),
 				hasRecipe = DataManager.IsRecipeUnlocked,
+				hasSpecimen = DataManager.SpecimenCollected,
 				runtimeQuests = DataManager.QuestManager.Quests.Data.Where(quest => quest.Type != QuestType.Dungeon).ToList().ConvertAll(quest => quest.Save()),
 				gameStats = DataManager.GameStat.Save(),
 				dungeons = new(),

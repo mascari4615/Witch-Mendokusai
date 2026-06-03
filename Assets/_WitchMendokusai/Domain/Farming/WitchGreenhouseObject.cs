@@ -54,6 +54,8 @@ namespace WitchMendokusai
 		// 개화·시듦이 일어난 칸을 상위에 알림(이벤트 발행 표면 — 연출은 구독자 몫). 초기값 = NRE 방지.
 		public System.Action<int> OnPlotBloomed = delegate { };
 		public System.Action<int> OnPlotWithered = delegate { };
+		// 관찰된 개체가 수확돼 영구 표본으로 「진짜」가 됐다(plotId, plantDataId). Codex 박물관·연출 구독 표면.
+		public System.Action<int, int> OnPlotBecameSpecimen = delegate { };
 
 		public Greenhouse Model => greenhouse;
 		public int MinutesPerDay => minutesPerDay;
@@ -229,6 +231,32 @@ namespace WitchMendokusai
 
 		// 지금 「진짜화」 자격(관찰+개화+안시듦)을 갖춘 칸 수 — "봐준 것만 진짜" 집계(Codex 표본 후보).
 		public int SpecimenCount => greenhouse.SpecimenCount();
+
+		// ★ 개화한 칸을 수확한다(Fourth 입력 또는 시스템). 성공 시 칸을 비우고 시각 갱신. 관찰된 개체(IsSpecimen)면
+		// 영구 표본으로 「진짜」가 된 것 — OnPlotBecameSpecimen 발행 + DataManager.SpecimenCollected 에 영구 기록
+		// (수확해 사라져도 도감엔 영영 남는다). DataManager 미존재(EditMode·부트 전)면 이벤트만 — 기록은 best-effort.
+		// 빈/개화 전/시듦 칸이면 거부(false).
+		public bool Harvest(int plotId)
+		{
+			GreenhousePlot plot = greenhouse.GetPlot(plotId);
+			if (plot == null || plot.TryHarvest(out HarvestResult result) == false)
+			{
+				return false;
+			}
+
+			if (result.IsSpecimen)
+			{
+				OnPlotBecameSpecimen.Invoke(plotId, result.PlantDataId);
+
+				if (DataManager.TryGetExistingInstance(out DataManager dataManager))
+				{
+					dataManager.SpecimenCollected[result.PlantDataId] = true;
+				}
+			}
+
+			RefreshVisuals();
+			return true;
+		}
 
 		// ★ 핵심 public 진입점(틱 소스 무관 — EditMode 직접 호출). 하루치 시간 경과 + 인형 자동돌봄 +
 		// 개화/시듦 전이 이벤트 발행. WorldClock 없이도 이 메서드로 한 사이클을 결정적으로 검증.

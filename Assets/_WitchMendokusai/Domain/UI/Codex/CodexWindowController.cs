@@ -77,6 +77,8 @@ namespace WitchMendokusai
 				Providers.Register(new ItemCodexCategory());
 			if (Providers.FindById("entity") == null)
 				Providers.Register(new EntityCodexCategory());
+			if (Providers.FindById("plant") == null)
+				Providers.Register(new PlantCodexCategory());
 		}
 
 		private void BuildWindow()

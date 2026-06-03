@@ -143,5 +143,68 @@ namespace WitchMendokusai.Tests
 
 			Object.DestroyImmediate(house.gameObject);
 		}
+
+		// ── Harvest → 영구 표본 (「봐준 건 영영 남는다」) ──
+
+		[Test]
+		public void House_Harvest_ObservedBloom_FiresBecameSpecimen()
+		{
+			WitchGreenhouseObject house = MakeHouse();
+			WitchPlantSO plant = CozyFastSO();
+			house.Initialize(() => System.Array.Empty<int>());
+			house.Plant(0, plant);
+			house.Observe(0);   // 봐줌
+			house.TickDay();    // 개화
+
+			int specimenPlotId = -1;
+			int specimenPlantId = -1;
+			house.OnPlotBecameSpecimen += (plotId, plantId) => { specimenPlotId = plotId; specimenPlantId = plantId; };
+
+			bool harvested = house.Harvest(0);
+
+			Assert.That(harvested, Is.True, "개화칸 수확 성공");
+			Assert.That(specimenPlotId, Is.EqualTo(0), "관찰된 개체=표본 이벤트 발행");
+			Assert.That(specimenPlantId, Is.EqualTo(plant.ID), "표본 식물 id 흐름");
+			Assert.That(house.Model.GetPlot(0).IsPlanted, Is.False, "수확 후 칸 비움");
+
+			Object.DestroyImmediate(house.gameObject);
+			Object.DestroyImmediate(plant);
+		}
+
+		[Test]
+		public void House_Harvest_UnobservedBloom_NoSpecimenEvent()
+		{
+			WitchGreenhouseObject house = MakeHouse();
+			WitchPlantSO plant = CozyFastSO();
+			house.Initialize(() => System.Array.Empty<int>());
+			house.Plant(0, plant);
+			house.TickDay();    // 관찰 없이 개화
+
+			int specimenCount = 0;
+			house.OnPlotBecameSpecimen += (_, __) => specimenCount++;
+
+			bool harvested = house.Harvest(0);
+
+			Assert.That(harvested, Is.True, "수확 자체는 성공");
+			Assert.That(specimenCount, Is.Zero, "안 봐준 개체=표본 이벤트 미발행(진짜 안 됨)");
+
+			Object.DestroyImmediate(house.gameObject);
+			Object.DestroyImmediate(plant);
+		}
+
+		[Test]
+		public void House_Harvest_NotBloomed_ReturnsFalse()
+		{
+			WitchGreenhouseObject house = MakeHouse();
+			WitchPlantSO plant = CozyFastSO();
+			house.Initialize(() => System.Array.Empty<int>());
+			house.Plant(0, plant);   // 심자마자 = Growing
+
+			Assert.That(house.Harvest(0), Is.False, "개화 전 수확=거부");
+			Assert.That(house.Harvest(99), Is.False, "없는 칸 수확=거부");
+
+			Object.DestroyImmediate(house.gameObject);
+			Object.DestroyImmediate(plant);
+		}
 	}
 }

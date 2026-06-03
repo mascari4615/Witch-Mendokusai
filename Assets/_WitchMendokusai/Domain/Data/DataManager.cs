@@ -33,6 +33,9 @@ namespace WitchMendokusai
 		public int CurDollID { get; set; }
 		public int DummyDollCount { get; set; }
 		public Dictionary<int, bool> IsRecipeUnlocked { get; set; } = new();
+		// 마도 온실(TASK-WM-167) — 「봐줘야 진짜」 영구 표본 채집 기록(plantDataId → 채집됨). SaveManager 가
+		// hasSpecimen ↔ 이 dict 직렬화(IsRecipeUnlocked 와 동형). 도감(PlantCodexCategory)이 read.
+		public Dictionary<int, bool> SpecimenCollected { get; set; } = new();
 
 		public string localDisplayName = "";
 
