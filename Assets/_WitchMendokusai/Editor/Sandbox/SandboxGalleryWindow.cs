@@ -22,6 +22,13 @@ namespace WitchMendokusai.Sandbox
 				"기능을 격리된 미니 무대(빈 씬)에서 라이브 프리뷰. Play 미사용 → WM 부트스트랩(World 진입)·다른 세션 무방해. " +
 				"프리뷰는 Scene View 에 뜬다(⏱ = 시간 흐름 데모).", MessageType.Info);
 
+			// Sandbox 는 에디트 모드 전용(EditorSceneManager.NewScene 은 Play 중 예외) → Play 중엔 프리뷰 차단·안내.
+			bool isPlaying = EditorApplication.isPlaying;
+			if (isPlaying)
+			{
+				EditorGUILayout.HelpBox("Play 중에는 프리뷰를 열 수 없습니다 — ▶ 정지 후 사용하세요(에디트 모드 전용).", MessageType.Warning);
+			}
+
 			using (new EditorGUILayout.HorizontalScope())
 			{
 				if (GUILayout.Button("새로고침"))
@@ -61,9 +68,12 @@ namespace WitchMendokusai.Sandbox
 				{
 					string suffix = demo is ISandboxAnimatedDemo ? "  ⏱" : string.Empty;
 					EditorGUILayout.LabelField($"  {demo.Title}{suffix}");
-					if (GUILayout.Button("프리뷰", GUILayout.Width(80f)))
+					using (new EditorGUI.DisabledScope(isPlaying)) // Play 중 클릭 = 무대 생성 예외 → 비활성.
 					{
-						SandboxStage.Open(demo);
+						if (GUILayout.Button("프리뷰", GUILayout.Width(80f)))
+						{
+							SandboxStage.Open(demo);
+						}
 					}
 				}
 			}

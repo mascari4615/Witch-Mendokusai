@@ -31,6 +31,14 @@ namespace WitchMendokusai.Sandbox
 				return null;
 			}
 
+			// Sandbox 는 에디트 모드 전용 — EditorSceneManager.NewScene 은 Play 중 InvalidOperationException.
+			// Gallery 창(OnGUI)에서 Play 중 클릭해도 예외 대신 안내만(에디트 모드 라이브 틱 전제, ISandboxDemo 주석).
+			if (EditorApplication.isPlaying)
+			{
+				Debug.LogWarning("[Sandbox] Play 모드에선 무대를 열 수 없습니다 — Play 정지 후 다시 여세요(Sandbox 는 에디트 모드 프리뷰).");
+				return null;
+			}
+
 			Close();
 
 			previousActive = SceneManager.GetActiveScene();
