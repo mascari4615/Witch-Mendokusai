@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using DG.Tweening;
 using UnityEngine;
 using VContainer;
 
@@ -81,6 +82,16 @@ namespace WitchMendokusai
 		[SerializeField] private float desirabilityRoadWeight = 1.0f;
 		[Tooltip("욕망도 히트맵 — 전력 공급 기여 가중.")]
 		[SerializeField] private float desirabilityPowerWeight = 1.0f;
+
+		[Header("INC-8 game-feel — 건물 성장/쇠퇴 연출 (DOTween, WM-180)")]
+		[Tooltip("건물 자동 성장 시 바닥→full 솟아오르는 시간(초).")]
+		[SerializeField] private float buildingRiseDuration = 0.35f;
+		[Tooltip("건물 쇠퇴 시 가라앉으며 사라지는 시간(초).")]
+		[SerializeField] private float buildingSinkDuration = 0.25f;
+		[Tooltip("성장 연출 ease — OutBack = 살짝 튀어오르는 팝.")]
+		[SerializeField] private Ease buildingRiseEase = Ease.OutBack;
+		[Tooltip("쇠퇴 연출 ease — InBack = 빨려들어가듯 가라앉음.")]
+		[SerializeField] private Ease buildingSinkEase = Ease.InBack;
 
 		private InputManager inputManager;
 		private GameModeManager gameModeManager;
@@ -168,6 +179,11 @@ namespace WitchMendokusai
 				gameModeManager.OnModeChanged -= OnModeChanged;
 			if (WorldClock.Instance != null)
 				WorldClock.Instance.OnDayChanged -= OnDayChanged;
+
+			// INC-8 — 진행 중 건물 성장/쇠퇴 연출 트윈 정리 (파괴된 transform 트윈 경고 방지).
+			foreach (GameObject visual in buildingVisuals.Values)
+				if (visual != null)
+					visual.transform.DOKill();
 		}
 
 		private void OnModeChanged(GameMode mode) => ApplyMode(mode);
@@ -511,7 +527,7 @@ namespace WitchMendokusai
 			foreach (GrowthChange change in decision.Shrink)
 			{
 				worldStage.GridData.RemoveBuildingAt(change.Cell);
-				ClearBuildingVisual(change.Cell);
+				AnimateBuildingSink(change.Cell); // 자동 쇠퇴 = 가라앉아 사라짐 (유저 erase 는 즉시 — ClearBuildingVisual 별도)
 			}
 		}
 
@@ -643,15 +659,63 @@ namespace WitchMendokusai
 		// 자동 성장 건물 (높은 큐브) — 존 타일 위에.
 		private void SetBuildingVisual(Vector3Int cell, Color color)
 		{
+			bool created = false;
 			if (buildingVisuals.TryGetValue(cell, out GameObject visual) == false)
 			{
 				visual = CreateCellCube(cell, buildingHeight);
 				visual.name = $"Bldg_{cell.x}_{cell.y}";
 				buildingVisuals[cell] = visual;
+				created = true;
 			}
 
 			// 건물은 존 색을 어둡게 (타일과 구분).
 			visual.GetComponent<Renderer>().sharedMaterial = GetMaterial(color * 0.6f);
+
+			// 신규 spawn 만 솟아오름 연출 (매일 re-color 마다 튀면 X — 함정).
+			if (created)
+				AnimateBuildingRise(visual);
+		}
+
+		// INC-8 (WM-180) — 건물 성장 연출: 바닥에 납작하게 시작 → full 높이로 솟아오름(OutBack 팝). scale.y·pos.y 를
+		// 같은 ease/duration 으로 동시 트윈 → pos.y = scale.y/2 유지로 밑면 y=0 고정(공중 부양 X).
+		private void AnimateBuildingRise(GameObject cube)
+		{
+			Transform tr = cube.transform;
+			float fullScaleY = tr.localScale.y; // = buildingHeight
+			float fullPosY = tr.position.y;     // = buildingHeight * 0.5 (밑면 y=0)
+			float startScaleY = fullScaleY * 0.02f; // 거의 납작하게 시작
+
+			Vector3 scale = tr.localScale;
+			tr.localScale = new Vector3(scale.x, startScaleY, scale.z);
+			Vector3 pos = tr.position;
+			tr.position = new Vector3(pos.x, startScaleY * 0.5f, pos.z);
+
+			tr.DOKill();
+			tr.DOScaleY(fullScaleY, buildingRiseDuration).SetEase(buildingRiseEase);
+			tr.DOMoveY(fullPosY, buildingRiseDuration).SetEase(buildingRiseEase);
+		}
+
+		// INC-8 (WM-180) — 건물 쇠퇴 연출: 가라앉으며 납작해진 뒤 Destroy. dict 즉시 제거(재성장 시 새 큐브).
+		// 자동 쇠퇴 전용 (유저 erase 는 ClearBuildingVisual 즉시 — 별도). OnComplete 전 파괴되면 null 가드.
+		private void AnimateBuildingSink(Vector3Int cell)
+		{
+			if (buildingVisuals.TryGetValue(cell, out GameObject visual) == false)
+				return;
+
+			buildingVisuals.Remove(cell);
+
+			Transform tr = visual.transform;
+			float sinkScaleY = tr.localScale.y * 0.02f;
+
+			tr.DOKill();
+			Sequence sink = DOTween.Sequence();
+			sink.Join(tr.DOScaleY(sinkScaleY, buildingSinkDuration).SetEase(buildingSinkEase));
+			sink.Join(tr.DOMoveY(sinkScaleY * 0.5f, buildingSinkDuration).SetEase(buildingSinkEase));
+			sink.OnComplete(() =>
+			{
+				if (visual != null)
+					Destroy(visual);
+			});
 		}
 
 		// 셀 좌표에 큐브 1개 생성 (height = Y 크기·바닥에서 띄움). Grid 회전 상속.
@@ -688,6 +752,7 @@ namespace WitchMendokusai
 			if (buildingVisuals.TryGetValue(cell, out GameObject visual))
 			{
 				buildingVisuals.Remove(cell);
+				visual.transform.DOKill(); // 진행 중 성장 연출 트윈 정리 후 즉시 파괴 (유저 erase = 무연출).
 				Destroy(visual);
 			}
 		}
