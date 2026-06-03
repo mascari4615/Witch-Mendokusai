@@ -59,16 +59,16 @@ namespace WitchMendokusai
 			}
 		}
 
-		// 공통 디폴트 욕구 프로필 — 분당 감소·문제 임계(50 공통)·상한(수치노출). INC-7 에서 캐릭터별 SO 로 대체.
-		// decay 1.4/1.2/1.0/0.9 = self-care(LifeAgent.selfSatisfyPerMinute) 와 균형 잡혀 어느 하나 독점 없이 순환.
+		// 공통 디폴트 욕구 프로필 — 분당 감소(게임-시간 페이싱: 욕구는 게임-시간 단위로 천천히 닳음)·문제 임계 40·상한.
+		// LifeAgent.selfSatisfyPerMinute(0.8) 이력현상(contentLevel) 과 균형 — 활동이 매 틱 안 튀고 한동안 지속. 수치노출.
 		private static NeedProfile BuildDefaultProfile()
 		{
 			Dictionary<NeedKind, NeedSpec> specs = new()
 			{
-				{ NeedKind.Hunger, new NeedSpec(1.4f, 50f, 100f) },
-				{ NeedKind.Energy, new NeedSpec(1.2f, 50f, 100f) },
-				{ NeedKind.Mood, new NeedSpec(1.0f, 50f, 100f) },
-				{ NeedKind.Social, new NeedSpec(0.9f, 50f, 100f) },
+				{ NeedKind.Hunger, new NeedSpec(0.13f, 40f, 100f) },
+				{ NeedKind.Energy, new NeedSpec(0.11f, 40f, 100f) },
+				{ NeedKind.Mood, new NeedSpec(0.09f, 40f, 100f) },
+				{ NeedKind.Social, new NeedSpec(0.08f, 40f, 100f) },
 			};
 			return new NeedProfile(specs);
 		}
@@ -76,7 +76,7 @@ namespace WitchMendokusai
 		// 위상차 시작 상태 — phase 만큼 욕구 사다리를 회전(여럿이 같은 순간 다른 활동·색). 시간이 흐르며 결핍 발생.
 		private static NeedState BuildDefaultState(int phase)
 		{
-			float[] ladder = { 40f, 55f, 70f, 85f };
+			float[] ladder = { 45f, 65f, 80f, 95f };
 			NeedKind[] order = { NeedKind.Hunger, NeedKind.Energy, NeedKind.Mood, NeedKind.Social };
 			Dictionary<NeedKind, float> values = new();
 			for (int index = 0; index < order.Length; index++)

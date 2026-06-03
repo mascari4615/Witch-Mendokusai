@@ -22,6 +22,22 @@ namespace WitchMendokusai.DomainSDK.Life
             return timeOfDay == TimeOfDay.Night ? ActivityKind.Sleep : ActivityKind.Idle;
         }
 
+        /// <summary>
+        /// 이력현상(commitment) 선택 — 지금 하는 활동을 그 욕구가 <paramref name="contentLevel"/> 에 찰 때까지 *유지*.
+        /// 임계 근처 두 욕구 사이를 매 틱 깜빡이는 것(strobe)을 막아 "한 활동을 한동안 한다"는 자연스러운 리듬을 만든다.
+        /// 욕구가 충분히 차면(또는 Idle 이면) <see cref="Select"/> 로 재평가. 순수 — current 만 추가 입력.
+        /// </summary>
+        public static ActivityKind SelectWithCommitment(NeedState state, NeedProfile profile, TimeOfDay timeOfDay, ActivityKind current, float contentLevel)
+        {
+            NeedKind? currentNeed = NeedForActivity(current);
+            if (currentNeed.HasValue && state.Get(currentNeed.Value) < contentLevel)
+            {
+                return current; // 아직 충분치 않음 — 계속 그 활동(밥 다 먹기 전엔 안 일어남).
+            }
+
+            return Select(state, profile, timeOfDay);
+        }
+
         /// <summary>한 욕구를 채우는 활동 — 미지정 욕구는 Idle 폴백.</summary>
         public static ActivityKind ActivityForNeed(NeedKind need) => need switch
         {

@@ -69,7 +69,7 @@ namespace WitchMendokusai
 			for (int index = 0; index < DUMMY_COUNT; index++)
 			{
 				GameObject dummy = GameObject.CreatePrimitive(PrimitiveType.Capsule);
-				dummy.name = $"[Life] 더미 주민 {index + 1}";
+				dummy.name = $"더미 주민 {index + 1}"; // 루트에 이미 [Life] — 여기 중복 X(로그 `[Life] 더미 주민 N` 깔끔).
 				dummy.transform.SetParent(root.transform);
 				dummy.transform.position = PLAZA_CENTER + new Vector3(start + index * DUMMY_SPACING, 0f, 0f);
 

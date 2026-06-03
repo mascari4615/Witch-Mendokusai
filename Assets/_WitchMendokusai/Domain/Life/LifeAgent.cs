@@ -21,13 +21,19 @@ namespace WitchMendokusai
 		[SerializeField] private float wanderInterval = 2f;
 		// 이동 속도(유닛/초). 자체 transform 이동 — 큐브든 캐릭터든 의존 없이 어슬렁. 수치노출.
 		[SerializeField] private float moveSpeed = 2f;
-		// 지금 하는 활동이 그 욕구를 분당 채우는 양(자율 self-care). 소진보다 커야 욕구가 회복돼 다음 활동으로 순환.
+		// 지금 하는 활동이 그 욕구를 분당 채우는 양(자율 self-care). 소진보다 살짝 커서 활동이 한동안 지속(게임-시간 페이싱).
 		// 0 = self-care 끔(욕구는 4호 개입(INC-4)으로만 채워짐). 수치노출 — 자율 일상 리듬 손잡이.
-		[SerializeField] private float selfSatisfyPerMinute = 6f;
+		[SerializeField] private float selfSatisfyPerMinute = 0.8f;
+		// 활동을 그만두는 충족 수준(이력현상) — 현재 활동의 욕구가 이만큼 차야 다른 활동으로. 임계 근처 깜빡임(strobe) 방지.
+		[SerializeField] private float contentLevel = 85f;
+		// 어슬렁 반경(집/스폰 기준 유닛). 이 밖으론 안 나감 — 마을 주민답게 떠돌지 않고 광장 근처를 맴돈다. 수치노출.
+		[SerializeField] private float wanderRadius = 6f;
 
 		private TimeManager timeManager;
 		private float wanderTimer;
 		private Vector3 currentMoveDirection;
+		private Vector3 home;
+		private bool homeSet;
 		private MeshRenderer bodyRenderer;
 		private NeedProfile profile;
 		private NeedState needState;
@@ -120,7 +126,8 @@ namespace WitchMendokusai
 
 		private void RefreshActivity()
 		{
-			ActivityKind next = ActivitySelector.Select(needState, profile, timeOfDay);
+			// 이력현상 — 현재 활동을 그 욕구가 contentLevel 에 찰 때까지 유지(매 틱 깜빡임 방지, 자연스러운 리듬).
+			ActivityKind next = ActivitySelector.SelectWithCommitment(needState, profile, timeOfDay, CurrentActivity, contentLevel);
 			if (next == CurrentActivity)
 			{
 				return;
@@ -167,6 +174,12 @@ namespace WitchMendokusai
 		// (활동별 목적지·가구 이동, 자는 동안 정지 등 의미적 이동은 후속 — 지금은 "살아있음"을 보이는 게 우선.)
 		private void Update()
 		{
+			if (homeSet == false)
+			{
+				home = transform.position; // 첫 프레임 위치 = 집(스폰 지점). 이후 이 반경 안에서만 어슬렁.
+				homeSet = true;
+			}
+
 			wanderTimer -= Time.deltaTime;
 			if (wanderTimer <= 0f)
 			{
@@ -175,7 +188,17 @@ namespace WitchMendokusai
 				currentMoveDirection = new Vector3(random.x, 0f, random.y);
 			}
 
-			transform.position += currentMoveDirection * (moveSpeed * Time.deltaTime);
+			Vector3 next = transform.position + currentMoveDirection * (moveSpeed * Time.deltaTime);
+			Vector3 fromHome = next - home;
+			fromHome.y = 0f;
+			if (fromHome.magnitude > wanderRadius)
+			{
+				// 집 반경 밖 = 경계로 되돌리고 다음 방향을 집 쪽으로(떠돌지 않게).
+				currentMoveDirection = -fromHome.normalized;
+				next = new Vector3(home.x, next.y, home.z) + fromHome.normalized * wanderRadius;
+			}
+
+			transform.position = next;
 		}
 	}
 }
