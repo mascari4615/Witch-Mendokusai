@@ -48,6 +48,12 @@ namespace WitchMendokusai.DomainSDK.Farming
 
         public float Vitality => planted ? state.Vitality : 0f;
 
+        /// <summary>시들기 전 Fourth(플레이어)가 관찰했는가 — 「진짜화」 자격 + 시각(gold) 신호.</summary>
+        public bool Observed => planted && state.Observed;
+
+        /// <summary>지금 이 순간 「진짜화」 자격(관찰+개화+안시듦)을 갖췄는가 — Codex 표본 후보 시각/집계.</summary>
+        public bool IsSpecimenNow => planted && WitchPlantGrowth.IsSpecimen(state, parameters);
+
         public PlotPhase Phase
         {
             get

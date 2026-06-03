@@ -211,6 +211,25 @@ namespace WitchMendokusai
 			return plot.Plant(plant.ID, plant.ToGrowthParams(), plant.StartVitality);
 		}
 
+		// ★ Fourth(플레이어) 관찰 = 「진짜화」 — 그 칸을 봐줬다고 표시(시들기 전이면 영구 표본 자격) + 즉시 gold
+		// 시각 갱신. 인형 자동돌봄(TickWithCarers)은 살리지만 진짜로 만들진 못함 — 진짜화는 오직 이 입력.
+		// 칸별 IInteractable(WitchGreenhousePlotObject) 또는 데모가 호출. 빈/시든 칸엔 무효(false).
+		public bool Observe(int plotId)
+		{
+			GreenhousePlot plot = greenhouse.GetPlot(plotId);
+			if (plot == null || plot.Phase == PlotPhase.Empty || plot.Phase == PlotPhase.Withered)
+			{
+				return false;
+			}
+
+			plot.Observe();
+			RefreshVisuals();
+			return true;
+		}
+
+		// 지금 「진짜화」 자격(관찰+개화+안시듦)을 갖춘 칸 수 — "봐준 것만 진짜" 집계(Codex 표본 후보).
+		public int SpecimenCount => greenhouse.SpecimenCount();
+
 		// ★ 핵심 public 진입점(틱 소스 무관 — EditMode 직접 호출). 하루치 시간 경과 + 인형 자동돌봄 +
 		// 개화/시듦 전이 이벤트 발행. WorldClock 없이도 이 메서드로 한 사이클을 결정적으로 검증.
 		public void TickDay()
@@ -316,7 +335,7 @@ namespace WitchMendokusai
 					continue;
 				}
 
-				Color color = ColorFor(plot.Phase);
+				Color color = ColorFor(plot.Phase, plot.Observed);
 				renderer.GetPropertyBlock(colorBlock);
 				colorBlock.SetColor(BASE_COLOR_ID, color);
 				colorBlock.SetColor(COLOR_ID, color);
@@ -324,12 +343,15 @@ namespace WitchMendokusai
 			}
 		}
 
-		private static Color ColorFor(PlotPhase phase)
+		// phase 색 + 「봐줘야 진짜」 시각: 관찰된(witnessed) 살아있는 칸은 gold 로 띄워 "이건 진짜가 됐다"를
+		// 즉시 보여준다 — 개화한 관찰칸 = 밝은 금색(영구 표본), 자라는 관찰칸 = 금빛 green(증언 진행 중).
+		// 안 봐준 칸은 평범한 green/yellow. 시듦/빈 칸은 관찰 무관(brown/grey).
+		private static Color ColorFor(PlotPhase phase, bool observed)
 		{
 			switch (phase)
 			{
-				case PlotPhase.Growing: return new Color(0.4f, 0.8f, 0.4f);
-				case PlotPhase.Bloomed: return new Color(0.95f, 0.85f, 0.3f);
+				case PlotPhase.Growing: return observed ? new Color(0.6f, 0.85f, 0.35f) : new Color(0.4f, 0.8f, 0.4f);
+				case PlotPhase.Bloomed: return observed ? new Color(1f, 0.84f, 0.25f) : new Color(0.78f, 0.7f, 0.32f);
 				case PlotPhase.Withered: return new Color(0.45f, 0.32f, 0.2f);
 				default: return new Color(0.6f, 0.6f, 0.6f);
 			}

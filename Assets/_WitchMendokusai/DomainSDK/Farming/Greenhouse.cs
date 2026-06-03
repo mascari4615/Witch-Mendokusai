@@ -50,6 +50,21 @@ namespace WitchMendokusai.DomainSDK.Farming
             return count;
         }
 
+        /// <summary>지금 「진짜화」 자격(관찰+개화+안시듦)을 갖춘 칸 수 — Codex 표본 후보. 「봐준 것만 진짜」 집계.</summary>
+        public int SpecimenCount()
+        {
+            int count = 0;
+            foreach (GreenhousePlot plot in plotsById.Values)
+            {
+                if (plot.IsSpecimenNow)
+                {
+                    count++;
+                }
+            }
+
+            return count;
+        }
+
         /// <summary>
         /// 한 틱 — 인형 carer 들이 가장 약한 칸부터 분담 돌봄 후 시간 경과.
         /// carerIds = 이번 틱에 돌볼 인형들(각 1칸). minutes = 돌봄 후 흐를 시간.
