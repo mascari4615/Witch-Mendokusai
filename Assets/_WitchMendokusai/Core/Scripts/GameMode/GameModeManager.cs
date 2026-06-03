@@ -13,7 +13,9 @@ namespace WitchMendokusai
 		Zone = 2,
 		Road = 3,
 
-		// 4 = Arena 예약 (slot C WM-165, session-bus 합의). 충돌 회피 위해 비움.
+		// 마계 투기장 (TASK-WM-165): 전술코딩 오토배틀러 관전 모드. (session-bus 합의 = 4)
+		Arena = 4,
+
 		// SimCity Phase 3 (TASK-WM-176): 발전소(전력원) 페인트 모드.
 		Power = 5,
 	}
