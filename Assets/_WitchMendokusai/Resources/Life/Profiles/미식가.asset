@@ -31,3 +31,9 @@ MonoBehaviour:
     LowThreshold: 40
     Max: 100
   selfSatisfyPerMinute: 0.8
+  defaultWork: 4
+  works:
+  - Kind: 4
+    Efficiency: 1.5
+  - Kind: 2
+    Efficiency: 1.2

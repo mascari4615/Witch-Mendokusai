@@ -15,6 +15,7 @@ namespace WitchMendokusai
 	{
 		private LifeAgent[] agents = System.Array.Empty<LifeAgent>();
 		private WorldClock worldClock;
+		private CityEconomy cityEconomy; // 노동 생산물이 쌓일 마을 창고(WorldStage 원장). 못 얻으면 경제 off 폴백.
 
 		// init-order-ok: 씬 정적 LifeAgent/WorldClock 을 Start 에서 1회 수집·연결. 없으면 안전 폴백.
 		private void Start()
@@ -22,6 +23,15 @@ namespace WitchMendokusai
 			if (TimeManager.TryGetExistingInstance(out TimeManager timeManager) == false)
 			{
 				return;
+			}
+
+			// init-order-ok: StageManager.Start(LoadStage) 가 LifeDirector.Start 보다 먼저 CurStage 세팅(순차 보장).
+			// World 씬 전용(LifeWorldBootstrap WORLD_SCENE 게이트)이라 WorldStage 가정 가능. 아니면 경제 off 폴백
+			// (생산만 스킵, 욕구·활동·시각은 진행). 로컬 new CityEconomy 폴백은 X(저장 미연결·정본 desync).
+			if (StageManager.TryGetExistingInstance(out StageManager stageManager)
+				&& stageManager.CurStage is WorldStage worldStage)
+			{
+				cityEconomy = worldStage.CityEconomy;
 			}
 
 			Dictionary<ActivityKind, Vector3> zones = CollectZones();
@@ -40,6 +50,11 @@ namespace WitchMendokusai
 				{
 					agents[index].SetSelfSatisfyPerMinute(profileSO.SelfSatisfyPerMinute);
 					agents[index].name = profileSO.DisplayName; // 성격 이름 = 로그·라벨·관계선에 보이게.
+					agents[index].SetWorkProfile(profileSO.ToWorkProfile()); // 노동 성격(WM-183) — 한가하면 이 일.
+				}
+				if (cityEconomy != null)
+				{
+					agents[index].AttachEconomy(cityEconomy); // 생산물 누적 대상(마을 창고). null=경제 off.
 				}
 				agents[index].SetActivityZones(zones); // 활동별 장소 → 목적 이동(랜덤 어슬렁 대신).
 				agents[index].AttachClock(timeManager);
