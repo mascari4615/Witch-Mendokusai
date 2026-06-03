@@ -72,6 +72,8 @@ namespace WitchMendokusai
 
 			// LifeDirector 가 같은 씬 LifeAgent·LifeZone 발견→프로필/위상/장소/시계 주입(자기 Start). 더미·존 *뒤* 부착.
 			root.AddComponent<LifeDirector>();
+			// LifeRelationshipDirector = 주민쌍 친밀도(가까이 함께 있으면)→자율 친구·동거 + 선·라벨 가시화.
+			root.AddComponent<LifeRelationshipDirector>();
 
 			Debug.Log($"[Life] 더미 마을 스폰: 주민 {DUMMY_COUNT} + 장소 4(식당/침대/공방/수다터) @ {PLAZA_CENTER} (World). 끄기 = LifeWorldBootstrap.Enabled=false.");
 		}
