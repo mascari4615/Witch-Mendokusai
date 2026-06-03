@@ -52,6 +52,9 @@ namespace WitchMendokusai
 
 		public bool IsBuildMode => CurrentMode == GameMode.Build;
 
+		// TASK-WM-165 item9 — 투기장 관전 모드 게이트 (IsBuildMode 대칭). IsSpectating 조건이 이 값 파생.
+		public bool IsArenaMode => CurrentMode == GameMode.Arena;
+
 		public void SetMode(GameMode newMode)
 		{
 			if (CurrentMode == newMode)
@@ -64,6 +67,12 @@ namespace WitchMendokusai
 		public void ToggleBuildMode()
 		{
 			SetMode(IsBuildMode ? GameMode.Default : GameMode.Build);
+		}
+
+		// TASK-WM-165 item9 — 투기장 진입/이탈 토글 (ToggleBuildMode 대칭). 인게임 진입점이 호출.
+		public void ToggleArenaMode()
+		{
+			SetMode(IsArenaMode ? GameMode.Default : GameMode.Arena);
 		}
 	}
 }

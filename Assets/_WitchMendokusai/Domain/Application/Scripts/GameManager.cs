@@ -156,6 +156,8 @@ namespace WitchMendokusai
 				{ GameConditionType.IsBuilding, () => false },
 				{ GameConditionType.IsInTransition, () => UITransition.IsInTransition },
 				{ GameConditionType.IsViewingUI, () => false },
+				// 씬 의존 — BindSceneDependencies 에서 gameModeManager 파생으로 교체 (IsBuilding 대칭, TASK-WM-165 item9).
+				{ GameConditionType.IsSpectating, () => false },
 			};
 		}
 
@@ -165,6 +167,8 @@ namespace WitchMendokusai
 		{
 			gameConditionActions[GameConditionType.IsBuilding] = () => gameModeManager.IsBuildMode;
 			gameConditionActions[GameConditionType.IsViewingUI] = () => uiManager.IsAnyPanelFullscreenOpen;
+			// TASK-WM-165 item9 — 관전 = 투기장 모드 파생 (IsBuilding↔IsBuildMode 동형). 명령형 setter 0.
+			gameConditionActions[GameConditionType.IsSpectating] = () => gameModeManager.IsArenaMode;
 		}
 
 		private bool IsPlayerCasting()

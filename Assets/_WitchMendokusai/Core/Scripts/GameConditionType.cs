@@ -14,5 +14,8 @@ namespace WitchMendokusai
 		IsBuilding = 1 << 5,
 		IsInTransition = 1 << 6,
 		IsViewingUI = 1 << 7, // 전체화면 UI를 보는 중
+
+		// TASK-WM-165 item9 — 투기장 관전 중 (GameMode.Arena). 플레이어 이동/전투 입력 게이트.
+		IsSpectating = 1 << 8,
 	}
 }

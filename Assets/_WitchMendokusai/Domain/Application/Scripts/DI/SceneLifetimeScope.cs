@@ -55,6 +55,7 @@ namespace WitchMendokusai
 			RegisterInHierarchyIfPresent<UIManager>(builder);
 			RegisterInHierarchyIfPresent<CameraManager>(builder);
 			RegisterInHierarchyIfPresent<BuildManager>(builder);
+			RegisterInHierarchyIfPresent<ArenaModeController>(builder); // TASK-WM-165 item9 — 투기장 모드 진입/이탈
 			RegisterInHierarchyIfPresent<CityPaintManager>(builder); // TASK-WM-164 SimCity Phase1 step5
 			RegisterInHierarchyIfPresent<ChatManager>(builder);
 			RegisterInHierarchyIfPresent<ToolTipPopupManager>(builder);
@@ -119,6 +120,7 @@ namespace WitchMendokusai
 				ResolveIfPresent<UIManager>(container);
 				ResolveIfPresent<CameraManager>(container);
 				ResolveIfPresent<BuildManager>(container);
+				ResolveIfPresent<ArenaModeController>(container); // TASK-WM-165 item9 — 등록↔해소 짝
 				ResolveIfPresent<CityPaintManager>(container); // TASK-WM-164 step5 — 등록↔해소 짝
 				ResolveIfPresent<ChatManager>(container);
 				ResolveIfPresent<ToolTipPopupManager>(container);
@@ -159,6 +161,13 @@ namespace WitchMendokusai
 					container.InjectGameObject(monsterObject.gameObject);
 				foreach (ResourceNodeObject resourceNodeObject in FindObjectsByType<ResourceNodeObject>(FindObjectsInactive.Include))
 					container.InjectGameObject(resourceNodeObject.gameObject);
+				// TASK-WM-174 — 씬 직접배치 NPCObject (떠돌이상인/퀘스트지기/던전지기/솥 등 크래프팅 스테이션·마을 NPC).
+				// 누락 갭: Monster/ResourceNode/Player/마커는 InjectGameObject 수렴됐는데 NPCObject 만 빠져
+				// scene-placed NPC 전원 [Inject] Construct 미실행 → uiManager/timeManager null →
+				// NPCObject.OnInteract(uiManager) + UnitObject.Init(timeManager) NRE (4 NPC 전부 uiManager=NULL 실측).
+				// 동일 established 계층-재귀 패턴으로 수렴 (Monster/ResourceNode 와 동형). NPCObject.Construct=멱등.
+				foreach (NPCObject npcObject in FindObjectsByType<NPCObject>(FindObjectsInactive.Include))
+					container.InjectGameObject(npcObject.gameObject);
 				// 씬배치 Player/doll/Marker — Editor-dev(EditorManager additive Stage_Home) 와 production(pooled
 				// stage prefab, #4 InjectGameObject) 의 DI 진입을 동일 established 패턴으로 수렴 (발산 제거).
 				// Player inject → Player.Construct 가 자식 cascade (PlayerObject/PlayerRotation/DollAnimator/

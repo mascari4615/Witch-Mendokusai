@@ -38,7 +38,6 @@ namespace WitchMendokusai
 		// 생명주기 정리(재매치 누수 방지 — 구조리뷰 fix-before-content) — 스폰 유닛/등록 참가자 추적 → Dispose 에서 despawn/unregister/맵 정리.
 		private readonly List<GameObject> spawnedUnits = new();
 		private readonly List<ICombatant> registered = new();
-		private bool disposed;
 
 		public event System.Action<int> MatchEnded = delegate { };
 
@@ -268,15 +267,13 @@ namespace WitchMendokusai
 		}
 
 		/// <summary>
-		/// 매치 생명주기 정리(재매치 누수 방지 — 구조리뷰 fix-before-content). 단일 경로:
-		/// 틱 콜백 해제 + 드라이버 정지 + 교전 구독 해제 + targeting unregister + 스폰 유닛 풀 반환 + 맵 기하 파괴.
-		/// 멱등(disposed). OnDestroy = fallback. 결착(Tick)은 시각 보존 위해 dispose 안 함 — dispose 는 컴포넌트 파괴/재매치 진입 시.
+		/// 매치 생명주기 정리 — 단일 경로 + *재진입 가능*(모드 enter→exit→enter, TASK-WM-165 item9):
+		/// 틱 콜백 해제 + 드라이버 정지/클리어 + 교전 구독 해제 + targeting unregister + 스폰 유닛 풀 반환 + 맵 기하 파괴
+		/// + 진입 상태 리셋(started 가드 해제 → 다음 Begin 허용). 컬렉션 비움으로 멱등(런처 Dispose→Destroy→OnDestroy
+		/// 이중 호출 무해). 결착(Tick)은 시각 보존 위해 dispose 안 함 — dispose 는 모드 이탈/컴포넌트 파괴 시.
 		/// </summary>
 		public void Dispose()
 		{
-			if (disposed)
-				return;
-			disposed = true;
 			ticking = false;
 
 			if (TimeManager.TryGetExistingInstance(out TimeManager timeManager))
@@ -287,6 +284,7 @@ namespace WitchMendokusai
 				if (driver != null)
 					driver.StopDriving();
 			}
+			drivers.Clear();
 
 			UnhookHealths();
 
@@ -309,6 +307,11 @@ namespace WitchMendokusai
 
 			if (config != null && config.Map != null && arenaRoot != null)
 				config.Map.Teardown(arenaRoot);
+
+			// 재진입 — 다음 Begin() 이 새 매치를 돌릴 수 있게 진입 상태 리셋(started 가드 해제 + 코어/팀 비움).
+			core = null;
+			teams = null;
+			started = false;
 		}
 
 		private void OnDestroy()
