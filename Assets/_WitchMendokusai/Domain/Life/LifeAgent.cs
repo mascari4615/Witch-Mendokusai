@@ -43,6 +43,11 @@ namespace WitchMendokusai
 		private TimeOfDay timeOfDay = TimeOfDay.Morning;
 		private float accumulatedMinutes;
 
+		// 노동 계층(TASK-WM-183) — 결핍 없을 때(한가할 때)만 성격대로 일해 자원을 마을 창고(CityEconomy)에 쌓는다.
+		private WorkState workState;
+		private WorkProfile workProfile;
+		private CityEconomy economy;
+
 		/// <summary>지금 이 캐릭터가 하는 활동(가장 최근 선택). 초기 Idle.</summary>
 		public ActivityKind CurrentActivity { get; private set; } = ActivityKind.Idle;
 
@@ -50,6 +55,12 @@ namespace WitchMendokusai
 		public event Action<ActivityKind> OnActivityChanged = delegate { };
 
 		public NeedState NeedState => needState;
+
+		/// <summary>지금 하는 일(한가할 때만 — 급한 욕구 있으면 그쪽 우선). 노동 성격 없으면 Idle.</summary>
+		public WorkKind CurrentWork => workState != null ? workState.CurrentWork : WorkKind.Idle;
+
+		/// <summary>하는 일이 바뀔 때 통지(색·라벨 훅, INC-W8). null 방지.</summary>
+		public event Action<WorkKind> OnWorkChanged = delegate { };
 
 		/// <summary>true 면 활동 전환마다 `[Life]` 로그(헤드리스 검증·디버그). 더미/프리뷰에서만 켬(런타임 set).</summary>
 		public bool LogActivityChanges { get; set; }
@@ -86,6 +97,19 @@ namespace WitchMendokusai
 
 		/// <summary>자가회복 속도 주입 — 캐릭터 성격(LifeProfileSO)이 정함(INC-7). 하드코딩 디폴트를 덮는다.</summary>
 		public void SetSelfSatisfyPerMinute(float value) => selfSatisfyPerMinute = value;
+
+		/// <summary>노동 성격 주입 — 결핍 없을 때 자율로 이 일을 한다(LifeProfileSO.ToWorkProfile, INC-W3). 안 주면 노동 안 함.</summary>
+		public void SetWorkProfile(WorkProfile profile)
+		{
+			workProfile = profile;
+			workState = new WorkState(profile.DefaultWork);
+		}
+
+		/// <summary>생산물이 쌓일 마을 창고(CityEconomy) 주입 — LifeDirector 가 WorldStage 원장을 push. 없으면 생산 스킵.</summary>
+		public void AttachEconomy(CityEconomy cityEconomy) => economy = cityEconomy;
+
+		/// <summary>4호가 이 주민에게 일을 지정(override) — 만료 전까지 그 일 우선. 노동 성격 없으면 무효(false).</summary>
+		public bool AssignWork(WorkKind kind, int minutes) => workState != null && InterventionModel.ApplyWorkOverride(workState, kind, minutes);
 
 		/// <summary>지금 결핍(문제) 욕구가 있는가 — 4호 도움이 의미 있는 상태(INC-9). 머리 위 ⚠ 표시의 입력.</summary>
 		public bool HasProblem => profile != null && needState != null
@@ -151,6 +175,25 @@ namespace WitchMendokusai
 				if (selfCare.HasValue)
 				{
 					NeedModel.Satisfy(needState, profile, selfCare.Value, selfSatisfyPerMinute * minutes);
+				}
+			}
+
+			// 노동 — 한가할 때(Idle = 급한 욕구 없음·낮)만 성격대로 일해 자원을 마을 창고에 쌓는다.
+			// 욕구가 노동을 항상 이김(압박 없음): 배고프면 Eat, 밤엔 Sleep 이라 생산 0. 4호 지시도 한가할 때만 반영.
+			if (workProfile != null && CurrentActivity == ActivityKind.Idle)
+			{
+				bool workChanged = workState.Advance(workProfile, minutes);
+				if (economy != null)
+				{
+					foreach (ResourceFlow flow in WorkModel.Produce(workState.CurrentWork, workProfile, minutes))
+					{
+						economy.AddStock(flow.Resource, flow.Rate);
+					}
+				}
+
+				if (workChanged)
+				{
+					OnWorkChanged(workState.CurrentWork);
 				}
 			}
 		}
