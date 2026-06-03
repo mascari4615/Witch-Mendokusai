@@ -1068,6 +1068,15 @@
                     "initialStateCheck": false
                 },
                 {
+                    "name": "CauldronMapToggle",
+                    "type": "Button",
+                    "id": "ca01d0ce-0174-4b00-0000-000000000174",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
                     "name": "QuestToggle",
                     "type": "Button",
                     "id": "adc4d35c-c4bb-4fed-b53c-20856dcdf571",
@@ -1610,6 +1619,17 @@
                     "processors": "",
                     "groups": "",
                     "action": "CodexToggle",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "ca01b1d0-0174-4b00-0000-000000000174",
+                    "path": "<Keyboard>/n",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "CauldronMapToggle",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },

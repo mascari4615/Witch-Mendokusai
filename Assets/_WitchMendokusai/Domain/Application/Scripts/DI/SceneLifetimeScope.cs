@@ -20,6 +20,9 @@ namespace WitchMendokusai
 		// RegisterComponentInHierarchy 는 *이 scope 의 씬* 만 검색 (scene-local). FindAnyObjectByType 는 전 씬
 		// (DontDestroyOnLoad 포함) — UIRoot(DDOL)+AddComponent MagicBookView 같은 cross-scene 을 false-positive.
 		// 헬퍼의 scene-scope 의미를 VContainer 와 정확히 일치 = 이 scope 의 gameObject.scene 한정.
+		// TASK-WM-174 Phase 5b-2 — 솥 지도 prefab 등록 여부(미생성 시 eager resolve 스킵, cross-session build-red 회피).
+		private bool cauldronMapRegistered;
+
 		private bool IsInScene<T>() where T : Component
 		{
 			foreach (T component in FindObjectsByType<T>(FindObjectsInactive.Include))
@@ -91,6 +94,15 @@ namespace WitchMendokusai
 			CodexWindowController codexWindowControllerPrefab = Resources.Load<CodexWindowController>("Singletons/CodexWindowController");
 			builder.RegisterComponentInNewPrefab(codexWindowControllerPrefab, Lifetime.Scoped);
 
+			// TASK-WM-174 Phase 5b-2 — 솥 지도 제조 UI 인게임 진입점 (Codex 와 같은 모양).
+			// prefab 미생성 윈도우(코드 먼저 push)에 World boot 안 깨지게 null-guard (cross-session build-red 회피).
+			CauldronMapController cauldronMapControllerPrefab = Resources.Load<CauldronMapController>("Singletons/CauldronMapController");
+			if (cauldronMapControllerPrefab != null)
+			{
+				builder.RegisterComponentInNewPrefab(cauldronMapControllerPrefab, Lifetime.Scoped);
+				cauldronMapRegistered = true;
+			}
+
 			builder.RegisterComponentOnNewGameObject<GameModeManager>(Lifetime.Scoped, nameof(GameModeManager));
 			builder.RegisterComponentOnNewGameObject<DialogueRunner>(Lifetime.Scoped, nameof(DialogueRunner));
 
@@ -102,6 +114,8 @@ namespace WitchMendokusai
 				ResolveIfPresent<DungeonManager>(container);
 				BootGuard.EagerResolve<DevWindowController>(container, "Scene");
 				BootGuard.EagerResolve<CodexWindowController>(container, "Scene");
+				if (cauldronMapRegistered)
+					BootGuard.EagerResolve<CauldronMapController>(container, "Scene");
 				ResolveIfPresent<UIManager>(container);
 				ResolveIfPresent<CameraManager>(container);
 				ResolveIfPresent<BuildManager>(container);
