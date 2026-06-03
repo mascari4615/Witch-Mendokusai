@@ -1,5 +1,56 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &36459598132696483
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2564111377596690394}
+  - component: {fileID: 9080208667748713602}
+  m_Layer: 0
+  m_Name: CityPaintManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2564111377596690394
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 36459598132696483}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1671753715676980261}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &9080208667748713602
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 36459598132696483}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c3ba4f383b71a9c47b9a8859487adcf6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: WM.Domain::WitchMendokusai.CityPaintManager
+  grid: {fileID: 2413295352154115868}
+  cellTileScale: 0.9
+  cellTileHeight: 0.1
+  residentialColor: {r: 0.4, g: 0.85, b: 0.4, a: 1}
+  commercialColor: {r: 0.4, g: 0.6, b: 1, a: 1}
+  industrialColor: {r: 1, g: 0.85, b: 0.3, a: 1}
+  roadColor: {r: 0.35, g: 0.35, b: 0.35, a: 1}
 --- !u!1 &51349693550409089
 GameObject:
   m_ObjectHideFlags: 0
@@ -15,7 +66,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &8412864332266380291
 Transform:
   m_ObjectHideFlags: 0
@@ -24,7 +75,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 51349693550409089}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0.38268343, z: 0, w: 0.92387956}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -32,7 +83,7 @@ Transform:
   - {fileID: 3360095210312519577}
   - {fileID: 1645268804684726571}
   m_Father: {fileID: 1671753715676980261}
-  m_LocalEulerAnglesHint: {x: 0, y: 45, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1053113978057566296
 GameObject:
   m_ObjectHideFlags: 0
@@ -94,6 +145,8 @@ MeshRenderer:
   m_RayTracingAccelStructBuildFlagsOverride: 0
   m_RayTracingAccelStructBuildFlags: 1
   m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -115,9 +168,11 @@ MeshRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!1 &5133268577086497865
 GameObject:
@@ -227,6 +282,7 @@ Transform:
   m_Children:
   - {fileID: 8412864332266380291}
   - {fileID: 719555857206296874}
+  - {fileID: 2564111377596690394}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &2061713302530184289
@@ -241,14 +297,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 86a43063bfbbca64a8513bdd6883f767, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  dontDestroyOnLoad: 0
   grid: {fileID: 2413295352154115868}
   gridParent: {fileID: 8412864332266380291}
   gridVisualization: {fileID: 1053113978057566296}
   marker: {fileID: 4904558852897361781}
   defaultBuilding: {fileID: 11400000, guid: 168201871ac1bcd419d378b9821ad5f1, type: 2}
   <BuildingObjectPrefab>k__BackingField: {fileID: 1496883160333710208, guid: 6d9e8a32b4461b249b0ca1ea89db7ea6, type: 3}
-  buildUI: {fileID: 0}
 --- !u!1001 &5739025664947942450
 PrefabInstance:
   m_ObjectHideFlags: 0
