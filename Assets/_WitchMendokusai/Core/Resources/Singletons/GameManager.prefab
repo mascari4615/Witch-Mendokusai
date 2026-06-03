@@ -10,7 +10,6 @@ GameObject:
   m_Component:
   - component: {fileID: 4457045229014371833}
   - component: {fileID: 652733864428144517}
-  - component: {fileID: 2822021318945403856}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -45,17 +44,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e9530b2be35beec43a316bb3a6cd803e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  dontDestroyOnLoad: 0
---- !u!114 &2822021318945403856
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 556839675072279456}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ea067a046e5ed9742bb9cf7a4ddb0ad1, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::WitchMendokusai.GameModeManager
   dontDestroyOnLoad: 0
