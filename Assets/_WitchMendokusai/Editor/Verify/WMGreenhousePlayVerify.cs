@@ -1,7 +1,10 @@
+using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UIElements;
 using WitchMendokusai;
+using WitchMendokusai.DomainSDK.Farming;
 
 namespace WitchMendokusai.EditorTools
 {
@@ -15,7 +18,7 @@ namespace WitchMendokusai.EditorTools
 	{
 		private const string ARM_PREF = "WM_GH_PLAYVERIFY_ARMED";
 		private const string TAG = "[GH-PLAY-9d4]";
-		private const double SETTLE_SECONDS = 6.0;   // World 준비 후 demoTick 관찰 시간
+		private const double SETTLE_SECONDS = 2.0;   // World 준비 후 Start(자립 구축) 실행 대기
 		private const double HARD_TIMEOUT = 40.0;     // 이 시간 넘으면 무조건 Play 탈출(안전망)
 
 		private static double playStart;
@@ -89,23 +92,73 @@ namespace WitchMendokusai.EditorTools
 
 		private static void ReportAndFinish()
 		{
-			if (house == null || house.Model == null)
+			if (house == null || house.Model == null || house.Model.PlotCount == 0)
 			{
-				Debug.LogError(TAG + " FAIL — house/Model null (자립 구축 안 됨)");
+				Debug.LogError(TAG + " FAIL — house/Model/plots null (자립 구축 안 됨)");
 				Finish();
 				return;
 			}
 
-			int plotCount = house.Model.PlotCount;
-			int living = house.Model.LivingCount();
-			System.Text.StringBuilder phases = new();
-			foreach (System.Collections.Generic.KeyValuePair<int, DomainSDK.Farming.GreenhousePlot> entry in house.Model.Plots)
+			// ── 1. 부트 파이프라인이 마도 식물 종을 실제로 로드했나 (DataLoader → SOManager) ──
+			//    edit-mode 는 SOManager 를 수동 주입했지만, 여기선 *진짜 부트*가 Addressable 로 로드한 결과.
+			Dictionary<int, DataSO> registered = null;
+			bool speciesLoaded = SOManagerBridge.HasInstance
+				&& SOManagerBridge.DataSOs.TryGetValue(typeof(WitchPlantSO), out registered)
+				&& registered.Count > 0;
+			string regName = "-";
+			if (speciesLoaded)
 			{
-				phases.Append(entry.Key).Append('=').Append(entry.Value.Phase).Append(' ');
+				foreach (DataSO dataSO in registered.Values)
+				{
+					if (dataSO is WitchPlantSO plant)
+					{
+						regName = plant.Name;
+						break;
+					}
+				}
 			}
 
-			bool ok = plotCount > 0;
-			Debug.Log(TAG + (ok ? " SELF-BUILD OK" : " FAIL") + " plotCount=" + plotCount + " living=" + living + " phases=[ " + phases + "] specimenCount=" + house.SpecimenCount);
+			// ── 2. 「봐줘야 진짜」 루프 결정적 구동: 관찰 → 강제 개화 → 수확 ──
+			GreenhousePlot plot0 = house.Model.GetPlot(0);
+			int plantedId = plot0 == null ? -999 : plot0.PlantDataId;
+			bool observed = house.Observe(0);                     // 시들기 전 관찰(진짜화 자격)
+			int ticks = 0;
+			while (plot0 != null && plot0.Phase != PlotPhase.Bloomed && ticks < 40)
+			{
+				house.TickDay();                                  // carer 가 생기 유지 → 개화까지 생장
+				ticks++;
+			}
+			bool bloomed = plot0 != null && plot0.Phase == PlotPhase.Bloomed;
+			bool harvested = house.Harvest(0);                    // 개화+관찰 → IsSpecimen → HandleSpecimen
+
+			// ── 3. 영구 표본이 도감 데이터(DataManager)에 박혔나 (수확해 사라져도 영원) ──
+			bool specimenRecorded = DataManager.TryGetExistingInstance(out DataManager dataManager)
+				&& dataManager.SpecimenCollected.TryGetValue(plantedId, out bool collected) && collected;
+
+			// ── 4. Codex 「마도 식물」 탭이 종을 나열 + 표본 텍스트를 보여주나 ──
+			PlantCodexCategory codex = new();
+			codex.OnActivate();
+			IReadOnlyList<EntryDescriptor> entries = codex.GetEntries();
+			int codexCount = entries.Count;
+			bool codexSpecimenText = false;
+			if (codexCount > 0)
+			{
+				VisualElement detail = codex.BuildDetail(entries[0]);
+				foreach (VisualElement element in detail.Children())
+				{
+					if (element is Label label && label.text.Contains("표본으로 남음"))
+					{
+						codexSpecimenText = true;
+						break;
+					}
+				}
+			}
+
+			bool loopOk = speciesLoaded && observed && bloomed && harvested && specimenRecorded && codexCount > 0 && codexSpecimenText;
+			Debug.Log(TAG + (loopOk ? " LOOP OK ✅" : " LOOP FAIL ❌")
+				+ " speciesLoaded=" + speciesLoaded + " regName=" + regName + " plantedId=" + plantedId
+				+ " observed=" + observed + " bloomTicks=" + ticks + " bloomed=" + bloomed + " harvested=" + harvested
+				+ " specimenRecorded=" + specimenRecorded + " codexCount=" + codexCount + " codexSpecimenText=" + codexSpecimenText);
 
 			string shot = "Temp/gh-play-verify.png";
 			ScreenCapture.CaptureScreenshot(shot);
