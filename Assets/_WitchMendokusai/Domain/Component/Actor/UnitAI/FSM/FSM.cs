@@ -9,7 +9,10 @@ namespace WitchMendokusai
 	{
 		Idle,
 		Attack,
-		Wait
+		Wait,
+
+		// 마계 야수 도주 상태 (TASK-WM-182). append-only — 기존 FSM(Slime/Wisp/SlimeKing) 무영향.
+		Flee
 	}
 
 	public enum StateEvent
