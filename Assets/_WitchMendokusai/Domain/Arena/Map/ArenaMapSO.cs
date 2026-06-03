@@ -22,5 +22,17 @@ namespace WitchMendokusai
 
 		/// <summary> 맵 구조(바닥/경계/장애물)를 root 아래 런타임 생성. 전 수치는 본 SO 데이터에서. </summary>
 		public abstract void Build(Transform root);
+
+		/// <summary>
+		/// Build 로 생성한 기하 정리(재매치 누수 방지). 기본 = root 자식 전부 파괴
+		/// (Build 컨벤션 = 전부 root 아래 생성). 다른 정리가 필요한 맵은 override.
+		/// </summary>
+		public virtual void Teardown(Transform root)
+		{
+			if (root == null)
+				return;
+			for (int childIndex = root.childCount - 1; childIndex >= 0; childIndex--)
+				Object.Destroy(root.GetChild(childIndex).gameObject);
+		}
 	}
 }

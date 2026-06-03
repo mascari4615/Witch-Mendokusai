@@ -35,6 +35,11 @@ namespace WitchMendokusai
 		private int runId;
 		private static int nextRunId = 0;
 
+		// 생명주기 정리(재매치 누수 방지 — 구조리뷰 fix-before-content) — 스폰 유닛/등록 참가자 추적 → Dispose 에서 despawn/unregister/맵 정리.
+		private readonly List<GameObject> spawnedUnits = new();
+		private readonly List<ICombatant> registered = new();
+		private bool disposed;
+
 		public event System.Action<int> MatchEnded = delegate { };
 
 		public bool IsConcluded => core != null && core.IsConcluded;
@@ -145,6 +150,7 @@ namespace WitchMendokusai
 					Debug.LogWarning($"{nameof(ArenaMatch)}: {entry.UnitData.Prefab.name} 에 UnitObject 컴포넌트 없음 — skip.");
 					continue;
 				}
+				spawnedUnits.Add(unitGameObject); // Dispose 시 풀 반환(누수 방지).
 
 				int memberIndex = teamSpawnIndex.TryGetValue(entry.TeamId, out int existing) ? existing : 0;
 				teamSpawnIndex[entry.TeamId] = memberIndex + 1;
@@ -183,6 +189,7 @@ namespace WitchMendokusai
 				drivers.Add(driver);
 
 				targeting.Register(combatant);
+				registered.Add(combatant); // Dispose 시 unregister.
 
 				// behavior-verify 교전 구독 — 첫 피격 = 유닛이 실제 교전(패트롤이면 영영 안 찍힘). 종결 시 UnhookHealths 로 해제.
 				unitObject.Health.OnTakeDamage += OnCombatHit;
@@ -260,11 +267,53 @@ namespace WitchMendokusai
 			hookedHealths.Clear();
 		}
 
+		/// <summary>
+		/// 매치 생명주기 정리(재매치 누수 방지 — 구조리뷰 fix-before-content). 단일 경로:
+		/// 틱 콜백 해제 + 드라이버 정지 + 교전 구독 해제 + targeting unregister + 스폰 유닛 풀 반환 + 맵 기하 파괴.
+		/// 멱등(disposed). OnDestroy = fallback. 결착(Tick)은 시각 보존 위해 dispose 안 함 — dispose 는 컴포넌트 파괴/재매치 진입 시.
+		/// </summary>
+		public void Dispose()
+		{
+			if (disposed)
+				return;
+			disposed = true;
+			ticking = false;
+
+			if (TimeManager.TryGetExistingInstance(out TimeManager timeManager))
+				timeManager.RemoveCallback(Tick);
+
+			foreach (TacticDriver driver in drivers)
+			{
+				if (driver != null)
+					driver.StopDriving();
+			}
+
+			UnhookHealths();
+
+			if (targeting != null)
+			{
+				foreach (ICombatant combatant in registered)
+					targeting.Unregister(combatant);
+			}
+			registered.Clear();
+
+			if (ObjectPoolManager.TryGetExistingInstance(out ObjectPoolManager pool))
+			{
+				foreach (GameObject unit in spawnedUnits)
+				{
+					if (unit != null)
+						pool.Despawn(unit);
+				}
+			}
+			spawnedUnits.Clear();
+
+			if (config != null && config.Map != null && arenaRoot != null)
+				config.Map.Teardown(arenaRoot);
+		}
+
 		private void OnDestroy()
 		{
-			if (ticking && TimeManager.TryGetExistingInstance(out TimeManager timeManager))
-				timeManager.RemoveCallback(Tick);
-			UnhookHealths();
+			Dispose();
 		}
 	}
 }

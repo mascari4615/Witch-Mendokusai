@@ -109,6 +109,17 @@ namespace WitchMendokusai
 				return false;
 			}
 
+			// 이전 매치 잔재 정리(같은 Play 세션 재매치 누수 방지) — ArenaMatch 파괴 시 OnDestroy→Dispose 가
+			// 스폰 유닛 풀 반환 + targeting unregister + 맵 기하 정리. 그 뒤 빈 루트/카메라 파괴.
+			foreach (ArenaMatch existing in Object.FindObjectsByType<ArenaMatch>(FindObjectsSortMode.None))
+				Object.Destroy(existing.gameObject);
+			GameObject priorRoot = GameObject.Find("ArenaMatchRoot");
+			if (priorRoot != null)
+				Object.Destroy(priorRoot);
+			GameObject priorCamera = GameObject.Find("ArenaSpectatorCamera");
+			if (priorCamera != null)
+				Object.Destroy(priorCamera);
+
 			GameObject rootGameObject = new GameObject("ArenaMatchRoot");
 			rootGameObject.transform.position = new Vector3(0f, 0f, ARENA_OFFSET_Z);
 			root = rootGameObject.transform;
