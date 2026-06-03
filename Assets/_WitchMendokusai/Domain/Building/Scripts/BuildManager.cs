@@ -91,13 +91,14 @@ namespace WitchMendokusai
 
 			if (isBuildMode)
 			{
-				inputManager.RegisterInputEvent(InputEventType.Click0, InputEventResponseType.Get, ClickCell);
-				inputManager.RegisterInputEvent(InputEventType.Click1, InputEventResponseType.Get, TryRemoveCell);
+				// TASK-WM-181 — 마크/복셀(VoxelInteraction) 동형: 좌클릭(Click0)=제거, 우클릭(Click1)=배치.
+				inputManager.RegisterInputEvent(InputEventType.Click0, InputEventResponseType.Get, TryRemoveCell);
+				inputManager.RegisterInputEvent(InputEventType.Click1, InputEventResponseType.Get, ClickCell);
 			}
 			else
 			{
-				inputManager.UnregisterInputEvent(InputEventType.Click0, InputEventResponseType.Get, ClickCell);
-				inputManager.UnregisterInputEvent(InputEventType.Click1, InputEventResponseType.Get, TryRemoveCell);
+				inputManager.UnregisterInputEvent(InputEventType.Click0, InputEventResponseType.Get, TryRemoveCell);
+				inputManager.UnregisterInputEvent(InputEventType.Click1, InputEventResponseType.Get, ClickCell);
 				cameraManager.SetContentCameraMode(ContentCameraMode.Normal);
 			}
 
