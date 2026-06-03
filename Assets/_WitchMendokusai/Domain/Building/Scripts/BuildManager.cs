@@ -50,6 +50,7 @@ namespace WitchMendokusai
 		private float lastClickTime = 0f;
 		private const float CLICK_COOLDOWN = 0.1f; // 클릭 간 최소 시간 간격 (초)
 		private const float BUILD_REACH_DISTANCE = 100f; // 빌더 레이캐스트 도달 거리
+		private ChunkManager chunkManager; // TASK-WM-181 — 빌드모드 지형(복셀) 부수기용. lazy resolve (스테이지 스코프).
 
 		private void Awake()
 		{
@@ -195,6 +196,8 @@ namespace WitchMendokusai
 			SpawnBuildingObject(placeCell, worldStage.GridData.BuildingData[placeCell]);
 		}
 
+		// 빌드모드 좌클릭 = 부수기 (월드 편집 통일). 가리킨 게 건물이면 건물 제거, 지형(복셀)이면 복셀 블록 부수기.
+		// 일반 모드선 VoxelInteraction 이 복셀 편집 안 함(씨앗만) → 실수 지형 편집 차단. 통일 단일 핸들러.
 		private void TryRemoveCell()
 		{
 			if (inputManager.IsPointerOverUI())
@@ -206,16 +209,34 @@ namespace WitchMendokusai
 			if (TryBuildRaycast(out RaycastHit hit) == false)
 				return;
 
-			// 맞은 콜라이더가 건물이면 그 건물 직접 제거 (셀 조회 X — 건물 높이/멀티셀 무관 견고).
-			// 복셀/지면을 맞췄으면 buildingObject==null → 빌더는 무시 (복셀 파괴는 VoxelInteraction 담당).
-			BuildingObject buildingObject = hit.collider.GetComponentInParent<BuildingObject>();
-			if (buildingObject == null)
-				return;
-
 			lastClickTime = Time.time;
-			Vector3Int pivot = buildingObject.Pivot;
-			worldStage.GridData.RemoveBuildingAt(pivot);
-			DespawnBuildingObject(pivot);
+
+			// 맞은 콜라이더가 건물이면 그 건물 직접 제거 (셀 조회 X — 높이/멀티셀 무관 견고).
+			BuildingObject buildingObject = hit.collider.GetComponentInParent<BuildingObject>();
+			if (buildingObject != null)
+			{
+				worldStage.GridData.RemoveBuildingAt(buildingObject.Pivot);
+				DespawnBuildingObject(buildingObject.Pivot);
+				return;
+			}
+
+			// 건물 아님 = 지형 복셀 → 부수기 (VoxelInteraction 옛 break 수식 동일: hit-normal*0.1, +CHUNK_SIZE_Y/2).
+			ChunkManager chunks = EnsureChunkManager();
+			if (chunks == null)
+				return;
+			Vector3 targetPos = hit.point - hit.normal * 0.1f;
+			int voxelX = Mathf.FloorToInt(targetPos.x);
+			int voxelY = Mathf.FloorToInt(targetPos.y + VoxelConstants.CHUNK_SIZE_Y / 2f);
+			int voxelZ = Mathf.FloorToInt(targetPos.z);
+			chunks.SetBlock(voxelX, voxelY, voxelZ, VoxelConstants.AIR_RUNTIME_ID);
+		}
+
+		// 지형 부수기용 ChunkManager — 스테이지 스코프라 사용 시점 lazy resolve. init-order-ok
+		private ChunkManager EnsureChunkManager()
+		{
+			if (chunkManager == null)
+				chunkManager = FindAnyObjectByType<ChunkManager>();
+			return chunkManager;
 		}
 
 		public void SelectBuilding(Building building)

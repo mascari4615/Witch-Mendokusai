@@ -13,19 +13,27 @@ namespace WitchMendokusai
 		[SerializeField] private Camera mainCamera;
 		[SerializeField] private float reachDistance = 50f;
 
-		[Header("Place Settings")]
-		[SerializeField] private string placeBlockIdentifier = "wm:stone";
-
 		private bool inputRegistered;
 
 		private GameModeManager gameModeManager;
 		private InputManager inputManager;
+		// HotbarView 는 UI 도메인 (메인 scene) 이고 VoxelInteraction 은 stage pool-spawn prefab 자식 →
+		// InjectGameObject 가 HotbarView 못 찾아 VContainer throw. 사용 시점 lazy resolve 로 분리. init-order-ok.
+		private HotbarView hotbarView;
 
 		[Inject]
 		public void Construct(GameModeManager gameModeManager, InputManager inputManager)
 		{
 			this.gameModeManager = gameModeManager;
 			this.inputManager = inputManager;
+		}
+
+		private HotbarView EnsureHotbarView()
+		{
+			if (hotbarView != null)
+				return hotbarView;
+			hotbarView = FindAnyObjectByType<HotbarView>(FindObjectsInactive.Include);
+			return hotbarView;
 		}
 
 		private void Start()
@@ -57,8 +65,9 @@ namespace WitchMendokusai
 		{
 			if (inputRegistered)
 				return;
-			inputManager.RegisterInputEvent(InputEventType.Click0, InputEventResponseType.Performed, OnBreakBlock);
-			inputManager.RegisterInputEvent(InputEventType.Click1, InputEventResponseType.Performed, OnPlaceBlock);
+			// TASK-WM-181 — 복셀 블록 편집(부수기/설치)은 빌드모드(BuildManager) 단일 핸들러로 통일.
+			// 일반(Default) 모드는 씨앗 심기만 (우클릭). 좌클릭 부수기·블록 설치 제거 → 플레이 중 실수 지형 편집 차단.
+			inputManager.RegisterInputEvent(InputEventType.Click1, InputEventResponseType.Performed, OnPlaceSeed);
 			inputRegistered = true;
 		}
 
@@ -67,17 +76,12 @@ namespace WitchMendokusai
 			if (inputRegistered == false)
 				return;
 			if (inputManager != null)
-			{
-				inputManager.UnregisterInputEvent(InputEventType.Click0, InputEventResponseType.Performed, OnBreakBlock);
-				inputManager.UnregisterInputEvent(InputEventType.Click1, InputEventResponseType.Performed, OnPlaceBlock);
-			}
+				inputManager.UnregisterInputEvent(InputEventType.Click1, InputEventResponseType.Performed, OnPlaceSeed);
 			inputRegistered = false;
 		}
 
-		private void OnBreakBlock() => HandleClick(true);
-		private void OnPlaceBlock() => HandleClick(false);
-
-		private void HandleClick(bool isBreak)
+		// 일반 모드 우클릭 = 핫바 씨앗(SeedItemData)을 hit 위치에 심기. 씨앗 아니면 아무것도 X (블록 설치 폐기).
+		private void OnPlaceSeed()
 		{
 			if (chunkManager == null || mainCamera == null)
 				return;
@@ -86,39 +90,40 @@ namespace WitchMendokusai
 			if (inputManager.IsPointerOverUI())
 				return;
 
-			Vector2 mousePos = inputManager.MouseScreenPosition;
-			Ray ray = mainCamera.ScreenPointToRay(mousePos);
-
+			Ray ray = mainCamera.ScreenPointToRay(inputManager.MouseScreenPosition);
 			if (Physics.Raycast(ray, out RaycastHit hit, reachDistance) == false)
 				return;
 
-			Vector3 targetPos = isBreak
-				? hit.point - hit.normal * 0.1f
-				: hit.point + hit.normal * 0.1f;
+			TryPlantFromHotbar(hit);
+		}
 
-			float yOffset = VoxelConstants.CHUNK_SIZE_Y / 2f;
+		/// <summary>
+		/// 핫바 selectedItem 이 EntityData wire 된 SeedItemData면 hit 위치에 entity 심음.
+		/// true = plant 처리됨 (블록 설치 분기 스킵), false = 일반 블록 설치 진행.
+		/// </summary>
+		private bool TryPlantFromHotbar(RaycastHit hit)
+		{
+			HotbarView view = EnsureHotbarView();
+			if (view == null)
+				return false;
 
-			int voxelX = Mathf.FloorToInt(targetPos.x);
-			int voxelY = Mathf.FloorToInt(targetPos.y + yOffset);
-			int voxelZ = Mathf.FloorToInt(targetPos.z);
+			Item selectedItem = view.SelectedItem;
+			if (selectedItem == null || selectedItem.IsEmpty)
+				return false;
 
-			ushort newBlockId;
-			if (isBreak)
-			{
-				newBlockId = VoxelConstants.AIR_RUNTIME_ID;
-			}
-			else
-			{
-				BlockData placeBlock = BlockRegistry.GetByIdentifier(placeBlockIdentifier);
-				if (placeBlock == null)
-				{
-					Debug.LogError($"[VoxelInteraction] Place block not registered: {placeBlockIdentifier}");
-					return;
-				}
-				newBlockId = placeBlock.RuntimeId;
-			}
+			SeedItemData seed = selectedItem.Data as SeedItemData;
+			if (seed == null || seed.PlantedEntity == null)
+				return false;
 
-			chunkManager.SetBlock(voxelX, voxelY, voxelZ, newBlockId);
+			// 심기 위치 = hit 면 바깥쪽 0.001 보정 (블록 안 박힘 방지).
+			// hit.normal 이 위쪽(상면) = surface — XZ는 자유 위치, Y는 hit point 그대로 (entity prefab pivot = 발 정합).
+			Vector3 plantPos = hit.point + hit.normal * 0.001f;
+			bool planted = chunkManager.PlantEntityAt(plantPos, seed.PlantedEntity);
+
+			if (planted == false)
+				Debug.LogError($"[VoxelInteraction] PlantEntityAt 실패 — chunk 비활성: {plantPos}.");
+
+			return true;
 		}
 	}
 }
