@@ -99,7 +99,7 @@ namespace WitchMendokusai
             map.BrewCompleted = HandleBrewComplete;
         }
 
-        // 제조 "완성" = 보상 루프 닫기: 등급별 포션을 인벤토리에 투입 + PotionBrewedEvent 발행 + 패널 닫기.
+        // 제조 "완성" = 보상 루프 닫기: 마을 벌크 재료 소비(INC-W7) → 등급별 포션 인벤토리 투입 + PotionBrewedEvent 발행 + 패널 닫기.
         private void HandleBrewComplete(BrewOutcome outcome)
         {
             int recipeId = recipeSO != null ? recipeSO.ID : -1;
@@ -107,6 +107,13 @@ namespace WitchMendokusai
 
             int baseAmount = (recipeSO != null && recipeSO.BaseAmount > 0) ? recipeSO.BaseAmount : 1;
             int produced = outcome.Reached ? baseAmount * AmountByGrade(outcome.Grade) : 0;
+
+            // INC-W7: 마을 창고(CityEconomy)에서 레시피 벌크 재료를 *확인 후 1회 차감*. 못 대면 산출 0(루프엔 자원 필수).
+            // 비용 비면(placeholder/현 레시피 전부) Consume=true → 기존 동작 그대로. 차감은 여기 한 곳 = 이중차감 X.
+            if (produced > 0 && TryConsumeMaterials() == false)
+            {
+                produced = 0;
+            }
 
             if (produced > 0 && recipeSO != null && recipeSO.ResultItem != null)
             {
@@ -116,6 +123,41 @@ namespace WitchMendokusai
             EventBusBridge.Publish(new PotionBrewedEvent(recipeId, outcome.Grade, outcome.Potency, outcome.SideEffect, resultId, produced));
 
             Close();
+        }
+
+        // 레시피 벌크 재료를 마을 창고에서 차감(확인 후 충분하면). 비용 0/경제 미해소 = true(소비 0, 기존 무료 제조 유지).
+        // 마을 창고 = WorldStage.CityEconomy 단일 정본(주민 노동이 쌓은 그 원장) — 사용 시점 lazy resolve(init-order-ok).
+        private bool TryConsumeMaterials()
+        {
+            if (recipeSO == null)
+            {
+                return true;
+            }
+
+            IReadOnlyList<ResourceFlow> costs = recipeSO.ToMaterialCosts();
+            if (costs.Count == 0)
+            {
+                return true;
+            }
+
+            CityEconomy economy = ResolveCityEconomy();
+            if (economy == null)
+            {
+                return true; // 경제 핸들 못 얻음(World 밖 등) = 무료 제조 폴백(생산만, 차감 스킵). 로컬 new X(정본 desync 방지).
+            }
+
+            return BrewConsumptionModel.Consume(economy, costs);
+        }
+
+        // 주민 노동이 쌓는 그 마을 창고 핸들 — LifeDirector 와 동일 경로(StageManager→WorldStage.CityEconomy). 없으면 null.
+        private static CityEconomy ResolveCityEconomy()
+        {
+            if (StageManager.TryGetExistingInstance(out StageManager stageManager)
+                && stageManager.CurStage is WorldStage worldStage)
+            {
+                return worldStage.CityEconomy;
+            }
+            return null;
         }
 
         // 등급 → 생산 배수 (Masterwork 명품일수록 더 많이, 실패 = 0).
