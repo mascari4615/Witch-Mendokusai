@@ -20,6 +20,7 @@ namespace WitchMendokusai.EditorTools
 		private const string TAG = "[GH-PLAY-9d4]";
 		private const double SETTLE_SECONDS = 2.0;   // World 준비 후 Start(자립 구축) 실행 대기
 		private const double HARD_TIMEOUT = 40.0;     // 이 시간 넘으면 무조건 Play 탈출(안전망)
+		private const int SAMPLE_LOOT_ID = 90000167;  // 달빛이끼 잎(placeholder 샘플 수확물) — 수확 시 인벤토리 지급 대상
 
 		private static double playStart;
 		private static double spawnAt = -1.0;
@@ -131,6 +132,12 @@ namespace WitchMendokusai.EditorTools
 			bool bloomed = plot0 != null && plot0.Phase == PlotPhase.Bloomed;
 			bool harvested = house.Harvest(0);                    // 개화+관찰 → IsSpecimen → HandleSpecimen
 
+			// ── 2b. 수확물이 실제 인벤토리에 지급됐나 (GrantHarvestItem → ItemInventory.Add) ──
+			//    EditMode 는 by-construction(Add 호출)만 봤고, 진짜 부트의 Inventory 지급은 미검증이었음.
+			int lootInInventory = SOManagerBridge.HasInstance && SOManagerBridge.ItemInventory != null
+				? SOManagerBridge.ItemInventory.GetItemAmount(SAMPLE_LOOT_ID)
+				: -1;
+
 			// ── 3. 영구 표본이 도감 데이터(DataManager)에 박혔나 (수확해 사라져도 영원) ──
 			bool specimenRecorded = DataManager.TryGetExistingInstance(out DataManager dataManager)
 				&& dataManager.SpecimenCollected.TryGetValue(plantedId, out bool collected) && collected;
@@ -154,10 +161,11 @@ namespace WitchMendokusai.EditorTools
 				}
 			}
 
-			bool loopOk = speciesLoaded && observed && bloomed && harvested && specimenRecorded && codexCount > 0 && codexSpecimenText;
+			bool loopOk = speciesLoaded && observed && bloomed && harvested && specimenRecorded && codexCount > 0 && codexSpecimenText && lootInInventory >= 1;
 			Debug.Log(TAG + (loopOk ? " LOOP OK ✅" : " LOOP FAIL ❌")
 				+ " speciesLoaded=" + speciesLoaded + " regName=" + regName + " plantedId=" + plantedId
 				+ " observed=" + observed + " bloomTicks=" + ticks + " bloomed=" + bloomed + " harvested=" + harvested
+				+ " lootInInventory=" + lootInInventory
 				+ " specimenRecorded=" + specimenRecorded + " codexCount=" + codexCount + " codexSpecimenText=" + codexSpecimenText);
 
 			string shot = "Temp/gh-play-verify.png";
