@@ -4,22 +4,9 @@ using WitchMendokusai.DomainSDK.Refining;
 
 namespace WitchMendokusai.Tests
 {
-	/// <summary>
-	/// TASK-WM-172 Phase 0 — <see cref="RefiningChain"/> 정련 누적 체인 회귀 잠금.
-	///
-	/// 스펙 필수 검증:
-	///   ① 품질 누적 결정성   (같은 입력 = 같은 출력 — Quality/Warmth/CompletedStages 셋 다)
-	///   ② 빠름 vs 정성 분기  (Careful 누적 > Fast 누적 in Quality / Warmth 부호 정반대)
-	///   ③ 레거시 단순제작 동등 (1단계 체인 = Initial → ApplyStage 1회 와 동일 — 숨겨진 체인 보너스 0)
-	///
-	/// 순수 함수 — MonoBehaviour/VContainer/PlayMode 0. new() · static call 직접.
-	/// 실행: unity -runTests -batchmode -testPlatform EditMode -assemblyNames WM.Tests.EditMode
-	/// </summary>
 	public sealed class RefiningChainTest
 	{
-		// 테스트 계수 — 명시 주입(POCO 디폴트 없음). 게임에선 RefiningCoefficientsSO 가 공급.
-		// 비대칭이 의도: Careful 의 품질 델타(0.2) > Fast(0.05) / Fast 온기(-0.2) vs Careful(+0.2).
-		// "효율 vs 윤리"가 단순 손익이 아니라 톤 정합 — 수치 자체가 비대칭이어야 의미 있는 선택.
+		// Careful 의 품질·온기 델타가 Fast 보다 + 쪽이어야 의미 있는 선택이 된다 — 회귀 잠금의 기준 계수.
 		private static RefiningCoefficients DefaultCoefficients()
 		{
 			return new RefiningCoefficients(
@@ -50,7 +37,6 @@ namespace WitchMendokusai.Tests
 			Assert.That(state.CompletedStages, Is.EqualTo(0), "단계 0회");
 		}
 
-		// ① 품질 누적 결정성 — 스펙 필수.
 		[Test]
 		public void Evaluate_IsDeterministic_SameInputSameOutput()
 		{
@@ -70,7 +56,6 @@ namespace WitchMendokusai.Tests
 			Assert.That(second.CompletedStages, Is.EqualTo(first.CompletedStages));
 		}
 
-		// ② 빠름 vs 정성 분기 — 스펙 필수: 같은 단계 수에도 태도가 등급/온기를 가른다.
 		[Test]
 		public void AllCareful_AchievesHigherQuality_ThanAllFast()
 		{
@@ -102,7 +87,7 @@ namespace WitchMendokusai.Tests
 			Assert.That(state.Warmth, Is.LessThan(0f), "함부로 정련 = 온기 - (마을 식어감)");
 		}
 
-		// ③ 레거시 단순제작 동등 — 스펙 필수: 1단계 체인 = ApplyStage 1회. 체인이 숨은 보너스를 박지 않는다.
+		// 1단계 체인 = ApplyStage 1회 — 체인이 숨은 보너스를 박지 않는다(레거시 단순제작 동등성).
 		[Test]
 		public void SingleStageChain_EqualsOneManualApply()
 		{
@@ -185,9 +170,10 @@ namespace WitchMendokusai.Tests
 		}
 
 		[Test]
-		public void StageOrder_IndependentOfKind_InPhase0()
+		public void StageOrder_IndependentOfKind_WhenKindHasNoWeight()
 		{
-			// Phase 0 = 단계 Kind 별 가중치 X (Phase 1+ 에서 SO 로 들어옴). Kind 만 바뀌고 Approach 동일이면 결과 동일.
+			// 현재 모델은 단계 Kind 별 가중치 0 — Approach 만 결과를 가른다.
+			// Kind 가중치 도입 시 이 테스트가 깨지면서 가중치 회귀 잠금이 필요해진다는 신호.
 			RefiningCoefficients coefficients = DefaultCoefficients();
 			List<RefiningStage> order1 = new()
 			{
@@ -205,7 +191,7 @@ namespace WitchMendokusai.Tests
 			RefiningState s1 = RefiningChain.Evaluate(order1, coefficients);
 			RefiningState s2 = RefiningChain.Evaluate(order2, coefficients);
 
-			Assert.That(s1.Quality, Is.EqualTo(s2.Quality), "Phase 0 = Kind 가중치 0, 순서 무관");
+			Assert.That(s1.Quality, Is.EqualTo(s2.Quality), "Kind 가중치 0 → 순서 무관");
 			Assert.That(s1.Warmth, Is.EqualTo(s2.Warmth));
 		}
 
@@ -214,7 +200,6 @@ namespace WitchMendokusai.Tests
 			List<RefiningStage> stages = new(count);
 			for (int i = 0; i < count; i++)
 			{
-				// Kind 는 순환(Phase 0 = Kind 가중치 X, 그저 슬롯).
 				RefiningStageKind kind = (RefiningStageKind)(i % 3);
 				stages.Add(new RefiningStage(kind, approach));
 			}
