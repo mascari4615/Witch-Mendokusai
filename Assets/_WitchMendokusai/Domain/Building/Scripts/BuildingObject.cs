@@ -39,13 +39,8 @@ namespace WitchMendokusai
 		// 모루/솥(메쉬 따로) 전부 일관 클릭 = 우클릭 위 적층 / 좌클릭 제거 견고. 풀 재사용 시 기존 콜라이더 재사용.
 		private void FitInteractionCollider()
 		{
-			Renderer[] renderers = Model.GetComponentsInChildren<Renderer>();
-			if (renderers.Length == 0)
+			if (TryComputeInteractionWorldBounds(Model, out Bounds worldBounds) == false)
 				return;
-
-			Bounds worldBounds = renderers[0].bounds;
-			for (int i = 1; i < renderers.Length; i++)
-				worldBounds.Encapsulate(renderers[i].bounds);
 
 			BoxCollider interactionCollider = GetComponent<BoxCollider>();
 			if (interactionCollider == null)
@@ -54,6 +49,25 @@ namespace WitchMendokusai
 			// BuildingObject 루트 = identity 회전·scale 1 → world bounds 가 곧 local. InverseTransformPoint 로 안전 변환.
 			interactionCollider.center = transform.InverseTransformPoint(worldBounds.center);
 			interactionCollider.size = worldBounds.size;
+		}
+
+		// TASK-WM-181 — 인터랙션 콜라이더 bounds 계산 seam (회귀 테스트 진입점, WildBeastFleeTest 동격).
+		// 모델 자식 전 Renderer 의 world bounds 합산. 렌더러 0 = false (콜라이더 안 만듦 = 클릭 불가).
+		// 모든 Building prefab 이 비퇴화 bounds 를 내는지가 「일관 클릭」의 데이터 전제 — BuildingColliderFitTest 가 락.
+		public static bool TryComputeInteractionWorldBounds(GameObject model, out Bounds worldBounds)
+		{
+			worldBounds = default;
+			if (model == null)
+				return false;
+
+			Renderer[] renderers = model.GetComponentsInChildren<Renderer>();
+			if (renderers.Length == 0)
+				return false;
+
+			worldBounds = renderers[0].bounds;
+			for (int i = 1; i < renderers.Length; i++)
+				worldBounds.Encapsulate(renderers[i].bounds);
+			return true;
 		}
 
 		public void UpdateRuntimeData(string json)
