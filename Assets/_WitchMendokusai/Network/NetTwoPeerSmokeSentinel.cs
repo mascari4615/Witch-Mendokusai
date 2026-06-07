@@ -38,6 +38,7 @@ namespace WitchMendokusai
         private const float PROBE_Y = 6f;
         private const float PROBE_Z = 70f;
         private const float MOVED_SQR_MIN = 25f; // spawn 원점에서 벗어남 판정 (>5 units = probe-follow 전파됨).
+        private const float POS_TOLERANCE = 1.0f; // 프록시↔실측 위치 일치 허용오차(한틱 lag 흡수).
 
         private string _role;
         private int _nreCount;
@@ -305,9 +306,31 @@ namespace WitchMendokusai
 
         private IEnumerator RunHost(NetworkManager networkManager, float deadline)
         {
-            // 실 "함께 만들기" 진입점 = NetworkBootstrap.StartHost (server+client+bridge+presence 스포너).
-            // host-loopback 단일 프로세스로 그 배선을 behavior-verify: IsRunning + 시계동기 bridge 스폰
-            // + host 자신(clientHost 연결)이 per-connection 프록시 받음. 크로스-와이어는 server/client 롤이 별도.
+            // step-3 real-player host-loopback — fake probe 아닌 *실 Player* 추종 검증.
+            // ① 결정부팅이 World 까지 도달해 실 Player(ILocalPlayerProbe=PlayerProvider 백)가 살 때까지 대기
+            //    (BootSmokeSentinel 은 WM_NET_ROLE 시 inert 지만 게임 결정부팅 자체가 World 자동도달).
+            // ② StartHost(실 「함께 만들기」 진입점: server+client+시계 bridge 지연스폰+presence 스포너).
+            // ③ host clientHost per-connection 프록시가 *실 Player 위치*를 추종하는지 확인(real probe→proxy).
+            float playerX = 0f;
+            float playerY = 0f;
+            float playerZ = 0f;
+            bool realPlayer = false;
+            while (Time.realtimeSinceStartup < deadline)
+            {
+                if (LocalPlayerProbeBridge.TryGetPosition(out playerX, out playerY, out playerZ))
+                {
+                    realPlayer = true;
+                    break;
+                }
+                yield return null;
+            }
+            if (realPlayer == false)
+            {
+                FailFinish("host: 실 Player 미등장 (결정부팅 World 미도달 — LocalPlayerProbe false)");
+                yield break;
+            }
+            Debug.Log($"[NET-SMOKE] host 실 플레이어 위치 = ({playerX:F2},{playerY:F2},{playerZ:F2})");
+
             if (NetworkBootstrap.StartHost() == false)
             {
                 FailFinish("host: NetworkBootstrap.StartHost() == false");
@@ -322,11 +345,6 @@ namespace WitchMendokusai
                 FailFinish("host: StartHost 후 IsRunning 안 됨");
                 yield break;
             }
-
-            // 결정성 — 시계 고정(bridge OnStartServer PushAll).
-            WorldClock clock = WorldClock.Instance;
-            clock.PauseClock(gameObject);
-            clock.SkipDays(SENTINEL_SKIP_DAYS);
 
             // bridge + host 자신의 프록시(clientHost 연결)가 스폰될 때까지.
             WorldClockNetworkBridge bridge = null;
@@ -344,6 +362,7 @@ namespace WitchMendokusai
                 }
                 yield return null;
             }
+            // 프록시가 실 플레이어를 probe-follow 하도록 settle.
             for (int frame = 0; frame < SETTLE_FRAMES && Time.realtimeSinceStartup < deadline; frame++)
             {
                 yield return null;
@@ -351,6 +370,7 @@ namespace WitchMendokusai
 
             bool bridgeOk = bridge != null;
             bool proxyOk = hostProxy != null;
+            bool followsReal = false;
             if (proxyOk)
             {
                 Vector3 hp = hostProxy.transform.position;
@@ -358,12 +378,21 @@ namespace WitchMendokusai
                 _proxyX = hp.x;
                 _proxyY = hp.y;
                 _proxyZ = hp.z;
+                // 현재 실 플레이어 위치 재독 → 프록시가 그걸 추종하나(real probe→proxy chain).
+                if (LocalPlayerProbeBridge.TryGetPosition(out playerX, out playerY, out playerZ))
+                {
+                    followsReal = Mathf.Abs(hp.x - playerX) < POS_TOLERANCE
+                               && Mathf.Abs(hp.y - playerY) < POS_TOLERANCE
+                               && Mathf.Abs(hp.z - playerZ) < POS_TOLERANCE;
+                }
+                Debug.Log($"[NET-SMOKE] host 프록시=({hp.x:F2},{hp.y:F2},{hp.z:F2}) 실플레이어=({playerX:F2},{playerY:F2},{playerZ:F2}) follows={followsReal}");
             }
-            bool pass = NetworkBootstrap.IsRunning && bridgeOk && proxyOk && _nreCount == 0;
+            WorldClock clock = WorldClock.Instance;
+            bool pass = NetworkBootstrap.IsRunning && bridgeOk && proxyOk && followsReal && _nreCount == 0;
             WriteResult(
                 pass ? "PASS" : "FAIL",
-                pass ? "host StartHost: server+client running + 시계 bridge 스폰 + host 프록시 스폰"
-                     : $"host: running={NetworkBootstrap.IsRunning} bridge={bridgeOk} proxy={proxyOk} nre={_nreCount}",
+                pass ? "host StartHost: 실 Player 추종 프록시 + 시계 bridge 스폰 (real-player host-loopback)"
+                     : $"host: running={NetworkBootstrap.IsRunning} bridge={bridgeOk} proxy={proxyOk} follows={followsReal} nre={_nreCount}",
                 clock.Year, clock.Season, clock.Day, clock.Hour, RemoteClientCount(networkManager));
             Finish(pass ? 0 : 1);
         }
