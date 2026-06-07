@@ -1,3 +1,4 @@
+using FishNet.Connection;
 using FishNet.Managing;
 using UnityEngine;
 
@@ -14,6 +15,7 @@ namespace WitchMendokusai
     {
         public const string NETWORK_MANAGER_RESOURCE = "WMNetworkManager";
         public const string BRIDGE_PREFAB_RESOURCE = "WorldClockNetworkBridge";
+        public const string PLAYER_PROXY_RESOURCE = "PlayerNetProxy";
         public const ushort DEFAULT_PORT = 7770; // Tugboat 기본
 
         private static NetworkManager _networkManager;
@@ -91,6 +93,28 @@ namespace WitchMendokusai
             WorldClockNetworkBridge bridge = go.GetComponent<WorldClockNetworkBridge>();
             networkManager.ServerManager.Spawn(go);
             return bridge;
+        }
+
+        /// <summary>
+        /// 플레이어 프록시(per-peer presence) 서버 스폰. owner=연결이면 그 클라가 소유(자기 로컬
+        /// 플레이어를 따라감), null=서버 소유(스모크 검증용). prefab(NetworkObject+NetworkTransform,
+        /// _isGlobal) 인스턴스화. TASK-WM-191 step-1.
+        /// </summary>
+        public static PlayerNetProxy SpawnPlayerProxy(NetworkConnection owner = null)
+        {
+            NetworkManager networkManager = EnsureNetworkManager();
+            GameObject prefab = Resources.Load<GameObject>(PLAYER_PROXY_RESOURCE);
+            GameObject go = Object.Instantiate(prefab);
+            PlayerNetProxy proxy = go.GetComponent<PlayerNetProxy>();
+            if (owner != null)
+            {
+                networkManager.ServerManager.Spawn(go, owner);
+            }
+            else
+            {
+                networkManager.ServerManager.Spawn(go);
+            }
+            return proxy;
         }
     }
 }
