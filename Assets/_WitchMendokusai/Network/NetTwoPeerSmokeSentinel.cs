@@ -4,6 +4,7 @@ using System.Globalization;
 using System.IO;
 using FishNet.Managing;
 using UnityEngine;
+using WitchMendokusai.DomainSDK.Network;
 
 namespace WitchMendokusai
 {
@@ -31,10 +32,12 @@ namespace WitchMendokusai
         // 일치할 여지 0 (== 진짜 wire 너머 도달 증명). days 단위라 Config(시/일/계절) 무관.
         private const int SENTINEL_SKIP_DAYS = 400;
         private const int SETTLE_FRAMES = 120;
-        // 플레이어 프록시 presence 검증 sentinel 위치 (default 에서 멀리 = 우연일치 배제).
-        private const float PROXY_X = 12f;
-        private const float PROXY_Y = 5f;
-        private const float PROXY_Z = 34f;
+        // step-2: 클라가 fake probe 로 자기 프록시를 구동할 distinctive 위치(spawn 원점 0,0,0·default
+        // 와 우연일치 배제). 클라(owner)가 여기로 따라가 client-auth NetworkTransform 로 서버에 푸시.
+        private const float PROBE_X = 50f;
+        private const float PROBE_Y = 6f;
+        private const float PROBE_Z = 70f;
+        private const float MOVED_SQR_MIN = 25f; // spawn 원점에서 벗어남 판정 (>5 units = probe-follow 전파됨).
 
         private string _role;
         private int _nreCount;
@@ -164,21 +167,11 @@ namespace WitchMendokusai
             clock.SkipDays(SENTINEL_SKIP_DAYS);
             Debug.Log($"[NET-SMOKE] server clock 고정 = {clock.ToDebugString()} (skip {SENTINEL_SKIP_DAYS}d)");
 
-            // 플레이어 프록시 presence — 서버가 sentinel 위치로 고정(probe-follow 비활성 = enabled false)
-            // → NetworkTransform 가 server→client 동기. 클라가 그 위치를 관측하면 presence 채널 PASS.
-            PlayerNetProxy proxy = TrySpawnProxy(out string proxyError);
-            if (proxy == null)
-            {
-                FailFinish("server: 플레이어 프록시 스폰 실패: " + proxyError);
-                yield break;
-            }
-            proxy.enabled = false; // probe-follow 정지 → sentinel 위치 고정 유지.
-            proxy.transform.position = new Vector3(PROXY_X, PROXY_Y, PROXY_Z);
-            _proxyObserved = true;
-            _proxyX = PROXY_X;
-            _proxyY = PROXY_Y;
-            _proxyZ = PROXY_Z;
-            Debug.Log($"[NET-SMOKE] server proxy 고정 = ({PROXY_X},{PROXY_Y},{PROXY_Z})");
+            // step-2: per-connection 프록시 스포너 활성 → 클라 연결 시 그 클라가 *소유*하는 프록시
+            // 자동 스폰. 클라(owner)가 자기 probe 로 구동 → client-auth NetworkTransform 가 server 로
+            // 푸시 → 여기서 그 위치를 관측 = client→server presence (step-1 의 server→client 역방향).
+            PlayerNetProxySpawner.Enable(networkManager);
+            Debug.Log("[NET-SMOKE] server per-connection 프록시 스포너 활성");
 
             // 원격 클라 1개 연결 대기.
             while (RemoteClientCount(networkManager) < 1 && Time.realtimeSinceStartup < deadline)
@@ -187,23 +180,50 @@ namespace WitchMendokusai
             }
             int clients = RemoteClientCount(networkManager);
 
-            // SyncVar 전파 settle.
+            // 클라-소유 프록시가 스폰·전파되고, 클라가 probe(PROBE_*)로 구동한 위치가 client-auth 로
+            // 서버에 도달할 때까지 대기 (spawn 원점에서 벗어남 = follow 전파 완료 신호).
+            PlayerNetProxy clientProxy = null;
+            while (Time.realtimeSinceStartup < deadline)
+            {
+                PlayerNetProxySpawner.TryGetAnyClientProxy(out clientProxy);
+                if (clientProxy != null && clientProxy.transform.position.sqrMagnitude > MOVED_SQR_MIN)
+                {
+                    break;
+                }
+                yield return null;
+            }
+            // 수렴 settle.
             for (int frame = 0; frame < SETTLE_FRAMES && Time.realtimeSinceStartup < deadline; frame++)
             {
                 yield return null;
             }
+            if (clientProxy != null)
+            {
+                Vector3 observed = clientProxy.transform.position;
+                _proxyObserved = true;
+                _proxyX = observed.x;
+                _proxyY = observed.y;
+                _proxyZ = observed.z;
+                Debug.Log($"[NET-SMOKE] server 관측 클라-프록시 = ({observed.x:F2},{observed.y:F2},{observed.z:F2})");
+            }
 
-            bool pass = clients >= 1 && _nreCount == 0;
+            bool pass = clients >= 1 && _proxyObserved && _nreCount == 0;
             WriteResult(
                 pass ? "PASS" : "FAIL",
-                pass ? "server up + bridge spawned + remote client connected"
-                     : $"server: 원격 클라 {clients}개 / nre={_nreCount}",
+                pass ? "server up + bridge spawned + client-owned proxy observed (client→server presence)"
+                     : $"server: 원격 클라 {clients}개 / proxy={_proxyObserved} / nre={_nreCount}",
                 clock.Year, clock.Season, clock.Day, clock.Hour, clients);
             Finish(pass ? 0 : 1);
         }
 
         private IEnumerator RunClient(NetworkManager networkManager, float deadline)
         {
+            // step-2: 헤드리스 클라엔 실 플레이어 없음 → distinctive 고정 위치 fake probe register.
+            // 서버가 이 클라 소유 프록시를 스폰하면, 프록시(IsOwner)가 spawn 원점에서 이 위치로
+            // *따라가* client-auth NetworkTransform 로 서버에 푸시 → 서버가 관측(client→server).
+            LocalPlayerProbeBridge.Register(new FixedLocalPlayerProbe());
+            Debug.Log($"[NET-SMOKE] client fake probe = ({PROBE_X},{PROBE_Y},{PROBE_Z}) register");
+
             if (networkManager.ClientManager.StartConnection() == false)
             {
                 FailFinish("client: ClientManager.StartConnection() == false");
@@ -243,23 +263,38 @@ namespace WitchMendokusai
                 yield return null;
             }
 
-            // 플레이어 프록시(presence) 원격 관측 — NetworkObject 스폰 전파 + NetworkTransform 위치 동기.
-            PlayerNetProxy clientProxy = FindAnyObjectByType<PlayerNetProxy>();
-            if (clientProxy != null)
+            // step-2: 내가(클라=owner) 소유한 프록시가 스폰·probe-follow 로 distinctive 위치에 도달할
+            // 때까지 대기 (server 가 이 클라용으로 스폰 → IsOwner==true → probe 따라감).
+            PlayerNetProxy myProxy = null;
+            while (Time.realtimeSinceStartup < deadline)
             {
-                Vector3 pp = clientProxy.transform.position;
+                myProxy = FindOwnedProxy();
+                if (myProxy != null && myProxy.transform.position.sqrMagnitude > MOVED_SQR_MIN)
+                {
+                    break;
+                }
+                yield return null;
+            }
+            for (int frame = 0; frame < SETTLE_FRAMES && Time.realtimeSinceStartup < deadline; frame++)
+            {
+                yield return null;
+            }
+            if (myProxy != null)
+            {
+                Vector3 pp = myProxy.transform.position;
                 _proxyObserved = true;
                 _proxyX = pp.x;
                 _proxyY = pp.y;
                 _proxyZ = pp.z;
+                Debug.Log($"[NET-SMOKE] client 소유 프록시(probe-follow) = ({pp.x:F2},{pp.y:F2},{pp.z:F2}) owner={myProxy.IsOwner}");
             }
 
             bool received = bridge.SyncedDay >= 1;
-            bool pass = received && clientProxy != null && _nreCount == 0;
+            bool pass = received && myProxy != null && _proxyObserved && _nreCount == 0;
             WriteResult(
                 pass ? "PASS" : "FAIL",
-                pass ? "client connected + bridge observed + SyncVar received + proxy observed"
-                     : $"client: day={bridge.SyncedDay} proxy={(clientProxy != null)} nre={_nreCount}",
+                pass ? "client connected + bridge observed + SyncVar received + owned proxy probe-followed"
+                     : $"client: day={bridge.SyncedDay} proxy={(myProxy != null)} obs={_proxyObserved} nre={_nreCount}",
                 bridge.SyncedYear, bridge.SyncedSeason, bridge.SyncedDay, bridge.SyncedHour, -1);
             Finish(pass ? 0 : 1);
         }
@@ -294,17 +329,29 @@ namespace WitchMendokusai
             }
         }
 
-        private static PlayerNetProxy TrySpawnProxy(out string error)
+        // 클라 측: 내가 소유(IsOwner)한 프록시 1개 찾기 (이 2-프로세스 셋업엔 클라-소유 프록시뿐).
+        private static PlayerNetProxy FindOwnedProxy()
         {
-            error = null;
-            try
+            PlayerNetProxy[] all = FindObjectsByType<PlayerNetProxy>(FindObjectsSortMode.None);
+            for (int index = 0; index < all.Length; index++)
             {
-                return NetworkBootstrap.SpawnPlayerProxy();
+                if (all[index].IsOwner)
+                {
+                    return all[index];
+                }
             }
-            catch (Exception ex)
+            return all.Length > 0 ? all[0] : null;
+        }
+
+        // 헤드리스 클라 fake 로컬 플레이어 — distinctive 고정 위치 반환(실 플레이어 대역).
+        private sealed class FixedLocalPlayerProbe : ILocalPlayerProbe
+        {
+            public bool TryGetPosition(out float x, out float y, out float z)
             {
-                error = ex.GetType().Name + ": " + ex.Message;
-                return null;
+                x = PROBE_X;
+                y = PROBE_Y;
+                z = PROBE_Z;
+                return true;
             }
         }
 

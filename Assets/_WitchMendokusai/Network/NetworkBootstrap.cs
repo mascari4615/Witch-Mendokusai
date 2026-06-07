@@ -47,6 +47,12 @@ namespace WitchMendokusai
             NetworkManager networkManager = EnsureNetworkManager();
             bool server = networkManager.ServerManager.StartConnection();
             bool client = networkManager.ClientManager.StartConnection();
+            if (server)
+            {
+                // per-connection 프록시 스포너 — host 자신·참가 클라 각자 소유 프록시 자동 스폰
+                // (각 피어가 자기 인형을 공유 World 에서 조종 + 서로 보임). TASK-WM-191 step-2.
+                PlayerNetProxySpawner.Enable(networkManager);
+            }
             return server && client;
         }
 
@@ -77,6 +83,7 @@ namespace WitchMendokusai
         {
             if (_networkManager == null)
                 return;
+            PlayerNetProxySpawner.Disable();
             _networkManager.ClientManager.StopConnection();
             _networkManager.ServerManager.StopConnection(true);
         }
