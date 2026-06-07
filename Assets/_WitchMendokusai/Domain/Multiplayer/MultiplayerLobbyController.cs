@@ -111,18 +111,18 @@ namespace WitchMendokusai
             frame.style.paddingRight = 24f;
             frame.style.backgroundColor = new Color(0.12f, 0.10f, 0.16f, 0.96f);
 
-            Label title = new Label("함께 만들기") { name = "title" };
+            Label title = new Label("멀티플레이") { name = "title" };
             title.style.fontSize = 22f;
             title.style.marginBottom = 16f;
             title.style.unityTextAlign = TextAnchor.MiddleCenter;
             frame.Add(title);
 
-            Button hostButton = new Button(OnHostClicked) { name = "host-button", text = "🧹 내 공방에 친구 부르기" };
+            Button hostButton = new Button(OnHostClicked) { name = "host-button", text = "방 만들기" };
             hostButton.style.height = 40f;
             hostButton.style.marginBottom = 6f;
             frame.Add(hostButton);
 
-            Label hostHint = new Label("친구가 인형이 되어 거들러 온다") { name = "host-hint" };
+            Label hostHint = new Label("초대코드를 친구에게 공유하세요") { name = "host-hint" };
             hostHint.style.fontSize = 11f;
             hostHint.style.marginBottom = 14f;
             frame.Add(hostHint);
@@ -131,7 +131,7 @@ namespace WitchMendokusai
             codeField.style.marginBottom = 6f;
             frame.Add(codeField);
 
-            Button joinButton = new Button(OnJoinClicked) { name = "join-button", text = "🚪 친구 공방에 들르기" };
+            Button joinButton = new Button(OnJoinClicked) { name = "join-button", text = "방 참가" };
             joinButton.style.height = 40f;
             joinButton.style.marginBottom = 14f;
             frame.Add(joinButton);
@@ -142,7 +142,7 @@ namespace WitchMendokusai
             statusLabel.style.whiteSpace = WhiteSpace.Normal;
             frame.Add(statusLabel);
 
-            Button backButton = new Button(Close) { name = "back-button", text = "· 돌아가기" };
+            Button backButton = new Button(Close) { name = "back-button", text = "돌아가기" };
             backButton.style.marginTop = 10f;
             frame.Add(backButton);
 
