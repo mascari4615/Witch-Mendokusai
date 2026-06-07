@@ -6,6 +6,7 @@
         "WM.Domain",
         "WM.Core",
         "WM.Editor",
+        "WitchMendokusai.Mods.Sample",
         "VContainer"
     ],
     "includePlatforms": [

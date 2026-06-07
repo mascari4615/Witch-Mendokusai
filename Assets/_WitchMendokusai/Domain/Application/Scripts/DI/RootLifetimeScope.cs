@@ -51,6 +51,9 @@ namespace WitchMendokusai
 			// TASK-WM-107 Slice 2A — POCO Effect dispatch DI 진입점 (static Effect.ApplyEffect 우회 대체).
 			builder.Register<EffectRunner>(Lifetime.Singleton).As<IEffectRunner>();
 
+			// TASK-WM-188 — IMod 콘텐츠 등록 어댑터. ctor 가 ModContentRegistryBridge.Register + ModLoader.InitializeDiscoveredMods 트리거.
+			builder.Register<ModContentRegistryHost>(Lifetime.Singleton);
+
 			// TASK-WM-120 γ — GameLogic spawn 서비스 (static class → 주입). ctor
 			// [Inject] ObjectPoolManager (static `.Instance` reach 제거 = graph-derived).
 			builder.Register<GameLogic>(Lifetime.Singleton);
@@ -95,6 +98,8 @@ namespace WitchMendokusai
 				BootGuard.EagerResolve<GameManager>(container, "Root");
 				BootGuard.EagerResolve<UIRoot>(container, "Root");
 				BootGuard.EagerResolve<InputStrategySelector>(container, "Root");
+				// TASK-WM-188 — ModContentRegistryHost = Bridge 등록 + IMod Initialize 트리거. deps (QuestManager / DataManager) 가 eager 위에서 해소된 후 resolve.
+				BootGuard.EagerResolve<ModContentRegistryHost>(container, "Root");
 				BootObserver.Enter(BootPhase.RootContainerBuilt); // TASK-WM-118 B1
 			});
 		}
