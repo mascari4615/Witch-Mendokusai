@@ -1,5 +1,6 @@
 using FishNet.Connection;
 using FishNet.Managing;
+using FishNet.Transporting;
 using UnityEngine;
 
 namespace WitchMendokusai
@@ -19,6 +20,7 @@ namespace WitchMendokusai
         public const ushort DEFAULT_PORT = 7770; // Tugboat 기본
 
         private static NetworkManager _networkManager;
+        private static WorldClockNetworkBridge _worldClockBridge;
 
         public static NetworkManager EnsureNetworkManager()
         {
@@ -49,11 +51,51 @@ namespace WitchMendokusai
             bool client = networkManager.ClientManager.StartConnection();
             if (server)
             {
-                // per-connection 프록시 스포너 — host 자신·참가 클라 각자 소유 프록시 자동 스폰
-                // (각 피어가 자기 인형을 공유 World 에서 조종 + 서로 보임). TASK-WM-191 step-2.
+                // 호스트 단일 진입점("함께 만들기")이 두 라이브 채널 모두 기동:
+                //  ① 시계 동기 bridge (server→client WorldClock SyncVar) — 참가자가 같은 절기/날짜.
+                //  ② per-connection 프록시 스포너 — host 자신·참가 클라 각자 소유 프록시(서로 보임).
+                // TASK-WM-191 step-2/3 (World 공동진입). bridge 는 멱등(중복 스폰 X).
+                EnsureWorldClockBridge(networkManager);
                 PlayerNetProxySpawner.Enable(networkManager);
             }
             return server && client;
+        }
+
+        /// <summary>
+        /// 호스트 시작 시 시계 동기 bridge 1개 보장(멱등). server active *후* 스폰 — StartConnection 직후엔
+        /// 서버 미active 라 ServerManager.Spawn 이 "server nor client active" 로 거부됨(검증 WM-191 step-3).
+        /// 이미 active 면 즉시, 아니면 OnServerConnectionState(Started)에 1회. 센티넬은 SpawnWorldClockBridge 직접.
+        /// </summary>
+        private static void EnsureWorldClockBridge(NetworkManager networkManager)
+        {
+            if (_worldClockBridge != null)
+            {
+                return;
+            }
+            if (networkManager.ServerManager.Started)
+            {
+                _worldClockBridge = SpawnWorldClockBridge();
+                return;
+            }
+            networkManager.ServerManager.OnServerConnectionState -= OnServerStartedSpawnBridge;
+            networkManager.ServerManager.OnServerConnectionState += OnServerStartedSpawnBridge;
+        }
+
+        private static void OnServerStartedSpawnBridge(ServerConnectionStateArgs args)
+        {
+            if (args.ConnectionState != LocalConnectionState.Started)
+            {
+                return;
+            }
+            if (_networkManager == null)
+            {
+                return;
+            }
+            _networkManager.ServerManager.OnServerConnectionState -= OnServerStartedSpawnBridge;
+            if (_worldClockBridge == null)
+            {
+                _worldClockBridge = SpawnWorldClockBridge();
+            }
         }
 
         /// <summary>참가(client only) — 호스트 주소로 연결. 멀티 진입 UX 「참가」 경로(TASK-WM-190).</summary>
@@ -84,6 +126,8 @@ namespace WitchMendokusai
             if (_networkManager == null)
                 return;
             PlayerNetProxySpawner.Disable();
+            _networkManager.ServerManager.OnServerConnectionState -= OnServerStartedSpawnBridge;
+            _worldClockBridge = null;
             _networkManager.ClientManager.StopConnection();
             _networkManager.ServerManager.StopConnection(true);
         }

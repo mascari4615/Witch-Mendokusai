@@ -126,6 +126,10 @@ namespace WitchMendokusai
             {
                 yield return RunClient(networkManager, deadline);
             }
+            else if (_role == "host")
+            {
+                yield return RunHost(networkManager, deadline);
+            }
             else
             {
                 FailFinish("알 수 없는 WM_NET_ROLE: " + _role);
@@ -296,6 +300,71 @@ namespace WitchMendokusai
                 pass ? "client connected + bridge observed + SyncVar received + owned proxy probe-followed"
                      : $"client: day={bridge.SyncedDay} proxy={(myProxy != null)} obs={_proxyObserved} nre={_nreCount}",
                 bridge.SyncedYear, bridge.SyncedSeason, bridge.SyncedDay, bridge.SyncedHour, -1);
+            Finish(pass ? 0 : 1);
+        }
+
+        private IEnumerator RunHost(NetworkManager networkManager, float deadline)
+        {
+            // 실 "함께 만들기" 진입점 = NetworkBootstrap.StartHost (server+client+bridge+presence 스포너).
+            // host-loopback 단일 프로세스로 그 배선을 behavior-verify: IsRunning + 시계동기 bridge 스폰
+            // + host 자신(clientHost 연결)이 per-connection 프록시 받음. 크로스-와이어는 server/client 롤이 별도.
+            if (NetworkBootstrap.StartHost() == false)
+            {
+                FailFinish("host: NetworkBootstrap.StartHost() == false");
+                yield break;
+            }
+            while (NetworkBootstrap.IsRunning == false && Time.realtimeSinceStartup < deadline)
+            {
+                yield return null;
+            }
+            if (NetworkBootstrap.IsRunning == false)
+            {
+                FailFinish("host: StartHost 후 IsRunning 안 됨");
+                yield break;
+            }
+
+            // 결정성 — 시계 고정(bridge OnStartServer PushAll).
+            WorldClock clock = WorldClock.Instance;
+            clock.PauseClock(gameObject);
+            clock.SkipDays(SENTINEL_SKIP_DAYS);
+
+            // bridge + host 자신의 프록시(clientHost 연결)가 스폰될 때까지.
+            WorldClockNetworkBridge bridge = null;
+            PlayerNetProxy hostProxy = null;
+            while (Time.realtimeSinceStartup < deadline)
+            {
+                if (bridge == null)
+                {
+                    bridge = FindAnyObjectByType<WorldClockNetworkBridge>();
+                }
+                PlayerNetProxySpawner.TryGetAnyClientProxy(out hostProxy);
+                if (bridge != null && hostProxy != null)
+                {
+                    break;
+                }
+                yield return null;
+            }
+            for (int frame = 0; frame < SETTLE_FRAMES && Time.realtimeSinceStartup < deadline; frame++)
+            {
+                yield return null;
+            }
+
+            bool bridgeOk = bridge != null;
+            bool proxyOk = hostProxy != null;
+            if (proxyOk)
+            {
+                Vector3 hp = hostProxy.transform.position;
+                _proxyObserved = true;
+                _proxyX = hp.x;
+                _proxyY = hp.y;
+                _proxyZ = hp.z;
+            }
+            bool pass = NetworkBootstrap.IsRunning && bridgeOk && proxyOk && _nreCount == 0;
+            WriteResult(
+                pass ? "PASS" : "FAIL",
+                pass ? "host StartHost: server+client running + 시계 bridge 스폰 + host 프록시 스폰"
+                     : $"host: running={NetworkBootstrap.IsRunning} bridge={bridgeOk} proxy={proxyOk} nre={_nreCount}",
+                clock.Year, clock.Season, clock.Day, clock.Hour, RemoteClientCount(networkManager));
             Finish(pass ? 0 : 1);
         }
 
