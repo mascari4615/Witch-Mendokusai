@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using WitchMendokusai.DomainSDK.UGC;
 
 namespace WitchMendokusai
 {
@@ -268,6 +269,122 @@ namespace WitchMendokusai
 					error = $"action[{index}] has unsupported type: {action.type}";
 					return false;
 			}
+		}
+
+		public static bool TryValidateRecipeManifest(UGCRecipeManifestData manifest, out string error)
+		{
+			if (manifest == null)
+			{
+				error = "Recipe manifest is null.";
+				return false;
+			}
+
+			if (manifest.schemaVersion != CURRENT_SCHEMA_VERSION)
+			{
+				error = $"Unsupported recipe schemaVersion: {manifest.schemaVersion}";
+				return false;
+			}
+
+			if (string.IsNullOrWhiteSpace(manifest.manifestId))
+			{
+				error = "Recipe manifestId is required.";
+				return false;
+			}
+
+			if (manifest.recipe == null)
+			{
+				error = $"Recipe manifest '{manifest.manifestId}' has no recipe page.";
+				return false;
+			}
+
+			UGCRecipePageData recipe = manifest.recipe;
+
+			if (recipe.recipeId < 0)
+			{
+				error = $"Recipe '{manifest.manifestId}' has invalid recipeId: {recipe.recipeId}";
+				return false;
+			}
+
+			if (string.IsNullOrWhiteSpace(recipe.title))
+			{
+				error = $"Recipe '{manifest.manifestId}' title is required.";
+				return false;
+			}
+
+			if (string.IsNullOrWhiteSpace(recipe.effectName))
+			{
+				error = $"Recipe '{manifest.manifestId}' effectName is required.";
+				return false;
+			}
+
+			if (recipe.target == null)
+			{
+				error = $"Recipe '{manifest.manifestId}' target is required.";
+				return false;
+			}
+
+			if (recipe.target.radius <= 0f)
+			{
+				error = $"Recipe '{manifest.manifestId}' target.radius must be > 0 (got {recipe.target.radius}).";
+				return false;
+			}
+
+			if (recipe.ingredients != null)
+			{
+				for (int i = 0; i < recipe.ingredients.Count; i++)
+				{
+					UGCRecipeIngredientRefData ingredient = recipe.ingredients[i];
+					if (ingredient == null)
+					{
+						error = $"Recipe '{manifest.manifestId}' ingredient[{i}] is null.";
+						return false;
+					}
+
+					if (ingredient.ingredientId < 0)
+					{
+						error = $"Recipe '{manifest.manifestId}' ingredient[{i}] ingredientId must be >= 0.";
+						return false;
+					}
+
+					if (ingredient.grind < 0f)
+					{
+						error = $"Recipe '{manifest.manifestId}' ingredient[{i}] grind must be >= 0 (got {ingredient.grind}).";
+						return false;
+					}
+				}
+			}
+
+			if (recipe.gradeThresholds != null)
+			{
+				UGCRecipeGradeThresholdsData thresholds = recipe.gradeThresholds;
+
+				if (thresholds.crudeMaxDistance < 0f || thresholds.fineMaxDistance < 0f || thresholds.masterworkMaxDistance < 0f)
+				{
+					error = $"Recipe '{manifest.manifestId}' gradeThresholds distance fields must be >= 0.";
+					return false;
+				}
+
+				if (thresholds.fineMaxDistance > thresholds.crudeMaxDistance)
+				{
+					error = $"Recipe '{manifest.manifestId}' gradeThresholds.fineMaxDistance must be <= crudeMaxDistance.";
+					return false;
+				}
+
+				if (thresholds.masterworkMaxDistance > thresholds.fineMaxDistance)
+				{
+					error = $"Recipe '{manifest.manifestId}' gradeThresholds.masterworkMaxDistance must be <= fineMaxDistance.";
+					return false;
+				}
+
+				if (thresholds.masterworkMaxSideEffect < 0f)
+				{
+					error = $"Recipe '{manifest.manifestId}' gradeThresholds.masterworkMaxSideEffect must be >= 0.";
+					return false;
+				}
+			}
+
+			error = null;
+			return true;
 		}
 
 		public static bool TryValidateSeed(UGCSeedManifestData manifest, out string error)

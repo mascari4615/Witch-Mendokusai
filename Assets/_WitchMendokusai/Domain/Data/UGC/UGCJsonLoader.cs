@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Newtonsoft.Json;
+using WitchMendokusai.DomainSDK.UGC;
 
 namespace WitchMendokusai
 {
@@ -74,6 +75,36 @@ namespace WitchMendokusai
 			}
 
 			if (UGCJsonValidator.TryValidateManifest(manifest, out error) == false)
+			{
+				error = $"{Path.GetFileName(path)} {error}";
+				return false;
+			}
+
+			error = null;
+			return true;
+		}
+
+		public static bool TryLoadRecipeManifestFromSample(string fileName, out UGCRecipeManifestData manifest, out string error)
+		{
+			string path = UGCPathResolver.GetSamplePath(fileName);
+			if (TryReadJsonFile(path, out string json, out error) == false)
+			{
+				manifest = null;
+				return false;
+			}
+
+			try
+			{
+				manifest = JsonConvert.DeserializeObject<UGCRecipeManifestData>(json, JsonSettings);
+			}
+			catch (Exception ex)
+			{
+				manifest = null;
+				error = $"Failed to deserialize recipe manifest JSON: {ex.Message}";
+				return false;
+			}
+
+			if (UGCJsonValidator.TryValidateRecipeManifest(manifest, out error) == false)
 			{
 				error = $"{Path.GetFileName(path)} {error}";
 				return false;

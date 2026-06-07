@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "manifestId": "recipe_001_starlight_salve",
+  "version": 1,
+  "author": "WM_System",
+  "recipe": {
+    "recipeId": 1,
+    "effectName": "Restore",
+    "title": "별빛 연고",
+    "description": "달빛 이끼와 별가루를 갈아, 부드러운 회복 좌표로 항해한다. 첫 페이지 — 가장 안전한 회복 레시피.",
+    "target": {
+      "positionX": 1.0,
+      "positionY": 0.5,
+      "radius": 0.4
+    },
+    "ingredients": [
+      { "ingredientId": 101, "grind": 0.6 },
+      { "ingredientId": 102, "grind": 0.4 }
+    ],
+    "gradeThresholds": {
+      "crudeMaxDistance": 0.4,
+      "fineMaxDistance": 0.2,
+      "masterworkMaxDistance": 0.1,
+      "masterworkMaxSideEffect": 0.05
+    },
+    "tags": ["restore", "starter", "fan-page"]
+  },
+  "tags": ["fan-grimoire", "starter"],
+  "note": "First-use UGC 마도서 레시피 — 팬이 작성하는 한 페이지의 형태 박기. 본격 격상 시 IngredientSO 등록 ID 와 매핑."
+}
