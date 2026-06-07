@@ -30,6 +30,7 @@ namespace WitchMendokusai
 		private PLAYBACK_STATE pbState;
 		private readonly List<string> bgmTitles = new();
 		private int bgmIndex = 0;
+		private bool audioReady; // FMOD 뱅크 로드 성공 여부. false 면 모든 오디오 no-op(부팅·게임 계속, 무음).
 
 		private void Awake()
 		{
@@ -40,24 +41,36 @@ namespace WitchMendokusai
 			}
 			Instance = this;
 
-			buses[(int)BusType.Master] = RuntimeManager.GetBus("bus:/");
-			buses[(int)BusType.BGM] = RuntimeManager.GetBus("bus:/BGM");
-			buses[(int)BusType.SFX] = RuntimeManager.GetBus("bus:/SFX");
-			sfxVolumeTestEvent = RuntimeManager.CreateInstance("event:/SFX/SFXTest");
-
-			// https://qa.fmod.com/t/get-master-bank-and-all-events/18635/8
-			RuntimeManager.StudioSystem.getBankList(out Bank[] loadedBanks);
-			foreach (Bank bank in loadedBanks)
+			// 오디오는 부팅 필수의존 아님. FMOD 의 에디터 Play 뱅크 로딩은 *메인 에디터*에서만 돌아
+			// MPPM 가상 플레이어엔 뱅크가 안 올라옴 → GetBus 가 throw → 예전엔 DI 컨테이너 빌드 abort
+			// → 게임 전체 부팅 실패였음(WM-191 멀티 테스트서 발견). 뱅크 없으면 audioReady=false 로 무음
+			// 진행(크래시 X — 뱅크 있는 메인 에디터/standalone 에선 audioReady=true → 동작 100% 동일=회귀 0).
+			try
 			{
-				bank.getEventList(out EventDescription[] eventDescriptions);
-				foreach (EventDescription eventDesc in eventDescriptions)
-				{
-					eventDesc.getPath(out string eventPath);
-					// Debug.Log(eventPath);
+				buses[(int)BusType.Master] = RuntimeManager.GetBus("bus:/");
+				buses[(int)BusType.BGM] = RuntimeManager.GetBus("bus:/BGM");
+				buses[(int)BusType.SFX] = RuntimeManager.GetBus("bus:/SFX");
+				sfxVolumeTestEvent = RuntimeManager.CreateInstance("event:/SFX/SFXTest");
 
-					if (eventPath.StartsWith("event:/BGM/"))
-						bgmTitles.Add(eventPath);
+				// https://qa.fmod.com/t/get-master-bank-and-all-events/18635/8
+				RuntimeManager.StudioSystem.getBankList(out Bank[] loadedBanks);
+				foreach (Bank bank in loadedBanks)
+				{
+					bank.getEventList(out EventDescription[] eventDescriptions);
+					foreach (EventDescription eventDesc in eventDescriptions)
+					{
+						eventDesc.getPath(out string eventPath);
+						if (eventPath.StartsWith("event:/BGM/"))
+							bgmTitles.Add(eventPath);
+					}
 				}
+				audioReady = true;
+			}
+			catch (System.Exception exception)
+			{
+				audioReady = false;
+				Debug.LogWarning($"[AudioManager] FMOD 뱅크 미로드 — 오디오 비활성(무음)으로 진행, 부팅 계속. "
+					+ $"{exception.GetType().Name}: {exception.Message}");
 			}
 		}
 
@@ -69,12 +82,17 @@ namespace WitchMendokusai
 
 		private void Start()
 		{
+			if (audioReady == false)
+				return;
 			UpdateVolume();
-			PlayMusic(bgmTitles[Random.Range(0, bgmTitles.Count)]);
+			if (bgmTitles.Count > 0)
+				PlayMusic(bgmTitles[Random.Range(0, bgmTitles.Count)]);
 		}
 
 		private void UpdateVolume()
 		{
+			if (audioReady == false)
+				return;
 			buses[(int)BusType.Master].setVolume(GetVolume(BusType.Master));
 			buses[(int)BusType.BGM].setVolume(GetVolume(BusType.BGM));
 			buses[(int)BusType.SFX].setVolume(GetVolume(BusType.SFX));
@@ -82,6 +100,9 @@ namespace WitchMendokusai
 
 		private void Update()
 		{
+			if (audioReady == false || bgmTitles.Count == 0)
+				return;
+
 			// TODO : else if (DataManager.Instance.CurGameData.muteOnOutfocus)
 			{
 				// TODO : master.setVolume(0);
@@ -99,10 +120,17 @@ namespace WitchMendokusai
 			}
 		}
 
-		public void StopMusic() => bgmEvent.stop(FMOD.Studio.STOP_MODE.ALLOWFADEOUT);
+		public void StopMusic()
+		{
+			if (audioReady == false)
+				return;
+			bgmEvent.stop(FMOD.Studio.STOP_MODE.ALLOWFADEOUT);
+		}
 
 		public void PlayAmbient(string eventPath)
 		{
+			if (audioReady == false)
+				return;
 			ambientEvent.stop(FMOD.Studio.STOP_MODE.ALLOWFADEOUT);
 			ambientEvent.release();
 			if (string.IsNullOrEmpty(eventPath) == false)
@@ -123,18 +151,24 @@ namespace WitchMendokusai
 
 		public void StopAmbient()
 		{
+			if (audioReady == false)
+				return;
 			ambientEvent.stop(FMOD.Studio.STOP_MODE.ALLOWFADEOUT);
 			ambientEvent.release();
 		}
 
 		public void PlaySfx(string eventPath)
 		{
+			if (audioReady == false)
+				return;
 			if (string.IsNullOrEmpty(eventPath) == false)
 				RuntimeManager.PlayOneShot(eventPath);
 		}
 
 		public void PlayMusic(string eventPath)
 		{
+			if (audioReady == false)
+				return;
 			bgmEvent.stop(FMOD.Studio.STOP_MODE.ALLOWFADEOUT);
 			bgmEvent = RuntimeManager.CreateInstance(eventPath);
 			bgmEvent.start();
@@ -155,6 +189,8 @@ namespace WitchMendokusai
 		{
 			string key = $"Volume{(int)busType}";
 			PlayerPrefs.SetFloat(key, volume);
+			if (audioReady == false)
+				return;
 			buses[(int)busType].setVolume(volume);
 
 			if (busType == BusType.SFX)
