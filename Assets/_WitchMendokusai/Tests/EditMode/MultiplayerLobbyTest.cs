@@ -81,11 +81,15 @@ namespace WitchMendokusai.Tests
         public void Logic_Join_SuccessAndFailure()
         {
             FakeSession ok = new FakeSession { JoinResult = true };
-            Assert.That(new MultiplayerLobbyLogic(ok).Join("ABCDE-12345"), Does.Contain("들어가"));
+            MultiplayerLobbyLogic okLogic = new MultiplayerLobbyLogic(ok);
+            Assert.That(okLogic.Join("ABCDE-12345"), Does.Contain("진입"));
             Assert.That(ok.LastJoinCode, Is.EqualTo("ABCDE-12345"));
+            Assert.That(okLogic.LastSucceeded, Is.True, "성공인데 LastSucceeded=false (World 진입 트리거 안 됨)");
 
             FakeSession bad = new FakeSession { JoinResult = false };
-            Assert.That(new MultiplayerLobbyLogic(bad).Join("ABCDE-12345"), Does.Contain("실패"));
+            MultiplayerLobbyLogic badLogic = new MultiplayerLobbyLogic(bad);
+            Assert.That(badLogic.Join("ABCDE-12345"), Does.Contain("실패"));
+            Assert.That(badLogic.LastSucceeded, Is.False, "실패인데 LastSucceeded=true (World 오진입)");
         }
 
         // 테스트 더블 — INetworkSessionControl (DomainSDK seam). NetCode 실런타임 무의존.

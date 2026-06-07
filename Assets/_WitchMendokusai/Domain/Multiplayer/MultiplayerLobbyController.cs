@@ -152,7 +152,17 @@ namespace WitchMendokusai
 
         private void OnHostClicked() => statusLabel.text = logic.Host();
 
-        private void OnJoinClicked() => statusLabel.text = logic.Join(codeField != null ? codeField.value : string.Empty);
+        private void OnJoinClicked()
+        {
+            statusLabel.text = logic.Join(codeField != null ? codeField.value : string.Empty);
+            if (logic.LastSucceeded)
+            {
+                // 참가 성공 → World 공동입장. 로컬 World 로드(NetworkManager DDOL 유지) → 서버가 스폰한
+                // 내 프록시가 이 World 에 등장 + 내 실 플레이어 추종, 호스트는 내 프록시를 봄. TASK-WM-191 step-3.
+                Close();
+                UISceneLoading.LoadScene("World");
+            }
+        }
     }
 
     /// <summary>
@@ -163,6 +173,9 @@ namespace WitchMendokusai
     {
         private readonly INetworkSessionControl session;
 
+        /// <summary>직전 Host/Join 이 성공했나 (controller 가 성공 시 World 공동입장 트리거).</summary>
+        public bool LastSucceeded { get; private set; }
+
         public MultiplayerLobbyLogic(INetworkSessionControl session)
         {
             this.session = session;
@@ -170,6 +183,7 @@ namespace WitchMendokusai
 
         public string Host()
         {
+            LastSucceeded = false;
             if (session == null)
             {
                 return "네트워크 모듈 미준비";
@@ -178,11 +192,13 @@ namespace WitchMendokusai
             {
                 return "호스트 시작 실패";
             }
+            LastSucceeded = true;
             return $"호스트 중 · 초대코드: {session.GetHostInviteCode()}";
         }
 
         public string Join(string inviteCode)
         {
+            LastSucceeded = false;
             if (session == null)
             {
                 return "네트워크 모듈 미준비";
@@ -195,7 +211,8 @@ namespace WitchMendokusai
             {
                 return "참가 실패 — 코드 확인";
             }
-            return "친구 공방에 들어가는 중…";
+            LastSucceeded = true;
+            return "참가 — World 진입 중…";
         }
     }
 }
