@@ -17,7 +17,7 @@
         "com.unity.nuget.newtonsoft-json": "3.0.2",
         "com.unity.test-framework": "1.1.31"
       },
-      "hash": "b92c05a25820cfc9f59ce4094eb46aaec8632ea2"
+      "hash": "78ee5418415953b79c358bfe6355fcc3fde7912b"
     },
     "com.cysharp.messagepipe": {
       "version": "https://github.com/Cysharp/MessagePipe.git?path=src/MessagePipe.Unity/Assets/Plugins/MessagePipe",
@@ -204,7 +204,7 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.ai.assistant": {
-      "version": "2.7.0-pre.3",
+      "version": "2.9.0-pre.2",
       "depth": 0,
       "source": "registry",
       "dependencies": {
@@ -227,7 +227,7 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.behavior": {
-      "version": "1.0.15",
+      "version": "1.0.16",
       "depth": 0,
       "source": "registry",
       "dependencies": {
@@ -377,6 +377,15 @@
       },
       "url": "https://packages.unity.com"
     },
+    "com.unity.multiplayer.playmode": {
+      "version": "2.0.2",
+      "depth": 0,
+      "source": "registry",
+      "dependencies": {
+        "com.unity.nuget.newtonsoft-json": "2.0.2"
+      },
+      "url": "https://packages.unity.com"
+    },
     "com.unity.nuget.mono-cecil": {
       "version": "1.11.6",
       "depth": 2,
@@ -473,7 +482,7 @@
       }
     },
     "com.unity.sharp-zip-lib": {
-      "version": "1.4.1",
+      "version": "1.4.2",
       "depth": 0,
       "source": "registry",
       "dependencies": {},
