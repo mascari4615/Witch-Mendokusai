@@ -18,11 +18,12 @@ namespace WitchMendokusai
 
         private sealed class Probe : ILocalPlayerProbe
         {
-            public bool TryGetPosition(out float x, out float y, out float z)
+            public bool TryGetPose(out float x, out float y, out float z, out float yaw)
             {
                 x = 0f;
                 y = 0f;
                 z = 0f;
+                yaw = 0f;
 
                 if (PlayerProvider.TryGetExistingInstance(out PlayerProvider provider) == false)
                 {
@@ -38,6 +39,10 @@ namespace WitchMendokusai
                 x = position.x;
                 y = position.y;
                 z = position.z;
+                // 인형 3D 모델(Mesh/Yawn2)이 이동방향으로 facing(PlayerRotation.meshPivotOf3DModel) — 그 yaw 동기.
+                // 없으면 루트 yaw 폴백. 프록시 root 에 적용 → NetworkTransform 동기(스프라이트는 빌보드라 무관).
+                Transform meshFacing = playerObject.transform.Find("Mesh/Yawn2");
+                yaw = meshFacing != null ? meshFacing.eulerAngles.y : playerObject.transform.eulerAngles.y;
                 return true;
             }
         }

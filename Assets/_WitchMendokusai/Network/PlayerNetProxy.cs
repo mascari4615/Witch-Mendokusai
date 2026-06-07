@@ -11,6 +11,21 @@ namespace WitchMendokusai
     /// </summary>
     public class PlayerNetProxy : WMNetworkBehaviour
     {
+        public override void OnStartClient()
+        {
+            base.OnStartClient();
+            // owner 측 = 내 프록시 → 내 실 캐릭터 위에 겹침("메쉬 2개"). 프록시는 *남이 나를 보는* 표현이라
+            // 나한텐 visual 숨김(SetActive 는 per-instance = 비동기 → 남들 화면엔 그대로 보임). TASK-WM-191.
+            if (IsOwner)
+            {
+                Transform visual = transform.Find("DollVisual");
+                if (visual != null)
+                {
+                    visual.gameObject.SetActive(false);
+                }
+            }
+        }
+
         private void Update()
         {
             // 원격(비-owner) = prefab NetworkTransform 가 위치 구동 → 여기선 손 안 댐(경쟁 회피).
@@ -19,10 +34,13 @@ namespace WitchMendokusai
                 return;
             }
 
-            // owner = 내 로컬 플레이어를 따라감. 로비/사망 등 플레이어 부재 시 probe=false → 유지.
-            if (LocalPlayerProbeBridge.TryGetPosition(out float x, out float y, out float z))
+            // owner = 내 로컬 플레이어를 따라감(위치 + facing yaw). 로비/사망 등 부재 시 probe=false → 유지.
+            // 회전은 root 에 적용 → NetworkTransform(syncRotation)로 동기. 인형 3D 모델이 이동방향 facing,
+            // 스프라이트는 LookAtScreenCenter 빌보드라 root 회전 무관(겉보기 안 깨짐). TASK-WM-191 회전 동기.
+            if (LocalPlayerProbeBridge.TryGetPose(out float x, out float y, out float z, out float yaw))
             {
                 transform.position = new Vector3(x, y, z);
+                transform.rotation = Quaternion.Euler(0f, yaw, 0f);
             }
         }
     }

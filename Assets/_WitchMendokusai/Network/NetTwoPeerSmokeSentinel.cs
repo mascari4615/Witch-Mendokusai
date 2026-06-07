@@ -317,7 +317,7 @@ namespace WitchMendokusai
             bool realPlayer = false;
             while (Time.realtimeSinceStartup < deadline)
             {
-                if (LocalPlayerProbeBridge.TryGetPosition(out playerX, out playerY, out playerZ))
+                if (LocalPlayerProbeBridge.TryGetPose(out playerX, out playerY, out playerZ, out _))
                 {
                     realPlayer = true;
                     break;
@@ -379,7 +379,7 @@ namespace WitchMendokusai
                 _proxyY = hp.y;
                 _proxyZ = hp.z;
                 // 현재 실 플레이어 위치 재독 → 프록시가 그걸 추종하나(real probe→proxy chain).
-                if (LocalPlayerProbeBridge.TryGetPosition(out playerX, out playerY, out playerZ))
+                if (LocalPlayerProbeBridge.TryGetPose(out playerX, out playerY, out playerZ, out _))
                 {
                     followsReal = Mathf.Abs(hp.x - playerX) < POS_TOLERANCE
                                && Mathf.Abs(hp.y - playerY) < POS_TOLERANCE
@@ -444,11 +444,12 @@ namespace WitchMendokusai
         // 헤드리스 클라 fake 로컬 플레이어 — distinctive 고정 위치 반환(실 플레이어 대역).
         private sealed class FixedLocalPlayerProbe : ILocalPlayerProbe
         {
-            public bool TryGetPosition(out float x, out float y, out float z)
+            public bool TryGetPose(out float x, out float y, out float z, out float yaw)
             {
                 x = PROBE_X;
                 y = PROBE_Y;
                 z = PROBE_Z;
+                yaw = 0f;
                 return true;
             }
         }

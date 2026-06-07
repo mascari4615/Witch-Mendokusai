@@ -10,8 +10,8 @@ namespace WitchMendokusai.DomainSDK.Network
     /// </summary>
     public interface ILocalPlayerProbe
     {
-        /// <summary>로컬 플레이어가 존재하면 위치(x,y,z) 반환. 없으면(로비/사망 등) false.</summary>
-        bool TryGetPosition(out float x, out float y, out float z);
+        /// <summary>로컬 플레이어가 존재하면 위치(x,y,z) + facing yaw(도) 반환. 없으면(로비/사망 등) false.</summary>
+        bool TryGetPose(out float x, out float y, out float z, out float yaw);
     }
 
     /// <summary>Domain impl → Network 프록시 static accessor (WM IXxxBridge 패턴).</summary>
@@ -21,15 +21,16 @@ namespace WitchMendokusai.DomainSDK.Network
 
         public static void Register(ILocalPlayerProbe probe) => Instance = probe;
 
-        public static bool TryGetPosition(out float x, out float y, out float z)
+        public static bool TryGetPose(out float x, out float y, out float z, out float yaw)
         {
             if (Instance != null)
             {
-                return Instance.TryGetPosition(out x, out y, out z);
+                return Instance.TryGetPose(out x, out y, out z, out yaw);
             }
             x = 0f;
             y = 0f;
             z = 0f;
+            yaw = 0f;
             return false;
         }
     }
