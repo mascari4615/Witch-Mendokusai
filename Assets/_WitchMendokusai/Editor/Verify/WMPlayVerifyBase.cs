@@ -41,8 +41,9 @@ namespace WitchMendokusai.EditorTools
 			EditorApplication.playModeStateChanged += OnPlayModeChanged;
 		}
 
-		// 파생 [MenuItem] static 래퍼가 Instance.Arm() 호출.
-		public void Arm()
+		// 파생 [MenuItem] static 래퍼가 Instance.Arm() 호출. 격리된 빈 씬 setup 이 필요한 파생(예: FishNet 호스트
+		// 하네스 — heavy-boot wedge 회피) 은 override 해 EnterPlaymode 전 씬을 갈아끼움. base = 현 씬 그대로.
+		public virtual void Arm()
 		{
 			EditorPrefs.SetBool(ArmPref, true);
 			Debug.Log(Tag + " armed — Play 진입");

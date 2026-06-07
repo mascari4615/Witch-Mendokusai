@@ -71,6 +71,30 @@ namespace WitchMendokusai.Tests
                     + fishNetBase.FullName + ") — NetCode 백엔드 회귀");
         }
 
+        // Phase C — TASK-WM-187: NetworkBootstrap(라이브 sync 1채널 호스트 진입점) 표면 존재.
+        // EnsureHostStarted / StopHost / ServerSpawn / IsHostFullyStarted 4 정본을 reflection 으로 잠금.
+        // 실 호스트 거동(SyncVar 미러)은 WMNetSyncHostPlayVerify(PlayMode 자율검증)가 별도 입증.
+        [Test]
+        public void NetworkBootstrap_HasRequiredSurface()
+        {
+            Type bootstrapType = FindLoadedType("WitchMendokusai.NetworkBootstrap");
+            Assert.That(bootstrapType, Is.Not.Null,
+                "WitchMendokusai.NetworkBootstrap 미발견 — WM-187 host 진입점 회귀");
+
+            Assert.That(bootstrapType.IsAbstract && bootstrapType.IsSealed, Is.True,
+                "NetworkBootstrap 이 static class 아님 — 정본 형태 회귀");
+
+            BindingFlags publicStatic = BindingFlags.Public | BindingFlags.Static;
+            Assert.That(bootstrapType.GetMethod("EnsureHostStarted", publicStatic), Is.Not.Null,
+                "NetworkBootstrap.EnsureHostStarted 미발견");
+            Assert.That(bootstrapType.GetMethod("StopHost", publicStatic), Is.Not.Null,
+                "NetworkBootstrap.StopHost 미발견");
+            Assert.That(bootstrapType.GetMethod("ServerSpawn", publicStatic), Is.Not.Null,
+                "NetworkBootstrap.ServerSpawn 미발견");
+            Assert.That(bootstrapType.GetProperty("IsHostFullyStarted", publicStatic), Is.Not.Null,
+                "NetworkBootstrap.IsHostFullyStarted 미발견");
+        }
+
         // 메타 — 본 테스트 어셈블리가 FishNet 에 결합되지 않음(asmdef 단방향
         // self-check). wm-asmdef-boundary.yml 게이트의 테스트측 거울.
         [Test]
