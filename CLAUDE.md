@@ -45,7 +45,7 @@ WMInput.inputactions → InputManager.BindEvents() → On{Start/Performed/Cancel
 
 비전 정본: `memo/wm/design/vision/architecture.md`. 본 § 는 코드 룰.
 
-**asmdef 단방향**: `WitchMendokusai.DomainSDK.asmdef` references=[] / Mods references=[DomainSDK]만. 모드 .cs 가 Domain 타입 직접 호출 시 컴파일 fail = 런타임 체크 0.
+**asmdef 단방향**: `WitchMendokusai.DomainSDK.asmdef` references=[UniTask, MessagePipe] (Foundation 유틸만, 게임 layer 0) / Mods references=[DomainSDK]만. 모드·DomainSDK .cs 가 Domain/Core 타입 직접 호출 시 컴파일 fail = 런타임 체크 0. (구 "references=[]" = stale. 실 도메인 격상 현황·입도 정책 = `memo/wm/design/vision/architecture.md` § 측정표·격상 입도 정책.)
 
 **격상 순서**: `enum` → `SaveData`(POCO) → `InfoData`(POCO) → `RuntimeXxxSaveData` → `record XxxEvent : IEvent` → `RuntimeXxx` → asmdef split. RuntimeXxx 생성자 = `(RuntimeXxxSaveData)` 만, Domain factory(`FromXxxSO`/`FromXxxInfo`/`FromSaveData`)가 변환 책임.
 
@@ -91,7 +91,9 @@ WMInput.inputactions → InputManager.BindEvents() → On{Start/Performed/Cancel
 
 ## Unity-MCP layer
 
-**정본 = CoplayDev `com.coplaydev.unity-mcp`** (MIT, Unity Cloud cap 무관). 포트 8080, `.mcp.json` type=`"http"` 필수.
+**정본 = CoplayDev `com.coplaydev.unity-mcp`** (MIT, Unity Cloud cap 무관). 포트 **12345** (`.mcp.json` = `http://127.0.0.1:12345/mcp`), type=`"http"` 필수.
+
+**Editor 꺼져있으면 자동 기동** — WM 작업(특히 behavior-verify/Play) 요청 시 Editor 가 죽어있어도 사용자에게 "켜주세요" 푸시백 X. `memo/dotfiles/scripts/ensure-unity-editor.ps1` 호출 = heavy-op preflight → `Unity.exe -projectPath`(버전 자동 감지) → MCP 포트 12345 listen 대기 → ready. 정본 = TASK-KAR-159 + 메모리 `[[wm-request-auto-launch-unity-mcp]]`.
 
 **Read (자율)**: `read_console` / `mcpforunity://editor/state` / `find_gameobjects` / `manage_camera(screenshot)` / `run_tests(EditMode)` / `unity_reflect` / `unity_docs`.
 
