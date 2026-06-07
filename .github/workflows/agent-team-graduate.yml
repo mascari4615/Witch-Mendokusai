@@ -62,15 +62,24 @@ jobs:
             feature/agent-team-*|fix/issue-*|feature/issue-*) ;;
             *) echo "PR #$num head '$headRef' = 화이트리스트 prefix 아님 — skip"; exit 0 ;;
           esac
-          # 가드 3 — *현재 PR head commit* 에 FAILED check-run 없음 (CI green = 품질 게이트).
-          #   WM trunk-based: LLM 리뷰 게이트 폐기, CI(wm-asmdef-boundary 등) green 이 정본.
+          # 가드 3 — *현재 PR head commit* CI 검증 게이트 (FAILED 0 + success ≥ 1).
+          #   WM trunk-based: LLM 리뷰 게이트 폐기, CI(wm-asmdef-boundary) green 이 정본.
           failed=$(gh api "repos/${GH_REPO}/commits/${headOid}/check-runs" --paginate \
             --jq '[.check_runs[] | select(.conclusion=="failure" or .conclusion=="cancelled" or .conclusion=="timed_out")] | length')
           if [ "${failed:-0}" -gt 0 ]; then
             echo "PR #$num — head $headOid 에 FAILED check-run $failed 건 — skip"
             exit 0
           fi
+          # 가드 3b — 최소 1개 success check 필수 (빈-check 무검증 졸업 차단).
+          #   wm-asmdef-boundary 가 모든 PR 트리거(paths 무제한, ~수초)되므로 정상 PR 은 항상 ≥1.
+          #   success 0 = CI 미완/미트리거 → 졸업 보류 (Unity 컴파일 CI 부재 보완, wm-worker CLI PR 안전).
+          success=$(gh api "repos/${GH_REPO}/commits/${headOid}/check-runs" --paginate \
+            --jq '[.check_runs[] | select(.conclusion=="success")] | length')
+          if [ "${success:-0}" -lt 1 ]; then
+            echo "PR #$num — head $headOid 에 success check-run 0 (CI 미완/미트리거) — 재평가 대기, skip"
+            exit 0
+          fi
 
-          echo "PR #$num: 화이트리스트 prefix Draft + FAILED 0 → 졸업 (ready + squash merge)"
+          echo "PR #$num: 화이트리스트 prefix Draft + FAILED 0 + success ≥1 → 졸업 (ready + squash merge)"
           gh pr ready "$num"
           gh pr merge "$num" --squash --delete-branch

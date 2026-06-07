@@ -20,13 +20,9 @@ on:
       - 'Assets/_WitchMendokusai/Mods/**'
       - 'Assets/_WitchMendokusai/Network/**'
       - '.github/workflows/wm-asmdef-boundary.yml'
+  # paths 무제한 (2026-06-07): 모든 PR 에 ~수초 게이트 → graduate 가드 3b(success≥1)
+  # 가 빈-check 무검증 졸업을 차단할 수 있게. asmdef 는 jq+grep, Unity 무관이라 비용 0.
   pull_request:
-    paths:
-      - 'Assets/_WitchMendokusai/Core/**'
-      - 'Assets/_WitchMendokusai/Domain/**'
-      - 'Assets/_WitchMendokusai/DomainSDK/**'
-      - 'Assets/_WitchMendokusai/Mods/**'
-      - 'Assets/_WitchMendokusai/Network/**'
   workflow_dispatch: {}
 
 permissions:
