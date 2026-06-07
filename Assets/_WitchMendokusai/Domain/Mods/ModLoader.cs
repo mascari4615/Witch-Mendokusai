@@ -11,10 +11,15 @@ namespace WitchMendokusai
 	/// </summary>
 	public static class ModLoader
 	{
+		/// <summary>모드가 등록한 콘텐츠 (게임/테스트 조회점 = Bridge). LoadMods 후 채워짐.</summary>
+		public static ModContentRegistry Content { get; private set; } = new ModContentRegistry();
+
 		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterAssembliesLoaded)]
 		private static void LoadMods()
 		{
 			Type modInterface = typeof(IMod);
+			ModContentRegistry registry = new ModContentRegistry();
+			Content = registry;
 
 			Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
 			Type[] modTypes = assemblies
@@ -23,20 +28,20 @@ namespace WitchMendokusai
 				.Where(t => t != null && modInterface.IsAssignableFrom(t) && t.IsClass && t.IsAbstract == false)
 				.ToArray();
 
-			Debug.Log($"[ModLoader] {modTypes.Length} mod 발견 (IMod 구현 in WitchMendokusai.Mods.* assembly)");
-
 			foreach (Type modType in modTypes)
 			{
 				try
 				{
 					IMod mod = (IMod)Activator.CreateInstance(modType);
-					mod.Initialize();
+					mod.Initialize(registry);
 				}
 				catch (Exception ex)
 				{
 					Debug.LogError($"[ModLoader] {modType.FullName} Initialize 실패 — {ex.Message}\n{ex.StackTrace}");
 				}
 			}
+
+			Debug.Log($"[ModLoader] {modTypes.Length} mod 로드 — 등록 콘텐츠: quest {registry.RegisteredQuests.Count}");
 		}
 
 		private static Type[] SafeGetTypes(Assembly assembly)

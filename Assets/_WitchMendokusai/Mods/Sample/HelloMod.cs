@@ -17,9 +17,11 @@ namespace WitchMendokusai.Mods.Sample
 		public EffectType DefaultEffectType => EffectType.UnitStat;
 		public int DefaultWorkerID => WorkConstants.NONE_WORKER_ID;
 
-		public void Initialize()
+		public void Initialize(IModContext context)
 		{
-			Debug.Log($"[Mod:{Name} v{Version}] Initialize — DomainSDK sandbox 검증 ✅. DefaultQuestType={DefaultQuestType}, DefaultEffectType={DefaultEffectType}, DefaultWorkerID={DefaultWorkerID}");
+			// 껍데기(로그) → 실기능: DomainSDK seam(IModContentRegistry)으로 게임에 quest 1개 등록.
+			context.Content.RegisterQuest(new ModQuestDefinition("sample_quest_1", "샘플 모드 퀘스트", DefaultQuestType));
+			Debug.Log($"[Mod:{Name} v{Version}] Initialize — quest 1개 등록 (실기능, DomainSDK sandbox OK). DefaultQuestType={DefaultQuestType}, DefaultEffectType={DefaultEffectType}, DefaultWorkerID={DefaultWorkerID}");
 		}
 	}
 }
