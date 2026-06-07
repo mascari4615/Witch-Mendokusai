@@ -25,11 +25,17 @@ namespace WitchMendokusai
 
 		public static void ForEach<T>(Action<T> action) where T : DataSO
 		{
-			foreach (DataSO dataSO in SOManagerBridge.DataSOs[typeof(T)].Values)
+			// 그 타입이 미로드(테스트/부분 컨텍스트 — MPPM 가상 플레이어 등)면 순회할 것 0 = no-op.
+			// 종료 세이브(SaveManager.SaveData)서 미로드 타입에 KeyNotFound 던져 세이브 전체 크래시하던 것 방지.
+			// 단건 Get<T>(id) 는 FastFail 유지(특정 SO 부재 = 실 버그).
+			if (SOManagerBridge.DataSOs.TryGetValue(typeof(T), out Dictionary<int, DataSO> dataSOs) == false)
+				return;
+			foreach (DataSO dataSO in dataSOs.Values)
 				action(dataSO as T);
 		}
 
-		public static int CountOf<T>() where T : DataSO => SOManagerBridge.DataSOs[typeof(T)].Count;
+		public static int CountOf<T>() where T : DataSO =>
+			SOManagerBridge.DataSOs.TryGetValue(typeof(T), out Dictionary<int, DataSO> dataSOs) ? dataSOs.Count : 0;
 
 		/// <summary>
 		/// 주어진 타입의 DataSO 스크립터블 오브젝트를 가져옵니다

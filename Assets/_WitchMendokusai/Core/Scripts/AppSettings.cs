@@ -22,6 +22,12 @@ namespace WitchMendokusai
 			AutoStart = true;     // 수동 버튼 없이 자동 StartGame
 			UseLocalData = true;  // 로컬 세이브 (PlayFab Login 은 DataManager.Login 가드)
 		}
+
+		// 에디터 솔로 dev 편의 — 타이틀 자동 스킵(런타임 인스턴스 한정, 디스크 .asset 불변 = footgun 0).
+		public void ApplyEditorAutoSkipTitle()
+		{
+			AutoStart = true;
+		}
 	}
 
 	public static class AppSetting
@@ -45,6 +51,11 @@ namespace WitchMendokusai
 			{
 				Data.ApplyDeterministicBoot();
 				Debug.Log("[BOOT] AppSettings — ApplyDeterministicBoot (UseIntro=false, AutoStart=true, UseLocalData=true)");
+			}
+			else if (BootMode.EditorAutoSkipTitle)
+			{
+				Data.ApplyEditorAutoSkipTitle();
+				Debug.Log("[BOOT] AppSettings — EditorAutoSkipTitle (AutoStart=true, 솔로 dev 편의)");
 			}
 		}
 	}

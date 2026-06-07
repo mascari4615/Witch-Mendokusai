@@ -22,6 +22,10 @@ namespace WitchMendokusai
         /// <summary>에디터 in-process 테스트용 강제 override (env 보다 우선). null = env 따름.</summary>
         public static bool? OverrideForEditorTest { get; set; }
 
+        /// <summary>에디터 솔로 dev 편의 — 타이틀 자동 스킵(AutoStart) 강제. 결정부팅과 독립(런타임 인스턴스 한정).
+        /// AutoSkipTitleEditorToggle 메뉴가 SessionState 로 set. 비결정 부팅서만 적용(결정부팅은 이미 AutoStart=true).</summary>
+        public static bool EditorAutoSkipTitle { get; set; }
+
         private static bool? _cached;
 
         public static bool IsDeterministic
