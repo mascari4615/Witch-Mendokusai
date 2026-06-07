@@ -3,21 +3,30 @@ name: WM asmdef boundary gate
 # 정본: memo/dotfiles/workflows/wm-asmdef-boundary.yml (sync-workflows.ps1 로 배포).
 # 본 파일 직접 편집 X — 정본에서 편집 후 `powershell -File memo/dotfiles/sync-workflows.ps1 -Apply`.
 #
-# TASK-WM-104 Phase C — NetCode asmdef 단방향 게이트.
-# WM.Core 가 FishNet 을 (asmdef references / .cs using 어느 쪽으로도) 침범하면
-# 빌드 fail. 6 동기 「분리」(모듈화·asmdef 단방향) first-use baseline 의
-# machine-checkable contract. Claude LLM 스캔(claude-quality-loop.yml)과
-# 별개 — 이건 *결정적*(grep, Unity 무관, ~수초) push/PR 게이트.
+# TASK-WM-104 Phase C → TASK-WM-184 — 6 동기 「분리」 전면 단방향 경계 게이트.
+# DomainSDK(Foundation)·Mods(샌드박스)·Core·Domain·ViewModel 가 상위/동위 game
+# layer 또는 FishNet 을 (asmdef references / .cs using / reflection 어느 쪽으로도)
+# 침범하면 fail. asmdef 단방향 = 6 동기 분리 first-use baseline 의 machine-checkable
+# contract. Claude LLM 스캔(claude-quality-loop.yml)과 별 seam — 이건 *결정적*
+# (jq + grep, Unity 무관, ~수초) push/PR 게이트. (회귀 0 baseline = asmdef 실값 대조 2026-06-07.)
 
 on:
   push:
     branches: [main]
     paths:
       - 'Assets/_WitchMendokusai/Core/**'
+      - 'Assets/_WitchMendokusai/Domain/**'
+      - 'Assets/_WitchMendokusai/DomainSDK/**'
+      - 'Assets/_WitchMendokusai/Mods/**'
+      - 'Assets/_WitchMendokusai/Network/**'
       - '.github/workflows/wm-asmdef-boundary.yml'
   pull_request:
     paths:
       - 'Assets/_WitchMendokusai/Core/**'
+      - 'Assets/_WitchMendokusai/Domain/**'
+      - 'Assets/_WitchMendokusai/DomainSDK/**'
+      - 'Assets/_WitchMendokusai/Mods/**'
+      - 'Assets/_WitchMendokusai/Network/**'
   workflow_dispatch: {}
 
 permissions:
@@ -32,41 +41,74 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 3
     env:
-      CORE_DIR: 'Assets/_WitchMendokusai/Core'
-      CORE_ASMDEF: 'Assets/_WitchMendokusai/Core/WM.Core.asmdef'
+      ROOT: 'Assets/_WitchMendokusai'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Gate — WM.Core 가 FishNet 을 참조하지 않음 (단방향)
+      - name: Gate — asmdef 단방향 경계 (전면)
         run: |
           set -euo pipefail
           FAIL=0
 
-          # 1) WM.Core.asmdef 의 references 에 FishNet 어셈블리 없음.
-          if [ ! -f "$CORE_ASMDEF" ]; then
-            echo "::error::$CORE_ASMDEF 없음 — 경로 회귀 (asmdef 이동?). 게이트 갱신 필요."
-            exit 1
-          fi
-          if grep -q 'FishNet' "$CORE_ASMDEF"; then
-            echo "::error::WM.Core.asmdef references 에 FishNet 어셈블리 침범:"
-            grep -n 'FishNet' "$CORE_ASMDEF" || true
+          # ── 단방향 forbidden-edge 표 — asmdef "name" → 금지 참조 어셈블리(공백 구분) ──
+          #   현 clean 그래프(회귀 0 baseline)를 잠근다. 새 layer asmdef = 본 표에 추가해야 커버됨.
+          #   DomainSDK(Foundation)·Mods(샌드박스) = game layer + FishNet 전부 금지
+          #     ([UniTask,MessagePipe] · [DomainSDK] 만 허용)
+          #   Core·ViewModel = 상위 Domain·Network·FishNet 금지
+          #   Domain = Network·FishNet 금지 (NetCode 결합은 WM.Network 에만)
+          forbidden_for() {
+            case "$1" in
+              WitchMendokusai.DomainSDK*) echo "WM.Core WM.Domain WM.Network WM.ViewModel WM.Editor FishNet.Runtime" ;;
+              WitchMendokusai.Mods*)      echo "WM.Core WM.Domain WM.Network WM.ViewModel WM.Editor FishNet.Runtime" ;;
+              WM.Core)                    echo "WM.Domain WM.Network FishNet.Runtime" ;;
+              WM.ViewModel)               echo "WM.Domain WM.Network FishNet.Runtime" ;;
+              WM.Domain)                  echo "WM.Network FishNet.Runtime" ;;
+              *)                          echo "" ;;
+            esac
+          }
+
+          # ── 1) asmdef references 단방향 = 컴파일 경계 1차 contract (jq) ────────────
+          #    (현 전부 name 기반 참조. GUID 참조 전환 시 prong 2 가 FishNet 백스톱.)
+          while IFS= read -r -d '' asmdef; do
+            name=$(jq -r '.name // empty' "$asmdef")
+            [ -z "$name" ] && continue
+            forbidden=$(forbidden_for "$name")
+            [ -z "$forbidden" ] && continue
+            refs=$(jq -r '.references[]? // empty' "$asmdef")
+            for bad in $forbidden; do
+              if printf '%s\n' "$refs" | grep -qxF "$bad"; then
+                echo "::error file=$asmdef::[$name] asmdef references 에 금지 어셈블리 '$bad' — 단방향 경계 위반 (6 동기 분리)."
+                FAIL=1
+              fi
+            done
+          done < <(find "$ROOT" -name '*.asmdef' -print0)
+
+          # ── 2) FishNet 소스 토큰 — Network 외 layer 의 NetCode 직접 결합 금지 ──────
+          #    asmdef GUID 참조·using·reflection 어느 우회든 잡는 방어선.
+          #    FishNet 네임스페이스는 고유 = false-positive 0.
+          NETFREE="$ROOT/Core $ROOT/Domain $ROOT/DomainSDK $ROOT/Mods"
+          FN=$(grep -rnE '(^|[^A-Za-z_.])(using[[:space:]]+FishNet|FishNet\.)' \
+            $NETFREE --include='*.cs' 2>/dev/null || true)
+          if [ -n "$FN" ]; then
+            echo "::error::Network 외 layer .cs 가 FishNet 직접 참조 (NetCode 결합은 WM.Network 에만):"
+            echo "$FN"
             FAIL=1
           fi
 
-          # 2) Core/ 하위 .cs 에 FishNet using / 타입 토큰 없음.
-          #    (WM.Core → FishNet 컴파일 의존 = 단방향 위반. NetCode 결합은
-          #     WM.Network 계층에만 — WorldClockNetworkBridge 등.)
-          MATCHES=$(grep -rnE '(^|[^A-Za-z_])(using[[:space:]]+FishNet|FishNet\.)' \
-            "$CORE_DIR" --include='*.cs' || true)
-          if [ -n "$MATCHES" ]; then
-            echo "::error::WM.Core .cs 가 FishNet 을 직접 참조 (asmdef 단방향 위반):"
-            echo "$MATCHES"
+          # ── 3) DomainSDK·Mods reflection 크로스레이어 escape — Foundation/샌드박스 순수성 ──
+          #    정당한 reflection 은 줄 끝 `// modding-reflection-ok` 로 면제.
+          RF=$(grep -rnE '(Assembly\.Load|Assembly\.GetType|Type\.GetType|AppDomain\.)' \
+            "$ROOT/DomainSDK" "$ROOT/Mods" --include='*.cs' 2>/dev/null \
+            | grep -v 'modding-reflection-ok' || true)
+          if [ -n "$RF" ]; then
+            echo "::error::DomainSDK/Mods reflection 크로스레이어 escape 의심 (정당 시 // modding-reflection-ok):"
+            echo "$RF"
             FAIL=1
           fi
 
           if [ "$FAIL" -ne 0 ]; then
-            echo "::error::asmdef 단방향 게이트 FAIL — NetCode 결합은 WM.Network 계층에만 둘 것 (TASK-WM-104 / 6 동기 분리)."
+            echo "::error::asmdef 단방향 경계 게이트 FAIL — 6 동기 「분리」 first-use 회귀 (TASK-WM-104/184)."
             exit 1
           fi
-          echo "asmdef 단방향 OK — WM.Core 는 FishNet 무결합 (clean)."
+          echo "asmdef 단방향 경계 OK — DomainSDK/Mods/Core/Domain/ViewModel 전면 clean."
