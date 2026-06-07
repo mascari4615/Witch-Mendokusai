@@ -14,6 +14,7 @@ namespace WitchMendokusai
     {
         public const string NETWORK_MANAGER_RESOURCE = "WMNetworkManager";
         public const string BRIDGE_PREFAB_RESOURCE = "WorldClockNetworkBridge";
+        public const ushort DEFAULT_PORT = 7770; // Tugboat 기본
 
         private static NetworkManager _networkManager;
 
@@ -45,6 +46,29 @@ namespace WitchMendokusai
             bool server = networkManager.ServerManager.StartConnection();
             bool client = networkManager.ClientManager.StartConnection();
             return server && client;
+        }
+
+        /// <summary>참가(client only) — 호스트 주소로 연결. 멀티 진입 UX 「참가」 경로(TASK-WM-190).</summary>
+        public static bool StartClient(string address, ushort port = DEFAULT_PORT)
+        {
+            NetworkManager networkManager = EnsureNetworkManager();
+            // Tugboat 등 transport 공통 base API (Tugboat 타입 직접의존 0).
+            networkManager.TransportManager.Transport.SetClientAddress(address);
+            networkManager.TransportManager.Transport.SetPort(port);
+            return networkManager.ClientManager.StartConnection();
+        }
+
+        /// <summary>세션 떠 있나 (server 또는 client 시작). NM 미부트면 false (생성 X).</summary>
+        public static bool IsRunning
+        {
+            get
+            {
+                if (_networkManager == null)
+                {
+                    return false;
+                }
+                return _networkManager.ServerManager.Started || _networkManager.ClientManager.Started;
+            }
         }
 
         public static void StopHost()
