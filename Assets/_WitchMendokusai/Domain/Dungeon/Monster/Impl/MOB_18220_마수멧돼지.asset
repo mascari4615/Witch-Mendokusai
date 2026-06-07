@@ -10,15 +10,16 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 30284bfe5bd403f4a94529bd768db142, type: 3}
-  m_Name: MOB_18220_마수멧돼지
-  m_EditorClassIdentifier:
+  m_Name: "MOB_18220_\uB9C8\uC218\uBA67\uB3FC\uC9C0"
+  m_EditorClassIdentifier: 
   <ID>k__BackingField: 18220
-  <Name>k__BackingField: 마수 멧돼지
-  <Description>k__BackingField: 마계 균열에서 흘러나온 야성 짐승. 사냥꾼을 보면 달아난다.
+  <Name>k__BackingField: "\uB9C8\uC218 \uBA67\uB3FC\uC9C0"
+  <Description>k__BackingField: "\uB9C8\uACC4 \uADE0\uC5F4\uC5D0\uC11C \uD758\uB7EC\uB098\uC628
+    \uC57C\uC131 \uC9D0\uC2B9. \uC0AC\uB0E5\uAFBC\uC744 \uBCF4\uBA74 \uB2EC\uC544\uB09C\uB2E4."
   <Sprite>k__BackingField: {fileID: -1225876615, guid: 050d103a09fcd5e46a88776ad78dfb28, type: 3}
   <Sprites>k__BackingField: []
   <Affiliation>k__BackingField: -1
-  <Prefab>k__BackingField: {fileID: 7779617929997501086, guid: 54dad4426c60a4940965a5339db31c74, type: 3}
+  <Prefab>k__BackingField: {fileID: 364725122216092913, guid: b30faff1375339e4ba13e5608cb32812, type: 3}
   <DefaultSkills>k__BackingField: []
   <Material>k__BackingField: {fileID: 2100000, guid: 498f73d56bb87ab4cb040563514df458, type: 2}
   <InitStatInfos>k__BackingField:
