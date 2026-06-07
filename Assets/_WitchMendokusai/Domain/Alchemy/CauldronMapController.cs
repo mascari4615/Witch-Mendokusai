@@ -91,6 +91,12 @@ namespace WitchMendokusai
             {
                 map.Setup(recipeSO.ToRecipe(), recipeSO.Hazards, BuildPalette(recipeSO), BrewOutcomeRules.Default, spell);
             }
+            else if (UGCRecipeRegistry.Recipes.Count > 0)
+            {
+                // 팬 마도서 레시피(UGC) 인게임 등장 — SO 미설정 시 로드된 첫 팬 레시피 표시 (TASK-WM-186 소비).
+                // 재료/위험은 기본값(팬 schema 는 효과 좌표만 — 재료/위험 schema 확장은 후속).
+                map.Setup(UGCRecipeRegistry.Recipes[0], BuildHazards(), BuildIngredients(), BrewOutcomeRules.Default, spell);
+            }
             else
             {
                 map.Setup(BuildRecipe(), BuildHazards(), BuildIngredients(), BrewOutcomeRules.Default, spell);

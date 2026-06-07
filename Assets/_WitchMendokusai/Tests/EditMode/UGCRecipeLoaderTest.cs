@@ -49,5 +49,32 @@ namespace WitchMendokusai.Tests
             bool ok = UGCRecipeLoader.TryLoad("", out _, out _);
             Assert.That(ok, Is.False);
         }
+
+        /// <summary>소비 회귀 락 — 팬 레시피 *파일* → UGCRecipeRegistry (CauldronMap 이 이걸 솥에 표시 = 인게임 등장).</summary>
+        [Test]
+        public void FanRecipeFile_LoadsIntoRegistry()
+        {
+            UGCRecipeRegistry.ClearAll();
+            string dir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "wm_ugc_recipe_test_" + System.Guid.NewGuid().ToString("N"));
+            System.IO.Directory.CreateDirectory(dir);
+            try
+            {
+                string json = @"{ ""recipes"": [ { ""id"": 91000, ""effectName"": ""치유"", ""targetX"": 2, ""targetY"": 3, ""radius"": 0.4 } ] }";
+                System.IO.File.WriteAllText(System.IO.Path.Combine(dir, "heal.json"), json);
+
+                int loaded = UGCRecipeRegistry.LoadFromDirectory(dir);
+
+                Assert.That(loaded, Is.EqualTo(1), "팬 레시피 파일이 레지스트리에 안 들어감 = 소비 inert");
+                Assert.That(UGCRecipeRegistry.Recipes.Count, Is.GreaterThanOrEqualTo(1));
+                BrewRecipe last = UGCRecipeRegistry.Recipes[UGCRecipeRegistry.Recipes.Count - 1];
+                Assert.That(last.EffectName, Is.EqualTo("치유"));
+                Assert.That(last.Id, Is.EqualTo(91000));
+            }
+            finally
+            {
+                System.IO.Directory.Delete(dir, true);
+                UGCRecipeRegistry.ClearAll();
+            }
+        }
     }
 }
