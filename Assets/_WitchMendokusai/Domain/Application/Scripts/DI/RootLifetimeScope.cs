@@ -40,6 +40,9 @@ namespace WitchMendokusai
 			RegisterLeaf<WeatherDirector>(builder);
 			RegisterLeaf<GameManager>(builder);
 			RegisterLeaf<UIRoot>(builder);
+			// TASK-WM-191 — 멀티 로비 패널(UIRoot.ScreenLayer, CauldronMapController 동형). DDOL leaf =
+			// 타이틀·World 어디서든 「멀티」로 Open. UIRoot 주입(Construct) → 이 줄은 UIRoot 등록 뒤.
+			RegisterLeaf<MultiplayerLobbyController>(builder);
 
 			// γ P3-K POCO 매니저 3 등록 — DataManager 가 소유권 대신 VContainer 소유로 이관 (TASK-WM-078, 2026-05-13).
 			// Register<T> = POCO new + VContainer Singleton 관리. 에거 Resolve 불필요 (DataManager.Construct 가 트리거).
@@ -94,6 +97,7 @@ namespace WitchMendokusai
 				BootGuard.EagerResolve<WeatherDirector>(container, "Root");
 				BootGuard.EagerResolve<GameManager>(container, "Root");
 				BootGuard.EagerResolve<UIRoot>(container, "Root");
+				BootGuard.EagerResolve<MultiplayerLobbyController>(container, "Root"); // TASK-WM-191 (UIRoot 뒤)
 				BootGuard.EagerResolve<InputStrategySelector>(container, "Root");
 				BootObserver.Enter(BootPhase.RootContainerBuilt); // TASK-WM-118 B1
 			});

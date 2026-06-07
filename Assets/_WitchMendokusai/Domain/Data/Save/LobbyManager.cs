@@ -17,6 +17,7 @@ namespace WitchMendokusai
 		[SerializeField] private int year;
 
 		[SerializeField] private Button startButton, settingButton, exitButton;
+		[SerializeField] private Button multiButton; // TASK-WM-191 「멀티」 — 멀티 로비 패널 Open
 
 		private DataManager dataManager;
 		private UIRoot uiRoot;
@@ -60,6 +61,9 @@ namespace WitchMendokusai
 			startButton.onClick.AddListener(StartGame);
 			settingButton.onClick.AddListener(ToggleSettings);
 			exitButton.onClick.AddListener(ExitGame);
+			// 「멀티」 — 멀티 로비 패널(호스트/참가) Open. 옵션 진입: 미할당 시 가드(타이틀 코어 무영향).
+			if (multiButton != null)
+				multiButton.onClick.AddListener(OpenMultiplayer);
 
 			UpdateText();
 		}
@@ -80,6 +84,17 @@ namespace WitchMendokusai
 		{
 			Debug.Log(nameof(StartGame));
 			UISceneLoading.LoadScene("World");
+		}
+
+		public void OpenMultiplayer()
+		{
+			Debug.Log(nameof(OpenMultiplayer));
+			if (MultiplayerLobbyController.Instance == null)
+			{
+				Debug.LogWarning("[Lobby] MultiplayerLobbyController 미등록 — 멀티 패널 못 엶");
+				return;
+			}
+			MultiplayerLobbyController.Instance.Open();
 		}
 
 		public void ToggleSettings()
