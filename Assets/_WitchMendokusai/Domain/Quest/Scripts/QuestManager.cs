@@ -70,6 +70,9 @@ namespace WitchMendokusai
 				Quests.Add(quest);
 				quest.StartQuest();
 			}
+
+			// 모드(IMod)가 등록한 quest 를 게임에 설치 — 등록 콘텐츠 inert 해소 (TASK-WM-188 deepening).
+			ModQuestInstaller.InstallInto(Quests, ModLoader.Content.RegisteredQuests);
 		}
 
 		private void OnQuestCompleted(QuestCompletedEvent evt)

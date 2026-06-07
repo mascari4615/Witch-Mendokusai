@@ -1,4 +1,5 @@
 using NUnit.Framework;
+using UnityEngine;
 
 namespace WitchMendokusai.Tests
 {
@@ -40,6 +41,32 @@ namespace WitchMendokusai.Tests
             ModContentRegistry registry = new ModContentRegistry();
             registry.RegisterQuest(null);
             Assert.That(registry.RegisteredQuests.Count, Is.EqualTo(0));
+        }
+
+        /// <summary>
+        /// 소비측 회귀 락 — 모드 등록 quest 가 live QuestBuffer 에 실제 등장 + 완료가능(inert 아님).
+        /// QuestManager.Init 이 동일 InstallInto 를 ModLoader.Content 로 호출 = 모드 콘텐츠 게임 등장.
+        /// </summary>
+        [Test]
+        public void ModQuest_InstalledIntoQuestBuffer_AppearsAndCompletable()
+        {
+            QuestBuffer buffer = ScriptableObject.CreateInstance<QuestBuffer>();
+            var defs = new System.Collections.Generic.List<ModQuestDefinition>
+            {
+                new ModQuestDefinition("mq1", "모드 등장 퀘스트", QuestType.Normal),
+            };
+
+            int installed = ModQuestInstaller.InstallInto(buffer, defs);
+
+            Assert.That(installed, Is.EqualTo(1));
+            Assert.That(buffer.Data.Count, Is.EqualTo(1), "모드 quest 가 live QuestBuffer 에 안 들어감 = 소비 inert");
+            RuntimeQuest quest = buffer.Data[0];
+            Assert.That(quest.Name, Is.EqualTo("모드 등장 퀘스트"));
+            Assert.That(quest.Type, Is.EqualTo(QuestType.Normal));
+            Assert.That(quest.QuestSOID, Is.EqualTo(-1), "mod quest = QuestSO 없음");
+            Assert.That(quest.State, Is.EqualTo(RuntimeQuestState.CanComplete), "criteria 0 → StartQuest 즉시 완료가능");
+
+            Object.DestroyImmediate(buffer);
         }
     }
 }
