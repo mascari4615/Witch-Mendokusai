@@ -31,10 +31,19 @@ namespace WitchMendokusai
         // 일치할 여지 0 (== 진짜 wire 너머 도달 증명). days 단위라 Config(시/일/계절) 무관.
         private const int SENTINEL_SKIP_DAYS = 400;
         private const int SETTLE_FRAMES = 120;
+        // 플레이어 프록시 presence 검증 sentinel 위치 (default 에서 멀리 = 우연일치 배제).
+        private const float PROXY_X = 12f;
+        private const float PROXY_Y = 5f;
+        private const float PROXY_Z = 34f;
 
         private string _role;
         private int _nreCount;
         private bool _done;
+        // 플레이어 프록시 위치 — server=고정 sentinel, client=관측 수신값. WriteResult 가 기록.
+        private bool _proxyObserved;
+        private float _proxyX;
+        private float _proxyY;
+        private float _proxyZ;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterAssembliesLoaded)]
         private static void Install()
@@ -155,6 +164,22 @@ namespace WitchMendokusai
             clock.SkipDays(SENTINEL_SKIP_DAYS);
             Debug.Log($"[NET-SMOKE] server clock 고정 = {clock.ToDebugString()} (skip {SENTINEL_SKIP_DAYS}d)");
 
+            // 플레이어 프록시 presence — 서버가 sentinel 위치로 고정(probe-follow 비활성 = enabled false)
+            // → NetworkTransform 가 server→client 동기. 클라가 그 위치를 관측하면 presence 채널 PASS.
+            PlayerNetProxy proxy = TrySpawnProxy(out string proxyError);
+            if (proxy == null)
+            {
+                FailFinish("server: 플레이어 프록시 스폰 실패: " + proxyError);
+                yield break;
+            }
+            proxy.enabled = false; // probe-follow 정지 → sentinel 위치 고정 유지.
+            proxy.transform.position = new Vector3(PROXY_X, PROXY_Y, PROXY_Z);
+            _proxyObserved = true;
+            _proxyX = PROXY_X;
+            _proxyY = PROXY_Y;
+            _proxyZ = PROXY_Z;
+            Debug.Log($"[NET-SMOKE] server proxy 고정 = ({PROXY_X},{PROXY_Y},{PROXY_Z})");
+
             // 원격 클라 1개 연결 대기.
             while (RemoteClientCount(networkManager) < 1 && Time.realtimeSinceStartup < deadline)
             {
@@ -218,12 +243,23 @@ namespace WitchMendokusai
                 yield return null;
             }
 
+            // 플레이어 프록시(presence) 원격 관측 — NetworkObject 스폰 전파 + NetworkTransform 위치 동기.
+            PlayerNetProxy clientProxy = FindAnyObjectByType<PlayerNetProxy>();
+            if (clientProxy != null)
+            {
+                Vector3 pp = clientProxy.transform.position;
+                _proxyObserved = true;
+                _proxyX = pp.x;
+                _proxyY = pp.y;
+                _proxyZ = pp.z;
+            }
+
             bool received = bridge.SyncedDay >= 1;
-            bool pass = received && _nreCount == 0;
+            bool pass = received && clientProxy != null && _nreCount == 0;
             WriteResult(
                 pass ? "PASS" : "FAIL",
-                pass ? "client connected + bridge observed + SyncVar received"
-                     : $"client: 수신 day={bridge.SyncedDay} / nre={_nreCount}",
+                pass ? "client connected + bridge observed + SyncVar received + proxy observed"
+                     : $"client: day={bridge.SyncedDay} proxy={(clientProxy != null)} nre={_nreCount}",
                 bridge.SyncedYear, bridge.SyncedSeason, bridge.SyncedDay, bridge.SyncedHour, -1);
             Finish(pass ? 0 : 1);
         }
@@ -250,6 +286,20 @@ namespace WitchMendokusai
             try
             {
                 return NetworkBootstrap.SpawnWorldClockBridge();
+            }
+            catch (Exception ex)
+            {
+                error = ex.GetType().Name + ": " + ex.Message;
+                return null;
+            }
+        }
+
+        private static PlayerNetProxy TrySpawnProxy(out string error)
+        {
+            error = null;
+            try
+            {
+                return NetworkBootstrap.SpawnPlayerProxy();
             }
             catch (Exception ex)
             {
@@ -317,6 +367,10 @@ namespace WitchMendokusai
                 $"hour={hour}\n" +
                 $"clients={clients}\n" +
                 $"nre={_nreCount}\n" +
+                $"proxyObserved={(_proxyObserved ? "true" : "false")}\n" +
+                $"proxyX={_proxyX.ToString("F2", CultureInfo.InvariantCulture)}\n" +
+                $"proxyY={_proxyY.ToString("F2", CultureInfo.InvariantCulture)}\n" +
+                $"proxyZ={_proxyZ.ToString("F2", CultureInfo.InvariantCulture)}\n" +
                 $"t={Time.realtimeSinceStartup.ToString("F1", CultureInfo.InvariantCulture)}\n";
             try
             {
