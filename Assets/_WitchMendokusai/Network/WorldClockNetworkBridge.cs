@@ -11,6 +11,12 @@ namespace WitchMendokusai
         private readonly SyncVar<int> _syncDay = new SyncVar<int>();
         private readonly SyncVar<int> _syncHour = new SyncVar<int>();
 
+        // 동기6 first-use — synced 값 노출 (client 측 소비 + sync 검증용. 이전엔 아무도 안 읽어 inert).
+        public int SyncedYear => _syncYear.Value;
+        public int SyncedSeason => _syncSeason.Value;
+        public int SyncedDay => _syncDay.Value;
+        public int SyncedHour => _syncHour.Value;
+
         public override void OnStartServer()
         {
             base.OnStartServer();
