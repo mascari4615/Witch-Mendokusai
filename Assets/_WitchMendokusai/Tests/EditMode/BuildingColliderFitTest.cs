@@ -15,6 +15,8 @@ namespace WitchMendokusai.Tests
 	/// </summary>
 	public sealed class BuildingColliderFitTest
 	{
+		private const float MIN_BOUNDS_EXTENT = 0.0001f; // 비퇴화 인터랙션 bounds 판정 임계
+
 		[Test]
 		public void EveryBuildingPrefab_YieldsNonDegenerateInteractionBounds()
 		{
@@ -40,9 +42,9 @@ namespace WitchMendokusai.Tests
 					Assert.That(computed, Is.True, $"{building.name} ({building.Prefab.name}): 렌더러 0 → 콜라이더 미생성 = 클릭 불가");
 
 					Vector3 size = worldBounds.size;
-					Assert.That(size.x, Is.GreaterThan(0.0001f), $"{building.name}: 인터랙션 bounds.x 퇴화");
-					Assert.That(size.y, Is.GreaterThan(0.0001f), $"{building.name}: 인터랙션 bounds.y 퇴화");
-					Assert.That(size.z, Is.GreaterThan(0.0001f), $"{building.name}: 인터랙션 bounds.z 퇴화");
+					Assert.That(size.x, Is.GreaterThan(MIN_BOUNDS_EXTENT), $"{building.name}: 인터랙션 bounds.x 퇴화");
+					Assert.That(size.y, Is.GreaterThan(MIN_BOUNDS_EXTENT), $"{building.name}: 인터랙션 bounds.y 퇴화");
+					Assert.That(size.z, Is.GreaterThan(MIN_BOUNDS_EXTENT), $"{building.name}: 인터랙션 bounds.z 퇴화");
 					checkedCount++;
 				}
 				finally
