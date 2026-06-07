@@ -31,6 +31,14 @@ namespace WitchMendokusai
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterAssembliesLoaded)]
         private static void Install()
         {
+            // 2-peer net 스모크(WM_NET_ROLE)가 도는 동안엔 그쪽이 lifecycle 소유.
+            // boot-smoke 가 WorldReady 에서 Quit 하면 netcode 검증 전에 프로세스가
+            // 죽어버린다 → net 역할 set 시 boot-smoke 는 완전 inert (TASK-WM-189).
+            if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("WM_NET_ROLE")) == false)
+            {
+                return;
+            }
+
             // 비결정 = inert (게임 정상 흐름 0 영향).
             if (BootMode.IsDeterministic == false)
             {
