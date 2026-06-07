@@ -26,6 +26,7 @@ namespace WitchMendokusai
         private VisualElement container;
         private TextField codeField;
         private Label statusLabel;
+        private Button copyButton;
         private bool isOpen;
 
         private void Awake()
@@ -113,6 +114,7 @@ namespace WitchMendokusai
 
             Label title = new Label("멀티플레이") { name = "title" };
             title.style.fontSize = 22f;
+            title.style.color = Color.white; // 어두운 패널 bg 대비 — 안 주면 기본 어두운 글자라 안 보임.
             title.style.marginBottom = 16f;
             title.style.unityTextAlign = TextAnchor.MiddleCenter;
             frame.Add(title);
@@ -124,8 +126,16 @@ namespace WitchMendokusai
 
             Label hostHint = new Label("초대코드를 친구에게 공유하세요") { name = "host-hint" };
             hostHint.style.fontSize = 11f;
-            hostHint.style.marginBottom = 14f;
+            hostHint.style.color = new Color(0.78f, 0.78f, 0.85f);
+            hostHint.style.marginBottom = 8f;
             frame.Add(hostHint);
+
+            // 호스트 성공 시 표시 — 초대코드 클립보드 복사 (친구에게 붙여넣기 편하게).
+            copyButton = new Button(OnCopyClicked) { name = "copy-button", text = "📋 초대코드 복사" };
+            copyButton.style.height = 32f;
+            copyButton.style.marginBottom = 14f;
+            copyButton.style.display = DisplayStyle.None;
+            frame.Add(copyButton);
 
             codeField = new TextField("초대코드") { name = "code-field" };
             codeField.style.marginBottom = 6f;
@@ -137,7 +147,9 @@ namespace WitchMendokusai
             frame.Add(joinButton);
 
             statusLabel = new Label(string.Empty) { name = "status" };
-            statusLabel.style.fontSize = 13f;
+            statusLabel.style.fontSize = 15f;
+            statusLabel.style.color = new Color(1f, 0.92f, 0.45f); // 초대코드 = 잘 보이게 노랑(어두운 bg 대비).
+            statusLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
             statusLabel.style.minHeight = 20f;
             statusLabel.style.whiteSpace = WhiteSpace.Normal;
             frame.Add(statusLabel);
@@ -150,7 +162,24 @@ namespace WitchMendokusai
             uiRoot.ScreenLayer.Add(container);
         }
 
-        private void OnHostClicked() => statusLabel.text = logic.Host();
+        private void OnHostClicked()
+        {
+            statusLabel.text = logic.Host();
+            if (copyButton != null)
+            {
+                copyButton.style.display = logic.LastSucceeded ? DisplayStyle.Flex : DisplayStyle.None;
+            }
+        }
+
+        private void OnCopyClicked()
+        {
+            if (string.IsNullOrEmpty(logic.LastInviteCode))
+            {
+                return;
+            }
+            GUIUtility.systemCopyBuffer = logic.LastInviteCode;
+            statusLabel.text = $"복사됨! · {logic.LastInviteCode}";
+        }
 
         private void OnJoinClicked()
         {
@@ -176,6 +205,9 @@ namespace WitchMendokusai
         /// <summary>직전 Host/Join 이 성공했나 (controller 가 성공 시 World 공동입장 트리거).</summary>
         public bool LastSucceeded { get; private set; }
 
+        /// <summary>직전 Host 의 초대코드 (복사 버튼용). Host 성공 시에만 유효.</summary>
+        public string LastInviteCode { get; private set; }
+
         public MultiplayerLobbyLogic(INetworkSessionControl session)
         {
             this.session = session;
@@ -193,7 +225,8 @@ namespace WitchMendokusai
                 return "호스트 시작 실패";
             }
             LastSucceeded = true;
-            return $"호스트 중 · 초대코드: {session.GetHostInviteCode()}";
+            LastInviteCode = session.GetHostInviteCode();
+            return $"호스트 중 · 초대코드: {LastInviteCode}";
         }
 
         public string Join(string inviteCode)
