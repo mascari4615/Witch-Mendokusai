@@ -148,12 +148,13 @@ namespace WitchMendokusai
 			int yearCarry = newSeason / Config.SeasonsPerYear;
 			Season = newSeason % Config.SeasonsPerYear;
 
+			// Year 를 OnSeasonChanged 발화 *전*에 갱신 — 구독자(네트워크 sync 브리지)가
+			// 풀 상태 스냅샷을 읽을 때 Year/Season 정합. 이전엔 발화 후 증가 → 스냅샷
+			// Year 가 1계절 lag (2-peer 스모크가 Year 동기 불일치로 포착, WM-189).
+			if (yearCarry > 0)
+				Year += yearCarry;
+
 			OnSeasonChanged.Invoke(Season);
-
-			if (yearCarry <= 0)
-				return;
-
-			Year += yearCarry;
 		}
 
 		public void PauseClock(GameObject pauser)
