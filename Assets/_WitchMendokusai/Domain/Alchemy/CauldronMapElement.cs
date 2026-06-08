@@ -43,6 +43,9 @@ namespace WitchMendokusai
         private Vector2 dragStartLocal;
         private Vector2 dragCurrentLocal;
 
+        // 공유 솥(네트워크) 폴링 — 원격 피어의 투입이 SyncVar 로 도달하면 재드로. 솔로면 no-op.
+        private IVisualElementScheduledItem networkPoll;
+
         /// <summary>재료 한 종(효과공간 방향 + 기본 갈기량 + 라벨).</summary>
         public struct Ingredient
         {
@@ -57,6 +60,33 @@ namespace WitchMendokusai
             style.flexDirection = FlexDirection.Row;
             style.minHeight = 360f;
             BuildBook();
+            // 공유 가마솥(네트워크) = 서버 권위 마커가 SyncVar 로 도달 → 폴링으로 재드로(원격 피어 투입 반영).
+            // WorldClock 동기 패턴(폴링, OnChange 불요). 솔로면 PollShared 가 즉시 return(비용 0).
+            RegisterCallback<AttachToPanelEvent>(OnAttachToPanel);
+            RegisterCallback<DetachFromPanelEvent>(OnDetachFromPanel);
+        }
+
+        private void OnAttachToPanel(AttachToPanelEvent evt)
+        {
+            if (networkPoll == null)
+            {
+                networkPoll = schedule.Execute(PollShared).Every(100);
+            }
+            networkPoll.Resume();
+        }
+
+        private void OnDetachFromPanel(DetachFromPanelEvent evt)
+        {
+            networkPoll?.Pause();
+        }
+
+        // 네트워크 공유 솥일 때만 재드로(서버 권위 마커 변화 반영). 솔로 = no-op(입력 시 즉시 Refresh 로 충분).
+        private void PollShared()
+        {
+            if (SharedBrewChannelBridge.IsActive)
+            {
+                Refresh();
+            }
         }
 
         /// <summary>제조 한 판 셋업 — 목표 레시피 + 위험지대 + 고를 재료 + 채점 규칙(placeholder/SO 무관).</summary>
@@ -211,20 +241,58 @@ namespace WitchMendokusai
 
         private void AddIngredient(Ingredient ingredient)
         {
-            session.AddStep(new BrewStep { Direction = ingredient.Direction, Grind = ingredient.Grind });
-            Refresh();
+            AddStepRouted(new BrewStep { Direction = ingredient.Direction, Grind = ingredient.Grind });
+        }
+
+        // 공유 솥(네트워크)이면 ServerRpc 라우팅(서버 권위 brew 전진 → SyncVar → 폴링 재드로), 솔로면 로컬 세션.
+        private void AddStepRouted(BrewStep step)
+        {
+            if (SharedBrewChannelBridge.IsActive)
+            {
+                // 둘 다 같은 솥에 넣음 — 서버가 누적, 마커는 round-trip 후 SyncVar 로 도달(PollShared 가 반영).
+                SharedBrewChannelBridge.Channel.AddStep(step);
+            }
+            else
+            {
+                session.AddStep(step);
+                Refresh();
+            }
+        }
+
+        // 공유 가마솥(네트워크) 활성 여부 — 경로 렌더·소스 분기 근거.
+        private static bool IsNetworked => SharedBrewChannelBridge.IsActive;
+
+        // 현재 마커 상태 = 공유 솥이면 SyncVar 수신값, 솔로면 로컬 세션. 채점·렌더 공통 소스(레시피는 항상 로컬).
+        private BrewState CurrentState()
+        {
+            if (SharedBrewChannelBridge.IsActive
+                && SharedBrewChannelBridge.Channel.TryGetState(out BrewVector position, out int stepCount, out float sideEffect))
+            {
+                return new BrewState { Position = position, StepCount = stepCount, AccruedSideEffect = sideEffect };
+            }
+            return session.State;
         }
 
         private void RestartSession()
         {
-            session.Start(session.Recipe, hazards);
-            Refresh();
+            if (SharedBrewChannelBridge.IsActive)
+            {
+                SharedBrewChannelBridge.Channel.ResetBrew(); // 같은 솥 비우기(서버 권위 → 양 피어 반영)
+            }
+            else
+            {
+                session.Start(session.Recipe, hazards);
+                Refresh();
+            }
         }
 
         // "완성" = 현재 채점 결과를 호스트에 통지(보상/이벤트는 호스트 책임 — UI 는 제조 행위만) + 솥 리셋(중복 수확 방지).
+        // ⚠ 공유 솥에서 양 피어가 각자 "완성" 누르면 보상 이중 지급 — 보상 host-권위화는 step-4b 후속(여기선 공유 마커가 first-use).
         private void OnCompleteClicked()
         {
-            BrewCompleted?.Invoke(session.Evaluate(rules));
+            // 채점 = 현재 마커(공유 솥이면 SyncVar 수신값) + 로컬 레시피·규칙(양 피어 동일 SO).
+            BrewState state = CurrentState();
+            BrewCompleted?.Invoke(BrewEngine.Evaluate(state, session.Recipe.Target, rules));
             RestartSession();
         }
 
@@ -269,23 +337,27 @@ namespace WitchMendokusai
             StrokeCircle(painter, targetPixels, Mathf.Max(target.Radius * pixelsPerUnit, 6f), TargetColor, 2f);
             FillCircle(painter, targetPixels, 3f, TargetColor);
 
-            // 누적 경로 (원점 → 각 step 끝점, 보랏빛 잉크 선). 재료 0개 = 경로 없음(빈 stroke 아티팩트 회피).
-            IReadOnlyList<BrewStep> steps = session.Steps;
-            if (steps.Count > 0)
+            // 누적 경로 (원점 → 각 step 끝점, 보랏빛 잉크 선). 솔로만 — 공유 솥(네트워크)은 마커만 동기
+            // (전체 step 경로 SyncList 는 후속). 재료 0개 = 경로 없음(빈 stroke 아티팩트 회피).
+            if (IsNetworked == false)
             {
-                BrewVector cursor = BrewVector.Zero;
-                painter.strokeColor = PathColor;
-                painter.lineWidth = 2.5f;
-                painter.lineCap = LineCap.Round;
-                painter.lineJoin = LineJoin.Round;
-                painter.BeginPath();
-                painter.MoveTo(EffectToPixels(cursor));
-                for (int i = 0; i < steps.Count; i++)
+                IReadOnlyList<BrewStep> steps = session.Steps;
+                if (steps.Count > 0)
                 {
-                    cursor = cursor + steps[i].Direction * steps[i].Grind;
-                    painter.LineTo(EffectToPixels(cursor));
+                    BrewVector cursor = BrewVector.Zero;
+                    painter.strokeColor = PathColor;
+                    painter.lineWidth = 2.5f;
+                    painter.lineCap = LineCap.Round;
+                    painter.lineJoin = LineJoin.Round;
+                    painter.BeginPath();
+                    painter.MoveTo(EffectToPixels(cursor));
+                    for (int i = 0; i < steps.Count; i++)
+                    {
+                        cursor = cursor + steps[i].Direction * steps[i].Grind;
+                        painter.LineTo(EffectToPixels(cursor));
+                    }
+                    painter.Stroke();
                 }
-                painter.Stroke();
             }
 
             // 드래그 미리보기 (갈기 방향 점선 느낌 = 실선 회색).
@@ -299,8 +371,8 @@ namespace WitchMendokusai
                 painter.Stroke();
             }
 
-            // 현재 마커 (●).
-            FillCircle(painter, EffectToPixels(session.State.Position), 5f, MarkerColor);
+            // 현재 마커 (●) — 공유 솥이면 SyncVar 수신 위치, 솔로면 로컬 세션.
+            FillCircle(painter, EffectToPixels(CurrentState().Position), 5f, MarkerColor);
         }
 
         private static void StrokeCircle(Painter2D painter, Vector2 center, float radius, Color color, float width)
@@ -355,11 +427,11 @@ namespace WitchMendokusai
             float grind = delta.Magnitude;
             if (grind > 0.05f)
             {
-                // 드래그 방향 단위벡터 × 거리 = 한 번의 갈기(손맛).
+                // 드래그 방향 단위벡터 × 거리 = 한 번의 갈기(손맛). 공유 솥이면 ServerRpc 라우팅.
                 BrewVector direction = new BrewVector(delta.X / grind, delta.Y / grind);
-                session.AddStep(new BrewStep { Direction = direction, Grind = grind });
+                AddStepRouted(new BrewStep { Direction = direction, Grind = grind });
             }
-            Refresh();
+            Refresh(); // 드래그 미리보기 해제(+ 솔로 상태 반영). 네트워크 마커는 PollShared 가 갱신.
         }
 
         // ── 상태 갱신 ────────────────────────────────────────────────────
@@ -367,14 +439,19 @@ namespace WitchMendokusai
         {
             if (statusLabel != null)
             {
-                BrewOutcome outcome = session.Evaluate(rules);
+                // 공유 솥/솔로 공통 소스 = CurrentState (네트워크면 SyncVar, 솔로면 로컬 세션) + 로컬 레시피.
+                BrewState state = CurrentState();
+                EffectTarget target = session.Recipe.Target;
+                BrewOutcome outcome = BrewEngine.Evaluate(state, target, rules);
+                bool reached = BrewEngine.IsReached(state, target);
+                float distance = BrewEngine.DistanceTo(state, target);
                 statusLabel.text =
-                    (session.IsComplete ? "✅ 효과 도달" : "… 항해 중") + "\n"
-                    + "목표까지 거리: " + session.DistanceToTarget.ToString("0.00") + "\n"
-                    + "누적 부작용: " + session.AccruedSideEffect.ToString("0.0") + "\n"
+                    (reached ? "✅ 효과 도달" : "… 항해 중") + "\n"
+                    + "목표까지 거리: " + distance.ToString("0.00") + "\n"
+                    + "누적 부작용: " + state.AccruedSideEffect.ToString("0.0") + "\n"
                     + "강도: " + outcome.Potency.ToString("0.00") + "  품질: " + outcome.Quality.ToString("0.00") + "\n"
                     + "등급: " + GradeText(outcome.Grade) + "\n"
-                    + "넣은 재료 수: " + session.StepCount;
+                    + "넣은 재료 수: " + state.StepCount;
             }
             mapCanvas?.MarkDirtyRepaint();
         }
