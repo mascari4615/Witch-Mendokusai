@@ -50,6 +50,11 @@ namespace WitchMendokusai
         private float _proxyX;
         private float _proxyY;
         private float _proxyZ;
+        // 공유 가마솥(#4) 2-peer wire 검증 — server=투입값, client=수신값. server→client SyncVar+SyncList 동기.
+        private bool _cauldronObserved;
+        private float _cauldronMarkerX;
+        private int _cauldronSteps;
+        private int _cauldronPathLen;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterAssembliesLoaded)]
         private static void Install()
@@ -180,6 +185,19 @@ namespace WitchMendokusai
             PlayerNetProxySpawner.Enable(networkManager);
             Debug.Log("[NET-SMOKE] server per-connection 프록시 스포너 활성");
 
+            // 공유 가마솥 채널(#4) — 서버가 스폰 + 알려진 ingredient 투입(동 grind2 → 마커 x≈2, step1, path1).
+            // SyncVar 마커 + SyncList 경로가 직렬화→소켓→역직렬화 거쳐 *원격 클라*에 도달함을 클라가 확인(server→client).
+            CauldronNetworkBridge serverCauldron = TrySpawnCauldron(out string cauldronError);
+            if (serverCauldron != null)
+            {
+                // pure server = 로컬 클라 없음 → ServerRpc(AddIngredient) 자기호출 no-op → 서버 직접 ServerApply.
+                serverCauldron.ServerApply(1f, 0f, 2f);
+            }
+            else
+            {
+                Debug.LogWarning("[NET-SMOKE] server 가마솥 스폰 실패: " + cauldronError);
+            }
+
             // 원격 클라 1개 연결 대기.
             while (RemoteClientCount(networkManager) < 1 && Time.realtimeSinceStartup < deadline)
             {
@@ -214,11 +232,23 @@ namespace WitchMendokusai
                 Debug.Log($"[NET-SMOKE] server 관측 클라-프록시 = ({observed.x:F2},{observed.y:F2},{observed.z:F2})");
             }
 
-            bool pass = clients >= 1 && _proxyObserved && _nreCount == 0;
+            // 서버 가마솥 투입값 기록(클라 수신값과 비교 → wire 동기 증명).
+            if (serverCauldron != null)
+            {
+                _cauldronObserved = true;
+                _cauldronMarkerX = serverCauldron.MarkerX;
+                _cauldronSteps = serverCauldron.SyncedStepCount;
+                List<BrewStep> serverPath = new List<BrewStep>();
+                serverCauldron.ReadSteps(serverPath);
+                _cauldronPathLen = serverPath.Count;
+                Debug.Log($"[NET-SMOKE] server 가마솥 = marker({_cauldronMarkerX:F2}) step={_cauldronSteps} path={_cauldronPathLen}");
+            }
+
+            bool pass = clients >= 1 && _proxyObserved && _cauldronObserved && _nreCount == 0;
             WriteResult(
                 pass ? "PASS" : "FAIL",
-                pass ? "server up + bridge spawned + client-owned proxy observed (client→server presence)"
-                     : $"server: 원격 클라 {clients}개 / proxy={_proxyObserved} / nre={_nreCount}",
+                pass ? "server up + bridge + client proxy + cauldron 투입(client→server presence + 채널3)"
+                     : $"server: 원격 클라 {clients}개 / proxy={_proxyObserved} / cauldron={_cauldronObserved} / nre={_nreCount}",
                 clock.Year, clock.Season, clock.Day, clock.Hour, clients);
             Finish(pass ? 0 : 1);
         }
@@ -296,12 +326,39 @@ namespace WitchMendokusai
                 Debug.Log($"[NET-SMOKE] client 소유 프록시(probe-follow) = ({pp.x:F2},{pp.y:F2},{pp.z:F2}) owner={myProxy.IsOwner}");
             }
 
+            // 공유 가마솥 wire 수신 — 서버가 투입한 brew 마커(SyncVar)·경로(SyncList)가 클라에 복제됐나(채널3 server→client).
+            CauldronNetworkBridge clientCauldron = null;
+            while (Time.realtimeSinceStartup < deadline)
+            {
+                clientCauldron = FindAnyObjectByType<CauldronNetworkBridge>();
+                if (clientCauldron != null && clientCauldron.SyncedStepCount >= 1)
+                {
+                    break;
+                }
+                yield return null;
+            }
+            for (int frame = 0; frame < SETTLE_FRAMES && Time.realtimeSinceStartup < deadline; frame++)
+            {
+                yield return null;
+            }
+            if (clientCauldron != null)
+            {
+                _cauldronObserved = true;
+                _cauldronMarkerX = clientCauldron.MarkerX;
+                _cauldronSteps = clientCauldron.SyncedStepCount;
+                List<BrewStep> clientPath = new List<BrewStep>();
+                clientCauldron.ReadSteps(clientPath);
+                _cauldronPathLen = clientPath.Count;
+                Debug.Log($"[NET-SMOKE] client 가마솥 수신 = marker({_cauldronMarkerX:F2}) step={_cauldronSteps} path={_cauldronPathLen}");
+            }
+
             bool received = bridge.SyncedDay >= 1;
-            bool pass = received && myProxy != null && _proxyObserved && _nreCount == 0;
+            bool cauldronReceived = _cauldronObserved && _cauldronSteps >= 1 && _cauldronPathLen >= 1;
+            bool pass = received && myProxy != null && _proxyObserved && cauldronReceived && _nreCount == 0;
             WriteResult(
                 pass ? "PASS" : "FAIL",
-                pass ? "client connected + bridge observed + SyncVar received + owned proxy probe-followed"
-                     : $"client: day={bridge.SyncedDay} proxy={(myProxy != null)} obs={_proxyObserved} nre={_nreCount}",
+                pass ? "client connected + bridge + SyncVar + proxy + cauldron(마커·경로 wire 수신)"
+                     : $"client: day={bridge.SyncedDay} proxy={(myProxy != null)} cauldron={cauldronReceived}(step={_cauldronSteps} path={_cauldronPathLen}) nre={_nreCount}",
                 bridge.SyncedYear, bridge.SyncedSeason, bridge.SyncedDay, bridge.SyncedHour, -1);
             Finish(pass ? 0 : 1);
         }
@@ -460,6 +517,20 @@ namespace WitchMendokusai
             }
         }
 
+        private static CauldronNetworkBridge TrySpawnCauldron(out string error)
+        {
+            error = null;
+            try
+            {
+                return NetworkBootstrap.SpawnCauldronBridge();
+            }
+            catch (Exception ex)
+            {
+                error = ex.GetType().Name + ": " + ex.Message;
+                return null;
+            }
+        }
+
         // 클라 측: 내가 소유(IsOwner)한 프록시 1개 찾기 (이 2-프로세스 셋업엔 클라-소유 프록시뿐).
         private static PlayerNetProxy FindOwnedProxy()
         {
@@ -550,6 +621,10 @@ namespace WitchMendokusai
                 $"proxyX={_proxyX.ToString("F2", CultureInfo.InvariantCulture)}\n" +
                 $"proxyY={_proxyY.ToString("F2", CultureInfo.InvariantCulture)}\n" +
                 $"proxyZ={_proxyZ.ToString("F2", CultureInfo.InvariantCulture)}\n" +
+                $"cauldronObserved={(_cauldronObserved ? "true" : "false")}\n" +
+                $"cauldronMarkerX={_cauldronMarkerX.ToString("F2", CultureInfo.InvariantCulture)}\n" +
+                $"cauldronSteps={_cauldronSteps}\n" +
+                $"cauldronPathLen={_cauldronPathLen}\n" +
                 $"t={Time.realtimeSinceStartup.ToString("F1", CultureInfo.InvariantCulture)}\n";
             try
             {

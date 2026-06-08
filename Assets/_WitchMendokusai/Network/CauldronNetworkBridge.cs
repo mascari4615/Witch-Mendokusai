@@ -95,9 +95,20 @@ namespace WitchMendokusai
             PushState();
         }
 
-        /// <summary>재료 한 step 투입(둘 다 같은 솥에 넣음 → 소유 불요). 서버 권위 적용 후 전파.</summary>
+        /// <summary>재료 한 step 투입(둘 다 같은 솥에 넣음 → 소유 불요). 클라(또는 clientHost)에서 호출 → 서버 적용.</summary>
         [ServerRpc(RequireOwnership = false)]
         public void AddIngredient(float directionX, float directionY, float grind)
+        {
+            ServerApply(directionX, directionY, grind);
+        }
+
+        /// <summary>
+        /// 서버 권위 brew 전진 — 직접(ServerRpc 우회). pure server(로컬 클라 없음)도 호출 가능
+        /// (ServerRpc 는 client→server 전용이라 pure server 자기호출 = no-op). UI 클라는 AddStep→AddIngredient
+        /// ServerRpc 경유, 서버측 코드(스모크·서버 권위 로직)는 이 직접 메서드. 결과는 동일(SyncVar 전파).
+        /// </summary>
+        [Server]
+        public void ServerApply(float directionX, float directionY, float grind)
         {
             BrewStep step = new BrewStep
             {
