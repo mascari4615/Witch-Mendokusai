@@ -16,11 +16,13 @@ namespace WitchMendokusai
     {
         public const string NETWORK_MANAGER_RESOURCE = "WMNetworkManager";
         public const string BRIDGE_PREFAB_RESOURCE = "WorldClockNetworkBridge";
+        public const string CAULDRON_BRIDGE_RESOURCE = "CauldronNetworkBridge";
         public const string PLAYER_PROXY_RESOURCE = "PlayerNetProxy";
         public const ushort DEFAULT_PORT = 7770; // Tugboat 기본
 
         private static NetworkManager _networkManager;
         private static WorldClockNetworkBridge _worldClockBridge;
+        private static CauldronNetworkBridge _cauldronBridge;
 
         public static NetworkManager EnsureNetworkManager()
         {
@@ -51,34 +53,44 @@ namespace WitchMendokusai
             bool client = networkManager.ClientManager.StartConnection();
             if (server)
             {
-                // 호스트 단일 진입점("함께 만들기")이 두 라이브 채널 모두 기동:
-                //  ① 시계 동기 bridge (server→client WorldClock SyncVar) — 참가자가 같은 절기/날짜.
-                //  ② per-connection 프록시 스포너 — host 자신·참가 클라 각자 소유 프록시(서로 보임).
-                // TASK-WM-191 step-2/3 (World 공동진입). bridge 는 멱등(중복 스폰 X).
-                EnsureWorldClockBridge(networkManager);
+                // 호스트 단일 진입점("함께 만들기")이 라이브 채널 모두 기동:
+                //  ① 시계 동기 bridge (WorldClock SyncVar — 참가자가 같은 절기/날짜).
+                //  ② 공유 가마솥 bridge (제조 brew state — 둘이 같은 솥, TASK-WM-191 #4).
+                //  ③ per-connection 프록시 스포너 — host 자신·참가 클라 각자 소유 프록시(서로 보임).
+                // bridge 는 멱등(중복 스폰 X). server active 후 지연 스폰(StartConnection 직후 미active).
+                EnsureServerBridges(networkManager);
                 PlayerNetProxySpawner.Enable(networkManager);
             }
             return server && client;
         }
 
         /// <summary>
-        /// 호스트 시작 시 시계 동기 bridge 1개 보장(멱등). server active *후* 스폰 — StartConnection 직후엔
-        /// 서버 미active 라 ServerManager.Spawn 이 "server nor client active" 로 거부됨(검증 WM-191 step-3).
-        /// 이미 active 면 즉시, 아니면 OnServerConnectionState(Started)에 1회. 센티넬은 SpawnWorldClockBridge 직접.
+        /// 호스트 시작 시 서버 권위 bridge 들(시계 + 공유 가마솥) 보장(멱등). server active *후* 스폰 —
+        /// StartConnection 직후엔 서버 미active 라 ServerManager.Spawn 이 "server nor client active" 로
+        /// 거부됨(WM-191 step-3 실증). 이미 active 면 즉시, 아니면 OnServerConnectionState(Started)에 1회.
+        /// 센티넬은 SpawnWorldClockBridge/SpawnCauldronBridge 직접.
         /// </summary>
-        private static void EnsureWorldClockBridge(NetworkManager networkManager)
+        private static void EnsureServerBridges(NetworkManager networkManager)
         {
-            if (_worldClockBridge != null)
-            {
-                return;
-            }
             if (networkManager.ServerManager.Started)
             {
-                _worldClockBridge = SpawnWorldClockBridge();
+                SpawnServerBridgesIfNeeded();
                 return;
             }
             networkManager.ServerManager.OnServerConnectionState -= OnServerStartedSpawnBridge;
             networkManager.ServerManager.OnServerConnectionState += OnServerStartedSpawnBridge;
+        }
+
+        private static void SpawnServerBridgesIfNeeded()
+        {
+            if (_worldClockBridge == null)
+            {
+                _worldClockBridge = SpawnWorldClockBridge();
+            }
+            if (_cauldronBridge == null)
+            {
+                _cauldronBridge = SpawnCauldronBridge();
+            }
         }
 
         private static void OnServerStartedSpawnBridge(ServerConnectionStateArgs args)
@@ -92,10 +104,7 @@ namespace WitchMendokusai
                 return;
             }
             _networkManager.ServerManager.OnServerConnectionState -= OnServerStartedSpawnBridge;
-            if (_worldClockBridge == null)
-            {
-                _worldClockBridge = SpawnWorldClockBridge();
-            }
+            SpawnServerBridgesIfNeeded();
         }
 
         /// <summary>참가(client only) — 호스트 주소로 연결. 멀티 진입 UX 「참가」 경로(TASK-WM-190).</summary>
@@ -128,6 +137,7 @@ namespace WitchMendokusai
             PlayerNetProxySpawner.Disable();
             _networkManager.ServerManager.OnServerConnectionState -= OnServerStartedSpawnBridge;
             _worldClockBridge = null;
+            _cauldronBridge = null;
             _networkManager.ClientManager.StopConnection();
             _networkManager.ServerManager.StopConnection(true);
         }
@@ -142,6 +152,20 @@ namespace WitchMendokusai
             GameObject prefab = Resources.Load<GameObject>(BRIDGE_PREFAB_RESOURCE);
             GameObject go = Object.Instantiate(prefab);
             WorldClockNetworkBridge bridge = go.GetComponent<WorldClockNetworkBridge>();
+            networkManager.ServerManager.Spawn(go);
+            return bridge;
+        }
+
+        /// <summary>
+        /// 공유 가마솥 제조 채널(3번째 라이브 채널) NetworkObject 서버 스폰. 서버 권위 BrewState,
+        /// AddIngredient ServerRpc → SyncVar 마커. baked prefab(_isGlobal, DefaultPrefabObjects). TASK-WM-191 #4.
+        /// </summary>
+        public static CauldronNetworkBridge SpawnCauldronBridge()
+        {
+            NetworkManager networkManager = EnsureNetworkManager();
+            GameObject prefab = Resources.Load<GameObject>(CAULDRON_BRIDGE_RESOURCE);
+            GameObject go = Object.Instantiate(prefab);
+            CauldronNetworkBridge bridge = go.GetComponent<CauldronNetworkBridge>();
             networkManager.ServerManager.Spawn(go);
             return bridge;
         }

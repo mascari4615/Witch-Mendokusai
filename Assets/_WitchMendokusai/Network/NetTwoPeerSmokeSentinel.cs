@@ -387,12 +387,27 @@ namespace WitchMendokusai
                 }
                 Debug.Log($"[NET-SMOKE] host 프록시=({hp.x:F2},{hp.y:F2},{hp.z:F2}) 실플레이어=({playerX:F2},{playerY:F2},{playerZ:F2}) follows={followsReal}");
             }
+            // 공유 가마솥 채널(#4) 검증 — AddIngredient ServerRpc → 서버 권위 BrewEngine.Apply → SyncVar 마커.
+            // 동(→) 방향 grind 2 = delta (2,0) → 마커 x≈2, stepCount≥1 (RPC→apply→SyncVar 루프 작동).
+            CauldronNetworkBridge cauldron = FindAnyObjectByType<CauldronNetworkBridge>();
+            bool cauldronOk = false;
+            if (cauldron != null)
+            {
+                cauldron.AddIngredient(1f, 0f, 2f);
+                for (int frame = 0; frame < SETTLE_FRAMES && Time.realtimeSinceStartup < deadline; frame++)
+                {
+                    yield return null;
+                }
+                cauldronOk = Mathf.Abs(cauldron.MarkerX - 2f) < POS_TOLERANCE && cauldron.SyncedStepCount >= 1;
+                Debug.Log($"[NET-SMOKE] host 가마솥 = marker({cauldron.MarkerX:F2},{cauldron.MarkerY:F2}) step={cauldron.SyncedStepCount} ok={cauldronOk}");
+            }
+
             WorldClock clock = WorldClock.Instance;
-            bool pass = NetworkBootstrap.IsRunning && bridgeOk && proxyOk && followsReal && _nreCount == 0;
+            bool pass = NetworkBootstrap.IsRunning && bridgeOk && proxyOk && followsReal && cauldronOk && _nreCount == 0;
             WriteResult(
                 pass ? "PASS" : "FAIL",
-                pass ? "host StartHost: 실 Player 추종 프록시 + 시계 bridge 스폰 (real-player host-loopback)"
-                     : $"host: running={NetworkBootstrap.IsRunning} bridge={bridgeOk} proxy={proxyOk} follows={followsReal} nre={_nreCount}",
+                pass ? "host StartHost: 실 Player 추종 프록시 + 시계 bridge + 공유 가마솥 채널(AddIngredient→마커 동기)"
+                     : $"host: running={NetworkBootstrap.IsRunning} bridge={bridgeOk} proxy={proxyOk} follows={followsReal} cauldron={cauldronOk} nre={_nreCount}",
                 clock.Year, clock.Season, clock.Day, clock.Hour, RemoteClientCount(networkManager));
             Finish(pass ? 0 : 1);
         }
