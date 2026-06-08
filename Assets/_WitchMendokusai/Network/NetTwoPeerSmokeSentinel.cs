@@ -6,6 +6,7 @@ using System.IO;
 using FishNet.Managing;
 using UnityEngine;
 using WitchMendokusai.DomainSDK.Alchemy;
+using WitchMendokusai.DomainSDK.Building;
 using WitchMendokusai.DomainSDK.Network;
 
 namespace WitchMendokusai
@@ -477,12 +478,34 @@ namespace WitchMendokusai
                 Debug.Log($"[NET-SMOKE] host 가마솥 = cauldron={(cauldron != null)} seamActive={seamActive} (false = step-4b seam register/스폰 실패)");
             }
 
+            // 공유 건설 채널(#4 건설, step-2) 검증 — seam(SharedBuildChannelBridge) 경유 PlaceBuilding → 서버 권위
+            // 배치맵 SyncList. 셀(5,0,7) 건물ID 1 배치 → ReadPlacements 1건 + 셀 일치(Register→Place→ServerRpc→SyncList).
+            BuildingNetworkBridge building = FindAnyObjectByType<BuildingNetworkBridge>();
+            bool buildSeamActive = SharedBuildChannelBridge.IsActive;
+            bool buildingOk = false;
+            if (building != null && buildSeamActive)
+            {
+                SharedBuildChannelBridge.Channel.PlaceBuilding(5, 0, 7, 1);
+                for (int frame = 0; frame < SETTLE_FRAMES && Time.realtimeSinceStartup < deadline; frame++)
+                {
+                    yield return null;
+                }
+                List<BuildingPlacement> placements = new List<BuildingPlacement>();
+                SharedBuildChannelBridge.Channel.ReadPlacements(placements);
+                buildingOk = placements.Count >= 1 && placements[0].CellX == 5 && placements[0].CellZ == 7 && placements[0].BuildingId == 1;
+                Debug.Log($"[NET-SMOKE] host 건설(seam) = active={buildSeamActive} placements={placements.Count} ok={buildingOk}");
+            }
+            else
+            {
+                Debug.Log($"[NET-SMOKE] host 건설 = building={(building != null)} seamActive={buildSeamActive} (false = step-2 seam register/스폰 실패)");
+            }
+
             WorldClock clock = WorldClock.Instance;
-            bool pass = NetworkBootstrap.IsRunning && bridgeOk && proxyOk && followsReal && cauldronOk && _nreCount == 0;
+            bool pass = NetworkBootstrap.IsRunning && bridgeOk && proxyOk && followsReal && cauldronOk && buildingOk && _nreCount == 0;
             WriteResult(
                 pass ? "PASS" : "FAIL",
-                pass ? "host StartHost: 실 Player 추종 프록시 + 시계 bridge + 공유 가마솥 seam(UI→AddStep→ServerRpc→마커 동기)"
-                     : $"host: running={NetworkBootstrap.IsRunning} bridge={bridgeOk} proxy={proxyOk} follows={followsReal} cauldron={cauldronOk} seam={seamActive} nre={_nreCount}",
+                pass ? "host StartHost: 프록시 + 시계 + 가마솥 seam + 건설 seam(Place→ServerRpc→배치맵 SyncList)"
+                     : $"host: running={NetworkBootstrap.IsRunning} bridge={bridgeOk} proxy={proxyOk} follows={followsReal} cauldron={cauldronOk} building={buildingOk} nre={_nreCount}",
                 clock.Year, clock.Season, clock.Day, clock.Hour, RemoteClientCount(networkManager));
             Finish(pass ? 0 : 1);
         }

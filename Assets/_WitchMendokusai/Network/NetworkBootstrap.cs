@@ -17,12 +17,14 @@ namespace WitchMendokusai
         public const string NETWORK_MANAGER_RESOURCE = "WMNetworkManager";
         public const string BRIDGE_PREFAB_RESOURCE = "WorldClockNetworkBridge";
         public const string CAULDRON_BRIDGE_RESOURCE = "CauldronNetworkBridge";
+        public const string BUILDING_BRIDGE_RESOURCE = "BuildingNetworkBridge";
         public const string PLAYER_PROXY_RESOURCE = "PlayerNetProxy";
         public const ushort DEFAULT_PORT = 7770; // Tugboat 기본
 
         private static NetworkManager _networkManager;
         private static WorldClockNetworkBridge _worldClockBridge;
         private static CauldronNetworkBridge _cauldronBridge;
+        private static BuildingNetworkBridge _buildingBridge;
 
         public static NetworkManager EnsureNetworkManager()
         {
@@ -91,6 +93,10 @@ namespace WitchMendokusai
             {
                 _cauldronBridge = SpawnCauldronBridge();
             }
+            if (_buildingBridge == null)
+            {
+                _buildingBridge = SpawnBuildingBridge();
+            }
         }
 
         private static void OnServerStartedSpawnBridge(ServerConnectionStateArgs args)
@@ -138,6 +144,7 @@ namespace WitchMendokusai
             _networkManager.ServerManager.OnServerConnectionState -= OnServerStartedSpawnBridge;
             _worldClockBridge = null;
             _cauldronBridge = null;
+            _buildingBridge = null;
             _networkManager.ClientManager.StopConnection();
             _networkManager.ServerManager.StopConnection(true);
         }
@@ -166,6 +173,20 @@ namespace WitchMendokusai
             GameObject prefab = Resources.Load<GameObject>(CAULDRON_BRIDGE_RESOURCE);
             GameObject go = Object.Instantiate(prefab);
             CauldronNetworkBridge bridge = go.GetComponent<CauldronNetworkBridge>();
+            networkManager.ServerManager.Spawn(go);
+            return bridge;
+        }
+
+        /// <summary>
+        /// 공유 건설 채널(4번째 라이브 채널) NetworkObject 서버 스폰. 서버 권위 배치맵(SyncList),
+        /// PlaceBuilding/RemoveBuilding ServerRpc. baked prefab(_isGlobal, DefaultPrefabObjects). TASK-WM-191 #4 건설.
+        /// </summary>
+        public static BuildingNetworkBridge SpawnBuildingBridge()
+        {
+            NetworkManager networkManager = EnsureNetworkManager();
+            GameObject prefab = Resources.Load<GameObject>(BUILDING_BRIDGE_RESOURCE);
+            GameObject go = Object.Instantiate(prefab);
+            BuildingNetworkBridge bridge = go.GetComponent<BuildingNetworkBridge>();
             networkManager.ServerManager.Spawn(go);
             return bridge;
         }
