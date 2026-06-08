@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using FishNet.Object;
 using FishNet.Object.Synchronizing;
 using WitchMendokusai.DomainSDK.Alchemy;
@@ -23,6 +24,10 @@ namespace WitchMendokusai
         private readonly SyncVar<float> _markerY = new SyncVar<float>();
         private readonly SyncVar<int> _stepCount = new SyncVar<int>();
         private readonly SyncVar<float> _sideEffect = new SyncVar<float>();
+
+        // step-4b 완결: 전체 step 경로 동기(SyncList) — 마커뿐 아니라 *경로선*까지 양 피어 동일.
+        // BrewStep([Serializable] 구조체) FishNet 자동 직렬화. AddIngredient 서 마커 SyncVar 와 함께 갱신(일관).
+        private readonly SyncList<BrewStep> _steps = new SyncList<BrewStep>();
 
         // 서버측 권위 누적 상태(stateless BrewEngine.Apply 로 전진). 클라엔 SyncVar 만 도달.
         private BrewState serverState;
@@ -69,10 +74,24 @@ namespace WitchMendokusai
             return true;
         }
 
+        /// <summary>UI seam: 이 피어가 서버(host)인가 — 「완성」 보상 host-권위 분기 근거(이름 IsServer/IsHost X = FishNet 충돌 회피).</summary>
+        public bool IsServerPeer => base.IsServerInitialized;
+
+        /// <summary>UI seam: 동기된 전체 경로 step 을 buffer 에 복사(경로선 렌더용, FishNet 타입 미노출).</summary>
+        public void ReadSteps(List<BrewStep> buffer)
+        {
+            buffer.Clear();
+            for (int index = 0; index < _steps.Count; index++)
+            {
+                buffer.Add(_steps[index]);
+            }
+        }
+
         public override void OnStartServer()
         {
             base.OnStartServer();
             serverState = BrewState.Start;
+            _steps.Clear();
             PushState();
         }
 
@@ -86,14 +105,16 @@ namespace WitchMendokusai
                 Grind = grind,
             };
             serverState = BrewEngine.Apply(serverState, step);
+            _steps.Add(step);
             PushState();
         }
 
-        /// <summary>같은 솥 비우고 다시(목표·재료는 UI 측 — 채널은 마커 상태만).</summary>
+        /// <summary>같은 솥 비우고 다시(목표·재료는 UI 측 — 채널은 마커·경로 상태만).</summary>
         [ServerRpc(RequireOwnership = false)]
         public void ResetBrew()
         {
             serverState = BrewState.Start;
+            _steps.Clear();
             PushState();
         }
 

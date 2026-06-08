@@ -46,6 +46,12 @@ namespace WitchMendokusai
         // 공유 솥(네트워크) 폴링 — 원격 피어의 투입이 SyncVar 로 도달하면 재드로. 솔로면 no-op.
         private IVisualElementScheduledItem networkPoll;
 
+        // 공유 솥 경로선 렌더 버퍼(매 draw 마다 채널에서 동기 step 복사 — 매 프레임 alloc 회피).
+        private readonly List<BrewStep> networkStepsBuffer = new List<BrewStep>();
+
+        // 「완성」 버튼 — 공유 솥에선 host 만 enabled(보상 host-권위, 이중지급 방지).
+        private Button completeButton;
+
         /// <summary>재료 한 종(효과공간 방향 + 기본 갈기량 + 라벨).</summary>
         public struct Ingredient
         {
@@ -156,10 +162,10 @@ namespace WitchMendokusai
             statusLabel.style.marginBottom = 8f;
             leftPage.Add(statusLabel);
 
-            Button complete = new Button(OnCompleteClicked) { text = "✦ 완성 (포션 거두기)" };
-            complete.style.alignSelf = Align.FlexStart;
-            complete.style.marginBottom = 4f;
-            leftPage.Add(complete);
+            completeButton = new Button(OnCompleteClicked) { text = "✦ 완성 (포션 거두기)" };
+            completeButton.style.alignSelf = Align.FlexStart;
+            completeButton.style.marginBottom = 4f;
+            leftPage.Add(completeButton);
 
             Button restart = new Button(RestartSession) { text = "↺ 다시 젓기" };
             restart.style.alignSelf = Align.FlexStart;
@@ -273,6 +279,17 @@ namespace WitchMendokusai
             return session.State;
         }
 
+        // 현재 경로 step 열 = 공유 솥이면 동기된 SyncList(buffer 복사), 솔로면 로컬 세션. 경로선 렌더 소스.
+        private IReadOnlyList<BrewStep> CurrentSteps()
+        {
+            if (SharedBrewChannelBridge.IsActive)
+            {
+                SharedBrewChannelBridge.Channel.ReadSteps(networkStepsBuffer);
+                return networkStepsBuffer;
+            }
+            return session.Steps;
+        }
+
         private void RestartSession()
         {
             if (SharedBrewChannelBridge.IsActive)
@@ -287,9 +304,15 @@ namespace WitchMendokusai
         }
 
         // "완성" = 현재 채점 결과를 호스트에 통지(보상/이벤트는 호스트 책임 — UI 는 제조 행위만) + 솥 리셋(중복 수확 방지).
-        // ⚠ 공유 솥에서 양 피어가 각자 "완성" 누르면 보상 이중 지급 — 보상 host-권위화는 step-4b 후속(여기선 공유 마커가 first-use).
+        // 공유 솥: 보상 host-권위(아래 가드 + Refresh 의 버튼 disable)로 이중지급 차단. 단 *완전 권위*(비-host 가
+        // host 에게 수확 요청 RPC)는 후속 — 현재 = host 만 수확(비-host 「완성」 버튼 비활성).
         private void OnCompleteClicked()
         {
+            // 공유 솥: 보상은 host 권위(이중지급 방지) — 비-host 클릭 무시(버튼도 disable). 솔로면 통과.
+            if (IsNetworked && SharedBrewChannelBridge.Channel.IsServerPeer == false)
+            {
+                return;
+            }
             // 채점 = 현재 마커(공유 솥이면 SyncVar 수신값) + 로컬 레시피·규칙(양 피어 동일 SO).
             BrewState state = CurrentState();
             BrewCompleted?.Invoke(BrewEngine.Evaluate(state, session.Recipe.Target, rules));
@@ -337,27 +360,24 @@ namespace WitchMendokusai
             StrokeCircle(painter, targetPixels, Mathf.Max(target.Radius * pixelsPerUnit, 6f), TargetColor, 2f);
             FillCircle(painter, targetPixels, 3f, TargetColor);
 
-            // 누적 경로 (원점 → 각 step 끝점, 보랏빛 잉크 선). 솔로만 — 공유 솥(네트워크)은 마커만 동기
-            // (전체 step 경로 SyncList 는 후속). 재료 0개 = 경로 없음(빈 stroke 아티팩트 회피).
-            if (IsNetworked == false)
+            // 누적 경로 (원점 → 각 step 끝점, 보랏빛 잉크 선). 공유 솥이면 동기된 경로(SyncList), 솔로면 로컬
+            // = 둘이 같은 *경로*까지 본다. 재료 0개 = 경로 없음(빈 stroke 아티팩트 회피).
+            IReadOnlyList<BrewStep> steps = CurrentSteps();
+            if (steps.Count > 0)
             {
-                IReadOnlyList<BrewStep> steps = session.Steps;
-                if (steps.Count > 0)
+                BrewVector cursor = BrewVector.Zero;
+                painter.strokeColor = PathColor;
+                painter.lineWidth = 2.5f;
+                painter.lineCap = LineCap.Round;
+                painter.lineJoin = LineJoin.Round;
+                painter.BeginPath();
+                painter.MoveTo(EffectToPixels(cursor));
+                for (int i = 0; i < steps.Count; i++)
                 {
-                    BrewVector cursor = BrewVector.Zero;
-                    painter.strokeColor = PathColor;
-                    painter.lineWidth = 2.5f;
-                    painter.lineCap = LineCap.Round;
-                    painter.lineJoin = LineJoin.Round;
-                    painter.BeginPath();
-                    painter.MoveTo(EffectToPixels(cursor));
-                    for (int i = 0; i < steps.Count; i++)
-                    {
-                        cursor = cursor + steps[i].Direction * steps[i].Grind;
-                        painter.LineTo(EffectToPixels(cursor));
-                    }
-                    painter.Stroke();
+                    cursor = cursor + steps[i].Direction * steps[i].Grind;
+                    painter.LineTo(EffectToPixels(cursor));
                 }
+                painter.Stroke();
             }
 
             // 드래그 미리보기 (갈기 방향 점선 느낌 = 실선 회색).
@@ -453,6 +473,8 @@ namespace WitchMendokusai
                     + "등급: " + GradeText(outcome.Grade) + "\n"
                     + "넣은 재료 수: " + state.StepCount;
             }
+            // 공유 솥 = host 만 「완성」 가능(보상 host-권위, 이중지급 방지). 솔로 = 항상 가능.
+            completeButton?.SetEnabled(IsNetworked == false || SharedBrewChannelBridge.Channel.IsServerPeer);
             mapCanvas?.MarkDirtyRepaint();
         }
 

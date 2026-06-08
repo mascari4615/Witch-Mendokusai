@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace WitchMendokusai.DomainSDK.Alchemy
 {
     /// <summary>
@@ -23,6 +25,12 @@ namespace WitchMendokusai.DomainSDK.Alchemy
 
         /// <summary>현재 공유 마커 상태(서버 BrewEngine 누적 → SyncVar). 비활성이면 false.</summary>
         bool TryGetState(out BrewVector position, out int stepCount, out float accruedSideEffect);
+
+        /// <summary>이 피어가 서버(host)인가 — 「완성」 보상은 host 권위(이중지급 방지) 분기 근거.</summary>
+        bool IsServerPeer { get; }
+
+        /// <summary>동기된 전체 경로 step 을 buffer 에 복사(경로선 렌더용 — 마커뿐 아니라 경로까지 공유).</summary>
+        void ReadSteps(List<BrewStep> buffer);
     }
 
     /// <summary>

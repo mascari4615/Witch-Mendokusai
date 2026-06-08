@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using FishNet.Managing;
@@ -405,8 +406,14 @@ namespace WitchMendokusai
                 {
                     yield return null;
                 }
-                cauldronOk = Mathf.Abs(cauldron.MarkerX - 2f) < POS_TOLERANCE && cauldron.SyncedStepCount >= 1;
-                Debug.Log($"[NET-SMOKE] host 가마솥(seam) = active={seamActive} marker({cauldron.MarkerX:F2},{cauldron.MarkerY:F2}) step={cauldron.SyncedStepCount} ok={cauldronOk}");
+                // step-4b 완결: 경로 SyncList 동기 + host-권위(IsServerPeer) 도 검증.
+                List<BrewStep> syncedSteps = new List<BrewStep>();
+                SharedBrewChannelBridge.Channel.ReadSteps(syncedSteps);
+                bool pathSynced = syncedSteps.Count >= 1;
+                bool serverAuthority = SharedBrewChannelBridge.Channel.IsServerPeer; // host-loopback = server=true
+                cauldronOk = Mathf.Abs(cauldron.MarkerX - 2f) < POS_TOLERANCE && cauldron.SyncedStepCount >= 1
+                    && pathSynced && serverAuthority;
+                Debug.Log($"[NET-SMOKE] host 가마솥(seam) = active={seamActive} marker({cauldron.MarkerX:F2},{cauldron.MarkerY:F2}) step={cauldron.SyncedStepCount} pathSteps={syncedSteps.Count} serverAuth={serverAuthority} ok={cauldronOk}");
             }
             else
             {
