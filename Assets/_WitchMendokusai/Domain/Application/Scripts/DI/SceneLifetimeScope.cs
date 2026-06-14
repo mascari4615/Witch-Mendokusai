@@ -69,7 +69,7 @@ namespace WitchMendokusai
 			RegisterInHierarchyIfPresent<UISkillBar>(builder);
 			RegisterInHierarchyIfPresent<Player>(builder);
 			RegisterInHierarchyIfPresent<PlayerObject>(builder);
-			RegisterInHierarchyIfPresent<GameEventListener>(builder);
+			// GameEventListener = DI 의존 0 leaf (TASK-WM-192, GameEventBridge/EffectRunnerBridge 우회) → 등록 불요.
 			RegisterInHierarchyIfPresent<ExpManager>(builder);
 			RegisterInHierarchyIfPresent<SpawnerInitializer>(builder);
 			RegisterInHierarchyIfPresent<UItemEquipPopup>(builder);
@@ -147,7 +147,7 @@ namespace WitchMendokusai
 				ResolveIfPresent<UISkillBar>(container);
 				ResolveIfPresent<Player>(container);
 				ResolveIfPresent<PlayerObject>(container);
-				ResolveIfPresent<GameEventListener>(container);
+				// GameEventListener = DI 의존 0 leaf (TASK-WM-192) → resolve 불요.
 				ResolveIfPresent<ExpManager>(container);
 				ResolveIfPresent<SpawnerInitializer>(container);
 				ResolveIfPresent<UItemEquipPopup>(container);

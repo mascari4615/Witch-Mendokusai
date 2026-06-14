@@ -29,6 +29,9 @@ namespace WitchMendokusai
 			this.playerProvider = playerProvider;
 			this.objectPoolManager = objectPoolManager;
 			context = new EffectContext(soManager, playerProvider, objectPoolManager, null);
+			// DI 그래프 밖 leaf(씬·프리팹 흩뿌림 GameEventListener)가 effect 적용을 정적 우회로 도달.
+			// root 부트서 1회 등록 (DataManager.Construct eager 가 본 ctor 트리거 → World 씬보다 먼저).
+			EffectRunnerBridge.Register(this);
 			// TASK-WM-107 Slice 3-4a — card 효과 dispatch 권위를 SO 에 push (static Effect 파사드 폐기).
 			// SelectedCardBuffer = 코드 내 유일 effect-dispatch CardBuffer. 순환無(soManager=RegisterInstance).
 			soManager.SelectedCardBuffer.BindEffectRunner(this);
