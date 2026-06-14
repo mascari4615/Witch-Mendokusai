@@ -69,7 +69,8 @@ namespace WitchMendokusai
 			RegisterInHierarchyIfPresent<UISkillBar>(builder);
 			RegisterInHierarchyIfPresent<Player>(builder);
 			RegisterInHierarchyIfPresent<PlayerObject>(builder);
-			// GameEventListener = DI 의존 0 leaf (TASK-WM-192, GameEventBridge/EffectRunnerBridge 우회) → 등록 불요.
+			// GameEventListener = 다중 인스턴스 leaf → RegisterComponentInHierarchy(첫1개만 Resolve) 부적합.
+			// 아래 build-callback 의 foreach InjectGameObject 가 전 인스턴스 주입 (TASK-WM-192, Monster/NPC 동형).
 			RegisterInHierarchyIfPresent<ExpManager>(builder);
 			RegisterInHierarchyIfPresent<SpawnerInitializer>(builder);
 			RegisterInHierarchyIfPresent<UItemEquipPopup>(builder);
@@ -147,7 +148,6 @@ namespace WitchMendokusai
 				ResolveIfPresent<UISkillBar>(container);
 				ResolveIfPresent<Player>(container);
 				ResolveIfPresent<PlayerObject>(container);
-				// GameEventListener = DI 의존 0 leaf (TASK-WM-192) → resolve 불요.
 				ResolveIfPresent<ExpManager>(container);
 				ResolveIfPresent<SpawnerInitializer>(container);
 				ResolveIfPresent<UItemEquipPopup>(container);
@@ -181,6 +181,11 @@ namespace WitchMendokusai
 				// 동일 established 계층-재귀 패턴으로 수렴 (Monster/ResourceNode 와 동형). NPCObject.Construct=멱등.
 				foreach (NPCObject npcObject in FindObjectsByType<NPCObject>(FindObjectsInactive.Include))
 					container.InjectGameObject(npcObject.gameObject);
+				// TASK-WM-192 — 씬 직접배치 GameEventListener (Debug/Hit 캔버스 등 다중 인스턴스).
+				// 구: RegisterComponentInHierarchy<GameEventListener> = 첫 1개만 Resolve → 나머지 [Inject] 미실행
+				// → OnEnable NRE. 동일 established 계층-재귀로 전 인스턴스 수렴 (Construct=init-order 안전 멱등).
+				foreach (GameEventListener gameEventListener in FindObjectsByType<GameEventListener>(FindObjectsInactive.Include))
+					container.InjectGameObject(gameEventListener.gameObject);
 				// 씬배치 Player/doll/Marker — Editor-dev(EditorManager additive Stage_Home) 와 production(pooled
 				// stage prefab, #4 InjectGameObject) 의 DI 진입을 동일 established 패턴으로 수렴 (발산 제거).
 				// Player inject → Player.Construct 가 자식 cascade (PlayerObject/PlayerRotation/DollAnimator/
