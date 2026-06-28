@@ -88,7 +88,7 @@ MonoBehaviour:
         editorPosition: {x: 260, y: 0}
         octaves: 4
         frequency: 0.01
-        amplitude: 32
+        amplitude: 4
         persistence: 0.5
         lacunarity: 2
         seed: 0
