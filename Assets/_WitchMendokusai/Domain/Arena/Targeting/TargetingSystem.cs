@@ -12,6 +12,10 @@ namespace WitchMendokusai
 	{
 		private readonly List<ICombatant> combatants = new();
 
+		// 진영별 목표물(TD 코어 / 넥서스 / 사령부). TargetSide.EnemyObjective 질의가 이 집합만 후보로 삼는다.
+		// 일반 전투 참가자이기도 하므로 combatants 에도 함께 등록됨(Register 와 직교) — 여기 등록은 "목표물 표시" 뿐.
+		private readonly List<ICombatant> objectives = new();
+
 		public void Register(ICombatant combatant)
 		{
 			if (combatants.Contains(combatant) == false)
@@ -21,6 +25,14 @@ namespace WitchMendokusai
 		public void Unregister(ICombatant combatant)
 		{
 			combatants.Remove(combatant);
+			objectives.Remove(combatant);
+		}
+
+		/// <summary> 이 전투 참가자를 소속 팀의 목표물로 표시. Register 와 별개(둘 다 호출해야 일반 타겟 + 목표물 양쪽으로 잡힘). </summary>
+		public void RegisterObjective(ICombatant objective)
+		{
+			if (objectives.Contains(objective) == false)
+				objectives.Add(objective);
 		}
 
 		public ICombatant Query(ICombatant self, TargetQuery query)
@@ -51,7 +63,7 @@ namespace WitchMendokusai
 			return best;
 		}
 
-		private static bool PassesFilter(ICombatant self, ICombatant candidate, TargetQuery query)
+		private bool PassesFilter(ICombatant self, ICombatant candidate, TargetQuery query)
 		{
 			if (candidate.IsAlive == false)
 				return false;
@@ -61,6 +73,8 @@ namespace WitchMendokusai
 				TargetSide.Enemy => candidate.TeamId != self.TeamId,
 				TargetSide.Ally => candidate.TeamId == self.TeamId && candidate != self,
 				TargetSide.Self => candidate == self,
+				// 적 진영 + 목표물로 표시된 것만. 표시 안 됐으면 후보 0 → 질의 null (전진 룰이 fallthrough).
+				TargetSide.EnemyObjective => candidate.TeamId != self.TeamId && objectives.Contains(candidate),
 				_ => false,
 			};
 			if (sideOk == false)

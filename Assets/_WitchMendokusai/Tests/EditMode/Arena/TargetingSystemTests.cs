@@ -130,5 +130,90 @@ namespace WitchMendokusai.Tests
 
 			Assert.IsNull(result);
 		}
+
+		// --- TargetSide.EnemyObjective (TASK-WM-194) — "앞을 막는 아무 유닛" 이 아니라 "적 기지" 를 향하는 질의 ---
+
+		// 핵심: 더 가까운 일반 적(타워)이 있어도 목표물(코어)을 고른다 = 웨이브가 방어선을 뚫고 기지로 전진.
+		[Test]
+		public void Query_EnemyObjective_PicksObjective_EvenIfOtherEnemyIsCloser()
+		{
+			TargetingSystem targeting = new();
+			FakeCombatant self = Make(id: 0, team: 1, pos: Vector3.zero);
+			FakeCombatant tower = Make(id: 1, team: 0, pos: new Vector3(2f, 0f, 0f));
+			FakeCombatant core = Make(id: 2, team: 0, pos: new Vector3(20f, 0f, 0f));
+			targeting.Register(self);
+			targeting.Register(tower);
+			targeting.Register(core);
+			targeting.RegisterObjective(core);
+
+			ICombatant result = targeting.Query(self, new TargetQuery(TargetSide.EnemyObjective, TargetPriority.Nearest));
+
+			Assert.AreSame(core, result);
+		}
+
+		// 목표물 미등록이면 후보 0 → null (전진 룰이 fallthrough 하도록).
+		[Test]
+		public void Query_EnemyObjective_NoObjectiveRegistered_ReturnsNull()
+		{
+			TargetingSystem targeting = new();
+			FakeCombatant self = Make(id: 0, team: 1, pos: Vector3.zero);
+			FakeCombatant tower = Make(id: 1, team: 0, pos: new Vector3(2f, 0f, 0f));
+			targeting.Register(self);
+			targeting.Register(tower);
+
+			ICombatant result = targeting.Query(self, new TargetQuery(TargetSide.EnemyObjective, TargetPriority.Nearest));
+
+			Assert.IsNull(result);
+		}
+
+		// 아군 목표물(자기 팀 코어)은 안 잡힘 = 적 진영 필터 유지.
+		[Test]
+		public void Query_EnemyObjective_ExcludesOwnTeamObjective()
+		{
+			TargetingSystem targeting = new();
+			FakeCombatant self = Make(id: 0, team: 0, pos: Vector3.zero);
+			FakeCombatant ownCore = Make(id: 1, team: 0, pos: new Vector3(3f, 0f, 0f));
+			targeting.Register(self);
+			targeting.Register(ownCore);
+			targeting.RegisterObjective(ownCore);
+
+			ICombatant result = targeting.Query(self, new TargetQuery(TargetSide.EnemyObjective, TargetPriority.Nearest));
+
+			Assert.IsNull(result);
+		}
+
+		// 코어가 파괴되면 목표물 질의도 null — 죽은 목표를 계속 때리러 가지 않는다.
+		[Test]
+		public void Query_EnemyObjective_DeadObjective_ReturnsNull()
+		{
+			TargetingSystem targeting = new();
+			FakeCombatant self = Make(id: 0, team: 1, pos: Vector3.zero);
+			FakeCombatant core = Make(id: 1, team: 0, pos: new Vector3(5f, 0f, 0f), alive: false);
+			targeting.Register(self);
+			targeting.Register(core);
+			targeting.RegisterObjective(core);
+
+			ICombatant result = targeting.Query(self, new TargetQuery(TargetSide.EnemyObjective, TargetPriority.Nearest));
+
+			Assert.IsNull(result);
+		}
+
+		// Unregister 는 목표물 표시도 함께 해제 — 풀 반환 유닛이 좀비 목표로 남지 않음.
+		[Test]
+		public void Unregister_AlsoClearsObjectiveMark()
+		{
+			TargetingSystem targeting = new();
+			FakeCombatant self = Make(id: 0, team: 1, pos: Vector3.zero);
+			FakeCombatant core = Make(id: 1, team: 0, pos: new Vector3(5f, 0f, 0f));
+			targeting.Register(self);
+			targeting.Register(core);
+			targeting.RegisterObjective(core);
+			targeting.Unregister(core);
+
+			targeting.Register(core); // 목표물 표시 없이 일반 참가자로만 재등록.
+			ICombatant result = targeting.Query(self, new TargetQuery(TargetSide.EnemyObjective, TargetPriority.Nearest));
+
+			Assert.IsNull(result);
+		}
 	}
 }

@@ -32,6 +32,11 @@ namespace WitchMendokusai
 		Enemy = 0,
 		Ally = 1,
 		Self = 2,
+
+		// 적 진영의 *목표물* (TD 코어 / MOBA 넥서스 / TAB 사령부). append-only.
+		// ITargetResolver 구현이 별도 등록된 objective 만 후보로 삼는다 → "전진해서 기지를 친다" 를
+		// 일반 Enemy 질의(= 앞을 막는 아무 유닛)와 분리. TASK-WM-194, WM-165 가 예고한 Lane/넥서스 확장과 동일 개념.
+		EnemyObjective = 3,
 	}
 
 	/// <summary> 타겟 우선순위(후보 정렬 키). 동률은 InstanceId 타이브레이크로 결정성 보장. </summary>
