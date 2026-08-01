@@ -37,6 +37,10 @@ namespace WitchMendokusai
 		private readonly Label hintLabel;
 		private readonly Label bannerLabel;
 		private readonly VisualElement legendPanel;
+		// 자원 노드 위에 붙는 벌이 배수 표. 월드 좌표를 매 프레임 화면으로 투영해 따라붙인다
+		// (UI Toolkit 은 월드 공간 텍스트가 없고, 폰트 에셋을 새로 들이지 않기 위한 선택).
+		private readonly VisualElement worldLabelLayer;
+		private readonly System.Collections.Generic.List<Label> worldLabels = new();
 		private readonly VisualElement hotbarPanel;
 		private readonly Button waveModeButton;
 		private readonly Button nextWaveButton;
@@ -73,13 +77,34 @@ namespace WitchMendokusai
 			container.style.display = DisplayStyle.None;
 			container.pickingMode = PickingMode.Ignore;
 
-			container.Add(BuildStatPanel(out resourceValue, out waveValue, out phaseValue, out enemyValue, out incomeValue, out nextWaveValue, out bestValue));
-			container.Add(BuildWaveControlPanel(out waveModeButton, out nextWaveButton));
+			// ★ 왼쪽 정보는 한 세로줄에 쌓는다. 각 패널에 화면 좌표(top)를 박아두면 줄이 하나 늘어나는 순간
+			//   아래 패널을 덮어 글자가 겹쳐 뭉개진다(라이브 스크린샷 실증 — 「다음 파도」 행을 넣자마자 발생).
+			//   흐름 배치로 두면 내용이 늘어도 알아서 아래로 밀린다.
+			VisualElement leftColumn = new VisualElement { name = "LeftColumn" };
+			leftColumn.style.position = Position.Absolute;
+			leftColumn.style.left = 24;
+			leftColumn.style.top = 24;
+			leftColumn.style.flexDirection = FlexDirection.Column;
+			leftColumn.style.alignItems = Align.FlexStart;
+			leftColumn.pickingMode = PickingMode.Ignore;
+
+			leftColumn.Add(BuildStatPanel(out resourceValue, out waveValue, out phaseValue, out enemyValue, out incomeValue, out nextWaveValue, out bestValue));
+			leftColumn.Add(BuildWaveControlPanel(out waveModeButton, out nextWaveButton));
 			legendPanel = BuildLegendPanel();
-			container.Add(legendPanel);
+			leftColumn.Add(legendPanel);
+			container.Add(leftColumn);
 			hotbarPanel = BuildHotbar();
 			container.Add(hotbarPanel);
 			container.Add(BuildHintBar(out hintLabel));
+			worldLabelLayer = new VisualElement { name = "WorldLabels" };
+			worldLabelLayer.style.position = Position.Absolute;
+			worldLabelLayer.style.left = 0;
+			worldLabelLayer.style.right = 0;
+			worldLabelLayer.style.top = 0;
+			worldLabelLayer.style.bottom = 0;
+			worldLabelLayer.pickingMode = PickingMode.Ignore;
+			container.Add(worldLabelLayer);
+
 			container.Add(BuildBanner(out bannerLabel, out _));
 			container.Add(BuildCornerRestartButton());
 
@@ -91,9 +116,7 @@ namespace WitchMendokusai
 		private static VisualElement BuildStatPanel(out Label resource, out Label wave, out Label phase, out Label enemies, out Label incomeValue, out Label nextWaveValue, out Label bestValue)
 		{
 			VisualElement panel = new VisualElement { name = "StatPanel" };
-			panel.style.position = Position.Absolute;
-			panel.style.left = 24;
-			panel.style.top = 24;
+			panel.style.marginBottom = 10;
 			panel.style.paddingLeft = 14;
 			panel.style.paddingRight = 18;
 			panel.style.paddingTop = 10;
@@ -180,9 +203,7 @@ namespace WitchMendokusai
 		private VisualElement BuildWaveControlPanel(out Button modeButton, out Button callButton)
 		{
 			VisualElement panel = new VisualElement { name = "WaveControlPanel" };
-			panel.style.position = Position.Absolute;
-			panel.style.left = 24;
-			panel.style.top = 152;
+			panel.style.marginBottom = 10;
 			panel.style.flexDirection = FlexDirection.Row;
 			panel.pickingMode = PickingMode.Ignore;
 
@@ -282,9 +303,6 @@ namespace WitchMendokusai
 		private VisualElement BuildLegendPanel()
 		{
 			VisualElement panel = new VisualElement { name = "LegendPanel" };
-			panel.style.position = Position.Absolute;
-			panel.style.left = 24;
-			panel.style.top = 202;
 			panel.style.paddingLeft = 12;
 			panel.style.paddingRight = 16;
 			panel.style.paddingTop = 8;
@@ -353,7 +371,7 @@ namespace WitchMendokusai
 
 			Label noteLabel = new Label(note);
 			noteLabel.style.fontSize = 11;
-			noteLabel.style.color = new Color(0.62f, 0.68f, 0.76f, 1f);
+			noteLabel.style.color = new Color(0.80f, 0.84f, 0.90f, 1f);
 			noteLabel.pickingMode = PickingMode.Ignore;
 
 			row.Add(swatch);
@@ -582,6 +600,7 @@ namespace WitchMendokusai
 				: match.NextWaveIncome.ToString();
 
 			nextWaveValue.text = BuildWavePreview(match);
+			UpdateNodeLabels(match, stage);
 
 			waveModeButton.text = match.AutoAdvanceWaves ? "진행: 자동" : "진행: 수동";
 			// 건설 국면에서만 부를 수 있다 — 못 누르는 버튼을 멀쩡해 보이게 두면 눌러보고 아무 일도 안 난다.
@@ -667,6 +686,52 @@ namespace WitchMendokusai
 			}
 
 			return preview.Length > 0 ? preview : compositionBuffer.Count + "기";
+		}
+
+		/// <summary>
+		/// 자원 노드마다 「×1.9」 벌이 배수를 띄운다 — 노드가 다 똑같아 보이면 「어디로 넓힐까」가 판단이 안 된다.
+		/// 화면 밖으로 나간 노드는 감춘다(뒤쪽 노드가 화면 가장자리에 눌어붙는 것 방지).
+		/// </summary>
+		private void UpdateNodeLabels(TowerDefenseMatch match, TowerDefenseStageSO stage)
+		{
+			System.Collections.Generic.IReadOnlyList<Vector3> nodes = match.ActiveResourceNodePositions;
+			Camera camera = ViewCameraResolver.Current;
+			Transform stageRoot = match.StageRoot;
+
+			while (worldLabels.Count < nodes.Count)
+			{
+				Label label = new Label(string.Empty);
+				label.style.position = Position.Absolute;
+				label.style.fontSize = 15;
+				label.style.color = new Color(1f, 0.86f, 0.35f, 1f);
+				label.style.unityTextAlign = TextAnchor.MiddleCenter;
+				label.pickingMode = PickingMode.Ignore;
+				worldLabelLayer.Add(label);
+				worldLabels.Add(label);
+			}
+
+			for (int index = 0; index < worldLabels.Count; index++)
+			{
+				Label label = worldLabels[index];
+				if (index >= nodes.Count || camera == null || stageRoot == null)
+				{
+					label.style.display = DisplayStyle.None;
+					continue;
+				}
+
+				Vector3 worldPosition = stageRoot.TransformPoint(nodes[index]);
+				Vector3 screenPosition = camera.WorldToScreenPoint(worldPosition);
+				if (screenPosition.z <= 0f)
+				{
+					label.style.display = DisplayStyle.None;
+					continue;
+				}
+
+				label.style.display = DisplayStyle.Flex;
+				label.text = "×" + match.NodeIncomeMultiplierAt(index).ToString("0.0");
+				label.style.left = screenPosition.x - 22f;
+				label.style.top = Screen.height - screenPosition.y - 34f;
+			}
 		}
 
 		private void SetBannerVisible(bool visible)

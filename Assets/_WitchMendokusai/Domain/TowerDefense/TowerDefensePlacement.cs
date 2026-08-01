@@ -38,6 +38,9 @@ namespace WitchMendokusai
 		private InputManager inputManager;
 		private bool isActive;
 
+		// 설치 전에 「여기 지으면 어디까지 닿는지」를 보여주는 원. 설치 후에야 알 수 있으면 그건 판단이 아니라 도박이다.
+		private TowerDefenseRing previewRing;
+
 		/// <summary>
 		/// 핫바에서 고른 설치 대상. 좌/우클릭으로 종류를 가르던 방식은 종류가 늘면 안 늘어난다
 		/// (사용자 지시: "좌클릭/우클릭이 아니라 빌딩 핫바 좀 활용해야 할듯").
@@ -105,6 +108,8 @@ namespace WitchMendokusai
 			isActive = false;
 			if (previewMarker != null)
 				previewMarker.SetActive(false);
+			if (previewRing != null)
+				previewRing.SetVisible(false);
 		}
 
 		private void Update()
@@ -118,11 +123,14 @@ namespace WitchMendokusai
 				|| TryGetSnappedGroundPosition(inputManager.MouseScreenPosition, out Vector3 snappedWorldPosition) == false)
 			{
 				previewMarker.SetActive(false);
+				if (previewRing != null)
+					previewRing.SetVisible(false);
 				return;
 			}
 
 			previewMarker.SetActive(true);
 			previewMarker.transform.position = snappedWorldPosition;
+			UpdatePreviewRing(snappedWorldPosition);
 
 			// 유효/무효 프리뷰 색 — match.IsCellOccupied 재사용(판정 이중화 X).
 			if (match != null)
@@ -131,6 +139,35 @@ namespace WitchMendokusai
 				if (previewRenderer != null)
 					previewRenderer.material.color = match.IsCellOccupied(snappedWorldPosition) ? Color.red : Color.green;
 			}
+		}
+
+		/// <summary>
+		/// 미리보기 원 — 포탑이면 사거리, 채집이면 노드를 잡을 수 있는 거리. 둘 다 「이 자리의 의미」를 말한다.
+		/// 반지름은 매치 정본(전술 사거리 / 노드 점유 반경)에서 읽는다 — 여기 숫자를 따로 박으면 거짓말이 된다.
+		/// </summary>
+		private void UpdatePreviewRing(Vector3 snappedWorldPosition)
+		{
+			if (match == null || stage == null)
+				return;
+
+			bool isHarvester = SelectedKind == TowerDefensePlaceableKind.Harvester;
+			float radius = isHarvester ? stage.NodeCaptureRadius : match.TowerRange();
+			if (radius <= 0f)
+			{
+				if (previewRing != null)
+					previewRing.SetVisible(false);
+				return;
+			}
+
+			if (previewRing == null)
+				previewRing = TowerDefenseRing.Create(transform, "PlacementPreviewRing", Color.white, 0.12f, 0.06f);
+
+			previewRing.transform.position = snappedWorldPosition + new Vector3(0f, 0.06f, 0f);
+			previewRing.SetRadius(radius);
+			previewRing.SetColor(isHarvester
+				? new Color(0.42f, 0.92f, 0.68f, 0.9f)
+				: new Color(0.45f, 0.78f, 1f, 0.9f));
+			previewRing.SetVisible(true);
 		}
 
 		/// <summary> 우클릭 진입점 — 스냅 위치에 타워 배치 시도 + 성공/거절 사유 로그. </summary>

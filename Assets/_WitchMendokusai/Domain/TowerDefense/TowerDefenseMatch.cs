@@ -281,6 +281,76 @@ namespace WitchMendokusai
 		}
 
 		/// <summary>
+		/// 마수가 실제로 걸어올 길을 바닥에 깐다 — 「여기가 길목」이 한눈에 보여야 배치가 판단이 된다.
+		///
+		/// ★ 길 안내판(흐름장)을 그대로 따라가며 칠하므로 *표시와 실제 이동이 같은 출처*다.
+		///   보기용으로 따로 그리면 언젠가 반드시 어긋나고, 그때 화면은 플레이어를 속인다.
+		/// 여러 출현 지점의 길이 겹치는 칸일수록 진하게 — 겹치는 곳이 곧 최고의 포탑 자리다.
+		/// </summary>
+		private void BuildPathLanes()
+		{
+			if (mapLayout == null || flowField == null)
+				return;
+
+			Dictionary<Vector2Int, int> laneWeight = new();
+			foreach (Vector3 spawnLocal in activeSpawnPoints)
+			{
+				Vector2Int cell = mapLayout.WorldToCell(spawnLocal);
+				int guard = mapLayout.Width * mapLayout.Length;
+
+				while (guard-- > 0 && cell != flowField.GoalCell)
+				{
+					laneWeight.TryGetValue(cell, out int weight);
+					laneWeight[cell] = weight + 1;
+
+					if (flowField.TryGetNextCell(cell, out Vector2Int next) == false)
+						break;
+					cell = next;
+				}
+			}
+
+			float cellSize = mapLayout.CellSize;
+			foreach ((Vector2Int cell, int weight) in laneWeight)
+			{
+				GameObject lane = GameObject.CreatePrimitive(PrimitiveType.Quad);
+				lane.name = "PathLane";
+				Destroy(lane.GetComponent<Collider>()); // 표시용 — 배치 레이캐스트를 가로채면 안 된다.
+				lane.transform.SetParent(stageRoot, false);
+				lane.transform.localPosition = mapLayout.CellToWorld(cell) + new Vector3(0f, 0.03f, 0f);
+				lane.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
+				lane.transform.localScale = Vector3.one * cellSize * 0.92f;
+
+				Renderer laneRenderer = lane.GetComponent<Renderer>();
+				if (laneRenderer == null)
+					continue;
+
+				// 겹칠수록 진하게(1갈래 = 옅게, 여러 갈래 = 뚜렷하게).
+				// 어두운 바닥 위에서 확실히 튀는 밝기까지 올린다 — 길이 안 보이면 이 기능은 없는 것과 같다.
+				float intensity = Mathf.Clamp01(0.6f + (weight - 1) * 0.2f);
+				Color laneColor = new Color(1f, 0.74f, 0.28f, intensity);
+				Material laneMaterial = new Material(laneRenderer.sharedMaterial);
+				MakeTransparent(laneMaterial);
+				laneMaterial.color = laneColor;
+				if (laneMaterial.HasProperty("_BaseColor"))
+					laneMaterial.SetColor("_BaseColor", laneColor);
+				laneRenderer.sharedMaterial = laneMaterial;
+				laneRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+			}
+		}
+
+		/// <summary> URP Lit 재질을 반투명으로 — 불투명 그대로면 길 표시가 바닥을 덮어버린다. </summary>
+		private static void MakeTransparent(Material material)
+		{
+			material.SetFloat("_Surface", 1f); // 1 = Transparent
+			material.SetOverrideTag("RenderType", "Transparent");
+			material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
+			material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+			material.SetInt("_ZWrite", 0);
+			material.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+			material.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
+		}
+
+		/// <summary>
 		/// 암반 세우기 — 눈에 보이고(길목이 읽혀야 배치 판단이 생김) 실제로 막는다(콜라이더).
 		/// 칸 하나당 상자 하나 = 셀 격자와 정확히 일치 → 「저 칸은 못 지나간다」가 화면과 규칙에서 같다.
 		/// </summary>
@@ -290,7 +360,9 @@ namespace WitchMendokusai
 				return;
 
 			float cell = mapLayout.CellSize;
-			Color rockColor = new Color(0.32f, 0.29f, 0.34f, 1f);
+			// 어두운 바닥 위 어두운 바위 = 안 보인다(라이브 스크린샷 실증 — 암반과 지면이 구분 안 됨).
+			// 벽이라는 걸 알려면 바닥보다 확실히 밝고 따뜻해야 하고, 높이도 눈에 띄게 서 있어야 한다.
+			Color rockColor = new Color(0.62f, 0.55f, 0.47f, 1f);
 			Material rockMaterial = null;
 
 			foreach (Vector2Int obstacleCell in mapLayout.ObstacleCells)
@@ -298,8 +370,10 @@ namespace WitchMendokusai
 				GameObject rock = GameObject.CreatePrimitive(PrimitiveType.Cube);
 				rock.name = "Rock";
 				rock.transform.SetParent(stageRoot, false);
-				rock.transform.localPosition = mapLayout.CellToWorld(obstacleCell) + new Vector3(0f, cell * 0.6f, 0f);
-				rock.transform.localScale = new Vector3(cell, cell * 1.2f, cell);
+				// 높은 벽은 부감 시점에서 뒤쪽 바닥을 가려 길 표시를 통째로 먹는다(스크린샷 실증).
+				// 낮은 능선이면 「막힌 칸」은 그대로 읽히면서 길이 보인다.
+				rock.transform.localPosition = mapLayout.CellToWorld(obstacleCell) + new Vector3(0f, cell * 0.3f, 0f);
+				rock.transform.localScale = new Vector3(cell, cell * 0.6f, cell);
 
 				Renderer rockRenderer = rock.GetComponent<Renderer>();
 				if (rockRenderer == null)
@@ -329,6 +403,7 @@ namespace WitchMendokusai
 
 			ApplyGroundCheckerboard(ground);
 			BuildObstacles();
+			BuildPathLanes();
 			BuildResourceNodeMarkers();
 			BuildEnemySpawnMarkers();
 		}
@@ -766,8 +841,35 @@ namespace WitchMendokusai
 			}
 		}
 
+		/// <summary>
+		/// 포탑 사거리 = 전술의 표적 탐색 반경. 별도 수치를 두면 화면의 원과 실제 사거리가 갈라진다
+		/// (원이 거짓말하는 순간 배치 판단 전체가 무의미해진다) — 그래서 전술 정본에서 읽는다.
+		/// </summary>
+		public float TowerRange()
+		{
+			if (stage == null || stage.TowerTactic.Rules == null)
+				return 0f;
+
+			float best = 0f;
+			foreach (TacticRule rule in stage.TowerTactic.Rules)
+			{
+				if (rule.Target.MaxRange > best)
+					best = rule.Target.MaxRange;
+			}
+			return best;
+		}
+
 		/// <summary> 이번 판의 자원 노드 위치(무대 로컬) — 절차 생성이면 매 판 다르다. </summary>
 		public IReadOnlyList<Vector3> ActiveResourceNodePositions => activeNodePositions;
+
+		/// <summary> index 번 노드의 벌이 배수 — 화면 표시와 실제 수입이 같은 값을 읽는다. </summary>
+		public float NodeIncomeMultiplierAt(int index)
+		{
+			return index >= 0 && index < activeNodeIncomeMultipliers.Count ? activeNodeIncomeMultipliers[index] : 1f;
+		}
+
+		/// <summary> 무대 루트 — 화면 표시가 로컬 좌표를 월드로 옮길 때 쓴다. </summary>
+		public Transform StageRoot => stageRoot;
 
 		/// <summary> 이번 판의 마수 출현 지점(무대 로컬). </summary>
 		public IReadOnlyList<Vector3> ActiveEnemySpawnPoints => activeSpawnPoints;
@@ -1105,6 +1207,18 @@ namespace WitchMendokusai
 
 			targeting.Register(combatant);
 			registeredCombatants.Add(combatant);
+
+			// 세워둔 포탑의 사거리를 옅게 늘 보여준다 — 「어디가 비었나」는 기존 커버리지가 보여야 알 수 있다.
+			if (isHarvester == false)
+			{
+				float towerRange = TowerRange();
+				if (towerRange > 0f)
+				{
+					TowerDefenseRing ring = TowerDefenseRing.Create(
+						unitGameObject.transform, "RangeRing", new Color(0.45f, 0.72f, 1f, 0.30f), 0.08f, 0.05f);
+					ring.SetRadius(towerRange);
+				}
+			}
 
 			if (isHarvester)
 			{
