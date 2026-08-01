@@ -302,7 +302,6 @@ GameObject:
   - component: {fileID: 5699262439517210252}
   - component: {fileID: 4759396891883711398}
   - component: {fileID: 5508540932283656686}
-  - component: {fileID: 9218167014831659215}
   - component: {fileID: 92838335366689319}
   m_Layer: 6
   m_Name: TD_Unit
@@ -542,18 +541,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e6fbd2d3b3a94e64dbc7063017c06d97, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WitchMendokusai.HitstopFeedback
---- !u!114 &9218167014831659215
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7744303519080408061}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fa8447fa523215040a21411030cdd401, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::WitchMendokusai.KnockbackFeedback
 --- !u!114 &92838335366689319
 MonoBehaviour:
   m_ObjectHideFlags: 0
