@@ -20,6 +20,14 @@ namespace WitchMendokusai
 		private const string MARKER_ENABLED = "ENABLED";
 		private const string MARKER_RESET_TRIGGER = "RESET";
 
+		/// <summary>
+		/// 월드 건설의 설치 입력 정책 = 연속(드래그로 벽·바닥 죽 긋기). 아래 Click0/Click1 등록이
+		/// <see cref="InputEventResponseType.Get"/>(매 프레임 폴)인 이유가 이것 — 의도된 동작이다.
+		/// 비용이 붙는 배치(개척 포탑·채집 인형)는 <see cref="PlacementInputMode.SingleClick"/> 을 쓴다
+		/// (InputStrategyTowerDefense). TASK-WM-194 — 두 모드를 한 어휘로 분리.
+		/// </summary>
+		public const PlacementInputMode PLACEMENT_MODE = PlacementInputMode.Continuous;
+
 		private InputManager inputManager;
 		private GameModeManager gameModeManager;
 		private CameraManager cameraManager;

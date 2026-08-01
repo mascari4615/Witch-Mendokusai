@@ -145,23 +145,31 @@ namespace WitchMendokusai
 			if (groundRenderer == null)
 				return;
 
-			const int TEXTURE_SIZE = 2;
-			Texture2D checker = new Texture2D(TEXTURE_SIZE, TEXTURE_SIZE, TextureFormat.RGBA32, mipChain: false)
+			// 한 칸 = 텍스처 1장. 칸 경계에 밝은 선을 그어 격자를 *선으로* 보이게 한다
+			// (2x2 체크무늬는 화면에서 거의 안 읽혔다 — 사용자 실증 "바닥 격자 좀 만들어줘").
+			// 체크 음영도 함께 넣어 짝수/홀수 칸이 구분되게.
+			const int CELL_PIXELS = 32;
+			const int LINE_PIXELS = 2;
+			Texture2D checker = new Texture2D(CELL_PIXELS, CELL_PIXELS, TextureFormat.RGBA32, mipChain: true)
 			{
-				filterMode = FilterMode.Point,
+				filterMode = FilterMode.Bilinear,
 				wrapMode = TextureWrapMode.Repeat,
 			};
-			Color darkCell = new Color(0.24f, 0.26f, 0.30f, 1f);
-			Color lightCell = new Color(0.32f, 0.35f, 0.40f, 1f);
-			checker.SetPixel(0, 0, darkCell);
-			checker.SetPixel(1, 1, darkCell);
-			checker.SetPixel(1, 0, lightCell);
-			checker.SetPixel(0, 1, lightCell);
+			Color fill = new Color(0.26f, 0.29f, 0.34f, 1f);
+			Color gridLine = new Color(0.55f, 0.62f, 0.72f, 1f);
+			for (int y = 0; y < CELL_PIXELS; y++)
+			{
+				for (int x = 0; x < CELL_PIXELS; x++)
+				{
+					bool onEdge = x < LINE_PIXELS || y < LINE_PIXELS;
+					checker.SetPixel(x, y, onEdge ? gridLine : fill);
+				}
+			}
 			checker.Apply();
 
-			// 체크 한 칸 = 배치 한 칸. 텍스처가 2x2 이므로 타일 수 = (전체 길이 / 칸크기) / 2.
+			// 텍스처 1장 = 배치 1칸이므로 타일 수 = 전체 길이 / 칸크기 (보이는 칸 = 배치 칸).
 			float cell = stage.GroundCellSize > 0f ? stage.GroundCellSize : 1f;
-			Vector2 tiling = new Vector2(stage.GroundWidth / cell * 0.5f, stage.GroundLength / cell * 0.5f);
+			Vector2 tiling = new Vector2(stage.GroundWidth / cell, stage.GroundLength / cell);
 
 			Material groundMaterial = groundRenderer.material;
 			groundMaterial.mainTexture = checker;

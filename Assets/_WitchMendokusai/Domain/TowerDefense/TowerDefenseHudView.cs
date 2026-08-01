@@ -29,8 +29,10 @@ namespace WitchMendokusai
 		private readonly Label hintLabel;
 		private readonly Label bannerLabel;
 
-		// 본편 HUD 복원용 — 숨기기 전 값을 보관(무조건 Flex 로 되돌리면 원래 숨김 상태였던 경우를 깨뜨린다).
+		// 본편 UI 복원용 — 숨기기 전 값을 보관(무조건 되돌리면 원래 숨김 상태였던 경우를 깨뜨린다).
 		private DisplayStyle baseHudPreviousDisplay = DisplayStyle.Flex;
+		private DisplayStyle baseWindowsPreviousDisplay = DisplayStyle.Flex;
+		private readonly System.Collections.Generic.List<Canvas> hiddenCanvases = new();
 
 		public TowerDefenseHudView(UIRoot uiRoot)
 		{
@@ -156,12 +158,7 @@ namespace WitchMendokusai
 
 		public void Show(TowerDefenseStageSO stage)
 		{
-			// 본편 HUD(핫바·건물바·시계) 숨김 — 개척은 다른 게임이므로 UI 가 겹치면 안 된다.
-			if (uiRoot != null && uiRoot.HudLayer != null)
-			{
-				baseHudPreviousDisplay = uiRoot.HudLayer.style.display.value;
-				uiRoot.HudLayer.style.display = DisplayStyle.None;
-			}
+			HideBaseGameUI();
 
 			container.style.display = DisplayStyle.Flex;
 			SetBannerVisible(false);
@@ -175,10 +172,61 @@ namespace WitchMendokusai
 		{
 			container.style.display = DisplayStyle.None;
 			SetBannerVisible(false);
+			RestoreBaseGameUI();
+		}
 
-			// 본편 HUD 복원 — 개척 진입 전 상태로 되돌린다.
-			if (uiRoot != null && uiRoot.HudLayer != null)
-				uiRoot.HudLayer.style.display = baseHudPreviousDisplay;
+		/// <summary>
+		/// 본편 UI 전체 숨김 — 개척은 *다른 게임*이라 본편 UI 가 겹치면 안 된다.
+		/// 두 갈래를 모두 덮어야 한다(사용자 실증: 레이어만 껐더니 "체력바·인벤토리가 안 꺼진다"):
+		/// ① UI Toolkit 레이어 — HudLayer(핫바/건물바/시계) + WindowsLayer(인벤토리 등 창)
+		/// ② 씬의 uGUI 캔버스 — 플레이어 체력바 등은 Toolkit 이 아니라 씬 Canvas 에 있다.
+		/// 개척 HUD 는 OverlayLayer(UIDocument) 라 캔버스를 꺼도 살아남는다.
+		/// </summary>
+		private void HideBaseGameUI()
+		{
+			if (uiRoot != null)
+			{
+				if (uiRoot.HudLayer != null)
+				{
+					baseHudPreviousDisplay = uiRoot.HudLayer.style.display.value;
+					uiRoot.HudLayer.style.display = DisplayStyle.None;
+				}
+				if (uiRoot.WindowsLayer != null)
+				{
+					baseWindowsPreviousDisplay = uiRoot.WindowsLayer.style.display.value;
+					uiRoot.WindowsLayer.style.display = DisplayStyle.None;
+				}
+			}
+
+			hiddenCanvases.Clear();
+			Canvas[] canvases = Object.FindObjectsByType<Canvas>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
+			foreach (Canvas canvas in canvases)
+			{
+				// 루트 캔버스만 — 중첩 캔버스는 부모가 꺼지면 같이 사라진다(이중 처리 시 복원이 꼬임).
+				if (canvas.isRootCanvas == false || canvas.enabled == false)
+					continue;
+
+				canvas.enabled = false;
+				hiddenCanvases.Add(canvas);
+			}
+		}
+
+		private void RestoreBaseGameUI()
+		{
+			if (uiRoot != null)
+			{
+				if (uiRoot.HudLayer != null)
+					uiRoot.HudLayer.style.display = baseHudPreviousDisplay;
+				if (uiRoot.WindowsLayer != null)
+					uiRoot.WindowsLayer.style.display = baseWindowsPreviousDisplay;
+			}
+
+			foreach (Canvas canvas in hiddenCanvases)
+			{
+				if (canvas != null)
+					canvas.enabled = true;
+			}
+			hiddenCanvases.Clear();
 		}
 
 		/// <summary> 매 프레임 갱신 — 소유 컨트롤러가 TD 모드 동안 호출. </summary>

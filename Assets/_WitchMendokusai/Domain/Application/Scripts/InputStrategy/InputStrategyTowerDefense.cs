@@ -13,7 +13,11 @@ namespace WitchMendokusai
 	/// </summary>
 	public class InputStrategyTowerDefense : InputStrategyBase
 	{
-		private const float CLICK_COOLDOWN = 0.1f; // BuildManager.ApplyMode 와 동일 상수 — 한 클릭이 여러 배치로 안 튀게.
+		/// <summary> 개척 배치 정책 — 한 클릭에 한 개(<see cref="PlacementInputMode.SingleClick"/>). </summary>
+		public const PlacementInputMode PLACEMENT_MODE = PlacementInputMode.SingleClick;
+
+		// Performed 로 이미 1회지만, 같은 프레임 중복 디스패치·더블클릭 튐 방지용 최소 간격.
+		private const float CLICK_COOLDOWN = 0.1f;
 
 		private readonly TowerDefensePlacement placement;
 		private readonly InputManager inputManager;
@@ -54,15 +58,18 @@ namespace WitchMendokusai
 						#endregion
 
 						#region Placement (BuildManager.ApplyMode 동형 — Get 단위 폴 + 쿨다운/UI 가드는 콜백 내부)
+						// PlacementInputMode.SingleClick — Get(매 프레임 폴)이면 버튼을 누르고 있는 동안
+						// 계속 설치돼 드래그로 죽 깔린다(월드 건설은 그게 맞지만 비용이 붙는 개척 배치엔 사고).
+						// Performed = 누르는 동작당 1회 → "한 클릭에 한 개".
 						new(
 							InputEventType.Click1,
-							InputEventResponseType.Get,
+							InputEventResponseType.Performed,
 							() => HandlePlaceTowerClick(),
 							() => CanExecute(InputEventType.Click1)
 						),
 						new(
 							InputEventType.Click0,
-							InputEventResponseType.Get,
+							InputEventResponseType.Performed,
 							() => HandlePlaceHarvesterClick(),
 							() => CanExecute(InputEventType.Click0)
 						),
