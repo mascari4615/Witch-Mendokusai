@@ -161,6 +161,7 @@ namespace WitchMendokusai.EditorTools
 					modeManager.SetMode(GameMode.TowerDefense);
 					match.MatchEnded += OnMatchEnded;
 					Debug.Log(TAG + " ENTER-MODE mode=" + modeManager.CurrentMode);
+					DumpCameras("진입 직후");
 					step = Step.WaitMatch;
 					return;
 
@@ -174,6 +175,8 @@ namespace WitchMendokusai.EditorTools
 
 				case Step.Place:
 					DoPlacements();
+					// 2차 덤프 — "진입 시엔 켜졌는데 이후 덮인다"를 잡으려면 시간 경과 후 한 번 더 봐야 한다.
+					DumpCameras("배치 후");
 					observeStart = now;
 					lastSample = now;
 					step = Step.Observe;
@@ -349,6 +352,63 @@ namespace WitchMendokusai.EditorTools
 				return false;
 			uiManager.NPC.ClosePanel();
 			return true;
+		}
+
+		/// <summary>
+		/// 카메라 실측 — "GameObject 가 active" 는 *화면에 보인다*의 증명이 아니다(사용자 실증:
+		/// camActive=True 였는데 화면은 그대로였음). 실제로 무엇이 렌더되는지는 enabled + depth +
+		/// URP renderType(Base/Overlay) + Camera.main 이 함께 결정하므로 전부 찍는다.
+		/// </summary>
+		private static void DumpCameras(string phase)
+		{
+			// ⚠ Unity 콘솔 리더는 멀티라인 로그의 *첫 줄만* 준다 → 카메라마다 별도 Debug.Log 로 찍어야
+			//   원격(MCP)에서 전부 읽힌다. 한 줄로 몰면 진단이 통째 유실됨(실측).
+			Camera[] cameras = Object.FindObjectsByType<Camera>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
+			Debug.Log(TAG + " CAMERAS(" + phase + ") count=" + cameras.Length
+				+ " main=" + (Camera.main != null ? Camera.main.name : "NULL"));
+
+			Camera modeCamera = null;
+			Camera topmost = null;
+			foreach (Camera camera in cameras)
+			{
+				string renderType = "n/a";
+				UnityEngine.Rendering.Universal.UniversalAdditionalCameraData urpData =
+					camera.GetComponent<UnityEngine.Rendering.Universal.UniversalAdditionalCameraData>();
+				if (urpData != null)
+					renderType = urpData.renderType.ToString();
+
+				Debug.Log(TAG + " CAM[" + phase + "] " + camera.name
+					+ " enabled=" + camera.enabled
+					+ " active=" + camera.gameObject.activeInHierarchy
+					+ " depth=" + camera.depth
+					+ " urpType=" + renderType
+					+ " pos=" + camera.transform.position);
+
+				if (camera.enabled == false)
+					continue;
+				if (camera.name == "ModeCamera")
+					modeCamera = camera;
+				if (topmost == null || camera.depth > topmost.depth)
+					topmost = camera;
+			}
+
+			// ★ 핵심 assert — "카메라 GameObject 가 active" 는 *화면에 보인다*가 아니다.
+			//   플레이어 카메라 리그가 depth 100 이라 개척 카메라가 20 이면 켜져도 그 위에 덮여
+			//   화면이 전혀 안 바뀐다(사용자 실증: "개척 UI는 뜨지만 플레이 불가"). 최상위 여부를 직접 판정.
+			if (modeCamera == null)
+			{
+				Debug.LogError(TAG + " CAM-TOP[" + phase + "] 개척 카메라가 활성 목록에 없음");
+				return;
+			}
+
+			bool isTopmost = topmost == modeCamera;
+			string verdict = TAG + " CAM-TOP[" + phase + "] modeCameraDepth=" + modeCamera.depth
+				+ " topmost=" + (topmost != null ? topmost.name + "(" + topmost.depth + ")" : "none")
+				+ " 개척카메라가최상위=" + isTopmost;
+			if (isTopmost)
+				Debug.Log(verdict);
+			else
+				Debug.LogError(verdict + " → 화면이 안 바뀜(플레이 불가). 개척 카메라 depth 를 올려야 함.");
 		}
 
 		private static Vector2 WorldToScreen(Camera camera, Vector3 worldPosition)
