@@ -20,8 +20,8 @@ MonoBehaviour:
   <Sprites>k__BackingField: []
   <Rules>k__BackingField:
     WaveCount: 0
-    PrepareSeconds: 20
-    StartingResource: 100
+    PrepareSeconds: 8
+    StartingResource: 160
     BaseWaveIncome: 40
     IncomePerHarvester: 25
     FirstWaveEnemyCount: 3
@@ -82,7 +82,7 @@ MonoBehaviour:
       Action:
         Kind: 0
         SkillSlot: 0
-  <TowerCost>k__BackingField: 50
+  <TowerCost>k__BackingField: 40
   <HarvesterCost>k__BackingField: 60
   <CorePosition>k__BackingField: {x: 0, y: 0, z: 0}
   <EnemySpawnPoints>k__BackingField:

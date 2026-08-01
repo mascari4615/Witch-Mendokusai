@@ -11,14 +11,15 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 74d3c84678344ee43a9322ee4130a288, type: 3}
   m_Name: DOL_701_TD_Core
-  m_EditorClassIdentifier:
+  m_EditorClassIdentifier: 
   <ID>k__BackingField: 701
   <Name>k__BackingField: "\uAC1C\uCC99 \uCF54\uC5B4"
-  <Description>k__BackingField: "\uAC1C\uCC99\uC9C0\uC758 \uC2EC\uC7A5. \uBD80\uC11C\uC9C0\uBA74 \uC2DC\uBBAC\uB808\uC774\uC158 \uC885\uB8CC."
+  <Description>k__BackingField: "\uAC1C\uCC99\uC9C0\uC758 \uC2EC\uC7A5. \uBD80\uC11C\uC9C0\uBA74
+    \uC2DC\uBBAC\uB808\uC774\uC158 \uC885\uB8CC."
   <Sprite>k__BackingField: {fileID: 21300000, guid: 824b9eac07ee3e340b3a148cbd1b11d5, type: 3}
   <Sprites>k__BackingField: []
   <Affiliation>k__BackingField: -1
-  <Prefab>k__BackingField: {fileID: 4424679600471619191, guid: 48984c858f60ded4bb21f7e787490808, type: 3}
+  <Prefab>k__BackingField: {fileID: 7744303519080408061, guid: 1741964e663b82c46b299419420f61f3, type: 3}
   <DefaultSkills>k__BackingField: []
   <Material>k__BackingField: {fileID: 0}
   <InitStatInfos>k__BackingField:

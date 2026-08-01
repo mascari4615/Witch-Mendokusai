@@ -11,15 +11,16 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 74d3c84678344ee43a9322ee4130a288, type: 3}
   m_Name: DOL_700_TD_TowerDoll
-  m_EditorClassIdentifier:
+  m_EditorClassIdentifier: 
   <ID>k__BackingField: 700
   <Name>k__BackingField: "\uD3EC\uD0D1 \uC778\uD615"
-  <Description>k__BackingField: "\uAC1C\uCC99\uC9C0 \uBC29\uC5B4 \uC778\uD615. \uC81C\uC790\uB9AC\uC5D0\uC11C \uC0AC\uAC70\uB9AC \uB0B4 \uC801\uC744 \uC694\uACA9."
+  <Description>k__BackingField: "\uAC1C\uCC99\uC9C0 \uBC29\uC5B4 \uC778\uD615. \uC81C\uC790\uB9AC\uC5D0\uC11C
+    \uC0AC\uAC70\uB9AC \uB0B4 \uC801\uC744 \uC694\uACA9."
   <Sprite>k__BackingField: {fileID: 21300000, guid: cd6bddf795a0b2b48a2ac2db750952d6, type: 3}
   <Sprites>k__BackingField: []
   <Affiliation>k__BackingField: -1
-  <Prefab>k__BackingField: {fileID: 4424679600471619191, guid: 48984c858f60ded4bb21f7e787490808, type: 3}
-  <DefaultSkills>k__BackingField: 
+  <Prefab>k__BackingField: {fileID: 7744303519080408061, guid: 1741964e663b82c46b299419420f61f3, type: 3}
+  <DefaultSkills>k__BackingField:
   - {fileID: 11400000, guid: a194010000000000000000000000d001, type: 2}
   <Material>k__BackingField: {fileID: 0}
   <InitStatInfos>k__BackingField:
