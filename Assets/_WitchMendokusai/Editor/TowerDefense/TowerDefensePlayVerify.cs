@@ -351,6 +351,34 @@ namespace WitchMendokusai.EditorTools
 		/// 노드 반경 판정까지 실제 클릭과 동일 경로를 탄다(버그가 숨는 자리가 바로 여기).
 		/// 유일한 미포함 = 물리 마우스 버튼 이벤트 → InputStrategy 콜백 디스패치(얇은 글루).
 		/// </summary>
+		/// <summary>
+		/// 코어 주변에서 배치 가능한(암반 아님·비어 있음) 칸을 count 개 찾는다 — 생성된 판마다 자리가 다르므로
+		/// 하네스가 좌표를 박아두면 "배치했다고 믿는 무방비 판"이 된다.
+		/// </summary>
+		private static List<Vector3> FindPlaceableSpots(Transform stageRoot, int count)
+		{
+			List<Vector3> spots = new();
+			if (match == null || stageRoot == null)
+				return spots;
+
+			// 코어에서 바깥으로 링을 넓혀가며 훑는다(코어 근처 = 방어선으로 말이 되는 자리).
+			for (int radius = 2; radius <= 10 && spots.Count < count; radius++)
+			{
+				for (int angleStep = 0; angleStep < 16 && spots.Count < count; angleStep++)
+				{
+					float angle = angleStep * Mathf.PI * 2f / 16f;
+					Vector3 local = new Vector3(Mathf.Cos(angle) * radius, 0f, Mathf.Sin(angle) * radius);
+					Vector3 snapped = new Vector3(Mathf.Floor(local.x) + 0.5f, 0f, Mathf.Floor(local.z) + 0.5f);
+					if (spots.Contains(snapped))
+						continue;
+					if (match.IsCellOccupied(stageRoot.TransformPoint(snapped)))
+						continue;
+					spots.Add(snapped);
+				}
+			}
+			return spots;
+		}
+
 		private static void DoPlacements()
 		{
 			Transform stageRoot = FindStageRoot();
@@ -378,17 +406,23 @@ namespace WitchMendokusai.EditorTools
 
 			int before = match.Resource;
 
-			// 방어인형 먼저(개막 우선순위) — 코어와 적 스폰 사이 길목.
-			Vector3[] towerLocals = { new Vector3(-3f, 0f, 6f), new Vector3(3f, 0f, 6f) };
-			foreach (Vector3 local in towerLocals)
+			// 방어인형 — 판이 매 매치 새로 생성되므로 고정 좌표는 암반 위일 수 있다(그러면 배치가 조용히
+			// 전부 거절돼 "방어 없는 판"을 방어 있는 판으로 착각한다). 코어 주변에서 *실제로 설 수 있는* 칸을 찾는다.
+			int towersPlaced = 0;
+			foreach (Vector3 local in FindPlaceableSpots(stageRoot, 2))
+			{
+				int beforeTower = match.Resource;
 				placement.PlaceTowerAt(WorldToScreen(modeCamera, stageRoot.TransformPoint(local)));
+				if (match.Resource < beforeTower)
+					towersPlaced++;
+			}
+			Debug.Log(TAG + " PLACE-TOWERS placed=" + towersPlaced);
 
 			// 채집인형 = 자원 노드 위. 좌표는 **스테이지 정본에서 읽는다** — 하네스에 박아두면 노드를
 			// 옮기는 순간 "노드 위 배치" 검사가 조용히 "빈 땅 배치(항상 거절)" 로 바뀌어 무의미해진다.
-			Vector3[] nodeLocals = match.Stage != null && match.Stage.ResourceNodePositions != null
-				? match.Stage.ResourceNodePositions
-				: new Vector3[0];
-			if (nodeLocals.Length == 0)
+			// ★ 절차 생성이면 노드가 매 판 다르다 — 스테이지 SO 의 고정 좌표를 읽으면 항상 빈 땅을 찍는다.
+			IReadOnlyList<Vector3> nodeLocals = match.ActiveResourceNodePositions;
+			if (nodeLocals.Count == 0)
 				Debug.LogError(TAG + " PLACE-FAIL 스테이지에 자원 노드가 없음");
 			foreach (Vector3 local in nodeLocals)
 				placement.PlaceHarvesterAt(WorldToScreen(modeCamera, stageRoot.TransformPoint(local)));

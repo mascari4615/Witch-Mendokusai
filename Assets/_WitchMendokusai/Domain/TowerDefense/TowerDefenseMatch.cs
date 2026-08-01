@@ -52,6 +52,18 @@ namespace WitchMendokusai
 		// 숫자가 *어디서* 나오는지 안 보이면 채집 인형은 그냥 서 있는 장식으로 읽힌다.
 		private readonly List<Transform> harvesterTransforms = new();
 
+		// 이번 매치의 판 — 절차 생성이면 layout 이 정본, 끄면 null 이고 스테이지 SO 의 고정 레이아웃을 쓴다.
+		// 아래 active* 목록이 *둘을 하나로 합친 단일 출처* — 매치 본문은 어느 쪽인지 신경 쓰지 않는다.
+		private TowerDefenseMapLayout mapLayout;
+		private TowerDefenseFlowField flowField;
+		private ITacticNavigator flowNavigator;
+		private readonly List<Vector3> activeSpawnPoints = new();
+		private readonly List<Vector3> activeNodePositions = new();
+		private readonly List<float> activeNodeIncomeMultipliers = new();
+		private Vector3 activeCorePosition;
+		private float activeGroundWidth;
+		private float activeGroundLength;
+
 		// 이번(또는 다음) 웨이브의 마수 구성 — 원소 = EnemyArchetypes 인덱스. 결정론이라 화면 예고와 실제 스폰이 같다.
 		private readonly List<int> waveComposition = new();
 
@@ -184,6 +196,7 @@ namespace WitchMendokusai
 				yield break;
 			}
 
+			PrepareLayout(); // 판을 먼저 확정 — 지면·노드·스폰·길안내가 전부 여기서 파생된다.
 			BuildGround();
 
 			targeting = new TargetingSystem();
@@ -208,6 +221,102 @@ namespace WitchMendokusai
 			ticking = true;
 		}
 
+		/// <summary>
+		/// 이번 매치의 판 확정 — 절차 생성이면 생성기를 돌리고, 아니면 스테이지 SO 의 고정값을 그대로 담는다.
+		/// 어느 쪽이든 결과는 같은 active* 목록이라 매치 본문에는 분기가 없다(분기를 여기저기 흩으면
+		/// 언젠가 한 곳이 옛 경로를 보고 조용히 어긋난다).
+		/// </summary>
+		private void PrepareLayout()
+		{
+			activeSpawnPoints.Clear();
+			activeNodePositions.Clear();
+			activeNodeIncomeMultipliers.Clear();
+			mapLayout = null;
+			flowField = null;
+			flowNavigator = null;
+
+			if (stage.UseProceduralMap == false)
+			{
+				activeCorePosition = stage.CorePosition;
+				activeGroundWidth = stage.GroundWidth;
+				activeGroundLength = stage.GroundLength;
+
+				if (stage.EnemySpawnPoints != null)
+					activeSpawnPoints.AddRange(stage.EnemySpawnPoints);
+				if (stage.ResourceNodePositions != null)
+				{
+					foreach (Vector3 nodePosition in stage.ResourceNodePositions)
+					{
+						activeNodePositions.Add(nodePosition);
+						activeNodeIncomeMultipliers.Add(1f);
+					}
+				}
+				return;
+			}
+
+			TowerDefenseMapParameters parameters = stage.MapParameters;
+			if (stage.RandomizeSeedEachMatch)
+				parameters.Seed = UnityEngine.Random.Range(int.MinValue, int.MaxValue);
+
+			mapLayout = TowerDefenseMapGenerator.Generate(parameters);
+
+			activeCorePosition = mapLayout.CorePosition;
+			activeGroundWidth = mapLayout.GroundWidth;
+			activeGroundLength = mapLayout.GroundLength;
+			activeSpawnPoints.AddRange(mapLayout.EnemySpawnPoints);
+			foreach (TowerDefenseResourceNodeSpot node in mapLayout.ResourceNodes)
+			{
+				activeNodePositions.Add(node.Position);
+				activeNodeIncomeMultipliers.Add(node.IncomeMultiplier);
+			}
+
+			// 길 안내판 — 암반이 생긴 순간 직선 이동은 벽에 박힌다(웨이브가 영원히 안 끝나는 그 사고).
+			flowField = new TowerDefenseFlowField(
+				mapLayout.Width, mapLayout.Length, mapLayout.CoreCell, mapLayout.IsBlocked);
+			flowNavigator = new TowerDefenseFlowNavigator(
+				mapLayout, flowField, stageRoot, stage.GroundCellSize * 2f);
+
+			Debug.Log($"{nameof(TowerDefenseMatch)}: 판 생성 seed={mapLayout.Seed} "
+				+ $"암반={mapLayout.ObstacleCells.Count}칸 노드={mapLayout.ResourceNodes.Count} 스폰={mapLayout.EnemySpawnPoints.Count}");
+		}
+
+		/// <summary>
+		/// 암반 세우기 — 눈에 보이고(길목이 읽혀야 배치 판단이 생김) 실제로 막는다(콜라이더).
+		/// 칸 하나당 상자 하나 = 셀 격자와 정확히 일치 → 「저 칸은 못 지나간다」가 화면과 규칙에서 같다.
+		/// </summary>
+		private void BuildObstacles()
+		{
+			if (mapLayout == null)
+				return;
+
+			float cell = mapLayout.CellSize;
+			Color rockColor = new Color(0.32f, 0.29f, 0.34f, 1f);
+			Material rockMaterial = null;
+
+			foreach (Vector2Int obstacleCell in mapLayout.ObstacleCells)
+			{
+				GameObject rock = GameObject.CreatePrimitive(PrimitiveType.Cube);
+				rock.name = "Rock";
+				rock.transform.SetParent(stageRoot, false);
+				rock.transform.localPosition = mapLayout.CellToWorld(obstacleCell) + new Vector3(0f, cell * 0.6f, 0f);
+				rock.transform.localScale = new Vector3(cell, cell * 1.2f, cell);
+
+				Renderer rockRenderer = rock.GetComponent<Renderer>();
+				if (rockRenderer == null)
+					continue;
+
+				// 재질 1장을 전부가 공유 — 칸마다 새 재질을 만들면 수백 장이 된다.
+				if (rockMaterial == null)
+				{
+					rockMaterial = new Material(rockRenderer.sharedMaterial);
+					rockMaterial.color = rockColor;
+					if (rockMaterial.HasProperty("_BaseColor"))
+						rockMaterial.SetColor("_BaseColor", rockColor);
+				}
+				rockRenderer.sharedMaterial = rockMaterial;
+			}
+		}
+
 		/// <summary> 지면(바닥) 런타임 생성 — RectangleArenaMap.Build 와 동형(Plane 스케일, SO 수치 그대로). </summary>
 		private void BuildGround()
 		{
@@ -216,9 +325,10 @@ namespace WitchMendokusai
 			ground.transform.SetParent(stageRoot, false);
 			ground.transform.localPosition = Vector3.zero;
 			// Plane = 10x10 유닛 @ scale 1 → GroundWidth/GroundLength 에 맞춰 스케일.
-			ground.transform.localScale = new Vector3(stage.GroundWidth / 10f, 1f, stage.GroundLength / 10f);
+			ground.transform.localScale = new Vector3(activeGroundWidth / 10f, 1f, activeGroundLength / 10f);
 
 			ApplyGroundCheckerboard(ground);
+			BuildObstacles();
 			BuildResourceNodeMarkers();
 			BuildEnemySpawnMarkers();
 		}
@@ -259,7 +369,7 @@ namespace WitchMendokusai
 
 			// 텍스처 1장 = 배치 1칸이므로 타일 수 = 전체 길이 / 칸크기 (보이는 칸 = 배치 칸).
 			float cell = stage.GroundCellSize > 0f ? stage.GroundCellSize : 1f;
-			Vector2 tiling = new Vector2(stage.GroundWidth / cell, stage.GroundLength / cell);
+			Vector2 tiling = new Vector2(activeGroundWidth / cell, activeGroundLength / cell);
 
 			Material groundMaterial = groundRenderer.material;
 			groundMaterial.mainTexture = checker;
@@ -362,10 +472,7 @@ namespace WitchMendokusai
 		/// </summary>
 		private void BuildResourceNodeMarkers()
 		{
-			if (stage.ResourceNodePositions == null)
-				return;
-
-			foreach (Vector3 localPosition in stage.ResourceNodePositions)
+			foreach (Vector3 localPosition in activeNodePositions)
 			{
 				GameObject marker = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
 				marker.name = "ResourceNode";
@@ -401,10 +508,7 @@ namespace WitchMendokusai
 		/// </summary>
 		private void BuildEnemySpawnMarkers()
 		{
-			if (stage.EnemySpawnPoints == null)
-				return;
-
-			foreach (Vector3 localPosition in stage.EnemySpawnPoints)
+			foreach (Vector3 localPosition in activeSpawnPoints)
 			{
 				GameObject marker = GameObject.CreatePrimitive(PrimitiveType.Cube);
 				marker.name = "EnemySpawnMarker";
@@ -434,7 +538,7 @@ namespace WitchMendokusai
 			GameObject coreGameObject = pool.Spawn(stage.CoreUnit.Prefab);
 			if (spawnedUnits.Contains(coreGameObject) == false)
 				spawnedUnits.Add(coreGameObject); // Dispose 시 풀 반환(누수 방지). 재사용 풀 중복추적 방지.
-			coreGameObject.transform.position = stageRoot.TransformPoint(stage.CorePosition);
+			coreGameObject.transform.position = stageRoot.TransformPoint(activeCorePosition);
 
 			// 트랩#4: 스폰 직후 한 프레임 양보 — Start 시점 초기화(UnitObject 등)가 settle 된 뒤 Init.
 			yield return null;
@@ -525,8 +629,8 @@ namespace WitchMendokusai
 					break;
 				}
 
-				Vector3 localSpawn = stage.EnemySpawnPoints != null && stage.EnemySpawnPoints.Length > 0
-					? stage.EnemySpawnPoints[enemyIndex % stage.EnemySpawnPoints.Length] + SpawnSpreadOffset(enemyIndex)
+				Vector3 localSpawn = activeSpawnPoints.Count > 0
+					? activeSpawnPoints[enemyIndex % activeSpawnPoints.Count] + SpawnSpreadOffset(enemyIndex)
 					: Vector3.zero;
 
 				GameObject enemyGameObject = pool.Spawn(stage.EnemyUnit.Prefab);
@@ -581,6 +685,7 @@ namespace WitchMendokusai
 				if (enemyDriver == null)
 					enemyDriver = enemyUnitObject.gameObject.AddComponent<TacticDriver>();
 				enemyDriver.Initialize(stage.EnemyTactic, targeting, timeManager);
+				enemyDriver.Navigator = flowNavigator; // 지형이 있으면 돌아가고, 없으면(null) 직선 그대로.
 				drivers.Add(enemyDriver);
 
 				targeting.Register(enemyCombatant);
@@ -607,7 +712,7 @@ namespace WitchMendokusai
 		/// </summary>
 		private Vector3 SpawnSpreadOffset(int enemyIndex)
 		{
-			int pointCount = stage.EnemySpawnPoints.Length;
+			int pointCount = activeSpawnPoints.Count;
 			int repeat = enemyIndex / pointCount;          // 이 지점을 몇 번째로 쓰는가
 			int lane = (repeat + 1) / 2;                   // 0,1,1,2,2,...
 			float side = repeat % 2 == 0 ? 1f : -1f;       // 좌우 번갈아
@@ -629,8 +734,8 @@ namespace WitchMendokusai
 			if (stage == null || stageRoot == null)
 				return;
 
-			float halfWidth = stage.GroundWidth * 0.5f + stage.StageBoundsMargin;
-			float halfLength = stage.GroundLength * 0.5f + stage.StageBoundsMargin;
+			float halfWidth = activeGroundWidth * 0.5f + stage.StageBoundsMargin;
+			float halfLength = activeGroundLength * 0.5f + stage.StageBoundsMargin;
 
 			for (int index = waveEnemies.Count - 1; index >= 0; index--)
 			{
@@ -660,6 +765,18 @@ namespace WitchMendokusai
 				spawnedUnits.Remove(enemy.gameObject);
 			}
 		}
+
+		/// <summary> 이번 판의 자원 노드 위치(무대 로컬) — 절차 생성이면 매 판 다르다. </summary>
+		public IReadOnlyList<Vector3> ActiveResourceNodePositions => activeNodePositions;
+
+		/// <summary> 이번 판의 마수 출현 지점(무대 로컬). </summary>
+		public IReadOnlyList<Vector3> ActiveEnemySpawnPoints => activeSpawnPoints;
+
+		/// <summary> 이번 판의 씨앗 — 같은 값이면 같은 판이 나온다(재현·신고용). 고정 판이면 0. </summary>
+		public int MapSeed => mapLayout != null ? mapLayout.Seed : 0;
+
+		/// <summary> 이번 판의 암반 칸 수 — 0 이면 지형 없는 빈 판. </summary>
+		public int ObstacleCount => mapLayout != null ? mapLayout.ObstacleCells.Count : 0;
 
 		/// <summary> 등록된 마수 종류 수(0 이면 기반 유닛 한 종류로 동작). </summary>
 		public int EnemyArchetypeCount => stage != null && stage.EnemyArchetypes != null ? stage.EnemyArchetypes.Length : 0;
@@ -859,7 +976,8 @@ namespace WitchMendokusai
 
 			claimedNodes.Add(nodeIndex); // TrySpend 성공 후에만 점유 확정(스펙 지시 — 실패 시 점유 안 남김).
 			occupiedCells.Add(cellKey);
-			StartCoroutine(SpawnDefensiveUnitRoutine(stage.HarvesterUnit, null, nodeWorldPosition, isHarvester: true));
+			float incomeMultiplier = nodeIndex < activeNodeIncomeMultipliers.Count ? activeNodeIncomeMultipliers[nodeIndex] : 1f;
+			StartCoroutine(SpawnDefensiveUnitRoutine(stage.HarvesterUnit, null, nodeWorldPosition, isHarvester: true, incomeMultiplier));
 			return true;
 		}
 
@@ -872,19 +990,19 @@ namespace WitchMendokusai
 			nodeIndex = -1;
 			nodeWorldPosition = Vector3.zero;
 
-			if (stage == null || stageRoot == null || stage.ResourceNodePositions == null)
+			if (stage == null || stageRoot == null)
 				return false;
 
 			float captureRadiusSqr = stage.NodeCaptureRadius * stage.NodeCaptureRadius;
 			int bestIndex = -1;
 			float bestSqrDistance = float.MaxValue;
 
-			for (int index = 0; index < stage.ResourceNodePositions.Length; index++)
+			for (int index = 0; index < activeNodePositions.Count; index++)
 			{
 				if (claimedNodes.Contains(index))
 					continue;
 
-				Vector3 candidateWorldPosition = stageRoot.TransformPoint(stage.ResourceNodePositions[index]);
+				Vector3 candidateWorldPosition = stageRoot.TransformPoint(activeNodePositions[index]);
 				float sqrDistance = (candidateWorldPosition - worldPosition).sqrMagnitude;
 				if (sqrDistance > captureRadiusSqr)
 					continue;
@@ -899,7 +1017,7 @@ namespace WitchMendokusai
 				return false;
 
 			nodeIndex = bestIndex;
-			nodeWorldPosition = stageRoot.TransformPoint(stage.ResourceNodePositions[bestIndex]);
+			nodeWorldPosition = stageRoot.TransformPoint(activeNodePositions[bestIndex]);
 			return true;
 		}
 
@@ -909,7 +1027,20 @@ namespace WitchMendokusai
 		/// </summary>
 		public bool IsCellOccupied(Vector3 worldPosition)
 		{
-			return occupiedCells.Contains(ToCellKey(worldPosition));
+			if (occupiedCells.Contains(ToCellKey(worldPosition)))
+				return true;
+
+			// 암반 위에는 못 짓는다 — 화면에 바위가 보이는데 그 위에 세워지면 규칙과 그림이 어긋난다.
+			return IsObstacleAt(worldPosition);
+		}
+
+		/// <summary> 그 자리가 암반인지(무대 로컬 환산 후 판정). 고정 판이면 항상 false. </summary>
+		public bool IsObstacleAt(Vector3 worldPosition)
+		{
+			if (mapLayout == null || stageRoot == null)
+				return false;
+
+			return mapLayout.IsBlocked(stageRoot.InverseTransformPoint(worldPosition));
 		}
 
 		// 셀 키 = FloorToInt(worldPosition), y 는 0 고정(층 무관 단일 격자 — 위로 쌓기 원천 차단).
@@ -920,7 +1051,7 @@ namespace WitchMendokusai
 			return cell;
 		}
 
-		private IEnumerator SpawnDefensiveUnitRoutine(Unit unitData, TacticProgram tactic, Vector3 worldPosition, bool isHarvester)
+		private IEnumerator SpawnDefensiveUnitRoutine(Unit unitData, TacticProgram tactic, Vector3 worldPosition, bool isHarvester, float incomeMultiplier = 1f)
 		{
 			if (unitData == null || unitData.Prefab == null)
 			{
@@ -977,7 +1108,7 @@ namespace WitchMendokusai
 
 			if (isHarvester)
 			{
-				core.AddHarvester(); // 채집건물 = 실제 가동(스폰 확정) 시점에만 수입 반영.
+				core.AddHarvester(incomeMultiplier); // 채집건물 = 실제 가동(스폰 확정) 시점에만 수입 반영.
 				harvesterTransforms.Add(unitGameObject.transform);
 			}
 		}

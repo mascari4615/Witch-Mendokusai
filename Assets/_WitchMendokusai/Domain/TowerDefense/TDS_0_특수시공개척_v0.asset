@@ -128,6 +128,30 @@ MonoBehaviour:
   <CameraMaxHeight>k__BackingField: 55
   <CameraInitialHeight>k__BackingField: 30
   <CameraZoomSpeed>k__BackingField: 6
+  <UseProceduralMap>k__BackingField: 1
+  <RandomizeSeedEachMatch>k__BackingField: 1
+  <MapParameters>k__BackingField:
+    Seed: 0
+    Width: 28
+    Length: 28
+    CellSize: 1
+    SpawnPointCount: 3
+    SpawnRingInset: 1
+    SpawnAngleJitter: 18
+    ResourceNodeCount: 4
+    NodeMinSpacing: 5
+    NodeMinCoreDistance: 5.5
+    NodeEdgeMargin: 3
+    NodeAngularSpread: 50
+    NearIncomeMultiplier: 1
+    FarIncomeMultiplier: 2.5
+    InnerTierRatio: 0.55
+    RockSiteCount: 8
+    RidgeWidth: 1.4
+    ObstacleDensity: 0.7
+    CoreClearRadius: 4
+    SpawnClearRadius: 2.5
+    NodeClearRadius: 2
   <CorePosition>k__BackingField: {x: 0, y: 0, z: 0}
   <EnemySpawnPoints>k__BackingField:
   - {x: -12, y: 0, z: 15}

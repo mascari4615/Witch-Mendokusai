@@ -1,3 +1,4 @@
+using UnityEngine;
 namespace WitchMendokusai
 {
 	/// <summary>
@@ -41,6 +42,9 @@ namespace WitchMendokusai
 		public int WaveIndex { get; private set; }
 		public int Resource { get; private set; }
 		public int HarvesterCount { get; private set; }
+
+		// 채집 인형들의 벌이 배수 합 — 마리수가 아니라 *어디에 세웠는지*가 수입을 만든다.
+		private float harvesterIncomeWeight;
 		public float PrepareRemaining => prepareRemaining;
 
 		/// <summary> 이번 웨이브에 스폰될 적 수 — 셸이 WaveStarted 신호를 받고 읽는다. </summary>
@@ -94,7 +98,7 @@ namespace WitchMendokusai
 				if (waveSpawnConfirmed == false || aliveEnemies > 0)
 					return TowerDefenseSignal.None;
 
-				Resource += rules.IncomeFor(HarvesterCount);
+				Resource += NextWaveIncome;
 				WaveIndex++;
 
 				// 엔드리스(IsEndless)는 이 분기에 절대 안 들어옴 — 무조건 다음 Prepare 로 순환.
@@ -142,10 +146,15 @@ namespace WitchMendokusai
 			return true;
 		}
 
-		/// <summary> 채집건물이 하나 가동 시작 — 다음 정산부터 수입 증가(= 개척 보상). </summary>
-		public void AddHarvester()
+		/// <summary>
+		/// 채집건물이 하나 가동 시작 — 다음 정산부터 수입 증가(= 개척 보상).
+		/// incomeMultiplier = 그 자리의 벌이 배수(먼 노드일수록 크다). 「멀리 나갈수록 많이 번다」가
+		/// 이 인자 하나로 성립한다 — 안 그러면 어느 노드를 잡든 똑같아서 개척할 이유가 없다.
+		/// </summary>
+		public void AddHarvester(float incomeMultiplier = 1f)
 		{
 			HarvesterCount++;
+			harvesterIncomeWeight += incomeMultiplier > 0f ? incomeMultiplier : 0f;
 		}
 
 		/// <summary>
@@ -153,7 +162,7 @@ namespace WitchMendokusai
 		/// 인형을 하나 세울 때마다 이 값이 오르는 걸 보여야 「자원 캐는 건물」의 의미가 전달된다
 		/// (사용자 실증: "자원 캐는 건물이 어떤 역할인지 전혀 모르겠어").
 		/// </summary>
-		public int NextWaveIncome => rules.IncomeFor(HarvesterCount);
+		public int NextWaveIncome => rules.BaseWaveIncome + Mathf.RoundToInt(rules.IncomePerHarvester * harvesterIncomeWeight);
 
 		/// <summary> 웨이브 정산 외 즉시 지급(격파 보상 등). 음수 무시 — 자원이 조용히 줄어드는 경로를 만들지 않는다. </summary>
 		public void AddResource(int amount)

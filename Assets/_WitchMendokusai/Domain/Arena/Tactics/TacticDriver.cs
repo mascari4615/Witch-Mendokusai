@@ -93,14 +93,32 @@ namespace WitchMendokusai
 			unitObject.SkillHandler.UseSkill(skillSlot, targetUnit);
 		}
 
+		/// <summary>
+		/// 길 안내자 — 꽂히면 지형을 우회하고, 없으면 직선(투기장 기존 동작 그대로).
+		/// 소유 매치가 스폰 시 넘긴다.
+		/// </summary>
+		public ITacticNavigator Navigator { get; set; }
+
 		public void MoveToward(ICombatant target)
 		{
 			if (target == null)
 				return;
 
-			Vector3 direction = target.Position - self.Position;
+			unitObject.UnitMovement.SetMoveDirection(SteerToward(target.Position));
+		}
+
+		/// <summary>
+		/// self 위치에서 목표로 향하는 실제 이동 방향. 안내자가 있으면 그쪽 말을 듣는다 —
+		/// 없거나 안내 불가면 직선(지형이 없는 판에선 이게 정답이고, 안내 실패 시에도 굳어버리지 않는다).
+		/// </summary>
+		private Vector3 SteerToward(Vector3 targetPosition)
+		{
+			if (Navigator != null && Navigator.TryGetSteering(self.Position, targetPosition, out Vector3 steered))
+				return steered;
+
+			Vector3 direction = targetPosition - self.Position;
 			direction.y = 0f;
-			unitObject.UnitMovement.SetMoveDirection(direction.normalized);
+			return direction.normalized;
 		}
 
 		/// <summary>
@@ -130,7 +148,7 @@ namespace WitchMendokusai
 				return;
 			}
 
-			unitObject.UnitMovement.SetMoveDirection(direction.normalized);
+			unitObject.UnitMovement.SetMoveDirection(SteerToward(target.Position));
 		}
 
 		// 개체별 정지 거리 흔들기 — 같은 목표를 노리는 무리가 한 점에 겹쳐 서는 것 방지.

@@ -106,7 +106,17 @@ namespace WitchMendokusai
 		[field: Tooltip("휠 **한 칸당** 높이 변화량. 플랫폼별 raw 델타 차이는 리그가 흡수한다.")]
 		[field: SerializeField, Min(0.1f)] public float CameraZoomSpeed { get; private set; } = 6f;
 
-		[field: Header("레이아웃")]
+		[field: Header("판 생성 — 매 판 다른 지형")]
+		[field: Tooltip("켜면 암반 능선·자원 노드·스폰 지점을 매치마다 새로 만든다. 끄면 아래 고정 레이아웃을 쓴다.")]
+		[field: SerializeField] public bool UseProceduralMap { get; private set; } = true;
+
+		[field: Tooltip("켜면 매치마다 씨앗을 새로 뽑는다(매 판 다른 판). 끄면 아래 파라미터의 Seed 로 늘 같은 판.")]
+		[field: SerializeField] public bool RandomizeSeedEachMatch { get; private set; } = true;
+
+		[field: Tooltip("판 생성 파라미터 — 크기·암반 능선 밀도·노드 배치 규칙·수입 배수 전량.")]
+		[field: SerializeField] public TowerDefenseMapParameters MapParameters { get; private set; } = TowerDefenseMapParameters.Default;
+
+		[field: Header("레이아웃 (고정 판 — UseProceduralMap 끌 때만 쓰임)")]
 		[field: Tooltip("코어(기지) 배치 위치 — 스테이지 root 로컬 좌표.")]
 		[field: SerializeField] public Vector3 CorePosition { get; private set; }
 
