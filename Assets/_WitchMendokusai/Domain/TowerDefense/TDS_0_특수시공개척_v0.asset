@@ -1,0 +1,99 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b5c2fdf127712f74c8cab7d1eeda6213, type: 3}
+  m_Name: TDS_0_TeukusuSigongGaecheok_v0
+  m_EditorClassIdentifier: WM.Domain::WitchMendokusai.TowerDefenseStageSO
+  <ID>k__BackingField: 0
+  <Name>k__BackingField: "특수시공 개척"
+  <Description>k__BackingField: "특수시공 개척(TD) v0 기본
+    스테이지 — TASK-WM-194 증분4."
+  <Sprite>k__BackingField: {fileID: 0}
+  <Sprites>k__BackingField: []
+  <Rules>k__BackingField:
+    WaveCount: 0
+    PrepareSeconds: 20
+    StartingResource: 100
+    BaseWaveIncome: 40
+    IncomePerHarvester: 25
+    FirstWaveEnemyCount: 3
+    EnemyCountGrowth: 2
+  <CoreUnit>k__BackingField: {fileID: 11400000, guid: a194010000000000000000000000d004, type: 2}
+  <EnemyUnit>k__BackingField: {fileID: 11400000, guid: a194010000000000000000000000d006, type: 2}
+  <TowerUnit>k__BackingField: {fileID: 11400000, guid: a194010000000000000000000000d003, type: 2}
+  <HarvesterUnit>k__BackingField: {fileID: 11400000, guid: a194010000000000000000000000d005, type: 2}
+  <EnemyTactic>k__BackingField:
+    Rules:
+    - Conditions:
+      - Kind: 4
+        Operator: 0
+        Value: 0
+        SkillSlot: 0
+      Target:
+        Side: 0
+        Priority: 0
+        MaxRange: 5
+      Action:
+        Kind: 1
+        SkillSlot: 0
+    - Conditions:
+      - Kind: 0
+        Operator: 0
+        Value: 0
+        SkillSlot: 0
+      Target:
+        Side: 3
+        Priority: 0
+        MaxRange: 0
+      Action:
+        Kind: 2
+        SkillSlot: 0
+  <TowerTactic>k__BackingField:
+    Rules:
+    - Conditions:
+      - Kind: 4
+        Operator: 0
+        Value: 0
+        SkillSlot: 0
+      Target:
+        Side: 0
+        Priority: 0
+        MaxRange: 7
+      Action:
+        Kind: 1
+        SkillSlot: 0
+    - Conditions:
+      - Kind: 0
+        Operator: 0
+        Value: 0
+        SkillSlot: 0
+      Target:
+        Side: 2
+        Priority: 0
+        MaxRange: 0
+      Action:
+        Kind: 0
+        SkillSlot: 0
+  <TowerCost>k__BackingField: 50
+  <HarvesterCost>k__BackingField: 60
+  <CorePosition>k__BackingField: {x: 0, y: 0, z: 0}
+  <EnemySpawnPoints>k__BackingField:
+  - {x: -12, y: 0, z: 15}
+  - {x: 0, y: 0, z: 15}
+  - {x: 12, y: 0, z: 15}
+  <ResourceNodePositions>k__BackingField:
+  - {x: -10, y: 0, z: 10}
+  - {x: 10, y: 0, z: 10}
+  - {x: -6, y: 0, z: 14}
+  - {x: 6, y: 0, z: 14}
+  <NodeCaptureRadius>k__BackingField: 2
+  <GroundWidth>k__BackingField: 40
+  <GroundLength>k__BackingField: 40

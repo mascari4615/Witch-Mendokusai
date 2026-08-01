@@ -31,6 +31,7 @@ namespace WitchMendokusai
 			{ typeof(EntityData), "ENT" },
 			{ typeof(ChapterSO), "Chapter" },
 			{ typeof(WitchPlantSO), "PLANT" },
+			{ typeof(TowerDefenseStageSO), "TDS" }, // TASK-WM-194 증분4 — 미등록 시 DataSOAddressableSync 가 매 import 마다 LogError(무음 실패 트랩 회피).
 		};
 
 		public static readonly Dictionary<Type, string> AssetFolderOverride = new()

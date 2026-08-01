@@ -8,6 +8,10 @@ namespace WitchMendokusai
 	/// 웨이브 클리어 판정은 ConfirmWaveSpawned() 로 스폰이 실제 확인된 뒤에만 활성 — 스폰 전
 	/// aliveEnemies==0 을 "격퇴" 로 오인해 웨이브를 통째 건너뛰는 false-clear 차단(ArenaMatchCore 의
 	/// "0틱 종료" 방어와 동형).
+	///
+	/// rules.IsEndless(WaveCount 이하 0) 면 Victory 가 없다 — 코어가 부서질 때까지 웨이브가 영원히
+	/// 이어지고 격파한 WaveIndex 가 곧 점수(디폴트, "고작 N웨이브" 유한 스테이지 거부). WaveCount>0 인
+	/// 유한 스테이지는 기존 그대로 해당 파 격퇴 시 Victory.
 	/// </summary>
 	public class TowerDefenseCore
 	{
@@ -73,7 +77,8 @@ namespace WitchMendokusai
 				Resource += rules.IncomeFor(HarvesterCount);
 				WaveIndex++;
 
-				if (WaveIndex >= rules.WaveCount)
+				// 엔드리스(IsEndless)는 이 분기에 절대 안 들어옴 — 무조건 다음 Prepare 로 순환.
+				if (rules.IsEndless == false && WaveIndex >= rules.WaveCount)
 				{
 					Outcome = TowerDefenseOutcome.Victory;
 					Phase = TowerDefensePhase.Concluded;

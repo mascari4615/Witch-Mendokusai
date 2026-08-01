@@ -9,13 +9,18 @@ namespace WitchMendokusai
 	[Serializable]
 	public struct TowerDefenseRules
 	{
-		public int WaveCount;           // 이만큼 격퇴하면 승리.
+		// <= 0 = 무한(엔드리스, 코어가 부서질 때까지 웨이브가 영원히 이어짐 — 격파 수가 곧 점수).
+		// > 0 = 해당 파 격퇴 시 승리(유한 스테이지). 별도 enum/모드 클래스 없이 이 값 하나가 분기 전부(TASK-WM-194).
+		public int WaveCount;
 		public float PrepareSeconds;    // 웨이브 사이 건설 시간.
 		public int StartingResource;    // 시작 자원.
 		public int BaseWaveIncome;      // 웨이브 격퇴 기본 수입.
 		public int IncomePerHarvester;  // 가동 중인 채집건물 1개당 추가 수입 = 개척 보상.
 		public int FirstWaveEnemyCount; // 1파 적 수.
-		public int EnemyCountGrowth;    // 파당 적 증가량 = escalation.
+		public int EnemyCountGrowth;    // 파당 적 증가량 = escalation(엔드리스에서 난이도가 영원히 오르는 유일한 노브).
+
+		/// <summary> WaveCount 가 무한 스테이지 센티널(0 이하)인지. </summary>
+		public bool IsEndless => WaveCount <= 0;
 
 		/// <summary> waveIndex(0-based) 파의 적 수. </summary>
 		public int EnemiesInWave(int waveIndex)

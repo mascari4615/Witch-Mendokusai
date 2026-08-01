@@ -26,6 +26,9 @@ namespace WitchMendokusai
 		// TASK-WM-165 item9 — 투기장 모드 컨트롤러 prefab 등록 여부 (미생성 시 eager resolve 스킵, cross-session build-red 회피).
 		private bool arenaModeControllerRegistered;
 
+		// TASK-WM-194 증분4 — 특수시공 개척(TD) 모드 컨트롤러 prefab 등록 여부 (ArenaModeController 와 동형).
+		private bool towerDefenseModeControllerRegistered;
+
 		private bool IsInScene<T>() where T : Component
 		{
 			foreach (T component in FindObjectsByType<T>(FindObjectsInactive.Include))
@@ -117,6 +120,15 @@ namespace WitchMendokusai
 				arenaModeControllerRegistered = true;
 			}
 
+			// TASK-WM-194 증분4 — 특수시공 개척(TD) 모드 컨트롤러 (Resources/Singletons prefab, ArenaModeController 미러).
+			// prefab 미생성(코드 먼저 push)에 World boot 안 깨지게 null-guard.
+			TowerDefenseModeController towerDefenseModeControllerPrefab = Resources.Load<TowerDefenseModeController>("Singletons/TowerDefenseModeController");
+			if (towerDefenseModeControllerPrefab != null)
+			{
+				builder.RegisterComponentInNewPrefab(towerDefenseModeControllerPrefab, Lifetime.Scoped);
+				towerDefenseModeControllerRegistered = true;
+			}
+
 			builder.RegisterComponentOnNewGameObject<GameModeManager>(Lifetime.Scoped, nameof(GameModeManager));
 			builder.RegisterComponentOnNewGameObject<DialogueRunner>(Lifetime.Scoped, nameof(DialogueRunner));
 
@@ -135,6 +147,8 @@ namespace WitchMendokusai
 				ResolveIfPresent<BuildManager>(container);
 				if (arenaModeControllerRegistered)
 					BootGuard.EagerResolve<ArenaModeController>(container, "Scene"); // TASK-WM-165 item9 — prefab 등록↔해소 짝
+				if (towerDefenseModeControllerRegistered)
+					BootGuard.EagerResolve<TowerDefenseModeController>(container, "Scene"); // TASK-WM-194 증분4 — prefab 등록↔해소 짝
 				ResolveIfPresent<CityPaintManager>(container); // TASK-WM-164 step5 — 등록↔해소 짝
 				ResolveIfPresent<ChatManager>(container);
 				ResolveIfPresent<ToolTipPopupManager>(container);

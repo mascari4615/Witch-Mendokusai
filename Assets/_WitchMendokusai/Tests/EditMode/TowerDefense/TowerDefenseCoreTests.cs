@@ -159,5 +159,68 @@ namespace WitchMendokusai.Tests
 			Assert.IsFalse(core.TrySpend(7)); // 부족
 			Assert.AreEqual(6, core.Resource); // 상태 무변경
 		}
+
+		// 엔드리스(WaveCount<=0) 회귀 — "고작 3웨이브" 유한 스테이지 거부, 격파 수가 곧 점수.
+		private static TowerDefenseRules EndlessRules()
+		{
+			TowerDefenseRules rules = Rules();
+			rules.WaveCount = 0; // 센티널 = 무한.
+			return rules;
+		}
+
+		[Test]
+		public void Endless_NeverVictory_KeepsCyclingWaves()
+		{
+			TowerDefenseCore core = new(EndlessRules());
+
+			for (int waveNumber = 1; waveNumber <= 5; waveNumber++)
+			{
+				Assert.AreEqual(TowerDefenseSignal.WaveStarted, core.Tick(1f, 0, true));
+				core.ConfirmWaveSpawned();
+				Assert.AreEqual(TowerDefenseSignal.WaveCleared, core.Tick(0.1f, 0, true));
+
+				Assert.AreEqual(TowerDefenseOutcome.InProgress, core.Outcome);
+				Assert.AreEqual(TowerDefensePhase.Prepare, core.Phase);
+				Assert.AreEqual(waveNumber, core.WaveIndex);
+			}
+		}
+
+		[Test]
+		public void Endless_CoreDestroyed_StillDefeat()
+		{
+			TowerDefenseCore core = new(EndlessRules());
+
+			for (int waveNumber = 1; waveNumber <= 3; waveNumber++)
+			{
+				core.Tick(1f, 0, true); // WaveStarted
+				core.ConfirmWaveSpawned();
+				core.Tick(0.1f, 0, true); // WaveCleared
+			}
+
+			core.Tick(1f, 0, true); // 4파 시작(교전 중)
+			core.ConfirmWaveSpawned();
+
+			Assert.AreEqual(TowerDefenseSignal.Defeat, core.Tick(0.1f, 2, false));
+			Assert.AreEqual(TowerDefenseOutcome.Defeat, core.Outcome);
+			Assert.AreEqual(3, core.WaveIndex); // 격파한 파 수 = 점수, 패배해도 보존.
+		}
+
+		[Test]
+		public void Finite_StillVictoryAtWaveCount()
+		{
+			// 기존 AllWavesCleared_Victory 와 동일 전제 — 유한 스테이지(WaveCount>0) 회귀 보존.
+			TowerDefenseCore core = Core();
+
+			core.Tick(1f, 0, true);
+			core.ConfirmWaveSpawned();
+			core.Tick(0.1f, 0, true); // 1파 격퇴
+
+			core.Tick(1f, 0, true);   // 2파 시작
+			core.ConfirmWaveSpawned();
+			Assert.AreEqual(TowerDefenseSignal.Victory, core.Tick(0.1f, 0, true));
+
+			Assert.AreEqual(TowerDefenseOutcome.Victory, core.Outcome);
+			Assert.AreEqual(TowerDefensePhase.Concluded, core.Phase);
+		}
 	}
 }

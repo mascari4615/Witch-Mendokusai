@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 74d3c84678344ee43a9322ee4130a288, type: 3}
+  m_Name: DOL_701_TD_Core
+  m_EditorClassIdentifier:
+  <ID>k__BackingField: 701
+  <Name>k__BackingField: "\uAC1C\uCC99 \uCF54\uC5B4"
+  <Description>k__BackingField: "\uAC1C\uCC99\uC9C0\uC758 \uC2EC\uC7A5. \uBD80\uC11C\uC9C0\uBA74 \uC2DC\uBBAC\uB808\uC774\uC158 \uC885\uB8CC."
+  <Sprite>k__BackingField: {fileID: 21300000, guid: 824b9eac07ee3e340b3a148cbd1b11d5, type: 3}
+  <Sprites>k__BackingField: []
+  <Affiliation>k__BackingField: -1
+  <Prefab>k__BackingField: {fileID: 4424679600471619191, guid: 48984c858f60ded4bb21f7e787490808, type: 3}
+  <DefaultSkills>k__BackingField: []
+  <Material>k__BackingField: {fileID: 0}
+  <InitStatInfos>k__BackingField:
+    initStats:
+    - unitStat: 2
+      value: 300
+    - unitStat: 300
+      value: 0
+  <SignatureEquipment>k__BackingField: {fileID: 0}
+  <DefaultEquipments>k__BackingField: []
