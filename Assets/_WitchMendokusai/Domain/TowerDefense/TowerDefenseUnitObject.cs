@@ -23,6 +23,8 @@ namespace WitchMendokusai
 	/// </summary>
 	public class TowerDefenseUnitObject : UnitObject
 	{
+		private Transform hpBar;
+
 		[Inject]
 		public void Construct(PlayerProvider playerProvider, TimeManager timeManager,
 			UnitStatCalculator unitStatCalculator, ObjectPoolManager objectPoolManager)
@@ -30,14 +32,67 @@ namespace WitchMendokusai
 			SetBaseDeps(timeManager, unitStatCalculator, objectPoolManager, playerProvider);
 		}
 
+		/// <summary>
+		/// 유닛 데이터의 그림을 실제로 입힌다 — 이게 없으면 코어/포탑/채집이 전부 프리팹 원본(슬라임)
+		/// 모습이라 화면에서 구분이 안 된다(사용자 실증: "건물도 그냥 슬라임이고 적과 내가 똑같다").
+		/// 「건물 = 인형」 캐논도 여기서 성립: DataSO 의 Sprite 가 곧 그 건물의 인형 모습.
+		/// </summary>
+		public override void Init(Unit unitData)
+		{
+			base.Init(unitData);
+
+			if (SpriteRenderer != null && unitData != null && unitData.Sprite != null)
+				SpriteRenderer.sprite = unitData.Sprite;
+
+			EnsureHpBar();
+			UpdateHpBar();
+		}
+
 		protected virtual void OnEnable()
 		{
 			Health.OnDied += HandleDeath;
+			Health.OnTakeDamage += HandleDamaged;
 		}
 
 		protected virtual void OnDisable()
 		{
 			Health.OnDied -= HandleDeath;
+			Health.OnTakeDamage -= HandleDamaged;
+		}
+
+		// 프리팹의 HPBar 는 원래 MonsterObject 가 켜고 껐다 — 그 컴포넌트를 뺐으므로 관리 주체가
+		// 사라져 *항상 떠 있는 노이즈*가 됐다(실측). 여기서 다시 소유해 "다쳤을 때만" 보이게 한다.
+		private void EnsureHpBar()
+		{
+			if (hpBar == null)
+				hpBar = transform.Find("Mesh/Pivot/Scaler/HPBar") ?? FindChildByName(transform, "HPBar");
+		}
+
+		private static Transform FindChildByName(Transform root, string childName)
+		{
+			foreach (Transform child in root.GetComponentsInChildren<Transform>(true))
+			{
+				if (child.name == childName)
+					return child;
+			}
+			return null;
+		}
+
+		private void HandleDamaged(DamageInfo damageInfo) => UpdateHpBar();
+
+		private void UpdateHpBar()
+		{
+			EnsureHpBar();
+			if (hpBar == null)
+				return;
+
+			int max = UnitStat[UnitStatType.HP_MAX];
+			int cur = UnitStat[UnitStatType.HP_CUR];
+			bool damaged = max > 0 && cur < max;
+
+			hpBar.gameObject.SetActive(damaged);
+			if (damaged)
+				hpBar.localScale = new Vector3((float)cur / max, 1f, 1f);
 		}
 
 		// 사망 = 비활성만. 전리품·경험치·킬 카운트 같은 던전 의미론은 개척에 없다

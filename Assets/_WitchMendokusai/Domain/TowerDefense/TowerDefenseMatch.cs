@@ -129,7 +129,70 @@ namespace WitchMendokusai
 			// Plane = 10x10 유닛 @ scale 1 → GroundWidth/GroundLength 에 맞춰 스케일.
 			ground.transform.localScale = new Vector3(stage.GroundWidth / 10f, 1f, stage.GroundLength / 10f);
 
+			ApplyGroundCheckerboard(ground);
 			BuildResourceNodeMarkers();
+		}
+
+		/// <summary>
+		/// 바닥 체크무늬 — 배치는 1칸 격자에 스냅되는데 바닥이 민무늬면 "어디가 한 칸인지" 알 수 없다
+		/// (사용자 실증: "땅은 격자나 체크무늬가 없어서 어디가 구분인지도 모르겠다").
+		/// 텍스처를 코드로 생성 = 아트 에셋 의존 0. 타일링을 스테이지 칸 크기에 맞춰 *보이는 칸 = 배치 칸*
+		/// 이 되게 한다(둘이 어긋나면 격자가 오히려 거짓말을 한다).
+		/// </summary>
+		private void ApplyGroundCheckerboard(GameObject ground)
+		{
+			Renderer groundRenderer = ground.GetComponent<Renderer>();
+			if (groundRenderer == null)
+				return;
+
+			const int TEXTURE_SIZE = 2;
+			Texture2D checker = new Texture2D(TEXTURE_SIZE, TEXTURE_SIZE, TextureFormat.RGBA32, mipChain: false)
+			{
+				filterMode = FilterMode.Point,
+				wrapMode = TextureWrapMode.Repeat,
+			};
+			Color darkCell = new Color(0.24f, 0.26f, 0.30f, 1f);
+			Color lightCell = new Color(0.32f, 0.35f, 0.40f, 1f);
+			checker.SetPixel(0, 0, darkCell);
+			checker.SetPixel(1, 1, darkCell);
+			checker.SetPixel(1, 0, lightCell);
+			checker.SetPixel(0, 1, lightCell);
+			checker.Apply();
+
+			// 체크 한 칸 = 배치 한 칸. 텍스처가 2x2 이므로 타일 수 = (전체 길이 / 칸크기) / 2.
+			float cell = stage.GroundCellSize > 0f ? stage.GroundCellSize : 1f;
+			Vector2 tiling = new Vector2(stage.GroundWidth / cell * 0.5f, stage.GroundLength / cell * 0.5f);
+
+			Material groundMaterial = groundRenderer.material;
+			groundMaterial.mainTexture = checker;
+			groundMaterial.mainTextureScale = tiling;
+			// URP Lit 는 _BaseMap/_BaseColor 가 정본 — mainTexture 만 세팅하면 셰이더에 따라 안 먹을 수 있다.
+			if (groundMaterial.HasProperty("_BaseMap"))
+			{
+				groundMaterial.SetTexture("_BaseMap", checker);
+				groundMaterial.SetTextureScale("_BaseMap", tiling);
+			}
+			if (groundMaterial.HasProperty("_BaseColor"))
+				groundMaterial.SetColor("_BaseColor", Color.white);
+		}
+
+
+		/// <summary>
+		/// 화면에서 즉시 읽히게 만드는 공통 처리 — 팀 틴트 + 역할별 크기.
+		/// 사용자 실증: "건물도 그냥 슬라임이고 적과 내가 똑같다" → 구분 수단이 하나도 없으면
+		/// 규칙이 아무리 맞아도 플레이가 불가능하다. 인형 그림 자체는 TowerDefenseUnitObject.Init 가
+		/// DataSO 에서 입히고, 여기서는 *진영*과 *역할 크기*만 덧입힌다(틴트는 흰색에 가깝게 유지해
+		/// 인형 아트를 죽이지 않음). 수치·색 전부 스테이지 SO 노출(하드코딩 0).
+		/// </summary>
+		private void ApplyReadability(UnitObject unitObject, bool isDefender, float scale)
+		{
+			if (unitObject == null)
+				return;
+
+			if (unitObject.SpriteRenderer != null)
+				unitObject.SpriteRenderer.color = isDefender ? stage.DefenderTint : stage.AttackerTint;
+
+			unitObject.transform.localScale = Vector3.one * scale;
 		}
 
 		/// <summary>
@@ -156,9 +219,16 @@ namespace WitchMendokusai
 				// 납작한 원반 — 지면에 깔리되 유닛 시야를 안 가림.
 				marker.transform.localScale = new Vector3(stage.NodeCaptureRadius * 2f, 0.05f, stage.NodeCaptureRadius * 2f);
 
+				// URP Lit 는 _BaseColor 가 정본 — material.color 만 세팅하면 셰이더에 따라 안 먹는다.
 				Renderer markerRenderer = marker.GetComponent<Renderer>();
 				if (markerRenderer != null)
-					markerRenderer.material.color = new Color(0.35f, 0.9f, 0.55f, 1f);
+				{
+					Material markerMaterial = markerRenderer.material;
+					Color nodeColor = new Color(1f, 0.82f, 0.25f, 1f); // 금빛 = "여기서 캔다". 바닥(회색)·아군(파랑)·적(빨강) 과 전부 구분.
+					markerMaterial.color = nodeColor;
+					if (markerMaterial.HasProperty("_BaseColor"))
+						markerMaterial.SetColor("_BaseColor", nodeColor);
+				}
 			}
 		}
 
@@ -193,6 +263,7 @@ namespace WitchMendokusai
 				combatant = coreUnitObject.gameObject.AddComponent<ArenaCombatant>();
 			combatant.SetTeam(DEFENDER_TEAM, nextCombatantId++);
 
+			ApplyReadability(coreUnitObject, isDefender: true, stage.CoreScale);
 			coreGameObject.SetActive(true);
 
 			// 트랩#2: 프리팹 내장 FSM 이 TacticDriver(추후 방어유닛)와 채널 경쟁하지 않도록 일괄 비활성.
@@ -281,6 +352,7 @@ namespace WitchMendokusai
 					enemyCombatant = enemyUnitObject.gameObject.AddComponent<ArenaCombatant>();
 				enemyCombatant.SetTeam(ATTACKER_TEAM, nextCombatantId++);
 
+				ApplyReadability(enemyUnitObject, isDefender: false, stage.EnemyScale);
 				enemyGameObject.SetActive(true);
 
 				foreach (UnitBrain brain in enemyUnitObject.GetComponents<UnitBrain>()) // 트랩#2.
@@ -494,6 +566,7 @@ namespace WitchMendokusai
 				combatant = unitObject.gameObject.AddComponent<ArenaCombatant>();
 			combatant.SetTeam(DEFENDER_TEAM, nextCombatantId++);
 
+			ApplyReadability(unitObject, isDefender: true, isHarvester ? stage.HarvesterScale : stage.TowerScale);
 			unitGameObject.SetActive(true);
 
 			foreach (UnitBrain brain in unitObject.GetComponents<UnitBrain>()) // 트랩#2.
