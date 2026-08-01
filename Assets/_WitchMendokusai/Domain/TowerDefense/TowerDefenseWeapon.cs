@@ -23,6 +23,12 @@ namespace WitchMendokusai
 		private ICombatant self;
 		private IReadOnlyList<ICombatant> enemyPool;
 
+		// 효과가 *실제로 일어났는가*를 세는 계수기 — 검증이 로그 문자열이 아니라 상태를 읽게 한다
+		// (게임 코드에 진단 로그를 영구히 남기지 않으면서도 「광역이 진짜 터졌나」를 증명할 수 있다).
+		public int PierceHits { get; private set; }
+		public int SplashHits { get; private set; }
+		public int SlowApplied { get; private set; }
+
 		private float cooldownRemaining;
 		private LineRenderer tracer;
 		private float tracerRemaining;
@@ -124,6 +130,7 @@ namespace WitchMendokusai
 					continue;
 
 				ApplyHit(candidate);
+				PierceHits++;
 				remaining--;
 			}
 		}
@@ -142,6 +149,7 @@ namespace WitchMendokusai
 					continue;
 
 				ApplyHit(candidate);
+				SplashHits++;
 			}
 		}
 
@@ -162,7 +170,10 @@ namespace WitchMendokusai
 			combatant.UnitObject.Health.ReceiveDamage(damageInfo);
 
 			if (archetype.SlowFactor > 0f)
+			{
 				TowerDefenseSlow.Apply(combatant.UnitObject, archetype.SlowFactor, archetype.SlowSeconds);
+				SlowApplied++;
+			}
 		}
 
 		// --- 예광선: 「누가 누구를 쏘는지」를 보여준다. 안 보이면 포탑이 일하는지조차 알 수 없다. ---

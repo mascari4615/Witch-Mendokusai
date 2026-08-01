@@ -76,6 +76,7 @@ namespace WitchMendokusai.EditorTools
 		private static int killIncomeEvents;
 		private static double defendedAssaultStart = -1.0;
 		private static bool defendedStuckDumped;
+		private static bool towerPlanFlipped;
 		private static int lastDumpedWave;
 		private static double waveDumpAt;
 
@@ -130,6 +131,7 @@ namespace WitchMendokusai.EditorTools
 			waveDumpAt = -1.0;
 			defendedAssaultStart = -1.0;
 			defendedStuckDumped = false;
+			towerPlanFlipped = false;
 			EditorApplication.update += Tick;
 			Debug.Log(TAG + " EnteredPlayMode — World ready 대기");
 		}
@@ -413,7 +415,12 @@ namespace WitchMendokusai.EditorTools
 			// 방어인형 — 판이 매 매치 새로 생성되므로 고정 좌표는 암반 위일 수 있다(그러면 배치가 조용히
 			// 전부 거절돼 "방어 없는 판"을 방어 있는 판으로 착각한다). 코어 주변에서 *실제로 설 수 있는* 칸을 찾는다.
 			// 종류를 섞어 세운다 — 한 종류만 세우면 광역·관통·둔화가 통째로 미검증으로 남는다.
-			int[] slotPlan = { 0, 3 }; // 기본 + 둔화(예산 안에서 서로 다른 두 종류).
+			// 두 번의 배치(최초/재시작)에서 서로 다른 두 쌍을 세운다 — 한 쌍만 세우면 나머지 두 종류의
+			// 효과가 통째로 미검증으로 남는다. 예산 160 안에서 각각 성립하는 조합.
+			// 관측 구간(재시작 뒤)에 서 있는 쪽이 검증 대상이다 — 첫 판에 세운 포탑은 재시작이 치운다.
+			// 그래서 *두 번째* 조합에 아직 미확인인 종류를 넣는다(관통은 직전 실행에서 확인됨).
+			int[] slotPlan = towerPlanFlipped ? new[] { 1, 3 } : new[] { 0, 2 };
+			towerPlanFlipped = towerPlanFlipped == false;
 			int towersPlaced = 0;
 			List<Vector3> spots = FindPlaceableSpots(stageRoot, slotPlan.Length);
 			for (int index = 0; index < spots.Count; index++)
@@ -897,6 +904,17 @@ namespace WitchMendokusai.EditorTools
 
 			if (now - defendedStart < DEFENDED_SECONDS)
 				return;
+
+			int pierceHits = 0;
+			int splashHits = 0;
+			int slowApplied = 0;
+			foreach (TowerDefenseWeapon weapon in Object.FindObjectsByType<TowerDefenseWeapon>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+			{
+				pierceHits += weapon.PierceHits;
+				splashHits += weapon.SplashHits;
+				slowApplied += weapon.SlowApplied;
+			}
+			Debug.Log(TAG + " TOWER-EFFECTS pierce=" + pierceHits + " splash=" + splashHits + " slow=" + slowApplied);
 
 			string verdict = TAG + " DEFENDED-RESULT killIncomeEvents=" + killIncomeEvents
 				+ " wave=" + match.WaveIndex + " resource=" + match.Resource
