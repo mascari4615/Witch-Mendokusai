@@ -27,6 +27,7 @@ namespace WitchMendokusai
 		private readonly Label waveValue;
 		private readonly Label phaseValue;
 		private readonly Label enemyValue;
+		private readonly Label bestValue;
 		private readonly Label hintLabel;
 		private readonly Label bannerLabel;
 		private readonly VisualElement legendPanel;
@@ -66,7 +67,7 @@ namespace WitchMendokusai
 			container.style.display = DisplayStyle.None;
 			container.pickingMode = PickingMode.Ignore;
 
-			container.Add(BuildStatPanel(out resourceValue, out waveValue, out phaseValue, out enemyValue));
+			container.Add(BuildStatPanel(out resourceValue, out waveValue, out phaseValue, out enemyValue, out bestValue));
 			container.Add(BuildWaveControlPanel(out waveModeButton, out nextWaveButton));
 			legendPanel = BuildLegendPanel();
 			container.Add(legendPanel);
@@ -81,7 +82,7 @@ namespace WitchMendokusai
 		}
 
 		// 좌상단 컴팩트 스탯 — 폭을 내용에 맞춰 좁게(전폭 바 금지).
-		private static VisualElement BuildStatPanel(out Label resource, out Label wave, out Label phase, out Label enemies)
+		private static VisualElement BuildStatPanel(out Label resource, out Label wave, out Label phase, out Label enemies, out Label bestValue)
 		{
 			VisualElement panel = new VisualElement { name = "StatPanel" };
 			panel.style.position = Position.Absolute;
@@ -104,6 +105,8 @@ namespace WitchMendokusai
 			// ★ 「남은 마수」가 없으면 웨이브가 끝났는지를 눈으로만 판단해야 한다 — 마수 한 마리가 코어에
 			//   겹쳐 서 있으면 화면에서 사라져 "다 잡았는데 안 넘어간다"가 된다(사용자 실증). 숫자가 진실을 말한다.
 			panel.Add(MakeStatRow("남은 마수", out enemies, new Color(1f, 0.45f, 0.42f, 1f)));
+			// ★ 무한 모드엔 「클리어」가 없다 — 넘어야 할 선(지난 최고 기록)이 화면에 있어야 이번 판에 목표가 생긴다.
+			panel.Add(MakeStatRow("최고 기록", out bestValue, new Color(0.78f, 0.82f, 0.92f, 1f)));
 			return panel;
 		}
 
@@ -553,13 +556,42 @@ namespace WitchMendokusai
 			nextWaveButton.SetEnabled(preparing && match.Outcome == TowerDefenseOutcome.InProgress);
 		}
 
-		/// <summary> 매치 종료 배너. 무한 모드 패배 = 버틴 웨이브 수가 곧 점수. </summary>
-		public void ShowOutcome(TowerDefenseOutcome outcome, int wavesCleared)
+		/// <summary>
+		/// 매치 종료 배너. 무한 모드 패배 = 버틴 웨이브 수가 곧 점수 —
+		/// 기록 갱신 여부까지 말해야 「다시 도전」이 이유를 갖는다.
+		/// </summary>
+		public void ShowOutcome(TowerDefenseOutcome outcome, int wavesCleared, int bestWave, bool isNewRecord)
 		{
 			SetBannerVisible(true);
-			bannerLabel.text = outcome == TowerDefenseOutcome.Victory
-				? "개척 성공"
-				: wavesCleared + " 웨이브까지 버팀";
+			SetBestRecord(bestWave);
+
+			if (outcome == TowerDefenseOutcome.Victory)
+			{
+				bannerLabel.text = "개척 성공";
+				return;
+			}
+
+			// 문구가 숫자를 그대로 뱉으면 「0 웨이브까지 버팀 (최고 0)」 같은 말이 나온다(라이브 실측) —
+			// 0 은 「버텼다」가 아니라 「못 넘겼다」이고, 기록 없는 첫 판에 「최고 0」은 알려줄 게 없는 잡음이다.
+			string survived = wavesCleared > 0
+				? wavesCleared + " 웨이브까지 버팀"
+				: "첫 파도도 넘기지 못함";
+
+			if (isNewRecord && wavesCleared > 0)
+			{
+				bannerLabel.text = survived + " — 최고 기록 갱신";
+				return;
+			}
+
+			bannerLabel.text = bestWave > 0
+				? survived + " (최고 " + bestWave + ")"
+				: survived;
+		}
+
+		/// <summary> 최고 기록 표시 — 기록 없으면 「-」(0 웨이브라고 거짓말하지 않는다). </summary>
+		public void SetBestRecord(int bestWave)
+		{
+			bestValue.text = bestWave > 0 ? bestWave.ToString() : "-";
 		}
 
 		private void SetBannerVisible(bool visible)

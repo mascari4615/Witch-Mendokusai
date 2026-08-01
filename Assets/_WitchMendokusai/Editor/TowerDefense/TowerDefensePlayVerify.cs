@@ -24,6 +24,10 @@ namespace WitchMendokusai.EditorTools
 	public static class TowerDefensePlayVerify
 	{
 		private const string ARM_PREF = "WM.TD.PlayVerify.Armed";
+		// 결말(승/패 → 배너 → 다시 도전)만 보는 축약 모드. 전체 하네스는 배치·재시작 사이클까지 밟느라
+		// 한 번에 수 분씩 에디터를 점유해, 정작 마지막에 오는 결말 검증이 하드 타임아웃에 잘려 나갔다.
+		// 검증하고 싶은 구간만 빨리 도는 루프가 있어야 그 구간이 실제로 검증된다(피드백 루프 우선).
+		private const string CONCLUSION_ONLY_PREF = "WM.TD.PlayVerify.ConclusionOnly";
 		private const string TAG = "[TD-Verify]";
 		private const double SETTLE_SECONDS = 2.0;
 		private const double HARD_TIMEOUT = 420.0;
@@ -65,6 +69,7 @@ namespace WitchMendokusai.EditorTools
 		private static int lastResource;
 		private static int firstContactWave;
 		private static double restartAt;
+		private static bool conclusionOnly;
 
 		static TowerDefensePlayVerify()
 		{
@@ -74,8 +79,19 @@ namespace WitchMendokusai.EditorTools
 		[MenuItem("WM/TowerDefense/Arm Play-Verify")]
 		public static void Arm()
 		{
+			EditorPrefs.SetBool(CONCLUSION_ONLY_PREF, false);
 			EditorPrefs.SetBool(ARM_PREF, true);
 			Debug.Log(TAG + " armed — Play 진입");
+			EditorApplication.EnterPlaymode();
+		}
+
+		/// <summary> 결말만 — 무방비 판으로 곧장 들어가 패배 → 배너 → 다시 도전 한 사이클만 본다. </summary>
+		[MenuItem("WM/TowerDefense/Arm Play-Verify (결말만)")]
+		public static void ArmConclusionOnly()
+		{
+			EditorPrefs.SetBool(CONCLUSION_ONLY_PREF, true);
+			EditorPrefs.SetBool(ARM_PREF, true);
+			Debug.Log(TAG + " armed (결말만) — Play 진입");
 			EditorApplication.EnterPlaymode();
 		}
 
@@ -85,6 +101,7 @@ namespace WitchMendokusai.EditorTools
 				return;
 
 			EditorPrefs.SetBool(ARM_PREF, false);
+			conclusionOnly = EditorPrefs.GetBool(CONCLUSION_ONLY_PREF, false);
 			step = Step.WaitWorld;
 			playStart = EditorApplication.timeSinceStartup;
 			readyAt = -1.0;
@@ -109,7 +126,16 @@ namespace WitchMendokusai.EditorTools
 			// 안전망 — 무슨 일이 있어도 공유 에디터를 Play 에 물리지 않는다.
 			if (now - playStart > HARD_TIMEOUT)
 			{
-				Debug.LogError(TAG + " TIMEOUT — 단계=" + step + " 에서 행. Play 강제 종료.");
+				// 타임아웃이 그냥 "행"으로만 끝나면 몇 분짜리 실행이 통째로 버려진다 — 죽기 전에 아는 것을 전부 말한다.
+				Debug.LogError(TAG + " TIMEOUT — 단계=" + step + " 에서 행. Play 강제 종료."
+					+ " match=" + (match != null)
+					+ (match != null
+						? " phase=" + match.Phase + " wave=" + match.WaveIndex + " outcome=" + match.Outcome
+							+ " resource=" + match.Resource
+							+ " coreAlive=" + (match.CoreCombatant != null && match.CoreCombatant.IsAlive)
+						: string.Empty)
+					+ " endedEvent=" + matchEndedSeen
+					+ " observed=" + (observeStart > 0 ? (now - observeStart).ToString("F1") : "n/a"));
 				Finish();
 				return;
 			}
@@ -179,7 +205,15 @@ namespace WitchMendokusai.EditorTools
 					// 코어 생성 = TowerDefenseCore 존재 = Resource 가 시작자원으로 채워짐.
 					if (match == null || match.Resource <= 0)
 						return;
-					Debug.Log(TAG + " MATCH-READY resource=" + match.Resource + " phase=" + match.Phase);
+					Debug.Log(TAG + " MATCH-READY resource=" + match.Resource + " phase=" + match.Phase
+						+ " conclusionOnly=" + conclusionOnly);
+					// 결말만 모드 = 아무것도 짓지 않은 채 그대로 관측 — 이미 무방비 상태라 재시작조차 필요 없다.
+					if (conclusionOnly)
+					{
+						restartAt = now;
+						step = Step.ObserveConclusion;
+						return;
+					}
 					step = Step.Place;
 					return;
 
@@ -715,9 +749,15 @@ namespace WitchMendokusai.EditorTools
 				}
 			}
 
-			if (matchEndedSeen || now - observeStart > OBSERVE_SECONDS)
+			// 이벤트(신호)와 상태(사실)를 둘 다 본다 — 재시작이 매치를 Dispose/Begin 하며 구독이 끊기는 경로가
+			// 있으면 이벤트만 믿는 검증은 "안 끝났다"고 오판한다. Outcome 이 ground truth.
+			bool outcomeEnded = match.Outcome != TowerDefenseOutcome.InProgress;
+			bool ended = matchEndedSeen || outcomeEnded;
+
+			if (ended || now - observeStart > OBSERVE_SECONDS)
 			{
 				Debug.Log(TAG + " SUMMARY endedEvent=" + matchEndedSeen
+					+ " endedOutcome=" + outcomeEnded
 					+ " outcome=" + match.Outcome
 					+ " wavesCleared=" + match.WaveIndex
 					+ " resource=" + match.Resource
@@ -726,7 +766,7 @@ namespace WitchMendokusai.EditorTools
 
 				// ★ 게임은 *끝나야* 게임이다. 관찰만 하고 끝내면 "결말이 오는가"를 영영 검증 못 한다
 				//   (지금까지 패배를 한 번도 관측한 적이 없었다). 결말 → 배너 → 다시 도전까지 한 사이클을 닫는다.
-				if (matchEndedSeen == false)
+				if (ended == false)
 				{
 					Debug.LogError(TAG + " CONCLUSION-FAIL 관찰 " + OBSERVE_SECONDS + "s 동안 매치가 끝나지 않음 "
 						+ "— 승리도 패배도 없으면 게임이 아니라 무한 루프다. phase=" + match.Phase

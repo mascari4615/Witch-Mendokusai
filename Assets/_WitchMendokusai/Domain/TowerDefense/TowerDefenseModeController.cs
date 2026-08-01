@@ -83,8 +83,26 @@ namespace WitchMendokusai
 
 		private void OnMatchEnded(TowerDefenseOutcome outcome)
 		{
-			Debug.Log($"{nameof(TowerDefenseModeController)}: 매치 종료 — outcome={outcome}");
-			hud?.ShowOutcome(outcome, match.WaveIndex);
+			// 무한 모드 = 버틴 웨이브가 곧 점수 → 기록을 남기지 않으면 판이 끝나도 아무것도 안 남는다.
+			int best = match.WaveIndex;
+			bool isNewRecord = false;
+			if (DataManager.TryGetExistingInstance(out DataManager dataManager))
+			{
+				isNewRecord = TowerDefenseRecord.Submit(dataManager.TowerDefenseBestWave, stage.ID, match.WaveIndex, out best);
+				if (isNewRecord)
+					dataManager.SaveManager.SaveData();
+			}
+
+			Debug.Log($"{nameof(TowerDefenseModeController)}: 매치 종료 — outcome={outcome} wave={match.WaveIndex} best={best} newRecord={isNewRecord}");
+			hud?.ShowOutcome(outcome, match.WaveIndex, best, isNewRecord);
+		}
+
+		/// <summary> 현재 스테이지 최고 기록 — 화면에 목표를 세워준다(없으면 0). </summary>
+		private int CurrentBestRecord()
+		{
+			if (DataManager.TryGetExistingInstance(out DataManager dataManager) == false)
+				return 0;
+			return TowerDefenseRecord.Best(dataManager.TowerDefenseBestWave, stage.ID);
 		}
 
 		// HUD 갱신 + 카메라 이동 — TD 모드 동안만.
@@ -170,6 +188,7 @@ namespace WitchMendokusai
 			{
 				// Show 가 아니라 전용 리셋 — Show 는 본편 UI 를 다시 숨기며 복원 정보를 덮어쓴다(이미 숨긴 상태라 빈 목록이 됨).
 				view.ResetForNewMatch(stage);
+				view.SetBestRecord(CurrentBestRecord());
 				view.SetSelectedKind(placement.SelectedKind);
 			}
 
@@ -205,6 +224,7 @@ namespace WitchMendokusai
 				if (view != null)
 				{
 					view.Show(stage);
+					view.SetBestRecord(CurrentBestRecord()); // 넘어야 할 선을 판 시작부터 보여준다.
 					// 핫바 선택 표시 ↔ 실제 배치 대상은 같은 소스여야 한다(표시가 거짓말하면 오설치).
 					view.SetSelectedKind(placement.SelectedKind);
 					placement.SelectionChanged += view.SetSelectedKind;

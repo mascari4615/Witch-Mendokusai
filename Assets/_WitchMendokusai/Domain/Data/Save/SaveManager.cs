@@ -47,6 +47,7 @@ namespace WitchMendokusai
 				questStates = new(),
 				hasRecipe = new(),
 				hasSpecimen = new(),
+				towerDefenseBestWave = new(),
 				runtimeQuests = new(),
 				gameStats = new(),
 				dungeons = new(),
@@ -100,6 +101,9 @@ namespace WitchMendokusai
 
 			// 마도 온실 표본(TASK-WM-167) 초기화 — 새 게임 = 채집 0(빈 dict, 봐준 게 없음). 작물 .asset 없어도 안전.
 			DataManager.SpecimenCollected = new();
+
+			// 개척 최고 기록(TASK-WM-194) 초기화 — 새 게임 = 기록 없음.
+			DataManager.TowerDefenseBestWave = new();
 
 			// 퀘스트 상태 초기화 이후 저장
 			Dictionary<int, QuestState> questStates = new();
@@ -176,6 +180,9 @@ namespace WitchMendokusai
 			// 마도 온실 표본(TASK-WM-167) — 옛 세이브엔 필드 부재 → null 가드(빈 dict).
 			DataManager.SpecimenCollected = saveData.hasSpecimen ?? new();
 
+			// 개척 최고 기록(TASK-WM-194) — 옛 세이브엔 필드 부재 → null 가드.
+			DataManager.TowerDefenseBestWave = saveData.towerDefenseBestWave ?? new();
+
 			// 작업 초기화
 			DataManager.WorkManager.Init(saveData.works);
 			CriteriaContext criteriaContext = DataManager.QuestManager.CreateCriteriaContext();
@@ -222,6 +229,7 @@ namespace WitchMendokusai
 				questStates = DataManager.QuestManager.GetQuestStates().ToDictionary(pair => pair.Key, pair => (int)pair.Value),
 				hasRecipe = DataManager.IsRecipeUnlocked,
 				hasSpecimen = DataManager.SpecimenCollected,
+				towerDefenseBestWave = DataManager.TowerDefenseBestWave,
 				runtimeQuests = DataManager.QuestManager.Quests.Data.Where(quest => quest.Type != QuestType.Dungeon).ToList().ConvertAll(quest => quest.Save()),
 				gameStats = DataManager.GameStat.Save(),
 				dungeons = new(),
