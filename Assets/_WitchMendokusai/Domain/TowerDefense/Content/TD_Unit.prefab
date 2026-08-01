@@ -293,7 +293,6 @@ GameObject:
   - component: {fileID: 2698429848422957465}
   - component: {fileID: 474718919459229735}
   - component: {fileID: 2466075245320264841}
-  - component: {fileID: 5773857774157563156}
   - component: {fileID: 6145952001887048631}
   - component: {fileID: 2380821924542722941}
   - component: {fileID: 2191848397948138320}
@@ -419,18 +418,6 @@ MonoBehaviour:
   jumpBufferTime: 0.12
   landingImpactMinFallSpeed: 1.2
   landingImpactMaxFallSpeed: 8
---- !u!114 &5773857774157563156
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7744303519080408061}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 040dd685ef626fa4bb47dbffe8e0f113, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &6145952001887048631
 MonoBehaviour:
   m_ObjectHideFlags: 0

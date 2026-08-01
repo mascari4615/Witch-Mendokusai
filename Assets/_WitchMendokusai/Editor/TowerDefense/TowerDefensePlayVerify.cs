@@ -39,7 +39,12 @@ namespace WitchMendokusai.EditorTools
 			EnterMode = 2,
 			WaitMatch = 3,
 			Place = 4,
-			Observe = 5,
+			PlaceDump = 9,
+			PlaceAfterRestartDump = 10,
+			Restart = 5,
+			RestartSettle = 6,
+			PlaceAfterRestart = 7,
+			Observe = 8,
 		}
 
 		private static Step step;
@@ -55,6 +60,7 @@ namespace WitchMendokusai.EditorTools
 		private static TowerDefensePhase lastPhase;
 		private static int lastResource;
 		private static int firstContactWave;
+		private static double restartAt;
 
 		static TowerDefensePlayVerify()
 		{
@@ -177,9 +183,66 @@ namespace WitchMendokusai.EditorTools
 					DoPlacements();
 					// 2차 덤프 — "진입 시엔 켜졌는데 이후 덮인다"를 잡으려면 시간 경과 후 한 번 더 봐야 한다.
 					DumpCameras("배치 후");
+					restartAt = now;
+					step = Step.PlaceDump;
+					return;
+
+				// 배치 스폰은 코루틴(1프레임 양보 후 Init/등록)이라 **같은 틱에 덤프하면 아무것도 안 보인다**
+				// (첫 시도에서 "수비 유닛 1기"만 찍혀 진단이 통째 유실됐다). 등록이 끝날 시간을 준다.
+				case Step.PlaceDump:
+					if (now - restartAt < 1.5)
+						return;
+					DumpPlacedUnits("최초 배치");
+					step = Step.Restart;
+					return;
+
+				case Step.PlaceAfterRestartDump:
+					if (now - restartAt < 1.5)
+						return;
+					DumpPlacedUnits("재시작 후 배치");
 					observeStart = now;
 					lastSample = now;
 					step = Step.Observe;
+					return;
+
+				// ★ 재시작은 풀 재사용이 처음으로 *실제로* 일어나는 지점이다 — 최초 매치는 늘 새 인스턴스라
+				//   초기화 누락이 드러나지 않는다. 사용자 실증("재시작하면 초기화가 덜 되고 위치도 이상")을
+				//   재현하려면 하네스가 반드시 이 사이클을 밟아야 한다.
+				case Step.Restart:
+					if (TowerDefenseModeController.TryGetExistingInstance(out TowerDefenseModeController restartController) == false)
+					{
+						Debug.LogError(TAG + " RESTART-FAIL controller 없음");
+						Finish();
+						return;
+					}
+					Debug.Log(TAG + " RESTART 요청 — 풀 재사용 경로 진입");
+					restartController.Restart();
+					restartAt = now;
+					step = Step.RestartSettle;
+					return;
+
+				case Step.RestartSettle:
+					// 재시작은 1프레임 양보 + 코어 스폰 코루틴을 거친다. 자원이 시작값으로 돌아오면 준비 완료.
+					if (now - restartAt < 2.0)
+						return;
+					if (match == null || match.Resource <= 0)
+					{
+						if (now - restartAt > 15.0)
+						{
+							Debug.LogError(TAG + " RESTART-FAIL 재시작 후 매치가 안 살아남 resource=" + (match != null ? match.Resource : -1));
+							Finish();
+						}
+						return;
+					}
+					Debug.Log(TAG + " RESTART-READY resource=" + match.Resource + " phase=" + match.Phase + " wave=" + match.WaveIndex);
+					step = Step.PlaceAfterRestart;
+					return;
+
+				case Step.PlaceAfterRestart:
+					DumpPlacedUnits("재시작 직후(배치 전)"); // 코어만 있어야 하고, 코어는 반드시 (0,0,0).
+					DoPlacements();
+					restartAt = now;
+					step = Step.PlaceAfterRestartDump;
 					return;
 
 				case Step.Observe:
@@ -470,6 +533,63 @@ namespace WitchMendokusai.EditorTools
 					+ " pos=" + enemy.transform.position
 					+ " driver=" + (enemy.GetComponent<TacticDriver>() != null));
 			}
+		}
+
+		/// <summary>
+		/// 배치된 수비 유닛의 **초기화 상태 전량** 덤프 — 재시작 후 풀에서 되뽑힌 개체가
+		/// 지난 판의 흔적(색·크기·애니메이터·드라이버·체력)을 뒤집어쓰지 않았는지 좌표와 함께 본다.
+		/// 사용자 실증: "재시작할 때 유닛 다시 설치하면 초기화가 덜 된 것 같고 배치 위치도 이상하다".
+		/// </summary>
+		private static void DumpPlacedUnits(string phase)
+		{
+			if (match == null)
+				return;
+
+			Transform stageRoot = FindStageRoot();
+			int index = 0;
+			foreach (ICombatant combatant in match.RegisteredCombatants)
+			{
+				if (combatant == null || combatant.TeamId != 0)
+					continue; // 수비측만(코어/포탑/채집).
+
+				ArenaCombatant arena = combatant as ArenaCombatant;
+				UnitObject unit = arena != null ? arena.UnitObject : null;
+				if (unit == null)
+					continue;
+
+				Vector3 world = unit.transform.position;
+				Vector3 local = stageRoot != null ? stageRoot.InverseTransformPoint(world) : world;
+
+				int animatorsEnabled = 0;
+				foreach (Animator animator in unit.GetComponentsInChildren<Animator>(true))
+				{
+					if (animator.enabled)
+						animatorsEnabled++;
+				}
+
+				int brainsEnabled = 0;
+				foreach (UnitBrain brain in unit.GetComponents<UnitBrain>())
+				{
+					if (brain.enabled)
+						brainsEnabled++;
+				}
+
+				SpriteRenderer sprite = unit.SpriteRenderer;
+				Debug.Log(TAG + " UNIT[" + phase + "][" + index + "] id=" + combatant.CombatantId
+					+ " hp=" + combatant.Hp + "/" + combatant.HpMax
+					+ " local=" + local
+					+ " scale=" + unit.transform.localScale.x.ToString("F2")
+					+ " color=" + (sprite != null ? sprite.color.ToString() : "no-sprite")
+					+ " sprite=" + (sprite != null && sprite.sprite != null ? sprite.sprite.name : "NULL")
+					+ " animOn=" + animatorsEnabled
+					+ " brainOn=" + brainsEnabled
+					+ " driver=" + (unit.GetComponent<TacticDriver>() != null)
+					+ " autoCast=" + (unit.SkillHandler != null ? unit.SkillHandler.AutoCastEnabled.ToString() : "no-handler")
+					+ " active=" + unit.gameObject.activeInHierarchy);
+				index++;
+			}
+
+			Debug.Log(TAG + " UNITS[" + phase + "] 수비 유닛 " + index + "기");
 		}
 
 		private static Vector2 WorldToScreen(Camera camera, Vector3 worldPosition)
