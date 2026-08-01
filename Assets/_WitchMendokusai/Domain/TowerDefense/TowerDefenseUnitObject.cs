@@ -23,7 +23,20 @@ namespace WitchMendokusai
 	/// </summary>
 	public class TowerDefenseUnitObject : UnitObject
 	{
+		[Header("_" + nameof(TowerDefenseUnitObject) + " — 체력 표시")]
+		[Tooltip("체력 가득할 때 색.")]
+		[SerializeField] private Color hpFullColor = new Color(0.42f, 0.92f, 0.55f, 1f);
+		[Tooltip("체력 절반쯤일 때 색.")]
+		[SerializeField] private Color hpMidColor = new Color(1f, 0.86f, 0.35f, 1f);
+		[Tooltip("체력 바닥일 때 색.")]
+		[SerializeField] private Color hpLowColor = new Color(1f, 0.34f, 0.32f, 1f);
+		[Tooltip("이 비율 아래부터 '절반쯤' 색으로.")]
+		[SerializeField, Range(0f, 1f)] private float hpMidThreshold = 0.6f;
+		[Tooltip("이 비율 아래부터 '바닥' 색으로.")]
+		[SerializeField, Range(0f, 1f)] private float hpLowThreshold = 0.3f;
+
 		private Transform hpBar;
+		private Transform hpBarFill;
 
 		[Inject]
 		public void Construct(PlayerProvider playerProvider, TimeManager timeManager,
@@ -60,12 +73,15 @@ namespace WitchMendokusai
 			Health.OnTakeDamage -= HandleDamaged;
 		}
 
-		// 프리팹의 HPBar 는 원래 MonsterObject 가 켜고 껐다 — 그 컴포넌트를 뺐으므로 관리 주체가
-		// 사라져 *항상 떠 있는 노이즈*가 됐다(실측). 여기서 다시 소유해 "다쳤을 때만" 보이게 한다.
+		// 프리팹의 HPBar 는 원래 MonsterObject 가 켜고 껐다 — 그 컴포넌트를 뺐으므로 여기서 다시 소유한다.
+		// 채워지는 막대(Sprite_HPBar)와 그 뒤판은 **별개 오브젝트**다. 예전엔 부모(HPBar)를 통째 줄여서
+		// 뒤판까지 같이 줄어들었고, 그러면 막대는 언제나 "가득 찬 것처럼" 보인다 — 체력이 안 읽히던 원인.
 		private void EnsureHpBar()
 		{
 			if (hpBar == null)
 				hpBar = transform.Find("Mesh/Pivot/Scaler/HPBar") ?? FindChildByName(transform, "HPBar");
+			if (hpBarFill == null && hpBar != null)
+				hpBarFill = FindChildByName(hpBar, "Sprite_HPBar");
 		}
 
 		private static Transform FindChildByName(Transform root, string childName)
@@ -80,6 +96,11 @@ namespace WitchMendokusai
 
 		private void HandleDamaged(DamageInfo damageInfo) => UpdateHpBar();
 
+		/// <summary>
+		/// 체력 표시 갱신 — 개척에서는 **항상 보인다**(사용자 실증: "건물 별 체력 상황을 모르겠음").
+		/// 다쳤을 때만 뜨는 방식은 던전에서는 맞지만, 어느 방어선이 무너지는 중인지 한눈에 봐야 하는
+		/// 타워디펜스에서는 정보가 필요할 때 이미 늦다. 색도 같이 바뀌어 멀리서도 위급함이 읽힌다.
+		/// </summary>
 		private void UpdateHpBar()
 		{
 			EnsureHpBar();
@@ -88,11 +109,26 @@ namespace WitchMendokusai
 
 			int max = UnitStat[UnitStatType.HP_MAX];
 			int cur = UnitStat[UnitStatType.HP_CUR];
-			bool damaged = max > 0 && cur < max;
+			if (max <= 0)
+			{
+				hpBar.gameObject.SetActive(false);
+				return;
+			}
 
-			hpBar.gameObject.SetActive(damaged);
-			if (damaged)
-				hpBar.localScale = new Vector3((float)cur / max, 1f, 1f);
+			hpBar.gameObject.SetActive(true);
+
+			float ratio = Mathf.Clamp01((float)cur / max);
+			// 뒤판은 그대로 두고 채워지는 막대만 줄인다 — 둘 다 줄면 항상 가득 찬 것처럼 보인다.
+			Transform fill = hpBarFill != null ? hpBarFill : hpBar;
+			fill.localScale = new Vector3(ratio, 1f, 1f);
+
+			SpriteRenderer fillRenderer = fill.GetComponent<SpriteRenderer>();
+			if (fillRenderer != null)
+			{
+				fillRenderer.color = ratio <= hpLowThreshold ? hpLowColor
+					: ratio <= hpMidThreshold ? hpMidColor
+					: hpFullColor;
+			}
 		}
 
 		// 사망 = 비활성만. 전리품·경험치·킬 카운트 같은 던전 의미론은 개척에 없다

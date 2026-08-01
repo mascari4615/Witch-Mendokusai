@@ -26,6 +26,7 @@ MonoBehaviour:
     IncomePerHarvester: 25
     FirstWaveEnemyCount: 3
     EnemyCountGrowth: 2
+  <AutoAdvanceWavesDefault>k__BackingField: 1
   <CoreUnit>k__BackingField: {fileID: 11400000, guid: a194010000000000000000000000d004, type: 2}
   <EnemyUnit>k__BackingField: {fileID: 11400000, guid: a194010000000000000000000000d006, type: 2}
   <TowerUnit>k__BackingField: {fileID: 11400000, guid: a194010000000000000000000000d003, type: 2}
@@ -100,7 +101,7 @@ MonoBehaviour:
   <CameraMinHeight>k__BackingField: 10
   <CameraMaxHeight>k__BackingField: 55
   <CameraInitialHeight>k__BackingField: 30
-  <CameraZoomSpeed>k__BackingField: 0.06
+  <CameraZoomSpeed>k__BackingField: 6
   <CorePosition>k__BackingField: {x: 0, y: 0, z: 0}
   <EnemySpawnPoints>k__BackingField:
   - {x: -12, y: 0, z: 15}

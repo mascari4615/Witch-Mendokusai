@@ -15,6 +15,9 @@ namespace WitchMendokusai
 		[field: Tooltip("진행·경제 규칙 수치(웨이브 수/준비시간/자원/수입 등).")]
 		[field: SerializeField] public TowerDefenseRules Rules { get; private set; }
 
+		[field: Tooltip("웨이브 자동 진행 기본값 — 켜짐이면 건설 시간이 다하면 알아서 몰려온다. 플레이 중 화면에서 바꿀 수 있다.")]
+		[field: SerializeField] public bool AutoAdvanceWavesDefault { get; private set; } = true;
+
 		[field: Header("유닛 구성")]
 		[field: Tooltip("수비 코어(기지) 유닛 데이터 — 파괴되면 즉시 패배.")]
 		[field: SerializeField] public Unit CoreUnit { get; private set; }
@@ -97,8 +100,8 @@ namespace WitchMendokusai
 		[field: Tooltip("진입·재시작 시 되돌아갈 시작 높이.")]
 		[field: SerializeField, Min(1f)] public float CameraInitialHeight { get; private set; } = 30f;
 
-		[field: Tooltip("스크롤 1단위당 높이 변화량. 휠 1클릭 델타가 ±120 수준이라 값이 작다.")]
-		[field: SerializeField, Min(0.001f)] public float CameraZoomSpeed { get; private set; } = 0.06f;
+		[field: Tooltip("휠 **한 칸당** 높이 변화량. 플랫폼별 raw 델타 차이는 리그가 흡수한다.")]
+		[field: SerializeField, Min(0.1f)] public float CameraZoomSpeed { get; private set; } = 6f;
 
 		[field: Header("레이아웃")]
 		[field: Tooltip("코어(기지) 배치 위치 — 스테이지 root 로컬 좌표.")]

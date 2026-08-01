@@ -24,7 +24,7 @@ namespace WitchMendokusai
 			public float FixedPitch;  // 내려다보는 고정 각도 (deg, + = 아래)
 			public float MinHeight;   // 포커스로부터 거리 하한 (가까이 = 확대)
 			public float MaxHeight;   // 상한 (멀리 = 축소)
-			public float ZoomSpeed;   // 스크롤 1단위당 높이 변화량
+			public float ZoomSpeed;   // 휠 **한 칸당** 높이 변화량 (raw 델타당 아님 — ToNotches 참조)
 
 			// 포커스 가둠 — 개척처럼 무대가 유한한 곳에서 화면 밖으로 무대를 잃어버리는 것 방지.
 			public bool ClampFocus;
@@ -80,9 +80,24 @@ namespace WitchMendokusai
 			Yaw += input.Rotate * settings.YawSpeed * deltaTime;
 
 			// 휠 = 높이(=줌). 가까이 = 확대이므로 스크롤 + 에 높이가 줄어야 한다.
-			Height = Mathf.Clamp(Height - input.ScrollDelta * settings.ZoomSpeed, settings.MinHeight, settings.MaxHeight);
+			Height = Mathf.Clamp(Height - ToNotches(input.ScrollDelta) * settings.ZoomSpeed, settings.MinHeight, settings.MaxHeight);
 
 			Apply(settings, target);
+		}
+
+		/// <summary>
+		/// 휠 raw 델타 → **칸 수**. 이 정규화가 없으면 줌 속도가 플랫폼에 휘둘린다:
+		/// 같은 한 칸이 OS·드라이버·입력 백엔드에 따라 ±120 로도 ±1 로도 들어온다.
+		/// 수치(ZoomSpeed)를 ±120 기준으로 맞추면 ±1 인 환경에서 **찔끔찔끔 움직이고**(실증),
+		/// 반대로 맞추면 다른 환경에서 한 칸에 화면이 날아간다. 그래서 수치는 "한 칸당 높이"로
+		/// 고정하고, 들어온 값이 어느 규약인지를 여기서 판별해 흡수한다.
+		/// </summary>
+		private static float ToNotches(float rawDelta)
+		{
+			const float PLATFORM_NOTCH = 120f; // 윈도우 WHEEL_DELTA 관례.
+			const float RAW_UNIT_THRESHOLD = 1.5f; // 이보다 크면 raw 규약, 작으면 이미 칸 단위.
+
+			return Mathf.Abs(rawDelta) > RAW_UNIT_THRESHOLD ? rawDelta / PLATFORM_NOTCH : rawDelta;
 		}
 
 		/// <summary> 입력 없이 현재 상태만 transform 에 반영 — Reset 직후 첫 프레임 튐 방지. </summary>

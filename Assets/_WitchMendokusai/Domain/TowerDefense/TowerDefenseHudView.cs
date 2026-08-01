@@ -30,6 +30,8 @@ namespace WitchMendokusai
 		private readonly Label bannerLabel;
 		private readonly VisualElement legendPanel;
 		private readonly VisualElement hotbarPanel;
+		private readonly Button waveModeButton;
+		private readonly Button nextWaveButton;
 		private readonly System.Collections.Generic.List<VisualElement> hotbarSlots = new();
 
 		// 본편 UI 복원용 — 숨기기 전 값을 보관(무조건 되돌리면 원래 숨김 상태였던 경우를 깨뜨린다).
@@ -43,6 +45,12 @@ namespace WitchMendokusai
 		/// 재시작은 *자주 안 쓰지만 반드시 보여야 하는* 기능이라 숨은 키보다 보이는 버튼이 맞다.
 		/// </summary>
 		public event System.Action RestartRequested = delegate { };
+
+		/// <summary> 웨이브 진행 방식(자동↔수동) 전환 요청. </summary>
+		public event System.Action WaveModeToggleRequested = delegate { };
+
+		/// <summary> 다음 웨이브 호출 요청 — 수동 진행의 진행 버튼이자, 자동에서도 "지금 와라". </summary>
+		public event System.Action NextWaveRequested = delegate { };
 
 		public TowerDefenseHudView(UIRoot uiRoot)
 		{
@@ -58,6 +66,7 @@ namespace WitchMendokusai
 			container.pickingMode = PickingMode.Ignore;
 
 			container.Add(BuildStatPanel(out resourceValue, out waveValue, out phaseValue));
+			container.Add(BuildWaveControlPanel(out waveModeButton, out nextWaveButton));
 			legendPanel = BuildLegendPanel();
 			container.Add(legendPanel);
 			hotbarPanel = BuildHotbar();
@@ -146,6 +155,29 @@ namespace WitchMendokusai
 		}
 
 		/// <summary>
+		/// 웨이브 진행 조작 — 스탯 패널 바로 아래. 「자동/수동」 전환과 「다음 웨이브」 호출.
+		/// 자동만 있으면 준비할 시간을 시계가 뺏고, 수동만 있으면 리듬이 사라진다. 둘을 화면에서 바로 바꾼다.
+		/// </summary>
+		private VisualElement BuildWaveControlPanel(out Button modeButton, out Button callButton)
+		{
+			VisualElement panel = new VisualElement { name = "WaveControlPanel" };
+			panel.style.position = Position.Absolute;
+			panel.style.left = 24;
+			panel.style.top = 126;
+			panel.style.flexDirection = FlexDirection.Row;
+			panel.pickingMode = PickingMode.Ignore;
+
+			modeButton = MakeActionButton(string.Empty, fontSize: 12, () => WaveModeToggleRequested());
+			modeButton.style.marginRight = 6;
+
+			callButton = MakeActionButton("다음 웨이브 ▶", fontSize: 12, () => NextWaveRequested());
+
+			panel.Add(modeButton);
+			panel.Add(callButton);
+			return panel;
+		}
+
+		/// <summary>
 		/// 우상단 「처음부터」 — 항상 보이는 재시작. 패배 배너를 기다리지 않아도 언제든 판을 버릴 수 있어야
 		/// 시행착오가 빨라진다(작은 사이클을 반복해 다듬는 개발 방향과 정합).
 		/// </summary>
@@ -157,14 +189,14 @@ namespace WitchMendokusai
 			wrapper.style.top = 24;
 			wrapper.pickingMode = PickingMode.Ignore;
 
-			wrapper.Add(MakeRestartButton("처음부터", fontSize: 13));
+			wrapper.Add(MakeActionButton("처음부터", fontSize: 13, () => RestartRequested()));
 			return wrapper;
 		}
 
 		// 버튼은 반드시 pickingMode = Position — 부모들이 Ignore 라 눌리는 건 이 요소뿐이다.
-		private Button MakeRestartButton(string text, int fontSize)
+		private static Button MakeActionButton(string text, int fontSize, System.Action onClick)
 		{
-			Button button = new Button(() => RestartRequested()) { text = text };
+			Button button = new Button(() => onClick()) { text = text };
 			button.style.fontSize = fontSize;
 			button.style.color = new Color(0.94f, 0.96f, 1f, 1f);
 			button.style.backgroundColor = new Color(0.10f, 0.12f, 0.18f, 0.88f);
@@ -214,7 +246,7 @@ namespace WitchMendokusai
 			banner.pickingMode = PickingMode.Ignore;
 
 			// 끝났는데 다음 행동이 화면에 없으면 게임이 아니라 정지 화면이 된다 — 배너 바로 아래 재시작.
-			restartButton = MakeRestartButton("다시 도전", fontSize: 18);
+			restartButton = MakeActionButton("다시 도전", fontSize: 18, () => RestartRequested());
 			restartButton.style.marginTop = 14;
 
 			wrapper.Add(banner);
@@ -233,7 +265,7 @@ namespace WitchMendokusai
 			VisualElement panel = new VisualElement { name = "LegendPanel" };
 			panel.style.position = Position.Absolute;
 			panel.style.left = 24;
-			panel.style.top = 130;
+			panel.style.top = 176;
 			panel.style.paddingLeft = 12;
 			panel.style.paddingRight = 16;
 			panel.style.paddingTop = 8;
@@ -496,12 +528,21 @@ namespace WitchMendokusai
 				? (match.WaveIndex + 1).ToString()
 				: (match.WaveIndex + 1) + " / " + stage.Rules.WaveCount;
 
+			bool preparing = match.Phase == TowerDefensePhase.Prepare;
+
 			phaseValue.text = match.Phase switch
 			{
+				// 수동 진행은 남은 시간이 없다 — 시계를 보여주면 곧 시작될 것처럼 읽혀 거짓말이 된다.
+				TowerDefensePhase.Prepare when match.AutoAdvanceWaves == false =>
+					match.IsNextWaveRequested ? "호출됨" : "건설 중 (대기)",
 				TowerDefensePhase.Prepare => "건설 " + Mathf.CeilToInt(match.PrepareRemaining) + "초",
 				TowerDefensePhase.Assault => "방어 중",
 				_ => "종료",
 			};
+
+			waveModeButton.text = match.AutoAdvanceWaves ? "진행: 자동" : "진행: 수동";
+			// 건설 국면에서만 부를 수 있다 — 못 누르는 버튼을 멀쩡해 보이게 두면 눌러보고 아무 일도 안 난다.
+			nextWaveButton.SetEnabled(preparing && match.Outcome == TowerDefenseOutcome.InProgress);
 		}
 
 		/// <summary> 매치 종료 배너. 무한 모드 패배 = 버틴 웨이브 수가 곧 점수. </summary>

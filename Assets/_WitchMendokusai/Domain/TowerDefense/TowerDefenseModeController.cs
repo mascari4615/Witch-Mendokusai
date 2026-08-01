@@ -142,6 +142,20 @@ namespace WitchMendokusai
 			FocusLimit = stage.CameraPanLimit,
 		};
 
+		/// <summary> 웨이브 진행 방식 전환(자동↔수동) — 진행 중인 매치에 즉시 반영된다. </summary>
+		private void ToggleWaveMode()
+		{
+			placement.SuppressNextClick(); // 버튼 클릭이 배치로 새는 것 차단.
+			match.AutoAdvanceWaves = match.AutoAdvanceWaves == false;
+		}
+
+		/// <summary> 다음 웨이브 호출 — 수동 진행의 진행 수단이자, 자동에서도 남은 건설 시간을 건너뛴다. </summary>
+		private void CallNextWave()
+		{
+			placement.SuppressNextClick();
+			match.RequestNextWave();
+		}
+
 		/// <summary> 시점을 시작 상태로 — 진입 + 재시작 단일 경로(재시작인데 시점만 남으면 리셋이 거짓말). </summary>
 		private void ResetCamera()
 		{
@@ -232,6 +246,8 @@ namespace WitchMendokusai
 					view.SetSelectedKind(placement.SelectedKind);
 					placement.SelectionChanged += view.SetSelectedKind;
 					view.RestartRequested += Restart;
+					view.WaveModeToggleRequested += ToggleWaveMode;
+					view.NextWaveRequested += CallNextWave;
 				}
 			}
 			else
@@ -243,6 +259,8 @@ namespace WitchMendokusai
 				{
 					placement.SelectionChanged -= hud.SetSelectedKind;
 					hud.RestartRequested -= Restart;
+					hud.WaveModeToggleRequested -= ToggleWaveMode;
+					hud.NextWaveRequested -= CallNextWave;
 				}
 				placement.Deactivate();
 				hud?.Hide();

@@ -19,6 +19,20 @@ namespace WitchMendokusai
 
 		private float prepareRemaining;
 		private bool waveSpawnConfirmed;
+		private bool nextWaveRequested;
+
+		/// <summary>
+		/// 건설 국면이 시간으로 자동 종료되는가(자동 진행) — false 면 <see cref="RequestNextWave"/> 를
+		/// 받을 때까지 무한정 기다린다(수동 진행).
+		///
+		/// 두 방식은 성격이 다른 재미다: 자동은 압박·리듬, 수동은 「완벽히 준비하고 부른다」는 계획.
+		/// 어느 하나만 두면 다른 쪽 플레이가 아예 불가능해지므로 규칙 층에서 갈라 놓는다
+		/// (사용자 지시: "자동 진행이랑, 수동 진행 설정 가능하면 좋겠음").
+		/// </summary>
+		public bool AutoAdvance { get; set; } = true;
+
+		/// <summary> 수동 진행에서 다음 웨이브가 예약됐는지 — HUD 가 「호출됨」 표시에 쓴다. </summary>
+		public bool IsNextWaveRequested => nextWaveRequested;
 
 		public TowerDefensePhase Phase { get; private set; } = TowerDefensePhase.Prepare;
 		public TowerDefenseOutcome Outcome { get; private set; } = TowerDefenseOutcome.InProgress;
@@ -58,11 +72,17 @@ namespace WitchMendokusai
 
 			if (Phase == TowerDefensePhase.Prepare)
 			{
-				prepareRemaining -= deltaSeconds;
-				if (prepareRemaining > 0f)
+				if (AutoAdvance)
+					prepareRemaining -= deltaSeconds;
+
+				// 호출(RequestNextWave)은 두 방식 모두에서 즉시 시작 — 자동에서도 "준비 끝났으니 지금 와라"가
+				// 가능해야 기다리는 시간이 벌칙이 되지 않는다.
+				bool timeUp = AutoAdvance && prepareRemaining <= 0f;
+				if (timeUp == false && nextWaveRequested == false)
 					return TowerDefenseSignal.None;
 
 				prepareRemaining = 0f;
+				nextWaveRequested = false;
 				Phase = TowerDefensePhase.Assault;
 				waveSpawnConfirmed = false;
 				return TowerDefenseSignal.WaveStarted;
@@ -91,6 +111,19 @@ namespace WitchMendokusai
 			}
 
 			return TowerDefenseSignal.None;
+		}
+
+		/// <summary>
+		/// 다음 웨이브 호출 — 건설 국면에서만 성립. 진행 중이 아니거나 이미 교전 중이면 false(상태 무변경).
+		/// 실제 전이는 다음 Tick 에서 일어난다(전이 지점을 Tick 한 곳으로 유지 — 신호가 두 경로로 새지 않게).
+		/// </summary>
+		public bool RequestNextWave()
+		{
+			if (Outcome != TowerDefenseOutcome.InProgress || Phase != TowerDefensePhase.Prepare)
+				return false;
+
+			nextWaveRequested = true;
+			return true;
 		}
 
 		/// <summary> 셸이 WaveStarted 를 받아 적을 실제 스폰한 뒤 호출. 이 호출 전에는 웨이브가 클리어되지 않는다. </summary>

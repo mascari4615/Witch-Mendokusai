@@ -50,6 +50,28 @@ namespace WitchMendokusai
 
 		public event Action<TowerDefenseOutcome> MatchEnded = delegate { };
 
+		// 웨이브 자동 진행 여부 — 플레이 중 토글되므로 코어(진행 중)와 필드(다음 매치)를 함께 갱신한다.
+		// 재시작해도 방금 고른 방식이 유지돼야 한다(설정을 매번 다시 고르게 만들지 않는다).
+		private bool autoAdvanceWaves = true;
+		private bool waveModeInitialized;
+
+		public bool AutoAdvanceWaves
+		{
+			get => autoAdvanceWaves;
+			set
+			{
+				autoAdvanceWaves = value;
+				if (core != null)
+					core.AutoAdvance = value;
+			}
+		}
+
+		/// <summary> 다음 웨이브 호출(수동 진행 / 자동에서도 즉시 시작). 건설 국면이 아니면 false. </summary>
+		public bool RequestNextWave() => core != null && core.RequestNextWave();
+
+		/// <summary> 수동 진행에서 호출이 예약된 상태인지 — HUD 표시용. </summary>
+		public bool IsNextWaveRequested => core != null && core.IsNextWaveRequested;
+
 		public int Resource => core != null ? core.Resource : 0;
 		public int WaveIndex => core != null ? core.WaveIndex : 0;
 		public TowerDefensePhase Phase => core != null ? core.Phase : TowerDefensePhase.Prepare;
@@ -61,6 +83,14 @@ namespace WitchMendokusai
 		{
 			stage = stageConfig;
 			stageRoot = root;
+
+			// 진행 방식 기본값은 스테이지가 정하지만, 플레이어가 한 번 고르면 그 선택이 재시작을 넘어 유지된다.
+			if (waveModeInitialized == false && stage != null)
+			{
+				autoAdvanceWaves = stage.AutoAdvanceWavesDefault;
+				waveModeInitialized = true;
+			}
+
 			Begin();
 		}
 
@@ -101,7 +131,7 @@ namespace WitchMendokusai
 			BuildGround();
 
 			targeting = new TargetingSystem();
-			core = new TowerDefenseCore(stage.Rules);
+			core = new TowerDefenseCore(stage.Rules) { AutoAdvance = autoAdvanceWaves };
 			nextCombatantId = 0;
 			matchEndedFired = false;
 			claimedNodes.Clear(); // 재진입 — 지난 매치의 노드 점유가 새 매치로 새는 것 방지.
