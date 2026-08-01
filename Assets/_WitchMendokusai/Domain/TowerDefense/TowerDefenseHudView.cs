@@ -37,6 +37,13 @@ namespace WitchMendokusai
 		private DisplayStyle baseWindowsPreviousDisplay = DisplayStyle.Flex;
 		private readonly System.Collections.Generic.List<Canvas> hiddenCanvases = new();
 
+		/// <summary>
+		/// 「처음부터 다시」 요청 — 소유 컨트롤러가 구독해 매치를 새로 시작한다.
+		/// 키가 아니라 화면 버튼인 이유: 새 조작키는 입력 정의 3곳을 동시에 늘려야 하는데,
+		/// 재시작은 *자주 안 쓰지만 반드시 보여야 하는* 기능이라 숨은 키보다 보이는 버튼이 맞다.
+		/// </summary>
+		public event System.Action RestartRequested = delegate { };
+
 		public TowerDefenseHudView(UIRoot uiRoot)
 		{
 			this.uiRoot = uiRoot;
@@ -56,7 +63,8 @@ namespace WitchMendokusai
 			hotbarPanel = BuildHotbar();
 			container.Add(hotbarPanel);
 			container.Add(BuildHintBar(out hintLabel));
-			container.Add(BuildBanner(out bannerLabel));
+			container.Add(BuildBanner(out bannerLabel, out _));
+			container.Add(BuildCornerRestartButton());
 
 			// 본편 HUD(HudLayer)를 숨겨도 개척 HUD 는 살아있어야 하므로 한 단 위 레이어에 붙인다.
 			uiRoot.OverlayLayer.Add(container);
@@ -137,7 +145,53 @@ namespace WitchMendokusai
 			return wrapper;
 		}
 
-		private static VisualElement BuildBanner(out Label banner)
+		/// <summary>
+		/// 우상단 「처음부터」 — 항상 보이는 재시작. 패배 배너를 기다리지 않아도 언제든 판을 버릴 수 있어야
+		/// 시행착오가 빨라진다(작은 사이클을 반복해 다듬는 개발 방향과 정합).
+		/// </summary>
+		private VisualElement BuildCornerRestartButton()
+		{
+			VisualElement wrapper = new VisualElement();
+			wrapper.style.position = Position.Absolute;
+			wrapper.style.right = 24;
+			wrapper.style.top = 24;
+			wrapper.pickingMode = PickingMode.Ignore;
+
+			wrapper.Add(MakeRestartButton("처음부터", fontSize: 13));
+			return wrapper;
+		}
+
+		// 버튼은 반드시 pickingMode = Position — 부모들이 Ignore 라 눌리는 건 이 요소뿐이다.
+		private Button MakeRestartButton(string text, int fontSize)
+		{
+			Button button = new Button(() => RestartRequested()) { text = text };
+			button.style.fontSize = fontSize;
+			button.style.color = new Color(0.94f, 0.96f, 1f, 1f);
+			button.style.backgroundColor = new Color(0.10f, 0.12f, 0.18f, 0.88f);
+			button.style.paddingLeft = 14;
+			button.style.paddingRight = 14;
+			button.style.paddingTop = 7;
+			button.style.paddingBottom = 7;
+			button.style.marginLeft = 0;
+			button.style.marginRight = 0;
+			button.style.borderTopLeftRadius = 5;
+			button.style.borderTopRightRadius = 5;
+			button.style.borderBottomLeftRadius = 5;
+			button.style.borderBottomRightRadius = 5;
+			button.style.borderLeftWidth = 1;
+			button.style.borderRightWidth = 1;
+			button.style.borderTopWidth = 1;
+			button.style.borderBottomWidth = 1;
+			Color border = new Color(1f, 1f, 1f, 0.22f);
+			button.style.borderLeftColor = border;
+			button.style.borderRightColor = border;
+			button.style.borderTopColor = border;
+			button.style.borderBottomColor = border;
+			button.pickingMode = PickingMode.Position;
+			return button;
+		}
+
+		private VisualElement BuildBanner(out Label banner, out Button restartButton)
 		{
 			VisualElement wrapper = new VisualElement();
 			wrapper.style.position = Position.Absolute;
@@ -159,7 +213,12 @@ namespace WitchMendokusai
 			banner.style.paddingBottom = 12;
 			banner.pickingMode = PickingMode.Ignore;
 
+			// 끝났는데 다음 행동이 화면에 없으면 게임이 아니라 정지 화면이 된다 — 배너 바로 아래 재시작.
+			restartButton = MakeRestartButton("다시 도전", fontSize: 18);
+			restartButton.style.marginTop = 14;
+
 			wrapper.Add(banner);
+			wrapper.Add(restartButton);
 			return wrapper;
 		}
 
@@ -343,15 +402,24 @@ namespace WitchMendokusai
 		public void Show(TowerDefenseStageSO stage)
 		{
 			HideBaseGameUI();
+			container.style.display = DisplayStyle.Flex;
+			ResetForNewMatch(stage);
+		}
 
+		/// <summary>
+		/// 새 판 상태로 되돌린다 — 배너 숨김 + 범례/핫바 재구성 + 힌트 복원.
+		/// ⚠ 재시작 때 <see cref="Show"/> 를 부르면 안 된다: HideBaseGameUI 가 *이미 숨겨진* 본편 UI 를
+		/// 다시 훑어 복원 목록이 빈 채로 덮여, 개척을 나갈 때 본편 UI 가 영영 안 돌아온다.
+		/// </summary>
+		public void ResetForNewMatch(TowerDefenseStageSO stage)
+		{
 			FillLegend(stage);
 			FillHotbar(stage);
-			container.style.display = DisplayStyle.Flex;
 			SetBannerVisible(false);
 
 			hintLabel.text = stage == null
 				? string.Empty
-				: "숫자키 1·2 로 고르고, 좌클릭으로 설치   ·   WASD 시점 이동   ·   X 나가기";
+				: "숫자키 1·2 로 고르고, 좌클릭으로 설치   ·   WASD 시점 이동   ·   휠 확대·축소   ·   X 나가기";
 		}
 
 		public void Hide()

@@ -93,6 +93,14 @@ MonoBehaviour:
   <HarvesterScale>k__BackingField: 1
   <EnemyScale>k__BackingField: 1
   <GroundCellSize>k__BackingField: 1
+  <CameraPanSpeed>k__BackingField: 24
+  <CameraPanLimit>k__BackingField: 26
+  <CameraYawSpeed>k__BackingField: 90
+  <CameraPitch>k__BackingField: 60
+  <CameraMinHeight>k__BackingField: 10
+  <CameraMaxHeight>k__BackingField: 55
+  <CameraInitialHeight>k__BackingField: 30
+  <CameraZoomSpeed>k__BackingField: 0.06
   <CorePosition>k__BackingField: {x: 0, y: 0, z: 0}
   <EnemySpawnPoints>k__BackingField:
   - {x: -12, y: 0, z: 15}

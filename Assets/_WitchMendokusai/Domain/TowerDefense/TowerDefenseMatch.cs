@@ -202,6 +202,9 @@ namespace WitchMendokusai
 			if (unitObject == null)
 				return;
 
+			// 손대기 전 원본 스냅샷 — 반납 시 그대로 되돌린다(다시 시작해도 지난 매치 흔적 0).
+			AcquireLease(unitObject);
+
 			foreach (Animator animator in unitObject.GetComponentsInChildren<Animator>(true))
 				animator.enabled = false;
 
@@ -209,6 +212,32 @@ namespace WitchMendokusai
 				unitObject.SpriteRenderer.color = tint;
 
 			unitObject.transform.localScale = Vector3.one * scale;
+		}
+
+		/// <summary> 대여 계약 부착 + 원본 스냅샷 — 멱등(이미 붙어 있으면 재사용, 스냅샷은 최초 1회만). </summary>
+		private static void AcquireLease(UnitObject unitObject)
+		{
+			TowerDefenseUnitLease lease = unitObject.GetComponent<TowerDefenseUnitLease>();
+			if (lease == null)
+				lease = unitObject.gameObject.AddComponent<TowerDefenseUnitLease>();
+			lease.Acquire(unitObject);
+		}
+
+		/// <summary>
+		/// 풀 반납 단일 경로 — 반납 *전에* 원상복구(<see cref="TowerDefenseUnitLease.Release"/>).
+		/// 이걸 거치지 않고 Despawn 하면 다음 매치가 지난 매치의 색·크기·정지된 애니메이터·역할 드라이버를
+		/// 그대로 물려받는다(코어/포탑/채집/마수가 같은 프리팹 = 같은 풀이라 역할까지 섞인다).
+		/// </summary>
+		private static void ReleaseUnit(ObjectPoolManager targetPool, GameObject unit)
+		{
+			if (unit == null)
+				return;
+
+			TowerDefenseUnitLease lease = unit.GetComponent<TowerDefenseUnitLease>();
+			if (lease != null)
+				lease.Release(unit.GetComponent<UnitObject>());
+
+			targetPool.Despawn(unit);
 		}
 
 		/// <summary>
@@ -679,10 +708,7 @@ namespace WitchMendokusai
 			if (ObjectPoolManager.TryGetExistingInstance(out ObjectPoolManager existingPool))
 			{
 				foreach (GameObject unit in spawnedUnits)
-				{
-					if (unit != null)
-						existingPool.Despawn(unit);
-				}
+					ReleaseUnit(existingPool, unit);
 			}
 			spawnedUnits.Clear();
 

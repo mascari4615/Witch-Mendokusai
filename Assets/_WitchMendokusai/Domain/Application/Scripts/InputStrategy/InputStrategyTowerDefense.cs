@@ -36,26 +36,10 @@ namespace WitchMendokusai
 			{
 				_inputRegisterDataList ??= new List<InputRegisterData>()
 					{
-						#region Camera (Arena 와 동일 세트 — 관전/개척 공통 카메라 조작)
-						new(
-							InputEventType.Scroll,
-							InputEventResponseType.Performed,
-							() => CameraManager.Instance.Zoom(),
-							() => CanExecute(InputEventType.Scroll)
-						),
-						new(
-							InputEventType.CameraControlModeToggle,
-							InputEventResponseType.Performed,
-							() => CameraManager.Instance.ToggleControlMode(),
-							() => CanExecute(InputEventType.CameraControlModeToggle)
-						),
-						new(
-							InputEventType.CameraPerspectiveToggle,
-							InputEventResponseType.Performed,
-							() => CameraManager.Instance.TogglePerspective(),
-							() => CanExecute(InputEventType.CameraPerspectiveToggle)
-						),
-						#endregion
+						// 카메라 이벤트(Scroll→CameraManager.Zoom / 시점·투영 토글) = 의도적 미등록.
+						// 개척은 자기 부감 카메라(OverheadCameraRig)를 직접 구동한다 — CameraManager 의
+						// 플레이어 추종 리그에 줌을 걸면 화면엔 아무 변화가 없으면서 *본편 카메라 상태만*
+						// 조용히 바뀌어 개척을 나간 뒤에 드러난다. 휠 줌은 ScrollWheel 축으로 리그가 직접 읽는다.
 
 						#region Placement (BuildManager.ApplyMode 동형 — Get 단위 폴 + 쿨다운/UI 가드는 콜백 내부)
 						// PlacementInputMode.SingleClick — Get(매 프레임 폴)이면 버튼을 누르고 있는 동안
@@ -116,9 +100,6 @@ namespace WitchMendokusai
 
 		protected override Dictionary<InputEventType, GameConditionType[]> EventReturnConditions => new()
 		{
-			{ InputEventType.Scroll, new[] { GameConditionType.IsTyping } },
-			{ InputEventType.CameraControlModeToggle, new[] { GameConditionType.IsPaused, GameConditionType.IsTyping } },
-			{ InputEventType.CameraPerspectiveToggle, new[] { GameConditionType.IsPaused, GameConditionType.IsTyping } },
 			{
 				InputEventType.Click0,
 				new[] { GameConditionType.IsMouseOnUI, GameConditionType.IsTyping, GameConditionType.IsPaused }

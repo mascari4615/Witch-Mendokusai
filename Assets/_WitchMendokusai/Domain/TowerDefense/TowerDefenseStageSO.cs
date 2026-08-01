@@ -82,6 +82,24 @@ namespace WitchMendokusai
 		[field: Tooltip("카메라가 스테이지 중심에서 벗어날 수 있는 최대 거리 — 개척지를 잃어버리지 않게 가둔다.")]
 		[field: SerializeField, Min(1f)] public float CameraPanLimit { get; private set; } = 26f;
 
+		[field: Tooltip("좌우 회전 속도(Q/E) — 도시 부감 카메라와 같은 축.")]
+		[field: SerializeField, Min(0f)] public float CameraYawSpeed { get; private set; } = 90f;
+
+		[field: Tooltip("내려다보는 고정 각도(deg, + = 아래).")]
+		[field: SerializeField, Range(20f, 89f)] public float CameraPitch { get; private set; } = 60f;
+
+		[field: Tooltip("휠 줌 하한 높이 — 가까이 = 확대.")]
+		[field: SerializeField, Min(1f)] public float CameraMinHeight { get; private set; } = 10f;
+
+		[field: Tooltip("휠 줌 상한 높이 — 멀리 = 축소.")]
+		[field: SerializeField, Min(1f)] public float CameraMaxHeight { get; private set; } = 55f;
+
+		[field: Tooltip("진입·재시작 시 되돌아갈 시작 높이.")]
+		[field: SerializeField, Min(1f)] public float CameraInitialHeight { get; private set; } = 30f;
+
+		[field: Tooltip("스크롤 1단위당 높이 변화량. 휠 1클릭 델타가 ±120 수준이라 값이 작다.")]
+		[field: SerializeField, Min(0.001f)] public float CameraZoomSpeed { get; private set; } = 0.06f;
+
 		[field: Header("레이아웃")]
 		[field: Tooltip("코어(기지) 배치 위치 — 스테이지 root 로컬 좌표.")]
 		[field: SerializeField] public Vector3 CorePosition { get; private set; }

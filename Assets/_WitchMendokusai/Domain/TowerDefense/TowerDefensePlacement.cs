@@ -53,9 +53,26 @@ namespace WitchMendokusai
 			SelectionChanged(kind);
 		}
 
+		// HUD 버튼(다시 시작 등)을 누른 클릭이 그대로 배치로도 처리되는 것을 막는 1회용 소거.
+		// UI Toolkit 위 클릭이 EventSystem 의 「UI 위인가」 판정에 항상 잡히지는 않기 때문에
+		// 버튼 쪽에서 명시적으로 한 번 삼켜준다(안 그러면 버튼 아래 지면에 유닛이 서고 자원이 빠진다).
+		private bool suppressNextPlacement;
+
+		/// <summary> 다음 배치 클릭 1회를 무시 — HUD 버튼 핸들러가 호출. </summary>
+		public void SuppressNextClick()
+		{
+			suppressNextPlacement = true;
+		}
+
 		/// <summary> 선택된 종류를 설치 — 핫바 문법의 단일 진입점(클릭 1회 = 1개). </summary>
 		public void PlaceSelectedAt(Vector2 screenPointerPosition)
 		{
+			if (suppressNextPlacement)
+			{
+				suppressNextPlacement = false;
+				return;
+			}
+
 			if (SelectedKind == TowerDefensePlaceableKind.Harvester)
 				PlaceHarvesterAt(screenPointerPosition);
 			else
