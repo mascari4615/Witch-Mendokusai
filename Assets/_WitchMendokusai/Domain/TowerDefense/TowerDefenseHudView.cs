@@ -195,7 +195,8 @@ namespace WitchMendokusai
 			legendPanel.Add(MakeLegendRow(stage.TowerTint, "포탑 인형", "적을 쏜다"));
 			legendPanel.Add(MakeLegendRow(stage.HarvesterTint, "채집 인형", "수입 +" + stage.Rules.IncomePerHarvester));
 			legendPanel.Add(MakeLegendRow(stage.EnemyTint, "마수", "코어로 전진"));
-			legendPanel.Add(MakeLegendRow(new Color(1f, 0.82f, 0.25f, 1f), "금빛 원", "채집 인형 자리"));
+			legendPanel.Add(MakeLegendRow(new Color(1f, 0.82f, 0.25f, 1f), "금빛 원반", "채집 인형 자리"));
+			legendPanel.Add(MakeLegendRow(stage.EnemyTint, "붉은 판", "마수 출현"));
 		}
 
 		private static VisualElement MakeLegendRow(Color swatchColor, string name, string note)

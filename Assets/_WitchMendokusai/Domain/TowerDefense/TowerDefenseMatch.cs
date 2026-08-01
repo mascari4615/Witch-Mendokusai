@@ -131,6 +131,7 @@ namespace WitchMendokusai
 
 			ApplyGroundCheckerboard(ground);
 			BuildResourceNodeMarkers();
+			BuildEnemySpawnMarkers();
 		}
 
 		/// <summary>
@@ -243,6 +244,44 @@ namespace WitchMendokusai
 					markerMaterial.color = nodeColor;
 					if (markerMaterial.HasProperty("_BaseColor"))
 						markerMaterial.SetColor("_BaseColor", nodeColor);
+				}
+			}
+		}
+
+
+		/// <summary>
+		/// 마수 출현 표시 — 어디서 적이 들어오는지 모르면 방어선을 세울 수가 없다.
+		/// 사용자 실증: 자원 노드 원을 "몬스터 나오는 원" 으로 오인했다. 원인은 ① 출현 지점에 아무
+		/// 표시가 없었고 ② 자원 노드가 출현선 바로 앞(z=14 vs 출현 z=15)에 깔려 있어서 — 즉
+		/// *표시 부재* + *배치 오류* 가 겹쳤다. 출현 지점에 붉은 표식을 세워 둘을 확실히 가른다.
+		/// 노드(금빛 원반)와 형태·색을 다르게 해야 혼동이 안 난다.
+		/// </summary>
+		private void BuildEnemySpawnMarkers()
+		{
+			if (stage.EnemySpawnPoints == null)
+				return;
+
+			foreach (Vector3 localPosition in stage.EnemySpawnPoints)
+			{
+				GameObject marker = GameObject.CreatePrimitive(PrimitiveType.Cube);
+				marker.name = "EnemySpawnMarker";
+				Collider markerCollider = marker.GetComponent<Collider>();
+				if (markerCollider != null)
+					Destroy(markerCollider);
+
+				marker.transform.SetParent(stageRoot, false);
+				marker.transform.localPosition = localPosition;
+				// 넓고 낮은 판 — 출현 "구역" 으로 읽히게(원반=자원과 형태로 구분).
+				marker.transform.localScale = new Vector3(3f, 0.06f, 1.2f);
+
+				Renderer markerRenderer = marker.GetComponent<Renderer>();
+				if (markerRenderer != null)
+				{
+					Material markerMaterial = markerRenderer.material;
+					Color spawnColor = stage.EnemyTint;
+					markerMaterial.color = spawnColor;
+					if (markerMaterial.HasProperty("_BaseColor"))
+						markerMaterial.SetColor("_BaseColor", spawnColor);
 				}
 			}
 		}
