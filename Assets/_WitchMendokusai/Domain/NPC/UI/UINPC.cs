@@ -18,8 +18,9 @@ namespace WitchMendokusai
 		Upgrade = 7,
 		Lab = 8,
 		CauldronMap = 9, // TASK-WM-174 5b-5 — 솥 속의 지도(공존, 기존 Pot 과 별개)
+		Hub = 10,        // TASK-WM-195 — 티메토 「게임 속 게임」 진입 허브 (append-only, Count 앞)
 
-		Count = 10,
+		Count = 11,
 	}
 
 	public class UINPC : UIPanelGroup<NPCPanelType>
@@ -43,6 +44,7 @@ namespace WitchMendokusai
 			Panels[NPCPanelType.CraftingTable] = FindAnyObjectByType<UICraftingTable>(FindObjectsInactive.Include);
 			Panels[NPCPanelType.Upgrade] = FindAnyObjectByType<UIUpgrade>(FindObjectsInactive.Include);
 			Panels[NPCPanelType.Lab] = FindAnyObjectByType<UILab>(FindObjectsInactive.Include);
+			Panels[NPCPanelType.Hub] = UIManager.CreateToolkitPanel<UIMinigameHubToolkit>(); // TASK-WM-195 — 미니게임 허브(DungeonEntrance 동형 코드-스폰)
 		}
 	}
 }

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -156,6 +157,7 @@ namespace WitchMendokusai.EditorTools
 				case Step.EnterMode:
 					if (GameModeManager.TryGetExistingInstance(out GameModeManager modeManager) == false)
 						return;
+					VerifyTimetoHub();
 					modeManager.SetMode(GameMode.TowerDefense);
 					match.MatchEnded += OnMatchEnded;
 					Debug.Log(TAG + " ENTER-MODE mode=" + modeManager.CurrentMode);
@@ -279,6 +281,76 @@ namespace WitchMendokusai.EditorTools
 			Debug.Log(TAG + " NODE-MARKERS count=" + markers);
 		}
 
+		/// <summary>
+		/// 티메토 허브 라이브 확인 (TASK-WM-195) — 씬의 티메토 NPCObject 를 찾아 실제 대화 진입점
+		/// `OnInteract()` 를 호출하고, 허브 패널이 열려 미니게임 목록이 렌더됐는지 본다.
+		/// 에디터에서 데이터만 보는 건 "말 걸면 뜬다"의 증명이 아니다(사용자가 실제로 못 찾은 사례).
+		/// </summary>
+		private static void VerifyTimetoHub()
+		{
+			NPCObject[] npcs = Object.FindObjectsByType<NPCObject>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+			NPCObject timeto = null;
+			foreach (NPCObject npc in npcs)
+			{
+				if (npc.Data != null && npc.Data.ID == 7)
+				{
+					timeto = npc;
+					break;
+				}
+			}
+
+			if (timeto == null)
+			{
+				Debug.LogError(TAG + " HUB-FAIL 씬에 티메토(NPC ID 7) 없음 — 씬 스캔 " + npcs.Length + "명");
+				return;
+			}
+
+			List<MinigameEntrySO> entries = NPCUtil.GetMinigameEntries(timeto.Data);
+			Debug.Log(TAG + " HUB-NPC 티메토 발견 panels=" + string.Join(",", timeto.Data.GetPanelTypeList())
+				+ " entries=" + entries.Count);
+
+			// 실제 대화 진입점 — 플레이어가 상호작용했을 때와 동일 경로.
+			timeto.OnInteract();
+
+			// 대화 메뉴에 「시뮬레이션 콘솔」 선택지가 실제로 켜졌는지 = 사용자가 도달 가능한가의 핵심.
+			// 메뉴 버튼은 NPCPanelType.Count 만큼 동적 생성되고 NPC 의 PanelInfos 로 활성 여부가 갈린다.
+			UINPCMenu menu = Object.FindAnyObjectByType<UINPCMenu>(FindObjectsInactive.Include);
+			if (menu == null)
+			{
+				Debug.LogError(TAG + " HUB-MENU UINPCMenu 없음");
+			}
+			else
+			{
+				int activeOptions = 0;
+				foreach (UISlot slot in menu.GetComponentsInChildren<UISlot>(true))
+				{
+					if (slot.gameObject.activeSelf && slot.Index == (int)NPCPanelType.Hub)
+						activeOptions++;
+				}
+				Debug.Log(TAG + " HUB-MENU hubOptionActive=" + (activeOptions > 0));
+			}
+
+			UIRoot uiRoot = Object.FindAnyObjectByType<UIRoot>();
+			VisualElement hubPanel = uiRoot != null && uiRoot.ScreenLayer != null
+				? uiRoot.ScreenLayer.Q(nameof(UIMinigameHubToolkit))
+				: null;
+			Debug.Log(TAG + " HUB-PANEL exists=" + (hubPanel != null)
+				+ " buttons=" + (hubPanel != null ? hubPanel.Query<Button>().ToList().Count : -1));
+
+			// 허브를 닫고 원래 흐름(TD 모드 진입)으로 복귀 — 패널이 열린 채면 입력이 UI 에 묶인다.
+			if (UIManagerHubCloseSafe(uiRoot) == false)
+				Debug.LogWarning(TAG + " HUB 패널 닫기 실패 — 이후 검증이 UI 에 막힐 수 있음");
+		}
+
+		private static bool UIManagerHubCloseSafe(UIRoot uiRoot)
+		{
+			UIManager uiManager = Object.FindAnyObjectByType<UIManager>();
+			if (uiManager == null || uiManager.NPC == null)
+				return false;
+			uiManager.NPC.ClosePanel();
+			return true;
+		}
+
 		private static Vector2 WorldToScreen(Camera camera, Vector3 worldPosition)
 		{
 			Vector3 screenPoint = camera.WorldToScreenPoint(worldPosition);
@@ -289,7 +361,26 @@ namespace WitchMendokusai.EditorTools
 		{
 			if (match == null)
 			{
-				Debug.LogError(TAG + " OBSERVE-FAIL match null");
+				// Play 가 이미 끝났으면 매치 파괴가 아니라 *씬 통째 언로드* — 하네스 종료 사유이지 게임 결함이 아니다.
+				// (둘을 구분 못 하면 환경 아티팩트를 코드 버그로 오진한다.)
+				if (EditorApplication.isPlaying == false)
+				{
+					Debug.LogWarning(TAG + " OBSERVE-END Play 가 관찰 도중 종료됨(씬 언로드) — 관찰 "
+						+ (now - observeStart).ToString("F1") + "s 시점. 게임 결함 아님, 관찰 조기 중단.");
+					Finish();
+					return;
+				}
+
+				// 진단 — "match 가 null" 만으론 원인 불명(컴포넌트 파괴 vs 모드 이탈 vs 싱글톤 중복 파괴).
+				bool ctrlAlive = TowerDefenseModeController.TryGetExistingInstance(out TowerDefenseModeController ctrl);
+				string mode = GameModeManager.TryGetExistingInstance(out GameModeManager gm) ? gm.CurrentMode.ToString() : "no-manager";
+				int ctrlCount = Object.FindObjectsByType<TowerDefenseModeController>(FindObjectsInactive.Include, FindObjectsSortMode.None).Length;
+				int matchCount = Object.FindObjectsByType<TowerDefenseMatch>(FindObjectsInactive.Include, FindObjectsSortMode.None).Length;
+				Debug.LogError(TAG + " OBSERVE-FAIL match null — controllerInstance=" + ctrlAlive
+					+ " controllersInScene=" + ctrlCount
+					+ " matchesInScene=" + matchCount
+					+ " currentMode=" + mode
+					+ " ctrlGameObject=" + (ctrlAlive && ctrl != null ? ctrl.gameObject.name : "n/a"));
 				Finish();
 				return;
 			}

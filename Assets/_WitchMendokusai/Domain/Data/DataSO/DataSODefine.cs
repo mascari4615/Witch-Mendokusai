@@ -32,6 +32,7 @@ namespace WitchMendokusai
 			{ typeof(ChapterSO), "Chapter" },
 			{ typeof(WitchPlantSO), "PLANT" },
 			{ typeof(TowerDefenseStageSO), "TDS" }, // TASK-WM-194 증분4 — 미등록 시 DataSOAddressableSync 가 매 import 마다 LogError(무음 실패 트랩 회피).
+			{ typeof(MinigameEntrySO), "MGE" },    // TASK-WM-195 — 티메토 허브 엔트리. 미등록 시 DataLoader 순회 제외 → 허브가 무음으로 텅 빔.
 		};
 
 		public static readonly Dictionary<Type, string> AssetFolderOverride = new()

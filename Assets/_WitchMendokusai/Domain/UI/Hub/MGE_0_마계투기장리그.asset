@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 882aa489341ccbb4986d8ade6774ca92, type: 3}
+  m_Name: "MGE_0_\uB9C8\uACC4\uD22C\uAE30\uC7A5\uB9AC\uADF8"
+  m_EditorClassIdentifier: WM.Domain::WitchMendokusai.MinigameEntrySO
+  <ID>k__BackingField: 0
+  <Name>k__BackingField: "\uB9C8\uACC4 \uD22C\uAE30\uC7A5 \uB9AC\uADF8"
+  <Description>k__BackingField: "\uC698\uC740 \uADC0\uCC2E\uC544\uC11C \uC9C1\uC811
+    \uC2F8\uC6B0\uC9C0 \uC54A\uB294\uB2E4. \uC778\uD615\uACFC \uC0AC\uC5ED\uB9C8\uC758
+    \uD589\uB3D9 \uADDC\uCE59\uC744 \uBBF8\uB9AC \uCF54\uB529\uD574 3\uB3003 \uC544\uB808\uB098\uC5D0
+    \uB0B4\uBCF4\uB0B4\uACE0, \uAC1C\uC785 \uC5C6\uC774 \uC9C0\uCF1C\uBCF8\uB2E4."
+  <Sprite>k__BackingField: {fileID: 0}
+  <Sprites>k__BackingField: []
+  <TargetGameMode>k__BackingField: 4
+  <Tagline>k__BackingField: "\uC804\uC220\uC744 \uBBF8\uB9AC \uC9DC\uC11C \uB0B4\uBCF4\uB0B4\uACE0,
+    \uC9C1\uC811 \uC2F8\uC6B0\uC9C0\uB294 \uC54A\uB294\uB2E4."
