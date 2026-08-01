@@ -27,7 +27,7 @@ namespace WitchMendokusai.EditorTools
 		private const string TAG = "[TD-Verify]";
 		private const double SETTLE_SECONDS = 2.0;
 		private const double HARD_TIMEOUT = 420.0;
-		private const double OBSERVE_SECONDS = 260.0; // 패배 성립까지 관찰 — 게임이 *끝나는지* 가 핵심 검증.
+		private const double OBSERVE_SECONDS = 170.0; // 무방비 판 기준 — 첫 웨이브가 코어를 깎아 결말이 온다.
 		private const double SAMPLE_INTERVAL = 1.0;
 		// WaitWorld 가 왜 안 풀리는지(부팅 지연 vs 컨트롤러 미생성)를 구분하려면 게이트별 관측이 필요.
 		private const double GATE_LOG_INTERVAL = 5.0;
@@ -41,8 +41,10 @@ namespace WitchMendokusai.EditorTools
 			Place = 4,
 			PlaceDump = 9,
 			PlaceAfterRestartDump = 10,
-			VerifyConclusion = 11,
-			RestartFromConclusion = 12,
+			DisarmRestart = 11,
+			ObserveConclusion = 12,
+			VerifyConclusion = 13,
+			RestartFromConclusion = 14,
 			Restart = 5,
 			RestartSettle = 6,
 			PlaceAfterRestart = 7,
@@ -202,9 +204,36 @@ namespace WitchMendokusai.EditorTools
 					if (now - restartAt < 1.5)
 						return;
 					DumpPlacedUnits("재시작 후 배치");
-					observeStart = now;
-					lastSample = now;
-					step = Step.Observe;
+					step = Step.DisarmRestart;
+					return;
+
+				// ★ 결말(패배)을 *빠르고 확실하게* 관측하기 위한 무방비 판.
+				//   방어를 세워두면 여러 웨이브를 버텨 결말까지 수 분이 걸리고, 그동안 "게임이 끝나는가"는
+				//   영영 미검증으로 남는다(실제로 그랬다). 아무것도 안 지으면 첫 웨이브가 코어를 깎아
+				//   결말이 결정적으로 온다 — 조작이 아니라 *실제 게임 규칙 그대로*의 최단 경로다.
+				case Step.DisarmRestart:
+					if (TowerDefenseModeController.TryGetExistingInstance(out TowerDefenseModeController disarmController) == false)
+					{
+						Debug.LogError(TAG + " DISARM-FAIL controller 없음");
+						Finish();
+						return;
+					}
+					Debug.Log(TAG + " DISARM-RESTART 무방비 판 시작 — 결말 도달 관측");
+					disarmController.Restart();
+					restartAt = now;
+					step = Step.ObserveConclusion;
+					return;
+
+				case Step.ObserveConclusion:
+					if (now - restartAt < 3.0)
+						return;
+					if (observeStart < 0.0 || observeStart < restartAt)
+					{
+						observeStart = now;
+						lastSample = now;
+						matchEndedSeen = false;
+					}
+					Observe(now);
 					return;
 
 				// ★ 재시작은 풀 재사용이 처음으로 *실제로* 일어나는 지점이다 — 최초 매치는 늘 새 인스턴스라
