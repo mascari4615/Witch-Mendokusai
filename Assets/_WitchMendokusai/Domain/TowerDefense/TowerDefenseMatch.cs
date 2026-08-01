@@ -72,6 +72,37 @@ namespace WitchMendokusai
 		/// <summary> 수동 진행에서 호출이 예약된 상태인지 — HUD 표시용. </summary>
 		public bool IsNextWaveRequested => core != null && core.IsNextWaveRequested;
 
+		/// <summary>
+		/// 이번 웨이브 적 추적 목록(읽기 전용) — **진단용**. "다 잡은 것 같은데 안 넘어간다"는
+		/// 곧 "코어가 세는 생존자와 화면에서 보이는 것이 다르다"는 뜻이라, 무엇이 살아 있다고
+		/// 집계되는지를 좌표·체력까지 직접 볼 수 있어야 원인을 짚는다(추측 금지).
+		/// </summary>
+		public IReadOnlyList<ArenaCombatant> WaveEnemies => waveEnemies;
+
+		/// <summary>
+		/// 코어가 보는 생존 적 수 — HUD 표시 + 진단 대조용. 매 프레임 읽히므로 목록을 건드리지 않는
+		/// **순수 집계**(정리는 코어 틱의 CountAliveEnemies 가 담당 — 표시가 상태를 바꾸면 안 된다).
+		/// </summary>
+		public int AliveEnemyCount
+		{
+			get
+			{
+				int count = 0;
+				foreach (ArenaCombatant combatant in waveEnemies)
+				{
+					if (combatant != null && combatant.IsAlive)
+						count++;
+				}
+				return count;
+			}
+		}
+
+		/// <summary> 코어 참가자(진단용) — 적이 코어를 실제로 때리고 있는지 체력으로 확인한다. </summary>
+		public ArenaCombatant CoreCombatant => coreCombatant;
+
+		/// <summary> 매치에 등록된 전 참가자(진단용) — 수비 유닛 생존 여부 확인. </summary>
+		public IReadOnlyList<ICombatant> RegisteredCombatants => registeredCombatants;
+
 		public int Resource => core != null ? core.Resource : 0;
 		public int WaveIndex => core != null ? core.WaveIndex : 0;
 		public TowerDefensePhase Phase => core != null ? core.Phase : TowerDefensePhase.Prepare;
@@ -395,6 +426,8 @@ namespace WitchMendokusai
 			if (ticking == false || core == null)
 				return;
 
+			CullEscapedEnemies(); // 무대 밖 개체가 웨이브를 영원히 붙잡지 못하게 — 집계 *전에* 정리.
+
 			bool coreAlive = coreCombatant != null && coreCombatant.IsAlive;
 			int aliveEnemies = CountAliveEnemies();
 
@@ -435,7 +468,7 @@ namespace WitchMendokusai
 				}
 
 				Vector3 localSpawn = stage.EnemySpawnPoints != null && stage.EnemySpawnPoints.Length > 0
-					? stage.EnemySpawnPoints[enemyIndex % stage.EnemySpawnPoints.Length]
+					? stage.EnemySpawnPoints[enemyIndex % stage.EnemySpawnPoints.Length] + SpawnSpreadOffset(enemyIndex)
 					: Vector3.zero;
 
 				GameObject enemyGameObject = pool.Spawn(stage.EnemyUnit.Prefab);
@@ -489,6 +522,70 @@ namespace WitchMendokusai
 				core.ConfirmWaveSpawned();
 			else
 				Debug.LogError($"{nameof(TowerDefenseMatch)}: 웨이브 적 0마리 스폰 — ConfirmWaveSpawned 보류(false-clear 차단). stage.EnemyUnit/EnemySpawnPoints 확인 필요.");
+		}
+
+		/// <summary>
+		/// 같은 출현 지점에 나오는 마수들을 서로 벌린다.
+		///
+		/// ★ 겹쳐 스폰하면 물리가 파고듦을 해소하려고 서로를 튕겨내 **맵 밖으로 날려버린다**
+		///   (실측: 살아있는 마수 2기가 (1236, -2906, 2015) 로 날아가 웨이브가 영원히 안 끝났다).
+		///   출현 지점 수보다 마수가 많아지는 후반 웨이브에서 반드시 발생하므로 스폰 단계에서 막는다.
+		/// 같은 지점을 쓰는 몇 번째인지로 좌우 지그재그 — 결정적(같은 웨이브 → 같은 배치).
+		/// </summary>
+		private Vector3 SpawnSpreadOffset(int enemyIndex)
+		{
+			int pointCount = stage.EnemySpawnPoints.Length;
+			int repeat = enemyIndex / pointCount;          // 이 지점을 몇 번째로 쓰는가
+			int lane = (repeat + 1) / 2;                   // 0,1,1,2,2,...
+			float side = repeat % 2 == 0 ? 1f : -1f;       // 좌우 번갈아
+			float spread = stage.EnemySpawnSpread;
+
+			// z 도 조금 밀어 완전히 같은 줄에 서지 않게(앞뒤로도 벌림).
+			return new Vector3(lane * spread * side, 0f, repeat * spread * 0.35f);
+		}
+
+		/// <summary>
+		/// 무대를 벗어난 적 정리 — 지면 아래로 떨어졌거나 개척지 밖으로 날아간 개체는 죽은 것으로 친다.
+		///
+		/// ★ 이게 없으면 *어떤* 물리 사고든 곧바로 「웨이브가 영원히 안 끝남」이 된다(코어는 생존 적을
+		///   세는데 그 적은 화면 밖에 있어 플레이어가 손쓸 방법이 없다). 원인을 하나 막는 것과 별개로,
+		///   무대 밖 개체가 진행을 막지 못하게 하는 안전망이 진행 규칙 쪽에 있어야 한다.
+		/// </summary>
+		private void CullEscapedEnemies()
+		{
+			if (stage == null || stageRoot == null)
+				return;
+
+			float halfWidth = stage.GroundWidth * 0.5f + stage.StageBoundsMargin;
+			float halfLength = stage.GroundLength * 0.5f + stage.StageBoundsMargin;
+
+			for (int index = waveEnemies.Count - 1; index >= 0; index--)
+			{
+				ArenaCombatant enemy = waveEnemies[index];
+				if (enemy == null || enemy.IsAlive == false)
+					continue;
+
+				Vector3 local = stageRoot.InverseTransformPoint(enemy.Position);
+				bool escaped = local.y < stage.StageFloorDepth
+					|| Mathf.Abs(local.x) > halfWidth
+					|| Mathf.Abs(local.z) > halfLength;
+				if (escaped == false)
+					continue;
+
+				Debug.LogWarning($"{nameof(TowerDefenseMatch)}: 마수가 무대를 이탈 — 제거로 처리 local={local}. "
+					+ "(스폰 겹침·물리 튕김 흔적이면 EnemySpawnSpread 확인)");
+
+				targeting.Unregister(enemy);
+				registeredCombatants.Remove(enemy);
+				waveEnemies.RemoveAt(index);
+
+				TacticDriver driver = enemy.GetComponent<TacticDriver>();
+				if (driver != null)
+					driver.StopDriving();
+
+				ReleaseUnit(pool, enemy.gameObject);
+				spawnedUnits.Remove(enemy.gameObject);
+			}
 		}
 
 		/// <summary> 살아있는 웨이브 적 수 — 죽었거나 풀 반환된(null) 엔트리는 조회 겸 정리(멱등). </summary>

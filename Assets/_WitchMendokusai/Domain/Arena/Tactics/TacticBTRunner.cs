@@ -73,11 +73,21 @@ namespace WitchMendokusai
 			switch (rule.Action.Kind)
 			{
 				case ActionKind.UseSkill:
+					// ★ 공격은 제자리에서 (TASK-WM-194 실측): 이동 명령은 **한 번 주면 계속 유지**되므로,
+					//   접근하다가 사거리에 들어 공격 룰로 넘어가도 아무도 이동을 취소하지 않아 유닛이
+					//   목표 안으로 계속 걸어 들어갔다 — 개척 마수가 코어에 파묻혀 화면에서 사라진 근본.
+					//   "이동 아닌 행동 = 이동 없음" 을 룰 실행 지점에서 명시한다.
+					context.Actuator.Hold();
 					context.Actuator.UseSkill(rule.Action.SkillSlot, target);
 					break;
 				case ActionKind.MoveToTarget:
-				case ActionKind.Approach: // v1 동일 — Approach 사거리-정지 미구현(TacticEnums 주석 참조)
 					context.Actuator.MoveToward(target);
+					break;
+				case ActionKind.Approach:
+					// ⚠ TargetQuery.MaxRange 는 **탐색 반경**이지 정지 거리가 아니다 — 그걸 정지 거리로 쓰면
+					//   목표가 반경 밖일 때 타겟 자체가 안 잡혀 유닛이 스폰 지점에서 영원히 멈춘다(실측 회귀).
+					//   정지 거리는 유닛 쪽 설정(TacticDriver)이 정한다.
+					context.Actuator.Approach(target, 0f);
 					break;
 				case ActionKind.Retreat:
 					context.Actuator.Retreat(target);

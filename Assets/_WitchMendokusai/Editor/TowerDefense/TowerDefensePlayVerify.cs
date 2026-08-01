@@ -27,7 +27,7 @@ namespace WitchMendokusai.EditorTools
 		private const string TAG = "[TD-Verify]";
 		private const double SETTLE_SECONDS = 2.0;
 		private const double HARD_TIMEOUT = 240.0;
-		private const double OBSERVE_SECONDS = 70.0;
+		private const double OBSERVE_SECONDS = 150.0; // 웨이브 2-3 고착 재현까지 관찰(사용자 실증 지점).
 		private const double SAMPLE_INTERVAL = 1.0;
 		// WaitWorld 가 왜 안 풀리는지(부팅 지연 vs 컨트롤러 미생성)를 구분하려면 게이트별 관측이 필요.
 		private const double GATE_LOG_INTERVAL = 5.0;
@@ -428,6 +428,50 @@ namespace WitchMendokusai.EditorTools
 				Debug.LogError(TAG + " CAM-MODE-MISS[" + phase + "] 개척 진입인데 contentMode=" + cameraManager.CurrentContentMode + " — 전환 실패.");
 		}
 
+		private const double STUCK_ASSAULT_SECONDS = 25.0;
+		private static double assaultStart = -1.0;
+		private static bool stuckDumped;
+
+		/// <summary> 코어가 "살아있다"고 세는 적을 전부 찍는다 — 화면과 대조해 유령/고착을 가른다. </summary>
+		private static void DumpWaveEnemies(double elapsed)
+		{
+			ArenaCombatant core = match.CoreCombatant;
+			Debug.LogWarning(TAG + " STUCK-ASSAULT 교전 " + elapsed.ToString("F1") + "s 지속 — wave=" + match.WaveIndex
+				+ " coreAliveCount=" + match.AliveEnemyCount + " tracked=" + match.WaveEnemies.Count);
+
+			// ★ 교착의 두 갈래를 가른다: 적이 코어를 *때리고 있는데 안 죽는* 것인가(코어 체력이 줄고 있다),
+			//   아니면 *아예 안 때리는* 것인가(체력 그대로 = 아무도 아무것도 안 함 = 영구 교착).
+			Debug.Log(TAG + " STUCK-CORE alive=" + (core != null && core.IsAlive)
+				+ " hp=" + (core != null ? core.Hp + "/" + core.HpMax : "n/a"));
+
+			int defendersAlive = 0;
+			foreach (ICombatant combatant in match.RegisteredCombatants)
+			{
+				if (combatant == null || combatant.TeamId != 0 || combatant.IsAlive == false)
+					continue;
+				defendersAlive++;
+				Debug.Log(TAG + " STUCK-DEFENDER id=" + combatant.CombatantId
+					+ " hp=" + combatant.Hp + "/" + combatant.HpMax + " pos=" + combatant.Position);
+			}
+			Debug.Log(TAG + " STUCK-DEFENDERS aliveCount=" + defendersAlive + " (코어 포함)");
+
+			for (int index = 0; index < match.WaveEnemies.Count; index++)
+			{
+				ArenaCombatant enemy = match.WaveEnemies[index];
+				if (enemy == null)
+				{
+					Debug.Log(TAG + " STUCK-ENEMY[" + index + "] null(파괴됨)");
+					continue;
+				}
+
+				Debug.Log(TAG + " STUCK-ENEMY[" + index + "] alive=" + enemy.IsAlive
+					+ " hp=" + enemy.Hp + "/" + enemy.HpMax
+					+ " activeInHierarchy=" + enemy.gameObject.activeInHierarchy
+					+ " pos=" + enemy.transform.position
+					+ " driver=" + (enemy.GetComponent<TacticDriver>() != null));
+			}
+		}
+
 		private static Vector2 WorldToScreen(Camera camera, Vector3 worldPosition)
 		{
 			Vector3 screenPoint = camera.WorldToScreenPoint(worldPosition);
@@ -475,6 +519,24 @@ namespace WitchMendokusai.EditorTools
 				if (lastResource >= 0 && match.Resource > lastResource)
 					Debug.Log(TAG + " INCOME +" + (match.Resource - lastResource) + " → " + match.Resource);
 				lastResource = match.Resource;
+			}
+
+			// ★ 교전이 비정상적으로 길어지면 = "화면엔 다 죽은 것 같은데 코어는 아직 살아있다고 센다".
+			//   둘의 차이를 눈으로 못 보므로 집계 대상을 좌표·체력째로 찍는다(사용자 실증: 웨이브 2에서 멈춤).
+			if (match.Phase == TowerDefensePhase.Assault)
+			{
+				if (assaultStart < 0)
+					assaultStart = now;
+				else if (now - assaultStart > STUCK_ASSAULT_SECONDS && stuckDumped == false)
+				{
+					stuckDumped = true;
+					DumpWaveEnemies(now - assaultStart);
+				}
+			}
+			else
+			{
+				assaultStart = -1.0;
+				stuckDumped = false;
 			}
 
 			if (now - lastSample >= SAMPLE_INTERVAL)

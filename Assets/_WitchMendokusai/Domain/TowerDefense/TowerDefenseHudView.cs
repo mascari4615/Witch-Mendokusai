@@ -26,6 +26,7 @@ namespace WitchMendokusai
 		private readonly Label resourceValue;
 		private readonly Label waveValue;
 		private readonly Label phaseValue;
+		private readonly Label enemyValue;
 		private readonly Label hintLabel;
 		private readonly Label bannerLabel;
 		private readonly VisualElement legendPanel;
@@ -65,7 +66,7 @@ namespace WitchMendokusai
 			container.style.display = DisplayStyle.None;
 			container.pickingMode = PickingMode.Ignore;
 
-			container.Add(BuildStatPanel(out resourceValue, out waveValue, out phaseValue));
+			container.Add(BuildStatPanel(out resourceValue, out waveValue, out phaseValue, out enemyValue));
 			container.Add(BuildWaveControlPanel(out waveModeButton, out nextWaveButton));
 			legendPanel = BuildLegendPanel();
 			container.Add(legendPanel);
@@ -80,7 +81,7 @@ namespace WitchMendokusai
 		}
 
 		// 좌상단 컴팩트 스탯 — 폭을 내용에 맞춰 좁게(전폭 바 금지).
-		private static VisualElement BuildStatPanel(out Label resource, out Label wave, out Label phase)
+		private static VisualElement BuildStatPanel(out Label resource, out Label wave, out Label phase, out Label enemies)
 		{
 			VisualElement panel = new VisualElement { name = "StatPanel" };
 			panel.style.position = Position.Absolute;
@@ -100,6 +101,9 @@ namespace WitchMendokusai
 			panel.Add(MakeStatRow("자원", out resource, new Color(1f, 0.86f, 0.35f, 1f)));
 			panel.Add(MakeStatRow("웨이브", out wave, new Color(1f, 0.6f, 0.55f, 1f)));
 			panel.Add(MakeStatRow("상태", out phase, new Color(0.72f, 0.88f, 1f, 1f)));
+			// ★ 「남은 마수」가 없으면 웨이브가 끝났는지를 눈으로만 판단해야 한다 — 마수 한 마리가 코어에
+			//   겹쳐 서 있으면 화면에서 사라져 "다 잡았는데 안 넘어간다"가 된다(사용자 실증). 숫자가 진실을 말한다.
+			panel.Add(MakeStatRow("남은 마수", out enemies, new Color(1f, 0.45f, 0.42f, 1f)));
 			return panel;
 		}
 
@@ -115,7 +119,7 @@ namespace WitchMendokusai
 			Label captionLabel = new Label(caption);
 			captionLabel.style.fontSize = 12;
 			captionLabel.style.color = new Color(0.62f, 0.66f, 0.74f, 1f);
-			captionLabel.style.width = 52;
+			captionLabel.style.width = 68;
 			captionLabel.pickingMode = PickingMode.Ignore;
 
 			valueLabel = new Label(string.Empty);
@@ -163,7 +167,7 @@ namespace WitchMendokusai
 			VisualElement panel = new VisualElement { name = "WaveControlPanel" };
 			panel.style.position = Position.Absolute;
 			panel.style.left = 24;
-			panel.style.top = 126;
+			panel.style.top = 152;
 			panel.style.flexDirection = FlexDirection.Row;
 			panel.pickingMode = PickingMode.Ignore;
 
@@ -265,7 +269,7 @@ namespace WitchMendokusai
 			VisualElement panel = new VisualElement { name = "LegendPanel" };
 			panel.style.position = Position.Absolute;
 			panel.style.left = 24;
-			panel.style.top = 176;
+			panel.style.top = 202;
 			panel.style.paddingLeft = 12;
 			panel.style.paddingRight = 16;
 			panel.style.paddingTop = 8;
@@ -539,6 +543,10 @@ namespace WitchMendokusai
 				TowerDefensePhase.Assault => "방어 중",
 				_ => "종료",
 			};
+
+			enemyValue.text = match.Phase == TowerDefensePhase.Assault
+				? match.AliveEnemyCount.ToString()
+				: "-";
 
 			waveModeButton.text = match.AutoAdvanceWaves ? "진행: 자동" : "진행: 수동";
 			// 건설 국면에서만 부를 수 있다 — 못 누르는 버튼을 멀쩡해 보이게 두면 눌러보고 아무 일도 안 난다.

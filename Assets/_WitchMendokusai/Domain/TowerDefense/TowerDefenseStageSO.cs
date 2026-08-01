@@ -113,6 +113,15 @@ namespace WitchMendokusai
 		[field: Tooltip("자원 채집 노드 위치(로컬 좌표) — 채집건물은 이 지점 중 하나를 점유해야만 가동(개척 리스크 = 설계 긴장).")]
 		[field: SerializeField] public Vector3[] ResourceNodePositions { get; private set; }
 
+		[field: Tooltip("같은 출현 지점에 여러 마수가 나올 때 서로 벌리는 간격 — 0이면 정확히 겹쳐 스폰돼 물리가 서로를 튕겨낸다(맵 밖으로 날아감).")]
+		[field: SerializeField, Min(0f)] public float EnemySpawnSpread { get; private set; } = 1.2f;
+
+		[field: Tooltip("무대 밖 판정 여유 — 지면 경계에서 이만큼 더 나가면 이탈로 본다.")]
+		[field: SerializeField, Min(1f)] public float StageBoundsMargin { get; private set; } = 12f;
+
+		[field: Tooltip("이 깊이보다 아래로 떨어지면 이탈로 본다(지면 통과·추락).")]
+		[field: SerializeField] public float StageFloorDepth { get; private set; } = -5f;
+
 		[field: Tooltip("채집건물 배치가 노드를 점유로 인정하는 최대 거리 — 이 반경 밖 배치는 거절(노드 스냅 X).")]
 		[field: SerializeField, Min(0.5f)] public float NodeCaptureRadius { get; private set; } = 2f;
 

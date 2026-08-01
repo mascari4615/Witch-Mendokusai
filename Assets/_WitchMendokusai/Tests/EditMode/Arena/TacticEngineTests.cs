@@ -32,6 +32,8 @@ namespace WitchMendokusai.Tests
 			public int LastSkillSlot = -1;
 			public ICombatant LastTarget;
 
+			public float LastStopDistance { get; private set; }
+
 			public void UseSkill(int skillSlot, ICombatant target)
 			{
 				LastAction = "UseSkill";
@@ -43,6 +45,13 @@ namespace WitchMendokusai.Tests
 			{
 				LastAction = "MoveToward";
 				LastTarget = target;
+			}
+
+			public void Approach(ICombatant target, float stopDistance)
+			{
+				LastAction = "Approach";
+				LastTarget = target;
+				LastStopDistance = stopDistance;
 			}
 
 			public void Retreat(ICombatant target)

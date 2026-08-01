@@ -55,7 +55,7 @@ MonoBehaviour:
         Priority: 0
         MaxRange: 0
       Action:
-        Kind: 2
+        Kind: 3
         SkillSlot: 0
   <TowerTactic>k__BackingField:
     Rules:
@@ -112,6 +112,9 @@ MonoBehaviour:
   - {x: 8, y: 0, z: 5}
   - {x: -12, y: 0, z: 11}
   - {x: 12, y: 0, z: 11}
+  <EnemySpawnSpread>k__BackingField: 1.2
+  <StageBoundsMargin>k__BackingField: 12
+  <StageFloorDepth>k__BackingField: -5
   <NodeCaptureRadius>k__BackingField: 2
   <GroundWidth>k__BackingField: 40
   <GroundLength>k__BackingField: 40

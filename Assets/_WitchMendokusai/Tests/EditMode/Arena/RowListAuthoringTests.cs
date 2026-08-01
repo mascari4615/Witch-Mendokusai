@@ -123,6 +123,7 @@ namespace WitchMendokusai.Tests
 			public string LastAction = "none";
 			public void UseSkill(int skillSlot, ICombatant target) => LastAction = "UseSkill";
 			public void MoveToward(ICombatant target) => LastAction = "MoveToward";
+			public void Approach(ICombatant target, float stopDistance) => LastAction = "Approach";
 			public void Retreat(ICombatant target) => LastAction = "Retreat";
 			public void Hold() => LastAction = "Hold";
 		}
