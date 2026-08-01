@@ -58,14 +58,26 @@ namespace WitchMendokusai
 						new(
 							InputEventType.HotbarSlot1,
 							InputEventResponseType.Performed,
-							() => placement.SelectKind(TowerDefensePlaceableKind.Tower),
+							() => placement.SelectSlot(0),
 							() => CanExecute(InputEventType.HotbarSlot1)
 						),
 						new(
 							InputEventType.HotbarSlot2,
 							InputEventResponseType.Performed,
-							() => placement.SelectKind(TowerDefensePlaceableKind.Harvester),
+							() => placement.SelectSlot(1),
 							() => CanExecute(InputEventType.HotbarSlot2)
+						),
+						new(
+							InputEventType.HotbarSlot3,
+							InputEventResponseType.Performed,
+							() => placement.SelectSlot(2),
+							() => CanExecute(InputEventType.HotbarSlot3)
+						),
+						new(
+							InputEventType.HotbarSlot4,
+							InputEventResponseType.Performed,
+							() => placement.SelectSlot(3),
+							() => CanExecute(InputEventType.HotbarSlot4)
 						),
 						#endregion
 
@@ -106,6 +118,8 @@ namespace WitchMendokusai
 			},
 			{ InputEventType.HotbarSlot1, new[] { GameConditionType.IsTyping, GameConditionType.IsPaused } },
 			{ InputEventType.HotbarSlot2, new[] { GameConditionType.IsTyping, GameConditionType.IsPaused } },
+			{ InputEventType.HotbarSlot3, new[] { GameConditionType.IsTyping, GameConditionType.IsPaused } },
+			{ InputEventType.HotbarSlot4, new[] { GameConditionType.IsTyping, GameConditionType.IsPaused } },
 			{ InputEventType.Cancel, new[] { GameConditionType.IsTyping } },
 		};
 

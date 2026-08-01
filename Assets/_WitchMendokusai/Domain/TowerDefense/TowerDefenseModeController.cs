@@ -189,7 +189,7 @@ namespace WitchMendokusai
 				// Show 가 아니라 전용 리셋 — Show 는 본편 UI 를 다시 숨기며 복원 정보를 덮어쓴다(이미 숨긴 상태라 빈 목록이 됨).
 				view.ResetForNewMatch(stage);
 				view.SetBestRecord(CurrentBestRecord());
-				view.SetSelectedKind(placement.SelectedKind);
+				view.SetSelectedSlot(placement.SelectedSlot);
 			}
 
 			Debug.Log($"{nameof(TowerDefenseModeController)}: 개척 재시작 — 새 매치 시작.");
@@ -226,8 +226,8 @@ namespace WitchMendokusai
 					view.Show(stage);
 					view.SetBestRecord(CurrentBestRecord()); // 넘어야 할 선을 판 시작부터 보여준다.
 					// 핫바 선택 표시 ↔ 실제 배치 대상은 같은 소스여야 한다(표시가 거짓말하면 오설치).
-					view.SetSelectedKind(placement.SelectedKind);
-					placement.SelectionChanged += view.SetSelectedKind;
+					view.SetSelectedSlot(placement.SelectedSlot);
+					placement.SelectionChanged += view.SetSelectedSlot;
 					view.RestartRequested += Restart;
 					view.WaveModeToggleRequested += ToggleWaveMode;
 					view.NextWaveRequested += CallNextWave;
@@ -240,7 +240,7 @@ namespace WitchMendokusai
 				match.Dispose();
 				if (hud != null)
 				{
-					placement.SelectionChanged -= hud.SetSelectedKind;
+					placement.SelectionChanged -= hud.SetSelectedSlot;
 					hud.RestartRequested -= Restart;
 					hud.WaveModeToggleRequested -= ToggleWaveMode;
 					hud.NextWaveRequested -= CallNextWave;

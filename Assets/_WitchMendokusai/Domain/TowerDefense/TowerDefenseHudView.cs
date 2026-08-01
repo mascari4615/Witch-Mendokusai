@@ -324,7 +324,19 @@ namespace WitchMendokusai
 				return;
 
 			legendPanel.Add(MakeLegendRow(stage.CoreTint, "코어", "부서지면 끝"));
-			legendPanel.Add(MakeLegendRow(stage.TowerTint, "포탑 인형", "적을 쏜다"));
+			if (stage.TowerArchetypes == null || stage.TowerArchetypes.Length == 0)
+			{
+				legendPanel.Add(MakeLegendRow(stage.TowerTint, "포탑 인형", "적을 쏜다"));
+			}
+			else
+			{
+				foreach (TowerDefenseTowerArchetype tower in stage.TowerArchetypes)
+				{
+					if (tower == null)
+						continue;
+					legendPanel.Add(MakeLegendRow(tower.Tint, tower.DisplayName, tower.Note));
+				}
+			}
 			legendPanel.Add(MakeLegendRow(stage.HarvesterTint, "채집 인형", "금빛 자리 위에서만 캔다 · 정산마다 +" + stage.Rules.IncomePerHarvester));
 			if (stage.EnemyArchetypes == null || stage.EnemyArchetypes.Length == 0)
 			{
@@ -407,8 +419,24 @@ namespace WitchMendokusai
 			if (stage == null)
 				return;
 
-			hotbarPanel.Add(MakeHotbarSlot("1", "포탑 인형", stage.TowerCost, stage.TowerTint));
-			hotbarPanel.Add(MakeHotbarSlot("2", "채집 인형", stage.HarvesterCost, stage.HarvesterTint));
+			// 포탑 종류가 정의돼 있으면 종류마다 칸 하나 — 채집은 항상 마지막 칸.
+			int slot = 1;
+			if (stage.TowerArchetypes != null && stage.TowerArchetypes.Length > 0)
+			{
+				foreach (TowerDefenseTowerArchetype tower in stage.TowerArchetypes)
+				{
+					if (tower == null)
+						continue;
+					hotbarPanel.Add(MakeHotbarSlot(slot.ToString(), tower.DisplayName, tower.Cost, tower.Tint));
+					slot++;
+				}
+			}
+			else
+			{
+				hotbarPanel.Add(MakeHotbarSlot("1", "포탑 인형", stage.TowerCost, stage.TowerTint));
+				slot++;
+			}
+			hotbarPanel.Add(MakeHotbarSlot(slot.ToString(), "채집 인형", stage.HarvesterCost, stage.HarvesterTint));
 		}
 
 		private VisualElement MakeHotbarSlot(string key, string name, int cost, Color tint)
@@ -466,9 +494,9 @@ namespace WitchMendokusai
 		}
 
 		/// <summary> 선택 표시 갱신 — 컨트롤러가 선택 변경 시 호출. </summary>
-		public void SetSelectedKind(TowerDefensePlaceableKind kind)
+		/// <summary> 고른 슬롯 표시 — 포탑 종류가 늘어도 이 함수는 그대로다(슬롯 = 선택의 단위). </summary>
+		public void SetSelectedSlot(int selectedIndex)
 		{
-			int selectedIndex = kind == TowerDefensePlaceableKind.Harvester ? 1 : 0;
 			for (int i = 0; i < hotbarSlots.Count; i++)
 			{
 				Color border = i == selectedIndex

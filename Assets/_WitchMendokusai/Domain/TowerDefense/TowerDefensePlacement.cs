@@ -46,17 +46,38 @@ namespace WitchMendokusai
 		/// (사용자 지시: "좌클릭/우클릭이 아니라 빌딩 핫바 좀 활용해야 할듯").
 		/// 선택 = 핫바(숫자키/클릭), 설치 = 클릭 — 기존 건설 모드와 같은 조작 문법.
 		/// </summary>
-		public TowerDefensePlaceableKind SelectedKind { get; private set; } = TowerDefensePlaceableKind.Tower;
+		public TowerDefensePlaceableKind SelectedKind =>
+			SelectedSlot >= TowerSlotCount ? TowerDefensePlaceableKind.Harvester : TowerDefensePlaceableKind.Tower;
 
-		public event System.Action<TowerDefensePlaceableKind> SelectionChanged = delegate { };
+		/// <summary>
+		/// 핫바 슬롯 — 0..포탑종류수-1 = 포탑, 마지막 = 채집. 포탑이 여러 종류가 되면서 「종류」가 아니라
+		/// 「슬롯」이 선택의 단위가 된다(종류를 늘릴 때 입력·화면을 고칠 필요가 없다).
+		/// </summary>
+		public int SelectedSlot { get; private set; }
 
-		public void SelectKind(TowerDefensePlaceableKind kind)
+		/// <summary> 지금 고른 포탑 종류 인덱스(채집을 고른 상태면 0). </summary>
+		public int SelectedTowerIndex => SelectedSlot < TowerSlotCount ? SelectedSlot : 0;
+
+		private int TowerSlotCount => match != null && match.TowerArchetypeCount > 0 ? match.TowerArchetypeCount : 1;
+
+		public event System.Action<int> SelectionChanged = delegate { };
+
+		/// <summary> 슬롯 선택 — 범위를 벗어나면 무시(없는 칸을 누른 것). </summary>
+		public void SelectSlot(int slot)
 		{
-			if (SelectedKind == kind)
+			if (slot < 0 || slot > TowerSlotCount)
+				return;
+			if (SelectedSlot == slot)
 				return;
 
-			SelectedKind = kind;
-			SelectionChanged(kind);
+			SelectedSlot = slot;
+			SelectionChanged(slot);
+		}
+
+		/// <summary> 하위 호환 진입점(종류 지정) — 재시작 등이 쓰는 경로. </summary>
+		public void SelectKind(TowerDefensePlaceableKind kind)
+		{
+			SelectSlot(kind == TowerDefensePlaceableKind.Harvester ? TowerSlotCount : 0);
 		}
 
 		// HUD 버튼(다시 시작 등)을 누른 클릭이 그대로 배치로도 처리되는 것을 막는 1회용 소거.
@@ -151,7 +172,7 @@ namespace WitchMendokusai
 				return;
 
 			bool isHarvester = SelectedKind == TowerDefensePlaceableKind.Harvester;
-			float radius = isHarvester ? stage.NodeCaptureRadius : match.TowerRange();
+			float radius = isHarvester ? stage.NodeCaptureRadius : match.TowerRange(SelectedTowerIndex);
 			if (radius <= 0f)
 			{
 				if (previewRing != null)
@@ -194,7 +215,7 @@ namespace WitchMendokusai
 				return;
 			}
 
-			bool placed = match.TryPlaceTower(snappedWorldPosition);
+			bool placed = match.TryPlaceTower(snappedWorldPosition, SelectedTowerIndex);
 			Debug.Log(placed
 				? $"{nameof(TowerDefensePlacement)}: 타워 배치 성공 @ {snappedWorldPosition}."
 				: $"{nameof(TowerDefensePlacement)}: 타워 배치 거절 — 알 수 없는 사유(매치 미시작/유닛데이터 미할당 등, 콘솔 상단 로그 확인).");

@@ -375,6 +375,12 @@ namespace WitchMendokusai
 				rock.transform.localPosition = mapLayout.CellToWorld(obstacleCell) + new Vector3(0f, cell * 0.3f, 0f);
 				rock.transform.localScale = new Vector3(cell, cell * 0.6f, cell);
 
+				// ★ 충돌 상자를 칸보다 살짝 작게 — 길찾기는 1칸 통로를 정상 경로로 주는데, 몸통이 칸을 꽉 채우면
+				//   그 통로에서 물리적으로 낀다(라이브: 마수 1기가 40초 가까이 도착 못 함). 보이는 크기는 그대로.
+				BoxCollider rockCollider = rock.GetComponent<BoxCollider>();
+				if (rockCollider != null)
+					rockCollider.size = new Vector3(0.82f, 1f, 0.82f);
+
 				Renderer rockRenderer = rock.GetComponent<Renderer>();
 				if (rockRenderer == null)
 					continue;
@@ -845,8 +851,12 @@ namespace WitchMendokusai
 		/// 포탑 사거리 = 전술의 표적 탐색 반경. 별도 수치를 두면 화면의 원과 실제 사거리가 갈라진다
 		/// (원이 거짓말하는 순간 배치 판단 전체가 무의미해진다) — 그래서 전술 정본에서 읽는다.
 		/// </summary>
-		public float TowerRange()
+		public float TowerRange(int towerIndex = 0)
 		{
+			TowerDefenseTowerArchetype archetype = TowerArchetypeAt(towerIndex);
+			if (archetype != null)
+				return archetype.Range;
+
 			if (stage == null || stage.TowerTactic.Rules == null)
 				return 0f;
 
@@ -879,6 +889,24 @@ namespace WitchMendokusai
 
 		/// <summary> 이번 판의 암반 칸 수 — 0 이면 지형 없는 빈 판. </summary>
 		public int ObstacleCount => mapLayout != null ? mapLayout.ObstacleCells.Count : 0;
+
+		/// <summary> 등록된 포탑 종류 수(0 이면 기존 단일 포탑). </summary>
+		public int TowerArchetypeCount => stage != null && stage.TowerArchetypes != null ? stage.TowerArchetypes.Length : 0;
+
+		/// <summary> index 번 포탑 종류(범위 밖이면 null). </summary>
+		public TowerDefenseTowerArchetype TowerArchetypeAt(int index)
+		{
+			if (index < 0 || index >= TowerArchetypeCount)
+				return null;
+			return stage.TowerArchetypes[index];
+		}
+
+		/// <summary> index 번 포탑의 건설 비용 — 종류가 없으면 스테이지 기본값. </summary>
+		public int TowerCostAt(int index)
+		{
+			TowerDefenseTowerArchetype archetype = TowerArchetypeAt(index);
+			return archetype != null ? archetype.Cost : stage.TowerCost;
+		}
 
 		/// <summary> 등록된 마수 종류 수(0 이면 기반 유닛 한 종류로 동작). </summary>
 		public int EnemyArchetypeCount => stage != null && stage.EnemyArchetypes != null ? stage.EnemyArchetypes.Length : 0;
@@ -1030,7 +1058,7 @@ namespace WitchMendokusai
 		/// 유닛데이터/프리팹 유효성은 TrySpend *전* 검증(스펙#E — 자원 뗀 뒤 스폰 실패로 자원만 날리는 것 방지).
 		/// 스폰 자체는 트랩#4 준수 위해 코루틴으로 지연되지만 자원 차감은 이 호출에서 동기 확정.
 		/// </summary>
-		public bool TryPlaceTower(Vector3 worldPosition)
+		public bool TryPlaceTower(Vector3 worldPosition, int towerIndex = 0)
 		{
 			if (core == null || pool == null || timeManager == null || targeting == null)
 				return false;
@@ -1044,11 +1072,19 @@ namespace WitchMendokusai
 			if (occupiedCells.Contains(cellKey))
 				return false; // 셀 이미 점유(겹배치 차단) — 자원 무변경.
 
-			if (core.TrySpend(stage.TowerCost) == false)
+			if (core.TrySpend(TowerCostAt(towerIndex)) == false)
 				return false;
 
 			occupiedCells.Add(cellKey);
-			StartCoroutine(SpawnDefensiveUnitRoutine(stage.TowerUnit, stage.TowerTactic, worldPosition, isHarvester: false));
+			// 종류가 정의돼 있으면 개척 전용 무기로, 없으면 기존 전술 경로로(하위 호환).
+			TowerDefenseTowerArchetype archetype = TowerArchetypeAt(towerIndex);
+			StartCoroutine(SpawnDefensiveUnitRoutine(
+				stage.TowerUnit,
+				archetype != null ? null : stage.TowerTactic,
+				worldPosition,
+				isHarvester: false,
+				incomeMultiplier: 1f,
+				towerArchetype: archetype));
 			return true;
 		}
 
@@ -1153,7 +1189,7 @@ namespace WitchMendokusai
 			return cell;
 		}
 
-		private IEnumerator SpawnDefensiveUnitRoutine(Unit unitData, TacticProgram tactic, Vector3 worldPosition, bool isHarvester, float incomeMultiplier = 1f)
+		private IEnumerator SpawnDefensiveUnitRoutine(Unit unitData, TacticProgram tactic, Vector3 worldPosition, bool isHarvester, float incomeMultiplier = 1f, TowerDefenseTowerArchetype towerArchetype = null)
 		{
 			if (unitData == null || unitData.Prefab == null)
 			{
@@ -1189,7 +1225,7 @@ namespace WitchMendokusai
 			combatant.SetTeam(DEFENDER_TEAM, nextCombatantId++);
 
 			ApplyReadability(unitObject,
-				isHarvester ? stage.HarvesterTint : stage.TowerTint,
+				isHarvester ? stage.HarvesterTint : (towerArchetype != null ? towerArchetype.Tint : stage.TowerTint),
 				isHarvester ? stage.HarvesterScale : stage.TowerScale);
 			unitGameObject.SetActive(true);
 
@@ -1211,11 +1247,21 @@ namespace WitchMendokusai
 			// 세워둔 포탑의 사거리를 옅게 늘 보여준다 — 「어디가 비었나」는 기존 커버리지가 보여야 알 수 있다.
 			if (isHarvester == false)
 			{
-				float towerRange = TowerRange();
+				if (towerArchetype != null)
+				{
+					TowerDefenseWeapon weapon = unitObject.GetComponent<TowerDefenseWeapon>();
+					if (weapon == null)
+						weapon = unitObject.gameObject.AddComponent<TowerDefenseWeapon>();
+					weapon.Configure(towerArchetype, targeting, combatant, waveEnemies);
+				}
+
+				float towerRange = towerArchetype != null ? towerArchetype.Range : TowerRange();
 				if (towerRange > 0f)
 				{
+					Color ringColor = towerArchetype != null ? towerArchetype.Tint : new Color(0.45f, 0.72f, 1f, 1f);
+					ringColor.a = 0.30f;
 					TowerDefenseRing ring = TowerDefenseRing.Create(
-						unitGameObject.transform, "RangeRing", new Color(0.45f, 0.72f, 1f, 0.30f), 0.08f, 0.05f);
+						unitGameObject.transform, "RangeRing", ringColor, 0.08f, 0.05f);
 					ring.SetRadius(towerRange);
 				}
 			}

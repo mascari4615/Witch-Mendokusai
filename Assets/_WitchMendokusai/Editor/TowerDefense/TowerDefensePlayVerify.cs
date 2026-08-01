@@ -74,6 +74,8 @@ namespace WitchMendokusai.EditorTools
 		private static double defendedStart;
 		private static int defendedLastResource;
 		private static int killIncomeEvents;
+		private static double defendedAssaultStart = -1.0;
+		private static bool defendedStuckDumped;
 		private static int lastDumpedWave;
 		private static double waveDumpAt;
 
@@ -126,6 +128,8 @@ namespace WitchMendokusai.EditorTools
 			killIncomeEvents = 0;
 			lastDumpedWave = -1;
 			waveDumpAt = -1.0;
+			defendedAssaultStart = -1.0;
+			defendedStuckDumped = false;
 			EditorApplication.update += Tick;
 			Debug.Log(TAG + " EnteredPlayMode — World ready 대기");
 		}
@@ -408,15 +412,22 @@ namespace WitchMendokusai.EditorTools
 
 			// 방어인형 — 판이 매 매치 새로 생성되므로 고정 좌표는 암반 위일 수 있다(그러면 배치가 조용히
 			// 전부 거절돼 "방어 없는 판"을 방어 있는 판으로 착각한다). 코어 주변에서 *실제로 설 수 있는* 칸을 찾는다.
+			// 종류를 섞어 세운다 — 한 종류만 세우면 광역·관통·둔화가 통째로 미검증으로 남는다.
+			int[] slotPlan = { 0, 3 }; // 기본 + 둔화(예산 안에서 서로 다른 두 종류).
 			int towersPlaced = 0;
-			foreach (Vector3 local in FindPlaceableSpots(stageRoot, 2))
+			List<Vector3> spots = FindPlaceableSpots(stageRoot, slotPlan.Length);
+			for (int index = 0; index < spots.Count; index++)
 			{
+				int slot = slotPlan[index % slotPlan.Length];
+				placement.SelectSlot(slot);
 				int beforeTower = match.Resource;
-				placement.PlaceTowerAt(WorldToScreen(modeCamera, stageRoot.TransformPoint(local)));
+				placement.PlaceTowerAt(WorldToScreen(modeCamera, stageRoot.TransformPoint(spots[index])));
 				if (match.Resource < beforeTower)
 					towersPlaced++;
 			}
-			Debug.Log(TAG + " PLACE-TOWERS placed=" + towersPlaced);
+			placement.SelectSlot(match.TowerArchetypeCount); // 채집 칸으로 되돌림.
+			Debug.Log(TAG + " PLACE-TOWERS placed=" + towersPlaced
+				+ " towerKinds=" + match.TowerArchetypeCount);
 
 			// 채집인형 = 자원 노드 위. 좌표는 **스테이지 정본에서 읽는다** — 하네스에 박아두면 노드를
 			// 옮기는 순간 "노드 위 배치" 검사가 조용히 "빈 땅 배치(항상 거절)" 로 바뀌어 무의미해진다.
@@ -866,6 +877,23 @@ namespace WitchMendokusai.EditorTools
 			}
 
 			DumpWaveVariety(now);
+
+			// 방어 구간에도 고착 진단을 붙인다 — 없으면 「한 마리가 안 죽는데 왜인지 모름」으로 끝난다.
+			if (match.Phase == TowerDefensePhase.Assault)
+			{
+				if (defendedAssaultStart < 0)
+					defendedAssaultStart = now;
+				else if (now - defendedAssaultStart > 30.0 && defendedStuckDumped == false)
+				{
+					defendedStuckDumped = true;
+					DumpWaveEnemies(now - defendedAssaultStart);
+				}
+			}
+			else
+			{
+				defendedAssaultStart = -1.0;
+				defendedStuckDumped = false;
+			}
 
 			if (now - defendedStart < DEFENDED_SECONDS)
 				return;
