@@ -74,6 +74,8 @@ namespace WitchMendokusai.EditorTools
 		private static double defendedStart;
 		private static int defendedLastResource;
 		private static int killIncomeEvents;
+		private static int lastDumpedWave;
+		private static double waveDumpAt;
 
 		static TowerDefensePlayVerify()
 		{
@@ -122,6 +124,8 @@ namespace WitchMendokusai.EditorTools
 			defendedStart = -1.0;
 			defendedLastResource = -1;
 			killIncomeEvents = 0;
+			lastDumpedWave = -1;
+			waveDumpAt = -1.0;
 			EditorApplication.update += Tick;
 			Debug.Log(TAG + " EnteredPlayMode — World ready 대기");
 		}
@@ -827,6 +831,8 @@ namespace WitchMendokusai.EditorTools
 				defendedLastResource = match.Resource;
 			}
 
+			DumpWaveVariety(now);
+
 			if (now - defendedStart < DEFENDED_SECONDS)
 				return;
 
@@ -840,6 +846,40 @@ namespace WitchMendokusai.EditorTools
 				Debug.LogError(verdict + " → 교전 중 보상이 한 번도 안 들어옴(격파 보상 미작동).");
 
 			step = Step.DisarmRestart;
+		}
+
+		/// <summary>
+		/// 웨이브가 뜨면 그 판의 마수를 종류째 찍는다 — 「종류가 진짜 다르게 나오는가」는 체력·덩치가
+		/// 실제로 갈리는지로만 확인된다(색만 다르고 스탯이 같으면 종류는 착시다).
+		/// </summary>
+		private static void DumpWaveVariety(double now)
+		{
+			if (match == null || match.Phase != TowerDefensePhase.Assault)
+				return;
+
+			if (match.WaveIndex != lastDumpedWave)
+			{
+				lastDumpedWave = match.WaveIndex;
+				waveDumpAt = now + 1.5; // 스폰 코루틴이 끝날 시간을 준다.
+				return;
+			}
+
+			if (waveDumpAt < 0.0 || now < waveDumpAt)
+				return;
+			waveDumpAt = -1.0;
+
+			int index = 0;
+			foreach (ICombatant combatant in match.WaveEnemies)
+			{
+				if (combatant == null)
+					continue;
+				Transform enemyTransform = ((MonoBehaviour)combatant).transform;
+				Debug.Log(TAG + " VARIETY wave=" + match.WaveIndex + " [" + index + "]"
+					+ " hp=" + combatant.Hp + "/" + combatant.HpMax
+					+ " scale=" + enemyTransform.localScale.x.ToString("F2")
+					+ " alive=" + combatant.IsAlive);
+				index++;
+			}
 		}
 
 		/// <summary>

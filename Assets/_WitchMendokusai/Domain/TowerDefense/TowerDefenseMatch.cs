@@ -52,6 +52,13 @@ namespace WitchMendokusai
 		// 숫자가 *어디서* 나오는지 안 보이면 채집 인형은 그냥 서 있는 장식으로 읽힌다.
 		private readonly List<Transform> harvesterTransforms = new();
 
+		// 이번(또는 다음) 웨이브의 마수 구성 — 원소 = EnemyArchetypes 인덱스. 결정론이라 화면 예고와 실제 스폰이 같다.
+		private readonly List<int> waveComposition = new();
+
+		// 격파 보상은 종류마다 다르다(단단한 놈일수록 크게) — 죽은 뒤엔 어떤 종류였는지 알 수 없으므로
+		// 스폰 시점에 CombatantId → 보상액을 기록해 둔다.
+		private readonly Dictionary<int, int> enemyBountyById = new();
+
 		// 셀 점유(TASK-WM-194 증분3) — 타워/채집건물 배치는 한 셀에 하나만(겹배치 차단). 키 = FloorToInt 셀(y=0 고정,
 		// 층 무관 단일 격자). claimedNodes(자원 노드 자체 점유)와 직교 — 이건 "그 좌표에 뭔가 이미 서 있나"만 본다.
 		private readonly HashSet<Vector3Int> occupiedCells = new();
@@ -185,6 +192,7 @@ namespace WitchMendokusai
 			matchEndedFired = false;
 			claimedNodes.Clear(); // 재진입 — 지난 매치의 노드 점유가 새 매치로 새는 것 방지.
 			bountyPaidEnemyIds.Clear();
+			enemyBountyById.Clear();
 			harvesterTransforms.Clear();
 			occupiedCells.Clear(); // 재진입 — 지난 매치의 셀 점유가 새 매치로 새는 것 방지.
 
@@ -278,6 +286,31 @@ namespace WitchMendokusai
 		///   화면에 이름을 띄운다(색↔이름 단일 소스 — 둘이 어긋나면 안내가 거짓말이 된다).
 		/// ★ 크기 = 격자 한 칸: 칸보다 크면 서로 밀치고 소속도 안 읽힌다.
 		/// </summary>
+		/// <summary>
+		/// 종류별 체력·속도 적용 — 기반 유닛 스탯에 배수를 씌운다. 새 유닛 에셋 없이 「단단한 놈/빠른 놈」이
+		/// 성립하는 지점. HP_MAX_STAT(기반)까지 같이 올려야 이후 스탯 재계산이 원래 값으로 되돌리지 않는다.
+		/// 리스는 ApplyReadability 가 이미 잡아뒀다(같은 스폰 경로) — 반납 시 원본 스탯으로 복원된다.
+		/// </summary>
+		private static void ApplyArchetypeStats(UnitObject unitObject, TowerDefenseEnemyArchetype archetype)
+		{
+			if (unitObject == null || archetype == null)
+				return;
+
+			if (Mathf.Approximately(archetype.HealthMultiplier, 1f) == false)
+			{
+				int scaledMax = Mathf.Max(1, Mathf.RoundToInt(unitObject.UnitStat[UnitStatType.HP_MAX] * archetype.HealthMultiplier));
+				unitObject.UnitStat[UnitStatType.HP_MAX_STAT] = scaledMax;
+				unitObject.UnitStat[UnitStatType.HP_MAX] = scaledMax;
+				unitObject.UnitStat[UnitStatType.HP_CUR] = scaledMax;
+			}
+
+			if (Mathf.Approximately(archetype.SpeedMultiplier, 1f) == false)
+			{
+				int scaledSpeed = Mathf.Max(1, Mathf.RoundToInt(unitObject.UnitStat[UnitStatType.MOVEMENT_SPEED] * archetype.SpeedMultiplier));
+				unitObject.UnitStat[UnitStatType.MOVEMENT_SPEED] = scaledSpeed;
+			}
+		}
+
 		private void ApplyReadability(UnitObject unitObject, Color tint, float scale)
 		{
 			if (unitObject == null)
@@ -479,6 +512,8 @@ namespace WitchMendokusai
 		{
 			waveEnemies.Clear(); // 이전 웨이브 잔여(이미 죽어 카운트 0인 엔트리) 누적 방지 — 이번 웨이브 것만 추적.
 
+			ComposeWave(core.WaveIndex, waveComposition); // 예고와 같은 함수 = 화면이 말한 대로 나온다.
+
 			int enemyCount = core.CurrentWaveEnemyCount;
 			int spawnedCount = 0; // 실제로 UnitObject 확보 + 등록까지 끝난 수 — 이게 0 이면 ConfirmWaveSpawned 자체를 보류.
 
@@ -521,8 +556,23 @@ namespace WitchMendokusai
 					enemyCombatant = enemyUnitObject.gameObject.AddComponent<ArenaCombatant>();
 				enemyCombatant.SetTeam(ATTACKER_TEAM, nextCombatantId++);
 
-				ApplyReadability(enemyUnitObject, stage.EnemyTint, stage.EnemyScale);
+				TowerDefenseEnemyArchetype archetype = enemyIndex < waveComposition.Count
+					? EnemyArchetypeAt(waveComposition[enemyIndex])
+					: null;
+
+				ApplyReadability(enemyUnitObject,
+					archetype != null ? archetype.Tint : stage.EnemyTint,
+					stage.EnemyScale * (archetype != null ? archetype.ScaleMultiplier : 1f));
+				enemyBountyById[enemyCombatant.CombatantId] = archetype != null ? archetype.Bounty : core.BountyPerKill;
 				enemyGameObject.SetActive(true);
+
+				// ★ 스탯 배수는 *켠 다음 프레임*에 씌운다. UnitObject.Start 가 UnitData 로 스탯을 통째 다시
+				//   세팅하므로(재-Init 규약), 켜기 전에 올려둔 체력은 첫 프레임에 조용히 원래대로 돌아간다
+				//   (라이브 실증: 덩치·보상은 갈리는데 체력만 전부 같았다).
+				yield return null;
+				if (core == null || targeting == null || pool == null)
+					yield break;
+				ApplyArchetypeStats(enemyUnitObject, archetype);
 
 				foreach (UnitBrain brain in enemyUnitObject.GetComponents<UnitBrain>()) // 트랩#2.
 					brain.enabled = false;
@@ -611,6 +661,48 @@ namespace WitchMendokusai
 			}
 		}
 
+		/// <summary> 등록된 마수 종류 수(0 이면 기반 유닛 한 종류로 동작). </summary>
+		public int EnemyArchetypeCount => stage != null && stage.EnemyArchetypes != null ? stage.EnemyArchetypes.Length : 0;
+
+		/// <summary> index 번 마수 종류(범위 밖이면 null). HUD 범례·예고가 이름·색을 읽는다. </summary>
+		public TowerDefenseEnemyArchetype EnemyArchetypeAt(int index)
+		{
+			if (index < 0 || index >= EnemyArchetypeCount)
+				return null;
+			return stage.EnemyArchetypes[index];
+		}
+
+		/// <summary>
+		/// waveIndex 파의 구성을 계산해 result 에 담는다 — *예고*와 *실제 스폰*이 같은 함수를 쓰므로
+		/// 화면이 거짓말할 수 없다(예고용 별도 계산을 두면 언젠가 반드시 어긋난다).
+		/// </summary>
+		public void ComposeWave(int waveIndex, List<int> result)
+		{
+			result.Clear();
+			if (stage == null || core == null)
+				return;
+
+			int enemyCount = stage.Rules.EnemiesInWave(waveIndex);
+			int archetypeCount = EnemyArchetypeCount;
+			if (archetypeCount <= 0)
+			{
+				for (int index = 0; index < enemyCount; index++)
+					result.Add(0);
+				return;
+			}
+
+			int[] unlockWaves = new int[archetypeCount];
+			int[] weights = new int[archetypeCount];
+			for (int index = 0; index < archetypeCount; index++)
+			{
+				TowerDefenseEnemyArchetype archetype = stage.EnemyArchetypes[index];
+				unlockWaves[index] = archetype != null ? archetype.UnlockWave : 0;
+				weights[index] = archetype != null ? archetype.Weight : 0;
+			}
+
+			TowerDefenseWaveComposer.Compose(unlockWaves, weights, waveIndex, enemyCount, result);
+		}
+
 		/// <summary>
 		/// 격파 보상 지급 — 마수가 죽은 것을 처음 본 틱에 1회. 「잡는 맛」이 이 경로 하나에 달려 있다:
 		/// 웨이브 정산만 있으면 교전 20초 동안 화면에서 아무 일도 안 일어나고, 잘 맞췄는지도 알 수 없다.
@@ -618,7 +710,7 @@ namespace WitchMendokusai
 		/// </summary>
 		private void PayKillBounties()
 		{
-			if (core == null || core.BountyPerKill <= 0)
+			if (core == null)
 				return;
 
 			foreach (ArenaCombatant enemy in waveEnemies)
@@ -628,8 +720,14 @@ namespace WitchMendokusai
 				if (bountyPaidEnemyIds.Add(enemy.CombatantId) == false)
 					continue;
 
-				core.AddResource(core.BountyPerKill);
-				PopWorldText("+" + core.BountyPerKill, enemy.Position, TextType.Exp);
+				int bounty = enemyBountyById.TryGetValue(enemy.CombatantId, out int recorded)
+					? recorded
+					: core.BountyPerKill;
+				if (bounty <= 0)
+					continue;
+
+				core.AddResource(bounty);
+				PopWorldText("+" + bounty, enemy.Position, TextType.Exp);
 			}
 		}
 

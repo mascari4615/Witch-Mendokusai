@@ -29,6 +29,11 @@ namespace WitchMendokusai
 		private readonly Label enemyValue;
 		private readonly Label bestValue;
 		private readonly Label incomeValue;
+		private readonly Label nextWaveValue;
+
+		// 예고 계산 버퍼 — 매 프레임 새 리스트를 만들지 않는다.
+		private readonly System.Collections.Generic.List<int> compositionBuffer = new();
+		private int[] archetypeCountBuffer = System.Array.Empty<int>();
 		private readonly Label hintLabel;
 		private readonly Label bannerLabel;
 		private readonly VisualElement legendPanel;
@@ -68,7 +73,7 @@ namespace WitchMendokusai
 			container.style.display = DisplayStyle.None;
 			container.pickingMode = PickingMode.Ignore;
 
-			container.Add(BuildStatPanel(out resourceValue, out waveValue, out phaseValue, out enemyValue, out incomeValue, out bestValue));
+			container.Add(BuildStatPanel(out resourceValue, out waveValue, out phaseValue, out enemyValue, out incomeValue, out nextWaveValue, out bestValue));
 			container.Add(BuildWaveControlPanel(out waveModeButton, out nextWaveButton));
 			legendPanel = BuildLegendPanel();
 			container.Add(legendPanel);
@@ -83,7 +88,7 @@ namespace WitchMendokusai
 		}
 
 		// 좌상단 컴팩트 스탯 — 폭을 내용에 맞춰 좁게(전폭 바 금지).
-		private static VisualElement BuildStatPanel(out Label resource, out Label wave, out Label phase, out Label enemies, out Label incomeValue, out Label bestValue)
+		private static VisualElement BuildStatPanel(out Label resource, out Label wave, out Label phase, out Label enemies, out Label incomeValue, out Label nextWaveValue, out Label bestValue)
 		{
 			VisualElement panel = new VisualElement { name = "StatPanel" };
 			panel.style.position = Position.Absolute;
@@ -110,6 +115,9 @@ namespace WitchMendokusai
 			// ★ 채집 인형의 존재 이유는 이 한 줄이다 — 인형을 세울 때마다 이 숫자가 오르는 걸 봐야
 			//   「자원 캐는 건물」이 무슨 역할인지 전달된다(사용자 실증: 역할을 전혀 모르겠다).
 			panel.Add(MakeStatRow("다음 정산", out incomeValue, new Color(0.42f, 0.92f, 0.68f, 1f)));
+			// ★ 예고가 있어야 「대비」가 성립한다 — 뭐가 오는지 모르면 배치는 매번 같은 감(勘)이고,
+			//   그게 이 게임이 지루했던 핵심이다. 구성은 결정론이라 예고와 실제가 항상 같다.
+			panel.Add(MakeStatRow("다음 파도", out nextWaveValue, new Color(1f, 0.72f, 0.45f, 1f)));
 			panel.Add(MakeStatRow("최고 기록", out bestValue, new Color(0.78f, 0.82f, 0.92f, 1f)));
 			return panel;
 		}
@@ -300,7 +308,20 @@ namespace WitchMendokusai
 			legendPanel.Add(MakeLegendRow(stage.CoreTint, "코어", "부서지면 끝"));
 			legendPanel.Add(MakeLegendRow(stage.TowerTint, "포탑 인형", "적을 쏜다"));
 			legendPanel.Add(MakeLegendRow(stage.HarvesterTint, "채집 인형", "금빛 자리 위에서만 캔다 · 정산마다 +" + stage.Rules.IncomePerHarvester));
-			legendPanel.Add(MakeLegendRow(stage.EnemyTint, "마수", "코어로 전진 · 잡으면 +" + stage.Rules.BountyPerKill));
+			if (stage.EnemyArchetypes == null || stage.EnemyArchetypes.Length == 0)
+			{
+				legendPanel.Add(MakeLegendRow(stage.EnemyTint, "마수", "코어로 전진 · 잡으면 +" + stage.Rules.BountyPerKill));
+			}
+			else
+			{
+				// 종류별로 한 줄씩 — 섞여 나오는데 범례가 한 줄이면 플레이어는 여전히 한 종류로 본다.
+				foreach (TowerDefenseEnemyArchetype archetype in stage.EnemyArchetypes)
+				{
+					if (archetype == null)
+						continue;
+					legendPanel.Add(MakeLegendRow(archetype.Tint, archetype.DisplayName, DescribeArchetype(archetype)));
+				}
+			}
 			legendPanel.Add(MakeLegendRow(new Color(1f, 0.82f, 0.25f, 1f), "금빛 원반", "채집 인형 자리"));
 			legendPanel.Add(MakeLegendRow(stage.EnemyTint, "붉은 판", "마수 출현"));
 		}
@@ -560,6 +581,8 @@ namespace WitchMendokusai
 				? match.NextWaveIncome + " (기본 " + stage.Rules.BaseWaveIncome + " + 채집 " + match.HarvesterCount + "기)"
 				: match.NextWaveIncome.ToString();
 
+			nextWaveValue.text = BuildWavePreview(match);
+
 			waveModeButton.text = match.AutoAdvanceWaves ? "진행: 자동" : "진행: 수동";
 			// 건설 국면에서만 부를 수 있다 — 못 누르는 버튼을 멀쩡해 보이게 두면 눌러보고 아무 일도 안 난다.
 			nextWaveButton.SetEnabled(preparing && match.Outcome == TowerDefenseOutcome.InProgress);
@@ -601,6 +624,49 @@ namespace WitchMendokusai
 		public void SetBestRecord(int bestWave)
 		{
 			bestValue.text = bestWave > 0 ? bestWave.ToString() : "-";
+		}
+
+		/// <summary> 종류 설명 — 체력·속도가 「어떻게 다른지」를 말로 준다(숫자만 보면 감이 안 온다). </summary>
+		private static string DescribeArchetype(TowerDefenseEnemyArchetype archetype)
+		{
+			string toughness = archetype.HealthMultiplier >= 1.5f ? "단단함"
+				: archetype.HealthMultiplier <= 0.7f ? "물렁함"
+				: "보통";
+			string pace = archetype.SpeedMultiplier >= 1.3f ? "빠름"
+				: archetype.SpeedMultiplier <= 0.8f ? "느림"
+				: "보통";
+			return toughness + " · " + pace + " · 잡으면 +" + archetype.Bounty;
+		}
+
+		/// <summary> 「다음 파도: 돌진 3 · 방패 1」 — 매치가 실제 스폰에 쓰는 그 계산을 그대로 부른다. </summary>
+		private string BuildWavePreview(TowerDefenseMatch match)
+		{
+			int previewWave = match.Phase == TowerDefensePhase.Assault ? match.WaveIndex + 1 : match.WaveIndex;
+			match.ComposeWave(previewWave, compositionBuffer);
+
+			int archetypeCount = match.EnemyArchetypeCount;
+			if (archetypeCount <= 0)
+				return compositionBuffer.Count + "기";
+
+			if (archetypeCountBuffer.Length < archetypeCount)
+				archetypeCountBuffer = new int[archetypeCount];
+
+			TowerDefenseWaveComposer.CountByArchetype(compositionBuffer, archetypeCount, archetypeCountBuffer);
+
+			string preview = string.Empty;
+			for (int index = 0; index < archetypeCount; index++)
+			{
+				if (archetypeCountBuffer[index] <= 0)
+					continue;
+				TowerDefenseEnemyArchetype archetype = match.EnemyArchetypeAt(index);
+				if (archetype == null)
+					continue;
+				if (preview.Length > 0)
+					preview += " · ";
+				preview += archetype.DisplayName + " " + archetypeCountBuffer[index];
+			}
+
+			return preview.Length > 0 ? preview : compositionBuffer.Count + "기";
 		}
 
 		private void SetBannerVisible(bool visible)

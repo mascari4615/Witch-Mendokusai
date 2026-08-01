@@ -32,6 +32,31 @@ MonoBehaviour:
   <EnemyUnit>k__BackingField: {fileID: 11400000, guid: a194010000000000000000000000d006, type: 2}
   <TowerUnit>k__BackingField: {fileID: 11400000, guid: a194010000000000000000000000d003, type: 2}
   <HarvesterUnit>k__BackingField: {fileID: 11400000, guid: a194010000000000000000000000d005, type: 2}
+  <EnemyArchetypes>k__BackingField:
+  - displayName: "마수"
+    unlockWave: 0
+    weight: 5
+    healthMultiplier: 1
+    speedMultiplier: 1
+    scaleMultiplier: 1
+    bounty: 6
+    tint: {r: 1, g: 0.38, b: 0.36, a: 1}
+  - displayName: "빠른 마수"
+    unlockWave: 1
+    weight: 4
+    healthMultiplier: 0.55
+    speedMultiplier: 1.8
+    scaleMultiplier: 0.7
+    bounty: 5
+    tint: {r: 1, g: 0.85, b: 0.3, a: 1}
+  - displayName: "단단한 마수"
+    unlockWave: 2
+    weight: 2
+    healthMultiplier: 3.2
+    speedMultiplier: 0.55
+    scaleMultiplier: 1.45
+    bounty: 16
+    tint: {r: 0.65, g: 0.35, b: 0.85, a: 1}
   <EnemyTactic>k__BackingField:
     Rules:
     - Conditions:

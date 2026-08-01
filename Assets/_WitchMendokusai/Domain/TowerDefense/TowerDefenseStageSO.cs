@@ -32,6 +32,9 @@ namespace WitchMendokusai
 		[field: SerializeField] public Unit HarvesterUnit { get; private set; }
 
 		[field: Header("전술 프로그램")]
+		[field: Tooltip("마수 종류 — 비었으면 EnemyUnit 을 그대로 한 종류로 쓴다. 종류가 섞여야 웨이브마다 판단이 달라진다.")]
+		[field: SerializeField] public TowerDefenseEnemyArchetype[] EnemyArchetypes { get; private set; }
+
 		[field: Tooltip("적 유닛의 전술(우선순위 룰 리스트) — 코어를 향해 전진·교전.")]
 		[field: SerializeField] public TacticProgram EnemyTactic { get; private set; }
 
