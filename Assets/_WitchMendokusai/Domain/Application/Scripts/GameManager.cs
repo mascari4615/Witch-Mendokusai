@@ -158,7 +158,8 @@ namespace WitchMendokusai
 				{ GameConditionType.IsViewingUI, () => false },
 				// 씬 의존 — BindSceneDependencies 에서 gameModeManager 파생으로 교체 (IsBuilding 대칭, TASK-WM-165 item9).
 				{ GameConditionType.IsSpectating, () => false },
-
+				// TASK-WM-193 — 자유 위치 카메라 모드 = CameraManager 파생 (static Instance, 씬 독립). 명령형 setter 0.
+				{ GameConditionType.IsFreeCameraMode, () => CameraManager.Instance != null && CameraManager.Instance.IsFreePositionMode },
 				// 씬 의존 — BindSceneDependencies 에서 gameModeManager 파생으로 교체 (IsSpectating 대칭, TASK-WM-194).
 				{ GameConditionType.IsTowerDefenseMode, () => false },
 			};
@@ -172,7 +173,6 @@ namespace WitchMendokusai
 			gameConditionActions[GameConditionType.IsViewingUI] = () => uiManager.IsAnyPanelFullscreenOpen;
 			// TASK-WM-165 item9 — 관전 = 투기장 모드 파생 (IsBuilding↔IsBuildMode 동형). 명령형 setter 0.
 			gameConditionActions[GameConditionType.IsSpectating] = () => gameModeManager.IsArenaMode;
-
 			// TASK-WM-194 — TD 모드 파생 (IsSpectating 동형). 명령형 setter 0.
 			gameConditionActions[GameConditionType.IsTowerDefenseMode] = () => gameModeManager.IsTowerDefenseMode;
 		}

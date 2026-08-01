@@ -11,9 +11,11 @@ namespace WitchMendokusai
 	/// ★ 엣지 트리거 — Build 와 달리 전략 스왑(InputManager.SetInputStrategy)·매치 Begin/Dispose 는
 	///   상태 전이(enter/exit)에서만 1회. 초기 Start(Default) 재적용이 InputStrategySelector(씬 로드 시
 	///   World 전략 세팅)와 레이스/중복 스왑하지 않도록 wasArena 로 전이만 감지.
-	/// ★ 관전 카메라 = 평범한 high-depth Camera(프리팹 자식, 진입 시 활성). MCamera/CameraManager 의 ContentCameraMode
-	///   리그는 *플레이어 추종 궤도*(yaw/pitch 홀더)라 고정 아레나뷰가 안 맞음(WM-165 behavior-verify 로 확인) →
-	///   dev 런처가 쓰는 검증된 plain Camera 방식 채택. depth 높아 플레이어 카메라 위에 풀스크린 렌더, 끄면 복귀.
+	/// ★ 관전 카메라 = **정식 content 카메라**(ContentCameraMode.Arena vcam, priority 전환) — TASK-WM-194 근본 수정.
+	///   구 구현은 본편 카메라 *위에* 별도 Camera 를 덧대 렌더했다("추종 궤도라 안 맞는다"는 당시 판단은
+	///   자유 위치 카메라(CityView/FreeFly/개척)가 생기면서 낡았다). 덧대는 방식은 밑에서 본편이 계속 돌아
+	///   화면 기준 카메라가 둘로 갈라지고, 월드→화면 변환이 숨은 본편 카메라를 잡는다(데미지 숫자 오배치가 그 증상).
+	///   게임 속 게임이라도 **진입한 순간 그 게임이 주체**여야 한다(사용자 지시).
 	/// </summary>
 	public class ArenaModeController : MonoBehaviour
 	{
@@ -27,19 +29,19 @@ namespace WitchMendokusai
 
 		private GameModeManager gameModeManager;
 		private InputManager inputManager;
+		private CameraManager cameraManager;
 
 		[SerializeField] private ArenaMatch arenaMatch;
-		[Tooltip("투기장 관전 카메라 — 진입 시 활성(depth 높아 플레이어 카메라 위 풀스크린 렌더). 프리팹 자식, 아레나(ArenaRoot z=1000) 향함.")]
-		[SerializeField] private Camera spectatorCamera;
 
 		// 전이 감지 — 직전 적용이 투기장 모드였는지. 초기 Default 재적용 no-op + enter/exit 1회 보장.
 		private bool wasArena;
 
 		[Inject]
-		public void Construct(GameModeManager gameModeManager, InputManager inputManager)
+		public void Construct(GameModeManager gameModeManager, InputManager inputManager, CameraManager cameraManager)
 		{
 			this.gameModeManager = gameModeManager;
 			this.inputManager = inputManager;
+			this.cameraManager = cameraManager;
 		}
 
 		private void Awake()
@@ -79,16 +81,17 @@ namespace WitchMendokusai
 
 			if (isArena)
 			{
-				// 진입 — 관전 카메라 켜기(플레이어 카메라 위 풀스크린 렌더) → 관전 입력(이동·전투 차단) → 매치 시작.
-				spectatorCamera.gameObject.SetActive(true);
+				// 진입 — 투기장이 화면의 주체가 된다: content 카메라를 투기장 vcam 으로 전환(priority)
+				// → 관전 입력(이동·전투 차단) → 매치 시작.
+				cameraManager.SetContentCameraMode(ContentCameraMode.Arena);
 				inputManager.SetInputStrategy(new InputStrategyArena());
 				arenaMatch.Begin();
 			}
 			else
 			{
-				// 이탈 — 매치 정리(멱등 Dispose) → 관전 카메라 끄기(플레이어 카메라 복귀) → 월드 입력 복귀.
+				// 이탈 — 매치 정리(멱등 Dispose) → 본편 카메라 복귀 → 월드 입력 복귀.
 				arenaMatch.Dispose();
-				spectatorCamera.gameObject.SetActive(false);
+				cameraManager.SetContentCameraMode(ContentCameraMode.Normal);
 				inputManager.SetInputStrategy(new InputStrategyWorld());
 			}
 		}

@@ -65,6 +65,8 @@ namespace WitchMendokusai
 		CameraControlModeToggle,
 		[InputEvent("카메라", "1인칭/3인칭 (F5)", "<Keyboard>/f5")]
 		CameraPerspectiveToggle,
+		[InputEvent("카메라", "시점 순환 (F6)", "<Keyboard>/f6")]
+		CameraViewCycle,
 		[InputEvent("창", "스탯", "<Keyboard>/v")]
 		Status,
 		[InputEvent("창", "인벤토리", "<Keyboard>/i")]
@@ -98,6 +100,10 @@ namespace WitchMendokusai
 		Move,
 		CameraRotate,
 		Look,
+		// TASK-WM-193 — 자유 위치 카메라 전용 축 (플레이어 Move 와 분리, 모드별 배타 라우팅).
+		CameraMove,      // 부감 pan / 자유비행 수평 (WASD raw)
+		CameraVertical,  // 자유비행 상하 (Space=상승 / Shift=하강)
+		ScrollWheel,     // 부감 높이 줌 (스크롤 델타)
 	}
 
 	public class InputManager : MonoBehaviour
@@ -138,6 +144,7 @@ namespace WitchMendokusai
 			{ InputEventType.Cancel, InputMapType.UI },
 			{ InputEventType.CameraControlModeToggle, InputMapType.UI },
 			{ InputEventType.CameraPerspectiveToggle, InputMapType.UI },
+			{ InputEventType.CameraViewCycle, InputMapType.UI },
 			{ InputEventType.Status, InputMapType.UI },
 			{ InputEventType.Inventory, InputMapType.UI },
 			{ InputEventType.DevWindowToggle, InputMapType.UI },
@@ -181,6 +188,12 @@ namespace WitchMendokusai
 		// TASK-WM-163 — MouseLook 모드 시야 회전용 마우스 델타 (픽셀/프레임).
 		// 캡슐화 경계(InputManager) 내부에서 Mouse.current 직접 read — UpdateMoveInput 패턴과 동일.
 		public Vector2 LookDelta { get; private set; }
+		// TASK-WM-193 — 자유 위치 카메라 전용 축 (플레이어 Move/Jump 와 분리).
+		public Vector2 CameraMoveInput { get; private set; }
+		public float CameraVerticalInput { get; private set; }
+		public float ScrollWheelDelta { get; private set; }
+		// 자유 카메라 가속 (Ctrl) — 캐릭터 sprint 와 동일 키 직관.
+		public bool IsCameraBoost { get; private set; }
 		private IInputStrategy CurrentInputStrategy { get; set; }
 
 		// Calling IsPointerOverGameObject() from within event processing (such as from InputAction callbacks) will not work as expected; it will query UI state from the last frame UnityEngine.EventSystems.EventSystem:IsPointerOverGameObject ()
@@ -353,6 +366,10 @@ namespace WitchMendokusai
 			UpdateMoveInput();
 			UpdateCameraRotateInput();
 			UpdateLookInput();
+			UpdateCameraMoveInput();
+			UpdateCameraVerticalInput();
+			UpdateScrollWheelInput();
+			UpdateCameraBoost();
 		}
 
 		private void UpdateMouseWorldPosition()
@@ -485,6 +502,75 @@ namespace WitchMendokusai
 			}
 
 			LookDelta = Mouse.current != null ? Mouse.current.delta.ReadValue() : Vector2.zero;
+		}
+
+		// TASK-WM-193 — 자유 위치 카메라 평면 이동 (WASD). 플레이어 Move 와 같은 물리 키지만 별도 축 —
+		// 자유 카메라 모드에서 Move 는 차단(플레이어 정지)되고 이 축만 컨트롤러가 소비.
+		private void UpdateCameraMoveInput()
+		{
+			if (CurrentInputStrategy != null &&
+				CurrentInputStrategy.TryGetAxisReturnConditions(InputAxisType.CameraMove, out GameConditionType[] conditions) &&
+				GameConditionBridge.IsGameConditionAny(conditions))
+			{
+				CameraMoveInput = Vector2.zero;
+				return;
+			}
+
+			Keyboard kb = Keyboard.current;
+			float h = 0f;
+			float v = 0f;
+			if (kb != null)
+			{
+				if (kb.dKey.isPressed || kb.rightArrowKey.isPressed) h += 1f;
+				if (kb.aKey.isPressed || kb.leftArrowKey.isPressed) h -= 1f;
+				if (kb.wKey.isPressed || kb.upArrowKey.isPressed) v += 1f;
+				if (kb.sKey.isPressed || kb.downArrowKey.isPressed) v -= 1f;
+			}
+
+			CameraMoveInput = new Vector2(h, v).normalized;
+		}
+
+		// TASK-WM-193 — 자유비행 상하 이동 (Space=상승 / Shift=하강).
+		private void UpdateCameraVerticalInput()
+		{
+			if (CurrentInputStrategy != null &&
+				CurrentInputStrategy.TryGetAxisReturnConditions(InputAxisType.CameraVertical, out GameConditionType[] conditions) &&
+				GameConditionBridge.IsGameConditionAny(conditions))
+			{
+				CameraVerticalInput = 0f;
+				return;
+			}
+
+			Keyboard kb = Keyboard.current;
+			float v = 0f;
+			if (kb != null)
+			{
+				if (kb.spaceKey.isPressed) v += 1f;
+				if (kb.leftShiftKey.isPressed || kb.rightShiftKey.isPressed) v -= 1f;
+			}
+
+			CameraVerticalInput = v;
+		}
+
+		// TASK-WM-193 — 부감 높이 줌 (스크롤 휠 델타). 자유 카메라 컨트롤러가 소비.
+		private void UpdateScrollWheelInput()
+		{
+			if (CurrentInputStrategy != null &&
+				CurrentInputStrategy.TryGetAxisReturnConditions(InputAxisType.ScrollWheel, out GameConditionType[] conditions) &&
+				GameConditionBridge.IsGameConditionAny(conditions))
+			{
+				ScrollWheelDelta = 0f;
+				return;
+			}
+
+			ScrollWheelDelta = Mouse.current != null ? Mouse.current.scroll.ReadValue().y : 0f;
+		}
+
+		// TASK-WM-193 — 자유 카메라 가속 (Ctrl). 캐릭터 sprint(ctrl) 와 동일 키라 직관적.
+		private void UpdateCameraBoost()
+		{
+			Keyboard kb = Keyboard.current;
+			IsCameraBoost = kb != null && kb.ctrlKey.isPressed;
 		}
 	}
 }

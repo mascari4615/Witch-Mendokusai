@@ -14,8 +14,11 @@ namespace WitchMendokusai
 	public class TowerDefensePlacement : MonoBehaviour
 	{
 		[field: Header("_" + nameof(TowerDefensePlacement))]
-		[Tooltip("배치 레이캐스트에 쓰는 모드 카메라 — TowerDefenseModeController.modeCamera 와 동일 참조(에디터 authoring).")]
-		[SerializeField] private Camera raycastCamera;
+		// 배치 레이캐스트는 **화면에 실제로 보이는 카메라**를 써야 한다 — 클릭한 픽셀의 의미가 곧 그 카메라
+		// 기준이기 때문. 개척이 정식 content 카메라(vcam priority)로 바뀌면서 실제 렌더 카메라는
+		// Cinemachine brain 이 물고 있는 단 하나이므로, 특정 Camera 를 인스펙터로 박아두면 모드 전환·
+		// 블렌딩 중에 죽은 참조를 쓰게 된다. 매 호출 lazy 해석(ViewCameraResolver)이 단일 정본.
+		private Camera RaycastCamera => ViewCameraResolver.Current;
 
 		[Tooltip("배치 대상 매치 — 자원 차감/스폰/점유 판정 전부 여기 위임.")]
 		[SerializeField] private TowerDefenseMatch match;
@@ -193,6 +196,7 @@ namespace WitchMendokusai
 		{
 			snappedWorldPosition = default;
 
+			Camera raycastCamera = RaycastCamera;
 			if (raycastCamera == null)
 				return false;
 

@@ -13,9 +13,10 @@ namespace WitchMendokusai
 	/// ★ 엣지 트리거 — ArenaModeController 와 동형: 전략 스왑·매치 Begin/Dispose 는 상태 전이(enter/exit)에서만
 	///   1회. 초기 Start(Default) 재적용이 InputStrategySelector(씬 로드 시 World 전략 세팅)와 레이스/중복
 	///   스왑하지 않도록 wasTowerDefense 로 전이만 감지.
-	/// ★ 모드 카메라 = 평범한 high-depth Camera(ArenaModeController.spectatorCamera 와 동일 근거) — MCamera/
-	///   CameraManager 의 ContentCameraMode 리그는 *플레이어 추종 궤도*라 고정 개척뷰가 안 맞음(WM-165 실증,
-	///   ArenaModeController 헤더 참조). CameraManager.SetContentCameraMode 호출 X.
+	/// ★ 모드 카메라 = **정식 content 카메라**(ContentCameraMode.TowerDefense vcam, priority 전환).
+	///   구 구현은 본편 카메라 *위에* 별도 Camera 를 덧대 렌더했는데, 그러면 밑에서 본편이 계속 돌고
+	///   화면 기준 카메라가 둘로 갈라진다 — 게임 속 게임이라도 **진입한 순간 그 게임이 주체**여야 한다
+	///   (사용자 지시). 월드→화면 변환이 숨은 본편 카메라를 잡아 데미지 숫자가 엉뚱한 데 뜨던 것이 그 증상.
 	/// </summary>
 	public class TowerDefenseModeController : MonoBehaviour
 	{
@@ -38,24 +39,20 @@ namespace WitchMendokusai
 		[SerializeField] private TowerDefensePlacement placement;
 		[SerializeField] private TowerDefenseStageSO stage;
 		[SerializeField] private Transform stageRoot;
-		[Tooltip("개척 모드 카메라 — 진입 시 활성(depth 높아 플레이어 카메라 위 풀스크린 렌더). 평범한 Camera, ContentCameraMode 리그 아님.")]
-		[SerializeField] private Camera modeCamera;
 
 		// 전이 감지 — 직전 적용이 TD 모드였는지. 초기 Default 재적용 no-op + enter/exit 1회 보장.
 		private bool wasTowerDefense;
 
-		// 카메라 상태(포커스/회전/높이) — 도시 부감 카메라와 같은 수학을 쓰는 공용 리그.
-		private readonly OverheadCameraRig cameraRig = new();
 
-		// Ctrl 가속 배수 — 도시 부감 카메라(boostMultiplier 기본값)와 같은 감각.
-		private const float CAMERA_BOOST_MULTIPLIER = 3f;
+		private CameraManager cameraManager;
 
 		[Inject]
-		public void Construct(GameModeManager gameModeManager, InputManager inputManager, UIRoot uiRoot)
+		public void Construct(GameModeManager gameModeManager, InputManager inputManager, UIRoot uiRoot, CameraManager cameraManager)
 		{
 			this.gameModeManager = gameModeManager;
 			this.inputManager = inputManager;
 			this.uiRoot = uiRoot;
+			this.cameraManager = cameraManager;
 		}
 
 		private void Awake()
@@ -100,47 +97,29 @@ namespace WitchMendokusai
 				return;
 
 			hud?.Tick(match, stage);
-			UpdateCamera();
 		}
 
 		/// <summary>
-		/// 개척 카메라 조작 — 이동(WASD) · 회전(Q/E) · **휠 줌**.
-		/// 거동 수학은 <see cref="OverheadCameraRig"/> 단일 정본에 있다(도시 부감 카메라와 같은 것).
-		/// 축도 게임 전체 공용(`CameraMove`/`CameraRotate`/`ScrollWheel`)이라 조작감이 통일되고,
-		/// 플레이어 Move 축과 분리돼 있어 이 모드에서 캐릭터가 딸려 움직일 위험이 없다.
+		/// 개척 시점을 무대에 맞춘다 — 진입 + 재시작 단일 경로.
+		/// 카메라 자체는 <see cref="OverheadContentCameraController"/>(개척 vcam)가 구동하고,
+		/// 여기서는 **무대가 아는 것**(개척지 중심·이동 한계·줌 범위)만 넘긴다. 수치는 스테이지 데이터가
+		/// 정본이라 카메라 프리팹에 다시 박지 않는다.
 		/// </summary>
-		private void UpdateCamera()
+		private void ResetCamera()
 		{
-			if (modeCamera == null || stage == null || inputManager == null)
+			if (stage == null)
 				return;
-
-			OverheadCameraRig.DriveInput input = new()
+			if (OverheadContentCameraController.TryGet(ContentCameraMode.TowerDefense, out OverheadContentCameraController overhead) == false)
 			{
-				Move = inputManager.CameraMoveInput,
-				// 좌우 회전은 아직 0 — 개척 입력 전략이 CameraRotate 축을 막고 있고(플레이어 캐릭터가 없는 모드),
-				// 그 축을 열면 화면 뒤에 있는 본편 카메라까지 같이 돌아 나갈 때 시점이 바뀐 채로 남는다.
-				// 회전을 붙일 땐 개척 전용 축을 새로 내는 게 맞다(리그는 이미 받을 준비가 돼 있음).
-				Rotate = 0f,
-				ScrollDelta = inputManager.ScrollWheelDelta,
-				SpeedMultiplier = inputManager.IsCameraBoost ? CAMERA_BOOST_MULTIPLIER : 1f,
-			};
+				Debug.LogError($"{nameof(TowerDefenseModeController)}: 개척 vcam(ContentCameraMode.TowerDefense) 없음 — Camera 프리팹에 Camera_TowerDefense 확인 필요.");
+				return;
+			}
 
-			cameraRig.Drive(input, RigSettings, Time.deltaTime, modeCamera.transform);
+			Vector3 center = stageRoot != null ? stageRoot.position : Vector3.zero;
+			overhead.SetFocusBounds(center, stage.CameraPanLimit);
+			overhead.ConfigureZoom(stage.CameraMinHeight, stage.CameraMaxHeight, stage.CameraZoomSpeed);
+			overhead.ResetView(center, yaw: 0f, height: stage.CameraInitialHeight);
 		}
-
-		// 무대가 유한하므로 포커스를 스테이지 중심 기준으로 가둔다(개척지를 화면 밖으로 잃어버리지 않게).
-		private OverheadCameraRig.Settings RigSettings => new()
-		{
-			PanSpeed = stage.CameraPanSpeed,
-			YawSpeed = stage.CameraYawSpeed,
-			FixedPitch = stage.CameraPitch,
-			MinHeight = stage.CameraMinHeight,
-			MaxHeight = stage.CameraMaxHeight,
-			ZoomSpeed = stage.CameraZoomSpeed,
-			ClampFocus = true,
-			FocusCenter = stageRoot != null ? stageRoot.position : Vector3.zero,
-			FocusLimit = stage.CameraPanLimit,
-		};
 
 		/// <summary> 웨이브 진행 방식 전환(자동↔수동) — 진행 중인 매치에 즉시 반영된다. </summary>
 		private void ToggleWaveMode()
@@ -154,19 +133,6 @@ namespace WitchMendokusai
 		{
 			placement.SuppressNextClick();
 			match.RequestNextWave();
-		}
-
-		/// <summary> 시점을 시작 상태로 — 진입 + 재시작 단일 경로(재시작인데 시점만 남으면 리셋이 거짓말). </summary>
-		private void ResetCamera()
-		{
-			if (modeCamera == null || stage == null)
-				return;
-
-			cameraRig.Reset(
-				stageRoot != null ? stageRoot.position : Vector3.zero,
-				yaw: 0f,
-				height: Mathf.Clamp(stage.CameraInitialHeight, stage.CameraMinHeight, stage.CameraMaxHeight));
-			cameraRig.Apply(RigSettings, modeCamera.transform);
 		}
 
 		/// <summary>
@@ -232,8 +198,9 @@ namespace WitchMendokusai
 
 			if (isTowerDefense)
 			{
-				// 진입 — 모드 카메라 켜기 → 배치 입력 전략 → 매치 시작 → 배치 활성(프리뷰 추적 시작).
-				modeCamera.gameObject.SetActive(true);
+				// 진입 — 개척이 화면의 주체가 된다: content 카메라를 개척 vcam 으로 전환(priority) → 무대 시점
+				// 맞춤 → 배치 입력 전략 → 매치 시작 → 배치 활성(프리뷰 추적 시작).
+				cameraManager.SetContentCameraMode(ContentCameraMode.TowerDefense);
 				ResetCamera();
 				inputManager.SetInputStrategy(new InputStrategyTowerDefense(placement, inputManager));
 				match.Begin(stage, stageRoot);
@@ -264,7 +231,7 @@ namespace WitchMendokusai
 				}
 				placement.Deactivate();
 				hud?.Hide();
-				modeCamera.gameObject.SetActive(false);
+				cameraManager.SetContentCameraMode(ContentCameraMode.Normal);
 				inputManager.SetInputStrategy(new InputStrategyWorld());
 			}
 		}

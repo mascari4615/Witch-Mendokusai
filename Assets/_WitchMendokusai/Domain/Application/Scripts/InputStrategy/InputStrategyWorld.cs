@@ -101,6 +101,13 @@ namespace WitchMendokusai
 							() => CameraManager.Instance.TogglePerspective(),
 							() => CanExecute(InputEventType.CameraPerspectiveToggle)
 						),
+						// TASK-WM-193 — 마을 경영 시점 순환 (Normal/CityView/FreeFly).
+						new(
+							InputEventType.CameraViewCycle,
+							InputEventResponseType.Performed,
+							() => CameraManager.Instance.CycleContentView(),
+							() => CanExecute(InputEventType.CameraViewCycle)
+						),
 						#endregion
 
 						#region UI
@@ -125,7 +132,7 @@ namespace WitchMendokusai
 
 		protected override Dictionary<InputEventType, GameConditionType[]> EventReturnConditions => new()
 		{
-			{ InputEventType.Space, new[] { GameConditionType.IsTyping } },
+			{ InputEventType.Space, new[] { GameConditionType.IsTyping, GameConditionType.IsFreeCameraMode } },
 			
 			{
 				InputEventType.Jump,
@@ -135,7 +142,8 @@ namespace WitchMendokusai
 					GameConditionType.IsTyping,
 					GameConditionType.IsDied,
 					GameConditionType.IsBuilding,
-					GameConditionType.IsViewingUI
+					GameConditionType.IsViewingUI,
+					GameConditionType.IsFreeCameraMode
 				}
 			},
 			{
@@ -146,7 +154,8 @@ namespace WitchMendokusai
 					GameConditionType.IsTyping,
 					GameConditionType.IsPaused,
 					GameConditionType.IsDied,
-					GameConditionType.IsBuilding
+					GameConditionType.IsBuilding,
+					GameConditionType.IsFreeCameraMode
 				}
 			},
 			{
@@ -157,7 +166,8 @@ namespace WitchMendokusai
 					GameConditionType.IsTyping,
 					GameConditionType.IsPaused,
 					GameConditionType.IsDied,
-					GameConditionType.IsBuilding
+					GameConditionType.IsBuilding,
+					GameConditionType.IsFreeCameraMode
 				}
 			},
 			{ InputEventType.ChangeMode, new[] { GameConditionType.IsTyping } },
@@ -175,6 +185,7 @@ namespace WitchMendokusai
 			{ InputEventType.Scroll, new[] { GameConditionType.IsTyping } },
 			{ InputEventType.CameraControlModeToggle, new[] { GameConditionType.IsPaused, GameConditionType.IsTyping } },
 			{ InputEventType.CameraPerspectiveToggle, new[] { GameConditionType.IsPaused, GameConditionType.IsTyping } },
+			{ InputEventType.CameraViewCycle, new[] { GameConditionType.IsPaused, GameConditionType.IsTyping } },
 
 			{
 				InputEventType.Submit,
@@ -202,7 +213,9 @@ namespace WitchMendokusai
 					GameConditionType.IsTyping,
 					GameConditionType.IsDied,
 					GameConditionType.IsInTransition,
-					GameConditionType.IsViewingUI
+					GameConditionType.IsViewingUI,
+					// TASK-WM-193 — 자유 카메라 모드 시 플레이어 이동 정지 (카메라 전용 축이 대신 활성).
+					GameConditionType.IsFreeCameraMode
 				}
 			},
 			{
@@ -215,6 +228,19 @@ namespace WitchMendokusai
 					GameConditionType.IsInTransition,
 					GameConditionType.IsViewingUI
 				}
+			},
+			// TASK-WM-193 — 자유 카메라 전용 축. 자유 모드 무관(컨트롤러가 활성 판단) — UI/일시정지/타이핑만 게이트.
+			{
+				InputAxisType.CameraMove,
+				new[] { GameConditionType.IsPaused, GameConditionType.IsTyping, GameConditionType.IsViewingUI }
+			},
+			{
+				InputAxisType.CameraVertical,
+				new[] { GameConditionType.IsPaused, GameConditionType.IsTyping, GameConditionType.IsViewingUI }
+			},
+			{
+				InputAxisType.ScrollWheel,
+				new[] { GameConditionType.IsPaused, GameConditionType.IsTyping, GameConditionType.IsViewingUI }
 			},
 			{
 				InputAxisType.Look,

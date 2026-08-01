@@ -75,6 +75,21 @@ namespace WitchMendokusai
 		/// <summary>PlayerRotation body 회전용 — 평면 yaw (pitch 무시).</summary>
 		public Quaternion FlatYawRotation => Quaternion.Euler(0f, yaw, 0f);
 
+		/// <summary>현재 content 카메라 모드 — 자유 위치 카메라 컨트롤러(CityView/FreeFly)가 자기 활성 판단에 사용. TASK-WM-193.</summary>
+		public ContentCameraMode CurrentContentMode => curCamera != null ? curCamera.ContentCameraMode : ContentCameraMode.None;
+
+		/// <summary>
+		/// 자유 위치 카메라(아바타 추종 궤도 밖) 모드인지. TASK-WM-193 / TASK-WM-194.
+		/// 이 모드에서는 추종 리그의 yaw/pitch 구동을 멈춘다 — 안 멈추면 Cameras 홀더(=pitch pivot)가
+		/// 돌면서 무대 고정 시점(투기장)이나 부감 시점이 플레이어 조작에 딸려 돌아간다.
+		/// 게임 속 게임(투기장·개척)은 진입 순간 그 게임이 화면의 주체이므로 여기 포함된다.
+		/// </summary>
+		public bool IsFreePositionMode =>
+			CurrentContentMode == ContentCameraMode.CityView
+			|| CurrentContentMode == ContentCameraMode.FreeFly
+			|| CurrentContentMode == ContentCameraMode.Arena
+			|| CurrentContentMode == ContentCameraMode.TowerDefense;
+
 		[Inject]
 		public void Construct(ISubscriber<PlayerSpawnedEvent> spawnedSubscriber, ISubscriber<PlayerDespawnedEvent> despawnedSubscriber, InputManager inputManager)
 		{
@@ -128,6 +143,10 @@ namespace WitchMendokusai
 		private void UpdateCameraOrientation()
 		{
 			if (inputManager == null)
+				return;
+
+			// 자유 위치 카메라(부감/자유비행)는 전용 컨트롤러가 vcam 을 직접구동 — 추종 리그 yaw/pitch·1인칭 구동 비활성. TASK-WM-193.
+			if (IsFreePositionMode)
 				return;
 
 			if (ControlMode == CameraControlMode.MouseLook)
@@ -352,6 +371,20 @@ namespace WitchMendokusai
 					obj[j]?.UpdateTransparent();
 				}
 			}
+		}
+
+		/// <summary>마을 경영 시점 순환 (F6): Normal → CityView(부감) → FreeFly(자유비행) → Normal. TASK-WM-193.
+		/// Dungeon/Arena 등 특수 모드 중엔 Normal 로 복귀.</summary>
+		public void CycleContentView()
+		{
+			ContentCameraMode next = CurrentContentMode switch
+			{
+				ContentCameraMode.Normal => ContentCameraMode.CityView,
+				ContentCameraMode.CityView => ContentCameraMode.FreeFly,
+				ContentCameraMode.FreeFly => ContentCameraMode.Normal,
+				_ => ContentCameraMode.Normal,
+			};
+			SetContentCameraMode(next);
 		}
 
 		public void Zoom()

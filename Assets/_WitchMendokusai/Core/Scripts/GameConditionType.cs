@@ -18,8 +18,12 @@ namespace WitchMendokusai
 		// TASK-WM-165 item9 — 투기장 관전 중 (GameMode.Arena). 플레이어 이동/전투 입력 게이트.
 		IsSpectating = 1 << 8,
 
+		// TASK-WM-193 — 마을 경영 자유 위치 카메라 모드 (CityView/FreeFly). 플레이어 이동/점프/공격 게이트
+		// (카메라 전용 축은 별개라 카메라 조작은 유지).
+		IsFreeCameraMode = 1 << 9,
+
 		// TASK-WM-194 — 특수시공 개척(TD) 모드 중 (GameMode.TowerDefense). IsSpectating 과 동형 —
-		// 플레이어가 이 모드엔 존재하지 않으므로 이동/시점 축 게이트. 1 << 9 = 타 TASK 예약 슬롯.
+		// 플레이어가 이 모드엔 존재하지 않으므로 이동/시점 축 게이트(플레이싱은 별도 전략이 처리).
 		IsTowerDefenseMode = 1 << 10,
 	}
 }
