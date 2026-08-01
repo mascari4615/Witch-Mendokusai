@@ -128,6 +128,38 @@ namespace WitchMendokusai
 			ground.transform.localPosition = Vector3.zero;
 			// Plane = 10x10 유닛 @ scale 1 → GroundWidth/GroundLength 에 맞춰 스케일.
 			ground.transform.localScale = new Vector3(stage.GroundWidth / 10f, 1f, stage.GroundLength / 10f);
+
+			BuildResourceNodeMarkers();
+		}
+
+		/// <summary>
+		/// 자원 노드 표식 — 채집 인형은 노드 반경 안에만 설 수 있는데 노드가 안 보이면 플레이어가
+		/// 어디를 클릭할지 알 수 없다(플레이 불가). 시각 표식은 순수 연출이라 콜라이더 제거 —
+		/// 배치 레이캐스트를 가로채면 스냅 좌표가 표식 표면 기준으로 튄다.
+		/// stageRoot 자식이라 Dispose 의 자식 파괴 경로가 그대로 정리한다.
+		/// </summary>
+		private void BuildResourceNodeMarkers()
+		{
+			if (stage.ResourceNodePositions == null)
+				return;
+
+			foreach (Vector3 localPosition in stage.ResourceNodePositions)
+			{
+				GameObject marker = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+				marker.name = "ResourceNode";
+				Collider markerCollider = marker.GetComponent<Collider>();
+				if (markerCollider != null)
+					Destroy(markerCollider);
+
+				marker.transform.SetParent(stageRoot, false);
+				marker.transform.localPosition = localPosition;
+				// 납작한 원반 — 지면에 깔리되 유닛 시야를 안 가림.
+				marker.transform.localScale = new Vector3(stage.NodeCaptureRadius * 2f, 0.05f, stage.NodeCaptureRadius * 2f);
+
+				Renderer markerRenderer = marker.GetComponent<Renderer>();
+				if (markerRenderer != null)
+					markerRenderer.material.color = new Color(0.35f, 0.9f, 0.55f, 1f);
+			}
 		}
 
 		private IEnumerator SpawnCoreRoutine()

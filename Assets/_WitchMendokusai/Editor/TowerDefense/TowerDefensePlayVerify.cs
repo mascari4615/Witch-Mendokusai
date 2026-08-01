@@ -1,6 +1,7 @@
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UIElements;
 
 namespace WitchMendokusai.EditorTools
 {
@@ -182,7 +183,12 @@ namespace WitchMendokusai.EditorTools
 			}
 		}
 
-		// 배치 = 자원노드 위 채집인형 + 코어 앞 방어인형. 거절 사유가 로그로 드러나야 진단 가능.
+		/// <summary>
+		/// 배치 검증 — **마우스 경로 그대로**: 목표 월드좌표를 모드 카메라로 화면좌표 환산 후
+		/// TowerDefensePlacement.PlaceXAt(화면좌표) 호출. 즉 카메라 설정·지면 레이캐스트·셀 스냅·
+		/// 노드 반경 판정까지 실제 클릭과 동일 경로를 탄다(버그가 숨는 자리가 바로 여기).
+		/// 유일한 미포함 = 물리 마우스 버튼 이벤트 → InputStrategy 콜백 디스패치(얇은 글루).
+		/// </summary>
 		private static void DoPlacements()
 		{
 			Transform stageRoot = FindStageRoot();
@@ -191,32 +197,92 @@ namespace WitchMendokusai.EditorTools
 				Debug.LogError(TAG + " PLACE-FAIL StageRoot 없음");
 				return;
 			}
-
-			// 자원노드 로컬 좌표(스테이지 SO 와 동일) — 채집인형은 노드 반경 안에만 선다.
-			Vector3[] nodeLocals = { new Vector3(-10f, 0f, 10f), new Vector3(10f, 0f, 10f) };
-			int harvesterOk = 0;
-			foreach (Vector3 local in nodeLocals)
+			if (TowerDefenseModeController.TryGetExistingInstance(out TowerDefenseModeController controller) == false)
 			{
-				if (match.TryPlaceHarvester(stageRoot.TransformPoint(local)))
-					harvesterOk++;
+				Debug.LogError(TAG + " PLACE-FAIL controller 없음");
+				return;
 			}
 
-			// 방어인형 = 코어와 적 스폰 사이 길목.
-			Vector3[] towerLocals = { new Vector3(-3f, 0f, 6f), new Vector3(3f, 0f, 6f), new Vector3(0f, 0f, 9f) };
-			int towerOk = 0;
+			TowerDefensePlacement placement = controller.GetComponent<TowerDefensePlacement>();
+			Transform camTransform = controller.transform.Find("StageRoot/ModeCamera");
+			Camera modeCamera = camTransform != null ? camTransform.GetComponent<Camera>() : null;
+			if (placement == null || modeCamera == null)
+			{
+				Debug.LogError(TAG + " PLACE-FAIL placement=" + (placement != null) + " modeCamera=" + (modeCamera != null));
+				return;
+			}
+			Debug.Log(TAG + " PLACE-VIA-SCREEN camActive=" + modeCamera.gameObject.activeInHierarchy);
+
+			int before = match.Resource;
+
+			// 방어인형 먼저(개막 우선순위) — 코어와 적 스폰 사이 길목.
+			Vector3[] towerLocals = { new Vector3(-3f, 0f, 6f), new Vector3(3f, 0f, 6f) };
 			foreach (Vector3 local in towerLocals)
+				placement.PlaceTowerAt(WorldToScreen(modeCamera, stageRoot.TransformPoint(local)));
+
+			// 채집인형 = 자원 노드 위(반경 밖이면 거절돼야 정상).
+			Vector3[] nodeLocals = { new Vector3(-10f, 0f, 10f), new Vector3(10f, 0f, 10f) };
+			foreach (Vector3 local in nodeLocals)
+				placement.PlaceHarvesterAt(WorldToScreen(modeCamera, stageRoot.TransformPoint(local)));
+
+			// 노드에서 먼 빈 땅에 채집 시도 = 거절돼야 정상(노드 결합 규칙 살아있음 확인).
+			int beforeOffNode = match.Resource;
+			placement.PlaceHarvesterAt(WorldToScreen(modeCamera, stageRoot.TransformPoint(new Vector3(0f, 0f, 2f))));
+			bool offNodeRejected = match.Resource == beforeOffNode;
+
+			Debug.Log(TAG + " PLACE resourceBefore=" + before + " after=" + match.Resource
+				+ " offNodeHarvesterRejected=" + offNodeRejected);
+
+			LogHudState();
+			LogNodeMarkers(stageRoot);
+		}
+
+		// HUD 실재 확인 — 화면에 숫자가 안 뜨면 사람이 플레이 판단을 못 한다(이번 증분의 핵심 산출).
+		private static void LogHudState()
+		{
+			UIRoot uiRoot = Object.FindAnyObjectByType<UIRoot>();
+			if (uiRoot == null || uiRoot.HudLayer == null)
 			{
-				if (match.TryPlaceTower(stageRoot.TransformPoint(local)))
-					towerOk++;
+				Debug.LogError(TAG + " HUD-FAIL UIRoot/HudLayer 없음");
+				return;
 			}
 
-			// 자원 없이 더 지으려 하면 거절돼야 정상(경제 게이트 살아있음 확인).
-			bool overspend = match.TryPlaceTower(stageRoot.TransformPoint(new Vector3(0f, 0f, 12f)));
+			VisualElement hud = uiRoot.HudLayer.Q(nameof(TowerDefenseHudView));
+			if (hud == null)
+			{
+				Debug.LogError(TAG + " HUD-FAIL HudLayer 에 TowerDefenseHudView 없음");
+				return;
+			}
 
-			Debug.Log(TAG + " PLACE harvester=" + harvesterOk + "/" + nodeLocals.Length
-				+ " tower=" + towerOk + "/" + towerLocals.Length
-				+ " resourceLeft=" + match.Resource
-				+ " overspendRejected=" + (overspend == false));
+			string statusText = string.Empty;
+			foreach (Label label in hud.Query<Label>().ToList())
+			{
+				if (string.IsNullOrEmpty(label.text) == false)
+				{
+					statusText = label.text;
+					break;
+				}
+			}
+			Debug.Log(TAG + " HUD visible=" + (hud.style.display.value == DisplayStyle.Flex)
+				+ " text=\"" + statusText + "\"");
+		}
+
+		// 자원 노드 표식 — 안 보이면 채집 인형을 어디 지을지 알 수 없다.
+		private static void LogNodeMarkers(Transform stageRoot)
+		{
+			int markers = 0;
+			foreach (Transform child in stageRoot)
+			{
+				if (child.name == "ResourceNode")
+					markers++;
+			}
+			Debug.Log(TAG + " NODE-MARKERS count=" + markers);
+		}
+
+		private static Vector2 WorldToScreen(Camera camera, Vector3 worldPosition)
+		{
+			Vector3 screenPoint = camera.WorldToScreenPoint(worldPosition);
+			return new Vector2(screenPoint.x, screenPoint.y);
 		}
 
 		private static void Observe(double now)

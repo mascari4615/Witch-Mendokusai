@@ -28,6 +28,10 @@ namespace WitchMendokusai
 
 		private GameModeManager gameModeManager;
 		private InputManager inputManager;
+		private UIRoot uiRoot;
+
+		// HUD = 평범한 클래스(MonoBehaviour X) — [Inject] 메서드 타입당 1개 제약 회피. 최초 진입 시 lazy 생성.
+		private TowerDefenseHudView hud;
 
 		[SerializeField] private TowerDefenseMatch match;
 		[SerializeField] private TowerDefensePlacement placement;
@@ -40,10 +44,11 @@ namespace WitchMendokusai
 		private bool wasTowerDefense;
 
 		[Inject]
-		public void Construct(GameModeManager gameModeManager, InputManager inputManager)
+		public void Construct(GameModeManager gameModeManager, InputManager inputManager, UIRoot uiRoot)
 		{
 			this.gameModeManager = gameModeManager;
 			this.inputManager = inputManager;
+			this.uiRoot = uiRoot;
 		}
 
 		private void Awake()
@@ -75,10 +80,27 @@ namespace WitchMendokusai
 
 		private void OnGameModeChanged(GameMode mode) => ApplyMode(mode);
 
-		// UI 는 후속 증분 — 지금은 결과 확인용 로그만(콘솔 ground-truth).
 		private void OnMatchEnded(TowerDefenseOutcome outcome)
 		{
 			Debug.Log($"{nameof(TowerDefenseModeController)}: 매치 종료 — outcome={outcome}");
+			hud?.ShowOutcome(outcome, match.WaveIndex);
+		}
+
+		// HUD 갱신 — TD 모드 동안만. 자원/웨이브/카운트다운은 매 프레임 변하므로 Update 가 자연스럽다.
+		private void Update()
+		{
+			if (wasTowerDefense == false || hud == null)
+				return;
+
+			hud.Tick(match, stage);
+		}
+
+		private TowerDefenseHudView EnsureHud()
+		{
+			// init-order-ok: 모드 진입 시점 = World 부팅 완료 후라 uiRoot 준비 보장(lazy resolve).
+			if (hud == null && uiRoot != null)
+				hud = new TowerDefenseHudView(uiRoot);
+			return hud;
 		}
 
 		private void ApplyMode(GameMode mode)
@@ -97,12 +119,14 @@ namespace WitchMendokusai
 				inputManager.SetInputStrategy(new InputStrategyTowerDefense(placement, inputManager));
 				match.Begin(stage, stageRoot);
 				placement.Activate();
+				EnsureHud()?.Show(stage);
 			}
 			else
 			{
 				// 이탈 — 매치 정리(멱등 Dispose) → 배치 비활성 → 모드 카메라 끄기 → 월드 입력 복귀.
 				match.Dispose();
 				placement.Deactivate();
+				hud?.Hide();
 				modeCamera.gameObject.SetActive(false);
 				inputManager.SetInputStrategy(new InputStrategyWorld());
 			}
