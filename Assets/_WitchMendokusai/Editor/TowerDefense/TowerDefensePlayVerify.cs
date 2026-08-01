@@ -289,8 +289,13 @@ namespace WitchMendokusai.EditorTools
 			foreach (Vector3 local in towerLocals)
 				placement.PlaceTowerAt(WorldToScreen(modeCamera, stageRoot.TransformPoint(local)));
 
-			// 채집인형 = 자원 노드 위(반경 밖이면 거절돼야 정상).
-			Vector3[] nodeLocals = { new Vector3(-10f, 0f, 10f), new Vector3(10f, 0f, 10f) };
+			// 채집인형 = 자원 노드 위. 좌표는 **스테이지 정본에서 읽는다** — 하네스에 박아두면 노드를
+			// 옮기는 순간 "노드 위 배치" 검사가 조용히 "빈 땅 배치(항상 거절)" 로 바뀌어 무의미해진다.
+			Vector3[] nodeLocals = match.Stage != null && match.Stage.ResourceNodePositions != null
+				? match.Stage.ResourceNodePositions
+				: new Vector3[0];
+			if (nodeLocals.Length == 0)
+				Debug.LogError(TAG + " PLACE-FAIL 스테이지에 자원 노드가 없음");
 			foreach (Vector3 local in nodeLocals)
 				placement.PlaceHarvesterAt(WorldToScreen(modeCamera, stageRoot.TransformPoint(local)));
 

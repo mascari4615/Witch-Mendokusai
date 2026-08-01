@@ -97,6 +97,12 @@ namespace WitchMendokusai
 			}
 		}
 
+		/// <summary>
+		/// 진행 중인 스테이지 데이터(읽기 전용) — 검증 하네스가 좌표·수치를 **정본에서 읽게** 한다.
+		/// 하네스에 좌표를 박아두면 레이아웃을 옮기는 순간 검사가 조용히 무의미해진다(항상 거절만 확인).
+		/// </summary>
+		public TowerDefenseStageSO Stage => stage;
+
 		/// <summary> 코어 참가자(진단용) — 적이 코어를 실제로 때리고 있는지 체력으로 확인한다. </summary>
 		public ArenaCombatant CoreCombatant => coreCombatant;
 

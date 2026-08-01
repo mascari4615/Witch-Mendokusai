@@ -108,10 +108,10 @@ MonoBehaviour:
   - {x: 0, y: 0, z: 15}
   - {x: 12, y: 0, z: 15}
   <ResourceNodePositions>k__BackingField:
-  - {x: -8, y: 0, z: 5}
-  - {x: 8, y: 0, z: 5}
-  - {x: -12, y: 0, z: 11}
-  - {x: 12, y: 0, z: 11}
+  - {x: -8, y: 0, z: -1}
+  - {x: 8, y: 0, z: -1}
+  - {x: -12, y: 0, z: 5}
+  - {x: 12, y: 0, z: 5}
   <EnemySpawnSpread>k__BackingField: 1.2
   <StageBoundsMargin>k__BackingField: 12
   <StageFloorDepth>k__BackingField: -5
