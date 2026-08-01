@@ -44,6 +44,10 @@ namespace WitchMendokusai
 		// 자원 노드 점유 — 채집건물은 반드시 미점유 노드를 잡아야 가동(개척 리스크). index = stage.ResourceNodePositions 인덱스.
 		private readonly HashSet<int> claimedNodes = new();
 
+		// 셀 점유(TASK-WM-194 증분3) — 타워/채집건물 배치는 한 셀에 하나만(겹배치 차단). 키 = FloorToInt 셀(y=0 고정,
+		// 층 무관 단일 격자). claimedNodes(자원 노드 자체 점유)와 직교 — 이건 "그 좌표에 뭔가 이미 서 있나"만 본다.
+		private readonly HashSet<Vector3Int> occupiedCells = new();
+
 		public event Action<TowerDefenseOutcome> MatchEnded = delegate { };
 
 		public int Resource => core != null ? core.Resource : 0;
@@ -101,6 +105,7 @@ namespace WitchMendokusai
 			nextCombatantId = 0;
 			matchEndedFired = false;
 			claimedNodes.Clear(); // 재진입 — 지난 매치의 노드 점유가 새 매치로 새는 것 방지.
+			occupiedCells.Clear(); // 재진입 — 지난 매치의 셀 점유가 새 매치로 새는 것 방지.
 
 			yield return SpawnCoreRoutine();
 			if (coreCombatant == null)
@@ -322,9 +327,15 @@ namespace WitchMendokusai
 				Debug.LogError($"{nameof(TowerDefenseMatch)}: stage.TowerUnit/Prefab 미할당 — 배치 불가(자원 미차감).");
 				return false;
 			}
+
+			Vector3Int cellKey = ToCellKey(worldPosition);
+			if (occupiedCells.Contains(cellKey))
+				return false; // 셀 이미 점유(겹배치 차단) — 자원 무변경.
+
 			if (core.TrySpend(stage.TowerCost) == false)
 				return false;
 
+			occupiedCells.Add(cellKey);
 			StartCoroutine(SpawnDefensiveUnitRoutine(stage.TowerUnit, stage.TowerTactic, worldPosition, isHarvester: false));
 			return true;
 		}
@@ -346,10 +357,15 @@ namespace WitchMendokusai
 			if (TryFindPlaceableNode(worldPosition, out int nodeIndex, out Vector3 nodeWorldPosition) == false)
 				return false; // 반경 내 미점유 노드 없음 — 자원 무변경(스펙#C).
 
+			Vector3Int cellKey = ToCellKey(nodeWorldPosition);
+			if (occupiedCells.Contains(cellKey))
+				return false; // 노드 셀에 이미 무언가 서 있음(겹배치 차단) — 자원 무변경.
+
 			if (core.TrySpend(stage.HarvesterCost) == false)
 				return false;
 
 			claimedNodes.Add(nodeIndex); // TrySpend 성공 후에만 점유 확정(스펙 지시 — 실패 시 점유 안 남김).
+			occupiedCells.Add(cellKey);
 			StartCoroutine(SpawnDefensiveUnitRoutine(stage.HarvesterUnit, null, nodeWorldPosition, isHarvester: true));
 			return true;
 		}
@@ -392,6 +408,23 @@ namespace WitchMendokusai
 			nodeIndex = bestIndex;
 			nodeWorldPosition = stageRoot.TransformPoint(stage.ResourceNodePositions[bestIndex]);
 			return true;
+		}
+
+		/// <summary>
+		/// worldPosition 이 속한 셀이 이미 배치물로 점유됐는지 — 배치 UI 프리뷰가 유효/무효 색을
+		/// 이 메서드로 판정(TryPlaceTower/TryPlaceHarvester 내부 점유 판정과 동일 규칙 재사용).
+		/// </summary>
+		public bool IsCellOccupied(Vector3 worldPosition)
+		{
+			return occupiedCells.Contains(ToCellKey(worldPosition));
+		}
+
+		// 셀 키 = FloorToInt(worldPosition), y 는 0 고정(층 무관 단일 격자 — 위로 쌓기 원천 차단).
+		private static Vector3Int ToCellKey(Vector3 worldPosition)
+		{
+			Vector3Int cell = Vector3Int.FloorToInt(worldPosition);
+			cell.y = 0;
+			return cell;
 		}
 
 		private IEnumerator SpawnDefensiveUnitRoutine(Unit unitData, TacticProgram tactic, Vector3 worldPosition, bool isHarvester)
@@ -480,6 +513,7 @@ namespace WitchMendokusai
 			registeredCombatants.Clear();
 			waveEnemies.Clear();
 			claimedNodes.Clear();
+			occupiedCells.Clear();
 
 			if (ObjectPoolManager.TryGetExistingInstance(out ObjectPoolManager existingPool))
 			{

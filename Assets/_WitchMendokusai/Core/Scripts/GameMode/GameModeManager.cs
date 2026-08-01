@@ -18,6 +18,9 @@ namespace WitchMendokusai
 
 		// SimCity Phase 3 (TASK-WM-176): 발전소(전력원) 페인트 모드.
 		Power = 5,
+
+		// 특수시공 개척(TASK-WM-194): 실시간 타워디펜스 + 전초기지 건설 모드. append-only.
+		TowerDefense = 6,
 	}
 
 	public class GameModeManager : MonoBehaviour
@@ -55,6 +58,9 @@ namespace WitchMendokusai
 		// TASK-WM-165 item9 — 투기장 관전 모드 게이트 (IsBuildMode 대칭). IsSpectating 조건이 이 값 파생.
 		public bool IsArenaMode => CurrentMode == GameMode.Arena;
 
+		// TASK-WM-194 — 특수시공 개척(TD) 모드 게이트 (IsArenaMode 대칭). IsTowerDefenseMode 조건이 이 값 파생.
+		public bool IsTowerDefenseMode => CurrentMode == GameMode.TowerDefense;
+
 		public void SetMode(GameMode newMode)
 		{
 			if (CurrentMode == newMode)
@@ -73,6 +79,12 @@ namespace WitchMendokusai
 		public void ToggleArenaMode()
 		{
 			SetMode(IsArenaMode ? GameMode.Default : GameMode.Arena);
+		}
+
+		// TASK-WM-194 — 특수시공 개척(TD) 진입/이탈 토글 (ToggleArenaMode 대칭). 인게임 진입점이 호출.
+		public void ToggleTowerDefenseMode()
+		{
+			SetMode(IsTowerDefenseMode ? GameMode.Default : GameMode.TowerDefense);
 		}
 	}
 }
