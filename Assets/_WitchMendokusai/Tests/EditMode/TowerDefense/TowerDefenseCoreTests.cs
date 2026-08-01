@@ -222,5 +222,74 @@ namespace WitchMendokusai.Tests
 			Assert.AreEqual(TowerDefenseOutcome.Victory, core.Outcome);
 			Assert.AreEqual(TowerDefensePhase.Concluded, core.Phase);
 		}
+
+		// === 웨이브 진행 방식(자동/수동) — TASK-WM-194 ===
+		// 자동만 있으면 준비 시간을 시계가 뺏고, 수동만 있으면 리듬이 사라진다. 두 방식이 *규칙 층에서*
+		// 갈라져 있는지 고정한다. 셸(UI/버튼)은 이 규칙을 부를 뿐이므로 여기가 정본.
+
+		[Test]
+		public void ManualMode_PrepareNeverTimesOut()
+		{
+			TowerDefenseCore core = Core();
+			core.AutoAdvance = false;
+
+			// 준비시간(1초)의 몇 배가 지나도 스스로 시작하지 않아야 한다.
+			for (int i = 0; i < 20; i++)
+				Assert.AreEqual(TowerDefenseSignal.None, core.Tick(0.5f, 0, true));
+
+			Assert.AreEqual(TowerDefensePhase.Prepare, core.Phase);
+			Assert.AreEqual(0, core.WaveIndex);
+		}
+
+		[Test]
+		public void ManualMode_RequestNextWave_StartsWave()
+		{
+			TowerDefenseCore core = Core();
+			core.AutoAdvance = false;
+			core.Tick(5f, 0, true); // 시간은 아무 의미 없어야 한다.
+
+			Assert.IsTrue(core.RequestNextWave());
+			Assert.IsTrue(core.IsNextWaveRequested);
+
+			Assert.AreEqual(TowerDefenseSignal.WaveStarted, core.Tick(0.1f, 0, true));
+			Assert.AreEqual(TowerDefensePhase.Assault, core.Phase);
+			Assert.IsFalse(core.IsNextWaveRequested); // 예약은 1회성 — 소비돼야 한다.
+		}
+
+		[Test]
+		public void AutoMode_RequestNextWave_SkipsRemainingPrepare()
+		{
+			TowerDefenseCore core = Core();
+
+			Assert.AreEqual(TowerDefenseSignal.None, core.Tick(0.1f, 0, true)); // 아직 준비 중.
+			Assert.IsTrue(core.RequestNextWave());
+			// 남은 준비 시간을 기다리지 않고 즉시 시작 — 기다림이 벌칙이 되지 않게.
+			Assert.AreEqual(TowerDefenseSignal.WaveStarted, core.Tick(0.01f, 0, true));
+		}
+
+		[Test]
+		public void RequestNextWave_RejectedOutsidePrepare()
+		{
+			TowerDefenseCore core = Core();
+			core.Tick(1f, 0, true); // → Assault
+
+			Assert.AreEqual(TowerDefensePhase.Assault, core.Phase);
+			Assert.IsFalse(core.RequestNextWave()); // 교전 중 호출 불가.
+
+			core.Tick(0.1f, 0, false); // 코어 파괴 → 종료.
+			Assert.AreEqual(TowerDefenseOutcome.Defeat, core.Outcome);
+			Assert.IsFalse(core.RequestNextWave()); // 끝난 뒤에도 불가.
+		}
+
+		[Test]
+		public void ManualMode_StillDefeatsWhenCoreDies()
+		{
+			// 수동 진행이라고 패배 판정이 멈추면 안 된다(웨이브를 안 부르면 무적이 되는 구멍 차단).
+			TowerDefenseCore core = Core();
+			core.AutoAdvance = false;
+
+			Assert.AreEqual(TowerDefenseSignal.Defeat, core.Tick(0.1f, 0, false));
+			Assert.AreEqual(TowerDefenseOutcome.Defeat, core.Outcome);
+		}
 	}
 }

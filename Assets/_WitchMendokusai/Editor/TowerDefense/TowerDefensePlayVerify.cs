@@ -26,8 +26,8 @@ namespace WitchMendokusai.EditorTools
 		private const string ARM_PREF = "WM.TD.PlayVerify.Armed";
 		private const string TAG = "[TD-Verify]";
 		private const double SETTLE_SECONDS = 2.0;
-		private const double HARD_TIMEOUT = 240.0;
-		private const double OBSERVE_SECONDS = 150.0; // 웨이브 2-3 고착 재현까지 관찰(사용자 실증 지점).
+		private const double HARD_TIMEOUT = 420.0;
+		private const double OBSERVE_SECONDS = 260.0; // 패배 성립까지 관찰 — 게임이 *끝나는지* 가 핵심 검증.
 		private const double SAMPLE_INTERVAL = 1.0;
 		// WaitWorld 가 왜 안 풀리는지(부팅 지연 vs 컨트롤러 미생성)를 구분하려면 게이트별 관측이 필요.
 		private const double GATE_LOG_INTERVAL = 5.0;
@@ -41,6 +41,8 @@ namespace WitchMendokusai.EditorTools
 			Place = 4,
 			PlaceDump = 9,
 			PlaceAfterRestartDump = 10,
+			VerifyConclusion = 11,
+			RestartFromConclusion = 12,
 			Restart = 5,
 			RestartSettle = 6,
 			PlaceAfterRestart = 7,
@@ -247,6 +249,14 @@ namespace WitchMendokusai.EditorTools
 
 				case Step.Observe:
 					Observe(now);
+					return;
+
+				case Step.VerifyConclusion:
+					VerifyConclusion(now);
+					return;
+
+				case Step.RestartFromConclusion:
+					VerifyRestartFromConclusion(now);
 					return;
 			}
 		}
@@ -684,8 +694,85 @@ namespace WitchMendokusai.EditorTools
 					+ " resource=" + match.Resource
 					+ " firstWaveSpawned=" + (firstContactWave >= 0)
 					+ " observed=" + (now - observeStart).ToString("F1") + "s");
-				Finish();
+
+				// ★ 게임은 *끝나야* 게임이다. 관찰만 하고 끝내면 "결말이 오는가"를 영영 검증 못 한다
+				//   (지금까지 패배를 한 번도 관측한 적이 없었다). 결말 → 배너 → 다시 도전까지 한 사이클을 닫는다.
+				if (matchEndedSeen == false)
+				{
+					Debug.LogError(TAG + " CONCLUSION-FAIL 관찰 " + OBSERVE_SECONDS + "s 동안 매치가 끝나지 않음 "
+						+ "— 승리도 패배도 없으면 게임이 아니라 무한 루프다. phase=" + match.Phase
+						+ " coreAlive=" + (match.CoreCombatant != null && match.CoreCombatant.IsAlive));
+					Finish();
+					return;
+				}
+
+				restartAt = now;
+				step = Step.VerifyConclusion;
 			}
+		}
+
+		/// <summary> 결말 화면 검증 — 배너가 실제로 떠야 플레이어가 끝났다는 걸 안다. </summary>
+		private static void VerifyConclusion(double now)
+		{
+			if (now - restartAt < 1.0)
+				return;
+
+			UIRoot uiRoot = Object.FindAnyObjectByType<UIRoot>();
+			VisualElement hud = uiRoot != null && uiRoot.OverlayLayer != null
+				? uiRoot.OverlayLayer.Q(nameof(TowerDefenseHudView))
+				: null;
+			VisualElement banner = hud != null ? hud.Q("BannerWrapper") : null;
+
+			bool bannerVisible = banner != null && banner.resolvedStyle.display == DisplayStyle.Flex;
+			string bannerText = banner != null ? (banner.Q<Label>() != null ? banner.Q<Label>().text : "no-label") : "no-banner";
+
+			if (bannerVisible)
+				Debug.Log(TAG + " CONCLUSION-BANNER visible=True text=\"" + bannerText + "\"");
+			else
+				Debug.LogError(TAG + " CONCLUSION-BANNER 결과 배너가 안 뜸 — 끝났는데 화면이 아무 말도 안 한다. banner=" + (banner != null));
+
+			// 결말 상태에서 「다시 도전」이 실제로 새 판을 여는가 (막다른 화면이 되지 않는가).
+			if (TowerDefenseModeController.TryGetExistingInstance(out TowerDefenseModeController controller) == false)
+			{
+				Debug.LogError(TAG + " CONCLUSION-FAIL controller 없음");
+				Finish();
+				return;
+			}
+
+			Debug.Log(TAG + " CONCLUSION-RESTART 결말 상태에서 재시작 요청");
+			controller.Restart();
+			restartAt = now;
+			step = Step.RestartFromConclusion;
+		}
+
+		/// <summary> 결말 → 재시작이 진짜 새 판인지 (자원/웨이브/국면이 처음으로 돌아왔는지). </summary>
+		private static void VerifyRestartFromConclusion(double now)
+		{
+			if (now - restartAt < 3.0)
+				return;
+
+			if (match == null)
+			{
+				Debug.LogError(TAG + " CONCLUSION-RESTART-FAIL 매치 없음");
+				Finish();
+				return;
+			}
+
+			bool freshWave = match.WaveIndex == 0;
+			bool freshOutcome = match.Outcome == TowerDefenseOutcome.InProgress;
+			bool freshResource = match.Resource > 0;
+
+			string verdict = TAG + " CONCLUSION-RESTART-RESULT wave=" + match.WaveIndex
+				+ " outcome=" + match.Outcome
+				+ " resource=" + match.Resource
+				+ " phase=" + match.Phase;
+
+			if (freshWave && freshOutcome && freshResource)
+				Debug.Log(verdict + " → 새 판 성립 ✔");
+			else
+				Debug.LogError(verdict + " → 결말 뒤 재시작이 새 판이 아니다(막다른 상태).");
+
+			Finish();
 		}
 
 		private static void OnMatchEnded(TowerDefenseOutcome outcome)
