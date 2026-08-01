@@ -64,6 +64,7 @@ namespace WitchMendokusai
 
 		// TASK-WM-163 — 카메라 모드 상태 (단일 권위자).
 		private InputManager inputManager;
+		private GameModeManager gameModeManager;
 		public CameraControlMode ControlMode { get; private set; } = CameraControlMode.PointAndClick;
 		public CameraPerspective Perspective { get; private set; } = CameraPerspective.ThirdPerson;
 		public event Action<CameraControlMode> OnControlModeChanged = delegate { };
@@ -91,9 +92,10 @@ namespace WitchMendokusai
 			|| CurrentContentMode == ContentCameraMode.TowerDefense;
 
 		[Inject]
-		public void Construct(ISubscriber<PlayerSpawnedEvent> spawnedSubscriber, ISubscriber<PlayerDespawnedEvent> despawnedSubscriber, InputManager inputManager)
+		public void Construct(ISubscriber<PlayerSpawnedEvent> spawnedSubscriber, ISubscriber<PlayerDespawnedEvent> despawnedSubscriber, InputManager inputManager, GameModeManager gameModeManager)
 		{
 			this.inputManager = inputManager;
+			this.gameModeManager = gameModeManager;
 			playerSpawnedSub = spawnedSubscriber.Subscribe(OnPlayerSpawned);
 			playerDespawnedSub = despawnedSubscriber.Subscribe(OnPlayerDespawned);
 		}
@@ -115,8 +117,24 @@ namespace WitchMendokusai
 			SetContentCameraMode(ContentCameraMode.Normal); // 내부에서 ApplyPerspective 호출
 		}
 
+		private void Start()
+		{
+			// ★ content 카메라의 **단일 권위자**. 모드 컨트롤러가 각자 카메라를 찌르면 구독 순서에 따라
+			//   서로 덮어쓴다(개척 진입이 BuildManager 의 "내 모드 아니면 Normal" 에 덮여 화면이 안 바뀌던
+			//   실측 버그). 게임 모드 → 카메라는 GameModeCamera 매핑 한 곳에서만 결정한다.
+			gameModeManager.OnModeChanged += ApplyGameModeCamera;
+			ApplyGameModeCamera(gameModeManager.CurrentMode);
+		}
+
+		private void ApplyGameModeCamera(GameMode mode)
+		{
+			SetContentCameraMode(GameModeCamera.For(mode));
+		}
+
 		private void OnDestroy()
 		{
+			if (gameModeManager != null)
+				gameModeManager.OnModeChanged -= ApplyGameModeCamera;
 			playerSpawnedSub?.Dispose();
 			playerDespawnedSub?.Dispose();
 

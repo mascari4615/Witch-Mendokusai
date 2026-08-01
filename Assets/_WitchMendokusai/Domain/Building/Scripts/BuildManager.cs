@@ -108,7 +108,9 @@ namespace WitchMendokusai
 			{
 				inputManager.UnregisterInputEvent(InputEventType.Click0, InputEventResponseType.Get, TryRemoveCell);
 				inputManager.UnregisterInputEvent(InputEventType.Click1, InputEventResponseType.Get, ClickCell);
-				cameraManager.SetContentCameraMode(ContentCameraMode.Normal);
+				// content 카메라 복귀는 여기서 하지 않는다 — 이 분기는 *모든* 모드 변경에서 돌기 때문에
+				// 다른 모드(개척/투기장)가 방금 잡은 카메라를 구독 순서로 덮어썼다(실측: 개척 화면이 안 바뀜).
+				// 게임 모드 → content 카메라는 CameraManager 단일 권위자(GameModeCamera 매핑)가 정한다.
 			}
 
 			gridVisualization.SetActive(isBuildMode);

@@ -44,15 +44,12 @@ namespace WitchMendokusai
 		private bool wasTowerDefense;
 
 
-		private CameraManager cameraManager;
-
 		[Inject]
-		public void Construct(GameModeManager gameModeManager, InputManager inputManager, UIRoot uiRoot, CameraManager cameraManager)
+		public void Construct(GameModeManager gameModeManager, InputManager inputManager, UIRoot uiRoot)
 		{
 			this.gameModeManager = gameModeManager;
 			this.inputManager = inputManager;
 			this.uiRoot = uiRoot;
-			this.cameraManager = cameraManager;
 		}
 
 		private void Awake()
@@ -198,9 +195,8 @@ namespace WitchMendokusai
 
 			if (isTowerDefense)
 			{
-				// 진입 — 개척이 화면의 주체가 된다: content 카메라를 개척 vcam 으로 전환(priority) → 무대 시점
-				// 맞춤 → 배치 입력 전략 → 매치 시작 → 배치 활성(프리뷰 추적 시작).
-				cameraManager.SetContentCameraMode(ContentCameraMode.TowerDefense);
+				// 진입 — content 카메라 전환(개척 vcam 승격)은 CameraManager 단일 권위자가 GameMode 를 보고
+				// 이미 처리한다. 여기서는 **무대가 아는 것**(시점 위치·경계·줌 범위)만 맞춘다.
 				ResetCamera();
 				inputManager.SetInputStrategy(new InputStrategyTowerDefense(placement, inputManager));
 				match.Begin(stage, stageRoot);
@@ -231,7 +227,6 @@ namespace WitchMendokusai
 				}
 				placement.Deactivate();
 				hud?.Hide();
-				cameraManager.SetContentCameraMode(ContentCameraMode.Normal);
 				inputManager.SetInputStrategy(new InputStrategyWorld());
 			}
 		}

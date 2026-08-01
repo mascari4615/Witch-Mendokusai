@@ -209,14 +209,15 @@ namespace WitchMendokusai.EditorTools
 			}
 
 			TowerDefensePlacement placement = controller.GetComponent<TowerDefensePlacement>();
-			Transform camTransform = controller.transform.Find("StageRoot/ModeCamera");
-			Camera modeCamera = camTransform != null ? camTransform.GetComponent<Camera>() : null;
+			// 화면 좌표 계산은 **실제 렌더 카메라** 기준이어야 한다 — 개척이 정식 content 카메라가 되면서
+			// 렌더 카메라는 Cinemachine brain 이 물고 있는 단 하나다(전용 Camera 자식은 폐기됨).
+			Camera modeCamera = ViewCameraResolver.Current;
 			if (placement == null || modeCamera == null)
 			{
-				Debug.LogError(TAG + " PLACE-FAIL placement=" + (placement != null) + " modeCamera=" + (modeCamera != null));
+				Debug.LogError(TAG + " PLACE-FAIL placement=" + (placement != null) + " renderCamera=" + (modeCamera != null));
 				return;
 			}
-			Debug.Log(TAG + " PLACE-VIA-SCREEN camActive=" + modeCamera.gameObject.activeInHierarchy);
+			Debug.Log(TAG + " PLACE-VIA-SCREEN renderCamera=" + modeCamera.name + " pos=" + modeCamera.transform.position);
 
 			int before = match.Resource;
 
@@ -246,16 +247,18 @@ namespace WitchMendokusai.EditorTools
 		private static void LogHudState()
 		{
 			UIRoot uiRoot = Object.FindAnyObjectByType<UIRoot>();
-			if (uiRoot == null || uiRoot.HudLayer == null)
+			// 개척 HUD 는 OverlayLayer 에 붙는다 — 본편 HUD(HudLayer)를 통째 숨겨도 살아남아야 하기 때문.
+			// HudLayer 를 보던 예전 assert 는 그 설계 변경 이후로 항상 실패하는 죽은 검사였다.
+			if (uiRoot == null || uiRoot.OverlayLayer == null)
 			{
-				Debug.LogError(TAG + " HUD-FAIL UIRoot/HudLayer 없음");
+				Debug.LogError(TAG + " HUD-FAIL UIRoot/OverlayLayer 없음");
 				return;
 			}
 
-			VisualElement hud = uiRoot.HudLayer.Q(nameof(TowerDefenseHudView));
+			VisualElement hud = uiRoot.OverlayLayer.Q(nameof(TowerDefenseHudView));
 			if (hud == null)
 			{
-				Debug.LogError(TAG + " HUD-FAIL HudLayer 에 TowerDefenseHudView 없음");
+				Debug.LogError(TAG + " HUD-FAIL OverlayLayer 에 TowerDefenseHudView 없음");
 				return;
 			}
 
@@ -367,7 +370,6 @@ namespace WitchMendokusai.EditorTools
 			Debug.Log(TAG + " CAMERAS(" + phase + ") count=" + cameras.Length
 				+ " main=" + (Camera.main != null ? Camera.main.name : "NULL"));
 
-			Camera modeCamera = null;
 			Camera topmost = null;
 			foreach (Camera camera in cameras)
 			{
@@ -386,29 +388,44 @@ namespace WitchMendokusai.EditorTools
 
 				if (camera.enabled == false)
 					continue;
-				if (camera.name == "ModeCamera")
-					modeCamera = camera;
 				if (topmost == null || camera.depth > topmost.depth)
 					topmost = camera;
 			}
 
-			// ★ 핵심 assert — "카메라 GameObject 가 active" 는 *화면에 보인다*가 아니다.
-			//   플레이어 카메라 리그가 depth 100 이라 개척 카메라가 20 이면 켜져도 그 위에 덮여
-			//   화면이 전혀 안 바뀐다(사용자 실증: "개척 UI는 뜨지만 플레이 불가"). 최상위 여부를 직접 판정.
-			if (modeCamera == null)
+			// ★ 개척은 이제 **정식 content 카메라**(vcam priority)다 — "카메라를 하나 더 켰나"가 아니라
+			//   ① 렌더 카메라가 하나뿐인가 ② content 모드가 개척으로 바뀌었나 ③ 개척 vcam 이 등록·구동 중인가
+			//   를 봐야 한다. 예전 assert(ModeCamera 가 최상위인가)는 구조가 바뀌어 무의미해졌다.
+			Debug.Log(TAG + " CAM-RENDER[" + phase + "] renderCameraCount=" + cameras.Length
+				+ " topmost=" + (topmost != null ? topmost.name + "(depth " + topmost.depth + ")" : "none"));
+
+			CameraManager cameraManager = CameraManager.Instance;
+			if (cameraManager == null)
 			{
-				Debug.LogError(TAG + " CAM-TOP[" + phase + "] 개척 카메라가 활성 목록에 없음");
+				Debug.LogError(TAG + " CAM-MODE[" + phase + "] CameraManager.Instance NULL — 카메라 리그 자체가 없음.");
 				return;
 			}
 
-			bool isTopmost = topmost == modeCamera;
-			string verdict = TAG + " CAM-TOP[" + phase + "] modeCameraDepth=" + modeCamera.depth
-				+ " topmost=" + (topmost != null ? topmost.name + "(" + topmost.depth + ")" : "none")
-				+ " 개척카메라가최상위=" + isTopmost;
-			if (isTopmost)
-				Debug.Log(verdict);
-			else
-				Debug.LogError(verdict + " → 화면이 안 바뀜(플레이 불가). 개척 카메라 depth 를 올려야 함.");
+			Debug.Log(TAG + " CAM-MODE[" + phase + "] contentMode=" + cameraManager.CurrentContentMode
+				+ " isFreePosition=" + cameraManager.IsFreePositionMode);
+
+			// 개척 vcam 실재/등록 확인 — 없으면 SetContentCameraMode 가 First() 에서 터지거나 무시된다.
+			MCamera[] allVcams = Object.FindObjectsByType<MCamera>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+			bool foundTowerDefenseVcam = false;
+			foreach (MCamera vcam in allVcams)
+			{
+				Debug.Log(TAG + " VCAM[" + phase + "] " + vcam.name
+					+ " contentMode=" + vcam.ContentCameraMode
+					// priority 는 Cinemachine 타입이라 Editor asmdef 에서 직접 못 읽는다 — 대신 활성/좌표로 판별.
+					+ " active=" + vcam.gameObject.activeInHierarchy
+					+ " pos=" + vcam.transform.position);
+				if (vcam.ContentCameraMode == ContentCameraMode.TowerDefense)
+					foundTowerDefenseVcam = true;
+			}
+
+			if (foundTowerDefenseVcam == false)
+				Debug.LogError(TAG + " VCAM-MISS[" + phase + "] 개척 vcam(ContentCameraMode.TowerDefense) 이 씬에 없음 — Camera 프리팹 자식 Camera_TowerDefense 확인 필요.");
+			else if (cameraManager.CurrentContentMode != ContentCameraMode.TowerDefense && phase.Contains("진입"))
+				Debug.LogError(TAG + " CAM-MODE-MISS[" + phase + "] 개척 진입인데 contentMode=" + cameraManager.CurrentContentMode + " — 전환 실패.");
 		}
 
 		private static Vector2 WorldToScreen(Camera camera, Vector3 worldPosition)

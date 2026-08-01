@@ -24,6 +24,29 @@ namespace WitchMendokusai
 		TowerDefense = 5,
 	}
 
+	/// <summary>
+	/// 게임 모드 → content 카메라 **단일 매핑 정본**.
+	///
+	/// ★ 왜 필요한가 (TASK-WM-194 실측): 모드 컨트롤러들이 각자 CameraManager 를 찔러댔고,
+	///   그중 하나(BuildManager)가 *자기 모드가 아니면 무조건 Normal 로* 되돌렸다. 구독 순서상
+	///   나중에 도는 쪽이 이기므로, 개척이 카메라를 개척으로 바꿔도 곧바로 Normal 로 덮여
+	///   **화면이 전혀 안 바뀌었다**(개척 vcam 은 무대로 이동해 있는데 승격이 안 됨).
+	///   "누가 카메라를 정하는가"를 한 곳으로 모으면 이 종류의 덮어쓰기가 구조적으로 불가능해진다.
+	/// </summary>
+	public static class GameModeCamera
+	{
+		public static ContentCameraMode For(GameMode mode)
+		{
+			return mode switch
+			{
+				GameMode.Arena => ContentCameraMode.Arena,
+				GameMode.TowerDefense => ContentCameraMode.TowerDefense,
+				// 건설/지대/도로/발전소 = 본편 위에서 하는 작업이라 평소 시점 유지.
+				_ => ContentCameraMode.Normal,
+			};
+		}
+	}
+
 	public enum UICameraMode
 	{
 		None = -1,

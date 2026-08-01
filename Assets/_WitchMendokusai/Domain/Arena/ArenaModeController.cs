@@ -29,7 +29,6 @@ namespace WitchMendokusai
 
 		private GameModeManager gameModeManager;
 		private InputManager inputManager;
-		private CameraManager cameraManager;
 
 		[SerializeField] private ArenaMatch arenaMatch;
 
@@ -37,11 +36,10 @@ namespace WitchMendokusai
 		private bool wasArena;
 
 		[Inject]
-		public void Construct(GameModeManager gameModeManager, InputManager inputManager, CameraManager cameraManager)
+		public void Construct(GameModeManager gameModeManager, InputManager inputManager)
 		{
 			this.gameModeManager = gameModeManager;
 			this.inputManager = inputManager;
-			this.cameraManager = cameraManager;
 		}
 
 		private void Awake()
@@ -81,17 +79,15 @@ namespace WitchMendokusai
 
 			if (isArena)
 			{
-				// 진입 — 투기장이 화면의 주체가 된다: content 카메라를 투기장 vcam 으로 전환(priority)
-				// → 관전 입력(이동·전투 차단) → 매치 시작.
-				cameraManager.SetContentCameraMode(ContentCameraMode.Arena);
+				// 진입 — content 카메라 전환(투기장 vcam 승격)은 CameraManager 단일 권위자가 GameMode 를
+				// 보고 처리한다. 여기서는 입력·매치만.
 				inputManager.SetInputStrategy(new InputStrategyArena());
 				arenaMatch.Begin();
 			}
 			else
 			{
-				// 이탈 — 매치 정리(멱등 Dispose) → 본편 카메라 복귀 → 월드 입력 복귀.
+				// 이탈 — 매치 정리(멱등 Dispose) → 월드 입력 복귀(카메라 복귀는 단일 권위자 담당).
 				arenaMatch.Dispose();
-				cameraManager.SetContentCameraMode(ContentCameraMode.Normal);
 				inputManager.SetInputStrategy(new InputStrategyWorld());
 			}
 		}
