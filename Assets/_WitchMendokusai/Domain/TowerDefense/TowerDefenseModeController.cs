@@ -86,13 +86,41 @@ namespace WitchMendokusai
 			hud?.ShowOutcome(outcome, match.WaveIndex);
 		}
 
-		// HUD 갱신 — TD 모드 동안만. 자원/웨이브/카운트다운은 매 프레임 변하므로 Update 가 자연스럽다.
+		// HUD 갱신 + 카메라 이동 — TD 모드 동안만.
 		private void Update()
 		{
-			if (wasTowerDefense == false || hud == null)
+			if (wasTowerDefense == false)
 				return;
 
-			hud.Tick(match, stage);
+			hud?.Tick(match, stage);
+			UpdateCameraPan();
+		}
+
+		/// <summary>
+		/// 개척 카메라 이동(WASD) — `InputAxisType.CameraMove` 축 재사용.
+		/// CityViewCameraController/FreeFlyCameraController 와 같은 축이라 조작이 게임 전체에서 일관된다
+		/// (플레이어 Move 축과는 분리돼 있어 이 모드에서 캐릭터가 움직일 위험 0).
+		/// 스테이지 중심 기준으로 가둬 개척지를 화면 밖으로 잃어버리지 않게 한다.
+		/// </summary>
+		private void UpdateCameraPan()
+		{
+			if (modeCamera == null || stageRoot == null || stage == null || inputManager == null)
+				return;
+
+			Vector2 move = inputManager.CameraMoveInput;
+			if (move.sqrMagnitude <= 0f)
+				return;
+
+			Vector3 delta = new Vector3(move.x, 0f, move.y) * stage.CameraPanSpeed * Time.deltaTime;
+			Vector3 next = modeCamera.transform.position + delta;
+
+			// 스테이지 중심 기준 XZ 클램프(카메라 높이·각도는 유지).
+			Vector3 center = stageRoot.position;
+			float limit = stage.CameraPanLimit;
+			next.x = Mathf.Clamp(next.x, center.x - limit, center.x + limit);
+			next.z = Mathf.Clamp(next.z, center.z - limit, center.z + limit);
+
+			modeCamera.transform.position = next;
 		}
 
 		private TowerDefenseHudView EnsureHud()
@@ -119,12 +147,21 @@ namespace WitchMendokusai
 				inputManager.SetInputStrategy(new InputStrategyTowerDefense(placement, inputManager));
 				match.Begin(stage, stageRoot);
 				placement.Activate();
-				EnsureHud()?.Show(stage);
+				TowerDefenseHudView view = EnsureHud();
+				if (view != null)
+				{
+					view.Show(stage);
+					// 핫바 선택 표시 ↔ 실제 배치 대상은 같은 소스여야 한다(표시가 거짓말하면 오설치).
+					view.SetSelectedKind(placement.SelectedKind);
+					placement.SelectionChanged += view.SetSelectedKind;
+				}
 			}
 			else
 			{
 				// 이탈 — 매치 정리(멱등 Dispose) → 배치 비활성 → 모드 카메라 끄기 → 월드 입력 복귀.
 				match.Dispose();
+				if (hud != null)
+					placement.SelectionChanged -= hud.SetSelectedKind;
 				placement.Deactivate();
 				hud?.Hide();
 				modeCamera.gameObject.SetActive(false);

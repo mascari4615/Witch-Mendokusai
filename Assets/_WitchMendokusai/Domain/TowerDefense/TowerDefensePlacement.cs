@@ -35,6 +35,33 @@ namespace WitchMendokusai
 		private InputManager inputManager;
 		private bool isActive;
 
+		/// <summary>
+		/// 핫바에서 고른 설치 대상. 좌/우클릭으로 종류를 가르던 방식은 종류가 늘면 안 늘어난다
+		/// (사용자 지시: "좌클릭/우클릭이 아니라 빌딩 핫바 좀 활용해야 할듯").
+		/// 선택 = 핫바(숫자키/클릭), 설치 = 클릭 — 기존 건설 모드와 같은 조작 문법.
+		/// </summary>
+		public TowerDefensePlaceableKind SelectedKind { get; private set; } = TowerDefensePlaceableKind.Tower;
+
+		public event System.Action<TowerDefensePlaceableKind> SelectionChanged = delegate { };
+
+		public void SelectKind(TowerDefensePlaceableKind kind)
+		{
+			if (SelectedKind == kind)
+				return;
+
+			SelectedKind = kind;
+			SelectionChanged(kind);
+		}
+
+		/// <summary> 선택된 종류를 설치 — 핫바 문법의 단일 진입점(클릭 1회 = 1개). </summary>
+		public void PlaceSelectedAt(Vector2 screenPointerPosition)
+		{
+			if (SelectedKind == TowerDefensePlaceableKind.Harvester)
+				PlaceHarvesterAt(screenPointerPosition);
+			else
+				PlaceTowerAt(screenPointerPosition);
+		}
+
 		[Inject]
 		public void Construct(InputManager inputManager)
 		{

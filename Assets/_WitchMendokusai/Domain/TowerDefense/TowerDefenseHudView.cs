@@ -29,6 +29,8 @@ namespace WitchMendokusai
 		private readonly Label hintLabel;
 		private readonly Label bannerLabel;
 		private readonly VisualElement legendPanel;
+		private readonly VisualElement hotbarPanel;
+		private readonly System.Collections.Generic.List<VisualElement> hotbarSlots = new();
 
 		// 본편 UI 복원용 — 숨기기 전 값을 보관(무조건 되돌리면 원래 숨김 상태였던 경우를 깨뜨린다).
 		private DisplayStyle baseHudPreviousDisplay = DisplayStyle.Flex;
@@ -51,6 +53,8 @@ namespace WitchMendokusai
 			container.Add(BuildStatPanel(out resourceValue, out waveValue, out phaseValue));
 			legendPanel = BuildLegendPanel();
 			container.Add(legendPanel);
+			hotbarPanel = BuildHotbar();
+			container.Add(hotbarPanel);
 			container.Add(BuildHintBar(out hintLabel));
 			container.Add(BuildBanner(out bannerLabel));
 
@@ -235,17 +239,119 @@ namespace WitchMendokusai
 			return row;
 		}
 
+
+		/// <summary>
+		/// 설치 핫바 — 기존 건설 모드의 BuildingBarView 와 같은 자리(하단 중앙)·같은 문법(슬롯 선택 → 클릭 설치).
+		/// 조작이 게임 전체에서 하나로 통일되고, 설치 종류가 늘어도 슬롯만 늘리면 된다
+		/// (가챠로 방어 인형이 늘어나는 방향과 정합).
+		/// </summary>
+		private VisualElement BuildHotbar()
+		{
+			VisualElement wrapper = new VisualElement { name = "PlaceHotbar" };
+			wrapper.style.position = Position.Absolute;
+			wrapper.style.left = 0;
+			wrapper.style.right = 0;
+			wrapper.style.bottom = 64;
+			wrapper.style.flexDirection = FlexDirection.Row;
+			wrapper.style.justifyContent = Justify.Center;
+			wrapper.pickingMode = PickingMode.Ignore;
+			return wrapper;
+		}
+
+		// 슬롯 = 「숫자키  이름  비용」. 선택된 것만 테두리가 밝아진다.
+		private void FillHotbar(TowerDefenseStageSO stage)
+		{
+			hotbarPanel.Clear();
+			hotbarSlots.Clear();
+			if (stage == null)
+				return;
+
+			hotbarPanel.Add(MakeHotbarSlot("1", "포탑 인형", stage.TowerCost, stage.TowerTint));
+			hotbarPanel.Add(MakeHotbarSlot("2", "채집 인형", stage.HarvesterCost, stage.HarvesterTint));
+		}
+
+		private VisualElement MakeHotbarSlot(string key, string name, int cost, Color tint)
+		{
+			VisualElement slot = new VisualElement();
+			slot.style.flexDirection = FlexDirection.Row;
+			slot.style.alignItems = Align.Center;
+			slot.style.marginLeft = 5;
+			slot.style.marginRight = 5;
+			slot.style.paddingLeft = 10;
+			slot.style.paddingRight = 12;
+			slot.style.paddingTop = 7;
+			slot.style.paddingBottom = 7;
+			slot.style.backgroundColor = new Color(0.04f, 0.05f, 0.08f, 0.78f);
+			slot.style.borderTopLeftRadius = 5;
+			slot.style.borderTopRightRadius = 5;
+			slot.style.borderBottomLeftRadius = 5;
+			slot.style.borderBottomRightRadius = 5;
+			slot.style.borderLeftWidth = 2;
+			slot.style.borderRightWidth = 2;
+			slot.style.borderTopWidth = 2;
+			slot.style.borderBottomWidth = 2;
+			slot.pickingMode = PickingMode.Ignore;
+
+			VisualElement swatch = new VisualElement();
+			swatch.style.width = 12;
+			swatch.style.height = 12;
+			swatch.style.marginRight = 8;
+			swatch.style.backgroundColor = tint;
+			swatch.pickingMode = PickingMode.Ignore;
+
+			Label keyLabel = new Label(key);
+			keyLabel.style.fontSize = 12;
+			keyLabel.style.color = new Color(0.6f, 0.66f, 0.75f, 1f);
+			keyLabel.style.marginRight = 6;
+			keyLabel.pickingMode = PickingMode.Ignore;
+
+			Label nameLabel = new Label(name);
+			nameLabel.style.fontSize = 14;
+			nameLabel.style.color = new Color(0.93f, 0.95f, 0.99f, 1f);
+			nameLabel.style.marginRight = 8;
+			nameLabel.pickingMode = PickingMode.Ignore;
+
+			Label costLabel = new Label(cost.ToString());
+			costLabel.style.fontSize = 14;
+			costLabel.style.color = new Color(1f, 0.86f, 0.35f, 1f);
+			costLabel.pickingMode = PickingMode.Ignore;
+
+			slot.Add(swatch);
+			slot.Add(keyLabel);
+			slot.Add(nameLabel);
+			slot.Add(costLabel);
+			hotbarSlots.Add(slot);
+			return slot;
+		}
+
+		/// <summary> 선택 표시 갱신 — 컨트롤러가 선택 변경 시 호출. </summary>
+		public void SetSelectedKind(TowerDefensePlaceableKind kind)
+		{
+			int selectedIndex = kind == TowerDefensePlaceableKind.Harvester ? 1 : 0;
+			for (int i = 0; i < hotbarSlots.Count; i++)
+			{
+				Color border = i == selectedIndex
+					? new Color(1f, 0.9f, 0.5f, 1f)
+					: new Color(1f, 1f, 1f, 0.12f);
+				hotbarSlots[i].style.borderLeftColor = border;
+				hotbarSlots[i].style.borderRightColor = border;
+				hotbarSlots[i].style.borderTopColor = border;
+				hotbarSlots[i].style.borderBottomColor = border;
+			}
+		}
+
 		public void Show(TowerDefenseStageSO stage)
 		{
 			HideBaseGameUI();
 
 			FillLegend(stage);
+			FillHotbar(stage);
 			container.style.display = DisplayStyle.Flex;
 			SetBannerVisible(false);
 
 			hintLabel.text = stage == null
 				? string.Empty
-				: $"좌클릭 채집 {stage.HarvesterCost}   ·   우클릭 포탑 {stage.TowerCost}   ·   X 나가기";
+				: "숫자키 1·2 로 고르고, 좌클릭으로 설치   ·   WASD 시점 이동   ·   X 나가기";
 		}
 
 		public void Hide()

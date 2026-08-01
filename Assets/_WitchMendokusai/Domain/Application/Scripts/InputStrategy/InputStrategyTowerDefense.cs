@@ -61,17 +61,27 @@ namespace WitchMendokusai
 						// PlacementInputMode.SingleClick — Get(매 프레임 폴)이면 버튼을 누르고 있는 동안
 						// 계속 설치돼 드래그로 죽 깔린다(월드 건설은 그게 맞지만 비용이 붙는 개척 배치엔 사고).
 						// Performed = 누르는 동작당 1회 → "한 클릭에 한 개".
-						new(
-							InputEventType.Click1,
-							InputEventResponseType.Performed,
-							() => HandlePlaceTowerClick(),
-							() => CanExecute(InputEventType.Click1)
-						),
+						// 좌클릭 = 핫바에서 고른 것 설치(클릭 1회 = 1개).
 						new(
 							InputEventType.Click0,
 							InputEventResponseType.Performed,
-							() => HandlePlaceHarvesterClick(),
+							() => HandlePlaceClick(),
 							() => CanExecute(InputEventType.Click0)
+						),
+						#endregion
+
+						#region Hotbar (기존 건설 모드와 같은 조작 문법 — 숫자키로 설치 대상 선택)
+						new(
+							InputEventType.HotbarSlot1,
+							InputEventResponseType.Performed,
+							() => placement.SelectKind(TowerDefensePlaceableKind.Tower),
+							() => CanExecute(InputEventType.HotbarSlot1)
+						),
+						new(
+							InputEventType.HotbarSlot2,
+							InputEventResponseType.Performed,
+							() => placement.SelectKind(TowerDefensePlaceableKind.Harvester),
+							() => CanExecute(InputEventType.HotbarSlot2)
 						),
 						#endregion
 
@@ -93,7 +103,7 @@ namespace WitchMendokusai
 		}
 
 		// BuildManager.ClickCell/TryRemoveCell 동형 — UI 위 클릭 무시 + 쿨다운(한 클릭 다중 배치 방지).
-		private void HandlePlaceTowerClick()
+		private void HandlePlaceClick()
 		{
 			if (inputManager.IsPointerOverUI())
 				return;
@@ -101,18 +111,7 @@ namespace WitchMendokusai
 				return;
 
 			lastClickTime = Time.time;
-			placement.PlaceTowerAt(inputManager.MouseScreenPosition);
-		}
-
-		private void HandlePlaceHarvesterClick()
-		{
-			if (inputManager.IsPointerOverUI())
-				return;
-			if (Time.time - lastClickTime < CLICK_COOLDOWN)
-				return;
-
-			lastClickTime = Time.time;
-			placement.PlaceHarvesterAt(inputManager.MouseScreenPosition);
+			placement.PlaceSelectedAt(inputManager.MouseScreenPosition);
 		}
 
 		protected override Dictionary<InputEventType, GameConditionType[]> EventReturnConditions => new()
@@ -121,13 +120,11 @@ namespace WitchMendokusai
 			{ InputEventType.CameraControlModeToggle, new[] { GameConditionType.IsPaused, GameConditionType.IsTyping } },
 			{ InputEventType.CameraPerspectiveToggle, new[] { GameConditionType.IsPaused, GameConditionType.IsTyping } },
 			{
-				InputEventType.Click1,
-				new[] { GameConditionType.IsMouseOnUI, GameConditionType.IsTyping, GameConditionType.IsPaused }
-			},
-			{
 				InputEventType.Click0,
 				new[] { GameConditionType.IsMouseOnUI, GameConditionType.IsTyping, GameConditionType.IsPaused }
 			},
+			{ InputEventType.HotbarSlot1, new[] { GameConditionType.IsTyping, GameConditionType.IsPaused } },
+			{ InputEventType.HotbarSlot2, new[] { GameConditionType.IsTyping, GameConditionType.IsPaused } },
 			{ InputEventType.Cancel, new[] { GameConditionType.IsTyping } },
 		};
 

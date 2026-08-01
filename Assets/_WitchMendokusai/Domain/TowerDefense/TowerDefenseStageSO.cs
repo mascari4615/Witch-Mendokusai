@@ -75,6 +75,13 @@ namespace WitchMendokusai
 		[field: Tooltip("바닥 격자 한 칸 크기 — 배치 스냅 격자와 같아야 눈으로 칸을 셀 수 있다.")]
 		[field: SerializeField, Min(0.25f)] public float GroundCellSize { get; private set; } = 1f;
 
+		[field: Header("카메라 조작")]
+		[field: Tooltip("개척 카메라 이동 속도(WASD) — CityViewCameraController 와 같은 CameraMove 축을 쓴다.")]
+		[field: SerializeField, Min(1f)] public float CameraPanSpeed { get; private set; } = 24f;
+
+		[field: Tooltip("카메라가 스테이지 중심에서 벗어날 수 있는 최대 거리 — 개척지를 잃어버리지 않게 가둔다.")]
+		[field: SerializeField, Min(1f)] public float CameraPanLimit { get; private set; } = 26f;
+
 		[field: Header("레이아웃")]
 		[field: Tooltip("코어(기지) 배치 위치 — 스테이지 root 로컬 좌표.")]
 		[field: SerializeField] public Vector3 CorePosition { get; private set; }
