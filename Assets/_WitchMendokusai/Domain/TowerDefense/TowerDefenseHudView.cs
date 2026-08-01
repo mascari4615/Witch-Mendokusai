@@ -28,6 +28,7 @@ namespace WitchMendokusai
 		private readonly Label phaseValue;
 		private readonly Label hintLabel;
 		private readonly Label bannerLabel;
+		private readonly VisualElement legendPanel;
 
 		// 본편 UI 복원용 — 숨기기 전 값을 보관(무조건 되돌리면 원래 숨김 상태였던 경우를 깨뜨린다).
 		private DisplayStyle baseHudPreviousDisplay = DisplayStyle.Flex;
@@ -48,6 +49,8 @@ namespace WitchMendokusai
 			container.pickingMode = PickingMode.Ignore;
 
 			container.Add(BuildStatPanel(out resourceValue, out waveValue, out phaseValue));
+			legendPanel = BuildLegendPanel();
+			container.Add(legendPanel);
 			container.Add(BuildHintBar(out hintLabel));
 			container.Add(BuildBanner(out bannerLabel));
 
@@ -156,10 +159,86 @@ namespace WitchMendokusai
 			return wrapper;
 		}
 
+
+		/// <summary>
+		/// 범례 — **화면이 스스로 설명해야 한다**(사용자 지시: "구분이 어떻게 됐는지에 대한 안내가 화면에
+		/// 표시되어야겠지"). 아트가 아직 없어 색이 곧 정체이므로, 색 견본 + 이름을 그대로 띄운다.
+		/// 색은 스테이지 SO 를 읽어 채운다 — 화면의 유닛 색과 범례 색이 같은 소스여야 안내가 거짓말을 안 한다.
+		/// </summary>
+		private VisualElement BuildLegendPanel()
+		{
+			VisualElement panel = new VisualElement { name = "LegendPanel" };
+			panel.style.position = Position.Absolute;
+			panel.style.left = 24;
+			panel.style.top = 130;
+			panel.style.paddingLeft = 12;
+			panel.style.paddingRight = 16;
+			panel.style.paddingTop = 8;
+			panel.style.paddingBottom = 8;
+			panel.style.backgroundColor = new Color(0.04f, 0.05f, 0.08f, 0.66f);
+			panel.style.borderTopLeftRadius = 6;
+			panel.style.borderTopRightRadius = 6;
+			panel.style.borderBottomLeftRadius = 6;
+			panel.style.borderBottomRightRadius = 6;
+			panel.pickingMode = PickingMode.Ignore;
+			return panel;
+		}
+
+		// 스테이지가 정해지는 시점(진입)에 채운다 — 색 출처가 SO 라 하드코딩 색이 없다.
+		private void FillLegend(TowerDefenseStageSO stage)
+		{
+			legendPanel.Clear();
+			if (stage == null)
+				return;
+
+			legendPanel.Add(MakeLegendRow(stage.CoreTint, "코어", "부서지면 끝"));
+			legendPanel.Add(MakeLegendRow(stage.TowerTint, "포탑 인형", "적을 쏜다"));
+			legendPanel.Add(MakeLegendRow(stage.HarvesterTint, "채집 인형", "수입 +" + stage.Rules.IncomePerHarvester));
+			legendPanel.Add(MakeLegendRow(stage.EnemyTint, "마수", "코어로 전진"));
+			legendPanel.Add(MakeLegendRow(new Color(1f, 0.82f, 0.25f, 1f), "금빛 원", "채집 인형 자리"));
+		}
+
+		private static VisualElement MakeLegendRow(Color swatchColor, string name, string note)
+		{
+			VisualElement row = new VisualElement();
+			row.style.flexDirection = FlexDirection.Row;
+			row.style.alignItems = Align.Center;
+			row.style.marginBottom = 3;
+			row.pickingMode = PickingMode.Ignore;
+
+			VisualElement swatch = new VisualElement();
+			swatch.style.width = 12;
+			swatch.style.height = 12;
+			swatch.style.marginRight = 8;
+			swatch.style.backgroundColor = swatchColor;
+			swatch.style.borderTopLeftRadius = 3;
+			swatch.style.borderTopRightRadius = 3;
+			swatch.style.borderBottomLeftRadius = 3;
+			swatch.style.borderBottomRightRadius = 3;
+			swatch.pickingMode = PickingMode.Ignore;
+
+			Label nameLabel = new Label(name);
+			nameLabel.style.fontSize = 13;
+			nameLabel.style.color = new Color(0.92f, 0.94f, 0.98f, 1f);
+			nameLabel.style.width = 76;
+			nameLabel.pickingMode = PickingMode.Ignore;
+
+			Label noteLabel = new Label(note);
+			noteLabel.style.fontSize = 11;
+			noteLabel.style.color = new Color(0.62f, 0.68f, 0.76f, 1f);
+			noteLabel.pickingMode = PickingMode.Ignore;
+
+			row.Add(swatch);
+			row.Add(nameLabel);
+			row.Add(noteLabel);
+			return row;
+		}
+
 		public void Show(TowerDefenseStageSO stage)
 		{
 			HideBaseGameUI();
 
+			FillLegend(stage);
 			container.style.display = DisplayStyle.Flex;
 			SetBannerVisible(false);
 

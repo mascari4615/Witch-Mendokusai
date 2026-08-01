@@ -186,19 +186,26 @@ namespace WitchMendokusai
 
 
 		/// <summary>
-		/// 화면에서 즉시 읽히게 만드는 공통 처리 — 팀 틴트 + 역할별 크기.
-		/// 사용자 실증: "건물도 그냥 슬라임이고 적과 내가 똑같다" → 구분 수단이 하나도 없으면
-		/// 규칙이 아무리 맞아도 플레이가 불가능하다. 인형 그림 자체는 TowerDefenseUnitObject.Init 가
-		/// DataSO 에서 입히고, 여기서는 *진영*과 *역할 크기*만 덧입힌다(틴트는 흰색에 가깝게 유지해
-		/// 인형 아트를 죽이지 않음). 수치·색 전부 스테이지 SO 노출(하드코딩 0).
+		/// 화면에서 즉시 읽히게 만드는 공통 처리 — 역할 색 + 한 칸 크기 + 애니메이터 정지.
+		///
+		/// ★ 애니메이터 정지가 핵심(실측): 프리팹 '[Sprite] Unit' 에 슬라임 애니메이터가 붙어 있어
+		///   매 프레임 sprite 를 자기 클립으로 덮어쓴다 → 유닛 데이터의 그림을 아무리 넣어도 다음
+		///   프레임에 슬라임으로 되돌아갔다(사용자 실증 2회 "여전히 슬라임"). 끄지 않으면 어떤 시각
+		///   구분도 무의미.
+		/// ★ 색 = 정체: 아트가 아직 없으므로 역할 4색을 서로 멀게 잡고, HUD 범례가 같은 색을 읽어
+		///   화면에 이름을 띄운다(색↔이름 단일 소스 — 둘이 어긋나면 안내가 거짓말이 된다).
+		/// ★ 크기 = 격자 한 칸: 칸보다 크면 서로 밀치고 소속도 안 읽힌다.
 		/// </summary>
-		private void ApplyReadability(UnitObject unitObject, bool isDefender, float scale)
+		private void ApplyReadability(UnitObject unitObject, Color tint, float scale)
 		{
 			if (unitObject == null)
 				return;
 
+			foreach (Animator animator in unitObject.GetComponentsInChildren<Animator>(true))
+				animator.enabled = false;
+
 			if (unitObject.SpriteRenderer != null)
-				unitObject.SpriteRenderer.color = isDefender ? stage.DefenderTint : stage.AttackerTint;
+				unitObject.SpriteRenderer.color = tint;
 
 			unitObject.transform.localScale = Vector3.one * scale;
 		}
@@ -271,7 +278,7 @@ namespace WitchMendokusai
 				combatant = coreUnitObject.gameObject.AddComponent<ArenaCombatant>();
 			combatant.SetTeam(DEFENDER_TEAM, nextCombatantId++);
 
-			ApplyReadability(coreUnitObject, isDefender: true, stage.CoreScale);
+			ApplyReadability(coreUnitObject, stage.CoreTint, stage.CoreScale);
 			coreGameObject.SetActive(true);
 
 			// 트랩#2: 프리팹 내장 FSM 이 TacticDriver(추후 방어유닛)와 채널 경쟁하지 않도록 일괄 비활성.
@@ -360,7 +367,7 @@ namespace WitchMendokusai
 					enemyCombatant = enemyUnitObject.gameObject.AddComponent<ArenaCombatant>();
 				enemyCombatant.SetTeam(ATTACKER_TEAM, nextCombatantId++);
 
-				ApplyReadability(enemyUnitObject, isDefender: false, stage.EnemyScale);
+				ApplyReadability(enemyUnitObject, stage.EnemyTint, stage.EnemyScale);
 				enemyGameObject.SetActive(true);
 
 				foreach (UnitBrain brain in enemyUnitObject.GetComponents<UnitBrain>()) // 트랩#2.
@@ -574,7 +581,9 @@ namespace WitchMendokusai
 				combatant = unitObject.gameObject.AddComponent<ArenaCombatant>();
 			combatant.SetTeam(DEFENDER_TEAM, nextCombatantId++);
 
-			ApplyReadability(unitObject, isDefender: true, isHarvester ? stage.HarvesterScale : stage.TowerScale);
+			ApplyReadability(unitObject,
+				isHarvester ? stage.HarvesterTint : stage.TowerTint,
+				isHarvester ? stage.HarvesterScale : stage.TowerScale);
 			unitGameObject.SetActive(true);
 
 			foreach (UnitBrain brain in unitObject.GetComponents<UnitBrain>()) // 트랩#2.

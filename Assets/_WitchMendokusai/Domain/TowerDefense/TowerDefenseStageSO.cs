@@ -42,26 +42,37 @@ namespace WitchMendokusai
 		[field: Tooltip("채집건물 1기 배치 비용.")]
 		[field: SerializeField, Min(0)] public int HarvesterCost { get; private set; }
 
-		[field: Header("가독성 (읽히는 화면 — 수치 노출)")]
-		[field: Tooltip("아군(코어/포탑/채집) 틴트. 인형 그림을 죽이지 않게 흰색에 가깝게 유지.")]
-		[field: SerializeField] public Color DefenderTint { get; private set; } = new Color(0.72f, 0.85f, 1f, 1f);
+		[field: Header("가독성 (읽히는 화면 — 수치·색 전부 노출)")]
+		// 역할별 색 — 팀 2색만으로는 "이 슬라임이 무슨 건물인지" 를 못 알려준다(사용자 실증 2회).
+		// 지금 단계에선 아트가 아니라 **색이 곧 정체**이므로 4역할을 서로 확실히 멀게 잡는다.
+		// HUD 범례가 이 색을 그대로 읽어 화면에 설명을 띄운다(색↔이름 단일 소스).
+		[field: Tooltip("코어(기지) 색 — 지켜야 할 것.")]
+		[field: SerializeField] public Color CoreTint { get; private set; } = new Color(1f, 0.93f, 0.45f, 1f);
 
-		[field: Tooltip("적(마수) 틴트 — 한눈에 적으로 읽히게 확실히 붉게.")]
-		[field: SerializeField] public Color AttackerTint { get; private set; } = new Color(1f, 0.45f, 0.42f, 1f);
+		[field: Tooltip("포탑 인형 색 — 싸우는 것.")]
+		[field: SerializeField] public Color TowerTint { get; private set; } = new Color(0.45f, 0.72f, 1f, 1f);
 
-		[field: Tooltip("코어 크기 배율 — 가장 크게 해서 '지켜야 할 것'이 즉시 읽히게.")]
-		[field: SerializeField, Min(0.1f)] public float CoreScale { get; private set; } = 1.9f;
+		[field: Tooltip("채집 인형 색 — 버는 것.")]
+		[field: SerializeField] public Color HarvesterTint { get; private set; } = new Color(0.42f, 0.92f, 0.68f, 1f);
 
-		[field: Tooltip("포탑 인형 크기 배율.")]
-		[field: SerializeField, Min(0.1f)] public float TowerScale { get; private set; } = 1.25f;
+		[field: Tooltip("마수(적) 색.")]
+		[field: SerializeField] public Color EnemyTint { get; private set; } = new Color(1f, 0.38f, 0.36f, 1f);
 
-		[field: Tooltip("채집 인형 크기 배율.")]
-		[field: SerializeField, Min(0.1f)] public float HarvesterScale { get; private set; } = 1.0f;
+		// 크기 = 배치 격자 한 칸 기준. 칸보다 크면 서로 밀치고 어디에 속한 유닛인지도 안 읽힌다
+		// (사용자 실증: "칸보다 슬라임이 더 커서 슬라임끼리 밀려"). 기본값 1 = 정확히 한 칸.
+		[field: Tooltip("코어 크기(칸 단위). 1 = 한 칸.")]
+		[field: SerializeField, Min(0.1f)] public float CoreScale { get; private set; } = 1f;
 
-		[field: Tooltip("마수 크기 배율.")]
-		[field: SerializeField, Min(0.1f)] public float EnemyScale { get; private set; } = 0.95f;
+		[field: Tooltip("포탑 인형 크기(칸 단위).")]
+		[field: SerializeField, Min(0.1f)] public float TowerScale { get; private set; } = 1f;
 
-		[field: Tooltip("바닥 격자 한 칸 크기 — 배치 스냅 격자와 같아야 눈으로 칸을 셀 수 있다(TowerDefensePlacement.cellSize 와 일치시킬 것).")]
+		[field: Tooltip("채집 인형 크기(칸 단위).")]
+		[field: SerializeField, Min(0.1f)] public float HarvesterScale { get; private set; } = 1f;
+
+		[field: Tooltip("마수 크기(칸 단위).")]
+		[field: SerializeField, Min(0.1f)] public float EnemyScale { get; private set; } = 1f;
+
+		[field: Tooltip("바닥 격자 한 칸 크기 — 배치 스냅 격자와 같아야 눈으로 칸을 셀 수 있다.")]
 		[field: SerializeField, Min(0.25f)] public float GroundCellSize { get; private set; } = 1f;
 
 		[field: Header("레이아웃")]

@@ -13,9 +13,9 @@ MonoBehaviour:
   m_Name: TDS_0_TeukusuSigongGaecheok_v0
   m_EditorClassIdentifier: WM.Domain::WitchMendokusai.TowerDefenseStageSO
   <ID>k__BackingField: 0
-  <Name>k__BackingField: "특수시공 개척"
-  <Description>k__BackingField: "특수시공 개척(TD) v0 기본
-    스테이지 — TASK-WM-194 증분4."
+  <Name>k__BackingField: "\uD2B9\uC218\uC2DC\uACF5 \uAC1C\uCC99"
+  <Description>k__BackingField: "\uD2B9\uC218\uC2DC\uACF5 \uAC1C\uCC99(TD) v0 \uAE30\uBCF8
+    \uC2A4\uD14C\uC774\uC9C0 \u2014 TASK-WM-194 \uC99D\uBD844."
   <Sprite>k__BackingField: {fileID: 0}
   <Sprites>k__BackingField: []
   <Rules>k__BackingField:
@@ -84,6 +84,15 @@ MonoBehaviour:
         SkillSlot: 0
   <TowerCost>k__BackingField: 40
   <HarvesterCost>k__BackingField: 60
+  <CoreTint>k__BackingField: {r: 1, g: 0.93, b: 0.45, a: 1}
+  <TowerTint>k__BackingField: {r: 0.45, g: 0.72, b: 1, a: 1}
+  <HarvesterTint>k__BackingField: {r: 0.42, g: 0.92, b: 0.68, a: 1}
+  <EnemyTint>k__BackingField: {r: 1, g: 0.38, b: 0.36, a: 1}
+  <CoreScale>k__BackingField: 1
+  <TowerScale>k__BackingField: 1
+  <HarvesterScale>k__BackingField: 1
+  <EnemyScale>k__BackingField: 1
+  <GroundCellSize>k__BackingField: 1
   <CorePosition>k__BackingField: {x: 0, y: 0, z: 0}
   <EnemySpawnPoints>k__BackingField:
   - {x: -12, y: 0, z: 15}
