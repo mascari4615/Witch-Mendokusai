@@ -147,5 +147,24 @@ namespace WitchMendokusai
 		{
 			HarvesterCount++;
 		}
+
+		/// <summary>
+		/// 다음 웨이브를 격퇴하면 들어올 정산액. 채집 인형이 *무슨 역할인지* 를 화면이 말해주는 유일한 숫자 —
+		/// 인형을 하나 세울 때마다 이 값이 오르는 걸 보여야 「자원 캐는 건물」의 의미가 전달된다
+		/// (사용자 실증: "자원 캐는 건물이 어떤 역할인지 전혀 모르겠어").
+		/// </summary>
+		public int NextWaveIncome => rules.IncomeFor(HarvesterCount);
+
+		/// <summary> 웨이브 정산 외 즉시 지급(격파 보상 등). 음수 무시 — 자원이 조용히 줄어드는 경로를 만들지 않는다. </summary>
+		public void AddResource(int amount)
+		{
+			if (amount <= 0)
+				return;
+
+			Resource += amount;
+		}
+
+		/// <summary> 마수 1기 격파 보상액(0 이면 격파 보상 없음). </summary>
+		public int BountyPerKill => rules.BountyPerKill;
 	}
 }

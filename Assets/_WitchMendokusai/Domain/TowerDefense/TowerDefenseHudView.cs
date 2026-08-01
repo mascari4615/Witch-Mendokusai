@@ -28,6 +28,7 @@ namespace WitchMendokusai
 		private readonly Label phaseValue;
 		private readonly Label enemyValue;
 		private readonly Label bestValue;
+		private readonly Label incomeValue;
 		private readonly Label hintLabel;
 		private readonly Label bannerLabel;
 		private readonly VisualElement legendPanel;
@@ -67,7 +68,7 @@ namespace WitchMendokusai
 			container.style.display = DisplayStyle.None;
 			container.pickingMode = PickingMode.Ignore;
 
-			container.Add(BuildStatPanel(out resourceValue, out waveValue, out phaseValue, out enemyValue, out bestValue));
+			container.Add(BuildStatPanel(out resourceValue, out waveValue, out phaseValue, out enemyValue, out incomeValue, out bestValue));
 			container.Add(BuildWaveControlPanel(out waveModeButton, out nextWaveButton));
 			legendPanel = BuildLegendPanel();
 			container.Add(legendPanel);
@@ -82,7 +83,7 @@ namespace WitchMendokusai
 		}
 
 		// 좌상단 컴팩트 스탯 — 폭을 내용에 맞춰 좁게(전폭 바 금지).
-		private static VisualElement BuildStatPanel(out Label resource, out Label wave, out Label phase, out Label enemies, out Label bestValue)
+		private static VisualElement BuildStatPanel(out Label resource, out Label wave, out Label phase, out Label enemies, out Label incomeValue, out Label bestValue)
 		{
 			VisualElement panel = new VisualElement { name = "StatPanel" };
 			panel.style.position = Position.Absolute;
@@ -106,6 +107,9 @@ namespace WitchMendokusai
 			//   겹쳐 서 있으면 화면에서 사라져 "다 잡았는데 안 넘어간다"가 된다(사용자 실증). 숫자가 진실을 말한다.
 			panel.Add(MakeStatRow("남은 마수", out enemies, new Color(1f, 0.45f, 0.42f, 1f)));
 			// ★ 무한 모드엔 「클리어」가 없다 — 넘어야 할 선(지난 최고 기록)이 화면에 있어야 이번 판에 목표가 생긴다.
+			// ★ 채집 인형의 존재 이유는 이 한 줄이다 — 인형을 세울 때마다 이 숫자가 오르는 걸 봐야
+			//   「자원 캐는 건물」이 무슨 역할인지 전달된다(사용자 실증: 역할을 전혀 모르겠다).
+			panel.Add(MakeStatRow("다음 정산", out incomeValue, new Color(0.42f, 0.92f, 0.68f, 1f)));
 			panel.Add(MakeStatRow("최고 기록", out bestValue, new Color(0.78f, 0.82f, 0.92f, 1f)));
 			return panel;
 		}
@@ -295,8 +299,8 @@ namespace WitchMendokusai
 
 			legendPanel.Add(MakeLegendRow(stage.CoreTint, "코어", "부서지면 끝"));
 			legendPanel.Add(MakeLegendRow(stage.TowerTint, "포탑 인형", "적을 쏜다"));
-			legendPanel.Add(MakeLegendRow(stage.HarvesterTint, "채집 인형", "수입 +" + stage.Rules.IncomePerHarvester));
-			legendPanel.Add(MakeLegendRow(stage.EnemyTint, "마수", "코어로 전진"));
+			legendPanel.Add(MakeLegendRow(stage.HarvesterTint, "채집 인형", "금빛 자리 위에서만 캔다 · 정산마다 +" + stage.Rules.IncomePerHarvester));
+			legendPanel.Add(MakeLegendRow(stage.EnemyTint, "마수", "코어로 전진 · 잡으면 +" + stage.Rules.BountyPerKill));
 			legendPanel.Add(MakeLegendRow(new Color(1f, 0.82f, 0.25f, 1f), "금빛 원반", "채집 인형 자리"));
 			legendPanel.Add(MakeLegendRow(stage.EnemyTint, "붉은 판", "마수 출현"));
 		}
@@ -550,6 +554,11 @@ namespace WitchMendokusai
 			enemyValue.text = match.Phase == TowerDefensePhase.Assault
 				? match.AliveEnemyCount.ToString()
 				: "-";
+
+			// 「기본 + 채집 N기」로 쪼개 보여준다 — 총액만 보이면 그 숫자가 어디서 왔는지 알 수 없다.
+			incomeValue.text = match.HarvesterCount > 0
+				? match.NextWaveIncome + " (기본 " + stage.Rules.BaseWaveIncome + " + 채집 " + match.HarvesterCount + "기)"
+				: match.NextWaveIncome.ToString();
 
 			waveModeButton.text = match.AutoAdvanceWaves ? "진행: 자동" : "진행: 수동";
 			// 건설 국면에서만 부를 수 있다 — 못 누르는 버튼을 멀쩡해 보이게 두면 눌러보고 아무 일도 안 난다.

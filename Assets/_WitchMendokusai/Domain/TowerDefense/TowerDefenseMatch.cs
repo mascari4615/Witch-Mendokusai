@@ -44,6 +44,14 @@ namespace WitchMendokusai
 		// 자원 노드 점유 — 채집건물은 반드시 미점유 노드를 잡아야 가동(개척 리스크). index = stage.ResourceNodePositions 인덱스.
 		private readonly HashSet<int> claimedNodes = new();
 
+		// 격파 보상을 이미 지급한 마수(CombatantId) — 죽은 개체는 여러 틱 동안 목록에 남으므로 중복 지급 차단.
+		// 오브젝트 풀이 같은 GameObject 를 되돌려주기 때문에 참조가 아니라 매치 고유 id 로 센다.
+		private readonly HashSet<int> bountyPaidEnemyIds = new();
+
+		// 가동 중인 채집 인형 위치 — 정산 때 각자 머리 위에 벌어들인 액수를 띄운다.
+		// 숫자가 *어디서* 나오는지 안 보이면 채집 인형은 그냥 서 있는 장식으로 읽힌다.
+		private readonly List<Transform> harvesterTransforms = new();
+
 		// 셀 점유(TASK-WM-194 증분3) — 타워/채집건물 배치는 한 셀에 하나만(겹배치 차단). 키 = FloorToInt 셀(y=0 고정,
 		// 층 무관 단일 격자). claimedNodes(자원 노드 자체 점유)와 직교 — 이건 "그 좌표에 뭔가 이미 서 있나"만 본다.
 		private readonly HashSet<Vector3Int> occupiedCells = new();
@@ -115,6 +123,10 @@ namespace WitchMendokusai
 		public TowerDefenseOutcome Outcome => core != null ? core.Outcome : TowerDefenseOutcome.InProgress;
 		public float PrepareRemaining => core != null ? core.PrepareRemaining : 0f;
 
+		/// <summary> 다음 정산액 + 가동 채집 인형 수 — 「채집 인형이 뭐 하는 놈인지」를 화면이 말하는 근거 숫자. </summary>
+		public int NextWaveIncome => core != null ? core.NextWaveIncome : 0;
+		public int HarvesterCount => core != null ? core.HarvesterCount : 0;
+
 		/// <summary> 프로그래매틱 시작(런처/모드 진입용) — stage·stageRoot 주입 후 Begin. </summary>
 		public void Begin(TowerDefenseStageSO stageConfig, Transform root)
 		{
@@ -172,6 +184,8 @@ namespace WitchMendokusai
 			nextCombatantId = 0;
 			matchEndedFired = false;
 			claimedNodes.Clear(); // 재진입 — 지난 매치의 노드 점유가 새 매치로 새는 것 방지.
+			bountyPaidEnemyIds.Clear();
+			harvesterTransforms.Clear();
 			occupiedCells.Clear(); // 재진입 — 지난 매치의 셀 점유가 새 매치로 새는 것 방지.
 
 			yield return SpawnCoreRoutine();
@@ -433,6 +447,7 @@ namespace WitchMendokusai
 				return;
 
 			CullEscapedEnemies(); // 무대 밖 개체가 웨이브를 영원히 붙잡지 못하게 — 집계 *전에* 정리.
+			PayKillBounties();    // 격파 즉시 보상 — 웨이브 정산만 있으면 교전 중엔 아무 보상도 안 온다.
 
 			bool coreAlive = coreCombatant != null && coreCombatant.IsAlive;
 			int aliveEnemies = CountAliveEnemies();
@@ -449,8 +464,10 @@ namespace WitchMendokusai
 				case TowerDefenseSignal.Defeat:
 					Conclude(TowerDefenseOutcome.Defeat);
 					break;
-				// WaveCleared/None = 규칙 상 상태전이 없거나 UI 연출용(추후 증분) — 셸 actuation 0.
 				case TowerDefenseSignal.WaveCleared:
+					ShowIncomeBreakdown();
+					break;
+				// None = 규칙 상 상태전이 없음 — 셸 actuation 0.
 				case TowerDefenseSignal.None:
 				default:
 					break;
@@ -592,6 +609,64 @@ namespace WitchMendokusai
 				ReleaseUnit(pool, enemy.gameObject);
 				spawnedUnits.Remove(enemy.gameObject);
 			}
+		}
+
+		/// <summary>
+		/// 격파 보상 지급 — 마수가 죽은 것을 처음 본 틱에 1회. 「잡는 맛」이 이 경로 하나에 달려 있다:
+		/// 웨이브 정산만 있으면 교전 20초 동안 화면에서 아무 일도 안 일어나고, 잘 맞췄는지도 알 수 없다.
+		/// 이탈(무대 밖) 제거는 목록에서 먼저 빠지므로 보상 대상이 아니다 — 사고에 상을 주지 않는다.
+		/// </summary>
+		private void PayKillBounties()
+		{
+			if (core == null || core.BountyPerKill <= 0)
+				return;
+
+			foreach (ArenaCombatant enemy in waveEnemies)
+			{
+				if (enemy == null || enemy.IsAlive)
+					continue;
+				if (bountyPaidEnemyIds.Add(enemy.CombatantId) == false)
+					continue;
+
+				core.AddResource(core.BountyPerKill);
+				PopWorldText("+" + core.BountyPerKill, enemy.Position, TextType.Exp);
+			}
+		}
+
+		/// <summary>
+		/// 웨이브 정산 내역을 *번 자리에* 띄운다 — 코어에 기본 수입, 채집 인형 각자 머리 위에 자기 몫.
+		/// 총액만 HUD 숫자로 올리면 「채집 인형이 무슨 역할인지」가 영원히 안 읽힌다(사용자 실증).
+		/// </summary>
+		private void ShowIncomeBreakdown()
+		{
+			if (core == null || stage == null)
+				return;
+
+			if (coreCombatant != null && stage.Rules.BaseWaveIncome > 0)
+				PopWorldText("+" + stage.Rules.BaseWaveIncome, coreCombatant.Position, TextType.Heal);
+
+			if (stage.Rules.IncomePerHarvester <= 0)
+				return;
+
+			for (int index = harvesterTransforms.Count - 1; index >= 0; index--)
+			{
+				Transform harvester = harvesterTransforms[index];
+				if (harvester == null)
+				{
+					harvesterTransforms.RemoveAt(index);
+					continue;
+				}
+				PopWorldText("+" + stage.Rules.IncomePerHarvester, harvester.position, TextType.Heal);
+			}
+		}
+
+		/// <summary> 월드 좌표 위 뜨는 글자 — UI 매니저가 아직 없으면(부팅 전/헤드리스) 조용히 넘어간다. </summary>
+		private static void PopWorldText(string message, Vector3 worldPosition, TextType textType)
+		{
+			if (UIManager.TryGetExistingInstance(out UIManager uiManager) == false)
+				return;
+
+			uiManager.PopText(message, textType, worldPosition);
 		}
 
 		/// <summary> 살아있는 웨이브 적 수 — 죽었거나 풀 반환된(null) 엔트리는 조회 겸 정리(멱등). </summary>
@@ -803,7 +878,10 @@ namespace WitchMendokusai
 			registeredCombatants.Add(combatant);
 
 			if (isHarvester)
+			{
 				core.AddHarvester(); // 채집건물 = 실제 가동(스폰 확정) 시점에만 수입 반영.
+				harvesterTransforms.Add(unitGameObject.transform);
+			}
 		}
 
 		/// <summary>

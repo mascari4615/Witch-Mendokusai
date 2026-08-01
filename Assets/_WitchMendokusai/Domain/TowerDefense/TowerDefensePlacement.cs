@@ -76,6 +76,11 @@ namespace WitchMendokusai
 				return;
 			}
 
+			// ★ UI 위 클릭은 설치가 아니다 — 버튼을 눌렀는데 그 아래 지면에 건물이 서고 자원이 빠지면
+			//   화면을 믿을 수 없게 된다(사용자 실증). 판정 정본은 UI 쪽 한 곳(UIPointer).
+			if (UIPointer.IsOverInteractive(screenPointerPosition))
+				return;
+
 			if (SelectedKind == TowerDefensePlaceableKind.Harvester)
 				PlaceHarvesterAt(screenPointerPosition);
 			else
@@ -107,7 +112,10 @@ namespace WitchMendokusai
 			if (isActive == false || previewMarker == null)
 				return;
 
-			if (inputManager == null || TryGetSnappedGroundPosition(inputManager.MouseScreenPosition, out Vector3 snappedWorldPosition) == false)
+			// 프리뷰도 같은 판정을 따라야 한다 — UI 위에 초록 마커가 떠 있으면 "여기 설치된다"는 거짓말이 된다.
+			if (inputManager == null
+				|| UIPointer.IsOverInteractive(inputManager.MouseScreenPosition)
+				|| TryGetSnappedGroundPosition(inputManager.MouseScreenPosition, out Vector3 snappedWorldPosition) == false)
 			{
 				previewMarker.SetActive(false);
 				return;

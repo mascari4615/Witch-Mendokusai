@@ -53,6 +53,7 @@ namespace WitchMendokusai.EditorTools
 			RestartSettle = 6,
 			PlaceAfterRestart = 7,
 			Observe = 8,
+			ObserveDefended = 15,
 		}
 
 		private static Step step;
@@ -70,6 +71,9 @@ namespace WitchMendokusai.EditorTools
 		private static int firstContactWave;
 		private static double restartAt;
 		private static bool conclusionOnly;
+		private static double defendedStart;
+		private static int defendedLastResource;
+		private static int killIncomeEvents;
 
 		static TowerDefensePlayVerify()
 		{
@@ -115,6 +119,9 @@ namespace WitchMendokusai.EditorTools
 			lastPhase = TowerDefensePhase.Concluded;
 			lastResource = -1;
 			firstContactWave = -1;
+			defendedStart = -1.0;
+			defendedLastResource = -1;
+			killIncomeEvents = 0;
 			EditorApplication.update += Tick;
 			Debug.Log(TAG + " EnteredPlayMode — World ready 대기");
 		}
@@ -231,6 +238,7 @@ namespace WitchMendokusai.EditorTools
 					if (now - restartAt < 1.5)
 						return;
 					DumpPlacedUnits("최초 배치");
+					VerifyUiPointerGuard();
 					step = Step.Restart;
 					return;
 
@@ -238,7 +246,16 @@ namespace WitchMendokusai.EditorTools
 					if (now - restartAt < 1.5)
 						return;
 					DumpPlacedUnits("재시작 후 배치");
-					step = Step.DisarmRestart;
+					defendedStart = now;
+					defendedLastResource = match != null ? match.Resource : -1;
+					killIncomeEvents = 0;
+					step = Step.ObserveDefended;
+					return;
+
+				// ★ 방어를 세운 채 한 판을 실제로 지켜본다. 이 구간이 없으면 「마수를 잡았을 때 무슨 일이
+				//   일어나는가」가 통째로 미검증으로 남는다(무방비 판은 아무도 안 죽으니 격파 보상이 안 보인다).
+				case Step.ObserveDefended:
+					ObserveDefended(now);
 					return;
 
 				// ★ 결말(패배)을 *빠르고 확실하게* 관측하기 위한 무방비 판.
@@ -778,6 +795,112 @@ namespace WitchMendokusai.EditorTools
 				restartAt = now;
 				step = Step.VerifyConclusion;
 			}
+		}
+
+		/// <summary>
+		/// 방어 있는 교전 관측 — 격파 보상(마수 1기당 즉시 자원)이 실제로 들어오는지 본다.
+		/// 「잡는 맛」은 교전 도중 자원이 오르는지로만 검증된다(웨이브 정산은 교전이 끝나야 오므로 구분됨).
+		/// </summary>
+		private static void ObserveDefended(double now)
+		{
+			const double DEFENDED_SECONDS = 55.0;
+
+			if (match == null)
+			{
+				Debug.LogError(TAG + " DEFENDED-FAIL match null");
+				Finish();
+				return;
+			}
+
+			if (match.Resource != defendedLastResource)
+			{
+				if (defendedLastResource >= 0 && match.Resource > defendedLastResource)
+				{
+					int gain = match.Resource - defendedLastResource;
+					bool duringAssault = match.Phase == TowerDefensePhase.Assault;
+					if (duringAssault)
+						killIncomeEvents++;
+					Debug.Log(TAG + " GAIN +" + gain + " → " + match.Resource
+						+ " phase=" + match.Phase + " aliveEnemies=" + match.AliveEnemyCount
+						+ (duringAssault ? "  (교전 중 = 격파 보상)" : "  (정산)"));
+				}
+				defendedLastResource = match.Resource;
+			}
+
+			if (now - defendedStart < DEFENDED_SECONDS)
+				return;
+
+			string verdict = TAG + " DEFENDED-RESULT killIncomeEvents=" + killIncomeEvents
+				+ " wave=" + match.WaveIndex + " resource=" + match.Resource
+				+ " nextIncome=" + match.NextWaveIncome + " harvesters=" + match.HarvesterCount;
+
+			if (killIncomeEvents > 0)
+				Debug.Log(verdict + " → 마수를 잡을 때마다 자원이 들어온다 ✔");
+			else
+				Debug.LogError(verdict + " → 교전 중 보상이 한 번도 안 들어옴(격파 보상 미작동).");
+
+			step = Step.DisarmRestart;
+		}
+
+		/// <summary>
+		/// UI 위 클릭이 설치로 새지 않는지 — 「HUD 버튼을 눌렀는데 그 아래 지면에 건물이 선다」 회귀 방지.
+		/// 하네스는 실제 마우스를 못 누르므로 *판정 함수*를 진실의 기준으로 검사한다:
+		/// ① HUD 버튼이 차지한 화면 좌표에서 UI 위라고 답하는가 ② 빈 지면 좌표에선 아니라고 답하는가.
+		/// 버튼의 화면 좌표는 변환식을 역산하지 않고 화면을 성기게 훑어 구한다(같은 식을 두 번 쓰면
+		/// 자기 자신을 검증하는 꼴이라 의미가 없다).
+		/// </summary>
+		private static void VerifyUiPointerGuard()
+		{
+			UIRoot uiRoot = Object.FindAnyObjectByType<UIRoot>();
+			VisualElement hud = uiRoot != null && uiRoot.OverlayLayer != null
+				? uiRoot.OverlayLayer.Q(nameof(TowerDefenseHudView))
+				: null;
+			Button button = hud != null ? hud.Q<Button>() : null;
+			if (button == null)
+			{
+				Debug.LogError(TAG + " UIGUARD-FAIL HUD 버튼을 못 찾음 — 판정 검사 불가.");
+				return;
+			}
+
+			Rect buttonPanelRect = button.worldBound;
+			const int SAMPLE_COLUMNS = 96;
+			const int SAMPLE_ROWS = 54;
+			Vector2 buttonScreenPoint = new Vector2(-1f, -1f);
+
+			for (int column = 0; column <= SAMPLE_COLUMNS && buttonScreenPoint.x < 0f; column++)
+			{
+				for (int row = 0; row <= SAMPLE_ROWS; row++)
+				{
+					Vector2 candidate = new Vector2(
+						Screen.width * column / (float)SAMPLE_COLUMNS,
+						Screen.height * row / (float)SAMPLE_ROWS);
+					Vector2 panelPoint = RuntimePanelUtils.ScreenToPanel(
+						uiRoot.Root.panel, new Vector2(candidate.x, Screen.height - candidate.y));
+					if (buttonPanelRect.Contains(panelPoint))
+					{
+						buttonScreenPoint = candidate;
+						break;
+					}
+				}
+			}
+
+			if (buttonScreenPoint.x < 0f)
+			{
+				Debug.LogError(TAG + " UIGUARD-FAIL 버튼의 화면 좌표를 못 찾음 buttonRect=" + buttonPanelRect);
+				return;
+			}
+
+			bool overButton = UIPointer.IsOverInteractive(buttonScreenPoint);
+			// 화면 정중앙 = 개척지 한복판. HUD 는 모서리에 있으므로 여기는 반드시 설치 가능해야 한다.
+			bool overGround = UIPointer.IsOverInteractive(new Vector2(Screen.width * 0.5f, Screen.height * 0.5f));
+
+			string verdict = TAG + " UIGUARD button=" + overButton + " ground=" + overGround
+				+ " buttonScreen=" + buttonScreenPoint + " buttonText=" + button.text;
+
+			if (overButton && overGround == false)
+				Debug.Log(verdict + " → UI 위는 막고 지면은 통과 ✔");
+			else
+				Debug.LogError(verdict + " → UI 클릭이 설치로 새거나(button=False) 지면이 막힌다(ground=True).");
 		}
 
 		/// <summary> 결말 화면 검증 — 배너가 실제로 떠야 플레이어가 끝났다는 걸 안다. </summary>

@@ -19,6 +19,10 @@ namespace WitchMendokusai
 		public int FirstWaveEnemyCount; // 1파 적 수.
 		public int EnemyCountGrowth;    // 파당 적 증가량 = escalation(엔드리스에서 난이도가 영원히 오르는 유일한 노브).
 
+		// 마수 1기 격파 보상. 웨이브 정산만 있으면 교전 중엔 아무 일도 안 일어나 「잡는 맛」이 0 이다
+		// (사용자 실증: "재미가 없네"). 격파 즉시 자원이 들어와야 조준·배치가 순간순간 보상받는다.
+		public int BountyPerKill;
+
 		/// <summary> WaveCount 가 무한 스테이지 센티널(0 이하)인지. </summary>
 		public bool IsEndless => WaveCount <= 0;
 

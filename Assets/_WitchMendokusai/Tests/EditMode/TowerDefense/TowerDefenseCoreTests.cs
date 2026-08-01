@@ -20,6 +20,7 @@ namespace WitchMendokusai.Tests
 				IncomePerHarvester = 3,
 				FirstWaveEnemyCount = 2,
 				EnemyCountGrowth = 1,
+				BountyPerKill = 2,
 			};
 		}
 
@@ -291,5 +292,41 @@ namespace WitchMendokusai.Tests
 			Assert.AreEqual(TowerDefenseSignal.Defeat, core.Tick(0.1f, 0, false));
 			Assert.AreEqual(TowerDefenseOutcome.Defeat, core.Outcome);
 		}
+
+		[Test]
+		public void AddResource_격파보상은_즉시_들어온다()
+		{
+			TowerDefenseCore core = Core();
+			int before = core.Resource;
+
+			core.AddResource(core.BountyPerKill);
+
+			Assert.AreEqual(before + 2, core.Resource);
+		}
+
+		[Test]
+		public void AddResource_음수는_무시된다()
+		{
+			TowerDefenseCore core = Core();
+			int before = core.Resource;
+
+			core.AddResource(-100);
+
+			Assert.AreEqual(before, core.Resource, "자원이 조용히 줄어드는 경로를 만들면 안 된다.");
+		}
+
+		[Test]
+		public void NextWaveIncome_채집인형마다_오른다()
+		{
+			TowerDefenseCore core = Core();
+			Assert.AreEqual(5, core.NextWaveIncome);
+
+			core.AddHarvester();
+			Assert.AreEqual(8, core.NextWaveIncome);
+
+			core.AddHarvester();
+			Assert.AreEqual(11, core.NextWaveIncome, "화면이 이 숫자로 채집 인형의 역할을 설명한다.");
+		}
+
 	}
 }

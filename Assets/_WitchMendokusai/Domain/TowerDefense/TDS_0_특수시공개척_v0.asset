@@ -24,8 +24,9 @@ MonoBehaviour:
     StartingResource: 160
     BaseWaveIncome: 40
     IncomePerHarvester: 25
-    FirstWaveEnemyCount: 3
-    EnemyCountGrowth: 2
+    FirstWaveEnemyCount: 4
+    EnemyCountGrowth: 3
+    BountyPerKill: 6
   <AutoAdvanceWavesDefault>k__BackingField: 1
   <CoreUnit>k__BackingField: {fileID: 11400000, guid: a194010000000000000000000000d004, type: 2}
   <EnemyUnit>k__BackingField: {fileID: 11400000, guid: a194010000000000000000000000d006, type: 2}
