@@ -100,7 +100,7 @@ namespace WitchMendokusai
 			//   맞춰야 하고, 무엇보다 **판 밖에는 지형이 없다**. 좌표에서 계산하는 지형으로 바꾸면 창(window)을
 			//   넓히거나 옮겨도 이미 있던 자리의 지형이 그대로 이어진다 — 무한으로 가는 유일한 길이다.
 			//   site 수는 이제 「구획 한 칸의 크기」로 환산된다(판 면적 ÷ site 수 의 제곱근).
-			int siteSpacing = Mathf.Max(2, Mathf.RoundToInt(Mathf.Sqrt(config.Width * (float)config.Length / config.RockSiteCount)));
+			int siteSpacing = Mathf.Max(2, Mathf.RoundToInt(Mathf.Sqrt(config.Width * (float)config.Length / Mathf.Max(1, config.RockSiteCount))));
 			Vector2Int centerCell = new Vector2Int(config.Width / 2, config.Length / 2);
 			TowerDefenseInfiniteTerrain terrain = new(
 				config.Seed, centerCell, siteSpacing, config.RidgeWidth, config.ObstacleDensity, config.CoreClearRadius);
@@ -131,6 +131,23 @@ namespace WitchMendokusai
 
 			int marginCells = Mathf.CeilToInt(config.NodeEdgeMargin);
 
+			// ★ 자원은 *광맥*에서 난다(사용자 지시: "자원이 한곳에 여러 타일이 좀 뭉쳐 있어야 할듯? 광맥처럼").
+			//   아무 빈 칸이나 후보로 삼으면 자원이 판 전체에 흩뿌려져 「어디로 넓힐까」가 사라진다.
+			//   경계 없는 지형이 알려주는 광맥 타일만 후보다 — 덩어리로 뭉쳐 있으므로 채집 여러 기가 붙는다.
+			// ★ 광맥 밀도는 *암반*이 아니라 **요청한 노드 수**에 맞춘다 — 둘을 같은 숫자로 묶으면
+			//   암반을 없앤 판(RockSiteCount 0)에서 광맥까지 사라져 자원이 0 이 된다(테스트가 그걸 잡았다).
+			//   판 넓이를 노드 수로 나눈 간격이면 「요청한 만큼은 앉을 수 있다」가 성립한다.
+			int veinSpacing = Mathf.Clamp(
+				Mathf.RoundToInt(Mathf.Sqrt(config.Width * (float)config.Length / Mathf.Max(1, config.ResourceNodeCount)) * 0.5f),
+				4, 18);
+			TowerDefenseInfiniteTerrain veins = new(
+				config.Seed, new Vector2Int(config.Width / 2, config.Length / 2),
+				Mathf.Max(2, veinSpacing), config.RidgeWidth, config.ObstacleDensity, config.CoreClearRadius)
+			{
+				VeinSpacing = veinSpacing,
+				VeinChance = 0.95f,
+			};
+
 			List<Vector2Int> candidates = new List<Vector2Int>();
 			for (int x = marginCells; x < config.Width - marginCells; x++)
 			{
@@ -140,6 +157,8 @@ namespace WitchMendokusai
 					if (obstacles.Contains(cell))
 						continue;
 					if (CellDistance(cell, coreCell) < config.NodeMinCoreDistance)
+						continue;
+					if (veins.IsResourceTile(cell) == false)
 						continue;
 					candidates.Add(cell);
 				}

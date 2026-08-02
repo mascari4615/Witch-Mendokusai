@@ -139,5 +139,98 @@ namespace WitchMendokusai.Tests
 			Assert.Less(near, far);
 			Assert.AreEqual(3f, absurd, 0.001f, "무한히 멀면 무한히 번다는 규칙은 게임이 아니다.");
 		}
+
+		[Test]
+		public void 광맥은_뭉쳐서_난다()
+		{
+			// 자원이 한 점이면 「잡았다/못 잡았다」 이분법이다. 덩어리여야 *얼마나 크게 무나*가 생긴다.
+			TowerDefenseInfiniteTerrain terrain = Terrain();
+
+			int lonely = 0;
+			int clustered = 0;
+			for (int x = -150; x < 150; x++)
+			{
+				for (int y = -150; y < 150; y++)
+				{
+					Vector2Int cell = new Vector2Int(x, y);
+					if (terrain.IsResourceTile(cell) == false)
+						continue;
+
+					int neighbours = 0;
+					for (int offsetX = -1; offsetX <= 1; offsetX++)
+					{
+						for (int offsetY = -1; offsetY <= 1; offsetY++)
+						{
+							if (offsetX == 0 && offsetY == 0)
+								continue;
+							if (terrain.IsResourceTile(new Vector2Int(x + offsetX, y + offsetY)))
+								neighbours++;
+						}
+					}
+
+					if (neighbours == 0)
+						lonely++;
+					else
+						clustered++;
+				}
+			}
+
+			Assert.Greater(clustered, 0, "광맥 타일이 하나도 없다.");
+			Assert.Greater(clustered, lonely * 4, "외톨이 타일이 많으면 그건 광맥이 아니라 흩뿌림이다.");
+		}
+
+		[Test]
+		public void 광맥은_암반_위에_안_난다()
+		{
+			TowerDefenseInfiniteTerrain terrain = Terrain();
+
+			for (int x = -120; x < 120; x += 2)
+			{
+				for (int y = -120; y < 120; y += 2)
+				{
+					Vector2Int cell = new Vector2Int(x, y);
+					if (terrain.IsResourceTile(cell))
+						Assert.IsFalse(terrain.IsBlocked(cell), $"{cell} 광맥이 암반 위에 있다.");
+				}
+			}
+		}
+
+		[Test]
+		public void 광맥_중심은_광맥_안에_있다()
+		{
+			TowerDefenseInfiniteTerrain terrain = Terrain();
+
+			int centers = 0;
+			for (int x = -200; x < 200; x++)
+			{
+				for (int y = -200; y < 200; y++)
+				{
+					Vector2Int cell = new Vector2Int(x, y);
+					if (terrain.IsVeinCenter(cell) == false)
+						continue;
+
+					centers++;
+					Assert.IsTrue(terrain.IsResourceTile(cell), $"{cell} 중심이 광맥 밖이다.");
+				}
+			}
+
+			Assert.Greater(centers, 5, "400×400 에 광맥이 다섯 개도 없으면 개척할 곳이 없다.");
+		}
+
+		[Test]
+		public void 광맥도_같은_씨앗이면_같은_자리()
+		{
+			TowerDefenseInfiniteTerrain a = Terrain(77);
+			TowerDefenseInfiniteTerrain b = Terrain(77);
+
+			for (int x = 0; x < 80; x++)
+			{
+				for (int y = 0; y < 80; y++)
+				{
+					Vector2Int cell = new Vector2Int(x, y);
+					Assert.AreEqual(a.IsResourceTile(cell), b.IsResourceTile(cell));
+				}
+			}
+		}
 	}
 }

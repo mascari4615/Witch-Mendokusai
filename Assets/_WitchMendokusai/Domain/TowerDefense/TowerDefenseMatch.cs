@@ -2143,15 +2143,29 @@ namespace WitchMendokusai
 		public int OuterHarvesters { get; private set; }
 		public int SuppliedOuterHarvesters { get; private set; }
 
+		/// <summary>
+		/// 그 채집 인형의 벌이 — **처리 범위 안의 광맥 자리 수**로 정해진다(사용자 지시: "자원 건물이
+		/// 처리할 수 있는 타일 범위를 만들던지").
+		///
+		/// ★ 왜 「한 자리 = 한 기」가 아닌가: 자원이 광맥으로 뭉치면서 「어디에 세우나」가 판단이 됐다.
+		///   덩어리 한가운데 세우면 여러 자리를 한꺼번에 물고, 가장자리에 세우면 조금만 문다.
+		///   자리를 하나만 세는 옛 방식이면 광맥을 만든 의미가 사라진다.
+		/// 벌이 배수는 *물고 있는 자리들의 배수 합* — 멀리 있는 큰 광맥일수록 크게 번다.
+		/// </summary>
 		private float HarvesterMultiplierOf(Transform harvester)
 		{
+			float reach = stage != null ? stage.HarvesterWorkRadius : 1f;
+			float reachSqr = reach * reach;
+
+			float total = 0f;
 			for (int index = 0; index < activeNodePositions.Count; index++)
 			{
 				Vector3 nodeWorld = stageRoot.TransformPoint(activeNodePositions[index]);
-				if ((nodeWorld - harvester.position).sqrMagnitude <= 1f)
-					return NodeIncomeMultiplierAt(index);
+				if ((nodeWorld - harvester.position).sqrMagnitude <= reachSqr)
+					total += NodeIncomeMultiplierAt(index);
 			}
-			return 1f;
+
+			return total > 0f ? total : 1f;
 		}
 
 		// 유출 지점은 코어만이 아니다 — 전초기지도 지켜야 할 곳이다(넓힌 만큼 늘어난다).

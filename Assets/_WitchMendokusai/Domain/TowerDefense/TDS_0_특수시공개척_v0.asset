@@ -183,6 +183,7 @@ MonoBehaviour:
   <HarvesterScale>k__BackingField: 1
   <EnemyScale>k__BackingField: 1
   <GroundCellSize>k__BackingField: 1
+  <HarvesterWorkRadius>k__BackingField: 2.5
   <CameraPanSpeed>k__BackingField: 24
   <CameraPanLimit>k__BackingField: 105
   <CameraYawSpeed>k__BackingField: 90
@@ -228,7 +229,7 @@ MonoBehaviour:
   <EnemySpawnSpread>k__BackingField: 1.2
   <StageBoundsMargin>k__BackingField: 12
   <StageFloorDepth>k__BackingField: -5
-  <NodeCaptureRadius>k__BackingField: 2
+  <NodeCaptureRadius>k__BackingField: 1.2
   <GroundWidth>k__BackingField: 200
   <GroundLength>k__BackingField: 200
   <DraftRules>k__BackingField:

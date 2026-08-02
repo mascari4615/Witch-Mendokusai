@@ -301,6 +301,9 @@ namespace WitchMendokusai
 		[field: Tooltip("이 깊이보다 아래로 떨어지면 이탈로 본다(지면 통과·추락).")]
 		[field: SerializeField] public float StageFloorDepth { get; private set; } = -5f;
 
+		[field: Tooltip("채집 인형이 한 번에 처리하는 반경(칸) — 광맥 덩어리 한가운데 세우면 여러 자리를 한꺼번에 문다.")]
+		[field: SerializeField, Min(0.5f)] public float HarvesterWorkRadius { get; private set; } = 2.5f;
+
 		[field: Tooltip("채집건물 배치가 노드를 점유로 인정하는 최대 거리 — 이 반경 밖 배치는 거절(노드 스냅 X).")]
 		[field: SerializeField, Min(0.5f)] public float NodeCaptureRadius { get; private set; } = 2f;
 

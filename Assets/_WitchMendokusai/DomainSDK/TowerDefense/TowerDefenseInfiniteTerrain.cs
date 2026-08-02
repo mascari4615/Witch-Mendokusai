@@ -114,6 +114,75 @@ namespace WitchMendokusai
 			return Hash01(cell.x, cell.y, 5273) < Mathf.Clamp01(nodeChance);
 		}
 
+		// ── 광맥 ──────────────────────────────────────────────────────────────────
+		// ★ 왜 뭉쳐야 하나 (사용자 지시: "자원이 한곳에 여러 타일이 좀 뭉쳐 있어야 할듯? 광맥처럼"):
+		//   자원이 한 점이면 「그 점을 잡았다/못 잡았다」 이분법이고, 채집 건물 하나가 곧 점 하나다.
+		//   덩어리로 뭉치면 *얼마나 크게 물고 있나*가 생긴다 — 어디에 세울지, 몇 기를 붙일지가 판단이 된다.
+		// ★ 어떻게 뭉치나: 성긴 격자마다 광맥 중심을 하나 두고(있을 수도 없을 수도), 그 중심에서
+		//   반경 안에 있는 칸이 광맥 타일이 된다. 반경도 중심마다 달라 덩어리 크기가 제각각이다.
+
+		/// <summary> 광맥 격자 한 칸의 크기(셀) — 광맥끼리의 최소 간격을 정한다. </summary>
+		public int VeinSpacing { get; set; } = 26;
+
+		/// <summary> 광맥 격자 칸에 실제로 광맥이 있을 확률. </summary>
+		public float VeinChance { get; set; } = 0.55f;
+
+		/// <summary> 광맥 반지름(셀) 범위 — 덩어리 크기가 제각각이어야 판이 심심하지 않다. </summary>
+		public float VeinMinRadius { get; set; } = 1.5f;
+		public float VeinMaxRadius { get; set; } = 3.5f;
+
+		/// <summary> 그 칸이 광맥 타일인가 — 암반 위엔 안 생기고, 코어 주변 정리 반경도 피한다. </summary>
+		public bool IsResourceTile(Vector2Int cell)
+		{
+			if (ChebyshevDistance(cell, coreCell) <= coreClearRadius)
+				return false;
+			if (IsBlocked(cell))
+				return false;
+
+			int baseX = Mathf.FloorToInt((float)cell.x / VeinSpacing);
+			int baseY = Mathf.FloorToInt((float)cell.y / VeinSpacing);
+
+			for (int offsetX = -1; offsetX <= 1; offsetX++)
+			{
+				for (int offsetY = -1; offsetY <= 1; offsetY++)
+				{
+					int gridX = baseX + offsetX;
+					int gridY = baseY + offsetY;
+					if (Hash01(gridX, gridY, 8191) >= VeinChance)
+						continue; // 이 격자엔 광맥이 없다.
+
+					Vector2 center = VeinCenter(gridX, gridY);
+					float radius = Mathf.Lerp(VeinMinRadius, VeinMaxRadius, Hash01(gridX, gridY, 6151));
+					if (Vector2.Distance(new Vector2(cell.x, cell.y), center) <= radius)
+						return true;
+				}
+			}
+
+			return false;
+		}
+
+		/// <summary> 그 칸이 광맥의 *중심*인가 — 표시(마커)와 노드 목록이 쓰는 대표 좌표. </summary>
+		public bool IsVeinCenter(Vector2Int cell)
+		{
+			int gridX = Mathf.FloorToInt((float)cell.x / VeinSpacing);
+			int gridY = Mathf.FloorToInt((float)cell.y / VeinSpacing);
+			if (Hash01(gridX, gridY, 8191) >= VeinChance)
+				return false;
+
+			Vector2 center = VeinCenter(gridX, gridY);
+			return Mathf.RoundToInt(center.x) == cell.x && Mathf.RoundToInt(center.y) == cell.y
+				&& IsResourceTile(cell);
+		}
+
+		private Vector2 VeinCenter(int gridX, int gridY)
+		{
+			float jitterX = Hash01(gridX, gridY, 2749);
+			float jitterY = Hash01(gridX, gridY, 4211);
+			return new Vector2(
+				(gridX + jitterX) * VeinSpacing,
+				(gridY + jitterY) * VeinSpacing);
+		}
+
 		/// <summary>
 		/// 코어에서 그 칸까지의 거리로 정해지는 벌이 배수 — 멀수록 크다.
 		/// 무한 판이라 상한이 필요하다: 무한히 멀리 가면 무한히 번다는 규칙은 게임이 아니다.
