@@ -55,10 +55,32 @@ namespace WitchMendokusai
 		/// </summary>
 		public int SelectedSlot { get; private set; }
 
-		/// <summary> 지금 고른 포탑 종류 인덱스(채집을 고른 상태면 0). </summary>
-		public int SelectedTowerIndex => SelectedSlot < TowerSlotCount ? SelectedSlot : 0;
+		// 화면에 실제로 보이는 포탑 칸 → 진짜 포탑 종류 번호. 잠긴 인형을 칸에서 빼면 둘이 어긋나므로
+		// (3번 칸이 3번 포탑이 아닐 수 있다) 매치가 알려준 목록을 그대로 따른다.
+		private readonly System.Collections.Generic.List<int> availableTowers = new();
 
-		private int TowerSlotCount => match != null && match.TowerArchetypeCount > 0 ? match.TowerArchetypeCount : 1;
+		/// <summary> 이번 판에 쓸 수 있는 포탑 종류 목록(핫바 순서 그대로). </summary>
+		public void SetAvailableTowers(System.Collections.Generic.IReadOnlyList<int> towerIndices)
+		{
+			availableTowers.Clear();
+			if (towerIndices != null)
+				availableTowers.AddRange(towerIndices);
+			SelectedSlot = 0;
+		}
+
+		/// <summary> 지금 고른 포탑 종류 인덱스(채집을 고른 상태면 첫 포탑). </summary>
+		public int SelectedTowerIndex
+		{
+			get
+			{
+				if (availableTowers.Count == 0)
+					return 0;
+				int slot = SelectedSlot < availableTowers.Count ? SelectedSlot : 0;
+				return availableTowers[slot];
+			}
+		}
+
+		private int TowerSlotCount => availableTowers.Count > 0 ? availableTowers.Count : 1;
 
 		public event System.Action<int> SelectionChanged = delegate { };
 

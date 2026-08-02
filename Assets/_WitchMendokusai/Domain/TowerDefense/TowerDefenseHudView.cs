@@ -36,6 +36,8 @@ namespace WitchMendokusai
 		private int[] archetypeCountBuffer = System.Array.Empty<int>();
 		private readonly Label hintLabel;
 		private readonly Label bannerLabel;
+		private Label relicLabel;
+		private Button pullButton;
 		private readonly VisualElement legendPanel;
 		// 범례 줄이 실제로 들어가는 곳(래퍼는 접기 버튼까지 감싼다).
 		private VisualElement legendRows;
@@ -68,6 +70,9 @@ namespace WitchMendokusai
 
 		/// <summary> 핫바 칸을 눌러 고름 — 숫자키와 같은 경로로 들어간다(고르는 방법이 둘이어도 결과는 하나). </summary>
 		public event System.Action<int> SlotClicked = delegate { };
+
+		/// <summary> 결말 화면에서 유물로 인형 뽑기. </summary>
+		public event System.Action PullRequested = delegate { };
 
 		public TowerDefenseHudView(UIRoot uiRoot)
 		{
@@ -379,12 +384,32 @@ namespace WitchMendokusai
 			banner.style.paddingBottom = 12;
 			banner.pickingMode = PickingMode.Ignore;
 
+			// 판 밖에 남는 것 — 이번에 번 유물과 보유량. 끝나는 화면에서 바로 보여야 다음 판 이유가 된다.
+			relicLabel = new Label(string.Empty);
+			relicLabel.style.fontSize = 17;
+			relicLabel.style.color = new Color(0.85f, 0.78f, 1f, 1f);
+			relicLabel.style.marginTop = 10;
+			relicLabel.style.display = DisplayStyle.None;
+			relicLabel.pickingMode = PickingMode.Ignore;
+
+			VisualElement buttons = new VisualElement();
+			buttons.style.flexDirection = FlexDirection.Row;
+			buttons.style.marginTop = 14;
+			buttons.pickingMode = PickingMode.Ignore;
+
+			pullButton = MakeActionButton("인형 뽑기", fontSize: 16, () => PullRequested());
+			pullButton.style.marginRight = 8;
+			pullButton.style.display = DisplayStyle.None;
+
 			// 끝났는데 다음 행동이 화면에 없으면 게임이 아니라 정지 화면이 된다 — 배너 바로 아래 재시작.
 			restartButton = MakeActionButton("다시 도전", fontSize: 18, () => RestartRequested());
-			restartButton.style.marginTop = 14;
+
+			buttons.Add(pullButton);
+			buttons.Add(restartButton);
 
 			wrapper.Add(banner);
-			wrapper.Add(restartButton);
+			wrapper.Add(relicLabel);
+			wrapper.Add(buttons);
 			return wrapper;
 		}
 
@@ -491,9 +516,18 @@ namespace WitchMendokusai
 
 			if (stage.TowerArchetypes != null && stage.TowerArchetypes.Length > 0)
 			{
-				foreach (TowerDefenseTowerArchetype tower in stage.TowerArchetypes)
+				// 아직 안 뽑은 인형은 칸 자체가 없다 — 못 쓰는 칸을 보여주면 「눌리지 않는 칸」이 또 생긴다.
+				System.Collections.Generic.List<int> unlocked =
+					DataManager.TryGetExistingInstance(out DataManager dataManager)
+						? dataManager.TowerDefenseUnlockedTowers
+						: null;
+
+				for (int index = 0; index < stage.TowerArchetypes.Length; index++)
 				{
+					TowerDefenseTowerArchetype tower = stage.TowerArchetypes[index];
 					if (tower == null)
+						continue;
+					if (TowerDefenseMeta.IsUnlocked(index, stage.DefaultUnlockedTowerCount, unlocked) == false)
 						continue;
 					entries.Add(new ModeSelectionBar.Entry(tower.DisplayName, tower.Cost, tower.Tint, tooltip: tower));
 				}
@@ -528,6 +562,12 @@ namespace WitchMendokusai
 		/// </summary>
 		public void ResetForNewMatch(TowerDefenseStageSO stage)
 		{
+			if (relicLabel != null)
+			{
+				relicLabel.style.display = DisplayStyle.None;
+				pullButton.style.display = DisplayStyle.None;
+			}
+
 			FillLegend(stage);
 			FillHotbar(stage);
 			SetBannerVisible(false);
@@ -647,10 +687,12 @@ namespace WitchMendokusai
 		/// 매치 종료 배너. 무한 모드 패배 = 버틴 웨이브 수가 곧 점수 —
 		/// 기록 갱신 여부까지 말해야 「다시 도전」이 이유를 갖는다.
 		/// </summary>
-		public void ShowOutcome(TowerDefenseOutcome outcome, int wavesCleared, int bestWave, bool isNewRecord)
+		public void ShowOutcome(TowerDefenseOutcome outcome, int wavesCleared, int bestWave, bool isNewRecord,
+			int relicsGained, int relicBalance, bool canPull)
 		{
 			SetBannerVisible(true);
 			SetBestRecord(bestWave);
+			ShowRelicResult(relicsGained, relicBalance, canPull);
 
 			if (outcome == TowerDefenseOutcome.Victory)
 			{
@@ -673,6 +715,33 @@ namespace WitchMendokusai
 			bannerLabel.text = bestWave > 0
 				? survived + " (최고 " + bestWave + ")"
 				: survived;
+		}
+
+		/// <summary>
+		/// 결말 화면의 유물·뽑기 — 「이번 판에서 무엇을 얻었고, 그걸로 무엇을 할 수 있나」가
+		/// 끝나는 화면 안에서 닫혀야 다시 도전할 이유가 생긴다.
+		/// </summary>
+		private void ShowRelicResult(int relicsGained, int relicBalance, bool canPull)
+		{
+			if (relicLabel == null)
+				return;
+
+			relicLabel.text = "유물 +" + relicsGained + "  (보유 " + relicBalance + ")";
+			relicLabel.style.display = DisplayStyle.Flex;
+			pullButton.SetEnabled(canPull);
+			pullButton.style.display = DisplayStyle.Flex;
+			pullButton.text = "인형 뽑기";
+		}
+
+		/// <summary> 뽑기 결과 — 무엇이 나왔는지 그 자리에서 말한다. </summary>
+		public void ShowPullResult(TowerDefenseTowerArchetype pulled, int relicBalance, bool canPull)
+		{
+			if (relicLabel == null)
+				return;
+
+			relicLabel.text = (pulled != null ? "「" + pulled.DisplayName + "」 획득" : "인형 획득")
+				+ "  (유물 " + relicBalance + ")";
+			pullButton.SetEnabled(canPull);
 		}
 
 		/// <summary> 최고 기록 표시 — 기록 없으면 「-」(0 웨이브라고 거짓말하지 않는다). </summary>

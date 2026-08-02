@@ -27,6 +27,10 @@ namespace WitchMendokusai
 		// 특수시공 개척(TASK-WM-194) — 스테이지별 최고 도달 웨이브. 무한 모드라 승리가 없고 *버틴 웨이브 수가 곧 점수*라,
 		// 이 기록이 없으면 판이 끝나도 남는 게 없어 다시 할 이유가 사라진다. stageID → 최고 웨이브.
 		public Dictionary<int, int> towerDefenseBestWave = new();
+		// 특수시공 개척 메타(TASK-WM-194) — 판이 끝나면 남는 것. 유물 = 버틴 만큼 받는 재화,
+		// 해금 포탑 = 유물로 뽑아 얻은 인형. 이게 없으면 한 판이 끝나도 다음 판이 달라지지 않는다.
+		public int towerDefenseRelics;
+		public List<int> towerDefenseUnlockedTowers = new();
 		public List<RuntimeQuestSaveData> runtimeQuests = new();
 		public Dictionary<GameStatType, int> gameStats = new();
 		public Dictionary<int, DungeonSaveData> dungeons = new(); // DungeonID

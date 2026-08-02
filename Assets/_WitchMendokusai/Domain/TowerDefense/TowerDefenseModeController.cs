@@ -93,8 +93,16 @@ namespace WitchMendokusai
 					dataManager.SaveManager.SaveData();
 			}
 
-			Debug.Log($"{nameof(TowerDefenseModeController)}: 매치 종료 — outcome={outcome} wave={match.WaveIndex} best={best} newRecord={isNewRecord}");
-			hud?.ShowOutcome(outcome, match.WaveIndex, best, isNewRecord);
+			// 판 밖에 남는 것 — 버틴 만큼 유물. 없으면 끝나도 최고 기록 숫자 하나뿐이라 다음 판이 안 달라진다.
+			int relicsGained = TowerDefenseMeta.RelicsFor(match.WaveIndex, stage.RelicsPerWave, stage.RelicsBaseReward);
+			if (DataManager.TryGetExistingInstance(out DataManager relicOwner))
+			{
+				relicOwner.TowerDefenseRelics += relicsGained;
+				relicOwner.SaveManager.SaveData();
+			}
+
+			Debug.Log($"{nameof(TowerDefenseModeController)}: 매치 종료 — outcome={outcome} wave={match.WaveIndex} best={best} newRecord={isNewRecord} relics+{relicsGained}");
+			hud?.ShowOutcome(outcome, match.WaveIndex, best, isNewRecord, relicsGained, RelicBalance(), CanPull());
 		}
 
 		/// <summary> 현재 스테이지 최고 기록 — 화면에 목표를 세워준다(없으면 0). </summary>
@@ -134,6 +142,77 @@ namespace WitchMendokusai
 			overhead.SetFocusBounds(center, stage.CameraPanLimit);
 			overhead.ConfigureZoom(stage.CameraMinHeight, stage.CameraMaxHeight, stage.CameraZoomSpeed);
 			overhead.ResetView(center, yaw: 0f, height: stage.CameraInitialHeight);
+		}
+
+		/// <summary> 이번 판에 쓸 수 있는 포탑 목록을 배치·화면에 동시에 알린다(둘이 어긋나면 오설치). </summary>
+		private void SyncAvailableTowers()
+		{
+			System.Collections.Generic.List<int> available = new();
+			int towerCount = stage != null && stage.TowerArchetypes != null ? stage.TowerArchetypes.Length : 0;
+			System.Collections.Generic.List<int> unlocked =
+				DataManager.TryGetExistingInstance(out DataManager dataManager)
+					? dataManager.TowerDefenseUnlockedTowers
+					: null;
+
+			for (int index = 0; index < towerCount; index++)
+			{
+				if (stage.TowerArchetypes[index] == null)
+					continue;
+				if (TowerDefenseMeta.IsUnlocked(index, stage.DefaultUnlockedTowerCount, unlocked))
+					available.Add(index);
+			}
+
+			if (available.Count == 0)
+				available.Add(0);
+
+			placement.SetAvailableTowers(available);
+		}
+
+		private int RelicBalance()
+		{
+			return DataManager.TryGetExistingInstance(out DataManager dataManager) ? dataManager.TowerDefenseRelics : 0;
+		}
+
+		private bool CanPull()
+		{
+			if (stage == null || DataManager.TryGetExistingInstance(out DataManager dataManager) == false)
+				return false;
+
+			return dataManager.TowerDefenseRelics >= stage.PullCost
+				&& TowerDefenseMeta.HasLockedTower(
+					stage.TowerArchetypes != null ? stage.TowerArchetypes.Length : 0,
+					stage.DefaultUnlockedTowerCount,
+					dataManager.TowerDefenseUnlockedTowers);
+		}
+
+		/// <summary>
+		/// 인형 뽑기 — 결말 화면에서 바로. 별도 창을 새로 세우지 않는 이유: 뽑는 순간은 판이 끝난 직후이고,
+		/// 그 자리에서 「다음 판엔 이게 있다」로 이어져야 다시 도전할 이유가 그 화면 안에서 닫힌다.
+		/// </summary>
+		private void PullTower()
+		{
+			if (stage == null || DataManager.TryGetExistingInstance(out DataManager dataManager) == false)
+				return;
+
+			int relics = dataManager.TowerDefenseRelics;
+			bool pulled = TowerDefenseMeta.TryPull(
+				stage.TowerArchetypes != null ? stage.TowerArchetypes.Length : 0,
+				stage.DefaultUnlockedTowerCount,
+				dataManager.TowerDefenseUnlockedTowers,
+				ref relics,
+				stage.PullCost,
+				UnityEngine.Random.value,
+				out int pulledIndex);
+
+			if (pulled == false)
+				return;
+
+			dataManager.TowerDefenseRelics = relics;
+			dataManager.SaveManager.SaveData();
+
+			TowerDefenseTowerArchetype pulledTower = match.TowerArchetypeAt(pulledIndex);
+			Debug.Log($"{nameof(TowerDefenseModeController)}: 인형 뽑기 — {(pulledTower != null ? pulledTower.DisplayName : pulledIndex.ToString())} 획득 (유물 {relics} 남음)");
+			hud?.ShowPullResult(pulledTower, relics, CanPull());
 		}
 
 		/// <summary> 핫바 클릭 — 숫자키와 같은 경로. 그 클릭이 설치로도 새지 않게 한 번 삼킨다. </summary>
@@ -194,6 +273,7 @@ namespace WitchMendokusai
 			if (view != null)
 			{
 				// Show 가 아니라 전용 리셋 — Show 는 본편 UI 를 다시 숨기며 복원 정보를 덮어쓴다(이미 숨긴 상태라 빈 목록이 됨).
+				SyncAvailableTowers();
 				view.ResetForNewMatch(stage);
 				view.SetBestRecord(CurrentBestRecord());
 				view.SetSelectedSlot(placement.SelectedSlot);
@@ -230,6 +310,7 @@ namespace WitchMendokusai
 				TowerDefenseHudView view = EnsureHud();
 				if (view != null)
 				{
+					SyncAvailableTowers();
 					view.Show(stage);
 					view.SetBestRecord(CurrentBestRecord()); // 넘어야 할 선을 판 시작부터 보여준다.
 					// 핫바 선택 표시 ↔ 실제 배치 대상은 같은 소스여야 한다(표시가 거짓말하면 오설치).
@@ -239,6 +320,7 @@ namespace WitchMendokusai
 					view.WaveModeToggleRequested += ToggleWaveMode;
 					view.NextWaveRequested += CallNextWave;
 					view.SlotClicked += SelectSlotFromUi;
+					view.PullRequested += PullTower;
 				}
 			}
 			else
@@ -253,6 +335,7 @@ namespace WitchMendokusai
 					hud.WaveModeToggleRequested -= ToggleWaveMode;
 					hud.NextWaveRequested -= CallNextWave;
 					hud.SlotClicked -= SelectSlotFromUi;
+					hud.PullRequested -= PullTower;
 				}
 				placement.Deactivate();
 				hud?.Hide();

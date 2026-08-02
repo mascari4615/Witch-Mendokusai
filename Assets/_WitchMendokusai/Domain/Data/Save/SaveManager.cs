@@ -48,6 +48,7 @@ namespace WitchMendokusai
 				hasRecipe = new(),
 				hasSpecimen = new(),
 				towerDefenseBestWave = new(),
+				towerDefenseUnlockedTowers = new(),
 				runtimeQuests = new(),
 				gameStats = new(),
 				dungeons = new(),
@@ -104,6 +105,8 @@ namespace WitchMendokusai
 
 			// 개척 최고 기록(TASK-WM-194) 초기화 — 새 게임 = 기록 없음.
 			DataManager.TowerDefenseBestWave = new();
+			DataManager.TowerDefenseRelics = 0;
+			DataManager.TowerDefenseUnlockedTowers = new();
 
 			// 퀘스트 상태 초기화 이후 저장
 			Dictionary<int, QuestState> questStates = new();
@@ -182,6 +185,8 @@ namespace WitchMendokusai
 
 			// 개척 최고 기록(TASK-WM-194) — 옛 세이브엔 필드 부재 → null 가드.
 			DataManager.TowerDefenseBestWave = saveData.towerDefenseBestWave ?? new();
+			DataManager.TowerDefenseRelics = saveData.towerDefenseRelics;
+			DataManager.TowerDefenseUnlockedTowers = saveData.towerDefenseUnlockedTowers ?? new();
 
 			// 작업 초기화
 			DataManager.WorkManager.Init(saveData.works);
@@ -230,6 +235,8 @@ namespace WitchMendokusai
 				hasRecipe = DataManager.IsRecipeUnlocked,
 				hasSpecimen = DataManager.SpecimenCollected,
 				towerDefenseBestWave = DataManager.TowerDefenseBestWave,
+				towerDefenseRelics = DataManager.TowerDefenseRelics,
+				towerDefenseUnlockedTowers = DataManager.TowerDefenseUnlockedTowers,
 				runtimeQuests = DataManager.QuestManager.Quests.Data.Where(quest => quest.Type != QuestType.Dungeon).ToList().ConvertAll(quest => quest.Save()),
 				gameStats = DataManager.GameStat.Save(),
 				dungeons = new(),

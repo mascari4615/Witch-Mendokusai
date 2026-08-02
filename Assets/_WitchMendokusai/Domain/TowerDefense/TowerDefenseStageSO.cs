@@ -112,6 +112,19 @@ namespace WitchMendokusai
 		[field: Tooltip("휠 **한 칸당** 높이 변화량. 플랫폼별 raw 델타 차이는 리그가 흡수한다.")]
 		[field: SerializeField, Min(0.1f)] public float CameraZoomSpeed { get; private set; } = 6f;
 
+		[field: Header("판 밖에 남는 것 — 유물·뽑기")]
+		[field: Tooltip("처음부터 쓸 수 있는 포탑 수(앞에서부터). 나머지는 유물로 뽑아야 나온다.")]
+		[field: SerializeField, Min(1)] public int DefaultUnlockedTowerCount { get; private set; } = 2;
+
+		[field: Tooltip("웨이브 하나 버틸 때마다 받는 유물.")]
+		[field: SerializeField, Min(0)] public int RelicsPerWave { get; private set; } = 3;
+
+		[field: Tooltip("판을 한 번 끝내면 무조건 받는 유물 — 0파에 져도 빈손은 아니다.")]
+		[field: SerializeField, Min(0)] public int RelicsBaseReward { get; private set; } = 2;
+
+		[field: Tooltip("인형 하나 뽑는 데 드는 유물.")]
+		[field: SerializeField, Min(1)] public int PullCost { get; private set; } = 12;
+
 		[field: Header("시야")]
 		[field: Tooltip("코어가 밝히는 반경(칸). 시작 시 보이는 범위 = 여기서 정해진다.")]
 		[field: SerializeField, Min(0f)] public float CoreVisionRadius { get; private set; } = 9f;

@@ -39,6 +39,9 @@ namespace WitchMendokusai
 		// 특수시공 개척(TASK-WM-194) — 스테이지별 최고 도달 웨이브(stageID → wave). 무한 모드의 점수 그 자체.
 		// SaveManager 가 towerDefenseBestWave ↔ 이 dict 직렬화(SpecimenCollected 와 동형).
 		public Dictionary<int, int> TowerDefenseBestWave { get; set; } = new();
+		// 개척 메타 — 유물(재화)과 뽑아서 얻은 포탑 인형 목록.
+		public int TowerDefenseRelics { get; set; }
+		public List<int> TowerDefenseUnlockedTowers { get; set; } = new();
 
 		public string localDisplayName = "";
 
