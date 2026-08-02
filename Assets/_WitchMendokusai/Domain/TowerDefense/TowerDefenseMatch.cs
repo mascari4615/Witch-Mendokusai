@@ -284,6 +284,7 @@ namespace WitchMendokusai
 			heroVisionSourceIndex = -1;
 			heroVisionCell = new Vector2Int(int.MinValue, int.MinValue);
 			enemyMaxStopDistance = 0f;
+			nests.Clear();
 			enemyStillness.Clear();
 
 			yield return SpawnCoreRoutine();
@@ -295,6 +296,7 @@ namespace WitchMendokusai
 			}
 
 			yield return SpawnHeroRoutine(); // 영웅 미설정 스테이지면 즉시 빠져나온다(기존 판과 동일).
+			yield return SpawnNestsRoutine(); // 마수가 나오는 자리를 *부술 수 있는 것*으로 세운다.
 
 			timeManager.RegisterCallback(Tick);
 			ticking = true;
@@ -926,6 +928,101 @@ namespace WitchMendokusai
 		/// *표시 부재* + *배치 오류* 가 겹쳤다. 출현 지점에 붉은 표식을 세워 둘을 확실히 가른다.
 		/// 노드(금빛 원반)와 형태·색을 다르게 해야 혼동이 안 난다.
 		/// </summary>
+		// ── 마수 둥지(출현지) ─────────────────────────────────────────────────────
+		// ★ 왜 부술 수 있어야 하나 (사용자 지시: "적유닛이 나오는 곳도 뭔가 부술 수 있거나 나오는 적이
+		//   한정되어야 할듯"): 무한히 쏟아지는 출구를 못 막으면 방어는 영원히 수세다. 둥지를 부수면
+		//   그쪽 출구가 닫힌다 — 「버틴다」에서 「밀어낸다」로 게임의 동사가 하나 늘어난다.
+		// ★ 왜 마수 프리팹으로 세우나: 포탑은 *마수 목록에 있는 것*만 쏜다. 둥지를 같은 종류로 세우면
+		//   조준·피해·격파 보상 경로를 하나도 새로 만들지 않고 그대로 재사용한다.
+		private readonly List<(ArenaCombatant Combatant, Vector3 LocalPosition)> nests = new();
+
+		private IEnumerator SpawnNestsRoutine()
+		{
+			if (stage.NestHealthMultiplier <= 0f || stage.EnemyUnit == null || stage.EnemyUnit.Prefab == null)
+				yield break;
+
+			foreach (Vector3 localPosition in new List<Vector3>(activeSpawnPoints))
+			{
+				GameObject nestObject = pool.Spawn(stage.EnemyUnit.Prefab);
+				if (spawnedUnits.Contains(nestObject) == false)
+					spawnedUnits.Add(nestObject);
+				nestObject.transform.position = stageRoot.TransformPoint(localPosition);
+
+				yield return null;
+				if (core == null || targeting == null || pool == null)
+					yield break;
+
+				UnitObject nestUnit = nestObject.GetComponent<UnitObject>();
+				if (nestUnit == null)
+					continue;
+
+				nestUnit.Init(stage.EnemyUnit);
+				nestUnit.SkillHandler.AutoCastEnabled = false;
+
+				ArenaCombatant nestCombatant = nestObject.GetComponent<ArenaCombatant>();
+				if (nestCombatant == null)
+					nestCombatant = nestObject.AddComponent<ArenaCombatant>();
+				nestCombatant.SetTeam(ATTACKER_TEAM, nextCombatantId++);
+
+				ApplyReadability(nestUnit, stage.NestTint, stage.NestScale);
+				nestObject.SetActive(true);
+
+				yield return null;
+				if (core == null)
+					yield break;
+
+				// 둥지는 걷지 않는다 — 브레인·이동을 끄고 자리에 못 박는다.
+				foreach (UnitBrain brain in nestUnit.GetComponents<UnitBrain>())
+					brain.enabled = false;
+				UnityEngine.AI.NavMeshAgent nestAgent = nestObject.GetComponent<UnityEngine.AI.NavMeshAgent>();
+				if (nestAgent != null)
+					nestAgent.enabled = false;
+				UnitMovement nestMovement = nestObject.GetComponent<UnitMovement>();
+				if (nestMovement != null)
+					nestMovement.enabled = false;
+
+				int nestHp = Mathf.Max(1, Mathf.RoundToInt(nestUnit.UnitStat[UnitStatType.HP_MAX] * stage.NestHealthMultiplier));
+				nestUnit.UnitStat[UnitStatType.HP_MAX] = nestHp;
+				nestUnit.UnitStat[UnitStatType.HP_CUR] = nestHp;
+
+				targeting.Register(nestCombatant);
+				registeredCombatants.Add(nestCombatant);
+				waveEnemies.Add(nestCombatant); // 포탑이 쏘는 대상 목록 — 둥지도 여기 있어야 맞는다.
+				nests.Add((nestCombatant, localPosition));
+			}
+
+			Debug.Log($"{nameof(TowerDefenseMatch)}: 마수 둥지 {nests.Count}곳 — 부수면 그 출구가 닫힌다.");
+		}
+
+		/// <summary> 부서진 둥지의 출구를 닫는다 — 그 자리에서 더는 마수가 안 나온다. </summary>
+		private void CullDestroyedNests()
+		{
+			for (int index = nests.Count - 1; index >= 0; index--)
+			{
+				(ArenaCombatant combatant, Vector3 localPosition) = nests[index];
+				if (combatant != null && combatant.IsAlive)
+					continue;
+
+				nests.RemoveAt(index);
+				activeSpawnPoints.Remove(localPosition);
+				PopWorldText("둥지 파괴", stageRoot.TransformPoint(localPosition), TextType.Heal);
+				Debug.Log($"{nameof(TowerDefenseMatch)}: 둥지 하나가 무너졌다 — 남은 출구 {activeSpawnPoints.Count}곳.");
+			}
+		}
+
+		private bool IsNest(ArenaCombatant combatant)
+		{
+			foreach ((ArenaCombatant nest, Vector3 _) in nests)
+			{
+				if (nest == combatant)
+					return true;
+			}
+			return false;
+		}
+
+		/// <summary> 남은 마수 출구 수 — 화면이 「얼마나 밀어냈나」를 말한다. </summary>
+		public int NestCount => nests.Count;
+
 		private void BuildEnemySpawnMarkers()
 		{
 			foreach (Vector3 localPosition in activeSpawnPoints)
@@ -1014,6 +1111,7 @@ namespace WitchMendokusai
 			CullEscapedEnemies(); // 무대 밖 개체가 웨이브를 영원히 붙잡지 못하게 — 집계 *전에* 정리.
 			CullLeakedEnemies();  // 목표에 닿은 마수는 사라지고 목숨이 준다(유출제).
 			UnstickEnemies();     // 굳은 마수를 풀어준다 — 한 마리가 굳으면 웨이브가 영영 안 끝난다.
+			CullDestroyedNests(); // 부순 둥지의 출구를 닫는다 — 「버틴다」가 「밀어낸다」가 되는 자리.
 			ApplyEnemyVisibility(); // 안 보이는 마수는 화면에서도 지운다(규칙과 그림이 같아야 한다).
 			RefreshSupply();        // 방어 건물이 부서지면 그 순간 사슬이 끊긴다.
 			PayKillBounties();    // 격파 즉시 보상 — 웨이브 정산만 있으면 교전 중엔 아무 보상도 안 온다.
@@ -2290,6 +2388,8 @@ namespace WitchMendokusai
 			{
 				if (enemy == null || enemy.IsAlive == false)
 					continue;
+				if (IsNest(enemy))
+					continue; // 둥지는 원래 안 움직인다 — 「굳었다」로 세면 매 틱 헛되이 옮기려 든다.
 
 				Vector3 position = enemy.Position;
 				if (enemyStillness.TryGetValue(enemy.CombatantId, out (Vector3 Position, float Seconds) tracked) == false)

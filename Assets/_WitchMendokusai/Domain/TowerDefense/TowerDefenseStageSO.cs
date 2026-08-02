@@ -220,6 +220,16 @@ namespace WitchMendokusai
 		[field: Tooltip("웨이브를 넘길 때마다 내 편이 최대 체력의 이 비율만큼 회복(0.25 = 25%). 1이면 완전 회복이라 소모전이 사라진다.")]
 		[field: SerializeField, Range(0f, 1f)] public float DefenderHealPerWave { get; private set; } = 0.25f;
 
+		[field: Header("마수 둥지 — 부수면 그 출구가 닫힌다")]
+		[field: Tooltip("둥지 체력 = 마수 체력 × 이 값(0 = 둥지 없음, 옛 방식). 크면 「밀어낸다」가 장기 목표가 된다.")]
+		[field: SerializeField, Min(0f)] public float NestHealthMultiplier { get; private set; } = 14f;
+
+		[field: Tooltip("둥지 크기(칸 단위) — 마수보다 커야 출구로 읽힌다.")]
+		[field: SerializeField, Min(0.1f)] public float NestScale { get; private set; } = 1.8f;
+
+		[field: Tooltip("둥지 색.")]
+		[field: SerializeField] public Color NestTint { get; private set; } = new Color(0.66f, 0.16f, 0.3f, 1f);
+
 		[field: Header("굳은 마수 감시 — 한 마리가 굳으면 판이 안 끝난다")]
 		[field: Tooltip("이만큼 제자리에 붙어 있으면 「굳었다」로 보고 길 위로 옮긴다(0 = 감시 끔).")]
 		[field: SerializeField, Min(0f)] public float StuckRelocateSeconds { get; private set; } = 4f;
