@@ -37,6 +37,8 @@ namespace WitchMendokusai
 		private readonly Label hintLabel;
 		private readonly Label bannerLabel;
 		private readonly VisualElement legendPanel;
+		// 범례 줄이 실제로 들어가는 곳(래퍼는 접기 버튼까지 감싼다).
+		private VisualElement legendRows;
 		// 자원 노드 위에 붙는 벌이 배수 표. 월드 좌표를 매 프레임 화면으로 투영해 따라붙인다
 		// (UI Toolkit 은 월드 공간 텍스트가 없고, 폰트 에셋을 새로 들이지 않기 위한 선택).
 		private readonly VisualElement worldLabelLayer;
@@ -80,22 +82,14 @@ namespace WitchMendokusai
 			container.style.display = DisplayStyle.None;
 			container.pickingMode = PickingMode.Ignore;
 
-			// ★ 왼쪽 정보는 한 세로줄에 쌓는다. 각 패널에 화면 좌표(top)를 박아두면 줄이 하나 늘어나는 순간
-			//   아래 패널을 덮어 글자가 겹쳐 뭉개진다(라이브 스크린샷 실증 — 「다음 파도」 행을 넣자마자 발생).
-			//   흐름 배치로 두면 내용이 늘어도 알아서 아래로 밀린다.
-			VisualElement leftColumn = new VisualElement { name = "LeftColumn" };
-			leftColumn.style.position = Position.Absolute;
-			leftColumn.style.left = 24;
-			leftColumn.style.top = 24;
-			leftColumn.style.flexDirection = FlexDirection.Column;
-			leftColumn.style.alignItems = Align.FlexStart;
-			leftColumn.pickingMode = PickingMode.Ignore;
-
-			leftColumn.Add(BuildStatPanel(out resourceValue, out waveValue, out phaseValue, out enemyValue, out incomeValue, out nextWaveValue, out bestValue));
-			leftColumn.Add(BuildWaveControlPanel(out waveModeButton, out nextWaveButton));
+			// ★ 한 덩어리가 한 가지만 말한다 — 예전엔 전부 좌상단에 몰려 있어 무엇부터 봐야 할지 알 수 없었다
+			//   (사용자 실증: "정보는 전부 모여 있어서 복잡복잡"). 자원은 상단 가운데 독립 띠(종류가 늘어도
+			//   가로로 칸만 추가), 진행은 우상단, 범례는 좌하단 접기, 고르는 것은 하단 가운데.
+			container.Add(BuildResourceBar(out resourceValue, out incomeValue));
+			container.Add(BuildProgressPanel(out waveValue, out phaseValue, out nextWaveValue, out enemyValue, out bestValue,
+				out waveModeButton, out nextWaveButton));
 			legendPanel = BuildLegendPanel();
-			leftColumn.Add(legendPanel);
-			container.Add(leftColumn);
+			container.Add(legendPanel);
 			hotbarPanel = BuildHotbar();
 			container.Add(hotbarPanel);
 			container.Add(BuildHintBar(out hintLabel));
@@ -116,36 +110,116 @@ namespace WitchMendokusai
 		}
 
 		// 좌상단 컴팩트 스탯 — 폭을 내용에 맞춰 좁게(전폭 바 금지).
-		private static VisualElement BuildStatPanel(out Label resource, out Label wave, out Label phase, out Label enemies, out Label incomeValue, out Label nextWaveValue, out Label bestValue)
+		/// <summary>
+		/// 자원 띠 — 상단 가운데 독립. 자원 종류가 늘어나면 이 띠에 칸만 가로로 붙인다
+		/// (다른 정보와 섞어두면 종류가 늘 때마다 화면 전체를 다시 짜야 한다).
+		/// </summary>
+		private static VisualElement BuildResourceBar(out Label resource, out Label income)
 		{
-			VisualElement panel = new VisualElement { name = "StatPanel" };
-			panel.style.marginBottom = 10;
+			VisualElement bar = new VisualElement { name = "ResourceBar" };
+			bar.style.position = Position.Absolute;
+			bar.style.top = 18;
+			bar.style.left = 0;
+			bar.style.right = 0;
+			bar.style.flexDirection = FlexDirection.Row;
+			bar.style.justifyContent = Justify.Center;
+			bar.pickingMode = PickingMode.Ignore;
+
+			VisualElement inner = new VisualElement();
+			inner.style.flexDirection = FlexDirection.Row;
+			inner.style.alignItems = Align.Center;
+			inner.style.paddingLeft = 18;
+			inner.style.paddingRight = 18;
+			inner.style.paddingTop = 8;
+			inner.style.paddingBottom = 8;
+			inner.style.backgroundColor = new Color(0.04f, 0.05f, 0.08f, 0.82f);
+			SetRadius(inner, 8);
+			inner.pickingMode = PickingMode.Ignore;
+
+			inner.Add(MakeResourceCell(TowerDefenseIcon.Kind.Diamond, new Color(1f, 0.86f, 0.35f, 1f), out resource, 26));
+			inner.Add(MakeDivider());
+			inner.Add(MakeResourceCell(TowerDefenseIcon.Kind.Ring, new Color(0.42f, 0.92f, 0.68f, 1f), out income, 20));
+
+			bar.Add(inner);
+			return bar;
+		}
+
+		private static VisualElement MakeResourceCell(TowerDefenseIcon.Kind iconKind, Color color, out Label value, int fontSize)
+		{
+			VisualElement cell = new VisualElement();
+			cell.style.flexDirection = FlexDirection.Row;
+			cell.style.alignItems = Align.Center;
+			cell.pickingMode = PickingMode.Ignore;
+
+			cell.Add(TowerDefenseIcon.Make(iconKind, color, 18));
+
+			value = new Label(string.Empty);
+			value.style.fontSize = fontSize;
+			value.style.color = color;
+			value.style.marginLeft = 8;
+			value.pickingMode = PickingMode.Ignore;
+
+			cell.Add(value);
+			return cell;
+		}
+
+		private static VisualElement MakeDivider()
+		{
+			VisualElement divider = new VisualElement();
+			divider.style.width = 1;
+			divider.style.height = 20;
+			divider.style.marginLeft = 16;
+			divider.style.marginRight = 16;
+			divider.style.backgroundColor = new Color(1f, 1f, 1f, 0.16f);
+			divider.pickingMode = PickingMode.Ignore;
+			return divider;
+		}
+
+		/// <summary> 진행 정보 — 우상단. 「지금 무슨 일이 일어나는가」만 모은다. </summary>
+		private VisualElement BuildProgressPanel(
+			out Label wave, out Label phase, out Label nextWave, out Label enemies, out Label best,
+			out Button modeButton, out Button callButton)
+		{
+			VisualElement panel = new VisualElement { name = "ProgressPanel" };
+			panel.style.position = Position.Absolute;
+			panel.style.top = 18;
+			panel.style.right = 24;
 			panel.style.paddingLeft = 14;
-			panel.style.paddingRight = 18;
+			panel.style.paddingRight = 14;
 			panel.style.paddingTop = 10;
 			panel.style.paddingBottom = 10;
-			panel.style.backgroundColor = new Color(0.04f, 0.05f, 0.08f, 0.72f);
-			panel.style.borderTopLeftRadius = 6;
-			panel.style.borderTopRightRadius = 6;
-			panel.style.borderBottomLeftRadius = 6;
-			panel.style.borderBottomRightRadius = 6;
+			panel.style.backgroundColor = new Color(0.04f, 0.05f, 0.08f, 0.78f);
+			SetRadius(panel, 8);
+			panel.style.alignItems = Align.FlexEnd;
 			panel.pickingMode = PickingMode.Ignore;
 
-			panel.Add(MakeStatRow("자원", out resource, new Color(1f, 0.86f, 0.35f, 1f)));
-			panel.Add(MakeStatRow("웨이브", out wave, new Color(1f, 0.6f, 0.55f, 1f)));
+			panel.Add(MakeStatRow("파도", out wave, new Color(1f, 0.6f, 0.55f, 1f)));
 			panel.Add(MakeStatRow("상태", out phase, new Color(0.72f, 0.88f, 1f, 1f)));
-			// ★ 「남은 마수」가 없으면 웨이브가 끝났는지를 눈으로만 판단해야 한다 — 마수 한 마리가 코어에
-			//   겹쳐 서 있으면 화면에서 사라져 "다 잡았는데 안 넘어간다"가 된다(사용자 실증). 숫자가 진실을 말한다.
+			panel.Add(MakeStatRow("다음 파도", out nextWave, new Color(1f, 0.72f, 0.45f, 1f)));
 			panel.Add(MakeStatRow("남은 마수", out enemies, new Color(1f, 0.45f, 0.42f, 1f)));
-			// ★ 무한 모드엔 「클리어」가 없다 — 넘어야 할 선(지난 최고 기록)이 화면에 있어야 이번 판에 목표가 생긴다.
-			// ★ 채집 인형의 존재 이유는 이 한 줄이다 — 인형을 세울 때마다 이 숫자가 오르는 걸 봐야
-			//   「자원 캐는 건물」이 무슨 역할인지 전달된다(사용자 실증: 역할을 전혀 모르겠다).
-			panel.Add(MakeStatRow("다음 정산", out incomeValue, new Color(0.42f, 0.92f, 0.68f, 1f)));
-			// ★ 예고가 있어야 「대비」가 성립한다 — 뭐가 오는지 모르면 배치는 매번 같은 감(勘)이고,
-			//   그게 이 게임이 지루했던 핵심이다. 구성은 결정론이라 예고와 실제가 항상 같다.
-			panel.Add(MakeStatRow("다음 파도", out nextWaveValue, new Color(1f, 0.72f, 0.45f, 1f)));
-			panel.Add(MakeStatRow("최고 기록", out bestValue, new Color(0.78f, 0.82f, 0.92f, 1f)));
+			panel.Add(MakeStatRow("최고 기록", out best, new Color(0.78f, 0.82f, 0.92f, 1f)));
+
+			VisualElement buttons = new VisualElement();
+			buttons.style.flexDirection = FlexDirection.Row;
+			buttons.style.marginTop = 8;
+			buttons.pickingMode = PickingMode.Ignore;
+
+			modeButton = MakeActionButton(string.Empty, fontSize: 12, () => WaveModeToggleRequested());
+			modeButton.style.marginRight = 6;
+			callButton = MakeActionButton("다음 웨이브 ▶", fontSize: 12, () => NextWaveRequested());
+			buttons.Add(modeButton);
+			buttons.Add(callButton);
+			panel.Add(buttons);
+
 			return panel;
+		}
+
+		private static void SetRadius(VisualElement element, int radius)
+		{
+			element.style.borderTopLeftRadius = radius;
+			element.style.borderTopRightRadius = radius;
+			element.style.borderBottomLeftRadius = radius;
+			element.style.borderBottomRightRadius = radius;
 		}
 
 		// 「라벨   값」 한 줄 — 라벨은 흐리게, 값은 크고 밝게(스캔이 값으로 먼저 가게).
@@ -160,7 +234,8 @@ namespace WitchMendokusai
 			Label captionLabel = new Label(caption);
 			captionLabel.style.fontSize = 12;
 			captionLabel.style.color = new Color(0.62f, 0.66f, 0.74f, 1f);
-			captionLabel.style.width = 68;
+			captionLabel.style.width = 72;
+			captionLabel.style.flexShrink = 0;
 			captionLabel.pickingMode = PickingMode.Ignore;
 
 			valueLabel = new Label(string.Empty);
@@ -200,36 +275,50 @@ namespace WitchMendokusai
 		}
 
 		/// <summary>
-		/// 웨이브 진행 조작 — 스탯 패널 바로 아래. 「자동/수동」 전환과 「다음 웨이브」 호출.
-		/// 자동만 있으면 준비할 시간을 시계가 뺏고, 수동만 있으면 리듬이 사라진다. 둘을 화면에서 바로 바꾼다.
+		/// 범례 — 좌하단, 접을 수 있다. 항상 펼쳐두면 판을 가리고, 아예 없으면 색이 무슨 뜻인지 알 방법이 없다.
 		/// </summary>
-		private VisualElement BuildWaveControlPanel(out Button modeButton, out Button callButton)
+		private VisualElement BuildLegendPanel()
 		{
-			VisualElement panel = new VisualElement { name = "WaveControlPanel" };
-			panel.style.marginBottom = 10;
-			panel.style.flexDirection = FlexDirection.Row;
+			VisualElement wrapper = new VisualElement { name = "LegendWrapper" };
+			wrapper.style.position = Position.Absolute;
+			wrapper.style.left = 24;
+			wrapper.style.bottom = 108;
+			wrapper.style.alignItems = Align.FlexStart;
+			wrapper.pickingMode = PickingMode.Ignore;
+
+			Button toggle = MakeActionButton("▼ 범례", fontSize: 12, () => { });
+			toggle.style.marginBottom = 4;
+
+			VisualElement panel = new VisualElement { name = "LegendPanel" };
+			panel.style.paddingLeft = 12;
+			panel.style.paddingRight = 16;
+			panel.style.paddingTop = 8;
+			panel.style.paddingBottom = 8;
+			panel.style.backgroundColor = new Color(0.04f, 0.05f, 0.08f, 0.66f);
+			SetRadius(panel, 6);
 			panel.pickingMode = PickingMode.Ignore;
 
-			modeButton = MakeActionButton(string.Empty, fontSize: 12, () => WaveModeToggleRequested());
-			modeButton.style.marginRight = 6;
+			toggle.clicked += () =>
+			{
+				bool visible = panel.style.display != DisplayStyle.None;
+				panel.style.display = visible ? DisplayStyle.None : DisplayStyle.Flex;
+				toggle.text = visible ? "▶ 범례" : "▼ 범례";
+			};
 
-			callButton = MakeActionButton("다음 웨이브 ▶", fontSize: 12, () => NextWaveRequested());
-
-			panel.Add(modeButton);
-			panel.Add(callButton);
-			return panel;
+			wrapper.Add(toggle);
+			wrapper.Add(panel);
+			legendRows = panel;
+			return wrapper;
 		}
 
-		/// <summary>
-		/// 우상단 「처음부터」 — 항상 보이는 재시작. 패배 배너를 기다리지 않아도 언제든 판을 버릴 수 있어야
-		/// 시행착오가 빨라진다(작은 사이클을 반복해 다듬는 개발 방향과 정합).
-		/// </summary>
+		// 스테이지가 정해지는 시점(진입)에 채운다 — 색 출처가 SO 라 하드코딩 색이 없다.
 		private VisualElement BuildCornerRestartButton()
 		{
 			VisualElement wrapper = new VisualElement();
 			wrapper.style.position = Position.Absolute;
 			wrapper.style.right = 24;
-			wrapper.style.top = 24;
+			// 우상단은 진행 패널 자리 — 겹치면 파도 표시를 덮는다(라이브 스크린샷 실증). 우하단으로 뺀다.
+			wrapper.style.bottom = 24;
 			wrapper.pickingMode = PickingMode.Ignore;
 
 			wrapper.Add(MakeActionButton("처음부터", fontSize: 13, () => RestartRequested()));
@@ -303,33 +392,16 @@ namespace WitchMendokusai
 		/// 표시되어야겠지"). 아트가 아직 없어 색이 곧 정체이므로, 색 견본 + 이름을 그대로 띄운다.
 		/// 색은 스테이지 SO 를 읽어 채운다 — 화면의 유닛 색과 범례 색이 같은 소스여야 안내가 거짓말을 안 한다.
 		/// </summary>
-		private VisualElement BuildLegendPanel()
-		{
-			VisualElement panel = new VisualElement { name = "LegendPanel" };
-			panel.style.paddingLeft = 12;
-			panel.style.paddingRight = 16;
-			panel.style.paddingTop = 8;
-			panel.style.paddingBottom = 8;
-			panel.style.backgroundColor = new Color(0.04f, 0.05f, 0.08f, 0.66f);
-			panel.style.borderTopLeftRadius = 6;
-			panel.style.borderTopRightRadius = 6;
-			panel.style.borderBottomLeftRadius = 6;
-			panel.style.borderBottomRightRadius = 6;
-			panel.pickingMode = PickingMode.Ignore;
-			return panel;
-		}
-
-		// 스테이지가 정해지는 시점(진입)에 채운다 — 색 출처가 SO 라 하드코딩 색이 없다.
 		private void FillLegend(TowerDefenseStageSO stage)
 		{
-			legendPanel.Clear();
+			legendRows.Clear();
 			if (stage == null)
 				return;
 
-			legendPanel.Add(MakeLegendRow(stage.CoreTint, "코어", "부서지면 끝"));
+			legendRows.Add(MakeLegendRow(stage.CoreTint, "코어", "부서지면 끝", TowerDefenseIcon.Kind.Core));
 			if (stage.TowerArchetypes == null || stage.TowerArchetypes.Length == 0)
 			{
-				legendPanel.Add(MakeLegendRow(stage.TowerTint, "포탑 인형", "적을 쏜다"));
+				legendRows.Add(MakeLegendRow(stage.TowerTint, "포탑 인형", "적을 쏜다"));
 			}
 			else
 			{
@@ -337,13 +409,14 @@ namespace WitchMendokusai
 				{
 					if (tower == null)
 						continue;
-					legendPanel.Add(MakeLegendRow(tower.Tint, tower.DisplayName, tower.Note));
+					legendRows.Add(MakeLegendRow(tower.Tint, tower.DisplayName, tower.Note, TowerDefenseIcon.ForTower(tower)));
 				}
 			}
-			legendPanel.Add(MakeLegendRow(stage.HarvesterTint, "채집 인형", "금빛 자리 위에서만 캔다 · 정산마다 +" + stage.Rules.IncomePerHarvester));
+			legendRows.Add(MakeLegendRow(stage.HarvesterTint, "채집 인형",
+				"금빛 자리 위에서만 캔다 · 정산마다 +" + stage.Rules.IncomePerHarvester, TowerDefenseIcon.Kind.Leaf));
 			if (stage.EnemyArchetypes == null || stage.EnemyArchetypes.Length == 0)
 			{
-				legendPanel.Add(MakeLegendRow(stage.EnemyTint, "마수", "코어로 전진 · 잡으면 +" + stage.Rules.BountyPerKill));
+				legendRows.Add(MakeLegendRow(stage.EnemyTint, "마수", "코어로 전진 · 잡으면 +" + stage.Rules.BountyPerKill));
 			}
 			else
 			{
@@ -352,14 +425,19 @@ namespace WitchMendokusai
 				{
 					if (archetype == null)
 						continue;
-					legendPanel.Add(MakeLegendRow(archetype.Tint, archetype.DisplayName, DescribeArchetype(archetype)));
+					legendRows.Add(MakeLegendRow(archetype.Tint, archetype.DisplayName, DescribeArchetype(archetype)));
 				}
 			}
-			legendPanel.Add(MakeLegendRow(new Color(1f, 0.82f, 0.25f, 1f), "금빛 원반", "채집 인형 자리"));
-			legendPanel.Add(MakeLegendRow(stage.EnemyTint, "붉은 판", "마수 출현"));
+			legendRows.Add(MakeLegendRow(new Color(1f, 0.82f, 0.25f, 1f), "금빛 원반", "채집 인형 자리"));
+			legendRows.Add(MakeLegendRow(stage.EnemyTint, "붉은 판", "마수 출현"));
 		}
 
 		private static VisualElement MakeLegendRow(Color swatchColor, string name, string note)
+		{
+			return MakeLegendRow(swatchColor, name, note, TowerDefenseIcon.Kind.Dot);
+		}
+
+		private static VisualElement MakeLegendRow(Color swatchColor, string name, string note, TowerDefenseIcon.Kind iconKind)
 		{
 			VisualElement row = new VisualElement();
 			row.style.flexDirection = FlexDirection.Row;
@@ -367,11 +445,8 @@ namespace WitchMendokusai
 			row.style.marginBottom = 3;
 			row.pickingMode = PickingMode.Ignore;
 
-			VisualElement swatch = new VisualElement();
-			swatch.style.width = 12;
-			swatch.style.height = 12;
+			VisualElement swatch = TowerDefenseIcon.Make(iconKind, swatchColor, 16);
 			swatch.style.marginRight = 8;
-			swatch.style.backgroundColor = swatchColor;
 			swatch.style.borderTopLeftRadius = 3;
 			swatch.style.borderTopRightRadius = 3;
 			swatch.style.borderBottomLeftRadius = 3;
@@ -430,23 +505,25 @@ namespace WitchMendokusai
 				{
 					if (tower == null)
 						continue;
-					hotbarPanel.Add(MakeHotbarSlot(slot.ToString(), tower.DisplayName, tower.Cost, tower.Tint, slot - 1));
+					hotbarPanel.Add(MakeHotbarSlot(slot.ToString(), tower.DisplayName, tower.Cost, tower.Tint, slot - 1,
+						TowerDefenseIcon.ForTower(tower)));
 					slot++;
 				}
 			}
 			else
 			{
-				hotbarPanel.Add(MakeHotbarSlot("1", "포탑 인형", stage.TowerCost, stage.TowerTint, 0));
+				hotbarPanel.Add(MakeHotbarSlot("1", "포탑 인형", stage.TowerCost, stage.TowerTint, 0, TowerDefenseIcon.Kind.Dot));
 				slot++;
 			}
-			hotbarPanel.Add(MakeHotbarSlot(slot.ToString(), "채집 인형", stage.HarvesterCost, stage.HarvesterTint, slot - 1));
+			hotbarPanel.Add(MakeHotbarSlot(slot.ToString(), "채집 인형", stage.HarvesterCost, stage.HarvesterTint, slot - 1,
+				TowerDefenseIcon.Kind.Leaf));
 		}
 
 		/// <summary>
 		/// 핫바 칸 — 숫자키로도, 눌러서도 고를 수 있다. 키보드만 되면 「보이는데 눌리지 않는」 칸이 되고,
 		/// 그건 화면이 거짓말하는 것과 같다(사용자 지시: UI 직접 클릭으로도 가능하면 좋겠음).
 		/// </summary>
-		private VisualElement MakeHotbarSlot(string key, string name, int cost, Color tint, int slotIndex)
+		private VisualElement MakeHotbarSlot(string key, string name, int cost, Color tint, int slotIndex, TowerDefenseIcon.Kind iconKind)
 		{
 			VisualElement slot = new VisualElement();
 			slot.RegisterCallback<PointerDownEvent>(_ => SlotClicked(slotIndex));
@@ -454,10 +531,10 @@ namespace WitchMendokusai
 			slot.style.alignItems = Align.Center;
 			slot.style.marginLeft = 5;
 			slot.style.marginRight = 5;
-			slot.style.paddingLeft = 10;
-			slot.style.paddingRight = 12;
-			slot.style.paddingTop = 7;
-			slot.style.paddingBottom = 7;
+			slot.style.paddingLeft = 14;
+			slot.style.paddingRight = 16;
+			slot.style.paddingTop = 11;
+			slot.style.paddingBottom = 11;
 			slot.style.backgroundColor = new Color(0.04f, 0.05f, 0.08f, 0.78f);
 			slot.style.borderTopLeftRadius = 5;
 			slot.style.borderTopRightRadius = 5;
@@ -469,12 +546,8 @@ namespace WitchMendokusai
 			slot.style.borderBottomWidth = 2;
 			slot.pickingMode = PickingMode.Position;
 
-			VisualElement swatch = new VisualElement();
-			swatch.style.width = 12;
-			swatch.style.height = 12;
-			swatch.style.marginRight = 8;
-			swatch.style.backgroundColor = tint;
-			swatch.pickingMode = PickingMode.Ignore;
+			VisualElement swatch = TowerDefenseIcon.Make(iconKind, tint, 26);
+			swatch.style.marginRight = 10;
 
 			Label keyLabel = new Label(key);
 			keyLabel.style.fontSize = 12;
@@ -537,7 +610,7 @@ namespace WitchMendokusai
 
 			hintLabel.text = stage == null
 				? string.Empty
-				: "숫자키 1·2 로 고르고, 좌클릭으로 설치   ·   WASD 시점 이동   ·   휠 확대·축소   ·   X 나가기";
+				: "숫자키(또는 아래 칸 클릭)로 고르고, 좌클릭으로 설치   ·   WASD 시점 이동   ·   휠 확대·축소   ·   X 나가기";
 		}
 
 		public void Hide()
