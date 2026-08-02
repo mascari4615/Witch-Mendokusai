@@ -158,6 +158,13 @@ namespace WitchMendokusai
 		/// </summary>
 		public IReadOnlyList<ArenaCombatant> WaveEnemies => waveEnemies;
 
+		/// <summary> 지금 판의 크기(월드 단위) — 미니맵이 좌표를 비율로 바꿀 때 쓴다. 판이 자라면 같이 커진다. </summary>
+		public float GroundWidth => activeGroundWidth;
+		public float GroundLength => activeGroundLength;
+
+		/// <summary> 전초기지 위치들 — 미니맵이 「내가 넓힌 곳」을 그린다. </summary>
+		public IReadOnlyList<Transform> Outposts => outposts;
+
 		/// <summary>
 		/// 코어가 보는 생존 적 수 — HUD 표시 + 진단 대조용. 매 프레임 읽히므로 목록을 건드리지 않는
 		/// **순수 집계**(정리는 코어 틱의 CountAliveEnemies 가 담당 — 표시가 상태를 바꾸면 안 된다).

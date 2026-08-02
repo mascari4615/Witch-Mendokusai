@@ -68,6 +68,7 @@ namespace WitchMendokusai
 		private Button researchButton;
 		private VisualElement perkRow;
 		private VisualElement coreCardRow;
+		private TowerDefenseMinimapView minimap;
 		// 공용 선택 바 — 건설 모드의 건물 바와 같은 물건(개척 전용 툴바를 따로 두지 않는다).
 		private readonly ModeSelectionBar selectionBar;
 		private readonly Button waveModeButton;
@@ -160,6 +161,10 @@ namespace WitchMendokusai
 			unitTooltip = BuildUnitTooltip(out unitTooltipLabel);
 			container.Add(unitTooltip);
 			container.Add(BuildSelectionPanel(out selectionPanel, out selectionTitleLabel, out researchButton));
+
+			// 미니맵 — 판이 무한으로 자라므로 「전체를 보는 눈」이 없으면 넓은 판이 넓지 않은 것과 같다.
+			minimap = new TowerDefenseMinimapView();
+			container.Add(minimap.Root);
 
 			// 본편 HUD(HudLayer)를 숨겨도 개척 HUD 는 살아있어야 하므로 한 단 위 레이어에 붙인다.
 			uiRoot.OverlayLayer.Add(container);
@@ -1241,6 +1246,7 @@ namespace WitchMendokusai
 			nextWaveValue.text = BuildWavePreview(match);
 			UpdateNodeLabels(match, stage);
 			UpdateDollLabels(match);
+			minimap?.Tick(match, stage);
 
 			string boonSummary = match.BoonSummary;
 			boonSummaryLabel.text = boonSummary;
