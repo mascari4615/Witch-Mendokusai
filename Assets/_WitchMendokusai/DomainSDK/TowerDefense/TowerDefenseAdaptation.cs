@@ -41,7 +41,7 @@ namespace WitchMendokusai
 		public const float MAX_RESIST = 0.5f;
 
 		/// <summary>
-		/// 지금까지 내가 쓴 수단의 누적치로부터 다음 파도의 적응을 계산한다.
+		/// 지금까지 내가 쓴 수단의 누적치로부터 다음 웨이브의 적응을 계산한다.
 		/// 비율로 본다 — 총량이 아니라 *편중*이 적응을 만든다(오래 하면 다 저항이 붙는 건 벌칙이다).
 		/// </summary>
 		public static TowerDefenseAdaptationState From(int slowUses, int splashHits, int pierceHits, float sensitivity)

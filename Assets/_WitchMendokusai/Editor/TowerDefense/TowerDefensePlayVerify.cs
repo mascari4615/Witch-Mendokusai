@@ -340,7 +340,7 @@ namespace WitchMendokusai.EditorTools
 						lastSample = now;
 						matchEndedSeen = false;
 						if (match != null)
-							match.RequestNextWave(); // 첫 파도는 불러야 온다 — 무방비 판도 마찬가지.
+							match.RequestNextWave(); // 첫 웨이브는 불러야 온다 — 무방비 판도 마찬가지.
 					}
 					Observe(now);
 					return;
@@ -766,7 +766,7 @@ namespace WitchMendokusai.EditorTools
 		}
 
 		private const double STUCK_ASSAULT_SECONDS = 25.0;
-		// 드래프트가 처음 걸린 파도 — 다음 틱에 「그대로 멈춰 있나」를 대조하는 기준.
+		// 드래프트가 처음 걸린 웨이브 — 다음 틱에 「그대로 멈춰 있나」를 대조하는 기준.
 		private static int draftFreezeWave = -1;
 		private static double assaultStart = -1.0;
 		private static bool stuckDumped;
@@ -903,7 +903,7 @@ namespace WitchMendokusai.EditorTools
 			}
 
 			// 드래프트 — 걸리면 판이 멈춘다. 하네스가 안 고르면 관찰이 통째로 굳는데, *그 굳음 자체*가
-			// 「매 파도 강제 선택」이 실제로 진행을 막는다는 증거다. 한 틱 굳은 것을 확인하고 고른다.
+			// 「매 웨이브 강제 선택」이 실제로 진행을 막는다는 증거다. 한 틱 굳은 것을 확인하고 고른다.
 			if (match.IsDraftPending)
 			{
 				if (draftFreezeWave < 0)
@@ -914,7 +914,7 @@ namespace WitchMendokusai.EditorTools
 						cards += boon.DisplayName + "/";
 					Debug.Log(TAG + " DRAFT offered=" + match.PendingDraft.Count + " wave=" + match.WaveIndex
 						+ " phase=" + match.Phase + " [" + cards + "]");
-					return; // 한 틱 그대로 둔다 — 아래 틱에서 파도가 안 넘어간 것을 확인한다.
+					return; // 한 틱 그대로 둔다 — 아래 틱에서 웨이브가 안 넘어간 것을 확인한다.
 				}
 
 				bool frozen = match.WaveIndex == draftFreezeWave && match.Phase == TowerDefensePhase.Prepare;
@@ -1067,7 +1067,7 @@ namespace WitchMendokusai.EditorTools
 				defendedLastResource = match.Resource;
 			}
 
-			// ★ 첫 파도는 사람이 부를 때까지 안 온다(의도) — 하네스도 「사람」 역할을 해야 한다.
+			// ★ 첫 웨이브는 사람이 부를 때까지 안 온다(의도) — 하네스도 「사람」 역할을 해야 한다.
 			//   동시에 그 관문이 진짜 걸리는지 여기서 증명한다: 기본 건설 시간(8초)을 훌쩍 넘겨도
 			//   여전히 Prepare 면 시계가 안 도는 것이 맞다.
 			if (match.IsWaitingForFirstCall)
@@ -1121,7 +1121,7 @@ namespace WitchMendokusai.EditorTools
 				+ " note=\"" + TowerDefenseAdaptation.Describe(adaptation) + "\""
 				+ " (상한 " + TowerDefenseAdaptation.MAX_RESIST + " — 봉인 X)");
 
-			// 전초기지는 정수(정산에서만 나옴)로 서므로 *파도를 몇 번 넘긴 뒤*에 확인해야 한다.
+			// 전초기지는 정수(정산에서만 나옴)로 서므로 *웨이브를 몇 번 넘긴 뒤*에 확인해야 한다.
 			VerifyOutpost();
 
 			string verdict = TAG + " DEFENDED-RESULT killIncomeEvents=" + killIncomeEvents
@@ -1259,7 +1259,7 @@ namespace WitchMendokusai.EditorTools
 				Debug.LogError(verdict + " → 아무 건물도 보급에 안 잡힌다(사슬 계산 실패).");
 		}
 
-		/// <summary> 이벤트 파도 — 파도마다 성격이 붙고, 마리수가 실제로 달라지는가(예고와 스폰이 같은 함수). </summary>
+		/// <summary> 이벤트 웨이브 — 웨이브마다 성격이 붙고, 마리수가 실제로 달라지는가(예고와 스폰이 같은 함수). </summary>
 		private static void VerifyWaveEvents()
 		{
 			if (match == null)
@@ -1287,7 +1287,7 @@ namespace WitchMendokusai.EditorTools
 			string verdict = TAG + " WAVE-EVENTS " + line.ToString().TrimEnd()
 				+ " | eventWaves=" + eventWaves + " countVaried=" + countVaried + " plain0=" + plainCount;
 			if (eventWaves >= 2 && countVaried >= 1)
-				Debug.Log(verdict + " → 파도마다 성격이 바뀐다 ✔");
+				Debug.Log(verdict + " → 웨이브마다 성격이 바뀐다 ✔");
 			else
 				Debug.LogError(verdict + " → 성격이 안 붙거나 마리수가 안 변한다.");
 		}
@@ -1334,11 +1334,11 @@ namespace WitchMendokusai.EditorTools
 			//   「지을 돈이 있는가」가 아니다. 새로 지으면 그 값이 승급 예산을 먹어 기능이 아니라 잔고를 검사하게 된다.
 			Vector3 world = stageRoot.TransformPoint(sellProbeLocal);
 
-			// ★ 승급은 정수(강화 전용 재화)를 쓴다 — 정수는 파도 정산에서만 나오므로 첫 파도 전에는 못 올린다.
+			// ★ 승급은 정수(강화 전용 재화)를 쓴다 — 정수는 웨이브 정산에서만 나오므로 첫 웨이브 전에는 못 올린다.
 			//   이건 의도된 설계(강화는 개척의 결과)라, 없으면 「확인 못 함」이지 실패가 아니다.
 			if (match.Essence <= 0)
 			{
-				Debug.Log(TAG + " UPGRADE-SKIP 정수 0 — 첫 파도 정산 전에는 승급 불가(의도된 설계)");
+				Debug.Log(TAG + " UPGRADE-SKIP 정수 0 — 첫 웨이브 정산 전에는 승급 불가(의도된 설계)");
 				return;
 			}
 

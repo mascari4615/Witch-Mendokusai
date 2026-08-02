@@ -4,13 +4,13 @@ using System.Collections.Generic;
 namespace WitchMendokusai
 {
 	/// <summary>
-	/// 파도 사이 드래프트(TASK-WM-194) — 파도를 넘길 때마다 **3장 중 1장을 반드시 고른다**.
+	/// 웨이브 사이 드래프트(TASK-WM-194) — 웨이브를 넘길 때마다 **3장 중 1장을 반드시 고른다**.
 	///
 	/// ★ 왜 필요한가: 지금 경제는 「자원이 쌓이면 살 수 있는 걸 산다」라, 고민이 아니라 *대기*다.
-	///   드래프트는 자원과 무관하게 **매 파도 강제 선택**을 만든다 — 포기한 두 장이 곧 이번 판의 성격이 된다.
+	///   드래프트는 자원과 무관하게 **매 웨이브 강제 선택**을 만든다 — 포기한 두 장이 곧 이번 판의 성격이 된다.
 	///   판 밖 뽑기(유물)와 층이 다르다: 저건 다음 판에 남고, 이건 이 판에서만 산다.
 	///
-	/// ★ 왜 결정적인가: 같은 판(씨앗)의 같은 파도면 같은 세 장이 나온다. 예고가 거짓말을 못 하는 것과 같은 이유로,
+	/// ★ 왜 결정적인가: 같은 판(씨앗)의 같은 웨이브면 같은 세 장이 나온다. 예고가 거짓말을 못 하는 것과 같은 이유로,
 	///   「다시 뽑기」로 흔들 수 있으면 선택의 무게가 사라진다.
 	///
 	/// 순수 정적 — 씬·RNG·시간 0. EditMode 로 전량 검증.
@@ -42,7 +42,7 @@ namespace WitchMendokusai
 			if (offerCount > Pool.Length)
 				offerCount = Pool.Length;
 
-			// 결정적 셔플 — 같은 (씨앗, 파도) 면 같은 순서. 앞에서 offerCount 장을 뗀다.
+			// 결정적 셔플 — 같은 (씨앗, 웨이브) 면 같은 순서. 앞에서 offerCount 장을 뗀다.
 			Span<int> order = stackalloc int[Pool.Length];
 			for (int index = 0; index < Pool.Length; index++)
 				order[index] = index;
@@ -68,7 +68,7 @@ namespace WitchMendokusai
 
 				case TowerDefenseBoonKind.Income:
 					return new TowerDefenseBoon(kind, rules.IncomeBonus,
-						"넉넉한 살림", "파도 정산 +" + Percent(rules.IncomeBonus));
+						"넉넉한 살림", "웨이브 정산 +" + Percent(rules.IncomeBonus));
 
 				case TowerDefenseBoonKind.Bounty:
 					return new TowerDefenseBoon(kind, rules.BountyBonus,

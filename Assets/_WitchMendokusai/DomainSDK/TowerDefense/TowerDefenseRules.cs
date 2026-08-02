@@ -31,6 +31,13 @@ namespace WitchMendokusai
 		// 바깥 노드 채집 인형 1기당 정산 시 들어오는 정수. 강화 전용 재화라 「멀리 나가야 강해진다」가 성립한다.
 		public int EssencePerHarvester;
 
+		// ── 실시간(RTS) 시계 — 페이즈 폐기 후의 진행 규칙 ────────────────────────────
+		// ★ 셋이 각자 도는 이유: 「큰 무리가 온다」와 「살림이 들어온다」와 「한 마리씩 새어 나온다」는
+		//   서로 다른 리듬이다. 하나로 묶으면 웨이브 사이에만 벌고 웨이브 사이에만 짓는 옛 턴제로 돌아간다.
+		public float WaveInterval;    // 큰 무리 주기(초). 0 이면 큰 무리 없음.
+		public float IncomeInterval;  // 정산 주기(초). 0 이면 시간 수입 없음.
+		public float TrickleInterval; // 상시 마수 1기 주기(초). 0 이면 상시 스폰 없음.
+
 		/// <summary> WaveCount 가 무한 스테이지 센티널(0 이하)인지. </summary>
 		public bool IsEndless => WaveCount <= 0;
 

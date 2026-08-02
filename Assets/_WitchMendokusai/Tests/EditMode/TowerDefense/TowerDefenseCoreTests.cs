@@ -3,24 +3,29 @@ using NUnit.Framework;
 namespace WitchMendokusai.Tests
 {
 	/// <summary>
-	/// TD 진행 브레인 회귀 — 건설↔웨이브 전이 / false-clear 차단 / 경제(수입·차감) / 승패 확정·멱등.
-	/// 순수 코어라 씬·물리·SO 0. TASK-WM-194 v0.
+	/// TD 진행 브레인 회귀 — **실시간(RTS)** 규칙. 세 시계(큰 무리 / 정산 / 상시 마수)가 각자 돌고,
+	/// 코어가 무너지면 그 자리에서 끝난다. 순수 코어라 씬·물리·SO 0. TASK-WM-194.
+	///
+	/// ★ 페이즈제(건설↔교전)는 폐기됐다(사용자 지시, 데아빌 지목). 옛 회귀 중 「스폰 확인 전 false-clear
+	///   차단」처럼 *페이즈에만 존재하던* 것은 함께 사라졌다 — 실시간에는 「웨이브 격퇴」 판정 자체가 없다.
 	/// </summary>
 	public class TowerDefenseCoreTests
 	{
-		// 2파, 준비 1초, 시작자원 10, 기본수입 5, 채집당 +3, 1파 2마리 +1씩 증가.
+		// 큰 무리 10초마다 / 정산 4초마다 / 상시 마수 1초마다. 시작자원 10, 기본수입 5, 채집당 +3.
 		private static TowerDefenseRules Rules()
 		{
 			return new TowerDefenseRules
 			{
-				WaveCount = 2,
-				PrepareSeconds = 1f,
+				WaveCount = 0, // 실시간은 무한이 기본 — 버틴 시간이 곧 점수.
 				StartingResource = 10,
 				BaseWaveIncome = 5,
 				IncomePerHarvester = 3,
 				FirstWaveEnemyCount = 2,
 				EnemyCountGrowth = 1,
 				BountyPerKill = 2,
+				WaveInterval = 10f,
+				IncomeInterval = 4f,
+				TrickleInterval = 1f,
 			};
 		}
 
@@ -29,107 +34,125 @@ namespace WitchMendokusai.Tests
 			return new TowerDefenseCore(Rules());
 		}
 
+		/// <summary> 신호가 나올 때까지 잘게 틱을 돌린다 — 실제 구동(초당 여러 틱)과 같은 모양. </summary>
+		private static TowerDefenseSignal TickUntil(TowerDefenseCore core, TowerDefenseSignal wanted, float maxSeconds = 60f)
+		{
+			for (float elapsed = 0f; elapsed < maxSeconds; elapsed += 0.1f)
+			{
+				if (core.Tick(0.1f, 0, true) == wanted)
+					return wanted;
+			}
+			return TowerDefenseSignal.None;
+		}
+
 		[Test]
-		public void StartsInPrepare_WithStartingResource()
+		public void 시작하자마자_진행중이고_시작자원을_갖는다()
 		{
 			TowerDefenseCore core = Core();
 
-			Assert.AreEqual(TowerDefensePhase.Prepare, core.Phase);
 			Assert.AreEqual(TowerDefenseOutcome.InProgress, core.Outcome);
 			Assert.AreEqual(10, core.Resource);
 			Assert.AreEqual(0, core.WaveIndex);
 		}
 
 		[Test]
-		public void PrepareElapsed_EmitsWaveStarted_WithScaledEnemyCount()
+		public void 건설_대기_없이_바로_흐른다()
 		{
+			// 실시간의 전부 — 「건설 페이즈가 끝나기를 기다린다」가 없다. 시계가 곧 진행이다.
 			TowerDefenseCore core = Core();
 
-			Assert.AreEqual(TowerDefenseSignal.None, core.Tick(0.5f, 0, true));
-			Assert.AreEqual(TowerDefenseSignal.WaveStarted, core.Tick(0.5f, 0, true));
-			Assert.AreEqual(TowerDefensePhase.Assault, core.Phase);
-			Assert.AreEqual(2, core.CurrentWaveEnemyCount); // 1파 = FirstWaveEnemyCount
-		}
+			core.Tick(0.5f, 0, true);
 
-		// 핵심 회귀: 스폰 확인 전 aliveEnemies==0 을 격퇴로 오인하면 웨이브가 통째 스킵된다.
-		[Test]
-		public void BeforeSpawnConfirmed_ZeroEnemies_DoesNotClearWave()
-		{
-			TowerDefenseCore core = Core();
-			core.Tick(1f, 0, true); // WaveStarted
-
-			Assert.AreEqual(TowerDefenseSignal.None, core.Tick(0.1f, 0, true));
-			Assert.AreEqual(TowerDefenseSignal.None, core.Tick(0.1f, 0, true));
-			Assert.AreEqual(TowerDefensePhase.Assault, core.Phase);
-			Assert.AreEqual(0, core.WaveIndex);
+			Assert.Greater(core.ElapsedSeconds, 0f);
+			Assert.AreNotEqual(TowerDefensePhase.Prepare, core.Phase, "실시간에는 건설 국면이 없다.");
 		}
 
 		[Test]
-		public void WaveCleared_PaysIncome_AndReturnsToPrepare()
+		public void 상시_마수가_주기적으로_새어_나온다()
+		{
+			// 「웨이브 사이엔 안전하다」를 없애는 층 — 이게 없으면 실시간이라도 결국 웨이브 대기 게임이 된다.
+			TowerDefenseCore core = Core();
+
+			Assert.AreEqual(TowerDefenseSignal.TrickleDue, TickUntil(core, TowerDefenseSignal.TrickleDue, 3f));
+		}
+
+		[Test]
+		public void 큰_무리는_시계가_부른다()
 		{
 			TowerDefenseCore core = Core();
-			core.Tick(1f, 0, true); // WaveStarted
-			core.ConfirmWaveSpawned();
 
-			Assert.AreEqual(TowerDefenseSignal.None, core.Tick(0.1f, 2, true)); // 교전 중
-			Assert.AreEqual(TowerDefenseSignal.WaveCleared, core.Tick(0.1f, 0, true));
-
-			Assert.AreEqual(TowerDefensePhase.Prepare, core.Phase);
+			Assert.AreEqual(TowerDefenseSignal.WaveStarted, TickUntil(core, TowerDefenseSignal.WaveStarted, 12f));
 			Assert.AreEqual(1, core.WaveIndex);
-			Assert.AreEqual(15, core.Resource); // 10 + BaseWaveIncome 5, 채집 0
 		}
 
-		// 개척 보상 — 채집건물을 지을수록 웨이브 정산 수입이 는다.
 		[Test]
-		public void Harvesters_IncreaseWaveIncome()
+		public void 큰_무리_전에는_웨이브가_안_오른다()
 		{
 			TowerDefenseCore core = Core();
-			core.AddHarvester();
-			core.AddHarvester();
 
-			core.Tick(1f, 0, true);
-			core.ConfirmWaveSpawned();
-			core.Tick(0.1f, 1, true);
-			core.Tick(0.1f, 0, true); // WaveCleared
+			for (float elapsed = 0f; elapsed < 9f; elapsed += 0.1f)
+				core.Tick(0.1f, 0, true);
 
-			Assert.AreEqual(2, core.HarvesterCount);
+			Assert.AreEqual(0, core.WaveIndex, "주기 전에 무리가 오면 예고가 거짓말이 된다.");
+		}
+
+		[Test]
+		public void 정산은_시계가_돈다()
+		{
+			// 페이즈제에서는 「웨이브를 격퇴해야」 벌었다 — 실시간에서 그 규칙이면 아무것도 안 들어온다.
+			TowerDefenseCore core = Core();
+
+			Assert.AreEqual(TowerDefenseSignal.IncomeDue, TickUntil(core, TowerDefenseSignal.IncomeDue, 6f));
+			Assert.AreEqual(15, core.Resource); // 10 + 기본 5
+		}
+
+		[Test]
+		public void 채집인형이_많을수록_정산이_크다()
+		{
+			TowerDefenseCore core = Core();
+			core.SetHarvesterWeights(2f, 0f);
+
+			TickUntil(core, TowerDefenseSignal.IncomeDue, 6f);
+
 			Assert.AreEqual(21, core.Resource); // 10 + (5 + 2*3)
 		}
 
 		[Test]
-		public void EnemyCount_GrowsEachWave()
+		public void 지금_와라를_부르면_큰_무리가_앞당겨진다()
 		{
 			TowerDefenseCore core = Core();
-			core.Tick(1f, 0, true);
-			core.ConfirmWaveSpawned();
-			core.Tick(0.1f, 0, true); // 1파 격퇴 → WaveIndex 1
+
+			core.Tick(0.1f, 0, true);
+			Assert.IsTrue(core.RequestNextWave());
+			Assert.AreEqual(TowerDefenseSignal.WaveStarted, core.Tick(0.1f, 0, true));
+			Assert.IsFalse(core.IsNextWaveRequested, "예약은 1회성 — 소비돼야 한다.");
+		}
+
+		[Test]
+		public void 끝난_뒤에는_지금_와라도_안_먹는다()
+		{
+			TowerDefenseCore core = Core();
+			core.Tick(0.1f, 0, false); // 코어 파괴 → 종료
+
+			Assert.AreEqual(TowerDefenseOutcome.Defeat, core.Outcome);
+			Assert.IsFalse(core.RequestNextWave());
+		}
+
+		[Test]
+		public void 마릿수는_웨이브마다_는다()
+		{
+			TowerDefenseCore core = Core();
+
+			TickUntil(core, TowerDefenseSignal.WaveStarted, 12f);
 
 			Assert.AreEqual(3, core.CurrentWaveEnemyCount); // 2 + 1*1
 		}
 
 		[Test]
-		public void AllWavesCleared_Victory()
-		{
-			TowerDefenseCore core = Core();
-
-			core.Tick(1f, 0, true);
-			core.ConfirmWaveSpawned();
-			core.Tick(0.1f, 0, true); // 1파 격퇴
-
-			core.Tick(1f, 0, true);   // 2파 시작
-			core.ConfirmWaveSpawned();
-			Assert.AreEqual(TowerDefenseSignal.Victory, core.Tick(0.1f, 0, true));
-
-			Assert.AreEqual(TowerDefenseOutcome.Victory, core.Outcome);
-			Assert.AreEqual(TowerDefensePhase.Concluded, core.Phase);
-		}
-
-		[Test]
-		public void CoreDestroyed_Defeat_EvenMidWave()
+		public void 코어가_무너지면_교전_중에도_즉시_패배()
 		{
 			TowerDefenseCore core = Core();
 			core.Tick(1f, 0, true);
-			core.ConfirmWaveSpawned();
 
 			Assert.AreEqual(TowerDefenseSignal.Defeat, core.Tick(0.1f, 3, false));
 			Assert.AreEqual(TowerDefenseOutcome.Defeat, core.Outcome);
@@ -137,164 +160,55 @@ namespace WitchMendokusai.Tests
 		}
 
 		[Test]
-		public void Concluded_IsIdempotent_NoFurtherSignals()
+		public void 종료_후에는_아무_신호도_안_나온다()
 		{
 			TowerDefenseCore core = Core();
-			core.Tick(1f, 0, true);
-			core.ConfirmWaveSpawned();
 			core.Tick(0.1f, 0, false); // Defeat
 
 			Assert.AreEqual(TowerDefenseSignal.None, core.Tick(0.1f, 0, false));
-			Assert.AreEqual(TowerDefenseSignal.None, core.Tick(0.1f, 5, true));
+			Assert.AreEqual(TowerDefenseSignal.None, core.Tick(5f, 5, true));
 			Assert.AreEqual(TowerDefenseOutcome.Defeat, core.Outcome);
 		}
 
 		[Test]
-		public void TrySpend_DeductsWhenAffordable_RejectsWhenNot()
+		public void 버틴_웨이브_수는_패배해도_보존된다()
+		{
+			// 무한이라 승리가 없다 — 버틴 만큼이 곧 점수이므로 패배 시점에 지워지면 안 된다.
+			TowerDefenseCore core = Core();
+			TickUntil(core, TowerDefenseSignal.WaveStarted, 12f);
+			TickUntil(core, TowerDefenseSignal.WaveStarted, 12f);
+
+			core.Tick(0.1f, 2, false);
+
+			Assert.AreEqual(TowerDefenseOutcome.Defeat, core.Outcome);
+			Assert.AreEqual(2, core.WaveIndex);
+		}
+
+		[Test]
+		public void 다음_무리까지_남은_시간을_알려준다()
+		{
+			// 화면이 「곧 온다」를 말할 수 있는 유일한 숫자 — 없으면 실시간이 그냥 불안하기만 하다.
+			TowerDefenseCore core = Core();
+
+			core.Tick(4f, 0, true);
+
+			Assert.AreEqual(6f, core.NextWaveIn, 0.001f);
+		}
+
+		[Test]
+		public void TrySpend_모자라면_거절하고_상태를_안_바꾼다()
 		{
 			TowerDefenseCore core = Core();
 
 			Assert.IsTrue(core.TrySpend(4));
 			Assert.AreEqual(6, core.Resource);
 
-			Assert.IsFalse(core.TrySpend(7)); // 부족
-			Assert.AreEqual(6, core.Resource); // 상태 무변경
-		}
-
-		// 엔드리스(WaveCount<=0) 회귀 — "고작 3웨이브" 유한 스테이지 거부, 격파 수가 곧 점수.
-		private static TowerDefenseRules EndlessRules()
-		{
-			TowerDefenseRules rules = Rules();
-			rules.WaveCount = 0; // 센티널 = 무한.
-			return rules;
+			Assert.IsFalse(core.TrySpend(7));
+			Assert.AreEqual(6, core.Resource);
 		}
 
 		[Test]
-		public void Endless_NeverVictory_KeepsCyclingWaves()
-		{
-			TowerDefenseCore core = new(EndlessRules());
-
-			for (int waveNumber = 1; waveNumber <= 5; waveNumber++)
-			{
-				Assert.AreEqual(TowerDefenseSignal.WaveStarted, core.Tick(1f, 0, true));
-				core.ConfirmWaveSpawned();
-				Assert.AreEqual(TowerDefenseSignal.WaveCleared, core.Tick(0.1f, 0, true));
-
-				Assert.AreEqual(TowerDefenseOutcome.InProgress, core.Outcome);
-				Assert.AreEqual(TowerDefensePhase.Prepare, core.Phase);
-				Assert.AreEqual(waveNumber, core.WaveIndex);
-			}
-		}
-
-		[Test]
-		public void Endless_CoreDestroyed_StillDefeat()
-		{
-			TowerDefenseCore core = new(EndlessRules());
-
-			for (int waveNumber = 1; waveNumber <= 3; waveNumber++)
-			{
-				core.Tick(1f, 0, true); // WaveStarted
-				core.ConfirmWaveSpawned();
-				core.Tick(0.1f, 0, true); // WaveCleared
-			}
-
-			core.Tick(1f, 0, true); // 4파 시작(교전 중)
-			core.ConfirmWaveSpawned();
-
-			Assert.AreEqual(TowerDefenseSignal.Defeat, core.Tick(0.1f, 2, false));
-			Assert.AreEqual(TowerDefenseOutcome.Defeat, core.Outcome);
-			Assert.AreEqual(3, core.WaveIndex); // 격파한 파 수 = 점수, 패배해도 보존.
-		}
-
-		[Test]
-		public void Finite_StillVictoryAtWaveCount()
-		{
-			// 기존 AllWavesCleared_Victory 와 동일 전제 — 유한 스테이지(WaveCount>0) 회귀 보존.
-			TowerDefenseCore core = Core();
-
-			core.Tick(1f, 0, true);
-			core.ConfirmWaveSpawned();
-			core.Tick(0.1f, 0, true); // 1파 격퇴
-
-			core.Tick(1f, 0, true);   // 2파 시작
-			core.ConfirmWaveSpawned();
-			Assert.AreEqual(TowerDefenseSignal.Victory, core.Tick(0.1f, 0, true));
-
-			Assert.AreEqual(TowerDefenseOutcome.Victory, core.Outcome);
-			Assert.AreEqual(TowerDefensePhase.Concluded, core.Phase);
-		}
-
-		// === 웨이브 진행 방식(자동/수동) — TASK-WM-194 ===
-		// 자동만 있으면 준비 시간을 시계가 뺏고, 수동만 있으면 리듬이 사라진다. 두 방식이 *규칙 층에서*
-		// 갈라져 있는지 고정한다. 셸(UI/버튼)은 이 규칙을 부를 뿐이므로 여기가 정본.
-
-		[Test]
-		public void ManualMode_PrepareNeverTimesOut()
-		{
-			TowerDefenseCore core = Core();
-			core.AutoAdvance = false;
-
-			// 준비시간(1초)의 몇 배가 지나도 스스로 시작하지 않아야 한다.
-			for (int i = 0; i < 20; i++)
-				Assert.AreEqual(TowerDefenseSignal.None, core.Tick(0.5f, 0, true));
-
-			Assert.AreEqual(TowerDefensePhase.Prepare, core.Phase);
-			Assert.AreEqual(0, core.WaveIndex);
-		}
-
-		[Test]
-		public void ManualMode_RequestNextWave_StartsWave()
-		{
-			TowerDefenseCore core = Core();
-			core.AutoAdvance = false;
-			core.Tick(5f, 0, true); // 시간은 아무 의미 없어야 한다.
-
-			Assert.IsTrue(core.RequestNextWave());
-			Assert.IsTrue(core.IsNextWaveRequested);
-
-			Assert.AreEqual(TowerDefenseSignal.WaveStarted, core.Tick(0.1f, 0, true));
-			Assert.AreEqual(TowerDefensePhase.Assault, core.Phase);
-			Assert.IsFalse(core.IsNextWaveRequested); // 예약은 1회성 — 소비돼야 한다.
-		}
-
-		[Test]
-		public void AutoMode_RequestNextWave_SkipsRemainingPrepare()
-		{
-			TowerDefenseCore core = Core();
-
-			Assert.AreEqual(TowerDefenseSignal.None, core.Tick(0.1f, 0, true)); // 아직 준비 중.
-			Assert.IsTrue(core.RequestNextWave());
-			// 남은 준비 시간을 기다리지 않고 즉시 시작 — 기다림이 벌칙이 되지 않게.
-			Assert.AreEqual(TowerDefenseSignal.WaveStarted, core.Tick(0.01f, 0, true));
-		}
-
-		[Test]
-		public void RequestNextWave_RejectedOutsidePrepare()
-		{
-			TowerDefenseCore core = Core();
-			core.Tick(1f, 0, true); // → Assault
-
-			Assert.AreEqual(TowerDefensePhase.Assault, core.Phase);
-			Assert.IsFalse(core.RequestNextWave()); // 교전 중 호출 불가.
-
-			core.Tick(0.1f, 0, false); // 코어 파괴 → 종료.
-			Assert.AreEqual(TowerDefenseOutcome.Defeat, core.Outcome);
-			Assert.IsFalse(core.RequestNextWave()); // 끝난 뒤에도 불가.
-		}
-
-		[Test]
-		public void ManualMode_StillDefeatsWhenCoreDies()
-		{
-			// 수동 진행이라고 패배 판정이 멈추면 안 된다(웨이브를 안 부르면 무적이 되는 구멍 차단).
-			TowerDefenseCore core = Core();
-			core.AutoAdvance = false;
-
-			Assert.AreEqual(TowerDefenseSignal.Defeat, core.Tick(0.1f, 0, false));
-			Assert.AreEqual(TowerDefenseOutcome.Defeat, core.Outcome);
-		}
-
-		[Test]
-		public void AddResource_격파보상은_즉시_들어온다()
+		public void 격파보상은_즉시_들어온다()
 		{
 			TowerDefenseCore core = Core();
 			int before = core.Resource;
@@ -305,7 +219,7 @@ namespace WitchMendokusai.Tests
 		}
 
 		[Test]
-		public void AddResource_음수는_무시된다()
+		public void 음수_지급은_무시된다()
 		{
 			TowerDefenseCore core = Core();
 			int before = core.Resource;
@@ -316,71 +230,55 @@ namespace WitchMendokusai.Tests
 		}
 
 		[Test]
-		public void NextWaveIncome_채집인형마다_오른다()
+		public void 정산_배수가_수입에_걸린다()
 		{
 			TowerDefenseCore core = Core();
-			Assert.AreEqual(5, core.NextWaveIncome);
+			core.IncomeMultiplier = 2f;
 
-			core.AddHarvester();
-			Assert.AreEqual(8, core.NextWaveIncome);
+			TickUntil(core, TowerDefenseSignal.IncomeDue, 6f);
 
-			core.AddHarvester();
-			Assert.AreEqual(11, core.NextWaveIncome, "화면이 이 숫자로 채집 인형의 역할을 설명한다.");
-		}
-
-
-		[Test]
-		public void 유출제_새면_목숨이_준다()
-		{
-			TowerDefenseRules rules = Rules();
-			rules.StartingLives = 3;
-			TowerDefenseCore core = new(rules);
-
-			Assert.IsTrue(core.UsesLives);
-			core.RegisterLeak();
-
-			Assert.AreEqual(2, core.Lives);
-			Assert.AreEqual(TowerDefenseOutcome.InProgress, core.Outcome);
+			Assert.AreEqual(20, core.Resource); // 10 + 5*2
 		}
 
 		[Test]
-		public void 유출제_목숨이_다하면_패배()
+		public void 목숨이_다하면_패배()
 		{
 			TowerDefenseRules rules = Rules();
 			rules.StartingLives = 2;
 			TowerDefenseCore core = new(rules);
 
 			core.RegisterLeak();
-			core.RegisterLeak();
+			Assert.AreEqual(TowerDefenseOutcome.InProgress, core.Outcome);
 
+			core.RegisterLeak();
 			Assert.AreEqual(0, core.Lives);
 			Assert.AreEqual(TowerDefenseOutcome.Defeat, core.Outcome);
-			Assert.AreEqual(TowerDefensePhase.Concluded, core.Phase);
 		}
 
 		[Test]
-		public void 유출제_끝난뒤_유출은_무시된다()
+		public void 목숨_추가는_유출제일_때만_먹는다()
+		{
+			TowerDefenseCore withoutLives = Core();
+			withoutLives.AddLives(3);
+			Assert.AreEqual(0, withoutLives.Lives);
+
+			TowerDefenseRules rules = Rules();
+			rules.StartingLives = 5;
+			TowerDefenseCore withLives = new(rules);
+			withLives.AddLives(3);
+			Assert.AreEqual(8, withLives.Lives);
+		}
+
+		[Test]
+		public void 정수는_바깥_채집_가중치에서_나온다()
 		{
 			TowerDefenseRules rules = Rules();
-			rules.StartingLives = 1;
+			rules.EssencePerHarvester = 4;
 			TowerDefenseCore core = new(rules);
 
-			core.RegisterLeak();
-			core.RegisterLeak(); // 이미 끝났다.
+			core.SetHarvesterWeights(0f, 2f);
 
-			Assert.AreEqual(0, core.Lives, "끝난 뒤에도 세면 목숨이 음수가 된다.");
+			Assert.AreEqual(8, core.NextWaveEssence);
 		}
-
-		[Test]
-		public void 유출제를_안_쓰면_목숨은_무시된다()
-		{
-			TowerDefenseCore core = Core(); // StartingLives 미설정 = 0
-
-			Assert.IsFalse(core.UsesLives);
-			core.RegisterLeak();
-
-			Assert.AreEqual(TowerDefenseOutcome.InProgress, core.Outcome);
-		}
-
 	}
 }

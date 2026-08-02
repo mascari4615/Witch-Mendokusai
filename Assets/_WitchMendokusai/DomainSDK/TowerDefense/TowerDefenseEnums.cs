@@ -23,9 +23,15 @@ namespace WitchMendokusai
 	public enum TowerDefenseSignal
 	{
 		None = 0,
-		WaveStarted = 1, // 셸: 이번 웨이브 적 스폰 → ConfirmWaveSpawned 호출.
-		WaveCleared = 2, // 셸: 정산 연출 + 다음 건설 페이즈 UI.
+		WaveStarted = 1, // 셸: 큰 무리 스폰 → ConfirmWaveSpawned 호출.
+		WaveCleared = 2, // (구 페이즈제 잔재 — 실시간에서는 안 쓴다. append-only 라 번호만 보존.)
 		Victory = 3,
 		Defeat = 4,
+
+		/// <summary> 정산 시각이 됐다 — 실시간이라 「웨이브를 격퇴하면」이 아니라 「시계가 돌면」 들어온다. </summary>
+		IncomeDue = 5,
+
+		/// <summary> 상시 흘러나오는 마수 한 마리를 내보낼 시각. 큰 무리(WaveStarted)와 다른 층이다. </summary>
+		TrickleDue = 6,
 	}
 }

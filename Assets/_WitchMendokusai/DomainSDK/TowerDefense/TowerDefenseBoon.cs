@@ -6,7 +6,7 @@ namespace WitchMendokusai
 	public enum TowerDefenseBoonKind
 	{
 		Firepower = 0, // 모든 인형의 피해.
-		Income = 1,    // 파도 정산.
+		Income = 1,    // 웨이브 정산.
 		Bounty = 2,    // 격파 보상.
 		Life = 3,      // 목숨(즉시).
 		Essence = 4,   // 정수(즉시).

@@ -22,26 +22,39 @@ namespace WitchMendokusai
 		private bool waveSpawnConfirmed;
 		private bool nextWaveRequested;
 
+		// ── 실시간(RTS) 시계 ─────────────────────────────────────────────────────
+		// ★ 왜 페이즈를 없앴나 (사용자 지시, 데아빌 지목): 「건설 페이즈 / 싸움 페이즈」는 판을 턴제처럼
+		//   토막 낸다. 실시간이면 *언제나 지을 수 있고 언제나 위험하다* — 지금 이 순간 무엇에 손을 댈지가
+		//   매초의 선택이 된다. 대신 세 개의 시계가 각자 돈다:
+		//   ① 큰 무리(WaveInterval) ② 정산(IncomeInterval) ③ 상시로 흘러나오는 마수(TrickleInterval).
+		private float waveAccumulated;
+		private float incomeAccumulated;
+		private float trickleAccumulated;
+		private bool pendingWave;
+		private bool pendingIncome;
+		private bool pendingTrickle;
+
+		/// <summary> 판이 시작되고 흐른 시간 — 실시간에서 진행도는 웨이브 수가 아니라 버틴 시간이다. </summary>
+		public float ElapsedSeconds { get; private set; }
+
+		/// <summary> 다음 큰 무리까지 남은 시간(초). 화면이 「곧 온다」를 보여주는 유일한 숫자. </summary>
+		public float NextWaveIn => Mathf.Max(0f, rules.WaveInterval - waveAccumulated);
+
+		/// <summary> 다음 정산까지 남은 시간(초). </summary>
+		public float NextIncomeIn => Mathf.Max(0f, rules.IncomeInterval - incomeAccumulated);
+
 		/// <summary>
-		/// 건설 국면이 시간으로 자동 종료되는가(자동 진행) — false 면 <see cref="RequestNextWave"/> 를
-		/// 받을 때까지 무한정 기다린다(수동 진행).
-		///
-		/// 두 방식은 성격이 다른 재미다: 자동은 압박·리듬, 수동은 「완벽히 준비하고 부른다」는 계획.
-		/// 어느 하나만 두면 다른 쪽 플레이가 아예 불가능해지므로 규칙 층에서 갈라 놓는다
-		/// (사용자 지시: "자동 진행이랑, 수동 진행 설정 가능하면 좋겠음").
+		/// (구 페이즈제 잔재) 실시간에서는 늘 흐른다 — 남겨둔 이유는 화면·씬 참조가 아직 읽기 때문.
+		/// 값은 진행에 영향을 주지 않는다.
 		/// </summary>
 		public bool AutoAdvance { get; set; } = true;
-
-		/// <summary>
-		/// 이 웨이브부터 자동 진행. 1 이면 첫 파도는 사람이 부를 때까지 오지 않는다 —
-		/// 판이 매번 새로 생성되므로 시작하자마자 시계가 돌면 지형을 볼 시간이 없다(사용자 지시).
-		/// </summary>
 		public int FirstAutoWave { get; set; }
 
-		/// <summary> 수동 진행에서 다음 웨이브가 예약됐는지 — HUD 가 「호출됨」 표시에 쓴다. </summary>
+		/// <summary> 「지금 와라」가 예약됐는지 — 다음 틱에 큰 무리가 나온다. </summary>
 		public bool IsNextWaveRequested => nextWaveRequested;
 
-		public TowerDefensePhase Phase { get; private set; } = TowerDefensePhase.Prepare;
+		// 실시간이라 국면이 없다 — 끝났는지만 구분한다(화면·하네스가 아직 이 값을 읽는다).
+		public TowerDefensePhase Phase { get; private set; } = TowerDefensePhase.Assault;
 		public TowerDefenseOutcome Outcome { get; private set; } = TowerDefenseOutcome.InProgress;
 
 		/// <summary> 현재(또는 다음) 웨이브 번호 0-based. 승리 시 WaveCount 와 같아진다. </summary>
@@ -91,7 +104,8 @@ namespace WitchMendokusai
 
 		// 채집 인형들의 벌이 배수 합 — 마리수가 아니라 *어디에 세웠는지*가 수입을 만든다.
 		private float harvesterIncomeWeight;
-		public float PrepareRemaining => prepareRemaining;
+		/// <summary> (구 페이즈제 잔재) 실시간에는 건설 시간이 없다 — 다음 큰 무리까지 남은 시간을 준다. </summary>
+		public float PrepareRemaining => NextWaveIn;
 
 		/// <summary> 이번 웨이브에 스폰될 적 수 — 셸이 WaveStarted 신호를 받고 읽는다. </summary>
 		public int CurrentWaveEnemyCount => rules.EnemiesInWave(WaveIndex);
@@ -116,51 +130,58 @@ namespace WitchMendokusai
 
 			if (coreAlive == false)
 			{
-// 유출제에서는 코어가 맞아 죽는 일이 없다(마수는 닿는 순간 사라진다) — 목숨 소진이 패배다.
-								Outcome = TowerDefenseOutcome.Defeat;
+				// 유출제에서는 코어가 맞아 죽는 일이 없다(마수는 닿는 순간 사라진다) — 목숨 소진이 패배다.
+				Outcome = TowerDefenseOutcome.Defeat;
 				Phase = TowerDefensePhase.Concluded;
 				return TowerDefenseSignal.Defeat;
 			}
 
-			if (Phase == TowerDefensePhase.Prepare)
+			ElapsedSeconds += deltaSeconds;
+			waveAccumulated += deltaSeconds;
+			incomeAccumulated += deltaSeconds;
+			trickleAccumulated += deltaSeconds;
+
+			// 큰 무리 — 시계가 부른다. 사람이 「지금 와라」로 앞당길 수도 있다(기다림이 벌칙이 되지 않게).
+			if (nextWaveRequested || (rules.WaveInterval > 0f && waveAccumulated >= rules.WaveInterval))
 			{
-				if (AutoAdvance && WaveIndex >= FirstAutoWave)
-					prepareRemaining -= deltaSeconds;
-
-				// 호출(RequestNextWave)은 두 방식 모두에서 즉시 시작 — 자동에서도 "준비 끝났으니 지금 와라"가
-				// 가능해야 기다리는 시간이 벌칙이 되지 않는다.
-				bool timeUp = AutoAdvance && WaveIndex >= FirstAutoWave && prepareRemaining <= 0f;
-				if (timeUp == false && nextWaveRequested == false)
-					return TowerDefenseSignal.None;
-
-				prepareRemaining = 0f;
 				nextWaveRequested = false;
-				Phase = TowerDefensePhase.Assault;
-				waveSpawnConfirmed = false;
+				waveAccumulated = 0f;
+				WaveIndex++;
+				pendingWave = true;
+			}
+
+			if (rules.IncomeInterval > 0f && incomeAccumulated >= rules.IncomeInterval)
+			{
+				incomeAccumulated -= rules.IncomeInterval;
+				pendingIncome = true;
+			}
+
+			if (rules.TrickleInterval > 0f && trickleAccumulated >= rules.TrickleInterval)
+			{
+				trickleAccumulated -= rules.TrickleInterval;
+				pendingTrickle = true;
+			}
+
+			// 한 틱에 여럿이 겹치면 무거운 것부터 하나씩 — 남은 것은 다음 틱에 나온다(틱이 초당 여러 번이라
+			// 사람이 느낄 지연이 없다). 신호를 묶어 보내면 셸이 어느 것부터 처리할지 매번 다시 정해야 한다.
+			if (pendingWave)
+			{
+				pendingWave = false;
 				return TowerDefenseSignal.WaveStarted;
 			}
 
-			if (Phase == TowerDefensePhase.Assault)
+			if (pendingIncome)
 			{
-				// 스폰 확인 전에는 클리어 판정 자체를 안 함 = false-clear 차단.
-				if (waveSpawnConfirmed == false || aliveEnemies > 0)
-					return TowerDefenseSignal.None;
-
+				pendingIncome = false;
 				Resource += NextWaveIncome;
 				Essence += NextWaveEssence;
-				WaveIndex++;
+				return TowerDefenseSignal.IncomeDue;
+			}
 
-				// 엔드리스(IsEndless)는 이 분기에 절대 안 들어옴 — 무조건 다음 Prepare 로 순환.
-				if (rules.IsEndless == false && WaveIndex >= rules.WaveCount)
-				{
-					Outcome = TowerDefenseOutcome.Victory;
-					Phase = TowerDefensePhase.Concluded;
-					return TowerDefenseSignal.Victory;
-				}
-
-				Phase = TowerDefensePhase.Prepare;
-				prepareRemaining = rules.PrepareSeconds;
-				return TowerDefenseSignal.WaveCleared;
+			if (pendingTrickle)
+			{
+				pendingTrickle = false;
+				return TowerDefenseSignal.TrickleDue;
 			}
 
 			return TowerDefenseSignal.None;
@@ -172,7 +193,7 @@ namespace WitchMendokusai
 		/// </summary>
 		public bool RequestNextWave()
 		{
-			if (Outcome != TowerDefenseOutcome.InProgress || Phase != TowerDefensePhase.Prepare)
+			if (Outcome != TowerDefenseOutcome.InProgress)
 				return false;
 
 			nextWaveRequested = true;

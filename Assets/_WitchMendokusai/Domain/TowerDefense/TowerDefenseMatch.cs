@@ -65,7 +65,7 @@ namespace WitchMendokusai
 		private readonly List<Vector3> supplySeeds = new();
 		private readonly List<Vector2Int> pathGoals = new();
 
-		// 파도 사이 드래프트 — 고른 것이 쌓이는 곳(boons) + 지금 화면에 걸려 답을 기다리는 카드들(pendingDraft).
+		// 웨이브 사이 드래프트 — 고른 것이 쌓이는 곳(boons) + 지금 화면에 걸려 답을 기다리는 카드들(pendingDraft).
 		// 카드가 걸려 있는 동안 진행이 멈춘다 = 「강제 선택」의 실체.
 		private readonly TowerDefenseBoonState boons = new();
 		private readonly List<TowerDefenseBoon> pendingDraft = new();
@@ -1002,12 +1002,10 @@ namespace WitchMendokusai
 			if (ticking == false || core == null)
 				return;
 
-			TickHero(); // 영웅은 카드가 걸려 있어도 자리를 잡을 수 있다 — 멈춘 것은 *파도*지 내 손이 아니다.
+			TickHero();
 
-			// 카드가 걸린 동안은 진행 규칙 자체가 멈춘다 — 고르는 사이에 파도가 오면 선택이 아니라 벌칙이 된다.
-			if (IsDraftPending)
-				return;
-
+			// ★ 실시간이라 카드가 걸려도 판은 멈추지 않는다(사용자 지시, 데아빌). 멈추고 싶으면 사람이
+			//   직접 멈춘다(⏸ 버튼) — 시간을 쥐는 것은 시스템이 아니라 플레이어다.
 			CullEscapedEnemies(); // 무대 밖 개체가 웨이브를 영원히 붙잡지 못하게 — 집계 *전에* 정리.
 			CullLeakedEnemies();  // 목표에 닿은 마수는 사라지고 목숨이 준다(유출제).
 			UnstickEnemies();     // 굳은 마수를 풀어준다 — 한 마리가 굳으면 웨이브가 영영 안 끝난다.
@@ -1023,7 +1021,19 @@ namespace WitchMendokusai
 			{
 				case TowerDefenseSignal.WaveStarted:
 					RefreshVision(); // 어스름 진입/이탈이 시야에 즉시 반영돼야 한다.
-					StartCoroutine(SpawnWaveRoutine());
+					StartCoroutine(SpawnGroupRoutine(ScaledEnemyCount(core.WaveIndex)));
+					OfferDraft(); // 큰 무리가 올 때 카드도 함께 — 판은 멈추지 않는다.
+					break;
+
+				// 상시로 한 마리씩 새어 나온다 — 「웨이브 사이엔 안전하다」가 사라진다(데아빌의 배회 감염체).
+				case TowerDefenseSignal.TrickleDue:
+					StartCoroutine(SpawnGroupRoutine(1));
+					break;
+
+				// 정산은 시계가 돈다 — 웨이브를 격퇴해야 벌던 옛 구조에서는 실시간에 아무것도 안 들어온다.
+				case TowerDefenseSignal.IncomeDue:
+					ShowIncomeBreakdown();
+					HealDefenders();
 					break;
 				case TowerDefenseSignal.Victory:
 					Conclude(TowerDefenseOutcome.Victory);
@@ -1031,10 +1041,8 @@ namespace WitchMendokusai
 				case TowerDefenseSignal.Defeat:
 					Conclude(TowerDefenseOutcome.Defeat);
 					break;
+				// (구 페이즈제 잔재 — 실시간에서는 안 온다.)
 				case TowerDefenseSignal.WaveCleared:
-					ShowIncomeBreakdown();
-					HealDefenders(); // 버틴 인형은 숨을 돌린다 — 안 그러면 한 번 긁힌 인형은 팔 때까지 계속 약하다.
-					OfferDraft(); // 넘긴 직후 = 다음 파도를 준비하기 *전*. 여기가 선택이 가장 무거운 자리다.
 					break;
 				// None = 규칙 상 상태전이 없음 — 셸 actuation 0.
 				case TowerDefenseSignal.None:
@@ -1044,14 +1052,21 @@ namespace WitchMendokusai
 		}
 
 		/// <summary> WaveStarted 신호 처리 — SO 스폰 지점에 분산 스폰 후 ConfirmWaveSpawned (false-clear 차단 계약). </summary>
-		private IEnumerator SpawnWaveRoutine()
+		/// <summary>
+		/// 마수를 내보낸다. count 가 큰 무리면 웨이브, 1이면 상시로 새어 나오는 한 마리다.
+		///
+		/// ★ 실시간 전환의 핵심(사용자 지시, 데아빌): 살아있는 마수 목록을 *비우지 않는다*. 페이즈제에서는
+		///   「이번 웨이브 것만」 추적하면 됐지만, 실시간에서는 앞 무리와 상시 마수가 동시에 판에 있다.
+		///   비우면 아직 살아있는 마수를 놓쳐 화면과 집계가 갈라진다.
+		/// </summary>
+		private IEnumerator SpawnGroupRoutine(int count)
 		{
-			waveEnemies.Clear(); // 이전 웨이브 잔여(이미 죽어 카운트 0인 엔트리) 누적 방지 — 이번 웨이브 것만 추적.
+			PruneDeadEnemies(); // 죽은 것만 걷어낸다 — 살아있는 것은 남긴다(실시간이라 겹쳐 존재한다).
 
 			ComposeWave(core.WaveIndex, waveComposition); // 예고와 같은 함수 = 화면이 말한 대로 나온다.
 
 			TowerDefenseWaveEventKind waveEvent = WaveEventAt(core.WaveIndex);
-			int enemyCount = ScaledEnemyCount(core.WaveIndex);
+			int enemyCount = count;
 			int spawnedCount = 0; // 실제로 UnitObject 확보 + 등록까지 끝난 수 — 이게 0 이면 ConfirmWaveSpawned 자체를 보류.
 
 			for (int enemyIndex = 0; enemyIndex < enemyCount; enemyIndex++)
@@ -1139,7 +1154,7 @@ namespace WitchMendokusai
 				// ★ 한 지점에 한꺼번에 쏟으면 마수들이 서로의 몸에 끼어 그 자리에서 못 나온다
 				//   (라이브 실측: 출현 줄에서 세 마리가 나란히 4초씩 정지). 좌우로 벌리는 것만으로는
 				//   마릿수가 늘면 결국 겹친다 — *시간*으로 흘려보내야 구조적으로 안 겹친다.
-				//   덤으로 「파도가 밀려온다」는 감각이 생긴다(장르 표준의 trickle spawn).
+				//   덤으로 「웨이브가 밀려온다」는 감각이 생긴다(장르 표준의 trickle spawn).
 				if (stage.EnemySpawnInterval > 0f)
 					yield return new WaitForSeconds(stage.EnemySpawnInterval);
 			}
@@ -1148,7 +1163,7 @@ namespace WitchMendokusai
 			// 즉시 "격퇴"로 오인해 웨이브를 통째 스킵(false-clear 재도입) → 0이면 확인 자체를 보류하고 FastFail 로그.
 			if (spawnedCount > 0)
 				core.ConfirmWaveSpawned();
-			else
+			else if (count > 1)
 				Debug.LogError($"{nameof(TowerDefenseMatch)}: 웨이브 적 0마리 스폰 — ConfirmWaveSpawned 보류(false-clear 차단). stage.EnemyUnit/EnemySpawnPoints 확인 필요.");
 		}
 
@@ -1257,7 +1272,7 @@ namespace WitchMendokusai
 			return best;
 		}
 
-		/// <summary> 첫 파도를 사람이 부르길 기다리는 중인가 — 화면이 「시계가 돈다」고 거짓말하지 않게. </summary>
+		/// <summary> 첫 웨이브를 사람이 부르길 기다리는 중인가 — 화면이 「시계가 돈다」고 거짓말하지 않게. </summary>
 		public bool IsWaitingForFirstCall =>
 			core != null
 			&& core.Phase == TowerDefensePhase.Prepare
@@ -1301,7 +1316,7 @@ namespace WitchMendokusai
 			if (vision == null)
 				return;
 
-			// 어스름 파도면 모든 시야가 함께 좁아진다 — 「보이는 만큼만 쏜다」가 아프게 걸린다.
+			// 어스름 웨이브면 모든 시야가 함께 좁아진다 — 「보이는 만큼만 쏜다」가 아프게 걸린다.
 			float visionScale = CurrentVisionScale();
 			if (Mathf.Approximately(visionScale, 1f))
 			{
@@ -1330,8 +1345,8 @@ namespace WitchMendokusai
 		/// <summary> 이번 판의 마수 출현 지점(무대 로컬). </summary>
 		public IReadOnlyList<Vector3> ActiveEnemySpawnPoints => activeSpawnPoints;
 
-		// ── 파도 사이 드래프트 ────────────────────────────────────────────────────
-		// ★ 왜 필요한가: 자원이 쌓이면 살 수 있는 걸 사는 구조는 고민이 아니라 *대기*다. 파도를 넘길 때마다
+		// ── 웨이브 사이 드래프트 ────────────────────────────────────────────────────
+		// ★ 왜 필요한가: 자원이 쌓이면 살 수 있는 걸 사는 구조는 고민이 아니라 *대기*다. 웨이브를 넘길 때마다
 		//   세 장 중 하나를 반드시 고르게 하면, 포기한 두 장이 이번 판의 성격이 된다(Slot Theory 계열).
 		// ★ 왜 판이 멈추나: 고르는 동안 마수가 오면 그건 선택이 아니라 벌칙이다. 카드가 걸린 동안 진행 규칙
 		//   자체를 멈춘다(시간 배속을 건드리지 않는다 — 그건 사람이 쥔 손잡이라 여기서 뺏으면 안 된다).
@@ -1342,7 +1357,7 @@ namespace WitchMendokusai
 		/// <summary> 지금 답을 기다리는 카드들(없으면 빈 목록). </summary>
 		public IReadOnlyList<TowerDefenseBoon> PendingDraft => pendingDraft;
 
-		/// <summary> 고를 것이 걸려 있는가 — 걸린 동안 파도가 오지 않는다. </summary>
+		/// <summary> 고를 것이 걸려 있는가 — 걸린 동안 웨이브가 오지 않는다. </summary>
 		public bool IsDraftPending => pendingDraft.Count > 0;
 
 		/// <summary> 지금까지 고른 것 한 줄 요약(없으면 빈 문자열). </summary>
@@ -1360,7 +1375,7 @@ namespace WitchMendokusai
 			if (rules.IsEnabled == false)
 				return;
 
-			// 같은 판·같은 파도면 같은 세 장 — 「다시 뽑기」로 흔들 수 있으면 선택의 무게가 사라진다.
+			// 같은 판·같은 웨이브면 같은 세 장 — 「다시 뽑기」로 흔들 수 있으면 선택의 무게가 사라진다.
 			TowerDefenseDraft.Offer(core.WaveIndex, MapSeed, rules, pendingDraft);
 			if (pendingDraft.Count == 0)
 				return;
@@ -1729,7 +1744,7 @@ namespace WitchMendokusai
 		/// 지금의 포탑 피해 배수. 포탑이 매 발사 때 *읽어가므로* 나중에 세운 연구 인형이
 		/// 이미 서 있던 포탑에도 즉시 반영된다(세운 뒤에야 효과가 오면 강화가 아니라 벌칙이다).
 		/// </summary>
-		// 연구(판 안 건물)와 드래프트(파도 사이 선택)는 서로 다른 층이라 곱해진다 — 둘 다 쌓은 판이
+		// 연구(판 안 건물)와 드래프트(웨이브 사이 선택)는 서로 다른 층이라 곱해진다 — 둘 다 쌓은 판이
 		// 눈에 띄게 세지는 것이 「이 판은 화력으로 갔다」의 실체다.
 		public float TowerDamageMultiplier =>
 			(1f + LabCount * (stage != null ? stage.LabDamageBonus : 0f)) * boons.DamageMultiplier;
@@ -1772,7 +1787,7 @@ namespace WitchMendokusai
 				: TowerDefenseWaveEventKind.None;
 		}
 
-		/// <summary> 성격까지 반영한 그 파도의 마수 수(떼거리는 배로, 정예는 절반). </summary>
+		/// <summary> 성격까지 반영한 그 웨이브의 마수 수(떼거리는 배로, 정예는 절반). </summary>
 		public int ScaledEnemyCount(int waveIndex)
 		{
 			if (stage == null)
@@ -1783,13 +1798,13 @@ namespace WitchMendokusai
 			return Mathf.Max(1, Mathf.RoundToInt(scaled));
 		}
 
-		/// <summary> 지금 파도의 시야 배수 — 어스름이면 좁아진다. </summary>
+		/// <summary> 지금 웨이브의 시야 배수 — 어스름이면 좁아진다. </summary>
 		private float CurrentVisionScale()
 		{
 			return TowerDefenseWaveEvent.VisionScale(WaveEventAt(core != null ? core.WaveIndex : 0));
 		}
 
-		// 파도 성격을 마수 스탯에 얹는다 — 종류(archetype) 배수 *위에* 곱해지므로 둘이 겹쳐 쌓인다.
+		// 웨이브 성격을 마수 스탯에 얹는다 — 종류(archetype) 배수 *위에* 곱해지므로 둘이 겹쳐 쌓인다.
 		private static void ApplyWaveEventStats(UnitObject unitObject, TowerDefenseWaveEventKind kind)
 		{
 			if (unitObject == null || kind == TowerDefenseWaveEventKind.None)
@@ -1903,7 +1918,7 @@ namespace WitchMendokusai
 				}
 
 				// 마수가 실제로 멈추는 자리는 둘 중 더 먼 쪽이다: 「사거리에 들어와서」 또는 「고리로 둘러싸서」.
-				// 둘 다 덮지 않으면 바깥에 선 마수가 영영 안 닿아 파도가 끝나지 않는다(실측 2회).
+				// 둘 다 덮지 않으면 바깥에 선 마수가 영영 안 닿아 웨이브가 끝나지 않는다(실측 2회).
 				stopDistance = Mathf.Max(stopDistance, enemyMaxStopDistance);
 				return Mathf.Max(stage.LeakRadius, stopDistance + stage.LeakRangeMargin);
 			}
@@ -2326,11 +2341,11 @@ namespace WitchMendokusai
 		}
 
 		/// <summary>
-		/// 파도를 넘길 때마다 내 편(코어·인형·영웅)을 최대 체력의 일정 비율만큼 회복시킨다(사용자 요청).
+		/// 웨이브를 넘길 때마다 내 편(코어·인형·영웅)을 최대 체력의 일정 비율만큼 회복시킨다(사용자 요청).
 		///
 		/// ★ 왜 필요한가: 지금은 한 번 긁힌 인형이 판이 끝날 때까지 그 체력으로 산다. 그러면 「버텼다」의
 		///   보상이 없고, 앞줄에 세운 인형은 필연적으로 죽으니 앞에 세우는 선택 자체가 손해가 된다.
-		///   파도 사이 회복이 있으면 「이번엔 버틸 수 있나」가 매 파도의 계산이 된다.
+		///   웨이브 사이 회복이 있으면 「이번엔 버틸 수 있나」가 매 웨이브의 계산이 된다.
 		/// ★ 완전 회복이 아닌 이유: 그러면 피해가 아무 의미가 없어져 방어선의 소모전이 사라진다.
 		/// </summary>
 		private void HealDefenders()
@@ -2367,6 +2382,20 @@ namespace WitchMendokusai
 				return;
 
 			uiManager.PopText(message, textType, worldPosition);
+		}
+
+		/// <summary>
+		/// 죽었거나 풀에 반납된 마수만 목록에서 걷어낸다 — 살아있는 것은 남긴다.
+		/// 실시간이라 앞 무리와 상시 마수가 겹쳐 존재하므로, 새 무리를 낼 때 목록을 비우면 안 된다.
+		/// </summary>
+		private void PruneDeadEnemies()
+		{
+			for (int index = waveEnemies.Count - 1; index >= 0; index--)
+			{
+				ArenaCombatant enemy = waveEnemies[index];
+				if (enemy == null || enemy.IsAlive == false)
+					waveEnemies.RemoveAt(index);
+			}
 		}
 
 		/// <summary> 살아있는 웨이브 적 수 — 죽었거나 풀 반환된(null) 엔트리는 조회 겸 정리(멱등). </summary>
@@ -2581,7 +2610,7 @@ namespace WitchMendokusai
 
 		/// <summary>
 		/// 연구 인형 배치 — 아무 빈 칸에나 선다(노드 결합 X). 지어진 순간부터 *모든* 포탑이 강해진다.
-		/// 자원을 지금 방어에 쓸지 다음 파도를 위해 강화에 쓸지 — 판 안의 새 선택이 여기서 생긴다.
+		/// 자원을 지금 방어에 쓸지 다음 웨이브를 위해 강화에 쓸지 — 판 안의 새 선택이 여기서 생긴다.
 		/// </summary>
 		public bool TryPlaceLab(Vector3 worldPosition)
 		{

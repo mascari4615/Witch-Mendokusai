@@ -15,7 +15,7 @@ namespace WitchMendokusai
 		[field: Tooltip("진행·경제 규칙 수치(웨이브 수/준비시간/자원/수입 등).")]
 		[field: SerializeField] public TowerDefenseRules Rules { get; private set; }
 
-		[field: Tooltip("첫 파도는 사람이 부를 때까지 오지 않는다 — 판이 매번 새로 생성되므로 시작하자마자 시계가 돌면 지형을 볼 시간이 없다.")]
+		[field: Tooltip("첫 웨이브는 사람이 부를 때까지 오지 않는다 — 판이 매번 새로 생성되므로 시작하자마자 시계가 돌면 지형을 볼 시간이 없다.")]
 		[field: SerializeField] public bool ManualFirstWave { get; private set; } = true;
 
 		[field: Tooltip("웨이브 자동 진행 기본값 — 켜짐이면 건설 시간이 다하면 알아서 몰려온다. 플레이 중 화면에서 바꿀 수 있다.")]
@@ -142,7 +142,7 @@ namespace WitchMendokusai
 		[field: Tooltip("적응 민감도(0 = 안 씀). 클수록 편중된 전략에 저항이 빨리 붙는다. 저항은 절대 절반을 넘지 않는다.")]
 		[field: SerializeField, Min(0f)] public float AdaptationSensitivity { get; private set; } = 1f;
 
-		[field: Header("이벤트 파도 — 성격이 변한다")]
+		[field: Header("이벤트 웨이브 — 성격이 변한다")]
 		[field: Tooltip("몇 파마다 성격이 붙나(0 = 안 씀). 3 이면 3·6·9파가 떼거리→정예→돌진→어스름 순환.")]
 		[field: SerializeField, Min(0)] public int WaveEventEvery { get; private set; } = 3;
 
@@ -216,8 +216,8 @@ namespace WitchMendokusai
 		[field: Tooltip("인형 하나 뽑는 데 드는 유물.")]
 		[field: SerializeField, Min(1)] public int PullCost { get; private set; } = 12;
 
-		[field: Header("파도 사이 회복 — 버틴 인형은 숨을 돌린다")]
-		[field: Tooltip("파도를 넘길 때마다 내 편이 최대 체력의 이 비율만큼 회복(0.25 = 25%). 1이면 완전 회복이라 소모전이 사라진다.")]
+		[field: Header("웨이브 사이 회복 — 버틴 인형은 숨을 돌린다")]
+		[field: Tooltip("웨이브를 넘길 때마다 내 편이 최대 체력의 이 비율만큼 회복(0.25 = 25%). 1이면 완전 회복이라 소모전이 사라진다.")]
 		[field: SerializeField, Range(0f, 1f)] public float DefenderHealPerWave { get; private set; } = 0.25f;
 
 		[field: Header("굳은 마수 감시 — 한 마리가 굳으면 판이 안 끝난다")]
@@ -230,8 +230,8 @@ namespace WitchMendokusai
 		[field: Tooltip("굳은 자리 주변 몇 칸까지 뒤져 길을 찾을지.")]
 		[field: SerializeField, Min(1)] public int StuckSearchRadius { get; private set; } = 6;
 
-		[field: Header("파도 사이 드래프트 — 매 파도 강제 선택")]
-		[field: Tooltip("파도를 넘길 때마다 내놓는 카드 수(0 = 드래프트 없음). 3 이 표준 — 2 는 고민이 얕고, 5 는 읽는 데 지친다.")]
+		[field: Header("웨이브 사이 드래프트 — 매 웨이브 강제 선택")]
+		[field: Tooltip("웨이브를 넘길 때마다 내놓는 카드 수(0 = 드래프트 없음). 3 이 표준 — 2 는 고민이 얕고, 5 는 읽는 데 지친다.")]
 		[field: SerializeField] public TowerDefenseDraftRules DraftRules { get; private set; } = new TowerDefenseDraftRules
 		{
 			OfferCount = 3,
@@ -289,7 +289,7 @@ namespace WitchMendokusai
 		[field: Tooltip("자원 채집 노드 위치(로컬 좌표) — 채집건물은 이 지점 중 하나를 점유해야만 가동(개척 리스크 = 설계 긴장).")]
 		[field: SerializeField] public Vector3[] ResourceNodePositions { get; private set; }
 
-		[field: Tooltip("마수를 하나씩 내보내는 간격(초). 0이면 한 프레임에 몰아 내보내 서로의 몸에 끼어 못 나온다. 「파도가 밀려온다」는 감각도 여기서 나온다.")]
+		[field: Tooltip("마수를 하나씩 내보내는 간격(초). 0이면 한 프레임에 몰아 내보내 서로의 몸에 끼어 못 나온다. 「웨이브가 밀려온다」는 감각도 여기서 나온다.")]
 		[field: SerializeField, Min(0f)] public float EnemySpawnInterval { get; private set; } = 0.35f;
 
 		[field: Tooltip("같은 출현 지점에 여러 마수가 나올 때 서로 벌리는 간격 — 0이면 정확히 겹쳐 스폰돼 물리가 서로를 튕겨낸다(맵 밖으로 날아감).")]

@@ -29,7 +29,7 @@ namespace WitchMendokusai
 		// 매 발사 때 읽는다 — 나중에 세운 연구 인형이 이미 서 있던 포탑에도 바로 반영되게.
 		private System.Func<float> damageMultiplier;
 
-		// 마수가 무엇에 익숙해졌나 — 매 발사 때 읽는다(적응은 파도 사이에 변한다).
+		// 마수가 무엇에 익숙해졌나 — 매 발사 때 읽는다(적응은 웨이브 사이에 변한다).
 		private System.Func<TowerDefenseAdaptationState> adaptation;
 
 		// 효과가 *실제로 일어났는가*를 세는 계수기 — 검증이 로그 문자열이 아니라 상태를 읽게 한다

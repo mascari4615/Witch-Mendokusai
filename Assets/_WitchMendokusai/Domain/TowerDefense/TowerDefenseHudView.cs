@@ -51,7 +51,7 @@ namespace WitchMendokusai
 		private readonly System.Collections.Generic.List<Label> worldLabels = new();
 		// 인형 이름표 — 노드 배수표와 같은 방식(월드→화면 투영)이지만 대상이 다르므로 목록을 나눈다.
 		private readonly System.Collections.Generic.List<Label> dollLabelViews = new();
-		// 파도 사이 드래프트 — 카드가 걸리면 화면 한가운데를 막는다(고르기 전엔 아무것도 못 한다).
+		// 웨이브 사이 드래프트 — 카드가 걸리면 화면 한가운데를 막는다(고르기 전엔 아무것도 못 한다).
 		private VisualElement draftCardRow;
 		private Label draftTitleLabel;
 		private Label boonSummaryLabel;
@@ -228,9 +228,9 @@ namespace WitchMendokusai
 
 			// 목숨이 맨 위 — 유출제에서는 이게 곧 남은 판의 길이다.
 			panel.Add(MakeStatRow("목숨", out lives, new Color(1f, 0.45f, 0.45f, 1f)));
-			panel.Add(MakeStatRow("파도", out wave, new Color(1f, 0.6f, 0.55f, 1f)));
+			panel.Add(MakeStatRow("웨이브", out wave, new Color(1f, 0.6f, 0.55f, 1f)));
 			panel.Add(MakeStatRow("상태", out phase, new Color(0.72f, 0.88f, 1f, 1f)));
-			panel.Add(MakeStatRow("다음 파도", out nextWave, new Color(1f, 0.72f, 0.45f, 1f)));
+			panel.Add(MakeStatRow("다음 웨이브", out nextWave, new Color(1f, 0.72f, 0.45f, 1f)));
 			panel.Add(MakeStatRow("남은 마수", out enemies, new Color(1f, 0.45f, 0.42f, 1f)));
 			panel.Add(MakeStatRow("최고 기록", out best, new Color(0.78f, 0.82f, 0.92f, 1f)));
 
@@ -366,7 +366,7 @@ namespace WitchMendokusai
 			VisualElement wrapper = new VisualElement();
 			wrapper.style.position = Position.Absolute;
 			wrapper.style.right = 24;
-			// 우상단은 진행 패널 자리 — 겹치면 파도 표시를 덮는다(라이브 스크린샷 실증). 우하단으로 뺀다.
+			// 우상단은 진행 패널 자리 — 겹치면 웨이브 표시를 덮는다(라이브 스크린샷 실증). 우하단으로 뺀다.
 			wrapper.style.bottom = 24;
 			wrapper.pickingMode = PickingMode.Ignore;
 
@@ -405,7 +405,7 @@ namespace WitchMendokusai
 		}
 
 		/// <summary>
-		/// 파도 사이 드래프트 — 화면 한가운데 세 장. 구석에 두면 「나중에 봐야지」가 되어 강제 선택이 아니게 된다.
+		/// 웨이브 사이 드래프트 — 화면 한가운데 세 장. 구석에 두면 「나중에 봐야지」가 되어 강제 선택이 아니게 된다.
 		/// 배경을 어둡게 덮는 이유도 같다: 지금 할 일은 이거 하나뿐이라는 것을 화면이 말해야 한다.
 		/// </summary>
 		private VisualElement BuildDraftPanel(out VisualElement cardRow, out Label title)
@@ -968,7 +968,7 @@ namespace WitchMendokusai
 			phaseValue.text = match.Phase switch
 			{
 				// 수동 진행은 남은 시간이 없다 — 시계를 보여주면 곧 시작될 것처럼 읽혀 거짓말이 된다.
-				// 첫 파도는 사람이 부를 때까지 안 온다 — 시계를 보여주면 곧 시작될 것처럼 읽혀 거짓말이 된다.
+				// 첫 웨이브는 사람이 부를 때까지 안 온다 — 시계를 보여주면 곧 시작될 것처럼 읽혀 거짓말이 된다.
 				TowerDefensePhase.Prepare when match.IsWaitingForFirstCall =>
 					"주위를 둘러보고, 준비되면 「다음 웨이브」",
 				TowerDefensePhase.Prepare when match.AutoAdvanceWaves == false =>
@@ -1036,7 +1036,7 @@ namespace WitchMendokusai
 			// 0 은 「버텼다」가 아니라 「못 넘겼다」이고, 기록 없는 첫 판에 「최고 0」은 알려줄 게 없는 잡음이다.
 			string survived = wavesCleared > 0
 				? wavesCleared + " 웨이브까지 버팀"
-				: "첫 파도도 넘기지 못함";
+				: "첫 웨이브도 넘기지 못함";
 
 			if (isNewRecord && wavesCleared > 0)
 			{
@@ -1094,13 +1094,13 @@ namespace WitchMendokusai
 			return toughness + " · " + pace + " · 잡으면 +" + archetype.Bounty;
 		}
 
-		/// <summary> 「다음 파도: 돌진 3 · 방패 1」 — 매치가 실제 스폰에 쓰는 그 계산을 그대로 부른다. </summary>
+		/// <summary> 「다음 웨이브: 돌진 3 · 방패 1」 — 매치가 실제 스폰에 쓰는 그 계산을 그대로 부른다. </summary>
 		private string BuildWavePreview(TowerDefenseMatch match)
 		{
 			int previewWave = match.Phase == TowerDefensePhase.Assault ? match.WaveIndex + 1 : match.WaveIndex;
 			match.ComposeWave(previewWave, compositionBuffer);
 
-			// 파도 성격은 색까지 바꿔 예고한다 — 「무엇이 오는가」를 한눈에 알아야 대비가 성립한다.
+			// 웨이브 성격은 색까지 바꿔 예고한다 — 「무엇이 오는가」를 한눈에 알아야 대비가 성립한다.
 			TowerDefenseWaveEventKind previewEvent = match.WaveEventAt(previewWave);
 			nextWaveValue.style.color = TowerDefenseWaveEvent.DisplayColor(previewEvent);
 			string eventPrefix = previewEvent == TowerDefenseWaveEventKind.None
