@@ -32,6 +32,9 @@ namespace WitchMendokusai
 
 		private static void OnSceneLoaded(Scene scene, LoadSceneMode mode)
 		{
+			// 2026-06-20. 당장 안써서 리턴
+			return;
+
 			if (Application.isPlaying == false)
 			{
 				UGCLog.Info($"[Installer] Skip scene='{scene.name}' (not playing)");

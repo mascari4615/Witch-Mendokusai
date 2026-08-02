@@ -77,7 +77,9 @@ namespace WitchMendokusai
 					//   접근하다가 사거리에 들어 공격 룰로 넘어가도 아무도 이동을 취소하지 않아 유닛이
 					//   목표 안으로 계속 걸어 들어갔다 — 개척 마수가 코어에 파묻혀 화면에서 사라진 근본.
 					//   "이동 아닌 행동 = 이동 없음" 을 룰 실행 지점에서 명시한다.
-					context.Actuator.Hold();
+					// 발을 멈출지는 *유닛*이 정한다 — 투기장은 서서 싸우고, 개척의 마수는 걸으면서 쏜다.
+					if (context.Actuator.StopsToAttack)
+						context.Actuator.Hold();
 					context.Actuator.UseSkill(rule.Action.SkillSlot, target);
 					break;
 				case ActionKind.MoveToTarget:

@@ -47,6 +47,10 @@ namespace WitchMendokusai
 		/// <summary> 단계에 따른 배수 — 피해·사거리에 함께 걸린다. </summary>
 		private float LevelScale => 1f + (Level - 1) * (archetype != null ? archetype.UpgradeGrowth : 0f);
 
+		/// <summary> 지금 이 순간의 사거리·피해 — 툴팁이 읽는다. 화면이 규칙과 다른 숫자를 말하면 안 된다. </summary>
+		public float Range => archetype != null ? archetype.Range * LevelScale : 0f;
+		public int CurrentDamage => archetype != null ? Mathf.RoundToInt(archetype.Damage * LevelScale) : 0;
+
 		/// <summary> 한 단계 올린다. 최대치면 false(값을 치르기 전에 호출자가 확인해야 한다). </summary>
 		public bool TryUpgrade()
 		{

@@ -23,7 +23,8 @@ namespace WitchMendokusai
 		private const string VILLAGE_ROOT_NAME = "[Life] 더미 마을 (프리뷰)";
 
 		/// <summary>false 면 게임에 더미를 안 깖(로어 캐릭터 배선 후 끄기 등). 코드 토글 — 수동 경로.</summary>
-		public static bool Enabled { get; set; } = true;
+		// 뱀서류 로그라이크 집중 위해 자율 삶 더미 마을 자동 스폰 off (TASK-WM-168 보류). 재개 시 true.
+		public static bool Enabled { get; set; } = false;
 
 		// Play 진입(AfterSceneLoad) 시 구독 + 즉시 검사. WM 부트는 Boot→World(나중 로드)지만, World 로 바로 Play 시작하면
 		// 그 sceneLoaded 가 이 훅 *전*에 끝나 놓친다 → 이미 로드된 World 도 즉시 검사(둘 다 커버).

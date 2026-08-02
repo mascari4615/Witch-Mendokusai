@@ -55,6 +55,9 @@ namespace WitchMendokusai
 		private VisualElement draftCardRow;
 		private Label draftTitleLabel;
 		private Label boonSummaryLabel;
+		// 커서가 얹힌 유닛 설명 — 「이게 뭐고 얼마나 버티나」를 물어볼 유일한 수단.
+		private VisualElement unitTooltip;
+		private Label unitTooltipLabel;
 		// 공용 선택 바 — 건설 모드의 건물 바와 같은 물건(개척 전용 툴바를 따로 두지 않는다).
 		private readonly ModeSelectionBar selectionBar;
 		private readonly Button waveModeButton;
@@ -129,6 +132,8 @@ namespace WitchMendokusai
 			container.Add(BuildCornerRestartButton());
 			container.Add(BuildBoonSummary(out boonSummaryLabel));
 			container.Add(BuildDraftPanel(out draftCardRow, out draftTitleLabel));
+			unitTooltip = BuildUnitTooltip(out unitTooltipLabel);
+			container.Add(unitTooltip);
 
 			// 본편 HUD(HudLayer)를 숨겨도 개척 HUD 는 살아있어야 하므로 한 단 위 레이어에 붙인다.
 			uiRoot.OverlayLayer.Add(container);
@@ -521,6 +526,68 @@ namespace WitchMendokusai
 
 			wrapper.Add(summary);
 			return wrapper;
+		}
+
+		/// <summary>
+		/// 커서가 얹힌 유닛 설명 — 커서를 따라다닌다. 화면 밖으로 새지 않게 가장자리에서 뒤집는다.
+		/// 빈 문자열이면 감춘다(가리킬 게 없는데 상자만 떠 있으면 그게 더 방해된다).
+		/// </summary>
+		public void ShowUnitTooltip(string text, Vector2 screenPosition)
+		{
+			if (unitTooltip == null)
+				return;
+
+			if (string.IsNullOrEmpty(text))
+			{
+				unitTooltip.style.display = DisplayStyle.None;
+				return;
+			}
+
+			unitTooltip.style.display = DisplayStyle.Flex;
+			unitTooltipLabel.text = text;
+
+			const float OFFSET = 18f;
+			float left = screenPosition.x + OFFSET;
+			float top = Screen.height - screenPosition.y + OFFSET;
+			if (left > Screen.width - 240f)
+				left = screenPosition.x - 240f;
+			if (top > Screen.height - 120f)
+				top = Screen.height - screenPosition.y - 120f;
+
+			unitTooltip.style.left = left;
+			unitTooltip.style.top = top;
+		}
+
+		private VisualElement BuildUnitTooltip(out Label label)
+		{
+			VisualElement box = new VisualElement { name = "UnitTooltip" };
+			box.style.position = Position.Absolute;
+			box.style.paddingLeft = 10;
+			box.style.paddingRight = 10;
+			box.style.paddingTop = 7;
+			box.style.paddingBottom = 7;
+			box.style.backgroundColor = new Color(0.04f, 0.05f, 0.08f, 0.92f);
+			SetRadius(box, 6);
+			box.style.borderLeftWidth = 1;
+			box.style.borderRightWidth = 1;
+			box.style.borderTopWidth = 1;
+			box.style.borderBottomWidth = 1;
+			Color border = new Color(1f, 1f, 1f, 0.22f);
+			box.style.borderLeftColor = border;
+			box.style.borderRightColor = border;
+			box.style.borderTopColor = border;
+			box.style.borderBottomColor = border;
+			box.style.display = DisplayStyle.None;
+			box.pickingMode = PickingMode.Ignore; // 툴팁이 클릭을 먹으면 그 자리에 못 짓는다.
+
+			label = new Label(string.Empty);
+			label.style.fontSize = 13;
+			label.style.color = new Color(0.94f, 0.96f, 1f, 1f);
+			label.style.whiteSpace = WhiteSpace.Normal;
+			label.pickingMode = PickingMode.Ignore;
+
+			box.Add(label);
+			return box;
 		}
 
 		/// <summary> 카드를 건다 — 고를 때까지 판은 멈춰 있다. </summary>

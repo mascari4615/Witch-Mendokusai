@@ -110,14 +110,12 @@ namespace WitchMendokusai
 			// TASK-WM-133 — panel-root 에 UI 서비스 1회 owner-push. UXML-cloned
 			// VisualElement(CodexDetailPanel 등)가 static Instance reach 대신
 			// 조상 walk 로 panel-scoped 획득 (global Singleton 결합 제거).
-			// TooltipController 는 [Inject] Construct(InputManager, UIRoot) 로 UIRoot
-			// 에 의존 → UIRoot.Construct 에 ctor-주입 시 UIRoot↔TooltipController
-			// 순환(트러스트 루프 CheckCircularDependency FAIL). eager 순서상
-			// TooltipController(RootLifetimeScope L92) 가 UIRoot(L96) 先 해결 →
-			// OnEnable 시점 container 에서 안전 resolve = cycle-break (inc1/2 의
-			// ctor-inject 와 달리 본 매니저만 container.Resolve, TASK-WM-133 증분3).
-			TooltipController tooltipController = container.Resolve<TooltipController>();
-			root.userData = new UIServices(codexPreviewController, windowManager, tooltipController);
+			// TooltipController 는 [Inject] Construct(.., UIRoot) 로 UIRoot 의존 →
+			// eager build 도중 UIRoot prefab spawn → 본 OnEnable 발화. 여기서
+			// 즉시 Resolve<TooltipController>() 호출 시 같은 Lazy 재진입 →
+			// InvalidOperationException("ValueFactory attempted to access the
+			// Value property"). factory lambda 로 첫 사용 시점까지 미뤄 cycle break.
+			root.userData = new UIServices(codexPreviewController, windowManager, () => container.Resolve<TooltipController>());
 
 			HoldingOverlay = new HoldingOverlay();
 			OverlayLayer.Add(HoldingOverlay);

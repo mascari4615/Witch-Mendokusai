@@ -216,6 +216,10 @@ namespace WitchMendokusai
 		[field: Tooltip("인형 하나 뽑는 데 드는 유물.")]
 		[field: SerializeField, Min(1)] public int PullCost { get; private set; } = 12;
 
+		[field: Header("파도 사이 회복 — 버틴 인형은 숨을 돌린다")]
+		[field: Tooltip("파도를 넘길 때마다 내 편이 최대 체력의 이 비율만큼 회복(0.25 = 25%). 1이면 완전 회복이라 소모전이 사라진다.")]
+		[field: SerializeField, Range(0f, 1f)] public float DefenderHealPerWave { get; private set; } = 0.25f;
+
 		[field: Header("굳은 마수 감시 — 한 마리가 굳으면 판이 안 끝난다")]
 		[field: Tooltip("이만큼 제자리에 붙어 있으면 「굳었다」로 보고 길 위로 옮긴다(0 = 감시 끔).")]
 		[field: SerializeField, Min(0f)] public float StuckRelocateSeconds { get; private set; } = 4f;
@@ -284,6 +288,9 @@ namespace WitchMendokusai
 
 		[field: Tooltip("자원 채집 노드 위치(로컬 좌표) — 채집건물은 이 지점 중 하나를 점유해야만 가동(개척 리스크 = 설계 긴장).")]
 		[field: SerializeField] public Vector3[] ResourceNodePositions { get; private set; }
+
+		[field: Tooltip("마수를 하나씩 내보내는 간격(초). 0이면 한 프레임에 몰아 내보내 서로의 몸에 끼어 못 나온다. 「파도가 밀려온다」는 감각도 여기서 나온다.")]
+		[field: SerializeField, Min(0f)] public float EnemySpawnInterval { get; private set; } = 0.35f;
 
 		[field: Tooltip("같은 출현 지점에 여러 마수가 나올 때 서로 벌리는 간격 — 0이면 정확히 겹쳐 스폰돼 물리가 서로를 튕겨낸다(맵 밖으로 날아감).")]
 		[field: SerializeField, Min(0f)] public float EnemySpawnSpread { get; private set; } = 1.2f;

@@ -26,14 +26,15 @@
 }
 
 /* Window size toggle (TASK-WM-018) — opt-in via WMWindow.EnableSizeToggle() */
+/* 세로는 기본부터 넓게 고정 — large(펼침)는 세로 그대로, 가로만 확장 */
 .wm-window--small {
     width: 320px;
-    height: 240px;
+    height: 440px;
 }
 
 .wm-window--large {
     width: 480px;
-    height: 360px;
+    height: 440px;
 }
 
 .wm-window__size-toggle {

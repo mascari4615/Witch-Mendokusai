@@ -1,9 +1,24 @@
 using System;
+using System.Collections.Generic;
 
 namespace WitchMendokusai
 {
 	/// <summary>
-	/// 단일 청크 데이터. ushort RuntimeId 1D 배열 + 좌표.
+	/// 사용자가 심은 entity 1개. EntityDataId (DataSO 영구 키) + 청크 로컬 좌표 + 심은 시각.
+	/// 자연 spawn 은 결정적 RNG 로 재계산 → 저장 X. 본 struct 는 *사용자 심기* 만.
+	/// </summary>
+	[Serializable]
+	public struct PlantedEntity
+	{
+		public int EntityDataId;
+		public float LocalX;
+		public float LocalY;
+		public float LocalZ;
+		public long PlantedUnixTime;
+	}
+
+	/// <summary>
+	/// 단일 청크 데이터. ushort RuntimeId 1D 배열 + 좌표 + 사용자가 심은 entity 리스트.
 	/// 인덱스 변환은 VoxelConstants.Index 사용.
 	/// </summary>
 	[Serializable]
@@ -11,6 +26,7 @@ namespace WitchMendokusai
 	{
 		public ChunkPosition Position;
 		public ushort[] Blocks;
+		public List<PlantedEntity> PlantedEntities;
 
 		/// <summary>비동기 청크 생성/메시 굽기와 동시 SetBlock 사이의 race 방지용 lock root.</summary>
 		[NonSerialized] public readonly object SyncRoot = new();
@@ -19,6 +35,7 @@ namespace WitchMendokusai
 		{
 			Position = position;
 			Blocks = new ushort[VoxelConstants.CHUNK_VOLUME];
+			PlantedEntities = new List<PlantedEntity>();
 		}
 
 		public bool IsDirty { get; private set; }
@@ -26,6 +43,13 @@ namespace WitchMendokusai
 		public void MarkClean()
 		{
 			IsDirty = false;
+		}
+
+		/// <summary>사용자가 심은 entity 1개 등록. 영구 보존 대상 — IsDirty 마킹.</summary>
+		public void AddPlantedEntity(PlantedEntity entity)
+		{
+			PlantedEntities.Add(entity);
+			IsDirty = true;
 		}
 
 		public ushort GetBlock(int x, int y, int z)

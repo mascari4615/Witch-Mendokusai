@@ -18,6 +18,16 @@ namespace WitchMendokusai
 		[Tooltip("정지 거리 층 수 — 무리가 클수록 여러 겹의 고리로 둘러싼다.")]
 		[SerializeField, Min(1)] private int ringSlotCount = 4;
 
+		/// <summary>
+		/// 이 유닛이 목표에서 *가장 멀리* 멈춰 설 수 있는 거리 — 최소 간격 + 바깥 고리 몫.
+		///
+		/// ★ 왜 밖에 내주는가 (TASK-WM-194 실증): 개척은 「목표에 닿으면 샜다」로 마수를 치우는데,
+		///   치우는 반경이 이 값보다 작으면 바깥 고리에 선 마수는 **영원히 닿지 않고 그 자리에 선다**
+		///   — 살아있는 마수가 0이 안 되니 파도가 안 끝난다. 두 숫자를 각자 적으면 반드시 갈라지므로
+		///   멈추는 쪽이 자기 거리를 알려주고, 치우는 쪽이 그걸 읽는다.
+		/// </summary>
+		public float MaxStopDistance => Mathf.Max(0f, minStopDistance) + Mathf.Max(0, ringSlotCount - 1) * ringSlotSpacing;
+
 		private float MIN_STOP_DISTANCE => minStopDistance;
 		private float RING_SLOT_SPACING => ringSlotSpacing;
 		private int RING_SLOT_COUNT => ringSlotCount;
@@ -91,7 +101,16 @@ namespace WitchMendokusai
 		{
 			UnitObject targetUnit = (target as ArenaCombatant)?.UnitObject;
 			unitObject.SkillHandler.UseSkill(skillSlot, targetUnit);
+
+			// 걸으면서 쏘는 유닛은 *조준 때문에 목적지를 잊으면* 안 된다. 공격 룰이 선택되는 동안
+			// 접근 룰은 안 돌므로, 마지막으로 향하던 곳을 여기서 다시 겨눠준다
+			// (안 그러면 옛 방향으로 계속 걸어가 판 밖으로 나간다 — 굳는 것만 피하고 새 사고를 만든다).
+			if (StopsToAttack == false && lastApproachTarget != null && lastApproachTarget.IsAlive)
+				unitObject.UnitMovement.SetMoveDirection(SteerToward(lastApproachTarget.Position));
 		}
+
+		// 마지막으로 접근하던 목표 — 걸으면서 쏠 때 방향을 되찾는 데 쓴다.
+		private ICombatant lastApproachTarget;
 
 		/// <summary>
 		/// 길 안내자 — 꽂히면 지형을 우회하고, 없으면 직선(투기장 기존 동작 그대로).
@@ -138,6 +157,8 @@ namespace WitchMendokusai
 				return;
 			}
 
+			lastApproachTarget = target;
+
 			Vector3 direction = target.Position - self.Position;
 			direction.y = 0f;
 
@@ -171,6 +192,12 @@ namespace WitchMendokusai
 			direction.y = 0f;
 			unitObject.UnitMovement.SetMoveDirection(direction.normalized);
 		}
+
+		/// <summary>
+		/// 공격할 때 발을 멈추는가 — 기본은 멈춘다(투기장). 개척의 마수만 끄고 걸으면서 쏜다
+		/// (멈추면 서로 못 죽이는 짝을 만났을 때 판이 영영 안 끝난다 — 사용자 2회 보고).
+		/// </summary>
+		public bool StopsToAttack { get; set; } = true;
 
 		public void Hold()
 		{

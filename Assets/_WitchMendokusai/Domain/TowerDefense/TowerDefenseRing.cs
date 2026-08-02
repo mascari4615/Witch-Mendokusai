@@ -76,6 +76,13 @@ namespace WitchMendokusai
 			material.color = color;
 			if (material.HasProperty("_BaseColor"))
 				material.SetColor("_BaseColor", color);
+
+			// ★ 사거리 원은 *무엇에도 가리지 않는다*(사용자 지시). 원이 바닥·건물·마수 뒤로 숨으면
+			//   「여기까지 닿는다」를 확인하려고 시점을 돌려야 하고, 그건 배치 판단을 다시 감(勘)으로 만든다.
+			//   깊이 검사를 끄고(항상 통과) 그리는 순서를 맨 뒤로 미뤄 항상 위에 얹는다.
+			material.SetInt("_ZTest", (int)UnityEngine.Rendering.CompareFunction.Always);
+			material.SetInt("_ZWrite", 0);
+			material.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Overlay;
 			return material;
 		}
 	}

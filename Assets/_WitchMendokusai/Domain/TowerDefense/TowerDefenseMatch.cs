@@ -278,6 +278,8 @@ namespace WitchMendokusai
 			heroCombatant = null;
 			heroVisionSourceIndex = -1;
 			heroVisionCell = new Vector2Int(int.MinValue, int.MinValue);
+			enemyMaxStopDistance = 0f;
+			enemyStillness.Clear();
 
 			yield return SpawnCoreRoutine();
 			if (coreCombatant == null)
@@ -1011,6 +1013,7 @@ namespace WitchMendokusai
 					break;
 				case TowerDefenseSignal.WaveCleared:
 					ShowIncomeBreakdown();
+					HealDefenders(); // 버틴 인형은 숨을 돌린다 — 안 그러면 한 번 긁힌 인형은 팔 때까지 계속 약하다.
 					OfferDraft(); // 넘긴 직후 = 다음 파도를 준비하기 *전*. 여기가 선택이 가장 무거운 자리다.
 					break;
 				// None = 규칙 상 상태전이 없음 — 셸 actuation 0.
@@ -1061,6 +1064,7 @@ namespace WitchMendokusai
 					yield break;
 
 				UnitObject enemyUnitObject = enemyGameObject.GetComponent<UnitObject>();
+
 				if (enemyUnitObject == null)
 				{
 					Debug.LogWarning($"{nameof(TowerDefenseMatch)}: {stage.EnemyUnit.Prefab.name} 에 UnitObject 컴포넌트 없음 — skip.");
@@ -1102,12 +1106,22 @@ namespace WitchMendokusai
 					enemyDriver = enemyUnitObject.gameObject.AddComponent<TacticDriver>();
 				enemyDriver.Initialize(stage.EnemyTactic, targeting, timeManager);
 				enemyDriver.Navigator = flowNavigator; // 지형이 있으면 돌아가고, 없으면(null) 직선 그대로.
+				enemyDriver.StopsToAttack = false;     // 걸으면서 쏜다 — 전진이 멈추면 판이 안 끝난다.
+				// 마수가 코어 둘레에 「고리」로 서는 거리 — 유출 반경이 이보다 작으면 바깥 고리는 영영 안 닿는다.
+				enemyMaxStopDistance = Mathf.Max(enemyMaxStopDistance, enemyDriver.MaxStopDistance);
 				drivers.Add(enemyDriver);
 
 				targeting.Register(enemyCombatant);
 				registeredCombatants.Add(enemyCombatant);
 				waveEnemies.Add(enemyCombatant);
 				spawnedCount++;
+
+				// ★ 한 지점에 한꺼번에 쏟으면 마수들이 서로의 몸에 끼어 그 자리에서 못 나온다
+				//   (라이브 실측: 출현 줄에서 세 마리가 나란히 4초씩 정지). 좌우로 벌리는 것만으로는
+				//   마릿수가 늘면 결국 겹친다 — *시간*으로 흘려보내야 구조적으로 안 겹친다.
+				//   덤으로 「파도가 밀려온다」는 감각이 생긴다(장르 표준의 trickle spawn).
+				if (stage.EnemySpawnInterval > 0f)
+					yield return new WaitForSeconds(stage.EnemySpawnInterval);
 			}
 
 			// 스폰이 실제 확인된 뒤에만 클리어 판정 활성 — 0마리 스폰인데 확인하면 코어가 aliveEnemies==0 을
@@ -1578,6 +1592,60 @@ namespace WitchMendokusai
 			ring.SetRadius(stage.SupplyReach);
 		}
 
+		/// <summary>
+		/// 그 유닛이 무엇인지 사람 말로(툴팁). 화면에 서 있는 것이 「무엇이고 얼마나 버티는지」를 물어볼
+		/// 수단이 없으면, 색과 크기만으로 짐작해야 한다(사용자 요청: 유닛 툴팁).
+		/// 모르는 대상이면 빈 문자열 — 아무거나 지어내지 않는다.
+		/// </summary>
+		public string DescribeUnit(ArenaCombatant combatant)
+		{
+			if (combatant == null || combatant.UnitObject == null)
+				return string.Empty;
+
+			Transform unit = combatant.transform;
+			int currentHp = combatant.UnitObject.UnitStat[UnitStatType.HP_CUR];
+			int maxHp = combatant.UnitObject.UnitStat[UnitStatType.HP_MAX];
+
+			// 마수 — 지금 얼마나 남았고 잡으면 얼마인지.
+			if (combatant.TeamId == ATTACKER_TEAM)
+			{
+				string bounty = enemyBountyById.TryGetValue(combatant.CombatantId, out int reward)
+					? "  ·  잡으면 +" + Mathf.RoundToInt(reward * boons.BountyMultiplier)
+					: string.Empty;
+				return "마수\n체력 " + currentHp + " / " + maxHp + bounty;
+			}
+
+			TowerDefenseDollLabel label = FindDollLabel(unit);
+			string name = label != null ? label.Name : "인형";
+
+			// 포탑 — 무기가 붙어 있으면 그 수치가 정본이다(화면과 규칙이 같은 곳을 읽는다).
+			TowerDefenseWeapon weapon = unit.GetComponent<TowerDefenseWeapon>();
+			if (weapon != null)
+			{
+				bool isHero = HasHero && heroTransform == unit;
+				return (isHero ? name + " (영웅)" : name + (label != null && label.Level > 1 ? " ★" + label.Level : ""))
+					+ "\n체력 " + currentHp + " / " + maxHp
+					+ "\n사거리 " + weapon.Range.ToString("0.#") + "  ·  피해 " + weapon.CurrentDamage
+					+ (isHero ? "\n핫바에서 「영웅 이동」을 고르고 찍으면 그리 간다" : "\n같은 자리에 같은 종류를 또 지으면 승급");
+			}
+
+			// 채집 인형 — 무엇을 얼마나 캐고, 이어져 있는지.
+			if (harvesterTransforms.Contains(unit))
+			{
+				bool outer = harvesterIsOuter.TryGetValue(unit, out bool isOuter) && isOuter;
+				bool connected = label == null || label.Disconnected == false;
+				return name + " (채집 인형)"
+					+ "\n체력 " + currentHp + " / " + maxHp
+					+ "\n" + (outer ? "정수" : "자원") + " ×" + HarvesterMultiplierOf(unit).ToString("0.0")
+					+ "\n" + (connected ? "보급 이어짐" : "⚠ 보급 끊김 — 한 푼도 안 들어온다");
+			}
+
+			if (coreCombatant == combatant)
+				return "코어\n체력 " + currentHp + " / " + maxHp + "\n여기까지 새면 목숨이 준다";
+
+			return name + "\n체력 " + currentHp + " / " + maxHp;
+		}
+
 		/// <summary> 그 자리 인형의 이름표(없으면 null) — 승급 단계 표시 갱신에 쓴다. </summary>
 		private TowerDefenseDollLabel FindDollLabel(Transform anchor)
 		{
@@ -1814,9 +1882,15 @@ namespace WitchMendokusai
 					}
 				}
 
+				// 마수가 실제로 멈추는 자리는 둘 중 더 먼 쪽이다: 「사거리에 들어와서」 또는 「고리로 둘러싸서」.
+				// 둘 다 덮지 않으면 바깥에 선 마수가 영영 안 닿아 파도가 끝나지 않는다(실측 2회).
+				stopDistance = Mathf.Max(stopDistance, enemyMaxStopDistance);
 				return Mathf.Max(stage.LeakRadius, stopDistance + stage.LeakRangeMargin);
 			}
 		}
+
+		// 이번 매치 마수들이 목표에서 멈춰 서는 최대 거리 — 스폰 때 드라이버가 알려준 값.
+		private float enemyMaxStopDistance;
 
 		private void CullLeakedEnemies()
 		{
@@ -2229,6 +2303,41 @@ namespace WitchMendokusai
 			// 로그에도 남긴다 — 화면 글자는 흘러가고, 「왜 안 지어졌나」는 나중에 되짚어야 할 때가 온다.
 			Debug.Log($"{nameof(TowerDefenseMatch)}: 배치 거절 — {reason} @ {worldPosition}");
 			return false;
+		}
+
+		/// <summary>
+		/// 파도를 넘길 때마다 내 편(코어·인형·영웅)을 최대 체력의 일정 비율만큼 회복시킨다(사용자 요청).
+		///
+		/// ★ 왜 필요한가: 지금은 한 번 긁힌 인형이 판이 끝날 때까지 그 체력으로 산다. 그러면 「버텼다」의
+		///   보상이 없고, 앞줄에 세운 인형은 필연적으로 죽으니 앞에 세우는 선택 자체가 손해가 된다.
+		///   파도 사이 회복이 있으면 「이번엔 버틸 수 있나」가 매 파도의 계산이 된다.
+		/// ★ 완전 회복이 아닌 이유: 그러면 피해가 아무 의미가 없어져 방어선의 소모전이 사라진다.
+		/// </summary>
+		private void HealDefenders()
+		{
+			if (stage == null || stage.DefenderHealPerWave <= 0f)
+				return;
+
+			foreach (ICombatant combatant in registeredCombatants)
+			{
+				if (combatant is not ArenaCombatant defender || defender.IsAlive == false)
+					continue;
+				if (defender.TeamId != DEFENDER_TEAM || defender.UnitObject == null)
+					continue;
+
+				UnitHealth health = defender.UnitObject.GetComponent<UnitHealth>();
+				if (health == null)
+					continue;
+
+				int maxHp = defender.UnitObject.UnitStat[UnitStatType.HP_MAX];
+				int currentHp = defender.UnitObject.UnitStat[UnitStatType.HP_CUR];
+				if (currentHp >= maxHp)
+					continue;
+
+				int healAmount = Mathf.Max(1, Mathf.RoundToInt(maxHp * stage.DefenderHealPerWave));
+				health.ReceiveHeal(healAmount);
+				PopWorldText("+" + Mathf.Min(healAmount, maxHp - currentHp), defender.Position, TextType.Heal);
+			}
 		}
 
 		/// <summary> 월드 좌표 위 뜨는 글자 — UI 매니저가 아직 없으면(부팅 전/헤드리스) 조용히 넘어간다. </summary>

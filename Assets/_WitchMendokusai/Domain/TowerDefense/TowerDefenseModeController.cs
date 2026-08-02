@@ -122,6 +122,9 @@ namespace WitchMendokusai
 				return;
 
 			hud?.Tick(match, stage);
+
+			// 커서가 얹힌 유닛 설명 — 배치가 찾은 대상을 그대로 쓴다(둘이 갈라지면 툴팁이 거짓말한다).
+			hud?.ShowUnitTooltip(match.DescribeUnit(placement.HoveredUnit), placement.HoverScreenPosition);
 		}
 
 		/// <summary>

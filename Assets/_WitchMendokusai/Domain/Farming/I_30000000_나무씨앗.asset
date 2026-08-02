@@ -27,3 +27,4 @@ MonoBehaviour:
   - <DataSO>k__BackingField: {fileID: 11400000, guid: e26916c612e84b14cb72659bbeb57685, type: 2}
     <Percentage>k__BackingField: 100
   <GrowSeconds>k__BackingField: 30
+  <PlantedEntity>k__BackingField: {fileID: 11400000, guid: 6254ce15f10fba1428294e76959b48fb, type: 2}

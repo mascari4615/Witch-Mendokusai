@@ -60,6 +60,8 @@ namespace WitchMendokusai.Tests
 				LastTarget = target;
 			}
 
+			public bool StopsToAttack => true;
+
 			public void Hold()
 			{
 				LastAction = "Hold";

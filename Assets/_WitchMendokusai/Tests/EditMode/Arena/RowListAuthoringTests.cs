@@ -126,6 +126,7 @@ namespace WitchMendokusai.Tests
 			public void Approach(ICombatant target, float stopDistance) => LastAction = "Approach";
 			public void Retreat(ICombatant target) => LastAction = "Retreat";
 			public void Hold() => LastAction = "Hold";
+			public bool StopsToAttack => true;
 		}
 	}
 }

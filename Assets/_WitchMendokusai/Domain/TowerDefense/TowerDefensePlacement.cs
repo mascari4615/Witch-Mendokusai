@@ -193,10 +193,42 @@ namespace WitchMendokusai
 				previewRing.SetVisible(false);
 		}
 
+		/// <summary>
+		/// 지금 커서가 얹힌 유닛(없으면 null) — 툴팁이 읽는다.
+		/// 배치 레이캐스트와 *같은 레이*를 쓴다: 화면이 「여기」라고 말하는 곳과 툴팁이 말하는 대상이
+		/// 갈라지면 둘 중 하나는 거짓말이 된다.
+		/// </summary>
+		public ArenaCombatant HoveredUnit { get; private set; }
+		public Vector2 HoverScreenPosition { get; private set; }
+
+		private void UpdateHover(Vector2 screenPointerPosition)
+		{
+			HoverScreenPosition = screenPointerPosition;
+
+			Camera raycastCamera = RaycastCamera;
+			if (raycastCamera == null || UIPointer.IsOverInteractive(screenPointerPosition))
+			{
+				HoveredUnit = null;
+				return;
+			}
+
+			Ray ray = raycastCamera.ScreenPointToRay(screenPointerPosition);
+			if (Physics.Raycast(ray, out RaycastHit hit, raycastDistance, ~0, QueryTriggerInteraction.Ignore) == false)
+			{
+				HoveredUnit = null;
+				return;
+			}
+
+			HoveredUnit = hit.collider.GetComponentInParent<ArenaCombatant>();
+		}
+
 		private void Update()
 		{
 			if (isActive == false || previewMarker == null)
 				return;
+
+			if (inputManager != null)
+				UpdateHover(inputManager.MouseScreenPosition);
 
 			// 프리뷰도 같은 판정을 따라야 한다 — UI 위에 초록 마커가 떠 있으면 "여기 설치된다"는 거짓말이 된다.
 			if (inputManager == null

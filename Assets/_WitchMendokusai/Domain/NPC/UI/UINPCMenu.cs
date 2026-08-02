@@ -136,7 +136,7 @@ namespace WitchMendokusai
 			// 대화 불가 시 바로 선택 모드로 전환
 			bool canTalk = chatManager.TryGetChatData(curNPC.UnitData.ID.ToString(), out _);
 			talkOption.gameObject.SetActive(canTalk);
-			
+
 			if (canTalk)
 			{
 				Talk();

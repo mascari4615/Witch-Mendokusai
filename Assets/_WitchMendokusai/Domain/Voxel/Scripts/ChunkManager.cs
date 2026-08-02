@@ -117,6 +117,8 @@ namespace WitchMendokusai
 
 					// 자연 entity 인스턴스화 (결정적 RNG). 청크 자식으로 박힘 — Pool.Release가 정리.
 					ChunkEntitySpawner.SpawnEntitiesForChunk(result.chunkData, chunkGo, terrainParameters);
+					// 사용자가 심은 entity 복원 (영구 보존 list).
+					ChunkEntitySpawner.RestorePlantedEntities(result.chunkData, chunkGo);
 
 					maxProcessedPerFrame--;
 				}
@@ -224,6 +226,27 @@ namespace WitchMendokusai
 				return chunk.GetBlock(lx, worldY, lz);
 			}
 			return VoxelConstants.AIR_RUNTIME_ID;
+		}
+
+		/// <summary>사용자가 월드 좌표에 entity 한 그루 심음. 영구 보존 + 즉시 인스턴스화. 청크 미활성 = false.</summary>
+		public bool PlantEntityAt(Vector3 worldPosition, EntityData entity)
+		{
+			int cx = Mathf.FloorToInt(worldPosition.x / VoxelConstants.CHUNK_SIZE_X);
+			int cz = Mathf.FloorToInt(worldPosition.z / VoxelConstants.CHUNK_SIZE_Z);
+			ChunkPosition pos = new(cx, cz);
+
+			if (activeChunkData.TryGetValue(pos, out Chunk chunk) == false)
+				return false;
+			if (activeChunks.TryGetValue(pos, out GameObject chunkGo) == false)
+				return false;
+
+			float localX = worldPosition.x - (cx * VoxelConstants.CHUNK_SIZE_X);
+			float localZ = worldPosition.z - (cz * VoxelConstants.CHUNK_SIZE_Z);
+			// chunkGo.transform.position.y = -(CHUNK_SIZE_Y/2). 그래서 local y = world y + Y/2.
+			float localY = worldPosition.y + VoxelConstants.CHUNK_SIZE_Y / 2f;
+
+			ChunkEntitySpawner.PlantUserEntity(chunk, chunkGo, entity, localX, localY, localZ);
+			return true;
 		}
 
 		/// <summary>특정 월드 좌표의 블록을 수정하고, 해당 청크의 메쉬를 비동기로 다시 굽는다.</summary>
