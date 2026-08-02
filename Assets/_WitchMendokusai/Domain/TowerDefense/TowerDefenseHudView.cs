@@ -832,6 +832,14 @@ namespace WitchMendokusai
 				}
 
 				Vector3 worldPosition = stageRoot.TransformPoint(nodes[index]);
+
+				// 아직 못 가본 자리의 벌이를 알려주면 시야가 무의미해진다 — 밝혔던 곳만 숫자를 보여준다.
+				if (match.IsExploredAt(worldPosition) == false)
+				{
+					label.style.display = DisplayStyle.None;
+					continue;
+				}
+
 				Vector3 screenPosition = camera.WorldToScreenPoint(worldPosition);
 				if (screenPosition.z <= 0f)
 				{

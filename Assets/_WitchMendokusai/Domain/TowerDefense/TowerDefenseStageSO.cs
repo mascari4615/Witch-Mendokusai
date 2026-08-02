@@ -112,6 +112,13 @@ namespace WitchMendokusai
 		[field: Tooltip("휠 **한 칸당** 높이 변화량. 플랫폼별 raw 델타 차이는 리그가 흡수한다.")]
 		[field: SerializeField, Min(0.1f)] public float CameraZoomSpeed { get; private set; } = 6f;
 
+		[field: Header("시야")]
+		[field: Tooltip("코어가 밝히는 반경(칸). 시작 시 보이는 범위 = 여기서 정해진다.")]
+		[field: SerializeField, Min(0f)] public float CoreVisionRadius { get; private set; } = 9f;
+
+		[field: Tooltip("채집 인형이 밝히는 반경(칸) — 먼 노드로 나가는 것이 곧 시야 확장이 된다.")]
+		[field: SerializeField, Min(0f)] public float HarvesterVisionRadius { get; private set; } = 7f;
+
 		[field: Header("판 생성 — 매 판 다른 지형")]
 		[field: Tooltip("켜면 암반 능선·자원 노드·스폰 지점을 매치마다 새로 만든다. 끄면 아래 고정 레이아웃을 쓴다.")]
 		[field: SerializeField] public bool UseProceduralMap { get; private set; } = true;

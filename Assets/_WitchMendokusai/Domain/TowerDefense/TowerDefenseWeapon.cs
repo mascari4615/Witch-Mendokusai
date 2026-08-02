@@ -23,6 +23,9 @@ namespace WitchMendokusai
 		private ICombatant self;
 		private IReadOnlyList<ICombatant> enemyPool;
 
+		// 「보이는가」 판정 — 시야가 장식이 아니라 규칙이 되는 지점. 안 꽂히면 전부 보이는 것으로 본다.
+		private System.Func<Vector3, bool> visibilityTest;
+
 		// 효과가 *실제로 일어났는가*를 세는 계수기 — 검증이 로그 문자열이 아니라 상태를 읽게 한다
 		// (게임 코드에 진단 로그를 영구히 남기지 않으면서도 「광역이 진짜 터졌나」를 증명할 수 있다).
 		public int PierceHits { get; private set; }
@@ -41,8 +44,10 @@ namespace WitchMendokusai
 			TowerDefenseTowerArchetype towerArchetype,
 			TargetingSystem targetingSystem,
 			ICombatant owner,
-			IReadOnlyList<ICombatant> enemies)
+			IReadOnlyList<ICombatant> enemies,
+			System.Func<Vector3, bool> isVisible = null)
 		{
+			visibilityTest = isVisible;
 			archetype = towerArchetype;
 			targeting = targetingSystem;
 			self = owner;
@@ -86,11 +91,18 @@ namespace WitchMendokusai
 				float sqr = (candidate.Position - self.Position).sqrMagnitude;
 				if (sqr > rangeSqr || sqr >= bestSqr)
 					continue;
+				if (CanSee(candidate.Position) == false)
+					continue; // 사거리 안이라도 「안 보이는」 마수는 못 쏜다.
 
 				best = candidate;
 				bestSqr = sqr;
 			}
 			return best;
+		}
+
+		private bool CanSee(Vector3 worldPosition)
+		{
+			return visibilityTest == null || visibilityTest(worldPosition);
 		}
 
 		private void Fire(ICombatant target)
@@ -128,6 +140,8 @@ namespace WitchMendokusai
 				// 사격선에서 한 칸 안쪽이면 꿰뚫린 것으로 본다.
 				if (Vector3.Dot(toCandidate.normalized, direction) < 0.94f)
 					continue;
+				if (CanSee(candidate.Position) == false)
+					continue;
 
 				ApplyHit(candidate);
 				PierceHits++;
@@ -146,6 +160,8 @@ namespace WitchMendokusai
 				if (candidate.TeamId == self.TeamId)
 					continue;
 				if ((candidate.Position - center.Position).sqrMagnitude > splashSqr)
+					continue;
+				if (CanSee(candidate.Position) == false)
 					continue;
 
 				ApplyHit(candidate);

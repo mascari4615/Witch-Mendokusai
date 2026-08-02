@@ -54,6 +54,11 @@ namespace WitchMendokusai
 
 		// 이번 매치의 판 — 절차 생성이면 layout 이 정본, 끄면 null 이고 스테이지 SO 의 고정 레이아웃을 쓴다.
 		// 아래 active* 목록이 *둘을 하나로 합친 단일 출처* — 매치 본문은 어느 쪽인지 신경 쓰지 않는다.
+		// 시야 — 내 건물이 밝힌 만큼만 보인다. 건물은 안 움직이므로 *지어질 때만* 다시 계산한다.
+		private TowerDefenseVision vision;
+		private TowerDefenseFogView fogView;
+		private readonly List<TowerDefenseVision.Source> visionSources = new();
+
 		private TowerDefenseMapLayout mapLayout;
 		private TowerDefenseFlowField flowField;
 		private ITacticNavigator flowNavigator;
@@ -280,6 +285,9 @@ namespace WitchMendokusai
 			flowNavigator = new TowerDefenseFlowNavigator(
 				mapLayout, flowField, stageRoot, stage.GroundCellSize * 2f);
 
+			vision = new TowerDefenseVision(mapLayout.Width, mapLayout.Length);
+			visionSources.Clear();
+
 			Debug.Log($"{nameof(TowerDefenseMatch)}: 판 생성 seed={mapLayout.Seed} "
 				+ $"암반={mapLayout.ObstacleCells.Count}칸 노드={mapLayout.ResourceNodes.Count} 스폰={mapLayout.EnemySpawnPoints.Count}");
 		}
@@ -414,6 +422,12 @@ namespace WitchMendokusai
 			ApplyGroundCheckerboard(ground);
 			BuildObstacles();
 			BuildPathLanes();
+			if (vision != null)
+			{
+				fogView = TowerDefenseFogView.Create(
+					stageRoot, mapLayout.Width, mapLayout.Length, activeGroundWidth, activeGroundLength, 0.9f);
+				RefreshVision();
+			}
 			BuildResourceNodeMarkers();
 			BuildEnemySpawnMarkers();
 		}
@@ -661,6 +675,7 @@ namespace WitchMendokusai
 			registeredCombatants.Add(combatant);
 
 			coreCombatant = combatant;
+			AddVisionSource(coreGameObject.transform.position, stage.CoreVisionRadius);
 		}
 
 		private void Tick()
@@ -669,6 +684,7 @@ namespace WitchMendokusai
 				return;
 
 			CullEscapedEnemies(); // 무대 밖 개체가 웨이브를 영원히 붙잡지 못하게 — 집계 *전에* 정리.
+			ApplyEnemyVisibility(); // 안 보이는 마수는 화면에서도 지운다(규칙과 그림이 같아야 한다).
 			PayKillBounties();    // 격파 즉시 보상 — 웨이브 정산만 있으면 교전 중엔 아무 보상도 안 온다.
 
 			bool coreAlive = coreCombatant != null && coreCombatant.IsAlive;
@@ -883,6 +899,45 @@ namespace WitchMendokusai
 		/// <summary> 이번 판의 자원 노드 위치(무대 로컬) — 절차 생성이면 매 판 다르다. </summary>
 		public IReadOnlyList<Vector3> ActiveResourceNodePositions => activeNodePositions;
 
+		/// <summary> 그 자리가 지금 보이는가 — 안 보이면 포탑도 못 쏘고 마수도 안 그려진다. </summary>
+		public bool IsVisibleAt(Vector3 worldPosition)
+		{
+			if (vision == null || mapLayout == null || stageRoot == null)
+				return true; // 시야 없는 판(고정 레이아웃) = 전부 보임.
+
+			return vision.IsVisible(mapLayout.WorldToCell(stageRoot.InverseTransformPoint(worldPosition)));
+		}
+
+		/// <summary> 한 번이라도 밝혔던 자리인가 — 기억한 지형·노드는 계속 보여준다. </summary>
+		public bool IsExploredAt(Vector3 worldPosition)
+		{
+			if (vision == null || mapLayout == null || stageRoot == null)
+				return true;
+
+			return vision.IsExplored(mapLayout.WorldToCell(stageRoot.InverseTransformPoint(worldPosition)));
+		}
+
+		/// <summary> 시야원 하나 추가 + 즉시 반영 — 건물을 세운 그 순간 밝아져야 「넓혔다」가 읽힌다. </summary>
+		private void AddVisionSource(Vector3 worldPosition, float radius)
+		{
+			if (vision == null || mapLayout == null || stageRoot == null || radius <= 0f)
+				return;
+
+			visionSources.Add(new TowerDefenseVision.Source(
+				mapLayout.WorldToCell(stageRoot.InverseTransformPoint(worldPosition)), radius));
+			RefreshVision();
+		}
+
+		private void RefreshVision()
+		{
+			if (vision == null)
+				return;
+
+			vision.Recompute(visionSources);
+			if (fogView != null)
+				fogView.Apply(vision);
+		}
+
 		/// <summary> index 번 노드의 벌이 배수 — 화면 표시와 실제 수입이 같은 값을 읽는다. </summary>
 		public float NodeIncomeMultiplierAt(int index)
 		{
@@ -959,6 +1014,29 @@ namespace WitchMendokusai
 			}
 
 			TowerDefenseWaveComposer.Compose(unlockWaves, weights, waveIndex, enemyCount, result);
+		}
+
+		/// <summary>
+		/// 시야 밖 마수는 안 그린다 — 포탑이 못 쏘는데 화면에는 보이면, 「왜 안 쏘지」가 버그로 읽힌다.
+		/// 규칙(못 쏨)과 그림(안 보임)이 같은 사실을 말해야 한다.
+		/// </summary>
+		private void ApplyEnemyVisibility()
+		{
+			if (vision == null)
+				return;
+
+			foreach (ArenaCombatant enemy in waveEnemies)
+			{
+				if (enemy == null || enemy.UnitObject == null)
+					continue;
+
+				bool seen = IsVisibleAt(enemy.Position);
+				foreach (Renderer enemyRenderer in enemy.UnitObject.GetComponentsInChildren<Renderer>(true))
+				{
+					if (enemyRenderer.enabled != seen)
+						enemyRenderer.enabled = seen;
+				}
+			}
 		}
 
 		/// <summary>
@@ -1263,7 +1341,7 @@ namespace WitchMendokusai
 					TowerDefenseWeapon weapon = unitObject.GetComponent<TowerDefenseWeapon>();
 					if (weapon == null)
 						weapon = unitObject.gameObject.AddComponent<TowerDefenseWeapon>();
-					weapon.Configure(towerArchetype, targeting, combatant, waveEnemies);
+					weapon.Configure(towerArchetype, targeting, combatant, waveEnemies, IsVisibleAt);
 				}
 
 				float towerRange = towerArchetype != null ? towerArchetype.Range : TowerRange();
@@ -1276,6 +1354,11 @@ namespace WitchMendokusai
 					ring.SetRadius(towerRange);
 				}
 			}
+
+			AddVisionSource(worldPosition,
+				isHarvester
+					? stage.HarvesterVisionRadius
+					: (towerArchetype != null ? towerArchetype.VisionRadius : stage.CoreVisionRadius));
 
 			if (isHarvester)
 			{

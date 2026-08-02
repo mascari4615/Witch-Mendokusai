@@ -29,6 +29,9 @@ namespace WitchMendokusai
 		[Tooltip("사거리 — 화면의 원이 이 값을 그대로 그린다.")]
 		[SerializeField, Min(0.5f)] private float range = 7f;
 
+		[Tooltip("이 포탑이 밝히는 시야 반경. 보통 사거리보다 조금 넓어야 「보이는데 아직 못 쏘는」 구간이 생긴다.")]
+		[SerializeField, Min(0f)] private float visionRadius = 9f;
+
 		[Tooltip("발사 간격(초). 작을수록 속사.")]
 		[SerializeField, Min(0.05f)] private float cooldown = 0.6f;
 
@@ -52,6 +55,7 @@ namespace WitchMendokusai
 		public int Cost => cost;
 		public Color Tint => tint;
 		public float Range => range;
+		public float VisionRadius => visionRadius;
 		public float Cooldown => cooldown;
 		public int Damage => damage;
 		public int Pierce => pierce;
