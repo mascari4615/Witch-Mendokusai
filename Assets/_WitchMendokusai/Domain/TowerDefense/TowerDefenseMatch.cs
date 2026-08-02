@@ -310,6 +310,50 @@ namespace WitchMendokusai
 		}
 
 		/// <summary>
+		/// 그 칸의 포탑을 한 단계 올린다 — 같은 종류일 때만. 값은 기본 비용 × 다음 단계.
+		/// 최대 단계거나 다른 종류면 아무 일도 안 일어난다(자원 무변경).
+		/// </summary>
+		private bool TryUpgradeTowerAt(Vector3Int cellKey, int towerIndex)
+		{
+			TowerDefenseTowerArchetype archetype = TowerArchetypeAt(towerIndex);
+			if (archetype == null)
+				return false;
+
+			foreach (GameObject unit in spawnedUnits)
+			{
+				if (unit == null || unit.activeInHierarchy == false)
+					continue;
+				if (ToCellKey(unit.transform.position) != cellKey)
+					continue;
+
+				TowerDefenseWeapon weapon = unit.GetComponent<TowerDefenseWeapon>();
+				if (weapon == null || weapon.Cost != archetype.Cost)
+					return false; // 다른 종류(또는 포탑이 아님) — 겹배치 차단 그대로.
+				if (weapon.Level >= archetype.MaxLevel)
+					return false;
+
+				int upgradeCost = archetype.Cost * (weapon.Level + 1);
+				if (core.TrySpend(upgradeCost) == false)
+					return false;
+
+				weapon.TryUpgrade();
+				PopWorldText("Lv." + weapon.Level, unit.transform.position, TextType.Exp);
+				RefreshTowerRing(unit, archetype, weapon.Level);
+				return true;
+			}
+
+			return false;
+		}
+
+		// 승급하면 사거리가 늘므로 화면의 원도 같이 자라야 한다 — 안 그러면 원이 거짓말한다.
+		private void RefreshTowerRing(GameObject unit, TowerDefenseTowerArchetype archetype, int level)
+		{
+			TowerDefenseRing ring = unit.GetComponentInChildren<TowerDefenseRing>();
+			if (ring != null)
+				ring.SetRadius(archetype.Range * (1f + (level - 1) * archetype.UpgradeGrowth));
+		}
+
+		/// <summary>
 		/// 함정 깔기 — 밟으면 터진다. 길목과 직결되므로 벽(길 그리기)의 짝.
 		/// 통행을 막지 않으므로 길 검사가 필요 없다(그래서 벽보다 훨씬 가볍다).
 		/// </summary>
@@ -1427,7 +1471,11 @@ namespace WitchMendokusai
 
 			Vector3Int cellKey = ToCellKey(worldPosition);
 			if (occupiedCells.Contains(cellKey))
-				return false; // 셀 이미 점유(겹배치 차단) — 자원 무변경.
+			{
+				// ★ 같은 자리에 같은 종류를 다시 지으면 = 승급. 별도 선택 UI 없이 「한 번 더 짓는다」는
+				//   손동작 그대로라 배울 게 없고, 세로 깊이(같은 포탑을 키운다)가 생긴다.
+				return TryUpgradeTowerAt(cellKey, towerIndex);
+			}
 
 			if (core.TrySpend(TowerCostAt(towerIndex)) == false)
 				return false;

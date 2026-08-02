@@ -46,6 +46,9 @@ MonoBehaviour:
     splashRadius: 0
     slowFactor: 0
     slowSeconds: 0
+    slowedTargetBonus: 0.5
+    upgradeGrowth: 0.35
+    maxLevel: 3
   - displayName: "광역 포탑"
     note: "주변까지 터진다 · 무리에 강함"
     cost: 70
@@ -57,6 +60,9 @@ MonoBehaviour:
     splashRadius: 2.2
     slowFactor: 0
     slowSeconds: 0
+    slowedTargetBonus: 0.5
+    upgradeGrowth: 0.35
+    maxLevel: 3
   - displayName: "관통 포탑"
     note: "줄지어 오는 걸 꿰뚫는다 · 단단한 놈에 강함"
     cost: 80
@@ -68,6 +74,9 @@ MonoBehaviour:
     splashRadius: 0
     slowFactor: 0
     slowSeconds: 0
+    slowedTargetBonus: 0.5
+    upgradeGrowth: 0.35
+    maxLevel: 3
   - displayName: "둔화 포탑"
     note: "발을 묶는다 · 빠른 놈에 강함"
     cost: 55
@@ -79,6 +88,9 @@ MonoBehaviour:
     splashRadius: 0
     slowFactor: 0.55
     slowSeconds: 1.8
+    slowedTargetBonus: 0
+    upgradeGrowth: 0.3
+    maxLevel: 3
   <EnemyArchetypes>k__BackingField:
   - displayName: "마수"
     unlockWave: 0

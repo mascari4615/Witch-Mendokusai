@@ -47,6 +47,15 @@ namespace WitchMendokusai
 		[Tooltip("맞은 마수의 이동 속도를 이 비율로 낮춘다(0 = 둔화 없음, 0.5 = 절반). 빠른 놈을 붙잡는다.")]
 		[SerializeField, Range(0f, 0.95f)] private float slowFactor;
 
+		[Tooltip("둔화에 걸린 마수를 때릴 때 추가 피해 비율(0.5 = +50%). 포탑끼리의 *조합*이 여기서 생긴다 — 둔화가 밑밥, 나머지가 마무리.")]
+		[SerializeField, Min(0f)] private float slowedTargetBonus;
+
+		[Tooltip("승급 1단계마다 피해·사거리 증가 비율(0.35 = 단계당 +35%).")]
+		[SerializeField, Min(0f)] private float upgradeGrowth = 0.35f;
+
+		[Tooltip("승급 최대 단계(1 = 승급 없음).")]
+		[SerializeField, Min(1)] private int maxLevel = 3;
+
 		[Tooltip("둔화 지속(초).")]
 		[SerializeField, Min(0f)] private float slowSeconds = 1.5f;
 
@@ -62,5 +71,8 @@ namespace WitchMendokusai
 		public float SplashRadius => splashRadius;
 		public float SlowFactor => slowFactor;
 		public float SlowSeconds => slowSeconds;
+		public float SlowedTargetBonus => slowedTargetBonus;
+		public float UpgradeGrowth => upgradeGrowth;
+		public int MaxLevel => maxLevel;
 	}
 }

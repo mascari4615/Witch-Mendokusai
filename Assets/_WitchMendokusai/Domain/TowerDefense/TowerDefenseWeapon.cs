@@ -38,6 +38,22 @@ namespace WitchMendokusai
 		/// <summary> 지어질 때 든 값 — 팔 때 환불 기준. 종류가 늘어도 판매 쪽이 다시 계산할 필요가 없다. </summary>
 		public int Cost => archetype != null ? archetype.Cost : 0;
 
+		/// <summary> 승급 단계(1부터). 같은 자리에 같은 종류를 다시 지으면 오른다. </summary>
+		public int Level { get; private set; } = 1;
+
+		/// <summary> 단계에 따른 배수 — 피해·사거리에 함께 걸린다. </summary>
+		private float LevelScale => 1f + (Level - 1) * (archetype != null ? archetype.UpgradeGrowth : 0f);
+
+		/// <summary> 한 단계 올린다. 최대치면 false(값을 치르기 전에 호출자가 확인해야 한다). </summary>
+		public bool TryUpgrade()
+		{
+			if (archetype == null || Level >= archetype.MaxLevel)
+				return false;
+
+			Level++;
+			return true;
+		}
+
 		private float cooldownRemaining;
 		private LineRenderer tracer;
 		private float tracerRemaining;
@@ -85,7 +101,8 @@ namespace WitchMendokusai
 		/// <summary> 사거리 안에서 가장 가까운 마수 — 가까운 것부터 처리하는 게 방어의 기본. </summary>
 		private ICombatant FindTarget()
 		{
-			float rangeSqr = archetype.Range * archetype.Range;
+			float range = archetype.Range * LevelScale;
+			float rangeSqr = range * range;
 			ICombatant best = null;
 			float bestSqr = float.MaxValue;
 
@@ -106,6 +123,32 @@ namespace WitchMendokusai
 				bestSqr = sqr;
 			}
 			return best;
+		}
+
+		/// <summary>
+		/// 이번 한 발의 피해 — 승급 단계 × 연구 인형 배수 × **둔화 보너스**.
+		/// ★ 둔화 보너스가 이 게임의 「조합」이다: 둔화 포탑이 밑밥을 깔고 다른 포탑이 마무리한다.
+		///   보너스를 *때리는 쪽*이 아니라 *맞는 상태*로 판정하므로, 누가 둔화를 걸었든 상관없다.
+		/// </summary>
+		private int ComputeDamage(ICombatant target)
+		{
+			float damage = archetype.Damage * LevelScale;
+			damage *= damageMultiplier != null ? damageMultiplier() : 1f;
+
+			if (archetype.SlowedTargetBonus > 0f && IsSlowed(target))
+				damage *= 1f + archetype.SlowedTargetBonus;
+
+			return Mathf.Max(1, Mathf.RoundToInt(damage));
+		}
+
+		private static bool IsSlowed(ICombatant target)
+		{
+			ArenaCombatant combatant = target as ArenaCombatant;
+			if (combatant == null || combatant.UnitObject == null)
+				return false;
+
+			TowerDefenseSlow slow = combatant.UnitObject.GetComponent<TowerDefenseSlow>();
+			return slow != null && slow.IsActive;
 		}
 
 		private bool CanSee(Vector3 worldPosition)
@@ -185,7 +228,7 @@ namespace WitchMendokusai
 
 			DamageInfo damageInfo = new DamageInfo
 			{
-				damage = Mathf.Max(1, Mathf.RoundToInt(archetype.Damage * (damageMultiplier != null ? damageMultiplier() : 1f))),
+				damage = ComputeDamage(target),
 				type = DamageType.Normal,
 				damageSource = self,
 				equipmentDataId = DamageInfo.NO_DATA_ID,

@@ -273,11 +273,13 @@ namespace WitchMendokusai.EditorTools
 						return;
 					DumpPlacedUnits("최초 배치");
 					VerifyUiPointerGuard();
+					// ★ 예산은 유한하고 확인할 항목은 여럿이다 — 순서가 곧 검증 가능 여부다.
+					//   승급은 *이미 서 있는 포탑*이 필요하므로 판매보다 먼저, 비싼 연구 인형은 맨 뒤.
+					VerifyUpgrade();
 					VerifySell();
-			// 벽(길 검사 + 다수 소모)이 예산을 먼저 비우면 함정이 「값이 비싸 못 깐다」로 끝난다 —
-			// 확인하려는 건 「깔리는가」이므로 싼 것부터 본다.
-			VerifyTrap();
-			VerifyWall();
+					VerifyTrap();
+					VerifyWall();
+					VerifyLab();
 					if (placeOnly)
 					{
 						Debug.Log(TAG + " PLACE-ONLY 배치 확인 끝 — 조기 종료");
@@ -449,18 +451,6 @@ namespace WitchMendokusai.EditorTools
 
 			int before = match.Resource;
 
-			// ★ 연구 인형을 *먼저* 세운다 — 포탑을 먼저 사면 예산이 남지 않아 배치가 거절되고,
-			//   그러면 「연구 인형 효과」가 통째로 미검증으로 남는다(첫 시도에서 실제로 labs=0 이 나왔다).
-			float multiplierBefore = match.TowerDamageMultiplier;
-			List<Vector3> labSpots = FindPlaceableSpots(stageRoot, 1);
-			if (labSpots.Count > 0)
-			{
-				placement.SelectSlot(match.TowerArchetypeCount + 1);
-				placement.PlaceLabAt(WorldToScreen(modeCamera, stageRoot.TransformPoint(labSpots[0])));
-			}
-			Debug.Log(TAG + " LAB labs=" + match.LabCount
-				+ " damageMultiplier " + multiplierBefore.ToString("F2") + " → " + match.TowerDamageMultiplier.ToString("F2"));
-
 			// 방어인형 — 판이 매 매치 새로 생성되므로 고정 좌표는 암반 위일 수 있다(그러면 배치가 조용히
 			// 전부 거절돼 "방어 없는 판"을 방어 있는 판으로 착각한다). 코어 주변에서 *실제로 설 수 있는* 칸을 찾는다.
 			// 종류를 섞어 세운다 — 한 종류만 세우면 광역·관통·둔화가 통째로 미검증으로 남는다.
@@ -468,7 +458,10 @@ namespace WitchMendokusai.EditorTools
 			// 효과가 통째로 미검증으로 남는다. 예산 160 안에서 각각 성립하는 조합.
 			// 관측 구간(재시작 뒤)에 서 있는 쪽이 검증 대상이다 — 첫 판에 세운 포탑은 재시작이 치운다.
 			// 그래서 *두 번째* 조합에 아직 미확인인 종류를 넣는다(관통은 직전 실행에서 확인됨).
-			int[] slotPlan = towerPlanFlipped ? new[] { 1, 3 } : new[] { 0, 2 };
+			// ★ 확인할 항목(승급·함정·벽·연구)이 여럿인데 예산은 유한하다 — 초기 배치가 다 쓰면
+			//   나머지가 전부 「돈이 없어 못 함」으로 끝나 *기능이 아니라 잔고*를 검사하게 된다.
+			//   그래서 초기엔 한 기만 세우고 남은 예산을 항목들이 나눠 쓴다.
+			int[] slotPlan = towerPlanFlipped ? new[] { 1 } : new[] { 0 };
 			towerPlanFlipped = towerPlanFlipped == false;
 			int towersPlaced = 0;
 			List<Vector3> spots = FindPlaceableSpots(stageRoot, slotPlan.Length);
@@ -505,8 +498,19 @@ namespace WitchMendokusai.EditorTools
 			IReadOnlyList<Vector3> nodeLocals = match.ActiveResourceNodePositions;
 			if (nodeLocals.Count == 0)
 				Debug.LogError(TAG + " PLACE-FAIL 스테이지에 자원 노드가 없음");
+			// ★ 노드 전부에 세우면(6곳 × 60) 예산이 통째로 사라져 뒤의 확인이 전부 「돈이 없어 못 함」이 된다.
+			//   여기서 볼 것은 「노드 위에 서는가」이므로 한 기면 충분하다.
+			int harvestersPlaced = 0;
 			foreach (Vector3 local in nodeLocals)
+			{
+				// 배치만 모드는 예산을 승급·함정·벽이 나눠 써야 한다 — 채집(60)은 전체 실행에서 확인한다.
+				if (placeOnly || harvestersPlaced >= 1)
+					break;
+				int beforeHarvester = match.Resource;
 				placement.PlaceHarvesterAt(WorldToScreen(modeCamera, stageRoot.TransformPoint(local)));
+				if (match.Resource < beforeHarvester)
+					harvestersPlaced++;
+			}
 
 			// 노드에서 먼 빈 땅에 채집 시도 = 거절돼야 정상(노드 결합 규칙 살아있음 확인).
 			int beforeOffNode = match.Resource;
@@ -1037,6 +1041,66 @@ namespace WitchMendokusai.EditorTools
 					+ " alive=" + combatant.IsAlive);
 				index++;
 			}
+		}
+
+		/// <summary> 연구 인형 — 가장 비싸므로 맨 마지막. 예산이 없으면 「확인 못 함」으로 남긴다(가짜 실패 X). </summary>
+		private static void VerifyLab()
+		{
+			Transform stageRoot = FindStageRoot();
+			if (TowerDefenseModeController.TryGetExistingInstance(out TowerDefenseModeController controller) == false)
+				return;
+			TowerDefensePlacement placement = controller.GetComponent<TowerDefensePlacement>();
+			Camera modeCamera = ViewCameraResolver.Current;
+			if (match == null || stageRoot == null || placement == null || modeCamera == null)
+				return;
+
+			if (match.Resource < match.Stage.LabCost)
+			{
+				Debug.Log(TAG + " LAB-SKIP 예산 부족(" + match.Resource + "/" + match.Stage.LabCost + ") — 이번 실행에선 확인 못 함");
+				return;
+			}
+
+			// 가장 비싸므로 맨 마지막 — 앞의 항목들이 예산을 다 썼으면 확인을 건너뛴다(잔고 검사 X). — 먼저 사면 승급·함정·벽이 전부 「돈이 없어 못 함」으로 끝난다.
+			// (예산은 유한하고 확인할 항목은 여럿이라, 싼 것부터 보고 비싼 것을 뒤로 미는 것이 유일한 해법이다.)
+			float multiplierBefore = match.TowerDamageMultiplier;
+			List<Vector3> labSpots = FindPlaceableSpots(stageRoot, 1);
+			if (labSpots.Count > 0)
+			{
+				placement.SelectSlot(match.TowerArchetypeCount + 1);
+				placement.PlaceLabAt(WorldToScreen(modeCamera, stageRoot.TransformPoint(labSpots[0])));
+			}
+			Debug.Log(TAG + " LAB labs=" + match.LabCount
+				+ " damageMultiplier " + multiplierBefore.ToString("F2") + " → " + match.TowerDamageMultiplier.ToString("F2"));
+
+		}
+
+		/// <summary> 승급 — 같은 자리에 같은 종류를 다시 지으면 단계가 오르고 사거리·피해가 자라는가. </summary>
+		private static void VerifyUpgrade()
+		{
+			Transform stageRoot = FindStageRoot();
+			if (sellProbeReady == false || match == null || stageRoot == null)
+				return;
+
+			// ★ 새로 짓지 않고 *이미 세운* 포탑을 올린다 — 확인하려는 건 「같은 자리에 다시 지으면 자라는가」이지
+			//   「지을 돈이 있는가」가 아니다. 새로 지으면 그 값이 승급 예산을 먹어 기능이 아니라 잔고를 검사하게 된다.
+			Vector3 world = stageRoot.TransformPoint(sellProbeLocal);
+
+			int before = match.Resource;
+			bool upgraded = match.TryPlaceTower(world, 0);
+
+			int level = -1;
+			foreach (TowerDefenseWeapon weapon in Object.FindObjectsByType<TowerDefenseWeapon>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+			{
+				if (weapon != null && weapon.Level > level)
+					level = weapon.Level;
+			}
+
+			string verdict = TAG + " UPGRADE ok=" + upgraded + " maxLevel=" + level
+				+ " resource " + before + " → " + match.Resource;
+			if (upgraded && level >= 2 && match.Resource < before)
+				Debug.Log(verdict + " → 같은 자리에 다시 지으면 자란다 ✔");
+			else
+				Debug.LogError(verdict + " → 승급이 안 되거나 값을 안 치른다.");
 		}
 
 		/// <summary> 함정 — 깔리는가(길목에 소모품을 놓는 수단이 실제로 존재하는가). </summary>

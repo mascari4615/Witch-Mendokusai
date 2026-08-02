@@ -16,6 +16,9 @@ namespace WitchMendokusai
 		private int originalSpeed = -1;
 		private float remaining;
 
+		/// <summary> 지금 둔화가 걸려 있나 — 다른 포탑의 「조합 보너스」 판정 기준. </summary>
+		public bool IsActive => originalSpeed >= 0 && remaining > 0f;
+
 		/// <summary> 둔화를 건다(이미 걸려 있으면 더 강한 쪽/더 긴 쪽으로 갱신). </summary>
 		public static void Apply(UnitObject target, float slowFactor, float seconds)
 		{
