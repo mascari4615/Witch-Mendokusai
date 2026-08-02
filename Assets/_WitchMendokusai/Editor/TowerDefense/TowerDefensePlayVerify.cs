@@ -1017,6 +1017,9 @@ namespace WitchMendokusai.EditorTools
 				+ " note=\"" + TowerDefenseAdaptation.Describe(adaptation) + "\""
 				+ " (상한 " + TowerDefenseAdaptation.MAX_RESIST + " — 봉인 X)");
 
+			// 전초기지는 정수(정산에서만 나옴)로 서므로 *파도를 몇 번 넘긴 뒤*에 확인해야 한다.
+			VerifyOutpost();
+
 			string verdict = TAG + " DEFENDED-RESULT killIncomeEvents=" + killIncomeEvents
 				+ " wave=" + match.WaveIndex + " resource=" + match.Resource
 				+ " nextIncome=" + match.NextWaveIncome + " harvesters=" + match.HarvesterCount;
@@ -1085,6 +1088,35 @@ namespace WitchMendokusai.EditorTools
 				Debug.Log(verdict + " → 바깥 노드가 정수를 낸다 ✔");
 			else
 				Debug.LogError(verdict + " → 바깥 노드인데 정수가 안 나온다.");
+		}
+
+		/// <summary> 전초기지 — 정수로 서고, 마수의 목표(유출 지점)가 하나 느는가. </summary>
+		private static void VerifyOutpost()
+		{
+			Transform stageRoot = FindStageRoot();
+			if (match == null || stageRoot == null)
+				return;
+
+			if (match.Essence < match.Stage.OutpostEssenceCost)
+			{
+				Debug.Log(TAG + " OUTPOST-SKIP 정수 부족(" + match.Essence + "/" + match.Stage.OutpostEssenceCost
+					+ ") — 첫 정산 전에는 못 세움(의도된 설계)");
+				return;
+			}
+
+			int before = match.OutpostCount;
+			foreach (Vector3 local in FindPlaceableSpots(stageRoot, 1))
+			{
+				match.TryPlaceOutpost(stageRoot.TransformPoint(local));
+				break;
+			}
+
+			string verdict = TAG + " OUTPOST count " + before + " → " + match.OutpostCount
+				+ " essence=" + match.Essence + " supplied=" + match.SuppliedBuildings;
+			if (match.OutpostCount > before)
+				Debug.Log(verdict + " → 지킬 곳이 하나 늘었다 ✔");
+			else
+				Debug.LogError(verdict + " → 전초기지가 안 선다.");
 		}
 
 		/// <summary> 보급 — 코어에서 이어진 건물이 잡히고, 끊긴 채집이 수입에서 빠지는가. </summary>

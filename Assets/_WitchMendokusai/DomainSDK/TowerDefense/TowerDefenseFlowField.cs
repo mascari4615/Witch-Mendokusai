@@ -30,7 +30,17 @@ namespace WitchMendokusai
 
 		/// <summary> 코어(goal)에서 BFS 로 퍼뜨려 만든다. isBlocked = 그 칸이 통행 불가인지. </summary>
 		public TowerDefenseFlowField(int width, int length, Vector2Int goalCell, System.Func<Vector2Int, bool> isBlocked)
+			: this(width, length, new[] { goalCell }, isBlocked)
 		{
+		}
+
+		/// <summary>
+		/// 목표가 여럿일 때(코어 + 전초기지) — 모든 목표에서 동시에 퍼뜨리면 각 칸은 *가장 가까운* 목표로 흐른다.
+		/// 마수가 저절로 분산되고, 전초기지를 세우는 순간 「지킬 곳이 하나 더」가 된다.
+		/// </summary>
+		public TowerDefenseFlowField(int width, int length, IReadOnlyList<Vector2Int> goalCells, System.Func<Vector2Int, bool> isBlocked)
+		{
+			Vector2Int goalCell = goalCells != null && goalCells.Count > 0 ? goalCells[0] : Vector2Int.zero;
 			this.width = width < 1 ? 1 : width;
 			this.length = length < 1 ? 1 : length;
 			GoalCell = goalCell;
@@ -44,13 +54,21 @@ namespace WitchMendokusai
 				nextStep[index] = goalCell;
 			}
 
-			if (IsInside(goalCell) == false)
-				return;
-
-			distance[ToIndex(goalCell)] = 0;
-
 			Queue<Vector2Int> frontier = new();
-			frontier.Enqueue(goalCell);
+			if (goalCells != null)
+			{
+				foreach (Vector2Int goal in goalCells)
+				{
+					if (IsInside(goal) == false)
+						continue;
+					distance[ToIndex(goal)] = 0;
+					nextStep[ToIndex(goal)] = goal;
+					frontier.Enqueue(goal);
+				}
+			}
+
+			if (frontier.Count == 0)
+				return;
 
 			while (frontier.Count > 0)
 			{

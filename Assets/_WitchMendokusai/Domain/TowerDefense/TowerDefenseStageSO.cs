@@ -112,9 +112,21 @@ namespace WitchMendokusai
 		[field: Tooltip("휠 **한 칸당** 높이 변화량. 플랫폼별 raw 델타 차이는 리그가 흡수한다.")]
 		[field: SerializeField, Min(0.1f)] public float CameraZoomSpeed { get; private set; } = 6f;
 
+		[field: Header("전초기지 — 넓히면 지킬 곳이 는다")]
+		[field: Tooltip("전초기지 1기에 드는 정수. 비싸야 「넓힐까 말까」가 진짜 결정이 된다.")]
+		[field: SerializeField, Min(0)] public int OutpostEssenceCost { get; private set; } = 10;
+
+		[field: Tooltip("전초기지가 밝히는 시야 반경.")]
+		[field: SerializeField, Min(0f)] public float OutpostVisionRadius { get; private set; } = 10f;
+
+		[field: Tooltip("전초기지 색.")]
+		[field: SerializeField] public Color OutpostTint { get; private set; } = new Color(1f, 0.9f, 0.55f, 1f);
+
 		[field: Header("보급선 — 이어져야 들어온다")]
 		[field: Tooltip("건물 하나가 다음 건물까지 보급을 잇는 거리(칸). 짧을수록 촘촘히 이어야 하고 그만큼 지킬 게 는다.")]
-		[field: SerializeField, Min(1f)] public float SupplyReach { get; private set; } = 7f;
+		// 7 은 44칸 판에서 너무 짧았다 — 바깥 노드가 *어떤 사슬로도* 안 닿아 정수가 영영 0 이 되고,
+		// 정수로만 사는 연구·승급·전초기지가 통째로 잠겼다(라이브 실측). 12 = 한두 개 이어주면 닿는 거리.
+		[field: SerializeField, Min(1f)] public float SupplyReach { get; private set; } = 12f;
 
 		[field: Header("정수 — 강화 전용 재화(바깥 노드에서만)")]
 		[field: Tooltip("연구 인형 1기에 드는 정수.")]

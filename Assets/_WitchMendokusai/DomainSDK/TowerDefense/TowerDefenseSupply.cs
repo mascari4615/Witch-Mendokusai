@@ -27,13 +27,27 @@ namespace WitchMendokusai
 			float reach,
 			HashSet<int> supplied)
 		{
+			Compute(new[] { corePosition }, buildings, reach, supplied);
+		}
+
+		/// <summary>
+		/// 시작점이 여럿일 때(코어 + 전초기지) — 전초기지는 *새 보급 원점*이라
+		/// 멀리 나간 채집이 코어까지 이어질 필요 없이 가까운 전초기지에 붙으면 된다.
+		/// </summary>
+		public static void Compute(
+			IReadOnlyList<Vector3> seeds,
+			IReadOnlyList<Vector3> buildings,
+			float reach,
+			HashSet<int> supplied)
+		{
 			supplied.Clear();
-			if (buildings == null || buildings.Count == 0 || reach <= 0f)
+			if (buildings == null || buildings.Count == 0 || reach <= 0f || seeds == null)
 				return;
 
 			float reachSqr = reach * reach;
 			Queue<Vector3> frontier = new();
-			frontier.Enqueue(corePosition);
+			foreach (Vector3 seed in seeds)
+				frontier.Enqueue(seed);
 
 			// 코어에서 시작해 닿는 것을 계속 넓힌다 — 사슬이 한 칸이라도 끊기면 그 너머는 안 온다.
 			while (frontier.Count > 0)

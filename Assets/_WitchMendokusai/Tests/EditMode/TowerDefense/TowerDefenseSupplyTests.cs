@@ -79,5 +79,30 @@ namespace WitchMendokusai.Tests
 
 			Assert.AreEqual(0, supplied.Count);
 		}
+
+		[Test]
+		public void 전초기지가_새_보급_원점이_된다()
+		{
+			// 멀리 나간 채집이 코어까지 이어질 필요 없이 가까운 전초기지에 붙으면 된다 —
+			// 「넓히면 지킬 곳이 늘지만 살림은 편해진다」의 교환.
+			Vector3 outpost = new Vector3(40f, 0f, 0f);
+			Vector3 farHarvester = new Vector3(43f, 0f, 0f);
+			HashSet<int> supplied = new();
+
+			TowerDefenseSupply.Compute(new[] { Core, outpost }, new[] { farHarvester }, REACH, supplied);
+
+			Assert.IsTrue(supplied.Contains(0), "전초기지 옆인데 안 이어지면 전초기지의 의미가 없다.");
+		}
+
+		[Test]
+		public void 시작점이_코어뿐이면_먼_채집은_여전히_끊긴다()
+		{
+			HashSet<int> supplied = new();
+
+			TowerDefenseSupply.Compute(new[] { Core }, new[] { new Vector3(43f, 0f, 0f) }, REACH, supplied);
+
+			Assert.AreEqual(0, supplied.Count);
+		}
+
 	}
 }

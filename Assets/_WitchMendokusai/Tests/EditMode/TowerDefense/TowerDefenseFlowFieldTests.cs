@@ -97,5 +97,28 @@ namespace WitchMendokusai.Tests
 			int expected = Mathf.Max(Mathf.Abs(cell.x - Goal.x), Mathf.Abs(cell.y - Goal.y));
 			Assert.AreEqual(expected, field.DistanceTo(cell));
 		}
+
+		[Test]
+		public void 목표가_여럿이면_가까운_쪽으로_흐른다()
+		{
+			// 전초기지 = 또 하나의 목표. 각 칸은 가장 가까운 목표로 흘러 마수가 저절로 분산된다.
+			Vector2Int coreGoal = new Vector2Int(1, 1);
+			Vector2Int outpostGoal = new Vector2Int(10, 10);
+			TowerDefenseFlowField field = new(WIDTH, LENGTH, new[] { coreGoal, outpostGoal }, _ => false);
+
+			Assert.AreEqual(0, field.DistanceTo(coreGoal));
+			Assert.AreEqual(0, field.DistanceTo(outpostGoal), "두 번째 목표도 시작점이어야 한다.");
+			Assert.AreEqual(1, field.DistanceTo(new Vector2Int(9, 10)), "전초기지 옆은 전초기지로 흐른다.");
+			Assert.AreEqual(1, field.DistanceTo(new Vector2Int(2, 1)), "코어 옆은 코어로 흐른다.");
+		}
+
+		[Test]
+		public void 목표가_하나도_없으면_아무데도_못_간다()
+		{
+			TowerDefenseFlowField field = new(WIDTH, LENGTH, new Vector2Int[0], _ => false);
+
+			Assert.IsFalse(field.IsReachable(new Vector2Int(3, 3)));
+		}
+
 	}
 }

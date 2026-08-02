@@ -465,6 +465,8 @@ namespace WitchMendokusai
 					legendRows.Add(MakeLegendRow(tower.Tint, tower.DisplayName, tower.Note, TowerDefenseIcon.ForTower(tower)));
 				}
 			}
+			legendRows.Add(MakeLegendRow(stage.OutpostTint, "전초기지",
+				"보급 원점 + 시야 · 대신 마수가 여기로도 온다", TowerDefenseIcon.Kind.Core));
 			legendRows.Add(MakeLegendRow(stage.EssenceTint, "정수",
 				"바깥 금빛 자리에서만 난다 · 연구·승급 전용", TowerDefenseIcon.Kind.Core));
 			legendRows.Add(MakeLegendRow(stage.TrapTint, "함정",
@@ -575,6 +577,7 @@ namespace WitchMendokusai
 			entries.Add(new ModeSelectionBar.Entry("연구 인형", stage.LabCost, stage.LabTint));
 			entries.Add(new ModeSelectionBar.Entry("벽", stage.WallCost, stage.WallTint));
 			entries.Add(new ModeSelectionBar.Entry("함정", stage.TrapCost, stage.TrapTint));
+			entries.Add(new ModeSelectionBar.Entry("전초기지", stage.OutpostEssenceCost, stage.OutpostTint));
 			selectionBar.SetEntries(entries);
 		}
 

@@ -56,9 +56,11 @@ namespace WitchMendokusai
 					return TowerDefensePlaceableKind.Harvester;
 				if (SelectedSlot == TowerSlotCount + 1)
 					return TowerDefensePlaceableKind.Lab;
-				return SelectedSlot == TowerSlotCount + 2
-					? TowerDefensePlaceableKind.Wall
-					: TowerDefensePlaceableKind.Trap;
+				if (SelectedSlot == TowerSlotCount + 2)
+					return TowerDefensePlaceableKind.Wall;
+				return SelectedSlot == TowerSlotCount + 3
+					? TowerDefensePlaceableKind.Trap
+					: TowerDefensePlaceableKind.Outpost;
 			}
 		}
 
@@ -101,7 +103,7 @@ namespace WitchMendokusai
 		public void SelectSlot(int slot)
 		{
 			// 칸 = 포탑들 + 채집 + 연구. 범위 밖은 없는 칸을 누른 것.
-			if (slot < 0 || slot > TowerSlotCount + 3)
+			if (slot < 0 || slot > TowerSlotCount + 4)
 				return;
 			if (SelectedSlot == slot)
 				return;
@@ -154,6 +156,9 @@ namespace WitchMendokusai
 					break;
 				case TowerDefensePlaceableKind.Trap:
 					PlaceTrapAt(screenPointerPosition);
+					break;
+				case TowerDefensePlaceableKind.Outpost:
+					PlaceOutpostAt(screenPointerPosition);
 					break;
 				default:
 					PlaceTowerAt(screenPointerPosition);
@@ -279,6 +284,18 @@ namespace WitchMendokusai
 
 			if (match.TrySell(snappedWorldPosition, stage.SellRefundRatio) == false)
 				Debug.Log($"{nameof(TowerDefensePlacement)}: 판매 거절 — 빈 칸이거나 코어.");
+		}
+
+		/// <summary> 전초기지 설치 — 새 목표이자 새 보급 원점. </summary>
+		public void PlaceOutpostAt(Vector2 screenPointerPosition)
+		{
+			if (match == null)
+				return;
+
+			if (TryGetSnappedGroundPosition(screenPointerPosition, out Vector3 snappedWorldPosition) == false)
+				return;
+
+			match.TryPlaceOutpost(snappedWorldPosition);
 		}
 
 		/// <summary> 함정 설치 — 밟으면 터진다. </summary>

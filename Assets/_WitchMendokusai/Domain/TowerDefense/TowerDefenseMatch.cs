@@ -57,6 +57,10 @@ namespace WitchMendokusai
 		private readonly List<Vector3> supplyBuildings = new();
 		private readonly List<Transform> supplyTransforms = new();
 		private readonly HashSet<int> suppliedBuildings = new();
+		// 전초기지 — 마수가 향하는 *또 하나의 목표*이자 보급의 새 원점.
+		private readonly List<Transform> outposts = new();
+		private readonly List<Vector3> supplySeeds = new();
+		private readonly List<Vector2Int> pathGoals = new();
 
 		// 이번 매치의 판 — 절차 생성이면 layout 이 정본, 끄면 null 이고 스테이지 SO 의 고정 레이아웃을 쓴다.
 		// 아래 active* 목록이 *둘을 하나로 합친 단일 출처* — 매치 본문은 어느 쪽인지 신경 쓰지 않는다.
@@ -165,7 +169,8 @@ namespace WitchMendokusai
 		public int NextWaveIncome => core != null ? core.NextWaveIncome : 0;
 		public int Essence => core != null ? core.Essence : 0;
 		public int NextWaveEssence => core != null ? core.NextWaveEssence : 0;
-		public int HarvesterCount => core != null ? core.HarvesterCount : 0;
+		// 수입 가중치를 보급이 정하게 되면서 core 의 누적 카운트는 늘 0 이 됐다 — 실제 목록이 진실.
+		public int HarvesterCount => harvesterTransforms.Count;
 
 		/// <summary> 프로그래매틱 시작(런처/모드 진입용) — stage·stageRoot 주입 후 Begin. </summary>
 		public void Begin(TowerDefenseStageSO stageConfig, Transform root)
@@ -235,6 +240,7 @@ namespace WitchMendokusai
 			harvesterIsOuter.Clear();
 			supplyTransforms.Clear();
 			supplyBuildings.Clear();
+			outposts.Clear();
 			suppliedBuildings.Clear();
 			DisconnectedHarvesters = 0;
 			LabCount = 0;
@@ -481,8 +487,16 @@ namespace WitchMendokusai
 		/// </summary>
 		private bool RebuildPathing()
 		{
+			pathGoals.Clear();
+			pathGoals.Add(mapLayout.CoreCell);
+			foreach (Transform outpost in outposts)
+			{
+				if (outpost != null)
+					pathGoals.Add(mapLayout.WorldToCell(stageRoot.InverseTransformPoint(outpost.position)));
+			}
+
 			flowField = new TowerDefenseFlowField(
-				mapLayout.Width, mapLayout.Length, mapLayout.CoreCell, IsPathBlocked);
+				mapLayout.Width, mapLayout.Length, pathGoals, IsPathBlocked);
 			flowNavigator = new TowerDefenseFlowNavigator(
 				mapLayout, flowField, stageRoot, stage.GroundCellSize * 2f);
 
@@ -1422,7 +1436,7 @@ namespace WitchMendokusai
 				ArenaCombatant enemy = waveEnemies[index];
 				if (enemy == null || enemy.IsAlive == false)
 					continue;
-				if ((enemy.Position - coreCombatant.Position).sqrMagnitude > leakRadiusSqr)
+				if (IsAtAnyGoal(enemy.Position, leakRadiusSqr) == false)
 					continue;
 
 				PopWorldText("-1", enemy.Position, TextType.Warning);
@@ -1460,7 +1474,15 @@ namespace WitchMendokusai
 			foreach (Transform building in supplyTransforms)
 				supplyBuildings.Add(building.position);
 
-			TowerDefenseSupply.Compute(coreCombatant.Position, supplyBuildings, stage.SupplyReach, suppliedBuildings);
+			supplySeeds.Clear();
+			supplySeeds.Add(coreCombatant.Position);
+			foreach (Transform outpost in outposts)
+			{
+				if (outpost != null)
+					supplySeeds.Add(outpost.position);
+			}
+
+			TowerDefenseSupply.Compute(supplySeeds, supplyBuildings, stage.SupplyReach, suppliedBuildings);
 
 			float resourceWeight = 0f;
 			float essenceWeight = 0f;
@@ -1507,6 +1529,65 @@ namespace WitchMendokusai
 			}
 			return 1f;
 		}
+
+		// 유출 지점은 코어만이 아니다 — 전초기지도 지켜야 할 곳이다(넓힌 만큼 늘어난다).
+		private bool IsAtAnyGoal(Vector3 position, float radiusSqr)
+		{
+			if ((position - coreCombatant.Position).sqrMagnitude <= radiusSqr)
+				return true;
+
+			foreach (Transform outpost in outposts)
+			{
+				if (outpost != null && (position - outpost.position).sqrMagnitude <= radiusSqr)
+					return true;
+			}
+			return false;
+		}
+
+		/// <summary>
+		/// 전초기지 세우기 — 정수로만. 세우는 순간 ① 마수가 향하는 목표가 하나 늘고
+		/// ② 보급의 새 원점이 생기고 ③ 시야가 넓어진다. 「넓히면 벌지만 지킬 곳이 는다」가 한 건물에 들어있다.
+		/// </summary>
+		public bool TryPlaceOutpost(Vector3 worldPosition)
+		{
+			if (core == null || mapLayout == null || stageRoot == null)
+				return false;
+
+			Vector3Int cellKey = ToCellKey(worldPosition);
+			if (occupiedCells.Contains(cellKey) || IsObstacleAt(worldPosition))
+				return false;
+
+			if (core.TrySpendEssence(stage.OutpostEssenceCost) == false)
+				return false;
+
+			occupiedCells.Add(cellKey);
+
+			GameObject outpostObject = GameObject.CreatePrimitive(PrimitiveType.Cube);
+			outpostObject.name = "Outpost";
+			outpostObject.transform.SetParent(stageRoot, false);
+			outpostObject.transform.position = worldPosition + new Vector3(0f, 0.6f, 0f);
+			outpostObject.transform.localScale = new Vector3(1.1f, 1.2f, 1.1f);
+
+			Renderer outpostRenderer = outpostObject.GetComponent<Renderer>();
+			if (outpostRenderer != null)
+			{
+				Material material = new Material(outpostRenderer.sharedMaterial);
+				material.color = stage.OutpostTint;
+				if (material.HasProperty("_BaseColor"))
+					material.SetColor("_BaseColor", stage.OutpostTint);
+				outpostRenderer.sharedMaterial = material;
+			}
+
+			outposts.Add(outpostObject.transform);
+			supplyTransforms.Add(outpostObject.transform);
+			AddVisionSource(worldPosition, stage.OutpostVisionRadius);
+			RebuildPathing(); // 목표가 늘었으므로 마수의 길이 통째로 바뀐다.
+			RefreshSupply();
+			return true;
+		}
+
+		/// <summary> 세운 전초기지 수 — 지킬 곳의 개수. </summary>
+		public int OutpostCount => outposts.Count;
 
 		/// <summary> 남은 목숨(유출제 아니면 0). </summary>
 		public int Lives => core != null ? core.Lives : 0;
