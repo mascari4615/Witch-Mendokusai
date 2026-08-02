@@ -41,6 +41,7 @@ namespace WitchMendokusai
 		private Label relicLabel;
 		private Button pullButton;
 		private Button pauseButton;
+		private Button rangeDebugButton;
 		private Button speedButton;
 		private readonly VisualElement legendPanel;
 		// 범례 줄이 실제로 들어가는 곳(래퍼는 접기 버튼까지 감싼다).
@@ -93,6 +94,9 @@ namespace WitchMendokusai
 
 		/// <summary> 드래프트 카드 선택(인덱스) — 고르기 전엔 판이 멈춰 있다. </summary>
 		public event System.Action<int> BoonChosen = delegate { };
+
+		/// <summary> 디버그 — 세워둔 것 전부의 사거리를 한 번에 보여준다/감춘다. </summary>
+		public event System.Action ToggleAllRangesRequested = delegate { };
 
 		public TowerDefenseHudView(UIRoot uiRoot)
 		{
@@ -369,6 +373,13 @@ namespace WitchMendokusai
 			// 우상단은 진행 패널 자리 — 겹치면 웨이브 표시를 덮는다(라이브 스크린샷 실증). 우하단으로 뺀다.
 			wrapper.style.bottom = 24;
 			wrapper.pickingMode = PickingMode.Ignore;
+
+			wrapper.style.flexDirection = FlexDirection.Row;
+
+			// 디버그 — 세워둔 것 전부의 사거리를 한 번에. 상시 표시는 껐지만 「전체를 보고 싶은 순간」은 있다.
+			rangeDebugButton = MakeActionButton("사거리 전체", fontSize: 13, () => ToggleAllRangesRequested());
+			rangeDebugButton.style.marginRight = 8;
+			wrapper.Add(rangeDebugButton);
 
 			wrapper.Add(MakeActionButton("처음부터", fontSize: 13, () => RestartRequested()));
 			return wrapper;

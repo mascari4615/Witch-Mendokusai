@@ -76,6 +76,11 @@ namespace WitchMendokusai
 		private Vector3 heroTargetPosition;
 		private bool heroActive;
 
+		// 세워둔 것들의 사거리 원 — 기본은 전부 꺼져 있고, 묻는 순간(마우스 얹기)에만 하나가 켜진다.
+		private readonly List<TowerDefenseRing> rangeRings = new();
+		private TowerDefenseRing highlightedRing;
+		private bool showAllRanges;
+
 		// 이름 붙은 인형들 — 화면이 이름표를 띄우는 데 필요한 최소 정보.
 		private readonly List<TowerDefenseDollLabel> dollLabels = new();
 		private int nextDollOrdinal;
@@ -1681,6 +1686,92 @@ namespace WitchMendokusai
 			return name + "\n체력 " + currentHp + " / " + maxHp;
 		}
 
+		/// <summary>
+		/// 거기에 지을 수 있는가 — **보급이 닿는 곳에만** 지을 수 있다.
+		///
+		/// ★ 왜 필요한가 (사용자 지시: "설치할 수 있는 범위가 제한이 되어야 할 것 같은데. 지금 그냥 맨 땅에
+		///   설치할 수 있으니까 문제"): 아무 데나 지을 수 있으면 개척이라는 말이 성립하지 않는다. 마수가
+		///   나오는 자리 옆에 바로 포탑을 박으면 길목도, 넓히는 결정도, 보급선도 전부 의미를 잃는다.
+		/// ★ 왜 *보급* 기준인가: 이미 있는 규칙을 그대로 쓴다. 코어·전초기지·이어진 내 건물에서 뻗어 나가는
+		///   것이 곧 「내 땅」이고, 화면에 그려둔 보급 사거리 원이 그 경계를 이미 보여주고 있다.
+		///   새 숫자를 만들면 화면의 원과 실제 규칙이 갈라진다.
+		/// </summary>
+		public bool IsInBuildableRange(Vector3 worldPosition)
+		{
+			if (stage == null || coreCombatant == null)
+				return true;
+
+			float reach = stage.SupplyReach;
+			float reachSqr = reach * reach;
+
+			if ((worldPosition - coreCombatant.Position).sqrMagnitude <= reachSqr)
+				return true;
+
+			foreach (Transform outpost in outposts)
+			{
+				if (outpost != null && (worldPosition - outpost.position).sqrMagnitude <= reachSqr)
+					return true;
+			}
+
+			// 이어진 건물에서도 뻗는다 — 징검다리를 놓아 나아가는 것이 개척이다.
+			for (int index = 0; index < supplyTransforms.Count; index++)
+			{
+				Transform building = supplyTransforms[index];
+				if (building == null || suppliedBuildings.Contains(index) == false)
+					continue;
+				if ((worldPosition - building.position).sqrMagnitude <= reachSqr)
+					return true;
+			}
+
+			return false;
+		}
+
+		/// <summary>
+		/// 마우스가 얹힌 건물의 사거리만 켠다(나머지는 끈다). 상시 표시가 정보가 아니라 노이즈가 되는 것을
+		/// 막는 유일한 장치 — 「지금 이것」 하나만 보여준다.
+		/// </summary>
+		public void HighlightRangeOf(Transform unit)
+		{
+			if (showAllRanges)
+				return; // 디버그 토글이 켜져 있으면 전부 보여주는 중 — 손대지 않는다.
+
+			TowerDefenseRing wanted = null;
+			if (unit != null)
+				wanted = unit.GetComponentInChildren<TowerDefenseRing>(true);
+
+			if (wanted == highlightedRing)
+				return;
+
+			if (highlightedRing != null)
+				highlightedRing.SetVisible(false);
+
+			highlightedRing = wanted;
+			if (highlightedRing != null)
+				highlightedRing.SetVisible(true);
+		}
+
+		/// <summary> 디버그 — 세워둔 것 전부의 사거리를 한 번에 보여준다/감춘다. </summary>
+		public void ToggleAllRanges()
+		{
+			showAllRanges = showAllRanges == false;
+
+			for (int index = rangeRings.Count - 1; index >= 0; index--)
+			{
+				if (rangeRings[index] == null)
+				{
+					rangeRings.RemoveAt(index);
+					continue;
+				}
+				rangeRings[index].SetVisible(showAllRanges);
+			}
+
+			highlightedRing = null;
+			Debug.Log($"{nameof(TowerDefenseMatch)}: 전체 사거리 표시 {(showAllRanges ? "켜짐" : "꺼짐")}");
+		}
+
+		/// <summary> 전체 사거리 표시 중인가 — 화면 버튼이 상태를 보여준다. </summary>
+		public bool ShowAllRanges => showAllRanges;
+
 		/// <summary> 그 자리 인형의 이름표(없으면 null) — 승급 단계 표시 갱신에 쓴다. </summary>
 		private TowerDefenseDollLabel FindDollLabel(Transform anchor)
 		{
@@ -2092,6 +2183,8 @@ namespace WitchMendokusai
 			if (IsObstacleAt(worldPosition))
 				return Reject("암반 위엔 못 짓는다", worldPosition);
 
+			if (IsInBuildableRange(worldPosition) == false)
+				return Reject("보급이 닿는 곳에만 지을 수 있다", worldPosition);
 			if (core.TrySpendEssence(stage.OutpostEssenceCost) == false)
 				return Reject($"정수 부족 {core.Essence}/{stage.OutpostEssenceCost}", worldPosition);
 
@@ -2462,6 +2555,8 @@ namespace WitchMendokusai
 
 			if (IsObstacleAt(worldPosition))
 				return Reject("암반 위엔 못 짓는다", worldPosition);
+			if (IsInBuildableRange(worldPosition) == false)
+				return Reject("보급이 닿는 곳에만 지을 수 있다", worldPosition);
 			if (core.TrySpend(TowerCostAt(towerIndex)) == false)
 				return Reject($"자원 부족 {core.Resource}/{TowerCostAt(towerIndex)}", worldPosition);
 
@@ -2499,6 +2594,8 @@ namespace WitchMendokusai
 			if (occupiedCells.Contains(cellKey))
 				return Reject("이 노드는 이미 잡혔다", nodeWorldPosition);
 
+			if (IsInBuildableRange(nodeWorldPosition) == false)
+				return Reject("보급이 닿는 곳에만 지을 수 있다", nodeWorldPosition);
 			if (core.TrySpend(stage.HarvesterCost) == false)
 				return Reject($"자원 부족 {core.Resource}/{stage.HarvesterCost}", nodeWorldPosition);
 
@@ -2629,6 +2726,8 @@ namespace WitchMendokusai
 				return Reject("암반 위엔 못 짓는다", worldPosition);
 
 			// 연구는 정수로만 — 강화의 통로를 바깥 노드(개척)에 묶는다.
+			if (IsInBuildableRange(worldPosition) == false)
+				return Reject("보급이 닿는 곳에만 지을 수 있다", worldPosition);
 			if (core.TrySpendEssence(stage.LabEssenceCost) == false)
 				return Reject($"정수 부족 {core.Essence}/{stage.LabEssenceCost}", worldPosition);
 
@@ -2780,11 +2879,16 @@ namespace WitchMendokusai
 				float towerRange = towerArchetype != null ? towerArchetype.Range : TowerRange();
 				if (towerRange > 0f)
 				{
+					// ★ 사거리 원은 *묻는 순간에만* 뜬다(사용자 지시: "계속 보이니까 정신없어").
+					//   수십 개가 상시로 겹치면 원이 정보가 아니라 노이즈가 된다 — 마우스를 얹거나
+					//   설치 미리보기 중일 때만 켠다. 전부 보고 싶으면 디버그 토글(ShowAllRanges).
 					Color ringColor = towerArchetype != null ? towerArchetype.Tint : new Color(0.45f, 0.72f, 1f, 1f);
-					ringColor.a = 0.30f;
+					ringColor.a = 0.55f;
 					TowerDefenseRing ring = TowerDefenseRing.Create(
 						unitGameObject.transform, "RangeRing", ringColor, 0.08f, 0.05f);
 					ring.SetRadius(towerRange);
+					ring.SetVisible(showAllRanges);
+					rangeRings.Add(ring);
 				}
 			}
 

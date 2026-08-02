@@ -187,6 +187,8 @@ namespace WitchMendokusai
 		public void Deactivate()
 		{
 			isActive = false;
+			if (ghostBuilding != null)
+				ghostBuilding.SetActive(false);
 			if (previewMarker != null)
 				previewMarker.SetActive(false);
 			if (previewRing != null)
@@ -250,6 +252,8 @@ namespace WitchMendokusai
 				|| TryGetSnappedGroundPosition(inputManager.MouseScreenPosition, out Vector3 snappedWorldPosition) == false)
 			{
 				previewMarker.SetActive(false);
+				if (ghostBuilding != null)
+					ghostBuilding.SetActive(false);
 				if (previewRing != null)
 					previewRing.SetVisible(false);
 				return;
@@ -258,14 +262,104 @@ namespace WitchMendokusai
 			previewMarker.SetActive(true);
 			previewMarker.transform.position = snappedWorldPosition;
 			UpdatePreviewRing(snappedWorldPosition);
+			UpdateGhostBuilding(snappedWorldPosition);
 
-			// 유효/무효 프리뷰 색 — match.IsCellOccupied 재사용(판정 이중화 X).
+			// 유효/무효 프리뷰 색 — 판정은 전부 match 재사용(이중화 X).
+			// 「지을 수 있나」는 이제 셋이다: 칸이 비었나 / 암반이 아닌가 / *보급이 닿나*.
 			if (match != null)
 			{
+				bool canBuild = match.IsCellOccupied(snappedWorldPosition) == false
+					&& match.IsObstacleAt(snappedWorldPosition) == false
+					&& match.IsInBuildableRange(snappedWorldPosition);
+
 				Renderer previewRenderer = previewMarker.GetComponentInChildren<Renderer>();
 				if (previewRenderer != null)
-					previewRenderer.material.color = match.IsCellOccupied(snappedWorldPosition) ? Color.red : Color.green;
+					previewRenderer.material.color = canBuild ? Color.green : Color.red;
+
+				TintGhost(canBuild);
 			}
+		}
+
+		// ── 유령 건물(설치 미리보기) ──────────────────────────────────────────────
+		// ★ 왜 필요한가 (사용자 지시: "설치 미리보기에서 건물 모습이랑 사거리가 보여야겠죠"):
+		//   네모 마커 하나로는 *무엇을* 짓는지 알 수 없다. 종류가 일곱이 넘는데 커서에 뜨는 그림이 늘 같으면
+		//   핫바를 잘못 고른 것을 설치한 뒤에야 안다. 실제로 세울 그 프리팹을 반투명으로 미리 세워 보여준다.
+		private GameObject ghostBuilding;
+		private GameObject ghostSourcePrefab;
+		private readonly System.Collections.Generic.List<Renderer> ghostRenderers = new();
+
+		private void UpdateGhostBuilding(Vector3 snappedWorldPosition)
+		{
+			GameObject wanted = GhostPrefabForSelection();
+			if (wanted == null)
+			{
+				if (ghostBuilding != null)
+					ghostBuilding.SetActive(false);
+				return;
+			}
+
+			// 고른 종류가 바뀌면 유령도 갈아끼운다.
+			if (ghostSourcePrefab != wanted)
+			{
+				if (ghostBuilding != null)
+					Destroy(ghostBuilding);
+
+				ghostSourcePrefab = wanted;
+				ghostBuilding = Instantiate(wanted, transform);
+				ghostBuilding.name = "PlacementGhost";
+				StripGhost(ghostBuilding);
+
+				ghostRenderers.Clear();
+				ghostBuilding.GetComponentsInChildren(true, ghostRenderers);
+			}
+
+			ghostBuilding.SetActive(true);
+			ghostBuilding.transform.position = snappedWorldPosition;
+		}
+
+		/// <summary> 유령은 *보이기만* 한다 — 충돌·전투·이동이 살아 있으면 미리보기가 게임에 개입한다. </summary>
+		private static void StripGhost(GameObject ghost)
+		{
+			foreach (Collider collider in ghost.GetComponentsInChildren<Collider>(true))
+				collider.enabled = false;
+			foreach (Rigidbody body in ghost.GetComponentsInChildren<Rigidbody>(true))
+				body.isKinematic = true;
+			foreach (MonoBehaviour behaviour in ghost.GetComponentsInChildren<MonoBehaviour>(true))
+				behaviour.enabled = false;
+		}
+
+		private void TintGhost(bool canBuild)
+		{
+			if (ghostBuilding == null)
+				return;
+
+			Color tint = canBuild ? new Color(0.5f, 1f, 0.6f, 0.55f) : new Color(1f, 0.45f, 0.45f, 0.55f);
+			foreach (Renderer renderer in ghostRenderers)
+			{
+				if (renderer == null)
+					continue;
+				if (renderer is SpriteRenderer sprite)
+					sprite.color = tint;
+				else if (renderer.material.HasProperty("_BaseColor"))
+					renderer.material.SetColor("_BaseColor", tint);
+				else
+					renderer.material.color = tint;
+			}
+		}
+
+		private GameObject GhostPrefabForSelection()
+		{
+			if (stage == null)
+				return null;
+
+			return SelectedKind switch
+			{
+				TowerDefensePlaceableKind.Harvester => stage.HarvesterUnit != null ? stage.HarvesterUnit.Prefab : null,
+				TowerDefensePlaceableKind.Lab => stage.HarvesterUnit != null ? stage.HarvesterUnit.Prefab : null,
+				TowerDefensePlaceableKind.Tower => stage.TowerUnit != null ? stage.TowerUnit.Prefab : null,
+				// 벽·함정·전초기지는 프리팹이 아니라 코드가 그리는 도형이라 유령이 없다(마커가 그 자리를 대신한다).
+				_ => null,
+			};
 		}
 
 		/// <summary>

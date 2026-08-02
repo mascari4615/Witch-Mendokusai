@@ -125,6 +125,9 @@ namespace WitchMendokusai
 
 			// 커서가 얹힌 유닛 설명 — 배치가 찾은 대상을 그대로 쓴다(둘이 갈라지면 툴팁이 거짓말한다).
 			hud?.ShowUnitTooltip(match.DescribeUnit(placement.HoveredUnit), placement.HoverScreenPosition);
+
+			// 사거리는 묻는 순간에만 — 얹힌 그 건물 하나만 켠다(상시 표시는 노이즈).
+			match.HighlightRangeOf(placement.HoveredUnit != null ? placement.HoveredUnit.transform : null);
 		}
 
 		/// <summary>
@@ -232,6 +235,13 @@ namespace WitchMendokusai
 			placement.SuppressNextClick();
 			if (match.ChooseBoon(index))
 				hud?.HideDraft();
+		}
+
+		/// <summary> 전체 사거리 표시 토글(디버그) — 그 클릭이 설치로 새지 않게 한 번 삼킨다. </summary>
+		private void ToggleAllRanges()
+		{
+			placement.SuppressNextClick();
+			match.ToggleAllRanges();
 		}
 
 		/// <summary> 핫바 클릭 — 숫자키와 같은 경로. 그 클릭이 설치로도 새지 않게 한 번 삼킨다. </summary>
@@ -344,6 +354,7 @@ namespace WitchMendokusai
 					view.PauseToggleRequested += match.TogglePause;
 					view.SpeedCycleRequested += match.CycleSpeed;
 					view.BoonChosen += ChooseBoon;
+					view.ToggleAllRangesRequested += ToggleAllRanges;
 					match.DraftOffered += ShowDraft;
 				}
 			}
@@ -364,6 +375,7 @@ namespace WitchMendokusai
 					hud.PauseToggleRequested -= match.TogglePause;
 					hud.SpeedCycleRequested -= match.CycleSpeed;
 					hud.BoonChosen -= ChooseBoon;
+					hud.ToggleAllRangesRequested -= ToggleAllRanges;
 					match.DraftOffered -= ShowDraft;
 					hud.HideDraft();
 				}
