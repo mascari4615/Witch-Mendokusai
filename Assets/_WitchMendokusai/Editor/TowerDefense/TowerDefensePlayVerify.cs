@@ -145,6 +145,10 @@ namespace WitchMendokusai.EditorTools
 			heroCommanded = false;
 			heroProbeReady = false;
 			dollsReported = false;
+			lastPerfLog = 0.0;
+			frameSamples = 0;
+			frameTimeSum = 0f;
+			perfPeakAlive = 0;
 			draftFreezeWave = -1;
 			match = null;
 			matchEndedSeen = false;
@@ -588,6 +592,13 @@ namespace WitchMendokusai.EditorTools
 		private static bool heroProbeReady;
 		private static bool heroCommanded;
 		private static bool dollsReported;
+
+		// 성능 실측 — 프레임 시간 평균과 최다 마릿수.
+		private const double PERF_LOG_INTERVAL = 3.0;
+		private static double lastPerfLog;
+		private static int frameSamples;
+		private static float frameTimeSum;
+		private static int perfPeakAlive;
 		private static double heroProbeAt;
 
 		// HUD 실재 확인 — 화면에 숫자가 안 뜨면 사람이 플레이 판단을 못 한다(이번 증분의 핵심 산출).
@@ -1002,6 +1013,26 @@ namespace WitchMendokusai.EditorTools
 				else
 					Debug.LogError(TAG + " HERO-MOVE-FAIL 명령했는데 안 움직임 "
 						+ wasDistance.ToString("F1") + " → " + nowDistance.ToString("F1"));
+			}
+
+			// ★ 마릿수 성능 실측 — 「수백 마리」를 원했는데 지금까지 확인된 건 수십이다. 재지 않으면
+			//   늘려도 되는지 모르고, 모르면 못 늘린다. 프레임 시간과 살아있는 마릿수를 같이 찍는다.
+			frameSamples++;
+			frameTimeSum += Time.unscaledDeltaTime;
+			if (now - lastPerfLog >= PERF_LOG_INTERVAL && frameSamples > 0)
+			{
+				float averageMs = frameTimeSum / frameSamples * 1000f;
+				int aliveNow = match.AliveEnemyCount;
+				if (aliveNow > perfPeakAlive)
+					perfPeakAlive = aliveNow;
+
+				Debug.Log(TAG + " PERF alive=" + aliveNow + " peak=" + perfPeakAlive
+					+ " frameMs=" + averageMs.ToString("F1")
+					+ " fps=" + (averageMs > 0f ? (1000f / averageMs).ToString("F0") : "-"));
+
+				lastPerfLog = now;
+				frameSamples = 0;
+				frameTimeSum = 0f;
 			}
 
 			if (now - lastSample >= SAMPLE_INTERVAL)

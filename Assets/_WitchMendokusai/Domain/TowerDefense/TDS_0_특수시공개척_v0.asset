@@ -24,14 +24,14 @@ MonoBehaviour:
     StartingResource: 160
     BaseWaveIncome: 40
     IncomePerHarvester: 25
-    FirstWaveEnemyCount: 14
-    EnemyCountGrowth: 6
+    FirstWaveEnemyCount: 30
+    EnemyCountGrowth: 10
     BountyPerKill: 6
     StartingLives: 12
     EssencePerHarvester: 3
-    WaveInterval: 45
+    WaveInterval: 40
     IncomeInterval: 10
-    TrickleInterval: 2.5
+    TrickleInterval: 1.2
   <ManualFirstWave>k__BackingField: 1
   <AutoAdvanceWavesDefault>k__BackingField: 1
   <CoreUnit>k__BackingField: {fileID: 11400000, guid: a194010000000000000000000000d004, type: 2}
