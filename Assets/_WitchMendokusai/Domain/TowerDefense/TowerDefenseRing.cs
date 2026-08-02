@@ -68,20 +68,27 @@ namespace WitchMendokusai
 		// 그건 「사거리가 안 보임」보다 더 나쁜 화면이라 마지막엔 기본 스프라이트 셰이더까지 훑는다.
 		private static Material CreateLineMaterial(Color color)
 		{
-			Shader shader = Shader.Find("Universal Render Pipeline/Unlit")
-				?? Shader.Find("Sprites/Default")
-				?? Shader.Find("Unlit/Color");
+			// ★ 사거리 원은 *무엇에도 가리지 않는다*(사용자 지시 2회). 기성 셰이더에 깊이 옵션을 코드로
+			//   꽂는 방식은 그 셰이더가 해당 속성을 안 가지면 **조용히 무시**된다 — 실제로 그래서 벽에
+			//   계속 가렸다. 「깊이 검사 없음」이 못으로 박힌 전용 셰이더를 쓰고, 없을 때만 기성으로 내려간다.
+			Shader shader = Shader.Find("WM/TowerDefenseOverlayLine");
+			if (shader == null)
+			{
+				Debug.LogWarning($"{nameof(TowerDefenseRing)}: 전용 오버레이 셰이더를 못 찾음 — 원이 다른 것에 가릴 수 있다.");
+				shader = Shader.Find("Universal Render Pipeline/Unlit")
+					?? Shader.Find("Sprites/Default")
+					?? Shader.Find("Unlit/Color");
+			}
 
 			Material material = new Material(shader);
 			material.color = color;
 			if (material.HasProperty("_BaseColor"))
 				material.SetColor("_BaseColor", color);
 
-			// ★ 사거리 원은 *무엇에도 가리지 않는다*(사용자 지시). 원이 바닥·건물·마수 뒤로 숨으면
-			//   「여기까지 닿는다」를 확인하려고 시점을 돌려야 하고, 그건 배치 판단을 다시 감(勘)으로 만든다.
-			//   깊이 검사를 끄고(항상 통과) 그리는 순서를 맨 뒤로 미뤄 항상 위에 얹는다.
-			material.SetInt("_ZTest", (int)UnityEngine.Rendering.CompareFunction.Always);
-			material.SetInt("_ZWrite", 0);
+			if (material.HasProperty("_ZTest"))
+				material.SetInt("_ZTest", (int)UnityEngine.Rendering.CompareFunction.Always);
+			if (material.HasProperty("_ZWrite"))
+				material.SetInt("_ZWrite", 0);
 			material.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Overlay;
 			return material;
 		}

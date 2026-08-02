@@ -743,28 +743,37 @@ namespace WitchMendokusai
 			// 한 칸 = 텍스처 1장. 칸 경계에 밝은 선을 그어 격자를 *선으로* 보이게 한다
 			// (2x2 체크무늬는 화면에서 거의 안 읽혔다 — 사용자 실증 "바닥 격자 좀 만들어줘").
 			// 체크 음영도 함께 넣어 짝수/홀수 칸이 구분되게.
+			// ★ 진짜 체스판으로 (사용자 지시: "체스판처럼 게임 프로토타입에서 많이 보이는 텍스쳐").
+			//   격자 *선*만 그으면 칸이 다 같은 색이라 「몇 칸 떨어졌나」가 안 읽힌다. 밝은 칸/어두운 칸이
+			//   번갈아 나오면 거리가 눈으로 세어진다 — 프로토타입 바닥이 늘 체스판인 이유가 그거다.
+			//   텍스처 한 장 = 2×2 칸(체크 한 주기).
 			const int CELL_PIXELS = 32;
 			const int LINE_PIXELS = 2;
-			Texture2D checker = new Texture2D(CELL_PIXELS, CELL_PIXELS, TextureFormat.RGBA32, mipChain: true)
+			const int TEXTURE_PIXELS = CELL_PIXELS * 2;
+			Texture2D checker = new Texture2D(TEXTURE_PIXELS, TEXTURE_PIXELS, TextureFormat.RGBA32, mipChain: true)
 			{
 				filterMode = FilterMode.Bilinear,
 				wrapMode = TextureWrapMode.Repeat,
 			};
-			Color fill = new Color(0.26f, 0.29f, 0.34f, 1f);
+			Color lightCell = new Color(0.34f, 0.38f, 0.44f, 1f);
+			Color darkCell = new Color(0.22f, 0.25f, 0.30f, 1f);
 			Color gridLine = new Color(0.55f, 0.62f, 0.72f, 1f);
-			for (int y = 0; y < CELL_PIXELS; y++)
+			for (int y = 0; y < TEXTURE_PIXELS; y++)
 			{
-				for (int x = 0; x < CELL_PIXELS; x++)
+				for (int x = 0; x < TEXTURE_PIXELS; x++)
 				{
-					bool onEdge = x < LINE_PIXELS || y < LINE_PIXELS;
-					checker.SetPixel(x, y, onEdge ? gridLine : fill);
+					bool oddCell = (x / CELL_PIXELS + y / CELL_PIXELS) % 2 == 1;
+					int inCellX = x % CELL_PIXELS;
+					int inCellY = y % CELL_PIXELS;
+					bool onEdge = inCellX < LINE_PIXELS || inCellY < LINE_PIXELS;
+					checker.SetPixel(x, y, onEdge ? gridLine : (oddCell ? darkCell : lightCell));
 				}
 			}
 			checker.Apply();
 
-			// 텍스처 1장 = 배치 1칸이므로 타일 수 = 전체 길이 / 칸크기 (보이는 칸 = 배치 칸).
+			// 텍스처 한 장 = 2칸이므로 타일 수 = 전체 길이 / (칸크기 × 2).
 			float cell = stage.GroundCellSize > 0f ? stage.GroundCellSize : 1f;
-			Vector2 tiling = new Vector2(activeGroundWidth / cell, activeGroundLength / cell);
+			Vector2 tiling = new Vector2(activeGroundWidth / (cell * 2f), activeGroundLength / (cell * 2f));
 
 			Material groundMaterial = groundRenderer.material;
 			groundMaterial.mainTexture = checker;
@@ -831,6 +840,17 @@ namespace WitchMendokusai
 				unitObject.SpriteRenderer.color = tint;
 
 			unitObject.transform.localScale = Vector3.one * scale;
+
+			// ★ 몸집을 키우면 *충돌 몸통도 같이 커진다* — 그러면 단단한 마수(1.35배)는 암반과 벽 사이
+			//   좁은 틈에 끼어 나오지 못한다(사용자 실증: "단단한 마수 아까부터 껴서 못 움직인다").
+			//   이동은 콜라이더를 쓸어서 미끄러지는 방식이라, 몸통이 한 칸보다 크면 길이 있어도 못 지난다.
+			//   보이는 크기는 그대로 두고 *충돌 몸통만* 원래 굵기로 되돌린다 — 「단단함」은 체력이 말한다.
+			CapsuleCollider capsule = unitObject.GetComponent<CapsuleCollider>();
+			if (capsule != null && scale > 1f)
+			{
+				capsule.radius /= scale;
+				capsule.height /= scale;
+			}
 		}
 
 		/// <summary> 대여 계약 부착 + 원본 스냅샷 — 멱등(이미 붙어 있으면 재사용, 스냅샷은 최초 1회만). </summary>

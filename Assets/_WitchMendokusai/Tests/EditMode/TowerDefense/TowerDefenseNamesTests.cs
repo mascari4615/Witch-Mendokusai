@@ -30,20 +30,17 @@ namespace WitchMendokusai.Tests
 			for (int ordinal = 0; ordinal < 6; ordinal++)
 				names.Add(TowerDefenseNames.For(2026, ordinal));
 
-			Assert.GreaterOrEqual(names.Count, 5, "여섯 아이 중 다섯은 서로 다른 이름이어야 한다.");
+			Assert.AreEqual(6, names.Count, "여섯 아이는 서로 구분되는 표식을 가져야 한다(개체 식별이 기능이다).");
 		}
 
 		[Test]
-		public void 판이_다르면_이름_구성이_달라진다()
+		public void 세운_순서가_그대로_표식이_된다()
 		{
-			bool anyDifference = false;
-			for (int ordinal = 0; ordinal < 8; ordinal++)
-			{
-				if (TowerDefenseNames.For(1, ordinal) != TowerDefenseNames.For(2, ordinal))
-					anyDifference = true;
-			}
-
-			Assert.IsTrue(anyDifference, "판이 달라도 이름이 같으면 매 판이 같은 아이들이 된다.");
+			// 프로토타입 단계의 계약 — 그럴듯한 이름을 미리 박지 않는다(명명은 사용자 영역).
+			// 「몇 번째로 세운 아이인가」만 말한다.
+			Assert.AreEqual("유닛이름1", TowerDefenseNames.For(0, 0));
+			Assert.AreEqual("유닛이름3", TowerDefenseNames.For(999, 2));
+			Assert.AreEqual("대사1", TowerDefenseNames.Greeting(0, 0));
 		}
 
 		[Test]

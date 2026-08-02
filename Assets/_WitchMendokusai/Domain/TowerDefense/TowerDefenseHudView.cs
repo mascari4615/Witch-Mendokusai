@@ -773,6 +773,34 @@ namespace WitchMendokusai
 		/// <summary> 선택 표시 갱신 — 컨트롤러가 선택 변경 시 호출. </summary>
 		/// <summary> 고른 슬롯 표시 — 포탑 종류가 늘어도 이 함수는 그대로다(슬롯 = 선택의 단위). </summary>
 		/// <summary> 고를 수 있는 것들을 공용 바에 넘긴다 — 목록이 바뀌는 시점(진입·재시작)에만. </summary>
+		/// <summary>
+		/// 칸 툴팁 데이터 — 본편 툴팁이 *이미 그릴 줄 아는* 형식(SlotData)으로 넘긴다.
+		///
+		/// ★ 실패 사례(사용자 실증 "유닛 툴팁 어딨는데"): 포탑 데이터 객체를 그대로 넘겼더니 툴팁 쪽에
+		///   그 타입을 그릴 방법이 없어 *조용히 아무것도 안 떴다*. 툴팁은 아는 형식만 그린다.
+		/// </summary>
+		private static SlotData SlotTip(string name, string description)
+		{
+			SlotData data = new();
+			data.SetData(null, name, description);
+			return data;
+		}
+
+		private static string DescribeTower(TowerDefenseTowerArchetype tower)
+		{
+			string text = tower.Note + "\n사거리 " + tower.Range.ToString("0.#") + "  ·  피해 " + tower.Damage
+				+ "  ·  " + tower.Cooldown.ToString("0.##") + "초마다";
+			if (tower.Pierce > 1)
+				text += "\n한 발이 " + tower.Pierce + "기를 꿰뚫는다";
+			if (tower.SplashRadius > 0f)
+				text += "\n착탄 주변 " + tower.SplashRadius.ToString("0.#") + "까지 함께 맞는다";
+			if (tower.SlowFactor > 0f)
+				text += "\n맞은 마수가 " + (int)(tower.SlowFactor * 100f) + "% 느려진다";
+			if (tower.SlowedTargetBonus > 0f)
+				text += "\n느려진 마수에겐 +" + (int)(tower.SlowedTargetBonus * 100f) + "% 더 아프게";
+			return text;
+		}
+
 		private void FillHotbar(TowerDefenseStageSO stage)
 		{
 			if (stage == null)
@@ -795,23 +823,32 @@ namespace WitchMendokusai
 						continue;
 					if (TowerDefenseMeta.IsUnlocked(index, stage.DefaultUnlockedTowerCount, unlocked) == false)
 						continue;
-					entries.Add(new ModeSelectionBar.Entry(tower.DisplayName, tower.Cost, tower.Tint, tooltip: tower));
+					entries.Add(new ModeSelectionBar.Entry(tower.DisplayName, tower.Cost, tower.Tint,
+						tooltip: SlotTip(tower.DisplayName, DescribeTower(tower))));
 				}
 			}
 			else
 			{
-				entries.Add(new ModeSelectionBar.Entry("포탑 인형", stage.TowerCost, stage.TowerTint));
+				entries.Add(new ModeSelectionBar.Entry("포탑 인형", stage.TowerCost, stage.TowerTint,
+					tooltip: SlotTip("포탑 인형", "사거리 안의 마수를 쏜다.")));
 			}
 
-			entries.Add(new ModeSelectionBar.Entry("채집 인형", stage.HarvesterCost, stage.HarvesterTint));
-			entries.Add(new ModeSelectionBar.Entry("연구 인형", stage.LabCost, stage.LabTint));
-			entries.Add(new ModeSelectionBar.Entry("벽", stage.WallCost, stage.WallTint));
-			entries.Add(new ModeSelectionBar.Entry("함정", stage.TrapCost, stage.TrapTint));
-			entries.Add(new ModeSelectionBar.Entry("전초기지", stage.OutpostEssenceCost, stage.OutpostTint));
+			// 칸마다 「이게 뭘 하는 건지」를 붙인다 — 이름과 값만 보고는 벽과 함정의 차이를 알 수 없다.
+			entries.Add(new ModeSelectionBar.Entry("채집 인형", stage.HarvesterCost, stage.HarvesterTint,
+				tooltip: SlotTip("채집 인형", "자원 노드 위에만 선다. 코어까지 보급이 이어져야 수입이 들어온다.\n바깥 노드는 정수를 낸다.")));
+			entries.Add(new ModeSelectionBar.Entry("연구 인형", stage.LabEssenceCost, stage.LabTint,
+				tooltip: SlotTip("연구 인형", "정수로 짓는다. 세워두는 동안 모든 포탑의 피해가 오른다.")));
+			entries.Add(new ModeSelectionBar.Entry("벽", stage.WallCost, stage.WallTint,
+				tooltip: SlotTip("벽", "마수의 길을 휘게 한다. 길을 완전히 막는 자리에는 못 세운다.")));
+			entries.Add(new ModeSelectionBar.Entry("함정", stage.TrapCost, stage.TrapTint,
+				tooltip: SlotTip("함정", "바닥에 깐다. 밟으면 터지고 횟수를 다 쓰면 사라진다.")));
+			entries.Add(new ModeSelectionBar.Entry("전초기지", stage.OutpostEssenceCost, stage.OutpostTint,
+				tooltip: SlotTip("전초기지", "정수로 짓는다. 새 보급 원점이자 *새로 지켜야 할 곳*이 된다 — 마수가 그리로도 몰린다.")));
 
 			// 영웅 칸만 성격이 다르다 — 짓는 게 아니라 *보내는* 칸이라 비용이 0 이다.
 			if (stage.HeroUnit != null)
-				entries.Add(new ModeSelectionBar.Entry("영웅 이동", 0, stage.HeroTint));
+				entries.Add(new ModeSelectionBar.Entry("영웅 이동", 0, stage.HeroTint,
+					tooltip: SlotTip("영웅 이동", "고르고 땅을 찍으면 영웅이 그리로 걸어간다. 짓는 게 아니라 보내는 칸이다.")));
 
 			selectionBar.SetEntries(entries);
 		}

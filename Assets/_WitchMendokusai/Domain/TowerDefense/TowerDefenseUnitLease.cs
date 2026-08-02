@@ -37,6 +37,11 @@ namespace WitchMendokusai
 		private UnitMovement movement;
 		private bool movementEnabled;
 
+		// 충돌 몸통 — 개척은 「보이는 크기 ≠ 물리 크기」로 만들려고 굵기를 손대므로 원본을 되돌려야 한다.
+		private CapsuleCollider capsule;
+		private float capsuleRadius;
+		private float capsuleHeight;
+
 		private bool hasSpriteRenderer;
 		private Color spriteColor;
 		private Vector3 localScale;
@@ -64,6 +69,13 @@ namespace WitchMendokusai
 			hasSpriteRenderer = unitObject != null && unitObject.SpriteRenderer != null;
 			if (hasSpriteRenderer)
 				spriteColor = unitObject.SpriteRenderer.color;
+
+			capsule = GetComponent<CapsuleCollider>();
+			if (capsule != null)
+			{
+				capsuleRadius = capsule.radius;
+				capsuleHeight = capsule.height;
+			}
 
 			navAgent = GetComponent<UnityEngine.AI.NavMeshAgent>();
 			if (navAgent != null)
@@ -121,6 +133,12 @@ namespace WitchMendokusai
 			// 자동시전은 Init 을 건너뛰고 보존되는 값이라(UnitObject.Init 주석) 명시 복구가 필요하다.
 			if (unitObject != null && unitObject.SkillHandler != null)
 				unitObject.SkillHandler.AutoCastEnabled = true;
+
+			if (capsule != null)
+			{
+				capsule.radius = capsuleRadius;
+				capsule.height = capsuleHeight;
+			}
 
 			if (navAgent != null)
 				navAgent.enabled = navAgentEnabled;

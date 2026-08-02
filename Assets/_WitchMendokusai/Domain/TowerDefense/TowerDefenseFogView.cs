@@ -84,8 +84,10 @@ namespace WitchMendokusai
 		}
 
 		// 안 가본 곳은 「지형조차 모른다」라 거의 불투명. 기억하는 곳은 지형이 비쳐야 하므로 반투명.
-		private static readonly Color32 UnseenColor = new Color32(4, 5, 9, 252);
-		private static readonly Color32 ExploredColor = new Color32(6, 8, 14, 150);
+		// 안개는 확실히 어두워야 한다(사용자 지시) — 어스름하게만 덮으면 「안 보인다」가 아니라
+		// 「좀 흐리다」로 읽혀, 시야를 넓히는 행위의 보상이 화면에서 사라진다.
+		private static readonly Color32 UnseenColor = new Color32(2, 2, 4, 255);
+		private static readonly Color32 ExploredColor = new Color32(3, 4, 8, 205);
 		private static readonly Color32 ClearColor = new Color32(0, 0, 0, 0);
 
 		private static void MakeTransparent(Material material)

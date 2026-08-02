@@ -212,15 +212,29 @@ namespace WitchMendokusai
 				return;
 			}
 
+			// ★ 단순 Raycast 는 *미리보기 마커*를 맞는다 — 그건 커서를 따라다니므로 항상 커서 밑에 있고,
+			//   그래서 툴팁 대상이 영원히 「아무것도 아님」이 됐다(사용자 실증: "유닛 툴팁 어딨는데").
+			//   맞은 것을 전부 훑어 *유닛인 것*만 고른다.
 			Ray ray = raycastCamera.ScreenPointToRay(screenPointerPosition);
-			if (Physics.Raycast(ray, out RaycastHit hit, raycastDistance, ~0, QueryTriggerInteraction.Ignore) == false)
+			int hitCount = Physics.RaycastNonAlloc(ray, hoverHits, raycastDistance, ~0, QueryTriggerInteraction.Ignore);
+
+			ArenaCombatant nearest = null;
+			float nearestDistance = float.MaxValue;
+			for (int index = 0; index < hitCount; index++)
 			{
-				HoveredUnit = null;
-				return;
+				ArenaCombatant combatant = hoverHits[index].collider.GetComponentInParent<ArenaCombatant>();
+				if (combatant == null || hoverHits[index].distance >= nearestDistance)
+					continue;
+
+				nearest = combatant;
+				nearestDistance = hoverHits[index].distance;
 			}
 
-			HoveredUnit = hit.collider.GetComponentInParent<ArenaCombatant>();
+			HoveredUnit = nearest;
 		}
+
+		// 커서 아래 유닛 탐색 버퍼 — 매 프레임 새 배열을 만들지 않는다.
+		private readonly RaycastHit[] hoverHits = new RaycastHit[16];
 
 		private void Update()
 		{
