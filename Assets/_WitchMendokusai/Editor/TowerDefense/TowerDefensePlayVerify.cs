@@ -284,6 +284,7 @@ namespace WitchMendokusai.EditorTools
 					VerifyWall();
 					VerifyLab();
 					VerifyWaveEvents();
+					VerifySupply();
 					if (placeOnly)
 					{
 						Debug.Log(TAG + " PLACE-ONLY 배치 확인 끝 — 조기 종료");
@@ -1084,6 +1085,34 @@ namespace WitchMendokusai.EditorTools
 				Debug.Log(verdict + " → 바깥 노드가 정수를 낸다 ✔");
 			else
 				Debug.LogError(verdict + " → 바깥 노드인데 정수가 안 나온다.");
+		}
+
+		/// <summary> 보급 — 코어에서 이어진 건물이 잡히고, 끊긴 채집이 수입에서 빠지는가. </summary>
+		private static void VerifySupply()
+		{
+			Transform stageRoot = FindStageRoot();
+			if (match == null || stageRoot == null)
+				return;
+
+			// ★ 확인할 것은 「가까운 건 이어지고 먼 건 안 이어진다」이다. 앞 단계(판매)가 코어 근처 건물을
+			//   치워버려 사슬의 시작점이 사라졌으므로, 코어 옆에 하나 세워 대조군을 만든다.
+			foreach (Vector3 local in FindPlaceableSpots(stageRoot, 1))
+			{
+				match.TryPlaceWall(stageRoot.TransformPoint(local));
+				break;
+			}
+
+			string verdict = TAG + " SUPPLY buildings=" + match.SupplyBuildingCount
+				+ " reach=" + match.Stage.SupplyReach
+				+ " supplied=" + match.SuppliedBuildings
+				+ " disconnected=" + match.DisconnectedHarvesters
+				+ " nextIncome=" + match.NextWaveIncome
+				+ " nextEssence=" + match.NextWaveEssence;
+
+			if (match.SuppliedBuildings > 0)
+				Debug.Log(verdict + " → 코어에서 사슬이 이어진다 ✔");
+			else
+				Debug.LogError(verdict + " → 아무 건물도 보급에 안 잡힌다(사슬 계산 실패).");
 		}
 
 		/// <summary> 이벤트 파도 — 파도마다 성격이 붙고, 마리수가 실제로 달라지는가(예고와 스폰이 같은 함수). </summary>

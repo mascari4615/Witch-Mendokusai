@@ -708,9 +708,15 @@ namespace WitchMendokusai
 				: "-";
 
 			// 「기본 + 채집 N기」로 쪼개 보여준다 — 총액만 보이면 그 숫자가 어디서 왔는지 알 수 없다.
+			// 끊긴 채집이 있으면 그 사실이 수입 옆에 붙어야 한다 — 안 그러면 「왜 수입이 줄었지」가 미스터리가 된다.
+			string supplyNote = match.DisconnectedHarvesters > 0
+				? "  ⚠ 보급 끊김 " + match.DisconnectedHarvesters
+				: string.Empty;
+
 			incomeValue.text = match.HarvesterCount > 0
 				? match.NextWaveIncome + " (기본 " + stage.Rules.BaseWaveIncome + " + 채집 " + match.HarvesterCount + "기)"
 				: match.NextWaveIncome.ToString();
+			incomeValue.text += supplyNote;
 
 			livesValue.text = match.UsesLives ? match.Lives.ToString() : "-";
 			essenceValue.text = match.NextWaveEssence > 0

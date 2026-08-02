@@ -223,6 +223,16 @@ namespace WitchMendokusai
 			Phase = TowerDefensePhase.Concluded;
 		}
 
+		/// <summary>
+		/// 지금 유효한 채집 가중치를 통째로 정한다 — 보급이 끊기면 그 채집은 없는 것과 같으므로,
+		/// 「지을 때 더한다」가 아니라 「지금 몇 개가 이어져 있나」를 매번 다시 알려주는 쪽이 진실이다.
+		/// </summary>
+		public void SetHarvesterWeights(float resourceWeight, float essenceWeight)
+		{
+			harvesterIncomeWeight = Mathf.Max(0f, resourceWeight);
+			essenceHarvesterWeight = Mathf.Max(0f, essenceWeight);
+		}
+
 		/// <summary> 채집건물을 팔았다 — 수입도 같이 줄어야 「판다」가 공짜가 되지 않는다. </summary>
 		public void RemoveHarvester(float incomeMultiplier)
 		{

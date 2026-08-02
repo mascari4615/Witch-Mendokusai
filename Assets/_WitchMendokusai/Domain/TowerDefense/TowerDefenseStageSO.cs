@@ -112,6 +112,10 @@ namespace WitchMendokusai
 		[field: Tooltip("휠 **한 칸당** 높이 변화량. 플랫폼별 raw 델타 차이는 리그가 흡수한다.")]
 		[field: SerializeField, Min(0.1f)] public float CameraZoomSpeed { get; private set; } = 6f;
 
+		[field: Header("보급선 — 이어져야 들어온다")]
+		[field: Tooltip("건물 하나가 다음 건물까지 보급을 잇는 거리(칸). 짧을수록 촘촘히 이어야 하고 그만큼 지킬 게 는다.")]
+		[field: SerializeField, Min(1f)] public float SupplyReach { get; private set; } = 7f;
+
 		[field: Header("정수 — 강화 전용 재화(바깥 노드에서만)")]
 		[field: Tooltip("연구 인형 1기에 드는 정수.")]
 		[field: SerializeField, Min(0)] public int LabEssenceCost { get; private set; } = 6;

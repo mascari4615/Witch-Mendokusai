@@ -53,6 +53,10 @@ namespace WitchMendokusai
 		private readonly List<Transform> harvesterTransforms = new();
 		// 이 채집 인형이 바깥 노드에 섰나 — 정수/자원 중 무엇을 내는지 결정.
 		private readonly Dictionary<Vector3, bool> harvesterIsOuter = new();
+		// 보급 — 코어에서 내 건물을 징검다리로 이어지는 사슬. 끊기면 그 너머의 채집은 수입이 0.
+		private readonly List<Vector3> supplyBuildings = new();
+		private readonly List<Transform> supplyTransforms = new();
+		private readonly HashSet<int> suppliedBuildings = new();
 
 		// 이번 매치의 판 — 절차 생성이면 layout 이 정본, 끄면 null 이고 스테이지 SO 의 고정 레이아웃을 쓴다.
 		// 아래 active* 목록이 *둘을 하나로 합친 단일 출처* — 매치 본문은 어느 쪽인지 신경 쓰지 않는다.
@@ -229,6 +233,10 @@ namespace WitchMendokusai
 			enemyBountyById.Clear();
 			harvesterTransforms.Clear();
 			harvesterIsOuter.Clear();
+			supplyTransforms.Clear();
+			supplyBuildings.Clear();
+			suppliedBuildings.Clear();
+			DisconnectedHarvesters = 0;
 			LabCount = 0;
 			TrapsSpent = 0;
 			speedStep = 1;
@@ -514,6 +522,11 @@ namespace WitchMendokusai
 			if (wallMaterial.HasProperty("_BaseColor"))
 				wallMaterial.SetColor("_BaseColor", wallColor);
 			wallRenderer.sharedMaterial = wallMaterial;
+
+			// 벽도 보급 중계다 — 길을 그리는 것과 보급선을 잇는 것이 같은 행위가 되어,
+			// 「어디에 벽을 세울까」가 방어선과 살림살이 양쪽을 동시에 결정한다.
+			supplyTransforms.Add(wall.transform);
+			RefreshSupply();
 		}
 
 		/// <summary>
@@ -916,6 +929,7 @@ namespace WitchMendokusai
 			CullEscapedEnemies(); // 무대 밖 개체가 웨이브를 영원히 붙잡지 못하게 — 집계 *전에* 정리.
 			CullLeakedEnemies();  // 목표에 닿은 마수는 사라지고 목숨이 준다(유출제).
 			ApplyEnemyVisibility(); // 안 보이는 마수는 화면에서도 지운다(규칙과 그림이 같아야 한다).
+			RefreshSupply();        // 방어 건물이 부서지면 그 순간 사슬이 끊긴다.
 			PayKillBounties();    // 격파 즉시 보상 — 웨이브 정산만 있으면 교전 중엔 아무 보상도 안 온다.
 
 			bool coreAlive = coreCombatant != null && coreCombatant.IsAlive;
@@ -1427,6 +1441,73 @@ namespace WitchMendokusai
 			}
 		}
 
+		/// <summary>
+		/// 보급 다시 계산 + 수입 반영. 건물이 서거나 사라질 때마다, 그리고 매 틱 부른다.
+		/// 끊긴 채집은 수입이 0 — 「넓히면 번다」가 「넓히면 지킬 것이 는다」로 바뀌는 지점.
+		/// </summary>
+		private void RefreshSupply()
+		{
+			if (core == null || coreCombatant == null || stage == null)
+				return;
+
+			for (int index = supplyTransforms.Count - 1; index >= 0; index--)
+			{
+				if (supplyTransforms[index] == null)
+					supplyTransforms.RemoveAt(index);
+			}
+
+			supplyBuildings.Clear();
+			foreach (Transform building in supplyTransforms)
+				supplyBuildings.Add(building.position);
+
+			TowerDefenseSupply.Compute(coreCombatant.Position, supplyBuildings, stage.SupplyReach, suppliedBuildings);
+
+			float resourceWeight = 0f;
+			float essenceWeight = 0f;
+			DisconnectedHarvesters = 0;
+
+			for (int index = 0; index < supplyTransforms.Count; index++)
+			{
+				Transform building = supplyTransforms[index];
+				if (harvesterTransforms.Contains(building) == false)
+					continue;
+
+				if (suppliedBuildings.Contains(index) == false)
+				{
+					DisconnectedHarvesters++;
+					continue;
+				}
+
+				float multiplier = HarvesterMultiplierOf(building);
+				if (harvesterIsOuter.TryGetValue(building.position, out bool outer) && outer)
+					essenceWeight += multiplier;
+				else
+					resourceWeight += multiplier;
+			}
+
+			core.SetHarvesterWeights(resourceWeight, essenceWeight);
+		}
+
+		/// <summary> 보급이 끊긴 채집 인형 수 — 화면이 「왜 수입이 줄었나」를 말해줘야 한다. </summary>
+		public int DisconnectedHarvesters { get; private set; }
+
+		/// <summary> 코어까지 이어진 건물 수 — 검증·진단용. </summary>
+		public int SuppliedBuildings => suppliedBuildings.Count;
+
+		/// <summary> 보급 사슬 후보 건물 수 — 「사슬이 비었나 / 안 닿나」를 가르는 진단값. </summary>
+		public int SupplyBuildingCount => supplyTransforms.Count;
+
+		private float HarvesterMultiplierOf(Transform harvester)
+		{
+			for (int index = 0; index < activeNodePositions.Count; index++)
+			{
+				Vector3 nodeWorld = stageRoot.TransformPoint(activeNodePositions[index]);
+				if ((nodeWorld - harvester.position).sqrMagnitude <= 1f)
+					return NodeIncomeMultiplierAt(index);
+			}
+			return 1f;
+		}
+
 		/// <summary> 남은 목숨(유출제 아니면 0). </summary>
 		public int Lives => core != null ? core.Lives : 0;
 
@@ -1682,12 +1763,7 @@ namespace WitchMendokusai
 					continue;
 
 				harvesterTransforms.RemoveAt(index);
-				int nodeIndex = ReleaseNodeAt(sold.transform.position);
-				float multiplier = NodeIncomeMultiplierAt(nodeIndex);
-				if (nodeIndex >= 0 && nodeIndex < activeNodeIsOuter.Count && activeNodeIsOuter[nodeIndex])
-					core.RemoveEssenceHarvester(multiplier);
-				else
-					core.RemoveHarvester(multiplier);
+				ReleaseNodeAt(sold.transform.position);
 				return stage.HarvesterCost;
 			}
 
@@ -1730,8 +1806,10 @@ namespace WitchMendokusai
 			if (driver != null)
 				driver.StopDriving();
 
+			supplyTransforms.Remove(sold.transform);
 			ReleaseUnit(pool, sold);
 			spawnedUnits.Remove(sold);
+			RefreshSupply(); // 사슬 중간이 사라지면 그 너머가 통째로 끊긴다.
 		}
 
 		/// <summary>
@@ -1919,14 +1997,13 @@ namespace WitchMendokusai
 					: isHarvester ? stage.HarvesterVisionRadius
 					: (towerArchetype != null ? towerArchetype.VisionRadius : stage.CoreVisionRadius));
 
+			// 모든 내 건물이 보급 사슬의 징검다리 — 포탑을 늘어놓는 것이 곧 보급선을 잇는 일이 된다.
+			supplyTransforms.Add(unitGameObject.transform);
+
 			if (isHarvester)
-			{
-				if (harvesterIsOuter.TryGetValue(worldPosition, out bool outer) && outer)
-					core.AddEssenceHarvester(incomeMultiplier);
-				else
-					core.AddHarvester(incomeMultiplier); // 채집건물 = 실제 가동(스폰 확정) 시점에만 수입 반영.
 				harvesterTransforms.Add(unitGameObject.transform);
-			}
+
+			RefreshSupply(); // 수입은 「지을 때 더한다」가 아니라 「지금 몇 개가 이어져 있나」로 정해진다.
 		}
 
 		/// <summary>
