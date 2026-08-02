@@ -291,6 +291,7 @@ namespace WitchMendokusai
 			heroVisionCell = new Vector2Int(int.MinValue, int.MinValue);
 			enemyMaxStopDistance = 0f;
 			nests.Clear();
+			nestsEverSpawned = false;
 			generators.Clear();
 			powerConsumerTransforms.Clear();
 			poweredConsumers.Clear();
@@ -944,6 +945,7 @@ namespace WitchMendokusai
 		// ★ 왜 마수 프리팹으로 세우나: 포탑은 *마수 목록에 있는 것*만 쏜다. 둥지를 같은 종류로 세우면
 		//   조준·피해·격파 보상 경로를 하나도 새로 만들지 않고 그대로 재사용한다.
 		private readonly List<(ArenaCombatant Combatant, Vector3 LocalPosition)> nests = new();
+		private bool nestsEverSpawned; // 처음부터 둥지가 없던 판(옛 방식)을 「전멸」로 오인하지 않게.
 
 		private IEnumerator SpawnNestsRoutine()
 		{
@@ -1000,7 +1002,8 @@ namespace WitchMendokusai
 				nests.Add((nestCombatant, localPosition));
 			}
 
-			Debug.Log($"{nameof(TowerDefenseMatch)}: 마수 둥지 {nests.Count}곳 — 부수면 그 출구가 닫힌다.");
+			nestsEverSpawned = nests.Count > 0;
+			Debug.Log($"{nameof(TowerDefenseMatch)}: 마수 둥지 {nests.Count}곳 — 전부 부수면 개척 성공.");
 		}
 
 		/// <summary> 부서진 둥지의 출구를 닫는다 — 그 자리에서 더는 마수가 안 나온다. </summary>
@@ -1016,6 +1019,15 @@ namespace WitchMendokusai
 				activeSpawnPoints.Remove(localPosition);
 				PopWorldText("둥지 파괴", stageRoot.TransformPoint(localPosition), TextType.Heal);
 				Debug.Log($"{nameof(TowerDefenseMatch)}: 둥지 하나가 무너졌다 — 남은 출구 {activeSpawnPoints.Count}곳.");
+
+				// ★ 마지막 둥지가 무너지면 이긴다 — 실시간 전환으로 「N웨이브를 넘기면 승리」가 사라진 뒤
+				//   유일하게 남은 *끝*이다. 끝이 없으면 아무리 잘해도 언젠가 지는 게임이 되고,
+				//   그건 「밀어낸다」를 넣은 의미를 통째로 없앤다.
+				if (nests.Count == 0 && nestsEverSpawned)
+				{
+					Debug.Log($"{nameof(TowerDefenseMatch)}: 마지막 둥지가 무너졌다 — 개척 성공.");
+					Conclude(TowerDefenseOutcome.Victory);
+				}
 			}
 		}
 

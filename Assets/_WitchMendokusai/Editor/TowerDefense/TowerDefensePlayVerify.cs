@@ -516,7 +516,14 @@ namespace WitchMendokusai.EditorTools
 			nodeOrder.Clear();
 			for (int index = 0; index < nodeLocals.Count; index++)
 				nodeOrder.Add(index);
-			nodeOrder.Sort((left, right) => match.NodeIncomeMultiplierAt(right).CompareTo(match.NodeIncomeMultiplierAt(left)));
+			// ★ 이제 「보급이 닿는 곳에만」 지을 수 있다 — 먼 노드부터 노리면 전부 거절돼 채집이 0 이 되고,
+			//   그러면 정수·보급 확인이 통째로 무의미해진다(라이브 실증: 거절 로그만 쌓였다).
+			//   사람이 하는 순서대로 *코어에서 가까운 것부터* 잡는다.
+			Vector3 coreLocal = stageRoot.InverseTransformPoint(match.CoreCombatant != null
+				? match.CoreCombatant.Position
+				: stageRoot.position);
+			nodeOrder.Sort((left, right) =>
+				(nodeLocals[left] - coreLocal).sqrMagnitude.CompareTo((nodeLocals[right] - coreLocal).sqrMagnitude));
 
 			Vector3 firstHarvesterLocal = Vector3.zero;
 			foreach (int nodeIndex in nodeOrder)
