@@ -461,6 +461,8 @@ namespace WitchMendokusai
 					legendRows.Add(MakeLegendRow(tower.Tint, tower.DisplayName, tower.Note, TowerDefenseIcon.ForTower(tower)));
 				}
 			}
+			legendRows.Add(MakeLegendRow(stage.TrapTint, "함정",
+				"밟으면 터진다 · " + stage.TrapCharges + "번 쓰면 사라짐", TowerDefenseIcon.Kind.Burst));
 			legendRows.Add(MakeLegendRow(stage.WallTint, "벽",
 				"못 지나간다 · 길을 휘게 만든다(완전히 막을 순 없다)", TowerDefenseIcon.Kind.Beam));
 			legendRows.Add(MakeLegendRow(stage.LabTint, "연구 인형",
@@ -566,6 +568,7 @@ namespace WitchMendokusai
 			entries.Add(new ModeSelectionBar.Entry("채집 인형", stage.HarvesterCost, stage.HarvesterTint));
 			entries.Add(new ModeSelectionBar.Entry("연구 인형", stage.LabCost, stage.LabTint));
 			entries.Add(new ModeSelectionBar.Entry("벽", stage.WallCost, stage.WallTint));
+			entries.Add(new ModeSelectionBar.Entry("함정", stage.TrapCost, stage.TrapTint));
 			selectionBar.SetEntries(entries);
 		}
 

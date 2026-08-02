@@ -222,6 +222,7 @@ namespace WitchMendokusai
 			enemyBountyById.Clear();
 			harvesterTransforms.Clear();
 			LabCount = 0;
+			TrapsSpent = 0;
 			speedStep = 1;
 			lastRunningStep = 1;
 			ApplySpeed();
@@ -307,6 +308,66 @@ namespace WitchMendokusai
 		{
 			return mapLayout.IsBlocked(cell) || wallCells.Contains(cell);
 		}
+
+		/// <summary>
+		/// 함정 깔기 — 밟으면 터진다. 길목과 직결되므로 벽(길 그리기)의 짝.
+		/// 통행을 막지 않으므로 길 검사가 필요 없다(그래서 벽보다 훨씬 가볍다).
+		/// </summary>
+		public bool TryPlaceTrap(Vector3 worldPosition)
+		{
+			if (core == null || mapLayout == null || stageRoot == null)
+				return false;
+
+			Vector3Int cellKey = ToCellKey(worldPosition);
+			if (occupiedCells.Contains(cellKey) || IsObstacleAt(worldPosition))
+				return false;
+
+			if (core.TrySpend(stage.TrapCost) == false)
+				return false;
+
+			occupiedCells.Add(cellKey);
+			BuildTrapObject(worldPosition, cellKey);
+			return true;
+		}
+
+		private void BuildTrapObject(Vector3 worldPosition, Vector3Int cellKey)
+		{
+			float cellSize = stage.GroundCellSize;
+			GameObject trapObject = GameObject.CreatePrimitive(PrimitiveType.Quad);
+			trapObject.name = "Trap";
+			Destroy(trapObject.GetComponent<Collider>()); // 밟는 판정은 거리로 한다 — 물리를 끼우면 마수가 걸린다.
+			trapObject.transform.SetParent(stageRoot, false);
+			trapObject.transform.position = worldPosition + new Vector3(0f, 0.05f, 0f);
+			trapObject.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
+			trapObject.transform.localScale = Vector3.one * cellSize * 0.85f;
+
+			Renderer trapRenderer = trapObject.GetComponent<Renderer>();
+			if (trapRenderer != null)
+			{
+				Material trapMaterial = new Material(trapRenderer.sharedMaterial);
+				MakeTransparent(trapMaterial);
+				Color trapColor = stage.TrapTint;
+				trapColor.a = 0.75f;
+				trapMaterial.color = trapColor;
+				if (trapMaterial.HasProperty("_BaseColor"))
+					trapMaterial.SetColor("_BaseColor", trapColor);
+				trapRenderer.sharedMaterial = trapMaterial;
+			}
+
+			TowerDefenseTrap trap = trapObject.AddComponent<TowerDefenseTrap>();
+			trap.Configure(waveEnemies, stage.TrapDamage, stage.TrapCharges, stage.TrapRadius,
+				spent =>
+				{
+					// 다 쓴 함정은 자리를 비워준다 — 안 비우면 그 칸이 영영 죽는다.
+					occupiedCells.Remove(cellKey);
+					TrapsSpent++;
+					if (spent != null)
+						Destroy(spent.gameObject);
+				});
+		}
+
+		/// <summary> 다 쓰고 사라진 함정 수 — 검증·통계용. </summary>
+		public int TrapsSpent { get; private set; }
 
 		/// <summary>
 		/// 벽 세우기 — 마수의 길을 *내가 그린다*. 장르적으로 여기가 가장 큰 전환점이다:

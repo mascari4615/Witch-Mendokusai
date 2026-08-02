@@ -274,6 +274,9 @@ namespace WitchMendokusai.EditorTools
 					DumpPlacedUnits("최초 배치");
 					VerifyUiPointerGuard();
 					VerifySell();
+			// 벽(길 검사 + 다수 소모)이 예산을 먼저 비우면 함정이 「값이 비싸 못 깐다」로 끝난다 —
+			// 확인하려는 건 「깔리는가」이므로 싼 것부터 본다.
+			VerifyTrap();
 			VerifyWall();
 					if (placeOnly)
 					{
@@ -1034,6 +1037,28 @@ namespace WitchMendokusai.EditorTools
 					+ " alive=" + combatant.IsAlive);
 				index++;
 			}
+		}
+
+		/// <summary> 함정 — 깔리는가(길목에 소모품을 놓는 수단이 실제로 존재하는가). </summary>
+		private static void VerifyTrap()
+		{
+			Transform stageRoot = FindStageRoot();
+			if (match == null || stageRoot == null)
+				return;
+
+			int placed = 0;
+			int before = match.Resource;
+			foreach (Vector3 local in FindPlaceableSpots(stageRoot, 2))
+			{
+				if (match.TryPlaceTrap(stageRoot.TransformPoint(local)))
+					placed++;
+			}
+
+			string verdict = TAG + " TRAP placed=" + placed + " resource " + before + " → " + match.Resource;
+			if (placed > 0 && match.Resource < before)
+				Debug.Log(verdict + " ✔");
+			else
+				Debug.LogError(verdict + " → 함정이 안 깔리거나 값을 안 치른다.");
 		}
 
 		/// <summary>

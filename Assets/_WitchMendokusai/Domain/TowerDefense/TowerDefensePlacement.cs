@@ -54,9 +54,11 @@ namespace WitchMendokusai
 					return TowerDefensePlaceableKind.Tower;
 				if (SelectedSlot == TowerSlotCount)
 					return TowerDefensePlaceableKind.Harvester;
-				return SelectedSlot == TowerSlotCount + 1
-					? TowerDefensePlaceableKind.Lab
-					: TowerDefensePlaceableKind.Wall;
+				if (SelectedSlot == TowerSlotCount + 1)
+					return TowerDefensePlaceableKind.Lab;
+				return SelectedSlot == TowerSlotCount + 2
+					? TowerDefensePlaceableKind.Wall
+					: TowerDefensePlaceableKind.Trap;
 			}
 		}
 
@@ -99,7 +101,7 @@ namespace WitchMendokusai
 		public void SelectSlot(int slot)
 		{
 			// 칸 = 포탑들 + 채집 + 연구. 범위 밖은 없는 칸을 누른 것.
-			if (slot < 0 || slot > TowerSlotCount + 2)
+			if (slot < 0 || slot > TowerSlotCount + 3)
 				return;
 			if (SelectedSlot == slot)
 				return;
@@ -149,6 +151,9 @@ namespace WitchMendokusai
 					break;
 				case TowerDefensePlaceableKind.Wall:
 					PlaceWallAt(screenPointerPosition);
+					break;
+				case TowerDefensePlaceableKind.Trap:
+					PlaceTrapAt(screenPointerPosition);
 					break;
 				default:
 					PlaceTowerAt(screenPointerPosition);
@@ -218,6 +223,17 @@ namespace WitchMendokusai
 
 			bool isHarvester = SelectedKind == TowerDefensePlaceableKind.Harvester;
 			bool isLab = SelectedKind == TowerDefensePlaceableKind.Lab;
+			if (SelectedKind == TowerDefensePlaceableKind.Trap)
+			{
+				if (previewRing == null)
+					previewRing = TowerDefenseRing.Create(transform, "PlacementPreviewRing", Color.white, 0.12f, 0.06f);
+				previewRing.transform.position = snappedWorldPosition + new Vector3(0f, 0.06f, 0f);
+				previewRing.SetRadius(stage.TrapRadius);
+				previewRing.SetColor(new Color(1f, 0.45f, 0.32f, 0.9f));
+				previewRing.SetVisible(true);
+				return;
+			}
+
 			if (SelectedKind == TowerDefensePlaceableKind.Wall)
 			{
 				if (previewRing != null)
@@ -263,6 +279,18 @@ namespace WitchMendokusai
 
 			if (match.TrySell(snappedWorldPosition, stage.SellRefundRatio) == false)
 				Debug.Log($"{nameof(TowerDefensePlacement)}: 판매 거절 — 빈 칸이거나 코어.");
+		}
+
+		/// <summary> 함정 설치 — 밟으면 터진다. </summary>
+		public void PlaceTrapAt(Vector2 screenPointerPosition)
+		{
+			if (match == null)
+				return;
+
+			if (TryGetSnappedGroundPosition(screenPointerPosition, out Vector3 snappedWorldPosition) == false)
+				return;
+
+			match.TryPlaceTrap(snappedWorldPosition);
 		}
 
 		/// <summary> 벽 설치 — 마수의 길을 휘게 한다. 길을 완전히 막는 자리는 매치가 거절한다. </summary>

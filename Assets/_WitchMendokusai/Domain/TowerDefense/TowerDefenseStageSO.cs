@@ -112,6 +112,22 @@ namespace WitchMendokusai
 		[field: Tooltip("휠 **한 칸당** 높이 변화량. 플랫폼별 raw 델타 차이는 리그가 흡수한다.")]
 		[field: SerializeField, Min(0.1f)] public float CameraZoomSpeed { get; private set; } = 6f;
 
+		[field: Header("함정 — 바닥에 까는 것")]
+		[field: Tooltip("함정 1개 비용. 포탑이 「어디를 쏘나」라면 함정은 「어디를 지나가나」 — 길목과 직결된다.")]
+		[field: SerializeField, Min(0)] public int TrapCost { get; private set; } = 25;
+
+		[field: Tooltip("밟은 마수가 받는 피해.")]
+		[field: SerializeField, Min(1)] public int TrapDamage { get; private set; } = 14;
+
+		[field: Tooltip("한 함정이 견디는 발동 횟수. 다 쓰면 사라진다 — 소모품이라 「어디에 깔까」가 매번 판단이 된다.")]
+		[field: SerializeField, Min(1)] public int TrapCharges { get; private set; } = 6;
+
+		[field: Tooltip("발동 반경(칸). 밟는 순간 주변까지 함께 때린다.")]
+		[field: SerializeField, Min(0.2f)] public float TrapRadius { get; private set; } = 1.1f;
+
+		[field: Tooltip("함정 색.")]
+		[field: SerializeField] public Color TrapTint { get; private set; } = new Color(1f, 0.42f, 0.3f, 1f);
+
 		[field: Header("벽 — 길을 내가 그린다")]
 		[field: Tooltip("벽 1칸 비용. 싸야 「길을 그린다」가 성립하고, 공짜면 판을 통째로 미로로 만들어 버린다.")]
 		[field: SerializeField, Min(0)] public int WallCost { get; private set; } = 12;
