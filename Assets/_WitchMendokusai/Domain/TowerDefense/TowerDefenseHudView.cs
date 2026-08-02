@@ -67,6 +67,7 @@ namespace WitchMendokusai
 		private Label selectionTitleLabel;
 		private Button researchButton;
 		private VisualElement perkRow;
+		private VisualElement coreCardRow;
 		// 공용 선택 바 — 건설 모드의 건물 바와 같은 물건(개척 전용 툴바를 따로 두지 않는다).
 		private readonly ModeSelectionBar selectionBar;
 		private readonly Button waveModeButton;
@@ -114,6 +115,9 @@ namespace WitchMendokusai
 
 		/// <summary> 고른 건물의 레벨업 선택지를 골랐다. </summary>
 		public event System.Action<TowerDefenseBuildingPerk> BuildingPerkChosen = delegate { };
+
+		/// <summary> 코어 레벨업 카드를 골랐다(판 전체에 걸린다). </summary>
+		public event System.Action<int> CoreCardChosen = delegate { };
 
 		public TowerDefenseHudView(UIRoot uiRoot)
 		{
@@ -650,6 +654,13 @@ namespace WitchMendokusai
 			panel.Add(research);
 
 			// 레벨업으로 고를 것이 쌓여 있으면 여기에 세 장이 뜬다 — 화면 한가운데를 막지 않는다.
+			// 코어 레벨업 카드 — 판 전체에 걸리는 것이라 건물 선택지와 줄을 나눈다(성격이 다르다).
+			coreCardRow = new VisualElement();
+			coreCardRow.style.flexDirection = FlexDirection.Row;
+			coreCardRow.style.marginTop = 8;
+			coreCardRow.pickingMode = PickingMode.Ignore;
+			panel.Add(coreCardRow);
+
 			perkRow = new VisualElement();
 			perkRow.style.flexDirection = FlexDirection.Row;
 			perkRow.style.marginTop = 8;
@@ -661,7 +672,8 @@ namespace WitchMendokusai
 
 		/// <summary> 고른 건물을 보여준다 — 아무것도 안 골랐으면 패널 자체를 감춘다. </summary>
 		public void ShowSelection(string description, bool canResearch, int researchLevel, int researchCost,
-			System.Collections.Generic.IReadOnlyList<TowerDefenseBuildingPerk> perkOffers = null)
+			System.Collections.Generic.IReadOnlyList<TowerDefenseBuildingPerk> perkOffers = null,
+			System.Collections.Generic.IReadOnlyList<TowerDefenseBoon> coreCards = null)
 		{
 			if (selectionPanel == null)
 				return;
@@ -677,6 +689,27 @@ namespace WitchMendokusai
 			researchButton.style.display = canResearch ? DisplayStyle.Flex : DisplayStyle.None;
 			if (canResearch)
 				researchButton.text = "연구 " + (researchLevel + 1) + "단계  ·  정수 " + researchCost;
+
+			// 코어 카드 — 개수가 바뀔 때만 다시 그린다(매 프레임 새로 만들면 클릭이 안 먹는다).
+			int cardCount = coreCards != null ? coreCards.Count : 0;
+			if (cardCount == 0)
+			{
+				if (coreCardRow.childCount > 0)
+					coreCardRow.Clear();
+			}
+			else if (coreCardRow.childCount != cardCount)
+			{
+				coreCardRow.Clear();
+				for (int index = 0; index < cardCount; index++)
+				{
+					int cardIndex = index;
+					Button cardButton = MakeActionButton(coreCards[index].DisplayName, fontSize: 12,
+						() => CoreCardChosen(cardIndex));
+					cardButton.style.marginRight = 6;
+					cardButton.tooltip = coreCards[index].Note;
+					coreCardRow.Add(cardButton);
+				}
+			}
 
 			// 고를 것이 없으면 줄 자체를 비운다 — 빈 상자가 떠 있으면 그게 더 방해된다.
 			int offerCount = perkOffers != null ? perkOffers.Count : 0;

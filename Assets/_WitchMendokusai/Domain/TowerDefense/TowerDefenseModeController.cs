@@ -116,6 +116,7 @@ namespace WitchMendokusai
 		}
 
 		private readonly System.Collections.Generic.List<TowerDefenseBuildingPerk> perkOffers = new();
+		private readonly System.Collections.Generic.List<TowerDefenseBoon> coreCards = new();
 
 		// HUD 갱신 + 카메라 이동 — TD 모드 동안만.
 		private void Update()
@@ -237,6 +238,13 @@ namespace WitchMendokusai
 			placement.SuppressNextClick();
 			if (match.ChooseBoon(index))
 				hud?.HideDraft();
+		}
+
+		/// <summary> 코어 레벨업 카드 선택 — 판 전체에 걸린다. </summary>
+		private void ChooseCoreCard(int index)
+		{
+			placement.SuppressNextClick();
+			match.ChooseCoreCard(index);
 		}
 
 		/// <summary> 고른 건물의 레벨업 선택 — 그 클릭이 설치로 새지 않게 한 번 삼킨다. </summary>
@@ -381,6 +389,7 @@ namespace WitchMendokusai
 					view.ResearchRequested += DoResearch;
 					view.UiScaleCycleRequested += CycleUiScale;
 					view.BuildingPerkChosen += ChoosePerk;
+					view.CoreCardChosen += ChooseCoreCard;
 					match.DraftOffered += ShowDraft;
 				}
 			}
@@ -405,6 +414,7 @@ namespace WitchMendokusai
 					hud.ResearchRequested -= DoResearch;
 					hud.UiScaleCycleRequested -= CycleUiScale;
 					hud.BuildingPerkChosen -= ChoosePerk;
+					hud.CoreCardChosen -= ChooseCoreCard;
 					match.DraftOffered -= ShowDraft;
 					hud.HideDraft();
 				}

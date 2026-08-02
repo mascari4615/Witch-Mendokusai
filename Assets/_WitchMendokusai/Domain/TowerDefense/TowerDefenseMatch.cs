@@ -68,6 +68,12 @@ namespace WitchMendokusai
 		// 웨이브 사이 드래프트 — 고른 것이 쌓이는 곳(boons) + 지금 화면에 걸려 답을 기다리는 카드들(pendingDraft).
 		// 카드가 걸려 있는 동안 진행이 멈춘다 = 「강제 선택」의 실체.
 		private readonly TowerDefenseBoonState boons = new();
+
+		// ★ 코어도 자란다(사용자 지시: "코어 건물 자체의 레벨도 있어서 그것도 선택지 있으면 좋을듯").
+		//   새 선택지 체계를 하나 더 만들지 않고 *이미 있는 드래프트 카드*를 코어 레벨업에 붙였다 —
+		//   웨이브가 부르던 카드를 코어 성장이 부르게 바꾼 것뿐이다. 체계가 둘로 갈리면 같은 선택이
+		//   두 곳에서 다른 규칙으로 살게 된다.
+		private readonly TowerDefenseBuildingProgress coreProgress = new(baseCost: 24, growth: 1.5f);
 		private readonly List<TowerDefenseBoon> pendingDraft = new();
 
 		// 영웅 인형 — 유일하게 *움직이는* 내 편. 포탑과 같은 전투 표를 쓰되 자리를 내가 옮긴다.
@@ -1130,7 +1136,6 @@ namespace WitchMendokusai
 				case TowerDefenseSignal.WaveStarted:
 					RefreshVision(); // 어스름 진입/이탈이 시야에 즉시 반영돼야 한다.
 					StartCoroutine(SpawnGroupRoutine(ScaledEnemyCount(core.WaveIndex)));
-					OfferDraft(); // 큰 무리가 올 때 카드도 함께 — 판은 멈추지 않는다.
 					break;
 
 				// 상시로 한 마리씩 새어 나온다 — 「웨이브 사이엔 안전하다」가 사라진다(데아빌의 배회 감염체).
@@ -1143,6 +1148,7 @@ namespace WitchMendokusai
 					ShowIncomeBreakdown();
 					HealDefenders();
 					AwardHarvestExperience(); // 캐는 것도 일이다 — 채집도 자란다.
+					AwardCoreExperience(stage.HarvestExperience);
 					break;
 				case TowerDefenseSignal.Victory:
 					Conclude(TowerDefenseOutcome.Victory);
@@ -2012,6 +2018,68 @@ namespace WitchMendokusai
 			}
 		}
 
+		/// <summary> 코어 경험치 — 레벨이 오르면 판 전체에 걸리는 선택지가 쌓인다. </summary>
+		private void AwardCoreExperience(int amount)
+		{
+			int before = coreProgress.Level;
+			coreProgress.AddExperience(amount);
+			if (coreProgress.Level > before && coreCombatant != null)
+				PopWorldText("코어 Lv." + coreProgress.Level, coreCombatant.Position, TextType.Exp);
+		}
+
+		/// <summary> 코어 레벨 / 이번 구간 진행 / 아직 안 고른 선택지 수 — 화면이 읽는다. </summary>
+		public int CoreLevel => coreProgress.Level;
+		public float CoreLevelRatio => coreProgress.LevelRatio;
+		public int CorePendingChoices => coreProgress.PendingChoices;
+
+		/// <summary>
+		/// 코어가 지금 내놓는 카드들 — 레벨이 씨앗이라 같은 레벨이면 언제 열어도 같은 세 장이다.
+		/// 판을 멈추지 않는다(실시간) — 고를 때까지 카드가 코어에 붙어 기다린다.
+		/// </summary>
+		public void OfferCoreCards(List<TowerDefenseBoon> result)
+		{
+			result.Clear();
+			if (stage == null || coreProgress.PendingChoices <= 0)
+				return;
+
+			TowerDefenseDraft.Offer(coreProgress.Level, MapSeed, stage.DraftRules, result);
+		}
+
+		/// <summary> 코어 카드 한 장 선택 — 고른 것은 판 전체에 걸린다. </summary>
+		public bool ChooseCoreCard(int index)
+		{
+			List<TowerDefenseBoon> offers = new();
+			OfferCoreCards(offers);
+			if (index < 0 || index >= offers.Count)
+				return false;
+			if (coreProgress.Choose(TowerDefenseBuildingPerk.Damage) == false)
+				return false; // 대기 하나 소비(어떤 것을 골랐는지는 아래 boons 가 기억한다).
+
+			TowerDefenseBoon boon = offers[index];
+			boons.Take(boon);
+
+			switch (boon.Kind)
+			{
+				case TowerDefenseBoonKind.Life:
+					core.AddLives(Mathf.RoundToInt(boon.Magnitude));
+					break;
+				case TowerDefenseBoonKind.Essence:
+					core.AddEssence(Mathf.RoundToInt(boon.Magnitude));
+					break;
+				case TowerDefenseBoonKind.Windfall:
+					core.AddResource(Mathf.RoundToInt(boon.Magnitude));
+					break;
+				default:
+					break;
+			}
+
+			core.IncomeMultiplier = boons.IncomeMultiplier;
+			if (coreCombatant != null)
+				PopWorldText("「" + boon.DisplayName + "」", coreCombatant.Position, TextType.Heal);
+			Debug.Log($"{nameof(TowerDefenseMatch)}: 코어 선택 — {boon.DisplayName} ({boon.Note})");
+			return true;
+		}
+
 		/// <summary> 고른 건물의 성장 정보(없으면 null) — 화면이 선택지를 그릴 때 쓴다. </summary>
 		public TowerDefenseDollLabel FindDoll(ArenaCombatant combatant)
 		{
@@ -2773,6 +2841,7 @@ namespace WitchMendokusai
 				core.AddResource(bounty);
 				PopWorldText("+" + bounty, enemy.Position, TextType.Exp);
 				AwardKillExperience(enemy.Position);
+				AwardCoreExperience(stage.KillExperience); // 코어도 판이 잘 굴러가는 만큼 자란다.
 
 				// 죽은 자리에 잔해 — 많이 죽인 곳이 저절로 늪이 되어 다음 무리가 느려진다.
 				TowerDefenseDebris.Spawn(stageRoot, enemy.Position, waveEnemies,
