@@ -328,5 +328,59 @@ namespace WitchMendokusai.Tests
 			Assert.AreEqual(11, core.NextWaveIncome, "화면이 이 숫자로 채집 인형의 역할을 설명한다.");
 		}
 
+
+		[Test]
+		public void 유출제_새면_목숨이_준다()
+		{
+			TowerDefenseRules rules = Rules();
+			rules.StartingLives = 3;
+			TowerDefenseCore core = new(rules);
+
+			Assert.IsTrue(core.UsesLives);
+			core.RegisterLeak();
+
+			Assert.AreEqual(2, core.Lives);
+			Assert.AreEqual(TowerDefenseOutcome.InProgress, core.Outcome);
+		}
+
+		[Test]
+		public void 유출제_목숨이_다하면_패배()
+		{
+			TowerDefenseRules rules = Rules();
+			rules.StartingLives = 2;
+			TowerDefenseCore core = new(rules);
+
+			core.RegisterLeak();
+			core.RegisterLeak();
+
+			Assert.AreEqual(0, core.Lives);
+			Assert.AreEqual(TowerDefenseOutcome.Defeat, core.Outcome);
+			Assert.AreEqual(TowerDefensePhase.Concluded, core.Phase);
+		}
+
+		[Test]
+		public void 유출제_끝난뒤_유출은_무시된다()
+		{
+			TowerDefenseRules rules = Rules();
+			rules.StartingLives = 1;
+			TowerDefenseCore core = new(rules);
+
+			core.RegisterLeak();
+			core.RegisterLeak(); // 이미 끝났다.
+
+			Assert.AreEqual(0, core.Lives, "끝난 뒤에도 세면 목숨이 음수가 된다.");
+		}
+
+		[Test]
+		public void 유출제를_안_쓰면_목숨은_무시된다()
+		{
+			TowerDefenseCore core = Core(); // StartingLives 미설정 = 0
+
+			Assert.IsFalse(core.UsesLives);
+			core.RegisterLeak();
+
+			Assert.AreEqual(TowerDefenseOutcome.InProgress, core.Outcome);
+		}
+
 	}
 }

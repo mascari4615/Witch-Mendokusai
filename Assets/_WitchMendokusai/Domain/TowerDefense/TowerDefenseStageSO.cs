@@ -112,6 +112,10 @@ namespace WitchMendokusai
 		[field: Tooltip("휠 **한 칸당** 높이 변화량. 플랫폼별 raw 델타 차이는 리그가 흡수한다.")]
 		[field: SerializeField, Min(0.1f)] public float CameraZoomSpeed { get; private set; } = 6f;
 
+		[field: Header("유출 — 새면 잃는다")]
+		[field: Tooltip("마수가 코어에서 이만큼 안으로 들어오면 「샜다」로 본다(칸). 코어를 때리게 두지 않는다.")]
+		[field: SerializeField, Min(0.5f)] public float LeakRadius { get; private set; } = 1.6f;
+
 		[field: Header("판매 — 되돌릴 수 있는 실수")]
 		[field: Tooltip("팔 때 돌려받는 비율(0.6 = 60%). 100%면 배치가 무료 실험이 되고, 0%면 아무도 안 판다.")]
 		[field: SerializeField, Range(0f, 1f)] public float SellRefundRatio { get; private set; } = 0.6f;

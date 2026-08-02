@@ -23,6 +23,11 @@ namespace WitchMendokusai
 		// (사용자 실증: "재미가 없네"). 격파 즉시 자원이 들어와야 조준·배치가 순간순간 보상받는다.
 		public int BountyPerKill;
 
+		// 코어를 때려 부수는 대신 「목표에 닿은 마수 수」로 진다 = 장르 표준의 유출(leak)제.
+		// 코어 체력제는 「아직 얼마 남았나」 하나만 긴장인데, 유출제는 *한 마리라도 새면 아프다* 가 되어
+		// 길목 하나가 뚫리는 순간의 무게가 완전히 달라진다. 0 이하면 유출제 미사용(옛 코어 체력제).
+		public int StartingLives;
+
 		/// <summary> WaveCount 가 무한 스테이지 센티널(0 이하)인지. </summary>
 		public bool IsEndless => WaveCount <= 0;
 

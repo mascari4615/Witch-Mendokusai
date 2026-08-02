@@ -688,6 +688,7 @@ namespace WitchMendokusai
 				return;
 
 			CullEscapedEnemies(); // 무대 밖 개체가 웨이브를 영원히 붙잡지 못하게 — 집계 *전에* 정리.
+			CullLeakedEnemies();  // 목표에 닿은 마수는 사라지고 목숨이 준다(유출제).
 			ApplyEnemyVisibility(); // 안 보이는 마수는 화면에서도 지운다(규칙과 그림이 같아야 한다).
 			PayKillBounties();    // 격파 즉시 보상 — 웨이브 정산만 있으면 교전 중엔 아무 보상도 안 온다.
 
@@ -1067,6 +1068,51 @@ namespace WitchMendokusai
 
 			TowerDefenseWaveComposer.Compose(unlockWaves, weights, waveIndex, enemyCount, result);
 		}
+
+		/// <summary>
+		/// 목표에 닿은 마수 처리 — 유출(leak). 그 마수는 *사라지고* 목숨이 하나 준다.
+		///
+		/// ★ 코어를 갉는 방식과 다른 점: 「아직 얼마 남았나」가 아니라 「한 마리라도 새면 아프다」가 된다.
+		///   길목 하나가 뚫리는 순간의 무게가 여기서 정해진다. 새 놈이 코어에 눌어붙어 화면에서
+		///   사라지던 옛 문제도 같이 없어진다(닿는 즉시 치우므로).
+		/// </summary>
+		private void CullLeakedEnemies()
+		{
+			if (core == null || core.UsesLives == false || coreCombatant == null)
+				return;
+
+			float leakRadius = stage.LeakRadius;
+			float leakRadiusSqr = leakRadius * leakRadius;
+
+			for (int index = waveEnemies.Count - 1; index >= 0; index--)
+			{
+				ArenaCombatant enemy = waveEnemies[index];
+				if (enemy == null || enemy.IsAlive == false)
+					continue;
+				if ((enemy.Position - coreCombatant.Position).sqrMagnitude > leakRadiusSqr)
+					continue;
+
+				PopWorldText("-1", enemy.Position, TextType.Warning);
+				core.RegisterLeak();
+
+				targeting.Unregister(enemy);
+				registeredCombatants.Remove(enemy);
+				waveEnemies.RemoveAt(index);
+
+				TacticDriver driver = enemy.GetComponent<TacticDriver>();
+				if (driver != null)
+					driver.StopDriving();
+
+				ReleaseUnit(pool, enemy.gameObject);
+				spawnedUnits.Remove(enemy.gameObject);
+			}
+		}
+
+		/// <summary> 남은 목숨(유출제 아니면 0). </summary>
+		public int Lives => core != null ? core.Lives : 0;
+
+		/// <summary> 이 판이 유출제인가 — 화면이 목숨을 보여줄지 결정한다. </summary>
+		public bool UsesLives => core != null && core.UsesLives;
 
 		/// <summary>
 		/// 시야 밖 마수는 안 그린다 — 포탑이 못 쏘는데 화면에는 보이면, 「왜 안 쏘지」가 버그로 읽힌다.

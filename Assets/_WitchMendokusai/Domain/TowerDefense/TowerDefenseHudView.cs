@@ -30,6 +30,7 @@ namespace WitchMendokusai
 		private readonly Label bestValue;
 		private readonly Label incomeValue;
 		private readonly Label nextWaveValue;
+		private readonly Label livesValue;
 
 		// 예고 계산 버퍼 — 매 프레임 새 리스트를 만들지 않는다.
 		private readonly System.Collections.Generic.List<int> compositionBuffer = new();
@@ -97,7 +98,7 @@ namespace WitchMendokusai
 			//   (사용자 실증: "정보는 전부 모여 있어서 복잡복잡"). 자원은 상단 가운데 독립 띠(종류가 늘어도
 			//   가로로 칸만 추가), 진행은 우상단, 범례는 좌하단 접기, 고르는 것은 하단 가운데.
 			container.Add(BuildResourceBar(out resourceValue, out incomeValue));
-			container.Add(BuildProgressPanel(out waveValue, out phaseValue, out nextWaveValue, out enemyValue, out bestValue,
+			container.Add(BuildProgressPanel(out livesValue, out waveValue, out phaseValue, out nextWaveValue, out enemyValue, out bestValue,
 				out waveModeButton, out nextWaveButton));
 			legendPanel = BuildLegendPanel();
 			container.Add(legendPanel);
@@ -189,7 +190,7 @@ namespace WitchMendokusai
 
 		/// <summary> 진행 정보 — 우상단. 「지금 무슨 일이 일어나는가」만 모은다. </summary>
 		private VisualElement BuildProgressPanel(
-			out Label wave, out Label phase, out Label nextWave, out Label enemies, out Label best,
+			out Label lives, out Label wave, out Label phase, out Label nextWave, out Label enemies, out Label best,
 			out Button modeButton, out Button callButton)
 		{
 			VisualElement panel = new VisualElement { name = "ProgressPanel" };
@@ -205,6 +206,8 @@ namespace WitchMendokusai
 			panel.style.alignItems = Align.FlexEnd;
 			panel.pickingMode = PickingMode.Ignore;
 
+			// 목숨이 맨 위 — 유출제에서는 이게 곧 남은 판의 길이다.
+			panel.Add(MakeStatRow("목숨", out lives, new Color(1f, 0.45f, 0.45f, 1f)));
 			panel.Add(MakeStatRow("파도", out wave, new Color(1f, 0.6f, 0.55f, 1f)));
 			panel.Add(MakeStatRow("상태", out phase, new Color(0.72f, 0.88f, 1f, 1f)));
 			panel.Add(MakeStatRow("다음 파도", out nextWave, new Color(1f, 0.72f, 0.45f, 1f)));
@@ -697,6 +700,7 @@ namespace WitchMendokusai
 				? match.NextWaveIncome + " (기본 " + stage.Rules.BaseWaveIncome + " + 채집 " + match.HarvesterCount + "기)"
 				: match.NextWaveIncome.ToString();
 
+			livesValue.text = match.UsesLives ? match.Lives.ToString() : "-";
 			nextWaveValue.text = BuildWavePreview(match);
 			UpdateNodeLabels(match, stage);
 

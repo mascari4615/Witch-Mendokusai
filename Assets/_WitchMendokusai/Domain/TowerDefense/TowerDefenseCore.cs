@@ -49,6 +49,12 @@ namespace WitchMendokusai
 		public int Resource { get; private set; }
 		public int HarvesterCount { get; private set; }
 
+		/// <summary> 남은 목숨. 유출제를 안 쓰는 스테이지(StartingLives<=0)면 항상 0 이고 무시된다. </summary>
+		public int Lives { get; private set; }
+
+		/// <summary> 이 스테이지가 유출제인가. </summary>
+		public bool UsesLives => rules.StartingLives > 0;
+
 		// 채집 인형들의 벌이 배수 합 — 마리수가 아니라 *어디에 세웠는지*가 수입을 만든다.
 		private float harvesterIncomeWeight;
 		public float PrepareRemaining => prepareRemaining;
@@ -60,6 +66,7 @@ namespace WitchMendokusai
 		{
 			this.rules = rules;
 			Resource = rules.StartingResource;
+			Lives = rules.StartingLives;
 			prepareRemaining = rules.PrepareSeconds;
 		}
 
@@ -75,7 +82,8 @@ namespace WitchMendokusai
 
 			if (coreAlive == false)
 			{
-				Outcome = TowerDefenseOutcome.Defeat;
+// 유출제에서는 코어가 맞아 죽는 일이 없다(마수는 닿는 순간 사라진다) — 목숨 소진이 패배다.
+								Outcome = TowerDefenseOutcome.Defeat;
 				Phase = TowerDefensePhase.Concluded;
 				return TowerDefenseSignal.Defeat;
 			}
@@ -161,6 +169,23 @@ namespace WitchMendokusai
 		{
 			HarvesterCount++;
 			harvesterIncomeWeight += incomeMultiplier > 0f ? incomeMultiplier : 0f;
+		}
+
+		/// <summary>
+		/// 마수 한 마리가 목표에 닿았다 — 그 마수는 사라지고 목숨이 하나 준다.
+		/// 「코어를 갉는다」가 아니라 「새면 잃는다」라, 한 마리를 놓치는 것 자체가 대가다.
+		/// </summary>
+		public void RegisterLeak()
+		{
+			if (UsesLives == false || Outcome != TowerDefenseOutcome.InProgress)
+				return;
+
+			Lives = Mathf.Max(0, Lives - 1);
+			if (Lives > 0)
+				return;
+
+			Outcome = TowerDefenseOutcome.Defeat;
+			Phase = TowerDefensePhase.Concluded;
 		}
 
 		/// <summary> 채집건물을 팔았다 — 수입도 같이 줄어야 「판다」가 공짜가 되지 않는다. </summary>
