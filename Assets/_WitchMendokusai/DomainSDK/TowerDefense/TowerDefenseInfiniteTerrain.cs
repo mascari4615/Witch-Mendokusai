@@ -161,6 +161,50 @@ namespace WitchMendokusai
 			return false;
 		}
 
+		/// <summary>
+		/// 광맥의 결(TASK-WM-194) — 자원이 뭉치는 것까지는 했는데 광맥끼리 성격이 없었다.
+		/// 전부 같으면 「어느 광맥으로 갈까」가 거리 문제로만 남는다. 결이 갈리면 *무엇이 급한가*가 선택이 된다.
+		/// </summary>
+		public enum VeinKind
+		{
+			Common = 0, // 흔한 광맥 — 무난하다. 대부분이 이것.
+			Rich = 1,   // 굵은 광맥 — 크게 번다. 대신 드물다.
+			Deep = 2,   // 깊은 광맥 — 정수가 난다. 안쪽이라도 정수를 준다.
+		}
+
+		/// <summary> 그 광맥의 결 — 같은 씨앗이면 언제 물어도 같다. </summary>
+		public VeinKind KindOfVeinAt(Vector2Int cell)
+		{
+			return KindOfVeinGrid(
+				Mathf.FloorToInt((float)cell.x / VeinSpacing),
+				Mathf.FloorToInt((float)cell.y / VeinSpacing));
+		}
+
+		private VeinKind KindOfVeinGrid(int gridX, int gridY)
+		{
+			float roll = Hash01(gridX, gridY, 9377);
+			if (roll < 0.16f)
+				return VeinKind.Deep;
+			if (roll < 0.38f)
+				return VeinKind.Rich;
+			return VeinKind.Common;
+		}
+
+		/// <summary>
+		/// 결에 따른 광맥 *크기* 배수 — 굵은 광맥은 넓어서 채집 하나가 더 많은 칸을 물어 자연히 더 번다.
+		/// 벌이 배수를 결로 직접 올리지 않는 이유: 가까운 굵은 광맥이 먼 광맥보다 벌면
+		/// 「멀수록 많이 번다」가 깨져 나갈 이유가 사라진다(회귀 FartherNode_PaysMore 가 잡았다).
+		/// </summary>
+		public static float SizeOf(VeinKind kind)
+		{
+			return kind switch
+			{
+				VeinKind.Rich => 1.6f,
+				VeinKind.Deep => 0.8f,
+				_ => 1f,
+			};
+		}
+
 		/// <summary> 그 칸이 광맥의 *중심*인가 — 표시(마커)와 노드 목록이 쓰는 대표 좌표. </summary>
 		public bool IsVeinCenter(Vector2Int cell)
 		{

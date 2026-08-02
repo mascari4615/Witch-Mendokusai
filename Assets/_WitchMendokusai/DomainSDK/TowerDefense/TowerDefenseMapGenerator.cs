@@ -228,6 +228,19 @@ namespace WitchMendokusai
 			Vector2Int coreCell,
 			List<Vector2Int> nodeCells)
 		{
+			// ★ 광맥마다 결이 다르다(개선 목록 20번) — 전부 같으면 「어느 광맥으로 갈까」가 거리 문제로만
+			//   남는다. 굵은 광맥은 크게 벌고, 깊은 광맥은 *안쪽이라도* 정수를 낸다.
+			//   그러면 「가까운데 정수가 나는 자리」가 생겨 초반 선택이 하나 늘어난다.
+			int veinSpacingForKind = Mathf.Clamp(
+				Mathf.RoundToInt(Mathf.Sqrt(config.Width * (float)config.Length / Mathf.Max(1, config.ResourceNodeCount)) * 0.5f),
+				4, 18);
+			TowerDefenseInfiniteTerrain veinKinds = new(
+				config.Seed, coreCell, Mathf.Max(2, veinSpacingForKind),
+				config.RidgeWidth, config.ObstacleDensity, config.CoreClearRadius)
+			{
+				VeinSpacing = veinSpacingForKind,
+				VeinChance = 0.95f,
+			};
 			// 정규화 기준 = 코어에서 판 모서리까지. 판 크기가 달라도 "멀다"의 의미가 같게 유지된다.
 			float maxRadius = Mathf.Max(1f, CellDistance(coreCell, new Vector2Int(0, 0)));
 			float originX = -config.Width * config.CellSize * 0.5f;
@@ -244,6 +257,13 @@ namespace WitchMendokusai
 					? TowerDefenseNodeTier.Inner
 					: TowerDefenseNodeTier.Outer;
 
+				TowerDefenseInfiniteTerrain.VeinKind veinKind = veinKinds.KindOfVeinAt(cell);
+
+				// 깊은 광맥은 거리와 무관하게 정수를 낸다 — 「멀리 나가야만 정수」의 외길을 푼다.
+				if (veinKind == TowerDefenseInfiniteTerrain.VeinKind.Deep)
+					tier = TowerDefenseNodeTier.Outer;
+
+				// 벌이는 *거리만* 정한다 — 결은 광맥 크기와 정수 여부로 드러난다.
 				float incomeMultiplier = Mathf.Lerp(config.NearIncomeMultiplier, config.FarIncomeMultiplier, normalizedDistance);
 
 				Vector3 position = new Vector3(
