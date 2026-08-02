@@ -285,6 +285,9 @@ namespace WitchMendokusai
 			heroVisionCell = new Vector2Int(int.MinValue, int.MinValue);
 			enemyMaxStopDistance = 0f;
 			nests.Clear();
+			generators.Clear();
+			powerConsumerTransforms.Clear();
+			poweredConsumers.Clear();
 			enemyStillness.Clear();
 
 			yield return SpawnCoreRoutine();
@@ -1112,6 +1115,7 @@ namespace WitchMendokusai
 			CullLeakedEnemies();  // 목표에 닿은 마수는 사라지고 목숨이 준다(유출제).
 			UnstickEnemies();     // 굳은 마수를 풀어준다 — 한 마리가 굳으면 웨이브가 영영 안 끝난다.
 			CullDestroyedNests(); // 부순 둥지의 출구를 닫는다 — 「버틴다」가 「밀어낸다」가 되는 자리.
+			RefreshPower();       // 전기를 못 받는 건물은 선다(도시 건설의 규칙 그대로).
 			ApplyEnemyVisibility(); // 안 보이는 마수는 화면에서도 지운다(규칙과 그림이 같아야 한다).
 			RefreshSupply();        // 방어 건물이 부서지면 그 순간 사슬이 끊긴다.
 			PayKillBounties();    // 격파 즉시 보상 — 웨이브 정산만 있으면 교전 중엔 아무 보상도 안 온다.
@@ -1784,6 +1788,117 @@ namespace WitchMendokusai
 			return name + "\n체력 " + currentHp + " / " + maxHp;
 		}
 
+
+		// ── 전기 ─────────────────────────────────────────────────────────────────
+		// ★ 보급과 다른 층이다: 보급은 *코어까지 이어졌나*(사슬), 전기는 *덮였나 + 용량이 남았나*(범위+총량).
+		//   둘을 합치면 「넓힌다」의 대가가 한 종류로 뭉개진다. 코어가 처음부터 얼마간 대주므로 초반엔
+		//   그 안에서 몇 기를 돌리고, 더 늘리려면 발전 인형을 먼저 깔아야 한다.
+		private readonly List<TowerDefensePower.Source> powerSources = new();
+		private readonly List<TowerDefensePower.Consumer> powerConsumers = new();
+		private readonly List<Transform> powerConsumerTransforms = new();
+		private readonly HashSet<int> poweredConsumers = new();
+		private readonly List<Transform> generators = new();
+
+		/// <summary> 전체 전기 용량 / 요구 — 화면이 「얼마나 모자라나」를 말한다. </summary>
+		public int PowerCapacity { get; private set; }
+		public int PowerDemand { get; private set; }
+
+		/// <summary> 전기를 못 받아 멈춘 건물 수. </summary>
+		public int UnpoweredBuildings { get; private set; }
+
+		private void RefreshPower()
+		{
+			if (stage == null || stage.CorePowerCapacity <= 0 || coreCombatant == null)
+				return;
+
+			powerSources.Clear();
+			powerSources.Add(new TowerDefensePower.Source(
+				coreCombatant.Position, stage.CorePowerRadius, stage.CorePowerCapacity));
+			for (int index = generators.Count - 1; index >= 0; index--)
+			{
+				if (generators[index] == null)
+				{
+					generators.RemoveAt(index);
+					continue;
+				}
+				powerSources.Add(new TowerDefensePower.Source(
+					generators[index].position, stage.GeneratorRadius, stage.GeneratorCapacity));
+			}
+
+			powerConsumers.Clear();
+			for (int index = powerConsumerTransforms.Count - 1; index >= 0; index--)
+			{
+				if (powerConsumerTransforms[index] == null)
+					powerConsumerTransforms.RemoveAt(index);
+			}
+			foreach (Transform consumer in powerConsumerTransforms)
+			{
+				int demand = harvesterTransforms.Contains(consumer)
+					? stage.HarvesterPowerDemand
+					: stage.TowerPowerDemand;
+				powerConsumers.Add(new TowerDefensePower.Consumer(consumer.position, demand));
+			}
+
+			TowerDefensePower.Compute(powerSources, powerConsumers, poweredConsumers);
+
+			PowerCapacity = TowerDefensePower.TotalCapacity(powerSources);
+			PowerDemand = TowerDefensePower.TotalDemand(powerConsumers);
+			UnpoweredBuildings = powerConsumers.Count - poweredConsumers.Count;
+
+			// 전기를 못 받으면 *멈춘다* — 포탑은 쏘지 않고, 이름표가 그 사실을 말한다.
+			for (int index = 0; index < powerConsumerTransforms.Count; index++)
+			{
+				Transform consumer = powerConsumerTransforms[index];
+				bool hasPower = poweredConsumers.Contains(index);
+
+				TowerDefenseWeapon weapon = consumer.GetComponent<TowerDefenseWeapon>();
+				if (weapon != null && weapon.enabled != hasPower)
+					weapon.enabled = hasPower;
+
+				TowerDefenseDollLabel label = FindDollLabel(consumer);
+				if (label != null)
+					label.Unpowered = hasPower == false;
+			}
+		}
+
+		/// <summary>
+		/// 발전 인형 배치 — 자원으로 짓고, 범위 안 건물에 전기를 댄다.
+		/// 보급 사슬의 징검다리도 겸한다(내 건물이므로) — 전기를 늘리는 일이 곧 땅을 넓히는 일이 된다.
+		/// </summary>
+		public bool TryPlaceGenerator(Vector3 worldPosition)
+		{
+			if (core == null || pool == null || timeManager == null || targeting == null)
+				return false;
+			if (stage.HarvesterUnit == null || stage.HarvesterUnit.Prefab == null)
+				return false;
+
+			Vector3Int cellKey = ToCellKey(worldPosition);
+			if (occupiedCells.Contains(cellKey))
+				return Reject("여긴 이미 찼다", worldPosition);
+			if (IsObstacleAt(worldPosition))
+				return Reject("암반 위엔 못 짓는다", worldPosition);
+			if (IsInBuildableRange(worldPosition) == false)
+				return Reject("보급이 닿는 곳에만 지을 수 있다", worldPosition);
+			if (core.TrySpend(stage.GeneratorCost) == false)
+				return Reject($"자원 부족 {core.Resource}/{stage.GeneratorCost}", worldPosition);
+
+			occupiedCells.Add(cellKey);
+			StartCoroutine(SpawnDefensiveUnitRoutine(
+				stage.HarvesterUnit, null, worldPosition, isHarvester: false, incomeMultiplier: 1f,
+				towerArchetype: null, isLab: true, isOuterNode: false, isGenerator: true));
+			return true;
+		}
+
+		/// <summary> 이 건물이 전기를 받고 있나 — 채집 수입이 이 값을 본다. </summary>
+		private bool IsPowered(Transform building)
+		{
+			if (stage == null || stage.CorePowerCapacity <= 0)
+				return true;
+
+			int index = powerConsumerTransforms.IndexOf(building);
+			return index < 0 || poweredConsumers.Contains(index);
+		}
+
 		/// <summary>
 		/// 거기에 지을 수 있는가 — **보급이 닿는 곳에만** 지을 수 있다.
 		///
@@ -2199,6 +2314,9 @@ namespace WitchMendokusai
 					DisconnectedHarvesters++;
 					continue;
 				}
+
+				if (IsPowered(building) == false)
+					continue; // 전기가 끊긴 채집은 캐지 못한다.
 
 				float multiplier = HarvesterMultiplierOf(building);
 				if (harvesterIsOuter.TryGetValue(building, out bool outer) && outer)
@@ -2922,7 +3040,7 @@ namespace WitchMendokusai
 			return cell;
 		}
 
-		private IEnumerator SpawnDefensiveUnitRoutine(Unit unitData, TacticProgram tactic, Vector3 worldPosition, bool isHarvester, float incomeMultiplier = 1f, TowerDefenseTowerArchetype towerArchetype = null, bool isLab = false, bool isOuterNode = false)
+		private IEnumerator SpawnDefensiveUnitRoutine(Unit unitData, TacticProgram tactic, Vector3 worldPosition, bool isHarvester, float incomeMultiplier = 1f, TowerDefenseTowerArchetype towerArchetype = null, bool isLab = false, bool isOuterNode = false, bool isGenerator = false)
 		{
 			if (unitData == null || unitData.Prefab == null)
 			{
@@ -2958,7 +3076,8 @@ namespace WitchMendokusai
 			combatant.SetTeam(DEFENDER_TEAM, nextCombatantId++);
 
 			ApplyReadability(unitObject,
-				isLab ? stage.LabTint
+				isGenerator ? stage.GeneratorTint
+					: isLab ? stage.LabTint
 					: isHarvester ? stage.HarvesterTint
 					: (towerArchetype != null ? towerArchetype.Tint : stage.TowerTint),
 				isHarvester ? stage.HarvesterScale : stage.TowerScale);
@@ -3019,6 +3138,13 @@ namespace WitchMendokusai
 
 			// 모든 내 건물이 보급 사슬의 징검다리 — 포탑을 늘어놓는 것이 곧 보급선을 잇는 일이 된다.
 			supplyTransforms.Add(unitGameObject.transform);
+
+			if (isGenerator)
+				generators.Add(unitGameObject.transform);
+
+			// 포탑·채집은 전기를 먹는다(연구·발전은 안 먹는다 — 발전이 전기를 먹으면 자기 꼬리를 문다).
+			if (isLab == false && isGenerator == false)
+				powerConsumerTransforms.Add(unitGameObject.transform);
 
 			if (isHarvester)
 			{

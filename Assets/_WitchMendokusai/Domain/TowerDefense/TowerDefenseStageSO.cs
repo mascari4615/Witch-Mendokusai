@@ -220,6 +220,31 @@ namespace WitchMendokusai
 		[field: Tooltip("웨이브를 넘길 때마다 내 편이 최대 체력의 이 비율만큼 회복(0.25 = 25%). 1이면 완전 회복이라 소모전이 사라진다.")]
 		[field: SerializeField, Range(0f, 1f)] public float DefenderHealPerWave { get; private set; } = 0.25f;
 
+		[field: Header("전기 — 받아야 돈다")]
+		[field: Tooltip("코어가 처음부터 내주는 전기량(0 = 전기 규칙 끔). 초반엔 이것만으로 몇 기를 돌린다.")]
+		[field: SerializeField, Min(0)] public int CorePowerCapacity { get; private set; } = 6;
+
+		[field: Tooltip("코어가 전기를 보내는 반경(칸).")]
+		[field: SerializeField, Min(0f)] public float CorePowerRadius { get; private set; } = 14f;
+
+		[field: Tooltip("발전 인형 1기 비용.")]
+		[field: SerializeField, Min(0)] public int GeneratorCost { get; private set; } = 55;
+
+		[field: Tooltip("발전 인형 1기가 내주는 전기량.")]
+		[field: SerializeField, Min(0)] public int GeneratorCapacity { get; private set; } = 5;
+
+		[field: Tooltip("발전 인형이 전기를 보내는 반경(칸).")]
+		[field: SerializeField, Min(0f)] public float GeneratorRadius { get; private set; } = 11f;
+
+		[field: Tooltip("포탑 1기가 먹는 전기.")]
+		[field: SerializeField, Min(0)] public int TowerPowerDemand { get; private set; } = 1;
+
+		[field: Tooltip("채집 인형 1기가 먹는 전기.")]
+		[field: SerializeField, Min(0)] public int HarvesterPowerDemand { get; private set; } = 1;
+
+		[field: Tooltip("발전 인형 색.")]
+		[field: SerializeField] public Color GeneratorTint { get; private set; } = new Color(1f, 0.82f, 0.3f, 1f);
+
 		[field: Header("마수 둥지 — 부수면 그 출구가 닫힌다")]
 		[field: Tooltip("둥지 체력 = 마수 체력 × 이 값(0 = 둥지 없음, 옛 방식). 크면 「밀어낸다」가 장기 목표가 된다.")]
 		[field: SerializeField, Min(0f)] public float NestHealthMultiplier { get; private set; } = 14f;

@@ -875,6 +875,10 @@ namespace WitchMendokusai
 			entries.Add(new ModeSelectionBar.Entry("전초기지", stage.OutpostEssenceCost, stage.OutpostTint,
 				tooltip: SlotTip("전초기지", "정수로 짓는다. 새 보급 원점이자 *새로 지켜야 할 곳*이 된다 — 마수가 그리로도 몰린다.")));
 
+			entries.Add(new ModeSelectionBar.Entry("발전 인형", stage.GeneratorCost, stage.GeneratorTint,
+				icon: UnitSprite(stage.HarvesterUnit),
+				tooltip: SlotTip("발전 인형", "범위 안 건물에 전기를 댄다. 전기를 못 받는 건물은 서 있기만 한다.\n코어도 처음부터 얼마간 대준다.")));
+
 			// 영웅 칸만 성격이 다르다 — 짓는 게 아니라 *보내는* 칸이라 비용이 0 이다.
 			if (stage.HeroUnit != null)
 				entries.Add(new ModeSelectionBar.Entry("영웅 이동", 0, stage.HeroTint,

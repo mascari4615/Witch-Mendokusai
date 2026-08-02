@@ -23,6 +23,9 @@ namespace WitchMendokusai
 		/// </summary>
 		public bool Disconnected { get; set; }
 
+		/// <summary> 전기를 못 받아 멈춘 건물 — 서 있기만 하고 아무 일도 안 한다. </summary>
+		public bool Unpowered { get; set; }
+
 		public TowerDefenseDollLabel(Transform anchor, string name, Color tint)
 		{
 			Anchor = anchor;

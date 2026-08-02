@@ -60,8 +60,10 @@ namespace WitchMendokusai
 					return TowerDefensePlaceableKind.Wall;
 				if (SelectedSlot == TowerSlotCount + 3)
 					return TowerDefensePlaceableKind.Trap;
-				return SelectedSlot == TowerSlotCount + 4
-					? TowerDefensePlaceableKind.Outpost
+				if (SelectedSlot == TowerSlotCount + 4)
+					return TowerDefensePlaceableKind.Outpost;
+				return SelectedSlot == TowerSlotCount + 5
+					? TowerDefensePlaceableKind.Generator
 					: TowerDefensePlaceableKind.Hero;
 			}
 		}
@@ -122,7 +124,7 @@ namespace WitchMendokusai
 		public void SelectSlot(int slot)
 		{
 			// 칸 = 포탑들 + 채집 + 연구 + 벽 + 함정 + 전초기지 + 영웅. 범위 밖은 없는 칸을 누른 것.
-			if (slot < 0 || slot > TowerSlotCount + 5)
+			if (slot < 0 || slot > TowerSlotCount + 6)
 				return;
 			if (SelectedSlot == slot)
 			{
@@ -186,6 +188,10 @@ namespace WitchMendokusai
 					break;
 				case TowerDefensePlaceableKind.Outpost:
 					PlaceOutpostAt(screenPointerPosition);
+					break;
+				case TowerDefensePlaceableKind.Generator:
+					if (TryGetSnappedGroundPosition(screenPointerPosition, out Vector3 generatorPosition))
+						match.TryPlaceGenerator(generatorPosition);
 					break;
 				case TowerDefensePlaceableKind.Hero:
 					CommandHeroAt(screenPointerPosition);
@@ -396,6 +402,7 @@ namespace WitchMendokusai
 			{
 				TowerDefensePlaceableKind.Harvester => stage.HarvesterUnit != null ? stage.HarvesterUnit.Prefab : null,
 				TowerDefensePlaceableKind.Lab => stage.HarvesterUnit != null ? stage.HarvesterUnit.Prefab : null,
+				TowerDefensePlaceableKind.Generator => stage.HarvesterUnit != null ? stage.HarvesterUnit.Prefab : null,
 				TowerDefensePlaceableKind.Tower => stage.TowerUnit != null ? stage.TowerUnit.Prefab : null,
 				// 벽·함정·전초기지는 프리팹이 아니라 코드가 그리는 도형이라 유령이 없다(마커가 그 자리를 대신한다).
 				_ => null,
