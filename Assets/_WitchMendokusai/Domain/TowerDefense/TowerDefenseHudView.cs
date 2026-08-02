@@ -805,9 +805,16 @@ namespace WitchMendokusai
 			int previewWave = match.Phase == TowerDefensePhase.Assault ? match.WaveIndex + 1 : match.WaveIndex;
 			match.ComposeWave(previewWave, compositionBuffer);
 
+			// 파도 성격은 색까지 바꿔 예고한다 — 「무엇이 오는가」를 한눈에 알아야 대비가 성립한다.
+			TowerDefenseWaveEventKind previewEvent = match.WaveEventAt(previewWave);
+			nextWaveValue.style.color = TowerDefenseWaveEvent.DisplayColor(previewEvent);
+			string eventPrefix = previewEvent == TowerDefenseWaveEventKind.None
+				? string.Empty
+				: "《" + TowerDefenseWaveEvent.DisplayName(previewEvent) + "》 ";
+
 			int archetypeCount = match.EnemyArchetypeCount;
 			if (archetypeCount <= 0)
-				return compositionBuffer.Count + "기";
+				return eventPrefix + compositionBuffer.Count + "기";
 
 			if (archetypeCountBuffer.Length < archetypeCount)
 				archetypeCountBuffer = new int[archetypeCount];
@@ -827,7 +834,7 @@ namespace WitchMendokusai
 				preview += archetype.DisplayName + " " + archetypeCountBuffer[index];
 			}
 
-			return preview.Length > 0 ? preview : compositionBuffer.Count + "기";
+			return eventPrefix + (preview.Length > 0 ? preview : compositionBuffer.Count + "기");
 		}
 
 		/// <summary>

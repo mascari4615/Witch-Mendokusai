@@ -58,6 +58,7 @@ namespace WitchMendokusai
 		private TowerDefenseVision vision;
 		private TowerDefenseFogView fogView;
 		private readonly List<TowerDefenseVision.Source> visionSources = new();
+		private readonly List<TowerDefenseVision.Source> scaledVisionSources = new();
 
 		// 내가 세운 벽. 암반(생성된 지형)과 합쳐 「통행 불가」 하나로 본다 —
 		// 길찾기·표시·배치가 각자 다른 기준을 쓰면 화면과 규칙이 갈라진다.
@@ -913,6 +914,7 @@ namespace WitchMendokusai
 			switch (signal)
 			{
 				case TowerDefenseSignal.WaveStarted:
+					RefreshVision(); // 어스름 진입/이탈이 시야에 즉시 반영돼야 한다.
 					StartCoroutine(SpawnWaveRoutine());
 					break;
 				case TowerDefenseSignal.Victory:
@@ -938,7 +940,8 @@ namespace WitchMendokusai
 
 			ComposeWave(core.WaveIndex, waveComposition); // 예고와 같은 함수 = 화면이 말한 대로 나온다.
 
-			int enemyCount = core.CurrentWaveEnemyCount;
+			TowerDefenseWaveEventKind waveEvent = WaveEventAt(core.WaveIndex);
+			int enemyCount = ScaledEnemyCount(core.WaveIndex);
 			int spawnedCount = 0; // 실제로 UnitObject 확보 + 등록까지 끝난 수 — 이게 0 이면 ConfirmWaveSpawned 자체를 보류.
 
 			for (int enemyIndex = 0; enemyIndex < enemyCount; enemyIndex++)
@@ -997,6 +1000,7 @@ namespace WitchMendokusai
 				if (core == null || targeting == null || pool == null)
 					yield break;
 				ApplyArchetypeStats(enemyUnitObject, archetype);
+				ApplyWaveEventStats(enemyUnitObject, waveEvent);
 
 				foreach (UnitBrain brain in enemyUnitObject.GetComponents<UnitBrain>()) // 트랩#2.
 					brain.enabled = false;
@@ -1152,7 +1156,19 @@ namespace WitchMendokusai
 			if (vision == null)
 				return;
 
-			vision.Recompute(visionSources);
+			// 어스름 파도면 모든 시야가 함께 좁아진다 — 「보이는 만큼만 쏜다」가 아프게 걸린다.
+			float visionScale = CurrentVisionScale();
+			if (Mathf.Approximately(visionScale, 1f))
+			{
+				vision.Recompute(visionSources);
+			}
+			else
+			{
+				scaledVisionSources.Clear();
+				foreach (TowerDefenseVision.Source source in visionSources)
+					scaledVisionSources.Add(new TowerDefenseVision.Source(source.Cell, source.Radius * visionScale));
+				vision.Recompute(scaledVisionSources);
+			}
 			if (fogView != null)
 				fogView.Apply(vision);
 		}
@@ -1222,6 +1238,54 @@ namespace WitchMendokusai
 		/// 이미 서 있던 포탑에도 즉시 반영된다(세운 뒤에야 효과가 오면 강화가 아니라 벌칙이다).
 		/// </summary>
 		public float TowerDamageMultiplier => 1f + LabCount * (stage != null ? stage.LabDamageBonus : 0f);
+
+		/// <summary> waveIndex 파의 성격 — 예고와 스폰이 같은 함수를 본다. </summary>
+		public TowerDefenseWaveEventKind WaveEventAt(int waveIndex)
+		{
+			return stage != null
+				? TowerDefenseWaveEvent.For(waveIndex, stage.WaveEventEvery)
+				: TowerDefenseWaveEventKind.None;
+		}
+
+		/// <summary> 성격까지 반영한 그 파도의 마수 수(떼거리는 배로, 정예는 절반). </summary>
+		public int ScaledEnemyCount(int waveIndex)
+		{
+			if (stage == null)
+				return 0;
+
+			float scaled = stage.Rules.EnemiesInWave(waveIndex)
+				* TowerDefenseWaveEvent.CountScale(WaveEventAt(waveIndex));
+			return Mathf.Max(1, Mathf.RoundToInt(scaled));
+		}
+
+		/// <summary> 지금 파도의 시야 배수 — 어스름이면 좁아진다. </summary>
+		private float CurrentVisionScale()
+		{
+			return TowerDefenseWaveEvent.VisionScale(WaveEventAt(core != null ? core.WaveIndex : 0));
+		}
+
+		// 파도 성격을 마수 스탯에 얹는다 — 종류(archetype) 배수 *위에* 곱해지므로 둘이 겹쳐 쌓인다.
+		private static void ApplyWaveEventStats(UnitObject unitObject, TowerDefenseWaveEventKind kind)
+		{
+			if (unitObject == null || kind == TowerDefenseWaveEventKind.None)
+				return;
+
+			float healthScale = TowerDefenseWaveEvent.HealthScale(kind);
+			if (Mathf.Approximately(healthScale, 1f) == false)
+			{
+				int scaledMax = Mathf.Max(1, Mathf.RoundToInt(unitObject.UnitStat[UnitStatType.HP_MAX] * healthScale));
+				unitObject.UnitStat[UnitStatType.HP_MAX_STAT] = scaledMax;
+				unitObject.UnitStat[UnitStatType.HP_MAX] = scaledMax;
+				unitObject.UnitStat[UnitStatType.HP_CUR] = scaledMax;
+			}
+
+			float speedScale = TowerDefenseWaveEvent.SpeedScale(kind);
+			if (Mathf.Approximately(speedScale, 1f) == false)
+			{
+				int scaledSpeed = Mathf.Max(1, Mathf.RoundToInt(unitObject.UnitStat[UnitStatType.MOVEMENT_SPEED] * speedScale));
+				unitObject.UnitStat[UnitStatType.MOVEMENT_SPEED] = scaledSpeed;
+			}
+		}
 
 		/// <summary> 등록된 포탑 종류 수(0 이면 기존 단일 포탑). </summary>
 		public int TowerArchetypeCount => stage != null && stage.TowerArchetypes != null ? stage.TowerArchetypes.Length : 0;
@@ -1376,6 +1440,10 @@ namespace WitchMendokusai
 
 				core.AddResource(bounty);
 				PopWorldText("+" + bounty, enemy.Position, TextType.Exp);
+
+				// 죽은 자리에 잔해 — 많이 죽인 곳이 저절로 늪이 되어 다음 무리가 느려진다.
+				TowerDefenseDebris.Spawn(stageRoot, enemy.Position, waveEnemies,
+					stage.DebrisSeconds, stage.DebrisSlowFactor, stage.GroundCellSize * 0.8f, stage.DebrisTint);
 			}
 		}
 

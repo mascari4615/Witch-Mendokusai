@@ -112,6 +112,20 @@ namespace WitchMendokusai
 		[field: Tooltip("휠 **한 칸당** 높이 변화량. 플랫폼별 raw 델타 차이는 리그가 흡수한다.")]
 		[field: SerializeField, Min(0.1f)] public float CameraZoomSpeed { get; private set; } = 6f;
 
+		[field: Header("이벤트 파도 — 성격이 변한다")]
+		[field: Tooltip("몇 파마다 성격이 붙나(0 = 안 씀). 3 이면 3·6·9파가 떼거리→정예→돌진→어스름 순환.")]
+		[field: SerializeField, Min(0)] public int WaveEventEvery { get; private set; } = 3;
+
+		[field: Header("잔해 — 전투가 판을 바꾼다")]
+		[field: Tooltip("마수가 죽은 자리에 남는 잔해 지속(초). 0 이면 잔해 없음.")]
+		[field: SerializeField, Min(0f)] public float DebrisSeconds { get; private set; } = 6f;
+
+		[field: Tooltip("잔해를 밟은 마수의 속도 배수(0.6 = 40% 느려짐).")]
+		[field: SerializeField, Range(0.1f, 1f)] public float DebrisSlowFactor { get; private set; } = 0.6f;
+
+		[field: Tooltip("잔해 색.")]
+		[field: SerializeField] public Color DebrisTint { get; private set; } = new Color(0.45f, 0.4f, 0.38f, 1f);
+
 		[field: Header("함정 — 바닥에 까는 것")]
 		[field: Tooltip("함정 1개 비용. 포탑이 「어디를 쏘나」라면 함정은 「어디를 지나가나」 — 길목과 직결된다.")]
 		[field: SerializeField, Min(0)] public int TrapCost { get; private set; } = 25;

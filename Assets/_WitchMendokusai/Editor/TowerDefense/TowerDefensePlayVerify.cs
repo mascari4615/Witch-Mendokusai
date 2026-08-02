@@ -280,6 +280,7 @@ namespace WitchMendokusai.EditorTools
 					VerifyTrap();
 					VerifyWall();
 					VerifyLab();
+					VerifyWaveEvents();
 					if (placeOnly)
 					{
 						Debug.Log(TAG + " PLACE-ONLY 배치 확인 끝 — 조기 종료");
@@ -1041,6 +1042,39 @@ namespace WitchMendokusai.EditorTools
 					+ " alive=" + combatant.IsAlive);
 				index++;
 			}
+		}
+
+		/// <summary> 이벤트 파도 — 파도마다 성격이 붙고, 마리수가 실제로 달라지는가(예고와 스폰이 같은 함수). </summary>
+		private static void VerifyWaveEvents()
+		{
+			if (match == null)
+				return;
+
+			System.Text.StringBuilder line = new();
+			int eventWaves = 0;
+			int countVaried = 0;
+			int plainCount = match.ScaledEnemyCount(0);
+
+			for (int wave = 0; wave < 9; wave++)
+			{
+				TowerDefenseWaveEventKind kind = match.WaveEventAt(wave);
+				int count = match.ScaledEnemyCount(wave);
+				if (kind != TowerDefenseWaveEventKind.None)
+				{
+					eventWaves++;
+					if (count != match.Stage.Rules.EnemiesInWave(wave))
+						countVaried++;
+				}
+				line.Append(wave).Append(':').Append(TowerDefenseWaveEvent.DisplayName(kind) is { Length: > 0 } name ? name : "-")
+					.Append('(').Append(count).Append(") ");
+			}
+
+			string verdict = TAG + " WAVE-EVENTS " + line.ToString().TrimEnd()
+				+ " | eventWaves=" + eventWaves + " countVaried=" + countVaried + " plain0=" + plainCount;
+			if (eventWaves >= 2 && countVaried >= 1)
+				Debug.Log(verdict + " → 파도마다 성격이 바뀐다 ✔");
+			else
+				Debug.LogError(verdict + " → 성격이 안 붙거나 마리수가 안 변한다.");
 		}
 
 		/// <summary> 연구 인형 — 가장 비싸므로 맨 마지막. 예산이 없으면 「확인 못 함」으로 남긴다(가짜 실패 X). </summary>

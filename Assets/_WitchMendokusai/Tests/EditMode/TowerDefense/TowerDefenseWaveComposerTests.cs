@@ -103,5 +103,50 @@ namespace WitchMendokusai.Tests
 			Assert.AreEqual(22, counts[0] + counts[1] + counts[2]);
 			Assert.AreEqual(composition.FindAll(index => index == 2).Count, counts[2]);
 		}
+
+		[Test]
+		public void 이벤트파도_every마다_붙고_평소엔_없다()
+		{
+			Assert.AreEqual(TowerDefenseWaveEventKind.None, TowerDefenseWaveEvent.For(0, 3));
+			Assert.AreEqual(TowerDefenseWaveEventKind.None, TowerDefenseWaveEvent.For(1, 3));
+			Assert.AreNotEqual(TowerDefenseWaveEventKind.None, TowerDefenseWaveEvent.For(2, 3));
+			Assert.AreNotEqual(TowerDefenseWaveEventKind.None, TowerDefenseWaveEvent.For(5, 3));
+		}
+
+		[Test]
+		public void 이벤트파도_종류가_순환한다()
+		{
+			// 같은 성격만 반복되면 「성격 변화」가 아니라 「가끔 센 파도」가 된다.
+			TowerDefenseWaveEventKind first = TowerDefenseWaveEvent.For(2, 3);
+			TowerDefenseWaveEventKind second = TowerDefenseWaveEvent.For(5, 3);
+			TowerDefenseWaveEventKind third = TowerDefenseWaveEvent.For(8, 3);
+
+			Assert.AreNotEqual(first, second);
+			Assert.AreNotEqual(second, third);
+		}
+
+		[Test]
+		public void 이벤트파도_같은_파도는_항상_같은_성격()
+		{
+			// 결정론이 아니면 예고가 거짓말이 되고 대비가 운에 좌우된다.
+			Assert.AreEqual(TowerDefenseWaveEvent.For(11, 3), TowerDefenseWaveEvent.For(11, 3));
+		}
+
+		[Test]
+		public void 이벤트파도_끄면_아무_성격도_안_붙는다()
+		{
+			for (int wave = 0; wave < 12; wave++)
+				Assert.AreEqual(TowerDefenseWaveEventKind.None, TowerDefenseWaveEvent.For(wave, 0));
+		}
+
+		[Test]
+		public void 떼거리는_많고_물렁_정예는_적고_단단()
+		{
+			Assert.Greater(TowerDefenseWaveEvent.CountScale(TowerDefenseWaveEventKind.Swarm), 1f);
+			Assert.Less(TowerDefenseWaveEvent.HealthScale(TowerDefenseWaveEventKind.Swarm), 1f);
+			Assert.Less(TowerDefenseWaveEvent.CountScale(TowerDefenseWaveEventKind.Elite), 1f);
+			Assert.Greater(TowerDefenseWaveEvent.HealthScale(TowerDefenseWaveEventKind.Elite), 1f);
+		}
+
 	}
 }
