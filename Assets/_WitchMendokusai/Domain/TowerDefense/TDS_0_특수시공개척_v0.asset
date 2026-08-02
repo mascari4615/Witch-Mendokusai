@@ -184,32 +184,32 @@ MonoBehaviour:
   <EnemyScale>k__BackingField: 1
   <GroundCellSize>k__BackingField: 1
   <CameraPanSpeed>k__BackingField: 24
-  <CameraPanLimit>k__BackingField: 36
+  <CameraPanLimit>k__BackingField: 105
   <CameraYawSpeed>k__BackingField: 90
   <CameraPitch>k__BackingField: 60
   <CameraMinHeight>k__BackingField: 10
-  <CameraMaxHeight>k__BackingField: 75
+  <CameraMaxHeight>k__BackingField: 120
   <CameraInitialHeight>k__BackingField: 30
   <CameraZoomSpeed>k__BackingField: 6
   <UseProceduralMap>k__BackingField: 1
   <RandomizeSeedEachMatch>k__BackingField: 1
   <MapParameters>k__BackingField:
     Seed: 0
-    Width: 60
-    Length: 60
+    Width: 200
+    Length: 200
     CellSize: 1
-    SpawnPointCount: 3
+    SpawnPointCount: 8
     SpawnRingInset: 1
     SpawnAngleJitter: 18
-    ResourceNodeCount: 6
-    NodeMinSpacing: 7
-    NodeMinCoreDistance: 7
+    ResourceNodeCount: 40
+    NodeMinSpacing: 10
+    NodeMinCoreDistance: 8
     NodeEdgeMargin: 3
-    NodeAngularSpread: 50
+    NodeAngularSpread: 8
     NearIncomeMultiplier: 1
     FarIncomeMultiplier: 2.5
     InnerTierRatio: 0.55
-    RockSiteCount: 22
+    RockSiteCount: 240
     RidgeWidth: 1.4
     ObstacleDensity: 0.7
     CoreClearRadius: 4
@@ -229,8 +229,8 @@ MonoBehaviour:
   <StageBoundsMargin>k__BackingField: 12
   <StageFloorDepth>k__BackingField: -5
   <NodeCaptureRadius>k__BackingField: 2
-  <GroundWidth>k__BackingField: 40
-  <GroundLength>k__BackingField: 40
+  <GroundWidth>k__BackingField: 200
+  <GroundLength>k__BackingField: 200
   <DraftRules>k__BackingField:
     OfferCount: 3
     FirepowerBonus: 0.18
