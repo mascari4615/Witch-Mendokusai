@@ -51,6 +51,8 @@ namespace WitchMendokusai
 		// 가동 중인 채집 인형 위치 — 정산 때 각자 머리 위에 벌어들인 액수를 띄운다.
 		// 숫자가 *어디서* 나오는지 안 보이면 채집 인형은 그냥 서 있는 장식으로 읽힌다.
 		private readonly List<Transform> harvesterTransforms = new();
+		// 이 채집 인형이 바깥 노드에 섰나 — 정수/자원 중 무엇을 내는지 결정.
+		private readonly Dictionary<Vector3, bool> harvesterIsOuter = new();
 
 		// 이번 매치의 판 — 절차 생성이면 layout 이 정본, 끄면 null 이고 스테이지 SO 의 고정 레이아웃을 쓴다.
 		// 아래 active* 목록이 *둘을 하나로 합친 단일 출처* — 매치 본문은 어느 쪽인지 신경 쓰지 않는다.
@@ -71,6 +73,8 @@ namespace WitchMendokusai
 		private readonly List<Vector3> activeSpawnPoints = new();
 		private readonly List<Vector3> activeNodePositions = new();
 		private readonly List<float> activeNodeIncomeMultipliers = new();
+		// 노드 등급 — 바깥 노드는 정수를 낸다(안쪽은 자원). 「멀리 나가야 강해진다」의 근거.
+		private readonly List<bool> activeNodeIsOuter = new();
 		private Vector3 activeCorePosition;
 		private float activeGroundWidth;
 		private float activeGroundLength;
@@ -155,6 +159,8 @@ namespace WitchMendokusai
 
 		/// <summary> 다음 정산액 + 가동 채집 인형 수 — 「채집 인형이 뭐 하는 놈인지」를 화면이 말하는 근거 숫자. </summary>
 		public int NextWaveIncome => core != null ? core.NextWaveIncome : 0;
+		public int Essence => core != null ? core.Essence : 0;
+		public int NextWaveEssence => core != null ? core.NextWaveEssence : 0;
 		public int HarvesterCount => core != null ? core.HarvesterCount : 0;
 
 		/// <summary> 프로그래매틱 시작(런처/모드 진입용) — stage·stageRoot 주입 후 Begin. </summary>
@@ -222,6 +228,7 @@ namespace WitchMendokusai
 			bountyPaidEnemyIds.Clear();
 			enemyBountyById.Clear();
 			harvesterTransforms.Clear();
+			harvesterIsOuter.Clear();
 			LabCount = 0;
 			TrapsSpent = 0;
 			speedStep = 1;
@@ -251,6 +258,7 @@ namespace WitchMendokusai
 			activeSpawnPoints.Clear();
 			activeNodePositions.Clear();
 			activeNodeIncomeMultipliers.Clear();
+			activeNodeIsOuter.Clear();
 			mapLayout = null;
 			flowField = null;
 			flowNavigator = null;
@@ -269,6 +277,7 @@ namespace WitchMendokusai
 					{
 						activeNodePositions.Add(nodePosition);
 						activeNodeIncomeMultipliers.Add(1f);
+						activeNodeIsOuter.Add(false);
 					}
 				}
 				return;
@@ -288,6 +297,7 @@ namespace WitchMendokusai
 			{
 				activeNodePositions.Add(node.Position);
 				activeNodeIncomeMultipliers.Add(node.IncomeMultiplier);
+				activeNodeIsOuter.Add(node.Tier == TowerDefenseNodeTier.Outer);
 			}
 
 			// 길 안내판 — 암반이 생긴 순간 직선 이동은 벽에 박힌다(웨이브가 영원히 안 끝나는 그 사고).
@@ -333,8 +343,9 @@ namespace WitchMendokusai
 				if (weapon.Level >= archetype.MaxLevel)
 					return false;
 
-				int upgradeCost = archetype.Cost * (weapon.Level + 1);
-				if (core.TrySpend(upgradeCost) == false)
+				// 승급도 정수 — 「지금 더 짓기(자원)」 vs 「있는 걸 키우기(정수)」가 서로 다른 통장을 쓴다.
+				int upgradeCost = Mathf.Max(1, Mathf.RoundToInt(stage.UpgradeEssenceCost * (weapon.Level + 1) * 0.5f));
+				if (core.TrySpendEssence(upgradeCost) == false)
 					return false;
 
 				weapon.TryUpgrade();
@@ -1618,6 +1629,8 @@ namespace WitchMendokusai
 			claimedNodes.Add(nodeIndex); // TrySpend 성공 후에만 점유 확정(스펙 지시 — 실패 시 점유 안 남김).
 			occupiedCells.Add(cellKey);
 			float incomeMultiplier = nodeIndex < activeNodeIncomeMultipliers.Count ? activeNodeIncomeMultipliers[nodeIndex] : 1f;
+			bool outerNode = nodeIndex < activeNodeIsOuter.Count && activeNodeIsOuter[nodeIndex];
+			harvesterIsOuter[nodeWorldPosition] = outerNode;
 			StartCoroutine(SpawnDefensiveUnitRoutine(stage.HarvesterUnit, null, nodeWorldPosition, isHarvester: true, incomeMultiplier));
 			return true;
 		}
@@ -1669,7 +1682,12 @@ namespace WitchMendokusai
 					continue;
 
 				harvesterTransforms.RemoveAt(index);
-				core.RemoveHarvester(NodeIncomeMultiplierAt(ReleaseNodeAt(sold.transform.position)));
+				int nodeIndex = ReleaseNodeAt(sold.transform.position);
+				float multiplier = NodeIncomeMultiplierAt(nodeIndex);
+				if (nodeIndex >= 0 && nodeIndex < activeNodeIsOuter.Count && activeNodeIsOuter[nodeIndex])
+					core.RemoveEssenceHarvester(multiplier);
+				else
+					core.RemoveHarvester(multiplier);
 				return stage.HarvesterCost;
 			}
 
@@ -1736,7 +1754,8 @@ namespace WitchMendokusai
 			if (IsObstacleAt(worldPosition))
 				return false;
 
-			if (core.TrySpend(stage.LabCost) == false)
+			// 연구는 정수로만 — 강화의 통로를 바깥 노드(개척)에 묶는다.
+			if (core.TrySpendEssence(stage.LabEssenceCost) == false)
 				return false;
 
 			occupiedCells.Add(cellKey);
@@ -1902,7 +1921,10 @@ namespace WitchMendokusai
 
 			if (isHarvester)
 			{
-				core.AddHarvester(incomeMultiplier); // 채집건물 = 실제 가동(스폰 확정) 시점에만 수입 반영.
+				if (harvesterIsOuter.TryGetValue(worldPosition, out bool outer) && outer)
+					core.AddEssenceHarvester(incomeMultiplier);
+				else
+					core.AddHarvester(incomeMultiplier); // 채집건물 = 실제 가동(스폰 확정) 시점에만 수입 반영.
 				harvesterTransforms.Add(unitGameObject.transform);
 			}
 		}

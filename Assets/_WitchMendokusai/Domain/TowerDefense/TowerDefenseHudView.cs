@@ -31,6 +31,7 @@ namespace WitchMendokusai
 		private readonly Label incomeValue;
 		private readonly Label nextWaveValue;
 		private readonly Label livesValue;
+		private readonly Label essenceValue;
 
 		// 예고 계산 버퍼 — 매 프레임 새 리스트를 만들지 않는다.
 		private readonly System.Collections.Generic.List<int> compositionBuffer = new();
@@ -97,7 +98,7 @@ namespace WitchMendokusai
 			// ★ 한 덩어리가 한 가지만 말한다 — 예전엔 전부 좌상단에 몰려 있어 무엇부터 봐야 할지 알 수 없었다
 			//   (사용자 실증: "정보는 전부 모여 있어서 복잡복잡"). 자원은 상단 가운데 독립 띠(종류가 늘어도
 			//   가로로 칸만 추가), 진행은 우상단, 범례는 좌하단 접기, 고르는 것은 하단 가운데.
-			container.Add(BuildResourceBar(out resourceValue, out incomeValue));
+			container.Add(BuildResourceBar(out resourceValue, out incomeValue, out essenceValue));
 			container.Add(BuildProgressPanel(out livesValue, out waveValue, out phaseValue, out nextWaveValue, out enemyValue, out bestValue,
 				out waveModeButton, out nextWaveButton));
 			legendPanel = BuildLegendPanel();
@@ -127,7 +128,7 @@ namespace WitchMendokusai
 		/// 자원 띠 — 상단 가운데 독립. 자원 종류가 늘어나면 이 띠에 칸만 가로로 붙인다
 		/// (다른 정보와 섞어두면 종류가 늘 때마다 화면 전체를 다시 짜야 한다).
 		/// </summary>
-		private static VisualElement BuildResourceBar(out Label resource, out Label income)
+		private static VisualElement BuildResourceBar(out Label resource, out Label income, out Label essence)
 		{
 			VisualElement bar = new VisualElement { name = "ResourceBar" };
 			bar.style.position = Position.Absolute;
@@ -152,6 +153,9 @@ namespace WitchMendokusai
 			inner.Add(MakeResourceCell(TowerDefenseIcon.Kind.Diamond, new Color(1f, 0.86f, 0.35f, 1f), out resource, 26));
 			inner.Add(MakeDivider());
 			inner.Add(MakeResourceCell(TowerDefenseIcon.Kind.Ring, new Color(0.42f, 0.92f, 0.68f, 1f), out income, 20));
+			// 정수 — 자원 띠에 칸이 하나 붙는다. 「종류가 늘면 가로로 칸만 추가」로 설계해 둔 것이 여기서 회수된다.
+			inner.Add(MakeDivider());
+			inner.Add(MakeResourceCell(TowerDefenseIcon.Kind.Core, new Color(0.7f, 0.6f, 1f, 1f), out essence, 24));
 
 			bar.Add(inner);
 			return bar;
@@ -461,6 +465,8 @@ namespace WitchMendokusai
 					legendRows.Add(MakeLegendRow(tower.Tint, tower.DisplayName, tower.Note, TowerDefenseIcon.ForTower(tower)));
 				}
 			}
+			legendRows.Add(MakeLegendRow(stage.EssenceTint, "정수",
+				"바깥 금빛 자리에서만 난다 · 연구·승급 전용", TowerDefenseIcon.Kind.Core));
 			legendRows.Add(MakeLegendRow(stage.TrapTint, "함정",
 				"밟으면 터진다 · " + stage.TrapCharges + "번 쓰면 사라짐", TowerDefenseIcon.Kind.Burst));
 			legendRows.Add(MakeLegendRow(stage.WallTint, "벽",
@@ -707,6 +713,9 @@ namespace WitchMendokusai
 				: match.NextWaveIncome.ToString();
 
 			livesValue.text = match.UsesLives ? match.Lives.ToString() : "-";
+			essenceValue.text = match.NextWaveEssence > 0
+				? match.Essence + " (+" + match.NextWaveEssence + ")"
+				: match.Essence.ToString();
 			nextWaveValue.text = BuildWavePreview(match);
 			UpdateNodeLabels(match, stage);
 

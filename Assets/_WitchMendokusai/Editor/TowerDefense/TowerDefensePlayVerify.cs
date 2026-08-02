@@ -85,6 +85,7 @@ namespace WitchMendokusai.EditorTools
 		// 판매 검증용 — 배치 좌표. 스폰은 코루틴(1프레임 양보)이라 *같은 틱에 팔면 아직 아무도 없다*.
 		private static Vector3 sellProbeLocal;
 		private static bool sellProbeReady;
+		private static readonly List<int> nodeOrder = new();
 		private static bool firstWaveCalled;
 		private static int lastDumpedWave;
 		private static double waveDumpAt;
@@ -275,6 +276,8 @@ namespace WitchMendokusai.EditorTools
 					VerifyUiPointerGuard();
 					// ★ 예산은 유한하고 확인할 항목은 여럿이다 — 순서가 곧 검증 가능 여부다.
 					//   승급은 *이미 서 있는 포탑*이 필요하므로 판매보다 먼저, 비싼 연구 인형은 맨 뒤.
+					// 예산 순 — 채집(60)이 필요한 정수 확인을 먼저, 비싼 연구를 맨 뒤로.
+					VerifyEssence();
 					VerifyUpgrade();
 					VerifySell();
 					VerifyTrap();
@@ -501,11 +504,19 @@ namespace WitchMendokusai.EditorTools
 				Debug.LogError(TAG + " PLACE-FAIL 스테이지에 자원 노드가 없음");
 			// ★ 노드 전부에 세우면(6곳 × 60) 예산이 통째로 사라져 뒤의 확인이 전부 「돈이 없어 못 함」이 된다.
 			//   여기서 볼 것은 「노드 위에 서는가」이므로 한 기면 충분하다.
+			// ★ 채집 스폰은 코루틴(1프레임 양보 후 수입 반영)이라 *세운 그 틱에 읽으면 0*이다.
+			//   그래서 확인(VerifyEssence)이 아니라 여기서 미리 세운다 — 1.5초 뒤에 읽힌다.
+			//   바깥 노드(배수 큰 곳)를 우선 — 정수는 거기서만 난다.
 			int harvestersPlaced = 0;
-			foreach (Vector3 local in nodeLocals)
+			nodeOrder.Clear();
+			for (int index = 0; index < nodeLocals.Count; index++)
+				nodeOrder.Add(index);
+			nodeOrder.Sort((left, right) => match.NodeIncomeMultiplierAt(right).CompareTo(match.NodeIncomeMultiplierAt(left)));
+
+			foreach (int nodeIndex in nodeOrder)
 			{
-				// 배치만 모드는 예산을 승급·함정·벽이 나눠 써야 한다 — 채집(60)은 전체 실행에서 확인한다.
-				if (placeOnly || harvestersPlaced >= 1)
+				Vector3 local = nodeLocals[nodeIndex];
+				if (harvestersPlaced >= (placeOnly ? 1 : 2))
 					break;
 				int beforeHarvester = match.Resource;
 				placement.PlaceHarvesterAt(WorldToScreen(modeCamera, stageRoot.TransformPoint(local)));
@@ -1051,6 +1062,30 @@ namespace WitchMendokusai.EditorTools
 			}
 		}
 
+		/// <summary>
+		/// 정수 — 바깥 노드 채집이 정수를 내고, 강화(연구·승급)가 자원이 아니라 정수를 쓰는가.
+		/// 「멀리 나가야 강해진다」가 두 통장으로 성립하는지 본다.
+		/// </summary>
+		private static void VerifyEssence()
+		{
+			Transform stageRoot = FindStageRoot();
+			if (match == null || stageRoot == null)
+				return;
+
+			// 배치는 이미 DoPlacements 가 했다(코루틴이 끝날 시간을 벌기 위해) — 여기선 결과만 읽는다.
+			string verdict = TAG + " ESSENCE harvesters=" + match.HarvesterCount
+				+ " nextIncome=" + match.NextWaveIncome
+				+ " nextEssence=" + match.NextWaveEssence
+				+ " essence=" + match.Essence;
+
+			if (match.HarvesterCount == 0 && match.NextWaveEssence == 0)
+				Debug.Log(verdict + " → 채집을 못 세움(자원 부족/자리 없음) — 확인 못 함");
+			else if (match.NextWaveEssence > 0)
+				Debug.Log(verdict + " → 바깥 노드가 정수를 낸다 ✔");
+			else
+				Debug.LogError(verdict + " → 바깥 노드인데 정수가 안 나온다.");
+		}
+
 		/// <summary> 이벤트 파도 — 파도마다 성격이 붙고, 마리수가 실제로 달라지는가(예고와 스폰이 같은 함수). </summary>
 		private static void VerifyWaveEvents()
 		{
@@ -1126,7 +1161,15 @@ namespace WitchMendokusai.EditorTools
 			//   「지을 돈이 있는가」가 아니다. 새로 지으면 그 값이 승급 예산을 먹어 기능이 아니라 잔고를 검사하게 된다.
 			Vector3 world = stageRoot.TransformPoint(sellProbeLocal);
 
-			int before = match.Resource;
+			// ★ 승급은 정수(강화 전용 재화)를 쓴다 — 정수는 파도 정산에서만 나오므로 첫 파도 전에는 못 올린다.
+			//   이건 의도된 설계(강화는 개척의 결과)라, 없으면 「확인 못 함」이지 실패가 아니다.
+			if (match.Essence <= 0)
+			{
+				Debug.Log(TAG + " UPGRADE-SKIP 정수 0 — 첫 파도 정산 전에는 승급 불가(의도된 설계)");
+				return;
+			}
+
+			int before = match.Essence;
 			bool upgraded = match.TryPlaceTower(world, 0);
 
 			int level = -1;
@@ -1137,8 +1180,8 @@ namespace WitchMendokusai.EditorTools
 			}
 
 			string verdict = TAG + " UPGRADE ok=" + upgraded + " maxLevel=" + level
-				+ " resource " + before + " → " + match.Resource;
-			if (upgraded && level >= 2 && match.Resource < before)
+				+ " essence " + before + " → " + match.Essence;
+			if (upgraded && level >= 2 && match.Essence < before)
 				Debug.Log(verdict + " → 같은 자리에 다시 지으면 자란다 ✔");
 			else
 				Debug.LogError(verdict + " → 승급이 안 되거나 값을 안 치른다.");

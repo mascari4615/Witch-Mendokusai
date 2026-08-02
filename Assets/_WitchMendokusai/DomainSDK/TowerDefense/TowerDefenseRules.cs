@@ -28,6 +28,9 @@ namespace WitchMendokusai
 		// 길목 하나가 뚫리는 순간의 무게가 완전히 달라진다. 0 이하면 유출제 미사용(옛 코어 체력제).
 		public int StartingLives;
 
+		// 바깥 노드 채집 인형 1기당 정산 시 들어오는 정수. 강화 전용 재화라 「멀리 나가야 강해진다」가 성립한다.
+		public int EssencePerHarvester;
+
 		/// <summary> WaveCount 가 무한 스테이지 센티널(0 이하)인지. </summary>
 		public bool IsEndless => WaveCount <= 0;
 

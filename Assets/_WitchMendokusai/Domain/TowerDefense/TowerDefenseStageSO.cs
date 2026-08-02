@@ -112,6 +112,16 @@ namespace WitchMendokusai
 		[field: Tooltip("휠 **한 칸당** 높이 변화량. 플랫폼별 raw 델타 차이는 리그가 흡수한다.")]
 		[field: SerializeField, Min(0.1f)] public float CameraZoomSpeed { get; private set; } = 6f;
 
+		[field: Header("정수 — 강화 전용 재화(바깥 노드에서만)")]
+		[field: Tooltip("연구 인형 1기에 드는 정수.")]
+		[field: SerializeField, Min(0)] public int LabEssenceCost { get; private set; } = 6;
+
+		[field: Tooltip("승급 기준 정수(실제 값은 단계에 비례).")]
+		[field: SerializeField, Min(1)] public int UpgradeEssenceCost { get; private set; } = 8;
+
+		[field: Tooltip("정수 색 — 자원과 확실히 달라야 두 통장이 갈린다.")]
+		[field: SerializeField] public Color EssenceTint { get; private set; } = new Color(0.7f, 0.6f, 1f, 1f);
+
 		[field: Header("적응 — 한 수단에만 기대면 통하지 않게 된다")]
 		[field: Tooltip("적응 민감도(0 = 안 씀). 클수록 편중된 전략에 저항이 빨리 붙는다. 저항은 절대 절반을 넘지 않는다.")]
 		[field: SerializeField, Min(0f)] public float AdaptationSensitivity { get; private set; } = 1f;

@@ -28,6 +28,7 @@ MonoBehaviour:
     EnemyCountGrowth: 3
     BountyPerKill: 6
     StartingLives: 12
+    EssencePerHarvester: 3
   <ManualFirstWave>k__BackingField: 1
   <AutoAdvanceWavesDefault>k__BackingField: 1
   <CoreUnit>k__BackingField: {fileID: 11400000, guid: a194010000000000000000000000d004, type: 2}

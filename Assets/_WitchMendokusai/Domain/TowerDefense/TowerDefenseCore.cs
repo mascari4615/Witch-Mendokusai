@@ -49,6 +49,40 @@ namespace WitchMendokusai
 		public int Resource { get; private set; }
 		public int HarvesterCount { get; private set; }
 
+		/// <summary>
+		/// 정수 — 바깥 노드에서만 나오는 귀한 자원. 강화(승급·연구)의 유일한 통로다.
+		/// ★ 자원이 한 종류면 「멀리 나간다」의 보상이 그냥 숫자가 더 큰 것뿐이라 위험을 감수할 이유가 약하다.
+		///   바깥에서만 나오는 것을 강화에 묶으면 개척이 *강해지는 유일한 길*이 된다.
+		/// </summary>
+		public int Essence { get; private set; }
+
+		private float essenceHarvesterWeight;
+
+		/// <summary> 정수 채집 인형 하나 가동(바깥 노드). </summary>
+		public void AddEssenceHarvester(float incomeMultiplier)
+		{
+			essenceHarvesterWeight += incomeMultiplier > 0f ? incomeMultiplier : 0f;
+		}
+
+		/// <summary> 정수 채집 인형을 팔았다. </summary>
+		public void RemoveEssenceHarvester(float incomeMultiplier)
+		{
+			essenceHarvesterWeight = Mathf.Max(0f, essenceHarvesterWeight - Mathf.Max(0f, incomeMultiplier));
+		}
+
+		/// <summary> 다음 정산에 들어올 정수. </summary>
+		public int NextWaveEssence => Mathf.RoundToInt(rules.EssencePerHarvester * essenceHarvesterWeight);
+
+		/// <summary> 정수가 충분하면 차감하고 true. </summary>
+		public bool TrySpendEssence(int cost)
+		{
+			if (cost < 0 || Essence < cost)
+				return false;
+
+			Essence -= cost;
+			return true;
+		}
+
 		/// <summary> 남은 목숨. 유출제를 안 쓰는 스테이지(StartingLives<=0)면 항상 0 이고 무시된다. </summary>
 		public int Lives { get; private set; }
 
@@ -113,6 +147,7 @@ namespace WitchMendokusai
 					return TowerDefenseSignal.None;
 
 				Resource += NextWaveIncome;
+				Essence += NextWaveEssence;
 				WaveIndex++;
 
 				// 엔드리스(IsEndless)는 이 분기에 절대 안 들어옴 — 무조건 다음 Prepare 로 순환.
