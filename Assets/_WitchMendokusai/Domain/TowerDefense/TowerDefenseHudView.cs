@@ -1266,34 +1266,32 @@ namespace WitchMendokusai
 		/// 매치 종료 배너. 무한 모드 패배 = 버틴 웨이브 수가 곧 점수 —
 		/// 기록 갱신 여부까지 말해야 「다시 도전」이 이유를 갖는다.
 		/// </summary>
-		public void ShowOutcome(TowerDefenseOutcome outcome, int wavesCleared, int bestWave, bool isNewRecord,
-			int relicsGained, int relicBalance, bool canPull)
+		public void ShowOutcome(TowerDefenseOutcome outcome, int survivedSeconds, int nestsDestroyed, int score, int best,
+			bool isNewRecord, int relicsGained, int relicBalance, bool canPull)
 		{
 			SetBannerVisible(true);
-			SetBestRecord(bestWave);
+			SetBestRecord(best);
 			ShowRelicResult(relicsGained, relicBalance, canPull);
+
+			string survived = FormatDuration(survivedSeconds);
+			string nests = nestsDestroyed > 0 ? "  ·  둥지 " + nestsDestroyed + "곳 부숨" : string.Empty;
 
 			if (outcome == TowerDefenseOutcome.Victory)
 			{
-				bannerLabel.text = "개척 성공";
+				bannerLabel.text = "개척 성공 — 마지막 둥지를 무너뜨렸다\n" + survived + nests;
 				return;
 			}
 
-			// 문구가 숫자를 그대로 뱉으면 「0 웨이브까지 버팀 (최고 0)」 같은 말이 나온다(라이브 실측) —
-			// 0 은 「버텼다」가 아니라 「못 넘겼다」이고, 기록 없는 첫 판에 「최고 0」은 알려줄 게 없는 잡음이다.
-			string survived = wavesCleared > 0
-				? wavesCleared + " 웨이브까지 버팀"
-				: "첫 웨이브도 넘기지 못함";
+			// 실시간이라 「몇 웨이브」가 아니라 *얼마나 버텼나*가 곧 성적이다.
+			bannerLabel.text = (isNewRecord ? "최고 기록 — " : "") + survived + " 버팀" + nests;
+		}
 
-			if (isNewRecord && wavesCleared > 0)
-			{
-				bannerLabel.text = survived + " — 최고 기록 갱신";
-				return;
-			}
-
-			bannerLabel.text = bestWave > 0
-				? survived + " (최고 " + bestWave + ")"
-				: survived;
+		/// <summary> 초 → 「3분 20초」. 숫자만 던지면 몇 분인지 사람이 암산해야 한다. </summary>
+		private static string FormatDuration(int seconds)
+		{
+			if (seconds < 60)
+				return seconds + "초";
+			return seconds / 60 + "분 " + seconds % 60 + "초";
 		}
 
 		/// <summary>
@@ -1323,10 +1321,10 @@ namespace WitchMendokusai
 			pullButton.SetEnabled(canPull);
 		}
 
-		/// <summary> 최고 기록 표시 — 기록 없으면 「-」(0 웨이브라고 거짓말하지 않는다). </summary>
-		public void SetBestRecord(int bestWave)
+		/// <summary> 최고 기록 — 점수(초 환산). 기록 없으면 「-」. </summary>
+		public void SetBestRecord(int bestScore)
 		{
-			bestValue.text = bestWave > 0 ? bestWave.ToString() : "-";
+			bestValue.text = bestScore > 0 ? FormatDuration(bestScore) : "-";
 		}
 
 		/// <summary> 종류 설명 — 체력·속도가 「어떻게 다른지」를 말로 준다(숫자만 보면 감이 안 온다). </summary>

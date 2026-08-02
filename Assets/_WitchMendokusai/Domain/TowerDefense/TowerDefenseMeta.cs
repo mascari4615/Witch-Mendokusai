@@ -21,6 +21,28 @@ namespace WitchMendokusai
 			return baseReward + waves * perWave;
 		}
 
+		/// <summary>
+		/// 실시간 판의 유물 — **버틴 시간**과 **부순 둥지**로 계산한다.
+		///
+		/// ★ 왜 바꿨나: 웨이브 수는 이제 시계가 정한다(40초마다 자동). 그걸 점수로 두면 *가만히 있어도
+		///   점수가 오른다* — 잘한 것과 시간이 흐른 것이 구분되지 않는다.
+		///   버틴 시간은 「죽지 않았다」를, 부순 둥지는 「밀어냈다」를 센다 — 두 축이 서로 다른 잘함이다.
+		/// </summary>
+		public static int RelicsForRealtime(int survivedSeconds, int nestsDestroyed, int perMinute, int perNest, int baseReward)
+		{
+			int seconds = survivedSeconds < 0 ? 0 : survivedSeconds;
+			int nests = nestsDestroyed < 0 ? 0 : nestsDestroyed;
+			return baseReward + seconds / 60 * perMinute + nests * perNest;
+		}
+
+		/// <summary> 점수 = 버틴 초 + 둥지 하나당 보너스 초. 기록·비교가 한 숫자로 닫힌다. </summary>
+		public static int ScoreForRealtime(int survivedSeconds, int nestsDestroyed, int secondsPerNest)
+		{
+			int seconds = survivedSeconds < 0 ? 0 : survivedSeconds;
+			int nests = nestsDestroyed < 0 ? 0 : nestsDestroyed;
+			return seconds + nests * Mathf.Max(0, secondsPerNest);
+		}
+
 		/// <summary> 아직 안 뽑은 포탑이 남았는가. </summary>
 		public static bool HasLockedTower(int towerCount, int defaultUnlockedCount, IReadOnlyList<int> unlocked)
 		{

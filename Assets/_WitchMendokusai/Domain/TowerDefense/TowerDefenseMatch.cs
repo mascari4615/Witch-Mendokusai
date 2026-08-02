@@ -299,6 +299,7 @@ namespace WitchMendokusai
 			enemyMaxStopDistance = 0f;
 			nests.Clear();
 			nestsEverSpawned = false;
+			NestsDestroyed = 0;
 			windowGrowing = false;
 			generators.Clear();
 			powerConsumerTransforms.Clear();
@@ -1024,6 +1025,7 @@ namespace WitchMendokusai
 					continue;
 
 				nests.RemoveAt(index);
+				NestsDestroyed++;
 				activeSpawnPoints.Remove(localPosition);
 				PopWorldText("둥지 파괴", stageRoot.TransformPoint(localPosition), TextType.Heal);
 				Debug.Log($"{nameof(TowerDefenseMatch)}: 둥지 하나가 무너졌다 — 남은 출구 {activeSpawnPoints.Count}곳.");
@@ -1051,6 +1053,14 @@ namespace WitchMendokusai
 
 		/// <summary> 남은 마수 출구 수 — 화면이 「얼마나 밀어냈나」를 말한다. </summary>
 		public int NestCount => nests.Count;
+
+		/// <summary>
+		/// 이 판의 점수 재료 — 실시간이 되면서 「몇 웨이브를 넘겼나」는 척도가 아니게 됐다.
+		/// 웨이브는 이제 시계가 40초마다 자동으로 부르므로, 오래 버틴 것이 곧 잘한 것이다.
+		/// 둥지를 부순 수는 「버텼다」와 다른 축 — *밀어냈다*를 센다.
+		/// </summary>
+		public int SurvivedSeconds => core != null ? Mathf.FloorToInt(core.ElapsedSeconds) : 0;
+		public int NestsDestroyed { get; private set; }
 
 		private void BuildEnemySpawnMarkers()
 		{

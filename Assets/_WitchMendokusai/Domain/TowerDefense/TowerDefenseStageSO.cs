@@ -212,6 +212,15 @@ namespace WitchMendokusai
 		[field: Tooltip("처음부터 쓸 수 있는 포탑 수(앞에서부터). 나머지는 유물로 뽑아야 나온다.")]
 		[field: SerializeField, Min(1)] public int DefaultUnlockedTowerCount { get; private set; } = 2;
 
+		[field: Tooltip("1분 버틸 때마다 받는 유물 — 실시간 판의 점수는 시간이다.")]
+		[field: SerializeField, Min(0)] public int RelicsPerMinute { get; private set; } = 2;
+
+		[field: Tooltip("둥지 하나를 부술 때마다 받는 유물 — 「밀어냈다」는 「버텼다」와 다른 잘함이다.")]
+		[field: SerializeField, Min(0)] public int RelicsPerNest { get; private set; } = 6;
+
+		[field: Tooltip("점수 환산 — 둥지 하나가 몇 초어치인가. 부수는 쪽이 버티기만 하는 것보다 값지게.")]
+		[field: SerializeField, Min(0)] public int ScoreSecondsPerNest { get; private set; } = 90;
+
 		[field: Tooltip("웨이브 하나 버틸 때마다 받는 유물.")]
 		[field: SerializeField, Min(0)] public int RelicsPerWave { get; private set; } = 3;
 

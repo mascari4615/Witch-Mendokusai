@@ -86,25 +86,29 @@ namespace WitchMendokusai
 			match.RestoreTimeScale(); // 결말 화면에서 버튼을 눌러야 하므로 시간이 멈춰 있으면 안 된다.
 
 			// 무한 모드 = 버틴 웨이브가 곧 점수 → 기록을 남기지 않으면 판이 끝나도 아무것도 안 남는다.
-			int best = match.WaveIndex;
+			// ★ 점수는 이제 「몇 웨이브」가 아니라 **버틴 시간 + 부순 둥지**다 — 실시간에서 웨이브는
+			//   시계가 부르므로 가만히 있어도 오른다(잘한 것과 시간이 흐른 것이 구분되지 않는다).
+			int score = TowerDefenseMeta.ScoreForRealtime(match.SurvivedSeconds, match.NestsDestroyed, stage.ScoreSecondsPerNest);
+			int best = score;
 			bool isNewRecord = false;
 			if (DataManager.TryGetExistingInstance(out DataManager dataManager))
 			{
-				isNewRecord = TowerDefenseRecord.Submit(dataManager.TowerDefenseBestWave, stage.ID, match.WaveIndex, out best);
+				isNewRecord = TowerDefenseRecord.Submit(dataManager.TowerDefenseBestWave, stage.ID, score, out best);
 				if (isNewRecord)
 					dataManager.SaveManager.SaveData();
 			}
 
 			// 판 밖에 남는 것 — 버틴 만큼 유물. 없으면 끝나도 최고 기록 숫자 하나뿐이라 다음 판이 안 달라진다.
-			int relicsGained = TowerDefenseMeta.RelicsFor(match.WaveIndex, stage.RelicsPerWave, stage.RelicsBaseReward);
+			int relicsGained = TowerDefenseMeta.RelicsForRealtime(
+				match.SurvivedSeconds, match.NestsDestroyed, stage.RelicsPerMinute, stage.RelicsPerNest, stage.RelicsBaseReward);
 			if (DataManager.TryGetExistingInstance(out DataManager relicOwner))
 			{
 				relicOwner.TowerDefenseRelics += relicsGained;
 				relicOwner.SaveManager.SaveData();
 			}
 
-			Debug.Log($"{nameof(TowerDefenseModeController)}: 매치 종료 — outcome={outcome} wave={match.WaveIndex} best={best} newRecord={isNewRecord} relics+{relicsGained}");
-			hud?.ShowOutcome(outcome, match.WaveIndex, best, isNewRecord, relicsGained, RelicBalance(), CanPull());
+			Debug.Log($"{nameof(TowerDefenseModeController)}: 매치 종료 — outcome={outcome} 버틴시간={match.SurvivedSeconds}s 둥지={match.NestsDestroyed} 점수={score} best={best} newRecord={isNewRecord} relics+{relicsGained}");
+			hud?.ShowOutcome(outcome, match.SurvivedSeconds, match.NestsDestroyed, score, best, isNewRecord, relicsGained, RelicBalance(), CanPull());
 		}
 
 		/// <summary> 현재 스테이지 최고 기록 — 화면에 목표를 세워준다(없으면 0). </summary>
