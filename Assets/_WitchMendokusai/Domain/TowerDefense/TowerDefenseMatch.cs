@@ -490,7 +490,11 @@ namespace WitchMendokusai
 			}
 
 			TowerDefenseTrap trap = trapObject.AddComponent<TowerDefenseTrap>();
-			trap.Configure(waveEnemies, stage.TrapDamage, stage.TrapCharges, stage.TrapRadius,
+			// ★ 함정도 전기를 먹는다 — 벽·함정만 체계 밖에 있으면 「전기가 부족하면 방어가 선다」는 규칙이
+			//   반쪽이 된다. 전기가 끊긴 함정은 밟혀도 안 터진다.
+			powerConsumerTransforms.Add(trapObject.transform);
+
+			trap.Configure(waveEnemies, Mathf.RoundToInt(stage.TrapDamage * boons.TrapPowerMultiplier), stage.TrapCharges, stage.TrapRadius,
 				spent =>
 				{
 					// 다 쓴 함정은 자리를 비워준다 — 안 비우면 그 칸이 영영 죽는다.
@@ -1899,6 +1903,11 @@ namespace WitchMendokusai
 				if (weapon != null && weapon.enabled != hasPower)
 					weapon.enabled = hasPower;
 
+				// 함정도 같은 규칙 — 전기가 끊기면 밟혀도 안 터진다.
+				TowerDefenseTrap trap = consumer.GetComponent<TowerDefenseTrap>();
+				if (trap != null && trap.enabled != hasPower)
+					trap.enabled = hasPower;
+
 				TowerDefenseDollLabel label = FindDollLabel(consumer);
 				if (label != null)
 					label.Unpowered = hasPower == false;
@@ -1925,8 +1934,9 @@ namespace WitchMendokusai
 				return Reject("암반 위엔 못 짓는다", worldPosition);
 			if (IsInBuildableRange(worldPosition) == false)
 				return Reject("보급이 닿는 곳에만 지을 수 있다", worldPosition);
-			if (core.TrySpend(stage.GeneratorCost) == false)
-				return Reject($"자원 부족 {core.Resource}/{stage.GeneratorCost}", worldPosition);
+			int generatorCost = Discounted(stage.GeneratorCost);
+			if (core.TrySpend(generatorCost) == false)
+				return Reject($"자원 부족 {core.Resource}/{generatorCost}", worldPosition);
 
 			occupiedCells.Add(cellKey);
 			StartCoroutine(SpawnDefensiveUnitRoutine(
@@ -3210,8 +3220,9 @@ namespace WitchMendokusai
 				return Reject("암반 위엔 못 짓는다", worldPosition);
 			if (IsInBuildableRange(worldPosition) == false)
 				return Reject("보급이 닿는 곳에만 지을 수 있다", worldPosition);
-			if (core.TrySpend(TowerCostAt(towerIndex)) == false)
-				return Reject($"자원 부족 {core.Resource}/{TowerCostAt(towerIndex)}", worldPosition);
+			int towerCost = Discounted(TowerCostAt(towerIndex));
+			if (core.TrySpend(towerCost) == false)
+				return Reject($"자원 부족 {core.Resource}/{towerCost}", worldPosition);
 
 			occupiedCells.Add(cellKey);
 			// 종류가 정의돼 있으면 개척 전용 무기로, 없으면 기존 전술 경로로(하위 호환).
@@ -3249,8 +3260,9 @@ namespace WitchMendokusai
 
 			if (IsInBuildableRange(nodeWorldPosition) == false)
 				return Reject("보급이 닿는 곳에만 지을 수 있다", nodeWorldPosition);
-			if (core.TrySpend(stage.HarvesterCost) == false)
-				return Reject($"자원 부족 {core.Resource}/{stage.HarvesterCost}", nodeWorldPosition);
+			int harvesterCost = Discounted(stage.HarvesterCost);
+			if (core.TrySpend(harvesterCost) == false)
+				return Reject($"자원 부족 {core.Resource}/{harvesterCost}", nodeWorldPosition);
 
 			claimedNodes.Add(nodeIndex); // TrySpend 성공 후에만 점유 확정(스펙 지시 — 실패 시 점유 안 남김).
 			occupiedCells.Add(cellKey);

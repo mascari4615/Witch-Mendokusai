@@ -20,6 +20,12 @@ namespace WitchMendokusai.Tests
 				LivesBonus = 1f,
 				EssenceBonus = 5f,
 				WindfallResource = 60f,
+				RateBonus = 0.2f,
+				DiscountBonus = 0.15f,
+				ReachBonus = 0.2f,
+				PowerBonus = 3f,
+				SlowBonus = 0.12f,
+				RepairRatio = 0.35f,
 			};
 		}
 
@@ -146,6 +152,66 @@ namespace WitchMendokusai.Tests
 			Assert.AreEqual(0, state.TakenCount);
 			Assert.AreEqual(1f, state.IncomeMultiplier);
 			Assert.IsEmpty(state.Describe());
+		}
+
+		[Test]
+		public void 모든_종류가_뽑기_풀에_들어있다()
+		{
+			// 카드를 늘려놓고 풀에 안 넣으면 *영원히 안 나오는 카드*가 생긴다 — 조용히 죽은 콘텐츠.
+			HashSet<TowerDefenseBoonKind> seen = new();
+			for (int wave = 0; wave < 400; wave++)
+			{
+				foreach (TowerDefenseBoon boon in Offer(wave, wave * 13 + 1, offerCount: 99))
+					seen.Add(boon.Kind);
+			}
+
+			foreach (TowerDefenseBoonKind kind in System.Enum.GetValues(typeof(TowerDefenseBoonKind)))
+				Assert.IsTrue(seen.Contains(kind), $"{kind} 카드가 한 번도 안 나온다 — 풀에 빠졌다.");
+		}
+
+		[Test]
+		public void 스무_종류_이상이다()
+		{
+			Assert.GreaterOrEqual(System.Enum.GetValues(typeof(TowerDefenseBoonKind)).Length, 20);
+		}
+
+		[Test]
+		public void 할인은_공짜가_되지_않는다()
+		{
+			// 공짜가 되면 선택이 아니라 스위치다.
+			TowerDefenseBoonState state = new();
+			for (int repeat = 0; repeat < 30; repeat++)
+			{
+				state.Take(TowerDefenseDraft.Make(TowerDefenseBoonKind.BuildDiscount, Rules()));
+				state.Take(TowerDefenseDraft.Make(TowerDefenseBoonKind.ResearchDiscount, Rules()));
+			}
+
+			Assert.GreaterOrEqual(state.CostMultiplier, 0.34f);
+			Assert.GreaterOrEqual(state.ResearchCostMultiplier, 0.34f);
+		}
+
+		[Test]
+		public void 마수는_절반_아래로_안_느려진다()
+		{
+			// 멈춘 적은 적이 아니다.
+			TowerDefenseBoonState state = new();
+			for (int repeat = 0; repeat < 30; repeat++)
+				state.Take(TowerDefenseDraft.Make(TowerDefenseBoonKind.EnemySlow, Rules()));
+
+			Assert.GreaterOrEqual(state.EnemySpeedMultiplier, 0.49f);
+		}
+
+		[Test]
+		public void 새_배수들도_쌓인다()
+		{
+			TowerDefenseBoonState state = new();
+			state.Take(TowerDefenseDraft.Make(TowerDefenseBoonKind.HarvestYield, Rules()));
+			state.Take(TowerDefenseDraft.Make(TowerDefenseBoonKind.Vision, Rules()));
+			state.Take(TowerDefenseDraft.Make(TowerDefenseBoonKind.SupplyReach, Rules()));
+
+			Assert.Greater(state.HarvestYieldMultiplier, 1f);
+			Assert.Greater(state.VisionMultiplier, 1f);
+			Assert.Greater(state.SupplyReachMultiplier, 1f);
 		}
 
 		[Test]
