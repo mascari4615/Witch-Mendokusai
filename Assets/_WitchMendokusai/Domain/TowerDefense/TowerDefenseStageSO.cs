@@ -130,6 +130,9 @@ namespace WitchMendokusai
 		// 24 = 코어에서 가까운 광맥 몇 곳이 처음부터 손에 닿는 거리. 넓히려면 여전히 이어야 한다.
 		[field: SerializeField, Min(1f)] public float SupplyReach { get; private set; } = 24f;
 
+		[field: Tooltip("판 짧은 변의 이 비율만큼도 보급이 닿는다(0.12 = 12%). 위 절대값과 둘 중 큰 쪽을 쓴다 — 판을 키워도 반경이 저절로 따라온다.")]
+		[field: SerializeField, Range(0f, 0.5f)] public float SupplyReachRatio { get; private set; } = 0.12f;
+
 		[field: Header("정수 — 강화 전용 재화(바깥 노드에서만)")]
 		[field: Tooltip("연구 인형 1기에 드는 정수.")]
 		[field: SerializeField, Min(0)] public int LabEssenceCost { get; private set; } = 6;

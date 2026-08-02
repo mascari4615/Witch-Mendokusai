@@ -1750,13 +1750,13 @@ namespace WitchMendokusai
 		/// </summary>
 		private void ShowSupplyReachRing(Transform origin)
 		{
-			if (origin == null || stage == null || stage.SupplyReach <= 0f)
+			if (origin == null || stage == null || EffectiveSupplyReach <= 0f)
 				return;
 
 			Color ringColor = stage.HarvesterTint;
 			ringColor.a = 0.18f;
 			TowerDefenseRing ring = TowerDefenseRing.Create(origin, "SupplyReachRing", ringColor, 0.06f, 0.03f);
-			ring.SetRadius(stage.SupplyReach);
+			ring.SetRadius(EffectiveSupplyReach);
 		}
 
 		/// <summary>
@@ -2140,6 +2140,26 @@ namespace WitchMendokusai
 		}
 
 		/// <summary>
+		/// 실제로 쓰는 보급 거리 — 설정값과 *판 크기에서 파생한 값* 중 큰 쪽.
+		///
+		/// ★ 왜 파생시키나 (같은 병을 두 번 앓았다): 절대값으로 박아두면 판을 키울 때마다 상대적으로
+		///   짧아져 **기능이 통째로 무음 잠김**된다. 44칸 시절 7 → 바깥 노드가 어떤 사슬로도 안 닿아
+		///   정수가 영영 0. 12로 고쳤더니 판을 200칸으로 키우며 같은 일이 재발해 채집이 0기가 됐다.
+		///   판 크기가 반경을 모르는 것이 진짜 근본이라, 판이 커지면 반경도 저절로 따라오게 묶는다.
+		/// </summary>
+		public float EffectiveSupplyReach
+		{
+			get
+			{
+				if (stage == null)
+					return 0f;
+
+				float derived = Mathf.Min(activeGroundWidth, activeGroundLength) * stage.SupplyReachRatio;
+				return Mathf.Max(stage.SupplyReach, derived);
+			}
+		}
+
+		/// <summary>
 		/// 거기에 지을 수 있는가 — **보급이 닿는 곳에만** 지을 수 있다.
 		///
 		/// ★ 왜 필요한가 (사용자 지시: "설치할 수 있는 범위가 제한이 되어야 할 것 같은데. 지금 그냥 맨 땅에
@@ -2154,7 +2174,7 @@ namespace WitchMendokusai
 			if (stage == null || coreCombatant == null)
 				return true;
 
-			float reach = stage.SupplyReach;
+			float reach = EffectiveSupplyReach;
 			float reachSqr = reach * reach;
 
 			if ((worldPosition - coreCombatant.Position).sqrMagnitude <= reachSqr)
@@ -2530,7 +2550,7 @@ namespace WitchMendokusai
 					supplySeeds.Add(outpost.position);
 			}
 
-			TowerDefenseSupply.Compute(supplySeeds, supplyBuildings, stage.SupplyReach, suppliedBuildings);
+			TowerDefenseSupply.Compute(supplySeeds, supplyBuildings, EffectiveSupplyReach, suppliedBuildings);
 
 			float resourceWeight = 0f;
 			float essenceWeight = 0f;
