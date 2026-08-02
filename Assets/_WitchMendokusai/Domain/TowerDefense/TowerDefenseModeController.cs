@@ -115,6 +115,8 @@ namespace WitchMendokusai
 			return TowerDefenseRecord.Best(dataManager.TowerDefenseBestWave, stage.ID);
 		}
 
+		private readonly System.Collections.Generic.List<TowerDefenseBuildingPerk> perkOffers = new();
+
 		// HUD 갱신 + 카메라 이동 — TD 모드 동안만.
 		private void Update()
 		{
@@ -235,6 +237,13 @@ namespace WitchMendokusai
 			placement.SuppressNextClick();
 			if (match.ChooseBoon(index))
 				hud?.HideDraft();
+		}
+
+		/// <summary> 고른 건물의 레벨업 선택 — 그 클릭이 설치로 새지 않게 한 번 삼킨다. </summary>
+		private void ChoosePerk(TowerDefenseBuildingPerk perk)
+		{
+			placement.SuppressNextClick();
+			match.ChooseBuildingPerk(placement.SelectedBuilding, perk);
 		}
 
 		/// <summary> UI 배율 한 단계 — 그 클릭이 설치로 새지 않게 한 번 삼킨다. </summary>
@@ -371,6 +380,7 @@ namespace WitchMendokusai
 					view.ToggleAllRangesRequested += ToggleAllRanges;
 					view.ResearchRequested += DoResearch;
 					view.UiScaleCycleRequested += CycleUiScale;
+					view.BuildingPerkChosen += ChoosePerk;
 					match.DraftOffered += ShowDraft;
 				}
 			}
@@ -394,6 +404,7 @@ namespace WitchMendokusai
 					hud.ToggleAllRangesRequested -= ToggleAllRanges;
 					hud.ResearchRequested -= DoResearch;
 					hud.UiScaleCycleRequested -= CycleUiScale;
+					hud.BuildingPerkChosen -= ChoosePerk;
 					match.DraftOffered -= ShowDraft;
 					hud.HideDraft();
 				}

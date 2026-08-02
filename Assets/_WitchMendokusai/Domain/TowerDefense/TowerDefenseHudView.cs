@@ -66,6 +66,7 @@ namespace WitchMendokusai
 		private VisualElement selectionPanel;
 		private Label selectionTitleLabel;
 		private Button researchButton;
+		private VisualElement perkRow;
 		// 공용 선택 바 — 건설 모드의 건물 바와 같은 물건(개척 전용 툴바를 따로 두지 않는다).
 		private readonly ModeSelectionBar selectionBar;
 		private readonly Button waveModeButton;
@@ -110,6 +111,9 @@ namespace WitchMendokusai
 
 		/// <summary> UI 배율을 한 단계 돌린다. </summary>
 		public event System.Action UiScaleCycleRequested = delegate { };
+
+		/// <summary> 고른 건물의 레벨업 선택지를 골랐다. </summary>
+		public event System.Action<TowerDefenseBuildingPerk> BuildingPerkChosen = delegate { };
 
 		public TowerDefenseHudView(UIRoot uiRoot)
 		{
@@ -645,11 +649,19 @@ namespace WitchMendokusai
 			research.style.display = DisplayStyle.None;
 			panel.Add(research);
 
+			// 레벨업으로 고를 것이 쌓여 있으면 여기에 세 장이 뜬다 — 화면 한가운데를 막지 않는다.
+			perkRow = new VisualElement();
+			perkRow.style.flexDirection = FlexDirection.Row;
+			perkRow.style.marginTop = 8;
+			perkRow.pickingMode = PickingMode.Ignore;
+			panel.Add(perkRow);
+
 			return panel;
 		}
 
 		/// <summary> 고른 건물을 보여준다 — 아무것도 안 골랐으면 패널 자체를 감춘다. </summary>
-		public void ShowSelection(string description, bool canResearch, int researchLevel, int researchCost)
+		public void ShowSelection(string description, bool canResearch, int researchLevel, int researchCost,
+			System.Collections.Generic.IReadOnlyList<TowerDefenseBuildingPerk> perkOffers = null)
 		{
 			if (selectionPanel == null)
 				return;
@@ -665,6 +677,42 @@ namespace WitchMendokusai
 			researchButton.style.display = canResearch ? DisplayStyle.Flex : DisplayStyle.None;
 			if (canResearch)
 				researchButton.text = "연구 " + (researchLevel + 1) + "단계  ·  정수 " + researchCost;
+
+			// 고를 것이 없으면 줄 자체를 비운다 — 빈 상자가 떠 있으면 그게 더 방해된다.
+			int offerCount = perkOffers != null ? perkOffers.Count : 0;
+			if (offerCount == 0)
+			{
+				if (perkRow.childCount > 0)
+					perkRow.Clear();
+				return;
+			}
+
+			if (perkRow.childCount != offerCount || perkKeys.Count != offerCount || PerksChanged(perkOffers))
+			{
+				perkRow.Clear();
+				perkKeys.Clear();
+				for (int index = 0; index < offerCount; index++)
+				{
+					TowerDefenseBuildingPerk perk = perkOffers[index];
+					perkKeys.Add(perk);
+					Button perkButton = MakeActionButton(TowerDefenseBuildingProgress.NameOf(perk), fontSize: 12,
+						() => BuildingPerkChosen(perk));
+					perkButton.style.marginRight = 6;
+					perkRow.Add(perkButton);
+				}
+			}
+		}
+
+		private readonly System.Collections.Generic.List<TowerDefenseBuildingPerk> perkKeys = new();
+
+		private bool PerksChanged(System.Collections.Generic.IReadOnlyList<TowerDefenseBuildingPerk> offers)
+		{
+			for (int index = 0; index < offers.Count && index < perkKeys.Count; index++)
+			{
+				if (offers[index] != perkKeys[index])
+					return true;
+			}
+			return false;
 		}
 
 		/// <summary>

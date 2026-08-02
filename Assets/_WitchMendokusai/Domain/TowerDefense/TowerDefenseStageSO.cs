@@ -220,6 +220,16 @@ namespace WitchMendokusai
 		[field: Tooltip("웨이브를 넘길 때마다 내 편이 최대 체력의 이 비율만큼 회복(0.25 = 25%). 1이면 완전 회복이라 소모전이 사라진다.")]
 		[field: SerializeField, Range(0f, 1f)] public float DefenderHealPerWave { get; private set; } = 0.25f;
 
+		[field: Header("건물 성장 — 자란 아이가 생긴다")]
+		[field: Tooltip("마수 하나를 사거리 안에서 잡을 때 포탑이 받는 경험치(0 = 성장 끔).")]
+		[field: SerializeField, Min(0)] public int KillExperience { get; private set; } = 3;
+
+		[field: Tooltip("정산마다 채집 인형이 받는 경험치.")]
+		[field: SerializeField, Min(0)] public int HarvestExperience { get; private set; } = 4;
+
+		[field: Tooltip("레벨업 선택지 한 단계가 올리는 비율(0.2 = +20%).")]
+		[field: SerializeField, Min(0f)] public float PerkStep { get; private set; } = 0.2f;
+
 		[field: Header("전기 — 받아야 돈다")]
 		[field: Tooltip("코어가 처음부터 내주는 전기량(0 = 전기 규칙 끔). 초반엔 이것만으로 몇 기를 돌린다.")]
 		[field: SerializeField, Min(0)] public int CorePowerCapacity { get; private set; } = 6;

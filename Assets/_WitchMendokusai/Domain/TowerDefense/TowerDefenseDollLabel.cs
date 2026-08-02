@@ -35,6 +35,15 @@ namespace WitchMendokusai
 		/// <summary> 지금 실제로 일하고 있나 — 전기가 끊겼거나 보급이 끊겼으면 false(바가 회색이 된다). </summary>
 		public bool Working { get; set; } = true;
 
+		/// <summary> 이 건물의 성장 — 경험치·레벨·아직 안 고른 선택지가 여기 산다. </summary>
+		public TowerDefenseBuildingProgress Progress { get; } = new();
+
+		/// <summary> 화면이 이 건물을 가리킬 때 쓰는 고유 번호(선택지 뽑기의 씨앗). </summary>
+		public int BuildingId { get; set; }
+
+		/// <summary> 채집인가 — 레벨업 선택지가 갈린다. </summary>
+		public bool IsHarvester { get; set; }
+
 		public TowerDefenseDollLabel(Transform anchor, string name, Color tint)
 		{
 			Anchor = anchor;
@@ -47,7 +56,11 @@ namespace WitchMendokusai
 		{
 			get
 			{
-				string text = Level > 1 ? Name + " ★" + Level : Name;
+				string text = Progress.Level > 1 ? Name + " Lv." + Progress.Level : Name;
+				if (Level > 1)
+					text += " ★" + Level;
+				if (Progress.PendingChoices > 0)
+					text += "  ✦" + Progress.PendingChoices;
 				return Disconnected ? text + "\n⚠ 보급 끊김" : text;
 			}
 		}

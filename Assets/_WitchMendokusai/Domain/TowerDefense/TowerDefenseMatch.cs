@@ -1142,6 +1142,7 @@ namespace WitchMendokusai
 				case TowerDefenseSignal.IncomeDue:
 					ShowIncomeBreakdown();
 					HealDefenders();
+					AwardHarvestExperience(); // 캐는 것도 일이다 — 채집도 자란다.
 					break;
 				case TowerDefenseSignal.Victory:
 					Conclude(TowerDefenseOutcome.Victory);
@@ -1709,14 +1710,19 @@ namespace WitchMendokusai
 		}
 
 		/// <summary> 세워진 인형에게 이름을 준다 + 한 마디 시킨다. 같은 판·같은 순서면 같은 이름. </summary>
-		private void RegisterDoll(Transform anchor, Color tint)
+		private void RegisterDoll(Transform anchor, Color tint, bool isHarvester = false)
 		{
 			if (anchor == null)
 				return;
 
 			int ordinal = nextDollOrdinal++;
 			string name = TowerDefenseNames.For(MapSeed, ordinal);
-			dollLabels.Add(new TowerDefenseDollLabel(anchor, name, tint));
+			TowerDefenseDollLabel doll = new(anchor, name, tint)
+			{
+				BuildingId = MapSeed + ordinal * 7919,
+				IsHarvester = isHarvester,
+			};
+			dollLabels.Add(doll);
 			PopWorldText("「" + name + "」 " + TowerDefenseNames.Greeting(MapSeed, ordinal), anchor.position, TextType.Heal);
 		}
 
@@ -1960,6 +1966,86 @@ namespace WitchMendokusai
 
 				label.ReadyRatio = 1f; // 패시브 — 언제나 준비됨.
 				label.Working = powered;
+			}
+		}
+
+		/// <summary>
+		/// 마수가 죽은 자리 *사거리 안*의 포탑들에게 경험치 — 「처치 관여」(사용자 지시).
+		///
+		/// ★ 왜 마지막 한 방이 아니라 관여인가: 마지막 타격만 세면 연사 포탑이 경험치를 독식하고,
+		///   길목을 지키느라 계속 쏘던 포탑이 아무것도 못 받는다. 관여로 세면 *자리를 잘 잡은 것*이 자란다.
+		/// </summary>
+		private void AwardKillExperience(Vector3 deathPosition)
+		{
+			if (stage == null || stage.KillExperience <= 0)
+				return;
+
+			foreach (TowerDefenseDollLabel doll in dollLabels)
+			{
+				if (doll.IsAlive == false || doll.IsHarvester)
+					continue;
+
+				TowerDefenseWeapon weapon = doll.Anchor.GetComponent<TowerDefenseWeapon>();
+				if (weapon == null)
+					continue;
+				if ((doll.Anchor.position - deathPosition).sqrMagnitude > weapon.Range * weapon.Range)
+					continue;
+
+				doll.Progress.AddExperience(stage.KillExperience);
+			}
+		}
+
+		/// <summary> 정산 때 채집 인형에게 경험치 — 캐는 것도 일이다. </summary>
+		private void AwardHarvestExperience()
+		{
+			if (stage == null || stage.HarvestExperience <= 0)
+				return;
+
+			foreach (TowerDefenseDollLabel doll in dollLabels)
+			{
+				if (doll.IsAlive == false || doll.IsHarvester == false)
+					continue;
+				if (doll.Disconnected || doll.Unpowered)
+					continue; // 멈춘 채집은 배우지도 않는다.
+
+				doll.Progress.AddExperience(stage.HarvestExperience);
+			}
+		}
+
+		/// <summary> 고른 건물의 성장 정보(없으면 null) — 화면이 선택지를 그릴 때 쓴다. </summary>
+		public TowerDefenseDollLabel FindDoll(ArenaCombatant combatant)
+		{
+			return combatant != null ? FindDollLabel(combatant.transform) : null;
+		}
+
+		/// <summary> 고른 건물의 레벨업 선택지를 확정한다. </summary>
+		public bool ChooseBuildingPerk(ArenaCombatant combatant, TowerDefenseBuildingPerk perk)
+		{
+			TowerDefenseDollLabel doll = FindDoll(combatant);
+			if (doll == null || doll.Progress.Choose(perk) == false)
+				return false;
+
+			ApplyPerk(doll, perk);
+			PopWorldText(TowerDefenseBuildingProgress.NameOf(perk), doll.Anchor.position, TextType.Exp);
+			return true;
+		}
+
+		// 고른 것을 실제 수치에 건다 — 화면만 바뀌고 실물이 그대로면 그건 선택이 아니다.
+		private void ApplyPerk(TowerDefenseDollLabel doll, TowerDefenseBuildingPerk perk)
+		{
+			TowerDefenseWeapon weapon = doll.Anchor.GetComponent<TowerDefenseWeapon>();
+			if (weapon != null)
+				weapon.ApplyPerk(perk, stage.PerkStep);
+
+			if (perk == TowerDefenseBuildingPerk.Endure)
+			{
+				UnitObject unit = doll.Anchor.GetComponent<UnitObject>();
+				if (unit != null)
+				{
+					int bonus = Mathf.Max(1, Mathf.RoundToInt(unit.UnitStat[UnitStatType.HP_MAX] * stage.PerkStep));
+					unit.UnitStat[UnitStatType.HP_MAX] += bonus;
+					unit.UnitStat[UnitStatType.HP_CUR] += bonus;
+				}
 			}
 		}
 
@@ -2686,6 +2772,7 @@ namespace WitchMendokusai
 
 				core.AddResource(bounty);
 				PopWorldText("+" + bounty, enemy.Position, TextType.Exp);
+				AwardKillExperience(enemy.Position);
 
 				// 죽은 자리에 잔해 — 많이 죽인 곳이 저절로 늪이 되어 다음 무리가 느려진다.
 				TowerDefenseDebris.Spawn(stageRoot, enemy.Position, waveEnemies,
@@ -3206,9 +3293,11 @@ namespace WitchMendokusai
 
 			// 세운 인형에게 이름 — 벽·함정은 물건이지만 인형은 아이다(이 경로로 오는 것은 전부 인형).
 			RegisterDoll(unitGameObject.transform,
-				isLab ? stage.LabTint
+				isGenerator ? stage.GeneratorTint
+					: isLab ? stage.LabTint
 					: isHarvester ? stage.HarvesterTint
-					: (towerArchetype != null ? towerArchetype.Tint : stage.TowerTint));
+					: (towerArchetype != null ? towerArchetype.Tint : stage.TowerTint),
+				isHarvester);
 
 			// 모든 내 건물이 보급 사슬의 징검다리 — 포탑을 늘어놓는 것이 곧 보급선을 잇는 일이 된다.
 			supplyTransforms.Add(unitGameObject.transform);

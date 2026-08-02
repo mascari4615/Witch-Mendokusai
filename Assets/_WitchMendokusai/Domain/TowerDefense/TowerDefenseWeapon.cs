@@ -48,8 +48,32 @@ namespace WitchMendokusai
 		private float LevelScale => 1f + (Level - 1) * (archetype != null ? archetype.UpgradeGrowth : 0f);
 
 		/// <summary> 지금 이 순간의 사거리·피해 — 툴팁이 읽는다. 화면이 규칙과 다른 숫자를 말하면 안 된다. </summary>
-		public float Range => archetype != null ? archetype.Range * LevelScale : 0f;
-		public int CurrentDamage => archetype != null ? Mathf.RoundToInt(archetype.Damage * LevelScale) : 0;
+		// 레벨업으로 고른 것들이 여기 쌓인다 — 종류별 배수.
+		private float perkDamage;
+		private float perkRange;
+		private float perkSpeed;
+
+		/// <summary> 고른 것을 수치에 건다(한 단계당 step 비율). </summary>
+		public void ApplyPerk(TowerDefenseBuildingPerk perk, float step)
+		{
+			switch (perk)
+			{
+				case TowerDefenseBuildingPerk.Damage:
+					perkDamage += step;
+					break;
+				case TowerDefenseBuildingPerk.Range:
+					perkRange += step;
+					break;
+				case TowerDefenseBuildingPerk.Speed:
+					perkSpeed += step;
+					break;
+				default:
+					break;
+			}
+		}
+
+		public float Range => archetype != null ? archetype.Range * LevelScale * (1f + perkRange) : 0f;
+		public int CurrentDamage => archetype != null ? Mathf.RoundToInt(archetype.Damage * LevelScale * (1f + perkDamage)) : 0;
 
 		/// <summary> 한 단계 올린다. 최대치면 false(값을 치르기 전에 호출자가 확인해야 한다). </summary>
 		public bool TryUpgrade()
@@ -117,14 +141,14 @@ namespace WitchMendokusai
 			if (target == null)
 				return;
 
-			cooldownRemaining = archetype.Cooldown;
+			cooldownRemaining = archetype.Cooldown / (1f + perkSpeed);
 			Fire(target);
 		}
 
 		/// <summary> 사거리 안에서 가장 가까운 마수 — 가까운 것부터 처리하는 게 방어의 기본. </summary>
 		private ICombatant FindTarget()
 		{
-			float range = archetype.Range * LevelScale;
+			float range = archetype.Range * LevelScale * (1f + perkRange);
 			float rangeSqr = range * range;
 			ICombatant best = null;
 			float bestSqr = float.MaxValue;
@@ -155,7 +179,7 @@ namespace WitchMendokusai
 		/// </summary>
 		private int ComputeDamage(ICombatant target)
 		{
-			float damage = archetype.Damage * LevelScale;
+			float damage = archetype.Damage * LevelScale * (1f + perkDamage);
 			damage *= damageMultiplier != null ? damageMultiplier() : 1f;
 
 			if (archetype.SlowedTargetBonus > 0f && IsSlowed(target))
