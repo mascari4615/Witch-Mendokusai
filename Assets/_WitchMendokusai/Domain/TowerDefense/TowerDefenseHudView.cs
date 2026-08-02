@@ -64,6 +64,9 @@ namespace WitchMendokusai
 		/// <summary> 다음 웨이브 호출 요청 — 수동 진행의 진행 버튼이자, 자동에서도 "지금 와라". </summary>
 		public event System.Action NextWaveRequested = delegate { };
 
+		/// <summary> 핫바 칸을 눌러 고름 — 숫자키와 같은 경로로 들어간다(고르는 방법이 둘이어도 결과는 하나). </summary>
+		public event System.Action<int> SlotClicked = delegate { };
+
 		public TowerDefenseHudView(UIRoot uiRoot)
 		{
 			this.uiRoot = uiRoot;
@@ -427,21 +430,26 @@ namespace WitchMendokusai
 				{
 					if (tower == null)
 						continue;
-					hotbarPanel.Add(MakeHotbarSlot(slot.ToString(), tower.DisplayName, tower.Cost, tower.Tint));
+					hotbarPanel.Add(MakeHotbarSlot(slot.ToString(), tower.DisplayName, tower.Cost, tower.Tint, slot - 1));
 					slot++;
 				}
 			}
 			else
 			{
-				hotbarPanel.Add(MakeHotbarSlot("1", "포탑 인형", stage.TowerCost, stage.TowerTint));
+				hotbarPanel.Add(MakeHotbarSlot("1", "포탑 인형", stage.TowerCost, stage.TowerTint, 0));
 				slot++;
 			}
-			hotbarPanel.Add(MakeHotbarSlot(slot.ToString(), "채집 인형", stage.HarvesterCost, stage.HarvesterTint));
+			hotbarPanel.Add(MakeHotbarSlot(slot.ToString(), "채집 인형", stage.HarvesterCost, stage.HarvesterTint, slot - 1));
 		}
 
-		private VisualElement MakeHotbarSlot(string key, string name, int cost, Color tint)
+		/// <summary>
+		/// 핫바 칸 — 숫자키로도, 눌러서도 고를 수 있다. 키보드만 되면 「보이는데 눌리지 않는」 칸이 되고,
+		/// 그건 화면이 거짓말하는 것과 같다(사용자 지시: UI 직접 클릭으로도 가능하면 좋겠음).
+		/// </summary>
+		private VisualElement MakeHotbarSlot(string key, string name, int cost, Color tint, int slotIndex)
 		{
 			VisualElement slot = new VisualElement();
+			slot.RegisterCallback<PointerDownEvent>(_ => SlotClicked(slotIndex));
 			slot.style.flexDirection = FlexDirection.Row;
 			slot.style.alignItems = Align.Center;
 			slot.style.marginLeft = 5;
@@ -459,7 +467,7 @@ namespace WitchMendokusai
 			slot.style.borderRightWidth = 2;
 			slot.style.borderTopWidth = 2;
 			slot.style.borderBottomWidth = 2;
-			slot.pickingMode = PickingMode.Ignore;
+			slot.pickingMode = PickingMode.Position;
 
 			VisualElement swatch = new VisualElement();
 			swatch.style.width = 12;
@@ -611,6 +619,9 @@ namespace WitchMendokusai
 			phaseValue.text = match.Phase switch
 			{
 				// 수동 진행은 남은 시간이 없다 — 시계를 보여주면 곧 시작될 것처럼 읽혀 거짓말이 된다.
+				// 첫 파도는 사람이 부를 때까지 안 온다 — 시계를 보여주면 곧 시작될 것처럼 읽혀 거짓말이 된다.
+				TowerDefensePhase.Prepare when match.IsWaitingForFirstCall =>
+					"주위를 둘러보고, 준비되면 「다음 웨이브」",
 				TowerDefensePhase.Prepare when match.AutoAdvanceWaves == false =>
 					match.IsNextWaveRequested ? "호출됨" : "건설 중 (대기)",
 				TowerDefensePhase.Prepare => "건설 " + Mathf.CeilToInt(match.PrepareRemaining) + "초",

@@ -200,7 +200,11 @@ namespace WitchMendokusai
 			BuildGround();
 
 			targeting = new TargetingSystem();
-			core = new TowerDefenseCore(stage.Rules) { AutoAdvance = autoAdvanceWaves };
+			core = new TowerDefenseCore(stage.Rules)
+			{
+				AutoAdvance = autoAdvanceWaves,
+				FirstAutoWave = stage.ManualFirstWave ? 1 : 0,
+			};
 			nextCombatantId = 0;
 			matchEndedFired = false;
 			claimedNodes.Clear(); // 재진입 — 지난 매치의 노드 점유가 새 매치로 새는 것 방지.
@@ -868,6 +872,13 @@ namespace WitchMendokusai
 			}
 			return best;
 		}
+
+		/// <summary> 첫 파도를 사람이 부르길 기다리는 중인가 — 화면이 「시계가 돈다」고 거짓말하지 않게. </summary>
+		public bool IsWaitingForFirstCall =>
+			core != null
+			&& core.Phase == TowerDefensePhase.Prepare
+			&& core.WaveIndex < core.FirstAutoWave
+			&& core.IsNextWaveRequested == false;
 
 		/// <summary> 이번 판의 자원 노드 위치(무대 로컬) — 절차 생성이면 매 판 다르다. </summary>
 		public IReadOnlyList<Vector3> ActiveResourceNodePositions => activeNodePositions;

@@ -79,6 +79,36 @@ namespace WitchMendokusai
 							() => placement.SelectSlot(3),
 							() => CanExecute(InputEventType.HotbarSlot4)
 						),
+						new(
+							InputEventType.HotbarSlot5,
+							InputEventResponseType.Performed,
+							() => placement.SelectSlot(4),
+							() => CanExecute(InputEventType.HotbarSlot5)
+						),
+						new(
+							InputEventType.HotbarSlot6,
+							InputEventResponseType.Performed,
+							() => placement.SelectSlot(5),
+							() => CanExecute(InputEventType.HotbarSlot6)
+						),
+						new(
+							InputEventType.HotbarSlot7,
+							InputEventResponseType.Performed,
+							() => placement.SelectSlot(6),
+							() => CanExecute(InputEventType.HotbarSlot7)
+						),
+						new(
+							InputEventType.HotbarSlot8,
+							InputEventResponseType.Performed,
+							() => placement.SelectSlot(7),
+							() => CanExecute(InputEventType.HotbarSlot8)
+						),
+						new(
+							InputEventType.HotbarSlot9,
+							InputEventResponseType.Performed,
+							() => placement.SelectSlot(8),
+							() => CanExecute(InputEventType.HotbarSlot9)
+						),
 						#endregion
 
 						#region UI (Cancel = 개척 나가기 → 일반 모드 복귀, Arena 동형)
@@ -120,6 +150,11 @@ namespace WitchMendokusai
 			{ InputEventType.HotbarSlot2, new[] { GameConditionType.IsTyping, GameConditionType.IsPaused } },
 			{ InputEventType.HotbarSlot3, new[] { GameConditionType.IsTyping, GameConditionType.IsPaused } },
 			{ InputEventType.HotbarSlot4, new[] { GameConditionType.IsTyping, GameConditionType.IsPaused } },
+			{ InputEventType.HotbarSlot5, new[] { GameConditionType.IsTyping, GameConditionType.IsPaused } },
+			{ InputEventType.HotbarSlot6, new[] { GameConditionType.IsTyping, GameConditionType.IsPaused } },
+			{ InputEventType.HotbarSlot7, new[] { GameConditionType.IsTyping, GameConditionType.IsPaused } },
+			{ InputEventType.HotbarSlot8, new[] { GameConditionType.IsTyping, GameConditionType.IsPaused } },
+			{ InputEventType.HotbarSlot9, new[] { GameConditionType.IsTyping, GameConditionType.IsPaused } },
 			{ InputEventType.Cancel, new[] { GameConditionType.IsTyping } },
 		};
 

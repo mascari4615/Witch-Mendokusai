@@ -136,6 +136,13 @@ namespace WitchMendokusai
 			overhead.ResetView(center, yaw: 0f, height: stage.CameraInitialHeight);
 		}
 
+		/// <summary> 핫바 클릭 — 숫자키와 같은 경로. 그 클릭이 설치로도 새지 않게 한 번 삼킨다. </summary>
+		private void SelectSlotFromUi(int slot)
+		{
+			placement.SuppressNextClick();
+			placement.SelectSlot(slot);
+		}
+
 		/// <summary> 웨이브 진행 방식 전환(자동↔수동) — 진행 중인 매치에 즉시 반영된다. </summary>
 		private void ToggleWaveMode()
 		{
@@ -231,6 +238,7 @@ namespace WitchMendokusai
 					view.RestartRequested += Restart;
 					view.WaveModeToggleRequested += ToggleWaveMode;
 					view.NextWaveRequested += CallNextWave;
+					view.SlotClicked += SelectSlotFromUi;
 				}
 			}
 			else
@@ -244,6 +252,7 @@ namespace WitchMendokusai
 					hud.RestartRequested -= Restart;
 					hud.WaveModeToggleRequested -= ToggleWaveMode;
 					hud.NextWaveRequested -= CallNextWave;
+					hud.SlotClicked -= SelectSlotFromUi;
 				}
 				placement.Deactivate();
 				hud?.Hide();

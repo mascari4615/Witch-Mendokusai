@@ -15,6 +15,9 @@ namespace WitchMendokusai
 		[field: Tooltip("진행·경제 규칙 수치(웨이브 수/준비시간/자원/수입 등).")]
 		[field: SerializeField] public TowerDefenseRules Rules { get; private set; }
 
+		[field: Tooltip("첫 파도는 사람이 부를 때까지 오지 않는다 — 판이 매번 새로 생성되므로 시작하자마자 시계가 돌면 지형을 볼 시간이 없다.")]
+		[field: SerializeField] public bool ManualFirstWave { get; private set; } = true;
+
 		[field: Tooltip("웨이브 자동 진행 기본값 — 켜짐이면 건설 시간이 다하면 알아서 몰려온다. 플레이 중 화면에서 바꿀 수 있다.")]
 		[field: SerializeField] public bool AutoAdvanceWavesDefault { get; private set; } = true;
 

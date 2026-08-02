@@ -32,6 +32,12 @@ namespace WitchMendokusai
 		/// </summary>
 		public bool AutoAdvance { get; set; } = true;
 
+		/// <summary>
+		/// 이 웨이브부터 자동 진행. 1 이면 첫 파도는 사람이 부를 때까지 오지 않는다 —
+		/// 판이 매번 새로 생성되므로 시작하자마자 시계가 돌면 지형을 볼 시간이 없다(사용자 지시).
+		/// </summary>
+		public int FirstAutoWave { get; set; }
+
 		/// <summary> 수동 진행에서 다음 웨이브가 예약됐는지 — HUD 가 「호출됨」 표시에 쓴다. </summary>
 		public bool IsNextWaveRequested => nextWaveRequested;
 
@@ -76,12 +82,12 @@ namespace WitchMendokusai
 
 			if (Phase == TowerDefensePhase.Prepare)
 			{
-				if (AutoAdvance)
+				if (AutoAdvance && WaveIndex >= FirstAutoWave)
 					prepareRemaining -= deltaSeconds;
 
 				// 호출(RequestNextWave)은 두 방식 모두에서 즉시 시작 — 자동에서도 "준비 끝났으니 지금 와라"가
 				// 가능해야 기다리는 시간이 벌칙이 되지 않는다.
-				bool timeUp = AutoAdvance && prepareRemaining <= 0f;
+				bool timeUp = AutoAdvance && WaveIndex >= FirstAutoWave && prepareRemaining <= 0f;
 				if (timeUp == false && nextWaveRequested == false)
 					return TowerDefenseSignal.None;
 

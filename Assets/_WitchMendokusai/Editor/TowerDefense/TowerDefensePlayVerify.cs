@@ -77,6 +77,7 @@ namespace WitchMendokusai.EditorTools
 		private static double defendedAssaultStart = -1.0;
 		private static bool defendedStuckDumped;
 		private static bool towerPlanFlipped;
+		private static bool firstWaveCalled;
 		private static int lastDumpedWave;
 		private static double waveDumpAt;
 
@@ -132,6 +133,7 @@ namespace WitchMendokusai.EditorTools
 			defendedAssaultStart = -1.0;
 			defendedStuckDumped = false;
 			towerPlanFlipped = false;
+			firstWaveCalled = false;
 			EditorApplication.update += Tick;
 			Debug.Log(TAG + " EnteredPlayMode — World ready 대기");
 		}
@@ -293,6 +295,8 @@ namespace WitchMendokusai.EditorTools
 						observeStart = now;
 						lastSample = now;
 						matchEndedSeen = false;
+						if (match != null)
+							match.RequestNextWave(); // 첫 파도는 불러야 온다 — 무방비 판도 마찬가지.
 					}
 					Observe(now);
 					return;
@@ -881,6 +885,20 @@ namespace WitchMendokusai.EditorTools
 						+ (duringAssault ? "  (교전 중 = 격파 보상)" : "  (정산)"));
 				}
 				defendedLastResource = match.Resource;
+			}
+
+			// ★ 첫 파도는 사람이 부를 때까지 안 온다(의도) — 하네스도 「사람」 역할을 해야 한다.
+			//   동시에 그 관문이 진짜 걸리는지 여기서 증명한다: 기본 건설 시간(8초)을 훌쩍 넘겨도
+			//   여전히 Prepare 면 시계가 안 도는 것이 맞다.
+			if (match.IsWaitingForFirstCall)
+			{
+				if (now - defendedStart > 12.0 && firstWaveCalled == false)
+				{
+					firstWaveCalled = true;
+					Debug.Log(TAG + " FIRST-WAVE-GATE 12초가 지나도 Prepare 유지 — 자동으로 안 넘어감 ✔ 이제 호출");
+					match.RequestNextWave();
+				}
+				return;
 			}
 
 			DumpWaveVariety(now);

@@ -27,6 +27,7 @@ MonoBehaviour:
     FirstWaveEnemyCount: 4
     EnemyCountGrowth: 3
     BountyPerKill: 6
+  <ManualFirstWave>k__BackingField: 1
   <AutoAdvanceWavesDefault>k__BackingField: 1
   <CoreUnit>k__BackingField: {fileID: 11400000, guid: a194010000000000000000000000d004, type: 2}
   <EnemyUnit>k__BackingField: {fileID: 11400000, guid: a194010000000000000000000000d006, type: 2}
@@ -82,7 +83,7 @@ MonoBehaviour:
     unlockWave: 0
     weight: 5
     healthMultiplier: 1
-    speedMultiplier: 1
+    speedMultiplier: 1.5
     scaleMultiplier: 1
     bounty: 6
     tint: {r: 1, g: 0.38, b: 0.36, a: 1}
@@ -90,7 +91,7 @@ MonoBehaviour:
     unlockWave: 1
     weight: 4
     healthMultiplier: 0.55
-    speedMultiplier: 1.8
+    speedMultiplier: 2.4
     scaleMultiplier: 0.7
     bounty: 5
     tint: {r: 1, g: 0.85, b: 0.3, a: 1}
@@ -98,7 +99,7 @@ MonoBehaviour:
     unlockWave: 2
     weight: 2
     healthMultiplier: 3.2
-    speedMultiplier: 0.55
+    speedMultiplier: 0.85
     scaleMultiplier: 1.45
     bounty: 16
     tint: {r: 0.65, g: 0.35, b: 0.85, a: 1}
@@ -177,21 +178,21 @@ MonoBehaviour:
   <RandomizeSeedEachMatch>k__BackingField: 1
   <MapParameters>k__BackingField:
     Seed: 0
-    Width: 28
-    Length: 28
+    Width: 44
+    Length: 44
     CellSize: 1
     SpawnPointCount: 3
     SpawnRingInset: 1
     SpawnAngleJitter: 18
-    ResourceNodeCount: 4
-    NodeMinSpacing: 5
-    NodeMinCoreDistance: 5.5
+    ResourceNodeCount: 6
+    NodeMinSpacing: 7
+    NodeMinCoreDistance: 7
     NodeEdgeMargin: 3
     NodeAngularSpread: 50
     NearIncomeMultiplier: 1
     FarIncomeMultiplier: 2.5
     InnerTierRatio: 0.55
-    RockSiteCount: 8
+    RockSiteCount: 13
     RidgeWidth: 1.4
     ObstacleDensity: 0.7
     CoreClearRadius: 4
