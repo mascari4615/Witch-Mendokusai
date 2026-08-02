@@ -237,6 +237,13 @@ namespace WitchMendokusai
 				hud?.HideDraft();
 		}
 
+		/// <summary> 코어에서 연구 — 그 클릭이 설치로 새지 않게 한 번 삼킨다. </summary>
+		private void DoResearch()
+		{
+			placement.SuppressNextClick();
+			match.TryResearch();
+		}
+
 		/// <summary> 전체 사거리 표시 토글(디버그) — 그 클릭이 설치로 새지 않게 한 번 삼킨다. </summary>
 		private void ToggleAllRanges()
 		{
@@ -355,6 +362,7 @@ namespace WitchMendokusai
 					view.SpeedCycleRequested += match.CycleSpeed;
 					view.BoonChosen += ChooseBoon;
 					view.ToggleAllRangesRequested += ToggleAllRanges;
+					view.ResearchRequested += DoResearch;
 					match.DraftOffered += ShowDraft;
 				}
 			}
@@ -376,6 +384,7 @@ namespace WitchMendokusai
 					hud.SpeedCycleRequested -= match.CycleSpeed;
 					hud.BoonChosen -= ChooseBoon;
 					hud.ToggleAllRangesRequested -= ToggleAllRanges;
+					hud.ResearchRequested -= DoResearch;
 					match.DraftOffered -= ShowDraft;
 					hud.HideDraft();
 				}

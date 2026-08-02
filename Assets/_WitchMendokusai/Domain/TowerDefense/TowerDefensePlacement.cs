@@ -52,17 +52,17 @@ namespace WitchMendokusai
 			{
 				if (SelectedSlot < TowerSlotCount)
 					return TowerDefensePlaceableKind.Tower;
+				// ★ 연구 칸은 없앴다(사용자 지시) — 연구는 이제 *코어를 골라서* 한다.
+				//   짓는 것과 키우는 것은 성격이 다른 행위인데 같은 핫바에 섞여 있었다.
 				if (SelectedSlot == TowerSlotCount)
 					return TowerDefensePlaceableKind.Harvester;
 				if (SelectedSlot == TowerSlotCount + 1)
-					return TowerDefensePlaceableKind.Lab;
-				if (SelectedSlot == TowerSlotCount + 2)
 					return TowerDefensePlaceableKind.Wall;
-				if (SelectedSlot == TowerSlotCount + 3)
+				if (SelectedSlot == TowerSlotCount + 2)
 					return TowerDefensePlaceableKind.Trap;
-				if (SelectedSlot == TowerSlotCount + 4)
+				if (SelectedSlot == TowerSlotCount + 3)
 					return TowerDefensePlaceableKind.Outpost;
-				return SelectedSlot == TowerSlotCount + 5
+				return SelectedSlot == TowerSlotCount + 4
 					? TowerDefensePlaceableKind.Generator
 					: TowerDefensePlaceableKind.Hero;
 			}
@@ -124,7 +124,7 @@ namespace WitchMendokusai
 		public void SelectSlot(int slot)
 		{
 			// 칸 = 포탑들 + 채집 + 연구 + 벽 + 함정 + 전초기지 + 영웅. 범위 밖은 없는 칸을 누른 것.
-			if (slot < 0 || slot > TowerSlotCount + 6)
+			if (slot < 0 || slot > TowerSlotCount + 5)
 				return;
 			if (SelectedSlot == slot)
 			{
@@ -168,9 +168,14 @@ namespace WitchMendokusai
 			if (UIPointer.IsOverInteractive(screenPointerPosition))
 				return;
 
-			// 무장이 안 됐으면 이 클릭은 설치가 아니다 — 보거나 고르는 클릭이다.
+			// 무장이 안 됐으면 이 클릭은 설치가 아니라 **고르는** 클릭이다.
+			// (연구·강화처럼 「이미 서 있는 것에 하는 일」이 여기서 열린다.)
 			if (IsArmed == false)
+			{
+				SelectedBuilding = HoveredUnit;
+				BuildingSelected(SelectedBuilding);
 				return;
+			}
 
 			switch (SelectedKind)
 			{
@@ -235,6 +240,13 @@ namespace WitchMendokusai
 		/// 갈라지면 둘 중 하나는 거짓말이 된다.
 		/// </summary>
 		public ArenaCombatant HoveredUnit { get; private set; }
+
+		/// <summary>
+		/// 지금 고른 건물(없으면 null) — 「이미 서 있는 것에 하는 일」(연구·강화)이 여기에 붙는다.
+		/// 무장하지 않은 클릭이 곧 선택이라, 짓는 손동작과 고르는 손동작이 섞이지 않는다.
+		/// </summary>
+		public ArenaCombatant SelectedBuilding { get; private set; }
+		public event System.Action<ArenaCombatant> BuildingSelected = delegate { };
 		public Vector2 HoverScreenPosition { get; private set; }
 
 		private void UpdateHover(Vector2 screenPointerPosition)

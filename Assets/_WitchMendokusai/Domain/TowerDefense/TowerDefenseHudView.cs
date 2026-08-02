@@ -59,6 +59,10 @@ namespace WitchMendokusai
 		// 커서가 얹힌 유닛 설명 — 「이게 뭐고 얼마나 버티나」를 물어볼 유일한 수단.
 		private VisualElement unitTooltip;
 		private Label unitTooltipLabel;
+		// 고른 건물에 하는 일 — 지금은 코어의 「연구」 하나지만, 건물 레벨·선택지가 붙을 자리다.
+		private VisualElement selectionPanel;
+		private Label selectionTitleLabel;
+		private Button researchButton;
 		// 공용 선택 바 — 건설 모드의 건물 바와 같은 물건(개척 전용 툴바를 따로 두지 않는다).
 		private readonly ModeSelectionBar selectionBar;
 		private readonly Button waveModeButton;
@@ -97,6 +101,9 @@ namespace WitchMendokusai
 
 		/// <summary> 디버그 — 세워둔 것 전부의 사거리를 한 번에 보여준다/감춘다. </summary>
 		public event System.Action ToggleAllRangesRequested = delegate { };
+
+		/// <summary> 코어를 고른 채 「연구」를 눌렀다. </summary>
+		public event System.Action ResearchRequested = delegate { };
 
 		public TowerDefenseHudView(UIRoot uiRoot)
 		{
@@ -138,6 +145,7 @@ namespace WitchMendokusai
 			container.Add(BuildDraftPanel(out draftCardRow, out draftTitleLabel));
 			unitTooltip = BuildUnitTooltip(out unitTooltipLabel);
 			container.Add(unitTooltip);
+			container.Add(BuildSelectionPanel(out selectionPanel, out selectionTitleLabel, out researchButton));
 
 			// 본편 HUD(HudLayer)를 숨겨도 개척 HUD 는 살아있어야 하므로 한 단 위 레이어에 붙인다.
 			uiRoot.OverlayLayer.Add(container);
@@ -539,6 +547,63 @@ namespace WitchMendokusai
 			return wrapper;
 		}
 
+
+		/// <summary>
+		/// 고른 건물 패널 — 좌하단. 「이미 서 있는 것에 하는 일」이 여기 모인다(지금은 코어의 연구).
+		///
+		/// ★ 왜 고른 뒤에 뜨나 (사용자 지시: "레벨 업 할때마다 화면에 바로 띄우면 안될 것 같고,
+		///   건물 선택하면 그때 띄우거나"): 건물이 수십 개가 되면 각자의 알림이 화면을 덮는다.
+		///   물어본 것에만 답하는 화면이 결국 더 많은 것을 보여준다.
+		/// </summary>
+		private VisualElement BuildSelectionPanel(out VisualElement panel, out Label title, out Button research)
+		{
+			panel = new VisualElement { name = "SelectionPanel" };
+			panel.style.position = Position.Absolute;
+			panel.style.left = 24;
+			panel.style.bottom = 130;
+			panel.style.paddingLeft = 14;
+			panel.style.paddingRight = 14;
+			panel.style.paddingTop = 10;
+			panel.style.paddingBottom = 10;
+			panel.style.backgroundColor = new Color(0.05f, 0.06f, 0.10f, 0.92f);
+			SetRadius(panel, 8);
+			panel.style.display = DisplayStyle.None;
+			panel.pickingMode = PickingMode.Position;
+
+			title = new Label(string.Empty);
+			title.style.fontSize = 14;
+			title.style.color = new Color(0.94f, 0.96f, 1f, 1f);
+			title.style.whiteSpace = WhiteSpace.Normal;
+			title.style.marginBottom = 8;
+			title.pickingMode = PickingMode.Ignore;
+			panel.Add(title);
+
+			research = MakeActionButton("연구", fontSize: 14, () => ResearchRequested());
+			research.style.display = DisplayStyle.None;
+			panel.Add(research);
+
+			return panel;
+		}
+
+		/// <summary> 고른 건물을 보여준다 — 아무것도 안 골랐으면 패널 자체를 감춘다. </summary>
+		public void ShowSelection(string description, bool canResearch, int researchLevel, int researchCost)
+		{
+			if (selectionPanel == null)
+				return;
+
+			if (string.IsNullOrEmpty(description))
+			{
+				selectionPanel.style.display = DisplayStyle.None;
+				return;
+			}
+
+			selectionPanel.style.display = DisplayStyle.Flex;
+			selectionTitleLabel.text = description;
+			researchButton.style.display = canResearch ? DisplayStyle.Flex : DisplayStyle.None;
+			if (canResearch)
+				researchButton.text = "연구 " + (researchLevel + 1) + "단계  ·  정수 " + researchCost;
+		}
+
 		/// <summary>
 		/// 커서가 얹힌 유닛 설명 — 커서를 따라다닌다. 화면 밖으로 새지 않게 가장자리에서 뒤집는다.
 		/// 빈 문자열이면 감춘다(가리킬 게 없는데 상자만 떠 있으면 그게 더 방해된다).
@@ -865,9 +930,6 @@ namespace WitchMendokusai
 			entries.Add(new ModeSelectionBar.Entry("채집 인형", stage.HarvesterCost, stage.HarvesterTint,
 				icon: UnitSprite(stage.HarvesterUnit),
 				tooltip: SlotTip("채집 인형", "자원 노드 위에만 선다. 코어까지 보급이 이어져야 수입이 들어온다.\n바깥 노드는 정수를 낸다.")));
-			entries.Add(new ModeSelectionBar.Entry("연구 인형", stage.LabEssenceCost, stage.LabTint,
-				icon: UnitSprite(stage.HarvesterUnit),
-				tooltip: SlotTip("연구 인형", "정수로 짓는다. 세워두는 동안 모든 포탑의 피해가 오른다.")));
 			entries.Add(new ModeSelectionBar.Entry("벽", stage.WallCost, stage.WallTint,
 				tooltip: SlotTip("벽", "마수의 길을 휘게 한다. 길을 완전히 막는 자리에는 못 세운다.")));
 			entries.Add(new ModeSelectionBar.Entry("함정", stage.TrapCost, stage.TrapTint,

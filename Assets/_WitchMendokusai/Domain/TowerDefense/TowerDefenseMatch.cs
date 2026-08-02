@@ -1889,6 +1889,44 @@ namespace WitchMendokusai
 			return true;
 		}
 
+		/// <summary>
+		/// 코어에서 연구를 한 단계 올린다 — 정수로 산다(사용자 지시: "연구소 건물 없애고, 코어 건물에서
+		/// 연구를 진행할 수 있게").
+		///
+		/// ★ 왜 건물을 없앴나: 짓는 것(자리를 차지하고 지켜야 하는 것)과 키우는 것(판 전체에 걸리는 것)은
+		///   성격이 다른 행위인데 같은 핫바에 섞여 있었다. 연구를 코어에 두면 「어디에 지을까」를 고민할
+		///   필요 없는 대신 *코어를 지키는 이유*가 하나 더 늘어난다.
+		/// 값은 단계마다 오른다 — 무한히 싸게 쌓이면 그건 선택이 아니다.
+		/// </summary>
+		public bool TryResearch()
+		{
+			if (core == null || stage == null)
+				return false;
+
+			int cost = ResearchCost;
+			if (core.TrySpendEssence(cost) == false)
+			{
+				if (coreCombatant != null)
+					Reject($"정수 부족 {core.Essence}/{cost}", coreCombatant.Position);
+				return false;
+			}
+
+			LabCount++;
+			if (coreCombatant != null)
+				PopWorldText("연구 " + LabCount + "단계", coreCombatant.Position, TextType.Exp);
+			Debug.Log($"{nameof(TowerDefenseMatch)}: 연구 {LabCount}단계 — 모든 포탑 피해 배수 {TowerDamageMultiplier:F2}");
+			return true;
+		}
+
+		/// <summary> 다음 연구 단계에 드는 정수 — 단계마다 오른다. </summary>
+		public int ResearchCost => stage != null ? Mathf.Max(1, stage.LabEssenceCost * (LabCount + 1)) : 0;
+
+		/// <summary> 지금 연구 단계 — 화면이 코어를 골랐을 때 보여준다. </summary>
+		public int ResearchLevel => LabCount;
+
+		/// <summary> 그 대상이 코어인가 — 화면이 「연구」 패널을 띄울지 정한다. </summary>
+		public bool IsCore(ArenaCombatant combatant) => combatant != null && combatant == coreCombatant;
+
 		/// <summary> 이 건물이 전기를 받고 있나 — 채집 수입이 이 값을 본다. </summary>
 		private bool IsPowered(Transform building)
 		{
