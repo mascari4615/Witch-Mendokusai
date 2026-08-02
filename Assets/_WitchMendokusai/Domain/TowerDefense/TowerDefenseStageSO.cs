@@ -183,6 +183,9 @@ namespace WitchMendokusai
 		[field: Tooltip("마수가 코어에서 이만큼 안으로 들어오면 「샜다」로 본다(칸). 코어를 때리게 두지 않는다.")]
 		[field: SerializeField, Min(0.5f)] public float LeakRadius { get; private set; } = 1.6f;
 
+		[field: Tooltip("마수가 멈춰 서는 거리(전술 사거리)에 이만큼 더한 것도 「샜다」로 본다 — 안 그러면 마수가 코어 앞에서 멈춰 웨이브가 영영 안 끝난다.")]
+		[field: SerializeField, Min(0f)] public float LeakRangeMargin { get; private set; } = 0.5f;
+
 		[field: Header("판매 — 되돌릴 수 있는 실수")]
 		[field: Tooltip("팔 때 돌려받는 비율(0.6 = 60%). 100%면 배치가 무료 실험이 되고, 0%면 아무도 안 판다.")]
 		[field: SerializeField, Range(0f, 1f)] public float SellRefundRatio { get; private set; } = 0.6f;
@@ -212,6 +215,16 @@ namespace WitchMendokusai
 
 		[field: Tooltip("인형 하나 뽑는 데 드는 유물.")]
 		[field: SerializeField, Min(1)] public int PullCost { get; private set; } = 12;
+
+		[field: Header("굳은 마수 감시 — 한 마리가 굳으면 판이 안 끝난다")]
+		[field: Tooltip("이만큼 제자리에 붙어 있으면 「굳었다」로 보고 길 위로 옮긴다(0 = 감시 끔).")]
+		[field: SerializeField, Min(0f)] public float StuckRelocateSeconds { get; private set; } = 4f;
+
+		[field: Tooltip("이 거리보다 적게 움직였으면 안 움직인 것으로 친다 — 물리 떨림을 「이동」으로 세지 않기 위해.")]
+		[field: SerializeField, Min(0f)] public float StuckMoveEpsilon { get; private set; } = 0.15f;
+
+		[field: Tooltip("굳은 자리 주변 몇 칸까지 뒤져 길을 찾을지.")]
+		[field: SerializeField, Min(1)] public int StuckSearchRadius { get; private set; } = 6;
 
 		[field: Header("파도 사이 드래프트 — 매 파도 강제 선택")]
 		[field: Tooltip("파도를 넘길 때마다 내놓는 카드 수(0 = 드래프트 없음). 3 이 표준 — 2 는 고민이 얕고, 5 는 읽는 데 지친다.")]

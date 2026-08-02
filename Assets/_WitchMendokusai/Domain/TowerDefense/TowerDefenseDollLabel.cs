@@ -16,6 +16,13 @@ namespace WitchMendokusai
 		public Color Tint { get; }
 		public int Level { get; set; } = 1;
 
+		/// <summary>
+		/// 보급이 끊긴 채집 인형 — 캐고는 있지만 코어까지 이어지지 않아 *한 푼도 안 들어온다*.
+		/// 이게 화면에 안 보이면 「정수가 왜 0이지」가 판 내내 미궁이 된다(사용자 실증: 정수로만 사는
+		/// 연구소·전초기지가 통째로 안 지어짐).
+		/// </summary>
+		public bool Disconnected { get; set; }
+
 		public TowerDefenseDollLabel(Transform anchor, string name, Color tint)
 		{
 			Anchor = anchor;
@@ -24,7 +31,14 @@ namespace WitchMendokusai
 		}
 
 		/// <summary> 화면에 그대로 찍히는 글자 — 1단계면 단계를 안 붙인다(모두에게 「Lv.1」은 잡음이다). </summary>
-		public string Text => Level > 1 ? Name + " ★" + Level : Name;
+		public string Text
+		{
+			get
+			{
+				string text = Level > 1 ? Name + " ★" + Level : Name;
+				return Disconnected ? text + "\n⚠ 보급 끊김" : text;
+			}
+		}
 
 		public bool IsAlive => Anchor != null && Anchor.gameObject.activeInHierarchy;
 	}

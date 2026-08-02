@@ -52,7 +52,10 @@ namespace WitchMendokusai
 		// 숫자가 *어디서* 나오는지 안 보이면 채집 인형은 그냥 서 있는 장식으로 읽힌다.
 		private readonly List<Transform> harvesterTransforms = new();
 		// 이 채집 인형이 바깥 노드에 섰나 — 정수/자원 중 무엇을 내는지 결정.
-		private readonly Dictionary<Vector3, bool> harvesterIsOuter = new();
+		// ★ 열쇠는 반드시 *그 인형 자신*이다. 좌표를 열쇠로 쓰면 유닛이 바닥에 앉으며 소수점이 미세하게
+		//   달라지는 순간 조회가 통째로 빗나가 **바깥 노드가 영원히 안쪽으로 취급된다** = 정수 수입 0
+		//   (사용자 실증: "전초지기랑 연구소 설치 안됨" — 정수로만 사는 것들이 통째로 잠겨 있었다).
+		private readonly Dictionary<Transform, bool> harvesterIsOuter = new();
 		// 보급 — 코어에서 내 건물을 징검다리로 이어지는 사슬. 끊기면 그 너머의 채집은 수입이 0.
 		private readonly List<Vector3> supplyBuildings = new();
 		private readonly List<Transform> supplyTransforms = new();
@@ -967,6 +970,9 @@ namespace WitchMendokusai
 
 			coreCombatant = combatant;
 			AddVisionSource(coreGameObject.transform.position, stage.CoreVisionRadius);
+
+			// 보급이 여기서 출발해 어디까지 닿는지 — 안 보이면 「왜 안 이어지지」를 짐작으로 풀어야 한다.
+			ShowSupplyReachRing(coreGameObject.transform);
 		}
 
 		private void Tick()
@@ -982,6 +988,7 @@ namespace WitchMendokusai
 
 			CullEscapedEnemies(); // 무대 밖 개체가 웨이브를 영원히 붙잡지 못하게 — 집계 *전에* 정리.
 			CullLeakedEnemies();  // 목표에 닿은 마수는 사라지고 목숨이 준다(유출제).
+			UnstickEnemies();     // 굳은 마수를 풀어준다 — 한 마리가 굳으면 웨이브가 영영 안 끝난다.
 			ApplyEnemyVisibility(); // 안 보이는 마수는 화면에서도 지운다(규칙과 그림이 같아야 한다).
 			RefreshSupply();        // 방어 건물이 부서지면 그 순간 사슬이 끊긴다.
 			PayKillBounties();    // 격파 즉시 보상 — 웨이브 정산만 있으면 교전 중엔 아무 보상도 안 온다.
@@ -1035,6 +1042,11 @@ namespace WitchMendokusai
 				Vector3 localSpawn = activeSpawnPoints.Count > 0
 					? activeSpawnPoints[enemyIndex % activeSpawnPoints.Count] + SpawnSpreadOffset(enemyIndex)
 					: Vector3.zero;
+
+				// ★ 분산(SpawnSpreadOffset)이 마수를 암반 위/뒤에 떨구면 그 마리는 「갈 수 없는 자리」에서 시작해
+				//   그대로 굳는다 — 한 마리만 굳어도 웨이브가 영영 안 끝난다(사용자 실증: "멈춰서 안올때가 있음").
+				//   출현 지점 자체는 길이 보장돼 있으므로(RebuildPathing 검사) 벌어진 자리만 되돌린다.
+				localSpawn = SnapSpawnToReachable(localSpawn);
 
 				GameObject enemyGameObject = pool.Spawn(stage.EnemyUnit.Prefab);
 				if (spawnedUnits.Contains(enemyGameObject) == false)
@@ -1124,6 +1136,25 @@ namespace WitchMendokusai
 
 			// z 도 조금 밀어 완전히 같은 줄에 서지 않게(앞뒤로도 벌림).
 			return new Vector3(lane * spread * side, 0f, repeat * spread * 0.35f);
+		}
+
+		/// <summary>
+		/// 벌어진 출현 자리가 길 위인지 확인하고, 아니면 가장 가까운 갈 수 있는 칸으로 되돌린다.
+		/// 고정 판(흐름장 없음)에서는 아무것도 안 한다 — 그쪽은 애초에 암반이 없다.
+		/// </summary>
+		private Vector3 SnapSpawnToReachable(Vector3 localSpawn)
+		{
+			if (mapLayout == null || flowField == null)
+				return localSpawn;
+
+			Vector2Int cell = mapLayout.WorldToCell(localSpawn);
+			if (flowField.IsReachable(cell))
+				return localSpawn;
+
+			if (TrySnapToReachable(cell, out Vector2Int freeCell) == false)
+				return localSpawn;
+
+			return mapLayout.CellToWorld(freeCell);
 		}
 
 		/// <summary>
@@ -1532,6 +1563,21 @@ namespace WitchMendokusai
 			PopWorldText("「" + name + "」 " + TowerDefenseNames.Greeting(MapSeed, ordinal), anchor.position, TextType.Heal);
 		}
 
+		/// <summary>
+		/// 보급 원점(코어·전초기지)에 사거리 원 — 「사슬이 여기서 출발해 이만큼 닿는다」.
+		/// 이 원이 없으면 채집을 어디에 세워야 이어지는지가 순수한 시행착오가 된다.
+		/// </summary>
+		private void ShowSupplyReachRing(Transform origin)
+		{
+			if (origin == null || stage == null || stage.SupplyReach <= 0f)
+				return;
+
+			Color ringColor = stage.HarvesterTint;
+			ringColor.a = 0.18f;
+			TowerDefenseRing ring = TowerDefenseRing.Create(origin, "SupplyReachRing", ringColor, 0.06f, 0.03f);
+			ring.SetRadius(stage.SupplyReach);
+		}
+
 		/// <summary> 그 자리 인형의 이름표(없으면 null) — 승급 단계 표시 갱신에 쓴다. </summary>
 		private TowerDefenseDollLabel FindDollLabel(Transform anchor)
 		{
@@ -1745,12 +1791,39 @@ namespace WitchMendokusai
 		///   길목 하나가 뚫리는 순간의 무게가 여기서 정해진다. 새 놈이 코어에 눌어붙어 화면에서
 		///   사라지던 옛 문제도 같이 없어진다(닿는 즉시 치우므로).
 		/// </summary>
+		/// <summary>
+		/// 실제로 「샜다」로 치는 반경 — 설정값과 *마수가 멈춰 서는 거리* 중 큰 쪽.
+		///
+		/// ★ 왜 이게 필요한가 (사용자 실증: "몬스터가 멈춰서 안올때가 있음", 라이브 재현 170초):
+		///   유출제에서 마수는 코어에 「닿으면」 사라진다. 그런데 마수는 코어를 *때리는 무기*를 갖고 있어서
+		///   자기 사거리에 들어오는 순간 **거기서 멈춰 선다**. 그 사거리가 유출 반경보다 크면 마수는
+		///   영원히 닿지 않고, 살아있는 마수가 0이 안 되니 **웨이브가 영영 안 끝난다**.
+		///   「닿았다」의 기준을 마수가 실제로 멈추는 거리에서 뽑으면 두 숫자가 갈라질 수 없다.
+		/// </summary>
+		private float EffectiveLeakRadius
+		{
+			get
+			{
+				float stopDistance = 0f;
+				if (stage != null && stage.EnemyTactic.Rules != null)
+				{
+					foreach (TacticRule rule in stage.EnemyTactic.Rules)
+					{
+						if (rule.Target.MaxRange > stopDistance)
+							stopDistance = rule.Target.MaxRange;
+					}
+				}
+
+				return Mathf.Max(stage.LeakRadius, stopDistance + stage.LeakRangeMargin);
+			}
+		}
+
 		private void CullLeakedEnemies()
 		{
 			if (core == null || core.UsesLives == false || coreCombatant == null)
 				return;
 
-			float leakRadius = stage.LeakRadius;
+			float leakRadius = EffectiveLeakRadius;
 			float leakRadiusSqr = leakRadius * leakRadius;
 
 			for (int index = waveEnemies.Count - 1; index >= 0; index--)
@@ -1816,20 +1889,40 @@ namespace WitchMendokusai
 				if (harvesterTransforms.Contains(building) == false)
 					continue;
 
-				if (suppliedBuildings.Contains(index) == false)
+				bool connected = suppliedBuildings.Contains(index);
+
+				// 끊긴 사실을 그 인형 머리 위에 붙인다 — 수입이 왜 안 오는지가 숫자가 아니라 *자리*로 보여야 한다.
+				TowerDefenseDollLabel label = FindDollLabel(building);
+				if (label != null)
+					label.Disconnected = connected == false;
+
+				if (connected == false)
 				{
 					DisconnectedHarvesters++;
 					continue;
 				}
 
 				float multiplier = HarvesterMultiplierOf(building);
-				if (harvesterIsOuter.TryGetValue(building.position, out bool outer) && outer)
+				if (harvesterIsOuter.TryGetValue(building, out bool outer) && outer)
 					essenceWeight += multiplier;
 				else
 					resourceWeight += multiplier;
 			}
 
 			core.SetHarvesterWeights(resourceWeight, essenceWeight);
+
+			OuterHarvesters = 0;
+			SuppliedOuterHarvesters = 0;
+			for (int index = 0; index < supplyTransforms.Count; index++)
+			{
+				Transform building = supplyTransforms[index];
+				if (harvesterIsOuter.TryGetValue(building, out bool outer) == false || outer == false)
+					continue;
+
+				OuterHarvesters++;
+				if (suppliedBuildings.Contains(index))
+					SuppliedOuterHarvesters++;
+			}
 		}
 
 		/// <summary> 보급이 끊긴 채집 인형 수 — 화면이 「왜 수입이 줄었나」를 말해줘야 한다. </summary>
@@ -1840,6 +1933,15 @@ namespace WitchMendokusai
 
 		/// <summary> 보급 사슬 후보 건물 수 — 「사슬이 비었나 / 안 닿나」를 가르는 진단값. </summary>
 		public int SupplyBuildingCount => supplyTransforms.Count;
+
+		/// <summary>
+		/// 바깥 노드에 선 채집 수 / 그중 보급이 이어진 수.
+		/// ★ 정수가 0일 때 원인이 셋 중 어느 것인지 갈라준다: ① 바깥에 안 세웠다 ② 세웠는데 안 이어졌다
+		///   ③ 둘 다 됐는데 안 들어온다(진짜 결함). 이 구분이 없으면 「바깥 노드인데 정수가 안 나온다」 같은
+		///   *거짓 실패*가 계속 찍힌다(실측: 실제로는 바깥에 세운 적이 없었다).
+		/// </summary>
+		public int OuterHarvesters { get; private set; }
+		public int SuppliedOuterHarvesters { get; private set; }
 
 		private float HarvesterMultiplierOf(Transform harvester)
 		{
@@ -1876,11 +1978,13 @@ namespace WitchMendokusai
 				return false;
 
 			Vector3Int cellKey = ToCellKey(worldPosition);
-			if (occupiedCells.Contains(cellKey) || IsObstacleAt(worldPosition))
-				return false;
+			if (occupiedCells.Contains(cellKey))
+				return Reject("여긴 이미 찼다", worldPosition);
+			if (IsObstacleAt(worldPosition))
+				return Reject("암반 위엔 못 짓는다", worldPosition);
 
 			if (core.TrySpendEssence(stage.OutpostEssenceCost) == false)
-				return false;
+				return Reject($"정수 부족 {core.Essence}/{stage.OutpostEssenceCost}", worldPosition);
 
 			occupiedCells.Add(cellKey);
 
@@ -1902,6 +2006,7 @@ namespace WitchMendokusai
 
 			outposts.Add(outpostObject.transform);
 			supplyTransforms.Add(outpostObject.transform);
+			ShowSupplyReachRing(outpostObject.transform); // 새 원점이므로 새 사거리 원.
 			AddVisionSource(worldPosition, stage.OutpostVisionRadius);
 			RebuildPathing(); // 목표가 늘었으므로 마수의 길이 통째로 바뀐다.
 			RefreshSupply();
@@ -1938,6 +2043,112 @@ namespace WitchMendokusai
 						enemyRenderer.enabled = seen;
 				}
 			}
+		}
+
+		// 굳은 마수 감시 — CombatantId → (마지막 자리, 그 자리에 머문 시간).
+		private readonly Dictionary<int, (Vector3 Position, float Seconds)> enemyStillness = new();
+
+		/// <summary>
+		/// 굳은 마수를 풀어준다(사용자 실증: "몬스터가 멈춰서 안올때가 있음").
+		///
+		/// ★ 왜 이게 치명적인가: 웨이브 종료 조건이 「살아있는 마수 0」이라 **한 마리만 굳어도 판이 영영 안 끝난다**.
+		///   무대 밖 이탈(CullEscapedEnemies)은 이미 막고 있지만, *무대 안에서 제자리에 붙는* 경우는 안 잡혔다.
+		/// ★ 왜 굳는가: 스폰 분산이 마수를 암반 칸 위/뒤에 떨궈 흐름장이 「거기서는 갈 수 없다」고 답하면
+		///   안내가 끊기고, 그 자리에서 직선으로 벽을 밀며 영원히 버틴다.
+		/// ★ 그래서 두 겹으로 막는다: ① 스폰 자체를 갈 수 있는 칸으로 스냅(SnapToReachable) ② 그래도 굳으면
+		///   가장 가까운 갈 수 있는 칸으로 옮겨준다. 옮긴 사실은 로그로 남긴다 — 조용히 순간이동시키면
+		///   다음에 같은 원인이 생겨도 아무도 모른다.
+		/// </summary>
+		private void UnstickEnemies()
+		{
+			if (mapLayout == null || flowField == null || stageRoot == null)
+				return;
+
+			float threshold = stage.StuckRelocateSeconds;
+			if (threshold <= 0f)
+				return;
+
+			float moveEpsilonSqr = stage.StuckMoveEpsilon * stage.StuckMoveEpsilon;
+
+			foreach (ArenaCombatant enemy in waveEnemies)
+			{
+				if (enemy == null || enemy.IsAlive == false)
+					continue;
+
+				Vector3 position = enemy.Position;
+				if (enemyStillness.TryGetValue(enemy.CombatantId, out (Vector3 Position, float Seconds) tracked) == false)
+				{
+					enemyStillness[enemy.CombatantId] = (position, 0f);
+					continue;
+				}
+
+				if ((position - tracked.Position).sqrMagnitude > moveEpsilonSqr)
+				{
+					enemyStillness[enemy.CombatantId] = (position, 0f);
+					continue;
+				}
+
+				float stillSeconds = tracked.Seconds + TimeManager.TICK;
+				if (stillSeconds < threshold)
+				{
+					enemyStillness[enemy.CombatantId] = (tracked.Position, stillSeconds);
+					continue;
+				}
+
+				Vector2Int cell = mapLayout.WorldToCell(stageRoot.InverseTransformPoint(position));
+				bool blocked = IsPathBlocked(cell);
+				bool reachable = flowField.IsReachable(cell);
+
+				if (TrySnapToReachable(cell, out Vector2Int freeCell))
+				{
+					enemy.transform.position = stageRoot.TransformPoint(mapLayout.CellToWorld(freeCell));
+					Debug.LogWarning($"{nameof(TowerDefenseMatch)}: 굳은 마수를 옮김 — cell={cell} blocked={blocked} "
+						+ $"reachable={reachable} → {freeCell} ({stillSeconds:F1}s 정지)");
+				}
+				else if (reachable)
+				{
+					// 길은 멀쩡한데 안 움직인다 = 길 문제가 아니다(교전 중이거나 물리에 끼었다).
+					// 옮겨봐야 같은 일이 반복되므로 사실만 남긴다 — 잘못된 처방이 원인을 가리는 것이 더 나쁘다.
+					Debug.LogWarning($"{nameof(TowerDefenseMatch)}: 마수가 길 위에서 멈춰 있음(교전/끼임 의심) — cell={cell} "
+						+ $"({stillSeconds:F1}s 정지)");
+				}
+				else
+				{
+					Debug.LogWarning($"{nameof(TowerDefenseMatch)}: 굳은 마수 주변에 갈 수 있는 칸이 없음 — cell={cell} "
+						+ $"blocked={blocked} ({stillSeconds:F1}s 정지)");
+				}
+
+				enemyStillness[enemy.CombatantId] = (enemy.Position, 0f);
+			}
+		}
+
+		/// <summary> 그 칸에서 가장 가까운 「갈 수 있는」 칸 — 나선으로 넓혀 찾는다(없으면 false). </summary>
+		private bool TrySnapToReachable(Vector2Int cell, out Vector2Int result)
+		{
+			result = cell;
+			if (flowField.IsReachable(cell))
+				return false; // 이미 갈 수 있는 자리 — 굳은 원인이 길이 아니다(옮겨도 소용 없다).
+
+			for (int radius = 1; radius <= stage.StuckSearchRadius; radius++)
+			{
+				for (int offsetX = -radius; offsetX <= radius; offsetX++)
+				{
+					for (int offsetY = -radius; offsetY <= radius; offsetY++)
+					{
+						if (Mathf.Abs(offsetX) != radius && Mathf.Abs(offsetY) != radius)
+							continue; // 테두리만 — 안쪽은 이전 반경에서 이미 봤다.
+
+						Vector2Int candidate = new(cell.x + offsetX, cell.y + offsetY);
+						if (flowField.IsReachable(candidate) == false)
+							continue;
+
+						result = candidate;
+						return true;
+					}
+				}
+			}
+
+			return false;
 		}
 
 		/// <summary>
@@ -1998,6 +2209,25 @@ namespace WitchMendokusai
 				}
 				PopWorldText("+" + stage.Rules.IncomePerHarvester, harvester.position, TextType.Heal);
 			}
+		}
+
+		/// <summary>
+		/// 마지막으로 배치가 거절된 이유 — 화면·로그가 같은 문장을 쓴다.
+		///
+		/// ★ 왜 필요한가 (사용자 실증: "전초지기랑 연구소 설치 안됨"): 거절이 전부 조용한 false 였다.
+		///   정수가 없어서인지, 이미 뭐가 서 있어서인지, 암반 위라서인지 화면이 한 마디도 안 하면
+		///   플레이어에게는 「그 칸이 고장났다」로 보인다. 못 짓는 것보다 *이유를 모르는 것*이 더 나쁘다.
+		/// </summary>
+		public string LastRejectReason { get; private set; } = string.Empty;
+
+		// 거절 = 이유를 그 자리에 띄우고 false. 모든 거절 경로가 이 하나를 지난다(조용한 false 금지).
+		private bool Reject(string reason, Vector3 worldPosition)
+		{
+			LastRejectReason = reason;
+			PopWorldText(reason, worldPosition, TextType.Warning);
+			// 로그에도 남긴다 — 화면 글자는 흘러가고, 「왜 안 지어졌나」는 나중에 되짚어야 할 때가 온다.
+			Debug.Log($"{nameof(TowerDefenseMatch)}: 배치 거절 — {reason} @ {worldPosition}");
+			return false;
 		}
 
 		/// <summary> 월드 좌표 위 뜨는 글자 — UI 매니저가 아직 없으면(부팅 전/헤드리스) 조용히 넘어간다. </summary>
@@ -2071,8 +2301,10 @@ namespace WitchMendokusai
 				return TryUpgradeTowerAt(cellKey, towerIndex);
 			}
 
+			if (IsObstacleAt(worldPosition))
+				return Reject("암반 위엔 못 짓는다", worldPosition);
 			if (core.TrySpend(TowerCostAt(towerIndex)) == false)
-				return false;
+				return Reject($"자원 부족 {core.Resource}/{TowerCostAt(towerIndex)}", worldPosition);
 
 			occupiedCells.Add(cellKey);
 			// 종류가 정의돼 있으면 개척 전용 무기로, 없으면 기존 전술 경로로(하위 호환).
@@ -2102,21 +2334,22 @@ namespace WitchMendokusai
 				return false;
 			}
 			if (TryFindPlaceableNode(worldPosition, out int nodeIndex, out Vector3 nodeWorldPosition) == false)
-				return false; // 반경 내 미점유 노드 없음 — 자원 무변경(스펙#C).
+				return Reject("자원 노드 위에만 선다", worldPosition); // 자원 무변경(스펙#C).
 
 			Vector3Int cellKey = ToCellKey(nodeWorldPosition);
 			if (occupiedCells.Contains(cellKey))
-				return false; // 노드 셀에 이미 무언가 서 있음(겹배치 차단) — 자원 무변경.
+				return Reject("이 노드는 이미 잡혔다", nodeWorldPosition);
 
 			if (core.TrySpend(stage.HarvesterCost) == false)
-				return false;
+				return Reject($"자원 부족 {core.Resource}/{stage.HarvesterCost}", nodeWorldPosition);
 
 			claimedNodes.Add(nodeIndex); // TrySpend 성공 후에만 점유 확정(스펙 지시 — 실패 시 점유 안 남김).
 			occupiedCells.Add(cellKey);
 			float incomeMultiplier = nodeIndex < activeNodeIncomeMultipliers.Count ? activeNodeIncomeMultipliers[nodeIndex] : 1f;
 			bool outerNode = nodeIndex < activeNodeIsOuter.Count && activeNodeIsOuter[nodeIndex];
-			harvesterIsOuter[nodeWorldPosition] = outerNode;
-			StartCoroutine(SpawnDefensiveUnitRoutine(stage.HarvesterUnit, null, nodeWorldPosition, isHarvester: true, incomeMultiplier));
+			// 등급은 인형이 실제로 생긴 뒤 *그 인형에* 붙인다(스폰이 코루틴이라 지금은 아직 없다).
+			StartCoroutine(SpawnDefensiveUnitRoutine(stage.HarvesterUnit, null, nodeWorldPosition, isHarvester: true, incomeMultiplier,
+				towerArchetype: null, isLab: false, isOuterNode: outerNode));
 			return true;
 		}
 
@@ -2232,13 +2465,13 @@ namespace WitchMendokusai
 
 			Vector3Int cellKey = ToCellKey(worldPosition);
 			if (occupiedCells.Contains(cellKey))
-				return false;
+				return Reject("여긴 이미 찼다", worldPosition);
 			if (IsObstacleAt(worldPosition))
-				return false;
+				return Reject("암반 위엔 못 짓는다", worldPosition);
 
 			// 연구는 정수로만 — 강화의 통로를 바깥 노드(개척)에 묶는다.
 			if (core.TrySpendEssence(stage.LabEssenceCost) == false)
-				return false;
+				return Reject($"정수 부족 {core.Essence}/{stage.LabEssenceCost}", worldPosition);
 
 			occupiedCells.Add(cellKey);
 			LabCount++;
@@ -2317,7 +2550,7 @@ namespace WitchMendokusai
 			return cell;
 		}
 
-		private IEnumerator SpawnDefensiveUnitRoutine(Unit unitData, TacticProgram tactic, Vector3 worldPosition, bool isHarvester, float incomeMultiplier = 1f, TowerDefenseTowerArchetype towerArchetype = null, bool isLab = false)
+		private IEnumerator SpawnDefensiveUnitRoutine(Unit unitData, TacticProgram tactic, Vector3 worldPosition, bool isHarvester, float incomeMultiplier = 1f, TowerDefenseTowerArchetype towerArchetype = null, bool isLab = false, bool isOuterNode = false)
 		{
 			if (unitData == null || unitData.Prefab == null)
 			{
@@ -2411,7 +2644,10 @@ namespace WitchMendokusai
 			supplyTransforms.Add(unitGameObject.transform);
 
 			if (isHarvester)
+			{
 				harvesterTransforms.Add(unitGameObject.transform);
+				harvesterIsOuter[unitGameObject.transform] = isOuterNode;
+			}
 
 			RefreshSupply(); // 수입은 「지을 때 더한다」가 아니라 「지금 몇 개가 이어져 있나」로 정해진다.
 		}

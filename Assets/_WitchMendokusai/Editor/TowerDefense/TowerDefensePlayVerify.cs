@@ -518,15 +518,33 @@ namespace WitchMendokusai.EditorTools
 				nodeOrder.Add(index);
 			nodeOrder.Sort((left, right) => match.NodeIncomeMultiplierAt(right).CompareTo(match.NodeIncomeMultiplierAt(left)));
 
+			Vector3 firstHarvesterLocal = Vector3.zero;
 			foreach (int nodeIndex in nodeOrder)
 			{
 				Vector3 local = nodeLocals[nodeIndex];
-				if (harvestersPlaced >= (placeOnly ? 1 : 2))
+				// ★ 한 기만 세운다 — 두 기를 세우면 예산이 말라 *징검다리*를 못 놓고, 그러면 늘 「끊김」만
+				//   보게 되어 사슬 규칙이 고장난 것처럼 읽힌다(실측 2회). 여기서 볼 것은 「이어지는가」다.
+				if (harvestersPlaced >= 1)
 					break;
 				int beforeHarvester = match.Resource;
 				placement.PlaceHarvesterAt(WorldToScreen(modeCamera, stageRoot.TransformPoint(local)));
 				if (match.Resource < beforeHarvester)
+				{
+					if (harvestersPlaced == 0)
+						firstHarvesterLocal = local;
 					harvestersPlaced++;
+				}
+			}
+
+			// ★ 징검다리 — 먼 노드는 코어에서 한 번에 안 닿는다. 사람이 하는 일(중간에 하나 세워 잇기)을
+			//   하네스도 해야 「사슬이 실제로 도는가」를 볼 수 있다. 안 하면 늘 「끊김」만 보고 규칙이
+			//   고장난 줄 알게 된다(실측: 정수 0 이 계속 나왔는데 원인은 사슬 미구축이었다).
+			if (harvestersPlaced > 0)
+			{
+				placement.SelectSlot(0);
+				Vector3 bridgeLocal = firstHarvesterLocal * 0.5f; // 코어(원점)와 노드의 중간.
+				placement.PlaceTowerAt(WorldToScreen(modeCamera, stageRoot.TransformPoint(bridgeLocal)));
+				Debug.Log(TAG + " SUPPLY-BRIDGE 중간에 하나 세워 사슬 시도 local=" + bridgeLocal);
 			}
 
 			// 노드에서 먼 빈 땅에 채집 시도 = 거절돼야 정상(노드 결합 규칙 살아있음 확인).
@@ -1164,16 +1182,24 @@ namespace WitchMendokusai.EditorTools
 
 			// 배치는 이미 DoPlacements 가 했다(코루틴이 끝날 시간을 벌기 위해) — 여기선 결과만 읽는다.
 			string verdict = TAG + " ESSENCE harvesters=" + match.HarvesterCount
+				+ " outer=" + match.OuterHarvesters
+				+ " outerSupplied=" + match.SuppliedOuterHarvesters
 				+ " nextIncome=" + match.NextWaveIncome
 				+ " nextEssence=" + match.NextWaveEssence
 				+ " essence=" + match.Essence;
 
-			if (match.HarvesterCount == 0 && match.NextWaveEssence == 0)
+			// ★ 세 원인을 갈라 말한다 — 안 갈라 말하면 「바깥 노드인데 안 나온다」는 *거짓 실패*가 찍힌다
+			//   (실측: 실제로는 바깥에 세운 적이 없거나, 세웠어도 사슬이 안 닿아 있었다).
+			if (match.HarvesterCount == 0)
 				Debug.Log(verdict + " → 채집을 못 세움(자원 부족/자리 없음) — 확인 못 함");
+			else if (match.OuterHarvesters == 0)
+				Debug.Log(verdict + " → 바깥 노드에 세운 게 없음(안쪽만 잡음) — 정수 0 은 정상, 확인 못 함");
+			else if (match.SuppliedOuterHarvesters == 0)
+				Debug.Log(verdict + " → 바깥에 세웠지만 사슬이 안 닿음 — 정수 0 은 규칙대로, 확인 못 함");
 			else if (match.NextWaveEssence > 0)
-				Debug.Log(verdict + " → 바깥 노드가 정수를 낸다 ✔");
+				Debug.Log(verdict + " → 이어진 바깥 채집이 정수를 낸다 ✔");
 			else
-				Debug.LogError(verdict + " → 바깥 노드인데 정수가 안 나온다.");
+				Debug.LogError(verdict + " → 이어진 바깥 채집이 있는데 정수가 안 나온다.");
 		}
 
 		/// <summary> 전초기지 — 정수로 서고, 마수의 목표(유출 지점)가 하나 느는가. </summary>
