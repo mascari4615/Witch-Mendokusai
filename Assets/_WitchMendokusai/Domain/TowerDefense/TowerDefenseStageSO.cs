@@ -124,9 +124,11 @@ namespace WitchMendokusai
 
 		[field: Header("보급선 — 이어져야 들어온다")]
 		[field: Tooltip("건물 하나가 다음 건물까지 보급을 잇는 거리(칸). 짧을수록 촘촘히 이어야 하고 그만큼 지킬 게 는다.")]
-		// 7 은 44칸 판에서 너무 짧았다 — 바깥 노드가 *어떤 사슬로도* 안 닿아 정수가 영영 0 이 되고,
-		// 정수로만 사는 연구·승급·전초기지가 통째로 잠겼다(라이브 실측). 12 = 한두 개 이어주면 닿는 거리.
-		[field: SerializeField, Min(1f)] public float SupplyReach { get; private set; } = 12f;
+		// 7 은 44칸 판에서 너무 짧았다 — 바깥 노드가 *어떤 사슬로도* 안 닿아 정수가 영영 0 이 됐다.
+		// 판이 200칸이 되면서 12 도 같은 병에 걸렸다: 코어 주변 6% 만 덮어 **가장 가까운 자원조차** 못 잡고,
+		// 채집이 0기인 채로 판이 돌았다(라이브 실측 — 거절 사유가 전부 「보급이 닿는 곳에만」이었다).
+		// 24 = 코어에서 가까운 광맥 몇 곳이 처음부터 손에 닿는 거리. 넓히려면 여전히 이어야 한다.
+		[field: SerializeField, Min(1f)] public float SupplyReach { get; private set; } = 24f;
 
 		[field: Header("정수 — 강화 전용 재화(바깥 노드에서만)")]
 		[field: Tooltip("연구 인형 1기에 드는 정수.")]
