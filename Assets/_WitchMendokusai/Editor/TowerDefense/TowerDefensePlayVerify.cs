@@ -529,10 +529,13 @@ namespace WitchMendokusai.EditorTools
 			foreach (int nodeIndex in nodeOrder)
 			{
 				Vector3 local = nodeLocals[nodeIndex];
-				// ★ 한 기만 세운다 — 두 기를 세우면 예산이 말라 *징검다리*를 못 놓고, 그러면 늘 「끊김」만
-				//   보게 되어 사슬 규칙이 고장난 것처럼 읽힌다(실측 2회). 여기서 볼 것은 「이어지는가」다.
-				if (harvestersPlaced >= 1)
+				// ★ 가까운 것 하나 + 그보다 먼 것 하나 = 「이어지는가」와 「바깥에서 정수가 나오는가」를
+				//   한 판에서 같이 본다. 가까운 것만 잡으면 정수 확인이 영영 「바깥에 세운 게 없음」으로만 끝난다.
+				if (harvestersPlaced >= 2)
 					break;
+				// 둘째는 첫째와 충분히 떨어진 곳으로 — 붙여 세우면 같은 광맥을 물어 바깥 확인이 안 된다.
+				if (harvestersPlaced == 1 && (nodeLocals[nodeIndex] - firstHarvesterLocal).sqrMagnitude < 400f)
+					continue;
 				int beforeHarvester = match.Resource;
 				placement.PlaceHarvesterAt(WorldToScreen(modeCamera, stageRoot.TransformPoint(local)));
 				if (match.Resource < beforeHarvester)
