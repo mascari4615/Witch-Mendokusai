@@ -43,6 +43,7 @@ namespace WitchMendokusai
 		private Button pauseButton;
 		private Button rangeDebugButton;
 		private Button uiScaleButton;
+		private Button difficultyButton;
 		private Button speedButton;
 		private readonly VisualElement legendPanel;
 		// 범례 줄이 실제로 들어가는 곳(래퍼는 접기 버튼까지 감싼다).
@@ -119,6 +120,9 @@ namespace WitchMendokusai
 
 		/// <summary> 코어 레벨업 카드를 골랐다(판 전체에 걸린다). </summary>
 		public event System.Action<int> CoreCardChosen = delegate { };
+
+		/// <summary> 난이도를 한 단계 돌린다 — 다음 판부터 걸린다. </summary>
+		public event System.Action DifficultyCycleRequested = delegate { };
 
 		public TowerDefenseHudView(UIRoot uiRoot)
 		{
@@ -404,6 +408,12 @@ namespace WitchMendokusai
 			wrapper.style.flexDirection = FlexDirection.Row;
 
 			// 디버그 — 세워둔 것 전부의 사거리를 한 번에. 상시 표시는 껐지만 「전체를 보고 싶은 순간」은 있다.
+			// 난이도 — 「다음 판부터」라고 말해주는 것까지가 이 버튼의 일이다(지금 판이 안 바뀌는데
+			// 바뀐 줄 알면 그게 거짓말이다).
+			difficultyButton = MakeActionButton("난이도: 보통", fontSize: 13, () => DifficultyCycleRequested());
+			difficultyButton.style.marginRight = 8;
+			wrapper.Add(difficultyButton);
+
 			uiScaleButton = MakeActionButton("UI ×1", fontSize: 13, () => UiScaleCycleRequested());
 			uiScaleButton.style.marginRight = 8;
 			wrapper.Add(uiScaleButton);
@@ -1269,6 +1279,8 @@ namespace WitchMendokusai
 			speedButton.SetEnabled(paused == false);
 
 			waveModeButton.text = match.AutoAdvanceWaves ? "진행: 자동" : "진행: 수동";
+			if (difficultyButton != null)
+				difficultyButton.text = "난이도: " + TowerDefenseDifficulty.NameOf(match.Difficulty) + " (다음 판)";
 			// 건설 국면에서만 부를 수 있다 — 못 누르는 버튼을 멀쩡해 보이게 두면 눌러보고 아무 일도 안 난다.
 			nextWaveButton.SetEnabled(preparing && match.Outcome == TowerDefenseOutcome.InProgress);
 		}

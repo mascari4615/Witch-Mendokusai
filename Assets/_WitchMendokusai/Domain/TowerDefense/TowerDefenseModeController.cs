@@ -258,6 +258,14 @@ namespace WitchMendokusai
 			match.ChooseBuildingPerk(placement.SelectedBuilding, perk);
 		}
 
+		/// <summary> 난이도 한 단계 — *다음 판*부터 걸린다(시작 조건이라 도는 판을 바꾸지 않는다). </summary>
+		private void CycleDifficulty()
+		{
+			placement.SuppressNextClick();
+			match.Difficulty = TowerDefenseDifficulty.Next(match.Difficulty);
+			Debug.Log($"{nameof(TowerDefenseModeController)}: 난이도 → {TowerDefenseDifficulty.NameOf(match.Difficulty)} (다음 판부터)");
+		}
+
 		/// <summary> UI 배율 한 단계 — 그 클릭이 설치로 새지 않게 한 번 삼킨다. </summary>
 		private void CycleUiScale()
 		{
@@ -394,6 +402,7 @@ namespace WitchMendokusai
 					view.UiScaleCycleRequested += CycleUiScale;
 					view.BuildingPerkChosen += ChoosePerk;
 					view.CoreCardChosen += ChooseCoreCard;
+					view.DifficultyCycleRequested += CycleDifficulty;
 					match.DraftOffered += ShowDraft;
 				}
 			}
@@ -419,6 +428,7 @@ namespace WitchMendokusai
 					hud.UiScaleCycleRequested -= CycleUiScale;
 					hud.BuildingPerkChosen -= ChoosePerk;
 					hud.CoreCardChosen -= ChooseCoreCard;
+					hud.DifficultyCycleRequested -= CycleDifficulty;
 					match.DraftOffered -= ShowDraft;
 					hud.HideDraft();
 				}

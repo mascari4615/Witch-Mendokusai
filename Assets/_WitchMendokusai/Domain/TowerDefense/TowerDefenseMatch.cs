@@ -134,6 +134,14 @@ namespace WitchMendokusai
 		private bool autoAdvanceWaves = true;
 		private bool waveModeInitialized;
 
+		/// <summary>
+		/// 이번 판의 난이도 — 다음 판에도 유지된다(매번 다시 고르게 하면 그건 설정이 아니라 잔소리다).
+		/// 판이 도는 중에 바꿔도 이미 시작한 판에는 안 걸린다(시작 조건이므로).
+		/// </summary>
+		public TowerDefenseDifficultyKind Difficulty { get; set; } = TowerDefenseDifficultyKind.Normal;
+
+		private TowerDefenseDifficulty difficulty = TowerDefenseDifficulty.For(TowerDefenseDifficultyKind.Normal);
+
 		public bool AutoAdvanceWaves
 		{
 			get => autoAdvanceWaves;
@@ -262,7 +270,16 @@ namespace WitchMendokusai
 			BuildGround();
 
 			targeting = new TargetingSystem();
-			core = new TowerDefenseCore(stage.Rules)
+
+			// ★ 난이도는 *시작 조건*이다 — 규칙을 갈라 쓰지 않고 숫자만 곱한다(갈라 쓰면 다른 게임이 된다).
+			difficulty = TowerDefenseDifficulty.For(Difficulty);
+			TowerDefenseRules scaledRules = stage.Rules;
+			scaledRules.StartingResource = Mathf.Max(1, Mathf.RoundToInt(scaledRules.StartingResource * difficulty.StartingResourceScale));
+			scaledRules.StartingLives = Mathf.Max(1, Mathf.RoundToInt(scaledRules.StartingLives * difficulty.LivesScale));
+			scaledRules.PressurePerMinute *= difficulty.PressureScale;
+			scaledRules.FirstWaveEnemyCount = Mathf.Max(1, Mathf.RoundToInt(scaledRules.FirstWaveEnemyCount * difficulty.EnemyCountScale));
+
+			core = new TowerDefenseCore(scaledRules)
 			{
 				AutoAdvance = autoAdvanceWaves,
 				FirstAutoWave = stage.ManualFirstWave ? 1 : 0,
@@ -1011,7 +1028,8 @@ namespace WitchMendokusai
 				if (nestMovement != null)
 					nestMovement.enabled = false;
 
-				int nestHp = Mathf.Max(1, Mathf.RoundToInt(nestUnit.UnitStat[UnitStatType.HP_MAX] * stage.NestHealthMultiplier));
+				int nestHp = Mathf.Max(1, Mathf.RoundToInt(
+					nestUnit.UnitStat[UnitStatType.HP_MAX] * stage.NestHealthMultiplier * difficulty.NestHealthScale));
 				nestUnit.UnitStat[UnitStatType.HP_MAX] = nestHp;
 				nestUnit.UnitStat[UnitStatType.HP_CUR] = nestHp;
 
