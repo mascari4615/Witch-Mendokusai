@@ -1162,6 +1162,18 @@ namespace WitchMendokusai
 			registeredCombatants.Add(combatant);
 
 			coreCombatant = combatant;
+
+			// ★ 코어도 반격한다(개선 목록 22번) — 마지막 보루가 무방비면 「여기까지 왔다」가 곧 끝이다.
+			//   포탑과 *같은 무기 표*를 쓴다: 다른 표를 두면 두 곳이 갈라져 화면과 규칙이 어긋난다.
+			if (stage.CoreWeapon != null)
+			{
+				TowerDefenseWeapon coreWeapon = coreGameObject.GetComponent<TowerDefenseWeapon>();
+				if (coreWeapon == null)
+					coreWeapon = coreGameObject.AddComponent<TowerDefenseWeapon>();
+				coreWeapon.Configure(stage.CoreWeapon, targeting, combatant, waveEnemies,
+					IsVisibleAt, () => TowerDamageMultiplier, () => Adaptation);
+			}
+
 			AddVisionSource(coreGameObject.transform.position, stage.CoreVisionRadius);
 
 			// 보급이 여기서 출발해 어디까지 닿는지 — 안 보이면 「왜 안 이어지지」를 짐작으로 풀어야 한다.
@@ -2965,6 +2977,20 @@ namespace WitchMendokusai
 				if (material.HasProperty("_BaseColor"))
 					material.SetColor("_BaseColor", stage.OutpostTint);
 				outpostRenderer.sharedMaterial = material;
+			}
+
+			// ★ 전초기지도 스스로 조금은 버틴다(개선 목록 21번) — 보급·목표 역할만 하면 「넓혔다」가
+			//   *지킬 것만 늘었다*가 된다. 넓힌 곳이 스스로 반격해야 나가는 선택에 값이 생긴다.
+			if (stage.OutpostWeapon != null)
+			{
+				ArenaCombatant outpostCombatant = outpostObject.AddComponent<ArenaCombatant>();
+				outpostCombatant.SetTeam(DEFENDER_TEAM, nextCombatantId++);
+				targeting.Register(outpostCombatant);
+				registeredCombatants.Add(outpostCombatant);
+
+				TowerDefenseWeapon outpostWeapon = outpostObject.AddComponent<TowerDefenseWeapon>();
+				outpostWeapon.Configure(stage.OutpostWeapon, targeting, outpostCombatant, waveEnemies,
+					IsVisibleAt, () => TowerDamageMultiplier, () => Adaptation);
 			}
 
 			outposts.Add(outpostObject.transform);

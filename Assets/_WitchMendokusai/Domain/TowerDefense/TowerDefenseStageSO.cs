@@ -251,6 +251,15 @@ namespace WitchMendokusai
 		[field: Tooltip("레벨업 선택지 한 단계가 올리는 비율(0.2 = +20%).")]
 		[field: SerializeField, Min(0f)] public float PerkStep { get; private set; } = 0.2f;
 
+		[field: Header("코어·전초기지 방어 — 마지막 보루도 반격은 한다")]
+		[field: Tooltip("코어의 자체 무기(비어 있으면 코어는 무방비). 포탑과 같은 표를 쓴다 — 두 곳이 갈라지지 않게.")]
+		[field: SerializeField] public TowerDefenseTowerArchetype CoreWeapon { get; private set; }
+			= new TowerDefenseTowerArchetype("코어 방어", "마지막 보루도 반격한다", 4f, 9, 0.7f, 2, new Color(1f, 0.93f, 0.45f, 1f));
+
+		[field: Tooltip("전초기지의 자체 무기(비어 있으면 보급·목표 역할만). 넓힌 곳이 스스로 조금은 버텨야 「넓혔다」가 성립한다.")]
+		[field: SerializeField] public TowerDefenseTowerArchetype OutpostWeapon { get; private set; }
+			= new TowerDefenseTowerArchetype("전초기지 방어", "넓힌 곳도 스스로 버틴다", 3.2f, 6, 0.9f, 1, new Color(1f, 0.9f, 0.55f, 1f));
+
 		[field: Header("전기 — 받아야 돈다")]
 		[field: Tooltip("코어가 처음부터 내주는 전기량(0 = 전기 규칙 끔). 초반엔 이것만으로 몇 기를 돌린다.")]
 		[field: SerializeField, Min(0)] public int CorePowerCapacity { get; private set; } = 6;

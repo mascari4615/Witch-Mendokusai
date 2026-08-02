@@ -59,6 +59,28 @@ namespace WitchMendokusai
 		[Tooltip("둔화 지속(초).")]
 		[SerializeField, Min(0f)] private float slowSeconds = 1.5f;
 
+		/// <summary>
+		/// 코드에서 기본값을 세우기 위한 생성자 — 코어·전초기지의 자체 무기처럼 *자산에 안 적힌 것*은
+		/// SO 기본값이 정본이 된다(자산에 없는 필드는 초기값이 그대로 쓰인다).
+		/// </summary>
+		public TowerDefenseTowerArchetype(string name, string description, float attackRange, int attackDamage,
+			float attackCooldown, int pierceCount, Color color)
+		{
+			displayName = name;
+			note = description;
+			cost = 0;
+			tint = color;
+			range = attackRange;
+			visionRadius = attackRange + 4f;
+			cooldown = attackCooldown;
+			damage = attackDamage;
+			pierce = pierceCount;
+			upgradeGrowth = 0f;
+			maxLevel = 1;
+		}
+
+		public TowerDefenseTowerArchetype() { }
+
 		public string DisplayName => displayName;
 		public string Note => note;
 		public int Cost => cost;
