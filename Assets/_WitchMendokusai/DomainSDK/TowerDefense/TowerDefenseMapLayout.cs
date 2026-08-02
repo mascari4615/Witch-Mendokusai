@@ -103,6 +103,44 @@ namespace WitchMendokusai
 			return obstacleCells.Contains(cell);
 		}
 
+		/// <summary>
+		/// 창만 키운 새 격자 — **기존 칸은 하나도 다시 안 본다**.
+		///
+		/// ★ 왜 필요한가 (실측 981ms): 창이 자랄 때마다 판 전체를 다시 만들면 6만7천 칸을 다시 훑는다.
+		///   지형은 이미 좌표에서 파생되므로 *이미 본 칸의 답은 안 바뀐다* — 다시 볼 이유가 없다.
+		///   새로 열린 띠만 물어서 채우면 비용이 면적이 아니라 *늘어난 테두리*에 비례한다.
+		/// ★ 코어·스폰·노드는 그대로 옮긴다 — 이미 판에 세워진 것들이 그 좌표를 쓰고 있다.
+		/// </summary>
+		public static TowerDefenseMapLayout Grown(
+			TowerDefenseMapLayout source,
+			int newWidth,
+			int newLength,
+			System.Func<Vector2Int, bool> isBlockedAt)
+		{
+			HashSet<Vector2Int> obstacles = new HashSet<Vector2Int>(source.obstacleCells);
+
+			for (int x = 0; x < newWidth; x++)
+			{
+				for (int z = 0; z < newLength; z++)
+				{
+					if (x < source.Width && z < source.Length)
+						continue; // 이미 본 칸 — 답이 안 바뀐다.
+
+					Vector2Int cell = new Vector2Int(x, z);
+					if (isBlockedAt != null && isBlockedAt(cell))
+						obstacles.Add(cell);
+				}
+			}
+
+			List<Vector2Int> spawnCells = new List<Vector2Int>();
+			foreach (Vector3 spawn in source.enemySpawnPoints)
+				spawnCells.Add(source.WorldToCell(spawn));
+
+			return new TowerDefenseMapLayout(
+				source.Seed, newWidth, newLength, source.CellSize, source.CoreCell,
+				spawnCells, new List<TowerDefenseResourceNodeSpot>(source.resourceNodes), obstacles);
+		}
+
 		public bool IsBlocked(Vector3 worldPosition)
 		{
 			return IsBlocked(WorldToCell(worldPosition));

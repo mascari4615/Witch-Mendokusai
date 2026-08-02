@@ -2183,11 +2183,16 @@ namespace WitchMendokusai
 			Debug.Log($"{nameof(TowerDefenseMatch)}: 판이 자란다 — {mapLayout.Width} → {newWidth}칸 (내 것이 끝에서 {CellsToWindowEdge}칸).");
 
 			// ★ 원점을 유지한 채 +방향으로만 넓힌다 — 기존 좌표가 그대로 살아야 한다.
-			TowerDefenseMapParameters parameters = stage.MapParameters;
-			parameters.Seed = mapLayout.Seed;
-			parameters.Width = newWidth;
-			parameters.Length = newLength;
-			mapLayout = TowerDefenseMapGenerator.Generate(parameters);
+			// ★ 판 전체를 다시 만들지 않는다(실측 981ms) — 지형은 좌표에서 나오므로 *새 띠만* 묻는다.
+			TowerDefenseMapParameters parameters = stage.MapParameters.Normalized();
+			int siteSpacing = Mathf.Max(2, Mathf.RoundToInt(
+				Mathf.Sqrt(mapLayout.Width * (float)mapLayout.Length / Mathf.Max(1, parameters.RockSiteCount))));
+			TowerDefenseInfiniteTerrain terrain = new(
+				mapLayout.Seed, mapLayout.CoreCell, siteSpacing,
+				parameters.RidgeWidth, parameters.ObstacleDensity, parameters.CoreClearRadius);
+
+			TowerDefenseVision olderVision = vision;
+			mapLayout = TowerDefenseMapLayout.Grown(mapLayout, newWidth, newLength, terrain.IsBlocked);
 
 			activeGroundWidth = mapLayout.GroundWidth;
 			activeGroundLength = mapLayout.GroundLength;
@@ -2198,6 +2203,7 @@ namespace WitchMendokusai
 
 			// 창에 묶인 것들만 다시 세운다 — 지형 자체는 좌표에서 나오므로 이미 본 자리는 안 변한다.
 			vision = new TowerDefenseVision(mapLayout.Width, mapLayout.Length);
+			vision.CopyExploredFrom(olderVision); // 가봤던 곳이 통째로 어두워지지 않게.
 			if (fogView != null)
 			{
 				Destroy(fogView.gameObject);

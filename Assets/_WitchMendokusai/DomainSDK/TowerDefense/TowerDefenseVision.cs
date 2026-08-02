@@ -54,6 +54,24 @@ namespace WitchMendokusai
 		}
 
 		/// <summary> 지금 보이는 범위를 다시 계산한다. Explored 는 누적(한 번 밝힌 곳은 계속 기억). </summary>
+		/// <summary>
+		/// 창이 자랐을 때 *밝힌 기록*을 새 크기로 옮긴다 — 새로 구우면 가봤던 곳이 통째로 어두워진다.
+		/// 새 띠는 당연히 안 가본 곳이므로 그대로 둔다.
+		/// </summary>
+		public void CopyExploredFrom(TowerDefenseVision older)
+		{
+			if (older == null)
+				return;
+
+			int copyWidth = Mathf.Min(width, older.width);
+			int copyLength = Mathf.Min(length, older.length);
+			for (int x = 0; x < copyWidth; x++)
+			{
+				for (int y = 0; y < copyLength; y++)
+					explored[y * width + x] = older.explored[y * older.width + x];
+			}
+		}
+
 		public void Recompute(IReadOnlyList<Source> sources)
 		{
 			for (int index = 0; index < visible.Length; index++)
