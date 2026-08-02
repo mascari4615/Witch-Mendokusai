@@ -112,6 +112,10 @@ namespace WitchMendokusai
 		[field: Tooltip("휠 **한 칸당** 높이 변화량. 플랫폼별 raw 델타 차이는 리그가 흡수한다.")]
 		[field: SerializeField, Min(0.1f)] public float CameraZoomSpeed { get; private set; } = 6f;
 
+		[field: Header("적응 — 한 수단에만 기대면 통하지 않게 된다")]
+		[field: Tooltip("적응 민감도(0 = 안 씀). 클수록 편중된 전략에 저항이 빨리 붙는다. 저항은 절대 절반을 넘지 않는다.")]
+		[field: SerializeField, Min(0f)] public float AdaptationSensitivity { get; private set; } = 1f;
+
 		[field: Header("이벤트 파도 — 성격이 변한다")]
 		[field: Tooltip("몇 파마다 성격이 붙나(0 = 안 씀). 3 이면 3·6·9파가 떼거리→정예→돌진→어스름 순환.")]
 		[field: SerializeField, Min(0)] public int WaveEventEvery { get; private set; } = 3;

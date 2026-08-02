@@ -29,6 +29,9 @@ namespace WitchMendokusai
 		// 매 발사 때 읽는다 — 나중에 세운 연구 인형이 이미 서 있던 포탑에도 바로 반영되게.
 		private System.Func<float> damageMultiplier;
 
+		// 마수가 무엇에 익숙해졌나 — 매 발사 때 읽는다(적응은 파도 사이에 변한다).
+		private System.Func<TowerDefenseAdaptationState> adaptation;
+
 		// 효과가 *실제로 일어났는가*를 세는 계수기 — 검증이 로그 문자열이 아니라 상태를 읽게 한다
 		// (게임 코드에 진단 로그를 영구히 남기지 않으면서도 「광역이 진짜 터졌나」를 증명할 수 있다).
 		public int PierceHits { get; private set; }
@@ -68,8 +71,10 @@ namespace WitchMendokusai
 			ICombatant owner,
 			IReadOnlyList<ICombatant> enemies,
 			System.Func<Vector3, bool> isVisible = null,
-			System.Func<float> towerDamageMultiplier = null)
+			System.Func<float> towerDamageMultiplier = null,
+			System.Func<TowerDefenseAdaptationState> adaptationState = null)
 		{
+			adaptation = adaptationState;
 			visibilityTest = isVisible;
 			damageMultiplier = towerDamageMultiplier;
 			archetype = towerArchetype;
@@ -194,7 +199,7 @@ namespace WitchMendokusai
 				if (CanSee(candidate.Position) == false)
 					continue;
 
-				ApplyHit(candidate);
+				ApplyHit(candidate, 1f - CurrentAdaptation().PierceResist);
 				PierceHits++;
 				remaining--;
 			}
@@ -215,12 +220,17 @@ namespace WitchMendokusai
 				if (CanSee(candidate.Position) == false)
 					continue;
 
-				ApplyHit(candidate);
+				ApplyHit(candidate, 1f - CurrentAdaptation().SplashResist);
 				SplashHits++;
 			}
 		}
 
-		private void ApplyHit(ICombatant target)
+		private TowerDefenseAdaptationState CurrentAdaptation()
+		{
+			return adaptation != null ? adaptation() : default;
+		}
+
+		private void ApplyHit(ICombatant target, float damageScale = 1f)
 		{
 			ArenaCombatant combatant = target as ArenaCombatant;
 			if (combatant == null || combatant.UnitObject == null)
@@ -228,7 +238,7 @@ namespace WitchMendokusai
 
 			DamageInfo damageInfo = new DamageInfo
 			{
-				damage = ComputeDamage(target),
+				damage = Mathf.Max(1, Mathf.RoundToInt(ComputeDamage(target) * damageScale)),
 				type = DamageType.Normal,
 				damageSource = self,
 				equipmentDataId = DamageInfo.NO_DATA_ID,
@@ -238,7 +248,9 @@ namespace WitchMendokusai
 
 			if (archetype.SlowFactor > 0f)
 			{
-				TowerDefenseSlow.Apply(combatant.UnitObject, archetype.SlowFactor, archetype.SlowSeconds);
+				// 둔화 저항 — 통하되 예전만큼은 아니게(상한 절반, 봉인 X).
+				float resisted = archetype.SlowFactor * (1f - CurrentAdaptation().SlowResist);
+				TowerDefenseSlow.Apply(combatant.UnitObject, resisted, archetype.SlowSeconds);
 				SlowApplied++;
 			}
 		}

@@ -998,6 +998,13 @@ namespace WitchMendokusai.EditorTools
 			}
 			Debug.Log(TAG + " TOWER-EFFECTS pierce=" + pierceHits + " splash=" + splashHits + " slow=" + slowApplied);
 
+			TowerDefenseAdaptationState adaptation = match.Adaptation;
+			Debug.Log(TAG + " ADAPT slow=" + adaptation.SlowResist.ToString("F2")
+				+ " splash=" + adaptation.SplashResist.ToString("F2")
+				+ " pierce=" + adaptation.PierceResist.ToString("F2")
+				+ " note=\"" + TowerDefenseAdaptation.Describe(adaptation) + "\""
+				+ " (상한 " + TowerDefenseAdaptation.MAX_RESIST + " — 봉인 X)");
+
 			string verdict = TAG + " DEFENDED-RESULT killIncomeEvents=" + killIncomeEvents
 				+ " wave=" + match.WaveIndex + " resource=" + match.Resource
 				+ " nextIncome=" + match.NextWaveIncome + " harvesters=" + match.HarvesterCount;

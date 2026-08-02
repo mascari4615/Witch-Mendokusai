@@ -812,6 +812,11 @@ namespace WitchMendokusai
 				? string.Empty
 				: "《" + TowerDefenseWaveEvent.DisplayName(previewEvent) + "》 ";
 
+			// 적응은 반드시 보여야 한다 — 안 보이면 플레이어는 자기 포탑이 고장 났다고 여긴다.
+			string adaptationNote = TowerDefenseAdaptation.Describe(match.Adaptation);
+			if (adaptationNote.Length > 0)
+				eventPrefix += "[" + adaptationNote + "] ";
+
 			int archetypeCount = match.EnemyArchetypeCount;
 			if (archetypeCount <= 0)
 				return eventPrefix + compositionBuffer.Count + "기";

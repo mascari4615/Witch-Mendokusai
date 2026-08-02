@@ -1239,6 +1239,36 @@ namespace WitchMendokusai
 		/// </summary>
 		public float TowerDamageMultiplier => 1f + LabCount * (stage != null ? stage.LabDamageBonus : 0f);
 
+		/// <summary>
+		/// 지금까지 내가 쓴 수단의 누적 — 세워둔 포탑들이 각자 센 것을 모은다.
+		/// 「무엇을 많이 썼나」가 곧 마수가 무엇에 익숙해지는가다.
+		/// </summary>
+		public TowerDefenseAdaptationState Adaptation
+		{
+			get
+			{
+				if (stage == null)
+					return default;
+
+				int slowUses = 0;
+				int splashHits = 0;
+				int pierceHits = 0;
+				foreach (GameObject unit in spawnedUnits)
+				{
+					if (unit == null)
+						continue;
+					TowerDefenseWeapon weapon = unit.GetComponent<TowerDefenseWeapon>();
+					if (weapon == null)
+						continue;
+					slowUses += weapon.SlowApplied;
+					splashHits += weapon.SplashHits;
+					pierceHits += weapon.PierceHits;
+				}
+
+				return TowerDefenseAdaptation.From(slowUses, splashHits, pierceHits, stage.AdaptationSensitivity);
+			}
+		}
+
 		/// <summary> waveIndex 파의 성격 — 예고와 스폰이 같은 함수를 본다. </summary>
 		public TowerDefenseWaveEventKind WaveEventAt(int waveIndex)
 		{
@@ -1851,7 +1881,7 @@ namespace WitchMendokusai
 					TowerDefenseWeapon weapon = unitObject.GetComponent<TowerDefenseWeapon>();
 					if (weapon == null)
 						weapon = unitObject.gameObject.AddComponent<TowerDefenseWeapon>();
-					weapon.Configure(towerArchetype, targeting, combatant, waveEnemies, IsVisibleAt, () => TowerDamageMultiplier);
+					weapon.Configure(towerArchetype, targeting, combatant, waveEnemies, IsVisibleAt, () => TowerDamageMultiplier, () => Adaptation);
 				}
 
 				float towerRange = towerArchetype != null ? towerArchetype.Range : TowerRange();
