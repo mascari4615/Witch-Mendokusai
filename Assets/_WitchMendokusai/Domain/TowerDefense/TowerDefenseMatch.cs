@@ -1307,6 +1307,7 @@ namespace WitchMendokusai
 				if (core == null || targeting == null || pool == null)
 					yield break;
 				ApplyArchetypeStats(enemyUnitObject, archetype);
+				ApplyPressure(enemyUnitObject); // 오래 버틸수록 단단해진다 — 실시간의 난이도는 시간이 올린다.
 				ApplyWaveEventStats(enemyUnitObject, waveEvent);
 
 				foreach (UnitBrain brain in enemyUnitObject.GetComponents<UnitBrain>()) // 트랩#2.
@@ -2130,6 +2131,41 @@ namespace WitchMendokusai
 				doll.Progress.AddExperience(Mathf.RoundToInt(stage.HarvestExperience * boons.ExperienceMultiplier));
 			}
 		}
+
+		/// <summary>
+		/// 흐른 시간만큼 마수를 단단하게 + 카드로 고른 감속을 건다.
+		///
+		/// ★ 왜 시간인가: 실시간에서 웨이브는 시계가 부른다 — 웨이브 수로 난이도를 올리면 플레이어가
+		///   무엇을 하든 똑같이 오른다. 「빨리 정리했다」와 「겨우 버텼다」가 구분되지 않는다.
+		///   시간으로 올리면 *오래 끌수록 아프다* 가 되어 둥지를 부수러 나갈 이유가 생긴다.
+		/// ★ 상한을 두는 이유: 무한히 오르면 어느 순간부터는 무엇을 해도 지는 판이 된다 — 그건 난이도가
+		///   아니라 타이머다.
+		/// </summary>
+		private void ApplyPressure(UnitObject enemyUnit)
+		{
+			if (enemyUnit == null || core == null)
+				return;
+
+			float pressure = core.Pressure;
+			if (pressure > 1f)
+			{
+				int scaledHp = Mathf.Max(1, Mathf.RoundToInt(enemyUnit.UnitStat[UnitStatType.HP_MAX] * pressure));
+				enemyUnit.UnitStat[UnitStatType.HP_MAX] = scaledHp;
+				enemyUnit.UnitStat[UnitStatType.HP_CUR] = scaledHp;
+			}
+
+			// 카드로 고른 「무거운 걸음」은 *앞으로 나오는* 마수에만 걸린다(이미 걷는 것을 늦추면
+			// 고른 순간 판이 통째로 멎어 선택이 아니라 버튼이 된다).
+			float speedMultiplier = boons.EnemySpeedMultiplier;
+			if (speedMultiplier < 1f)
+			{
+				enemyUnit.UnitStat[UnitStatType.MOVEMENT_SPEED] =
+					Mathf.Max(1, Mathf.RoundToInt(enemyUnit.UnitStat[UnitStatType.MOVEMENT_SPEED] * speedMultiplier));
+			}
+		}
+
+		/// <summary> 지금 마수에 걸린 압력 — 화면이 「점점 세진다」를 말한다. </summary>
+		public float Pressure => core != null ? core.Pressure : 1f;
 
 		/// <summary> 코어 경험치 — 레벨이 오르면 판 전체에 걸리는 선택지가 쌓인다. </summary>
 		private void AwardCoreExperience(int amount)

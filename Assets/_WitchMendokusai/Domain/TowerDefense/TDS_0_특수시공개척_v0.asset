@@ -32,6 +32,8 @@ MonoBehaviour:
     WaveInterval: 40
     IncomeInterval: 10
     TrickleInterval: 1.2
+    PressurePerMinute: 0.18
+    PressureCap: 4
   <ManualFirstWave>k__BackingField: 1
   <AutoAdvanceWavesDefault>k__BackingField: 1
   <CoreUnit>k__BackingField: {fileID: 11400000, guid: a194010000000000000000000000d004, type: 2}
@@ -96,6 +98,22 @@ MonoBehaviour:
     upgradeGrowth: 0.3
     maxLevel: 3
   <EnemyArchetypes>k__BackingField:
+  - displayName: "무리 마수"
+    note: "약하고 빠르다 · 떼로 온다"
+    healthMultiplier: 0.55
+    speedMultiplier: 1.35
+    scaleMultiplier: 0.8
+    tint: {r: 1, g: 0.55, b: 0.5, a: 1}
+    bounty: 4
+    weight: 3
+  - displayName: "거대 마수"
+    note: "아주 단단하다 · 느리다"
+    healthMultiplier: 3.2
+    speedMultiplier: 0.65
+    scaleMultiplier: 1.5
+    tint: {r: 0.7, g: 0.2, b: 0.25, a: 1}
+    bounty: 22
+    weight: 1
   - displayName: "마수"
     unlockWave: 0
     weight: 5

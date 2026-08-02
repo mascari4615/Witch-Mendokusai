@@ -1,3 +1,4 @@
+using UnityEngine;
 using System;
 
 namespace WitchMendokusai
@@ -37,6 +38,21 @@ namespace WitchMendokusai
 		public float WaveInterval;    // 큰 무리 주기(초). 0 이면 큰 무리 없음.
 		public float IncomeInterval;  // 정산 주기(초). 0 이면 시간 수입 없음.
 		public float TrickleInterval; // 상시 마수 1기 주기(초). 0 이면 상시 스폰 없음.
+
+		// ★ 실시간의 난이도는 *시간*이 올린다(사용자 지시 정합). 웨이브 수로 올리면 시계가 부르는 대로
+		//   따라갈 뿐이라 「빨리 정리했다」가 아무 의미가 없다. 1분마다 이 비율만큼 마수가 단단해진다.
+		public float PressurePerMinute;   // 0.15 = 1분마다 체력 +15%.
+		public float PressureCap;         // 압력 상한(3 = 최대 3배). 0 이면 무제한.
+
+		/// <summary> 흐른 시간에 따른 마수 강화 배수 — 스폰 시점에 걸린다. </summary>
+		public float PressureAt(float elapsedSeconds)
+		{
+			if (PressurePerMinute <= 0f)
+				return 1f;
+
+			float pressure = 1f + elapsedSeconds / 60f * PressurePerMinute;
+			return PressureCap > 0f ? Mathf.Min(pressure, PressureCap) : pressure;
+		}
 
 		/// <summary> WaveCount 가 무한 스테이지 센티널(0 이하)인지. </summary>
 		public bool IsEndless => WaveCount <= 0;

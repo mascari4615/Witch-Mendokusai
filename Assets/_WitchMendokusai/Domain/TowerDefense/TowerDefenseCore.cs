@@ -43,6 +43,9 @@ namespace WitchMendokusai
 		/// <summary> 다음 정산까지 남은 시간(초). </summary>
 		public float NextIncomeIn => Mathf.Max(0f, rules.IncomeInterval - incomeAccumulated);
 
+		/// <summary> 지금 마수에 걸리는 압력 배수 — 오래 버틸수록 마수가 단단해진다. </summary>
+		public float Pressure => rules.PressureAt(ElapsedSeconds);
+
 		/// <summary>
 		/// (구 페이즈제 잔재) 실시간에서는 늘 흐른다 — 남겨둔 이유는 화면·씬 참조가 아직 읽기 때문.
 		/// 값은 진행에 영향을 주지 않는다.
