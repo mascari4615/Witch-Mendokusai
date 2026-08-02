@@ -2105,11 +2105,12 @@ namespace WitchMendokusai
 					Debug.LogWarning($"{nameof(TowerDefenseMatch)}: 굳은 마수를 옮김 — cell={cell} blocked={blocked} "
 						+ $"reachable={reachable} → {freeCell} ({stillSeconds:F1}s 정지)");
 				}
-				else if (reachable)
+				else if (reachable && flowField.TryGetNextCell(cell, out Vector2Int nextCell))
 				{
-					// 길은 멀쩡한데 안 움직인다 = 길 문제가 아니다(교전 중이거나 물리에 끼었다).
-					// 옮겨봐야 같은 일이 반복되므로 사실만 남긴다 — 잘못된 처방이 원인을 가리는 것이 더 나쁘다.
-					Debug.LogWarning($"{nameof(TowerDefenseMatch)}: 마수가 길 위에서 멈춰 있음(교전/끼임 의심) — cell={cell} "
+					// 길은 멀쩡한데 안 움직인다 = 서로 밀치다 끼었다(스폰 지점에 몰릴 때 실제로 난다).
+					// 길을 다시 그려줄 게 아니라 *다음 칸으로 한 발 밀어준다* — 원인을 숨기지 않게 로그는 남긴다.
+					enemy.transform.position = stageRoot.TransformPoint(mapLayout.CellToWorld(nextCell));
+					Debug.LogWarning($"{nameof(TowerDefenseMatch)}: 길 위에서 끼인 마수를 한 칸 밀어줌 — {cell} → {nextCell} "
 						+ $"({stillSeconds:F1}s 정지)");
 				}
 				else
