@@ -46,8 +46,17 @@ namespace WitchMendokusai
 		/// (사용자 지시: "좌클릭/우클릭이 아니라 빌딩 핫바 좀 활용해야 할듯").
 		/// 선택 = 핫바(숫자키/클릭), 설치 = 클릭 — 기존 건설 모드와 같은 조작 문법.
 		/// </summary>
-		public TowerDefensePlaceableKind SelectedKind =>
-			SelectedSlot >= TowerSlotCount ? TowerDefensePlaceableKind.Harvester : TowerDefensePlaceableKind.Tower;
+		public TowerDefensePlaceableKind SelectedKind
+		{
+			get
+			{
+				if (SelectedSlot < TowerSlotCount)
+					return TowerDefensePlaceableKind.Tower;
+				return SelectedSlot == TowerSlotCount
+					? TowerDefensePlaceableKind.Harvester
+					: TowerDefensePlaceableKind.Lab;
+			}
+		}
 
 		/// <summary>
 		/// 핫바 슬롯 — 0..포탑종류수-1 = 포탑, 마지막 = 채집. 포탑이 여러 종류가 되면서 「종류」가 아니라
@@ -87,7 +96,8 @@ namespace WitchMendokusai
 		/// <summary> 슬롯 선택 — 범위를 벗어나면 무시(없는 칸을 누른 것). </summary>
 		public void SelectSlot(int slot)
 		{
-			if (slot < 0 || slot > TowerSlotCount)
+			// 칸 = 포탑들 + 채집 + 연구. 범위 밖은 없는 칸을 누른 것.
+			if (slot < 0 || slot > TowerSlotCount + 1)
 				return;
 			if (SelectedSlot == slot)
 				return;
@@ -127,10 +137,18 @@ namespace WitchMendokusai
 			if (UIPointer.IsOverInteractive(screenPointerPosition))
 				return;
 
-			if (SelectedKind == TowerDefensePlaceableKind.Harvester)
-				PlaceHarvesterAt(screenPointerPosition);
-			else
-				PlaceTowerAt(screenPointerPosition);
+			switch (SelectedKind)
+			{
+				case TowerDefensePlaceableKind.Harvester:
+					PlaceHarvesterAt(screenPointerPosition);
+					break;
+				case TowerDefensePlaceableKind.Lab:
+					PlaceLabAt(screenPointerPosition);
+					break;
+				default:
+					PlaceTowerAt(screenPointerPosition);
+					break;
+			}
 		}
 
 		[Inject]
@@ -194,7 +212,10 @@ namespace WitchMendokusai
 				return;
 
 			bool isHarvester = SelectedKind == TowerDefensePlaceableKind.Harvester;
-			float radius = isHarvester ? stage.NodeCaptureRadius : match.TowerRange(SelectedTowerIndex);
+			bool isLab = SelectedKind == TowerDefensePlaceableKind.Lab;
+			float radius = isLab ? stage.LabVisionRadius
+				: isHarvester ? stage.NodeCaptureRadius
+				: match.TowerRange(SelectedTowerIndex);
 			if (radius <= 0f)
 			{
 				if (previewRing != null)
@@ -207,10 +228,28 @@ namespace WitchMendokusai
 
 			previewRing.transform.position = snappedWorldPosition + new Vector3(0f, 0.06f, 0f);
 			previewRing.SetRadius(radius);
-			previewRing.SetColor(isHarvester
-				? new Color(0.42f, 0.92f, 0.68f, 0.9f)
-				: new Color(0.45f, 0.78f, 1f, 0.9f));
+			previewRing.SetColor(isLab
+				? new Color(0.86f, 0.62f, 1f, 0.9f)
+				: isHarvester
+					? new Color(0.42f, 0.92f, 0.68f, 0.9f)
+					: new Color(0.45f, 0.78f, 1f, 0.9f));
 			previewRing.SetVisible(true);
+		}
+
+		/// <summary> 연구 인형 설치 — 빈 칸이면 어디든. 지어지는 순간 모든 포탑이 강해진다. </summary>
+		public void PlaceLabAt(Vector2 screenPointerPosition)
+		{
+			if (match == null)
+				return;
+
+			if (TryGetSnappedGroundPosition(screenPointerPosition, out Vector3 snappedWorldPosition) == false)
+			{
+				Debug.Log($"{nameof(TowerDefensePlacement)}: 연구 인형 배치 실패 — 지면 레이캐스트 무효.");
+				return;
+			}
+
+			if (match.TryPlaceLab(snappedWorldPosition) == false)
+				Debug.Log($"{nameof(TowerDefensePlacement)}: 연구 인형 배치 거절 — 자원 부족 또는 이미 점유된 칸.");
 		}
 
 		/// <summary> 우클릭 진입점 — 스냅 위치에 타워 배치 시도 + 성공/거절 사유 로그. </summary>

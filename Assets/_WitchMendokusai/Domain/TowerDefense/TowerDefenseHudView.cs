@@ -439,6 +439,8 @@ namespace WitchMendokusai
 					legendRows.Add(MakeLegendRow(tower.Tint, tower.DisplayName, tower.Note, TowerDefenseIcon.ForTower(tower)));
 				}
 			}
+			legendRows.Add(MakeLegendRow(stage.LabTint, "연구 인형",
+				"세울수록 모든 포탑 피해 +" + Mathf.RoundToInt(stage.LabDamageBonus * 100f) + "%", TowerDefenseIcon.Kind.Ring));
 			legendRows.Add(MakeLegendRow(stage.HarvesterTint, "채집 인형",
 				"금빛 자리 위에서만 캔다 · 정산마다 +" + stage.Rules.IncomePerHarvester, TowerDefenseIcon.Kind.Leaf));
 			if (stage.EnemyArchetypes == null || stage.EnemyArchetypes.Length == 0)
@@ -538,6 +540,7 @@ namespace WitchMendokusai
 			}
 
 			entries.Add(new ModeSelectionBar.Entry("채집 인형", stage.HarvesterCost, stage.HarvesterTint));
+			entries.Add(new ModeSelectionBar.Entry("연구 인형", stage.LabCost, stage.LabTint));
 			selectionBar.SetEntries(entries);
 		}
 

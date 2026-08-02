@@ -112,6 +112,19 @@ namespace WitchMendokusai
 		[field: Tooltip("휠 **한 칸당** 높이 변화량. 플랫폼별 raw 델타 차이는 리그가 흡수한다.")]
 		[field: SerializeField, Min(0.1f)] public float CameraZoomSpeed { get; private set; } = 6f;
 
+		[field: Header("연구 인형 — 판 안 강화")]
+		[field: Tooltip("연구 인형 1기 건설 비용. 지금 방어에 쓸지 나중을 위해 강화에 쓸지가 이 값으로 갈린다.")]
+		[field: SerializeField, Min(0)] public int LabCost { get; private set; } = 90;
+
+		[field: Tooltip("연구 인형 1기당 모든 포탑 피해 증가 비율(0.15 = +15%). 이미 세워둔 포탑에도 즉시 적용된다.")]
+		[field: SerializeField, Min(0f)] public float LabDamageBonus { get; private set; } = 0.2f;
+
+		[field: Tooltip("연구 인형이 밝히는 시야 반경.")]
+		[field: SerializeField, Min(0f)] public float LabVisionRadius { get; private set; } = 8f;
+
+		[field: Tooltip("연구 인형 색 — 포탑·채집과 확실히 달라야 한 눈에 갈린다.")]
+		[field: SerializeField] public Color LabTint { get; private set; } = new Color(0.86f, 0.62f, 1f, 1f);
+
 		[field: Header("판 밖에 남는 것 — 유물·뽑기")]
 		[field: Tooltip("처음부터 쓸 수 있는 포탑 수(앞에서부터). 나머지는 유물로 뽑아야 나온다.")]
 		[field: SerializeField, Min(1)] public int DefaultUnlockedTowerCount { get; private set; } = 2;

@@ -26,6 +26,9 @@ namespace WitchMendokusai
 		// 「보이는가」 판정 — 시야가 장식이 아니라 규칙이 되는 지점. 안 꽂히면 전부 보이는 것으로 본다.
 		private System.Func<Vector3, bool> visibilityTest;
 
+		// 매 발사 때 읽는다 — 나중에 세운 연구 인형이 이미 서 있던 포탑에도 바로 반영되게.
+		private System.Func<float> damageMultiplier;
+
 		// 효과가 *실제로 일어났는가*를 세는 계수기 — 검증이 로그 문자열이 아니라 상태를 읽게 한다
 		// (게임 코드에 진단 로그를 영구히 남기지 않으면서도 「광역이 진짜 터졌나」를 증명할 수 있다).
 		public int PierceHits { get; private set; }
@@ -45,9 +48,11 @@ namespace WitchMendokusai
 			TargetingSystem targetingSystem,
 			ICombatant owner,
 			IReadOnlyList<ICombatant> enemies,
-			System.Func<Vector3, bool> isVisible = null)
+			System.Func<Vector3, bool> isVisible = null,
+			System.Func<float> towerDamageMultiplier = null)
 		{
 			visibilityTest = isVisible;
+			damageMultiplier = towerDamageMultiplier;
 			archetype = towerArchetype;
 			targeting = targetingSystem;
 			self = owner;
@@ -177,7 +182,7 @@ namespace WitchMendokusai
 
 			DamageInfo damageInfo = new DamageInfo
 			{
-				damage = archetype.Damage,
+				damage = Mathf.Max(1, Mathf.RoundToInt(archetype.Damage * (damageMultiplier != null ? damageMultiplier() : 1f))),
 				type = DamageType.Normal,
 				damageSource = self,
 				equipmentDataId = DamageInfo.NO_DATA_ID,

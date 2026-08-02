@@ -28,6 +28,10 @@ namespace WitchMendokusai.EditorTools
 		// 한 번에 수 분씩 에디터를 점유해, 정작 마지막에 오는 결말 검증이 하드 타임아웃에 잘려 나갔다.
 		// 검증하고 싶은 구간만 빨리 도는 루프가 있어야 그 구간이 실제로 검증된다(피드백 루프 우선).
 		private const string CONCLUSION_ONLY_PREF = "WM.TD.PlayVerify.ConclusionOnly";
+		// 배치까지만 보는 축약 모드. 전체 실행은 방어 55초 + 무방비 판 170초까지 밟아 6분이 넘는데,
+		// 「연구 인형을 지으면 배수가 오르는가」처럼 *배치 시점에 결판나는* 확인은 90초면 끝난다.
+		// 확인하려는 것보다 긴 루프를 도는 것이 작업이 오래 걸린 두 번째 원인(사용자 지적).
+		private const string PLACE_ONLY_PREF = "WM.TD.PlayVerify.PlaceOnly";
 		private const string TAG = "[TD-Verify]";
 		private const double SETTLE_SECONDS = 2.0;
 		private const double HARD_TIMEOUT = 420.0;
@@ -71,6 +75,7 @@ namespace WitchMendokusai.EditorTools
 		private static int firstContactWave;
 		private static double restartAt;
 		private static bool conclusionOnly;
+		private static bool placeOnly;
 		private static double defendedStart;
 		private static int defendedLastResource;
 		private static int killIncomeEvents;
@@ -90,6 +95,7 @@ namespace WitchMendokusai.EditorTools
 		public static void Arm()
 		{
 			EditorPrefs.SetBool(CONCLUSION_ONLY_PREF, false);
+			EditorPrefs.SetBool(PLACE_ONLY_PREF, false);
 			EditorPrefs.SetBool(ARM_PREF, true);
 			Debug.Log(TAG + " armed — Play 진입");
 			EditorApplication.EnterPlaymode();
@@ -99,9 +105,21 @@ namespace WitchMendokusai.EditorTools
 		[MenuItem("WM/TowerDefense/Arm Play-Verify (결말만)")]
 		public static void ArmConclusionOnly()
 		{
+			EditorPrefs.SetBool(PLACE_ONLY_PREF, false);
 			EditorPrefs.SetBool(CONCLUSION_ONLY_PREF, true);
 			EditorPrefs.SetBool(ARM_PREF, true);
 			Debug.Log(TAG + " armed (결말만) — Play 진입");
+			EditorApplication.EnterPlaymode();
+		}
+
+		/// <summary> 배치만 — 세우는 순간 결판나는 것(비용·배수·슬롯 매핑)을 90초 안에 본다. </summary>
+		[MenuItem("WM/TowerDefense/Arm Play-Verify (배치만)")]
+		public static void ArmPlaceOnly()
+		{
+			EditorPrefs.SetBool(CONCLUSION_ONLY_PREF, false);
+			EditorPrefs.SetBool(PLACE_ONLY_PREF, true);
+			EditorPrefs.SetBool(ARM_PREF, true);
+			Debug.Log(TAG + " armed (배치만) — Play 진입");
 			EditorApplication.EnterPlaymode();
 		}
 
@@ -112,6 +130,7 @@ namespace WitchMendokusai.EditorTools
 
 			EditorPrefs.SetBool(ARM_PREF, false);
 			conclusionOnly = EditorPrefs.GetBool(CONCLUSION_ONLY_PREF, false);
+			placeOnly = EditorPrefs.GetBool(PLACE_ONLY_PREF, false);
 			step = Step.WaitWorld;
 			playStart = EditorApplication.timeSinceStartup;
 			readyAt = -1.0;
@@ -251,6 +270,12 @@ namespace WitchMendokusai.EditorTools
 						return;
 					DumpPlacedUnits("최초 배치");
 					VerifyUiPointerGuard();
+					if (placeOnly)
+					{
+						Debug.Log(TAG + " PLACE-ONLY 배치 확인 끝 — 조기 종료");
+						Finish();
+						return;
+					}
 					step = Step.Restart;
 					return;
 
@@ -415,6 +440,18 @@ namespace WitchMendokusai.EditorTools
 			Debug.Log(TAG + " PLACE-VIA-SCREEN renderCamera=" + modeCamera.name + " pos=" + modeCamera.transform.position);
 
 			int before = match.Resource;
+
+			// ★ 연구 인형을 *먼저* 세운다 — 포탑을 먼저 사면 예산이 남지 않아 배치가 거절되고,
+			//   그러면 「연구 인형 효과」가 통째로 미검증으로 남는다(첫 시도에서 실제로 labs=0 이 나왔다).
+			float multiplierBefore = match.TowerDamageMultiplier;
+			List<Vector3> labSpots = FindPlaceableSpots(stageRoot, 1);
+			if (labSpots.Count > 0)
+			{
+				placement.SelectSlot(match.TowerArchetypeCount + 1);
+				placement.PlaceLabAt(WorldToScreen(modeCamera, stageRoot.TransformPoint(labSpots[0])));
+			}
+			Debug.Log(TAG + " LAB labs=" + match.LabCount
+				+ " damageMultiplier " + multiplierBefore.ToString("F2") + " → " + match.TowerDamageMultiplier.ToString("F2"));
 
 			// 방어인형 — 판이 매 매치 새로 생성되므로 고정 좌표는 암반 위일 수 있다(그러면 배치가 조용히
 			// 전부 거절돼 "방어 없는 판"을 방어 있는 판으로 착각한다). 코어 주변에서 *실제로 설 수 있는* 칸을 찾는다.

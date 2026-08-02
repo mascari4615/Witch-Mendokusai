@@ -216,6 +216,7 @@ namespace WitchMendokusai
 			bountyPaidEnemyIds.Clear();
 			enemyBountyById.Clear();
 			harvesterTransforms.Clear();
+			LabCount = 0;
 			occupiedCells.Clear(); // 재진입 — 지난 매치의 셀 점유가 새 매치로 새는 것 방지.
 
 			yield return SpawnCoreRoutine();
@@ -956,6 +957,15 @@ namespace WitchMendokusai
 		/// <summary> 이번 판의 암반 칸 수 — 0 이면 지형 없는 빈 판. </summary>
 		public int ObstacleCount => mapLayout != null ? mapLayout.ObstacleCells.Count : 0;
 
+		/// <summary> 세운 연구 인형 수 — 늘어날수록 모든 포탑이 강해진다. </summary>
+		public int LabCount { get; private set; }
+
+		/// <summary>
+		/// 지금의 포탑 피해 배수. 포탑이 매 발사 때 *읽어가므로* 나중에 세운 연구 인형이
+		/// 이미 서 있던 포탑에도 즉시 반영된다(세운 뒤에야 효과가 오면 강화가 아니라 벌칙이다).
+		/// </summary>
+		public float TowerDamageMultiplier => 1f + LabCount * (stage != null ? stage.LabDamageBonus : 0f);
+
 		/// <summary> 등록된 포탑 종류 수(0 이면 기존 단일 포탑). </summary>
 		public int TowerArchetypeCount => stage != null && stage.TowerArchetypes != null ? stage.TowerArchetypes.Length : 0;
 
@@ -1209,6 +1219,36 @@ namespace WitchMendokusai
 		}
 
 		/// <summary>
+		/// 연구 인형 배치 — 아무 빈 칸에나 선다(노드 결합 X). 지어진 순간부터 *모든* 포탑이 강해진다.
+		/// 자원을 지금 방어에 쓸지 다음 파도를 위해 강화에 쓸지 — 판 안의 새 선택이 여기서 생긴다.
+		/// </summary>
+		public bool TryPlaceLab(Vector3 worldPosition)
+		{
+			if (core == null || pool == null || timeManager == null || targeting == null)
+				return false;
+			if (stage.HarvesterUnit == null || stage.HarvesterUnit.Prefab == null)
+			{
+				Debug.LogError($"{nameof(TowerDefenseMatch)}: 연구 인형이 쓸 프리팹 미할당 — 배치 불가(자원 미차감).");
+				return false;
+			}
+
+			Vector3Int cellKey = ToCellKey(worldPosition);
+			if (occupiedCells.Contains(cellKey))
+				return false;
+			if (IsObstacleAt(worldPosition))
+				return false;
+
+			if (core.TrySpend(stage.LabCost) == false)
+				return false;
+
+			occupiedCells.Add(cellKey);
+			LabCount++;
+			StartCoroutine(SpawnDefensiveUnitRoutine(
+				stage.HarvesterUnit, null, worldPosition, isHarvester: false, incomeMultiplier: 1f, towerArchetype: null, isLab: true));
+			return true;
+		}
+
+		/// <summary>
 		/// worldPosition 반경 NodeCaptureRadius 내 가장 가까운 *미점유* 자원 노드를 찾는다.
 		/// 배치 UI 가 유효/무효 프리뷰를 보여줄 때도 이 메서드로 규칙 중복 없이 재사용(TryPlaceHarvester 와 동일 판정).
 		/// </summary>
@@ -1278,7 +1318,7 @@ namespace WitchMendokusai
 			return cell;
 		}
 
-		private IEnumerator SpawnDefensiveUnitRoutine(Unit unitData, TacticProgram tactic, Vector3 worldPosition, bool isHarvester, float incomeMultiplier = 1f, TowerDefenseTowerArchetype towerArchetype = null)
+		private IEnumerator SpawnDefensiveUnitRoutine(Unit unitData, TacticProgram tactic, Vector3 worldPosition, bool isHarvester, float incomeMultiplier = 1f, TowerDefenseTowerArchetype towerArchetype = null, bool isLab = false)
 		{
 			if (unitData == null || unitData.Prefab == null)
 			{
@@ -1314,7 +1354,9 @@ namespace WitchMendokusai
 			combatant.SetTeam(DEFENDER_TEAM, nextCombatantId++);
 
 			ApplyReadability(unitObject,
-				isHarvester ? stage.HarvesterTint : (towerArchetype != null ? towerArchetype.Tint : stage.TowerTint),
+				isLab ? stage.LabTint
+					: isHarvester ? stage.HarvesterTint
+					: (towerArchetype != null ? towerArchetype.Tint : stage.TowerTint),
 				isHarvester ? stage.HarvesterScale : stage.TowerScale);
 			unitGameObject.SetActive(true);
 
@@ -1334,14 +1376,14 @@ namespace WitchMendokusai
 			registeredCombatants.Add(combatant);
 
 			// 세워둔 포탑의 사거리를 옅게 늘 보여준다 — 「어디가 비었나」는 기존 커버리지가 보여야 알 수 있다.
-			if (isHarvester == false)
+			if (isHarvester == false && isLab == false)
 			{
 				if (towerArchetype != null)
 				{
 					TowerDefenseWeapon weapon = unitObject.GetComponent<TowerDefenseWeapon>();
 					if (weapon == null)
 						weapon = unitObject.gameObject.AddComponent<TowerDefenseWeapon>();
-					weapon.Configure(towerArchetype, targeting, combatant, waveEnemies, IsVisibleAt);
+					weapon.Configure(towerArchetype, targeting, combatant, waveEnemies, IsVisibleAt, () => TowerDamageMultiplier);
 				}
 
 				float towerRange = towerArchetype != null ? towerArchetype.Range : TowerRange();
@@ -1356,8 +1398,8 @@ namespace WitchMendokusai
 			}
 
 			AddVisionSource(worldPosition,
-				isHarvester
-					? stage.HarvesterVisionRadius
+				isLab ? stage.LabVisionRadius
+					: isHarvester ? stage.HarvesterVisionRadius
 					: (towerArchetype != null ? towerArchetype.VisionRadius : stage.CoreVisionRadius));
 
 			if (isHarvester)
