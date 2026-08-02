@@ -95,42 +95,23 @@ namespace WitchMendokusai
 			if (config.RockSiteCount < MIN_SITES_FOR_RIDGE || config.ObstacleDensity <= 0f || config.RidgeWidth <= 0f)
 				return obstacles;
 
-			Vector2[] sites = new Vector2[config.RockSiteCount];
-			for (int i = 0; i < sites.Length; i++)
-			{
-				sites[i] = new Vector2(
-					(float)random.NextDouble() * config.Width,
-					(float)random.NextDouble() * config.Length);
-			}
+			// ★ 지형의 정본을 *경계 없는 지형*으로 옮겼다(TASK-WM-194, 무한 맵 2/2).
+			//   예전에는 판 크기만큼 무작위 site 를 뿌려 만들었다 — 그러면 판이 커질 때마다 site 수를 손으로
+			//   맞춰야 하고, 무엇보다 **판 밖에는 지형이 없다**. 좌표에서 계산하는 지형으로 바꾸면 창(window)을
+			//   넓히거나 옮겨도 이미 있던 자리의 지형이 그대로 이어진다 — 무한으로 가는 유일한 길이다.
+			//   site 수는 이제 「구획 한 칸의 크기」로 환산된다(판 면적 ÷ site 수 의 제곱근).
+			int siteSpacing = Mathf.Max(2, Mathf.RoundToInt(Mathf.Sqrt(config.Width * (float)config.Length / config.RockSiteCount)));
+			Vector2Int centerCell = new Vector2Int(config.Width / 2, config.Length / 2);
+			TowerDefenseInfiniteTerrain terrain = new(
+				config.Seed, centerCell, siteSpacing, config.RidgeWidth, config.ObstacleDensity, config.CoreClearRadius);
 
 			for (int x = 0; x < config.Width; x++)
 			{
 				for (int z = 0; z < config.Length; z++)
 				{
-					Vector2 point = new Vector2(x + 0.5f, z + 0.5f);
-
-					float nearest = float.MaxValue;
-					float secondNearest = float.MaxValue;
-					for (int i = 0; i < sites.Length; i++)
-					{
-						float distance = Vector2.Distance(point, sites[i]);
-						if (distance < nearest)
-						{
-							secondNearest = nearest;
-							nearest = distance;
-						}
-						else if (distance < secondNearest)
-						{
-							secondNearest = distance;
-						}
-					}
-
-					// 두 최근접 site 로부터 거의 등거리 = 구획 경계 = 능선.
-					if (secondNearest - nearest > config.RidgeWidth)
-						continue;
-
-					if (random.NextDouble() <= config.ObstacleDensity)
-						obstacles.Add(new Vector2Int(x, z));
+					Vector2Int cell = new Vector2Int(x, z);
+					if (terrain.IsBlocked(cell))
+						obstacles.Add(cell);
 				}
 			}
 
