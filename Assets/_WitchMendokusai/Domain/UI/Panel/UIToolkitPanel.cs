@@ -46,6 +46,16 @@ namespace WitchMendokusai
 
 			Root = new VisualElement { name = GetType().Name };
 			Root.style.position = Position.Absolute;
+
+			// ★ 화면 층 패널은 *화면을 채운다*(사용자 지시: "전체화면으로 안보이고 좁은 화면으로 필요한
+			//   공간만 쓰는데 좀 고쳐주세요"). 절대 배치만 걸고 네 변을 안 잡으면 요소가 *내용 크기*로
+			//   줄어든다 — 안에서 flexGrow 를 아무리 줘도 부모가 작으면 늘어날 자리가 없다.
+			//   네 변을 0 으로 못 박아야 안쪽 레이아웃(좌측 목록 + 우측 상세)이 의도대로 펼쳐진다.
+			Root.style.left = 0;
+			Root.style.right = 0;
+			Root.style.top = 0;
+			Root.style.bottom = 0;
+
 			Root.style.display = DisplayStyle.None;
 			uiRoot.ScreenLayer.Add(Root);
 
