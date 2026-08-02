@@ -274,6 +274,7 @@ namespace WitchMendokusai.EditorTools
 					DumpPlacedUnits("최초 배치");
 					VerifyUiPointerGuard();
 					VerifySell();
+			VerifyWall();
 					if (placeOnly)
 					{
 						Debug.Log(TAG + " PLACE-ONLY 배치 확인 끝 — 조기 종료");
@@ -1033,6 +1034,49 @@ namespace WitchMendokusai.EditorTools
 					+ " alive=" + combatant.IsAlive);
 				index++;
 			}
+		}
+
+		/// <summary>
+		/// 벽 — 세워지는가, 그리고 *길을 완전히 막는 자리는 거절되는가*.
+		/// 후자가 핵심 불변식이다(막히면 마수가 굳어 웨이브가 영영 안 끝난다).
+		/// 코어를 빙 둘러 벽으로 감싸보고 마지막 한 칸이 거절되는지로 확인한다.
+		/// </summary>
+		private static void VerifyWall()
+		{
+			Transform stageRoot = FindStageRoot();
+			if (match == null || stageRoot == null)
+				return;
+
+			// ① 평범한 자리에 한 장 — 서야 한다.
+			int placed = 0;
+			foreach (Vector3 local in FindPlaceableSpots(stageRoot, 3))
+			{
+				if (match.TryPlaceWall(stageRoot.TransformPoint(local)))
+					placed++;
+			}
+
+			// ② 코어를 완전히 감싸본다 — 마지막에 반드시 막혀야(거절돼야) 한다.
+			int accepted = 0;
+			int rejected = 0;
+			for (int offsetX = -1; offsetX <= 1; offsetX++)
+			{
+				for (int offsetY = -1; offsetY <= 1; offsetY++)
+				{
+					if (offsetX == 0 && offsetY == 0)
+						continue;
+					Vector3 local = new Vector3(offsetX + 0.5f, 0f, offsetY + 0.5f);
+					if (match.TryPlaceWall(stageRoot.TransformPoint(local)))
+						accepted++;
+					else
+						rejected++;
+				}
+			}
+
+			string verdict = TAG + " WALL placed=" + placed + " ringAccepted=" + accepted + " ringRejected=" + rejected;
+			if (placed > 0 && rejected > 0)
+				Debug.Log(verdict + " → 벽은 서고, 길을 끊는 자리는 거절된다 ✔");
+			else
+				Debug.LogError(verdict + " → 벽이 안 서거나(placed=0) 코어를 완전히 봉인할 수 있다(rejected=0).");
 		}
 
 		/// <summary> 판매 — 세운 것을 팔면 자원이 돌아오고 자리가 비는가(정착 후에 확인). </summary>

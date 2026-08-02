@@ -52,9 +52,11 @@ namespace WitchMendokusai
 			{
 				if (SelectedSlot < TowerSlotCount)
 					return TowerDefensePlaceableKind.Tower;
-				return SelectedSlot == TowerSlotCount
-					? TowerDefensePlaceableKind.Harvester
-					: TowerDefensePlaceableKind.Lab;
+				if (SelectedSlot == TowerSlotCount)
+					return TowerDefensePlaceableKind.Harvester;
+				return SelectedSlot == TowerSlotCount + 1
+					? TowerDefensePlaceableKind.Lab
+					: TowerDefensePlaceableKind.Wall;
 			}
 		}
 
@@ -97,7 +99,7 @@ namespace WitchMendokusai
 		public void SelectSlot(int slot)
 		{
 			// 칸 = 포탑들 + 채집 + 연구. 범위 밖은 없는 칸을 누른 것.
-			if (slot < 0 || slot > TowerSlotCount + 1)
+			if (slot < 0 || slot > TowerSlotCount + 2)
 				return;
 			if (SelectedSlot == slot)
 				return;
@@ -144,6 +146,9 @@ namespace WitchMendokusai
 					break;
 				case TowerDefensePlaceableKind.Lab:
 					PlaceLabAt(screenPointerPosition);
+					break;
+				case TowerDefensePlaceableKind.Wall:
+					PlaceWallAt(screenPointerPosition);
 					break;
 				default:
 					PlaceTowerAt(screenPointerPosition);
@@ -213,6 +218,12 @@ namespace WitchMendokusai
 
 			bool isHarvester = SelectedKind == TowerDefensePlaceableKind.Harvester;
 			bool isLab = SelectedKind == TowerDefensePlaceableKind.Lab;
+			if (SelectedKind == TowerDefensePlaceableKind.Wall)
+			{
+				if (previewRing != null)
+					previewRing.SetVisible(false);
+				return;
+			}
 			float radius = isLab ? stage.LabVisionRadius
 				: isHarvester ? stage.NodeCaptureRadius
 				: match.TowerRange(SelectedTowerIndex);
@@ -252,6 +263,18 @@ namespace WitchMendokusai
 
 			if (match.TrySell(snappedWorldPosition, stage.SellRefundRatio) == false)
 				Debug.Log($"{nameof(TowerDefensePlacement)}: 판매 거절 — 빈 칸이거나 코어.");
+		}
+
+		/// <summary> 벽 설치 — 마수의 길을 휘게 한다. 길을 완전히 막는 자리는 매치가 거절한다. </summary>
+		public void PlaceWallAt(Vector2 screenPointerPosition)
+		{
+			if (match == null)
+				return;
+
+			if (TryGetSnappedGroundPosition(screenPointerPosition, out Vector3 snappedWorldPosition) == false)
+				return;
+
+			match.TryPlaceWall(snappedWorldPosition);
 		}
 
 		/// <summary> 연구 인형 설치 — 빈 칸이면 어디든. 지어지는 순간 모든 포탑이 강해진다. </summary>

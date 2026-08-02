@@ -59,6 +59,11 @@ namespace WitchMendokusai
 		private TowerDefenseFogView fogView;
 		private readonly List<TowerDefenseVision.Source> visionSources = new();
 
+		// 내가 세운 벽. 암반(생성된 지형)과 합쳐 「통행 불가」 하나로 본다 —
+		// 길찾기·표시·배치가 각자 다른 기준을 쓰면 화면과 규칙이 갈라진다.
+		private readonly HashSet<Vector2Int> wallCells = new();
+		private Transform laneRoot;
+
 		private TowerDefenseMapLayout mapLayout;
 		private TowerDefenseFlowField flowField;
 		private ITacticNavigator flowNavigator;
@@ -284,8 +289,9 @@ namespace WitchMendokusai
 			}
 
 			// 길 안내판 — 암반이 생긴 순간 직선 이동은 벽에 박힌다(웨이브가 영원히 안 끝나는 그 사고).
+			wallCells.Clear();
 			flowField = new TowerDefenseFlowField(
-				mapLayout.Width, mapLayout.Length, mapLayout.CoreCell, mapLayout.IsBlocked);
+				mapLayout.Width, mapLayout.Length, mapLayout.CoreCell, IsPathBlocked);
 			flowNavigator = new TowerDefenseFlowNavigator(
 				mapLayout, flowField, stageRoot, stage.GroundCellSize * 2f);
 
@@ -294,6 +300,103 @@ namespace WitchMendokusai
 
 			Debug.Log($"{nameof(TowerDefenseMatch)}: 판 생성 seed={mapLayout.Seed} "
 				+ $"암반={mapLayout.ObstacleCells.Count}칸 노드={mapLayout.ResourceNodes.Count} 스폰={mapLayout.EnemySpawnPoints.Count}");
+		}
+
+		/// <summary> 통행 불가 판정 — 생성된 암반 + 내가 세운 벽. 길찾기·표시가 같은 함수를 본다. </summary>
+		private bool IsPathBlocked(Vector2Int cell)
+		{
+			return mapLayout.IsBlocked(cell) || wallCells.Contains(cell);
+		}
+
+		/// <summary>
+		/// 벽 세우기 — 마수의 길을 *내가 그린다*. 장르적으로 여기가 가장 큰 전환점이다:
+		/// 「어디에 지을까」가 「길을 어떻게 낼까」로 승격된다.
+		///
+		/// ★ 단 하나의 불변식: **길을 완전히 막을 수는 없다.** 모든 출현 지점에서 코어까지 가는 길이
+		///   남아야 한다. 안 그러면 마수가 벽 앞에 굳고 웨이브가 영원히 안 끝난다(이미 겪은 사고).
+		///   그래서 *먼저 세워보고 길이 남는지 확인한 뒤* 확정한다 — 안 되면 원상복구하고 거절.
+		/// </summary>
+		public bool TryPlaceWall(Vector3 worldPosition)
+		{
+			if (core == null || mapLayout == null || stageRoot == null)
+				return false;
+
+			Vector3Int cellKey = ToCellKey(worldPosition);
+			if (occupiedCells.Contains(cellKey))
+				return false;
+
+			Vector2Int cell = mapLayout.WorldToCell(stageRoot.InverseTransformPoint(worldPosition));
+			if (mapLayout.IsInside(cell) == false || IsPathBlocked(cell))
+				return false;
+
+			wallCells.Add(cell);
+			if (RebuildPathing() == false)
+			{
+				wallCells.Remove(cell); // 길이 끊긴다 — 없던 일로.
+				RebuildPathing();
+				Debug.Log($"{nameof(TowerDefenseMatch)}: 벽 거절 — 여길 막으면 마수가 코어까지 갈 길이 없다.");
+				return false;
+			}
+
+			if (core.TrySpend(stage.WallCost) == false)
+			{
+				wallCells.Remove(cell);
+				RebuildPathing();
+				return false;
+			}
+
+			occupiedCells.Add(cellKey);
+			BuildWallObject(cell);
+			return true;
+		}
+
+		/// <summary>
+		/// 길 다시 계산 + 표시 갱신. 모든 출현 지점에서 코어까지 갈 수 있으면 true.
+		/// 흐름장이 이미 있어 재계산이 싸다 — 벽을 세울 때마다 전부 다시 그려도 부담이 없다.
+		/// </summary>
+		private bool RebuildPathing()
+		{
+			flowField = new TowerDefenseFlowField(
+				mapLayout.Width, mapLayout.Length, mapLayout.CoreCell, IsPathBlocked);
+			flowNavigator = new TowerDefenseFlowNavigator(
+				mapLayout, flowField, stageRoot, stage.GroundCellSize * 2f);
+
+			foreach (Vector3 spawnLocal in activeSpawnPoints)
+			{
+				if (flowField.IsReachable(mapLayout.WorldToCell(spawnLocal)) == false)
+					return false;
+			}
+
+			// 이미 걷고 있는 마수도 새 길을 따라야 한다 — 안 그러면 벽 안쪽에 갇힌다.
+			foreach (TacticDriver driver in drivers)
+			{
+				if (driver != null)
+					driver.Navigator = flowNavigator;
+			}
+
+			BuildPathLanes();
+			return true;
+		}
+
+		private void BuildWallObject(Vector2Int cell)
+		{
+			float cellSize = mapLayout.CellSize;
+			GameObject wall = GameObject.CreatePrimitive(PrimitiveType.Cube);
+			wall.name = "Wall";
+			wall.transform.SetParent(stageRoot, false);
+			wall.transform.localPosition = mapLayout.CellToWorld(cell) + new Vector3(0f, cellSize * 0.35f, 0f);
+			wall.transform.localScale = new Vector3(cellSize * 0.94f, cellSize * 0.7f, cellSize * 0.94f);
+
+			Renderer wallRenderer = wall.GetComponent<Renderer>();
+			if (wallRenderer == null)
+				return;
+
+			Color wallColor = stage.WallTint;
+			Material wallMaterial = new Material(wallRenderer.sharedMaterial);
+			wallMaterial.color = wallColor;
+			if (wallMaterial.HasProperty("_BaseColor"))
+				wallMaterial.SetColor("_BaseColor", wallColor);
+			wallRenderer.sharedMaterial = wallMaterial;
 		}
 
 		/// <summary>
@@ -307,6 +410,12 @@ namespace WitchMendokusai
 		{
 			if (mapLayout == null || flowField == null)
 				return;
+
+			// 벽을 세울 때마다 다시 그리므로 지난 표시를 먼저 치운다(안 치우면 옛 길이 겹쳐 남는다).
+			if (laneRoot != null)
+				Destroy(laneRoot.gameObject);
+			laneRoot = new GameObject("PathLanes").transform;
+			laneRoot.SetParent(stageRoot, false);
 
 			Dictionary<Vector2Int, int> laneWeight = new();
 			foreach (Vector3 spawnLocal in activeSpawnPoints)
@@ -331,7 +440,7 @@ namespace WitchMendokusai
 				GameObject lane = GameObject.CreatePrimitive(PrimitiveType.Quad);
 				lane.name = "PathLane";
 				Destroy(lane.GetComponent<Collider>()); // 표시용 — 배치 레이캐스트를 가로채면 안 된다.
-				lane.transform.SetParent(stageRoot, false);
+				lane.transform.SetParent(laneRoot, false);
 				lane.transform.localPosition = mapLayout.CellToWorld(cell) + new Vector3(0f, 0.03f, 0f);
 				lane.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
 				lane.transform.localScale = Vector3.one * cellSize * 0.92f;

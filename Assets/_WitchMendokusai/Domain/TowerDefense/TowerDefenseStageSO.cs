@@ -112,6 +112,13 @@ namespace WitchMendokusai
 		[field: Tooltip("휠 **한 칸당** 높이 변화량. 플랫폼별 raw 델타 차이는 리그가 흡수한다.")]
 		[field: SerializeField, Min(0.1f)] public float CameraZoomSpeed { get; private set; } = 6f;
 
+		[field: Header("벽 — 길을 내가 그린다")]
+		[field: Tooltip("벽 1칸 비용. 싸야 「길을 그린다」가 성립하고, 공짜면 판을 통째로 미로로 만들어 버린다.")]
+		[field: SerializeField, Min(0)] public int WallCost { get; private set; } = 12;
+
+		[field: Tooltip("벽 색 — 생성된 암반과 구분돼야 「내가 세운 것」이 읽힌다.")]
+		[field: SerializeField] public Color WallTint { get; private set; } = new Color(0.72f, 0.68f, 0.55f, 1f);
+
 		[field: Header("유출 — 새면 잃는다")]
 		[field: Tooltip("마수가 코어에서 이만큼 안으로 들어오면 「샜다」로 본다(칸). 코어를 때리게 두지 않는다.")]
 		[field: SerializeField, Min(0.5f)] public float LeakRadius { get; private set; } = 1.6f;
