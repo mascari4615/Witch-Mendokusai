@@ -26,6 +26,15 @@ namespace WitchMendokusai
 		/// <summary> 전기를 못 받아 멈춘 건물 — 서 있기만 하고 아무 일도 안 한다. </summary>
 		public bool Unpowered { get; set; }
 
+		/// <summary>
+		/// 이 건물의 「준비됨」 비율(0~1) — 화면의 작은 바가 그린다. 패시브는 늘 1.
+		/// 매치가 매 틱 채워 넣는다(화면이 유닛에게 직접 캐물으면 표시와 규칙이 두 경로로 갈라진다).
+		/// </summary>
+		public float ReadyRatio { get; set; } = 1f;
+
+		/// <summary> 지금 실제로 일하고 있나 — 전기가 끊겼거나 보급이 끊겼으면 false(바가 회색이 된다). </summary>
+		public bool Working { get; set; } = true;
+
 		public TowerDefenseDollLabel(Transform anchor, string name, Color tint)
 		{
 			Anchor = anchor;

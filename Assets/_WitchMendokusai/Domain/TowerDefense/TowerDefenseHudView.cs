@@ -42,6 +42,7 @@ namespace WitchMendokusai
 		private Button pullButton;
 		private Button pauseButton;
 		private Button rangeDebugButton;
+		private Button uiScaleButton;
 		private Button speedButton;
 		private readonly VisualElement legendPanel;
 		// 범례 줄이 실제로 들어가는 곳(래퍼는 접기 버튼까지 감싼다).
@@ -52,6 +53,8 @@ namespace WitchMendokusai
 		private readonly System.Collections.Generic.List<Label> worldLabels = new();
 		// 인형 이름표 — 노드 배수표와 같은 방식(월드→화면 투영)이지만 대상이 다르므로 목록을 나눈다.
 		private readonly System.Collections.Generic.List<Label> dollLabelViews = new();
+		// 건물 머리 위 작은 바 — 이름표와 같은 좌표계라 같은 목록으로 관리한다(따로 두면 어긋난다).
+		private readonly System.Collections.Generic.List<VisualElement> dollBarViews = new();
 		// 웨이브 사이 드래프트 — 카드가 걸리면 화면 한가운데를 막는다(고르기 전엔 아무것도 못 한다).
 		private VisualElement draftCardRow;
 		private Label draftTitleLabel;
@@ -104,6 +107,9 @@ namespace WitchMendokusai
 
 		/// <summary> 코어를 고른 채 「연구」를 눌렀다. </summary>
 		public event System.Action ResearchRequested = delegate { };
+
+		/// <summary> UI 배율을 한 단계 돌린다. </summary>
+		public event System.Action UiScaleCycleRequested = delegate { };
 
 		public TowerDefenseHudView(UIRoot uiRoot)
 		{
@@ -385,6 +391,10 @@ namespace WitchMendokusai
 			wrapper.style.flexDirection = FlexDirection.Row;
 
 			// 디버그 — 세워둔 것 전부의 사거리를 한 번에. 상시 표시는 껐지만 「전체를 보고 싶은 순간」은 있다.
+			uiScaleButton = MakeActionButton("UI ×1", fontSize: 13, () => UiScaleCycleRequested());
+			uiScaleButton.style.marginRight = 8;
+			wrapper.Add(uiScaleButton);
+
 			rangeDebugButton = MakeActionButton("사거리 전체", fontSize: 13, () => ToggleAllRangesRequested());
 			rangeDebugButton.style.marginRight = 8;
 			wrapper.Add(rangeDebugButton);
@@ -547,6 +557,59 @@ namespace WitchMendokusai
 			return wrapper;
 		}
 
+
+
+		// ── UI 배율 ───────────────────────────────────────────────────────────────
+		// ★ 왜 필요한가 (사용자 지시: "UI 배율 설정할 수 있으면 좋겠음"): 화면 해상도에 따라 글자가
+		//   지나치게 작거나 커진다. 배율은 취향이 아니라 *읽을 수 있느냐*의 문제다.
+		// ★ 왜 개척 것만인가 (사용자 지시: "당장은 다른 UI 모두 건들 수 없으니 그건 TODO"): 본편 UI 전체는
+		//   패널 설정(PanelSettings) 층에서 한 번에 걸어야 하고 그건 화면 전부를 다시 봐야 하는 일이다.
+		//   여기서는 개척 HUD 조각들만 각자 *자기가 붙은 모서리*를 기준으로 키운다 —
+		//   기준점을 안 맞추면 키우는 순간 화면 밖으로 밀려난다.
+		// TODO(WM 전역): 본편 UI 배율은 UIRoot 의 PanelSettings.scale 로 올려야 한다(별도 작업).
+		private static readonly float[] UiScaleSteps = { 0.85f, 1f, 1.2f, 1.45f };
+		private int uiScaleStep = 1;
+
+		/// <summary> 지금 배율(화면 버튼이 보여준다). </summary>
+		public float UiScale => UiScaleSteps[Mathf.Clamp(uiScaleStep, 0, UiScaleSteps.Length - 1)];
+
+		public void CycleUiScale()
+		{
+			uiScaleStep = (uiScaleStep + 1) % UiScaleSteps.Length;
+			ApplyUiScale();
+		}
+
+		private void ApplyUiScale()
+		{
+			float scale = UiScale;
+
+			foreach (VisualElement child in container.Children())
+			{
+				// 커서를 따라다니는 것(툴팁·월드 이름표)은 좌표를 직접 계산하므로 배율에서 뺀다 —
+				// 키우면 가리키는 자리가 어긋난다.
+				if (child == unitTooltip || child == worldLabelLayer)
+					continue;
+
+				child.style.transformOrigin = new StyleTransformOrigin(OriginFor(child.name));
+				child.style.scale = new StyleScale(new Scale(new Vector2(scale, scale)));
+			}
+
+			if (uiScaleButton != null)
+				uiScaleButton.text = "UI ×" + scale.ToString("0.##");
+		}
+
+		// 붙은 모서리를 기준점으로 — 안 맞추면 키우는 순간 화면 밖으로 밀려난다.
+		private static TransformOrigin OriginFor(string panelName)
+		{
+			return panelName switch
+			{
+				"ProgressPanel" => new TransformOrigin(Length.Percent(100f), Length.Percent(0f)),
+				"LegendWrapper" => new TransformOrigin(Length.Percent(0f), Length.Percent(100f)),
+				"SelectionPanel" => new TransformOrigin(Length.Percent(0f), Length.Percent(100f)),
+				"TowerDefenseSelectionBar" => new TransformOrigin(Length.Percent(50f), Length.Percent(100f)),
+				_ => new TransformOrigin(Length.Percent(50f), Length.Percent(0f)),
+			};
+		}
 
 		/// <summary>
 		/// 고른 건물 패널 — 좌하단. 「이미 서 있는 것에 하는 일」이 여기 모인다(지금은 코어의 연구).
@@ -1306,14 +1369,20 @@ namespace WitchMendokusai
 				label.pickingMode = PickingMode.Ignore;
 				worldLabelLayer.Add(label);
 				dollLabelViews.Add(label);
+
+				VisualElement bar = TowerDefenseProgressBar.Create();
+				worldLabelLayer.Add(bar);
+				dollBarViews.Add(bar);
 			}
 
 			for (int index = 0; index < dollLabelViews.Count; index++)
 			{
 				Label label = dollLabelViews[index];
+				VisualElement bar = dollBarViews[index];
 				if (index >= dolls.Count || camera == null)
 				{
 					label.style.display = DisplayStyle.None;
+					bar.style.display = DisplayStyle.None;
 					continue;
 				}
 
@@ -1322,6 +1391,7 @@ namespace WitchMendokusai
 				if (screenPosition.z <= 0f || match.IsExploredAt(doll.Anchor.position) == false)
 				{
 					label.style.display = DisplayStyle.None;
+					bar.style.display = DisplayStyle.None;
 					continue;
 				}
 
@@ -1331,6 +1401,11 @@ namespace WitchMendokusai
 				label.style.left = screenPosition.x - 40f;
 				label.style.top = Screen.height - screenPosition.y + 12f;
 				label.style.width = 80;
+
+				bar.style.display = DisplayStyle.Flex;
+				bar.style.left = screenPosition.x - TowerDefenseProgressBar.WIDTH * 0.5f;
+				bar.style.top = Screen.height - screenPosition.y + 4f;
+				TowerDefenseProgressBar.SetRatio(bar, doll.ReadyRatio, doll.Working);
 			}
 		}
 

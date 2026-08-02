@@ -1116,6 +1116,7 @@ namespace WitchMendokusai
 			UnstickEnemies();     // 굳은 마수를 풀어준다 — 한 마리가 굳으면 웨이브가 영영 안 끝난다.
 			CullDestroyedNests(); // 부순 둥지의 출구를 닫는다 — 「버틴다」가 「밀어낸다」가 되는 자리.
 			RefreshPower();       // 전기를 못 받는 건물은 선다(도시 건설의 규칙 그대로).
+			RefreshBuildingProgress(); // 「무엇이 일하고 있나」를 머리 위 바에 채운다.
 			ApplyEnemyVisibility(); // 안 보이는 마수는 화면에서도 지운다(규칙과 그림이 같아야 한다).
 			RefreshSupply();        // 방어 건물이 부서지면 그 순간 사슬이 끊긴다.
 			PayKillBounties();    // 격파 즉시 보상 — 웨이브 정산만 있으면 교전 중엔 아무 보상도 안 온다.
@@ -1926,6 +1927,41 @@ namespace WitchMendokusai
 
 		/// <summary> 그 대상이 코어인가 — 화면이 「연구」 패널을 띄울지 정한다. </summary>
 		public bool IsCore(ArenaCombatant combatant) => combatant != null && combatant == coreCombatant;
+
+		/// <summary>
+		/// 건물마다 「지금 얼마나 찼나 / 일하고 있나」를 이름표에 채워 넣는다.
+		/// 화면이 유닛에게 직접 캐물으면 표시와 규칙이 두 경로로 갈라지므로, 규칙을 아는 쪽이 채운다.
+		/// </summary>
+		private void RefreshBuildingProgress()
+		{
+			foreach (TowerDefenseDollLabel label in dollLabels)
+			{
+				if (label.IsAlive == false)
+					continue;
+
+				bool powered = IsPowered(label.Anchor);
+				TowerDefenseWeapon weapon = label.Anchor.GetComponent<TowerDefenseWeapon>();
+				if (weapon != null)
+				{
+					label.ReadyRatio = weapon.ReadyRatio;
+					label.Working = powered;
+					continue;
+				}
+
+				if (harvesterTransforms.Contains(label.Anchor))
+				{
+					// 채집은 「다음 정산까지」가 곧 진행이다 — 시계가 돌면 들어온다.
+					label.ReadyRatio = core != null && stage.Rules.IncomeInterval > 0f
+						? 1f - core.NextIncomeIn / stage.Rules.IncomeInterval
+						: 1f;
+					label.Working = powered && label.Disconnected == false;
+					continue;
+				}
+
+				label.ReadyRatio = 1f; // 패시브 — 언제나 준비됨.
+				label.Working = powered;
+			}
+		}
 
 		/// <summary> 이 건물이 전기를 받고 있나 — 채집 수입이 이 값을 본다. </summary>
 		private bool IsPowered(Transform building)

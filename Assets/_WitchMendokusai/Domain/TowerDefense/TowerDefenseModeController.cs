@@ -237,6 +237,13 @@ namespace WitchMendokusai
 				hud?.HideDraft();
 		}
 
+		/// <summary> UI 배율 한 단계 — 그 클릭이 설치로 새지 않게 한 번 삼킨다. </summary>
+		private void CycleUiScale()
+		{
+			placement.SuppressNextClick();
+			hud?.CycleUiScale();
+		}
+
 		/// <summary> 코어에서 연구 — 그 클릭이 설치로 새지 않게 한 번 삼킨다. </summary>
 		private void DoResearch()
 		{
@@ -363,6 +370,7 @@ namespace WitchMendokusai
 					view.BoonChosen += ChooseBoon;
 					view.ToggleAllRangesRequested += ToggleAllRanges;
 					view.ResearchRequested += DoResearch;
+					view.UiScaleCycleRequested += CycleUiScale;
 					match.DraftOffered += ShowDraft;
 				}
 			}
@@ -385,6 +393,7 @@ namespace WitchMendokusai
 					hud.BoonChosen -= ChooseBoon;
 					hud.ToggleAllRangesRequested -= ToggleAllRanges;
 					hud.ResearchRequested -= DoResearch;
+					hud.UiScaleCycleRequested -= CycleUiScale;
 					match.DraftOffered -= ShowDraft;
 					hud.HideDraft();
 				}

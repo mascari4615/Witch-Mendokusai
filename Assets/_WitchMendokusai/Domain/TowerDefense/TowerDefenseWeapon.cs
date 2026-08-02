@@ -62,6 +62,20 @@ namespace WitchMendokusai
 		}
 
 		private float cooldownRemaining;
+
+		/// <summary>
+		/// 다음 발사까지 얼마나 찼나(0~1, 1 = 준비 완료) — 화면의 작은 바가 이 값을 그린다.
+		/// 쿨타임이 없는 것(패시브)은 언제나 1 이다: 「항상 준비됨」이 곧 그 건물의 진실이다.
+		/// </summary>
+		public float ReadyRatio
+		{
+			get
+			{
+				if (archetype == null || archetype.Cooldown <= 0f)
+					return 1f;
+				return Mathf.Clamp01(1f - cooldownRemaining / archetype.Cooldown);
+			}
+		}
 		private LineRenderer tracer;
 		private float tracerRemaining;
 
