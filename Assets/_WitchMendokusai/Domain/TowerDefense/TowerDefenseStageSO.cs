@@ -307,6 +307,12 @@ namespace WitchMendokusai
 			LivesBonus = 1f,
 			EssenceBonus = 6f,
 			WindfallResource = 70f,
+			RateBonus = 0.22f,
+			DiscountBonus = 0.15f,
+			ReachBonus = 0.2f,
+			PowerBonus = 3f,
+			SlowBonus = 0.12f,
+			RepairRatio = 0.35f,
 		};
 
 		[field: Header("영웅 인형 — 내가 뛰어가 메운다")]

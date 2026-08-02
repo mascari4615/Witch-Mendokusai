@@ -1463,7 +1463,7 @@ namespace WitchMendokusai
 				return;
 
 			// 어스름 웨이브면 모든 시야가 함께 좁아진다 — 「보이는 만큼만 쏜다」가 아프게 걸린다.
-			float visionScale = CurrentVisionScale();
+			float visionScale = CurrentVisionScale() * boons.VisionMultiplier;
 			if (Mathf.Approximately(visionScale, 1f))
 			{
 				vision.Recompute(visionSources);
@@ -1857,7 +1857,7 @@ namespace WitchMendokusai
 
 			powerSources.Clear();
 			powerSources.Add(new TowerDefensePower.Source(
-				coreCombatant.Position, stage.CorePowerRadius, stage.CorePowerCapacity));
+				coreCombatant.Position, stage.CorePowerRadius, stage.CorePowerCapacity + bonusPowerCapacity));
 			for (int index = generators.Count - 1; index >= 0; index--)
 			{
 				if (generators[index] == null)
@@ -1965,7 +1965,9 @@ namespace WitchMendokusai
 		}
 
 		/// <summary> 다음 연구 단계에 드는 정수 — 단계마다 오른다. </summary>
-		public int ResearchCost => stage != null ? Mathf.Max(1, stage.LabEssenceCost * (LabCount + 1)) : 0;
+		public int ResearchCost => stage != null
+			? Mathf.Max(1, Mathf.RoundToInt(stage.LabEssenceCost * (LabCount + 1) * boons.ResearchCostMultiplier))
+			: 0;
 
 		/// <summary> 지금 연구 단계 — 화면이 코어를 골랐을 때 보여준다. </summary>
 		public int ResearchLevel => LabCount;
@@ -2030,7 +2032,7 @@ namespace WitchMendokusai
 				if ((doll.Anchor.position - deathPosition).sqrMagnitude > weapon.Range * weapon.Range)
 					continue;
 
-				doll.Progress.AddExperience(stage.KillExperience);
+				doll.Progress.AddExperience(Mathf.RoundToInt(stage.KillExperience * boons.ExperienceMultiplier));
 			}
 		}
 
@@ -2047,7 +2049,7 @@ namespace WitchMendokusai
 				if (doll.Disconnected || doll.Unpowered)
 					continue; // 멈춘 채집은 배우지도 않는다.
 
-				doll.Progress.AddExperience(stage.HarvestExperience);
+				doll.Progress.AddExperience(Mathf.RoundToInt(stage.HarvestExperience * boons.ExperienceMultiplier));
 			}
 		}
 
@@ -2102,6 +2104,15 @@ namespace WitchMendokusai
 				case TowerDefenseBoonKind.Windfall:
 					core.AddResource(Mathf.RoundToInt(boon.Magnitude));
 					break;
+				case TowerDefenseBoonKind.PowerCapacity:
+					bonusPowerCapacity += Mathf.RoundToInt(boon.Magnitude);
+					break;
+				case TowerDefenseBoonKind.MaxLives:
+					core.AddLives(Mathf.RoundToInt(boon.Magnitude));
+					break;
+				case TowerDefenseBoonKind.CoreRepair:
+					RepairCore(boon.Magnitude);
+					break;
 				default:
 					break;
 			}
@@ -2148,6 +2159,24 @@ namespace WitchMendokusai
 					unit.UnitStat[UnitStatType.HP_CUR] += bonus;
 				}
 			}
+		}
+
+		// 카드로 늘린 전기 용량 — 코어가 대주는 양에 더해진다.
+		private int bonusPowerCapacity;
+
+		/// <summary> 코어를 최대 체력의 비율만큼 즉시 회복(카드). </summary>
+		private void RepairCore(float ratio)
+		{
+			if (coreCombatant == null || coreCombatant.UnitObject == null)
+				return;
+
+			UnitHealth health = coreCombatant.UnitObject.GetComponent<UnitHealth>();
+			if (health == null)
+				return;
+
+			int amount = Mathf.Max(1, Mathf.RoundToInt(coreCombatant.UnitObject.UnitStat[UnitStatType.HP_MAX] * ratio));
+			health.ReceiveHeal(amount);
+			PopWorldText("+" + amount, coreCombatant.Position, TextType.Heal);
 		}
 
 		/// <summary> 이 건물이 전기를 받고 있나 — 채집 수입이 이 값을 본다. </summary>
@@ -2278,7 +2307,7 @@ namespace WitchMendokusai
 					return 0f;
 
 				float derived = Mathf.Min(activeGroundWidth, activeGroundLength) * stage.SupplyReachRatio;
-				return Mathf.Max(stage.SupplyReach, derived);
+				return Mathf.Max(stage.SupplyReach, derived) * boons.SupplyReachMultiplier;
 			}
 		}
 
@@ -2526,6 +2555,9 @@ namespace WitchMendokusai
 		}
 
 		/// <summary> index 번 포탑의 건설 비용 — 종류가 없으면 스테이지 기본값. </summary>
+		/// <summary> 카드 할인이 걸린 실제 값 — 화면의 값과 실제 차감이 같은 곳을 읽는다. </summary>
+		public int Discounted(int cost) => Mathf.Max(1, Mathf.RoundToInt(cost * boons.CostMultiplier));
+
 		public int TowerCostAt(int index)
 		{
 			TowerDefenseTowerArchetype archetype = TowerArchetypeAt(index);
@@ -2764,7 +2796,7 @@ namespace WitchMendokusai
 					total += NodeIncomeMultiplierAt(index);
 			}
 
-			return total > 0f ? total : 1f;
+			return (total > 0f ? total : 1f) * boons.HarvestYieldMultiplier;
 		}
 
 		// 유출 지점은 코어만이 아니다 — 전초기지도 지켜야 할 곳이다(넓힌 만큼 늘어난다).
@@ -2998,7 +3030,7 @@ namespace WitchMendokusai
 				core.AddResource(bounty);
 				PopWorldText("+" + bounty, enemy.Position, TextType.Exp);
 				AwardKillExperience(enemy.Position);
-				AwardCoreExperience(stage.KillExperience); // 코어도 판이 잘 굴러가는 만큼 자란다.
+				AwardCoreExperience(Mathf.RoundToInt(stage.KillExperience * boons.EnemyRewardMultiplier)); // 코어도 판이 잘 굴러가는 만큼 자란다.
 
 				// 죽은 자리에 잔해 — 많이 죽인 곳이 저절로 늪이 되어 다음 무리가 느려진다.
 				TowerDefenseDebris.Spawn(stageRoot, enemy.Position, waveEnemies,

@@ -26,6 +26,20 @@ namespace WitchMendokusai
 			TowerDefenseBoonKind.Life,
 			TowerDefenseBoonKind.Essence,
 			TowerDefenseBoonKind.Windfall,
+			TowerDefenseBoonKind.EssenceRate,
+			TowerDefenseBoonKind.PowerCapacity,
+			TowerDefenseBoonKind.SupplyReach,
+			TowerDefenseBoonKind.Vision,
+			TowerDefenseBoonKind.BuildDiscount,
+			TowerDefenseBoonKind.Experience,
+			TowerDefenseBoonKind.ResearchDiscount,
+			TowerDefenseBoonKind.EnemySlow,
+			TowerDefenseBoonKind.MaxLives,
+			TowerDefenseBoonKind.HarvestYield,
+			TowerDefenseBoonKind.TrapPower,
+			TowerDefenseBoonKind.CoreRepair,
+			TowerDefenseBoonKind.NestDamage,
+			TowerDefenseBoonKind.EnemyReward,
 		};
 
 		/// <summary>
@@ -81,6 +95,62 @@ namespace WitchMendokusai
 				case TowerDefenseBoonKind.Essence:
 					return new TowerDefenseBoon(kind, rules.EssenceBonus,
 						"응결된 정수", "정수 +" + (int)rules.EssenceBonus);
+
+				case TowerDefenseBoonKind.EssenceRate:
+					return new TowerDefenseBoon(kind, rules.RateBonus,
+						"정수의 결", "정수 정산 +" + Percent(rules.RateBonus));
+
+				case TowerDefenseBoonKind.PowerCapacity:
+					return new TowerDefenseBoon(kind, rules.PowerBonus,
+						"여분의 불씨", "코어 전기 +" + (int)rules.PowerBonus);
+
+				case TowerDefenseBoonKind.SupplyReach:
+					return new TowerDefenseBoon(kind, rules.ReachBonus,
+						"길게 뻗은 손", "보급·건설 거리 +" + Percent(rules.ReachBonus));
+
+				case TowerDefenseBoonKind.Vision:
+					return new TowerDefenseBoon(kind, rules.ReachBonus,
+						"멀리 보는 눈", "모든 시야 +" + Percent(rules.ReachBonus));
+
+				case TowerDefenseBoonKind.BuildDiscount:
+					return new TowerDefenseBoon(kind, rules.DiscountBonus,
+						"손에 익은 일", "건설 비용 -" + Percent(rules.DiscountBonus));
+
+				case TowerDefenseBoonKind.Experience:
+					return new TowerDefenseBoon(kind, rules.RateBonus,
+						"빨리 배운다", "건물 경험치 +" + Percent(rules.RateBonus));
+
+				case TowerDefenseBoonKind.ResearchDiscount:
+					return new TowerDefenseBoon(kind, rules.DiscountBonus,
+						"앞선 설계", "연구 비용 -" + Percent(rules.DiscountBonus));
+
+				case TowerDefenseBoonKind.EnemySlow:
+					return new TowerDefenseBoon(kind, rules.SlowBonus,
+						"무거운 걸음", "앞으로 나오는 마수가 " + Percent(rules.SlowBonus) + " 느려진다");
+
+				case TowerDefenseBoonKind.MaxLives:
+					return new TowerDefenseBoon(kind, rules.LivesBonus,
+						"두꺼운 성벽", "최대 목숨 +" + (int)rules.LivesBonus + " (즉시 회복)");
+
+				case TowerDefenseBoonKind.HarvestYield:
+					return new TowerDefenseBoon(kind, rules.RateBonus,
+						"굵은 광맥", "채집 산출 +" + Percent(rules.RateBonus));
+
+				case TowerDefenseBoonKind.TrapPower:
+					return new TowerDefenseBoon(kind, rules.RateBonus,
+						"날 선 바닥", "함정 피해 +" + Percent(rules.RateBonus));
+
+				case TowerDefenseBoonKind.CoreRepair:
+					return new TowerDefenseBoon(kind, rules.RepairRatio,
+						"코어 수복", "코어 체력 " + Percent(rules.RepairRatio) + " 회복");
+
+				case TowerDefenseBoonKind.NestDamage:
+					return new TowerDefenseBoon(kind, rules.RateBonus,
+						"둥지 파쇄", "둥지에 주는 피해 +" + Percent(rules.RateBonus));
+
+				case TowerDefenseBoonKind.EnemyReward:
+					return new TowerDefenseBoon(kind, rules.RateBonus,
+						"값진 사냥", "마수를 잡을 때 코어 경험치 +" + Percent(rules.RateBonus));
 
 				default:
 					return new TowerDefenseBoon(TowerDefenseBoonKind.Windfall, rules.WindfallResource,
