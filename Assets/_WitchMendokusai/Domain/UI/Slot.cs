@@ -74,6 +74,17 @@ namespace WitchMendokusai
 			}
 		}
 
+		/// <summary>
+		/// 그림이 아직 없는 칸을 색으로 채운다 — 아트가 붙기 전에도 「무엇인가」가 구분돼야 한다.
+		/// 스프라이트가 생기면 SetIcon 이 덮으므로, 이 호출을 지우는 것만으로 그림 전환이 끝난다.
+		/// </summary>
+		public void SetTint(Color tint)
+		{
+			icon.style.backgroundColor = tint;
+			IsEmpty = false;
+			RemoveFromClassList(EMPTY_CLASS);
+		}
+
 		public void SetAmount(int amount)
 		{
 			amountLabel.text = amount > 1 ? amount.ToString() : string.Empty;

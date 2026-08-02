@@ -43,10 +43,10 @@ namespace WitchMendokusai
 		// (UI Toolkit 은 월드 공간 텍스트가 없고, 폰트 에셋을 새로 들이지 않기 위한 선택).
 		private readonly VisualElement worldLabelLayer;
 		private readonly System.Collections.Generic.List<Label> worldLabels = new();
-		private readonly VisualElement hotbarPanel;
+		// 공용 선택 바 — 건설 모드의 건물 바와 같은 물건(개척 전용 툴바를 따로 두지 않는다).
+		private readonly ModeSelectionBar selectionBar;
 		private readonly Button waveModeButton;
 		private readonly Button nextWaveButton;
-		private readonly System.Collections.Generic.List<VisualElement> hotbarSlots = new();
 
 		// 본편 UI 복원용 — 숨기기 전 값을 보관(무조건 되돌리면 원래 숨김 상태였던 경우를 깨뜨린다).
 		private DisplayStyle baseHudPreviousDisplay = DisplayStyle.Flex;
@@ -90,8 +90,9 @@ namespace WitchMendokusai
 				out waveModeButton, out nextWaveButton));
 			legendPanel = BuildLegendPanel();
 			container.Add(legendPanel);
-			hotbarPanel = BuildHotbar();
-			container.Add(hotbarPanel);
+			selectionBar = new ModeSelectionBar("TowerDefenseSelectionBar");
+			selectionBar.Selected += index => SlotClicked(index);
+			container.Add(selectionBar.Root);
 			container.Add(BuildHintBar(out hintLabel));
 			worldLabelLayer = new VisualElement { name = "WorldLabels" };
 			worldLabelLayer.style.position = Position.Absolute;
@@ -255,7 +256,8 @@ namespace WitchMendokusai
 			wrapper.style.position = Position.Absolute;
 			wrapper.style.left = 0;
 			wrapper.style.right = 0;
-			wrapper.style.bottom = 26;
+			// 선택 바(bottom 24)와 겹치면 글자가 칸 위에 얹혀 둘 다 안 읽힌다(라이브 스크린샷 실증).
+			wrapper.style.bottom = 104;
 			wrapper.style.alignItems = Align.Center;
 			wrapper.pickingMode = PickingMode.Ignore;
 
@@ -476,119 +478,41 @@ namespace WitchMendokusai
 		/// 조작이 게임 전체에서 하나로 통일되고, 설치 종류가 늘어도 슬롯만 늘리면 된다
 		/// (가챠로 방어 인형이 늘어나는 방향과 정합).
 		/// </summary>
-		private VisualElement BuildHotbar()
-		{
-			VisualElement wrapper = new VisualElement { name = "PlaceHotbar" };
-			wrapper.style.position = Position.Absolute;
-			wrapper.style.left = 0;
-			wrapper.style.right = 0;
-			wrapper.style.bottom = 64;
-			wrapper.style.flexDirection = FlexDirection.Row;
-			wrapper.style.justifyContent = Justify.Center;
-			wrapper.pickingMode = PickingMode.Ignore;
-			return wrapper;
-		}
 
-		// 슬롯 = 「숫자키  이름  비용」. 선택된 것만 테두리가 밝아진다.
+		/// <summary> 선택 표시 갱신 — 컨트롤러가 선택 변경 시 호출. </summary>
+		/// <summary> 고른 슬롯 표시 — 포탑 종류가 늘어도 이 함수는 그대로다(슬롯 = 선택의 단위). </summary>
+		/// <summary> 고를 수 있는 것들을 공용 바에 넘긴다 — 목록이 바뀌는 시점(진입·재시작)에만. </summary>
 		private void FillHotbar(TowerDefenseStageSO stage)
 		{
-			hotbarPanel.Clear();
-			hotbarSlots.Clear();
 			if (stage == null)
 				return;
 
-			// 포탑 종류가 정의돼 있으면 종류마다 칸 하나 — 채집은 항상 마지막 칸.
-			int slot = 1;
+			System.Collections.Generic.List<ModeSelectionBar.Entry> entries = new();
+
 			if (stage.TowerArchetypes != null && stage.TowerArchetypes.Length > 0)
 			{
 				foreach (TowerDefenseTowerArchetype tower in stage.TowerArchetypes)
 				{
 					if (tower == null)
 						continue;
-					hotbarPanel.Add(MakeHotbarSlot(slot.ToString(), tower.DisplayName, tower.Cost, tower.Tint, slot - 1,
-						TowerDefenseIcon.ForTower(tower)));
-					slot++;
+					entries.Add(new ModeSelectionBar.Entry(tower.DisplayName, tower.Cost, tower.Tint, tooltip: tower));
 				}
 			}
 			else
 			{
-				hotbarPanel.Add(MakeHotbarSlot("1", "포탑 인형", stage.TowerCost, stage.TowerTint, 0, TowerDefenseIcon.Kind.Dot));
-				slot++;
+				entries.Add(new ModeSelectionBar.Entry("포탑 인형", stage.TowerCost, stage.TowerTint));
 			}
-			hotbarPanel.Add(MakeHotbarSlot(slot.ToString(), "채집 인형", stage.HarvesterCost, stage.HarvesterTint, slot - 1,
-				TowerDefenseIcon.Kind.Leaf));
+
+			entries.Add(new ModeSelectionBar.Entry("채집 인형", stage.HarvesterCost, stage.HarvesterTint));
+			selectionBar.SetEntries(entries);
 		}
 
-		/// <summary>
-		/// 핫바 칸 — 숫자키로도, 눌러서도 고를 수 있다. 키보드만 되면 「보이는데 눌리지 않는」 칸이 되고,
-		/// 그건 화면이 거짓말하는 것과 같다(사용자 지시: UI 직접 클릭으로도 가능하면 좋겠음).
-		/// </summary>
-		private VisualElement MakeHotbarSlot(string key, string name, int cost, Color tint, int slotIndex, TowerDefenseIcon.Kind iconKind)
-		{
-			VisualElement slot = new VisualElement();
-			slot.RegisterCallback<PointerDownEvent>(_ => SlotClicked(slotIndex));
-			slot.style.flexDirection = FlexDirection.Row;
-			slot.style.alignItems = Align.Center;
-			slot.style.marginLeft = 5;
-			slot.style.marginRight = 5;
-			slot.style.paddingLeft = 14;
-			slot.style.paddingRight = 16;
-			slot.style.paddingTop = 11;
-			slot.style.paddingBottom = 11;
-			slot.style.backgroundColor = new Color(0.04f, 0.05f, 0.08f, 0.78f);
-			slot.style.borderTopLeftRadius = 5;
-			slot.style.borderTopRightRadius = 5;
-			slot.style.borderBottomLeftRadius = 5;
-			slot.style.borderBottomRightRadius = 5;
-			slot.style.borderLeftWidth = 2;
-			slot.style.borderRightWidth = 2;
-			slot.style.borderTopWidth = 2;
-			slot.style.borderBottomWidth = 2;
-			slot.pickingMode = PickingMode.Position;
-
-			VisualElement swatch = TowerDefenseIcon.Make(iconKind, tint, 26);
-			swatch.style.marginRight = 10;
-
-			Label keyLabel = new Label(key);
-			keyLabel.style.fontSize = 12;
-			keyLabel.style.color = new Color(0.6f, 0.66f, 0.75f, 1f);
-			keyLabel.style.marginRight = 6;
-			keyLabel.pickingMode = PickingMode.Ignore;
-
-			Label nameLabel = new Label(name);
-			nameLabel.style.fontSize = 14;
-			nameLabel.style.color = new Color(0.93f, 0.95f, 0.99f, 1f);
-			nameLabel.style.marginRight = 8;
-			nameLabel.pickingMode = PickingMode.Ignore;
-
-			Label costLabel = new Label(cost.ToString());
-			costLabel.style.fontSize = 14;
-			costLabel.style.color = new Color(1f, 0.86f, 0.35f, 1f);
-			costLabel.pickingMode = PickingMode.Ignore;
-
-			slot.Add(swatch);
-			slot.Add(keyLabel);
-			slot.Add(nameLabel);
-			slot.Add(costLabel);
-			hotbarSlots.Add(slot);
-			return slot;
-		}
-
-		/// <summary> 선택 표시 갱신 — 컨트롤러가 선택 변경 시 호출. </summary>
-		/// <summary> 고른 슬롯 표시 — 포탑 종류가 늘어도 이 함수는 그대로다(슬롯 = 선택의 단위). </summary>
+		/// <summary> 고른 칸 표시 — 공용 바가 그린다. </summary>
 		public void SetSelectedSlot(int selectedIndex)
 		{
-			for (int i = 0; i < hotbarSlots.Count; i++)
-			{
-				Color border = i == selectedIndex
-					? new Color(1f, 0.9f, 0.5f, 1f)
-					: new Color(1f, 1f, 1f, 0.12f);
-				hotbarSlots[i].style.borderLeftColor = border;
-				hotbarSlots[i].style.borderRightColor = border;
-				hotbarSlots[i].style.borderTopColor = border;
-				hotbarSlots[i].style.borderBottomColor = border;
-			}
+			selectionBar.SetSelected(selectedIndex);
 		}
+
 
 		public void Show(TowerDefenseStageSO stage)
 		{

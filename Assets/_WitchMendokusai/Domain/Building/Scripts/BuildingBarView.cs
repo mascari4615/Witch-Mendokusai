@@ -10,8 +10,9 @@ namespace WitchMendokusai
 	{
 		public const string USS_CLASS = "wm-building-bar";
 
-		private VisualElement container;
-		private readonly List<Slot> slots = new();
+		// ★ 개척과 *같은* 선택 바를 쓴다 — 모드마다 툴바를 새로 만들면 칸 하나 늘릴 때 여러 곳을 고쳐야 하고
+		//   생김새도 따로 논다(사용자 지적). 고르는 규칙은 모드마다 달라도 고르는 행위는 하나다.
+		private ModeSelectionBar selectionBar;
 		private readonly List<Building> cachedBuildings = new();
 		private int selectedIndex = -1;
 
@@ -31,18 +32,12 @@ namespace WitchMendokusai
 
 		private void Start()
 		{
-			container = new VisualElement { name = "BuildingBar" };
-			container.AddToClassList(USS_CLASS);
+			selectionBar = new ModeSelectionBar("BuildingBar");
+			selectionBar.Root.AddToClassList(USS_CLASS);
+			selectionBar.SetVisible(false);
+			selectionBar.Selected += OnSlotClick;
 
-			container.style.position = Position.Absolute;
-			container.style.bottom = 24;
-			container.style.left = 0;
-			container.style.right = 0;
-			container.style.flexDirection = FlexDirection.Row;
-			container.style.justifyContent = Justify.Center;
-			container.style.display = DisplayStyle.None;
-
-			uiRoot.HudLayer.Add(container);
+			uiRoot.HudLayer.Add(selectionBar.Root);
 
 			gameModeManager.OnModeChanged += OnGameModeChanged;
 			OnGameModeChanged(gameModeManager.CurrentMode);
@@ -53,14 +48,14 @@ namespace WitchMendokusai
 			if (gameModeManager != null)
 				gameModeManager.OnModeChanged -= OnGameModeChanged;
 
-			if (container != null)
-				container.RemoveFromHierarchy();
+			if (selectionBar != null)
+				selectionBar.Root.RemoveFromHierarchy();
 		}
 
 		private void OnGameModeChanged(GameMode mode)
 		{
 			bool isBuildMode = mode == GameMode.Build;
-			container.style.display = isBuildMode ? DisplayStyle.Flex : DisplayStyle.None;
+			selectionBar.SetVisible(isBuildMode);
 			if (isBuildMode)
 				Refresh();
 		}
@@ -70,36 +65,15 @@ namespace WitchMendokusai
 			cachedBuildings.Clear();
 			cachedBuildings.AddRange(soManager.DataSOs[typeof(Building)].Values.Cast<Building>());
 
-			BuildSlots(cachedBuildings.Count);
-
-			for (int i = 0; i < cachedBuildings.Count; i++)
+			List<ModeSelectionBar.Entry> entries = new();
+			foreach (Building building in cachedBuildings)
 			{
-				Building building = cachedBuildings[i];
-				slots[i].SetIcon(building.Sprite);
-				slots[i].SetAmount(0);
-				slots[i].SetSelected(i == selectedIndex);
-				slots[i].SetTooltipData(building);
-			}
-		}
-
-		private void BuildSlots(int count)
-		{
-			while (slots.Count > count)
-			{
-				Slot lastSlot = slots[^1];
-				container.Remove(lastSlot);
-				slots.RemoveAt(slots.Count - 1);
+				entries.Add(new ModeSelectionBar.Entry(
+					building.Name, 0, new Color(0.55f, 0.6f, 0.7f, 1f), building.Sprite, building));
 			}
 
-			while (slots.Count < count)
-			{
-				int slotIndex = slots.Count;
-				Slot newSlot = new();
-				newSlot.SetIndex(slotIndex);
-				newSlot.RegisterCallback<ClickEvent>(_ => OnSlotClick(slotIndex));
-				container.Add(newSlot);
-				slots.Add(newSlot);
-			}
+			selectionBar.SetEntries(entries);
+			selectionBar.SetSelected(selectedIndex);
 		}
 
 		private void OnSlotClick(int index)
@@ -109,9 +83,7 @@ namespace WitchMendokusai
 
 			selectedIndex = index;
 			buildManager.SelectBuilding(cachedBuildings[index]);
-
-			for (int i = 0; i < slots.Count; i++)
-				slots[i].SetSelected(i == selectedIndex);
+			selectionBar.SetSelected(selectedIndex);
 		}
 	}
 }
