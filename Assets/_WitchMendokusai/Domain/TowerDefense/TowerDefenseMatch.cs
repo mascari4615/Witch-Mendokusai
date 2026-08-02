@@ -2175,6 +2175,9 @@ namespace WitchMendokusai
 
 		private IEnumerator GrowWindowRoutine()
 		{
+			// ★ 확장은 판 전체를 다시 세우는 일이라 *반드시 잰다* — 여기서 프레임이 튀면 무한 맵은
+			//   「넓어질 때마다 게임이 멈추는」 것이 된다. 재두면 나중에 무거워져도 바로 안다.
+			float growStartedAt = Time.realtimeSinceStartup;
 			int newWidth = mapLayout.Width + stage.WindowGrowStep;
 			int newLength = mapLayout.Length + stage.WindowGrowStep;
 			Debug.Log($"{nameof(TowerDefenseMatch)}: 판이 자란다 — {mapLayout.Width} → {newWidth}칸 (내 것이 끝에서 {CellsToWindowEdge}칸).");
@@ -2206,7 +2209,9 @@ namespace WitchMendokusai
 			RebuildPathing();
 			RefreshVision();
 			windowGrowing = false;
-			Debug.Log($"{nameof(TowerDefenseMatch)}: 판 확장 끝 — 이제 {mapLayout.Width}칸.");
+			float grewInMs = (Time.realtimeSinceStartup - growStartedAt) * 1000f;
+			Debug.Log($"{nameof(TowerDefenseMatch)}: 판 확장 끝 — 이제 {mapLayout.Width}칸 "
+				+ $"(걸린 시간 {grewInMs:F0}ms, 암반 {mapLayout.ObstacleCells.Count}칸).");
 		}
 
 		/// <summary>

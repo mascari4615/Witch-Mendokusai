@@ -230,7 +230,7 @@ namespace WitchMendokusai
 		[field: SerializeField, Min(0)] public int WindowGrowMargin { get; private set; } = 24;
 
 		[field: Tooltip("한 번에 넓히는 칸 수. 크면 덜 자주 넓히지만 한 번의 재계산이 무거워진다.")]
-		[field: SerializeField, Min(4)] public int WindowGrowStep { get; private set; } = 60;
+		[field: SerializeField, Min(4)] public int WindowGrowStep { get; private set; } = 120;
 
 		[field: Header("건물 성장 — 자란 아이가 생긴다")]
 		[field: Tooltip("마수 하나를 사거리 안에서 잡을 때 포탑이 받는 경험치(0 = 성장 끔).")]
