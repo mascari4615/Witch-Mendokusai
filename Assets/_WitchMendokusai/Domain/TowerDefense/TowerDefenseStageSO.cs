@@ -225,6 +225,13 @@ namespace WitchMendokusai
 		[field: Tooltip("웨이브를 넘길 때마다 내 편이 최대 체력의 이 비율만큼 회복(0.25 = 25%). 1이면 완전 회복이라 소모전이 사라진다.")]
 		[field: SerializeField, Range(0f, 1f)] public float DefenderHealPerWave { get; private set; } = 0.25f;
 
+		[field: Header("무한 맵 — 창이 자란다")]
+		[field: Tooltip("내 건물이 창 가장자리에서 이 칸 안으로 들어오면 판을 넓힌다(0 = 안 넓힘 = 고정 판).")]
+		[field: SerializeField, Min(0)] public int WindowGrowMargin { get; private set; } = 24;
+
+		[field: Tooltip("한 번에 넓히는 칸 수. 크면 덜 자주 넓히지만 한 번의 재계산이 무거워진다.")]
+		[field: SerializeField, Min(4)] public int WindowGrowStep { get; private set; } = 60;
+
 		[field: Header("건물 성장 — 자란 아이가 생긴다")]
 		[field: Tooltip("마수 하나를 사거리 안에서 잡을 때 포탑이 받는 경험치(0 = 성장 끔).")]
 		[field: SerializeField, Min(0)] public int KillExperience { get; private set; } = 3;

@@ -108,6 +108,29 @@ namespace WitchMendokusai
 			return IsBlocked(WorldToCell(worldPosition));
 		}
 
+		/// <summary>
+		/// 그 자리가 *지금 열려 있는 창* 안인가.
+		///
+		/// ★ 왜 암반과 갈라야 하나 (무한 맵 1단계): 창 밖은 「막힌 것」으로 취급돼 왔다. 그래서 판 끝에
+		///   지으려 하면 화면이 「암반 위엔 못 짓는다」고 *거짓말*을 했다 — 거기엔 암반이 없다.
+		///   창이 자라려면 게임이 먼저 「여기가 창 끝이다」를 알아야 한다. 그 앎이 여기서 시작된다.
+		/// </summary>
+		public bool IsInsideWindow(Vector3 worldPosition)
+		{
+			return IsInside(WorldToCell(worldPosition));
+		}
+
+		/// <summary> 그 자리에서 창 가장자리까지 남은 칸 수 — 창을 언제 넓힐지 정하는 값. </summary>
+		public int CellsToWindowEdge(Vector3 worldPosition)
+		{
+			Vector2Int cell = WorldToCell(worldPosition);
+			int toLeft = cell.x;
+			int toRight = Width - 1 - cell.x;
+			int toBottom = cell.y;
+			int toTop = Length - 1 - cell.y;
+			return Mathf.Max(0, Mathf.Min(Mathf.Min(toLeft, toRight), Mathf.Min(toBottom, toTop)));
+		}
+
 		/// <summary> 셀 → 셀 중심 월드 좌표(원점 중심 XZ 평면, y=0). </summary>
 		public Vector3 CellToWorld(Vector2Int cell)
 		{

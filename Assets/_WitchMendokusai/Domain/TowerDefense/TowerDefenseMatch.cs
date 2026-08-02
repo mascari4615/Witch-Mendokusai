@@ -292,6 +292,7 @@ namespace WitchMendokusai
 			enemyMaxStopDistance = 0f;
 			nests.Clear();
 			nestsEverSpawned = false;
+			windowGrowing = false;
 			generators.Clear();
 			powerConsumerTransforms.Clear();
 			poweredConsumers.Clear();
@@ -1135,6 +1136,7 @@ namespace WitchMendokusai
 			CullDestroyedNests(); // 부순 둥지의 출구를 닫는다 — 「버틴다」가 「밀어낸다」가 되는 자리.
 			RefreshPower();       // 전기를 못 받는 건물은 선다(도시 건설의 규칙 그대로).
 			RefreshBuildingProgress(); // 「무엇이 일하고 있나」를 머리 위 바에 채운다.
+			TryGrowWindow();      // 내 것이 판 끝에 닿으면 판이 자란다(무한 맵).
 			ApplyEnemyVisibility(); // 안 보이는 마수는 화면에서도 지운다(규칙과 그림이 같아야 한다).
 			RefreshSupply();        // 방어 건물이 부서지면 그 순간 사슬이 끊긴다.
 			PayKillBounties();    // 격파 즉시 보상 — 웨이브 정산만 있으면 교전 중엔 아무 보상도 안 온다.
@@ -1900,6 +1902,8 @@ namespace WitchMendokusai
 			Vector3Int cellKey = ToCellKey(worldPosition);
 			if (occupiedCells.Contains(cellKey))
 				return Reject("여긴 이미 찼다", worldPosition);
+			if (IsInsideWindow(worldPosition) == false)
+				return Reject("판 끝이다 — 여기부터는 아직 열리지 않았다", worldPosition);
 			if (IsObstacleAt(worldPosition))
 				return Reject("암반 위엔 못 짓는다", worldPosition);
 			if (IsInBuildableRange(worldPosition) == false)
@@ -2137,6 +2141,97 @@ namespace WitchMendokusai
 
 			int index = powerConsumerTransforms.IndexOf(building);
 			return index < 0 || poweredConsumers.Contains(index);
+		}
+
+		/// <summary>
+		/// 내 것이 판 끝에 다가오면 판을 넓힌다 — *무한 맵의 실체*.
+		///
+		/// ★ 왜 「넓히기」만 하고 「옮기기」는 안 하나: 창의 원점을 옮기면 이미 저장된 좌표(점유 칸·벽·
+		///   전초기지·채집)가 전부 밀린다. 한 곳이라도 안 옮기면 조용히 어긋나는데, 그 병은 이 작업에서
+		///   이미 두 번 겪었다(좌표 키 drift / 반경 무음 잠김). 넓히기만 하면 **기존 좌표가 그대로 유효**하다.
+		/// ★ 지형은 다시 안 만든다 — 좌표에서 파생되므로 넓힌 자리의 지형은 원래부터 거기 있던 것과 같다.
+		///   그래서 넓혀도 이미 본 자리가 변하지 않는다(그게 「경계 없는 지형」을 먼저 만든 이유다).
+		/// ★ 다시 세우는 것은 창에 묶인 것들뿐: 격자(암반 목록) · 길찾기 · 안개 · 지면 · 바위.
+		/// </summary>
+		private void TryGrowWindow()
+		{
+			if (stage == null || stage.WindowGrowMargin <= 0 || mapLayout == null || windowGrowing)
+				return;
+			if (CellsToWindowEdge > stage.WindowGrowMargin)
+				return;
+
+			windowGrowing = true;
+			StartCoroutine(GrowWindowRoutine());
+		}
+
+		private bool windowGrowing;
+
+		private IEnumerator GrowWindowRoutine()
+		{
+			int newWidth = mapLayout.Width + stage.WindowGrowStep;
+			int newLength = mapLayout.Length + stage.WindowGrowStep;
+			Debug.Log($"{nameof(TowerDefenseMatch)}: 판이 자란다 — {mapLayout.Width} → {newWidth}칸 (내 것이 끝에서 {CellsToWindowEdge}칸).");
+
+			// ★ 원점을 유지한 채 +방향으로만 넓힌다 — 기존 좌표가 그대로 살아야 한다.
+			TowerDefenseMapParameters parameters = stage.MapParameters;
+			parameters.Seed = mapLayout.Seed;
+			parameters.Width = newWidth;
+			parameters.Length = newLength;
+			mapLayout = TowerDefenseMapGenerator.Generate(parameters);
+
+			activeGroundWidth = mapLayout.GroundWidth;
+			activeGroundLength = mapLayout.GroundLength;
+
+			yield return null;
+			if (core == null)
+				yield break;
+
+			// 창에 묶인 것들만 다시 세운다 — 지형 자체는 좌표에서 나오므로 이미 본 자리는 안 변한다.
+			vision = new TowerDefenseVision(mapLayout.Width, mapLayout.Length);
+			if (fogView != null)
+			{
+				Destroy(fogView.gameObject);
+				fogView = null;
+			}
+			fogView = TowerDefenseFogView.Create(
+				stageRoot, mapLayout.Width, mapLayout.Length, activeGroundWidth, activeGroundLength, 0.9f);
+
+			RebuildPathing();
+			RefreshVision();
+			windowGrowing = false;
+			Debug.Log($"{nameof(TowerDefenseMatch)}: 판 확장 끝 — 이제 {mapLayout.Width}칸.");
+		}
+
+		/// <summary>
+		/// 지금 열려 있는 창 안인가 — 창 밖은 「암반」이 아니라 「아직 안 열린 곳」이다(무한 맵 1단계).
+		/// 고정 판(생성 안 씀)에서는 경계가 없으므로 언제나 참.
+		/// </summary>
+		public bool IsInsideWindow(Vector3 worldPosition)
+		{
+			if (mapLayout == null || stageRoot == null)
+				return true;
+			return mapLayout.IsInsideWindow(stageRoot.InverseTransformPoint(worldPosition));
+		}
+
+		/// <summary> 내 것 중 가장 바깥이 창 가장자리에서 몇 칸 남았나 — 창을 넓힐 시점을 정하는 값. </summary>
+		public int CellsToWindowEdge
+		{
+			get
+			{
+				if (mapLayout == null || stageRoot == null)
+					return int.MaxValue;
+
+				int nearest = int.MaxValue;
+				foreach (Transform building in supplyTransforms)
+				{
+					if (building == null)
+						continue;
+					int distance = mapLayout.CellsToWindowEdge(stageRoot.InverseTransformPoint(building.position));
+					if (distance < nearest)
+						nearest = distance;
+				}
+				return nearest;
+			}
 		}
 
 		/// <summary>
@@ -2670,6 +2765,8 @@ namespace WitchMendokusai
 			Vector3Int cellKey = ToCellKey(worldPosition);
 			if (occupiedCells.Contains(cellKey))
 				return Reject("여긴 이미 찼다", worldPosition);
+			if (IsInsideWindow(worldPosition) == false)
+				return Reject("판 끝이다 — 여기부터는 아직 열리지 않았다", worldPosition);
 			if (IsObstacleAt(worldPosition))
 				return Reject("암반 위엔 못 짓는다", worldPosition);
 
@@ -3047,6 +3144,8 @@ namespace WitchMendokusai
 				return TryUpgradeTowerAt(cellKey, towerIndex);
 			}
 
+			if (IsInsideWindow(worldPosition) == false)
+				return Reject("판 끝이다 — 여기부터는 아직 열리지 않았다", worldPosition);
 			if (IsObstacleAt(worldPosition))
 				return Reject("암반 위엔 못 짓는다", worldPosition);
 			if (IsInBuildableRange(worldPosition) == false)
@@ -3216,6 +3315,8 @@ namespace WitchMendokusai
 			Vector3Int cellKey = ToCellKey(worldPosition);
 			if (occupiedCells.Contains(cellKey))
 				return Reject("여긴 이미 찼다", worldPosition);
+			if (IsInsideWindow(worldPosition) == false)
+				return Reject("판 끝이다 — 여기부터는 아직 열리지 않았다", worldPosition);
 			if (IsObstacleAt(worldPosition))
 				return Reject("암반 위엔 못 짓는다", worldPosition);
 
