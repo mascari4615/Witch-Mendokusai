@@ -107,15 +107,27 @@ namespace WitchMendokusai
 				PlaceDot(match, doll.Anchor.position, tint, 4f);
 			}
 
-			// 마수·둥지 — 밝힌 곳만. 안 가본 자리를 미니맵이 알려주면 시야가 무의미해진다.
+			// 마수 — 밝힌 곳만. 안 가본 자리를 미니맵이 알려주면 시야가 무의미해진다.
 			foreach (ArenaCombatant enemy in match.WaveEnemies)
 			{
 				if (enemy == null || enemy.IsAlive == false)
 					continue;
 				if (match.IsExploredAt(enemy.Position) == false)
 					continue;
+				if (match.IsNestCombatant(enemy))
+					continue; // 둥지는 아래에서 크게 따로 그린다.
 
 				PlaceDot(match, enemy.Position, stage.EnemyTint, 3.5f);
+			}
+
+			// ★ 둥지는 마수와 확실히 갈라 그린다(개선 목록 11번) — 같은 크기·색이면 「부술 것」이
+			//   마수 무리에 파묻혀 안 보인다. 목표는 눈에 띄어야 목표다.
+			foreach (Vector3 nest in match.NestPositions)
+			{
+				if (match.IsExploredAt(nest) == false)
+					continue;
+
+				PlaceDot(match, nest, stage.NestTint, 10f);
 			}
 
 			if (match.HasHero)

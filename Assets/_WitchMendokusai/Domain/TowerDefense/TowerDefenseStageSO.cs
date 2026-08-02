@@ -280,8 +280,11 @@ namespace WitchMendokusai
 		[field: Tooltip("둥지 체력 = 마수 체력 × 이 값(0 = 둥지 없음, 옛 방식). 크면 「밀어낸다」가 장기 목표가 된다.")]
 		[field: SerializeField, Min(0f)] public float NestHealthMultiplier { get; private set; } = 14f;
 
-		[field: Tooltip("둥지 크기(칸 단위) — 마수보다 커야 출구로 읽힌다.")]
-		[field: SerializeField, Min(0.1f)] public float NestScale { get; private set; } = 1.8f;
+		[field: Tooltip("둥지 크기(칸 단위) — 마수보다 확실히 커야 「부술 것」으로 읽힌다.")]
+		[field: SerializeField, Min(0.1f)] public float NestScale { get; private set; } = 3.2f;
+
+		[field: Tooltip("둥지 하나를 부술 때 받는 정수 — 정수가 바깥 채집 하나에만 묶이면 그 길이 막힐 때 강화가 통째로 잠긴다.")]
+		[field: SerializeField, Min(0)] public int NestEssenceReward { get; private set; } = 8;
 
 		[field: Tooltip("둥지 색.")]
 		[field: SerializeField] public Color NestTint { get; private set; } = new Color(0.66f, 0.16f, 0.3f, 1f);
@@ -327,6 +330,9 @@ namespace WitchMendokusai
 
 		[field: Tooltip("영웅이 밝히는 시야 반경 — 움직이는 시야라 정찰 수단이 된다.")]
 		[field: SerializeField, Min(0f)] public float HeroVisionRadius { get; private set; } = 8f;
+
+		[field: Tooltip("쓰러진 영웅이 다시 일어나기까지(초). 0 이면 영영 못 일어난다 — 돌아올 방법이 없는 건 무게가 아니라 벽이다.")]
+		[field: SerializeField, Min(0f)] public float HeroRespawnSeconds { get; private set; } = 25f;
 
 		[field: Tooltip("영웅 색 — 내가 조종하는 것이라 무엇보다 눈에 띄어야 한다.")]
 		[field: SerializeField] public Color HeroTint { get; private set; } = new Color(1f, 0.62f, 0.9f, 1f);

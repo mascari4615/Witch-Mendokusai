@@ -295,6 +295,7 @@ namespace WitchMendokusai
 			heroTransform = null;
 			heroCombatant = null;
 			heroVisionSourceIndex = -1;
+			heroRespawnRemaining = 0f;
 			heroVisionCell = new Vector2Int(int.MinValue, int.MinValue);
 			enemyMaxStopDistance = 0f;
 			nests.Clear();
@@ -1030,6 +1031,15 @@ namespace WitchMendokusai
 
 				nests.RemoveAt(index);
 				NestsDestroyed++;
+
+				// ★ 정수가 「바깥 채집」 하나에만 묶여 있으면 그 길이 막히는 순간 강화 전체가 잠긴다
+				//   (이 작업에서 두 번 겪었다). 둥지를 부수는 것도 정수가 나오는 길이다 —
+				//   *캐서 버는 길*과 *싸워서 버는 길*이 갈라지면 어느 한쪽이 막혀도 판이 안 죽는다.
+				if (core != null && stage.NestEssenceReward > 0)
+				{
+					core.AddEssence(stage.NestEssenceReward);
+					PopWorldText("정수 +" + stage.NestEssenceReward, stageRoot.TransformPoint(localPosition), TextType.Exp);
+				}
 				activeSpawnPoints.Remove(localPosition);
 				PopWorldText("둥지 파괴", stageRoot.TransformPoint(localPosition), TextType.Heal);
 				Debug.Log($"{nameof(TowerDefenseMatch)}: 둥지 하나가 무너졌다 — 남은 출구 {activeSpawnPoints.Count}곳.");
@@ -1057,6 +1067,22 @@ namespace WitchMendokusai
 
 		/// <summary> 남은 마수 출구 수 — 화면이 「얼마나 밀어냈나」를 말한다. </summary>
 		public int NestCount => nests.Count;
+
+		/// <summary> 둥지 자리들 — 미니맵이 마수와 갈라 크게 그린다. </summary>
+		public IEnumerable<Vector3> NestPositions
+		{
+			get
+			{
+				foreach ((ArenaCombatant nest, Vector3 _) in nests)
+				{
+					if (nest != null && nest.IsAlive)
+						yield return nest.Position;
+				}
+			}
+		}
+
+		/// <summary> 그 마수가 둥지인가 — 화면이 둘을 다르게 그린다. </summary>
+		public bool IsNestCombatant(ArenaCombatant combatant) => IsNest(combatant);
 
 		/// <summary>
 		/// 이 판의 점수 재료 — 실시간이 되면서 「몇 웨이브를 넘겼나」는 척도가 아니게 됐다.
@@ -1682,13 +1708,27 @@ namespace WitchMendokusai
 		/// </summary>
 		private void TickHero()
 		{
+			// 쓰러진 뒤 시계 — 다 되면 코어 옆에서 일어난다.
+			if (heroActive == false && heroTransform != null && stage != null && stage.HeroRespawnSeconds > 0f)
+			{
+				heroRespawnRemaining -= TimeManager.TICK;
+				if (heroRespawnRemaining <= 0f)
+					ReviveHero();
+				return;
+			}
+
 			if (HasHero == false)
 				return;
 
 			if (heroCombatant != null && heroCombatant.IsAlive == false)
 			{
-				heroActive = false; // 쓰러진 영웅은 그 판에선 끝 — 「한 명만 데려간다」의 무게.
-				Debug.Log($"{nameof(TowerDefenseMatch)}: 영웅 쓰러짐 — 이번 판은 여기까지.");
+				// ★ 쓰러져도 영영 끝은 아니다(개선 목록 8번). 「한 명만 데려간다」의 무게는 *되돌리는 데
+				//   드는 값*으로 표현한다 — 돌아올 방법이 하나도 없는 건 무게가 아니라 그냥 벽이다.
+				heroActive = false;
+				heroRespawnRemaining = stage.HeroRespawnSeconds;
+				Debug.Log($"{nameof(TowerDefenseMatch)}: 영웅 쓰러짐 — {stage.HeroRespawnSeconds:F0}초 뒤 코어에서 일어난다.");
+				if (coreCombatant != null)
+					PopWorldText("영웅 쓰러짐", heroTransform.position, TextType.Warning);
 				return;
 			}
 
@@ -1702,6 +1742,34 @@ namespace WitchMendokusai
 				heroTransform.position = current + delta.normalized * step;
 				RefreshHeroVision();
 			}
+		}
+
+		private float heroRespawnRemaining;
+
+		/// <summary> 영웅이 다시 일어나기까지 남은 시간(0 = 살아있음) — 화면이 「곧 온다」를 말한다. </summary>
+		public float HeroRespawnIn => heroActive ? 0f : Mathf.Max(0f, heroRespawnRemaining);
+
+		/// <summary>
+		/// 쓰러진 영웅을 코어 옆에서 되살린다 — 자리·체력을 처음처럼 돌리되 *경험은 남긴다*
+		/// (그 아이가 다른 아이가 되면 데려간 의미가 없다).
+		/// </summary>
+		private void ReviveHero()
+		{
+			if (heroTransform == null || heroCombatant == null || coreCombatant == null)
+				return;
+
+			UnitObject heroUnit = heroCombatant.UnitObject;
+			if (heroUnit == null)
+				return;
+
+			heroTransform.position = coreCombatant.Position + new Vector3(stage.GroundCellSize * 1.5f, 0f, 0f);
+			heroUnit.UnitStat[UnitStatType.HP_CUR] = heroUnit.UnitStat[UnitStatType.HP_MAX];
+			heroTargetPosition = heroTransform.position;
+			heroActive = true;
+			heroRespawnRemaining = 0f;
+
+			PopWorldText("영웅 복귀", heroTransform.position, TextType.Heal);
+			Debug.Log($"{nameof(TowerDefenseMatch)}: 영웅이 코어에서 다시 일어났다.");
 		}
 
 		private Vector2Int heroVisionCell = new Vector2Int(int.MinValue, int.MinValue);
