@@ -72,6 +72,23 @@ namespace WitchMendokusai
 		/// </summary>
 		public int SelectedSlot { get; private set; }
 
+		/// <summary>
+		/// 지금 「설치 대기」인가 — 칸을 고른 순간 켜지고, **한 번 설치하면 꺼진다**(사용자 지시:
+		/// "기본적으로 계속 설치 모드인게 아니라 ... 최소한 1회 클릭 설치로").
+		///
+		/// ★ 왜 꺼야 하나: 계속 무장돼 있으면 화면을 클릭하는 *모든* 행위가 설치가 된다 — 건물을 보려고
+		///   눌러도, 시점을 잡으려고 눌러도 자원이 빠진다. 무장이 1회용이면 클릭의 기본 의미가
+		///   「고른다·본다」로 돌아오고, 짓는 것은 *의도한 한 번*이 된다.
+		/// ★ 영웅 칸만 예외 — 그건 짓는 게 아니라 보내는 것이라 반복이 자연스럽다.
+		/// </summary>
+		public bool IsArmed { get; private set; }
+
+		/// <summary> 설치 대기 해제(설치 완료·취소). </summary>
+		public void Disarm()
+		{
+			IsArmed = false;
+		}
+
 		// 화면에 실제로 보이는 포탑 칸 → 진짜 포탑 종류 번호. 잠긴 인형을 칸에서 빼면 둘이 어긋나므로
 		// (3번 칸이 3번 포탑이 아닐 수 있다) 매치가 알려준 목록을 그대로 따른다.
 		private readonly System.Collections.Generic.List<int> availableTowers = new();
@@ -108,9 +125,13 @@ namespace WitchMendokusai
 			if (slot < 0 || slot > TowerSlotCount + 5)
 				return;
 			if (SelectedSlot == slot)
+			{
+				IsArmed = true; // 같은 칸을 다시 누르면 「또 짓겠다」는 뜻이다.
 				return;
+			}
 
 			SelectedSlot = slot;
+			IsArmed = true; // 칸을 고르는 것 = 설치 대기. 한 번 지으면 다시 꺼진다.
 			SelectionChanged(slot);
 		}
 
@@ -145,6 +166,10 @@ namespace WitchMendokusai
 			if (UIPointer.IsOverInteractive(screenPointerPosition))
 				return;
 
+			// 무장이 안 됐으면 이 클릭은 설치가 아니다 — 보거나 고르는 클릭이다.
+			if (IsArmed == false)
+				return;
+
 			switch (SelectedKind)
 			{
 				case TowerDefensePlaceableKind.Harvester:
@@ -164,11 +189,14 @@ namespace WitchMendokusai
 					break;
 				case TowerDefensePlaceableKind.Hero:
 					CommandHeroAt(screenPointerPosition);
-					break;
+					return; // 보내는 것은 반복이 자연스럽다 — 무장을 유지한다.
 				default:
 					PlaceTowerAt(screenPointerPosition);
 					break;
 			}
+
+			// 한 번 지으면 무장 해제 — 다시 지으려면 칸을 다시 고른다.
+			IsArmed = false;
 		}
 
 		[Inject]
@@ -245,6 +273,18 @@ namespace WitchMendokusai
 
 			if (inputManager != null)
 				UpdateHover(inputManager.MouseScreenPosition);
+
+			// 무장하지 않았으면 미리보기 자체가 없다 — 커서에 늘 유령이 붙어 있으면 「지금 짓는 중」이
+			// 거짓말이 된다.
+			if (IsArmed == false)
+			{
+				previewMarker.SetActive(false);
+				if (ghostBuilding != null)
+					ghostBuilding.SetActive(false);
+				if (previewRing != null)
+					previewRing.SetVisible(false);
+				return;
+			}
 
 			// 프리뷰도 같은 판정을 따라야 한다 — UI 위에 초록 마커가 떠 있으면 "여기 설치된다"는 거짓말이 된다.
 			if (inputManager == null

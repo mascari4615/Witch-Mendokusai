@@ -119,7 +119,7 @@ namespace WitchMendokusai
 				out waveModeButton, out nextWaveButton));
 			legendPanel = BuildLegendPanel();
 			container.Add(legendPanel);
-			selectionBar = new ModeSelectionBar("TowerDefenseSelectionBar");
+			selectionBar = new ModeSelectionBar("TowerDefenseSelectionBar") { CardLayout = true };
 			selectionBar.Selected += index => SlotClicked(index);
 			container.Add(selectionBar.Root);
 			container.Add(BuildHintBar(out hintLabel));
@@ -790,6 +790,21 @@ namespace WitchMendokusai
 		/// ★ 실패 사례(사용자 실증 "유닛 툴팁 어딨는데"): 포탑 데이터 객체를 그대로 넘겼더니 툴팁 쪽에
 		///   그 타입을 그릴 방법이 없어 *조용히 아무것도 안 떴다*. 툴팁은 아는 형식만 그린다.
 		/// </summary>
+		/// <summary>
+		/// 그 유닛의 *실제 모습* — 프리팹의 스프라이트를 그대로 칸에 넣는다(사용자 지시: "아이콘 말고 건물 모습").
+		///
+		/// ★ 왜 그림을 따로 안 만드나: 아이콘을 새로 그리면 화면의 인형과 칸의 그림이 갈라지고, 인형이
+		///   바뀔 때마다 아이콘도 따로 고쳐야 한다. 같은 스프라이트를 쓰면 영원히 어긋나지 않는다.
+		/// </summary>
+		private static Sprite UnitSprite(Unit unit)
+		{
+			if (unit == null || unit.Prefab == null)
+				return null;
+
+			SpriteRenderer renderer = unit.Prefab.GetComponentInChildren<SpriteRenderer>(true);
+			return renderer != null ? renderer.sprite : null;
+		}
+
 		private static SlotData SlotTip(string name, string description)
 		{
 			SlotData data = new();
@@ -835,19 +850,23 @@ namespace WitchMendokusai
 					if (TowerDefenseMeta.IsUnlocked(index, stage.DefaultUnlockedTowerCount, unlocked) == false)
 						continue;
 					entries.Add(new ModeSelectionBar.Entry(tower.DisplayName, tower.Cost, tower.Tint,
+						icon: UnitSprite(stage.TowerUnit),
 						tooltip: SlotTip(tower.DisplayName, DescribeTower(tower))));
 				}
 			}
 			else
 			{
 				entries.Add(new ModeSelectionBar.Entry("포탑 인형", stage.TowerCost, stage.TowerTint,
+					icon: UnitSprite(stage.TowerUnit),
 					tooltip: SlotTip("포탑 인형", "사거리 안의 마수를 쏜다.")));
 			}
 
 			// 칸마다 「이게 뭘 하는 건지」를 붙인다 — 이름과 값만 보고는 벽과 함정의 차이를 알 수 없다.
 			entries.Add(new ModeSelectionBar.Entry("채집 인형", stage.HarvesterCost, stage.HarvesterTint,
+				icon: UnitSprite(stage.HarvesterUnit),
 				tooltip: SlotTip("채집 인형", "자원 노드 위에만 선다. 코어까지 보급이 이어져야 수입이 들어온다.\n바깥 노드는 정수를 낸다.")));
 			entries.Add(new ModeSelectionBar.Entry("연구 인형", stage.LabEssenceCost, stage.LabTint,
+				icon: UnitSprite(stage.HarvesterUnit),
 				tooltip: SlotTip("연구 인형", "정수로 짓는다. 세워두는 동안 모든 포탑의 피해가 오른다.")));
 			entries.Add(new ModeSelectionBar.Entry("벽", stage.WallCost, stage.WallTint,
 				tooltip: SlotTip("벽", "마수의 길을 휘게 한다. 길을 완전히 막는 자리에는 못 세운다.")));
@@ -859,6 +878,7 @@ namespace WitchMendokusai
 			// 영웅 칸만 성격이 다르다 — 짓는 게 아니라 *보내는* 칸이라 비용이 0 이다.
 			if (stage.HeroUnit != null)
 				entries.Add(new ModeSelectionBar.Entry("영웅 이동", 0, stage.HeroTint,
+					icon: UnitSprite(stage.HeroUnit),
 					tooltip: SlotTip("영웅 이동", "고르고 땅을 찍으면 영웅이 그리로 걸어간다. 짓는 게 아니라 보내는 칸이다.")));
 
 			selectionBar.SetEntries(entries);

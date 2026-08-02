@@ -82,8 +82,91 @@ namespace WitchMendokusai
 				slots[slotIndex].SetSelected(slotIndex == index);
 		}
 
+		/// <summary>
+		/// 세로 카드 배치 — 이름 없이 *그림과 값*만 있는 명일방주식 배치 칸(사용자 지시).
+		///
+		/// ★ 왜 이름을 빼나: 이름은 길이가 제각각이라 칸이 들쭉날쭉해지고, 배치 중에는 어차피 그림으로 고른다.
+		///   무엇인지 자세히 알고 싶을 때는 칸에 마우스를 얹으면 툴팁이 말해준다.
+		/// ★ 왜 세로로 기나: 손이 가는 곳(화면 아래)에 칸이 여럿 늘어서야 하는데, 가로로 긴 칸은 여덟 개만
+		///   넘어가도 화면 폭을 다 먹는다. 세로 카드는 폭을 아껴 칸 수가 늘어도 버틴다.
+		///
+		/// <code>
+		/// ┌──────┐
+		/// │①     │ ← 숫자키
+		/// │ [그림] │ ← 건물 모습
+		/// │  40  │ ← 값
+		/// └──────┘
+		/// </code>
+		/// </summary>
+		public bool CardLayout { get; set; }
+
+		private VisualElement BuildCardCell(Entry entry, int index)
+		{
+			VisualElement card = new VisualElement();
+			card.style.width = 62;
+			card.style.height = 84;
+			card.style.marginLeft = 4;
+			card.style.marginRight = 4;
+			card.style.alignItems = Align.Center;
+			card.style.justifyContent = Justify.SpaceBetween;
+			card.style.paddingTop = 4;
+			card.style.paddingBottom = 5;
+			card.style.backgroundColor = new Color(0.05f, 0.06f, 0.10f, 0.88f);
+			card.style.borderTopLeftRadius = 7;
+			card.style.borderTopRightRadius = 7;
+			card.style.borderBottomLeftRadius = 7;
+			card.style.borderBottomRightRadius = 7;
+			card.pickingMode = PickingMode.Position;
+			card.RegisterCallback<PointerDownEvent>(_ => Selected(index));
+
+			// ★ 툴팁은 *칸*이 띄운다 — 안쪽 슬롯은 포인터를 안 받게 돼 있어(칸 어디를 눌러도 골리게 하려고)
+			//   슬롯에 붙인 툴팁 콜백은 애초에 한 번도 불리지 않았다(사용자 실증: "유닛 툴팁 어딨는데").
+			if (entry.Tooltip != null)
+			{
+				object tooltipData = entry.Tooltip;
+				card.RegisterCallback<PointerEnterEvent>(_ => card.GetUIServices()?.Tooltip?.Show(tooltipData));
+				card.RegisterCallback<PointerLeaveEvent>(_ => card.GetUIServices()?.Tooltip?.Hide());
+			}
+
+			Label keyLabel = new Label((index + 1).ToString());
+			keyLabel.style.fontSize = 11;
+			keyLabel.style.color = new Color(0.55f, 0.62f, 0.72f, 1f);
+			keyLabel.style.alignSelf = Align.FlexStart;
+			keyLabel.style.marginLeft = 6;
+			keyLabel.pickingMode = PickingMode.Ignore;
+			card.Add(keyLabel);
+
+			Slot slot = new Slot();
+			slot.SetIndex(index);
+			slot.style.width = 44;
+			slot.style.height = 44;
+			slot.pickingMode = PickingMode.Ignore;
+			if (entry.Icon != null)
+				slot.SetIcon(entry.Icon);
+			else
+				slot.SetTint(entry.Tint);
+			if (entry.Tooltip != null)
+				slot.SetTooltipData(entry.Tooltip);
+			slots.Add(slot);
+			card.Add(slot);
+
+			Label costLabel = new Label(entry.Cost > 0 ? entry.Cost.ToString() : "-");
+			costLabel.style.fontSize = 13;
+			costLabel.style.color = entry.Cost > 0
+				? new Color(1f, 0.86f, 0.35f, 1f)
+				: new Color(0.55f, 0.62f, 0.72f, 1f);
+			costLabel.pickingMode = PickingMode.Ignore;
+			card.Add(costLabel);
+
+			cells.Add(card);
+			return card;
+		}
+
 		private VisualElement BuildCell(Entry entry, int index)
 		{
+			if (CardLayout)
+				return BuildCardCell(entry, index);
+
 			VisualElement cell = new VisualElement();
 			cell.style.flexDirection = FlexDirection.Row;
 			cell.style.alignItems = Align.Center;
@@ -100,6 +183,13 @@ namespace WitchMendokusai
 			cell.style.borderBottomRightRadius = 6;
 			cell.pickingMode = PickingMode.Position;
 			cell.RegisterCallback<PointerDownEvent>(_ => Selected(index));
+
+			if (entry.Tooltip != null)
+			{
+				object rowTooltip = entry.Tooltip;
+				cell.RegisterCallback<PointerEnterEvent>(_ => cell.GetUIServices()?.Tooltip?.Show(rowTooltip));
+				cell.RegisterCallback<PointerLeaveEvent>(_ => cell.GetUIServices()?.Tooltip?.Hide());
+			}
 
 			Slot slot = new Slot();
 			slot.SetIndex(index);
