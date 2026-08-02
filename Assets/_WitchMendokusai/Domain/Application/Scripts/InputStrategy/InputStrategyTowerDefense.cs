@@ -21,12 +21,15 @@ namespace WitchMendokusai
 
 		private readonly TowerDefensePlacement placement;
 		private readonly InputManager inputManager;
+		// 시간 조작은 매치가 쥔다 — 입력은 「눌렸다」만 전하고 규칙은 매치에 남는다.
+		private readonly TowerDefenseMatch match;
 		private float lastClickTime;
 
-		public InputStrategyTowerDefense(TowerDefensePlacement placement, InputManager inputManager)
+		public InputStrategyTowerDefense(TowerDefensePlacement placement, InputManager inputManager, TowerDefenseMatch match)
 		{
 			this.placement = placement;
 			this.inputManager = inputManager;
+			this.match = match;
 		}
 
 		private List<InputRegisterData> _inputRegisterDataList;
@@ -54,6 +57,25 @@ namespace WitchMendokusai
 						),
 						#endregion
 
+						new(
+							InputEventType.Click1,
+							InputEventResponseType.Performed,
+							() => placement.SellAt(inputManager.MouseScreenPosition),
+							() => CanExecute(InputEventType.Click1)
+						),
+						// 시간 조작 — 이미 있는 입력 슬롯 재사용(새 입력 추가는 3곳 동시 수정이라 값이 더 크다).
+						new(
+							InputEventType.Space,
+							InputEventResponseType.Performed,
+							() => match.TogglePause(),
+							() => CanExecute(InputEventType.Space)
+						),
+						new(
+							InputEventType.CameraViewCycle,
+							InputEventResponseType.Performed,
+							() => match.CycleSpeed(),
+							() => CanExecute(InputEventType.CameraViewCycle)
+						),
 						#region Hotbar (기존 건설 모드와 같은 조작 문법 — 숫자키로 설치 대상 선택)
 						new(
 							InputEventType.HotbarSlot1,
@@ -146,6 +168,9 @@ namespace WitchMendokusai
 				InputEventType.Click0,
 				new[] { GameConditionType.IsMouseOnUI, GameConditionType.IsTyping, GameConditionType.IsPaused }
 			},
+			{ InputEventType.Click1, new[] { GameConditionType.IsTyping, GameConditionType.IsPaused } },
+			{ InputEventType.Space, new[] { GameConditionType.IsTyping } },
+			{ InputEventType.CameraViewCycle, new[] { GameConditionType.IsTyping } },
 			{ InputEventType.HotbarSlot1, new[] { GameConditionType.IsTyping, GameConditionType.IsPaused } },
 			{ InputEventType.HotbarSlot2, new[] { GameConditionType.IsTyping, GameConditionType.IsPaused } },
 			{ InputEventType.HotbarSlot3, new[] { GameConditionType.IsTyping, GameConditionType.IsPaused } },

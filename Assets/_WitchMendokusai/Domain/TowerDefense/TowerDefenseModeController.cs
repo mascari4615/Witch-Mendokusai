@@ -83,6 +83,8 @@ namespace WitchMendokusai
 
 		private void OnMatchEnded(TowerDefenseOutcome outcome)
 		{
+			match.RestoreTimeScale(); // 결말 화면에서 버튼을 눌러야 하므로 시간이 멈춰 있으면 안 된다.
+
 			// 무한 모드 = 버틴 웨이브가 곧 점수 → 기록을 남기지 않으면 판이 끝나도 아무것도 안 남는다.
 			int best = match.WaveIndex;
 			bool isNewRecord = false;
@@ -304,7 +306,7 @@ namespace WitchMendokusai
 				// 진입 — content 카메라 전환(개척 vcam 승격)은 CameraManager 단일 권위자가 GameMode 를 보고
 				// 이미 처리한다. 여기서는 **무대가 아는 것**(시점 위치·경계·줌 범위)만 맞춘다.
 				ResetCamera();
-				inputManager.SetInputStrategy(new InputStrategyTowerDefense(placement, inputManager));
+				inputManager.SetInputStrategy(new InputStrategyTowerDefense(placement, inputManager, match));
 				match.Begin(stage, stageRoot);
 				placement.Activate();
 				TowerDefenseHudView view = EnsureHud();
@@ -321,12 +323,15 @@ namespace WitchMendokusai
 					view.NextWaveRequested += CallNextWave;
 					view.SlotClicked += SelectSlotFromUi;
 					view.PullRequested += PullTower;
+					view.PauseToggleRequested += match.TogglePause;
+					view.SpeedCycleRequested += match.CycleSpeed;
 				}
 			}
 			else
 			{
 				// 이탈 — 매치 정리(멱등 Dispose) → 배치 비활성 → 모드 카메라 끄기 → 월드 입력 복귀.
 				StopAllCoroutines(); // 재시작 코루틴이 이탈 뒤 재개해 매치를 되살리는 것 차단.
+				match.RestoreTimeScale(); // 멈춘 채로 나가면 본편이 정지한다.
 				match.Dispose();
 				if (hud != null)
 				{
@@ -336,6 +341,8 @@ namespace WitchMendokusai
 					hud.NextWaveRequested -= CallNextWave;
 					hud.SlotClicked -= SelectSlotFromUi;
 					hud.PullRequested -= PullTower;
+					hud.PauseToggleRequested -= match.TogglePause;
+					hud.SpeedCycleRequested -= match.CycleSpeed;
 				}
 				placement.Deactivate();
 				hud?.Hide();

@@ -236,6 +236,24 @@ namespace WitchMendokusai
 			previewRing.SetVisible(true);
 		}
 
+		/// <summary>
+		/// 우클릭 = 그 칸의 것을 판다. 「짓기=좌클릭 / 팔기=우클릭」은 건설류의 관용이라 배울 게 없다.
+		/// UI 위 클릭은 설치와 마찬가지로 판매도 아니다.
+		/// </summary>
+		public void SellAt(Vector2 screenPointerPosition)
+		{
+			if (match == null || stage == null)
+				return;
+			if (UIPointer.IsOverInteractive(screenPointerPosition))
+				return;
+
+			if (TryGetSnappedGroundPosition(screenPointerPosition, out Vector3 snappedWorldPosition) == false)
+				return;
+
+			if (match.TrySell(snappedWorldPosition, stage.SellRefundRatio) == false)
+				Debug.Log($"{nameof(TowerDefensePlacement)}: 판매 거절 — 빈 칸이거나 코어.");
+		}
+
 		/// <summary> 연구 인형 설치 — 빈 칸이면 어디든. 지어지는 순간 모든 포탑이 강해진다. </summary>
 		public void PlaceLabAt(Vector2 screenPointerPosition)
 		{

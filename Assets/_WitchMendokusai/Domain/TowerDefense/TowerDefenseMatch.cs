@@ -217,6 +217,9 @@ namespace WitchMendokusai
 			enemyBountyById.Clear();
 			harvesterTransforms.Clear();
 			LabCount = 0;
+			speedStep = 1;
+			lastRunningStep = 1;
+			ApplySpeed();
 			occupiedCells.Clear(); // 재진입 — 지난 매치의 셀 점유가 새 매치로 새는 것 방지.
 
 			yield return SpawnCoreRoutine();
@@ -957,6 +960,45 @@ namespace WitchMendokusai
 		/// <summary> 이번 판의 암반 칸 수 — 0 이면 지형 없는 빈 판. </summary>
 		public int ObstacleCount => mapLayout != null ? mapLayout.ObstacleCells.Count : 0;
 
+		// ── 시간 조작 ────────────────────────────────────────────────────────────
+		// ★ 왜 필요한가: 판이 커지고(44칸) 화면이 말하는 정보가 늘었는데(예고·사거리·시야·길) 정작
+		//   *볼 시간*이 없으면 그 정보는 없는 것과 같다. 멈추고 보는 것은 편의가 아니라 전술의 일부다.
+		private static readonly float[] SpeedSteps = { 0f, 1f, 2f, 3f };
+		private int speedStep = 1;
+
+		/// <summary> 지금 시간 배속(0 = 멈춤). </summary>
+		public float SpeedScale => SpeedSteps[Mathf.Clamp(speedStep, 0, SpeedSteps.Length - 1)];
+
+		/// <summary> 멈춤 ↔ 직전 배속 토글. 멈춘 채로 배치·관찰할 수 있어야 정보가 쓸모를 갖는다. </summary>
+		public void TogglePause()
+		{
+			speedStep = speedStep == 0 ? lastRunningStep : 0;
+			ApplySpeed();
+		}
+
+		/// <summary> 배속 한 단계 올림(끝에서 처음으로 순환). 멈춤 상태는 건너뛴다. </summary>
+		public void CycleSpeed()
+		{
+			speedStep = speedStep >= SpeedSteps.Length - 1 ? 1 : speedStep + 1;
+			lastRunningStep = speedStep;
+			ApplySpeed();
+		}
+
+		private int lastRunningStep = 1;
+
+		private void ApplySpeed()
+		{
+			// 개척 안에서는 이 모드가 곧 게임 전부라 전역 시간을 그대로 쓴다 —
+			// 매치 전용 시계를 따로 두면 물리·이펙트가 따로 놀아 화면이 갈라진다.
+			Time.timeScale = SpeedScale;
+		}
+
+		/// <summary> 모드를 나가거나 매치가 끝나면 반드시 원래 속도로 — 안 되돌리면 본편이 멈춘 채 남는다. </summary>
+		public void RestoreTimeScale()
+		{
+			Time.timeScale = 1f;
+		}
+
 		/// <summary> 세운 연구 인형 수 — 늘어날수록 모든 포탑이 강해진다. </summary>
 		public int LabCount { get; private set; }
 
@@ -1216,6 +1258,100 @@ namespace WitchMendokusai
 			float incomeMultiplier = nodeIndex < activeNodeIncomeMultipliers.Count ? activeNodeIncomeMultipliers[nodeIndex] : 1f;
 			StartCoroutine(SpawnDefensiveUnitRoutine(stage.HarvesterUnit, null, nodeWorldPosition, isHarvester: true, incomeMultiplier));
 			return true;
+		}
+
+		/// <summary>
+		/// 그 칸에 세운 것을 판다(환불). 「실수가 되돌려지는가」 — 이게 없으면 배치가 실험이 아니라 도박이다.
+		/// 코어는 못 판다(그건 자해다). 판 자리는 다시 비워져 새로 지을 수 있다.
+		/// </summary>
+		public bool TrySell(Vector3 worldPosition, float refundRatio)
+		{
+			if (core == null || pool == null)
+				return false;
+
+			Vector3Int cellKey = ToCellKey(worldPosition);
+			if (occupiedCells.Contains(cellKey) == false)
+				return false;
+
+			GameObject sold = null;
+			foreach (GameObject unit in spawnedUnits)
+			{
+				if (unit == null || unit.activeInHierarchy == false)
+					continue;
+				if (ToCellKey(unit.transform.position) != cellKey)
+					continue;
+				if (coreCombatant != null && unit == coreCombatant.gameObject)
+					return false; // 코어는 못 판다.
+				sold = unit;
+				break;
+			}
+
+			if (sold == null)
+				return false;
+
+			int refund = Mathf.Max(0, Mathf.RoundToInt(SoldValue(sold) * refundRatio));
+			core.AddResource(refund);
+			PopWorldText("+" + refund, sold.transform.position, TextType.Heal);
+
+			ReleaseSoldUnit(sold);
+			occupiedCells.Remove(cellKey);
+			return true;
+		}
+
+		// 판 값 = 그 자리에 무엇이 서 있었나. 채집이면 노드 점유도 함께 푼다(다시 잡을 수 있어야 한다).
+		private int SoldValue(GameObject sold)
+		{
+			for (int index = harvesterTransforms.Count - 1; index >= 0; index--)
+			{
+				if (harvesterTransforms[index] == null || harvesterTransforms[index] != sold.transform)
+					continue;
+
+				harvesterTransforms.RemoveAt(index);
+				core.RemoveHarvester(NodeIncomeMultiplierAt(ReleaseNodeAt(sold.transform.position)));
+				return stage.HarvesterCost;
+			}
+
+			TowerDefenseWeapon weapon = sold.GetComponent<TowerDefenseWeapon>();
+			if (weapon != null)
+				return weapon.Cost;
+
+			// 무기가 없는 방어 건물 = 연구 인형.
+			LabCount = Mathf.Max(0, LabCount - 1);
+			return stage.LabCost;
+		}
+
+		// 판 채집 인형이 잡고 있던 노드를 놓아준다(못 놓으면 그 노드는 영영 못 쓴다).
+		private int ReleaseNodeAt(Vector3 worldPosition)
+		{
+			for (int index = 0; index < activeNodePositions.Count; index++)
+			{
+				if (claimedNodes.Contains(index) == false)
+					continue;
+				Vector3 nodeWorld = stageRoot.TransformPoint(activeNodePositions[index]);
+				if ((nodeWorld - worldPosition).sqrMagnitude > 1f)
+					continue;
+
+				claimedNodes.Remove(index);
+				return index;
+			}
+			return -1;
+		}
+
+		private void ReleaseSoldUnit(GameObject sold)
+		{
+			ArenaCombatant combatant = sold.GetComponent<ArenaCombatant>();
+			if (combatant != null && targeting != null)
+			{
+				targeting.Unregister(combatant);
+				registeredCombatants.Remove(combatant);
+			}
+
+			TacticDriver driver = sold.GetComponent<TacticDriver>();
+			if (driver != null)
+				driver.StopDriving();
+
+			ReleaseUnit(pool, sold);
+			spawnedUnits.Remove(sold);
 		}
 
 		/// <summary>

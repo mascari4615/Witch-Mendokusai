@@ -82,6 +82,9 @@ namespace WitchMendokusai.EditorTools
 		private static double defendedAssaultStart = -1.0;
 		private static bool defendedStuckDumped;
 		private static bool towerPlanFlipped;
+		// 판매 검증용 — 배치 좌표. 스폰은 코루틴(1프레임 양보)이라 *같은 틱에 팔면 아직 아무도 없다*.
+		private static Vector3 sellProbeLocal;
+		private static bool sellProbeReady;
 		private static bool firstWaveCalled;
 		private static int lastDumpedWave;
 		private static double waveDumpAt;
@@ -270,6 +273,7 @@ namespace WitchMendokusai.EditorTools
 						return;
 					DumpPlacedUnits("최초 배치");
 					VerifyUiPointerGuard();
+					VerifySell();
 					if (placeOnly)
 					{
 						Debug.Log(TAG + " PLACE-ONLY 배치 확인 끝 — 조기 종료");
@@ -473,7 +477,21 @@ namespace WitchMendokusai.EditorTools
 				if (match.Resource < beforeTower)
 					towersPlaced++;
 			}
+			// 시간 조작 — 멈춤·배속이 실제로 걸리는가(화면 버튼과 같은 경로).
+			match.TogglePause();
+			float paused = match.SpeedScale;
+			match.TogglePause();
+			match.CycleSpeed();
+			Debug.Log(TAG + " TIME paused=" + paused.ToString("F0") + " cycled=" + match.SpeedScale.ToString("F0")
+				+ " timeScale=" + Time.timeScale.ToString("F0"));
+			match.CycleSpeed(); match.CycleSpeed(); // ×1 로 되돌림(순환).
+
 			placement.SelectSlot(match.TowerArchetypeCount); // 채집 칸으로 되돌림.
+			if (spots.Count > 0)
+			{
+				sellProbeLocal = spots[0];
+				sellProbeReady = true;
+			}
 			Debug.Log(TAG + " PLACE-TOWERS placed=" + towersPlaced
 				+ " towerKinds=" + match.TowerArchetypeCount);
 
@@ -1015,6 +1033,26 @@ namespace WitchMendokusai.EditorTools
 					+ " alive=" + combatant.IsAlive);
 				index++;
 			}
+		}
+
+		/// <summary> 판매 — 세운 것을 팔면 자원이 돌아오고 자리가 비는가(정착 후에 확인). </summary>
+		private static void VerifySell()
+		{
+			Transform stageRoot = FindStageRoot();
+			if (sellProbeReady == false || match == null || stageRoot == null)
+				return;
+
+			Vector3 world = stageRoot.TransformPoint(sellProbeLocal);
+			int before = match.Resource;
+			bool sold = match.TrySell(world, match.Stage.SellRefundRatio);
+			bool freed = match.IsCellOccupied(world) == false;
+
+			string verdict = TAG + " SELL ok=" + sold + " resource " + before + " → " + match.Resource
+				+ " cellFreed=" + freed;
+			if (sold && match.Resource > before && freed)
+				Debug.Log(verdict + " → 되돌릴 수 있다 ✔");
+			else
+				Debug.LogError(verdict + " → 판매가 안 되거나 자리가 안 비었다.");
 		}
 
 		/// <summary>

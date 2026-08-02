@@ -35,6 +35,9 @@ namespace WitchMendokusai
 		public int SplashHits { get; private set; }
 		public int SlowApplied { get; private set; }
 
+		/// <summary> 지어질 때 든 값 — 팔 때 환불 기준. 종류가 늘어도 판매 쪽이 다시 계산할 필요가 없다. </summary>
+		public int Cost => archetype != null ? archetype.Cost : 0;
+
 		private float cooldownRemaining;
 		private LineRenderer tracer;
 		private float tracerRemaining;

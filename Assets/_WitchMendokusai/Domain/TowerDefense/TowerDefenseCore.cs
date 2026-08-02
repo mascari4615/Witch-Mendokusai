@@ -163,6 +163,13 @@ namespace WitchMendokusai
 			harvesterIncomeWeight += incomeMultiplier > 0f ? incomeMultiplier : 0f;
 		}
 
+		/// <summary> 채집건물을 팔았다 — 수입도 같이 줄어야 「판다」가 공짜가 되지 않는다. </summary>
+		public void RemoveHarvester(float incomeMultiplier)
+		{
+			HarvesterCount = Mathf.Max(0, HarvesterCount - 1);
+			harvesterIncomeWeight = Mathf.Max(0f, harvesterIncomeWeight - Mathf.Max(0f, incomeMultiplier));
+		}
+
 		/// <summary>
 		/// 다음 웨이브를 격퇴하면 들어올 정산액. 채집 인형이 *무슨 역할인지* 를 화면이 말해주는 유일한 숫자 —
 		/// 인형을 하나 세울 때마다 이 값이 오르는 걸 보여야 「자원 캐는 건물」의 의미가 전달된다

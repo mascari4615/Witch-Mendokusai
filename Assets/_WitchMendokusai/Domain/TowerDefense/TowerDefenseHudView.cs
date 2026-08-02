@@ -38,6 +38,8 @@ namespace WitchMendokusai
 		private readonly Label bannerLabel;
 		private Label relicLabel;
 		private Button pullButton;
+		private Button pauseButton;
+		private Button speedButton;
 		private readonly VisualElement legendPanel;
 		// 범례 줄이 실제로 들어가는 곳(래퍼는 접기 버튼까지 감싼다).
 		private VisualElement legendRows;
@@ -73,6 +75,10 @@ namespace WitchMendokusai
 
 		/// <summary> 결말 화면에서 유물로 인형 뽑기. </summary>
 		public event System.Action PullRequested = delegate { };
+
+		/// <summary> 멈춤 토글 / 배속 순환 — 보고 판단할 시간을 플레이어가 쥔다. </summary>
+		public event System.Action PauseToggleRequested = delegate { };
+		public event System.Action SpeedCycleRequested = delegate { };
 
 		public TowerDefenseHudView(UIRoot uiRoot)
 		{
@@ -216,6 +222,19 @@ namespace WitchMendokusai
 			buttons.Add(modeButton);
 			buttons.Add(callButton);
 			panel.Add(buttons);
+
+			// 시간 조작 — 화면이 말하는 걸 볼 시간이 없으면 정보가 있어도 못 쓴다.
+			VisualElement timeButtons = new VisualElement();
+			timeButtons.style.flexDirection = FlexDirection.Row;
+			timeButtons.style.marginTop = 6;
+			timeButtons.pickingMode = PickingMode.Ignore;
+
+			pauseButton = MakeActionButton("⏸ 멈춤", fontSize: 12, () => PauseToggleRequested());
+			pauseButton.style.marginRight = 6;
+			speedButton = MakeActionButton("배속 ×1", fontSize: 12, () => SpeedCycleRequested());
+			timeButtons.Add(pauseButton);
+			timeButtons.Add(speedButton);
+			panel.Add(timeButtons);
 
 			return panel;
 		}
@@ -577,7 +596,7 @@ namespace WitchMendokusai
 
 			hintLabel.text = stage == null
 				? string.Empty
-				: "숫자키(또는 아래 칸 클릭)로 고르고, 좌클릭으로 설치   ·   WASD 시점 이동   ·   휠 확대·축소   ·   X 나가기";
+				: "좌클릭 설치 · 우클릭 판매 · Space 멈춤 · Tab 배속   ·   WASD 시점 이동   ·   휠 확대·축소   ·   X 나가기";
 		}
 
 		public void Hide()
@@ -680,6 +699,11 @@ namespace WitchMendokusai
 
 			nextWaveValue.text = BuildWavePreview(match);
 			UpdateNodeLabels(match, stage);
+
+			bool paused = match.SpeedScale <= 0f;
+			pauseButton.text = paused ? "▶ 재개" : "⏸ 멈춤";
+			speedButton.text = "배속 ×" + Mathf.Max(1f, match.SpeedScale).ToString("0");
+			speedButton.SetEnabled(paused == false);
 
 			waveModeButton.text = match.AutoAdvanceWaves ? "진행: 자동" : "진행: 수동";
 			// 건설 국면에서만 부를 수 있다 — 못 누르는 버튼을 멀쩡해 보이게 두면 눌러보고 아무 일도 안 난다.
