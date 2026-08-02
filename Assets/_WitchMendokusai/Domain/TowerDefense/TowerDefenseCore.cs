@@ -245,7 +245,8 @@ namespace WitchMendokusai
 		/// 인형을 하나 세울 때마다 이 값이 오르는 걸 보여야 「자원 캐는 건물」의 의미가 전달된다
 		/// (사용자 실증: "자원 캐는 건물이 어떤 역할인지 전혀 모르겠어").
 		/// </summary>
-		public int NextWaveIncome => rules.BaseWaveIncome + Mathf.RoundToInt(rules.IncomePerHarvester * harvesterIncomeWeight);
+		public int NextWaveIncome => Mathf.RoundToInt(
+			(rules.BaseWaveIncome + rules.IncomePerHarvester * harvesterIncomeWeight) * Mathf.Max(0f, IncomeMultiplier));
 
 		/// <summary> 웨이브 정산 외 즉시 지급(격파 보상 등). 음수 무시 — 자원이 조용히 줄어드는 경로를 만들지 않는다. </summary>
 		public void AddResource(int amount)
@@ -258,5 +259,29 @@ namespace WitchMendokusai
 
 		/// <summary> 마수 1기 격파 보상액(0 이면 격파 보상 없음). </summary>
 		public int BountyPerKill => rules.BountyPerKill;
+
+		/// <summary>
+		/// 드래프트로 쌓인 정산 배수(1 = 없음). 규칙이 아니라 *이번 판의 성격*이라 셸이 넣어준다 —
+		/// 카드가 늘어도 코어는 이 숫자 하나만 본다.
+		/// </summary>
+		public float IncomeMultiplier { get; set; } = 1f;
+
+		/// <summary> 목숨을 더 받는다(드래프트 카드) — 유출제가 아닌 스테이지에선 아무 일도 없다. </summary>
+		public void AddLives(int amount)
+		{
+			if (amount <= 0 || UsesLives == false || Outcome != TowerDefenseOutcome.InProgress)
+				return;
+
+			Lives += amount;
+		}
+
+		/// <summary> 정수를 즉시 받는다(드래프트 카드). </summary>
+		public void AddEssence(int amount)
+		{
+			if (amount <= 0)
+				return;
+
+			Essence += amount;
+		}
 	}
 }

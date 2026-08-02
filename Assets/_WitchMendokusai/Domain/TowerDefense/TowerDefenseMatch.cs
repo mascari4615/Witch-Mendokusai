@@ -62,6 +62,21 @@ namespace WitchMendokusai
 		private readonly List<Vector3> supplySeeds = new();
 		private readonly List<Vector2Int> pathGoals = new();
 
+		// 파도 사이 드래프트 — 고른 것이 쌓이는 곳(boons) + 지금 화면에 걸려 답을 기다리는 카드들(pendingDraft).
+		// 카드가 걸려 있는 동안 진행이 멈춘다 = 「강제 선택」의 실체.
+		private readonly TowerDefenseBoonState boons = new();
+		private readonly List<TowerDefenseBoon> pendingDraft = new();
+
+		// 영웅 인형 — 유일하게 *움직이는* 내 편. 포탑과 같은 전투 표를 쓰되 자리를 내가 옮긴다.
+		private Transform heroTransform;
+		private ArenaCombatant heroCombatant;
+		private Vector3 heroTargetPosition;
+		private bool heroActive;
+
+		// 이름 붙은 인형들 — 화면이 이름표를 띄우는 데 필요한 최소 정보.
+		private readonly List<TowerDefenseDollLabel> dollLabels = new();
+		private int nextDollOrdinal;
+
 		// 이번 매치의 판 — 절차 생성이면 layout 이 정본, 끄면 null 이고 스테이지 SO 의 고정 레이아웃을 쓴다.
 		// 아래 active* 목록이 *둘을 하나로 합친 단일 출처* — 매치 본문은 어느 쪽인지 신경 쓰지 않는다.
 		// 시야 — 내 건물이 밝힌 만큼만 보인다. 건물은 안 움직이므로 *지어질 때만* 다시 계산한다.
@@ -250,6 +265,17 @@ namespace WitchMendokusai
 			ApplySpeed();
 			occupiedCells.Clear(); // 재진입 — 지난 매치의 셀 점유가 새 매치로 새는 것 방지.
 
+			// 새 판 = 새 선택·새 이름·새 영웅. 하나라도 남으면 "새 판"이 아니다.
+			boons.Reset();
+			pendingDraft.Clear();
+			dollLabels.Clear();
+			nextDollOrdinal = 0;
+			heroActive = false;
+			heroTransform = null;
+			heroCombatant = null;
+			heroVisionSourceIndex = -1;
+			heroVisionCell = new Vector2Int(int.MinValue, int.MinValue);
+
 			yield return SpawnCoreRoutine();
 			if (coreCombatant == null)
 			{
@@ -257,6 +283,8 @@ namespace WitchMendokusai
 				started = false;
 				yield break;
 			}
+
+			yield return SpawnHeroRoutine(); // 영웅 미설정 스테이지면 즉시 빠져나온다(기존 판과 동일).
 
 			timeManager.RegisterCallback(Tick);
 			ticking = true;
@@ -363,6 +391,12 @@ namespace WitchMendokusai
 					return false;
 
 				weapon.TryUpgrade();
+
+				// 이름표에도 단계가 붙는다 — 같은 아이가 자란 것이지 새 물건이 생긴 것이 아니다.
+				TowerDefenseDollLabel label = FindDollLabel(unit.transform);
+				if (label != null)
+					label.Level = weapon.Level;
+
 				PopWorldText("Lv." + weapon.Level, unit.transform.position, TextType.Exp);
 				RefreshTowerRing(unit, archetype, weapon.Level);
 				return true;
@@ -940,6 +974,12 @@ namespace WitchMendokusai
 			if (ticking == false || core == null)
 				return;
 
+			TickHero(); // 영웅은 카드가 걸려 있어도 자리를 잡을 수 있다 — 멈춘 것은 *파도*지 내 손이 아니다.
+
+			// 카드가 걸린 동안은 진행 규칙 자체가 멈춘다 — 고르는 사이에 파도가 오면 선택이 아니라 벌칙이 된다.
+			if (IsDraftPending)
+				return;
+
 			CullEscapedEnemies(); // 무대 밖 개체가 웨이브를 영원히 붙잡지 못하게 — 집계 *전에* 정리.
 			CullLeakedEnemies();  // 목표에 닿은 마수는 사라지고 목숨이 준다(유출제).
 			ApplyEnemyVisibility(); // 안 보이는 마수는 화면에서도 지운다(규칙과 그림이 같아야 한다).
@@ -964,6 +1004,7 @@ namespace WitchMendokusai
 					break;
 				case TowerDefenseSignal.WaveCleared:
 					ShowIncomeBreakdown();
+					OfferDraft(); // 넘긴 직후 = 다음 파도를 준비하기 *전*. 여기가 선택이 가장 무거운 자리다.
 					break;
 				// None = 규칙 상 상태전이 없음 — 셸 actuation 0.
 				case TowerDefenseSignal.None:
@@ -1224,6 +1265,284 @@ namespace WitchMendokusai
 		/// <summary> 이번 판의 마수 출현 지점(무대 로컬). </summary>
 		public IReadOnlyList<Vector3> ActiveEnemySpawnPoints => activeSpawnPoints;
 
+		// ── 파도 사이 드래프트 ────────────────────────────────────────────────────
+		// ★ 왜 필요한가: 자원이 쌓이면 살 수 있는 걸 사는 구조는 고민이 아니라 *대기*다. 파도를 넘길 때마다
+		//   세 장 중 하나를 반드시 고르게 하면, 포기한 두 장이 이번 판의 성격이 된다(Slot Theory 계열).
+		// ★ 왜 판이 멈추나: 고르는 동안 마수가 오면 그건 선택이 아니라 벌칙이다. 카드가 걸린 동안 진행 규칙
+		//   자체를 멈춘다(시간 배속을 건드리지 않는다 — 그건 사람이 쥔 손잡이라 여기서 뺏으면 안 된다).
+
+		/// <summary> 새 카드가 걸렸다 — 화면이 구독해 띄운다. </summary>
+		public event Action DraftOffered = delegate { };
+
+		/// <summary> 지금 답을 기다리는 카드들(없으면 빈 목록). </summary>
+		public IReadOnlyList<TowerDefenseBoon> PendingDraft => pendingDraft;
+
+		/// <summary> 고를 것이 걸려 있는가 — 걸린 동안 파도가 오지 않는다. </summary>
+		public bool IsDraftPending => pendingDraft.Count > 0;
+
+		/// <summary> 지금까지 고른 것 한 줄 요약(없으면 빈 문자열). </summary>
+		public string BoonSummary => boons.Describe();
+
+		/// <summary> 지금까지 고른 장수. </summary>
+		public int BoonCount => boons.TakenCount;
+
+		private void OfferDraft()
+		{
+			if (stage == null || core == null)
+				return;
+
+			TowerDefenseDraftRules rules = stage.DraftRules;
+			if (rules.IsEnabled == false)
+				return;
+
+			// 같은 판·같은 파도면 같은 세 장 — 「다시 뽑기」로 흔들 수 있으면 선택의 무게가 사라진다.
+			TowerDefenseDraft.Offer(core.WaveIndex, MapSeed, rules, pendingDraft);
+			if (pendingDraft.Count == 0)
+				return;
+
+			DraftOffered();
+		}
+
+		/// <summary>
+		/// 카드 한 장 선택 — 지속 효과는 쌓이고, 즉시 효과(목숨·정수·자원)는 그 자리에서 들어온다.
+		/// 고른 순간 판이 다시 흐른다.
+		/// </summary>
+		public bool ChooseBoon(int index)
+		{
+			if (core == null || index < 0 || index >= pendingDraft.Count)
+				return false;
+
+			TowerDefenseBoon boon = pendingDraft[index];
+			boons.Take(boon);
+
+			switch (boon.Kind)
+			{
+				case TowerDefenseBoonKind.Life:
+					core.AddLives(Mathf.RoundToInt(boon.Magnitude));
+					break;
+				case TowerDefenseBoonKind.Essence:
+					core.AddEssence(Mathf.RoundToInt(boon.Magnitude));
+					break;
+				case TowerDefenseBoonKind.Windfall:
+					core.AddResource(Mathf.RoundToInt(boon.Magnitude));
+					break;
+				// 지속 효과는 boons 에 쌓인 것이 전부 — 아래에서 코어에 반영한다.
+				default:
+					break;
+			}
+
+			core.IncomeMultiplier = boons.IncomeMultiplier;
+			pendingDraft.Clear();
+
+			if (coreCombatant != null)
+				PopWorldText("「" + boon.DisplayName + "」", coreCombatant.Position, TextType.Heal);
+			Debug.Log($"{nameof(TowerDefenseMatch)}: 드래프트 선택 — {boon.DisplayName} ({boon.Note})");
+			return true;
+		}
+
+		// ── 영웅 인형 ─────────────────────────────────────────────────────────────
+		// ★ 왜 필요한가: 지금 개척은 「전부 미리 배치하고 지켜본다」라 교전 중에 사람이 할 일이 0 이다.
+		//   움직이는 내 편이 하나 있으면 「부족한 곳을 내가 뛰어가 메운다」가 생긴다(Kingdom Rush 의 영웅).
+		//   WM 은 본편에 이미 조종하는 인형이 있으니 **한 명만 데려간다**가 세계관 정합이다.
+		// ★ 왜 포탑과 같은 표를 쓰나: 전투 수치를 따로 두면 두 곳이 갈라진다. 다른 점은 단 하나 — 움직인다.
+
+		/// <summary> 영웅이 판에 있는가. </summary>
+		public bool HasHero => heroActive && heroTransform != null;
+
+		/// <summary> 영웅 현재 위치(없으면 코어 자리). </summary>
+		public Vector3 HeroPosition => heroTransform != null ? heroTransform.position : activeCorePosition;
+
+		/// <summary> 영웅을 그 자리로 보낸다 — 걸어간다(순간이동 X, 늦는 것 자체가 판단의 대가다). </summary>
+		public bool CommandHero(Vector3 worldPosition)
+		{
+			if (HasHero == false)
+				return false;
+
+			heroTargetPosition = new Vector3(worldPosition.x, heroTransform.position.y, worldPosition.z);
+			return true;
+		}
+
+		private IEnumerator SpawnHeroRoutine()
+		{
+			if (stage.HeroUnit == null || stage.HeroUnit.Prefab == null)
+				yield break; // 영웅 미설정 스테이지 — 기존 판과 완전히 동일하게 진행.
+
+			GameObject heroGameObject = pool.Spawn(stage.HeroUnit.Prefab);
+			if (spawnedUnits.Contains(heroGameObject) == false)
+				spawnedUnits.Add(heroGameObject);
+
+			Vector3 spawnPosition = stageRoot.TransformPoint(activeCorePosition) + new Vector3(stage.GroundCellSize * 1.5f, 0f, 0f);
+			heroGameObject.transform.position = spawnPosition;
+
+			yield return null;
+			if (core == null || targeting == null || pool == null)
+				yield break;
+
+			UnitObject heroUnitObject = heroGameObject.GetComponent<UnitObject>();
+			if (heroUnitObject == null)
+			{
+				Debug.LogWarning($"{nameof(TowerDefenseMatch)}: {stage.HeroUnit.Prefab.name} 에 UnitObject 없음 — 영웅 없이 진행.");
+				yield break;
+			}
+
+			heroUnitObject.Init(stage.HeroUnit);
+			heroUnitObject.SkillHandler.AutoCastEnabled = false;
+
+			heroCombatant = heroUnitObject.GetComponent<ArenaCombatant>();
+			if (heroCombatant == null)
+				heroCombatant = heroUnitObject.gameObject.AddComponent<ArenaCombatant>();
+			heroCombatant.SetTeam(DEFENDER_TEAM, nextCombatantId++);
+
+			ApplyReadability(heroUnitObject, stage.HeroTint, stage.HeroScale);
+
+			heroGameObject.SetActive(true);
+
+			// ★ 영웅의 자리는 *사람이 정한다*. 강체를 그대로 두면 내가 옮긴 좌표를 물리가 매 프레임 되돌린다
+			//   (라이브 실측: 옮긴 다음 틱에 뒤로 밀려 제자리 — 명령해도 안 움직이는 것처럼 보였다).
+			// ★ 켠 *다음 프레임*에 씌운다 — 스탯 배수와 같은 이유로, 켜기 전에 바꾼 값은 UnitObject.Start 의
+			//   재-Init 규약에 조용히 덮인다(이 파일에서 이미 한 번 겪은 트랩).
+			//   대여 계약(TowerDefenseUnitLease)이 반납 때 원래 값으로 되돌리므로 다음 대여(마수 등)에 안 샌다.
+			yield return null;
+			if (core == null || targeting == null || pool == null)
+				yield break;
+
+			Rigidbody heroBody = heroGameObject.GetComponent<Rigidbody>();
+			if (heroBody != null)
+			{
+				heroBody.isKinematic = true;
+				heroBody.useGravity = false;
+			}
+
+			// 본편 이동 시스템(NavMeshAgent/UnitMovement)은 개척에서 통째로 끈다 — 개척 지면은 런타임 생성이라
+			// NavMesh 자체가 없고, 길찾기는 흐름장이 이미 한다. 켜두면 에이전트가 좌표를 도로 잡아당긴다(실측).
+			UnityEngine.AI.NavMeshAgent heroAgent = heroGameObject.GetComponent<UnityEngine.AI.NavMeshAgent>();
+			if (heroAgent != null)
+				heroAgent.enabled = false;
+			UnitMovement heroMovement = heroGameObject.GetComponent<UnitMovement>();
+			if (heroMovement != null)
+				heroMovement.enabled = false;
+
+			foreach (UnitBrain brain in heroUnitObject.GetComponents<UnitBrain>())
+				brain.enabled = false;
+
+			if (stage.HeroArchetype != null)
+			{
+				TowerDefenseWeapon heroWeapon = heroUnitObject.GetComponent<TowerDefenseWeapon>();
+				if (heroWeapon == null)
+					heroWeapon = heroUnitObject.gameObject.AddComponent<TowerDefenseWeapon>();
+				heroWeapon.Configure(stage.HeroArchetype, targeting, heroCombatant, waveEnemies,
+					IsVisibleAt, () => TowerDamageMultiplier, () => Adaptation);
+			}
+
+			targeting.Register(heroCombatant);
+			registeredCombatants.Add(heroCombatant);
+
+			heroTransform = heroGameObject.transform;
+			heroTargetPosition = heroTransform.position;
+			heroActive = true;
+
+			// 영웅에게도 이름이 있어야 「데려간 아이」가 된다 — 이름 없는 영웅은 커서다.
+			RegisterDoll(heroTransform, stage.HeroTint);
+			RefreshHeroVision();
+		}
+
+		/// <summary>
+		/// 영웅 이동 + 움직이는 시야. 건물 시야는 지어질 때 한 번만 계산하면 되지만 영웅은 매 틱 자리가 바뀌므로
+		/// **칸이 바뀐 순간에만** 다시 계산한다(매 틱 전면 재계산은 44칸 판에서 그냥 낭비다).
+		/// </summary>
+		private void TickHero()
+		{
+			if (HasHero == false)
+				return;
+
+			if (heroCombatant != null && heroCombatant.IsAlive == false)
+			{
+				heroActive = false; // 쓰러진 영웅은 그 판에선 끝 — 「한 명만 데려간다」의 무게.
+				Debug.Log($"{nameof(TowerDefenseMatch)}: 영웅 쓰러짐 — 이번 판은 여기까지.");
+				return;
+			}
+
+			Vector3 current = heroTransform.position;
+			Vector3 delta = heroTargetPosition - current;
+			delta.y = 0f;
+
+			float step = stage.HeroMoveSpeed * TimeManager.TICK;
+			if (delta.sqrMagnitude > step * step)
+			{
+				heroTransform.position = current + delta.normalized * step;
+				RefreshHeroVision();
+			}
+		}
+
+		private Vector2Int heroVisionCell = new Vector2Int(int.MinValue, int.MinValue);
+		private int heroVisionSourceIndex = -1;
+
+		private void RefreshHeroVision()
+		{
+			if (vision == null || mapLayout == null || stageRoot == null || heroTransform == null || stage.HeroVisionRadius <= 0f)
+				return;
+
+			Vector2Int cell = mapLayout.WorldToCell(stageRoot.InverseTransformPoint(heroTransform.position));
+			if (cell == heroVisionCell)
+				return;
+
+			heroVisionCell = cell;
+			TowerDefenseVision.Source source = new(cell, stage.HeroVisionRadius);
+
+			// 영웅의 시야원은 *하나*다 — 지나간 자리마다 원을 남기면 판이 통째로 밝아진다(밝힌 자리는
+			// Explored 로 남으므로 「가봤다」는 기록은 그대로 유지된다).
+			if (heroVisionSourceIndex >= 0 && heroVisionSourceIndex < visionSources.Count)
+				visionSources[heroVisionSourceIndex] = source;
+			else
+			{
+				heroVisionSourceIndex = visionSources.Count;
+				visionSources.Add(source);
+			}
+
+			RefreshVision();
+		}
+
+		// ── 이름 붙은 인형 ────────────────────────────────────────────────────────
+		// ★ 왜 필요한가: 「광역 포탑」은 물건이고, 물건은 팔 때 아깝지 않다. 이름이 붙는 순간 같은 유닛이
+		//   아이가 되어 잃는 것에 무게가 생긴다. 개척은 마녀가 인형을 데리고 나가는 이야기다.
+
+		/// <summary> 화면에 띄울 이름표들 — 사라진 앵커는 조회 겸 정리(멱등). </summary>
+		public IReadOnlyList<TowerDefenseDollLabel> DollLabels
+		{
+			get
+			{
+				for (int index = dollLabels.Count - 1; index >= 0; index--)
+				{
+					if (dollLabels[index].IsAlive == false)
+						dollLabels.RemoveAt(index);
+				}
+				return dollLabels;
+			}
+		}
+
+		/// <summary> 세워진 인형에게 이름을 준다 + 한 마디 시킨다. 같은 판·같은 순서면 같은 이름. </summary>
+		private void RegisterDoll(Transform anchor, Color tint)
+		{
+			if (anchor == null)
+				return;
+
+			int ordinal = nextDollOrdinal++;
+			string name = TowerDefenseNames.For(MapSeed, ordinal);
+			dollLabels.Add(new TowerDefenseDollLabel(anchor, name, tint));
+			PopWorldText("「" + name + "」 " + TowerDefenseNames.Greeting(MapSeed, ordinal), anchor.position, TextType.Heal);
+		}
+
+		/// <summary> 그 자리 인형의 이름표(없으면 null) — 승급 단계 표시 갱신에 쓴다. </summary>
+		private TowerDefenseDollLabel FindDollLabel(Transform anchor)
+		{
+			foreach (TowerDefenseDollLabel label in dollLabels)
+			{
+				if (label.Anchor == anchor)
+					return label;
+			}
+			return null;
+		}
+
 		/// <summary> 이번 판의 씨앗 — 같은 값이면 같은 판이 나온다(재현·신고용). 고정 판이면 0. </summary>
 		public int MapSeed => mapLayout != null ? mapLayout.Seed : 0;
 
@@ -1276,7 +1595,10 @@ namespace WitchMendokusai
 		/// 지금의 포탑 피해 배수. 포탑이 매 발사 때 *읽어가므로* 나중에 세운 연구 인형이
 		/// 이미 서 있던 포탑에도 즉시 반영된다(세운 뒤에야 효과가 오면 강화가 아니라 벌칙이다).
 		/// </summary>
-		public float TowerDamageMultiplier => 1f + LabCount * (stage != null ? stage.LabDamageBonus : 0f);
+		// 연구(판 안 건물)와 드래프트(파도 사이 선택)는 서로 다른 층이라 곱해진다 — 둘 다 쌓은 판이
+		// 눈에 띄게 세지는 것이 「이 판은 화력으로 갔다」의 실체다.
+		public float TowerDamageMultiplier =>
+			(1f + LabCount * (stage != null ? stage.LabDamageBonus : 0f)) * boons.DamageMultiplier;
 
 		/// <summary>
 		/// 지금까지 내가 쓴 수단의 누적 — 세워둔 포탑들이 각자 센 것을 모은다.
@@ -1638,6 +1960,7 @@ namespace WitchMendokusai
 				int bounty = enemyBountyById.TryGetValue(enemy.CombatantId, out int recorded)
 					? recorded
 					: core.BountyPerKill;
+				bounty = Mathf.RoundToInt(bounty * boons.BountyMultiplier); // 드래프트로 고른 「사냥의 값」.
 				if (bounty <= 0)
 					continue;
 
@@ -2077,6 +2400,12 @@ namespace WitchMendokusai
 				isLab ? stage.LabVisionRadius
 					: isHarvester ? stage.HarvesterVisionRadius
 					: (towerArchetype != null ? towerArchetype.VisionRadius : stage.CoreVisionRadius));
+
+			// 세운 인형에게 이름 — 벽·함정은 물건이지만 인형은 아이다(이 경로로 오는 것은 전부 인형).
+			RegisterDoll(unitGameObject.transform,
+				isLab ? stage.LabTint
+					: isHarvester ? stage.HarvesterTint
+					: (towerArchetype != null ? towerArchetype.Tint : stage.TowerTint));
 
 			// 모든 내 건물이 보급 사슬의 징검다리 — 포탑을 늘어놓는 것이 곧 보급선을 잇는 일이 된다.
 			supplyTransforms.Add(unitGameObject.transform);

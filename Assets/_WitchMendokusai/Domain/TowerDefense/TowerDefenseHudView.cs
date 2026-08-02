@@ -49,6 +49,12 @@ namespace WitchMendokusai
 		// (UI Toolkit 은 월드 공간 텍스트가 없고, 폰트 에셋을 새로 들이지 않기 위한 선택).
 		private readonly VisualElement worldLabelLayer;
 		private readonly System.Collections.Generic.List<Label> worldLabels = new();
+		// 인형 이름표 — 노드 배수표와 같은 방식(월드→화면 투영)이지만 대상이 다르므로 목록을 나눈다.
+		private readonly System.Collections.Generic.List<Label> dollLabelViews = new();
+		// 파도 사이 드래프트 — 카드가 걸리면 화면 한가운데를 막는다(고르기 전엔 아무것도 못 한다).
+		private VisualElement draftCardRow;
+		private Label draftTitleLabel;
+		private Label boonSummaryLabel;
 		// 공용 선택 바 — 건설 모드의 건물 바와 같은 물건(개척 전용 툴바를 따로 두지 않는다).
 		private readonly ModeSelectionBar selectionBar;
 		private readonly Button waveModeButton;
@@ -81,6 +87,9 @@ namespace WitchMendokusai
 		/// <summary> 멈춤 토글 / 배속 순환 — 보고 판단할 시간을 플레이어가 쥔다. </summary>
 		public event System.Action PauseToggleRequested = delegate { };
 		public event System.Action SpeedCycleRequested = delegate { };
+
+		/// <summary> 드래프트 카드 선택(인덱스) — 고르기 전엔 판이 멈춰 있다. </summary>
+		public event System.Action<int> BoonChosen = delegate { };
 
 		public TowerDefenseHudView(UIRoot uiRoot)
 		{
@@ -118,6 +127,8 @@ namespace WitchMendokusai
 
 			container.Add(BuildBanner(out bannerLabel, out _));
 			container.Add(BuildCornerRestartButton());
+			container.Add(BuildBoonSummary(out boonSummaryLabel));
+			container.Add(BuildDraftPanel(out draftCardRow, out draftTitleLabel));
 
 			// 본편 HUD(HudLayer)를 숨겨도 개척 HUD 는 살아있어야 하므로 한 단 위 레이어에 붙인다.
 			uiRoot.OverlayLayer.Add(container);
@@ -388,6 +399,158 @@ namespace WitchMendokusai
 			return button;
 		}
 
+		/// <summary>
+		/// 파도 사이 드래프트 — 화면 한가운데 세 장. 구석에 두면 「나중에 봐야지」가 되어 강제 선택이 아니게 된다.
+		/// 배경을 어둡게 덮는 이유도 같다: 지금 할 일은 이거 하나뿐이라는 것을 화면이 말해야 한다.
+		/// </summary>
+		private VisualElement BuildDraftPanel(out VisualElement cardRow, out Label title)
+		{
+			VisualElement wrapper = new VisualElement { name = "DraftPanel" };
+			wrapper.style.position = Position.Absolute;
+			wrapper.style.left = 0;
+			wrapper.style.right = 0;
+			wrapper.style.top = 0;
+			wrapper.style.bottom = 0;
+			wrapper.style.alignItems = Align.Center;
+			wrapper.style.justifyContent = Justify.Center;
+			wrapper.style.backgroundColor = new Color(0.02f, 0.03f, 0.05f, 0.72f);
+			wrapper.style.display = DisplayStyle.None;
+			// 덮개 자체가 클릭을 먹어야 카드 밖을 눌러도 지면에 건물이 서지 않는다.
+			wrapper.pickingMode = PickingMode.Position;
+
+			title = new Label("한 장을 고른다");
+			title.style.fontSize = 26;
+			title.style.color = new Color(1f, 0.88f, 0.5f, 1f);
+			title.style.marginBottom = 18;
+			title.pickingMode = PickingMode.Ignore;
+
+			cardRow = new VisualElement();
+			cardRow.style.flexDirection = FlexDirection.Row;
+			cardRow.pickingMode = PickingMode.Ignore;
+
+			wrapper.Add(title);
+			wrapper.Add(cardRow);
+			return wrapper;
+		}
+
+		/// <summary> 카드 한 장 — 이름·설명만. 숫자를 더 얹으면 세 장을 비교하는 데 시간이 걸린다. </summary>
+		private VisualElement MakeDraftCard(TowerDefenseBoon boon, int index)
+		{
+			Button card = new Button(() => BoonChosen(index));
+			card.style.width = 200;
+			card.style.height = 132;
+			card.style.marginLeft = 10;
+			card.style.marginRight = 10;
+			card.style.backgroundColor = new Color(0.10f, 0.12f, 0.18f, 0.96f);
+			card.style.alignItems = Align.Center;
+			card.style.justifyContent = Justify.Center;
+			SetRadius(card, 10);
+			card.style.borderLeftWidth = 2;
+			card.style.borderRightWidth = 2;
+			card.style.borderTopWidth = 2;
+			card.style.borderBottomWidth = 2;
+			Color accent = BoonColor(boon.Kind);
+			card.style.borderLeftColor = accent;
+			card.style.borderRightColor = accent;
+			card.style.borderTopColor = accent;
+			card.style.borderBottomColor = accent;
+			card.pickingMode = PickingMode.Position;
+
+			card.Add(TowerDefenseIcon.Make(BoonIcon(boon.Kind), accent, 34));
+
+			Label name = new Label(boon.DisplayName);
+			name.style.fontSize = 18;
+			name.style.color = new Color(0.96f, 0.97f, 1f, 1f);
+			name.style.marginTop = 10;
+			name.pickingMode = PickingMode.Ignore;
+			card.Add(name);
+
+			Label note = new Label(boon.Note);
+			note.style.fontSize = 13;
+			note.style.color = accent;
+			note.style.marginTop = 6;
+			note.pickingMode = PickingMode.Ignore;
+			card.Add(note);
+
+			return card;
+		}
+
+		// 종류마다 색·아이콘이 갈려야 세 장이 한눈에 구분된다(글자를 읽어야 알면 그건 목록이지 카드가 아니다).
+		private static Color BoonColor(TowerDefenseBoonKind kind)
+		{
+			return kind switch
+			{
+				TowerDefenseBoonKind.Firepower => new Color(1f, 0.55f, 0.45f, 1f),
+				TowerDefenseBoonKind.Income => new Color(0.42f, 0.92f, 0.68f, 1f),
+				TowerDefenseBoonKind.Bounty => new Color(1f, 0.86f, 0.35f, 1f),
+				TowerDefenseBoonKind.Life => new Color(1f, 0.62f, 0.9f, 1f),
+				TowerDefenseBoonKind.Essence => new Color(0.7f, 0.6f, 1f, 1f),
+				_ => new Color(0.62f, 0.82f, 1f, 1f),
+			};
+		}
+
+		private static TowerDefenseIcon.Kind BoonIcon(TowerDefenseBoonKind kind)
+		{
+			return kind switch
+			{
+				TowerDefenseBoonKind.Firepower => TowerDefenseIcon.Kind.Burst,
+				TowerDefenseBoonKind.Income => TowerDefenseIcon.Kind.Ring,
+				TowerDefenseBoonKind.Bounty => TowerDefenseIcon.Kind.Diamond,
+				TowerDefenseBoonKind.Life => TowerDefenseIcon.Kind.Core,
+				TowerDefenseBoonKind.Essence => TowerDefenseIcon.Kind.Snow,
+				_ => TowerDefenseIcon.Kind.Leaf,
+			};
+		}
+
+		/// <summary> 지금까지 고른 것 — 자원 띠 바로 아래. 안 보이면 「내가 뭘 골랐더라」가 판 내내 미궁이 된다. </summary>
+		private static VisualElement BuildBoonSummary(out Label summary)
+		{
+			VisualElement wrapper = new VisualElement { name = "BoonSummary" };
+			wrapper.style.position = Position.Absolute;
+			wrapper.style.top = 62;
+			wrapper.style.left = 0;
+			wrapper.style.right = 0;
+			wrapper.style.alignItems = Align.Center;
+			wrapper.pickingMode = PickingMode.Ignore;
+
+			summary = new Label(string.Empty);
+			summary.style.fontSize = 13;
+			summary.style.color = new Color(1f, 0.88f, 0.5f, 0.92f);
+			summary.style.display = DisplayStyle.None;
+			summary.pickingMode = PickingMode.Ignore;
+
+			wrapper.Add(summary);
+			return wrapper;
+		}
+
+		/// <summary> 카드를 건다 — 고를 때까지 판은 멈춰 있다. </summary>
+		public void ShowDraft(System.Collections.Generic.IReadOnlyList<TowerDefenseBoon> offers, int takenCount)
+		{
+			if (draftCardRow == null || offers == null || offers.Count == 0)
+				return;
+
+			draftCardRow.Clear();
+			for (int index = 0; index < offers.Count; index++)
+				draftCardRow.Add(MakeDraftCard(offers[index], index));
+
+			draftTitleLabel.text = takenCount > 0
+				? (takenCount + 1) + "번째 선택 — 한 장을 고른다"
+				: "한 장을 고른다";
+			SetDraftVisible(true);
+		}
+
+		public void HideDraft()
+		{
+			SetDraftVisible(false);
+		}
+
+		private void SetDraftVisible(bool visible)
+		{
+			VisualElement wrapper = draftCardRow != null ? draftCardRow.parent : null;
+			if (wrapper != null)
+				wrapper.style.display = visible ? DisplayStyle.Flex : DisplayStyle.None;
+		}
+
 		private VisualElement BuildBanner(out Label banner, out Button restartButton)
 		{
 			VisualElement wrapper = new VisualElement();
@@ -578,6 +741,11 @@ namespace WitchMendokusai
 			entries.Add(new ModeSelectionBar.Entry("벽", stage.WallCost, stage.WallTint));
 			entries.Add(new ModeSelectionBar.Entry("함정", stage.TrapCost, stage.TrapTint));
 			entries.Add(new ModeSelectionBar.Entry("전초기지", stage.OutpostEssenceCost, stage.OutpostTint));
+
+			// 영웅 칸만 성격이 다르다 — 짓는 게 아니라 *보내는* 칸이라 비용이 0 이다.
+			if (stage.HeroUnit != null)
+				entries.Add(new ModeSelectionBar.Entry("영웅 이동", 0, stage.HeroTint));
+
 			selectionBar.SetEntries(entries);
 		}
 
@@ -727,6 +895,11 @@ namespace WitchMendokusai
 				: match.Essence.ToString();
 			nextWaveValue.text = BuildWavePreview(match);
 			UpdateNodeLabels(match, stage);
+			UpdateDollLabels(match);
+
+			string boonSummary = match.BoonSummary;
+			boonSummaryLabel.text = boonSummary;
+			boonSummaryLabel.style.display = string.IsNullOrEmpty(boonSummary) ? DisplayStyle.None : DisplayStyle.Flex;
 
 			bool paused = match.SpeedScale <= 0f;
 			pauseButton.text = paused ? "▶ 재개" : "⏸ 멈춤";
@@ -911,6 +1084,52 @@ namespace WitchMendokusai
 				label.text = "×" + match.NodeIncomeMultiplierAt(index).ToString("0.0");
 				label.style.left = screenPosition.x - 22f;
 				label.style.top = Screen.height - screenPosition.y - 34f;
+			}
+		}
+
+		/// <summary>
+		/// 인형 머리 위 이름표 — 「광역 포탑」이 아니라 「비올라」가 서 있어야 판다·잃는다에 무게가 생긴다.
+		/// 안 밝힌 자리는 띄우지 않는다(시야 밖의 것을 화면이 알려주면 시야가 무의미해진다).
+		/// </summary>
+		private void UpdateDollLabels(TowerDefenseMatch match)
+		{
+			System.Collections.Generic.IReadOnlyList<TowerDefenseDollLabel> dolls = match.DollLabels;
+			Camera camera = ViewCameraResolver.Current;
+
+			while (dollLabelViews.Count < dolls.Count)
+			{
+				Label label = new Label(string.Empty);
+				label.style.position = Position.Absolute;
+				label.style.fontSize = 12;
+				label.style.unityTextAlign = TextAnchor.MiddleCenter;
+				label.pickingMode = PickingMode.Ignore;
+				worldLabelLayer.Add(label);
+				dollLabelViews.Add(label);
+			}
+
+			for (int index = 0; index < dollLabelViews.Count; index++)
+			{
+				Label label = dollLabelViews[index];
+				if (index >= dolls.Count || camera == null)
+				{
+					label.style.display = DisplayStyle.None;
+					continue;
+				}
+
+				TowerDefenseDollLabel doll = dolls[index];
+				Vector3 screenPosition = camera.WorldToScreenPoint(doll.Anchor.position);
+				if (screenPosition.z <= 0f || match.IsExploredAt(doll.Anchor.position) == false)
+				{
+					label.style.display = DisplayStyle.None;
+					continue;
+				}
+
+				label.style.display = DisplayStyle.Flex;
+				label.text = doll.Text;
+				label.style.color = doll.Tint;
+				label.style.left = screenPosition.x - 40f;
+				label.style.top = Screen.height - screenPosition.y + 12f;
+				label.style.width = 80;
 			}
 		}
 

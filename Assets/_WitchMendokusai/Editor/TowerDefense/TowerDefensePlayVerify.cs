@@ -142,6 +142,10 @@ namespace WitchMendokusai.EditorTools
 			lastSample = -1.0;
 			lastGateLog = -1.0;
 			startClicked = false;
+			heroCommanded = false;
+			heroProbeReady = false;
+			dollsReported = false;
+			draftFreezeWave = -1;
 			match = null;
 			matchEndedSeen = false;
 			lastWaveIndex = -1;
@@ -533,9 +537,30 @@ namespace WitchMendokusai.EditorTools
 			Debug.Log(TAG + " PLACE resourceBefore=" + before + " after=" + match.Resource
 				+ " offNodeHarvesterRejected=" + offNodeRejected);
 
+			VerifyHeroAndNames(stageRoot);
+
 			LogHudState();
 			LogNodeMarkers(stageRoot);
 		}
+
+		/// <summary>
+		/// 영웅(움직이는 내 편) + 이름표(인형이 아이가 됐나). 둘 다 「있다」가 아니라 *실제로 움직이는가 /
+		/// 실제로 붙었는가*를 본다 — 스테이지에 영웅이 미설정이면 그 사실을 SKIP 으로 남긴다(거짓 실패 금지).
+		/// </summary>
+		private static void VerifyHeroAndNames(Transform stageRoot)
+		{
+			// 영웅 명령은 여기서 안 한다 — 스폰이 코루틴이라 이 시점엔 아직 없을 수 있다(라이브 실측: HERO-SKIP).
+			// 「있으면 명령한다」를 관찰 루프가 맡는다(있는지 없는지를 시점 하나로 단정하지 않는다).
+			// 이름표도 마찬가지 — 배치 스폰이 코루틴이라 *이 틱엔 아직* 붙지 않았다. 관찰 루프가 확인한다.
+		}
+
+		// 영웅이 명령한 쪽으로 *실제로 걸어갔는지*는 다음 관찰 틱에서 본다(같은 프레임엔 아직 안 움직였다).
+		private static Vector3 heroProbeFrom;
+		private static Vector3 heroProbeTarget;
+		private static bool heroProbeReady;
+		private static bool heroCommanded;
+		private static bool dollsReported;
+		private static double heroProbeAt;
 
 		// HUD 실재 확인 — 화면에 숫자가 안 뜨면 사람이 플레이 판단을 못 한다(이번 증분의 핵심 산출).
 		private static void LogHudState()
@@ -723,6 +748,8 @@ namespace WitchMendokusai.EditorTools
 		}
 
 		private const double STUCK_ASSAULT_SECONDS = 25.0;
+		// 드래프트가 처음 걸린 파도 — 다음 틱에 「그대로 멈춰 있나」를 대조하는 기준.
+		private static int draftFreezeWave = -1;
 		private static double assaultStart = -1.0;
 		private static bool stuckDumped;
 
@@ -857,6 +884,34 @@ namespace WitchMendokusai.EditorTools
 				return;
 			}
 
+			// 드래프트 — 걸리면 판이 멈춘다. 하네스가 안 고르면 관찰이 통째로 굳는데, *그 굳음 자체*가
+			// 「매 파도 강제 선택」이 실제로 진행을 막는다는 증거다. 한 틱 굳은 것을 확인하고 고른다.
+			if (match.IsDraftPending)
+			{
+				if (draftFreezeWave < 0)
+				{
+					draftFreezeWave = match.WaveIndex;
+					string cards = string.Empty;
+					foreach (TowerDefenseBoon boon in match.PendingDraft)
+						cards += boon.DisplayName + "/";
+					Debug.Log(TAG + " DRAFT offered=" + match.PendingDraft.Count + " wave=" + match.WaveIndex
+						+ " phase=" + match.Phase + " [" + cards + "]");
+					return; // 한 틱 그대로 둔다 — 아래 틱에서 파도가 안 넘어간 것을 확인한다.
+				}
+
+				bool frozen = match.WaveIndex == draftFreezeWave && match.Phase == TowerDefensePhase.Prepare;
+				Debug.Log(TAG + (frozen ? " DRAFT-FREEZE-OK" : " DRAFT-FREEZE-FAIL")
+					+ " wave=" + match.WaveIndex + " phase=" + match.Phase);
+
+				if (match.ChooseBoon(0))
+					Debug.Log(TAG + " DRAFT-TAKEN count=" + match.BoonCount + " summary=[" + match.BoonSummary + "]"
+						+ " damageMul=" + match.TowerDamageMultiplier.ToString("F2"));
+				else
+					Debug.LogError(TAG + " DRAFT-FAIL 카드를 골랐는데 안 받아들여짐");
+				draftFreezeWave = -1;
+				return;
+			}
+
 			if (match.Phase != lastPhase || match.WaveIndex != lastWaveIndex)
 			{
 				Debug.Log(TAG + " STATE phase=" + match.Phase + " wave=" + match.WaveIndex
@@ -888,6 +943,37 @@ namespace WitchMendokusai.EditorTools
 			{
 				assaultStart = -1.0;
 				stuckDumped = false;
+			}
+
+			// 이름표 — 인형이 「물건」이 아니라 「아이」가 됐나. 스폰이 코루틴이라 첫 확인은 관찰 루프에서.
+			if (dollsReported == false && match.DollLabels.Count > 0)
+			{
+				dollsReported = true;
+				Debug.Log(TAG + " DOLL-NAMES count=" + match.DollLabels.Count + " first=" + match.DollLabels[0].Text);
+			}
+
+			// 영웅이 생기면 한 번 보낸다 — 스폰이 코루틴이라 「지금 없다」가 「이 판엔 없다」가 아니다.
+			if (heroCommanded == false && match.HasHero)
+			{
+				heroCommanded = true;
+				heroProbeFrom = match.HeroPosition;
+				heroProbeTarget = heroProbeFrom + new Vector3(5f, 0f, 5f);
+				heroProbeReady = match.CommandHero(heroProbeTarget);
+				heroProbeAt = now;
+				Debug.Log(TAG + " HERO commanded=" + heroProbeReady + " from=" + heroProbeFrom + " to=" + heroProbeTarget);
+			}
+
+			// 영웅이 명령한 쪽으로 실제로 가까워졌나 — 「명령을 받았다」와 「움직였다」는 다른 사실이다.
+			if (heroProbeReady && now - heroProbeAt > 1.5)
+			{
+				heroProbeReady = false;
+				float wasDistance = Vector3.Distance(heroProbeFrom, heroProbeTarget);
+				float nowDistance = Vector3.Distance(match.HeroPosition, heroProbeTarget);
+				if (nowDistance < wasDistance - 0.5f)
+					Debug.Log(TAG + " HERO-MOVE-OK " + wasDistance.ToString("F1") + " → " + nowDistance.ToString("F1"));
+				else
+					Debug.LogError(TAG + " HERO-MOVE-FAIL 명령했는데 안 움직임 "
+						+ wasDistance.ToString("F1") + " → " + nowDistance.ToString("F1"));
 			}
 
 			if (now - lastSample >= SAMPLE_INTERVAL)

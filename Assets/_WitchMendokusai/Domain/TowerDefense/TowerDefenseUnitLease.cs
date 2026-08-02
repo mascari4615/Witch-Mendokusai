@@ -24,6 +24,19 @@ namespace WitchMendokusai
 		private UnitBrain[] brains;
 		private bool[] brainEnabled;
 
+		// 영웅은 물리가 아니라 사람이 자리를 정한다 — 그래서 대여 중 강체를 kinematic 으로 바꾼다.
+		// 같은 프리팹이 다음엔 마수로 나오므로 반납 때 원래대로 돌려놓지 않으면 「안 떨어지는 마수」가 된다.
+		private Rigidbody body;
+		private bool bodyKinematic;
+		private bool bodyGravity;
+
+		// 본편 이동 시스템(NavMesh 기반) — 개척은 자체 흐름장으로 걷고 지면도 런타임 생성이라 NavMesh 가 없다.
+		// 켜둔 채로 두면 에이전트가 매 프레임 좌표를 자기 값으로 되돌려 「명령해도 안 움직이는」 영웅이 된다(실측).
+		private UnityEngine.AI.NavMeshAgent navAgent;
+		private bool navAgentEnabled;
+		private UnitMovement movement;
+		private bool movementEnabled;
+
 		private bool hasSpriteRenderer;
 		private Color spriteColor;
 		private Vector3 localScale;
@@ -51,6 +64,21 @@ namespace WitchMendokusai
 			hasSpriteRenderer = unitObject != null && unitObject.SpriteRenderer != null;
 			if (hasSpriteRenderer)
 				spriteColor = unitObject.SpriteRenderer.color;
+
+			navAgent = GetComponent<UnityEngine.AI.NavMeshAgent>();
+			if (navAgent != null)
+				navAgentEnabled = navAgent.enabled;
+
+			movement = GetComponent<UnitMovement>();
+			if (movement != null)
+				movementEnabled = movement.enabled;
+
+			body = GetComponent<Rigidbody>();
+			if (body != null)
+			{
+				bodyKinematic = body.isKinematic;
+				bodyGravity = body.useGravity;
+			}
 
 			localScale = transform.localScale;
 			localRotation = transform.localRotation;
@@ -93,6 +121,17 @@ namespace WitchMendokusai
 			// 자동시전은 Init 을 건너뛰고 보존되는 값이라(UnitObject.Init 주석) 명시 복구가 필요하다.
 			if (unitObject != null && unitObject.SkillHandler != null)
 				unitObject.SkillHandler.AutoCastEnabled = true;
+
+			if (navAgent != null)
+				navAgent.enabled = navAgentEnabled;
+			if (movement != null)
+				movement.enabled = movementEnabled;
+
+			if (body != null)
+			{
+				body.isKinematic = bodyKinematic;
+				body.useGravity = bodyGravity;
+			}
 
 			transform.localScale = localScale;
 			transform.localRotation = localRotation;

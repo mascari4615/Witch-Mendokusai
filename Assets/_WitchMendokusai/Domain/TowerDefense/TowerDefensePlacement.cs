@@ -58,9 +58,11 @@ namespace WitchMendokusai
 					return TowerDefensePlaceableKind.Lab;
 				if (SelectedSlot == TowerSlotCount + 2)
 					return TowerDefensePlaceableKind.Wall;
-				return SelectedSlot == TowerSlotCount + 3
-					? TowerDefensePlaceableKind.Trap
-					: TowerDefensePlaceableKind.Outpost;
+				if (SelectedSlot == TowerSlotCount + 3)
+					return TowerDefensePlaceableKind.Trap;
+				return SelectedSlot == TowerSlotCount + 4
+					? TowerDefensePlaceableKind.Outpost
+					: TowerDefensePlaceableKind.Hero;
 			}
 		}
 
@@ -102,8 +104,8 @@ namespace WitchMendokusai
 		/// <summary> 슬롯 선택 — 범위를 벗어나면 무시(없는 칸을 누른 것). </summary>
 		public void SelectSlot(int slot)
 		{
-			// 칸 = 포탑들 + 채집 + 연구. 범위 밖은 없는 칸을 누른 것.
-			if (slot < 0 || slot > TowerSlotCount + 4)
+			// 칸 = 포탑들 + 채집 + 연구 + 벽 + 함정 + 전초기지 + 영웅. 범위 밖은 없는 칸을 누른 것.
+			if (slot < 0 || slot > TowerSlotCount + 5)
 				return;
 			if (SelectedSlot == slot)
 				return;
@@ -159,6 +161,9 @@ namespace WitchMendokusai
 					break;
 				case TowerDefensePlaceableKind.Outpost:
 					PlaceOutpostAt(screenPointerPosition);
+					break;
+				case TowerDefensePlaceableKind.Hero:
+					CommandHeroAt(screenPointerPosition);
 					break;
 				default:
 					PlaceTowerAt(screenPointerPosition);
@@ -245,6 +250,25 @@ namespace WitchMendokusai
 					previewRing.SetVisible(false);
 				return;
 			}
+
+			// 영웅은 짓는 게 아니라 보내는 것 — 원은 「거기 서면 어디까지 닿나」를 말한다.
+			if (SelectedKind == TowerDefensePlaceableKind.Hero)
+			{
+				if (stage.HeroArchetype == null || match.HasHero == false)
+				{
+					if (previewRing != null)
+						previewRing.SetVisible(false);
+					return;
+				}
+
+				if (previewRing == null)
+					previewRing = TowerDefenseRing.Create(transform, "PlacementPreviewRing", Color.white, 0.12f, 0.06f);
+				previewRing.transform.position = snappedWorldPosition + new Vector3(0f, 0.06f, 0f);
+				previewRing.SetRadius(stage.HeroArchetype.Range);
+				previewRing.SetColor(new Color(1f, 0.62f, 0.9f, 0.9f));
+				previewRing.SetVisible(true);
+				return;
+			}
 			float radius = isLab ? stage.LabVisionRadius
 				: isHarvester ? stage.NodeCaptureRadius
 				: match.TowerRange(SelectedTowerIndex);
@@ -284,6 +308,21 @@ namespace WitchMendokusai
 
 			if (match.TrySell(snappedWorldPosition, stage.SellRefundRatio) == false)
 				Debug.Log($"{nameof(TowerDefensePlacement)}: 판매 거절 — 빈 칸이거나 코어.");
+		}
+
+		/// <summary>
+		/// 영웅을 그 자리로 보낸다 — 이 칸만 「짓기」가 아니라 「명령」이다. 셀 스냅을 안 쓰는 이유:
+		/// 영웅은 격자 위에 서는 물건이 아니라 걸어가는 아이라, 칸에 맞춰 튀면 조작감이 건물처럼 굳는다.
+		/// </summary>
+		public void CommandHeroAt(Vector2 screenPointerPosition)
+		{
+			if (match == null)
+				return;
+
+			if (TryGetGroundPosition(screenPointerPosition, out Vector3 groundPosition) == false)
+				return;
+
+			match.CommandHero(groundPosition);
 		}
 
 		/// <summary> 전초기지 설치 — 새 목표이자 새 보급 원점. </summary>
@@ -408,6 +447,17 @@ namespace WitchMendokusai
 		private bool TryGetSnappedGroundPosition(Vector2 screenPointerPosition, out Vector3 snappedWorldPosition)
 		{
 			snappedWorldPosition = default;
+			if (TryGetGroundPosition(screenPointerPosition, out Vector3 groundPosition) == false)
+				return false;
+
+			snappedWorldPosition = SnapToCellCenter(groundPosition);
+			return true;
+		}
+
+		/// <summary> 스냅 없는 원본 지면 좌표 — 격자에 서지 않는 것(영웅)이 쓴다. </summary>
+		private bool TryGetGroundPosition(Vector2 screenPointerPosition, out Vector3 groundPosition)
+		{
+			groundPosition = default;
 
 			Camera raycastCamera = RaycastCamera;
 			if (raycastCamera == null)
@@ -417,7 +467,7 @@ namespace WitchMendokusai
 			if (Physics.Raycast(ray, out RaycastHit hit, raycastDistance, ~0, QueryTriggerInteraction.Ignore) == false)
 				return false;
 
-			snappedWorldPosition = SnapToCellCenter(hit.point);
+			groundPosition = hit.point;
 			return true;
 		}
 

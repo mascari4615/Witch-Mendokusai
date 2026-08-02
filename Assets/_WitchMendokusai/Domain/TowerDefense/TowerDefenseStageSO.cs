@@ -213,6 +213,38 @@ namespace WitchMendokusai
 		[field: Tooltip("인형 하나 뽑는 데 드는 유물.")]
 		[field: SerializeField, Min(1)] public int PullCost { get; private set; } = 12;
 
+		[field: Header("파도 사이 드래프트 — 매 파도 강제 선택")]
+		[field: Tooltip("파도를 넘길 때마다 내놓는 카드 수(0 = 드래프트 없음). 3 이 표준 — 2 는 고민이 얕고, 5 는 읽는 데 지친다.")]
+		[field: SerializeField] public TowerDefenseDraftRules DraftRules { get; private set; } = new TowerDefenseDraftRules
+		{
+			OfferCount = 3,
+			FirepowerBonus = 0.18f,
+			IncomeBonus = 0.2f,
+			BountyBonus = 0.25f,
+			LivesBonus = 1f,
+			EssenceBonus = 6f,
+			WindfallResource = 70f,
+		};
+
+		[field: Header("영웅 인형 — 내가 뛰어가 메운다")]
+		[field: Tooltip("영웅 인형 유닛 데이터 — 비어 있으면 영웅 없이 진행(기존 판과 동일).")]
+		[field: SerializeField] public Unit HeroUnit { get; private set; }
+
+		[field: Tooltip("영웅의 전투 수치 — 포탑과 같은 표를 쓴다(사거리·연사·피해·관통·광역·둔화). 다른 표를 두면 두 곳이 갈라진다.")]
+		[field: SerializeField] public TowerDefenseTowerArchetype HeroArchetype { get; private set; }
+
+		[field: Tooltip("영웅 이동 속도(초당 월드 단위). 포탑과 다른 점은 단 하나 — 움직인다는 것.")]
+		[field: SerializeField, Min(0.5f)] public float HeroMoveSpeed { get; private set; } = 6f;
+
+		[field: Tooltip("영웅이 밝히는 시야 반경 — 움직이는 시야라 정찰 수단이 된다.")]
+		[field: SerializeField, Min(0f)] public float HeroVisionRadius { get; private set; } = 8f;
+
+		[field: Tooltip("영웅 색 — 내가 조종하는 것이라 무엇보다 눈에 띄어야 한다.")]
+		[field: SerializeField] public Color HeroTint { get; private set; } = new Color(1f, 0.62f, 0.9f, 1f);
+
+		[field: Tooltip("영웅 크기(칸 단위).")]
+		[field: SerializeField, Min(0.1f)] public float HeroScale { get; private set; } = 1.1f;
+
 		[field: Header("시야")]
 		[field: Tooltip("코어가 밝히는 반경(칸). 시작 시 보이는 범위 = 여기서 정해진다.")]
 		[field: SerializeField, Min(0f)] public float CoreVisionRadius { get; private set; } = 9f;

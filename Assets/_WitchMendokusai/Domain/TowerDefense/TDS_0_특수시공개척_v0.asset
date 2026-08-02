@@ -228,3 +228,32 @@ MonoBehaviour:
   <NodeCaptureRadius>k__BackingField: 2
   <GroundWidth>k__BackingField: 40
   <GroundLength>k__BackingField: 40
+  <DraftRules>k__BackingField:
+    OfferCount: 3
+    FirepowerBonus: 0.18
+    IncomeBonus: 0.2
+    BountyBonus: 0.25
+    LivesBonus: 1
+    EssenceBonus: 6
+    WindfallResource: 70
+  <HeroUnit>k__BackingField: {fileID: 11400000, guid: a194010000000000000000000000d003, type: 2}
+  <HeroArchetype>k__BackingField:
+    displayName: "영웅 인형"
+    note: "내가 보내는 아이 다롱다"
+    cost: 0
+    tint: {r: 1, g: 0.62, b: 0.9, a: 1}
+    range: 8
+    visionRadius: 10
+    cooldown: 0.4
+    damage: 10
+    pierce: 2
+    splashRadius: 0
+    slowFactor: 0
+    slowSeconds: 0
+    slowedTargetBonus: 0.5
+    upgradeGrowth: 0.35
+    maxLevel: 1
+  <HeroMoveSpeed>k__BackingField: 6
+  <HeroVisionRadius>k__BackingField: 10
+  <HeroTint>k__BackingField: {r: 1, g: 0.62, b: 0.9, a: 1}
+  <HeroScale>k__BackingField: 1.1

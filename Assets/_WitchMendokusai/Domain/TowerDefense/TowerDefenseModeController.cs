@@ -217,6 +217,20 @@ namespace WitchMendokusai
 			hud?.ShowPullResult(pulledTower, relics, CanPull());
 		}
 
+		/// <summary> 새 카드가 걸렸다 — 화면 한가운데에 띄운다. 고를 때까지 판은 멈춰 있다(매치 쪽 규칙). </summary>
+		private void ShowDraft()
+		{
+			hud?.ShowDraft(match.PendingDraft, match.BoonCount);
+		}
+
+		/// <summary> 카드 선택 — 고른 순간 판이 다시 흐른다. 그 클릭이 지면 설치로 새지 않게 한 번 삼킨다. </summary>
+		private void ChooseBoon(int index)
+		{
+			placement.SuppressNextClick();
+			if (match.ChooseBoon(index))
+				hud?.HideDraft();
+		}
+
 		/// <summary> 핫바 클릭 — 숫자키와 같은 경로. 그 클릭이 설치로도 새지 않게 한 번 삼킨다. </summary>
 		private void SelectSlotFromUi(int slot)
 		{
@@ -277,6 +291,7 @@ namespace WitchMendokusai
 				// Show 가 아니라 전용 리셋 — Show 는 본편 UI 를 다시 숨기며 복원 정보를 덮어쓴다(이미 숨긴 상태라 빈 목록이 됨).
 				SyncAvailableTowers();
 				view.ResetForNewMatch(stage);
+				view.HideDraft(); // 새 판에 옛 카드가 남아 있으면 그대로 눌려 이번 판의 선택이 아닌 것이 들어온다.
 				view.SetBestRecord(CurrentBestRecord());
 				view.SetSelectedSlot(placement.SelectedSlot);
 			}
@@ -325,6 +340,8 @@ namespace WitchMendokusai
 					view.PullRequested += PullTower;
 					view.PauseToggleRequested += match.TogglePause;
 					view.SpeedCycleRequested += match.CycleSpeed;
+					view.BoonChosen += ChooseBoon;
+					match.DraftOffered += ShowDraft;
 				}
 			}
 			else
@@ -343,6 +360,9 @@ namespace WitchMendokusai
 					hud.PullRequested -= PullTower;
 					hud.PauseToggleRequested -= match.TogglePause;
 					hud.SpeedCycleRequested -= match.CycleSpeed;
+					hud.BoonChosen -= ChooseBoon;
+					match.DraftOffered -= ShowDraft;
+					hud.HideDraft();
 				}
 				placement.Deactivate();
 				hud?.Hide();
