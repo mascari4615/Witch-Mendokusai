@@ -108,7 +108,7 @@ namespace WitchMendokusai
 			}
 
 			Debug.Log($"{nameof(TowerDefenseModeController)}: 매치 종료 — outcome={outcome} 버틴시간={match.SurvivedSeconds}s 둥지={match.NestsDestroyed} 점수={score} best={best} newRecord={isNewRecord} relics+{relicsGained}");
-			hud?.ShowOutcome(outcome, match.SurvivedSeconds, match.NestsDestroyed, score, best, isNewRecord, relicsGained, RelicBalance(), CanPull());
+			hud?.ShowOutcome(outcome, match.SurvivedSeconds, match.NestsDestroyed, score, best, isNewRecord, relicsGained, RelicBalance(), CanPull(), match.BuildSummary());
 		}
 
 		/// <summary> 현재 스테이지 최고 기록 — 화면에 목표를 세워준다(없으면 0). </summary>

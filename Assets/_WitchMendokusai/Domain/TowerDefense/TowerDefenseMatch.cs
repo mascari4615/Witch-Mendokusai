@@ -301,6 +301,11 @@ namespace WitchMendokusai
 			nests.Clear();
 			nestsEverSpawned = false;
 			NestsDestroyed = 0;
+			BuiltCount = 0;
+			LostCount = 0;
+			KilledCount = 0;
+			PeakEnemies = 0;
+			LeakedCount = 0;
 			windowGrowing = false;
 			generators.Clear();
 			powerConsumerTransforms.Clear();
@@ -1202,6 +1207,8 @@ namespace WitchMendokusai
 
 			bool coreAlive = coreCombatant != null && coreCombatant.IsAlive;
 			int aliveEnemies = CountAliveEnemies();
+			if (aliveEnemies > PeakEnemies)
+				PeakEnemies = aliveEnemies;
 
 			TowerDefenseSignal signal = core.Tick(TimeManager.TICK, aliveEnemies, coreAlive);
 			switch (signal)
@@ -1825,7 +1832,10 @@ namespace WitchMendokusai
 				for (int index = dollLabels.Count - 1; index >= 0; index--)
 				{
 					if (dollLabels[index].IsAlive == false)
+					{
+						LostCount++; // 사라진 인형을 센다 — 「무엇을 잃었나」가 판 요약의 절반이다.
 						dollLabels.RemoveAt(index);
+					}
 				}
 				return dollLabels;
 			}
@@ -2174,6 +2184,25 @@ namespace WitchMendokusai
 				enemyUnit.UnitStat[UnitStatType.MOVEMENT_SPEED] =
 					Mathf.Max(1, Mathf.RoundToInt(enemyUnit.UnitStat[UnitStatType.MOVEMENT_SPEED] * speedMultiplier));
 			}
+		}
+
+		// ── 판 기록 ───────────────────────────────────────────────────────────────
+		// ★ 왜 필요한가 (개선 목록 24번): 지금은 지고 나면 「몇 분 버팀」 한 줄뿐이라 *왜 졌는지*를
+		//   되짚을 수단이 없다. 무엇을 몇 개 지었고, 몇 개를 잃었고, 마수가 가장 많을 때 몇이었는지가
+		//   남아야 다음 판이 달라진다 — 안 남으면 매 판이 같은 실수의 반복이 된다.
+		public int BuiltCount { get; private set; }
+		public int LostCount { get; private set; }
+		public int KilledCount { get; private set; }
+		public int PeakEnemies { get; private set; }
+		public int LeakedCount { get; private set; }
+
+		/// <summary> 판이 끝난 뒤 화면이 그대로 읽는 한 덩어리 요약. </summary>
+		public string BuildSummary()
+		{
+			string newline = System.Environment.NewLine;
+			return "지음 " + BuiltCount + "  ·  잃음 " + LostCount + newline
+				+ "잡음 " + KilledCount + "  ·  샌 마수 " + LeakedCount + newline
+				+ "한때 " + PeakEnemies + "마리까지  ·  마수 강도 x" + Pressure.ToString("0.0");
 		}
 
 		/// <summary> 지금 마수에 걸린 압력 — 화면이 「점점 세진다」를 말한다. </summary>
@@ -2789,6 +2818,7 @@ namespace WitchMendokusai
 					continue;
 
 				PopWorldText("-1", enemy.Position, TextType.Warning);
+				LeakedCount++;
 				core.RegisterLeak();
 
 				targeting.Unregister(enemy);
@@ -3167,6 +3197,7 @@ namespace WitchMendokusai
 				if (bounty <= 0)
 					continue;
 
+				KilledCount++;
 				core.AddResource(bounty);
 				PopWorldText("+" + bounty, enemy.Position, TextType.Exp);
 				AwardKillExperience(enemy.Position);
@@ -3696,6 +3727,7 @@ namespace WitchMendokusai
 					: (towerArchetype != null ? towerArchetype.VisionRadius : stage.CoreVisionRadius));
 
 			// 세운 인형에게 이름 — 벽·함정은 물건이지만 인형은 아이다(이 경로로 오는 것은 전부 인형).
+			BuiltCount++;
 			RegisterDoll(unitGameObject.transform,
 				isGenerator ? stage.GeneratorTint
 					: isLab ? stage.LabTint

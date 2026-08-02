@@ -889,6 +889,17 @@ namespace WitchMendokusai
 			buttons.Add(restartButton);
 
 			wrapper.Add(banner);
+
+			summaryLabel = new Label(string.Empty);
+			summaryLabel.style.fontSize = 14;
+			summaryLabel.style.color = new Color(0.8f, 0.85f, 0.95f, 1f);
+			summaryLabel.style.marginTop = 10;
+			summaryLabel.style.unityTextAlign = TextAnchor.MiddleCenter;
+			summaryLabel.style.whiteSpace = WhiteSpace.Normal;
+			summaryLabel.style.display = DisplayStyle.None;
+			summaryLabel.pickingMode = PickingMode.Ignore;
+			wrapper.Add(summaryLabel);
+
 			wrapper.Add(relicLabel);
 			wrapper.Add(buttons);
 			return wrapper;
@@ -1267,7 +1278,7 @@ namespace WitchMendokusai
 		/// 기록 갱신 여부까지 말해야 「다시 도전」이 이유를 갖는다.
 		/// </summary>
 		public void ShowOutcome(TowerDefenseOutcome outcome, int survivedSeconds, int nestsDestroyed, int score, int best,
-			bool isNewRecord, int relicsGained, int relicBalance, bool canPull)
+			bool isNewRecord, int relicsGained, int relicBalance, bool canPull, string summary = null)
 		{
 			SetBannerVisible(true);
 			SetBestRecord(best);
@@ -1284,7 +1295,23 @@ namespace WitchMendokusai
 
 			// 실시간이라 「몇 웨이브」가 아니라 *얼마나 버텼나*가 곧 성적이다.
 			bannerLabel.text = (isNewRecord ? "최고 기록 — " : "") + survived + " 버팀" + nests;
+			ShowSummary(summary);
 		}
+
+		/// <summary>
+		/// 판 요약 — 「왜 졌는지」를 되짚을 유일한 자리. 없으면 매 판이 같은 실수의 반복이 된다.
+		/// 배너 아래에 조용히 붙인다(결말 문구를 밀어내지 않게).
+		/// </summary>
+		private void ShowSummary(string summary)
+		{
+			if (summaryLabel == null)
+				return;
+
+			summaryLabel.text = summary ?? string.Empty;
+			summaryLabel.style.display = string.IsNullOrEmpty(summary) ? DisplayStyle.None : DisplayStyle.Flex;
+		}
+
+		private Label summaryLabel;
 
 		/// <summary> 초 → 「3분 20초」. 숫자만 던지면 몇 분인지 사람이 암산해야 한다. </summary>
 		private static string FormatDuration(int seconds)
