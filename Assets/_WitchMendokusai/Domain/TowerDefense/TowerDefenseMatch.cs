@@ -2239,6 +2239,20 @@ namespace WitchMendokusai
 			AwardCoreExperience(amount);
 		}
 
+		/// <summary>
+		/// 확인용 건물 경험치 — 강화 선택지가 실제로 걸린 화면을 재려면 그 건물이 자라야 한다.
+		/// ★ 값만 준다 — 무엇이 몇 장 나오나는 그대로 통과시켜야 확인이 의미가 있다.
+		/// </summary>
+		public bool GrantBuildingExperienceForVerification(ArenaCombatant combatant, int amount)
+		{
+			TowerDefenseDollLabel doll = FindDoll(combatant);
+			if (doll == null)
+				return false;
+
+			doll.Progress.AddExperience(amount);
+			return true;
+		}
+
 		/// <summary> 지금 판을 저장 가능한 형태로 뽑는다(끝난 판이면 null). </summary>
 		public TowerDefenseSaveData CaptureSave()
 		{

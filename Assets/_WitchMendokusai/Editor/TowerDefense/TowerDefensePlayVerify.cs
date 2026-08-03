@@ -296,6 +296,7 @@ namespace WitchMendokusai.EditorTools
 					// ★ 코어 카드는 레벨이 올라야 뜬다 — 안 띄우면 「카드가 겹치나」를 영영 못 잰다.
 					if (match != null)
 						match.GrantCoreExperienceForVerification(CORE_XP_FOR_CARDS);
+					VerifyBuildingPerk();
 					SelectPlacedBuildingForLayout();
 					// ★ 예산은 유한하고 확인할 항목은 여럿이다 — 순서가 곧 검증 가능 여부다.
 					//   승급은 *이미 서 있는 포탑*이 필요하므로 판매보다 먼저, 비싼 연구 인형은 맨 뒤.
@@ -325,6 +326,8 @@ namespace WitchMendokusai.EditorTools
 						VerifyHudLayout("건물 선택 중");
 					ShowTooltipForLayout();
 					VerifyHudLayout("툴팁 떠 있음");
+					SelectCoreForLayout();
+					VerifyCoreCards();
 					}
 					// ★ 시계가 0 일 때 나가면 「되감겼는지」를 가릴 수 없다(0 이나 1 이나 통과).
 					//   눈금이 실제로 쌓인 뒤에 나가야 이어하기가 시계를 지키는지가 증명된다.
@@ -1663,6 +1666,8 @@ namespace WitchMendokusai.EditorTools
 		private const int RESUME_MIN_CLOCK = 5;
 		// 코어 레벨 한 단계는 넘기고도 남는 양 — 카드가 확실히 걸리게.
 		private const int CORE_XP_FOR_CARDS = 500;
+		// 건물 한 단계는 넘기고도 남는 양.
+		private const int BUILDING_XP_FOR_PERKS = 300;
 		private static int resumeSeed;
 		private static int resumeResource;
 		private static int resumeEssence;
@@ -1741,6 +1746,98 @@ namespace WitchMendokusai.EditorTools
 
 			controller.Hud.ShowUnitTooltip("확인용 설명 · 두 줄짜리",
 				new Vector2(Screen.width * 0.9f, Screen.height * 0.15f));
+		}
+
+		/// <summary>
+		/// 코어를 실제로 골라 코어 카드를 띄운다 — 카드는 코어를 골라야 나온다.
+		/// (수비대를 고르면 강화 선택지만 나오고 카드는 안 나온다 — 둘은 다른 화면이다.)
+		/// </summary>
+		private static void SelectCoreForLayout()
+		{
+			Transform stageRoot = FindStageRoot();
+			if (TowerDefenseModeController.TryGetExistingInstance(out TowerDefenseModeController controller) == false)
+				return;
+			TowerDefensePlacement placement = controller.GetComponent<TowerDefensePlacement>();
+			Camera modeCamera = ViewCameraResolver.Current;
+			if (placement == null || modeCamera == null || match == null || stageRoot == null || match.CoreCombatant == null)
+				return;
+
+			placement.Disarm();
+			placement.PlaceSelectedAt(WorldToScreen(modeCamera, match.CoreCombatant.Position));
+		}
+
+		/// <summary>
+		/// 코어 카드 — 뜨는가, 그리고 *고르면 실제로 걸리는가*.
+		/// ★ 화면에 떴다는 것만으론 부족하다 — 눌러도 아무 일도 안 일어나는 카드가 이 작업에서 이미 나왔다.
+		/// </summary>
+		private static void VerifyCoreCards()
+		{
+			if (match == null)
+				return;
+
+			VerifyHudLayout("코어 선택 중");
+
+			List<TowerDefenseBoon> offers = new();
+			match.OfferCoreCards(offers);
+			int beforeTaken = match.BoonCount;
+			bool chosen = offers.Count > 0 && match.ChooseCoreCard(0);
+
+			string verdict = TAG + " CORE-CARDS pending=" + match.CorePendingChoices
+				+ " offered=" + offers.Count + " chosen=" + chosen
+				+ " 고른장수 " + beforeTaken + "→" + match.BoonCount
+				+ " [" + match.BoonSummary + "]";
+
+			if (offers.Count > 0 && chosen && match.BoonCount > beforeTaken)
+				Debug.Log(verdict + " → 코어 카드가 뜨고 고르면 걸린다 ✔");
+			else
+				Debug.LogError(verdict + " → 카드가 안 뜨거나 골라도 안 걸린다.");
+		}
+
+		/// <summary>
+		/// 건물 강화 선택지 — 자란 건물에 실제로 걸리는가.
+		/// ★ 「선택지가 화면에 있다」와 「골라서 수치가 바뀐다」는 다른 얘기다. 뒤쪽까지 본다.
+		/// </summary>
+		private static void VerifyBuildingPerk()
+		{
+			if (match == null)
+				return;
+
+			ArenaCombatant target = null;
+			foreach (ICombatant combatant in match.RegisteredCombatants)
+			{
+				if (combatant is ArenaCombatant arenaCombatant == false)
+					continue;
+				if (arenaCombatant.TeamId != 0 || arenaCombatant.IsAlive == false)
+					continue;
+				if (match.CoreCombatant != null && arenaCombatant == match.CoreCombatant)
+					continue;
+
+				target = arenaCombatant;
+				break;
+			}
+
+			if (target == null || match.GrantBuildingExperienceForVerification(target, BUILDING_XP_FOR_PERKS) == false)
+			{
+				Debug.Log(TAG + " PERK-SKIP 자라게 할 건물이 없음 — 확인 못 함");
+				return;
+			}
+
+			TowerDefenseDollLabel doll = match.FindDoll(target);
+			List<TowerDefenseBuildingPerk> offers = new();
+			TowerDefenseBuildingProgress.Offer(doll.BuildingId, doll.Progress.Level, doll.IsHarvester, offers);
+
+			int beforeTaken = doll.Progress.Taken.Count;
+			int beforePending = doll.Progress.PendingChoices;
+			bool applied = offers.Count > 0 && match.ChooseBuildingPerk(target, offers[0]);
+
+			string verdict = TAG + " PERK level=" + doll.Progress.Level + " pending=" + beforePending
+				+ " offered=" + offers.Count + " applied=" + applied
+				+ " 고른수 " + beforeTaken + "→" + doll.Progress.Taken.Count;
+
+			if (applied && doll.Progress.Taken.Count > beforeTaken)
+				Debug.Log(verdict + " → 자란 건물이 선택지를 받고 고르면 걸린다 ✔");
+			else
+				Debug.LogError(verdict + " → 선택지가 안 나오거나 골라도 안 걸린다.");
 		}
 
 		/// <summary> 세워둔 건물을 실제로 골라 선택 패널을 띄운다(무장 해제 상태의 클릭 = 고르는 클릭). </summary>
