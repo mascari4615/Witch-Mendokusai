@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -43,13 +43,20 @@ namespace WitchMendokusai
 		/// <summary> 칸을 골랐다(숫자키든 클릭이든 결과는 하나). </summary>
 		public event System.Action<int> Selected = delegate { };
 
+		/// <summary> 바닥에서 띄운 높이 / 카드 한 장 높이 — 위에 무엇을 얹을 때 이 둘을 읽어야 안 겹친다. </summary>
+		public const int BOTTOM_OFFSET = 24;
+		public const int CARD_HEIGHT = 84;
+
+		/// <summary> 이 바가 차지한 맨 윗선(바닥 기준) — 위쪽 요소가 「얼마나 띄워야 하나」의 답. </summary>
+		public static int TopFromBottom => BOTTOM_OFFSET + CARD_HEIGHT;
+
 		public VisualElement Root => container;
 
 		public ModeSelectionBar(string name)
 		{
 			container = new VisualElement { name = name };
 			container.style.position = Position.Absolute;
-			container.style.bottom = 24;
+			container.style.bottom = BOTTOM_OFFSET;
 			container.style.left = 0;
 			container.style.right = 0;
 			container.style.flexDirection = FlexDirection.Row;
@@ -104,7 +111,7 @@ namespace WitchMendokusai
 		{
 			VisualElement card = new VisualElement();
 			card.style.width = 62;
-			card.style.height = 84;
+			card.style.height = CARD_HEIGHT;
 			card.style.marginLeft = 4;
 			card.style.marginRight = 4;
 			card.style.alignItems = Align.Center;

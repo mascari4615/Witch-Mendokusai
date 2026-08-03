@@ -140,15 +140,15 @@ namespace WitchMendokusai
 			// ★ 한 덩어리가 한 가지만 말한다 — 예전엔 전부 좌상단에 몰려 있어 무엇부터 봐야 할지 알 수 없었다
 			//   (사용자 실증: "정보는 전부 모여 있어서 복잡복잡"). 자원은 상단 가운데 독립 띠(종류가 늘어도
 			//   가로로 칸만 추가), 진행은 우상단, 범례는 좌하단 접기, 고르는 것은 하단 가운데.
-			container.Add(BuildResourceBar(out resourceValue, out incomeValue, out essenceValue));
-			container.Add(BuildProgressPanel(out livesValue, out waveValue, out phaseValue, out nextWaveValue, out enemyValue, out bestValue,
-				out waveModeButton, out nextWaveButton));
-			legendPanel = BuildLegendPanel();
+			container.Add(Named(BuildResourceBar(out resourceValue, out incomeValue, out essenceValue), "ResourceBar"));
+			container.Add(Named(BuildProgressPanel(out livesValue, out waveValue, out phaseValue, out nextWaveValue, out enemyValue, out bestValue,
+				out waveModeButton, out nextWaveButton), "ProgressPanel"));
+			legendPanel = Named(BuildLegendPanel(), "LegendPanel");
 			container.Add(legendPanel);
 			selectionBar = new ModeSelectionBar("TowerDefenseSelectionBar") { CardLayout = true };
 			selectionBar.Selected += index => SlotClicked(index);
 			container.Add(selectionBar.Root);
-			container.Add(BuildHintBar(out hintLabel));
+			container.Add(Named(BuildHintBar(out hintLabel), "HintBar"));
 			worldLabelLayer = new VisualElement { name = "WorldLabels" };
 			worldLabelLayer.style.position = Position.Absolute;
 			worldLabelLayer.style.left = 0;
@@ -159,19 +159,32 @@ namespace WitchMendokusai
 			container.Add(worldLabelLayer);
 
 			container.Add(BuildBanner(out bannerLabel, out _));
-			container.Add(BuildCornerRestartButton());
-			container.Add(BuildBoonSummary(out boonSummaryLabel));
-			container.Add(BuildDraftPanel(out draftCardRow, out draftTitleLabel));
-			unitTooltip = BuildUnitTooltip(out unitTooltipLabel);
+			container.Add(Named(BuildCornerRestartButton(), "RestartButton"));
+			container.Add(Named(BuildBoonSummary(out boonSummaryLabel), "BoonSummary"));
+			container.Add(Named(BuildDraftPanel(out draftCardRow, out draftTitleLabel), "DraftPanel"));
+			unitTooltip = Named(BuildUnitTooltip(out unitTooltipLabel), "UnitTooltip");
 			container.Add(unitTooltip);
 			container.Add(BuildSelectionPanel(out selectionPanel, out selectionTitleLabel, out researchButton));
+			selectionPanel.name = "SelectionPanel";
 
 			// 미니맵 — 판이 무한으로 자라므로 「전체를 보는 눈」이 없으면 넓은 판이 넓지 않은 것과 같다.
 			minimap = new TowerDefenseMinimapView();
+			minimap.Root.name = "Minimap";
 			container.Add(minimap.Root);
 
 			// 본편 HUD(HudLayer)를 숨겨도 개척 HUD 는 살아있어야 하므로 한 단 위 레이어에 붙인다.
 			uiRoot.OverlayLayer.Add(container);
+		}
+
+		/// <summary>
+		/// HUD 덩어리에 이름을 붙인다 — 「겹치나」를 눈이 아니라 *좌표로* 물을 수 있게.
+		/// ★ 이름이 없으면 화면 검사가 「사람이 봐야 안다」에 영원히 묶인다. 붙는 순간 자동 확인이 가능해진다.
+		/// </summary>
+		private static VisualElement Named(VisualElement element, string name)
+		{
+			if (element != null)
+				element.name = name;
+			return element;
 		}
 
 		// 좌상단 컴팩트 스탯 — 폭을 내용에 맞춰 좁게(전폭 바 금지).
@@ -338,8 +351,11 @@ namespace WitchMendokusai
 			wrapper.style.position = Position.Absolute;
 			wrapper.style.left = 0;
 			wrapper.style.right = 0;
-			// 선택 바(bottom 24)와 겹치면 글자가 칸 위에 얹혀 둘 다 안 읽힌다(라이브 스크린샷 실증).
-			wrapper.style.bottom = 104;
+			// 선택 바와 겹치면 글자가 칸 위에 얹혀 둘 다 안 읽힌다(라이브 실증).
+			// ★ 숫자를 다시 적지 않고 *선택 바가 차지한 높이*를 읽는다 — 예전엔 104 라고 손으로 적어뒀다가
+			//   칸 높이가 자라자 2px 파묻혔다(좌표 검사가 잡아냄). 여백만 더한다.
+			const int HINT_GAP = 8;
+			wrapper.style.bottom = ModeSelectionBar.TopFromBottom + HINT_GAP;
 			wrapper.style.alignItems = Align.Center;
 			wrapper.pickingMode = PickingMode.Ignore;
 

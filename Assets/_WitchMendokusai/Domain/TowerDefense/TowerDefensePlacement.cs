@@ -172,6 +172,10 @@ namespace WitchMendokusai
 			// (연구·강화처럼 「이미 서 있는 것에 하는 일」이 여기서 열린다.)
 			if (IsArmed == false)
 			{
+				// ★ 고르는 대상은 *누른 자리*가 정한다 — 떠다니던 hover 값이 아니라.
+				//   둘은 어긋날 수 있고(커서가 막 움직인 프레임, 화면 밖에서 온 클릭), 그때 화면은
+				//   「여기를 눌렀는데 저게 골렸다」가 된다. 누른 좌표로 다시 물으면 그 어긋남이 사라진다.
+				UpdateHover(screenPointerPosition);
 				SelectedBuilding = HoveredUnit;
 				BuildingSelected(SelectedBuilding);
 				return;

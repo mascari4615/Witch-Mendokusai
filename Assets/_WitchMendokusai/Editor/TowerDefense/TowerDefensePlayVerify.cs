@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -58,9 +58,12 @@ namespace WitchMendokusai.EditorTools
 			PlaceAfterRestart = 7,
 			Observe = 8,
 			ObserveDefended = 15,
+			SelectedLayout = 16,
 		}
 
 		private static Step step;
+		// 선택 클릭 시각 — 패널이 열릴 한 틱을 기다리는 기준.
+		private static double selectedLayoutAt;
 		private static double playStart;
 		private static double readyAt;
 		private static double observeStart;
@@ -283,6 +286,10 @@ namespace WitchMendokusai.EditorTools
 						return;
 					DumpPlacedUnits("최초 배치");
 					VerifyUiPointerGuard();
+					VerifyHudLayout("평상시");
+					// ★ 평상시엔 안 뜨는 것(선택 패널)이 *뜬 상태*로도 재야 한다 — 안 뜬 것은 겹칠 수도 없어서
+					//   「겹침 0」이 「띄워본 적이 없다」를 숨긴다.
+					SelectPlacedBuildingForLayout();
 					// ★ 예산은 유한하고 확인할 항목은 여럿이다 — 순서가 곧 검증 가능 여부다.
 					//   승급은 *이미 서 있는 포탑*이 필요하므로 판매보다 먼저, 비싼 연구 인형은 맨 뒤.
 					// 예산 순 — 채집(60)이 필요한 정수 확인을 먼저, 비싼 연구를 맨 뒤로.
@@ -294,13 +301,18 @@ namespace WitchMendokusai.EditorTools
 					VerifyLab();
 					VerifyWaveEvents();
 					VerifySupply();
-					if (placeOnly)
-					{
-						Debug.Log(TAG + " PLACE-ONLY 배치 확인 끝 — 조기 종료");
-						Finish();
+					step = placeOnly ? Step.SelectedLayout : Step.Restart;
+					selectedLayoutAt = now;
+					return;
+
+				// ★ 패널은 *다음 배치 패스*에 열린다 — 클릭한 그 틱에 재면 「아직 안 뜬 것」을 재고
+				//   「겹침 0」이라 적는다(거짓 통과). 한 틱 기다렸다 잰다.
+				case Step.SelectedLayout:
+					if (now - selectedLayoutAt < 0.3)
 						return;
-					}
-					step = Step.Restart;
+					VerifyHudLayout("건물 선택 중");
+					Debug.Log(TAG + " PLACE-ONLY 배치 확인 끝 — 조기 종료");
+					Finish();
 					return;
 
 				case Step.PlaceAfterRestartDump:
@@ -1576,6 +1588,142 @@ namespace WitchMendokusai.EditorTools
 				Debug.Log(verdict + " → UI 위는 막고 지면은 통과 ✔");
 			else
 				Debug.LogError(verdict + " → UI 클릭이 설치로 새거나(button=False) 지면이 막힌다(ground=True).");
+		}
+
+		// 화면 어디에 무엇이 놓였나 — 겹치면 안 되는 덩어리들. 전면(배너·드래프트)은 *덮는 것이 일*이라 뺀다.
+		private static readonly string[] HUD_BLOCKS =
+		{
+			"ResourceBar", "ProgressPanel", "LegendPanel", "TowerDefenseSelectionBar",
+			"HintBar", "RestartButton", "BoonSummary", "UnitTooltip", "SelectionPanel", "Minimap",
+		};
+
+		/// <summary>
+		/// 그 덩어리가 실제로 *차지한* 자리 — 전폭 띠는 껍데기가 화면을 가로지르지만 알맹이는 가운데
+		/// 한 줌뿐이다. 껍데기로 재면 「가운데 띠가 좌측 범례를 가린다」 같은 거짓 겹침이 무더기로 나온다.
+		/// 그래서 화면 폭을 거의 다 쓰는 껍데기는 *보이는 자식들이 실제로 덮은 범위*로 좁혀 잰다.
+		/// </summary>
+		private static Rect ContentBound(VisualElement block, float screenWidth)
+		{
+			Rect bound = block.worldBound;
+			if (screenWidth <= 1f || bound.width < screenWidth * 0.95f)
+				return bound;
+
+			Rect union = Rect.zero;
+			bool any = false;
+			foreach (VisualElement child in block.Children())
+			{
+				if (child.resolvedStyle.display != DisplayStyle.Flex)
+					continue;
+				Rect childBound = ContentBound(child, screenWidth);
+				if (childBound.width <= 1f || childBound.height <= 1f)
+					continue;
+
+				union = any ? Rect.MinMaxRect(
+					Mathf.Min(union.xMin, childBound.xMin), Mathf.Min(union.yMin, childBound.yMin),
+					Mathf.Max(union.xMax, childBound.xMax), Mathf.Max(union.yMax, childBound.yMax)) : childBound;
+				any = true;
+			}
+
+			return any ? union : bound;
+		}
+
+		/// <summary>
+		/// HUD 겹침 — 「미니맵이 선택 패널을 가리나」를 *사람 눈*이 아니라 좌표로 묻는다.
+		///
+		/// ★ 왜 스크린샷이 아니라 좌표인가: 그림은 사람이 봐야 하고, 봐야 하는 검사는 매번 미뤄진다
+		///   (이 작업에서 「UI 겹침 확인」이 계속 뒤로 밀린 이유). 사각형이 겹치는지는 기계가 판정할 수 있다.
+		/// ★ 화면 밖으로 나간 것도 잡는다 — 겹치지만 않으면 되는 게 아니라 *보여야* 한다.
+		/// </summary>
+		/// <summary> 세워둔 건물을 실제로 골라 선택 패널을 띄운다(무장 해제 상태의 클릭 = 고르는 클릭). </summary>
+		private static void SelectPlacedBuildingForLayout()
+		{
+			Transform stageRoot = FindStageRoot();
+			if (TowerDefenseModeController.TryGetExistingInstance(out TowerDefenseModeController controller) == false)
+				return;
+			TowerDefensePlacement placement = controller.GetComponent<TowerDefensePlacement>();
+			Camera modeCamera = ViewCameraResolver.Current;
+			if (placement == null || modeCamera == null || match == null || stageRoot == null)
+				return;
+
+			// ★ *살아 있는* 건물을 고른다 — 앞서 판매 확인이 시험용 포탑을 팔아버려서, 그 자리를 누르면
+			//   빈 땅을 누르는 꼴이 된다(그래서 패널이 영영 안 열렸다). 코어는 선택 대상이 아니다.
+			ArenaCombatant target = null;
+			foreach (ICombatant combatant in match.RegisteredCombatants)
+			{
+				if (combatant is ArenaCombatant arenaCombatant == false)
+					continue;
+				if (arenaCombatant.TeamId != 0 || arenaCombatant.IsAlive == false)
+					continue;
+				if (match.CoreCombatant != null && arenaCombatant == match.CoreCombatant)
+					continue;
+
+				target = arenaCombatant;
+				break;
+			}
+
+			if (target == null)
+			{
+				Debug.Log(TAG + " HUD-SELECT 고를 건물이 없음 — 선택 패널 배치는 확인 못 함");
+				return;
+			}
+
+			placement.Disarm();
+			placement.PlaceSelectedAt(WorldToScreen(modeCamera, target.Position));
+		}
+
+		private static void VerifyHudLayout(string phase)
+		{
+			UIRoot uiRoot = Object.FindAnyObjectByType<UIRoot>();
+			VisualElement hud = uiRoot != null && uiRoot.OverlayLayer != null
+				? uiRoot.OverlayLayer.Q(nameof(TowerDefenseHudView))
+				: null;
+			if (hud == null)
+			{
+				Debug.LogError(TAG + " HUD-LAYOUT[" + phase + "] HUD 를 못 찾음");
+				return;
+			}
+
+			List<string> names = new();
+			List<Rect> rects = new();
+			foreach (string blockName in HUD_BLOCKS)
+			{
+				VisualElement block = hud.Q(blockName);
+				if (block == null)
+				{
+					Debug.LogError(TAG + " HUD-LAYOUT[" + phase + "] 조각이 없음: " + blockName + " — 이름이 바뀌었거나 안 붙었다.");
+					continue;
+				}
+				if (block.resolvedStyle.display != DisplayStyle.Flex)
+					continue; // 지금 안 보이는 것은 겹칠 수도 없다.
+
+				Rect bound = ContentBound(block, hud.worldBound.width);
+				if (bound.width <= 1f || bound.height <= 1f)
+					continue; // 아직 배치 전(폭 0) — 겹침 판정 대상이 아니다.
+
+				names.Add(blockName);
+				rects.Add(bound);
+			}
+
+			Rect screen = hud.worldBound;
+			int overlaps = 0;
+			for (int left = 0; left < rects.Count; left++)
+			{
+				if (screen.width > 1f && screen.Contains(new Vector2(rects[left].xMin + 1f, rects[left].yMin + 1f)) == false)
+					Debug.LogError(TAG + " HUD-OFFSCREEN[" + phase + "] " + names[left] + " " + rects[left] + " 가 화면(" + screen + ") 밖으로 나감");
+
+				for (int right = left + 1; right < rects.Count; right++)
+				{
+					if (rects[left].Overlaps(rects[right]) == false)
+						continue;
+					overlaps++;
+					Debug.LogError(TAG + " HUD-OVERLAP[" + phase + "] " + names[left] + rects[left]
+						+ " ↔ " + names[right] + rects[right]);
+				}
+			}
+
+			string verdict = TAG + " HUD-LAYOUT[" + phase + "] blocks=" + names.Count + " overlaps=" + overlaps;
+			if (overlaps == 0)
+				Debug.Log(verdict + " → 겹치는 덩어리 없음 ✔");
 		}
 
 		/// <summary> 결말 화면 검증 — 배너가 실제로 떠야 플레이어가 끝났다는 걸 안다. </summary>
