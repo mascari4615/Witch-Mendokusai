@@ -392,8 +392,13 @@ namespace WitchMendokusai
 				parameters.Seed = UnityEngine.Random.Range(int.MinValue, int.MaxValue);
 
 			// 이어하기면 그 판의 씨앗을 그대로 쓴다 — 같은 땅이 다시 나와야 내 건물이 제자리에 선다.
+			destroyedNestPositions.Clear();
 			if (pendingRestore != null)
 			{
+				// 부순 둥지는 *세우기 전에* 알아야 한다 — 세운 뒤 지우면 한 프레임이라도 되살아난다.
+				if (pendingRestore.DestroyedNestPositions != null)
+					destroyedNestPositions.AddRange(pendingRestore.DestroyedNestPositions);
+
 				parameters.Seed = pendingRestore.MapSeed;
 				if (pendingRestore.MapWidth > 0 && pendingRestore.MapLength > 0)
 				{
@@ -1007,6 +1012,19 @@ namespace WitchMendokusai
 		private readonly List<(ArenaCombatant Combatant, Vector3 LocalPosition)> nests = new();
 		private bool nestsEverSpawned; // 처음부터 둥지가 없던 판(옛 방식)을 「전멸」로 오인하지 않게.
 
+		// 이 판에서 부순 둥지 자리 — 이어할 때 그 자리엔 다시 안 선다.
+		private readonly List<Vector3> destroyedNestPositions = new();
+
+		private bool IsNestAlreadyDestroyed(Vector3 localPosition)
+		{
+			foreach (Vector3 destroyed in destroyedNestPositions)
+			{
+				if ((destroyed - localPosition).sqrMagnitude <= 1f)
+					return true;
+			}
+			return false;
+		}
+
 		private IEnumerator SpawnNestsRoutine()
 		{
 			if (stage.NestHealthMultiplier <= 0f || stage.EnemyUnit == null || stage.EnemyUnit.Prefab == null)
@@ -1014,6 +1032,11 @@ namespace WitchMendokusai
 
 			foreach (Vector3 localPosition in new List<Vector3>(activeSpawnPoints))
 			{
+				// ★ 이미 부순 둥지는 다시 서지 않는다 — 안 그러면 이어할 때마다 부순 것이 되살아나
+				//   「부술 수 있다」가 헛수고가 된다(부순 자리는 저장에 적혀 있다).
+				if (IsNestAlreadyDestroyed(localPosition))
+					continue;
+
 				GameObject nestObject = pool.Spawn(stage.EnemyUnit.Prefab);
 				if (spawnedUnits.Contains(nestObject) == false)
 					spawnedUnits.Add(nestObject);
@@ -1078,6 +1101,7 @@ namespace WitchMendokusai
 
 				nests.RemoveAt(index);
 				NestsDestroyed++;
+				destroyedNestPositions.Add(localPosition); // 저장이 「어디를 부쉈나」를 적을 수 있게.
 
 				// ★ 정수가 「바깥 채집」 하나에만 묶여 있으면 그 길이 막히는 순간 강화 전체가 잠긴다
 				//   (이 작업에서 두 번 겪었다). 둥지를 부수는 것도 정수가 나오는 길이다 —
@@ -2292,6 +2316,11 @@ namespace WitchMendokusai
 				NestsDestroyed = NestsDestroyed,
 			};
 
+			// 이 판의 성격 — 고른 카드와 부순 둥지. 이게 빠지면 이어한 판이 「같은 판」이 아니다.
+			foreach (TowerDefenseBoonKind kind in boons.TakenKinds)
+				save.TakenBoons.Add((int)kind);
+			save.DestroyedNestPositions.AddRange(destroyedNestPositions);
+
 			foreach (TowerDefenseDollLabel doll in dollLabels)
 			{
 				// 사람이 세운 것만 적는다 — 영웅처럼 판이 스스로 만드는 인형까지 적으면 이어할 때마다 는다.
@@ -2349,6 +2378,15 @@ namespace WitchMendokusai
 			// 판의 시계·목숨·코어 성장 — 이게 안 돌아오면 오래 버틴 판이 이어하는 순간 처음으로 되감긴다.
 			core.Restore(save.ElapsedSeconds, save.WaveIndex, save.Lives);
 			coreProgress.Restore(save.CoreLevel, save.CoreExperience, save.CorePendingChoices, null);
+
+			// 고른 카드 — 종류만 적어뒀고 값은 이 판의 규칙에서 다시 나온다(같은 규칙 = 같은 값).
+			// 즉시 효과(목숨·정수·자원)는 다시 주지 않는다 — 그 결과는 위에서 이미 되돌렸다.
+			if (save.TakenBoons != null)
+			{
+				foreach (int kind in save.TakenBoons)
+					boons.Take(TowerDefenseDraft.Make((TowerDefenseBoonKind)kind, stage.DraftRules));
+				core.IncomeMultiplier = boons.IncomeMultiplier;
+			}
 
 			foreach (TowerDefenseBuildingSave building in save.Buildings)
 			{

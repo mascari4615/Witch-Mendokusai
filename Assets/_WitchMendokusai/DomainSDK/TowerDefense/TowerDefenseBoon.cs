@@ -1,5 +1,6 @@
 using UnityEngine;
 using System;
+using System.Collections.Generic;
 
 namespace WitchMendokusai
 {
@@ -100,9 +101,18 @@ namespace WitchMendokusai
 		/// <summary> 지금까지 고른 장수 — 화면이 「N번째 선택」을 말할 때 쓴다. </summary>
 		public int TakenCount { get; private set; }
 
+		/// <summary>
+		/// 지금까지 고른 카드의 종류들 — 이 상태가 *무엇 때문에 이렇게 됐는지*의 기록.
+		/// ★ 왜 필요한가: 쌓인 수치만 있으면 저장이 「이 판의 성격」을 적을 수 없다. 종류만 적어두면
+		///   값은 그 판의 규칙에서 다시 나오므로(같은 규칙 = 같은 값), 저장이 작고 규칙이 바뀌어도 산다.
+		/// </summary>
+		public IReadOnlyList<TowerDefenseBoonKind> TakenKinds => takenKinds;
+		private readonly List<TowerDefenseBoonKind> takenKinds = new();
+
 		public void Take(TowerDefenseBoon boon)
 		{
 			TakenCount++;
+			takenKinds.Add(boon.Kind);
 
 			switch (boon.Kind)
 			{
@@ -206,6 +216,7 @@ namespace WitchMendokusai
 			nestDamage = 0f;
 			enemyReward = 0f;
 			TakenCount = 0;
+			takenKinds.Clear();
 		}
 	}
 }
