@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace WitchMendokusai
 {
@@ -36,6 +36,22 @@ namespace WitchMendokusai
 		public static Material CreateUnlit()
 		{
 			return new Material(FindShader(TowerDefenseShaderNames.Unlit));
+		}
+
+
+		/// <summary>
+		/// 반투명으로 바꾼다 — 길 표시·안개처럼 *덮되 가리지 않아야* 하는 것들이 쓴다.
+		/// ★ 같은 함수가 두 곳에 복제돼 있었다(길 표시 / 안개). 한쪽만 고치면 화면이 갈라진다.
+		/// </summary>
+		public static void MakeTransparent(Material material)
+		{
+			material.SetFloat("_Surface", 1f); // 1 = Transparent
+			material.SetOverrideTag("RenderType", "Transparent");
+			material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
+			material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+			material.SetInt("_ZWrite", 0);
+			material.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+			material.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
 		}
 
 		/// <summary>

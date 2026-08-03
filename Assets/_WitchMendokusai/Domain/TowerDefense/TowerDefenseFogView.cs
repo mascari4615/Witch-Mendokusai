@@ -53,7 +53,7 @@ namespace WitchMendokusai
 
 			Material material = TowerDefenseVisuals.CreateUnlit();
 			material.mainTexture = texture;
-			MakeTransparent(material);
+			TowerDefenseVisuals.MakeTransparent(material);
 			fogRenderer.sharedMaterial = material;
 			fogRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
 			fogRenderer.receiveShadows = false;
@@ -89,15 +89,5 @@ namespace WitchMendokusai
 		private static readonly Color32 ExploredColor = new Color32(3, 4, 8, 205);
 		private static readonly Color32 ClearColor = new Color32(0, 0, 0, 0);
 
-		private static void MakeTransparent(Material material)
-		{
-			material.SetFloat("_Surface", 1f);
-			material.SetOverrideTag("RenderType", "Transparent");
-			material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
-			material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
-			material.SetInt("_ZWrite", 0);
-			material.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
-			material.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent + 10;
-		}
 	}
 }
