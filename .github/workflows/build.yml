@@ -1,0 +1,219 @@
+name: Build (Windows / laptop)
+
+# TASK-WM-195 — 노트북 빌드머신.
+# 데스크톱에서 빌드를 돌리면 작업이 막히고 성능을 다 먹으므로, 플레이어 빌드는
+# 노트북 self-hosted runner 에서 돈다.
+#
+# runner = `karmo-laptop-wm` (labels: self-hosted, unity, windows-build).
+#   노트북의 masca *사용자 세션* 에서 Scheduled Task `wm-build-runner` 로 상시 구동.
+#   ★ LocalSystem 서비스로 돌리면 안 된다 — Unity 라이선스는 붙지만 Package Manager
+#     IPC 가 session-0 에서 죽어서(`Failed to start the Unity Package Manager local
+#     server process`) 배치 빌드가 종료코드 1 로 실패한다. 실측 확인함.
+#
+# 산출물은 기본적으로 *노트북에 남는다* (C:\wm-builds\<run>\). 수 GB 짜리 zip 을 매번
+# 가정용 회선으로 GitHub 에 올리는 건 낭비라, 업로드는 publish 입력으로 명시할 때만.
+
+on:
+  workflow_dispatch:
+    inputs:
+      build_type:
+        description: '빌드 종류'
+        type: choice
+        options: [release, development]
+        default: release
+      publish:
+        description: '산출물 처리 (none=노트북에만 / artifact=GitHub Actions 아티팩트 업로드)'
+        type: choice
+        options: [none, artifact]
+        default: none
+      version:
+        description: 'bundleVersion 덮어쓰기 (비우면 ProjectSettings 값 유지)'
+        type: string
+        default: ''
+  push:
+    tags:
+      - 'v[0-9]*'
+
+concurrency:
+  group: wm-build
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: [self-hosted, unity, windows-build]
+    timeout-minutes: 240
+
+    env:
+      BUILD_ROOT: 'C:\wm-builds'
+
+    steps:
+      - name: Checkout (Library 캐시 보존 — clean:false)
+        uses: actions/checkout@v6
+        with:
+          # Library/ 를 지우면 매 빌드가 전체 임포트(수십 분)로 돌아간다. 반드시 false.
+          clean: false
+          fetch-depth: 1
+
+      - name: Resolve Unity editor
+        id: unity
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $line = Get-Content 'ProjectSettings/ProjectVersion.txt' | Where-Object { $_ -like 'm_EditorVersion:*' } | Select-Object -First 1
+          $version = ($line -split ':\s*', 2)[1].Trim()
+          $exe = "C:\Program Files\Unity\Hub\Editor\$version\Editor\Unity.exe"
+          if (-not (Test-Path $exe)) {
+            $installed = (Get-ChildItem 'C:\Program Files\Unity\Hub\Editor' -ErrorAction SilentlyContinue).Name -join ', '
+            throw "Unity $version 이 노트북에 없다. 설치된 버전: [$installed]. Unity Hub 로 $version 설치 필요."
+          }
+          "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "exe=$exe"         | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          Write-Host "Unity $version → $exe"
+
+      - name: Build player (batchmode)
+        id: build
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $stamp   = Get-Date -Format 'yyyyMMdd-HHmmss'
+          $outDir  = Join-Path $env:BUILD_ROOT "$stamp-$env:GITHUB_RUN_NUMBER"
+          $outExe  = Join-Path $outDir 'WitchMendokusai.exe'
+          $report  = Join-Path $outDir 'build-report.json'
+          $unityLog = Join-Path $outDir 'unity-build.log'
+          New-Item -ItemType Directory -Force -Path $outDir | Out-Null
+
+          $arguments = @(
+            '-quit', '-batchmode', '-nographics',
+            '-projectPath', $PWD.Path,
+            '-logFile', $unityLog,
+            '-executeMethod', 'WitchMendokusai.EditorTools.WMBuilder.BuildFromCLI',
+            '-wmOut', $outExe,
+            '-wmReport', $report
+          )
+          if ('${{ inputs.build_type }}' -eq 'development') { $arguments += '-wmDev' }
+
+          # tag push = 태그 이름이 곧 버전. 수동 실행은 version 입력이 있을 때만 덮어쓴다.
+          $version = '${{ inputs.version }}'
+          if ($env:GITHUB_REF_TYPE -eq 'tag') { $version = $env:GITHUB_REF_NAME -replace '^v', '' }
+          if (-not [string]::IsNullOrWhiteSpace($version)) { $arguments += @('-wmVersion', $version) }
+
+          Write-Host "Unity args: $($arguments -join ' ')"
+          $process = Start-Process -FilePath '${{ steps.unity.outputs.exe }}' -ArgumentList $arguments -PassThru -Wait -WindowStyle Hidden
+          $exitCode = $process.ExitCode
+          Write-Host "Unity exit=$exitCode"
+
+          "out_dir=$outDir"   | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "report=$report"    | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "unity_log=$unityLog" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+
+          if (Test-Path $report) {
+            Write-Host '--- build report ---'
+            Get-Content $report | Write-Host
+          }
+          if ($exitCode -ne 0) {
+            Write-Host '--- unity log (tail 120) ---'
+            if (Test-Path $unityLog) { Get-Content $unityLog -Tail 120 | Write-Host }
+            throw "Unity 빌드 실패 (exit=$exitCode). 전체 로그: $unityLog"
+          }
+
+      - name: Summarize
+        if: always()
+        shell: powershell
+        run: |
+          $report = '${{ steps.build.outputs.report }}'
+          $lines = @()
+          if ($report -and (Test-Path $report)) {
+            $json = Get-Content $report -Raw | ConvertFrom-Json
+            $sizeMb = [Math]::Round($json.exeSizeBytes / 1MB, 1)
+            $totalMb = [Math]::Round($json.totalSizeBytes / 1MB, 1)
+            $lines += "## 빌드 결과: $($json.result)"
+            $lines += ''
+            $lines += "| 항목 | 값 |"
+            $lines += "| --- | --- |"
+            $lines += "| 버전 | $($json.version) |"
+            $lines += "| 개발 빌드 | $($json.development) |"
+            $lines += "| 전체 크기 | $totalMb MB |"
+            $lines += "| exe 크기 | $sizeMb MB |"
+            $lines += "| 소요 | $([Math]::Round($json.totalSeconds, 1)) 초 |"
+            $lines += "| 에러/경고 | $($json.errors) / $($json.warnings) |"
+            $lines += "| 노트북 경로 | ``$($json.outPath)`` |"
+          } else {
+            $lines += '## 빌드 결과: 리포트 없음 (Unity 가 리포트 쓰기 전에 죽었다)'
+            $lines += "노트북 로그: ``${{ steps.build.outputs.unity_log }}``"
+          }
+          $lines -join "`n" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+
+      - name: Zip
+        if: ${{ success() && (inputs.publish == 'artifact' || github.ref_type == 'tag') }}
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $outDir = '${{ steps.build.outputs.out_dir }}'
+          $zip = Join-Path $outDir 'WitchMendokusai-windows.zip'
+          Compress-Archive -Path (Join-Path $outDir '*') -DestinationPath $zip -Force
+          "zip=$zip" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          Write-Host "zip → $zip ($([Math]::Round((Get-Item $zip).Length / 1MB, 1)) MB)"
+        id: zip
+
+      - name: Upload artifact
+        if: ${{ success() && inputs.publish == 'artifact' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: WitchMendokusai-windows-${{ github.run_number }}
+          path: ${{ steps.zip.outputs.zip }}
+          retention-days: 14
+
+      # tag 로 찍은 릴리스는 바이너리가 붙어야 릴리스다. release.yml 이 만든 Release 에 zip 첨부.
+      - name: Attach zip to GitHub Release (tag 빌드)
+        if: ${{ success() && github.ref_type == 'tag' }}
+        shell: powershell
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          $zip = '${{ steps.zip.outputs.zip }}'
+          $asset = "WitchMendokusai-${{ github.ref_name }}-windows.zip"
+          Copy-Item $zip (Join-Path (Split-Path $zip) $asset) -Force
+          gh release upload '${{ github.ref_name }}' (Join-Path (Split-Path $zip) $asset) --clobber
+          if ($LASTEXITCODE -ne 0) { throw "release upload 실패 (exit=$LASTEXITCODE)" }
+
+      - name: Notify Discord (yawnbot 경유)
+        if: always()
+        shell: powershell
+        run: |
+          # 노트북 안에서 도는 runner 이므로 laptop-ops 를 localhost 로 부른다 (터널 불필요).
+          $tokenPath = 'C:\Users\masca\.laptop-ops-token'
+          if (-not (Test-Path $tokenPath)) { Write-Warning 'laptop-ops 토큰 없음 — 알림 skip'; exit 0 }
+          $token = (Get-Content $tokenPath -Raw).Trim()
+
+          $ok = '${{ job.status }}' -eq 'success'
+          $icon = if ($ok) { '🟢' } else { '🔴' }
+          $detail = ''
+          $report = '${{ steps.build.outputs.report }}'
+          if ($report -and (Test-Path $report)) {
+            $json = Get-Content $report -Raw | ConvertFrom-Json
+            $totalMb = [Math]::Round($json.totalSizeBytes / 1MB, 1)
+            $detail = " · v$($json.version) · $totalMb MB · $([Math]::Round($json.totalSeconds,1))s"
+          }
+          $text = "$icon WM 빌드 ${{ job.status }}$detail`n노트북 경로: ${{ steps.build.outputs.out_dir }}`n실행: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+
+          try {
+            $body = @{ text = $text } | ConvertTo-Json -Compress
+            $response = Invoke-RestMethod -Uri 'http://127.0.0.1:47615/notify' -Method Post -Headers @{ Authorization = "Bearer $token" } -ContentType 'application/json' -Body $body -TimeoutSec 20
+            Write-Host "notify ok=$($response.ok) status=$($response.status)"
+          } catch {
+            # 알림 실패가 빌드 성패를 뒤집지 않는다.
+            Write-Warning "Discord 알림 실패: $($_.Exception.Message)"
+          }
+
+      - name: Prune old builds (최근 5개만 보관)
+        if: always()
+        shell: powershell
+        run: |
+          $keep = 5
+          $dirs = Get-ChildItem $env:BUILD_ROOT -Directory -ErrorAction SilentlyContinue | Sort-Object CreationTime -Descending
+          if ($dirs.Count -gt $keep) {
+            $dirs | Select-Object -Skip $keep | ForEach-Object {
+              Write-Host "prune $($_.FullName)"
+              Remove-Item $_.FullName -Recurse -Force -ErrorAction SilentlyContinue
+            }
+          }
