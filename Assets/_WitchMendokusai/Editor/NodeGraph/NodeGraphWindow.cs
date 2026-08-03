@@ -29,11 +29,9 @@ namespace WitchMendokusai.NodeGraph
 		}
 
 		[OnOpenAsset]
-		public static bool OnOpenAsset(int instanceID, int line)
+		public static bool OnOpenAsset(EntityId entityId, int line)
 		{
-#pragma warning disable CS0618 // InstanceIDToObject deprecated; EntityIdToObject는 DOTS 전용으로 부적절
-			Object obj = EditorUtility.InstanceIDToObject(instanceID);
-#pragma warning restore CS0618
+			Object obj = EditorUtility.EntityIdToObject(entityId);
 			if (obj is NodeGraph nodeGraph)
 			{
 				Open(nodeGraph);
