@@ -329,9 +329,7 @@ namespace WitchMendokusai
 			PeakEnemies = 0;
 			LeakedCount = 0;
 			windowGrowing = false;
-			generators.Clear();
-			powerConsumerTransforms.Clear();
-			poweredConsumers.Clear();
+			powerGrid.Clear();
 			enemyStillness.Clear();
 
 			yield return SpawnCoreRoutine();
@@ -558,7 +556,7 @@ namespace WitchMendokusai
 			TowerDefenseTrap trap = trapObject.AddComponent<TowerDefenseTrap>();
 			// ★ 함정도 전기를 먹는다 — 벽·함정만 체계 밖에 있으면 「전기가 부족하면 방어가 선다」는 규칙이
 			//   반쪽이 된다. 전기가 끊긴 함정은 밟혀도 안 터진다.
-			powerConsumerTransforms.Add(trapObject.transform);
+			powerGrid.AddConsumer(trapObject.transform);
 
 			trap.Configure(waveEnemies, Mathf.RoundToInt(stage.TrapDamage * boons.TrapPowerMultiplier), stage.TrapCharges, stage.TrapRadius,
 				spent =>
@@ -1953,80 +1951,24 @@ namespace WitchMendokusai
 
 
 		// ── 전기 ─────────────────────────────────────────────────────────────────
-		// ★ 보급과 다른 층이다: 보급은 *코어까지 이어졌나*(사슬), 전기는 *덮였나 + 용량이 남았나*(범위+총량).
-		//   둘을 합치면 「넓힌다」의 대가가 한 종류로 뭉개진다. 코어가 처음부터 얼마간 대주므로 초반엔
-		//   그 안에서 몇 기를 돌리고, 더 늘리려면 발전 인형을 먼저 깔아야 한다.
-		private readonly List<TowerDefensePower.Source> powerSources = new();
-		private readonly List<TowerDefensePower.Consumer> powerConsumers = new();
-		private readonly List<Transform> powerConsumerTransforms = new();
-		private readonly HashSet<int> poweredConsumers = new();
-		private readonly List<Transform> generators = new();
+		// 이 층은 통째로 떨어져 나갔다 — 매치가 4000줄이 넘어 「한 덩어리가 너무 많은 걸 아는」 병이
+		// 실제 결함으로 몇 번 나왔다. 여기 남는 것은 *물어보고 넘겨주는 일*뿐이다.
+		private readonly TowerDefensePowerGrid powerGrid = new();
 
 		/// <summary> 전체 전기 용량 / 요구 — 화면이 「얼마나 모자라나」를 말한다. </summary>
-		public int PowerCapacity { get; private set; }
-		public int PowerDemand { get; private set; }
+		public int PowerCapacity => powerGrid.Capacity;
+		public int PowerDemand => powerGrid.Demand;
 
 		/// <summary> 전기를 못 받아 멈춘 건물 수. </summary>
-		public int UnpoweredBuildings { get; private set; }
+		public int UnpoweredBuildings => powerGrid.UnpoweredBuildings;
 
 		private void RefreshPower()
 		{
-			if (stage == null || stage.CorePowerCapacity <= 0 || coreCombatant == null)
+			if (coreCombatant == null)
 				return;
 
-			powerSources.Clear();
-			powerSources.Add(new TowerDefensePower.Source(
-				coreCombatant.Position, stage.CorePowerRadius, stage.CorePowerCapacity + bonusPowerCapacity));
-			for (int index = generators.Count - 1; index >= 0; index--)
-			{
-				if (generators[index] == null)
-				{
-					generators.RemoveAt(index);
-					continue;
-				}
-				powerSources.Add(new TowerDefensePower.Source(
-					generators[index].position, stage.GeneratorRadius, stage.GeneratorCapacity));
-			}
-
-			powerConsumers.Clear();
-			for (int index = powerConsumerTransforms.Count - 1; index >= 0; index--)
-			{
-				if (powerConsumerTransforms[index] == null)
-					powerConsumerTransforms.RemoveAt(index);
-			}
-			foreach (Transform consumer in powerConsumerTransforms)
-			{
-				int demand = harvesterTransforms.Contains(consumer)
-					? stage.HarvesterPowerDemand
-					: stage.TowerPowerDemand;
-				powerConsumers.Add(new TowerDefensePower.Consumer(consumer.position, demand));
-			}
-
-			TowerDefensePower.Compute(powerSources, powerConsumers, poweredConsumers);
-
-			PowerCapacity = TowerDefensePower.TotalCapacity(powerSources);
-			PowerDemand = TowerDefensePower.TotalDemand(powerConsumers);
-			UnpoweredBuildings = powerConsumers.Count - poweredConsumers.Count;
-
-			// 전기를 못 받으면 *멈춘다* — 포탑은 쏘지 않고, 이름표가 그 사실을 말한다.
-			for (int index = 0; index < powerConsumerTransforms.Count; index++)
-			{
-				Transform consumer = powerConsumerTransforms[index];
-				bool hasPower = poweredConsumers.Contains(index);
-
-				TowerDefenseWeapon weapon = consumer.GetComponent<TowerDefenseWeapon>();
-				if (weapon != null && weapon.enabled != hasPower)
-					weapon.enabled = hasPower;
-
-				// 함정도 같은 규칙 — 전기가 끊기면 밟혀도 안 터진다.
-				TowerDefenseTrap trap = consumer.GetComponent<TowerDefenseTrap>();
-				if (trap != null && trap.enabled != hasPower)
-					trap.enabled = hasPower;
-
-				TowerDefenseDollLabel label = FindDollLabel(consumer);
-				if (label != null)
-					label.Unpowered = hasPower == false;
-			}
+			powerGrid.Refresh(stage, coreCombatant.Position, bonusPowerCapacity,
+				harvesterTransforms.Contains, FindDollLabel);
 		}
 
 		/// <summary>
@@ -2573,8 +2515,7 @@ namespace WitchMendokusai
 			if (stage == null || stage.CorePowerCapacity <= 0)
 				return true;
 
-			int index = powerConsumerTransforms.IndexOf(building);
-			return index < 0 || poweredConsumers.Contains(index);
+			return powerGrid.IsPowered(building);
 		}
 
 		/// <summary>
@@ -3776,7 +3717,7 @@ namespace WitchMendokusai
 			// ★ 발전 인형 — 무기도 없고 채집도 아니다. 이걸 안 갈라내면 아래 「연구」로 흘러들어가
 			//   *발전기를 팔았는데 연구 단계가 깎이는*(= 모든 포탑이 약해지는) 무음 손해가 난다.
 			//   전기가 끊기는 것은 팔았으니 당연하지만, 연구가 깎이는 건 아무도 시키지 않은 일이다.
-			if (generators.Remove(sold.transform))
+			if (powerGrid.RemoveGenerator(sold.transform))
 			{
 				RefreshPower(); // 공급원이 사라졌으니 누가 멈추는지 즉시 다시 계산한다.
 				return stage.GeneratorCost;
@@ -3820,7 +3761,7 @@ namespace WitchMendokusai
 			supplyTransforms.Remove(sold.transform);
 			// 판 것은 더 이상 전기를 먹지 않는다 — 안 지우면 없는 건물이 계속 전력을 물고 있어
 			// 「분명 발전기를 지었는데 왜 모자라지」가 된다(무음 누수).
-			powerConsumerTransforms.Remove(sold.transform);
+			powerGrid.RemoveConsumer(sold.transform);
 			harvesterIsOuter.Remove(sold.transform);
 			ReleaseUnit(pool, sold);
 			spawnedUnits.Remove(sold);
@@ -4041,11 +3982,11 @@ namespace WitchMendokusai
 			supplyTransforms.Add(unitGameObject.transform);
 
 			if (isGenerator)
-				generators.Add(unitGameObject.transform);
+				powerGrid.AddGenerator(unitGameObject.transform);
 
 			// 포탑·채집은 전기를 먹는다(연구·발전은 안 먹는다 — 발전이 전기를 먹으면 자기 꼬리를 문다).
 			if (isLab == false && isGenerator == false)
-				powerConsumerTransforms.Add(unitGameObject.transform);
+				powerGrid.AddConsumer(unitGameObject.transform);
 
 			if (isHarvester)
 			{
