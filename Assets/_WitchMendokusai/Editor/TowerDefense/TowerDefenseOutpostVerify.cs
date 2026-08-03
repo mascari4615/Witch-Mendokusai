@@ -54,12 +54,18 @@ namespace WitchMendokusai.EditorTools
 				: " OUTPOST-FAIL 한 기도 못 세움 — 콘솔의 거절 사유 확인"));
 
 			// 이제 바깥 노드에 채집을 세운다 — 전초기지가 새 보급 원점이 됐으므로 닿아야 한다.
-			IReadOnlyList<Vector3> nodes = match.ActiveResourceNodePositions;
+			// ★ *먼* 노드부터 잡는다 — 가까운 것부터 잡으면 안쪽만 채워져 「바깥 채집」이 영영 0 이 되고,
+			//   확인하려던 바로 그것(바깥에서 정수가 나는가)이 확인되지 않는다(지난 실행이 그랬다).
+			List<Vector3> byDistance = new(match.ActiveResourceNodePositions);
+			Vector3 coreLocal = match.StageRoot.InverseTransformPoint(core);
+			byDistance.Sort((left, right) =>
+				(right - coreLocal).sqrMagnitude.CompareTo((left - coreLocal).sqrMagnitude));
+
 			int harvestersBefore = match.HarvesterCount;
 			int tried = 0;
-			foreach (Vector3 local in nodes)
+			foreach (Vector3 local in byDistance)
 			{
-				if (tried >= 12)
+				if (tried >= 20)
 					break;
 				tried++;
 				match.TryPlaceHarvester(match.StageRoot.TransformPoint(local));
