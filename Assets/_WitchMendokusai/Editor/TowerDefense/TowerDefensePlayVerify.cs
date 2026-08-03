@@ -309,6 +309,8 @@ namespace WitchMendokusai.EditorTools
 					VerifyLab();
 					VerifyWaveEvents();
 					VerifySupply();
+					// 씨앗 공유는 새 판에서만 확인된다 — 재시작이 그 새 판이므로 여기서 걸어둔다.
+					ArmSeedShareCheck();
 					step = placeOnly ? Step.SelectedLayout : Step.Restart;
 					selectedLayoutAt = now;
 					return;
@@ -363,6 +365,8 @@ namespace WitchMendokusai.EditorTools
 					if (now - restartAt < 1.5)
 						return;
 					DumpPlacedUnits("재시작 후 배치");
+					// ★ 씨앗 공유는 *새 판*에서만 확인된다 — 이어하기는 저장이 씨앗을 정하므로.
+					VerifySeedShare();
 					defendedStart = now;
 					defendedLastResource = match != null ? match.Resource : -1;
 					killIncomeEvents = 0;
@@ -1746,6 +1750,39 @@ namespace WitchMendokusai.EditorTools
 
 			controller.Hud.ShowUnitTooltip("확인용 설명 · 두 줄짜리",
 				new Vector2(Screen.width * 0.9f, Screen.height * 0.15f));
+		}
+
+		// 남이 건넨 씨앗처럼 쓸 숫자 — 이 값으로 연 판이 정말 그 땅인지 본다.
+		private const int SHARED_SEED = 20260803;
+		private static bool seedShareArmed;
+
+		/// <summary> 다음 판에 「남이 준 씨앗」을 걸어둔다. </summary>
+		private static void ArmSeedShareCheck()
+		{
+			if (match == null)
+				return;
+
+			match.SetNextMatchSeed(SHARED_SEED);
+			seedShareArmed = true;
+		}
+
+		/// <summary>
+		/// 씨앗 공유 — 건넨 숫자로 연 판이 정말 그 땅인가.
+		/// ★ 저장(이어하기)이 씨앗을 덮어쓸 수 있다 — 그러면 「공유」가 조용히 「이어하기」가 된다.
+		///   그 경우는 실패가 아니라 *확인 못 함*이다(둘 다 씨앗을 정하는 정당한 주인이다).
+		/// </summary>
+		private static void VerifySeedShare()
+		{
+			if (seedShareArmed == false || match == null)
+				return;
+
+			seedShareArmed = false;
+			string verdict = TAG + " SEED-SHARE 건넨씨앗=" + SHARED_SEED + " 열린판=" + match.MapSeed;
+
+			if (match.MapSeed == SHARED_SEED)
+				Debug.Log(verdict + " → 건넨 씨앗으로 같은 땅이 열린다 ✔");
+			else
+				Debug.Log(verdict + " → 이어하기가 씨앗을 정했다(저장이 우선) — 공유는 확인 못 함");
 		}
 
 		/// <summary>

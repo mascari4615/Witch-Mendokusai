@@ -396,6 +396,15 @@ namespace WitchMendokusai
 			if (stage.RandomizeSeedEachMatch)
 				parameters.Seed = UnityEngine.Random.Range(int.MinValue, int.MaxValue);
 
+			// ★ 지정된 씨앗이 있으면 그 판을 그대로 다시 만든다 — 「이 씨앗 해봐」가 성립하는 자리.
+			//   판 전체가 씨앗 하나에서 태어나므로, 판을 나누는 데 드는 것이 숫자 한 줄뿐이다.
+			//   한 번 쓰면 지운다(다음 판까지 계속 같은 땅이면 그건 고정이지 공유가 아니다).
+			if (nextMatchSeed.HasValue)
+			{
+				parameters.Seed = nextMatchSeed.Value;
+				nextMatchSeed = null;
+			}
+
 			// 이어하기면 그 판의 씨앗을 그대로 쓴다 — 같은 땅이 다시 나와야 내 건물이 제자리에 선다.
 			destroyedNestPositions.Clear();
 			if (pendingRestore != null)
@@ -2422,7 +2431,9 @@ namespace WitchMendokusai
 		public string BuildSummary()
 		{
 			string newline = System.Environment.NewLine;
-			return "지음 " + BuiltCount + "  ·  잃음 " + LostCount + newline
+			// 씨앗을 적어둔다 — 끝난 직후가 「이 판 해봐」를 건네기 가장 자연스러운 순간이다.
+			return "씨앗 " + MapSeed + newline
+				+ "지음 " + BuiltCount + "  ·  잃음 " + LostCount + newline
 				+ "잡음 " + KilledCount + "  ·  샌 마수 " + LeakedCount + newline
 				+ "한때 " + PeakEnemies + "마리까지  ·  마수 강도 x" + Pressure.ToString("0.0");
 		}
@@ -2787,6 +2798,17 @@ namespace WitchMendokusai
 
 		/// <summary> 이번 판의 씨앗 — 같은 값이면 같은 판이 나온다(재현·신고용). 고정 판이면 0. </summary>
 		public int MapSeed => mapLayout != null ? mapLayout.Seed : 0;
+
+		private int? nextMatchSeed;
+
+		/// <summary>
+		/// 다음 판에 쓸 씨앗을 지정한다 — 남이 준 씨앗으로 *같은 땅*을 여는 유일한 문.
+		/// 다음 판 하나에만 걸린다(계속 걸리면 그건 공유가 아니라 고정이다).
+		/// </summary>
+		public void SetNextMatchSeed(int seed)
+		{
+			nextMatchSeed = seed;
+		}
 
 		/// <summary> 이번 판의 암반 칸 수 — 0 이면 지형 없는 빈 판. </summary>
 		public int ObstacleCount => mapLayout != null ? mapLayout.ObstacleCells.Count : 0;

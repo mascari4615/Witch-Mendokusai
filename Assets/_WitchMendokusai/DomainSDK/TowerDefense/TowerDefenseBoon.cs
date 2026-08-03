@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System;
 using System.Collections.Generic;
 
@@ -183,20 +183,41 @@ namespace WitchMendokusai
 		/// <summary> 마수 속도 — 절반 아래로는 안 내려간다(멈춘 적은 적이 아니다). </summary>
 		public float EnemySpeedMultiplier => Mathf.Max(0.5f, 1f - enemySlow);
 
-		/// <summary> 지금 쌓인 것을 한 줄로 — 판 도중에 「내가 뭘 골랐더라」가 화면에 없으면 선택이 기억에 안 남는다. </summary>
+		/// <summary>
+		/// 지금까지 고른 것이 판에 무엇을 남겼는지 한 줄 — 화면이 이걸 그대로 읽는다.
+		///
+		/// ★ 예전엔 열넷 중 *셋*(피해·정산·보상)만 말했다. 나머지를 고르면 화면이 침묵해서
+		///   「방금 뭘 골랐는데 아무 일도 안 일어난 것 같다」가 됐다(라이브 실측: 한 장 골랐는데 요약이 빈칸).
+		///   쌓이는 것은 전부 말한다.
+		/// ★ 즉시 효과(목숨·정수·자원 같은 것)는 쌓이는 수치가 없어 여기 남길 것이 없다 —
+		///   그래서 *장수*를 앞에 둔다. 「N장 고름」이 있으면 화면이 최소한 거짓말은 안 한다.
+		/// </summary>
 		public string Describe()
 		{
 			if (TakenCount == 0)
 				return string.Empty;
 
-			string text = string.Empty;
-			if (firepower > 0f)
-				text += "피해 +" + (int)(firepower * 100f) + "% ";
-			if (income > 0f)
-				text += "정산 +" + (int)(income * 100f) + "% ";
-			if (bounty > 0f)
-				text += "보상 +" + (int)(bounty * 100f) + "%";
-			return text.Trim();
+			string text = TakenCount + "장";
+			text += Percent("피해", firepower);
+			text += Percent("정산", income);
+			text += Percent("보상", bounty);
+			text += Percent("정수", essenceRate);
+			text += Percent("보급", supplyReach);
+			text += Percent("시야", vision);
+			text += Percent("경험", experience);
+			text += Percent("채집", harvestYield);
+			text += Percent("함정", trapPower);
+			text += Percent("둥지", nestDamage);
+			text += Percent("마수보상", enemyReward);
+			text += Percent("건설값↓", buildDiscount);
+			text += Percent("연구값↓", researchDiscount);
+			text += Percent("마수둔화", enemySlow);
+			return text;
+		}
+
+		private static string Percent(string label, float ratio)
+		{
+			return ratio > 0f ? "  ·  " + label + " +" + (int)(ratio * 100f) + "%" : string.Empty;
 		}
 
 		public void Reset()
