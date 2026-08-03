@@ -94,7 +94,7 @@ namespace WitchMendokusai
 			foreach (Transform outpost in match.Outposts)
 			{
 				if (outpost != null)
-					PlaceDot(match, outpost.position, stage.OutpostTint, 6f);
+					PlaceDot(match, outpost.position, stage.OutpostTint, 6f, square: true);
 			}
 
 			// 내 인형들 — 이름표가 있는 것이 곧 내가 세운 것이다(같은 목록을 쓰니 화면과 안 갈라진다).
@@ -166,7 +166,12 @@ namespace WitchMendokusai
 			viewRect.style.top = (1f - center.y) * SIZE - length * 0.5f;
 		}
 
-		private void PlaceDot(TowerDefenseMatch match, Vector3 worldPosition, Color color, float size)
+		/// <summary>
+		/// 점 하나 — 색만으로 갈리면 색약인 사람에게는 전부 같은 점이다(개선 목록 16번).
+		/// 그래서 *모양*도 같이 갈린다: 둥근 것은 살아 있는 것, 네모난 것은 지어둔 것,
+		/// 큰 것은 지켜야 할 것/부술 것.
+		/// </summary>
+		private void PlaceDot(TowerDefenseMatch match, Vector3 worldPosition, Color color, float size, bool square = false)
 		{
 			Vector2 normalized = ToNormalized(match, worldPosition);
 			if (normalized.x < 0f || normalized.x > 1f || normalized.y < 0f || normalized.y > 1f)
@@ -177,7 +182,7 @@ namespace WitchMendokusai
 			dot.style.width = size;
 			dot.style.height = size;
 			dot.style.backgroundColor = color;
-			int radius = Mathf.RoundToInt(size * 0.5f);
+			int radius = square ? 0 : Mathf.RoundToInt(size * 0.5f);
 			dot.style.borderTopLeftRadius = radius;
 			dot.style.borderTopRightRadius = radius;
 			dot.style.borderBottomLeftRadius = radius;

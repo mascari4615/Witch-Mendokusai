@@ -1232,18 +1232,18 @@ namespace WitchMendokusai
 
 			bool preparing = match.Phase == TowerDefensePhase.Prepare;
 
-			phaseValue.text = match.Phase switch
-			{
-				// 수동 진행은 남은 시간이 없다 — 시계를 보여주면 곧 시작될 것처럼 읽혀 거짓말이 된다.
-				// 첫 웨이브는 사람이 부를 때까지 안 온다 — 시계를 보여주면 곧 시작될 것처럼 읽혀 거짓말이 된다.
-				TowerDefensePhase.Prepare when match.IsWaitingForFirstCall =>
-					"주위를 둘러보고, 준비되면 「다음 웨이브」",
-				TowerDefensePhase.Prepare when match.AutoAdvanceWaves == false =>
-					match.IsNextWaveRequested ? "호출됨" : "건설 중 (대기)",
-				TowerDefensePhase.Prepare => "건설 " + Mathf.CeilToInt(match.PrepareRemaining) + "초",
-				TowerDefensePhase.Assault => "방어 중",
-				_ => "종료",
-			};
+			// ★ 실시간에는 「국면」이 없다 — 이 자리가 말해야 할 것은 *지금 판이 어떤 상태인가*다.
+			//   압력(시간이 올린 마수 강도)과 적응(내가 한 수단에 기댄 결과)은 판을 바꾸는데도 화면 어디에도
+			//   안 나와 있었다 — 안 보이는 규칙은 없는 규칙이다(개선 목록 23번).
+			string pressureText = "마수 강도 x" + match.Pressure.ToString("0.0");
+			string adaptationText = TowerDefenseAdaptation.Describe(match.Adaptation);
+			string heroText = match.HeroRespawnIn > 0f
+				? "  ·  영웅 " + Mathf.CeilToInt(match.HeroRespawnIn) + "초 뒤 복귀"
+				: string.Empty;
+
+			phaseValue.text = pressureText
+				+ (string.IsNullOrEmpty(adaptationText) ? string.Empty : "  ·  " + adaptationText)
+				+ heroText;
 
 			enemyValue.text = match.Phase == TowerDefensePhase.Assault
 				? match.AliveEnemyCount.ToString()
