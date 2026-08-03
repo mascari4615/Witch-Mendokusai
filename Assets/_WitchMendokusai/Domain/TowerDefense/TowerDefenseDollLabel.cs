@@ -44,6 +44,15 @@ namespace WitchMendokusai
 		/// <summary> 채집인가 — 레벨업 선택지가 갈린다. </summary>
 		public bool IsHarvester { get; set; }
 
+		/// <summary>
+		/// 사람이 세운 것인가 — 영웅처럼 판이 스스로 만드는 인형과 가른다.
+		/// ★ 저장이 이 표를 안 보면 영웅까지 건물로 적어, 이어할 때마다 유령 포탑이 한 채씩 는다.
+		/// </summary>
+		public bool IsPlacedBuilding { get; set; }
+
+		/// <summary> 무슨 종류로 세웠나(포탑 칸 번호) — 안 적으면 이어할 때 전부 기본형이 된다. </summary>
+		public int Variant { get; set; }
+
 		public TowerDefenseDollLabel(Transform anchor, string name, Color tint)
 		{
 			Anchor = anchor;

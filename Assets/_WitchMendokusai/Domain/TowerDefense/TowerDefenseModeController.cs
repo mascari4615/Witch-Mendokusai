@@ -385,6 +385,16 @@ namespace WitchMendokusai
 				// 이미 처리한다. 여기서는 **무대가 아는 것**(시점 위치·경계·줌 범위)만 맞춘다.
 				ResetCamera();
 				inputManager.SetInputStrategy(new InputStrategyTowerDefense(placement, inputManager, match));
+
+				// ★ 나갈 때 저장해 두고 *아무도 읽지 않던* 것을 여기서 읽는다 — 저장만 하고 이어하기가 없으면
+				//   「잠깐 접어둔다」가 그냥 「버린다」였다. 씨앗까지 넘겨야 같은 땅이 다시 나오므로 Begin 직전.
+				if (DataManager.TryGetExistingInstance(out DataManager resumeOwner)
+					&& resumeOwner.TowerDefenseResume != null
+					&& resumeOwner.TowerDefenseResume.IsResumable)
+				{
+					match.RestoreSave(resumeOwner.TowerDefenseResume);
+				}
+
 				match.Begin(stage, stageRoot);
 				placement.Activate();
 				TowerDefenseHudView view = EnsureHud();

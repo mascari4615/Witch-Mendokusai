@@ -59,11 +59,15 @@ namespace WitchMendokusai.EditorTools
 			Observe = 8,
 			ObserveDefended = 15,
 			SelectedLayout = 16,
+			ResumeEnter = 17,
+			ResumeCheck = 18,
 		}
 
 		private static Step step;
 		// 선택 클릭 시각 — 패널이 열릴 한 틱을 기다리는 기준.
 		private static double selectedLayoutAt;
+		// 모드 이탈·재진입 시각 — 부팅이 끝날 시간을 준다.
+		private static double resumeAt;
 		private static double playStart;
 		private static double readyAt;
 		private static double observeStart;
@@ -311,6 +315,28 @@ namespace WitchMendokusai.EditorTools
 					if (now - selectedLayoutAt < 0.3)
 						return;
 					VerifyHudLayout("건물 선택 중");
+					CaptureResumeSnapshot();
+					if (GameModeManager.TryGetExistingInstance(out GameModeManager exitManager))
+						exitManager.SetMode(GameMode.Default);
+					resumeAt = now;
+					step = Step.ResumeEnter;
+					return;
+
+				// ★ 「잠깐 접어둔다」가 진짜인지 — 나갔다 들어와서 그 판이 그대로 있는지 본다.
+				//   이게 없으면 저장은 *써지기만 하고 아무도 안 읽는* 상태로도 통과한다(실제로 그랬다).
+				case Step.ResumeEnter:
+					if (now - resumeAt < 1.5)
+						return;
+					if (GameModeManager.TryGetExistingInstance(out GameModeManager enterManager))
+						enterManager.SetMode(GameMode.TowerDefense);
+					resumeAt = now;
+					step = Step.ResumeCheck;
+					return;
+
+				case Step.ResumeCheck:
+					if (now - resumeAt < 4.0)
+						return;
+					VerifyResume();
 					Debug.Log(TAG + " PLACE-ONLY 배치 확인 끝 — 조기 종료");
 					Finish();
 					return;
@@ -1634,6 +1660,58 @@ namespace WitchMendokusai.EditorTools
 		///   (이 작업에서 「UI 겹침 확인」이 계속 뒤로 밀린 이유). 사각형이 겹치는지는 기계가 판정할 수 있다.
 		/// ★ 화면 밖으로 나간 것도 잡는다 — 겹치지만 않으면 되는 게 아니라 *보여야* 한다.
 		/// </summary>
+		// 나가기 직전의 판 — 들어와서 이것과 같아야 「이어했다」다.
+		private static int resumeSeed;
+		private static int resumeResource;
+		private static int resumeEssence;
+		private static int resumeBuildings;
+
+		private static void CaptureResumeSnapshot()
+		{
+			if (match == null)
+				return;
+
+			resumeSeed = match.MapSeed;
+			resumeResource = match.Resource;
+			resumeEssence = match.Essence;
+			resumeBuildings = match.DollLabels.Count;
+			Debug.Log(TAG + " RESUME-SNAPSHOT seed=" + resumeSeed + " 자원=" + resumeResource
+				+ " 정수=" + resumeEssence + " 건물=" + resumeBuildings);
+		}
+
+		/// <summary>
+		/// 이어하기 — 나갔다 들어온 판이 나가기 전과 같은가.
+		/// ★ 땅(씨앗)이 먼저다 — 건물 수만 맞고 땅이 다르면 내 건물이 엉뚱한 데 서 있는 것이다.
+		/// ★ 지갑도 본다 — 되살리며 값을 또 치르면 이어할 때마다 지갑이 깎인다(실제 결함이었다).
+		/// </summary>
+		private static void VerifyResume()
+		{
+			TowerDefenseMatch resumed = Object.FindAnyObjectByType<TowerDefenseMatch>();
+			if (resumed == null)
+			{
+				Debug.LogError(TAG + " RESUME-FAIL 재진입 후 매치가 없음");
+				return;
+			}
+
+			string verdict = TAG + " RESUME seed " + resumeSeed + "→" + resumed.MapSeed
+				+ " · 자원 " + resumeResource + "→" + resumed.Resource
+				+ " · 정수 " + resumeEssence + "→" + resumed.Essence
+				+ " · 건물 " + resumeBuildings + "→" + resumed.DollLabels.Count;
+
+			bool sameGround = resumed.MapSeed == resumeSeed;
+			bool sameWallet = resumed.Resource == resumeResource && resumed.Essence == resumeEssence;
+			// ★ 「그 이상」이면 통과시키면 안 된다 — 유령이 한 채씩 느는 결함이 정확히 그렇게 숨어 있었다.
+			bool sameBuildings = resumed.DollLabels.Count == resumeBuildings;
+
+			if (sameGround && sameWallet && sameBuildings)
+				Debug.Log(verdict + " → 나갔다 들어와도 그 판 그대로 ✔");
+			else
+				Debug.LogError(verdict + " → 이어하기가 판을 그대로 못 돌려준다"
+					+ (sameGround ? "" : " [땅이 다름]")
+					+ (sameWallet ? "" : " [지갑이 다름]")
+					+ (sameBuildings ? "" : " [건물이 빔]"));
+		}
+
 		/// <summary> 세워둔 건물을 실제로 골라 선택 패널을 띄운다(무장 해제 상태의 클릭 = 고르는 클릭). </summary>
 		private static void SelectPlacedBuildingForLayout()
 		{

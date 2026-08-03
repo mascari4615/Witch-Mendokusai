@@ -391,6 +391,17 @@ namespace WitchMendokusai
 			if (stage.RandomizeSeedEachMatch)
 				parameters.Seed = UnityEngine.Random.Range(int.MinValue, int.MaxValue);
 
+			// 이어하기면 그 판의 씨앗을 그대로 쓴다 — 같은 땅이 다시 나와야 내 건물이 제자리에 선다.
+			if (pendingRestore != null)
+			{
+				parameters.Seed = pendingRestore.MapSeed;
+				if (pendingRestore.MapWidth > 0 && pendingRestore.MapLength > 0)
+				{
+					parameters.Width = pendingRestore.MapWidth;
+					parameters.Length = pendingRestore.MapLength;
+				}
+			}
+
 			mapLayout = TowerDefenseMapGenerator.Generate(parameters);
 
 			activeCorePosition = mapLayout.CorePosition;
@@ -1880,7 +1891,8 @@ namespace WitchMendokusai
 		}
 
 		/// <summary> 세워진 인형에게 이름을 준다 + 한 마디 시킨다. 같은 판·같은 순서면 같은 이름. </summary>
-		private void RegisterDoll(Transform anchor, Color tint, bool isHarvester = false)
+		private void RegisterDoll(Transform anchor, Color tint, bool isHarvester = false,
+			bool isPlacedBuilding = false, int variant = 0)
 		{
 			if (anchor == null)
 				return;
@@ -1891,6 +1903,8 @@ namespace WitchMendokusai
 			{
 				BuildingId = MapSeed + ordinal * 7919,
 				IsHarvester = isHarvester,
+				IsPlacedBuilding = isPlacedBuilding,
+				Variant = variant,
 			};
 			dollLabels.Add(doll);
 			PopWorldText("「" + name + "」 " + TowerDefenseNames.Greeting(MapSeed, ordinal), anchor.position, TextType.Heal);
@@ -2279,13 +2293,14 @@ namespace WitchMendokusai
 
 			foreach (TowerDefenseDollLabel doll in dollLabels)
 			{
-				if (doll.IsAlive == false)
+				// 사람이 세운 것만 적는다 — 영웅처럼 판이 스스로 만드는 인형까지 적으면 이어할 때마다 는다.
+				if (doll.IsAlive == false || doll.IsPlacedBuilding == false)
 					continue;
 
 				TowerDefenseBuildingSave building = new()
 				{
 					Kind = (int)(doll.IsHarvester ? TowerDefensePlaceableKind.Harvester : TowerDefensePlaceableKind.Tower),
-					Variant = 0,
+					Variant = doll.Variant,
 					Position = stageRoot.InverseTransformPoint(doll.Anchor.position),
 					Level = doll.Level,
 					Experience = doll.Progress.Experience,
@@ -2302,12 +2317,15 @@ namespace WitchMendokusai
 		}
 
 		/// <summary>
-		/// 저장을 이어받아 판을 그 상태로 되돌린다 — Begin 직후에 부른다.
-		/// 지형은 씨앗에서 이미 같은 것이 나왔으므로, 여기서는 *내가 한 일*만 다시 얹는다.
+		/// 저장을 이어받아 판을 그 상태로 되돌린다 — **Begin 직전**에 부른다.
+		///
+		/// ★ 왜 직전인가: 지형이 같아야 「이어하기」다. 판은 씨앗에서 태어나므로 씨앗을 먼저 넘겨야
+		///   같은 땅이 다시 나온다. Begin 뒤에 부르면 이미 다른 땅이 깔린 뒤라 내 건물만 엉뚱한 자리에
+		///   다시 서게 된다. 그래서 여기서는 예약만 하고, 판을 깔 때 씨앗을, 판이 선 뒤 건물을 얹는다.
 		/// </summary>
 		public void RestoreSave(TowerDefenseSaveData save)
 		{
-			if (save == null || save.IsResumable == false || core == null)
+			if (save == null || save.IsResumable == false)
 				return;
 
 			pendingRestore = save;
@@ -2330,6 +2348,13 @@ namespace WitchMendokusai
 			foreach (TowerDefenseBuildingSave building in save.Buildings)
 			{
 				Vector3 world = stageRoot.TransformPoint(building.Position);
+				// ★ 되살리는 것은 *짓는 일이 아니다* — 이미 치른 값을 또 치르면 이어할 때마다 지갑이 깎인다.
+				//   배치 경로를 그대로 쓰되(자리·보급 규칙은 지켜야 한다) 그 값만큼 미리 채워 넣고,
+				//   전부 세운 뒤 저장된 액수로 정확히 되돌린다.
+				core.AddResource(building.Kind == (int)TowerDefensePlaceableKind.Harvester
+					? stage.HarvesterCost
+					: TowerCostAt(building.Variant));
+
 				bool placed = building.Kind == (int)TowerDefensePlaceableKind.Harvester
 					? TryPlaceHarvester(world)
 					: TryPlaceTower(world, building.Variant);
@@ -2348,7 +2373,16 @@ namespace WitchMendokusai
 					ApplyPerk(doll, (TowerDefenseBuildingPerk)perk);
 			}
 
-			Debug.Log($"{nameof(TowerDefenseMatch)}: 이어하기 복원 끝 — 건물 {dollLabels.Count}채.");
+			// 지갑을 저장된 액수로 정확히 맞춘다 — 남거나 모자라면 이어할 때마다 판이 조금씩 달라진다.
+			core.AddResource(Mathf.Max(0, save.Resource - core.Resource));
+			if (core.Resource > save.Resource)
+				core.TrySpend(core.Resource - save.Resource);
+			core.AddEssence(Mathf.Max(0, save.Essence - core.Essence));
+			if (core.Essence > save.Essence)
+				core.TrySpendEssence(core.Essence - save.Essence);
+
+			Debug.Log($"{nameof(TowerDefenseMatch)}: 이어하기 복원 끝 — 건물 {dollLabels.Count}채"
+				+ $" · 자원 {core.Resource}/{save.Resource} · 정수 {core.Essence}/{save.Essence}.");
 		}
 
 		/// <summary> 그 자리에 선 인형의 이름표 — 복원이 방금 세운 것을 다시 찾는다. </summary>
@@ -2866,6 +2900,20 @@ namespace WitchMendokusai
 
 		/// <summary> 등록된 포탑 종류 수(0 이면 기존 단일 포탑). </summary>
 		public int TowerArchetypeCount => stage != null && stage.TowerArchetypes != null ? stage.TowerArchetypes.Length : 0;
+
+		/// <summary> 그 종류가 몇 번 칸인가 — 저장이 「무엇을 세웠는지」를 적으려면 번호가 필요하다. </summary>
+		private int TowerArchetypeIndexOf(TowerDefenseTowerArchetype archetype)
+		{
+			if (archetype == null || stage == null || stage.TowerArchetypes == null)
+				return 0;
+
+			for (int index = 0; index < stage.TowerArchetypes.Length; index++)
+			{
+				if (stage.TowerArchetypes[index] == archetype)
+					return index;
+			}
+			return 0;
+		}
 
 		/// <summary> index 번 포탑 종류(범위 밖이면 null). </summary>
 		public TowerDefenseTowerArchetype TowerArchetypeAt(int index)
@@ -3938,7 +3986,12 @@ namespace WitchMendokusai
 					: isLab ? stage.LabTint
 					: isHarvester ? stage.HarvesterTint
 					: (towerArchetype != null ? towerArchetype.Tint : stage.TowerTint),
-				isHarvester);
+				isHarvester,
+				// ★ 저장은 *내가 세운 것*만 되살려야 한다 — 영웅처럼 판이 스스로 만드는 것을 건물로 적으면
+				//   이어할 때마다 유령 포탑이 한 채씩 는다(실측: 3채 저장 → 4채 복원).
+				isPlacedBuilding: true,
+				// ★ 종류를 안 적으면 4종을 세워놨어도 전부 기본형으로 되살아난다.
+				variant: TowerArchetypeIndexOf(towerArchetype));
 
 			// 모든 내 건물이 보급 사슬의 징검다리 — 포탑을 늘어놓는 것이 곧 보급선을 잇는 일이 된다.
 			supplyTransforms.Add(unitGameObject.transform);
