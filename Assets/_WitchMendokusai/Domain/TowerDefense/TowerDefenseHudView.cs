@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace WitchMendokusai
@@ -783,6 +783,9 @@ namespace WitchMendokusai
 		/// 커서가 얹힌 유닛 설명 — 커서를 따라다닌다. 화면 밖으로 새지 않게 가장자리에서 뒤집는다.
 		/// 빈 문자열이면 감춘다(가리킬 게 없는데 상자만 떠 있으면 그게 더 방해된다).
 		/// </summary>
+		private const float TOOLTIP_MIN_WIDTH = 200f;
+		private const float TOOLTIP_MIN_HEIGHT = 60f;
+
 		public void ShowUnitTooltip(string text, Vector2 screenPosition)
 		{
 			if (unitTooltip == null)
@@ -797,16 +800,17 @@ namespace WitchMendokusai
 			unitTooltip.style.display = DisplayStyle.Flex;
 			unitTooltipLabel.text = text;
 
+			// 어디에 놓을지는 순수 계산이 정한다 — 커서 없이도 증명할 수 있게 밖으로 꺼내 뒀다.
+			// 상자 크기는 *실제로 잡힌 크기*를 쓴다(아직 배치 전이면 최소 크기로 가정).
 			const float OFFSET = 18f;
-			float left = screenPosition.x + OFFSET;
-			float top = Screen.height - screenPosition.y + OFFSET;
-			if (left > Screen.width - 240f)
-				left = screenPosition.x - 240f;
-			if (top > Screen.height - 120f)
-				top = Screen.height - screenPosition.y - 120f;
+			Vector2 tooltipSize = new Vector2(
+				Mathf.Max(unitTooltip.resolvedStyle.width, TOOLTIP_MIN_WIDTH),
+				Mathf.Max(unitTooltip.resolvedStyle.height, TOOLTIP_MIN_HEIGHT));
+			Vector2 placed = TowerDefenseTooltipPlacement.Resolve(
+				screenPosition, new Vector2(Screen.width, Screen.height), tooltipSize, OFFSET);
 
-			unitTooltip.style.left = left;
-			unitTooltip.style.top = top;
+			unitTooltip.style.left = placed.x;
+			unitTooltip.style.top = placed.y;
 		}
 
 		private VisualElement BuildUnitTooltip(out Label label)

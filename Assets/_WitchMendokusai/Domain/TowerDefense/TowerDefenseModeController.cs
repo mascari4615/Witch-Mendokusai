@@ -362,6 +362,12 @@ namespace WitchMendokusai
 			Debug.Log($"{nameof(TowerDefenseModeController)}: 개척 재시작 — 새 매치 시작.");
 		}
 
+		/// <summary>
+		/// 지금 화면(없으면 null) — 확인 도구가 *실제로 화면에 뜬 것*을 재기 위해 연다.
+		/// ★ 툴팁처럼 마우스가 있어야 뜨는 것은 하네스가 띄울 손잡이가 없으면 영영 미측정으로 남는다.
+		/// </summary>
+		public TowerDefenseHudView Hud => hud;
+
 		private TowerDefenseHudView EnsureHud()
 		{
 			// init-order-ok: 모드 진입 시점 = World 부팅 완료 후라 uiRoot 준비 보장(lazy resolve).

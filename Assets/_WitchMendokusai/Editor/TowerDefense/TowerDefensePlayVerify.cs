@@ -321,6 +321,8 @@ namespace WitchMendokusai.EditorTools
 					{
 						selectedLayoutChecked = true;
 						VerifyHudLayout("건물 선택 중");
+					ShowTooltipForLayout();
+					VerifyHudLayout("툴팁 떠 있음");
 					}
 					// ★ 시계가 0 일 때 나가면 「되감겼는지」를 가릴 수 없다(0 이나 1 이나 통과).
 					//   눈금이 실제로 쌓인 뒤에 나가야 이어하기가 시계를 지키는지가 증명된다.
@@ -1033,6 +1035,8 @@ namespace WitchMendokusai.EditorTools
 						cards += boon.DisplayName + "/";
 					Debug.Log(TAG + " DRAFT offered=" + match.PendingDraft.Count + " wave=" + match.WaveIndex
 						+ " phase=" + match.Phase + " [" + cards + "]");
+					// 카드가 실제로 떠 있는 이 순간이 드래프트 배치를 잴 수 있는 유일한 시점이다.
+					VerifyHudLayout("드래프트 중");
 					return; // 한 틱 그대로 둔다 — 아래 틱에서 웨이브가 안 넘어간 것을 확인한다.
 				}
 
@@ -1644,7 +1648,7 @@ namespace WitchMendokusai.EditorTools
 		private static readonly string[] HUD_BLOCKS =
 		{
 			"ResourceBar", "ProgressPanel", "LegendPanel", "TowerDefenseSelectionBar",
-			"HintBar", "RestartButton", "BoonSummary", "UnitTooltip", "SelectionPanel", "Minimap",
+			"HintBar", "RestartButton", "BoonSummary", "UnitTooltip", "SelectionPanel", "Minimap", "DraftPanel",
 		};
 
 		/// <summary>
@@ -1749,6 +1753,22 @@ namespace WitchMendokusai.EditorTools
 					+ (sameBuildings ? "" : " [건물 수가 다름]")
 					+ (sameClock ? "" : " [시계가 되감김]")
 					+ (sameLives ? "" : " [목숨이 다름]"));
+		}
+
+		/// <summary>
+		/// 툴팁을 실제로 띄운다 — 마우스가 없는 하네스가 이걸 못 하면 툴팁 배치는 영영 미측정으로 남는다.
+		/// ★ 손이 가장 자주 가는 자리(화면 오른쪽 아래 = 핫바 위)에서 띄운다. 가운데서만 재면
+		///   「가장자리에서 화면 밖으로 새는가」라는 진짜 질문을 못 묻는다.
+		/// </summary>
+		private static void ShowTooltipForLayout()
+		{
+			if (TowerDefenseModeController.TryGetExistingInstance(out TowerDefenseModeController controller) == false)
+				return;
+			if (controller.Hud == null)
+				return;
+
+			controller.Hud.ShowUnitTooltip("확인용 설명 · 두 줄짜리",
+				new Vector2(Screen.width * 0.9f, Screen.height * 0.15f));
 		}
 
 		/// <summary> 세워둔 건물을 실제로 골라 선택 패널을 띄운다(무장 해제 상태의 클릭 = 고르는 클릭). </summary>
