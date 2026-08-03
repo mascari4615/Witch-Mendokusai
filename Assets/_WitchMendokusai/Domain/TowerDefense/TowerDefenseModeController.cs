@@ -107,6 +107,13 @@ namespace WitchMendokusai
 				relicOwner.SaveManager.SaveData();
 			}
 
+			// 끝난 판의 저장은 버린다 — 남겨두면 다음 진입이 「끝난 판」으로 되살아난다.
+			if (DataManager.TryGetExistingInstance(out DataManager clearOwner))
+			{
+				clearOwner.TowerDefenseResume = null;
+				clearOwner.SaveManager.SaveData();
+			}
+
 			Debug.Log($"{nameof(TowerDefenseModeController)}: 매치 종료 — outcome={outcome} 버틴시간={match.SurvivedSeconds}s 둥지={match.NestsDestroyed} 점수={score} best={best} newRecord={isNewRecord} relics+{relicsGained}");
 			hud?.ShowOutcome(outcome, match.SurvivedSeconds, match.NestsDestroyed, score, best, isNewRecord, relicsGained, RelicBalance(), CanPull(), match.BuildSummary());
 		}
@@ -408,6 +415,14 @@ namespace WitchMendokusai
 			}
 			else
 			{
+				// ★ 나가기 전에 저장한다 — 판 도중에 나가는 것이 곧 「잠깐 접어둔다」가 되어야 한다.
+				//   끝난 판은 저장하지 않는다(CaptureSave 가 null 을 준다) — 끝난 것을 이어하면 거짓말이다.
+				if (DataManager.TryGetExistingInstance(out DataManager saveOwner))
+				{
+					saveOwner.TowerDefenseResume = match.CaptureSave();
+					saveOwner.SaveManager.SaveData();
+				}
+
 				// 이탈 — 매치 정리(멱등 Dispose) → 배치 비활성 → 모드 카메라 끄기 → 월드 입력 복귀.
 				StopAllCoroutines(); // 재시작 코루틴이 이탈 뒤 재개해 매치를 되살리는 것 차단.
 				match.RestoreTimeScale(); // 멈춘 채로 나가면 본편이 정지한다.

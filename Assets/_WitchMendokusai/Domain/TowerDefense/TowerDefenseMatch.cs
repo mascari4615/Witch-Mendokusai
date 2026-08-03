@@ -342,6 +342,14 @@ namespace WitchMendokusai
 
 			timeManager.RegisterCallback(Tick);
 			ticking = true;
+
+			// 이어하기가 예약돼 있으면 여기서 되살린다(값을 먼저 맞추고 건물을 한 채씩).
+			if (pendingRestore != null)
+			{
+				TowerDefenseSaveData restore = pendingRestore;
+				pendingRestore = null;
+				yield return RestoreRoutine(restore);
+			}
 		}
 
 		/// <summary>
@@ -2213,6 +2221,121 @@ namespace WitchMendokusai
 		public int KilledCount { get; private set; }
 		public int PeakEnemies { get; private set; }
 		public int LeakedCount { get; private set; }
+
+		// ── 판 도중 저장 ──────────────────────────────────────────────────────────
+		// ★ 「장면 통째」가 아니라 *다시 지을 수 있는 최소 정보*만 담는다 — 판은 씨앗에서 다시 태어나고
+		//   내가 한 일은 「무엇을 어디에 세웠나」로 전부 적힌다. 그러면 프리팹이 바뀌어도 저장이 살아남는다.
+		// ★ 걷고 있는 마수는 저장하지 않는다 — 되살리는 것보다 *다시 몰려오게* 두는 편이 규칙이 단순하고,
+		//   불러온 직후의 짧은 숨돌릴 틈이 오히려 자연스럽다.
+
+		/// <summary> 지금 판을 저장 가능한 형태로 뽑는다(끝난 판이면 null). </summary>
+		public TowerDefenseSaveData CaptureSave()
+		{
+			if (core == null || stage == null || core.Outcome != TowerDefenseOutcome.InProgress)
+				return null;
+
+			TowerDefenseSaveData save = new()
+			{
+				StageId = stage.ID.ToString(),
+				MapSeed = MapSeed,
+				MapWidth = mapLayout != null ? mapLayout.Width : 0,
+				MapLength = mapLayout != null ? mapLayout.Length : 0,
+				Difficulty = (int)Difficulty,
+				ElapsedSeconds = core.ElapsedSeconds,
+				WaveIndex = core.WaveIndex,
+				Resource = core.Resource,
+				Essence = core.Essence,
+				Lives = core.Lives,
+				CoreLevel = CoreLevel,
+				CorePendingChoices = CorePendingChoices,
+				ResearchLevel = LabCount,
+				NestsDestroyed = NestsDestroyed,
+			};
+
+			foreach (TowerDefenseDollLabel doll in dollLabels)
+			{
+				if (doll.IsAlive == false)
+					continue;
+
+				TowerDefenseBuildingSave building = new()
+				{
+					Kind = (int)(doll.IsHarvester ? TowerDefensePlaceableKind.Harvester : TowerDefensePlaceableKind.Tower),
+					Variant = 0,
+					Position = stageRoot.InverseTransformPoint(doll.Anchor.position),
+					Level = doll.Level,
+					Experience = doll.Progress.Experience,
+					PendingChoices = doll.Progress.PendingChoices,
+					Perks = new List<int>(),
+				};
+				foreach (TowerDefenseBuildingPerk perk in doll.Progress.Taken)
+					building.Perks.Add((int)perk);
+
+				save.Buildings.Add(building);
+			}
+
+			return save;
+		}
+
+		/// <summary>
+		/// 저장을 이어받아 판을 그 상태로 되돌린다 — Begin 직후에 부른다.
+		/// 지형은 씨앗에서 이미 같은 것이 나왔으므로, 여기서는 *내가 한 일*만 다시 얹는다.
+		/// </summary>
+		public void RestoreSave(TowerDefenseSaveData save)
+		{
+			if (save == null || save.IsResumable == false || core == null)
+				return;
+
+			pendingRestore = save;
+			Debug.Log($"{nameof(TowerDefenseMatch)}: 이어하기 — {save.Describe()}");
+		}
+
+		private TowerDefenseSaveData pendingRestore;
+
+		/// <summary>
+		/// 실제 복원 — 건물 스폰이 코루틴이라 Begin 이 끝난 *다음*에 한 채씩 다시 세운다.
+		/// 값(자원·정수·목숨)은 먼저 맞춰야 세우는 도중에 「돈이 없어 거절」이 나지 않는다.
+		/// </summary>
+		private IEnumerator RestoreRoutine(TowerDefenseSaveData save)
+		{
+			core.AddResource(Mathf.Max(0, save.Resource - core.Resource));
+			core.AddEssence(Mathf.Max(0, save.Essence - core.Essence));
+			LabCount = save.ResearchLevel;
+			NestsDestroyed = save.NestsDestroyed;
+
+			foreach (TowerDefenseBuildingSave building in save.Buildings)
+			{
+				Vector3 world = stageRoot.TransformPoint(building.Position);
+				bool placed = building.Kind == (int)TowerDefensePlaceableKind.Harvester
+					? TryPlaceHarvester(world)
+					: TryPlaceTower(world, building.Variant);
+
+				if (placed == false)
+					continue;
+
+				yield return null; // 스폰이 끝나야 그 인형에 성장을 얹을 수 있다.
+				yield return null;
+
+				TowerDefenseDollLabel doll = FindDollLabel(world);
+				if (doll == null || building.Perks == null)
+					continue;
+
+				foreach (int perk in building.Perks)
+					ApplyPerk(doll, (TowerDefenseBuildingPerk)perk);
+			}
+
+			Debug.Log($"{nameof(TowerDefenseMatch)}: 이어하기 복원 끝 — 건물 {dollLabels.Count}채.");
+		}
+
+		/// <summary> 그 자리에 선 인형의 이름표 — 복원이 방금 세운 것을 다시 찾는다. </summary>
+		private TowerDefenseDollLabel FindDollLabel(Vector3 worldPosition)
+		{
+			foreach (TowerDefenseDollLabel label in dollLabels)
+			{
+				if (label.IsAlive && (label.Anchor.position - worldPosition).sqrMagnitude <= 1f)
+					return label;
+			}
+			return null;
+		}
 
 		/// <summary> 판이 끝난 뒤 화면이 그대로 읽는 한 덩어리 요약. </summary>
 		public string BuildSummary()

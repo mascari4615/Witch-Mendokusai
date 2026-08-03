@@ -41,6 +41,13 @@ namespace WitchMendokusai
 		public Dictionary<int, int> TowerDefenseBestWave { get; set; } = new();
 		// 개척 메타 — 유물(재화)과 뽑아서 얻은 포탑 인형 목록.
 		public int TowerDefenseRelics { get; set; }
+
+		/// <summary>
+		/// 개척 이어하기 — 한 슬롯. 껐다 켜면 처음부터였다(개선 목록 15번).
+		/// 여러 슬롯을 두지 않는 이유: 판이 하나뿐인데 슬롯이 여럿이면 고르는 화면부터 만들어야 하고,
+		/// 그건 「이어하기」가 아니라 세이브 관리다.
+		/// </summary>
+		public TowerDefenseSaveData TowerDefenseResume { get; set; }
 		public List<int> TowerDefenseUnlockedTowers { get; set; } = new();
 
 		public string localDisplayName = "";
