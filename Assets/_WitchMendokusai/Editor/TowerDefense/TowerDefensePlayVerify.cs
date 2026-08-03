@@ -68,6 +68,7 @@ namespace WitchMendokusai.EditorTools
 		private static double selectedLayoutAt;
 		// 모드 이탈·재진입 시각 — 부팅이 끝날 시간을 준다.
 		private static double resumeAt;
+		private static bool selectedLayoutChecked;
 		private static double playStart;
 		private static double readyAt;
 		private static double observeStart;
@@ -150,6 +151,7 @@ namespace WitchMendokusai.EditorTools
 			lastSample = -1.0;
 			lastGateLog = -1.0;
 			startClicked = false;
+			selectedLayoutChecked = false; // 판마다 다시 잰다.
 			heroCommanded = false;
 			heroProbeReady = false;
 			dollsReported = false;
@@ -314,7 +316,13 @@ namespace WitchMendokusai.EditorTools
 				case Step.SelectedLayout:
 					if (now - selectedLayoutAt < 0.3)
 						return;
-					VerifyHudLayout("건물 선택 중");
+					// ★ 겹침은 한 번만 잰다 — 아래 시계 게이트가 이 단계를 여러 틱 돌리므로,
+					//   안 막으면 같은 판정이 로그를 도배해 진짜 신호가 묻힌다.
+					if (selectedLayoutChecked == false)
+					{
+						selectedLayoutChecked = true;
+						VerifyHudLayout("건물 선택 중");
+					}
 					// ★ 시계가 0 일 때 나가면 「되감겼는지」를 가릴 수 없다(0 이나 1 이나 통과).
 					//   눈금이 실제로 쌓인 뒤에 나가야 이어하기가 시계를 지키는지가 증명된다.
 					if (match != null && match.SurvivedSeconds < RESUME_MIN_CLOCK)

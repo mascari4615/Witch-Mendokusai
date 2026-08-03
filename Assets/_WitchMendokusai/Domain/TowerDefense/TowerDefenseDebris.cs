@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 namespace WitchMendokusai
@@ -30,7 +30,7 @@ namespace WitchMendokusai
 			if (seconds <= 0f)
 				return;
 
-			GameObject debrisObject = GameObject.CreatePrimitive(PrimitiveType.Quad);
+			GameObject debrisObject = TowerDefenseVisuals.Primitive(PrimitiveType.Quad);
 			debrisObject.name = "Debris";
 			Destroy(debrisObject.GetComponent<Collider>()); // 표시·판정용 — 물리를 끼우면 마수가 걸린다.
 			debrisObject.transform.SetParent(parent, false);

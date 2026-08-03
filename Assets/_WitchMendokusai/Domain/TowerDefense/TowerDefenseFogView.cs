@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace WitchMendokusai
 {
@@ -19,7 +19,7 @@ namespace WitchMendokusai
 		/// <summary> 판 크기에 맞춰 안개 판때기를 세운다. </summary>
 		public static TowerDefenseFogView Create(Transform stageRoot, int width, int length, float groundWidth, float groundLength, float height)
 		{
-			GameObject fogObject = GameObject.CreatePrimitive(PrimitiveType.Quad);
+			GameObject fogObject = TowerDefenseVisuals.Primitive(PrimitiveType.Quad, unlit: true);
 			fogObject.name = "Fog";
 			Destroy(fogObject.GetComponent<Collider>()); // 표시용 — 배치 레이캐스트를 가로채면 안 된다.
 			fogObject.transform.SetParent(stageRoot, false);
@@ -51,8 +51,7 @@ namespace WitchMendokusai
 			if (fogRenderer == null)
 				return;
 
-			Material material = new Material(
-				Shader.Find("Universal Render Pipeline/Unlit") ?? Shader.Find("Sprites/Default"));
+			Material material = TowerDefenseVisuals.CreateUnlit();
 			material.mainTexture = texture;
 			MakeTransparent(material);
 			fogRenderer.sharedMaterial = material;

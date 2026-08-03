@@ -1,0 +1,73 @@
+using UnityEngine;
+
+namespace WitchMendokusai
+{
+	/// <summary>
+	/// 개척 판의 *보이는 것*을 만드는 한 곳 (TASK-WM-194).
+	///
+	/// ★ 왜 생겼나: 판의 땅·안개·암반·벽·함정은 전부 코드가 즉석에서 세우는 도형이다.
+	///   `GameObject.CreatePrimitive` 가 붙여주는 기본 재질은 *옛 렌더러용*이라, 에디터에서는
+	///   그럭저럭 보이지만 **빌드에서는 통째로 밋밋한 회색**이 된다(사용자 실증: "개척 진입하니까
+	///   맵에 회색 밖에 안 보이는데"). 에디터만 보고 있으면 영원히 안 걸리는 종류다.
+	/// ★ 그래서 도형을 만드는 입구를 하나로 모으고, 그 자리에서 *이 프로젝트가 실제로 쓰는 셰이더*를
+	///   붙인다. 이름으로 찾는 셰이더는 빌드에 안 실릴 수 있으므로 「항상 포함할 셰이더」에도
+	///   등록돼 있어야 한다 — 그 약속은 <see cref="TowerDefenseShaderNames"/> 가 이름으로 못 박고,
+	///   에디터 시험이 그 목록을 대조한다(빌드를 굽지 않고도 이 병을 잡기 위해).
+	/// </summary>
+	public static class TowerDefenseVisuals
+	{
+		/// <summary> 도형 하나 — 만들자마자 이 프로젝트 셰이더를 입혀서 돌려준다. </summary>
+		public static GameObject Primitive(PrimitiveType type, bool unlit = false)
+		{
+			GameObject primitive = GameObject.CreatePrimitive(type);
+			Renderer renderer = primitive.GetComponent<Renderer>();
+			if (renderer != null)
+				renderer.sharedMaterial = unlit ? CreateUnlit() : CreateLit();
+			return primitive;
+		}
+
+		/// <summary> 빛을 받는 재질(땅·암반·벽). </summary>
+		public static Material CreateLit()
+		{
+			return new Material(FindShader(TowerDefenseShaderNames.Lit));
+		}
+
+		/// <summary> 빛과 무관한 재질(안개·표시용 판때기). </summary>
+		public static Material CreateUnlit()
+		{
+			return new Material(FindShader(TowerDefenseShaderNames.Unlit));
+		}
+
+		/// <summary>
+		/// 이름으로 셰이더를 찾되, 못 찾으면 *조용히 회색으로 넘어가지 않는다*.
+		/// 무음 폴백이 바로 이번 병의 정체였다 — 화면은 멀쩡한 척하고 아무도 모른다.
+		/// </summary>
+		private static Shader FindShader(string shaderName)
+		{
+			Shader shader = Shader.Find(shaderName);
+			if (shader != null)
+				return shader;
+
+			Debug.LogError($"{nameof(TowerDefenseVisuals)}: 셰이더 「{shaderName}」 를 못 찾음 — "
+				+ "빌드에 안 실렸다는 뜻이다(그래픽 설정의 「항상 포함할 셰이더」 확인). 화면이 회색이 된다.");
+			return Shader.Find(TowerDefenseShaderNames.LegacyFallback);
+		}
+	}
+
+	/// <summary>
+	/// 개척이 이름으로 찾는 셰이더들 — 여기 있는 것은 *전부* 「항상 포함할 셰이더」에 등록돼 있어야 한다.
+	/// 목록을 코드 한 곳에 모아두면 에디터 시험이 설정과 대조할 수 있다(빌드 없이 잡는 유일한 길).
+	/// </summary>
+	public static class TowerDefenseShaderNames
+	{
+		public const string Lit = "Universal Render Pipeline/Lit";
+		public const string Unlit = "Universal Render Pipeline/Unlit";
+		public const string OverlayLine = "WM/TowerDefenseOverlayLine";
+
+		/// <summary> 정말 아무것도 없을 때의 마지막 수단 — 보이기는 한다. </summary>
+		public const string LegacyFallback = "Sprites/Default";
+
+		/// <summary> 빌드에 반드시 실려야 하는 것들. </summary>
+		public static readonly string[] MustBeIncluded = { Lit, Unlit, OverlayLine };
+	}
+}

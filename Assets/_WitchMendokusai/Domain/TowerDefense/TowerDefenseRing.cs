@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace WitchMendokusai
 {
@@ -71,13 +71,13 @@ namespace WitchMendokusai
 			// ★ 사거리 원은 *무엇에도 가리지 않는다*(사용자 지시 2회). 기성 셰이더에 깊이 옵션을 코드로
 			//   꽂는 방식은 그 셰이더가 해당 속성을 안 가지면 **조용히 무시**된다 — 실제로 그래서 벽에
 			//   계속 가렸다. 「깊이 검사 없음」이 못으로 박힌 전용 셰이더를 쓰고, 없을 때만 기성으로 내려간다.
-			Shader shader = Shader.Find("WM/TowerDefenseOverlayLine");
+			Shader shader = Shader.Find(TowerDefenseShaderNames.OverlayLine);
 			if (shader == null)
 			{
 				Debug.LogWarning($"{nameof(TowerDefenseRing)}: 전용 오버레이 셰이더를 못 찾음 — 원이 다른 것에 가릴 수 있다.");
-				shader = Shader.Find("Universal Render Pipeline/Unlit")
-					?? Shader.Find("Sprites/Default")
-					?? Shader.Find("Unlit/Color");
+				Material fallback = TowerDefenseVisuals.CreateUnlit();
+				fallback.color = color;
+				return fallback;
 			}
 
 			Material material = new Material(shader);

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -520,7 +520,7 @@ namespace WitchMendokusai
 		private void BuildTrapObject(Vector3 worldPosition, Vector3Int cellKey)
 		{
 			float cellSize = stage.GroundCellSize;
-			GameObject trapObject = GameObject.CreatePrimitive(PrimitiveType.Quad);
+			GameObject trapObject = TowerDefenseVisuals.Primitive(PrimitiveType.Quad);
 			trapObject.name = "Trap";
 			Destroy(trapObject.GetComponent<Collider>()); // 밟는 판정은 거리로 한다 — 물리를 끼우면 마수가 걸린다.
 			trapObject.transform.SetParent(stageRoot, false);
@@ -641,7 +641,7 @@ namespace WitchMendokusai
 		private void BuildWallObject(Vector2Int cell)
 		{
 			float cellSize = mapLayout.CellSize;
-			GameObject wall = GameObject.CreatePrimitive(PrimitiveType.Cube);
+			GameObject wall = TowerDefenseVisuals.Primitive(PrimitiveType.Cube);
 			wall.name = "Wall";
 			wall.transform.SetParent(stageRoot, false);
 			wall.transform.localPosition = mapLayout.CellToWorld(cell) + new Vector3(0f, cellSize * 0.35f, 0f);
@@ -702,7 +702,7 @@ namespace WitchMendokusai
 			float cellSize = mapLayout.CellSize;
 			foreach ((Vector2Int cell, int weight) in laneWeight)
 			{
-				GameObject lane = GameObject.CreatePrimitive(PrimitiveType.Quad);
+				GameObject lane = TowerDefenseVisuals.Primitive(PrimitiveType.Quad);
 				lane.name = "PathLane";
 				Destroy(lane.GetComponent<Collider>()); // 표시용 — 배치 레이캐스트를 가로채면 안 된다.
 				lane.transform.SetParent(laneRoot, false);
@@ -757,7 +757,7 @@ namespace WitchMendokusai
 
 			foreach (Vector2Int obstacleCell in mapLayout.ObstacleCells)
 			{
-				GameObject rock = GameObject.CreatePrimitive(PrimitiveType.Cube);
+				GameObject rock = TowerDefenseVisuals.Primitive(PrimitiveType.Cube);
 				rock.name = "Rock";
 				rock.transform.SetParent(stageRoot, false);
 				// 높은 벽은 부감 시점에서 뒤쪽 바닥을 가려 길 표시를 통째로 먹는다(스크린샷 실증).
@@ -790,7 +790,7 @@ namespace WitchMendokusai
 		/// <summary> 지면(바닥) 런타임 생성 — RectangleArenaMap.Build 와 동형(Plane 스케일, SO 수치 그대로). </summary>
 		private void BuildGround()
 		{
-			GameObject ground = GameObject.CreatePrimitive(PrimitiveType.Plane);
+			GameObject ground = TowerDefenseVisuals.Primitive(PrimitiveType.Plane);
 			ground.name = "Ground";
 			ground.transform.SetParent(stageRoot, false);
 			ground.transform.localPosition = Vector3.zero;
@@ -971,7 +971,7 @@ namespace WitchMendokusai
 		{
 			foreach (Vector3 localPosition in activeNodePositions)
 			{
-				GameObject marker = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+				GameObject marker = TowerDefenseVisuals.Primitive(PrimitiveType.Cylinder);
 				marker.name = "ResourceNode";
 				Collider markerCollider = marker.GetComponent<Collider>();
 				if (markerCollider != null)
@@ -1167,7 +1167,7 @@ namespace WitchMendokusai
 		{
 			foreach (Vector3 localPosition in activeSpawnPoints)
 			{
-				GameObject marker = GameObject.CreatePrimitive(PrimitiveType.Cube);
+				GameObject marker = TowerDefenseVisuals.Primitive(PrimitiveType.Cube);
 				marker.name = "EnemySpawnMarker";
 				Collider markerCollider = marker.GetComponent<Collider>();
 				if (markerCollider != null)
@@ -3277,7 +3277,7 @@ namespace WitchMendokusai
 
 			occupiedCells.Add(cellKey);
 
-			GameObject outpostObject = GameObject.CreatePrimitive(PrimitiveType.Cube);
+			GameObject outpostObject = TowerDefenseVisuals.Primitive(PrimitiveType.Cube);
 			outpostObject.name = "Outpost";
 			outpostObject.transform.SetParent(stageRoot, false);
 			outpostObject.transform.position = worldPosition + new Vector3(0f, 0.6f, 0f);

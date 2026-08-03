@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 namespace WitchMendokusai
@@ -317,8 +317,7 @@ namespace WitchMendokusai
 				tracer.widthMultiplier = 0.07f;
 				tracer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
 				tracer.receiveShadows = false;
-				tracer.material = new Material(
-					Shader.Find("Universal Render Pipeline/Unlit") ?? Shader.Find("Sprites/Default"));
+				tracer.material = TowerDefenseVisuals.CreateUnlit();
 			}
 
 			Color color = archetype.Tint;
