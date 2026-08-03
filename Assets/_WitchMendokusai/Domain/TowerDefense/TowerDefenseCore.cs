@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 namespace WitchMendokusai
 {
 	/// <summary>
@@ -122,11 +122,13 @@ namespace WitchMendokusai
 		}
 
 		/// <summary>
-		/// 한 틱 평가. coreAlive=false 면 즉시 패배. Prepare 는 시간이 다하면 WaveStarted,
-		/// Assault 는 스폰 확인 후 aliveEnemies==0 이면 정산 → 다음 파 또는 승리.
+		/// 한 틱 평가. coreAlive=false 면 즉시 패배. 세 시계(큰 무리 / 정산 / 상시 마수)가 각자 돌며 신호를 낸다.
 		/// 전이가 *이번 호출에서 처음* 발생할 때만 해당 신호. 종료 후엔 항상 None. 멱등.
+		///
+		/// ★ 「살아있는 적 수」를 안 받는다 — 실시간 전환 뒤로 규칙이 그 수를 안 본다(끝은 둥지를 다 부수는 것).
+		///   안 쓰는 인자를 남겨두면 다음 사람이 그 수가 규칙에 걸린다고 착각한다(실제로 한 번 착각했다).
 		/// </summary>
-		public TowerDefenseSignal Tick(float deltaSeconds, int aliveEnemies, bool coreAlive)
+		public TowerDefenseSignal Tick(float deltaSeconds, bool coreAlive)
 		{
 			if (Outcome != TowerDefenseOutcome.InProgress)
 				return TowerDefenseSignal.None;

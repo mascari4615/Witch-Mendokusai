@@ -87,8 +87,6 @@ namespace WitchMendokusai.EditorTools
 		private static double defendedStart;
 		private static int defendedLastResource;
 		private static int killIncomeEvents;
-		private static double defendedAssaultStart = -1.0;
-		private static bool defendedStuckDumped;
 		private static bool towerPlanFlipped;
 		// 판매 검증용 — 배치 좌표. 스폰은 코루틴(1프레임 양보)이라 *같은 틱에 팔면 아직 아무도 없다*.
 		private static Vector3 sellProbeLocal;
@@ -152,6 +150,9 @@ namespace WitchMendokusai.EditorTools
 			lastGateLog = -1.0;
 			startClicked = false;
 			selectedLayoutChecked = false; // 판마다 다시 잰다.
+			assaultStart = -1.0;
+			lastAliveEnemyCount = -1;
+			stuckDumped = false;
 			heroCommanded = false;
 			heroProbeReady = false;
 			dollsReported = false;
@@ -171,8 +172,6 @@ namespace WitchMendokusai.EditorTools
 			killIncomeEvents = 0;
 			lastDumpedWave = -1;
 			waveDumpAt = -1.0;
-			defendedAssaultStart = -1.0;
-			defendedStuckDumped = false;
 			towerPlanFlipped = false;
 			firstWaveCalled = false;
 			EditorApplication.update += Tick;
@@ -849,11 +848,54 @@ namespace WitchMendokusai.EditorTools
 		private static int lastAliveEnemyCount = -1;
 
 		/// <summary> 코어가 "살아있다"고 세는 적을 전부 찍는다 — 화면과 대조해 유령/고착을 가른다. </summary>
+		/// <summary>
+		/// 판이 고착됐나 — 「마릿수가 한참 그대로」 하나로 판정한다.
+		///
+		/// ★ 두 가지를 여기서 못 박는다:
+		///   ① *판 시계*로 잰다 — 사람이 멈추거나 느리게 해두면 에디터 시계만 흐르고 판은 그대로다.
+		///   ② *한 곳*에서만 판정한다 — 예전엔 관찰 구간마다 사본이 있었고, 그중 하나가 「교전 중이면
+		///      30초」로 재고 있었다. 실시간에는 늘 교전 중이라 그 사본은 **매 판 무조건** 경고를 찍었다
+		///      (실측: 게임은 멀쩡히 1.2초마다 마수를 내보내는데 「30초째 정체」라고 적혔다).
+		///      거짓 경고는 진짜 고착을 묻는다.
+		/// </summary>
+		private static void CheckStall()
+		{
+			if (match == null)
+				return;
+
+			int aliveTracked = match.AliveEnemyCount;
+			float matchClock = match.SurvivedSeconds;
+
+			if (aliveTracked != lastAliveEnemyCount)
+			{
+				lastAliveEnemyCount = aliveTracked;
+				assaultStart = matchClock;
+				stuckDumped = false;
+				return;
+			}
+
+			if (aliveTracked <= 0)
+				return;
+
+			if (assaultStart < 0)
+			{
+				assaultStart = matchClock;
+				return;
+			}
+
+			if (matchClock - assaultStart > STUCK_ASSAULT_SECONDS && stuckDumped == false)
+			{
+				stuckDumped = true;
+				DumpWaveEnemies(matchClock - assaultStart);
+			}
+		}
+
 		private static void DumpWaveEnemies(double elapsed)
 		{
 			ArenaCombatant core = match.CoreCombatant;
-			Debug.LogWarning(TAG + " STUCK-ASSAULT 교전 " + elapsed.ToString("F1") + "s 지속 — wave=" + match.WaveIndex
-				+ " coreAliveCount=" + match.AliveEnemyCount + " tracked=" + match.WaveEnemies.Count);
+			Debug.LogWarning(TAG + " STUCK-ASSAULT 판 시계 " + elapsed.ToString("F1") + "s 동안 마릿수 그대로 — wave=" + match.WaveIndex
+				+ " coreAliveCount=" + match.AliveEnemyCount + " tracked=" + match.WaveEnemies.Count
+				+ " 판시계=" + match.SurvivedSeconds + "s timeScale=" + Time.timeScale.ToString("F1"));
 
 			// ★ 교착의 두 갈래를 가른다: 적이 코어를 *때리고 있는데 안 죽는* 것인가(코어 체력이 줄고 있다),
 			//   아니면 *아예 안 때리는* 것인가(체력 그대로 = 아무도 아무것도 안 함 = 영구 교착).
@@ -1027,23 +1069,7 @@ namespace WitchMendokusai.EditorTools
 			// ★ 실시간 전환 후 「교전이 길다」는 더 이상 신호가 아니다 — 페이즈가 없어져 *언제나* 교전 중이라
 			//   이 검사가 매 판 무조건 경고를 찍었다(거짓 실패는 진짜 실패를 묻는다).
 			//   실시간의 고착 신호 = **집계 수가 한참 그대로**(아무도 안 죽고 아무도 안 나온다).
-			int aliveTracked = match.AliveEnemyCount;
-			if (aliveTracked != lastAliveEnemyCount)
-			{
-				lastAliveEnemyCount = aliveTracked;
-				assaultStart = now;
-				stuckDumped = false;
-			}
-			else if (aliveTracked > 0)
-			{
-				if (assaultStart < 0)
-					assaultStart = now;
-				else if (now - assaultStart > STUCK_ASSAULT_SECONDS && stuckDumped == false)
-				{
-					stuckDumped = true;
-					DumpWaveEnemies(now - assaultStart);
-				}
-			}
+			CheckStall();
 
 			// 이름표 — 인형이 「물건」이 아니라 「아이」가 됐나. 스폰이 코루틴이라 첫 확인은 관찰 루프에서.
 			if (dollsReported == false && match.DollLabels.Count > 0)
@@ -1185,22 +1211,8 @@ namespace WitchMendokusai.EditorTools
 
 			DumpWaveVariety(now);
 
-			// 방어 구간에도 고착 진단을 붙인다 — 없으면 「한 마리가 안 죽는데 왜인지 모름」으로 끝난다.
-			if (match.Phase == TowerDefensePhase.Assault)
-			{
-				if (defendedAssaultStart < 0)
-					defendedAssaultStart = now;
-				else if (now - defendedAssaultStart > 30.0 && defendedStuckDumped == false)
-				{
-					defendedStuckDumped = true;
-					DumpWaveEnemies(now - defendedAssaultStart);
-				}
-			}
-			else
-			{
-				defendedAssaultStart = -1.0;
-				defendedStuckDumped = false;
-			}
+			// 고착 진단은 관찰 구간이 어디든 *같은 한 곳*이 판정한다(사본을 두면 한쪽만 고쳐진다).
+			CheckStall();
 
 			if (now - defendedStart < DEFENDED_SECONDS)
 				return;

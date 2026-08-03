@@ -1,4 +1,4 @@
-using NUnit.Framework;
+﻿using NUnit.Framework;
 
 namespace WitchMendokusai.Tests
 {
@@ -39,7 +39,7 @@ namespace WitchMendokusai.Tests
 		{
 			for (float elapsed = 0f; elapsed < maxSeconds; elapsed += 0.1f)
 			{
-				if (core.Tick(0.1f, 0, true) == wanted)
+				if (core.Tick(0.1f, true) == wanted)
 					return wanted;
 			}
 			return TowerDefenseSignal.None;
@@ -61,7 +61,7 @@ namespace WitchMendokusai.Tests
 			// 실시간의 전부 — 「건설 페이즈가 끝나기를 기다린다」가 없다. 시계가 곧 진행이다.
 			TowerDefenseCore core = Core();
 
-			core.Tick(0.5f, 0, true);
+			core.Tick(0.5f, true);
 
 			Assert.Greater(core.ElapsedSeconds, 0f);
 			Assert.AreNotEqual(TowerDefensePhase.Prepare, core.Phase, "실시간에는 건설 국면이 없다.");
@@ -91,7 +91,7 @@ namespace WitchMendokusai.Tests
 			TowerDefenseCore core = Core();
 
 			for (float elapsed = 0f; elapsed < 9f; elapsed += 0.1f)
-				core.Tick(0.1f, 0, true);
+				core.Tick(0.1f, true);
 
 			Assert.AreEqual(0, core.WaveIndex, "주기 전에 무리가 오면 예고가 거짓말이 된다.");
 		}
@@ -122,9 +122,9 @@ namespace WitchMendokusai.Tests
 		{
 			TowerDefenseCore core = Core();
 
-			core.Tick(0.1f, 0, true);
+			core.Tick(0.1f, true);
 			Assert.IsTrue(core.RequestNextWave());
-			Assert.AreEqual(TowerDefenseSignal.WaveStarted, core.Tick(0.1f, 0, true));
+			Assert.AreEqual(TowerDefenseSignal.WaveStarted, core.Tick(0.1f, true));
 			Assert.IsFalse(core.IsNextWaveRequested, "예약은 1회성 — 소비돼야 한다.");
 		}
 
@@ -132,7 +132,7 @@ namespace WitchMendokusai.Tests
 		public void 끝난_뒤에는_지금_와라도_안_먹는다()
 		{
 			TowerDefenseCore core = Core();
-			core.Tick(0.1f, 0, false); // 코어 파괴 → 종료
+			core.Tick(0.1f, false); // 코어 파괴 → 종료
 
 			Assert.AreEqual(TowerDefenseOutcome.Defeat, core.Outcome);
 			Assert.IsFalse(core.RequestNextWave());
@@ -152,9 +152,9 @@ namespace WitchMendokusai.Tests
 		public void 코어가_무너지면_교전_중에도_즉시_패배()
 		{
 			TowerDefenseCore core = Core();
-			core.Tick(1f, 0, true);
+			core.Tick(1f, true);
 
-			Assert.AreEqual(TowerDefenseSignal.Defeat, core.Tick(0.1f, 3, false));
+			Assert.AreEqual(TowerDefenseSignal.Defeat, core.Tick(0.1f, false));
 			Assert.AreEqual(TowerDefenseOutcome.Defeat, core.Outcome);
 			Assert.AreEqual(TowerDefensePhase.Concluded, core.Phase);
 		}
@@ -163,10 +163,10 @@ namespace WitchMendokusai.Tests
 		public void 종료_후에는_아무_신호도_안_나온다()
 		{
 			TowerDefenseCore core = Core();
-			core.Tick(0.1f, 0, false); // Defeat
+			core.Tick(0.1f, false); // Defeat
 
-			Assert.AreEqual(TowerDefenseSignal.None, core.Tick(0.1f, 0, false));
-			Assert.AreEqual(TowerDefenseSignal.None, core.Tick(5f, 5, true));
+			Assert.AreEqual(TowerDefenseSignal.None, core.Tick(0.1f, false));
+			Assert.AreEqual(TowerDefenseSignal.None, core.Tick(5f, true));
 			Assert.AreEqual(TowerDefenseOutcome.Defeat, core.Outcome);
 		}
 
@@ -178,7 +178,7 @@ namespace WitchMendokusai.Tests
 			TickUntil(core, TowerDefenseSignal.WaveStarted, 12f);
 			TickUntil(core, TowerDefenseSignal.WaveStarted, 12f);
 
-			core.Tick(0.1f, 2, false);
+			core.Tick(0.1f, false);
 
 			Assert.AreEqual(TowerDefenseOutcome.Defeat, core.Outcome);
 			Assert.AreEqual(2, core.WaveIndex);
@@ -190,7 +190,7 @@ namespace WitchMendokusai.Tests
 			// 화면이 「곧 온다」를 말할 수 있는 유일한 숫자 — 없으면 실시간이 그냥 불안하기만 하다.
 			TowerDefenseCore core = Core();
 
-			core.Tick(4f, 0, true);
+			core.Tick(4f, true);
 
 			Assert.AreEqual(6f, core.NextWaveIn, 0.001f);
 		}
@@ -267,7 +267,7 @@ namespace WitchMendokusai.Tests
 
 			core.RegisterLeak();
 
-			Assert.AreEqual(TowerDefenseSignal.None, core.Tick(1f, 0, true));
+			Assert.AreEqual(TowerDefenseSignal.None, core.Tick(1f, true));
 			Assert.AreEqual(TowerDefenseOutcome.Defeat, core.Outcome);
 		}
 

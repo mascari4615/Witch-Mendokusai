@@ -184,8 +184,14 @@ namespace WitchMendokusai
 				int count = 0;
 				foreach (ArenaCombatant combatant in waveEnemies)
 				{
-					if (combatant != null && combatant.IsAlive)
-						count++;
+					if (combatant == null || combatant.IsAlive == false)
+						continue;
+					// ★ 둥지는 이 목록에 *포탑이 쏘라고* 들어 있다 — 쳐들어오는 마수가 아니다.
+					//   같이 세면 화면의 「적 N마리」가 둥지 수만큼 늘 거짓말을 하고(실측 +8),
+					//   「아무도 안 죽는다」를 보는 진단도 절대 안 움직이는 8개에 묻힌다.
+					if (nestCombatants.Contains(combatant))
+						continue;
+					count++;
 				}
 				return count;
 			}
@@ -316,6 +322,7 @@ namespace WitchMendokusai
 			heroVisionCell = new Vector2Int(int.MinValue, int.MinValue);
 			enemyMaxStopDistance = 0f;
 			nests.Clear();
+			nestCombatants.Clear();
 			nestsEverSpawned = false;
 			NestsDestroyed = 0;
 			BuiltCount = 0;
@@ -1010,6 +1017,8 @@ namespace WitchMendokusai
 		// ★ 왜 마수 프리팹으로 세우나: 포탑은 *마수 목록에 있는 것*만 쏜다. 둥지를 같은 종류로 세우면
 		//   조준·피해·격파 보상 경로를 하나도 새로 만들지 않고 그대로 재사용한다.
 		private readonly List<(ArenaCombatant Combatant, Vector3 LocalPosition)> nests = new();
+		// 둥지인지 즉시 알기 위한 집합 — 「쏠 대상」과 「쳐들어오는 마수」를 가르는 기준.
+		private readonly HashSet<ArenaCombatant> nestCombatants = new();
 		private bool nestsEverSpawned; // 처음부터 둥지가 없던 판(옛 방식)을 「전멸」로 오인하지 않게.
 
 		// 이 판에서 부순 둥지 자리 — 이어할 때 그 자리엔 다시 안 선다.
@@ -1084,6 +1093,7 @@ namespace WitchMendokusai
 				registeredCombatants.Add(nestCombatant);
 				waveEnemies.Add(nestCombatant); // 포탑이 쏘는 대상 목록 — 둥지도 여기 있어야 맞는다.
 				nests.Add((nestCombatant, localPosition));
+				nestCombatants.Add(nestCombatant);
 			}
 
 			nestsEverSpawned = nests.Count > 0;
@@ -1276,7 +1286,7 @@ namespace WitchMendokusai
 			if (aliveEnemies > PeakEnemies)
 				PeakEnemies = aliveEnemies;
 
-			TowerDefenseSignal signal = core.Tick(TimeManager.TICK, aliveEnemies, coreAlive);
+			TowerDefenseSignal signal = core.Tick(TimeManager.TICK, coreAlive);
 			switch (signal)
 			{
 				case TowerDefenseSignal.WaveStarted:
