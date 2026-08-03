@@ -57,12 +57,9 @@ namespace WitchMendokusai
 		//   (사용자 실증: "전초지기랑 연구소 설치 안됨" — 정수로만 사는 것들이 통째로 잠겨 있었다).
 		private readonly Dictionary<Transform, bool> harvesterIsOuter = new();
 		// 보급 — 코어에서 내 건물을 징검다리로 이어지는 사슬. 끊기면 그 너머의 채집은 수입이 0.
-		private readonly List<Vector3> supplyBuildings = new();
-		private readonly List<Transform> supplyTransforms = new();
-		private readonly HashSet<int> suppliedBuildings = new();
+		private readonly TowerDefenseSupplyChain supplyChain = new();
 		// 전초기지 — 마수가 향하는 *또 하나의 목표*이자 보급의 새 원점.
 		private readonly List<Transform> outposts = new();
-		private readonly List<Vector3> supplySeeds = new();
 		private readonly List<Vector2Int> pathGoals = new();
 
 		// 고른 카드가 쌓이는 곳 — 코어 레벨업 선택이 여기로 들어온다.
@@ -296,10 +293,8 @@ namespace WitchMendokusai
 			enemyBountyById.Clear();
 			harvesterTransforms.Clear();
 			harvesterIsOuter.Clear();
-			supplyTransforms.Clear();
-			supplyBuildings.Clear();
+			supplyChain.Clear();
 			outposts.Clear();
-			suppliedBuildings.Clear();
 			DisconnectedHarvesters = 0;
 			LabCount = 0;
 			TrapsSpent = 0;
@@ -469,7 +464,7 @@ namespace WitchMendokusai
 				if (ToCellKey(unit.transform.position) != cellKey)
 					continue;
 				// 그 칸을 지나가던 마수가 먼저 잡히면 승급이 조용히 거절된다 — 내가 세운 것만 본다.
-				if (supplyTransforms.Contains(unit.transform) == false)
+				if (supplyChain.Contains(unit.transform) == false)
 					continue;
 
 				TowerDefenseWeapon weapon = unit.GetComponent<TowerDefenseWeapon>();
@@ -672,7 +667,7 @@ namespace WitchMendokusai
 
 			// 벽도 보급 중계다 — 길을 그리는 것과 보급선을 잇는 것이 같은 행위가 되어,
 			// 「어디에 벽을 세울까」가 방어선과 살림살이 양쪽을 동시에 결정한다.
-			supplyTransforms.Add(wall.transform);
+			supplyChain.Add(wall.transform);
 			RefreshSupply();
 		}
 
@@ -2608,7 +2603,7 @@ namespace WitchMendokusai
 					return int.MaxValue;
 
 				int nearest = int.MaxValue;
-				foreach (Transform building in supplyTransforms)
+				foreach (Transform building in supplyChain.Buildings)
 				{
 					if (building == null)
 						continue;
@@ -2655,29 +2650,7 @@ namespace WitchMendokusai
 			if (stage == null || coreCombatant == null)
 				return true;
 
-			float reach = EffectiveSupplyReach;
-			float reachSqr = reach * reach;
-
-			if ((worldPosition - coreCombatant.Position).sqrMagnitude <= reachSqr)
-				return true;
-
-			foreach (Transform outpost in outposts)
-			{
-				if (outpost != null && (worldPosition - outpost.position).sqrMagnitude <= reachSqr)
-					return true;
-			}
-
-			// 이어진 건물에서도 뻗는다 — 징검다리를 놓아 나아가는 것이 개척이다.
-			for (int index = 0; index < supplyTransforms.Count; index++)
-			{
-				Transform building = supplyTransforms[index];
-				if (building == null || suppliedBuildings.Contains(index) == false)
-					continue;
-				if ((worldPosition - building.position).sqrMagnitude <= reachSqr)
-					return true;
-			}
-
-			return false;
+			return supplyChain.IsWithinReach(worldPosition, coreCombatant.Position, outposts, EffectiveSupplyReach);
 		}
 
 		/// <summary>
@@ -3042,37 +3015,38 @@ namespace WitchMendokusai
 			if (core == null || coreCombatant == null || stage == null)
 				return;
 
-			for (int index = supplyTransforms.Count - 1; index >= 0; index--)
-			{
-				if (supplyTransforms[index] == null)
-					supplyTransforms.RemoveAt(index);
-			}
-
-			supplyBuildings.Clear();
-			foreach (Transform building in supplyTransforms)
-				supplyBuildings.Add(building.position);
-
-			supplySeeds.Clear();
-			supplySeeds.Add(coreCombatant.Position);
-			foreach (Transform outpost in outposts)
-			{
-				if (outpost != null)
-					supplySeeds.Add(outpost.position);
-			}
-
-			TowerDefenseSupply.Compute(supplySeeds, supplyBuildings, EffectiveSupplyReach, suppliedBuildings);
+			// 「누가 이어졌나」는 사슬이 답한다 — 여기 남는 것은 「그래서 얼마 버나」뿐이다.
+			supplyChain.Compute(coreCombatant.Position, outposts, EffectiveSupplyReach);
 
 			float resourceWeight = 0f;
 			float essenceWeight = 0f;
 			DisconnectedHarvesters = 0;
+			OuterHarvesters = 0;
+			SuppliedOuterHarvesters = 0;
+			PoweredOuterHarvesters = 0;
 
-			for (int index = 0; index < supplyTransforms.Count; index++)
+			IReadOnlyList<Transform> chain = supplyChain.Buildings;
+			for (int index = 0; index < chain.Count; index++)
 			{
-				Transform building = supplyTransforms[index];
+				Transform building = chain[index];
+				bool connected = supplyChain.IsConnected(index);
+				bool outer = harvesterIsOuter.TryGetValue(building, out bool isOuter) && isOuter;
+
+				if (outer)
+				{
+					OuterHarvesters++;
+					if (connected)
+					{
+						SuppliedOuterHarvesters++;
+						// 보급과 전기는 *다른 관문*이다 — 위 벌이 계산은 전기도 요구하는데 여기서 안 세면
+						// 「이어졌는데 정수가 0」이라는 거짓 실패가 찍히고 진짜 이유(전기 없음)가 안 보인다.
+						if (IsPowered(building))
+							PoweredOuterHarvesters++;
+					}
+				}
+
 				if (harvesterTransforms.Contains(building) == false)
 					continue;
-
-				bool connected = suppliedBuildings.Contains(index);
 
 				// 끊긴 사실을 그 인형 머리 위에 붙인다 — 수입이 왜 안 오는지가 숫자가 아니라 *자리*로 보여야 한다.
 				TowerDefenseDollLabel label = FindDollLabel(building);
@@ -3089,43 +3063,23 @@ namespace WitchMendokusai
 					continue; // 전기가 끊긴 채집은 캐지 못한다.
 
 				float multiplier = HarvesterMultiplierOf(building);
-				if (harvesterIsOuter.TryGetValue(building, out bool outer) && outer)
+				if (outer)
 					essenceWeight += multiplier;
 				else
 					resourceWeight += multiplier;
 			}
 
 			core.SetHarvesterWeights(resourceWeight, essenceWeight);
-
-			OuterHarvesters = 0;
-			SuppliedOuterHarvesters = 0;
-			PoweredOuterHarvesters = 0;
-			for (int index = 0; index < supplyTransforms.Count; index++)
-			{
-				Transform building = supplyTransforms[index];
-				if (harvesterIsOuter.TryGetValue(building, out bool outer) == false || outer == false)
-					continue;
-
-				OuterHarvesters++;
-				if (suppliedBuildings.Contains(index) == false)
-					continue;
-
-				SuppliedOuterHarvesters++;
-				// 보급과 전기는 *다른 관문*이다 — 위 벌이 계산은 전기도 요구하는데 여기서 안 세면
-				// 「이어졌는데 정수가 0」이라는 거짓 실패가 찍히고 진짜 이유(전기 없음)가 안 보인다.
-				if (IsPowered(building))
-					PoweredOuterHarvesters++;
-			}
 		}
 
 		/// <summary> 보급이 끊긴 채집 인형 수 — 화면이 「왜 수입이 줄었나」를 말해줘야 한다. </summary>
 		public int DisconnectedHarvesters { get; private set; }
 
 		/// <summary> 코어까지 이어진 건물 수 — 검증·진단용. </summary>
-		public int SuppliedBuildings => suppliedBuildings.Count;
+		public int SuppliedBuildings => supplyChain.ConnectedCount;
 
 		/// <summary> 보급 사슬 후보 건물 수 — 「사슬이 비었나 / 안 닿나」를 가르는 진단값. </summary>
-		public int SupplyBuildingCount => supplyTransforms.Count;
+		public int SupplyBuildingCount => supplyChain.Buildings.Count;
 
 		/// <summary>
 		/// 바깥 노드에 선 채집 수 / 그중 보급이 이어진 수.
@@ -3231,7 +3185,7 @@ namespace WitchMendokusai
 			}
 
 			outposts.Add(outpostObject.transform);
-			supplyTransforms.Add(outpostObject.transform);
+			supplyChain.Add(outpostObject.transform);
 			ShowSupplyReachRing(outpostObject.transform); // 새 원점이므로 새 사거리 원.
 			AddVisionSource(worldPosition, stage.OutpostVisionRadius);
 			RebuildPathing(); // 목표가 늘었으므로 마수의 길이 통째로 바뀐다.
@@ -3674,7 +3628,7 @@ namespace WitchMendokusai
 					continue;
 				if (coreCombatant != null && unit == coreCombatant.gameObject)
 					return false; // 코어는 못 판다.
-				if (supplyTransforms.Contains(unit.transform) == false)
+				if (supplyChain.Contains(unit.transform) == false)
 					continue; // 내가 세운 것이 아니다(지나가던 마수·영웅 등) — 팔 수 없다.
 				sold = unit;
 				break;
@@ -3758,7 +3712,7 @@ namespace WitchMendokusai
 			if (driver != null)
 				driver.StopDriving();
 
-			supplyTransforms.Remove(sold.transform);
+			supplyChain.Remove(sold.transform);
 			// 판 것은 더 이상 전기를 먹지 않는다 — 안 지우면 없는 건물이 계속 전력을 물고 있어
 			// 「분명 발전기를 지었는데 왜 모자라지」가 된다(무음 누수).
 			powerGrid.RemoveConsumer(sold.transform);
@@ -3979,7 +3933,7 @@ namespace WitchMendokusai
 				variant: TowerArchetypeIndexOf(towerArchetype));
 
 			// 모든 내 건물이 보급 사슬의 징검다리 — 포탑을 늘어놓는 것이 곧 보급선을 잇는 일이 된다.
-			supplyTransforms.Add(unitGameObject.transform);
+			supplyChain.Add(unitGameObject.transform);
 
 			if (isGenerator)
 				powerGrid.AddGenerator(unitGameObject.transform);
