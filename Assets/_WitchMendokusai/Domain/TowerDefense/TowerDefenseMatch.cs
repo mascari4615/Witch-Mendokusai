@@ -3163,10 +3163,17 @@ namespace WitchMendokusai
 				outpostRenderer.sharedMaterial = material;
 			}
 
-			// ⚠ 전초기지 자체 방어는 *잠시 꺼둔다* — 전초기지는 유닛 프리팹이 아니라 코드가 그린 도형이라
-			//   무기가 붙을 몸(UnitObject)이 없다. 그대로 무기를 달았더니 라이브에서 널 참조로 터졌다.
-			//   근본 수정 = 전초기지를 채집·발전처럼 *유닛 프리팹*으로 세우는 것(그러면 맞을 수도 있게 된다).
-			//   그 전까지는 기능을 켜두는 것보다 끄는 편이 정직하다 — 켜져 있는데 터지는 것이 최악이다.
+			// ★ 전초기지 자체 방어 — 무기는 *유닛 프리팹으로 세운 수비대*가 든다.
+			//   앞서 도형(큐브)에 바로 무기를 달았더니 몸(UnitObject)이 없어 라이브에서 널 참조로 터졌다.
+			//   전초기지 표식(큐브)은 길·보급의 앵커로 두고, 그 자리에 *지키는 인형*을 한 기 세운다 —
+			//   기존 배치 경로를 그대로 재사용하므로 새로 만드는 것이 없고, 그 인형은 맞을 수도 있다
+			//   (「넓힌 곳도 지켜야 한다」가 규칙으로 성립한다).
+			if (stage.OutpostWeapon != null && stage.TowerUnit != null && stage.TowerUnit.Prefab != null)
+			{
+				StartCoroutine(SpawnDefensiveUnitRoutine(
+					stage.TowerUnit, null, worldPosition, isHarvester: false, incomeMultiplier: 1f,
+					towerArchetype: stage.OutpostWeapon));
+			}
 
 			outposts.Add(outpostObject.transform);
 			supplyTransforms.Add(outpostObject.transform);
