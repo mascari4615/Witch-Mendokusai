@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using UnityEngine;
 using VContainer;
 
@@ -142,6 +142,8 @@ namespace WitchMendokusai
 
 			// 사거리는 묻는 순간에만 — 얹힌 그 건물 하나만 켠다(상시 표시는 노이즈).
 			match.HighlightRangeOf(placement.HoveredUnit != null ? placement.HoveredUnit.transform : null);
+
+			RefreshSelectionPanel();
 		}
 
 		/// <summary>
@@ -237,25 +239,52 @@ namespace WitchMendokusai
 			hud?.ShowPullResult(pulledTower, relics, CanPull());
 		}
 
-		/// <summary> 새 카드가 걸렸다 — 화면 한가운데에 띄운다. 고를 때까지 판은 멈춰 있다(매치 쪽 규칙). </summary>
-		private void ShowDraft()
-		{
-			hud?.ShowDraft(match.PendingDraft, match.BoonCount);
-		}
-
-		/// <summary> 카드 선택 — 고른 순간 판이 다시 흐른다. 그 클릭이 지면 설치로 새지 않게 한 번 삼킨다. </summary>
-		private void ChooseBoon(int index)
-		{
-			placement.SuppressNextClick();
-			if (match.ChooseBoon(index))
-				hud?.HideDraft();
-		}
-
 		/// <summary> 코어 레벨업 카드 선택 — 판 전체에 걸린다. </summary>
 		private void ChooseCoreCard(int index)
 		{
 			placement.SuppressNextClick();
 			match.ChooseCoreCard(index);
+		}
+
+		/// <summary>
+		/// 고른 건물의 선택창 — 강화 선택지 / 코어 카드 / 연구 버튼이 여기서 뜬다.
+		///
+		/// ★ 이게 없어서 그 셋이 전부 *코드만 있고 한 번도 안 떴다*(라이브 측정으로 드러남 —
+		///   화면 조각을 세어보니 선택창이 목록에 아예 없었다). 「건물 선택하면 그때 띄운다」가
+		///   사용자가 요청한 모양이므로, 고른 대상이 바뀔 때마다 그 대상 기준으로 다시 그린다.
+		/// ★ 매 프레임 부르지만 화면은 *개수가 바뀔 때만* 다시 그린다(그쪽에 못 박혀 있다) —
+		///   여기서 미리 걸러내면 「무엇이 바뀌었나」 판정이 두 곳에 갈라진다.
+		/// </summary>
+		private void RefreshSelectionPanel()
+		{
+			if (hud == null)
+				return;
+
+			ArenaCombatant selected = placement.SelectedBuilding;
+			if (selected == null || selected.IsAlive == false)
+			{
+				hud.ShowSelection(null, canResearch: false, researchLevel: 0, researchCost: 0);
+				return;
+			}
+
+			bool isCore = match.CoreCombatant != null && selected == match.CoreCombatant;
+
+			perkOffers.Clear();
+			TowerDefenseDollLabel doll = match.FindDoll(selected);
+			if (doll != null && doll.Progress.PendingChoices > 0)
+				TowerDefenseBuildingProgress.Offer(doll.BuildingId, doll.Progress.Level, doll.IsHarvester, perkOffers);
+
+			coreCards.Clear();
+			if (isCore)
+				match.OfferCoreCards(coreCards);
+
+			hud.ShowSelection(
+				match.DescribeUnit(selected),
+				canResearch: isCore,
+				researchLevel: match.LabCount,
+				researchCost: match.ResearchCost,
+				perkOffers,
+				coreCards);
 		}
 
 		/// <summary> 고른 건물의 레벨업 선택 — 그 클릭이 설치로 새지 않게 한 번 삼킨다. </summary>
@@ -354,7 +383,6 @@ namespace WitchMendokusai
 				// Show 가 아니라 전용 리셋 — Show 는 본편 UI 를 다시 숨기며 복원 정보를 덮어쓴다(이미 숨긴 상태라 빈 목록이 됨).
 				SyncAvailableTowers();
 				view.ResetForNewMatch(stage);
-				view.HideDraft(); // 새 판에 옛 카드가 남아 있으면 그대로 눌려 이번 판의 선택이 아닌 것이 들어온다.
 				view.SetBestRecord(CurrentBestRecord());
 				view.SetSelectedSlot(placement.SelectedSlot);
 			}
@@ -419,14 +447,12 @@ namespace WitchMendokusai
 					view.PullRequested += PullTower;
 					view.PauseToggleRequested += match.TogglePause;
 					view.SpeedCycleRequested += match.CycleSpeed;
-					view.BoonChosen += ChooseBoon;
 					view.ToggleAllRangesRequested += ToggleAllRanges;
 					view.ResearchRequested += DoResearch;
 					view.UiScaleCycleRequested += CycleUiScale;
 					view.BuildingPerkChosen += ChoosePerk;
 					view.CoreCardChosen += ChooseCoreCard;
 					view.DifficultyCycleRequested += CycleDifficulty;
-					match.DraftOffered += ShowDraft;
 				}
 			}
 			else
@@ -453,15 +479,12 @@ namespace WitchMendokusai
 					hud.PullRequested -= PullTower;
 					hud.PauseToggleRequested -= match.TogglePause;
 					hud.SpeedCycleRequested -= match.CycleSpeed;
-					hud.BoonChosen -= ChooseBoon;
 					hud.ToggleAllRangesRequested -= ToggleAllRanges;
 					hud.ResearchRequested -= DoResearch;
 					hud.UiScaleCycleRequested -= CycleUiScale;
 					hud.BuildingPerkChosen -= ChoosePerk;
 					hud.CoreCardChosen -= ChooseCoreCard;
 					hud.DifficultyCycleRequested -= CycleDifficulty;
-					match.DraftOffered -= ShowDraft;
-					hud.HideDraft();
 				}
 				placement.Deactivate();
 				hud?.Hide();

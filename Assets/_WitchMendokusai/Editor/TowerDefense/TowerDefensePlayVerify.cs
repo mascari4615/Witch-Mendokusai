@@ -160,7 +160,6 @@ namespace WitchMendokusai.EditorTools
 			frameSamples = 0;
 			frameTimeSum = 0f;
 			perfPeakAlive = 0;
-			draftFreezeWave = -1;
 			match = null;
 			matchEndedSeen = false;
 			lastWaveIndex = -1;
@@ -294,6 +293,9 @@ namespace WitchMendokusai.EditorTools
 					VerifyHudLayout("평상시");
 					// ★ 평상시엔 안 뜨는 것(선택 패널)이 *뜬 상태*로도 재야 한다 — 안 뜬 것은 겹칠 수도 없어서
 					//   「겹침 0」이 「띄워본 적이 없다」를 숨긴다.
+					// ★ 코어 카드는 레벨이 올라야 뜬다 — 안 띄우면 「카드가 겹치나」를 영영 못 잰다.
+					if (match != null)
+						match.GrantCoreExperienceForVerification(CORE_XP_FOR_CARDS);
 					SelectPlacedBuildingForLayout();
 					// ★ 예산은 유한하고 확인할 항목은 여럿이다 — 순서가 곧 검증 가능 여부다.
 					//   승급은 *이미 서 있는 포탑*이 필요하므로 판매보다 먼저, 비싼 연구 인형은 맨 뒤.
@@ -842,8 +844,6 @@ namespace WitchMendokusai.EditorTools
 		}
 
 		private const double STUCK_ASSAULT_SECONDS = 25.0;
-		// 드래프트가 처음 걸린 웨이브 — 다음 틱에 「그대로 멈춰 있나」를 대조하는 기준.
-		private static int draftFreezeWave = -1;
 		private static double assaultStart = -1.0;
 		private static bool stuckDumped;
 		// 집계가 마지막으로 *움직인* 시점을 잡기 위한 직전 값 — 실시간에는 이 정체가 곧 고착이다.
@@ -1020,36 +1020,6 @@ namespace WitchMendokusai.EditorTools
 					+ " currentMode=" + mode
 					+ " ctrlGameObject=" + (ctrlAlive && ctrl != null ? ctrl.gameObject.name : "n/a"));
 				Finish();
-				return;
-			}
-
-			// 드래프트 — 걸리면 판이 멈춘다. 하네스가 안 고르면 관찰이 통째로 굳는데, *그 굳음 자체*가
-			// 「매 웨이브 강제 선택」이 실제로 진행을 막는다는 증거다. 한 틱 굳은 것을 확인하고 고른다.
-			if (match.IsDraftPending)
-			{
-				if (draftFreezeWave < 0)
-				{
-					draftFreezeWave = match.WaveIndex;
-					string cards = string.Empty;
-					foreach (TowerDefenseBoon boon in match.PendingDraft)
-						cards += boon.DisplayName + "/";
-					Debug.Log(TAG + " DRAFT offered=" + match.PendingDraft.Count + " wave=" + match.WaveIndex
-						+ " phase=" + match.Phase + " [" + cards + "]");
-					// 카드가 실제로 떠 있는 이 순간이 드래프트 배치를 잴 수 있는 유일한 시점이다.
-					VerifyHudLayout("드래프트 중");
-					return; // 한 틱 그대로 둔다 — 아래 틱에서 웨이브가 안 넘어간 것을 확인한다.
-				}
-
-				bool frozen = match.WaveIndex == draftFreezeWave && match.Phase == TowerDefensePhase.Prepare;
-				Debug.Log(TAG + (frozen ? " DRAFT-FREEZE-OK" : " DRAFT-FREEZE-FAIL")
-					+ " wave=" + match.WaveIndex + " phase=" + match.Phase);
-
-				if (match.ChooseBoon(0))
-					Debug.Log(TAG + " DRAFT-TAKEN count=" + match.BoonCount + " summary=[" + match.BoonSummary + "]"
-						+ " damageMul=" + match.TowerDamageMultiplier.ToString("F2"));
-				else
-					Debug.LogError(TAG + " DRAFT-FAIL 카드를 골랐는데 안 받아들여짐");
-				draftFreezeWave = -1;
 				return;
 			}
 
@@ -1648,7 +1618,7 @@ namespace WitchMendokusai.EditorTools
 		private static readonly string[] HUD_BLOCKS =
 		{
 			"ResourceBar", "ProgressPanel", "LegendPanel", "TowerDefenseSelectionBar",
-			"HintBar", "RestartButton", "BoonSummary", "UnitTooltip", "SelectionPanel", "Minimap", "DraftPanel",
+			"HintBar", "RestartButton", "BoonSummary", "UnitTooltip", "SelectionPanel", "Minimap",
 		};
 
 		/// <summary>
@@ -1691,6 +1661,8 @@ namespace WitchMendokusai.EditorTools
 		// 나가기 직전의 판 — 들어와서 이것과 같아야 「이어했다」다.
 		// 시계가 이만큼은 쌓인 뒤에 나간다 — 0 에서 나가면 「되감김」과 「그대로」가 구분되지 않는다.
 		private const int RESUME_MIN_CLOCK = 5;
+		// 코어 레벨 한 단계는 넘기고도 남는 양 — 카드가 확실히 걸리게.
+		private const int CORE_XP_FOR_CARDS = 500;
 		private static int resumeSeed;
 		private static int resumeResource;
 		private static int resumeEssence;
@@ -1858,7 +1830,8 @@ namespace WitchMendokusai.EditorTools
 				}
 			}
 
-			string verdict = TAG + " HUD-LAYOUT[" + phase + "] blocks=" + names.Count + " overlaps=" + overlaps;
+			string verdict = TAG + " HUD-LAYOUT[" + phase + "] blocks=" + names.Count + " overlaps=" + overlaps
+				+ " [" + string.Join(",", names) + "]";
 			if (overlaps == 0)
 				Debug.Log(verdict + " → 겹치는 덩어리 없음 ✔");
 		}

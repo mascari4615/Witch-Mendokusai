@@ -57,8 +57,6 @@ namespace WitchMendokusai
 		// 건물 머리 위 작은 바 — 이름표와 같은 좌표계라 같은 목록으로 관리한다(따로 두면 어긋난다).
 		private readonly System.Collections.Generic.List<VisualElement> dollBarViews = new();
 		// 웨이브 사이 드래프트 — 카드가 걸리면 화면 한가운데를 막는다(고르기 전엔 아무것도 못 한다).
-		private VisualElement draftCardRow;
-		private Label draftTitleLabel;
 		private Label boonSummaryLabel;
 		// 커서가 얹힌 유닛 설명 — 「이게 뭐고 얼마나 버티나」를 물어볼 유일한 수단.
 		private VisualElement unitTooltip;
@@ -104,7 +102,6 @@ namespace WitchMendokusai
 		public event System.Action SpeedCycleRequested = delegate { };
 
 		/// <summary> 드래프트 카드 선택(인덱스) — 고르기 전엔 판이 멈춰 있다. </summary>
-		public event System.Action<int> BoonChosen = delegate { };
 
 		/// <summary> 디버그 — 세워둔 것 전부의 사거리를 한 번에 보여준다/감춘다. </summary>
 		public event System.Action ToggleAllRangesRequested = delegate { };
@@ -161,7 +158,6 @@ namespace WitchMendokusai
 			container.Add(BuildBanner(out bannerLabel, out _));
 			container.Add(Named(BuildCornerRestartButton(), "RestartButton"));
 			container.Add(Named(BuildBoonSummary(out boonSummaryLabel), "BoonSummary"));
-			container.Add(Named(BuildDraftPanel(out draftCardRow, out draftTitleLabel), "DraftPanel"));
 			unitTooltip = Named(BuildUnitTooltip(out unitTooltipLabel), "UnitTooltip");
 			container.Add(unitTooltip);
 			container.Add(BuildSelectionPanel(out selectionPanel, out selectionTitleLabel, out researchButton));
@@ -473,47 +469,21 @@ namespace WitchMendokusai
 		}
 
 		/// <summary>
-		/// 웨이브 사이 드래프트 — 화면 한가운데 세 장. 구석에 두면 「나중에 봐야지」가 되어 강제 선택이 아니게 된다.
-		/// 배경을 어둡게 덮는 이유도 같다: 지금 할 일은 이거 하나뿐이라는 것을 화면이 말해야 한다.
+		/// 카드 한 장 — 이름·설명만. 숫자를 더 얹으면 세 장을 비교하는 데 시간이 걸린다.
+		///
+		/// ★ 이 모양을 코어 레벨업 선택이 그대로 쓴다. 예전엔 「화면 한가운데 예쁜 카드」와
+		///   「선택창의 수수한 버튼」이 따로 있었고, 정작 *뜨는 쪽은 수수한 버튼*이었다
+		///   (예쁜 쪽은 부르는 데가 없어 한 번도 안 떴다). 한 벌로 합쳐 뜨는 쪽이 예쁜 것을 쓴다.
+		/// ★ compact = 선택창처럼 좁은 자리에 들어갈 때. 같은 카드가 크기만 줄어든다
+		///   (모양을 두 벌로 만들면 또 갈라진다).
 		/// </summary>
-		private VisualElement BuildDraftPanel(out VisualElement cardRow, out Label title)
+		private VisualElement MakeBoonCard(TowerDefenseBoon boon, System.Action onChosen, bool compact)
 		{
-			VisualElement wrapper = new VisualElement { name = "DraftPanel" };
-			wrapper.style.position = Position.Absolute;
-			wrapper.style.left = 0;
-			wrapper.style.right = 0;
-			wrapper.style.top = 0;
-			wrapper.style.bottom = 0;
-			wrapper.style.alignItems = Align.Center;
-			wrapper.style.justifyContent = Justify.Center;
-			wrapper.style.backgroundColor = new Color(0.02f, 0.03f, 0.05f, 0.72f);
-			wrapper.style.display = DisplayStyle.None;
-			// 덮개 자체가 클릭을 먹어야 카드 밖을 눌러도 지면에 건물이 서지 않는다.
-			wrapper.pickingMode = PickingMode.Position;
-
-			title = new Label("한 장을 고른다");
-			title.style.fontSize = 26;
-			title.style.color = new Color(1f, 0.88f, 0.5f, 1f);
-			title.style.marginBottom = 18;
-			title.pickingMode = PickingMode.Ignore;
-
-			cardRow = new VisualElement();
-			cardRow.style.flexDirection = FlexDirection.Row;
-			cardRow.pickingMode = PickingMode.Ignore;
-
-			wrapper.Add(title);
-			wrapper.Add(cardRow);
-			return wrapper;
-		}
-
-		/// <summary> 카드 한 장 — 이름·설명만. 숫자를 더 얹으면 세 장을 비교하는 데 시간이 걸린다. </summary>
-		private VisualElement MakeDraftCard(TowerDefenseBoon boon, int index)
-		{
-			Button card = new Button(() => BoonChosen(index));
-			card.style.width = 200;
-			card.style.height = 132;
-			card.style.marginLeft = 10;
-			card.style.marginRight = 10;
+			Button card = new Button(() => onChosen());
+			card.style.width = compact ? 118 : 200;
+			card.style.height = compact ? 96 : 132;
+			card.style.marginLeft = compact ? 3 : 10;
+			card.style.marginRight = compact ? 3 : 10;
 			card.style.backgroundColor = new Color(0.10f, 0.12f, 0.18f, 0.96f);
 			card.style.alignItems = Align.Center;
 			card.style.justifyContent = Justify.Center;
@@ -529,19 +499,19 @@ namespace WitchMendokusai
 			card.style.borderBottomColor = accent;
 			card.pickingMode = PickingMode.Position;
 
-			card.Add(TowerDefenseIcon.Make(BoonIcon(boon.Kind), accent, 34));
+			card.Add(TowerDefenseIcon.Make(BoonIcon(boon.Kind), accent, compact ? 22 : 34));
 
 			Label name = new Label(boon.DisplayName);
-			name.style.fontSize = 18;
+			name.style.fontSize = compact ? 13 : 18;
 			name.style.color = new Color(0.96f, 0.97f, 1f, 1f);
-			name.style.marginTop = 10;
+			name.style.marginTop = compact ? 5 : 10;
 			name.pickingMode = PickingMode.Ignore;
 			card.Add(name);
 
 			Label note = new Label(boon.Note);
-			note.style.fontSize = 13;
+			note.style.fontSize = compact ? 10 : 13;
 			note.style.color = accent;
-			note.style.marginTop = 6;
+			note.style.marginTop = compact ? 3 : 6;
 			note.pickingMode = PickingMode.Ignore;
 			card.Add(note);
 
@@ -657,12 +627,18 @@ namespace WitchMendokusai
 		///   건물 선택하면 그때 띄우거나"): 건물이 수십 개가 되면 각자의 알림이 화면을 덮는다.
 		///   물어본 것에만 답하는 화면이 결국 더 많은 것을 보여준다.
 		/// </summary>
+		// 미니맵 위에 앉는 높이 — 미니맵이 커지면 이 값도 같이 커져야 한다(같은 모서리를 나눠 쓴다).
+		private const int SELECTION_PANEL_BOTTOM = 330;
+
 		private VisualElement BuildSelectionPanel(out VisualElement panel, out Label title, out Button research)
 		{
 			panel = new VisualElement { name = "SelectionPanel" };
 			panel.style.position = Position.Absolute;
-			panel.style.left = 24;
-			panel.style.bottom = 130;
+			// ★ 왼쪽 아래는 범례 자리다 — 거기 두면 둘이 포개져 둘 다 안 읽힌다(좌표 검사가 잡아냄).
+			//   오른쪽 아래로 보내되 미니맵 *위*에 앉힌다: 손이 가는 곳(핫바) 근처면서 겹치는 것이 없다.
+			panel.style.right = 24;
+			panel.style.bottom = SELECTION_PANEL_BOTTOM;
+			panel.style.maxWidth = 380;
 			panel.style.paddingLeft = 14;
 			panel.style.paddingRight = 14;
 			panel.style.paddingTop = 10;
@@ -688,6 +664,7 @@ namespace WitchMendokusai
 			// 코어 레벨업 카드 — 판 전체에 걸리는 것이라 건물 선택지와 줄을 나눈다(성격이 다르다).
 			coreCardRow = new VisualElement();
 			coreCardRow.style.flexDirection = FlexDirection.Row;
+			coreCardRow.style.flexWrap = Wrap.Wrap; // 카드가 셋이면 좁은 선택창에서 줄이 넘어간다.
 			coreCardRow.style.marginTop = 8;
 			coreCardRow.pickingMode = PickingMode.Ignore;
 			panel.Add(coreCardRow);
@@ -734,11 +711,7 @@ namespace WitchMendokusai
 				for (int index = 0; index < cardCount; index++)
 				{
 					int cardIndex = index;
-					Button cardButton = MakeActionButton(coreCards[index].DisplayName, fontSize: 12,
-						() => CoreCardChosen(cardIndex));
-					cardButton.style.marginRight = 6;
-					cardButton.tooltip = coreCards[index].Note;
-					coreCardRow.Add(cardButton);
+					coreCardRow.Add(MakeBoonCard(coreCards[index], () => CoreCardChosen(cardIndex), compact: true));
 				}
 			}
 
@@ -843,34 +816,6 @@ namespace WitchMendokusai
 
 			box.Add(label);
 			return box;
-		}
-
-		/// <summary> 카드를 건다 — 고를 때까지 판은 멈춰 있다. </summary>
-		public void ShowDraft(System.Collections.Generic.IReadOnlyList<TowerDefenseBoon> offers, int takenCount)
-		{
-			if (draftCardRow == null || offers == null || offers.Count == 0)
-				return;
-
-			draftCardRow.Clear();
-			for (int index = 0; index < offers.Count; index++)
-				draftCardRow.Add(MakeDraftCard(offers[index], index));
-
-			draftTitleLabel.text = takenCount > 0
-				? (takenCount + 1) + "번째 선택 — 한 장을 고른다"
-				: "한 장을 고른다";
-			SetDraftVisible(true);
-		}
-
-		public void HideDraft()
-		{
-			SetDraftVisible(false);
-		}
-
-		private void SetDraftVisible(bool visible)
-		{
-			VisualElement wrapper = draftCardRow != null ? draftCardRow.parent : null;
-			if (wrapper != null)
-				wrapper.style.display = visible ? DisplayStyle.Flex : DisplayStyle.None;
 		}
 
 		private VisualElement BuildBanner(out Label banner, out Button restartButton)

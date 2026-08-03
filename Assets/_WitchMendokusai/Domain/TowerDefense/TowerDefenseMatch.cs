@@ -65,7 +65,7 @@ namespace WitchMendokusai
 		private readonly List<Vector3> supplySeeds = new();
 		private readonly List<Vector2Int> pathGoals = new();
 
-		// 웨이브 사이 드래프트 — 고른 것이 쌓이는 곳(boons) + 지금 화면에 걸려 답을 기다리는 카드들(pendingDraft).
+		// 고른 카드가 쌓이는 곳 — 코어 레벨업 선택이 여기로 들어온다.
 		// 카드가 걸려 있는 동안 진행이 멈춘다 = 「강제 선택」의 실체.
 		private readonly TowerDefenseBoonState boons = new();
 
@@ -74,7 +74,6 @@ namespace WitchMendokusai
 		//   웨이브가 부르던 카드를 코어 성장이 부르게 바꾼 것뿐이다. 체계가 둘로 갈리면 같은 선택이
 		//   두 곳에서 다른 규칙으로 살게 된다.
 		private readonly TowerDefenseBuildingProgress coreProgress = new(baseCost: 24, growth: 1.5f);
-		private readonly List<TowerDefenseBoon> pendingDraft = new();
 
 		// 영웅 인형 — 유일하게 *움직이는* 내 편. 포탑과 같은 전투 표를 쓰되 자리를 내가 옮긴다.
 		private Transform heroTransform;
@@ -311,7 +310,6 @@ namespace WitchMendokusai
 
 			// 새 판 = 새 선택·새 이름·새 영웅. 하나라도 남으면 "새 판"이 아니다.
 			boons.Reset();
-			pendingDraft.Clear();
 			dollLabels.Clear();
 			nextDollOrdinal = 0;
 			heroActive = false;
@@ -1624,80 +1622,11 @@ namespace WitchMendokusai
 		/// <summary> 이번 판의 마수 출현 지점(무대 로컬). </summary>
 		public IReadOnlyList<Vector3> ActiveEnemySpawnPoints => activeSpawnPoints;
 
-		// ── 웨이브 사이 드래프트 ────────────────────────────────────────────────────
-		// ★ 왜 필요한가: 자원이 쌓이면 살 수 있는 걸 사는 구조는 고민이 아니라 *대기*다. 웨이브를 넘길 때마다
-		//   세 장 중 하나를 반드시 고르게 하면, 포기한 두 장이 이번 판의 성격이 된다(Slot Theory 계열).
-		// ★ 왜 판이 멈추나: 고르는 동안 마수가 오면 그건 선택이 아니라 벌칙이다. 카드가 걸린 동안 진행 규칙
-		//   자체를 멈춘다(시간 배속을 건드리지 않는다 — 그건 사람이 쥔 손잡이라 여기서 뺏으면 안 된다).
-
-		/// <summary> 새 카드가 걸렸다 — 화면이 구독해 띄운다. </summary>
-		public event Action DraftOffered = delegate { };
-
-		/// <summary> 지금 답을 기다리는 카드들(없으면 빈 목록). </summary>
-		public IReadOnlyList<TowerDefenseBoon> PendingDraft => pendingDraft;
-
-		/// <summary> 고를 것이 걸려 있는가 — 걸린 동안 웨이브가 오지 않는다. </summary>
-		public bool IsDraftPending => pendingDraft.Count > 0;
-
 		/// <summary> 지금까지 고른 것 한 줄 요약(없으면 빈 문자열). </summary>
 		public string BoonSummary => boons.Describe();
 
 		/// <summary> 지금까지 고른 장수. </summary>
 		public int BoonCount => boons.TakenCount;
-
-		private void OfferDraft()
-		{
-			if (stage == null || core == null)
-				return;
-
-			TowerDefenseDraftRules rules = stage.DraftRules;
-			if (rules.IsEnabled == false)
-				return;
-
-			// 같은 판·같은 웨이브면 같은 세 장 — 「다시 뽑기」로 흔들 수 있으면 선택의 무게가 사라진다.
-			TowerDefenseDraft.Offer(core.WaveIndex, MapSeed, rules, pendingDraft);
-			if (pendingDraft.Count == 0)
-				return;
-
-			DraftOffered();
-		}
-
-		/// <summary>
-		/// 카드 한 장 선택 — 지속 효과는 쌓이고, 즉시 효과(목숨·정수·자원)는 그 자리에서 들어온다.
-		/// 고른 순간 판이 다시 흐른다.
-		/// </summary>
-		public bool ChooseBoon(int index)
-		{
-			if (core == null || index < 0 || index >= pendingDraft.Count)
-				return false;
-
-			TowerDefenseBoon boon = pendingDraft[index];
-			boons.Take(boon);
-
-			switch (boon.Kind)
-			{
-				case TowerDefenseBoonKind.Life:
-					core.AddLives(Mathf.RoundToInt(boon.Magnitude));
-					break;
-				case TowerDefenseBoonKind.Essence:
-					core.AddEssence(Mathf.RoundToInt(boon.Magnitude));
-					break;
-				case TowerDefenseBoonKind.Windfall:
-					core.AddResource(Mathf.RoundToInt(boon.Magnitude));
-					break;
-				// 지속 효과는 boons 에 쌓인 것이 전부 — 아래에서 코어에 반영한다.
-				default:
-					break;
-			}
-
-			core.IncomeMultiplier = boons.IncomeMultiplier;
-			pendingDraft.Clear();
-
-			if (coreCombatant != null)
-				PopWorldText("「" + boon.DisplayName + "」", coreCombatant.Position, TextType.Heal);
-			Debug.Log($"{nameof(TowerDefenseMatch)}: 드래프트 선택 — {boon.DisplayName} ({boon.Note})");
-			return true;
-		}
 
 		// ── 영웅 인형 ─────────────────────────────────────────────────────────────
 		// ★ 왜 필요한가: 지금 개척은 「전부 미리 배치하고 지켜본다」라 교전 중에 사람이 할 일이 0 이다.
@@ -2299,6 +2228,15 @@ namespace WitchMendokusai
 
 			core.AddResource(resource);
 			core.AddEssence(essence);
+		}
+
+		/// <summary>
+		/// 확인용 코어 경험치 — 카드가 실제로 뜬 화면을 재려면 레벨이 올라야 한다.
+		/// ★ 값만 준다 — 카드가 나오는 규칙(무엇이 몇 장 나오나)은 그대로 통과시켜야 확인이 의미가 있다.
+		/// </summary>
+		public void GrantCoreExperienceForVerification(int amount)
+		{
+			AwardCoreExperience(amount);
 		}
 
 		/// <summary> 지금 판을 저장 가능한 형태로 뽑는다(끝난 판이면 null). </summary>
