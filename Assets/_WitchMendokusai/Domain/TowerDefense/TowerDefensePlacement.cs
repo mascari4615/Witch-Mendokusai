@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using VContainer;
 
 namespace WitchMendokusai
@@ -330,9 +330,10 @@ namespace WitchMendokusai
 			// 「지을 수 있나」는 이제 셋이다: 칸이 비었나 / 암반이 아닌가 / *보급이 닿나*.
 			if (match != null)
 			{
+				// ★ 판정을 여기서 다시 조립하지 않는다 — 예전엔 그러다 판 끝 검사를 빠뜨려
+				//   가장자리에서 초록불이 켜지는데 실제로는 거절됐다. 규칙에게 그대로 묻는다.
 				bool canBuild = match.IsCellOccupied(snappedWorldPosition) == false
-					&& match.IsObstacleAt(snappedWorldPosition) == false
-					&& match.IsInBuildableRange(snappedWorldPosition);
+					&& match.CanBuildAt(snappedWorldPosition);
 
 				Renderer previewRenderer = previewMarker.GetComponentInChildren<Renderer>();
 				if (previewRenderer != null)

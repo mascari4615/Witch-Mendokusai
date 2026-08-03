@@ -1027,7 +1027,21 @@ namespace WitchMendokusai
 			return text;
 		}
 
-		private void FillHotbar(TowerDefenseStageSO stage)
+		/// <summary>
+		/// 칸에 적을 값 — *규칙이 실제로 떼는 값*을 매치에 묻는다.
+		/// ★ 예전엔 화면이 스테이지 원값을 그대로 적었다. 건설 할인 카드를 고르면 화면은 40 이라
+		///   말하는데 지갑에선 34 가 빠졌다 — 화면이 거짓말하면 그 화면을 보고 한 판단이 전부 어긋난다.
+		/// 매치가 아직 없으면(첫 그리기) 원값으로 둔다 — 곧 다음 갱신에서 맞춰진다.
+		/// </summary>
+		private static int CostOf(TowerDefenseMatch match, TowerDefensePlaceableKind kind, int towerIndex, int fallback)
+		{
+			return match != null ? match.CostOf(kind, towerIndex) : fallback;
+		}
+
+		// 값이 바뀌면(할인 카드) 칸을 다시 그린다 — 안 그러면 화면이 옛 값을 계속 말한다.
+		private int lastHotbarCostSignature = -1;
+
+		private void FillHotbar(TowerDefenseStageSO stage, TowerDefenseMatch match)
 		{
 			if (stage == null)
 				return;
@@ -1049,30 +1063,30 @@ namespace WitchMendokusai
 						continue;
 					if (TowerDefenseMeta.IsUnlocked(index, stage.DefaultUnlockedTowerCount, unlocked) == false)
 						continue;
-					entries.Add(new ModeSelectionBar.Entry(tower.DisplayName, tower.Cost, tower.Tint,
+					entries.Add(new ModeSelectionBar.Entry(tower.DisplayName, CostOf(match, TowerDefensePlaceableKind.Tower, index, tower.Cost), tower.Tint,
 						icon: UnitSprite(stage.TowerUnit),
 						tooltip: SlotTip(tower.DisplayName, DescribeTower(tower))));
 				}
 			}
 			else
 			{
-				entries.Add(new ModeSelectionBar.Entry("포탑 인형", stage.TowerCost, stage.TowerTint,
+				entries.Add(new ModeSelectionBar.Entry("포탑 인형", CostOf(match, TowerDefensePlaceableKind.Tower, 0, stage.TowerCost), stage.TowerTint,
 					icon: UnitSprite(stage.TowerUnit),
 					tooltip: SlotTip("포탑 인형", "사거리 안의 마수를 쏜다.")));
 			}
 
 			// 칸마다 「이게 뭘 하는 건지」를 붙인다 — 이름과 값만 보고는 벽과 함정의 차이를 알 수 없다.
-			entries.Add(new ModeSelectionBar.Entry("채집 인형", stage.HarvesterCost, stage.HarvesterTint,
+			entries.Add(new ModeSelectionBar.Entry("채집 인형", CostOf(match, TowerDefensePlaceableKind.Harvester, 0, stage.HarvesterCost), stage.HarvesterTint,
 				icon: UnitSprite(stage.HarvesterUnit),
 				tooltip: SlotTip("채집 인형", "자원 노드 위에만 선다. 코어까지 보급이 이어져야 수입이 들어온다.\n바깥 노드는 정수를 낸다.")));
-			entries.Add(new ModeSelectionBar.Entry("벽", stage.WallCost, stage.WallTint,
+			entries.Add(new ModeSelectionBar.Entry("벽", CostOf(match, TowerDefensePlaceableKind.Wall, 0, stage.WallCost), stage.WallTint,
 				tooltip: SlotTip("벽", "마수의 길을 휘게 한다. 길을 완전히 막는 자리에는 못 세운다.")));
-			entries.Add(new ModeSelectionBar.Entry("함정", stage.TrapCost, stage.TrapTint,
+			entries.Add(new ModeSelectionBar.Entry("함정", CostOf(match, TowerDefensePlaceableKind.Trap, 0, stage.TrapCost), stage.TrapTint,
 				tooltip: SlotTip("함정", "바닥에 깐다. 밟으면 터지고 횟수를 다 쓰면 사라진다.")));
-			entries.Add(new ModeSelectionBar.Entry("전초기지", stage.OutpostEssenceCost, stage.OutpostTint,
+			entries.Add(new ModeSelectionBar.Entry("전초기지", CostOf(match, TowerDefensePlaceableKind.Outpost, 0, stage.OutpostEssenceCost), stage.OutpostTint,
 				tooltip: SlotTip("전초기지", "정수로 짓는다. 새 보급 원점이자 *새로 지켜야 할 곳*이 된다 — 마수가 그리로도 몰린다.")));
 
-			entries.Add(new ModeSelectionBar.Entry("발전 인형", stage.GeneratorCost, stage.GeneratorTint,
+			entries.Add(new ModeSelectionBar.Entry("발전 인형", CostOf(match, TowerDefensePlaceableKind.Generator, 0, stage.GeneratorCost), stage.GeneratorTint,
 				icon: UnitSprite(stage.HarvesterUnit),
 				tooltip: SlotTip("발전 인형", "범위 안 건물에 전기를 댄다. 전기를 못 받는 건물은 서 있기만 한다.\n코어도 처음부터 얼마간 대준다.")));
 
@@ -1113,7 +1127,7 @@ namespace WitchMendokusai
 			}
 
 			FillLegend(stage);
-			FillHotbar(stage);
+			FillHotbar(stage, null);
 			SetBannerVisible(false);
 
 			hintLabel.text = stage == null
@@ -1187,6 +1201,15 @@ namespace WitchMendokusai
 		{
 			if (match == null)
 				return;
+
+			// 값이 바뀌었으면(건설 할인 카드) 칸을 다시 그린다 — 화면이 옛 값을 계속 말하면 안 된다.
+			int costSignature = match.CostOf(TowerDefensePlaceableKind.Tower)
+				+ match.CostOf(TowerDefensePlaceableKind.Harvester) * 1000;
+			if (costSignature != lastHotbarCostSignature)
+			{
+				lastHotbarCostSignature = costSignature;
+				FillHotbar(stage, match);
+			}
 
 			resourceValue.text = match.Resource.ToString();
 

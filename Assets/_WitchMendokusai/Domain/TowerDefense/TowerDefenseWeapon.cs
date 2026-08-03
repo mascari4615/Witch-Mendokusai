@@ -79,7 +79,15 @@ namespace WitchMendokusai
 		}
 
 		public float Range => archetype != null ? archetype.Range * LevelScale * (1f + perkRange) : 0f;
-		public int CurrentDamage => archetype != null ? Mathf.RoundToInt(archetype.Damage * LevelScale * (1f + perkDamage)) : 0;
+
+		/// <summary>
+		/// 반올림 전 피해 — 화면이 읽는 값과 실제로 때리는 값이 *같은 식*에서 나오게 하는 자리.
+		/// ★ 예전엔 이 식이 두 벌이었다(툴팁용 / 사격용). 한쪽만 고치면 화면이 거짓말한다.
+		///   화면은 여기에 반올림만 얹고, 사격은 여기에 배수를 더 곱한다 — 갈라질 수가 없다.
+		/// </summary>
+		private float RawDamage => archetype != null ? archetype.Damage * LevelScale * (1f + perkDamage) : 0f;
+
+		public int CurrentDamage => Mathf.RoundToInt(RawDamage);
 
 		/// <summary> 한 단계 올린다. 최대치면 false(값을 치르기 전에 호출자가 확인해야 한다). </summary>
 		public bool TryUpgrade()
@@ -154,7 +162,7 @@ namespace WitchMendokusai
 		/// <summary> 사거리 안에서 가장 가까운 마수 — 가까운 것부터 처리하는 게 방어의 기본. </summary>
 		private ICombatant FindTarget()
 		{
-			float range = archetype.Range * LevelScale * (1f + perkRange);
+			float range = Range; // 툴팁이 말하는 그 사거리 — 두 벌로 두면 화면과 실물이 갈라진다.
 			float rangeSqr = range * range;
 			ICombatant best = null;
 			float bestSqr = float.MaxValue;
@@ -185,7 +193,7 @@ namespace WitchMendokusai
 		/// </summary>
 		private int ComputeDamage(ICombatant target)
 		{
-			float damage = archetype.Damage * LevelScale * (1f + perkDamage);
+			float damage = RawDamage;
 			damage *= damageMultiplier != null ? damageMultiplier() : 1f;
 
 			if (archetype.SlowedTargetBonus > 0f && IsSlowed(target))

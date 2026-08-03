@@ -489,19 +489,63 @@ namespace WitchMendokusai
 					label.Level = weapon.Level;
 
 				PopWorldText("Lv." + weapon.Level, unit.transform.position, TextType.Exp);
-				RefreshTowerRing(unit, archetype, weapon.Level);
+				RefreshTowerRing(unit);
 				return true;
 			}
 
 			return false;
 		}
 
-		// 승급하면 사거리가 늘므로 화면의 원도 같이 자라야 한다 — 안 그러면 원이 거짓말한다.
-		private void RefreshTowerRing(GameObject unit, TowerDefenseTowerArchetype archetype, int level)
+		/// <summary>
+		/// 사거리가 자라면 화면의 원도 같이 자라야 한다 — 안 그러면 원이 거짓말한다.
+		///
+		/// ★ 반지름을 여기서 *다시 계산하지 않는다*. 예전엔 승급 배수만 손으로 곱했는데,
+		///   그 식에는 강화로 늘어난 사거리가 빠져 있었다 — 사거리 강화를 골라도 원이 그대로였다.
+		///   실제로 쏘는 거리를 쥔 쪽(무기)에게 물으면 둘이 갈라질 수가 없다.
+		/// </summary>
+		private void RefreshTowerRing(GameObject unit)
 		{
-			TowerDefenseRing ring = unit.GetComponentInChildren<TowerDefenseRing>();
-			if (ring != null)
-				ring.SetRadius(archetype.Range * (1f + (level - 1) * archetype.UpgradeGrowth));
+			TowerDefenseWeapon weapon = unit != null ? unit.GetComponent<TowerDefenseWeapon>() : null;
+			TowerDefenseRing ring = unit != null ? unit.GetComponentInChildren<TowerDefenseRing>() : null;
+			if (weapon != null && ring != null)
+				ring.SetRadius(weapon.Range);
+		}
+
+		/// <summary>
+		/// 그 자리에 *무엇이든* 세울 수 있나 — 판 안인가 · 암반이 아닌가 · 내 땅인가.
+		///
+		/// ★ 왜 한 곳으로 모았나: 여섯 배치 경로가 이 검사를 각자 베껴 쓰고 있었고, 그러다 보니
+		///   경로마다 빠진 것이 달랐다(함정은 판 끝 검사가 없어 판 밖에 깔렸고, 벽은 암반 위에 섰다.
+		///   둘 다 「보급이 닿는 곳에만」 규칙 밖이었다 — 그건 사용자가 명시적으로 요청한 규칙이다).
+		///   검사가 여러 벌이면 새 배치를 추가할 때마다 한 벌이 또 빠진다.
+		/// 점유·값은 여기 없다 — 경로마다 다르게 취급한다(포탑은 같은 칸이면 승급, 채집은 노드로 스냅).
+		/// </summary>
+		private bool ValidateSite(Vector3 worldPosition)
+		{
+			if (CanBuildAt(worldPosition))
+				return true;
+
+			// 여기 왔으면 셋 중 하나가 막은 것 — 어느 것인지만 골라 말한다.
+			if (IsInsideWindow(worldPosition) == false)
+				return Reject("판 끝이다 — 여기부터는 아직 열리지 않았다", worldPosition);
+			if (IsObstacleAt(worldPosition))
+				return Reject("암반 위엔 못 짓는다", worldPosition);
+			return Reject("보급이 닿는 곳에만 지을 수 있다", worldPosition);
+		}
+
+		/// <summary>
+		/// 그 자리에 지을 수 있나 — *조용한* 판정. 미리보기가 매 프레임 묻는다(거절 사유를 쏟으면 안 된다).
+		///
+		/// ★ 규칙 자체는 이 한 줄이 전부다. 예전엔 미리보기가 같은 판정을 자기 손으로 다시 조립했고,
+		///   그러다 **판 끝 검사를 빠뜨렸다** — 가장자리에서 초록불이 켜지는데 실제로는 거절됐다.
+		///   화면이 「여기 된다」고 해놓고 안 되면 그 화면을 믿을 수 없게 된다.
+		/// 칸이 찼는지는 여기 없다 — 경로마다 다르게 취급한다(포탑은 같은 칸이면 승급).
+		/// </summary>
+		public bool CanBuildAt(Vector3 worldPosition)
+		{
+			return IsInsideWindow(worldPosition)
+				&& IsObstacleAt(worldPosition) == false
+				&& IsInBuildableRange(worldPosition);
 		}
 
 		/// <summary>
@@ -514,11 +558,14 @@ namespace WitchMendokusai
 				return false;
 
 			Vector3Int cellKey = ToCellKey(worldPosition);
-			if (occupiedCells.Contains(cellKey) || IsObstacleAt(worldPosition))
+			if (occupiedCells.Contains(cellKey))
+				return Reject("여긴 이미 찼다", worldPosition);
+			if (ValidateSite(worldPosition) == false)
 				return false;
 
-			if (core.TrySpend(stage.TrapCost) == false)
-				return false;
+			int trapCost = CostOf(TowerDefensePlaceableKind.Trap);
+			if (core.TrySpend(trapCost) == false)
+				return Reject($"자원 부족 {core.Resource}/{trapCost}", worldPosition);
 
 			occupiedCells.Add(cellKey);
 			BuildTrapObject(worldPosition, cellKey);
@@ -583,6 +630,8 @@ namespace WitchMendokusai
 
 			Vector3Int cellKey = ToCellKey(worldPosition);
 			if (occupiedCells.Contains(cellKey))
+				return Reject("여긴 이미 찼다", worldPosition);
+			if (ValidateSite(worldPosition) == false)
 				return false;
 
 			Vector2Int cell = mapLayout.WorldToCell(stageRoot.InverseTransformPoint(worldPosition));
@@ -598,7 +647,7 @@ namespace WitchMendokusai
 				return false;
 			}
 
-			if (core.TrySpend(stage.WallCost) == false)
+			if (core.TrySpend(CostOf(TowerDefensePlaceableKind.Wall)) == false)
 			{
 				wallCells.Remove(cell);
 				RebuildPathing();
@@ -1736,13 +1785,9 @@ namespace WitchMendokusai
 			Vector3Int cellKey = ToCellKey(worldPosition);
 			if (occupiedCells.Contains(cellKey))
 				return Reject("여긴 이미 찼다", worldPosition);
-			if (IsInsideWindow(worldPosition) == false)
-				return Reject("판 끝이다 — 여기부터는 아직 열리지 않았다", worldPosition);
-			if (IsObstacleAt(worldPosition))
-				return Reject("암반 위엔 못 짓는다", worldPosition);
-			if (IsInBuildableRange(worldPosition) == false)
-				return Reject("보급이 닿는 곳에만 지을 수 있다", worldPosition);
-			int generatorCost = Discounted(stage.GeneratorCost);
+			if (ValidateSite(worldPosition) == false)
+				return false;
+			int generatorCost = CostOf(TowerDefensePlaceableKind.Generator);
 			if (core.TrySpend(generatorCost) == false)
 				return Reject($"자원 부족 {core.Resource}/{generatorCost}", worldPosition);
 
@@ -2094,7 +2139,7 @@ namespace WitchMendokusai
 				while (weapon.Level < building.Level && weapon.TryUpgrade())
 				{
 				}
-				RefreshTowerRing(weapon.gameObject, TowerArchetypeAt(building.Variant), weapon.Level);
+				RefreshTowerRing(weapon.gameObject);
 			}
 
 			// 지갑을 저장된 액수로 정확히 맞춘다 — 남거나 모자라면 이어할 때마다 판이 조금씩 달라진다.
@@ -2228,7 +2273,11 @@ namespace WitchMendokusai
 		{
 			TowerDefenseWeapon weapon = doll.Anchor.GetComponent<TowerDefenseWeapon>();
 			if (weapon != null)
+			{
 				weapon.ApplyPerk(perk, stage.PerkStep);
+				// 사거리를 올렸으면 원도 그 자리에서 자란다 — 다음 승급까지 기다리면 그동안 원이 거짓말한다.
+				RefreshTowerRing(doll.Anchor.gameObject);
+			}
 
 			if (perk == TowerDefenseBuildingPerk.Endure)
 			{
@@ -2638,6 +2687,43 @@ namespace WitchMendokusai
 		}
 
 		/// <summary> index 번 포탑의 건설 비용 — 종류가 없으면 스테이지 기본값. </summary>
+		/// <summary>
+		/// 그 종류를 *지금* 세우는 데 드는 값 — 화면과 규칙이 같은 창구에 묻는다.
+		///
+		/// ★ 왜 하나로 모으나: 핫바는 스테이지 원값을 보여주고 배치는 할인값을 뗐다.
+		///   건설 할인 카드를 고른 순간 **화면은 40 이라 말하고 지갑에선 34 가 빠졌다** — 화면이 거짓말한다.
+		/// ★ 게다가 할인이 경로마다 다르게 걸려 있었다(포탑·채집·발전만, 함정·벽은 안 걸림).
+		///   카드에는 「건설 비용 할인」이라 적혀 있는데 절반한테만 걸리면 그건 규칙이 아니라 사고다.
+		/// 정수로 사는 것(전초기지·연구)은 자원 할인과 다른 통장이라 여기서 갈라 답한다.
+		/// </summary>
+		public int CostOf(TowerDefensePlaceableKind kind, int towerIndex = 0)
+		{
+			if (stage == null)
+				return 0;
+
+			switch (kind)
+			{
+				case TowerDefensePlaceableKind.Tower:
+					return Discounted(TowerCostAt(towerIndex));
+				case TowerDefensePlaceableKind.Harvester:
+					return Discounted(stage.HarvesterCost);
+				case TowerDefensePlaceableKind.Wall:
+					return Discounted(stage.WallCost);
+				case TowerDefensePlaceableKind.Trap:
+					return Discounted(stage.TrapCost);
+				case TowerDefensePlaceableKind.Generator:
+					return Discounted(stage.GeneratorCost);
+				// 정수로 산다 — 자원 할인은 안 걸린다(다른 통장).
+				case TowerDefensePlaceableKind.Outpost:
+					return stage.OutpostEssenceCost;
+				case TowerDefensePlaceableKind.Lab:
+					return ResearchCost;
+				// 영웅은 짓는 게 아니라 보내는 것 — 값이 없다.
+				default:
+					return 0;
+			}
+		}
+
 		/// <summary> 카드 할인이 걸린 실제 값 — 화면의 값과 실제 차감이 같은 곳을 읽는다. </summary>
 		public int Discounted(int cost) => Mathf.Max(1, Mathf.RoundToInt(cost * boons.CostMultiplier));
 
@@ -2900,13 +2986,8 @@ namespace WitchMendokusai
 			Vector3Int cellKey = ToCellKey(worldPosition);
 			if (occupiedCells.Contains(cellKey))
 				return Reject("여긴 이미 찼다", worldPosition);
-			if (IsInsideWindow(worldPosition) == false)
-				return Reject("판 끝이다 — 여기부터는 아직 열리지 않았다", worldPosition);
-			if (IsObstacleAt(worldPosition))
-				return Reject("암반 위엔 못 짓는다", worldPosition);
-
-			if (IsInBuildableRange(worldPosition) == false)
-				return Reject("보급이 닿는 곳에만 지을 수 있다", worldPosition);
+			if (ValidateSite(worldPosition) == false)
+				return false;
 			if (core.TrySpendEssence(stage.OutpostEssenceCost) == false)
 				return Reject($"정수 부족 {core.Essence}/{stage.OutpostEssenceCost}", worldPosition);
 
@@ -3292,13 +3373,9 @@ namespace WitchMendokusai
 				return TryUpgradeTowerAt(cellKey, towerIndex);
 			}
 
-			if (IsInsideWindow(worldPosition) == false)
-				return Reject("판 끝이다 — 여기부터는 아직 열리지 않았다", worldPosition);
-			if (IsObstacleAt(worldPosition))
-				return Reject("암반 위엔 못 짓는다", worldPosition);
-			if (IsInBuildableRange(worldPosition) == false)
-				return Reject("보급이 닿는 곳에만 지을 수 있다", worldPosition);
-			int towerCost = Discounted(TowerCostAt(towerIndex));
+			if (ValidateSite(worldPosition) == false)
+				return false;
+			int towerCost = CostOf(TowerDefensePlaceableKind.Tower, towerIndex);
 			if (core.TrySpend(towerCost) == false)
 				return Reject($"자원 부족 {core.Resource}/{towerCost}", worldPosition);
 
@@ -3338,7 +3415,7 @@ namespace WitchMendokusai
 
 			if (IsInBuildableRange(nodeWorldPosition) == false)
 				return Reject("보급이 닿는 곳에만 지을 수 있다", nodeWorldPosition);
-			int harvesterCost = Discounted(stage.HarvesterCost);
+			int harvesterCost = CostOf(TowerDefensePlaceableKind.Harvester);
 			if (core.TrySpend(harvesterCost) == false)
 				return Reject($"자원 부족 {core.Resource}/{harvesterCost}", nodeWorldPosition);
 
@@ -3496,14 +3573,10 @@ namespace WitchMendokusai
 			Vector3Int cellKey = ToCellKey(worldPosition);
 			if (occupiedCells.Contains(cellKey))
 				return Reject("여긴 이미 찼다", worldPosition);
-			if (IsInsideWindow(worldPosition) == false)
-				return Reject("판 끝이다 — 여기부터는 아직 열리지 않았다", worldPosition);
-			if (IsObstacleAt(worldPosition))
-				return Reject("암반 위엔 못 짓는다", worldPosition);
+			if (ValidateSite(worldPosition) == false)
+				return false;
 
 			// 연구는 정수로만 — 강화의 통로를 바깥 노드(개척)에 묶는다.
-			if (IsInBuildableRange(worldPosition) == false)
-				return Reject("보급이 닿는 곳에만 지을 수 있다", worldPosition);
 			if (core.TrySpendEssence(stage.LabEssenceCost) == false)
 				return Reject($"정수 부족 {core.Essence}/{stage.LabEssenceCost}", worldPosition);
 
