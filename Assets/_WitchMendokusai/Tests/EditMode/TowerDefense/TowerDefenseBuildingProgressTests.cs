@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using NUnit.Framework;
 
 namespace WitchMendokusai.Tests
@@ -139,6 +139,35 @@ namespace WitchMendokusai.Tests
 		{
 			foreach (TowerDefenseBuildingPerk perk in System.Enum.GetValues(typeof(TowerDefenseBuildingPerk)))
 				Assert.IsNotEmpty(TowerDefenseBuildingProgress.NameOf(perk));
+		}
+
+		[Test]
+		public void 되살린_성장은_선택지를_다시_쌓지_않는다()
+		{
+			// ★ 경험치로 되감으면 레벨이 오르는 도중에 선택지가 다시 쌓여, 같은 판을 이어했을 뿐인데
+			//   고를 것이 없던 자리에 갑자기 고를 것이 생긴다. 되살리기는 *기록을 그대로 얹는 일*이다.
+			TowerDefenseBuildingProgress progress = new(baseCost: 10, growth: 1.6f);
+
+			progress.Restore(4, 7, 0, new[] { TowerDefenseBuildingPerk.Damage, TowerDefenseBuildingPerk.Range });
+
+			Assert.AreEqual(4, progress.Level);
+			Assert.AreEqual(7, progress.Experience);
+			Assert.AreEqual(0, progress.PendingChoices);
+			Assert.AreEqual(2, progress.Taken.Count);
+		}
+
+		[Test]
+		public void 되살리기는_옛_선택을_남겨두지_않는다()
+		{
+			// 되살린 뒤에 옛 목록이 섞여 있으면 「같은 판」이 아니라 두 판이 겹친 것이 된다.
+			TowerDefenseBuildingProgress progress = new();
+			progress.AddExperience(1000);
+			progress.Choose(TowerDefenseBuildingPerk.Damage);
+
+			progress.Restore(1, 0, 0, null);
+
+			Assert.AreEqual(1, progress.Level);
+			Assert.AreEqual(0, progress.Taken.Count);
 		}
 	}
 }

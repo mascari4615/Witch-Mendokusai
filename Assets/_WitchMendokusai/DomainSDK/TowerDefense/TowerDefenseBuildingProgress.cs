@@ -69,6 +69,26 @@ namespace WitchMendokusai
 			}
 		}
 
+		/// <summary>
+		/// 저장에서 자란 상태를 그대로 되돌린다 — 「경험치를 다시 먹인다」가 아니다.
+		///
+		/// ★ 왜 따로 문을 여나: 경험치로 되감으면 그 과정에서 선택지가 다시 쌓여, 이어할 때마다
+		///   고를 것이 없던 판에 갑자기 고를 것이 생긴다(같은 레벨인데 판이 달라진다).
+		///   되살리기는 *기록을 그대로 얹는 일*이라 성장 규칙과 다른 문이어야 한다.
+		/// </summary>
+		public void Restore(int level, int experience, int pendingChoices, IReadOnlyList<TowerDefenseBuildingPerk> takenPerks)
+		{
+			Level = Mathf.Max(1, level);
+			Experience = Mathf.Max(0, experience);
+			PendingChoices = Mathf.Max(0, pendingChoices);
+
+			taken.Clear();
+			if (takenPerks == null)
+				return;
+			foreach (TowerDefenseBuildingPerk perk in takenPerks)
+				taken.Add(perk);
+		}
+
 		/// <summary> 선택지를 하나 고른다 — 고를 것이 없으면 아무 일도 안 일어난다. </summary>
 		public bool Choose(TowerDefenseBuildingPerk perk)
 		{

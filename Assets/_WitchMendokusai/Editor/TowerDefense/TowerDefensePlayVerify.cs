@@ -315,6 +315,10 @@ namespace WitchMendokusai.EditorTools
 					if (now - selectedLayoutAt < 0.3)
 						return;
 					VerifyHudLayout("건물 선택 중");
+					// ★ 시계가 0 일 때 나가면 「되감겼는지」를 가릴 수 없다(0 이나 1 이나 통과).
+					//   눈금이 실제로 쌓인 뒤에 나가야 이어하기가 시계를 지키는지가 증명된다.
+					if (match != null && match.SurvivedSeconds < RESUME_MIN_CLOCK)
+						return;
 					CaptureResumeSnapshot();
 					if (GameModeManager.TryGetExistingInstance(out GameModeManager exitManager))
 						exitManager.SetMode(GameMode.Default);
@@ -1661,10 +1665,14 @@ namespace WitchMendokusai.EditorTools
 		/// ★ 화면 밖으로 나간 것도 잡는다 — 겹치지만 않으면 되는 게 아니라 *보여야* 한다.
 		/// </summary>
 		// 나가기 직전의 판 — 들어와서 이것과 같아야 「이어했다」다.
+		// 시계가 이만큼은 쌓인 뒤에 나간다 — 0 에서 나가면 「되감김」과 「그대로」가 구분되지 않는다.
+		private const int RESUME_MIN_CLOCK = 5;
 		private static int resumeSeed;
 		private static int resumeResource;
 		private static int resumeEssence;
 		private static int resumeBuildings;
+		private static int resumeSurvived;
+		private static int resumeLives;
 
 		private static void CaptureResumeSnapshot()
 		{
@@ -1675,8 +1683,11 @@ namespace WitchMendokusai.EditorTools
 			resumeResource = match.Resource;
 			resumeEssence = match.Essence;
 			resumeBuildings = match.DollLabels.Count;
+			resumeSurvived = match.SurvivedSeconds;
+			resumeLives = match.Lives;
 			Debug.Log(TAG + " RESUME-SNAPSHOT seed=" + resumeSeed + " 자원=" + resumeResource
-				+ " 정수=" + resumeEssence + " 건물=" + resumeBuildings);
+				+ " 정수=" + resumeEssence + " 건물=" + resumeBuildings
+				+ " 버틴시간=" + resumeSurvived + " 목숨=" + resumeLives);
 		}
 
 		/// <summary>
@@ -1696,20 +1707,28 @@ namespace WitchMendokusai.EditorTools
 			string verdict = TAG + " RESUME seed " + resumeSeed + "→" + resumed.MapSeed
 				+ " · 자원 " + resumeResource + "→" + resumed.Resource
 				+ " · 정수 " + resumeEssence + "→" + resumed.Essence
-				+ " · 건물 " + resumeBuildings + "→" + resumed.DollLabels.Count;
+				+ " · 건물 " + resumeBuildings + "→" + resumed.DollLabels.Count
+				+ " · 버틴시간 " + resumeSurvived + "→" + resumed.SurvivedSeconds
+				+ " · 목숨 " + resumeLives + "→" + resumed.Lives;
 
+			// ★ 시계가 안 돌아오면 오래 버틴 판이 이어하는 순간 처음으로 되감긴다(마수가 갑자기 약해진다).
+			//   딱 맞을 필요는 없다 — 재진입에 걸린 몇 초는 흘러도 되지만, 0 으로 되감기면 안 된다.
+			bool sameClock = resumed.SurvivedSeconds >= resumeSurvived;
+			bool sameLives = resumed.Lives == resumeLives;
 			bool sameGround = resumed.MapSeed == resumeSeed;
 			bool sameWallet = resumed.Resource == resumeResource && resumed.Essence == resumeEssence;
 			// ★ 「그 이상」이면 통과시키면 안 된다 — 유령이 한 채씩 느는 결함이 정확히 그렇게 숨어 있었다.
 			bool sameBuildings = resumed.DollLabels.Count == resumeBuildings;
 
-			if (sameGround && sameWallet && sameBuildings)
+			if (sameGround && sameWallet && sameBuildings && sameClock && sameLives)
 				Debug.Log(verdict + " → 나갔다 들어와도 그 판 그대로 ✔");
 			else
 				Debug.LogError(verdict + " → 이어하기가 판을 그대로 못 돌려준다"
 					+ (sameGround ? "" : " [땅이 다름]")
 					+ (sameWallet ? "" : " [지갑이 다름]")
-					+ (sameBuildings ? "" : " [건물이 빔]"));
+					+ (sameBuildings ? "" : " [건물 수가 다름]")
+					+ (sameClock ? "" : " [시계가 되감김]")
+					+ (sameLives ? "" : " [목숨이 다름]"));
 		}
 
 		/// <summary> 세워둔 건물을 실제로 골라 선택 패널을 띄운다(무장 해제 상태의 클릭 = 고르는 클릭). </summary>

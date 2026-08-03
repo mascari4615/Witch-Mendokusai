@@ -2286,6 +2286,7 @@ namespace WitchMendokusai
 				Essence = core.Essence,
 				Lives = core.Lives,
 				CoreLevel = CoreLevel,
+				CoreExperience = coreProgress.Experience,
 				CorePendingChoices = CorePendingChoices,
 				ResearchLevel = LabCount,
 				NestsDestroyed = NestsDestroyed,
@@ -2345,6 +2346,10 @@ namespace WitchMendokusai
 			LabCount = save.ResearchLevel;
 			NestsDestroyed = save.NestsDestroyed;
 
+			// 판의 시계·목숨·코어 성장 — 이게 안 돌아오면 오래 버틴 판이 이어하는 순간 처음으로 되감긴다.
+			core.Restore(save.ElapsedSeconds, save.WaveIndex, save.Lives);
+			coreProgress.Restore(save.CoreLevel, save.CoreExperience, save.CorePendingChoices, null);
+
 			foreach (TowerDefenseBuildingSave building in save.Buildings)
 			{
 				Vector3 world = stageRoot.TransformPoint(building.Position);
@@ -2366,11 +2371,28 @@ namespace WitchMendokusai
 				yield return null;
 
 				TowerDefenseDollLabel doll = FindDollLabel(world);
-				if (doll == null || building.Perks == null)
+				if (doll == null)
 					continue;
 
-				foreach (int perk in building.Perks)
-					ApplyPerk(doll, (TowerDefenseBuildingPerk)perk);
+				// 고른 것들은 *효과*를 다시 얹어야 한다(수치가 붙는 일이라 기록만으론 부족).
+				if (building.Perks != null)
+				{
+					foreach (int perk in building.Perks)
+						ApplyPerk(doll, (TowerDefenseBuildingPerk)perk);
+				}
+
+				// 자란 단계·경험치는 기록 그대로 얹는다 — 경험치로 되감으면 선택지가 다시 쌓인다.
+				doll.Progress.Restore(building.Level, building.Experience, building.PendingChoices, doll.Progress.Taken);
+				doll.Level = building.Level;
+
+				// 승급은 무기에도 걸려 있다 — 이름표만 올리면 사거리·피해가 1단계인 채로 남는다.
+				TowerDefenseWeapon weapon = doll.Anchor != null ? doll.Anchor.GetComponent<TowerDefenseWeapon>() : null;
+				if (weapon == null)
+					continue;
+				while (weapon.Level < building.Level && weapon.TryUpgrade())
+				{
+				}
+				RefreshTowerRing(weapon.gameObject, TowerArchetypeAt(building.Variant), weapon.Level);
 			}
 
 			// 지갑을 저장된 액수로 정확히 맞춘다 — 남거나 모자라면 이어할 때마다 판이 조금씩 달라진다.

@@ -290,6 +290,18 @@ namespace WitchMendokusai
 		/// </summary>
 		public float IncomeMultiplier { get; set; } = 1f;
 
+		/// <summary>
+		/// 저장에서 판의 시계와 남은 목숨을 되돌린다 — 「접어둔 자리에서 다시 시작」의 뜻.
+		/// ★ 시계를 안 되돌리면 이어할 때마다 마수 강도가 처음으로 돌아간다(오래 버틴 판이 갑자기 쉬워진다).
+		/// </summary>
+		public void Restore(float elapsedSeconds, int waveIndex, int lives)
+		{
+			ElapsedSeconds = Mathf.Max(0f, elapsedSeconds);
+			WaveIndex = Mathf.Max(0, waveIndex);
+			if (UsesLives)
+				Lives = Mathf.Max(1, lives);
+		}
+
 		/// <summary> 목숨을 더 받는다(드래프트 카드) — 유출제가 아닌 스테이지에선 아무 일도 없다. </summary>
 		public void AddLives(int amount)
 		{
