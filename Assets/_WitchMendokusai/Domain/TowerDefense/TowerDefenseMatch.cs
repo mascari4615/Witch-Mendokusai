@@ -877,29 +877,15 @@ namespace WitchMendokusai
 				if (IsNestAlreadyDestroyed(localPosition))
 					continue;
 
-				GameObject nestObject = pool.Spawn(stage.EnemyUnit.Prefab);
-				if (spawnedUnits.Contains(nestObject) == false)
-					spawnedUnits.Add(nestObject);
-				nestObject.transform.position = stageRoot.TransformPoint(localPosition);
-
-				yield return null;
-				if (core == null || targeting == null || pool == null)
-					yield break;
-
-				UnitObject nestUnit = nestObject.GetComponent<UnitObject>();
-				if (nestUnit == null)
+				SpawnedUnit spawned = new();
+				yield return SpawnUnitRoutine(stage.EnemyUnit, stageRoot.TransformPoint(localPosition),
+					ATTACKER_TEAM, stage.NestTint, stage.NestScale, spawned);
+				if (spawned.Ok == false)
 					continue;
 
-				nestUnit.Init(stage.EnemyUnit);
-				nestUnit.SkillHandler.AutoCastEnabled = false;
-
-				ArenaCombatant nestCombatant = nestObject.GetComponent<ArenaCombatant>();
-				if (nestCombatant == null)
-					nestCombatant = nestObject.AddComponent<ArenaCombatant>();
-				nestCombatant.SetTeam(ATTACKER_TEAM, nextCombatantId++);
-
-				ApplyReadability(nestUnit, stage.NestTint, stage.NestScale);
-				nestObject.SetActive(true);
+				GameObject nestObject = spawned.GameObject;
+				UnitObject nestUnit = spawned.UnitObject;
+				ArenaCombatant nestCombatant = spawned.Combatant;
 
 				yield return null;
 				if (core == null)
@@ -920,8 +906,7 @@ namespace WitchMendokusai
 				nestUnit.UnitStat[UnitStatType.HP_MAX] = nestHp;
 				nestUnit.UnitStat[UnitStatType.HP_CUR] = nestHp;
 
-				targeting.Register(nestCombatant);
-				registeredCombatants.Add(nestCombatant);
+				// 표적 등록은 세우는 문이 이미 했다 — 여기서 또 하면 같은 것이 목록에 두 번 들어간다.
 				waveEnemies.Add(nestCombatant); // 포탑이 쏘는 대상 목록 — 둥지도 여기 있어야 맞는다.
 				nests.Add((nestCombatant, localPosition));
 				nestCombatants.Add(nestCombatant);
@@ -995,6 +980,70 @@ namespace WitchMendokusai
 
 		/// <summary> 그 마수가 둥지인가 — 화면이 둘을 다르게 그린다. </summary>
 		public bool IsNestCombatant(ArenaCombatant combatant) => IsNest(combatant);
+
+		/// <summary>
+		/// 인형 하나가 판에 서기까지의 *공통 절차* 결과 — 코루틴은 값을 못 돌려주므로 담아서 준다.
+		/// </summary>
+		private sealed class SpawnedUnit
+		{
+			public GameObject GameObject;
+			public UnitObject UnitObject;
+			public ArenaCombatant Combatant;
+			public bool Ok;
+		}
+
+		/// <summary>
+		/// 인형 하나를 판에 세운다 — 꺼내기부터 표적 등록까지의 아홉 단계.
+		///
+		/// ★ 왜 한 곳으로 모았나: 코어·마수·둥지·수비대·영웅 다섯 경로가 *같은 아홉 단계*를 각자
+		///   되풀이하고 있었다(438줄). 한 경로가 한 줄만 빠뜨리면 그 인형만 혼자 다르게 논다 —
+		///   실제로 「스킬 자동시전 끄기」를 빠뜨리면 그 유닛만 제멋대로 스킬을 쏜다(트랩#1).
+		/// ★ 한 프레임 양보가 이 안에 있다: 꺼낸 직후 Init 하면 Start 초기화와 겹친다(트랩#4).
+		///   그 대기 중에 판이 사라질 수 있어 되돌아온 뒤 반드시 다시 확인한다.
+		/// 각 경로가 다른 것(무기·전술·이름표·둥지 체력·영웅 조종권)은 부른 쪽이 뒤에 얹는다.
+		/// </summary>
+		private IEnumerator SpawnUnitRoutine(Unit unitData, Vector3 worldPosition, int team,
+			Color tint, float scale, SpawnedUnit result)
+		{
+			result.Ok = false;
+
+			GameObject unitGameObject = pool.Spawn(unitData.Prefab);
+			if (spawnedUnits.Contains(unitGameObject) == false)
+				spawnedUnits.Add(unitGameObject); // 풀이 옛 시체를 재사용하면 같은 참조 — 중복 추적 방지.
+			unitGameObject.transform.position = worldPosition;
+			result.GameObject = unitGameObject;
+
+			yield return null; // 트랩#4 — Start 초기화가 가라앉은 뒤 Init.
+
+			// 대기 중 판이 사라졌으면(모드 이탈 등) 여기서 멈춘다.
+			if (core == null || targeting == null || pool == null)
+				yield break;
+
+			UnitObject unitObject = unitGameObject.GetComponent<UnitObject>();
+			if (unitObject == null)
+			{
+				Debug.LogWarning($"{nameof(TowerDefenseMatch)}: {unitData.Prefab.name} 에 UnitObject 없음 — 세우지 못했다.");
+				yield break;
+			}
+
+			unitObject.Init(unitData);
+			unitObject.SkillHandler.AutoCastEnabled = false; // 트랩#1 — 안 끄면 그 인형만 혼자 스킬을 쏜다.
+
+			ArenaCombatant combatant = unitGameObject.GetComponent<ArenaCombatant>();
+			if (combatant == null)
+				combatant = unitGameObject.AddComponent<ArenaCombatant>();
+			combatant.SetTeam(team, nextCombatantId++);
+
+			ApplyReadability(unitObject, tint, scale);
+			unitGameObject.SetActive(true);
+
+			targeting.Register(combatant);
+			registeredCombatants.Add(combatant);
+
+			result.UnitObject = unitObject;
+			result.Combatant = combatant;
+			result.Ok = true;
+		}
 
 		/// <summary>
 		/// 이 판의 점수 재료 — 실시간이 되면서 「몇 웨이브를 넘겼나」는 척도가 아니게 됐다.
