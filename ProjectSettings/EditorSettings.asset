@@ -3,7 +3,7 @@
 --- !u!159 &1
 EditorSettings:
   m_ObjectHideFlags: 0
-  serializedVersion: 15
+  serializedVersion: 16
   m_SerializationMode: 2
   m_LineEndingsForNewScripts: 0
   m_DefaultBehaviorMode: 0
@@ -38,12 +38,13 @@ EditorSettings:
   m_ShadowmaskStitching: 0
   m_AssetPipelineMode: 1
   m_RefreshImportMode: 0
-  m_CacheServerMode: 1
+  m_CacheServerMode: 0
   m_CacheServerEndpoint: 127.0.0.1:443
   m_CacheServerNamespacePrefix: default
   m_CacheServerEnableDownload: 1
   m_CacheServerEnableUpload: 1
   m_CacheServerEnableTls: 0
+  m_CacheServerImportResultCachingEnabled: 1
   m_CacheServerValidationMode: 2
   m_CacheServerDownloadBatchSize: 128
   m_EnableEnlightenBakedGI: 0
