@@ -2228,6 +2228,19 @@ namespace WitchMendokusai
 		// ★ 걷고 있는 마수는 저장하지 않는다 — 되살리는 것보다 *다시 몰려오게* 두는 편이 규칙이 단순하고,
 		//   불러온 직후의 짧은 숨돌릴 틈이 오히려 자연스럽다.
 
+		/// <summary>
+		/// 확인 도구 전용 — 값만 채운다. **배치 규칙은 우회하지 않는다**(보급·암반·점유 그대로).
+		/// 값이 모자라 확인 자체를 못 하던 것들(전초기지·바깥 채집)을 라이브로 보기 위한 최소 통로.
+		/// </summary>
+		public void GrantForVerification(int resource, int essence)
+		{
+			if (core == null)
+				return;
+
+			core.AddResource(resource);
+			core.AddEssence(essence);
+		}
+
 		/// <summary> 지금 판을 저장 가능한 형태로 뽑는다(끝난 판이면 null). </summary>
 		public TowerDefenseSaveData CaptureSave()
 		{
@@ -3150,19 +3163,10 @@ namespace WitchMendokusai
 				outpostRenderer.sharedMaterial = material;
 			}
 
-			// ★ 전초기지도 스스로 조금은 버틴다(개선 목록 21번) — 보급·목표 역할만 하면 「넓혔다」가
-			//   *지킬 것만 늘었다*가 된다. 넓힌 곳이 스스로 반격해야 나가는 선택에 값이 생긴다.
-			if (stage.OutpostWeapon != null)
-			{
-				ArenaCombatant outpostCombatant = outpostObject.AddComponent<ArenaCombatant>();
-				outpostCombatant.SetTeam(DEFENDER_TEAM, nextCombatantId++);
-				targeting.Register(outpostCombatant);
-				registeredCombatants.Add(outpostCombatant);
-
-				TowerDefenseWeapon outpostWeapon = outpostObject.AddComponent<TowerDefenseWeapon>();
-				outpostWeapon.Configure(stage.OutpostWeapon, targeting, outpostCombatant, waveEnemies,
-					IsVisibleAt, () => TowerDamageMultiplier, () => Adaptation);
-			}
+			// ⚠ 전초기지 자체 방어는 *잠시 꺼둔다* — 전초기지는 유닛 프리팹이 아니라 코드가 그린 도형이라
+			//   무기가 붙을 몸(UnitObject)이 없다. 그대로 무기를 달았더니 라이브에서 널 참조로 터졌다.
+			//   근본 수정 = 전초기지를 채집·발전처럼 *유닛 프리팹*으로 세우는 것(그러면 맞을 수도 있게 된다).
+			//   그 전까지는 기능을 켜두는 것보다 끄는 편이 정직하다 — 켜져 있는데 터지는 것이 최악이다.
 
 			outposts.Add(outpostObject.transform);
 			supplyTransforms.Add(outpostObject.transform);
