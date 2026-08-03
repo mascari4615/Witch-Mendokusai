@@ -54,27 +54,57 @@ jobs:
           clean: false
           fetch-depth: 1
 
-      - name: Resolve Unity editor
+      # 프로젝트가 요구하는 에디터가 노트북에 없으면 *스스로 설치한다*. 에디터를 올릴 때마다
+      # 사람이 노트북에 붙어야 하면 빌드머신이 아니다. changeset 은 ProjectVersion.txt 가 들고 있다.
+      - name: Resolve Unity editor (없으면 자동 설치)
         id: unity
         shell: powershell
         run: |
           $ErrorActionPreference = 'Stop'
-          $line = Get-Content 'ProjectSettings/ProjectVersion.txt' | Where-Object { $_ -like 'm_EditorVersion:*' } | Select-Object -First 1
-          $version = ($line -split ':\s*', 2)[1].Trim()
+          # PS 5.1 기본 콘솔 인코딩(cp949)이면 한글이 Actions 로그에서 깨진다.
+          $OutputEncoding = [Console]::OutputEncoding = [Text.UTF8Encoding]::new()
+
+          $lines = Get-Content 'ProjectSettings/ProjectVersion.txt'
+          $version = (($lines | Where-Object { $_ -like 'm_EditorVersion:*' } | Select-Object -First 1) -split ':\s*', 2)[1].Trim()
+          $revLine = ($lines | Where-Object { $_ -like 'm_EditorVersionWithRevision:*' } | Select-Object -First 1)
+          $changeset = ''
+          if ($revLine -match '\(([0-9a-f]+)\)') { $changeset = $Matches[1] }
+
           $exe = "C:\Program Files\Unity\Hub\Editor\$version\Editor\Unity.exe"
-          if (-not (Test-Path $exe)) {
+          $il2cpp = "C:\Program Files\Unity\Hub\Editor\$version\Editor\Data\PlaybackEngines\windowsstandalonesupport\Variations\win64_player_nondevelopment_il2cpp"
+
+          if ((Test-Path $exe) -eq $false -or (Test-Path $il2cpp) -eq $false) {
+            if ([string]::IsNullOrEmpty($changeset)) {
+              throw "Unity $version 없음. ProjectVersion.txt 에 changeset 이 없어 자동 설치 불가 — Unity Hub 로 직접 설치 필요."
+            }
             $installed = (Get-ChildItem 'C:\Program Files\Unity\Hub\Editor' -ErrorAction SilentlyContinue).Name -join ', '
-            throw "Unity $version 이 노트북에 없다. 설치된 버전: [$installed]. Unity Hub 로 $version 설치 필요."
+            Write-Host "Unity $version ($changeset) 없음 (설치된 것: [$installed]) — Hub headless 설치 시작. 수 GB 다운로드라 첫 회는 오래 걸린다."
+            $hub = 'C:\Program Files\Unity Hub\Unity Hub.exe'
+            if ((Test-Path $hub) -eq $false) { throw "Unity Hub 없음: $hub" }
+            $installLog = Join-Path $env:RUNNER_TEMP "unity-install-$version.log"
+            $arguments = @('--', '--headless', 'install', '--version', $version, '--changeset', $changeset, '--module', 'windows-il2cpp', '--childModules')
+            $process = Start-Process -FilePath $hub -ArgumentList $arguments -RedirectStandardOutput $installLog -RedirectStandardError "$installLog.err" -PassThru -Wait -WindowStyle Hidden
+            Write-Host "Hub install exit=$($process.ExitCode) (log: $installLog)"
+            if ((Test-Path $exe) -eq $false) {
+              if (Test-Path $installLog) { Get-Content $installLog -Tail 30 | Write-Host }
+              throw "Unity $version 자동 설치 실패."
+            }
+            if ((Test-Path $il2cpp) -eq $false) {
+              throw "Unity $version 은 설치됐는데 IL2CPP(win64) 모듈이 없다. WM 은 IL2CPP 백엔드라 필수."
+            }
+            Write-Host "Unity $version 자동 설치 완료."
           }
+
           "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
           "exe=$exe"         | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
-          Write-Host "Unity $version → $exe"
+          Write-Host "Unity $version -> $exe"
 
       - name: Build player (batchmode)
         id: build
         shell: powershell
         run: |
           $ErrorActionPreference = 'Stop'
+          $OutputEncoding = [Console]::OutputEncoding = [Text.UTF8Encoding]::new()
           $stamp   = Get-Date -Format 'yyyyMMdd-HHmmss'
           $outDir  = Join-Path $env:BUILD_ROOT "$stamp-$env:GITHUB_RUN_NUMBER"
           $outExe  = Join-Path $outDir 'WitchMendokusai.exe'
@@ -120,6 +150,7 @@ jobs:
         if: always()
         shell: powershell
         run: |
+          $OutputEncoding = [Console]::OutputEncoding = [Text.UTF8Encoding]::new()
           $report = '${{ steps.build.outputs.report }}'
           $lines = @()
           if ($report -and (Test-Path $report)) {
@@ -181,9 +212,19 @@ jobs:
         shell: powershell
         run: |
           # 노트북 안에서 도는 runner 이므로 laptop-ops 를 localhost 로 부른다 (터널 불필요).
-          $tokenPath = 'C:\Users\masca\.laptop-ops-token'
-          if (-not (Test-Path $tokenPath)) { Write-Warning 'laptop-ops 토큰 없음 — 알림 skip'; exit 0 }
-          $token = (Get-Content $tokenPath -Raw).Trim()
+          $OutputEncoding = [Console]::OutputEncoding = [Text.UTF8Encoding]::new()
+          # 노트북에서 토큰 정본은 laptop-ops .env. (데스크톱 관례인 ~/.laptop-ops-token 은 폴백)
+          $token = $null
+          $envFile = 'C:\Users\masca\repos\karmoddrine\memo\laptop-ops\.env'
+          if (Test-Path $envFile) {
+            $line = Get-Content $envFile | Where-Object { $_ -match '^\s*LAPTOP_OPS_TOKEN\s*=' } | Select-Object -First 1
+            if ($line) { $token = (($line -split '=', 2)[1]).Trim().Trim('"').Trim("'") }
+          }
+          if (-not $token) {
+            $tokenPath = 'C:\Users\masca\.laptop-ops-token'
+            if (Test-Path $tokenPath) { $token = (Get-Content $tokenPath -Raw).Trim() }
+          }
+          if (-not $token) { Write-Warning 'laptop-ops 토큰 못 찾음 — 알림 skip'; exit 0 }
 
           $ok = '${{ job.status }}' -eq 'success'
           $icon = if ($ok) { '🟢' } else { '🔴' }
