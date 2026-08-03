@@ -440,9 +440,14 @@ namespace WitchMendokusai
 					continue;
 				if (ToCellKey(unit.transform.position) != cellKey)
 					continue;
+				// 그 칸을 지나가던 마수가 먼저 잡히면 승급이 조용히 거절된다 — 내가 세운 것만 본다.
+				if (supplyTransforms.Contains(unit.transform) == false)
+					continue;
 
 				TowerDefenseWeapon weapon = unit.GetComponent<TowerDefenseWeapon>();
-				if (weapon == null || weapon.Cost != archetype.Cost)
+				// 같은 종류인지는 *정체*로 묻는다 — 값으로 물으면 값이 같은 두 종류가 한 종류로 뭉쳐
+				// 엉뚱한 무기가 조용히 승급된다(값은 언제든 같아질 수 있는 수치일 뿐이다).
+				if (weapon == null || weapon.Archetype != archetype)
 					return false; // 다른 종류(또는 포탑이 아님) — 겹배치 차단 그대로.
 				if (weapon.Level >= archetype.MaxLevel)
 					return false;
@@ -1270,6 +1275,13 @@ namespace WitchMendokusai
 				default:
 					break;
 			}
+
+			// ★ 끝났다는 사실은 *신호가 아니라 상태*가 진실이다. 목숨이 다 닳는 패배(유출제 = 지금의 주
+			//   패배 경로)는 규칙층이 결과만 적고 신호를 안 내보내서, 화면이 그걸 영영 못 들었다
+			//   (실측: outcome=Defeat 인데 배너가 안 뜨고 요약도 안 나옴). 결과를 직접 보면
+			//   앞으로 어떤 새 끝 조건이 생겨도 「신호 내는 걸 깜빡해서 화면이 조용한」 일이 안 생긴다.
+			if (matchEndedFired == false && core.Outcome != TowerDefenseOutcome.InProgress)
+				Conclude(core.Outcome);
 		}
 
 		/// <summary> WaveStarted 신호 처리 — SO 스폰 지점에 분산 스폰 후 ConfirmWaveSpawned (false-clear 차단 계약). </summary>
@@ -3054,6 +3066,7 @@ namespace WitchMendokusai
 
 			OuterHarvesters = 0;
 			SuppliedOuterHarvesters = 0;
+			PoweredOuterHarvesters = 0;
 			for (int index = 0; index < supplyTransforms.Count; index++)
 			{
 				Transform building = supplyTransforms[index];
@@ -3061,8 +3074,14 @@ namespace WitchMendokusai
 					continue;
 
 				OuterHarvesters++;
-				if (suppliedBuildings.Contains(index))
-					SuppliedOuterHarvesters++;
+				if (suppliedBuildings.Contains(index) == false)
+					continue;
+
+				SuppliedOuterHarvesters++;
+				// 보급과 전기는 *다른 관문*이다 — 위 벌이 계산은 전기도 요구하는데 여기서 안 세면
+				// 「이어졌는데 정수가 0」이라는 거짓 실패가 찍히고 진짜 이유(전기 없음)가 안 보인다.
+				if (IsPowered(building))
+					PoweredOuterHarvesters++;
 			}
 		}
 
@@ -3083,6 +3102,9 @@ namespace WitchMendokusai
 		/// </summary>
 		public int OuterHarvesters { get; private set; }
 		public int SuppliedOuterHarvesters { get; private set; }
+
+		/// <summary> 그중 전기까지 들어온 수 — 벌이는 보급*과* 전기를 둘 다 요구한다. </summary>
+		public int PoweredOuterHarvesters { get; private set; }
 
 		/// <summary>
 		/// 그 채집 인형의 벌이 — **처리 범위 안의 광맥 자리 수**로 정해진다(사용자 지시: "자원 건물이
@@ -3587,9 +3609,19 @@ namespace WitchMendokusai
 			return true;
 		}
 
+		/// <summary> 마지막 판매의 판 값 / 실제 돌려준 액수(진단용). </summary>
+		public int LastSoldValue { get; private set; }
+		public int LastSellRefund { get; private set; }
+
 		/// <summary>
 		/// 그 칸에 세운 것을 판다(환불). 「실수가 되돌려지는가」 — 이게 없으면 배치가 실험이 아니라 도박이다.
 		/// 코어는 못 판다(그건 자해다). 판 자리는 다시 비워져 새로 지을 수 있다.
+		///
+		/// ★ 파는 것은 *내가 세운 것*뿐이다 — 그 칸에 서 있는 아무 유닛이 아니라.
+		///   그 칸을 지나가던 마수도 같은 칸에 서 있을 수 있는데, 예전엔 목록에서 먼저 잡히는 쪽을 팔아
+		///   **마수를 공짜로 지워 없애고**(값 0) 정작 건물은 그대로 둔 채 자리만 비워졌다
+		///   (실측: soldValue=0 · cellFreed=True · 건물 생존). 세운 것은 전부 보급 사슬 목록에 들어가므로
+		///   그 목록이 「내 것인가」의 기준이 된다.
 		/// </summary>
 		public bool TrySell(Vector3 worldPosition, float refundRatio)
 		{
@@ -3609,6 +3641,8 @@ namespace WitchMendokusai
 					continue;
 				if (coreCombatant != null && unit == coreCombatant.gameObject)
 					return false; // 코어는 못 판다.
+				if (supplyTransforms.Contains(unit.transform) == false)
+					continue; // 내가 세운 것이 아니다(지나가던 마수·영웅 등) — 팔 수 없다.
 				sold = unit;
 				break;
 			}
@@ -3616,7 +3650,12 @@ namespace WitchMendokusai
 			if (sold == null)
 				return false;
 
-			int refund = Mathf.Max(0, Mathf.RoundToInt(SoldValue(sold) * refundRatio));
+			int soldValue = SoldValue(sold);
+			int refund = Mathf.Max(0, Mathf.RoundToInt(soldValue * refundRatio));
+			// 환불이 0 으로 나올 때 「값이 0 이라」인지 「비율이 0 이라」인지 갈라 말할 수 있게 남긴다 —
+			// 이게 없으면 확인 도구가 「판매가 안 된다」까지만 말하고 이유를 못 댄다.
+			LastSoldValue = soldValue;
+			LastSellRefund = refund;
 			core.AddResource(refund);
 			PopWorldText("+" + refund, sold.transform.position, TextType.Heal);
 
@@ -3641,6 +3680,15 @@ namespace WitchMendokusai
 			TowerDefenseWeapon weapon = sold.GetComponent<TowerDefenseWeapon>();
 			if (weapon != null)
 				return weapon.Cost;
+
+			// ★ 발전 인형 — 무기도 없고 채집도 아니다. 이걸 안 갈라내면 아래 「연구」로 흘러들어가
+			//   *발전기를 팔았는데 연구 단계가 깎이는*(= 모든 포탑이 약해지는) 무음 손해가 난다.
+			//   전기가 끊기는 것은 팔았으니 당연하지만, 연구가 깎이는 건 아무도 시키지 않은 일이다.
+			if (generators.Remove(sold.transform))
+			{
+				RefreshPower(); // 공급원이 사라졌으니 누가 멈추는지 즉시 다시 계산한다.
+				return stage.GeneratorCost;
+			}
 
 			// 무기가 없는 방어 건물 = 연구 인형.
 			LabCount = Mathf.Max(0, LabCount - 1);
@@ -3678,9 +3726,14 @@ namespace WitchMendokusai
 				driver.StopDriving();
 
 			supplyTransforms.Remove(sold.transform);
+			// 판 것은 더 이상 전기를 먹지 않는다 — 안 지우면 없는 건물이 계속 전력을 물고 있어
+			// 「분명 발전기를 지었는데 왜 모자라지」가 된다(무음 누수).
+			powerConsumerTransforms.Remove(sold.transform);
+			harvesterIsOuter.Remove(sold.transform);
 			ReleaseUnit(pool, sold);
 			spawnedUnits.Remove(sold);
 			RefreshSupply(); // 사슬 중간이 사라지면 그 너머가 통째로 끊긴다.
+			RefreshPower();  // 먹는 입이 줄었으니 누가 다시 돌아가는지도 즉시 반영.
 		}
 
 		/// <summary>

@@ -84,6 +84,7 @@ namespace WitchMendokusai.EditorTools
 		private static bool towerPlanFlipped;
 		// 판매 검증용 — 배치 좌표. 스폰은 코루틴(1프레임 양보)이라 *같은 틱에 팔면 아직 아무도 없다*.
 		private static Vector3 sellProbeLocal;
+		private static int sellProbeSlot;
 		private static bool sellProbeReady;
 		private static readonly List<int> nodeOrder = new();
 		private static bool firstWaveCalled;
@@ -500,6 +501,9 @@ namespace WitchMendokusai.EditorTools
 			if (spots.Count > 0)
 			{
 				sellProbeLocal = spots[0];
+				// ★ *어떤 종류를 세웠는지*도 같이 적어둔다 — 판마다 종류를 번갈아 세우면서 승급은 늘 0번으로
+				//   걸고 있었다. 그러면 다른 종류라 규칙대로 거절되는데 하네스는 「승급이 안 된다」고 적는다.
+				sellProbeSlot = slotPlan[0];
 				sellProbeReady = true;
 			}
 			Debug.Log(TAG + " PLACE-TOWERS placed=" + towersPlaced
@@ -791,6 +795,8 @@ namespace WitchMendokusai.EditorTools
 		private static int draftFreezeWave = -1;
 		private static double assaultStart = -1.0;
 		private static bool stuckDumped;
+		// 집계가 마지막으로 *움직인* 시점을 잡기 위한 직전 값 — 실시간에는 이 정체가 곧 고착이다.
+		private static int lastAliveEnemyCount = -1;
 
 		/// <summary> 코어가 "살아있다"고 세는 적을 전부 찍는다 — 화면과 대조해 유령/고착을 가른다. </summary>
 		private static void DumpWaveEnemies(double elapsed)
@@ -966,9 +972,19 @@ namespace WitchMendokusai.EditorTools
 				lastResource = match.Resource;
 			}
 
-			// ★ 교전이 비정상적으로 길어지면 = "화면엔 다 죽은 것 같은데 코어는 아직 살아있다고 센다".
+			// ★ 교전이 *멈춰 있으면* = "화면엔 다 죽은 것 같은데 코어는 아직 살아있다고 센다".
 			//   둘의 차이를 눈으로 못 보므로 집계 대상을 좌표·체력째로 찍는다(사용자 실증: 웨이브 2에서 멈춤).
-			if (match.Phase == TowerDefensePhase.Assault)
+			// ★ 실시간 전환 후 「교전이 길다」는 더 이상 신호가 아니다 — 페이즈가 없어져 *언제나* 교전 중이라
+			//   이 검사가 매 판 무조건 경고를 찍었다(거짓 실패는 진짜 실패를 묻는다).
+			//   실시간의 고착 신호 = **집계 수가 한참 그대로**(아무도 안 죽고 아무도 안 나온다).
+			int aliveTracked = match.AliveEnemyCount;
+			if (aliveTracked != lastAliveEnemyCount)
+			{
+				lastAliveEnemyCount = aliveTracked;
+				assaultStart = now;
+				stuckDumped = false;
+			}
+			else if (aliveTracked > 0)
 			{
 				if (assaultStart < 0)
 					assaultStart = now;
@@ -977,11 +993,6 @@ namespace WitchMendokusai.EditorTools
 					stuckDumped = true;
 					DumpWaveEnemies(now - assaultStart);
 				}
-			}
-			else
-			{
-				assaultStart = -1.0;
-				stuckDumped = false;
 			}
 
 			// 이름표 — 인형이 「물건」이 아니라 「아이」가 됐나. 스폰이 코루틴이라 첫 확인은 관찰 루프에서.
@@ -1225,6 +1236,7 @@ namespace WitchMendokusai.EditorTools
 			string verdict = TAG + " ESSENCE harvesters=" + match.HarvesterCount
 				+ " outer=" + match.OuterHarvesters
 				+ " outerSupplied=" + match.SuppliedOuterHarvesters
+				+ " outerPowered=" + match.PoweredOuterHarvesters
 				+ " nextIncome=" + match.NextWaveIncome
 				+ " nextEssence=" + match.NextWaveEssence
 				+ " essence=" + match.Essence;
@@ -1237,6 +1249,8 @@ namespace WitchMendokusai.EditorTools
 				Debug.Log(verdict + " → 바깥 노드에 세운 게 없음(안쪽만 잡음) — 정수 0 은 정상, 확인 못 함");
 			else if (match.SuppliedOuterHarvesters == 0)
 				Debug.Log(verdict + " → 바깥에 세웠지만 사슬이 안 닿음 — 정수 0 은 규칙대로, 확인 못 함");
+			else if (match.PoweredOuterHarvesters == 0)
+				Debug.Log(verdict + " → 이어졌지만 전기가 안 닿음 — 정수 0 은 규칙대로, 확인 못 함");
 			else if (match.NextWaveEssence > 0)
 				Debug.Log(verdict + " → 이어진 바깥 채집이 정수를 낸다 ✔");
 			else
@@ -1384,7 +1398,7 @@ namespace WitchMendokusai.EditorTools
 			}
 
 			int before = match.Essence;
-			bool upgraded = match.TryPlaceTower(world, 0);
+			bool upgraded = match.TryPlaceTower(world, sellProbeSlot); // 세운 그 종류로 걸어야 승급 검사가 된다.
 
 			int level = -1;
 			foreach (TowerDefenseWeapon weapon in Object.FindObjectsByType<TowerDefenseWeapon>(FindObjectsInactive.Include, FindObjectsSortMode.None))
@@ -1393,12 +1407,23 @@ namespace WitchMendokusai.EditorTools
 					level = weapon.Level;
 			}
 
-			string verdict = TAG + " UPGRADE ok=" + upgraded + " maxLevel=" + level
+			string verdict = TAG + " UPGRADE ok=" + upgraded + " slot=" + sellProbeSlot + " maxLevel=" + level
 				+ " essence " + before + " → " + match.Essence;
 			if (upgraded && level >= 2 && match.Essence < before)
 				Debug.Log(verdict + " → 같은 자리에 다시 지으면 자란다 ✔");
 			else
 				Debug.LogError(verdict + " → 승급이 안 되거나 값을 안 치른다.");
+		}
+
+		/// <summary>
+		/// 확인 항목에 *그 항목이 쓸 몫*을 채워준다 — 앞선 배치가 예산을 다 쓰면 뒤의 확인이 전부
+		/// 「돈이 없어 못 함」이 되고, 하네스는 그걸 「기능이 고장났다」고 적는다(실측: 함정 24/25 로 실패).
+		/// ★ 값을 채우는 것은 *배치 규칙을 우회하지 않는다* — 자리·보급·암반 검사는 그대로 통과해야 한다.
+		/// </summary>
+		private static void EnsureBudget(int needed)
+		{
+			if (match != null && match.Resource < needed)
+				match.GrantForVerification(needed - match.Resource, 0);
 		}
 
 		/// <summary> 함정 — 깔리는가(길목에 소모품을 놓는 수단이 실제로 존재하는가). </summary>
@@ -1408,6 +1433,7 @@ namespace WitchMendokusai.EditorTools
 			if (match == null || stageRoot == null)
 				return;
 
+			EnsureBudget(match.Stage.TrapCost * 2);
 			int placed = 0;
 			int before = match.Resource;
 			foreach (Vector3 local in FindPlaceableSpots(stageRoot, 2))
@@ -1433,6 +1459,10 @@ namespace WitchMendokusai.EditorTools
 			Transform stageRoot = FindStageRoot();
 			if (match == null || stageRoot == null)
 				return;
+
+			// ★ 예산을 먼저 채운다 — 돈이 없어서 거절된 것을 「길을 끊어서 거절됐다」로 읽으면
+			//   이 검사는 *거짓으로 통과*한다(잔고가 불변식을 대신 증명해 버린다).
+			EnsureBudget(match.Stage.WallCost * 12);
 
 			// ① 평범한 자리에 한 장 — 서야 한다.
 			int placed = 0;
@@ -1479,7 +1509,8 @@ namespace WitchMendokusai.EditorTools
 			bool freed = match.IsCellOccupied(world) == false;
 
 			string verdict = TAG + " SELL ok=" + sold + " resource " + before + " → " + match.Resource
-				+ " cellFreed=" + freed;
+				+ " soldValue=" + match.LastSoldValue + " ratio=" + match.Stage.SellRefundRatio.ToString("F2")
+				+ " refund=" + match.LastSellRefund + " cellFreed=" + freed;
 			if (sold && match.Resource > before && freed)
 				Debug.Log(verdict + " → 되돌릴 수 있다 ✔");
 			else

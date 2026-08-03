@@ -256,6 +256,22 @@ namespace WitchMendokusai.Tests
 		}
 
 		[Test]
+		public void 목숨으로_진_판은_신호가_아니라_결과로_남는다()
+		{
+			// ★ 목숨 소진 패배는 *신호를 내보내지 않는다* — 그래서 화면이 신호만 듣고 있으면 끝난 걸 영영
+			//   모른다(실측: outcome=Defeat 인데 배너도 요약도 안 뜸). 셸이 결과를 직접 보게 만든 근거를
+			//   여기에 못 박는다: 다음 틱은 None 이지만 결과는 남아 있어야 한다.
+			TowerDefenseRules rules = Rules();
+			rules.StartingLives = 1;
+			TowerDefenseCore core = new(rules);
+
+			core.RegisterLeak();
+
+			Assert.AreEqual(TowerDefenseSignal.None, core.Tick(1f, 0, true));
+			Assert.AreEqual(TowerDefenseOutcome.Defeat, core.Outcome);
+		}
+
+		[Test]
 		public void 목숨_추가는_유출제일_때만_먹는다()
 		{
 			TowerDefenseCore withoutLives = Core();

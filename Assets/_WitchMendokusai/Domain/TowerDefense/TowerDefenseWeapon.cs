@@ -41,6 +41,12 @@ namespace WitchMendokusai
 		/// <summary> 지어질 때 든 값 — 팔 때 환불 기준. 종류가 늘어도 판매 쪽이 다시 계산할 필요가 없다. </summary>
 		public int Cost => archetype != null ? archetype.Cost : 0;
 
+		/// <summary>
+		/// 이 인형이 든 무기의 종류 그 자체 — 「같은 종류인가」를 값이 아니라 *정체*로 묻기 위해 연다.
+		/// ★ 값으로 물으면 값이 같은 두 종류가 같은 것으로 취급돼, 다른 무기가 조용히 승급된다.
+		/// </summary>
+		public TowerDefenseTowerArchetype Archetype => archetype;
+
 		/// <summary> 승급 단계(1부터). 같은 자리에 같은 종류를 다시 지으면 오른다. </summary>
 		public int Level { get; private set; } = 1;
 
