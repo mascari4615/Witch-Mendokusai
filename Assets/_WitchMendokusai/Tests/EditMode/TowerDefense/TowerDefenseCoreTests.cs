@@ -296,5 +296,42 @@ namespace WitchMendokusai.Tests
 
 			Assert.AreEqual(8, core.NextWaveEssence);
 		}
+
+		[Test]
+		public void 수동이면_시계가_큰_무리를_안_부른다()
+		{
+			// ★ 이 값을 규칙이 안 읽고 있어서 화면의 「진행: 자동/수동」 토글이 글자만 바뀌고
+			//   판은 똑같이 흘렀다 — 스위치가 거짓말을 하고 있었다.
+			TowerDefenseCore core = Core();
+			core.AutoAdvance = false;
+
+			for (float elapsed = 0f; elapsed < 30f; elapsed += 0.1f)
+				core.Tick(0.1f, true);
+
+			Assert.AreEqual(0, core.WaveIndex, "수동인데 시계가 무리를 불렀다.");
+		}
+
+		[Test]
+		public void 수동이어도_지금_와라는_먹는다()
+		{
+			// 수동의 뜻은 「안 온다」가 아니라 「내가 부른다」다.
+			TowerDefenseCore core = Core();
+			core.AutoAdvance = false;
+			core.Tick(0.1f, true);
+
+			Assert.IsTrue(core.RequestNextWave());
+			Assert.AreEqual(TowerDefenseSignal.WaveStarted, core.Tick(0.1f, true));
+			Assert.AreEqual(1, core.WaveIndex);
+		}
+
+		[Test]
+		public void 수동이어도_상시_마수는_계속_샌다()
+		{
+			// ★ 안 그러면 「수동」이 곧 「안전」이 되어 부르지 않는 것이 최적해가 된다 — 그건 정지지 선택이 아니다.
+			TowerDefenseCore core = Core();
+			core.AutoAdvance = false;
+
+			Assert.AreEqual(TowerDefenseSignal.TrickleDue, TickUntil(core, TowerDefenseSignal.TrickleDue, 3f));
+		}
 	}
 }

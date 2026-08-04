@@ -47,8 +47,8 @@ namespace WitchMendokusai
 		public float Pressure => rules.PressureAt(ElapsedSeconds);
 
 		/// <summary>
-		/// (구 페이즈제 잔재) 실시간에서는 늘 흐른다 — 남겨둔 이유는 화면·씬 참조가 아직 읽기 때문.
-		/// 값은 진행에 영향을 주지 않는다.
+		/// 큰 무리를 *시계가* 부르나(자동), *사람이* 부르나(수동).
+		/// 수동이어도 상시로 새는 마수는 계속 나온다 — 안 그러면 수동이 곧 안전이 된다.
 		/// </summary>
 		public bool AutoAdvance { get; set; } = true;
 		public int FirstAutoWave { get; set; }
@@ -147,7 +147,13 @@ namespace WitchMendokusai
 			trickleAccumulated += deltaSeconds;
 
 			// 큰 무리 — 시계가 부른다. 사람이 「지금 와라」로 앞당길 수도 있다(기다림이 벌칙이 되지 않게).
-			if (nextWaveRequested || (rules.WaveInterval > 0f && waveAccumulated >= rules.WaveInterval))
+			//
+			// ★ 수동(AutoAdvance=false)이면 시계가 아니라 *사람*이 부른다. 이 값을 안 읽고 있어서
+			//   화면의 「진행: 자동/수동」 토글이 글자만 바뀌고 판은 똑같이 흘렀다 — 스위치가 거짓말이었다.
+			// ★ 수동이어도 상시로 새는 마수는 그대로다. 안 그러면 「수동」이 곧 「안전」이 되어
+			//   부르지 않는 것이 최적해가 된다(그건 선택이 아니라 정지다).
+			bool waveClockDue = AutoAdvance && rules.WaveInterval > 0f && waveAccumulated >= rules.WaveInterval;
+			if (nextWaveRequested || waveClockDue)
 			{
 				nextWaveRequested = false;
 				waveAccumulated = 0f;
