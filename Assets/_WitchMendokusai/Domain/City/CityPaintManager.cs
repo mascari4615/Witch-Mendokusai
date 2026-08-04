@@ -315,6 +315,10 @@ namespace WitchMendokusai
 		private const int RAW_RESOURCE = 0;
 		private const int GOODS_RESOURCE = 1;
 
+		// Unity 내장 레이어 2 = "Ignore Raycast". 엔진이 정한 번호라 디자인 조절값이 아니지만,
+		// 숫자 2 만 박혀 있으면 다음 사람이 무슨 뜻인지 몰라 못 건드린다.
+		private const int IGNORE_RAYCAST_LAYER = 2;
+
 		// INC-5c — 하루치 경제 흐름: 산업(원자재 채취) → 상업(원자재+노동→재화) → 주거(재화 소비). 공급망 순서.
 		private void RunEconomyTick(WorldStage worldStage, CityCellQuery query, int day)
 		{
@@ -505,7 +509,7 @@ namespace WitchMendokusai
 			GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
 			cube.transform.SetParent(visualRoot, false);
 			cube.name = "Citizen";
-			cube.layer = 2; // Ignore Raycast
+			cube.layer = IGNORE_RAYCAST_LAYER;
 
 			Collider cubeCollider = cube.GetComponent<Collider>();
 			if (cubeCollider != null)
@@ -728,7 +732,7 @@ namespace WitchMendokusai
 			cube.transform.SetParent(visualRoot, false);
 			cube.name = $"Cell_{cell.x}_{cell.y}";
 
-			cube.layer = 2; // Ignore Raycast — 클릭 평면판정 무방해
+			cube.layer = IGNORE_RAYCAST_LAYER; // 클릭 평면판정 무방해
 			Collider cubeCollider = cube.GetComponent<Collider>();
 			if (cubeCollider != null)
 				Destroy(cubeCollider);
