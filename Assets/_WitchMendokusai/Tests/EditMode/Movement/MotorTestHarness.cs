@@ -86,7 +86,8 @@ namespace WitchMendokusai.Tests
 			Physics.SyncTransforms();
 
 			Position = startPosition;
-			Motor = new Motor(characterTransform, characterRigidBody, capsule);
+			// 기본값 튜닝 — 시험은 「기본 설정에서 이렇게 움직인다」를 잠근다 (TASK-WM-199).
+			Motor = new Motor(characterTransform, characterRigidBody, capsule, new MotorTuning());
 		}
 
 		public void AddContributor(IVelocityContributor contributor) => Motor.AddContributor(contributor);

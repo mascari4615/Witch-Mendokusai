@@ -23,6 +23,10 @@ namespace WitchMendokusai
 		[Header("Move Tuning")]
 		[SerializeField] private float sprintSpeedMultiplier = 2f;
 
+		// 캐릭터가 지형을 어떻게 밟는지 — 오를 수 있는 턱 높이 / 걸을 수 있는 경사 / 계단 따라 붙는 거리 등.
+		// 지형 제작의 암묵 규칙이 되는 값들이라 prefab 별로 다르게 줄 수 있어야 한다 (TASK-WM-199).
+		[SerializeField] private MotorTuning motorTuning = new();
+
 		// Jump tuning. 디폴트는 *비점프 unit 중립 값* (multiplier 1.0 = 추가 중력 없음).
 		// 점프하는 unit(Player 등)은 prefab에서 오버라이드.
 		[Header("Jump Tuning")]
@@ -86,7 +90,7 @@ namespace WitchMendokusai
 			// Render frame이 fixed step 사이에 있어도 Unity가 자동 interpolation으로 부드럽게 보여주도록.
 			unitRigidBody.interpolation = RigidbodyInterpolation.Interpolate;
 
-			motor = new Motor(transform, unitRigidBody, unitCapsule);
+			motor = new Motor(transform, unitRigidBody, unitCapsule, motorTuning);
 			motor.Context.OnHitCollider = HandleMotorHit;
 
 			// ExternalImpulse는 Input 보다 *먼저* 등록 — horizontal velocity를 먼저 채우고

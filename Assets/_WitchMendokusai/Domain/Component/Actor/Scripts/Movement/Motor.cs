@@ -18,21 +18,23 @@ namespace WitchMendokusai
 	/// </summary>
 	public class Motor
 	{
+		// 알고리즘 파라미터 — 디자인 조절값이 아니라 구현 상수라 여기 남는다 (TASK-WM-199).
+		// 조작감을 정하는 수치는 MotorTuning 으로 나갔다.
 		private const int MAX_SLIDE_ITERATIONS = 4;
-		private const float SKIN_WIDTH = 0.02f;
-		private const float WALL_NORMAL_Y_MAX = 0.5f;       // |normal.y| < 이 값 = 벽
-		private const float GROUND_NORMAL_Y_MIN = 0.5f;     // normal.y >= 이 값 = 바닥
 		private const float CAPSULE_SHRINK = 0.99f;
 		private const float MIN_REMAINING_SQR = 0.0001f;
 		private const int MAX_DEPENETRATION_ITERATIONS = 4;
-		// 직전에 서 있었다면 이 거리까지는 발 밑 땅을 찾아 붙인다 (계단·낮은 턱 내려가기).
-		private const float GROUND_SNAP_DISTANCE = 0.3f;
-		// 서 있지 않았다면 발끝에 정말 닿았을 때만 접지로 친다 (낙하 중 공중 접지 방지).
-		private const float GROUND_TOUCH_DISTANCE = 0.04f;
-		private const float STEP_OFFSET_HEIGHT = 0.15f;      // 작은 턱/계단 자동 보행 최대 높이
 		private const float MIN_CREASE_SIN_SQR = 0.01f;      // 두 wall normal 외적 크기 제곱이 이 값 이상이면 crease 처리
 		private const float MIN_STEP_MAGNITUDE = 0.001f;     // step offset 시도할 잔여 horizontal 이동 최소량
-		private const float STABILITY_PROBE_DISTANCE = 0.2f; // 발 정 직 아래 raycast 거리 (stable ground 검증)
+
+		// 조작감 수치 — 매 사용 시 read (캐싱하면 인스펙터 변경이 런타임에 안 먹는다).
+		private float SkinWidth => tuning.SkinWidth;
+		private float WallNormalYMax => tuning.WallNormalYMax;
+		private float GroundNormalYMin => tuning.GroundNormalYMin;
+		private float GroundSnapDistance => tuning.GroundSnapDistance;
+		private float GroundTouchDistance => tuning.GroundTouchDistance;
+		private float StepOffsetHeight => tuning.StepOffsetHeight;
+		private float StabilityProbeDistance => tuning.StabilityProbeDistance;
 
 		private static readonly RaycastHit[] HIT_BUFFER = new RaycastHit[8];
 		private static readonly Collider[] OVERLAP_BUFFER = new Collider[16];
@@ -40,16 +42,18 @@ namespace WitchMendokusai
 		private readonly Transform unitTransform;
 		private readonly Rigidbody unitRigidBody;
 		private readonly CapsuleCollider unitCapsule;
+		private readonly MotorTuning tuning;
 		private readonly List<IVelocityContributor> contributors = new();
 		private readonly MotorContext context = new();
 
 		public MotorContext Context => context;
 
-		public Motor(Transform unitTransform, Rigidbody unitRigidBody, CapsuleCollider unitCapsule)
+		public Motor(Transform unitTransform, Rigidbody unitRigidBody, CapsuleCollider unitCapsule, MotorTuning tuning)
 		{
 			this.unitTransform = unitTransform;
 			this.unitRigidBody = unitRigidBody;
 			this.unitCapsule = unitCapsule;
+			this.tuning = tuning;
 		}
 
 		public void AddContributor(IVelocityContributor contributor) => contributors.Add(contributor);
@@ -101,7 +105,7 @@ namespace WitchMendokusai
 		/// 실측(EditMode): 낮은 턱을 내려가면 0.1m 뜬 채로 걷고, 낙하 뒤엔 0.14m 위에 멈춰 섰다.
 		///
 		/// <paramref name="allowSnapDown"/> = 직전에 서 있었나. 서 있었다면 계단·낮은 턱을 따라
-		/// <see cref="GROUND_SNAP_DISTANCE"/> 까지 붙여 내려가고, 아니었다면(낙하 중) 발끝에 정말
+		/// <see cref="GroundSnapDistance"/> 까지 붙여 내려가고, 아니었다면(낙하 중) 발끝에 정말
 		/// 닿았을 때만 접지로 친다 — 떨어지는 캐릭터를 공중에서 낚아채지 않도록.
 		/// 위로 솟는 중(점프)이면 어떤 경우에도 안 붙인다. 붙이면 점프가 도로 땅에 눌러앉는다.
 		/// </summary>
@@ -109,11 +113,11 @@ namespace WitchMendokusai
 		{
 			GetCapsuleEnds(position, out Vector3 capsuleBottom, out _, out float radius);
 			Vector3 feet = capsuleBottom - Vector3.up * radius;
-			Vector3 origin = feet + Vector3.up * SKIN_WIDTH;
+			Vector3 origin = feet + Vector3.up * SkinWidth;
 
 			bool rising = context.Velocity.y > 0f;
-			float reach = (allowSnapDown && rising == false) ? GROUND_SNAP_DISTANCE : GROUND_TOUCH_DISTANCE;
-			float castDistance = SKIN_WIDTH + reach;
+			float reach = (allowSnapDown && rising == false) ? GroundSnapDistance : GroundTouchDistance;
+			float castDistance = SkinWidth + reach;
 
 			int hitCount = Physics.RaycastNonAlloc(origin, Vector3.down, HIT_BUFFER, castDistance, ~0, QueryTriggerInteraction.Ignore);
 
@@ -150,8 +154,8 @@ namespace WitchMendokusai
 			//   흘러내린다. 실측: 30° 비탈에서 60 tick 에 2.3m.
 			//   ray 는 「땅 위에 있나」를, 캡슐 sweep 은 「어디까지 내려갈 수 있나」를 답한다.
 			float dropDistance = 0f;
-			if (CapsuleSweep(position, Vector3.down, reach + SKIN_WIDTH, out RaycastHit capsuleHit))
-				dropDistance = Mathf.Max(0f, capsuleHit.distance - SKIN_WIDTH);
+			if (CapsuleSweep(position, Vector3.down, reach + SkinWidth, out RaycastHit capsuleHit))
+				dropDistance = Mathf.Max(0f, capsuleHit.distance - SkinWidth);
 
 			if (dropDistance > 0f)
 				position += Vector3.down * dropDistance;
@@ -230,7 +234,7 @@ namespace WitchMendokusai
 					break;
 
 				Vector3 direction = remaining.normalized;
-				float distance = remaining.magnitude + SKIN_WIDTH;
+				float distance = remaining.magnitude + SkinWidth;
 
 				if (CapsuleSweep(currentPosition, direction, distance, out RaycastHit hit) == false)
 				{
@@ -238,14 +242,14 @@ namespace WitchMendokusai
 					break;
 				}
 
-				float moveDistance = Mathf.Max(0f, hit.distance - SKIN_WIDTH);
+				float moveDistance = Mathf.Max(0f, hit.distance - SkinWidth);
 				currentPosition += direction * moveDistance;
 
 				Vector3 used = direction * moveDistance;
 				Vector3 leftover = remaining - used;
 
-				bool isWall = Mathf.Abs(hit.normal.y) < WALL_NORMAL_Y_MAX;
-				bool isFloor = hit.normal.y >= GROUND_NORMAL_Y_MIN;
+				bool isWall = Mathf.Abs(hit.normal.y) < WallNormalYMax;
+				bool isFloor = hit.normal.y >= GroundNormalYMin;
 
 				if (isWall)
 				{
@@ -331,9 +335,9 @@ namespace WitchMendokusai
 		{
 			GetCapsuleEnds(startPosition, out Vector3 capsuleBottom, out _, out float radius);
 			Vector3 feet = capsuleBottom - Vector3.up * radius;
-			Vector3 origin = feet + Vector3.up * SKIN_WIDTH;
+			Vector3 origin = feet + Vector3.up * SkinWidth;
 			float fallDistance = -verticalDeltaY;
-			float castDistance = fallDistance + SKIN_WIDTH * 2f;
+			float castDistance = fallDistance + SkinWidth * 2f;
 
 			int hitCount = Physics.RaycastNonAlloc(
 				origin,
@@ -370,7 +374,7 @@ namespace WitchMendokusai
 			RaycastHit closestHit = HIT_BUFFER[closestIndex];
 			context.OnHitCollider.Invoke(closestHit.collider);
 
-			float rayMoveDistance = Mathf.Max(0f, closestHit.distance - SKIN_WIDTH);
+			float rayMoveDistance = Mathf.Max(0f, closestHit.distance - SkinWidth);
 			Vector3 stoppedPosition = startPosition + Vector3.down * rayMoveDistance;
 
 			if (IsWalkable(closestHit))
@@ -397,9 +401,9 @@ namespace WitchMendokusai
 		{
 			GetCapsuleEnds(startPosition, out _, out Vector3 capsuleTop, out float radius);
 			Vector3 head = capsuleTop + Vector3.up * radius;
-			Vector3 origin = head - Vector3.up * SKIN_WIDTH;
+			Vector3 origin = head - Vector3.up * SkinWidth;
 			float riseDistance = verticalDeltaY;
-			float castDistance = riseDistance + SKIN_WIDTH * 2f;
+			float castDistance = riseDistance + SkinWidth * 2f;
 
 			int hitCount = Physics.RaycastNonAlloc(
 				origin,
@@ -431,13 +435,13 @@ namespace WitchMendokusai
 			RaycastHit closestHit = HIT_BUFFER[closestIndex];
 			context.OnHitCollider.Invoke(closestHit.collider);
 
-			float moveDistance = Mathf.Max(0f, closestHit.distance - SKIN_WIDTH);
+			float moveDistance = Mathf.Max(0f, closestHit.distance - SkinWidth);
 			context.Velocity.y = 0f;
 			return startPosition + Vector3.up * moveDistance;
 		}
 
 		/// <summary>
-		/// 작은 턱/계단 자동 보행. capsule을 STEP_OFFSET_HEIGHT 위로 들어올려 horizontal sweep,
+		/// 작은 턱/계단 자동 보행. capsule을 StepOffsetHeight 위로 들어올려 horizontal sweep,
 		/// 미스 후 그 위치에서 down sweep으로 walkable + stable ground를 찾으면 그 위치 채택.
 		/// </summary>
 		private bool TryStepOffset(Vector3 position, Vector3 direction, float magnitude, out Vector3 result)
@@ -452,23 +456,23 @@ namespace WitchMendokusai
 				return false;
 			flatDirection.Normalize();
 
-			Vector3 raisedPosition = position + Vector3.up * STEP_OFFSET_HEIGHT;
+			Vector3 raisedPosition = position + Vector3.up * StepOffsetHeight;
 
 			// raised 위치에서 horizontal sweep — 막히면 step-up 불가
-			float sweepDistance = magnitude + SKIN_WIDTH;
+			float sweepDistance = magnitude + SkinWidth;
 			if (CapsuleSweep(raisedPosition, flatDirection, sweepDistance, out _))
 				return false;
 
 			Vector3 horizontallyMoved = raisedPosition + flatDirection * magnitude;
 
 			// 그 위치에서 down sweep으로 ground 찾기
-			float downDistance = STEP_OFFSET_HEIGHT + SKIN_WIDTH;
+			float downDistance = StepOffsetHeight + SkinWidth;
 			if (CapsuleSweep(horizontallyMoved, Vector3.down, downDistance, out RaycastHit downHit) == false)
 				return false;
 			if (IsWalkable(downHit) == false)
 				return false;
 
-			float downMove = Mathf.Max(0f, downHit.distance - SKIN_WIDTH);
+			float downMove = Mathf.Max(0f, downHit.distance - SkinWidth);
 			Vector3 finalPosition = horizontallyMoved + Vector3.down * downMove;
 
 			GetCapsuleEnds(finalPosition, out Vector3 capsuleBottom, out _, out float radius);
@@ -544,8 +548,8 @@ namespace WitchMendokusai
 		private bool IsStableGroundDirectlyBelow(Vector3 capsuleBottom, float radius)
 		{
 			Vector3 feet = capsuleBottom - Vector3.up * radius;
-			Vector3 origin = feet + Vector3.up * SKIN_WIDTH;
-			float distance = SKIN_WIDTH + STABILITY_PROBE_DISTANCE;
+			Vector3 origin = feet + Vector3.up * SkinWidth;
+			float distance = SkinWidth + StabilityProbeDistance;
 			int hitCount = Physics.RaycastNonAlloc(origin, Vector3.down, HIT_BUFFER, distance, ~0, QueryTriggerInteraction.Ignore);
 
 			float closestDistance = float.PositiveInfinity;
@@ -566,12 +570,12 @@ namespace WitchMendokusai
 
 			if (closestIndex < 0)
 				return false;
-			return HIT_BUFFER[closestIndex].normal.y >= GROUND_NORMAL_Y_MIN;
+			return HIT_BUFFER[closestIndex].normal.y >= GroundNormalYMin;
 		}
 
-		private static bool IsWalkable(RaycastHit hit)
+		private bool IsWalkable(RaycastHit hit)
 		{
-			return hit.normal.y >= GROUND_NORMAL_Y_MIN;
+			return hit.normal.y >= GroundNormalYMin;
 		}
 	}
 }
