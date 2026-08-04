@@ -3649,40 +3649,21 @@ namespace WitchMendokusai
 				yield break;
 			}
 
-			GameObject unitGameObject = pool.Spawn(unitData.Prefab);
-			if (spawnedUnits.Contains(unitGameObject) == false)
-				spawnedUnits.Add(unitGameObject);
-			unitGameObject.transform.position = worldPosition;
+			// 어떤 인형이냐에 따라 색·덩치가 갈린다 — 세우기 전에 정해야 문에 넘길 수 있다.
+			Color tint = isGenerator ? stage.GeneratorTint
+				: isLab ? stage.LabTint
+				: isHarvester ? stage.HarvesterTint
+				: (towerArchetype != null ? towerArchetype.Tint : stage.TowerTint);
 
-			// 트랩#4: 스폰 직후 한 프레임 양보.
-			yield return null;
+			SpawnedUnit spawned = new();
+			yield return SpawnUnitRoutine(unitData, worldPosition, DEFENDER_TEAM,
+				tint, isHarvester ? stage.HarvesterScale : stage.TowerScale, spawned);
+			if (spawned.Ok == false)
+				yield break; // 자원은 이미 차감됐지만 좀비 스폰은 막는다.
 
-			// belt-and-braces: 대기 중 Dispose 됐으면 즉시 중단(자원은 이미 차감됐지만 좀비 spawn 은 차단).
-			if (core == null || targeting == null || pool == null)
-				yield break;
-
-			UnitObject unitObject = unitGameObject.GetComponent<UnitObject>();
-			if (unitObject == null)
-			{
-				Debug.LogWarning($"{nameof(TowerDefenseMatch)}: {unitData.Prefab.name} 에 UnitObject 컴포넌트 없음 — skip.");
-				yield break;
-			}
-
-			unitObject.Init(unitData);
-			unitObject.SkillHandler.AutoCastEnabled = false; // 트랩#1.
-
-			ArenaCombatant combatant = unitObject.GetComponent<ArenaCombatant>();
-			if (combatant == null)
-				combatant = unitObject.gameObject.AddComponent<ArenaCombatant>();
-			combatant.SetTeam(DEFENDER_TEAM, nextCombatantId++);
-
-			ApplyReadability(unitObject,
-				isGenerator ? stage.GeneratorTint
-					: isLab ? stage.LabTint
-					: isHarvester ? stage.HarvesterTint
-					: (towerArchetype != null ? towerArchetype.Tint : stage.TowerTint),
-				isHarvester ? stage.HarvesterScale : stage.TowerScale);
-			unitGameObject.SetActive(true);
+			GameObject unitGameObject = spawned.GameObject;
+			UnitObject unitObject = spawned.UnitObject;
+			ArenaCombatant combatant = spawned.Combatant;
 
 			foreach (UnitBrain brain in unitObject.GetComponents<UnitBrain>()) // 트랩#2.
 				brain.enabled = false;
@@ -3696,8 +3677,7 @@ namespace WitchMendokusai
 				drivers.Add(driver);
 			}
 
-			targeting.Register(combatant);
-			registeredCombatants.Add(combatant);
+			// 표적 등록은 세우는 문이 이미 했다.
 
 			// 세워둔 포탑의 사거리를 옅게 늘 보여준다 — 「어디가 비었나」는 기존 커버리지가 보여야 알 수 있다.
 			if (isHarvester == false && isLab == false)
