@@ -42,6 +42,10 @@ on:
   push:
     tags:
       - 'v[0-9]*'
+  # 밤에 알아서 굽는다 — 아침에 폰으로 바로 설치할 수 있게. 03:23 KST (18:23 UTC).
+  # 정각을 피한 건 전 세계 크론이 몰리는 시각이라서.
+  schedule:
+    - cron: '23 18 * * *'
 
 concurrency:
   # 그룹은 하나여야 한다 — 노트북 한 대에서 같은 프로젝트 폴더를 쓰므로 두 빌드가
@@ -80,8 +84,19 @@ jobs:
           $unity = Resolve-UnityEditor -Platform '${{ inputs.platform }}' -InstallLogDir $env:RUNNER_TEMP
           "version=$($unity.Version)" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
           "exe=$($unity.Exe)"         | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+      # Nightly builds the same commit twice would burn 40 minutes and 3GB for nothing,
+      # so compare against the last built sha and stop early when unchanged.
+      - name: Nightly gate (skip when nothing changed)
+        id: gate
+        if: github.event_name == 'schedule'
+        shell: powershell
+        run: |
+          . "$env:GITHUB_WORKSPACE\.github\scripts\wm-build-card.ps1"
+          $needed = Test-BuildNeeded -BuildRoot $env:BUILD_ROOT -Platform 'android' -Sha $env:GITHUB_SHA
+          if (-not $needed) { "skip=true" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8 }
       - name: Build player (batchmode)
         id: build
+        if: steps.gate.outputs.skip != 'true'
         shell: powershell
         # ASCII only in run: blocks. Actions writes them to a BOM-less temp .ps1 and
         # PS 5.1 decodes as cp949 - Korean corrupts and can break parsing outright
@@ -93,9 +108,14 @@ jobs:
           . "$env:GITHUB_WORKSPACE\.github\scripts\wm-build-card.ps1"
 
           $platform = '${{ inputs.platform }}'
-          if ([string]::IsNullOrWhiteSpace($platform)) { $platform = 'windows' }
+          if ([string]::IsNullOrWhiteSpace($platform)) {
+            # Nightly exists for the phone build; tag builds stay on windows.
+            $platform = if ('${{ github.event_name }}' -eq 'schedule') { 'android' } else { 'windows' }
+          }
           $buildType = '${{ inputs.build_type }}'
-          if ([string]::IsNullOrWhiteSpace($buildType)) { $buildType = 'release' }
+          if ([string]::IsNullOrWhiteSpace($buildType)) {
+            $buildType = if ('${{ github.event_name }}' -eq 'schedule') { 'development' } else { 'release' }
+          }
           $version = '${{ inputs.version }}'
           if ($env:GITHUB_REF_TYPE -eq 'tag') { $version = $env:GITHUB_REF_NAME -replace '^v', '' }
           $commit = '${{ github.sha }}'.Substring(0, 8)
@@ -118,6 +138,7 @@ jobs:
             if (Test-Path $result.UnityLog) { Get-Content $result.UnityLog -Tail 120 | Write-Host }
             throw "Unity build failed (exit=$($result.ExitCode)). log: $($result.UnityLog)"
           }
+          Save-BuiltMarker -BuildRoot $env:BUILD_ROOT -Platform $platform -Sha $env:GITHUB_SHA
 
       # Cancelling kills only the step shell; Unity started via Start-Process
       # survives holding the Library lock and blocks the next build.
@@ -173,7 +194,8 @@ jobs:
       # ASCII only here (see Build player step). All Korean card text lives in
       # .github/scripts/wm-build-card.ps1, which keeps a UTF-8 BOM.
       - name: Notify Discord (via laptop-ops)
-        if: always()
+        # Skipped nightlies have nothing to report - a card saying nothing is noise.
+        if: always() && steps.gate.outputs.skip != 'true'
         shell: powershell
         run: |
           $OutputEncoding = [Console]::OutputEncoding = [Text.UTF8Encoding]::new()

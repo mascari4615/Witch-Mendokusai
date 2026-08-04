@@ -327,6 +327,13 @@ function Publish-BuildResult {
         $posted = New-BuildCard -Token $token -Rich $rich
         Write-Host "card posted id=$posted link=$([bool]$link)"
     }
+
+    # 성공한 빌드만 「최신」 자리를 갱신한다. 실패가 최신을 덮으면 어제 되던 것마저
+    # 못 받게 된다.
+    if ($ok -and $link) {
+        Update-LatestCard -Token $token -BuildRoot $BuildRoot -Platform $Platform -OutDir $OutDir `
+            -Report $Report -Link $link -Commit $Commit -RunUrl $RunUrl
+    }
 }
 
 <#
@@ -382,4 +389,80 @@ function Write-BuildSummary {
         $lines += "노트북 로그: ``$UnityLog``"
     }
     $lines -join "`n" | Out-File -FilePath $SummaryFile -Append -Encoding utf8
+}
+
+# ── 야간 자동 빌드 ──────────────────────────────────────────────────────────
+# 밤새 돌려두면 아침에 폰으로 바로 설치할 수 있다. 다만 *바뀐 게 없으면 굽지 않는다* —
+# 같은 코드로 40분과 3GB 를 태우는 건 낭비고, 채널에 의미 없는 카드만 쌓인다.
+
+function Get-LastBuiltMarker {
+    param([string]$BuildRoot, [string]$Platform)
+    return Join-Path $BuildRoot "last-built-$Platform.sha"
+}
+
+function Test-BuildNeeded {
+    param([string]$BuildRoot, [string]$Platform, [string]$Sha)
+    $marker = Get-LastBuiltMarker -BuildRoot $BuildRoot -Platform $Platform
+    if (-not (Test-Path $marker)) { return $true }
+    $last = (Get-Content $marker -Raw).Trim()
+    if ($last -eq $Sha) {
+        Write-Host "nightly skip: $Platform already built at $Sha"
+        return $false
+    }
+    return $true
+}
+
+function Save-BuiltMarker {
+    param([string]$BuildRoot, [string]$Platform, [string]$Sha)
+    $marker = Get-LastBuiltMarker -BuildRoot $BuildRoot -Platform $Platform
+    Set-Content -Path $marker -Value $Sha -Encoding ascii
+}
+
+# ── 「최신 빌드」 고정 카드 ─────────────────────────────────────────────────
+# 개별 빌드 카드는 시간이 지나면 위로 밀리고 링크도 하루면 죽는다. 그래서 채널에
+# *늘 같은 자리*(고정 메시지)에서 최신 산출물을 가리키는 카드 하나를 유지한다.
+# 메시지 id 는 노트북에 남겨 계속 같은 메시지를 고쳐 쓴다 (새로 쌓지 않는다).
+
+function Update-LatestCard {
+    param([string]$Token, [string]$BuildRoot, [string]$Platform, [string]$OutDir,
+        [string]$Report, [string]$Link, [string]$Commit, [string]$RunUrl)
+    if (-not $Link) { return }   # 설치 링크가 없는 산출물은 「최신」으로 걸 이유가 없다
+
+    $version = ''
+    $sizeText = ''
+    if ($Report -and (Test-Path $Report)) {
+        $json = Get-Content $Report -Raw | ConvertFrom-Json
+        $version = $json.version
+        $mb = [Math]::Round($json.exeSizeBytes / 1MB, 1)
+        $sizeText = "$mb MB"
+    }
+    $rich = @{
+        lead   = "## [📲 최신 $Platform 빌드 설치]($Link)"
+        title  = "⭐ 최신 $Platform 빌드"
+        body   = '이 카드는 빌드가 끝날 때마다 최신 것으로 갱신된다. 링크는 하루 뒤 만료되니, 만료됐으면 새로 빌드하면 이 자리도 같이 바뀐다.'
+        fields = @(
+            @{ name = '버전'; value = "v$version"; inline = $true },
+            @{ name = '크기'; value = $sizeText; inline = $true },
+            @{ name = '커밋'; value = $Commit; inline = $true },
+            @{ name = '구운 시각'; value = (Get-Date).ToString('yyyy-MM-dd HH:mm') + ' KST'; inline = $false }
+        )
+        level  = 'info'
+        url    = $RunUrl
+        footer = '고정해두면 언제든 여기서 최신 것을 받는다'
+    }
+
+    $stateFile = Join-Path $BuildRoot "latest-card-$Platform.id"
+    $existing = $null
+    if (Test-Path $stateFile) { $existing = (Get-Content $stateFile -Raw).Trim() }
+
+    if ($existing) {
+        if (Set-BuildCard -Token $Token -MessageId $existing -Rich $rich) { return }
+        # 사람이 지웠을 수 있다 — 그러면 새로 만들고 id 를 갈아끼운다.
+        Write-Host 'latest card missing, recreating'
+    }
+    $newId = New-BuildCard -Token $Token -Rich $rich
+    if ($newId) {
+        Set-Content -Path $stateFile -Value $newId -Encoding ascii
+        Write-Host "latest card id=$newId (pin it once by hand)"
+    }
 }
