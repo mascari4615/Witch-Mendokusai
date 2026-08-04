@@ -184,6 +184,15 @@ namespace WitchMendokusai
 			placement.SetSlots(match.AvailableSlots);
 		}
 
+		/// <summary> 시점을 그 자리로 — 지도에서 온 요청. 확대·회전은 그대로 둔다. </summary>
+		private void LookAt(Vector3 focus)
+		{
+			// 카메라는 모드마다 다른 리그가 쥔다 — 개척 리그를 그때그때 찾는다(참조를 들고 있으면
+			// 모드를 나갔다 들어올 때 죽은 참조가 된다).
+			if (OverheadContentCameraController.TryGet(ContentCameraMode.TowerDefense, out OverheadContentCameraController rig))
+				rig.LookAt(focus);
+		}
+
 		private int RelicBalance()
 		{
 			return DataManager.TryGetExistingInstance(out DataManager dataManager) ? dataManager.TowerDefenseRelics : 0;
@@ -366,7 +375,9 @@ namespace WitchMendokusai
 
 			match.Begin(stage, stageRoot);
 			placement.Activate();
-			placement.SelectKind(TowerDefensePlaceableKind.Tower);
+			// 새 판의 첫 칸 — 포탑은 이제 연구로 열리므로 시작 시점엔 없다(없는 칸을 고르려 하면
+			// 아무 칸도 안 골린 채로 판이 시작된다).
+			placement.SelectSlot(0);
 			ResetCamera();
 
 			TowerDefenseHudView view = EnsureHud();
@@ -433,6 +444,8 @@ namespace WitchMendokusai
 					view.SetSelectedSlot(placement.SelectedSlot);
 					placement.SelectionChanged += view.SetSelectedSlot;
 					view.RestartRequested += Restart;
+					// 지도·미니맵을 누르면 그 자리로 — 카메라는 컨트롤러가 쥔다(화면은 「어디」만 말한다).
+					view.LookAtRequested += LookAt;
 					view.WaveModeToggleRequested += ToggleWaveMode;
 					view.NextWaveRequested += CallNextWave;
 					view.SlotClicked += SelectSlotFromUi;
@@ -465,6 +478,7 @@ namespace WitchMendokusai
 				{
 					placement.SelectionChanged -= hud.SetSelectedSlot;
 					hud.RestartRequested -= Restart;
+					hud.LookAtRequested -= LookAt;
 					hud.WaveModeToggleRequested -= ToggleWaveMode;
 					hud.NextWaveRequested -= CallNextWave;
 					hud.SlotClicked -= SelectSlotFromUi;

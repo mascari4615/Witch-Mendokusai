@@ -23,8 +23,13 @@ namespace WitchMendokusai
 		private readonly TowerDefenseMinimapView map;
 		private readonly VisualElement legendHost;
 
+		private bool clickBound;
+
 		public VisualElement Root => root;
 		public bool IsOpen { get; private set; }
+
+		/// <summary> 지도를 눌렀다 — 그 자리로 시점을 옮기라는 뜻(지도는 그대로 열려 있다). </summary>
+		public event System.Action<Vector3> LookAtRequested = delegate { };
 
 		public TowerDefenseMapPanel(VisualElement legend)
 		{
@@ -67,6 +72,7 @@ namespace WitchMendokusai
 
 			float mapSize = Mathf.Max(320f, Screen.height - SCREEN_MARGIN - 120f);
 			map = new TowerDefenseMinimapView(mapSize, floating: false) { ShowTooltips = true };
+			map.Clicked += focus => LookAtRequested(focus);
 			left.Add(map.Root);
 
 			Label hint = new Label("M 또는 「지도」 버튼으로 닫는다");
@@ -107,6 +113,11 @@ namespace WitchMendokusai
 			if (IsOpen == false || match == null)
 				return;
 
+			if (clickBound == false)
+			{
+				map.EnableClickToLook(match);
+				clickBound = true;
+			}
 			map.RefreshTerrain(match.MapLayout, stage);
 			map.Tick(match, stage);
 		}

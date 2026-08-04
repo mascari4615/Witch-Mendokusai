@@ -102,15 +102,22 @@ namespace WitchMendokusai
 
 				// 겹칠수록 진하게(1갈래 = 옅게, 여러 갈래 = 뚜렷하게).
 				// 어두운 바닥 위에서 확실히 튀는 밝기까지 올린다 — 길이 안 보이면 이 기능은 없는 것과 같다.
+				// ★ 길은 *불투명*으로 그린다 — 반투명이면 스프라이트(인형·마수)와 같은 줄에 서서
+				//   그리는 순서를 다투고, 그러다 인형을 덮는다(사용자 실증: "길도 유닛이나 건물을 가림").
+				//   안개와 같은 결론이다: 바닥에 속한 것은 바닥의 줄에 있어야 한다.
+				//   진하기는 알파가 아니라 *색*으로 낸다 — 어두운 바닥과 섞어 미리 계산한다.
 				float intensity = Mathf.Clamp01(0.6f + (weight - 1) * 0.2f);
-				Color laneColor = new Color(1f, 0.74f, 0.28f, intensity);
+				Color groundTone = new Color(0.28f, 0.32f, 0.38f, 1f);
+				Color laneColor = Color.Lerp(groundTone, new Color(1f, 0.74f, 0.28f, 1f), intensity);
+				laneColor.a = 1f;
 				Material laneMaterial = new Material(laneRenderer.sharedMaterial);
-				TowerDefenseVisuals.MakeTransparent(laneMaterial);
 				laneMaterial.color = laneColor;
 				if (laneMaterial.HasProperty("_BaseColor"))
 					laneMaterial.SetColor("_BaseColor", laneColor);
 				laneRenderer.sharedMaterial = laneMaterial;
 				laneRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+				// 바닥 바로 다음 줄 — 인형·마수(스프라이트)는 그 뒤에 그려지므로 절대 가려지지 않는다.
+				laneRenderer.sharedMaterial.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Geometry + 1;
 			}
 		}
 

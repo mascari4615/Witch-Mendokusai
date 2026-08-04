@@ -56,6 +56,12 @@ namespace WitchMendokusai
 		[Header("부감 — 무대 경계")]
 		[Tooltip("포커스를 무대 안으로 가둘지. 마을처럼 끝이 없는 곳은 끄고, 개척처럼 무대가 유한하면 켠다.")]
 		[SerializeField] private bool clampFocus;
+		[Tooltip("화면 가장자리 몇 픽셀 안에 마우스가 들어오면 시점이 밀리나 — 0 이면 끔.")]
+		[SerializeField, Min(0f)] private float edgePanBand = 24f;
+
+		[Tooltip("가장자리 이동 세기 — 키 이동 대비 배수.")]
+		[SerializeField, Min(0f)] private float edgePanStrength = 1f;
+
 		[Tooltip("가둠 중심(월드). 모드 컨트롤러가 SetFocusBounds 로 덮어쓸 수 있다.")]
 		[SerializeField] private Vector3 focusCenter;
 		[Tooltip("중심에서 벗어날 수 있는 최대 거리.")]
@@ -121,13 +127,53 @@ namespace WitchMendokusai
 
 			OverheadCameraRig.DriveInput input = new()
 			{
-				Move = InputManager.CameraMoveInput,
+				// 키 이동 + 화면 가장자리 이동은 *같은 축*으로 합산한다 — 둘을 따로 처리하면
+				// 동시에 눌렀을 때 속도가 두 배가 되거나 서로를 덮는다.
+				Move = Vector2.ClampMagnitude(InputManager.CameraMoveInput + EdgePanInput(), 1f),
 				Rotate = InputManager.CameraRotateInput,
 				ScrollDelta = InputManager.ScrollWheelDelta,
 				SpeedMultiplier = SpeedMultiplier,
 			};
 
 			rig.Drive(input, RigSettings, Time.deltaTime, transform);
+		}
+
+		/// <summary> 시점을 그 자리로 — 지도·미니맵을 눌렀을 때(확대·회전은 그대로). </summary>
+		public void LookAt(Vector3 focus)
+		{
+			rig.LookAt(focus);
+			rig.Apply(RigSettings, transform);
+		}
+
+		/// <summary>
+		/// 마우스가 화면 가장자리에 닿으면 그쪽으로 민다 — 롤·스타의 그 조작 (사용자 지시).
+		///
+		/// ★ 왜 화면 밖은 안 미나: 창 밖으로 커서가 나가면 마지막 좌표가 가장자리에 남아 *영원히 흐른다*.
+		///   다른 창을 보다 돌아오면 판이 저 멀리 가 있는 식이라, 화면 안에 있을 때만 민다.
+		/// ★ 가장자리 폭·속도는 값으로 노출한다 — 화면 크기와 손 감각에 따라 달라지는 수치다.
+		/// </summary>
+		private Vector2 EdgePanInput()
+		{
+			if (edgePanBand <= 0f)
+				return Vector2.zero;
+
+			Vector2 pointer = InputManager.MouseScreenPosition;
+			if (pointer.x < 0f || pointer.y < 0f || pointer.x > Screen.width || pointer.y > Screen.height)
+				return Vector2.zero;
+
+			float x = 0f;
+			float y = 0f;
+			if (pointer.x <= edgePanBand)
+				x = -(1f - pointer.x / edgePanBand);
+			else if (pointer.x >= Screen.width - edgePanBand)
+				x = 1f - (Screen.width - pointer.x) / edgePanBand;
+
+			if (pointer.y <= edgePanBand)
+				y = -(1f - pointer.y / edgePanBand);
+			else if (pointer.y >= Screen.height - edgePanBand)
+				y = 1f - (Screen.height - pointer.y) / edgePanBand;
+
+			return new Vector2(x, y) * edgePanStrength;
 		}
 	}
 }

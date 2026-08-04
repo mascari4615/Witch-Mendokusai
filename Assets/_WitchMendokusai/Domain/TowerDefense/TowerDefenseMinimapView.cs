@@ -251,6 +251,44 @@ namespace WitchMendokusai
 				local.z / match.GroundLength + 0.5f);
 		}
 
+		/// <summary>
+		/// 지도 위 한 점 → 판의 그 자리(월드). 위 ToNormalized 의 역이다.
+		/// ★ 둘이 어긋나면 「누른 곳과 간 곳이 다르다」가 된다 — 반드시 같은 식의 뒤집기여야 한다.
+		/// </summary>
+		private static Vector3 ToWorld(TowerDefenseMatch match, Vector2 normalized)
+		{
+			Vector3 local = new Vector3(
+				(normalized.x - 0.5f) * match.GroundWidth,
+				0f,
+				(normalized.y - 0.5f) * match.GroundLength);
+			return match.StageRoot.TransformPoint(local);
+		}
+
+		/// <summary> 지도를 눌렀다 — 그 자리의 월드 좌표를 알려준다(지도는 닫히지 않는다). </summary>
+		public event System.Action<Vector3> Clicked = delegate { };
+
+		/// <summary>
+		/// 누르면 그 자리로 — 롤·스타의 그 조작(사용자 지시). 켜는 쪽에서만 포인터를 받는다.
+		/// ★ 미니맵도 켠다 — 곁눈질용이지만 「저기 보자」는 미니맵에서 더 자주 일어난다.
+		/// </summary>
+		public void EnableClickToLook(TowerDefenseMatch matchSource)
+		{
+			root.pickingMode = PickingMode.Position;
+			root.RegisterCallback<PointerDownEvent>(evt =>
+			{
+				TowerDefenseMatch match = matchSource;
+				if (match == null || match.StageRoot == null)
+					return;
+
+				// 지도 안에서의 비율 — 화면 세로는 위가 0 이라 다시 뒤집는다.
+				Vector2 normalized = new Vector2(
+					Mathf.Clamp01(evt.localPosition.x / this.size),
+					Mathf.Clamp01(1f - evt.localPosition.y / this.size));
+				Clicked(ToWorld(match, normalized));
+				evt.StopPropagation(); // 지도 위 클릭이 그 아래 땅에 건물을 세우면 안 된다.
+			});
+		}
+
 		private VisualElement RentDot()
 		{
 			if (usedDots < dots.Count)

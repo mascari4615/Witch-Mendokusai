@@ -144,6 +144,7 @@ namespace WitchMendokusai
 			//   정작 「저게 뭐였지」 할 때는 안 읽힌다(사용자 실증). 지도를 여는 행위가 곧 알아보는 행위다.
 			legendPanel = Named(BuildLegendPanel(), "LegendPanel");
 			mapPanel = new TowerDefenseMapPanel(legendPanel);
+			mapPanel.LookAtRequested += focus => LookAtRequested(focus);
 			container.Add(mapPanel.Root);
 			selectionBar = new ModeSelectionBar("TowerDefenseSelectionBar") { CardLayout = true };
 			selectionBar.Selected += index => SlotClicked(index);
@@ -170,6 +171,7 @@ namespace WitchMendokusai
 
 			// 미니맵 — 판이 무한으로 자라므로 「전체를 보는 눈」이 없으면 넓은 판이 넓지 않은 것과 같다.
 			minimap = new TowerDefenseMinimapView();
+			minimap.Clicked += focus => LookAtRequested(focus);
 			minimap.Root.name = "Minimap";
 			container.Add(minimap.Root);
 
@@ -1089,8 +1091,13 @@ namespace WitchMendokusai
 		// 값이 바뀌면(할인 카드) 칸을 다시 그린다 — 안 그러면 화면이 옛 값을 계속 말한다.
 		private int lastHotbarCostSignature = -1;
 
+		private bool minimapClickBound;
+
 		/// <summary> 펼치는 지도 — 지형·점·범례·설명이 한자리에. </summary>
 		private TowerDefenseMapPanel mapPanel;
+
+		/// <summary> 지도·미니맵을 눌렀다 — 그 자리로 시점을 옮겨 달라(컨트롤러가 카메라를 쥔다). </summary>
+		public event System.Action<Vector3> LookAtRequested = delegate { };
 
 		/// <summary> 지도 열고 닫기 — 조작 쪽(M 키·버튼)이 부른다. </summary>
 		public void ToggleMap() => mapPanel?.Toggle();
@@ -1321,6 +1328,11 @@ namespace WitchMendokusai
 			UpdateDollLabels(match);
 			minimap?.Tick(match, stage);
 			minimap?.RefreshTerrain(match.MapLayout, stage); // 작은 지도에도 땅이 보여야 한다.
+			if (minimapClickBound == false && match != null)
+			{
+				minimap?.EnableClickToLook(match);
+				minimapClickBound = true;
+			}
 			mapPanel?.Tick(match, stage);
 
 			string boonSummary = match.BoonSummary;

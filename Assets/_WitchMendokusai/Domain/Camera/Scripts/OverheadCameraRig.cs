@@ -60,6 +60,19 @@ namespace WitchMendokusai
 			IsInitialized = true;
 		}
 
+		/// <summary>
+		/// 시점을 그 자리로 옮긴다 — 확대·회전은 그대로 두고 *바라보는 자리*만 바꾼다.
+		///
+		/// ★ 지도·미니맵을 눌러 「저기 보자」가 되려면 이 창구가 있어야 한다(사용자 지시: "미니맵 누르면
+		///   화면이 그 위치로 움직여야 함. 롤이나 스타처럼"). Reset 은 확대·회전까지 되돌려 *판을 새로
+		///   시작할 때* 쓰는 것이라, 보던 배율이 튕기면 안 되는 이 경우엔 못 쓴다.
+		/// </summary>
+		public void LookAt(Vector3 focus)
+		{
+			Focus = focus;
+			IsInitialized = true;
+		}
+
 		/// <summary> 입력 반영 + target transform 에 즉시 적용. </summary>
 		public void Drive(in DriveInput input, in Settings settings, float deltaTime, Transform target)
 		{

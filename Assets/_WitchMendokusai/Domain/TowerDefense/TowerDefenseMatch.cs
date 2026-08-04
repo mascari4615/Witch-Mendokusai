@@ -1032,6 +1032,12 @@ namespace WitchMendokusai
 			GameObject unitGameObject = pool.Spawn(unitData.Prefab);
 			if (spawnedUnits.Contains(unitGameObject) == false)
 				spawnedUnits.Add(unitGameObject); // 풀이 옛 시체를 재사용하면 같은 참조 — 중복 추적 방지.
+
+			// ★ 안개는 안 보이는 개체의 렌더러를 *끈다*. 그 개체가 풀로 돌아갔다 재사용되면 꺼진 채로
+			//   다시 태어난다 — 사용자 실증: "다시시작 하면 건물 모습이 안보임". 세우는 순간 되켠다.
+			//   (끄는 쪽과 켜는 쪽이 짝이 안 맞으면, 그 병은 *다음 판*에 나타나 원인을 찾기 어렵다.)
+			foreach (Renderer spawnedRenderer in unitGameObject.GetComponentsInChildren<Renderer>(true))
+				spawnedRenderer.enabled = true;
 			unitGameObject.transform.position = worldPosition;
 			result.GameObject = unitGameObject;
 
