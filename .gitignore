@@ -142,7 +142,13 @@ WM.json*
 /.mcp.json
 
 # Local editor and shell crash artifacts
-bash.exe.stackdump
+bash.exe.stackdump*
 
 # Shader pack build output (TASK-WM-055 P1-F)
 /Shaderpacks_Output/
+
+.worktrees
+/Assets/initTestScene*
+# 검증 스크린샷 (로컬 산출물)
+/Assets/Screenshots/
+/Assets/Screenshots.meta
