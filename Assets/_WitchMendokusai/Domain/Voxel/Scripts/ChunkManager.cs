@@ -171,20 +171,68 @@ namespace WitchMendokusai
 			foreach (ChunkPosition pos in toRemove)
 				activeChunks.Remove(pos);
 
-			// 2. 범위 내 빈 청크 큐잉
+			// 2. 범위 내 빈 청크 큐잉 — **가까운 곳부터**.
+			//
+			// ★ 사용자 실증: "처음에 빈공간 보이다가 차근차근 월드가 생성되는게 보입니다 …
+			//   지금은 한쪽부터 생성되는듯. 마인크래프트처럼 플레이어가 나오는 곳부터 주위를
+			//   차근차근 생성하는 방식이여야 할 것 같고".
+			//   원인은 이 두 겹 반복이 -거리 → +거리 로 훑는 것이었다 — *구석에서 시작*하니
+			//   내가 선 자리가 마지막에 채워진다. 만들 순서를 거리순으로 세우면 발밑부터 퍼진다.
+			pendingOrder.Clear();
 			for (int x = -renderDistance; x <= renderDistance; x++)
 			{
 				for (int z = -renderDistance; z <= renderDistance; z++)
 				{
 					ChunkPosition pos = new(centerPos.X + x, centerPos.Z + z);
-					if (activeChunks.ContainsKey(pos) == false && generationQueue.Contains(pos) == false)
-					{
-						generationQueue.Add(pos);
-						EnqueueChunkGeneration(pos);
-					}
+					if (activeChunks.ContainsKey(pos) || generationQueue.Contains(pos))
+						continue;
+					pendingOrder.Add(pos);
 				}
 			}
+
+			pendingOrder.Sort((left, right) =>
+			{
+				int leftDistance = (left.X - centerPos.X) * (left.X - centerPos.X) + (left.Z - centerPos.Z) * (left.Z - centerPos.Z);
+				int rightDistance = (right.X - centerPos.X) * (right.X - centerPos.X) + (right.Z - centerPos.Z) * (right.Z - centerPos.Z);
+				return leftDistance.CompareTo(rightDistance);
+			});
+
+			foreach (ChunkPosition pos in pendingOrder)
+			{
+				generationQueue.Add(pos);
+				EnqueueChunkGeneration(pos);
+			}
 		}
+
+		/// <summary>
+		/// 처음 들어선 자리 주변이 다 채워졌나 — 「로딩 완료」가 이걸 기다려야 한다.
+		///
+		/// ★ 사용자 실증: "애초에 생성이 다 된 시점에 로딩이 완료되거나, 마인크래프트처럼 월드
+		///   로딩할때 그 생성되는 UI 같은 걸 만들어야 할 것 같아요." 지금은 씬만 뜨면 로딩이 끝났다고
+		///   말하고, 땅은 그 뒤에 채워진다 — 그래서 빈 공간에 떨어지는 그림이 보인다.
+		/// 「기다릴 만큼」만 본다(반경 전체가 아니라 발밑 한 겹) — 멀리까지 기다리면 로딩이 하염없어진다.
+		/// </summary>
+		public bool IsInitialAreaReady
+		{
+			get
+			{
+				if (activeChunks.Count == 0)
+					return false;
+
+				for (int x = -1; x <= 1; x++)
+				{
+					for (int z = -1; z <= 1; z++)
+					{
+						if (activeChunks.ContainsKey(new ChunkPosition(lastViewerPosition.X + x, lastViewerPosition.Z + z)) == false)
+							return false;
+					}
+				}
+				return true;
+			}
+		}
+
+		// 이번 갱신에서 만들 청크를 거리순으로 세우는 임시 목록 — 매 프레임 새로 할당하지 않는다.
+		private readonly List<ChunkPosition> pendingOrder = new();
 
 		private void EnqueueChunkGeneration(ChunkPosition pos)
 		{
