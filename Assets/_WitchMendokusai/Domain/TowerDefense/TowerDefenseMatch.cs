@@ -1056,45 +1056,22 @@ namespace WitchMendokusai
 
 		private IEnumerator SpawnCoreRoutine()
 		{
-			GameObject coreGameObject = pool.Spawn(stage.CoreUnit.Prefab);
-			if (spawnedUnits.Contains(coreGameObject) == false)
-				spawnedUnits.Add(coreGameObject); // Dispose 시 풀 반환(누수 방지). 재사용 풀 중복추적 방지.
-			coreGameObject.transform.position = stageRoot.TransformPoint(activeCorePosition);
-
-			// 트랩#4: 스폰 직후 한 프레임 양보 — Start 시점 초기화(UnitObject 등)가 settle 된 뒤 Init.
-			yield return null;
-
-			// 이 프레임 대기 중 Dispose 됐으면(예: 웨이브 스폰 중 매치 이탈) pool/targeting/core 가 이미 null —
-			// StopAllCoroutines 와 병행하는 belt-and-braces 가드(코루틴이 정지 전에 이미 재개된 경우 대비).
-			if (core == null || targeting == null || pool == null)
+			SpawnedUnit spawned = new();
+			yield return SpawnUnitRoutine(stage.CoreUnit, stageRoot.TransformPoint(activeCorePosition),
+				DEFENDER_TEAM, stage.CoreTint, stage.CoreScale, spawned);
+			if (spawned.Ok == false)
 				yield break;
 
-			UnitObject coreUnitObject = coreGameObject.GetComponent<UnitObject>();
-			if (coreUnitObject == null)
-			{
-				Debug.LogError($"{nameof(TowerDefenseMatch)}: {stage.CoreUnit.Prefab.name} 에 UnitObject 컴포넌트 없음 — 코어 스폰 불가.");
-				yield break;
-			}
+			GameObject coreGameObject = spawned.GameObject;
+			UnitObject coreUnitObject = spawned.UnitObject;
+			ArenaCombatant combatant = spawned.Combatant;
 
-			coreUnitObject.Init(stage.CoreUnit);
-			// 트랩#1: 전술 코어가 유일 시전자 → 자동시전 즉시 차단(코어는 전술 없지만 스킬 SO 보유 시 대비).
-			coreUnitObject.SkillHandler.AutoCastEnabled = false;
-
-			ArenaCombatant combatant = coreUnitObject.GetComponent<ArenaCombatant>();
-			if (combatant == null)
-				combatant = coreUnitObject.gameObject.AddComponent<ArenaCombatant>();
-			combatant.SetTeam(DEFENDER_TEAM, nextCombatantId++);
-
-			ApplyReadability(coreUnitObject, stage.CoreTint, stage.CoreScale);
-			coreGameObject.SetActive(true);
-
-			// 트랩#2: 프리팹 내장 FSM 이 TacticDriver(추후 방어유닛)와 채널 경쟁하지 않도록 일괄 비활성.
+			// 여기부터는 *코어만의 것*이다.
+			// 트랩#2: 프리팹 내장 FSM 이 TacticDriver(방어유닛)와 채널 경쟁하지 않도록 일괄 비활성.
 			foreach (UnitBrain brain in coreUnitObject.GetComponents<UnitBrain>())
 				brain.enabled = false;
 
-			targeting.Register(combatant);
-			targeting.RegisterObjective(combatant); // 적이 전진할 목표물로 표시 — Register 와 직교, 둘 다 필요.
-			registeredCombatants.Add(combatant);
+			targeting.RegisterObjective(combatant); // 적이 전진할 목표물 — 일반 등록과 직교, 둘 다 필요.
 
 			coreCombatant = combatant;
 
@@ -1511,35 +1488,17 @@ namespace WitchMendokusai
 			if (stage.HeroUnit == null || stage.HeroUnit.Prefab == null)
 				yield break; // 영웅 미설정 스테이지 — 기존 판과 완전히 동일하게 진행.
 
-			GameObject heroGameObject = pool.Spawn(stage.HeroUnit.Prefab);
-			if (spawnedUnits.Contains(heroGameObject) == false)
-				spawnedUnits.Add(heroGameObject);
-
 			Vector3 spawnPosition = stageRoot.TransformPoint(activeCorePosition) + new Vector3(stage.GroundCellSize * 1.5f, 0f, 0f);
-			heroGameObject.transform.position = spawnPosition;
 
-			yield return null;
-			if (core == null || targeting == null || pool == null)
+			SpawnedUnit spawned = new();
+			yield return SpawnUnitRoutine(stage.HeroUnit, spawnPosition,
+				DEFENDER_TEAM, stage.HeroTint, stage.HeroScale, spawned);
+			if (spawned.Ok == false)
 				yield break;
 
-			UnitObject heroUnitObject = heroGameObject.GetComponent<UnitObject>();
-			if (heroUnitObject == null)
-			{
-				Debug.LogWarning($"{nameof(TowerDefenseMatch)}: {stage.HeroUnit.Prefab.name} 에 UnitObject 없음 — 영웅 없이 진행.");
-				yield break;
-			}
-
-			heroUnitObject.Init(stage.HeroUnit);
-			heroUnitObject.SkillHandler.AutoCastEnabled = false;
-
-			heroCombatant = heroUnitObject.GetComponent<ArenaCombatant>();
-			if (heroCombatant == null)
-				heroCombatant = heroUnitObject.gameObject.AddComponent<ArenaCombatant>();
-			heroCombatant.SetTeam(DEFENDER_TEAM, nextCombatantId++);
-
-			ApplyReadability(heroUnitObject, stage.HeroTint, stage.HeroScale);
-
-			heroGameObject.SetActive(true);
+			GameObject heroGameObject = spawned.GameObject;
+			UnitObject heroUnitObject = spawned.UnitObject;
+			heroCombatant = spawned.Combatant;
 
 			// ★ 영웅의 자리는 *사람이 정한다*. 강체를 그대로 두면 내가 옮긴 좌표를 물리가 매 프레임 되돌린다
 			//   (라이브 실측: 옮긴 다음 틱에 뒤로 밀려 제자리 — 명령해도 안 움직이는 것처럼 보였다).
@@ -1578,9 +1537,7 @@ namespace WitchMendokusai
 					IsVisibleAt, () => TowerDamageMultiplier, () => Adaptation);
 			}
 
-			targeting.Register(heroCombatant);
-			registeredCombatants.Add(heroCombatant);
-
+			// 표적 등록은 세우는 문이 이미 했다 — 여기서 또 하면 같은 것이 목록에 두 번 들어간다.
 			heroTransform = heroGameObject.transform;
 			heroTargetPosition = heroTransform.position;
 			heroActive = true;
