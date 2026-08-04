@@ -12,10 +12,24 @@
 
 $script:LaptopOpsUri = 'http://127.0.0.1:47615'
 
-# 로그가 이만큼 조용하면 「멈춤 의심」을 카드에 띄운다. 30분 = 정상 빌드 전체(34분)에
-# 육박하는 침묵이라 오경보가 거의 없는 값. 네이티브 변환 구간이 원래 십수 분 조용해서
-# 그보다 짧게 잡으면 매 빌드마다 경고가 뜬다.
-$script:SilenceWarnMinutes = 30
+# 「멈춤 의심」 기준 — 단계에 따라 다르다.
+#
+# 실측: 네이티브 변환 구간은 유니티 로그가 15분 넘게 한 줄도 안 늘지만, 그동안 Library
+# 밑에서는 오브젝트 파일이 계속 쓰인다(=정상 작동). 반면 앞 단계(임포트·컴파일·번들)는
+# 로그가 꾸준히 늘어서, 거기서 10분 침묵은 진짜 이상 신호다.
+# 그래서 하나의 숫자로 뭉뚱그리지 않는다 — 뭉뚱그리면 오경보를 내거나(짧게 잡으면)
+# 정작 멈춰도 30분을 버린다(길게 잡으면).
+#
+# 산출물 쪽을 직접 감시하는 건 비용이 크다: .o 는 깊은 하위 폴더에 쓰여 상위 디렉토리
+# mtime 이 안 바뀌고(실측), 전체 재귀 스캔은 폴링마다 하기엔 무겁다.
+$script:SilenceWarnMinutesEarly = 10   # 로그가 계속 늘어야 정상인 앞 단계
+$script:SilenceWarnMinutesNative = 45  # 로그가 원래 조용한 네이티브·Gradle 구간
+
+function Get-SilenceThreshold {
+    param([string]$StageKey)
+    if ($StageKey -in @('native', 'project', 'gradle')) { return $script:SilenceWarnMinutesNative }
+    return $script:SilenceWarnMinutesEarly
+}
 
 # ★ PS 5.1 의 Invoke-RestMethod 는 *문자열* 본문을 UTF-8 로 보내지 않는다 — 비-ASCII 가
 #   전송 중에 '?' 로 뭉개진다. 실측: 첫 진행 카드가 디스코드에 「? WM ?? android」로
@@ -133,10 +147,11 @@ function New-ProgressRich {
     $stage = $ladder[$StageIndex]
     $elapsed = [Math]::Round(((Get-Date) - $StartedAt).TotalMinutes, 1)
     $body = "$(Get-ProgressBar -Index $StageIndex -Total $ladder.Count)  $($StageIndex + 1)/$($ladder.Count) · **$($stage.Label)**"
-    # 네이티브 변환 구간은 로그가 원래 십수 분 조용하다. 그 조용함에 「멈춤」이 숨는다 —
-    # 잡 타임아웃(4시간)까지 아무도 모른 채 노트북이 잡혀 있게 된다. 그래서 *알리기만* 한다
-    # (죽이지 않는다 — 오판으로 정상 빌드를 끊는 게 더 나쁘다).
-    if ($SilentMinutes -ge $script:SilenceWarnMinutes) {
+    # 멈춤은 조용함에 숨는다 — 유니티가 걸려도 잡 타임아웃(4시간)까지 아무도 모른 채
+    # 노트북이 잡혀 있게 된다. 그래서 *알리기만* 한다 (죽이지 않는다 — 오판으로 정상
+    # 빌드를 끊는 게 더 나쁘다. 끊는 판단은 사람이 /빌드 취소 로).
+    $stuck = $SilentMinutes -ge (Get-SilenceThreshold -StageKey $stage.Key)
+    if ($stuck) {
         $body += "`n⚠️ 로그가 $SilentMinutes 분째 조용하다 — 멈췄을 수 있다 (실행 링크에서 확인)"
     }
     return @{
@@ -147,7 +162,7 @@ function New-ProgressRich {
             @{ name = '경과';   value = "$elapsed 분"; inline = $true },
             @{ name = '커밋';   value = $Commit; inline = $true }
         )
-        level  = $(if ($SilentMinutes -ge $script:SilenceWarnMinutes) { 'warning' } else { 'progress' })
+        level  = $(if ($stuck) { 'warning' } else { 'progress' })
         url    = $RunUrl
         footer = "run #$RunNumber · 노트북 빌드머신"
     }
