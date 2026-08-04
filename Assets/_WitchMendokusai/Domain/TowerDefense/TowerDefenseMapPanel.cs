@@ -69,7 +69,7 @@ namespace WitchMendokusai
 			map = new TowerDefenseMinimapView(mapSize, floating: false) { ShowTooltips = true };
 			left.Add(map.Root);
 
-			Label hint = new Label("「지도」 버튼을 다시 누르면 닫는다");
+			Label hint = new Label("M 또는 「지도」 버튼으로 닫는다");
 			hint.style.fontSize = 12;
 			hint.style.color = new Color(0.6f, 0.66f, 0.76f, 1f);
 			hint.style.marginTop = 8;

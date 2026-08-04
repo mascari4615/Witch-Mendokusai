@@ -34,6 +34,16 @@ namespace WitchMendokusai
 		{
 			yield return new WaitForEndOfFrame();
 
+			// ★ 조작의 주인이 둘이면 나중 것이 앞의 것을 덮는다. 여기(선택기)는 *씬*으로 정하고,
+			//   개척·투기장 같은 모드는 *모드*로 정한다 — 개척에 들어간 뒤 씬이 하나라도 더 실리면
+			//   개척 조작이 조용히 월드 조작으로 되돌아간다(실측: 모드=개척인데 조작=월드).
+			//   모드가 조작을 쥐고 있는 동안에는 선택기가 물러선다.
+			if (GameModeManager.TryGetExistingInstance(out GameModeManager gameModeManager)
+				&& gameModeManager.CurrentMode != GameMode.Default)
+			{
+				yield break;
+			}
+
 			switch (sceneName)
 			{
 				case "World":

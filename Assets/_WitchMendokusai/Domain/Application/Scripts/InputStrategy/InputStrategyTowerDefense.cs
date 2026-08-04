@@ -80,6 +80,16 @@ namespace WitchMendokusai
 							() => match.CycleSpeed(),
 							() => CanExecute(InputEventType.CameraViewCycle)
 						),
+						// 지도 — M. **이미 있는 슬롯을 빌린다**(마도서 키). 개척에선 마도서 조작을 등록하지
+						// 않으므로 겹치지 않고, 새 입력을 만들면 열거·바인딩 표·입력 에셋 3곳을 동시에
+						// 고쳐야 한다 — 실제로 그 에셋을 고치다 식별자 형식 하나 때문에 입력이 통째로
+						// 안 읽혀 부팅이 죽었다(되돌림). 배속이 카메라 슬롯을 빌려 쓰는 것과 같은 방식이다.
+						new(
+							InputEventType.MagicBookToggle,
+							InputEventResponseType.Performed,
+							() => toggleMap?.Invoke(),
+							() => toggleMap != null
+						),
 						#region Hotbar (기존 건설 모드와 같은 조작 문법 — 숫자키로 설치 대상 선택)
 						new(
 							InputEventType.HotbarSlot1,
