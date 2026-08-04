@@ -27,6 +27,18 @@ MonoBehaviour:
     m_SerializedLabels:
     - SkillData
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: a194010000000000000000000000d001
+    m_Address: SkillData/700
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - SkillData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: a194010000000000000000000000d002
+    m_Address: SkillData/701
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - SkillData
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: bdff7f8626f406d469febaa04df93e5e
     m_Address: SkillData/0
     m_ReadOnly: 0

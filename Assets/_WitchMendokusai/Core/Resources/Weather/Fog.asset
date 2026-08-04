@@ -11,7 +11,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 59a7c5c6a3b870049b273b622c4f36a4, type: 3}
   m_Name: Fog
-  m_EditorClassIdentifier: Assembly-CSharp::WitchMendokusai.WeatherSO
+  m_EditorClassIdentifier: WM.Domain::WitchMendokusai.WeatherSO
   <ID>k__BackingField: 5
   <Name>k__BackingField: Fog
   <Description>k__BackingField: 
@@ -21,5 +21,22 @@ MonoBehaviour:
   <FadeMinutes>k__BackingField: 30
   <IsWet>k__BackingField: 0
   <SfxKey>k__BackingField: weather_fog
+  <ThunderSfxKey>k__BackingField: 
+  <LightningIntervalMin>k__BackingField: 8
+  <LightningIntervalMax>k__BackingField: 30
+  <LightningFlashDuration>k__BackingField: 0.08
+  <LightningThunderDelay>k__BackingField: 2
   <DebugTint>k__BackingField: {r: 0.8, g: 0.82, b: 0.85, a: 1}
-  <VisualPrefab>k__BackingField: {fileID: 2938187281900711604, guid: a825a54eecd443842aa25a306518284d, type: 3}
+  <VisualPrefab>k__BackingField: {fileID: 0}
+  <ParticleMaterial>k__BackingField: {fileID: 0}
+  <ParticleColor>k__BackingField: {r: 0.85, g: 0.87, b: 0.9, a: 0.18}
+  <ParticleStartSize>k__BackingField: 6
+  <ParticleStartSpeed>k__BackingField: 0.3
+  <ParticleStartLifetime>k__BackingField: 8
+  <ParticleEmissionRate>k__BackingField: 12
+  <ParticleGravityModifier>k__BackingField: 0
+  <ParticleShapeType>k__BackingField: 0
+  <ParticleShapeScale>k__BackingField: {x: 40, y: 0.1, z: 40}
+  <ParticleShapePosition>k__BackingField: {x: 0, y: 1.5, z: 0}
+  <ParticleShapeRotation>k__BackingField: {x: 0, y: 0, z: 0}
+  <ParticleShapeRadius>k__BackingField: 12

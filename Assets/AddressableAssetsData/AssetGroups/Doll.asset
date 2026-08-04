@@ -21,6 +21,24 @@ MonoBehaviour:
     m_SerializedLabels:
     - Doll
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: a194010000000000000000000000d003
+    m_Address: Doll/700
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Doll
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: a194010000000000000000000000d004
+    m_Address: Doll/701
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Doll
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: a194010000000000000000000000d005
+    m_Address: Doll/702
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Doll
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: dd84603773e6f27479a2c830f5186349
     m_Address: Doll/1
     m_ReadOnly: 0

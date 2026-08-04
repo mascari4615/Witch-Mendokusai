@@ -11,7 +11,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f222a1afa37e7904989f854db88ac9ed, type: 3}
   m_Name: WeatherTransitionTable
-  m_EditorClassIdentifier: Assembly-CSharp::WitchMendokusai.WeatherTransitionTableSO
+  m_EditorClassIdentifier: WM.Domain::WitchMendokusai.WeatherTransitionTableSO
   <Profiles>k__BackingField:
   - Season: 0
     HourBucket: 0

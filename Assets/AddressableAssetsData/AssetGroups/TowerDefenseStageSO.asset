@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbb281ee3bf0b054c82ac2347e9e782c, type: 3}
+  m_Name: TowerDefenseStageSO
+  m_EditorClassIdentifier: Unity.Addressables.Editor::UnityEditor.AddressableAssets.Settings.AddressableAssetGroup
+  m_GroupName: TowerDefenseStageSO
+  m_GUID: 22125b7b0c54b3b4aa8d5565f0c0603c
+  m_SerializeEntries:
+  - m_GUID: a8e11e3926780534681ae02e4bcbbc74
+    m_Address: TowerDefenseStageSO/0
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - TowerDefenseStageSO
+    FlaggedDuringContentUpdateRestriction: 0
+  m_ReadOnly: 0
+  m_Settings: {fileID: 11400000, guid: 5a4d7636943b8d645af161ef05df63d6, type: 2}
+  m_SchemaSet:
+    m_Schemas:
+    - {fileID: 11400000, guid: 37016a819a2e4764fbb0e5e7cde131d8, type: 2}
+    - {fileID: 11400000, guid: 4efb4bfcc9b686c4e81a6df84ada7be9, type: 2}

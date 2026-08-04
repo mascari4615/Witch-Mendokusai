@@ -11,7 +11,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 59a7c5c6a3b870049b273b622c4f36a4, type: 3}
   m_Name: Clear
-  m_EditorClassIdentifier: Assembly-CSharp::WitchMendokusai.WeatherSO
+  m_EditorClassIdentifier: WM.Domain::WitchMendokusai.WeatherSO
   <ID>k__BackingField: 0
   <Name>k__BackingField: Clear
   <Description>k__BackingField: 
@@ -21,4 +21,22 @@ MonoBehaviour:
   <FadeMinutes>k__BackingField: 30
   <IsWet>k__BackingField: 0
   <SfxKey>k__BackingField: weather_clear
+  <ThunderSfxKey>k__BackingField: 
+  <LightningIntervalMin>k__BackingField: 8
+  <LightningIntervalMax>k__BackingField: 30
+  <LightningFlashDuration>k__BackingField: 0.08
+  <LightningThunderDelay>k__BackingField: 2
   <DebugTint>k__BackingField: {r: 1, g: 0.95, b: 0.7, a: 1}
+  <VisualPrefab>k__BackingField: {fileID: 0}
+  <ParticleMaterial>k__BackingField: {fileID: 0}
+  <ParticleColor>k__BackingField: {r: 1, g: 1, b: 1, a: 1}
+  <ParticleStartSize>k__BackingField: 0.05
+  <ParticleStartSpeed>k__BackingField: 18
+  <ParticleStartLifetime>k__BackingField: 1.5
+  <ParticleEmissionRate>k__BackingField: 400
+  <ParticleGravityModifier>k__BackingField: 0.5
+  <ParticleShapeType>k__BackingField: 5
+  <ParticleShapeScale>k__BackingField: {x: 40, y: 0.1, z: 40}
+  <ParticleShapePosition>k__BackingField: {x: 0, y: 18, z: 0}
+  <ParticleShapeRotation>k__BackingField: {x: 0, y: 0, z: 0}
+  <ParticleShapeRadius>k__BackingField: 12
