@@ -1195,43 +1195,22 @@ namespace WitchMendokusai
 				//   출현 지점 자체는 길이 보장돼 있으므로(RebuildPathing 검사) 벌어진 자리만 되돌린다.
 				localSpawn = SnapSpawnToReachable(localSpawn);
 
-				GameObject enemyGameObject = pool.Spawn(stage.EnemyUnit.Prefab);
-				if (spawnedUnits.Contains(enemyGameObject) == false)
-					spawnedUnits.Add(enemyGameObject); // 풀이 이전 웨이브 시체를 재사용해 반환하면 같은 참조 — 중복추적 방지.
-				enemyGameObject.transform.position = stageRoot.TransformPoint(localSpawn);
-
-				// 트랩#4: 스폰 직후 한 프레임 양보.
-				yield return null;
-
-				// belt-and-braces: 대기 중 Dispose(예: 웨이브 도중 매치 이탈) 됐으면 즉시 중단.
-				if (core == null || targeting == null || pool == null)
-					yield break;
-
-				UnitObject enemyUnitObject = enemyGameObject.GetComponent<UnitObject>();
-
-				if (enemyUnitObject == null)
-				{
-					Debug.LogWarning($"{nameof(TowerDefenseMatch)}: {stage.EnemyUnit.Prefab.name} 에 UnitObject 컴포넌트 없음 — skip.");
-					continue;
-				}
-
-				enemyUnitObject.Init(stage.EnemyUnit);
-				enemyUnitObject.SkillHandler.AutoCastEnabled = false; // 트랩#1.
-
-				ArenaCombatant enemyCombatant = enemyUnitObject.GetComponent<ArenaCombatant>();
-				if (enemyCombatant == null)
-					enemyCombatant = enemyUnitObject.gameObject.AddComponent<ArenaCombatant>();
-				enemyCombatant.SetTeam(ATTACKER_TEAM, nextCombatantId++);
-
+				// 종류를 먼저 정한다 — 색·덩치가 그 종류에서 나오므로 세우기 전에 알아야 한다.
 				TowerDefenseEnemyArchetype archetype = enemyIndex < waveComposition.Count
 					? EnemyArchetypeAt(waveComposition[enemyIndex])
 					: null;
 
-				ApplyReadability(enemyUnitObject,
+				SpawnedUnit spawned = new();
+				yield return SpawnUnitRoutine(stage.EnemyUnit, stageRoot.TransformPoint(localSpawn), ATTACKER_TEAM,
 					archetype != null ? archetype.Tint : stage.EnemyTint,
-					stage.EnemyScale * (archetype != null ? archetype.ScaleMultiplier : 1f));
+					stage.EnemyScale * (archetype != null ? archetype.ScaleMultiplier : 1f), spawned);
+				if (spawned.Ok == false)
+					continue;
+
+				GameObject enemyGameObject = spawned.GameObject;
+				UnitObject enemyUnitObject = spawned.UnitObject;
+				ArenaCombatant enemyCombatant = spawned.Combatant;
 				enemyBountyById[enemyCombatant.CombatantId] = archetype != null ? archetype.Bounty : core.BountyPerKill;
-				enemyGameObject.SetActive(true);
 
 				// ★ 스탯 배수는 *켠 다음 프레임*에 씌운다. UnitObject.Start 가 UnitData 로 스탯을 통째 다시
 				//   세팅하므로(재-Init 규약), 켜기 전에 올려둔 체력은 첫 프레임에 조용히 원래대로 돌아간다
@@ -1256,8 +1235,7 @@ namespace WitchMendokusai
 				enemyMaxStopDistance = Mathf.Max(enemyMaxStopDistance, enemyDriver.MaxStopDistance);
 				drivers.Add(enemyDriver);
 
-				targeting.Register(enemyCombatant);
-				registeredCombatants.Add(enemyCombatant);
+				// 표적 등록은 세우는 문이 이미 했다.
 				waveEnemies.Add(enemyCombatant);
 				spawnedCount++;
 
