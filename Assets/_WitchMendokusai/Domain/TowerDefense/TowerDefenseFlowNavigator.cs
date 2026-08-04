@@ -16,12 +16,23 @@ namespace WitchMendokusai
 		private readonly Transform stageRoot;
 		private readonly float directGoalDistance;
 
+		/// <summary>
+		/// 모서리를 얼마나 둥글게 도나 — 0 이면 다음 칸 *중심*을 딱 밟고, 1 이면 그 너머 칸까지 내다본다.
+		///
+		/// ★ 사용자 실증: "몬스터들이 복셀 블럭 단위로 움직인다 … 뚝뚝 끊겨 움직이는 것처럼 보이지
+		///   않았으면." 원인은 안내가 *칸 중심만* 가리킨 것 — 칸마다 방향이 꺾이니 걸음이 각졌다.
+		///   한 칸 더 내다보고 그 사이를 섞으면 같은 길을 곡선으로 걷는다(길 자체는 안 바뀐다).
+		/// </summary>
+		private readonly float cornerSmoothing;
+
 		public TowerDefenseFlowNavigator(
 			TowerDefenseMapLayout layout,
 			TowerDefenseFlowField flowField,
 			Transform stageRoot,
-			float directGoalDistance)
+			float directGoalDistance,
+			float cornerSmoothing = 0f)
 		{
+			this.cornerSmoothing = Mathf.Clamp01(cornerSmoothing);
 			this.layout = layout;
 			this.flowField = flowField;
 			this.stageRoot = stageRoot;
@@ -51,6 +62,12 @@ namespace WitchMendokusai
 				return false;
 
 			Vector3 nextLocal = layout.CellToWorld(nextCell);
+
+			// 한 칸 더 내다본다 — 다음 칸과 그 다음 칸 사이를 섞으면 모서리가 둥글어진다.
+			// 못 내다보면(막다른 길·목표 직전) 그냥 다음 칸을 본다 — 길은 그대로다.
+			if (cornerSmoothing > 0f && flowField.TryGetNextCell(nextCell, out Vector2Int afterCell))
+				nextLocal = Vector3.Lerp(nextLocal, layout.CellToWorld(afterCell), cornerSmoothing);
+
 			Vector3 localDirection = nextLocal - fromLocal;
 			localDirection.y = 0f;
 			if (localDirection.sqrMagnitude <= Mathf.Epsilon)

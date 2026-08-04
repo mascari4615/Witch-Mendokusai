@@ -106,7 +106,27 @@ namespace WitchMendokusai
 			}
 		}
 
-		protected override void OnOpen() => SelectEntry(0);
+		protected override void OnOpen()
+		{
+			SelectEntry(0);
+			FocusSelectedEntry();
+		}
+
+		/// <summary>
+		/// 열자마자 첫 항목에 *키보드 포커스*를 준다 — 고른 것을 색으로만 표시하고 포커스를 안 주면
+		/// 마우스를 한 번 잡아야 키보드가 듣는다(사용자 실증: "다른 UI 는 뭐가 포커싱돼서 키보드만으로도
+		/// 조작이 가능한데 티메토는 그게 안 된다").
+		///
+		/// ★ 한 프레임 미뤄서 준다 — 여는 프레임엔 요소가 아직 패널에 안 붙어 있어 포커스가 그냥 버려진다.
+		/// </summary>
+		private void FocusSelectedEntry()
+		{
+			if (entryButtons.Count == 0)
+				return;
+
+			Button target = entryButtons[Mathf.Clamp(selectedIndex, 0, entryButtons.Count - 1)];
+			target.schedule.Execute(() => target.Focus());
+		}
 
 		public override void UpdateUI() => RefreshDetail();
 

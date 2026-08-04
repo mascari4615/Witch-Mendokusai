@@ -435,7 +435,7 @@ namespace WitchMendokusai
 			flowField = new TowerDefenseFlowField(
 				mapLayout.Width, mapLayout.Length, mapLayout.CoreCell, IsPathBlocked);
 			flowNavigator = new TowerDefenseFlowNavigator(
-				mapLayout, flowField, stageRoot, stage.GroundCellSize * 2f);
+				mapLayout, flowField, stageRoot, stage.GroundCellSize * 2f, stage.EnemyCornerSmoothing);
 
 			vision = new TowerDefenseVision(mapLayout.Width, mapLayout.Length);
 			visionSources.Clear();
@@ -692,7 +692,7 @@ namespace WitchMendokusai
 			flowField = new TowerDefenseFlowField(
 				mapLayout.Width, mapLayout.Length, pathGoals, IsPathBlocked);
 			flowNavigator = new TowerDefenseFlowNavigator(
-				mapLayout, flowField, stageRoot, stage.GroundCellSize * 2f);
+				mapLayout, flowField, stageRoot, stage.GroundCellSize * 2f, stage.EnemyCornerSmoothing);
 
 			foreach (Vector3 spawnLocal in activeSpawnPoints)
 			{
@@ -774,7 +774,7 @@ namespace WitchMendokusai
 		/// 성립하는 지점. HP_MAX_STAT(기반)까지 같이 올려야 이후 스탯 재계산이 원래 값으로 되돌리지 않는다.
 		/// 리스는 ApplyReadability 가 이미 잡아뒀다(같은 스폰 경로) — 반납 시 원본 스탯으로 복원된다.
 		/// </summary>
-		private static void ApplyArchetypeStats(UnitObject unitObject, TowerDefenseEnemyArchetype archetype)
+		private static void ApplyArchetypeStats(UnitObject unitObject, TowerDefenseEnemyArchetype archetype, float paceScale)
 		{
 			if (unitObject == null || archetype == null)
 				return;
@@ -787,9 +787,11 @@ namespace WitchMendokusai
 				unitObject.UnitStat[UnitStatType.HP_CUR] = scaledMax;
 			}
 
-			if (Mathf.Approximately(archetype.SpeedMultiplier, 1f) == false)
+			// 판 전체 속도 배수 — 종류별 배수와 곱해진다(느린 놈은 더 느리게, 빠른 놈도 함께 느려진다).
+			float paceMultiplier = archetype.SpeedMultiplier * paceScale;
+			if (Mathf.Approximately(paceMultiplier, 1f) == false)
 			{
-				int scaledSpeed = Mathf.Max(1, Mathf.RoundToInt(unitObject.UnitStat[UnitStatType.MOVEMENT_SPEED] * archetype.SpeedMultiplier));
+				int scaledSpeed = Mathf.Max(1, Mathf.RoundToInt(unitObject.UnitStat[UnitStatType.MOVEMENT_SPEED] * paceMultiplier));
 				unitObject.UnitStat[UnitStatType.MOVEMENT_SPEED] = scaledSpeed;
 			}
 		}
@@ -1237,7 +1239,7 @@ namespace WitchMendokusai
 				yield return null;
 				if (core == null || targeting == null || pool == null)
 					yield break;
-				ApplyArchetypeStats(enemyUnitObject, archetype);
+				ApplyArchetypeStats(enemyUnitObject, archetype, stage != null ? stage.EnemyMoveSpeedMultiplier : 1f);
 				ApplyPressure(enemyUnitObject); // 오래 버틸수록 단단해진다 — 실시간의 난이도는 시간이 올린다.
 				ApplyWaveEventStats(enemyUnitObject, waveEvent);
 

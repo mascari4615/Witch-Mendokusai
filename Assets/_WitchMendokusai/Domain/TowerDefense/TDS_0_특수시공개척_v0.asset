@@ -29,9 +29,9 @@ MonoBehaviour:
     BountyPerKill: 6
     StartingLives: 12
     EssencePerHarvester: 3
-    WaveInterval: 40
+    WaveInterval: 60
     IncomeInterval: 10
-    TrickleInterval: 1.2
+    TrickleInterval: 3.5
     PressurePerMinute: 0.18
     PressureCap: 4
   <ManualFirstWave>k__BackingField: 1
@@ -45,7 +45,7 @@ MonoBehaviour:
     note: "고르게 쓴다 · 무난하고 싼"
     cost: 40
     tint: {r: 0.45, g: 0.72, b: 1, a: 1}
-    range: 3
+    range: 2.2
     cooldown: 0.55
     damage: 7
     pierce: 1
@@ -59,7 +59,7 @@ MonoBehaviour:
     note: "주변까지 터진다 · 무리에 강함"
     cost: 70
     tint: {r: 1, g: 0.58, b: 0.3, a: 1}
-    range: 2.6
+    range: 2
     cooldown: 1.1
     damage: 6
     pierce: 1
@@ -73,7 +73,7 @@ MonoBehaviour:
     note: "줄지어 오는 걸 꿰뚫는다 · 단단한 놈에 강함"
     cost: 80
     tint: {r: 0.85, g: 0.45, b: 1, a: 1}
-    range: 4
+    range: 3
     cooldown: 1.3
     damage: 16
     pierce: 3
@@ -87,7 +87,7 @@ MonoBehaviour:
     note: "발을 묶는다 · 빠른 놈에 강함"
     cost: 55
     tint: {r: 0.4, g: 0.9, b: 0.95, a: 1}
-    range: 2.8
+    range: 2.1
     cooldown: 0.8
     damage: 3
     pierce: 1
@@ -264,8 +264,8 @@ MonoBehaviour:
     note: "내가 보내는 아이 다롱다"
     cost: 0
     tint: {r: 1, g: 0.62, b: 0.9, a: 1}
-    range: 3.6
-    visionRadius: 7
+    range: 2.7
+    visionRadius: 5
     cooldown: 0.4
     damage: 10
     pierce: 2
@@ -276,6 +276,6 @@ MonoBehaviour:
     upgradeGrowth: 0.35
     maxLevel: 1
   <HeroMoveSpeed>k__BackingField: 6
-  <HeroVisionRadius>k__BackingField: 10
+  <HeroVisionRadius>k__BackingField: 6
   <HeroTint>k__BackingField: {r: 1, g: 0.62, b: 0.9, a: 1}
   <HeroScale>k__BackingField: 1.1

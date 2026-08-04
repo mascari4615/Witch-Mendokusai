@@ -206,6 +206,15 @@ namespace WitchMendokusai
 		[field: Tooltip("연구를 나타내는 색 — 범례가 이 색으로 「코어 연구」 줄을 그린다.")]
 		[field: SerializeField] public Color LabTint { get; private set; } = new Color(0.86f, 0.62f, 1f, 1f);
 
+		[field: Header("마수 이동 — 천천히, 촘촘히")]
+		// ★ 사용자 직접 플레이: "게임이 너무 빠름. They are billions 같이 적들이 천천히 몰려오는 느낌으로."
+		//   + "몬스터들이 복셀 블럭 단위로 뚝뚝 끊겨움직이는 것처럼 보이지 않았으면 함."
+		[field: Tooltip("모든 마수의 이동 속도 배수 — 1 보다 작으면 판 전체가 느려진다.")]
+		[field: SerializeField, Min(0.1f)] public float EnemyMoveSpeedMultiplier { get; private set; } = 1f;
+
+		[field: Tooltip("모서리를 얼마나 둥글게 도나(0 = 칸 중심을 딱딱 밟는다, 1 = 다음 칸 너머를 본다).")]
+		[field: SerializeField, Range(0f, 1f)] public float EnemyCornerSmoothing { get; private set; } = 0.6f;
+
 		[field: Header("연구 해금 — 처음엔 거의 아무것도 못 한다")]
 		// ★ 사용자 지시(2026-08-04 직접 플레이): "처음엔 자원 건물이랑 연구만. 첫 테크 트리로 공성 건물.
 		//   고급 테크 가야 좀 복잡해지는 것." 처음부터 다 열려 있으면 무엇을 할지가 아니라 *무엇부터 볼지*가
@@ -310,7 +319,7 @@ namespace WitchMendokusai
 		[field: SerializeField, Min(0)] public int HarvesterPowerDemand { get; private set; } = 1;
 
 		[field: Tooltip("발전 인형이 밝히는 시야 반경.")]
-		[field: SerializeField, Min(0f)] public float GeneratorVisionRadius { get; private set; } = 8f;
+		[field: SerializeField, Min(0f)] public float GeneratorVisionRadius { get; private set; } = 5f;
 
 		[field: Tooltip("발전 인형 색.")]
 		[field: SerializeField] public Color GeneratorTint { get; private set; } = new Color(1f, 0.82f, 0.3f, 1f);
@@ -368,7 +377,7 @@ namespace WitchMendokusai
 		[field: SerializeField, Min(0.5f)] public float HeroMoveSpeed { get; private set; } = 6f;
 
 		[field: Tooltip("영웅이 밝히는 시야 반경 — 움직이는 시야라 정찰 수단이 된다.")]
-		[field: SerializeField, Min(0f)] public float HeroVisionRadius { get; private set; } = 8f;
+		[field: SerializeField, Min(0f)] public float HeroVisionRadius { get; private set; } = 6f;
 
 		[field: Tooltip("쓰러진 영웅이 다시 일어나기까지(초). 0 이면 영영 못 일어난다 — 돌아올 방법이 없는 건 무게가 아니라 벽이다.")]
 		[field: SerializeField, Min(0f)] public float HeroRespawnSeconds { get; private set; } = 25f;
@@ -381,10 +390,10 @@ namespace WitchMendokusai
 
 		[field: Header("시야")]
 		[field: Tooltip("코어가 밝히는 반경(칸). 시작 시 보이는 범위 = 여기서 정해진다.")]
-		[field: SerializeField, Min(0f)] public float CoreVisionRadius { get; private set; } = 9f;
+		[field: SerializeField, Min(0f)] public float CoreVisionRadius { get; private set; } = 6f;
 
 		[field: Tooltip("채집 인형이 밝히는 반경(칸) — 먼 노드로 나가는 것이 곧 시야 확장이 된다.")]
-		[field: SerializeField, Min(0f)] public float HarvesterVisionRadius { get; private set; } = 7f;
+		[field: SerializeField, Min(0f)] public float HarvesterVisionRadius { get; private set; } = 4.5f;
 
 		[field: Header("판 생성 — 매 판 다른 지형")]
 		[field: Tooltip("켜면 암반 능선·자원 노드·스폰 지점을 매치마다 새로 만든다. 끄면 아래 고정 레이아웃을 쓴다.")]
