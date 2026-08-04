@@ -35,5 +35,10 @@ MonoBehaviour:
   - {fileID: 11400000, guid: dae3d5ada0befdd469b432df73a1ad89, type: 2}
   - {fileID: 11400000, guid: 974c3849cc7f99042b60407667df1635, type: 2}
   - {fileID: 11400000, guid: 267fee41189067c47b73b14b8b866dd0, type: 2}
+  <MaterialCosts>k__BackingField:
+  - resourceId: 101
+    amount: 12
+  - resourceId: 102
+    amount: 4
   <ResultItem>k__BackingField: {fileID: 11400000, guid: 1d026c066f250ea4b8b2318fe30447df, type: 2}
   <BaseAmount>k__BackingField: 1
