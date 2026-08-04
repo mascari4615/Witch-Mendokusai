@@ -30,6 +30,13 @@ namespace WitchMendokusai
 		[SerializeField, Range(0f, 0.5f)] private float stickDeadZone = 0.15f;
 		[Tooltip("화면 가장자리에서 조작 장치까지 띄우는 여백(픽셀).")]
 		[SerializeField, Min(0f)] private float edgeMargin = 36f;
+
+		/// <summary>
+		/// 화면 아래쪽에 이미 있는 것들(체력·이름표·핫바·날짜)을 피해 띄우는 높이 (실측으로 정한 값).
+		/// ★ 겹치면 둘 다 못 쓴다 — 조작 장치를 누르려다 체력바를 누르고, 체력이 얼마인지도 안 보인다.
+		/// </summary>
+		[Tooltip("아래쪽 기존 화면 요소(체력·날짜 등)를 피해 띄우는 높이(픽셀).")]
+		[SerializeField, Min(0f)] private float bottomSafeOffset = 140f;
 		[Tooltip("동작 버튼 한 변(픽셀). 손끝이 뭉툭해서 데스크톱 버튼보다 커야 한다.")]
 		[SerializeField, Min(44f)] private float actionButtonSize = 96f;
 		[Tooltip("화면을 훑은 픽셀 → 시점 회전량 배율. 1 이면 마우스와 같은 감도.")]
@@ -184,7 +191,7 @@ namespace WitchMendokusai
 			stickBase = new VisualElement { name = "MobileStick" };
 			stickBase.style.position = Position.Absolute;
 			stickBase.style.left = edgeMargin;
-			stickBase.style.bottom = edgeMargin;
+			stickBase.style.bottom = edgeMargin + bottomSafeOffset;
 			stickBase.style.width = stickSize;
 			stickBase.style.height = stickSize;
 			stickBase.style.borderTopLeftRadius = stickSize;
@@ -288,7 +295,7 @@ namespace WitchMendokusai
 			VisualElement column = new VisualElement();
 			column.style.position = Position.Absolute;
 			column.style.right = edgeMargin;
-			column.style.bottom = edgeMargin;
+			column.style.bottom = edgeMargin + bottomSafeOffset;
 			column.style.alignItems = Align.FlexEnd;
 			column.pickingMode = PickingMode.Ignore;
 

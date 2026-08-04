@@ -243,13 +243,67 @@ namespace WitchMendokusai
 			if (view == null)
 				return;
 
+			// ★ 취소 키의 뜻 = 「지금 열린 것을 닫는다. 닫을 게 없으면 메뉴를 연다」 (TASK-WM-200).
+			//   사용자 지시("X 로 게임 탈출 안 되게 · ESC 로 메뉴창")를 한 규칙으로 만족시킨다 —
+			//   취소가 곧 판 끝내기였던 예전 동작은 되돌릴 수 없는 일이 가장 누르기 쉬운 자리에 있던 것이다.
+			if (view.IsMenuOpen)
+			{
+				ToggleMenu();
+				return;
+			}
+
 			if (view.IsMapOpen)
 			{
 				view.ToggleMap();
 				return;
 			}
 
-			CloseSelection();
+			if (placement != null && placement.SelectedBuilding != null)
+			{
+				CloseSelection();
+				return;
+			}
+
+			// 닫을 것이 없다 — 메뉴를 연다.
+			ToggleMenu();
+		}
+
+		/// <summary>
+		/// 메뉴 여닫기 단일 창구 — 메뉴와 멈춤은 한 몸이라 한 곳에서만 다룬다
+		/// (따로 두면 「메뉴는 떠 있는데 판은 계속 돈다」가 생긴다).
+		/// </summary>
+		private void ToggleMenu()
+		{
+			TowerDefenseHudView view = EnsureHud();
+			if (view == null)
+				return;
+
+			if (view.IsMenuOpen)
+			{
+				view.SetMenuOpen(false);
+				ResumeFromMenu();
+				return;
+			}
+
+			view.SetMenuOpen(true);
+			// 메뉴를 보는 동안 코어가 깨지면 안 된다.
+			if (match != null && match.IsPaused == false)
+			{
+				pausedByMenu = true;
+				match.TogglePause();
+			}
+		}
+
+		// 메뉴가 멈춘 판인지 — 메뉴 때문에 멈춘 것만 메뉴가 다시 풀어야 한다(사용자가 직접 멈춰 뒀으면 그대로).
+		private bool pausedByMenu;
+
+		private void ResumeFromMenu()
+		{
+			if (pausedByMenu == false)
+				return;
+			pausedByMenu = false;
+			if (match != null && match.IsPaused)
+				match.TogglePause();
 		}
 
 		/// <summary> 고른 건물을 판다 — 창에서 바로(손이 규칙을 기억하지 않게). </summary>
@@ -532,6 +586,8 @@ namespace WitchMendokusai
 					view.SellSelectedRequested += SellSelected;
 					view.ExitRequested += () => GameModeManager.Instance.SetMode(GameMode.Default);
 					view.SelectionCloseRequested += CloseSelection;
+					view.MenuResumeRequested += ResumeFromMenu;
+					view.MenuToggleRequested += ToggleMenu;
 					view.WaveModeToggleRequested += ToggleWaveMode;
 					view.NextWaveRequested += CallNextWave;
 					view.SlotClicked += SelectSlotFromUi;
@@ -568,6 +624,8 @@ namespace WitchMendokusai
 					hud.ResearchPanelRequested -= OpenResearch;
 					hud.SellSelectedRequested -= SellSelected;
 					hud.SelectionCloseRequested -= CloseSelection;
+				hud.MenuResumeRequested -= ResumeFromMenu;
+				hud.MenuToggleRequested -= ToggleMenu;
 					hud.WaveModeToggleRequested -= ToggleWaveMode;
 					hud.NextWaveRequested -= CallNextWave;
 					hud.SlotClicked -= SelectSlotFromUi;

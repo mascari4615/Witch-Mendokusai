@@ -460,10 +460,13 @@ namespace WitchMendokusai
 			wrapper.Add(rangeDebugButton);
 
 			wrapper.Add(MakeActionButton("처음부터", fontSize: 13, () => RestartRequested()));
-			// 나가기는 *버튼*으로만 — 키 한 번에 판이 끝나면 안 된다(X 는 이제 창만 닫는다).
-			Button exitButton = MakeActionButton("나가기", fontSize: 13, () => ExitRequested());
-			exitButton.style.marginLeft = 8;
-			wrapper.Add(exitButton);
+			// ★ 나가는 문은 하나다 (TASK-WM-200) — 예전엔 이 버튼이 곧바로 판을 끝냈다. 그건 취소 키가
+			//   판을 끝내던 것과 같은 병이다(되돌릴 수 없는 일이 한 번의 손짓 거리에 있다). 이제 이
+			//   버튼도 메뉴를 열고, 나가기는 그 안에서 한 번 더 말해야 한다. 폰에는 키가 없으니
+			//   메뉴로 가는 *화면 위의 길*이기도 하다.
+			Button menuButton = MakeActionButton("메뉴", fontSize: 13, () => MenuToggleRequested());
+			menuButton.style.marginLeft = 8;
+			wrapper.Add(menuButton);
 			return wrapper;
 		}
 
@@ -1167,6 +1170,107 @@ namespace WitchMendokusai
 		/// <summary> 지도가 열려 있나 — 열려 있으면 클릭이 배치로 새면 안 된다. </summary>
 		public bool IsMapOpen => mapPanel != null && mapPanel.IsOpen;
 
+		private VisualElement menuPanel;
+
+		/// <summary> 메뉴창이 열려 있나. </summary>
+		public bool IsMenuOpen => menuPanel != null && menuPanel.style.display == DisplayStyle.Flex;
+
+		/// <summary>
+		/// 메뉴창 여닫기 (TASK-WM-200 · 사용자 지시 "ESC로 메뉴창 열리게").
+		///
+		/// ★ 왜 판을 나가는 문을 여기 두나: 예전엔 취소 키 한 번이 곧 판을 끝냈다 — 되돌릴 수 없는 일이
+		///   가장 누르기 쉬운 자리에 있었다. 나가기는 「나가겠다」고 두 번 말해야 하는 자리로 옮긴다.
+		/// ★ 손가락에도 이 창이 필요하다: 폰엔 키가 없어서 「멈춤·나가기」로 가는 길이 화면 위밖에 없다.
+		/// </summary>
+		/// <summary>
+		/// 메뉴를 열어/닫아 달라 — *멈춤까지 함께* 다뤄야 하므로 판단은 컨트롤러 한 곳에서 한다
+		/// (화면이 직접 열면 「메뉴는 떠 있는데 판은 계속 돈다」가 생긴다).
+		/// </summary>
+		public event System.Action MenuToggleRequested = delegate { };
+
+		public void SetMenuOpen(bool open)
+		{
+			EnsureMenuPanel();
+			if (menuPanel == null)
+				return;
+			menuPanel.style.display = open ? DisplayStyle.Flex : DisplayStyle.None;
+		}
+
+		/// <summary> 메뉴에서 「이어하기」를 눌렀다. </summary>
+		public event System.Action MenuResumeRequested = delegate { };
+
+		private void EnsureMenuPanel()
+		{
+			if (menuPanel != null || container == null)
+				return;
+
+			menuPanel = new VisualElement { name = "TowerDefenseMenu" };
+			menuPanel.style.position = Position.Absolute;
+			menuPanel.style.left = 0;
+			menuPanel.style.right = 0;
+			menuPanel.style.top = 0;
+			menuPanel.style.bottom = 0;
+			menuPanel.style.alignItems = Align.Center;
+			menuPanel.style.justifyContent = Justify.Center;
+			menuPanel.style.backgroundColor = new Color(0.02f, 0.03f, 0.05f, 0.78f);
+			menuPanel.style.display = DisplayStyle.None;
+			// 메뉴가 떠 있는 동안의 손짓은 메뉴 것이다 — 뒤쪽 땅에 건물이 서면 안 된다.
+			menuPanel.pickingMode = PickingMode.Position;
+
+			VisualElement card = new VisualElement();
+			card.style.backgroundColor = new Color(0.06f, 0.07f, 0.1f, 0.98f);
+			card.style.paddingLeft = 32;
+			card.style.paddingRight = 32;
+			card.style.paddingTop = 26;
+			card.style.paddingBottom = 26;
+			card.style.minWidth = 360;
+			card.style.alignItems = Align.Stretch;
+			SetCardCorners(card, 14);
+			menuPanel.Add(card);
+
+			Label title = new Label("잠깐 멈춤");
+			title.style.fontSize = 24;
+			title.style.color = new Color(0.94f, 0.96f, 0.99f, 1f);
+			title.style.unityTextAlign = TextAnchor.MiddleCenter;
+			title.style.marginBottom = 20;
+			card.Add(title);
+
+			card.Add(MakeMenuButton("이어하기", new Color(0.24f, 0.45f, 0.78f, 1f), () =>
+			{
+				SetMenuOpen(false);
+				MenuResumeRequested();
+			}));
+
+			card.Add(MakeMenuButton("판 나가기", new Color(0.5f, 0.22f, 0.24f, 1f), () =>
+			{
+				SetMenuOpen(false);
+				ExitRequested();
+			}));
+
+			container.Add(menuPanel);
+		}
+
+		private Button MakeMenuButton(string text, Color color, System.Action onClick)
+		{
+			Button button = new Button(onClick) { text = text };
+			button.style.height = 54;
+			button.style.fontSize = 18;
+			button.style.marginTop = 8;
+			button.style.marginBottom = 0;
+			button.style.backgroundColor = color;
+			button.style.color = new Color(0.97f, 0.98f, 1f, 1f);
+			SetCardCorners(button, 10);
+			return button;
+		}
+
+		private static void SetCardCorners(VisualElement element, float radius)
+		{
+			element.style.borderTopLeftRadius = radius;
+			element.style.borderTopRightRadius = radius;
+			element.style.borderBottomLeftRadius = radius;
+			element.style.borderBottomRightRadius = radius;
+		}
+
 		/// <summary> 지금 무엇을 하려는 중인지 한 줄 — 핫바 바로 위. </summary>
 		private static VisualElement BuildArmedBar(out Label label)
 		{
@@ -1259,15 +1363,66 @@ namespace WitchMendokusai
 			if (armedLabel == null)
 				return;
 
-			armedLabel.text = armed
-				? "설치 대기 — " + what + " · 좌클릭 설치 · 우클릭 판매"
-				: "고르기 — 건물 클릭 = 살펴보기 · 빈 땅 우클릭 = 영웅 보내기";
+			lastArmed = armed;
+			lastArmedWhat = what;
+
+			armedLabel.text = IsTouch
+				? (armed
+					? "설치 대기 — " + what + " · 자리를 톡 → 한 번 더 톡 하면 지어진다"
+					: "고르기 — 건물 톡 = 살펴보기 · 빈 땅 톡 = 영웅 보내기")
+				: (armed
+					? "설치 대기 — " + what + " · 좌클릭 설치 · 우클릭 판매"
+					: "고르기 — 건물 클릭 = 살펴보기 · 빈 땅 우클릭 = 영웅 보내기");
 			armedLabel.style.color = armed
 				? new Color(1f, 0.82f, 0.35f, 1f)
 				: new Color(0.62f, 0.68f, 0.78f, 1f);
 		}
 
 		private Label armedLabel;
+
+		// TASK-WM-200 — 조작 안내는 *지금 쥔 장치*를 말해야 한다. 손가락으로 하는데 「우클릭」이라고
+		// 적혀 있으면 그 줄은 안내가 아니라 거짓말이고, 화면 전체의 신뢰가 같이 떨어진다.
+		private bool lastArmed;
+		private string lastArmedWhat = string.Empty;
+		private TowerDefenseStageSO lastHintStage;
+		private bool lastTouchMode;
+
+		private static bool IsTouch =>
+			InputManager.TryGetExistingInstance(out InputManager inputManager) && inputManager.IsTouchMode;
+
+		/// <summary> 장치가 바뀌면 안내를 다시 쓴다 — 마우스를 놓고 손가락을 대는 순간 문구가 따라와야 한다. </summary>
+		private void RefreshDeviceHints()
+		{
+			if (lastTouchMode == IsTouch)
+				return;
+
+			lastTouchMode = IsTouch;
+			SetArmed(lastArmed, lastArmedWhat);
+			ApplyHintText(lastHintStage);
+		}
+
+		private void ApplyHintText(TowerDefenseStageSO stage)
+		{
+			lastHintStage = stage;
+			if (hintLabel == null)
+				return;
+
+			if (stage == null)
+			{
+				hintLabel.text = string.Empty;
+				return;
+			}
+
+			hintLabel.text = IsTouch
+				? "아래 칸 톡 = 고르기 · 자리 톡 → 한 번 더 톡 = 짓기   ·   빈 땅 톡 = 영웅 보내기   ·   코어 톡 = 연구"
+					+ "   ·   끌기 = 시점 · 오므리기 = 확대·축소 · 두 손가락 비틀기 = 회전   ·   「지도」 단추"
+				// ★ 안내가 실제 키와 달랐다: 배속은 Tab 이 아니라 F6 이고, 정작 제일 많이 쓰는
+				//   「숫자키로 칸 고르기」는 한 글자도 없었다. 조작 안내가 틀리면 그 화면 전체를 못 믿는다.
+				// ★ 「연구를 어떻게 여는지」가 어디에도 없었다(사용자 실증: "연구 어케 여는데").
+				//   찾아야만 알 수 있는 기능은 *없는 기능*이다 — 첫 판의 유일한 다음 수라서 더 그렇다.
+				: "숫자키 1~9 칸 고르기 · 좌클릭 설치 · 설치 중 우클릭 = 판매   ·   평소 우클릭 = 영웅 보내기   ·   코어 클릭 = 연구"
+					+ "   ·   Space 멈춤 · F6 배속   ·   WASD 시점 · 휠 확대·축소   ·   M 지도   ·   X 창 닫기";
+		}
 
 
 		public void Show(TowerDefenseStageSO stage)
@@ -1297,14 +1452,7 @@ namespace WitchMendokusai
 			// ★ 「지금 설치 모드인가」가 화면 어디에도 없었다(사용자 실증: "확실히 지금이 설치 모드라는
 			//   걸 알려줘야함"). 칸을 골랐는지 아닌지로 클릭의 뜻이 통째로 달라지는데, 그걸 손이
 			//   기억해야 했다. 안내 줄 맨 앞에 상태를 박는다 — 색까지 바꿔 곁눈으로도 읽히게.
-			hintLabel.text = stage == null
-				? string.Empty
-				// ★ 안내가 실제 키와 달랐다: 배속은 Tab 이 아니라 F6 이고, 정작 제일 많이 쓰는
-				//   「숫자키로 칸 고르기」는 한 글자도 없었다. 조작 안내가 틀리면 그 화면 전체를 못 믿는다.
-				// ★ 「연구를 어떻게 여는지」가 어디에도 없었다(사용자 실증: "연구 어케 여는데").
-				//   찾아야만 알 수 있는 기능은 *없는 기능*이다 — 첫 판의 유일한 다음 수라서 더 그렇다.
-				: "숫자키 1~9 칸 고르기 · 좌클릭 설치 · 설치 중 우클릭 = 판매   ·   평소 우클릭 = 영웅 보내기   ·   코어 클릭 = 연구"
-					+ "   ·   Space 멈춤 · F6 배속   ·   WASD 시점 · 휠 확대·축소   ·   M 지도   ·   X 창 닫기";
+			ApplyHintText(stage);
 		}
 
 		public void Hide()
@@ -1371,6 +1519,8 @@ namespace WitchMendokusai
 		/// <summary> 매 프레임 갱신 — 소유 컨트롤러가 TD 모드 동안 호출. </summary>
 		public void Tick(TowerDefenseMatch match, TowerDefenseStageSO stage)
 		{
+			RefreshDeviceHints();
+
 			if (match == null)
 				return;
 

@@ -2657,6 +2657,9 @@ namespace WitchMendokusai
 		/// <summary> 지금 시간 배속(0 = 멈춤). </summary>
 		public float SpeedScale => SpeedSteps[Mathf.Clamp(speedStep, 0, SpeedSteps.Length - 1)];
 
+		/// <summary> 지금 멈춰 있나 — 메뉴가 「내가 멈춘 것인지」 가려낼 때 쓴다(사용자가 직접 멈춘 판을 풀면 안 된다). </summary>
+		public bool IsPaused => speedStep == 0;
+
 		/// <summary> 멈춤 ↔ 직전 배속 토글. 멈춘 채로 배치·관찰할 수 있어야 정보가 쓸모를 갖는다. </summary>
 		public void TogglePause()
 		{
