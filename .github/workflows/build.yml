@@ -251,19 +251,70 @@ jobs:
 
           $ok = '${{ job.status }}' -eq 'success'
           $icon = if ($ok) { '🟢' } else { '🔴' }
-          $detail = ''
+          $platform = '${{ github.event.inputs.platform }}'
+          if (-not $platform) { $platform = 'windows' }
+          $buildType = '${{ github.event.inputs.build_type }}'
+          if (-not $buildType) { $buildType = 'release' }
+          $outDir = '${{ steps.build.outputs.out_dir }}'
           $report = '${{ steps.build.outputs.report }}'
+          $runUrl = '${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}'
+
+          $fields = @()
+          $fields += @{ name = '플랫폼'; value = "$platform / $buildType"; inline = $true }
           if ($report -and (Test-Path $report)) {
             $json = Get-Content $report -Raw | ConvertFrom-Json
-            $totalMb = [Math]::Round($json.totalSizeBytes / 1MB, 1)
-            $detail = " · v$($json.version) · $totalMb MB · $([Math]::Round($json.totalSeconds,1))s"
+            $artifactMb = [Math]::Round($json.exeSizeBytes / 1MB, 1)
+            if ($artifactMb -le 0) { $artifactMb = [Math]::Round($json.totalSizeBytes / 1MB, 1) }
+            $fields += @{ name = '버전'; value = "v$($json.version)"; inline = $true }
+            $fields += @{ name = '크기'; value = "$artifactMb MB"; inline = $true }
+            $fields += @{ name = '빌드 시간'; value = "$([Math]::Round($json.totalSeconds / 60, 1)) 분"; inline = $true }
+            $fields += @{ name = '경고'; value = "$($json.warnings)"; inline = $true }
           }
-          $text = "$icon WM 빌드 ${{ job.status }}$detail`n노트북 경로: ${{ steps.build.outputs.out_dir }}`n실행: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          $fields += @{ name = '커밋'; value = "$('${{ github.sha }}'.Substring(0,8)) ($('${{ github.ref_name }}'))"; inline = $true }
+          $fields += @{ name = '노트북 경로'; value = "$outDir"; inline = $false }
+          if (-not $ok) {
+            $fields += @{ name = '빌드 로그'; value = "$outDir\unity-build.log"; inline = $false }
+          }
+
+          # 폰 설치 링크 — 단일 파일 산출물(APK/AAB)일 때만. 게이트웨이가 서명해 발급하므로
+          # 서명 비밀은 워크플로/GitHub secret 어디에도 없다 (laptop-ops .env 안에서만 산다).
+          $link = $null
+          if ($ok -and $outDir -and (Test-Path $outDir)) {
+            $artifact = Get-ChildItem $outDir -File | Where-Object { $_.Extension -in '.apk', '.aab' } | Select-Object -First 1
+            if ($artifact) {
+              try {
+                $signBody = @{ build = (Split-Path $outDir -Leaf); file = $artifact.Name; days = 30 } | ConvertTo-Json -Compress
+                $signed = Invoke-RestMethod -Uri 'http://127.0.0.1:47615/dl/sign' -Method Post -Headers @{ Authorization = "Bearer $token" } -ContentType 'application/json' -Body $signBody -TimeoutSec 20
+                $link = $signed.url
+              } catch {
+                Write-Warning "설치 링크 발급 실패: $($_.Exception.Message)"
+              }
+            }
+          }
+
+          if ($link) {
+            # 노트북은 최근 5개 빌드만 보관하므로(아래 prune step), 서명이 30일 살아 있어도
+            # 파일이 먼저 사라질 수 있다. 만료를 과장하지 않는다.
+            $bodyText = "📲 [폰에서 눌러 설치]($link)`n_링크 유효: 30일 또는 노트북에서 이 빌드가 정리될 때까지(최근 5개 보관)_"
+          } elseif ($ok) {
+            $bodyText = '산출물은 노트북에만 있다 (단일 파일이 아니라 설치 링크 없음).'
+          } else {
+            $bodyText = '빌드 실패 — 위 로그 경로에서 원인 확인.'
+          }
+
+          $rich = @{
+            title  = "$icon WM 빌드 $platform — ${{ job.status }}"
+            body   = $bodyText
+            fields = $fields
+            level  = $(if ($ok) { 'info' } else { 'error' })
+            url    = $runUrl
+            footer = "run #${{ github.run_number }} · 노트북 빌드머신"
+          }
 
           try {
-            $body = @{ text = $text } | ConvertTo-Json -Compress
+            $body = @{ channel = 'build'; rich = $rich } | ConvertTo-Json -Depth 6 -Compress
             $response = Invoke-RestMethod -Uri 'http://127.0.0.1:47615/notify' -Method Post -Headers @{ Authorization = "Bearer $token" } -ContentType 'application/json' -Body $body -TimeoutSec 20
-            Write-Host "notify ok=$($response.ok) status=$($response.status)"
+            Write-Host "notify ok=$($response.ok) status=$($response.status) link=$([bool]$link)"
           } catch {
             # 알림 실패가 빌드 성패를 뒤집지 않는다.
             Write-Warning "Discord 알림 실패: $($_.Exception.Message)"
