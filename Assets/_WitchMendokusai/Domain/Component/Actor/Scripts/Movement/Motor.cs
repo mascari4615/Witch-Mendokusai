@@ -22,12 +22,13 @@ namespace WitchMendokusai
 		private const float SKIN_WIDTH = 0.02f;
 		private const float WALL_NORMAL_Y_MAX = 0.5f;       // |normal.y| < 이 값 = 벽
 		private const float GROUND_NORMAL_Y_MIN = 0.5f;     // normal.y >= 이 값 = 바닥
-		private const float GROUND_PROBE_DISTANCE = 0.15f;
-		private const float GROUND_PROBE_LIFT = 0.05f;
 		private const float CAPSULE_SHRINK = 0.99f;
 		private const float MIN_REMAINING_SQR = 0.0001f;
 		private const int MAX_DEPENETRATION_ITERATIONS = 4;
-		private const float GROUND_STICK_DISTANCE = 0.3f;
+		// 직전에 서 있었다면 이 거리까지는 발 밑 땅을 찾아 붙인다 (계단·낮은 턱 내려가기).
+		private const float GROUND_SNAP_DISTANCE = 0.3f;
+		// 서 있지 않았다면 발끝에 정말 닿았을 때만 접지로 친다 (낙하 중 공중 접지 방지).
+		private const float GROUND_TOUCH_DISTANCE = 0.04f;
 		private const float STEP_OFFSET_HEIGHT = 0.15f;      // 작은 턱/계단 자동 보행 최대 높이
 		private const float MIN_CREASE_SIN_SQR = 0.01f;      // 두 wall normal 외적 크기 제곱이 이 값 이상이면 crease 처리
 		private const float MIN_STEP_MAGNITUDE = 0.001f;     // step offset 시도할 잔여 horizontal 이동 최소량
@@ -41,9 +42,6 @@ namespace WitchMendokusai
 		private readonly CapsuleCollider unitCapsule;
 		private readonly List<IVelocityContributor> contributors = new();
 		private readonly MotorContext context = new();
-
-		// 직전 tick이 grounded였는지 추적. ground stick 활성화 조건.
-		private bool wasGroundedPrevTick;
 
 		public MotorContext Context => context;
 
@@ -63,7 +61,12 @@ namespace WitchMendokusai
 
 			context.Position = position;
 			context.ResetPerTick();
-			DetectGround(position);
+
+			// 직전 tick 이 남긴 접지 상태 = 이번 tick 에 「붙여도 되는지」의 유일한 근거.
+			// (예전엔 wasGroundedPrevTick 이라는 별도 플래그가 이 일만 하고 있었다.)
+			bool wasGrounded = context.GroundState == MotorGroundState.Grounded;
+			ResolveGround(ref position, wasGrounded);
+			bool groundedAtTickStart = context.GroundState == MotorGroundState.Grounded;
 
 			for (int i = 0; i < contributors.Count; i++)
 				contributors[i].Contribute(context, deltaTime);
@@ -78,46 +81,78 @@ namespace WitchMendokusai
 			else if (verticalDeltaY > 0f)
 				newPosition = SweepAscend(newPosition, verticalDeltaY);
 
-			// Ground stick: 직전 grounded + 떨어지는 중(vy<=0) + sweep 결과 Airborne이면 발 아래 ground 찾아 snap.
-			if (wasGroundedPrevTick &&
-				context.GroundState == MotorGroundState.Airborne &&
-				context.Velocity.y <= 0f)
-			{
-				TryGroundStick(ref newPosition);
-			}
+			// 이동이 끝난 *최종* 위치에서 같은 규칙으로 접지를 다시 결정한다.
+			// 시작 위치 기준 판정만 쓰면 수평 이동 뒤 stale 이 된다 (TASK-WM-029-B).
+			ResolveGround(ref newPosition, groundedAtTickStart);
 
 			Depenetrate(ref newPosition);
 
 			unitRigidBody.MovePosition(newPosition);
 			context.Position = newPosition;
-
-			wasGroundedPrevTick = context.GroundState == MotorGroundState.Grounded;
 		}
 
 		/// <summary>
-		/// 발 아래 GROUND_STICK_DISTANCE 안에 walkable + stable ground가 있으면 그 위치로 snap.
-		/// 절벽 끝에 capsule 일부만 걸친 경우는 stable check가 reject → 자연 낙하.
+		/// 접지 판정 단일 정본 (TASK-WM-029-B). 발 밑으로 한 번 훑어서 세 가지를 *같이* 결정한다:
+		/// ① Grounded / Airborne ② ground normal ③ **표면에 붙이는 위치 보정**.
+		///
+		/// 왜 붙이기까지 여기서 하나 — 판정과 보정이 따로 놀면 「Grounded 인데 공중에 뜬」 상태가 생긴다.
+		/// 예전 구조가 정확히 그랬다: 판정은 발 밑 0.2m 까지를 접지로 쳐주는데, Grounded 가 되는 순간
+		/// 중력은 0 으로 눌리고 snap 은 Airborne 일 때만 돌았다 → 그 간격을 닫아주는 주체가 없었다.
+		/// 실측(EditMode): 낮은 턱을 내려가면 0.1m 뜬 채로 걷고, 낙하 뒤엔 0.14m 위에 멈춰 섰다.
+		///
+		/// <paramref name="allowSnapDown"/> = 직전에 서 있었나. 서 있었다면 계단·낮은 턱을 따라
+		/// <see cref="GROUND_SNAP_DISTANCE"/> 까지 붙여 내려가고, 아니었다면(낙하 중) 발끝에 정말
+		/// 닿았을 때만 접지로 친다 — 떨어지는 캐릭터를 공중에서 낚아채지 않도록.
+		/// 위로 솟는 중(점프)이면 어떤 경우에도 안 붙인다. 붙이면 점프가 도로 땅에 눌러앉는다.
 		/// </summary>
-		private bool TryGroundStick(ref Vector3 position)
+		private void ResolveGround(ref Vector3 position, bool allowSnapDown)
 		{
-			float sweepDistance = GROUND_STICK_DISTANCE + SKIN_WIDTH;
-			if (CapsuleSweep(position, Vector3.down, sweepDistance, out RaycastHit hit) == false)
-				return false;
-			if (IsWalkable(hit) == false)
-				return false;
+			GetCapsuleEnds(position, out Vector3 capsuleBottom, out _, out float radius);
+			Vector3 feet = capsuleBottom - Vector3.up * radius;
+			Vector3 origin = feet + Vector3.up * SKIN_WIDTH;
 
-			float snapDistance = Mathf.Max(0f, hit.distance - SKIN_WIDTH);
-			Vector3 snappedPosition = position + Vector3.down * snapDistance;
-			GetCapsuleEnds(snappedPosition, out Vector3 capsuleBottom, out _, out float radius);
-			if (IsStableGroundDirectlyBelow(capsuleBottom, radius) == false)
-				return false;
+			bool rising = context.Velocity.y > 0f;
+			float reach = (allowSnapDown && rising == false) ? GROUND_SNAP_DISTANCE : GROUND_TOUCH_DISTANCE;
+			float castDistance = SKIN_WIDTH + reach;
 
-			position = snappedPosition;
+			int hitCount = Physics.RaycastNonAlloc(origin, Vector3.down, HIT_BUFFER, castDistance, ~0, QueryTriggerInteraction.Ignore);
+
+			float closestDistance = float.PositiveInfinity;
+			int closestIndex = -1;
+			for (int i = 0; i < hitCount; i++)
+			{
+				RaycastHit candidate = HIT_BUFFER[i];
+				if (candidate.collider == null)
+					continue;
+				if (candidate.collider.transform.IsChildOf(unitTransform))
+					continue;
+				if (candidate.distance < closestDistance)
+				{
+					closestDistance = candidate.distance;
+					closestIndex = i;
+				}
+			}
+
+			if (closestIndex < 0 || IsWalkable(HIT_BUFFER[closestIndex]) == false)
+			{
+				context.GroundState = MotorGroundState.Airborne;
+				context.HasGroundNormal = false;
+				return;
+			}
+
+			RaycastHit hit = HIT_BUFFER[closestIndex];
+
+			// 표면 위로 정확히 내려놓는다 — 「떠 있는 Grounded」를 구조적으로 없애는 한 줄.
+			float dropDistance = Mathf.Max(0f, hit.distance - SKIN_WIDTH);
+			if (dropDistance > 0f)
+				position += Vector3.down * dropDistance;
+
 			context.GroundState = MotorGroundState.Grounded;
 			context.GroundNormal = hit.normal;
 			context.HasGroundNormal = true;
-			context.Velocity.y = 0f;
-			return true;
+			if (context.Velocity.y < 0f)
+				context.Velocity.y = 0f;
+			context.Position = position;
 		}
 
 		/// <summary>
@@ -171,69 +206,6 @@ namespace WitchMendokusai
 					return;
 
 				position += totalCorrection;
-			}
-		}
-
-		/// <summary>
-		/// 발 아래 ground 감지. SphereCast의 origin을 sphere 반지름 + buffer만큼 들어올려 시작 overlap 회피.
-		/// walkable + stable contact만 grounded로 인정 — 절벽 끝 capsule overlap은 unstable로 reject.
-		/// </summary>
-		private void DetectGround(Vector3 fromPosition)
-		{
-			GetCapsuleEnds(fromPosition, out Vector3 capsuleBottom, out _, out float radius);
-
-			// 1차: 발 정 직 아래 raycast — 발이 ground 위에 stable하게 있어야 grounded.
-			//      절벽 끝에 capsule 일부만 걸친 경우 ray miss → unstable → Airborne.
-			if (IsStableGroundDirectlyBelow(capsuleBottom, radius) == false)
-			{
-				context.GroundState = MotorGroundState.Airborne;
-				context.HasGroundNormal = false;
-				return;
-			}
-
-			// 2차: capsule sphere cast — ground normal 정확히 잡기 (slope 보행용 등).
-			float sphereRadius = radius * CAPSULE_SHRINK;
-			float liftAboveFeet = sphereRadius + GROUND_PROBE_LIFT;
-			Vector3 origin = capsuleBottom + Vector3.up * liftAboveFeet;
-			float castDistance = liftAboveFeet + GROUND_PROBE_DISTANCE;
-
-			int hitCount = Physics.SphereCastNonAlloc(
-				origin,
-				sphereRadius,
-				Vector3.down,
-				HIT_BUFFER,
-				castDistance,
-				~0,
-				QueryTriggerInteraction.Ignore);
-
-			float closestDistance = float.PositiveInfinity;
-			int closestIndex = -1;
-			for (int i = 0; i < hitCount; i++)
-			{
-				RaycastHit hit = HIT_BUFFER[i];
-				if (hit.collider == null)
-					continue;
-				if (hit.collider.transform.IsChildOf(unitTransform))
-					continue;
-				if (IsWalkable(hit) == false)
-					continue;
-				if (hit.distance < closestDistance)
-				{
-					closestDistance = hit.distance;
-					closestIndex = i;
-				}
-			}
-
-			if (closestIndex >= 0)
-			{
-				context.GroundState = MotorGroundState.Grounded;
-				context.GroundNormal = HIT_BUFFER[closestIndex].normal;
-				context.HasGroundNormal = true;
-			}
-			else
-			{
-				context.GroundState = MotorGroundState.Airborne;
-				context.HasGroundNormal = false;
 			}
 		}
 
