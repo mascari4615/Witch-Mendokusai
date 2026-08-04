@@ -12,6 +12,11 @@
 
 $script:LaptopOpsUri = 'http://127.0.0.1:47615'
 
+# 로그가 이만큼 조용하면 「멈춤 의심」을 카드에 띄운다. 30분 = 정상 빌드 전체(34분)에
+# 육박하는 침묵이라 오경보가 거의 없는 값. 네이티브 변환 구간이 원래 십수 분 조용해서
+# 그보다 짧게 잡으면 매 빌드마다 경고가 뜬다.
+$script:SilenceWarnMinutes = 30
+
 # ★ PS 5.1 의 Invoke-RestMethod 는 *문자열* 본문을 UTF-8 로 보내지 않는다 — 비-ASCII 가
 #   전송 중에 '?' 로 뭉개진다. 실측: 첫 진행 카드가 디스코드에 「? WM ?? android」로
 #   저장됐다(응답 원문 바이트로 확인). 그래서 본문은 반드시 *바이트* 로 보낸다.
@@ -117,19 +122,26 @@ function Get-ProgressBar {
 # 궁금하고, 평소보다 오래 걸리는지도 이걸로 안다.
 function New-ProgressRich {
     param([int]$StageIndex, [string]$Platform, [string]$BuildType, [string]$Commit,
-        [datetime]$StartedAt, [string]$RunUrl, [string]$RunNumber)
+        [datetime]$StartedAt, [string]$RunUrl, [string]$RunNumber, [int]$SilentMinutes = 0)
     $ladder = Get-BuildStageLadder -Platform $Platform
     $stage = $ladder[$StageIndex]
     $elapsed = [Math]::Round(((Get-Date) - $StartedAt).TotalMinutes, 1)
+    $body = "$(Get-ProgressBar -Index $StageIndex -Total $ladder.Count)  $($StageIndex + 1)/$($ladder.Count) · **$($stage.Label)**"
+    # 네이티브 변환 구간은 로그가 원래 십수 분 조용하다. 그 조용함에 「멈춤」이 숨는다 —
+    # 잡 타임아웃(4시간)까지 아무도 모른 채 노트북이 잡혀 있게 된다. 그래서 *알리기만* 한다
+    # (죽이지 않는다 — 오판으로 정상 빌드를 끊는 게 더 나쁘다).
+    if ($SilentMinutes -ge $script:SilenceWarnMinutes) {
+        $body += "`n⚠️ 로그가 $SilentMinutes 분째 조용하다 — 멈췄을 수 있다 (실행 링크에서 확인)"
+    }
     return @{
         title  = "⏳ WM 빌드 $Platform — 진행 중"
-        body   = "$(Get-ProgressBar -Index $StageIndex -Total $ladder.Count)  $($StageIndex + 1)/$($ladder.Count) · **$($stage.Label)**"
+        body   = $body
         fields = @(
             @{ name = '플랫폼'; value = "$Platform / $BuildType"; inline = $true },
             @{ name = '경과';   value = "$elapsed 분"; inline = $true },
             @{ name = '커밋';   value = $Commit; inline = $true }
         )
-        level  = 'progress'
+        level  = $(if ($SilentMinutes -ge $script:SilenceWarnMinutes) { 'warning' } else { 'progress' })
         url    = $RunUrl
         footer = "run #$RunNumber · 노트북 빌드머신"
     }
@@ -184,6 +196,8 @@ function Invoke-WmBuild {
     $reader = $null
     $lastPost = Get-Date
     $lastStage = -1
+    $lastGrowth = Get-Date       # 로그가 마지막으로 자란 시각 (멈춤 감지용)
+    $silentMinutes = 0
     while ($process.HasExited -eq $false) {
         Start-Sleep -Seconds 20
         try {
@@ -194,17 +208,22 @@ function Invoke-WmBuild {
             }
             if ($reader) {
                 $chunk = $reader.ReadToEnd()
-                if ($chunk) { $stageIndex = Get-StageIndexFromChunk -Chunk $chunk -CurrentIndex $stageIndex -Platform $Platform }
+                if ($chunk) {
+                    $lastGrowth = Get-Date
+                    $stageIndex = Get-StageIndexFromChunk -Chunk $chunk -CurrentIndex $stageIndex -Platform $Platform
+                }
             }
         } catch {
             Write-Warning "log poll failed (ignored): $($_.Exception.Message)"
         }
+        $silentMinutes = [int]((Get-Date) - $lastGrowth).TotalMinutes
         # 단계가 바뀌었거나 5분이 지났으면 갱신 (Discord rate limit 여유).
         if ($cardId -and (($stageIndex -ne $lastStage) -or (((Get-Date) - $lastPost).TotalMinutes -ge 5))) {
             $lastStage = $stageIndex
             $lastPost = Get-Date
             Set-BuildCard -Token $token -MessageId $cardId -Rich (New-ProgressRich -StageIndex $stageIndex -Platform $Platform `
-                    -BuildType $BuildType -Commit $Commit -StartedAt $startedAt -RunUrl $RunUrl -RunNumber $RunNumber) | Out-Null
+                    -BuildType $BuildType -Commit $Commit -StartedAt $startedAt -RunUrl $RunUrl -RunNumber $RunNumber `
+                    -SilentMinutes $silentMinutes) | Out-Null
         }
     }
     if ($reader) { $reader.Dispose() }
