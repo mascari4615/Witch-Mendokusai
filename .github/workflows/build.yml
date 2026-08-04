@@ -149,14 +149,16 @@ jobs:
           if ($env:GITHUB_REF_TYPE -eq 'tag') { $version = $env:GITHUB_REF_NAME -replace '^v', '' }
           if (-not [string]::IsNullOrWhiteSpace($version)) { $arguments += @('-wmVersion', $version) }
 
+          # ★ 경로는 유니티를 띄우기 *전에* 기록한다. 끝난 뒤에 쓰면 취소·중단 시
+          # 알림 step 이 경로도 로그도 없이 나간다 (정작 원인을 봐야 할 때 빈손).
+          "out_dir=$outDir"   | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "report=$report"    | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "unity_log=$unityLog" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+
           Write-Host "Unity args: $($arguments -join ' ')"
           $process = Start-Process -FilePath '${{ steps.unity.outputs.exe }}' -ArgumentList $arguments -PassThru -Wait -WindowStyle Hidden
           $exitCode = $process.ExitCode
           Write-Host "Unity exit=$exitCode"
-
-          "out_dir=$outDir"   | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
-          "report=$report"    | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
-          "unity_log=$unityLog" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
 
           if (Test-Path $report) {
             Write-Host '--- build report ---'
@@ -167,6 +169,28 @@ jobs:
             if (Test-Path $unityLog) { Get-Content $unityLog -Tail 120 | Write-Host }
             throw "Unity 빌드 실패 (exit=$exitCode). 전체 로그: $unityLog"
           }
+
+      # 취소하면 runner 는 step 셸만 죽인다 — `Start-Process` 로 띄운 유니티는 살아남아
+      # Library 락을 쥔 채 남고, 다음 빌드가 그 자리에서 막힌다. 이 워크스페이스를
+      # 가리키는 유니티만 골라 끝낸다 (노트북의 다른 유니티·에디터는 건드리지 않는다).
+      - name: 남은 유니티 정리 (취소·실패 시)
+        if: cancelled() || failure()
+        shell: powershell
+        run: |
+          $OutputEncoding = [Console]::OutputEncoding = [Text.UTF8Encoding]::new()
+          $workspace = $env:GITHUB_WORKSPACE
+          $leftover = Get-CimInstance Win32_Process -Filter "Name='Unity.exe'" -ErrorAction SilentlyContinue |
+            Where-Object { $_.CommandLine -and $_.CommandLine -like "*$workspace*" }
+          if (-not $leftover) { Write-Host '남은 유니티 없음'; exit 0 }
+          foreach ($p in $leftover) {
+            Write-Host "kill pid=$($p.ProcessId) — $($p.CommandLine.Substring(0, [Math]::Min(120, $p.CommandLine.Length)))"
+            Stop-Process -Id $p.ProcessId -Force -ErrorAction SilentlyContinue
+          }
+          Start-Sleep -Seconds 2
+          $still = Get-CimInstance Win32_Process -Filter "Name='Unity.exe'" -ErrorAction SilentlyContinue |
+            Where-Object { $_.CommandLine -and $_.CommandLine -like "*$workspace*" }
+          if ($still) { Write-Warning "아직 살아있는 유니티 $($still.Count)개 — 다음 빌드가 막힐 수 있다." }
+          else { Write-Host '정리 완료' }
 
       - name: Summarize
         if: always()
@@ -249,8 +273,14 @@ jobs:
           }
           if (-not $token) { Write-Warning 'laptop-ops 토큰 못 찾음 — 알림 skip'; exit 0 }
 
-          $ok = '${{ job.status }}' -eq 'success'
-          $icon = if ($ok) { '🟢' } else { '🔴' }
+          # 성공/실패/취소 3분기. 취소를 실패로 칠하면 「내가 껐다」와 「깨졌다」가
+          # 폰 화면에서 구분이 안 된다 — 볼 이유가 다른 사건이라 색·문구를 나눈다.
+          $status = '${{ job.status }}'
+          $ok = $status -eq 'success'
+          $cancelled = $status -eq 'cancelled'
+          if ($ok) { $icon = '🟢'; $level = 'info'; $statusWord = '성공' }
+          elseif ($cancelled) { $icon = '⚪'; $level = 'warning'; $statusWord = '취소됨' }
+          else { $icon = '🔴'; $level = 'error'; $statusWord = '실패' }
           $platform = '${{ github.event.inputs.platform }}'
           if (-not $platform) { $platform = 'windows' }
           $buildType = '${{ github.event.inputs.build_type }}'
@@ -271,9 +301,26 @@ jobs:
             $fields += @{ name = '경고'; value = "$($json.warnings)"; inline = $true }
           }
           $fields += @{ name = '커밋'; value = "$('${{ github.sha }}'.Substring(0,8)) ($('${{ github.ref_name }}'))"; inline = $true }
-          $fields += @{ name = '노트북 경로'; value = "$outDir"; inline = $false }
+          if ($outDir) { $fields += @{ name = '노트북 경로'; value = "$outDir"; inline = $false } }
+
+          # 실패면 *원인까지* 폰에 실어 보낸다. 로그 경로만 주면 결국 컴퓨터 앞으로
+          # 가야 하는데, 그러면 알림이 「가서 봐라」 이상을 못 한다.
           if (-not $ok) {
-            $fields += @{ name = '빌드 로그'; value = "$outDir\unity-build.log"; inline = $false }
+            $unityLog = '${{ steps.build.outputs.unity_log }}'
+            if ($unityLog) { $fields += @{ name = '빌드 로그'; value = "$unityLog"; inline = $false } }
+            if ($cancelled) {
+              $fields += @{ name = '무슨 일'; value = '사람이 중단시켰다. 남은 유니티는 정리했다.'; inline = $false }
+            } elseif ($unityLog -and (Test-Path $unityLog)) {
+              $lines = Get-Content $unityLog -ErrorAction SilentlyContinue |
+                Where-Object { $_ -match 'error CS|Exception:|Build Failed|error:' } |
+                Select-Object -Last 6
+              if ($lines) {
+                # 임베드 필드는 1024자 상한 — 넘치면 Discord 가 통째로 거부한다.
+                $excerpt = ($lines -join "`n")
+                if ($excerpt.Length -gt 900) { $excerpt = $excerpt.Substring($excerpt.Length - 900) }
+                $fields += @{ name = '에러 (마지막 몇 줄)'; value = '```' + "`n" + $excerpt + "`n" + '```'; inline = $false }
+              }
+            }
           }
 
           # 폰 설치 링크 — 단일 파일 산출물(APK/AAB)일 때만. 게이트웨이가 서명해 발급하므로
@@ -301,16 +348,18 @@ jobs:
             $bodyText = '링크 유효 1일 · 처음 한 번만 비밀번호 (고정 메시지 참고)'
           } elseif ($ok) {
             $bodyText = '산출물은 노트북에만 있다 (단일 파일이 아니라 설치 링크 없음).'
+          } elseif ($cancelled) {
+            $bodyText = '중단된 빌드라 산출물이 없다. 다시 돌리려면 실행 링크에서 재실행.'
           } else {
-            $bodyText = '빌드 실패 — 위 로그 경로에서 원인 확인.'
+            $bodyText = '빌드가 깨졌다 — 아래 에러부터 확인.'
           }
 
           $rich = @{
             lead   = $lead
-            title  = "$icon WM 빌드 $platform — ${{ job.status }}"
+            title  = "$icon WM 빌드 $platform — $statusWord"
             body   = $bodyText
             fields = $fields
-            level  = $(if ($ok) { 'info' } else { 'error' })
+            level  = $level
             url    = $runUrl
             footer = "run #${{ github.run_number }} · 노트북 빌드머신"
           }
