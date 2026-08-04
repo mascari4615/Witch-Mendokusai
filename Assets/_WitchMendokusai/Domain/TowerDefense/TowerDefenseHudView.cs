@@ -150,6 +150,7 @@ namespace WitchMendokusai
 			selectionBar.Selected += index => SlotClicked(index);
 			container.Add(selectionBar.Root);
 			container.Add(Named(BuildHintBar(out hintLabel), "HintBar"));
+			container.Add(Named(BuildArmedBar(out armedLabel), "ArmedBar"));
 			worldLabelLayer = new VisualElement { name = "WorldLabels" };
 			worldLabelLayer.style.position = Position.Absolute;
 			worldLabelLayer.style.left = 0;
@@ -695,6 +696,7 @@ namespace WitchMendokusai
 
 		/// <summary> 고른 건물을 보여준다 — 아무것도 안 골랐으면 패널 자체를 감춘다. </summary>
 		public void ShowSelection(string description, bool canResearch, int researchLevel, int researchCost,
+			bool researchUsesEssence = true,
 			System.Collections.Generic.IReadOnlyList<TowerDefenseBuildingPerk> perkOffers = null,
 			System.Collections.Generic.IReadOnlyList<TowerDefenseBoon> coreCards = null)
 		{
@@ -711,7 +713,10 @@ namespace WitchMendokusai
 			selectionTitleLabel.text = description;
 			researchButton.style.display = canResearch ? DisplayStyle.Flex : DisplayStyle.None;
 			if (canResearch)
-				researchButton.text = "연구 " + (researchLevel + 1) + "단계  ·  정수 " + researchCost;
+				// ★ 통화를 실제와 맞춘다 — 초반 연구는 *자원*으로 사는데 화면은 늘 「정수」라고 적었다.
+				//   못 살 이유를 화면이 잘못 알려주면 플레이어는 엉뚱한 것을 모으러 간다.
+				researchButton.text = "연구 " + (researchLevel + 1) + "단계  ·  "
+					+ (researchUsesEssence ? "정수 " : "자원 ") + researchCost;
 
 			// 코어 카드 — 개수가 바뀔 때만 다시 그린다(매 프레임 새로 만들면 클릭이 안 먹는다).
 			int cardCount = coreCards != null ? coreCards.Count : 0;
@@ -1096,6 +1101,9 @@ namespace WitchMendokusai
 		/// <summary> 펼치는 지도 — 지형·점·범례·설명이 한자리에. </summary>
 		private TowerDefenseMapPanel mapPanel;
 
+		/// <summary> 「연구」 버튼 — 코어를 골라 연구 창을 연다(숨은 문을 눈에 보이게). </summary>
+		public event System.Action ResearchPanelRequested = delegate { };
+
 		/// <summary> 지도·미니맵을 눌렀다 — 그 자리로 시점을 옮겨 달라(컨트롤러가 카메라를 쥔다). </summary>
 		public event System.Action<Vector3> LookAtRequested = delegate { };
 
@@ -1104,6 +1112,30 @@ namespace WitchMendokusai
 
 		/// <summary> 지도가 열려 있나 — 열려 있으면 클릭이 배치로 새면 안 된다. </summary>
 		public bool IsMapOpen => mapPanel != null && mapPanel.IsOpen;
+
+		/// <summary> 지금 무엇을 하려는 중인지 한 줄 — 핫바 바로 위. </summary>
+		private static VisualElement BuildArmedBar(out Label label)
+		{
+			VisualElement wrapper = new VisualElement();
+			wrapper.style.position = Position.Absolute;
+			wrapper.style.left = 0;
+			wrapper.style.right = 0;
+			wrapper.style.bottom = ModeSelectionBar.TopFromBottom + 44;
+			wrapper.style.alignItems = Align.Center;
+			wrapper.pickingMode = PickingMode.Ignore;
+
+			label = new Label("고르기 — 건물을 클릭하면 그 건물을 본다");
+			label.style.fontSize = 15;
+			label.style.color = new Color(0.62f, 0.68f, 0.78f, 1f);
+			label.style.backgroundColor = new Color(0.04f, 0.05f, 0.08f, 0.72f);
+			label.style.paddingLeft = 14;
+			label.style.paddingRight = 14;
+			label.style.paddingTop = 4;
+			label.style.paddingBottom = 4;
+			label.pickingMode = PickingMode.Ignore;
+			wrapper.Add(label);
+			return wrapper;
+		}
 
 		private void FillHotbar(TowerDefenseStageSO stage, TowerDefenseMatch match)
 		{
@@ -1144,9 +1176,9 @@ namespace WitchMendokusai
 						tooltip: SlotTip("발전 인형", "범위 안 건물에 전기를 댄다. 전기를 못 받는 건물은 서 있기만 한다.\n코어도 처음부터 얼마간 대준다."));
 				case TowerDefensePlaceableKind.Hero:
 					// 영웅 칸만 성격이 다르다 — 짓는 게 아니라 *보내는* 칸이라 값이 0 이다.
-					return new ModeSelectionBar.Entry("영웅 이동", 0, stage.HeroTint,
+					return new ModeSelectionBar.Entry("영웅 부르기", 0, stage.HeroTint,
 						icon: UnitSprite(stage.HeroUnit),
-						tooltip: SlotTip("영웅 이동", "고르고 땅을 찍으면 영웅이 그리로 걸어간다. 짓는 게 아니라 보내는 칸이다."));
+						tooltip: SlotTip("영웅 부르기", "고르고 땅을 찍으면 영웅이 그리로 걸어간다. 짓는 게 아니라 보내는 칸이다. WASD 는 시점 이동이라 이것과 무관하다."));
 				default:
 					TowerDefenseTowerArchetype tower = stage.TowerArchetypes != null && slot.TowerIndex < stage.TowerArchetypes.Length
 						? stage.TowerArchetypes[slot.TowerIndex]
@@ -1164,6 +1196,24 @@ namespace WitchMendokusai
 		{
 			selectionBar.SetSelected(selectedIndex);
 		}
+
+		/// <summary>
+		/// 지금 설치 대기인가를 화면에 박는다 — 클릭 한 번의 뜻이 여기서 갈린다.
+		/// </summary>
+		public void SetArmed(bool armed, string what)
+		{
+			if (armedLabel == null)
+				return;
+
+			armedLabel.text = armed
+				? "설치 대기 — " + what + " · 좌클릭으로 놓는다"
+				: "고르기 — 건물을 클릭하면 그 건물을 본다";
+			armedLabel.style.color = armed
+				? new Color(1f, 0.82f, 0.35f, 1f)
+				: new Color(0.62f, 0.68f, 0.78f, 1f);
+		}
+
+		private Label armedLabel;
 
 
 		public void Show(TowerDefenseStageSO stage)
@@ -1190,12 +1240,17 @@ namespace WitchMendokusai
 			FillHotbar(stage, null);
 			SetBannerVisible(false);
 
+			// ★ 「지금 설치 모드인가」가 화면 어디에도 없었다(사용자 실증: "확실히 지금이 설치 모드라는
+			//   걸 알려줘야함"). 칸을 골랐는지 아닌지로 클릭의 뜻이 통째로 달라지는데, 그걸 손이
+			//   기억해야 했다. 안내 줄 맨 앞에 상태를 박는다 — 색까지 바꿔 곁눈으로도 읽히게.
 			hintLabel.text = stage == null
 				? string.Empty
 				// ★ 안내가 실제 키와 달랐다: 배속은 Tab 이 아니라 F6 이고, 정작 제일 많이 쓰는
 				//   「숫자키로 칸 고르기」는 한 글자도 없었다. 조작 안내가 틀리면 그 화면 전체를 못 믿는다.
-				: "숫자키 1~9 칸 고르기 · 좌클릭 설치 · 우클릭 판매   ·   Space 멈춤 · F6 배속"
-					+ "   ·   WASD 시점 이동 · 휠 확대·축소   ·   M 지도(범례 포함)   ·   X 나가기";
+				// ★ 「연구를 어떻게 여는지」가 어디에도 없었다(사용자 실증: "연구 어케 여는데").
+				//   찾아야만 알 수 있는 기능은 *없는 기능*이다 — 첫 판의 유일한 다음 수라서 더 그렇다.
+				: "숫자키 1~9 칸 고르기 · 좌클릭 설치 · 우클릭 판매   ·   코어 클릭 = 연구"
+					+ "   ·   Space 멈춤 · F6 배속   ·   WASD 시점 · 휠 확대·축소   ·   M 지도   ·   X 나가기";
 		}
 
 		public void Hide()

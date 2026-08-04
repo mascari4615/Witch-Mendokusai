@@ -147,6 +147,32 @@ namespace WitchMendokusai
 			match.HighlightRangeOf(placement.HoveredUnit != null ? placement.HoveredUnit.transform : null);
 
 			RefreshSelectionPanel();
+
+			// 지금 설치 대기인지 — 클릭 한 번의 뜻이 여기서 갈리므로 매 프레임 화면에 박는다.
+			hud?.SetArmed(placement.IsArmed, DescribeSelectedSlot());
+		}
+
+		/// <summary> 지금 고른 칸이 무엇인가 — 설치 대기 표시에 쓴다. </summary>
+		private string DescribeSelectedSlot()
+		{
+			if (match == null || placement == null)
+				return string.Empty;
+
+			var slots = match.AvailableSlots;
+			int index = placement.SelectedSlot;
+			if (index < 0 || index >= slots.Count)
+				return string.Empty;
+
+			return slots[index].Kind switch
+			{
+				TowerDefensePlaceableKind.Harvester => "채집 인형",
+				TowerDefensePlaceableKind.Wall => "벽",
+				TowerDefensePlaceableKind.Trap => "함정",
+				TowerDefensePlaceableKind.Outpost => "전초기지",
+				TowerDefensePlaceableKind.Generator => "발전 인형",
+				TowerDefensePlaceableKind.Hero => "영웅 부르기",
+				_ => "포탑 인형",
+			};
 		}
 
 		/// <summary>
@@ -182,6 +208,23 @@ namespace WitchMendokusai
 			if (match == null || placement == null)
 				return;
 			placement.SetSlots(match.AvailableSlots);
+		}
+
+		/// <summary>
+		/// 연구 창 열기 — 코어를 골라 준다.
+		///
+		/// ★ 왜 버튼이 필요한가: 연구는 「코어를 클릭」해야 열리는데, 그 사실이 화면 어디에도 없었다
+		///   (사용자 실증: "연구 어케 여는데"). 첫 판의 *유일한 다음 수*가 숨은 문 뒤에 있으면
+		///   게임이 시작되지 않는다. 코어 클릭은 그대로 두고, 눈에 보이는 문을 하나 더 낸다.
+		/// </summary>
+		private void OpenResearch()
+		{
+			if (match == null || match.CoreCombatant == null)
+				return;
+
+			placement.SuppressNextClick(); // 이 클릭이 지면 설치로 새지 않게.
+			placement.SelectBuilding(match.CoreCombatant);
+			RefreshSelectionPanel();
 		}
 
 		/// <summary> 시점을 그 자리로 — 지도에서 온 요청. 확대·회전은 그대로 둔다. </summary>
@@ -284,6 +327,7 @@ namespace WitchMendokusai
 				canResearch: isCore,
 				researchLevel: match.LabCount,
 				researchCost: match.ResearchCost,
+				researchUsesEssence: match.ResearchUsesEssence,
 				perkOffers,
 				coreCards);
 		}
@@ -446,6 +490,7 @@ namespace WitchMendokusai
 					view.RestartRequested += Restart;
 					// 지도·미니맵을 누르면 그 자리로 — 카메라는 컨트롤러가 쥔다(화면은 「어디」만 말한다).
 					view.LookAtRequested += LookAt;
+					view.ResearchPanelRequested += OpenResearch;
 					view.WaveModeToggleRequested += ToggleWaveMode;
 					view.NextWaveRequested += CallNextWave;
 					view.SlotClicked += SelectSlotFromUi;
@@ -479,6 +524,7 @@ namespace WitchMendokusai
 					placement.SelectionChanged -= hud.SetSelectedSlot;
 					hud.RestartRequested -= Restart;
 					hud.LookAtRequested -= LookAt;
+					hud.ResearchPanelRequested -= OpenResearch;
 					hud.WaveModeToggleRequested -= ToggleWaveMode;
 					hud.NextWaveRequested -= CallNextWave;
 					hud.SlotClicked -= SelectSlotFromUi;

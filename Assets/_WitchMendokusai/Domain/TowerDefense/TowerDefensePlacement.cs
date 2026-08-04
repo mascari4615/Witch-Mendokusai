@@ -226,6 +226,14 @@ namespace WitchMendokusai
 		/// 무장하지 않은 클릭이 곧 선택이라, 짓는 손동작과 고르는 손동작이 섞이지 않는다.
 		/// </summary>
 		public ArenaCombatant SelectedBuilding { get; private set; }
+
+		/// <summary> 밖에서 건물을 골라 준다 — 「연구」 버튼처럼 화면이 여는 문. </summary>
+		public void SelectBuilding(ArenaCombatant building)
+		{
+			SelectedBuilding = building;
+			IsArmed = false; // 고르는 중엔 설치 대기가 아니다(다음 클릭이 건물을 세우면 안 된다).
+			BuildingSelected(SelectedBuilding);
+		}
 		public event System.Action<ArenaCombatant> BuildingSelected = delegate { };
 		public Vector2 HoverScreenPosition { get; private set; }
 

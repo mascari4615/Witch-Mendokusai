@@ -94,8 +94,12 @@ namespace WitchMendokusai
 			enterButton.style.height = 56;
 			enterButton.style.fontSize = 20;
 			enterButton.style.marginTop = 18;
-			enterButton.style.backgroundColor = new Color(0.85f, 0.62f, 0.18f, 1f);
-			enterButton.style.color = new Color(0.06f, 0.06f, 0.08f, 1f);
+			enterButton.style.backgroundColor = new Color(0.20f, 0.45f, 0.75f, 1f);
+			enterButton.style.color = new Color(0.96f, 0.98f, 1f, 1f);
+			enterButton.style.borderLeftWidth = 0;
+			enterButton.style.borderRightWidth = 0;
+			enterButton.style.borderTopWidth = 0;
+			enterButton.style.borderBottomWidth = 0;
 			enterButton.style.borderTopLeftRadius = 8;
 			enterButton.style.borderTopRightRadius = 8;
 			enterButton.style.borderBottomLeftRadius = 8;

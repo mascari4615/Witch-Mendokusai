@@ -222,15 +222,15 @@ MonoBehaviour:
     SpawnAngleJitter: 18
     ResourceNodeCount: 40
     NodeMinSpacing: 10
-    NodeMinCoreDistance: 8
+    NodeMinCoreDistance: 4
     NodeEdgeMargin: 3
     NodeAngularSpread: 8
     NearIncomeMultiplier: 1
     FarIncomeMultiplier: 2.5
     InnerTierRatio: 0.55
-    RockSiteCount: 240
+    RockSiteCount: 90
     RidgeWidth: 1.4
-    ObstacleDensity: 0.7
+    ObstacleDensity: 0.45
     CoreClearRadius: 4
     SpawnClearRadius: 2.5
     NodeClearRadius: 2
