@@ -158,7 +158,11 @@ namespace WitchMendokusai
 		/// <summary>게임 내 minutes 만큼 욕구를 진행시키고 활동을 갱신 — 자율 구동·테스트 공통 진입점.</summary>
 		public void TickMinutes(int minutes)
 		{
-			if (profile == null || needState == null || minutes <= 0)
+			// profile / needState null 가드는 뺐다 — Initialize 안 부른 걸 조용히 넘기면
+			// 「욕구가 왜 안 도는지」를 한참 뒤에 엉뚱한 데서 찾게 된다. 여기서 바로 터지는 게 맞다.
+			// minutes <= 0 은 남긴다: 이건 배선 실수를 덮는 게 아니라 「0분 경과는 아무 일도 아니다」라는
+			// 도메인 서술이다(호출부 OnTick 도 정수 분이 쌓일 때만 부른다).
+			if (minutes <= 0)
 			{
 				return;
 			}

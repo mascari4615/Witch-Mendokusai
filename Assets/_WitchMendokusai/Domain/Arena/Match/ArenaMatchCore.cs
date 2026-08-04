@@ -45,7 +45,10 @@ namespace WitchMendokusai
 
 			elapsedSeconds += deltaSeconds;
 
-			if (mode != null && mode.CheckVictory(teams, out int winnerTeamId))
+			// mode 는 생성자 필수 의존이다. null 이면 여기서 바로 터져야 한다 —
+			// 가드로 넘기면 「규칙 결착이 영영 안 일어나고 매번 타임아웃으로 끝나는」 매치가 되는데,
+			// 그건 설정 누락이 아니라 밸런스 문제처럼 보인다. 조용히 틀리는 것보다 시끄럽게 죽는 게 낫다.
+			if (mode.CheckVictory(teams, out int winnerTeamId))
 			{
 				IsConcluded = true;
 				WinnerTeamId = winnerTeamId;
@@ -67,9 +70,8 @@ namespace WitchMendokusai
 		// 시간 초과 결착 — 생존 멤버 최다 팀. 단일 최다 = 그 팀 / 동률 = 무승부(NO_WINNER).
 		private int ResolveByMostAlive()
 		{
-			if (teams == null)
-				return ArenaModeSO.NO_WINNER;
-
+			// teams 도 생성자 필수 의존 — mode 와 같은 이유로 가드 안 둔다.
+			// (팀 *원소* 가 null 인 건 다른 얘기라 아래 loop 의 continue 는 남긴다.)
 			int bestTeamId = ArenaModeSO.NO_WINNER;
 			int bestAlive = -1;
 			bool tie = false;
