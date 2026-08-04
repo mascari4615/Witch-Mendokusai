@@ -1788,7 +1788,7 @@ namespace WitchMendokusai
 			occupiedCells.Add(cellKey);
 			StartCoroutine(SpawnDefensiveUnitRoutine(
 				stage.HarvesterUnit, null, worldPosition, isHarvester: false, incomeMultiplier: 1f,
-				towerArchetype: null, isLab: true, isOuterNode: false, isGenerator: true));
+				towerArchetype: null, isOuterNode: false, isGenerator: true));
 			return true;
 		}
 
@@ -2713,8 +2713,6 @@ namespace WitchMendokusai
 				// 정수로 산다 — 자원 할인은 안 걸린다(다른 통장).
 				case TowerDefensePlaceableKind.Outpost:
 					return stage.OutpostEssenceCost;
-				case TowerDefensePlaceableKind.Lab:
-					return ResearchCost;
 				// 영웅은 짓는 게 아니라 보내는 것 — 값이 없다.
 				default:
 					return 0;
@@ -3457,7 +3455,7 @@ namespace WitchMendokusai
 			bool outerNode = nodeIndex < activeNodeIsOuter.Count && activeNodeIsOuter[nodeIndex];
 			// 등급은 인형이 실제로 생긴 뒤 *그 인형에* 붙인다(스폰이 코루틴이라 지금은 아직 없다).
 			StartCoroutine(SpawnDefensiveUnitRoutine(stage.HarvesterUnit, null, nodeWorldPosition, isHarvester: true, incomeMultiplier,
-				towerArchetype: null, isLab: false, isOuterNode: outerNode));
+				towerArchetype: null, isOuterNode: outerNode));
 			return true;
 		}
 
@@ -3547,9 +3545,12 @@ namespace WitchMendokusai
 				return stage.GeneratorCost;
 			}
 
-			// 무기가 없는 방어 건물 = 연구 인형.
-			LabCount = Mathf.Max(0, LabCount - 1);
-			return stage.LabCost;
+			// ★ 여기까지 왔다 = 채집도 포탑도 발전기도 아닌 것이 내 보급 사슬에 들어 있다.
+			//   예전엔 이 자리에서 「연구 인형이겠지」 하고 연구 단계를 깎았는데, 연구소가 사라진 지금
+			//   그 짐작은 *아무도 시키지 않은 손해*만 남긴다. 값을 0 으로 돌리고 소리 내어 알린다 —
+			//   조용히 넘어가면 다음 사람이 또 같은 짐작을 한다.
+			Debug.LogWarning($"{nameof(TowerDefenseMatch)}: 정체를 모르는 건물을 팔았다({sold.name}) — 환불 0. 새 건물 종류를 넣고 판매 값을 안 정한 것이다.");
+			return 0;
 		}
 
 		// 판 채집 인형이 잡고 있던 노드를 놓아준다(못 놓으면 그 노드는 영영 못 쓴다).
@@ -3591,37 +3592,6 @@ namespace WitchMendokusai
 			spawnedUnits.Remove(sold);
 			RefreshSupply(); // 사슬 중간이 사라지면 그 너머가 통째로 끊긴다.
 			RefreshPower();  // 먹는 입이 줄었으니 누가 다시 돌아가는지도 즉시 반영.
-		}
-
-		/// <summary>
-		/// 연구 인형 배치 — 아무 빈 칸에나 선다(노드 결합 X). 지어진 순간부터 *모든* 포탑이 강해진다.
-		/// 자원을 지금 방어에 쓸지 다음 웨이브를 위해 강화에 쓸지 — 판 안의 새 선택이 여기서 생긴다.
-		/// </summary>
-		public bool TryPlaceLab(Vector3 worldPosition)
-		{
-			if (core == null || pool == null || timeManager == null || targeting == null)
-				return false;
-			if (stage.HarvesterUnit == null || stage.HarvesterUnit.Prefab == null)
-			{
-				Debug.LogError($"{nameof(TowerDefenseMatch)}: 연구 인형이 쓸 프리팹 미할당 — 배치 불가(자원 미차감).");
-				return false;
-			}
-
-			Vector3Int cellKey = ToCellKey(worldPosition);
-			if (occupiedCells.Contains(cellKey))
-				return Reject("여긴 이미 찼다", worldPosition);
-			if (ValidateSite(worldPosition) == false)
-				return false;
-
-			// 연구는 정수로만 — 강화의 통로를 바깥 노드(개척)에 묶는다.
-			if (core.TrySpendEssence(stage.LabEssenceCost) == false)
-				return Reject($"정수 부족 {core.Essence}/{stage.LabEssenceCost}", worldPosition);
-
-			occupiedCells.Add(cellKey);
-			LabCount++;
-			StartCoroutine(SpawnDefensiveUnitRoutine(
-				stage.HarvesterUnit, null, worldPosition, isHarvester: false, incomeMultiplier: 1f, towerArchetype: null, isLab: true));
-			return true;
 		}
 
 		/// <summary>
@@ -3694,7 +3664,7 @@ namespace WitchMendokusai
 			return cell;
 		}
 
-		private IEnumerator SpawnDefensiveUnitRoutine(Unit unitData, TacticProgram tactic, Vector3 worldPosition, bool isHarvester, float incomeMultiplier = 1f, TowerDefenseTowerArchetype towerArchetype = null, bool isLab = false, bool isOuterNode = false, bool isGenerator = false)
+		private IEnumerator SpawnDefensiveUnitRoutine(Unit unitData, TacticProgram tactic, Vector3 worldPosition, bool isHarvester, float incomeMultiplier = 1f, TowerDefenseTowerArchetype towerArchetype = null, bool isOuterNode = false, bool isGenerator = false)
 		{
 			if (unitData == null || unitData.Prefab == null)
 			{
@@ -3704,7 +3674,6 @@ namespace WitchMendokusai
 
 			// 어떤 인형이냐에 따라 색·덩치가 갈린다 — 세우기 전에 정해야 문에 넘길 수 있다.
 			Color tint = isGenerator ? stage.GeneratorTint
-				: isLab ? stage.LabTint
 				: isHarvester ? stage.HarvesterTint
 				: (towerArchetype != null ? towerArchetype.Tint : stage.TowerTint);
 
@@ -3733,7 +3702,7 @@ namespace WitchMendokusai
 			// 표적 등록은 세우는 문이 이미 했다.
 
 			// 세워둔 포탑의 사거리를 옅게 늘 보여준다 — 「어디가 비었나」는 기존 커버리지가 보여야 알 수 있다.
-			if (isHarvester == false && isLab == false)
+			if (isHarvester == false && isGenerator == false)
 			{
 				if (towerArchetype != null)
 				{
@@ -3760,7 +3729,7 @@ namespace WitchMendokusai
 			}
 
 			AddVisionSource(worldPosition,
-				isLab ? stage.LabVisionRadius
+				isGenerator ? stage.GeneratorVisionRadius
 					: isHarvester ? stage.HarvesterVisionRadius
 					: (towerArchetype != null ? towerArchetype.VisionRadius : stage.CoreVisionRadius));
 
@@ -3768,7 +3737,6 @@ namespace WitchMendokusai
 			BuiltCount++;
 			RegisterDoll(unitGameObject.transform,
 				isGenerator ? stage.GeneratorTint
-					: isLab ? stage.LabTint
 					: isHarvester ? stage.HarvesterTint
 					: (towerArchetype != null ? towerArchetype.Tint : stage.TowerTint),
 				isHarvester,
@@ -3784,8 +3752,8 @@ namespace WitchMendokusai
 			if (isGenerator)
 				powerGrid.AddGenerator(unitGameObject.transform);
 
-			// 포탑·채집은 전기를 먹는다(연구·발전은 안 먹는다 — 발전이 전기를 먹으면 자기 꼬리를 문다).
-			if (isLab == false && isGenerator == false)
+			// 포탑·채집은 전기를 먹는다(발전은 안 먹는다 — 발전이 전기를 먹으면 자기 꼬리를 문다).
+			if (isGenerator == false)
 				powerGrid.AddConsumer(unitGameObject.transform);
 
 			if (isHarvester)

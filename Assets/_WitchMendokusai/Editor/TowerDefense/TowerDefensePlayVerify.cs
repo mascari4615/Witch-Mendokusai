@@ -306,7 +306,7 @@ namespace WitchMendokusai.EditorTools
 					VerifySell();
 					VerifyTrap();
 					VerifyWall();
-					VerifyLab();
+					VerifyResearch();
 					VerifyWaveEvents();
 					VerifySupply();
 					// 씨앗 공유는 새 판에서만 확인된다 — 재시작이 그 새 판이므로 여기서 걸어둔다.
@@ -1390,35 +1390,37 @@ namespace WitchMendokusai.EditorTools
 				Debug.LogError(verdict + " → 성격이 안 붙거나 마리수가 안 변한다.");
 		}
 
-		/// <summary> 연구 인형 — 가장 비싸므로 맨 마지막. 예산이 없으면 「확인 못 함」으로 남긴다(가짜 실패 X). </summary>
-		private static void VerifyLab()
+		/// <summary>
+		/// 연구 — 코어를 골라 정수로 한 단계 올린다. 자원이 아니라 *정수*로 사므로 앞의 항목들과 지갑이 달라
+		/// 순서를 다툴 일이 없다. 정수가 모자라면 「확인 못 함」으로 남긴다(가짜 실패 X).
+		///
+		/// ★ 예전엔 이 확인이 「연구 인형을 짓는다」였는데, 그 건물은 핫바에서 사라진 뒤로 *플레이어가
+		///   갈 수 없는 길*이 되어 있었다 — 그런데도 확인은 초록불을 켰다(핫바를 우회해 직접 불렀으니까).
+		///   아무도 못 가는 길에 켜지는 초록불은 없느니만 못하다. 살아있는 길로 옮긴다.
+		/// </summary>
+		private static void VerifyResearch()
 		{
-			Transform stageRoot = FindStageRoot();
-			if (TowerDefenseModeController.TryGetExistingInstance(out TowerDefenseModeController controller) == false)
-				return;
-			TowerDefensePlacement placement = controller.GetComponent<TowerDefensePlacement>();
-			Camera modeCamera = ViewCameraResolver.Current;
-			if (match == null || stageRoot == null || placement == null || modeCamera == null)
+			if (match == null)
 				return;
 
-			if (match.Resource < match.Stage.LabCost)
+			int cost = match.ResearchCost;
+			if (match.Essence < cost)
 			{
-				Debug.Log(TAG + " LAB-SKIP 예산 부족(" + match.Resource + "/" + match.Stage.LabCost + ") — 이번 실행에선 확인 못 함");
+				Debug.Log(TAG + " RESEARCH-SKIP 정수 부족(" + match.Essence + "/" + cost + ") — 이번 실행에선 확인 못 함");
 				return;
 			}
 
-			// 가장 비싸므로 맨 마지막 — 앞의 항목들이 예산을 다 썼으면 확인을 건너뛴다(잔고 검사 X). — 먼저 사면 승급·함정·벽이 전부 「돈이 없어 못 함」으로 끝난다.
-			// (예산은 유한하고 확인할 항목은 여럿이라, 싼 것부터 보고 비싼 것을 뒤로 미는 것이 유일한 해법이다.)
 			float multiplierBefore = match.TowerDamageMultiplier;
-			List<Vector3> labSpots = FindPlaceableSpots(stageRoot, 1);
-			if (labSpots.Count > 0)
-			{
-				placement.SelectSlot(match.TowerArchetypeCount + 1);
-				placement.PlaceLabAt(WorldToScreen(modeCamera, stageRoot.TransformPoint(labSpots[0])));
-			}
-			Debug.Log(TAG + " LAB labs=" + match.LabCount
-				+ " damageMultiplier " + multiplierBefore.ToString("F2") + " → " + match.TowerDamageMultiplier.ToString("F2"));
+			int levelBefore = match.ResearchLevel;
+			bool accepted = match.TryResearch();
 
+			Debug.Log(TAG + " RESEARCH accepted=" + accepted
+				+ " level " + levelBefore + " → " + match.ResearchLevel
+				+ " damageMultiplier " + multiplierBefore.ToString("F2") + " → " + match.TowerDamageMultiplier.ToString("F2"));
+			if (accepted && match.ResearchLevel == levelBefore)
+				Debug.LogError(TAG + " RESEARCH-FAIL 정수를 받아놓고 단계가 안 올랐다.");
+			if (accepted && match.TowerDamageMultiplier <= multiplierBefore)
+				Debug.LogError(TAG + " RESEARCH-FAIL 단계는 올랐는데 포탑이 안 세졌다 — 연구가 하는 일이 없다.");
 		}
 
 		/// <summary> 승급 — 같은 자리에 같은 종류를 다시 지으면 단계가 오르고 사거리·피해가 자라는가. </summary>

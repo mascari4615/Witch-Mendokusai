@@ -199,17 +199,11 @@ namespace WitchMendokusai
 		[field: Tooltip("팔 때 돌려받는 비율(0.6 = 60%). 100%면 배치가 무료 실험이 되고, 0%면 아무도 안 판다.")]
 		[field: SerializeField, Range(0f, 1f)] public float SellRefundRatio { get; private set; } = 0.6f;
 
-		[field: Header("연구 인형 — 판 안 강화")]
-		[field: Tooltip("연구 인형 1기 건설 비용. 지금 방어에 쓸지 나중을 위해 강화에 쓸지가 이 값으로 갈린다.")]
-		[field: SerializeField, Min(0)] public int LabCost { get; private set; } = 90;
-
-		[field: Tooltip("연구 인형 1기당 모든 포탑 피해 증가 비율(0.15 = +15%). 이미 세워둔 포탑에도 즉시 적용된다.")]
+		[field: Header("연구 — 코어를 골라서 하는 판 안 강화")]
+		[field: Tooltip("연구 1단계당 모든 포탑 피해 증가 비율(0.15 = +15%). 이미 세워둔 포탑에도 즉시 적용된다.")]
 		[field: SerializeField, Min(0f)] public float LabDamageBonus { get; private set; } = 0.2f;
 
-		[field: Tooltip("연구 인형이 밝히는 시야 반경.")]
-		[field: SerializeField, Min(0f)] public float LabVisionRadius { get; private set; } = 8f;
-
-		[field: Tooltip("연구 인형 색 — 포탑·채집과 확실히 달라야 한 눈에 갈린다.")]
+		[field: Tooltip("연구를 나타내는 색 — 범례가 이 색으로 「코어 연구」 줄을 그린다.")]
 		[field: SerializeField] public Color LabTint { get; private set; } = new Color(0.86f, 0.62f, 1f, 1f);
 
 		[field: Header("판 밖에 남는 것 — 유물·뽑기")]
@@ -285,6 +279,9 @@ namespace WitchMendokusai
 
 		[field: Tooltip("채집 인형 1기가 먹는 전기.")]
 		[field: SerializeField, Min(0)] public int HarvesterPowerDemand { get; private set; } = 1;
+
+		[field: Tooltip("발전 인형이 밝히는 시야 반경.")]
+		[field: SerializeField, Min(0f)] public float GeneratorVisionRadius { get; private set; } = 8f;
 
 		[field: Tooltip("발전 인형 색.")]
 		[field: SerializeField] public Color GeneratorTint { get; private set; } = new Color(1f, 0.82f, 0.3f, 1f);
