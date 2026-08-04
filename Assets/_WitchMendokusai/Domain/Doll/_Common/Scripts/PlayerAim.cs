@@ -8,18 +8,20 @@ namespace WitchMendokusai
 {
 	public class PlayerAim
 	{
-		private const float MaxAimDistance = 100f;
-
 		private GameObject lastAutoTarget;
 
 		private readonly Transform playerTr;
 		private readonly List<List<GameObject>> targetLists;
 		private readonly InputManager inputManager;
 
-		public PlayerAim(Transform transform, InputManager inputManager, params List<GameObject>[] targets)
+		// 자동 조준 탐색 최대 거리. Player 의 [SerializeField] 에서 주입 — POCO 라 자체 노출 불가.
+		private readonly float maxAimDistance;
+
+		public PlayerAim(Transform transform, InputManager inputManager, float maxAimDistance, params List<GameObject>[] targets)
 		{
 			playerTr = transform;
 			this.inputManager = inputManager;
+			this.maxAimDistance = maxAimDistance;
 			targetLists = new(targets);
 		}
 
@@ -50,7 +52,7 @@ namespace WitchMendokusai
 			}
 
 			GameObject nearestAutoTarget = null;
-			float minDistance = MaxAimDistance;
+			float minDistance = maxAimDistance;
 
 			// 최적화 : 마지막 오토 타겟을 먼저 검사
 			// 마지막 오토 타겟이 여전히 가장 가까울 확률이 높기 때문에

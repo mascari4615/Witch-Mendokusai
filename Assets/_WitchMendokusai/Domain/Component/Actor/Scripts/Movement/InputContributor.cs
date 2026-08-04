@@ -11,9 +11,13 @@ namespace WitchMendokusai
 	{
 		private readonly UnitObject unitObject;
 
-		public InputContributor(UnitObject unitObject)
+		// 스프린트 속도 배율. UnitMovement 의 [SerializeField] 에서 주입 — JumpContributor 와 같은 경로.
+		private readonly float sprintSpeedMultiplier;
+
+		public InputContributor(UnitObject unitObject, float sprintSpeedMultiplier)
 		{
 			this.unitObject = unitObject;
+			this.sprintSpeedMultiplier = sprintSpeedMultiplier;
 		}
 
 		public void Contribute(MotorContext context, float deltaTime)
@@ -40,7 +44,7 @@ namespace WitchMendokusai
 		{
 			float moveSpeed = unitObject.UnitStat[UnitStatType.MOVEMENT_SPEED] / 10f;
 			if (unitObject.UnitStat[UnitStatType.IS_SPRINTING] > 0)
-				moveSpeed *= 2f; // TODO: 스프린트 속도 하드코딩 — 2026-03-28. KarmoDDrine
+				moveSpeed *= sprintSpeedMultiplier;
 
 			return moveSpeed;
 		}

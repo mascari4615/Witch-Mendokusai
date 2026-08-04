@@ -15,6 +15,10 @@ namespace WitchMendokusai
 	/// </summary>
 	public class UnitMovement : MonoBehaviour
 	{
+		// Move tuning.
+		[Header("Move Tuning")]
+		[SerializeField] private float sprintSpeedMultiplier = 2f;
+
 		// Jump tuning. 디폴트는 *비점프 unit 중립 값* (multiplier 1.0 = 추가 중력 없음).
 		// 점프하는 unit(Player 등)은 prefab에서 오버라이드.
 		[Header("Jump Tuning")]
@@ -85,7 +89,7 @@ namespace WitchMendokusai
 			// IsExternallyDriven=true 표시. Input은 그 플래그 보고 자기 기여 보류.
 			externalImpulse = new ExternalImpulseContributor();
 			motor.AddContributor(externalImpulse);
-			motor.AddContributor(new InputContributor(unitObject));
+			motor.AddContributor(new InputContributor(unitObject, sprintSpeedMultiplier));
 			motor.AddContributor(new GravityContributor());
 
 			jumpContributor = new JumpContributor(
