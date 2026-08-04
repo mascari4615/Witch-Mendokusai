@@ -20,6 +20,19 @@ namespace WitchMendokusai.Tests
 		private const float SETTLE_TOLERANCE = 0.05f;
 		private const float WALK_SPEED = 2f;
 
+		/// <summary>
+		/// 지금 밟고 있는 면의 오르막 방향. 「+z 가 오르막」처럼 손으로 박으면 회전 부호를 한 번만
+		/// 잘못 읽어도 시험이 조용히 반대를 재고, 그 상태로 GREEN 이 나올 수도 있다(실제로 처음에 그랬다).
+		/// 중력을 면에 투영하면 내리막이 나온다 = 기하에서 유도. 지형이 바뀌어도 안 뒤집힌다.
+		/// </summary>
+		private static Vector3 UphillDirection(MotorTestHarness harness)
+		{
+			Vector3 downhill = Vector3.ProjectOnPlane(Vector3.down, harness.Context.GroundNormal);
+			Assert.That(downhill.sqrMagnitude, Is.GreaterThan(0.0001f),
+				"면이 평평하다 — 비탈 시험인데 기울기가 0");
+			return -downhill.normalized;
+		}
+
 		/// <summary>걸을 수 있는 비탈 = 착지하고, 그 자리에 머문다. 저절로 흘러내리면 RED.</summary>
 		[Test]
 		public void LandingOnWalkableSlope_StaysGroundedAndDoesNotSlide()
@@ -64,8 +77,7 @@ namespace WitchMendokusai.Tests
 				Assert.That(harness.IsGrounded, Is.True, "출발 전 접지 실패 — 시험 전제가 안 섰다");
 				float startY = harness.Position.y;
 
-				// X 축 둘레로 +30° 기운 면 = +z 로 가면 오르막.
-				harness.SetHorizontalIntent(Vector3.forward, WALK_SPEED);
+				harness.SetHorizontalIntent(UphillDirection(harness), WALK_SPEED);
 				for (int step = 0; step < 120; step++)
 				{
 					harness.Step();
@@ -95,7 +107,7 @@ namespace WitchMendokusai.Tests
 				Assert.That(harness.IsGrounded, Is.True, "출발 전 접지 실패 — 시험 전제가 안 섰다");
 				float startY = harness.Position.y;
 
-				harness.SetHorizontalIntent(Vector3.back, WALK_SPEED);
+				harness.SetHorizontalIntent(-UphillDirection(harness), WALK_SPEED);
 				for (int step = 0; step < 120; step++)
 				{
 					harness.Step();
