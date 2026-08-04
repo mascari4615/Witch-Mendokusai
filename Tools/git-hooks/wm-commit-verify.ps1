@@ -83,7 +83,10 @@ $scene = @()
 
 if ($parentCount -le 1)
 {
-    $rawOutput = git show --name-status --format= $Sha 2>$null
+    # core.quotepath=false — 기본값(on) 이면 비-ASCII 경로를 "..\355\225\234..." 로 감싸 내보낸다.
+    # 그러면 아래 확장자 정규식(\.cs$ 등)이 끝의 따옴표 때문에 안 맞아, **한글 이름 파일이 집계에서
+    # 통째로 빠진다**. WM 은 자산·문서 이름에 한글을 흔히 쓰므로 조용한 사각지대가 된다.
+    $rawOutput = git -c core.quotepath=false show --name-status --format= $Sha 2>$null
     $lines = @()
     if ($null -ne $rawOutput)
     {
