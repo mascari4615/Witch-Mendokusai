@@ -87,8 +87,14 @@ function Get-BuildStageLadder {
     if ($Platform -eq 'android') {
         $ladder += @{ Key = 'sdk';     Label = '안드로이드 도구 점검';  Patterns = @('Detecting Android SDK', 'Detect Android NDK', 'Check Android Player Settings') }
         $ladder += @{ Key = 'native';  Label = '네이티브 변환 (IL2CPP)'; Patterns = @('Fetching assembly references') }
-        $ladder += @{ Key = 'package'; Label = '패키징 (Gradle)';       Patterns = @('Check gradle project collisions', 'Incremental Player Build', 'Building Gradle project') }
-        $ladder += @{ Key = 'finish';  Label = '마무리·서명';           Patterns = @('Build Successful', 'Validate Gradle Project', 'IPostGenerateGradleAndroidProject') }
+        # 로그 순서 실측(run #11): collisions 41449 → Incremental Player Build 41459 →
+        # IPostGenerate 41597 → Validate 41623 → Building Gradle 41626 → bee_backend 마지막
+        # 41489 → Build Successful 46951. 즉 「collisions 가 보이면 곧 끝」이 아니다 —
+        # 그 뒤로도 네이티브 컴파일이 십수 분 더 돈다. 「패키징」 한 단어로 뭉뚱그리면
+        # 카드가 거의 다 된 것처럼 보이므로 두 칸으로 나눈다.
+        $ladder += @{ Key = 'project'; Label = '안드로이드 프로젝트 생성'; Patterns = @('Check gradle project collisions', 'Incremental Player Build') }
+        $ladder += @{ Key = 'gradle';  Label = 'Gradle 빌드·네이티브 마무리'; Patterns = @('Building Gradle project', 'Validate Gradle Project', 'IPostGenerateGradleAndroidProject') }
+        $ladder += @{ Key = 'finish';  Label = '마무리·서명';           Patterns = @('Build Successful') }
     } else {
         $ladder += @{ Key = 'native';  Label = '네이티브 변환 (IL2CPP)'; Patterns = @('Fetching assembly references') }
         $ladder += @{ Key = 'finish';  Label = '마무리';                Patterns = @('Build Successful') }
