@@ -750,8 +750,12 @@ namespace WitchMendokusai
 
 			if (vision != null)
 			{
+				// ★ 안개는 *땅을 어둡게* 하는 것이지 인형을 덮는 판때기가 아니다(사용자 실증:
+				//   "안개랑 길도 마찬가지. 뭐 유닛들 가리고 난리났어. 롤처럼 오브젝트 아예 안보이게
+				//   하던지 해야지 판떼기로 가리려고 하지 않았으면"). 높이를 인형 머리 위(0.9)에서
+				//   땅 바로 위로 내린다 — 못 본 자리의 *개체*는 렌더러를 꺼서 감춘다(ApplyEnemyVisibility).
 				fogView = TowerDefenseFogView.Create(
-					stageRoot, mapLayout.Width, mapLayout.Length, activeGroundWidth, activeGroundLength, 0.9f);
+					stageRoot, mapLayout.Width, mapLayout.Length, activeGroundWidth, activeGroundLength, stage.FogHeight);
 				RefreshVision();
 			}
 		}
@@ -2470,7 +2474,7 @@ namespace WitchMendokusai
 				fogView = null;
 			}
 			fogView = TowerDefenseFogView.Create(
-				stageRoot, mapLayout.Width, mapLayout.Length, activeGroundWidth, activeGroundLength, 0.9f);
+				stageRoot, mapLayout.Width, mapLayout.Length, activeGroundWidth, activeGroundLength, stage.FogHeight);
 
 			RebuildPathing();
 			RefreshVision();
