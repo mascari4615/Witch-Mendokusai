@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace WitchMendokusai.Tests
@@ -50,7 +49,6 @@ namespace WitchMendokusai.Tests
 		private readonly GameObject geometryRoot;
 		private readonly Transform characterTransform;
 		private readonly Rigidbody characterRigidBody;
-		private readonly List<Collider> ownedColliders = new();
 		private readonly bool previousAutoSyncTransforms;
 
 		private bool disposed;
@@ -115,8 +113,7 @@ namespace WitchMendokusai.Tests
 			box.transform.SetPositionAndRotation(center, rotation);
 			box.transform.localScale = size;
 
-			BoxCollider collider = box.AddComponent<BoxCollider>();
-			ownedColliders.Add(collider);
+			box.AddComponent<BoxCollider>();
 
 			Physics.SyncTransforms();
 			return box;
@@ -195,8 +192,6 @@ namespace WitchMendokusai.Tests
 				UnityEngine.Object.DestroyImmediate(characterObject);
 			if (geometryRoot != null)
 				UnityEngine.Object.DestroyImmediate(geometryRoot);
-
-			ownedColliders.Clear();
 		}
 	}
 
