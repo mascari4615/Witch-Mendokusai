@@ -2850,6 +2850,7 @@ namespace WitchMendokusai
 			float resourceWeight = 0f;
 			float essenceWeight = 0f;
 			DisconnectedHarvesters = 0;
+			WorkingHarvesters = 0;
 			OuterHarvesters = 0;
 			SuppliedOuterHarvesters = 0;
 			PoweredOuterHarvesters = 0;
@@ -2891,6 +2892,8 @@ namespace WitchMendokusai
 				if (IsPowered(building) == false)
 					continue; // 전기가 끊긴 채집은 캐지 못한다.
 
+				WorkingHarvesters++; // 여기까지 온 것만 실제로 번다 — 화면이 이 수를 말해야 정직하다.
+
 				float multiplier = HarvesterMultiplierOf(building);
 				if (outer)
 					essenceWeight += multiplier;
@@ -2903,6 +2906,13 @@ namespace WitchMendokusai
 
 		/// <summary> 보급이 끊긴 채집 인형 수 — 화면이 「왜 수입이 줄었나」를 말해줘야 한다. </summary>
 		public int DisconnectedHarvesters { get; private set; }
+
+		/// <summary>
+		/// *실제로 버는* 채집 인형 수 — 보급도 이어졌고 전기도 들어온 것만.
+		/// ★ 화면이 「채집 N기」라며 지은 수를 말하면, 다섯 채 중 둘만 일해도 다섯이라고 한다.
+		///   그러면 「왜 수입이 이것밖에 안 되지」가 영영 안 풀린다.
+		/// </summary>
+		public int WorkingHarvesters { get; private set; }
 
 		/// <summary> 코어까지 이어진 건물 수 — 검증·진단용. </summary>
 		public int SuppliedBuildings => supplyChain.ConnectedCount;

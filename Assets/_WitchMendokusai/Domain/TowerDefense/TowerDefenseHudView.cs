@@ -1233,9 +1233,8 @@ namespace WitchMendokusai
 				+ (string.IsNullOrEmpty(adaptationText) ? string.Empty : "  ·  " + adaptationText)
 				+ heroText;
 
-			enemyValue.text = match.Phase == TowerDefensePhase.Assault
-				? match.AliveEnemyCount.ToString()
-				: "-";
+			// 실시간에는 국면이 없다 — 늘 교전 중이라 이 조건은 항상 참이었다(페이즈제 잔재).
+			enemyValue.text = match.AliveEnemyCount.ToString();
 
 			// 「기본 + 채집 N기」로 쪼개 보여준다 — 총액만 보이면 그 숫자가 어디서 왔는지 알 수 없다.
 			// 끊긴 채집이 있으면 그 사실이 수입 옆에 붙어야 한다 — 안 그러면 「왜 수입이 줄었지」가 미스터리가 된다.
@@ -1243,9 +1242,15 @@ namespace WitchMendokusai
 				? "  ⚠ 보급 끊김 " + match.DisconnectedHarvesters
 				: string.Empty;
 
-			incomeValue.text = match.HarvesterCount > 0
-				? match.NextWaveIncome + " (기본 " + stage.Rules.BaseWaveIncome + " + 채집 " + match.HarvesterCount + "기)"
-				: match.NextWaveIncome.ToString();
+			// ★ 「채집 N기」는 *실제로 버는* 수여야 한다. 지은 수를 말하면 다섯 채 중 둘만 일해도
+			//   다섯이라 하고, 그러면 「왜 수입이 이것밖에 안 되지」가 영영 안 풀린다.
+			//   지은 수와 다르면 둘 다 보여준다 — 「몇 채가 놀고 있나」가 곧 다음에 할 일이다.
+			string harvesterNote = match.HarvesterCount > 0
+				? (match.WorkingHarvesters == match.HarvesterCount
+					? " (기본 " + stage.Rules.BaseWaveIncome + " + 채집 " + match.WorkingHarvesters + "기)"
+					: " (기본 " + stage.Rules.BaseWaveIncome + " + 채집 " + match.WorkingHarvesters + "/" + match.HarvesterCount + "기)")
+				: string.Empty;
+			incomeValue.text = match.NextWaveIncome + harvesterNote;
 			incomeValue.text += supplyNote;
 
 			livesValue.text = match.UsesLives ? match.Lives.ToString() : "-";
