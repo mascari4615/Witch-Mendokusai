@@ -547,21 +547,10 @@ namespace WitchMendokusai
 		/// </summary>
 		public bool CanBuildAt(Vector3 worldPosition)
 		{
-			return IsMatchOver == false
-				&& IsInsideWindow(worldPosition)
+			return IsInsideWindow(worldPosition)
 				&& IsObstacleAt(worldPosition) == false
 				&& IsInBuildableRange(worldPosition);
 		}
-
-		/// <summary>
-		/// 판이 끝났나 — 끝난 판에는 아무것도 더 못 짓는다.
-		///
-		/// ★ 라이브에서 잡았다: 목숨이 0 이 되어 결말 화면이 떠 있는데도 건물이 계속 세워졌다.
-		///   끝난 판에 손을 대면 「무엇이 그 성적을 만들었나」가 흐려지고(요약은 끝난 시점을 말하는데
-		///   화면엔 그 뒤에 세운 것이 서 있다), 다시 도전을 누르기 전까지 판이 끝난 것도 안 끝난 것도
-		///   아닌 상태가 된다. 끝은 끝이어야 한다.
-		/// </summary>
-		public bool IsMatchOver => Outcome != TowerDefenseOutcome.InProgress;
 
 		/// <summary>
 		/// 함정 깔기 — 밟으면 터진다. 길목과 직결되므로 벽(길 그리기)의 짝.
@@ -1385,14 +1374,8 @@ namespace WitchMendokusai
 			&& core.WaveIndex < core.FirstAutoWave
 			&& core.IsNextWaveRequested == false;
 
-		/// <summary>
-		/// 이번 판의 자원 노드 위치 — **무대 로컬 좌표**다. 쓰기 전에 `StageRoot.TransformPoint` 로 옮겨야 한다.
-		///
-		/// ★ 이름에 로컬을 박아둔 이유: 옆의 배치 API(TryPlaceHarvester/CanBuildAt/TryFindPlaceableNode)는
-		///   전부 *월드* 를 받는다. 그대로 넘기면 판이 원점에서 멀리 있을 때(개척은 z≈2000) 전부 조용히
-		///   거절당한다 — 오류도 로그도 없이 「왜 안 지어지지」만 남는다(실측: 노드까지 1906칸으로 계산됨).
-		/// </summary>
-		public IReadOnlyList<Vector3> ActiveResourceNodeLocalPositions => activeNodePositions;
+		/// <summary> 이번 판의 자원 노드 위치(무대 로컬) — 절차 생성이면 매 판 다르다. </summary>
+		public IReadOnlyList<Vector3> ActiveResourceNodePositions => activeNodePositions;
 
 		/// <summary> 그 자리가 지금 보이는가 — 안 보이면 포탑도 못 쏘고 마수도 안 그려진다. </summary>
 		public bool IsVisibleAt(Vector3 worldPosition)
@@ -3494,8 +3477,6 @@ namespace WitchMendokusai
 		{
 			if (core == null || pool == null)
 				return false;
-			if (IsMatchOver)
-				return false; // 끝난 판에선 팔 수도 없다 — 짓기와 같은 이유(끝은 끝이다).
 
 			Vector3Int cellKey = ToCellKey(worldPosition);
 			if (occupiedCells.Contains(cellKey) == false)
