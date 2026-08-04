@@ -1,0 +1,61 @@
+name: WM workflow lint (PS 5.1 safety)
+
+# 워크플로가 노트북(PowerShell 5.1)에서 죽는 형태로 밀리는 것을 막는 게이트.
+#
+# 사고 기록: Actions 는 `run:` 블록을 BOM 없는 임시 .ps1 로 떨구고 PS 5.1 은 그걸
+# cp949 로 읽는다. 그래서 `run:` 안의 한글이 깨지고, 깨진 바이트가 따옴표로 변하면
+# 스크립트가 통째로 파싱 실패한다 — build run #12 는 APK 를 다 굽고도 알림 단계에서
+# 죽었다. 사람 눈으로는 멀쩡해 보이는 코드라 리뷰로 잡히지 않는다 → 기계가 잡는다.
+#
+# 검사 자체는 .github/scripts/check-workflow-ascii.ps1 (BOM 유지). 여기선 배선만.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/**'
+      - '.github/scripts/**'
+  pull_request:
+    paths:
+      - '.github/workflows/**'
+      - '.github/scripts/**'
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: wm-workflow-lint-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    # 노트북 러너를 쓰지 않는다 — 빌드 중이면 줄을 서게 되고, 이 검사는 몇 초짜리다.
+    # (공개 저장소라 GitHub 호스트 러너는 무료)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Check run blocks survive BOM-less PS 5.1
+        shell: powershell
+        run: |
+          powershell -NoProfile -ExecutionPolicy Bypass -File .github/scripts/check-workflow-ascii.ps1
+
+      - name: Check repo scripts keep their UTF-8 BOM
+        shell: powershell
+        run: |
+          $missing = @()
+          foreach ($file in Get-ChildItem .github/scripts -Filter *.ps1) {
+            $bytes = [System.IO.File]::ReadAllBytes($file.FullName)
+            $hasBom = $bytes.Length -ge 3 -and $bytes[0] -eq 0xEF -and $bytes[1] -eq 0xBB -and $bytes[2] -eq 0xBF
+            # Korean range written as escapes on purpose: a literal Korean class here
+            # would itself be corrupted by the very bug this gate guards against.
+            $hasKorean = (Get-Content $file.FullName -Raw) -match '[\uAC00-\uD7A3]'
+            if ($hasKorean -and -not $hasBom) { $missing += $file.Name }
+          }
+          if ($missing.Count -gt 0) {
+            Write-Host "These scripts hold Korean text but lost the UTF-8 BOM, so PS 5.1 will mis-decode them:"
+            $missing | ForEach-Object { Write-Host "  $_" }
+            exit 1
+          }
+          Write-Host 'OK - Korean-bearing scripts all keep a BOM.'

@@ -1,16 +1,14 @@
-﻿# WM 빌드 카드 — 디스코드 카드 하나를 만들고 그 자리에서 고쳐 쓴다 (TASK-WM-197).
+﻿# WM 빌드 실행·보고 — 워크플로의 실제 살림 (TASK-WM-197).
 #
-# 왜: 빌드가 30~40분간 완전히 침묵한다. 그렇다고 단계마다 메시지를 쌓으면 채널이
-# 진행 로그로 도배돼 정작 결과가 묻힌다. 그래서 카드 *하나* 를 계속 갱신한다.
+# ★ 왜 로직이 여기 있나 (워크플로 안이 아니라):
+#   GitHub Actions 는 `run:` 블록을 **BOM 없는 임시 .ps1** 로 떨구고, PowerShell 5.1 은
+#   그걸 cp949 로 읽는다. 그래서 `run:` 안에 한글이 있으면 글자가 깨지고, 깨진 바이트가
+#   따옴표로 변하는 순간 스크립트가 통째로 파싱 실패한다 (실측: run #12 의 '버전' 한 단어가
+#   빌드 성공 후 알림 단계를 죽였다). 워크플로에는 ASCII 배선만 두고, 한글이 필요한 로직은
+#   BOM 이 있는 이 파일에 모은다.
+#   → 이 파일은 **UTF-8 BOM 유지 필수**. BOM 이 날아가면 같은 사고가 재발한다.
 #
-# 누가 쓰나: build.yml 의 「Build player」(카드 생성 + 진행 갱신) 와
-# 「Notify Discord」(같은 카드를 최종 결과로 마감). 두 step 이 같은 정의를 쓰도록
-# 여기 한 곳에만 둔다.
-#
-# 인코딩: PS 5.1 은 BOM 없는 UTF-8 을 cp949 로 오독한다 → 이 파일은 BOM 유지 필수.
-
-# StrictMode 는 걸지 않는다 — 이 파일은 *dot-source* 되므로 호출한 step 의 의미까지
-# 바꿔버린다 (남의 코드 규칙을 조용히 갈아끼우는 셈).
+# 구성: 빌드 실행(진행 카드 갱신 포함) / 결과 보고 / 남은 프로세스 정리.
 
 $script:LaptopOpsUri = 'http://127.0.0.1:47615'
 
@@ -36,7 +34,7 @@ function New-BuildCard {
             -Headers @{ Authorization = "Bearer $Token" } -ContentType 'application/json' -Body $body -TimeoutSec 20
         return $response.messageId
     } catch {
-        Write-Warning "빌드 카드 게시 실패: $($_.Exception.Message)"
+        Write-Warning "build card post failed: $($_.Exception.Message)"
         return $null
     }
 }
@@ -49,7 +47,7 @@ function Set-BuildCard {
             -Headers @{ Authorization = "Bearer $Token" } -ContentType 'application/json' -Body $body -TimeoutSec 20 | Out-Null
         return $true
     } catch {
-        Write-Warning "빌드 카드 갱신 실패: $($_.Exception.Message)"
+        Write-Warning "build card update failed: $($_.Exception.Message)"
         return $false
     }
 }
@@ -59,14 +57,14 @@ function Set-BuildCard {
 # 그 칸을 그냥 건너뛴다 (마지막으로 확인된 단계가 곧 현재 단계).
 function Get-BuildStageLadder {
     return @(
-        @{ Key = 'open';     Label = '프로젝트 여는 중';   Patterns = @('Refreshing native plugins', 'Initialize engine version') },
-        @{ Key = 'compile';  Label = '스크립트 컴파일';    Patterns = @('DisplayProgressbar: Compiling Scripts') },
-        @{ Key = 'prepare';  Label = '빌드 준비';          Patterns = @('Switch To Build Platform', 'Build Player Scripts', 'Processing Addressable Group') },
-        @{ Key = 'bundle';   Label = '에셋 번들 굽기';     Patterns = @('Write Serialized Files', 'Archive And Compress Bundles', 'Post Processing Catalog Entries') },
-        @{ Key = 'sdk';      Label = '안드로이드 도구 점검'; Patterns = @('Detecting Android SDK', 'Detect Android NDK', 'Check Android Player Settings') },
-        @{ Key = 'native';   Label = '네이티브 변환 (IL2CPP)'; Patterns = @('Fetching assembly references') },
-        @{ Key = 'package';  Label = '패키징 (Gradle)';    Patterns = @('Check gradle project collisions', 'Incremental Player Build', 'Building Gradle project') },
-        @{ Key = 'finish';   Label = '마무리·서명';        Patterns = @('Build Successful', 'Validate Gradle Project', 'IPostGenerateGradleAndroidProject') }
+        @{ Key = 'open';    Label = '프로젝트 여는 중';      Patterns = @('Refreshing native plugins', 'Initialize engine version') },
+        @{ Key = 'compile'; Label = '스크립트 컴파일';       Patterns = @('DisplayProgressbar: Compiling Scripts') },
+        @{ Key = 'prepare'; Label = '빌드 준비';             Patterns = @('Switch To Build Platform', 'Build Player Scripts', 'Processing Addressable Group') },
+        @{ Key = 'bundle';  Label = '에셋 번들 굽기';        Patterns = @('Write Serialized Files', 'Archive And Compress Bundles', 'Post Processing Catalog Entries') },
+        @{ Key = 'sdk';     Label = '안드로이드 도구 점검';  Patterns = @('Detecting Android SDK', 'Detect Android NDK', 'Check Android Player Settings') },
+        @{ Key = 'native';  Label = '네이티브 변환 (IL2CPP)'; Patterns = @('Fetching assembly references') },
+        @{ Key = 'package'; Label = '패키징 (Gradle)';       Patterns = @('Check gradle project collisions', 'Incremental Player Build', 'Building Gradle project') },
+        @{ Key = 'finish';  Label = '마무리·서명';           Patterns = @('Build Successful', 'Validate Gradle Project', 'IPostGenerateGradleAndroidProject') }
     )
 }
 
@@ -92,18 +90,11 @@ function Get-ProgressBar {
     return ('▰' * $filled) + ('▱' * ($Total - $filled))
 }
 
-# 진행 중 카드 본문. 경과 시간을 같이 보여준다 — 「몇 분째인가」가 「어느 단계인가」
-# 만큼 궁금하고, 평소보다 오래 걸리는지도 이걸로 안다.
+# 진행 중 카드. 경과 시간을 같이 보여준다 — 「몇 분째인가」가 「어느 단계인가」만큼
+# 궁금하고, 평소보다 오래 걸리는지도 이걸로 안다.
 function New-ProgressRich {
-    param(
-        [int]$StageIndex,
-        [string]$Platform,
-        [string]$BuildType,
-        [string]$Commit,
-        [datetime]$StartedAt,
-        [string]$RunUrl,
-        [int]$RunNumber
-    )
+    param([int]$StageIndex, [string]$Platform, [string]$BuildType, [string]$Commit,
+        [datetime]$StartedAt, [string]$RunUrl, [string]$RunNumber)
     $ladder = Get-BuildStageLadder
     $stage = $ladder[$StageIndex]
     $elapsed = [Math]::Round(((Get-Date) - $StartedAt).TotalMinutes, 1)
@@ -119,4 +110,267 @@ function New-ProgressRich {
         url    = $RunUrl
         footer = "run #$RunNumber · 노트북 빌드머신"
     }
+}
+
+<#
+.SYNOPSIS
+유니티 배치 빌드를 돌리면서 진행 카드를 갱신한다.
+.DESCRIPTION
+유니티를 -Wait 없이 띄우고 로그의 *새로 붙은 부분만* 읽어 단계를 판정한다.
+완성 로그가 7MB 까지 가므로 매번 통독하면 폴링이 빌드를 방해한다.
+반환: @{ ExitCode; OutDir; OutFile; Report; UnityLog; CardId }
+#>
+function Invoke-WmBuild {
+    param(
+        [string]$UnityExe, [string]$Platform, [string]$BuildType, [string]$Version,
+        [string]$BuildRoot, [string]$ProjectPath, [string]$RunNumber, [string]$Commit, [string]$RunUrl
+    )
+    $stamp = Get-Date -Format 'yyyyMMdd-HHmmss'
+    $outDir = Join-Path $BuildRoot "$stamp-$RunNumber-$Platform"
+    $outFile = Join-Path $outDir $(if ($Platform -eq 'android') { 'WitchMendokusai.apk' } else { 'WitchMendokusai.exe' })
+    $report = Join-Path $outDir 'build-report.json'
+    $unityLog = Join-Path $outDir 'unity-build.log'
+    New-Item -ItemType Directory -Force -Path $outDir | Out-Null
+
+    $arguments = @(
+        '-quit', '-batchmode', '-nographics',
+        '-projectPath', $ProjectPath,
+        '-logFile', $unityLog,
+        '-executeMethod', 'WitchMendokusai.EditorTools.WMBuilder.BuildFromCLI',
+        '-wmOut', $outFile,
+        '-wmReport', $report,
+        '-wmTarget', $Platform,
+        '-wmBuildNumber', $RunNumber,
+        '-wmCommit', $Commit
+    )
+    if ($BuildType -eq 'development') { $arguments += '-wmDev' }
+    if (-not [string]::IsNullOrWhiteSpace($Version)) { $arguments += @('-wmVersion', $Version) }
+
+    $token = Get-LaptopOpsToken
+    $startedAt = Get-Date
+    $stageIndex = 0
+    $cardId = $null
+    if ($token) {
+        $cardId = New-BuildCard -Token $token -Rich (New-ProgressRich -StageIndex 0 -Platform $Platform `
+                -BuildType $BuildType -Commit $Commit -StartedAt $startedAt -RunUrl $RunUrl -RunNumber $RunNumber)
+    }
+
+    Write-Host "Unity args: $($arguments -join ' ')"
+    $process = Start-Process -FilePath $UnityExe -ArgumentList $arguments -PassThru -WindowStyle Hidden
+
+    $reader = $null
+    $lastPost = Get-Date
+    $lastStage = -1
+    while ($process.HasExited -eq $false) {
+        Start-Sleep -Seconds 20
+        try {
+            if (-not $reader -and (Test-Path $unityLog)) {
+                # ReadWrite 공유로 열어 유니티 쓰기를 막지 않는다.
+                $stream = [System.IO.File]::Open($unityLog, 'Open', 'Read', 'ReadWrite')
+                $reader = New-Object System.IO.StreamReader($stream)
+            }
+            if ($reader) {
+                $chunk = $reader.ReadToEnd()
+                if ($chunk) { $stageIndex = Get-StageIndexFromChunk -Chunk $chunk -CurrentIndex $stageIndex }
+            }
+        } catch {
+            Write-Warning "log poll failed (ignored): $($_.Exception.Message)"
+        }
+        # 단계가 바뀌었거나 5분이 지났으면 갱신 (Discord rate limit 여유).
+        if ($cardId -and (($stageIndex -ne $lastStage) -or (((Get-Date) - $lastPost).TotalMinutes -ge 5))) {
+            $lastStage = $stageIndex
+            $lastPost = Get-Date
+            Set-BuildCard -Token $token -MessageId $cardId -Rich (New-ProgressRich -StageIndex $stageIndex -Platform $Platform `
+                    -BuildType $BuildType -Commit $Commit -StartedAt $startedAt -RunUrl $RunUrl -RunNumber $RunNumber) | Out-Null
+        }
+    }
+    if ($reader) { $reader.Dispose() }
+
+    return @{
+        ExitCode = $process.ExitCode
+        OutDir   = $outDir
+        OutFile  = $outFile
+        Report   = $report
+        UnityLog = $unityLog
+        CardId   = $cardId
+    }
+}
+
+# 폰 설치 링크 — 단일 파일 산출물일 때만. 게이트웨이가 서명해 발급하므로 서명 비밀은
+# 워크플로/GitHub secret 어디에도 없다 (노트북 .env 안에서만 산다).
+function Get-InstallLink {
+    param([string]$Token, [string]$OutDir)
+    if (-not $OutDir -or -not (Test-Path $OutDir)) { return $null }
+    $artifact = Get-ChildItem $OutDir -File | Where-Object { $_.Extension -in '.apk', '.aab' } | Select-Object -First 1
+    if (-not $artifact) { return $null }
+    try {
+        $body = @{ build = (Split-Path $OutDir -Leaf); file = $artifact.Name; days = 1 } | ConvertTo-Json -Compress
+        $signed = Invoke-RestMethod -Uri "$script:LaptopOpsUri/dl/sign" -Method Post `
+            -Headers @{ Authorization = "Bearer $Token" } -ContentType 'application/json' -Body $body -TimeoutSec 20
+        return $signed.url
+    } catch {
+        Write-Warning "install link sign failed: $($_.Exception.Message)"
+        return $null
+    }
+}
+
+<#
+.SYNOPSIS
+빌드 결과를 카드로 마감한다 (진행 카드가 있으면 그 자리에서).
+#>
+function Publish-BuildResult {
+    param(
+        [string]$Status, [string]$Platform, [string]$BuildType, [string]$OutDir, [string]$Report,
+        [string]$UnityLog, [string]$CardId, [string]$Commit, [string]$RefName, [string]$RunUrl,
+        [string]$RunNumber, [string]$BuildRoot
+    )
+    $token = Get-LaptopOpsToken
+    if (-not $token) { Write-Warning 'laptop-ops token not found - skip notify'; return }
+
+    # 성공/실패/취소 3분기. 취소를 실패로 칠하면 「내가 껐다」와 「깨졌다」가 폰 화면에서
+    # 구분이 안 된다 — 볼 이유가 다른 사건이라 색·문구를 나눈다.
+    $ok = $Status -eq 'success'
+    $cancelled = $Status -eq 'cancelled'
+    if ($ok) { $icon = '🟢'; $level = 'info'; $statusWord = '성공' }
+    elseif ($cancelled) { $icon = '⚪'; $level = 'warning'; $statusWord = '취소됨' }
+    else { $icon = '🔴'; $level = 'error'; $statusWord = '실패' }
+
+    $fields = @()
+    $fields += @{ name = '플랫폼'; value = "$Platform / $BuildType"; inline = $true }
+    if ($Report -and (Test-Path $Report)) {
+        $json = Get-Content $Report -Raw | ConvertFrom-Json
+        $artifactMb = [Math]::Round($json.exeSizeBytes / 1MB, 1)
+        if ($artifactMb -le 0) { $artifactMb = [Math]::Round($json.totalSizeBytes / 1MB, 1) }
+        $fields += @{ name = '버전'; value = "v$($json.version)"; inline = $true }
+        $fields += @{ name = '크기'; value = "$artifactMb MB"; inline = $true }
+        $fields += @{ name = '빌드 시간'; value = "$([Math]::Round($json.totalSeconds / 60, 1)) 분"; inline = $true }
+        $fields += @{ name = '경고'; value = "$($json.warnings)"; inline = $true }
+        # 조용히 쌓이는 것 — 성공해도 0이 아닐 수 있고, 아무도 안 보면 어느 날 빌드가 멈춘다.
+        if ($json.errors -gt 0) {
+            $fields += @{ name = '⚠ 리포트 에러'; value = "$($json.errors) 건 (로그 확인 권장)"; inline = $true }
+        }
+    }
+    $fields += @{ name = '커밋'; value = "$Commit ($RefName)"; inline = $true }
+    if ($OutDir) { $fields += @{ name = '노트북 경로'; value = $OutDir; inline = $false } }
+
+    if ($BuildRoot) {
+        try {
+            $drive = Get-PSDrive -Name ($BuildRoot.Substring(0, 1)) -ErrorAction Stop
+            $freeGb = [Math]::Round($drive.Free / 1GB, 1)
+            if ($freeGb -lt 40) {
+                $fields += @{ name = '⚠ 노트북 디스크'; value = "$freeGb GB 남음 (빌드 하나가 3GB 안팎)"; inline = $true }
+            }
+        } catch { }
+    }
+
+    # 실패면 *원인까지* 폰에 실어 보낸다. 로그 경로만 주면 결국 컴퓨터 앞으로 가야 하는데,
+    # 그러면 알림이 「가서 봐라」 이상을 못 한다.
+    if (-not $ok) {
+        if ($UnityLog) { $fields += @{ name = '빌드 로그'; value = $UnityLog; inline = $false } }
+        if ($cancelled) {
+            $fields += @{ name = '무슨 일'; value = '사람이 중단시켰다. 남은 유니티는 정리했다.'; inline = $false }
+        } elseif ($UnityLog -and (Test-Path $UnityLog)) {
+            $lines = Get-Content $UnityLog -ErrorAction SilentlyContinue |
+                Where-Object { $_ -match 'error CS|Exception:|Build Failed|error:' } |
+                Select-Object -Last 6
+            if ($lines) {
+                # 임베드 필드는 1024자 상한 — 넘치면 Discord 가 메시지를 통째로 거부한다.
+                $excerpt = ($lines -join "`n")
+                if ($excerpt.Length -gt 900) { $excerpt = $excerpt.Substring($excerpt.Length - 900) }
+                $fields += @{ name = '에러 (마지막 몇 줄)'; value = '```' + "`n$excerpt`n" + '```'; inline = $false }
+            }
+        }
+    }
+
+    # 폰에서 임베드 속 링크는 탭 표적이 작다 → 설치 링크만 임베드 밖 본문(lead)으로 빼서
+    # 제목 크기로 렌더시킨다. 링크를 누르면 파일이 아니라 설치 페이지가 열린다.
+    $link = $null
+    if ($ok) { $link = Get-InstallLink -Token $token -OutDir $OutDir }
+    $lead = $null
+    if ($link) {
+        $lead = "## [📲 폰에 설치하기]($link)"
+        $bodyText = '링크 유효 1일 · 처음 한 번만 비밀번호 (고정 메시지 참고)'
+    } elseif ($ok) {
+        $bodyText = '산출물은 노트북에만 있다 (단일 파일이 아니라 설치 링크 없음).'
+    } elseif ($cancelled) {
+        $bodyText = '중단된 빌드라 산출물이 없다. 다시 돌리려면 실행 링크에서 재실행.'
+    } else {
+        $bodyText = '빌드가 깨졌다 — 아래 에러부터 확인.'
+    }
+
+    $rich = @{
+        lead   = $lead
+        title  = "$icon WM 빌드 $Platform — $statusWord"
+        body   = $bodyText
+        fields = $fields
+        level  = $level
+        url    = $RunUrl
+        footer = "run #$RunNumber · 노트북 빌드머신"
+    }
+
+    # 진행 카드가 있으면 *그 자리에서* 결과로 마감한다 — 진행하던 자리에 결과가 남는 게
+    # 자연스럽고, 새 메시지를 또 쌓지 않는다. 못 고치면 그때만 새로 게시한다.
+    if ($CardId) {
+        $updated = Set-BuildCard -Token $token -MessageId $CardId -Rich $rich
+        Write-Host "card closed ok=$updated id=$CardId link=$([bool]$link)"
+        if (-not $updated) { New-BuildCard -Token $token -Rich $rich | Out-Null }
+    } else {
+        $posted = New-BuildCard -Token $token -Rich $rich
+        Write-Host "card posted id=$posted link=$([bool]$link)"
+    }
+}
+
+<#
+.SYNOPSIS
+취소·실패 후 남은 유니티를 정리한다.
+.DESCRIPTION
+취소하면 runner 는 step 셸만 죽인다 — Start-Process 로 띄운 유니티는 살아남아 Library
+락을 쥔 채 남고, 다음 빌드가 그 자리에서 막힌다. 이 워크스페이스를 가리키는 유니티만
+골라 끝낸다 (노트북의 다른 유니티·에디터는 건드리지 않는다).
+#>
+function Stop-LeftoverUnity {
+    param([string]$Workspace)
+    $leftover = Get-CimInstance Win32_Process -Filter "Name='Unity.exe'" -ErrorAction SilentlyContinue |
+        Where-Object { $_.CommandLine -and $_.CommandLine -like "*$Workspace*" }
+    if (-not $leftover) { Write-Host 'no leftover unity'; return }
+    foreach ($p in $leftover) {
+        Write-Host "kill pid=$($p.ProcessId)"
+        Stop-Process -Id $p.ProcessId -Force -ErrorAction SilentlyContinue
+    }
+    Start-Sleep -Seconds 2
+    $still = Get-CimInstance Win32_Process -Filter "Name='Unity.exe'" -ErrorAction SilentlyContinue |
+        Where-Object { $_.CommandLine -and $_.CommandLine -like "*$Workspace*" }
+    if ($still) { Write-Warning "unity still alive: $(@($still).Count) - next build may block" }
+    else { Write-Host 'cleanup done' }
+}
+
+<#
+.SYNOPSIS
+GitHub Actions 실행 요약(Step Summary)에 빌드 결과 표를 쓴다.
+#>
+function Write-BuildSummary {
+    param([string]$Report, [string]$UnityLog, [string]$SummaryFile)
+    $lines = @()
+    if ($Report -and (Test-Path $Report)) {
+        $json = Get-Content $Report -Raw | ConvertFrom-Json
+        $sizeMb = [Math]::Round($json.exeSizeBytes / 1MB, 1)
+        $totalMb = [Math]::Round($json.totalSizeBytes / 1MB, 1)
+        $lines += "## 빌드 결과: $($json.result)"
+        $lines += ''
+        $lines += '| 항목 | 값 |'
+        $lines += '| --- | --- |'
+        $lines += "| 버전 | $($json.version) |"
+        $lines += "| 개발 빌드 | $($json.development) |"
+        $lines += "| 대상 | $($json.target) |"
+        $lines += "| 산출물 크기 | $sizeMb MB |"
+        $lines += "| 전체 크기 | $totalMb MB |"
+        $lines += "| 소요 | $([Math]::Round($json.totalSeconds / 60, 1)) 분 |"
+        $lines += "| 에러/경고 | $($json.errors) / $($json.warnings) |"
+        $lines += "| 노트북 경로 | ``$($json.outPath)`` |"
+    } else {
+        # 리포트가 없다는 것 자체가 정보다 — 유니티가 리포트를 쓰기 전에 죽었다는 뜻.
+        $lines += '## 빌드 결과: 리포트 없음 (Unity 가 리포트를 쓰기 전에 죽었다)'
+        $lines += "노트북 로그: ``$UnityLog``"
+    }
+    $lines -join "`n" | Out-File -FilePath $SummaryFile -Append -Encoding utf8
 }

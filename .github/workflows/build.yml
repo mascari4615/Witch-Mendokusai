@@ -67,216 +67,76 @@ jobs:
           clean: false
           fetch-depth: 1
 
-      # 프로젝트가 요구하는 에디터가 노트북에 없으면 *스스로 설치한다*. 에디터를 올릴 때마다
-      # 사람이 노트북에 붙어야 하면 빌드머신이 아니다. changeset 은 ProjectVersion.txt 가 들고 있다.
-      - name: Resolve Unity editor (없으면 자동 설치)
+      # The editor version + changeset come from ProjectVersion.txt; if that editor is
+      # missing on the laptop the script installs it headlessly (a build machine that
+      # needs a human every time the editor is bumped is not a build machine).
+      - name: Resolve Unity editor (auto-install when missing)
         id: unity
         shell: powershell
         run: |
           $ErrorActionPreference = 'Stop'
-          # PS 5.1 기본 콘솔 인코딩(cp949)이면 한글이 Actions 로그에서 깨진다.
           $OutputEncoding = [Console]::OutputEncoding = [Text.UTF8Encoding]::new()
-
-          $lines = Get-Content 'ProjectSettings/ProjectVersion.txt'
-          $version = (($lines | Where-Object { $_ -like 'm_EditorVersion:*' } | Select-Object -First 1) -split ':\s*', 2)[1].Trim()
-          $revLine = ($lines | Where-Object { $_ -like 'm_EditorVersionWithRevision:*' } | Select-Object -First 1)
-          $changeset = ''
-          if ($revLine -match '\(([0-9a-f]+)\)') { $changeset = $Matches[1] }
-
-          $exe = "C:\Program Files\Unity\Hub\Editor\$version\Editor\Unity.exe"
-          $il2cpp = "C:\Program Files\Unity\Hub\Editor\$version\Editor\Data\PlaybackEngines\windowsstandalonesupport\Variations\win64_player_nondevelopment_il2cpp"
-
-          # 안드로이드는 별도 모듈(SDK/NDK/JDK 포함, 약 10GB)이 필요하다. 없으면 여기서 멈춘다 —
-          # 빌드 도중 알 수 없는 실패로 새는 것보다 낫다. 설치는 Hub 로 한 번 해두면 유지된다.
-          if ('${{ inputs.platform }}' -eq 'android') {
-            $androidPlayer = "C:\Program Files\Unity\Hub\Editor\$version\Editor\Data\PlaybackEngines\AndroidPlayer"
-            if ((Test-Path $androidPlayer) -eq $false) {
-              throw "Unity $version 에 Android 모듈이 없다 ($androidPlayer). Unity Hub 로 android + SDK/NDK/JDK 설치 필요."
-            }
-            Write-Host "Android 모듈 확인됨."
-          }
-
-          if ((Test-Path $exe) -eq $false -or (Test-Path $il2cpp) -eq $false) {
-            if ([string]::IsNullOrEmpty($changeset)) {
-              throw "Unity $version 없음. ProjectVersion.txt 에 changeset 이 없어 자동 설치 불가 — Unity Hub 로 직접 설치 필요."
-            }
-            $installed = (Get-ChildItem 'C:\Program Files\Unity\Hub\Editor' -ErrorAction SilentlyContinue).Name -join ', '
-            Write-Host "Unity $version ($changeset) 없음 (설치된 것: [$installed]) — Hub headless 설치 시작. 수 GB 다운로드라 첫 회는 오래 걸린다."
-            $hub = 'C:\Program Files\Unity Hub\Unity Hub.exe'
-            if ((Test-Path $hub) -eq $false) { throw "Unity Hub 없음: $hub" }
-            $installLog = Join-Path $env:RUNNER_TEMP "unity-install-$version.log"
-            $arguments = @('--', '--headless', 'install', '--version', $version, '--changeset', $changeset, '--module', 'windows-il2cpp', '--childModules')
-            $process = Start-Process -FilePath $hub -ArgumentList $arguments -RedirectStandardOutput $installLog -RedirectStandardError "$installLog.err" -PassThru -Wait -WindowStyle Hidden
-            Write-Host "Hub install exit=$($process.ExitCode) (log: $installLog)"
-            if ((Test-Path $exe) -eq $false) {
-              if (Test-Path $installLog) { Get-Content $installLog -Tail 30 | Write-Host }
-              throw "Unity $version 자동 설치 실패."
-            }
-            if ((Test-Path $il2cpp) -eq $false) {
-              throw "Unity $version 은 설치됐는데 IL2CPP(win64) 모듈이 없다. WM 은 IL2CPP 백엔드라 필수."
-            }
-            Write-Host "Unity $version 자동 설치 완료."
-          }
-
-          "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
-          "exe=$exe"         | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
-          Write-Host "Unity $version -> $exe"
-
+          . "$env:GITHUB_WORKSPACE\.github\scripts\wm-unity-resolve.ps1"
+          $unity = Resolve-UnityEditor -Platform '${{ inputs.platform }}' -InstallLogDir $env:RUNNER_TEMP
+          "version=$($unity.Version)" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "exe=$($unity.Exe)"         | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
       - name: Build player (batchmode)
         id: build
         shell: powershell
+        # ASCII only in run: blocks. Actions writes them to a BOM-less temp .ps1 and
+        # PS 5.1 decodes as cp949 - Korean corrupts and can break parsing outright
+        # (run #12: one Korean word killed the notify step after a successful build).
+        # Korean text lives in the BOM-ed repo script .github/scripts/wm-build-card.ps1.
         run: |
           $ErrorActionPreference = 'Stop'
           $OutputEncoding = [Console]::OutputEncoding = [Text.UTF8Encoding]::new()
-          $stamp   = Get-Date -Format 'yyyyMMdd-HHmmss'
+          . "$env:GITHUB_WORKSPACE\.github\scripts\wm-build-card.ps1"
+
           $platform = '${{ inputs.platform }}'
-          if ([string]::IsNullOrWhiteSpace($platform)) { $platform = 'windows' }  # tag 빌드 = windows
-          $outDir  = Join-Path $env:BUILD_ROOT "$stamp-$env:GITHUB_RUN_NUMBER-$platform"
-          if ($platform -eq 'android') {
-            $outExe = Join-Path $outDir 'WitchMendokusai.apk'
-          } else {
-            $outExe = Join-Path $outDir 'WitchMendokusai.exe'
-          }
-          $report  = Join-Path $outDir 'build-report.json'
-          $unityLog = Join-Path $outDir 'unity-build.log'
-          New-Item -ItemType Directory -Force -Path $outDir | Out-Null
-
-          $arguments = @(
-            '-quit', '-batchmode', '-nographics',
-            '-projectPath', $PWD.Path,
-            '-logFile', $unityLog,
-            '-executeMethod', 'WitchMendokusai.EditorTools.WMBuilder.BuildFromCLI',
-            '-wmOut', $outExe,
-            '-wmReport', $report,
-            '-wmTarget', $platform
-          )
-          if ('${{ inputs.build_type }}' -eq 'development') { $arguments += '-wmDev' }
-
-          # tag push = 태그 이름이 곧 버전. 수동 실행은 version 입력이 있을 때만 덮어쓴다.
+          if ([string]::IsNullOrWhiteSpace($platform)) { $platform = 'windows' }
+          $buildType = '${{ inputs.build_type }}'
+          if ([string]::IsNullOrWhiteSpace($buildType)) { $buildType = 'release' }
           $version = '${{ inputs.version }}'
           if ($env:GITHUB_REF_TYPE -eq 'tag') { $version = $env:GITHUB_REF_NAME -replace '^v', '' }
-          if (-not [string]::IsNullOrWhiteSpace($version)) { $arguments += @('-wmVersion', $version) }
-
-          # 산출물에 「어느 빌드인지」를 새긴다. 실행 번호는 항상 증가하므로 안드로이드
-          # versionCode 로 그대로 쓸 수 있다 (같은 code 면 설치가 꼬인다).
-          $arguments += @('-wmBuildNumber', $env:GITHUB_RUN_NUMBER, '-wmCommit', '${{ github.sha }}'.Substring(0, 8))
-
-          # ★ 경로는 유니티를 띄우기 *전에* 기록한다. 끝난 뒤에 쓰면 취소·중단 시
-          # 알림 step 이 경로도 로그도 없이 나간다 (정작 원인을 봐야 할 때 빈손).
-          "out_dir=$outDir"   | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
-          "report=$report"    | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
-          "unity_log=$unityLog" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
-
-          # 진행 카드 — 빌드가 30~40분간 침묵하지 않도록, 카드 하나를 띄우고
-          # 로그를 따라가며 같은 자리에서 고쳐 쓴다. 알림 실패는 빌드를 막지 않는다.
-          . "$env:GITHUB_WORKSPACE\.github\scripts\wm-build-card.ps1"
-          $token = Get-LaptopOpsToken
-          $startedAt = Get-Date
           $commit = '${{ github.sha }}'.Substring(0, 8)
-          $runUrl = '${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}'
-          $stageIndex = 0
-          $cardId = $null
-          if ($token) {
-            $cardId = New-BuildCard -Token $token -Rich (New-ProgressRich -StageIndex 0 -Platform $platform `
-              -BuildType '${{ inputs.build_type }}' -Commit $commit -StartedAt $startedAt -RunUrl $runUrl -RunNumber $env:GITHUB_RUN_NUMBER)
-            if ($cardId) { "card_id=$cardId" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8 }
+
+          $result = Invoke-WmBuild `
+            -UnityExe '${{ steps.unity.outputs.exe }}' `
+            -Platform $platform -BuildType $buildType -Version $version `
+            -BuildRoot $env:BUILD_ROOT -ProjectPath $PWD.Path `
+            -RunNumber $env:GITHUB_RUN_NUMBER -Commit $commit `
+            -RunUrl '${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}'
+
+          "out_dir=$($result.OutDir)"     | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "report=$($result.Report)"      | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "unity_log=$($result.UnityLog)" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          if ($result.CardId) { "card_id=$($result.CardId)" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8 }
+
+          Write-Host "Unity exit=$($result.ExitCode)"
+          if (Test-Path $result.Report) { Get-Content $result.Report | Write-Host }
+          if ($result.ExitCode -ne 0) {
+            if (Test-Path $result.UnityLog) { Get-Content $result.UnityLog -Tail 120 | Write-Host }
+            throw "Unity build failed (exit=$($result.ExitCode)). log: $($result.UnityLog)"
           }
 
-          Write-Host "Unity args: $($arguments -join ' ')"
-          $process = Start-Process -FilePath '${{ steps.unity.outputs.exe }}' -ArgumentList $arguments -PassThru -WindowStyle Hidden
-
-          # 로그를 *새로 붙은 부분만* 읽는다 (완성 로그는 7MB 까지 간다 — 매번 통독하면
-          # 폴링이 빌드를 방해한다). ReadWrite 공유로 열어 유니티 쓰기를 막지 않는다.
-          $reader = $null
-          $lastPost = Get-Date
-          $lastStage = -1
-          while ($process.HasExited -eq $false) {
-            Start-Sleep -Seconds 20
-            try {
-              if (-not $reader -and (Test-Path $unityLog)) {
-                $stream = [System.IO.File]::Open($unityLog, 'Open', 'Read', 'ReadWrite')
-                $reader = New-Object System.IO.StreamReader($stream)
-              }
-              if ($reader) {
-                $chunk = $reader.ReadToEnd()
-                if ($chunk) { $stageIndex = Get-StageIndexFromChunk -Chunk $chunk -CurrentIndex $stageIndex }
-              }
-            } catch {
-              Write-Warning "로그 폴링 실패(무시): $($_.Exception.Message)"
-            }
-            # 단계가 바뀌었거나 5분이 지났으면 갱신 (Discord rate limit 여유 있게).
-            if ($cardId -and (($stageIndex -ne $lastStage) -or (((Get-Date) - $lastPost).TotalMinutes -ge 5))) {
-              $lastStage = $stageIndex
-              $lastPost = Get-Date
-              Set-BuildCard -Token $token -MessageId $cardId -Rich (New-ProgressRich -StageIndex $stageIndex -Platform $platform `
-                -BuildType '${{ inputs.build_type }}' -Commit $commit -StartedAt $startedAt -RunUrl $runUrl -RunNumber $env:GITHUB_RUN_NUMBER) | Out-Null
-            }
-          }
-          if ($reader) { $reader.Dispose() }
-          $exitCode = $process.ExitCode
-          Write-Host "Unity exit=$exitCode"
-
-          if (Test-Path $report) {
-            Write-Host '--- build report ---'
-            Get-Content $report | Write-Host
-          }
-          if ($exitCode -ne 0) {
-            Write-Host '--- unity log (tail 120) ---'
-            if (Test-Path $unityLog) { Get-Content $unityLog -Tail 120 | Write-Host }
-            throw "Unity 빌드 실패 (exit=$exitCode). 전체 로그: $unityLog"
-          }
-
-      # 취소하면 runner 는 step 셸만 죽인다 — `Start-Process` 로 띄운 유니티는 살아남아
-      # Library 락을 쥔 채 남고, 다음 빌드가 그 자리에서 막힌다. 이 워크스페이스를
-      # 가리키는 유니티만 골라 끝낸다 (노트북의 다른 유니티·에디터는 건드리지 않는다).
-      - name: 남은 유니티 정리 (취소·실패 시)
+      # Cancelling kills only the step shell; Unity started via Start-Process
+      # survives holding the Library lock and blocks the next build.
+      - name: Kill leftover Unity (on cancel or failure)
         if: cancelled() || failure()
         shell: powershell
         run: |
-          $OutputEncoding = [Console]::OutputEncoding = [Text.UTF8Encoding]::new()
-          $workspace = $env:GITHUB_WORKSPACE
-          $leftover = Get-CimInstance Win32_Process -Filter "Name='Unity.exe'" -ErrorAction SilentlyContinue |
-            Where-Object { $_.CommandLine -and $_.CommandLine -like "*$workspace*" }
-          if (-not $leftover) { Write-Host '남은 유니티 없음'; exit 0 }
-          foreach ($p in $leftover) {
-            Write-Host "kill pid=$($p.ProcessId) — $($p.CommandLine.Substring(0, [Math]::Min(120, $p.CommandLine.Length)))"
-            Stop-Process -Id $p.ProcessId -Force -ErrorAction SilentlyContinue
-          }
-          Start-Sleep -Seconds 2
-          $still = Get-CimInstance Win32_Process -Filter "Name='Unity.exe'" -ErrorAction SilentlyContinue |
-            Where-Object { $_.CommandLine -and $_.CommandLine -like "*$workspace*" }
-          if ($still) { Write-Warning "아직 살아있는 유니티 $($still.Count)개 — 다음 빌드가 막힐 수 있다." }
-          else { Write-Host '정리 완료' }
-
+          . "$env:GITHUB_WORKSPACE\.github\scripts\wm-build-card.ps1"
+          Stop-LeftoverUnity -Workspace $env:GITHUB_WORKSPACE
       - name: Summarize
         if: always()
         shell: powershell
         run: |
           $OutputEncoding = [Console]::OutputEncoding = [Text.UTF8Encoding]::new()
-          $report = '${{ steps.build.outputs.report }}'
-          $lines = @()
-          if ($report -and (Test-Path $report)) {
-            $json = Get-Content $report -Raw | ConvertFrom-Json
-            $sizeMb = [Math]::Round($json.exeSizeBytes / 1MB, 1)
-            $totalMb = [Math]::Round($json.totalSizeBytes / 1MB, 1)
-            $lines += "## 빌드 결과: $($json.result)"
-            $lines += ''
-            $lines += "| 항목 | 값 |"
-            $lines += "| --- | --- |"
-            $lines += "| 버전 | $($json.version) |"
-            $lines += "| 개발 빌드 | $($json.development) |"
-            $lines += "| 전체 크기 | $totalMb MB |"
-            $lines += "| 대상 | $($json.target) |"
-            $lines += "| 실행파일 크기 | $sizeMb MB |"
-            $lines += "| 소요 | $([Math]::Round($json.totalSeconds, 1)) 초 |"
-            $lines += "| 에러/경고 | $($json.errors) / $($json.warnings) |"
-            $lines += "| 노트북 경로 | ``$($json.outPath)`` |"
-          } else {
-            $lines += '## 빌드 결과: 리포트 없음 (Unity 가 리포트 쓰기 전에 죽었다)'
-            $lines += "노트북 로그: ``${{ steps.build.outputs.unity_log }}``"
-          }
-          $lines -join "`n" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
-
+          . "$env:GITHUB_WORKSPACE\.github\scripts\wm-build-card.ps1"
+          Write-BuildSummary `
+            -Report '${{ steps.build.outputs.report }}' `
+            -UnityLog '${{ steps.build.outputs.unity_log }}' `
+            -SummaryFile $env:GITHUB_STEP_SUMMARY
       - name: Zip
         if: ${{ success() && (inputs.publish == 'artifact' || github.ref_type == 'tag') }}
         shell: powershell
@@ -308,138 +168,28 @@ jobs:
           $asset = "WitchMendokusai-${{ github.ref_name }}-windows.zip"
           Copy-Item $zip (Join-Path (Split-Path $zip) $asset) -Force
           gh release upload '${{ github.ref_name }}' (Join-Path (Split-Path $zip) $asset) --clobber
-          if ($LASTEXITCODE -ne 0) { throw "release upload 실패 (exit=$LASTEXITCODE)" }
+          if ($LASTEXITCODE -ne 0) { throw "release upload failed (exit=$LASTEXITCODE)" }
 
-      - name: Notify Discord (yawnbot 경유)
+      # ASCII only here (see Build player step). All Korean card text lives in
+      # .github/scripts/wm-build-card.ps1, which keeps a UTF-8 BOM.
+      - name: Notify Discord (via laptop-ops)
         if: always()
         shell: powershell
         run: |
-          # 노트북 안에서 도는 runner 이므로 laptop-ops 를 localhost 로 부른다 (터널 불필요).
           $OutputEncoding = [Console]::OutputEncoding = [Text.UTF8Encoding]::new()
           . "$env:GITHUB_WORKSPACE\.github\scripts\wm-build-card.ps1"
-          $token = Get-LaptopOpsToken
-          if (-not $token) { Write-Warning 'laptop-ops 토큰 못 찾음 — 알림 skip'; exit 0 }
-
-          # 성공/실패/취소 3분기. 취소를 실패로 칠하면 「내가 껐다」와 「깨졌다」가
-          # 폰 화면에서 구분이 안 된다 — 볼 이유가 다른 사건이라 색·문구를 나눈다.
-          $status = '${{ job.status }}'
-          $ok = $status -eq 'success'
-          $cancelled = $status -eq 'cancelled'
-          if ($ok) { $icon = '🟢'; $level = 'info'; $statusWord = '성공' }
-          elseif ($cancelled) { $icon = '⚪'; $level = 'warning'; $statusWord = '취소됨' }
-          else { $icon = '🔴'; $level = 'error'; $statusWord = '실패' }
-          $platform = '${{ github.event.inputs.platform }}'
-          if (-not $platform) { $platform = 'windows' }
-          $buildType = '${{ github.event.inputs.build_type }}'
-          if (-not $buildType) { $buildType = 'release' }
-          $outDir = '${{ steps.build.outputs.out_dir }}'
-          $report = '${{ steps.build.outputs.report }}'
-          $runUrl = '${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}'
-
-          $fields = @()
-          $fields += @{ name = '플랫폼'; value = "$platform / $buildType"; inline = $true }
-          if ($report -and (Test-Path $report)) {
-            $json = Get-Content $report -Raw | ConvertFrom-Json
-            $artifactMb = [Math]::Round($json.exeSizeBytes / 1MB, 1)
-            if ($artifactMb -le 0) { $artifactMb = [Math]::Round($json.totalSizeBytes / 1MB, 1) }
-            $fields += @{ name = '버전'; value = "v$($json.version)"; inline = $true }
-            $fields += @{ name = '크기'; value = "$artifactMb MB"; inline = $true }
-            $fields += @{ name = '빌드 시간'; value = "$([Math]::Round($json.totalSeconds / 60, 1)) 분"; inline = $true }
-            $fields += @{ name = '경고'; value = "$($json.warnings)"; inline = $true }
-          }
-          $fields += @{ name = '커밋'; value = "$('${{ github.sha }}'.Substring(0,8)) ($('${{ github.ref_name }}'))"; inline = $true }
-
-          # 조용히 쌓이는 것들 — 아무도 안 보면 결국 어느 날 빌드가 멈춘다.
-          # ① 리포트의 errors (성공해도 0이 아닐 수 있다) ② 노트북 디스크 잔량.
-          if ($report -and (Test-Path $report)) {
-            $reportJson = Get-Content $report -Raw | ConvertFrom-Json
-            if ($reportJson.errors -gt 0) {
-              $fields += @{ name = '⚠ 리포트 에러'; value = "$($reportJson.errors) 건 (빌드는 났지만 로그 확인 권장)"; inline = $true }
-            }
-          }
-          try {
-            $drive = Get-PSDrive -Name ($env:BUILD_ROOT.Substring(0,1)) -ErrorAction Stop
-            $freeGb = [Math]::Round($drive.Free / 1GB, 1)
-            if ($freeGb -lt 40) {
-              $fields += @{ name = '⚠ 노트북 디스크'; value = "$freeGb GB 남음 (빌드 하나가 3GB 안팎)"; inline = $true }
-            }
-          } catch { }
-          if ($outDir) { $fields += @{ name = '노트북 경로'; value = "$outDir"; inline = $false } }
-
-          # 실패면 *원인까지* 폰에 실어 보낸다. 로그 경로만 주면 결국 컴퓨터 앞으로
-          # 가야 하는데, 그러면 알림이 「가서 봐라」 이상을 못 한다.
-          if (-not $ok) {
-            $unityLog = '${{ steps.build.outputs.unity_log }}'
-            if ($unityLog) { $fields += @{ name = '빌드 로그'; value = "$unityLog"; inline = $false } }
-            if ($cancelled) {
-              $fields += @{ name = '무슨 일'; value = '사람이 중단시켰다. 남은 유니티는 정리했다.'; inline = $false }
-            } elseif ($unityLog -and (Test-Path $unityLog)) {
-              $lines = Get-Content $unityLog -ErrorAction SilentlyContinue |
-                Where-Object { $_ -match 'error CS|Exception:|Build Failed|error:' } |
-                Select-Object -Last 6
-              if ($lines) {
-                # 임베드 필드는 1024자 상한 — 넘치면 Discord 가 통째로 거부한다.
-                $excerpt = ($lines -join "`n")
-                if ($excerpt.Length -gt 900) { $excerpt = $excerpt.Substring($excerpt.Length - 900) }
-                $fields += @{ name = '에러 (마지막 몇 줄)'; value = '```' + "`n" + $excerpt + "`n" + '```'; inline = $false }
-              }
-            }
-          }
-
-          # 폰 설치 링크 — 단일 파일 산출물(APK/AAB)일 때만. 게이트웨이가 서명해 발급하므로
-          # 서명 비밀은 워크플로/GitHub secret 어디에도 없다 (laptop-ops .env 안에서만 산다).
-          $link = $null
-          if ($ok -and $outDir -and (Test-Path $outDir)) {
-            $artifact = Get-ChildItem $outDir -File | Where-Object { $_.Extension -in '.apk', '.aab' } | Select-Object -First 1
-            if ($artifact) {
-              try {
-                $signBody = @{ build = (Split-Path $outDir -Leaf); file = $artifact.Name; days = 1 } | ConvertTo-Json -Compress
-                $signed = Invoke-RestMethod -Uri 'http://127.0.0.1:47615/dl/sign' -Method Post -Headers @{ Authorization = "Bearer $token" } -ContentType 'application/json' -Body $signBody -TimeoutSec 20
-                $link = $signed.url
-              } catch {
-                Write-Warning "설치 링크 발급 실패: $($_.Exception.Message)"
-              }
-            }
-          }
-
-          # 폰에서 임베드 속 링크는 탭 표적이 작다 → 설치 링크만 임베드 밖 본문(lead)으로
-          # 빼서 제목 크기로 렌더시킨다. 링크를 누르면 파일이 아니라 설치 페이지가 열리고,
-          # 거기서 버튼 한 번(비밀번호는 기기가 기억)으로 받는다.
-          $lead = $null
-          if ($link) {
-            $lead = "## [📲 폰에 설치하기]($link)"
-            $bodyText = '링크 유효 1일 · 처음 한 번만 비밀번호 (고정 메시지 참고)'
-          } elseif ($ok) {
-            $bodyText = '산출물은 노트북에만 있다 (단일 파일이 아니라 설치 링크 없음).'
-          } elseif ($cancelled) {
-            $bodyText = '중단된 빌드라 산출물이 없다. 다시 돌리려면 실행 링크에서 재실행.'
-          } else {
-            $bodyText = '빌드가 깨졌다 — 아래 에러부터 확인.'
-          }
-
-          $rich = @{
-            lead   = $lead
-            title  = "$icon WM 빌드 $platform — $statusWord"
-            body   = $bodyText
-            fields = $fields
-            level  = $level
-            url    = $runUrl
-            footer = "run #${{ github.run_number }} · 노트북 빌드머신"
-          }
-
-          # 진행 카드가 있으면 *그 자리에서* 결과로 마감한다 — 진행하다 끝난 자리에
-          # 결과가 남는 게 자연스럽고, 새 메시지를 또 쌓지 않는다.
-          # 카드를 못 만들었으면(알림 실패 등) 그때만 새로 게시한다.
-          $cardId = '${{ steps.build.outputs.card_id }}'
-          if ($cardId) {
-            $updated = Set-BuildCard -Token $token -MessageId $cardId -Rich $rich
-            Write-Host "카드 마감 ok=$updated id=$cardId link=$([bool]$link)"
-            if (-not $updated) { New-BuildCard -Token $token -Rich $rich | Out-Null }
-          } else {
-            $posted = New-BuildCard -Token $token -Rich $rich
-            Write-Host "카드 신규 게시 id=$posted link=$([bool]$link)"
-          }
-
+          Publish-BuildResult `
+            -Status '${{ job.status }}' `
+            -Platform '${{ inputs.platform }}' -BuildType '${{ inputs.build_type }}' `
+            -OutDir '${{ steps.build.outputs.out_dir }}' `
+            -Report '${{ steps.build.outputs.report }}' `
+            -UnityLog '${{ steps.build.outputs.unity_log }}' `
+            -CardId '${{ steps.build.outputs.card_id }}' `
+            -Commit '${{ github.sha }}'.Substring(0, 8) `
+            -RefName '${{ github.ref_name }}' `
+            -RunUrl '${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}' `
+            -RunNumber '${{ github.run_number }}' `
+            -BuildRoot $env:BUILD_ROOT
       - name: Prune old builds (최근 5개만 보관)
         if: always()
         shell: powershell
