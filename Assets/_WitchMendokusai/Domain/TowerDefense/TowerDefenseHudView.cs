@@ -1278,10 +1278,18 @@ namespace WitchMendokusai
 			boonSummaryLabel.text = boonSummary;
 			boonSummaryLabel.style.display = string.IsNullOrEmpty(boonSummary) ? DisplayStyle.None : DisplayStyle.Flex;
 
+			// ★ 판이 끝나면 조작 손잡이도 같이 죽어야 한다. 라이브에서 봤다 — 결말 화면이 떠 있는데
+			//   멈춤·배속·진행·핫바가 전부 눌릴 것처럼 살아 있었다. 눌러도 아무 일이 없는 스위치는
+			//   「안 되는구나」를 알려주는 대신 *바꿨다고 믿게* 만든다(이 판에서 이미 한 번 당한 병이다).
+			bool over = match.Outcome != TowerDefenseOutcome.InProgress;
+			selectionBar.Root.SetEnabled(over == false);
+			waveModeButton.SetEnabled(over == false);
+
 			bool paused = match.SpeedScale <= 0f;
 			pauseButton.text = paused ? "▶ 재개" : "⏸ 멈춤";
+			pauseButton.SetEnabled(over == false);
 			speedButton.text = "배속 ×" + Mathf.Max(1f, match.SpeedScale).ToString("0");
-			speedButton.SetEnabled(paused == false);
+			speedButton.SetEnabled(over == false && paused == false);
 
 			waveModeButton.text = match.AutoAdvanceWaves ? "진행: 자동" : "진행: 수동";
 			if (difficultyButton != null)
