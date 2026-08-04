@@ -1,8 +1,11 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Text.RegularExpressions;
 using UnityEditor;
+using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace WitchMendokusai.Editor.Cleanup
 {
@@ -24,6 +27,13 @@ namespace WitchMendokusai.Editor.Cleanup
     {
         private const string MENU_SCAN = "WM/Cleanup/Missing-Script 고아 스캔 (보고만)";
         private const string MENU_PRUNE = "WM/Cleanup/Missing-Script 죽은 고아 프리팹 제거";
+        private const string MENU_SCENE_SCAN = "WM/Cleanup/Missing-Script 씬 스캔 (보고만)";
+        private const string MENU_SCENE_STRIP = "WM/Cleanup/Missing-Script 씬 컴포넌트 제거";
+
+        // 씬 missing-script 판정 = MissingScriptGuardTest.AllProjectScenes 와 동일 기준
+        // (텍스트 m_Script guid 가 AssetDatabase 로 MonoScript 해소 불가). 동일 스코프라
+        // 본 메뉴 제거 = 그 게이트 GREEN 을 결정적으로 보장.
+        private const string UNITY_BUILTIN_GUID = "0000000000000000e000000000000000";
 
         [MenuItem(MENU_SCAN, priority = 2000)]
         public static void Scan()
@@ -92,6 +102,171 @@ namespace WitchMendokusai.Editor.Cleanup
             AssetDatabase.Refresh();
             Debug.Log("[MissingScriptOrphanCleaner] " + deleted + "/" + safe.Count
                 + " 삭제 완료. 잔여 missing-script 검증 = WM.Tests.EditMode/MissingScriptGuardTest 실행 권장.");
+        }
+
+        // ─── 씬 임베드 missing-script (프리팹 고아 삭제로 못 잡는 케이스) ───
+        // 기존 Prune 은 *프리팹 에셋 통째 삭제* 만 — 씬에 박힌 죽은 MonoBehaviour
+        // (예: Bakery 라이트매퍼 잔재, TASK-WM-137) 는 미커버였다. 정본 제거 =
+        // Unity API GameObjectUtility.RemoveMonoBehavioursWithMissingScript (씬
+        // 무결성 보장, YAML 수기 surgery X).
+
+        [MenuItem(MENU_SCENE_SCAN, priority = 2002)]
+        public static void ScanScenes()
+        {
+            Dictionary<string, int> sceneMissing = CollectScenesWithMissingScripts();
+
+            StringBuilder report = new StringBuilder();
+            int total = 0;
+            report.AppendLine("[MissingScriptOrphanCleaner] missing-script 씬 " + sceneMissing.Count + "개:");
+            foreach (KeyValuePair<string, int> entry in sceneMissing)
+            {
+                report.AppendLine("  x" + entry.Value + "  " + entry.Key);
+                total += entry.Value;
+            }
+            report.AppendLine("→ 씬 죽은 컴포넌트 총 " + total + "개. 제거 메뉴: \"" + MENU_SCENE_STRIP + "\"");
+            Debug.Log(report.ToString());
+        }
+
+        [MenuItem(MENU_SCENE_STRIP, priority = 2003)]
+        public static void StripScenes()
+        {
+            Dictionary<string, int> sceneMissing = CollectScenesWithMissingScripts();
+            if (sceneMissing.Count == 0)
+            {
+                EditorUtility.DisplayDialog(
+                    "Missing-Script 씬 정리", "missing-script 씬이 없습니다. 클린.", "확인");
+                return;
+            }
+
+            StringBuilder list = new StringBuilder();
+            int total = 0;
+            foreach (KeyValuePair<string, int> entry in sceneMissing)
+            {
+                list.AppendLine("  x" + entry.Value + "  " + entry.Key);
+                total += entry.Value;
+            }
+            bool proceed = EditorUtility.DisplayDialog(
+                "Missing-Script 씬 컴포넌트 제거",
+                "아래 " + sceneMissing.Count + "개 씬에서 죽은 m_Script 컴포넌트 " + total + "개를 제거합니다.\n"
+                    + "(Unity API RemoveMonoBehavioursWithMissingScript — git 으로 복구 가능):\n\n" + list,
+                "제거", "취소");
+            if (proceed == false)
+            {
+                return;
+            }
+
+            string[] originalSetup = LoadedScenePaths();
+            int strippedScenes = 0;
+            int strippedComponents = 0;
+            foreach (string scenePath in new List<string>(sceneMissing.Keys))
+            {
+                Scene scene = EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Single);
+                int removed = StripMissingInScene(scene);
+                if (removed > 0)
+                {
+                    EditorSceneManager.MarkSceneDirty(scene);
+                    EditorSceneManager.SaveScene(scene);
+                    strippedScenes++;
+                    strippedComponents += removed;
+                }
+            }
+            RestoreScenes(originalSetup);
+            AssetDatabase.Refresh();
+            Debug.Log("[MissingScriptOrphanCleaner] 씬 " + strippedScenes + "개 / 컴포넌트 "
+                + strippedComponents + "개 제거 완료. 검증 = WM.Tests.EditMode/MissingScriptGuardTest.");
+        }
+
+        private static Dictionary<string, int> CollectScenesWithMissingScripts()
+        {
+            Dictionary<string, int> result = new Dictionary<string, int>();
+            Regex scriptGuid = new Regex(@"m_Script:.*guid:\s*([0-9a-f]{32})");
+
+            foreach (string guid in AssetDatabase.FindAssets("t:Scene"))
+            {
+                string path = AssetDatabase.GUIDToAssetPath(guid);
+                if (path.StartsWith("Packages/"))
+                {
+                    continue;
+                }
+                string full = Path.GetFullPath(path);
+                if (File.Exists(full) == false)
+                {
+                    continue;
+                }
+
+                int count = 0;
+                foreach (string line in File.ReadAllLines(full))
+                {
+                    Match match = scriptGuid.Match(line);
+                    if (match.Success == false)
+                    {
+                        continue;
+                    }
+                    string guidValue = match.Groups[1].Value;
+                    if (guidValue == UNITY_BUILTIN_GUID)
+                    {
+                        continue;
+                    }
+                    string scriptPath = AssetDatabase.GUIDToAssetPath(guidValue);
+                    bool resolves = string.IsNullOrEmpty(scriptPath) == false
+                        && AssetDatabase.LoadAssetAtPath<MonoScript>(scriptPath) != null;
+                    if (resolves == false)
+                    {
+                        count++;
+                    }
+                }
+                if (count > 0)
+                {
+                    result.Add(path, count);
+                }
+            }
+            return result;
+        }
+
+        private static int StripMissingInScene(Scene scene)
+        {
+            int removed = 0;
+            foreach (GameObject root in scene.GetRootGameObjects())
+            {
+                foreach (Transform transform in root.GetComponentsInChildren<Transform>(true))
+                {
+                    if (GameObjectUtility.GetMonoBehavioursWithMissingScriptCount(transform.gameObject) > 0)
+                    {
+                        removed += GameObjectUtility.RemoveMonoBehavioursWithMissingScript(transform.gameObject);
+                    }
+                }
+            }
+            return removed;
+        }
+
+        private static string[] LoadedScenePaths()
+        {
+            List<string> paths = new List<string>();
+            foreach (SceneSetup setup in EditorSceneManager.GetSceneManagerSetup())
+            {
+                if (setup.isLoaded && string.IsNullOrEmpty(setup.path) == false)
+                {
+                    paths.Add(setup.path);
+                }
+            }
+            return paths.ToArray();
+        }
+
+        private static void RestoreScenes(string[] paths)
+        {
+            if (paths.Length == 0)
+            {
+                return;
+            }
+            for (int i = 0; i < paths.Length; i++)
+            {
+                if (File.Exists(Path.GetFullPath(paths[i])) == false)
+                {
+                    continue;
+                }
+                OpenSceneMode mode = i == 0 ? OpenSceneMode.Single : OpenSceneMode.Additive;
+                EditorSceneManager.OpenScene(paths[i], mode);
+            }
         }
 
         private static HashSet<string> CollectPrefabsWithMissingScripts(List<string> orderedPaths)
