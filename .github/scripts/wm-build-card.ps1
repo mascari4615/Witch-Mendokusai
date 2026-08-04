@@ -12,6 +12,19 @@
 
 $script:LaptopOpsUri = 'http://127.0.0.1:47615'
 
+# ★ PS 5.1 의 Invoke-RestMethod 는 *문자열* 본문을 UTF-8 로 보내지 않는다 — 비-ASCII 가
+#   전송 중에 '?' 로 뭉개진다. 실측: 첫 진행 카드가 디스코드에 「? WM ?? android」로
+#   저장됐다(응답 원문 바이트로 확인). 그래서 본문은 반드시 *바이트* 로 보낸다.
+#   파일 인코딩(BOM)과는 별개의 두 번째 관문이라, 하나만 고치면 여전히 깨진다.
+function Invoke-LaptopOpsJson {
+    param([string]$Path, [string]$Token, [hashtable]$Payload, [int]$TimeoutSec = 20)
+    $json = $Payload | ConvertTo-Json -Depth 6 -Compress
+    $bytes = [System.Text.Encoding]::UTF8.GetBytes($json)
+    return Invoke-RestMethod -Uri "$script:LaptopOpsUri$Path" -Method Post `
+        -Headers @{ Authorization = "Bearer $Token" } `
+        -ContentType 'application/json; charset=utf-8' -Body $bytes -TimeoutSec $TimeoutSec
+}
+
 function Get-LaptopOpsToken {
     # 노트북에서 토큰 정본은 laptop-ops .env. (데스크톱 관례 ~/.laptop-ops-token 은 폴백)
     $envFile = 'C:\Users\masca\repos\karmoddrine\memo\laptop-ops\.env'
@@ -29,9 +42,7 @@ function Get-LaptopOpsToken {
 function New-BuildCard {
     param([string]$Token, [hashtable]$Rich)
     try {
-        $body = @{ channel = 'build'; rich = $Rich; wait = $true } | ConvertTo-Json -Depth 6 -Compress
-        $response = Invoke-RestMethod -Uri "$script:LaptopOpsUri/notify" -Method Post `
-            -Headers @{ Authorization = "Bearer $Token" } -ContentType 'application/json' -Body $body -TimeoutSec 20
+        $response = Invoke-LaptopOpsJson -Path '/notify' -Token $Token -Payload @{ channel = 'build'; rich = $Rich; wait = $true }
         return $response.messageId
     } catch {
         Write-Warning "build card post failed: $($_.Exception.Message)"
@@ -42,9 +53,7 @@ function New-BuildCard {
 function Set-BuildCard {
     param([string]$Token, [string]$MessageId, [hashtable]$Rich)
     try {
-        $body = @{ channel = 'build'; rich = $Rich; messageId = $MessageId } | ConvertTo-Json -Depth 6 -Compress
-        Invoke-RestMethod -Uri "$script:LaptopOpsUri/notify" -Method Post `
-            -Headers @{ Authorization = "Bearer $Token" } -ContentType 'application/json' -Body $body -TimeoutSec 20 | Out-Null
+        Invoke-LaptopOpsJson -Path '/notify' -Token $Token -Payload @{ channel = 'build'; rich = $Rich; messageId = $MessageId } | Out-Null
         return $true
     } catch {
         Write-Warning "build card update failed: $($_.Exception.Message)"
@@ -204,9 +213,9 @@ function Get-InstallLink {
     $artifact = Get-ChildItem $OutDir -File | Where-Object { $_.Extension -in '.apk', '.aab' } | Select-Object -First 1
     if (-not $artifact) { return $null }
     try {
-        $body = @{ build = (Split-Path $OutDir -Leaf); file = $artifact.Name; days = 1 } | ConvertTo-Json -Compress
-        $signed = Invoke-RestMethod -Uri "$script:LaptopOpsUri/dl/sign" -Method Post `
-            -Headers @{ Authorization = "Bearer $Token" } -ContentType 'application/json' -Body $body -TimeoutSec 20
+        # 지금은 경로가 ASCII 뿐이지만 같은 창구를 쓴다 — 예외를 두면 언젠가 그 예외로 샌다.
+        $signed = Invoke-LaptopOpsJson -Path '/dl/sign' -Token $Token `
+            -Payload @{ build = (Split-Path $OutDir -Leaf); file = $artifact.Name; days = 1 }
         return $signed.url
     } catch {
         Write-Warning "install link sign failed: $($_.Exception.Message)"
