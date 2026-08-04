@@ -18,6 +18,7 @@ namespace WitchMendokusai.Tests
 		private const float TOO_STEEP_SLOPE_DEGREES = 70f;  // normal.y = cos70 = 0.34 <  0.5
 		private const float DROP_HEIGHT = 4f;
 		private const float SETTLE_TOLERANCE = 0.05f;
+		private const float WALK_SPEED = 2f;
 
 		/// <summary>걸을 수 있는 비탈 = 착지하고, 그 자리에 머문다. 저절로 흘러내리면 RED.</summary>
 		[Test]
@@ -40,6 +41,70 @@ namespace WitchMendokusai.Tests
 				Assert.That(drift.magnitude, Is.LessThan(SETTLE_TOLERANCE),
 					$"걸을 수 있는 비탈인데 저절로 흘러내린다 (60 tick 동안 {drift.magnitude}m 이동) — " +
 					"입력 없이 움직이면 서 있는 게 아니다");
+			}
+		}
+
+		/// <summary>
+		/// 비탈을 *걸어 올라간다*. 높이를 얻으면서, 한 tick 도 Airborne 으로 안 튀어야 한다.
+		///
+		/// 왜 따로 박나 — 위의 「가만히 서 있기」 시험은 접지 판정이 멈춰 있을 때만 본다. 실제로 가장 흔한
+		/// 건 비탈을 걸어 다니는 쪽이고, 거기선 매 tick 수평 이동 뒤 접지를 다시 정해야 한다. 여기가 튀면
+		/// 오르막에서 발소리·점프·애니메이션이 딸꾹질한다 — 화면에서 보기 전엔 모르는 종류다.
+		/// </summary>
+		[Test]
+		public void WalkingUpWalkableSlope_GainsHeight_NeverGoesAirborne()
+		{
+			using (MotorTestHarness harness = new(new Vector3(0f, DROP_HEIGHT, 0f)))
+			{
+				harness.AddSlope(Vector3.zero, new Vector3(40f, 1f, 40f), WALKABLE_SLOPE_DEGREES);
+				harness.AddContributor(new ConstantHorizontalContributor(harness));
+				harness.AddContributor(new GravityContributor());
+
+				harness.StepMany(150); // 착지·안정
+				Assert.That(harness.IsGrounded, Is.True, "출발 전 접지 실패 — 시험 전제가 안 섰다");
+				float startY = harness.Position.y;
+
+				// X 축 둘레로 +30° 기운 면 = +z 로 가면 오르막.
+				harness.SetHorizontalIntent(Vector3.forward, WALK_SPEED);
+				for (int step = 0; step < 120; step++)
+				{
+					harness.Step();
+					Assert.That(harness.IsGrounded, Is.True,
+						$"오르막 보행 {step} tick 에 Airborne 으로 튐 (y={harness.Position.y})");
+				}
+
+				Assert.That(harness.Position.y, Is.GreaterThan(startY + 0.3f),
+					$"비탈을 걸었는데 높이를 못 얻었다 ({startY} → {harness.Position.y}) — 오르막에서 미끄러지거나 막혔다");
+			}
+		}
+
+		/// <summary>
+		/// 비탈을 *걸어 내려간다*. 발이 면에서 떨어지면 안 된다.
+		/// 여기가 깨지면 내리막에서 붕 떠서 미끄러지듯 내려간다(접지 판정과 실제 위치가 벌어지는 그 증상).
+		/// </summary>
+		[Test]
+		public void WalkingDownWalkableSlope_StaysGrounded_DoesNotGlide()
+		{
+			using (MotorTestHarness harness = new(new Vector3(0f, DROP_HEIGHT, 0f)))
+			{
+				harness.AddSlope(Vector3.zero, new Vector3(40f, 1f, 40f), WALKABLE_SLOPE_DEGREES);
+				harness.AddContributor(new ConstantHorizontalContributor(harness));
+				harness.AddContributor(new GravityContributor());
+
+				harness.StepMany(150);
+				Assert.That(harness.IsGrounded, Is.True, "출발 전 접지 실패 — 시험 전제가 안 섰다");
+				float startY = harness.Position.y;
+
+				harness.SetHorizontalIntent(Vector3.back, WALK_SPEED);
+				for (int step = 0; step < 120; step++)
+				{
+					harness.Step();
+					Assert.That(harness.IsGrounded, Is.True,
+						$"내리막 보행 {step} tick 에 Airborne 으로 튐 (y={harness.Position.y}) — 발이 면에서 떨어졌다");
+				}
+
+				Assert.That(harness.Position.y, Is.LessThan(startY - 0.3f),
+					$"내리막인데 높이가 안 내려갔다 ({startY} → {harness.Position.y})");
 			}
 		}
 
