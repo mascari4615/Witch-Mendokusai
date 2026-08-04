@@ -155,8 +155,52 @@ jobs:
           "report=$report"    | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
           "unity_log=$unityLog" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
 
+          # 진행 카드 — 빌드가 30~40분간 침묵하지 않도록, 카드 하나를 띄우고
+          # 로그를 따라가며 같은 자리에서 고쳐 쓴다. 알림 실패는 빌드를 막지 않는다.
+          . "$env:GITHUB_WORKSPACE\.github\scripts\wm-build-card.ps1"
+          $token = Get-LaptopOpsToken
+          $startedAt = Get-Date
+          $commit = '${{ github.sha }}'.Substring(0, 8)
+          $runUrl = '${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}'
+          $stageIndex = 0
+          $cardId = $null
+          if ($token) {
+            $cardId = New-BuildCard -Token $token -Rich (New-ProgressRich -StageIndex 0 -Platform $platform `
+              -BuildType '${{ inputs.build_type }}' -Commit $commit -StartedAt $startedAt -RunUrl $runUrl -RunNumber $env:GITHUB_RUN_NUMBER)
+            if ($cardId) { "card_id=$cardId" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8 }
+          }
+
           Write-Host "Unity args: $($arguments -join ' ')"
-          $process = Start-Process -FilePath '${{ steps.unity.outputs.exe }}' -ArgumentList $arguments -PassThru -Wait -WindowStyle Hidden
+          $process = Start-Process -FilePath '${{ steps.unity.outputs.exe }}' -ArgumentList $arguments -PassThru -WindowStyle Hidden
+
+          # 로그를 *새로 붙은 부분만* 읽는다 (완성 로그는 7MB 까지 간다 — 매번 통독하면
+          # 폴링이 빌드를 방해한다). ReadWrite 공유로 열어 유니티 쓰기를 막지 않는다.
+          $reader = $null
+          $lastPost = Get-Date
+          $lastStage = -1
+          while ($process.HasExited -eq $false) {
+            Start-Sleep -Seconds 20
+            try {
+              if (-not $reader -and (Test-Path $unityLog)) {
+                $stream = [System.IO.File]::Open($unityLog, 'Open', 'Read', 'ReadWrite')
+                $reader = New-Object System.IO.StreamReader($stream)
+              }
+              if ($reader) {
+                $chunk = $reader.ReadToEnd()
+                if ($chunk) { $stageIndex = Get-StageIndexFromChunk -Chunk $chunk -CurrentIndex $stageIndex }
+              }
+            } catch {
+              Write-Warning "로그 폴링 실패(무시): $($_.Exception.Message)"
+            }
+            # 단계가 바뀌었거나 5분이 지났으면 갱신 (Discord rate limit 여유 있게).
+            if ($cardId -and (($stageIndex -ne $lastStage) -or (((Get-Date) - $lastPost).TotalMinutes -ge 5))) {
+              $lastStage = $stageIndex
+              $lastPost = Get-Date
+              Set-BuildCard -Token $token -MessageId $cardId -Rich (New-ProgressRich -StageIndex $stageIndex -Platform $platform `
+                -BuildType '${{ inputs.build_type }}' -Commit $commit -StartedAt $startedAt -RunUrl $runUrl -RunNumber $env:GITHUB_RUN_NUMBER) | Out-Null
+            }
+          }
+          if ($reader) { $reader.Dispose() }
           $exitCode = $process.ExitCode
           Write-Host "Unity exit=$exitCode"
 
@@ -260,17 +304,8 @@ jobs:
         run: |
           # 노트북 안에서 도는 runner 이므로 laptop-ops 를 localhost 로 부른다 (터널 불필요).
           $OutputEncoding = [Console]::OutputEncoding = [Text.UTF8Encoding]::new()
-          # 노트북에서 토큰 정본은 laptop-ops .env. (데스크톱 관례인 ~/.laptop-ops-token 은 폴백)
-          $token = $null
-          $envFile = 'C:\Users\masca\repos\karmoddrine\memo\laptop-ops\.env'
-          if (Test-Path $envFile) {
-            $line = Get-Content $envFile | Where-Object { $_ -match '^\s*LAPTOP_OPS_TOKEN\s*=' } | Select-Object -First 1
-            if ($line) { $token = (($line -split '=', 2)[1]).Trim().Trim('"').Trim("'") }
-          }
-          if (-not $token) {
-            $tokenPath = 'C:\Users\masca\.laptop-ops-token'
-            if (Test-Path $tokenPath) { $token = (Get-Content $tokenPath -Raw).Trim() }
-          }
+          . "$env:GITHUB_WORKSPACE\.github\scripts\wm-build-card.ps1"
+          $token = Get-LaptopOpsToken
           if (-not $token) { Write-Warning 'laptop-ops 토큰 못 찾음 — 알림 skip'; exit 0 }
 
           # 성공/실패/취소 3분기. 취소를 실패로 칠하면 「내가 껐다」와 「깨졌다」가
@@ -364,13 +399,17 @@ jobs:
             footer = "run #${{ github.run_number }} · 노트북 빌드머신"
           }
 
-          try {
-            $body = @{ channel = 'build'; rich = $rich } | ConvertTo-Json -Depth 6 -Compress
-            $response = Invoke-RestMethod -Uri 'http://127.0.0.1:47615/notify' -Method Post -Headers @{ Authorization = "Bearer $token" } -ContentType 'application/json' -Body $body -TimeoutSec 20
-            Write-Host "notify ok=$($response.ok) status=$($response.status) link=$([bool]$link)"
-          } catch {
-            # 알림 실패가 빌드 성패를 뒤집지 않는다.
-            Write-Warning "Discord 알림 실패: $($_.Exception.Message)"
+          # 진행 카드가 있으면 *그 자리에서* 결과로 마감한다 — 진행하다 끝난 자리에
+          # 결과가 남는 게 자연스럽고, 새 메시지를 또 쌓지 않는다.
+          # 카드를 못 만들었으면(알림 실패 등) 그때만 새로 게시한다.
+          $cardId = '${{ steps.build.outputs.card_id }}'
+          if ($cardId) {
+            $updated = Set-BuildCard -Token $token -MessageId $cardId -Rich $rich
+            Write-Host "카드 마감 ok=$updated id=$cardId link=$([bool]$link)"
+            if (-not $updated) { New-BuildCard -Token $token -Rich $rich | Out-Null }
+          } else {
+            $posted = New-BuildCard -Token $token -Rich $rich
+            Write-Host "카드 신규 게시 id=$posted link=$([bool]$link)"
           }
 
       - name: Prune old builds (최근 5개만 보관)
