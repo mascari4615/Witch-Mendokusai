@@ -80,13 +80,6 @@ namespace WitchMendokusai
 							() => match.CycleSpeed(),
 							() => CanExecute(InputEventType.CameraViewCycle)
 						),
-						// 지도 — 「미니맵만 두지말고 맵을 UI 열 수 있게」(사용자 지시). 버튼과 같은 일을 한다.
-						new(
-							InputEventType.TowerDefenseMapToggle,
-							InputEventResponseType.Performed,
-							() => toggleMap?.Invoke(),
-							() => toggleMap != null
-						),
 						#region Hotbar (기존 건설 모드와 같은 조작 문법 — 숫자키로 설치 대상 선택)
 						new(
 							InputEventType.HotbarSlot1,

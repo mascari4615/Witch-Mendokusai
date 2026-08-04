@@ -61,9 +61,6 @@ namespace WitchMendokusai
 		Submit,
 		[InputEvent("UI 탐색", "취소", "<Keyboard>/x")]
 		Cancel,
-		// 개척 전용 — 같은 M 키를 마도서와 나눠 쓴다(모드마다 등록되는 조작이 달라 겹치지 않는다).
-		[InputEvent("개척", "지도 열기·닫기", "<Keyboard>/m")]
-		TowerDefenseMapToggle,
 		[InputEvent("카메라", "시점 조작 모드 (Tab)", "<Keyboard>/tab")]
 		CameraControlModeToggle,
 		[InputEvent("카메라", "1인칭/3인칭 (F5)", "<Keyboard>/f5")]
@@ -145,7 +142,6 @@ namespace WitchMendokusai
 
 			{ InputEventType.Submit, InputMapType.UI },
 			{ InputEventType.Cancel, InputMapType.UI },
-			{ InputEventType.TowerDefenseMapToggle, InputMapType.UI },
 			{ InputEventType.CameraControlModeToggle, InputMapType.UI },
 			{ InputEventType.CameraPerspectiveToggle, InputMapType.UI },
 			{ InputEventType.CameraViewCycle, InputMapType.UI },
@@ -343,24 +339,56 @@ namespace WitchMendokusai
 				if (condition == null || condition()) action();
 		}
 
+		/// <summary> 등록 — 칸이 아직 없으면 만들어서 넣는다(위 설명과 같은 이유). </summary>
 		public void RegisterInputEvent(InputEventType inputEventType, InputEventResponseType inputEventResponseType, Action<InputAction.CallbackContext> action)
 		{
-			componentEventsWithContext[(inputEventType, inputEventResponseType)] += action;
+			(InputEventType, InputEventResponseType) key = (inputEventType, inputEventResponseType);
+			if (componentEventsWithContext.ContainsKey(key) == false)
+				componentEventsWithContext[key] = delegate { };
+			componentEventsWithContext[key] += action;
 		}
 
+
+		/// <summary>
+		/// 해제 — 그 칸이 이미 사라졌으면 아무 일도 아니다.
+		///
+		/// ★ 왜 여기만 관대한가: 모드가 바뀌면 입력 표가 통째로 새로 세워지고(SetInputStrategy),
+		///   그 *뒤에* 옛 화면 컴포넌트들이 OnDestroy 에서 해제를 부른다 — 정상 생명주기다.
+		///   여기서 터뜨리면 「없는 칸을 지우려 했다」는 소리가 화면 전환마다 쏟아진다(실측).
+		///   등록은 그대로 FastFail 로 둔다 — *없는 칸에 넣는 것*은 진짜 실수다.
+		/// </summary>
 		public void UnregisterInputEvent(InputEventType inputEventType, InputEventResponseType inputEventResponseType, Action<InputAction.CallbackContext> action)
 		{
+			if (componentEventsWithContext.ContainsKey((inputEventType, inputEventResponseType)) == false)
+				return;
 			componentEventsWithContext[(inputEventType, inputEventResponseType)] -= action;
 		}
 
+		/// <summary>
+		/// 등록 — 칸이 아직 없으면 만들어서 넣는다.
+		///
+		/// ★ 왜 「없으면 만든다」인가: 칸을 미리 다 세우는 일은 InputManager 가 깨어날 때 한 번 일어나는데,
+		///   화면 컴포넌트가 그보다 *먼저* 깨어나는 경우가 있다(DI 가 계층을 주입하는 순간). 그때 등록이
+		///   터지면 「누가 먼저 깨어나나」에 기능이 걸린다 — 순서에 기대는 코드가 곧 init-order 지뢰다.
+		///   칸은 그저 담을 자리라 미리 있든 그때 생기든 뜻이 같다.
+		/// </summary>
 		public void RegisterInputEvent(InputEventType inputEventType, InputEventResponseType inputEventResponseType, Action action, Func<bool> condition = null)
 		{
-			componentEvents[(inputEventType, inputEventResponseType)].Add((action, condition));
+			(InputEventType, InputEventResponseType) key = (inputEventType, inputEventResponseType);
+			if (componentEvents.TryGetValue(key, out List<(Action action, Func<bool> condition)> handlers) == false)
+			{
+				handlers = new List<(Action action, Func<bool> condition)>();
+				componentEvents[key] = handlers;
+			}
+			handlers.Add((action, condition));
 		}
 
+		/// <summary> 해제 — 그 칸이 이미 사라졌으면 아무 일도 아니다(위 설명과 같은 이유). </summary>
 		public void UnregisterInputEvent(InputEventType inputEventType, InputEventResponseType inputEventResponseType, Action action, Func<bool> condition = null)
 		{
-			componentEvents[(inputEventType, inputEventResponseType)].RemoveAll(x => x.action == action && x.condition == condition);
+			if (componentEvents.TryGetValue((inputEventType, inputEventResponseType), out List<(Action action, Func<bool> condition)> handlers) == false)
+				return;
+			handlers.RemoveAll(x => x.action == action && x.condition == condition);
 		}
 
 		private void Update()
