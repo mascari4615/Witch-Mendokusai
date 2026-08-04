@@ -124,7 +124,8 @@ namespace WitchMendokusai.Tests
 		{
 			return new UGCSeedManifestData
 			{
-				schemaVersion = 1,
+				// 「유효한 매니페스트」의 정의는 검증기가 쥐고 있다 — 스키마를 올려도 이 시험이 계속 유효하도록.
+				schemaVersion = UGCJsonValidator.CURRENT_SCHEMA_VERSION,
 				seedId = 1,
 				version = 1,
 				author = "test",
