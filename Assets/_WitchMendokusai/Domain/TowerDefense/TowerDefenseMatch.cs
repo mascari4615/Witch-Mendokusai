@@ -307,6 +307,7 @@ namespace WitchMendokusai
 			// 새 판 = 새 선택·새 이름·새 영웅. 하나라도 남으면 "새 판"이 아니다.
 			boons.Reset();
 			dollLabels.Clear();
+			soldDolls.Clear();
 			nextDollOrdinal = 0;
 			heroActive = false;
 			heroTransform = null;
@@ -1116,9 +1117,12 @@ namespace WitchMendokusai
 			PayKillBounties();    // 격파 즉시 보상 — 웨이브 정산만 있으면 교전 중엔 아무 보상도 안 온다.
 
 			bool coreAlive = coreCombatant != null && coreCombatant.IsAlive;
-			int aliveEnemies = CountAliveEnemies();
-			if (aliveEnemies > PeakEnemies)
-				PeakEnemies = aliveEnemies;
+			CountAliveEnemies(); // 죽은 참조 정리 — 세는 값은 아래 집계를 쓴다.
+
+			// ★ 「한때 몇 마리까지」도 *쳐들어온 마수*만 센다. 둥지는 목록에 있지만 쳐들어온 것이 아니다 —
+			//   화면의 「적 N마리」만 고쳐놨더니 판 요약은 여전히 둥지 수만큼 부풀어 있었다(같은 병, 다른 자리).
+			if (AliveEnemyCount > PeakEnemies)
+				PeakEnemies = AliveEnemyCount;
 
 			TowerDefenseSignal signal = core.Tick(TimeManager.TICK, coreAlive);
 			switch (signal)
@@ -1639,7 +1643,10 @@ namespace WitchMendokusai
 				{
 					if (dollLabels[index].IsAlive == false)
 					{
-						LostCount++; // 사라진 인형을 센다 — 「무엇을 잃었나」가 판 요약의 절반이다.
+						// ★ *잃은* 것만 센다. 판 것은 내가 치운 것이지 뺏긴 것이 아닌데,
+						//   둘을 같이 세면 판 요약의 「잃음」이 판매 횟수만큼 부풀어 거짓말을 한다.
+						if (soldDolls.Remove(dollLabels[index]) == false)
+							LostCount++;
 						dollLabels.RemoveAt(index);
 					}
 				}
@@ -1939,6 +1946,9 @@ namespace WitchMendokusai
 		// ★ 왜 필요한가 (개선 목록 24번): 지금은 지고 나면 「몇 분 버팀」 한 줄뿐이라 *왜 졌는지*를
 		//   되짚을 수단이 없다. 무엇을 몇 개 지었고, 몇 개를 잃었고, 마수가 가장 많을 때 몇이었는지가
 		//   남아야 다음 판이 달라진다 — 안 남으면 매 판이 같은 실수의 반복이 된다.
+		// 방금 판 인형들 — 다음 정리에서 「잃음」으로 세지 않기 위한 표시.
+		private readonly HashSet<TowerDefenseDollLabel> soldDolls = new();
+
 		public int BuiltCount { get; private set; }
 		public int LostCount { get; private set; }
 		public int KilledCount { get; private set; }
@@ -3466,6 +3476,11 @@ namespace WitchMendokusai
 
 			if (sold == null)
 				return false;
+
+			// 판 인형은 「잃음」이 아니라고 표시해둔다 — 다음 정리에서 그 둘을 갈라 센다.
+			TowerDefenseDollLabel soldDoll = FindDollLabel(sold.transform);
+			if (soldDoll != null)
+				soldDolls.Add(soldDoll);
 
 			int soldValue = SoldValue(sold);
 			int refund = Mathf.Max(0, Mathf.RoundToInt(soldValue * refundRatio));

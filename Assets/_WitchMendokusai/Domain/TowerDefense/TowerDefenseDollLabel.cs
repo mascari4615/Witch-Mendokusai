@@ -70,7 +70,16 @@ namespace WitchMendokusai
 					text += " ★" + Level;
 				if (Progress.PendingChoices > 0)
 					text += "  ✦" + Progress.PendingChoices;
-				return Disconnected ? text + "\n⚠ 보급 끊김" : text;
+
+				// ★ 멈춰 있으면 *왜* 멈췄는지를 그 인형 머리 위에서 말해야 한다.
+				//   규칙은 이 둘을 이미 갈라 보고 있는데(끊긴 채집은 벌지도 배우지도 않는다) 화면만
+				//   전기를 말하지 않았다 — 그러면 「쟤는 왜 아무것도 안 하지」가 짐작으로만 풀린다.
+				//   고치는 방법이 서로 다르므로(길을 잇는다 / 발전기를 세운다) 갈라 말한다.
+				if (Disconnected)
+					text += "\n⚠ 보급 끊김";
+				if (Unpowered)
+					text += "\n⚡ 전기 없음";
+				return text;
 			}
 		}
 
