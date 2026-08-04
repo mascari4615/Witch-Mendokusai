@@ -45,7 +45,9 @@ namespace WitchMendokusai
 
 		/// <summary> 바닥에서 띄운 높이 / 카드 한 장 높이 — 위에 무엇을 얹을 때 이 둘을 읽어야 안 겹친다. </summary>
 		public const int BOTTOM_OFFSET = 24;
-		public const int CARD_HEIGHT = 84;
+		// ★ 84 였을 때 칸 안이 딱 맞아떨어져서, 남는 자리가 없자 *아이콘 상자가 먼저 찌그러졌다*
+		//   (사용자 실증: "핫바 슬롯 아이콘 뭐 보이지도 않음"). 글자·그림·값이 다 들어가고도 남게 둔다.
+		public const int CARD_HEIGHT = 100;
 
 		/// <summary> 이 바가 차지한 맨 윗선(바닥 기준) — 위쪽 요소가 「얼마나 띄워야 하나」의 답. </summary>
 		public static int TopFromBottom => BOTTOM_OFFSET + CARD_HEIGHT;
@@ -110,7 +112,7 @@ namespace WitchMendokusai
 		private VisualElement BuildCardCell(Entry entry, int index)
 		{
 			VisualElement card = new VisualElement();
-			card.style.width = 62;
+			card.style.width = 68;
 			card.style.height = CARD_HEIGHT;
 			card.style.marginLeft = 4;
 			card.style.marginRight = 4;
@@ -145,8 +147,10 @@ namespace WitchMendokusai
 
 			Slot slot = new Slot();
 			slot.SetIndex(index);
-			slot.style.width = 44;
-			slot.style.height = 44;
+			slot.style.width = 52;
+			slot.style.height = 52;
+			// 자리가 모자라면 *다른 것*이 줄어야 한다 — 그림은 줄면 아무것도 아니게 된다.
+			slot.style.flexShrink = 0;
 			slot.pickingMode = PickingMode.Ignore;
 			if (entry.Icon != null)
 				slot.SetIcon(entry.Icon);

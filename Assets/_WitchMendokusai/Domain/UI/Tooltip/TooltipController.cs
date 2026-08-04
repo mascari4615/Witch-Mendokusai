@@ -7,7 +7,7 @@ using VContainer;
 namespace WitchMendokusai
 {
 	/// <summary>
-	/// 글로벌 툴팁 컨트롤러. UIRoot.OverlayLayer에 단일 TooltipView 마운트.
+	/// 글로벌 툴팁 컨트롤러. UIRoot.TooltipLayer(최상단)에 단일 TooltipView 마운트.
 	/// 데이터 타입 → ITooltipBuilder 매핑으로 컨텐츠 위임.
 	/// 등록되지 않은 타입은 base type을 거슬러 올라가며 검색.
 	/// </summary>
@@ -56,11 +56,12 @@ namespace WitchMendokusai
 		{
 			if (view != null)
 				return;
-			if (uiRoot == null || uiRoot.OverlayLayer == null)
+			if (uiRoot == null || uiRoot.TooltipLayer == null)
 				return;
 
 			view = new TooltipView();
-			uiRoot.OverlayLayer.Add(view);
+			// 툴팁은 최상단 층 — 무엇 위에 얹히든 가려지면 안 된다(핫바 뒤로 가던 사고).
+			uiRoot.TooltipLayer.Add(view);
 			view.SetVisible(false);
 		}
 

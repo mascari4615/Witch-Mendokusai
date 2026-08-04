@@ -159,7 +159,9 @@ namespace WitchMendokusai
 			container.Add(Named(BuildCornerRestartButton(), "RestartButton"));
 			container.Add(Named(BuildBoonSummary(out boonSummaryLabel), "BoonSummary"));
 			unitTooltip = Named(BuildUnitTooltip(out unitTooltipLabel), "UnitTooltip");
-			container.Add(unitTooltip);
+			// ★ 툴팁은 HUD 안이 아니라 *최상단 층*에 산다 — 같은 층에 두면 핫바·패널 뒤로 숨는다
+			//   (사용자 실증: "툴팁이 핫바 뒤에 나오는데 이걸 왜 인지를 못하는지"). 층이 답이다.
+			uiRoot.TooltipLayer.Add(unitTooltip);
 			container.Add(BuildSelectionPanel(out selectionPanel, out selectionTitleLabel, out researchButton));
 			selectionPanel.name = "SelectionPanel";
 
@@ -169,7 +171,10 @@ namespace WitchMendokusai
 			container.Add(minimap.Root);
 
 			// 본편 HUD(HudLayer)를 숨겨도 개척 HUD 는 살아있어야 하므로 한 단 위 레이어에 붙인다.
-			uiRoot.OverlayLayer.Add(container);
+			// ★ 개척 HUD 는 *모드 HUD 층*이다 — 본편 HUD 를 통째 숨겨도 살아남되, 사람이 여는 창
+			//   (티메토 등)보다는 아래여야 한다. 예전엔 최상단 Overlay 에 있어서 핫바가 티메토 창을
+			//   덮었다(사용자 실증: "티메토 UI보다 핫바가 더 위쪽에 보이는 문제").
+			uiRoot.ModeHudLayer.Add(container);
 		}
 
 		/// <summary>
@@ -1019,9 +1024,21 @@ namespace WitchMendokusai
 		/// ★ 왜 그림을 따로 안 만드나: 아이콘을 새로 그리면 화면의 인형과 칸의 그림이 갈라지고, 인형이
 		///   바뀔 때마다 아이콘도 따로 고쳐야 한다. 같은 스프라이트를 쓰면 영원히 어긋나지 않는다.
 		/// </summary>
+		/// <summary>
+		/// 칸에 그릴 그림 — 데이터가 들고 있는 그림이 정본이다.
+		///
+		/// ★ 예전엔 *프리팹의 SpriteRenderer* 를 뒤져 꺼냈다. 그 그림은 애니메이터가 실행 중에 갈아끼우는
+		///   자리라 프리팹 상태에선 비어 있기 일쑤고, 그래서 칸이 빈 상자로 떴다(사용자 실증: "핫바 슬롯
+		///   아이콘 뭐 보이지도 않음"). 데이터가 「이게 내 그림」이라고 말하는 자리를 쓴다.
+		/// 데이터에 그림이 없으면 프리팹을 뒤지는 옛 길로 물러선다 — 없는 것보다는 낫다.
+		/// </summary>
 		private static Sprite UnitSprite(Unit unit)
 		{
-			if (unit == null || unit.Prefab == null)
+			if (unit == null)
+				return null;
+			if (unit.Sprite != null)
+				return unit.Sprite;
+			if (unit.Prefab == null)
 				return null;
 
 			SpriteRenderer renderer = unit.Prefab.GetComponentInChildren<SpriteRenderer>(true);

@@ -5,12 +5,18 @@ using VContainer;
 namespace WitchMendokusai
 {
 	/// <summary>
-	/// UI Toolkit 글로벌 panel 관리. 단일 UIDocument에 layer 분리:
-	/// - WindowsLayer: WMWindow들 (BringToFront 영향 받음)
-	/// - ScreenLayer: 전체화면 메뉴 패널 (SettingView 등)
-	/// - HudLayer: 항상 보이는 HUD (핫바 등)
-	/// - OverlayLayer: 최상단 floating (HoldingOverlay)
-	/// 각 view 컴포넌트(InventoryView, HotbarView 등)가 적절한 layer에 자기 element 추가.
+	/// UI Toolkit 글로벌 panel 관리 — **층 순서가 곧 정책이다**(아래가 먼저, 뒤에 붙는 층이 위에 그려진다).
+	///
+	/// 1. `HudLayer` — 늘 떠 있는 본편 HUD. *가장 아래*다.
+	/// 2. `ModeHudLayer` — 모드 전용 HUD(개척 핫바 등). 본편 HUD 를 통째 숨겨도 살아남아야 해서 한 단 위.
+	/// 3. `WindowsLayer` — 사람이 *열어서* 보는 창(티메토 등). **핫바보다 위다.**
+	/// 4. `ScreenLayer` — 전체화면 메뉴(설정 등).
+	/// 5. `OverlayLayer` — 떠다니는 것(들고 있는 물건·말풍선·화면 전환).
+	/// 6. `TooltipLayer` — 툴팁. **무조건 최상단** — 무엇 위에 얹히든 가려지면 안 된다.
+	///
+	/// ★ 왜 순서를 글로 박았나: 예전엔 층은 있는데 *정책이 없어서*, 무엇이 위인지가 「누가 먼저
+	///   Add 했나」로 정해졌다. 그래서 핫바가 티메토 창을 덮고 툴팁이 핫바 뒤로 갔다(사용자 실증).
+	///   층에 뜻을 주면 「어디에 붙일까」가 판단이 아니라 조회가 된다.
 	/// </summary>
 	[DefaultExecutionOrder(-50)]
 	[RequireComponent(typeof(UIDocument))]
@@ -54,7 +60,14 @@ namespace WitchMendokusai
 		public VisualElement WindowsLayer { get; private set; }
 		public VisualElement ScreenLayer { get; private set; }
 		public VisualElement HudLayer { get; private set; }
+
+		/// <summary> 모드 전용 HUD(개척 핫바 등) — 본편 HUD 위, 사람이 여는 창 아래. </summary>
+		public VisualElement ModeHudLayer { get; private set; }
+
 		public VisualElement OverlayLayer { get; private set; }
+
+		/// <summary> 툴팁 전용 최상단 층 — 여기 붙은 것은 무엇에도 안 가려진다. </summary>
+		public VisualElement TooltipLayer { get; private set; }
 		public HoldingOverlay HoldingOverlay { get; private set; }
 		public SettingView SettingView { get; private set; }
 		public KeybindHelpView KeybindHelpView { get; private set; }
@@ -97,15 +110,21 @@ namespace WitchMendokusai
 			if (styleSheet != null && root.styleSheets.Contains(styleSheet) == false)
 				root.styleSheets.Add(styleSheet);
 
+			HudLayer = MakeLayer("HudLayer", PickingMode.Ignore);
+			ModeHudLayer = MakeLayer("ModeHudLayer", PickingMode.Ignore);
 			WindowsLayer = MakeLayer("WindowsLayer", PickingMode.Ignore);
 			ScreenLayer = MakeLayer("ScreenLayer", PickingMode.Ignore);
-			HudLayer = MakeLayer("HudLayer", PickingMode.Ignore);
 			OverlayLayer = MakeLayer("OverlayLayer", PickingMode.Ignore);
+			TooltipLayer = MakeLayer("TooltipLayer", PickingMode.Ignore);
 
+			// ★ 붙이는 순서가 곧 층 순서다 — 위 § 문서의 1~6 과 *반드시* 같아야 한다.
+			//   여기 한 줄을 옮기면 화면 전체의 위아래가 바뀐다.
+			root.Add(HudLayer);
+			root.Add(ModeHudLayer);
 			root.Add(WindowsLayer);
 			root.Add(ScreenLayer);
-			root.Add(HudLayer);
 			root.Add(OverlayLayer);
+			root.Add(TooltipLayer);
 
 			// TASK-WM-133 — panel-root 에 UI 서비스 1회 owner-push. UXML-cloned
 			// VisualElement(CodexDetailPanel 등)가 static Instance reach 대신
