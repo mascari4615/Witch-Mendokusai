@@ -206,12 +206,9 @@ namespace WitchMendokusai
 		[field: Tooltip("연구를 나타내는 색 — 범례가 이 색으로 「코어 연구」 줄을 그린다.")]
 		[field: SerializeField] public Color LabTint { get; private set; } = new Color(0.86f, 0.62f, 1f, 1f);
 
-<<<<<<< ours
-=======
 		[field: Tooltip("안개 판이 땅에서 뜨는 높이 — 인형보다 낮아야 한다(안 그러면 인형을 덮는다).")]
 		[field: SerializeField, Min(0f)] public float FogHeight { get; private set; } = 0.06f;
 
->>>>>>> theirs
 		[field: Header("마수 이동 — 천천히, 촘촘히")]
 		// ★ 사용자 직접 플레이: "게임이 너무 빠름. They are billions 같이 적들이 천천히 몰려오는 느낌으로."
 		//   + "몬스터들이 복셀 블럭 단위로 뚝뚝 끊겨움직이는 것처럼 보이지 않았으면 함."
