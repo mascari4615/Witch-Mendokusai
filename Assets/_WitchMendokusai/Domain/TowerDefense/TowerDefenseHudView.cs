@@ -140,8 +140,11 @@ namespace WitchMendokusai
 			container.Add(Named(BuildResourceBar(out resourceValue, out incomeValue, out essenceValue), "ResourceBar"));
 			container.Add(Named(BuildProgressPanel(out livesValue, out waveValue, out phaseValue, out nextWaveValue, out enemyValue, out bestValue,
 				out waveModeButton, out nextWaveButton), "ProgressPanel"));
+			// ★ 범례는 이제 *지도 안*에 산다 — 판 옆에 상시로 펼쳐 두면 화면 4분의 1 을 먹으면서도
+			//   정작 「저게 뭐였지」 할 때는 안 읽힌다(사용자 실증). 지도를 여는 행위가 곧 알아보는 행위다.
 			legendPanel = Named(BuildLegendPanel(), "LegendPanel");
-			container.Add(legendPanel);
+			mapPanel = new TowerDefenseMapPanel(legendPanel);
+			container.Add(mapPanel.Root);
 			selectionBar = new ModeSelectionBar("TowerDefenseSelectionBar") { CardLayout = true };
 			selectionBar.Selected += index => SlotClicked(index);
 			container.Add(selectionBar.Root);
@@ -427,6 +430,11 @@ namespace WitchMendokusai
 			// 디버그 — 세워둔 것 전부의 사거리를 한 번에. 상시 표시는 껐지만 「전체를 보고 싶은 순간」은 있다.
 			// 난이도 — 「다음 판부터」라고 말해주는 것까지가 이 버튼의 일이다(지금 판이 안 바뀌는데
 			// 바뀐 줄 알면 그게 거짓말이다).
+			// 지도 — 「미니맵만 두지 말고 맵을 UI 로 열 수 있게」(사용자 지시). 범례도 그 안에 있다.
+			Button mapButton = MakeActionButton("지도", fontSize: 13, () => ToggleMap());
+			mapButton.style.marginRight = 8;
+			wrapper.Add(mapButton);
+
 			difficultyButton = MakeActionButton("난이도: 보통", fontSize: 13, () => DifficultyCycleRequested());
 			difficultyButton.style.marginRight = 8;
 			wrapper.Add(difficultyButton);
@@ -1081,6 +1089,15 @@ namespace WitchMendokusai
 		// 값이 바뀌면(할인 카드) 칸을 다시 그린다 — 안 그러면 화면이 옛 값을 계속 말한다.
 		private int lastHotbarCostSignature = -1;
 
+		/// <summary> 펼치는 지도 — 지형·점·범례·설명이 한자리에. </summary>
+		private TowerDefenseMapPanel mapPanel;
+
+		/// <summary> 지도 열고 닫기 — 조작 쪽(M 키·버튼)이 부른다. </summary>
+		public void ToggleMap() => mapPanel?.Toggle();
+
+		/// <summary> 지도가 열려 있나 — 열려 있으면 클릭이 배치로 새면 안 된다. </summary>
+		public bool IsMapOpen => mapPanel != null && mapPanel.IsOpen;
+
 		private void FillHotbar(TowerDefenseStageSO stage, TowerDefenseMatch match)
 		{
 			if (stage == null || match == null)
@@ -1171,7 +1188,7 @@ namespace WitchMendokusai
 				// ★ 안내가 실제 키와 달랐다: 배속은 Tab 이 아니라 F6 이고, 정작 제일 많이 쓰는
 				//   「숫자키로 칸 고르기」는 한 글자도 없었다. 조작 안내가 틀리면 그 화면 전체를 못 믿는다.
 				: "숫자키 1~9 칸 고르기 · 좌클릭 설치 · 우클릭 판매   ·   Space 멈춤 · F6 배속"
-					+ "   ·   WASD 시점 이동 · 휠 확대·축소   ·   X 나가기";
+					+ "   ·   WASD 시점 이동 · 휠 확대·축소   ·   지도 버튼에 범례   ·   X 나가기";
 		}
 
 		public void Hide()
@@ -1303,6 +1320,8 @@ namespace WitchMendokusai
 			UpdateNodeLabels(match, stage);
 			UpdateDollLabels(match);
 			minimap?.Tick(match, stage);
+			minimap?.RefreshTerrain(match.MapLayout, stage); // 작은 지도에도 땅이 보여야 한다.
+			mapPanel?.Tick(match, stage);
 
 			string boonSummary = match.BoonSummary;
 			boonSummaryLabel.text = boonSummary;

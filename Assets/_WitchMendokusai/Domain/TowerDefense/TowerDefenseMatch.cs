@@ -2612,6 +2612,9 @@ namespace WitchMendokusai
 		}
 
 		/// <summary> 이번 판의 씨앗 — 같은 값이면 같은 판이 나온다(재현·신고용). 고정 판이면 0. </summary>
+		/// <summary> 이번 판의 배치도 — 지도가 지형을 그리려면 이게 있어야 한다(읽기 전용). </summary>
+		public TowerDefenseMapLayout MapLayout => mapLayout;
+
 		public int MapSeed => mapLayout != null ? mapLayout.Seed : 0;
 
 		private int? nextMatchSeed;

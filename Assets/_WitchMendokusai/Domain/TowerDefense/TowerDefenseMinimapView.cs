@@ -19,7 +19,10 @@ namespace WitchMendokusai
 	/// </summary>
 	public sealed class TowerDefenseMinimapView
 	{
-		private const float SIZE = 186f;
+		private const float DEFAULT_SIZE = 186f;
+
+		// 지도 한 변의 길이 — 미니맵은 작게, 펼친 지도는 크게. 그리는 규칙은 하나다.
+		private readonly float size;
 
 		private readonly VisualElement root;
 		private readonly VisualElement dotLayer;
@@ -29,14 +32,20 @@ namespace WitchMendokusai
 
 		public VisualElement Root => root;
 
-		public TowerDefenseMinimapView()
+		/// <param name="size">한 변 길이. 안 주면 화면 구석 미니맵 크기.</param>
+		/// <param name="floating">화면 구석에 띄울까(미니맵) 아니면 부모가 자리를 정할까(펼친 지도).</param>
+		public TowerDefenseMinimapView(float size = DEFAULT_SIZE, bool floating = true)
 		{
+			this.size = size;
 			root = new VisualElement { name = "Minimap" };
-			root.style.position = Position.Absolute;
-			root.style.right = 24;
-			root.style.bottom = 130;
-			root.style.width = SIZE;
-			root.style.height = SIZE;
+			if (floating)
+			{
+				root.style.position = Position.Absolute;
+				root.style.right = 24;
+				root.style.bottom = 130;
+			}
+			root.style.width = size;
+			root.style.height = size;
 			root.style.backgroundColor = new Color(0.03f, 0.04f, 0.07f, 0.85f);
 			root.style.borderLeftWidth = 1;
 			root.style.borderRightWidth = 1;
@@ -89,12 +98,12 @@ namespace WitchMendokusai
 
 			// 코어 — 가장 크게. 지켜야 할 것이 어디인지가 먼저 보여야 한다.
 			if (match.CoreCombatant != null)
-				PlaceDot(match, match.CoreCombatant.Position, stage.CoreTint, 7f);
+				PlaceDot(match, match.CoreCombatant.Position, stage.CoreTint, 7f, tip: "코어 — 부서지면 끝. 여기서 연구를 한다.");
 
 			foreach (Transform outpost in match.Outposts)
 			{
 				if (outpost != null)
-					PlaceDot(match, outpost.position, stage.OutpostTint, 6f, square: true);
+					PlaceDot(match, outpost.position, stage.OutpostTint, 6f, square: true, tip: "전초기지 — 새 보급 원점이자 새로 지켜야 할 곳.");
 			}
 
 			// 내 인형들 — 이름표가 있는 것이 곧 내가 세운 것이다(같은 목록을 쓰니 화면과 안 갈라진다).
@@ -104,7 +113,7 @@ namespace WitchMendokusai
 					continue;
 
 				Color tint = doll.Working ? doll.Tint : new Color(0.45f, 0.47f, 0.52f, 1f);
-				PlaceDot(match, doll.Anchor.position, tint, 4f);
+				PlaceDot(match, doll.Anchor.position, tint, 4f, tip: doll.Text);
 			}
 
 			// 마수 — 밝힌 곳만. 안 가본 자리를 미니맵이 알려주면 시야가 무의미해진다.
@@ -117,7 +126,7 @@ namespace WitchMendokusai
 				if (match.IsNestCombatant(enemy))
 					continue; // 둥지는 아래에서 크게 따로 그린다.
 
-				PlaceDot(match, enemy.Position, stage.EnemyTint, 3.5f);
+				PlaceDot(match, enemy.Position, stage.EnemyTint, 3.5f, tip: "마수 — 코어로 오는 중.");
 			}
 
 			// ★ 둥지는 마수와 확실히 갈라 그린다(개선 목록 11번) — 같은 크기·색이면 「부술 것」이
@@ -127,11 +136,11 @@ namespace WitchMendokusai
 				if (match.IsExploredAt(nest) == false)
 					continue;
 
-				PlaceDot(match, nest, stage.NestTint, 10f);
+				PlaceDot(match, nest, stage.NestTint, 10f, tip: "둥지 — 부수면 그 출구가 닫힌다.");
 			}
 
 			if (match.HasHero)
-				PlaceDot(match, match.HeroPosition, stage.HeroTint, 6f);
+				PlaceDot(match, match.HeroPosition, stage.HeroTint, 6f, tip: "영웅 — 고르고 땅을 찍으면 그리로 간다.");
 
 			// 남는 점은 감춘다(줄어든 프레임에 옛 점이 남으면 미니맵이 거짓말한다).
 			for (int index = usedDots; index < dots.Count; index++)
@@ -156,14 +165,14 @@ namespace WitchMendokusai
 			float visibleLength = visibleWidth / Mathf.Max(0.01f, camera.aspect);
 
 			Vector2 center = ToNormalized(match, camera.transform.position);
-			float width = Mathf.Clamp01(visibleWidth / match.GroundWidth) * SIZE;
-			float length = Mathf.Clamp01(visibleLength / match.GroundLength) * SIZE;
+			float width = Mathf.Clamp01(visibleWidth / match.GroundWidth) * this.size;
+			float length = Mathf.Clamp01(visibleLength / match.GroundLength) * this.size;
 
 			viewRect.style.display = DisplayStyle.Flex;
 			viewRect.style.width = width;
 			viewRect.style.height = length;
-			viewRect.style.left = center.x * SIZE - width * 0.5f;
-			viewRect.style.top = (1f - center.y) * SIZE - length * 0.5f;
+			viewRect.style.left = center.x * this.size - width * 0.5f;
+			viewRect.style.top = (1f - center.y) * this.size - length * 0.5f;
 		}
 
 		/// <summary>
@@ -171,7 +180,39 @@ namespace WitchMendokusai
 		/// 그래서 *모양*도 같이 갈린다: 둥근 것은 살아 있는 것, 네모난 것은 지어둔 것,
 		/// 큰 것은 지켜야 할 것/부술 것.
 		/// </summary>
-		private void PlaceDot(TowerDefenseMatch match, Vector3 worldPosition, Color color, float size, bool square = false)
+		// 마지막으로 그린 판 크기 — 판이 자라면 지형을 다시 굽는다(안 자라면 그대로 쓴다).
+		private int bakedWidth;
+		private int bakedLength;
+		private Texture2D terrain;
+
+		/// <summary>
+		/// 지형 그림을 배경으로 깐다 — 「점 몇 개」였던 지도가 땅을 보여주게 된다.
+		/// 판이 자랐을 때만 다시 굽는다(굽는 값이 싸지 않다).
+		/// </summary>
+		public void RefreshTerrain(TowerDefenseMapLayout layout, TowerDefenseStageSO stage)
+		{
+			if (layout == null || stage == null)
+				return;
+			if (terrain != null && bakedWidth == layout.Width && bakedLength == layout.Length)
+				return;
+
+			terrain = TowerDefenseMapTexture.Bake(layout,
+				ground: new Color(0.16f, 0.19f, 0.28f, 1f),
+				obstacle: new Color(0.30f, 0.32f, 0.38f, 1f),
+				node: new Color(0.85f, 0.70f, 0.30f, 1f));
+			bakedWidth = layout.Width;
+			bakedLength = layout.Length;
+			if (terrain != null)
+				root.style.backgroundImage = new StyleBackground(terrain);
+		}
+
+		/// <summary>
+		/// 이 지도가 마우스 설명을 띄우나 — 펼친 지도만 켠다.
+		/// (미니맵은 곁눈질용이라 포인터를 안 받는다. 받으면 그 아래 땅을 못 누른다.)
+		/// </summary>
+		public bool ShowTooltips { get; set; }
+
+		private void PlaceDot(TowerDefenseMatch match, Vector3 worldPosition, Color color, float size, bool square = false, string tip = null)
 		{
 			Vector2 normalized = ToNormalized(match, worldPosition);
 			if (normalized.x < 0f || normalized.x > 1f || normalized.y < 0f || normalized.y > 1f)
@@ -187,9 +228,18 @@ namespace WitchMendokusai
 			dot.style.borderTopRightRadius = radius;
 			dot.style.borderBottomLeftRadius = radius;
 			dot.style.borderBottomRightRadius = radius;
-			dot.style.left = normalized.x * SIZE - size * 0.5f;
+			dot.style.left = normalized.x * this.size - size * 0.5f;
 			// 화면 세로는 위가 0 이고 판의 +z 는 위쪽이라 뒤집는다.
-			dot.style.top = (1f - normalized.y) * SIZE - size * 0.5f;
+			dot.style.top = (1f - normalized.y) * this.size - size * 0.5f;
+
+			// ★ 「각 요소에 마우스 올리면 그거에 대한 정보가 나오고」(사용자 지시). 범례를 외우게 하는
+			//   대신 물어보게 한다 — 지도 위의 점이 곧 질문 대상이다.
+			if (ShowTooltips == false || string.IsNullOrEmpty(tip))
+				return;
+
+			// 점이 작으면 못 얹는다 — 마우스가 닿을 만큼만 넓힌 투명 손잡이를 겹쳐 둔다.
+			dot.pickingMode = PickingMode.Position;
+			dot.tooltip = tip;
 		}
 
 		/// <summary> 월드 좌표 → 판 안의 비율(0~1). 판이 자라도 이 식은 그대로다. </summary>
