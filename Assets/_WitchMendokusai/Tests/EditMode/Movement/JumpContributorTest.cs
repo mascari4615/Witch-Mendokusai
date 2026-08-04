@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using NUnit.Framework;
 using UnityEngine;
 
@@ -33,18 +34,27 @@ namespace WitchMendokusai.Tests
 		{
 		}
 
-		private GameObject unitGameObject;
+		// 한 시험이 유닛을 둘 이상 만들 수 있다(가변 점프 비교처럼 「누른 쪽 vs 뗀 쪽」).
+		// 하나만 들고 있으면 두 번째를 만들 때 첫 번째가 새고, 그걸 피하려고 시험 안에서
+		// TearDown 을 직접 부르게 된다 — 읽는 사람이 「왜 여기서?」를 멈춰 생각하게 만든다.
+		private readonly List<GameObject> spawnedUnits = new();
 
 		[TearDown]
 		public void TearDown()
 		{
-			if (unitGameObject != null)
-				Object.DestroyImmediate(unitGameObject);
+			foreach (GameObject unit in spawnedUnits)
+			{
+				if (unit != null)
+					Object.DestroyImmediate(unit);
+			}
+
+			spawnedUnits.Clear();
 		}
 
 		private JumpContributor MakeContributor(bool startGrounded)
 		{
-			unitGameObject = new GameObject("JumpContributorTest.Unit");
+			GameObject unitGameObject = new("JumpContributorTest.Unit");
+			spawnedUnits.Add(unitGameObject);
 			JumpTestUnit unit = unitGameObject.AddComponent<JumpTestUnit>();
 
 			JumpContributor contributor = new(
@@ -148,8 +158,6 @@ namespace WitchMendokusai.Tests
 			held.Contribute(Context(MotorGroundState.Grounded, 0f), DELTA_TIME);
 			MotorContext heldRise = Context(MotorGroundState.Airborne, JUMP_FORCE);
 			held.Contribute(heldRise, DELTA_TIME);
-
-			TearDown(); // 첫 유닛 정리 후 두 번째 케이스
 
 			JumpContributor released = MakeContributor(startGrounded: true);
 			released.RequestJump();
