@@ -1306,23 +1306,11 @@ namespace WitchMendokusai
 			SetBestRecord(best);
 			ShowRelicResult(relicsGained, relicBalance, canPull);
 
-			string survived = FormatDuration(survivedSeconds);
-			string nests = nestsDestroyed > 0 ? "  ·  둥지 " + nestsDestroyed + "곳 부숨" : string.Empty;
-
-			// ★ 점수와 최고 기록이 넘어오는데 화면이 안 쓰고 있었다 — 「최고 기록」이라 말하면서
-			//   정작 몇 점인지, 이전이 얼마였는지를 안 보여줬다. 비교할 수 없는 기록은 기록이 아니다.
-			string scoreLine = "\n점수 " + score + (isNewRecord ? "  ·  이전 최고 " + best : "  ·  최고 " + best);
-
-			if (outcome == TowerDefenseOutcome.Victory)
-			{
-				bannerLabel.text = "개척 성공 — 마지막 둥지를 무너뜨렸다\n" + survived + nests + scoreLine;
-				// ★ 이겼을 때도 요약은 붙어야 한다 — 예전엔 여기서 빠져나가 이긴 판을 되짚을 수단이 없었다.
-				ShowSummary(summary);
-				return;
-			}
-
-			// 실시간이라 「몇 웨이브」가 아니라 *얼마나 버텼나*가 곧 성적이다.
-			bannerLabel.text = (isNewRecord ? "최고 기록 — " : "") + survived + " 버팀" + nests + scoreLine;
+			// 문구 규칙은 화면 밖(TowerDefenseOutcomeText)에 있다 — 화면 없이도 시험할 수 있어야
+			// 「무슨 일이 일어났는지 제대로 말하나」를 자동으로 물을 수 있다.
+			bannerLabel.text = TowerDefenseOutcomeText.Build(
+				outcome, FormatDuration(survivedSeconds), nestsDestroyed, score, best, isNewRecord);
+			// ★ 이겼을 때도 요약은 붙어야 한다 — 예전엔 여기서 빠져나가 이긴 판을 되짚을 수단이 없었다.
 			ShowSummary(summary);
 		}
 

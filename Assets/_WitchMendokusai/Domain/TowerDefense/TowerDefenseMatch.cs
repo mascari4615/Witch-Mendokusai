@@ -547,10 +547,21 @@ namespace WitchMendokusai
 		/// </summary>
 		public bool CanBuildAt(Vector3 worldPosition)
 		{
-			return IsInsideWindow(worldPosition)
+			return IsMatchOver == false
+				&& IsInsideWindow(worldPosition)
 				&& IsObstacleAt(worldPosition) == false
 				&& IsInBuildableRange(worldPosition);
 		}
+
+		/// <summary>
+		/// 판이 끝났나 — 끝난 판에는 아무것도 더 못 짓는다.
+		///
+		/// ★ 라이브에서 잡았다: 목숨이 0 이 되어 결말 화면이 떠 있는데도 건물이 계속 세워졌다.
+		///   끝난 판에 손을 대면 「무엇이 그 성적을 만들었나」가 흐려지고(요약은 끝난 시점을 말하는데
+		///   화면엔 그 뒤에 세운 것이 서 있다), 다시 도전을 누르기 전까지 판이 끝난 것도 안 끝난 것도
+		///   아닌 상태가 된다. 끝은 끝이어야 한다.
+		/// </summary>
+		public bool IsMatchOver => Outcome != TowerDefenseOutcome.InProgress;
 
 		/// <summary>
 		/// 함정 깔기 — 밟으면 터진다. 길목과 직결되므로 벽(길 그리기)의 짝.
@@ -3483,6 +3494,8 @@ namespace WitchMendokusai
 		{
 			if (core == null || pool == null)
 				return false;
+			if (IsMatchOver)
+				return false; // 끝난 판에선 팔 수도 없다 — 짓기와 같은 이유(끝은 끝이다).
 
 			Vector3Int cellKey = ToCellKey(worldPosition);
 			if (occupiedCells.Contains(cellKey) == false)
