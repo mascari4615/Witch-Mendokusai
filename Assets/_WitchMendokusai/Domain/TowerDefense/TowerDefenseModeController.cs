@@ -236,6 +236,42 @@ namespace WitchMendokusai
 				rig.LookAt(focus);
 		}
 
+		/// <summary> X — 열린 창을 닫는다. 판을 나가지는 않는다(잘못 누르면 판이 통째로 끝난다). </summary>
+		private void CancelPressed()
+		{
+			TowerDefenseHudView view = EnsureHud();
+			if (view == null)
+				return;
+
+			if (view.IsMapOpen)
+			{
+				view.ToggleMap();
+				return;
+			}
+
+			CloseSelection();
+		}
+
+		/// <summary> 고른 건물을 판다 — 창에서 바로(손이 규칙을 기억하지 않게). </summary>
+		private void SellSelected()
+		{
+			ArenaCombatant selected = placement.SelectedBuilding;
+			if (match == null || selected == null)
+				return;
+
+			placement.SuppressNextClick();
+			match.TrySell(selected.Position, stage != null ? stage.SellRefundRatio : 0.6f);
+			CloseSelection();
+		}
+
+		/// <summary> 창 닫기 — 고른 것을 놓는다. </summary>
+		private void CloseSelection()
+		{
+			placement.SuppressNextClick();
+			placement.SelectBuilding(null);
+			RefreshSelectionPanel();
+		}
+
 		private int RelicBalance()
 		{
 			return DataManager.TryGetExistingInstance(out DataManager dataManager) ? dataManager.TowerDefenseRelics : 0;
@@ -465,7 +501,9 @@ namespace WitchMendokusai
 				// 진입 — content 카메라 전환(개척 vcam 승격)은 CameraManager 단일 권위자가 GameMode 를 보고
 				// 이미 처리한다. 여기서는 **무대가 아는 것**(시점 위치·경계·줌 범위)만 맞춘다.
 				ResetCamera();
-				inputManager.SetInputStrategy(new InputStrategyTowerDefense(placement, inputManager, match, () => EnsureHud()?.ToggleMap()));
+				inputManager.SetInputStrategy(new InputStrategyTowerDefense(placement, inputManager, match,
+					() => EnsureHud()?.ToggleMap(),
+					CancelPressed));
 
 				// ★ 나갈 때 저장해 두고 *아무도 읽지 않던* 것을 여기서 읽는다 — 저장만 하고 이어하기가 없으면
 				//   「잠깐 접어둔다」가 그냥 「버린다」였다. 씨앗까지 넘겨야 같은 땅이 다시 나오므로 Begin 직전.
@@ -491,6 +529,9 @@ namespace WitchMendokusai
 					// 지도·미니맵을 누르면 그 자리로 — 카메라는 컨트롤러가 쥔다(화면은 「어디」만 말한다).
 					view.LookAtRequested += LookAt;
 					view.ResearchPanelRequested += OpenResearch;
+					view.SellSelectedRequested += SellSelected;
+					view.ExitRequested += () => GameModeManager.Instance.SetMode(GameMode.Default);
+					view.SelectionCloseRequested += CloseSelection;
 					view.WaveModeToggleRequested += ToggleWaveMode;
 					view.NextWaveRequested += CallNextWave;
 					view.SlotClicked += SelectSlotFromUi;
@@ -525,6 +566,8 @@ namespace WitchMendokusai
 					hud.RestartRequested -= Restart;
 					hud.LookAtRequested -= LookAt;
 					hud.ResearchPanelRequested -= OpenResearch;
+					hud.SellSelectedRequested -= SellSelected;
+					hud.SelectionCloseRequested -= CloseSelection;
 					hud.WaveModeToggleRequested -= ToggleWaveMode;
 					hud.NextWaveRequested -= CallNextWave;
 					hud.SlotClicked -= SelectSlotFromUi;

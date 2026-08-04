@@ -106,6 +106,15 @@ namespace WitchMendokusai
 		/// <summary> 디버그 — 세워둔 것 전부의 사거리를 한 번에 보여준다/감춘다. </summary>
 		public event System.Action ToggleAllRangesRequested = delegate { };
 
+		/// <summary> 판을 나가겠다 — 모서리 버튼(의도가 분명한 손짓). </summary>
+		public event System.Action ExitRequested = delegate { };
+
+		/// <summary> 고른 건물을 팔겠다 / 창을 닫겠다. </summary>
+		public event System.Action SellSelectedRequested = delegate { };
+		public event System.Action SelectionCloseRequested = delegate { };
+
+		private Button sellButton;
+
 		/// <summary> 코어를 고른 채 「연구」를 눌렀다. </summary>
 		public event System.Action ResearchRequested = delegate { };
 
@@ -451,6 +460,10 @@ namespace WitchMendokusai
 			wrapper.Add(rangeDebugButton);
 
 			wrapper.Add(MakeActionButton("처음부터", fontSize: 13, () => RestartRequested()));
+			// 나가기는 *버튼*으로만 — 키 한 번에 판이 끝나면 안 된다(X 는 이제 창만 닫는다).
+			Button exitButton = MakeActionButton("나가기", fontSize: 13, () => ExitRequested());
+			exitButton.style.marginLeft = 8;
+			wrapper.Add(exitButton);
 			return wrapper;
 		}
 
@@ -652,29 +665,67 @@ namespace WitchMendokusai
 			panel.style.position = Position.Absolute;
 			// ★ 왼쪽 아래는 범례 자리다 — 거기 두면 둘이 포개져 둘 다 안 읽힌다(좌표 검사가 잡아냄).
 			//   오른쪽 아래로 보내되 미니맵 *위*에 앉힌다: 손이 가는 곳(핫바) 근처면서 겹치는 것이 없다.
-			panel.style.right = 24;
-			panel.style.bottom = SELECTION_PANEL_BOTTOM;
-			panel.style.maxWidth = 380;
-			panel.style.paddingLeft = 14;
-			panel.style.paddingRight = 14;
-			panel.style.paddingTop = 10;
-			panel.style.paddingBottom = 10;
-			panel.style.backgroundColor = new Color(0.05f, 0.06f, 0.10f, 0.92f);
-			SetRadius(panel, 8);
+			// ★ 구석의 작은 상자였다 — 연구처럼 *판을 결정하는 창*이 거기 있으면 안 보인다
+			//   (사용자 실증: "연구 전체화면 UI로. 작아서 안보여"). 화면 가운데 큰 창으로 올린다.
+			panel.style.left = 0;
+			panel.style.right = 0;
+			panel.style.top = 0;
+			panel.style.bottom = 0;
+			panel.style.alignItems = Align.Center;
+			panel.style.justifyContent = Justify.Center;
+			panel.style.paddingLeft = 0;
+			panel.style.paddingRight = 0;
+			panel.style.paddingTop = 0;
+			panel.style.paddingBottom = 0;
+			panel.style.backgroundColor = new Color(0.02f, 0.03f, 0.05f, 0.78f);
 			panel.style.display = DisplayStyle.None;
 			panel.pickingMode = PickingMode.Position;
 
+			// 안쪽 카드 — 글과 버튼은 여기 담긴다(바깥은 화면을 덮는 어둠).
+			VisualElement card = new VisualElement();
+			card.style.minWidth = 560;
+			card.style.maxWidth = 760;
+			card.style.paddingLeft = 28;
+			card.style.paddingRight = 28;
+			card.style.paddingTop = 22;
+			card.style.paddingBottom = 22;
+			card.style.backgroundColor = new Color(0.05f, 0.06f, 0.10f, 0.98f);
+			card.style.alignItems = Align.Center;
+			SetRadius(card, 12);
+			panel.Add(card);
+
 			title = new Label(string.Empty);
-			title.style.fontSize = 14;
+			title.style.fontSize = 20;
+			title.style.whiteSpace = WhiteSpace.Normal;
+			title.style.unityTextAlign = TextAnchor.MiddleCenter;
 			title.style.color = new Color(0.94f, 0.96f, 1f, 1f);
 			title.style.whiteSpace = WhiteSpace.Normal;
 			title.style.marginBottom = 8;
 			title.pickingMode = PickingMode.Ignore;
-			panel.Add(title);
+			card.Add(title);
 
-			research = MakeActionButton("연구", fontSize: 14, () => ResearchRequested());
+			research = MakeActionButton("연구", fontSize: 18, () => ResearchRequested());
 			research.style.display = DisplayStyle.None;
-			panel.Add(research);
+			research.style.height = 48;
+			research.style.marginTop = 14;
+			research.style.paddingLeft = 24;
+			research.style.paddingRight = 24;
+			card.Add(research);
+
+			// ★ 판매를 여기서도 — 「빌딩 모드에서만 우클릭」은 손이 기억해야 하는 규칙이라,
+			//   고른 건물을 보고 있는 그 자리에 버튼을 둔다(사용자 지시: "건물 정보에 강화나 판매를").
+			sellButton = MakeActionButton("팔기", fontSize: 16, () => SellSelectedRequested());
+			sellButton.style.display = DisplayStyle.None;
+			sellButton.style.height = 40;
+			sellButton.style.marginTop = 10;
+			sellButton.style.paddingLeft = 20;
+			sellButton.style.paddingRight = 20;
+			card.Add(sellButton);
+
+			// 닫기 — 전체화면 창은 나가는 문이 보여야 한다.
+			Button close = MakeActionButton("닫기", fontSize: 14, () => SelectionCloseRequested());
+			close.style.marginTop = 16;
+			card.Add(close);
 
 			// 레벨업으로 고를 것이 쌓여 있으면 여기에 세 장이 뜬다 — 화면 한가운데를 막지 않는다.
 			// 코어 레벨업 카드 — 판 전체에 걸리는 것이라 건물 선택지와 줄을 나눈다(성격이 다르다).
@@ -683,13 +734,13 @@ namespace WitchMendokusai
 			coreCardRow.style.flexWrap = Wrap.Wrap; // 카드가 셋이면 좁은 선택창에서 줄이 넘어간다.
 			coreCardRow.style.marginTop = 8;
 			coreCardRow.pickingMode = PickingMode.Ignore;
-			panel.Add(coreCardRow);
+			card.Add(coreCardRow);
 
 			perkRow = new VisualElement();
 			perkRow.style.flexDirection = FlexDirection.Row;
 			perkRow.style.marginTop = 8;
 			perkRow.pickingMode = PickingMode.Ignore;
-			panel.Add(perkRow);
+			card.Add(perkRow);
 
 			return panel;
 		}
@@ -712,6 +763,9 @@ namespace WitchMendokusai
 			selectionPanel.style.display = DisplayStyle.Flex;
 			selectionTitleLabel.text = description;
 			researchButton.style.display = canResearch ? DisplayStyle.Flex : DisplayStyle.None;
+			// 코어는 못 판다 — 팔 수 있는 것에만 버튼을 보인다(눌리지 않는 버튼을 만들지 않는다).
+			if (sellButton != null)
+				sellButton.style.display = canResearch ? DisplayStyle.None : DisplayStyle.Flex;
 			if (canResearch)
 				// ★ 통화를 실제와 맞춘다 — 초반 연구는 *자원*으로 사는데 화면은 늘 「정수」라고 적었다.
 				//   못 살 이유를 화면이 잘못 알려주면 플레이어는 엉뚱한 것을 모으러 간다.
@@ -1206,8 +1260,8 @@ namespace WitchMendokusai
 				return;
 
 			armedLabel.text = armed
-				? "설치 대기 — " + what + " · 좌클릭으로 놓는다"
-				: "고르기 — 건물을 클릭하면 그 건물을 본다";
+				? "설치 대기 — " + what + " · 좌클릭 설치 · 우클릭 판매"
+				: "고르기 — 건물 클릭 = 살펴보기 · 빈 땅 우클릭 = 영웅 보내기";
 			armedLabel.style.color = armed
 				? new Color(1f, 0.82f, 0.35f, 1f)
 				: new Color(0.62f, 0.68f, 0.78f, 1f);
@@ -1249,8 +1303,8 @@ namespace WitchMendokusai
 				//   「숫자키로 칸 고르기」는 한 글자도 없었다. 조작 안내가 틀리면 그 화면 전체를 못 믿는다.
 				// ★ 「연구를 어떻게 여는지」가 어디에도 없었다(사용자 실증: "연구 어케 여는데").
 				//   찾아야만 알 수 있는 기능은 *없는 기능*이다 — 첫 판의 유일한 다음 수라서 더 그렇다.
-				: "숫자키 1~9 칸 고르기 · 좌클릭 설치 · 우클릭 판매   ·   코어 클릭 = 연구"
-					+ "   ·   Space 멈춤 · F6 배속   ·   WASD 시점 · 휠 확대·축소   ·   M 지도   ·   X 나가기";
+				: "숫자키 1~9 칸 고르기 · 좌클릭 설치 · 설치 중 우클릭 = 판매   ·   평소 우클릭 = 영웅 보내기   ·   코어 클릭 = 연구"
+					+ "   ·   Space 멈춤 · F6 배속   ·   WASD 시점 · 휠 확대·축소   ·   M 지도   ·   X 창 닫기";
 		}
 
 		public void Hide()

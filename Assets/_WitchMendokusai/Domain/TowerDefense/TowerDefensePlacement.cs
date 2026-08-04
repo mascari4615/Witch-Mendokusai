@@ -542,6 +542,15 @@ namespace WitchMendokusai
 			if (TryGetSnappedGroundPosition(screenPointerPosition, out Vector3 snappedWorldPosition) == false)
 				return;
 
+			// ★ 우클릭의 뜻은 *지금 무슨 모드인가*가 정한다(사용자 지시: "빌딩 모드일때 판매할 수
+			//   있게 하면 되잖아요"). 설치 대기 중이면 판다 — 짓다가 무르는 손이라 자연스럽다.
+			//   평소(고르기)엔 영웅을 보낸다 — 그게 RTS 의 우클릭이다.
+			if (IsArmed == false)
+			{
+				CommandHeroAt(screenPointerPosition);
+				return;
+			}
+
 			if (match.TrySell(snappedWorldPosition, stage.SellRefundRatio) == false)
 				Debug.Log($"{nameof(TowerDefensePlacement)}: 판매 거절 — 빈 칸이거나 코어.");
 		}

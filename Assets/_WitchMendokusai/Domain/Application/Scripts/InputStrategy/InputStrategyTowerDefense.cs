@@ -25,15 +25,18 @@ namespace WitchMendokusai
 		private readonly TowerDefenseMatch match;
 		// 지도 여닫기 — 입력이 화면을 직접 쥐면 층이 꼬인다(입력은 「눌렸다」만 전한다).
 		private readonly System.Action toggleMap;
+		// 취소(X) — 창을 닫는 뜻. 판을 나가는 것은 여기 없다.
+		private readonly System.Action cancelPressed;
 		private float lastClickTime;
 
 		public InputStrategyTowerDefense(TowerDefensePlacement placement, InputManager inputManager, TowerDefenseMatch match,
-			System.Action toggleMap = null)
+			System.Action toggleMap = null, System.Action cancelPressed = null)
 		{
 			this.placement = placement;
 			this.inputManager = inputManager;
 			this.match = match;
 			this.toggleMap = toggleMap;
+			this.cancelPressed = cancelPressed;
 		}
 
 		private List<InputRegisterData> _inputRegisterDataList;
@@ -149,10 +152,13 @@ namespace WitchMendokusai
 
 						#region UI (Cancel = 개척 나가기 → 일반 모드 복귀, Arena 동형)
 						new(
+							// ★ X 로 판을 나가지 않는다(사용자 지시) — 한 번 잘못 누르면 진행 중인 판이
+							//   통째로 끝나는데, 되돌릴 방법이 없다. 취소는 *창을 닫는* 뜻으로만 쓴다.
+							//   판을 나가는 것은 모서리 「나가기」 버튼처럼 의도가 분명한 손짓이어야 한다.
 							InputEventType.Cancel,
 							InputEventResponseType.Performed,
-							() => GameModeManager.Instance.SetMode(GameMode.Default),
-							() => CanExecute(InputEventType.Cancel)
+							() => cancelPressed?.Invoke(),
+							() => cancelPressed != null
 						),
 						#endregion
 

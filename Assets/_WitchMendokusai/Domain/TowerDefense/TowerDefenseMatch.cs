@@ -1033,6 +1033,17 @@ namespace WitchMendokusai
 			if (spawnedUnits.Contains(unitGameObject) == false)
 				spawnedUnits.Add(unitGameObject); // 풀이 옛 시체를 재사용하면 같은 참조 — 중복 추적 방지.
 
+			// ★ 세운 것은 *움직이지 않는다*. 물리를 안 끄면 영웅·마수가 지나가며 건물을 밀어낸다
+			//   (사용자 실증: "코어 건물이 영웅 유닛에 밀립니다. 건물 좀 고정되게"). 칸에 세운 것이
+			//   칸 밖으로 밀리면 「그 자리에 지었다」는 규칙 자체가 거짓이 된다 — 점유 칸은 그대로인데
+			//   그림만 옆에 가 있다. 여기 한 곳에서 전부 고정한다(스폰의 단일 관문).
+			Rigidbody spawnedBody = unitGameObject.GetComponent<Rigidbody>();
+			if (spawnedBody != null)
+			{
+				spawnedBody.isKinematic = true;
+				spawnedBody.useGravity = false;
+			}
+
 			// ★ 안개는 안 보이는 개체의 렌더러를 *끈다*. 그 개체가 풀로 돌아갔다 재사용되면 꺼진 채로
 			//   다시 태어난다 — 사용자 실증: "다시시작 하면 건물 모습이 안보임". 세우는 순간 되켠다.
 			//   (끄는 쪽과 켜는 쪽이 짝이 안 맞으면, 그 병은 *다음 판*에 나타나 원인을 찾기 어렵다.)
@@ -1922,9 +1933,9 @@ namespace WitchMendokusai
 			if (LabCount >= stage.OutpostUnlockLevel)
 				availableSlots.Add(new TowerDefenseSlot(TowerDefensePlaceableKind.Outpost));
 
-			// 영웅은 짓는 게 아니라 보내는 것 — 있으면 늘 마지막 칸.
-			if (HasHero)
-				availableSlots.Add(new TowerDefenseSlot(TowerDefensePlaceableKind.Hero));
+			// ★ 영웅은 핫바에서 뺐다(사용자 지시: "영웅 이동 따로 핫바 두지 않았으면"). 핫바는
+			//   *짓는 것*의 자리인데 영웅은 보내는 것이라 뜻이 어긋났고, WASD(시점)와도 헷갈렸다.
+			//   이제 빈 땅 우클릭이 영웅을 보낸다 — 대상이 있으면 판매, 없으면 이동(RTS 관용).
 		}
 
 		/// <summary> 해금이 바뀌었다 — 화면이 핫바를 다시 그려야 한다. </summary>
