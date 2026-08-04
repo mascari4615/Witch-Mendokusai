@@ -11,7 +11,11 @@ namespace WitchMendokusai
 	/// 진행 상태:
 	/// - γ1 ✅ Motor + Input/Gravity contributors + horizontal sweep+slide
 	/// - γ2 ✅ JumpContributor — 가변 점프 / coyote / buffer / 착지 impact
-	/// - γ3~ slope / step / external impulse / moving platform / zone (미시작)
+	/// - γ3 ✅ slope(walkable 한계 + tangent slide) / step offset / ExternalImpulseContributor(대시·넉백)
+	/// - γ4 ⬜ moving platform / zone force — **미시작** (관련 코드 0)
+	///
+	/// 접지 판정은 <c>Motor.ResolveGround</c> 단일 정본 (TASK-WM-029-B, 2026-08-05).
+	/// 회귀 그물 = <c>Tests/EditMode/Movement/</c> 36건 — 이동 쪽을 손대면 그걸 먼저 돌릴 것.
 	/// </summary>
 	public class UnitMovement : MonoBehaviour
 	{
