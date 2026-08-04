@@ -33,6 +33,7 @@ namespace WitchMendokusai.EditorTools
     public static class WMBuilder
     {
         private const string DEFAULT_REL = "Build/Player/WitchMendokusai.exe";
+        private const string DEFAULT_REL_ANDROID = "Build/Player/WitchMendokusai.apk";
 
         [MenuItem("WM/Build/Player (Release)")]
         private static void BuildReleaseMenu()
@@ -46,10 +47,26 @@ namespace WitchMendokusai.EditorTools
             RunMenuBuild(true);
         }
 
+        [MenuItem("WM/Build/Android APK (Development)")]
+        private static void BuildAndroidMenu()
+        {
+            string outPath = Path.Combine(ProjectRoot(), DEFAULT_REL_ANDROID);
+            BuildSummary summary = Build(outPath, true, BuildTarget.Android, out string detail);
+            if (summary.result == BuildResult.Succeeded)
+            {
+                Debug.Log($"[WM-BUILD] OK → {outPath}\n{detail}");
+                EditorUtility.RevealInFinder(outPath);
+            }
+            else
+            {
+                Debug.LogError($"[WM-BUILD] FAILED\n{detail}");
+            }
+        }
+
         private static void RunMenuBuild(bool development)
         {
             string outPath = Path.Combine(ProjectRoot(), DEFAULT_REL);
-            BuildSummary summary = Build(outPath, development, out string detail);
+            BuildSummary summary = Build(outPath, development, BuildTarget.StandaloneWindows64, out string detail);
             if (summary.result == BuildResult.Succeeded)
             {
                 Debug.Log($"[WM-BUILD] OK → {outPath}\n{detail}");
@@ -73,6 +90,13 @@ namespace WitchMendokusai.EditorTools
             bool development = HasFlag("-wmDev");
             string version = ArgValue("-wmVersion");
             string reportPath = ArgValue("-wmReport");
+            BuildTarget target = ParseTarget(ArgValue("-wmTarget"));
+
+            // 대상별 기본 산출 경로 (-wmOut 없을 때 확장자가 어긋나면 빌드가 통째로 실패한다)
+            if (string.IsNullOrEmpty(ArgValue("-wmOut")) && target == BuildTarget.Android)
+            {
+                outPath = Path.Combine(ProjectRoot(), DEFAULT_REL_ANDROID);
+            }
 
             if (string.IsNullOrEmpty(version) == false)
             {
@@ -85,7 +109,7 @@ namespace WitchMendokusai.EditorTools
             bool succeeded;
             try
             {
-                summary = Build(outPath, development, out detail);
+                summary = Build(outPath, development, target, out detail);
                 succeeded = summary.result == BuildResult.Succeeded;
             }
             catch (Exception exception)
@@ -106,7 +130,7 @@ namespace WitchMendokusai.EditorTools
 
             if (string.IsNullOrEmpty(reportPath) == false)
             {
-                WriteReport(reportPath, outPath, development, summary, succeeded);
+                WriteReport(reportPath, outPath, development, target, summary, succeeded);
             }
 
             if (Application.isBatchMode)
@@ -115,7 +139,7 @@ namespace WitchMendokusai.EditorTools
             }
         }
 
-        private static BuildSummary Build(string outPath, bool development, out string detail)
+        private static BuildSummary Build(string outPath, bool development, BuildTarget target, out string detail)
         {
             string[] scenes = EditorBuildSettings.scenes
                 .Where(scene => scene.enabled)
@@ -140,12 +164,17 @@ namespace WitchMendokusai.EditorTools
                 options |= BuildOptions.Development;
             }
 
+            if (target == BuildTarget.Android)
+            {
+                PrepareAndroid(development);
+            }
+
             BuildPlayerOptions playerOptions = new BuildPlayerOptions
             {
                 scenes = scenes,
                 locationPathName = outPath,
-                target = BuildTarget.StandaloneWindows64,
-                targetGroup = BuildTargetGroup.Standalone,
+                target = target,
+                targetGroup = BuildPipeline.GetBuildTargetGroup(target),
                 options = options,
             };
 
@@ -153,12 +182,25 @@ namespace WitchMendokusai.EditorTools
             BuildSummary summary = report.summary;
 
             StringBuilder builder = new StringBuilder();
-            builder.AppendLine($"result={summary.result} scenes={scenes.Length} dev={development}");
+            builder.AppendLine($"result={summary.result} scenes={scenes.Length} dev={development} target={target}");
             builder.AppendLine($"version={PlayerSettings.bundleVersion} size={summary.totalSize}B time={summary.totalTime}");
             builder.AppendLine($"errors={summary.totalErrors} warnings={summary.totalWarnings}");
             AppendFailedSteps(builder, report);
             detail = builder.ToString();
             return summary;
+        }
+
+        // 안드로이드 전용 준비. 프로젝트는 커스텀 keystore 를 쓰도록 설정돼 있지만 그 키 파일은
+        // 저장소에 없다(비밀). 빌드머신에서는 유니티 기본 디버그 키로 서명한다 — 폰에 설치해
+        // 확인하는 용도. 스토어 배포본은 사용자가 키를 준비한 뒤 별도 경로로 낸다.
+        private static void PrepareAndroid(bool development)
+        {
+            PlayerSettings.Android.useCustomKeystore = false;
+            // APK 단일 파일 (스토어용 aab 아님) — 폰에 바로 설치해서 확인하는 게 목적.
+            EditorUserBuildSettings.buildAppBundle = false;
+            EditorUserBuildSettings.androidBuildSubtarget = MobileTextureSubtarget.Generic;
+            EditorUserBuildSettings.development = development;
+            Debug.Log("[WM-BUILD] Android: 디버그 키 서명 + APK 출력");
         }
 
         // 실패 시 어느 step 의 어떤 메시지인지 로그에 남긴다 (CI 로그만 보고 원인 추적).
@@ -182,7 +224,7 @@ namespace WitchMendokusai.EditorTools
             }
         }
 
-        private static void WriteReport(string reportPath, string outPath, bool development, BuildSummary summary, bool succeeded)
+        private static void WriteReport(string reportPath, string outPath, bool development, BuildTarget target, BuildSummary summary, bool succeeded)
         {
             try
             {
@@ -204,6 +246,7 @@ namespace WitchMendokusai.EditorTools
                     result = summary.result.ToString(),
                     outPath = outPath.Replace('\\', '/'),
                     version = PlayerSettings.bundleVersion,
+                    target = target.ToString(),
                     development = development,
                     totalSizeBytes = (long)summary.totalSize,
                     exeSizeBytes = sizeBytes,
@@ -230,6 +273,7 @@ namespace WitchMendokusai.EditorTools
             public string result;
             public string outPath;
             public string version;
+            public string target;
             public bool development;
             public long totalSizeBytes;
             public long exeSizeBytes;
@@ -243,6 +287,28 @@ namespace WitchMendokusai.EditorTools
         {
             // Application.dataPath = <project>/Assets
             return Directory.GetParent(Application.dataPath).FullName;
+        }
+
+        // -wmTarget windows|android (생략 = windows). 오타는 FastFail — 조용히 엉뚱한 플랫폼을 굽지 않는다.
+        private static BuildTarget ParseTarget(string raw)
+        {
+            if (string.IsNullOrEmpty(raw))
+            {
+                return BuildTarget.StandaloneWindows64;
+            }
+
+            switch (raw.Trim().ToLowerInvariant())
+            {
+                case "windows":
+                case "win":
+                case "standalonewindows64":
+                    return BuildTarget.StandaloneWindows64;
+                case "android":
+                case "apk":
+                    return BuildTarget.Android;
+                default:
+                    throw new ArgumentException($"-wmTarget 값이 잘못됨: '{raw}' (windows | android)");
+            }
         }
 
         private static bool HasFlag(string key)
