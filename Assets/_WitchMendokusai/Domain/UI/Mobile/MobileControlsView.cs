@@ -182,6 +182,7 @@ namespace WitchMendokusai
 
 			BuildStick(controlsRoot);
 			BuildActionButtons(controlsRoot);
+			BuildWindowMenu(controlsRoot);
 
 			uiRoot.HudLayer.Add(controlsRoot);
 		}
@@ -313,6 +314,92 @@ namespace WitchMendokusai
 			column.Add(bottomRow);
 
 			parent.Add(column);
+		}
+
+		private VisualElement windowMenuColumn;
+
+		/// <summary>
+		/// 창으로 가는 길 (TASK-WM-200) — 폰엔 키보드가 없다.
+		///
+		/// ★ 이게 없으면 폰에서 *인벤토리·퀘스트·도감·마도서·인형·스탯이 통째로 없는 기능*이 된다.
+		///   전부 키 하나에만 매달려 있었고(I/J/B/M/K/V), 화면 어디에도 문이 없었다. 조작 장치를
+		///   아무리 잘 만들어도 물건을 못 꺼내면 게임이 성립하지 않는다.
+		/// ★ 왜 접어 두나: 창이 여섯이라 늘 펼쳐 두면 화면 오른쪽 절반이 버튼밭이 된다.
+		///   자주 쓰는 것은 아래 동작 버튼이고, 이건 「가끔 여는 것들」이다.
+		/// </summary>
+		private void BuildWindowMenu(VisualElement parent)
+		{
+			VisualElement corner = new VisualElement();
+			corner.style.position = Position.Absolute;
+			corner.style.right = edgeMargin;
+			corner.style.top = edgeMargin;
+			corner.style.alignItems = Align.FlexEnd;
+			corner.pickingMode = PickingMode.Ignore;
+
+			windowMenuColumn = new VisualElement();
+			windowMenuColumn.style.display = DisplayStyle.None;
+			windowMenuColumn.style.alignItems = Align.FlexEnd;
+			windowMenuColumn.pickingMode = PickingMode.Ignore;
+
+			windowMenuColumn.Add(MakeTapButton("가방", InputEventType.Inventory));
+			windowMenuColumn.Add(MakeTapButton("퀘스트", InputEventType.QuestToggle));
+			windowMenuColumn.Add(MakeTapButton("도감", InputEventType.CodexToggle));
+			windowMenuColumn.Add(MakeTapButton("마도서", InputEventType.MagicBookToggle));
+			windowMenuColumn.Add(MakeTapButton("인형", InputEventType.DollToggle));
+			windowMenuColumn.Add(MakeTapButton("몸 상태", InputEventType.Status));
+
+			Label toggle = MakeMenuToggleButton();
+			corner.Add(toggle);
+			corner.Add(windowMenuColumn);
+			parent.Add(corner);
+		}
+
+		private Label MakeMenuToggleButton()
+		{
+			Label button = new Label("창") { name = "MobileWindowMenuToggle" };
+			StyleRoundButton(button, actionButtonSize * 0.7f);
+			button.RegisterCallback<PointerDownEvent>(evt =>
+			{
+				bool open = windowMenuColumn.style.display == DisplayStyle.None;
+				windowMenuColumn.style.display = open ? DisplayStyle.Flex : DisplayStyle.None;
+				evt.StopPropagation();
+			});
+			return button;
+		}
+
+		/// <summary> 한 번 톡 = 그 키를 한 번 눌렀다 뗀 것 — 창 여닫기처럼 「누르고 있기」가 뜻 없는 것들. </summary>
+		private Label MakeTapButton(string label, InputEventType inputEventType)
+		{
+			Label button = new Label(label) { name = "MobileWindowButton_" + inputEventType };
+			StyleRoundButton(button, actionButtonSize * 0.7f);
+			button.style.width = actionButtonSize * 1.15f;
+			button.RegisterCallback<PointerDownEvent>(evt =>
+			{
+				if (InputManager.TryGetExistingInstance(out InputManager inputManager))
+				{
+					inputManager.PressFromScreenButton(inputEventType);
+					inputManager.ReleaseFromScreenButton(inputEventType);
+				}
+				evt.StopPropagation();
+			});
+			return button;
+		}
+
+		private void StyleRoundButton(Label button, float size)
+		{
+			button.style.width = size;
+			button.style.height = size;
+			button.style.marginTop = 8;
+			button.style.borderTopLeftRadius = size * 0.35f;
+			button.style.borderTopRightRadius = size * 0.35f;
+			button.style.borderBottomLeftRadius = size * 0.35f;
+			button.style.borderBottomRightRadius = size * 0.35f;
+			button.style.backgroundColor = new Color(0.1f, 0.12f, 0.17f, 0.62f);
+			SetBorder(button, new Color(0.75f, 0.8f, 0.9f, 0.4f), 2f);
+			button.style.color = new Color(0.93f, 0.95f, 0.99f, 1f);
+			button.style.unityTextAlign = TextAnchor.MiddleCenter;
+			button.style.fontSize = Mathf.Max(13f, size * 0.28f);
+			button.pickingMode = PickingMode.Position;
 		}
 
 		/// <summary>
