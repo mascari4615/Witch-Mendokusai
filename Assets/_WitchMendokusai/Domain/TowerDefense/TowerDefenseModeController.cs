@@ -410,7 +410,7 @@ namespace WitchMendokusai
 				// 진입 — content 카메라 전환(개척 vcam 승격)은 CameraManager 단일 권위자가 GameMode 를 보고
 				// 이미 처리한다. 여기서는 **무대가 아는 것**(시점 위치·경계·줌 범위)만 맞춘다.
 				ResetCamera();
-				inputManager.SetInputStrategy(new InputStrategyTowerDefense(placement, inputManager, match));
+				inputManager.SetInputStrategy(new InputStrategyTowerDefense(placement, inputManager, match, () => EnsureHud()?.ToggleMap()));
 
 				// ★ 나갈 때 저장해 두고 *아무도 읽지 않던* 것을 여기서 읽는다 — 저장만 하고 이어하기가 없으면
 				//   「잠깐 접어둔다」가 그냥 「버린다」였다. 씨앗까지 넘겨야 같은 땅이 다시 나오므로 Begin 직전.

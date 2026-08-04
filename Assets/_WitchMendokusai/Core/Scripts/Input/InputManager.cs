@@ -61,6 +61,9 @@ namespace WitchMendokusai
 		Submit,
 		[InputEvent("UI 탐색", "취소", "<Keyboard>/x")]
 		Cancel,
+		// 개척 전용 — 같은 M 키를 마도서와 나눠 쓴다(모드마다 등록되는 조작이 달라 겹치지 않는다).
+		[InputEvent("개척", "지도 열기·닫기", "<Keyboard>/m")]
+		TowerDefenseMapToggle,
 		[InputEvent("카메라", "시점 조작 모드 (Tab)", "<Keyboard>/tab")]
 		CameraControlModeToggle,
 		[InputEvent("카메라", "1인칭/3인칭 (F5)", "<Keyboard>/f5")]
@@ -142,6 +145,7 @@ namespace WitchMendokusai
 
 			{ InputEventType.Submit, InputMapType.UI },
 			{ InputEventType.Cancel, InputMapType.UI },
+			{ InputEventType.TowerDefenseMapToggle, InputMapType.UI },
 			{ InputEventType.CameraControlModeToggle, InputMapType.UI },
 			{ InputEventType.CameraPerspectiveToggle, InputMapType.UI },
 			{ InputEventType.CameraViewCycle, InputMapType.UI },

@@ -1050,6 +1050,15 @@
                     "initialStateCheck": false
                 },
                 {
+                    "name": "TowerDefenseMapToggle",
+                    "type": "Button",
+                    "id": "aa059e00-0000-0000-0000-0000000000td",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
                     "name": "MagicBookToggle",
                     "type": "Button",
                     "id": "aa059e00-0000-0000-0000-000000000001",
@@ -1606,6 +1615,17 @@
                     "processors": "",
                     "groups": "",
                     "action": "Inventory",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "aa059e01-0000-0000-0000-0000000000td",
+                    "path": "<Keyboard>/m",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "TowerDefenseMapToggle",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },

@@ -204,12 +204,27 @@ namespace WitchMendokusai
 				// stage prefab, #4 InjectGameObject) 의 DI 진입을 동일 established 패턴으로 수렴 (발산 제거).
 				// Player inject → Player.Construct 가 자식 cascade (PlayerObject/PlayerRotation/DollAnimator/
 				// UnitMovement 등). Marker 류는 Player.prefab 자식 아닐 수 있어 명시 (캐스케이드 ac9b1d12 증거). TASK-WM-078 2026-05-16.
+				// ★ 계층 재귀로 통일 — 예전엔 Player 본인만 주입하고 자식 cascade 를 Player.Construct 가
+				//   손으로 했다. 그러면 ① 검사기가 자식 커버리지를 못 보고(가짜 실패) ② 새 자식이 붙을
+				//   때마다 그 손 cascade 를 사람이 기억해야 한다. Monster/NPC/GameEventListener 와
+				//   같은 established 패턴으로 맞춘다(Construct 는 멱등).
 				foreach (Player player in FindObjectsByType<Player>(FindObjectsInactive.Include))
-					container.Inject(player);
+					container.InjectGameObject(player.gameObject);
 				foreach (InteractiveMarker interactiveMarker in FindObjectsByType<InteractiveMarker>(FindObjectsInactive.Include))
 					container.Inject(interactiveMarker);
 				foreach (AutoAimMarker autoAimMarker in FindObjectsByType<AutoAimMarker>(FindObjectsInactive.Include))
 					container.Inject(autoAimMarker);
+
+				// ★ 씬에 직접 놓인 UI·스포너·풀 오브젝트 — 부모(UIManager/DungeonManager)만 등록돼 있어
+				//   그 아래 [Inject] 컴포넌트가 통째로 안 맞았다(NPCObject 때와 같은 갭). 계층 재귀로 수렴.
+				foreach (UIManager uiManagerHost in FindObjectsByType<UIManager>(FindObjectsInactive.Include))
+					container.InjectGameObject(uiManagerHost.gameObject);
+				foreach (DungeonManager dungeonManagerHost in FindObjectsByType<DungeonManager>(FindObjectsInactive.Include))
+					container.InjectGameObject(dungeonManagerHost.gameObject);
+				foreach (PoolingObject poolingObject in FindObjectsByType<PoolingObject>(FindObjectsInactive.Include))
+					container.InjectGameObject(poolingObject.gameObject);
+				foreach (LobbyManager lobbyManager in FindObjectsByType<LobbyManager>(FindObjectsInactive.Include))
+					container.InjectGameObject(lobbyManager.gameObject);
 
 				// θ — Scene→Root 역방향 .Instance 제거: child scope 가 parent GameManager 에 씬 의존 조건 바인딩.
 				BootObserver.Enter(BootPhase.WorldScopeBuilt); // TASK-WM-118 B1

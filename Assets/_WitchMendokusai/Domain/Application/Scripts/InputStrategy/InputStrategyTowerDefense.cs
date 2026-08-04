@@ -23,13 +23,17 @@ namespace WitchMendokusai
 		private readonly InputManager inputManager;
 		// 시간 조작은 매치가 쥔다 — 입력은 「눌렸다」만 전하고 규칙은 매치에 남는다.
 		private readonly TowerDefenseMatch match;
+		// 지도 여닫기 — 입력이 화면을 직접 쥐면 층이 꼬인다(입력은 「눌렸다」만 전한다).
+		private readonly System.Action toggleMap;
 		private float lastClickTime;
 
-		public InputStrategyTowerDefense(TowerDefensePlacement placement, InputManager inputManager, TowerDefenseMatch match)
+		public InputStrategyTowerDefense(TowerDefensePlacement placement, InputManager inputManager, TowerDefenseMatch match,
+			System.Action toggleMap = null)
 		{
 			this.placement = placement;
 			this.inputManager = inputManager;
 			this.match = match;
+			this.toggleMap = toggleMap;
 		}
 
 		private List<InputRegisterData> _inputRegisterDataList;
@@ -75,6 +79,13 @@ namespace WitchMendokusai
 							InputEventResponseType.Performed,
 							() => match.CycleSpeed(),
 							() => CanExecute(InputEventType.CameraViewCycle)
+						),
+						// 지도 — 「미니맵만 두지말고 맵을 UI 열 수 있게」(사용자 지시). 버튼과 같은 일을 한다.
+						new(
+							InputEventType.TowerDefenseMapToggle,
+							InputEventResponseType.Performed,
+							() => toggleMap?.Invoke(),
+							() => toggleMap != null
 						),
 						#region Hotbar (기존 건설 모드와 같은 조작 문법 — 숫자키로 설치 대상 선택)
 						new(
