@@ -33,10 +33,10 @@ MonoBehaviour:
     - {fileID: 11400000, guid: 78fff8d602f415043ab8f466568758a3, type: 2}
   - Type: 9
     DataSOs:
-    - {fileID: 11400000, guid: cc1449beba6d19b4ab4c571cf3f1b51b, type: 2}
     - {fileID: 11400000, guid: f6776b59968294f4f9048a1d0c967edd, type: 2}
+    - {fileID: 11400000, guid: cc1449beba6d19b4ab4c571cf3f1b51b, type: 2}
   - Type: 10
     DataSOs:
-    - {fileID: 11400000, guid: cc1449beba6d19b4ab4c571cf3f1b51b, type: 2}
     - {fileID: 11400000, guid: f6776b59968294f4f9048a1d0c967edd, type: 2}
+    - {fileID: 11400000, guid: cc1449beba6d19b4ab4c571cf3f1b51b, type: 2}
   <QuestData>k__BackingField: []

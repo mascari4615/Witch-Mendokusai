@@ -28,6 +28,7 @@ namespace WitchMendokusai
 		private Label titleLabel;
 		private Label descriptionLabel;
 		private Button enterButton;
+		private Label taglineLabel;
 
 		private List<MinigameEntrySO> entries = new();
 		private int selectedIndex;
@@ -58,7 +59,7 @@ namespace WitchMendokusai
 			// 좌: 목록
 			entryListParent = new VisualElement { name = "EntryList" };
 			entryListParent.style.flexDirection = FlexDirection.Column;
-			entryListParent.style.width = 260;
+			entryListParent.style.width = 300;
 			entryListParent.style.marginRight = 24;
 			body.Add(entryListParent);
 
@@ -74,6 +75,13 @@ namespace WitchMendokusai
 			titleLabel.style.marginBottom = 10;
 			detail.Add(titleLabel);
 
+			taglineLabel = new Label(string.Empty);
+			taglineLabel.style.fontSize = 15;
+			taglineLabel.style.color = new Color(1f, 0.82f, 0.45f, 1f);
+			taglineLabel.style.marginBottom = 14;
+			taglineLabel.style.whiteSpace = WhiteSpace.Normal;
+			detail.Add(taglineLabel);
+
 			descriptionLabel = new Label(string.Empty);
 			descriptionLabel.style.fontSize = 15;
 			descriptionLabel.style.color = new Color(0.78f, 0.82f, 0.9f, 1f);
@@ -81,9 +89,17 @@ namespace WitchMendokusai
 			descriptionLabel.style.flexGrow = 1;
 			detail.Add(descriptionLabel);
 
-			enterButton = new Button(EnterSelected) { name = "EnterButton", text = "접속" };
-			enterButton.style.height = 44;
-			enterButton.style.fontSize = 18;
+			// 시작 버튼 — 이 창에서 *유일하게 판을 여는* 손잡이라 한눈에 띄어야 한다.
+			enterButton = new Button(EnterSelected) { name = "EnterButton", text = "시작" };
+			enterButton.style.height = 56;
+			enterButton.style.fontSize = 20;
+			enterButton.style.marginTop = 18;
+			enterButton.style.backgroundColor = new Color(0.85f, 0.62f, 0.18f, 1f);
+			enterButton.style.color = new Color(0.06f, 0.06f, 0.08f, 1f);
+			enterButton.style.borderTopLeftRadius = 8;
+			enterButton.style.borderTopRightRadius = 8;
+			enterButton.style.borderBottomLeftRadius = 8;
+			enterButton.style.borderBottomRightRadius = 8;
 			detail.Add(enterButton);
 		}
 
@@ -133,6 +149,7 @@ namespace WitchMendokusai
 		private void SelectEntry(int index)
 		{
 			selectedIndex = index;
+			RefreshEntryHighlight();
 			RefreshDetail();
 		}
 
@@ -142,7 +159,12 @@ namespace WitchMendokusai
 			if (entry == null)
 			{
 				titleLabel.text = "등록된 시뮬레이션 없음";
+				if (taglineLabel != null)
+					taglineLabel.style.display = DisplayStyle.None;
 				descriptionLabel.text = "티메토 NPC 데이터의 PanelInfos 에 MinigameEntrySO 를 추가해야 목록에 뜬다.";
+				// ★ 「할 수 없다」는 *보이되 꺼져* 있어야 한다 — 버튼이 사라지면 사람은 「시작 버튼이
+				//   없는데?」가 된다(사용자 실증). 무엇을 하는 창인지는 늘 보여야 한다.
+				enterButton.text = "시작";
 				enterButton.SetEnabled(false);
 				return;
 			}
@@ -171,11 +193,37 @@ namespace WitchMendokusai
 			{
 				int capturedIndex = entryButtons.Count;
 				Button button = new Button(() => SelectEntry(capturedIndex));
-				button.style.height = 40;
-				button.style.fontSize = 16;
-				button.style.marginBottom = 6;
+				button.style.height = 52;
+				button.style.fontSize = 17;
+				button.style.marginBottom = 8;
+				button.style.unityTextAlign = TextAnchor.MiddleLeft;
+				button.style.paddingLeft = 16;
+				// 왼쪽에 굵은 띠 — 고른 항목을 색이 아니라 *모양*으로도 가른다(색만으로는 안 읽힌다).
+				button.style.borderLeftWidth = 4;
 				entryButtons.Add(button);
 				entryListParent.Add(button);
+			}
+		}
+
+		/// <summary>
+		/// 고른 항목을 눈에 보이게 — 목록에서 *지금 무엇을 보고 있나*가 안 보이면 오른쪽 설명이
+		/// 누구 것인지 알 수 없다(고른 티가 안 나는 목록은 목록이 아니라 나열이다).
+		/// </summary>
+		private void RefreshEntryHighlight()
+		{
+			Color activeBar = new Color(1f, 0.78f, 0.35f, 1f);
+			Color idleBar = new Color(1f, 1f, 1f, 0.08f);
+			Color activeBack = new Color(0.16f, 0.19f, 0.27f, 1f);
+			Color idleBack = new Color(0.09f, 0.11f, 0.16f, 1f);
+
+			for (int index = 0; index < entryButtons.Count; index++)
+			{
+				bool chosen = index == selectedIndex;
+				entryButtons[index].style.borderLeftColor = chosen ? activeBar : idleBar;
+				entryButtons[index].style.backgroundColor = chosen ? activeBack : idleBack;
+				entryButtons[index].style.color = chosen
+					? new Color(1f, 0.94f, 0.82f, 1f)
+					: new Color(0.78f, 0.82f, 0.9f, 1f);
 			}
 		}
 	}
