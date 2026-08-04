@@ -157,8 +157,18 @@ namespace WitchMendokusai
 			if (edgePanBand <= 0f)
 				return Vector2.zero;
 
+			// ★ 창이 뒤에 있으면 밀지 않는다 — 다른 창을 보는 동안 판이 저 혼자 흘러가면 안 된다.
+			if (Application.isFocused == false)
+				return Vector2.zero;
+
 			Vector2 pointer = InputManager.MouseScreenPosition;
 			if (pointer.x < 0f || pointer.y < 0f || pointer.x > Screen.width || pointer.y > Screen.height)
+				return Vector2.zero;
+
+			// ★ UI 위에서는 밀지 않는다 — 핫바·모서리 버튼이 죄다 *화면 가장자리*에 있어서,
+			//   버튼을 고르려고 커서를 얹는 동안 시점이 계속 흘렀다(사용자 실증: "가장자리 이동 재검토").
+			//   무엇을 누르려는 손과 시점을 옮기려는 손은 다른 손이다.
+			if (UIPointer.IsOverInteractive(pointer))
 				return Vector2.zero;
 
 			float x = 0f;

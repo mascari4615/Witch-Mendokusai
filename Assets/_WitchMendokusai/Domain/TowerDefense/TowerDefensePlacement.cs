@@ -269,13 +269,59 @@ namespace WitchMendokusai
 			HoveredUnit = nearest;
 		}
 
+		/// <summary>
+		/// 입력관리자를 늦게라도 확보한다 — 주입이 안 온 경우의 자가 복구.
+		/// ★ 이것이 null 이면 미리보기·hover 가 통째로 죽는데, 아무 소리도 안 난다.
+		/// </summary>
+		private void EnsureInputManager()
+		{
+			if (inputManager != null)
+				return;
+
+			if (InputManager.TryGetExistingInstance(out InputManager found))
+				inputManager = found;
+		}
+
+		/// <summary>
+		/// 미리보기 마커가 없으면 만든다.
+		///
+		/// ★ 이 마커는 인스펙터에서 끼워 넣는 것이었다 — 비어 있으면 *아무 말도 없이* 미리보기가
+		///   통째로 사라진다(사용자 실증: "설치 미리보기도 지금 동작 안하는 것 같은데"). 화면에 꼭
+		///   있어야 하는 것을 씬 배선에 기대면, 그 배선이 끊긴 날 조용히 기능이 없어진다.
+		///   코드가 스스로 세우면 어떤 씬에서도 미리보기는 늘 있다.
+		/// </summary>
+		private void EnsurePreviewMarker()
+		{
+			if (previewMarker != null)
+				return;
+
+			previewMarker = TowerDefenseVisuals.Primitive(PrimitiveType.Quad, unlit: true);
+			previewMarker.name = "PlacementPreviewMarker";
+			Destroy(previewMarker.GetComponent<Collider>()); // 표시용 — 레이캐스트를 가로채면 안 된다.
+			previewMarker.transform.SetParent(transform, false);
+			// 바닥에 눕힌 한 칸짜리 판. 살짝 띄워 바닥과 겹쳐 깜빡이지 않게.
+			previewMarker.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
+			previewMarker.transform.localScale = Vector3.one * cellSize * 0.92f;
+			previewMarker.SetActive(false);
+		}
+
 		// 커서 아래 유닛 탐색 버퍼 — 매 프레임 새 배열을 만들지 않는다.
 		private readonly RaycastHit[] hoverHits = new RaycastHit[16];
 
 		private void Update()
 		{
-			if (isActive == false || previewMarker == null)
+			if (isActive == false)
 				return;
+
+			EnsurePreviewMarker();
+			if (previewMarker == null)
+				return;
+
+			// ★ 입력관리자가 없으면 아래 판정이 통째로 「못 그림」으로 떨어져 *미리보기가 조용히 사라진다*
+			//   (실측: inputManager=null 이라 매 프레임 스스로 꺼지고 있었다 — 사용자 실증 "설치
+			//   미리보기 동작 안하는 것 같은데"). 주입이 안 왔으면 스스로 찾는다. 없는 것보다 낫고,
+			//   무엇보다 *조용히 없어지는 것*보다 낫다.
+			EnsureInputManager();
 
 			if (inputManager != null)
 				UpdateHover(inputManager.MouseScreenPosition);
@@ -306,7 +352,7 @@ namespace WitchMendokusai
 			}
 
 			previewMarker.SetActive(true);
-			previewMarker.transform.position = snappedWorldPosition;
+			previewMarker.transform.position = snappedWorldPosition + new Vector3(0f, 0.04f, 0f);
 			UpdatePreviewRing(snappedWorldPosition);
 			UpdateGhostBuilding(snappedWorldPosition);
 
