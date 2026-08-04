@@ -829,15 +829,28 @@ namespace WitchMendokusai
 			wrapper.style.display = DisplayStyle.None;
 			wrapper.name = "BannerWrapper";
 			wrapper.pickingMode = PickingMode.Ignore;
+			bannerWrapper = wrapper;
+
+			// ★ 결말은 *한 덩어리*로 읽혀야 한다. 예전엔 제목에만 어두운 판이 깔리고 요약·유물은
+			//   맨바닥에 떠서 지도·인형과 겹쳤다 — 판이 끝난 이유를 되짚으라고 만든 글이 정작
+			//   가장 안 읽히는 글이 됐다. 제목·요약·유물을 한 장의 카드에 담아 배경과 갈라놓는다.
+			//   (버튼은 카드 밖 — 누르는 것과 읽는 것은 다른 일이다.)
+			outcomeCard = new VisualElement();
+			outcomeCard.style.backgroundColor = new Color(0.04f, 0.05f, 0.08f, 0.88f);
+			outcomeCard.style.paddingLeft = 28;
+			outcomeCard.style.paddingRight = 28;
+			outcomeCard.style.paddingTop = 16;
+			outcomeCard.style.paddingBottom = 18;
+			outcomeCard.style.alignItems = Align.Center;
+			outcomeCard.style.maxWidth = 720;
+			SetRadius(outcomeCard, 10);
+			outcomeCard.pickingMode = PickingMode.Ignore;
 
 			banner = new Label(string.Empty);
 			banner.style.fontSize = 34;
 			banner.style.color = new Color(1f, 0.85f, 0.4f, 1f);
-			banner.style.backgroundColor = new Color(0.04f, 0.05f, 0.08f, 0.8f);
-			banner.style.paddingLeft = 24;
-			banner.style.paddingRight = 24;
-			banner.style.paddingTop = 12;
-			banner.style.paddingBottom = 12;
+			banner.style.unityTextAlign = TextAnchor.MiddleCenter;
+			banner.style.whiteSpace = WhiteSpace.Normal;
 			banner.pickingMode = PickingMode.Ignore;
 
 			// 판 밖에 남는 것 — 이번에 번 유물과 보유량. 끝나는 화면에서 바로 보여야 다음 판 이유가 된다.
@@ -863,7 +876,8 @@ namespace WitchMendokusai
 			buttons.Add(pullButton);
 			buttons.Add(restartButton);
 
-			wrapper.Add(banner);
+			outcomeCard.Add(banner);
+			wrapper.Add(outcomeCard);
 
 			summaryLabel = new Label(string.Empty);
 			summaryLabel.style.fontSize = 14;
@@ -873,9 +887,9 @@ namespace WitchMendokusai
 			summaryLabel.style.whiteSpace = WhiteSpace.Normal;
 			summaryLabel.style.display = DisplayStyle.None;
 			summaryLabel.pickingMode = PickingMode.Ignore;
-			wrapper.Add(summaryLabel);
+			outcomeCard.Add(summaryLabel);
 
-			wrapper.Add(relicLabel);
+			outcomeCard.Add(relicLabel);
 			wrapper.Add(buttons);
 			return wrapper;
 		}
@@ -1337,6 +1351,12 @@ namespace WitchMendokusai
 
 		private Label summaryLabel;
 
+		/// <summary> 결말 한 덩어리 — 제목·요약·유물이 같은 판 위에 앉는다(버튼은 밖). </summary>
+		private VisualElement outcomeCard;
+
+		/// <summary> 결말 화면 껍데기 — 보임/숨김의 주인(안쪽 구조와 무관하게 이것만 토글한다). </summary>
+		private VisualElement bannerWrapper;
+
 		/// <summary> 초 → 「3분 20초」. 숫자만 던지면 몇 분인지 사람이 암산해야 한다. </summary>
 		private static string FormatDuration(int seconds)
 		{
@@ -1547,9 +1567,11 @@ namespace WitchMendokusai
 
 		private void SetBannerVisible(bool visible)
 		{
-			VisualElement wrapper = bannerLabel.parent;
-			if (wrapper != null)
-				wrapper.style.display = visible ? DisplayStyle.Flex : DisplayStyle.None;
+			// ★ 「제목의 부모」로 잡으면 안 된다 — 실제로 그렇게 짜여 있다가, 제목·요약을 카드 한 장에
+			//   묶는 순간 부모가 카드로 바뀌어 *바깥 껍데기가 영영 숨은 채*로 남았다(결말 화면이 통째로
+			//   안 떴다). 껍데기는 이름으로 잡는다 — 안쪽 구조를 바꿔도 안 흔들린다.
+			if (bannerWrapper != null)
+				bannerWrapper.style.display = visible ? DisplayStyle.Flex : DisplayStyle.None;
 		}
 	}
 }
