@@ -1274,8 +1274,13 @@ namespace WitchMendokusai
 			waveModeButton.text = match.AutoAdvanceWaves ? "진행: 자동" : "진행: 수동";
 			if (difficultyButton != null)
 				difficultyButton.text = "난이도: " + TowerDefenseDifficulty.NameOf(match.Difficulty) + " (다음 판)";
-			// 건설 국면에서만 부를 수 있다 — 못 누르는 버튼을 멀쩡해 보이게 두면 눌러보고 아무 일도 안 난다.
-			nextWaveButton.SetEnabled(preparing && match.Outcome == TowerDefenseOutcome.InProgress);
+			// ★ 실시간에는 「건설 국면」이 없다 — 그 조건에 걸어두면 이 버튼이 *영원히* 안 눌린다.
+			//   규칙은 언제든 부를 수 있게 돼 있는데(RequestNextWave) 화면만 막고 있었다.
+			//   기다리는 것이 벌칙이 되지 않게 하려고 넣은 손잡이가, 정작 한 번도 못 쓰였다.
+			//   이미 예약했으면 다시 못 누르게 한다 — 예약은 1회성이다.
+			nextWaveButton.SetEnabled(match.Outcome == TowerDefenseOutcome.InProgress
+				&& match.IsNextWaveRequested == false);
+			nextWaveButton.text = match.IsNextWaveRequested ? "곧 온다" : "다음 웨이브 ▶";
 		}
 
 		/// <summary>
