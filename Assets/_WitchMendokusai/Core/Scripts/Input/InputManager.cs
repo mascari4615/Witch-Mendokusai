@@ -119,6 +119,20 @@ namespace WitchMendokusai
 		[SerializeField] private InputActionAsset inputActionAsset;
 		[SerializeField] private LayerMask mouseWorldLayerMask;
 		[SerializeField] private float mouseWorldRayDistance = 100f;
+
+		// TASK-WM-200 — 손가락 몸짓 문턱값. 화면 밀도가 다른 기기에서 다시 재야 해서 꺼내 둔다.
+		[Header("모바일 — 손가락 몸짓")]
+		[SerializeField] private float tapMaxSeconds = 0.35f;
+		[SerializeField] private float tapMaxTravelPixels = 24f;
+		[SerializeField] private float dragSlopPixels = 12f;
+		[SerializeField] private float pinchToZoomScale = 0.5f;
+
+		/// <summary>
+		/// 가리키는 것 하나 — 마우스/손가락을 같은 얼굴로 만든다 (TASK-WM-200).
+		/// 아래 Mouse* 프로퍼티들은 전부 이걸 통해서 나간다. 「마우스」라는 이름은 유지하는데,
+		/// 부르는 쪽 300곳의 뜻이 원래부터 「가리키는 자리」였기 때문이다(이름만 마우스였다).
+		/// </summary>
+		private readonly PointerDevice pointer = new();
 		private readonly Dictionary<InputEventType, InputMapType> inputEventBindings = new()
 		{
 			{ InputEventType.Space, InputMapType.Player },
@@ -180,9 +194,21 @@ namespace WitchMendokusai
 		public Vector2 MouseScreenPosition { get; private set; }
 		public bool IsAnyKeyPressedThisFrame => Keyboard.current != null && Keyboard.current.anyKey.wasPressedThisFrame;
 		// TASK-WM-135 — Mouse.current 직접 접근 캡슐화 (DollAnimator 폴링 / 잔존 null guard 정리).
-		public bool IsMouseAvailable => Mouse.current != null;
-		public bool IsMouseLeftButtonPressed => Mouse.current != null && Mouse.current.leftButton.isPressed;
-		public bool IsMouseRightButtonPressed => Mouse.current != null && Mouse.current.rightButton.isPressed;
+		// TASK-WM-200 — 그 캡슐 안쪽을 PointerDevice 로 갈아끼웠다. 손가락도 여기로 들어온다.
+		public bool IsMouseAvailable => Mouse.current != null || Touchscreen.current != null;
+		public bool IsMouseLeftButtonPressed => pointer.IsPressed;
+		public bool IsMouseRightButtonPressed => pointer.IsSecondaryPressed;
+
+		// TASK-WM-200 — 모바일 조작. 「지금 손가락인가」는 기기 종류가 아니라 *마지막으로 만진 장치*다
+		// (터치 노트북에서 기기로 판정하면 마우스를 쥐고도 손가락 UI 가 뜬다).
+		public bool IsTouchMode => pointer.IsTouchMode;
+		public bool IsPointerPressed => pointer.IsPressed;
+		public bool PointerTappedThisFrame => pointer.TappedThisFrame;
+		public Vector2 PointerTapPosition => pointer.TapPosition;
+		public bool IsPointerDragging => pointer.IsDragging;
+		public Vector2 PointerDragDelta => pointer.DragDelta;
+		public Vector2 PointerTwoFingerPanDelta => pointer.TwoFingerPanDelta;
+		public float PointerTwistDelta => pointer.TwistDelta;
 		public Vector2 MoveInput { get; private set; }
 		public float CameraRotateInput { get; private set; }
 		// TASK-WM-163 — MouseLook 모드 시야 회전용 마우스 델타 (픽셀/프레임).
@@ -393,6 +419,7 @@ namespace WitchMendokusai
 
 		private void Update()
 		{
+			UpdatePointer();
 			UpdateMouseWorldPosition();
 			UpdateIsPointerOverUI();
 			UpdateMoveInput();
@@ -404,8 +431,24 @@ namespace WitchMendokusai
 			UpdateCameraBoost();
 		}
 
+		// TASK-WM-200 — 장치를 읽는 유일한 자리. 시간은 unscaled 로 잰다(판이 멈춰도 손가락은 움직인다).
+		private void UpdatePointer()
+		{
+			pointer.Tuning = new TouchGestureTuning
+			{
+				TapMaxSeconds = tapMaxSeconds,
+				TapMaxTravelPixels = tapMaxTravelPixels,
+				DragSlopPixels = dragSlopPixels,
+			};
+			pointer.PinchToZoomScale = pinchToZoomScale;
+			pointer.Update(Time.unscaledDeltaTime);
+		}
+
 		private void UpdateMouseWorldPosition()
 		{
+			// 가리킨 자리는 카메라가 없어도 뜻이 있다(UI 는 있다) — 월드 좌표만 카메라에 걸린다.
+			MouseScreenPosition = pointer.Position;
+
 			// Loading 씬은 카메라가 없음 - 2025.08.08 20:24
 			if (Camera.main == null)
 			{
@@ -413,8 +456,7 @@ namespace WitchMendokusai
 				return;
 			}
 
-			Vector2 mouseScreen = Mouse.current != null ? Mouse.current.position.ReadValue() : Vector2.zero;
-			MouseScreenPosition = mouseScreen;
+			Vector2 mouseScreen = pointer.Position;
 			Vector3 mousePos = new(mouseScreen.x, mouseScreen.y, Camera.main.nearClipPlane);
 			Ray ray = Camera.main.ScreenPointToRay(mousePos);
 
@@ -533,7 +575,7 @@ namespace WitchMendokusai
 				return;
 			}
 
-			LookDelta = Mouse.current != null ? Mouse.current.delta.ReadValue() : Vector2.zero;
+			LookDelta = pointer.LookDelta;
 		}
 
 		// TASK-WM-193 — 자유 위치 카메라 평면 이동 (WASD). 플레이어 Move 와 같은 물리 키지만 별도 축 —
@@ -595,7 +637,8 @@ namespace WitchMendokusai
 				return;
 			}
 
-			ScrollWheelDelta = Mouse.current != null ? Mouse.current.scroll.ReadValue().y : 0f;
+			// 손가락에선 오므리기가 곧 휠이다 — 부르는 쪽(부감 줌)은 어느 쪽인지 알 필요가 없다.
+			ScrollWheelDelta = pointer.ZoomDelta;
 		}
 
 		// TASK-WM-193 — 자유 카메라 가속 (Ctrl). 캐릭터 sprint(ctrl) 와 동일 키라 직관적.
