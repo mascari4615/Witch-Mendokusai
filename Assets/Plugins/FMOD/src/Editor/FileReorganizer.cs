@@ -281,7 +281,7 @@ namespace FMODUnity
             taskCount = tasks.Count(t => t.status == Task.Status.Pending);
         }
 
-        private class TaskView : TreeView
+        private class TaskView : TreeView<int>
         {
             private List<Task> tasks;
 
@@ -341,7 +341,7 @@ namespace FMODUnity
                 Description,
             }
 
-            private class TaskItem : TreeViewItem
+            private class TaskItem : TreeViewItem<int>
             {
                 public Task task;
             }

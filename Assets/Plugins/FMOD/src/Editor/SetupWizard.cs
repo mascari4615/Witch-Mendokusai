@@ -981,7 +981,7 @@ Assets/Plugins/FMOD/**/Info.plist text eol=lf";
         }
     }
 
-    public class SimpleTreeView : TreeView
+    public class SimpleTreeView : TreeView<int>
     {
         private const float BodyHeight = 200;
 
@@ -1037,7 +1037,7 @@ Assets/Plugins/FMOD/**/Info.plist text eol=lf";
             return root;
         }
 
-        private class AudioSourceItem : TreeViewItem
+        private class AudioSourceItem : TreeViewItem<int>
         {
             const string audioIcon = "AudioSource Icon";
             public AudioSourceItem(AudioSource source) : base(source.GetHashCode())
@@ -1047,7 +1047,7 @@ Assets/Plugins/FMOD/**/Info.plist text eol=lf";
             }
         }
 
-        private class ParentItem : TreeViewItem
+        private class ParentItem : TreeViewItem<int>
         {
             public GameObject gameObject;
             const string goIcon = "GameObject Icon";
@@ -1082,7 +1082,7 @@ Assets/Plugins/FMOD/**/Info.plist text eol=lf";
             }
         }
 
-        private class SceneItem : TreeViewItem
+        private class SceneItem : TreeViewItem<int>
         {
             public Scene m_scene;
             const string sceneIcon = "SceneAsset Icon";

@@ -1922,7 +1922,7 @@ namespace FMODUnity
             }
         }
 
-        private class PlatformsView : TreeView
+        private class PlatformsView : TreeView<int>
         {
             private const float RowPadding = 2;
 
@@ -2272,7 +2272,7 @@ namespace FMODUnity
                 return root;
             }
 
-            private class PlatformItem : TreeViewItem
+            private class PlatformItem : TreeViewItem<int>
             {
                 public Platform platform;
 

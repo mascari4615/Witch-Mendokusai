@@ -173,7 +173,7 @@ namespace FMODUnity
                 }
             }
 
-            private class LeafItem : TreeViewItem
+            private class LeafItem : TreeViewItem<int>
             {
                 public LeafItem(int id, int depth, ScriptableObject data)
                     : base(id, depth)
@@ -184,7 +184,7 @@ namespace FMODUnity
                 public ScriptableObject Data;
             }
 
-            private class FolderItem : TreeViewItem
+            private class FolderItem : TreeViewItem<int>
             {
                 public FolderItem(int id, int depth, string displayName)
                     : base(id, depth, displayName)

@@ -216,14 +216,14 @@ MonoBehaviour:
     HasValue: 0
   displaySortOrder: 0
   childIdentifiers:
-  - e7a046c753c3c3d4aacc91f6597f310d
-  - de700ef3f37a49b58a57ae3addf01ad9
   - 46fbfdf3fc43db0458918377fd40293e
+  - de700ef3f37a49b58a57ae3addf01ad9
   - 0f8eb3f400726694eb47beb1a9f94ce8
   - 2c5177b11d81d824dbb064f9ac8527da
   - fd7c55dab0fce234b8c25f6ffca523c1
   - 52eb9df5db46521439908db3a29a1bbb
   - c88d16e5272a4e241b0ef0ac2e53b73d
+  - e7a046c753c3c3d4aacc91f6597f310d
   - b7716510a1f36934c87976f3a81dbf3d
   - 2fea114e74ecf3c4f920e1d5cc1c4c40
   codecChannels:
@@ -573,13 +573,12 @@ MonoBehaviour:
   EnableErrorCallback: 0
   SharedLibraryUpdateStage: 0
   SharedLibraryTimeSinceStart: 0
-  CurrentVersion: 131859
+  CurrentVersion: 131860
   HideSetupWizard: 1
   LastEventReferenceScanVersion: 131849
   Platforms:
-  - {fileID: 6567102302523617302}
-  - {fileID: -6051885889863947717}
   - {fileID: -7176379321752639706}
+  - {fileID: -6051885889863947717}
   - {fileID: -4790937059586128649}
   - {fileID: -3615755194268501014}
   - {fileID: -3533365287710653865}
@@ -587,6 +586,7 @@ MonoBehaviour:
   - {fileID: -1323558362668103695}
   - {fileID: 1297433373345167957}
   - {fileID: 1733385616190566611}
+  - {fileID: 6567102302523617302}
   - {fileID: 8100708732078912252}
   - {fileID: 8404421265145336593}
   MigratedPlatforms: 06000000090000000b000000050000000a000000080000000c0000001500000002000000010000000000000012000000
