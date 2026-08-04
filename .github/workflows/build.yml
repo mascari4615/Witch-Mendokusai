@@ -283,7 +283,7 @@ jobs:
             $artifact = Get-ChildItem $outDir -File | Where-Object { $_.Extension -in '.apk', '.aab' } | Select-Object -First 1
             if ($artifact) {
               try {
-                $signBody = @{ build = (Split-Path $outDir -Leaf); file = $artifact.Name; days = 30 } | ConvertTo-Json -Compress
+                $signBody = @{ build = (Split-Path $outDir -Leaf); file = $artifact.Name; days = 1 } | ConvertTo-Json -Compress
                 $signed = Invoke-RestMethod -Uri 'http://127.0.0.1:47615/dl/sign' -Method Post -Headers @{ Authorization = "Bearer $token" } -ContentType 'application/json' -Body $signBody -TimeoutSec 20
                 $link = $signed.url
               } catch {
@@ -293,9 +293,8 @@ jobs:
           }
 
           if ($link) {
-            # 노트북은 최근 5개 빌드만 보관하므로(아래 prune step), 서명이 30일 살아 있어도
-            # 파일이 먼저 사라질 수 있다. 만료를 과장하지 않는다.
-            $bodyText = "📲 [폰에서 눌러 설치]($link)`n_링크 유효: 30일 또는 노트북에서 이 빌드가 정리될 때까지(최근 5개 보관)_"
+            # 비밀번호는 *메시지에 넣지 않는다* — 링크 옆에 적으면 한 겹 더 둔 의미가 없다.
+            $bodyText = "📲 [폰에서 눌러 설치]($link)`n_링크 유효 1일 · 다운로드에 비밀번호 필요 (아이디는 아무거나)_"
           } elseif ($ok) {
             $bodyText = '산출물은 노트북에만 있다 (단일 파일이 아니라 설치 링크 없음).'
           } else {
