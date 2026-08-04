@@ -62,26 +62,40 @@ function Set-BuildCard {
 }
 
 # 단계 사다리 — *실제 완료된 빌드 로그* 에서 뽑은 표식만 쓴다 (추측 금지).
-# 순서는 로그 등장 순서 그대로. 윈도우 빌드는 안드로이드 전용 단계가 안 나타나므로
-# 그 칸을 그냥 건너뛴다 (마지막으로 확인된 단계가 곧 현재 단계).
+#
+# ★ 플랫폼마다 칸 수가 다르다. 안드로이드에만 나오는 단계(SDK 점검·Gradle 패키징)를
+#   윈도우 사다리에 남겨두면 막대가 영원히 8칸을 못 채우고 「6/8 에서 멈춘 빌드」처럼
+#   보인다 — 진행 표시가 거짓말을 하느니 칸을 줄이는 게 낫다.
+#
+# 검증 상태: 안드로이드 = 완료 로그(run #11)의 등장 순서로 실측. 윈도우 = 안드로이드와
+#   공통인 앞 단계만 남겼고, 윈도우 전용 표식은 *아직 실측 못 했다*(보관 정책상 윈도우
+#   로그가 남아 있지 않음). 그래서 윈도우는 공통 표식만으로 굴리고, 추측 표식은 넣지
+#   않았다. 윈도우 빌드를 한 번 돌리면 그 로그로 칸을 더 정밀하게 나눌 수 있다.
 function Get-BuildStageLadder {
-    return @(
+    param([string]$Platform)
+    $ladder = @(
         @{ Key = 'open';    Label = '프로젝트 여는 중';      Patterns = @('Refreshing native plugins', 'Initialize engine version') },
         @{ Key = 'compile'; Label = '스크립트 컴파일';       Patterns = @('DisplayProgressbar: Compiling Scripts') },
         @{ Key = 'prepare'; Label = '빌드 준비';             Patterns = @('Switch To Build Platform', 'Build Player Scripts', 'Processing Addressable Group') },
-        @{ Key = 'bundle';  Label = '에셋 번들 굽기';        Patterns = @('Write Serialized Files', 'Archive And Compress Bundles', 'Post Processing Catalog Entries') },
-        @{ Key = 'sdk';     Label = '안드로이드 도구 점검';  Patterns = @('Detecting Android SDK', 'Detect Android NDK', 'Check Android Player Settings') },
-        @{ Key = 'native';  Label = '네이티브 변환 (IL2CPP)'; Patterns = @('Fetching assembly references') },
-        @{ Key = 'package'; Label = '패키징 (Gradle)';       Patterns = @('Check gradle project collisions', 'Incremental Player Build', 'Building Gradle project') },
-        @{ Key = 'finish';  Label = '마무리·서명';           Patterns = @('Build Successful', 'Validate Gradle Project', 'IPostGenerateGradleAndroidProject') }
+        @{ Key = 'bundle';  Label = '에셋 번들 굽기';        Patterns = @('Write Serialized Files', 'Archive And Compress Bundles', 'Post Processing Catalog Entries') }
     )
+    if ($Platform -eq 'android') {
+        $ladder += @{ Key = 'sdk';     Label = '안드로이드 도구 점검';  Patterns = @('Detecting Android SDK', 'Detect Android NDK', 'Check Android Player Settings') }
+        $ladder += @{ Key = 'native';  Label = '네이티브 변환 (IL2CPP)'; Patterns = @('Fetching assembly references') }
+        $ladder += @{ Key = 'package'; Label = '패키징 (Gradle)';       Patterns = @('Check gradle project collisions', 'Incremental Player Build', 'Building Gradle project') }
+        $ladder += @{ Key = 'finish';  Label = '마무리·서명';           Patterns = @('Build Successful', 'Validate Gradle Project', 'IPostGenerateGradleAndroidProject') }
+    } else {
+        $ladder += @{ Key = 'native';  Label = '네이티브 변환 (IL2CPP)'; Patterns = @('Fetching assembly references') }
+        $ladder += @{ Key = 'finish';  Label = '마무리';                Patterns = @('Build Successful') }
+    }
+    return $ladder
 }
 
 # 새로 붙은 로그 조각에서 가장 앞선 단계를 찾는다. 되돌아가지 않는다(단조 증가) —
 # 로그에는 옛 단어가 다시 나올 수 있는데 진행 막대가 뒤로 가면 그게 더 헷갈린다.
 function Get-StageIndexFromChunk {
-    param([string]$Chunk, [int]$CurrentIndex)
-    $ladder = Get-BuildStageLadder
+    param([string]$Chunk, [int]$CurrentIndex, [string]$Platform)
+    $ladder = Get-BuildStageLadder -Platform $Platform
     $found = $CurrentIndex
     for ($i = $ladder.Count - 1; $i -ge 0; $i--) {
         if ($i -le $found) { break }
@@ -104,7 +118,7 @@ function Get-ProgressBar {
 function New-ProgressRich {
     param([int]$StageIndex, [string]$Platform, [string]$BuildType, [string]$Commit,
         [datetime]$StartedAt, [string]$RunUrl, [string]$RunNumber)
-    $ladder = Get-BuildStageLadder
+    $ladder = Get-BuildStageLadder -Platform $Platform
     $stage = $ladder[$StageIndex]
     $elapsed = [Math]::Round(((Get-Date) - $StartedAt).TotalMinutes, 1)
     return @{
@@ -180,7 +194,7 @@ function Invoke-WmBuild {
             }
             if ($reader) {
                 $chunk = $reader.ReadToEnd()
-                if ($chunk) { $stageIndex = Get-StageIndexFromChunk -Chunk $chunk -CurrentIndex $stageIndex }
+                if ($chunk) { $stageIndex = Get-StageIndexFromChunk -Chunk $chunk -CurrentIndex $stageIndex -Platform $Platform }
             }
         } catch {
             Write-Warning "log poll failed (ignored): $($_.Exception.Message)"
