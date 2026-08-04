@@ -1,85 +1,90 @@
-using System;
 using System.Collections.Generic;
 using NUnit.Framework;
 
 namespace WitchMendokusai.Tests
 {
 	/// <summary>
-	/// 핫바가 *실제로 갈 수 있는 길*만 갖고 있나 (TASK-WM-194).
+	/// 핫바 칸 목록 — 「보이는 칸」과 「눌리는 칸」이 같은가 (TASK-WM-194).
 	///
-	/// ★ 왜 붙이나: 연구 인형을 핫바에서 빼고도 배치·비용·미리보기·확인 하네스에 그 길이 통째로 남아
-	///   있었다. 아무도 못 가는 길인데 확인 도구는 초록불을 켰다(핫바를 우회해 직접 불렀으니까) —
-	///   *없느니만 못한 초록불*이다. 「칸에서 갈 수 있는 종류」와 「종류를 다루는 코드」가 어긋나는 순간을
-	///   시험이 잡는다.
-	/// ★ 씬·유닛 0 — 칸 번호 → 종류 대응은 순수 계산이라 에디터 없이 확인된다.
+	/// ★ 예전엔 칸 번호 → 종류가 *고정 산술*로 화면·입력 두 곳에 박혀 있었다. 연구로 해금이 생기면
+	///   그날로 깨지는 구조다 — 「함정을 골랐는데 전초기지가 지어진다」. 이제 규칙층이 목록 하나를
+	///   만들고 둘 다 그대로 읽는다. 여기서는 *그 목록을 만드는 규칙*을 씬 없이 못 박는다.
+	/// ★ 사용자 지시(직접 플레이): 처음엔 자원 건물과 연구만. 첫 테크가 공성. 고급 테크는 나중에.
 	/// </summary>
 	public class TowerDefenseHotbarReachabilityTests
 	{
-		// 칸을 고르는 규칙은 TowerDefensePlacement.SelectedKind 하나뿐이므로, 그 대응을 그대로 따라 적는다.
-		// (컴포넌트를 세우려면 씬이 필요해서, 대응 자체를 여기 옮겨 「같은가」를 지킨다.)
-		private static TowerDefensePlaceableKind KindOfSlot(int slot, int towerSlotCount)
+		// 매치의 RefreshAvailableSlots 와 같은 규칙 — 단계별로 무엇이 열리나.
+		// (매치는 MonoBehaviour 라 씬 없이 못 세운다. 규칙 자체를 여기 옮겨 「같은가」를 지킨다.)
+		private static List<TowerDefensePlaceableKind> Unlocked(int researchLevel,
+			int tower = 1, int wall = 2, int trap = 3, int generator = 4, int outpost = 5)
 		{
-			if (slot < towerSlotCount)
-				return TowerDefensePlaceableKind.Tower;
-			if (slot == towerSlotCount)
-				return TowerDefensePlaceableKind.Harvester;
-			if (slot == towerSlotCount + 1)
-				return TowerDefensePlaceableKind.Wall;
-			if (slot == towerSlotCount + 2)
-				return TowerDefensePlaceableKind.Trap;
-			if (slot == towerSlotCount + 3)
-				return TowerDefensePlaceableKind.Outpost;
-			return slot == towerSlotCount + 4
-				? TowerDefensePlaceableKind.Generator
-				: TowerDefensePlaceableKind.Hero;
-		}
-
-		private static HashSet<TowerDefensePlaceableKind> ReachableKinds(int towerSlotCount)
-		{
-			HashSet<TowerDefensePlaceableKind> kinds = new();
-			for (int slot = 0; slot <= towerSlotCount + 5; slot++)
-				kinds.Add(KindOfSlot(slot, towerSlotCount));
+			List<TowerDefensePlaceableKind> kinds = new() { TowerDefensePlaceableKind.Harvester };
+			if (researchLevel >= tower)
+				kinds.Add(TowerDefensePlaceableKind.Tower);
+			if (researchLevel >= wall)
+				kinds.Add(TowerDefensePlaceableKind.Wall);
+			if (researchLevel >= trap)
+				kinds.Add(TowerDefensePlaceableKind.Trap);
+			if (researchLevel >= generator)
+				kinds.Add(TowerDefensePlaceableKind.Generator);
+			if (researchLevel >= outpost)
+				kinds.Add(TowerDefensePlaceableKind.Outpost);
 			return kinds;
 		}
 
 		[Test]
-		public void 열거값은_전부_어느_칸에서든_닿는다()
+		public void 처음엔_자원_건물_하나뿐이다()
 		{
-			// ★ 이 시험이 깨지는 방식이 곧 지난번 사고다 — 종류는 남았는데 칸이 사라졌다.
-			//   그때는 배치·비용·미리보기·하네스가 전부 그 종류를 계속 다뤘다(아무도 못 가는 길).
-			HashSet<TowerDefensePlaceableKind> reachable = ReachableKinds(4);
+			// ★ 사용자 실증: "처음 들어갔을 때 그냥 좀 혼란스러움 … 내가 가지고 있는 유닛도 너무 많음."
+			//   첫 화면에 손이 갈 곳은 하나여야 한다 — 나머지는 연구가 연다.
+			List<TowerDefensePlaceableKind> kinds = Unlocked(0);
 
-			foreach (TowerDefensePlaceableKind kind in Enum.GetValues(typeof(TowerDefensePlaceableKind)))
-				Assert.IsTrue(reachable.Contains(kind),
-					$"{kind} 는 어느 칸에서도 못 고른다 — 종류를 지우거나 칸을 되살려야 한다.");
+			Assert.AreEqual(1, kinds.Count, "처음부터 여러 개가 열려 있으면 무엇부터 볼지가 숙제가 된다.");
+			Assert.AreEqual(TowerDefensePlaceableKind.Harvester, kinds[0], "먹고사는 길이 첫 수여야 한다.");
 		}
 
 		[Test]
-		public void 포탑_종류가_몇_개든_뒷칸_순서는_그대로다()
+		public void 첫_연구가_공성을_연다()
 		{
-			// 포탑이 늘면 뒤가 밀린다 — 밀리는 것은 정상이지만 *순서*가 바뀌면 손이 기억한 자리가 깨진다.
-			foreach (int towerCount in new[] { 1, 3, 6 })
+			List<TowerDefensePlaceableKind> kinds = Unlocked(1);
+
+			CollectionAssert.Contains(kinds, TowerDefensePlaceableKind.Tower, "첫 테크는 공성이어야 한다.");
+			CollectionAssert.DoesNotContain(kinds, TowerDefensePlaceableKind.Outpost, "고급 테크가 첫 연구에 딸려 오면 안 된다.");
+		}
+
+		[Test]
+		public void 단계가_오를수록_칸이_늘기만_한다()
+		{
+			// 열렸던 것이 닫히면 손이 기억한 자리가 무너진다.
+			int previous = 0;
+			for (int level = 0; level <= 6; level++)
 			{
-				Assert.AreEqual(TowerDefensePlaceableKind.Harvester, KindOfSlot(towerCount, towerCount));
-				Assert.AreEqual(TowerDefensePlaceableKind.Wall, KindOfSlot(towerCount + 1, towerCount));
-				Assert.AreEqual(TowerDefensePlaceableKind.Trap, KindOfSlot(towerCount + 2, towerCount));
-				Assert.AreEqual(TowerDefensePlaceableKind.Outpost, KindOfSlot(towerCount + 3, towerCount));
-				Assert.AreEqual(TowerDefensePlaceableKind.Generator, KindOfSlot(towerCount + 4, towerCount));
-				Assert.AreEqual(TowerDefensePlaceableKind.Hero, KindOfSlot(towerCount + 5, towerCount));
+				int count = Unlocked(level).Count;
+				Assert.GreaterOrEqual(count, previous, $"연구 {level}단계에서 칸이 줄었다.");
+				previous = count;
 			}
 		}
 
 		[Test]
-		public void 마지막_칸까지가_고를_수_있는_전부다()
+		public void 새로_열린_것은_뒤에_붙는다()
 		{
-			// SelectSlot 의 범위 검사(towerSlotCount + 5)와 대응표가 어긋나면, 있는 칸을 못 누르거나
-			// 없는 칸이 영웅으로 흘러든다.
-			const int towerCount = 4;
-			Assert.AreEqual(TowerDefensePlaceableKind.Hero, KindOfSlot(towerCount + 5, towerCount),
-				"마지막 칸은 영웅이어야 한다.");
-			// 포탑 칸 여럿이 한 종류로 묶이므로 칸 수와 종류 수는 다르다 — 대신 *남는 종류가 없어야* 한다.
-			Assert.AreEqual(Enum.GetValues(typeof(TowerDefensePlaceableKind)).Length, ReachableKinds(towerCount).Count,
-				"칸으로 못 닿는 종류가 남았다.");
+			// 앞이 밀리면 「3번은 벽」이라고 외운 손가락이 헛나간다.
+			List<TowerDefensePlaceableKind> before = Unlocked(2);
+			List<TowerDefensePlaceableKind> after = Unlocked(3);
+
+			for (int index = 0; index < before.Count; index++)
+				Assert.AreEqual(before[index], after[index], $"{index}번 칸의 뜻이 연구 한 번에 바뀌었다.");
+		}
+
+		[Test]
+		public void 고급_테크는_끝까지_안_열린다()
+		{
+			// 전초기지는 정수로 사는 고급 테크 — 초반 단계에서 새어 나오면 안 된다.
+			for (int level = 0; level <= 4; level++)
+				CollectionAssert.DoesNotContain(Unlocked(level), TowerDefensePlaceableKind.Outpost,
+					$"연구 {level}단계에 고급 테크가 열렸다.");
+
+			CollectionAssert.Contains(Unlocked(5), TowerDefensePlaceableKind.Outpost);
 		}
 	}
 }

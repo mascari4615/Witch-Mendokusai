@@ -829,15 +829,28 @@ namespace WitchMendokusai
 			wrapper.style.display = DisplayStyle.None;
 			wrapper.name = "BannerWrapper";
 			wrapper.pickingMode = PickingMode.Ignore;
+			bannerWrapper = wrapper;
+
+			// ★ 결말은 *한 덩어리*로 읽혀야 한다. 예전엔 제목에만 어두운 판이 깔리고 요약·유물은
+			//   맨바닥에 떠서 지도·인형과 겹쳤다 — 판이 끝난 이유를 되짚으라고 만든 글이 정작
+			//   가장 안 읽히는 글이 됐다. 제목·요약·유물을 한 장의 카드에 담아 배경과 갈라놓는다.
+			//   (버튼은 카드 밖 — 누르는 것과 읽는 것은 다른 일이다.)
+			outcomeCard = new VisualElement();
+			outcomeCard.style.backgroundColor = new Color(0.04f, 0.05f, 0.08f, 0.88f);
+			outcomeCard.style.paddingLeft = 28;
+			outcomeCard.style.paddingRight = 28;
+			outcomeCard.style.paddingTop = 16;
+			outcomeCard.style.paddingBottom = 18;
+			outcomeCard.style.alignItems = Align.Center;
+			outcomeCard.style.maxWidth = 720;
+			SetRadius(outcomeCard, 10);
+			outcomeCard.pickingMode = PickingMode.Ignore;
 
 			banner = new Label(string.Empty);
 			banner.style.fontSize = 34;
 			banner.style.color = new Color(1f, 0.85f, 0.4f, 1f);
-			banner.style.backgroundColor = new Color(0.04f, 0.05f, 0.08f, 0.8f);
-			banner.style.paddingLeft = 24;
-			banner.style.paddingRight = 24;
-			banner.style.paddingTop = 12;
-			banner.style.paddingBottom = 12;
+			banner.style.unityTextAlign = TextAnchor.MiddleCenter;
+			banner.style.whiteSpace = WhiteSpace.Normal;
 			banner.pickingMode = PickingMode.Ignore;
 
 			// 판 밖에 남는 것 — 이번에 번 유물과 보유량. 끝나는 화면에서 바로 보여야 다음 판 이유가 된다.
@@ -863,7 +876,8 @@ namespace WitchMendokusai
 			buttons.Add(pullButton);
 			buttons.Add(restartButton);
 
-			wrapper.Add(banner);
+			outcomeCard.Add(banner);
+			wrapper.Add(outcomeCard);
 
 			summaryLabel = new Label(string.Empty);
 			summaryLabel.style.fontSize = 14;
@@ -873,9 +887,9 @@ namespace WitchMendokusai
 			summaryLabel.style.whiteSpace = WhiteSpace.Normal;
 			summaryLabel.style.display = DisplayStyle.None;
 			summaryLabel.pickingMode = PickingMode.Ignore;
-			wrapper.Add(summaryLabel);
+			outcomeCard.Add(summaryLabel);
 
-			wrapper.Add(relicLabel);
+			outcomeCard.Add(relicLabel);
 			wrapper.Add(buttons);
 			return wrapper;
 		}
@@ -1052,60 +1066,56 @@ namespace WitchMendokusai
 
 		private void FillHotbar(TowerDefenseStageSO stage, TowerDefenseMatch match)
 		{
-			if (stage == null)
+			if (stage == null || match == null)
 				return;
 
+			// ★ 칸의 주인은 규칙층이다 — 화면이 자기 손으로 목록을 다시 조립하면 해금이 바뀌는 순간
+			//   「보이는 칸」과 「눌리는 칸」이 갈라진다(예전에 정확히 그렇게 돼 있었다).
 			System.Collections.Generic.List<ModeSelectionBar.Entry> entries = new();
-
-			if (stage.TowerArchetypes != null && stage.TowerArchetypes.Length > 0)
-			{
-				// 아직 안 뽑은 인형은 칸 자체가 없다 — 못 쓰는 칸을 보여주면 「눌리지 않는 칸」이 또 생긴다.
-				System.Collections.Generic.List<int> unlocked =
-					DataManager.TryGetExistingInstance(out DataManager dataManager)
-						? dataManager.TowerDefenseUnlockedTowers
-						: null;
-
-				for (int index = 0; index < stage.TowerArchetypes.Length; index++)
-				{
-					TowerDefenseTowerArchetype tower = stage.TowerArchetypes[index];
-					if (tower == null)
-						continue;
-					if (TowerDefenseMeta.IsUnlocked(index, stage.DefaultUnlockedTowerCount, unlocked) == false)
-						continue;
-					entries.Add(new ModeSelectionBar.Entry(tower.DisplayName, CostOf(match, TowerDefensePlaceableKind.Tower, index, tower.Cost), tower.Tint,
-						icon: UnitSprite(stage.TowerUnit),
-						tooltip: SlotTip(tower.DisplayName, DescribeTower(tower))));
-				}
-			}
-			else
-			{
-				entries.Add(new ModeSelectionBar.Entry("포탑 인형", CostOf(match, TowerDefensePlaceableKind.Tower, 0, stage.TowerCost), stage.TowerTint,
-					icon: UnitSprite(stage.TowerUnit),
-					tooltip: SlotTip("포탑 인형", "사거리 안의 마수를 쏜다.")));
-			}
-
-			// 칸마다 「이게 뭘 하는 건지」를 붙인다 — 이름과 값만 보고는 벽과 함정의 차이를 알 수 없다.
-			entries.Add(new ModeSelectionBar.Entry("채집 인형", CostOf(match, TowerDefensePlaceableKind.Harvester, 0, stage.HarvesterCost), stage.HarvesterTint,
-				icon: UnitSprite(stage.HarvesterUnit),
-				tooltip: SlotTip("채집 인형", "자원 노드 위에만 선다. 코어까지 보급이 이어져야 수입이 들어온다.\n바깥 노드는 정수를 낸다.")));
-			entries.Add(new ModeSelectionBar.Entry("벽", CostOf(match, TowerDefensePlaceableKind.Wall, 0, stage.WallCost), stage.WallTint,
-				tooltip: SlotTip("벽", "마수의 길을 휘게 한다. 길을 완전히 막는 자리에는 못 세운다.")));
-			entries.Add(new ModeSelectionBar.Entry("함정", CostOf(match, TowerDefensePlaceableKind.Trap, 0, stage.TrapCost), stage.TrapTint,
-				tooltip: SlotTip("함정", "바닥에 깐다. 밟으면 터지고 횟수를 다 쓰면 사라진다.")));
-			entries.Add(new ModeSelectionBar.Entry("전초기지", CostOf(match, TowerDefensePlaceableKind.Outpost, 0, stage.OutpostEssenceCost), stage.OutpostTint,
-				tooltip: SlotTip("전초기지", "정수로 짓는다. 새 보급 원점이자 *새로 지켜야 할 곳*이 된다 — 마수가 그리로도 몰린다.")));
-
-			entries.Add(new ModeSelectionBar.Entry("발전 인형", CostOf(match, TowerDefensePlaceableKind.Generator, 0, stage.GeneratorCost), stage.GeneratorTint,
-				icon: UnitSprite(stage.HarvesterUnit),
-				tooltip: SlotTip("발전 인형", "범위 안 건물에 전기를 댄다. 전기를 못 받는 건물은 서 있기만 한다.\n코어도 처음부터 얼마간 대준다.")));
-
-			// 영웅 칸만 성격이 다르다 — 짓는 게 아니라 *보내는* 칸이라 비용이 0 이다.
-			if (stage.HeroUnit != null)
-				entries.Add(new ModeSelectionBar.Entry("영웅 이동", 0, stage.HeroTint,
-					icon: UnitSprite(stage.HeroUnit),
-					tooltip: SlotTip("영웅 이동", "고르고 땅을 찍으면 영웅이 그리로 걸어간다. 짓는 게 아니라 보내는 칸이다.")));
+			foreach (TowerDefenseSlot slot in match.AvailableSlots)
+				entries.Add(EntryFor(slot, stage, match));
 
 			selectionBar.SetEntries(entries);
+		}
+
+		/// <summary> 칸 하나를 어떻게 그릴까 — 이름·값·색·아이콘·설명. </summary>
+		private ModeSelectionBar.Entry EntryFor(TowerDefenseSlot slot, TowerDefenseStageSO stage, TowerDefenseMatch match)
+		{
+			int cost = match.CostOf(slot.Kind, slot.TowerIndex);
+			switch (slot.Kind)
+			{
+				case TowerDefensePlaceableKind.Harvester:
+					return new ModeSelectionBar.Entry("채집 인형", cost, stage.HarvesterTint,
+						icon: UnitSprite(stage.HarvesterUnit),
+						tooltip: SlotTip("채집 인형", "자원 노드 위에만 선다. 코어까지 보급이 이어져야 수입이 들어온다.\n바깥 노드는 정수를 낸다."));
+				case TowerDefensePlaceableKind.Wall:
+					return new ModeSelectionBar.Entry("벽", cost, stage.WallTint,
+						tooltip: SlotTip("벽", "마수의 길을 휘게 한다. 길을 완전히 막는 자리에는 못 세운다."));
+				case TowerDefensePlaceableKind.Trap:
+					return new ModeSelectionBar.Entry("함정", cost, stage.TrapTint,
+						tooltip: SlotTip("함정", "바닥에 깐다. 밟으면 터지고 횟수를 다 쓰면 사라진다."));
+				case TowerDefensePlaceableKind.Outpost:
+					return new ModeSelectionBar.Entry("전초기지", cost, stage.OutpostTint,
+						tooltip: SlotTip("전초기지", "정수로 짓는다. 새 보급 원점이자 *새로 지켜야 할 곳*이 된다 — 마수가 그리로도 몰린다."));
+				case TowerDefensePlaceableKind.Generator:
+					return new ModeSelectionBar.Entry("발전 인형", cost, stage.GeneratorTint,
+						icon: UnitSprite(stage.HarvesterUnit),
+						tooltip: SlotTip("발전 인형", "범위 안 건물에 전기를 댄다. 전기를 못 받는 건물은 서 있기만 한다.\n코어도 처음부터 얼마간 대준다."));
+				case TowerDefensePlaceableKind.Hero:
+					// 영웅 칸만 성격이 다르다 — 짓는 게 아니라 *보내는* 칸이라 값이 0 이다.
+					return new ModeSelectionBar.Entry("영웅 이동", 0, stage.HeroTint,
+						icon: UnitSprite(stage.HeroUnit),
+						tooltip: SlotTip("영웅 이동", "고르고 땅을 찍으면 영웅이 그리로 걸어간다. 짓는 게 아니라 보내는 칸이다."));
+				default:
+					TowerDefenseTowerArchetype tower = stage.TowerArchetypes != null && slot.TowerIndex < stage.TowerArchetypes.Length
+						? stage.TowerArchetypes[slot.TowerIndex]
+						: null;
+					return tower != null
+						? new ModeSelectionBar.Entry(tower.DisplayName, cost, tower.Tint,
+							icon: UnitSprite(stage.TowerUnit), tooltip: SlotTip(tower.DisplayName, DescribeTower(tower)))
+						: new ModeSelectionBar.Entry("포탑 인형", cost, stage.TowerTint,
+							icon: UnitSprite(stage.TowerUnit), tooltip: SlotTip("포탑 인형", "사거리 안의 마수를 쏜다."));
+			}
 		}
 
 		/// <summary> 고른 칸 표시 — 공용 바가 그린다. </summary>
@@ -1215,8 +1225,11 @@ namespace WitchMendokusai
 				return;
 
 			// 값이 바뀌었으면(건설 할인 카드) 칸을 다시 그린다 — 화면이 옛 값을 계속 말하면 안 된다.
+			// ★ 값뿐 아니라 *칸 수*도 서명에 넣는다 — 연구로 새 칸이 열렸는데 값이 그대로면
+			//   화면이 옛 목록을 계속 그린다(해금이 눈에 안 보이면 연구를 왜 했는지 알 수 없다).
 			int costSignature = match.CostOf(TowerDefensePlaceableKind.Tower)
-				+ match.CostOf(TowerDefensePlaceableKind.Harvester) * 1000;
+				+ match.CostOf(TowerDefensePlaceableKind.Harvester) * 1000
+				+ match.AvailableSlots.Count * 1000000;
 			if (costSignature != lastHotbarCostSignature)
 			{
 				lastHotbarCostSignature = costSignature;
@@ -1278,10 +1291,18 @@ namespace WitchMendokusai
 			boonSummaryLabel.text = boonSummary;
 			boonSummaryLabel.style.display = string.IsNullOrEmpty(boonSummary) ? DisplayStyle.None : DisplayStyle.Flex;
 
+			// ★ 판이 끝나면 조작 손잡이도 같이 죽어야 한다. 라이브에서 봤다 — 결말 화면이 떠 있는데
+			//   멈춤·배속·진행·핫바가 전부 눌릴 것처럼 살아 있었다. 눌러도 아무 일이 없는 스위치는
+			//   「안 되는구나」를 알려주는 대신 *바꿨다고 믿게* 만든다(이 판에서 이미 한 번 당한 병이다).
+			bool over = match.Outcome != TowerDefenseOutcome.InProgress;
+			selectionBar.Root.SetEnabled(over == false);
+			waveModeButton.SetEnabled(over == false);
+
 			bool paused = match.SpeedScale <= 0f;
 			pauseButton.text = paused ? "▶ 재개" : "⏸ 멈춤";
+			pauseButton.SetEnabled(over == false);
 			speedButton.text = "배속 ×" + Mathf.Max(1f, match.SpeedScale).ToString("0");
-			speedButton.SetEnabled(paused == false);
+			speedButton.SetEnabled(over == false && paused == false);
 
 			waveModeButton.text = match.AutoAdvanceWaves ? "진행: 자동" : "진행: 수동";
 			if (difficultyButton != null)
@@ -1306,23 +1327,11 @@ namespace WitchMendokusai
 			SetBestRecord(best);
 			ShowRelicResult(relicsGained, relicBalance, canPull);
 
-			string survived = FormatDuration(survivedSeconds);
-			string nests = nestsDestroyed > 0 ? "  ·  둥지 " + nestsDestroyed + "곳 부숨" : string.Empty;
-
-			// ★ 점수와 최고 기록이 넘어오는데 화면이 안 쓰고 있었다 — 「최고 기록」이라 말하면서
-			//   정작 몇 점인지, 이전이 얼마였는지를 안 보여줬다. 비교할 수 없는 기록은 기록이 아니다.
-			string scoreLine = "\n점수 " + score + (isNewRecord ? "  ·  이전 최고 " + best : "  ·  최고 " + best);
-
-			if (outcome == TowerDefenseOutcome.Victory)
-			{
-				bannerLabel.text = "개척 성공 — 마지막 둥지를 무너뜨렸다\n" + survived + nests + scoreLine;
-				// ★ 이겼을 때도 요약은 붙어야 한다 — 예전엔 여기서 빠져나가 이긴 판을 되짚을 수단이 없었다.
-				ShowSummary(summary);
-				return;
-			}
-
-			// 실시간이라 「몇 웨이브」가 아니라 *얼마나 버텼나*가 곧 성적이다.
-			bannerLabel.text = (isNewRecord ? "최고 기록 — " : "") + survived + " 버팀" + nests + scoreLine;
+			// 문구 규칙은 화면 밖(TowerDefenseOutcomeText)에 있다 — 화면 없이도 시험할 수 있어야
+			// 「무슨 일이 일어났는지 제대로 말하나」를 자동으로 물을 수 있다.
+			bannerLabel.text = TowerDefenseOutcomeText.Build(
+				outcome, FormatDuration(survivedSeconds), nestsDestroyed, score, best, isNewRecord);
+			// ★ 이겼을 때도 요약은 붙어야 한다 — 예전엔 여기서 빠져나가 이긴 판을 되짚을 수단이 없었다.
 			ShowSummary(summary);
 		}
 
@@ -1340,6 +1349,12 @@ namespace WitchMendokusai
 		}
 
 		private Label summaryLabel;
+
+		/// <summary> 결말 한 덩어리 — 제목·요약·유물이 같은 판 위에 앉는다(버튼은 밖). </summary>
+		private VisualElement outcomeCard;
+
+		/// <summary> 결말 화면 껍데기 — 보임/숨김의 주인(안쪽 구조와 무관하게 이것만 토글한다). </summary>
+		private VisualElement bannerWrapper;
 
 		/// <summary> 초 → 「3분 20초」. 숫자만 던지면 몇 분인지 사람이 암산해야 한다. </summary>
 		private static string FormatDuration(int seconds)
@@ -1443,7 +1458,7 @@ namespace WitchMendokusai
 		/// </summary>
 		private void UpdateNodeLabels(TowerDefenseMatch match, TowerDefenseStageSO stage)
 		{
-			System.Collections.Generic.IReadOnlyList<Vector3> nodes = match.ActiveResourceNodePositions;
+			System.Collections.Generic.IReadOnlyList<Vector3> nodes = match.ActiveResourceNodeLocalPositions;
 			Camera camera = ViewCameraResolver.Current;
 			Transform stageRoot = match.StageRoot;
 
@@ -1551,9 +1566,11 @@ namespace WitchMendokusai
 
 		private void SetBannerVisible(bool visible)
 		{
-			VisualElement wrapper = bannerLabel.parent;
-			if (wrapper != null)
-				wrapper.style.display = visible ? DisplayStyle.Flex : DisplayStyle.None;
+			// ★ 「제목의 부모」로 잡으면 안 된다 — 실제로 그렇게 짜여 있다가, 제목·요약을 카드 한 장에
+			//   묶는 순간 부모가 카드로 바뀌어 *바깥 껍데기가 영영 숨은 채*로 남았다(결말 화면이 통째로
+			//   안 떴다). 껍데기는 이름으로 잡는다 — 안쪽 구조를 바꿔도 안 흔들린다.
+			if (bannerWrapper != null)
+				bannerWrapper.style.display = visible ? DisplayStyle.Flex : DisplayStyle.None;
 		}
 	}
 }

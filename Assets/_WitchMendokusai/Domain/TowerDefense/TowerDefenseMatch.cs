@@ -298,6 +298,7 @@ namespace WitchMendokusai
 			outposts.Clear();
 			DisconnectedHarvesters = 0;
 			LabCount = 0;
+			RefreshAvailableSlots(); // 판이 열릴 때의 해금 상태 — 처음엔 채집뿐이다.
 			TrapsSpent = 0;
 			speedStep = 1;
 			lastRunningStep = 1;
@@ -547,10 +548,21 @@ namespace WitchMendokusai
 		/// </summary>
 		public bool CanBuildAt(Vector3 worldPosition)
 		{
-			return IsInsideWindow(worldPosition)
+			return IsMatchOver == false
+				&& IsInsideWindow(worldPosition)
 				&& IsObstacleAt(worldPosition) == false
 				&& IsInBuildableRange(worldPosition);
 		}
+
+		/// <summary>
+		/// 판이 끝났나 — 끝난 판에는 아무것도 더 못 짓는다.
+		///
+		/// ★ 라이브에서 잡았다: 목숨이 0 이 되어 결말 화면이 떠 있는데도 건물이 계속 세워졌다.
+		///   끝난 판에 손을 대면 「무엇이 그 성적을 만들었나」가 흐려지고(요약은 끝난 시점을 말하는데
+		///   화면엔 그 뒤에 세운 것이 서 있다), 다시 도전을 누르기 전까지 판이 끝난 것도 안 끝난 것도
+		///   아닌 상태가 된다. 끝은 끝이어야 한다.
+		/// </summary>
+		public bool IsMatchOver => Outcome != TowerDefenseOutcome.InProgress;
 
 		/// <summary>
 		/// 함정 깔기 — 밟으면 터진다. 길목과 직결되므로 벽(길 그리기)의 짝.
@@ -1374,8 +1386,14 @@ namespace WitchMendokusai
 			&& core.WaveIndex < core.FirstAutoWave
 			&& core.IsNextWaveRequested == false;
 
-		/// <summary> 이번 판의 자원 노드 위치(무대 로컬) — 절차 생성이면 매 판 다르다. </summary>
-		public IReadOnlyList<Vector3> ActiveResourceNodePositions => activeNodePositions;
+		/// <summary>
+		/// 이번 판의 자원 노드 위치 — **무대 로컬 좌표**다. 쓰기 전에 `StageRoot.TransformPoint` 로 옮겨야 한다.
+		///
+		/// ★ 이름에 로컬을 박아둔 이유: 옆의 배치 API(TryPlaceHarvester/CanBuildAt/TryFindPlaceableNode)는
+		///   전부 *월드* 를 받는다. 그대로 넘기면 판이 원점에서 멀리 있을 때(개척은 z≈2000) 전부 조용히
+		///   거절당한다 — 오류도 로그도 없이 「왜 안 지어지지」만 남는다(실측: 노드까지 1906칸으로 계산됨).
+		/// </summary>
+		public IReadOnlyList<Vector3> ActiveResourceNodeLocalPositions => activeNodePositions;
 
 		/// <summary> 그 자리가 지금 보이는가 — 안 보이면 포탑도 못 쏘고 마수도 안 그려진다. </summary>
 		public bool IsVisibleAt(Vector3 worldPosition)
@@ -1526,6 +1544,9 @@ namespace WitchMendokusai
 			heroTransform = heroGameObject.transform;
 			heroTargetPosition = heroTransform.position;
 			heroActive = true;
+			// 영웅 칸은 영웅이 실제로 서야 생긴다 — 없는데 칸만 있으면 또 「눌리지 않는 칸」이다.
+			RefreshAvailableSlots();
+			SlotsChanged();
 
 			// 영웅에게도 이름이 있어야 「데려간 아이」가 된다 — 이름 없는 영웅은 커서다.
 			RegisterDoll(heroTransform, stage.HeroTint);
@@ -1807,24 +1828,95 @@ namespace WitchMendokusai
 				return false;
 
 			int cost = ResearchCost;
-			if (core.TrySpendEssence(cost) == false)
+			// ★ 초반 연구는 *일반 자원*으로 산다(사용자 지시). 정수는 바깥 노드에서만 나는데, 그걸
+			//   초반 해금의 통로로 두면 「연구로 하나씩 연다」가 시작부터 잠긴다 — 실제로 그랬다.
+			//   고급 테크(정수 단계)부터가 개척을 강요하는 자리다.
+			if (ResearchUsesEssence)
+			{
+				if (core.TrySpendEssence(cost) == false)
+				{
+					if (coreCombatant != null)
+						Reject($"정수 부족 {core.Essence}/{cost}", coreCombatant.Position);
+					return false;
+				}
+			}
+			else if (core.TrySpend(cost) == false)
 			{
 				if (coreCombatant != null)
-					Reject($"정수 부족 {core.Essence}/{cost}", coreCombatant.Position);
+					Reject($"자원 부족 {core.Resource}/{cost}", coreCombatant.Position);
 				return false;
 			}
 
 			LabCount++;
+			RefreshAvailableSlots();
+			SlotsChanged();
 			if (coreCombatant != null)
 				PopWorldText("연구 " + LabCount + "단계", coreCombatant.Position, TextType.Exp);
 			Debug.Log($"{nameof(TowerDefenseMatch)}: 연구 {LabCount}단계 — 모든 포탑 피해 배수 {TowerDamageMultiplier:F2}");
 			return true;
 		}
 
-		/// <summary> 다음 연구 단계에 드는 정수 — 단계마다 오른다. </summary>
-		public int ResearchCost => stage != null
-			? Mathf.Max(1, Mathf.RoundToInt(stage.LabEssenceCost * (LabCount + 1) * boons.ResearchCostMultiplier))
-			: 0;
+		/// <summary> 다음 연구가 정수를 먹나(고급 테크) — 아니면 일반 자원이다. </summary>
+		public bool ResearchUsesEssence => stage != null && LabCount + 1 >= stage.ResearchEssenceFromLevel;
+
+		/// <summary> 다음 연구 단계 값 — 단계마다 오른다. 초반은 자원, 고급 테크부터 정수. </summary>
+		public int ResearchCost
+		{
+			get
+			{
+				if (stage == null)
+					return 0;
+				int baseCost = ResearchUsesEssence ? stage.LabEssenceCost : stage.LabResourceCost;
+				return Mathf.Max(1, Mathf.RoundToInt(baseCost * (LabCount + 1) * boons.ResearchCostMultiplier));
+			}
+		}
+
+		/// <summary>
+		/// 지금 쓸 수 있는 칸 — 화면(핫바)과 입력(배치)이 *같은 목록*을 읽는다.
+		///
+		/// ★ 여기가 해금의 단일 정본이다. 예전엔 칸 번호 → 종류가 고정 산술로 두 곳에 박혀 있어,
+		///   해금으로 칸 수가 변하는 순간 「함정을 골랐는데 전초기지가 지어진다」가 된다.
+		/// 순서는 손이 기억한다 — 새로 열린 것은 *뒤에* 붙는다(앞이 밀리면 손가락이 헛나간다).
+		/// </summary>
+		public System.Collections.Generic.IReadOnlyList<TowerDefenseSlot> AvailableSlots => availableSlots;
+
+		private readonly System.Collections.Generic.List<TowerDefenseSlot> availableSlots = new();
+
+		/// <summary> 해금 목록을 다시 만든다 — 연구 단계가 오를 때·판이 시작할 때. </summary>
+		private void RefreshAvailableSlots()
+		{
+			availableSlots.Clear();
+			if (stage == null)
+				return;
+
+			// 먹고사는 길은 늘 열려 있다 — 이게 없으면 첫 수가 아예 없다.
+			availableSlots.Add(new TowerDefenseSlot(TowerDefensePlaceableKind.Harvester));
+
+			if (LabCount >= stage.TowerUnlockLevel)
+			{
+				int variants = Mathf.Max(1, 1 + (LabCount - stage.TowerUnlockLevel) / Mathf.Max(1, stage.TowerVariantUnlockStep));
+				for (int index = 0; index < TowerArchetypeCount && index < variants; index++)
+					availableSlots.Add(new TowerDefenseSlot(TowerDefensePlaceableKind.Tower, index));
+				if (TowerArchetypeCount == 0)
+					availableSlots.Add(new TowerDefenseSlot(TowerDefensePlaceableKind.Tower));
+			}
+
+			if (LabCount >= stage.WallUnlockLevel)
+				availableSlots.Add(new TowerDefenseSlot(TowerDefensePlaceableKind.Wall));
+			if (LabCount >= stage.TrapUnlockLevel)
+				availableSlots.Add(new TowerDefenseSlot(TowerDefensePlaceableKind.Trap));
+			if (LabCount >= stage.GeneratorUnlockLevel)
+				availableSlots.Add(new TowerDefenseSlot(TowerDefensePlaceableKind.Generator));
+			if (LabCount >= stage.OutpostUnlockLevel)
+				availableSlots.Add(new TowerDefenseSlot(TowerDefensePlaceableKind.Outpost));
+
+			// 영웅은 짓는 게 아니라 보내는 것 — 있으면 늘 마지막 칸.
+			if (HasHero)
+				availableSlots.Add(new TowerDefenseSlot(TowerDefensePlaceableKind.Hero));
+		}
+
+		/// <summary> 해금이 바뀌었다 — 화면이 핫바를 다시 그려야 한다. </summary>
+		public event System.Action SlotsChanged = delegate { };
 
 		/// <summary> 지금 연구 단계 — 화면이 코어를 골랐을 때 보여준다. </summary>
 		public int ResearchLevel => LabCount;
@@ -2079,6 +2171,7 @@ namespace WitchMendokusai
 			core.AddResource(Mathf.Max(0, save.Resource - core.Resource));
 			core.AddEssence(Mathf.Max(0, save.Essence - core.Essence));
 			LabCount = save.ResearchLevel;
+			RefreshAvailableSlots(); // 이어하면 그때 열려 있던 칸이 그대로 서야 한다.
 			NestsDestroyed = save.NestsDestroyed;
 
 			// 판의 시계·목숨·코어 성장 — 이게 안 돌아오면 오래 버틴 판이 이어하는 순간 처음으로 되감긴다.
@@ -3477,6 +3570,8 @@ namespace WitchMendokusai
 		{
 			if (core == null || pool == null)
 				return false;
+			if (IsMatchOver)
+				return false; // 끝난 판에선 팔 수도 없다 — 짓기와 같은 이유(끝은 끝이다).
 
 			Vector3Int cellKey = ToCellKey(worldPosition);
 			if (occupiedCells.Contains(cellKey) == false)

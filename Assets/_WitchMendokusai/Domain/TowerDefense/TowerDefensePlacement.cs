@@ -42,37 +42,37 @@ namespace WitchMendokusai
 		private TowerDefenseRing previewRing;
 
 		/// <summary>
-		/// 핫바에서 고른 설치 대상. 좌/우클릭으로 종류를 가르던 방식은 종류가 늘면 안 늘어난다
-		/// (사용자 지시: "좌클릭/우클릭이 아니라 빌딩 핫바 좀 활용해야 할듯").
-		/// 선택 = 핫바(숫자키/클릭), 설치 = 클릭 — 기존 건설 모드와 같은 조작 문법.
+		/// 지금 고른 칸이 무엇을 세우는가 — **매치가 준 목록**을 그대로 읽는다.
+		///
+		/// ★ 예전엔 여기서 칸 번호를 직접 계산했다(포탑 수 + 1 = 채집, + 2 = 벽 …). 화면도 같은 계산을
+		///   따로 갖고 있었고, 연구로 해금이 생기는 순간 둘이 어긋난다 — 「함정을 골랐는데 전초기지가
+		///   지어진다」. 목록의 주인은 규칙층 하나뿐이다.
 		/// </summary>
-		public TowerDefensePlaceableKind SelectedKind
+		public TowerDefensePlaceableKind SelectedKind =>
+			SelectedSlot >= 0 && SelectedSlot < slots.Count
+				? slots[SelectedSlot].Kind
+				: TowerDefensePlaceableKind.Harvester;
+
+		private readonly System.Collections.Generic.List<TowerDefenseSlot> slots = new();
+
+		/// <summary> 이번 판에 쓸 수 있는 칸 — 매치가 해금 상태대로 만들어 넘긴다. </summary>
+		public void SetSlots(System.Collections.Generic.IReadOnlyList<TowerDefenseSlot> available)
 		{
-			get
-			{
-				if (SelectedSlot < TowerSlotCount)
-					return TowerDefensePlaceableKind.Tower;
-				// ★ 연구 칸은 없앴다(사용자 지시) — 연구는 이제 *코어를 골라서* 한다.
-				//   짓는 것과 키우는 것은 성격이 다른 행위인데 같은 핫바에 섞여 있었다.
-				if (SelectedSlot == TowerSlotCount)
-					return TowerDefensePlaceableKind.Harvester;
-				if (SelectedSlot == TowerSlotCount + 1)
-					return TowerDefensePlaceableKind.Wall;
-				if (SelectedSlot == TowerSlotCount + 2)
-					return TowerDefensePlaceableKind.Trap;
-				if (SelectedSlot == TowerSlotCount + 3)
-					return TowerDefensePlaceableKind.Outpost;
-				return SelectedSlot == TowerSlotCount + 4
-					? TowerDefensePlaceableKind.Generator
-					: TowerDefensePlaceableKind.Hero;
-			}
+			slots.Clear();
+			if (available != null)
+				slots.AddRange(available);
+			if (SelectedSlot >= slots.Count)
+				SelectedSlot = 0; // 열려 있던 칸이 사라졌으면 첫 칸으로 — 없는 칸을 든 채로 두지 않는다.
 		}
 
 		/// <summary>
-		/// 핫바 슬롯 — 0..포탑종류수-1 = 포탑, 마지막 = 채집. 포탑이 여러 종류가 되면서 「종류」가 아니라
-		/// 「슬롯」이 선택의 단위가 된다(종류를 늘릴 때 입력·화면을 고칠 필요가 없다).
+		/// 핫바 슬롯 — 목록의 index 그대로다. 「몇 번째가 무엇인가」는 규칙층이 정한다.
 		/// </summary>
 		public int SelectedSlot { get; private set; }
+
+		/// <summary> 지금 고른 포탑 종류 번호(포탑 칸이 아니면 뜻이 없다). </summary>
+		public int SelectedTowerIndex =>
+			SelectedSlot >= 0 && SelectedSlot < slots.Count ? slots[SelectedSlot].TowerIndex : 0;
 
 		/// <summary>
 		/// 지금 「설치 대기」인가 — 칸을 고른 순간 켜지고, **한 번 설치하면 꺼진다**(사용자 지시:
@@ -91,41 +91,13 @@ namespace WitchMendokusai
 			IsArmed = false;
 		}
 
-		// 화면에 실제로 보이는 포탑 칸 → 진짜 포탑 종류 번호. 잠긴 인형을 칸에서 빼면 둘이 어긋나므로
-		// (3번 칸이 3번 포탑이 아닐 수 있다) 매치가 알려준 목록을 그대로 따른다.
-		private readonly System.Collections.Generic.List<int> availableTowers = new();
-
-		/// <summary> 이번 판에 쓸 수 있는 포탑 종류 목록(핫바 순서 그대로). </summary>
-		public void SetAvailableTowers(System.Collections.Generic.IReadOnlyList<int> towerIndices)
-		{
-			availableTowers.Clear();
-			if (towerIndices != null)
-				availableTowers.AddRange(towerIndices);
-			SelectedSlot = 0;
-		}
-
-		/// <summary> 지금 고른 포탑 종류 인덱스(채집을 고른 상태면 첫 포탑). </summary>
-		public int SelectedTowerIndex
-		{
-			get
-			{
-				if (availableTowers.Count == 0)
-					return 0;
-				int slot = SelectedSlot < availableTowers.Count ? SelectedSlot : 0;
-				return availableTowers[slot];
-			}
-		}
-
-		private int TowerSlotCount => availableTowers.Count > 0 ? availableTowers.Count : 1;
-
 		public event System.Action<int> SelectionChanged = delegate { };
 
 		/// <summary> 슬롯 선택 — 범위를 벗어나면 무시(없는 칸을 누른 것). </summary>
 		public void SelectSlot(int slot)
 		{
-			// 칸 = 포탑들 + 채집 + 벽 + 함정 + 전초기지 + 발전 + 영웅(SelectedKind 와 같은 순서).
-			// 범위 밖은 없는 칸을 누른 것.
-			if (slot < 0 || slot > TowerSlotCount + 5)
+			// 열려 있는 칸만 고를 수 있다 — 없는 칸을 누른 것은 아무 일도 아니다.
+			if (slot < 0 || slot >= slots.Count)
 				return;
 			if (SelectedSlot == slot)
 			{
@@ -138,10 +110,16 @@ namespace WitchMendokusai
 			SelectionChanged(slot);
 		}
 
-		/// <summary> 하위 호환 진입점(종류 지정) — 재시작 등이 쓰는 경로. </summary>
+		/// <summary> 종류로 고르기 — 재시작 등이 쓰는 경로. 안 열린 종류면 아무 일도 안 한다. </summary>
 		public void SelectKind(TowerDefensePlaceableKind kind)
 		{
-			SelectSlot(kind == TowerDefensePlaceableKind.Harvester ? TowerSlotCount : 0);
+			for (int index = 0; index < slots.Count; index++)
+			{
+				if (slots[index].Kind != kind)
+					continue;
+				SelectSlot(index);
+				return;
+			}
 		}
 
 		// HUD 버튼(다시 시작 등)을 누른 클릭이 그대로 배치로도 처리되는 것을 막는 1회용 소거.

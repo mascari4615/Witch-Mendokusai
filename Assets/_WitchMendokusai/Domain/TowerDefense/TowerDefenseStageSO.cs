@@ -206,6 +206,35 @@ namespace WitchMendokusai
 		[field: Tooltip("연구를 나타내는 색 — 범례가 이 색으로 「코어 연구」 줄을 그린다.")]
 		[field: SerializeField] public Color LabTint { get; private set; } = new Color(0.86f, 0.62f, 1f, 1f);
 
+		[field: Header("연구 해금 — 처음엔 거의 아무것도 못 한다")]
+		// ★ 사용자 지시(2026-08-04 직접 플레이): "처음엔 자원 건물이랑 연구만. 첫 테크 트리로 공성 건물.
+		//   고급 테크 가야 좀 복잡해지는 것." 처음부터 다 열려 있으면 무엇을 할지가 아니라 *무엇부터 볼지*가
+		//   숙제가 된다 — 판을 여는 순간 손이 멎는다.
+		// 값 = 그 종류를 쓰려면 필요한 연구 단계. 0 이면 처음부터. 채집은 0(먹고사는 길은 늘 열려 있다).
+		[field: Tooltip("공성(포탑)을 여는 연구 단계 — 첫 테크.")]
+		[field: SerializeField, Min(0)] public int TowerUnlockLevel { get; private set; } = 1;
+
+		[field: Tooltip("벽을 여는 연구 단계.")]
+		[field: SerializeField, Min(0)] public int WallUnlockLevel { get; private set; } = 2;
+
+		[field: Tooltip("함정을 여는 연구 단계.")]
+		[field: SerializeField, Min(0)] public int TrapUnlockLevel { get; private set; } = 3;
+
+		[field: Tooltip("발전 인형을 여는 연구 단계 — 전기가 필요해지는 시점.")]
+		[field: SerializeField, Min(0)] public int GeneratorUnlockLevel { get; private set; } = 4;
+
+		[field: Tooltip("전초기지를 여는 연구 단계 — 여기부터가 고급 테크(정수로 산다).")]
+		[field: SerializeField, Min(0)] public int OutpostUnlockLevel { get; private set; } = 5;
+
+		[field: Tooltip("포탑 종류가 하나 더 열리는 데 필요한 추가 연구 단계 — 첫 종류 이후 이 값마다 하나씩.")]
+		[field: SerializeField, Min(1)] public int TowerVariantUnlockStep { get; private set; } = 2;
+
+		[field: Tooltip("이 단계 *미만*의 연구는 일반 자원으로 산다. 이상부터는 정수(바깥 노드) — 고급 테크.")]
+		[field: SerializeField, Min(0)] public int ResearchEssenceFromLevel { get; private set; } = 4;
+
+		[field: Tooltip("자원으로 사는 연구 1단계 값 — 단계마다 이 값의 배수로 오른다.")]
+		[field: SerializeField, Min(1)] public int LabResourceCost { get; private set; } = 60;
+
 		[field: Header("판 밖에 남는 것 — 유물·뽑기")]
 		[field: Tooltip("처음부터 쓸 수 있는 포탑 수(앞에서부터). 나머지는 유물로 뽑아야 나온다.")]
 		[field: SerializeField, Min(1)] public int DefaultUnlockedTowerCount { get; private set; } = 2;

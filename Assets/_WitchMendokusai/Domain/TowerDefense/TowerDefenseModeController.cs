@@ -66,6 +66,9 @@ namespace WitchMendokusai
 		{
 			gameModeManager.OnModeChanged += OnGameModeChanged;
 			match.MatchEnded += OnMatchEnded;
+			// 연구로 새 칸이 열리면 그 즉시 입력도 알아야 한다 — 화면엔 떴는데 손이 못 고르면
+			// 「연구했는데 아무 일도 없다」가 된다.
+			match.SlotsChanged += SyncAvailableTowers;
 			ApplyMode(gameModeManager.CurrentMode);
 		}
 
@@ -168,28 +171,17 @@ namespace WitchMendokusai
 			overhead.ResetView(center, yaw: 0f, height: stage.CameraInitialHeight);
 		}
 
-		/// <summary> 이번 판에 쓸 수 있는 포탑 목록을 배치·화면에 동시에 알린다(둘이 어긋나면 오설치). </summary>
+		/// <summary>
+		/// 이번 판에 쓸 수 있는 칸을 배치 입력에 알린다 — 목록의 주인은 매치다(둘이 어긋나면 오설치).
+		///
+		/// ★ 예전엔 여기서 「뽑은 포탑 종류」를 따로 조립해 넘겼다. 이제 해금은 *연구 단계*가 정하므로
+		///   그 계산이 두 벌이 되면 곧바로 어긋난다 — 매치가 만든 목록을 그대로 전달하기만 한다.
+		/// </summary>
 		private void SyncAvailableTowers()
 		{
-			System.Collections.Generic.List<int> available = new();
-			int towerCount = stage != null && stage.TowerArchetypes != null ? stage.TowerArchetypes.Length : 0;
-			System.Collections.Generic.List<int> unlocked =
-				DataManager.TryGetExistingInstance(out DataManager dataManager)
-					? dataManager.TowerDefenseUnlockedTowers
-					: null;
-
-			for (int index = 0; index < towerCount; index++)
-			{
-				if (stage.TowerArchetypes[index] == null)
-					continue;
-				if (TowerDefenseMeta.IsUnlocked(index, stage.DefaultUnlockedTowerCount, unlocked))
-					available.Add(index);
-			}
-
-			if (available.Count == 0)
-				available.Add(0);
-
-			placement.SetAvailableTowers(available);
+			if (match == null || placement == null)
+				return;
+			placement.SetSlots(match.AvailableSlots);
 		}
 
 		private int RelicBalance()
