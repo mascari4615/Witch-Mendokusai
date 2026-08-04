@@ -163,6 +163,36 @@ namespace WitchMendokusai.Tests
 		}
 
 		/// <summary>
+		/// 지금 위치에서 캐릭터 캡슐이 *남의* 지오메트리를 파고들고 있나. depenetration 검증용.
+		/// 살짝 줄인 반지름으로 물어본다 — 땅을 밟고 선 「닿음」을 겹침으로 세면 늘 true 가 나온다.
+		/// </summary>
+		public bool IsOverlappingGeometry()
+		{
+			const float OVERLAP_SHRINK = 0.95f;
+			const int OVERLAP_BUFFER_SIZE = 8;
+
+			Vector3 worldCenter = Position + new Vector3(0f, CAPSULE_HEIGHT * 0.5f, 0f);
+			float halfSegment = (CAPSULE_HEIGHT * 0.5f) - CAPSULE_RADIUS;
+			Vector3 bottom = worldCenter - Vector3.up * halfSegment;
+			Vector3 top = worldCenter + Vector3.up * halfSegment;
+
+			Collider[] buffer = new Collider[OVERLAP_BUFFER_SIZE];
+			int count = Physics.OverlapCapsuleNonAlloc(
+				bottom, top, CAPSULE_RADIUS * OVERLAP_SHRINK, buffer, ~0, QueryTriggerInteraction.Ignore);
+
+			for (int i = 0; i < count; i++)
+			{
+				if (buffer[i] == null)
+					continue;
+				if (buffer[i].transform.IsChildOf(characterTransform))
+					continue;
+				return true;
+			}
+
+			return false;
+		}
+
+		/// <summary>
 		/// 씬에 남의 콜라이더가 떠 있으면 Motor 의 sweep 이 그걸 잡아 테스트가 조용히 거짓말한다.
 		/// 「0 개여야 한다」를 생성 시점에 못 박아, 오염을 테스트 실패가 아니라 하네스 실패로 드러낸다.
 		/// </summary>
