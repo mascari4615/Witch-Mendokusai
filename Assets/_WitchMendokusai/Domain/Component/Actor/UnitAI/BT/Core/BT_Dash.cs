@@ -83,10 +83,6 @@ namespace WitchMendokusai
 			return BTState.Success;
 		}
 
-		protected bool IsPlayerOnLeft()
-		{
-			return Camera.main.WorldToViewportPoint(unitObject.transform.position).x > .5f;
-		}
 
 		private BTState Dash()
 		{
