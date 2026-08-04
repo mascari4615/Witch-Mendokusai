@@ -3237,7 +3237,32 @@ namespace WitchMendokusai
 					harvesterTransforms.RemoveAt(index);
 					continue;
 				}
-				PopWorldText("+" + stage.Rules.IncomePerHarvester, harvester.position, TextType.Heal);
+				// ★ 그 인형이 *실제로 번 만큼*을 띄운다.
+				//   예전엔 전부 같은 숫자(정액)를 띄웠다 — 그러면 두 가지가 동시에 거짓말이 된다:
+				//   ① 먼 큰 광맥에 세운 인형이 훨씬 많이 버는데 화면은 옆 인형과 같은 수를 보여준다
+				//      (「자리를 잘 잡았다」를 배울 유일한 피드백인데 그게 안 보인다)
+				//   ② 보급이 끊겼거나 전기가 없어 *한 푼도 못 번* 인형 위에도 숫자가 떴다.
+				TowerDefenseDollLabel harvesterLabel = FindDollLabel(harvester);
+				if (harvesterLabel != null && (harvesterLabel.Disconnected || harvesterLabel.Unpowered))
+					continue; // 멈춘 채집은 아무것도 안 벌었다 — 아무 숫자도 띄우지 않는다.
+
+				int earned = Mathf.RoundToInt(
+					stage.Rules.IncomePerHarvester * HarvesterMultiplierOf(harvester) * core.IncomeMultiplier);
+				if (earned <= 0)
+					continue;
+
+				PopWorldText("+" + earned, harvester.position, TextType.Heal);
+
+				// ★ 바깥 채집은 정수를 낸다 — 그게 「멀리 나간」 보상인데 들어와도 화면이 한 마디도 안 했다.
+				//   보이지 않는 보상은 배울 수가 없다(왜 위험을 무릅쓰는지가 안 남는다).
+				if (harvesterIsOuter.TryGetValue(harvester, out bool outerNode) == false || outerNode == false)
+					continue;
+
+				// 규칙이 쓰는 것과 같은 식으로 — 정수는 자원과 달리 정산 배수가 아니라 채집 가중치만 탄다.
+				int essence = Mathf.RoundToInt(
+					stage.Rules.EssencePerHarvester * HarvesterMultiplierOf(harvester));
+				if (essence > 0)
+					PopWorldText("정수 +" + essence, harvester.position, TextType.Exp);
 			}
 		}
 
