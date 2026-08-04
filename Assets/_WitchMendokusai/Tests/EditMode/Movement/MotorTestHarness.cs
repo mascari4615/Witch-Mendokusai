@@ -49,7 +49,6 @@ namespace WitchMendokusai.Tests
 		private readonly GameObject geometryRoot;
 		private readonly Transform characterTransform;
 		private readonly Rigidbody characterRigidBody;
-		private readonly bool previousAutoSyncTransforms;
 
 		private bool disposed;
 
@@ -64,10 +63,6 @@ namespace WitchMendokusai.Tests
 
 		public MotorTestHarness(Vector3 startPosition)
 		{
-			// 쿼리 직전 Transform 변경이 PhysX 에 반영되도록 강제. EditMode 기본값에 판정을 맡기지 않는다.
-			previousAutoSyncTransforms = Physics.autoSyncTransforms;
-			Physics.autoSyncTransforms = true;
-
 			AssertWorkspaceClean(startPosition);
 
 			geometryRoot = new GameObject("MotorTestHarness.Geometry");
@@ -146,6 +141,9 @@ namespace WitchMendokusai.Tests
 		public Vector3 Step(float deltaTime = FIXED_DELTA_TIME)
 		{
 			// Play 에서 MovePosition 결과가 다음 tick 의 Rigidbody.position 이 되는 계약을 대신 이행.
+			// 쓴 직후 곧바로 SyncTransforms — PhysX 에 안 밀어넣으면 이번 tick 의 sweep 이 *옛 위치*를 본다.
+			// (autoSyncTransforms 에 맡기지 않는다. deprecated 이기도 하고, 암묵 동기화에 판정을 걸면
+			//  나중에 그 기본값이 바뀔 때 시험이 조용히 거짓말한다.)
 			characterTransform.position = Position;
 			characterRigidBody.position = Position;
 			Physics.SyncTransforms();
@@ -193,7 +191,6 @@ namespace WitchMendokusai.Tests
 				return;
 
 			disposed = true;
-			Physics.autoSyncTransforms = previousAutoSyncTransforms;
 
 			if (characterObject != null)
 				UnityEngine.Object.DestroyImmediate(characterObject);
