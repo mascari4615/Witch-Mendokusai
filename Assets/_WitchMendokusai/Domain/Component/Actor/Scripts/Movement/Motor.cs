@@ -142,8 +142,17 @@ namespace WitchMendokusai
 
 			RaycastHit hit = HIT_BUFFER[closestIndex];
 
-			// 표면 위로 정확히 내려놓는다 — 「떠 있는 Grounded」를 구조적으로 없애는 한 줄.
-			float dropDistance = Mathf.Max(0f, hit.distance - SKIN_WIDTH);
+			// 표면 위로 내려놓는다 — 「떠 있는 Grounded」를 없애는 대목.
+			//
+			// ★ 얼마나 내려놓을지는 ray 가 아니라 *캡슐* 이 정한다. 발 중심 ray 거리만큼 내리면
+			//   비탈에서 캡슐 아랫부분이 오르막 쪽 지면을 파고들고, 그걸 Depenetrate 가 법선
+			//   방향(비탈에선 옆으로도 향한다)으로 밀어낸다 → 스냅과 밀어내기가 매 tick 싸우며
+			//   흘러내린다. 실측: 30° 비탈에서 60 tick 에 2.3m.
+			//   ray 는 「땅 위에 있나」를, 캡슐 sweep 은 「어디까지 내려갈 수 있나」를 답한다.
+			float dropDistance = 0f;
+			if (CapsuleSweep(position, Vector3.down, reach + SKIN_WIDTH, out RaycastHit capsuleHit))
+				dropDistance = Mathf.Max(0f, capsuleHit.distance - SKIN_WIDTH);
+
 			if (dropDistance > 0f)
 				position += Vector3.down * dropDistance;
 
