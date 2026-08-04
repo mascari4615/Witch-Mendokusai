@@ -83,14 +83,24 @@ namespace WitchMendokusai.Tests
 			Assert.AreEqual(ArenaModeSO.NO_WINNER, core.WinnerTeamId, "무승부 = 승자 없음");
 		}
 
+		/// <summary>
+		/// TASK-WM-175 — 계약을 뒤집었다. 예전엔 「모드 없음 = 종료 안 함(방어)」였다.
+		///
+		/// 그 방어의 실제 결과는 *조용히 틀린 매치*다: 규칙 결착이 영영 안 일어나고 매번 제한시간까지
+		/// 흘러 최다 생존 팀 승으로 끝난다. `config.Mode` 를 안 꽂은 사람 눈엔 설정 누락이 아니라
+		/// 밸런스 문제로 보이고, 엉뚱한 데를 파게 된다.
+		///
+		/// mode 는 생성자 필수 의존이다. 빠졌으면 첫 폴에서 바로 터져야 한다 (CLAUDE.md § FastFail).
+		/// </summary>
 		[Test]
-		public void Poll_NullMode_NeverConcludes()
+		public void Poll_NullMode_Throws_InsteadOfSilentlyRunningToTimeout()
 		{
 			List<ArenaTeam> teams = new() { new ArenaTeam(0, new List<ICombatant>()) };
 			ArenaMatchCore core = new(teams, null);
 
-			Assert.IsFalse(core.Poll(), "모드 없음 = 종료 안 함(방어)");
-			Assert.IsFalse(core.IsConcluded);
+			Assert.Throws<System.NullReferenceException>(() => core.Poll(),
+				"모드 없이도 매치가 굴러가면 설정 누락이 밸런스 문제로 위장된다");
+			Assert.IsFalse(core.IsConcluded, "터진 폴이 상태를 절반만 바꿔놓으면 안 된다");
 		}
 
 		[Test]
