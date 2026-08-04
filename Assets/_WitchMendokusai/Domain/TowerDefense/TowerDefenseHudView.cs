@@ -914,10 +914,19 @@ namespace WitchMendokusai
 				"밟으면 터진다 · " + stage.TrapCharges + "번 쓰면 사라짐", TowerDefenseIcon.Kind.Burst));
 			legendRows.Add(MakeLegendRow(stage.WallTint, "벽",
 				"못 지나간다 · 길을 휘게 만든다(완전히 막을 순 없다)", TowerDefenseIcon.Kind.Beam));
-			legendRows.Add(MakeLegendRow(stage.LabTint, "연구 인형",
-				"세울수록 모든 포탑 피해 +" + Mathf.RoundToInt(stage.LabDamageBonus * 100f) + "%", TowerDefenseIcon.Kind.Ring));
+			// ★ 연구는 이제 *코어를 골라서* 한다 — 연구 인형은 핫바에서 사라졌는데 범례만 남아
+			//   「못 짓는 건물」을 설명하고 있었다. 설명이 규칙보다 오래 남으면 그건 오해를 만든다.
+			legendRows.Add(MakeLegendRow(stage.LabTint, "코어 연구",
+				"코어를 골라 정수로 올린다 · 단계마다 모든 포탑 피해 +"
+					+ Mathf.RoundToInt(stage.LabDamageBonus * 100f) + "%", TowerDefenseIcon.Kind.Ring));
+			// ★ 전기는 건물이 멈추고 서는 핵심 규칙인데 범례에 아예 없었다.
+			legendRows.Add(MakeLegendRow(stage.GeneratorTint, "발전 인형",
+				"범위 안 건물에 전기를 댄다 · 전기가 없으면 그 건물은 서 있기만 한다", TowerDefenseIcon.Kind.Ring));
+			// ★ 벌이는 정액이 아니다 — 무는 자리 수와 거리가 정한다(먼 곳일수록 크게 번다).
+			//   「정산마다 +N」이라고만 적으면 어디에 세우든 같다는 뜻이 되어, 개척할 이유가 지워진다.
 			legendRows.Add(MakeLegendRow(stage.HarvesterTint, "채집 인형",
-				"금빛 자리 위에서만 캔다 · 정산마다 +" + stage.Rules.IncomePerHarvester, TowerDefenseIcon.Kind.Leaf));
+				"금빛 자리 위에서만 캔다 · 무는 자리가 많고 멀수록 많이 번다(기본 +"
+					+ stage.Rules.IncomePerHarvester + ")", TowerDefenseIcon.Kind.Leaf));
 			if (stage.EnemyArchetypes == null || stage.EnemyArchetypes.Length == 0)
 			{
 				legendRows.Add(MakeLegendRow(stage.EnemyTint, "마수", "코어로 전진 · 잡으면 +" + stage.Rules.BountyPerKill));
@@ -1132,7 +1141,10 @@ namespace WitchMendokusai
 
 			hintLabel.text = stage == null
 				? string.Empty
-				: "좌클릭 설치 · 우클릭 판매 · Space 멈춤 · Tab 배속   ·   WASD 시점 이동   ·   휠 확대·축소   ·   X 나가기";
+				// ★ 안내가 실제 키와 달랐다: 배속은 Tab 이 아니라 F6 이고, 정작 제일 많이 쓰는
+				//   「숫자키로 칸 고르기」는 한 글자도 없었다. 조작 안내가 틀리면 그 화면 전체를 못 믿는다.
+				: "숫자키 1~9 칸 고르기 · 좌클릭 설치 · 우클릭 판매   ·   Space 멈춤 · F6 배속"
+					+ "   ·   WASD 시점 이동 · 휠 확대·축소   ·   X 나가기";
 		}
 
 		public void Hide()
