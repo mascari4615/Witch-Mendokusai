@@ -202,6 +202,10 @@ namespace WitchMendokusai.Tests
 	/// <summary>
 	/// 테스트용 수평 입력 contributor. 실물 <see cref="InputContributor"/> 는 <c>UnitObject</c>(스탯·DI 딸린
 	/// MonoBehaviour) 를 요구해서 Motor 단독 판정에 끌어들이면 검증 대상이 흐려진다. 여기서는 Motor 만 겨눈다.
+	///
+	/// 실물의 계약 중 *하나는* 그대로 지킨다 — <see cref="MotorContext.IsExternallyDriven"/> 이면 손 뗀다.
+	/// 대시·넉백이 도는 동안 입력이 수평 속도를 덮으면 임펄스가 무력화되기 때문이고,
+	/// 그걸 안 지키는 대역을 쓰면 임펄스 시험이 실제와 다른 걸 재게 된다.
 	/// </summary>
 	public sealed class ConstantHorizontalContributor : IVelocityContributor
 	{
@@ -214,6 +218,9 @@ namespace WitchMendokusai.Tests
 
 		public void Contribute(MotorContext context, float deltaTime)
 		{
+			if (context.IsExternallyDriven)
+				return;
+
 			Vector3 direction = context.MoveDirection;
 			context.Velocity.x = direction.x * harness.HorizontalSpeed;
 			context.Velocity.z = direction.z * harness.HorizontalSpeed;
