@@ -134,6 +134,13 @@ namespace WitchMendokusai.Tests
 		public float HorizontalSpeed { get; private set; }
 
 		/// <summary>
+		/// 수직 속도를 직접 준다 = 점프 한 방. 실물 <see cref="JumpContributor"/> 는 UnitObject 스탯과
+		/// coyote/buffer 타이머까지 끌고 오므로, 상승 sweep 만 보고 싶을 때는 이쪽이 맞다.
+		/// (Grounded 상태에서도 GravityContributor 는 vy&gt;0 을 건드리지 않는다 — 음수만 0 으로 누른다.)
+		/// </summary>
+		public void SetVerticalVelocity(float velocityY) => Context.Velocity.y = velocityY;
+
+		/// <summary>
 		/// 한 물리 스텝 진행. Play 의 FixedUpdate → Motor.Tick 한 바퀴에 대응한다.
 		/// </summary>
 		public Vector3 Step(float deltaTime = FIXED_DELTA_TIME)
