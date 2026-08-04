@@ -131,8 +131,10 @@ namespace WitchMendokusai
 				// 동시에 눌렀을 때 속도가 두 배가 되거나 서로를 덮는다.
 				Move = Vector2.ClampMagnitude(InputManager.CameraMoveInput + EdgePanInput(), 1f),
 				Rotate = InputManager.CameraRotateInput,
+				YawDegrees = TwistInput(),
 				ScrollDelta = InputManager.ScrollWheelDelta,
 				SpeedMultiplier = SpeedMultiplier,
+				PanWorld = DragPanWorld(),
 			};
 
 			rig.Drive(input, RigSettings, Time.deltaTime, transform);
@@ -155,6 +157,12 @@ namespace WitchMendokusai
 		private Vector2 EdgePanInput()
 		{
 			if (edgePanBand <= 0f)
+				return Vector2.zero;
+
+			// ★ 손가락엔 「화면 밖」이 없다 (TASK-WM-200) — 손가락은 화면 가장자리에 닿아 있을 수도,
+			//   화면 밖으로 나갈 수도 없다. 마지막으로 짚은 자리가 가장자리면 판이 영영 흐른다.
+			//   손가락에서 시점을 옮기는 손짓은 *끌기*다.
+			if (InputManager.IsTouchMode)
 				return Vector2.zero;
 
 			// ★ 창이 뒤에 있으면 밀지 않는다 — 다른 창을 보는 동안 판이 저 혼자 흘러가면 안 된다.
@@ -184,6 +192,61 @@ namespace WitchMendokusai
 				y = 1f - (Screen.height - pointer.y) / edgePanBand;
 
 			return new Vector2(x, y) * edgePanStrength;
+		}
+
+		// 끌기가 시작된 순간에 「이 끌기가 시점 끌기인가」를 한 번 정한다 — 끌다가 버튼 위를 지나갔다고
+		// 시점이 멈췄다 갔다 하면 손끝과 땅이 어긋난다.
+		private bool dragPanAllowed;
+		private bool wasDragging;
+
+		/// <summary>
+		/// 손가락으로 땅을 잡아 끈다 (TASK-WM-200) — 화면 픽셀을 *땅 위 거리*로 환산해서 1:1 로 따라오게.
+		///
+		/// ★ 왜 1:1 이어야 하나: 잡아 끄는 조작의 전부가 「손끝에 붙어 있다」는 감각이다. 감도 수치를
+		///   따로 두면 확대했을 때와 축소했을 때 손끝과 땅이 다른 속도로 움직여 미끄러진다. 그래서
+		///   감도 대신 *화각과 높이*로 환산한다 — 확대하면 저절로 조금씩, 축소하면 저절로 크게 움직인다.
+		/// </summary>
+		private Vector3 DragPanWorld()
+		{
+			if (InputManager.IsTouchMode == false)
+			{
+				wasDragging = false;
+				return Vector3.zero;
+			}
+
+			bool isDragging = InputManager.IsPointerDragging;
+			if (isDragging && wasDragging == false)
+				dragPanAllowed = UIPointer.IsOverInteractive(InputManager.MouseScreenPosition) == false;
+			wasDragging = isDragging;
+
+			if (dragPanAllowed == false)
+				return Vector3.zero;
+
+			Vector2 dragPixels = InputManager.PointerDragDelta + InputManager.PointerTwoFingerPanDelta;
+			if (dragPixels.sqrMagnitude <= 0f)
+				return Vector3.zero;
+
+			Camera camera = ViewCameraResolver.Current;
+			if (camera == null || Screen.height <= 0)
+				return Vector3.zero;
+
+			// 화면 한 픽셀이 땅에서 몇 미터인가 — 화면 세로가 담아내는 땅의 길이를 픽셀 수로 나눈 것.
+			float worldPerPixel = 2f * rig.Height * Mathf.Tan(camera.fieldOfView * 0.5f * Mathf.Deg2Rad) / Screen.height;
+
+			Quaternion flatYaw = Quaternion.Euler(0f, rig.Yaw, 0f);
+			Vector3 forward = flatYaw * Vector3.forward;
+			Vector3 right = flatYaw * Vector3.right;
+
+			// 손가락이 오른쪽으로 가면 땅이 오른쪽으로 따라와야 하므로 시점은 왼쪽으로 간다.
+			return (-right * dragPixels.x - forward * dragPixels.y) * worldPerPixel;
+		}
+
+		/// <summary> 두 손가락 비틀기 = 시점 회전. 비튼 각도가 곧 돌아간 각도다(1:1). </summary>
+		private float TwistInput()
+		{
+			if (InputManager.IsTouchMode == false)
+				return 0f;
+			return InputManager.PointerTwistDelta;
 		}
 	}
 }

@@ -89,7 +89,17 @@ namespace WitchMendokusai
 		public void Disarm()
 		{
 			IsArmed = false;
+			hasPendingTouchTarget = false;
 		}
+
+		// TASK-WM-200 — 손가락으로 지을 때 「한 번 더 눌러 확인」을 기다리는 자리.
+		private bool hasPendingTouchTarget;
+		private Vector3 pendingTouchTarget;
+
+		/// <summary>
+		/// 손가락이 이번에 고른 자리 — 「여기 지을까?」 하고 기다리는 중이면 true (화면이 안내 문구를 바꾼다).
+		/// </summary>
+		public bool IsWaitingTouchConfirm => hasPendingTouchTarget;
 
 		public event System.Action<int> SelectionChanged = delegate { };
 
@@ -107,6 +117,7 @@ namespace WitchMendokusai
 
 			SelectedSlot = slot;
 			IsArmed = true; // 칸을 고르는 것 = 설치 대기. 한 번 지으면 다시 꺼진다.
+			hasPendingTouchTarget = false; // 다른 것을 고르면 기다리던 자리는 뜻을 잃는다.
 			SelectionChanged(slot);
 		}
 
@@ -308,6 +319,61 @@ namespace WitchMendokusai
 		// 커서 아래 유닛 탐색 버퍼 — 매 프레임 새 배열을 만들지 않는다.
 		private readonly RaycastHit[] hoverHits = new RaycastHit[16];
 
+		/// <summary>
+		/// 손가락 조작 (TASK-WM-200). 마우스와 규칙이 다른데, 그 차이가 *손가락에만 있는 사정*에서 나온다.
+		///
+		/// ★ 왜 「톡」이고 「누름」이 아닌가: 손가락 하나가 시점 끌기도 겸한다. 누르는 순간 짓게 하면
+		///   판을 훑어보려고 끌 때마다 건물이 서고 자원이 빠진다. 그래서 *끌지 않고 뗀 것*만 짓는 손짓이다.
+		/// ★ 왜 두 번 눌러야 하나: 마우스는 커서를 올려두고 「여기 서겠구나」를 *보고 나서* 누른다.
+		///   손가락엔 그 「올려두기」가 없다 — 첫 톡이 그 자리를 맡고, 둘째 톡이 짓는다. 미리보기의
+		///   뜻(짓기 전에 본다)을 없애지 않고 손가락으로 옮긴 것이다.
+		/// ★ 왜 빈 땅 톡이 영웅인가: 손가락엔 오른쪽 단추가 없다. 없는 단추를 흉내 내는 대신,
+		///   *가리킨 곳에 아무것도 없다*는 사실에 뜻을 준다 — 건물 위 톡은 그대로 「살펴보기」다.
+		/// </summary>
+		private void HandleTouchTap()
+		{
+			if (inputManager == null || inputManager.IsTouchMode == false)
+				return;
+			if (inputManager.PointerTappedThisFrame == false)
+				return;
+
+			Vector2 tapPosition = inputManager.PointerTapPosition;
+			if (UIPointer.IsOverInteractive(tapPosition))
+				return;
+
+			if (IsArmed == false)
+			{
+				UpdateHover(tapPosition);
+				if (HoveredUnit != null)
+				{
+					SelectedBuilding = HoveredUnit;
+					BuildingSelected(SelectedBuilding);
+				}
+				else
+				{
+					CommandHeroAt(tapPosition);
+				}
+				return;
+			}
+
+			if (TryGetSnappedGroundPosition(tapPosition, out Vector3 tappedCell) == false)
+				return;
+
+			// 같은 칸을 다시 톡 = 「그래, 여기」. 칸 반쪽 안이면 같은 칸으로 본다(손가락은 뭉툭하다).
+			float sameCellRadius = cellSize * 0.5f;
+			if (hasPendingTouchTarget
+				&& (pendingTouchTarget - tappedCell).sqrMagnitude <= sameCellRadius * sameCellRadius)
+			{
+				hasPendingTouchTarget = false;
+				PlaceSelectedAt(tapPosition);
+				return;
+			}
+
+			// 첫 톡 — 아직 짓지 않는다. 미리보기가 그 자리로 옮겨가 「여기 서면 이렇다」를 보여준다.
+			hasPendingTouchTarget = true;
+			pendingTouchTarget = tappedCell;
+		}
+
 		private void Update()
 		{
 			if (isActive == false)
@@ -322,6 +388,8 @@ namespace WitchMendokusai
 			//   미리보기 동작 안하는 것 같은데"). 주입이 안 왔으면 스스로 찾는다. 없는 것보다 낫고,
 			//   무엇보다 *조용히 없어지는 것*보다 낫다.
 			EnsureInputManager();
+
+			HandleTouchTap();
 
 			if (inputManager != null)
 				UpdateHover(inputManager.MouseScreenPosition);

@@ -128,6 +128,16 @@ namespace WitchMendokusai
 		[SerializeField] private float pinchToZoomScale = 0.5f;
 
 		/// <summary>
+		/// 손가락 조작을 강제로 켠다 — 컴퓨터에서 *폰 화면을 확인하기 위한* 스위치 (TASK-WM-200).
+		///
+		/// ★ 왜 필요한가: 모바일 조작은 컴퓨터에 손가락이 없어서 영영 눈으로 확인할 수 없다. 그러면
+		///   「폰에서만 깨지는 화면」이 쌓이는데, 그건 폰을 꺼내 봐야만 발견된다 — 고치는 값이 가장 비싼
+		///   자리다. 켜면 마우스가 손가락 노릇을 해서 화면 조작 장치를 그대로 눌러볼 수 있다.
+		/// </summary>
+		[Tooltip("컴퓨터에서 폰 조작 화면을 확인할 때 켠다 — 마우스가 손가락 노릇을 한다.")]
+		[SerializeField] private bool forceTouchMode;
+
+		/// <summary>
 		/// 가리키는 것 하나 — 마우스/손가락을 같은 얼굴로 만든다 (TASK-WM-200).
 		/// 아래 Mouse* 프로퍼티들은 전부 이걸 통해서 나간다. 「마우스」라는 이름은 유지하는데,
 		/// 부르는 쪽 300곳의 뜻이 원래부터 「가리키는 자리」였기 때문이다(이름만 마우스였다).
@@ -201,7 +211,13 @@ namespace WitchMendokusai
 
 		// TASK-WM-200 — 모바일 조작. 「지금 손가락인가」는 기기 종류가 아니라 *마지막으로 만진 장치*다
 		// (터치 노트북에서 기기로 판정하면 마우스를 쥐고도 손가락 UI 가 뜬다).
-		public bool IsTouchMode => pointer.IsTouchMode;
+		public bool IsTouchMode => forceTouchMode || pointer.IsTouchMode;
+
+		/// <summary> 폰 조작 화면을 컴퓨터에서 켜고 끈다 — 확인용. </summary>
+		public void SetForceTouchMode(bool force)
+		{
+			forceTouchMode = force;
+		}
 		public bool IsPointerPressed => pointer.IsPressed;
 		public bool PointerTappedThisFrame => pointer.TappedThisFrame;
 		public Vector2 PointerTapPosition => pointer.TapPosition;
@@ -344,6 +360,27 @@ namespace WitchMendokusai
 		{
 			Dispatch(inputEventType, InputEventResponseType.Canceled, ctx);
 			isPressed[inputEventType] = false;
+		}
+
+		/// <summary>
+		/// 화면 버튼을 누른 것 = 그 키를 누른 것 (TASK-WM-200).
+		///
+		/// ★ 왜 이 창구가 필요한가: 손가락엔 키보드가 없다. 화면 버튼이 「점프」를 뜻하려면 결국
+		///   *같은 점프 이벤트*가 나가야 한다 — 안 그러면 화면 버튼만을 위한 두 번째 점프 경로가 생기고,
+		///   나중에 점프 규칙을 고칠 때 한쪽만 고쳐진다. 장치가 다를 뿐 뜻이 같으면 길도 같아야 한다.
+		/// ★ 누름/뗌을 나눠 받는 이유: 공격처럼 *누르고 있는 동안* 계속 나가는 것들이 있다
+		///   (누름이 Get 반복을 켜고, 뗌이 끈다). 버튼을 「한 번 눌림」으로만 만들면 그게 죽는다.
+		/// </summary>
+		public void PressFromScreenButton(InputEventType inputEventType)
+		{
+			OnEventStart(inputEventType, default);
+			OnEventPerformed(inputEventType, default);
+		}
+
+		/// <summary> 화면 버튼에서 손을 뗐다 — 누르고 있는 동안 도는 것들을 끈다. </summary>
+		public void ReleaseFromScreenButton(InputEventType inputEventType)
+		{
+			OnEventCanceled(inputEventType, default);
 		}
 
 		private void Dispatch(InputEventType inputEventType, InputEventResponseType responseType, InputAction.CallbackContext ctx)
@@ -510,7 +547,32 @@ namespace WitchMendokusai
 				return;
 			}
 
-			isPointerOverUI = EventSystem.current.IsPointerOverGameObject();
+			if (EventSystem.current.IsPointerOverGameObject())
+			{
+				isPointerOverUI = true;
+				return;
+			}
+
+			// ★ 손가락은 저마다 번호를 갖는다 (TASK-WM-200). 번호 없이 물으면 *마우스만* 묻는 것이라
+			//   폰에서는 늘 「UI 위 아님」이 나온다 — 창 위를 눌렀는데 그 아래 땅이 반응한다.
+			//   이 한 줄이 없으면 폰에서 모든 창이 클릭을 흘린다(조용히, 오직 폰에서만).
+			Touchscreen screen = Touchscreen.current;
+			if (screen != null)
+			{
+				System.Collections.Generic.IReadOnlyList<UnityEngine.InputSystem.Controls.TouchControl> touches = screen.touches;
+				for (int i = 0; i < touches.Count; i++)
+				{
+					if (touches[i].press.isPressed == false)
+						continue;
+					if (EventSystem.current.IsPointerOverGameObject(touches[i].touchId.ReadValue()))
+					{
+						isPointerOverUI = true;
+						return;
+					}
+				}
+			}
+
+			isPointerOverUI = false;
 		}
 
 		private void UpdateMoveInput()
@@ -575,7 +637,9 @@ namespace WitchMendokusai
 				return;
 			}
 
-			LookDelta = pointer.LookDelta;
+			// TASK-WM-200 — 손가락에선 「화면 어디를 끌면 시점인가」를 화면 조작 UI 가 정한다.
+			// 여기서 raw 끌기를 그대로 쓰면 조이스틱을 움직일 때마다 시점이 함께 돌아간다.
+			LookDelta = IsTouchMode ? LookBridge.GetDelta() : pointer.LookDelta;
 		}
 
 		// TASK-WM-193 — 자유 위치 카메라 평면 이동 (WASD). 플레이어 Move 와 같은 물리 키지만 별도 축 —
