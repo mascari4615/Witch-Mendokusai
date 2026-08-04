@@ -1374,8 +1374,14 @@ namespace WitchMendokusai
 			&& core.WaveIndex < core.FirstAutoWave
 			&& core.IsNextWaveRequested == false;
 
-		/// <summary> 이번 판의 자원 노드 위치(무대 로컬) — 절차 생성이면 매 판 다르다. </summary>
-		public IReadOnlyList<Vector3> ActiveResourceNodePositions => activeNodePositions;
+		/// <summary>
+		/// 이번 판의 자원 노드 위치 — **무대 로컬 좌표**다. 쓰기 전에 `StageRoot.TransformPoint` 로 옮겨야 한다.
+		///
+		/// ★ 이름에 로컬을 박아둔 이유: 옆의 배치 API(TryPlaceHarvester/CanBuildAt/TryFindPlaceableNode)는
+		///   전부 *월드* 를 받는다. 그대로 넘기면 판이 원점에서 멀리 있을 때(개척은 z≈2000) 전부 조용히
+		///   거절당한다 — 오류도 로그도 없이 「왜 안 지어지지」만 남는다(실측: 노드까지 1906칸으로 계산됨).
+		/// </summary>
+		public IReadOnlyList<Vector3> ActiveResourceNodeLocalPositions => activeNodePositions;
 
 		/// <summary> 그 자리가 지금 보이는가 — 안 보이면 포탑도 못 쏘고 마수도 안 그려진다. </summary>
 		public bool IsVisibleAt(Vector3 worldPosition)

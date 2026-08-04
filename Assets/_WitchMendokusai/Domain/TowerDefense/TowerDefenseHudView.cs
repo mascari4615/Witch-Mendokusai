@@ -1443,7 +1443,7 @@ namespace WitchMendokusai
 		/// </summary>
 		private void UpdateNodeLabels(TowerDefenseMatch match, TowerDefenseStageSO stage)
 		{
-			System.Collections.Generic.IReadOnlyList<Vector3> nodes = match.ActiveResourceNodePositions;
+			System.Collections.Generic.IReadOnlyList<Vector3> nodes = match.ActiveResourceNodeLocalPositions;
 			Camera camera = ViewCameraResolver.Current;
 			Transform stageRoot = match.StageRoot;
 
