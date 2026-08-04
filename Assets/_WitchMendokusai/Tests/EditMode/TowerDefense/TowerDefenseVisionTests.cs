@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using NUnit.Framework;
 using UnityEngine;
 
@@ -87,6 +87,35 @@ namespace WitchMendokusai.Tests
 			vision.Recompute(One(10, 10, 0f));
 
 			Assert.IsFalse(vision.IsVisible(new Vector2Int(10, 10)));
+		}
+
+		[Test]
+		public void 판이_자라도_밝힌_곳은_어두워지지_않는다()
+		{
+			// ★ 무한 맵의 창이 커질 때마다 시야를 새로 구우면 *가봤던 곳이 통째로 어두워진다*.
+			//   화면상 「왜 다시 안 보이지」가 되는데, 규칙이 조용히 되돌린 것이라 원인이 안 보인다.
+			TowerDefenseVision small = new(10, 10);
+			small.Recompute(new[] { new TowerDefenseVision.Source(new Vector2Int(2, 2), 1.5f) });
+			Vector2Int seen = new(2, 2);
+			Assert.AreNotEqual(TowerDefenseVisionState.Unseen, small.StateAt(seen), "먼저 밝혀져 있어야 시험이 성립한다.");
+
+			TowerDefenseVision grown = new(20, 20);
+			grown.CopyExploredFrom(small);
+
+			Assert.AreEqual(TowerDefenseVisionState.Explored, grown.StateAt(seen), "판이 커지자 밝힌 곳이 도로 어두워졌다.");
+		}
+
+		[Test]
+		public void 자란_판의_새_띠는_안_가본_곳이다()
+		{
+			// 옮기는 것은 *기록*이지 「전부 밝힘」이 아니다 — 새로 열린 곳까지 밝히면 안개가 의미를 잃는다.
+			TowerDefenseVision small = new(10, 10);
+			small.Recompute(new[] { new TowerDefenseVision.Source(new Vector2Int(5, 5), 20f) });
+
+			TowerDefenseVision grown = new(20, 20);
+			grown.CopyExploredFrom(small);
+
+			Assert.AreEqual(TowerDefenseVisionState.Unseen, grown.StateAt(new Vector2Int(15, 15)));
 		}
 	}
 }

@@ -477,7 +477,10 @@ namespace WitchMendokusai
 					return false;
 
 				// 승급도 정수 — 「지금 더 짓기(자원)」 vs 「있는 걸 키우기(정수)」가 서로 다른 통장을 쓴다.
-				int upgradeCost = Mathf.Max(1, Mathf.RoundToInt(stage.UpgradeEssenceCost * (weapon.Level + 1) * 0.5f));
+				// 값이 단계마다 얼마나 붙는지는 스테이지가 정한다 — 여기 숫자를 박아두면
+				// 밸런스를 만질 때마다 코드를 고쳐야 하고, 화면에 노출된 다른 수치와 갈라진다.
+				int upgradeCost = Mathf.Max(1, Mathf.RoundToInt(
+					stage.UpgradeEssenceCost * (weapon.Level + 1) * stage.UpgradeCostGrowth));
 				if (core.TrySpendEssence(upgradeCost) == false)
 					return false;
 

@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace WitchMendokusai
 {
@@ -139,6 +139,10 @@ namespace WitchMendokusai
 
 		[field: Tooltip("승급 기준 정수(실제 값은 단계에 비례).")]
 		[field: SerializeField, Min(1)] public int UpgradeEssenceCost { get; private set; } = 8;
+
+		[field: Tooltip("승급 값이 단계마다 붙는 비율 — 1단계 올릴 때마다 이만큼씩 비싸진다. " +
+			"0.5 = 2단계 1.5배 · 3단계 2배. 0 이면 몇 단계를 올려도 값이 같다(무한 승급이 공짜가 된다).")]
+		[field: SerializeField, Min(0f)] public float UpgradeCostGrowth { get; private set; } = 0.5f;
 
 		[field: Tooltip("정수 색 — 자원과 확실히 달라야 두 통장이 갈린다.")]
 		[field: SerializeField] public Color EssenceTint { get; private set; } = new Color(0.7f, 0.6f, 1f, 1f);
