@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 163837df00ec4214d8f639641f3ec7f5, type: 3}
+  m_Name: DeviceLogSettings
+  m_EditorClassIdentifier: WM.Core::WitchMendokusai.DeviceLogSettings
+  <Enabled>k__BackingField: 1
+  <EnabledInEditor>k__BackingField: 0
+  <Endpoint>k__BackingField: https://yawnbot.mascari4615.com/device-log
+  <FlushIntervalSeconds>k__BackingField: 3
+  <MaxLinesPerBatch>k__BackingField: 200
+  <BufferCapacity>k__BackingField: 2000
+  <ImmediateFlushThreshold>k__BackingField: 100
+  <FlushImmediatelyOnError>k__BackingField: 1
+  <IncludeInfoLogs>k__BackingField: 1
+  <IncludeStackForWarnings>k__BackingField: 0
+  <SpoolToDisk>k__BackingField: 1
+  <SpoolMaxBytes>k__BackingField: 16777216
+  <SpoolKeepSessions>k__BackingField: 5
+  <RequestTimeoutSeconds>k__BackingField: 10
+  <BackoffAfterFailures>k__BackingField: 3
+  <MaxBackoffSeconds>k__BackingField: 60

@@ -1,0 +1,5 @@
+# 기기 로그 서버 토큰 (TASK-WM-201).
+# 빌드 직전에 환경변수에서 심고 빌드가 끝나면 지우는 임시 파일 —
+# WM 은 공개 저장소라 비밀이 실수로도 들어가면 안 된다.
+DeviceLogToken.txt
+DeviceLogToken.txt.meta

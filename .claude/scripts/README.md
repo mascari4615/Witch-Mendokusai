@@ -9,6 +9,7 @@ the worktree (where Claude Code's cwd lands), so they live here too.
 | --- | --- | --- |
 | `wm-mcp-route.ps1` | Worktree-aware Unity-MCP routing (writes `<worktree>/.mcp.json`). | TASK-WM-109-G |
 | `wm-editor-log-tail.ps1` | Editor.log fallback that slices to the latest compile session — surfaces only the *current* errors/warnings, not accumulated history. | TASK-WM-109-D |
+| `wm-device-logcat.ps1` | Android `adb logcat` capture — the fallback below the in-app relay (native/IL2CPP crashes, pre-C# startup failures). Canonical phone-log channel is the relay at `/device-log`. | TASK-WM-201 |
 
 ## `wm-mcp-route.ps1` — worktree-aware Unity-MCP routing (TASK-WM-109-G)
 
