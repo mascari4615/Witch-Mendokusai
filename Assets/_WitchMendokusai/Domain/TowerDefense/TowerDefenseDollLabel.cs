@@ -36,7 +36,7 @@ namespace WitchMendokusai
 		public bool Working { get; set; } = true;
 
 		/// <summary> 이 건물의 성장 — 경험치·레벨·아직 안 고른 선택지가 여기 산다. </summary>
-		public TowerDefenseBuildingProgress Progress { get; } = new();
+		public TowerDefenseBuildingProgress Progress { get; }
 
 		/// <summary> 화면이 이 건물을 가리킬 때 쓰는 고유 번호(선택지 뽑기의 씨앗). </summary>
 		public int BuildingId { get; set; }
@@ -53,11 +53,14 @@ namespace WitchMendokusai
 		/// <summary> 무슨 종류로 세웠나(포탑 칸 번호) — 안 적으면 이어할 때 전부 기본형이 된다. </summary>
 		public int Variant { get; set; }
 
-		public TowerDefenseDollLabel(Transform anchor, string name, Color tint)
+		/// <param name="levelBaseCost">2레벨에 필요한 경험치 — 스테이지가 정한다.</param>
+		/// <param name="levelGrowth">레벨마다 필요량이 곱해지는 비율 — 스테이지가 정한다.</param>
+		public TowerDefenseDollLabel(Transform anchor, string name, Color tint, int levelBaseCost, float levelGrowth)
 		{
 			Anchor = anchor;
 			Name = name;
 			Tint = tint;
+			Progress = new TowerDefenseBuildingProgress(levelBaseCost, levelGrowth);
 		}
 
 		/// <summary> 화면에 그대로 찍히는 글자 — 1단계면 단계를 안 붙인다(모두에게 「Lv.1」은 잡음이다). </summary>

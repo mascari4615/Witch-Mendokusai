@@ -72,7 +72,9 @@ namespace WitchMendokusai
 		//   새 선택지 체계를 하나 더 만들지 않고 *이미 있는 드래프트 카드*를 코어 레벨업에 붙였다 —
 		//   웨이브가 부르던 카드를 코어 성장이 부르게 바꾼 것뿐이다. 체계가 둘로 갈리면 같은 선택이
 		//   두 곳에서 다른 규칙으로 살게 된다.
-		private readonly TowerDefenseBuildingProgress coreProgress = new(baseCost: 24, growth: 1.5f);
+		//   성장 곡선은 스테이지가 정한다(Begin 에서 세운다) — 코드에 박아 두면 스테이지에서 아무리
+		//   만져도 코어만 옛 속도로 자란다.
+		private TowerDefenseBuildingProgress coreProgress;
 
 		// 영웅 인형 — 유일하게 *움직이는* 내 편. 포탑과 같은 전투 표를 쓰되 자리를 내가 옮긴다.
 		private Transform heroTransform;
@@ -252,6 +254,9 @@ namespace WitchMendokusai
 				Debug.LogError($"{nameof(TowerDefenseMatch)}: stage.CoreUnit/Prefab 미할당 — 코어 없이 시작 불가.");
 				return;
 			}
+
+			// 코어의 성장 곡선을 스테이지에서 받아 세운다 — 판마다 다시 세우므로 지난 판의 레벨이 새 판으로 새지 않는다.
+			coreProgress = new TowerDefenseBuildingProgress(stage.CoreLevelBaseCost, stage.CoreLevelGrowth);
 
 			started = true;
 			StartCoroutine(BeginRoutine());
@@ -1707,7 +1712,8 @@ namespace WitchMendokusai
 
 			int ordinal = nextDollOrdinal++;
 			string name = TowerDefenseNames.For(MapSeed, ordinal);
-			TowerDefenseDollLabel doll = new(anchor, name, tint)
+			TowerDefenseDollLabel doll = new(anchor, name, tint,
+				stage.BuildingLevelBaseCost, stage.BuildingLevelGrowth)
 			{
 				BuildingId = MapSeed + ordinal * 7919,
 				IsHarvester = isHarvester,

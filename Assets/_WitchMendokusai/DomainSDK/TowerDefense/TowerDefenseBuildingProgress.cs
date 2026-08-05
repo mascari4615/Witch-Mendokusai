@@ -42,7 +42,12 @@ namespace WitchMendokusai
 
 		/// <param name="baseCost">2레벨에 필요한 경험치.</param>
 		/// <param name="growth">레벨마다 필요량이 곱해지는 비율(1.6 = 60%씩 비싸짐).</param>
-		public TowerDefenseBuildingProgress(int baseCost = 10, float growth = 1.6f)
+		/// <remarks>
+		/// ★ 기본값을 두지 않는다. 규칙층이 밸런스 숫자를 스스로 지어내면 그 숫자가 스테이지 설정과
+		///   *다른 집*에 하나 더 생겨서, 스테이지에서 곡선을 바꿔도 어딘가는 옛 숫자로 계속 돈다.
+		///   부르는 쪽이 반드시 말하게 한다.
+		/// </remarks>
+		public TowerDefenseBuildingProgress(int baseCost, float growth)
 		{
 			this.baseCost = Mathf.Max(1, baseCost);
 			this.growth = Mathf.Max(1f, growth);
