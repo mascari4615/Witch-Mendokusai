@@ -2837,6 +2837,11 @@ namespace WitchMendokusai
 		{
 			if (core == null)
 				return false;
+			// ★ 「연구값 할인」 카드를 여기 태운다. 그 카드는 옛 연구(단추 한 번에 한 단계)의 값에만
+			//   걸려 있었는데, 연구가 성좌로 옮겨오면서 **걸릴 곳이 없어져 아무 효과도 없는 카드**가 됐다.
+			//   화면엔 「연구값↓」이라 적히는데 실제로는 한 푼도 안 깎이는 상태였다 — 카드가 거짓말한다.
+			cost = Mathf.Max(0, Mathf.RoundToInt(cost * boons.ResearchCostMultiplier));
+
 			if (cost > 0 && core.TrySpendEssence(cost) == false)
 			{
 				Debug.Log($"{nameof(TowerDefenseMatch)}: 연구 거절 — 정수 부족(필요 {cost}).");
