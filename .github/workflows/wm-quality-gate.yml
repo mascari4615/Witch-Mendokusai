@@ -83,6 +83,12 @@ jobs:
       cancel-in-progress: ${{ github.event_name == 'push' }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          # ★ clean 을 켜면 (기본값) 체크아웃이 추적 안 되는 파일을 지운다 = **Library 삭제**.
+          #   이 러너는 빌드와 작업 폴더를 공유하므로, 여기서 캐시를 날리면 빌드가 매번
+          #   전체 임포트로 돌아가고(10~40분) 실제로 임포트 도중 크래시까지 났다(실측:
+          #   같은 크래시 2회 연속, Library 사실상 0GB). 유니티 캐시는 지우면 안 되는 자산이다.
+          clean: false
 
       - name: Resolve Unity editor
         id: unity
