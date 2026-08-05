@@ -22,7 +22,7 @@ namespace WitchMendokusai
 		Hold = 0,         // 제자리 대기
 		UseSkill = 1,     // SkillSlot 스킬 시전 (타겟 = 룰의 TargetQuery)
 		MoveToTarget = 2, // 선정된 타겟에게 이동
-		Approach = 3,     // v1 = MoveToTarget 과 동일(사거리-정지 미구현 — 후속 stopAtRange 자리)
+		Approach = 3,     // 타겟에게 붙되 정지 거리에서 멈춤(MoveToTarget = 끝까지 파고듦)
 		Retreat = 4,      // 타겟 반대 방향으로 후퇴
 	}
 
@@ -39,7 +39,10 @@ namespace WitchMendokusai
 		EnemyObjective = 3,
 	}
 
-	/// <summary> 타겟 우선순위(후보 정렬 키). 동률은 InstanceId 타이브레이크로 결정성 보장. </summary>
+	/// <summary>
+	/// 타겟 우선순위(후보 정렬 키). 동률은 <b>CombatantId</b> 타이브레이크로 결정성 보장 —
+	/// InstanceId 가 아니다(그건 실행마다 바뀌어 리플레이가 깨진다. 매치 셋업이 스폰 시 0..N 을 준다).
+	/// </summary>
 	public enum TargetPriority
 	{
 		Nearest = 0,
