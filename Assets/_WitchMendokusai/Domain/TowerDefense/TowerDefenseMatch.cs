@@ -956,9 +956,7 @@ namespace WitchMendokusai
 				if (core == null)
 					yield break;
 
-				// 둥지는 걷지 않는다 — 브레인·이동을 끄고 자리에 못 박는다.
-				foreach (UnitBrain brain in nestUnit.GetComponents<UnitBrain>())
-					brain.enabled = false;
+				// 둥지는 걷지 않는다 — 이동을 끄고 자리에 못 박는다(브레인은 세우는 문이 이미 껐다).
 				UnityEngine.AI.NavMeshAgent nestAgent = nestObject.GetComponent<UnityEngine.AI.NavMeshAgent>();
 				if (nestAgent != null)
 					nestAgent.enabled = false;
@@ -1108,16 +1106,15 @@ namespace WitchMendokusai
 				yield break;
 			}
 
-			unitObject.Init(unitData);
-			unitObject.SkillHandler.AutoCastEnabled = false; // 트랩#1 — 안 끄면 그 인형만 혼자 스킬을 쏜다.
-
-			MatchCombatant combatant = unitGameObject.GetComponent<MatchCombatant>();
-			if (combatant == null)
-				combatant = unitGameObject.AddComponent<MatchCombatant>();
-			combatant.SetTeam(team, nextCombatantId++);
+			// Init → 트랩#1(자동시전 차단) → MatchCombatant 부여 = 투기장과 공유하는 편입 절차.
+			MatchCombatant combatant = CombatUnitSpawner.Enlist(unitObject, unitData, team, nextCombatantId++);
 
 			ApplyReadability(unitObject, tint, scale);
 			unitGameObject.SetActive(true);
+
+			// 트랩#2 — 다섯 경로(코어·마수·둥지·수비대·영웅)가 예외 없이 하던 것이라 관문 안으로 들였다.
+			// 활성화 *뒤*라야 OnEnable 로 뜬 코루틴이 OnDisable 로 멈춘다.
+			CombatUnitSpawner.SilenceBrains(unitGameObject);
 
 			targeting.Register(combatant);
 			registeredCombatants.Add(combatant);
@@ -1148,11 +1145,7 @@ namespace WitchMendokusai
 			UnitObject coreUnitObject = spawned.UnitObject;
 			MatchCombatant combatant = spawned.Combatant;
 
-			// 여기부터는 *코어만의 것*이다.
-			// 트랩#2: 프리팹 내장 FSM 이 TacticDriver(방어유닛)와 채널 경쟁하지 않도록 일괄 비활성.
-			foreach (UnitBrain brain in coreUnitObject.GetComponents<UnitBrain>())
-				brain.enabled = false;
-
+			// 여기부터는 *코어만의 것*이다. (트랩#2 브레인 비활성은 세우는 문이 이미 했다.)
 			targeting.RegisterObjective(combatant); // 적이 전진할 목표물 — 일반 등록과 직교, 둘 다 필요.
 
 			coreCombatant = combatant;
@@ -1307,8 +1300,6 @@ namespace WitchMendokusai
 				ApplyPressure(enemyUnitObject); // 오래 버틸수록 단단해진다 — 실시간의 난이도는 시간이 올린다.
 				ApplyWaveEventStats(enemyUnitObject, waveEvent);
 
-				foreach (UnitBrain brain in enemyUnitObject.GetComponents<UnitBrain>()) // 트랩#2.
-					brain.enabled = false;
 
 				TacticDriver enemyDriver = enemyUnitObject.GetComponent<TacticDriver>();
 				if (enemyDriver == null)
@@ -1613,8 +1604,6 @@ namespace WitchMendokusai
 					Mathf.Max(1, Mathf.RoundToInt(stage.HeroMoveSpeed * InputContributor.STAT_PER_UNIT_PER_SECOND));
 			}
 
-			foreach (UnitBrain brain in heroUnitObject.GetComponents<UnitBrain>())
-				brain.enabled = false;
 
 			if (stage.HeroArchetype != null)
 			{
@@ -3983,8 +3972,6 @@ namespace WitchMendokusai
 			UnitObject unitObject = spawned.UnitObject;
 			MatchCombatant combatant = spawned.Combatant;
 
-			foreach (UnitBrain brain in unitObject.GetComponents<UnitBrain>()) // 트랩#2.
-				brain.enabled = false;
 
 			if (tactic != null)
 			{
