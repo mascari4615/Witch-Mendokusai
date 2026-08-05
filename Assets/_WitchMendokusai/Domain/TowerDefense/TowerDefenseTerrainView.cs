@@ -40,8 +40,7 @@ namespace WitchMendokusai
 			ground.name = "Ground";
 			ground.transform.SetParent(stageRoot, false);
 			ground.transform.localPosition = Vector3.zero;
-			// Plane = 10x10 유닛 @ scale 1 → GroundWidth/GroundLength 에 맞춰 스케일.
-			ground.transform.localScale = new Vector3(groundWidth / 10f, 1f, groundLength / 10f);
+			ground.transform.localScale = GroundPlane.ScaleFor(groundWidth, groundLength);
 
 			ApplyGroundCheckerboard(ground, groundWidth, groundLength);
 			BuildObstacles();

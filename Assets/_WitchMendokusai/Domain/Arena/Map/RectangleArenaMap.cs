@@ -62,8 +62,7 @@ namespace WitchMendokusai
 			ground.name = "Ground";
 			ground.transform.SetParent(root, false);
 			ground.transform.localPosition = Vector3.zero;
-			// Plane = 10x10 유닛 @ scale 1 → Width/Length 에 맞춰 스케일.
-			ground.transform.localScale = new Vector3(Width / 10f, 1f, Length / 10f);
+			ground.transform.localScale = GroundPlane.ScaleFor(Width, Length);
 
 			GameObject walls = new GameObject("Walls");
 			walls.transform.SetParent(root, false);
