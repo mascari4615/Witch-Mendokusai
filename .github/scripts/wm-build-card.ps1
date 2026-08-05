@@ -291,8 +291,11 @@ function Get-InstallLink {
     if (-not $artifact) { return $null }
     try {
         # 지금은 경로가 ASCII 뿐이지만 같은 창구를 쓴다 — 예외를 두면 언젠가 그 예외로 샌다.
+        # 기한은 일부러 안 보낸다 — 링크 수명은 정책이고, 정책은 게이트웨이 한 곳에서만
+        # 정한다(`LAPTOP_OPS_DL_DEFAULT_DAYS`). 여기서 숫자를 박으면 정책을 바꿔도
+        # 이 줄만 옛날 값으로 남아 조용히 어긋난다.
         $signed = Invoke-LaptopOpsJson -Path '/dl/sign' -Token $Token `
-            -Payload @{ build = (Split-Path $OutDir -Leaf); file = $artifact.Name; days = 1 }
+            -Payload @{ build = (Split-Path $OutDir -Leaf); file = $artifact.Name }
         return $signed.url
     } catch {
         Write-Warning "install link sign failed: $($_.Exception.Message)"
