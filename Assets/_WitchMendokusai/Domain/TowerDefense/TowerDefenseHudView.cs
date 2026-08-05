@@ -1392,7 +1392,8 @@ namespace WitchMendokusai
 			wrapper.style.alignItems = Align.Center;
 			wrapper.pickingMode = PickingMode.Ignore;
 
-			label = new Label("고르기 — 건물을 클릭하면 그 건물을 본다");
+			// 첫 프레임에만 보이는 기본 문구 — 어느 장치로 잡든 맞는 말로 둔다(「클릭」은 손가락엔 거짓).
+			label = new Label("고르기 — 건물을 고르면 그 건물을 본다");
 			label.style.fontSize = 15;
 			label.style.color = new Color(0.62f, 0.68f, 0.78f, 1f);
 			label.style.backgroundColor = new Color(0.04f, 0.05f, 0.08f, 0.72f);
@@ -1443,10 +1444,13 @@ namespace WitchMendokusai
 						icon: UnitSprite(stage.HarvesterUnit),
 						tooltip: SlotTip("발전 인형", "범위 안 건물에 전기를 댄다. 전기를 못 받는 건물은 서 있기만 한다.\n코어도 처음부터 얼마간 대준다."));
 				case TowerDefensePlaceableKind.Hero:
-					// 영웅 칸만 성격이 다르다 — 짓는 게 아니라 *보내는* 칸이라 값이 0 이다.
+					// ★ 지금 이 칸은 목록에 안 나온다 — 영웅은 칸에서 뺐고(사용자 지시) 빈 땅을 눌러 보낸다.
+					//   그런데 설명은 「고르고 땅을 찍으면」이라는 *없어진 조작*을 그대로 말하고 있었다.
+					//   가지를 지우지는 않는다(칸이 돌아오면 기본 가지로 떨어져 포탑처럼 그려진다) —
+					//   대신 지금 규칙과 같은 말을 하게 둔다.
 					return new ModeSelectionBar.Entry("영웅 부르기", 0, stage.HeroTint,
 						icon: UnitSprite(stage.HeroUnit),
-						tooltip: SlotTip("영웅 부르기", "고르고 땅을 찍으면 영웅이 그리로 걸어간다. 짓는 게 아니라 보내는 칸이다. WASD 는 시점 이동이라 이것과 무관하다."));
+						tooltip: SlotTip("영웅 부르기", "짓는 게 아니라 보내는 칸이다. 지금은 이 칸 없이도 빈 땅을 누르면 영웅이 그리로 걸어간다."));
 				default:
 					TowerDefenseTowerArchetype tower = stage.TowerArchetypes != null && slot.TowerIndex < stage.TowerArchetypes.Length
 						? stage.TowerArchetypes[slot.TowerIndex]

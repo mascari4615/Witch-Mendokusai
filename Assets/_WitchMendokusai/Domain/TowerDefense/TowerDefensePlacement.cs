@@ -217,6 +217,9 @@ namespace WitchMendokusai
 		public void Deactivate()
 		{
 			isActive = false;
+			// 「여기 지을까?」 하고 기다리던 자리는 판을 나가면 뜻을 잃는다 — 남겨 두면 다음 판에서
+			// 그 근처를 한 번 톡 하는 순간 확인 없이 지어진다(옛 대답으로 새 질문에 답하는 꼴).
+			hasPendingTouchTarget = false;
 			if (ghostBuilding != null)
 				ghostBuilding.SetActive(false);
 			if (previewMarker != null)

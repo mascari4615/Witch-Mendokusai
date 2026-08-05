@@ -56,11 +56,15 @@ namespace WitchMendokusai
 						// 계속 설치돼 드래그로 죽 깔린다(월드 건설은 그게 맞지만 비용이 붙는 개척 배치엔 사고).
 						// Performed = 누르는 동작당 1회 → "한 클릭에 한 개".
 						// 좌클릭 = 핫바에서 고른 것 설치(클릭 1회 = 1개).
+						// ★ 손가락일 땐 이 길이 닫힌다 (TASK-WM-200). 손가락은 「톡 두 번」으로 짓는데
+						//   마우스 길이 살아 있으면 *한 번 누른 순간* 지어져 버려서, 컴퓨터에서 폰 조작을
+						//   켜고 확인할 때 실제 폰과 다르게 동작한다 — 확인 도구가 거짓말을 하면
+						//   그 뒤로 무엇을 확인해도 못 믿는다. 진짜 폰엔 마우스가 없어 어차피 안 온다.
 						new(
 							InputEventType.Click0,
 							InputEventResponseType.Performed,
 							() => HandlePlaceClick(),
-							() => CanExecute(InputEventType.Click0)
+							() => CanExecute(InputEventType.Click0) && inputManager.IsTouchMode == false
 						),
 						#endregion
 
@@ -68,7 +72,7 @@ namespace WitchMendokusai
 							InputEventType.Click1,
 							InputEventResponseType.Performed,
 							() => placement.SellAt(inputManager.MouseScreenPosition),
-							() => CanExecute(InputEventType.Click1)
+							() => CanExecute(InputEventType.Click1) && inputManager.IsTouchMode == false
 						),
 						// 시간 조작 — 이미 있는 입력 슬롯 재사용(새 입력 추가는 3곳 동시 수정이라 값이 더 크다).
 						new(
