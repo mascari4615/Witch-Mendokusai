@@ -143,7 +143,9 @@ namespace WitchMendokusai
 
 				UGCSeedManifestData manifest = new UGCSeedManifestData
 				{
-					schemaVersion = 1,
+					// 우리가 쓰는 저장 스키마 = 검증기가 아는 그 버전. 리터럴로 박으면 스키마를 올릴 때
+					// 여기만 옛 버전으로 남아 우리가 쓴 파일을 우리 검증기가 거부한다.
+					schemaVersion = UGCJsonValidator.CURRENT_SCHEMA_VERSION,
 					seedId = seedId,
 					version = 1,
 					author = author ?? "unknown",

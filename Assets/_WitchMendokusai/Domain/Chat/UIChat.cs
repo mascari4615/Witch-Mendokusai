@@ -22,6 +22,14 @@ namespace WitchMendokusai
 		[SerializeField] private CanvasGroup chatCanvasGroup;
 		[SerializeField] private CanvasGroup bubbleCanvasGroup;
 
+		[Header("Chat Feel")]
+		// 한 글자씩 찍히는 간격. 대화의 말투·호흡을 정하는 값이라 눈으로 맞춰야 한다.
+		[SerializeField] private float typingCharDelay = 0.05f;
+		// 말풍선이 화면 가장자리에서 유지할 여백.
+		[SerializeField] private float bubbleScreenPadding = 30f;
+		// 말풍선을 대상 머리 위로 얼마나 띄울지.
+		[SerializeField] private float bubbleVerticalOffset = 40f;
+
 		private NPCObject curNPC;
 		private int unitID;
 		private Action endAction;
@@ -123,8 +131,7 @@ namespace WitchMendokusai
 
 		private IEnumerator PrintLine(LineData lineData)
 		{
-			const float waitTime = 0.05f;
-			WaitForSecondsRealtime wait = new(waitTime);
+			WaitForSecondsRealtime wait = new(typingCharDelay);
 			StringBuilder s = new();
 
 			s.Clear();
@@ -140,7 +147,6 @@ namespace WitchMendokusai
 
 		public IEnumerator BubbleLoop()
 		{
-			const float BubblePadding = 30f;
 			RectTransform bubbleRectTransform = bubbleCanvasGroup.GetComponent<RectTransform>();
 			float bubbleWidth = bubbleRectTransform.sizeDelta.x;
 
@@ -160,8 +166,8 @@ namespace WitchMendokusai
 				Vector3 screenPos = Camera.main.WorldToScreenPoint(worldPos);
 
 				return new Vector3(
-					Mathf.Clamp(screenPos.x, bubbleWidth / 2 + BubblePadding, Screen.width - bubbleWidth / 2 - BubblePadding),
-					Mathf.Clamp(screenPos.y + 40, BubblePadding, Screen.height - bubbleHeight - BubblePadding), 0);
+					Mathf.Clamp(screenPos.x, bubbleWidth / 2 + bubbleScreenPadding, Screen.width - bubbleWidth / 2 - bubbleScreenPadding),
+					Mathf.Clamp(screenPos.y + bubbleVerticalOffset, bubbleScreenPadding, Screen.height - bubbleHeight - bubbleScreenPadding), 0);
 			}
 		}
 	}

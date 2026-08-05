@@ -24,7 +24,9 @@ namespace WitchMendokusai
 
 	public class UIFloatingText : MonoBehaviour
 	{
-		private const int CREATE_THRESHOLD = 10;
+		// 풀을 한 번에 몇 개씩 늘릴지. 최초 채울 때와 바닥났을 때 둘 다 같은 값 —
+		// 같은 의미의 수치를 두 곳에 박지 않는다. 0 이면 Pop 이 빈 스택을 건드리므로 [Min(1)].
+		[SerializeField, Min(1)] private int poolChunkSize = 10;
 
 		[SerializeField] private Transform textsRoot;
 		[SerializeField] private GameObject textPrefab;
@@ -40,7 +42,7 @@ namespace WitchMendokusai
 
 		private void Awake()
 		{
-			for (int i = 0; i < CREATE_THRESHOLD; i++)
+			for (int i = 0; i < poolChunkSize; i++)
 				CreateTextObject();
 		}
 
@@ -68,7 +70,7 @@ namespace WitchMendokusai
 		{
 			if (texts.Count == 0)
 			{
-				for (int i = 0; i < CREATE_THRESHOLD; i++)
+				for (int i = 0; i < poolChunkSize; i++)
 					CreateTextObject();
 			}
 

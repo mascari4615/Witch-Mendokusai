@@ -24,8 +24,19 @@ namespace WitchMendokusai
 		private GameObject modelMount;
 		private GameObject currentModel;
 		private RenderTexture renderTexture;
-		private float autoRotateSpeed = 30f;
 		private bool isDragging;
+
+		[Header("Preview Camera")]
+		[SerializeField] private Vector3 cameraLocalPosition = new(0f, 1.2f, -2.5f);
+		// 카메라가 바라보는 지점의 높이 — 모델 발밑이 아니라 몸통을 보게 하는 값.
+		[SerializeField] private float cameraLookHeight = 0.5f;
+		[SerializeField] private float cameraFieldOfView = 35f;
+		[SerializeField] private Color previewBackgroundColor = new(0.12f, 0.13f, 0.16f, 1f);
+
+		[Header("Rotation")]
+		[SerializeField] private float autoRotateSpeed = 30f;
+		// 마우스 1픽셀 끌 때 도는 각도.
+		[SerializeField] private float dragYawSensitivity = 0.5f;
 
 		public RenderTexture RenderTexture => renderTexture;
 
@@ -49,15 +60,15 @@ namespace WitchMendokusai
 
 			GameObject cameraObject = new("CodexPreviewCamera");
 			cameraObject.transform.SetParent(transform);
-			cameraObject.transform.localPosition = new Vector3(0f, 1.2f, -2.5f);
-			cameraObject.transform.LookAt(transform.position + Vector3.up * 0.5f);
+			cameraObject.transform.localPosition = cameraLocalPosition;
+			cameraObject.transform.LookAt(transform.position + Vector3.up * cameraLookHeight);
 
 			previewCamera = cameraObject.AddComponent<Camera>();
 			previewCamera.targetTexture = renderTexture;
 			previewCamera.clearFlags = CameraClearFlags.SolidColor;
-			previewCamera.backgroundColor = new Color(0.12f, 0.13f, 0.16f, 1f);
+			previewCamera.backgroundColor = previewBackgroundColor;
 			previewCamera.cullingMask = 1 << CAMERA_LAYER;
-			previewCamera.fieldOfView = 35f;
+			previewCamera.fieldOfView = cameraFieldOfView;
 
 			// URP — 메인 PP/Volume 영향 격리. 도감 미리보기는 깨끗한 렌더만.
 			UniversalAdditionalCameraData cameraData = previewCamera.GetUniversalAdditionalCameraData();
@@ -166,7 +177,7 @@ namespace WitchMendokusai
 		{
 			if (modelMount == null)
 				return;
-			modelMount.transform.Rotate(Vector3.up, -deltaPixelX * 0.5f, Space.World);
+			modelMount.transform.Rotate(Vector3.up, -deltaPixelX * dragYawSensitivity, Space.World);
 		}
 
 		private static void SetLayerRecursive(GameObject root, int layer)
