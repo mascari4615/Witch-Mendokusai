@@ -2753,7 +2753,38 @@ namespace WitchMendokusai
 		// 연구(판 안 건물)와 드래프트(웨이브 사이 선택)는 서로 다른 층이라 곱해진다 — 둘 다 쌓은 판이
 		// 눈에 띄게 세지는 것이 「이 판은 화력으로 갔다」의 실체다.
 		public float TowerDamageMultiplier =>
-			(1f + LabCount * (stage != null ? stage.LabDamageBonus : 0f)) * boons.DamageMultiplier;
+			(1f + LabCount * (stage != null ? stage.LabDamageBonus : 0f)) * boons.DamageMultiplier
+			* (1f + ResearchBonus(TowerDefenseResearchEffect.TowerDamage));
+
+		// 연구 성좌에서 찍어 모은 것 — 효과 종류별 누적 비율. 화면(성좌)이 고르고, 값은 여기 쌓인다.
+		private readonly Dictionary<TowerDefenseResearchEffect, float> researchBonus = new();
+
+		/// <summary> 그 종류로 지금까지 얼마나 세졌나(0.2 = +20%). </summary>
+		public float ResearchBonus(TowerDefenseResearchEffect effect)
+		{
+			return researchBonus.TryGetValue(effect, out float amount) ? amount : 0f;
+		}
+
+		/// <summary>
+		/// 성좌에서 마디 하나를 찍는다 — 값을 치르고 효과를 쌓는다.
+		/// 값이 모자라면 아무 일도 안 일어난다(화면이 찍힌 척하면 안 되므로 false 를 돌려준다).
+		/// </summary>
+		public bool TryTakeResearchNode(TowerDefenseResearchEffect effect, float amount, int cost)
+		{
+			if (core == null)
+				return false;
+			if (cost > 0 && core.TrySpendEssence(cost) == false)
+			{
+				Debug.Log($"{nameof(TowerDefenseMatch)}: 연구 거절 — 정수 부족(필요 {cost}).");
+				return false;
+			}
+
+			researchBonus.TryGetValue(effect, out float current);
+			researchBonus[effect] = current + amount;
+			Debug.Log($"{nameof(TowerDefenseMatch)}: 연구 {TowerDefenseResearchGraph.NameOf(effect)} "
+				+ $"+{amount:P0} → 누적 {researchBonus[effect]:P0}");
+			return true;
+		}
 
 		/// <summary>
 		/// 지금까지 내가 쓴 수단의 누적 — 세워둔 포탑들이 각자 센 것을 모은다.

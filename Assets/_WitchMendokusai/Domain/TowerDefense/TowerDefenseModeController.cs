@@ -241,7 +241,14 @@ namespace WitchMendokusai
 		/// <summary> 성좌에서 마디를 찍었다 — 값·효과는 규칙층이 정한다(화면은 고르기만 한다). </summary>
 		private void OnResearchNodeChosen(int nodeId)
 		{
-			Debug.Log($"{nameof(TowerDefenseModeController)}: 연구 마디 {nodeId} 선택.");
+			if (match == null || researchView == null)
+				return;
+			if (researchView.TryGetNode(nodeId, out TowerDefenseResearchGraph.Node node) == false)
+				return;
+
+			// 값을 못 치르면 화면에서도 도로 지운다 — 「찍힌 척」이 남으면 다음 마디가 잘못 열린다.
+			if (match.TryTakeResearchNode(node.Effect, node.Amount, node.Cost) == false)
+				researchView.Undo(nodeId);
 		}
 
 		/// <summary> 시점을 그 자리로 — 지도에서 온 요청. 확대·회전은 그대로 둔다. </summary>

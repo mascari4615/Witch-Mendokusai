@@ -284,6 +284,19 @@ namespace WitchMendokusai
 			});
 		}
 
+		/// <summary> 마디 조회 — 바깥이 값·효과를 읽는다. </summary>
+		public bool TryGetNode(int id, out TowerDefenseResearchGraph.Node node) => TryFind(id, out node);
+
+		/// <summary> 값을 못 치렀다 — 찍은 것을 도로 지운다. </summary>
+		public void Undo(int id)
+		{
+			if (taken.Remove(id) == false)
+				return;
+			detailLabel.text = "정수가 모자라다.";
+			RefreshNodes();
+			canvas.MarkDirtyRepaint();
+		}
+
 		public void SetOpen(bool open)
 		{
 			if (root == null)
