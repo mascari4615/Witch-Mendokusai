@@ -10,10 +10,12 @@ namespace WitchMendokusai
 	public class InputContributor : IVelocityContributor
 	{
 		private readonly UnitObject unitObject;
+		private readonly float sprintSpeedMultiplier;
 
-		public InputContributor(UnitObject unitObject)
+		public InputContributor(UnitObject unitObject, float sprintSpeedMultiplier)
 		{
 			this.unitObject = unitObject;
+			this.sprintSpeedMultiplier = sprintSpeedMultiplier;
 		}
 
 		public void Contribute(MotorContext context, float deltaTime)
@@ -48,7 +50,7 @@ namespace WitchMendokusai
 		{
 			float moveSpeed = unitObject.UnitStat[UnitStatType.MOVEMENT_SPEED] / STAT_PER_UNIT_PER_SECOND;
 			if (unitObject.UnitStat[UnitStatType.IS_SPRINTING] > 0)
-				moveSpeed *= 2f; // TODO: 스프린트 속도 하드코딩 — 2026-03-28. KarmoDDrine
+				moveSpeed *= sprintSpeedMultiplier;
 
 			return moveSpeed;
 		}
