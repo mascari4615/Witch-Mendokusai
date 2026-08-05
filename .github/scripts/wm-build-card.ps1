@@ -56,8 +56,25 @@ function Get-LaptopOpsToken {
     return $null
 }
 
+# 취소된 빌드의 카드를 치운다.
+#
+# 왜 지우나: 취소는 *사람이 의도한 중단* 이라 기록 가치가 낮은데, 채널 최상단을 차지하면
+# 「빌드가 다 실패했다」로 읽힌다 (실측: 성공 3회 뒤 취소 시험 3회를 돌렸더니 사용자가
+# 「하나도 성공 안 한 것 같다」고 했다). 결과가 없는 사건은 흔적도 남기지 않는 게 맞다.
+# 대신 고정된 「최신 빌드」 카드의 *마지막 시도* 줄에 취소 사실이 남는다.
+function Remove-BuildCard {
+    param([string]$Token, [string]$MessageId)
+    try {
+        Invoke-LaptopOpsJson -Path '/notify' -Token $Token -Payload @{ channel = 'build'; messageId = $MessageId; delete = $true } | Out-Null
+        return $true
+    } catch {
+        Write-Warning "build card delete failed: $($_.Exception.Message)"
+        return $false
+    }
+}
+
 # 카드 게시 → 메시지 id 반환 (이후 갱신의 손잡이). 실패해도 $null 만 돌려준다:
-# 알림이 빌드 성패를 뒤집으면 안 된다.
+# 알림이 빌드 성패를 뒤집지 않는다.
 function New-BuildCard {
     param([string]$Token, [hashtable]$Rich)
     try {
@@ -377,9 +394,16 @@ function Publish-BuildResult {
         footer = "run #$RunNumber · 노트북 빌드머신"
     }
 
-    # 진행 카드가 있으면 *그 자리에서* 결과로 마감한다 — 진행하던 자리에 결과가 남는 게
-    # 자연스럽고, 새 메시지를 또 쌓지 않는다. 못 고치면 그때만 새로 게시한다.
-    if ($CardId) {
+    if ($cancelled) {
+        # 취소는 결과가 없는 사건 — 카드를 남기면 채널 최상단이 「실패한 것들」처럼 보인다.
+        # 흔적을 치우고, 사실은 고정 카드의 「마지막 시도」 줄로만 남긴다.
+        if ($CardId) {
+            $removed = Remove-BuildCard -Token $token -MessageId $CardId
+            Write-Host "card removed ok=$removed id=$CardId (cancelled)"
+        }
+    } elseif ($CardId) {
+        # 진행 카드가 있으면 *그 자리에서* 결과로 마감한다 — 진행하던 자리에 결과가 남는 게
+        # 자연스럽고, 새 메시지를 또 쌓지 않는다. 못 고치면 그때만 새로 게시한다.
         $updated = Set-BuildCard -Token $token -MessageId $CardId -Rich $rich
         Write-Host "card closed ok=$updated id=$CardId link=$([bool]$link)"
         if (-not $updated) { New-BuildCard -Token $token -Rich $rich | Out-Null }
@@ -388,12 +412,11 @@ function Publish-BuildResult {
         Write-Host "card posted id=$posted link=$([bool]$link)"
     }
 
-    # 성공한 빌드만 「최신」 자리를 갱신한다. 실패가 최신을 덮으면 어제 되던 것마저
-    # 못 받게 된다.
-    if ($ok -and $link) {
-        Update-LatestCard -Token $token -BuildRoot $BuildRoot -Platform $Platform -OutDir $OutDir `
-            -Report $Report -Link $link -Commit $Commit -RunUrl $RunUrl
-    }
+    # 고정 카드는 *항상* 갱신한다 — 성공/실패/취소 무관.
+    # 단 받을 링크는 **마지막 성공** 것을 유지한다: 실패가 최신을 덮으면 어제 되던 것마저
+    # 못 받게 된다. 「지금 상태」와 「받을 수 있는 것」은 다른 질문이라 한 카드에서 둘 다 답한다.
+    Update-LatestCard -Token $token -BuildRoot $BuildRoot -Platform $Platform -OutDir $OutDir `
+        -Report $Report -Link $link -Commit $Commit -RunUrl $RunUrl -StatusWord $statusWord -Icon $icon
 }
 
 <#
@@ -485,30 +508,60 @@ function Save-BuiltMarker {
 
 function Update-LatestCard {
     param([string]$Token, [string]$BuildRoot, [string]$Platform, [string]$OutDir,
-        [string]$Report, [string]$Link, [string]$Commit, [string]$RunUrl)
-    if (-not $Link) { return }   # 설치 링크가 없는 산출물은 「최신」으로 걸 이유가 없다
+        [string]$Report, [string]$Link, [string]$Commit, [string]$RunUrl,
+        [string]$StatusWord, [string]$Icon)
 
-    $version = ''
-    $sizeText = ''
-    if ($Report -and (Test-Path $Report)) {
-        $json = Get-Content $Report -Raw | ConvertFrom-Json
-        $version = $json.version
-        $mb = [Math]::Round($json.exeSizeBytes / 1MB, 1)
-        $sizeText = "$mb MB"
+    # 이 카드는 두 질문에 동시에 답한다:
+    #   ① 지금 받을 수 있는 게 뭔가  → **마지막 성공** 빌드 (실패가 덮으면 어제 되던 것도 못 받는다)
+    #   ② 마지막 시도는 어떻게 됐나  → 성공/실패/취소 무관하게 이번 결과
+    # 그래서 성공 정보는 따로 저장해두고, 실패·취소 때는 그 저장본을 다시 쓴다.
+    $successFile = Join-Path $BuildRoot "latest-success-$Platform.json"
+    $success = $null
+
+    if ($Link) {
+        $version = ''
+        $sizeText = ''
+        if ($Report -and (Test-Path $Report)) {
+            $json = Get-Content $Report -Raw | ConvertFrom-Json
+            $version = $json.version
+            $sizeText = "$([Math]::Round($json.exeSizeBytes / 1MB, 1)) MB"
+        }
+        $success = [ordered]@{
+            link = $Link; version = $version; size = $sizeText; commit = $Commit
+            builtAt = (Get-Date).ToString('yyyy-MM-dd HH:mm')
+        }
+        $success | ConvertTo-Json -Compress | Set-Content -Path $successFile -Encoding utf8
+    } elseif (Test-Path $successFile) {
+        try { $success = Get-Content $successFile -Raw | ConvertFrom-Json } catch { $success = $null }
     }
-    $rich = @{
-        lead   = "## [📲 최신 $Platform 빌드 설치]($Link)"
-        title  = "⭐ 최신 $Platform 빌드"
-        body   = '이 카드는 빌드가 끝날 때마다 최신 것으로 갱신된다. 링크는 하루 뒤 만료되니, 만료됐으면 새로 빌드하면 이 자리도 같이 바뀐다.'
-        fields = @(
-            @{ name = '버전'; value = "v$version"; inline = $true },
-            @{ name = '크기'; value = $sizeText; inline = $true },
-            @{ name = '커밋'; value = $Commit; inline = $true },
-            @{ name = '구운 시각'; value = (Get-Date).ToString('yyyy-MM-dd HH:mm') + ' KST'; inline = $false }
-        )
-        level  = 'info'
-        url    = $RunUrl
-        footer = '고정해두면 언제든 여기서 최신 것을 받는다'
+
+    $attempt = "$Icon $StatusWord · $((Get-Date).ToString('MM-dd HH:mm')) KST"
+    if ($success) {
+        $rich = @{
+            lead   = "## [📲 최신 $Platform 빌드 설치]($($success.link))"
+            title  = "⭐ 최신 $Platform 빌드"
+            body   = '받을 수 있는 것은 **마지막으로 성공한 빌드**다. 링크는 하루 뒤 만료되니, 만료됐으면 한 번 더 구우면 이 자리도 같이 바뀐다.'
+            fields = @(
+                @{ name = '버전'; value = "v$($success.version)"; inline = $true },
+                @{ name = '크기'; value = "$($success.size)"; inline = $true },
+                @{ name = '커밋'; value = "$($success.commit)"; inline = $true },
+                @{ name = '구운 시각'; value = "$($success.builtAt) KST"; inline = $true },
+                @{ name = '마지막 시도'; value = $attempt; inline = $true }
+            )
+            level  = 'info'
+            url    = $RunUrl
+            footer = '이 카드 하나만 보면 현재 상태를 안다'
+        }
+    } else {
+        # 아직 성공한 빌드가 없다 — 링크를 지어내지 않고 그 사실을 그대로 말한다.
+        $rich = @{
+            title  = "⭐ 최신 $Platform 빌드"
+            body   = '아직 받을 수 있는 빌드가 없다. 한 번 성공하면 여기에 설치 링크가 생긴다.'
+            fields = @(@{ name = '마지막 시도'; value = $attempt; inline = $false })
+            level  = 'warning'
+            url    = $RunUrl
+            footer = '이 카드 하나만 보면 현재 상태를 안다'
+        }
     }
 
     $stateFile = Join-Path $BuildRoot "latest-card-$Platform.id"
