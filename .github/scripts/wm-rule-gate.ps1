@@ -174,8 +174,52 @@ foreach ($file in $subjects)
     }
 }
 
+# ---------------------------------------------------------------------------
+# ANCHOR -- "must still be there" checks.
+#
+# The rules above catch forbidden lines. These catch the opposite failure:
+# a required wiring line that silently DISAPPEARS. That happened three times in
+# one day (2026-08-06) -- a wide sweeping commit (warning cleanup / format /
+# bulk rename) laid down a stale copy and one call vanished. Compile stays green,
+# tests stay green, and the feature is simply gone until a human plays the game.
+#
+# Keep this list SHORT: only lines that (a) a user explicitly asked for and
+# (b) die silently when removed. A fat list blocks honest refactoring.
+# ---------------------------------------------------------------------------
+$anchors = @(
+    @{ File = 'Domain/UI/UIRoot.cs'
+       Needle = 'AddComponent<MobileControlsView>'
+       Why = 'phone controls are never created -- the screen shows but nothing is touchable' },
+    @{ File = 'Domain/UI/Hub/UIMinigameHubToolkit.cs'
+       Needle = 'NavigationMoveEvent'
+       Why = 'cannot move focus from the list to the start button' },
+    @{ File = 'Domain/TowerDefense/TowerDefensePlacement.cs'
+       Needle = 'aboveFog: true'
+       Why = 'the cursor marker hides under the fog -- cannot build on unexplored ground' },
+    @{ File = 'Domain/TowerDefense/TowerDefenseMatch.cs'
+       Needle = 'heroMovement.SetMoveDirection'
+       Why = 'hero moves by raw transform again -- stutters, walks through walls, pushes monsters' }
+)
+
+$anchorMisses = New-Object System.Collections.ArrayList
+foreach ($anchor in $anchors)
+{
+    $full = Join-Path $Root $anchor.File
+    if (-not (Test-Path $full))
+    {
+        [void]$anchorMisses.Add(("{0} -- file missing (moved? update this gate too)" -f $anchor.File))
+        continue
+    }
+    $text = Get-Content -Raw -LiteralPath $full
+    if ($text -notlike ("*" + $anchor.Needle + "*"))
+    {
+        [void]$anchorMisses.Add(("{0} -- lost '{1}': {2}" -f $anchor.File, $anchor.Needle, $anchor.Why))
+    }
+}
+
 $total = 0
 foreach ($rule in $rules) { $total += $findings[$rule.Id].Count }
+$total += $anchorMisses.Count
 
 if ($commitScoped)
 {
@@ -214,8 +258,19 @@ foreach ($rule in $rules)
 Write-Host ''
 if ($total -eq 0)
 {
+    Write-Host '  PASS  [ANCHOR] required wiring lines are still present'
     Write-Host 'RESULT: PASS -- 0 rule violations.'
     exit 0
+}
+
+if ($anchorMisses.Count -eq 0)
+{
+    Write-Host '  PASS  [ANCHOR] required wiring lines are still present'
+}
+else
+{
+    Write-Host ("  FAIL  [ANCHOR] required wiring line(s) disappeared -- {0} hit(s); fix: put the line back (do not delete it)" -f $anchorMisses.Count)
+    foreach ($miss in $anchorMisses) { Write-Host ("          " + $miss) }
 }
 
 Write-Host ("RESULT: FAIL -- {0} rule violation(s). Rule text: WitchMendokusai/CLAUDE.md" -f $total)
