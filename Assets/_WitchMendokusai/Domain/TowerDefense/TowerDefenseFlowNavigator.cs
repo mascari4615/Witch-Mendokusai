@@ -100,7 +100,7 @@ namespace WitchMendokusai
 				{
 					// 개체 고유값 — 같은 자리에서 출발한 둘은 같게, 다른 자리는 다르게. 0.5~1.5배로 흩어진다.
 					float lane = Mathf.Abs(Mathf.Sin(from.x * 12.9898f + from.z * 78.233f) * 43758.5453f) % 1f;
-					float blend = Mathf.Clamp01(directBlend * (0.5f + lane));
+					float blend = Mathf.Clamp01(directBlend * (0.35f + lane * 1.3f));
 					worldDirection = Vector3.Lerp(worldDirection.normalized, straight.normalized, blend);
 					worldDirection.y = 0f;
 				}

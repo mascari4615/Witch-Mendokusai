@@ -443,13 +443,13 @@ namespace WitchMendokusai
 		//   덩어리로 밀려오는 압박이 안 생긴다. 이제 *무리* 단위로 나온다: 무리 안은 거의 동시,
 		//   무리와 무리 사이는 길게. 「한 번에 여럿」과 「천천히」를 동시에 만족하는 유일한 모양이다.
 		[field: Tooltip("한 무리에 몇 마리가 함께 나오나. 1이면 예전처럼 한 마리씩.")]
-		[field: SerializeField, Min(1)] public int EnemyGroupSize { get; private set; } = 5;
+		[field: SerializeField, Min(1)] public int EnemyGroupSize { get; private set; } = 12;
 
 		[field: Tooltip("무리 *안에서* 한 마리씩 나오는 간격(초). 눈에 안 띌 만큼 짧게 — 0으로 두면 서로의 몸에 끼어 그 자리서 못 나온다(실측).")]
 		[field: SerializeField, Min(0.02f)] public float EnemyGroupSpacing { get; private set; } = 0.08f;
 
 		[field: Tooltip("무리와 무리 사이 간격(초). 여기가 「천천히」를 만든다 — 길수록 한 덩어리가 도착하고 나서 다음이 온다.")]
-		[field: SerializeField, Min(0f)] public float EnemySpawnInterval { get; private set; } = 2.4f;
+		[field: SerializeField, Min(0f)] public float EnemySpawnInterval { get; private set; } = 1.1f;
 
 		[field: Tooltip("같은 출현 지점에 여러 마수가 나올 때 서로 벌리는 간격 — 0이면 정확히 겹쳐 스폰돼 물리가 서로를 튕겨낸다(맵 밖으로 날아감).")]
 		[field: SerializeField, Min(0f)] public float EnemySpawnSpread { get; private set; } = 1.2f;

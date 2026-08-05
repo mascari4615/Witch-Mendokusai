@@ -24,8 +24,8 @@ MonoBehaviour:
     StartingResource: 160
     BaseWaveIncome: 40
     IncomePerHarvester: 25
-    FirstWaveEnemyCount: 30
-    EnemyCountGrowth: 10
+    FirstWaveEnemyCount: 55
+    EnemyCountGrowth: 16
     BountyPerKill: 6
     StartingLives: 12
     EssencePerHarvester: 3

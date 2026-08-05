@@ -452,7 +452,11 @@ namespace WitchMendokusai
 			}
 
 			previewMarker.SetActive(true);
-			previewMarker.transform.position = snappedWorldPosition + new Vector3(0f, 0.04f, 0f);
+			// ★ 안개판보다 *위에* 올린다 (사용자 실측 4회: 마커가 계속 안개에 가려짐).
+			//   앞선 세 번은 그리는 순서·깊이로만 풀려 했는데 안 됐다 — 안개는 바닥 위 얇게 떠 있는
+			//   판이고, 마커가 그보다 아래 있으면 무슨 수를 써도 아래에 깔린다. 높이로 푸는 게 확실하다.
+			float markerHeight = (stage != null ? stage.FogHeight : 0.06f) + 0.04f;
+			previewMarker.transform.position = snappedWorldPosition + new Vector3(0f, markerHeight, 0f);
 			UpdatePreviewRing(snappedWorldPosition);
 			UpdateGhostBuilding(snappedWorldPosition);
 
@@ -638,8 +642,10 @@ namespace WitchMendokusai
 		}
 
 		/// <summary>
-		/// 우클릭 = 그 칸의 것을 판다. 「짓기=좌클릭 / 팔기=우클릭」은 건설류의 관용이라 배울 게 없다.
-		/// UI 위 클릭은 설치와 마찬가지로 판매도 아니다.
+		/// 우클릭 = **취소**. 짓는 중이면 손에 든 것을 내려놓고, 아니면 영웅을 보낸다.
+		///
+		/// ★ 판매는 뺐다 (사용자 지시: "짓기할때 우클릭을 취소로 만들어주세요. 제거는 우선 기능 빼봐").
+		///   되돌릴 수 없는 일(판매)이 무르는 손짓과 같은 자리에 있으면, 무르려다 건물을 잃는다.
 		/// </summary>
 		public void SellAt(Vector2 screenPointerPosition)
 		{
@@ -648,20 +654,13 @@ namespace WitchMendokusai
 			if (UIPointer.IsOverInteractive(screenPointerPosition))
 				return;
 
-			if (TryGetSnappedGroundPosition(screenPointerPosition, out Vector3 snappedWorldPosition) == false)
-				return;
-
-			// ★ 우클릭의 뜻은 *지금 무슨 모드인가*가 정한다(사용자 지시: "빌딩 모드일때 판매할 수
-			//   있게 하면 되잖아요"). 설치 대기 중이면 판다 — 짓다가 무르는 손이라 자연스럽다.
-			//   평소(고르기)엔 영웅을 보낸다 — 그게 RTS 의 우클릭이다.
-			if (IsArmed == false)
+			if (IsArmed)
 			{
-				CommandHeroAt(screenPointerPosition);
+				Disarm();
 				return;
 			}
 
-			if (match.TrySell(snappedWorldPosition, stage.SellRefundRatio) == false)
-				Debug.Log($"{nameof(TowerDefensePlacement)}: 판매 거절 — 빈 칸이거나 코어.");
+			CommandHeroAt(screenPointerPosition);
 		}
 
 		/// <summary>
