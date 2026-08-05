@@ -120,6 +120,67 @@ namespace WitchMendokusai
 			return true;
 		}
 
+		/// <summary>
+		/// 같은 값의 「제일 가까운 이웃」이 여럿일 때 그중 하나를 <paramref name="pick"/>(0~1)로 고른다.
+		///
+		/// ★ 왜 필요한가 (사용자 실측: "여전히 거의 한 줄. 길찾기 알고리즘 좀 씁시다"):
+		///   격자에서는 최단 경로가 *여러 개*인 것이 보통이다. 그런데 미리 계산해 둔 다음 칸은 그중
+		///   딱 하나만 기억하므로, 사방에서 출발해도 전부 같은 칸들을 밟아 한 줄이 된다.
+		///   길찾기가 틀린 게 아니라 **여러 최단 경로 중 하나만 쓰고 있던 것**이다.
+		///   개체마다 다른 값을 주면 같은 최단 거리를 유지한 채 서로 다른 길로 흩어진다 —
+		///   길이 짧아지지도 않고, 벽도 그대로 돈다. 넓은 면으로 밀려오는 그림이 여기서 나온다.
+		/// </summary>
+		public bool TryGetNextCell(Vector2Int cell, float pick, out Vector2Int next)
+		{
+			next = GoalCell;
+			if (IsReachable(cell) == false)
+				return false;
+
+			int here = distance[ToIndex(cell)];
+			int best = int.MaxValue;
+			int count = 0;
+			for (int i = 0; i < Neighbors.Length; i++)
+			{
+				Vector2Int neighbor = cell + Neighbors[i];
+				if (IsInside(neighbor) == false)
+					continue;
+				int value = distance[ToIndex(neighbor)];
+				if (value < 0 || value >= here)
+					continue; // 목표에서 멀어지는 칸은 후보가 아니다.
+				if (value < best)
+				{
+					best = value;
+					count = 1;
+				}
+				else if (value == best)
+				{
+					count++;
+				}
+			}
+
+			if (count == 0)
+				return TryGetNextCell(cell, out next);
+
+			int wanted = Mathf.Clamp(Mathf.FloorToInt(Mathf.Clamp01(pick) * count), 0, count - 1);
+			int seen = 0;
+			for (int i = 0; i < Neighbors.Length; i++)
+			{
+				Vector2Int neighbor = cell + Neighbors[i];
+				if (IsInside(neighbor) == false)
+					continue;
+				if (distance[ToIndex(neighbor)] != best)
+					continue;
+				if (seen == wanted)
+				{
+					next = neighbor;
+					return true;
+				}
+				seen++;
+			}
+
+			return TryGetNextCell(cell, out next);
+		}
+
 		private bool IsInside(Vector2Int cell)
 		{
 			return cell.x >= 0 && cell.x < width && cell.y >= 0 && cell.y < length;

@@ -25,22 +25,15 @@ namespace WitchMendokusai
 		/// </summary>
 		private readonly float cornerSmoothing;
 
-		/// <summary>
-		/// 안내를 얼마나 안 믿고 코어 쪽으로 곧장 갈 것인가(0 = 예전처럼 한 줄, 1 = 안내 무시).
-		/// 이게 「떼거지로 몰려온다」의 실체다 — 자세한 이유는 TryGetSteering 의 ★★ 주석.
-		/// </summary>
-		private readonly float directBlend;
 
 		public TowerDefenseFlowNavigator(
 			TowerDefenseMapLayout layout,
 			TowerDefenseFlowField flowField,
 			Transform stageRoot,
 			float directGoalDistance,
-			float cornerSmoothing = 0f,
-			float directBlend = 0f)
+			float cornerSmoothing = 0f)
 		{
 			this.cornerSmoothing = Mathf.Clamp01(cornerSmoothing);
-			this.directBlend = Mathf.Clamp01(directBlend);
 			this.layout = layout;
 			this.flowField = flowField;
 			this.stageRoot = stageRoot;
@@ -66,14 +59,19 @@ namespace WitchMendokusai
 			if ((goalLocal - fromLocal).sqrMagnitude <= directGoalDistance * directGoalDistance)
 				return false;
 
-			if (flowField.TryGetNextCell(fromCell, out Vector2Int nextCell) == false)
+			// ★ 「여러 최단 경로 중 *내 것*」을 고른다 — 길이는 그대로, 밟는 칸만 달라진다.
+			//   개체 고유값은 칸 안에서의 제 위치로 뽑는다(같은 칸의 둘도 서로 다른 자리에 서 있다).
+			float lane = Mathf.Abs(Mathf.Sin(
+				(fromLocal.x - Mathf.Floor(fromLocal.x)) * 127.1f
+				+ (fromLocal.z - Mathf.Floor(fromLocal.z)) * 311.7f) * 43758.5453f) % 1f;
+			if (flowField.TryGetNextCell(fromCell, lane, out Vector2Int nextCell) == false)
 				return false;
 
 			Vector3 nextLocal = layout.CellToWorld(nextCell);
 
 			// 한 칸 더 내다본다 — 다음 칸과 그 다음 칸 사이를 섞으면 모서리가 둥글어진다.
 			// 못 내다보면(막다른 길·목표 직전) 그냥 다음 칸을 본다 — 길은 그대로다.
-			if (cornerSmoothing > 0f && flowField.TryGetNextCell(nextCell, out Vector2Int afterCell))
+			if (cornerSmoothing > 0f && flowField.TryGetNextCell(nextCell, lane, out Vector2Int afterCell))
 				nextLocal = Vector3.Lerp(nextLocal, layout.CellToWorld(afterCell), cornerSmoothing);
 
 			Vector3 localDirection = nextLocal - fromLocal;
@@ -83,28 +81,6 @@ namespace WitchMendokusai
 
 			Vector3 worldDirection = stageRoot.TransformDirection(localDirection);
 			worldDirection.y = 0f;
-
-			// ★★ 「길 딱 정해서 오는 게 아니라 떼거지로」 (사용자 지시 — They Are Billions).
-			//   흐름장은 모두에게 *똑같은 제일 싼 길*을 준다. 그래서 사방 여덟 곳에서 나와도 몇 걸음 만에
-			//   한 줄로 합류하고, 화면에는 「정해진 길」이 생긴다 — 풍선타워디펜스의 그림이다.
-			//   고치는 법은 길을 여러 개 파는 게 아니라, **길을 덜 믿게 하는 것**이다:
-			//   각자 「코어 쪽으로 곧장」과 「안내가 시킨 대로」를 자기 비율로 섞는다. 뚫린 벌판에서는
-			//   서로 다른 직선을 그어 넓은 면이 되고, 바위를 만나면 안내가 이겨서 알아서 돌아 나간다.
-			//   비율은 *개체마다 고정*이다(위치로 뽑는 게 아니라 출발점이 정한다) — 매 프레임 흔들면
-			//   덜덜 떨며 지그재그로 걷는다.
-			if (directBlend > 0f)
-			{
-				Vector3 straight = to - from;
-				straight.y = 0f;
-				if (straight.sqrMagnitude > Mathf.Epsilon)
-				{
-					// 개체 고유값 — 같은 자리에서 출발한 둘은 같게, 다른 자리는 다르게. 0.5~1.5배로 흩어진다.
-					float lane = Mathf.Abs(Mathf.Sin(from.x * 12.9898f + from.z * 78.233f) * 43758.5453f) % 1f;
-					float blend = Mathf.Clamp01(directBlend * (0.35f + lane * 1.3f));
-					worldDirection = Vector3.Lerp(worldDirection.normalized, straight.normalized, blend);
-					worldDirection.y = 0f;
-				}
-			}
 
 			direction = worldDirection.normalized;
 			return true;
