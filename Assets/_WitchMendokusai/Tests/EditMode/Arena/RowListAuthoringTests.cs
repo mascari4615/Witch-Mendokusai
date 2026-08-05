@@ -115,7 +115,9 @@ namespace WitchMendokusai.Tests
 		private sealed class FakeResolver : ITargetResolver
 		{
 			public ICombatant Result;
+			public int AliveCount;
 			public ICombatant Query(ICombatant self, TargetQuery query) => Result;
+			public int CountAlive(ICombatant self, TargetQuery query) => AliveCount;
 		}
 
 		private sealed class RecordingActuator : ITacticActuator

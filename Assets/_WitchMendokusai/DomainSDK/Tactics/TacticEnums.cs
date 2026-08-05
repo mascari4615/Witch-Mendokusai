@@ -13,7 +13,7 @@ namespace WitchMendokusai
 		TargetHpRatio = 3, // 선정된 타겟 HP 비율 vs Value (Operator)
 		EnemyInRange = 4,  // 사거리 내 적 존재(타겟 해석 성공) — 불리언
 		SkillReady = 5,    // SkillSlot 스킬 쿨다운 준비됨 — 불리언
-		AllyCount = 6,     // 생존 아군 수 vs Value (v1 미구현 — 항상 false)
+		AllyCount = 6,     // 생존 아군 수(자기 제외, 판 전체) vs Value (Operator)
 	}
 
 	/// <summary> 전술 룰의 행동 종류. ExecAction(Domain) 가 ActionKind 별로 수행. </summary>

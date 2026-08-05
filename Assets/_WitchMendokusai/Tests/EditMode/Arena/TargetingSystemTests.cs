@@ -287,5 +287,40 @@ namespace WitchMendokusai.Tests
 
 			Assert.AreSame(nearHighId, result, "id 가 커도 확실히 더 가까우면 그쪽이다");
 		}
+
+		// --- 머릿수 세기 (ConditionKind.AllyCount 의 바닥) ---
+
+		[Test]
+		public void CountAlive_Ally_ExcludesSelfAndDead()
+		{
+			TargetingSystem targeting = new();
+			FakeCombatant self = Make(id: 0, team: 0, pos: Vector3.zero);
+			FakeCombatant ally = Make(id: 1, team: 0, pos: new Vector3(1f, 0f, 0f));
+			FakeCombatant deadAlly = Make(id: 2, team: 0, pos: new Vector3(2f, 0f, 0f), alive: false);
+			FakeCombatant enemy = Make(id: 3, team: 1, pos: new Vector3(3f, 0f, 0f));
+			targeting.Register(self);
+			targeting.Register(ally);
+			targeting.Register(deadAlly);
+			targeting.Register(enemy);
+
+			int count = targeting.CountAlive(self, new TargetQuery(TargetSide.Ally, TargetPriority.Nearest));
+
+			Assert.AreEqual(1, count, "자기 자신·시체·적은 안 센다");
+		}
+
+		[Test]
+		public void CountAlive_HonorsMaxRange()
+		{
+			TargetingSystem targeting = new();
+			FakeCombatant self = Make(id: 0, team: 0, pos: Vector3.zero);
+			FakeCombatant near = Make(id: 1, team: 0, pos: new Vector3(2f, 0f, 0f));
+			FakeCombatant far = Make(id: 2, team: 0, pos: new Vector3(20f, 0f, 0f));
+			targeting.Register(self);
+			targeting.Register(near);
+			targeting.Register(far);
+
+			Assert.AreEqual(2, targeting.CountAlive(self, new TargetQuery(TargetSide.Ally, TargetPriority.Nearest)));
+			Assert.AreEqual(1, targeting.CountAlive(self, new TargetQuery(TargetSide.Ally, TargetPriority.Nearest, maxRange: 5f)));
+		}
 	}
 }

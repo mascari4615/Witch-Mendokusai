@@ -8,6 +8,10 @@ namespace WitchMendokusai
 	/// </summary>
 	public static class TacticConditions
 	{
+		// AllyCount 전용 질의 — 진영만 아군, 사거리 무제한(0), 우선순위는 세기만 하므로 무의미.
+		private static readonly TargetQuery ALLY_HEADCOUNT =
+			new(TargetSide.Ally, TargetPriority.Nearest, 0f);
+
 		public static bool EvalRule(TacticRule rule, TacticContext context, out ICombatant resolvedTarget)
 		{
 			// 타겟 먼저 해석(조건·행동이 공유). Self 진영 기준 Query(사거리 필터 포함).
@@ -57,8 +61,11 @@ namespace WitchMendokusai
 				case ConditionKind.SkillReady:
 					return context.IsSkillReady(condition.SkillSlot);
 				case ConditionKind.AllyCount:
-					// v1 미구현(아군 질의 필요) — 후속 구현 자리.
-					return false;
+					// 살아있는 아군 수(자기 제외 — 진영 필터가 뺀다). 사거리는 안 본다: 「몇 명 남았나」는
+					// 판 전체의 사정이지 내 코앞의 사정이 아니다. 반경 안을 세고 싶어지면 그건 별개 조건이다.
+					return Compare(
+						context.Targeting.CountAlive(context.Self, ALLY_HEADCOUNT),
+						condition.Operator, condition.Value);
 				default:
 					return false;
 			}

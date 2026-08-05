@@ -92,6 +92,17 @@ namespace WitchMendokusai
 			return Mathf.Abs(a - b) <= SCORE_TIE_BAND * scale;
 		}
 
+		public int CountAlive(ICombatant self, TargetQuery query)
+		{
+			int count = 0;
+			foreach (ICombatant candidate in combatants)
+			{
+				if (PassesFilter(self, candidate, query))
+					count++;
+			}
+			return count;
+		}
+
 		private bool PassesFilter(ICombatant self, ICombatant candidate, TargetQuery query)
 		{
 			if (candidate.IsAlive == false)

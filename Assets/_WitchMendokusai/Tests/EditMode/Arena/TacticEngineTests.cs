@@ -23,7 +23,9 @@ namespace WitchMendokusai.Tests
 		private sealed class FakeResolver : ITargetResolver
 		{
 			public ICombatant Result;
+			public int AliveCount;
 			public ICombatant Query(ICombatant self, TargetQuery query) => Result;
+			public int CountAlive(ICombatant self, TargetQuery query) => AliveCount;
 		}
 
 		private sealed class RecordingActuator : ITacticActuator
@@ -206,6 +208,51 @@ namespace WitchMendokusai.Tests
 			runner.UpdateBT();
 
 			Assert.AreEqual("Retreat", actuator.LastAction, "SetProgram 재컴파일 → 행동 변화(핫스왑)");
+		}
+
+		// --- AllyCount (WM-165 리뷰 [contract-risk] 소화) ---
+		//
+		// 이 조건은 편집기 드롭다운에 *이미 떠 있었는데* 평가가 늘 false 였다. 욘이 「혼자 남으면
+		// 물러난다」를 골라도 아무 일이 안 일어나고, 왜 안 되는지는 코드를 봐야만 알 수 있었다.
+		// 계약(DomainSDK enum)에 올라간 값은 돌아야 한다 — 안 돌 거면 고를 수 없어야 한다.
+
+		[Test]
+		public void AllyCount_아군이_남았으면_그_룰이_뜬다()
+		{
+			FakeCombatant self = new() { CombatantId = 0, TeamId = 0 };
+			FakeCombatant enemy = new() { CombatantId = 1, TeamId = 1 };
+			FakeResolver resolver = new() { Result = enemy, AliveCount = 2 };
+			RecordingActuator actuator = new();
+			TacticContext context = new(self, resolver, actuator, slot => true);
+
+			TacticProgram program = new();
+			// 아군이 1 초과로 남아 있으면 붙어서 친다 / 아니면 물러난다.
+			program.Rules.Add(Rule(ActionKind.UseSkill, 0, TargetPriority.Nearest,
+				Cond(ConditionKind.AllyCount, ComparisonOperator.GreaterThan, 1f)));
+			program.Rules.Add(Rule(ActionKind.Retreat, 0, TargetPriority.Nearest, Always()));
+
+			new TacticBTRunner(context, program).UpdateBT();
+
+			Assert.AreEqual("UseSkill", actuator.LastAction);
+		}
+
+		[Test]
+		public void AllyCount_혼자_남으면_다음_룰로_떨어진다()
+		{
+			FakeCombatant self = new() { CombatantId = 0, TeamId = 0 };
+			FakeCombatant enemy = new() { CombatantId = 1, TeamId = 1 };
+			FakeResolver resolver = new() { Result = enemy, AliveCount = 0 };
+			RecordingActuator actuator = new();
+			TacticContext context = new(self, resolver, actuator, slot => true);
+
+			TacticProgram program = new();
+			program.Rules.Add(Rule(ActionKind.UseSkill, 0, TargetPriority.Nearest,
+				Cond(ConditionKind.AllyCount, ComparisonOperator.GreaterThan, 1f)));
+			program.Rules.Add(Rule(ActionKind.Retreat, 0, TargetPriority.Nearest, Always()));
+
+			new TacticBTRunner(context, program).UpdateBT();
+
+			Assert.AreEqual("Retreat", actuator.LastAction, "아군 0 → 첫 룰 불발 → fallback");
 		}
 	}
 }
