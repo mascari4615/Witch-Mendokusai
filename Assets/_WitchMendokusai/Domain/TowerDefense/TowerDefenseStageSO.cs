@@ -212,6 +212,9 @@ namespace WitchMendokusai
 		[field: Header("마수 이동 — 천천히, 촘촘히")]
 		// ★ 사용자 직접 플레이: "게임이 너무 빠름. They are billions 같이 적들이 천천히 몰려오는 느낌으로."
 		//   + "몬스터들이 복셀 블럭 단위로 뚝뚝 끊겨움직이는 것처럼 보이지 않았으면 함."
+		[field: Tooltip("코어를 감싼 진입 고리의 반지름(칸). 마수는 코어 한 점이 아니라 이 고리로 온다 — 클수록 넓은 면으로 밀려온다. 1 = 코어 바로 옆.")]
+		[field: SerializeField, Min(1)] public int CoreApproachRingCells { get; private set; } = 4;
+
 		[field: Tooltip("모든 마수의 이동 속도 배수 — 1 보다 작으면 판 전체가 느려진다.")]
 		[field: SerializeField, Min(0.1f)] public float EnemyMoveSpeedMultiplier { get; private set; } = 1f;
 
