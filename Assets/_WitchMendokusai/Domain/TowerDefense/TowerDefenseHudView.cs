@@ -662,6 +662,101 @@ namespace WitchMendokusai
 		// 미니맵 위에 앉는 높이 — 미니맵이 커지면 이 값도 같이 커져야 한다(같은 모서리를 나눠 쓴다).
 		private const int SELECTION_PANEL_BOTTOM = 330;
 
+		private VisualElement unlockPathBox;
+
+		/// <summary>
+		/// 연구 길을 편다 — 「이미 연 것 · 다음에 열릴 것 · 그 뒤」 (WM-200).
+		///
+		/// ★ 표는 규칙층이 준 것 그대로다. 여기서 다시 계산하면 창이 약속한 것과 실제로 열리는 것이
+		///   어긋나고, 그건 자원을 잘못 쓰게 만드는 거짓말이 된다.
+		/// </summary>
+		public void ShowUnlockPath(System.Collections.Generic.IReadOnlyList<TowerDefenseUnlockEntry> path, int researchLevel)
+		{
+			if (unlockPathBox == null)
+				return;
+
+			if (path == null || path.Count == 0)
+			{
+				unlockPathBox.style.display = DisplayStyle.None;
+				return;
+			}
+
+			unlockPathBox.style.display = DisplayStyle.Flex;
+			unlockPathBox.Clear();
+
+			Label heading = new Label("연구로 열리는 것");
+			heading.style.fontSize = 15;
+			heading.style.color = new Color(0.62f, 0.68f, 0.78f, 1f);
+			heading.style.marginBottom = 8;
+			heading.pickingMode = PickingMode.Ignore;
+			unlockPathBox.Add(heading);
+
+			int nextLevel = researchLevel + 1;
+			for (int i = 0; i < path.Count; i++)
+			{
+				TowerDefenseUnlockEntry entry = path[i];
+				bool opened = entry.Level <= researchLevel;
+				bool isNext = entry.Level == nextLevel;
+
+				VisualElement row = new VisualElement();
+				row.style.flexDirection = FlexDirection.Row;
+				row.style.alignItems = Align.Center;
+				row.style.paddingTop = 3;
+				row.style.paddingBottom = 3;
+				row.style.paddingLeft = 8;
+				row.style.paddingRight = 8;
+				row.pickingMode = PickingMode.Ignore;
+				// 다음에 열릴 줄만 배경으로 띄운다 — 지금 값을 치르면 얻는 것이 그것뿐이라서.
+				if (isNext)
+				{
+					row.style.backgroundColor = new Color(0.16f, 0.28f, 0.48f, 0.75f);
+					SetRadius(row, 6);
+				}
+
+				Label mark = new Label(opened ? "✔" : (isNext ? "▶" : "·"));
+				mark.style.width = 22;
+				mark.style.fontSize = 14;
+				mark.style.color = opened
+					? new Color(0.45f, 0.82f, 0.5f, 1f)
+					: (isNext ? new Color(1f, 0.86f, 0.42f, 1f) : new Color(0.45f, 0.5f, 0.6f, 1f));
+				mark.pickingMode = PickingMode.Ignore;
+				row.Add(mark);
+
+				Label stepLabel = new Label(entry.Level == 0 ? "처음부터" : entry.Level + "단계");
+				stepLabel.style.width = 76;
+				stepLabel.style.fontSize = 14;
+				stepLabel.style.color = opened
+					? new Color(0.6f, 0.66f, 0.74f, 1f)
+					: new Color(0.72f, 0.78f, 0.88f, 1f);
+				stepLabel.pickingMode = PickingMode.Ignore;
+				row.Add(stepLabel);
+
+				Label nameLabel = new Label(UnlockName(entry));
+				nameLabel.style.fontSize = 15;
+				nameLabel.style.color = opened
+					? new Color(0.58f, 0.64f, 0.72f, 1f)
+					: new Color(0.94f, 0.96f, 1f, 1f);
+				nameLabel.pickingMode = PickingMode.Ignore;
+				row.Add(nameLabel);
+
+				unlockPathBox.Add(row);
+			}
+		}
+
+		private static string UnlockName(TowerDefenseUnlockEntry entry)
+		{
+			return entry.Kind switch
+			{
+				TowerDefensePlaceableKind.Harvester => "채집 인형",
+				TowerDefensePlaceableKind.Wall => "벽",
+				TowerDefensePlaceableKind.Trap => "함정",
+				TowerDefensePlaceableKind.Outpost => "전초기지",
+				TowerDefensePlaceableKind.Generator => "발전 인형",
+				TowerDefensePlaceableKind.Tower => "포탑 인형 " + (entry.TowerIndex + 1) + "종",
+				_ => "?",
+			};
+		}
+
 		private VisualElement BuildSelectionPanel(out VisualElement panel, out Label title, out Button research)
 		{
 			panel = new VisualElement { name = "SelectionPanel" };
@@ -715,6 +810,16 @@ namespace WitchMendokusai
 			research.style.paddingRight = 24;
 			card.Add(research);
 
+			// ★ 연구 창이 *무엇을 얻는지* 말하지 않았다 (실측: 자원 60 을 내라면서 대가가 화면에 없음).
+			//   값을 치르는 결정인데 대가를 모르면 그건 선택이 아니라 도박이다. 연구 길을 그대로 편다 —
+			//   이미 연 것 / 다음에 열릴 것 / 그 뒤에 올 것이 한눈에.
+			unlockPathBox = new VisualElement();
+			unlockPathBox.style.display = DisplayStyle.None;
+			unlockPathBox.style.marginTop = 16;
+			unlockPathBox.style.alignSelf = Align.Stretch;
+			unlockPathBox.pickingMode = PickingMode.Ignore;
+			card.Add(unlockPathBox);
+
 			// ★ 판매를 여기서도 — 「빌딩 모드에서만 우클릭」은 손이 기억해야 하는 규칙이라,
 			//   고른 건물을 보고 있는 그 자리에 버튼을 둔다(사용자 지시: "건물 정보에 강화나 판매를").
 			sellButton = MakeActionButton("팔기", fontSize: 16, () => SellSelectedRequested());
@@ -762,6 +867,10 @@ namespace WitchMendokusai
 				selectionPanel.style.display = DisplayStyle.None;
 				return;
 			}
+
+			// 연구 길은 연구할 수 있는 것(코어)에만 뜻이 있다 — 벽을 보면서 연구 길이 펼쳐지면 헷갈린다.
+			if (canResearch == false && unlockPathBox != null)
+				unlockPathBox.style.display = DisplayStyle.None;
 
 			selectionPanel.style.display = DisplayStyle.Flex;
 			selectionTitleLabel.text = description;

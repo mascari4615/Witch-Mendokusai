@@ -1759,6 +1759,20 @@ namespace WitchMendokusai
 			TowerDefenseDollLabel label = FindDollLabel(unit);
 			string name = label != null ? label.Name : "인형";
 
+			// ★ 코어를 *제일 먼저* 가린다 (WM-200 실측). 코어도 무기를 들고 있어서 아래 포탑 가지가
+			//   먼저 낚아채 갔고, 그 아래 코어 설명은 통째로 죽은 가지였다 — 화면엔 「인형 …
+			//   같은 자리에 같은 종류를 또 지으면 승급」이라 떴다. 코어는 다시 못 짓는데.
+			//   무엇인가(역할)는 무엇을 들었나(무기)보다 앞선다.
+			if (coreCombatant == combatant)
+			{
+				TowerDefenseWeapon coreWeapon = unit.GetComponent<TowerDefenseWeapon>();
+				return "코어\n체력 " + currentHp + " / " + maxHp
+					+ (coreWeapon != null
+						? "\n사거리 " + coreWeapon.Range.ToString("0.#") + "  ·  피해 " + coreWeapon.CurrentDamage
+						: string.Empty)
+					+ "\n여기까지 새면 목숨이 준다";
+			}
+
 			// 포탑 — 무기가 붙어 있으면 그 수치가 정본이다(화면과 규칙이 같은 곳을 읽는다).
 			TowerDefenseWeapon weapon = unit.GetComponent<TowerDefenseWeapon>();
 			if (weapon != null)
@@ -1780,9 +1794,6 @@ namespace WitchMendokusai
 					+ "\n" + (outer ? "정수" : "자원") + " ×" + HarvesterMultiplierOf(unit).ToString("0.0")
 					+ "\n" + (connected ? "보급 이어짐" : "⚠ 보급 끊김 — 한 푼도 안 들어온다");
 			}
-
-			if (coreCombatant == combatant)
-				return "코어\n체력 " + currentHp + " / " + maxHp + "\n여기까지 새면 목숨이 준다";
 
 			return name + "\n체력 " + currentHp + " / " + maxHp;
 		}
@@ -1912,30 +1923,35 @@ namespace WitchMendokusai
 			if (stage == null)
 				return;
 
-			// 먹고사는 길은 늘 열려 있다 — 이게 없으면 첫 수가 아예 없다.
-			availableSlots.Add(new TowerDefenseSlot(TowerDefensePlaceableKind.Harvester));
-
-			if (LabCount >= stage.TowerUnlockLevel)
-			{
-				int variants = Mathf.Max(1, 1 + (LabCount - stage.TowerUnlockLevel) / Mathf.Max(1, stage.TowerVariantUnlockStep));
-				for (int index = 0; index < TowerArchetypeCount && index < variants; index++)
-					availableSlots.Add(new TowerDefenseSlot(TowerDefensePlaceableKind.Tower, index));
-				if (TowerArchetypeCount == 0)
-					availableSlots.Add(new TowerDefenseSlot(TowerDefensePlaceableKind.Tower));
-			}
-
-			if (LabCount >= stage.WallUnlockLevel)
-				availableSlots.Add(new TowerDefenseSlot(TowerDefensePlaceableKind.Wall));
-			if (LabCount >= stage.TrapUnlockLevel)
-				availableSlots.Add(new TowerDefenseSlot(TowerDefensePlaceableKind.Trap));
-			if (LabCount >= stage.GeneratorUnlockLevel)
-				availableSlots.Add(new TowerDefenseSlot(TowerDefensePlaceableKind.Generator));
-			if (LabCount >= stage.OutpostUnlockLevel)
-				availableSlots.Add(new TowerDefenseSlot(TowerDefensePlaceableKind.Outpost));
+			// ★ 해금 계산은 여기 없다 (WM-200) — 연구 창도 같은 것을 알아야 하는데, 각자 계산하면
+			//   *창이 약속한 것과 실제로 열리는 것이 어긋난다*. 표는 하나고, 규칙층은 「여기까지」를
+			//   잘라 쓰기만 한다.
+			TowerDefenseUnlockSchedule.Available(UnlockLevels, TowerArchetypeCount, LabCount, unlockScratch, availableSlots);
 
 			// ★ 영웅은 핫바에서 뺐다(사용자 지시: "영웅 이동 따로 핫바 두지 않았으면"). 핫바는
 			//   *짓는 것*의 자리인데 영웅은 보내는 것이라 뜻이 어긋났고, WASD(시점)와도 헷갈렸다.
 			//   이제 빈 땅 우클릭이 영웅을 보낸다 — 대상이 있으면 판매, 없으면 이동(RTS 관용).
+		}
+
+		private readonly System.Collections.Generic.List<TowerDefenseUnlockEntry> unlockScratch = new();
+
+		/// <summary> 무대가 정한 해금 단계 수치 — 계산은 순수 표가 한다. </summary>
+		private TowerDefenseUnlockLevels UnlockLevels => new(
+			stage.TowerUnlockLevel, stage.WallUnlockLevel, stage.TrapUnlockLevel,
+			stage.GeneratorUnlockLevel, stage.OutpostUnlockLevel, stage.TowerVariantUnlockStep);
+
+		/// <summary>
+		/// 연구 길 전체 — 「몇 단계에 무엇이 열리나」. 연구 창이 이걸 그린다.
+		/// 지금 열린 것과 *같은 표*에서 나오므로 창이 약속한 것은 반드시 열린다.
+		/// </summary>
+		public void DescribeUnlockPath(System.Collections.Generic.List<TowerDefenseUnlockEntry> into)
+		{
+			if (stage == null)
+			{
+				into?.Clear();
+				return;
+			}
+			TowerDefenseUnlockSchedule.Build(UnlockLevels, TowerArchetypeCount, into);
 		}
 
 		/// <summary> 해금이 바뀌었다 — 화면이 핫바를 다시 그려야 한다. </summary>

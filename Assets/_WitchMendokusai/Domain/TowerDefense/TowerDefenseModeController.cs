@@ -420,7 +420,16 @@ namespace WitchMendokusai
 				researchUsesEssence: match.ResearchUsesEssence,
 				perkOffers,
 				coreCards);
+
+			// 연구 길 — 값을 치르기 전에 무엇을 얻는지 보여준다(표는 규칙층이 준 것 그대로).
+			if (isCore)
+			{
+				match.DescribeUnlockPath(unlockPath);
+				hud.ShowUnlockPath(unlockPath, match.LabCount);
+			}
 		}
+
+		private readonly System.Collections.Generic.List<TowerDefenseUnlockEntry> unlockPath = new();
 
 		/// <summary> 고른 건물의 레벨업 선택 — 그 클릭이 설치로 새지 않게 한 번 삼킨다. </summary>
 		private void ChoosePerk(TowerDefenseBuildingPerk perk)
