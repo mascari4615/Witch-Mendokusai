@@ -10,10 +10,12 @@ namespace WitchMendokusai
 	public class InputContributor : IVelocityContributor
 	{
 		private readonly UnitObject unitObject;
+		private readonly float sprintSpeedMultiplier;
 
-		public InputContributor(UnitObject unitObject)
+		public InputContributor(UnitObject unitObject, float sprintSpeedMultiplier)
 		{
 			this.unitObject = unitObject;
+			this.sprintSpeedMultiplier = sprintSpeedMultiplier;
 		}
 
 		public void Contribute(MotorContext context, float deltaTime)
@@ -37,7 +39,8 @@ namespace WitchMendokusai
 		}
 
 		/// <summary>
-		/// 스탯 값 ↔ 「초당 몇 칸」 환산 계수 (TASK-WM-194).
+		/// 이동 속도 스탯 → 초당 월드 단위 환산. 스탯 30 = 초당 3.
+		///
 		/// ★ 밖으로 낸 이유: 「초당 몇 칸」으로 설계된 값(개척의 영웅 속도 등)을 스탯으로 바꿔 넣어야
 		///   하는 곳이 있는데, 그쪽이 10 을 따로 적으면 여기를 고치는 순간 두 곳이 조용히 갈라진다.
 		/// </summary>
@@ -47,7 +50,7 @@ namespace WitchMendokusai
 		{
 			float moveSpeed = unitObject.UnitStat[UnitStatType.MOVEMENT_SPEED] / STAT_PER_UNIT_PER_SECOND;
 			if (unitObject.UnitStat[UnitStatType.IS_SPRINTING] > 0)
-				moveSpeed *= 2f; // TODO: 스프린트 속도 하드코딩 — 2026-03-28. KarmoDDrine
+				moveSpeed *= sprintSpeedMultiplier;
 
 			return moveSpeed;
 		}
