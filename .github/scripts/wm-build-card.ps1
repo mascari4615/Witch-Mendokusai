@@ -209,6 +209,12 @@ function Invoke-WmBuild {
     if ($token) {
         $cardId = New-BuildCard -Token $token -Rich (New-ProgressRich -StageIndex 0 -Platform $Platform `
                 -BuildType $BuildType -Commit $Commit -StartedAt $startedAt -RunUrl $RunUrl -RunNumber $RunNumber)
+        # ★ 카드 손잡이는 *만들자마자* 넘긴다. 빌드가 끝난 뒤에 기록하면 취소 시 그 줄에
+        #   도달하지 못해 손잡이를 잃고, 알림 step 이 빈 값을 받아 취소 카드를 *새 메시지로*
+        #   또 만든다 (실측: run #15 에서 진행 카드와 취소 카드가 따로 남았다).
+        if ($cardId -and $env:GITHUB_OUTPUT) {
+            "card_id=$cardId" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+        }
     }
 
     Write-Host "Unity args: $($arguments -join ' ')"

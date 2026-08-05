@@ -130,7 +130,8 @@ jobs:
           "out_dir=$($result.OutDir)"     | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
           "report=$($result.Report)"      | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
           "unity_log=$($result.UnityLog)" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
-          if ($result.CardId) { "card_id=$($result.CardId)" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8 }
+          # card_id is written the moment the card is created (inside Invoke-WmBuild),
+          # so a cancelled build still hands the notify step a usable handle.
 
           Write-Host "Unity exit=$($result.ExitCode)"
           if (Test-Path $result.Report) { Get-Content $result.Report | Write-Host }
