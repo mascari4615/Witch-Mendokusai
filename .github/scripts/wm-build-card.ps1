@@ -312,6 +312,17 @@ function Get-BuildZip {
     return Get-Item $final
 }
 
+# 링크가 언제까지 사는지는 *링크 자신* 이 안다. 「1일」처럼 글로 박아두면 정책을 바꾼 날
+# 카드만 옛말을 한다 — 실제로 그랬다(1일 → 10일로 바꾼 뒤에도 카드는 「유효 1일」).
+# 카드가 두 종류(개별 결과 / 고정 최신)라 문구도 두 벌이 되기 쉬워, 여기 한 곳에서만 만든다.
+function Get-LinkExpiryText {
+    param([string]$Link)
+    if ($Link -match 'exp=(\d+)') {
+        return [DateTimeOffset]::FromUnixTimeSeconds([int64]$Matches[1]).ToOffset([TimeSpan]::FromHours(9)).ToString('MM-dd HH:mm')
+    }
+    return ''
+}
+
 function Get-InstallLink {
     param([string]$Token, [string]$OutDir)
     if (-not $OutDir -or -not (Test-Path $OutDir)) { return $null }
@@ -407,10 +418,20 @@ function Publish-BuildResult {
     if ($ok) { $link = Get-InstallLink -Token $token -OutDir $OutDir }
     $lead = $null
     if ($link) {
-        $lead = "## [📲 폰에 설치하기]($link)"
-        $bodyText = '링크 유효 1일 · 처음 한 번만 비밀번호 (고정 메시지 참고)'
+        # 폰은 눌러서 곧장 설치, PC 는 묶음을 받아 풀어서 실행 — 하는 일이 다르니 말도 달라야
+        # 한다. 실측: PC 빌드 카드에 「폰에 설치하기」가 떠서 사용자가 이상하다고 했다.
+        $expiry = Get-LinkExpiryText -Link $link
+        $until = if ($expiry) { "$expiry KST 까지" } else { '기한 내' }
+        if ($Platform -eq 'android') {
+            $lead = "## [📲 폰에 설치하기]($link)"
+            $bodyText = "$until · 처음 한 번만 비밀번호 (고정 메시지 참고)"
+        }
+        else {
+            $lead = "## [💻 PC 빌드 받기 (zip)]($link)"
+            $bodyText = "$until · 처음 한 번만 비밀번호 (고정 메시지 참고) · 받아서 풀고 실행"
+        }
     } elseif ($ok) {
-        $bodyText = '산출물은 노트북에만 있다 (단일 파일이 아니라 설치 링크 없음).'
+        $bodyText = '산출물은 노트북에만 있다 (받을 파일을 못 찾았다).'
     } elseif ($cancelled) {
         $bodyText = '중단된 빌드라 산출물이 없다. 다시 돌리려면 실행 링크에서 재실행.'
     } else {
@@ -634,12 +655,8 @@ function Update-LatestCard {
 
     $attempt = "$Icon $StatusWord · $((Get-Date).ToString('MM-dd HH:mm')) KST"
     if ($success) {
-        # 만료 안내는 링크 *자신* 에서 읽는다. 「하루 뒤 만료」처럼 글로 박아두면
-        # 정책을 바꾼 날 카드만 옛말을 하게 된다 (실측: 1일 -> 10일로 바꿨을 때).
-        $expiryText = ''
-        if ($success.link -match 'exp=(\d+)') {
-            $expiryText = [DateTimeOffset]::FromUnixTimeSeconds([int64]$Matches[1]).ToOffset([TimeSpan]::FromHours(9)).ToString('MM-dd HH:mm')
-        }
+        # 만료 안내는 링크 *자신* 에서 읽는다 (정본 = Get-LinkExpiryText).
+        $expiryText = Get-LinkExpiryText -Link $success.link
         $expiryLine = if ($expiryText) { "이 링크는 **$expiryText KST** 까지 살아있다." } else { '' }
         $rich = @{
             # 폰은 눌러서 곧장 설치, PC 는 묶음을 받아 풀어야 한다 — 말이 다르면 안 된다.
