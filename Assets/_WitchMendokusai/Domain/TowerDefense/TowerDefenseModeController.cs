@@ -230,8 +230,9 @@ namespace WitchMendokusai
 			if (researchView == null && uiRoot != null && uiRoot.ModeHudLayer != null)
 			{
 				researchView = new TowerDefenseResearchView();
-				// 갈래 6 · 고리 5 — 한 화면에 전체 모양이 들어오면서 갈림길이 충분히 나오는 크기.
-				researchView.Build(uiRoot.ModeHudLayer, branchCount: 6, ringCount: 5);
+				// 모양은 스테이지가 정한다 — 갈래 수·길이·주는 양 전부 인스펙터에서.
+				researchView.Build(uiRoot.ModeHudLayer, stage.ResearchBranchCount, stage.ResearchRingCount,
+					stage.ResearchMajorAmount, stage.ResearchMinorAmount);
 				researchView.NodeChosen += OnResearchNodeChosen;
 			}
 

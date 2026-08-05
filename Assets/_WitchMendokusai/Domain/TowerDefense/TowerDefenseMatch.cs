@@ -2789,6 +2789,19 @@ namespace WitchMendokusai
 
 			researchBonus.TryGetValue(effect, out float current);
 			researchBonus[effect] = current + amount;
+
+			// ★ 코어 방어만 *찍는 순간* 몸에 새긴다. 다른 갈래는 「물을 때마다 읽는」 배수라 저절로
+			//   반영되지만, 체력은 이미 정해진 값이라 아무도 다시 묻지 않는다 — 여기서 안 올리면
+			//   찍어도 아무 일이 안 일어난다(코어 방어만 조용히 죽은 갈래가 된다).
+			if (effect == TowerDefenseResearchEffect.CoreArmor && coreCombatant != null
+				&& coreCombatant.UnitObject != null)
+			{
+				UnitStat stat = coreCombatant.UnitObject.UnitStat;
+				int added = Mathf.Max(1, Mathf.RoundToInt(stat[UnitStatType.HP_MAX] * amount));
+				stat[UnitStatType.HP_MAX] += added;
+				stat[UnitStatType.HP_CUR] += added; // 늘린 만큼 실제로 채워준다 — 최대치만 늘면 체감이 0이다.
+				PopWorldText("코어 +" + added, coreCombatant.Position, TextType.Heal);
+			}
 			Debug.Log($"{nameof(TowerDefenseMatch)}: 연구 {TowerDefenseResearchGraph.NameOf(effect)} "
 				+ $"+{amount:P0} → 누적 {researchBonus[effect]:P0}");
 			return true;

@@ -42,9 +42,9 @@ namespace WitchMendokusai
 		/// <summary> 마디를 찍었다 — 값 치르기·효과 적용은 바깥(매치)이 한다. </summary>
 		public event System.Action<int> NodeChosen = delegate { };
 
-		public void Build(VisualElement parent, int branchCount, int ringCount)
+		public void Build(VisualElement parent, int branchCount, int ringCount, float majorAmount, float minorAmount)
 		{
-			TowerDefenseResearchGraph.Build(branchCount, ringCount, nodes);
+			TowerDefenseResearchGraph.Build(branchCount, ringCount, majorAmount, minorAmount, nodes);
 			taken.Clear();
 			taken.Add(TowerDefenseResearchGraph.CORE_ID); // 코어는 이미 있는 것 — 여기서 길이 시작한다.
 

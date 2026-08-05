@@ -294,6 +294,21 @@ namespace WitchMendokusai
 		// ★ 여기가 성장 곡선의 *유일한 집*이다. 예전엔 「얼마나 받나」(위 두 줄)만 여기 있고
 		//   「얼마나 필요한가」는 코드에 박혀 있었다 — 반쪽만 만질 수 있으면 승급 속도는 결국
 		//   손댈 수 없다(분자만 있고 분모가 없는 꼴). 둘을 같은 자리에 둔다.
+		[field: Header("연구 성좌 — 사방으로 뻗는 연구도")]
+		// ★ 형태를 자산으로 낸다 (수치 노출 룰). 갈래 수를 바꾸면 성격도 그만큼 돌아가고,
+		//   고리 수를 바꾸면 한 갈래가 길어진다 — 인스펙터에서 성좌의 모양을 바로 만져볼 수 있다.
+		[field: Tooltip("코어에서 뻗어 나가는 갈래 수. 갈래마다 성격이 하나씩 붙는다(피해·사거리·수입·보급·코어·영웅).")]
+		[field: SerializeField, Range(2, 12)] public int ResearchBranchCount { get; private set; } = 6;
+
+		[field: Tooltip("한 갈래의 고리 수 = 길이. 길수록 끝의 큰 마디가 멀어진다.")]
+		[field: SerializeField, Range(2, 9)] public int ResearchRingCount { get; private set; } = 5;
+
+		[field: Tooltip("길 끝 큰 마디가 주는 비율(0.35 = +35%).")]
+		[field: SerializeField, Min(0f)] public float ResearchMajorAmount { get; private set; } = 0.35f;
+
+		[field: Tooltip("중간 작은 마디가 주는 비율.")]
+		[field: SerializeField, Min(0f)] public float ResearchMinorAmount { get; private set; } = 0.08f;
+
 		[field: Tooltip("건물이 2레벨이 되는 데 필요한 경험치. 낮을수록 승급 선택이 자주 온다.")]
 		[field: SerializeField, Min(1)] public int BuildingLevelBaseCost { get; private set; } = 10;
 
