@@ -1,0 +1,106 @@
+name: WM quality gate
+
+# TASK-WM-203 — 만들어만 놓고 아무도 안 부르던 검사기를 실제로 발화시킨다.
+#
+# 배경: WM 에는 이미 검사기가 여러 벌 있었다 — 코드 룰(.editorconfig), 부팅 회귀
+# (wm-boot-smoke), EditMode 테스트 635개(wm-editmode-smoke), 2-peer 멀티
+# (wm-net-2peer-smoke), init-order 감사. 그런데 2026-08-05 실측 결과 이 중 **자동으로
+# 도는 건 하나도 없었다** (CI·훅 어디서도 호출 X, 수동만). 코드 룰 쪽은 더 나빴다 —
+# .editorconfig 의 강제 경로가 `dotnet build` 인데 그 경로 자체가 2026-05-10 폐기라
+# 총은 있고 방아쇠가 없는 상태였다. 그 사이 룰 위반 12건이 조용히 쌓였다.
+#
+# 왜 지금 가능한가: TASK-WM-047(Unity CI 게이트)은 "Unity 라이선스 시크릿 대기"로 3개월
+# 멈춰 있었는데, 그 사이 WM-195/197 이 노트북 self-hosted 러너를 세워 실제 빌드를 굽고
+# 있다. 라이선스 붙은 Unity 가 이미 CI 에서 돈다 — 태울 차가 있는데 아무도 안 태웠을 뿐.
+#
+# 2 티어:
+#   rules  — 결정적 grep (ubuntu, 수초). 룰 정본 = WitchMendokusai/CLAUDE.md.
+#            같은 스크립트를 로컬 pre-push 훅도 부른다 (룰 복사본 0).
+#   unity  — 노트북 러너에서 EditMode 테스트 전량 (batchmode, 에디터 락 무관 —
+#            러너는 자기 체크아웃 사본을 쓴다).
+#
+# 부팅/2-peer 게이트는 standalone 빌드가 선행 필요(수십 분) → 본 워크플로 v1 범위 밖.
+# 후속 = nightly 또는 build.yml 산출물 재사용 (TASK-WM-203 D 후속).
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'Assets/_WitchMendokusai/**'
+      - '.github/scripts/wm-rule-gate.ps1'
+      - '.github/workflows/wm-quality-gate.yml'
+  pull_request:
+    paths:
+      - 'Assets/_WitchMendokusai/**'
+      - '.github/scripts/wm-rule-gate.ps1'
+      - '.github/workflows/wm-quality-gate.yml'
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  rules:
+    name: code rules (deterministic)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run WM rule gate
+        shell: pwsh
+        run: |
+          ./.github/scripts/wm-rule-gate.ps1
+
+  unity:
+    name: EditMode tests (laptop runner)
+    runs-on: [self-hosted, unity, windows-build]
+    timeout-minutes: 90
+    # 노트북 한 대 = 프로젝트 폴더 하나. 최신 push 만 의미 있으므로 앞선 실행은 취소한다.
+    # (빌드(wm-build)와는 다른 그룹 — 빌드를 취소해선 안 된다.)
+    concurrency:
+      group: wm-quality-unity
+      cancel-in-progress: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Resolve Unity editor
+        id: unity
+        shell: powershell
+        run: |
+          . "$env:GITHUB_WORKSPACE\.github\scripts\wm-unity-resolve.ps1"
+          $unity = Resolve-UnityEditor -InstallLogDir $env:RUNNER_TEMP
+          "exe=$($unity.Exe)" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          Write-Host "unity: $($unity.Version) -> $($unity.Exe)"
+
+      - name: Run EditMode tests
+        shell: powershell
+        run: |
+          $runner = $env:WM_MEMO_SCRIPTS
+          if ([string]::IsNullOrWhiteSpace($runner))
+          {
+              $runner = 'C:\Users\masca\repos\karmoddrine\memo\dotfiles\scripts'
+          }
+          $smoke = Join-Path $runner 'wm-editmode-smoke.ps1'
+          if (-not (Test-Path $smoke))
+          {
+              Write-Host "ERROR: EditMode runner not found: $smoke"
+              Write-Host "  the memo checkout is the canonical home of the runtime gates."
+              Write-Host "  set WM_MEMO_SCRIPTS on the runner if it lives elsewhere."
+              exit 1
+          }
+
+          & powershell -NoProfile -ExecutionPolicy Bypass -File $smoke `
+              -Project $env:GITHUB_WORKSPACE `
+              -EditorExe '${{ steps.unity.outputs.exe }}' `
+              -TimeoutSec 3600
+          $code = $LASTEXITCODE
+
+          # exit 2 = cannot-run (project locked / editor missing / 0 tests). Silence is
+          # the failure mode we are removing, so a gate that could not run is a red gate.
+          if ($code -eq 2)
+          {
+              Write-Host "ERROR: EditMode gate could not run (exit 2) -- treating as failure."
+              exit 1
+          }
+          exit $code
