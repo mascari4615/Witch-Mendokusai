@@ -615,7 +615,13 @@ function Update-LatestCard {
         if ($Report -and (Test-Path $Report)) {
             $json = Get-Content $Report -Raw | ConvertFrom-Json
             $version = $json.version
-            $sizeText = "$([Math]::Round($json.exeSizeBytes / 1MB, 1)) MB"
+        }
+        # 크기는 *받게 될 파일* 로 잰다. 리포트의 실행파일 크기를 쓰면 PC 빌드에서 거짓말을
+        # 한다 — 실측: 카드엔 「0.6 MB」인데 실제 내려받는 묶음은 670 MB 였다. 폰은 산출물이
+        # 파일 하나라 우연히 맞았을 뿐이다. 링크가 가리키는 이름을 그대로 읽어 잰다.
+        if ($OutDir -and $Link -match '/dl/[^/]+/([^?]+)') {
+            $linkedFile = Join-Path $OutDir ([Uri]::UnescapeDataString($Matches[1]))
+            if (Test-Path $linkedFile) { $sizeText = "$([Math]::Round((Get-Item $linkedFile).Length / 1MB, 1)) MB" }
         }
         $success = [ordered]@{
             link = $Link; version = $version; size = $sizeText; commit = $Commit
