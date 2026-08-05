@@ -622,7 +622,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\U0001F465 \uBA40\uD2F0"
+  m_text: "\uBA40\uD2F0"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: ed83f40937153e640adec543809a3b09, type: 2}
   m_sharedMaterial: {fileID: -5988324062677498901, guid: ed83f40937153e640adec543809a3b09, type: 2}
