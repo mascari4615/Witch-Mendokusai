@@ -67,6 +67,11 @@ jobs:
 
   unity:
     name: EditMode tests (laptop runner)
+    # push 마다 돌리지 않는다 — 실측(2026-08-05): 노트북 1대가 빌드로 차 있는 사이 push 가 몇 분
+    # 간격으로 들어와 EditMode job 이 **5연속 취소**됐다. 큐를 못 이기는 구조라 push 레인은
+    # "돌 것처럼 보이지만 실제로는 0회" 가 된다 — 게이트가 거짓 안심을 주는 최악의 형태.
+    # → 결정적 rules 티어는 push 마다(수초), 유니티 티어는 3시간 주기 + 필요할 때 수동.
+    if: github.event_name != 'push' && github.event_name != 'pull_request'
     runs-on: [self-hosted, unity, windows-build]
     timeout-minutes: 90
     # 노트북 한 대 = 프로젝트 폴더 하나.
