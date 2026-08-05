@@ -519,6 +519,15 @@ namespace WitchMendokusai
 				body.isKinematic = true;
 			foreach (MonoBehaviour behaviour in ghost.GetComponentsInChildren<MonoBehaviour>(true))
 				behaviour.enabled = false;
+
+			// ★ 애니메이터는 MonoBehaviour 가 아니라 위 줄이 못 껐다 (사용자 실측: "마커가 계속
+			//   애니메이션 재생"). 유령이 살아 있는 것처럼 꿈틀대면 「지금 지어진 것」과 구분이 안 된다 —
+			//   미리보기는 *가만히 서 있는 그림*이어야 「아직 아니다」가 읽힌다.
+			//   끄기만 하면 마지막 자세로 굳으므로 별도 자세 지정이 필요 없다.
+			foreach (Animator animator in ghost.GetComponentsInChildren<Animator>(true))
+				animator.enabled = false;
+			foreach (Animation animation in ghost.GetComponentsInChildren<Animation>(true))
+				animation.enabled = false;
 		}
 
 		private void TintGhost(bool canBuild)

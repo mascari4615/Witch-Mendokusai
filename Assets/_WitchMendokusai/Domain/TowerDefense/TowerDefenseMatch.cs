@@ -443,7 +443,8 @@ namespace WitchMendokusai
 			flowField = new TowerDefenseFlowField(
 				mapLayout.Width, mapLayout.Length, mapLayout.CoreCell, IsPathBlocked);
 			flowNavigator = new TowerDefenseFlowNavigator(
-				mapLayout, flowField, stageRoot, stage.GroundCellSize * 2f, stage.EnemyCornerSmoothing);
+				mapLayout, flowField, stageRoot, stage.GroundCellSize * 2f, stage.EnemyCornerSmoothing,
+				stage.EnemyDirectBlend);
 
 			vision = new TowerDefenseVision(mapLayout.Width, mapLayout.Length);
 			visionSources.Clear();
@@ -700,7 +701,8 @@ namespace WitchMendokusai
 			flowField = new TowerDefenseFlowField(
 				mapLayout.Width, mapLayout.Length, pathGoals, IsPathBlocked);
 			flowNavigator = new TowerDefenseFlowNavigator(
-				mapLayout, flowField, stageRoot, stage.GroundCellSize * 2f, stage.EnemyCornerSmoothing);
+				mapLayout, flowField, stageRoot, stage.GroundCellSize * 2f, stage.EnemyCornerSmoothing,
+				stage.EnemyDirectBlend);
 
 			foreach (Vector3 spawnLocal in activeSpawnPoints)
 			{

@@ -218,6 +218,11 @@ namespace WitchMendokusai
 		[field: Tooltip("모서리를 얼마나 둥글게 도나(0 = 칸 중심을 딱딱 밟는다, 1 = 다음 칸 너머를 본다).")]
 		[field: SerializeField, Range(0f, 1f)] public float EnemyCornerSmoothing { get; private set; } = 0.6f;
 
+		// ★ 사용자 지시: "한 번에 좀 여러 방향에서 여러 유닛이 한 번에 오는거라구요 떼거지로.
+		//   풍타디 식으로 길 딱 정해서 오는게 아니라니까요" (They Are Billions).
+		[field: Tooltip("길안내를 얼마나 안 믿고 코어 쪽으로 곧장 갈 것인가. 0 = 전부 같은 최단 경로로 한 줄, 높을수록 넓은 면으로 밀려온다(바위는 안내가 이겨서 알아서 돈다).")]
+		[field: SerializeField, Range(0f, 1f)] public float EnemyDirectBlend { get; private set; } = 0.55f;
+
 		[field: Header("연구 해금 — 처음엔 거의 아무것도 못 한다")]
 		// ★ 사용자 지시(2026-08-04 직접 플레이): "처음엔 자원 건물이랑 연구만. 첫 테크 트리로 공성 건물.
 		//   고급 테크 가야 좀 복잡해지는 것." 처음부터 다 열려 있으면 무엇을 할지가 아니라 *무엇부터 볼지*가

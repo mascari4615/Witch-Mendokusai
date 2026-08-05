@@ -131,7 +131,7 @@ namespace WitchMendokusai
             frame.Add(hostHint);
 
             // 호스트 성공 시 표시 — 초대코드 클립보드 복사 (친구에게 붙여넣기 편하게).
-            copyButton = new Button(OnCopyClicked) { name = "copy-button", text = "📋 초대코드 복사" };
+            copyButton = new Button(OnCopyClicked) { name = "copy-button", text = "초대코드 복사" };
             copyButton.style.height = 32f;
             copyButton.style.marginBottom = 14f;
             copyButton.style.display = DisplayStyle.None;
