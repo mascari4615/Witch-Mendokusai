@@ -57,6 +57,12 @@ concurrency:
 
 jobs:
   build:
+    # This repo's default workflow token is read-only, and the tag path ends with
+    # `gh release upload`. Without this the release attach 403s *after* a 40-minute
+    # build - the one place a permission mistake costs the most. contents:write is
+    # the narrowest grant that covers it (job level is the finest granularity).
+    permissions:
+      contents: write
     runs-on: [self-hosted, unity, windows-build]
     timeout-minutes: 240
 
