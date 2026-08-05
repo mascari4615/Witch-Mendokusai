@@ -284,10 +284,40 @@ function Invoke-WmBuild {
 
 # 폰 설치 링크 — 단일 파일 산출물일 때만. 게이트웨이가 서명해 발급하므로 서명 비밀은
 # 워크플로/GitHub secret 어디에도 없다 (노트북 .env 안에서만 산다).
+# PC 빌드는 파일 하나가 아니라 exe + 데이터 폴더 통째다. 링크로 배달하려면 한 덩어리로 묶어야
+# 한다 — 안 묶으면 「PC 빌드는 받을 방법이 없다」가 되고, 실제로 그랬다.
+#
+# ★ PS 5.1 의 Compress-Archive 는 2GB 를 넘는 입력에서 깨진다. WM 의 PC 빌드는 2.8GB 라
+#   정면으로 걸린다 — 그래서 .NET 압축기를 직접 쓴다(zip64).
+# ★ 압축률보다 속도(Fastest). 게임 에셋은 이미 압축돼 있어서 세게 조여봐야 크기는 조금 줄고
+#   시간만 몇 배 든다.
+# ★ 묶는 파일을 묶는 폴더 *안* 에 바로 만들면 자기 자신을 삼키려다 실패한다. 밖에서 만들어
+#   다 된 뒤에 옮긴다.
+function Get-BuildZip {
+    param([string]$OutDir)
+    $existing = Get-ChildItem $OutDir -File -Filter '*.zip' -ErrorAction SilentlyContinue | Select-Object -First 1
+    if ($existing) { return $existing }
+    if (-not (Get-ChildItem $OutDir -File -Filter '*.exe' -ErrorAction SilentlyContinue)) { return $null }
+
+    Add-Type -AssemblyName System.IO.Compression.FileSystem
+    $name = "WitchMendokusai-$(Split-Path $OutDir -Leaf).zip"
+    $staging = Join-Path (Split-Path $OutDir -Parent) "$name.building"
+    if (Test-Path $staging) { Remove-Item $staging -Force -ErrorAction SilentlyContinue }
+    $sw = [Diagnostics.Stopwatch]::StartNew()
+    [IO.Compression.ZipFile]::CreateFromDirectory($OutDir, $staging, [IO.Compression.CompressionLevel]::Fastest, $false)
+    $final = Join-Path $OutDir $name
+    Move-Item $staging $final -Force
+    $sw.Stop()
+    Write-Host "zip: $name ($([Math]::Round((Get-Item $final).Length / 1MB, 0)) MB, $([Math]::Round($sw.Elapsed.TotalMinutes, 1))분)"
+    return Get-Item $final
+}
+
 function Get-InstallLink {
     param([string]$Token, [string]$OutDir)
     if (-not $OutDir -or -not (Test-Path $OutDir)) { return $null }
     $artifact = Get-ChildItem $OutDir -File | Where-Object { $_.Extension -in '.apk', '.aab' } | Select-Object -First 1
+    # 폰은 파일 하나가 곧 산출물, PC 는 폴더 통째 — 후자는 묶어서 같은 창구로 보낸다.
+    if (-not $artifact) { $artifact = Get-BuildZip -OutDir $OutDir }
     if (-not $artifact) { return $null }
     try {
         # 지금은 경로가 ASCII 뿐이지만 같은 창구를 쓴다 — 예외를 두면 언젠가 그 예외로 샌다.
@@ -509,7 +539,8 @@ function Remove-OldBuilds {
     $removed = @()
     foreach ($dir in $dirs) {
         if ($protected.Contains($dir.Name)) { continue }
-        $hasArtifact = @(Get-ChildItem $dir.FullName -Recurse -File -Include '*.apk', '*.aab', '*.exe' -ErrorAction SilentlyContinue).Count -gt 0
+        # zip 도 산출물로 센다 — PC 빌드는 묶음이 곧 배달물이다.
+        $hasArtifact = @(Get-ChildItem $dir.FullName -Recurse -File -Include '*.apk', '*.aab', '*.exe', '*.zip' -ErrorAction SilentlyContinue).Count -gt 0
         if ($hasArtifact -and $kept -lt $Keep) { $kept++; continue }
         Write-Host "prune $($dir.FullName)$(if (-not $hasArtifact) { ' (산출물 없음)' })"
         Remove-Item $dir.FullName -Recurse -Force -ErrorAction SilentlyContinue
@@ -605,7 +636,9 @@ function Update-LatestCard {
         }
         $expiryLine = if ($expiryText) { "이 링크는 **$expiryText KST** 까지 살아있다." } else { '' }
         $rich = @{
-            lead   = "## [📲 최신 $Platform 빌드 설치]($($success.link))"
+            # 폰은 눌러서 곧장 설치, PC 는 묶음을 받아 풀어야 한다 — 말이 다르면 안 된다.
+            lead   = if ($Platform -eq 'android') { "## [📲 최신 android 빌드 설치]($($success.link))" }
+                     else { "## [💻 최신 $Platform 빌드 받기 (zip)]($($success.link))" }
             title  = "⭐ 최신 $Platform 빌드"
             body   = "받을 수 있는 것은 **마지막으로 성공한 빌드**다. $expiryLine 만료됐으면 한 번 더 구우면 이 자리도 같이 바뀐다."
             fields = @(
