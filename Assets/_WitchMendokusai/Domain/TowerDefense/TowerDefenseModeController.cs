@@ -239,6 +239,7 @@ namespace WitchMendokusai
 				match.ResearchReset += researchView.ResetTaken;
 				match.CollectResearch += researchView.CollectTaken;
 				match.RestoreResearch += RestoreResearchNodes;
+				researchView.SetEssenceProvider(() => match.Essence);
 			}
 
 			researchView?.SetOpen(true);

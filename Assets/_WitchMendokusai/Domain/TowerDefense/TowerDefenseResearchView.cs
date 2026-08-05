@@ -97,8 +97,45 @@ namespace WitchMendokusai
 			detailLabel.style.maxWidth = 520;
 			root.Add(detailLabel);
 
+			essenceLabel = new Label(string.Empty);
+			essenceLabel.style.position = Position.Absolute;
+			essenceLabel.style.right = 36;
+			essenceLabel.style.top = 30;
+			essenceLabel.style.fontSize = 20;
+			essenceLabel.style.color = new Color(0.72f, 0.62f, 1f, 1f);
+			root.Add(essenceLabel);
+
 			BuildNodeElements();
+			BuildBranchLabels();
 			RegisterPanZoom();
+		}
+
+		private Label essenceLabel;
+		private readonly List<(Label Label, Vector2 Position)> branchLabels = new();
+
+		/// <summary>
+		/// 갈래 끝에 그 갈래의 이름을 붙인다.
+		///
+		/// ★ 픽셀 확인에서 드러난 것: 마디가 전부 똑같이 생겨서 **어느 방향이 무엇을 주는지 화면에
+		///   한 글자도 없었다**. 마우스를 올려야만 알 수 있으면 「어디로 뚫을까」를 눈으로 못 고른다 —
+		///   성좌의 값어치가 그 한눈에 있는데 그게 없던 셈이다.
+		/// </summary>
+		private void BuildBranchLabels()
+		{
+			branchLabels.Clear();
+			foreach (TowerDefenseResearchGraph.Node node in nodes)
+			{
+				if (node.IsMajor == false || node.Id == TowerDefenseResearchGraph.CORE_ID)
+					continue;
+
+				Label label = new Label(TowerDefenseResearchGraph.NameOf(node.Effect));
+				label.style.position = Position.Absolute;
+				label.style.fontSize = 15;
+				label.style.color = new Color(0.82f, 0.86f, 0.95f, 1f);
+				canvas.Add(label);
+				// 이름은 마디보다 *한 걸음 더 바깥*에 둔다 — 마디 위에 겹치면 둘 다 안 읽힌다.
+				branchLabels.Add((label, node.Position * 1.16f));
+			}
 		}
 
 		private void BuildNodeElements()
@@ -193,6 +230,24 @@ namespace WitchMendokusai
 
 				PlaceNode(node, dot);
 			}
+
+			foreach ((Label label, Vector2 position) in branchLabels)
+			{
+				Vector2 center = ToScreen(position);
+				label.style.left = center.x - 34f;
+				label.style.top = center.y - 10f;
+			}
+
+			if (essenceLabel != null)
+				essenceLabel.text = essenceProvider != null ? "정수 " + essenceProvider() : string.Empty;
+		}
+
+		private System.Func<int> essenceProvider;
+
+		/// <summary> 지금 정수가 얼마인지 묻는 통로 — 값을 치르는 화면인데 잔량이 안 보이면 고를 수가 없다. </summary>
+		public void SetEssenceProvider(System.Func<int> provider)
+		{
+			essenceProvider = provider;
 		}
 
 		private void PlaceNode(in TowerDefenseResearchGraph.Node node, VisualElement dot)
