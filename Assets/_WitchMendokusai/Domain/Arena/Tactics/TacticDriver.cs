@@ -7,7 +7,7 @@ namespace WitchMendokusai
 	/// 실제 행동(ITacticActuator)은 UnitObject(SkillHandler/UnitMovement)에 적용.
 	/// ArenaMatch 가 Initialize 로 deps(전술/타겟팅/틱) 주입. RecompileTactic = 일시정지 핫스왑.
 	/// </summary>
-	[RequireComponent(typeof(MatchCombatant))]
+	[RequireComponent(typeof(ArenaCombatant))]
 	public class TacticDriver : MonoBehaviour, ITacticActuator
 	{
 		[Header("접근 정지 (겹침 방지 — TASK-WM-194)")]
@@ -32,7 +32,7 @@ namespace WitchMendokusai
 		private float RING_SLOT_SPACING => ringSlotSpacing;
 		private int RING_SLOT_COUNT => ringSlotCount;
 
-		private MatchCombatant self;
+		private ArenaCombatant self;
 		private UnitObject unitObject;
 		private TimeManager timeManager;
 		private TacticBTRunner runner;
@@ -40,7 +40,7 @@ namespace WitchMendokusai
 
 		private void Awake()
 		{
-			self = GetComponent<MatchCombatant>();
+			self = GetComponent<ArenaCombatant>();
 			unitObject = GetComponent<UnitObject>();
 		}
 
@@ -99,7 +99,7 @@ namespace WitchMendokusai
 
 		public void UseSkill(int skillSlot, ICombatant target)
 		{
-			UnitObject targetUnit = (target as MatchCombatant)?.UnitObject;
+			UnitObject targetUnit = (target as ArenaCombatant)?.UnitObject;
 			unitObject.SkillHandler.UseSkill(skillSlot, targetUnit);
 
 			// 걸으면서 쏘는 유닛은 *조준 때문에 목적지를 잊으면* 안 된다. 공격 룰이 선택되는 동안
@@ -118,6 +118,12 @@ namespace WitchMendokusai
 		/// </summary>
 		public ITacticNavigator Navigator { get; set; }
 
+		/// <summary>
+		/// 이 개체의 고유 값(0~1) — 같은 거리의 길이 여럿일 때 어느 길을 밟을지를 가른다.
+		/// 태어날 때 한 번 정해지고 안 바뀐다(매번 다시 뽑으면 걸음마다 길이 바뀌어 덜덜 떤다).
+		/// </summary>
+		public float Lane { get; } = UnityEngine.Random.value;
+
 		public void MoveToward(ICombatant target)
 		{
 			if (target == null)
@@ -132,7 +138,7 @@ namespace WitchMendokusai
 		/// </summary>
 		private Vector3 SteerToward(Vector3 targetPosition)
 		{
-			if (Navigator != null && Navigator.TryGetSteering(self.Position, targetPosition, out Vector3 steered))
+			if (Navigator != null && Navigator.TryGetSteering(self.Position, targetPosition, Lane, out Vector3 steered))
 				return steered;
 
 			Vector3 direction = targetPosition - self.Position;

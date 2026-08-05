@@ -40,7 +40,7 @@ namespace WitchMendokusai
 			this.directGoalDistance = directGoalDistance;
 		}
 
-		public bool TryGetSteering(Vector3 from, Vector3 to, out Vector3 direction)
+		public bool TryGetSteering(Vector3 from, Vector3 to, float lane, out Vector3 direction)
 		{
 			direction = Vector3.zero;
 			if (layout == null || flowField == null || stageRoot == null)
@@ -60,10 +60,7 @@ namespace WitchMendokusai
 				return false;
 
 			// ★ 「여러 최단 경로 중 *내 것*」을 고른다 — 길이는 그대로, 밟는 칸만 달라진다.
-			//   개체 고유값은 칸 안에서의 제 위치로 뽑는다(같은 칸의 둘도 서로 다른 자리에 서 있다).
-			float lane = Mathf.Abs(Mathf.Sin(
-				(fromLocal.x - Mathf.Floor(fromLocal.x)) * 127.1f
-				+ (fromLocal.z - Mathf.Floor(fromLocal.z)) * 311.7f) * 43758.5453f) % 1f;
+			//   값은 개체가 태어날 때 정해져 넘어온다(여기서 위치로 뽑으면 걸을 때마다 바뀌어 덜덜 떤다).
 			if (flowField.TryGetNextCell(fromCell, lane, out Vector2Int nextCell) == false)
 				return false;
 
