@@ -85,7 +85,9 @@ namespace WitchMendokusai
             _endpoint = ResolveEndpoint();
             _token = ResolveToken();
             _deviceLabel = $"{SystemInfo.deviceModel} / {SystemInfo.operatingSystem}";
-            _buildLabel = $"{UnityEngine.Application.productName} {UnityEngine.Application.version} ({UnityEngine.Application.platform})";
+            // 화면 구석에 뜨는 글자와 *같은 정본*을 쓴다 — 두 곳이 각자 조립하면 하나만 바뀌어도
+            // 「화면엔 이 빌드인데 로그엔 저 빌드」가 되어 추적이 끊긴다 (TASK-WM-201).
+            _buildLabel = BuildInfo.Current.ShortLabel();
             _buffer = new DeviceLogBuffer(_settings.BufferCapacity);
 
             if (_settings.SpoolToDisk)

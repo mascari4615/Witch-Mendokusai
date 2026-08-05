@@ -3,3 +3,8 @@
 # WM 은 공개 저장소라 비밀이 실수로도 들어가면 안 된다.
 DeviceLogToken.txt
 DeviceLogToken.txt.meta
+
+# 빌드 신원 (TASK-WM-201) — 빌드 직전에 굽고 끝나면 지운다.
+# 작업 폴더에 남으면 에디터가 「옛 빌드」인 척하게 되므로 커밋 대상이 아니다.
+BuildInfo.json
+BuildInfo.json.meta
