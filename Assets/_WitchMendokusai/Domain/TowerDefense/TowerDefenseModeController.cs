@@ -217,14 +217,31 @@ namespace WitchMendokusai
 		///   (사용자 실증: "연구 어케 여는데"). 첫 판의 *유일한 다음 수*가 숨은 문 뒤에 있으면
 		///   게임이 시작되지 않는다. 코어 클릭은 그대로 두고, 눈에 보이는 문을 하나 더 낸다.
 		/// </summary>
+		// 연구 성좌 — 전체화면 그래프(사용자 지시). 처음 열 때 한 번 세운다.
+		private TowerDefenseResearchView researchView;
+
 		private void OpenResearch()
 		{
 			if (match == null || match.CoreCombatant == null)
 				return;
 
 			placement.SuppressNextClick(); // 이 클릭이 지면 설치로 새지 않게.
-			placement.SelectBuilding(match.CoreCombatant);
-			RefreshSelectionPanel();
+
+			if (researchView == null && uiRoot != null && uiRoot.ModeHudLayer != null)
+			{
+				researchView = new TowerDefenseResearchView();
+				// 갈래 6 · 고리 5 — 한 화면에 전체 모양이 들어오면서 갈림길이 충분히 나오는 크기.
+				researchView.Build(uiRoot.ModeHudLayer, branchCount: 6, ringCount: 5);
+				researchView.NodeChosen += OnResearchNodeChosen;
+			}
+
+			researchView?.SetOpen(true);
+		}
+
+		/// <summary> 성좌에서 마디를 찍었다 — 값·효과는 규칙층이 정한다(화면은 고르기만 한다). </summary>
+		private void OnResearchNodeChosen(int nodeId)
+		{
+			Debug.Log($"{nameof(TowerDefenseModeController)}: 연구 마디 {nodeId} 선택.");
 		}
 
 		/// <summary> 시점을 그 자리로 — 지도에서 온 요청. 확대·회전은 그대로 둔다. </summary>
@@ -249,6 +266,13 @@ namespace WitchMendokusai
 			if (view.IsMenuOpen)
 			{
 				ToggleMenu();
+				return;
+			}
+
+			// 성좌가 전체화면을 덮고 있으면 그것부터 닫는다 — 덮은 것을 두고 뒤의 것을 닫으면 안 된다.
+			if (researchView != null && researchView.IsOpen)
+			{
+				researchView.SetOpen(false);
 				return;
 			}
 
