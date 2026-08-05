@@ -410,7 +410,8 @@ namespace WitchMendokusai
 			panel.style.paddingRight = 16;
 			panel.style.paddingTop = 8;
 			panel.style.paddingBottom = 8;
-			panel.style.backgroundColor = new Color(0.04f, 0.05f, 0.08f, 0.66f);
+			// 지도 안에서 읽는 글이라 뒤가 비치면 안 된다 — 진행 상황판 위에 겹쳐 둘 다 안 읽혔다(실측).
+			panel.style.backgroundColor = new Color(0.04f, 0.05f, 0.08f, 0.94f);
 			SetRadius(panel, 6);
 			panel.pickingMode = PickingMode.Ignore;
 

@@ -24,6 +24,9 @@ namespace WitchMendokusai
 		// 지도 한 변의 길이 — 미니맵은 작게, 펼친 지도는 크게. 그리는 규칙은 하나다.
 		private readonly float size;
 
+		/// <summary> 점 크기 배율 — 지도가 커지면 점도 같이 커진다(미니맵은 1). </summary>
+		private readonly float dotScale;
+
 		private readonly VisualElement root;
 		private readonly VisualElement dotLayer;
 		private readonly VisualElement viewRect;
@@ -37,6 +40,10 @@ namespace WitchMendokusai
 		public TowerDefenseMinimapView(float size = DEFAULT_SIZE, bool floating = true)
 		{
 			this.size = size;
+			// ★ 점 크기가 지도 크기를 안 따라가고 있었다 (실측: 펼친 지도가 미니맵의 3.5배인데 점은
+			//   그대로라, 화면을 꽉 채운 지도 위에서 코어가 좁쌀만 했다). 지도를 여는 이유는
+			//   「어디에 뭐가 있나」인데 그게 안 보이면 여는 뜻이 없다. 크기에 비례해 같이 큰다.
+			dotScale = Mathf.Max(1f, size / DEFAULT_SIZE);
 			root = new VisualElement { name = "Minimap" };
 			if (floating)
 			{
@@ -218,6 +225,8 @@ namespace WitchMendokusai
 			if (normalized.x < 0f || normalized.x > 1f || normalized.y < 0f || normalized.y > 1f)
 				return; // 판 밖 — 그릴 자리가 없다.
 
+			size *= dotScale;
+
 			VisualElement dot = RentDot();
 			dot.style.display = DisplayStyle.Flex;
 			dot.style.width = size;
@@ -237,7 +246,7 @@ namespace WitchMendokusai
 			if (ShowTooltips == false || string.IsNullOrEmpty(tip))
 				return;
 
-			// 점이 작으면 못 얹는다 — 마우스가 닿을 만큼만 넓힌 투명 손잡이를 겹쳐 둔다.
+			// 점 자체가 질문 대상이 된다 — 그래서 점이 커지면 얹기도 같이 쉬워진다(위 dotScale).
 			dot.pickingMode = PickingMode.Position;
 			dot.tooltip = tip;
 		}
