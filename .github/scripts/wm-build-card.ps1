@@ -478,6 +478,43 @@ function Write-BuildSummary {
 # 밤새 돌려두면 아침에 폰으로 바로 설치할 수 있다. 다만 *바뀐 게 없으면 굽지 않는다* —
 # 같은 코드로 40분과 3GB 를 태우는 건 낭비고, 채널에 의미 없는 카드만 쌓인다.
 
+# ── 오래된 빌드 정리 ───────────────────────────────────────────────────────
+# 「최근 N개만 남긴다」는 순진한 규칙이 실제로 사고 직전까지 갔다.
+#
+# 취소·실패한 실행도 폴더는 만든다(산출물만 없다). 실측: 폴더 5개 중 4개가 빈 껍데기고
+# 진짜 APK 는 하나뿐이었는데, 그 하나가 「최근 5개」의 맨 끝에 걸려 있었다. 빌드를 한 번만
+# 더 취소하면 **고정 카드가 가리키는 유일한 산출물이 지워진다** — 카드는 멀쩡히 링크를
+# 걸어두고 파일만 사라지는, 제일 나쁜 종류의 고장이다.
+#
+# 그래서 두 가지를 바꾼다:
+#   ① 고정 카드가 가리키는 빌드는 **나이와 무관하게 못 지운다** (실제 링크 대조).
+#   ② 빈 껍데기는 보관 정원을 못 차지한다 — 정원 N개는 *산출물이 든* 빌드에게만 준다.
+function Remove-OldBuilds {
+    param([string]$BuildRoot, [int]$Keep = 5, [string]$CurrentOutDir)
+    if (-not (Test-Path $BuildRoot)) { return @() }
+
+    # 고정 카드가 지금 가리키는 폴더들 — 링크 문자열에서 직접 뽑는다(별도 기록을 두면 어긋난다).
+    $protected = New-Object System.Collections.Generic.HashSet[string] ([StringComparer]::OrdinalIgnoreCase)
+    foreach ($marker in Get-ChildItem $BuildRoot -Filter 'latest-success-*.json' -ErrorAction SilentlyContinue) {
+        try { $link = (Get-Content $marker.FullName -Raw | ConvertFrom-Json).link } catch { continue }
+        if ($link -match '/dl/([^/]+)/') { [void]$protected.Add($Matches[1]) }
+    }
+    if ($CurrentOutDir) { [void]$protected.Add((Split-Path $CurrentOutDir -Leaf)) }
+
+    $dirs = Get-ChildItem $BuildRoot -Directory -ErrorAction SilentlyContinue | Sort-Object CreationTime -Descending
+    $kept = 0
+    $removed = @()
+    foreach ($dir in $dirs) {
+        if ($protected.Contains($dir.Name)) { continue }
+        $hasArtifact = @(Get-ChildItem $dir.FullName -Recurse -File -Include '*.apk', '*.aab', '*.exe' -ErrorAction SilentlyContinue).Count -gt 0
+        if ($hasArtifact -and $kept -lt $Keep) { $kept++; continue }
+        Write-Host "prune $($dir.FullName)$(if (-not $hasArtifact) { ' (산출물 없음)' })"
+        Remove-Item $dir.FullName -Recurse -Force -ErrorAction SilentlyContinue
+        $removed += $dir.Name
+    }
+    return $removed
+}
+
 # ── 이번 실행이 「무엇을 굽는가」 ───────────────────────────────────────────
 # 사람이 손으로 돌릴 때는 입력이 채워져 오지만, 야간(schedule)·태그 실행에는 입력이
 # 통째로 비어 온다. 그 빈칸을 각 단계가 알아서 메우면 단계마다 답이 갈린다 —

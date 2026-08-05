@@ -227,11 +227,9 @@ jobs:
         if: always()
         shell: powershell
         run: |
-          $keep = 5
-          $dirs = Get-ChildItem $env:BUILD_ROOT -Directory -ErrorAction SilentlyContinue | Sort-Object CreationTime -Descending
-          if ($dirs.Count -gt $keep) {
-            $dirs | Select-Object -Skip $keep | ForEach-Object {
-              Write-Host "prune $($_.FullName)"
-              Remove-Item $_.FullName -Recurse -Force -ErrorAction SilentlyContinue
-            }
-          }
+          $OutputEncoding = [Console]::OutputEncoding = [Text.UTF8Encoding]::new()
+          . "$env:GITHUB_WORKSPACE\.github\scripts\wm-build-card.ps1"
+          # Keeps the pinned card's target no matter how old, and never lets empty
+          # (cancelled/failed) folders eat the retention quota.
+          Remove-OldBuilds -BuildRoot $env:BUILD_ROOT -Keep 5 `
+            -CurrentOutDir '${{ steps.build.outputs.out_dir }}' | Out-Null
