@@ -32,6 +32,24 @@ namespace WitchMendokusai
         private const string SECRET_HEADER = "X-Yawnbot-Secret";
 
         private static bool _installed;
+        private static DeviceLogRelay _live;
+
+        /// <summary>
+        /// 화면 표시기가 묻는 「로그가 지금 나가고 있나」. 릴레이가 안 켜졌으면 그렇다고 답한다 —
+        /// 이 장치의 유일한 무음 지점이라, 모르는 채로 두지 않는다.
+        /// </summary>
+        public static string StatusLine()
+        {
+            if (_live == null || _live._buffer == null)
+            {
+                return DeviceLogStatus.OffLine();
+            }
+            return DeviceLogStatus.Line(
+                _live._sentLines,
+                _live._buffer.Count,
+                _live._consecutiveFailures,
+                _live._lastResponseCode);
+        }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterAssembliesLoaded)]
         private static void Install()
@@ -73,6 +91,7 @@ namespace WitchMendokusai
         private bool _sending;
         private int _consecutiveFailures;
         private int _sentLines;
+        private long _lastResponseCode;
 
         private readonly List<DeviceLogEntry> _batch = new List<DeviceLogEntry>();
 
@@ -81,6 +100,7 @@ namespace WitchMendokusai
 
         private void Awake()
         {
+            _live = this;
             _session = BuildSessionId();
             _endpoint = ResolveEndpoint();
             _token = ResolveToken();
@@ -318,6 +338,8 @@ namespace WitchMendokusai
 
                 bool ok = request.result == UnityWebRequest.Result.Success
                     && request.responseCode >= 200 && request.responseCode < 300;
+                // 화면 표시기가 「막힘 401 토큰 불일치」처럼 *이유까지* 말할 수 있게 남긴다.
+                _lastResponseCode = ok ? 0 : request.responseCode;
                 if (ok == false && _consecutiveFailures == 0)
                 {
                     // 첫 실패만 콘솔에 남긴다 — 실패마다 로그하면 그 로그가 또 버퍼로 들어간다.

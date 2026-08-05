@@ -78,6 +78,7 @@ namespace WitchMendokusai
         private VisualElement _root;
         private VisualElement _collapsed;
         private VisualElement _expanded;
+        private Label _relayStatus;
 
         private void Awake()
         {
@@ -180,13 +181,13 @@ namespace WitchMendokusai
 
             foreach (KeyValuePair<string, string> row in BuildInfo.Current.DetailRows())
             {
-                Label line = new Label($"{row.Key}  {row.Value}");
-                line.style.color = _settings.TextColor;
-                line.style.fontSize = _settings.ExpandedFontSize;
-                line.style.whiteSpace = WhiteSpace.Normal;
-                line.style.maxWidth = 320;
-                card.Add(line);
+                card.Add(MakeRowLabel($"{row.Key}  {row.Value}"));
             }
+
+            // 이 장치의 유일한 무음 지점 — 로그가 *안 나가고 있는데* 조용한 상황을 눈에 보이게 한다.
+            // 펼칠 때마다 다시 읽으므로 숫자가 안 늘면 그 자리에서 막힌 걸 안다.
+            _relayStatus = MakeRowLabel(string.Empty);
+            card.Add(_relayStatus);
 
             VisualElement buttons = new VisualElement();
             buttons.style.flexDirection = FlexDirection.Row;
@@ -204,6 +205,16 @@ namespace WitchMendokusai
             return card;
         }
 
+        private Label MakeRowLabel(string text)
+        {
+            Label line = new Label(text);
+            line.style.color = _settings.TextColor;
+            line.style.fontSize = _settings.ExpandedFontSize;
+            line.style.whiteSpace = WhiteSpace.Normal;
+            line.style.maxWidth = 320;
+            return line;
+        }
+
         private Button MakeButton(string text, System.Action onClick)
         {
             Button button = new Button(onClick) { text = text };
@@ -218,6 +229,11 @@ namespace WitchMendokusai
 
         private void Toggle(bool expanded)
         {
+            if (expanded && _relayStatus != null)
+            {
+                // 펼치는 순간의 값을 읽는다 — 카드를 만들 때 한 번 박아두면 영영 옛 숫자를 보여준다.
+                _relayStatus.text = $"로그  {DeviceLogRelay.StatusLine()}";
+            }
             _collapsed.style.display = expanded ? DisplayStyle.None : DisplayStyle.Flex;
             _expanded.style.display = expanded ? DisplayStyle.Flex : DisplayStyle.None;
         }
