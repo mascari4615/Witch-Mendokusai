@@ -12,7 +12,7 @@ namespace WitchMendokusai.Tests
 		[Test]
 		public void 시작은_1레벨_선택지_없음()
 		{
-			TowerDefenseBuildingProgress progress = new();
+			TowerDefenseBuildingProgress progress = new(baseCost: 10, growth: 1.6f);
 
 			Assert.AreEqual(1, progress.Level);
 			Assert.AreEqual(0, progress.PendingChoices);
@@ -21,7 +21,7 @@ namespace WitchMendokusai.Tests
 		[Test]
 		public void 경험치가_차면_레벨과_선택지가_는다()
 		{
-			TowerDefenseBuildingProgress progress = new(baseCost: 10);
+			TowerDefenseBuildingProgress progress = new(baseCost: 10, growth: 1.6f);
 
 			progress.AddExperience(10);
 
@@ -56,7 +56,7 @@ namespace WitchMendokusai.Tests
 		[Test]
 		public void 음수_경험치는_무시된다()
 		{
-			TowerDefenseBuildingProgress progress = new();
+			TowerDefenseBuildingProgress progress = new(baseCost: 10, growth: 1.6f);
 
 			progress.AddExperience(-50);
 
@@ -67,7 +67,7 @@ namespace WitchMendokusai.Tests
 		[Test]
 		public void 고를_것이_없으면_못_고른다()
 		{
-			TowerDefenseBuildingProgress progress = new();
+			TowerDefenseBuildingProgress progress = new(baseCost: 10, growth: 1.6f);
 
 			Assert.IsFalse(progress.Choose(TowerDefenseBuildingPerk.Damage));
 			Assert.AreEqual(0, progress.Taken.Count);
@@ -76,7 +76,7 @@ namespace WitchMendokusai.Tests
 		[Test]
 		public void 고르면_쌓이고_대기가_준다()
 		{
-			TowerDefenseBuildingProgress progress = new(baseCost: 5);
+			TowerDefenseBuildingProgress progress = new(baseCost: 5, growth: 1.6f);
 			progress.AddExperience(5);
 
 			Assert.IsTrue(progress.Choose(TowerDefenseBuildingPerk.Damage));
@@ -160,7 +160,7 @@ namespace WitchMendokusai.Tests
 		public void 되살리기는_옛_선택을_남겨두지_않는다()
 		{
 			// 되살린 뒤에 옛 목록이 섞여 있으면 「같은 판」이 아니라 두 판이 겹친 것이 된다.
-			TowerDefenseBuildingProgress progress = new();
+			TowerDefenseBuildingProgress progress = new(baseCost: 10, growth: 1.6f);
 			progress.AddExperience(1000);
 			progress.Choose(TowerDefenseBuildingPerk.Damage);
 
