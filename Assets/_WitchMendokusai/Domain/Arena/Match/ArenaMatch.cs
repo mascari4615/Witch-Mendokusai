@@ -19,6 +19,12 @@ namespace WitchMendokusai
 		[SerializeField] private ArenaMatchConfig config;
 		[SerializeField] private Transform arenaRoot;
 
+		// 팀 식별 틴트 — 관전자가 한눈에 편을 가르는 색이라 눈으로 맞춰야 한다.
+		// 팀0 = 욘/아군, 팀1 = 라이벌.
+		[Header("Team Tint")]
+		[SerializeField] private Color team0Tint = new(0.45f, 0.75f, 1f);
+		[SerializeField] private Color team1Tint = new(1f, 0.45f, 0.45f);
+
 		private TargetingSystem targeting;
 		private ArenaMatchCore core;
 		private List<MatchTeam> teams;
@@ -168,9 +174,9 @@ namespace WitchMendokusai
 				// TacticDriver 와 last-writer-wins 경쟁(패트롤/지터/전진실패)하므로 출전 유닛은 brain 비활성.
 				CombatUnitSpawner.SilenceBrains(unitGameObject);
 
-				// 팀 식별 틴트 — 팀0(욘/아군)=하늘색, 팀1(라이벌)=빨강. v1: 풀 반환 시 색 잔존(teardown/ArenaUnitObject 후속서 리셋).
+				// 팀 식별 틴트. v1: 풀 반환 시 색 잔존(teardown/ArenaUnitObject 후속서 리셋).
 				if (unitObject.SpriteRenderer != null)
-					unitObject.SpriteRenderer.color = entry.TeamId == 0 ? new Color(0.45f, 0.75f, 1f) : new Color(1f, 0.45f, 0.45f);
+					unitObject.SpriteRenderer.color = entry.TeamId == 0 ? team0Tint : team1Tint;
 
 				TacticDriver driver = unitObject.GetComponent<TacticDriver>();
 				if (driver == null)
