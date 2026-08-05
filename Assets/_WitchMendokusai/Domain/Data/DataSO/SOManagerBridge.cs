@@ -14,5 +14,9 @@ namespace WitchMendokusai
 		public static CardBuffer SelectedCardBuffer => _instance.SelectedCardBuffer;
 		public static QuestSOBuffer VQuests => _instance.VQuests;
 		public static Dictionary<Type, Dictionary<int, DataSO>> DataSOs => _instance.DataSOs;
+		// TASK-WM-200 — 화면 조이스틱이 값을 꽂는 자리. 조이스틱 값의 주인은 계속 이 SO 하나다
+		// (JoystickBridge 가 여기서 읽는다) — 화면 조작이 자기 값을 따로 들면 둘이 어긋난다.
+		public static FloatVariable JoystickX => _instance.JoystickX;
+		public static FloatVariable JoystickY => _instance.JoystickY;
 	}
 }
