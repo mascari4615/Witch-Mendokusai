@@ -257,9 +257,29 @@ namespace WitchMendokusai
             }
         }
 
+        /// <summary>
+        /// 서버가 「너 누구냐」(401/403) 로 막으면 재시도는 의미가 없다 — 토큰은 앱 안에 박혀 있어
+        /// 실행 중엔 안 바뀐다. 그런데도 계속 두드리면 배터리·데이터만 태운다. 그래서 길게 쉰다.
+        /// 완전 포기는 안 한다: 서버 쪽 토큰이 갱신되면 다음 창에서 저절로 복구되어야 한다.
+        /// 화면 표시기가 그 사이 「막힘 401 토큰 불일치」로 이유를 말해준다.
+        /// </summary>
+        private const float AUTH_BLOCKED_RETRY_SECONDS = 300f;
+
+        private float _authBlockedUntil;
+        private bool _serverFull;
+
         private IEnumerator FlushOnce()
         {
             if (_sending)
+            {
+                yield break;
+            }
+            if (_serverFull)
+            {
+                // 서버가 이 세션 파일은 꽉 찼다고 답했다 — 더 보내도 안 받는다. 스풀만 쌓는다.
+                yield break;
+            }
+            if (Time.realtimeSinceStartup < _authBlockedUntil)
             {
                 yield break;
             }
@@ -340,6 +360,19 @@ namespace WitchMendokusai
                     && request.responseCode >= 200 && request.responseCode < 300;
                 // 화면 표시기가 「막힘 401 토큰 불일치」처럼 *이유까지* 말할 수 있게 남긴다.
                 _lastResponseCode = ok ? 0 : request.responseCode;
+
+                if (ok == false && (request.responseCode == 401 || request.responseCode == 403))
+                {
+                    _authBlockedUntil = Time.realtimeSinceStartup + AUTH_BLOCKED_RETRY_SECONDS;
+                }
+                else if (ok && request.downloadHandler != null
+                    && request.downloadHandler.text != null
+                    && request.downloadHandler.text.Contains("\"stop\":true"))
+                {
+                    // 서버가 「이 세션은 그만」이라 답했다 (파일 상한). 줄은 스풀에 계속 쌓인다.
+                    _serverFull = true;
+                    Debug.LogWarning("[DeviceLog] 서버가 이 세션 로그를 그만 받는다 — 기기 파일에만 쌓는다.");
+                }
                 if (ok == false && _consecutiveFailures == 0)
                 {
                     // 첫 실패만 콘솔에 남긴다 — 실패마다 로그하면 그 로그가 또 버퍼로 들어간다.
