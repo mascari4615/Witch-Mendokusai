@@ -317,6 +317,11 @@ namespace WitchMendokusai
 			dollLabels.Clear();
 			soldDolls.Clear();
 			nextDollOrdinal = 0;
+			// 연구로 쌓은 것도 판과 함께 끝난다 — 안 지우면 다음 판이 지난 판의 연구를 물고 시작한다
+			// (코어 성장과 같은 병. 「새 판」이라면 아무것도 안 남아야 한다).
+			researchBonus.Clear();
+			ResearchReset();
+
 			heroActive = false;
 			heroTransform = null;
 			heroMovement = null; // 남겨두면 다음 판이 지난 판의 몸을 붙잡고 걷게 시킨다.
@@ -2766,6 +2771,9 @@ namespace WitchMendokusai
 
 		// 연구 성좌에서 찍어 모은 것 — 효과 종류별 누적 비율. 화면(성좌)이 고르고, 값은 여기 쌓인다.
 		private readonly Dictionary<TowerDefenseResearchEffect, float> researchBonus = new();
+
+		/// <summary> 새 판 — 성좌 화면도 처음으로 되돌리라는 신호(화면이 구독한다). </summary>
+		public event System.Action ResearchReset = delegate { };
 
 		/// <summary> 그 종류로 지금까지 얼마나 세졌나(0.2 = +20%). </summary>
 		public float ResearchBonus(TowerDefenseResearchEffect effect)

@@ -297,6 +297,17 @@ namespace WitchMendokusai
 			canvas.MarkDirtyRepaint();
 		}
 
+		/// <summary> 처음으로 — 새 판이 열렸다. 찍은 것을 전부 지운다(코어만 남는다). </summary>
+		public void ResetTaken()
+		{
+			taken.Clear();
+			taken.Add(TowerDefenseResearchGraph.CORE_ID);
+			if (canvas == null)
+				return;
+			RefreshNodes();
+			canvas.MarkDirtyRepaint();
+		}
+
 		public void SetOpen(bool open)
 		{
 			if (root == null)

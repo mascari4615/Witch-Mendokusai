@@ -234,6 +234,9 @@ namespace WitchMendokusai
 				researchView.Build(uiRoot.ModeHudLayer, stage.ResearchBranchCount, stage.ResearchRingCount,
 					stage.ResearchMajorAmount, stage.ResearchMinorAmount);
 				researchView.NodeChosen += OnResearchNodeChosen;
+				// 새 판이 열리면 성좌도 처음으로 — 화면만 남아 있으면 「찍은 걸로 보이는데 효과는 없는」
+				// 상태가 된다(화면과 규칙이 갈라지는 전형).
+				match.ResearchReset += researchView.ResetTaken;
 			}
 
 			researchView?.SetOpen(true);
