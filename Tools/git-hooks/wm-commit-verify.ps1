@@ -184,40 +184,50 @@ if ($parentCount -le 1 -and $csCount -gt 0 -and (Test-Path -LiteralPath $retired
     }
 }
 
-# Unity-MCP TCP probe — fast (~300ms timeout). Informational only.
-# 포트 정본 = .mcp.json (하드코딩하면 사용자가 포트를 바꾼 날부터 영영 "미응답"만 찍는다 —
-# 실제로 8080 이 박혀 있어 12345 로 옮긴 뒤 모든 커밋이 거짓 경고를 달고 있었다).
-$mcpPort = 12345
+# Unity-MCP TCP probe — fast (~300ms timeout each). Informational only.
+#
+# 포트가 한 곳에 안 산다(실측 2026-08-06): `.mcp.json` 이 있으면 그게 정본이지만 그 파일은
+# gitignore 라 새 클론엔 없고, 그때 에디터는 **패키지 기본값 8080** 으로 뜬다. CLAUDE.md 는
+# 12345 라고 적어두는데 그건 `.mcp.json` 이 있을 때 이야기다. 하나만 박으면 나머지 경우에
+# 영영 거짓 "미응답"을 찍는다 — 거짓말하는 신호는 없는 신호보다 나쁘다. 그래서 후보를 다 본다.
+$mcpPorts = @()
 $mcpJson = Join-Path $paths.Root '.mcp.json'
 if (Test-Path -LiteralPath $mcpJson)
 {
     $portMatch = [regex]::Match((Get-Content -LiteralPath $mcpJson -Raw), ':(\d+)/mcp')
-    if ($portMatch.Success) { $mcpPort = [int]$portMatch.Groups[1].Value }
+    if ($portMatch.Success) { $mcpPorts += [int]$portMatch.Groups[1].Value }
 }
+foreach ($fallback in @(8080, 12345)) { if ($mcpPorts -notcontains $fallback) { $mcpPorts += $fallback } }
 
 $mcpUp = $false
-try
+$mcpPort = $mcpPorts[0]
+foreach ($candidate in $mcpPorts)
 {
-    $tcp = New-Object System.Net.Sockets.TcpClient
-    $iar = $tcp.BeginConnect('127.0.0.1', $mcpPort, $null, $null)
-    if ($iar.AsyncWaitHandle.WaitOne(300, $false))
+    try
     {
-        try
+        $tcp = New-Object System.Net.Sockets.TcpClient
+        $iar = $tcp.BeginConnect('127.0.0.1', $candidate, $null, $null)
+        if ($iar.AsyncWaitHandle.WaitOne(300, $false))
         {
-            $tcp.EndConnect($iar)
-            $mcpUp = $tcp.Connected
+            try
+            {
+                $tcp.EndConnect($iar)
+                $mcpUp = $tcp.Connected
+            }
+            catch
+            {
+                $mcpUp = $false
+            }
         }
-        catch
-        {
-            $mcpUp = $false
-        }
+        $tcp.Close()
     }
-    $tcp.Close()
+    catch
+    {
+        $mcpUp = $false
+    }
+    if ($mcpUp) { $mcpPort = $candidate; break }
 }
-catch
-{
-    $mcpUp = $false
-}
+if (-not $mcpUp) { $mcpPort = ($mcpPorts -join '/') }
 
 # Ledger — TSV, header on first write.
 $ledger = Join-Path $paths.CommonDir 'wm-commit-log.tsv'
