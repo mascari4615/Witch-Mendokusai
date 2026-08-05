@@ -385,7 +385,7 @@ namespace WitchMendokusai
 		/// <summary> 고른 건물을 판다 — 창에서 바로(손이 규칙을 기억하지 않게). </summary>
 		private void SellSelected()
 		{
-			ArenaCombatant selected = placement.SelectedBuilding;
+			MatchCombatant selected = placement.SelectedBuilding;
 			if (match == null || selected == null)
 				return;
 
@@ -470,7 +470,7 @@ namespace WitchMendokusai
 			if (hud == null)
 				return;
 
-			ArenaCombatant selected = placement.SelectedBuilding;
+			MatchCombatant selected = placement.SelectedBuilding;
 			if (selected == null || selected.IsAlive == false)
 			{
 				hud.ShowSelection(null, canResearch: false, researchLevel: 0, researchCost: 0);

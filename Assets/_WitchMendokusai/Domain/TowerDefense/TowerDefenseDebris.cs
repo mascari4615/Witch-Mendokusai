@@ -85,7 +85,7 @@ namespace WitchMendokusai
 				if ((candidate.Position - position).sqrMagnitude > radiusSqr)
 					continue;
 
-				ArenaCombatant combatant = candidate as ArenaCombatant;
+				MatchCombatant combatant = candidate as MatchCombatant;
 				if (combatant == null || combatant.UnitObject == null)
 					continue;
 

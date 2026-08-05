@@ -16,6 +16,6 @@ namespace WitchMendokusai
 		/// 현재 팀 상태로 매치 종료 여부 판정. 반환 true = 종료(winnerTeamId = 승리 팀, 무승부면 NO_WINNER),
 		/// false = 진행 중(winnerTeamId = NO_WINNER). 매 틱 호출되므로 부작용 없는 순수 판정만.
 		/// </summary>
-		public abstract bool CheckVictory(IReadOnlyList<ArenaTeam> teams, out int winnerTeamId);
+		public abstract bool CheckVictory(IReadOnlyList<MatchTeam> teams, out int winnerTeamId);
 	}
 }

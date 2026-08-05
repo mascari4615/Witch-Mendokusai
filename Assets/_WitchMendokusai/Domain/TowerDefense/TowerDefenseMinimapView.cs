@@ -117,7 +117,7 @@ namespace WitchMendokusai
 			}
 
 			// 마수 — 밝힌 곳만. 안 가본 자리를 미니맵이 알려주면 시야가 무의미해진다.
-			foreach (ArenaCombatant enemy in match.WaveEnemies)
+			foreach (MatchCombatant enemy in match.WaveEnemies)
 			{
 				if (enemy == null || enemy.IsAlive == false)
 					continue;

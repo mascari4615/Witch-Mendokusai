@@ -10,7 +10,7 @@ namespace WitchMendokusai
 	[CreateAssetMenu(fileName = nameof(BrawlArenaMode), menuName = "WM/Arena/BrawlArenaMode")]
 	public class BrawlArenaMode : ArenaModeSO
 	{
-		public override bool CheckVictory(IReadOnlyList<ArenaTeam> teams, out int winnerTeamId)
+		public override bool CheckVictory(IReadOnlyList<MatchTeam> teams, out int winnerTeamId)
 		{
 			winnerTeamId = NO_WINNER;
 			if (teams == null || teams.Count == 0)
@@ -18,7 +18,7 @@ namespace WitchMendokusai
 
 			int aliveTeamCount = 0;
 			int lastAliveTeamId = NO_WINNER;
-			foreach (ArenaTeam team in teams)
+			foreach (MatchTeam team in teams)
 			{
 				if (team != null && team.AnyAlive())
 				{

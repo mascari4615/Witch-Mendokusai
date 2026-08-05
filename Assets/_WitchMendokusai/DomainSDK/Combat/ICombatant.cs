@@ -3,8 +3,8 @@ using UnityEngine;
 namespace WitchMendokusai
 {
 	/// <summary>
-	/// 아레나 매치의 전투 참가자 — 진영(TeamId) + 생존/위치/HP. IDamageSource(공격자 마커) 확장.
-	/// Domain(ArenaCombatant)이 UnitObject 를 래핑해 구현. DomainSDK 가 Domain 타입 직접 의존 회피.
+	/// 매치(투기장·개척 등)의 전투 참가자 — 진영(TeamId) + 생존/위치/HP. IDamageSource(공격자 마커) 확장.
+	/// Domain(MatchCombatant)이 UnitObject 를 래핑해 구현. DomainSDK 가 Domain 타입 직접 의존 회피.
 	/// TargetingSystem 은 이 인터페이스만 보고 동작 → EditMode 에서 스텁으로 테스트 가능.
 	/// </summary>
 	public interface ICombatant : IDamageSource

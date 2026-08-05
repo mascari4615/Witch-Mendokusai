@@ -901,7 +901,7 @@ namespace WitchMendokusai.EditorTools
 
 		private static void DumpWaveEnemies(double elapsed)
 		{
-			ArenaCombatant core = match.CoreCombatant;
+			MatchCombatant core = match.CoreCombatant;
 			Debug.LogWarning(TAG + " STUCK-ASSAULT 판 시계 " + elapsed.ToString("F1") + "s 동안 마릿수 그대로 — wave=" + match.WaveIndex
 				+ " coreAliveCount=" + match.AliveEnemyCount + " tracked=" + match.WaveEnemies.Count
 				+ " 판시계=" + match.SurvivedSeconds + "s timeScale=" + Time.timeScale.ToString("F1"));
@@ -924,7 +924,7 @@ namespace WitchMendokusai.EditorTools
 
 			for (int index = 0; index < match.WaveEnemies.Count; index++)
 			{
-				ArenaCombatant enemy = match.WaveEnemies[index];
+				MatchCombatant enemy = match.WaveEnemies[index];
 				if (enemy == null)
 				{
 					Debug.Log(TAG + " STUCK-ENEMY[" + index + "] null(파괴됨)");
@@ -956,7 +956,7 @@ namespace WitchMendokusai.EditorTools
 				if (combatant == null || combatant.TeamId != 0)
 					continue; // 수비측만(코어/포탑/채집).
 
-				ArenaCombatant arena = combatant as ArenaCombatant;
+				MatchCombatant arena = combatant as MatchCombatant;
 				UnitObject unit = arena != null ? arena.UnitObject : null;
 				if (unit == null)
 					continue;
@@ -1841,17 +1841,17 @@ namespace WitchMendokusai.EditorTools
 			if (match == null)
 				return;
 
-			ArenaCombatant target = null;
+			MatchCombatant target = null;
 			foreach (ICombatant combatant in match.RegisteredCombatants)
 			{
-				if (combatant is ArenaCombatant arenaCombatant == false)
+				if (combatant is MatchCombatant matchCombatant == false)
 					continue;
-				if (arenaCombatant.TeamId != 0 || arenaCombatant.IsAlive == false)
+				if (matchCombatant.TeamId != 0 || matchCombatant.IsAlive == false)
 					continue;
-				if (match.CoreCombatant != null && arenaCombatant == match.CoreCombatant)
+				if (match.CoreCombatant != null && matchCombatant == match.CoreCombatant)
 					continue;
 
-				target = arenaCombatant;
+				target = matchCombatant;
 				break;
 			}
 
@@ -1892,17 +1892,17 @@ namespace WitchMendokusai.EditorTools
 
 			// ★ *살아 있는* 건물을 고른다 — 앞서 판매 확인이 시험용 포탑을 팔아버려서, 그 자리를 누르면
 			//   빈 땅을 누르는 꼴이 된다(그래서 패널이 영영 안 열렸다). 코어는 선택 대상이 아니다.
-			ArenaCombatant target = null;
+			MatchCombatant target = null;
 			foreach (ICombatant combatant in match.RegisteredCombatants)
 			{
-				if (combatant is ArenaCombatant arenaCombatant == false)
+				if (combatant is MatchCombatant matchCombatant == false)
 					continue;
-				if (arenaCombatant.TeamId != 0 || arenaCombatant.IsAlive == false)
+				if (matchCombatant.TeamId != 0 || matchCombatant.IsAlive == false)
 					continue;
-				if (match.CoreCombatant != null && arenaCombatant == match.CoreCombatant)
+				if (match.CoreCombatant != null && matchCombatant == match.CoreCombatant)
 					continue;
 
-				target = arenaCombatant;
+				target = matchCombatant;
 				break;
 			}
 
@@ -2056,8 +2056,8 @@ namespace WitchMendokusai.EditorTools
 				return 0;
 
 			int count = 0;
-			ArenaCombatant[] combatants = Object.FindObjectsByType<ArenaCombatant>(FindObjectsInactive.Exclude);
-			foreach (ArenaCombatant combatant in combatants)
+			MatchCombatant[] combatants = Object.FindObjectsByType<MatchCombatant>(FindObjectsInactive.Exclude);
+			foreach (MatchCombatant combatant in combatants)
 			{
 				if (combatant.TeamId != 1 || combatant.IsAlive == false)
 					continue;

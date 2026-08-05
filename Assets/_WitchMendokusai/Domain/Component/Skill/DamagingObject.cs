@@ -30,8 +30,8 @@ namespace WitchMendokusai
 		private int curHitCount;
 
 		private SkillObject skillObject = null;
-		// 아레나 매치 중이면 공격자의 ArenaCombatant(팀 판정용). 비-아레나면 null → 레거시 적아판정.
-		private ArenaCombatant ownerCombatant = null;
+		// 아레나 매치 중이면 공격자의 MatchCombatant(팀 판정용). 비-아레나면 null → 레거시 적아판정.
+		private MatchCombatant ownerCombatant = null;
 		private Dictionary<GameObject, int> hitFrames = new();
 
 		private PlayerProvider playerProvider;
@@ -84,12 +84,12 @@ namespace WitchMendokusai
 						_ => VictimKind.Other,
 					};
 
-					bool ownerInArena = ownerCombatant != null;
-					bool victimInArena = other.TryGetComponent(out ArenaCombatant victimCombatant);
+					bool ownerInMatch = ownerCombatant != null;
+					bool victimInMatch = other.TryGetComponent(out MatchCombatant victimCombatant);
 
-					bool shouldDamage = ArenaCombatRules.ShouldDamage(
-						ownerInArena, ownerInArena ? ownerCombatant.TeamId : -1,
-						victimInArena, victimInArena ? victimCombatant.TeamId : -1,
+					bool shouldDamage = CombatRules.ShouldDamage(
+						ownerInMatch, ownerInMatch ? ownerCombatant.TeamId : -1,
+						victimInMatch, victimInMatch ? victimCombatant.TeamId : -1,
 						usedByPlayer, victimKind);
 
 					if (shouldDamage)
@@ -118,9 +118,9 @@ namespace WitchMendokusai
 			curHitCount = hitCount;
 			damageBonus = 0;
 
-			// 아레나 경로 판정용 — 공격자(skill User)의 ArenaCombatant 캐싱. 비-아레나면 null.
+			// 아레나 경로 판정용 — 공격자(skill User)의 MatchCombatant 캐싱. 비-아레나면 null.
 			UnitObject owner = skillObject.Context != null ? skillObject.Context.User : null;
-			ownerCombatant = owner != null ? owner.GetComponent<ArenaCombatant>() : null;
+			ownerCombatant = owner != null ? owner.GetComponent<MatchCombatant>() : null;
 		}
 
 		private void TurnOff()

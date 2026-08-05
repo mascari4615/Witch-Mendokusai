@@ -211,7 +211,7 @@ namespace WitchMendokusai
 
 		private static bool IsSlowed(ICombatant target)
 		{
-			ArenaCombatant combatant = target as ArenaCombatant;
+			MatchCombatant combatant = target as MatchCombatant;
 			if (combatant == null || combatant.UnitObject == null)
 				return false;
 
@@ -295,7 +295,7 @@ namespace WitchMendokusai
 
 		private void ApplyHit(ICombatant target, float damageScale = 1f)
 		{
-			ArenaCombatant combatant = target as ArenaCombatant;
+			MatchCombatant combatant = target as MatchCombatant;
 			if (combatant == null || combatant.UnitObject == null)
 				return;
 

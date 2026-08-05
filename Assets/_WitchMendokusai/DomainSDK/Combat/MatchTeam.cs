@@ -7,12 +7,12 @@ namespace WitchMendokusai
 	/// Members = 전투 객체(ICombatant)만 — 전술(TacticProgram) 매핑은 ArenaMatch 가 별도 소유(item 8).
 	/// 승리는 "누가 살아있나"만 보므로 ICombatant 리스트로 충분(전술 미참조 = write-only 데드필드 회피).
 	/// </summary>
-	public class ArenaTeam
+	public class MatchTeam
 	{
 		public int TeamId { get; }
 		public List<ICombatant> Members { get; }
 
-		public ArenaTeam(int teamId, List<ICombatant> members)
+		public MatchTeam(int teamId, List<ICombatant> members)
 		{
 			TeamId = teamId;
 			Members = members ?? new List<ICombatant>();

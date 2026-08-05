@@ -11,18 +11,18 @@ namespace WitchMendokusai
 
 	/// <summary>
 	/// 적아(데미지 여부) 판정 — 순수 함수(DomainSDK, MonoBehaviour 의존 0 → EditMode 직접 테스트).
-	/// 아레나(공격자·피격자 둘 다 매치 참가자)면 팀 비교(다대다), 아니면 기존 usedByPlayer 2진 폴백.
+	/// 매치(투기장·개척 등 — 공격자·피격자 둘 다 매치 참가자)면 팀 비교(다대다), 아니면 기존 usedByPlayer 2진 폴백.
 	/// 레거시 분기는 DamagingObject 원본 switch 와 바이트 동등(도시/던전 PvE 회귀 0).
 	/// </summary>
-	public static class ArenaCombatRules
+	public static class CombatRules
 	{
 		public static bool ShouldDamage(
-			bool ownerInArena, int ownerTeamId,
-			bool victimInArena, int victimTeamId,
+			bool ownerInMatch, int ownerTeamId,
+			bool victimInMatch, int victimTeamId,
 			bool usedByPlayer, VictimKind victimKind)
 		{
-			// 아레나 경로: 양쪽 다 매치 참가자면 팀 비교(다른 팀 = 적대).
-			if (ownerInArena && victimInArena)
+			// 매치 경로: 양쪽 다 매치 참가자면 팀 비교(다른 팀 = 적대).
+			if (ownerInMatch && victimInMatch)
 				return ownerTeamId != victimTeamId;
 
 			// 레거시 폴백: 기존 2진 판정 그대로(MonsterObject/ResourceNode when usedByPlayer / Player when !usedByPlayer).

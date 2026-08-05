@@ -30,10 +30,10 @@ namespace WitchMendokusai.Tests
 		{
 			FakeCombatant a = new() { CombatantId = 0, TeamId = 0 };
 			FakeCombatant b = new() { CombatantId = 1, TeamId = 1 };
-			List<ArenaTeam> teams = new()
+			List<MatchTeam> teams = new()
 			{
-				new ArenaTeam(0, new List<ICombatant> { a }),
-				new ArenaTeam(1, new List<ICombatant> { b }),
+				new MatchTeam(0, new List<ICombatant> { a }),
+				new MatchTeam(1, new List<ICombatant> { b }),
 			};
 			ArenaMatchCore core = new(teams, Mode());
 
@@ -47,10 +47,10 @@ namespace WitchMendokusai.Tests
 		{
 			FakeCombatant a = new() { CombatantId = 0, TeamId = 0 };
 			FakeCombatant b = new() { CombatantId = 1, TeamId = 1 };
-			List<ArenaTeam> teams = new()
+			List<MatchTeam> teams = new()
 			{
-				new ArenaTeam(0, new List<ICombatant> { a }),
-				new ArenaTeam(1, new List<ICombatant> { b }),
+				new MatchTeam(0, new List<ICombatant> { a }),
+				new MatchTeam(1, new List<ICombatant> { b }),
 			};
 			ArenaMatchCore core = new(teams, Mode());
 
@@ -71,10 +71,10 @@ namespace WitchMendokusai.Tests
 		{
 			FakeCombatant a = new() { CombatantId = 0, TeamId = 0, IsAlive = false };
 			FakeCombatant b = new() { CombatantId = 1, TeamId = 1, IsAlive = false };
-			List<ArenaTeam> teams = new()
+			List<MatchTeam> teams = new()
 			{
-				new ArenaTeam(0, new List<ICombatant> { a }),
-				new ArenaTeam(1, new List<ICombatant> { b }),
+				new MatchTeam(0, new List<ICombatant> { a }),
+				new MatchTeam(1, new List<ICombatant> { b }),
 			};
 			ArenaMatchCore core = new(teams, Mode());
 
@@ -86,7 +86,7 @@ namespace WitchMendokusai.Tests
 		[Test]
 		public void Poll_NullMode_NeverConcludes()
 		{
-			List<ArenaTeam> teams = new() { new ArenaTeam(0, new List<ICombatant>()) };
+			List<MatchTeam> teams = new() { new MatchTeam(0, new List<ICombatant>()) };
 			ArenaMatchCore core = new(teams, null);
 
 			Assert.IsFalse(core.Poll(), "모드 없음 = 종료 안 함(방어)");
@@ -99,10 +99,10 @@ namespace WitchMendokusai.Tests
 			FakeCombatant a0 = new() { CombatantId = 0, TeamId = 0 };
 			FakeCombatant a1 = new() { CombatantId = 1, TeamId = 0 };
 			FakeCombatant b0 = new() { CombatantId = 2, TeamId = 1 };
-			List<ArenaTeam> teams = new()
+			List<MatchTeam> teams = new()
 			{
-				new ArenaTeam(0, new List<ICombatant> { a0, a1 }), // 2 생존
-				new ArenaTeam(1, new List<ICombatant> { b0 }),      // 1 생존
+				new MatchTeam(0, new List<ICombatant> { a0, a1 }), // 2 생존
+				new MatchTeam(1, new List<ICombatant> { b0 }),      // 1 생존
 			};
 			ArenaMatchCore core = new(teams, Mode(), 1.0f);
 
@@ -117,10 +117,10 @@ namespace WitchMendokusai.Tests
 		{
 			FakeCombatant a = new() { CombatantId = 0, TeamId = 0 };
 			FakeCombatant b = new() { CombatantId = 1, TeamId = 1 };
-			List<ArenaTeam> teams = new()
+			List<MatchTeam> teams = new()
 			{
-				new ArenaTeam(0, new List<ICombatant> { a }),
-				new ArenaTeam(1, new List<ICombatant> { b }),
+				new MatchTeam(0, new List<ICombatant> { a }),
+				new MatchTeam(1, new List<ICombatant> { b }),
 			};
 			ArenaMatchCore core = new(teams, Mode(), 1.0f);
 
@@ -134,10 +134,10 @@ namespace WitchMendokusai.Tests
 		{
 			FakeCombatant a = new() { CombatantId = 0, TeamId = 0 };
 			FakeCombatant b = new() { CombatantId = 1, TeamId = 1 };
-			List<ArenaTeam> teams = new()
+			List<MatchTeam> teams = new()
 			{
-				new ArenaTeam(0, new List<ICombatant> { a }),
-				new ArenaTeam(1, new List<ICombatant> { b }),
+				new MatchTeam(0, new List<ICombatant> { a }),
+				new MatchTeam(1, new List<ICombatant> { b }),
 			};
 			ArenaMatchCore core = new(teams, Mode(), 10f);
 

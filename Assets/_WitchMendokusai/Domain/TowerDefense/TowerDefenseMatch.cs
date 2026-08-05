@@ -7,7 +7,7 @@ namespace WitchMendokusai
 {
 	/// <summary>
 	/// 특수시공 개척(TD) 매치 오케스트레이터 — ArenaMatch 와 동형 셸(맵 생성 → 유닛 스폰(기존 풀, 자동 DI)
-	/// → ArenaCombatant/TacticDriver 부착 → TargetingSystem 등록 → TimeManager 틱으로 TowerDefenseCore 폴).
+	/// → MatchCombatant/TacticDriver 부착 → TargetingSystem 등록 → TimeManager 틱으로 TowerDefenseCore 폴).
 	/// 규칙 판단은 전부 순수 코어(TowerDefenseCore)에 있고 본 셸은 그 신호(TowerDefenseSignal)를 받아
 	/// 스폰/자원차감/정리 같은 actuation 만 수행 — Arena 아키텍처의 "코어=브레인, 셸=손발" 원칙 그대로 재사용.
 	/// 배치 UI/입력전략/게임모드진입/카메라는 별도 증분(본 셸은 매치 진행 자체만 담당).
@@ -25,7 +25,7 @@ namespace WitchMendokusai
 		private TimeManager timeManager;
 		private TargetingSystem targeting;
 		private TowerDefenseCore core;
-		private ArenaCombatant coreCombatant;
+		private MatchCombatant coreCombatant;
 		private int nextCombatantId;
 		private bool started;
 		private bool ticking;
@@ -39,7 +39,7 @@ namespace WitchMendokusai
 
 		// 매 틱 aliveEnemies 카운트용 — 죽거나 풀 반환된(null) 엔트리는 조회 시 제거(멱등 정리).
 		// 웨이브마다 SpawnWaveRoutine 시작에서 비움(이전 웨이브 잔여가 다음 웨이브에 누적되는 것 방지).
-		private readonly List<ArenaCombatant> waveEnemies = new();
+		private readonly List<MatchCombatant> waveEnemies = new();
 
 		// 자원 노드 점유 — 채집건물은 반드시 미점유 노드를 잡아야 가동(개척 리스크). index = stage.ResourceNodePositions 인덱스.
 		private readonly HashSet<int> claimedNodes = new();
@@ -80,7 +80,7 @@ namespace WitchMendokusai
 		private Transform heroTransform;
 		// 영웅을 실제로 걷게 하는 부품 — 좌표를 직접 옮기지 않는 이유는 세우는 곳의 ★ 주석 참고.
 		private UnitMovement heroMovement;
-		private ArenaCombatant heroCombatant;
+		private MatchCombatant heroCombatant;
 		private Vector3 heroTargetPosition;
 		private bool heroActive;
 
@@ -165,7 +165,7 @@ namespace WitchMendokusai
 		/// 곧 "코어가 세는 생존자와 화면에서 보이는 것이 다르다"는 뜻이라, 무엇이 살아 있다고
 		/// 집계되는지를 좌표·체력까지 직접 볼 수 있어야 원인을 짚는다(추측 금지).
 		/// </summary>
-		public IReadOnlyList<ArenaCombatant> WaveEnemies => waveEnemies;
+		public IReadOnlyList<MatchCombatant> WaveEnemies => waveEnemies;
 
 		/// <summary> 지금 판의 크기(월드 단위) — 미니맵이 좌표를 비율로 바꿀 때 쓴다. 판이 자라면 같이 커진다. </summary>
 		public float GroundWidth => activeGroundWidth;
@@ -183,7 +183,7 @@ namespace WitchMendokusai
 			get
 			{
 				int count = 0;
-				foreach (ArenaCombatant combatant in waveEnemies)
+				foreach (MatchCombatant combatant in waveEnemies)
 				{
 					if (combatant == null || combatant.IsAlive == false)
 						continue;
@@ -205,7 +205,7 @@ namespace WitchMendokusai
 		public TowerDefenseStageSO Stage => stage;
 
 		/// <summary> 코어 참가자(진단용) — 적이 코어를 실제로 때리고 있는지 체력으로 확인한다. </summary>
-		public ArenaCombatant CoreCombatant => coreCombatant;
+		public MatchCombatant CoreCombatant => coreCombatant;
 
 		/// <summary> 매치에 등록된 전 참가자(진단용) — 수비 유닛 생존 여부 확인. </summary>
 		public IReadOnlyList<ICombatant> RegisteredCombatants => registeredCombatants;
@@ -882,9 +882,9 @@ namespace WitchMendokusai
 		//   그쪽 출구가 닫힌다 — 「버틴다」에서 「밀어낸다」로 게임의 동사가 하나 늘어난다.
 		// ★ 왜 마수 프리팹으로 세우나: 포탑은 *마수 목록에 있는 것*만 쏜다. 둥지를 같은 종류로 세우면
 		//   조준·피해·격파 보상 경로를 하나도 새로 만들지 않고 그대로 재사용한다.
-		private readonly List<(ArenaCombatant Combatant, Vector3 LocalPosition)> nests = new();
+		private readonly List<(MatchCombatant Combatant, Vector3 LocalPosition)> nests = new();
 		// 둥지인지 즉시 알기 위한 집합 — 「쏠 대상」과 「쳐들어오는 마수」를 가르는 기준.
-		private readonly HashSet<ArenaCombatant> nestCombatants = new();
+		private readonly HashSet<MatchCombatant> nestCombatants = new();
 		private bool nestsEverSpawned; // 처음부터 둥지가 없던 판(옛 방식)을 「전멸」로 오인하지 않게.
 
 		// 이 판에서 부순 둥지 자리 — 이어할 때 그 자리엔 다시 안 선다.
@@ -920,15 +920,13 @@ namespace WitchMendokusai
 
 				GameObject nestObject = spawned.GameObject;
 				UnitObject nestUnit = spawned.UnitObject;
-				ArenaCombatant nestCombatant = spawned.Combatant;
+				MatchCombatant nestCombatant = spawned.Combatant;
 
 				yield return null;
 				if (core == null)
 					yield break;
 
-				// 둥지는 걷지 않는다 — 브레인·이동을 끄고 자리에 못 박는다.
-				foreach (UnitBrain brain in nestUnit.GetComponents<UnitBrain>())
-					brain.enabled = false;
+				// 둥지는 걷지 않는다 — 이동을 끄고 자리에 못 박는다(브레인은 세우는 문이 이미 껐다).
 				UnityEngine.AI.NavMeshAgent nestAgent = nestObject.GetComponent<UnityEngine.AI.NavMeshAgent>();
 				if (nestAgent != null)
 					nestAgent.enabled = false;
@@ -956,7 +954,7 @@ namespace WitchMendokusai
 		{
 			for (int index = nests.Count - 1; index >= 0; index--)
 			{
-				(ArenaCombatant combatant, Vector3 localPosition) = nests[index];
+				(MatchCombatant combatant, Vector3 localPosition) = nests[index];
 				if (combatant != null && combatant.IsAlive)
 					continue;
 
@@ -987,9 +985,9 @@ namespace WitchMendokusai
 			}
 		}
 
-		private bool IsNest(ArenaCombatant combatant)
+		private bool IsNest(MatchCombatant combatant)
 		{
-			foreach ((ArenaCombatant nest, Vector3 _) in nests)
+			foreach ((MatchCombatant nest, Vector3 _) in nests)
 			{
 				if (nest == combatant)
 					return true;
@@ -1005,7 +1003,7 @@ namespace WitchMendokusai
 		{
 			get
 			{
-				foreach ((ArenaCombatant nest, Vector3 _) in nests)
+				foreach ((MatchCombatant nest, Vector3 _) in nests)
 				{
 					if (nest != null && nest.IsAlive)
 						yield return nest.Position;
@@ -1014,7 +1012,7 @@ namespace WitchMendokusai
 		}
 
 		/// <summary> 그 마수가 둥지인가 — 화면이 둘을 다르게 그린다. </summary>
-		public bool IsNestCombatant(ArenaCombatant combatant) => IsNest(combatant);
+		public bool IsNestCombatant(MatchCombatant combatant) => IsNest(combatant);
 
 		/// <summary>
 		/// 인형 하나가 판에 서기까지의 *공통 절차* 결과 — 코루틴은 값을 못 돌려주므로 담아서 준다.
@@ -1023,7 +1021,7 @@ namespace WitchMendokusai
 		{
 			public GameObject GameObject;
 			public UnitObject UnitObject;
-			public ArenaCombatant Combatant;
+			public MatchCombatant Combatant;
 			public bool Ok;
 		}
 
@@ -1078,16 +1076,15 @@ namespace WitchMendokusai
 				yield break;
 			}
 
-			unitObject.Init(unitData);
-			unitObject.SkillHandler.AutoCastEnabled = false; // 트랩#1 — 안 끄면 그 인형만 혼자 스킬을 쏜다.
-
-			ArenaCombatant combatant = unitGameObject.GetComponent<ArenaCombatant>();
-			if (combatant == null)
-				combatant = unitGameObject.AddComponent<ArenaCombatant>();
-			combatant.SetTeam(team, nextCombatantId++);
+			// Init → 트랩#1(자동시전 차단) → MatchCombatant 부여 = 투기장과 공유하는 편입 절차.
+			MatchCombatant combatant = CombatUnitSpawner.Enlist(unitObject, unitData, team, nextCombatantId++);
 
 			ApplyReadability(unitObject, tint, scale);
 			unitGameObject.SetActive(true);
+
+			// 트랩#2 — 다섯 경로(코어·마수·둥지·수비대·영웅)가 예외 없이 하던 것이라 관문 안으로 들였다.
+			// 활성화 *뒤*라야 OnEnable 로 뜬 코루틴이 OnDisable 로 멈춘다.
+			CombatUnitSpawner.SilenceBrains(unitGameObject);
 
 			targeting.Register(combatant);
 			registeredCombatants.Add(combatant);
@@ -1116,13 +1113,9 @@ namespace WitchMendokusai
 
 			GameObject coreGameObject = spawned.GameObject;
 			UnitObject coreUnitObject = spawned.UnitObject;
-			ArenaCombatant combatant = spawned.Combatant;
+			MatchCombatant combatant = spawned.Combatant;
 
-			// 여기부터는 *코어만의 것*이다.
-			// 트랩#2: 프리팹 내장 FSM 이 TacticDriver(방어유닛)와 채널 경쟁하지 않도록 일괄 비활성.
-			foreach (UnitBrain brain in coreUnitObject.GetComponents<UnitBrain>())
-				brain.enabled = false;
-
+			// 여기부터는 *코어만의 것*이다. (트랩#2 브레인 비활성은 세우는 문이 이미 했다.)
 			targeting.RegisterObjective(combatant); // 적이 전진할 목표물 — 일반 등록과 직교, 둘 다 필요.
 
 			coreCombatant = combatant;
@@ -1264,7 +1257,7 @@ namespace WitchMendokusai
 
 				GameObject enemyGameObject = spawned.GameObject;
 				UnitObject enemyUnitObject = spawned.UnitObject;
-				ArenaCombatant enemyCombatant = spawned.Combatant;
+				MatchCombatant enemyCombatant = spawned.Combatant;
 				enemyBountyById[enemyCombatant.CombatantId] = archetype != null ? archetype.Bounty : core.BountyPerKill;
 
 				// ★ 스탯 배수는 *켠 다음 프레임*에 씌운다. UnitObject.Start 가 UnitData 로 스탯을 통째 다시
@@ -1276,9 +1269,6 @@ namespace WitchMendokusai
 				ApplyArchetypeStats(enemyUnitObject, archetype, stage != null ? stage.EnemyMoveSpeedMultiplier : 1f);
 				ApplyPressure(enemyUnitObject); // 오래 버틸수록 단단해진다 — 실시간의 난이도는 시간이 올린다.
 				ApplyWaveEventStats(enemyUnitObject, waveEvent);
-
-				foreach (UnitBrain brain in enemyUnitObject.GetComponents<UnitBrain>()) // 트랩#2.
-					brain.enabled = false;
 
 				TacticDriver enemyDriver = enemyUnitObject.GetComponent<TacticDriver>();
 				if (enemyDriver == null)
@@ -1371,7 +1361,7 @@ namespace WitchMendokusai
 
 			for (int index = waveEnemies.Count - 1; index >= 0; index--)
 			{
-				ArenaCombatant enemy = waveEnemies[index];
+				MatchCombatant enemy = waveEnemies[index];
 				if (enemy == null || enemy.IsAlive == false)
 					continue;
 
@@ -1583,9 +1573,6 @@ namespace WitchMendokusai
 					Mathf.Max(1, Mathf.RoundToInt(stage.HeroMoveSpeed * InputContributor.STAT_PER_UNIT_PER_SECOND));
 			}
 
-			foreach (UnitBrain brain in heroUnitObject.GetComponents<UnitBrain>())
-				brain.enabled = false;
-
 			if (stage.HeroArchetype != null)
 			{
 				TowerDefenseWeapon heroWeapon = heroUnitObject.GetComponent<TowerDefenseWeapon>();
@@ -1784,7 +1771,7 @@ namespace WitchMendokusai
 		/// 수단이 없으면, 색과 크기만으로 짐작해야 한다(사용자 요청: 유닛 툴팁).
 		/// 모르는 대상이면 빈 문자열 — 아무거나 지어내지 않는다.
 		/// </summary>
-		public string DescribeUnit(ArenaCombatant combatant)
+		public string DescribeUnit(MatchCombatant combatant)
 		{
 			if (combatant == null || combatant.UnitObject == null)
 				return string.Empty;
@@ -2024,7 +2011,7 @@ namespace WitchMendokusai
 		public int ResearchLevel => LabCount;
 
 		/// <summary> 그 대상이 코어인가 — 화면이 「연구」 패널을 띄울지 정한다. </summary>
-		public bool IsCore(ArenaCombatant combatant) => combatant != null && combatant == coreCombatant;
+		public bool IsCore(MatchCombatant combatant) => combatant != null && combatant == coreCombatant;
 
 		/// <summary>
 		/// 건물마다 「지금 얼마나 찼나 / 일하고 있나」를 이름표에 채워 넣는다.
@@ -2181,7 +2168,7 @@ namespace WitchMendokusai
 		/// 확인용 건물 경험치 — 강화 선택지가 실제로 걸린 화면을 재려면 그 건물이 자라야 한다.
 		/// ★ 값만 준다 — 무엇이 몇 장 나오나는 그대로 통과시켜야 확인이 의미가 있다.
 		/// </summary>
-		public bool GrantBuildingExperienceForVerification(ArenaCombatant combatant, int amount)
+		public bool GrantBuildingExperienceForVerification(MatchCombatant combatant, int amount)
 		{
 			TowerDefenseDollLabel doll = FindDoll(combatant);
 			if (doll == null)
@@ -2449,13 +2436,13 @@ namespace WitchMendokusai
 		}
 
 		/// <summary> 고른 건물의 성장 정보(없으면 null) — 화면이 선택지를 그릴 때 쓴다. </summary>
-		public TowerDefenseDollLabel FindDoll(ArenaCombatant combatant)
+		public TowerDefenseDollLabel FindDoll(MatchCombatant combatant)
 		{
 			return combatant != null ? FindDollLabel(combatant.transform) : null;
 		}
 
 		/// <summary> 고른 건물의 레벨업 선택지를 확정한다. </summary>
-		public bool ChooseBuildingPerk(ArenaCombatant combatant, TowerDefenseBuildingPerk perk)
+		public bool ChooseBuildingPerk(MatchCombatant combatant, TowerDefenseBuildingPerk perk)
 		{
 			TowerDefenseDollLabel doll = FindDoll(combatant);
 			if (doll == null || doll.Progress.Choose(perk) == false)
@@ -3084,7 +3071,7 @@ namespace WitchMendokusai
 
 			for (int index = waveEnemies.Count - 1; index >= 0; index--)
 			{
-				ArenaCombatant enemy = waveEnemies[index];
+				MatchCombatant enemy = waveEnemies[index];
 				if (enemy == null || enemy.IsAlive == false)
 					continue;
 				if (IsAtAnyGoal(enemy.Position, leakRadiusSqr) == false)
@@ -3317,7 +3304,7 @@ namespace WitchMendokusai
 			if (vision == null)
 				return;
 
-			foreach (ArenaCombatant enemy in waveEnemies)
+			foreach (MatchCombatant enemy in waveEnemies)
 			{
 				if (enemy == null || enemy.UnitObject == null)
 					continue;
@@ -3356,7 +3343,7 @@ namespace WitchMendokusai
 
 			float moveEpsilonSqr = stage.StuckMoveEpsilon * stage.StuckMoveEpsilon;
 
-			foreach (ArenaCombatant enemy in waveEnemies)
+			foreach (MatchCombatant enemy in waveEnemies)
 			{
 				if (enemy == null || enemy.IsAlive == false)
 					continue;
@@ -3450,7 +3437,7 @@ namespace WitchMendokusai
 			if (core == null)
 				return;
 
-			foreach (ArenaCombatant enemy in waveEnemies)
+			foreach (MatchCombatant enemy in waveEnemies)
 			{
 				if (enemy == null || enemy.IsAlive)
 					continue;
@@ -3562,7 +3549,7 @@ namespace WitchMendokusai
 
 			foreach (ICombatant combatant in registeredCombatants)
 			{
-				if (combatant is not ArenaCombatant defender || defender.IsAlive == false)
+				if (combatant is not MatchCombatant defender || defender.IsAlive == false)
 					continue;
 				if (defender.TeamId != DEFENDER_TEAM || defender.UnitObject == null)
 					continue;
@@ -3599,7 +3586,7 @@ namespace WitchMendokusai
 		{
 			for (int index = waveEnemies.Count - 1; index >= 0; index--)
 			{
-				ArenaCombatant enemy = waveEnemies[index];
+				MatchCombatant enemy = waveEnemies[index];
 				if (enemy == null || enemy.IsAlive == false)
 					waveEnemies.RemoveAt(index);
 			}
@@ -3611,7 +3598,7 @@ namespace WitchMendokusai
 			int count = 0;
 			for (int index = waveEnemies.Count - 1; index >= 0; index--)
 			{
-				ArenaCombatant combatant = waveEnemies[index];
+				MatchCombatant combatant = waveEnemies[index];
 				if (combatant == null)
 				{
 					waveEnemies.RemoveAt(index);
@@ -3838,7 +3825,7 @@ namespace WitchMendokusai
 
 		private void ReleaseSoldUnit(GameObject sold)
 		{
-			ArenaCombatant combatant = sold.GetComponent<ArenaCombatant>();
+			MatchCombatant combatant = sold.GetComponent<MatchCombatant>();
 			if (combatant != null && targeting != null)
 			{
 				targeting.Unregister(combatant);
@@ -3951,10 +3938,7 @@ namespace WitchMendokusai
 
 			GameObject unitGameObject = spawned.GameObject;
 			UnitObject unitObject = spawned.UnitObject;
-			ArenaCombatant combatant = spawned.Combatant;
-
-			foreach (UnitBrain brain in unitObject.GetComponents<UnitBrain>()) // 트랩#2.
-				brain.enabled = false;
+			MatchCombatant combatant = spawned.Combatant;
 
 			if (tactic != null)
 			{

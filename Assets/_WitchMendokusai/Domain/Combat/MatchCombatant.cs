@@ -8,7 +8,7 @@ namespace WitchMendokusai
 	/// 매치 스코프 진영(로어 UnitAffiliation 과 별개).
 	/// </summary>
 	[RequireComponent(typeof(UnitObject))]
-	public class ArenaCombatant : MonoBehaviour, ICombatant
+	public class MatchCombatant : MonoBehaviour, ICombatant
 	{
 		private UnitObject unitObject;
 

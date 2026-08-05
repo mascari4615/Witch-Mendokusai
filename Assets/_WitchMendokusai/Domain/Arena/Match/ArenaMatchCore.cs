@@ -9,7 +9,7 @@ namespace WitchMendokusai
 	/// </summary>
 	public class ArenaMatchCore
 	{
-		private readonly IReadOnlyList<ArenaTeam> teams;
+		private readonly IReadOnlyList<MatchTeam> teams;
 		private readonly ArenaModeSO mode;
 		private readonly float timeLimitSeconds; // <= 0 = 무제한.
 		private float elapsedSeconds;
@@ -21,7 +21,7 @@ namespace WitchMendokusai
 		// ⚠ v1 BrawlArenaMode 전제 — 미래 Objective/Lane 모드 추가 시 "전멸" 라벨 매핑 분기 필요.
 		public bool ConcludedByElimination { get; private set; }
 
-		public ArenaMatchCore(IReadOnlyList<ArenaTeam> teams, ArenaModeSO mode, float timeLimitSeconds = 0f)
+		public ArenaMatchCore(IReadOnlyList<MatchTeam> teams, ArenaModeSO mode, float timeLimitSeconds = 0f)
 		{
 			this.teams = teams;
 			this.mode = mode;
@@ -74,7 +74,7 @@ namespace WitchMendokusai
 			int bestAlive = -1;
 			bool tie = false;
 
-			foreach (ArenaTeam team in teams)
+			foreach (MatchTeam team in teams)
 			{
 				if (team == null)
 					continue;

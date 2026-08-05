@@ -7,7 +7,7 @@ namespace WitchMendokusai
 	/// 실제 행동(ITacticActuator)은 UnitObject(SkillHandler/UnitMovement)에 적용.
 	/// ArenaMatch 가 Initialize 로 deps(전술/타겟팅/틱) 주입. RecompileTactic = 일시정지 핫스왑.
 	/// </summary>
-	[RequireComponent(typeof(ArenaCombatant))]
+	[RequireComponent(typeof(MatchCombatant))]
 	public class TacticDriver : MonoBehaviour, ITacticActuator
 	{
 		[Header("접근 정지 (겹침 방지 — TASK-WM-194)")]
@@ -32,7 +32,7 @@ namespace WitchMendokusai
 		private float RING_SLOT_SPACING => ringSlotSpacing;
 		private int RING_SLOT_COUNT => ringSlotCount;
 
-		private ArenaCombatant self;
+		private MatchCombatant self;
 		private UnitObject unitObject;
 		private TimeManager timeManager;
 		private TacticBTRunner runner;
@@ -40,7 +40,7 @@ namespace WitchMendokusai
 
 		private void Awake()
 		{
-			self = GetComponent<ArenaCombatant>();
+			self = GetComponent<MatchCombatant>();
 			unitObject = GetComponent<UnitObject>();
 		}
 
@@ -99,7 +99,7 @@ namespace WitchMendokusai
 
 		public void UseSkill(int skillSlot, ICombatant target)
 		{
-			UnitObject targetUnit = (target as ArenaCombatant)?.UnitObject;
+			UnitObject targetUnit = (target as MatchCombatant)?.UnitObject;
 			unitObject.SkillHandler.UseSkill(skillSlot, targetUnit);
 
 			// 걸으면서 쏘는 유닛은 *조준 때문에 목적지를 잊으면* 안 된다. 공격 룰이 선택되는 동안

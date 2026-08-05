@@ -20,14 +20,14 @@ namespace WitchMendokusai.Tests
 			public int HpMax { get; set; } = 100;
 		}
 
-		private static ArenaTeam Team(int teamId, params bool[] aliveFlags)
+		private static MatchTeam Team(int teamId, params bool[] aliveFlags)
 		{
 			List<ICombatant> members = new();
 			for (int i = 0; i < aliveFlags.Length; i++)
 			{
 				members.Add(new FakeCombatant { CombatantId = (teamId * 10) + i, TeamId = teamId, IsAlive = aliveFlags[i] });
 			}
-			return new ArenaTeam(teamId, members);
+			return new MatchTeam(teamId, members);
 		}
 
 		private static BrawlArenaMode Mode()
@@ -39,7 +39,7 @@ namespace WitchMendokusai.Tests
 		public void TwoTeamsAlive_MatchOngoing()
 		{
 			BrawlArenaMode mode = Mode();
-			List<ArenaTeam> teams = new() { Team(0, true, true, true), Team(1, true, true, true) };
+			List<MatchTeam> teams = new() { Team(0, true, true, true), Team(1, true, true, true) };
 
 			bool over = mode.CheckVictory(teams, out int winnerTeamId);
 
@@ -51,7 +51,7 @@ namespace WitchMendokusai.Tests
 		public void OneTeamWiped_OtherTeamWins()
 		{
 			BrawlArenaMode mode = Mode();
-			List<ArenaTeam> teams = new() { Team(0, false, false, false), Team(1, true, false, false) };
+			List<MatchTeam> teams = new() { Team(0, false, false, false), Team(1, true, false, false) };
 
 			bool over = mode.CheckVictory(teams, out int winnerTeamId);
 
@@ -63,7 +63,7 @@ namespace WitchMendokusai.Tests
 		public void AllTeamsWiped_Draw()
 		{
 			BrawlArenaMode mode = Mode();
-			List<ArenaTeam> teams = new() { Team(0, false, false), Team(1, false, false) };
+			List<MatchTeam> teams = new() { Team(0, false, false), Team(1, false, false) };
 
 			bool over = mode.CheckVictory(teams, out int winnerTeamId);
 
@@ -75,7 +75,7 @@ namespace WitchMendokusai.Tests
 		public void OneSurvivorPerTeam_StillOngoing()
 		{
 			BrawlArenaMode mode = Mode();
-			List<ArenaTeam> teams = new() { Team(0, false, false, true), Team(1, true, false, false) };
+			List<MatchTeam> teams = new() { Team(0, false, false, true), Team(1, true, false, false) };
 
 			bool over = mode.CheckVictory(teams, out int winnerTeamId);
 
@@ -91,7 +91,7 @@ namespace WitchMendokusai.Tests
 			Assert.IsFalse(mode.CheckVictory(null, out int winnerNull), "null = 진행(방어)");
 			Assert.AreEqual(ArenaModeSO.NO_WINNER, winnerNull);
 
-			Assert.IsFalse(mode.CheckVictory(new List<ArenaTeam>(), out int winnerEmpty), "빈 리스트 = 진행(방어)");
+			Assert.IsFalse(mode.CheckVictory(new List<MatchTeam>(), out int winnerEmpty), "빈 리스트 = 진행(방어)");
 			Assert.AreEqual(ArenaModeSO.NO_WINNER, winnerEmpty);
 		}
 	}

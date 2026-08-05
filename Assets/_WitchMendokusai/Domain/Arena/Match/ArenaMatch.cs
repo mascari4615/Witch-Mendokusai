@@ -5,7 +5,7 @@ using UnityEngine;
 namespace WitchMendokusai
 {
 	/// <summary>
-	/// 아레나 매치 오케스트레이터 — 맵 생성 → 유닛 스폰(기존 풀, 자동 DI) → ArenaCombatant/TacticDriver 부착
+	/// 아레나 매치 오케스트레이터 — 맵 생성 → 유닛 스폰(기존 풀, 자동 DI) → MatchCombatant/TacticDriver 부착
 	/// → TargetingSystem 등록 → TimeManager 틱으로 ArenaMatchCore 폴 → 종료 시 MatchEnded + 드라이버 정지.
 	/// 스코프 미배선(콘텐츠/item 9 슬라이스) — ObjectPoolManager/TimeManager 는 static Instance 로 캡처
 	/// (World 부팅 후 보장). item 9 에서 스코프 등록 시 [Inject] Construct 로 전환 예정.
@@ -21,7 +21,7 @@ namespace WitchMendokusai
 
 		private TargetingSystem targeting;
 		private ArenaMatchCore core;
-		private List<ArenaTeam> teams;
+		private List<MatchTeam> teams;
 		private readonly List<TacticDriver> drivers = new();
 		private bool started;
 		private bool ticking;
@@ -158,24 +158,15 @@ namespace WitchMendokusai
 				Vector3 localSpawn = teamSpawns.Count > 0 ? teamSpawns[memberIndex % teamSpawns.Count] : Vector3.zero;
 				unitGameObject.transform.position = arenaRoot.TransformPoint(localSpawn);
 
-				unitObject.Init(entry.UnitData);
-				// 트랩#1: 전술 코어가 유일 시전자 → 자동시전 즉시 차단. UnitObject.Init 보존 패치로 Start 재-Init 후도 유지.
-				unitObject.SkillHandler.AutoCastEnabled = false;
-
-				ArenaCombatant combatant = unitObject.GetComponent<ArenaCombatant>();
-				if (combatant == null)
-					combatant = unitObject.gameObject.AddComponent<ArenaCombatant>();
-				combatant.SetTeam(entry.TeamId, combatantId);
+				// Init → 트랩#1(자동시전 차단) → MatchCombatant 부여 = 개척과 공유하는 편입 절차.
+				MatchCombatant combatant = CombatUnitSpawner.Enlist(unitObject, entry.UnitData, entry.TeamId, combatantId);
 				combatantId++;
 
 				unitGameObject.SetActive(true);
 
-				// 자율 brain 격리 — prefab 내장 FSM(FSMSlime/FSMWisp 등)이 BT_MoveToPlayer 로 같은 UnitMovement 채널을
-				// TacticDriver 와 last-writer-wins 경쟁(패트롤/지터/전진실패) → 아레나 출전 유닛은 brain 비활성.
-				// SetActive(true) 직후라 OnEnable→코루틴 시작됨 → enabled=false 가 OnDisable→Dispose 로 코루틴 정지.
-				// UnitBrain 마커 베이스로 일괄(구체 타입 enumerate X = 새 brain 자동 격리).
-				foreach (UnitBrain brain in unitObject.GetComponents<UnitBrain>())
-					brain.enabled = false;
+				// 트랩#2 — prefab 내장 FSM(FSMSlime/FSMWisp 등)이 BT_MoveToPlayer 로 같은 UnitMovement 채널을
+				// TacticDriver 와 last-writer-wins 경쟁(패트롤/지터/전진실패)하므로 출전 유닛은 brain 비활성.
+				CombatUnitSpawner.SilenceBrains(unitGameObject);
 
 				// 팀 식별 틴트 — 팀0(욘/아군)=하늘색, 팀1(라이벌)=빨강. v1: 풀 반환 시 색 잔존(teardown/ArenaUnitObject 후속서 리셋).
 				if (unitObject.SpriteRenderer != null)
@@ -199,9 +190,9 @@ namespace WitchMendokusai
 				teamMembers[entry.TeamId].Add(combatant);
 			}
 
-			teams = new List<ArenaTeam>();
+			teams = new List<MatchTeam>();
 			foreach (KeyValuePair<int, List<ICombatant>> pair in teamMembers)
-				teams.Add(new ArenaTeam(pair.Key, pair.Value));
+				teams.Add(new MatchTeam(pair.Key, pair.Value));
 
 			core = new ArenaMatchCore(teams, config.Mode, config.TimeLimitSeconds);
 			timeManager.RegisterCallback(Tick);
@@ -234,7 +225,7 @@ namespace WitchMendokusai
 				string aliveSnapshot = "";
 				if (teams != null)
 				{
-					foreach (ArenaTeam team in teams)
+					foreach (MatchTeam team in teams)
 						aliveSnapshot += team.TeamId + ":" + team.AliveCount() + " ";
 				}
 				Debug.Log($"[Arena-Verify] MATCH-END runId={runId} reason={reason} winner={core.WinnerTeamId} hits={hitCount} ticks={tickCount} alive=[{aliveSnapshot.Trim()}]");

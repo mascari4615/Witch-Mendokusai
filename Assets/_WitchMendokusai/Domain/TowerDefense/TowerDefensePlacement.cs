@@ -235,22 +235,22 @@ namespace WitchMendokusai
 		/// 배치 레이캐스트와 *같은 레이*를 쓴다: 화면이 「여기」라고 말하는 곳과 툴팁이 말하는 대상이
 		/// 갈라지면 둘 중 하나는 거짓말이 된다.
 		/// </summary>
-		public ArenaCombatant HoveredUnit { get; private set; }
+		public MatchCombatant HoveredUnit { get; private set; }
 
 		/// <summary>
 		/// 지금 고른 건물(없으면 null) — 「이미 서 있는 것에 하는 일」(연구·강화)이 여기에 붙는다.
 		/// 무장하지 않은 클릭이 곧 선택이라, 짓는 손동작과 고르는 손동작이 섞이지 않는다.
 		/// </summary>
-		public ArenaCombatant SelectedBuilding { get; private set; }
+		public MatchCombatant SelectedBuilding { get; private set; }
 
 		/// <summary> 밖에서 건물을 골라 준다 — 「연구」 버튼처럼 화면이 여는 문. </summary>
-		public void SelectBuilding(ArenaCombatant building)
+		public void SelectBuilding(MatchCombatant building)
 		{
 			SelectedBuilding = building;
 			IsArmed = false; // 고르는 중엔 설치 대기가 아니다(다음 클릭이 건물을 세우면 안 된다).
 			BuildingSelected(SelectedBuilding);
 		}
-		public event System.Action<ArenaCombatant> BuildingSelected = delegate { };
+		public event System.Action<MatchCombatant> BuildingSelected = delegate { };
 		public Vector2 HoverScreenPosition { get; private set; }
 
 		private void UpdateHover(Vector2 screenPointerPosition)
@@ -270,11 +270,11 @@ namespace WitchMendokusai
 			Ray ray = raycastCamera.ScreenPointToRay(screenPointerPosition);
 			int hitCount = Physics.RaycastNonAlloc(ray, hoverHits, raycastDistance, ~0, QueryTriggerInteraction.Ignore);
 
-			ArenaCombatant nearest = null;
+			MatchCombatant nearest = null;
 			float nearestDistance = float.MaxValue;
 			for (int index = 0; index < hitCount; index++)
 			{
-				ArenaCombatant combatant = hoverHits[index].collider.GetComponentInParent<ArenaCombatant>();
+				MatchCombatant combatant = hoverHits[index].collider.GetComponentInParent<MatchCombatant>();
 				if (combatant == null || hoverHits[index].distance >= nearestDistance)
 					continue;
 
