@@ -38,6 +38,11 @@ namespace WitchMendokusai
 
 		protected override void BuildUI(VisualElement root)
 		{
+			// ★ 좌우 이동은 손으로 잡는다. 위아래(목록 안)는 기본 규칙이 알아서 하지만, 목록에서
+			//   오른쪽 시작 버튼으로는 넘어가지지 않았다(사용자 실증) — 기본 규칙은 화면상의 위치로
+			//   다음 대상을 *추측*하는데, 목록과 버튼이 서로 다른 상자에 담겨 있어 그 추측이 빗나간다.
+			//   어디로 갈지가 정해져 있는 창이므로 추측에 맡기지 않고 못 박는다.
+			root.RegisterCallback<NavigationMoveEvent>(OnNavigationMove);
 			root.style.flexGrow = 1;
 			root.style.flexDirection = FlexDirection.Column;
 			root.style.paddingLeft = 48;
@@ -201,6 +206,31 @@ namespace WitchMendokusai
 
 			Button target = entryButtons[Mathf.Clamp(selectedIndex, 0, entryButtons.Count - 1)];
 			target.schedule.Execute(() => target.Focus());
+		}
+
+		/// <summary>
+		/// 좌우 = 목록 ↔ 시작 버튼. 위아래는 손대지 않는다(목록 안 이동은 기본 규칙이 이미 맞게 한다).
+		/// 오른쪽으로 갔다가 왼쪽으로 오면 *고르던 그 항목*으로 돌아온다 — 처음으로 되감기면
+		/// 「내가 뭘 고르고 있었지」를 다시 찾아야 한다.
+		/// </summary>
+		private void OnNavigationMove(NavigationMoveEvent evt)
+		{
+			if (evt.direction == NavigationMoveEvent.Direction.Right)
+			{
+				if (enterButton == null || enterButton.style.display == DisplayStyle.None)
+					return;
+				enterButton.Focus();
+				evt.StopPropagation();
+				return;
+			}
+
+			if (evt.direction == NavigationMoveEvent.Direction.Left)
+			{
+				if (entryButtons.Count == 0)
+					return;
+				entryButtons[Mathf.Clamp(selectedIndex, 0, entryButtons.Count - 1)].Focus();
+				evt.StopPropagation();
+			}
 		}
 
 		public override void UpdateUI() => RefreshDetail();

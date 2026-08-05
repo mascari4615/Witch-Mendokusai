@@ -78,6 +78,8 @@ namespace WitchMendokusai
 
 		// 영웅 인형 — 유일하게 *움직이는* 내 편. 포탑과 같은 전투 표를 쓰되 자리를 내가 옮긴다.
 		private Transform heroTransform;
+		// 영웅을 실제로 걷게 하는 부품 — 좌표를 직접 옮기지 않는 이유는 세우는 곳의 ★ 주석 참고.
+		private UnitMovement heroMovement;
 		private ArenaCombatant heroCombatant;
 		private Vector3 heroTargetPosition;
 		private bool heroActive;
@@ -317,6 +319,7 @@ namespace WitchMendokusai
 			nextDollOrdinal = 0;
 			heroActive = false;
 			heroTransform = null;
+			heroMovement = null; // 남겨두면 다음 판이 지난 판의 몸을 붙잡고 걷게 시킨다.
 			heroCombatant = null;
 			heroVisionSourceIndex = -1;
 			heroRespawnRemaining = 0f;
@@ -1547,14 +1550,28 @@ namespace WitchMendokusai
 				heroBody.useGravity = false;
 			}
 
-			// 본편 이동 시스템(NavMeshAgent/UnitMovement)은 개척에서 통째로 끈다 — 개척 지면은 런타임 생성이라
-			// NavMesh 자체가 없고, 길찾기는 흐름장이 이미 한다. 켜두면 에이전트가 좌표를 도로 잡아당긴다(실측).
+			// 길찾기 에이전트(NavMeshAgent)만 끈다 — 개척 지면은 런타임 생성이라 NavMesh 자체가 없고,
+			// 켜두면 에이전트가 좌표를 도로 잡아당긴다(실측).
 			UnityEngine.AI.NavMeshAgent heroAgent = heroGameObject.GetComponent<UnityEngine.AI.NavMeshAgent>();
 			if (heroAgent != null)
 				heroAgent.enabled = false;
-			UnitMovement heroMovement = heroGameObject.GetComponent<UnitMovement>();
+
+			// ★ 이동 부품(UnitMovement)은 *켜 둔다*. 예전엔 이것까지 끄고 영웅 좌표를 매 틱 직접 옮겼는데,
+			//   그 하나가 사용자 실측 결함 셋을 한꺼번에 만들었다:
+			//   ① 뚝뚝 끊김 — 틱은 초당 20번이라 그 사이 프레임엔 영웅이 아예 안 움직인다(순간이동).
+			//   ② 벽 통과 — 좌표를 직접 쓰면 충돌을 아무도 안 본다. 이동 부품은 쓸어보고 미끄러진다.
+			//   ③ 마수가 밀려남 — 몸을 겹친 채 좌표만 옮기니 물리가 마수를 밀어내 해결한다.
+			//   마수는 원래부터 이 부품으로 걷는다 — 영웅만 체계 밖에 있었다.
+			heroMovement = heroGameObject.GetComponent<UnitMovement>();
 			if (heroMovement != null)
-				heroMovement.enabled = false;
+				heroMovement.enabled = true;
+
+			// 「초당 몇 칸」으로 적어둔 영웅 속도를 이동 부품이 읽는 스탯으로 옮긴다(환산 상수는 그쪽 정본).
+			if (heroUnitObject != null)
+			{
+				heroUnitObject.UnitStat[UnitStatType.MOVEMENT_SPEED] =
+					Mathf.Max(1, Mathf.RoundToInt(stage.HeroMoveSpeed * InputContributor.STAT_PER_UNIT_PER_SECOND));
+			}
 
 			foreach (UnitBrain brain in heroUnitObject.GetComponents<UnitBrain>())
 				brain.enabled = false;
@@ -1604,6 +1621,8 @@ namespace WitchMendokusai
 				// ★ 쓰러져도 영영 끝은 아니다(개선 목록 8번). 「한 명만 데려간다」의 무게는 *되돌리는 데
 				//   드는 값*으로 표현한다 — 돌아올 방법이 하나도 없는 건 무게가 아니라 그냥 벽이다.
 				heroActive = false;
+				// 걷던 명령을 지운다 — 안 지우면 쓰러진 몸이 반납될 때까지 계속 걷는다.
+				heroMovement?.SetMoveDirection(Vector3.zero);
 				heroRespawnRemaining = stage.HeroRespawnSeconds;
 				Debug.Log($"{nameof(TowerDefenseMatch)}: 영웅 쓰러짐 — {stage.HeroRespawnSeconds:F0}초 뒤 코어에서 일어난다.");
 				if (coreCombatant != null)
@@ -1611,16 +1630,23 @@ namespace WitchMendokusai
 				return;
 			}
 
-			Vector3 current = heroTransform.position;
-			Vector3 delta = heroTargetPosition - current;
+			if (heroMovement == null)
+				return;
+
+			Vector3 delta = heroTargetPosition - heroTransform.position;
 			delta.y = 0f;
 
-			float step = stage.HeroMoveSpeed * TimeManager.TICK;
-			if (delta.sqrMagnitude > step * step)
+			// 도착 판정은 *한 틱에 갈 거리*로 잡는다 — 더 좁게 잡으면 목표를 지나쳤다 되돌아오길 반복하며 떤다.
+			float arriveDistance = stage.HeroMoveSpeed * TimeManager.TICK;
+			if (delta.sqrMagnitude <= arriveDistance * arriveDistance)
 			{
-				heroTransform.position = current + delta.normalized * step;
-				RefreshHeroVision();
+				heroMovement.SetMoveDirection(Vector3.zero);
+				return;
 			}
+
+			// 방향만 준다 — 실제로 얼마나 가는지는 이동 부품이 매 프레임 정한다(그래서 부드럽고, 벽에 막힌다).
+			heroMovement.SetMoveDirection(delta.normalized);
+			RefreshHeroVision();
 		}
 
 		private float heroRespawnRemaining;
