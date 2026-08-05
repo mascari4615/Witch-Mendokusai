@@ -73,12 +73,25 @@ namespace WitchMendokusai
 		/// </param>
 		public static void MakeFloorDecal(Material material, bool aboveFog = false)
 		{
-			material.renderQueue = aboveFog
-				// 안개(반투명 줄) 다음 — 커서 표시는 무엇에도 안 가린다.
-				? (int)UnityEngine.Rendering.RenderQueue.Transparent + 10
-				// 바닥 바로 다음 줄 — 바닥을 덮고, 안개·스프라이트보다는 먼저.
-				: (int)UnityEngine.Rendering.RenderQueue.Geometry + 1;
 			material.SetFloat("_ZWrite", 0f);
+			if (aboveFog == false)
+			{
+				// 바닥 바로 다음 줄 — 바닥을 덮고, 안개·스프라이트보다는 먼저(길은 안개에 가려져야 맞다).
+				material.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Geometry + 1;
+				return;
+			}
+
+			// ★ 커서 표시는 **맨 마지막에, 깊이 검사 없이** 그린다 (사용자 실측 3회: "여전히 마커 가려짐").
+			//   앞서 두 번은 「안개보다 조금 뒤 순번」으로만 밀었는데 그걸로는 안 됐다 — 순번을 조금 미루는
+			//   것과 「무엇에도 안 가린다」는 다른 요구다. 진짜 필요한 건 *가장 마지막 줄* + *깊이 무시*다.
+			//   커서가 안 보이면 안개 낀 땅에는 아예 지을 수가 없으므로, 여기서는 다른 모든 규칙을 이긴다.
+			material.SetOverrideTag("RenderType", "Transparent");
+			material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
+			material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+			material.SetFloat("_Surface", 1f);
+			material.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+			material.SetInt("_ZTest", (int)UnityEngine.Rendering.CompareFunction.Always);
+			material.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Overlay;
 		}
 
 		/// <summary>

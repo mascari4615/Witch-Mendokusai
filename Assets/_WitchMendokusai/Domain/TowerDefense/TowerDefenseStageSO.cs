@@ -212,6 +212,12 @@ namespace WitchMendokusai
 		[field: Header("마수 이동 — 천천히, 촘촘히")]
 		// ★ 사용자 직접 플레이: "게임이 너무 빠름. They are billions 같이 적들이 천천히 몰려오는 느낌으로."
 		//   + "몬스터들이 복셀 블럭 단위로 뚝뚝 끊겨움직이는 것처럼 보이지 않았으면 함."
+		// ★ 사용자 실측: "유닛들 속도가 너무 빠름. 공격 속도도 너무 빠른듯. 전체적으로 템포가 너무
+		//   빠른 것 같음. 전부 다 천천히." → 종류마다 숫자를 따로 낮추면 서로 어긋나 밸런스가 깨진다.
+		//   *판 전체의 시간 감각*을 한 손잡이로 잡는다 — 이동도 공격도 이 값 하나로 같이 느려진다.
+		[field: Tooltip("판 전체 템포 — 1 = 예전 속도, 2 = 모든 것이 절반 속도(이동·공격 전부). 「너무 빠르다」는 여기 하나만 올리면 된다.")]
+		[field: SerializeField, Min(0.1f)] public float TempoSlowdown { get; private set; } = 1.8f;
+
 		[field: Tooltip("모든 마수의 이동 속도 배수 — 1 보다 작으면 판 전체가 느려진다.")]
 		[field: SerializeField, Min(0.1f)] public float EnemyMoveSpeedMultiplier { get; private set; } = 1f;
 
