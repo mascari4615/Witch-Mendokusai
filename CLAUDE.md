@@ -87,6 +87,15 @@ WMInput.inputactions → InputManager.BindEvents() → On{Start/Performed/Cancel
 - **Editor.log = fallback only** — append-only 누적으로 옛 컴파일 결과 섞임. MCP 가용 시 절대 사용 X.
 - Warning = 미래 error 시그널. error 0 만 보고 통과 X. 보존 의도 warning은 `#pragma warning disable` + 사유 주석.
 
+**warning 0 은 이제 기계가 강제한다 (TASK-WM-204).** WM 자기 asmdef 8개 폴더마다 `csc.rsp` =
+`-warnaserror+`. 경고가 곧 컴파일 에러라 *다음 줄을 못 쓴다* → 미루는 것 자체가 불가능.
+패키지·서드파티는 각자 컴파일이라 무관(`Assets/csc.rsp` 는 만들지 X — predefined 어셈블리에 서드파티가 섞임).
+
+- **탈출구**: 보존 의도 = `#pragma warning disable <ID>` + 사유 주석. 유니티 업그레이드가 새 폐기
+  경고를 쏟아 전면 RED 면 해당 `csc.rsp` 한 줄 주석 처리로 즉시 원복(비가역 0) 후 TASK 로 소화.
+- **`csc.rsp` 는 ASCII·플래그만.** 주석·한글 넣으면 PS/cp949 경로에서 깨져 인자로 먹혀 `CS2001`
+  (실측 2026-08-05). 근거는 본 문서에 적고 파일엔 플래그만.
+
 **컴파일 트리거**: `refresh_unity(mode="force", scope="all", compile="request", wait_for_ready=true)` 또는 fallback `unity-refresh.ps1`.
 
 ## Unity-MCP layer
