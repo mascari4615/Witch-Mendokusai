@@ -5,8 +5,11 @@
     Unity 가 .csproj 자동 생성하는 환경에서 모든 csproj 에 공통 적용.
     .editorconfig 의 dotnet_diagnostic.* severity 가 빌드 단계에서 검출됨.
 
-    severity = warning (현 단계). E2 dotnet format 자동 fix 후 E5+ 단계에서
-    핵심 룰 일부를 error 로 escalate 결정 슬롯 진입.
+    ⚠ 이 설정은 `dotnet build` 로만 발화한다 (TASK-WM-203, 2026-08-05).
+    WM 의 정본 컴파일 검증 경로는 2026-05-10 부터 Unity MCP read_console 이고
+    dotnet build 는 폐기됐다 → 실제로는 아무도 이 게이트를 안 부른다.
+    코드 룰 강제 책임 = .github/scripts/wm-rule-gate.ps1 (pre-push 훅 + CI).
+    여긴 dotnet 래퍼(dotnet-build-wm.ps1)를 수동으로 돌릴 때만 의미가 있다.
   -->
   <PropertyGroup>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>

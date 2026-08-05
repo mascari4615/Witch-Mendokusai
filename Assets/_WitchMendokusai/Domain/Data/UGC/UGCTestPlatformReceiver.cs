@@ -25,13 +25,13 @@ namespace WitchMendokusai
 
 		private void Update()
 		{
-			if (!isMoving)
+			if (isMoving == false)
 				return;
 
 			float y = Mathf.Sin(Time.time * speed) * amplitude;
 			transform.position = startPosition + Vector3.up * y;
 
-			if (!loop && Mathf.Abs(y) >= amplitude * 0.95f)
+			if (loop == false && Mathf.Abs(y) >= amplitude * 0.95f)
 				isMoving = false;
 		}
 

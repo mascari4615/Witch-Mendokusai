@@ -2,7 +2,16 @@ root = true
 
 # WM 코드 룰 정본: WitchMendokusai/CLAUDE.md § 코딩 스타일.
 # TASK-WM-056-E1 — Roslyn analyzer + EditorConfig 게이트 시드 (var 금지 + Allman, severity=warning).
-# 후속 단계 (E2: dotnet format / E3: CI / E4: pre-commit hook / E5+: ! 금지 등 추가 룰).
+#
+# ⚠ 이 파일은 *강제* 수단이 아니다 (TASK-WM-203, 2026-08-05).
+#   아래 severity 는 `dotnet build`(+ Directory.Build.props 의 EnforceCodeStyleInBuild)
+#   에서만 발화하는데, 그 경로는 2026-05-10 폐기됐다 (Unity Mono != .NET 8, false confidence).
+#   즉 여기 적힌 룰은 석 달간 아무도 검사하지 않았고 그 사이 위반 12건이 쌓였다.
+#   → 오늘의 역할 분담:
+#       이 파일           = 편집기/포맷터 힌트 (IDE 가 읽어 자동 정렬·경고)
+#       실제 게이트       = .github/scripts/wm-rule-gate.ps1
+#                           (로컬 pre-push 훅 + .github/workflows/wm-quality-gate.yml 이 호출)
+#   룰을 추가할 자리는 이제 여기가 아니라 wm-rule-gate.ps1 이다.
 
 [*]
 charset = utf-8
