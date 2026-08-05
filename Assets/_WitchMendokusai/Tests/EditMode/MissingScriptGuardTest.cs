@@ -32,9 +32,42 @@ namespace WitchMendokusai.Tests
         // Unity 빌트인 리소스 GUID — missing 아님 (PanelSettings/TMP SDF/URP/BuildProfile 등 빌트인 타입 참조)
         private const string UNITY_BUILTIN_GUID = "0000000000000000e000000000000000";
 
+        /// <summary>
+        /// git 에 올리지 않는(유료·외부) 에셋 폴더. 개발 머신엔 있고 CI 체크아웃엔 없다.
+        ///
+        /// 왜 필요한가 (2026-08-06, TASK-WM-203 CI 첫 완주에서 실증): Bakery 라이트맵 컴포넌트가
+        /// 붙은 조명 오브젝트가 스테이지 프리팹·씬에 들어 있는데, CI 체크아웃엔 Bakery 가 없으므로
+        /// 그 m_Script 가 전부 "죽은 참조"로 보인다 — 프리팹 19곳·씬 35곳이 한꺼번에 빨간불이 됐다.
+        /// 개발 머신에선 멀쩡한 것들이다.
+        ///
+        /// 거짓 빨간불은 게이트를 죽인다(사람이 "또 그거네" 하고 무시하기 시작하면 진짜 사고도 묻힌다).
+        /// 그렇다고 조용히 통과시키면 검사가 없는 것과 같다 → **왜 건너뛰는지 말하면서 건너뛴다**.
+        /// 이 검사들은 에셋이 다 깔린 개발 머신에서 의미가 있고, 거기선 그대로 전수 검사한다.
+        /// </summary>
+        private static readonly string[] OPTIONAL_THIRD_PARTY_ROOTS =
+        {
+            "Assets/Bakery",
+        };
+
+        private static void SkipIfOptionalThirdPartyAssetsMissing()
+        {
+            foreach (string root in OPTIONAL_THIRD_PARTY_ROOTS)
+            {
+                if (Directory.Exists(root) == false)
+                {
+                    Assert.Ignore(
+                        "이 체크아웃엔 '" + root + "' 가 없다 (git 미추적 외부 에셋). "
+                        + "그 컴포넌트를 쓰는 프리팹·씬의 참조가 전부 죽은 것처럼 보이므로 판정 불가 — "
+                        + "에셋이 깔린 개발 머신에서 이 검사가 진짜로 돈다.");
+                }
+            }
+        }
+
         [Test]
         public void AllPrefabAssets_HaveNoMissingScripts()
         {
+            SkipIfOptionalThirdPartyAssetsMissing();
+
             List<string> offenders = new List<string>();
             foreach (string guid in AssetDatabase.FindAssets("t:Prefab"))
             {
@@ -59,6 +92,8 @@ namespace WitchMendokusai.Tests
         [Test]
         public void AllProjectScenes_HaveNoMissingScripts()
         {
+            SkipIfOptionalThirdPartyAssetsMissing();
+
             Regex scriptGuid = new Regex(@"m_Script:.*guid:\s*([0-9a-f]{32})");
             List<string> offenders = new List<string>();
 
