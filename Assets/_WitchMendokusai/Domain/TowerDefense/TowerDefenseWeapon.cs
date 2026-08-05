@@ -78,7 +78,12 @@ namespace WitchMendokusai
 			}
 		}
 
-		public float Range => archetype != null ? archetype.Range * LevelScale * (1f + perkRange) : 0f;
+		// 연구로 늘어난 사거리 — *물을 때마다* 읽는다(연구는 판 도중에 늘어나므로 캐싱하면 안 는다).
+		private System.Func<float> rangeMultiplier;
+
+		public float Range => archetype != null
+			? archetype.Range * LevelScale * (1f + perkRange) * (rangeMultiplier != null ? rangeMultiplier() : 1f)
+			: 0f;
 
 		/// <summary>
 		/// 반올림 전 피해 — 화면이 읽는 값과 실제로 때리는 값이 *같은 식*에서 나오게 하는 자리.
@@ -128,8 +133,10 @@ namespace WitchMendokusai
 			IReadOnlyList<ICombatant> enemies,
 			System.Func<Vector3, bool> isVisible = null,
 			System.Func<float> towerDamageMultiplier = null,
-			System.Func<TowerDefenseAdaptationState> adaptationState = null)
+			System.Func<TowerDefenseAdaptationState> adaptationState = null,
+			System.Func<float> towerRangeMultiplier = null)
 		{
+			rangeMultiplier = towerRangeMultiplier;
 			adaptation = adaptationState;
 			visibilityTest = isVisible;
 			damageMultiplier = towerDamageMultiplier;

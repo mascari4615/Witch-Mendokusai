@@ -1130,7 +1130,7 @@ namespace WitchMendokusai
 				if (coreWeapon == null)
 					coreWeapon = coreGameObject.AddComponent<TowerDefenseWeapon>();
 				coreWeapon.Configure(stage.CoreWeapon, targeting, combatant, waveEnemies,
-					IsVisibleAt, () => TowerDamageMultiplier, () => Adaptation);
+					IsVisibleAt, () => TowerDamageMultiplier, () => Adaptation, () => TowerRangeMultiplier);
 			}
 
 			AddVisionSource(coreGameObject.transform.position, stage.CoreVisionRadius);
@@ -1586,8 +1586,12 @@ namespace WitchMendokusai
 				TowerDefenseWeapon heroWeapon = heroUnitObject.GetComponent<TowerDefenseWeapon>();
 				if (heroWeapon == null)
 					heroWeapon = heroUnitObject.gameObject.AddComponent<TowerDefenseWeapon>();
+				// 영웅은 포탑 연구가 아니라 *영웅 갈래*를 탄다 — 한 갈래를 뚫었는데 엉뚱한 게 세지면
+				// 성좌를 보고 고른 뜻이 사라진다.
 				heroWeapon.Configure(stage.HeroArchetype, targeting, heroCombatant, waveEnemies,
-					IsVisibleAt, () => TowerDamageMultiplier, () => Adaptation);
+					IsVisibleAt,
+					() => TowerDamageMultiplier * (1f + ResearchBonus(TowerDefenseResearchEffect.HeroPower)),
+					() => Adaptation, () => TowerRangeMultiplier);
 			}
 
 			// 표적 등록은 세우는 문이 이미 했다 — 여기서 또 하면 같은 것이 목록에 두 번 들어간다.
@@ -2260,7 +2264,7 @@ namespace WitchMendokusai
 			{
 				foreach (int kind in save.TakenBoons)
 					boons.Take(TowerDefenseDraft.Make((TowerDefenseBoonKind)kind, stage.DraftRules));
-				core.IncomeMultiplier = boons.IncomeMultiplier;
+				core.IncomeMultiplier = boons.IncomeMultiplier * (1f + ResearchBonus(TowerDefenseResearchEffect.HarvestYield));
 			}
 
 			foreach (TowerDefenseBuildingSave building in save.Buildings)
@@ -2409,7 +2413,7 @@ namespace WitchMendokusai
 					break;
 			}
 
-			core.IncomeMultiplier = boons.IncomeMultiplier;
+			core.IncomeMultiplier = boons.IncomeMultiplier * (1f + ResearchBonus(TowerDefenseResearchEffect.HarvestYield));
 			if (coreCombatant != null)
 				PopWorldText("「" + boon.DisplayName + "」", coreCombatant.Position, TextType.Heal);
 			Debug.Log($"{nameof(TowerDefenseMatch)}: 코어 선택 — {boon.DisplayName} ({boon.Note})");
@@ -2602,7 +2606,8 @@ namespace WitchMendokusai
 					return 0f;
 
 				float derived = Mathf.Min(activeGroundWidth, activeGroundLength) * stage.SupplyReachRatio;
-				return Mathf.Max(stage.SupplyReach, derived) * boons.SupplyReachMultiplier;
+				return Mathf.Max(stage.SupplyReach, derived) * boons.SupplyReachMultiplier
+					* (1f + ResearchBonus(TowerDefenseResearchEffect.SupplyReach));
 			}
 		}
 
@@ -2752,6 +2757,9 @@ namespace WitchMendokusai
 		/// </summary>
 		// 연구(판 안 건물)와 드래프트(웨이브 사이 선택)는 서로 다른 층이라 곱해진다 — 둘 다 쌓은 판이
 		// 눈에 띄게 세지는 것이 「이 판은 화력으로 갔다」의 실체다.
+		/// <summary> 연구로 늘어난 포탑 사거리 배수 — 무기가 사거리를 물을 때마다 읽는다. </summary>
+		public float TowerRangeMultiplier => 1f + ResearchBonus(TowerDefenseResearchEffect.TowerRange);
+
 		public float TowerDamageMultiplier =>
 			(1f + LabCount * (stage != null ? stage.LabDamageBonus : 0f)) * boons.DamageMultiplier
 			* (1f + ResearchBonus(TowerDefenseResearchEffect.TowerDamage));
@@ -3917,7 +3925,7 @@ namespace WitchMendokusai
 					TowerDefenseWeapon weapon = unitObject.GetComponent<TowerDefenseWeapon>();
 					if (weapon == null)
 						weapon = unitObject.gameObject.AddComponent<TowerDefenseWeapon>();
-					weapon.Configure(towerArchetype, targeting, combatant, waveEnemies, IsVisibleAt, () => TowerDamageMultiplier, () => Adaptation);
+					weapon.Configure(towerArchetype, targeting, combatant, waveEnemies, IsVisibleAt, () => TowerDamageMultiplier, () => Adaptation, () => TowerRangeMultiplier);
 				}
 
 				float towerRange = towerArchetype != null ? towerArchetype.Range : TowerRange();
