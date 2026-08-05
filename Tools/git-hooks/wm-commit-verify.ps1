@@ -7,7 +7,7 @@
 #   2. Count touched .cs / .meta / .asset / .prefab / .unity files in the commit.
 #   3. Pair-check .cs (added/modified) ↔ .cs.meta — Unity GUID-loss canary.
 #   4. Heuristic "big commit" advisory when .cs count exceeds a small threshold.
-#   5. TCP probe of Unity-MCP :8080 (informational only — no MCP RPC).
+#   5. TCP probe of Unity-MCP (port from .mcp.json; informational only — no MCP RPC).
 #
 # Non-responsibilities:
 #   - Calling Unity (compile / Play). Hooks must be fast; canonical compile
@@ -141,12 +141,65 @@ foreach ($line in $cs)
 
 $bigCommit = $csCount -gt $BigCommitCsThreshold
 
+# --- 은퇴한 식별자 canary (stale-copy 되돌림 탐지) ---
+# 개명은 커밋 하나로 끝나지만, 다른 세션의 작업트리가 옛 사본을 들고 있으면 그 세션이 다음에
+# 그 파일을 통째로 쓰는 순간 옛 이름이 *추가된 줄*로 되살아난다. 그날 main 은 CS0246 로 죽는다
+# (2026-08-06 하루에 네 번). 추가된 줄만 보므로 개명 커밋 자신은 안 걸린다.
+# 막지 않고 알리기만 한다 — 진짜로 옛 이름을 되살리려는 커밋일 수도 있다.
+$retiredHits = @()
+$retiredFile = Join-Path $paths.Root 'Tools/git-hooks/retired-identifiers.tsv'
+if ($parentCount -le 1 -and $csCount -gt 0 -and (Test-Path -LiteralPath $retiredFile))
+{
+    $rules = @()
+    foreach ($ruleLine in @(Get-Content -LiteralPath $retiredFile -Encoding UTF8))
+    {
+        if ([string]::IsNullOrWhiteSpace($ruleLine) -or $ruleLine.TrimStart().StartsWith('#')) { continue }
+        $fields = $ruleLine -split "`t"
+        if ($fields.Count -ge 2 -and -not [string]::IsNullOrWhiteSpace($fields[0]))
+        {
+            $rules += [pscustomobject]@{ Old = $fields[0].Trim(); New = $fields[1].Trim() }
+        }
+    }
+
+    if ($rules.Count -gt 0)
+    {
+        $addedLines = @()
+        foreach ($entry in @(git show --unified=0 --format= $Sha -- '*.cs' 2>$null))
+        {
+            foreach ($line in ($entry -split "`n"))
+            {
+                if ($line.StartsWith('+') -and -not $line.StartsWith('+++')) { $addedLines += $line }
+            }
+        }
+
+        foreach ($rule in $rules)
+        {
+            $pattern = '\b' + [regex]::Escape($rule.Old) + '\b'
+            $hitCount = @($addedLines | Where-Object { $_ -match $pattern }).Count
+            if ($hitCount -gt 0)
+            {
+                $retiredHits += [pscustomobject]@{ Old = $rule.Old; New = $rule.New; Count = $hitCount }
+            }
+        }
+    }
+}
+
 # Unity-MCP TCP probe — fast (~300ms timeout). Informational only.
+# 포트 정본 = .mcp.json (하드코딩하면 사용자가 포트를 바꾼 날부터 영영 "미응답"만 찍는다 —
+# 실제로 8080 이 박혀 있어 12345 로 옮긴 뒤 모든 커밋이 거짓 경고를 달고 있었다).
+$mcpPort = 12345
+$mcpJson = Join-Path $paths.Root '.mcp.json'
+if (Test-Path -LiteralPath $mcpJson)
+{
+    $portMatch = [regex]::Match((Get-Content -LiteralPath $mcpJson -Raw), ':(\d+)/mcp')
+    if ($portMatch.Success) { $mcpPort = [int]$portMatch.Groups[1].Value }
+}
+
 $mcpUp = $false
 try
 {
     $tcp = New-Object System.Net.Sockets.TcpClient
-    $iar = $tcp.BeginConnect('127.0.0.1', 8080, $null, $null)
+    $iar = $tcp.BeginConnect('127.0.0.1', $mcpPort, $null, $null)
     if ($iar.AsyncWaitHandle.WaitOne(300, $false))
     {
         try
@@ -186,6 +239,17 @@ if ($bigCommit)
     Write-Host "[wm-verify]   hint: $csCount .cs in one commit — bisect 비용 ↑. 다음엔 단위 분할 검토 (Tools/git-hooks/README.md § 커밋 규율)."
 }
 
+if ($retiredHits.Count -gt 0)
+{
+    Write-Host "[wm-verify]   ★ 은퇴한 이름이 *추가된 줄*에 있다 — 옛 사본을 들고 있을 가능성:"
+    foreach ($hit in $retiredHits)
+    {
+        Write-Host "[wm-verify]     - $($hit.Old) x$($hit.Count)  ->  $($hit.New)"
+    }
+    Write-Host "[wm-verify]     확인: git diff origin/main -- <이번에 만진 파일>  (내가 안 만진 줄이 바뀌었나)"
+    Write-Host "[wm-verify]     정본: Tools/git-hooks/retired-identifiers.tsv"
+}
+
 if ($csMissingMeta.Count -gt 0)
 {
     Write-Host "[wm-verify]   warn: .cs add/modify 인데 짝 .meta 부재 (Unity GUID 누락 가능):"
@@ -201,7 +265,7 @@ if ($csMissingMeta.Count -gt 0)
 
 if (-not $mcpUp)
 {
-    Write-Host "[wm-verify]   info: Unity-MCP :8080 미응답 — 다음 commit 전 Editor Console / read_console 으로 컴파일 검증 권장."
+    Write-Host "[wm-verify]   info: Unity-MCP :$mcpPort 미응답 — 다음 commit 전 Editor Console / read_console 으로 컴파일 검증 권장."
 }
 
 exit 0
