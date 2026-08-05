@@ -148,14 +148,35 @@ namespace WitchMendokusai
         /// <summary>세션 = 「언제 켠 실행인가」. 서버에서 파일명이 되므로 안전한 글자만.</summary>
         private static string BuildSessionId()
         {
-            string stamp = DateTime.Now.ToString("yyyyMMdd-HHmmss", CultureInfo.InvariantCulture);
-            string platform = UnityEngine.Application.platform.ToString().ToLowerInvariant();
-            StringBuilder safe = new StringBuilder(platform.Length);
-            foreach (char c in platform)
+            return ComposeSessionId(
+                UnityEngine.Application.platform.ToString(),
+                BuildInfo.Current.buildNumber,
+                DateTime.Now);
+        }
+
+        /// <summary>
+        /// 세션 이름에 빌드 번호를 넣는다 — 목록에서 *이름만 보고* 어느 빌드의 실행인지 갈리게.
+        /// (손으로 구운 빌드는 번호가 없으므로 뺀다.) 파일명이 되므로 글자·숫자·붙임표만 남긴다.
+        /// </summary>
+        public static string ComposeSessionId(string platform, int buildNumber, DateTime now)
+        {
+            StringBuilder safe = new StringBuilder(platform == null ? 0 : platform.Length);
+            if (platform != null)
             {
-                safe.Append(char.IsLetterOrDigit(c) ? c : '-');
+                foreach (char c in platform.ToLowerInvariant())
+                {
+                    safe.Append(char.IsLetterOrDigit(c) ? c : '-');
+                }
             }
-            return $"{safe}-{stamp}";
+            if (safe.Length == 0)
+            {
+                safe.Append("device");
+            }
+            string stamp = now.ToString("yyyyMMdd-HHmmss", CultureInfo.InvariantCulture);
+            string build = buildNumber > 0
+                ? "-b" + buildNumber.ToString(CultureInfo.InvariantCulture)
+                : string.Empty;
+            return $"{safe}{build}-{stamp}";
         }
 
         private string ResolveEndpoint()
