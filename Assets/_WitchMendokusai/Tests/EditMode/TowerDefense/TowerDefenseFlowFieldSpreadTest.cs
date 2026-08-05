@@ -80,9 +80,36 @@ namespace WitchMendokusai.Tests
 			CollectionAssert.AreEqual(Walk(field, diagonal, 0f), Walk(field, diagonal, 0.99f));
 		}
 
-		// ※ 「고리를 목표로 주면 방향마다 다른 자리로 들어온다」 시험은 뺐다 — 두 번 고쳐 썼는데도
-		//    동·서에서 출발한 걸음이 같은 칸에서 끝났다. 코드가 틀렸는지 시험이 판을 잘못 세웠는지
-		//    아직 못 갈랐다. **틀린 채로 통과시키느니 없는 편이 낫다** — 진단을 마치면 다시 넣는다.
+		[Test]
+		public void 고리를_목표로_주면_방향마다_다른_자리로_들어온다()
+		{
+			// ★ 고리가 실제로 주는 것 = *경로의 갈라짐*이 아니라 **도착 자리의 갈라짐**이다.
+			//   목표가 코어 한 점이면 사방에서 온 마수가 전부 같은 칸에 겹쳐 선다(한 점 공성).
+			//   고리로 나누면 각자 제 방향의 진입점에 붙어 코어를 **둘러싸는** 그림이 된다.
+			Vector2Int core = new Vector2Int(SIZE / 2, SIZE / 2);
+			List<Vector2Int> goals = new() { core };
+			const int RING = 4;
+			for (int dx = -RING; dx <= RING; dx++)
+			{
+				for (int dy = -RING; dy <= RING; dy++)
+				{
+					if (Mathf.Abs(dx) != RING && Mathf.Abs(dy) != RING)
+						continue;
+					goals.Add(new Vector2Int(core.x + dx, core.y + dy));
+				}
+			}
+
+			TowerDefenseFlowField field = new TowerDefenseFlowField(SIZE, SIZE, goals, _ => false);
+
+			List<Vector2Int> west = Walk(field, new Vector2Int(0, SIZE / 2), 0.5f);
+			List<Vector2Int> east = Walk(field, new Vector2Int(SIZE - 1, SIZE / 2), 0.5f);
+			List<Vector2Int> north = Walk(field, new Vector2Int(SIZE / 2, SIZE - 1), 0.5f);
+
+			Assert.AreNotEqual(west[west.Count - 1], east[east.Count - 1],
+				"동·서에서 온 마수가 같은 칸에 서면 둘러싸기가 안 산다.");
+			Assert.AreNotEqual(west[west.Count - 1], north[north.Count - 1]);
+			Assert.AreNotEqual(east[east.Count - 1], north[north.Count - 1]);
+		}
 
 		[Test]
 		public void 갈라져도_걸음_수는_그대로다()

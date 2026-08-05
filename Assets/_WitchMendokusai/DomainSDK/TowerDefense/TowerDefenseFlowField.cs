@@ -136,9 +136,12 @@ namespace WitchMendokusai
 			if (IsReachable(cell) == false)
 				return false;
 
+			// 미리 계산해 둔 「다음 칸」이 기준 방향이다 — 같은 거리의 후보들을 이 방향 기준으로 줄 세운다.
+			Vector2Int reference = nextStep[ToIndex(cell)];
+			Vector2Int referenceStep = reference - cell;
+
 			int here = distance[ToIndex(cell)];
 			int best = int.MaxValue;
-			int count = 0;
 			for (int i = 0; i < Neighbors.Length; i++)
 			{
 				Vector2Int neighbor = cell + Neighbors[i];
@@ -148,37 +151,63 @@ namespace WitchMendokusai
 				if (value < 0 || value >= here)
 					continue; // 목표에서 멀어지는 칸은 후보가 아니다.
 				if (value < best)
-				{
 					best = value;
-					count = 1;
-				}
-				else if (value == best)
-				{
-					count++;
-				}
+			}
+
+			if (best == int.MaxValue)
+				return TryGetNextCell(cell, out next);
+
+			// ★ 후보를 *각도*로 줄 세운다. 예전엔 이웃 배열 순서로 골랐는데, 그 순서는 방향과 무관해서
+			//   걸음마다 같은 쪽으로 쏠렸다 — 동에서 온 마수와 서에서 온 마수가 결국 같은 모서리로
+			//   빨려 들어갔다(시험이 잡아냄). 기준 방향에서 시계 방향으로 몇 번째인지로 고르면
+			//   쏠림 없이 부채꼴로 갈라진다.
+			int count = 0;
+			for (int i = 0; i < Neighbors.Length; i++)
+			{
+				Vector2Int neighbor = cell + Neighbors[i];
+				if (IsInside(neighbor) == false || distance[ToIndex(neighbor)] != best)
+					continue;
+				candidateOrder[count] = i;
+				candidateAngle[count] = SignedAngle(referenceStep, Neighbors[i]);
+				count++;
 			}
 
 			if (count == 0)
 				return TryGetNextCell(cell, out next);
 
-			int wanted = Mathf.Clamp(Mathf.FloorToInt(Mathf.Clamp01(pick) * count), 0, count - 1);
-			int seen = 0;
-			for (int i = 0; i < Neighbors.Length; i++)
+			// 각도 오름차순 정렬(후보가 최대 8개라 삽입 정렬이 가장 싸다).
+			for (int a = 1; a < count; a++)
 			{
-				Vector2Int neighbor = cell + Neighbors[i];
-				if (IsInside(neighbor) == false)
-					continue;
-				if (distance[ToIndex(neighbor)] != best)
-					continue;
-				if (seen == wanted)
+				float angle = candidateAngle[a];
+				int order = candidateOrder[a];
+				int b = a - 1;
+				while (b >= 0 && candidateAngle[b] > angle)
 				{
-					next = neighbor;
-					return true;
+					candidateAngle[b + 1] = candidateAngle[b];
+					candidateOrder[b + 1] = candidateOrder[b];
+					b--;
 				}
-				seen++;
+				candidateAngle[b + 1] = angle;
+				candidateOrder[b + 1] = order;
 			}
 
-			return TryGetNextCell(cell, out next);
+			int wanted = Mathf.Clamp(Mathf.FloorToInt(Mathf.Clamp01(pick) * count), 0, count - 1);
+			next = cell + Neighbors[candidateOrder[wanted]];
+			return true;
+		}
+
+		// 후보 버퍼 — 매 호출 배열을 새로 만들지 않는다(마수 수 × 매 틱이라 쓰레기가 금방 쌓인다).
+		private readonly int[] candidateOrder = new int[8];
+		private readonly float[] candidateAngle = new float[8];
+
+		/// <summary> 기준 방향에서 후보 방향까지의 각도(-180~180) — 후보를 부채꼴 순서로 세우는 데 쓴다. </summary>
+		private static float SignedAngle(Vector2Int reference, Vector2Int candidate)
+		{
+			if (reference == Vector2Int.zero)
+				return Mathf.Atan2(candidate.y, candidate.x) * Mathf.Rad2Deg;
+			float referenceAngle = Mathf.Atan2(reference.y, reference.x);
+			float candidateAngle = Mathf.Atan2(candidate.y, candidate.x);
+			return Mathf.DeltaAngle(referenceAngle * Mathf.Rad2Deg, candidateAngle * Mathf.Rad2Deg);
 		}
 
 		private bool IsInside(Vector2Int cell)
