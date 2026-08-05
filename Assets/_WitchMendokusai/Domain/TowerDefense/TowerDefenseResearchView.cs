@@ -60,6 +60,17 @@ namespace WitchMendokusai
 			root.style.display = DisplayStyle.None;
 			parent.Add(root);
 
+			// ★ 캔버스를 *먼저* 붙인다 — 나중에 붙는 글자가 위로 온다. 앞서는 반대라 마디가 제목을
+			//   덮어써서 「연구 성좌」가 읽히지 않았다(픽셀 확인에서 드러남).
+			canvas = new VisualElement { name = "ResearchCanvas" };
+			canvas.style.position = Position.Absolute;
+			canvas.style.left = 0;
+			canvas.style.top = 0;
+			canvas.style.right = 0;
+			canvas.style.bottom = 0;
+			canvas.generateVisualContent += DrawEdges;
+			root.Add(canvas);
+
 			titleLabel = new Label("연구 성좌");
 			titleLabel.style.position = Position.Absolute;
 			titleLabel.style.left = 36;
@@ -85,15 +96,6 @@ namespace WitchMendokusai
 			detailLabel.style.whiteSpace = WhiteSpace.Normal;
 			detailLabel.style.maxWidth = 520;
 			root.Add(detailLabel);
-
-			canvas = new VisualElement { name = "ResearchCanvas" };
-			canvas.style.position = Position.Absolute;
-			canvas.style.left = 0;
-			canvas.style.top = 0;
-			canvas.style.right = 0;
-			canvas.style.bottom = 0;
-			canvas.generateVisualContent += DrawEdges;
-			root.Add(canvas);
 
 			BuildNodeElements();
 			RegisterPanZoom();
@@ -280,6 +282,7 @@ namespace WitchMendokusai
 			// 창 크기가 바뀌면 한가운데가 옮겨진다 — 다시 앉히지 않으면 성좌가 구석으로 밀린다.
 			canvas.RegisterCallback<GeometryChangedEvent>(_ =>
 			{
+				FitToView();
 				RefreshNodes();
 				canvas.MarkDirtyRepaint();
 			});
@@ -345,8 +348,35 @@ namespace WitchMendokusai
 
 			// 열 때마다 코어를 화면 가운데로 되돌린다 — 지난번에 끌어둔 자리에서 열리면 「어디지」가 된다.
 			panOffset = Vector2.zero;
+			FitToView();
 			RefreshNodes();
 			canvas.MarkDirtyRepaint();
+		}
+
+		/// <summary>
+		/// 성좌 전체가 화면에 들어오도록 배율을 맞춘다.
+		///
+		/// ★ 픽셀 확인에서 드러난 것: 기본 배율이 1이라 성좌가 화면 밖으로 넘쳤다. 전체 모양이
+		///   안 보이면 「어디로 뚫을까」를 고를 수가 없다 — 성좌의 값어치가 그 한눈에 있다.
+		/// </summary>
+		private void FitToView()
+		{
+			if (canvas == null || nodes.Count == 0)
+				return;
+
+			Rect area = canvas.contentRect;
+			if (area.width <= 1f || area.height <= 1f)
+				return; // 아직 자리가 안 잡혔다 — 자리가 잡히면 다시 부른다.
+
+			float reach = 0f;
+			foreach (TowerDefenseResearchGraph.Node node in nodes)
+				reach = Mathf.Max(reach, node.Position.magnitude);
+			if (reach <= 0f)
+				return;
+
+			// 가장 먼 마디가 화면 짧은 변의 절반 안쪽으로 들어오게. 여백은 마디 하나 크기만큼.
+			float half = Mathf.Min(area.width, area.height) * 0.5f - NODE_MAJOR;
+			zoom = Mathf.Clamp(half / reach, ZOOM_MIN, ZOOM_MAX);
 		}
 
 		public void Toggle() => SetOpen(IsOpen == false);
