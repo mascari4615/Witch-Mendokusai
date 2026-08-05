@@ -1902,6 +1902,23 @@ namespace WitchMendokusai
 		///   필요 없는 대신 *코어를 지키는 이유*가 하나 더 늘어난다.
 		/// 값은 단계마다 오른다 — 무한히 싸게 쌓이면 그건 선택이 아니다.
 		/// </summary>
+		/// <summary>
+		/// 값 없이 연구 한 단계 — **성좌의 큰 마디를 뚫었을 때** 부른다.
+		///
+		/// ★ 왜 값이 없나: 마디를 찍을 때 이미 정수를 치렀다. 여기서 또 받으면 한 번 뚫는 데 두 번 낸다.
+		/// ★ 왜 필요한가: 건물 해금은 연구 *단계*가 정한다. 성좌가 단계를 못 올리면 「성좌를 다 뚫었는데
+		///   지을 수 있는 건 그대로」가 되어, 연구창이 판을 바꾸지 못한다.
+		/// </summary>
+		public void GrantResearchLevel()
+		{
+			LabCount++;
+			RefreshAvailableSlots();
+			SlotsChanged();
+			if (coreCombatant != null)
+				PopWorldText("연구 " + LabCount + "단계", coreCombatant.Position, TextType.Exp);
+			Debug.Log($"{nameof(TowerDefenseMatch)}: 성좌로 연구 {LabCount}단계 — 새 칸이 열린다.");
+		}
+
 		public bool TryResearch()
 		{
 			if (core == null || stage == null)

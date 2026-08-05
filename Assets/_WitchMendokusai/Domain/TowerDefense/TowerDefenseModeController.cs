@@ -256,8 +256,10 @@ namespace WitchMendokusai
 			researchView.RestoreTaken(ids);
 			foreach (int id in ids)
 			{
-				if (researchView.TryGetNode(id, out TowerDefenseResearchGraph.Node node))
-					match.TryTakeResearchNode(node.Effect, node.Amount, cost: 0);
+				if (researchView.TryGetNode(id, out TowerDefenseResearchGraph.Node node) == false)
+					continue;
+				match.TryTakeResearchNode(node.Effect, node.Amount, cost: 0);
+				// 단계는 저장이 따로 들고 있다 — 여기서 또 올리면 이어할 때마다 해금이 앞서 나간다.
 			}
 		}
 
@@ -271,7 +273,14 @@ namespace WitchMendokusai
 
 			// 값을 못 치르면 화면에서도 도로 지운다 — 「찍힌 척」이 남으면 다음 마디가 잘못 열린다.
 			if (match.TryTakeResearchNode(node.Effect, node.Amount, node.Cost) == false)
+			{
 				researchView.Undo(nodeId);
+				return;
+			}
+
+			// 길 끝의 큰 마디 = 연구 한 단계 = 새 칸 해금. 성좌가 판을 바꾸는 자리다.
+			if (node.IsMajor)
+				match.GrantResearchLevel();
 		}
 
 		/// <summary> 시점을 그 자리로 — 지도에서 온 요청. 확대·회전은 그대로 둔다. </summary>
