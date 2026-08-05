@@ -264,9 +264,6 @@ namespace WitchMendokusai
 		[field: Tooltip("점수 환산 — 둥지 하나가 몇 초어치인가. 부수는 쪽이 버티기만 하는 것보다 값지게.")]
 		[field: SerializeField, Min(0)] public int ScoreSecondsPerNest { get; private set; } = 90;
 
-		[field: Tooltip("웨이브 하나 버틸 때마다 받는 유물.")]
-		[field: SerializeField, Min(0)] public int RelicsPerWave { get; private set; } = 3;
-
 		[field: Tooltip("판을 한 번 끝내면 무조건 받는 유물 — 0파에 져도 빈손은 아니다.")]
 		[field: SerializeField, Min(0)] public int RelicsBaseReward { get; private set; } = 2;
 
