@@ -803,7 +803,11 @@ namespace WitchMendokusai
 			title.pickingMode = PickingMode.Ignore;
 			card.Add(title);
 
-			research = MakeActionButton("연구", fontSize: 18, () => ResearchRequested());
+			// ★ 「연구」 = **성좌를 연다**. 예전엔 이 단추가 곧바로 한 단계를 사들였다(값 치르고 끝).
+			//   성좌를 만들어 놓고도 **여는 문이 없어서**, 화면 가득한 연구도가 게임에서 도달 불가였다
+			//   (이벤트를 받는 쪽은 있는데 쏘는 곳이 한 군데도 없었다 — 조용히 죽은 기능의 전형).
+			//   단계 올리기는 이제 성좌의 큰 마디가 한다.
+			research = MakeActionButton("연구", fontSize: 18, () => ResearchPanelRequested());
 			research.style.display = DisplayStyle.None;
 			research.style.height = 48;
 			research.style.marginTop = 14;

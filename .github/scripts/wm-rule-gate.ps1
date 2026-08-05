@@ -201,10 +201,15 @@ $anchors = @(
        Why = 'hero moves by raw transform again -- stutters, walks through walls, pushes monsters' }
 )
 
+# ★ 앵커 경로는 $Root 에 기대면 안 된다 — 커밋 범위 검사 모드에서는 $Root 가 비어 있어서
+#   전부 「파일 없음」으로 잡히고 **멀쩡한 푸시가 막힌다**(넣자마자 실제로 그랬다).
+#   스크립트 위치에서 곧바로 계산한다.
+$anchorRoot = Join-Path (Split-Path (Split-Path $PSScriptRoot -Parent) -Parent) 'Assets/_WitchMendokusai'
+
 $anchorMisses = New-Object System.Collections.ArrayList
 foreach ($anchor in $anchors)
 {
-    $full = Join-Path $Root $anchor.File
+    $full = Join-Path $anchorRoot $anchor.File
     if (-not (Test-Path $full))
     {
         [void]$anchorMisses.Add(("{0} -- file missing (moved? update this gate too)" -f $anchor.File))
