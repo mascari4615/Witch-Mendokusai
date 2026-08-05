@@ -215,5 +215,77 @@ namespace WitchMendokusai.Tests
 
 			Assert.IsNull(result);
 		}
+
+		// --- 마지막 자리까지 같지는 않은 동점 (WM-165 리뷰 [minor·후속]) ---
+		//
+		// 대칭 배치에서 「똑같이 먼」 둘은 거리 제곱이 float 마지막 자리에서 갈린다. 그 1 ULP 에
+		// `score == bestScore` 가 false 를 돌려주면 id 타이브레이크가 건너뛰어지고 **승자를 잡음이
+		// 정한다.** 한 기계에선 조용하고, 다른 기계에서 다른 답이 나온다(lockstep 이 깨지는 자리).
+		//
+		// 함정: 「가까운 쪽이 낮은 id」로 놓으면 옛 코드도 통과한다 — 그건 잡음이 우연히 id 와 같은
+		// 편을 든 배치다. 잡음과 id 를 **반대로** 놓아야 무엇이 결정권을 쥐는지가 드러난다.
+
+		private const float ONE_ULP_APART = 1e-6f;
+
+		[Test]
+		public void Query_NearTie_StillPrefersLowerCombatantId()
+		{
+			TargetingSystem targeting = new();
+			FakeCombatant self = Make(id: 0, team: 0, pos: Vector3.zero);
+			// 낮은 id 쪽이 「티끌만큼 더 먼」 쪽. 잡음만 보면 지고, id 로 보면 이긴다.
+			FakeCombatant lowId = Make(id: 1, team: 1, pos: new Vector3(5f + ONE_ULP_APART, 0f, 0f));
+			FakeCombatant highId = Make(id: 2, team: 1, pos: new Vector3(5f, 0f, 0f));
+			targeting.Register(self);
+			targeting.Register(highId);
+			targeting.Register(lowId);
+
+			ICombatant result = targeting.Query(self, new TargetQuery(TargetSide.Enemy, TargetPriority.Nearest));
+
+			Assert.AreSame(lowId, result, "마지막 자리만 다른 동점은 잡음이 아니라 id 가 갈라야 한다");
+		}
+
+		[Test]
+		public void Query_NearTie_IsRegistrationOrderIndependent()
+		{
+			TargetQuery query = new(TargetSide.Enemy, TargetPriority.Nearest);
+
+			FakeCombatant selfA = Make(id: 0, team: 0, pos: Vector3.zero);
+			FakeCombatant lowIdA = Make(id: 1, team: 1, pos: new Vector3(5f + ONE_ULP_APART, 0f, 0f));
+			FakeCombatant highIdA = Make(id: 2, team: 1, pos: new Vector3(5f, 0f, 0f));
+			TargetingSystem forward = new();
+			forward.Register(selfA);
+			forward.Register(lowIdA);
+			forward.Register(highIdA);
+
+			FakeCombatant selfB = Make(id: 0, team: 0, pos: Vector3.zero);
+			FakeCombatant lowIdB = Make(id: 1, team: 1, pos: new Vector3(5f + ONE_ULP_APART, 0f, 0f));
+			FakeCombatant highIdB = Make(id: 2, team: 1, pos: new Vector3(5f, 0f, 0f));
+			TargetingSystem backward = new();
+			backward.Register(selfB);
+			backward.Register(highIdB);
+			backward.Register(lowIdB);
+
+			Assert.AreEqual(
+				forward.Query(selfA, query).CombatantId,
+				backward.Query(selfB, query).CombatantId,
+				"등록 순서를 뒤집어도 같은 답이어야 한다");
+		}
+
+		// 띠가 너무 넓으면 「진짜로 더 가까운 쪽」까지 동점으로 삼켜 타겟팅이 무너진다.
+		[Test]
+		public void Query_RealDifference_IsNotSwallowedByTieBand()
+		{
+			TargetingSystem targeting = new();
+			FakeCombatant self = Make(id: 0, team: 0, pos: Vector3.zero);
+			FakeCombatant nearHighId = Make(id: 9, team: 1, pos: new Vector3(2f, 0f, 0f));
+			FakeCombatant farLowId = Make(id: 1, team: 1, pos: new Vector3(8f, 0f, 0f));
+			targeting.Register(self);
+			targeting.Register(farLowId);
+			targeting.Register(nearHighId);
+
+			ICombatant result = targeting.Query(self, new TargetQuery(TargetSide.Enemy, TargetPriority.Nearest));
+
+			Assert.AreSame(nearHighId, result, "id 가 커도 확실히 더 가까우면 그쪽이다");
+		}
 	}
 }

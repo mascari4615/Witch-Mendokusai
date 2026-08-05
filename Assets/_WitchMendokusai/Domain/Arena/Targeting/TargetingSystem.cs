@@ -49,9 +49,14 @@ namespace WitchMendokusai
 				// 점수는 "작을수록 우선" 으로 정규화 → 단일 비교로 모든 우선순위 처리.
 				float score = ScoreOf(self, candidate, query.Priority);
 
-				bool better = best == null
-					|| score < bestScore
-					|| (score == bestScore && candidate.CombatantId < bestId);
+				bool better;
+				if (best == null)
+					better = true;
+				else if (ScoresTied(score, bestScore))
+					better = candidate.CombatantId < bestId; // 동점 → 등록 순서가 아니라 id 가 가른다.
+				else
+					better = score < bestScore;
+
 				if (better)
 				{
 					best = candidate;
@@ -61,6 +66,30 @@ namespace WitchMendokusai
 			}
 
 			return best;
+		}
+
+		/// <summary>
+		/// 대칭 배치에서 「똑같이 먼」 둘은 수학적으론 동점인데 float 로는 마지막 자리가 갈린다
+		/// (거리 제곱은 곱셈·뺄셈을 거친다). 그 1 ULP 차이에 <c>score == bestScore</c> 가 false 를
+		/// 돌려주면 <b>id 타이브레이크가 통째로 건너뛰어지고, 승자를 부동소수 잡음이 정한다.</b>
+		///
+		/// 한 기계 안에서는 그래도 같은 답이 나와 조용하다. 깨지는 자리는 *다른 기계*다 —
+		/// 잡음의 마지막 자리는 플랫폼·JIT 마다 달라서, 같은 입력으로 두 피어가 다른 타겟을 고른다.
+		/// 결정성이 곧 lockstep 의 전제라(TASK-WM-085) 지금 좁은 띠로 「같음」을 정의해 둔다.
+		///
+		/// 띠는 <b>상대값</b>이다: 같은 코드가 거리 제곱(수백)·HP(정수)·HP 비율(0~1)을 다 다룬다.
+		/// 절대 epsilon 하나로는 한쪽에서 너무 넓고 다른 쪽에선 무의미해진다.
+		/// (밸런스 수치가 아니라 부동소수 정밀도 상수 — 인스펙터로 낼 대상이 아니다.)
+		///
+		/// 한계 정직: 띠 비교는 추이적이지 않다(a≈b, b≈c 인데 a≉c 가 가능). 한 매치 후보가 한 자리
+		/// 수라 실질 영향은 없고, 진짜 크로스플랫폼 lockstep 까지 가면 고정소수 양자화가 정답이다.
+		/// </summary>
+		private const float SCORE_TIE_BAND = 1e-5f;
+
+		private static bool ScoresTied(float a, float b)
+		{
+			float scale = Mathf.Max(1f, Mathf.Max(Mathf.Abs(a), Mathf.Abs(b)));
+			return Mathf.Abs(a - b) <= SCORE_TIE_BAND * scale;
 		}
 
 		private bool PassesFilter(ICombatant self, ICombatant candidate, TargetQuery query)
