@@ -9,16 +9,21 @@ namespace WitchMendokusai
 		private readonly float attackRange;
 		private readonly float dashSpeed;
 		private readonly float dashDuration;
+		// 돌진 전 「멈칫」과 돌진 후 「숨 고르기」. 피할 틈을 주는 값이라 속도·시간과 같이 만져야 한다.
+		private readonly float dashPreDelay;
+		private readonly float dashPostDelay;
 		private event Action OnDashEnd;
 
 		private Vector3 moveDest = Vector3.zero;
 
-		public BT_Dash(UnitObject unitObject, PlayerProvider playerProvider, float attackRange, float dashSpeed, float dashDuration, Action onDashEnd = null) : base(unitObject)
+		public BT_Dash(UnitObject unitObject, PlayerProvider playerProvider, float attackRange, float dashSpeed, float dashDuration, Action onDashEnd = null, float dashPreDelay = 0.2f, float dashPostDelay = 0.5f) : base(unitObject)
 		{
 			this.playerProvider = playerProvider;
 			this.attackRange = attackRange;
 			this.dashSpeed = dashSpeed;
 			this.dashDuration = dashDuration;
+			this.dashPreDelay = dashPreDelay;
+			this.dashPostDelay = dashPostDelay;
 			OnDashEnd = onDashEnd;
 		}
 
@@ -38,11 +43,11 @@ namespace WitchMendokusai
 						{
 							return BTState.Success;
 						}),
-						Wait(0.2f), // 대쉬 전 딜레이
+						Wait(dashPreDelay), // 대쉬 전 딜레이
 						Action(Dash),
 						Wait(dashDuration), // 대쉬 시간
 						Action(StopDash),
-						Wait(0.5f), // 대쉬 후 딜레이
+						Wait(dashPostDelay), // 대쉬 후 딜레이
 						Action(EndDash)
 					)
 				);
@@ -83,10 +88,6 @@ namespace WitchMendokusai
 			return BTState.Success;
 		}
 
-		protected bool IsPlayerOnLeft()
-		{
-			return Camera.main.WorldToViewportPoint(unitObject.transform.position).x > .5f;
-		}
 
 		private BTState Dash()
 		{

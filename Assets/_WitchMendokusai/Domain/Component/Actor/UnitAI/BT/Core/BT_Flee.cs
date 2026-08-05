@@ -53,10 +53,6 @@ namespace WitchMendokusai
 			return BTState.Success;
 		}
 
-		protected bool IsPlayerOnLeft()
-		{
-			return Camera.main.WorldToViewportPoint(unitObject.transform.position).x > .5f;
-		}
 
 		/// <summary>
 		/// 도주 방향 = 플레이어로부터 멀어지는 단위 벡터. <see cref="BT_MoveToPlayer"/> 의 추격 방향
