@@ -10,7 +10,7 @@ namespace WitchMendokusai
 {
 	public class SaveManager
 	{
-		private const string SAVE_FILE_NAME = "WM.json";
+		public const string SAVE_FILE_NAME = "WM.json";
 
 		public bool IsDataLoaded { get; private set; }
 

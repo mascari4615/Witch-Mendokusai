@@ -1,8 +1,6 @@
-using System.IO;
+using KarmoLabs;
 using UnityEditor;
-using UnityEditor.UIElements;
 using UnityEngine;
-using UnityEngine.UIElements;
 
 namespace WitchMendokusai
 {
@@ -11,17 +9,16 @@ namespace WitchMendokusai
 		[MenuItem("WM/Delete Save Data")]
 		public static void DeleteSaveData()
 		{
-			string path = Path.Combine(Application.dataPath, "WM.json");
+			string savePath = SaveTool.GetSaveFilePath(SaveManager.SAVE_FILE_NAME);
 
-			if (File.Exists(path))
+			if (System.IO.File.Exists(savePath))
 			{
-				File.Delete(path);
-				File.Delete(path + ".meta"); // Delete the meta file as well
-				Debug.Log("All save data has been deleted.");
+				SaveTool.DeleteSaveFile(SaveManager.SAVE_FILE_NAME);
+				Debug.Log($"All save data has been deleted: {savePath}");
 			}
 			else
 			{
-				Debug.Log("No save data found to delete.");
+				Debug.Log($"No save data found to delete: {savePath}");
 			}
 		}
 	}

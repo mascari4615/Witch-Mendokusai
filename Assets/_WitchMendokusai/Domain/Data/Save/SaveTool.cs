@@ -7,7 +7,11 @@ namespace KarmoLabs
 	public class SaveTool
 	{
 		private static readonly JsonSerializerSettings JsonSettings = new() { TypeNameHandling = TypeNameHandling.Auto, };
-		private static string GetSaveFilePath(string fileName) => Path.Combine(Application.dataPath, fileName);
+		// Application.dataPath 는 Android/iOS 에서 APK/IPA 내부(읽기 전용)를
+		// 가리켜 DirectoryNotFoundException 유발. persistentDataPath 는 모든
+		// 지원 플랫폼(Standalone/Android/iOS/WebGL)에서 앱 전용 read/write
+		// 경로 보장 — 세이브 파일의 정본 위치.
+		public static string GetSaveFilePath(string fileName) => Path.Combine(Application.persistentDataPath, fileName);
 		private static bool IsSaveFileExists(string fileName) => File.Exists(GetSaveFilePath(fileName));
 
 		public static void SaveFile<T>(string fileName, T data)
