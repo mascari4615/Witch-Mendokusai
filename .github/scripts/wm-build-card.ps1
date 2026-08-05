@@ -597,10 +597,17 @@ function Update-LatestCard {
 
     $attempt = "$Icon $StatusWord · $((Get-Date).ToString('MM-dd HH:mm')) KST"
     if ($success) {
+        # 만료 안내는 링크 *자신* 에서 읽는다. 「하루 뒤 만료」처럼 글로 박아두면
+        # 정책을 바꾼 날 카드만 옛말을 하게 된다 (실측: 1일 -> 10일로 바꿨을 때).
+        $expiryText = ''
+        if ($success.link -match 'exp=(\d+)') {
+            $expiryText = [DateTimeOffset]::FromUnixTimeSeconds([int64]$Matches[1]).ToOffset([TimeSpan]::FromHours(9)).ToString('MM-dd HH:mm')
+        }
+        $expiryLine = if ($expiryText) { "이 링크는 **$expiryText KST** 까지 살아있다." } else { '' }
         $rich = @{
             lead   = "## [📲 최신 $Platform 빌드 설치]($($success.link))"
             title  = "⭐ 최신 $Platform 빌드"
-            body   = '받을 수 있는 것은 **마지막으로 성공한 빌드**다. 링크는 하루 뒤 만료되니, 만료됐으면 한 번 더 구우면 이 자리도 같이 바뀐다.'
+            body   = "받을 수 있는 것은 **마지막으로 성공한 빌드**다. $expiryLine 만료됐으면 한 번 더 구우면 이 자리도 같이 바뀐다."
             fields = @(
                 @{ name = '버전'; value = "v$($success.version)"; inline = $true },
                 @{ name = '크기'; value = "$($success.size)"; inline = $true },
