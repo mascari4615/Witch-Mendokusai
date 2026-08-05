@@ -127,6 +127,9 @@ namespace WitchMendokusai
 
             UnityEngine.Application.logMessageReceivedThreaded += OnLogThreaded;
             UnityEngine.Application.quitting += OnQuitting;
+            // 폰이 메모리를 회수하겠다고 알리는 순간 = 앱이 곧 죽을 수 있다는 유일한 예고.
+            // 그 뒤엔 종료 콜백 없이 사라지는 게 보통이라, 여기서 남은 줄을 디스크에 박는다.
+            UnityEngine.Application.lowMemory += OnLowMemory;
 
             Debug.Log($"[DeviceLog] 릴레이 켜짐 — session={_session} endpoint={_endpoint} " +
                 $"token={(string.IsNullOrEmpty(_token) ? "없음" : "있음")} spool={(_spool != null ? SpoolDirectory : "끔")}");
@@ -139,6 +142,7 @@ namespace WitchMendokusai
         {
             UnityEngine.Application.logMessageReceivedThreaded -= OnLogThreaded;
             UnityEngine.Application.quitting -= OnQuitting;
+            UnityEngine.Application.lowMemory -= OnLowMemory;
         }
 
         /// <summary>세션 = 「언제 켠 실행인가」. 서버에서 파일명이 되므로 안전한 글자만.</summary>
@@ -443,6 +447,12 @@ namespace WitchMendokusai
             }
         }
 
+        /// <summary>기기가 메모리를 조인다 = 곧 죽을 수 있다. 남은 줄을 즉시 디스크로.</summary>
+        private void OnLowMemory()
+        {
+            FlushToSpool();
+        }
+
         /// <summary>
         /// 폰에서 가장 흔한 이별 경로 — 홈 버튼·전화·화면 끔. 안드로이드는 이때 프로세스를
         /// 조용히 죽여도 되므로 `quitting` 이 영영 안 올 수 있다. 그래서 내려가는 순간
@@ -451,6 +461,16 @@ namespace WitchMendokusai
         private void OnApplicationPause(bool paused)
         {
             if (paused == false || _buffer == null)
+            {
+                return;
+            }
+            FlushToSpool();
+        }
+
+        /// <summary>남은 줄을 디스크로 옮긴다(네트워크 대기 X). 내려감·메모리 압박 공용 경로.</summary>
+        private void FlushToSpool()
+        {
+            if (_buffer == null)
             {
                 return;
             }
