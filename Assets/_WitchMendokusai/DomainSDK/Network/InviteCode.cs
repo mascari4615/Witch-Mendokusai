@@ -33,8 +33,9 @@ namespace WitchMendokusai.DomainSDK.Network
                 ((ulong)octets[1] << 32) |
                 ((ulong)octets[2] << 24) |
                 ((ulong)octets[3] << 16) |
-                ((ulong)(port >> 8) << 8) |
-                (ulong)(port & 0xFF);
+                // port 는 ushort 라 하위 16비트 그대로가 곧 big-endian 2바이트다. 상·하위를 쪼개 다시 합치면
+                // 중간식이 int 로 승격되면서 부호확장 경로가 생긴다(CS0675) — 값은 같고 함정만 남는다.
+                (ulong)port;
 
             // 48비트를 10×5비트(=50비트)에 담기 위해 2비트 패딩(상위정렬).
             ulong padded = value << 2;

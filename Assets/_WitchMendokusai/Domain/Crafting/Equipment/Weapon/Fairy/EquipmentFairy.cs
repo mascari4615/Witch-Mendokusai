@@ -8,8 +8,6 @@ namespace WitchMendokusai
 	public class EquipmentFairy : SkillComponent
 	{
 		[SerializeField] private float originCoolTime = 1.5f;
-		// 조준 위치가 아직 안 잡혔을 때 다시 물어보기까지의 간격.
-		[SerializeField] private float aimPollDelay = 0.1f;
 		[SerializeField] private GameObject bulletPrefab;
 		[SerializeField] private GameObject fairyPrefab;
 		[SerializeField] private float rotateSpeed = -30f;
@@ -72,7 +70,7 @@ namespace WitchMendokusai
 			{
 				if (playerProvider.Current.AimPos == Vector3.zero)
 				{
-					yield return new WaitForSeconds(aimPollDelay);
+					yield return new WaitForSeconds(.1f);
 					continue;
 				}
 

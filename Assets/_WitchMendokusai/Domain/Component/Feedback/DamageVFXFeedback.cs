@@ -8,8 +8,6 @@ namespace WitchMendokusai
 	{
 		[SerializeField] private GameObject hitEffectPrefab;
 		[SerializeField] private GameObject dieEffectPrefab;
-		// 이펙트를 플레이어 쪽으로 얼마나 당겨서 띄울지. 피격 연출이 몸에 파묻히지 않게 하는 값.
-		[SerializeField] private float effectOffsetDistance = 0.5f;
 
 		private ObjectPoolManager objectPoolManager;
 		private PlayerProvider playerProvider;
@@ -31,7 +29,7 @@ namespace WitchMendokusai
 			Vector3 offset = Vector3.zero;
 			if (playerProvider.Current != null)
 			{
-				offset = Vector3.Normalize(playerProvider.Current.transform.position - transform.position) * effectOffsetDistance;
+				offset = Vector3.Normalize(playerProvider.Current.transform.position - transform.position) * 0.5f;
 			}
 
 			hitEffect.transform.position = transform.position + offset;
@@ -47,7 +45,7 @@ namespace WitchMendokusai
 			Vector3 offset = Vector3.zero;
 			if (playerProvider.Current != null)
 			{
-				offset = Vector3.Normalize(playerProvider.Current.transform.position - transform.position) * effectOffsetDistance;
+				offset = Vector3.Normalize(playerProvider.Current.transform.position - transform.position) * 0.5f;
 			}
 
 			dieEffect.transform.position = transform.position + offset;

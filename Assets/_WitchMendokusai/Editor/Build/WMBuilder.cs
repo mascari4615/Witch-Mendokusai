@@ -29,8 +29,6 @@ namespace WitchMendokusai.EditorTools
     ///         -wmOut &lt;산출 경로&gt;     (생략 = Build/Player/&lt;플랫폼 기본 파일명&gt;)
     ///         -wmDev                   (박히면 Development 빌드)
     ///         -wmVersion 0.1.2         (생략 = ProjectSettings 값 유지)
-    ///         -wmBuildNumber 42        (안드로이드 versionCode / iOS buildNumber — CI 실행 번호)
-    ///         -wmCommit abc12345       (버전 문자열 뒤에 붙는 커밋 표식)
     ///         -wmReport &lt;json 경로&gt;  (빌드 요약 JSON — CI 가 파싱)
     ///
     /// 종료코드 = 빌드 성패 (0/1). batchmode 가 아니면 Exit 하지 않는다.
@@ -97,11 +95,6 @@ namespace WitchMendokusai.EditorTools
                 PlayerSettings.bundleVersion = version;
                 Debug.Log($"[WM-BUILD] bundleVersion → {version}");
             }
-
-            // 산출물이 자기가 어느 빌드인지 말할 수 있게 (폰에 여러 개 깔릴 때 구분).
-            int buildNumber = 0;
-            int.TryParse(ArgValue("-wmBuildNumber"), out buildNumber);
-            WMBuildManager.ApplyBuildIdentity(buildNumber, ArgValue("-wmCommit"));
 
             BuildSummary summary;
             string detail;

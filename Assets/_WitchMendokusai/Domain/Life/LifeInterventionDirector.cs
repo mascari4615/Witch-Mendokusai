@@ -26,7 +26,7 @@ namespace WitchMendokusai
 		private void Start()
 		{
 			labelPrefab = Resources.Load<GameObject>("Life/LifeLabel");
-			foreach (LifeAgent agent in FindObjectsByType<LifeAgent>(FindObjectsSortMode.None))
+			foreach (LifeAgent agent in FindObjectsByType<LifeAgent>())
 			{
 				agents.Add(agent);
 				problemLabels.Add(CreateProblemLabel(agent));

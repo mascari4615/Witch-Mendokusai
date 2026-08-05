@@ -1,6 +1,6 @@
 # WitchMendokusai — AI 에이전트 작업 지침
 
-> Claude Code 자동 로드용 호환 문서다. 세계관 = `memo/CLAUDE.md`. 상세 워크플로 = `memo/wm/` (기술 문서 = `memo/wm/dev/`).
+> Claude Code 자동 로드용 호환 문서다. 세계관 = `memo/CLAUDE.md`. 상세 워크플로 = `memo/wm/` 및 `WitchMendokusai/docs/`.
 
 ## 입력 처리
 
@@ -58,7 +58,6 @@ WMInput.inputactions → InputManager.BindEvents() → On{Start/Performed/Cancel
 ## Editor 메뉴
 
 `MenuItem` top-level root = **`WM/`** 단일화. `WitchMendokusai/...` 사용 X. grep 게이트: `MenuItem.*"WitchMendokusai/` 결과 0.
-(※ 여기 `WitchMendokusai/` 는 *파일 경로가 아니라 메뉴 이름 문자열* 이다 — 레포 폴더명 하이픈 정리 대상 아님.)
 
 ## 수치 노출 / 런타임 tweak
 

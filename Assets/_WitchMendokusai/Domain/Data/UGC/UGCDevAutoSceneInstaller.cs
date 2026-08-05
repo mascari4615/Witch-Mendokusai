@@ -16,6 +16,12 @@ namespace WitchMendokusai
 		private static readonly Color ZoneLabelColor = new Color(0.35f, 0.9f, 1f);
 		private static bool isRegistered;
 
+		// 2026-06-20 부터 자동 설치를 끈 상태. 예전엔 OnSceneLoaded 첫 줄에서 그냥 return 해버려서 아래
+		// 전부가 "도달 불가 코드"(CS0162)로 잡혔다 — 꺼져 있다는 사실이 경고 한 줄로만 남아 있던 셈.
+		// 스위치를 밖으로 꺼내 두면 왜 안 도는지가 코드에 보이고, 되살릴 땐 이 값만 true 로 바꾸면 된다.
+		// (const 가 아니라 static readonly = 컴파일러가 아래를 죽은 코드로 접지 않는다.)
+		private static readonly bool AutoInstallEnabled = false;
+
 		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
 		private static void Register()
 		{
@@ -32,8 +38,8 @@ namespace WitchMendokusai
 
 		private static void OnSceneLoaded(Scene scene, LoadSceneMode mode)
 		{
-			// 2026-06-20. 당장 안써서 리턴
-			return;
+			if (AutoInstallEnabled == false)
+				return;
 
 			if (Application.isPlaying == false)
 			{

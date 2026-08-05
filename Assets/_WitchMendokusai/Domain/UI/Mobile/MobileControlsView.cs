@@ -73,13 +73,6 @@ namespace WitchMendokusai
 
 		private void Update()
 		{
-			// ★ 화면 층은 다시 만들어질 수 있다 (UIRoot 가 켜질 때마다 층을 새로 세운다).
-			//   그러면 이 조작 장치는 *옛 층에 붙은 채* 화면에서 사라지는데, 스스로는 「만들었다」고
-			//   믿고 있어서 영영 안 돌아온다 — 폰에서 갑자기 못 움직이게 되는 종류의 결함이다.
-			//   붙어 있는지 매 프레임 확인하고, 떨어졌으면 다시 붙는다(조용히 없어지는 것보다 낫다).
-			if (built && IsAttached() == false)
-				built = false;
-
 			if (built == false)
 			{
 				Build();
@@ -119,31 +112,10 @@ namespace WitchMendokusai
 			return delta;
 		}
 
-		/// <summary> 지금 화면의 *현재* HUD 층에 붙어 있나 — 층이 새로 세워졌으면 거짓이 된다. </summary>
-		private bool IsAttached()
-		{
-			if (lookBackdrop == null || controlsRoot == null)
-				return false;
-			if (UIRoot.TryGetExistingInstance(out UIRoot uiRoot) == false || uiRoot.HudLayer == null)
-				return false;
-			return lookBackdrop.parent == uiRoot.HudLayer && controlsRoot.parent == uiRoot.HudLayer;
-		}
-
 		private void Build()
 		{
 			if (built)
 				return;
-
-			// 옛 층에 남아 있던 것은 떼고 다시 붙인다 — 안 그러면 유령이 겹겹이 쌓인다.
-			lookBackdrop?.RemoveFromHierarchy();
-			controlsRoot?.RemoveFromHierarchy();
-
-			// ★ 잡고 있던 손가락 번호도 같이 버린다. 새 스틱은 그 손가락을 붙잡은 적이 없는데
-			//   번호만 남아 있으면 「이미 누가 잡고 있다」고 오해해 *새 스틱이 죽은 채로 시작한다*
-			//   (다시 붙이는 그 순간 손가락이 스틱 위에 있었으면 그대로 굳는다).
-			stickPointerId = -1;
-			stickValue = Vector2.zero;
-			lookAccumulated = Vector2.zero;
 			if (UIRoot.TryGetExistingInstance(out UIRoot uiRoot) == false || uiRoot.HudLayer == null)
 				return;
 

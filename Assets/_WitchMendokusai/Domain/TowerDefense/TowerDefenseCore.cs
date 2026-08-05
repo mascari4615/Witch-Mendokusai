@@ -6,10 +6,6 @@ namespace WitchMendokusai
 	/// 순수(MonoBehaviour/물리/이벤트버스 0) → EditMode 로 규칙 전량 검증. 셸(TowerDefenseMatch)은
 	/// Tick 이 돌려주는 TowerDefenseSignal 로 스폰/UI/정리만 수행(규칙 판단 0).
 	///
-	/// 웨이브 클리어 판정은 ConfirmWaveSpawned() 로 스폰이 실제 확인된 뒤에만 활성 — 스폰 전
-	/// aliveEnemies==0 을 "격퇴" 로 오인해 웨이브를 통째 건너뛰는 false-clear 차단(ArenaMatchCore 의
-	/// "0틱 종료" 방어와 동형).
-	///
 	/// rules.IsEndless(WaveCount 이하 0) 면 Victory 가 없다 — 코어가 부서질 때까지 웨이브가 영원히
 	/// 이어지고 격파한 WaveIndex 가 곧 점수(디폴트, "고작 N웨이브" 유한 스테이지 거부). WaveCount>0 인
 	/// 유한 스테이지는 기존 그대로 해당 파 격퇴 시 Victory.
@@ -19,7 +15,6 @@ namespace WitchMendokusai
 		private readonly TowerDefenseRules rules;
 
 		private float prepareRemaining;
-		private bool waveSpawnConfirmed;
 		private bool nextWaveRequested;
 
 		// ── 실시간(RTS) 시계 ─────────────────────────────────────────────────────
@@ -209,12 +204,6 @@ namespace WitchMendokusai
 
 			nextWaveRequested = true;
 			return true;
-		}
-
-		/// <summary> 셸이 WaveStarted 를 받아 적을 실제 스폰한 뒤 호출. 이 호출 전에는 웨이브가 클리어되지 않는다. </summary>
-		public void ConfirmWaveSpawned()
-		{
-			waveSpawnConfirmed = true;
 		}
 
 		/// <summary> 자원이 충분하면 차감하고 true. 부족하면 상태 무변경 + false(배치 거절). </summary>

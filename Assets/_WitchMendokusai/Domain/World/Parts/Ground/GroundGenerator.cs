@@ -18,8 +18,6 @@ namespace WitchMendokusai
 
 		[SerializeField] private GameObject groundPrefab;
 		[SerializeField] private int chunkSize = 100;
-		// 플레이어 위치를 다시 보고 청크를 갱신하는 주기(초).
-		[SerializeField] private float chunkRefreshInterval = 1f;
 
 		// 현재 청크
 		private readonly Dictionary<Vector3Int, GameObject> chunks = new();
@@ -50,7 +48,7 @@ namespace WitchMendokusai
 
 		private IEnumerator GenerateChunks()
 		{
-			WaitForSeconds wait = new(chunkRefreshInterval);
+			WaitForSeconds wait = new(1f);
 
 			while (true)
 			{

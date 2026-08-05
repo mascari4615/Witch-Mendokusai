@@ -23,7 +23,7 @@ namespace WitchMendokusai
 
 			Revert();
 
-			WaterRenderer[] waterRenderers = Object.FindObjectsByType<WaterRenderer>(FindObjectsSortMode.None);
+			WaterRenderer[] waterRenderers = Object.FindObjectsByType<WaterRenderer>();
 			if (waterRenderers.Length == 0)
 			{
 				Debug.LogWarning($"[WaterSlot] No WaterRenderer found in scene. Material '{slotInfo.assetName}' has no target.");

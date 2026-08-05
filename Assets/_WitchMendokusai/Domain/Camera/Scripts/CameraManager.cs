@@ -167,11 +167,7 @@ namespace WitchMendokusai
 			if (IsFreePositionMode)
 				return;
 
-			// ★ 손가락은 조작 방식과 상관없이 *늘 훑어서 본다* (TASK-WM-200).
-			//   PointAndClick 은 시점 회전을 Q/E 에만 걸어 두는데, 폰엔 그 키가 없다 — 그대로 두면
-			//   폰에서는 시점을 아예 못 돌린다(훑기 판을 만들어 놔도 아무 데도 안 쓰인다).
-			//   마우스 잠금은 여기 없다(UpdateCursorState 가 따로 본다) — 손가락엔 잠글 커서가 없다.
-			if (ControlMode == CameraControlMode.MouseLook || inputManager.IsTouchMode)
+			if (ControlMode == CameraControlMode.MouseLook)
 			{
 				Vector2 look = inputManager.LookDelta;
 				yaw += look.x * mouseYawSensitivity;

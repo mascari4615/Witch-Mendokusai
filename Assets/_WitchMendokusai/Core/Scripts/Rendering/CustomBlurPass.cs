@@ -16,7 +16,6 @@ namespace WitchMendokusai
 		private const string DEST_RT_NAME = PASS_NAME + " - Destination";
 
 		private readonly CustomBlurFeature feature;
-		private readonly ProfilingSampler profilingSampler;
 		private readonly MaterialPropertyBlock propertyBlock;
 
 		private RTHandle externalRTHandle;
@@ -25,6 +24,8 @@ namespace WitchMendokusai
 		public CustomBlurPass(CustomBlurFeature feature)
 		{
 			this.feature = feature;
+			// 베이스(ScriptableRenderPass)가 이미 profilingSampler 를 들고 있다 — 같은 이름으로 하나 더 두면
+			// 프로파일러가 어느 쪽을 보느냐에 따라 이 패스가 이름 없이 잡힌다. 베이스 것을 그대로 채운다.
 			profilingSampler = new ProfilingSampler(PASS_NAME);
 			propertyBlock = new MaterialPropertyBlock();
 		}

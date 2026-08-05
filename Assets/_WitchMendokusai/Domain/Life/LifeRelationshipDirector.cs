@@ -35,7 +35,7 @@ namespace WitchMendokusai
 			lineMaterial = new Material(Shader.Find("Sprites/Default"));
 			labelPrefab = Resources.Load<GameObject>("Life/LifeLabel"); // 관계 단계 한글 라벨(없으면 선만).
 
-			LifeAgent[] agents = FindObjectsByType<LifeAgent>(FindObjectsSortMode.None);
+			LifeAgent[] agents = FindObjectsByType<LifeAgent>();
 			for (int a = 0; a < agents.Length; a++)
 			{
 				for (int b = a + 1; b < agents.Length; b++)

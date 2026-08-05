@@ -112,7 +112,7 @@ namespace WitchMendokusai.EditorTools
 		// 씬 전체 전리품 ItemObject (inactive 포함 — 풀 inactive 루트 밑 스폰도 잡음).
 		private static ItemObject[] FindAllLoot()
 		{
-			return Object.FindObjectsByType<ItemObject>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+			return Object.FindObjectsByType<ItemObject>(FindObjectsInactive.Include);
 		}
 
 		// 드랍된 전리품 첫 항목 이름 (ItemObject.itemData private — reflection). 마수 고기/가죽/뼈 확인용.

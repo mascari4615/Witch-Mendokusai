@@ -4,7 +4,10 @@ using System.Linq;
 
 namespace WitchMendokusai
 {
-	[Serializable]
+	// 세이브는 Json.NET(SaveTool/PlayFabManager) 이 통째로 한다 — Unity 직렬화는 이 그래프를 건드리지 않는다.
+	// 그래서 [Serializable] 을 달지 않는다: 달면 Unity 가 "내가 저장할 것"으로 오해해 Dictionary·Guid? 같은
+	// (Json.NET 은 멀쩡히 처리하는) 타입마다 경고를 쏟는다. 라이브 확인: Json.NET 의
+	// IgnoreSerializableAttribute=True → 이 속성은 저장 포맷에 아무 영향이 없다.
 	public class GameData
 	{
 		public int curDollIndex = 0;

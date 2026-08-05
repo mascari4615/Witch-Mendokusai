@@ -7,13 +7,9 @@ namespace WitchMendokusai
 {
 	public class EquipmentSword : SkillComponent
 	{
+		private const float EACH_ATTACK_DELAY = 0.1f;
+
 		[SerializeField] private float originCoolTime = 1.5f;
-		// 검 여러 자루가 연속으로 나갈 때의 자루 간 간격.
-		[SerializeField] private float eachAttackDelay = 0.1f;
-		// 조준 위치가 아직 안 잡혔을 때 다시 물어보기까지의 간격.
-		[SerializeField] private float aimPollDelay = 0.1f;
-		// 공격속도 보너스 1스택이 쿨타임을 깎는 비율.
-		[SerializeField] private float attackSpeedBonusPerStack = 0.2f;
 		[SerializeField] private GameObject bulletPrefab;
 		[SerializeField] private GameObject swordPrefab;
 #pragma warning disable CS0414 // 칼 회전 미구현 예약 필드
@@ -81,7 +77,7 @@ namespace WitchMendokusai
 			{
 				if (playerProvider.Current.AimPos == Vector3.zero)
 				{
-					yield return new WaitForSeconds(aimPollDelay);
+					yield return new WaitForSeconds(.1f);
 					continue;
 				}
 
@@ -94,7 +90,7 @@ namespace WitchMendokusai
 
 		private IEnumerator AttackLoop()
 		{
-			WaitForSeconds wait = new WaitForSeconds(eachAttackDelay);
+			WaitForSeconds wait = new WaitForSeconds(EACH_ATTACK_DELAY);
 			bool playerWasLookingRight = playerProvider.CurrentObject.UnitMovement.IsLookingRight;
 			for (int i = 0; i < swordTransforms.Count; i++)
 			{
@@ -165,7 +161,7 @@ namespace WitchMendokusai
 
 		private void UpdateAttackSpeedBonus(int attackSpeedBonus)
 		{
-			coolTime = originCoolTime * (1 - attackSpeedBonus * attackSpeedBonusPerStack);
+			coolTime = originCoolTime * (1 - attackSpeedBonus * .2f);
 		}
 	}
 }

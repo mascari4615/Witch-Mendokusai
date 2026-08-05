@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace WitchMendokusai
 {
-	[Serializable]
+	// Json.NET 전용 저장 DTO — Unity 직렬화 대상이 아니라 [Serializable] 을 달지 않는다(GameData 주석 참조).
 	public struct RuntimeQuestSaveData
 	{
 		public Guid? Guid;

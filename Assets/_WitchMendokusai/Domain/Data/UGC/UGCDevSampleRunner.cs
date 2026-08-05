@@ -11,8 +11,6 @@ namespace WitchMendokusai
 		[SerializeField] private bool verboseInputLog = true;
 		[SerializeField] private string manifestFileName = "wm_jump_001.manifest.json";
 		[SerializeField] private string triggerFileName = "wm_jump_001.triggers.json";
-		// 입력이 살아있는지 로그로 알리는 주기(초). 조용하면 놓치고, 잦으면 콘솔이 묻힌다.
-		[SerializeField] private float inputHeartbeatInterval = 2f;
 
 		private readonly UGCRuntimeSession session = new();
 		private string lastStatus = "Not loaded";
@@ -108,7 +106,7 @@ namespace WitchMendokusai
 			if (verboseInputLog == false || Time.unscaledTime < nextInputHeartbeatTime)
 				return;
 
-			nextInputHeartbeatTime = Time.unscaledTime + inputHeartbeatInterval;
+			nextInputHeartbeatTime = Time.unscaledTime + 2f;
 
 			bool anyKey = InputManager.Instance.IsAnyKeyPressedThisFrame;
 			// Debug.Log($"[UGC][Input] heartbeat keyboardPresent={keyboardPresent}, anyKeyThisFrame={anyKey}, focus={Application.isFocused}");

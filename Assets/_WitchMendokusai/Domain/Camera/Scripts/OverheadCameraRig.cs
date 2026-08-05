@@ -39,19 +39,6 @@ namespace WitchMendokusai
 			public float Rotate;         // yaw 회전
 			public float ScrollDelta;    // 휠 델타 (+ = 확대)
 			public float SpeedMultiplier; // 가속(Ctrl 등)
-
-			/// <summary>
-			/// 이미 월드 단위로 환산된 평면 이동 — 손가락으로 땅을 잡아 끄는 조작 (TASK-WM-200).
-			///
-			/// ★ 왜 Move 축과 따로 두나: Move 는 「어느 쪽으로 얼마나 빠르게」라서 속도·시간이 곱해진다.
-			///   손가락 끌기는 「땅의 이 점이 손끝을 따라온다」라 *거리가 이미 정해져 있다* — 속도를 곱하면
-			///   손끝과 땅이 어긋나고, 그 순간 「잡아 끈다」는 느낌이 통째로 깨진다. 픽셀→월드 환산은
-			///   화각을 아는 소유자(컨트롤러)가 하고, 여기선 더하기만 한다.
-			/// </summary>
-			public Vector3 PanWorld;
-
-			/// <summary> 이미 도(degree)로 정해진 회전 — 두 손가락 비틀기. PanWorld 와 같은 이유로 속도를 안 곱한다. </summary>
-			public float YawDegrees;
 		}
 
 		public Vector3 Focus { get; private set; }
@@ -94,9 +81,7 @@ namespace WitchMendokusai
 			Vector3 forward = flatYaw * Vector3.forward;
 			Vector3 right = flatYaw * Vector3.right;
 			float speedMultiplier = input.SpeedMultiplier <= 0f ? 1f : input.SpeedMultiplier;
-			Vector3 nextFocus = Focus
-				+ (forward * input.Move.y + right * input.Move.x) * settings.PanSpeed * speedMultiplier * deltaTime
-				+ input.PanWorld;
+			Vector3 nextFocus = Focus + (forward * input.Move.y + right * input.Move.x) * settings.PanSpeed * speedMultiplier * deltaTime;
 
 			if (settings.ClampFocus)
 			{
@@ -105,7 +90,7 @@ namespace WitchMendokusai
 			}
 			Focus = nextFocus;
 
-			Yaw += input.Rotate * settings.YawSpeed * deltaTime + input.YawDegrees;
+			Yaw += input.Rotate * settings.YawSpeed * deltaTime;
 
 			// 휠 = 높이(=줌). 가까이 = 확대이므로 스크롤 + 에 높이가 줄어야 한다.
 			Height = Mathf.Clamp(Height - ToNotches(input.ScrollDelta) * settings.ZoomSpeed, settings.MinHeight, settings.MaxHeight);

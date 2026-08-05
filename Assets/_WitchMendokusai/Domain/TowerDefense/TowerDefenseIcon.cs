@@ -140,8 +140,9 @@ namespace WitchMendokusai
 		private static VisualElement Diamond(Color color, float side)
 		{
 			VisualElement diamond = Bar(color, side, side);
-			// VisualElement.transform 은 버전 간 안정적인 회전 경로(style.rotate 는 시그니처가 갈린다).
-			diamond.transform.rotation = Quaternion.Euler(0f, 0f, 45f);
+			// Unity 6 에서 VisualElement.transform 회전은 폐기됐다 — style.rotate(Angle) 가 정본 경로.
+			// 이름 그대로 쓰면 다른 어셈블리의 Rotate 가 먼저 잡힌다 — UIElements 것으로 못 박는다.
+			diamond.style.rotate = new UnityEngine.UIElements.Rotate(new Angle(45f, AngleUnit.Degree));
 			return diamond;
 		}
 	}

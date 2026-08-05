@@ -139,7 +139,7 @@ namespace WitchMendokusai
 			// Object.Destroy 는 end-of-frame 이라 OnDestroy→Dispose 가 다음 매치 스폰 *후* 실행됨.
 			// 다음 매치가 같은 풀 인스턴스를 재사용하면, 늦은 Dispose 의 StopDriving(RemoveCallback+runner=null)이
 			// 방금 등록한 OnTick 콜백/runner 를 clobber → 재사용 유닛이 안 tick(미전투). 동기 Dispose 로 스폰 전 완결.
-			foreach (ArenaMatch existing in Object.FindObjectsByType<ArenaMatch>(FindObjectsSortMode.None))
+			foreach (ArenaMatch existing in Object.FindObjectsByType<ArenaMatch>())
 			{
 				existing.Dispose();
 				Object.Destroy(existing.gameObject);

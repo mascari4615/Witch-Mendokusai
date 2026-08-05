@@ -83,16 +83,10 @@ namespace WitchMendokusai
 			if (positionComposer == null)
 				return;
 
-			if (InputManager.TryGetExistingInstance(out InputManager inputManager) == false)
+			if (Keyboard.current == null || Keyboard.current.ctrlKey.isPressed == false)
 				return;
 
-			// TASK-WM-200 — 손가락엔 Ctrl 이 없다. 오므리기 자체가 이미 「확대하겠다」는 뜻이라
-			// 덧붙일 열쇠가 필요 없다. 마우스에서만 휠이 시점 조작과 겹치므로 Ctrl 을 요구한다.
-			if (inputManager.IsTouchMode == false
-				&& (Keyboard.current == null || Keyboard.current.ctrlKey.isPressed == false))
-				return;
-
-			float step = -inputManager.ScrollWheelDelta * zoomWheelSensitivity;
+			float step = -(Mouse.current != null ? Mouse.current.scroll.ReadValue().y : 0f) * zoomWheelSensitivity;
 			targetZoom = Mathf.Clamp(targetZoom + step, minZoom, maxZoom);
 		}
 

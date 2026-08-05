@@ -22,7 +22,7 @@ namespace WitchMendokusai
 
 		private static bool CheckAnyTextFieldFocused()
 		{
-			UIDocument[] documents = Object.FindObjectsByType<UIDocument>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
+			UIDocument[] documents = Object.FindObjectsByType<UIDocument>(FindObjectsInactive.Exclude);
 
 			for (int i = 0; i < documents.Length; i++)
 			{

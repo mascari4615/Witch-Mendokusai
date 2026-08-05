@@ -290,21 +290,6 @@ namespace WitchMendokusai
 		[field: Tooltip("레벨업 선택지 한 단계가 올리는 비율(0.2 = +20%).")]
 		[field: SerializeField, Min(0f)] public float PerkStep { get; private set; } = 0.2f;
 
-		// ★ 여기가 성장 곡선의 *유일한 집*이다. 예전엔 「얼마나 받나」(위 두 줄)만 여기 있고
-		//   「얼마나 필요한가」는 코드에 박혀 있었다 — 반쪽만 만질 수 있으면 승급 속도는 결국
-		//   손댈 수 없다(분자만 있고 분모가 없는 꼴). 둘을 같은 자리에 둔다.
-		[field: Tooltip("건물이 2레벨이 되는 데 필요한 경험치. 낮을수록 승급 선택이 자주 온다.")]
-		[field: SerializeField, Min(1)] public int BuildingLevelBaseCost { get; private set; } = 10;
-
-		[field: Tooltip("건물 레벨마다 필요량이 곱해지는 비율(1.6 = 한 단계마다 60%씩 비싸짐).")]
-		[field: SerializeField, Min(1f)] public float BuildingLevelGrowth { get; private set; } = 1.6f;
-
-		[field: Tooltip("코어가 2레벨이 되는 데 필요한 경험치. 코어는 판 전체의 성과를 받으므로 건물보다 크게 잡는다.")]
-		[field: SerializeField, Min(1)] public int CoreLevelBaseCost { get; private set; } = 24;
-
-		[field: Tooltip("코어 레벨마다 필요량이 곱해지는 비율.")]
-		[field: SerializeField, Min(1f)] public float CoreLevelGrowth { get; private set; } = 1.5f;
-
 		[field: Header("코어·전초기지 방어 — 마지막 보루도 반격은 한다")]
 		[field: Tooltip("코어의 자체 무기(비어 있으면 코어는 무방비). 포탑과 같은 표를 쓴다 — 두 곳이 갈라지지 않게.")]
 		[field: SerializeField] public TowerDefenseTowerArchetype CoreWeapon { get; private set; }

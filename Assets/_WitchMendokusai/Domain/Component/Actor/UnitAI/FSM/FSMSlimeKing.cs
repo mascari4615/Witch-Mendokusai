@@ -10,13 +10,6 @@ namespace WitchMendokusai
 		[SerializeField] private float attackRange = 15f;
 		[SerializeField] private bool isSpriteLookLeft = false;
 
-		[Header("Dash Attack")]
-		[SerializeField] private float dashSpeed = 15f;
-		[SerializeField] private float dashDuration = 0.5f;
-
-		[Header("Wait")]
-		[SerializeField] private float waitDuration = 2f;
-
 		// 공격 패턴 정의
 		private enum AttackPattern
 		{
@@ -40,7 +33,7 @@ namespace WitchMendokusai
 			BT_Idle _idle = new(UnitObject, isSpriteLookLeft: isSpriteLookLeft);
 			BT_MoveToPlayer _moveToPlayer = new(UnitObject, playerProvider, isSpriteLookLeft);
 			BT_Skill _projectileAttack = new(UnitObject, playerProvider, 0, attackRange, () => ChangeState(FSMStateCommon.Wait));
-			BT_Dash _dash = new(UnitObject, playerProvider, attackRange, dashSpeed: dashSpeed, dashDuration: dashDuration, onDashEnd: () => ChangeState(FSMStateCommon.Wait));
+			BT_Dash _dash = new(UnitObject, playerProvider, attackRange, dashSpeed: 15f, dashDuration: 0.5f, onDashEnd: () => ChangeState(FSMStateCommon.Wait));
 
 			// --- 상태별 이벤트 설정 ---
 			SetStateEvent(FSMStateCommon.Idle, StateEvent.Update, () =>
@@ -77,7 +70,7 @@ namespace WitchMendokusai
 			SetStateEvent(FSMStateCommon.Wait, StateEvent.Update, () =>
 			{
 				timer += BTRunner.TICK;
-				if (timer >= waitDuration)
+				if (timer >= 2f)
 				{
 					timer = 0f;
 					Debug.Log("Wait Over, Attack!");

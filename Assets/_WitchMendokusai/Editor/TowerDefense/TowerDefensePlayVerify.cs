@@ -716,7 +716,7 @@ namespace WitchMendokusai.EditorTools
 		/// </summary>
 		private static void VerifyTimetoHub()
 		{
-			NPCObject[] npcs = Object.FindObjectsByType<NPCObject>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+			NPCObject[] npcs = Object.FindObjectsByType<NPCObject>(FindObjectsInactive.Include);
 			NPCObject timeto = null;
 			foreach (NPCObject npc in npcs)
 			{
@@ -788,7 +788,7 @@ namespace WitchMendokusai.EditorTools
 		{
 			// ⚠ Unity 콘솔 리더는 멀티라인 로그의 *첫 줄만* 준다 → 카메라마다 별도 Debug.Log 로 찍어야
 			//   원격(MCP)에서 전부 읽힌다. 한 줄로 몰면 진단이 통째 유실됨(실측).
-			Camera[] cameras = Object.FindObjectsByType<Camera>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
+			Camera[] cameras = Object.FindObjectsByType<Camera>(FindObjectsInactive.Exclude);
 			Debug.Log(TAG + " CAMERAS(" + phase + ") count=" + cameras.Length
 				+ " main=" + (Camera.main != null ? Camera.main.name : "NULL"));
 
@@ -831,7 +831,7 @@ namespace WitchMendokusai.EditorTools
 				+ " isFreePosition=" + cameraManager.IsFreePositionMode);
 
 			// 개척 vcam 실재/등록 확인 — 없으면 SetContentCameraMode 가 First() 에서 터지거나 무시된다.
-			MCamera[] allVcams = Object.FindObjectsByType<MCamera>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+			MCamera[] allVcams = Object.FindObjectsByType<MCamera>(FindObjectsInactive.Include);
 			bool foundTowerDefenseVcam = false;
 			foreach (MCamera vcam in allVcams)
 			{
@@ -1019,8 +1019,8 @@ namespace WitchMendokusai.EditorTools
 				// 진단 — "match 가 null" 만으론 원인 불명(컴포넌트 파괴 vs 모드 이탈 vs 싱글톤 중복 파괴).
 				bool ctrlAlive = TowerDefenseModeController.TryGetExistingInstance(out TowerDefenseModeController ctrl);
 				string mode = GameModeManager.TryGetExistingInstance(out GameModeManager gm) ? gm.CurrentMode.ToString() : "no-manager";
-				int ctrlCount = Object.FindObjectsByType<TowerDefenseModeController>(FindObjectsInactive.Include, FindObjectsSortMode.None).Length;
-				int matchCount = Object.FindObjectsByType<TowerDefenseMatch>(FindObjectsInactive.Include, FindObjectsSortMode.None).Length;
+				int ctrlCount = Object.FindObjectsByType<TowerDefenseModeController>(FindObjectsInactive.Include).Length;
+				int matchCount = Object.FindObjectsByType<TowerDefenseMatch>(FindObjectsInactive.Include).Length;
 				Debug.LogError(TAG + " OBSERVE-FAIL match null — controllerInstance=" + ctrlAlive
 					+ " controllersInScene=" + ctrlCount
 					+ " matchesInScene=" + matchCount
@@ -1201,7 +1201,7 @@ namespace WitchMendokusai.EditorTools
 			int pierceHits = 0;
 			int splashHits = 0;
 			int slowApplied = 0;
-			foreach (TowerDefenseWeapon weapon in Object.FindObjectsByType<TowerDefenseWeapon>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+			foreach (TowerDefenseWeapon weapon in Object.FindObjectsByType<TowerDefenseWeapon>(FindObjectsInactive.Include))
 			{
 				pierceHits += weapon.PierceHits;
 				splashHits += weapon.SplashHits;
@@ -1446,7 +1446,7 @@ namespace WitchMendokusai.EditorTools
 			bool upgraded = match.TryPlaceTower(world, sellProbeSlot); // 세운 그 종류로 걸어야 승급 검사가 된다.
 
 			int level = -1;
-			foreach (TowerDefenseWeapon weapon in Object.FindObjectsByType<TowerDefenseWeapon>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+			foreach (TowerDefenseWeapon weapon in Object.FindObjectsByType<TowerDefenseWeapon>(FindObjectsInactive.Include))
 			{
 				if (weapon != null && weapon.Level > level)
 					level = weapon.Level;
@@ -2056,7 +2056,7 @@ namespace WitchMendokusai.EditorTools
 				return 0;
 
 			int count = 0;
-			ArenaCombatant[] combatants = Object.FindObjectsByType<ArenaCombatant>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
+			ArenaCombatant[] combatants = Object.FindObjectsByType<ArenaCombatant>(FindObjectsInactive.Exclude);
 			foreach (ArenaCombatant combatant in combatants)
 			{
 				if (combatant.TeamId != 1 || combatant.IsAlive == false)

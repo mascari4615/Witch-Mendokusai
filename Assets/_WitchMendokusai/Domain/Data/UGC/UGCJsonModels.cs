@@ -4,14 +4,16 @@ using Newtonsoft.Json.Linq;
 
 namespace WitchMendokusai
 {
-	[Serializable]
+	// 이 파일의 모델은 전부 UGC json 을 Json.NET 으로 읽고 쓰기 위한 것이다 — Unity 직렬화는 건드리지
+	// 않으므로 [Serializable] 을 달지 않는다(달면 JObject 같은 필드마다 "저장 안 된다"는 경고가 뜬다).
+	// 배경 정본 = Domain/Data/Save/GameData.cs 주석.
+
 	public class UGCTargetRef
 	{
 		public string kind;
 		public string id;
 	}
 
-	[Serializable]
 	public class UGCConditionData
 	{
 		public string type;
@@ -19,7 +21,6 @@ namespace WitchMendokusai
 		public JObject @params;
 	}
 
-	[Serializable]
 	public class UGCActionData
 	{
 		public string type;
@@ -27,7 +28,6 @@ namespace WitchMendokusai
 		public JObject @params;
 	}
 
-	[Serializable]
 	public class UGCTriggerEventData
 	{
 		public int schemaVersion;
@@ -41,7 +41,6 @@ namespace WitchMendokusai
 		public bool once;
 	}
 
-	[Serializable]
 	public class UGCVector3Data
 	{
 		public float x;
@@ -49,7 +48,6 @@ namespace WitchMendokusai
 		public float z;
 	}
 
-	[Serializable]
 	public class UGCSpawnPointData
 	{
 		public string id;
@@ -57,7 +55,6 @@ namespace WitchMendokusai
 		public UGCVector3Data rotation;
 	}
 
-	[Serializable]
 	public class UGCCheckpointData
 	{
 		public string id;
@@ -65,7 +62,6 @@ namespace WitchMendokusai
 		public bool isDefault;
 	}
 
-	[Serializable]
 	public class UGCMapObjectData
 	{
 		public string id;
@@ -76,7 +72,6 @@ namespace WitchMendokusai
 		public List<string> tags = new();
 	}
 
-	[Serializable]
 	public class UGCZoneData
 	{
 		public string id;
@@ -84,7 +79,6 @@ namespace WitchMendokusai
 		public UGCVector3Data scale;
 	}
 
-	[Serializable]
 	public class UGCMapManifestData
 	{
 		public int schemaVersion;
@@ -103,7 +97,6 @@ namespace WitchMendokusai
 	}
 
 	// 월드젠 노이즈 시드 — TerrainParameters 의 직렬화 서브셋 (FBM 파라미터). 기본값 = TerrainParameters 기본값 정합.
-	[Serializable]
 	public class SeedSaveData
 	{
 		public string name;
@@ -114,7 +107,6 @@ namespace WitchMendokusai
 		public float biomeFrequency = 0.005f;
 	}
 
-	[Serializable]
 	public class UGCSeedManifestData
 	{
 		public int schemaVersion;

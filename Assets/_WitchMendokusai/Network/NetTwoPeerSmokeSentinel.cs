@@ -557,7 +557,7 @@ namespace WitchMendokusai
         // 클라 측: 내가 소유(IsOwner)한 프록시 1개 찾기 (이 2-프로세스 셋업엔 클라-소유 프록시뿐).
         private static PlayerNetProxy FindOwnedProxy()
         {
-            PlayerNetProxy[] all = FindObjectsByType<PlayerNetProxy>(FindObjectsSortMode.None);
+            PlayerNetProxy[] all = FindObjectsByType<PlayerNetProxy>();
             for (int index = 0; index < all.Length; index++)
             {
                 if (all[index].IsOwner)

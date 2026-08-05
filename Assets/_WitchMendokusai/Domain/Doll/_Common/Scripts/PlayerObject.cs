@@ -18,10 +18,6 @@ namespace WitchMendokusai
 		[SerializeField] private SpriteRenderer headRenderer;
 		[SerializeField] private SpriteRenderer bodyRenderer;
 
-		// 무적 시간 중 스프라이트 깜박임 주기(초). 깜박임 횟수도 이 값에서 파생 — 수치를 두 곳에 박지 않는다.
-		// [Min] = 0 입력 시 0-나눗셈 + WaitForSeconds(0) 무한루프 차단. 방어 분기 대신 입력 자체를 막는다.
-		[SerializeField, Min(0.001f)] private float invincibleBlinkInterval = 0.1f;
-
 		private GameEventManager gameEventManager;
 		private SOManager soManager;
 
@@ -119,16 +115,17 @@ namespace WitchMendokusai
 
 		private IEnumerator InvincibleTime()
 		{
-			int blinkCount = (int)(soManager.InvincibleTime.RuntimeValue / invincibleBlinkInterval);
+			// TODO
+			int invincibleTimeByDeciSec = (int)(soManager.InvincibleTime.RuntimeValue * 10);
 			bool isWhite = false;
 
-			while (blinkCount > 0)
+			while (invincibleTimeByDeciSec > 0)
 			{
-				blinkCount--;
-				isWhite = isWhite == false;
+				invincibleTimeByDeciSec--;
+				isWhite = !isWhite;
 
 				SpriteRenderer.material.SetFloat("_Emission", isWhite ? 1 : 0);
-				yield return new WaitForSeconds(invincibleBlinkInterval);
+				yield return new WaitForSeconds(.1f);
 			}
 
 			SpriteRenderer.material.SetFloat("_Emission", 0);

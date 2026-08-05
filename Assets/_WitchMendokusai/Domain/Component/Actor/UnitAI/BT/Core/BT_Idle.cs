@@ -8,20 +8,15 @@ namespace WitchMendokusai
 		private readonly float randomMoveDistance;
 		private readonly bool usePivot;
 		private readonly bool isSpriteLookLeft;
-		// 제자리에 머무는 시간과 한 번 어슬렁거린 뒤 쉬는 시간. 「살아있어 보이는」 리듬을 정하는 값.
-		private readonly float idleWaitSeconds;
-		private readonly float randomMoveWaitSeconds;
 
 		private Vector3 pivot = Vector3.zero;
 		private Vector3 moveDest = Vector3.zero;
 
-		public BT_Idle(UnitObject unitObject, float randomMoveDistance = 10, bool usePivot = false, bool isSpriteLookLeft = true, float idleWaitSeconds = 3f, float randomMoveWaitSeconds = 3f) : base(unitObject)
+		public BT_Idle(UnitObject unitObject, float randomMoveDistance = 10, bool usePivot = false, bool isSpriteLookLeft = true) : base(unitObject)
 		{
 			this.randomMoveDistance = randomMoveDistance;
 			this.usePivot = usePivot;
 			this.isSpriteLookLeft = isSpriteLookLeft;
-			this.idleWaitSeconds = idleWaitSeconds;
-			this.randomMoveWaitSeconds = randomMoveWaitSeconds;
 		}
 
 		protected override Node MakeNode()
@@ -34,14 +29,14 @@ namespace WitchMendokusai
 						Action(SetDestinationZero),
 						Action(SetUnitMoveDestination),
 						Action(UpdateSpriteFlip),
-						Wait(idleWaitSeconds)
+						Wait(3)
 					),
 					Sequence // # [랜덤 이동]
 					(
 						Action(SetDestinationRandom),
 						Action(SetUnitMoveDestination),
 						Action(UpdateSpriteFlip),
-						Wait(randomMoveWaitSeconds)
+						Wait(3)
 					)
 				);
 		}
@@ -83,5 +78,9 @@ namespace WitchMendokusai
 			return BTState.Success;
 		}
 
+		protected bool IsPlayerOnLeft()
+		{
+			return Camera.main.WorldToViewportPoint(unitObject.transform.position).x > .5f;
+		}
 	}
 }

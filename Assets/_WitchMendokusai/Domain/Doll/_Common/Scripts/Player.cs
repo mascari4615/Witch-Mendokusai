@@ -8,7 +8,6 @@ namespace WitchMendokusai
 	public class Player : MonoBehaviour
 	{
 		[SerializeField] private bool dontDestroyOnLoad = false;
-		[SerializeField] private float aimMaxDistance = 100f;
 
 		public PlayerObject Object { get; private set; }
 		public PlayerRotation Rotation { get; private set; }
@@ -40,7 +39,7 @@ namespace WitchMendokusai
 			Object = GetComponent<PlayerObject>();
 			Rotation = GetComponent<PlayerRotation>();
 			playerProvider.SetCurrent(this);
-			aim = new(transform, inputManager, aimMaxDistance, ObjectBufferManager.GetObjects(ObjectType.Monster), ObjectBufferManager.GetObjects(ObjectType.ResourceNode));
+			aim = new(transform, inputManager, ObjectBufferManager.GetObjects(ObjectType.Monster), ObjectBufferManager.GetObjects(ObjectType.ResourceNode));
 
 			// Player.prefab 자식/형제 컴포넌트 cascade Inject (PlayerObject/PlayerRotation/DollAnimator/
 			// InteractiveMarker/AutoAimMarker/UnitMovement 등). RegisterComponentInHierarchy<Player> 는 Player

@@ -83,10 +83,7 @@ $scene = @()
 
 if ($parentCount -le 1)
 {
-    # core.quotepath=false — 기본값(on) 이면 비-ASCII 경로를 "..\355\225\234..." 로 감싸 내보낸다.
-    # 그러면 아래 확장자 정규식(\.cs$ 등)이 끝의 따옴표 때문에 안 맞아, **한글 이름 파일이 집계에서
-    # 통째로 빠진다**. WM 은 자산·문서 이름에 한글을 흔히 쓰므로 조용한 사각지대가 된다.
-    $rawOutput = git -c core.quotepath=false show --name-status --format= $Sha 2>$null
+    $rawOutput = git show --name-status --format= $Sha 2>$null
     $lines = @()
     if ($null -ne $rawOutput)
     {
@@ -133,15 +130,10 @@ foreach ($line in $cs)
     $expectedMeta = "$path.meta"
     if ($metaPathsInCommit -contains $expectedMeta) { continue }
 
-    # .meta 가 이번 커밋에 없어도 git 이 *이미 추적* 중이면(이전 커밋에서 등록) 정상이다.
-    #
-    # ★ 예전엔 「디스크에 있나」(Test-Path) 로 판정했다. 그러면 GUID 유실이 실제로 새는 경로를
-    #   놓친다 — 에디터가 켜져 있으면 Unity 가 .meta 를 곧바로 만들어 두므로, .cs 만 커밋해도
-    #   디스크 검사는 통과하고 카나리아는 조용하다. 다른 머신은 그 .meta 를 못 받아 새 GUID 를
-    #   만들고, 같은 파일이 각자 다른 자산이 된다.
-    #   (2026-08-05 실측: 한 밤에 두 번 났고 둘 다 무음. 추적 여부로 봐야 잡힌다.)
-    & git ls-files --error-unmatch -- $expectedMeta 2>$null | Out-Null
-    if ($LASTEXITCODE -ne 0)
+    # Sometimes .meta was committed in a prior commit and remains on disk.
+    # Only flag when there is genuinely no .meta on disk.
+    $absMeta = Join-Path $paths.Root $expectedMeta
+    if (-not (Test-Path -LiteralPath $absMeta))
     {
         $csMissingMeta += $path
     }

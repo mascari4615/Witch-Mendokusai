@@ -52,28 +52,6 @@ namespace WitchMendokusai.Tests
 			return new ContainerBuilder().Build();
 		}
 
-		// 파라미터 없는 [Inject] Construct — VContainer 가 주입 시 1회 호출, 카운트 누적.
-		public sealed class ConstructCounter : MonoBehaviour
-		{
-			public int ConstructCount;
-
-			[Inject]
-			public void Construct() => ConstructCount++;
-		}
-
-		// Player 패턴 재현: 자기 Construct 안에서 자기 계층을 self 제외 cascade.
-		public sealed class SelfCascadingRoot : MonoBehaviour
-		{
-			public int ConstructCount;
-
-			[Inject]
-			public void Construct(IObjectResolver container)
-			{
-				ConstructCount++;
-				container.InjectGameObjectExcludingSelf(gameObject, this);
-			}
-		}
-
 		[Test]
 		public void InjectsAllDescendants_ExceptSelf()
 		{
@@ -123,6 +101,33 @@ namespace WitchMendokusai.Tests
 				"caller Construct 는 정확히 1회 — self-exclude 로 재진입 차단 (무한 재귀 X)");
 			Assert.That(childCounter.ConstructCount, Is.EqualTo(1),
 				"자식은 caller Construct 의 cascade 로 1회 주입");
+		}
+	}
+
+	// ── 테스트용 더미 ────────────────────────────────────────────────────────────
+	// 테스트 클래스 *안*에 두면 VContainer 소스제너레이터가 중첩 타입이라 injector 를 못 만들고
+	// 리플렉션으로 폴백한다(VCON0005) — 검증 대상이 「생성된 injector 경로」인데 폴백으로 재면
+	// 테스트가 실제와 다른 길을 재는 셈이다. 그래서 네임스페이스 레벨로 꺼내 둔다.
+
+	// 파라미터 없는 [Inject] Construct — VContainer 가 주입 시 1회 호출, 카운트 누적.
+	public sealed class ConstructCounter : MonoBehaviour
+	{
+		public int ConstructCount;
+
+		[Inject]
+		public void Construct() => ConstructCount++;
+	}
+
+	// Player 패턴 재현: 자기 Construct 안에서 자기 계층을 self 제외 cascade.
+	public sealed class SelfCascadingRoot : MonoBehaviour
+	{
+		public int ConstructCount;
+
+		[Inject]
+		public void Construct(IObjectResolver container)
+		{
+			ConstructCount++;
+			container.InjectGameObjectExcludingSelf(gameObject, this);
 		}
 	}
 }

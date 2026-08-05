@@ -106,15 +106,6 @@ namespace WitchMendokusai
 		/// <summary> 디버그 — 세워둔 것 전부의 사거리를 한 번에 보여준다/감춘다. </summary>
 		public event System.Action ToggleAllRangesRequested = delegate { };
 
-		/// <summary> 판을 나가겠다 — 모서리 버튼(의도가 분명한 손짓). </summary>
-		public event System.Action ExitRequested = delegate { };
-
-		/// <summary> 고른 건물을 팔겠다 / 창을 닫겠다. </summary>
-		public event System.Action SellSelectedRequested = delegate { };
-		public event System.Action SelectionCloseRequested = delegate { };
-
-		private Button sellButton;
-
 		/// <summary> 코어를 고른 채 「연구」를 눌렀다. </summary>
 		public event System.Action ResearchRequested = delegate { };
 
@@ -159,7 +150,6 @@ namespace WitchMendokusai
 			selectionBar.Selected += index => SlotClicked(index);
 			container.Add(selectionBar.Root);
 			container.Add(Named(BuildHintBar(out hintLabel), "HintBar"));
-			container.Add(Named(BuildArmedBar(out armedLabel), "ArmedBar"));
 			worldLabelLayer = new VisualElement { name = "WorldLabels" };
 			worldLabelLayer.style.position = Position.Absolute;
 			worldLabelLayer.style.left = 0;
@@ -410,8 +400,7 @@ namespace WitchMendokusai
 			panel.style.paddingRight = 16;
 			panel.style.paddingTop = 8;
 			panel.style.paddingBottom = 8;
-			// 지도 안에서 읽는 글이라 뒤가 비치면 안 된다 — 진행 상황판 위에 겹쳐 둘 다 안 읽혔다(실측).
-			panel.style.backgroundColor = new Color(0.04f, 0.05f, 0.08f, 0.94f);
+			panel.style.backgroundColor = new Color(0.04f, 0.05f, 0.08f, 0.66f);
 			SetRadius(panel, 6);
 			panel.pickingMode = PickingMode.Ignore;
 
@@ -461,13 +450,6 @@ namespace WitchMendokusai
 			wrapper.Add(rangeDebugButton);
 
 			wrapper.Add(MakeActionButton("처음부터", fontSize: 13, () => RestartRequested()));
-			// ★ 나가는 문은 하나다 (TASK-WM-200) — 예전엔 이 버튼이 곧바로 판을 끝냈다. 그건 취소 키가
-			//   판을 끝내던 것과 같은 병이다(되돌릴 수 없는 일이 한 번의 손짓 거리에 있다). 이제 이
-			//   버튼도 메뉴를 열고, 나가기는 그 안에서 한 번 더 말해야 한다. 폰에는 키가 없으니
-			//   메뉴로 가는 *화면 위의 길*이기도 하다.
-			Button menuButton = MakeActionButton("메뉴", fontSize: 13, () => MenuToggleRequested());
-			menuButton.style.marginLeft = 8;
-			wrapper.Add(menuButton);
 			return wrapper;
 		}
 
@@ -663,178 +645,35 @@ namespace WitchMendokusai
 		// 미니맵 위에 앉는 높이 — 미니맵이 커지면 이 값도 같이 커져야 한다(같은 모서리를 나눠 쓴다).
 		private const int SELECTION_PANEL_BOTTOM = 330;
 
-		private VisualElement unlockPathBox;
-
-		/// <summary>
-		/// 연구 길을 편다 — 「이미 연 것 · 다음에 열릴 것 · 그 뒤」 (WM-200).
-		///
-		/// ★ 표는 규칙층이 준 것 그대로다. 여기서 다시 계산하면 창이 약속한 것과 실제로 열리는 것이
-		///   어긋나고, 그건 자원을 잘못 쓰게 만드는 거짓말이 된다.
-		/// </summary>
-		public void ShowUnlockPath(System.Collections.Generic.IReadOnlyList<TowerDefenseUnlockEntry> path, int researchLevel)
-		{
-			if (unlockPathBox == null)
-				return;
-
-			if (path == null || path.Count == 0)
-			{
-				unlockPathBox.style.display = DisplayStyle.None;
-				return;
-			}
-
-			unlockPathBox.style.display = DisplayStyle.Flex;
-			unlockPathBox.Clear();
-
-			Label heading = new Label("연구로 열리는 것");
-			heading.style.fontSize = 15;
-			heading.style.color = new Color(0.62f, 0.68f, 0.78f, 1f);
-			heading.style.marginBottom = 8;
-			heading.pickingMode = PickingMode.Ignore;
-			unlockPathBox.Add(heading);
-
-			int nextLevel = researchLevel + 1;
-			for (int i = 0; i < path.Count; i++)
-			{
-				TowerDefenseUnlockEntry entry = path[i];
-				bool opened = entry.Level <= researchLevel;
-				bool isNext = entry.Level == nextLevel;
-
-				VisualElement row = new VisualElement();
-				row.style.flexDirection = FlexDirection.Row;
-				row.style.alignItems = Align.Center;
-				row.style.paddingTop = 3;
-				row.style.paddingBottom = 3;
-				row.style.paddingLeft = 8;
-				row.style.paddingRight = 8;
-				row.pickingMode = PickingMode.Ignore;
-				// 다음에 열릴 줄만 배경으로 띄운다 — 지금 값을 치르면 얻는 것이 그것뿐이라서.
-				if (isNext)
-				{
-					row.style.backgroundColor = new Color(0.16f, 0.28f, 0.48f, 0.75f);
-					SetRadius(row, 6);
-				}
-
-				Label mark = new Label(opened ? "✔" : (isNext ? "▶" : "·"));
-				mark.style.width = 22;
-				mark.style.fontSize = 14;
-				mark.style.color = opened
-					? new Color(0.45f, 0.82f, 0.5f, 1f)
-					: (isNext ? new Color(1f, 0.86f, 0.42f, 1f) : new Color(0.45f, 0.5f, 0.6f, 1f));
-				mark.pickingMode = PickingMode.Ignore;
-				row.Add(mark);
-
-				Label stepLabel = new Label(entry.Level == 0 ? "처음부터" : entry.Level + "단계");
-				stepLabel.style.width = 76;
-				stepLabel.style.fontSize = 14;
-				stepLabel.style.color = opened
-					? new Color(0.6f, 0.66f, 0.74f, 1f)
-					: new Color(0.72f, 0.78f, 0.88f, 1f);
-				stepLabel.pickingMode = PickingMode.Ignore;
-				row.Add(stepLabel);
-
-				Label nameLabel = new Label(UnlockName(entry));
-				nameLabel.style.fontSize = 15;
-				nameLabel.style.color = opened
-					? new Color(0.58f, 0.64f, 0.72f, 1f)
-					: new Color(0.94f, 0.96f, 1f, 1f);
-				nameLabel.pickingMode = PickingMode.Ignore;
-				row.Add(nameLabel);
-
-				unlockPathBox.Add(row);
-			}
-		}
-
-		private static string UnlockName(TowerDefenseUnlockEntry entry)
-		{
-			return entry.Kind switch
-			{
-				TowerDefensePlaceableKind.Harvester => "채집 인형",
-				TowerDefensePlaceableKind.Wall => "벽",
-				TowerDefensePlaceableKind.Trap => "함정",
-				TowerDefensePlaceableKind.Outpost => "전초기지",
-				TowerDefensePlaceableKind.Generator => "발전 인형",
-				TowerDefensePlaceableKind.Tower => "포탑 인형 " + (entry.TowerIndex + 1) + "종",
-				_ => "?",
-			};
-		}
-
 		private VisualElement BuildSelectionPanel(out VisualElement panel, out Label title, out Button research)
 		{
 			panel = new VisualElement { name = "SelectionPanel" };
 			panel.style.position = Position.Absolute;
 			// ★ 왼쪽 아래는 범례 자리다 — 거기 두면 둘이 포개져 둘 다 안 읽힌다(좌표 검사가 잡아냄).
 			//   오른쪽 아래로 보내되 미니맵 *위*에 앉힌다: 손이 가는 곳(핫바) 근처면서 겹치는 것이 없다.
-			// ★ 구석의 작은 상자였다 — 연구처럼 *판을 결정하는 창*이 거기 있으면 안 보인다
-			//   (사용자 실증: "연구 전체화면 UI로. 작아서 안보여"). 화면 가운데 큰 창으로 올린다.
-			panel.style.left = 0;
-			panel.style.right = 0;
-			panel.style.top = 0;
-			panel.style.bottom = 0;
-			panel.style.alignItems = Align.Center;
-			panel.style.justifyContent = Justify.Center;
-			panel.style.paddingLeft = 0;
-			panel.style.paddingRight = 0;
-			panel.style.paddingTop = 0;
-			panel.style.paddingBottom = 0;
-			panel.style.backgroundColor = new Color(0.02f, 0.03f, 0.05f, 0.78f);
+			panel.style.right = 24;
+			panel.style.bottom = SELECTION_PANEL_BOTTOM;
+			panel.style.maxWidth = 380;
+			panel.style.paddingLeft = 14;
+			panel.style.paddingRight = 14;
+			panel.style.paddingTop = 10;
+			panel.style.paddingBottom = 10;
+			panel.style.backgroundColor = new Color(0.05f, 0.06f, 0.10f, 0.92f);
+			SetRadius(panel, 8);
 			panel.style.display = DisplayStyle.None;
 			panel.pickingMode = PickingMode.Position;
 
-			// 안쪽 카드 — 글과 버튼은 여기 담긴다(바깥은 화면을 덮는 어둠).
-			VisualElement card = new VisualElement();
-			card.style.minWidth = 560;
-			card.style.maxWidth = 760;
-			card.style.paddingLeft = 28;
-			card.style.paddingRight = 28;
-			card.style.paddingTop = 22;
-			card.style.paddingBottom = 22;
-			card.style.backgroundColor = new Color(0.05f, 0.06f, 0.10f, 0.98f);
-			card.style.alignItems = Align.Center;
-			SetRadius(card, 12);
-			panel.Add(card);
-
 			title = new Label(string.Empty);
-			title.style.fontSize = 20;
-			title.style.whiteSpace = WhiteSpace.Normal;
-			title.style.unityTextAlign = TextAnchor.MiddleCenter;
+			title.style.fontSize = 14;
 			title.style.color = new Color(0.94f, 0.96f, 1f, 1f);
 			title.style.whiteSpace = WhiteSpace.Normal;
 			title.style.marginBottom = 8;
 			title.pickingMode = PickingMode.Ignore;
-			card.Add(title);
+			panel.Add(title);
 
-			research = MakeActionButton("연구", fontSize: 18, () => ResearchRequested());
+			research = MakeActionButton("연구", fontSize: 14, () => ResearchRequested());
 			research.style.display = DisplayStyle.None;
-			research.style.height = 48;
-			research.style.marginTop = 14;
-			research.style.paddingLeft = 24;
-			research.style.paddingRight = 24;
-			card.Add(research);
-
-			// ★ 연구 창이 *무엇을 얻는지* 말하지 않았다 (실측: 자원 60 을 내라면서 대가가 화면에 없음).
-			//   값을 치르는 결정인데 대가를 모르면 그건 선택이 아니라 도박이다. 연구 길을 그대로 편다 —
-			//   이미 연 것 / 다음에 열릴 것 / 그 뒤에 올 것이 한눈에.
-			unlockPathBox = new VisualElement();
-			unlockPathBox.style.display = DisplayStyle.None;
-			unlockPathBox.style.marginTop = 16;
-			unlockPathBox.style.alignSelf = Align.Stretch;
-			unlockPathBox.pickingMode = PickingMode.Ignore;
-			card.Add(unlockPathBox);
-
-			// ★ 판매를 여기서도 — 「빌딩 모드에서만 우클릭」은 손이 기억해야 하는 규칙이라,
-			//   고른 건물을 보고 있는 그 자리에 버튼을 둔다(사용자 지시: "건물 정보에 강화나 판매를").
-			sellButton = MakeActionButton("팔기", fontSize: 16, () => SellSelectedRequested());
-			sellButton.style.display = DisplayStyle.None;
-			sellButton.style.height = 40;
-			sellButton.style.marginTop = 10;
-			sellButton.style.paddingLeft = 20;
-			sellButton.style.paddingRight = 20;
-			card.Add(sellButton);
-
-			// 닫기 — 전체화면 창은 나가는 문이 보여야 한다.
-			Button close = MakeActionButton("닫기", fontSize: 14, () => SelectionCloseRequested());
-			close.style.marginTop = 16;
-			card.Add(close);
+			panel.Add(research);
 
 			// 레벨업으로 고를 것이 쌓여 있으면 여기에 세 장이 뜬다 — 화면 한가운데를 막지 않는다.
 			// 코어 레벨업 카드 — 판 전체에 걸리는 것이라 건물 선택지와 줄을 나눈다(성격이 다르다).
@@ -843,20 +682,19 @@ namespace WitchMendokusai
 			coreCardRow.style.flexWrap = Wrap.Wrap; // 카드가 셋이면 좁은 선택창에서 줄이 넘어간다.
 			coreCardRow.style.marginTop = 8;
 			coreCardRow.pickingMode = PickingMode.Ignore;
-			card.Add(coreCardRow);
+			panel.Add(coreCardRow);
 
 			perkRow = new VisualElement();
 			perkRow.style.flexDirection = FlexDirection.Row;
 			perkRow.style.marginTop = 8;
 			perkRow.pickingMode = PickingMode.Ignore;
-			card.Add(perkRow);
+			panel.Add(perkRow);
 
 			return panel;
 		}
 
 		/// <summary> 고른 건물을 보여준다 — 아무것도 안 골랐으면 패널 자체를 감춘다. </summary>
 		public void ShowSelection(string description, bool canResearch, int researchLevel, int researchCost,
-			bool researchUsesEssence = true,
 			System.Collections.Generic.IReadOnlyList<TowerDefenseBuildingPerk> perkOffers = null,
 			System.Collections.Generic.IReadOnlyList<TowerDefenseBoon> coreCards = null)
 		{
@@ -869,21 +707,11 @@ namespace WitchMendokusai
 				return;
 			}
 
-			// 연구 길은 연구할 수 있는 것(코어)에만 뜻이 있다 — 벽을 보면서 연구 길이 펼쳐지면 헷갈린다.
-			if (canResearch == false && unlockPathBox != null)
-				unlockPathBox.style.display = DisplayStyle.None;
-
 			selectionPanel.style.display = DisplayStyle.Flex;
 			selectionTitleLabel.text = description;
 			researchButton.style.display = canResearch ? DisplayStyle.Flex : DisplayStyle.None;
-			// 코어는 못 판다 — 팔 수 있는 것에만 버튼을 보인다(눌리지 않는 버튼을 만들지 않는다).
-			if (sellButton != null)
-				sellButton.style.display = canResearch ? DisplayStyle.None : DisplayStyle.Flex;
 			if (canResearch)
-				// ★ 통화를 실제와 맞춘다 — 초반 연구는 *자원*으로 사는데 화면은 늘 「정수」라고 적었다.
-				//   못 살 이유를 화면이 잘못 알려주면 플레이어는 엉뚱한 것을 모으러 간다.
-				researchButton.text = "연구 " + (researchLevel + 1) + "단계  ·  "
-					+ (researchUsesEssence ? "정수 " : "자원 ") + researchCost;
+				researchButton.text = "연구 " + (researchLevel + 1) + "단계  ·  정수 " + researchCost;
 
 			// 코어 카드 — 개수가 바뀔 때만 다시 그린다(매 프레임 새로 만들면 클릭이 안 먹는다).
 			int cardCount = coreCards != null ? coreCards.Count : 0;
@@ -1268,9 +1096,6 @@ namespace WitchMendokusai
 		/// <summary> 펼치는 지도 — 지형·점·범례·설명이 한자리에. </summary>
 		private TowerDefenseMapPanel mapPanel;
 
-		/// <summary> 「연구」 버튼 — 코어를 골라 연구 창을 연다(숨은 문을 눈에 보이게). </summary>
-		public event System.Action ResearchPanelRequested = delegate { };
-
 		/// <summary> 지도·미니맵을 눌렀다 — 그 자리로 시점을 옮겨 달라(컨트롤러가 카메라를 쥔다). </summary>
 		public event System.Action<Vector3> LookAtRequested = delegate { };
 
@@ -1279,132 +1104,6 @@ namespace WitchMendokusai
 
 		/// <summary> 지도가 열려 있나 — 열려 있으면 클릭이 배치로 새면 안 된다. </summary>
 		public bool IsMapOpen => mapPanel != null && mapPanel.IsOpen;
-
-		private VisualElement menuPanel;
-
-		/// <summary> 메뉴창이 열려 있나. </summary>
-		public bool IsMenuOpen => menuPanel != null && menuPanel.style.display == DisplayStyle.Flex;
-
-		/// <summary>
-		/// 메뉴창 여닫기 (TASK-WM-200 · 사용자 지시 "ESC로 메뉴창 열리게").
-		///
-		/// ★ 왜 판을 나가는 문을 여기 두나: 예전엔 취소 키 한 번이 곧 판을 끝냈다 — 되돌릴 수 없는 일이
-		///   가장 누르기 쉬운 자리에 있었다. 나가기는 「나가겠다」고 두 번 말해야 하는 자리로 옮긴다.
-		/// ★ 손가락에도 이 창이 필요하다: 폰엔 키가 없어서 「멈춤·나가기」로 가는 길이 화면 위밖에 없다.
-		/// </summary>
-		/// <summary>
-		/// 메뉴를 열어/닫아 달라 — *멈춤까지 함께* 다뤄야 하므로 판단은 컨트롤러 한 곳에서 한다
-		/// (화면이 직접 열면 「메뉴는 떠 있는데 판은 계속 돈다」가 생긴다).
-		/// </summary>
-		public event System.Action MenuToggleRequested = delegate { };
-
-		public void SetMenuOpen(bool open)
-		{
-			EnsureMenuPanel();
-			if (menuPanel == null)
-				return;
-			menuPanel.style.display = open ? DisplayStyle.Flex : DisplayStyle.None;
-		}
-
-		/// <summary> 메뉴에서 「이어하기」를 눌렀다. </summary>
-		public event System.Action MenuResumeRequested = delegate { };
-
-		private void EnsureMenuPanel()
-		{
-			if (menuPanel != null || container == null)
-				return;
-
-			menuPanel = new VisualElement { name = "TowerDefenseMenu" };
-			menuPanel.style.position = Position.Absolute;
-			menuPanel.style.left = 0;
-			menuPanel.style.right = 0;
-			menuPanel.style.top = 0;
-			menuPanel.style.bottom = 0;
-			menuPanel.style.alignItems = Align.Center;
-			menuPanel.style.justifyContent = Justify.Center;
-			menuPanel.style.backgroundColor = new Color(0.02f, 0.03f, 0.05f, 0.78f);
-			menuPanel.style.display = DisplayStyle.None;
-			// 메뉴가 떠 있는 동안의 손짓은 메뉴 것이다 — 뒤쪽 땅에 건물이 서면 안 된다.
-			menuPanel.pickingMode = PickingMode.Position;
-
-			VisualElement card = new VisualElement();
-			card.style.backgroundColor = new Color(0.06f, 0.07f, 0.1f, 0.98f);
-			card.style.paddingLeft = 32;
-			card.style.paddingRight = 32;
-			card.style.paddingTop = 26;
-			card.style.paddingBottom = 26;
-			card.style.minWidth = 360;
-			card.style.alignItems = Align.Stretch;
-			SetCardCorners(card, 14);
-			menuPanel.Add(card);
-
-			Label title = new Label("잠깐 멈춤");
-			title.style.fontSize = 24;
-			title.style.color = new Color(0.94f, 0.96f, 0.99f, 1f);
-			title.style.unityTextAlign = TextAnchor.MiddleCenter;
-			title.style.marginBottom = 20;
-			card.Add(title);
-
-			card.Add(MakeMenuButton("이어하기", new Color(0.24f, 0.45f, 0.78f, 1f), () =>
-			{
-				SetMenuOpen(false);
-				MenuResumeRequested();
-			}));
-
-			card.Add(MakeMenuButton("판 나가기", new Color(0.5f, 0.22f, 0.24f, 1f), () =>
-			{
-				SetMenuOpen(false);
-				ExitRequested();
-			}));
-
-			container.Add(menuPanel);
-		}
-
-		private Button MakeMenuButton(string text, Color color, System.Action onClick)
-		{
-			Button button = new Button(onClick) { text = text };
-			button.style.height = 54;
-			button.style.fontSize = 18;
-			button.style.marginTop = 8;
-			button.style.marginBottom = 0;
-			button.style.backgroundColor = color;
-			button.style.color = new Color(0.97f, 0.98f, 1f, 1f);
-			SetCardCorners(button, 10);
-			return button;
-		}
-
-		private static void SetCardCorners(VisualElement element, float radius)
-		{
-			element.style.borderTopLeftRadius = radius;
-			element.style.borderTopRightRadius = radius;
-			element.style.borderBottomLeftRadius = radius;
-			element.style.borderBottomRightRadius = radius;
-		}
-
-		/// <summary> 지금 무엇을 하려는 중인지 한 줄 — 핫바 바로 위. </summary>
-		private static VisualElement BuildArmedBar(out Label label)
-		{
-			VisualElement wrapper = new VisualElement();
-			wrapper.style.position = Position.Absolute;
-			wrapper.style.left = 0;
-			wrapper.style.right = 0;
-			wrapper.style.bottom = ModeSelectionBar.TopFromBottom + 44;
-			wrapper.style.alignItems = Align.Center;
-			wrapper.pickingMode = PickingMode.Ignore;
-
-			// 첫 프레임에만 보이는 기본 문구 — 어느 장치로 잡든 맞는 말로 둔다(「클릭」은 손가락엔 거짓).
-			label = new Label("고르기 — 건물을 고르면 그 건물을 본다");
-			label.style.fontSize = 15;
-			label.style.color = new Color(0.62f, 0.68f, 0.78f, 1f);
-			label.style.backgroundColor = new Color(0.04f, 0.05f, 0.08f, 0.72f);
-			label.style.paddingLeft = 14;
-			label.style.paddingRight = 14;
-			label.style.paddingTop = 4;
-			label.style.paddingBottom = 4;
-			label.pickingMode = PickingMode.Ignore;
-			wrapper.Add(label);
-			return wrapper;
-		}
 
 		private void FillHotbar(TowerDefenseStageSO stage, TowerDefenseMatch match)
 		{
@@ -1444,13 +1143,10 @@ namespace WitchMendokusai
 						icon: UnitSprite(stage.HarvesterUnit),
 						tooltip: SlotTip("발전 인형", "범위 안 건물에 전기를 댄다. 전기를 못 받는 건물은 서 있기만 한다.\n코어도 처음부터 얼마간 대준다."));
 				case TowerDefensePlaceableKind.Hero:
-					// ★ 지금 이 칸은 목록에 안 나온다 — 영웅은 칸에서 뺐고(사용자 지시) 빈 땅을 눌러 보낸다.
-					//   그런데 설명은 「고르고 땅을 찍으면」이라는 *없어진 조작*을 그대로 말하고 있었다.
-					//   가지를 지우지는 않는다(칸이 돌아오면 기본 가지로 떨어져 포탑처럼 그려진다) —
-					//   대신 지금 규칙과 같은 말을 하게 둔다.
-					return new ModeSelectionBar.Entry("영웅 부르기", 0, stage.HeroTint,
+					// 영웅 칸만 성격이 다르다 — 짓는 게 아니라 *보내는* 칸이라 값이 0 이다.
+					return new ModeSelectionBar.Entry("영웅 이동", 0, stage.HeroTint,
 						icon: UnitSprite(stage.HeroUnit),
-						tooltip: SlotTip("영웅 부르기", "짓는 게 아니라 보내는 칸이다. 지금은 이 칸 없이도 빈 땅을 누르면 영웅이 그리로 걸어간다."));
+						tooltip: SlotTip("영웅 이동", "고르고 땅을 찍으면 영웅이 그리로 걸어간다. 짓는 게 아니라 보내는 칸이다."));
 				default:
 					TowerDefenseTowerArchetype tower = stage.TowerArchetypes != null && slot.TowerIndex < stage.TowerArchetypes.Length
 						? stage.TowerArchetypes[slot.TowerIndex]
@@ -1467,75 +1163,6 @@ namespace WitchMendokusai
 		public void SetSelectedSlot(int selectedIndex)
 		{
 			selectionBar.SetSelected(selectedIndex);
-		}
-
-		/// <summary>
-		/// 지금 설치 대기인가를 화면에 박는다 — 클릭 한 번의 뜻이 여기서 갈린다.
-		/// </summary>
-		public void SetArmed(bool armed, string what)
-		{
-			if (armedLabel == null)
-				return;
-
-			lastArmed = armed;
-			lastArmedWhat = what;
-
-			armedLabel.text = IsTouch
-				? (armed
-					? "설치 대기 — " + what + " · 자리를 톡 → 한 번 더 톡 하면 지어진다"
-					: "고르기 — 건물 톡 = 살펴보기 · 빈 땅 톡 = 영웅 보내기")
-				: (armed
-					? "설치 대기 — " + what + " · 좌클릭 설치 · 우클릭 판매"
-					: "고르기 — 건물 클릭 = 살펴보기 · 빈 땅 우클릭 = 영웅 보내기");
-			armedLabel.style.color = armed
-				? new Color(1f, 0.82f, 0.35f, 1f)
-				: new Color(0.62f, 0.68f, 0.78f, 1f);
-		}
-
-		private Label armedLabel;
-
-		// TASK-WM-200 — 조작 안내는 *지금 쥔 장치*를 말해야 한다. 손가락으로 하는데 「우클릭」이라고
-		// 적혀 있으면 그 줄은 안내가 아니라 거짓말이고, 화면 전체의 신뢰가 같이 떨어진다.
-		private bool lastArmed;
-		private string lastArmedWhat = string.Empty;
-		private TowerDefenseStageSO lastHintStage;
-		private bool lastTouchMode;
-
-		private static bool IsTouch =>
-			InputManager.TryGetExistingInstance(out InputManager inputManager) && inputManager.IsTouchMode;
-
-		/// <summary> 장치가 바뀌면 안내를 다시 쓴다 — 마우스를 놓고 손가락을 대는 순간 문구가 따라와야 한다. </summary>
-		private void RefreshDeviceHints()
-		{
-			if (lastTouchMode == IsTouch)
-				return;
-
-			lastTouchMode = IsTouch;
-			SetArmed(lastArmed, lastArmedWhat);
-			ApplyHintText(lastHintStage);
-		}
-
-		private void ApplyHintText(TowerDefenseStageSO stage)
-		{
-			lastHintStage = stage;
-			if (hintLabel == null)
-				return;
-
-			if (stage == null)
-			{
-				hintLabel.text = string.Empty;
-				return;
-			}
-
-			hintLabel.text = IsTouch
-				? "아래 칸 톡 = 고르기 · 자리 톡 → 한 번 더 톡 = 짓기   ·   빈 땅 톡 = 영웅 보내기   ·   코어 톡 = 연구"
-					+ "   ·   끌기 = 시점 · 오므리기 = 확대·축소 · 두 손가락 비틀기 = 회전   ·   「지도」 단추"
-				// ★ 안내가 실제 키와 달랐다: 배속은 Tab 이 아니라 F6 이고, 정작 제일 많이 쓰는
-				//   「숫자키로 칸 고르기」는 한 글자도 없었다. 조작 안내가 틀리면 그 화면 전체를 못 믿는다.
-				// ★ 「연구를 어떻게 여는지」가 어디에도 없었다(사용자 실증: "연구 어케 여는데").
-				//   찾아야만 알 수 있는 기능은 *없는 기능*이다 — 첫 판의 유일한 다음 수라서 더 그렇다.
-				: "숫자키 1~9 칸 고르기 · 좌클릭 설치 · 설치 중 우클릭 = 판매   ·   평소 우클릭 = 영웅 보내기   ·   코어 클릭 = 연구"
-					+ "   ·   Space 멈춤 · F6 배속   ·   WASD 시점 · 휠 확대·축소   ·   M 지도   ·   X 창 닫기";
 		}
 
 
@@ -1563,10 +1190,12 @@ namespace WitchMendokusai
 			FillHotbar(stage, null);
 			SetBannerVisible(false);
 
-			// ★ 「지금 설치 모드인가」가 화면 어디에도 없었다(사용자 실증: "확실히 지금이 설치 모드라는
-			//   걸 알려줘야함"). 칸을 골랐는지 아닌지로 클릭의 뜻이 통째로 달라지는데, 그걸 손이
-			//   기억해야 했다. 안내 줄 맨 앞에 상태를 박는다 — 색까지 바꿔 곁눈으로도 읽히게.
-			ApplyHintText(stage);
+			hintLabel.text = stage == null
+				? string.Empty
+				// ★ 안내가 실제 키와 달랐다: 배속은 Tab 이 아니라 F6 이고, 정작 제일 많이 쓰는
+				//   「숫자키로 칸 고르기」는 한 글자도 없었다. 조작 안내가 틀리면 그 화면 전체를 못 믿는다.
+				: "숫자키 1~9 칸 고르기 · 좌클릭 설치 · 우클릭 판매   ·   Space 멈춤 · F6 배속"
+					+ "   ·   WASD 시점 이동 · 휠 확대·축소   ·   M 지도(범례 포함)   ·   X 나가기";
 		}
 
 		public void Hide()
@@ -1633,8 +1262,6 @@ namespace WitchMendokusai
 		/// <summary> 매 프레임 갱신 — 소유 컨트롤러가 TD 모드 동안 호출. </summary>
 		public void Tick(TowerDefenseMatch match, TowerDefenseStageSO stage)
 		{
-			RefreshDeviceHints();
-
 			if (match == null)
 				return;
 

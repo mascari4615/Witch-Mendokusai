@@ -8,15 +8,13 @@ namespace WitchMendokusai
 	{
 		[SerializeField] private Transform deckPanelContent;
 		[SerializeField] private List<UICardSlot> cardSelectButtons;
-		// 패널이 튀어나오는 시간.
-		[SerializeField] private float openAnimDuration = 0.5f;
 
 		public override bool IsFullscreen => true;
 
 		public override void UpdateUI()
 		{
 			deckPanelContent.localScale = Vector3.zero;
-			deckPanelContent.DOScale(Vector3.one, openAnimDuration).SetEase(Ease.OutBack).SetUpdate(true);
+			deckPanelContent.DOScale(Vector3.one, 0.5f).SetEase(Ease.OutBack).SetUpdate(true);
 
 			// DeckPanel이 켜지면 첫 번째 카드 버튼 포커스
 			cardSelectButtons[0].Select();

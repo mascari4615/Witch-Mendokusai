@@ -23,7 +23,7 @@ namespace WitchMendokusai
 	public enum TowerDefenseSignal
 	{
 		None = 0,
-		WaveStarted = 1, // 셸: 큰 무리 스폰 → ConfirmWaveSpawned 호출.
+		WaveStarted = 1, // 셸: 큰 무리 스폰.
 		WaveCleared = 2, // (구 페이즈제 잔재 — 실시간에서는 안 쓴다. append-only 라 번호만 보존.)
 		Victory = 3,
 		Defeat = 4,

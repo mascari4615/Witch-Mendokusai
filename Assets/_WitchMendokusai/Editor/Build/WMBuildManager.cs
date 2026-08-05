@@ -109,37 +109,5 @@ namespace WitchMendokusai.EditorTools
                 EditorUserBuildSettings.androidBuildSubtarget = MobileTextureSubtarget.Generic;
             }
         }
-
-        /// <summary>
-        /// 이 빌드가 「어느 빌드인지」를 산출물 안에 새긴다.
-        ///
-        /// 폰에 여러 개를 깔아 보면 화면만 보고는 어느 커밋인지 알 수 없다. 또 안드로이드는
-        /// versionCode 가 같으면 「이미 같은 버전이 깔려 있다」며 설치를 거부하거나 덮어쓰기가
-        /// 헷갈린다 — CI 실행 번호를 그대로 쓰면 항상 증가하므로 그 문제가 사라진다.
-        /// </summary>
-        public static void ApplyBuildIdentity(int buildNumber, string commit)
-        {
-            if (buildNumber > 0)
-            {
-                PlayerSettings.Android.bundleVersionCode = buildNumber;
-                PlayerSettings.iOS.buildNumber = buildNumber.ToString();
-            }
-
-            if (string.IsNullOrEmpty(commit) == false)
-            {
-                // 사람이 보는 버전 문자열 뒤에 커밋을 붙인다. 게임 이름은 건드리지 않는다
-                // (앱 이름은 세계관에 속한 것이라 빌드 도구가 바꿀 것이 아니다).
-                string baseVersion = PlayerSettings.bundleVersion;
-                int plusIndex = baseVersion.IndexOf('+');
-                if (plusIndex >= 0)
-                {
-                    // 같은 러너에서 여러 번 빌드해도 +sha 가 겹겹이 쌓이지 않게 자른다.
-                    baseVersion = baseVersion.Substring(0, plusIndex);
-                }
-                PlayerSettings.bundleVersion = $"{baseVersion}+{commit}";
-            }
-
-            Debug.Log($"[WM-BUILD] 식별 — version={PlayerSettings.bundleVersion} code={PlayerSettings.Android.bundleVersionCode}");
-        }
     }
 }

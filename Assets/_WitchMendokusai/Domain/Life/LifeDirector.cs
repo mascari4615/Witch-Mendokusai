@@ -38,7 +38,7 @@ namespace WitchMendokusai
 
 			// INC-7: 캐릭터별 성격 = LifeProfileSO(Resources/Life/Profiles). 있으면 데이터 주도, 없으면 하드코딩 폴백.
 			LifeProfileSO[] profiles = Resources.LoadAll<LifeProfileSO>("Life/Profiles");
-			agents = FindObjectsByType<LifeAgent>(FindObjectsSortMode.None);
+			agents = FindObjectsByType<LifeAgent>();
 			for (int index = 0; index < agents.Length; index++)
 			{
 				// 주민마다 다른 성격(미식가/수다쟁이…) — 프로필을 순환 배정. 없으면 공통 디폴트.
@@ -79,7 +79,7 @@ namespace WitchMendokusai
 		private static Dictionary<ActivityKind, Vector3> CollectZones()
 		{
 			Dictionary<ActivityKind, Vector3> map = new();
-			foreach (LifeZone zone in FindObjectsByType<LifeZone>(FindObjectsSortMode.None))
+			foreach (LifeZone zone in FindObjectsByType<LifeZone>())
 			{
 				map[zone.Activity] = zone.Position;
 			}
