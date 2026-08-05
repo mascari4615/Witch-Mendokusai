@@ -68,6 +68,11 @@ jobs:
 
     env:
       BUILD_ROOT: 'C:\wm-builds'
+      # TASK-WM-201 — 폰이 실행 로그를 서버로 밀어 넣을 때 쓰는 전용 토큰.
+      # 빌드 직전 콜백(WMDeviceLogTokenBuildStep)이 이 값을 읽어 APK 안에만 심고 빌드 후 지운다
+      # (공개 저장소라 커밋 불가). 같은 값이 github.io secret DEVICE_LOG_TOKEN 에도 있어야
+      # 서버가 받아준다 — 한쪽만 바꾸면 폰 화면에 "막힘 401" 이 뜬다. 비면 빌드는 정상, 로그만 차단.
+      WM_DEVICE_LOG_TOKEN: ${{ secrets.WM_DEVICE_LOG_TOKEN }}
 
     steps:
       - name: Checkout (Library 캐시 보존 — clean:false)
