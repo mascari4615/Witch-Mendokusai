@@ -46,7 +46,7 @@ MonoBehaviour:
     cost: 40
     tint: {r: 0.45, g: 0.72, b: 1, a: 1}
     range: 2.2
-    cooldown: 0.55
+    cooldown: 0.99
     damage: 7
     pierce: 1
     splashRadius: 0
@@ -60,7 +60,7 @@ MonoBehaviour:
     cost: 70
     tint: {r: 1, g: 0.58, b: 0.3, a: 1}
     range: 2
-    cooldown: 1.1
+    cooldown: 1.98
     damage: 6
     pierce: 1
     splashRadius: 2.2
@@ -74,7 +74,7 @@ MonoBehaviour:
     cost: 80
     tint: {r: 0.85, g: 0.45, b: 1, a: 1}
     range: 3
-    cooldown: 1.3
+    cooldown: 2.34
     damage: 16
     pierce: 3
     splashRadius: 0
@@ -88,7 +88,7 @@ MonoBehaviour:
     cost: 55
     tint: {r: 0.4, g: 0.9, b: 0.95, a: 1}
     range: 2.1
-    cooldown: 0.8
+    cooldown: 1.44
     damage: 3
     pierce: 1
     splashRadius: 0
@@ -101,7 +101,7 @@ MonoBehaviour:
   - displayName: "무리 마수"
     note: "약하고 빠르다 · 떼로 온다"
     healthMultiplier: 0.55
-    speedMultiplier: 1.35
+    speedMultiplier: 0.75
     scaleMultiplier: 0.8
     tint: {r: 1, g: 0.55, b: 0.5, a: 1}
     bounty: 4
@@ -109,7 +109,7 @@ MonoBehaviour:
   - displayName: "거대 마수"
     note: "아주 단단하다 · 느리다"
     healthMultiplier: 3.2
-    speedMultiplier: 0.65
+    speedMultiplier: 0.361111
     scaleMultiplier: 1.5
     tint: {r: 0.7, g: 0.2, b: 0.25, a: 1}
     bounty: 22
@@ -118,7 +118,7 @@ MonoBehaviour:
     unlockWave: 0
     weight: 5
     healthMultiplier: 1
-    speedMultiplier: 1.5
+    speedMultiplier: 0.833333
     scaleMultiplier: 1
     bounty: 6
     tint: {r: 1, g: 0.38, b: 0.36, a: 1}
@@ -126,7 +126,7 @@ MonoBehaviour:
     unlockWave: 1
     weight: 4
     healthMultiplier: 0.55
-    speedMultiplier: 2.4
+    speedMultiplier: 1.33333
     scaleMultiplier: 0.7
     bounty: 5
     tint: {r: 1, g: 0.85, b: 0.3, a: 1}
@@ -134,7 +134,7 @@ MonoBehaviour:
     unlockWave: 2
     weight: 2
     healthMultiplier: 3.2
-    speedMultiplier: 0.85
+    speedMultiplier: 0.472222
     scaleMultiplier: 1.45
     bounty: 16
     tint: {r: 0.65, g: 0.35, b: 0.85, a: 1}
@@ -222,15 +222,15 @@ MonoBehaviour:
     SpawnAngleJitter: 18
     ResourceNodeCount: 40
     NodeMinSpacing: 10
-    NodeMinCoreDistance: 8
+    NodeMinCoreDistance: 4
     NodeEdgeMargin: 3
     NodeAngularSpread: 8
     NearIncomeMultiplier: 1
     FarIncomeMultiplier: 2.5
     InnerTierRatio: 0.55
-    RockSiteCount: 240
+    RockSiteCount: 90
     RidgeWidth: 1.4
-    ObstacleDensity: 0.7
+    ObstacleDensity: 0.45
     CoreClearRadius: 4
     SpawnClearRadius: 2.5
     NodeClearRadius: 2
@@ -266,7 +266,7 @@ MonoBehaviour:
     tint: {r: 1, g: 0.62, b: 0.9, a: 1}
     range: 2.7
     visionRadius: 5
-    cooldown: 0.4
+    cooldown: 0.72
     damage: 10
     pierce: 2
     splashRadius: 0
@@ -275,7 +275,7 @@ MonoBehaviour:
     slowedTargetBonus: 0.5
     upgradeGrowth: 0.35
     maxLevel: 1
-  <HeroMoveSpeed>k__BackingField: 6
+  <HeroMoveSpeed>k__BackingField: 3.33333
   <HeroVisionRadius>k__BackingField: 6
   <HeroTint>k__BackingField: {r: 1, g: 0.62, b: 0.9, a: 1}
   <HeroScale>k__BackingField: 1.1

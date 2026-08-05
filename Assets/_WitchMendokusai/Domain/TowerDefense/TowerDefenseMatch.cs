@@ -257,9 +257,6 @@ namespace WitchMendokusai
 				return;
 			}
 
-			// 판 전체 템포 — 이동도 공격도 이 값 하나로 같이 느려진다(사용자 실측: "전부 다 천천히").
-			TowerDefenseWeapon.CooldownScale = Mathf.Max(0.1f, stage.TempoSlowdown);
-
 			// 코어의 성장 곡선을 스테이지에서 받아 세운다 — 판마다 다시 세우므로 지난 판의 레벨이 새 판으로 새지 않는다.
 			coreProgress = new TowerDefenseBuildingProgress(stage.CoreLevelBaseCost, stage.CoreLevelGrowth);
 
@@ -1273,7 +1270,7 @@ namespace WitchMendokusai
 				yield return null;
 				if (core == null || targeting == null || pool == null)
 					yield break;
-				ApplyArchetypeStats(enemyUnitObject, archetype, stage != null ? stage.EnemyMoveSpeedMultiplier / Mathf.Max(0.1f, stage.TempoSlowdown) : 1f);
+				ApplyArchetypeStats(enemyUnitObject, archetype, stage != null ? stage.EnemyMoveSpeedMultiplier : 1f);
 				ApplyPressure(enemyUnitObject); // 오래 버틸수록 단단해진다 — 실시간의 난이도는 시간이 올린다.
 				ApplyWaveEventStats(enemyUnitObject, waveEvent);
 
@@ -1580,8 +1577,7 @@ namespace WitchMendokusai
 			if (heroUnitObject != null)
 			{
 				heroUnitObject.UnitStat[UnitStatType.MOVEMENT_SPEED] =
-					Mathf.Max(1, Mathf.RoundToInt(stage.HeroMoveSpeed / Mathf.Max(0.1f, stage.TempoSlowdown)
-					* InputContributor.STAT_PER_UNIT_PER_SECOND));
+					Mathf.Max(1, Mathf.RoundToInt(stage.HeroMoveSpeed * InputContributor.STAT_PER_UNIT_PER_SECOND));
 			}
 
 			foreach (UnitBrain brain in heroUnitObject.GetComponents<UnitBrain>())
@@ -1648,7 +1644,7 @@ namespace WitchMendokusai
 			delta.y = 0f;
 
 			// 도착 판정은 *한 틱에 갈 거리*로 잡는다 — 더 좁게 잡으면 목표를 지나쳤다 되돌아오길 반복하며 떤다.
-			float arriveDistance = stage.HeroMoveSpeed / Mathf.Max(0.1f, stage.TempoSlowdown) * TimeManager.TICK;
+			float arriveDistance = stage.HeroMoveSpeed * TimeManager.TICK;
 			if (delta.sqrMagnitude <= arriveDistance * arriveDistance)
 			{
 				heroMovement.SetMoveDirection(Vector3.zero);

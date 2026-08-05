@@ -121,13 +121,6 @@ namespace WitchMendokusai
 		/// 사격 준비. enemyPool = 사거리 안에서 고를 후보(매치가 관리하는 웨이브 목록) —
 		/// 표적 선택을 매치의 생존 목록과 같은 출처로 두어야 「죽은 걸 계속 쏘는」 어긋남이 안 생긴다.
 		/// </summary>
-		/// <summary>
-		/// 판 전체의 공격 템포 배수 — 2 면 모든 무기가 두 배 느리게 쏜다. 매치가 판을 열 때 스테이지 값으로 세운다.
-		/// ★ 왜 정적인가: 무기는 코어·전초기지·포탑·영웅 네 곳에서 만들어진다. 인자로 넘기면 네 곳이
-		///   각자 안 넘길 수 있고, 그러면 「어떤 것만 빠른」 상태가 조용히 생긴다. 판의 시간은 하나다.
-		/// </summary>
-		public static float CooldownScale = 1f;
-
 		public void Configure(
 			TowerDefenseTowerArchetype towerArchetype,
 			TargetingSystem targetingSystem,
@@ -162,7 +155,7 @@ namespace WitchMendokusai
 			if (target == null)
 				return;
 
-			cooldownRemaining = archetype.Cooldown * CooldownScale / (1f + perkSpeed);
+			cooldownRemaining = archetype.Cooldown / (1f + perkSpeed);
 			Fire(target);
 		}
 
