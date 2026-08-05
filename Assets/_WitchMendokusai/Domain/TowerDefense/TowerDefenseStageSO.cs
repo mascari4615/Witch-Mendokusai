@@ -290,6 +290,21 @@ namespace WitchMendokusai
 		[field: Tooltip("레벨업 선택지 한 단계가 올리는 비율(0.2 = +20%).")]
 		[field: SerializeField, Min(0f)] public float PerkStep { get; private set; } = 0.2f;
 
+		// ★ 여기가 성장 곡선의 *유일한 집*이다. 예전엔 「얼마나 받나」(위 두 줄)만 여기 있고
+		//   「얼마나 필요한가」는 코드에 박혀 있었다 — 반쪽만 만질 수 있으면 승급 속도는 결국
+		//   손댈 수 없다(분자만 있고 분모가 없는 꼴). 둘을 같은 자리에 둔다.
+		[field: Tooltip("건물이 2레벨이 되는 데 필요한 경험치. 낮을수록 승급 선택이 자주 온다.")]
+		[field: SerializeField, Min(1)] public int BuildingLevelBaseCost { get; private set; } = 10;
+
+		[field: Tooltip("건물 레벨마다 필요량이 곱해지는 비율(1.6 = 한 단계마다 60%씩 비싸짐).")]
+		[field: SerializeField, Min(1f)] public float BuildingLevelGrowth { get; private set; } = 1.6f;
+
+		[field: Tooltip("코어가 2레벨이 되는 데 필요한 경험치. 코어는 판 전체의 성과를 받으므로 건물보다 크게 잡는다.")]
+		[field: SerializeField, Min(1)] public int CoreLevelBaseCost { get; private set; } = 24;
+
+		[field: Tooltip("코어 레벨마다 필요량이 곱해지는 비율.")]
+		[field: SerializeField, Min(1f)] public float CoreLevelGrowth { get; private set; } = 1.5f;
+
 		[field: Header("코어·전초기지 방어 — 마지막 보루도 반격은 한다")]
 		[field: Tooltip("코어의 자체 무기(비어 있으면 코어는 무방비). 포탑과 같은 표를 쓴다 — 두 곳이 갈라지지 않게.")]
 		[field: SerializeField] public TowerDefenseTowerArchetype CoreWeapon { get; private set; }
@@ -418,8 +433,18 @@ namespace WitchMendokusai
 		[field: Tooltip("자원 채집 노드 위치(로컬 좌표) — 채집건물은 이 지점 중 하나를 점유해야만 가동(개척 리스크 = 설계 긴장).")]
 		[field: SerializeField] public Vector3[] ResourceNodePositions { get; private set; }
 
-		[field: Tooltip("마수를 하나씩 내보내는 간격(초). 0이면 한 프레임에 몰아 내보내 서로의 몸에 끼어 못 나온다. 「웨이브가 밀려온다」는 감각도 여기서 나온다.")]
-		[field: SerializeField, Min(0f)] public float EnemySpawnInterval { get; private set; } = 0.35f;
+		// ★ 사용자 지시: "적들 디아블로처럼 여러 기가 한 번에 천천히 몰려오게".
+		//   예전엔 마수를 *한 마리씩 고르게* 흘려보냈다 — 안전하지만 「줄 서서 오는」 그림이라
+		//   덩어리로 밀려오는 압박이 안 생긴다. 이제 *무리* 단위로 나온다: 무리 안은 거의 동시,
+		//   무리와 무리 사이는 길게. 「한 번에 여럿」과 「천천히」를 동시에 만족하는 유일한 모양이다.
+		[field: Tooltip("한 무리에 몇 마리가 함께 나오나. 1이면 예전처럼 한 마리씩.")]
+		[field: SerializeField, Min(1)] public int EnemyGroupSize { get; private set; } = 5;
+
+		[field: Tooltip("무리 *안에서* 한 마리씩 나오는 간격(초). 눈에 안 띌 만큼 짧게 — 0으로 두면 서로의 몸에 끼어 그 자리서 못 나온다(실측).")]
+		[field: SerializeField, Min(0.02f)] public float EnemyGroupSpacing { get; private set; } = 0.08f;
+
+		[field: Tooltip("무리와 무리 사이 간격(초). 여기가 「천천히」를 만든다 — 길수록 한 덩어리가 도착하고 나서 다음이 온다.")]
+		[field: SerializeField, Min(0f)] public float EnemySpawnInterval { get; private set; } = 2.4f;
 
 		[field: Tooltip("같은 출현 지점에 여러 마수가 나올 때 서로 벌리는 간격 — 0이면 정확히 겹쳐 스폰돼 물리가 서로를 튕겨낸다(맵 밖으로 날아감).")]
 		[field: SerializeField, Min(0f)] public float EnemySpawnSpread { get; private set; } = 1.2f;

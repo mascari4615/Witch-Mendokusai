@@ -72,10 +72,14 @@ namespace WitchMendokusai
 		//   새 선택지 체계를 하나 더 만들지 않고 *이미 있는 드래프트 카드*를 코어 레벨업에 붙였다 —
 		//   웨이브가 부르던 카드를 코어 성장이 부르게 바꾼 것뿐이다. 체계가 둘로 갈리면 같은 선택이
 		//   두 곳에서 다른 규칙으로 살게 된다.
-		private readonly TowerDefenseBuildingProgress coreProgress = new(baseCost: 24, growth: 1.5f);
+		//   성장 곡선은 스테이지가 정한다(Begin 에서 세운다) — 코드에 박아 두면 스테이지에서 아무리
+		//   만져도 코어만 옛 속도로 자란다.
+		private TowerDefenseBuildingProgress coreProgress;
 
 		// 영웅 인형 — 유일하게 *움직이는* 내 편. 포탑과 같은 전투 표를 쓰되 자리를 내가 옮긴다.
 		private Transform heroTransform;
+		// 영웅을 실제로 걷게 하는 부품 — 좌표를 직접 옮기지 않는 이유는 세우는 곳의 ★ 주석 참고.
+		private UnitMovement heroMovement;
 		private ArenaCombatant heroCombatant;
 		private Vector3 heroTargetPosition;
 		private bool heroActive;
@@ -253,6 +257,9 @@ namespace WitchMendokusai
 				return;
 			}
 
+			// 코어의 성장 곡선을 스테이지에서 받아 세운다 — 판마다 다시 세우므로 지난 판의 레벨이 새 판으로 새지 않는다.
+			coreProgress = new TowerDefenseBuildingProgress(stage.CoreLevelBaseCost, stage.CoreLevelGrowth);
+
 			started = true;
 			StartCoroutine(BeginRoutine());
 		}
@@ -312,6 +319,7 @@ namespace WitchMendokusai
 			nextDollOrdinal = 0;
 			heroActive = false;
 			heroTransform = null;
+			heroMovement = null; // 남겨두면 다음 판이 지난 판의 몸을 붙잡고 걷게 시킨다.
 			heroCombatant = null;
 			heroVisionSourceIndex = -1;
 			heroRespawnRemaining = 0f;
@@ -1033,6 +1041,17 @@ namespace WitchMendokusai
 			if (spawnedUnits.Contains(unitGameObject) == false)
 				spawnedUnits.Add(unitGameObject); // 풀이 옛 시체를 재사용하면 같은 참조 — 중복 추적 방지.
 
+			// ★ 세운 것은 *움직이지 않는다*. 물리를 안 끄면 영웅·마수가 지나가며 건물을 밀어낸다
+			//   (사용자 실증: "코어 건물이 영웅 유닛에 밀립니다. 건물 좀 고정되게"). 칸에 세운 것이
+			//   칸 밖으로 밀리면 「그 자리에 지었다」는 규칙 자체가 거짓이 된다 — 점유 칸은 그대로인데
+			//   그림만 옆에 가 있다. 여기 한 곳에서 전부 고정한다(스폰의 단일 관문).
+			Rigidbody spawnedBody = unitGameObject.GetComponent<Rigidbody>();
+			if (spawnedBody != null)
+			{
+				spawnedBody.isKinematic = true;
+				spawnedBody.useGravity = false;
+			}
+
 			// ★ 안개는 안 보이는 개체의 렌더러를 *끈다*. 그 개체가 풀로 돌아갔다 재사용되면 꺼진 채로
 			//   다시 태어난다 — 사용자 실증: "다시시작 하면 건물 모습이 안보임". 세우는 순간 되켠다.
 			//   (끄는 쪽과 켜는 쪽이 짝이 안 맞으면, 그 병은 *다음 판*에 나타나 원인을 찾기 어렵다.)
@@ -1191,7 +1210,7 @@ namespace WitchMendokusai
 				Conclude(core.Outcome);
 		}
 
-		/// <summary> WaveStarted 신호 처리 — SO 스폰 지점에 분산 스폰 후 ConfirmWaveSpawned (false-clear 차단 계약). </summary>
+		/// <summary> WaveStarted 신호 처리 — SO 스폰 지점에 분산 스폰. 한 마리도 못 내보내면 FastFail 로그. </summary>
 		/// <summary>
 		/// 마수를 내보낸다. count 가 큰 무리면 웨이브, 1이면 상시로 새어 나오는 한 마리다.
 		///
@@ -1207,7 +1226,7 @@ namespace WitchMendokusai
 
 			TowerDefenseWaveEventKind waveEvent = WaveEventAt(core.WaveIndex);
 			int enemyCount = count;
-			int spawnedCount = 0; // 실제로 UnitObject 확보 + 등록까지 끝난 수 — 이게 0 이면 ConfirmWaveSpawned 자체를 보류.
+			int spawnedCount = 0; // 실제로 UnitObject 확보 + 등록까지 끝난 수 — 이게 0 이면 스테이지 데이터 구멍이다.
 
 			for (int enemyIndex = 0; enemyIndex < enemyCount; enemyIndex++)
 			{
@@ -1274,16 +1293,21 @@ namespace WitchMendokusai
 				//   (라이브 실측: 출현 줄에서 세 마리가 나란히 4초씩 정지). 좌우로 벌리는 것만으로는
 				//   마릿수가 늘면 결국 겹친다 — *시간*으로 흘려보내야 구조적으로 안 겹친다.
 				//   덤으로 「웨이브가 밀려온다」는 감각이 생긴다(장르 표준의 trickle spawn).
-				if (stage.EnemySpawnInterval > 0f)
-					yield return new WaitForSeconds(stage.EnemySpawnInterval);
+				// ★ 무리로 내보낸다 (사용자 지시: "여러 기가 한 번에 천천히 몰려오게").
+				//   무리 안 = 눈에 안 띄는 짧은 간격(0으로 두면 서로의 몸에 끼어 그 자리서 못 나온다 — 실측).
+				//   무리가 다 나왔으면 = 긴 간격. 그래서 「덩어리로 밀려오고, 다음 덩어리까지는 숨 돌린다」.
+				bool groupFinished = stage.EnemyGroupSize <= 1
+					|| spawnedCount % stage.EnemyGroupSize == 0;
+				float wait = groupFinished ? stage.EnemySpawnInterval : stage.EnemyGroupSpacing;
+				if (wait > 0f)
+					yield return new WaitForSeconds(wait);
 			}
 
-			// 스폰이 실제 확인된 뒤에만 클리어 판정 활성 — 0마리 스폰인데 확인하면 코어가 aliveEnemies==0 을
-			// 즉시 "격퇴"로 오인해 웨이브를 통째 스킵(false-clear 재도입) → 0이면 확인 자체를 보류하고 FastFail 로그.
-			if (spawnedCount > 0)
-				core.ConfirmWaveSpawned();
-			else if (count > 1)
-				Debug.LogError($"{nameof(TowerDefenseMatch)}: 웨이브 적 0마리 스폰 — ConfirmWaveSpawned 보류(false-clear 차단). stage.EnemyUnit/EnemySpawnPoints 확인 필요.");
+			// 웨이브를 불렀는데 한 마리도 안 나온 것은 그 자체로 스테이지 데이터 구멍이다 — 조용히 넘어가면
+			// 「큰 무리가 왔다」는 화면 글자만 뜨고 판은 텅 빈다. (실시간 전환 뒤 규칙은 살아있는 적 수를
+			// 안 보므로 클리어 오인 위험은 사라졌고, 남은 것은 이 FastFail 알림뿐이다.)
+			if (spawnedCount == 0 && count > 1)
+				Debug.LogError($"{nameof(TowerDefenseMatch)}: 웨이브 적 0마리 스폰 — stage.EnemyUnit/EnemySpawnPoints 확인 필요.");
 		}
 
 		/// <summary>
@@ -1531,14 +1555,28 @@ namespace WitchMendokusai
 				heroBody.useGravity = false;
 			}
 
-			// 본편 이동 시스템(NavMeshAgent/UnitMovement)은 개척에서 통째로 끈다 — 개척 지면은 런타임 생성이라
-			// NavMesh 자체가 없고, 길찾기는 흐름장이 이미 한다. 켜두면 에이전트가 좌표를 도로 잡아당긴다(실측).
+			// 길찾기 에이전트(NavMeshAgent)만 끈다 — 개척 지면은 런타임 생성이라 NavMesh 자체가 없고,
+			// 켜두면 에이전트가 좌표를 도로 잡아당긴다(실측).
 			UnityEngine.AI.NavMeshAgent heroAgent = heroGameObject.GetComponent<UnityEngine.AI.NavMeshAgent>();
 			if (heroAgent != null)
 				heroAgent.enabled = false;
-			UnitMovement heroMovement = heroGameObject.GetComponent<UnitMovement>();
+
+			// ★ 이동 부품(UnitMovement)은 *켜 둔다*. 예전엔 이것까지 끄고 영웅 좌표를 매 틱 직접 옮겼는데,
+			//   그 하나가 사용자 실측 결함 셋을 한꺼번에 만들었다:
+			//   ① 뚝뚝 끊김 — 틱은 초당 20번이라 그 사이 프레임엔 영웅이 아예 안 움직인다(순간이동).
+			//   ② 벽 통과 — 좌표를 직접 쓰면 충돌을 아무도 안 본다. 이동 부품은 쓸어보고 미끄러진다.
+			//   ③ 마수가 밀려남 — 몸을 겹친 채 좌표만 옮기니 물리가 마수를 밀어내 해결한다.
+			//   마수는 원래부터 이 부품으로 걷는다 — 영웅만 체계 밖에 있었다.
+			heroMovement = heroGameObject.GetComponent<UnitMovement>();
 			if (heroMovement != null)
-				heroMovement.enabled = false;
+				heroMovement.enabled = true;
+
+			// 「초당 몇 칸」으로 적어둔 영웅 속도를 이동 부품이 읽는 스탯으로 옮긴다(환산 상수는 그쪽 정본).
+			if (heroUnitObject != null)
+			{
+				heroUnitObject.UnitStat[UnitStatType.MOVEMENT_SPEED] =
+					Mathf.Max(1, Mathf.RoundToInt(stage.HeroMoveSpeed * InputContributor.STAT_PER_UNIT_PER_SECOND));
+			}
 
 			foreach (UnitBrain brain in heroUnitObject.GetComponents<UnitBrain>())
 				brain.enabled = false;
@@ -1588,6 +1626,8 @@ namespace WitchMendokusai
 				// ★ 쓰러져도 영영 끝은 아니다(개선 목록 8번). 「한 명만 데려간다」의 무게는 *되돌리는 데
 				//   드는 값*으로 표현한다 — 돌아올 방법이 하나도 없는 건 무게가 아니라 그냥 벽이다.
 				heroActive = false;
+				// 걷던 명령을 지운다 — 안 지우면 쓰러진 몸이 반납될 때까지 계속 걷는다.
+				heroMovement?.SetMoveDirection(Vector3.zero);
 				heroRespawnRemaining = stage.HeroRespawnSeconds;
 				Debug.Log($"{nameof(TowerDefenseMatch)}: 영웅 쓰러짐 — {stage.HeroRespawnSeconds:F0}초 뒤 코어에서 일어난다.");
 				if (coreCombatant != null)
@@ -1595,16 +1635,23 @@ namespace WitchMendokusai
 				return;
 			}
 
-			Vector3 current = heroTransform.position;
-			Vector3 delta = heroTargetPosition - current;
+			if (heroMovement == null)
+				return;
+
+			Vector3 delta = heroTargetPosition - heroTransform.position;
 			delta.y = 0f;
 
-			float step = stage.HeroMoveSpeed * TimeManager.TICK;
-			if (delta.sqrMagnitude > step * step)
+			// 도착 판정은 *한 틱에 갈 거리*로 잡는다 — 더 좁게 잡으면 목표를 지나쳤다 되돌아오길 반복하며 떤다.
+			float arriveDistance = stage.HeroMoveSpeed * TimeManager.TICK;
+			if (delta.sqrMagnitude <= arriveDistance * arriveDistance)
 			{
-				heroTransform.position = current + delta.normalized * step;
-				RefreshHeroVision();
+				heroMovement.SetMoveDirection(Vector3.zero);
+				return;
 			}
+
+			// 방향만 준다 — 실제로 얼마나 가는지는 이동 부품이 매 프레임 정한다(그래서 부드럽고, 벽에 막힌다).
+			heroMovement.SetMoveDirection(delta.normalized);
+			RefreshHeroVision();
 		}
 
 		private float heroRespawnRemaining;
@@ -1696,7 +1743,8 @@ namespace WitchMendokusai
 
 			int ordinal = nextDollOrdinal++;
 			string name = TowerDefenseNames.For(MapSeed, ordinal);
-			TowerDefenseDollLabel doll = new(anchor, name, tint)
+			TowerDefenseDollLabel doll = new(anchor, name, tint,
+				stage.BuildingLevelBaseCost, stage.BuildingLevelGrowth)
 			{
 				BuildingId = MapSeed + ordinal * 7919,
 				IsHarvester = isHarvester,
@@ -1748,6 +1796,20 @@ namespace WitchMendokusai
 			TowerDefenseDollLabel label = FindDollLabel(unit);
 			string name = label != null ? label.Name : "인형";
 
+			// ★ 코어를 *제일 먼저* 가린다 (WM-200 실측). 코어도 무기를 들고 있어서 아래 포탑 가지가
+			//   먼저 낚아채 갔고, 그 아래 코어 설명은 통째로 죽은 가지였다 — 화면엔 「인형 …
+			//   같은 자리에 같은 종류를 또 지으면 승급」이라 떴다. 코어는 다시 못 짓는데.
+			//   무엇인가(역할)는 무엇을 들었나(무기)보다 앞선다.
+			if (coreCombatant == combatant)
+			{
+				TowerDefenseWeapon coreWeapon = unit.GetComponent<TowerDefenseWeapon>();
+				return "코어\n체력 " + currentHp + " / " + maxHp
+					+ (coreWeapon != null
+						? "\n사거리 " + coreWeapon.Range.ToString("0.#") + "  ·  피해 " + coreWeapon.CurrentDamage
+						: string.Empty)
+					+ "\n여기까지 새면 목숨이 준다";
+			}
+
 			// 포탑 — 무기가 붙어 있으면 그 수치가 정본이다(화면과 규칙이 같은 곳을 읽는다).
 			TowerDefenseWeapon weapon = unit.GetComponent<TowerDefenseWeapon>();
 			if (weapon != null)
@@ -1769,9 +1831,6 @@ namespace WitchMendokusai
 					+ "\n" + (outer ? "정수" : "자원") + " ×" + HarvesterMultiplierOf(unit).ToString("0.0")
 					+ "\n" + (connected ? "보급 이어짐" : "⚠ 보급 끊김 — 한 푼도 안 들어온다");
 			}
-
-			if (coreCombatant == combatant)
-				return "코어\n체력 " + currentHp + " / " + maxHp + "\n여기까지 새면 목숨이 준다";
 
 			return name + "\n체력 " + currentHp + " / " + maxHp;
 		}
@@ -1901,30 +1960,35 @@ namespace WitchMendokusai
 			if (stage == null)
 				return;
 
-			// 먹고사는 길은 늘 열려 있다 — 이게 없으면 첫 수가 아예 없다.
-			availableSlots.Add(new TowerDefenseSlot(TowerDefensePlaceableKind.Harvester));
+			// ★ 해금 계산은 여기 없다 (WM-200) — 연구 창도 같은 것을 알아야 하는데, 각자 계산하면
+			//   *창이 약속한 것과 실제로 열리는 것이 어긋난다*. 표는 하나고, 규칙층은 「여기까지」를
+			//   잘라 쓰기만 한다.
+			TowerDefenseUnlockSchedule.Available(UnlockLevels, TowerArchetypeCount, LabCount, unlockScratch, availableSlots);
 
-			if (LabCount >= stage.TowerUnlockLevel)
+			// ★ 영웅은 핫바에서 뺐다(사용자 지시: "영웅 이동 따로 핫바 두지 않았으면"). 핫바는
+			//   *짓는 것*의 자리인데 영웅은 보내는 것이라 뜻이 어긋났고, WASD(시점)와도 헷갈렸다.
+			//   이제 빈 땅 우클릭이 영웅을 보낸다 — 대상이 있으면 판매, 없으면 이동(RTS 관용).
+		}
+
+		private readonly System.Collections.Generic.List<TowerDefenseUnlockEntry> unlockScratch = new();
+
+		/// <summary> 무대가 정한 해금 단계 수치 — 계산은 순수 표가 한다. </summary>
+		private TowerDefenseUnlockLevels UnlockLevels => new(
+			stage.TowerUnlockLevel, stage.WallUnlockLevel, stage.TrapUnlockLevel,
+			stage.GeneratorUnlockLevel, stage.OutpostUnlockLevel, stage.TowerVariantUnlockStep);
+
+		/// <summary>
+		/// 연구 길 전체 — 「몇 단계에 무엇이 열리나」. 연구 창이 이걸 그린다.
+		/// 지금 열린 것과 *같은 표*에서 나오므로 창이 약속한 것은 반드시 열린다.
+		/// </summary>
+		public void DescribeUnlockPath(System.Collections.Generic.List<TowerDefenseUnlockEntry> into)
+		{
+			if (stage == null)
 			{
-				int variants = Mathf.Max(1, 1 + (LabCount - stage.TowerUnlockLevel) / Mathf.Max(1, stage.TowerVariantUnlockStep));
-				for (int index = 0; index < TowerArchetypeCount && index < variants; index++)
-					availableSlots.Add(new TowerDefenseSlot(TowerDefensePlaceableKind.Tower, index));
-				if (TowerArchetypeCount == 0)
-					availableSlots.Add(new TowerDefenseSlot(TowerDefensePlaceableKind.Tower));
+				into?.Clear();
+				return;
 			}
-
-			if (LabCount >= stage.WallUnlockLevel)
-				availableSlots.Add(new TowerDefenseSlot(TowerDefensePlaceableKind.Wall));
-			if (LabCount >= stage.TrapUnlockLevel)
-				availableSlots.Add(new TowerDefenseSlot(TowerDefensePlaceableKind.Trap));
-			if (LabCount >= stage.GeneratorUnlockLevel)
-				availableSlots.Add(new TowerDefenseSlot(TowerDefensePlaceableKind.Generator));
-			if (LabCount >= stage.OutpostUnlockLevel)
-				availableSlots.Add(new TowerDefenseSlot(TowerDefensePlaceableKind.Outpost));
-
-			// 영웅은 짓는 게 아니라 보내는 것 — 있으면 늘 마지막 칸.
-			if (HasHero)
-				availableSlots.Add(new TowerDefenseSlot(TowerDefensePlaceableKind.Hero));
+			TowerDefenseUnlockSchedule.Build(UnlockLevels, TowerArchetypeCount, into);
 		}
 
 		/// <summary> 해금이 바뀌었다 — 화면이 핫바를 다시 그려야 한다. </summary>
@@ -2645,6 +2709,9 @@ namespace WitchMendokusai
 
 		/// <summary> 지금 시간 배속(0 = 멈춤). </summary>
 		public float SpeedScale => SpeedSteps[Mathf.Clamp(speedStep, 0, SpeedSteps.Length - 1)];
+
+		/// <summary> 지금 멈춰 있나 — 메뉴가 「내가 멈춘 것인지」 가려낼 때 쓴다(사용자가 직접 멈춘 판을 풀면 안 된다). </summary>
+		public bool IsPaused => speedStep == 0;
 
 		/// <summary> 멈춤 ↔ 직전 배속 토글. 멈춘 채로 배치·관찰할 수 있어야 정보가 쓸모를 갖는다. </summary>
 		public void TogglePause()

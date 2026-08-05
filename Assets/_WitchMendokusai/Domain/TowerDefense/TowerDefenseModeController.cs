@@ -147,6 +147,32 @@ namespace WitchMendokusai
 			match.HighlightRangeOf(placement.HoveredUnit != null ? placement.HoveredUnit.transform : null);
 
 			RefreshSelectionPanel();
+
+			// 지금 설치 대기인지 — 클릭 한 번의 뜻이 여기서 갈리므로 매 프레임 화면에 박는다.
+			hud?.SetArmed(placement.IsArmed, DescribeSelectedSlot());
+		}
+
+		/// <summary> 지금 고른 칸이 무엇인가 — 설치 대기 표시에 쓴다. </summary>
+		private string DescribeSelectedSlot()
+		{
+			if (match == null || placement == null)
+				return string.Empty;
+
+			System.Collections.Generic.IReadOnlyList<TowerDefenseSlot> slots = match.AvailableSlots;
+			int index = placement.SelectedSlot;
+			if (index < 0 || index >= slots.Count)
+				return string.Empty;
+
+			return slots[index].Kind switch
+			{
+				TowerDefensePlaceableKind.Harvester => "채집 인형",
+				TowerDefensePlaceableKind.Wall => "벽",
+				TowerDefensePlaceableKind.Trap => "함정",
+				TowerDefensePlaceableKind.Outpost => "전초기지",
+				TowerDefensePlaceableKind.Generator => "발전 인형",
+				TowerDefensePlaceableKind.Hero => "영웅 부르기",
+				_ => "포탑 인형",
+			};
 		}
 
 		/// <summary>
@@ -184,6 +210,23 @@ namespace WitchMendokusai
 			placement.SetSlots(match.AvailableSlots);
 		}
 
+		/// <summary>
+		/// 연구 창 열기 — 코어를 골라 준다.
+		///
+		/// ★ 왜 버튼이 필요한가: 연구는 「코어를 클릭」해야 열리는데, 그 사실이 화면 어디에도 없었다
+		///   (사용자 실증: "연구 어케 여는데"). 첫 판의 *유일한 다음 수*가 숨은 문 뒤에 있으면
+		///   게임이 시작되지 않는다. 코어 클릭은 그대로 두고, 눈에 보이는 문을 하나 더 낸다.
+		/// </summary>
+		private void OpenResearch()
+		{
+			if (match == null || match.CoreCombatant == null)
+				return;
+
+			placement.SuppressNextClick(); // 이 클릭이 지면 설치로 새지 않게.
+			placement.SelectBuilding(match.CoreCombatant);
+			RefreshSelectionPanel();
+		}
+
 		/// <summary> 시점을 그 자리로 — 지도에서 온 요청. 확대·회전은 그대로 둔다. </summary>
 		private void LookAt(Vector3 focus)
 		{
@@ -191,6 +234,107 @@ namespace WitchMendokusai
 			// 모드를 나갔다 들어올 때 죽은 참조가 된다).
 			if (OverheadContentCameraController.TryGet(ContentCameraMode.TowerDefense, out OverheadContentCameraController rig))
 				rig.LookAt(focus);
+		}
+
+		/// <summary> X — 열린 창을 닫는다. 판을 나가지는 않는다(잘못 누르면 판이 통째로 끝난다). </summary>
+		private void CancelPressed()
+		{
+			TowerDefenseHudView view = EnsureHud();
+			if (view == null)
+				return;
+
+			// ★ 취소 키의 뜻 = 「지금 열린 것을 닫는다. 닫을 게 없으면 메뉴를 연다」 (TASK-WM-200).
+			//   사용자 지시("X 로 게임 탈출 안 되게 · ESC 로 메뉴창")를 한 규칙으로 만족시킨다 —
+			//   취소가 곧 판 끝내기였던 예전 동작은 되돌릴 수 없는 일이 가장 누르기 쉬운 자리에 있던 것이다.
+			if (view.IsMenuOpen)
+			{
+				ToggleMenu();
+				return;
+			}
+
+			if (view.IsMapOpen)
+			{
+				view.ToggleMap();
+				return;
+			}
+
+			// ★ 짓기를 무르는 자리 (사용자 실측: "건물 짓기 취소는 어케함? 할 구가 없네").
+			//   칸을 고르면 「설치 대기」가 켜지는데, 그걸 *끄는 손잡이가 어디에도 없었다* —
+			//   마음이 바뀌면 아무 데나 지어서 부수거나 판을 나가는 수밖에 없었다.
+			//   지도·메뉴보다 뒤, 고른 건물 닫기보다 앞 — 「지금 손에 든 것」이 가장 먼저 놓여야 한다.
+			if (placement != null && placement.IsArmed)
+			{
+				placement.Disarm();
+				hud?.SetArmed(false, DescribeSelectedSlot());
+				return;
+			}
+
+			if (placement != null && placement.SelectedBuilding != null)
+			{
+				CloseSelection();
+				return;
+			}
+
+			// 닫을 것이 없다 — 메뉴를 연다.
+			ToggleMenu();
+		}
+
+		/// <summary>
+		/// 메뉴 여닫기 단일 창구 — 메뉴와 멈춤은 한 몸이라 한 곳에서만 다룬다
+		/// (따로 두면 「메뉴는 떠 있는데 판은 계속 돈다」가 생긴다).
+		/// </summary>
+		private void ToggleMenu()
+		{
+			TowerDefenseHudView view = EnsureHud();
+			if (view == null)
+				return;
+
+			if (view.IsMenuOpen)
+			{
+				view.SetMenuOpen(false);
+				ResumeFromMenu();
+				return;
+			}
+
+			view.SetMenuOpen(true);
+			// 메뉴를 보는 동안 코어가 깨지면 안 된다.
+			if (match != null && match.IsPaused == false)
+			{
+				pausedByMenu = true;
+				match.TogglePause();
+			}
+		}
+
+		// 메뉴가 멈춘 판인지 — 메뉴 때문에 멈춘 것만 메뉴가 다시 풀어야 한다(사용자가 직접 멈춰 뒀으면 그대로).
+		private bool pausedByMenu;
+
+		private void ResumeFromMenu()
+		{
+			if (pausedByMenu == false)
+				return;
+			pausedByMenu = false;
+			if (match != null && match.IsPaused)
+				match.TogglePause();
+		}
+
+		/// <summary> 고른 건물을 판다 — 창에서 바로(손이 규칙을 기억하지 않게). </summary>
+		private void SellSelected()
+		{
+			ArenaCombatant selected = placement.SelectedBuilding;
+			if (match == null || selected == null)
+				return;
+
+			placement.SuppressNextClick();
+			match.TrySell(selected.Position, stage != null ? stage.SellRefundRatio : 0.6f);
+			CloseSelection();
+		}
+
+		/// <summary> 창 닫기 — 고른 것을 놓는다. </summary>
+		private void CloseSelection()
+		{
+			placement.SuppressNextClick();
+			placement.SelectBuilding(null);
+			RefreshSelectionPanel();
 		}
 
 		private int RelicBalance()
@@ -284,9 +428,19 @@ namespace WitchMendokusai
 				canResearch: isCore,
 				researchLevel: match.LabCount,
 				researchCost: match.ResearchCost,
+				researchUsesEssence: match.ResearchUsesEssence,
 				perkOffers,
 				coreCards);
+
+			// 연구 길 — 값을 치르기 전에 무엇을 얻는지 보여준다(표는 규칙층이 준 것 그대로).
+			if (isCore)
+			{
+				match.DescribeUnlockPath(unlockPath);
+				hud.ShowUnlockPath(unlockPath, match.LabCount);
+			}
 		}
+
+		private readonly System.Collections.Generic.List<TowerDefenseUnlockEntry> unlockPath = new();
 
 		/// <summary> 고른 건물의 레벨업 선택 — 그 클릭이 설치로 새지 않게 한 번 삼킨다. </summary>
 		private void ChoosePerk(TowerDefenseBuildingPerk perk)
@@ -421,7 +575,9 @@ namespace WitchMendokusai
 				// 진입 — content 카메라 전환(개척 vcam 승격)은 CameraManager 단일 권위자가 GameMode 를 보고
 				// 이미 처리한다. 여기서는 **무대가 아는 것**(시점 위치·경계·줌 범위)만 맞춘다.
 				ResetCamera();
-				inputManager.SetInputStrategy(new InputStrategyTowerDefense(placement, inputManager, match, () => EnsureHud()?.ToggleMap()));
+				inputManager.SetInputStrategy(new InputStrategyTowerDefense(placement, inputManager, match,
+					() => EnsureHud()?.ToggleMap(),
+					CancelPressed));
 
 				// ★ 나갈 때 저장해 두고 *아무도 읽지 않던* 것을 여기서 읽는다 — 저장만 하고 이어하기가 없으면
 				//   「잠깐 접어둔다」가 그냥 「버린다」였다. 씨앗까지 넘겨야 같은 땅이 다시 나오므로 Begin 직전.
@@ -446,6 +602,12 @@ namespace WitchMendokusai
 					view.RestartRequested += Restart;
 					// 지도·미니맵을 누르면 그 자리로 — 카메라는 컨트롤러가 쥔다(화면은 「어디」만 말한다).
 					view.LookAtRequested += LookAt;
+					view.ResearchPanelRequested += OpenResearch;
+					view.SellSelectedRequested += SellSelected;
+					view.ExitRequested += () => GameModeManager.Instance.SetMode(GameMode.Default);
+					view.SelectionCloseRequested += CloseSelection;
+					view.MenuResumeRequested += ResumeFromMenu;
+					view.MenuToggleRequested += ToggleMenu;
 					view.WaveModeToggleRequested += ToggleWaveMode;
 					view.NextWaveRequested += CallNextWave;
 					view.SlotClicked += SelectSlotFromUi;
@@ -479,6 +641,11 @@ namespace WitchMendokusai
 					placement.SelectionChanged -= hud.SetSelectedSlot;
 					hud.RestartRequested -= Restart;
 					hud.LookAtRequested -= LookAt;
+					hud.ResearchPanelRequested -= OpenResearch;
+					hud.SellSelectedRequested -= SellSelected;
+					hud.SelectionCloseRequested -= CloseSelection;
+				hud.MenuResumeRequested -= ResumeFromMenu;
+				hud.MenuToggleRequested -= ToggleMenu;
 					hud.WaveModeToggleRequested -= ToggleWaveMode;
 					hud.NextWaveRequested -= CallNextWave;
 					hud.SlotClicked -= SelectSlotFromUi;

@@ -13,13 +13,15 @@ namespace WitchMendokusai
 	/// </summary>
 	public class TowerDefensePlacement : MonoBehaviour
 	{
-		[field: Header("_" + nameof(TowerDefensePlacement))]
 		// 배치 레이캐스트는 **화면에 실제로 보이는 카메라**를 써야 한다 — 클릭한 픽셀의 의미가 곧 그 카메라
 		// 기준이기 때문. 개척이 정식 content 카메라(vcam priority)로 바뀌면서 실제 렌더 카메라는
 		// Cinemachine brain 이 물고 있는 단 하나이므로, 특정 Camera 를 인스펙터로 박아두면 모드 전환·
 		// 블렌딩 중에 죽은 참조를 쓰게 된다. 매 호출 lazy 해석(ViewCameraResolver)이 단일 정본.
 		private Camera RaycastCamera => ViewCameraResolver.Current;
 
+		// 이 제목은 *직렬화되는 것* 바로 위에 있어야 뜬다. 예전엔 계산으로만 나오는 값(저장되지 않는다)
+		// 위에 붙어 있어서 컴파일러가 통째로 버렸고, 인스펙터엔 아무 제목도 안 떴다.
+		[Header("_" + nameof(TowerDefensePlacement))]
 		[Tooltip("배치 대상 매치 — 자원 차감/스폰/점유 판정 전부 여기 위임.")]
 		[SerializeField] private TowerDefenseMatch match;
 
@@ -89,7 +91,17 @@ namespace WitchMendokusai
 		public void Disarm()
 		{
 			IsArmed = false;
+			hasPendingTouchTarget = false;
 		}
+
+		// TASK-WM-200 — 손가락으로 지을 때 「한 번 더 눌러 확인」을 기다리는 자리.
+		private bool hasPendingTouchTarget;
+		private Vector3 pendingTouchTarget;
+
+		/// <summary>
+		/// 손가락이 이번에 고른 자리 — 「여기 지을까?」 하고 기다리는 중이면 true (화면이 안내 문구를 바꾼다).
+		/// </summary>
+		public bool IsWaitingTouchConfirm => hasPendingTouchTarget;
 
 		public event System.Action<int> SelectionChanged = delegate { };
 
@@ -107,6 +119,7 @@ namespace WitchMendokusai
 
 			SelectedSlot = slot;
 			IsArmed = true; // 칸을 고르는 것 = 설치 대기. 한 번 지으면 다시 꺼진다.
+			hasPendingTouchTarget = false; // 다른 것을 고르면 기다리던 자리는 뜻을 잃는다.
 			SelectionChanged(slot);
 		}
 
@@ -206,6 +219,9 @@ namespace WitchMendokusai
 		public void Deactivate()
 		{
 			isActive = false;
+			// 「여기 지을까?」 하고 기다리던 자리는 판을 나가면 뜻을 잃는다 — 남겨 두면 다음 판에서
+			// 그 근처를 한 번 톡 하는 순간 확인 없이 지어진다(옛 대답으로 새 질문에 답하는 꼴).
+			hasPendingTouchTarget = false;
 			if (ghostBuilding != null)
 				ghostBuilding.SetActive(false);
 			if (previewMarker != null)
@@ -226,6 +242,14 @@ namespace WitchMendokusai
 		/// 무장하지 않은 클릭이 곧 선택이라, 짓는 손동작과 고르는 손동작이 섞이지 않는다.
 		/// </summary>
 		public ArenaCombatant SelectedBuilding { get; private set; }
+
+		/// <summary> 밖에서 건물을 골라 준다 — 「연구」 버튼처럼 화면이 여는 문. </summary>
+		public void SelectBuilding(ArenaCombatant building)
+		{
+			SelectedBuilding = building;
+			IsArmed = false; // 고르는 중엔 설치 대기가 아니다(다음 클릭이 건물을 세우면 안 된다).
+			BuildingSelected(SelectedBuilding);
+		}
 		public event System.Action<ArenaCombatant> BuildingSelected = delegate { };
 		public Vector2 HoverScreenPosition { get; private set; }
 
@@ -261,13 +285,143 @@ namespace WitchMendokusai
 			HoveredUnit = nearest;
 		}
 
+		/// <summary>
+		/// 입력관리자를 늦게라도 확보한다 — 주입이 안 온 경우의 자가 복구.
+		/// ★ 이것이 null 이면 미리보기·hover 가 통째로 죽는데, 아무 소리도 안 난다.
+		/// </summary>
+		private void EnsureInputManager()
+		{
+			if (inputManager != null)
+				return;
+
+			if (InputManager.TryGetExistingInstance(out InputManager found))
+				inputManager = found;
+		}
+
+		/// <summary>
+		/// 미리보기 마커가 없으면 만든다.
+		///
+		/// ★ 이 마커는 인스펙터에서 끼워 넣는 것이었다 — 비어 있으면 *아무 말도 없이* 미리보기가
+		///   통째로 사라진다(사용자 실증: "설치 미리보기도 지금 동작 안하는 것 같은데"). 화면에 꼭
+		///   있어야 하는 것을 씬 배선에 기대면, 그 배선이 끊긴 날 조용히 기능이 없어진다.
+		///   코드가 스스로 세우면 어떤 씬에서도 미리보기는 늘 있다.
+		/// </summary>
+		private void EnsurePreviewMarker()
+		{
+			if (previewMarker != null)
+			{
+				// ★ 이미 있어도 *그리는 층은 매번 다시 못 박는다* (사용자 실측: "여전히 마커 가려짐").
+				//   두 가지 이유로 한 번만 설정하면 흘러내린다:
+				//   ① 씬에 미리 박아둔 마커면 이 함수가 그냥 돌아가서 설정이 아예 안 걸린다.
+				//   ② 색칠하는 쪽이 재질 *사본*을 만들어 쓴다 — 원본에만 걸어둔 설정은 사본을 안 따라간다.
+				//   보이는 것이 목적인 물건은, 보이게 하는 설정도 매번 확인하는 편이 싸다.
+				ApplyPreviewMarkerLayer();
+				return;
+			}
+
+			previewMarker = TowerDefenseVisuals.Primitive(PrimitiveType.Quad, unlit: true);
+			previewMarker.name = "PlacementPreviewMarker";
+			Destroy(previewMarker.GetComponent<Collider>()); // 표시용 — 레이캐스트를 가로채면 안 된다.
+			previewMarker.transform.SetParent(transform, false);
+			// 바닥에 눕힌 한 칸짜리 판. 살짝 띄워 바닥과 겹쳐 깜빡이지 않게.
+			// 길 안내와 같은 병을 앓는다 — 불투명하면 깊이를 남겨 인형 몸을 자른다(MakeFloorDecal ★ 주석).
+			ApplyPreviewMarkerLayer();
+			previewMarker.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
+			previewMarker.transform.localScale = Vector3.one * cellSize * 0.92f;
+			previewMarker.SetActive(false);
+		}
+
+		/// <summary>
+		/// 커서 표시를 「무엇에도 안 가리는 층」에 둔다 — 안개보다 나중에 그리고, 깊이는 안 남긴다.
+		/// *색칠에 쓰는 그 사본*에 건다(GetComponentInChildren + .material) — 색칠 쪽과 다른 재질을
+		/// 만지면 설정이 화면에 안 나타난다. 그게 「고쳤는데 여전히 가려지는」 상태의 정체였다.
+		/// </summary>
+		private void ApplyPreviewMarkerLayer()
+		{
+			if (previewMarker == null)
+				return;
+
+			Renderer markerRenderer = previewMarker.GetComponentInChildren<Renderer>();
+			if (markerRenderer == null)
+				return;
+
+			TowerDefenseVisuals.MakeFloorDecal(markerRenderer.material, aboveFog: true);
+		}
+
 		// 커서 아래 유닛 탐색 버퍼 — 매 프레임 새 배열을 만들지 않는다.
 		private readonly RaycastHit[] hoverHits = new RaycastHit[16];
 
+		/// <summary>
+		/// 손가락 조작 (TASK-WM-200). 마우스와 규칙이 다른데, 그 차이가 *손가락에만 있는 사정*에서 나온다.
+		///
+		/// ★ 왜 「톡」이고 「누름」이 아닌가: 손가락 하나가 시점 끌기도 겸한다. 누르는 순간 짓게 하면
+		///   판을 훑어보려고 끌 때마다 건물이 서고 자원이 빠진다. 그래서 *끌지 않고 뗀 것*만 짓는 손짓이다.
+		/// ★ 왜 두 번 눌러야 하나: 마우스는 커서를 올려두고 「여기 서겠구나」를 *보고 나서* 누른다.
+		///   손가락엔 그 「올려두기」가 없다 — 첫 톡이 그 자리를 맡고, 둘째 톡이 짓는다. 미리보기의
+		///   뜻(짓기 전에 본다)을 없애지 않고 손가락으로 옮긴 것이다.
+		/// ★ 왜 빈 땅 톡이 영웅인가: 손가락엔 오른쪽 단추가 없다. 없는 단추를 흉내 내는 대신,
+		///   *가리킨 곳에 아무것도 없다*는 사실에 뜻을 준다 — 건물 위 톡은 그대로 「살펴보기」다.
+		/// </summary>
+		private void HandleTouchTap()
+		{
+			if (inputManager == null || inputManager.IsTouchMode == false)
+				return;
+			if (inputManager.PointerTappedThisFrame == false)
+				return;
+
+			Vector2 tapPosition = inputManager.PointerTapPosition;
+			if (UIPointer.IsOverInteractive(tapPosition))
+				return;
+
+			if (IsArmed == false)
+			{
+				UpdateHover(tapPosition);
+				if (HoveredUnit != null)
+				{
+					SelectedBuilding = HoveredUnit;
+					BuildingSelected(SelectedBuilding);
+				}
+				else
+				{
+					CommandHeroAt(tapPosition);
+				}
+				return;
+			}
+
+			if (TryGetSnappedGroundPosition(tapPosition, out Vector3 tappedCell) == false)
+				return;
+
+			// 같은 칸을 다시 톡 = 「그래, 여기」. 칸 반쪽 안이면 같은 칸으로 본다(손가락은 뭉툭하다).
+			float sameCellRadius = cellSize * 0.5f;
+			if (hasPendingTouchTarget
+				&& (pendingTouchTarget - tappedCell).sqrMagnitude <= sameCellRadius * sameCellRadius)
+			{
+				hasPendingTouchTarget = false;
+				PlaceSelectedAt(tapPosition);
+				return;
+			}
+
+			// 첫 톡 — 아직 짓지 않는다. 미리보기가 그 자리로 옮겨가 「여기 서면 이렇다」를 보여준다.
+			hasPendingTouchTarget = true;
+			pendingTouchTarget = tappedCell;
+		}
+
 		private void Update()
 		{
-			if (isActive == false || previewMarker == null)
+			if (isActive == false)
 				return;
+
+			EnsurePreviewMarker();
+			if (previewMarker == null)
+				return;
+
+			// ★ 입력관리자가 없으면 아래 판정이 통째로 「못 그림」으로 떨어져 *미리보기가 조용히 사라진다*
+			//   (실측: inputManager=null 이라 매 프레임 스스로 꺼지고 있었다 — 사용자 실증 "설치
+			//   미리보기 동작 안하는 것 같은데"). 주입이 안 왔으면 스스로 찾는다. 없는 것보다 낫고,
+			//   무엇보다 *조용히 없어지는 것*보다 낫다.
+			EnsureInputManager();
+
+			HandleTouchTap();
 
 			if (inputManager != null)
 				UpdateHover(inputManager.MouseScreenPosition);
@@ -298,7 +452,7 @@ namespace WitchMendokusai
 			}
 
 			previewMarker.SetActive(true);
-			previewMarker.transform.position = snappedWorldPosition;
+			previewMarker.transform.position = snappedWorldPosition + new Vector3(0f, 0.04f, 0f);
 			UpdatePreviewRing(snappedWorldPosition);
 			UpdateGhostBuilding(snappedWorldPosition);
 
@@ -488,6 +642,15 @@ namespace WitchMendokusai
 			if (TryGetSnappedGroundPosition(screenPointerPosition, out Vector3 snappedWorldPosition) == false)
 				return;
 
+			// ★ 우클릭의 뜻은 *지금 무슨 모드인가*가 정한다(사용자 지시: "빌딩 모드일때 판매할 수
+			//   있게 하면 되잖아요"). 설치 대기 중이면 판다 — 짓다가 무르는 손이라 자연스럽다.
+			//   평소(고르기)엔 영웅을 보낸다 — 그게 RTS 의 우클릭이다.
+			if (IsArmed == false)
+			{
+				CommandHeroAt(screenPointerPosition);
+				return;
+			}
+
 			if (match.TrySell(snappedWorldPosition, stage.SellRefundRatio) == false)
 				Debug.Log($"{nameof(TowerDefensePlacement)}: 판매 거절 — 빈 칸이거나 코어.");
 		}
@@ -499,6 +662,11 @@ namespace WitchMendokusai
 		public void CommandHeroAt(Vector2 screenPointerPosition)
 		{
 			if (match == null)
+				return;
+
+			// 화면 위젯 위에서 누른 것은 땅을 가리킨 게 아니다 — 누르고 끄는 동안 손이 핫바를 스쳐도
+			// 영웅이 화면 뒤 엉뚱한 곳으로 달려가지 않게 한다(누름-유지 명령이 생기며 실제로 잦아졌다).
+			if (UIPointer.IsOverInteractive(screenPointerPosition))
 				return;
 
 			if (TryGetGroundPosition(screenPointerPosition, out Vector3 groundPosition) == false)
