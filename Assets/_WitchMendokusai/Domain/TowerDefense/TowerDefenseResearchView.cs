@@ -32,7 +32,7 @@ namespace WitchMendokusai
 		private Vector2 dragStart;
 		private Vector2 panAtDragStart;
 
-		private const float NODE_MAJOR = 46f;
+		private const float NODE_MAJOR = 58f;
 		private const float NODE_MINOR = 30f;
 		private const float ZOOM_MIN = 0.45f;
 		private const float ZOOM_MAX = 1.8f;
@@ -258,6 +258,20 @@ namespace WitchMendokusai
 			dot.style.height = size;
 			dot.style.left = center.x - size * 0.5f;
 			dot.style.top = center.y - size * 0.5f;
+
+			// ★ 모서리 둥글기도 *지금 크기* 기준으로 다시 준다. 세울 때 한 번만 주면 확대·축소에 따라
+			//   비율이 어긋나, 각져야 할 큰 마디가 동그랗게 보인다(픽셀 확인에서 드러남 — 화면에서
+			//   「길 끝」과 「중간」이 구분되지 않았다).
+			float radius = node.IsMajor ? size * 0.22f : size * 0.5f;
+			dot.style.borderTopLeftRadius = radius;
+			dot.style.borderTopRightRadius = radius;
+			dot.style.borderBottomLeftRadius = radius;
+			dot.style.borderBottomRightRadius = radius;
+			float border = node.IsMajor ? 3f : 2f;
+			dot.style.borderTopWidth = border;
+			dot.style.borderBottomWidth = border;
+			dot.style.borderLeftWidth = border;
+			dot.style.borderRightWidth = border;
 		}
 
 		/// <summary> 성좌 좌표 → 화면 좌표. 화면 한가운데가 코어다. </summary>
