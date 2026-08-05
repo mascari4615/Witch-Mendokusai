@@ -238,11 +238,25 @@ namespace WitchMendokusai
 				label.style.top = center.y - 10f;
 			}
 
-			if (essenceLabel != null)
-				essenceLabel.text = essenceProvider != null ? "정수 " + essenceProvider() : string.Empty;
+			RefreshEssence();
 		}
 
 		private System.Func<int> essenceProvider;
+		private IVisualElementScheduledItem essenceTicker;
+
+		/// <summary>
+		/// 정수 잔량을 다시 적는다.
+		///
+		/// ★ 왜 따로 도나: 예전엔 마디를 누르거나 화면을 끌 때만 갱신됐다. 성좌를 열어둔 채로도
+		///   판은 계속 돌아 정수가 들어오는데, 화면 숫자는 열었을 때 그대로 굳어 있었다 —
+		///   「모자란 줄 알고 안 찍는」 상태가 생긴다. 열려 있는 동안은 스스로 따라가야 한다.
+		/// </summary>
+		private void RefreshEssence()
+		{
+			if (essenceLabel == null)
+				return;
+			essenceLabel.text = essenceProvider != null ? "정수 " + essenceProvider() : string.Empty;
+		}
 
 		/// <summary> 지금 정수가 얼마인지 묻는 통로 — 값을 치르는 화면인데 잔량이 안 보이면 고를 수가 없다. </summary>
 		public void SetEssenceProvider(System.Func<int> provider)
@@ -413,7 +427,14 @@ namespace WitchMendokusai
 				return;
 			root.style.display = open ? DisplayStyle.Flex : DisplayStyle.None;
 			if (open == false)
+			{
+				essenceTicker?.Pause(); // 닫힌 화면을 계속 갱신할 이유가 없다.
 				return;
+			}
+
+			// 열려 있는 동안만 잔량을 따라간다.
+			essenceTicker ??= root.schedule.Execute(RefreshEssence).Every(250);
+			essenceTicker.Resume();
 
 			// 열 때마다 코어를 화면 가운데로 되돌린다 — 지난번에 끌어둔 자리에서 열리면 「어디지」가 된다.
 			panOffset = Vector2.zero;
