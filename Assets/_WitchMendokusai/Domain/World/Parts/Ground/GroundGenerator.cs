@@ -41,7 +41,7 @@ namespace WitchMendokusai
 		private void OnDisable()
 		{
 			StopCoroutine(GenerateChunks());
-			foreach (var chunk in chunks.Values)
+			foreach (GameObject chunk in chunks.Values)
 				chunk.SetActive(false);
 			chunks.Clear();
 		}

@@ -13,11 +13,11 @@ namespace WitchMendokusai
 	///   러너(MonoBehaviour)에 의존하지 않으니 Play 를 켜지 않고도 분기까지 밟아볼 수 있다 —
 	///   옛 창(Play 모드에서만 제어 가능)보다 오히려 루프가 빠르다.
 	///
-	/// 메뉴: WitchMendokusai/Narrative/Dialogue Graph Preview
+	/// 메뉴: WM/Narrative/Dialogue Graph Preview
 	/// </summary>
 	public class DialogueGraphPreviewWindow : EditorWindow
 	{
-		[MenuItem("WitchMendokusai/Narrative/Dialogue Graph Preview")]
+		[MenuItem("WM/Narrative/Dialogue Graph Preview")]
 		public static void Open()
 		{
 			DialogueGraphPreviewWindow window = GetWindow<DialogueGraphPreviewWindow>();

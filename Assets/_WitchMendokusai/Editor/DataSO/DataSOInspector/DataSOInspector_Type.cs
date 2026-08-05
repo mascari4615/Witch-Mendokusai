@@ -89,8 +89,8 @@ namespace WitchMendokusai
 
 		private void SetUnitStatSpriteAll()
 		{
-			var upgradeDatas = DataSOWindow.Instance.DataSOs[typeof(UpgradeData)].Values;
-			foreach (var dataSO in upgradeDatas)
+			Dictionary<int, DataSO>.ValueCollection upgradeDatas = DataSOWindow.Instance.DataSOs[typeof(UpgradeData)].Values;
+			foreach (DataSO dataSO in upgradeDatas)
 			{
 				SetUnitStatSprite(dataSO as UpgradeData);
 			}

@@ -84,7 +84,7 @@ namespace WitchMendokusai
 				buttonContainer.style.flexDirection = FlexDirection.Row;
 				buttonContainer.style.justifyContent = Justify.SpaceBetween;
 
-				foreach (var (text, onClick) in buttons)
+				foreach ((string text, Action onClick) in buttons)
 				{
 					CreateButton(text, onClick);
 				}

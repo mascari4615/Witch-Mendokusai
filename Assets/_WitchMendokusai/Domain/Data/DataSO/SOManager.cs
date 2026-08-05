@@ -13,7 +13,7 @@ namespace WitchMendokusai
 		{
 			get
 			{
-				if (DataSOs.TryGetValue(type, out var dataSOs))
+				if (DataSOs.TryGetValue(type, out Dictionary<int, DataSO> dataSOs))
 					return dataSOs;
 
 				return null;

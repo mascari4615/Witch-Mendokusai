@@ -51,7 +51,7 @@ namespace WitchMendokusai.Tests
         public void ModQuest_InstalledIntoQuestBuffer_AppearsAndCompletable()
         {
             QuestBuffer buffer = ScriptableObject.CreateInstance<QuestBuffer>();
-            var defs = new System.Collections.Generic.List<ModQuestDefinition>
+            System.Collections.Generic.List<ModQuestDefinition> defs = new System.Collections.Generic.List<ModQuestDefinition>
             {
                 new ModQuestDefinition("mq1", "모드 등장 퀘스트", QuestType.Normal),
             };

@@ -13,13 +13,13 @@ namespace WitchMendokusai
 
 		public void RefreshContentFitters()
 		{
-			var rectTransform = (RectTransform)transform;
+			RectTransform rectTransform = (RectTransform)transform;
 			RefreshContentFitter(rectTransform);
 		}
 
 		private void RefreshContentFitter(RectTransform transform)
 		{
-			if (transform == null || !transform.gameObject.activeSelf)
+			if (transform == null || transform.gameObject.activeSelf == false)
 			{
 				return;
 			}
@@ -29,8 +29,8 @@ namespace WitchMendokusai
 				RefreshContentFitter(child);
 			}
 
-			var layoutGroup = transform.GetComponent<LayoutGroup>();
-			var contentSizeFitter = transform.GetComponent<ContentSizeFitter>();
+			LayoutGroup layoutGroup = transform.GetComponent<LayoutGroup>();
+			ContentSizeFitter contentSizeFitter = transform.GetComponent<ContentSizeFitter>();
 			if (layoutGroup != null)
 			{
 				layoutGroup.SetLayoutHorizontal();

@@ -393,7 +393,7 @@ namespace WitchMendokusai
 
 		private string T(string key)
 		{
-			if (Labels.TryGetValue(key, out var pair))
+			if (Labels.TryGetValue(key, out (string ko, string en) pair))
 				return lang == TerrainEditorLang.Korean ? pair.ko : pair.en;
 			return key;
 		}

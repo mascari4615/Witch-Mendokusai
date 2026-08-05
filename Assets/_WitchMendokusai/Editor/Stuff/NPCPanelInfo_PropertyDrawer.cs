@@ -11,7 +11,7 @@ namespace WitchMendokusai
 		{
 			VisualElement container = new();
 
-			var popup = new UnityEngine.UIElements.PopupWindow();
+			UnityEngine.UIElements.PopupWindow popup = new UnityEngine.UIElements.PopupWindow();
 			popup.Add(new PropertyField(property.FindPropertyRelative($"{nameof(NPCPanelInfo.Type)}"), "Type"));
 			popup.Add(new PropertyField(property.FindPropertyRelative($"{nameof(NPCPanelInfo.DataSOs)}"), "DataSOs"));
 			container.Add(popup);
