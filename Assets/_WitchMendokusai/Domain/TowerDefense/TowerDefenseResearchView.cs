@@ -43,9 +43,10 @@ namespace WitchMendokusai
 		public event System.Action<int> NodeChosen = delegate { };
 
 		public void Build(VisualElement parent, int branchCount, int ringCount, float majorAmount, float minorAmount,
-			int nodeCost)
+			int nodeCost, string[] branchNames = null)
 		{
 			TowerDefenseResearchGraph.Build(branchCount, ringCount, majorAmount, minorAmount, nodeCost, nodes);
+			this.branchNames = branchNames;
 			taken.Clear();
 			taken.Add(TowerDefenseResearchGraph.CORE_ID); // 코어는 이미 있는 것 — 여기서 길이 시작한다.
 
@@ -128,7 +129,7 @@ namespace WitchMendokusai
 				if (node.IsMajor == false || node.Id == TowerDefenseResearchGraph.CORE_ID)
 					continue;
 
-				Label label = new Label(TowerDefenseResearchGraph.NameOf(node.Effect));
+				Label label = new Label(DisplayNameOf(node.Effect));
 				label.style.position = Position.Absolute;
 				label.style.fontSize = 15;
 				label.style.color = new Color(0.82f, 0.86f, 0.95f, 1f);
@@ -136,6 +137,18 @@ namespace WitchMendokusai
 				// 이름은 마디보다 *한 걸음 더 바깥*에 둔다 — 마디 위에 겹치면 둘 다 안 읽힌다.
 				branchLabels.Add((label, node.Position * 1.16f));
 			}
+		}
+
+		private string[] branchNames;
+
+		/// <summary> 화면에 쓸 갈래 이름 — 자산이 정한 것이 있으면 그것, 없으면 규칙층의 기본 이름. </summary>
+		private string DisplayNameOf(TowerDefenseResearchEffect effect)
+		{
+			int index = (int)effect;
+			if (branchNames != null && index >= 0 && index < branchNames.Length
+				&& string.IsNullOrWhiteSpace(branchNames[index]) == false)
+				return branchNames[index];
+			return TowerDefenseResearchGraph.NameOf(effect);
 		}
 
 		private void BuildNodeElements()
@@ -199,7 +212,7 @@ namespace WitchMendokusai
 				string state = taken.Contains(id)
 					? "찍음"
 					: TowerDefenseResearchGraph.IsReachable(node, taken) ? "지금 찍을 수 있다" : "잠김";
-				detailLabel.text = node.Name + " — " + node.Description + "  ·  값 " + node.Cost + "  ·  " + state;
+				detailLabel.text = DisplayNameOf(node.Effect) + " — " + node.Description + "  ·  값 " + node.Cost + "  ·  " + state;
 				return;
 			}
 		}

@@ -303,6 +303,12 @@ namespace WitchMendokusai
 		[field: Tooltip("한 갈래의 고리 수 = 길이. 길수록 끝의 큰 마디가 멀어진다.")]
 		[field: SerializeField, Range(2, 9)] public int ResearchRingCount { get; private set; } = 5;
 
+		// ★ 갈래 이름을 자산으로 낸다. 규칙층에도 기본 이름이 있지만 그건 *규칙이 자기를 설명하는 말*이고,
+		//   화면에 뜨는 이름은 판마다 다를 수 있다(다른 스테이지는 다른 세계일 수 있다).
+		//   비워 두면 규칙층의 기본 이름을 그대로 쓴다 — 빈 칸이 곧 「기본대로」다.
+		[field: Tooltip("갈래 이름(순서 = 포탑 피해·포탑 사거리·채집 수입·보급 거리·코어 방어·영웅). 비우면 기본 이름을 쓴다.")]
+		[field: SerializeField] public string[] ResearchBranchNames { get; private set; }
+
 		[field: Tooltip("마디 하나를 찍는 데 드는 정수 = 이 값 × 고리 번호. 바깥 고리일수록 비싸진다.")]
 		[field: SerializeField, Min(0)] public int ResearchNodeCost { get; private set; } = 2;
 
