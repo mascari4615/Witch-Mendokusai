@@ -1,0 +1,103 @@
+name: WM runtime smoke (boot + 2-peer)
+
+# TASK-WM-203 — 마지막 남은 수동 게이트 2종을 자동으로 돌린다.
+#
+# 배경: 부팅 회귀(wm-boot-smoke)와 2-peer 멀티 동기(wm-net-2peer-smoke)는 실재하고 실제로
+# 결함을 잡아온 게이트인데(WM-121 잠복 결함, sync 버그 2건), **호출하는 사람이 없으면 안 돈다**.
+# 2026-08-05 실측 = 자동 트리거 0.
+#
+# 왜 여기서 새로 굽지 않는가: 두 게이트는 standalone 빌드가 필요한데, 노트북 빌드는 수십 분이다.
+# 그런데 build.yml 이 이미 **매일 03:23 KST 에 자동으로 굽고**(C:\wm-builds\ 에 최근 5개 보존)
+# 있다. 그 결과물에 얹으면 빌드 비용 0 으로 매일 행동 회귀를 잡는다.
+#
+# 트리거 = 빌드 워크플로가 끝난 직후. 안드로이드 빌드가 끝난 경우에도 돌지만, 그때는
+# 「최근 windows 빌드」를 찾아 쓴다 — 없거나 하루보다 낡았으면 **빨간불**이다.
+# "게이트가 안 돌았는데 초록" 이 이 프로젝트가 석 달간 당한 바로 그 함정이라, 침묵을 성공으로
+# 치지 않는다.
+
+on:
+  workflow_run:
+    workflows: ["Build (Windows / laptop)"]
+    types: [completed]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    name: boot + 2-peer (laptop runner)
+    runs-on: [self-hosted, unity, windows-build]
+    timeout-minutes: 45
+    # 빌드(wm-build)와 같은 노트북이지만 폴더를 안 쓰므로 별 그룹. 앞선 스모크는 취소해도 된다.
+    concurrency:
+      group: wm-runtime-smoke
+      cancel-in-progress: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Locate freshest windows standalone
+        id: build
+        shell: powershell
+        run: |
+          $buildRoot = 'C:\wm-builds'
+          if (-not (Test-Path $buildRoot))
+          {
+              Write-Host "ERROR: build root not found: $buildRoot"
+              exit 1
+          }
+
+          $dir = Get-ChildItem $buildRoot -Directory -Filter '*-windows' -ErrorAction SilentlyContinue |
+              Sort-Object LastWriteTime -Descending | Select-Object -First 1
+          if ($null -eq $dir)
+          {
+              Write-Host "ERROR: no windows build under $buildRoot -- runtime gates have no subject."
+              exit 1
+          }
+
+          $exe = Get-ChildItem $dir.FullName -Recurse -File -Filter '*.exe' -ErrorAction SilentlyContinue |
+              Select-Object -First 1
+          if ($null -eq $exe)
+          {
+              Write-Host "ERROR: build dir has no .exe: $($dir.FullName)"
+              exit 1
+          }
+
+          # Stale build = lost coverage. Say so in red instead of passing on old evidence.
+          $ageHours = [Math]::Round(((Get-Date) - $dir.LastWriteTime).TotalHours, 1)
+          Write-Host "build: $($exe.FullName)  (age ${ageHours}h)"
+          if ($ageHours -gt 26)
+          {
+              Write-Host "ERROR: freshest windows build is ${ageHours}h old (> 26h)."
+              Write-Host "  the nightly build (03:23 KST) is not producing -- fix that first."
+              exit 1
+          }
+
+          "exe=$($exe.FullName)" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+
+      - name: Run boot + 2-peer gates
+        shell: powershell
+        run: |
+          $scripts = $env:WM_MEMO_SCRIPTS
+          if ([string]::IsNullOrWhiteSpace($scripts))
+          {
+              $scripts = 'C:\Users\masca\repos\karmoddrine\memo\dotfiles\scripts'
+          }
+          $gate = Join-Path $scripts 'wm-quality-gate.ps1'
+          if (-not (Test-Path $gate))
+          {
+              Write-Host "ERROR: runtime gate script not found: $gate"
+              Write-Host "  set WM_MEMO_SCRIPTS on the runner if the memo checkout lives elsewhere."
+              exit 1
+          }
+
+          & powershell -NoProfile -ExecutionPolicy Bypass -File $gate -BuildOut '${{ steps.build.outputs.exe }}'
+          $code = $LASTEXITCODE
+
+          # exit 2 = cannot-run. A gate that could not run is not a pass.
+          if ($code -eq 2)
+          {
+              Write-Host "ERROR: runtime gate could not run (exit 2) -- treating as failure."
+              exit 1
+          }
+          exit $code
