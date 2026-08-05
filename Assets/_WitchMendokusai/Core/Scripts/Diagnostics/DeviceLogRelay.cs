@@ -410,6 +410,40 @@ namespace WitchMendokusai
             }
         }
 
+        /// <summary>
+        /// 폰에서 가장 흔한 이별 경로 — 홈 버튼·전화·화면 끔. 안드로이드는 이때 프로세스를
+        /// 조용히 죽여도 되므로 `quitting` 이 영영 안 올 수 있다. 그래서 내려가는 순간
+        /// 남은 줄을 *디스크에 먼저* 박고, 살아있는 동안만 전송을 시도한다.
+        /// </summary>
+        private void OnApplicationPause(bool paused)
+        {
+            if (paused == false || _buffer == null)
+            {
+                return;
+            }
+            List<DeviceLogEntry> remaining = new List<DeviceLogEntry>();
+            if (_buffer.TryTakeBatch(_settings.MaxLinesPerBatch, remaining) == false)
+            {
+                return;
+            }
+            if (_spool != null)
+            {
+                try
+                {
+                    _spool.Append(remaining);
+                }
+                catch (Exception)
+                {
+                    // 여기서 더 할 수 있는 일이 없다 — 다음 실행이 스풀을 본다.
+                }
+            }
+            else
+            {
+                // 스풀이 없으면 메모리가 유일한 사본 — 되돌려 두고 깨어나면 보낸다.
+                _buffer.PushFront(remaining);
+            }
+        }
+
         /// <summary>정상 종료 경로 — 남은 줄을 동기로 한 번 더 밀어 넣는다(코루틴은 이미 못 돈다).</summary>
         private void OnQuitting()
         {
