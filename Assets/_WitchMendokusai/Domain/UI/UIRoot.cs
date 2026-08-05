@@ -101,6 +101,12 @@ namespace WitchMendokusai
 			KeybindHelpView = gameObject.AddComponent<KeybindHelpView>();
 			MagicBookView = gameObject.AddComponent<MagicBookView>();
 			WorldClockView = gameObject.AddComponent<WorldClockView>();
+			// TASK-WM-200 — 화면 조작(손가락). 씬과 무관하게 늘 있어야 한다: 손가락 기기에서
+			// 조작 장치가 씬마다 있다 없다 하면 「어떤 화면에선 못 움직인다」가 된다.
+			// 마우스를 쓰는 동안은 스스로 숨는다.
+			// ★ 이 줄이 한 번 사라진 적이 있다(넓게 훑는 커밋이 옛 사본을 얹음) — 없으면 조작 장치를
+			//   아무도 안 만들어서 **폰에서 화면만 뜨고 못 움직인다**. 지우지 말 것.
+			gameObject.AddComponent<MobileControlsView>();
 		}
 
 		private void OnEnable()
