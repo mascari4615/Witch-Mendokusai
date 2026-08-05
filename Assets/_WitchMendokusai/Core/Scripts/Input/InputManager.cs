@@ -194,6 +194,9 @@ namespace WitchMendokusai
 		public float ScrollWheelDelta { get; private set; }
 		// 자유 카메라 가속 (Ctrl) — 캐릭터 sprint 와 동일 키 직관.
 		public bool IsCameraBoost { get; private set; }
+		// TASK-WM-203 — 줌 보조키 (Ctrl). 휠은 시점 조작과 겹치므로 보조키를 요구한다.
+		// 게임 컴포넌트가 Keyboard.current 를 직접 읽지 않도록 여기(캡슐화 경계)서만 만진다.
+		public bool IsZoomModifierHeld => Keyboard.current != null && Keyboard.current.ctrlKey.isPressed;
 		private IInputStrategy CurrentInputStrategy { get; set; }
 
 		// Calling IsPointerOverGameObject() from within event processing (such as from InputAction callbacks) will not work as expected; it will query UI state from the last frame UnityEngine.EventSystems.EventSystem:IsPointerOverGameObject ()
