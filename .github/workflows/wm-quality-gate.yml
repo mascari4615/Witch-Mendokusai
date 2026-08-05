@@ -34,6 +34,12 @@ on:
       - 'Assets/_WitchMendokusai/**'
       - '.github/scripts/wm-rule-gate.ps1'
       - '.github/workflows/wm-quality-gate.yml'
+  # 3시간마다 — push 레인이 굶어도 커버리지가 0 이 되지 않게 하는 바닥.
+  # (실측 2026-08-05: 노트북이 빌드 2개로 꽉 찬 사이 push 가 몇 분 간격으로 들어와
+  #  EditMode job 이 3연속 취소됐다. 최신것만 돌리는 규칙이 "아무것도 안 돌린다"로
+  #  뒤집히는 구간이 실재한다.)
+  schedule:
+    - cron: '0 */3 * * *'
   workflow_dispatch: {}
 
 permissions:
@@ -56,11 +62,13 @@ jobs:
     name: EditMode tests (laptop runner)
     runs-on: [self-hosted, unity, windows-build]
     timeout-minutes: 90
-    # 노트북 한 대 = 프로젝트 폴더 하나. 최신 push 만 의미 있으므로 앞선 실행은 취소한다.
-    # (빌드(wm-build)와는 다른 그룹 — 빌드를 취소해선 안 된다.)
+    # 노트북 한 대 = 프로젝트 폴더 하나.
+    #   push 레인   : 최신 것만 의미 있으므로 앞선 실행 취소 (빠른 피드백)
+    #   그 외 레인  : cron·수동 = 절대 취소 X. push 가 아무리 몰려도 이 레인은 끝까지 간다.
+    # 레인을 event 별로 가르지 않으면 push 폭풍이 예약 실행까지 같이 죽여서 커버리지가 0 이 된다.
     concurrency:
-      group: wm-quality-unity
-      cancel-in-progress: true
+      group: wm-quality-unity-${{ github.event_name }}
+      cancel-in-progress: ${{ github.event_name == 'push' }}
     steps:
       - uses: actions/checkout@v4
 
