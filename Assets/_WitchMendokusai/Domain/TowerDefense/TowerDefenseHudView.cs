@@ -116,7 +116,6 @@ namespace WitchMendokusai
 		private Button sellButton;
 
 		/// <summary> 코어를 고른 채 「연구」를 눌렀다. </summary>
-		public event System.Action ResearchRequested = delegate { };
 
 		/// <summary> UI 배율을 한 단계 돌린다. </summary>
 		public event System.Action UiScaleCycleRequested = delegate { };
@@ -884,10 +883,10 @@ namespace WitchMendokusai
 			if (sellButton != null)
 				sellButton.style.display = canResearch ? DisplayStyle.None : DisplayStyle.Flex;
 			if (canResearch)
-				// ★ 통화를 실제와 맞춘다 — 초반 연구는 *자원*으로 사는데 화면은 늘 「정수」라고 적었다.
-				//   못 살 이유를 화면이 잘못 알려주면 플레이어는 엉뚱한 것을 모으러 간다.
-				researchButton.text = "연구 " + (researchLevel + 1) + "단계  ·  "
-					+ (researchUsesEssence ? "정수 " : "자원 ") + researchCost;
+				// ★ 이 단추는 이제 *성좌를 연다* — 곧바로 한 단계를 사지 않는다. 그래서 값을 안 적는다.
+				//   값은 성좌 안에서 마디마다 다르고, 여기 적힌 값은 아무도 안 걷는 거짓말이 된다.
+				//   (화면이 잘못 알려주면 플레이어는 엉뚱한 것을 모으러 간다 — 예전에 실제로 그랬다.)
+				researchButton.text = "연구 성좌  ·  지금 " + researchLevel + "단계";
 
 			// 코어 카드 — 개수가 바뀔 때만 다시 그린다(매 프레임 새로 만들면 클릭이 안 먹는다).
 			int cardCount = coreCards != null ? coreCards.Count : 0;

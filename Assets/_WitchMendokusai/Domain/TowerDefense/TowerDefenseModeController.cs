@@ -529,12 +529,6 @@ namespace WitchMendokusai
 			hud?.CycleUiScale();
 		}
 
-		/// <summary> 코어에서 연구 — 그 클릭이 설치로 새지 않게 한 번 삼킨다. </summary>
-		private void DoResearch()
-		{
-			placement.SuppressNextClick();
-			match.TryResearch();
-		}
 
 		/// <summary> 전체 사거리 표시 토글(디버그) — 그 클릭이 설치로 새지 않게 한 번 삼킨다. </summary>
 		private void ToggleAllRanges()
@@ -680,7 +674,6 @@ namespace WitchMendokusai
 					view.PauseToggleRequested += match.TogglePause;
 					view.SpeedCycleRequested += match.CycleSpeed;
 					view.ToggleAllRangesRequested += ToggleAllRanges;
-					view.ResearchRequested += DoResearch;
 					view.UiScaleCycleRequested += CycleUiScale;
 					view.BuildingPerkChosen += ChoosePerk;
 					view.CoreCardChosen += ChooseCoreCard;
@@ -718,7 +711,6 @@ namespace WitchMendokusai
 					hud.PauseToggleRequested -= match.TogglePause;
 					hud.SpeedCycleRequested -= match.CycleSpeed;
 					hud.ToggleAllRangesRequested -= ToggleAllRanges;
-					hud.ResearchRequested -= DoResearch;
 					hud.UiScaleCycleRequested -= CycleUiScale;
 					hud.BuildingPerkChosen -= ChoosePerk;
 					hud.CoreCardChosen -= ChooseCoreCard;
