@@ -54,7 +54,8 @@ namespace WitchMendokusai
 		/// ★ 왜 코드가 만드나: 지금은 마디 데이터 자산이 없다. 자산부터 만들면 「빈 화면」을 한참 보게
 		///   되므로, *모양이 먼저 서고* 나중에 자산이 이 자리를 대체한다(같은 구조체를 그대로 쓴다).
 		/// </summary>
-		public static void Build(int branchCount, int ringCount, float majorAmount, float minorAmount, List<Node> into)
+		public static void Build(int branchCount, int ringCount, float majorAmount, float minorAmount,
+			int nodeCost, List<Node> into)
 		{
 			if (into == null)
 				return;
@@ -94,7 +95,7 @@ namespace WitchMendokusai
 					{
 						// 갈래의 출발점과 도착점 — 도착점이 「큰 마디」다(길 끝에 보상이 있어야 뚫을 이유가 생긴다).
 						int id = nextId++;
-						into.Add(MakeNode(id, theme, ring, ringCount, baseAngle, radius, previous, majorAmount, minorAmount));
+						into.Add(MakeNode(id, theme, ring, ringCount, baseAngle, radius, previous, majorAmount, minorAmount, nodeCost));
 						previous = id;
 						continue;
 					}
@@ -102,13 +103,13 @@ namespace WitchMendokusai
 					// 가운데 구간은 두 갈래 — 둘 다 찍어도 되고 한쪽만 찍고 지나가도 된다.
 					int left = nextId++;
 					int right = nextId++;
-					into.Add(MakeNode(left, theme, ring, ringCount, baseAngle - FORK_SPREAD, radius, previous, majorAmount, minorAmount));
-					into.Add(MakeNode(right, theme, ring, ringCount, baseAngle + FORK_SPREAD, radius, previous, majorAmount, minorAmount));
+					into.Add(MakeNode(left, theme, ring, ringCount, baseAngle - FORK_SPREAD, radius, previous, majorAmount, minorAmount, nodeCost));
+					into.Add(MakeNode(right, theme, ring, ringCount, baseAngle + FORK_SPREAD, radius, previous, majorAmount, minorAmount, nodeCost));
 
 					// 다음 고리는 *둘 중 아무거나* 하나면 열린다 — 두 선을 그어 그 뜻을 낸다.
 					previous = left;
 					int merge = nextId++;
-					Node mergeNode = MakeNode(merge, theme, ring + 1, ringCount, baseAngle, RING_STEP * (ring + 1), left, majorAmount, minorAmount);
+					Node mergeNode = MakeNode(merge, theme, ring + 1, ringCount, baseAngle, RING_STEP * (ring + 1), left, majorAmount, minorAmount, nodeCost);
 					mergeNode.Requires = new[] { left, right };
 					into.Add(mergeNode);
 					previous = merge;
@@ -118,7 +119,7 @@ namespace WitchMendokusai
 		}
 
 		private static Node MakeNode(int id, TowerDefenseResearchEffect theme, int ring, int ringCount,
-			float angleDegrees, float radius, int previous, float majorAmount, float minorAmount)
+			float angleDegrees, float radius, int previous, float majorAmount, float minorAmount, int nodeCost)
 		{
 			float radians = angleDegrees * Mathf.Deg2Rad;
 			bool major = ring == ringCount;
@@ -131,7 +132,7 @@ namespace WitchMendokusai
 				Name = NameOf(theme) + (major ? " · 끝" : ""),
 				Description = NameOf(theme) + " +" + Mathf.RoundToInt(amount * 100f) + "%",
 				IsMajor = major,
-				Cost = ring,
+				Cost = Mathf.Max(0, nodeCost) * ring,
 				Position = new Vector2(Mathf.Cos(radians) * radius, Mathf.Sin(radians) * radius),
 				Requires = new[] { previous },
 			};

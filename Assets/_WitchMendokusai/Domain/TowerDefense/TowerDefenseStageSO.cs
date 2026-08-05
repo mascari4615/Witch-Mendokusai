@@ -303,6 +303,9 @@ namespace WitchMendokusai
 		[field: Tooltip("한 갈래의 고리 수 = 길이. 길수록 끝의 큰 마디가 멀어진다.")]
 		[field: SerializeField, Range(2, 9)] public int ResearchRingCount { get; private set; } = 5;
 
+		[field: Tooltip("마디 하나를 찍는 데 드는 정수 = 이 값 × 고리 번호. 바깥 고리일수록 비싸진다.")]
+		[field: SerializeField, Min(0)] public int ResearchNodeCost { get; private set; } = 2;
+
 		[field: Tooltip("길 끝 큰 마디가 주는 비율(0.35 = +35%).")]
 		[field: SerializeField, Min(0f)] public float ResearchMajorAmount { get; private set; } = 0.35f;
 
