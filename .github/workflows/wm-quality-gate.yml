@@ -58,6 +58,13 @@ jobs:
         run: |
           ./.github/scripts/wm-rule-gate.ps1
 
+      # init-order 안티패턴 (Awake 안 Find 등) — 이것도 유니티 없이 도는 결정적 검사인데
+      # 그동안 사람이 손으로 부를 때만 돌았다. BLOCK 0 이 현재 baseline.
+      - name: Run init-order audit
+        shell: pwsh
+        run: |
+          ./.github/scripts/wm-init-order-audit.ps1
+
   unity:
     name: EditMode tests (laptop runner)
     runs-on: [self-hosted, unity, windows-build]

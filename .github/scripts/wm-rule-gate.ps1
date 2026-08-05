@@ -23,21 +23,31 @@
 [CmdletBinding()]
 param(
     [string]$Root,
-    [int]$MaxShown = 20
+    [int]$MaxShown = 20,
+    # Commit-scoped mode: judge the *content being pushed*, not whatever happens to sit in
+    # the working tree. Without this, one session's half-finished edits block another
+    # session's unrelated push -- reported from the field within an hour of shipping the hook.
+    [string]$Sha,
+    [string[]]$Paths
 )
 
 $ErrorActionPreference = 'Stop'
 
-if ([string]::IsNullOrWhiteSpace($Root))
-{
-    $repoRoot = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
-    $Root = Join-Path $repoRoot 'Assets/_WitchMendokusai'
-}
+$commitScoped = -not [string]::IsNullOrWhiteSpace($Sha)
 
-if (-not (Test-Path $Root))
+if (-not $commitScoped)
 {
-    Write-Host "wm-rule-gate: scan root not found: $Root"
-    exit 1
+    if ([string]::IsNullOrWhiteSpace($Root))
+    {
+        $repoRoot = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
+        $Root = Join-Path $repoRoot 'Assets/_WitchMendokusai'
+    }
+
+    if (-not (Test-Path $Root))
+    {
+        Write-Host "wm-rule-gate: scan root not found: $Root"
+        exit 1
+    }
 }
 
 # Unity's own menu roots are legitimate extension points -- the WM rule is about the
@@ -108,15 +118,41 @@ function Get-CodeText
     return $text
 }
 
-$files = Get-ChildItem -Path $Root -Filter *.cs -Recurse -File
-$rootFull = (Resolve-Path $Root).Path
 $findings = @{}
 foreach ($rule in $rules) { $findings[$rule.Id] = New-Object System.Collections.ArrayList }
 
-foreach ($file in $files)
+# Two sources of truth, one rule set:
+#   working tree (default) -- what a human sees in the editor right now
+#   commit  (-Sha/-Paths)  -- what is actually leaving the machine / sitting on main
+$subjects = New-Object System.Collections.ArrayList
+if ($commitScoped)
 {
-    $relative = $file.FullName.Substring($rootFull.Length).TrimStart('\', '/').Replace('\', '/')
-    $lines = [System.IO.File]::ReadAllLines($file.FullName)
+    foreach ($path in $Paths)
+    {
+        if ([string]::IsNullOrWhiteSpace($path)) { continue }
+        $blob = & git show "${Sha}:${path}" 2>$null
+        if ($LASTEXITCODE -ne 0) { continue }   # deleted in this commit -- nothing to judge
+        $relative = $path -replace '^Assets/_WitchMendokusai/', ''
+        [void]$subjects.Add([pscustomobject]@{ Relative = $relative; Lines = @($blob) })
+    }
+}
+else
+{
+    $rootFull = (Resolve-Path $Root).Path
+    foreach ($file in (Get-ChildItem -Path $Root -Filter *.cs -Recurse -File))
+    {
+        $relative = $file.FullName.Substring($rootFull.Length).TrimStart('\', '/').Replace('\', '/')
+        [void]$subjects.Add([pscustomobject]@{
+            Relative = $relative
+            Lines    = [System.IO.File]::ReadAllLines($file.FullName)
+        })
+    }
+}
+
+foreach ($file in $subjects)
+{
+    $relative = $file.Relative
+    $lines = $file.Lines
 
     for ($i = 0; $i -lt $lines.Length; $i++)
     {
@@ -141,7 +177,15 @@ foreach ($file in $files)
 $total = 0
 foreach ($rule in $rules) { $total += $findings[$rule.Id].Count }
 
-Write-Host "wm-rule-gate -- scanned $($files.Count) .cs files under $Root"
+if ($commitScoped)
+{
+    $shortSha = if ($Sha.Length -ge 8) { $Sha.Substring(0, 8) } else { $Sha }
+    Write-Host "wm-rule-gate -- scanned $($subjects.Count) .cs file(s) as committed in $shortSha"
+}
+else
+{
+    Write-Host "wm-rule-gate -- scanned $($subjects.Count) .cs files under $Root"
+}
 Write-Host ''
 
 foreach ($rule in $rules)
