@@ -478,6 +478,26 @@ function Write-BuildSummary {
 # 밤새 돌려두면 아침에 폰으로 바로 설치할 수 있다. 다만 *바뀐 게 없으면 굽지 않는다* —
 # 같은 코드로 40분과 3GB 를 태우는 건 낭비고, 채널에 의미 없는 카드만 쌓인다.
 
+# ── 이번 실행이 「무엇을 굽는가」 ───────────────────────────────────────────
+# 사람이 손으로 돌릴 때는 입력이 채워져 오지만, 야간(schedule)·태그 실행에는 입력이
+# 통째로 비어 온다. 그 빈칸을 각 단계가 알아서 메우면 단계마다 답이 갈린다 —
+# 실제로 에디터 확인 단계는 플랫폼을 빈 문자열로 받아 **안드로이드인 줄 몰랐다**.
+# 그러면 모듈이 없을 때 5초 만에 명확히 멈추는 대신, 빌드 한복판에서 알 수 없는
+# 이유로 죽는다. 그래서 답은 여기서 *한 번만* 정하고 모든 단계가 그걸 읽는다.
+function Get-EffectiveBuildConfig {
+    param([string]$Platform, [string]$BuildType, [string]$EventName)
+    if ([string]::IsNullOrWhiteSpace($Platform)) {
+        # 야간 빌드는 폰에 설치해보려고 있는 것이라 안드로이드. 태그는 배포판이라 윈도우.
+        $Platform = if ($EventName -eq 'schedule') { 'android' } else { 'windows' }
+    }
+    if ([string]::IsNullOrWhiteSpace($BuildType)) {
+        $BuildType = if ($EventName -eq 'schedule') { 'development' } else { 'release' }
+    }
+    if ($Platform -notin @('windows', 'android')) { throw "알 수 없는 플랫폼: '$Platform'" }
+    if ($BuildType -notin @('release', 'development')) { throw "알 수 없는 빌드 종류: '$BuildType'" }
+    return @{ Platform = $Platform; BuildType = $BuildType }
+}
+
 function Get-LastBuiltMarker {
     param([string]$BuildRoot, [string]$Platform)
     return Join-Path $BuildRoot "last-built-$Platform.sha"

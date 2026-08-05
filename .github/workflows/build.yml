@@ -71,6 +71,22 @@ jobs:
           clean: false
           fetch-depth: 1
 
+      # schedule/tag runs arrive with every input empty. Decide what we are building
+      # ONCE here; every later step reads this instead of re-guessing (the editor step
+      # used to guess nothing at all and so never checked the Android module).
+      - name: Resolve effective platform / build type
+        id: cfg
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $OutputEncoding = [Console]::OutputEncoding = [Text.UTF8Encoding]::new()
+          . "$env:GITHUB_WORKSPACE\.github\scripts\wm-build-card.ps1"
+          $cfg = Get-EffectiveBuildConfig -Platform '${{ inputs.platform }}' `
+            -BuildType '${{ inputs.build_type }}' -EventName '${{ github.event_name }}'
+          "platform=$($cfg.Platform)"    | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "build_type=$($cfg.BuildType)" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          Write-Host "effective: platform=$($cfg.Platform) buildType=$($cfg.BuildType) event=${{ github.event_name }}"
+
       # The editor version + changeset come from ProjectVersion.txt; if that editor is
       # missing on the laptop the script installs it headlessly (a build machine that
       # needs a human every time the editor is bumped is not a build machine).
@@ -81,7 +97,7 @@ jobs:
           $ErrorActionPreference = 'Stop'
           $OutputEncoding = [Console]::OutputEncoding = [Text.UTF8Encoding]::new()
           . "$env:GITHUB_WORKSPACE\.github\scripts\wm-unity-resolve.ps1"
-          $unity = Resolve-UnityEditor -Platform '${{ inputs.platform }}' -InstallLogDir $env:RUNNER_TEMP
+          $unity = Resolve-UnityEditor -Platform '${{ steps.cfg.outputs.platform }}' -InstallLogDir $env:RUNNER_TEMP
           "version=$($unity.Version)" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
           "exe=$($unity.Exe)"         | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
       # Nightly builds the same commit twice would burn 40 minutes and 3GB for nothing,
@@ -92,7 +108,7 @@ jobs:
         shell: powershell
         run: |
           . "$env:GITHUB_WORKSPACE\.github\scripts\wm-build-card.ps1"
-          $needed = Test-BuildNeeded -BuildRoot $env:BUILD_ROOT -Platform 'android' -Sha $env:GITHUB_SHA
+          $needed = Test-BuildNeeded -BuildRoot $env:BUILD_ROOT -Platform '${{ steps.cfg.outputs.platform }}' -Sha $env:GITHUB_SHA
           if (-not $needed) { "skip=true" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8 }
       - name: Build player (batchmode)
         id: build
@@ -107,15 +123,9 @@ jobs:
           $OutputEncoding = [Console]::OutputEncoding = [Text.UTF8Encoding]::new()
           . "$env:GITHUB_WORKSPACE\.github\scripts\wm-build-card.ps1"
 
-          $platform = '${{ inputs.platform }}'
-          if ([string]::IsNullOrWhiteSpace($platform)) {
-            # Nightly exists for the phone build; tag builds stay on windows.
-            $platform = if ('${{ github.event_name }}' -eq 'schedule') { 'android' } else { 'windows' }
-          }
-          $buildType = '${{ inputs.build_type }}'
-          if ([string]::IsNullOrWhiteSpace($buildType)) {
-            $buildType = if ('${{ github.event_name }}' -eq 'schedule') { 'development' } else { 'release' }
-          }
+          # Decided once in the cfg step - do not re-derive here.
+          $platform = '${{ steps.cfg.outputs.platform }}'
+          $buildType = '${{ steps.cfg.outputs.build_type }}'
           $version = '${{ inputs.version }}'
           if ($env:GITHUB_REF_TYPE -eq 'tag') { $version = $env:GITHUB_REF_NAME -replace '^v', '' }
           $commit = '${{ github.sha }}'.Substring(0, 8)
@@ -165,7 +175,7 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
           $outDir = '${{ steps.build.outputs.out_dir }}'
-          $zip = Join-Path $outDir 'WitchMendokusai-windows.zip'
+          $zip = Join-Path $outDir 'WitchMendokusai-${{ steps.cfg.outputs.platform }}.zip'
           Compress-Archive -Path (Join-Path $outDir '*') -DestinationPath $zip -Force
           "zip=$zip" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
           Write-Host "zip → $zip ($([Math]::Round((Get-Item $zip).Length / 1MB, 1)) MB)"
@@ -175,7 +185,7 @@ jobs:
         if: ${{ success() && inputs.publish == 'artifact' }}
         uses: actions/upload-artifact@v4
         with:
-          name: WitchMendokusai-windows-${{ github.run_number }}
+          name: WitchMendokusai-${{ steps.cfg.outputs.platform }}-${{ github.run_number }}
           path: ${{ steps.zip.outputs.zip }}
           retention-days: 14
 
@@ -187,7 +197,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           $zip = '${{ steps.zip.outputs.zip }}'
-          $asset = "WitchMendokusai-${{ github.ref_name }}-windows.zip"
+          $asset = "WitchMendokusai-${{ github.ref_name }}-${{ steps.cfg.outputs.platform }}.zip"
           Copy-Item $zip (Join-Path (Split-Path $zip) $asset) -Force
           gh release upload '${{ github.ref_name }}' (Join-Path (Split-Path $zip) $asset) --clobber
           if ($LASTEXITCODE -ne 0) { throw "release upload failed (exit=$LASTEXITCODE)" }
@@ -203,7 +213,7 @@ jobs:
           . "$env:GITHUB_WORKSPACE\.github\scripts\wm-build-card.ps1"
           Publish-BuildResult `
             -Status '${{ job.status }}' `
-            -Platform '${{ inputs.platform }}' -BuildType '${{ inputs.build_type }}' `
+            -Platform '${{ steps.cfg.outputs.platform }}' -BuildType '${{ steps.cfg.outputs.build_type }}' `
             -OutDir '${{ steps.build.outputs.out_dir }}' `
             -Report '${{ steps.build.outputs.report }}' `
             -UnityLog '${{ steps.build.outputs.unity_log }}' `
