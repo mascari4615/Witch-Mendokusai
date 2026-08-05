@@ -56,6 +56,11 @@ namespace WitchMendokusai
 		public int ResearchLevel;
 		public List<int> TakenBoons = new();
 
+		// ★ 연구 성좌에서 찍은 마디 번호들. 이걸 안 적으면 이어할 때 연구가 통째로 사라진다 —
+		//   판을 오래 굴릴수록 잃는 게 커지므로, 「잠깐 접어둔다」가 사실상 「버린다」가 된다.
+		//   번호만 적는다(효과·값은 이 판의 규칙에서 다시 나온다 — 같은 규칙 = 같은 값).
+		public List<int> TakenResearch = new();
+
 		public int NestsDestroyed;
 		public List<Vector3> DestroyedNestPositions = new();
 

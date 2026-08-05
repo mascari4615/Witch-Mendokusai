@@ -308,6 +308,32 @@ namespace WitchMendokusai
 			canvas.MarkDirtyRepaint();
 		}
 
+		/// <summary> 지금 찍혀 있는 마디 번호들을 담아 준다(코어는 뺀다 — 그건 늘 있는 것이다). </summary>
+		public void CollectTaken(List<int> into)
+		{
+			if (into == null)
+				return;
+			foreach (int id in taken)
+			{
+				if (id != TowerDefenseResearchGraph.CORE_ID)
+					into.Add(id);
+			}
+		}
+
+		/// <summary> 이어하기 — 적힌 마디를 다시 찍은 것으로 한다. 값은 이미 치른 것이라 다시 안 받는다. </summary>
+		public void RestoreTaken(List<int> ids)
+		{
+			ResetTaken();
+			if (ids == null)
+				return;
+			foreach (int id in ids)
+				taken.Add(id);
+			if (canvas == null)
+				return;
+			RefreshNodes();
+			canvas.MarkDirtyRepaint();
+		}
+
 		public void SetOpen(bool open)
 		{
 			if (root == null)

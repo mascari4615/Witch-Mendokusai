@@ -237,9 +237,28 @@ namespace WitchMendokusai
 				// 새 판이 열리면 성좌도 처음으로 — 화면만 남아 있으면 「찍은 걸로 보이는데 효과는 없는」
 				// 상태가 된다(화면과 규칙이 갈라지는 전형).
 				match.ResearchReset += researchView.ResetTaken;
+				match.CollectResearch += researchView.CollectTaken;
+				match.RestoreResearch += RestoreResearchNodes;
 			}
 
 			researchView?.SetOpen(true);
+		}
+
+		/// <summary>
+		/// 이어하기 — 적힌 마디를 화면에 되돌리고 효과도 같이 다시 쌓는다.
+		/// ★ 값은 다시 안 받는다(이미 치른 것) — 여기서 또 받으면 이어할 때마다 정수가 빠진다.
+		/// </summary>
+		private void RestoreResearchNodes(System.Collections.Generic.List<int> ids)
+		{
+			if (researchView == null || match == null || ids == null)
+				return;
+
+			researchView.RestoreTaken(ids);
+			foreach (int id in ids)
+			{
+				if (researchView.TryGetNode(id, out TowerDefenseResearchGraph.Node node))
+					match.TryTakeResearchNode(node.Effect, node.Amount, cost: 0);
+			}
 		}
 
 		/// <summary> 성좌에서 마디를 찍었다 — 값·효과는 규칙층이 정한다(화면은 고르기만 한다). </summary>

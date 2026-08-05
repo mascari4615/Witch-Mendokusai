@@ -2202,6 +2202,8 @@ namespace WitchMendokusai
 			// 이 판의 성격 — 고른 카드와 부순 둥지. 이게 빠지면 이어한 판이 「같은 판」이 아니다.
 			foreach (TowerDefenseBoonKind kind in boons.TakenKinds)
 				save.TakenBoons.Add((int)kind);
+			// 성좌 자국 — 정본은 화면이 들고 있으므로 물어서 받아 적는다(값을 두 곳에 두지 않는다).
+			CollectResearch(save.TakenResearch);
 			save.DestroyedNestPositions.AddRange(destroyedNestPositions);
 
 			foreach (TowerDefenseDollLabel doll in dollLabels)
@@ -2265,6 +2267,10 @@ namespace WitchMendokusai
 
 			// 고른 카드 — 종류만 적어뒀고 값은 이 판의 규칙에서 다시 나온다(같은 규칙 = 같은 값).
 			// 즉시 효과(목숨·정수·자원)는 다시 주지 않는다 — 그 결과는 위에서 이미 되돌렸다.
+			// 성좌 — 화면에 자국을 되돌리고, 효과도 같이 다시 쌓는다(둘 중 하나만 하면 갈라진다).
+			if (save.TakenResearch != null && save.TakenResearch.Count > 0)
+				RestoreResearch(save.TakenResearch);
+
 			if (save.TakenBoons != null)
 			{
 				foreach (int kind in save.TakenBoons)
@@ -2774,6 +2780,12 @@ namespace WitchMendokusai
 
 		/// <summary> 새 판 — 성좌 화면도 처음으로 되돌리라는 신호(화면이 구독한다). </summary>
 		public event System.Action ResearchReset = delegate { };
+
+		/// <summary> 저장할 때 「지금 찍혀 있는 마디들」을 받아 적는 통로(화면이 채운다). </summary>
+		public event System.Action<List<int>> CollectResearch = delegate { };
+
+		/// <summary> 이어할 때 「이 마디들을 다시 찍은 것으로 하라」는 신호(화면이 구독). </summary>
+		public event System.Action<List<int>> RestoreResearch = delegate { };
 
 		/// <summary> 그 종류로 지금까지 얼마나 세졌나(0.2 = +20%). </summary>
 		public float ResearchBonus(TowerDefenseResearchEffect effect)
