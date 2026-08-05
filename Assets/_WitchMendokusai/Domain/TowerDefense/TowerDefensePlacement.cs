@@ -316,6 +316,10 @@ namespace WitchMendokusai
 			Destroy(previewMarker.GetComponent<Collider>()); // 표시용 — 레이캐스트를 가로채면 안 된다.
 			previewMarker.transform.SetParent(transform, false);
 			// 바닥에 눕힌 한 칸짜리 판. 살짝 띄워 바닥과 겹쳐 깜빡이지 않게.
+			// 길 안내와 같은 병을 앓는다 — 불투명하면 깊이를 남겨 인형 몸을 자른다(MakeFloorDecal ★ 주석).
+			Renderer previewRenderer = previewMarker.GetComponent<Renderer>();
+			if (previewRenderer != null)
+				TowerDefenseVisuals.MakeFloorDecal(previewRenderer.sharedMaterial);
 			previewMarker.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
 			previewMarker.transform.localScale = Vector3.one * cellSize * 0.92f;
 			previewMarker.SetActive(false);
