@@ -634,7 +634,10 @@ namespace WitchMendokusai
 				name = "MobileWindowMenuScroll",
 			};
 			windowMenuScroll.style.display = DisplayStyle.None;
-			windowMenuScroll.style.maxHeight = Length.Percent(72f); // 위 여백 + 아래 동작 버튼 자리를 남긴다
+			// ★ 백분율로 주면 안 된다 — 이 목록을 담은 상자는 세로가 *내용에 따라 정해지는* 상자라,
+			//   「그 72%」가 가리킬 기준이 없다. 그러면 높이가 0 으로 접혀 **메뉴가 통째로 안 보인다**.
+			//   화면 기준 세로에서 직접 계산한 픽셀로 준다.
+			windowMenuScroll.style.maxHeight = PANEL_REFERENCE_HEIGHT * 0.72f;
 			windowMenuScroll.verticalScrollerVisibility = ScrollerVisibility.Auto;
 			windowMenuScroll.horizontalScrollerVisibility = ScrollerVisibility.Hidden;
 
