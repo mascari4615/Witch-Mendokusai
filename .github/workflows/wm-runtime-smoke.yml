@@ -61,11 +61,20 @@ jobs:
               exit 1
           }
 
-          $exe = Get-ChildItem $dir.FullName -Recurse -File -Filter '*.exe' -ErrorAction SilentlyContinue |
+          # ★ 실측 2026-08-06: 여기가 **게임이 아니라 UnityCrashHandler64.exe 를 골라** 왔다.
+          #   유니티 빌드 폴더에는 실행 파일이 둘 있고, 이름 순으로 크래시 핸들러가 먼저다.
+          #   그걸 띄우면 즉시 종료(exit=0) 하므로 두 관문 모두 "결과 파일이 없다 / 서버가
+          #   ready 전에 죽었다"로 실패했다 — 게임은 멀쩡한데 검사만 계속 빨갰다.
+          #   진짜 플레이어는 옆에 `<이름>_Data` 폴더를 갖는다. 그것으로 고른다.
+          $exeCandidates = Get-ChildItem $dir.FullName -File -Filter '*.exe' -ErrorAction SilentlyContinue |
+              Where-Object { $_.Name -notlike 'UnityCrashHandler*' }
+          $exe = $exeCandidates |
+              Where-Object { Test-Path (Join-Path $dir.FullName ($_.BaseName + '_Data')) } |
               Select-Object -First 1
+          if ($null -eq $exe) { $exe = $exeCandidates | Select-Object -First 1 }
           if ($null -eq $exe)
           {
-              Write-Host "ERROR: build dir has no .exe: $($dir.FullName)"
+              Write-Host "ERROR: build dir has no player .exe: $($dir.FullName)"
               exit 1
           }
 
