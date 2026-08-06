@@ -81,6 +81,12 @@ namespace WitchMendokusai.EditorTools
         [InitializeOnLoadMethod]
         private static void CleanupOnEditorLoad()
         {
+            // 배치(빌드 머신)에선 지우면 안 된다 — CI 가 유니티 실행 *전에* 심어둔 파일이라
+            // 여기서 청소하면 빌드가 그 자산 없이 나간다(무음 유실). 사람 에디터에서만 청소.
+            if (UnityEngine.Application.isBatchMode)
+            {
+                return;
+            }
             if (File.Exists(Path.GetFullPath(ASSET_PATH)))
             {
                 Remove("에디터 로드 시 잔여 발견");
