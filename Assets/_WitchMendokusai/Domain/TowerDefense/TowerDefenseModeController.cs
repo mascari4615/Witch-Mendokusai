@@ -244,6 +244,14 @@ namespace WitchMendokusai
 			}
 
 			researchView?.SetOpen(true);
+			// ★ 성좌는 화면을 통째로 덮는다 — 그 뒤에서 판이 계속 돌면 「어디로 뚫을까」를 고민하는
+			//   동안 코어가 털린다. 메뉴와 같은 규칙으로 멈춘다(내가 멈춘 것만 내가 푼다 —
+			//   사용자가 직접 멈춰 뒀으면 닫을 때 마음대로 풀면 안 된다).
+			if (match != null && match.IsPaused == false)
+			{
+				pausedByResearch = true;
+				match.TogglePause();
+			}
 		}
 
 		/// <summary>
@@ -313,7 +321,7 @@ namespace WitchMendokusai
 			// 성좌가 전체화면을 덮고 있으면 그것부터 닫는다 — 덮은 것을 두고 뒤의 것을 닫으면 안 된다.
 			if (researchView != null && researchView.IsOpen)
 			{
-				researchView.SetOpen(false);
+				CloseResearch();
 				return;
 			}
 
@@ -368,6 +376,20 @@ namespace WitchMendokusai
 				pausedByMenu = true;
 				match.TogglePause();
 			}
+		}
+
+		// 성좌가 멈춘 판인지 — 위와 같은 이유로 따로 센다(둘이 한 깃발을 쓰면 하나를 닫을 때 둘 다 풀린다).
+		private bool pausedByResearch;
+
+		/// <summary> 성좌를 닫는다 — 성좌 때문에 멈춘 판이면 다시 굴린다. </summary>
+		private void CloseResearch()
+		{
+			researchView?.SetOpen(false);
+			if (pausedByResearch == false)
+				return;
+			pausedByResearch = false;
+			if (match != null && match.IsPaused)
+				match.TogglePause();
 		}
 
 		// 메뉴가 멈춘 판인지 — 메뉴 때문에 멈춘 것만 메뉴가 다시 풀어야 한다(사용자가 직접 멈춰 뒀으면 그대로).
