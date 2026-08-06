@@ -209,12 +209,24 @@ if ($parentCount -le 1 -and $csCount -gt 0 -and (Test-Path -LiteralPath $retired
 
     if ($rules.Count -gt 0)
     {
+        # ★ 순수 주석 줄은 뺀다 (실측 2026-08-06: 이 canary 가 **나를** 잡았다 — 개명 이유를 설명하는
+        #   `/// ArenaCombatant → MatchCombatant 개명` 한 줄에 걸렸다).
+        #   이 검사가 막으려는 사고는 「옛 사본이 옛 *타입* 을 되살려 main 이 CS0246 으로 죽는 것」이다.
+        #   주석은 컴파일에 영향이 없으므로 그 사고를 만들 수 없다 = 신호가 아니라 잡음이다.
+        #   단 **코드 + 꼬리주석** 줄(`Foo x; // 옛날엔 Bar`)은 그대로 본다 — 앞부분이 진짜 코드라서다.
+        #   그래서 「trim 했을 때 주석으로 시작하는 줄」만 건너뛴다(과보정으로 진짜를 놓치지 않게).
         $addedLines = @()
         foreach ($entry in @(git show --unified=0 --format= $Sha -- '*.cs' 2>$null))
         {
             foreach ($line in ($entry -split "`n"))
             {
-                if ($line.StartsWith('+') -and -not $line.StartsWith('+++')) { $addedLines += $line }
+                if (-not $line.StartsWith('+')) { continue }
+                if ($line.StartsWith('+++')) { continue }
+
+                $code = $line.Substring(1).TrimStart()
+                if ($code.StartsWith('//') -or $code.StartsWith('*') -or $code.StartsWith('/*')) { continue }
+
+                $addedLines += $line
             }
         }
 
