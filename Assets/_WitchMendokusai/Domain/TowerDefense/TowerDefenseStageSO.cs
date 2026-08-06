@@ -401,6 +401,25 @@ namespace WitchMendokusai
 		[field: Tooltip("둥지 색.")]
 		[field: SerializeField] public Color NestTint { get; private set; } = new Color(0.66f, 0.16f, 0.3f, 1f);
 
+		[field: Header("흩뿌린 서식지 — 넓히는 것 자체가 위험")]
+		[field: Tooltip("판에 미리 깔리는 서식지 수(0 = 없음). 잠들어 있다가 내 것이 가까이 오면 깨어난다.")]
+		[field: SerializeField, Min(0)] public int LairCount { get; private set; } = 7;
+
+		[field: Tooltip("서식지 하나에 잠들어 있는 마수 수.")]
+		[field: SerializeField, Min(1)] public int LairGuardCount { get; private set; } = 3;
+
+		[field: Tooltip("코어에서 이만큼(칸) 밖에만 선다 — 붙으면 시작하자마자 진다.")]
+		[field: SerializeField, Min(0f)] public float LairMinCoreDistance { get; private set; } = 12f;
+
+		[field: Tooltip("서식지끼리 최소 거리(칸). 뭉치면 판 한쪽만 위험해진다.")]
+		[field: SerializeField, Min(0f)] public float LairMinSpacing { get; private set; } = 9f;
+
+		[field: Tooltip("내 것이 이 거리(월드) 안에 들어오면 깨어난다. 넓히는 행위가 위험이 되는 손잡이.")]
+		[field: SerializeField, Min(0f)] public float LairWakeRadius { get; private set; } = 9f;
+
+		[field: Tooltip("잠든 마수 색 — 깨어나면 보통 마수 색으로 돌아간다.")]
+		[field: SerializeField] public Color LairSleepTint { get; private set; } = new Color(0.32f, 0.3f, 0.42f, 1f);
+
 		[field: Header("테두리 침공 — 파도는 매번 다른 쪽에서 온다")]
 		[field: Tooltip("켜면 파도가 고정 둥지가 아니라 판 테두리의 한 토막에서 밀려온다(출구 고정 X = 길 개념 소멸). 끄면 옛 방식.")]
 		[field: SerializeField] public bool BorderInvasion { get; private set; } = true;

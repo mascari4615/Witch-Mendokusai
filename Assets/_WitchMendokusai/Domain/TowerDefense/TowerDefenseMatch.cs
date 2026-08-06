@@ -375,6 +375,7 @@ namespace WitchMendokusai
 
 			yield return SpawnHeroRoutine(); // 영웅 미설정 스테이지면 즉시 빠져나온다(기존 판과 동일).
 			yield return SpawnNestsRoutine(); // 마수가 나오는 자리를 *부술 수 있는 것*으로 세운다.
+			yield return SpawnLairsRoutine(); // 판 곳곳에 잠든 마수 — 넓히는 행위 자체를 위험으로 만든다.
 
 			timeManager.RegisterCallback(Tick);
 			ticking = true;
@@ -1041,6 +1042,148 @@ namespace WitchMendokusai
 			Debug.Log($"{nameof(TowerDefenseMatch)}: 마수 둥지 {nests.Count}곳 — 전부 부수면 개척 성공.");
 		}
 
+		// 잠들어 있는 서식지 마수 — 깨어나기 전까지는 걷지도 때리지도 않는다.
+		private sealed class SleepingLair
+		{
+			public Vector3 WorldPosition;
+			public readonly List<UnitObject> Guards = new();
+			public readonly List<TacticDriver> Drivers = new();
+			public bool Awake;
+		}
+
+		private readonly List<SleepingLair> lairs = new();
+		private readonly List<Vector3> lairWakeProbe = new();
+
+		/// <summary> 지금까지 깨운 서식지 수 — 결과 기록판이 「얼마나 파고들었나」를 말한다. </summary>
+		public int LairsAwakened { get; private set; }
+
+		/// <summary>
+		/// 판 곳곳에 잠든 마수를 깐다 (TASK-WM-194, 데아빌 레퍼런스).
+		///
+		/// ★ 파도만 있으면 파도 사이의 판 안쪽은 완전히 안전해서, 넓히기를 미루는 데 아무 대가가 없다.
+		///   잠든 것이 깔려 있으면 **넓히는 행위 자체가 위험**이 된다 = 「개척」이 성립한다.
+		/// </summary>
+		private IEnumerator SpawnLairsRoutine()
+		{
+			lairs.Clear();
+			LairsAwakened = 0;
+
+			if (stage == null || stage.LairCount <= 0 || mapLayout == null || stage.EnemyUnit == null)
+				yield break;
+
+			List<Vector2Int> cells = new();
+			TowerDefenseLairPlacement.Choose(
+				mapLayout.Seed,
+				mapLayout.Width,
+				mapLayout.Length,
+				mapLayout.CoreCell,
+				cell => mapLayout.IsBlocked(cell),
+				stage.LairCount,
+				stage.LairMinCoreDistance,
+				stage.LairMinSpacing,
+				cells);
+
+			foreach (Vector2Int cell in cells)
+			{
+				Vector3 localPosition = mapLayout.CellToWorld(cell);
+				SleepingLair lair = new() { WorldPosition = stageRoot.TransformPoint(localPosition) };
+
+				for (int guard = 0; guard < stage.LairGuardCount; guard++)
+				{
+					// 한 자리에 겹쳐 세우면 서로의 몸에 끼어 못 나온다 — 둘레로 조금씩 벌린다.
+					float angle = guard * Mathf.PI * 2f / Mathf.Max(1, stage.LairGuardCount);
+					Vector3 offset = new(Mathf.Cos(angle) * stage.EnemySpawnSpread, 0f, Mathf.Sin(angle) * stage.EnemySpawnSpread);
+
+					SpawnedUnit spawned = new();
+					yield return SpawnUnitRoutine(stage.EnemyUnit, stageRoot.TransformPoint(localPosition + offset),
+						ATTACKER_TEAM, stage.LairSleepTint, stage.EnemyScale, spawned);
+					if (spawned.Ok == false)
+						continue;
+
+					yield return null;
+					if (core == null || targeting == null || pool == null)
+						yield break;
+
+					// 잠든 동안은 걷지 않는다 — 브레인은 세우는 문이 이미 껐고, 여기서 이동만 못 박는다.
+					UnitMovement movement = spawned.GameObject.GetComponent<UnitMovement>();
+					if (movement != null)
+						movement.enabled = false;
+
+					IgnoreHeroCollision(spawned.GameObject);
+					lair.Guards.Add(spawned.UnitObject);
+					waveEnemies.Add(spawned.Combatant); // 포탑이 쏘는 대상 — 잠들었어도 때릴 수는 있다.
+					enemyBountyById[spawned.Combatant.CombatantId] = core.BountyPerKill;
+				}
+
+				if (lair.Guards.Count > 0)
+					lairs.Add(lair);
+			}
+
+			Debug.Log($"{nameof(TowerDefenseMatch)}: 서식지 {lairs.Count}곳이 잠들어 있다 — 가까이 가면 깨어난다.");
+		}
+
+		/// <summary>
+		/// 내 것이 가까이 왔으면 서식지를 깨운다. 깨어난 마수는 보통 마수와 똑같이 움직인다.
+		///
+		/// ★ 「가까이 가면 깬다」여야 넓히는 것이 위험이 된다 — 처음부터 다 깨어 있으면 파도가 하나 더
+		///   있는 것이고, 영영 안 깨면 판을 장식하는 조형물이다.
+		/// </summary>
+		private void WakeNearbyLairs()
+		{
+			if (lairs.Count == 0 || stage == null || stage.LairWakeRadius <= 0f)
+				return;
+
+			lairWakeProbe.Clear();
+			foreach (Transform building in supplyChain.Buildings)
+			{
+				if (building != null)
+					lairWakeProbe.Add(building.position);
+			}
+			if (heroTransform != null)
+				lairWakeProbe.Add(heroTransform.position); // 영웅이 정찰 나가는 것도 건드리는 것이다.
+
+			foreach (SleepingLair lair in lairs)
+			{
+				if (lair.Awake)
+					continue;
+				if (TowerDefenseLairPlacement.ShouldWake(lair.WorldPosition, lairWakeProbe, stage.LairWakeRadius) == false)
+					continue;
+
+				WakeLair(lair);
+			}
+		}
+
+		private void WakeLair(SleepingLair lair)
+		{
+			lair.Awake = true;
+			LairsAwakened++;
+
+			foreach (UnitObject guard in lair.Guards)
+			{
+				if (guard == null)
+					continue;
+
+				UnitMovement movement = guard.GetComponent<UnitMovement>();
+				if (movement != null)
+					movement.enabled = true;
+
+				foreach (Renderer guardRenderer in guard.GetComponentsInChildren<Renderer>(true))
+					guardRenderer.material.color = stage.EnemyTint; // 잠든 색을 벗는다 — 깨어난 것이 보여야 한다.
+
+				TacticDriver driver = guard.GetComponent<TacticDriver>();
+				if (driver == null)
+					driver = guard.gameObject.AddComponent<TacticDriver>();
+				driver.Initialize(stage.EnemyTactic, targeting, timeManager);
+				driver.Navigator = flowNavigator;
+				driver.StopsToAttack = false;
+				drivers.Add(driver);
+				lair.Drivers.Add(driver);
+			}
+
+			PopWorldText("깨어났다", lair.WorldPosition, TextType.Warning);
+			Debug.Log($"{nameof(TowerDefenseMatch)}: 서식지 하나가 깨어났다 — 지금까지 {LairsAwakened}곳.");
+		}
+
 		/// <summary> 부서진 둥지의 출구를 닫는다 — 그 자리에서 더는 마수가 안 나온다. </summary>
 		private void CullDestroyedNests()
 		{
@@ -1251,6 +1394,7 @@ namespace WitchMendokusai
 			CullLeakedEnemies();  // 목표에 닿은 마수는 사라지고 목숨이 준다(유출제).
 			UnstickEnemies();     // 굳은 마수를 풀어준다 — 한 마리가 굳으면 웨이브가 영영 안 끝난다.
 			CullDestroyedNests(); // 부순 둥지의 출구를 닫는다 — 「버틴다」가 「밀어낸다」가 되는 자리.
+			WakeNearbyLairs();    // 내 것이 가까이 갔으면 잠든 서식지가 깨어난다.
 			RefreshPower();       // 전기를 못 받는 건물은 선다(도시 건설의 규칙 그대로).
 			TickSignalView();     // 신호가 번지는 것을 눈으로 보여준다 — 테두리와 파동.
 			RefreshBuildingProgress(); // 「무엇이 일하고 있나」를 머리 위 바에 채운다.
