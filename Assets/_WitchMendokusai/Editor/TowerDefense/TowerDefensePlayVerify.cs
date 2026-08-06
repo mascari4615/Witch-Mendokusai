@@ -153,6 +153,7 @@ namespace WitchMendokusai.EditorTools
 			startClicked = false;
 			signalChecked = false;
 			markCheckAt = 0.0;
+			lairDriftCheckAt = 0.0;
 			selectedLayoutChecked = false; // 판마다 다시 잰다.
 			assaultStart = -1.0;
 			lastAliveEnemyCount = -1;
@@ -200,6 +201,12 @@ namespace WitchMendokusai.EditorTools
 					+ " observed=" + (observeStart > 0 ? (now - observeStart).ToString("F1") : "n/a"));
 				Finish();
 				return;
+			}
+
+			if (lairDriftCheckAt > 0.0 && now >= lairDriftCheckAt)
+			{
+				lairDriftCheckAt = 0.0;
+				CheckLairDrift();
 			}
 
 			if (markCheckAt > 0.0 && now >= markCheckAt)
@@ -394,6 +401,10 @@ namespace WitchMendokusai.EditorTools
 					VerifyResume();
 					if (placeOnly)
 					{
+						// 아직 재기로 한 것이 남아 있으면 끝내지 않는다 — 끝내버리면 그 항목은 영영 안 재진다.
+						if (lairDriftCheckAt > 0.0 || markCheckAt > 0.0)
+							return;
+
 						Debug.Log(TAG + " PLACE-ONLY 배치 확인 끝 — 조기 종료");
 						Finish();
 						return;
@@ -851,6 +862,51 @@ namespace WitchMendokusai.EditorTools
 			// ★ 한 틱 미루는 것으로는 부족하다 — 에디터가 앞에 없으면 Play 루프가 느려져 *게임 프레임이
 			//   한 장도 안 지난 채* 재게 된다(오늘 세 번째로 같은 실수를 했다). 실제 시간이 흐른 뒤에 센다.
 			markCheckAt = EditorApplication.timeSinceStartup + 1.5;
+
+			// ★ 깨어난 서식지 마수가 *어디로 가는지*를 잰다. 코어로 행진하면 서식지는 그냥 「파도 하나 더」이고,
+			//   그 일대에 머물면 「넓히는 것이 위험」이 성립한다 — 둘은 완전히 다른 게임이라 재봐야 안다.
+			if (match.WakeNearestLairForVerification(out Vector3 wokenAt))
+			{
+				lairWakeFrom = match.AwakenedGuardDistanceToCore(out lairWakeGuards);
+				lairWakePosition = wokenAt;
+				lairDriftCheckAt = EditorApplication.timeSinceStartup + 8.0;
+				lairWakeLives = match.Lives;
+				lairWakeEnemies = match.WaveEnemies.Count;
+				Debug.Log($"{TAG} 서식지 강제 기상 — 마수 {lairWakeGuards}기 · 코어까지 {lairWakeFrom:F1}"
+					+ $" · 목숨 {lairWakeLives} · 판 위 마수 {lairWakeEnemies}");
+			}
+		}
+
+		private static double lairDriftCheckAt;
+		private static float lairWakeFrom;
+		private static int lairWakeGuards;
+		private static int lairWakeLives;
+		private static int lairWakeEnemies;
+		private static Vector3 lairWakePosition;
+
+		/// <summary> 깨운 마수가 8초 동안 코어 쪽으로 얼마나 다가갔나 — 「행진」과 「지킴」을 가른다. </summary>
+		private static void CheckLairDrift()
+		{
+			if (match == null)
+				return;
+
+			float now = match.AwakenedGuardDistanceToCore(out int aliveNow);
+			Debug.Log($"{TAG} 서식지 이동 — 마수 {lairWakeGuards}기 → {aliveNow}기 · 코어까지 {lairWakeFrom:F1} → {now:F1}");
+
+			// ★ 살아남은 것이 없으면 거리는 뜻이 없다 — 「가까워졌다」가 아니라 「죽어서 없다」다.
+			if (aliveNow == 0)
+			{
+				// ★ 「죽었다」와 「유출로 사라졌다」와 「무대 밖으로 치워졌다」는 고치는 자리가 전부 다르다.
+				//   목숨이 줄었으면 유출, 안 줄었으면 죽거나 치워진 것 — 그 둘을 여기서 가른다.
+				Debug.LogError($"{TAG} 서식지 FAIL — 깨운 마수 {lairWakeGuards}기가 8초 만에 전부 사라졌다"
+					+ $" (목숨 {lairWakeLives}→{match.Lives} · 판 위 마수 {lairWakeEnemies}→{match.WaveEnemies.Count})."
+					+ " 코어에서 멀어 포탑에 죽은 것이 아니다 — 서식지가 판에 아무 영향을 못 준다.");
+				return;
+			}
+
+			float closed = lairWakeFrom - now;
+			if (closed > 6f)
+				Debug.LogWarning($"{TAG} 서식지가 코어로 행진한다 — 「넓히는 것이 위험」이 아니라 파도가 하나 더 있는 것이다.");
 		}
 
 		private static void CountOnScreenMarks()

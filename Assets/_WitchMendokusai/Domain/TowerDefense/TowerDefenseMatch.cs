@@ -1075,6 +1075,55 @@ namespace WitchMendokusai
 			alerts.Raise(label, coreCombatant.Position, Time.time, stage.AlertSeconds);
 		}
 
+		/// <summary>
+		/// 서식지 하나를 강제로 깨운다(검증 전용) — 깨어난 마수가 *어디로 가는지*는 깨워봐야 잴 수 있다.
+		/// 깨운 서식지의 자리를 돌려준다(못 깨웠으면 false).
+		/// </summary>
+		public bool WakeNearestLairForVerification(out Vector3 lairPosition)
+		{
+			lairPosition = Vector3.zero;
+			foreach (SleepingLair lair in lairs)
+			{
+				if (lair.Awake)
+					continue;
+				lairPosition = lair.WorldPosition;
+				WakeLair(lair);
+				return true;
+			}
+			return false;
+		}
+
+		/// <summary>
+		/// 깨어난 서식지 마수들이 지금 코어에서 얼마나 떨어져 있나(평균). 시간에 따라 이 값이 줄면
+		/// 「코어로 행진한다」, 제자리면 「그 일대를 지킨다」 — 둘은 완전히 다른 게임이다.
+		/// </summary>
+		public float AwakenedGuardDistanceToCore() => AwakenedGuardDistanceToCore(out _);
+
+		/// <summary> 같은 값 + *몇 기를 재고 있나*. 0 기면 「가까워졌다」가 아니라 「죽어서 없다」다. </summary>
+		public float AwakenedGuardDistanceToCore(out int aliveGuards)
+		{
+			aliveGuards = 0;
+			if (coreCombatant == null)
+				return -1f;
+
+			float total = 0f;
+			int count = 0;
+			foreach (SleepingLair lair in lairs)
+			{
+				if (lair.Awake == false)
+					continue;
+				foreach (UnitObject guard in lair.Guards)
+				{
+					if (guard == null)
+						continue;
+					total += Vector3.Distance(guard.transform.position, coreCombatant.Position);
+					count++;
+				}
+			}
+			aliveGuards = count;
+			return count > 0 ? total / count : -1f;
+		}
+
 		/// <summary> 지금 판에 깔려 있는 함정 수 — 이어하기가 함정을 잃는지 하네스가 직접 센다. </summary>
 		public int TrapCount => stageRoot != null ? stageRoot.GetComponentsInChildren<TowerDefenseTrap>(true).Length : 0;
 
