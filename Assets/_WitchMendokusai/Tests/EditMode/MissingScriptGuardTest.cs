@@ -33,42 +33,41 @@ namespace WitchMendokusai.Tests
         private const string UNITY_BUILTIN_GUID = "0000000000000000e000000000000000";
 
         /// <summary>
-        /// git 에 올리지 않는(유료·외부) 에셋 폴더. 개발 머신엔 있고 CI 체크아웃엔 없다.
+        /// git 에 올리지 않는(유료·외부) 에셋의 스크립트 GUID — 개발 머신엔 있고 CI 체크아웃엔 없다.
         ///
-        /// 왜 필요한가 (2026-08-06, TASK-WM-203 CI 첫 완주에서 실증): Bakery 라이트맵 컴포넌트가
-        /// 붙은 조명 오브젝트가 스테이지 프리팹·씬에 들어 있는데, CI 체크아웃엔 Bakery 가 없으므로
-        /// 그 m_Script 가 전부 "죽은 참조"로 보인다 — 프리팹 19곳·씬 35곳이 한꺼번에 빨간불이 됐다.
-        /// 개발 머신에선 멀쩡한 것들이다.
+        /// 왜 GUID 로 보는가 (2026-08-06, 두 번 헛짚고 얻은 것): 처음엔 "폴더가 있나"로 판정했는데
+        /// 두 번 다 발화하지 않았다(상대 경로 → 작업 디렉토리 의존, 절대 경로 → 여전히 skipped=0).
+        /// 폴더 위치·작업 디렉토리·설치 방식은 환경마다 다르지만, **GUID 는 에셋의 신분증이라 어디서든 같다**.
+        /// 그래서 "이 GUID 가 이 체크아웃에서 해소되나"만 묻는다 — 판정의 근거를 환경에서 떼어낸다.
         ///
-        /// 거짓 빨간불은 게이트를 죽인다(사람이 "또 그거네" 하고 무시하기 시작하면 진짜 사고도 묻힌다).
-        /// 그렇다고 조용히 통과시키면 검사가 없는 것과 같다 → **왜 건너뛰는지 말하면서 건너뛴다**.
-        /// 이 검사들은 에셋이 다 깔린 개발 머신에서 의미가 있고, 거기선 그대로 전수 검사한다.
+        /// 실증: Bakery(라이트맵 툴) 컴포넌트가 붙은 조명이 스테이지 프리팹·씬에 들어 있어,
+        /// Bakery 없는 CI 에선 프리팹 19곳·씬 35곳이 한꺼번에 죽은 참조로 보였다. 개발 머신에선 멀쩡하다.
+        ///
+        /// 거짓 빨간불은 게이트를 죽인다(사람이 "또 그거네" 하고 무시하면 진짜 사고도 묻힌다).
+        /// 그렇다고 조용히 통과시키면 검사가 없는 것과 같다 → **왜 건너뛰는지 말하면서 건너뛴다.**
         /// </summary>
-        private static readonly string[] OPTIONAL_THIRD_PARTY_ROOTS =
+        private static readonly Dictionary<string, string> OPTIONAL_THIRD_PARTY_SCRIPT_GUIDS =
+            new Dictionary<string, string>
+            {
+                { "ec0b4dd729a12d046982652f834580a2", "Bakery / BakeryLightmapGroup" },
+                { "b7fa80e7116296f4eb4f49ec1544ee22", "Bakery / ftLightmapsStorage" },
+            };
+
+        private static bool GuidResolves(string guid)
         {
-            "Bakery",
-        };
+            string path = AssetDatabase.GUIDToAssetPath(guid);
+            return string.IsNullOrEmpty(path) == false
+                && AssetDatabase.LoadAssetAtPath<MonoScript>(path) != null;
+        }
 
         private static void SkipIfOptionalThirdPartyAssetsMissing()
         {
-            // Application.dataPath 기준 절대경로로 본다 — batchmode 는 작업 디렉토리가
-            // 프로젝트 루트라는 보장이 없어서, 상대경로("Assets/Bakery")로 물으면 폴더가
-            // 없는데도 "있다"로 새는 게 아니라 *판정 자체가 무의미*해진다 (실측: 첫 시도가
-            // 그래서 그대로 빨간불이었다).
-            foreach (string folderName in OPTIONAL_THIRD_PARTY_ROOTS)
+            foreach (KeyValuePair<string, string> entry in OPTIONAL_THIRD_PARTY_SCRIPT_GUIDS)
             {
-                string root = Path.Combine(Application.dataPath, folderName);
-
-                // ★ 「폴더가 있다」로도 아직 부족하다: git worktree 를 만들면 **빈 폴더만 남는다**
-                //   (`Assets/Bakery/` 항목 0개 — 실측 2026-08-06 `wm-verify`). 절대경로로 물어도
-                //   그건 "있다"라서 가드가 안 걸리고, 검사가 그대로 돌아 프리팹 19·씬 35건이
-                //   다시 빨간불이 된다. CI 는 폴더 자체가 없어 통과하므로 **worktree 에서만
-                //   조용히 깨지는** 자리였다. 있는지가 아니라 **쓸 게 들어 있는지**를 본다.
-                if (Directory.Exists(root) == false
-                    || Directory.EnumerateFileSystemEntries(root).GetEnumerator().MoveNext() == false)
+                if (GuidResolves(entry.Key) == false)
                 {
                     Assert.Ignore(
-                        "이 체크아웃엔 'Assets/" + folderName + "' 가 없거나 비어 있다 (git 미추적 외부 에셋). "
+                        "이 체크아웃엔 '" + entry.Value + "' 가 없다 (git 미추적 외부 에셋). "
                         + "그 컴포넌트를 쓰는 프리팹·씬의 참조가 전부 죽은 것처럼 보이므로 판정 불가 — "
                         + "에셋이 깔린 개발 머신에서 이 검사가 진짜로 돈다.");
                 }
