@@ -118,6 +118,9 @@ namespace WitchMendokusai
 		private TowerDefenseMapLayout mapLayout;
 		private TowerDefenseFlowField flowField;
 		private ITacticNavigator flowNavigator;
+
+		// 격자 A* — 목표가 코어든 벽이든 *실제 경로*를 찾는다. 흐름장(코어 전용)을 대신한다.
+		private TowerDefenseGridPath gridPath;
 		private readonly List<Vector3> activeSpawnPoints = new();
 		private readonly List<Vector3> activeNodePositions = new();
 		private readonly List<float> activeNodeIncomeMultipliers = new();
@@ -459,8 +462,9 @@ namespace WitchMendokusai
 			wallCells.Clear();
 			flowField = new TowerDefenseFlowField(
 				mapLayout.Width, mapLayout.Length, mapLayout.CoreCell, IsPathBlocked);
-			flowNavigator = new TowerDefenseFlowNavigator(
-				mapLayout, flowField, stageRoot, stage.GroundCellSize * 2f, stage.EnemyCornerSmoothing);
+			gridPath = new TowerDefenseGridPath(mapLayout.Width, mapLayout.Length, IsPathBlocked);
+			flowNavigator = new TowerDefensePathNavigator(
+				mapLayout, gridPath, stageRoot, stage.GroundCellSize * 2f, stage.EnemyCornerSmoothing);
 
 			vision = new TowerDefenseVision(mapLayout.Width, mapLayout.Length);
 			visionSources.Clear();
@@ -746,8 +750,9 @@ namespace WitchMendokusai
 
 			flowField = new TowerDefenseFlowField(
 				mapLayout.Width, mapLayout.Length, pathGoals, IsPathBlocked);
-			flowNavigator = new TowerDefenseFlowNavigator(
-				mapLayout, flowField, stageRoot, stage.GroundCellSize * 2f, stage.EnemyCornerSmoothing);
+			gridPath = new TowerDefenseGridPath(mapLayout.Width, mapLayout.Length, IsPathBlocked);
+			flowNavigator = new TowerDefensePathNavigator(
+				mapLayout, gridPath, stageRoot, stage.GroundCellSize * 2f, stage.EnemyCornerSmoothing);
 
 			foreach (Vector3 spawnLocal in activeSpawnPoints)
 			{
@@ -3583,25 +3588,13 @@ namespace WitchMendokusai
 				bool blocked = IsPathBlocked(cell);
 				bool reachable = flowField.IsReachable(cell);
 
-				if (TrySnapToReachable(cell, out Vector2Int freeCell))
-				{
-					enemy.transform.position = stageRoot.TransformPoint(mapLayout.CellToWorld(freeCell));
-					Debug.LogWarning($"{nameof(TowerDefenseMatch)}: 굳은 마수를 옮김 — cell={cell} blocked={blocked} "
-						+ $"reachable={reachable} → {freeCell} ({stillSeconds:F1}s 정지)");
-				}
-				else if (reachable && flowField.TryGetNextCell(cell, out Vector2Int nextCell))
-				{
-					// 길은 멀쩡한데 안 움직인다 = 서로 밀치다 끼었다(스폰 지점에 몰릴 때 실제로 난다).
-					// 길을 다시 그려줄 게 아니라 *다음 칸으로 한 발 밀어준다* — 원인을 숨기지 않게 로그는 남긴다.
-					enemy.transform.position = stageRoot.TransformPoint(mapLayout.CellToWorld(nextCell));
-					Debug.LogWarning($"{nameof(TowerDefenseMatch)}: 길 위에서 끼인 마수를 한 칸 밀어줌 — {cell} → {nextCell} "
-						+ $"({stillSeconds:F1}s 정지)");
-				}
-				else
-				{
-					Debug.LogWarning($"{nameof(TowerDefenseMatch)}: 굳은 마수 주변에 갈 수 있는 칸이 없음 — cell={cell} "
-						+ $"blocked={blocked} ({stillSeconds:F1}s 정지)");
-				}
+				// ★ 밀어주지 않는다 (사용자 지시: "밀어주는게 어딨어... 밀어주는거 제거하세요").
+				//   예전엔 굳은 마수를 다음 칸으로 *순간이동*시켜 길을 뚫었다 — 그건 길찾기가 답을 못 준
+				//   자리를 손으로 메운 것이고, 벽을 지나가는 것처럼 보이는 원인이기도 했다.
+				//   이제 길찾기가 목표가 무엇이든 답하므로, 굳었다는 것은 *진짜 막혔다*는 뜻이다 —
+				//   그 사실을 남기기만 하고 판은 마수가 앞을 부수도록 둔다.
+				Debug.LogWarning($"{nameof(TowerDefenseMatch)}: 마수가 {stillSeconds:F1}s 째 못 나아감 — cell={cell} "
+					+ $"blocked={blocked} reachable={reachable} (길이 막혔으면 앞을 부순다)");
 
 				enemyStillness[enemy.CombatantId] = (enemy.Position, 0f);
 			}
