@@ -997,7 +997,9 @@ namespace WitchMendokusai
 				//   *캐서 버는 길*과 *싸워서 버는 길*이 갈라지면 어느 한쪽이 막혀도 판이 안 죽는다.
 				if (core != null && stage.NestEssenceReward > 0)
 				{
-					core.AddEssence(stage.NestEssenceReward);
+					// ★ 「정수 수급」 카드를 여기 태운다. 카드는 뽑히는데 **걸리는 자리가 한 군데도 없어서**
+					//   화면엔 「정수↑」라 적히고 실제로는 한 톨도 더 안 들어왔다(뽑으면 그 선택이 버려진다).
+					core.AddEssence(Mathf.Max(0, Mathf.RoundToInt(stage.NestEssenceReward * boons.EssenceMultiplier)));
 					PopWorldText("정수 +" + stage.NestEssenceReward, stageRoot.TransformPoint(localPosition), TextType.Exp);
 				}
 				activeSpawnPoints.Remove(localPosition);
@@ -1158,7 +1160,7 @@ namespace WitchMendokusai
 				if (coreWeapon == null)
 					coreWeapon = coreGameObject.AddComponent<TowerDefenseWeapon>();
 				coreWeapon.Configure(stage.CoreWeapon, targeting, combatant, waveEnemies,
-					IsVisibleAt, () => TowerDamageMultiplier, () => Adaptation, () => TowerRangeMultiplier);
+					IsVisibleAt, DamageMultiplierFor, () => Adaptation, () => TowerRangeMultiplier);
 			}
 
 			AddVisionSource(coreGameObject.transform.position, stage.CoreVisionRadius);
@@ -1614,7 +1616,7 @@ namespace WitchMendokusai
 				// 성좌를 보고 고른 뜻이 사라진다.
 				heroWeapon.Configure(stage.HeroArchetype, targeting, heroCombatant, waveEnemies,
 					IsVisibleAt,
-					() => TowerDamageMultiplier * (1f + ResearchBonus(TowerDefenseResearchEffect.HeroPower)),
+					target => DamageMultiplierFor(target) * (1f + ResearchBonus(TowerDefenseResearchEffect.HeroPower)),
 					() => Adaptation, () => TowerRangeMultiplier);
 			}
 
@@ -2805,6 +2807,18 @@ namespace WitchMendokusai
 		// 연구(판 안 건물)와 드래프트(웨이브 사이 선택)는 서로 다른 층이라 곱해진다 — 둘 다 쌓은 판이
 		// 눈에 띄게 세지는 것이 「이 판은 화력으로 갔다」의 실체다.
 		/// <summary> 연구로 늘어난 포탑 사거리 배수 — 무기가 사거리를 물을 때마다 읽는다. </summary>
+		/// <summary>
+		/// 이 대상을 때릴 때의 피해 배수 — 「둥지에 더 아프게」 카드가 여기서 걸린다.
+		/// 카드는 뽑히는데 걸릴 자리가 없으면 화면엔 「둥지↑」라 적히고 실제로는 똑같이 때린다.
+		/// </summary>
+		private float DamageMultiplierFor(ICombatant target)
+		{
+			float multiplier = TowerDamageMultiplier;
+			if (target is MatchCombatant combatant && IsNest(combatant))
+				multiplier *= boons.NestDamageMultiplier;
+			return multiplier;
+		}
+
 		public float TowerRangeMultiplier => 1f + ResearchBonus(TowerDefenseResearchEffect.TowerRange);
 
 		public float TowerDamageMultiplier =>
@@ -3997,7 +4011,7 @@ namespace WitchMendokusai
 					TowerDefenseWeapon weapon = unitObject.GetComponent<TowerDefenseWeapon>();
 					if (weapon == null)
 						weapon = unitObject.gameObject.AddComponent<TowerDefenseWeapon>();
-					weapon.Configure(towerArchetype, targeting, combatant, waveEnemies, IsVisibleAt, () => TowerDamageMultiplier, () => Adaptation, () => TowerRangeMultiplier);
+					weapon.Configure(towerArchetype, targeting, combatant, waveEnemies, IsVisibleAt, DamageMultiplierFor, () => Adaptation, () => TowerRangeMultiplier);
 				}
 
 				float towerRange = towerArchetype != null ? towerArchetype.Range : TowerRange();

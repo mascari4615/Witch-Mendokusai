@@ -198,7 +198,18 @@ $anchors = @(
        Why = 'the cursor marker hides under the fog -- cannot build on unexplored ground' },
     @{ File = 'Domain/TowerDefense/TowerDefenseMatch.cs'
        Needle = 'heroMovement.SetMoveDirection'
-       Why = 'hero moves by raw transform again -- stutters, walks through walls, pushes monsters' }
+       Why = 'hero moves by raw transform again -- stutters, walks through walls, pushes monsters' },
+    # Draft cards that were offered but wired to nothing (2026-08-06). The card text promised an
+    # effect and the run changed nothing -- it silently burns one of the player's picks.
+    @{ File = 'Domain/TowerDefense/TowerDefenseMatch.cs'
+       Needle = 'boons.EssenceMultiplier'
+       Why = 'the essence-gain card does nothing again' },
+    @{ File = 'Domain/TowerDefense/TowerDefenseMatch.cs'
+       Needle = 'boons.NestDamageMultiplier'
+       Why = 'the nest-damage card does nothing again' },
+    @{ File = 'Domain/TowerDefense/TowerDefenseMatch.cs'
+       Needle = 'cost * boons.ResearchCostMultiplier'
+       Why = 'the research-discount card does nothing again' }
 )
 
 # ★ 앵커 경로는 $Root 에 기대면 안 된다 — 커밋 범위 검사 모드에서는 $Root 가 비어 있어서

@@ -27,7 +27,8 @@ namespace WitchMendokusai
 		private System.Func<Vector3, bool> visibilityTest;
 
 		// 매 발사 때 읽는다 — 나중에 세운 연구 인형이 이미 서 있던 포탑에도 바로 반영되게.
-		private System.Func<float> damageMultiplier;
+		// ★ 대상을 받는다 — 「둥지에 더 아프게」 같은 카드는 *누구를 때리는지* 알아야 걸린다.
+		private System.Func<ICombatant, float> damageMultiplier;
 
 		// 마수가 무엇에 익숙해졌나 — 매 발사 때 읽는다(적응은 웨이브 사이에 변한다).
 		private System.Func<TowerDefenseAdaptationState> adaptation;
@@ -132,7 +133,7 @@ namespace WitchMendokusai
 			ICombatant owner,
 			IReadOnlyList<ICombatant> enemies,
 			System.Func<Vector3, bool> isVisible = null,
-			System.Func<float> towerDamageMultiplier = null,
+			System.Func<ICombatant, float> towerDamageMultiplier = null,
 			System.Func<TowerDefenseAdaptationState> adaptationState = null,
 			System.Func<float> towerRangeMultiplier = null)
 		{
@@ -201,7 +202,7 @@ namespace WitchMendokusai
 		private int ComputeDamage(ICombatant target)
 		{
 			float damage = RawDamage;
-			damage *= damageMultiplier != null ? damageMultiplier() : 1f;
+			damage *= damageMultiplier != null ? damageMultiplier(target) : 1f;
 
 			if (archetype.SlowedTargetBonus > 0f && IsSlowed(target))
 				damage *= 1f + archetype.SlowedTargetBonus;
