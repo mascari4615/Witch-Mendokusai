@@ -58,7 +58,8 @@ namespace WitchMendokusai
 			float halfWidth = Width / 2f;
 			float halfLength = Length / 2f;
 
-			GameObject ground = GameObject.CreatePrimitive(PrimitiveType.Plane);
+			// 맨 CreatePrimitive 는 빌트인 재질을 붙여 **빌드에서 회색**이 된다(TASK-WM-208).
+			GameObject ground = CombatPrimitive.Create(PrimitiveType.Plane);
 			ground.name = "Ground";
 			ground.transform.SetParent(root, false);
 			ground.transform.localPosition = Vector3.zero;
@@ -75,7 +76,7 @@ namespace WitchMendokusai
 
 		private void BuildWall(Transform parent, string wallName, Vector3 localPosition, Vector3 localScale)
 		{
-			GameObject wall = GameObject.CreatePrimitive(PrimitiveType.Cube);
+			GameObject wall = CombatPrimitive.Create(PrimitiveType.Cube);
 			wall.name = wallName;
 			wall.transform.SetParent(parent, false);
 			wall.transform.localPosition = localPosition;
