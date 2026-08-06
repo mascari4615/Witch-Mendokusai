@@ -97,7 +97,10 @@ jobs:
               exit 1
           }
 
-          & powershell -NoProfile -ExecutionPolicy Bypass -File $gate -BuildOut '${{ steps.build.outputs.exe }}'
+          # -Project 를 명시한다 — 하위 게이트의 기본값은 데스크톱 배치라 러너에선 없는 경로다.
+          & powershell -NoProfile -ExecutionPolicy Bypass -File $gate `
+              -BuildOut '${{ steps.build.outputs.exe }}' `
+              -Project $env:GITHUB_WORKSPACE
           $code = $LASTEXITCODE
 
           # exit 2 = cannot-run. A gate that could not run is not a pass.
