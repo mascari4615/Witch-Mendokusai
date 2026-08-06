@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d238e998df965894aa95ac08dba28165, type: 3}
   m_Name: Chapter_Research
   m_EditorClassIdentifier: Assembly-CSharp::WitchMendokusai.ChapterSO
-  <ID>k__BackingField: 0
+  <ID>k__BackingField: 2
   <Name>k__BackingField: "\uC5F0\uAD6C"
   <Description>k__BackingField: 
   <Sprite>k__BackingField: {fileID: 21300000, guid: 06cc8734d22ddd2499e5ef3a0bfacd42, type: 3}
