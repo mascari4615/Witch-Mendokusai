@@ -58,10 +58,17 @@ namespace WitchMendokusai.Tests
             foreach (string folderName in OPTIONAL_THIRD_PARTY_ROOTS)
             {
                 string root = Path.Combine(Application.dataPath, folderName);
-                if (Directory.Exists(root) == false)
+
+                // ★ 「폴더가 있다」로도 아직 부족하다: git worktree 를 만들면 **빈 폴더만 남는다**
+                //   (`Assets/Bakery/` 항목 0개 — 실측 2026-08-06 `wm-verify`). 절대경로로 물어도
+                //   그건 "있다"라서 가드가 안 걸리고, 검사가 그대로 돌아 프리팹 19·씬 35건이
+                //   다시 빨간불이 된다. CI 는 폴더 자체가 없어 통과하므로 **worktree 에서만
+                //   조용히 깨지는** 자리였다. 있는지가 아니라 **쓸 게 들어 있는지**를 본다.
+                if (Directory.Exists(root) == false
+                    || Directory.EnumerateFileSystemEntries(root).GetEnumerator().MoveNext() == false)
                 {
                     Assert.Ignore(
-                        "이 체크아웃엔 'Assets/" + folderName + "' 가 없다 (git 미추적 외부 에셋). "
+                        "이 체크아웃엔 'Assets/" + folderName + "' 가 없거나 비어 있다 (git 미추적 외부 에셋). "
                         + "그 컴포넌트를 쓰는 프리팹·씬의 참조가 전부 죽은 것처럼 보이므로 판정 불가 — "
                         + "에셋이 깔린 개발 머신에서 이 검사가 진짜로 돈다.");
                 }
