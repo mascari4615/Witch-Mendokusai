@@ -1224,7 +1224,13 @@ namespace WitchMendokusai.EditorTools
 
 			if (match == null)
 			{
-				Debug.LogError(TAG + " DEFENDED-FAIL match null");
+				// ★ 바로 옆 관찰 경로는 이걸 구분하는데 여기만 안 했다 — Play 가 끝났으면 매치가 죽은 게
+				//   아니라 *씬이 통째로 내려간* 것이다. 하네스 종료 사유이지 게임 결함이 아니다.
+				//   구분 안 하면 매 판 빨간 줄이 두 개씩 쌓이고, 그 잡음이 진짜 실패를 덮는다(실제로 덮었다).
+				if (EditorApplication.isPlaying == false)
+					Debug.LogWarning(TAG + " DEFENDED-END Play 가 관찰 도중 종료됨(씬 언로드) — 게임 결함 아님, 관찰 조기 중단.");
+				else
+					Debug.LogError(TAG + " DEFENDED-FAIL Play 중인데 매치가 사라졌다.");
 				Finish();
 				return;
 			}
