@@ -39,6 +39,9 @@ namespace WitchMendokusai
 
 		public bool IsOpen => root != null && root.style.display == DisplayStyle.Flex;
 
+		/// <summary> 지금 화면에서 실제로 차지한 사각형 — 「전체화면으로 만들어달라」를 잴 유일한 근거다. </summary>
+		public Rect ScreenRect => root != null ? root.worldBound : Rect.zero;
+
 		/// <summary> 마디를 찍었다 — 값 치르기·효과 적용은 바깥(매치)이 한다. </summary>
 		public event System.Action<int> NodeChosen = delegate { };
 

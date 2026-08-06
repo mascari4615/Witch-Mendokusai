@@ -268,6 +268,23 @@ namespace WitchMendokusai
 			return false;
 		}
 
+		/// <summary>
+		/// 성좌를 연다 — HUD 버튼이 부르는 그 문이다.
+		/// ★ 공개인 이유: 검사기가 *사람과 같은 문*으로 들어와야 「열리긴 하는가」를 잴 수 있다.
+		///   지금까지 성좌 화면은 규칙층만 두드려 검사했고, 화면 자체는 한 번도 안 열어봤다.
+		/// </summary>
+		public void OpenResearchPanel() => OpenResearch();
+
+		/// <summary> 지금 성좌가 떠 있나 — 화면 상태를 밖에서 물을 수 있어야 「닫히는가」도 잰다. </summary>
+		public bool IsResearchOpen => researchView != null && researchView.IsOpen;
+
+		/// <summary> 성좌 화면이 실제로 차지한 자리 — 「전체화면인가」는 이걸로만 답할 수 있다. </summary>
+		public UnityEngine.Rect ResearchScreenRect =>
+			researchView != null ? researchView.ScreenRect : UnityEngine.Rect.zero;
+
+		/// <summary> 성좌에 그려진 마디 수 — 0 이면 그래프가 아니라 빈 판이다. </summary>
+		public int ResearchNodeCount => researchNodes.Count;
+
 		private void OpenResearch()
 		{
 			if (match == null || match.CoreCombatant == null)
@@ -483,7 +500,8 @@ namespace WitchMendokusai
 		///   빠뜨린다(실제로 성좌만 닫고 지도·메뉴를 빠뜨렸다). 닫는 자리를 하나로 두면 새 창은
 		///   여기 한 줄만 더하면 된다.
 		/// </summary>
-		private void CloseOverlays()
+		/// <summary> 덮고 있는 것(성좌·지도·메뉴)을 전부 닫는다 — ESC 가 부르는 그 문이다. </summary>
+		public void CloseOverlays()
 		{
 			CloseResearch();
 

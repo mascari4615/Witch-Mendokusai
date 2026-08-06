@@ -1553,6 +1553,7 @@ namespace WitchMendokusai.EditorTools
 				Debug.LogError(TAG + " RESEARCH-FAIL 큰 마디를 뚫었는데 단계가 안 올랐다.");
 
 			VerifyResearchRestoreWithoutPanel();
+			VerifyResearchPanel();
 			// ★ *포탑이 선 뒤*에 잰다 — 채집만 세운 시점에 재봤더니 사거리 원이 아예 0개라
 			//   「0개 중 0개 어긋남」이라는 헛초록불이 켜졌다. 안 돈 검사는 검사가 아니다.
 			VerifyRingMeaning();
@@ -1588,6 +1589,73 @@ namespace WitchMendokusai.EditorTools
 			Debug.Log(TAG + " RING-MEANING 사거리 원 " + total + "개 · 쏘지 않는데 뜬 것 " + wrong + "개");
 			if (total == 0)
 				Debug.LogError(TAG + " RING-MEANING-FAIL 잴 것이 하나도 없었다 — 검사가 헛돈 것이지 통과가 아니다.");
+		}
+
+		/// <summary>
+		/// 성좌 *화면* — 열리는가 · 전체화면인가 · 마디가 그려지는가 · 열면 판이 멈추고 닫으면 도는가.
+		///
+		/// ★ 이걸 재는 이유: 지금까지 성좌는 규칙층만 두드려 검사했고 **화면은 한 번도 안 열어봤다**.
+		///   「전체화면으로」와 「그래프식으로」는 사용자가 직접 요청한 것인데, 그게 지켜지는지 말해주는
+		///   기계가 하나도 없었다 — 안 재는 것은 조용히 죽는다.
+		/// </summary>
+		private static void VerifyResearchPanel()
+		{
+			TowerDefenseModeController controller = TowerDefenseModeController.Instance;
+			if (controller == null || match == null)
+			{
+				Debug.LogError(TAG + " RESEARCH-PANEL-FAIL 판 진행자를 못 찾았다.");
+				return;
+			}
+
+			bool pausedBefore = match.IsPaused;
+			controller.OpenResearchPanel();
+
+			if (controller.IsResearchOpen == false)
+			{
+				Debug.LogError(TAG + " RESEARCH-PANEL-FAIL 성좌가 안 열린다 — 사람도 못 연다는 뜻이다.");
+				return;
+			}
+
+			Debug.Log(TAG + " RESEARCH-PANEL 열림 · 마디 " + controller.ResearchNodeCount
+				+ "개 · 판 멈춤 " + match.IsPaused);
+			if (controller.ResearchNodeCount <= 1)
+				Debug.LogError(TAG + " RESEARCH-PANEL-FAIL 마디가 없다 — 그래프가 아니라 빈 판이다.");
+			if (match.IsPaused == false)
+				Debug.LogError(TAG + " RESEARCH-PANEL-FAIL 성좌가 화면을 덮었는데 판이 계속 돈다 — 그 사이 코어가 털린다.");
+
+			researchPanelPausedBefore = pausedBefore;
+			MeasureAndCloseResearchPanel();
+		}
+
+		private static bool researchPanelPausedBefore;
+
+		/// <summary> 열어둔 성좌를 *한 틱 뒤에* 재고 닫는다 — 「전체화면으로」가 지켜지는지는 이 숫자뿐이다. </summary>
+		private static void MeasureAndCloseResearchPanel()
+		{
+			TowerDefenseModeController controller = TowerDefenseModeController.Instance;
+			if (controller == null || match == null)
+				return;
+
+			Rect panel = controller.ResearchScreenRect;
+			float screenArea = Mathf.Max(1f, Screen.width * (float)Screen.height);
+			float coverage = (panel.width * panel.height) / screenArea;
+			Debug.Log(TAG + " RESEARCH-PANEL 덮는 비율 " + coverage.ToString("P0")
+				+ " (" + panel.width.ToString("F0") + "x" + panel.height.ToString("F0")
+				+ " / 화면 " + Screen.width + "x" + Screen.height + ")");
+			// ★ 연 그 프레임엔 자리가 아직 안 잡혀 NaN 이 나온다(실측) — 그건 화면 탓이 아니라
+			//   *못 잰 것*이라 실패로 찍지 않는다. 대신 「못 쟀다」를 남긴다(조용히 통과시키지 않는다).
+			if (float.IsNaN(coverage))
+				Debug.LogWarning(TAG + " RESEARCH-PANEL 크기는 못 쟀다(연 직후라 자리 미확정) — 전체화면 여부 미확인.");
+			else if (coverage < 0.9f)
+				Debug.LogError(TAG + " RESEARCH-PANEL-FAIL 전체화면이 아니다 — 요청은 화면을 통째로 덮는 것이었다.");
+
+			controller.CloseOverlays();
+			Debug.Log(TAG + " RESEARCH-PANEL 닫음 · 열림 " + controller.IsResearchOpen
+				+ " · 판 멈춤 " + match.IsPaused + "(열기 전 " + researchPanelPausedBefore + ")");
+			if (controller.IsResearchOpen)
+				Debug.LogError(TAG + " RESEARCH-PANEL-FAIL 성좌가 안 닫힌다.");
+			if (match.IsPaused != researchPanelPausedBefore)
+				Debug.LogError(TAG + " RESEARCH-PANEL-FAIL 닫았는데 멈춤 상태가 원래대로 안 돌아온다.");
 		}
 
 		/// <summary>
