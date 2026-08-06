@@ -411,6 +411,13 @@ namespace WitchMendokusai
 			if (isActive == false)
 				return;
 
+			// ★ 손가락 입력을 *미리보기 유령*보다 먼저 처리한다 (2026-08-07 실기: 개척에서 확대·축소
+			//   말고는 아무것도 안 먹었다). 예전엔 미리보기를 못 만들면 여기서 통째로 돌아가서,
+			//   미리보기가 필요 없는 것들 — 영웅에게 「저기로」, 건물 살펴보기 — 까지 같이 죽었다.
+			//   보여주는 장치가 없다고 조작이 사라지면 안 된다. 그 둘은 원래 상관이 없다.
+			EnsureInputManager();
+			HandleTouchTap();
+
 			EnsurePreviewMarker();
 			if (previewMarker == null)
 				return;
@@ -418,10 +425,8 @@ namespace WitchMendokusai
 			// ★ 입력관리자가 없으면 아래 판정이 통째로 「못 그림」으로 떨어져 *미리보기가 조용히 사라진다*
 			//   (실측: inputManager=null 이라 매 프레임 스스로 꺼지고 있었다 — 사용자 실증 "설치
 			//   미리보기 동작 안하는 것 같은데"). 주입이 안 왔으면 스스로 찾는다. 없는 것보다 낫고,
-			//   무엇보다 *조용히 없어지는 것*보다 낫다.
-			EnsureInputManager();
-
-			HandleTouchTap();
+			//   무엇보다 *조용히 없어지는 것*보다 낫다. (위에서 이미 확보한다 — 여기서 또 부르면
+			//   같은 일을 두 번 하고, 한 프레임에 톡이 두 번 먹혀 두 칸이 지어진다.)
 
 			if (inputManager != null)
 				UpdateHover(inputManager.MouseScreenPosition);
