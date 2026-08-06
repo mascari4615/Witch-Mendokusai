@@ -125,19 +125,28 @@ namespace WitchMendokusai
 			// ★ 칸 하나하나가 아니라 *바구니*에 건다. 칸은 소지품 크기가 바뀌면 통째로 다시 만들어지는데,
 			//   그때 칸에 걸어둔 것은 같이 사라진다 — 「어제는 눌렸는데 오늘은 안 눌린다」가 되고,
 			//   아무 에러도 안 난다. 바구니는 안 사라지므로 한 번 걸면 끝이다.
-			grid.RegisterCallback<PointerDownEvent>(evt =>
-			{
-				if (evt.target is not VisualElement target)
-					return;
+			// ★ **내려가는 길에** 잡는다(TrickleDown). 칸은 이미 자기 눌림을 처리하고 *거기서 전파를
+			//   끊는다* — 올라오는 길에 걸면 이 손짓은 영영 안 온다. 실제로 처음에 그렇게 짰다가
+			//   「걸어는 놨는데 한 번도 안 불리는 코드」가 될 뻔했다.
+			// ★ 손가락일 때만 뜻을 바꾼다. 컴퓨터에서 칸 클릭은 예전부터 *물건을 집고 놓는* 일이고,
+			//   그걸 빼앗으면 되던 것이 깨진다. 폰엔 그 길이 아예 없어서 고르기가 먼저다.
+			grid.RegisterCallback<PointerDownEvent>(
+				evt =>
+				{
+					if (inputManager == null || inputManager.IsTouchMode == false)
+						return;
+					if (evt.target is not VisualElement target)
+						return;
 
-				Slot slot = target as Slot ?? target.GetFirstAncestorOfType<Slot>();
-				if (slot == null || slot.Index < 0 || slot.Index >= SLOT_COUNT)
-					return;
+					Slot slot = target as Slot ?? target.GetFirstAncestorOfType<Slot>();
+					if (slot == null || slot.Index < 0 || slot.Index >= SLOT_COUNT)
+						return;
 
-				SelectSlot(slot.Index);
-				// 칸을 고르려던 손가락이 그 아래 땅까지 누르면, 고르자마자 지어진다.
-				evt.StopPropagation();
-			});
+					SelectSlot(slot.Index);
+					// 칸을 고르려던 손가락이 그 아래 땅까지 누르면, 고르자마자 지어진다.
+					evt.StopPropagation();
+				},
+				TrickleDown.TrickleDown);
 		}
 
 		private void SelectSlot(int index)
