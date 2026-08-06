@@ -669,18 +669,20 @@ namespace WitchMendokusai.EditorTools
 		private static void LogHudState()
 		{
 			UIRoot uiRoot = Object.FindAnyObjectByType<UIRoot>();
-			// 개척 HUD 는 OverlayLayer 에 붙는다 — 본편 HUD(HudLayer)를 통째 숨겨도 살아남아야 하기 때문.
+			// ★ 개척 HUD 는 **ModeHudLayer** 에 붙는다(본편 HUD 를 통째 숨겨도 살아남아야 해서 한 단 위 층).
+			//   검사기는 옛 층(OverlayLayer)을 보고 있어서 **매번 HUD-FAIL 을 뱉었다** — 화면엔 멀쩡히
+			//   떠 있는데 확인 도구만 못 찾는 상태다. 이런 실패가 상시로 뜨면 사람이 로그를 통째로 무시하게 된다.
 			// HudLayer 를 보던 예전 assert 는 그 설계 변경 이후로 항상 실패하는 죽은 검사였다.
-			if (uiRoot == null || uiRoot.OverlayLayer == null)
+			if (uiRoot == null || uiRoot.ModeHudLayer == null)
 			{
-				Debug.LogError(TAG + " HUD-FAIL UIRoot/OverlayLayer 없음");
+				Debug.LogError(TAG + " HUD-FAIL UIRoot/ModeHudLayer 없음");
 				return;
 			}
 
-			VisualElement hud = uiRoot.OverlayLayer.Q(nameof(TowerDefenseHudView));
+			VisualElement hud = uiRoot.ModeHudLayer.Q(nameof(TowerDefenseHudView));
 			if (hud == null)
 			{
-				Debug.LogError(TAG + " HUD-FAIL OverlayLayer 에 TowerDefenseHudView 없음");
+				Debug.LogError(TAG + " HUD-FAIL ModeHudLayer 에 TowerDefenseHudView 없음");
 				return;
 			}
 
@@ -1581,8 +1583,8 @@ namespace WitchMendokusai.EditorTools
 		private static void VerifyUiPointerGuard()
 		{
 			UIRoot uiRoot = Object.FindAnyObjectByType<UIRoot>();
-			VisualElement hud = uiRoot != null && uiRoot.OverlayLayer != null
-				? uiRoot.OverlayLayer.Q(nameof(TowerDefenseHudView))
+			VisualElement hud = uiRoot != null && uiRoot.ModeHudLayer != null
+				? uiRoot.ModeHudLayer.Q(nameof(TowerDefenseHudView))
 				: null;
 			Button button = hud != null ? hud.Q<Button>() : null;
 			if (button == null)
@@ -1928,8 +1930,8 @@ namespace WitchMendokusai.EditorTools
 		private static void VerifyHudLayout(string phase)
 		{
 			UIRoot uiRoot = Object.FindAnyObjectByType<UIRoot>();
-			VisualElement hud = uiRoot != null && uiRoot.OverlayLayer != null
-				? uiRoot.OverlayLayer.Q(nameof(TowerDefenseHudView))
+			VisualElement hud = uiRoot != null && uiRoot.ModeHudLayer != null
+				? uiRoot.ModeHudLayer.Q(nameof(TowerDefenseHudView))
 				: null;
 			if (hud == null)
 			{
@@ -1988,8 +1990,8 @@ namespace WitchMendokusai.EditorTools
 				return;
 
 			UIRoot uiRoot = Object.FindAnyObjectByType<UIRoot>();
-			VisualElement hud = uiRoot != null && uiRoot.OverlayLayer != null
-				? uiRoot.OverlayLayer.Q(nameof(TowerDefenseHudView))
+			VisualElement hud = uiRoot != null && uiRoot.ModeHudLayer != null
+				? uiRoot.ModeHudLayer.Q(nameof(TowerDefenseHudView))
 				: null;
 			VisualElement banner = hud != null ? hud.Q("BannerWrapper") : null;
 
