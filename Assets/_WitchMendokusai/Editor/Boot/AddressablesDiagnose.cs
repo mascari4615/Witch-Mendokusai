@@ -78,6 +78,114 @@ namespace WitchMendokusai.EditorTools
 		}
 
 		/// <summary>
+		/// SBP 가 마지막으로 보는 값을 **직접** 들여다본다 — 둘 중 무엇이냐로 고침이 갈리기 때문이다:
+		///   ① `buildWindowExtension == null`        → 배치모드엔 빌드 창 확장이 없다(구조적 한계)
+		///   ② `EnabledBuildButton() == false`       → 확장은 있는데 「빌드 못 하는 상태」라고 답한다
+		/// `ModuleManager` 는 internal 이라 리플렉션으로 본다. 진단 전용이고, 못 읽으면 못 읽었다고 적는다
+		/// (여기서 조용히 넘어가면 이 진단기도 「아무것도 안 보고 통과」가 된다).
+		/// </summary>
+		private static void AppendBuildWindowExtensionProbe(StringBuilder builder, BuildTarget target, BuildTargetGroup group)
+		{
+			builder.AppendLine($"{LOG_PREFIX} ── SBP 가 보는 마지막 값 (리플렉션) ──");
+
+			System.Type moduleManagerType = typeof(EditorWindow).Assembly.GetType("UnityEditor.Modules.ModuleManager");
+			if (moduleManagerType == null)
+			{
+				builder.AppendLine($"{LOG_PREFIX}   ModuleManager 타입을 못 찾았다 — 이 유니티에선 이 경로로 확인 불가.");
+				return;
+			}
+
+			object moduleName = InvokeStatic(moduleManagerType, "GetTargetStringFrom", new object[] { target })
+				?? InvokeStatic(moduleManagerType, "GetTargetStringFrom", new object[] { group, target });
+			builder.AppendLine($"{LOG_PREFIX}   module 이름 : {(moduleName == null ? "(못 읽음)" : moduleName.ToString())}");
+
+			if (moduleName == null)
+			{
+				return;
+			}
+
+			object extension = InvokeStatic(moduleManagerType, "GetBuildWindowExtension", new object[] { moduleName });
+			builder.AppendLine($"{LOG_PREFIX}   buildWindowExtension : {(extension == null ? "**null** ← ① 구조적(배치모드엔 창이 없다)" : extension.GetType().Name)}");
+
+			if (extension == null)
+			{
+				return;
+			}
+
+			System.Reflection.MethodInfo enabled = extension.GetType().GetMethod("EnabledBuildButton");
+			if (enabled == null)
+			{
+				builder.AppendLine($"{LOG_PREFIX}   EnabledBuildButton 메서드를 못 찾았다.");
+				return;
+			}
+
+			object value = enabled.Invoke(extension, null);
+			builder.AppendLine($"{LOG_PREFIX}   EnabledBuildButton() : {value} ← false 면 ② (확장은 있는데 빌드 불가라고 답함)");
+
+			if (value is bool enabledValue && enabledValue == false)
+			{
+				// ★ 확장이 「빌드 못 한다」고 답하는 흔한 이유들을 그대로 찍는다.
+				//   데스크톱 확장의 `EnabledBuildButton()` 은 대개 「Install in Build Folder」 같은
+				//   *숨은 에디터 설정* 하나로 false 가 된다 — 그건 프로젝트 설정이라 **고칠 수 있다.**
+				builder.AppendLine($"{LOG_PREFIX}   ── 그 false 를 만들 만한 값들 ──");
+				builder.AppendLine($"{LOG_PREFIX}     installInBuildFolder : {EditorUserBuildSettings.installInBuildFolder}  ← true 면 빌드 버튼이 꺼진다");
+				builder.AppendLine($"{LOG_PREFIX}     development          : {EditorUserBuildSettings.development}");
+				builder.AppendLine($"{LOG_PREFIX}     buildAppBundle       : {EditorUserBuildSettings.buildAppBundle}");
+				builder.AppendLine($"{LOG_PREFIX}     selectedStandaloneTarget : {EditorUserBuildSettings.selectedStandaloneTarget}");
+				builder.AppendLine($"{LOG_PREFIX}     activeScriptCompilationDefines 수 : {EditorUserBuildSettings.activeScriptCompilationDefines.Length}");
+
+				// 유니티 6 은 **빌드 프로파일**이 빌드 버튼을 가른다. 활성 프로파일이 깨져 있으면
+				// 확장이 「빌드 못 함」이라고 답할 수 있다 — 위 설정들이 다 정상이라 여기가 다음 자리다.
+				object activeProfile = ReadStaticProperty(typeof(EditorUserBuildSettings), "activeBuildProfile");
+				builder.AppendLine($"{LOG_PREFIX}     activeBuildProfile : {(activeProfile == null ? "null (= 클래식 설정 사용)" : activeProfile.ToString())}");
+
+				// 확장 인스턴스가 들고 있는 상태 — 배치모드에서 초기화가 안 된 흔적이 있는지 본다.
+				foreach (System.Reflection.FieldInfo field in extension.GetType().GetFields(
+					System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic))
+				{
+					object fieldValue = field.GetValue(extension);
+					builder.AppendLine($"{LOG_PREFIX}     ext.{field.Name} = {(fieldValue == null ? "null" : fieldValue.ToString())}");
+				}
+			}
+		}
+
+		private static object ReadStaticProperty(System.Type type, string propertyName)
+		{
+			System.Reflection.PropertyInfo property = type.GetProperty(
+				propertyName,
+				System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic);
+			if (property == null)
+			{
+				return null;
+			}
+
+			return property.GetValue(null);
+		}
+
+		private static object InvokeStatic(System.Type type, string methodName, object[] args)
+		{
+			System.Type[] argTypes = new System.Type[args.Length];
+			for (int i = 0; i < args.Length; i++)
+			{
+				argTypes[i] = args[i].GetType();
+			}
+
+			System.Reflection.MethodInfo method = type.GetMethod(
+				methodName,
+				System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic,
+				null,
+				argTypes,
+				null);
+
+			if (method == null)
+			{
+				return null;
+			}
+
+			return method.Invoke(null, args);
+		}
+
+		/// <summary>
 		/// 실패 이유가 설정에 있으면 여기 보인다. 그룹마다 스키마가 몇 개인지까지 찍는 이유:
 		/// 스키마 0 인 그룹은 빌드에서 통째로 빠지는데, 로그엔 경고 한 줄로만 흐른다.
 		/// </summary>
@@ -107,6 +215,8 @@ namespace WitchMendokusai.EditorTools
 			{
 				builder.AppendLine($"{LOG_PREFIX}   → 모듈이 없다. 이 가지는 SBP 가 **통과시킨다**(return true) — 원인이 아니다.");
 			}
+
+			AppendBuildWindowExtensionProbe(builder, activeTarget, activeGroup);
 			builder.AppendLine($"{LOG_PREFIX} BuildRemoteCatalog : {settings.BuildRemoteCatalog}");
 			builder.AppendLine($"{LOG_PREFIX} ActivePlayerDataBuilderIndex : {settings.ActivePlayerDataBuilderIndex}");
 
