@@ -1,0 +1,22 @@
+<!--
+  TASK-WM-201 — 진단 장치를 코드 가지치기(IL2CPP managed stripping)에서 지킨다.
+
+  이 클래스들은 *이름으로만* 살아난다: 설정은 `Resources.Load<T>`, 설치는
+  `RuntimeInitializeOnLoadMethod`. 둘 다 정적 호출 그래프에 안 잡혀서, 안드로이드 빌드에서
+  통째로 잘려나갈 수 있다. 잘리면 아무 에러 없이 *로그도 표시기도 없는 앱*이 된다 —
+  2026-08-06 실기에서 실제로 그런 모습이었다(에셋은 빌드에 들어갔는데 화면엔 아무것도 없음).
+
+  진단 장치가 진단 불가로 사라지는 것이 이 과제에서 가장 나쁜 실패라, 여기만 못 박는다.
+-->
+<linker>
+  <assembly fullname="WM.Core">
+    <type fullname="WitchMendokusai.DeviceLogRelay" preserve="all" />
+    <type fullname="WitchMendokusai.DeviceLogSettings" preserve="all" />
+    <type fullname="WitchMendokusai.DeviceLogBuffer" preserve="all" />
+    <type fullname="WitchMendokusai.DeviceLogSpool" preserve="all" />
+    <type fullname="WitchMendokusai.DeviceLogStatus" preserve="all" />
+    <type fullname="WitchMendokusai.BuildStampOverlay" preserve="all" />
+    <type fullname="WitchMendokusai.BuildStampSettings" preserve="all" />
+    <type fullname="WitchMendokusai.BuildInfo" preserve="all" />
+  </assembly>
+</linker>
