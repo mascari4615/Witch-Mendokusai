@@ -1,4 +1,4 @@
-name: Build (Windows / laptop)
+name: Build (Unity player / laptop)
 
 # TASK-WM-195 — 노트북 빌드머신.
 # 데스크톱에서 빌드를 돌리면 작업이 막히고 성능을 다 먹으므로, 플레이어 빌드는

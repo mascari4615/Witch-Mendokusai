@@ -49,6 +49,40 @@ jobs:
         run: |
           powershell -NoProfile -ExecutionPolicy Bypass -File .github/scripts/wm-prune-retention.test.ps1
 
+      # A workflow that fires on another workflow references it BY NAME. Rename the
+      # producer and the consumer stops firing - silently, forever, with no error
+      # anywhere. Measured 2026-08-06: the build workflow was still called
+      # "Build (Windows / laptop)" long after it built Android too, and the runtime
+      # smoke hung off that exact string. Renaming without this gate would have
+      # unhooked the smoke.
+      - name: workflow_run names must match a real workflow
+        shell: powershell
+        run: |
+          $names = @{}
+          foreach ($f in Get-ChildItem .github/workflows -Filter *.yml) {
+            $first = (Get-Content $f.FullName -TotalCount 40) | Where-Object { $_ -match '^name:\s*(.+)$' } | Select-Object -First 1
+            if ($first -match '^name:\s*(.+)$') { $names[$Matches[1].Trim()] = $f.Name }
+          }
+          $bad = @()
+          foreach ($f in Get-ChildItem .github/workflows -Filter *.yml) {
+            foreach ($line in Get-Content $f.FullName) {
+              if ($line -match '^\s*workflows:\s*\[(.+)\]\s*$') {
+                foreach ($raw in $Matches[1] -split ',') {
+                  $want = $raw.Trim().Trim('"').Trim("'")
+                  if ($want -and -not $names.ContainsKey($want)) { $bad += ($f.Name + ' -> ' + $want) }
+                }
+              }
+            }
+          }
+          if ($bad.Count -gt 0) {
+            Write-Host 'These workflow_run triggers point at a workflow name that does not exist:'
+            $bad | ForEach-Object { Write-Host ('  ' + $_) }
+            Write-Host 'Known names:'
+            $names.Keys | ForEach-Object { Write-Host ('  ' + $_) }
+            exit 1
+          }
+          Write-Host 'OK - every workflow_run name matches a real workflow.'
+
       - name: Check repo scripts keep their UTF-8 BOM
         shell: powershell
         run: |
