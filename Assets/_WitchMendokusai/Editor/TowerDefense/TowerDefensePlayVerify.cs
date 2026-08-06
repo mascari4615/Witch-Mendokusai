@@ -2100,6 +2100,8 @@ namespace WitchMendokusai.EditorTools
 		private static int resumeBuildings;
 		private static int resumeSurvived;
 		private static int resumeLives;
+		private static int resumeTraps;
+		private static int resumeWalls;
 
 		private static void CaptureResumeSnapshot()
 		{
@@ -2112,9 +2114,12 @@ namespace WitchMendokusai.EditorTools
 			resumeBuildings = match.DollLabels.Count;
 			resumeSurvived = match.SurvivedSeconds;
 			resumeLives = match.Lives;
+			resumeTraps = match.TrapCount;
+			resumeWalls = match.WallCellCount;
 			Debug.Log(TAG + " RESUME-SNAPSHOT seed=" + resumeSeed + " 자원=" + resumeResource
 				+ " 정수=" + resumeEssence + " 건물=" + resumeBuildings
-				+ " 버틴시간=" + resumeSurvived + " 목숨=" + resumeLives);
+				+ " 버틴시간=" + resumeSurvived + " 목숨=" + resumeLives
+				+ " 함정=" + resumeTraps + " 벽=" + resumeWalls);
 		}
 
 		/// <summary>
@@ -2142,7 +2147,9 @@ namespace WitchMendokusai.EditorTools
 				+ " · 정수 " + resumeEssence + "→" + resumed.Essence
 				+ " · 건물 " + resumeBuildings + "→" + resumed.DollLabels.Count
 				+ " · 버틴시간 " + resumeSurvived + "→" + resumed.SurvivedSeconds
-				+ " · 목숨 " + resumeLives + "→" + resumed.Lives;
+				+ " · 목숨 " + resumeLives + "→" + resumed.Lives
+				+ " · 함정 " + resumeTraps + "→" + resumed.TrapCount
+				+ " · 벽 " + resumeWalls + "→" + resumed.WallCellCount;
 
 			// ★ 시계가 안 돌아오면 오래 버틴 판이 이어하는 순간 처음으로 되감긴다(마수가 갑자기 약해진다).
 			//   딱 맞을 필요는 없다 — 재진입에 걸린 몇 초는 흘러도 되지만, 0 으로 되감기면 안 된다.
@@ -2152,14 +2159,17 @@ namespace WitchMendokusai.EditorTools
 			bool sameWallet = resumed.Resource == resumeResource && resumed.Essence == resumeEssence;
 			// ★ 「그 이상」이면 통과시키면 안 된다 — 유령이 한 채씩 느는 결함이 정확히 그렇게 숨어 있었다.
 			bool sameBuildings = resumed.DollLabels.Count == resumeBuildings;
+			// 함정·벽도 「그대로」의 일부다 — 인형만 세면 깔아둔 것이 사라져도 초록이 뜬다.
+			bool sameField = resumed.TrapCount == resumeTraps && resumed.WallCellCount == resumeWalls;
 
-			if (sameGround && sameWallet && sameBuildings && sameClock && sameLives)
+			if (sameGround && sameWallet && sameBuildings && sameClock && sameLives && sameField)
 				Debug.Log(verdict + " → 나갔다 들어와도 그 판 그대로 ✔");
 			else
 				Debug.LogError(verdict + " → 이어하기가 판을 그대로 못 돌려준다"
 					+ (sameGround ? "" : " [땅이 다름]")
 					+ (sameWallet ? "" : " [지갑이 다름]")
 					+ (sameBuildings ? "" : " [건물 수가 다름]")
+					+ (sameField ? "" : " [함정·벽이 다름]")
 					+ (sameClock ? "" : " [시계가 되감김]")
 					+ (sameLives ? "" : " [목숨이 다름]"));
 		}

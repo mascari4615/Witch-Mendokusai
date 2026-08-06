@@ -17,6 +17,14 @@ namespace WitchMendokusai
 		public List<int> Perks; // TowerDefenseBuildingPerk 들
 	}
 
+	/// <summary> 저장된 함정 한 개 — 어디에, 몇 번 더 터질 수 있는 채로. </summary>
+	[Serializable]
+	public struct TowerDefenseTrapSave
+	{
+		public Vector3 Position;
+		public int ChargesLeft;
+	}
+
 	/// <summary>
 	/// 판 도중 저장(TASK-WM-194) — 껐다 켜면 처음부터였다.
 	///
@@ -80,6 +88,12 @@ namespace WitchMendokusai
 		/// 그 일대가 통째로 사슬 밖이 되어 거기 있던 것이 전부 되살아나지 못한다.
 		/// </summary>
 		public List<Vector3> Outposts = new();
+
+		/// <summary>
+		/// 깔아둔 함정. 자리와 *남은 횟수*를 같이 적는다 — 자리만 적으면 이어할 때마다 함정이
+		/// 새것으로 되살아나 「쓰면 닳는 것」이라는 규칙이 저장 한 번으로 무효가 된다.
+		/// </summary>
+		public List<TowerDefenseTrapSave> Traps = new();
 
 		/// <summary> 이 저장이 지금 형식과 맞는가 — 안 맞으면 조용히 버린다(깨진 판을 되살리는 것이 더 나쁘다). </summary>
 		public bool IsCompatible => Version == CURRENT_VERSION && string.IsNullOrEmpty(StageId) == false;

@@ -38,6 +38,9 @@ namespace WitchMendokusai
 
 		public int ChargesLeft => chargesLeft;
 
+		/// <summary> 이어하기 복원 — 새것으로 깔린 함정에 저장된 남은 횟수를 얹는다. </summary>
+		public void RestoreCharges(int charges) => chargesLeft = Mathf.Max(0, charges);
+
 		private void Update()
 		{
 			if (enemyPool == null || chargesLeft <= 0)

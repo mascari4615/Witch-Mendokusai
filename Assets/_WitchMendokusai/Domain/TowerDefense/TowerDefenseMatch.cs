@@ -1063,6 +1063,13 @@ namespace WitchMendokusai
 		/// </summary>
 		public bool RestoreInProgress { get; private set; }
 
+		/// <summary> 지금 판에 깔려 있는 함정 수 — 이어하기가 함정을 잃는지 하네스가 직접 센다. </summary>
+		public int TrapCount => stageRoot != null ? stageRoot.GetComponentsInChildren<TowerDefenseTrap>(true).Length : 0;
+
+		/// <summary> 지금 판의 벽 칸 수 — 같은 이유. </summary>
+		public int WallCellCount => wallCells.Count;
+
+
 		/// <summary> 화면이 읽는 알림 목록. </summary>
 		public IReadOnlyList<TowerDefenseAlerts.Alert> Alerts => alerts.Active;
 
@@ -2651,6 +2658,19 @@ namespace WitchMendokusai
 				save.Buildings.Add(building);
 			}
 
+			// 함정도 적는다 — 자리와 남은 횟수를 같이. 안 적으면 깔아둔 함정이 이어하는 순간 통째로 사라진다.
+			if (stageRoot != null)
+			{
+				foreach (TowerDefenseTrap trap in stageRoot.GetComponentsInChildren<TowerDefenseTrap>(true))
+				{
+					save.Traps.Add(new TowerDefenseTrapSave
+					{
+						Position = stageRoot.InverseTransformPoint(trap.transform.position),
+						ChargesLeft = trap.ChargesLeft,
+					});
+				}
+			}
+
 			// 전초기지도 적는다 — 이건 보급의 *새 원점*이라 안 적으면 그 일대가 통째로 사슬 밖이 된다.
 			foreach (Transform outpost in outposts)
 			{
@@ -2741,6 +2761,32 @@ namespace WitchMendokusai
 				}
 				if (wallsBack < save.Walls.Count)
 					Debug.LogWarning($"{nameof(TowerDefenseMatch)}: 이어하기 — 벽 {save.Walls.Count - wallsBack}칸을 못 되살렸다.");
+			}
+
+			// 함정은 보급 사슬과 무관하다 — 자리만 맞으면 서므로 한 번에 되돌린다.
+			if (save.Traps != null && stageRoot != null)
+			{
+				foreach (TowerDefenseTrapSave trapSave in save.Traps)
+				{
+					Vector3 trapWorld = stageRoot.TransformPoint(trapSave.Position);
+					core.AddResource(stage.TrapCost); // 되살리는 것은 짓는 일이 아니다.
+					if (TryPlaceTrap(trapWorld) == false)
+					{
+						core.TrySpend(stage.TrapCost);
+						continue;
+					}
+
+					// ★ 남은 횟수를 도로 얹는다 — 안 하면 다 쓴 함정이 새것으로 살아나 「닳는다」가 무효가 된다.
+					foreach (TowerDefenseTrap trap in stageRoot.GetComponentsInChildren<TowerDefenseTrap>(true))
+					{
+						if ((trap.transform.position - trapWorld).sqrMagnitude <= 1f)
+						{
+							trap.RestoreCharges(trapSave.ChargesLeft);
+							break;
+						}
+					}
+					yield return null;
+				}
 			}
 
 			// ★ **순서에 기대지 않는다.** 지을 수 있는 자리는 「보급이 닿는 곳」이고, 보급은 내 건물이
