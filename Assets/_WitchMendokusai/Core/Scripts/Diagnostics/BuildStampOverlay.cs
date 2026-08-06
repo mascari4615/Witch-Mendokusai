@@ -56,12 +56,15 @@ namespace WitchMendokusai
 
             _installed = true;
 
+            // 릴레이와 같은 함정 — 활성 상태로 붙이면 설정을 넣기 전에 Awake 가 돈다.
             GameObject host = new GameObject(nameof(BuildStampOverlay));
+            host.SetActive(false);
             DontDestroyOnLoad(host);
             host.hideFlags = HideFlags.HideAndDontSave;
             BuildStampOverlay overlay = host.AddComponent<BuildStampOverlay>();
             overlay._settings = settings;
             overlay._panelSettings = panelSettings;
+            host.SetActive(true);
         }
 
         private static bool ShouldShow(BuildStampSettings settings)

@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: DeviceLogSettings
   m_EditorClassIdentifier: WM.Core::WitchMendokusai.DeviceLogSettings
   <Enabled>k__BackingField: 1
-  <EnabledInEditor>k__BackingField: 0
+  <EnabledInEditor>k__BackingField: 1
   <Endpoint>k__BackingField: https://yawnbot.mascari4615.com/device-log
   <FlushIntervalSeconds>k__BackingField: 3
   <MaxLinesPerBatch>k__BackingField: 200

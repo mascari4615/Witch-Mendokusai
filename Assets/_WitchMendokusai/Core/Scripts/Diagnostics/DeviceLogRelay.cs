@@ -80,11 +80,16 @@ namespace WitchMendokusai
 #endif
             _installed = true;
 
+            // ★ 비활성 상태로 만들어서 붙인다 — 활성 GameObject 에 AddComponent 하면 그 자리에서
+            //   Awake 가 돌아 *설정을 넣기 전에* 터진다(2026-08-06 실기: 폰에서 로그도 표시기도
+            //   없었던 진짜 이유. NRE 가 나도 아무도 못 보니 무음이었다).
             GameObject host = new GameObject(nameof(DeviceLogRelay));
+            host.SetActive(false);
             DontDestroyOnLoad(host);
             host.hideFlags = HideFlags.HideAndDontSave;
             DeviceLogRelay relay = host.AddComponent<DeviceLogRelay>();
             relay._settings = settings;
+            host.SetActive(true);
         }
 
         private DeviceLogSettings _settings;
