@@ -91,6 +91,13 @@ namespace WitchMendokusai
 		/// <summary>
 		/// 자동시전을 되살린다. <c>UnitObject.Init</c> 이 이 값을 **일부러 보존**하므로(그 보존이 애초에
 		/// 투기장 트랩#1 때문에 들어갔다) 재-Init 로는 안 돌아온다 — 명시 복구 말고는 길이 없다.
+		///
+		/// ★ brain 과 달리 <b>무조건 true</b> 로 되돌리는 게 맞다(스냅샷 불요) — 전수 확인 결과
+		///   <c>AutoCastEnabled = false</c> 를 놓는 곳은 <b>매치 시스템 둘뿐</b>이고
+		///   (<see cref="Enlist"/> / <c>TacticDriver.Initialize</c>) 기본값은 true 다.
+		///   즉 매치 밖에서 이걸 꺼두는 주체가 없으므로 「원래 꺼져 있었을 수도」가 성립하지 않는다.
+		///   brain 은 반대다 — 프리팹마다 꺼둔 것이 있을 수 있어서 <b>끈 것만</b> 기록해 되돌린다.
+		///   (개척의 lease 도 같은 이유로 여기만 하드코딩 true 다.)
 		/// </summary>
 		public static void RestoreAutoCast(GameObject unitGameObject)
 		{
