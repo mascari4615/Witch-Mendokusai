@@ -7,7 +7,10 @@ namespace WitchMendokusai
 	/// 플레이어 전투/이동 이벤트를 전부 제거(관전자는 조작 X) + 카메라 조작만 유지.
 	/// ArenaModeController 가 GameMode.Arena 진입 시 SetInputStrategy(new InputStrategyArena()),
 	/// 이탈 시 new InputStrategyWorld() 로 복귀. 씬 단위(InputStrategySelector)가 아닌 모드 단위 스왑.
-	/// 이동(Move 축)은 IsSpectating 으로 차단(관전 중 플레이어 이동 불가), 시점(CameraRotate/Look)은 유지.
+	/// v1 관전 = **고정 카메라뷰** — Move / CameraRotate / Look **전 축**을 IsSpectating 으로 차단한다
+	/// (사유는 AxisReturnConditions 주석: 플레이어 카메라 리그 결합 회피). 남는 조작은 줌·모드토글·시점토글·나가기뿐.
+	/// ⚠ 예전 이 줄은 「시점(CameraRotate/Look)은 유지」라고 적혀 있었다 — 설계가 바뀐 뒤에도 요약만 남아
+	///   코드와 반대말을 하고 있었다. 여기 룰은 「주석이 계약처럼 읽히는 곳부터 의심하라」다.
 	/// </summary>
 	public class InputStrategyArena : InputStrategyBase
 	{
