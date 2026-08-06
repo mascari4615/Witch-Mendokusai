@@ -27,8 +27,23 @@ namespace WitchMendokusai.EditorTools
 
         public int callbackOrder => 0;
 
+        /// <summary>
+        /// 빌드 도중 에셋을 새로 심는 일이 유니티를 네이티브로 죽이는지 가리는 스위치
+        /// (2026-08-06, 안드로이드 빌드 4연속 크래시 — 죽는 자리가 매번 임포트 직후였다).
+        /// `WM_DIAG_BUILD_STEPS=0` 이면 이 단계를 통째로 건너뛴다.
+        /// </summary>
+        private static bool StepsDisabled()
+        {
+            return Environment.GetEnvironmentVariable("WM_DIAG_BUILD_STEPS") == "0";
+        }
+
         public void OnPreprocessBuild(BuildReport report)
         {
+            if (StepsDisabled())
+            {
+                Debug.Log("[WM-BUILD] WM_DIAG_BUILD_STEPS=0 — 진단 자산 심기 건너뜀");
+                return;
+            }
             bool development = (report.summary.options & BuildOptions.Development) != 0;
             BuildInfo info = Collect(development, report.summary.platform.ToString());
 
