@@ -21,6 +21,9 @@ namespace WitchMendokusai
 
 		// 팀 식별 틴트 — 관전자가 한눈에 편을 가르는 색이라 눈으로 맞춰야 한다.
 		// 팀0 = 욘/아군, 팀1 = 라이벌.
+		[Tooltip("스폰끼리 최소한 떨어져야 하는 거리. 겹쳐 세우면 물리가 유닛을 맵 밖으로 튕긴다. 0 = 검사 끔.")]
+		[SerializeField] private float minSpawnSeparation = 1f;
+
 		[Header("Team Tint")]
 		[SerializeField] private Color team0Tint = new(0.45f, 0.75f, 1f);
 		[SerializeField] private Color team1Tint = new(1f, 0.45f, 0.45f);
@@ -112,6 +115,19 @@ namespace WitchMendokusai
 				if (pair.Value > spawnsPerTeam)
 				{
 					Debug.LogError($"{nameof(ArenaMatch)}: 팀 {pair.Key} 유닛 {pair.Value} > 맵 SpawnsPerTeam({spawnsPerTeam}) — 스폰 겹침. 시작 불가.");
+					return false;
+				}
+
+				// ★ 개수만 맞아도 자리가 겹칠 수 있다 — 맵이 데이터라 사람이 수치를 만지고,
+				//   폭보다 여백을 크게 잡는 순간 스폰이 한 점으로 모인다. 겹쳐 세우면 물리가
+				//   밀어낼 방향을 못 찾아 유닛을 맵 밖으로 날리고, 그 유닛은 죽지도 않아 매치가 안 끝난다.
+				//   이 가드의 주석이 원래부터 「스폰 겹침 차단」이라고 말하고 있었는데 실제로는 개수만 봤다.
+				IReadOnlyList<Vector3> teamSpawns = config.Map.GetSpawns(pair.Key);
+				if (SpawnRules.TryFindOverlap(teamSpawns, minSpawnSeparation, out int firstSpawn, out int secondSpawn))
+				{
+					Debug.LogError($"{nameof(ArenaMatch)}: 팀 {pair.Key} 스폰 {firstSpawn}·{secondSpawn} 이 "
+						+ $"{minSpawnSeparation} 보다 가깝다({teamSpawns[firstSpawn]} / {teamSpawns[secondSpawn]}) — "
+						+ $"맵 수치(폭 대비 여백) 확인. 시작 불가.");
 					return false;
 				}
 			}
