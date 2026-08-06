@@ -311,7 +311,10 @@ namespace WitchMendokusai.EditorTools
 					VerifySupply();
 					// 씨앗 공유는 새 판에서만 확인된다 — 재시작이 그 새 판이므로 여기서 걸어둔다.
 					ArmSeedShareCheck();
-					step = placeOnly ? Step.SelectedLayout : Step.Restart;
+					// ★ 전체 실행도 이 길로 보낸다. 예전엔 「배치만」 변형만 들렀는데, 그 변형을 아무도
+					//   안 돌리는 바람에 *선택 패널 겹침 · 툴팁 겹침 · 코어 카드 · 이어하기* 검사가
+					//   로그 전체에서 0회였다(오늘 하루치를 다 뒤져도 한 줄도 없다). 도는 길에 있어야 검사다.
+					step = Step.SelectedLayout;
 					selectedLayoutAt = now;
 					return;
 
@@ -331,6 +334,16 @@ namespace WitchMendokusai.EditorTools
 					SelectCoreForLayout();
 					VerifyCoreCards();
 					}
+					// ★ 전체 실행은 여기까지만 — 아래 이어하기 검증은 *시계가 충분히 쌓일 때까지* 기다리는데,
+					//   전체 실행에서는 그 조건이 안 차서 이 단계에 7분을 매달려 있다가 시간초과로 죽었다(실측).
+					//   겹침·툴팁·코어 카드만 보고 원래 가던 재시작으로 잇는다. 이어하기는 「배치만」이 맡는다.
+					if (placeOnly == false)
+					{
+						restartAt = now;
+						step = Step.Restart;
+						return;
+					}
+
 					// ★ 시계가 0 일 때 나가면 「되감겼는지」를 가릴 수 없다(0 이나 1 이나 통과).
 					//   눈금이 실제로 쌓인 뒤에 나가야 이어하기가 시계를 지키는지가 증명된다.
 					if (match != null && match.SurvivedSeconds < RESUME_MIN_CLOCK)
