@@ -345,7 +345,11 @@ namespace WitchMendokusai
 
 				bool spectatorActive = UnityEngine.GameObject.Find("ArenaSpectatorCamera") != null;
 				bool isSpectating = GameConditionBridge.Get(GameConditionType.IsSpectating);
-				Debug.Log($"[Arena-Mode-Verify] ENTER-STATE mode={GameModeManager.Instance.CurrentMode} spectatorCamActive={spectatorActive} isSpectating={isSpectating} (spectatorCamActive=True + 별도 MATCH-START 로그 = 관전화면+매치 구동)");
+				// 매치 구동 여부를 *있는 신호*로 찍는다 — 예전엔 「별도 MATCH-START 로그가 있나」를
+				// 읽는 쪽이 알아채야 했다(없는 줄을 알아채는 건 사람이 제일 못 하는 일).
+				bool matchRunning = ArenaModeController.TryGetExistingInstance(out ArenaModeController arenaController)
+					&& arenaController.IsMatchRunning;
+				Debug.Log($"[Arena-Mode-Verify] ENTER-STATE mode={GameModeManager.Instance.CurrentMode} spectatorCamActive={spectatorActive} isSpectating={isSpectating} matchRunning={matchRunning} (셋 다 True = 관전화면+입력잠금+매치 구동)");
 
 				GameModeManager.Instance.SetMode(GameMode.Default);
 				modeVerifyPhase = 1;

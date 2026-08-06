@@ -27,6 +27,13 @@ namespace WitchMendokusai
 			return controller != null;
 		}
 
+		/// <summary>
+		/// 지금 매치가 실제로 돌고 있나 — 검증 하네스가 「관전 화면은 떴는데 매치는 안 돌더라」를
+		/// *있는 신호*로 말할 수 있게 연다. 없으면 읽는 쪽이 **없는 줄(MATCH-START)을 알아채야** 하는데,
+		/// 그건 「no-news is bad-news」라 사람이 놓친다.
+		/// </summary>
+		public bool IsMatchRunning => arenaMatch != null && arenaMatch.IsRunning;
+
 		private GameModeManager gameModeManager;
 		private InputManager inputManager;
 
