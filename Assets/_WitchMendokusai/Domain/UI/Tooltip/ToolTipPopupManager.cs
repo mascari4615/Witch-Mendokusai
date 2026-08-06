@@ -41,7 +41,12 @@ namespace WitchMendokusai
 
 		private float toolTipWidth;
 		private float toolTipHeight;
-		private const float ToolTipPadding = 30f;
+
+		[Header("Placement")]
+		[Tooltip("툴팁이 화면 가장자리에서 최소한 띄우는 여백(px).")]
+		[SerializeField] private float screenPadding = 30f;
+		[Tooltip("마우스 커서 위로 얼마나 띄울지(px). 커서가 툴팁을 가리지 않게.")]
+		[SerializeField] private float cursorVerticalOffset = 40f;
 
 		private void Awake()
 		{
@@ -90,8 +95,8 @@ namespace WitchMendokusai
 		{
 			Vector2 mousePos = inputManager.MouseScreenPosition;
 			return new Vector3(
-				Mathf.Clamp(mousePos.x, toolTipWidth / 2 + ToolTipPadding, Screen.width - toolTipWidth / 2 - ToolTipPadding),
-				Mathf.Clamp(mousePos.y + 40, ToolTipPadding, Screen.height - toolTipHeight - ToolTipPadding), 0);
+				Mathf.Clamp(mousePos.x, toolTipWidth / 2 + screenPadding, Screen.width - toolTipWidth / 2 - screenPadding),
+				Mathf.Clamp(mousePos.y + cursorVerticalOffset, screenPadding, Screen.height - toolTipHeight - screenPadding), 0);
 		}
 
 		public void Hide()

@@ -25,6 +25,8 @@ namespace WitchMendokusai
 		[SerializeField] private CinemachineImpulseSource impulseSource;
 		[SerializeField] private CinemachineTargetGroup chatTargetGroup;
 		[SerializeField] private float xDiff = 3f;
+		[Tooltip("말풍선이 뜰 때 카메라가 옆으로 비켜서는 데 걸리는 시간(초). 대화의 호흡이라 눈으로 맞춘다.")]
+		[SerializeField] private float chatMoveDuration = 0.2f;
 
 		[Header("카메라 모드 매트릭스 (TASK-WM-163)")]
 		[Tooltip("전 vcam 부모 (Cameras holder) — pitch 적용 pivot. yaw 는 이 CameraManager 자신(yaw 루트)에 적용.")]
@@ -354,7 +356,7 @@ namespace WitchMendokusai
 		{
 			float startX = chatPositionTransposer.TargetOffset.x;
 			float elapsed = 0f; // 경과 시간
-			const float duration = 0.2f; // 이동에 걸리는 시간
+			float duration = Mathf.Max(0.0001f, chatMoveDuration); // 0 이면 나누기가 깨진다
 
 			while (elapsed < duration)
 			{
