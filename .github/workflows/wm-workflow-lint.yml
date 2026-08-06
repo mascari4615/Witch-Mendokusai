@@ -41,6 +41,14 @@ jobs:
         run: |
           powershell -NoProfile -ExecutionPolicy Bypass -File .github/scripts/check-workflow-ascii.ps1
 
+      # The prune step deletes build folders on the laptop and runs even after a failed
+      # build. Its policy had no test, and getting it wrong is silent + unrecoverable
+      # (a pinned card pointing at a deleted file, or the failure log you wanted gone).
+      - name: Build retention policy holds
+        shell: powershell
+        run: |
+          powershell -NoProfile -ExecutionPolicy Bypass -File .github/scripts/wm-prune-retention.test.ps1
+
       - name: Check repo scripts keep their UTF-8 BOM
         shell: powershell
         run: |
