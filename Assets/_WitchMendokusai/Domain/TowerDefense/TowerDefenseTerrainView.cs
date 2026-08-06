@@ -115,8 +115,10 @@ namespace WitchMendokusai
 					laneMaterial.SetColor("_BaseColor", laneColor);
 				laneRenderer.sharedMaterial = laneMaterial;
 				laneRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
-				// 바닥 바로 다음 줄 — 인형·마수(스프라이트)는 그 뒤에 그려지므로 절대 가려지지 않는다.
-				laneRenderer.sharedMaterial.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Geometry + 1;
+				// ★ 그리는 *순서*만 바꾸면 인형이 계속 잘린다 — 불투명한 판이 남긴 **깊이**에 스프라이트가
+				//   걸리기 때문이다(사용자 실증: "길이 공중에 떠 있어서 유닛이 중간에 짤린다").
+				//   왜 순서로는 안 되는지 = MakeFloorDecal 의 ★ 주석. 이 호출이 한 번 사라진 적이 있다 — 지우지 말 것.
+				TowerDefenseVisuals.MakeFloorDecal(laneRenderer.sharedMaterial);
 			}
 		}
 

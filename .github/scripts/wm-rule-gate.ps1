@@ -225,6 +225,9 @@ $anchors = @(
     @{ File = 'DomainSDK/TowerDefense/TowerDefenseFlowField.cs'
        Needle = 'SignedAngle(referenceStep'
        Why = 'path spreading drifts to one corner again -- the horde becomes a single line' },
+    @{ File = 'Domain/TowerDefense/TowerDefenseTerrainView.cs'
+       Needle = 'MakeFloorDecal(laneRenderer'
+       Why = 'the path overlay writes depth again and slices unit sprites in half' },
     @{ File = 'Domain/TowerDefense/TowerDefensePlacement.cs'
        Needle = 'animator.enabled = false'
        Why = 'the build preview ghost animates again and reads as an already-built unit' }
