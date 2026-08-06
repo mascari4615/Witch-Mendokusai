@@ -144,7 +144,11 @@ namespace WitchMendokusai
 
 			if (soManager.DataSOs.TryGetValue(typeof(ChapterSO), out Dictionary<int, DataSO> chapterDict) == false)
 			{
-				Debug.LogWarning("[MagicBookView] SOManager.DataSOs[ChapterSO] 미등록 — DataLoader 가 Addressable 라벨 'ChapterSO' 로 자동 load. ChapterSO 자산 Inspector 에서 Addressable 라벨 'ChapterSO' 추가 필요");
+				// ★ 옛 문구는 「Addressable 라벨을 붙여라」였는데, 실제로는 라벨이 멀쩡한데도 떴다
+				//   (2026-08-06 실측 — 그 문구를 믿고 엉뚱한 곳을 파게 만든다). 이 시점에 확실한 건
+				//   「아직 안 들어왔다」뿐이므로 그것만 말한다. 라벨 누락이면 로드 자체가 실패해 따로 뜬다.
+				Debug.LogWarning("[MagicBookView] 마도서 챕터가 아직 안 들어왔다 — 자료 로드보다 화면이 먼저 열렸을 수 있다. "
+					+ "로드가 끝난 뒤에도 비어 있으면 챕터 자산의 Addressable 라벨과 번호 중복을 본다.");
 				return;
 			}
 

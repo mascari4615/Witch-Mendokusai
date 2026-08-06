@@ -119,8 +119,16 @@ namespace WitchMendokusai
 
 				foreach (T asset in assets)
 				{
+					// ★ 등록처는 번호를 열쇠로 쓴다 — 번호가 겹치면 **먼저 온 자산이 조용히 사라진다**.
+					//   컴파일도 로드도 성공이라 아무도 모르고, 화면에는 「내용이 없다」로만 보인다.
+					//   2026-08-06 실측: 마도서 챕터 3개가 전부 0번이라 둘이 버려지고 있었다.
+					if (soManager.DataSOs[type].TryGetValue(asset.ID, out DataSO existing) && existing != asset)
+					{
+						Debug.LogError($"[DataLoader] {type.Name} 번호 {asset.ID} 중복 — "
+							+ $"'{existing.name}' 이(가) '{asset.name}' 에 덮여 사라진다. 자산 번호를 서로 다르게 줘라.");
+					}
+
 					soManager.DataSOs[type][asset.ID] = asset;
-					// Debug.Log($"Load {type.Name}: {asset.ID}, {soManager.DataSOs[type][asset.ID].name}");
 				}
 
 				// Debug.Log($"{typeof(T).Name} 로드 완료, {assets.Count}개");
