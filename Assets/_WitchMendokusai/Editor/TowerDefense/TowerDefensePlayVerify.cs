@@ -580,6 +580,13 @@ namespace WitchMendokusai.EditorTools
 			// ★ 채집 스폰은 코루틴(1프레임 양보 후 수입 반영)이라 *세운 그 틱에 읽으면 0*이다.
 			//   그래서 확인(VerifyEssence)이 아니라 여기서 미리 세운다 — 1.5초 뒤에 읽힌다.
 			//   바깥 노드(배수 큰 곳)를 우선 — 정수는 거기서만 난다.
+			// ★ 돈이 모자라 못 세운 것을 「규칙이 막았다」와 구분할 수 없다 — 실측에서 둘째 채집이 늘
+			//   거절돼 정수 경로가 매번 「확인 못 함」으로 끝났다. 값만 채워두고, *배치 규칙은 그대로* 둔다
+			//   (보급·암반·점유는 안 건드린다 — 그걸 우회하면 확인 자체가 거짓이 된다).
+			// 정수도 채운다 — 바깥 노드는 *전초기지로 보급을 늘려야* 닿는데 그게 정수를 쓴다.
+			// 판에서는 둥지를 부수면 정수가 나므로 막힌 설계가 아니지만, 하네스는 그 시간을 못 기다린다.
+			match.GrantForVerification(2000, 200);
+
 			int harvestersPlaced = 0;
 			nodeOrder.Clear();
 			for (int index = 0; index < nodeLocals.Count; index++)
@@ -611,6 +618,44 @@ namespace WitchMendokusai.EditorTools
 					if (harvestersPlaced == 0)
 						firstHarvesterLocal = local;
 					harvestersPlaced++;
+				}
+			}
+
+			// ★ 바깥으로 한 걸음 — 전초기지가 새 보급 원점이 된다. 이걸 안 하면 먼 노드는 영영 거절돼
+			//   「바깥 채집이 정수를 내는가」가 매 판 확인 못 함으로 끝난다(실측: 여덟 판 내리 그랬다).
+			if (harvestersPlaced > 0 && match.Essence >= match.Stage.OutpostEssenceCost)
+			{
+				// ★ 「멀다」로 고르면 안 된다 — 거리로 여덟 판을 골랐는데 전부 안쪽 등급이었다(판에 바깥
+				//   광맥이 25개나 있는데도). 등급을 판에 직접 묻는다.
+				List<Vector3> outerNodes = new List<Vector3>();
+				match.CollectOuterNodeLocalPositions(outerNodes);
+				if (outerNodes.Count == 0)
+				{
+					Debug.LogError(TAG + " OUTER-HARVEST-FAIL 판에 바깥 광맥이 없다.");
+				}
+				else
+				{
+					// ★ 광맥 좌표는 *무대 기준*이다 — 코어의 월드 좌표와 그냥 빼면 거리가 1900 이 나온다
+					//   (지도는 250 남짓인데). 한 공간으로 맞춰서 잰다.
+					outerNodes.Sort((left, right) =>
+						(left - coreLocal).sqrMagnitude.CompareTo((right - coreLocal).sqrMagnitude));
+					Vector3 targetLocal = outerNodes[0]; // 가장 가까운 바깥 광맥 — 사람도 여기부터 뻗는다.
+
+					// 보급 원점을 그 광맥 쪽으로 한 걸음씩 — 한 번에 못 닿으면 여러 걸음 놓는다.
+					for (int step = 1; step <= 4 && match.Essence >= match.Stage.OutpostEssenceCost; step++)
+					{
+						Vector3 towardLocal = Vector3.Lerp(coreLocal, targetLocal, step / 5f);
+						match.TryPlaceOutpost(stageRoot.TransformPoint(towardLocal));
+					}
+
+					Debug.Log(TAG + " OUTPOST-REACH 바깥 광맥까지 보급 뻗기 · 전초기지 " + match.OutpostCount
+						+ "개 · 목표거리 " + (targetLocal - coreLocal).magnitude.ToString("F1")
+						+ " · 보급거리 " + match.EffectiveSupplyReach.ToString("F1"));
+
+					int beforeFar = match.Resource;
+					placement.PlaceHarvesterAt(WorldToScreen(modeCamera, stageRoot.TransformPoint(targetLocal)));
+					Debug.Log(TAG + " OUTER-HARVEST 바깥 광맥 채집 "
+						+ (match.Resource < beforeFar ? "성공" : "거절됨(보급 미도달)"));
 				}
 			}
 
@@ -1280,7 +1325,7 @@ namespace WitchMendokusai.EditorTools
 
 			// 배치는 이미 DoPlacements 가 했다(코루틴이 끝날 시간을 벌기 위해) — 여기선 결과만 읽는다.
 			string verdict = TAG + " ESSENCE harvesters=" + match.HarvesterCount
-				+ " outer=" + match.OuterHarvesters
+				+ " outer=" + match.OuterHarvesters + "/판의바깥광맥=" + match.OuterNodeCount
 				+ " outerSupplied=" + match.SuppliedOuterHarvesters
 				+ " outerPowered=" + match.PoweredOuterHarvesters
 				+ " nextIncome=" + match.NextWaveIncome
@@ -1291,8 +1336,10 @@ namespace WitchMendokusai.EditorTools
 			//   (실측: 실제로는 바깥에 세운 적이 없거나, 세웠어도 사슬이 안 닿아 있었다).
 			if (match.HarvesterCount == 0)
 				Debug.Log(verdict + " → 채집을 못 세움(자원 부족/자리 없음) — 확인 못 함");
+			else if (match.OuterNodeCount == 0)
+				Debug.LogError(verdict + " → 이 판에 바깥 광맥이 아예 없다 — 정수를 낼 자리가 없으니 「멀리 나가야 강해진다」 축이 통째로 죽는다.");
 			else if (match.OuterHarvesters == 0)
-				Debug.Log(verdict + " → 바깥 노드에 세운 게 없음(안쪽만 잡음) — 정수 0 은 정상, 확인 못 함");
+				Debug.Log(verdict + " → 바깥 광맥은 있는데 거기 못 세움 — 정수 0 은 정상, 확인 못 함");
 			else if (match.SuppliedOuterHarvesters == 0)
 				Debug.Log(verdict + " → 바깥에 세웠지만 사슬이 안 닿음 — 정수 0 은 규칙대로, 확인 못 함");
 			else if (match.PoweredOuterHarvesters == 0)

@@ -3334,6 +3334,42 @@ namespace WitchMendokusai
 		///   ③ 둘 다 됐는데 안 들어온다(진짜 결함). 이 구분이 없으면 「바깥 노드인데 정수가 안 나온다」 같은
 		///   *거짓 실패*가 계속 찍힌다(실측: 실제로는 바깥에 세운 적이 없었다).
 		/// </summary>
+		/// <summary>
+		/// 이 판에 *바깥 등급* 광맥이 몇 개나 있나 — 정수가 날 수 있는 자리의 총수.
+		/// ★ 이걸 안 보면 「바깥에 세운 게 없음」이 사람 탓인지 판 탓인지 갈리지 않는다(실측에서 갈렸다).
+		/// </summary>
+		/// <summary>
+		/// 바깥 등급 광맥의 자리들 — 「멀다」와 「바깥 등급이다」는 다르다(거리로 고르면 매번 안쪽을 집는다).
+		/// ★ **무대 기준 좌표**다(월드 아님). 월드 좌표와 섞어 재면 거리가 1900 같은 헛수가 나온다 — 실측.
+		/// </summary>
+		public void CollectOuterNodeLocalPositions(List<Vector3> into)
+		{
+			if (into == null)
+				return;
+
+			into.Clear();
+			for (int index = 0; index < activeNodeIsOuter.Count && index < activeNodePositions.Count; index++)
+			{
+				if (activeNodeIsOuter[index])
+					into.Add(activeNodePositions[index]);
+			}
+		}
+
+		public int OuterNodeCount
+		{
+			get
+			{
+				int count = 0;
+				foreach (bool isOuter in activeNodeIsOuter)
+				{
+					if (isOuter)
+						count++;
+				}
+
+				return count;
+			}
+		}
+
 		public int OuterHarvesters { get; private set; }
 		public int SuppliedOuterHarvesters { get; private set; }
 
