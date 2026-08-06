@@ -76,6 +76,7 @@ namespace WitchMendokusai.EditorTools
 		private static double lastGateLog;
 		private static bool startClicked;
 		private static bool signalChecked;
+		private static double markCheckAt;
 		private static TowerDefenseMatch match;
 		private static bool matchEndedSeen;
 		private static int lastWaveIndex;
@@ -151,6 +152,7 @@ namespace WitchMendokusai.EditorTools
 			lastGateLog = -1.0;
 			startClicked = false;
 			signalChecked = false;
+			markCheckAt = 0.0;
 			selectedLayoutChecked = false; // 판마다 다시 잰다.
 			assaultStart = -1.0;
 			lastAliveEnemyCount = -1;
@@ -200,6 +202,12 @@ namespace WitchMendokusai.EditorTools
 				return;
 			}
 
+			if (markCheckAt > 0.0 && now >= markCheckAt)
+			{
+				markCheckAt = 0.0;
+				CountOnScreenMarks();
+			}
+
 			// ★ 신호·서식지는 **판이 도는 중에** 재야 한다. 배치 직후는 아직 첫 틱도 안 돈 시점이라
 			//   전기 계산이 시작조차 안 했고, 서식지 스폰 코루틴도 절반만 끝나 있다 — 거기서 재면
 			//   멀쩡한 것을 「0 이다」라고 잡는다(실측으로 한 번 겪었다: 버틴시간 0초에 전부 0).
@@ -208,6 +216,7 @@ namespace WitchMendokusai.EditorTools
 				signalChecked = true;
 				VerifySignalField();
 				VerifyLairsAndInvasion();
+				VerifyOnScreenMarks();
 			}
 
 			switch (step)
@@ -824,6 +833,74 @@ namespace WitchMendokusai.EditorTools
 				Debug.LogError($"{TAG} 서식지 FAIL — 0곳. 넓히는 것이 위험이 되는 층이 통째로 빠졌다.");
 			if (match.IsBorderInvasion && string.IsNullOrEmpty(nextDirection))
 				Debug.LogError($"{TAG} 예고 FAIL — 다음 파도 방향을 못 말한다. 예고가 성립하지 않는다.");
+		}
+
+		/// <summary>
+		/// 예고 표식과 경고 표식이 **화면에 실제로 떠 있는가**.
+		///
+		/// ★ 여태 이 둘은 「코드가 있다」까지만 확인됐다. 화면 층에 글자가 안 붙으면 규칙이 아무리
+		///   맞아도 사람에겐 없는 기능이다(도달 불가). 뜬 개수를 직접 센다.
+		/// ★ 경고는 사건이 나야 뜨므로 검증용으로 하나 띄우고, 그것이 화면까지 가는지만 본다.
+		/// </summary>
+		private static void VerifyOnScreenMarks()
+		{
+			if (match == null)
+				return;
+
+			match.RaiseAlertForVerification("검증 알림");
+			// ★ 한 틱 미루는 것으로는 부족하다 — 에디터가 앞에 없으면 Play 루프가 느려져 *게임 프레임이
+			//   한 장도 안 지난 채* 재게 된다(오늘 세 번째로 같은 실수를 했다). 실제 시간이 흐른 뒤에 센다.
+			markCheckAt = EditorApplication.timeSinceStartup + 1.5;
+		}
+
+		private static void CountOnScreenMarks()
+		{
+			{
+				UIDocument document = Object.FindAnyObjectByType<UIDocument>();
+				if (document == null || document.rootVisualElement == null)
+				{
+					Debug.LogError(TAG + " 표식 FAIL — 화면 문서가 없다.");
+					return;
+				}
+
+				int invasionMarks = 0;
+				int alertMarks = 0;
+				int alertMarksHidden = 0;
+				int alertSlots = 0;
+				foreach (VisualElement element in document.rootVisualElement.Query<Label>().Build())
+				{
+					Label label = (Label)element;
+					string text = label.text;
+					bool hidden = element.resolvedStyle.display == DisplayStyle.None;
+
+					// 알림 칸은 *만들어졌는지*와 *글자가 들어갔는지*와 *보이는지*가 각각 다른 문제다.
+					if (label.name == "AlertMark" || (string.IsNullOrEmpty(text) == false && text.Contains("❗")))
+						alertSlots++;
+
+					if (string.IsNullOrEmpty(text))
+						continue;
+					if (text.Contains("❗"))
+					{
+						if (hidden)
+							alertMarksHidden++;
+						else
+							alertMarks++;
+					}
+					if (hidden)
+						continue;
+					if (text.Contains("▼") || text.Contains("에서 온다"))
+						invasionMarks++;
+				}
+
+				// ★ 「규칙에 있나 / 화면에 갔나」를 갈라 찍는다 — 0 하나만 보면 어디서 끊겼는지 모른다.
+				int ruleAlerts = match != null ? match.Alerts.Count : -1;
+				Debug.Log($"{TAG} 화면 표식 — 파도 예고 {invasionMarks}개 · 경고 {alertMarks}개"
+					+ $" (규칙층 알림 {ruleAlerts}개 · 글자든 알림칸 {alertSlots}개 · 숨은 경고 {alertMarksHidden}개)");
+				if (invasionMarks == 0)
+					Debug.LogError(TAG + " 예고 FAIL — 다음 파도 표식이 화면에 하나도 없다. 규칙만 맞고 사람에겐 안 보인다.");
+				if (alertMarks == 0)
+					Debug.LogError(TAG + " 경고 FAIL — 띄운 알림이 화면까지 안 갔다.");
+			}
 		}
 
 		private static void LogHudState()

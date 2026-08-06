@@ -2036,6 +2036,7 @@ namespace WitchMendokusai
 			while (alertMarks.Count < TowerDefenseAlerts.MAX_ALERTS)
 			{
 				Label mark = new Label(string.Empty);
+				mark.name = "AlertMark"; // 하네스가 「칸은 있는데 글자가 없나」를 가릴 수 있어야 한다.
 				mark.style.position = Position.Absolute;
 				mark.style.fontSize = TEXT_SMALL;
 				mark.style.unityFontStyleAndWeight = FontStyle.Bold;

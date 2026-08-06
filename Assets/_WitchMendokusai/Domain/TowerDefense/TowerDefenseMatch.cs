@@ -1063,6 +1063,18 @@ namespace WitchMendokusai
 		/// </summary>
 		public bool RestoreInProgress { get; private set; }
 
+		/// <summary>
+		/// 알림을 하나 띄운다(검증 전용) — 화면 표식이 *실제로 뜨는지*는 사건이 나야만 잴 수 있는데,
+		/// 서식지가 깨어나거나 건물이 부서지는 것을 하네스가 만들어내긴 어렵다. 알림 자체가 화면까지
+		/// 도달하는지만 여기서 확인한다(사건 발생 경로는 그 위에 얹힌 별개 문제).
+		/// </summary>
+		public void RaiseAlertForVerification(string label)
+		{
+			if (stage == null || coreCombatant == null)
+				return;
+			alerts.Raise(label, coreCombatant.Position, Time.time, stage.AlertSeconds);
+		}
+
 		/// <summary> 지금 판에 깔려 있는 함정 수 — 이어하기가 함정을 잃는지 하네스가 직접 센다. </summary>
 		public int TrapCount => stageRoot != null ? stageRoot.GetComponentsInChildren<TowerDefenseTrap>(true).Length : 0;
 
