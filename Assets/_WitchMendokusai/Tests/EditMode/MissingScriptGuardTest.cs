@@ -103,8 +103,14 @@ namespace WitchMendokusai.Tests
         [Test]
         public void AllProjectScenes_HaveNoMissingScripts()
         {
-            SkipIfOptionalThirdPartyAssetsMissing();
-
+            // ★ 여기선 **건너뛰지 않는다** (2026-08-06, TASK-WM-137).
+            //   이 검사는 씬 YAML 에서 guid 를 직접 읽으므로 「어느 guid 가 안 풀리는지」를 안다
+            //   → Bakery 처럼 의도적으로 gitignore 된 서드파티 guid 만 **골라서** 넘기면 된다.
+            //   반면 프리팹 쪽은 `GetMonoBehavioursWithMissingScriptCount`(개수만, guid 없음)라
+            //   골라낼 수가 없어서 아직 통째로 skip 한다 — 그쪽은 그래서 어쩔 수 없다.
+            //
+            //   왜 바꿨나: 통째로 skip 하면 Bakery 없는 환경(CI·fresh worktree)에서 **이 검사가
+            //   영영 안 돈다.** 초록인데 아무도 안 본 상태 = 검사가 없는 것과 같다.
             Regex scriptGuid = new Regex(@"m_Script:.*guid:\s*([0-9a-f]{32})");
             List<string> offenders = new List<string>();
 
@@ -130,6 +136,12 @@ namespace WitchMendokusai.Tests
                     }
                     string guidValue = match.Groups[1].Value;
                     if (guidValue == UNITY_BUILTIN_GUID)
+                    {
+                        continue;
+                    }
+                    // 의도적 gitignore 서드파티(Bakery 등) — 이 체크아웃에 없는 게 **정상**이다.
+                    // 없다고 빨간불을 켜면 거짓 경고가 게이트를 죽인다. 대신 나머지는 계속 본다.
+                    if (OPTIONAL_THIRD_PARTY_SCRIPT_GUIDS.ContainsKey(guidValue))
                     {
                         continue;
                     }
