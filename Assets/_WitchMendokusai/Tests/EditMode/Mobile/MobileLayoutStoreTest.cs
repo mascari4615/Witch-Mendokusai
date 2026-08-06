@@ -47,11 +47,22 @@ namespace WitchMendokusai.Tests
 		}
 
 		[Test]
-		public void 화면보다_큰_것은_안_움직인다()
+		public void 화면보다_큰_것도_범위_안에서는_움직인다()
 		{
-			// 범위가 뒤집히는 경우 — 아무렇게나 자르면 엉뚱한 자리로 튄다. 원래 자리가 낫다.
+			// ★ 이 시험은 원래 「안 움직인다」를 기대했는데 실제로는 움직였다 — 기대 쪽이 틀렸다.
+			//   화면보다 커도 화면 안에 남는 범위가 있으면 옮길 수 있어야 맞다(못 옮기면 그게 버그).
 			Rect huge = new Rect(0f, 0f, 5000f, 5000f);
 			Vector2 result = MobileLayoutStore.ClampToScreen(new Vector2(300f, 300f), huge, Screen1080, MinVisible);
+			Assert.AreEqual(new Vector2(300f, 300f), result);
+		}
+
+		[Test]
+		public void 화면_크기를_모를_땐_원래_자리에_둔다()
+		{
+			// 화면이 0 이면 「어디까지가 화면 안인가」가 정의되지 않는다 — 아무렇게나 자르면
+			// 조작 장치가 엉뚱한 자리로 튀어 다시 못 잡는다. 그때는 안 움직이는 편이 안전하다.
+			Rect element = new Rect(100f, 100f, 220f, 220f);
+			Vector2 result = MobileLayoutStore.ClampToScreen(new Vector2(300f, 300f), element, Vector2.zero, MinVisible);
 			Assert.AreEqual(Vector2.zero, result);
 		}
 	}

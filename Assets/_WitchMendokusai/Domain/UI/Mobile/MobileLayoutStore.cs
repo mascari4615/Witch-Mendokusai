@@ -46,6 +46,14 @@ namespace WitchMendokusai
 		public static Vector2 ClampToScreen(
 			Vector2 desiredOffset, Rect elementRect, Vector2 screenSize, float minVisible)
 		{
+			// ★ 화면 크기를 모르면 「화면 안」이 정의되지 않는다 — 그 상태로 자르면 조작 장치가
+			//   엉뚱한 자리로 튀어 다시 못 잡는다. 모를 땐 원래 자리가 유일하게 안전한 답이다.
+			//   (아래 뒤집힘 검사는 이 경우를 못 걸러낸다 — 시험으로 실측해서 알았다.)
+			if (screenSize.x <= 0f || screenSize.y <= 0f)
+			{
+				return Vector2.zero;
+			}
+
 			float minX = -elementRect.xMax + minVisible;
 			float maxX = screenSize.x - elementRect.xMin - minVisible;
 			float minY = -elementRect.yMax + minVisible;
