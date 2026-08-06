@@ -888,6 +888,82 @@ namespace WitchMendokusai
 			}
 		}
 
+		/// <summary> 영웅과 지금 살아있는 마수들의 몸싸움을 서로 무시시킨다(길막 방지). </summary>
+		private void IgnoreCollisionsWithEnemies(GameObject hero)
+		{
+			if (hero == null)
+				return;
+
+			foreach (ICombatant enemy in waveEnemies)
+			{
+				if (enemy is MonoBehaviour behaviour && behaviour != null)
+					IgnorePair(hero, behaviour.gameObject);
+			}
+		}
+
+		/// <summary> 이 마수와 영웅의 몸싸움을 무시시킨다 — 영웅이 이미 서 있을 때 태어난 마수용. </summary>
+		private void IgnoreHeroCollision(GameObject enemy)
+		{
+			if (enemy == null || heroTransform == null)
+				return;
+			IgnorePair(heroTransform.gameObject, enemy);
+		}
+
+		private static void IgnorePair(GameObject left, GameObject right)
+		{
+			if (left == null || right == null || left == right)
+				return;
+
+			Collider[] leftColliders = left.GetComponentsInChildren<Collider>(true);
+			Collider[] rightColliders = right.GetComponentsInChildren<Collider>(true);
+			foreach (Collider leftCollider in leftColliders)
+			{
+				foreach (Collider rightCollider in rightColliders)
+				{
+					if (leftCollider != null && rightCollider != null)
+						Physics.IgnoreCollision(leftCollider, rightCollider, true);
+				}
+			}
+		}
+
+		/// <summary> 영웅과 지금 살아있는 마수들의 몸싸움을 서로 무시시킨다(길막 방지). </summary>
+		private void IgnoreCollisionsWithEnemies(GameObject hero)
+		{
+			if (hero == null)
+				return;
+
+			foreach (ICombatant enemy in waveEnemies)
+			{
+				if (enemy is MonoBehaviour behaviour && behaviour != null)
+					IgnorePair(hero, behaviour.gameObject);
+			}
+		}
+
+		/// <summary> 이 마수와 영웅의 몸싸움을 무시시킨다 — 영웅이 이미 서 있을 때 태어난 마수용. </summary>
+		private void IgnoreHeroCollision(GameObject enemy)
+		{
+			if (enemy == null || heroTransform == null)
+				return;
+			IgnorePair(heroTransform.gameObject, enemy);
+		}
+
+		private static void IgnorePair(GameObject left, GameObject right)
+		{
+			if (left == null || right == null || left == right)
+				return;
+
+			Collider[] leftColliders = left.GetComponentsInChildren<Collider>(true);
+			Collider[] rightColliders = right.GetComponentsInChildren<Collider>(true);
+			foreach (Collider leftCollider in leftColliders)
+			{
+				foreach (Collider rightCollider in rightColliders)
+				{
+					if (leftCollider != null && rightCollider != null)
+						Physics.IgnoreCollision(leftCollider, rightCollider, true);
+				}
+			}
+		}
+
 		/// <summary> 대여 계약 부착 + 원본 스냅샷 — 멱등(이미 붙어 있으면 재사용, 스냅샷은 최초 1회만). </summary>
 		private static void AcquireLease(UnitObject unitObject)
 		{
@@ -1331,6 +1407,8 @@ namespace WitchMendokusai
 				if (enemyDriver == null)
 					enemyDriver = enemyUnitObject.gameObject.AddComponent<TacticDriver>();
 				enemyDriver.Initialize(stage.EnemyTactic, targeting, timeManager);
+				IgnoreHeroCollision(enemyUnitObject.gameObject); // 새로 온 마수도 영웅을 통과한다.
+				IgnoreHeroCollision(enemyUnitObject.gameObject); // 새로 온 마수도 영웅을 통과한다.
 				enemyDriver.Navigator = flowNavigator; // 지형이 있으면 돌아가고, 없으면(null) 직선 그대로.
 				enemyDriver.StopsToAttack = false;     // 걸으면서 쏜다 — 전진이 멈추면 판이 안 끝난다.
 				// 마수가 코어 둘레에 「고리」로 서는 거리 — 유출 반경이 이보다 작으면 바깥 고리는 영영 안 닿는다.
@@ -1653,6 +1731,18 @@ namespace WitchMendokusai
 			}
 
 			// 표적 등록은 세우는 문이 이미 했다 — 여기서 또 하면 같은 것이 목록에 두 번 들어간다.
+
+			// ★ 마수는 영웅을 *통과한다* (사용자 실증: "영웅 유닛으로 길막이 됨").
+			//   이동이 몸통을 쓸어 미끄러지는 방식이라, 영웅을 길목에 세워두면 그 자체가 벽이 된다 —
+			//   지어야 막는 게임에서 공짜 벽이다. 영웅은 여전히 지형·건물에 막히되(그건 유지),
+			//   마수와의 몸싸움만 서로 무시한다. 때리는 것은 사거리로 하지 몸으로 하지 않는다.
+			IgnoreCollisionsWithEnemies(heroGameObject);
+
+			// ★ 마수는 영웅을 *통과한다* (사용자 실증: "영웅 유닛으로 길막이 됨").
+			//   이동이 몸통을 쓸어 미끄러지는 방식이라, 영웅을 길목에 세워두면 그 자체가 벽이 된다 —
+			//   지어야 막는 게임에서 공짜 벽이다. 영웅은 여전히 지형·건물에 막히되(그건 유지),
+			//   마수와의 몸싸움만 서로 무시한다. 때리는 것은 사거리로 하지 몸으로 하지 않는다.
+			IgnoreCollisionsWithEnemies(heroGameObject);
 
 			heroTransform = heroGameObject.transform;
 			heroTargetPosition = heroTransform.position;

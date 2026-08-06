@@ -60,7 +60,7 @@ namespace WitchMendokusai
 			root.style.top = 0;
 			root.style.right = 0;
 			root.style.bottom = 0;
-			root.style.backgroundColor = new Color(0.04f, 0.05f, 0.08f, 0.97f);
+			root.style.backgroundColor = new Color(0.03f, 0.04f, 0.07f, 1f); // 완전 불투명 (사용자 지시).
 			root.style.display = DisplayStyle.None;
 			parent.Add(root);
 

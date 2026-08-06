@@ -775,21 +775,27 @@ namespace WitchMendokusai
 			panel.style.paddingRight = 0;
 			panel.style.paddingTop = 0;
 			panel.style.paddingBottom = 0;
-			panel.style.backgroundColor = new Color(0.02f, 0.03f, 0.05f, 0.78f);
+			// ★ 불투명하게 (사용자 지시: "배경도 불투명하게 해줘"). 반투명이면 뒤의 판이 비쳐
+			//   글자와 겹쳐 읽히지 않고, 무엇보다 「지금 무엇을 하는 창인지」가 흐려진다.
+			panel.style.backgroundColor = new Color(0.03f, 0.04f, 0.07f, 1f);
 			panel.style.display = DisplayStyle.None;
 			panel.pickingMode = PickingMode.Position;
 
 			// 안쪽 카드 — 글과 버튼은 여기 담긴다(바깥은 화면을 덮는 어둠).
+			// ★ 가운데 작은 카드가 아니라 **화면을 통째로 쓴다** (사용자 지시: "전체화면 하라고 분명히
+			//   말했는데 왜 팝업 형태야"). 판을 결정하는 창은 판만큼 커야 한다 — 카드로 두면
+			//   결국 「구석의 작은 상자」와 같은 문제로 되돌아간다.
 			VisualElement card = new VisualElement();
-			card.style.minWidth = 560;
-			card.style.maxWidth = 760;
-			card.style.paddingLeft = 28;
-			card.style.paddingRight = 28;
-			card.style.paddingTop = 22;
-			card.style.paddingBottom = 22;
-			card.style.backgroundColor = new Color(0.05f, 0.06f, 0.10f, 0.98f);
+			card.style.flexGrow = 1;
+			card.style.width = Length.Percent(100);
+			card.style.height = Length.Percent(100);
+			card.style.paddingLeft = 48;
+			card.style.paddingRight = 48;
+			card.style.paddingTop = 40;
+			card.style.paddingBottom = 40;
+			card.style.backgroundColor = new Color(0.03f, 0.04f, 0.07f, 1f);
 			card.style.alignItems = Align.Center;
-			SetRadius(card, 12);
+			card.style.justifyContent = Justify.Center;
 			panel.Add(card);
 
 			title = new Label(string.Empty);
