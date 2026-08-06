@@ -209,7 +209,25 @@ $anchors = @(
        Why = 'the nest-damage card does nothing again' },
     @{ File = 'Domain/TowerDefense/TowerDefenseMatch.cs'
        Needle = 'cost * boons.ResearchCostMultiplier'
-       Why = 'the research-discount card does nothing again' }
+       Why = 'the research-discount card does nothing again' },
+    # NOTE: a needle must match the CALL SITE, not a bare name -- a bare name also appears in the
+# method's own definition, so deleting every call still "passes". Verified by deleting a call and
+# watching this gate stay green (2026-08-06). A gate that lies is worse than no gate.
+#
+# The rest of what a wide sweeping commit erased on 2026-08-06. Each of these is a single call
+    # whose removal compiles fine, passes every test, and kills a feature the user explicitly asked for.
+    @{ File = 'Domain/TowerDefense/TowerDefenseHudView.cs'
+       Needle = 'ResearchPanelRequested()'
+       Why = 'the research button stops opening the constellation -- the whole research screen becomes unreachable' },
+    @{ File = 'Domain/TowerDefense/TowerDefenseMatch.cs'
+       Needle = 'AddApproachRing(mapLayout.CoreCell)'
+       Why = 'monsters converge on one cell again instead of surrounding the core' },
+    @{ File = 'DomainSDK/TowerDefense/TowerDefenseFlowField.cs'
+       Needle = 'SignedAngle(referenceStep'
+       Why = 'path spreading drifts to one corner again -- the horde becomes a single line' },
+    @{ File = 'Domain/TowerDefense/TowerDefensePlacement.cs'
+       Needle = 'animator.enabled = false'
+       Why = 'the build preview ghost animates again and reads as an already-built unit' }
 )
 
 # ★ 앵커 경로는 $Root 에 기대면 안 된다 — 커밋 범위 검사 모드에서는 $Root 가 비어 있어서
