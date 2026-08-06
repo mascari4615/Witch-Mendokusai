@@ -1153,7 +1153,7 @@ namespace WitchMendokusai.EditorTools
 				heroProbeTarget = heroProbeFrom + new Vector3(5f, 0f, 5f);
 				heroProbeReady = match.CommandHero(heroProbeTarget);
 				heroProbeAt = now;
-				Debug.Log(TAG + " HERO commanded=" + heroProbeReady + " from=" + heroProbeFrom + " to=" + heroProbeTarget);
+				Debug.Log(TAG + " HERO commanded=" + heroProbeReady + " from=" + heroProbeFrom + " to=" + heroProbeTarget + " step=" + step);
 			}
 
 			// 영웅이 명령한 쪽으로 실제로 가까워졌나 — 「명령을 받았다」와 「움직였다」는 다른 사실이다.
