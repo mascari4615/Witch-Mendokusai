@@ -66,6 +66,21 @@ namespace WitchMendokusai
 
 		public List<TowerDefenseBuildingSave> Buildings = new();
 
+		/// <summary>
+		/// 세운 벽 자리(무대 로컬).
+		///
+		/// ★ 벽은 「길을 그리는 것」일 뿐 아니라 **보급 사슬의 징검다리**다. 벽을 안 적으면 이어할 때
+		///   사슬이 그만큼 짧아지고, 그 너머에 있던 포탑이 「보급이 안 닿는다」로 거절돼 통째로 사라진다
+		///   (라이브 실측: 8채 중 4채가 그렇게 없어졌다). 지운 자리를 되돌리려면 자리 목록이 있어야 한다.
+		/// </summary>
+		public List<Vector3> Walls = new();
+
+		/// <summary>
+		/// 세운 전초기지 자리(무대 로컬). 전초기지는 보급의 *새 원점*이라, 안 적으면 이어할 때
+		/// 그 일대가 통째로 사슬 밖이 되어 거기 있던 것이 전부 되살아나지 못한다.
+		/// </summary>
+		public List<Vector3> Outposts = new();
+
 		/// <summary> 이 저장이 지금 형식과 맞는가 — 안 맞으면 조용히 버린다(깨진 판을 되살리는 것이 더 나쁘다). </summary>
 		public bool IsCompatible => Version == CURRENT_VERSION && string.IsNullOrEmpty(StageId) == false;
 

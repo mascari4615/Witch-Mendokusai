@@ -1057,6 +1057,12 @@ namespace WitchMendokusai
 		// 부서진 자리를 알리려면 *부서지기 전* 자리를 알아야 한다 — 사라진 뒤엔 물어볼 데가 없다.
 		private readonly Dictionary<Transform, Vector3> lastBuildingPositions = new();
 
+		/// <summary>
+		/// 이어하기 복원이 도는 중인가 — 끝나기 전에 「건물 수가 다르다」를 재면 *멀쩡한 복원*을 결함으로 잡는다.
+		/// (실측: 복원이 한 프레임씩 양보하며 도는 동안 하네스가 중간값을 읽어 거짓 실패를 냈다.)
+		/// </summary>
+		public bool RestoreInProgress { get; private set; }
+
 		/// <summary> 화면이 읽는 알림 목록. </summary>
 		public IReadOnlyList<TowerDefenseAlerts.Alert> Alerts => alerts.Active;
 
@@ -2645,6 +2651,17 @@ namespace WitchMendokusai
 				save.Buildings.Add(building);
 			}
 
+			// 전초기지도 적는다 — 이건 보급의 *새 원점*이라 안 적으면 그 일대가 통째로 사슬 밖이 된다.
+			foreach (Transform outpost in outposts)
+			{
+				if (outpost != null)
+					save.Outposts.Add(stageRoot.InverseTransformPoint(outpost.position));
+			}
+
+			// 벽도 적는다 — 벽은 보급 징검다리라, 안 적으면 사슬이 짧아져 그 너머 포탑이 되살아나지 못한다.
+			foreach (Vector2Int wallCell in wallCells)
+				save.Walls.Add(mapLayout != null ? mapLayout.CellToWorld(wallCell) : Vector3.zero);
+
 			return save;
 		}
 
@@ -2695,50 +2712,127 @@ namespace WitchMendokusai
 				core.IncomeMultiplier = boons.IncomeMultiplier * (1f + ResearchBonus(TowerDefenseResearchEffect.HarvestYield));
 			}
 
-			foreach (TowerDefenseBuildingSave building in save.Buildings)
+			RestoreInProgress = true;
+
+			// ★ 전초기지가 가장 먼저다 — 보급의 원점이라, 이게 서야 그 일대의 자리가 열린다.
+			if (save.Outposts != null && stageRoot != null)
 			{
-				Vector3 world = stageRoot.TransformPoint(building.Position);
-				// ★ 되살리는 것은 *짓는 일이 아니다* — 이미 치른 값을 또 치르면 이어할 때마다 지갑이 깎인다.
-				//   배치 경로를 그대로 쓰되(자리·보급 규칙은 지켜야 한다) 그 값만큼 미리 채워 넣고,
-				//   전부 세운 뒤 저장된 액수로 정확히 되돌린다.
-				core.AddResource(building.Kind == (int)TowerDefensePlaceableKind.Harvester
-					? stage.HarvesterCost
-					: TowerCostAt(building.Variant));
-
-				bool placed = building.Kind == (int)TowerDefensePlaceableKind.Harvester
-					? TryPlaceHarvester(world)
-					: TryPlaceTower(world, building.Variant);
-
-				if (placed == false)
-					continue;
-
-				yield return null; // 스폰이 끝나야 그 인형에 성장을 얹을 수 있다.
-				yield return null;
-
-				TowerDefenseDollLabel doll = FindDollLabel(world);
-				if (doll == null)
-					continue;
-
-				// 고른 것들은 *효과*를 다시 얹어야 한다(수치가 붙는 일이라 기록만으론 부족).
-				if (building.Perks != null)
+				foreach (Vector3 outpostLocal in save.Outposts)
 				{
-					foreach (int perk in building.Perks)
-						ApplyPerk(doll, (TowerDefenseBuildingPerk)perk);
+					core.AddEssence(stage.OutpostEssenceCost); // 되살리는 것은 짓는 일이 아니다.
+					if (TryPlaceOutpost(stageRoot.TransformPoint(outpostLocal)) == false)
+						core.TrySpendEssence(stage.OutpostEssenceCost);
+					yield return null;
 				}
-
-				// 자란 단계·경험치는 기록 그대로 얹는다 — 경험치로 되감으면 선택지가 다시 쌓인다.
-				doll.Progress.Restore(building.Level, building.Experience, building.PendingChoices, doll.Progress.Taken);
-				doll.Level = building.Level;
-
-				// 승급은 무기에도 걸려 있다 — 이름표만 올리면 사거리·피해가 1단계인 채로 남는다.
-				TowerDefenseWeapon weapon = doll.Anchor != null ? doll.Anchor.GetComponent<TowerDefenseWeapon>() : null;
-				if (weapon == null)
-					continue;
-				while (weapon.Level < building.Level && weapon.TryUpgrade())
-				{
-				}
-				RefreshTowerRing(weapon.gameObject);
 			}
+
+			// ★ 벽을 **먼저** 세운다 — 벽이 보급을 뻗어 주므로, 뒤에 놓을 포탑의 자리가 그때 열린다.
+			if (save.Walls != null && stageRoot != null)
+			{
+				int wallsBack = 0;
+				foreach (Vector3 wallLocal in save.Walls)
+				{
+					core.AddResource(stage.WallCost); // 되살리는 것은 짓는 일이 아니다 — 값은 아래에서 정확히 맞춘다.
+					if (TryPlaceWall(stageRoot.TransformPoint(wallLocal)))
+						wallsBack++;
+					else
+						core.TrySpend(stage.WallCost);
+					yield return null;
+				}
+				if (wallsBack < save.Walls.Count)
+					Debug.LogWarning($"{nameof(TowerDefenseMatch)}: 이어하기 — 벽 {save.Walls.Count - wallsBack}칸을 못 되살렸다.");
+			}
+
+			// ★ **순서에 기대지 않는다.** 지을 수 있는 자리는 「보급이 닿는 곳」이고, 보급은 내 건물이
+			//   징검다리라 *다른 건물이 먼저 서야* 뻗어 나간다. 저장 순서대로 한 번만 훑으면 바깥 것이
+			//   「보급이 안 닿는다」로 거절되고 그대로 사라진다 — 라이브 실측에서 9채가 3채로 줄었다.
+			//   그래서 **놓을 수 있는 것을 놓고, 놓은 게 있으면 다시 훑는다.** 더 못 놓으면 멈춘다.
+			List<TowerDefenseBuildingSave> pending = new(save.Buildings);
+			List<TowerDefenseBuildingSave> stillPending = new();
+
+			while (pending.Count > 0)
+			{
+				stillPending.Clear();
+				int placedThisPass = 0;
+
+				foreach (TowerDefenseBuildingSave building in pending)
+				{
+					Vector3 world = stageRoot.TransformPoint(building.Position);
+					// ★ 되살리는 것은 *짓는 일이 아니다* — 이미 치른 값을 또 치르면 이어할 때마다 지갑이 깎인다.
+					//   배치 경로를 그대로 쓰되(자리·보급 규칙은 지켜야 한다) 그 값만큼 미리 채워 넣고,
+					//   전부 세운 뒤 저장된 액수로 정확히 되돌린다.
+					int restoreCost = building.Kind == (int)TowerDefensePlaceableKind.Harvester
+						? stage.HarvesterCost
+						: TowerCostAt(building.Variant);
+					core.AddResource(restoreCost);
+
+					bool placed = building.Kind == (int)TowerDefensePlaceableKind.Harvester
+						? TryPlaceHarvester(world)
+						: TryPlaceTower(world, building.Variant);
+
+					if (placed == false)
+					{
+						// 아직 못 놓는다 = *지금은* 보급이 안 닿는다. 다음 통과에서 다시 본다.
+						// 미리 채운 값은 도로 뺀다 — 안 그러면 통과할 때마다 지갑이 부풀어 오른다.
+						core.TrySpend(restoreCost);
+						stillPending.Add(building);
+						continue;
+					}
+
+					placedThisPass++;
+
+					yield return null; // 스폰이 끝나야 그 인형에 성장을 얹을 수 있다.
+					yield return null;
+
+					TowerDefenseDollLabel doll = FindDollLabel(world);
+					if (doll == null)
+						continue;
+
+					// 고른 것들은 *효과*를 다시 얹어야 한다(수치가 붙는 일이라 기록만으론 부족).
+					if (building.Perks != null)
+					{
+						foreach (int perk in building.Perks)
+							ApplyPerk(doll, (TowerDefenseBuildingPerk)perk);
+					}
+
+					// 자란 단계·경험치는 기록 그대로 얹는다 — 경험치로 되감으면 선택지가 다시 쌓인다.
+					doll.Progress.Restore(building.Level, building.Experience, building.PendingChoices, doll.Progress.Taken);
+					doll.Level = building.Level;
+
+					// 승급은 무기에도 걸려 있다 — 이름표만 올리면 사거리·피해가 1단계인 채로 남는다.
+					TowerDefenseWeapon weapon = doll.Anchor != null ? doll.Anchor.GetComponent<TowerDefenseWeapon>() : null;
+					if (weapon == null)
+						continue;
+					while (weapon.Level < building.Level && weapon.TryUpgrade())
+					{
+					}
+					RefreshTowerRing(weapon.gameObject);
+				}
+
+				// 한 바퀴 돌았는데 하나도 못 놓았으면 더 돌아도 결과가 같다 — 그 자리들은 진짜로 못 놓는다.
+				if (placedThisPass == 0)
+				{
+					if (stillPending.Count > 0)
+					{
+						Debug.LogWarning($"{nameof(TowerDefenseMatch)}: 이어하기 — {stillPending.Count}채를 되살릴 자리가 없다"
+							+ " (지형이 바뀌었거나 보급이 끊긴 자리).");
+					}
+					break;
+				}
+
+				pending.Clear();
+				pending.AddRange(stillPending);
+			}
+
+			// 지갑을 저장된 액수로 정확히 맞춘다 — 남거나 모자라면 이어할 때마다 판이 조금씩 달라진다.
+			core.AddResource(Mathf.Max(0, save.Resource - core.Resource));
+			if (core.Resource > save.Resource)
+				core.TrySpend(core.Resource - save.Resource);
+			core.AddEssence(Mathf.Max(0, save.Essence - core.Essence));
+			if (core.Essence > save.Essence)
+				core.TrySpendEssence(core.Essence - save.Essence);
+
+			RestoreInProgress = false;
 
 			// 지갑을 저장된 액수로 정확히 맞춘다 — 남거나 모자라면 이어할 때마다 판이 조금씩 달라진다.
 			core.AddResource(Mathf.Max(0, save.Resource - core.Resource));

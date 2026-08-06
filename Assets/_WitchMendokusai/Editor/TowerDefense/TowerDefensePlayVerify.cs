@@ -376,6 +376,12 @@ namespace WitchMendokusai.EditorTools
 				case Step.ResumeCheck:
 					if (now - resumeAt < 4.0)
 						return;
+					// ★ 복원이 끝날 때까지 이 단계에 머문다 — 도는 중에 재면 중간값을 결함으로 잡는다.
+					{
+						TowerDefenseMatch restoring = Object.FindAnyObjectByType<TowerDefenseMatch>();
+						if (restoring != null && restoring.RestoreInProgress)
+							return;
+					}
 					VerifyResume();
 					if (placeOnly)
 					{
@@ -2119,6 +2125,12 @@ namespace WitchMendokusai.EditorTools
 		private static void VerifyResume()
 		{
 			TowerDefenseMatch resumed = Object.FindAnyObjectByType<TowerDefenseMatch>();
+			// ★ 복원이 아직 도는 중이면 재지 않는다 — 중간값을 읽으면 멀쩡한 복원을 결함으로 잡는다.
+			if (resumed != null && resumed.RestoreInProgress)
+			{
+				Debug.Log(TAG + " RESUME 대기 — 복원이 아직 도는 중이다(다음 틱에 다시 본다).");
+				return;
+			}
 			if (resumed == null)
 			{
 				Debug.LogError(TAG + " RESUME-FAIL 재진입 후 매치가 없음");
