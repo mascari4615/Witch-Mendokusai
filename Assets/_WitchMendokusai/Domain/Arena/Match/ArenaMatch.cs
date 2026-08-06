@@ -54,6 +54,13 @@ namespace WitchMendokusai
 
 		public event System.Action<int> MatchEnded = delegate { };
 
+		/// <summary>
+		/// Begin 이 실제로 매치를 띄웠나. **검증 하네스가 이걸 봐야 한다** — `Begin` 은 로스터·맵 검증에
+		/// 걸리면 LogError 만 남기고 조용히 돌아오는데, 그러면 `MatchEnded` 도 영영 안 온다.
+		/// 그걸 모르면 자동 검증이 판정 없이 Play 에 매달린 채로 끝난다.
+		/// </summary>
+		public bool IsRunning => started;
+
 		public bool IsConcluded => core != null && core.IsConcluded;
 		public int WinnerTeamId => core != null ? core.WinnerTeamId : ArenaModeSO.NO_WINNER;
 

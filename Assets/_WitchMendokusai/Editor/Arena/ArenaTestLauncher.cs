@@ -111,6 +111,18 @@ namespace WitchMendokusai
 				return null;
 
 			match.Begin(config, root);
+
+			// ★ Begin 은 로스터·맵 검증(팀 수 / 팀당 스폰 / 스폰 겹침)에 걸리면 **LogError 만 남기고
+			//   조용히 돌아온다.** 그러면 코루틴도 안 돌고 MatchEnded 도 안 와서, 자동 검증은
+			//   판정 한 줄 없이 Play 에 매달린 채 끝난다(타임아웃은 부팅 대기 구간에만 있다).
+			//   0클릭 검증은 「왜 안 됐는지」를 스스로 말해야 쓸모가 있다.
+			if (match.IsRunning == false)
+			{
+				Debug.LogError("[Arena-Verify] MATCH-NOT-STARTED — Begin 이 거절했다. "
+					+ "바로 위 ArenaMatch LogError 를 볼 것(로스터 TeamId 범위 / 팀당 유닛 수 / 스폰 겹침 / config 미할당).");
+				return null;
+			}
+
 			Debug.Log("[Arena-Verify] HEADLESS — UI 게이트 우회, 즉시 매치 시작. z=" + ARENA_OFFSET_Z);
 			return match;
 		}
