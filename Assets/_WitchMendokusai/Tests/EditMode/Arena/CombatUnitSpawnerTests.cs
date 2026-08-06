@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using NUnit.Framework;
 using UnityEngine;
 
@@ -19,6 +20,62 @@ namespace WitchMendokusai.Tests
 	public class CombatUnitSpawnerTests
 	{
 		private sealed class FakeBrain : UnitBrain { }
+
+
+		// ── 반납 복구 ─────────────────────────────────────────────────────────────
+		//
+		// ★ 왜 (2026-08-06 실측): 풀은 상태를 안 씻는다. 편입 때 끈 brain 을 그대로 반납하면
+		//   **그 인스턴스가 다음에 던전에서 나올 때 안 움직인다.** 투기장 자기 주석이 팀 틴트에 대해
+		//   「관전용 색이 본편으로 새는 것이다」라고 적어뒀는데, 거동은 색보다 나쁘고 눈에도 안 띈다.
+		//   개척은 `TowerDefenseUnitLease` 스냅샷/복구로 이미 풀어놨고 투기장만 색까지만 되돌렸다.
+
+		[Test]
+		public void 끈_brain_만_기록한다()
+		{
+			GameObject unit = new GameObject(nameof(끈_brain_만_기록한다));
+			try
+			{
+				FakeBrain wasOn = unit.AddComponent<FakeBrain>();
+				FakeBrain wasOff = unit.AddComponent<FakeBrain>();
+				wasOff.enabled = false;
+
+				List<UnitBrain> silenced = new();
+				CombatUnitSpawner.SilenceBrains(unit, silenced);
+
+				Assert.AreEqual(1, silenced.Count, "원래 꺼져 있던 brain 까지 기록하면 반납 때 **없던 걸 켜게 된다**");
+				Assert.AreSame(wasOn, silenced[0]);
+				Assert.IsFalse(wasOn.enabled);
+				Assert.IsFalse(wasOff.enabled);
+			}
+			finally { Object.DestroyImmediate(unit); }
+		}
+
+		[Test]
+		public void RestoreBrains_가_끈_것만_되살린다()
+		{
+			GameObject unit = new GameObject(nameof(RestoreBrains_가_끈_것만_되살린다));
+			try
+			{
+				FakeBrain wasOn = unit.AddComponent<FakeBrain>();
+				FakeBrain wasOff = unit.AddComponent<FakeBrain>();
+				wasOff.enabled = false;
+
+				List<UnitBrain> silenced = new();
+				CombatUnitSpawner.SilenceBrains(unit, silenced);
+				CombatUnitSpawner.RestoreBrains(silenced);
+
+				Assert.IsTrue(wasOn.enabled, "우리가 끈 brain 이 안 돌아왔다 — 풀로 돌아간 유닛이 안 움직인다");
+				Assert.IsFalse(wasOff.enabled, "원래 꺼져 있던 brain 을 켰다 — 복구가 아니라 변조다");
+			}
+			finally { Object.DestroyImmediate(unit); }
+		}
+
+		[Test]
+		public void 복구_함수들은_null_에_안_넘어진다()
+		{
+			Assert.DoesNotThrow(() => CombatUnitSpawner.RestoreBrains(null));
+			Assert.DoesNotThrow(() => CombatUnitSpawner.RestoreAutoCast(null));
+		}
 
 		[Test]
 		public void SilenceBrains_붙어있는_brain_을_전부_끈다()

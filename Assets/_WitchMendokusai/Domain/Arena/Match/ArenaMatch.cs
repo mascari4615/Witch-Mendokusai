@@ -52,6 +52,11 @@ namespace WitchMendokusai
 		// 던전이나 본편에서 나올 때 하늘색·빨강 그대로 나온다(스폰 경로에 색 초기화가 없다 — 실측).
 		private readonly List<(SpriteRenderer Renderer, Color Original)> tintedRenderers = new();
 
+		// 편입 때 우리가 *직접 끈* brain 들 — 반납 전에 이것만 되돌린다(원래 꺼져 있던 건 안 건드림).
+		// 색과 같은 이유다: 풀은 상태를 안 씻으므로, 끈 채로 보내면 그 인스턴스가 다음에 던전에서
+		// 나올 때 **안 움직인다**. 색보다 나쁘고 눈에도 안 띈다.
+		private readonly List<UnitBrain> silencedBrains = new();
+
 		public event System.Action<int> MatchEnded = delegate { };
 
 		/// <summary>
@@ -263,7 +268,7 @@ namespace WitchMendokusai
 
 				// 트랩#2 — prefab 내장 FSM(FSMSlime/FSMWisp 등)이 BT_MoveToPlayer 로 같은 UnitMovement 채널을
 				// TacticDriver 와 last-writer-wins 경쟁(패트롤/지터/전진실패)하므로 출전 유닛은 brain 비활성.
-				CombatUnitSpawner.SilenceBrains(unitGameObject);
+				CombatUnitSpawner.SilenceBrains(unitGameObject, silencedBrains);
 
 				// 팀 식별 틴트. 칠하기 전 색을 적어둔다 — Dispose 가 되돌린다(안 되돌리면 풀이 물고 간다).
 				if (unitObject.SpriteRenderer != null)
@@ -394,6 +399,14 @@ namespace WitchMendokusai
 					renderer.color = original;
 			}
 			tintedRenderers.Clear();
+
+			// ★ 색과 같은 자리에서 **거동**도 되돌린다 — brain(안 움직임) + 자동시전(스킬 안 씀).
+			//   자동시전은 `UnitObject.Init` 이 일부러 보존하므로 재-Init 로도 안 돌아온다(명시 복구뿐).
+			//   개척은 같은 문제를 `TowerDefenseUnitLease` 스냅샷/복구로 이미 풀어놨다.
+			CombatUnitSpawner.RestoreBrains(silencedBrains);
+			silencedBrains.Clear();
+			foreach (GameObject unit in spawnedUnits)
+				CombatUnitSpawner.RestoreAutoCast(unit);
 
 			if (ObjectPoolManager.TryGetExistingInstance(out ObjectPoolManager pool))
 			{
