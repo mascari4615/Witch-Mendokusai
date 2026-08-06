@@ -380,6 +380,19 @@ namespace WitchMendokusai
 		[field: Tooltip("둥지 색.")]
 		[field: SerializeField] public Color NestTint { get; private set; } = new Color(0.66f, 0.16f, 0.3f, 1f);
 
+		[field: Header("테두리 침공 — 파도는 매번 다른 쪽에서 온다")]
+		[field: Tooltip("켜면 파도가 고정 둥지가 아니라 판 테두리의 한 토막에서 밀려온다(출구 고정 X = 길 개념 소멸). 끄면 옛 방식.")]
+		[field: SerializeField] public bool BorderInvasion { get; private set; } = true;
+
+		[field: Tooltip("한 파도가 차지하는 테두리 토막의 폭(도). 넓을수록 전선이 길어 한 곳만 막아선 못 버틴다.")]
+		[field: SerializeField, Min(0f)] public float InvasionArcDegrees { get; private set; } = 70f;
+
+		[field: Tooltip("테두리에서 안쪽으로 당길 거리(월드). 0 이면 판 끝에 딱 붙어 나온다.")]
+		[field: SerializeField, Min(0f)] public float InvasionEdgeInset { get; private set; } = 2f;
+
+		[field: Tooltip("토막 위에 몇 군데로 나눠 세울지. 마릿수보다 적어도 되며, 많을수록 넓게 흩어진다.")]
+		[field: SerializeField, Min(1)] public int InvasionFrontPoints { get; private set; } = 9;
+
 		[field: Header("굳은 마수 감시 — 한 마리가 굳으면 판이 안 끝난다")]
 		[field: Tooltip("이만큼 제자리에 붙어 있으면 「굳었다」로 보고 길 위로 옮긴다(0 = 감시 끔).")]
 		[field: SerializeField, Min(0f)] public float StuckRelocateSeconds { get; private set; } = 4f;

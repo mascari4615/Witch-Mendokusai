@@ -2011,6 +2011,113 @@ namespace WitchMendokusai
 
 			UpdateNodeLabels(worldTickMatch, worldTickStage);
 			UpdateDollLabels(worldTickMatch);
+			UpdateInvasionWarning(worldTickMatch);
+		}
+
+		// 다음 파도가 들어올 자리에 세우는 경고 표식 + 그 방향을 말하는 글자 하나.
+		private readonly System.Collections.Generic.List<Label> invasionMarks = new();
+		private readonly System.Collections.Generic.List<Vector3> invasionPoints = new();
+		private Label invasionDirectionLabel;
+
+		/// <summary>
+		/// 다음 파도가 **어디로** 오는지 미리 보여준다 (TASK-WM-194, 데아빌 레퍼런스).
+		///
+		/// ★ 왜 이 방식인가: 파도 번호·남은 시간 같은 숫자를 판 위에 늘어놓지 않기로 했으므로
+		///   (사용자 지시), 예고는 *자리*와 *말*로만 한다 — 들어올 테두리에 표식이 서고 방위를 말한다.
+		///   표식이 서는 자리는 스폰과 **같은 함수**가 계산하므로 화면과 실제가 갈라질 수 없다.
+		/// ★ 화면 밖으로 나가면 가장자리에 붙인다 — 안 그러면 카메라를 그쪽으로 돌린 사람만 예고를 본다.
+		/// </summary>
+		private void UpdateInvasionWarning(TowerDefenseMatch match)
+		{
+			Camera camera = ViewCameraResolver.Current;
+			match.CollectNextInvasionPoints(invasionPoints);
+
+			bool show = camera != null && invasionPoints.Count > 0 && match.Outcome == TowerDefenseOutcome.InProgress;
+
+			while (invasionMarks.Count < invasionPoints.Count)
+			{
+				Label mark = new Label("▼");
+				mark.style.position = Position.Absolute;
+				mark.style.fontSize = 26;
+				mark.style.unityTextAlign = TextAnchor.MiddleCenter;
+				mark.pickingMode = PickingMode.Ignore;
+				worldLabelLayer.Add(mark);
+				invasionMarks.Add(mark);
+			}
+
+			if (invasionDirectionLabel == null)
+			{
+				invasionDirectionLabel = new Label(string.Empty);
+				invasionDirectionLabel.style.position = Position.Absolute;
+				invasionDirectionLabel.style.fontSize = TEXT_TITLE;
+				invasionDirectionLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
+				invasionDirectionLabel.style.unityTextAlign = TextAnchor.MiddleCenter;
+				invasionDirectionLabel.pickingMode = PickingMode.Ignore;
+				worldLabelLayer.Add(invasionDirectionLabel);
+			}
+
+			// 숨쉬듯 밝아졌다 어두워진다 — 가만히 있는 표식은 지형 장식으로 읽혀 경고가 안 된다.
+			float pulse = 0.55f + 0.45f * Mathf.Abs(Mathf.Sin(Time.unscaledTime * 2.2f));
+			Color warning = new Color(1f, 0.35f, 0.32f, pulse);
+
+			Rect panelBox = worldLabelLayer.panel != null && worldLabelLayer.panel.visualTree != null
+				? worldLabelLayer.panel.visualTree.worldBound
+				: Rect.zero;
+
+			for (int index = 0; index < invasionMarks.Count; index++)
+			{
+				Label mark = invasionMarks[index];
+				if (show == false || index >= invasionPoints.Count)
+				{
+					mark.style.display = DisplayStyle.None;
+					continue;
+				}
+
+				Vector3 screenPosition = camera.WorldToScreenPoint(invasionPoints[index]);
+				if (screenPosition.z <= 0f)
+				{
+					mark.style.display = DisplayStyle.None;
+					continue;
+				}
+
+				Vector2 point = ClampToPanel(ToPanel(mark, screenPosition), panelBox, 24f);
+				mark.style.display = DisplayStyle.Flex;
+				mark.style.color = warning;
+				mark.style.left = point.x - 13f;
+				mark.style.top = point.y - 13f;
+			}
+
+			if (show == false)
+			{
+				invasionDirectionLabel.style.display = DisplayStyle.None;
+				return;
+			}
+
+			// 글자는 토막 한가운데에 하나만 — 표식마다 붙이면 판이 글자로 덮인다.
+			Vector3 middleScreen = camera.WorldToScreenPoint(invasionPoints[invasionPoints.Count / 2]);
+			if (middleScreen.z <= 0f)
+			{
+				invasionDirectionLabel.style.display = DisplayStyle.None;
+				return;
+			}
+
+			Vector2 middle = ClampToPanel(ToPanel(invasionDirectionLabel, middleScreen), panelBox, 60f);
+			invasionDirectionLabel.style.display = DisplayStyle.Flex;
+			invasionDirectionLabel.text = match.NextInvasionDirectionName() + "에서 온다";
+			invasionDirectionLabel.style.color = warning;
+			invasionDirectionLabel.style.left = middle.x - 60f;
+			invasionDirectionLabel.style.top = middle.y - 44f;
+		}
+
+		/// <summary> 판 밖으로 나간 자리를 가장자리에 붙인다 — 경고는 카메라를 어디로 돌리든 보여야 한다. </summary>
+		private static Vector2 ClampToPanel(Vector2 point, Rect panelBox, float margin)
+		{
+			if (panelBox.width <= 0f || panelBox.height <= 0f)
+				return point;
+
+			return new Vector2(
+				Mathf.Clamp(point.x, margin, panelBox.width - margin),
+				Mathf.Clamp(point.y, margin, panelBox.height - margin));
 		}
 
 		private void UpdateNodeLabels(TowerDefenseMatch match, TowerDefenseStageSO stage)

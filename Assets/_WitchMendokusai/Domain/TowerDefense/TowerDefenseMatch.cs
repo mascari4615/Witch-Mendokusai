@@ -122,6 +122,10 @@ namespace WitchMendokusai
 		// 격자 A* — 목표가 코어든 벽이든 *실제 경로*를 찾는다. 흐름장(코어 전용)을 대신한다.
 		private TowerDefenseGridPath gridPath;
 		private readonly List<Vector3> activeSpawnPoints = new();
+
+		// 이번 파도가 밀려오는 테두리 토막(무대 로컬). 파도마다 다시 뽑히므로 출구가 고정되지 않는다
+		// = 「길」이 안 생긴다. 비어 있으면 옛 고정 둥지 방식으로 되돌아간다.
+		private readonly List<Vector3> invasionFront = new();
 		private readonly List<Vector3> activeNodePositions = new();
 		private readonly List<float> activeNodeIncomeMultipliers = new();
 		// 노드 등급 — 바깥 노드는 정수를 낸다(안쪽은 자원). 「멀리 나가야 강해진다」의 근거.
@@ -1315,6 +1319,7 @@ namespace WitchMendokusai
 			PruneDeadEnemies(); // 죽은 것만 걷어낸다 — 살아있는 것은 남긴다(실시간이라 겹쳐 존재한다).
 
 			ComposeWave(core.WaveIndex, waveComposition); // 예고와 같은 함수 = 화면이 말한 대로 나온다.
+			RebuildInvasionFront(core.WaveIndex);          // 이번 파도가 밀려올 테두리 토막 — 예고와 같은 함수.
 
 			TowerDefenseWaveEventKind waveEvent = WaveEventAt(core.WaveIndex);
 			int enemyCount = count;
@@ -1328,8 +1333,10 @@ namespace WitchMendokusai
 					break;
 				}
 
-				Vector3 localSpawn = activeSpawnPoints.Count > 0
-					? activeSpawnPoints[enemyIndex % activeSpawnPoints.Count] + SpawnSpreadOffset(enemyIndex)
+				// 테두리 침공이 켜져 있으면 이번 파도의 토막에서, 아니면 옛 고정 둥지에서.
+				IReadOnlyList<Vector3> origins = invasionFront.Count > 0 ? invasionFront : activeSpawnPoints;
+				Vector3 localSpawn = origins.Count > 0
+					? origins[enemyIndex % origins.Count] + SpawnSpreadOffset(enemyIndex, origins.Count)
 					: Vector3.zero;
 
 				// ★ 분산(SpawnSpreadOffset)이 마수를 암반 위/뒤에 떨구면 그 마리는 「갈 수 없는 자리」에서 시작해
@@ -1409,9 +1416,74 @@ namespace WitchMendokusai
 		///   출현 지점 수보다 마수가 많아지는 후반 웨이브에서 반드시 발생하므로 스폰 단계에서 막는다.
 		/// 같은 지점을 쓰는 몇 번째인지로 좌우 지그재그 — 결정적(같은 웨이브 → 같은 배치).
 		/// </summary>
-		private Vector3 SpawnSpreadOffset(int enemyIndex)
+		/// <summary>
+		/// waveIndex 파도가 밀려올 테두리 토막을 다시 뽑는다. 스폰과 예고가 **같은 함수**를 쓰므로
+		/// 화면이 가리킨 쪽과 실제로 오는 쪽이 갈라질 수 없다(갈라지면 예고가 거짓말이 된다).
+		/// </summary>
+		private void RebuildInvasionFront(int waveIndex)
 		{
-			int pointCount = activeSpawnPoints.Count;
+			invasionFront.Clear();
+			if (stage == null || stage.BorderInvasion == false)
+				return;
+
+			TowerDefenseWaveOrigin.Sample(
+				waveIndex,
+				MapSeed,
+				stage.InvasionArcDegrees,
+				activeGroundWidth * 0.5f,
+				activeGroundLength * 0.5f,
+				stage.InvasionEdgeInset,
+				stage.InvasionFrontPoints,
+				invasionFront);
+		}
+
+		/// <summary> 그 파도가 들어오는 방향(도). 화면 예고가 이걸 그대로 읽는다 — 미래 파도도 물어볼 수 있다. </summary>
+		public float InvasionAngleAt(int waveIndex)
+		{
+			return TowerDefenseWaveOrigin.AngleDegrees(waveIndex, MapSeed);
+		}
+
+		/// <summary> 다음 파도가 오는 쪽 이름("북동" 등). 숫자 대신 말로 예고하기 위한 값. </summary>
+		public string NextInvasionDirectionName()
+		{
+			return TowerDefenseWaveOrigin.DirectionName(InvasionAngleAt(WaveIndex + 1));
+		}
+
+		/// <summary> 테두리 침공이 실제로 켜져 돌고 있는가 — 화면이 예고를 띄울지 정하는 근거. </summary>
+		public bool IsBorderInvasion => stage != null && stage.BorderInvasion;
+
+		/// <summary>
+		/// 다음 파도가 들어올 자리(월드). 화면이 여기에 표식을 세워 **어디를 막을지**를 미리 말한다.
+		/// 스폰과 같은 함수를 쓰므로 표식이 선 자리가 곧 실제로 나올 자리다.
+		/// </summary>
+		public void CollectNextInvasionPoints(List<Vector3> into)
+		{
+			if (into == null)
+				return;
+
+			into.Clear();
+			if (stage == null || stage.BorderInvasion == false || stageRoot == null)
+				return;
+
+			TowerDefenseWaveOrigin.Sample(
+				WaveIndex + 1,
+				MapSeed,
+				stage.InvasionArcDegrees,
+				activeGroundWidth * 0.5f,
+				activeGroundLength * 0.5f,
+				stage.InvasionEdgeInset,
+				stage.InvasionFrontPoints,
+				into);
+
+			for (int index = 0; index < into.Count; index++)
+				into[index] = stageRoot.TransformPoint(into[index]);
+		}
+
+		private Vector3 SpawnSpreadOffset(int enemyIndex, int pointCount)
+		{
+			if (pointCount <= 0)
+				return Vector3.zero;
+
 			int repeat = enemyIndex / pointCount;          // 이 지점을 몇 번째로 쓰는가
 			int lane = (repeat + 1) / 2;                   // 0,1,1,2,2,...
 			float side = repeat % 2 == 0 ? 1f : -1f;       // 좌우 번갈아
