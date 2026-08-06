@@ -722,8 +722,31 @@ namespace WitchMendokusai
 			return button;
 		}
 
-		private void StyleRoundButton(Label button, float size)
+		/// <summary>
+		/// 손끝이 확실히 닿는 최소 크기(논리 픽셀)로 올려준다.
+		///
+		/// ★ 안드로이드·iOS 접근성 기준이 같은 말을 한다: 누를 수 있는 것은 **최소 48dp(약 9mm)**.
+		///   우리 화면은 논리 픽셀이라 기기 밀도에 따라 실제 크기가 달라진다 — 조밀한 폰일수록
+		///   같은 숫자가 더 작아진다. 그래서 숫자를 박지 않고 *실제 손가락 크기*로 환산해 바닥을 깐다.
+		/// ★ 실측(2026-08-07, 400dpi 폰): 창 메뉴 작은 버튼이 약 5.7mm 였다 — 기준의 3분의 2.
+		///   「눌렀는데 안 눌린다」의 흔한 정체가 이것이고, 사람은 그걸 버그로 신고하지 않는다.
+		/// </summary>
+		private static float TouchFriendly(float logicalSize)
 		{
+			float dpi = Screen.dpi > 1f ? Screen.dpi : 160f;
+			float scale = Screen.height > 0 ? Screen.height / 800f : 1f; // 패널 기준 세로 800
+			if (scale <= 0f)
+			{
+				return logicalSize;
+			}
+
+			float minimumLogical = 48f * (dpi / 160f) / scale;
+			return Mathf.Max(logicalSize, minimumLogical);
+		}
+
+		private void StyleRoundButton(Label button, float rawSize)
+		{
+			float size = TouchFriendly(rawSize);
 			button.style.width = size;
 			button.style.height = size;
 			button.style.marginTop = 8;
@@ -742,8 +765,9 @@ namespace WitchMendokusai
 		/// <summary>
 		/// 누르고 있는 동안 눌린 것으로 치는 버튼 — 「한 번 눌림」으로만 만들면 계속 휘두르는 공격이 죽는다.
 		/// </summary>
-		private VisualElement MakeHoldButton(string label, InputEventType inputEventType, float size)
+		private VisualElement MakeHoldButton(string label, InputEventType inputEventType, float rawSize)
 		{
+			float size = TouchFriendly(rawSize);
 			Label button = new Label(label) { name = "MobileButton_" + inputEventType };
 			button.style.width = size;
 			button.style.height = size;
