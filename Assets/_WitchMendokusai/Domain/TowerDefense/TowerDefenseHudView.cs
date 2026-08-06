@@ -2036,9 +2036,27 @@ namespace WitchMendokusai
 
 				label.style.display = DisplayStyle.Flex;
 				label.text = "×" + match.NodeIncomeMultiplierAt(index).ToString("0.0");
-				label.style.left = screenPosition.x - 22f;
-				label.style.top = Screen.height - screenPosition.y - 34f;
+				Vector2 panelPoint = ToPanel(label, screenPosition);
+				label.style.left = panelPoint.x - 22f;
+				label.style.top = panelPoint.y - 34f;
 			}
+		}
+
+		/// <summary>
+		/// 화면 좌표(카메라가 준 것)를 *UI 판 좌표*로 옮긴다.
+		///
+		/// ★ 이걸 안 거치면 월드 UI 가 유닛에서 어긋난다 (사용자 실증: "영웅 유닛 위치랑 영웅 유닛
+		///   UI 위치 다르다고"). 카메라는 **화면 픽셀**(1920×1080)로 답하는데 UI 는 자기
+		///   **논리 픽셀**(배율이 1 이 아니면 1422×800 같은 값)로 자리를 잡는다. 두 자를 섞으면
+		///   배율만큼 밀리고, 원점에서 멀수록 더 벌어진다 — 「전체적으로 밀렸다」가 그 그림이다.
+		///   화면 크기로 y 를 뒤집던 것도 여기서 함께 처리된다(판이 알아서 뒤집는다).
+		/// </summary>
+		private static Vector2 ToPanel(VisualElement element, Vector3 screenPosition)
+		{
+			if (element?.panel == null)
+				return new Vector2(screenPosition.x, Screen.height - screenPosition.y);
+
+			return RuntimePanelUtils.ScreenToPanel(element.panel, new Vector2(screenPosition.x, screenPosition.y));
 		}
 
 		/// <summary>
@@ -2088,13 +2106,15 @@ namespace WitchMendokusai
 				label.style.display = DisplayStyle.Flex;
 				label.text = doll.Text;
 				label.style.color = doll.Tint;
-				label.style.left = screenPosition.x - 40f;
-				label.style.top = Screen.height - screenPosition.y + 12f;
+				Vector2 panelPoint = ToPanel(label, screenPosition);
+				label.style.left = panelPoint.x - 40f;
+				label.style.top = panelPoint.y + 12f;
 				label.style.width = 80;
 
 				bar.style.display = DisplayStyle.Flex;
-				bar.style.left = screenPosition.x - TowerDefenseProgressBar.WIDTH * 0.5f;
-				bar.style.top = Screen.height - screenPosition.y + 4f;
+				Vector2 barPoint = ToPanel(bar, screenPosition);
+				bar.style.left = barPoint.x - TowerDefenseProgressBar.WIDTH * 0.5f;
+				bar.style.top = barPoint.y + 4f;
 				TowerDefenseProgressBar.SetRatio(bar, doll.ReadyRatio, doll.Working);
 			}
 		}
