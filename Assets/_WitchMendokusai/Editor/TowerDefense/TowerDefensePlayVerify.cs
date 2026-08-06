@@ -383,7 +383,11 @@ namespace WitchMendokusai.EditorTools
 				//   방어를 세워두면 여러 웨이브를 버텨 결말까지 수 분이 걸리고, 그동안 "게임이 끝나는가"는
 				//   영영 미검증으로 남는다(실제로 그랬다). 아무것도 안 지으면 첫 웨이브가 코어를 깎아
 				//   결말이 결정적으로 온다 — 조작이 아니라 *실제 게임 규칙 그대로*의 최단 경로다.
+				// ★ 정수는 *늦게* 붙는다 — 발전 인형도 코루틴으로 서고 전기·보급 셈은 그 다음이라,
+				//   배치 직후에 재면 늘 「전기가 안 닿음」이다(실측: 그때는 0, 1분 뒤에 물으니 1이었다).
+				//   기다리는 시간을 늘려 맞추려다 순서만 깨뜨렸다 — 방어 관찰이 끝난 *여기서* 한 번 더 잰다.
 				case Step.DisarmRestart:
+					VerifyEssence("늦게");
 					if (TowerDefenseModeController.TryGetExistingInstance(out TowerDefenseModeController disarmController) == false)
 					{
 						Debug.LogError(TAG + " DISARM-FAIL controller 없음");
@@ -654,8 +658,24 @@ namespace WitchMendokusai.EditorTools
 
 					int beforeFar = match.Resource;
 					placement.PlaceHarvesterAt(WorldToScreen(modeCamera, stageRoot.TransformPoint(targetLocal)));
+					bool outerPlaced = match.Resource < beforeFar;
 					Debug.Log(TAG + " OUTER-HARVEST 바깥 광맥 채집 "
-						+ (match.Resource < beforeFar ? "성공" : "거절됨(보급 미도달)"));
+						+ (outerPlaced ? "성공" : "거절됨(보급 미도달)"));
+
+					// ★ 보급과 전기는 *다른 관문*이다 — 이어져도 전기가 안 닿으면 정수는 0 이다.
+					//   여기까지 안 놓으면 확인이 늘 「이어졌지만 전기가 안 닿음」에서 멈춘다(실측).
+					if (outerPlaced)
+					{
+						int beforeGenerator = match.Resource;
+						Vector3 besideNode = targetLocal + new Vector3(match.Stage.GeneratorRadius * 0.4f, 0f, 0f);
+						match.TryPlaceGenerator(stageRoot.TransformPoint(besideNode));
+						if (match.Resource == beforeGenerator)
+							match.TryPlaceGenerator(stageRoot.TransformPoint(
+								targetLocal - new Vector3(match.Stage.GeneratorRadius * 0.4f, 0f, 0f)));
+						Debug.Log(TAG + " OUTER-POWER 바깥 채집 옆에 발전 인형 "
+							+ (match.Resource < beforeGenerator ? "세움" : "못 세움")
+							+ " · 전기 반경 " + match.Stage.GeneratorRadius.ToString("F1"));
+					}
 				}
 			}
 
@@ -1317,14 +1337,18 @@ namespace WitchMendokusai.EditorTools
 		/// 정수 — 바깥 노드 채집이 정수를 내고, 강화(연구·승급)가 자원이 아니라 정수를 쓰는가.
 		/// 「멀리 나가야 강해진다」가 두 통장으로 성립하는지 본다.
 		/// </summary>
-		private static void VerifyEssence()
+		private static void VerifyEssence(string when = "배치 직후")
 		{
 			Transform stageRoot = FindStageRoot();
 			if (match == null || stageRoot == null)
 				return;
 
 			// 배치는 이미 DoPlacements 가 했다(코루틴이 끝날 시간을 벌기 위해) — 여기선 결과만 읽는다.
-			string verdict = TAG + " ESSENCE harvesters=" + match.HarvesterCount
+			// ★ 읽기 전에 판에게 *다시 세어보라*고 시킨다. 안 시켰더니 발전 인형을 세운 지 0.85초 만에
+			//   읽어 「전기가 안 닿음」이라 찍혔는데, 라이브로 물어보니 전기는 닿아 있었다(정수도 나고 있었다).
+			//   기다리는 시간을 늘려 해결하려다 오히려 순서가 깨졌다 — 시계와 싸우는 대신 결정적으로 만든다.
+			match.RefreshSupplyForVerification();
+			string verdict = TAG + " ESSENCE[" + when + "] harvesters=" + match.HarvesterCount
 				+ " outer=" + match.OuterHarvesters + "/판의바깥광맥=" + match.OuterNodeCount
 				+ " outerSupplied=" + match.SuppliedOuterHarvesters
 				+ " outerPowered=" + match.PoweredOuterHarvesters

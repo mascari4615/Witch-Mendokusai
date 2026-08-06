@@ -3247,6 +3247,12 @@ namespace WitchMendokusai
 		/// 보급 다시 계산 + 수입 반영. 건물이 서거나 사라질 때마다, 그리고 매 틱 부른다.
 		/// 끊긴 채집은 수입이 0 — 「넓히면 번다」가 「넓히면 지킬 것이 는다」로 바뀌는 지점.
 		/// </summary>
+		/// <summary>
+		/// 확인 도구 전용 — 지금 당장 다시 세게 한다. **판이 매 틱 부르는 그 셈 그대로**라
+		/// 검사 전용 셈이 따로 생기지 않는다(그러면 그쪽만 멀쩡하고 진짜 경로가 썩어도 모른다).
+		/// </summary>
+		public void RefreshSupplyForVerification() => RefreshSupply();
+
 		private void RefreshSupply()
 		{
 			if (core == null || coreCombatant == null || stage == null)
