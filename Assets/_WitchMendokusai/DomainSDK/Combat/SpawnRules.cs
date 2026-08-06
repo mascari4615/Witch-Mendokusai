@@ -43,5 +43,45 @@ namespace WitchMendokusai
 
 			return false;
 		}
+
+		/// <summary>
+		/// <b>서로 다른 두 팀</b>의 스폰이 겹치는지. <paramref name="first"/> 는 <paramref name="a"/> 의,
+		/// <paramref name="second"/> 는 <paramref name="b"/> 의 인덱스다.
+		///
+		/// ★ 왜 팀 안 검사만으로 부족한가 (2026-08-06 실측): `RectangleArenaMap` 은 스폰 z 를
+		///   `±(Length/2 - SpawnInset)` 로 잡는다. `SpawnInset` 이 `Length/2` 가 되면
+		///   **두 팀이 똑같이 z=0** 에 서고 팀0 i번째와 팀1 i번째가 **정확히 같은 점**이 된다.
+		///
+		///   ★ 팀 단위 검사가 이걸 놓치는 건 <b>넓은 판</b>에서다(실측 계산):
+		///     - 좁은 판(24×36, inset 18) → X 폭도 같이 0 이 되어 팀 *안* 이 먼저 붕괴 = 팀 검사가 잡는다.
+		///     - **넓은 판(40×20, inset 10) → X 는 -10/0/+10 로 멀쩡한데 z 만 붕괴** = 팀 안은 아무 이상 없고
+		///       팀끼리만 정확히 포개진다. 이 경우가 팀 단위 검사로는 통째로 안 보인다.
+		///   즉 `Width > 2*SpawnInset` 이면서 `SpawnInset ≈ Length/2` 인 구간이 사각지대다.
+		/// </summary>
+		public static bool TryFindOverlapAcross(
+			IReadOnlyList<Vector3> a, IReadOnlyList<Vector3> b, float minSeparation, out int first, out int second)
+		{
+			first = -1;
+			second = -1;
+
+			if (a == null || b == null || minSeparation <= 0f)
+				return false;
+
+			float sqrMin = minSeparation * minSeparation;
+			for (int i = 0; i < a.Count; i++)
+			{
+				for (int j = 0; j < b.Count; j++)
+				{
+					if ((a[i] - b[j]).sqrMagnitude < sqrMin)
+					{
+						first = i;
+						second = j;
+						return true;
+					}
+				}
+			}
+
+			return false;
+		}
 	}
 }

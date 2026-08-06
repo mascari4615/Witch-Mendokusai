@@ -146,12 +146,50 @@ namespace WitchMendokusai
 				//   밀어낼 방향을 못 찾아 유닛을 맵 밖으로 날리고, 그 유닛은 죽지도 않아 매치가 안 끝난다.
 				//   이 가드의 주석이 원래부터 「스폰 겹침 차단」이라고 말하고 있었는데 실제로는 개수만 봤다.
 				IReadOnlyList<Vector3> teamSpawns = config.Map.GetSpawns(pair.Key);
+
+				// ★ 선언(SpawnsPerTeam)과 실제(GetSpawns().Count)는 **다를 수 있다.** 위 검사는 선언만 봤다.
+				//   스폰 배치는 `teamSpawns[memberIndex % teamSpawns.Count]` 로 집으므로, 실제가 유닛 수보다
+				//   적으면 **modulo 가 돌아 뒷 유닛이 앞 유닛과 정확히 같은 점에 선다** — 겹침 그 자체다.
+				//   `RectangleArenaMap` 은 둘 다 `PerTeam` 에서 나와 어긋날 수 없지만, `ArenaMapSO` 는
+				//   abstract 이고 WM-165 는 원형·레인 맵을 예고한다. 계약을 지키는 쪽에서 못 박는다.
+				if (teamSpawns.Count < pair.Value)
+				{
+					Debug.LogError($"{nameof(ArenaMatch)}: 팀 {pair.Key} 유닛 {pair.Value} 인데 맵이 준 스폰은 "
+						+ $"{teamSpawns.Count} 개다(선언은 {spawnsPerTeam}) — 모자란 만큼 앞자리에 겹쳐 선다. 시작 불가. "
+						+ $"{config.Map.GetType().Name} 의 SpawnsPerTeam 과 GetSpawns 가 어긋났다.");
+					return false;
+				}
+
 				if (SpawnRules.TryFindOverlap(teamSpawns, minSpawnSeparation, out int firstSpawn, out int secondSpawn))
 				{
 					Debug.LogError($"{nameof(ArenaMatch)}: 팀 {pair.Key} 스폰 {firstSpawn}·{secondSpawn} 이 "
 						+ $"{minSpawnSeparation} 보다 가깝다({teamSpawns[firstSpawn]} / {teamSpawns[secondSpawn]}) — "
 						+ $"맵 수치(폭 대비 여백) 확인. 시작 불가.");
 					return false;
+				}
+			}
+
+			// ★ 팀 *사이* 겹침 — 위 루프는 팀 안만 본다. 그런데 가장 나쁜 겹침은 팀끼리다:
+			//   RectangleArenaMap 은 스폰 z 를 `±(Length/2 - SpawnInset)` 로 잡으므로,
+			//   SpawnInset 이 Length/2 면 **두 팀이 똑같이 z=0** 에 선다. 이때 **넓은 판**(Width > 2*SpawnInset)
+			//   이면 X 는 멀쩡히 퍼져 있어 팀 안 검사엔 아무 이상도 안 보이고 **팀끼리만 정확히 포개진다**
+			//   (실측: 40×20 inset 10 → 팀 안 정상 / 팀 간 완전 겹침. 좁은 판이면 X 도 같이 붕괴해 위 검사가 먼저 잡는다).
+			//   적끼리 완전히 포개진 캡슐이야말로 물리가 밀 방향을 못 찾는 그 경우다.
+			List<int> teamIds = new(perTeam.Keys);
+			for (int left = 0; left < teamIds.Count; left++)
+			{
+				for (int right = left + 1; right < teamIds.Count; right++)
+				{
+					IReadOnlyList<Vector3> leftSpawns = config.Map.GetSpawns(teamIds[left]);
+					IReadOnlyList<Vector3> rightSpawns = config.Map.GetSpawns(teamIds[right]);
+					if (SpawnRules.TryFindOverlapAcross(leftSpawns, rightSpawns, minSpawnSeparation, out int leftIndex, out int rightIndex))
+					{
+						Debug.LogError($"{nameof(ArenaMatch)}: 팀 {teamIds[left]} 스폰 {leftIndex} 와 "
+							+ $"팀 {teamIds[right]} 스폰 {rightIndex} 가 {minSpawnSeparation} 보다 가깝다"
+							+ $"({leftSpawns[leftIndex]} / {rightSpawns[rightIndex]}) — "
+							+ "맵 수치 확인(SpawnInset 이 Length/2 에 가까우면 두 팀이 한 줄에 선다). 시작 불가.");
+						return false;
+					}
 				}
 			}
 
