@@ -42,7 +42,18 @@ namespace WitchMendokusai
 		[Tooltip("화면을 훑은 픽셀 → 시점 회전량 배율. 1 이면 마우스와 같은 감도.")]
 		[SerializeField, Min(0.05f)] private float lookSensitivity = 1f;
 
+		[Header("둘러보기 안내")]
+		[Tooltip("처음 온 사람에게 보여줄 한 줄. 한 번 둘러보면 다시 안 뜬다.")]
+		[SerializeField] private string lookHintText = "화면을 문지르면 둘러봅니다";
+		[Tooltip("안내 글자 크기(픽셀).")]
+		[SerializeField, Min(8f)] private float lookHintFontSize = 22f;
+		[Tooltip("안내의 진하기. 게임 화면을 가리지 않을 만큼만.")]
+		[SerializeField, Range(0f, 1f)] private float lookHintOpacity = 0.75f;
+		[Tooltip("이만큼(픽셀) 문지르면 「알았다」로 보고 안내를 영영 내린다.")]
+		[SerializeField, Min(1f)] private float lookHintDismissDistance = 60f;
+
 		private VisualElement lookBackdrop;
+		private Label lookHint;
 		private VisualElement controlsRoot;
 		private VisualElement stickBase;
 		private VisualElement stickKnob;
@@ -51,6 +62,7 @@ namespace WitchMendokusai
 		private Vector2 stickCenter;
 		private Vector2 stickValue;
 		private Vector2 lookAccumulated;
+		private float lookHintDragged;
 
 		private bool built;
 
@@ -196,7 +208,50 @@ namespace WitchMendokusai
 			lookBackdrop.RegisterCallback<PointerMoveEvent>(OnLookMove);
 			lookBackdrop.RegisterCallback<PointerUpEvent>(OnLookUp);
 
+			BuildLookHint();
 			uiRoot.HudLayer.Insert(0, lookBackdrop);
+		}
+
+		/// <summary>
+		/// 「어디를 어떻게 해야 둘러보나」 한 줄 안내 (실기 실측 2026-08-06 — 사용자가 못 찾았다).
+		///
+		/// ★ 화면 전체가 이미 둘러보기 판이라 *기능은 멀쩡했다*. 없던 것은 「그렇다는 말」뿐이다.
+		///   그래서 판을 바꾸지 않고 글자 한 줄만 얹는다 — 조작을 건드리면 멀쩡한 것이 깨진다.
+		/// ★ 한 번 둘러보면 영영 안 뜬다. 아는 사람에게 계속 말 거는 안내는 방해일 뿐이다.
+		/// ★ 손가락은 통과시킨다 — 안내가 떠 있는 동안 그 자리를 문지르면 안내 때문에 못 돌아가는,
+		///   가르치려다 막는 상황이 된다.
+		/// </summary>
+		private void BuildLookHint()
+		{
+			if (LookHintSeen)
+				return;
+
+			lookHint = new Label(lookHintText) { name = "MobileLookHint" };
+			lookHint.pickingMode = PickingMode.Ignore;
+			lookHint.style.position = Position.Absolute;
+			lookHint.style.left = 0;
+			lookHint.style.right = 0;
+			lookHint.style.top = Length.Percent(38f);
+			lookHint.style.unityTextAlign = TextAnchor.MiddleCenter;
+			lookHint.style.fontSize = lookHintFontSize;
+			lookHint.style.opacity = lookHintOpacity;
+			lookHint.style.color = Color.white;
+			lookBackdrop.Add(lookHint);
+		}
+
+		private const string LOOK_HINT_SEEN_KEY = "WM.Mobile.LookHintSeen";
+
+		private static bool LookHintSeen => PlayerPrefs.GetInt(LOOK_HINT_SEEN_KEY, 0) == 1;
+
+		/// <summary>둘러본 적이 있으면 기록한다 — 기기에만 남기면 되는 것이라 저장 파일을 안 건드린다.</summary>
+		private void DismissLookHint()
+		{
+			if (lookHint == null)
+				return;
+			lookHint.RemoveFromHierarchy();
+			lookHint = null;
+			PlayerPrefs.SetInt(LOOK_HINT_SEEN_KEY, 1);
+			PlayerPrefs.Save();
 		}
 
 		private void OnLookDown(PointerDownEvent evt)
@@ -217,6 +272,14 @@ namespace WitchMendokusai
 				return;
 			// 화면 좌표는 위가 0 이고 시점 회전은 아래가 0 이다 — 안 뒤집으면 위아래가 반대로 돈다.
 			lookAccumulated += new Vector2(evt.deltaPosition.x, -evt.deltaPosition.y);
+
+			// 살짝 스친 것으로 안내를 내리면 「읽기도 전에 사라졌다」가 된다 — 확실히 돌린 뒤에만.
+			if (lookHint != null && evt.deltaPosition.magnitude > 0f)
+			{
+				lookHintDragged += evt.deltaPosition.magnitude;
+				if (lookHintDragged >= lookHintDismissDistance)
+					DismissLookHint();
+			}
 		}
 
 		private void OnLookUp(PointerUpEvent evt)
