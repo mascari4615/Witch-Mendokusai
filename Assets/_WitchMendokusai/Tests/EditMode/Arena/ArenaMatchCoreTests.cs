@@ -198,5 +198,65 @@ namespace WitchMendokusai.Tests
 			Assert.IsFalse(core.ConcludedByTimeout, "타임아웃 아님 — 모드 종료");
 			Assert.AreEqual(0, core.WinnerTeamId);
 		}
+
+		// ※ 「제한시간에 정확히 닿으면 종료」 시험은 **일부러 안 넣었다.**
+		//    변이 시험(`>=` → `>`)을 돌려보니 기존 `Timeout_EqualAlive_Draw` /
+		//    `Timeout_3팀_*` 셋이 이미 그 경계에서 죽는다 = 경계는 이미 잠겨 있다.
+		//    같은 걸 한 번 더 쓰면 보호는 0 이고 유지비만 는다.
+
+		/// <summary>
+		/// `timeLimitSeconds > 0f` 가드 = **0 은 「무제한」**이라는 뜻이다(0초 즉시 종료가 아니라).
+		/// 이 의미가 뒤집히면 제한시간을 안 넣은 매치가 첫 폴에서 바로 끝나버린다.
+		///
+		/// ※ 변이 시험 결과 이 불변식은 기존 시험들도 **우연히** 잡는다(대부분 제한시간 0 으로
+		///    코어를 만들기 때문). 그래도 남기는 이유: 그건 *부수효과*라, 누가 그 시험들에
+		///    제한시간을 명시하는 순간 조용히 사라진다. 여기선 **의도해서** 잠근다.
+		/// </summary>
+		[Test]
+		public void Timeout_제한시간0_은_무제한이다()
+		{
+			FakeCombatant a = new() { CombatantId = 0, TeamId = 0 };
+			FakeCombatant b = new() { CombatantId = 1, TeamId = 1 };
+			List<MatchTeam> teams = new()
+			{
+				new MatchTeam(0, new List<ICombatant> { a }),
+				new MatchTeam(1, new List<ICombatant> { b }),
+			};
+			ArenaMatchCore core = new(teams, Mode(), 0f);
+
+			Assert.IsFalse(core.Poll(9999f), "제한시간 0 = 무제한 → 아무리 흘러도 타임아웃 X");
+			Assert.IsFalse(core.IsConcluded);
+			Assert.IsFalse(core.ConcludedByTimeout);
+		}
+
+		/// <summary>
+		/// 멱등 — 타임아웃 경로도 「처음 확정될 때만 true」여야 한다.
+		/// ※ 기존 `Poll_TeamWiped_ConcludesOnceWithWinner` 는 **전멸 경로**만 잠근다 — 타임아웃 경로의
+		///    멱등은 어디서도 단언하지 않는다. 그래서 이건 중복이 아니다.
+		/// (전멸 경로는 `Poll_TeamWiped_ConcludesOnceWithWinner` 가 이미 잠갔다.)
+		/// 두 번째 true 가 나오면 `MatchEnded` 가 두 번 발화해 판정·정산이 겹친다.
+		/// </summary>
+		[Test]
+		public void Timeout_종료_뒤_다시_Poll_하면_false_이고_결과가_안_바뀐다()
+		{
+			FakeCombatant a = new() { CombatantId = 0, TeamId = 0 };
+			FakeCombatant b = new() { CombatantId = 1, TeamId = 1 };
+			b.IsAlive = false;
+			FakeCombatant b2 = new() { CombatantId = 2, TeamId = 1 };
+			List<MatchTeam> teams = new()
+			{
+				new MatchTeam(0, new List<ICombatant> { a }),
+				new MatchTeam(1, new List<ICombatant> { b, b2 }),
+			};
+			ArenaMatchCore core = new(teams, Mode(), 5f);
+
+			Assert.IsTrue(core.Poll(5f), "제한시간 도달 = 이번 호출에서 확정");
+			int winnerAtConclusion = core.WinnerTeamId;
+
+			Assert.IsFalse(core.Poll(5f), "이미 종료 = false");
+			Assert.IsFalse(core.Poll(), "시간 미진행 폴도 false");
+			Assert.AreEqual(winnerAtConclusion, core.WinnerTeamId, "승자가 사후에 바뀌면 안 된다");
+			Assert.IsTrue(core.ConcludedByTimeout);
+		}
 	}
 }
