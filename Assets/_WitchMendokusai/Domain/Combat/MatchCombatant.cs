@@ -3,9 +3,13 @@ using UnityEngine;
 namespace WitchMendokusai
 {
 	/// <summary>
-	/// UnitObject 를 아레나 전투 참가자로 래핑. 인형·사역마·적이 모두 동일 컴포넌트(TeamId 만 다름).
-	/// TeamId·CombatantId 는 매치 셋업(ArenaMatch)이 스폰 시 SetTeam 으로 부여 —
-	/// 매치 스코프 진영(로어 UnitAffiliation 과 별개).
+	/// UnitObject 를 <b>한 판(match)의 전투 참가자</b>로 래핑. 인형·사역마·적이 모두 동일 컴포넌트
+	/// (TeamId 만 다름). TeamId·CombatantId 는 스폰 관문 <see cref="CombatUnitSpawner"/>.Enlist 를 거쳐
+	/// SetTeam 으로 부여된다 — 매치 스코프 진영이라 로어의 UnitAffiliation 과는 별개다.
+	///
+	/// ★ 이름에 「Arena」가 없는 이유: 투기장과 개척(TD)이 **같은 컴포넌트를 쓴다**(TASK-WM-196 —
+	///   `ArenaCombatant` → `MatchCombatant` 개명). 부르는 쪽은 `ArenaMatch` 와 `TowerDefenseMatch`
+	///   둘 다다. 여기에 어느 한 게임의 사정을 넣으면 다른 게임이 그걸 상속한다.
 	/// </summary>
 	[RequireComponent(typeof(UnitObject))]
 	public class MatchCombatant : MonoBehaviour, ICombatant
