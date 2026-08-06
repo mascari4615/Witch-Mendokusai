@@ -19,9 +19,25 @@ namespace WitchMendokusai
 			public RowListAuthoring Authoring;
 		}
 
+		// ★ 드롭다운 칸 번호 ≠ enum 값. 지금은 enum 이 0,1,2… 로 촘촘해서 우연히 같지만,
+		//   이 enum 들은 **append-only 계약**이고(`TargetSide.EnemyObjective = 3 // append-only`)
+		//   WM-165 는 「모드가 새 ConditionKind/ActionKind 를 등록」하는 걸 목표로 적어뒀다 —
+		//   그때 값이 띄엄띄엄해지는 순간 칸 번호를 그대로 캐스팅하면 **엉뚱한 조건이 조용히 저장된다.**
+		//   그래서 값 배열을 같이 들고 칸 번호로 *색인*한다(이름 배열과 순서가 같음이 보장된다).
+		private static readonly ConditionKind[] ConditionValues = (ConditionKind[])Enum.GetValues(typeof(ConditionKind));
+		private static readonly TargetPriority[] PriorityValues = (TargetPriority[])Enum.GetValues(typeof(TargetPriority));
+		private static readonly ActionKind[] ActionValues = (ActionKind[])Enum.GetValues(typeof(ActionKind));
+
 		private static readonly string[] ConditionChoices = Enum.GetNames(typeof(ConditionKind));
 		private static readonly string[] PriorityChoices = Enum.GetNames(typeof(TargetPriority));
 		private static readonly string[] ActionChoices = Enum.GetNames(typeof(ActionKind));
+
+		// 값 → 칸 번호. 못 찾으면 0(첫 칸) — 저장된 값이 사라진 종류일 때 편집기가 안 죽게.
+		private static int IndexOf<T>(T[] values, T value)
+		{
+			int found = Array.IndexOf(values, value);
+			return found >= 0 ? found : 0;
+		}
 
 		private readonly VisualElement root;
 		private readonly VisualElement rowsContainer;
@@ -135,20 +151,20 @@ namespace WitchMendokusai
 			order.style.width = 22;
 			row.Add(order);
 
-			int conditionIndex = rule.Conditions.Count > 0 ? (int)rule.Conditions[0].Kind : (int)ConditionKind.Always;
-			DropdownField conditionDropdown = new DropdownField(new List<string>(ConditionChoices), conditionIndex);
+			ConditionKind conditionKind = rule.Conditions.Count > 0 ? rule.Conditions[0].Kind : ConditionKind.Always;
+			DropdownField conditionDropdown = new DropdownField(new List<string>(ConditionChoices), IndexOf(ConditionValues, conditionKind));
 			conditionDropdown.style.width = 150;
-			conditionDropdown.RegisterValueChangedCallback(_ => authoring.SetConditionKind(rowIndex, (ConditionKind)conditionDropdown.index));
+			conditionDropdown.RegisterValueChangedCallback(_ => authoring.SetConditionKind(rowIndex, ConditionValues[conditionDropdown.index]));
 			row.Add(conditionDropdown);
 
-			DropdownField priorityDropdown = new DropdownField(new List<string>(PriorityChoices), (int)rule.Target.Priority);
+			DropdownField priorityDropdown = new DropdownField(new List<string>(PriorityChoices), IndexOf(PriorityValues, rule.Target.Priority));
 			priorityDropdown.style.width = 130;
-			priorityDropdown.RegisterValueChangedCallback(_ => authoring.SetTargetPriority(rowIndex, (TargetPriority)priorityDropdown.index));
+			priorityDropdown.RegisterValueChangedCallback(_ => authoring.SetTargetPriority(rowIndex, PriorityValues[priorityDropdown.index]));
 			row.Add(priorityDropdown);
 
-			DropdownField actionDropdown = new DropdownField(new List<string>(ActionChoices), (int)rule.Action.Kind);
+			DropdownField actionDropdown = new DropdownField(new List<string>(ActionChoices), IndexOf(ActionValues, rule.Action.Kind));
 			actionDropdown.style.width = 130;
-			actionDropdown.RegisterValueChangedCallback(_ => authoring.SetActionKind(rowIndex, (ActionKind)actionDropdown.index));
+			actionDropdown.RegisterValueChangedCallback(_ => authoring.SetActionKind(rowIndex, ActionValues[actionDropdown.index]));
 			row.Add(actionDropdown);
 
 			Button removeButton = new Button(() => { authoring.RemoveRow(rowIndex); RebuildRows(); }) { text = "✕" };
