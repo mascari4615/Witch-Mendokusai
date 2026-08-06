@@ -47,6 +47,12 @@ namespace WitchMendokusai.EditorTools
                 Debug.Log("[WM-BUILD] WM_DIAG_BUILD_STEPS=0 — 진단 자산 심기 건너뜀");
                 return;
             }
+            if (File.Exists(Path.GetFullPath(ASSET_PATH)))
+            {
+                Debug.Log("[WM-BUILD] 토큰이 이미 심겨 있다 — 빌드 중 임포트 생략(크래시 회피)");
+                return;
+            }
+
             string token = Environment.GetEnvironmentVariable(TOKEN_ENV);
             if (string.IsNullOrEmpty(token))
             {

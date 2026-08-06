@@ -44,6 +44,14 @@ namespace WitchMendokusai.EditorTools
                 Debug.Log("[WM-BUILD] WM_DIAG_BUILD_STEPS=0 — 진단 자산 심기 건너뜀");
                 return;
             }
+            // CI 가 유니티 실행 *전에* 써 둔 파일이 있으면 그대로 쓴다 — 빌드 도중 에셋을
+            // 새로 심는 행위가 안드로이드 빌드를 네이티브로 죽였다(2026-08-06, 4연속 실측).
+            if (File.Exists(Path.GetFullPath(ASSET_PATH)))
+            {
+                Debug.Log("[WM-BUILD] 빌드 정보가 이미 있다 — 빌드 중 임포트 생략(크래시 회피)");
+                return;
+            }
+
             bool development = (report.summary.options & BuildOptions.Development) != 0;
             BuildInfo info = Collect(development, report.summary.platform.ToString());
 
