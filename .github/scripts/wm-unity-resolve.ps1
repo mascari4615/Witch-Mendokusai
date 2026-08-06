@@ -23,17 +23,10 @@ function Resolve-UnityEditor {
     $exe = "$root\Editor\Unity.exe"
     $il2cpp = "$root\Editor\Data\PlaybackEngines\windowsstandalonesupport\Variations\win64_player_nondevelopment_il2cpp"
 
-    # 안드로이드는 별도 모듈(SDK/NDK/JDK 포함, 약 10GB)이 필요하다. 없으면 여기서 멈춘다 —
-    # 빌드 도중 알 수 없는 실패로 새는 것보다 낫다. 설치는 Hub 로 한 번 해두면 유지된다.
-    if ($Platform -eq 'android') {
-        $androidPlayer = "$root\Editor\Data\PlaybackEngines\AndroidPlayer"
-        if ((Test-Path $androidPlayer) -eq $false) {
-            throw "Unity $version 에 Android 모듈이 없다 ($androidPlayer). Unity Hub 로 android + SDK/NDK/JDK 설치 필요."
-        }
-        Write-Host "Android 모듈 확인됨."
-    }
-
-    if ((Test-Path $exe) -eq $false -or (Test-Path $il2cpp) -eq $false) {
+    # IL2CPP(win64) 는 **윈도우 빌드에만** 필요하다. 플랫폼과 무관하게 요구하면, 그 모듈이
+    # 없는 기계에서 안드로이드를 구울 때마다 쓰지도 않을 모듈을 받으러 간다.
+    $needsWinIl2cpp = ($Platform -ne 'android')
+    if ((Test-Path $exe) -eq $false -or ($needsWinIl2cpp -and (Test-Path $il2cpp) -eq $false)) {
         if ([string]::IsNullOrEmpty($changeset)) {
             throw "Unity $version 없음. ProjectVersion.txt 에 changeset 이 없어 자동 설치 불가 — Unity Hub 로 직접 설치 필요."
         }
@@ -49,10 +42,22 @@ function Resolve-UnityEditor {
             if (Test-Path $installLog) { Get-Content $installLog -Tail 30 | Write-Host }
             throw "Unity $version 자동 설치 실패."
         }
-        if ((Test-Path $il2cpp) -eq $false) {
+        if ($needsWinIl2cpp -and (Test-Path $il2cpp) -eq $false) {
             throw "Unity $version 은 설치됐는데 IL2CPP(win64) 모듈이 없다. WM 은 IL2CPP 백엔드라 필수."
         }
         Write-Host "Unity $version 자동 설치 완료."
+    }
+
+    # ★ 안드로이드 모듈 확인은 **에디터를 확보한 뒤**에 한다. 앞에 두면, 에디터가 아예 없는
+    #   기계에서 「Android 모듈이 없다」고 말한다 — 진짜 문제(에디터 없음)를 가리고 사람을
+    #   엉뚱한 곳으로 보낸다. 없을 때 정확히 말하는 것이 이 검사의 존재 이유다.
+    #   (모듈은 SDK/NDK/JDK 포함 약 10GB 라 자동 설치 대상에서 빼 둔다 — Hub 로 한 번.)
+    if ($Platform -eq 'android') {
+        $androidPlayer = "$root\Editor\Data\PlaybackEngines\AndroidPlayer"
+        if ((Test-Path $androidPlayer) -eq $false) {
+            throw "Unity $version 에 Android 모듈이 없다 ($androidPlayer). Unity Hub 로 android + SDK/NDK/JDK 설치 필요."
+        }
+        Write-Host "Android 모듈 확인됨."
     }
 
     Write-Host "Unity $version -> $exe"
