@@ -762,15 +762,10 @@ namespace WitchMendokusai
 
 		private static float TouchFriendly(float logicalSize)
 		{
-			float dpi = Screen.dpi > 1f ? Screen.dpi : 160f;
-			float scale = Screen.height > 0 ? Screen.height / 800f : 1f; // 패널 기준 세로 800
-			if (scale <= 0f)
-			{
-				return logicalSize;
-			}
-
-			float minimumLogical = 48f * (dpi / 160f) / scale;
-			return Mathf.Max(logicalSize, minimumLogical);
+			// 계산은 순수 함수에 있다(시험으로 못 박은 자리) — 여기서는 기기 값만 건네준다.
+			return Mathf.Max(
+				logicalSize,
+				MobileLayoutStore.MinimumTouchSize(Screen.dpi, Screen.height, PANEL_REFERENCE_HEIGHT));
 		}
 
 		private void StyleRoundButton(Label button, float rawSize)

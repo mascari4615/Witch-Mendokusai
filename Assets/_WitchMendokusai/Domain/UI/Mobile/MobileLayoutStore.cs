@@ -37,6 +37,29 @@ namespace WitchMendokusai
 		}
 
 		/// <summary>
+		/// 손끝이 확실히 닿는 최소 크기(화면 좌표)를 돌려준다.
+		///
+		/// ★ 안드로이드·iOS 접근성 기준이 같은 말을 한다: 누를 수 있는 것은 **최소 48dp(약 9mm)**.
+		///   화면 좌표는 기기 밀도에 따라 실제 크기가 달라지므로, 숫자를 박으면 조밀한 폰에서만
+		///   조용히 작아진다 — 「가끔 안 눌린다」의 흔한 정체이고, 사람은 이걸 신고하지 않는다.
+		/// ★ 순수 계산이라 시험으로 못 박는다. 기기 없이도 「어느 폰에서 몇 mm 인가」를 셀 수 있다.
+		/// </summary>
+		/// <param name="dpi">화면 밀도. 0 이하면 기준값(160)으로 본다.</param>
+		/// <param name="screenHeight">실제 화면 세로(픽셀).</param>
+		/// <param name="referenceHeight">화면 좌표계가 기준으로 삼는 세로.</param>
+		public static float MinimumTouchSize(float dpi, float screenHeight, float referenceHeight)
+		{
+			float density = dpi > 1f ? dpi : 160f;
+			if (screenHeight <= 0f || referenceHeight <= 0f)
+			{
+				return 0f; // 화면을 모르면 바닥을 깔지 않는다 — 모르는 채로 키우면 화면을 덮는다.
+			}
+
+			float scale = screenHeight / referenceHeight;
+			return 48f * (density / 160f) / scale;
+		}
+
+		/// <summary>
 		/// 옮긴 결과가 화면 밖으로 못 나가게 자른다.
 		///
 		/// ★ 이 함수가 이 기능의 안전장치다 — 사용자가 버튼을 화면 밖으로 끌어 놓으면

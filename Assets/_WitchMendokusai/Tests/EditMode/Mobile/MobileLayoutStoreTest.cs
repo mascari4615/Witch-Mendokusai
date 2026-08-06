@@ -11,6 +11,34 @@ namespace WitchMendokusai.Tests
 	/// </summary>
 	public class MobileLayoutStoreTest
 	{
+		[Test]
+		public void 조밀한_폰일수록_최소_크기가_커진다()
+		{
+			// 같은 화면 좌표라도 밀도가 높으면 실제로는 더 작다 — 그래서 바닥이 더 높아야 한다.
+			float low = MobileLayoutStore.MinimumTouchSize(160f, 1080f, 800f);
+			float high = MobileLayoutStore.MinimumTouchSize(400f, 1080f, 800f);
+			Assert.Greater(high, low);
+		}
+
+		[Test]
+		public void 실제로_구박_구밀리를_넘는다()
+		{
+			// 400dpi 폰 기준 — 기준(48dp ≈ 9.5mm)에 닿는지 실제 길이로 센다.
+			const float dpi = 400f;
+			const float screenHeight = 1080f;
+			float logical = MobileLayoutStore.MinimumTouchSize(dpi, screenHeight, 800f);
+			float physicalPixels = logical * (screenHeight / 800f);
+			float millimetres = physicalPixels / dpi * 25.4f;
+			Assert.GreaterOrEqual(millimetres, 7.5f);
+		}
+
+		[Test]
+		public void 화면을_모르면_바닥을_안_깐다()
+		{
+			// 모르는 채로 키우면 버튼이 화면을 덮는다 — 모를 땐 아무것도 강요하지 않는다.
+			Assert.AreEqual(0f, MobileLayoutStore.MinimumTouchSize(400f, 0f, 800f));
+		}
+
 		private static readonly Vector2 Screen1080 = new Vector2(2340f, 1080f);
 		private const float MinVisible = 44f;
 
