@@ -1631,6 +1631,15 @@ namespace WitchMendokusai
 			}
 
 			// 표적 등록은 세우는 문이 이미 했다 — 여기서 또 하면 같은 것이 목록에 두 번 들어간다.
+
+			// ★ 판이 끝날 때 치울 목록에 넣는다. 안 넣으면 영웅만 *판을 넘어 살아남는다* —
+			//   새 판 준비는 영웅을 「잊기만」 하고(참조를 null 로) 몸은 그대로 두기 때문이다.
+			//   실측: 아무것도 안 지은 무방비 판에서 지난 판 영웅이 혼자 싸워 세 웨이브를 막았고,
+			//   그래서 코어가 안 죽어 「승리도 패배도 없는」 판이 됐다. 바로 위 리셋 주석이
+			//   「하나라도 남으면 새 판이 아니다」라고 적어둔 그 사고다.
+			if (spawnedUnits.Contains(heroGameObject) == false)
+				spawnedUnits.Add(heroGameObject);
+
 			heroTransform = heroGameObject.transform;
 			heroTargetPosition = heroTransform.position;
 			heroActive = true;
