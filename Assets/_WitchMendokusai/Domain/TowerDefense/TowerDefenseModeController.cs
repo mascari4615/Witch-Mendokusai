@@ -88,8 +88,8 @@ namespace WitchMendokusai
 		{
 			// ★ 성좌를 열어 둔 채 판이 끝날 수 있다(멈춰 있어도 이어하기·저장 경로로 끝날 수 있고,
 			//   무엇보다 결말 화면이 그 뒤에 가려지면 「판이 끝난 줄도 모르는」 상태가 된다).
-			//   먼저 닫는다 — 멈춤도 여기서 같이 풀린다.
-			CloseResearch();
+			//   먼저 닫는다 — 멈춤도 여기서 같이 풀린다. 지도·메뉴도 같은 이유로 함께 닫는다.
+			CloseOverlays();
 
 			match.RestoreTimeScale(); // 결말 화면에서 버튼을 눌러야 하므로 시간이 멈춰 있으면 안 된다.
 
@@ -385,6 +385,30 @@ namespace WitchMendokusai
 
 		// 성좌가 멈춘 판인지 — 위와 같은 이유로 따로 센다(둘이 한 깃발을 쓰면 하나를 닫을 때 둘 다 풀린다).
 		private bool pausedByResearch;
+
+		/// <summary>
+		/// 판을 덮고 있는 창을 전부 닫는다 — 성좌·지도·메뉴.
+		///
+		/// ★ 왜 한 손으로 모으나: 판이 끝나거나 모드를 나갈 때, 덮고 있던 창이 남으면 그 뒤의 결말
+		///   화면·본편이 가려진다. 창이 늘 때마다 「끝날 때도 닫아야지」를 기억해야 하면 반드시 하나를
+		///   빠뜨린다(실제로 성좌만 닫고 지도·메뉴를 빠뜨렸다). 닫는 자리를 하나로 두면 새 창은
+		///   여기 한 줄만 더하면 된다.
+		/// </summary>
+		private void CloseOverlays()
+		{
+			CloseResearch();
+
+			TowerDefenseHudView view = hud;
+			if (view == null)
+				return;
+			if (view.IsMapOpen)
+				view.ToggleMap();
+			if (view.IsMenuOpen)
+			{
+				view.SetMenuOpen(false);
+				ResumeFromMenu();
+			}
+		}
 
 		/// <summary> 성좌를 닫는다 — 성좌 때문에 멈춘 판이면 다시 굴린다. </summary>
 		private void CloseResearch()
@@ -720,7 +744,7 @@ namespace WitchMendokusai
 				// ★ 성좌를 열어 둔 채 나갈 수 있다. 안 닫으면 다음에 개척에 들어왔을 때 **첫 화면이
 				//   성좌**이고, 게다가 그때 판이 멈춰 있다(성좌가 멈춘 것을 성좌가 풀어야 하는데
 				//   그 닫는 손이 안 왔다). 나가는 자리에서 닫는다 — 멈춤도 여기서 같이 풀린다.
-				CloseResearch();
+				CloseOverlays();
 
 				// 이탈 — 매치 정리(멱등 Dispose) → 배치 비활성 → 모드 카메라 끄기 → 월드 입력 복귀.
 				StopAllCoroutines(); // 재시작 코루틴이 이탈 뒤 재개해 매치를 되살리는 것 차단.
