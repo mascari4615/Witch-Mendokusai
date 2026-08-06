@@ -319,8 +319,7 @@ namespace WitchMendokusai
 			nextDollOrdinal = 0;
 			// 연구로 쌓은 것도 판과 함께 끝난다 — 안 지우면 다음 판이 지난 판의 연구를 물고 시작한다
 			// (코어 성장과 같은 병. 「새 판」이라면 아무것도 안 남아야 한다).
-			researchBonus.Clear();
-			ResearchReset();
+			ClearResearch();
 
 			heroActive = false;
 			heroTransform = null;
@@ -2241,7 +2240,7 @@ namespace WitchMendokusai
 			foreach (TowerDefenseBoonKind kind in boons.TakenKinds)
 				save.TakenBoons.Add((int)kind);
 			// 성좌 자국 — 정본은 화면이 들고 있으므로 물어서 받아 적는다(값을 두 곳에 두지 않는다).
-			CollectResearch(save.TakenResearch);
+			CollectResearchInto(save.TakenResearch);
 			save.DestroyedNestPositions.AddRange(destroyedNestPositions);
 
 			foreach (TowerDefenseDollLabel doll in dollLabels)
@@ -2307,7 +2306,7 @@ namespace WitchMendokusai
 			// 즉시 효과(목숨·정수·자원)는 다시 주지 않는다 — 그 결과는 위에서 이미 되돌렸다.
 			// 성좌 — 화면에 자국을 되돌리고, 효과도 같이 다시 쌓는다(둘 중 하나만 하면 갈라진다).
 			if (save.TakenResearch != null && save.TakenResearch.Count > 0)
-				RestoreResearch(save.TakenResearch);
+				RestoreResearchFrom(save.TakenResearch);
 
 			if (save.TakenBoons != null)
 			{
@@ -2828,14 +2827,33 @@ namespace WitchMendokusai
 		// 연구 성좌에서 찍어 모은 것 — 효과 종류별 누적 비율. 화면(성좌)이 고르고, 값은 여기 쌓인다.
 		private readonly Dictionary<TowerDefenseResearchEffect, float> researchBonus = new();
 
-		/// <summary> 새 판 — 성좌 화면도 처음으로 되돌리라는 신호(화면이 구독한다). </summary>
+		// ★ 아래 셋을 듣는 것은 *성좌 화면이 아니라 판 진행자*다. 화면은 사람이 처음 열 때야 생기는데
+		//   이어하기는 그보다 먼저 일어나므로, 화면이 들고 있으면 되돌릴 곳이 없어 저장에 적힌
+		//   연구가 통째로 조용히 사라진다. 규칙은 화면 유무와 무관해야 한다.
+
+		/// <summary> 새 판 — 찍은 마디도 처음으로 되돌리라는 신호. </summary>
 		public event System.Action ResearchReset = delegate { };
 
-		/// <summary> 저장할 때 「지금 찍혀 있는 마디들」을 받아 적는 통로(화면이 채운다). </summary>
+		/// <summary> 저장할 때 「지금 찍혀 있는 마디들」을 받아 적는 통로. </summary>
 		public event System.Action<List<int>> CollectResearch = delegate { };
 
-		/// <summary> 이어할 때 「이 마디들을 다시 찍은 것으로 하라」는 신호(화면이 구독). </summary>
+		/// <summary> 이어할 때 「이 마디들을 다시 찍은 것으로 하라」는 신호. </summary>
 		public event System.Action<List<int>> RestoreResearch = delegate { };
+
+		// 셋을 부르는 자리는 저장·이어하기·새 판뿐이라 밖에서 부를 일이 없지만, 검사기가
+		// 「화면 없이도 되돌아오나」를 재려면 저장 경로와 *똑같은 문*으로 들어와야 한다
+		// (검사 전용 뒷문을 따로 내면 그 문만 멀쩡하고 진짜 경로는 썩어도 모른다).
+		public void ClearResearch()
+		{
+			researchBonus.Clear();
+			ResearchReset();
+			if (core != null)
+				core.IncomeMultiplier = boons.IncomeMultiplier;
+		}
+
+		public void CollectResearchInto(List<int> into) => CollectResearch(into);
+
+		public void RestoreResearchFrom(List<int> ids) => RestoreResearch(ids);
 
 		/// <summary> 그 종류로 지금까지 얼마나 세졌나(0.2 = +20%). </summary>
 		public float ResearchBonus(TowerDefenseResearchEffect effect)

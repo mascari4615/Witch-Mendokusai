@@ -1462,6 +1462,73 @@ namespace WitchMendokusai.EditorTools
 				+ " 칸 " + slotsBefore + " → " + match.AvailableSlots.Count);
 			if (match.ResearchLevel <= levelBefore)
 				Debug.LogError(TAG + " RESEARCH-FAIL 큰 마디를 뚫었는데 단계가 안 올랐다.");
+
+			VerifyResearchRestoreWithoutPanel();
+		}
+
+		/// <summary>
+		/// 이어하기 — 성좌 화면을 *한 번도 안 연* 채로 저장을 되돌려도 연구가 살아 있는가.
+		///
+		/// ★ 이걸 재는 이유: 되돌리는 일을 성좌 화면이 들고 있으면, 화면은 사람이 처음 열 때 세워지는데
+		///   이어하기는 그보다 먼저 일어난다 → 되돌릴 곳이 없어 저장에 적힌 연구가 통째로 조용히 사라진다.
+		///   실제로 그랬다. 규칙이 화면 유무와 무관한지는 「화면 없이」 재야만 드러난다.
+		/// </summary>
+		private static void VerifyResearchRestoreWithoutPanel()
+		{
+			TowerDefenseModeController controller = TowerDefenseModeController.Instance;
+			if (controller == null)
+			{
+				Debug.LogError(TAG + " RESEARCH-RESTORE-FAIL 판 진행자를 못 찾았다.");
+				return;
+			}
+
+			// ★ 사람이 찍는 것과 *같은 문*으로 찍는다 — 규칙층을 직접 두드리면 저장에 안 적히는
+			//   병(방금 그것)을 검사기가 못 본다.
+			// 값이 없으면 사람도 못 찍는다 — 찍는 일 자체가 목적이 아니므로 넉넉히 채워두고 시작한다.
+			match.GrantForVerification(0, 99);
+			if (controller.TryGetFirstResearchNodeId(out int firstNode) == false)
+			{
+				Debug.LogError(TAG + " RESEARCH-RESTORE-FAIL 코어에서 이어지는 마디가 하나도 없다 — 성좌가 안 세워졌다.");
+				return;
+			}
+
+			if (controller.ChooseResearchNode(firstNode) == false)
+			{
+				Debug.LogError(TAG + " RESEARCH-RESTORE-FAIL 첫 마디를 못 찍었다(값 " + match.Essence + ") — 사람도 못 찍는다.");
+				return;
+			}
+
+			List<int> saved = new List<int>();
+			match.CollectResearchInto(saved);
+			if (saved.Count == 0)
+			{
+				Debug.LogError(TAG + " RESEARCH-RESTORE-FAIL 찍었는데 저장에 적힐 마디가 0개다.");
+				return;
+			}
+
+			// ★ 한 갈래만 재면 안 된다 — 되돌린 마디가 *다른* 갈래면 그 갈래는 그대로라 거짓 실패가 난다
+			//   (실제로 처음 그렇게 재서 멀쩡한 고침을 실패로 읽었다). 갈래 전부의 합으로 잰다.
+			float before = TotalResearchBonus();
+			match.ClearResearch();
+			float cleared = TotalResearchBonus();
+			match.RestoreResearchFrom(saved);
+			float after = TotalResearchBonus();
+
+			Debug.Log(TAG + " RESEARCH-RESTORE 마디 " + saved.Count + "개 · 갈래 합 "
+				+ before.ToString("F2") + " → 지움 " + cleared.ToString("F2") + " → 되돌림 " + after.ToString("F2"));
+			if (Mathf.Approximately(cleared, 0f) == false)
+				Debug.LogError(TAG + " RESEARCH-RESTORE-FAIL 새 판인데 지난 판 연구가 남아 있다.");
+			if (after <= cleared)
+				Debug.LogError(TAG + " RESEARCH-RESTORE-FAIL 이어하기가 연구를 못 되돌렸다 — 저장은 적혔는데 판이 안 받는다.");
+		}
+
+		/// <summary> 갈래 전부의 누적 합 — 어느 갈래가 되돌아왔든 잡힌다. </summary>
+		private static float TotalResearchBonus()
+		{
+			float total = 0f;
+			foreach (TowerDefenseResearchEffect effect in System.Enum.GetValues(typeof(TowerDefenseResearchEffect)))
+				total += match.ResearchBonus(effect);
+			return total;
 		}
 
 		/// <summary> 승급 — 같은 자리에 같은 종류를 다시 지으면 단계가 오르고 사거리·피해가 자라는가. </summary>

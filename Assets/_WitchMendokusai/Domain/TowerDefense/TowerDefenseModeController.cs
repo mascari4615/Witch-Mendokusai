@@ -69,6 +69,12 @@ namespace WitchMendokusai
 			// 연구로 새 칸이 열리면 그 즉시 입력도 알아야 한다 — 화면엔 떴는데 손이 못 고르면
 			// 「연구했는데 아무 일도 없다」가 된다.
 			match.SlotsChanged += SyncAvailableTowers;
+			// ★ 성좌는 *화면보다 먼저* 붙는다. 예전엔 이 셋을 「처음 성좌를 열 때」 붙였는데,
+			//   이어하기는 사람이 성좌를 열기 전에 일어난다 → 되돌릴 곳이 아무도 없어 저장에
+			//   적힌 연구가 통째로 조용히 사라졌다. 규칙은 화면 유무와 무관해야 한다.
+			match.ResearchReset += ResetResearchNodes;
+			match.CollectResearch += CollectResearchNodes;
+			match.RestoreResearch += RestoreResearchNodes;
 			ApplyMode(gameModeManager.CurrentMode);
 		}
 
@@ -77,7 +83,13 @@ namespace WitchMendokusai
 			if (gameModeManager != null)
 				gameModeManager.OnModeChanged -= OnGameModeChanged;
 			if (match != null)
+			{
 				match.MatchEnded -= OnMatchEnded;
+				match.SlotsChanged -= SyncAvailableTowers;
+				match.ResearchReset -= ResetResearchNodes;
+				match.CollectResearch -= CollectResearchNodes;
+				match.RestoreResearch -= RestoreResearchNodes;
+			}
 			if (Instance == this)
 				Instance = null;
 		}
@@ -225,6 +237,37 @@ namespace WitchMendokusai
 		// 연구 성좌 — 전체화면 그래프(사용자 지시). 처음 열 때 한 번 세운다.
 		private TowerDefenseResearchView researchView;
 
+		// ★ 성좌의 *규칙*은 여기 산다 — 화면은 이걸 그릴 뿐이다.
+		//   마디 목록은 순수 계산(스테이지 값만 있으면 나온다)이라 화면 없이도 세울 수 있고,
+		//   찍은 마디 목록도 여기 있어야 「아직 안 열어본 성좌」의 저장·이어하기가 성립한다.
+		private readonly System.Collections.Generic.List<TowerDefenseResearchGraph.Node> researchNodes = new();
+		private readonly System.Collections.Generic.List<int> takenResearch = new();
+
+		private void EnsureResearchGraph()
+		{
+			if (researchNodes.Count > 0)
+				return;
+			if (takenResearch.Contains(TowerDefenseResearchGraph.CORE_ID) == false)
+				takenResearch.Add(TowerDefenseResearchGraph.CORE_ID);
+			TowerDefenseResearchGraph.Build(stage.ResearchBranchCount, stage.ResearchRingCount,
+				stage.ResearchMajorAmount, stage.ResearchMinorAmount, stage.ResearchNodeCost, researchNodes);
+		}
+
+		private bool TryFindResearchNode(int id, out TowerDefenseResearchGraph.Node node)
+		{
+			EnsureResearchGraph();
+			foreach (TowerDefenseResearchGraph.Node candidate in researchNodes)
+			{
+				if (candidate.Id != id)
+					continue;
+				node = candidate;
+				return true;
+			}
+
+			node = default;
+			return false;
+		}
+
 		private void OpenResearch()
 		{
 			if (match == null || match.CoreCombatant == null)
@@ -239,13 +282,11 @@ namespace WitchMendokusai
 				researchView.Build(uiRoot.ModeHudLayer, stage.ResearchBranchCount, stage.ResearchRingCount,
 					stage.ResearchMajorAmount, stage.ResearchMinorAmount, stage.ResearchNodeCost,
 					stage.ResearchBranchNames);
-				researchView.NodeChosen += OnResearchNodeChosen;
-				// 새 판이 열리면 성좌도 처음으로 — 화면만 남아 있으면 「찍은 걸로 보이는데 효과는 없는」
-				// 상태가 된다(화면과 규칙이 갈라지는 전형).
-				match.ResearchReset += researchView.ResetTaken;
-				match.CollectResearch += researchView.CollectTaken;
-				match.RestoreResearch += RestoreResearchNodes;
+				researchView.NodeChosen += nodeId => ChooseResearchNode(nodeId);
 				researchView.SetEssenceProvider(() => match.Essence);
+				// 늦게 세운 화면을 지금 상태에 맞춘다 — 이어하기로 이미 찍힌 마디가 있는데
+				// 빈 성좌를 띄우면 「효과는 있는데 자국이 없는」 반대쪽 갈라짐이 된다.
+				researchView.RestoreTaken(takenResearch);
 			}
 
 			researchView?.SetOpen(true);
@@ -265,37 +306,85 @@ namespace WitchMendokusai
 		/// </summary>
 		private void RestoreResearchNodes(System.Collections.Generic.List<int> ids)
 		{
-			if (researchView == null || match == null || ids == null)
+			if (match == null || ids == null)
 				return;
 
-			researchView.RestoreTaken(ids);
+			takenResearch.Clear();
+			takenResearch.Add(TowerDefenseResearchGraph.CORE_ID); // 코어는 이미 가진 것 — 길이 여기서 시작한다.
+			takenResearch.AddRange(ids);
+			researchView?.RestoreTaken(ids); // 화면은 있으면 맞추고, 없으면 열릴 때 맞춘다.
 			foreach (int id in ids)
 			{
-				if (researchView.TryGetNode(id, out TowerDefenseResearchGraph.Node node) == false)
+				if (TryFindResearchNode(id, out TowerDefenseResearchGraph.Node node) == false)
 					continue;
 				match.TryTakeResearchNode(node.Effect, node.Amount, cost: 0);
 				// 단계는 저장이 따로 들고 있다 — 여기서 또 올리면 이어할 때마다 해금이 앞서 나간다.
 			}
 		}
 
-		/// <summary> 성좌에서 마디를 찍었다 — 값·효과는 규칙층이 정한다(화면은 고르기만 한다). </summary>
-		private void OnResearchNodeChosen(int nodeId)
+		/// <summary> 새 판 — 찍은 것도 자국도 처음으로. 둘 중 하나만 지우면 화면과 규칙이 갈라진다. </summary>
+		private void ResetResearchNodes()
 		{
-			if (match == null || researchView == null)
+			takenResearch.Clear();
+			takenResearch.Add(TowerDefenseResearchGraph.CORE_ID);
+			researchView?.ResetTaken();
+		}
+
+		/// <summary> 저장 — 화면이 아니라 여기 적힌 것을 넘긴다(한 번도 안 연 성좌도 저장돼야 한다). </summary>
+		private void CollectResearchNodes(System.Collections.Generic.List<int> into)
+		{
+			if (into == null)
 				return;
-			if (researchView.TryGetNode(nodeId, out TowerDefenseResearchGraph.Node node) == false)
-				return;
+			foreach (int id in takenResearch)
+			{
+				if (id != TowerDefenseResearchGraph.CORE_ID)
+					into.Add(id);
+			}
+		}
+
+		/// <summary>
+		/// 성좌에서 마디를 찍었다 — 값·효과는 규칙층이 정한다(화면은 고르기만 한다).
+		/// ★ 공개인 이유: 검사기가 「사람이 찍는 것과 같은 문」으로 들어와야 한다. 검사 전용 뒷문을
+		///   따로 내면 그 문만 멀쩡하고 진짜 경로가 썩어도 아무도 모른다.
+		/// </summary>
+		public bool ChooseResearchNode(int nodeId)
+		{
+			if (match == null)
+				return false;
+			if (TryFindResearchNode(nodeId, out TowerDefenseResearchGraph.Node node) == false)
+				return false;
 
 			// 값을 못 치르면 화면에서도 도로 지운다 — 「찍힌 척」이 남으면 다음 마디가 잘못 열린다.
 			if (match.TryTakeResearchNode(node.Effect, node.Amount, node.Cost) == false)
 			{
-				researchView.Undo(nodeId);
-				return;
+				researchView?.Undo(nodeId);
+				return false;
 			}
+
+			takenResearch.Add(nodeId); // 저장이 읽는 정본 — 화면 표시와 따로 적어둔다.
 
 			// 길 끝의 큰 마디 = 연구 한 단계 = 새 칸 해금. 성좌가 판을 바꾸는 자리다.
 			if (node.IsMajor)
 				match.GrantResearchLevel();
+			return true;
+		}
+
+		/// <summary> 코어에서 곧장 이어지는 첫 마디 — 검사기가 「사람이 맨 처음 찍는 것」을 재현할 때 쓴다. </summary>
+		public bool TryGetFirstResearchNodeId(out int nodeId)
+		{
+			EnsureResearchGraph();
+			foreach (TowerDefenseResearchGraph.Node candidate in researchNodes)
+			{
+				if (candidate.Id == TowerDefenseResearchGraph.CORE_ID)
+					continue;
+				if (TowerDefenseResearchGraph.IsReachable(candidate, takenResearch) == false)
+					continue;
+				nodeId = candidate.Id;
+				return true;
+			}
+
+			nodeId = -1;
+			return false;
 		}
 
 		/// <summary> 시점을 그 자리로 — 지도에서 온 요청. 확대·회전은 그대로 둔다. </summary>
