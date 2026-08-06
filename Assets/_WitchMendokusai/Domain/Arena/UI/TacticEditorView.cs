@@ -42,18 +42,34 @@ namespace WitchMendokusai
 		private static readonly string[] SideChoices = Enum.GetNames(typeof(TargetSide));
 		private static readonly string[] OperatorChoices = Enum.GetNames(typeof(ComparisonOperator));
 
-		// 칸 폭. 전부 여기 모아둔 이유 = 줄 하나가 화면을 넘기는지는 이 합으로 정해지는데,
-		// 리터럴이 흩어져 있으면 「지금 몇 픽셀인지」를 아무도 못 센다. (USS 이주 = TASK-WM-206)
-		private const int WIDTH_ORDER = 22;
-		private const int WIDTH_CONDITION = 132;
-		private const int WIDTH_OPERATOR = 74;
-		private const int WIDTH_VALUE = 56;
-		private const int WIDTH_SLOT = 40;
-		private const int WIDTH_SIDE = 92;
-		private const int WIDTH_PRIORITY = 116;
-		private const int WIDTH_RANGE = 52;
-		private const int WIDTH_ACTION = 116;
-		private const int WIDTH_BUTTON = 28;
+		// USS 클래스 이름(정본 = Domain/UI/Slot.uss § 전술 코딩 에디터).
+		//
+		// ★ 왜 코드에 수치가 없나: 이 패널은 순수 C# VisualElement 라 [SerializeField] 가 안 붙는다.
+		//   그렇다고 리터럴을 코드에 두면 색·폭을 한 번 다듬을 때마다 재컴파일이다 — 아직 아무도
+		//   이 패널이 렌더된 걸 본 적이 없어서(item 10) 첫 사람은 반드시 여러 번 다듬게 된다.
+		//   시트는 UIRoot 가 rootVisualElement 에 붙여주고 이 패널은 그 아래 마운트된다 =
+		//   **패널이 자기 시트를 로드하지 않는다**(경로 오타가 조용한 null 이 되는 길을 안 만든다).
+		//   CLAUDE.md § 코드로 짓는 UIToolkit 은 USS 로 / TASK-WM-206 · WM-179.
+		//
+		// 이름이 .uss 에 실제로 있는지는 TacticEditorStyleTests 가 기계로 대조한다 —
+		// 오타는 예외가 아니라 **그냥 안 예뻐지는** 실패라 눈으로는 못 잡는다.
+		private const string CLASS_OVERLAY = "wm-tactic-overlay";
+		private const string CLASS_PANEL = "wm-tactic-panel";
+		private const string CLASS_TITLE = "wm-tactic-title";
+		private const string CLASS_HINT = "wm-tactic-hint";
+		private const string CLASS_ROW = "wm-tactic-row";
+		private const string CLASS_ORDER = "wm-tactic-order";
+		private const string CLASS_CONDITION = "wm-tactic-condition";
+		private const string CLASS_OPERATOR = "wm-tactic-operator";
+		private const string CLASS_VALUE = "wm-tactic-value";
+		private const string CLASS_SLOT = "wm-tactic-slot";
+		private const string CLASS_SIDE = "wm-tactic-side";
+		private const string CLASS_PRIORITY = "wm-tactic-priority";
+		private const string CLASS_RANGE = "wm-tactic-range";
+		private const string CLASS_ACTION = "wm-tactic-action";
+		private const string CLASS_BUTTON = "wm-tactic-button";
+		private const string CLASS_FOOTER = "wm-tactic-footer";
+		private const string CLASS_START = "wm-tactic-start";
 
 		// 「그 종류가 안 쓰는 칸」은 지운다(Hidden 이 아니라 None — 자리도 안 차지해야 줄이 안 길어진다).
 		private static void SetShown(VisualElement element, bool shown)
@@ -80,35 +96,15 @@ namespace WitchMendokusai
 			this.onStart = onStart;
 
 			root = new VisualElement { name = nameof(TacticEditorView) };
-			root.style.position = Position.Absolute;
-			root.style.left = 0;
-			root.style.top = 0;
-			root.style.right = 0;
-			root.style.bottom = 0;
-			root.style.alignItems = Align.Center;
-			root.style.justifyContent = Justify.Center;
-			root.style.backgroundColor = new Color(0f, 0f, 0f, 0.55f);
+			root.AddToClassList(CLASS_OVERLAY);
 			parentLayer.Add(root);
 
 			VisualElement panel = new VisualElement();
-			// 한 줄 최대폭 = 22+132+74+56+92+116+52+116+40 + 버튼 84 ≈ 784 (+ 컨트롤 기본 여백).
-			// 연산자/값 칸과 조건-슬롯 칸은 서로 배타라 둘이 동시에 뜨진 않는다.
-			panel.style.minWidth = 880;
-			panel.style.paddingLeft = 16;
-			panel.style.paddingRight = 16;
-			panel.style.paddingTop = 12;
-			panel.style.paddingBottom = 12;
-			panel.style.backgroundColor = new Color(0.12f, 0.12f, 0.15f, 0.97f);
-			panel.style.borderTopLeftRadius = 8;
-			panel.style.borderTopRightRadius = 8;
-			panel.style.borderBottomLeftRadius = 8;
-			panel.style.borderBottomRightRadius = 8;
+			panel.AddToClassList(CLASS_PANEL);
 			root.Add(panel);
 
 			Label title = new Label("전술 코딩 — 마계 투기장");
-			title.style.unityFontStyleAndWeight = FontStyle.Bold;
-			title.style.fontSize = 18;
-			title.style.marginBottom = 8;
+			title.AddToClassList(CLASS_TITLE);
 			panel.Add(title);
 
 			// 유닛 선택.
@@ -124,10 +120,7 @@ namespace WitchMendokusai
 			panel.Add(unitSelector);
 
 			Label hint = new Label("위→아래 우선순위. 첫 충족 행 실행. 맨 아래 = fallback(항상) 권장. 칸은 고른 종류가 쓰는 것만 뜬다.");
-			hint.style.fontSize = 11;
-			hint.style.color = new Color(0.7f, 0.7f, 0.7f);
-			hint.style.marginTop = 4;
-			hint.style.marginBottom = 6;
+			hint.AddToClassList(CLASS_HINT);
 			panel.Add(hint);
 
 			rowsContainer = new VisualElement();
@@ -135,15 +128,13 @@ namespace WitchMendokusai
 
 			// 하단 버튼.
 			VisualElement footer = new VisualElement();
-			footer.style.flexDirection = FlexDirection.Row;
-			footer.style.justifyContent = Justify.SpaceBetween;
-			footer.style.marginTop = 10;
+			footer.AddToClassList(CLASS_FOOTER);
 
 			Button addButton = new Button(() => { CurrentAuthoring()?.AddRow(); RebuildRows(); }) { text = "+ 행 추가" };
 			footer.Add(addButton);
 
 			Button startButton = new Button(StartMatch) { text = "▶ 매치 시작" };
-			startButton.style.unityFontStyleAndWeight = FontStyle.Bold;
+			startButton.AddToClassList(CLASS_START);
 			footer.Add(startButton);
 
 			panel.Add(footer);
@@ -174,18 +165,16 @@ namespace WitchMendokusai
 			TacticRule rule = authoring.Program.Rules[rowIndex];
 
 			VisualElement row = new VisualElement();
-			row.style.flexDirection = FlexDirection.Row;
-			row.style.alignItems = Align.Center;
-			row.style.marginBottom = 3;
+			row.AddToClassList(CLASS_ROW);
 
 			Label order = new Label((rowIndex + 1).ToString());
-			order.style.width = WIDTH_ORDER;
+			order.AddToClassList(CLASS_ORDER);
 			row.Add(order);
 
 			TacticCondition condition = rule.Conditions.Count > 0 ? rule.Conditions[0] : new TacticCondition { Kind = ConditionKind.Always };
 
 			DropdownField conditionDropdown = new DropdownField(new List<string>(ConditionChoices), IndexOf(ConditionValues, condition.Kind));
-			conditionDropdown.style.width = WIDTH_CONDITION;
+			conditionDropdown.AddToClassList(CLASS_CONDITION);
 			row.Add(conditionDropdown);
 
 			// --- 조건이 실제로 읽는 칸들. 안 읽는 종류에선 감춘다. ---
@@ -194,15 +183,15 @@ namespace WitchMendokusai
 			//   즉 죽어야 참. 영영 발동하지 않는 줄인데 화면에선 「그 줄이 안 먹네」로만 보인다.
 			//   무엇을 보일지는 TacticSchema 가 정한다 — 평가기와 같은 자리를 봐야 어긋나지 않는다.
 			DropdownField operatorDropdown = new DropdownField(new List<string>(OperatorChoices), IndexOf(OperatorValues, condition.Operator));
-			operatorDropdown.style.width = WIDTH_OPERATOR;
+			operatorDropdown.AddToClassList(CLASS_OPERATOR);
 			row.Add(operatorDropdown);
 
 			FloatField valueField = new FloatField { value = condition.Value };
-			valueField.style.width = WIDTH_VALUE;
+			valueField.AddToClassList(CLASS_VALUE);
 			row.Add(valueField);
 
 			IntegerField conditionSlotField = new IntegerField { value = condition.SkillSlot };
-			conditionSlotField.style.width = WIDTH_SLOT;
+			conditionSlotField.AddToClassList(CLASS_SLOT);
 			conditionSlotField.tooltip = "조건이 볼 스킬 슬롯";
 			row.Add(conditionSlotField);
 
@@ -233,7 +222,7 @@ namespace WitchMendokusai
 			// --- 타겟 질의: 진영 / 우선순위 / 사거리. ---
 			// 진영이 Enemy 로 굳어 있던 동안 「가장 다친 아군을 치유」 같은 줄은 아예 쓸 수 없었다.
 			DropdownField sideDropdown = new DropdownField(new List<string>(SideChoices), IndexOf(SideValues, rule.Target.Side));
-			sideDropdown.style.width = WIDTH_SIDE;
+			sideDropdown.AddToClassList(CLASS_SIDE);
 			// ⚠ EnemyObjective 는 **목표물을 등록한 모드에서만** 후보가 생긴다. 등록처는 현재
 			//   TowerDefenseMatch 뿐이고(전수 grep), 투기장은 아무것도 등록하지 않는다 →
 			//   투기장에서 이걸 고르면 타겟이 영영 안 잡혀 그 줄은 조용히 안 먹는다.
@@ -245,12 +234,12 @@ namespace WitchMendokusai
 			row.Add(sideDropdown);
 
 			DropdownField priorityDropdown = new DropdownField(new List<string>(PriorityChoices), IndexOf(PriorityValues, rule.Target.Priority));
-			priorityDropdown.style.width = WIDTH_PRIORITY;
+			priorityDropdown.AddToClassList(CLASS_PRIORITY);
 			priorityDropdown.RegisterValueChangedCallback(_ => authoring.SetTargetPriority(rowIndex, PriorityValues[priorityDropdown.index]));
 			row.Add(priorityDropdown);
 
 			FloatField rangeField = new FloatField { value = rule.Target.MaxRange };
-			rangeField.style.width = WIDTH_RANGE;
+			rangeField.AddToClassList(CLASS_RANGE);
 			// ⚠ 정지 거리가 아니라 **탐색 반경**이다. 헷갈려서 정지 거리로 쓰면 목표가 반경 밖일 때
 			//   타겟이 아예 안 잡혀 유닛이 스폰 지점에 굳는다(TacticBTRunner 에 적힌 실측 회귀).
 			rangeField.tooltip = "타겟 탐색 반경(0 = 무제한). 정지 거리가 아니다.";
@@ -259,11 +248,11 @@ namespace WitchMendokusai
 
 			// --- 행동 + (UseSkill 일 때만) 슬롯. ---
 			DropdownField actionDropdown = new DropdownField(new List<string>(ActionChoices), IndexOf(ActionValues, rule.Action.Kind));
-			actionDropdown.style.width = WIDTH_ACTION;
+			actionDropdown.AddToClassList(CLASS_ACTION);
 			row.Add(actionDropdown);
 
 			IntegerField actionSlotField = new IntegerField { value = rule.Action.SkillSlot };
-			actionSlotField.style.width = WIDTH_SLOT;
+			actionSlotField.AddToClassList(CLASS_SLOT);
 			actionSlotField.tooltip = "시전할 스킬 슬롯";
 			actionSlotField.RegisterValueChangedCallback(evt => authoring.SetActionSkillSlot(rowIndex, Mathf.Max(0, evt.newValue)));
 			row.Add(actionSlotField);
@@ -298,15 +287,15 @@ namespace WitchMendokusai
 			SyncActionFields();
 
 			Button removeButton = new Button(() => { authoring.RemoveRow(rowIndex); RebuildRows(); }) { text = "✕" };
-			removeButton.style.width = WIDTH_BUTTON;
+			removeButton.AddToClassList(CLASS_BUTTON);
 			row.Add(removeButton);
 
 			Button upButton = new Button(() => { authoring.MoveRow(rowIndex, -1); RebuildRows(); }) { text = "↑" };
-			upButton.style.width = WIDTH_BUTTON;
+			upButton.AddToClassList(CLASS_BUTTON);
 			row.Add(upButton);
 
 			Button downButton = new Button(() => { authoring.MoveRow(rowIndex, 1); RebuildRows(); }) { text = "↓" };
-			downButton.style.width = WIDTH_BUTTON;
+			downButton.AddToClassList(CLASS_BUTTON);
 			row.Add(downButton);
 
 			return row;
