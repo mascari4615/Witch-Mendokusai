@@ -234,6 +234,13 @@ namespace WitchMendokusai
 			// 진영이 Enemy 로 굳어 있던 동안 「가장 다친 아군을 치유」 같은 줄은 아예 쓸 수 없었다.
 			DropdownField sideDropdown = new DropdownField(new List<string>(SideChoices), IndexOf(SideValues, rule.Target.Side));
 			sideDropdown.style.width = WIDTH_SIDE;
+			// ⚠ EnemyObjective 는 **목표물을 등록한 모드에서만** 후보가 생긴다. 등록처는 현재
+			//   TowerDefenseMatch 뿐이고(전수 grep), 투기장은 아무것도 등록하지 않는다 →
+			//   투기장에서 이걸 고르면 타겟이 영영 안 잡혀 그 줄은 조용히 안 먹는다.
+			//   고를 수 있게는 두되(모드가 늘면 유효해진다) **왜 안 먹는지는 말해준다.**
+			//   목록에서 빼지 않는 이유: 지금 빼면 WM-165 가 예고한 레인/넥서스 확장 때 되살릴 것을
+			//   기억해야 하는데, 그런 「나중에 되돌릴 숨김」이 오늘 종일 파낸 사고의 모양이었다.
+			sideDropdown.tooltip = "EnemyObjective = 목표물(코어·넥서스)을 등록하는 모드에서만 잡힌다. 투기장엔 아직 없다.";
 			sideDropdown.RegisterValueChangedCallback(_ => authoring.SetTargetSide(rowIndex, SideValues[sideDropdown.index]));
 			row.Add(sideDropdown);
 
