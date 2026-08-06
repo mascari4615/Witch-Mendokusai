@@ -149,6 +149,28 @@ else
     }
 }
 
+# "0 files scanned" is NOT a pass -- it is the gate not running at all.
+#
+# WHY (2026-08-06): this gate reported `PASS -- 0 rule violations` purely from the
+# count of hits, with nothing asserting it had actually looked at anything. Point
+# -Root at a path that does not exist in this checkout and every rule "passes" and
+# it exits 0. That is not hypothetical: sibling tooling in memo/scripts hardcoded
+# the WM repo folder as `WitchMendokusai` while the real folder is
+# `Witch-Mendokusai`, and three cleanup scripts silently skipped the whole repo
+# for months while reporting success.
+#
+# Only the repo-scan mode gets this floor. In commit-scoped mode (-Sha/-Paths) an
+# empty subject list is legitimate and common -- a commit that touches only assets,
+# scenes or docs has no .cs to judge, and failing that would make the gate a liar
+# in the opposite direction.
+if (-not $commitScoped -and $subjects.Count -eq 0)
+{
+    Write-Host "wm-rule-gate -- CANNOT-RUN: found 0 .cs files under $Root"
+    Write-Host "wm-rule-gate --   This is not 'no violations', it is 'nothing was examined'."
+    Write-Host "wm-rule-gate --   Check the -Root path (the WM repo folder is 'Witch-Mendokusai')."
+    exit 2
+}
+
 foreach ($file in $subjects)
 {
     $relative = $file.Relative
