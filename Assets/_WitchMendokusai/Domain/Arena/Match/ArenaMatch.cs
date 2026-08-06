@@ -45,6 +45,10 @@ namespace WitchMendokusai
 		private readonly List<GameObject> spawnedUnits = new();
 		private readonly List<ICombatant> registered = new();
 
+		// 팀 틴트를 칠하기 *전* 색. 풀은 색을 안 되돌리므로 칠한 채로 반납하면 그 유닛이 다음에
+		// 던전이나 본편에서 나올 때 하늘색·빨강 그대로 나온다(스폰 경로에 색 초기화가 없다 — 실측).
+		private readonly List<(SpriteRenderer Renderer, Color Original)> tintedRenderers = new();
+
 		public event System.Action<int> MatchEnded = delegate { };
 
 		public bool IsConcluded => core != null && core.IsConcluded;
@@ -174,9 +178,12 @@ namespace WitchMendokusai
 				// TacticDriver 와 last-writer-wins 경쟁(패트롤/지터/전진실패)하므로 출전 유닛은 brain 비활성.
 				CombatUnitSpawner.SilenceBrains(unitGameObject);
 
-				// 팀 식별 틴트. v1: 풀 반환 시 색 잔존(teardown/ArenaUnitObject 후속서 리셋).
+				// 팀 식별 틴트. 칠하기 전 색을 적어둔다 — Dispose 가 되돌린다(안 되돌리면 풀이 물고 간다).
 				if (unitObject.SpriteRenderer != null)
+				{
+					tintedRenderers.Add((unitObject.SpriteRenderer, unitObject.SpriteRenderer.color));
 					unitObject.SpriteRenderer.color = entry.TeamId == 0 ? team0Tint : team1Tint;
+				}
 
 				TacticDriver driver = unitObject.GetComponent<TacticDriver>();
 				if (driver == null)
@@ -291,6 +298,15 @@ namespace WitchMendokusai
 					targeting.Unregister(combatant);
 			}
 			registered.Clear();
+
+			// ★ 반납 *전에* 팀 틴트를 되돌린다. 풀은 색을 안 되돌리므로 칠한 채로 보내면 그 인스턴스가
+			//   다음에 던전에서 나올 때 하늘색 슬라임이 된다 — 관전용 색이 본편으로 새는 것이다.
+			foreach ((SpriteRenderer renderer, Color original) in tintedRenderers)
+			{
+				if (renderer != null)
+					renderer.color = original;
+			}
+			tintedRenderers.Clear();
 
 			if (ObjectPoolManager.TryGetExistingInstance(out ObjectPoolManager pool))
 			{
