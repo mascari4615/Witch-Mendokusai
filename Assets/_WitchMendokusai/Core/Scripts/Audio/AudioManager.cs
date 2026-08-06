@@ -98,6 +98,8 @@ namespace WitchMendokusai
 			buses[(int)BusType.SFX].setVolume(GetVolume(BusType.SFX));
 		}
 
+		private Camera lastListenerCamera;
+
 		/// <summary>
 		/// 소리를 「듣는 귀」가 카메라에 붙어 있는지 확인하고, 없으면 붙인다.
 		///
@@ -108,8 +110,6 @@ namespace WitchMendokusai
 		///   쪽이 옳다. 이미 붙어 있으면 아무것도 안 한다(둘이 되면 FMOD 가 따로 경고한다).
 		/// ★ 카메라는 무대가 바뀌면 갈린다 — 그래서 한 번이 아니라 바뀔 때마다 확인한다.
 		/// </summary>
-		private Camera lastListenerCamera;
-
 		private void EnsureStudioListener()
 		{
 			Camera camera = Camera.main;
