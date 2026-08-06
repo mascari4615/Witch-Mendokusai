@@ -1060,6 +1060,15 @@ namespace WitchMendokusai
 		/// <summary> 화면이 읽는 알림 목록. </summary>
 		public IReadOnlyList<TowerDefenseAlerts.Alert> Alerts => alerts.Active;
 
+		// ── 라이브 검증용 창 ─────────────────────────────────────────────────────────
+		// ★ 「돌아간다」를 사람 눈에만 맡기면 영영 안 재게 된다. 하네스가 판을 돌리며 직접 물어볼 수
+		//   있어야 신호·서식지·침공이 *실제로* 살아 있는지 매번 확인된다(안 그러면 컴파일만 초록).
+		public float CoreSignalCharge => powerGrid.Field.ChargeAt(0);
+		public float CoreSignalRadius => powerGrid.Field.LiveRadiusAt(0);
+		public int SignalNodeCount => powerGrid.Field.NodeCount;
+		public int SleepingLairCount => lairs.Count;
+		public int InvasionFrontCount => invasionFront.Count;
+
 		private readonly List<SleepingLair> lairs = new();
 		private readonly List<Vector3> lairWakeProbe = new();
 

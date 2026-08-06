@@ -75,6 +75,7 @@ namespace WitchMendokusai.EditorTools
 		private static double lastSample;
 		private static double lastGateLog;
 		private static bool startClicked;
+		private static bool signalChecked;
 		private static TowerDefenseMatch match;
 		private static bool matchEndedSeen;
 		private static int lastWaveIndex;
@@ -149,6 +150,7 @@ namespace WitchMendokusai.EditorTools
 			lastSample = -1.0;
 			lastGateLog = -1.0;
 			startClicked = false;
+			signalChecked = false;
 			selectedLayoutChecked = false; // 판마다 다시 잰다.
 			assaultStart = -1.0;
 			lastAliveEnemyCount = -1;
@@ -196,6 +198,16 @@ namespace WitchMendokusai.EditorTools
 					+ " observed=" + (observeStart > 0 ? (now - observeStart).ToString("F1") : "n/a"));
 				Finish();
 				return;
+			}
+
+			// ★ 신호·서식지는 **판이 도는 중에** 재야 한다. 배치 직후는 아직 첫 틱도 안 돈 시점이라
+			//   전기 계산이 시작조차 안 했고, 서식지 스폰 코루틴도 절반만 끝나 있다 — 거기서 재면
+			//   멀쩡한 것을 「0 이다」라고 잡는다(실측으로 한 번 겪었다: 버틴시간 0초에 전부 0).
+			if (signalChecked == false && match != null && match.SurvivedSeconds >= 5)
+			{
+				signalChecked = true;
+				VerifySignalField();
+				VerifyLairsAndInvasion();
 			}
 
 			switch (step)
@@ -750,6 +762,64 @@ namespace WitchMendokusai.EditorTools
 		private static double heroProbeAt;
 
 		// HUD 실재 확인 — 화면에 숫자가 안 뜨면 사람이 플레이 판단을 못 한다(이번 증분의 핵심 산출).
+		/// <summary>
+		/// 신호장이 *실제로* 서는가 — 코어가 차고, 덮는 원이 자라고, 그림(테두리·파동)이 씬에 있는가.
+		///
+		/// ★ 이걸 안 재면 「컴파일은 초록인데 판에서는 아무것도 안 켜지는」 상태를 못 잡는다 —
+		///   실제로 그 상태를 한 번 겪었다(충전값을 좌표로 짝지어 매 프레임 0 으로 되돌아갔다).
+		/// </summary>
+		private static void VerifySignalField()
+		{
+			if (match == null)
+				return;
+
+			float charge = match.CoreSignalCharge;
+			float radius = match.CoreSignalRadius;
+			int nodes = match.SignalNodeCount;
+
+			int edges = 0;
+			int pulses = 0;
+			foreach (GameObject candidate in Object.FindObjectsByType<GameObject>(FindObjectsInactive.Include))
+			{
+				if (candidate.name == "SignalEdge")
+					edges++;
+				else if (candidate.name == "SignalPulse")
+					pulses++;
+			}
+
+			// ★ 「왜 0 인가」를 가르는 값들을 같이 찍는다 — 판이 아직 안 도는 것과 계산이 안 도는 것은
+			//   똑같이 0 으로 보이는데 고치는 자리가 전혀 다르다.
+			Debug.Log($"{TAG} 신호장 — 코어 충전 {charge:F2} 덮는반경 {radius:F1} 노드 {nodes}"
+				+ $" / 그림 테두리 {edges} 파동 {pulses}"
+				+ $" / 전기 용량 {match.PowerCapacity} 요구 {match.PowerDemand} 버틴시간 {match.SurvivedSeconds}s");
+
+			if (charge <= 0f)
+				Debug.LogError($"{TAG} 신호장 FAIL — 코어가 안 찬다(충전 0). 이 상태면 판의 모든 건물이 멈춘다.");
+			if (radius <= 0f)
+				Debug.LogError($"{TAG} 신호장 FAIL — 덮는 반경 0. 전기를 받는 건물이 하나도 없다.");
+			if (edges == 0)
+				Debug.LogError($"{TAG} 신호장 FAIL — 테두리 원이 씬에 0개. 화면에 아무것도 안 보인다는 뜻.");
+		}
+
+		/// <summary>
+		/// 서식지가 깔렸는가 + 파도가 테두리 토막에서 오는가 — 둘 다 「판에 있어야」 의미가 있다.
+		/// </summary>
+		private static void VerifyLairsAndInvasion()
+		{
+			if (match == null)
+				return;
+
+			int lairCount = match.SleepingLairCount;
+			string nextDirection = match.IsBorderInvasion ? match.NextInvasionDirectionName() : "(꺼짐)";
+
+			Debug.Log($"{TAG} 서식지 {lairCount}곳 · 테두리 침공 {match.IsBorderInvasion} · 다음 파도 {nextDirection}쪽");
+
+			if (lairCount == 0)
+				Debug.LogError($"{TAG} 서식지 FAIL — 0곳. 넓히는 것이 위험이 되는 층이 통째로 빠졌다.");
+			if (match.IsBorderInvasion && string.IsNullOrEmpty(nextDirection))
+				Debug.LogError($"{TAG} 예고 FAIL — 다음 파도 방향을 못 말한다. 예고가 성립하지 않는다.");
+		}
+
 		private static void LogHudState()
 		{
 			UIRoot uiRoot = Object.FindAnyObjectByType<UIRoot>();
