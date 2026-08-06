@@ -1403,24 +1403,33 @@ namespace WitchMendokusai.EditorTools
 			if (match == null)
 				return;
 
-			int cost = match.ResearchCost;
-			if (match.Essence < cost)
-			{
-				Debug.Log(TAG + " RESEARCH-SKIP 정수 부족(" + match.Essence + "/" + cost + ") — 이번 실행에선 확인 못 함");
-				return;
-			}
+			// ★ 플레이어가 실제로 가는 길로 확인한다. 예전엔 옛 연구(단추 한 번에 한 단계)를 불렀는데,
+			//   그 길은 이제 화면 어디에서도 안 열린다 — **아무도 못 가는 길을 확인하고 초록불**을 켜고
+			//   있었다. 확인 도구가 실물과 다른 길을 밟으면 그 뒤로 무엇을 확인해도 못 믿는다.
+			//   지금 연구 = 성좌의 마디를 찍는 것. 값은 0 으로 부른다(정수 유무에 흔들리지 않게 —
+			//   값을 치르는 길은 규칙층 시험이 따로 잠갔다).
+			float damageBefore = match.TowerDamageMultiplier;
+			bool damageTaken = match.TryTakeResearchNode(TowerDefenseResearchEffect.TowerDamage, 0.25f, cost: 0);
+			Debug.Log(TAG + " RESEARCH-NODE 피해 accepted=" + damageTaken
+				+ " damageMultiplier " + damageBefore.ToString("F2") + " → " + match.TowerDamageMultiplier.ToString("F2"));
+			if (damageTaken == false)
+				Debug.LogError(TAG + " RESEARCH-FAIL 마디를 못 찍었다 — 성좌에서 아무것도 못 고른다는 뜻이다.");
+			else if (match.TowerDamageMultiplier <= damageBefore)
+				Debug.LogError(TAG + " RESEARCH-FAIL 찍었는데 포탑이 안 세졌다 — 연구가 하는 일이 없다.");
 
-			float multiplierBefore = match.TowerDamageMultiplier;
+			float rangeBefore = match.TowerRangeMultiplier;
+			match.TryTakeResearchNode(TowerDefenseResearchEffect.TowerRange, 0.25f, cost: 0);
+			if (match.TowerRangeMultiplier <= rangeBefore)
+				Debug.LogError(TAG + " RESEARCH-FAIL 사거리 갈래가 하는 일이 없다.");
+
+			// 큰 마디 = 연구 한 단계 = 새 칸 해금. 이 고리가 끊기면 성좌를 다 뚫어도 지을 것이 그대로다.
 			int levelBefore = match.ResearchLevel;
-			bool accepted = match.TryResearch();
-
-			Debug.Log(TAG + " RESEARCH accepted=" + accepted
-				+ " level " + levelBefore + " → " + match.ResearchLevel
-				+ " damageMultiplier " + multiplierBefore.ToString("F2") + " → " + match.TowerDamageMultiplier.ToString("F2"));
-			if (accepted && match.ResearchLevel == levelBefore)
-				Debug.LogError(TAG + " RESEARCH-FAIL 정수를 받아놓고 단계가 안 올랐다.");
-			if (accepted && match.TowerDamageMultiplier <= multiplierBefore)
-				Debug.LogError(TAG + " RESEARCH-FAIL 단계는 올랐는데 포탑이 안 세졌다 — 연구가 하는 일이 없다.");
+			int slotsBefore = match.AvailableSlots.Count;
+			match.GrantResearchLevel();
+			Debug.Log(TAG + " RESEARCH-LEVEL " + levelBefore + " → " + match.ResearchLevel
+				+ " 칸 " + slotsBefore + " → " + match.AvailableSlots.Count);
+			if (match.ResearchLevel <= levelBefore)
+				Debug.LogError(TAG + " RESEARCH-FAIL 큰 마디를 뚫었는데 단계가 안 올랐다.");
 		}
 
 		/// <summary> 승급 — 같은 자리에 같은 종류를 다시 지으면 단계가 오르고 사거리·피해가 자라는가. </summary>
