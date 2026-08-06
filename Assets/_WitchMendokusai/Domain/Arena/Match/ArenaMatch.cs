@@ -367,6 +367,15 @@ namespace WitchMendokusai
 			}
 			spawnedUnits.Clear();
 
+			// ⚠ Teardown 은 `arenaRoot` 의 **자식을 전부 Destroy** 한다. 그래서 스폰 유닛을 arenaRoot
+			//   밑에 매달면 안 된다 — 지금은 안 매단다(풀이 준 부모 그대로 두고 위치만 옮긴다).
+			//
+			//   「관리하기 좋게 매치 유닛을 arenaRoot 자식으로 모으자」는 자연스러운 정리처럼 보이는데,
+			//   그렇게 하면 **풀이 깨진다**: 바로 위 `pool.Despawn` 의 반납 경로(ObjectPool.Push)는
+			//   비활성화·스택 push 까지만 즉시 하고 **부모 되돌리기를 UniTask.DelayFrame(1) 로 미룬다.**
+			//   즉 이 줄이 도는 같은 프레임엔 유닛이 아직 arenaRoot 자식이라, Teardown 이 **풀 스택 안에
+			//   들어있는 오브젝트를 Destroy** 한다 → 다음 Pop 이 파괴된 오브젝트를 돌려준다(MissingReference).
+			//   증상은 투기장이 아니라 **다음에 그 프리팹을 쓰는 아무 곳에서나** 터진다.
 			if (config != null && config.Map != null && arenaRoot != null)
 				config.Map.Teardown(arenaRoot);
 
