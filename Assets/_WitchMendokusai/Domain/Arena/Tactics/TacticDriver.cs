@@ -117,6 +117,14 @@ namespace WitchMendokusai
 		/// <summary>
 		/// 이 개체의 고유 값(0~1) — 같은 거리의 길이 여럿일 때 어느 길을 밟을지를 가른다.
 		/// 태어날 때 한 번 정해지고 안 바뀐다(매번 다시 뽑으면 걸음마다 길이 바뀌어 덜덜 떤다).
+		///
+		/// ⚠ NONDETERMINISTIC: `UnityEngine.Random` 전역이라 **판을 다시 돌리면 다른 길로 간다.**
+		///   이 클래스는 정지 고리 오프셋을 `CombatantId` 에서 뽑으며 「결정적 = 리플레이 정합」을
+		///   내세우는데, 이 값만 그 계약 밖에 있다(같은 입력 → 다른 이동). 한 기계 안에서도
+		///   재현이 안 되고, lockstep(P6)에서는 두 피어가 서로 다른 길을 밟는다.
+		///   후속 = per-match seeded RNG 격리 또는 `CombatantId` 파생(퍼짐은 유지하면서 결정화).
+		///   ★ 지금 안 고치는 이유: 분포를 바꾸면 마수가 밟는 길이 달라져 **개척 게임 느낌이 변한다**
+		///     — 그건 소유 세션 판단. 여기서는 계약 구멍만 보이게 둔다. (TASK-WM-085 / WM-194)
 		/// </summary>
 		public float Lane { get; } = UnityEngine.Random.value;
 
