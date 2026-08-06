@@ -97,11 +97,25 @@ namespace WitchMendokusai
 			int teamCount = config.Map.TeamCount;
 			int spawnsPerTeam = config.Map.SpawnsPerTeam;
 			Dictionary<int, int> perTeam = new();
+			int skipped = 0;
 
-			foreach (ArenaMatchConfig.ArenaUnitEntry entry in config.Roster)
+			for (int entryIndex = 0; entryIndex < config.Roster.Count; entryIndex++)
 			{
+				ArenaMatchConfig.ArenaUnitEntry entry = config.Roster[entryIndex];
+
+				// ★ 여기서 조용히 넘기면 **그 다음 판정이 전부 거짓말이 된다.** 이 검사가 센 팀 인원이
+				//   로스터에 보이는 인원과 달라지기 때문이다: 3v3 에서 프리팹 하나가 비면 검증은
+				//   3v2 를 통과시키고(사람은 3v3 인 줄 안다), 더 비면 「유효 팀 1 개 — 최소 2팀 필요」로
+				//   죽는데 그건 **원인이 아니라 증상**이다(로스터엔 팀이 둘 다 있다).
+				//   스폰 루프는 이미 같은 조건에 경고를 찍고 있었다 — 정작 먼저 도는 이쪽만 말이 없었다.
 				if (entry.UnitData == null || entry.UnitData.Prefab == null)
+				{
+					skipped++;
+					Debug.LogWarning($"{nameof(ArenaMatch)}: 로스터 {entryIndex} 번(팀 {entry.TeamId}) 은 "
+						+ (entry.UnitData == null ? "UnitData 가 비었다" : $"{entry.UnitData.name} 의 Prefab 이 비었다")
+						+ " — 이 줄은 인원에서 빠진다.");
 					continue;
+				}
 
 				if (entry.TeamId < 0 || entry.TeamId >= teamCount)
 				{
@@ -113,7 +127,9 @@ namespace WitchMendokusai
 
 			if (perTeam.Count < 2)
 			{
-				Debug.LogError($"{nameof(ArenaMatch)}: 유효 팀 {perTeam.Count} 개 — 한타는 최소 2팀 필요. 시작 불가.");
+				// 빠진 줄이 있으면 그것부터 말한다 — 「팀이 1개」는 대개 결과지 원인이 아니다.
+				Debug.LogError($"{nameof(ArenaMatch)}: 유효 팀 {perTeam.Count} 개 — 한타는 최소 2팀 필요. 시작 불가."
+					+ (skipped > 0 ? $" (로스터 {config.Roster.Count} 줄 중 {skipped} 줄이 UnitData/Prefab 누락으로 빠졌다 — 위 경고 확인)" : string.Empty));
 				return false;
 			}
 

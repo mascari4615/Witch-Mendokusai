@@ -129,6 +129,57 @@ namespace WitchMendokusai.Tests
 			Assert.AreEqual(ArenaModeSO.NO_WINNER, core.WinnerTeamId, "각 1 생존 동률 → 무승부");
 		}
 
+
+		// --- 3팀 이상: 「앞선 동률이 나중에 깨지는」 분기 ---
+		//
+		// 시간초과 판정은 최다 생존을 훑으면서 동률 플래그를 세우고, **더 높은 팀이 나중에 나오면
+		// 그 플래그를 도로 내려야 한다.** 2팀만으로는 이 분기를 못 밟는다(동률이 서면 그걸로 끝).
+		// 내리는 걸 잊으면 명백한 승자가 있는데 무승부가 나오고, 화면에선 「왜 비겼지」로만 보인다.
+		// 3팀 = 리그(WM-165 의 목표)에서 바로 나오는 모양이라 가상의 경우가 아니다.
+
+		private static MatchTeam TeamWithAlive(int teamId, int aliveCount)
+		{
+			List<ICombatant> members = new();
+			for (int i = 0; i < aliveCount; i++)
+				members.Add(new FakeCombatant { CombatantId = teamId * 100 + i, TeamId = teamId });
+			return new MatchTeam(teamId, members);
+		}
+
+		[Test]
+		public void Timeout_3팀_앞선_동률을_나중_최다가_깬다()
+		{
+			// 2 / 2 / 3 — 팀0·팀1 이 먼저 동률을 세우고, 팀2 가 그걸 깬다.
+			List<MatchTeam> teams = new() { TeamWithAlive(0, 2), TeamWithAlive(1, 2), TeamWithAlive(2, 3) };
+			ArenaMatchCore core = new(teams, Mode(), 1.0f);
+
+			Assert.IsTrue(core.Poll(1.0f), "시간초과 종료");
+			Assert.IsTrue(core.ConcludedByTimeout);
+			Assert.AreEqual(2, core.WinnerTeamId, "팀2(3 생존)가 단독 최다 — 앞선 2:2 동률이 승부를 먹으면 안 된다");
+		}
+
+		[Test]
+		public void Timeout_3팀_최다가_동률이면_무승부()
+		{
+			// 3 / 3 / 2 — 최다가 둘. 아래 팀이 뒤에 와도 동률은 유지돼야 한다.
+			List<MatchTeam> teams = new() { TeamWithAlive(0, 3), TeamWithAlive(1, 3), TeamWithAlive(2, 2) };
+			ArenaMatchCore core = new(teams, Mode(), 1.0f);
+
+			Assert.IsTrue(core.Poll(1.0f), "시간초과 종료");
+			Assert.IsTrue(core.ConcludedByTimeout);
+			Assert.AreEqual(ArenaModeSO.NO_WINNER, core.WinnerTeamId, "최다가 3으로 둘 — 무승부");
+		}
+
+		[Test]
+		public void Timeout_전멸한_팀은_최다_계산에서_빠진다()
+		{
+			// 0 / 1 — 전멸 팀이 첫 번째로 와도 0 이 최다가 되면 안 된다.
+			List<MatchTeam> teams = new() { TeamWithAlive(0, 0), TeamWithAlive(1, 1) };
+			ArenaMatchCore core = new(teams, Mode(), 1.0f);
+
+			core.Poll(1.0f);
+			Assert.AreEqual(1, core.WinnerTeamId, "생존 1 > 생존 0");
+		}
+
 		[Test]
 		public void EliminationBeforeTimeout_ModeWinsNotTimeout()
 		{
