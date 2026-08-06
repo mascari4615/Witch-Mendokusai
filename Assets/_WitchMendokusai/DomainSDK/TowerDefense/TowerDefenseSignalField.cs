@@ -30,12 +30,21 @@ namespace WitchMendokusai
 		/// <summary> 신호를 내거나(코어) 넘기는(중계탑) 것. </summary>
 		public readonly struct Node
 		{
+			/// <summary>
+			/// 그 노드가 *누구인가*. 충전값을 이어받을 때 이 값으로 짝짓는다.
+			///
+			/// ★ 좌표로 짝지으면 안 된다 — 코어·인형은 살아 있어서 자리가 미세하게 흔들리고,
+			///   그러면 매 프레임 「처음 보는 노드」가 되어 충전값이 0 으로 되돌아간다.
+			///   그 상태의 증상은 **아무것도 안 켜지는 것**이다(원이 영영 안 자란다).
+			/// </summary>
+			public readonly int Key;
 			public readonly Vector3 Position;
 			public readonly float Radius;
-			public readonly bool IsOrigin; // true = 스스로 신호를 낸다(코어·발전). false = 받아야만 산다.
+			public readonly bool IsOrigin; // true = 스스로 신호를 낸다(코어). false = 받아야만 산다(중계).
 
-			public Node(Vector3 position, float radius, bool isOrigin)
+			public Node(int key, Vector3 position, float radius, bool isOrigin)
 			{
+				Key = key;
 				Position = position;
 				Radius = radius;
 				IsOrigin = isOrigin;
@@ -48,7 +57,7 @@ namespace WitchMendokusai
 
 		public int NodeCount => nodes.Count;
 
-		/// <summary> 노드 목록을 갈아끼운다. 자리·반경이 같은 노드는 충전값을 이어받는다 — 안 그러면 목록이 다시 만들어질 때마다 판 전체가 깜빡인다. </summary>
+		/// <summary> 노드 목록을 갈아끼운다. <see cref="Node.Key"/> 가 같은 노드는 충전값을 이어받는다 — 안 그러면 목록이 다시 만들어질 때마다 판 전체가 깜빡인다. </summary>
 		public void Configure(IReadOnlyList<Node> next)
 		{
 			List<float> carried = new(charges);
@@ -70,7 +79,7 @@ namespace WitchMendokusai
 		{
 			for (int index = 0; index < previous.Count && index < carried.Count; index++)
 			{
-				if (previous[index].Position == node.Position && Mathf.Approximately(previous[index].Radius, node.Radius))
+				if (previous[index].Key == node.Key)
 					return carried[index];
 			}
 			return 0f;

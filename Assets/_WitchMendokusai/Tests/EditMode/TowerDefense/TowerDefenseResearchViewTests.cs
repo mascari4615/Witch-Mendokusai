@@ -19,7 +19,8 @@ namespace WitchMendokusai.Tests
 		{
 			VisualElement host = new VisualElement();
 			TowerDefenseResearchView view = new TowerDefenseResearchView();
-			view.Build(host, branchCount: 6, ringCount: 5, majorAmount: 0.35f, minorAmount: 0.08f, nodeCost: 2);
+			view.Build(host, branchCount: 6, ringCount: 5, majorAmount: 0.35f, minorAmount: 0.08f, nodeCost: 2,
+				essenceFromRing: 2, resourceNodeCost: 45);
 			return view;
 		}
 

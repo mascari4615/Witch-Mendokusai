@@ -1504,7 +1504,7 @@ namespace WitchMendokusai.EditorTools
 			System.Func<float> read)
 		{
 			float before = read();
-			bool taken = match.TryTakeResearchNode(effect, 0.25f, cost: 0);
+			bool taken = match.TryTakeResearchNode(effect, 0.25f, cost: 0, usesEssence: false);
 			float after = read();
 			Debug.Log(TAG + " RESEARCH-NODE " + label + " accepted=" + taken
 				+ " " + before.ToString("F2") + " → " + after.ToString("F2"));
@@ -1525,7 +1525,7 @@ namespace WitchMendokusai.EditorTools
 			//   지금 연구 = 성좌의 마디를 찍는 것. 값은 0 으로 부른다(정수 유무에 흔들리지 않게 —
 			//   값을 치르는 길은 규칙층 시험이 따로 잠갔다).
 			float damageBefore = match.TowerDamageMultiplier;
-			bool damageTaken = match.TryTakeResearchNode(TowerDefenseResearchEffect.TowerDamage, 0.25f, cost: 0);
+			bool damageTaken = match.TryTakeResearchNode(TowerDefenseResearchEffect.TowerDamage, 0.25f, cost: 0, usesEssence: false);
 			Debug.Log(TAG + " RESEARCH-NODE 피해 accepted=" + damageTaken
 				+ " damageMultiplier " + damageBefore.ToString("F2") + " → " + match.TowerDamageMultiplier.ToString("F2"));
 			if (damageTaken == false)

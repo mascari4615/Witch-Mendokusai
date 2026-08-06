@@ -33,8 +33,18 @@ namespace WitchMendokusai
 			public string Description;
 			/// <summary> 큰 마디 = 판을 바꾸는 것(새 건물 해금 등). 작은 마디 = 수치. </summary>
 			public bool IsMajor;
-			/// <summary> 찍는 데 드는 정수. </summary>
+			/// <summary> 찍는 데 드는 값. 무엇으로 내는지는 <see cref="UsesEssence"/> 가 정한다. </summary>
 			public int Cost;
+
+			/// <summary>
+			/// 정수로 사는 마디인가 — 아니면 일반 자원인가.
+			///
+			/// ★ 안쪽 고리까지 정수로 두면 판 시작에 연구가 통째로 잠긴다 (사용자 실증: "연구 자원이
+			///   정수면 초반에 연구 어떻게 하라는 겁니까"). 정수는 *바깥으로 나가야* 나는 것이라
+			///   개척을 강요하는 자리는 바깥 고리다. 안쪽 고리는 자원으로 연다 —
+			///   연구 단계(<c>TryResearch</c>)가 이미 쓰던 것과 같은 사고방식이다.
+			/// </summary>
+			public bool UsesEssence;
 			/// <summary> 화면 좌표(코어가 원점, 단위 = 화면 픽셀 기준 상대값). </summary>
 			public Vector2 Position;
 			/// <summary> 이 마디로 들어오는 앞 마디들. 비어 있으면 시작점. </summary>
@@ -55,7 +65,7 @@ namespace WitchMendokusai
 		///   되므로, *모양이 먼저 서고* 나중에 자산이 이 자리를 대체한다(같은 구조체를 그대로 쓴다).
 		/// </summary>
 		public static void Build(int branchCount, int ringCount, float majorAmount, float minorAmount,
-			int nodeCost, List<Node> into)
+			int nodeCost, int essenceFromRing, int resourceNodeCost, List<Node> into)
 		{
 			if (into == null)
 				return;
@@ -95,7 +105,7 @@ namespace WitchMendokusai
 					{
 						// 갈래의 출발점과 도착점 — 도착점이 「큰 마디」다(길 끝에 보상이 있어야 뚫을 이유가 생긴다).
 						int id = nextId++;
-						into.Add(MakeNode(id, theme, ring, ringCount, baseAngle, radius, previous, majorAmount, minorAmount, nodeCost));
+						into.Add(MakeNode(id, theme, ring, ringCount, baseAngle, radius, previous, majorAmount, minorAmount, nodeCost, essenceFromRing, resourceNodeCost));
 						previous = id;
 						continue;
 					}
@@ -103,13 +113,13 @@ namespace WitchMendokusai
 					// 가운데 구간은 두 갈래 — 둘 다 찍어도 되고 한쪽만 찍고 지나가도 된다.
 					int left = nextId++;
 					int right = nextId++;
-					into.Add(MakeNode(left, theme, ring, ringCount, baseAngle - FORK_SPREAD, radius, previous, majorAmount, minorAmount, nodeCost));
-					into.Add(MakeNode(right, theme, ring, ringCount, baseAngle + FORK_SPREAD, radius, previous, majorAmount, minorAmount, nodeCost));
+					into.Add(MakeNode(left, theme, ring, ringCount, baseAngle - FORK_SPREAD, radius, previous, majorAmount, minorAmount, nodeCost, essenceFromRing, resourceNodeCost));
+					into.Add(MakeNode(right, theme, ring, ringCount, baseAngle + FORK_SPREAD, radius, previous, majorAmount, minorAmount, nodeCost, essenceFromRing, resourceNodeCost));
 
 					// 다음 고리는 *둘 중 아무거나* 하나면 열린다 — 두 선을 그어 그 뜻을 낸다.
 					previous = left;
 					int merge = nextId++;
-					Node mergeNode = MakeNode(merge, theme, ring + 1, ringCount, baseAngle, RING_STEP * (ring + 1), left, majorAmount, minorAmount, nodeCost);
+					Node mergeNode = MakeNode(merge, theme, ring + 1, ringCount, baseAngle, RING_STEP * (ring + 1), left, majorAmount, minorAmount, nodeCost, essenceFromRing, resourceNodeCost);
 					mergeNode.Requires = new[] { left, right };
 					into.Add(mergeNode);
 					previous = merge;
@@ -119,7 +129,8 @@ namespace WitchMendokusai
 		}
 
 		private static Node MakeNode(int id, TowerDefenseResearchEffect theme, int ring, int ringCount,
-			float angleDegrees, float radius, int previous, float majorAmount, float minorAmount, int nodeCost)
+			float angleDegrees, float radius, int previous, float majorAmount, float minorAmount, int nodeCost,
+			int essenceFromRing, int resourceNodeCost)
 		{
 			float radians = angleDegrees * Mathf.Deg2Rad;
 			bool major = ring == ringCount;
@@ -132,7 +143,11 @@ namespace WitchMendokusai
 				Name = NameOf(theme) + (major ? " · 끝" : ""),
 				Description = NameOf(theme) + " +" + Mathf.RoundToInt(amount * 100f) + "%",
 				IsMajor = major,
-				Cost = Mathf.Max(0, nodeCost) * ring,
+				// 안쪽 고리는 자원, 바깥 고리부터 정수 — 개척을 강요하는 자리는 바깥이다.
+				UsesEssence = ring >= Mathf.Max(1, essenceFromRing),
+				Cost = ring >= Mathf.Max(1, essenceFromRing)
+					? Mathf.Max(0, nodeCost) * ring
+					: Mathf.Max(0, resourceNodeCost) * ring,
 				Position = new Vector2(Mathf.Cos(radians) * radius, Mathf.Sin(radians) * radius),
 				Requires = new[] { previous },
 			};

@@ -312,6 +312,12 @@ namespace WitchMendokusai
 		[field: Tooltip("마디 하나를 찍는 데 드는 정수 = 이 값 × 고리 번호. 바깥 고리일수록 비싸진다.")]
 		[field: SerializeField, Min(0)] public int ResearchNodeCost { get; private set; } = 2;
 
+		[field: Tooltip("이 고리부터 마디를 정수로 산다. 그 안쪽 고리는 일반 자원 — 안 그러면 판 시작에 연구가 통째로 잠긴다.")]
+		[field: SerializeField, Min(1)] public int ResearchEssenceFromRing { get; private set; } = 2;
+
+		[field: Tooltip("자원으로 사는 안쪽 마디 1개 값(고리마다 곱해진다).")]
+		[field: SerializeField, Min(0)] public int ResearchNodeResourceCost { get; private set; } = 45;
+
 		[field: Tooltip("길 끝 큰 마디가 주는 비율(0.35 = +35%).")]
 		[field: SerializeField, Min(0f)] public float ResearchMajorAmount { get; private set; } = 0.35f;
 

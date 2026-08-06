@@ -2243,10 +2243,14 @@ namespace WitchMendokusai
 				if (harvesterTransforms.Contains(label.Anchor))
 				{
 					// 채집은 「다음 정산까지」가 곧 진행이다 — 시계가 돌면 들어온다.
-					label.ReadyRatio = core != null && stage.Rules.IncomeInterval > 0f
+					// ★ 단, *일하고 있을 때만* 찬다. 멈춘 인형의 바가 계속 차오르면 화면이 거짓말을 한다
+					//   (사용자 실증: "전기 없다고 뜨는데 채굴은 또 되는 것 같고"). 규칙은 이미 한 푼도
+					//   안 주고 있었으므로, 갈라진 것은 그림뿐이었다 — 안 도는 것은 안 차야 한다.
+					bool working = powered && label.Disconnected == false;
+					label.ReadyRatio = working && core != null && stage.Rules.IncomeInterval > 0f
 						? 1f - core.NextIncomeIn / stage.Rules.IncomeInterval
-						: 1f;
-					label.Working = powered && label.Disconnected == false;
+						: 0f;
+					label.Working = working;
 					continue;
 				}
 
@@ -3094,7 +3098,7 @@ namespace WitchMendokusai
 		/// 성좌에서 마디 하나를 찍는다 — 값을 치르고 효과를 쌓는다.
 		/// 값이 모자라면 아무 일도 안 일어난다(화면이 찍힌 척하면 안 되므로 false 를 돌려준다).
 		/// </summary>
-		public bool TryTakeResearchNode(TowerDefenseResearchEffect effect, float amount, int cost)
+		public bool TryTakeResearchNode(TowerDefenseResearchEffect effect, float amount, int cost, bool usesEssence)
 		{
 			if (core == null)
 				return false;
@@ -3103,10 +3107,20 @@ namespace WitchMendokusai
 			//   화면엔 「연구값↓」이라 적히는데 실제로는 한 푼도 안 깎이는 상태였다 — 카드가 거짓말한다.
 			cost = Mathf.Max(0, Mathf.RoundToInt(cost * boons.ResearchCostMultiplier));
 
-			if (cost > 0 && core.TrySpendEssence(cost) == false)
+			// ★ 안쪽 고리는 일반 자원으로 산다 (사용자 실증: "연구 자원이 정수면 초반에 연구 어떻게
+			//   하라는 겁니까"). 정수는 바깥으로 나가야 나는 것이라, 그걸 첫 마디의 통로로 두면
+			//   판 시작에 연구가 통째로 잠긴다. 개척을 강요하는 자리는 바깥 고리다.
+			if (cost > 0)
 			{
-				Debug.Log($"{nameof(TowerDefenseMatch)}: 연구 거절 — 정수 부족(필요 {cost}).");
-				return false;
+				bool paid = usesEssence ? core.TrySpendEssence(cost) : core.TrySpend(cost);
+				if (paid == false)
+				{
+					string lack = usesEssence ? $"정수 부족 {core.Essence}/{cost}" : $"자원 부족 {core.Resource}/{cost}";
+					if (coreCombatant != null)
+						Reject(lack, coreCombatant.Position);
+					Debug.Log($"{nameof(TowerDefenseMatch)}: 연구 거절 — {lack}.");
+					return false;
+				}
 			}
 
 			researchBonus.TryGetValue(effect, out float current);

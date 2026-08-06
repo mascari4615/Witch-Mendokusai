@@ -10,7 +10,8 @@ namespace WitchMendokusai.Tests
 		private static List<TowerDefenseResearchGraph.Node> Build(int branches = 4, int rings = 5)
 		{
 			List<TowerDefenseResearchGraph.Node> nodes = new();
-			TowerDefenseResearchGraph.Build(branches, rings, majorAmount: 0.35f, minorAmount: 0.08f, nodeCost: 2, nodes);
+			TowerDefenseResearchGraph.Build(branches, rings, majorAmount: 0.35f, minorAmount: 0.08f, nodeCost: 2,
+				essenceFromRing: 2, resourceNodeCost: 45, nodes);
 			return nodes;
 		}
 

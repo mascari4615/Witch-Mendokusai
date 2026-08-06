@@ -30,7 +30,7 @@ namespace WitchMendokusai.Tests
 		[Test]
 		public void 코어는_스스로_찬다()
 		{
-			TowerDefenseSignalField field = Make(new TowerDefenseSignalField.Node(Vector3.zero, 10f, true));
+			TowerDefenseSignalField field = Make(new TowerDefenseSignalField.Node(1, Vector3.zero, 10f, true));
 
 			Assert.AreEqual(0f, field.ChargeAt(0), "세우자마자 가득 차 있으면 「점점 채워진다」가 아니다.");
 			Settle(field, 2f);
@@ -40,7 +40,7 @@ namespace WitchMendokusai.Tests
 		[Test]
 		public void 즉시_안_켜지고_시간이_걸린다()
 		{
-			TowerDefenseSignalField field = Make(new TowerDefenseSignalField.Node(Vector3.zero, 10f, true));
+			TowerDefenseSignalField field = Make(new TowerDefenseSignalField.Node(1, Vector3.zero, 10f, true));
 
 			field.Tick(0.2f, 1f, 1f);
 			float early = field.ChargeAt(0);
@@ -51,7 +51,7 @@ namespace WitchMendokusai.Tests
 		[Test]
 		public void 덮는_반경이_차면서_자란다()
 		{
-			TowerDefenseSignalField field = Make(new TowerDefenseSignalField.Node(Vector3.zero, 10f, true));
+			TowerDefenseSignalField field = Make(new TowerDefenseSignalField.Node(1, Vector3.zero, 10f, true));
 
 			Settle(field, 0.5f);
 			float half = field.LiveRadiusAt(0);
@@ -67,9 +67,9 @@ namespace WitchMendokusai.Tests
 		{
 			// 코어 — (닿음) 중계1 — (닿음) 중계2. 중계2는 코어에서 직접은 절대 안 닿는다.
 			TowerDefenseSignalField field = Make(
-				new TowerDefenseSignalField.Node(Vector3.zero, 10f, true),
-				new TowerDefenseSignalField.Node(new Vector3(8f, 0f, 0f), 10f, false),
-				new TowerDefenseSignalField.Node(new Vector3(16f, 0f, 0f), 10f, false));
+				new TowerDefenseSignalField.Node(1, Vector3.zero, 10f, true),
+				new TowerDefenseSignalField.Node(2, new Vector3(8f, 0f, 0f), 10f, false),
+				new TowerDefenseSignalField.Node(3, new Vector3(16f, 0f, 0f), 10f, false));
 
 			Settle(field, 6f);
 
@@ -81,9 +81,9 @@ namespace WitchMendokusai.Tests
 		public void 사슬은_앞에서부터_순서대로_찬다()
 		{
 			TowerDefenseSignalField field = Make(
-				new TowerDefenseSignalField.Node(Vector3.zero, 10f, true),
-				new TowerDefenseSignalField.Node(new Vector3(8f, 0f, 0f), 10f, false),
-				new TowerDefenseSignalField.Node(new Vector3(16f, 0f, 0f), 10f, false));
+				new TowerDefenseSignalField.Node(1, Vector3.zero, 10f, true),
+				new TowerDefenseSignalField.Node(2, new Vector3(8f, 0f, 0f), 10f, false),
+				new TowerDefenseSignalField.Node(3, new Vector3(16f, 0f, 0f), 10f, false));
 
 			Settle(field, 1.6f);
 
@@ -95,17 +95,17 @@ namespace WitchMendokusai.Tests
 		public void 중간_탑이_사라지면_그_너머가_죽는다()
 		{
 			TowerDefenseSignalField field = Make(
-				new TowerDefenseSignalField.Node(Vector3.zero, 10f, true),
-				new TowerDefenseSignalField.Node(new Vector3(8f, 0f, 0f), 10f, false),
-				new TowerDefenseSignalField.Node(new Vector3(16f, 0f, 0f), 10f, false));
+				new TowerDefenseSignalField.Node(1, Vector3.zero, 10f, true),
+				new TowerDefenseSignalField.Node(2, new Vector3(8f, 0f, 0f), 10f, false),
+				new TowerDefenseSignalField.Node(3, new Vector3(16f, 0f, 0f), 10f, false));
 			Settle(field, 6f);
 			Assert.IsTrue(field.IsCovered(new Vector3(20f, 0f, 0f)));
 
 			// 가운데 탑이 부서졌다 — 목록에서 빠진다. 남은 둘은 자리가 같으니 충전값을 이어받는다.
 			field.Configure(new List<TowerDefenseSignalField.Node>
 			{
-				new TowerDefenseSignalField.Node(Vector3.zero, 10f, true),
-				new TowerDefenseSignalField.Node(new Vector3(16f, 0f, 0f), 10f, false),
+				new TowerDefenseSignalField.Node(1, Vector3.zero, 10f, true),
+				new TowerDefenseSignalField.Node(3, new Vector3(16f, 0f, 0f), 10f, false),
 			});
 
 			Settle(field, 3f);
@@ -117,13 +117,13 @@ namespace WitchMendokusai.Tests
 		public void 끊기면_뚝_꺼지지_않고_서서히_빠진다()
 		{
 			TowerDefenseSignalField field = Make(
-				new TowerDefenseSignalField.Node(Vector3.zero, 10f, true),
-				new TowerDefenseSignalField.Node(new Vector3(8f, 0f, 0f), 10f, false));
+				new TowerDefenseSignalField.Node(1, Vector3.zero, 10f, true),
+				new TowerDefenseSignalField.Node(2, new Vector3(8f, 0f, 0f), 10f, false));
 			Settle(field, 6f);
 
 			field.Configure(new List<TowerDefenseSignalField.Node>
 			{
-				new TowerDefenseSignalField.Node(new Vector3(8f, 0f, 0f), 10f, false),
+				new TowerDefenseSignalField.Node(2, new Vector3(8f, 0f, 0f), 10f, false),
 			});
 
 			field.Tick(0.2f, 1f, 1f);
@@ -133,16 +133,40 @@ namespace WitchMendokusai.Tests
 		}
 
 		[Test]
-		public void 자리가_같은_노드는_충전값을_이어받는다()
+		public void 살아있는_코어가_미세하게_흔들려도_충전값을_안_잃는다()
+		{
+			// ★ 회귀: 충전값을 *좌표*로 짝지었더니 코어·인형이 조금만 움직여도 매 프레임 「처음 보는
+			//   노드」가 되어 0 으로 되돌아갔다. 그 상태의 증상은 **아무것도 안 켜지는 것**이다
+			//   (사용자 실증: "코어 건물에 전기가 안 나와? 파동 링도 없고"). 이름표로 짝지어야 한다.
+			TowerDefenseSignalField field = Make(new TowerDefenseSignalField.Node(1, Vector3.zero, 10f, true));
+			Settle(field, 6f);
+
+			for (int step = 0; step < 20; step++)
+			{
+				// 살아 있는 인형처럼 아주 조금씩 흔들린다.
+				Vector3 jitter = new Vector3(step * 0.003f, 0f, step * 0.002f);
+				field.Configure(new List<TowerDefenseSignalField.Node>
+				{
+					new TowerDefenseSignalField.Node(1, jitter, 10f, true),
+				});
+				field.Tick(0.1f, 1f, 1f);
+			}
+
+			Assert.AreEqual(1f, field.ChargeAt(0), 1e-3f, "흔들렸다고 충전값을 잃으면 신호가 영영 안 선다.");
+			Assert.Greater(field.LiveRadiusAt(0), 0f, "코어가 아무것도 못 덮으면 판 전체가 정지한다.");
+		}
+
+		[Test]
+		public void 이름표가_같은_노드는_충전값을_이어받는다()
 		{
 			// 목록이 다시 만들어질 때마다 0 부터 시작하면 판 전체가 매 프레임 깜빡인다.
-			TowerDefenseSignalField field = Make(new TowerDefenseSignalField.Node(Vector3.zero, 10f, true));
+			TowerDefenseSignalField field = Make(new TowerDefenseSignalField.Node(1, Vector3.zero, 10f, true));
 			Settle(field, 6f);
 
 			field.Configure(new List<TowerDefenseSignalField.Node>
 			{
-				new TowerDefenseSignalField.Node(Vector3.zero, 10f, true),
-				new TowerDefenseSignalField.Node(new Vector3(8f, 0f, 0f), 10f, false),
+				new TowerDefenseSignalField.Node(1, Vector3.zero, 10f, true),
+				new TowerDefenseSignalField.Node(2, new Vector3(8f, 0f, 0f), 10f, false),
 			});
 
 			Assert.AreEqual(1f, field.ChargeAt(0), 1e-3f, "그대로 서 있던 코어가 다시 0 부터 차면 판이 깜빡인다.");
@@ -152,7 +176,7 @@ namespace WitchMendokusai.Tests
 		[Test]
 		public void 덮이지_않은_자리는_덮이지_않았다고_말한다()
 		{
-			TowerDefenseSignalField field = Make(new TowerDefenseSignalField.Node(Vector3.zero, 10f, true));
+			TowerDefenseSignalField field = Make(new TowerDefenseSignalField.Node(1, Vector3.zero, 10f, true));
 			Settle(field, 6f);
 
 			Assert.IsTrue(field.IsCovered(new Vector3(9f, 0f, 0f)));

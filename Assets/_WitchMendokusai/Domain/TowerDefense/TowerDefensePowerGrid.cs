@@ -25,6 +25,24 @@ namespace WitchMendokusai
 
 		// 신호장 — 전기는 「독립된 원」이 아니라 코어에서 사슬을 타고 번지는 것이다(컨트롤넷 레퍼런스).
 		// 노드 0 = 코어(스스로 낸다), 나머지 = 발전 인형(받아야만 산다 = 중계탑).
+		// 코어는 판에 하나 — 인형처럼 파괴·재생성되지 않으므로 이름표를 박아둔다(0 은 인스턴스 ID 로 안 나온다).
+		private const int CORE_KEY = 0;
+
+		// 인형마다 붙는 이름표 — *그 인형이 서 있는 동안* 바뀌지 않아야 충전값이 이어진다.
+		// 좌표로 짝지으면 살아 있는 인형이 조금만 흔들려도 매 프레임 「처음 보는 노드」가 된다.
+		private readonly Dictionary<Transform, int> generatorKeys = new();
+		private int nextGeneratorKey = 1;
+
+		private int KeyOf(Transform generator)
+		{
+			if (generatorKeys.TryGetValue(generator, out int key))
+				return key;
+
+			key = nextGeneratorKey++;
+			generatorKeys[generator] = key;
+			return key;
+		}
+
 		private readonly TowerDefenseSignalField field = new();
 		private readonly List<TowerDefenseSignalField.Node> fieldNodes = new();
 
@@ -42,6 +60,7 @@ namespace WitchMendokusai
 		public void Clear()
 		{
 			generators.Clear();
+			generatorKeys.Clear();
 			consumerTransforms.Clear();
 			powered.Clear();
 			Capacity = 0;
@@ -76,14 +95,18 @@ namespace WitchMendokusai
 			// ★ 신호장을 먼저 세운다. 코어만 스스로 신호를 내고, 발전 인형은 *받아서 넘긴다*.
 			//   그래서 사슬 중간이 끊기면 그 너머가 통째로 죽는다(컨트롤넷 — 사용자 지시).
 			fieldNodes.Clear();
-			fieldNodes.Add(new TowerDefenseSignalField.Node(corePosition, stage.CorePowerRadius, true));
+			// 코어의 이름표는 고정값 — 코어는 판에 하나뿐이고 자리가 흔들려도 같은 코어다.
+			fieldNodes.Add(new TowerDefenseSignalField.Node(CORE_KEY, corePosition, stage.CorePowerRadius, true));
 			for (int index = generators.Count - 1; index >= 0; index--)
 			{
 				if (generators[index] == null)
 					generators.RemoveAt(index);
 			}
 			foreach (Transform generator in generators)
-				fieldNodes.Add(new TowerDefenseSignalField.Node(generator.position, stage.GeneratorRadius, false));
+			{
+				fieldNodes.Add(new TowerDefenseSignalField.Node(
+					KeyOf(generator), generator.position, stage.GeneratorRadius, false));
+			}
 
 			field.Configure(fieldNodes);
 
@@ -140,7 +163,11 @@ namespace WitchMendokusai
 
 				TowerDefenseDollLabel label = findLabel != null ? findLabel(consumer) : null;
 				if (label != null)
+				{
 					label.Unpowered = hasPower == false;
+					// 신호장이 그 자리를 덮고 있느냐가 두 이유를 가른다 — 덮였는데 안 돌면 용량이 모자란 것.
+					label.OutOfSignal = hasPower == false && field.IsCovered(consumer.position) == false;
+				}
 			}
 		}
 	}

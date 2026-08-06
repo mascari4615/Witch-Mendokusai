@@ -19,6 +19,8 @@ namespace WitchMendokusai.EditorTools
 		private const float PREVIEW_MAJOR = 0.35f;
 		private const float PREVIEW_MINOR = 0.08f;
 		private const int PREVIEW_COST = 2;
+		private const int PREVIEW_ESSENCE_FROM_RING = 2; // 미리보기도 「안쪽은 자원, 바깥은 정수」를 그대로 보여준다.
+		private const int PREVIEW_RESOURCE_COST = 45;
 
 		[MenuItem("WM/TowerDefense/연구 성좌 미리보기")]
 		public static void Open()
@@ -35,7 +37,8 @@ namespace WitchMendokusai.EditorTools
 			host.style.flexGrow = 1;
 
 			TowerDefenseResearchView view = new TowerDefenseResearchView();
-			view.Build(host, PREVIEW_BRANCHES, PREVIEW_RINGS, PREVIEW_MAJOR, PREVIEW_MINOR, PREVIEW_COST);
+			view.Build(host, PREVIEW_BRANCHES, PREVIEW_RINGS, PREVIEW_MAJOR, PREVIEW_MINOR, PREVIEW_COST,
+				PREVIEW_ESSENCE_FROM_RING, PREVIEW_RESOURCE_COST);
 			view.SetOpen(true);
 		}
 	}

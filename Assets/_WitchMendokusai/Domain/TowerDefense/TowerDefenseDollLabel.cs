@@ -27,6 +27,15 @@ namespace WitchMendokusai
 		public bool Unpowered { get; set; }
 
 		/// <summary>
+		/// 멈춘 이유가 「신호가 여기까지 안 온다」인가 — 아니면 「신호는 오는데 남은 전기가 없다」인가.
+		///
+		/// ★ 둘을 같은 말로 뭉치면 이해가 불가능해진다 (사용자 실증: "코어 건물 링 안에 있어도
+		///   전기 없다고 뜬다"). 고치는 방법이 정반대다 — 하나는 중계탑을 세워 신호를 끌고 오는 것,
+		///   다른 하나는 발전을 늘려 용량을 키우는 것.
+		/// </summary>
+		public bool OutOfSignal { get; set; }
+
+		/// <summary>
 		/// 이 건물의 「준비됨」 비율(0~1) — 화면의 작은 바가 그린다. 패시브는 늘 1.
 		/// 매치가 매 틱 채워 넣는다(화면이 유닛에게 직접 캐물으면 표시와 규칙이 두 경로로 갈라진다).
 		/// </summary>
@@ -81,7 +90,7 @@ namespace WitchMendokusai
 				if (Disconnected)
 					text += "\n⚠ 보급 끊김";
 				if (Unpowered)
-					text += "\n⚡ 전기 없음";
+					text += OutOfSignal ? "\n📡 신호 안 닿음" : "\n⚡ 전기 모자람";
 				return text;
 			}
 		}

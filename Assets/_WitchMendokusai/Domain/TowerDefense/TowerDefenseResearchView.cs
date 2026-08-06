@@ -46,9 +46,10 @@ namespace WitchMendokusai
 		public event System.Action<int> NodeChosen = delegate { };
 
 		public void Build(VisualElement parent, int branchCount, int ringCount, float majorAmount, float minorAmount,
-			int nodeCost, string[] branchNames = null)
+			int nodeCost, int essenceFromRing, int resourceNodeCost, string[] branchNames = null)
 		{
-			TowerDefenseResearchGraph.Build(branchCount, ringCount, majorAmount, minorAmount, nodeCost, nodes);
+			TowerDefenseResearchGraph.Build(branchCount, ringCount, majorAmount, minorAmount, nodeCost,
+				essenceFromRing, resourceNodeCost, nodes);
 			this.branchNames = branchNames;
 			taken.Clear();
 			taken.Add(TowerDefenseResearchGraph.CORE_ID); // 코어는 이미 있는 것 — 여기서 길이 시작한다.
@@ -215,7 +216,10 @@ namespace WitchMendokusai
 				string state = taken.Contains(id)
 					? "찍음"
 					: TowerDefenseResearchGraph.IsReachable(node, taken) ? "지금 찍을 수 있다" : "잠김";
-				detailLabel.text = DisplayNameOf(node.Effect) + " — " + node.Description + "  ·  값 " + node.Cost + "  ·  " + state;
+				// ★ 무엇으로 사는지를 적는다 — 안쪽은 자원, 바깥은 정수라 값만 적으면 어느 지갑인지 모른다.
+				string currency = node.UsesEssence ? "정수 " : "자원 ";
+				detailLabel.text = DisplayNameOf(node.Effect) + " — " + node.Description
+					+ "  ·  " + currency + node.Cost + "  ·  " + state;
 				return;
 			}
 		}
@@ -395,7 +399,7 @@ namespace WitchMendokusai
 		{
 			if (taken.Remove(id) == false)
 				return;
-			detailLabel.text = "정수가 모자라다.";
+			detailLabel.text = "값이 모자라다.";
 			RefreshNodes();
 			canvas.MarkDirtyRepaint();
 		}
