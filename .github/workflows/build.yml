@@ -218,11 +218,19 @@ jobs:
       - name: Zip
         if: ${{ success() && (inputs.publish == 'artifact' || github.ref_type == 'tag') }}
         shell: powershell
+        # Use the repo helper, not Compress-Archive. That helper already exists because
+        # the delivery card needs a zip too - and it is the better one: it reuses an
+        # existing zip, stages outside the build folder, and uses the fast level.
+        # Zipping twice under different names left TWO multi-GB archives in the same
+        # folder (the PC build is ~2GB) and the dashboard then picked whichever sorted
+        # first. One policy, one place.
         run: |
           $ErrorActionPreference = 'Stop'
-          $outDir = '${{ steps.build.outputs.out_dir }}'
-          $zip = Join-Path $outDir 'WitchMendokusai-${{ steps.cfg.outputs.platform }}.zip'
-          Compress-Archive -Path (Join-Path $outDir '*') -DestinationPath $zip -Force
+          $OutputEncoding = [Console]::OutputEncoding = [Text.UTF8Encoding]::new()
+          . "$env:GITHUB_WORKSPACE\.github\scripts\wm-build-card.ps1"
+          $zipItem = Get-BuildZip -OutDir '${{ steps.build.outputs.out_dir }}'
+          if (-not $zipItem) { throw "no zip produced (no .exe in build output?)" }
+          $zip = $zipItem.FullName
           "zip=$zip" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
           Write-Host "zip → $zip ($([Math]::Round((Get-Item $zip).Length / 1MB, 1)) MB)"
         id: zip
