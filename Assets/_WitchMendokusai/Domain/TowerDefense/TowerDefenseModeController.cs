@@ -282,6 +282,10 @@ namespace WitchMendokusai
 		public UnityEngine.Rect ResearchScreenRect =>
 			researchView != null ? researchView.ScreenRect : UnityEngine.Rect.zero;
 
+		/// <summary> UI 뿌리가 차지한 자리 — 「전체화면인가」는 화면 픽셀이 아니라 이것과 견줘야 한다. </summary>
+		public UnityEngine.Rect UiRootRect =>
+			uiRoot != null && uiRoot.ModeHudLayer != null ? uiRoot.ModeHudLayer.worldBound : UnityEngine.Rect.zero;
+
 		/// <summary> 성좌에 그려진 마디 수 — 0 이면 그래프가 아니라 빈 판이다. </summary>
 		public int ResearchNodeCount => researchNodes.Count;
 

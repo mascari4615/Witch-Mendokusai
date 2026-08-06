@@ -829,20 +829,20 @@ namespace WitchMendokusai
 			panel.pickingMode = PickingMode.Position;
 
 			// 안쪽 카드 — 글과 버튼은 여기 담긴다(바깥은 화면을 덮는 어둠).
-			// ★ 가운데 작은 카드가 아니라 **화면을 통째로 쓴다** (사용자 지시: "전체화면 하라고 분명히
-			//   말했는데 왜 팝업 형태야"). 판을 결정하는 창은 판만큼 커야 한다 — 카드로 두면
-			//   결국 「구석의 작은 상자」와 같은 문제로 되돌아간다.
+			// ★ 전체화면으로 만들어 봤다가 되돌렸다 — 화면으로 확인하니 「체력 72/72」 넉 줄에 화면
+			//   전체를 쓰는 그림이 나왔다. 휑한 검은 화면은 큰 게 아니라 빈 것이다.
+			//   *전체화면이 맞는 창은 성좌*(마디 43개가 실제로 화면을 채운다)이고, 이건 고른 것을
+			//   설명하는 카드다. 배경만 불투명하게 두어 뒤가 비치지 않게 한다.
 			VisualElement card = new VisualElement();
-			card.style.flexGrow = 1;
-			card.style.width = Length.Percent(100);
-			card.style.height = Length.Percent(100);
-			card.style.paddingLeft = 48;
-			card.style.paddingRight = 48;
-			card.style.paddingTop = 40;
-			card.style.paddingBottom = 40;
-			card.style.backgroundColor = new Color(0.03f, 0.04f, 0.07f, 1f);
+			card.style.minWidth = 560;
+			card.style.maxWidth = 760;
+			card.style.paddingLeft = 28;
+			card.style.paddingRight = 28;
+			card.style.paddingTop = 22;
+			card.style.paddingBottom = 22;
+			card.style.backgroundColor = new Color(0.05f, 0.06f, 0.10f, 1f);
 			card.style.alignItems = Align.Center;
-			card.style.justifyContent = Justify.Center;
+			SetRadius(card, 12);
 			panel.Add(card);
 
 			title = new Label(string.Empty);

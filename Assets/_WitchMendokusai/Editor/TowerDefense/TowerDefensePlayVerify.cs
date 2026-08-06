@@ -1153,7 +1153,7 @@ namespace WitchMendokusai.EditorTools
 				heroProbeTarget = heroProbeFrom + new Vector3(5f, 0f, 5f);
 				heroProbeReady = match.CommandHero(heroProbeTarget);
 				heroProbeAt = now;
-				Debug.Log(TAG + " HERO commanded=" + heroProbeReady + " from=" + heroProbeFrom + " to=" + heroProbeTarget + " step=" + step);
+				Debug.Log(TAG + " HERO commanded=" + heroProbeReady + " from=" + heroProbeFrom + " to=" + heroProbeTarget);
 			}
 
 			// 영웅이 명령한 쪽으로 실제로 가까워졌나 — 「명령을 받았다」와 「움직였다」는 다른 사실이다.
@@ -1672,12 +1672,17 @@ namespace WitchMendokusai.EditorTools
 			if (controller == null || match == null)
 				return;
 
+			// ★ 화면 픽셀과 견주면 안 된다 — UI 는 자기 좌표계(논리 픽셀)로 잰다. 배율이 1 이 아니면
+			//   둘의 단위가 달라 「덮는 비율 55%」 같은 헛수가 나온다(실측: 배율을 Expand 로 바꾼 직후
+			//   멀쩡한 전체화면이 실패로 찍혔다). *같은 좌표계에 있는 UI 뿌리*와 견준다.
 			Rect panel = controller.ResearchScreenRect;
-			float screenArea = Mathf.Max(1f, Screen.width * (float)Screen.height);
-			float coverage = (panel.width * panel.height) / screenArea;
+			Rect host = controller.UiRootRect;
+			float hostArea = Mathf.Max(1f, host.width * host.height);
+			float coverage = (panel.width * panel.height) / hostArea;
 			Debug.Log(TAG + " RESEARCH-PANEL 덮는 비율 " + coverage.ToString("P0")
 				+ " (" + panel.width.ToString("F0") + "x" + panel.height.ToString("F0")
-				+ " / 화면 " + Screen.width + "x" + Screen.height + ")");
+				+ " / UI 뿌리 " + host.width.ToString("F0") + "x" + host.height.ToString("F0")
+				+ " · 화면 " + Screen.width + "x" + Screen.height + ")");
 			// 한 틱 뒤에 재는데도 NaN 이면 그건 「아직」이 아니라 자리가 영영 안 잡힌 것 — 실패다.
 			if (float.IsNaN(coverage))
 				Debug.LogError(TAG + " RESEARCH-PANEL-FAIL 한 틱 뒤에도 자리가 안 잡혔다 — 크기를 잴 수 없다.");
