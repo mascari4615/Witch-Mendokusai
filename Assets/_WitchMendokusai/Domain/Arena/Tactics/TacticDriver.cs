@@ -38,6 +38,7 @@ namespace WitchMendokusai
 		{
 			self = GetComponent<MatchCombatant>();
 			unitObject = GetComponent<UnitObject>();
+			Lane = UnityEngine.Random.value; // 여기서 넣어야 실제로 들어간다(위 주석 참고).
 		}
 
 		public void Initialize(TacticProgram program, ITargetResolver targeting, TimeManager timeManager)
@@ -133,7 +134,11 @@ namespace WitchMendokusai
 		///   ★ 지금 안 고치는 이유: 분포를 바꾸면 마수가 밟는 길이 달라져 **개척 게임 느낌이 변한다**
 		///     — 그건 소유 세션 판단. 여기서는 계약 구멍만 보이게 둔다. (TASK-WM-085 / WM-194)
 		/// </summary>
-		public float Lane { get; } = UnityEngine.Random.value;
+		/// ★ 값을 *Awake 에서* 넣는다. 예전엔 선언 자리에서 바로 넣었는데, 유니티는 그 자리(생성자)에서
+		///   자기 API 를 부르는 것을 금지한다 — 그래서 **인형이 태어날 때마다 예외가 터지고 이 값은
+		///   영영 0 으로 남았다.** 모두가 같은 줄을 밟으니 마수가 한 줄로 몰려온다(사용자 실증:
+		///   "여전히 거의 한줄"). 로그도 이 예외 하나로 도배돼 다른 신호가 전부 묻혔다.
+		public float Lane { get; private set; }
 
 		public void MoveToward(ICombatant target)
 		{
