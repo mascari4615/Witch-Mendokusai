@@ -67,6 +67,9 @@ namespace WitchMendokusai
 		private readonly TowerDefenseSupplyChain supplyChain = new();
 		// 판을 *그리는* 층 — 바닥·암반·길 표시·표식. 규칙과 그림을 갈라둔다.
 		private readonly TowerDefenseTerrainView terrainView = new();
+
+		// 신호장 그림 — 덮인 땅의 테두리와 퍼져 나가는 파동. 무대가 서는 순간 만들어진다.
+		private TowerDefenseSignalView signalView;
 		// 전초기지 — 마수가 향하는 *또 하나의 목표*이자 보급의 새 원점.
 		private readonly List<Transform> outposts = new();
 		private readonly List<Vector2Int> pathGoals = new();
@@ -1249,6 +1252,7 @@ namespace WitchMendokusai
 			UnstickEnemies();     // 굳은 마수를 풀어준다 — 한 마리가 굳으면 웨이브가 영영 안 끝난다.
 			CullDestroyedNests(); // 부순 둥지의 출구를 닫는다 — 「버틴다」가 「밀어낸다」가 되는 자리.
 			RefreshPower();       // 전기를 못 받는 건물은 선다(도시 건설의 규칙 그대로).
+			TickSignalView();     // 신호가 번지는 것을 눈으로 보여준다 — 테두리와 파동.
 			RefreshBuildingProgress(); // 「무엇이 일하고 있나」를 머리 위 바에 채운다.
 			TryGrowWindow();      // 내 것이 판 끝에 닿으면 판이 자란다(무한 맵).
 			ApplyEnemyVisibility(); // 안 보이는 마수는 화면에서도 지운다(규칙과 그림이 같아야 한다).
@@ -2035,13 +2039,25 @@ namespace WitchMendokusai
 		/// <summary> 전기를 못 받아 멈춘 건물 수. </summary>
 		public int UnpoweredBuildings => powerGrid.UnpoweredBuildings;
 
+		/// <summary> 신호장을 화면에 그린다. 무대가 있어야 그릴 자리가 생기므로 여기서 늦게 만든다. </summary>
+		private void TickSignalView()
+		{
+			if (stageRoot == null || stage == null)
+				return;
+
+			if (signalView == null)
+				signalView = TowerDefenseSignalView.Create(stageRoot);
+
+			signalView.Tick(powerGrid.Field, stage, Time.deltaTime);
+		}
+
 		private void RefreshPower()
 		{
 			if (coreCombatant == null)
 				return;
 
 			powerGrid.Refresh(stage, coreCombatant.Position, bonusPowerCapacity,
-				harvesterTransforms.Contains, FindDollLabel);
+				harvesterTransforms.Contains, FindDollLabel, Time.deltaTime);
 		}
 
 		/// <summary>

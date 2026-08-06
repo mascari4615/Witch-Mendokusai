@@ -355,6 +355,21 @@ namespace WitchMendokusai
 		[field: Tooltip("발전 인형이 전기를 보내는 반경(칸).")]
 		[field: SerializeField, Min(0f)] public float GeneratorRadius { get; private set; } = 11f;
 
+		[field: Tooltip("신호가 빈 자리에서 가득 차는 데 걸리는 시간(초). 즉시 켜지지 않고 원이 자라며 채워진다.")]
+		[field: SerializeField, Min(0.01f)] public float SignalChargeSeconds { get; private set; } = 2.5f;
+
+		[field: Tooltip("사슬이 끊긴 뒤 신호가 다 빠지는 데 걸리는 시간(초). 뚝 꺼지지 않고 물 빠지듯 줄어든다.")]
+		[field: SerializeField, Min(0.01f)] public float SignalDrainSeconds { get; private set; } = 1.6f;
+
+		[field: Tooltip("코어·중계에서 파동 링이 나가는 간격(초). 0 이면 파동 없음.")]
+		[field: SerializeField, Min(0f)] public float SignalPulseInterval { get; private set; } = 2.2f;
+
+		[field: Tooltip("파동 링 하나가 반경 끝까지 가는 데 걸리는 시간(초).")]
+		[field: SerializeField, Min(0.05f)] public float SignalPulseTravelSeconds { get; private set; } = 1.1f;
+
+		[field: Tooltip("신호장 색 — 덮인 땅이 이 색으로 밝아진다.")]
+		[field: SerializeField] public Color SignalTint { get; private set; } = new Color(0.4f, 0.85f, 1f, 1f);
+
 		[field: Tooltip("포탑 1기가 먹는 전기.")]
 		[field: SerializeField, Min(0)] public int TowerPowerDemand { get; private set; } = 1;
 
