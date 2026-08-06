@@ -625,10 +625,22 @@ namespace WitchMendokusai
 			corner.style.alignItems = Align.FlexEnd;
 			corner.pickingMode = PickingMode.Ignore;
 
-			windowMenuColumn = new VisualElement();
-			windowMenuColumn.style.display = DisplayStyle.None;
+			// ★ 목록이 화면보다 길어질 수 있다. 손끝 크기 바닥을 깔면서 칸이 커졌고, 항목도 늘었다 —
+			//   계산해 보면 여덟 개에 토글까지 872 인데 화면은 800 이다. 넘치면 **아래쪽 항목이
+			//   화면 밖으로 밀려 영영 못 누른다**(잘리는 게 아니라 사라진다).
+			//   그래서 넘칠 때만 스스로 굴러가게 둔다 — 항목이 더 늘어도 같은 문제가 안 난다.
+			ScrollView windowMenuScroll = new ScrollView(ScrollViewMode.Vertical)
+			{
+				name = "MobileWindowMenuScroll",
+			};
+			windowMenuScroll.style.display = DisplayStyle.None;
+			windowMenuScroll.style.maxHeight = Length.Percent(72f); // 위 여백 + 아래 동작 버튼 자리를 남긴다
+			windowMenuScroll.verticalScrollerVisibility = ScrollerVisibility.Auto;
+			windowMenuScroll.horizontalScrollerVisibility = ScrollerVisibility.Hidden;
+
+			windowMenuColumn = windowMenuScroll;
 			windowMenuColumn.style.alignItems = Align.FlexEnd;
-			windowMenuColumn.pickingMode = PickingMode.Ignore;
+			windowMenuScroll.contentContainer.style.alignItems = Align.FlexEnd;
 
 			windowMenuColumn.Add(MakeTapButton("가방", InputEventType.Inventory));
 			windowMenuColumn.Add(MakeTapButton("퀘스트", InputEventType.QuestToggle));
