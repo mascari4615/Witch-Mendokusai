@@ -6,7 +6,21 @@ using static WitchMendokusai.SOHelper;
 
 namespace WitchMendokusai
 {
-	[RequireComponent(typeof(PlayerKnockbackCameraGlue))]
+	// ★ 여기 있던 `[RequireComponent(typeof(PlayerKnockbackCameraGlue))]` 를 뗐다 (2026-08-06).
+	//
+	//   왜: `PlayerObject` 는 이제 **조종당하는 아바타 전용이 아니다** — 투기장 인형(WM-165)도
+	//   이 껍데기를 쓴다(로스터 스폰이 요구). 그런데 카메라 임펄스는 *조종자 한 명*을 위한 연출이라,
+	//   요구사항으로 박아두면 이 껍데기를 쓰는 **모든** 유닛이 전역 카메라를 흔든다.
+	//
+	//   실제로 그랬다: 투기장 인형마다 글루가 붙어 피격 때마다 관전 카메라가 흔들렸고
+	//   (`minimumAmplitude = 0.18` 이라 넉백 0 인 타격도), 프리팹에서 부품을 지워도
+	//   **Unity 가 이 attribute 때문에 임포트 때 도로 붙여서** 지울 수가 없었다.
+	//   「파일엔 없는데 검사엔 있다」로 한참 헤맨 원인이 이것이다.
+	//
+	//   안전한 이유: 이 타입을 `GetComponent` 하는 코드가 **하나도 없고**(참조는 이 주석과 테스트뿐),
+	//   진짜 플레이어(`Player.prefab`)엔 부품이 **직렬화되어 박혀 있다** — attribute 를 떼도 안 사라진다.
+	//   「플레이어엔 있고 투기장 인형엔 없다」는 의도는 이제 `ArenaDollPrefabTests` 가 양쪽으로 잠근다
+	//   (attribute 가 뭉뚱그려 표현하던 걸 기계 검사로 정확히 옮긴 것).
 	public class PlayerObject : UnitObject
 	{
 		private Coroutine invincibleRoutine = null;

@@ -12189,7 +12189,6 @@ GameObject:
   - component: {fileID: 5660067560609634866}
   - component: {fileID: 6398364464145290214}
   - component: {fileID: 3328640858817917447}
-  - component: {fileID: 2453044989214278447}
   m_Layer: 6
   m_Name: ArenaDoll
   m_TagString: Player
@@ -12328,23 +12327,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: eb34caf6f1e8b7d4d92f7b134bddf22d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WitchMendokusai.UnitHealth
---- !u!114 &2453044989214278447
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4424679600471619191}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5081210ff2a42bb48a17dff0e2bae1cd, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: WM.Domain::WitchMendokusai.PlayerKnockbackCameraGlue
-  minimumAmplitude: 0.18
-  forceScale: 0.04
-  maxAmplitude: 0.9
-  forceExponent: 0.85
-  forceThreshold: 0
 --- !u!1 &4427780032331360595
 GameObject:
   m_ObjectHideFlags: 0
