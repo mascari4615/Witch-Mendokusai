@@ -879,9 +879,11 @@ namespace WitchMendokusai
 			selectionPanel.style.display = DisplayStyle.Flex;
 			selectionTitleLabel.text = description;
 			researchButton.style.display = canResearch ? DisplayStyle.Flex : DisplayStyle.None;
-			// 코어는 못 판다 — 팔 수 있는 것에만 버튼을 보인다(눌리지 않는 버튼을 만들지 않는다).
+			// ★ 팔기는 지금 화면에서 뺀다 (사용자 지시: "제거는 우선 기능 빼봐").
+			//   우클릭 판매를 뺐는데 이 단추만 남아 있으면 「없앴다」와 「있다」가 한 화면에서 갈린다.
+			//   배선은 남겨 둔다 — 되살릴 땐 이 한 줄만 되돌리면 된다(다시 만들 이유가 없다).
 			if (sellButton != null)
-				sellButton.style.display = canResearch ? DisplayStyle.None : DisplayStyle.Flex;
+				sellButton.style.display = DisplayStyle.None;
 			if (canResearch)
 				// ★ 이 단추는 이제 *성좌를 연다* — 곧바로 한 단계를 사지 않는다. 그래서 값을 안 적는다.
 				//   값은 성좌 안에서 마디마다 다르고, 여기 적힌 값은 아무도 안 걷는 거짓말이 된다.
@@ -1490,7 +1492,8 @@ namespace WitchMendokusai
 				: (armed
 					// ★ 무르는 법을 여기 적는다 (사용자 실측: "짓기 취소는 어케함? 할 구가 없네").
 					//   취소가 되는데 *어디에도 안 적혀 있으면* 없는 기능이다 — 설치 대기 줄이 그 말을 할 자리다.
-					? "설치 대기 — " + what + " · 좌클릭 설치 · 우클릭 판매 · ESC 취소"
+					// ★ 우클릭은 이제 취소다(판매는 뺐다) — 안내가 없는 기능을 가르치면 안 된다.
+					? "설치 대기 — " + what + " · 좌클릭 설치 · 우클릭·ESC 취소"
 					: "고르기 — 건물 클릭 = 살펴보기 · 빈 땅 우클릭 = 영웅 보내기");
 			armedLabel.style.color = armed
 				? new Color(1f, 0.82f, 0.35f, 1f)
