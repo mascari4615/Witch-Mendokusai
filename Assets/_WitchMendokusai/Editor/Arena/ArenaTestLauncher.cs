@@ -55,18 +55,43 @@ namespace WitchMendokusai
 			if (UIRoot.TryGetExistingInstance(out UIRoot uiRoot) && uiRoot.ScreenLayer != null)
 			{
 				List<TacticEditorView.Entry> entries = new List<TacticEditorView.Entry>();
-				foreach (ArenaMatchConfig.ArenaUnitEntry rosterEntry in config.Roster)
+				for (int entryIndex = 0; entryIndex < config.Roster.Count; entryIndex++)
 				{
+					ArenaMatchConfig.ArenaUnitEntry rosterEntry = config.Roster[entryIndex];
+
+					// 조용히 넘기면 **패널이 왜 비었는지 알 길이 없다.** 편집기는 로스터에서 온 유닛만
+					// 보여주므로, 여기서 빠진 줄은 화면에서 그냥 존재하지 않는다.
 					if (rosterEntry.UnitData == null || rosterEntry.Tactic == null)
+					{
+						Debug.LogWarning("[Arena-Verify] 로스터 " + entryIndex + " 번(팀 " + rosterEntry.TeamId + ") 은 "
+							+ (rosterEntry.UnitData == null ? "UnitData" : "Tactic") + " 이 비어 편집기에 안 올라간다.");
 						continue;
+					}
+
 					entries.Add(new TacticEditorView.Entry
 					{
 						Label = rosterEntry.UnitData.Name + " (팀" + rosterEntry.TeamId + ")",
 						Authoring = new RowListAuthoring(rosterEntry.Tactic),
 					});
 				}
-				new TacticEditorView(uiRoot.ScreenLayer, entries, () => match.Begin(config, root));
-				Debug.Log("ArenaTestLauncher: 전술 에디터 열림 — 행 편집 후 [매치 시작] 클릭. z=" + ARENA_OFFSET_Z + " 관전.");
+
+				// ★ 편집할 게 하나도 없으면 편집기를 띄우지 않는다. 띄우면 유닛 드롭다운이 비고 행이
+				//   0개이며 [+ 행 추가] 는 **아무 일도 안 하는 버튼**이 된다(붙일 대상이 없어서).
+				//   그 화면은 「패널이 고장났다」로 읽힌다 — 실제로는 설정이 빈 것뿐인데.
+				//   UIRoot 가 없을 때와 같은 처리(= 바로 시작)로 맞춘다.
+				if (entries.Count == 0)
+				{
+					Debug.LogError("[Arena-Verify] EDITOR-SKIPPED — 로스터 " + config.Roster.Count
+						+ " 줄 중 편집 가능한 게 0개다(UnitData/Tactic 누락, 위 경고 확인). "
+						+ "빈 편집기는 [+ 행 추가] 가 안 먹는 화면이라 띄우지 않고 바로 시작한다.");
+					match.Begin(config, root);
+				}
+				else
+				{
+					new TacticEditorView(uiRoot.ScreenLayer, entries, () => match.Begin(config, root));
+					Debug.Log("ArenaTestLauncher: 전술 에디터 열림 — 유닛 " + entries.Count
+						+ "기, 행 편집 후 [매치 시작] 클릭. z=" + ARENA_OFFSET_Z + " 관전.");
+				}
 			}
 			else
 			{
