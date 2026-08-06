@@ -1400,6 +1400,24 @@ namespace WitchMendokusai.EditorTools
 		///   갈 수 없는 길*이 되어 있었다 — 그런데도 확인은 초록불을 켰다(핫바를 우회해 직접 불렀으니까).
 		///   아무도 못 가는 길에 켜지는 초록불은 없느니만 못하다. 살아있는 길로 옮긴다.
 		/// </summary>
+		/// <summary>
+		/// 갈래 하나를 찍고 *판에서 읽히는 값*이 실제로 오르는지 잰다.
+		/// 통과해도 전후 숫자를 남긴다 — 「올랐다」만 적으면 얼마나 올랐는지 사람이 못 본다.
+		/// </summary>
+		private static void VerifyResearchEffect(string label, TowerDefenseResearchEffect effect,
+			System.Func<float> read)
+		{
+			float before = read();
+			bool taken = match.TryTakeResearchNode(effect, 0.25f, cost: 0);
+			float after = read();
+			Debug.Log(TAG + " RESEARCH-NODE " + label + " accepted=" + taken
+				+ " " + before.ToString("F2") + " → " + after.ToString("F2"));
+			if (taken == false)
+				Debug.LogError(TAG + " RESEARCH-FAIL " + label + " 마디를 못 찍었다.");
+			else if (after <= before)
+				Debug.LogError(TAG + " RESEARCH-FAIL " + label + " 갈래가 하는 일이 없다 — 찍어도 판이 그대로다.");
+		}
+
 		private static void VerifyResearch()
 		{
 			if (match == null)
@@ -1419,10 +1437,22 @@ namespace WitchMendokusai.EditorTools
 			else if (match.TowerDamageMultiplier <= damageBefore)
 				Debug.LogError(TAG + " RESEARCH-FAIL 찍었는데 포탑이 안 세졌다 — 연구가 하는 일이 없다.");
 
-			float rangeBefore = match.TowerRangeMultiplier;
-			match.TryTakeResearchNode(TowerDefenseResearchEffect.TowerRange, 0.25f, cost: 0);
-			if (match.TowerRangeMultiplier <= rangeBefore)
-				Debug.LogError(TAG + " RESEARCH-FAIL 사거리 갈래가 하는 일이 없다.");
+			// ★ 여섯 갈래를 *전부* 잰다. 예전엔 둘만 봤는데, 안 보는 갈래는 조용히 죽어도 아무도 모른다
+			//   (실제로 오늘 카드 셋이 「뽑히는데 효과 0」인 채로 살아 있었다).
+			//   각 갈래마다 *판에서 실제로 읽히는 값*을 전후로 찍는다 — 통과해도 숫자를 남겨야
+			//   「무엇이 얼마나 세졌나」를 사람이 눈으로 확인할 수 있다.
+			VerifyResearchEffect("사거리", TowerDefenseResearchEffect.TowerRange,
+				() => match.TowerRangeMultiplier);
+			VerifyResearchEffect("보급 거리", TowerDefenseResearchEffect.SupplyReach,
+				() => match.EffectiveSupplyReach);
+			VerifyResearchEffect("채집 수입", TowerDefenseResearchEffect.HarvestYield,
+				() => match.NextWaveIncome);
+			VerifyResearchEffect("코어 방어", TowerDefenseResearchEffect.CoreArmor,
+				() => match.CoreCombatant != null && match.CoreCombatant.UnitObject != null
+					? match.CoreCombatant.UnitObject.UnitStat[UnitStatType.HP_MAX] : 0f);
+			// 영웅은 판에 영웅이 서 있어야 값이 읽힌다 — 누적 비율로 확인한다(그것마저 안 오르면 배선이 끊긴 것).
+			VerifyResearchEffect("영웅", TowerDefenseResearchEffect.HeroPower,
+				() => match.ResearchBonus(TowerDefenseResearchEffect.HeroPower));
 
 			// 큰 마디 = 연구 한 단계 = 새 칸 해금. 이 고리가 끊기면 성좌를 다 뚫어도 지을 것이 그대로다.
 			int levelBefore = match.ResearchLevel;

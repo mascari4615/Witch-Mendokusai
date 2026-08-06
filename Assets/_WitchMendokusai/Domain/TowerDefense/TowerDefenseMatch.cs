@@ -2865,6 +2865,13 @@ namespace WitchMendokusai
 			researchBonus.TryGetValue(effect, out float current);
 			researchBonus[effect] = current + amount;
 
+			// ★ 채집 수입 배수는 *카드를 뽑을 때만* 다시 계산되고 있었다 — 연구로 올려도 다음 카드가
+			//   나올 때까지 판은 그대로였다(라이브 검증에서 40 → 40 으로 잡힘).
+			//   여기서 같이 갱신한다. 「물을 때마다 읽는」 다른 갈래와 달리 이건 한 번 써두는 값이라,
+			//   바뀌는 자리마다 다시 써주지 않으면 조용히 옛 값으로 돈다.
+			if (core != null)
+				core.IncomeMultiplier = boons.IncomeMultiplier * (1f + ResearchBonus(TowerDefenseResearchEffect.HarvestYield));
+
 			// ★ 코어 방어만 *찍는 순간* 몸에 새긴다. 다른 갈래는 「물을 때마다 읽는」 배수라 저절로
 			//   반영되지만, 체력은 이미 정해진 값이라 아무도 다시 묻지 않는다 — 여기서 안 올리면
 			//   찍어도 아무 일이 안 일어난다(코어 방어만 조용히 죽은 갈래가 된다).
