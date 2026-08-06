@@ -218,6 +218,14 @@ namespace WitchMendokusai
 			stickPointerId = -1;
 			stickValue = Vector2.zero;
 			lookAccumulated = Vector2.zero;
+
+			// ★ 「자리 옮기기」 중이던 기억도 같이 버린다. 층이 다시 세워지면 옮기기 줄과 노란 테두리는
+			//   사라지는데 *모드만 남는다* — 그러면 스틱이 손가락을 안 받아 **캐릭터가 안 움직이고,
+			//   화면엔 이유가 아무 데도 안 적힌다.** 무대를 옮기면 옮기기는 끝난 것으로 본다.
+			layoutEditMode = false;
+			movable.Clear();
+			dragTarget = null;
+			dragPointerId = -1;
 			if (UIRoot.TryGetExistingInstance(out UIRoot uiRoot) == false || uiRoot.HudLayer == null)
 				return;
 
