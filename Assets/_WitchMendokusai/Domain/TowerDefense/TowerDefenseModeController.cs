@@ -626,6 +626,11 @@ namespace WitchMendokusai
 			// 버튼을 누른 그 클릭이 배치로도 새는 것을 **즉시** 삼킨다(코루틴 안에서 하면 같은 프레임에 늦는다).
 			placement.SuppressNextClick();
 
+			// ★ 덮고 있던 창을 걷는다 — 다시 시작했는데 성좌·지도·메뉴가 그대로면 새 판의 첫 화면이
+			//   그 창이고, 메뉴가 멈춰 둔 판이면 시간까지 멈춘 채 시작한다.
+			//   (다시 시작은 결말 화면에서도 눌린다 — 그때 메뉴가 열려 있는 경우가 실제로 흔하다.)
+			CloseOverlays();
+
 			StopAllCoroutines();
 			StartCoroutine(RestartRoutine());
 		}
