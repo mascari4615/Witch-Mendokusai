@@ -128,6 +128,33 @@ namespace WitchMendokusai
 		/// <summary> 코어 레벨업 카드를 골랐다(판 전체에 걸린다). </summary>
 		public event System.Action<int> CoreCardChosen = delegate { };
 
+		// ★ 글자 크기 사다리 — 세 단이 전부다. 조각마다 숫자를 박으면 기기가 바뀔 때 저마다 다르게
+		//   어긋난다(실측: 개척 HUD 에 고정 픽셀이 53곳, 비율은 7곳뿐이었다). 늘리고 줄이는 손잡이를
+		//   하나로 모아야 「해상도 바뀌면 다 같이」가 성립한다.
+		public const int TEXT_SMALL = 12;
+		public const int TEXT_BODY = 16;
+		public const int TEXT_TITLE = 22;
+
+		/// <summary> 화면 가장자리에서 띄우는 기본 여백 — 띠들이 공유한다(각자 박지 않는다). </summary>
+		public const int EDGE_GAP = 16;
+
+		/// <summary>
+		/// 안전영역만큼 루트를 안쪽으로 민다 — 노치·둥근 모서리에 글자가 잘리지 않게.
+		/// 데스크톱에서는 안전영역 = 화면 전체라 아무 일도 안 일어난다(그래서 한 코드로 둘 다 된다).
+		/// </summary>
+		private void ApplySafeArea()
+		{
+			Rect safe = Screen.safeArea;
+			float width = Mathf.Max(1f, Screen.width);
+			float height = Mathf.Max(1f, Screen.height);
+
+			container.style.paddingLeft = Length.Percent(safe.xMin / width * 100f);
+			container.style.paddingRight = Length.Percent((width - safe.xMax) / width * 100f);
+			// 화면 좌표는 아래가 0 이고 UI 는 위가 0 이라 위아래가 뒤집힌다 — 여기서 한 번만 뒤집는다.
+			container.style.paddingTop = Length.Percent((height - safe.yMax) / height * 100f);
+			container.style.paddingBottom = Length.Percent(safe.yMin / height * 100f);
+		}
+
 		/// <summary> 난이도를 한 단계 돌린다 — 다음 판부터 걸린다. </summary>
 		public event System.Action DifficultyCycleRequested = delegate { };
 
@@ -143,6 +170,13 @@ namespace WitchMendokusai
 			container.style.bottom = 0;
 			container.style.display = DisplayStyle.None;
 			container.pickingMode = PickingMode.Ignore;
+
+			// ★ 안전영역 — 노치·둥근 모서리·제스처 바가 먹는 자리를 루트에서 한 번에 비켜준다.
+			//   각 조각이 저마다 여백을 박으면 기기마다 어긋난다(지금까지 그랬다). 비켜주는 곳은 여기 한 곳.
+			ApplySafeArea();
+			// ★ 한 번만 재면 창 크기·회전이 바뀐 뒤로는 계속 옛 값이다. 자리가 다시 잡힐 때마다 다시 잰다 —
+			//   해상도가 바뀌어도 「띠가 늘어날 뿐」이 되려면 이 되풀이가 있어야 한다.
+			container.RegisterCallback<GeometryChangedEvent>(_ => ApplySafeArea());
 
 			// ★ 한 덩어리가 한 가지만 말한다 — 예전엔 전부 좌상단에 몰려 있어 무엇부터 봐야 할지 알 수 없었다
 			//   (사용자 실증: "정보는 전부 모여 있어서 복잡복잡"). 자원은 상단 가운데 독립 띠(종류가 늘어도
@@ -213,7 +247,7 @@ namespace WitchMendokusai
 		{
 			VisualElement bar = new VisualElement { name = "ResourceBar" };
 			bar.style.position = Position.Absolute;
-			bar.style.top = 18;
+			bar.style.top = EDGE_GAP; // 공유 여백 — 조각마다 다른 숫자를 박지 않는다.
 			bar.style.left = 0;
 			bar.style.right = 0;
 			bar.style.flexDirection = FlexDirection.Row;
