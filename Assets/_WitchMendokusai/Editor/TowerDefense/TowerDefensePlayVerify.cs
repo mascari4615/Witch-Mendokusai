@@ -321,6 +321,11 @@ namespace WitchMendokusai.EditorTools
 				// ★ 패널은 *다음 배치 패스*에 열린다 — 클릭한 그 틱에 재면 「아직 안 뜬 것」을 재고
 				//   「겹침 0」이라 적는다(거짓 통과). 한 틱 기다렸다 잰다.
 				case Step.SelectedLayout:
+					// ★ 앞 단계에서 열어둔 성좌를 *여기서* 닫는다. 닫는 자리를 재시작 단계에 뒀더니,
+					//   이 단계가 그 앞으로 끼어드는 순간 성좌가 열린 채로 남아 판이 멈추고,
+					//   멈춘 판은 시계가 안 가니 아래 시계 게이트를 영영 못 넘어 7분 뒤 시간초과로 죽었다.
+					//   덮는 것을 여는 쪽과 닫는 쪽이 다른 단계에 있으면 이런 교착이 생긴다.
+					MeasureAndCloseResearchPanel();
 					if (now - selectedLayoutAt < 0.3)
 						return;
 					// ★ 겹침은 한 번만 잰다 — 아래 시계 게이트가 이 단계를 여러 틱 돌리므로,
@@ -334,16 +339,6 @@ namespace WitchMendokusai.EditorTools
 					SelectCoreForLayout();
 					VerifyCoreCards();
 					}
-					// ★ 전체 실행은 여기까지만 — 아래 이어하기 검증은 *시계가 충분히 쌓일 때까지* 기다리는데,
-					//   전체 실행에서는 그 조건이 안 차서 이 단계에 7분을 매달려 있다가 시간초과로 죽었다(실측).
-					//   겹침·툴팁·코어 카드만 보고 원래 가던 재시작으로 잇는다. 이어하기는 「배치만」이 맡는다.
-					if (placeOnly == false)
-					{
-						restartAt = now;
-						step = Step.Restart;
-						return;
-					}
-
 					// ★ 시계가 0 일 때 나가면 「되감겼는지」를 가릴 수 없다(0 이나 1 이나 통과).
 					//   눈금이 실제로 쌓인 뒤에 나가야 이어하기가 시계를 지키는지가 증명된다.
 					if (match != null && match.SurvivedSeconds < RESUME_MIN_CLOCK)
@@ -370,8 +365,16 @@ namespace WitchMendokusai.EditorTools
 					if (now - resumeAt < 4.0)
 						return;
 					VerifyResume();
-					Debug.Log(TAG + " PLACE-ONLY 배치 확인 끝 — 조기 종료");
-					Finish();
+					if (placeOnly)
+					{
+						Debug.Log(TAG + " PLACE-ONLY 배치 확인 끝 — 조기 종료");
+						Finish();
+						return;
+					}
+
+					// 전체 실행은 이어하기까지 본 뒤 원래 가던 재시작으로 잇는다.
+					restartAt = now;
+					step = Step.Restart;
 					return;
 
 				case Step.PlaceAfterRestartDump:
