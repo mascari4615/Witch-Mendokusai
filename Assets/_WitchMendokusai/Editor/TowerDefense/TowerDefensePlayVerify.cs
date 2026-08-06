@@ -1665,10 +1665,14 @@ namespace WitchMendokusai.EditorTools
 		}
 
 		// 화면 어디에 무엇이 놓였나 — 겹치면 안 되는 덩어리들. 전면(배너·드래프트)은 *덮는 것이 일*이라 뺀다.
+		//
+		// ★ UnitTooltip 은 뺐다 — 그건 HUD 층이 아니라 **TooltipLayer** 에 붙는다(커서를 따라다니며
+		//   무엇이든 덮어야 하는 물건이라 층이 다르다). HUD 층에서 찾으니 매번 「조각이 없음」이 떴고,
+		//   그 상시 경고가 진짜 신호를 덮는다. 겹침 검사 대상도 아니다 — 덮는 것이 그 물건의 일이다.
 		private static readonly string[] HUD_BLOCKS =
 		{
 			"ResourceBar", "ProgressPanel", "LegendPanel", "TowerDefenseSelectionBar",
-			"HintBar", "RestartButton", "BoonSummary", "UnitTooltip", "SelectionPanel", "Minimap",
+			"HintBar", "RestartButton", "BoonSummary", "SelectionPanel", "Minimap",
 		};
 
 		/// <summary>
