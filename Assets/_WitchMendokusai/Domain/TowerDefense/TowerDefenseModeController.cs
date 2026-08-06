@@ -86,6 +86,11 @@ namespace WitchMendokusai
 
 		private void OnMatchEnded(TowerDefenseOutcome outcome)
 		{
+			// ★ 성좌를 열어 둔 채 판이 끝날 수 있다(멈춰 있어도 이어하기·저장 경로로 끝날 수 있고,
+			//   무엇보다 결말 화면이 그 뒤에 가려지면 「판이 끝난 줄도 모르는」 상태가 된다).
+			//   먼저 닫는다 — 멈춤도 여기서 같이 풀린다.
+			CloseResearch();
+
 			match.RestoreTimeScale(); // 결말 화면에서 버튼을 눌러야 하므로 시간이 멈춰 있으면 안 된다.
 
 			// 무한 모드 = 버틴 웨이브가 곧 점수 → 기록을 남기지 않으면 판이 끝나도 아무것도 안 남는다.
