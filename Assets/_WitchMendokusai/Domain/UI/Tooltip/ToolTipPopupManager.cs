@@ -18,6 +18,16 @@ namespace WitchMendokusai
 		[SerializeField] private ToolTip popupToolTip;
 		[SerializeField] private CanvasGroup canvasGroup;
 
+		// 툴팁이 뜨고 지는 호흡 — 눈으로 맞춰야 하는 값이라 인스펙터로 낸다(TASK-WM-108).
+		// 뜨는 쪽이 지는 쪽보다 빨라야 「손이 닿으면 바로 뜬다」로 읽힌다(기본 30 : 10).
+		[Header("Fade")]
+		[Tooltip("나타날 때 알파가 1로 붙는 속도. 클수록 즉각적.")]
+		[SerializeField] private float showLerpSpeed = 30f;
+		[Tooltip("사라질 때 알파가 0으로 빠지는 속도. 작을수록 여운이 남는다.")]
+		[SerializeField] private float hideLerpSpeed = 10f;
+		[Tooltip("숨기라는 신호 뒤 이만큼 버틴다 — 슬롯 사이를 스칠 때 툴팁이 깜빡이지 않게.")]
+		[SerializeField] private float disappearDelay = 0.3f;
+
 		private InputManager inputManager;
 
 		[Inject]
@@ -62,7 +72,7 @@ namespace WitchMendokusai
 
 			if (isShow)
 			{
-				canvasGroup.alpha = Mathf.Lerp(canvasGroup.alpha, 1, Time.unscaledDeltaTime * 30);
+				canvasGroup.alpha = Mathf.Lerp(canvasGroup.alpha, 1, Time.unscaledDeltaTime * showLerpSpeed);
 			}
 			else
 			{
@@ -72,7 +82,7 @@ namespace WitchMendokusai
 					return;
 				}
 
-				canvasGroup.alpha = Mathf.Lerp(canvasGroup.alpha, 0, Time.unscaledDeltaTime * 10);
+				canvasGroup.alpha = Mathf.Lerp(canvasGroup.alpha, 0, Time.unscaledDeltaTime * hideLerpSpeed);
 			}
 		}
 
@@ -88,7 +98,7 @@ namespace WitchMendokusai
 		{
 			// Debug.Log("Hide");
 			isShow = false;
-			disappearTimer = .3f;
+			disappearTimer = disappearDelay;
 		}
 	}
 }
