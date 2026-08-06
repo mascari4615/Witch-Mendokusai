@@ -401,6 +401,10 @@ namespace WitchMendokusai
 		[field: Tooltip("둥지 색.")]
 		[field: SerializeField] public Color NestTint { get; private set; } = new Color(0.66f, 0.16f, 0.3f, 1f);
 
+		[field: Header("알림 — 화면 밖에서 난 일을 알려준다")]
+		[field: Tooltip("알림 표식이 화면에 머무는 시간(초). 짧으면 놓치고, 길면 옛일이 새 일을 가린다.")]
+		[field: SerializeField, Min(0.5f)] public float AlertSeconds { get; private set; } = 6f;
+
 		[field: Header("흩뿌린 서식지 — 넓히는 것 자체가 위험")]
 		[field: Tooltip("판에 미리 깔리는 서식지 수(0 = 없음). 잠들어 있다가 내 것이 가까이 오면 깨어난다.")]
 		[field: SerializeField, Min(0)] public int LairCount { get; private set; } = 7;

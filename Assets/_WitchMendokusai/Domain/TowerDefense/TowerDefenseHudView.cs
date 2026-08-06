@@ -1814,6 +1814,7 @@ namespace WitchMendokusai
 		/// 기록 갱신 여부까지 말해야 「다시 도전」이 이유를 갖는다.
 		/// </summary>
 		public void ShowOutcome(TowerDefenseOutcome outcome, int survivedSeconds, int nestsDestroyed, int score, int best,
+			int lairsAwakened,
 			bool isNewRecord, int relicsGained, int relicBalance, bool canPull, string summary = null)
 		{
 			SetBannerVisible(true);
@@ -1826,7 +1827,7 @@ namespace WitchMendokusai
 				outcome, FormatDuration(survivedSeconds), nestsDestroyed, score, best, isNewRecord);
 			// ★ 이겼을 때도 요약은 붙어야 한다 — 예전엔 여기서 빠져나가 이긴 판을 되짚을 수단이 없었다.
 			ShowSummary(summary);
-			ShowRunStats(survivedSeconds, nestsDestroyed, score, best);
+			ShowRunStats(survivedSeconds, nestsDestroyed, score, best, lairsAwakened);
 		}
 
 		/// <summary>
@@ -1840,7 +1841,7 @@ namespace WitchMendokusai
 		///   좋겠음 … 게임 끝났을때 통계처럼 공개하는게 맞음. Like RiskofRain 2").
 		///   계산은 내내 돌고 있었다 — *보여주는 시점*만 끝으로 옮긴 것이다.
 		/// </summary>
-		private void ShowRunStats(int survivedSeconds, int nestsDestroyed, int score, int best)
+		private void ShowRunStats(int survivedSeconds, int nestsDestroyed, int score, int best, int lairsAwakened)
 		{
 			if (runStatsPanel == null)
 				return;
@@ -1849,6 +1850,8 @@ namespace WitchMendokusai
 			AddRunStat("버틴 시간", FormatDuration(survivedSeconds));
 			AddRunStat("넘긴 웨이브", waveValue != null ? waveValue.text : "-");
 			AddRunStat("부순 둥지", nestsDestroyed.ToString());
+			// ★ 세기만 하고 아무 데도 안 나오던 값 — 「얼마나 파고들었나」를 말하는 자리가 여기다.
+			AddRunStat("깨운 서식지", lairsAwakened.ToString());
 			AddRunStat("남은 마수", enemyValue != null ? enemyValue.text : "-");
 			AddRunStat("점수", score.ToString());
 			AddRunStat("최고 기록", best.ToString());
@@ -2012,6 +2015,69 @@ namespace WitchMendokusai
 			UpdateNodeLabels(worldTickMatch, worldTickStage);
 			UpdateDollLabels(worldTickMatch);
 			UpdateInvasionWarning(worldTickMatch);
+			UpdateAlerts(worldTickMatch);
+		}
+
+		// 화면 밖에서 난 일을 가장자리에 붙여 알리는 표식.
+		private readonly System.Collections.Generic.List<Label> alertMarks = new();
+
+		/// <summary>
+		/// 「지금 어디서 무슨 일이 났나」를 화면에 세운다 (TASK-WM-194).
+		///
+		/// ★ 이 장르 최대 불만이 「무슨 일이 났는지 안 알려준다」였다(레퍼런스 조사). 자리가 화면 밖이면
+		///   가장자리에 붙인다 — 그래야 「그쪽을 봐야 한다」가 전달된다. 안 붙이면 카메라를 이미 그쪽에
+		///   두고 있던 사람만 알림을 본다 = 알림이 필요 없는 사람만 본다.
+		/// </summary>
+		private void UpdateAlerts(TowerDefenseMatch match)
+		{
+			Camera camera = ViewCameraResolver.Current;
+			System.Collections.Generic.IReadOnlyList<TowerDefenseAlerts.Alert> active = match.Alerts;
+
+			while (alertMarks.Count < TowerDefenseAlerts.MAX_ALERTS)
+			{
+				Label mark = new Label(string.Empty);
+				mark.style.position = Position.Absolute;
+				mark.style.fontSize = TEXT_SMALL;
+				mark.style.unityFontStyleAndWeight = FontStyle.Bold;
+				mark.style.unityTextAlign = TextAnchor.MiddleCenter;
+				mark.style.color = new Color(1f, 0.9f, 0.6f, 1f);
+				mark.style.backgroundColor = new Color(0.45f, 0.1f, 0.12f, 0.92f);
+				mark.style.paddingLeft = 8;
+				mark.style.paddingRight = 8;
+				mark.style.paddingTop = 3;
+				mark.style.paddingBottom = 3;
+				mark.pickingMode = PickingMode.Ignore;
+				worldLabelLayer.Add(mark);
+				alertMarks.Add(mark);
+			}
+
+			Rect panelBox = worldLabelLayer.panel != null && worldLabelLayer.panel.visualTree != null
+				? worldLabelLayer.panel.visualTree.worldBound
+				: Rect.zero;
+
+			for (int index = 0; index < alertMarks.Count; index++)
+			{
+				Label mark = alertMarks[index];
+				if (camera == null || index >= active.Count)
+				{
+					mark.style.display = DisplayStyle.None;
+					continue;
+				}
+
+				Vector3 screenPosition = camera.WorldToScreenPoint(active[index].Position);
+				if (screenPosition.z <= 0f)
+				{
+					// 카메라 뒤쪽이면 그대로 두면 반대편에 찍힌다 — 좌우만 뒤집어 가장자리에 붙인다.
+					screenPosition.x = Screen.width - screenPosition.x;
+					screenPosition.y = Screen.height - screenPosition.y;
+				}
+
+				Vector2 point = ClampToPanel(ToPanel(mark, screenPosition), panelBox, 70f);
+				mark.style.display = DisplayStyle.Flex;
+				mark.text = "❗ " + active[index].Label;
+				mark.style.left = point.x - 60f;
+				mark.style.top = point.y - 10f;
+			}
 		}
 
 		// 다음 파도가 들어올 자리에 세우는 경고 표식 + 그 방향을 말하는 글자 하나.

@@ -1051,6 +1051,15 @@ namespace WitchMendokusai
 			public bool Awake;
 		}
 
+		// 「지금 어디서 무슨 일이 났나」 — 화면 밖 사건을 가장자리 표식으로 알린다.
+		private readonly TowerDefenseAlerts alerts = new();
+
+		// 부서진 자리를 알리려면 *부서지기 전* 자리를 알아야 한다 — 사라진 뒤엔 물어볼 데가 없다.
+		private readonly Dictionary<Transform, Vector3> lastBuildingPositions = new();
+
+		/// <summary> 화면이 읽는 알림 목록. </summary>
+		public IReadOnlyList<TowerDefenseAlerts.Alert> Alerts => alerts.Active;
+
 		private readonly List<SleepingLair> lairs = new();
 		private readonly List<Vector3> lairWakeProbe = new();
 
@@ -1153,6 +1162,44 @@ namespace WitchMendokusai
 			}
 		}
 
+		/// <summary>
+		/// 내 것이 부서졌으면 그 자리를 알린다.
+		///
+		/// ★ 부서진 *뒤에는* 자리를 물어볼 데가 없다(참조가 비어 버린다). 그래서 살아 있는 동안
+		///   마지막 자리를 계속 적어 둔다 — 이게 없으면 「어딘가 부서졌다」까지만 알고 어디인지 모른다.
+		/// ★ 이 장르에서 사람들이 가장 많이 꼽는 불만이 「무슨 일이 났는지 안 알려준다」였다.
+		///   화면 밖 한 곳이 뚫리는 것을 못 보면, 알아챘을 땐 이미 늦는다.
+		/// </summary>
+		private void TrackLostBuildings()
+		{
+			if (stage == null)
+				return;
+
+			alerts.Prune(Time.time);
+
+			foreach (Transform building in supplyChain.Buildings)
+			{
+				if (building != null)
+					lastBuildingPositions[building] = building.position;
+			}
+
+			List<Transform> lost = null;
+			foreach (KeyValuePair<Transform, Vector3> tracked in lastBuildingPositions)
+			{
+				if (tracked.Key != null)
+					continue;
+
+				alerts.Raise("내 것이 부서졌다", tracked.Value, Time.time, stage.AlertSeconds);
+				lost ??= new List<Transform>();
+				lost.Add(tracked.Key);
+			}
+
+			if (lost == null)
+				return;
+			foreach (Transform gone in lost)
+				lastBuildingPositions.Remove(gone);
+		}
+
 		private void WakeLair(SleepingLair lair)
 		{
 			lair.Awake = true;
@@ -1181,6 +1228,7 @@ namespace WitchMendokusai
 			}
 
 			PopWorldText("깨어났다", lair.WorldPosition, TextType.Warning);
+			alerts.Raise("서식지가 깨어났다", lair.WorldPosition, Time.time, stage.AlertSeconds);
 			Debug.Log($"{nameof(TowerDefenseMatch)}: 서식지 하나가 깨어났다 — 지금까지 {LairsAwakened}곳.");
 		}
 
@@ -1395,6 +1443,7 @@ namespace WitchMendokusai
 			UnstickEnemies();     // 굳은 마수를 풀어준다 — 한 마리가 굳으면 웨이브가 영영 안 끝난다.
 			CullDestroyedNests(); // 부순 둥지의 출구를 닫는다 — 「버틴다」가 「밀어낸다」가 되는 자리.
 			WakeNearbyLairs();    // 내 것이 가까이 갔으면 잠든 서식지가 깨어난다.
+			TrackLostBuildings(); // 내 것이 부서지면 *그 자리*를 알린다 — 화면 밖이면 알 길이 없었다.
 			RefreshPower();       // 전기를 못 받는 건물은 선다(도시 건설의 규칙 그대로).
 			TickSignalView();     // 신호가 번지는 것을 눈으로 보여준다 — 테두리와 파동.
 			RefreshBuildingProgress(); // 「무엇이 일하고 있나」를 머리 위 바에 채운다.
