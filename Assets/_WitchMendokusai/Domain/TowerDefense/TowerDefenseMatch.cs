@@ -86,6 +86,10 @@ namespace WitchMendokusai
 
 		// 세워둔 것들의 사거리 원 — 기본은 전부 꺼져 있고, 묻는 순간(마우스 얹기)에만 하나가 켜진다.
 		private readonly List<TowerDefenseRing> rangeRings = new();
+
+		// ★ 원의 *연구 빼기 전* 반지름. 원은 지을 때 한 번 그려지는데 연구는 그 뒤에 오르므로,
+		//   원형을 안 들고 있으면 이미 지은 것들의 원이 옛 크기에 굳는다(총만 멀리 나가고 원은 그대로).
+		private readonly List<float> rangeRingBaseRadii = new();
 		private TowerDefenseRing highlightedRing;
 		private bool showAllRanges;
 
@@ -1426,6 +1430,14 @@ namespace WitchMendokusai
 		/// </summary>
 		public float TowerRange(int towerIndex = 0)
 		{
+			// ★ 연구 배수를 *여기서* 곱한다. 총은 이 배수를 곱해 쏘는데 원만 안 곱하면, 원은 그대로인데
+			//   실제로는 더 멀리 쏘는 「거짓말하는 원」이 된다 — 배치 판단의 유일한 근거가 그 원이다.
+			return RawTowerRange(towerIndex) * TowerRangeMultiplier;
+		}
+
+		/// <summary> 연구를 빼고 무대가 적어둔 그대로의 사거리 — 배수를 두 번 곱하지 않으려면 여기서 읽는다. </summary>
+		public float RawTowerRange(int towerIndex = 0)
+		{
 			TowerDefenseTowerArchetype archetype = TowerArchetypeAt(towerIndex);
 			if (archetype != null)
 				return archetype.Range;
@@ -2711,6 +2723,8 @@ namespace WitchMendokusai
 				if (rangeRings[index] == null)
 				{
 					rangeRings.RemoveAt(index);
+					if (index < rangeRingBaseRadii.Count)
+						rangeRingBaseRadii.RemoveAt(index);
 					continue;
 				}
 				rangeRings[index].SetVisible(showAllRanges);
@@ -2849,6 +2863,19 @@ namespace WitchMendokusai
 			ResearchReset();
 			if (core != null)
 				core.IncomeMultiplier = boons.IncomeMultiplier;
+			RefreshRangeRings();
+		}
+
+		/// <summary> 지어놓은 것들의 사거리 원을 지금 배수로 다시 그린다. </summary>
+		private void RefreshRangeRings()
+		{
+			float multiplier = TowerRangeMultiplier;
+			for (int index = 0; index < rangeRings.Count && index < rangeRingBaseRadii.Count; index++)
+			{
+				if (rangeRings[index] == null)
+					continue;
+				rangeRings[index].SetRadius(rangeRingBaseRadii[index] * multiplier);
+			}
 		}
 
 		public void CollectResearchInto(List<int> into) => CollectResearch(into);
@@ -2889,6 +2916,10 @@ namespace WitchMendokusai
 			//   바뀌는 자리마다 다시 써주지 않으면 조용히 옛 값으로 돈다.
 			if (core != null)
 				core.IncomeMultiplier = boons.IncomeMultiplier * (1f + ResearchBonus(TowerDefenseResearchEffect.HarvestYield));
+
+			// 같은 병 — 원은 지을 때 한 번 그려진다. 다시 안 그리면 총만 멀리 나간다.
+			if (effect == TowerDefenseResearchEffect.TowerRange)
+				RefreshRangeRings();
 
 			// ★ 코어 방어만 *찍는 순간* 몸에 새긴다. 다른 갈래는 「물을 때마다 읽는」 배수라 저절로
 			//   반영되지만, 체력은 이미 정해진 값이라 아무도 다시 묻지 않는다 — 여기서 안 올리면
@@ -4039,7 +4070,9 @@ namespace WitchMendokusai
 					weapon.Configure(towerArchetype, targeting, combatant, waveEnemies, IsVisibleAt, DamageMultiplierFor, () => Adaptation, () => TowerRangeMultiplier);
 				}
 
-				float towerRange = towerArchetype != null ? towerArchetype.Range : TowerRange();
+				// 지어놓은 포탑의 원도 연구를 따라 자란다 — 원형 그대로 그리면 총과 원이 갈라진다.
+				float towerRange = (towerArchetype != null ? towerArchetype.Range : RawTowerRange())
+					* TowerRangeMultiplier;
 				if (towerRange > 0f)
 				{
 					// ★ 사거리 원은 *묻는 순간에만* 뜬다(사용자 지시: "계속 보이니까 정신없어").
@@ -4052,6 +4085,7 @@ namespace WitchMendokusai
 					ring.SetRadius(towerRange);
 					ring.SetVisible(showAllRanges);
 					rangeRings.Add(ring);
+					rangeRingBaseRadii.Add(towerRange / Mathf.Max(0.0001f, TowerRangeMultiplier));
 				}
 			}
 

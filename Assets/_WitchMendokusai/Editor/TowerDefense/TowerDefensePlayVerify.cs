@@ -1441,8 +1441,10 @@ namespace WitchMendokusai.EditorTools
 			//   (실제로 오늘 카드 셋이 「뽑히는데 효과 0」인 채로 살아 있었다).
 			//   각 갈래마다 *판에서 실제로 읽히는 값*을 전후로 찍는다 — 통과해도 숫자를 남겨야
 			//   「무엇이 얼마나 세졌나」를 사람이 눈으로 확인할 수 있다.
+			// ★ 배수가 아니라 *화면이 그리는 원*으로 잰다 — 배수만 재면 「총은 멀리 나가는데 원은 그대로」를
+			//   못 본다(실제로 그랬다). 원이 거짓말하면 배치 판단의 근거가 통째로 사라진다.
 			VerifyResearchEffect("사거리", TowerDefenseResearchEffect.TowerRange,
-				() => match.TowerRangeMultiplier);
+				() => match.TowerRange());
 			VerifyResearchEffect("보급 거리", TowerDefenseResearchEffect.SupplyReach,
 				() => match.EffectiveSupplyReach);
 			VerifyResearchEffect("채집 수입", TowerDefenseResearchEffect.HarvestYield,
