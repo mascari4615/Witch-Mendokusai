@@ -28,10 +28,6 @@ namespace WitchMendokusai
 		/// </summary>
 		public float MaxStopDistance => Mathf.Max(0f, minStopDistance) + Mathf.Max(0, ringSlotCount - 1) * ringSlotSpacing;
 
-		private float MIN_STOP_DISTANCE => minStopDistance;
-		private float RING_SLOT_SPACING => ringSlotSpacing;
-		private int RING_SLOT_COUNT => ringSlotCount;
-
 		private MatchCombatant self;
 		private UnitObject unitObject;
 		private TimeManager timeManager;
@@ -151,7 +147,7 @@ namespace WitchMendokusai
 		///
 		/// ★ 겹침 방지가 본질(TASK-WM-194 실측): 목표에 겹쳐 선 유닛은 상대 스프라이트에 가려 **화면에서
 		///   사라진다**. 개척에서 마수가 코어 좌표에 그대로 쌓여 플레이어가 "다 잡았는데 안 넘어간다"고
-		///   판단했다. 그래서 stopDistance 가 0이어도 최소 간격(MIN_STOP_DISTANCE)은 항상 둔다.
+		///   판단했다. 그래서 stopDistance 가 0이어도 최소 간격(minStopDistance)은 항상 둔다.
 		/// ★ 같은 목표를 여럿이 노리면 다 같은 점에 몰리므로 개체마다 간격을 조금씩 다르게 준다
 		///   (CombatantId 파생 = 결정적, 리플레이 정합 유지). 결과적으로 목표를 둘러싼 고리가 된다.
 		/// </summary>
@@ -168,7 +164,7 @@ namespace WitchMendokusai
 			Vector3 direction = target.Position - self.Position;
 			direction.y = 0f;
 
-			float effectiveStop = Mathf.Max(stopDistance, MIN_STOP_DISTANCE) + PerUnitRingOffset();
+			float effectiveStop = Mathf.Max(stopDistance, minStopDistance) + PerUnitRingOffset();
 			if (direction.sqrMagnitude <= effectiveStop * effectiveStop)
 			{
 				unitObject.UnitMovement.SetMoveDirection(Vector3.zero);
@@ -183,7 +179,7 @@ namespace WitchMendokusai
 		private float PerUnitRingOffset()
 		{
 			int id = self != null ? self.CombatantId : 0;
-			return (id % RING_SLOT_COUNT) * RING_SLOT_SPACING;
+			return (id % ringSlotCount) * ringSlotSpacing;
 		}
 
 		public void Retreat(ICombatant target)
