@@ -169,6 +169,18 @@ namespace WitchMendokusai
 			hud?.SetArmed(placement.IsArmed, DescribeSelectedSlot());
 		}
 
+		/// <summary>
+		/// 월드에 붙는 UI 는 *카메라가 움직인 뒤에* 그린다.
+		/// ★ 카메라(시네머신)는 LateUpdate 에 자리를 잡는다. Update 에서 그리면 한 프레임 전 카메라로
+		///   좌표를 계산해, 화면을 밀 때마다 이름표가 뒤로 끌린다(사용자 실증: "WASD로 움직이면 특히 심하다").
+		/// </summary>
+		private void LateUpdate()
+		{
+			if (wasTowerDefense == false)
+				return;
+			hud?.TickWorldAnchored();
+		}
+
 		/// <summary> 지금 고른 칸이 무엇인가 — 설치 대기 표시에 쓴다. </summary>
 		private string DescribeSelectedSlot()
 		{

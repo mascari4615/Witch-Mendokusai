@@ -1767,8 +1767,10 @@ namespace WitchMendokusai
 				? match.Essence + " (+" + match.NextWaveEssence + ")"
 				: match.Essence.ToString();
 			nextWaveValue.text = BuildWavePreview(match);
-			UpdateNodeLabels(match, stage);
-			UpdateDollLabels(match);
+			// ★ 월드에 붙는 것(이름표·체력바·광맥 배수)은 여기서 그리지 않는다 — TickWorldAnchored 가
+			//   *카메라가 움직인 뒤에* 그린다. 아래 주석 참고.
+			worldTickMatch = match;
+			worldTickStage = stage;
 			minimap?.Tick(match, stage);
 			minimap?.RefreshTerrain(match.MapLayout, stage); // 작은 지도에도 땅이 보여야 한다.
 			if (minimapClickBound == false && match != null)
@@ -1991,6 +1993,26 @@ namespace WitchMendokusai
 		/// 자원 노드마다 「×1.9」 벌이 배수를 띄운다 — 노드가 다 똑같아 보이면 「어디로 넓힐까」가 판단이 안 된다.
 		/// 화면 밖으로 나간 노드는 감춘다(뒤쪽 노드가 화면 가장자리에 눌어붙는 것 방지).
 		/// </summary>
+		private TowerDefenseMatch worldTickMatch;
+		private TowerDefenseStageSO worldTickStage;
+
+		/// <summary>
+		/// 월드에 붙는 UI 를 그린다 — **카메라가 그 프레임의 자리로 옮겨간 뒤에** 불려야 한다.
+		///
+		/// ★ 사용자 실증: "WASD로 움직이면 특히 심하다 위치 차이가". 카메라는 LateUpdate 에 움직이는데
+		///   UI 를 Update 에서 그리면 *한 프레임 전 카메라*로 자리를 계산한다 — 멈춰 있으면 안 보이고,
+		///   화면을 밀수록 그 한 프레임만큼 이름표가 뒤로 끌린다. 좌표 변환을 아무리 고쳐도
+		///   **읽는 시점이 틀리면** 계속 어긋난다(그래서 앞 고침만으로는 안 잡혔다).
+		/// </summary>
+		public void TickWorldAnchored()
+		{
+			if (worldTickMatch == null)
+				return;
+
+			UpdateNodeLabels(worldTickMatch, worldTickStage);
+			UpdateDollLabels(worldTickMatch);
+		}
+
 		private void UpdateNodeLabels(TowerDefenseMatch match, TowerDefenseStageSO stage)
 		{
 			System.Collections.Generic.IReadOnlyList<Vector3> nodes = match.ActiveResourceNodeLocalPositions;
