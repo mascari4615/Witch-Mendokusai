@@ -92,8 +92,8 @@ namespace WitchMendokusai
 			// ★ 걸을 캐릭터가 없으면 조작 장치도 없다 (실측: 제목 화면에도 스틱이 떴다).
 			//   더 나쁜 건 시점 훑기 판이 *화면 전체를 덮는다*는 것이다 — 제목 화면에서 그게 켜져 있으면
 			//   폰에서는 「시작」 조차 못 누른다. 무엇을 조작할 대상이 있을 때만 조작 장치가 뜬다.
-			show = show && PlayerProvider.TryGetExistingInstance(out PlayerProvider playerProvider)
-				&& playerProvider.HasPlayer;
+			PlayerProvider playerProvider = PlayerProvider.TryGetExistingInstance(out PlayerProvider found) ? found : null;
+			show = show && playerProvider != null && playerProvider.HasPlayer;
 
 			// ★ 게임 속 게임(개척·투기장·건설)은 자기 조작을 따로 쥔다 — 캐릭터를 걷게 하는 스틱이
 			//   거기 떠 있으면 거짓말이다(그 모드엔 캐릭터가 없다).
@@ -109,6 +109,34 @@ namespace WitchMendokusai
 			}
 
 			PushStickValue();
+			UpdateInteractButton(show, playerProvider);
+		}
+
+		/// <summary>
+		/// 말 걸 상대가 있을 때만 뜨는 버튼 (TASK-WM-200).
+		///
+		/// ★ 폰엔 Z 키가 없다 — 이게 없으면 NPC 대화가 *폰에서 통째로 없는 기능*이 된다.
+		///   실기 실측(2026-08-06): 다가가도 아무 버튼이 안 떠 대화를 시작할 방법이 없었다.
+		/// ★ 왜 「있을 때만」인가: 늘 떠 있으면 눌러도 아무 일 없는 버튼이 되어 거짓말을 한다.
+		///   상대가 생겼을 때 나타나면 버튼 자체가 「지금 말 걸 수 있다」는 안내가 된다.
+		/// ★ 판정은 세계 쪽 정본(`InteractiveObject.GetNearest`)에 그대로 묻는다 — 여기서 거리를
+		///   따로 재면 「머리 위 표식은 떴는데 버튼은 없다」가 조용히 생긴다.
+		/// </summary>
+		private void UpdateInteractButton(bool controlsVisible, PlayerProvider playerProvider)
+		{
+			if (interactButton == null)
+				return;
+
+			bool hasTarget = controlsVisible
+				&& playerProvider != null
+				&& playerProvider.HasPlayer
+				&& InteractiveObject.GetNearest(
+					playerProvider.Current.transform.position,
+					PlayerInteraction.InteractionDistance) != null;
+
+			DisplayStyle display = hasTarget ? DisplayStyle.Flex : DisplayStyle.None;
+			if (interactButton.style.display != display)
+				interactButton.style.display = display;
 		}
 
 		/// <summary> 훑은 양을 넘기고 비운다 — 한 번 쓴 움직임을 다음 프레임에 또 쓰면 시점이 계속 흐른다. </summary>
@@ -335,6 +363,15 @@ namespace WitchMendokusai
 			topRow.Add(MakeHoldButton("뛰기", InputEventType.Sprint, actionButtonSize * 0.8f));
 			column.Add(topRow);
 
+			// 말걸기는 *가끔* 뜨는 것이라 늘 있는 버튼들과 줄을 섞지 않는다 — 섞으면 나타날 때마다
+			// 점프·공격이 옆으로 밀려서, 방금 외운 손가락 위치가 어긋난다.
+			VisualElement interactRow = new VisualElement { style = { flexDirection = FlexDirection.Row } };
+			interactRow.pickingMode = PickingMode.Ignore;
+			interactButton = MakeTapButton("말걸기", InputEventType.Submit);
+			interactButton.style.display = DisplayStyle.None;
+			interactRow.Add(interactButton);
+			column.Add(interactRow);
+
 			VisualElement bottomRow = new VisualElement { style = { flexDirection = FlexDirection.Row } };
 			bottomRow.pickingMode = PickingMode.Ignore;
 			bottomRow.Add(MakeHoldButton("점프", InputEventType.Jump, actionButtonSize));
@@ -345,6 +382,7 @@ namespace WitchMendokusai
 		}
 
 		private VisualElement windowMenuColumn;
+		private Label interactButton;
 
 		/// <summary>
 		/// 창으로 가는 길 (TASK-WM-200) — 폰엔 키보드가 없다.
