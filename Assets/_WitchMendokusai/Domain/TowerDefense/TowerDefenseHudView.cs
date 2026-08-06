@@ -32,6 +32,8 @@ namespace WitchMendokusai
 		private readonly Label nextWaveValue;
 		private readonly Label livesValue;
 		private readonly Label essenceValue;
+		private VisualElement runStatsPanel; // 결과 화면의 기록판 — 판이 끝나야 펴진다.
+		private readonly Label livesTopValue; // 위 띠의 목숨 — 판이 도는 동안 보이는 셋 중 하나.
 
 		// 예고 계산 버퍼 — 매 프레임 새 리스트를 만들지 않는다.
 		private readonly System.Collections.Generic.List<int> compositionBuffer = new();
@@ -145,7 +147,7 @@ namespace WitchMendokusai
 			// ★ 한 덩어리가 한 가지만 말한다 — 예전엔 전부 좌상단에 몰려 있어 무엇부터 봐야 할지 알 수 없었다
 			//   (사용자 실증: "정보는 전부 모여 있어서 복잡복잡"). 자원은 상단 가운데 독립 띠(종류가 늘어도
 			//   가로로 칸만 추가), 진행은 우상단, 범례는 좌하단 접기, 고르는 것은 하단 가운데.
-			container.Add(Named(BuildResourceBar(out resourceValue, out incomeValue, out essenceValue), "ResourceBar"));
+			container.Add(Named(BuildResourceBar(out resourceValue, out incomeValue, out essenceValue, out livesTopValue), "ResourceBar"));
 			container.Add(Named(BuildProgressPanel(out livesValue, out waveValue, out phaseValue, out nextWaveValue, out enemyValue, out bestValue,
 				out waveModeButton, out nextWaveButton), "ProgressPanel"));
 			// ★ 범례는 이제 *지도 안*에 산다 — 판 옆에 상시로 펼쳐 두면 화면 4분의 1 을 먹으면서도
@@ -207,7 +209,7 @@ namespace WitchMendokusai
 		/// 자원 띠 — 상단 가운데 독립. 자원 종류가 늘어나면 이 띠에 칸만 가로로 붙인다
 		/// (다른 정보와 섞어두면 종류가 늘 때마다 화면 전체를 다시 짜야 한다).
 		/// </summary>
-		private static VisualElement BuildResourceBar(out Label resource, out Label income, out Label essence)
+		private static VisualElement BuildResourceBar(out Label resource, out Label income, out Label essence, out Label livesCell)
 		{
 			VisualElement bar = new VisualElement { name = "ResourceBar" };
 			bar.style.position = Position.Absolute;
@@ -229,12 +231,16 @@ namespace WitchMendokusai
 			SetRadius(inner, 8);
 			inner.pickingMode = PickingMode.Ignore;
 
+			// ★ 판이 도는 동안 필요한 것만 — 자원 · 정수 · 목숨. 「다음 수입」 같은 예측치는 결과 화면으로 뺀다
+			//   (사용자 지시). 계산은 계속 돌고 라벨도 살아 있지만 화면에는 안 붙는다.
 			inner.Add(MakeResourceCell(TowerDefenseIcon.Kind.Diamond, new Color(1f, 0.86f, 0.35f, 1f), out resource, 26));
-			inner.Add(MakeDivider());
-			inner.Add(MakeResourceCell(TowerDefenseIcon.Kind.Ring, new Color(0.42f, 0.92f, 0.68f, 1f), out income, 20));
+			income = MakeHiddenStat();
 			// 정수 — 자원 띠에 칸이 하나 붙는다. 「종류가 늘면 가로로 칸만 추가」로 설계해 둔 것이 여기서 회수된다.
 			inner.Add(MakeDivider());
 			inner.Add(MakeResourceCell(TowerDefenseIcon.Kind.Core, new Color(0.7f, 0.6f, 1f, 1f), out essence, 24));
+
+			inner.Add(MakeDivider());
+			inner.Add(MakeResourceCell(TowerDefenseIcon.Kind.Burst, new Color(1f, 0.45f, 0.45f, 1f), out livesCell, 22));
 
 			bar.Add(inner);
 			return bar;
@@ -272,6 +278,9 @@ namespace WitchMendokusai
 		}
 
 		/// <summary> 진행 정보 — 우상단. 「지금 무슨 일이 일어나는가」만 모은다. </summary>
+		/// <summary> 화면에 안 붙는 값 그릇 — 계산은 계속 흐르되 판이 도는 동안 눈에 띄지 않는다. </summary>
+		private static Label MakeHiddenStat() => new Label(string.Empty) { style = { display = DisplayStyle.None } };
+
 		private VisualElement BuildProgressPanel(
 			out Label lives, out Label wave, out Label phase, out Label nextWave, out Label enemies, out Label best,
 			out Button modeButton, out Button callButton)
@@ -290,12 +299,16 @@ namespace WitchMendokusai
 			panel.pickingMode = PickingMode.Ignore;
 
 			// 목숨이 맨 위 — 유출제에서는 이게 곧 남은 판의 길이다.
-			panel.Add(MakeStatRow("목숨", out lives, new Color(1f, 0.45f, 0.45f, 1f)));
-			panel.Add(MakeStatRow("웨이브", out wave, new Color(1f, 0.6f, 0.55f, 1f)));
-			panel.Add(MakeStatRow("상태", out phase, new Color(0.72f, 0.88f, 1f, 1f)));
-			panel.Add(MakeStatRow("다음 웨이브", out nextWave, new Color(1f, 0.72f, 0.45f, 1f)));
-			panel.Add(MakeStatRow("남은 마수", out enemies, new Color(1f, 0.45f, 0.42f, 1f)));
-			panel.Add(MakeStatRow("최고 기록", out best, new Color(0.78f, 0.82f, 0.92f, 1f)));
+			// ★ 판이 도는 동안 *숫자를 늘어놓지 않는다* (사용자 지시: "다음 웨이브 정보, 지난 시간
+			//   이런거 내부적으로 계산하고 런타임에 표시 안했으면 좋겠음. … 게임 끝났을때 통계처럼
+			//   공개하는게 맞음. Like RiskofRain 2"). 계산은 그대로 돌고, *보여주기만* 결과 화면으로 옮긴다.
+			//   그래서 라벨은 만들되(코드가 계속 값을 넣는다) 화면에는 안 붙인다 — 결과 화면이 이 값을 읽는다.
+			lives = MakeHiddenStat();
+			wave = MakeHiddenStat();
+			phase = MakeHiddenStat();
+			nextWave = MakeHiddenStat();
+			enemies = MakeHiddenStat();
+			best = MakeHiddenStat();
 
 			VisualElement buttons = new VisualElement();
 			buttons.style.flexDirection = FlexDirection.Row;
@@ -1087,6 +1100,12 @@ namespace WitchMendokusai
 			summaryLabel.pickingMode = PickingMode.Ignore;
 			outcomeCard.Add(summaryLabel);
 
+			// 기록판 — 판이 끝나야 펴진다(판이 도는 동안엔 이 숫자들이 화면에 없다).
+			runStatsPanel = new VisualElement { name = "RunStats" };
+			runStatsPanel.style.marginTop = 14;
+			runStatsPanel.style.display = DisplayStyle.None;
+			outcomeCard.Add(runStatsPanel);
+
 			outcomeCard.Add(relicLabel);
 			wrapper.Add(buttons);
 			return wrapper;
@@ -1709,6 +1728,7 @@ namespace WitchMendokusai
 			incomeValue.text += supplyNote;
 
 			livesValue.text = match.UsesLives ? match.Lives.ToString() : "-";
+			livesTopValue.text = livesValue.text; // 같은 값, 보이는 자리만 다르다.
 			essenceValue.text = match.NextWaveEssence > 0
 				? match.Essence + " (+" + match.NextWaveEssence + ")"
 				: match.Essence.ToString();
@@ -1770,12 +1790,56 @@ namespace WitchMendokusai
 				outcome, FormatDuration(survivedSeconds), nestsDestroyed, score, best, isNewRecord);
 			// ★ 이겼을 때도 요약은 붙어야 한다 — 예전엔 여기서 빠져나가 이긴 판을 되짚을 수단이 없었다.
 			ShowSummary(summary);
+			ShowRunStats(survivedSeconds, nestsDestroyed, score, best);
 		}
 
 		/// <summary>
 		/// 판 요약 — 「왜 졌는지」를 되짚을 유일한 자리. 없으면 매 판이 같은 실수의 반복이 된다.
 		/// 배너 아래에 조용히 붙인다(결말 문구를 밀어내지 않게).
 		/// </summary>
+		/// <summary>
+		/// 판이 끝난 뒤에야 펴는 기록판 — 버틴 시간·웨이브·처치·기록.
+		///
+		/// ★ 판이 도는 동안에는 이 숫자들을 화면에 안 붙인다 (사용자 지시: "런타임에 표시 안했으면
+		///   좋겠음 … 게임 끝났을때 통계처럼 공개하는게 맞음. Like RiskofRain 2").
+		///   계산은 내내 돌고 있었다 — *보여주는 시점*만 끝으로 옮긴 것이다.
+		/// </summary>
+		private void ShowRunStats(int survivedSeconds, int nestsDestroyed, int score, int best)
+		{
+			if (runStatsPanel == null)
+				return;
+
+			runStatsPanel.Clear();
+			AddRunStat("버틴 시간", FormatDuration(survivedSeconds));
+			AddRunStat("넘긴 웨이브", waveValue != null ? waveValue.text : "-");
+			AddRunStat("부순 둥지", nestsDestroyed.ToString());
+			AddRunStat("남은 마수", enemyValue != null ? enemyValue.text : "-");
+			AddRunStat("점수", score.ToString());
+			AddRunStat("최고 기록", best.ToString());
+			runStatsPanel.style.display = DisplayStyle.Flex;
+		}
+
+		private void AddRunStat(string caption, string value)
+		{
+			VisualElement row = new VisualElement();
+			row.style.flexDirection = FlexDirection.Row;
+			row.style.justifyContent = Justify.SpaceBetween;
+			row.style.marginTop = 4;
+			row.style.minWidth = 260;
+
+			Label captionLabel = new Label(caption);
+			captionLabel.style.fontSize = 14;
+			captionLabel.style.color = new Color(0.72f, 0.78f, 0.9f, 1f);
+
+			Label valueLabel = new Label(value);
+			valueLabel.style.fontSize = 16;
+			valueLabel.style.color = new Color(0.96f, 0.98f, 1f, 1f);
+
+			row.Add(captionLabel);
+			row.Add(valueLabel);
+			runStatsPanel.Add(row);
+		}
+
 		private void ShowSummary(string summary)
 		{
 			if (summaryLabel == null)
