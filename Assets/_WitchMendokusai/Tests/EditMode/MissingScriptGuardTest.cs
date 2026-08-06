@@ -46,17 +46,22 @@ namespace WitchMendokusai.Tests
         /// </summary>
         private static readonly string[] OPTIONAL_THIRD_PARTY_ROOTS =
         {
-            "Assets/Bakery",
+            "Bakery",
         };
 
         private static void SkipIfOptionalThirdPartyAssetsMissing()
         {
-            foreach (string root in OPTIONAL_THIRD_PARTY_ROOTS)
+            // Application.dataPath 기준 절대경로로 본다 — batchmode 는 작업 디렉토리가
+            // 프로젝트 루트라는 보장이 없어서, 상대경로("Assets/Bakery")로 물으면 폴더가
+            // 없는데도 "있다"로 새는 게 아니라 *판정 자체가 무의미*해진다 (실측: 첫 시도가
+            // 그래서 그대로 빨간불이었다).
+            foreach (string folderName in OPTIONAL_THIRD_PARTY_ROOTS)
             {
+                string root = Path.Combine(Application.dataPath, folderName);
                 if (Directory.Exists(root) == false)
                 {
                     Assert.Ignore(
-                        "이 체크아웃엔 '" + root + "' 가 없다 (git 미추적 외부 에셋). "
+                        "이 체크아웃엔 'Assets/" + folderName + "' 가 없다 (git 미추적 외부 에셋). "
                         + "그 컴포넌트를 쓰는 프리팹·씬의 참조가 전부 죽은 것처럼 보이므로 판정 불가 — "
                         + "에셋이 깔린 개발 머신에서 이 검사가 진짜로 돈다.");
                 }
