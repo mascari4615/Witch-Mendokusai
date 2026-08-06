@@ -17,9 +17,15 @@ namespace WitchMendokusai
 		// TASK-WM-133 — static Instance/TryGetExistingInstance 삭제. RegisterLeaf
 		// prefab + DontDestroyOnLoad 가 단일성 보장(DI 소유), Slot/DevItemSlot 은
 		// UIRoot panel-root owner-push 된 UIServices.Tooltip 경유 획득.
-		private const float OFFSET_X = 16f;
-		private const float OFFSET_Y = 16f;
-		private const float EDGE_PADDING = 8f;
+		// 툴팁이 커서 옆에 서는 자리 — 커서에 가려지지도, 너무 떨어져 딴 것처럼 보이지도 않는
+		// 거리를 눈으로 맞춰야 한다(TASK-WM-155). 화면 가장자리 여백은 잘림 방지.
+		[Header("Placement")]
+		[Tooltip("커서 오른쪽으로 띄우는 거리(px).")]
+		[SerializeField] private float offsetX = 16f;
+		[Tooltip("커서 아래로 띄우는 거리(px).")]
+		[SerializeField] private float offsetY = 16f;
+		[Tooltip("화면 가장자리에서 최소한 남기는 여백(px). 이보다 좁아지면 반대쪽으로 뒤집는다.")]
+		[SerializeField] private float edgePadding = 8f;
 
 		private InputManager inputManager;
 		private UIRoot uiRoot;
@@ -157,17 +163,17 @@ namespace WitchMendokusai
 			float viewWidth = view.layout.width;
 			float viewHeight = view.layout.height;
 
-			float left = panelPosition.x + OFFSET_X;
-			float top = panelPosition.y + OFFSET_Y;
+			float left = panelPosition.x + offsetX;
+			float top = panelPosition.y + offsetY;
 
-			if (left + viewWidth + EDGE_PADDING > panelWidth)
-				left = panelPosition.x - viewWidth - OFFSET_X;
-			if (top + viewHeight + EDGE_PADDING > panelHeight)
-				top = panelHeight - viewHeight - EDGE_PADDING;
-			if (left < EDGE_PADDING)
-				left = EDGE_PADDING;
-			if (top < EDGE_PADDING)
-				top = EDGE_PADDING;
+			if (left + viewWidth + edgePadding > panelWidth)
+				left = panelPosition.x - viewWidth - offsetX;
+			if (top + viewHeight + edgePadding > panelHeight)
+				top = panelHeight - viewHeight - edgePadding;
+			if (left < edgePadding)
+				left = edgePadding;
+			if (top < edgePadding)
+				top = edgePadding;
 
 			view.style.left = left;
 			view.style.top = top;
