@@ -333,7 +333,7 @@ namespace WitchMendokusai.EditorTools
 					if (selectedLayoutChecked == false)
 					{
 						selectedLayoutChecked = true;
-						VerifyHudLayout("건물 선택 중");
+						VerifyHudLayout("건물 선택 중", mustBeUp: "SelectionPanel");
 					ShowTooltipForLayout();
 					VerifyHudLayout("툴팁 떠 있음");
 					SelectCoreForLayout();
@@ -2153,7 +2153,7 @@ namespace WitchMendokusai.EditorTools
 			if (match == null)
 				return;
 
-			VerifyHudLayout("코어 선택 중");
+			VerifyHudLayout("코어 선택 중", mustBeUp: "SelectionPanel");
 
 			List<TowerDefenseBoon> offers = new();
 			match.OfferCoreCards(offers);
@@ -2255,7 +2255,13 @@ namespace WitchMendokusai.EditorTools
 			placement.PlaceSelectedAt(WorldToScreen(modeCamera, target.Position));
 		}
 
-		private static void VerifyHudLayout(string phase)
+		/// <param name="mustBeUp">
+		/// 이 상태에서 *반드시 떠 있어야* 하는 조각. 안 떠 있으면 실패다.
+		/// ★ 없으면 「안 뜬 것은 겹칠 수도 없어서 겹침 0 이 「띄워본 적이 없다」를 숨긴다」가 그대로 일어난다 —
+		///   실측에서 평상시·건물 선택 중·툴팁·코어 선택 중이 **네 상태 모두 똑같은 5개**를 재고 있었다.
+		///   네 번 다 초록불이었지만 잰 것은 한 번뿐이었던 셈이다.
+		/// </param>
+		private static void VerifyHudLayout(string phase, string mustBeUp = null)
 		{
 			UIRoot uiRoot = Object.FindAnyObjectByType<UIRoot>();
 			VisualElement hud = uiRoot != null && uiRoot.ModeHudLayer != null
@@ -2265,6 +2271,12 @@ namespace WitchMendokusai.EditorTools
 			{
 				Debug.LogError(TAG + " HUD-LAYOUT[" + phase + "] HUD 를 못 찾음");
 				return;
+			}
+
+			if (mustBeUp != null && hud.Q(mustBeUp) == null)
+			{
+				Debug.LogError(TAG + " HUD-LAYOUT[" + phase + "]-FAIL 「" + mustBeUp
+					+ "」가 안 떠 있다 — 띄운 줄 알고 잰 것이라 이 판정은 무의미하다.");
 			}
 
 			List<string> names = new();
