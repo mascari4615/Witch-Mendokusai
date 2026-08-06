@@ -127,6 +127,13 @@ namespace WitchMendokusai
 			PushStickValue();
 			UpdateInteractButton(show, playerProvider);
 			UpdateLookBackdropBlocking();
+
+			// 화면을 돌리면 노치·제스처 바의 자리가 통째로 바뀐다 — 그때만 다시 잰다.
+			if (controlsRoot != null && Screen.safeArea != lastSafeArea)
+			{
+				lastSafeArea = Screen.safeArea;
+				ApplySafeArea(controlsRoot);
+			}
 		}
 
 		/// <summary>
@@ -334,10 +341,7 @@ namespace WitchMendokusai
 		{
 			controlsRoot = new VisualElement { name = "MobileControls" };
 			controlsRoot.style.position = Position.Absolute;
-			controlsRoot.style.left = 0;
-			controlsRoot.style.right = 0;
-			controlsRoot.style.top = 0;
-			controlsRoot.style.bottom = 0;
+			ApplySafeArea(controlsRoot);
 			controlsRoot.style.display = DisplayStyle.None;
 			controlsRoot.pickingMode = PickingMode.Ignore;
 
@@ -731,6 +735,31 @@ namespace WitchMendokusai
 		/// ★ 실측(2026-08-07, 400dpi 폰): 창 메뉴 작은 버튼이 약 5.7mm 였다 — 기준의 3분의 2.
 		///   「눌렀는데 안 눌린다」의 흔한 정체가 이것이고, 사람은 그걸 버그로 신고하지 않는다.
 		/// </summary>
+		/// <summary>
+		/// 조작 장치를 기기의 「안전 영역」 안으로 들인다.
+		///
+		/// ★ 노치·둥근 모서리·아래쪽 제스처 바는 *화면이지만 내 것이 아닌 자리*다. 거기 버튼을 두면
+		///   눌리지 않거나, 눌렀는데 시스템이 먼저 가져간다(뒤로가기·홈으로 나감). 사용자는 이걸
+		///   「가끔 안 눌림」으로만 겪고 원인을 못 짚는다.
+		/// ★ 화면 표시기는 이미 같은 계산을 한다 — 조작 장치만 안 하고 있었다(2026-08-07 점검).
+		/// ★ 화면을 돌리면 안전 영역이 통째로 바뀐다. 그래서 한 번이 아니라 바뀔 때마다 다시 잰다.
+		/// </summary>
+		private static void ApplySafeArea(VisualElement root)
+		{
+			Rect safeArea = Screen.safeArea;
+			float scale = Screen.height > 0 ? PANEL_REFERENCE_HEIGHT / Screen.height : 1f;
+
+			root.style.left = safeArea.xMin * scale;
+			root.style.right = (Screen.width - safeArea.xMax) * scale;
+			root.style.top = (Screen.height - safeArea.yMax) * scale;
+			root.style.bottom = safeArea.yMin * scale;
+		}
+
+		/// <summary>패널이 기준으로 삼는 세로 크기 — 화면 픽셀을 이 화면의 좌표로 바꿀 때 쓴다.</summary>
+		private const float PANEL_REFERENCE_HEIGHT = 800f;
+
+		private Rect lastSafeArea;
+
 		private static float TouchFriendly(float logicalSize)
 		{
 			float dpi = Screen.dpi > 1f ? Screen.dpi : 160f;
