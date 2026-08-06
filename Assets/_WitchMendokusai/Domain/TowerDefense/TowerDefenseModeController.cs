@@ -717,6 +717,11 @@ namespace WitchMendokusai
 					saveOwner.SaveManager.SaveData();
 				}
 
+				// ★ 성좌를 열어 둔 채 나갈 수 있다. 안 닫으면 다음에 개척에 들어왔을 때 **첫 화면이
+				//   성좌**이고, 게다가 그때 판이 멈춰 있다(성좌가 멈춘 것을 성좌가 풀어야 하는데
+				//   그 닫는 손이 안 왔다). 나가는 자리에서 닫는다 — 멈춤도 여기서 같이 풀린다.
+				CloseResearch();
+
 				// 이탈 — 매치 정리(멱등 Dispose) → 배치 비활성 → 모드 카메라 끄기 → 월드 입력 복귀.
 				StopAllCoroutines(); // 재시작 코루틴이 이탈 뒤 재개해 매치를 되살리는 것 차단.
 				match.RestoreTimeScale(); // 멈춘 채로 나가면 본편이 정지한다.
