@@ -24,6 +24,12 @@ param(
 
 $ErrorActionPreference = 'Continue'
 
+# 콘솔 출력 인코딩 고정. 이걸 안 하면 PowerShell 이 콘솔 코드페이지(cp949)로 내보내
+# git 훅 경유(Git Bash·CI 로그)에서 한글이 깨진다 — 실측. 경고 문구가 안 읽히면
+# 경고가 없는 것과 같다. try 로 감싼 이유는 리다이렉트된 스트림엔 콘솔이 없어서다.
+try { [Console]::OutputEncoding = [System.Text.Encoding]::UTF8 } catch { }
+$OutputEncoding = [System.Text.Encoding]::UTF8
+
 function Resolve-RepoPaths
 {
     $rootRaw = (git rev-parse --show-toplevel 2>$null)
