@@ -1,0 +1,105 @@
+name: WM duplicate member guard
+
+# Why this exists (2026-08-06): a 38-line block got pasted twice into one class. main
+# stopped compiling for ~1.5h and a whole android build (100 minutes of laptop time) died
+# at the compile step. Nothing on the push lane catches that: the Unity compile tier only
+# runs on schedule or manual dispatch, because the laptop is the only machine with Unity.
+#
+# This is NOT a compiler. It catches the one accident that actually happened - the same
+# member declared twice in the same type - in seconds, on a free hosted runner, on every
+# push. Cheap coverage for the gap, not a replacement for the real compile tier.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'Assets/**/*.cs'
+      - '.github/workflows/wm-duplicate-member-guard.yml'
+  pull_request:
+    paths:
+      - 'Assets/**/*.cs'
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: wm-dup-guard-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  guard:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Scan for duplicate member declarations
+        shell: bash
+        run: |
+          cat > /tmp/dupscan.mjs <<'SCANNER'
+          // Duplicate member declarations inside the SAME type (the CS0111 paste accident).
+          //
+          // Why: on 2026-08-06 a 38-line block was pasted twice into one class. main stopped
+          // compiling for ~1.5h and a whole android build died at the compile step. Nothing on the
+          // push lane catches it - the Unity compile tier only runs on schedule/manual.
+          // This is not a compiler; it catches the one accident that actually happened, in seconds,
+          // on a free hosted runner.
+          import { readdirSync, readFileSync, statSync } from 'node:fs';
+          import { join } from 'node:path';
+
+          const ROOT = process.argv[2] ?? 'Assets/_WitchMendokusai';
+          const DECL = /^\s*(?:\[[^\]]*\]\s*)*(?:public|private|protected|internal)\s[^=;()]*\b([A-Za-z_]\w*)\s*\(([^()]*)\)\s*$/;
+          const TYPE = /^\s*(?:public|internal|private|protected)?\s*(?:sealed |abstract |static |partial |readonly )*(?:class|struct|record|interface)\s+(\w+)/;
+
+          function walk(dir, out = []) {
+            for (const name of readdirSync(dir)) {
+              const p = join(dir, name);
+              const st = statSync(p);
+              if (st.isDirectory()) walk(p, out);
+              else if (name.endsWith('.cs')) out.push(p);
+            }
+            return out;
+          }
+
+          let findings = 0;
+          for (const file of walk(ROOT)) {
+            const text = readFileSync(file, 'utf8');
+            // Conditional compilation can legitimately declare the same signature twice.
+            if (text.includes('#if')) continue;
+
+            const seen = new Map();
+            const typeStack = [];
+            let depth = 0;
+            text.split(/\r?\n/).forEach((line, i) => {
+              const t = TYPE.exec(line);
+              const member = DECL.exec(line);
+              if (member) {
+                // Key by enclosing type so nested helper classes may reuse names freely.
+                const scope = typeStack.length ? typeStack[typeStack.length - 1].name : '<file>';
+                const key = scope + '::' + line.trim().replace(/\s+/g, ' ');
+                if (seen.has(key)) {
+                  findings++;
+                  console.log(`${file}:${i + 1}: duplicate member in ${scope} (also at line ${seen.get(key)})`);
+                  console.log(`    ${line.trim()}`);
+                } else seen.set(key, i + 1);
+              }
+              const opens = (line.match(/\{/g) ?? []).length;
+              const closes = (line.match(/\}/g) ?? []).length;
+              // Allman style puts the body brace on the NEXT line, so remember the depth the body
+              // will sit at instead of the depth of the declaration line (that popped types at once).
+              if (t) typeStack.push({ name: t[1], bodyDepth: null, atDepth: depth });
+              depth += opens - closes;
+              const top = typeStack[typeStack.length - 1];
+              if (top && top.bodyDepth === null && depth > top.atDepth) top.bodyDepth = depth;
+              while (typeStack.length) {
+                const cur = typeStack[typeStack.length - 1];
+                if (cur.bodyDepth !== null && depth < cur.bodyDepth) typeStack.pop();
+                else break;
+              }
+            });
+          }
+          console.log(findings === 0 ? 'OK - no duplicate member declarations.' : `FAIL - ${findings} duplicate declaration(s).`);
+          process.exitCode = findings === 0 ? 0 : 1;
+
+          SCANNER
+          node /tmp/dupscan.mjs Assets/_WitchMendokusai
