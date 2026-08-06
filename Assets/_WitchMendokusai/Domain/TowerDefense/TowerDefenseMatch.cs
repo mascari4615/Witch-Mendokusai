@@ -4113,13 +4113,10 @@ namespace WitchMendokusai
 				}
 
 				// 지어놓은 포탑의 원도 연구를 따라 자란다 — 원형 그대로 그리면 총과 원이 갈라진다.
-				// ★ 원이 뜻하는 것은 물건마다 다르다 — 쏘는 것은 사거리, 채집은 자원에 닿는 거리,
-				//   발전기는 전기가 닿는 거리. 예전엔 셋 다 *포탑 사거리*를 그렸다: 쏘지도 않는 채집 인형에
-				//   「이만큼 쏜다」는 원이 떴다는 뜻이다. 설치 미리보기는 이미 갈라놨는데 세워진 뒤의 원만
-				//   안 갈라져 있었다 — 같은 물건이 놓기 전과 놓은 뒤에 다른 말을 하고 있었다.
-				float towerRange = isGenerator ? stage.GeneratorRadius
-					: isHarvester ? stage.NodeCaptureRadius
-					: (towerArchetype != null ? towerArchetype.Range : RawTowerRange()) * TowerRangeMultiplier;
+				// ★ 여기는 이미 위에서 채집·발전을 걸러낸 안쪽이다 — 물건별로 원을 갈라 그리는 분기를
+				//   여기 두면 절대 안 도는 죽은 코드가 된다(그렇게 넣었다가 라이브에서 「잴 것이 0개」로 드러났다).
+				float towerRange = (towerArchetype != null ? towerArchetype.Range : RawTowerRange())
+					* TowerRangeMultiplier;
 				if (towerRange > 0f)
 				{
 					// ★ 사거리 원은 *묻는 순간에만* 뜬다(사용자 지시: "계속 보이니까 정신없어").

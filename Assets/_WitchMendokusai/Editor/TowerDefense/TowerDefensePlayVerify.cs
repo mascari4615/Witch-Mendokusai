@@ -633,6 +633,7 @@ namespace WitchMendokusai.EditorTools
 			Debug.Log(TAG + " PLACE resourceBefore=" + before + " after=" + match.Resource
 				+ " offNodeHarvesterRejected=" + offNodeRejected);
 
+
 			VerifyHeroAndNames(stageRoot);
 
 			LogHudState();
@@ -1475,6 +1476,41 @@ namespace WitchMendokusai.EditorTools
 				Debug.LogError(TAG + " RESEARCH-FAIL 큰 마디를 뚫었는데 단계가 안 올랐다.");
 
 			VerifyResearchRestoreWithoutPanel();
+			// ★ *포탑이 선 뒤*에 잰다 — 채집만 세운 시점에 재봤더니 사거리 원이 아예 0개라
+			//   「0개 중 0개 어긋남」이라는 헛초록불이 켜졌다. 안 돈 검사는 검사가 아니다.
+			VerifyRingMeaning();
+		}
+
+		/// <summary>
+		/// 세워진 물건의 원이 *그 물건이 뜻하는 것*을 그리는가.
+		///
+		/// ★ 사거리 원은 「이만큼 쏜다」는 뜻이다 — 쏘지 않는 물건에 뜨면 그 자체로 거짓말이다.
+		///   지금은 세우는 쪽이 채집·발전을 걸러내고 있어서 성립하는데, 그 가드가 사라지면 조용히 깨진다.
+		/// ★ 하나도 못 쟀으면 실패로 본다 — 안 돈 검사는 통과가 아니다(실제로 그 헛초록불을 봤다).
+		/// </summary>
+		private static void VerifyRingMeaning()
+		{
+			TowerDefenseRing[] rings = Object.FindObjectsByType<TowerDefenseRing>();
+			int total = 0;
+			int wrong = 0;
+			foreach (TowerDefenseRing ring in rings)
+			{
+				if (ring == null || ring.name != "RangeRing")
+					continue;
+
+				total++;
+				Transform owner = ring.transform.parent;
+				if (owner != null && owner.GetComponent<TowerDefenseWeapon>() != null)
+					continue;
+
+				wrong++;
+				Debug.LogError(TAG + " RING-MEANING-FAIL " + (owner != null ? owner.name : "?")
+					+ " 에 사거리 원이 " + ring.Radius.ToString("F2") + " 로 떠 있는데 쏘는 물건이 아니다.");
+			}
+
+			Debug.Log(TAG + " RING-MEANING 사거리 원 " + total + "개 · 쏘지 않는데 뜬 것 " + wrong + "개");
+			if (total == 0)
+				Debug.LogError(TAG + " RING-MEANING-FAIL 잴 것이 하나도 없었다 — 검사가 헛돈 것이지 통과가 아니다.");
 		}
 
 		/// <summary>
