@@ -6,9 +6,15 @@ using UnityEngine.UIElements;
 namespace WitchMendokusai
 {
 	/// <summary>
-	/// 전술 코딩 에디터(프리-매치, v1) — 로스터 유닛의 TacticProgram 을 행 리스트(드롭다운)로 편집.
+	/// 전술 코딩 에디터(프리-매치) — 로스터 유닛의 TacticProgram 을 행 리스트로 편집.
 	/// 편집 로직 = RowListAuthoring(검증됨), 렌더 = UIToolkit. UIRoot.ScreenLayer 부착(코드 빌드, SettingView 패턴).
-	/// 행 = [조건종류][타겟우선순위][행동종류] 드롭다운 + [✕][↑][↓]. v1 = 조건 op/값·스킬슬롯 UI 후속.
+	///
+	/// 행 = [조건종류] ([연산자][값] | [슬롯]) [진영][우선순위][사거리] [행동] ([슬롯]) + [✕][↑][↓].
+	/// 괄호 칸은 **그 종류가 실제로 읽을 때만** 뜬다 — 무엇을 읽는지는 <see cref="TacticSchema"/> 가 정하고,
+	/// 그건 평가기(TacticConditions)와 같은 자리다. 안 그러면 「채운 값이 무시」되거나 반대로
+	/// 「채울 칸이 없어 기본값으로 굳는」다. 실측으로 후자였다: 연산자/값 칸이 없어서 수치 조건이
+	/// 전부 (Equal, 0) = 「HP 비율 == 0」 = 죽어야 참이 되어 영영 발동하지 않았다.
+	///
 	/// 인-매치 일시정지 재편집은 후속(같은 뷰 재사용). 위→아래 우선, 첫 충족 행 실행(UO/FF12).
 	/// </summary>
 	public class TacticEditorView
@@ -27,10 +33,33 @@ namespace WitchMendokusai
 		private static readonly ConditionKind[] ConditionValues = (ConditionKind[])Enum.GetValues(typeof(ConditionKind));
 		private static readonly TargetPriority[] PriorityValues = (TargetPriority[])Enum.GetValues(typeof(TargetPriority));
 		private static readonly ActionKind[] ActionValues = (ActionKind[])Enum.GetValues(typeof(ActionKind));
+		private static readonly TargetSide[] SideValues = (TargetSide[])Enum.GetValues(typeof(TargetSide));
+		private static readonly ComparisonOperator[] OperatorValues = (ComparisonOperator[])Enum.GetValues(typeof(ComparisonOperator));
 
 		private static readonly string[] ConditionChoices = Enum.GetNames(typeof(ConditionKind));
 		private static readonly string[] PriorityChoices = Enum.GetNames(typeof(TargetPriority));
 		private static readonly string[] ActionChoices = Enum.GetNames(typeof(ActionKind));
+		private static readonly string[] SideChoices = Enum.GetNames(typeof(TargetSide));
+		private static readonly string[] OperatorChoices = Enum.GetNames(typeof(ComparisonOperator));
+
+		// 칸 폭. 전부 여기 모아둔 이유 = 줄 하나가 화면을 넘기는지는 이 합으로 정해지는데,
+		// 리터럴이 흩어져 있으면 「지금 몇 픽셀인지」를 아무도 못 센다. (USS 이주 = TASK-WM-206)
+		private const int WIDTH_ORDER = 22;
+		private const int WIDTH_CONDITION = 132;
+		private const int WIDTH_OPERATOR = 74;
+		private const int WIDTH_VALUE = 56;
+		private const int WIDTH_SLOT = 40;
+		private const int WIDTH_SIDE = 92;
+		private const int WIDTH_PRIORITY = 116;
+		private const int WIDTH_RANGE = 52;
+		private const int WIDTH_ACTION = 116;
+		private const int WIDTH_BUTTON = 28;
+
+		// 「그 종류가 안 쓰는 칸」은 지운다(Hidden 이 아니라 None — 자리도 안 차지해야 줄이 안 길어진다).
+		private static void SetShown(VisualElement element, bool shown)
+		{
+			element.style.display = shown ? DisplayStyle.Flex : DisplayStyle.None;
+		}
 
 		// 값 → 칸 번호. 못 찾으면 0(첫 칸) — 저장된 값이 사라진 종류일 때 편집기가 안 죽게.
 		private static int IndexOf<T>(T[] values, T value)
@@ -62,7 +91,9 @@ namespace WitchMendokusai
 			parentLayer.Add(root);
 
 			VisualElement panel = new VisualElement();
-			panel.style.minWidth = 620;
+			// 한 줄 최대폭 = 22+132+74+56+92+116+52+116+40 + 버튼 84 ≈ 784 (+ 컨트롤 기본 여백).
+			// 연산자/값 칸과 조건-슬롯 칸은 서로 배타라 둘이 동시에 뜨진 않는다.
+			panel.style.minWidth = 880;
 			panel.style.paddingLeft = 16;
 			panel.style.paddingRight = 16;
 			panel.style.paddingTop = 12;
@@ -92,7 +123,7 @@ namespace WitchMendokusai
 			});
 			panel.Add(unitSelector);
 
-			Label hint = new Label("위→아래 우선순위. 첫 충족 행 실행. 맨 아래 = fallback(항상) 권장.");
+			Label hint = new Label("위→아래 우선순위. 첫 충족 행 실행. 맨 아래 = fallback(항상) 권장. 칸은 고른 종류가 쓰는 것만 뜬다.");
 			hint.style.fontSize = 11;
 			hint.style.color = new Color(0.7f, 0.7f, 0.7f);
 			hint.style.marginTop = 4;
@@ -148,35 +179,127 @@ namespace WitchMendokusai
 			row.style.marginBottom = 3;
 
 			Label order = new Label((rowIndex + 1).ToString());
-			order.style.width = 22;
+			order.style.width = WIDTH_ORDER;
 			row.Add(order);
 
-			ConditionKind conditionKind = rule.Conditions.Count > 0 ? rule.Conditions[0].Kind : ConditionKind.Always;
-			DropdownField conditionDropdown = new DropdownField(new List<string>(ConditionChoices), IndexOf(ConditionValues, conditionKind));
-			conditionDropdown.style.width = 150;
-			conditionDropdown.RegisterValueChangedCallback(_ => authoring.SetConditionKind(rowIndex, ConditionValues[conditionDropdown.index]));
+			TacticCondition condition = rule.Conditions.Count > 0 ? rule.Conditions[0] : new TacticCondition { Kind = ConditionKind.Always };
+
+			DropdownField conditionDropdown = new DropdownField(new List<string>(ConditionChoices), IndexOf(ConditionValues, condition.Kind));
+			conditionDropdown.style.width = WIDTH_CONDITION;
 			row.Add(conditionDropdown);
 
+			// --- 조건이 실제로 읽는 칸들. 안 읽는 종류에선 감춘다. ---
+			//
+			// ★ 이 칸들이 없던 동안 수치 조건은 전부 (Equal, 0) 으로 굳어 있었다 = 「HP 비율 == 0」,
+			//   즉 죽어야 참. 영영 발동하지 않는 줄인데 화면에선 「그 줄이 안 먹네」로만 보인다.
+			//   무엇을 보일지는 TacticSchema 가 정한다 — 평가기와 같은 자리를 봐야 어긋나지 않는다.
+			DropdownField operatorDropdown = new DropdownField(new List<string>(OperatorChoices), IndexOf(OperatorValues, condition.Operator));
+			operatorDropdown.style.width = WIDTH_OPERATOR;
+			row.Add(operatorDropdown);
+
+			FloatField valueField = new FloatField { value = condition.Value };
+			valueField.style.width = WIDTH_VALUE;
+			row.Add(valueField);
+
+			IntegerField conditionSlotField = new IntegerField { value = condition.SkillSlot };
+			conditionSlotField.style.width = WIDTH_SLOT;
+			conditionSlotField.tooltip = "조건이 볼 스킬 슬롯";
+			row.Add(conditionSlotField);
+
+			// SetConditionThreshold / SetConditionSkillSlot 은 조건이 0개면 **조용히 아무것도 안 한다.**
+			// 룰이 조건 없이 실려오면(저장본·SO 정의) 사용자가 값을 넣어도 안 먹는 상태가 된다.
+			// SetConditionKind 는 없으면 만들어주는 멱등 연산이라, 먼저 한 번 불러 존재를 보장한다.
+			void EnsureCondition()
+			{
+				authoring.SetConditionKind(rowIndex, ConditionValues[conditionDropdown.index]);
+			}
+
+			operatorDropdown.RegisterValueChangedCallback(_ =>
+			{
+				EnsureCondition();
+				authoring.SetConditionThreshold(rowIndex, OperatorValues[operatorDropdown.index], valueField.value);
+			});
+			valueField.RegisterValueChangedCallback(evt =>
+			{
+				EnsureCondition();
+				authoring.SetConditionThreshold(rowIndex, OperatorValues[operatorDropdown.index], evt.newValue);
+			});
+			conditionSlotField.RegisterValueChangedCallback(evt =>
+			{
+				EnsureCondition();
+				authoring.SetConditionSkillSlot(rowIndex, Mathf.Max(0, evt.newValue));
+			});
+
+			// --- 타겟 질의: 진영 / 우선순위 / 사거리. ---
+			// 진영이 Enemy 로 굳어 있던 동안 「가장 다친 아군을 치유」 같은 줄은 아예 쓸 수 없었다.
+			DropdownField sideDropdown = new DropdownField(new List<string>(SideChoices), IndexOf(SideValues, rule.Target.Side));
+			sideDropdown.style.width = WIDTH_SIDE;
+			sideDropdown.RegisterValueChangedCallback(_ => authoring.SetTargetSide(rowIndex, SideValues[sideDropdown.index]));
+			row.Add(sideDropdown);
+
 			DropdownField priorityDropdown = new DropdownField(new List<string>(PriorityChoices), IndexOf(PriorityValues, rule.Target.Priority));
-			priorityDropdown.style.width = 130;
+			priorityDropdown.style.width = WIDTH_PRIORITY;
 			priorityDropdown.RegisterValueChangedCallback(_ => authoring.SetTargetPriority(rowIndex, PriorityValues[priorityDropdown.index]));
 			row.Add(priorityDropdown);
 
+			FloatField rangeField = new FloatField { value = rule.Target.MaxRange };
+			rangeField.style.width = WIDTH_RANGE;
+			// ⚠ 정지 거리가 아니라 **탐색 반경**이다. 헷갈려서 정지 거리로 쓰면 목표가 반경 밖일 때
+			//   타겟이 아예 안 잡혀 유닛이 스폰 지점에 굳는다(TacticBTRunner 에 적힌 실측 회귀).
+			rangeField.tooltip = "타겟 탐색 반경(0 = 무제한). 정지 거리가 아니다.";
+			rangeField.RegisterValueChangedCallback(evt => authoring.SetTargetRange(rowIndex, Mathf.Max(0f, evt.newValue)));
+			row.Add(rangeField);
+
+			// --- 행동 + (UseSkill 일 때만) 슬롯. ---
 			DropdownField actionDropdown = new DropdownField(new List<string>(ActionChoices), IndexOf(ActionValues, rule.Action.Kind));
-			actionDropdown.style.width = 130;
-			actionDropdown.RegisterValueChangedCallback(_ => authoring.SetActionKind(rowIndex, ActionValues[actionDropdown.index]));
+			actionDropdown.style.width = WIDTH_ACTION;
 			row.Add(actionDropdown);
 
+			IntegerField actionSlotField = new IntegerField { value = rule.Action.SkillSlot };
+			actionSlotField.style.width = WIDTH_SLOT;
+			actionSlotField.tooltip = "시전할 스킬 슬롯";
+			actionSlotField.RegisterValueChangedCallback(evt => authoring.SetActionSkillSlot(rowIndex, Mathf.Max(0, evt.newValue)));
+			row.Add(actionSlotField);
+
+			// 종류가 바뀌면 「그 종류가 쓰는 칸」도 같이 바뀐다. 행 전체를 다시 짓지 않고
+			// 표시만 토글한다 — 다시 지으면 방금 만진 칸의 포커스가 튄다.
+			void SyncConditionFields()
+			{
+				ConditionKind kind = ConditionValues[conditionDropdown.index];
+				SetShown(operatorDropdown, TacticSchema.UsesThreshold(kind));
+				SetShown(valueField, TacticSchema.UsesThreshold(kind));
+				SetShown(conditionSlotField, TacticSchema.UsesSkillSlot(kind));
+			}
+
+			void SyncActionFields()
+			{
+				SetShown(actionSlotField, TacticSchema.UsesSkillSlot(ActionValues[actionDropdown.index]));
+			}
+
+			conditionDropdown.RegisterValueChangedCallback(_ =>
+			{
+				authoring.SetConditionKind(rowIndex, ConditionValues[conditionDropdown.index]);
+				SyncConditionFields();
+			});
+			actionDropdown.RegisterValueChangedCallback(_ =>
+			{
+				authoring.SetActionKind(rowIndex, ActionValues[actionDropdown.index]);
+				SyncActionFields();
+			});
+
+			SyncConditionFields();
+			SyncActionFields();
+
 			Button removeButton = new Button(() => { authoring.RemoveRow(rowIndex); RebuildRows(); }) { text = "✕" };
-			removeButton.style.width = 28;
+			removeButton.style.width = WIDTH_BUTTON;
 			row.Add(removeButton);
 
 			Button upButton = new Button(() => { authoring.MoveRow(rowIndex, -1); RebuildRows(); }) { text = "↑" };
-			upButton.style.width = 28;
+			upButton.style.width = WIDTH_BUTTON;
 			row.Add(upButton);
 
 			Button downButton = new Button(() => { authoring.MoveRow(rowIndex, 1); RebuildRows(); }) { text = "↓" };
-			downButton.style.width = 28;
+			downButton.style.width = WIDTH_BUTTON;
 			row.Add(downButton);
 
 			return row;
