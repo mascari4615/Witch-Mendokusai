@@ -418,6 +418,8 @@ namespace WitchMendokusai.EditorTools
 				//   초기화 누락이 드러나지 않는다. 사용자 실증("재시작하면 초기화가 덜 되고 위치도 이상")을
 				//   재현하려면 하네스가 반드시 이 사이클을 밟아야 한다.
 				case Step.Restart:
+					// 앞 단계에서 열어둔 성좌 — *자리가 잡힌 지금* 재고 닫는다(재시작 전에).
+					MeasureAndCloseResearchPanel();
 					if (TowerDefenseModeController.TryGetExistingInstance(out TowerDefenseModeController restartController) == false)
 					{
 						Debug.LogError(TAG + " RESTART-FAIL controller 없음");
@@ -1623,15 +1625,22 @@ namespace WitchMendokusai.EditorTools
 			if (match.IsPaused == false)
 				Debug.LogError(TAG + " RESEARCH-PANEL-FAIL 성좌가 화면을 덮었는데 판이 계속 돈다 — 그 사이 코어가 털린다.");
 
+			// ★ 크기는 *다음 틱*에 잰다 — 연 그 프레임엔 자리가 아직 안 잡혀 NaN 이다(실측).
+			//   재시작 단계가 바로 다음 틱에 돌므로 거기서 재고 닫는다(성좌를 연 채로 오래 두지 않는다).
 			researchPanelPausedBefore = pausedBefore;
-			MeasureAndCloseResearchPanel();
+			researchPanelMeasurePending = true;
 		}
 
 		private static bool researchPanelPausedBefore;
+		private static bool researchPanelMeasurePending;
 
 		/// <summary> 열어둔 성좌를 *한 틱 뒤에* 재고 닫는다 — 「전체화면으로」가 지켜지는지는 이 숫자뿐이다. </summary>
 		private static void MeasureAndCloseResearchPanel()
 		{
+			if (researchPanelMeasurePending == false)
+				return;
+			researchPanelMeasurePending = false;
+
 			TowerDefenseModeController controller = TowerDefenseModeController.Instance;
 			if (controller == null || match == null)
 				return;
@@ -1642,10 +1651,9 @@ namespace WitchMendokusai.EditorTools
 			Debug.Log(TAG + " RESEARCH-PANEL 덮는 비율 " + coverage.ToString("P0")
 				+ " (" + panel.width.ToString("F0") + "x" + panel.height.ToString("F0")
 				+ " / 화면 " + Screen.width + "x" + Screen.height + ")");
-			// ★ 연 그 프레임엔 자리가 아직 안 잡혀 NaN 이 나온다(실측) — 그건 화면 탓이 아니라
-			//   *못 잰 것*이라 실패로 찍지 않는다. 대신 「못 쟀다」를 남긴다(조용히 통과시키지 않는다).
+			// 한 틱 뒤에 재는데도 NaN 이면 그건 「아직」이 아니라 자리가 영영 안 잡힌 것 — 실패다.
 			if (float.IsNaN(coverage))
-				Debug.LogWarning(TAG + " RESEARCH-PANEL 크기는 못 쟀다(연 직후라 자리 미확정) — 전체화면 여부 미확인.");
+				Debug.LogError(TAG + " RESEARCH-PANEL-FAIL 한 틱 뒤에도 자리가 안 잡혔다 — 크기를 잴 수 없다.");
 			else if (coverage < 0.9f)
 				Debug.LogError(TAG + " RESEARCH-PANEL-FAIL 전체화면이 아니다 — 요청은 화면을 통째로 덮는 것이었다.");
 
