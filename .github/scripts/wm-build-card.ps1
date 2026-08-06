@@ -544,7 +544,7 @@ function Write-BuildSummary {
 #   ① 고정 카드가 가리키는 빌드는 **나이와 무관하게 못 지운다** (실제 링크 대조).
 #   ② 빈 껍데기는 보관 정원을 못 차지한다 — 정원 N개는 *산출물이 든* 빌드에게만 준다.
 function Remove-OldBuilds {
-    param([string]$BuildRoot, [int]$Keep = 5, [string]$CurrentOutDir)
+    param([string]$BuildRoot, [int]$Keep = 5, [string]$CurrentOutDir, [int]$KeepFailed = 3)
     if (-not (Test-Path $BuildRoot)) { return @() }
 
     # 고정 카드가 지금 가리키는 폴더들 — 링크 문자열에서 직접 뽑는다(별도 기록을 두면 어긋난다).
@@ -557,12 +557,20 @@ function Remove-OldBuilds {
 
     $dirs = Get-ChildItem $BuildRoot -Directory -ErrorAction SilentlyContinue | Sort-Object CreationTime -Descending
     $kept = 0
+    $keptFailed = 0
     $removed = @()
     foreach ($dir in $dirs) {
         if ($protected.Contains($dir.Name)) { continue }
         # zip 도 산출물로 센다 — PC 빌드는 묶음이 곧 배달물이다.
         $hasArtifact = @(Get-ChildItem $dir.FullName -Recurse -File -Include '*.apk', '*.aab', '*.exe', '*.zip' -ErrorAction SilentlyContinue).Count -gt 0
         if ($hasArtifact -and $kept -lt $Keep) { $kept++; continue }
+        # ★ 실패한 빌드(산출물 없음)도 최근 몇 개는 남긴다 — **진단이 필요한 건 정확히 그것들이다.**
+        #   실측: 같은 크래시가 2연속 났을 때 앞 회차 로그가 이미 지워져 두 로그를 대조하지
+        #   못했다. 남는 건 로그 수 MB 뿐이라 값이 비용을 크게 넘는다.
+        if (-not $hasArtifact -and $keptFailed -lt $KeepFailed -and (Test-Path (Join-Path $dir.FullName 'unity-build.log'))) {
+            $keptFailed++
+            continue
+        }
         Write-Host "prune $($dir.FullName)$(if (-not $hasArtifact) { ' (산출물 없음)' })"
         Remove-Item $dir.FullName -Recurse -Force -ErrorAction SilentlyContinue
         $removed += $dir.Name
