@@ -926,44 +926,6 @@ namespace WitchMendokusai
 			}
 		}
 
-		/// <summary> 영웅과 지금 살아있는 마수들의 몸싸움을 서로 무시시킨다(길막 방지). </summary>
-		private void IgnoreCollisionsWithEnemies(GameObject hero)
-		{
-			if (hero == null)
-				return;
-
-			foreach (ICombatant enemy in waveEnemies)
-			{
-				if (enemy is MonoBehaviour behaviour && behaviour != null)
-					IgnorePair(hero, behaviour.gameObject);
-			}
-		}
-
-		/// <summary> 이 마수와 영웅의 몸싸움을 무시시킨다 — 영웅이 이미 서 있을 때 태어난 마수용. </summary>
-		private void IgnoreHeroCollision(GameObject enemy)
-		{
-			if (enemy == null || heroTransform == null)
-				return;
-			IgnorePair(heroTransform.gameObject, enemy);
-		}
-
-		private static void IgnorePair(GameObject left, GameObject right)
-		{
-			if (left == null || right == null || left == right)
-				return;
-
-			Collider[] leftColliders = left.GetComponentsInChildren<Collider>(true);
-			Collider[] rightColliders = right.GetComponentsInChildren<Collider>(true);
-			foreach (Collider leftCollider in leftColliders)
-			{
-				foreach (Collider rightCollider in rightColliders)
-				{
-					if (leftCollider != null && rightCollider != null)
-						Physics.IgnoreCollision(leftCollider, rightCollider, true);
-				}
-			}
-		}
-
 		/// <summary> 대여 계약 부착 + 원본 스냅샷 — 멱등(이미 붙어 있으면 재사용, 스냅샷은 최초 1회만). </summary>
 		private static void AcquireLease(UnitObject unitObject)
 		{
