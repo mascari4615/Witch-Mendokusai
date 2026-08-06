@@ -573,6 +573,9 @@ namespace WitchMendokusai
 			// 위에서 아래로: 덜 쓰는 것 → 자주 쓰는 것. 엄지는 아래쪽이 가장 편하다.
 			VisualElement topRow = new VisualElement { style = { flexDirection = FlexDirection.Row } };
 			topRow.pickingMode = PickingMode.Ignore;
+			// ★ 스킬은 손가락으로 닿는 길이 아예 없었다 (2026-08-07 도달성 점검). 키보드에만 있으면
+			//   폰에서는 *그 기능이 없는 게임*이다 — 화면에 안 보이니 없는 줄도 모른다.
+			topRow.Add(MakeHoldButton("스킬", InputEventType.Space, actionButtonSize * 0.8f));
 			topRow.Add(MakeHoldButton("보조", InputEventType.Click1, actionButtonSize * 0.8f));
 			topRow.Add(MakeHoldButton("뛰기", InputEventType.Sprint, actionButtonSize * 0.8f));
 			column.Add(topRow);
@@ -629,6 +632,8 @@ namespace WitchMendokusai
 			windowMenuColumn.Add(MakeTapButton("마도서", InputEventType.MagicBookToggle));
 			windowMenuColumn.Add(MakeTapButton("인형", InputEventType.DollToggle));
 			windowMenuColumn.Add(MakeTapButton("몸 상태", InputEventType.Status));
+			// 건축도 키 하나에만 매달려 있었다 — 폰에서 집을 지을 방법이 0 이었다.
+			windowMenuColumn.Add(MakeTapButton("건축", InputEventType.BuildModeToggle));
 			windowMenuColumn.Add(MakeLayoutEditButton());
 
 			Label toggle = MakeMenuToggleButton();
