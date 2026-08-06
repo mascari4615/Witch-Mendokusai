@@ -1,4 +1,4 @@
-# Tools/git-hooks/wm-commit-verify.ps1 — TASK-WM-109-F
+﻿# Tools/git-hooks/wm-commit-verify.ps1 — TASK-WM-109-F
 #
 # Lightweight post-commit verification for WitchMendokusai.
 #
@@ -83,7 +83,9 @@ $scene = @()
 
 if ($parentCount -le 1)
 {
-    $rawOutput = git show --name-status --format= $Sha 2>$null
+    # core.quotepath=false — 한글 경로를 "\352\260..." 로 이스케이프하지 않고 raw UTF-8 로.
+    # (켜져 있으면 아래 확장자 정규식이 따옴표 때문에 한글 경로를 통째로 놓친다.)
+    $rawOutput = git -c core.quotepath=false show --name-status --format= $Sha 2>$null
     $lines = @()
     if ($null -ne $rawOutput)
     {
@@ -117,8 +119,28 @@ $sceneCount = $scene.Count
 
 # .cs (added/modified) ↔ .cs.meta pair check. Renames (R*) are ignored — the
 # original .meta likely already exists; git rename detection handles them.
-$metaPathsInCommit = $meta | ForEach-Object { ($_ -split "`t", 2)[1] }
+#
+# ★ 2026-08-06 실측 — 이 검사는 있었는데 **한 번도 안 울렸다.** 옛 판은 `Test-Path` 로
+#   *디스크에* meta 가 있나만 봤다. 그런데 실패 모양이 바로 그것이다: 유니티가 meta 를
+#   만들어 두면 디스크엔 있다. 다만 **커밋이 안 됐을 뿐이다.** 그래서 검사는 늘 통과했고
+#   .cs 3개 + 폴더 1개가 meta 없이 main 에 올라갔다(945721d9 / 1694d3a1).
+#   물어야 할 것은 「디스크에 있나」가 아니라 **「이 커밋 트리에 있나」** 다.
+function Test-InCommitTree
+{
+    param([string]$CommitSha, [string]$RelPath)
+
+    # 따옴표로 감싸져 온 경로(비ASCII를 git 이 이스케이프한 것)는 판단을 포기한다 —
+    # 거짓 경고를 내느니 침묵이 낫다. quotepath=false 로 대부분 raw 로 온다.
+    if ($RelPath.StartsWith('"')) { return $true }
+
+    git cat-file -e "${CommitSha}:${RelPath}" 2>$null
+    return ($LASTEXITCODE -eq 0)
+}
+
 $csMissingMeta = @()
+$dirMissingMeta = @()
+$checkedDirs = @{}
+
 foreach ($line in $cs)
 {
     $parts = $line -split "`t", 2
@@ -127,15 +149,33 @@ foreach ($line in $cs)
     $path = $parts[1]
     if ($status -notmatch '^[AM]') { continue }
 
-    $expectedMeta = "$path.meta"
-    if ($metaPathsInCommit -contains $expectedMeta) { continue }
-
-    # Sometimes .meta was committed in a prior commit and remains on disk.
-    # Only flag when there is genuinely no .meta on disk.
-    $absMeta = Join-Path $paths.Root $expectedMeta
-    if (-not (Test-Path -LiteralPath $absMeta))
+    if (-not (Test-InCommitTree $Sha "$path.meta"))
     {
         $csMissingMeta += $path
+    }
+}
+
+# 폴더도 meta 를 갖는다. 새 폴더에 .cs 를 넣으면 폴더 meta 가 같이 안 올라가기 쉽다
+# (Tests/EditMode/Diagnostics 가 그랬다). 추가(A)된 파일의 조상 폴더만 본다 —
+# 이미 있던 폴더는 어차피 meta 가 있고, 중복은 캐시로 한 번씩만 묻는다.
+foreach ($line in $cs)
+{
+    $parts = $line -split "`t", 2
+    if ($parts.Count -lt 2) { continue }
+    if ($parts[0] -notmatch '^A') { continue }
+
+    $segments = $parts[1] -split '/'
+    for ($i = 1; $i -lt $segments.Count; $i++)
+    {
+        $dir = ($segments[0..($i - 1)] -join '/')
+        if ($dir -eq 'Assets' -or -not $dir.StartsWith('Assets/')) { continue }
+        if ($checkedDirs.ContainsKey($dir)) { continue }
+        $checkedDirs[$dir] = $true
+
+        if (-not (Test-InCommitTree $Sha "$dir.meta"))
+        {
+            $dirMissingMeta += $dir
+        }
     }
 }
 
@@ -260,17 +300,28 @@ if ($retiredHits.Count -gt 0)
     Write-Host "[wm-verify]     정본: Tools/git-hooks/retired-identifiers.tsv"
 }
 
-if ($csMissingMeta.Count -gt 0)
+if ($csMissingMeta.Count -gt 0 -or $dirMissingMeta.Count -gt 0)
 {
-    Write-Host "[wm-verify]   warn: .cs add/modify 인데 짝 .meta 부재 (Unity GUID 누락 가능):"
+    Write-Host "[wm-verify]   ★ .meta 가 커밋에 없다 — 디스크엔 있을 수 있다(그게 함정이다):"
     foreach ($p in ($csMissingMeta | Select-Object -First 5))
     {
-        Write-Host "[wm-verify]     - $p"
+        Write-Host "[wm-verify]     - $p.meta"
     }
     if ($csMissingMeta.Count -gt 5)
     {
         Write-Host "[wm-verify]     ... +$($csMissingMeta.Count - 5) more"
     }
+    foreach ($d in ($dirMissingMeta | Select-Object -First 5))
+    {
+        Write-Host "[wm-verify]     - $d.meta  (폴더)"
+    }
+    if ($dirMissingMeta.Count -gt 5)
+    {
+        Write-Host "[wm-verify]     ... +$($dirMissingMeta.Count - 5) more (폴더)"
+    }
+    Write-Host "[wm-verify]     고침: git add <위 경로들> && git commit --amend --no-edit"
+    Write-Host "[wm-verify]     왜: GUID 가 머신마다 달라진다 → 나중에 프리팹이 참조하는 순간"
+    Write-Host "[wm-verify]         **다른 머신에서만** MissingScript. 작업트리도 영영 더럽다."
 }
 
 if (-not $mcpUp)

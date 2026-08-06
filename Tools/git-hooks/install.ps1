@@ -1,4 +1,4 @@
-# Tools/git-hooks/install.ps1 — TASK-WM-109-F
+﻿# Tools/git-hooks/install.ps1 — TASK-WM-109-F
 #
 # Installs the WM post-commit hook into the shared .git/hooks/ dir for the
 # main checkout (and, by extension, every linked worktree — git uses the
