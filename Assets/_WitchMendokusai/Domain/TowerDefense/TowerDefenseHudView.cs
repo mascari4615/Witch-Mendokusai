@@ -880,7 +880,7 @@ namespace WitchMendokusai
 			selectionTitleLabel.text = description;
 			researchButton.style.display = canResearch ? DisplayStyle.Flex : DisplayStyle.None;
 			// ★ 팔기는 지금 화면에서 뺀다 (사용자 지시: "제거는 우선 기능 빼봐").
-			//   우클릭 판매를 뺐는데 이 단추만 남아 있으면 「없앴다」와 「있다」가 한 화면에서 갈린다.
+			//   오른쪽 단추로 파는 길을 뺐는데 이 단추만 남아 있으면 「없앴다」와 「있다」가 한 화면에서 갈린다.
 			//   배선은 남겨 둔다 — 되살릴 땐 이 한 줄만 되돌리면 된다(다시 만들 이유가 없다).
 			if (sellButton != null)
 				sellButton.style.display = DisplayStyle.None;

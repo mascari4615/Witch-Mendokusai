@@ -1,4 +1,4 @@
-# wm-rule-gate.ps1 -- deterministic WM code-rule gate (TASK-WM-203).
+﻿# wm-rule-gate.ps1 -- deterministic WM code-rule gate (TASK-WM-203).
 #
 # Canonical rule text: WitchMendokusai/CLAUDE.md, section "coding style" / "Editor menu"
 # / "input system". This script is the *enforcement* of those rules. It is called from
@@ -235,6 +235,30 @@ $anchors = @(
 #   스크립트 위치에서 곧바로 계산한다.
 $anchorRoot = Join-Path (Split-Path (Split-Path $PSScriptRoot -Parent) -Parent) 'Assets/_WitchMendokusai'
 
+# ---------------------------------------------------------------------------
+# FORBIDDEN -- "this must NOT come back" checks.
+#
+# The mirror of ANCHOR. When a feature is removed, the text that teaches it tends to survive --
+# the screen keeps explaining something that no longer exists, and the player follows it and
+# nothing happens. Hit four times on 2026-08-06 alone. If a screen lies once, the whole screen
+# stops being trustworthy.
+#
+# Remove an entry here the day the feature legitimately returns.
+#
+# NOTE: this file must stay UTF-8 **with BOM**. Windows PowerShell 5.1 reads a BOM-less script as
+# the ANSI codepage, which mangles every Korean literal -- a Korean needle then silently never
+# matches and the check quietly passes forever. Verified: the ASCII needle fired, the Korean one
+# did not, on the exact same file that grep says contains the text.
+# ---------------------------------------------------------------------------
+$forbidden = @(
+    @{ File = 'Domain/TowerDefense/TowerDefenseHudView.cs'
+       Needle = '우클릭 판매'
+       Why = 'selling is gone -- right click cancels now; the hint would teach a dead action' },
+    @{ File = 'Domain/TowerDefense/TowerDefensePlacement.cs'
+       Needle = 'match.TrySell('
+       Why = 'right-click selling was removed on purpose (an irreversible action sitting on the undo gesture)' }
+)
+
 $anchorMisses = New-Object System.Collections.ArrayList
 foreach ($anchor in $anchors)
 {
@@ -248,6 +272,17 @@ foreach ($anchor in $anchors)
     if ($text -notlike ("*" + $anchor.Needle + "*"))
     {
         [void]$anchorMisses.Add(("{0} -- lost '{1}': {2}" -f $anchor.File, $anchor.Needle, $anchor.Why))
+    }
+}
+
+foreach ($ban in $forbidden)
+{
+    $full = Join-Path $anchorRoot $ban.File
+    if (-not (Test-Path $full)) { continue }
+    $text = Get-Content -Raw -LiteralPath $full
+    if ($text -like ("*" + $ban.Needle + "*"))
+    {
+        [void]$anchorMisses.Add(("{0} -- came back '{1}': {2}" -f $ban.File, $ban.Needle, $ban.Why))
     }
 }
 
