@@ -215,24 +215,39 @@ jobs:
             -Report '${{ steps.build.outputs.report }}' `
             -UnityLog '${{ steps.build.outputs.unity_log }}' `
             -SummaryFile $env:GITHUB_STEP_SUMMARY
-      - name: Zip
+      - name: Pick the deliverable
         if: ${{ success() && (inputs.publish == 'artifact' || github.ref_type == 'tag') }}
         shell: powershell
-        # Use the repo helper, not Compress-Archive. That helper already exists because
-        # the delivery card needs a zip too - and it is the better one: it reuses an
-        # existing zip, stages outside the build folder, and uses the fast level.
-        # Zipping twice under different names left TWO multi-GB archives in the same
-        # folder (the PC build is ~2GB) and the dashboard then picked whichever sorted
-        # first. One policy, one place.
+        # Android is DIFFERENT: the .apk IS the deliverable - a phone installs that file
+        # directly. Zipping it would only make the phone unpack it first.
+        # Windows ships a folder, so it has to be zipped. Use the repo helper, not
+        # Compress-Archive: it reuses an existing zip, stages outside the build folder
+        # and uses the fast level. Zipping twice under different names once left TWO
+        # multi-GB archives in one folder (the PC build is ~2GB) and the dashboard then
+        # picked whichever sorted first. One policy, one place.
+        #
+        # This step used to run the Windows path for BOTH platforms and threw
+        # "no zip produced (no .exe in build output?)" on every android build that got
+        # this far (measured 2026-08-06: a 55-minute android build died right here,
+        # after the apk was already on disk). Earlier android runs never reached this
+        # step - they were cancelled - so nothing surfaced it.
         run: |
           $ErrorActionPreference = 'Stop'
           $OutputEncoding = [Console]::OutputEncoding = [Text.UTF8Encoding]::new()
           . "$env:GITHUB_WORKSPACE\.github\scripts\wm-build-card.ps1"
-          $zipItem = Get-BuildZip -OutDir '${{ steps.build.outputs.out_dir }}'
-          if (-not $zipItem) { throw "no zip produced (no .exe in build output?)" }
-          $zip = $zipItem.FullName
-          "zip=$zip" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
-          Write-Host "zip → $zip ($([Math]::Round((Get-Item $zip).Length / 1MB, 1)) MB)"
+          $outDir = '${{ steps.build.outputs.out_dir }}'
+          if ('${{ steps.cfg.outputs.platform }}' -eq 'android') {
+            $apk = Get-ChildItem -Path $outDir -Filter *.apk -File -ErrorAction SilentlyContinue |
+                   Sort-Object Length -Descending | Select-Object -First 1
+            if (-not $apk) { throw "no apk in build output ($outDir)" }
+            $asset = $apk.FullName
+          } else {
+            $zipItem = Get-BuildZip -OutDir $outDir
+            if (-not $zipItem) { throw "no zip produced (no .exe in build output?)" }
+            $asset = $zipItem.FullName
+          }
+          "zip=$asset" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          Write-Host "deliverable -> $asset ($([Math]::Round((Get-Item $asset).Length / 1MB, 1)) MB)"
         id: zip
 
       - name: Upload artifact
@@ -251,7 +266,10 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           $zip = '${{ steps.zip.outputs.zip }}'
-          $asset = "WitchMendokusai-${{ github.ref_name }}-${{ steps.cfg.outputs.platform }}.zip"
+          # Keep the produced extension - android ships .apk, windows ships .zip.
+          # Hardcoding .zip here would upload an apk named .zip: the phone refuses it.
+          $ext = [IO.Path]::GetExtension($zip)
+          $asset = "WitchMendokusai-${{ github.ref_name }}-${{ steps.cfg.outputs.platform }}$ext"
           Copy-Item $zip (Join-Path (Split-Path $zip) $asset) -Force
           gh release upload '${{ github.ref_name }}' (Join-Path (Split-Path $zip) $asset) --clobber
           if ($LASTEXITCODE -ne 0) { throw "release upload failed (exit=$LASTEXITCODE)" }
