@@ -60,7 +60,15 @@ namespace WitchMendokusai
             }
 
             DeviceLogSettings settings = Resources.Load<DeviceLogSettings>(SETTINGS_RESOURCE);
-            if (settings == null || settings.Enabled == false)
+            if (settings == null)
+            {
+                // 에셋을 못 읽어도 *조용히 죽지 않는다* — 진단 장치가 진단 불가로 사라지면
+                // 폰에서 무슨 일이 있었는지 영영 알 수 없다(2026-08-06 실기 실측: 로그도
+                // 표시기도 안 떴고 이유를 물을 방법조차 없었다). 기본값으로 켠다.
+                settings = ScriptableObject.CreateInstance<DeviceLogSettings>();
+                Debug.LogWarning("[DeviceLog] 설정 에셋을 못 읽었다 — 기본값으로 켠다");
+            }
+            if (settings.Enabled == false)
             {
                 return;
             }

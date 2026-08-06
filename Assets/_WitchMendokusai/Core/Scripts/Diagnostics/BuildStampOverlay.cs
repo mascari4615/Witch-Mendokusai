@@ -33,7 +33,13 @@ namespace WitchMendokusai
             }
 
             BuildStampSettings settings = Resources.Load<BuildStampSettings>(SETTINGS_RESOURCE);
-            if (settings == null || ShouldShow(settings) == false)
+            if (settings == null)
+            {
+                // 에셋 실종이 「표시기가 통째로 사라짐」으로 이어지면, 정작 이상할 때 화면이
+                // 아무 말도 안 한다. 기본값으로라도 뜬다 (2026-08-06 실기 실측).
+                settings = ScriptableObject.CreateInstance<BuildStampSettings>();
+            }
+            if (ShouldShow(settings) == false)
             {
                 return;
             }
@@ -41,8 +47,11 @@ namespace WitchMendokusai
             PanelSettings panelSettings = Resources.Load<PanelSettings>(PANEL_SETTINGS_RESOURCE);
             if (panelSettings == null)
             {
-                Debug.LogWarning($"[BuildStamp] {PANEL_SETTINGS_RESOURCE} 없음 — 빌드 표시기를 못 띄운다.");
-                return;
+                panelSettings = ScriptableObject.CreateInstance<PanelSettings>();
+                panelSettings.scaleMode = PanelScaleMode.ScaleWithScreenSize;
+                panelSettings.referenceResolution = new Vector2Int(1200, 800);
+                panelSettings.screenMatchMode = PanelScreenMatchMode.MatchWidthOrHeight;
+                panelSettings.match = 1f; // 폰은 세로가 기준 — 가로만 맞추면 글자가 커진다
             }
 
             _installed = true;
