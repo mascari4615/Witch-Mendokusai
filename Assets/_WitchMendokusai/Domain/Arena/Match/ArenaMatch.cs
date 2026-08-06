@@ -168,6 +168,16 @@ namespace WitchMendokusai
 					continue;
 				}
 
+				// 전술이 비면 그 유닛은 **가만히 서 있는다** — 예외도 로그도 없이. 이 게임의 「왜 안 움직이지」는
+				// 지금까지 대부분 원인이 달랐고(brain 경쟁·좀비 드라이버·사거리) 매번 찾는 데 오래 걸렸다.
+				// 적어도 「전술이 비었다」는 경우만은 시작할 때 이름을 붙여준다. 막지는 않는다 —
+				// 표적 더미처럼 일부러 안 움직이는 유닛도 있을 수 있다.
+				if (entry.Tactic == null || entry.Tactic.Rules == null || entry.Tactic.Rules.Count == 0)
+				{
+					Debug.LogWarning($"{nameof(ArenaMatch)}: 팀 {entry.TeamId} 의 {entry.UnitData.name} 은 전술이 비었다 "
+						+ "— 스폰은 되지만 아무것도 안 한다(의도한 게 아니면 로스터의 Tactic 확인).");
+				}
+
 				GameObject unitGameObject = pool.Spawn(entry.UnitData.Prefab);
 				UnitObject unitObject = unitGameObject.GetComponent<UnitObject>();
 				if (unitObject == null)
