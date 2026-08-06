@@ -42,10 +42,18 @@ on:
   push:
     tags:
       - 'v[0-9]*'
-  # 밤에 알아서 굽는다 — 아침에 폰으로 바로 설치할 수 있게. 03:23 KST (18:23 UTC).
-  # 정각을 피한 건 전 세계 크론이 몰리는 시각이라서.
+  # 밤에 알아서 굽는다. 정각을 피한 건 전 세계 크론이 몰리는 시각이라서.
+  #   03:23 KST (18:23 UTC) = 안드로이드 — 아침에 폰으로 바로 설치할 수 있게.
+  #   05:23 KST (20:23 UTC) = 윈도우  — **런타임 게이트의 재료**.
+  #
+  # ★ 왜 둘인가 (실측 2026-08-06): 런타임 스모크(부팅·2인 접속)는 「최근 26시간 안의 윈도우
+  #   빌드」를 실행해야 도는데, 야간 빌드는 안드로이드만 구웠다. 즉 사람이 손으로 윈도우
+  #   빌드를 걸지 않으면 그 게이트는 **하루가 지나는 순간 반드시 빨개진다** — 그것도
+  #   「야간 빌드가 안 나온다」는 엉뚱한 메시지로. 게이트가 스스로 재료를 못 얻는 구조였다.
+  #   노트북은 그 시간대에 놀고 있고, 바뀐 게 없으면 아래 게이트가 건너뛴다.
   schedule:
     - cron: '23 18 * * *'
+    - cron: '23 20 * * *'
 
 concurrency:
   # 그룹은 하나여야 한다 — 노트북 한 대에서 같은 프로젝트 폴더를 쓰므로 두 빌드가
@@ -92,7 +100,14 @@ jobs:
           $ErrorActionPreference = 'Stop'
           $OutputEncoding = [Console]::OutputEncoding = [Text.UTF8Encoding]::new()
           . "$env:GITHUB_WORKSPACE\.github\scripts\wm-build-card.ps1"
-          $cfg = Get-EffectiveBuildConfig -Platform '${{ inputs.platform }}' `
+          # Two nightly crons: the late one exists to feed the runtime gates, which need a
+          # WINDOWS player. Decide it here (from which cron fired) instead of teaching the
+          # shared helper about schedules - the helper only knows "schedule = android".
+          $platform = '${{ inputs.platform }}'
+          if ('${{ github.event_name }}' -eq 'schedule' -and '${{ github.event.schedule }}' -eq '23 20 * * *') {
+            $platform = 'windows'
+          }
+          $cfg = Get-EffectiveBuildConfig -Platform $platform `
             -BuildType '${{ inputs.build_type }}' -EventName '${{ github.event_name }}'
           "platform=$($cfg.Platform)"    | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
           "build_type=$($cfg.BuildType)" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
