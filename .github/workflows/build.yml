@@ -73,6 +73,9 @@ jobs:
       # (공개 저장소라 커밋 불가). 같은 값이 github.io secret DEVICE_LOG_TOKEN 에도 있어야
       # 서버가 받아준다 — 한쪽만 바꾸면 폰 화면에 "막힘 401" 이 뜬다. 비면 빌드는 정상, 로그만 차단.
       WM_DEVICE_LOG_TOKEN: ${{ secrets.WM_DEVICE_LOG_TOKEN }}
+      # TASK-WM-201 진단 (2026-08-06): 빌드 도중 에셋을 심는 단계가 네이티브 크래시의
+      # 원인인지 가르는 스위치. 0 = 건너뜀. 원인 확정되면 이 줄은 사라진다.
+      WM_DIAG_BUILD_STEPS: '0'
 
     steps:
       - name: Checkout (Library 캐시 보존 — clean:false)
