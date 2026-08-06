@@ -34,6 +34,13 @@ namespace WitchMendokusai
 		// 생명주기 정리(재매치 누수 방지, ArenaMatch 와 동형) — 스폰 유닛/등록 참가자/구동 드라이버 추적 →
 		// Dispose 에서 despawn/unregister/정지.
 		private readonly List<GameObject> spawnedUnits = new();
+
+		// ★ 몇 번째 판인가. 인형을 세우는 일은 한 프레임 쉬었다 이어지는데, 그 사이에 판이 통째로
+		//   갈릴 수 있다(다시 시작). 그때 「판이 사라졌나」만 보면 *새 판이 이미 서 있어서* 검사를
+		//   통과하고, 지난 판이 부른 인형이 새 판에 세워진다.
+		//   실측: 아무것도 안 지은 무방비 판에 지난 판 영웅이 서서 세 웨이브를 막았고, 코어가 안 죽어
+		//   승리도 패배도 없는 판이 됐다. 「사라졌나」가 아니라 **「그 판이 맞나」**를 물어야 한다.
+		private int matchGeneration;
 		private readonly List<ICombatant> registeredCombatants = new();
 		private readonly List<TacticDriver> drivers = new();
 
@@ -297,6 +304,9 @@ namespace WitchMendokusai
 				AutoAdvance = autoAdvanceWaves,
 				FirstAutoWave = stage.ManualFirstWave ? 1 : 0,
 			};
+			// 새 판 = 새 세대. 지난 판이 부르던 인형이 뒤늦게 도착해도 이 숫자가 갈라준다.
+			matchGeneration++;
+
 			nextCombatantId = 0;
 			matchEndedFired = false;
 			claimedNodes.Clear(); // 재진입 — 지난 매치의 노드 점유가 새 매치로 새는 것 방지.
@@ -1073,6 +1083,7 @@ namespace WitchMendokusai
 			Color tint, float scale, SpawnedUnit result)
 		{
 			result.Ok = false;
+			int generation = matchGeneration; // 이 인형은 *이 판의 것*이다.
 
 			GameObject unitGameObject = pool.Spawn(unitData.Prefab);
 			if (spawnedUnits.Contains(unitGameObject) == false)
@@ -1099,9 +1110,15 @@ namespace WitchMendokusai
 
 			yield return null; // 트랩#4 — Start 초기화가 가라앉은 뒤 Init.
 
-			// 대기 중 판이 사라졌으면(모드 이탈 등) 여기서 멈춘다.
-			if (core == null || targeting == null || pool == null)
+			// 대기 중 판이 사라졌거나(모드 이탈) *다른 판으로 갈렸으면*(다시 시작) 여기서 멈춘다.
+			if (core == null || targeting == null || pool == null || generation != matchGeneration)
+			{
+				// 꺼내둔 몸은 돌려준다 — 안 돌려주면 아무 판에도 안 속한 인형이 화면에 남는다.
+				if (unitGameObject != null && ObjectPoolManager.TryGetExistingInstance(out ObjectPoolManager strayPool))
+					ReleaseUnit(strayPool, unitGameObject);
+				spawnedUnits.Remove(unitGameObject);
 				yield break;
+			}
 
 			UnitObject unitObject = unitGameObject.GetComponent<UnitObject>();
 			if (unitObject == null)
@@ -4239,6 +4256,7 @@ namespace WitchMendokusai
 				foreach (ICombatant combatant in registeredCombatants)
 					targeting.Unregister(combatant);
 			}
+			matchGeneration++; // 판을 접는다 — 진행 중이던 소환은 전부 남의 판 것이 된다.
 			registeredCombatants.Clear();
 			waveEnemies.Clear();
 			claimedNodes.Clear();
