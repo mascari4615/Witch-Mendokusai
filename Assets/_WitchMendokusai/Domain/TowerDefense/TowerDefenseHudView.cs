@@ -2075,10 +2075,20 @@ namespace WitchMendokusai
 		/// </summary>
 		private static Vector2 ToPanel(VisualElement element, Vector3 screenPosition)
 		{
-			if (element?.panel == null)
-				return new Vector2(screenPosition.x, Screen.height - screenPosition.y);
+			// ★ 판의 크기로 재고 세로는 뒤집는다. 카메라는 **아래가 0**인 화면 좌표를 주는데
+			//   `style.top` 은 **위가 0**이다. 뒤집지 않으면 이름표가 세로로 거울처럼 반대편에 붙는다.
+			//   실측(같은 점): 화면 985,561 → 뒤집기 전 729,416 / 뒤집은 뒤 729,384 — 416+384 = 800(판 높이).
+			//   즉 딱 판 높이만큼 대칭된 자리였다. 가로는 맞으니 「전체적으로 밀렸다」로 보였다.
+			// ★ 변환 함수(ScreenToPanel)도 아래가 0인 값을 돌려준다 — 그걸 그대로 top 에 넣은 것이 병이었다.
+			Rect box = element?.panel?.visualTree != null ? element.panel.visualTree.worldBound : Rect.zero;
+			float panelWidth = box.width > 0f ? box.width : Screen.width;
+			float panelHeight = box.height > 0f ? box.height : Screen.height;
+			float screenWidth = Mathf.Max(1f, Screen.width);
+			float screenHeight = Mathf.Max(1f, Screen.height);
 
-			return RuntimePanelUtils.ScreenToPanel(element.panel, new Vector2(screenPosition.x, screenPosition.y));
+			return new Vector2(
+				screenPosition.x * panelWidth / screenWidth,
+				(screenHeight - screenPosition.y) * panelHeight / screenHeight);
 		}
 
 		/// <summary>
