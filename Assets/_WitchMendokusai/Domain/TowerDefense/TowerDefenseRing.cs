@@ -39,6 +39,9 @@ namespace WitchMendokusai
 			return ring;
 		}
 
+		/// <summary> 지금 그려진 반지름 — 「화면이 실제로 뭘 보여주나」를 물어볼 수 있어야 원의 거짓말이 잡힌다. </summary>
+		public float Radius => radius;
+
 		public void SetRadius(float newRadius)
 		{
 			if (Mathf.Approximately(radius, newRadius))

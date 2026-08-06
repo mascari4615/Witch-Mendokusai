@@ -1447,6 +1447,15 @@ namespace WitchMendokusai.EditorTools
 				() => match.TowerRange());
 			VerifyResearchEffect("보급 거리", TowerDefenseResearchEffect.SupplyReach,
 				() => match.EffectiveSupplyReach);
+			// 규칙이 아니라 *화면에 그려진 원*도 같이 잰다 — 사거리에서 겪은 그 병(총만 멀리 나감)이
+			// 보급에도 그대로 있었다. 규칙만 재면 원이 굳어도 초록불이 켜진다.
+			Debug.Log(TAG + " SUPPLY-RING 그려진 원 " + match.DrawnSupplyReach.ToString("F2")
+				+ " · 규칙 " + match.EffectiveSupplyReach.ToString("F2"));
+			if (match.DrawnSupplyReach > 0f
+				&& Mathf.Approximately(match.DrawnSupplyReach, match.EffectiveSupplyReach) == false)
+			{
+				Debug.LogError(TAG + " SUPPLY-RING-FAIL 원과 실제 보급 거리가 다르다 — 원이 거짓말한다.");
+			}
 			VerifyResearchEffect("채집 수입", TowerDefenseResearchEffect.HarvestYield,
 				() => match.NextWaveIncome);
 			VerifyResearchEffect("코어 방어", TowerDefenseResearchEffect.CoreArmor,

@@ -87,9 +87,8 @@ namespace WitchMendokusai
 		// 세워둔 것들의 사거리 원 — 기본은 전부 꺼져 있고, 묻는 순간(마우스 얹기)에만 하나가 켜진다.
 		private readonly List<TowerDefenseRing> rangeRings = new();
 
-		// ★ 원의 *연구 빼기 전* 반지름. 원은 지을 때 한 번 그려지는데 연구는 그 뒤에 오르므로,
-		//   원형을 안 들고 있으면 이미 지은 것들의 원이 옛 크기에 굳는다(총만 멀리 나가고 원은 그대로).
-		private readonly List<float> rangeRingBaseRadii = new();
+		// 보급 원점(코어·전초기지)의 원 — 보급 거리 연구가 오르면 이것도 같이 자라야 한다.
+		private readonly List<TowerDefenseRing> supplyRings = new();
 		private TowerDefenseRing highlightedRing;
 		private bool showAllRanges;
 
@@ -1809,6 +1808,7 @@ namespace WitchMendokusai
 			ringColor.a = 0.18f;
 			TowerDefenseRing ring = TowerDefenseRing.Create(origin, "SupplyReachRing", ringColor, 0.06f, 0.03f);
 			ring.SetRadius(EffectiveSupplyReach);
+			supplyRings.Add(ring); // 연구로 보급이 길어지면 이 원도 따라 커져야 한다.
 		}
 
 		/// <summary>
@@ -2723,8 +2723,6 @@ namespace WitchMendokusai
 				if (rangeRings[index] == null)
 				{
 					rangeRings.RemoveAt(index);
-					if (index < rangeRingBaseRadii.Count)
-						rangeRingBaseRadii.RemoveAt(index);
 					continue;
 				}
 				rangeRings[index].SetVisible(showAllRanges);
@@ -2864,17 +2862,59 @@ namespace WitchMendokusai
 			if (core != null)
 				core.IncomeMultiplier = boons.IncomeMultiplier;
 			RefreshRangeRings();
+			RefreshSupplyRings();
 		}
 
-		/// <summary> 지어놓은 것들의 사거리 원을 지금 배수로 다시 그린다. </summary>
+		/// <summary>
+		/// 지어놓은 것들의 사거리 원을 다시 그린다.
+		/// ★ 반지름을 여기서 *다시 계산하지 않는다* — 실제로 쏘는 거리를 쥔 무기에게 묻는다.
+		///   (원형 반지름을 따로 들고 곱하는 방식도 써봤지만, 그건 무기의 셈을 베낀 두 번째 정본이라
+		///   승급·강화가 끼는 순간 또 갈라진다. 배수를 아는 곳은 한 곳이어야 한다.)
+		/// </summary>
 		private void RefreshRangeRings()
 		{
-			float multiplier = TowerRangeMultiplier;
-			for (int index = 0; index < rangeRings.Count && index < rangeRingBaseRadii.Count; index++)
+			for (int index = rangeRings.Count - 1; index >= 0; index--)
 			{
 				if (rangeRings[index] == null)
+				{
+					rangeRings.RemoveAt(index);
 					continue;
-				rangeRings[index].SetRadius(rangeRingBaseRadii[index] * multiplier);
+				}
+
+				Transform owner = rangeRings[index].transform.parent;
+				if (owner != null)
+					RefreshTowerRing(owner.gameObject);
+			}
+		}
+
+		/// <summary> 화면에 실제로 그려진 보급 원의 반지름 — 규칙이 아니라 *사람이 보는 것*을 잰다. </summary>
+		public float DrawnSupplyReach
+		{
+			get
+			{
+				foreach (TowerDefenseRing ring in supplyRings)
+				{
+					if (ring != null)
+						return ring.Radius;
+				}
+
+				return 0f;
+			}
+		}
+
+		/// <summary> 보급 원점의 원을 지금 보급 거리로 다시 그린다 — 안 그리면 「어디까지 지어지나」가 거짓말한다. </summary>
+		private void RefreshSupplyRings()
+		{
+			float reach = EffectiveSupplyReach;
+			for (int index = supplyRings.Count - 1; index >= 0; index--)
+			{
+				if (supplyRings[index] == null)
+				{
+					supplyRings.RemoveAt(index);
+					continue;
+				}
+
+				supplyRings[index].SetRadius(reach);
 			}
 		}
 
@@ -2917,9 +2957,11 @@ namespace WitchMendokusai
 			if (core != null)
 				core.IncomeMultiplier = boons.IncomeMultiplier * (1f + ResearchBonus(TowerDefenseResearchEffect.HarvestYield));
 
-			// 같은 병 — 원은 지을 때 한 번 그려진다. 다시 안 그리면 총만 멀리 나간다.
+			// 같은 병 — 원은 지을 때 한 번 그려진다. 다시 안 그리면 총만 멀리 나가고 보급만 멀리 닿는다.
 			if (effect == TowerDefenseResearchEffect.TowerRange)
 				RefreshRangeRings();
+			if (effect == TowerDefenseResearchEffect.SupplyReach)
+				RefreshSupplyRings();
 
 			// ★ 코어 방어만 *찍는 순간* 몸에 새긴다. 다른 갈래는 「물을 때마다 읽는」 배수라 저절로
 			//   반영되지만, 체력은 이미 정해진 값이라 아무도 다시 묻지 않는다 — 여기서 안 올리면
@@ -4085,7 +4127,6 @@ namespace WitchMendokusai
 					ring.SetRadius(towerRange);
 					ring.SetVisible(showAllRanges);
 					rangeRings.Add(ring);
-					rangeRingBaseRadii.Add(towerRange / Mathf.Max(0.0001f, TowerRangeMultiplier));
 				}
 			}
 
