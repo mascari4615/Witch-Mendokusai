@@ -126,6 +126,36 @@ namespace WitchMendokusai
 
 			PushStickValue();
 			UpdateInteractButton(show, playerProvider);
+			UpdateLookBackdropBlocking();
+		}
+
+		/// <summary>
+		/// 창이 떠 있는 동안엔 시점 훑기 판이 손가락을 가로채지 않게 비킨다 (TASK-WM-200).
+		///
+		/// ★ 이 판은 화면 전체를 덮는다. 그 위에서 누른 손가락을 이 판이 먼저 붙잡으면, 그 아래 있는
+		///   **대화 선택지·창 버튼이 통째로 안 눌린다** — 2026-08-07 실기에서 실제로 그랬다
+		///   (버튼은 보이는데 눌러도 아무 일도 없었다).
+		/// ★ 왜 「눌린 자리가 UI 위인가」만으로는 부족한가: 그 판정은 한 프레임 늦게 갱신돼서,
+		///   *누르는 그 순간*엔 아직 「UI 아님」으로 보인다. 그래서 창이 열린 상태 자체로 막는다.
+		/// ★ 창이 닫히면 원래대로 돌아온다 — 못 돌리면 그때부터 시점이 영영 안 돈다.
+		/// </summary>
+		private void UpdateLookBackdropBlocking()
+		{
+			if (lookBackdrop == null || layoutEditMode)
+				return;
+
+			// 제목·로비처럼 아직 아무도 등록 안 한 화면에서 그냥 물으면 *매 프레임* 널 참조로 터진다.
+			bool uiHoldsInput = UIChat.IsChatting
+				|| (GameConditionBridge.HasInstance
+					&& GameConditionBridge.Get(GameConditionType.IsViewingUI));
+
+			PickingMode wanted = uiHoldsInput ? PickingMode.Ignore : PickingMode.Position;
+			if (lookBackdrop.pickingMode == wanted)
+				return;
+
+			lookBackdrop.pickingMode = wanted;
+			if (uiHoldsInput)
+				lookAccumulated = Vector2.zero; // 창이 뜨는 순간 남아 있던 훑기량으로 시점이 튀지 않게
 		}
 
 		/// <summary>

@@ -202,7 +202,17 @@ namespace WitchMendokusai
 		// 히트 없으면 Vector3.up (지면 위 폴백).
 		public Vector3 MouseWorldNormal { get; private set; } = Vector3.up;
 		public Vector2 MouseScreenPosition { get; private set; }
-		public bool IsAnyKeyPressedThisFrame => Keyboard.current != null && Keyboard.current.anyKey.wasPressedThisFrame;
+		/// <summary>
+		/// 「아무거나 눌렀나」 — 대사 넘기기처럼 *무엇을 눌렀는지는 상관없는* 자리에서 쓴다.
+		///
+		/// ★ 폰엔 키보드가 없다. 이 값이 키보드만 보던 동안 **폰에서는 대사를 넘길 방법이 없었다**
+		///   (2026-08-07 실기: 안드로이드 뒤로가기만 우연히 먹혔다 — 그게 키로 잡혀서).
+		///   화면을 톡 하는 것도 「아무거나」에 들어가야 뜻이 맞는다.
+		/// </summary>
+		public bool IsAnyKeyPressedThisFrame =>
+			(Keyboard.current != null && Keyboard.current.anyKey.wasPressedThisFrame)
+			|| (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
+			|| (Touchscreen.current != null && Touchscreen.current.primaryTouch.press.wasPressedThisFrame);
 		// TASK-WM-135 — Mouse.current 직접 접근 캡슐화 (DollAnimator 폴링 / 잔존 null guard 정리).
 		// TASK-WM-200 — 그 캡슐 안쪽을 PointerDevice 로 갈아끼웠다. 손가락도 여기로 들어온다.
 		public bool IsMouseAvailable => Mouse.current != null || Touchscreen.current != null;
