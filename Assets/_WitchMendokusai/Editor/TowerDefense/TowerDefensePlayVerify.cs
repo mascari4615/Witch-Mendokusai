@@ -1586,7 +1586,9 @@ namespace WitchMendokusai.EditorTools
 		/// </summary>
 		private static void VerifyRingMeaning()
 		{
-			TowerDefenseRing[] rings = Object.FindObjectsByType<TowerDefenseRing>();
+			// ★ 꺼져 있는 것도 센다 — 사거리 원은 물어볼 때만 보이므로 평소엔 숨어 있다.
+			//   숨은 것을 안 세면 「원이 하나도 없다」는 거짓 진단이 나온다.
+			TowerDefenseRing[] rings = Object.FindObjectsByType<TowerDefenseRing>(FindObjectsInactive.Include);
 			int total = 0;
 			int wrong = 0;
 			foreach (TowerDefenseRing ring in rings)
@@ -1604,7 +1606,16 @@ namespace WitchMendokusai.EditorTools
 					+ " 에 사거리 원이 " + ring.Radius.ToString("F2") + " 로 떠 있는데 쏘는 물건이 아니다.");
 			}
 
-			Debug.Log(TAG + " RING-MEANING 사거리 원 " + total + "개 · 쏘지 않는데 뜬 것 " + wrong + "개");
+			// 이름별로 남긴다 — 0 이 나왔을 때 「원이 없다」인지 「이름이 다르다」인지 바로 갈린다.
+			string names = "";
+			foreach (TowerDefenseRing ring in rings)
+			{
+				if (ring != null)
+					names += ring.name + " ";
+			}
+
+			Debug.Log(TAG + " RING-MEANING 사거리 원 " + total + "개 · 쏘지 않는데 뜬 것 " + wrong
+				+ "개 · 판 위의 모든 원 [" + (names == "" ? "없음" : names.Trim()) + "]");
 			if (total == 0)
 				Debug.LogError(TAG + " RING-MEANING-FAIL 잴 것이 하나도 없었다 — 검사가 헛돈 것이지 통과가 아니다.");
 		}
