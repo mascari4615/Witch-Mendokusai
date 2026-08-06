@@ -73,9 +73,6 @@ jobs:
       # (공개 저장소라 커밋 불가). 같은 값이 github.io secret DEVICE_LOG_TOKEN 에도 있어야
       # 서버가 받아준다 — 한쪽만 바꾸면 폰 화면에 "막힘 401" 이 뜬다. 비면 빌드는 정상, 로그만 차단.
       WM_DEVICE_LOG_TOKEN: ${{ secrets.WM_DEVICE_LOG_TOKEN }}
-      # TASK-WM-201 진단 (2026-08-06): 빌드 도중 에셋을 심는 단계가 네이티브 크래시의
-      # 원인인지 가르는 스위치. 0 = 건너뜀. 원인 확정되면 이 줄은 사라진다.
-      WM_DIAG_BUILD_STEPS: '0'
 
     steps:
       - name: Checkout (Library 캐시 보존 — clean:false)
@@ -124,6 +121,41 @@ jobs:
           . "$env:GITHUB_WORKSPACE\.github\scripts\wm-build-card.ps1"
           $needed = Test-BuildNeeded -BuildRoot $env:BUILD_ROOT -Platform '${{ steps.cfg.outputs.platform }}' -Sha $env:GITHUB_SHA
           if (-not $needed) { "skip=true" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8 }
+      # TASK-WM-201 — 진단 자산은 *유니티 실행 전에* 써 둔다.
+      # 빌드 도중 에셋을 심고 임포트하면 안드로이드 빌드가 네이티브로 죽는다(4연속 실측,
+      # 끄자마자 성공). 여기서 미리 써 두면 평범한 시작 임포트로 들어가고 빌드는 무변형.
+      - name: Seed diagnostics assets (build info + device-log token)
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $dir = Join-Path $env:GITHUB_WORKSPACE 'Assets/_WitchMendokusai/Core/Resources'
+          New-Item -ItemType Directory -Force -Path $dir | Out-Null
+
+          $kst = [DateTime]::UtcNow.AddHours(9).ToString('yyyy-MM-dd HH:mm')
+          $branch = if ($env:GITHUB_REF_NAME) { $env:GITHUB_REF_NAME } else { '' }
+          $channel = if ('${{ steps.cfg.outputs.build_type }}' -eq 'development') { 'dev' } else { 'release' }
+          $info = [ordered]@{
+            commit       = $env:GITHUB_SHA
+            branch       = $branch
+            buildNumber  = [int]$env:GITHUB_RUN_NUMBER
+            builtAtKst   = $kst
+            channel      = $channel
+            platform     = '${{ steps.cfg.outputs.platform }}'
+            unityVersion = '${{ steps.unity.outputs.version }}'
+            runUrl       = "$env:GITHUB_SERVER_URL/$env:GITHUB_REPOSITORY/actions/runs/$env:GITHUB_RUN_ID"
+            dirty        = $false
+          }
+          $json = $info | ConvertTo-Json -Compress
+          [IO.File]::WriteAllText((Join-Path $dir 'BuildInfo.json'), $json, [Text.UTF8Encoding]::new($false))
+          Write-Host "[WM-BUILD] seeded BuildInfo.json ($channel #$($info.buildNumber))"
+
+          if ($env:WM_DEVICE_LOG_TOKEN) {
+            [IO.File]::WriteAllText((Join-Path $dir 'DeviceLogToken.txt'), $env:WM_DEVICE_LOG_TOKEN.Trim(), [Text.UTF8Encoding]::new($false))
+            Write-Host '[WM-BUILD] seeded DeviceLogToken.txt'
+          } else {
+            Write-Host '[WM-BUILD] WM_DEVICE_LOG_TOKEN empty - phone logs will be rejected (401)'
+          }
+
       - name: Build player (batchmode)
         id: build
         if: steps.gate.outputs.skip != 'true'
