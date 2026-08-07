@@ -376,6 +376,8 @@ namespace WitchMendokusai
 			ValidateChoiceLabels(parsed);
 			ValidateSpeakerNames(parsed);
 			ValidateTargets(parsed);
+			ValidateReachableSections(parsed);
+			ValidateChoicesHaveAWayOut(parsed);
 			return parsed;
 		}
 
@@ -826,6 +828,154 @@ namespace WitchMendokusai
 				longIndex++;
 			}
 			return true;
+		}
+
+		/// <summary>
+		/// **전부 조건부인 선택지 묶음**을 짚는다 — 조건이 다 거짓이면 아무 칸도 안 뜬다.
+		///
+		/// ★ 그때 무슨 일이 일어나나: 재생 쪽은 **대화를 그냥 끝낸다.** 그게 옳은 처리다 —
+		///   고를 게 없는 화면에서 플레이어를 붙잡아 두는 것보다 낫다. 하지만 원고를 쓴 사람은
+		///   그 규칙을 모른다. 눈에는 「말하다 말고 대화가 툭 끊긴다」로만 보이고,
+		///   **재현도 안 된다**(조건이 하나라도 참인 저장에서는 멀쩡히 돌아가니까).
+		///
+		/// 그래서 쓰는 자리에서 알린다. 고치는 법은 하나 — **조건 없는 칸을 하나 두는 것**
+		/// (「그냥 간다」 같은 퇴로). 잡아 두는 게 아니라 나갈 문을 만들어 두라는 뜻이다.
+		/// </summary>
+		private static void ValidateChoicesHaveAWayOut(ParsedDialogueScript parsed)
+		{
+			for (int s = 0; s < parsed.Sections.Count; s++)
+			{
+				List<DialogueScriptEntry> entries = parsed.Sections[s].Entries;
+				for (int e = 0; e < entries.Count; e++)
+				{
+					DialogueScriptEntry entry = entries[e];
+					if (entry.Kind != DialogueScriptEntryKind.Choice || entry.Choices.Count == 0)
+					{
+						continue;
+					}
+
+					bool hasUnconditionalChoice = false;
+					for (int c = 0; c < entry.Choices.Count; c++)
+					{
+						if (entry.Choices[c].Condition.HasCondition)
+						{
+							continue;
+						}
+						hasUnconditionalChoice = true;
+						break;
+					}
+
+					if (hasUnconditionalChoice)
+					{
+						continue;
+					}
+
+					parsed.Issues.Add(new DialogueScriptIssue(entry.LineNumber,
+						"선택지가 전부 조건부다 — 조건이 다 거짓이면 아무 칸도 안 뜨고 대화가 그냥 끝난다. 조건 없는 칸을 하나 둬라"));
+				}
+			}
+		}
+
+		/// <summary>
+		/// **아무도 안 부르는 장면**을 짚는다 — 써 두었지만 게임에서 절대 안 나오는 글.
+		///
+		/// ★ 왜 필요한가: 이건 **아무 증상이 없다.** 원고도 멀쩡하고, 그래프도 멀쩡하고, 게임도 안 터진다.
+		///   그냥 그 장면이 조용히 빠질 뿐이다. 대개 「-> 재회」 라고 쓸 걸 「-> 재회2」 로 쓰거나
+		///   가지를 옮기다 보내는 쪽을 지운 경우다 — 쓴 사람은 다 이어 놨다고 믿는다.
+		///   갈 곳 오타(<see cref="ValidateTargets"/>)는 **보내는 쪽**을 보고, 이건 **받는 쪽**을 본다.
+		///
+		/// 길은 둘이다: ① 누군가 이름으로 가리킨다(갈 곳·조건부 갈 곳·선택지)
+		/// ② **앞 장면에서 그냥 흘러 들어온다** — 종이에 쓴 순서대로 읽히니까.
+		/// 흘러가지 *못하는* 경우는 그 장면 안에 조건 없는 「갈 곳」이나 선택지가 있을 때다(거기서 새 버린다).
+		/// 조건부 갈 곳은 안 세는데, 조건이 거짓이면 그대로 흘러가기 때문이다.
+		/// </summary>
+		private static void ValidateReachableSections(ParsedDialogueScript parsed)
+		{
+			if (parsed.Sections.Count == 0)
+			{
+				return;
+			}
+
+			HashSet<string> reachable = new(StringComparer.Ordinal);
+			Queue<int> pending = new();
+			// 첫 장면은 대화가 시작되는 자리다 — 아무도 안 가리켜도 도달한 것으로 친다.
+			MarkReachable(parsed, 0, reachable, pending);
+
+			while (pending.Count > 0)
+			{
+				int index = pending.Dequeue();
+				DialogueScriptSection section = parsed.Sections[index];
+				bool flowsToNext = true;
+
+				for (int e = 0; e < section.Entries.Count; e++)
+				{
+					DialogueScriptEntry entry = section.Entries[e];
+					if (entry.Kind == DialogueScriptEntryKind.Goto || entry.Kind == DialogueScriptEntryKind.ConditionalGoto)
+					{
+						MarkReachable(parsed, IndexOfSection(parsed, entry.TargetSection), reachable, pending);
+						if (entry.Kind == DialogueScriptEntryKind.Goto)
+						{
+							// 조건 없는 갈 곳에서 흐름이 샌다 — 이 뒤로는 다음 장면까지 못 간다.
+							flowsToNext = false;
+							break;
+						}
+						continue;
+					}
+					if (entry.Kind != DialogueScriptEntryKind.Choice)
+					{
+						continue;
+					}
+					for (int c = 0; c < entry.Choices.Count; c++)
+					{
+						MarkReachable(parsed, IndexOfSection(parsed, entry.Choices[c].TargetSection), reachable, pending);
+					}
+					// 선택지에서도 샌다 — 고르면 그리로 가고, 고를 게 없으면 대화가 끝난다.
+					flowsToNext = false;
+					break;
+				}
+
+				if (flowsToNext)
+				{
+					MarkReachable(parsed, index + 1, reachable, pending);
+				}
+			}
+
+			for (int i = 0; i < parsed.Sections.Count; i++)
+			{
+				DialogueScriptSection section = parsed.Sections[i];
+				if (reachable.Contains(section.Name))
+				{
+					continue;
+				}
+				parsed.Issues.Add(new DialogueScriptIssue(section.LineNumber,
+					$"\"{section.Name}\" 장면으로 가는 길이 없다 — 써 두었지만 게임에선 한 번도 안 나온다"));
+			}
+		}
+
+		private static void MarkReachable(ParsedDialogueScript parsed, int index, HashSet<string> reachable, Queue<int> pending)
+		{
+			if (index < 0 || index >= parsed.Sections.Count)
+			{
+				return;
+			}
+			if (reachable.Add(parsed.Sections[index].Name) == false)
+			{
+				return;
+			}
+			pending.Enqueue(index);
+		}
+
+		/// <summary>이름이 겹치면 앞의 것을 집는다 — 찾는 쪽(FindSection)과 같은 판단이라야 한다.</summary>
+		private static int IndexOfSection(ParsedDialogueScript parsed, string name)
+		{
+			for (int i = 0; i < parsed.Sections.Count; i++)
+			{
+				if (string.Equals(parsed.Sections[i].Name, name, StringComparison.Ordinal))
+				{
+					return i;
+				}
+			}
+			return -1;
 		}
 
 		/// <summary>갈 곳 이름이 실제 장면인지 — 오타는 여기서 잡아야 한다(런타임엔 그냥 대화가 끝나 버린다).</summary>

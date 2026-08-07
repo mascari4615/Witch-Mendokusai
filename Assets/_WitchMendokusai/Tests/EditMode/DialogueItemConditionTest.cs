@@ -109,9 +109,12 @@ namespace WitchMendokusai.Tests
 		[Test]
 		public void NoItemCondition_IsInverted()
 		{
+			// 퇴로 한 칸을 같이 둔다 — 조건부 칸만 있으면 「전부 조건부」 검사에 걸린다(그게 맞다:
+			// 물건을 가진 저장에서는 이 칸이 사라져 아무것도 안 뜬다).
 			ParsedDialogueScript parsed = DialogueScriptParser.Parse(string.Join("\n",
 				"## 문앞",
-				"> - 그냥 간다 [아이템없음 1001] -> 문앞"));
+				"> - 그냥 간다 [아이템없음 1001] -> 문앞",
+				"> - 문을 본다 -> 문앞"));
 
 			Assert.That(parsed.HasIssues, Is.False);
 			Assert.That(parsed.Sections[0].Entries[0].Choices[0].Condition.Expected, Is.False);
