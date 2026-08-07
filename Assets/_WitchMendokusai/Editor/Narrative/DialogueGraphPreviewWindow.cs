@@ -26,6 +26,9 @@ namespace WitchMendokusai
 			window.Show();
 		}
 
+		private DialogueScriptSource scriptSource;
+		private ParsedDialogueScript parsedScript;
+		private bool issuesFolded;
 		private DialogueGraph graph;
 		private DialogueGraphTraversal traversal;
 		private DialogueStep step;
@@ -39,7 +42,7 @@ namespace WitchMendokusai
 
 			if (graph == null)
 			{
-				EditorGUILayout.HelpBox("대화 그래프를 골라라. Play 를 켜지 않아도 스텝을 밟을 수 있다.", MessageType.Info);
+				EditorGUILayout.HelpBox("원고(글로 쓴 대화)나 대화 그래프를 골라라. Play 를 켜지 않아도 스텝을 밟을 수 있다.", MessageType.Info);
 				return;
 			}
 
@@ -61,10 +64,70 @@ namespace WitchMendokusai
 		private void DrawSourcePicker()
 		{
 			EditorGUI.BeginChangeCheck();
-			graph = (DialogueGraph)EditorGUILayout.ObjectField("대화 그래프", graph, typeof(DialogueGraph), false);
+			scriptSource = (DialogueScriptSource)EditorGUILayout.ObjectField(
+				"원고", scriptSource, typeof(DialogueScriptSource), false);
 			if (EditorGUI.EndChangeCheck())
 			{
 				ResetWalk();
+				parsedScript = null;
+				graph = null;
+				if (scriptSource != null)
+				{
+					// 창을 여는 동안엔 항상 지금 글자를 읽는다 — 원고를 고치고 바로 확인하는 게 이 창의 쓸모다.
+					scriptSource.Invalidate();
+					graph = scriptSource.BuildGraph(out parsedScript);
+				}
+			}
+
+			using (new EditorGUI.DisabledScope(scriptSource != null))
+			{
+				EditorGUI.BeginChangeCheck();
+				DialogueGraph pickedGraph = (DialogueGraph)EditorGUILayout.ObjectField(
+					"대화 그래프(직접)", scriptSource != null ? graph : graph, typeof(DialogueGraph), false);
+				if (EditorGUI.EndChangeCheck())
+				{
+					graph = pickedGraph;
+					parsedScript = null;
+					ResetWalk();
+				}
+			}
+
+			DrawScriptReport();
+		}
+
+		/// <summary>
+		/// 원고를 읽은 결과 — **줄 번호와 함께** 보여준다. 이게 이 창의 값어치 절반이다:
+		/// 게임을 켜지 않고도 「어느 줄이 잘못됐는지」를 안다.
+		/// </summary>
+		private void DrawScriptReport()
+		{
+			if (parsedScript == null)
+			{
+				return;
+			}
+
+			int lineCount = 0;
+			foreach (DialogueScriptSection section in parsedScript.Sections)
+			{
+				lineCount += section.Entries.Count;
+			}
+			EditorGUILayout.LabelField(
+				$"장면 {parsedScript.Sections.Count} · 마디 {lineCount} · 걸림 {parsedScript.Issues.Count} · 안 읽은 인용줄 {parsedScript.SkippedQuoteLines.Count}",
+				EditorStyles.miniLabel);
+
+			if (parsedScript.Issues.Count == 0)
+			{
+				return;
+			}
+
+			issuesFolded = EditorGUILayout.Foldout(issuesFolded, $"걸린 곳 {parsedScript.Issues.Count}", true);
+			if (issuesFolded == false)
+			{
+				return;
+			}
+			for (int i = 0; i < parsedScript.Issues.Count; i++)
+			{
+				EditorGUILayout.HelpBox($"L{parsedScript.Issues[i].LineNumber}: {parsedScript.Issues[i].Message}", MessageType.Warning);
 			}
 		}
 
@@ -123,6 +186,10 @@ namespace WitchMendokusai
 					EditorGUILayout.HelpBox("대기 — " + step.WaitKind + " / " + step.WaitSeconds + "초", MessageType.None);
 					break;
 
+				case DialogueStepKind.Effect:
+					DrawEffect();
+					break;
+
 				case DialogueStepKind.End:
 					EditorGUILayout.HelpBox("대화 끝.", MessageType.Info);
 					break;
@@ -137,7 +204,9 @@ namespace WitchMendokusai
 				return;
 			}
 
-			EditorGUILayout.LabelField("말하는 이", SpeakerName(line));
+			EditorGUILayout.LabelField("말하는 이", line.ResolveSpeakerName() is string speakerName && string.IsNullOrEmpty(speakerName) == false
+				? speakerName
+				: SpeakerName(line));
 
 			Sprite portrait = line.Portrait;
 			if (portrait != null && portrait.texture != null)
@@ -169,6 +238,35 @@ namespace WitchMendokusai
 			DrawPlayInGameButton(line);
 		}
 
+		/// <summary>
+		/// 효과 스텝 — **미리보기에서는 실제로 일어나지 않는다.** 이 창은 순수 순회기만 쓰고
+		/// 효과를 일으키는 것은 재생기(<see cref="DialoguePlayback"/>) 쪽이라, 여기서 걸어본다고
+		/// 물건이 생기지 않는다. 그래서 「무엇이 일어날 예정인지」만 적어 보여준다.
+		/// </summary>
+		private void DrawEffect()
+		{
+			EditorGUILayout.LabelField("여기서 일어나는 것", EditorStyles.boldLabel);
+
+			if (step.Effects != null)
+			{
+				for (int i = 0; i < step.Effects.Count; i++)
+				{
+					EffectInfo effect = step.Effects[i];
+					EditorGUILayout.LabelField($"· {effect.Type} — {(effect.Data == null ? "(자산 없음)" : effect.Data.name)} x{effect.Value}");
+				}
+			}
+			if (step.EffectData != null)
+			{
+				for (int i = 0; i < step.EffectData.Count; i++)
+				{
+					EffectInfoData effect = step.EffectData[i];
+					EditorGUILayout.LabelField($"· {effect.Type} — 번호 {effect.DataSoID} x{effect.Value}");
+				}
+			}
+
+			EditorGUILayout.HelpBox("미리보기에서는 실제로 일어나지 않는다(물건이 생기지 않는다).", MessageType.None);
+		}
+
 		private void DrawChoice()
 		{
 			EditorGUILayout.LabelField("물음", EditorStyles.boldLabel);
@@ -194,8 +292,9 @@ namespace WitchMendokusai
 			}
 		}
 
-		// Play 중일 때만 — 실제 게임 연출(버블/typewriter/sfx)로 같은 줄을 태워본다.
-		// 러너의 현 공개 표면은 Play(line) 하나뿐이라 「재생」만 제공한다(정지·되감기 없음).
+		// Play 중일 때만 — 실제 게임 연출(버블/typewriter/sfx)로 태워본다.
+		// 원고를 고른 경우엔 **통째로** 재생한다(그게 실제로 게임에서 일어날 일이다).
+		// 그래프만 고른 경우엔 이 줄 하나만 태운다(옛 거동).
 		private void DrawPlayInGameButton(DialogueLine line)
 		{
 			if (Application.isPlaying == false)
@@ -207,9 +306,24 @@ namespace WitchMendokusai
 			bool hasRunner = DialogueRunner.TryGetExistingInstance(out DialogueRunner runner);
 			using (new EditorGUI.DisabledScope(hasRunner == false))
 			{
-				if (GUILayout.Button("게임 화면에서 재생"))
+				if (scriptSource != null)
+				{
+					if (GUILayout.Button("게임 화면에서 이 원고 재생"))
+					{
+						runner.Play(scriptSource);
+					}
+				}
+				else if (GUILayout.Button("게임 화면에서 이 줄 재생"))
 				{
 					runner.Play(line);
+				}
+
+				using (new EditorGUI.DisabledScope(runner == null || runner.IsPlaying == false))
+				{
+					if (GUILayout.Button("멈춤(게임 화면)"))
+					{
+						runner.Stop();
+					}
 				}
 			}
 
