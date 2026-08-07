@@ -402,6 +402,9 @@ namespace WitchMendokusai
 		[field: SerializeField] public Color NestTint { get; private set; } = new Color(0.66f, 0.16f, 0.3f, 1f);
 
 		[field: Header("알림 — 화면 밖에서 난 일을 알려준다")]
+		[field: Tooltip("마수 강도가 이만큼 오를 때마다 한 번 알린다(0 = 안 알림). 숫자가 아니라 말로 알린다.")]
+		[field: SerializeField, Min(0f)] public float PressureAnnounceStep { get; private set; } = 0.5f;
+
 		[field: Tooltip("알림 표식이 화면에 머무는 시간(초). 짧으면 놓치고, 길면 옛일이 새 일을 가린다.")]
 		[field: SerializeField, Min(0.5f)] public float AlertSeconds { get; private set; } = 6f;
 

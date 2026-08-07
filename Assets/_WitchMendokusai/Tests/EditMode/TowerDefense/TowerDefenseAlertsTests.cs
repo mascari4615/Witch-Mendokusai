@@ -88,6 +88,17 @@ namespace WitchMendokusai.Tests
 		}
 
 		[Test]
+		public void 단계는_기준선부터_센다()
+		{
+			// 「이만큼 오를 때마다 한 번」 — 경계값에서 한 칸씩 정확히 올라야 알림이 겹치거나 빠지지 않는다.
+			Assert.AreEqual(0, TowerDefenseAlerts.StepFor(1.00f, 1f, 0.5f), "판 시작은 0단계다.");
+			Assert.AreEqual(0, TowerDefenseAlerts.StepFor(1.49f, 1f, 0.5f), "아직 한 칸 못 올랐다.");
+			Assert.AreEqual(1, TowerDefenseAlerts.StepFor(1.50f, 1f, 0.5f), "경계에 닿으면 올라간다.");
+			Assert.AreEqual(2, TowerDefenseAlerts.StepFor(2.00f, 1f, 0.5f));
+			Assert.AreEqual(-1, TowerDefenseAlerts.StepFor(9.99f, 1f, 0f), "0 이면 아예 안 알린다.");
+		}
+
+		[Test]
 		public void 빈_말은_안_뜬다()
 		{
 			TowerDefenseAlerts alerts = new();

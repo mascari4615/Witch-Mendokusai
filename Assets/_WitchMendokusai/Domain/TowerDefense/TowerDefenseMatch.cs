@@ -1464,6 +1464,39 @@ namespace WitchMendokusai
 			Debug.Log($"{nameof(TowerDefenseMatch)}: 적응 — {spoken}");
 		}
 
+		// 마지막으로 알린 강도 단계 — 같은 단계를 다시 알리지 않기 위해.
+		private int lastPressureStep = -1;
+
+		/// <summary>
+		/// 시간이 올린 마수 강도를 알린다.
+		///
+		/// ★ 이것도 숨긴 칸에 얹혀 있다가 같이 묻힌 규칙이다(적응·파도 성격에 이어 셋째). 시간이 지나면
+		///   같은 마수가 더 단단해지는데, 그걸 모르면 「내 포탑이 약해졌다」로 읽는다 — 원인을 정반대로 짚는다.
+		/// ★ 숫자가 아니라 **말**로, 그리고 *오를 때만* 알린다. 매 프레임 수치를 띄우면 판이 도는 중에
+		///   숫자를 안 늘어놓기로 한 결정을 되돌리는 셈이 된다.
+		/// </summary>
+		private void AnnouncePressure()
+		{
+			if (stage == null || stage.PressureAnnounceStep <= 0f || coreCombatant == null)
+				return;
+
+			int step = TowerDefenseAlerts.StepFor(Pressure, 1f, stage.PressureAnnounceStep);
+			if (step <= lastPressureStep)
+			{
+				if (step < lastPressureStep)
+					lastPressureStep = step; // 판이 새로 시작되면 되돌린다.
+				return;
+			}
+
+			bool first = lastPressureStep < 0;
+			lastPressureStep = step;
+			if (first || step <= 0)
+				return; // 판 시작의 기준선은 알릴 것이 아니다.
+
+			alerts.Raise("마수가 더 단단해졌다", coreCombatant.Position, Time.time, stage.AlertSeconds);
+			Debug.Log($"{nameof(TowerDefenseMatch)}: 강도 상승 — 마수 강도 {Pressure:F2}");
+		}
+
 		/// <summary> 지금 적응이 무엇이라 말하는가 — 하네스가 「보이는가」를 잴 때 기준으로 쓴다. </summary>
 		public string AdaptationNote => TowerDefenseAdaptation.Describe(Adaptation);
 
@@ -1777,6 +1810,7 @@ namespace WitchMendokusai
 			CullDestroyedNests(); // 부순 둥지의 출구를 닫는다 — 「버틴다」가 「밀어낸다」가 되는 자리.
 			WakeNearbyLairs();    // 내 것이 가까이 갔으면 잠든 서식지가 깨어난다.
 			AnnounceAdaptation(); // 마수가 무엇에 익숙해졌는지 — 안 보이면 없는 규칙이다.
+			AnnouncePressure();   // 시간이 올린 강도 — 같은 포탑이 갑자기 안 통하는 이유.
 			TickLairLeash();      // 깨어난 것은 제 자리를 지킨다 — 코어로 행진하면 그냥 파도가 하나 더다.
 			CollectClearedLairs();// 다 쓴 서식지는 정수를 낸다 — 싸워서 버는 길.
 			TrackLostBuildings(); // 내 것이 부서지면 *그 자리*를 알린다 — 화면 밖이면 알 길이 없었다.
@@ -2363,6 +2397,10 @@ namespace WitchMendokusai
 				Debug.Log($"{nameof(TowerDefenseMatch)}: 영웅 쓰러짐 — {stage.HeroRespawnSeconds:F0}초 뒤 코어에서 일어난다.");
 				if (coreCombatant != null)
 					PopWorldText("영웅 쓰러짐", heroTransform.position, TextType.Warning);
+				// ★ 월드에 뜨는 글자는 그 자리를 보고 있어야만 보인다 — 영웅은 대개 화면 밖에서 죽는다
+				//   (혼자 정찰 나가 있으니까). 가장자리 알림으로도 알린다.
+				alerts.Raise("영웅이 쓰러졌다", heroTransform != null ? heroTransform.position : coreCombatant.Position,
+					Time.time, stage.AlertSeconds);
 				return;
 			}
 

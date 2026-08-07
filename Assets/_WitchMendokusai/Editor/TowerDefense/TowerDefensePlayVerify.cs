@@ -1068,6 +1068,9 @@ namespace WitchMendokusai.EditorTools
 					Debug.LogError(TAG + " 예고 FAIL — 다음 파도에 성격이 있는데 예고가 방향만 말한다.");
 				}
 
+				// 강도는 시간이 올리는 규칙이다 — 「내 포탑이 약해졌다」로 오해하지 않으려면 보여야 한다.
+				Debug.Log($"{TAG} 강도 — 마수 강도 {(match != null ? match.Pressure : 0f):F2}");
+
 				// 적응은 판을 바꾸는 규칙인데 그리던 칸이 숨겨져 화면에서 사라졌었다 —
 				// 「규칙이 말하는 것」과 「화면이 말하는 것」을 나란히 놓고 본다.
 				string adaptation = match != null ? match.AdaptationNote : string.Empty;

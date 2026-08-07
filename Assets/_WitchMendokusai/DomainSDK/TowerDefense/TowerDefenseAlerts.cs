@@ -90,5 +90,20 @@ namespace WitchMendokusai
 		}
 
 		public void Clear() => alerts.Clear();
+
+		/// <summary>
+		/// 「이만큼 오를 때마다 한 번」을 위한 단계 번호.
+		///
+		/// ★ 이 계산이 규칙층에 있어야 화면 없이 잴 수 있다. 매치 안에 두면 「오를 때만 한 번」이라는
+		///   가장 틀리기 쉬운 부분(경계값·되돌림·꺼짐)이 Play 로만 확인 가능해지고, 그러면 사실상
+		///   확인 안 하게 된다.
+		/// stepSize 가 0 이하면 -1 = 「알리지 않음」.
+		/// </summary>
+		public static int StepFor(float value, float baseline, float stepSize)
+		{
+			if (stepSize <= 0f)
+				return -1;
+			return Mathf.FloorToInt((value - baseline) / stepSize);
+		}
 	}
 }
