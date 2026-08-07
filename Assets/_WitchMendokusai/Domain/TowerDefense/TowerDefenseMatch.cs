@@ -4856,6 +4856,30 @@ namespace WitchMendokusai
 		///   가장 가까운 갈 수 있는 칸으로 옮겨준다. 옮긴 사실은 로그로 남긴다 — 조용히 순간이동시키면
 		///   다음에 같은 원인이 생겨도 아무도 모른다.
 		/// </summary>
+
+		/// <summary>
+		/// 아직 자는 서식지 식구인가 — 굳음 감지에서 빼야 한다.
+		///
+		/// ★ 잠든 마수는 *설계대로* 브레인도 이동도 꺼져 있다. 그런데 굳음 감지기는 둥지 본체만
+		///   빼고 식구는 세고 있어서, 판마다 「4초째 못 나아감」 경고를 수십 줄 쏟았다
+		///   (실측: 경고 30개 중 21개 · 전부 소속이 찍힌 자는 식구였다). 진짜 굳음이 그 안에 묻힌다.
+		/// ★ 깨어난 뒤에는 다시 감지 대상이다 — 그때는 정말로 안 움직이면 사고다.
+		/// </summary>
+		private bool IsSleepingLairMember(MatchCombatant enemy)
+		{
+			TowerDefenseLairMember member = enemy.GetComponent<TowerDefenseLairMember>();
+			if (member == null || member.LairId < 0)
+				return false;
+
+			foreach (SleepingLair lair in lairs)
+			{
+				if (lair.Id != member.LairId)
+					continue;
+				return lair.Awake == false;
+			}
+			return false;
+		}
+
 		private void UnstickEnemies()
 		{
 			if (mapLayout == null || flowField == null || stageRoot == null)
@@ -4873,6 +4897,8 @@ namespace WitchMendokusai
 					continue;
 				if (IsNest(enemy))
 					continue; // 둥지는 원래 안 움직인다 — 「굳었다」로 세면 매 틱 헛되이 옮기려 든다.
+				if (IsSleepingLairMember(enemy))
+					continue; // 자는 식구도 마찬가지다 — 아래 참조.
 
 				Vector3 position = enemy.Position;
 				if (enemyStillness.TryGetValue(enemy.CombatantId, out (Vector3 Position, float Seconds) tracked) == false)
@@ -4898,13 +4924,24 @@ namespace WitchMendokusai
 				bool blocked = IsPathBlocked(cell);
 				bool reachable = flowField.IsReachable(cell);
 
+				// ★ 「갈 수 있는 자리인데 안 간다」가 경고의 대부분이었다(실측). 그러면 길이 아니라
+				//   *그 마수 자신*이 원인이다 — 브레인이 꺼졌거나(목줄이 끄고 안 켰거나 풀에서 꺼진 채
+				//   나왔거나), 아직 자는 둥지 식구이거나, 이동 부품이 꺼져 있는 것. 셋은 고치는 자리가
+				//   전혀 다른데 지금 로그는 셋을 구별 못 한다 — 추측으로 고치다 한 번 헛짚었다.
+				TacticDriver stuckDriver = enemy.GetComponent<TacticDriver>();
+				UnitMovement stuckMovement = enemy.GetComponent<UnitMovement>();
+				TowerDefenseLairMember stuckMember = enemy.GetComponent<TowerDefenseLairMember>();
+				string why = "브레인 " + (stuckDriver == null ? "없음" : stuckDriver.enabled ? "켜짐" : "꺼짐")
+					+ " · 이동 " + (stuckMovement == null ? "없음" : stuckMovement.enabled ? "켜짐" : "꺼짐")
+					+ " · 소속 " + (stuckMember != null ? stuckMember.LairId.ToString() : "없음");
+
 				// ★ 밀어주지 않는다 (사용자 지시: "밀어주는게 어딨어... 밀어주는거 제거하세요").
 				//   예전엔 굳은 마수를 다음 칸으로 *순간이동*시켜 길을 뚫었다 — 그건 길찾기가 답을 못 준
 				//   자리를 손으로 메운 것이고, 벽을 지나가는 것처럼 보이는 원인이기도 했다.
 				//   이제 길찾기가 목표가 무엇이든 답하므로, 굳었다는 것은 *진짜 막혔다*는 뜻이다 —
 				//   그 사실을 남기기만 하고 판은 마수가 앞을 부수도록 둔다.
 				Debug.LogWarning($"{nameof(TowerDefenseMatch)}: 마수가 {stillSeconds:F1}s 째 못 나아감 — cell={cell} "
-					+ $"blocked={blocked} reachable={reachable} (길이 막혔으면 앞을 부순다)");
+					+ $"blocked={blocked} reachable={reachable} · {why} (길이 막혔으면 앞을 부순다)");
 
 				enemyStillness[enemy.CombatantId] = (enemy.Position, 0f);
 			}
