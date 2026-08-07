@@ -2171,7 +2171,8 @@ namespace WitchMendokusai
 
 			Vector2 middle = ClampToPanel(ToPanel(invasionDirectionLabel, middleScreen), panelBox, 60f);
 			invasionDirectionLabel.style.display = DisplayStyle.Flex;
-			invasionDirectionLabel.text = match.NextInvasionDirectionName() + "에서 온다";
+			// ★ 「무엇이」 + 「어디서」 — 방향만으로는 어떤 대비를 할지 못 정한다(떼거리는 광역, 정예는 관통).
+			invasionDirectionLabel.text = match.NextWaveEventPhrase() + match.NextInvasionDirectionName() + "에서 온다";
 			invasionDirectionLabel.style.color = warning;
 			invasionDirectionLabel.style.left = middle.x - 60f;
 			invasionDirectionLabel.style.top = middle.y - 44f;

@@ -1002,6 +1002,7 @@ namespace WitchMendokusai.EditorTools
 					return;
 				}
 
+				string invasionSentence = string.Empty;
 				int invasionMarks = 0;
 				int alertMarks = 0;
 				int alertMarksHidden = 0;
@@ -1029,6 +1030,8 @@ namespace WitchMendokusai.EditorTools
 						continue;
 					if (text.Contains("▼") || text.Contains("에서 온다"))
 						invasionMarks++;
+					if (text.Contains("에서 온다"))
+						invasionSentence = text;
 				}
 
 				// ★ 「규칙에 있나 / 화면에 갔나」를 갈라 찍는다 — 0 하나만 보면 어디서 끊겼는지 모른다.
@@ -1055,6 +1058,16 @@ namespace WitchMendokusai.EditorTools
 				}
 				// ★ 「지도 점이 있나 / 설명이 붙었나 / 무엇이라 부르나」를 갈라 찍는다.
 				//   숫자 하나만 보면 「지도가 없다」와 「이름이 틀렸다」가 똑같이 0 으로 보인다.
+				// 예고가 「무엇이 오는가」까지 말하는가 — 방향만으로는 어떤 대비를 할지 못 정한다.
+				string expectedPhrase = match != null ? match.NextWaveEventPhrase() : string.Empty;
+				Debug.Log($"{TAG} 예고 문장 — 「{invasionSentence}」 (성격 「{expectedPhrase}」)");
+				if (string.IsNullOrEmpty(expectedPhrase) == false
+					&& string.IsNullOrEmpty(invasionSentence) == false
+					&& invasionSentence.Contains(expectedPhrase.Trim()) == false)
+				{
+					Debug.LogError(TAG + " 예고 FAIL — 다음 파도에 성격이 있는데 예고가 방향만 말한다.");
+				}
+
 				bool mapOpen = TowerDefenseModeController.TryGetExistingInstance(out TowerDefenseModeController mapView)
 					&& mapView.IsMapOpenForVerification;
 				// ★ 「안 그려졌다」와 「그릴 게 없다」는 다르다 — 서식지는 *밝힌 곳만* 그린다(시야 규칙).

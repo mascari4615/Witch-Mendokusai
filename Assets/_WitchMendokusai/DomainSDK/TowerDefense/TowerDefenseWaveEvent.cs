@@ -83,6 +83,25 @@ namespace WitchMendokusai
 			};
 		}
 
+		/// <summary>
+		/// 「떼거리가」/「돌진이」 — 이름 뒤에 붙는 조사까지 붙여 준다.
+		///
+		/// ★ 예고는 한 문장으로 읽혀야 한다("떼거리가 북동에서 온다"). 조사를 안 맞추면
+		///   「돌진가 온다」처럼 어색해서, 읽는 사람이 문장이 아니라 *버그*를 먼저 본다.
+		/// ★ 판정은 한글 받침 유무 하나면 된다(유니코드 한글 음절은 11172자가 규칙적으로 배열돼 있어
+		///   (코드 - 0xAC00) % 28 == 0 이면 받침이 없다).
+		/// </summary>
+		public static string SubjectPhrase(TowerDefenseWaveEventKind kind)
+		{
+			string name = DisplayName(kind);
+			if (string.IsNullOrEmpty(name))
+				return string.Empty;
+
+			char last = name[name.Length - 1];
+			bool hasFinalConsonant = last >= 0xAC00 && last <= 0xD7A3 && (last - 0xAC00) % 28 != 0;
+			return name + (hasFinalConsonant ? "이 " : "가 ");
+		}
+
 		/// <summary> 그 성격의 색 — 예고 글자에 입혀 한눈에 갈리게. </summary>
 		public static Color DisplayColor(TowerDefenseWaveEventKind kind)
 		{

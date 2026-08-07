@@ -92,6 +92,19 @@ namespace WitchMendokusai.Tests
 		}
 
 		[Test]
+		public void 성격_이름에_조사가_맞게_붙는다()
+		{
+			// ★ 예고는 한 문장으로 읽혀야 한다("떼거리가 북동에서 온다"). 조사가 틀리면 읽는 사람이
+			//   문장이 아니라 *버그*를 먼저 본다. 받침 있는 이름과 없는 이름을 둘 다 건다.
+			Assert.AreEqual("떼거리가 ", TowerDefenseWaveEvent.SubjectPhrase(TowerDefenseWaveEventKind.Swarm));
+			Assert.AreEqual("정예가 ", TowerDefenseWaveEvent.SubjectPhrase(TowerDefenseWaveEventKind.Elite));
+			Assert.AreEqual("돌진이 ", TowerDefenseWaveEvent.SubjectPhrase(TowerDefenseWaveEventKind.Rush));
+			Assert.AreEqual("어스름이 ", TowerDefenseWaveEvent.SubjectPhrase(TowerDefenseWaveEventKind.Gloom));
+			Assert.AreEqual(string.Empty, TowerDefenseWaveEvent.SubjectPhrase(TowerDefenseWaveEventKind.None),
+				"성격 없는 파도에 조사만 남으면 「가 북동에서 온다」가 된다.");
+		}
+
+		[Test]
 		public void 방위_이름이_각도와_맞는다()
 		{
 			Assert.AreEqual("북", TowerDefenseWaveOrigin.DirectionName(0f));

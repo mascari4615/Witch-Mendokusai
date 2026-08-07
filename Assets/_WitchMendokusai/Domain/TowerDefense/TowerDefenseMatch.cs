@@ -1940,6 +1940,18 @@ namespace WitchMendokusai
 			return TowerDefenseWaveOrigin.AngleDegrees(waveIndex, MapSeed);
 		}
 
+		/// <summary>
+		/// 다음 파도의 성격 이름 + 조사("떼거리가"). 성격이 없으면 빈 문자열.
+		///
+		/// ★ 이 값은 계산은 되는데 *화면에 도달하지 못하고 있었다* — 웨이브 미리보기 칸을 숨기면서
+		///   같이 묻혔다(숫자를 안 띄우기로 한 결정의 부작용). 성격은 **말**이라 숫자 금지와 무관하고,
+		///   「무엇이 오는가」를 모르면 대비가 성립하지 않는다.
+		/// </summary>
+		public string NextWaveEventPhrase()
+		{
+			return TowerDefenseWaveEvent.SubjectPhrase(WaveEventAt(WaveIndex + 1));
+		}
+
 		/// <summary> 다음 파도가 오는 쪽 이름("북동" 등). 숫자 대신 말로 예고하기 위한 값. </summary>
 		public string NextInvasionDirectionName()
 		{
