@@ -139,6 +139,7 @@ namespace WitchMendokusai
 				ChoiceStallSeconds = choiceStallSeconds,
 			};
 			playback.OnChoiceStalled += HandleChoiceStalled;
+			playback.OnChoiceSelected += HandleChoiceSelected;
 			playback.OnStepChanged += HandleStepChanged;
 			playback.OnFinished += HandlePlaybackFinished;
 
@@ -192,6 +193,14 @@ namespace WitchMendokusai
 
 		/// <summary>선택지 고르기 — UI 가 호출. Choice 스텝이 아니면 false.</summary>
 		public bool SubmitChoice(int index) => playback != null && playback.SubmitChoice(index);
+
+		/// <summary>
+		/// 건너뛰기 — 선택지·사건 대기·끝 중 하나가 나올 때까지 넘긴다. 넘긴 스텝 수를 준다.
+		///
+		/// 아직 **누를 것이 없다**(입력 자산에 키를 안 붙였다). UI·입력이 붙기 전까지는
+		/// 여기까지가 이 세션에서 할 수 있는 끝이다 — 부를 자리는 열어 둔다.
+		/// </summary>
+		public int Skip() => playback == null ? 0 : playback.Skip();
 
 		/// <summary>바깥 사건 통지 — 사건 대기 노드를 푼다(퀘스트 완료 등).</summary>
 		public void NotifyDialogueEvent(string eventId) => playback?.NotifyEvent(eventId);
@@ -276,12 +285,30 @@ namespace WitchMendokusai
 			playback?.Stop();
 		}
 
+		/// <summary>
+		/// 「이 대화에서 무슨 답을 골랐나」를 남긴다.
+		///
+		/// ★ 왜 재생기가 아니라 여기인가: 재생기는 **대화 번호를 모른다**(그래프만 안다).
+		///   번호를 아는 건 무엇을 틀었는지 기억하는 이쪽이다. 끝까지 들었는지를 여기서 남기는 것과 같은 자리.
+		///
+		/// 도중에 접어도 남긴다 — 접었다고 **한 말이 없던 일이 되지는 않는다.**
+		/// (「끝까지 들었나」와는 다른 물음이라 판단도 다르다.)
+		/// </summary>
+		private void HandleChoiceSelected(string label)
+		{
+			History.MarkChoice(CurrentDialogueId, label);
+		}
+
+		/// <summary>지금 틀고 있는 대화의 번호 — 원고 자산이면 그 자산 번호, 아니면 그래프 번호.</summary>
+		private int CurrentDialogueId =>
+			playingScriptId == DataSO.NONE_ID ? (playingGraph == null ? DataSO.NONE_ID : playingGraph.ID) : playingScriptId;
+
 		private void HandlePlaybackFinished()
 		{
 			// 끝까지 간 것만 「들었다」로 남긴다 — 중간에 접은 대화는 다음에 다시 보여줘야 한다.
 			if (playingGraph != null && playback != null && playback.ReachedEnd)
 			{
-				History.MarkCompleted(playingScriptId == DataSO.NONE_ID ? playingGraph.ID : playingScriptId);
+				History.MarkCompleted(CurrentDialogueId);
 			}
 			OnDialogueFinished();
 
@@ -306,6 +333,7 @@ namespace WitchMendokusai
 			playback.OnStepChanged -= HandleStepChanged;
 			playback.OnFinished -= HandlePlaybackFinished;
 			playback.OnChoiceStalled -= HandleChoiceStalled;
+			playback.OnChoiceSelected -= HandleChoiceSelected;
 			DialoguePlayback stopping = playback;
 			playback = null;
 

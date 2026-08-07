@@ -59,6 +59,37 @@ namespace WitchMendokusai.Tests
 		}
 
 		[Test]
+		public void ChosenAnswersSurviveSaveAndLoad()
+		{
+			// 「그때 뭐라고 했나」는 **다음 판에서** 쓰라고 남기는 기록이다 — 안 살아 돌아오면 없는 것과 같다.
+			DialogueHistory history = new();
+			history.MarkChoice(GREETING_ID, "거절한다");
+			history.MarkCompleted(GREETING_ID);
+
+			GameData loaded = RoundTrip(new GameData { dialogueHistory = history.ToSaveData() });
+
+			DialogueHistory restored = new();
+			restored.FromSaveData(loaded.dialogueHistory);
+
+			Assert.That(restored.HasChosen(GREETING_ID, "거절한다"), Is.True);
+			Assert.That(restored.HasChosen(GREETING_ID, "받는다"), Is.False);
+		}
+
+		[Test]
+		public void OldSaveWithoutTheChoiceField_HasNoAnswers()
+		{
+			// 고른 답 칸이 생기기 전 저장본 — 「본 적」은 그대로 살고, 답만 비어 있어야 한다.
+			GameData loaded = JsonConvert.DeserializeObject<GameData>(
+				"{\"dialogueHistory\":{\"CompletedDialogueIds\":[4615]}}");
+
+			DialogueHistory restored = new();
+			restored.FromSaveData(loaded.dialogueHistory);
+
+			Assert.That(restored.HasSeen(GREETING_ID, DialogueSeenKind.Completed), Is.True);
+			Assert.That(restored.HasChosen(GREETING_ID, "거절한다"), Is.False);
+		}
+
+		[Test]
 		public void OldSaveWithoutTheField_StillLoads()
 		{
 			// 이 칸이 생기기 전의 저장 파일 — 없는 칸은 그냥 비어 온다. 옛 저장이 안 열리면 그게 제일 큰 사고다.

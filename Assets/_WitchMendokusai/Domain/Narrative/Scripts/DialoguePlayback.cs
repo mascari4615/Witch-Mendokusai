@@ -126,6 +126,15 @@ namespace WitchMendokusai
 			Apply(traversal.Next());
 		}
 
+		/// <summary>
+		/// 고른 답의 **라벨**을 알린다 — 「무엇을 골랐나」를 남기려는 쪽(이력)을 위해.
+		///
+		/// ★ 왜 이벤트인가: 재생기는 대화 번호를 모른다(그래프만 안다). 번호를 아는 건 부르는 쪽이다.
+		///   재생기가 이력에 직접 쓰게 하면 번호를 들려 줘야 하고, 그러면 이 순수 상태기가
+		///   저장·이력을 아는 물건이 된다. 「무슨 일이 있었는지」만 말하고 기록은 남에게 맡긴다.
+		/// </summary>
+		public event Action<string> OnChoiceSelected = delegate { };
+
 		/// <summary>i 번째 선택지를 고르고 그 가지로 진행. Choice 스텝이 아니거나 범위 밖이면 false(상태 불변).</summary>
 		public bool SubmitChoice(int index)
 		{
@@ -137,9 +146,18 @@ namespace WitchMendokusai
 			{
 				return false;
 			}
+
+			// 라벨은 **넘어가기 전에** 집는다 — Apply 뒤엔 Current 가 다음 스텝이라 이미 없다.
+			IReadOnlyList<string> options = Current.Options;
+			string label = options != null && index >= 0 && index < options.Count ? options[index] : null;
+
 			if (traversal.SelectChoice(index) == false)
 			{
 				return false;
+			}
+			if (string.IsNullOrEmpty(label) == false)
+			{
+				OnChoiceSelected(label);
 			}
 			Apply(traversal.Next());
 			return true;
@@ -221,6 +239,59 @@ namespace WitchMendokusai
 			float readingSeconds = DialogueReadingTime.For(
 				line == null ? null : line.Text, ReadingCharactersPerSecond, MinimumSpeakSeconds, MaximumSpeakSeconds);
 			return readingSeconds > 0f ? readingSeconds : DefaultSpeakSeconds;
+		}
+
+		/// <summary>
+		/// **건너뛰기** — 사람이 결정하거나 게임이 움직여야 하는 자리가 나올 때까지 죽 넘긴다.
+		/// 멈추는 자리는 셋: **선택지 · 사건 대기 · 끝**.
+		///
+		/// ★ 무엇을 안 건너뛰나가 이 기능의 전부다:
+		/// <list type="bullet">
+		/// <item>**선택지** — 대신 골라 주면 그건 건너뛰기가 아니라 플레이를 뺏는 것이다.</item>
+		/// <item>**사건 대기** — 대화 밖에서 뭔가 일어나야 하는 자리다. 넘기면 대화가 게임을 앞질러
+		///   아직 안 열린 문을 열었다고 말한다.</item>
+		/// <item>**효과** — 넘기되 **반드시 준다.** 보상·플래그를 건너뛰면 「빨리 봤다」가 「덜 받았다」가 된다.
+		///   (넘어가는 길목이 <see cref="Apply"/> 하나뿐이라 저절로 그렇게 된다 — 그게 이 구조의 값이다.)</item>
+		/// <item>**시간 대기** — 넘긴다. 그건 연출이고, 건너뛰기는 연출을 접겠다는 뜻이다.</item>
+		/// </list>
+		///
+		/// 「이미 본 대화만 건너뛰게」 같은 정책은 여기 안 넣는다 — 부르는 쪽이 <c>DialogueHistory</c> 를
+		/// 보고 정할 일이다. 여기는 「어디서 멈추나」만 안다.
+		///
+		/// 되돌아가는 고리가 있는 원고에서도 안 멈추면 안 되므로 노드 수만큼만 돈다.
+		/// </summary>
+		/// <returns>건너뛴 스텝 수. 0 이면 이미 멈출 자리에 서 있었다는 뜻.</returns>
+		public int Skip()
+		{
+			if (IsPlaying == false)
+			{
+				return 0;
+			}
+
+			int skipped = 0;
+			int hopBudget = nodeCount;
+			while (IsPlaying && IsSkippable(Current))
+			{
+				if (hopBudget <= 0)
+				{
+					throw new InvalidOperationException(
+						$"Dialogue skip did not reach a stopping point within {nodeCount} hops — the graph loops with nothing to stop at.");
+				}
+				hopBudget--;
+				skipped++;
+				Apply(traversal.Next());
+			}
+			return skipped;
+		}
+
+		/// <summary>넘겨도 되는 스텝인가 — 사람도 게임도 개입할 필요가 없는 것만.</summary>
+		private static bool IsSkippable(DialogueStep step)
+		{
+			if (step.Kind == DialogueStepKind.Speak)
+			{
+				return true;
+			}
+			return step.Kind == DialogueStepKind.Wait && step.WaitKind == DialogueWaitKind.Time;
 		}
 
 		/// <summary>바깥 사건 통지 — 기다리던 id 와 같을 때만 진행.</summary>
