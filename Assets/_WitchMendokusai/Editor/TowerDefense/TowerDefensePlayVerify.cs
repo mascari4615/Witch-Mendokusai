@@ -1150,6 +1150,10 @@ namespace WitchMendokusai.EditorTools
 				{
 					Debug.Log($"{TAG} 길찾기 — 판 {match.MapCellCount}칸 · 한 번에 최대 {match.PathPeakCells}칸 펼침"
 						+ $" · 상한에 걸려 포기 {match.PathCapHits}회");
+					// 「길 없음」은 그 자체로 실패가 아니다 — 벽을 부수러 붙는 중일 수 있다.
+					// 다만 *얼마나 자주* 나는지는 알아야, 나중에 「판이 안 끝난다」가 나올 때 여기부터 본다.
+					Debug.Log($"{TAG} 안내 — 길 없음 {match.NavigatorNoPathCount}회 (부수러 가는 중이면 정상)");
+
 					if (match.PathCapHits > 0)
 						Debug.LogError($"{TAG} 길찾기 FAIL — 상한에 걸려 {match.PathCapHits}회 포기했다(마수가 갈 길이 있는데 못 간다).");
 				}

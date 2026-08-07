@@ -1296,6 +1296,14 @@ namespace WitchMendokusai
 			return false;
 		}
 
+		/// <summary>
+		/// 안내가 「길 없음」으로 끝난 횟수 — 앞을 막은 것을 부수러 붙는 중이면 정상이고,
+		/// 아무도 안 부수고 서 있으면 판이 안 끝난다. 이 값과 「굳은 마수 수」를 같이 봐야 가려진다.
+		/// </summary>
+		public int NavigatorNoPathCount => flowNavigator is TowerDefensePathNavigator pathNavigator
+			? pathNavigator.NoPathCount
+			: 0;
+
 		/// <summary> 길찾기가 상한에 걸려 포기한 횟수 — 0 이 아니면 갈 길이 있는데도 못 가는 마수가 있다. </summary>
 		public int PathCapHits => gridPath != null ? gridPath.CapHits : 0;
 

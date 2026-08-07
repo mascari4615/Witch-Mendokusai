@@ -62,6 +62,9 @@ namespace WitchMendokusai
 		/// ★ lane 을 개체 표식으로도 쓴다 — 인터페이스에 개체 id 가 없고, lane 은 개체마다 다른 고정값이라
 		///   그대로 열쇠가 된다(같은 값이 겹치면 경로를 나눠 쓰는 것뿐 — 길이는 같으니 해가 없다).
 		/// </summary>
+		/// <summary> 길을 못 찾아 안내를 포기한 횟수 — 「부수러 가는 중」과 「그냥 서 있음」을 가르는 첫 숫자. </summary>
+		public int NoPathCount { get; private set; }
+
 		public bool TryGetSteering(Vector3 from, Vector3 to, float lane, out Vector3 direction)
 		{
 			direction = Vector3.zero;
@@ -98,7 +101,11 @@ namespace WitchMendokusai
 				if (finder.Find(fromCell, goalCell, lane, follower.Path) == false)
 				{
 					follower.Path.Clear();
-					return false; // 길이 없다 — 직선으로 넘기지 않는다(그게 벽 뚫기의 근원이었다).
+					// ★ 「길이 없다」는 *정상일 수도, 교착일 수도* 있다 — 앞을 막은 벽을 부수러 붙는 중이면
+					//   정상이고, 아무도 안 부수고 서 있으면 판이 안 끝난다. 세어 두지 않으면 그 둘을
+					//   영영 못 가른다(처음 A* 를 넣을 때 「완전히 둘러싸였을 때는 보장 안 됨」으로 남긴 자리다).
+					NoPathCount++;
+					return false; // 직선으로 넘기지 않는다(그게 벽 뚫기의 근원이었다).
 				}
 
 				follower.Goal = goalCell;
