@@ -179,6 +179,50 @@ namespace WitchMendokusai.Tests
 			Assert.AreEqual(2, ((FakeCombatant)actor.LastTarget).CombatantId, "살아있는 먼 적을 노려야 한다");
 		}
 
+		// ── 베낀 프리셋이 아직 출하본과 같은가 ────────────────────────────────────────
+		//
+		// ★ 위 머리말이 「출하 프리셋을 그대로 옮겼다」고 적어뒀지만, **적어둔 것만으로는 안 지켜진다.**
+		//   사람이 인스펙터에서 사거리나 스킬 슬롯을 바꾸는 순간 이 시험 묶음은 조용히
+		//   *다른 게임*을 검사하게 된다 — 전부 초록인 채로. 그래서 기계가 대조한다.
+		//
+		// 출하본을 통째로 얼리지는 않는다(전술은 사람이 만지라고 있는 것이다).
+		// 「베낀 그 모양이 출하본 어딘가에 아직 실재하는가」만 본다 — 없어지면 여기를 갱신하라는 뜻이다.
+		[Test]
+		public void 베낀_프리셋이_아직_출하_설정_안에_실재한다()
+		{
+			bool found = false;
+			List<string> seen = new();
+
+			foreach (string guid in UnityEditor.AssetDatabase.FindAssets("t:" + nameof(ArenaMatchConfig)))
+			{
+				string path = UnityEditor.AssetDatabase.GUIDToAssetPath(guid);
+				ArenaMatchConfig config = UnityEditor.AssetDatabase.LoadAssetAtPath<ArenaMatchConfig>(path);
+				if (config == null)
+					continue;
+
+				foreach (ArenaMatchConfig.ArenaUnitEntry entry in config.Roster)
+				{
+					if (entry.Tactic == null)
+						continue;
+
+					foreach (TacticRule rule in entry.Tactic.Rules)
+					{
+						if (rule.Action.Kind != ActionKind.UseSkill)
+							continue;
+
+						seen.Add($"{config.name}: 사거리 {rule.Target.MaxRange} / 슬롯 {rule.Action.SkillSlot}");
+						if (Mathf.Approximately(rule.Target.MaxRange, PRESET_ATTACK_RANGE) && rule.Action.SkillSlot == PRESET_SKILL_SLOT)
+							found = true;
+					}
+				}
+			}
+
+			Assert.IsTrue(found,
+				$"이 시험 묶음이 베낀 프리셋(사거리 {PRESET_ATTACK_RANGE} / 슬롯 {PRESET_SKILL_SLOT})이 "
+				+ "출하 설정 어디에도 없다 — 지금 이 묶음은 실제로 배포되는 전술이 아니라 옛 사본을 검사하는 중이다. "
+				+ "출하본을 보고 위 상수를 갱신하라. 실제 출하 값: " + string.Join(" · ", seen));
+		}
+
 		private static ICombatant FirstOfTeam(Dictionary<ICombatant, RecordingActuator> log, int teamId)
 		{
 			foreach (KeyValuePair<ICombatant, RecordingActuator> pair in log)
