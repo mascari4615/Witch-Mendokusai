@@ -1814,7 +1814,7 @@ namespace WitchMendokusai
 		/// 기록 갱신 여부까지 말해야 「다시 도전」이 이유를 갖는다.
 		/// </summary>
 		public void ShowOutcome(TowerDefenseOutcome outcome, int survivedSeconds, int nestsDestroyed, int score, int best,
-			int lairsAwakened,
+			int lairsAwakened, int lairsCleared,
 			bool isNewRecord, int relicsGained, int relicBalance, bool canPull, string summary = null)
 		{
 			SetBannerVisible(true);
@@ -1827,7 +1827,7 @@ namespace WitchMendokusai
 				outcome, FormatDuration(survivedSeconds), nestsDestroyed, score, best, isNewRecord);
 			// ★ 이겼을 때도 요약은 붙어야 한다 — 예전엔 여기서 빠져나가 이긴 판을 되짚을 수단이 없었다.
 			ShowSummary(summary);
-			ShowRunStats(survivedSeconds, nestsDestroyed, score, best, lairsAwakened);
+			ShowRunStats(survivedSeconds, nestsDestroyed, score, best, lairsAwakened, lairsCleared);
 		}
 
 		/// <summary>
@@ -1841,7 +1841,7 @@ namespace WitchMendokusai
 		///   좋겠음 … 게임 끝났을때 통계처럼 공개하는게 맞음. Like RiskofRain 2").
 		///   계산은 내내 돌고 있었다 — *보여주는 시점*만 끝으로 옮긴 것이다.
 		/// </summary>
-		private void ShowRunStats(int survivedSeconds, int nestsDestroyed, int score, int best, int lairsAwakened)
+		private void ShowRunStats(int survivedSeconds, int nestsDestroyed, int score, int best, int lairsAwakened, int lairsCleared)
 		{
 			if (runStatsPanel == null)
 				return;
@@ -1852,6 +1852,7 @@ namespace WitchMendokusai
 			AddRunStat("부순 둥지", nestsDestroyed.ToString());
 			// ★ 세기만 하고 아무 데도 안 나오던 값 — 「얼마나 파고들었나」를 말하는 자리가 여기다.
 			AddRunStat("깨운 서식지", lairsAwakened.ToString());
+			AddRunStat("쓸어낸 서식지", lairsCleared.ToString());
 			AddRunStat("남은 마수", enemyValue != null ? enemyValue.text : "-");
 			AddRunStat("점수", score.ToString());
 			AddRunStat("최고 기록", best.ToString());

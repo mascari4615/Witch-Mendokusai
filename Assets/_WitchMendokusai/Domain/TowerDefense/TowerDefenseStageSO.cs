@@ -421,6 +421,9 @@ namespace WitchMendokusai
 		[field: Tooltip("내 것이 이 거리(월드) 안에 들어오면 깨어난다. 넓히는 행위가 위험이 되는 손잡이.")]
 		[field: SerializeField, Min(0f)] public float LairWakeRadius { get; private set; } = 9f;
 
+		[field: Tooltip("서식지 한 곳을 전부 쓸었을 때 받는 정수(0 = 없음). 「캐서 버는 길」이 막혀도 「싸워서 버는 길」이 남게 한다.")]
+		[field: SerializeField, Min(0)] public int LairClearEssenceReward { get; private set; } = 5;
+
 		[field: Tooltip("깨어난 마수가 서식지에서 벗어날 수 있는 거리(월드). 넘으면 돌아온다 — 0 이면 목줄 없음(코어로 행진).")]
 		[field: SerializeField, Min(0f)] public float LairLeashRadius { get; private set; } = 20f;
 

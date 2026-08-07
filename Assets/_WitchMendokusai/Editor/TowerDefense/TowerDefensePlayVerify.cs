@@ -154,6 +154,7 @@ namespace WitchMendokusai.EditorTools
 			signalChecked = false;
 			markCheckAt = 0.0;
 			lairDriftCheckAt = 0.0;
+			lairClearCheckAt = 0.0;
 			selectedLayoutChecked = false; // 판마다 다시 잰다.
 			assaultStart = -1.0;
 			lastAliveEnemyCount = -1;
@@ -201,6 +202,12 @@ namespace WitchMendokusai.EditorTools
 					+ " observed=" + (observeStart > 0 ? (now - observeStart).ToString("F1") : "n/a"));
 				Finish();
 				return;
+			}
+
+			if (lairClearCheckAt > 0.0 && now >= lairClearCheckAt)
+			{
+				lairClearCheckAt = 0.0;
+				CheckLairClearReward();
 			}
 
 			if (lairDriftCheckAt > 0.0 && now >= lairDriftCheckAt)
@@ -351,7 +358,7 @@ namespace WitchMendokusai.EditorTools
 				case Step.SelectedLayout:
 					// ★ 서식지 이동 측정이 아직 안 끝났으면 모드를 나가지 않는다 — 나가면 판이 새로 태어나
 					//   깨운 서식지가 통째로 사라져 그 측정이 영영 성립하지 않는다.
-					if (lairDriftCheckAt > 0.0)
+					if (lairDriftCheckAt > 0.0 || lairClearCheckAt > 0.0)
 						return;
 
 					// ★ 앞 단계에서 열어둔 성좌를 *여기서* 닫는다. 닫는 자리를 재시작 단계에 뒀더니,
@@ -407,7 +414,7 @@ namespace WitchMendokusai.EditorTools
 					if (placeOnly)
 					{
 						// 아직 재기로 한 것이 남아 있으면 끝내지 않는다 — 끝내버리면 그 항목은 영영 안 재진다.
-						if (lairDriftCheckAt > 0.0 || markCheckAt > 0.0)
+						if (lairDriftCheckAt > 0.0 || markCheckAt > 0.0 || lairClearCheckAt > 0.0)
 							return;
 
 						Debug.Log(TAG + " PLACE-ONLY 배치 확인 끝 — 조기 종료");
@@ -939,13 +946,42 @@ namespace WitchMendokusai.EditorTools
 			//   코어에 가까웠는지 멀었는지에 답이 좌우된다(같은 행동이 판마다 통과·실패로 갈린다).
 			float fromHome = match.AwakenedGuardDistanceFromHome();
 			float leash = TowerDefenseModeControllerLeash();
-			Debug.Log($"{TAG} 서식지 목줄 — 집에서 최대 {fromHome:F1} (목줄 {leash:F1})");
+			Debug.Log($"{TAG} 서식지 목줄 — 집에서 최대 {fromHome:F1} (목줄 {leash:F1})"
+				+ $" · 깨운 {match.LairsAwakened}곳 · 쓸어낸 {match.LairsCleared}곳 · 정수 {match.Essence}");
 
 			if (leash > 0f && fromHome > leash * 1.5f)
 			{
 				Debug.LogError($"{TAG} 서식지 FAIL — 집에서 {fromHome:F1} 까지 벗어났다(목줄 {leash:F1})."
 					+ " 「넓히는 것이 위험」이 아니라 파도가 하나 더 있는 것이다.");
 			}
+
+			// ★ 보상은 *다 죽어야* 나오는데 하네스는 전투로 그걸 못 만든다 — 조건만 만들어 규칙을 확인한다.
+			int essenceBefore = match.Essence;
+			int clearedBefore = match.LairsCleared;
+			if (match.ClearAwakenedLairForVerification())
+				lairClearCheckAt = EditorApplication.timeSinceStartup + 1.0;
+			lairClearEssenceBefore = essenceBefore;
+			lairClearBefore = clearedBefore;
+		}
+
+		private static double lairClearCheckAt;
+		private static int lairClearEssenceBefore;
+		private static int lairClearBefore;
+
+		/// <summary> 서식지를 다 쓸면 정수가 들어오나 — 「싸워서 버는 길」이 실제로 이어져 있는지. </summary>
+		private static void CheckLairClearReward()
+		{
+			if (match == null)
+				return;
+
+			int gained = match.Essence - lairClearEssenceBefore;
+			int clearedNow = match.LairsCleared - lairClearBefore;
+			Debug.Log($"{TAG} 서식지 소탕 보상 — 쓸어낸 곳 +{clearedNow} · 정수 +{gained}");
+
+			if (clearedNow <= 0)
+				Debug.LogError(TAG + " 소탕 FAIL — 다 쓸었는데 「쓸어낸 서식지」가 안 는다.");
+			else if (gained <= 0)
+				Debug.LogError(TAG + " 소탕 FAIL — 쓸었다고 세는데 정수가 한 푼도 안 들어온다.");
 		}
 
 		/// <summary> 지금 스테이지의 목줄 반경 — 판정 기준을 규칙에서 그대로 읽는다(하네스가 따로 박지 않는다). </summary>

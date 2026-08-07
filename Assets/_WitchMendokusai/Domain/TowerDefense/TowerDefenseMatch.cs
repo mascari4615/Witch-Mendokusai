@@ -1049,6 +1049,7 @@ namespace WitchMendokusai
 			public readonly List<UnitObject> Guards = new();
 			public readonly List<TacticDriver> Drivers = new();
 			public bool Awake;
+			public bool Cleared; // 보상은 한 번만 — 안 그러면 빈 서식지가 매 프레임 정수를 찍어낸다.
 		}
 
 		// 「지금 어디서 무슨 일이 났나」 — 화면 밖 사건을 가장자리 표식으로 알린다.
@@ -1259,6 +1260,7 @@ namespace WitchMendokusai
 		{
 			lairs.Clear();
 			LairsAwakened = 0;
+			LairsCleared = 0;
 
 			if (stage == null || stage.LairCount <= 0 || mapLayout == null || stage.EnemyUnit == null)
 				yield break;
@@ -1424,6 +1426,72 @@ namespace WitchMendokusai
 				}
 			}
 		}
+
+		/// <summary>
+		/// 다 쓸어낸 서식지에 보상을 준다.
+		///
+		/// ★ 왜 필요한가: 정수는 「바깥 노드까지 나가서 캐는 것」 하나에만 묶여 있었고, 그 길이 막히면
+		///   강화가 통째로 잠긴다(사용자 실증: "초반에 연구 어떻게 하라는 겁니까"). 둥지를 부수는 길이
+		///   이미 그 짝으로 있으므로, 서식지 소탕도 같은 자리에 둔다 —
+		///   **캐서 버는 길과 싸워서 버는 길이 갈라져야** 어느 한쪽이 막혀도 판이 안 죽는다.
+		/// ★ 깨운 적 없는 서식지는 세지 않는다. 안 그러면 판이 시작하자마자 「빈 서식지」로 오인될 수 있다.
+		/// </summary>
+		private void CollectClearedLairs()
+		{
+			if (stage == null || stage.LairClearEssenceReward <= 0 || core == null)
+				return;
+
+			foreach (SleepingLair lair in lairs)
+			{
+				if (lair.Cleared || lair.Awake == false)
+					continue;
+
+				bool anyAlive = false;
+				foreach (UnitObject guard in lair.Guards)
+				{
+					if (guard != null && guard.gameObject.activeInHierarchy)
+					{
+						anyAlive = true;
+						break;
+					}
+				}
+				if (anyAlive)
+					continue;
+
+				lair.Cleared = true;
+				LairsCleared++;
+				int reward = Mathf.Max(0, Mathf.RoundToInt(stage.LairClearEssenceReward * boons.EssenceMultiplier));
+				core.AddEssence(reward);
+				PopWorldText("정수 +" + reward, lair.WorldPosition, TextType.Exp);
+				alerts.Raise("서식지를 쓸었다", lair.WorldPosition, Time.time, stage.AlertSeconds);
+				Debug.Log($"{nameof(TowerDefenseMatch)}: 서식지 소탕 — 정수 +{reward} (지금까지 {LairsCleared}곳).");
+			}
+		}
+
+		/// <summary>
+		/// 깨어난 서식지 한 곳을 쓸어낸 것으로 만든다(검증 전용) — 보상 경로는 *다 죽어야* 밟히는데,
+		/// 하네스가 전투로 그걸 만들기는 어렵다. 규칙이 보는 조건(살아있는 게 없다)을 그대로 만들어
+		/// 「다 쓸면 정수가 나오는가」만 확인한다.
+		/// </summary>
+		public bool ClearAwakenedLairForVerification()
+		{
+			foreach (SleepingLair lair in lairs)
+			{
+				if (lair.Awake == false || lair.Cleared)
+					continue;
+
+				foreach (UnitObject guard in lair.Guards)
+				{
+					if (guard != null)
+						guard.gameObject.SetActive(false);
+				}
+				return true;
+			}
+			return false;
+		}
+
+		/// <summary> 쓸어낸 서식지 수 — 결과 기록판이 「얼마나 밀어냈나」를 말한다. </summary>
+		public int LairsCleared { get; private set; }
 
 		private void WakeLair(SleepingLair lair)
 		{
@@ -1669,6 +1737,7 @@ namespace WitchMendokusai
 			CullDestroyedNests(); // 부순 둥지의 출구를 닫는다 — 「버틴다」가 「밀어낸다」가 되는 자리.
 			WakeNearbyLairs();    // 내 것이 가까이 갔으면 잠든 서식지가 깨어난다.
 			TickLairLeash();      // 깨어난 것은 제 자리를 지킨다 — 코어로 행진하면 그냥 파도가 하나 더다.
+			CollectClearedLairs();// 다 쓴 서식지는 정수를 낸다 — 싸워서 버는 길.
 			TrackLostBuildings(); // 내 것이 부서지면 *그 자리*를 알린다 — 화면 밖이면 알 길이 없었다.
 			RefreshPower();       // 전기를 못 받는 건물은 선다(도시 건설의 규칙 그대로).
 			TickSignalView();     // 신호가 번지는 것을 눈으로 보여준다 — 테두리와 파동.
