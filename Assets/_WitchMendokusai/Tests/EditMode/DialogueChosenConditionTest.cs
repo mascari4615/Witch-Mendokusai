@@ -118,6 +118,38 @@ namespace WitchMendokusai.Tests
 		}
 
 		[Test]
+		public void AnswerGivenEarlier_IsSeenLaterInTheSameDialogue()
+		{
+			// 러너가 하는 일을 그대로 흉내낸다: 고른 순간 이력에 남기고, 뒤쪽 조건이 그걸 본다.
+			// 「지난 판」이 아니라 **같은 판 안에서도** 통해야 한다 — 실린 기능 확인 원고가 그 모양이다.
+			string script = string.Join(NL,
+				"## 물어보기",
+				"> - 보상을 받아본다 -> 지난대답",
+				"> - 그냥 간다 -> 지난대답",
+				"## 지난대답",
+				"> ?골랐음 5200 보상을 받아본다 -> 기억함",
+				"> 욘: \"안 골랐구나.\"",
+				"## 기억함",
+				"> 욘: \"아까 골랐잖아.\"");
+
+			DialogueHistory history = new();
+			DialogueHistoryBridge.Register(history);
+			try
+			{
+				DialoguePlayback playback = new(DialogueScriptGraphBuilder.Build(DialogueScriptParser.Parse(script)));
+				playback.OnChoiceSelected += label => history.MarkChoice(TALK_ID, label);
+				playback.Begin();
+				playback.SubmitChoice(0);
+
+				Assert.That(playback.CurrentLine.Text, Is.EqualTo("아까 골랐잖아."));
+			}
+			finally
+			{
+				DialogueHistoryBridge.Clear(history);
+			}
+		}
+
+		[Test]
 		public void MissingLabel_IsReportedAsUnknownCondition()
 		{
 			// 번호만 적고 답을 안 적으면 무엇을 묻는지 알 수 없다 — 조용히 참/거짓으로 정하면 안 된다.
