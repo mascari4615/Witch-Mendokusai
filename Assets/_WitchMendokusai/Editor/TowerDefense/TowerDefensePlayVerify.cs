@@ -2411,7 +2411,12 @@ namespace WitchMendokusai.EditorTools
 			VisualElement hud = uiRoot != null && uiRoot.ModeHudLayer != null
 				? uiRoot.ModeHudLayer.Q(nameof(TowerDefenseHudView))
 				: null;
-			Button button = hud != null ? hud.Q<Button>() : null;
+			// ★ 「첫 번째 버튼」으로 고르면 판 상태에 따라 *다른 버튼*이 잡힌다 — 실제로 전체 실행에서만
+			//   위쪽 버튼이 잡혀 좌표를 못 찾고 실패했다(배치만 실행에서는 늘 아래쪽 버튼이라 통과).
+			//   순서가 아니라 **이름**으로 고른다. 같은 함정을 이 저장소에서 여러 번 밟았다.
+			Button button = hud != null ? hud.Q<Button>("RestartButton") : null;
+			if (button == null && hud != null)
+				button = hud.Q<Button>();
 			if (button == null)
 			{
 				Debug.LogError(TAG + " UIGUARD-FAIL HUD 버튼을 못 찾음 — 판정 검사 불가.");
@@ -2419,6 +2424,8 @@ namespace WitchMendokusai.EditorTools
 			}
 
 			Rect buttonPanelRect = button.worldBound;
+			// 어느 버튼을 골랐는지 남긴다 — 못 찾았을 때 「무엇을 재려 했나」가 없으면 원인을 못 짚는다.
+			Debug.Log($"{TAG} UIGUARD 대상 버튼 = 「{button.name}」/「{button.text}」 rect={buttonPanelRect}");
 			const int SAMPLE_COLUMNS = 96;
 			const int SAMPLE_ROWS = 54;
 			Vector2 buttonScreenPoint = new Vector2(-1f, -1f);
@@ -2982,7 +2989,7 @@ namespace WitchMendokusai.EditorTools
 			double elapsed = EditorApplication.timeSinceStartup - playStart;
 			Debug.Log($"{TAG} 검증 끝 — 마지막 단계 {step} · {elapsed:F0}초 · 모드 "
 				+ (placeOnly ? "배치만" : conclusionOnly ? "결말만" : "전체")
-				+ " (실패 항목은 위에 FAIL 로 찍힌다. 없으면 없다.)");
+				+ " (실패 항목은 위에 별도로 찍힌다. 없으면 없다.)");
 
 			EditorApplication.update -= Tick;
 			if (match != null)
