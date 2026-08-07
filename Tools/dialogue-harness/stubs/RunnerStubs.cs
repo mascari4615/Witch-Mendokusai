@@ -16,8 +16,17 @@ namespace UnityEngine
 {
 	public class MonoBehaviour : Object
 	{
-		public Transform transform { get; } = new();
-		public GameObject gameObject { get; } = new();
+		private GameObject host;
+
+		public Transform transform => gameObject.transform;
+
+		/// <summary>붙은 곳. 안 붙였으면 혼자 있는 것으로 친다(직접 new 로 만든 경우).</summary>
+		public GameObject gameObject => host ??= new GameObject();
+
+		internal void AttachTo(GameObject owner)
+		{
+			host = owner;
+		}
 
 		public Coroutine StartCoroutine(IEnumerator routine) => new();
 

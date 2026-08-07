@@ -78,9 +78,18 @@ namespace WitchMendokusai
 			DialogueQuestBridge.Register(questStateSource);
 		}
 
+		// 같은 씬에 러너가 둘일 때 「진 쪽」. 진 쪽은 자기를 지우는데, 지우면서 창구까지 지우면
+		// **이긴 쪽이 쓰던 창구가 빈다** — 그 뒤로 물건·의뢰 조건이 전부 「없다」로 넘어진다.
+		private bool lostToAnotherRunner;
+
 		private void Awake()
 		{
-			if (Instance != null && Instance != this) { Destroy(gameObject); return; }
+			if (Instance != null && Instance != this)
+			{
+				lostToAnotherRunner = true;
+				Destroy(gameObject);
+				return;
+			}
 			Instance = this;
 			DialogueHistoryBridge.Register(History);
 			EnsureCoordinatorWired();
@@ -132,6 +141,27 @@ namespace WitchMendokusai
 			DialogueHistoryBridge.Clear(History);
 			if (Instance == this)
 				Instance = null;
+
+			// 진 쪽이 사라지면서 창구를 비웠을 수 있다 — 주입이 진 쪽에 먼저 닿았으면 그쪽 것이 등록돼 있다.
+			// 이긴 쪽이 자기 것을 다시 걸어 둔다. 안 하면 조건이 전부 「없다」로 넘어진 채 게임이 돈다.
+			if (lostToAnotherRunner && Instance != null && Instance != this)
+			{
+				Instance.ReassertBridges();
+			}
+		}
+
+		/// <summary>자기 창구를 다시 건다 — 남이 지우고 간 뒤 이긴 쪽이 부른다.</summary>
+		private void ReassertBridges()
+		{
+			DialogueHistoryBridge.Register(History);
+			if (itemCountSource != null)
+			{
+				DialogueItemBridge.Register(itemCountSource);
+			}
+			if (questStateSource != null)
+			{
+				DialogueQuestBridge.Register(questStateSource);
+			}
 		}
 
 		private DialoguePlayback playback;

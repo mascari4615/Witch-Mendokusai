@@ -37,13 +37,44 @@ namespace UnityEngine
 				return;
 			}
 			target.destroyed = true;
+			if (target is MonoBehaviour behaviour)
+			{
+				InvokeLifecycle(behaviour, "OnDestroy");
+				return;
+			}
 			if (target is GameObject gameObject)
 			{
 				gameObject.transform.destroyed = true;
+				// 게임 오브젝트를 없애면 붙은 것들의 뒷정리도 돈다 — 유니티가 그렇게 한다.
+				// 안 돌리면 「없앨 때 하는 정리」가 검사에서 통째로 빠진다.
+				for (int i = 0; i < gameObject.Components.Count; i++)
+				{
+					MonoBehaviour attached = gameObject.Components[i];
+					if (attached.destroyed)
+					{
+						continue;
+					}
+					attached.destroyed = true;
+					InvokeLifecycle(attached, "OnDestroy");
+				}
 			}
 		}
 
 		public static void Destroy(Object target) => DestroyImmediate(target);
+
+		/// <summary>이름으로 수명주기 메서드를 부른다 — 유니티가 리플렉션으로 부르는 것과 같은 결.</summary>
+		internal static void InvokeLifecycle(MonoBehaviour behaviour, string methodName)
+		{
+			System.Reflection.MethodInfo method = behaviour.GetType().GetMethod(
+				methodName,
+				System.Reflection.BindingFlags.Instance
+					| System.Reflection.BindingFlags.Public
+					| System.Reflection.BindingFlags.NonPublic);
+			if (method != null && method.GetParameters().Length == 0)
+			{
+				method.Invoke(behaviour, null);
+			}
+		}
 	}
 
 	public class Transform : Object
@@ -72,18 +103,14 @@ namespace UnityEngine
 		///   (자체 리뷰가 짚어 준 자리다 — 「유일하게 돌릴 수 있는 검사가 그 배선을 안 본다」.)
 		///   Start/OnEnable 은 아직 안 부른다 — 필요해지면 그때 같은 자리에 더한다.
 		/// </summary>
+		public System.Collections.Generic.List<MonoBehaviour> Components { get; } = new();
+
 		public T AddComponent<T>() where T : MonoBehaviour, new()
 		{
 			T component = new();
-			System.Reflection.MethodInfo awake = typeof(T).GetMethod(
-				"Awake",
-				System.Reflection.BindingFlags.Instance
-					| System.Reflection.BindingFlags.Public
-					| System.Reflection.BindingFlags.NonPublic);
-			if (awake != null && awake.GetParameters().Length == 0)
-			{
-				awake.Invoke(component, null);
-			}
+			Components.Add(component);
+			component.AttachTo(this);
+			InvokeLifecycle(component, "Awake");
 			return component;
 		}
 	}
