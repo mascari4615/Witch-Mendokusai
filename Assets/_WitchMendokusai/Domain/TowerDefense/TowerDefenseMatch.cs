@@ -4938,7 +4938,12 @@ namespace WitchMendokusai
 				//   앞뒤로 왔다 갔다 해서 4초 전후 위치만 같았을 뿐이다(목줄이 끌고 브레인이 다시 나가는 식).
 				//   그걸 「못 나아감」으로 부르면 진짜 막힌 것이 그 안에 묻힌다(예전에 자는 식구를 뺀 것과 같은 이유).
 				//   몸이 실제로 나아가고 있으면 굳음이 아니라 왕복이다 — 따로 세고, 경고는 안 쏟는다.
-				if (stuckMovement != null && stuckMovement.LastMoveDelta.sqrMagnitude > moveEpsilonSqr)
+				// ★ 척도를 맞춰야 한다. 처음엔 *한 틱* 이동량(≈0.03)을 *4초짜리* 문턱과 견줘서 왕복이 늘 0 이었다.
+				//   옳은 물음은 「이 몸이 자기가 가려던 만큼 실제로 갔나」다 — 가려던 한 틱치의 1/4 이라도
+				//   갔으면 막힌 게 아니라 왔다 갔다 하는 것이다.
+				float intendedStep = stuckMovement != null ? stuckMovement.Velocity.magnitude * TimeManager.TICK : 0f;
+				if (stuckMovement != null && intendedStep > 0f
+					&& stuckMovement.LastMoveDelta.magnitude > intendedStep * 0.25f)
 				{
 					oscillatingCells.Add(mapLayout.WorldToCell(stageRoot.InverseTransformPoint(position)));
 					enemyStillness[enemy.CombatantId] = (position, 0f);
