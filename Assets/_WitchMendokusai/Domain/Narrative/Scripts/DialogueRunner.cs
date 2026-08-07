@@ -62,6 +62,10 @@ namespace WitchMendokusai
 		private Transform bubbleTarget;
 		private DialogueGraph playingGraph;
 
+		// 원고로 재생 중이면 그 자산 ID — 이력은 그래프가 아니라 *원고* 단위로 남아야 한다
+		// (그래프는 원고에서 매번 세워지는 사본이라 ID 가 없다).
+		private int playingScriptId = DataSO.NONE_ID;
+
 		/// <summary>「이 대화를 본 적 있나」 기록 — 조건이 <see cref="DialogueHistoryBridge"/> 로 찾아온다.</summary>
 		public DialogueHistory History { get; } = new();
 
@@ -88,6 +92,7 @@ namespace WitchMendokusai
 
 			bubbleTarget = ResolveTarget(speakerTransform);
 			playingGraph = graph;
+			playingScriptId = DataSO.NONE_ID;
 			History.MarkStarted(graph.ID);
 			playback = new DialoguePlayback(graph, effectSink) { DefaultSpeakSeconds = DEFAULT_LINE_DURATION };
 			playback.OnStepChanged += HandleStepChanged;
@@ -95,6 +100,30 @@ namespace WitchMendokusai
 
 			activeCoroutine = StartCoroutine(DriveGraph());
 			playback.Begin();
+		}
+
+		/// <summary>
+		/// 글로 쓴 대화 재생 — 원고 → 화면의 마지막 칸. 대화 이력에는 이 자산의 ID 가 남는다
+		/// (그래야 「이 대화 봤나」가 원고 단위로 물어진다).
+		/// </summary>
+		public void Play(DialogueScriptSource source, Transform speakerTransform = null)
+		{
+			if (source == null)
+			{
+				Debug.LogWarning("[DialogueRunner] Play called with null DialogueScriptSource");
+				return;
+			}
+
+			DialogueGraph graph = source.BuildGraph(out ParsedDialogueScript parsed);
+			for (int i = 0; i < parsed.Issues.Count; i++)
+			{
+				// 원고의 오타는 재생을 막지 않는다 — 다만 조용히 넘어가지도 않는다(줄 번호까지 찍는다).
+				Debug.LogWarning($"[DialogueRunner] {source.name} L{parsed.Issues[i].LineNumber}: {parsed.Issues[i].Message}");
+			}
+
+			Play(graph, speakerTransform);
+			History.MarkStarted(source.ID);
+			playingScriptId = source.ID;
 		}
 
 		/// <summary>선택지 고르기 — UI 가 호출. Choice 스텝이 아니면 false.</summary>
@@ -147,7 +176,7 @@ namespace WitchMendokusai
 			// 끝까지 간 것만 「들었다」로 남긴다 — 중간에 접은 대화는 다음에 다시 보여줘야 한다.
 			if (playingGraph != null && playback != null && playback.ReachedEnd)
 			{
-				History.MarkCompleted(playingGraph.ID);
+				History.MarkCompleted(playingScriptId == DataSO.NONE_ID ? playingGraph.ID : playingScriptId);
 			}
 			OnDialogueFinished();
 		}
