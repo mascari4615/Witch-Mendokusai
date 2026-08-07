@@ -653,6 +653,9 @@ namespace WitchMendokusai
 			windowMenuColumn.Add(MakeTapButton("몸 상태", InputEventType.Status));
 			// 건축도 키 하나에만 매달려 있었다 — 폰에서 집을 지을 방법이 0 이었다.
 			windowMenuColumn.Add(MakeTapButton("건축", InputEventType.BuildModeToggle));
+			// 시점 바꾸기(1인칭/3인칭 순환)도 키 하나에만 있었다 — 폰에선 시점을 영영 못 바꿨다.
+			// 자주 쓰는 조작이 아니라 화면에 상시 띄우지 않고 이 서랍에 둔다.
+			windowMenuColumn.Add(MakeTapButton("시점", InputEventType.CameraViewCycle));
 			windowMenuColumn.Add(MakeLayoutEditButton());
 
 			Label toggle = MakeMenuToggleButton();
