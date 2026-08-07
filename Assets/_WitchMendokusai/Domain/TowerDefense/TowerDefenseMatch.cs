@@ -2276,7 +2276,42 @@ namespace WitchMendokusai
 				stage.InvasionEdgeInset,
 				stage.InvasionFrontPoints,
 				invasionFront);
+
+			// ★ 테두리는 암반이 흔하다. 그대로 뱉으면 그 마리는 못 걷는 칸에서 시작해 4초 뒤
+			//   「못 나아감」 경고를 남기고 굳는다 — 실측 콘솔 경고 30개 중 21개가 이것이었고
+			//   좌표가 전부 판 가장자리였다. 스폰 직전 스냅은 반경이 좁아 암반 띠를 못 벗어난다.
+			//   전선을 만들 때 *코어 쪽으로 밀어* 걸을 수 있는 첫 칸을 잡는다.
+			PullFrontInsideWalkable();
 		}
+
+		/// <summary> 전선의 각 점을 코어 쪽으로 밀어 걸을 수 있는 자리로 옮긴다. </summary>
+		private void PullFrontInsideWalkable()
+		{
+			if (mapLayout == null || flowField == null)
+				return;
+
+			for (int index = 0; index < invasionFront.Count; index++)
+			{
+				Vector3 point = invasionFront[index];
+				if (flowField.IsReachable(mapLayout.WorldToCell(point)))
+					continue;
+
+				Vector3 inward = (Vector3.zero - point).normalized; // 무대 로컬에서 코어는 원점이다.
+				for (int step = 1; step <= FRONT_PULL_STEPS; step++)
+				{
+					Vector3 candidate = point + inward * (step * FRONT_PULL_DISTANCE);
+					if (flowField.IsReachable(mapLayout.WorldToCell(candidate)) == false)
+						continue;
+
+					invasionFront[index] = candidate;
+					break;
+				}
+			}
+		}
+
+		/// <summary> 안쪽으로 미는 한 걸음 길이와 최대 걸음 수 — 암반 띠를 벗어날 만큼은 되어야 한다. </summary>
+		private const float FRONT_PULL_DISTANCE = 2f;
+		private const int FRONT_PULL_STEPS = 12;
 
 		/// <summary>
 		/// 그 파도가 들어오는 방향(도). 화면 예고가 이걸 그대로 읽는다 — 미래 파도도 물어볼 수 있다.

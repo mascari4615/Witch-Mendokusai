@@ -163,6 +163,9 @@ namespace WitchMendokusai.EditorTools
 			noiseMatch = null;
 			noiseAlertSeen = false;
 			noiseSustainAt = 0.0;
+			noiseRampLeft = 0;
+			resumeVerified = false;
+			noiseWarnSeenAt = 0.0;
 			breachArmed = false;
 			breachMatch = null;
 			markCheckAt = 0.0;
@@ -235,6 +238,8 @@ namespace WitchMendokusai.EditorTools
 				noiseSustainAt = 0.0;
 				CheckNoiseSustained();
 			}
+
+			TickNoiseRamp();
 
 			if (noiseCheckAt > 0.0)
 			{
@@ -466,7 +471,16 @@ namespace WitchMendokusai.EditorTools
 						if (restoring != null && restoring.RestoreInProgress)
 							return;
 					}
-					VerifyResume();
+					// ★ 이 단계는 남은 검사를 기다리느라 여러 틱 머문다. 그때마다 다시 재면
+					//   *살아 움직이는 판*(목숨이 줄고 시간이 흐르는)과 복원 직후 스냅샷을 비교하게 되어
+					//   에러가 매 프레임 쏟아진다 — 실측에서 같은 에러 31줄이 찍혀 진짜 에러를 덮었다.
+					//   복원 비교는 복원 직후 딱 한 번이다.
+					if (resumeVerified == false)
+					{
+						resumeVerified = true;
+						VerifyResume();
+					}
+
 					if (placeOnly)
 					{
 						// 아직 재기로 한 것이 남아 있으면 끝내지 않는다 — 끝내버리면 그 항목은 영영 안 재진다.
@@ -1427,18 +1441,22 @@ namespace WitchMendokusai.EditorTools
 			int before = match.LairsAwakened;
 			float heardBefore = match.NoiseHeardAt(target);
 
-			// 깨우는 거리 밖에서 크게 낸다 — 깨어나면 그건 거리가 아니라 소리 때문이다.
-			Vector3 loudSpot = target + new Vector3(1f, 0f, 0f) * (match.LairWakeRadius + 4f);
-			for (int shout = 0; shout < 12; shout++)
-				match.EmitNoise(loudSpot, 3f);
+			// ★ 소리를 한 프레임에 몰아서 내면 경고 구간(문턱의 60%)을 *건너뛴다* — 미리 알림이
+			//   도는지 영영 못 잰다(두 판을 그렇게 「못 쟀다」로 끝냈다). 사람이 쏘거나 짓는 것처럼
+			//   조금씩 나눠 내서 소리가 *차오르게* 한다.
+			// 깨우는 거리 밖에서 낸다 — 깨어나면 그건 거리가 아니라 소리 때문이다.
+			noiseRampSpot = target + new Vector3(1f, 0f, 0f) * (match.LairWakeRadius + 4f);
+			noiseRampTarget = target;
+			noiseRampLeft = NOISE_RAMP_STEPS;
+			match.EmitNoise(noiseRampSpot, NOISE_RAMP_AMOUNT);
 
 			float heardAfter = match.NoiseHeardAt(target);
 			Debug.Log($"{TAG} 소리 — 자는 서식지 옆(깨우는 거리 밖)에서 크게 냈다 · 들리는 크기 {heardBefore:F1} → {heardAfter:F1}"
 				+ $" · 문턱 {match.NoiseWakeThreshold:F1} · 깨어난 곳 {before}");
 
-			if (heardAfter < match.NoiseWakeThreshold)
+			if (heardAfter <= 0f)
 			{
-				Debug.LogWarning(TAG + " 소리 FAIL — 바로 옆에서 크게 냈는데 문턱에도 안 닿는다(소리가 아무 일도 안 한다).");
+				Debug.LogWarning(TAG + " 소리 FAIL — 바로 옆에서 냈는데 아무것도 안 들린다(소리가 판에 안 닿는다).");
 				return;
 			}
 
@@ -1450,7 +1468,34 @@ namespace WitchMendokusai.EditorTools
 			noiseMatch = match;
 		}
 
+		private static bool resumeVerified;
 		private static bool noiseAlertSeen;
+
+		/// <summary> 한 번에 몰아내지 않고 조금씩 올린다 — 경고 구간을 지나가야 미리 알림을 잰다. </summary>
+		private const int NOISE_RAMP_STEPS = 40;
+		private const float NOISE_RAMP_AMOUNT = 1.2f;
+		private static int noiseRampLeft;
+		private static Vector3 noiseRampSpot;
+		private static Vector3 noiseRampTarget;
+
+		private static void TickNoiseRamp()
+		{
+			if (noiseRampLeft <= 0 || match == null)
+				return;
+
+			noiseRampLeft--;
+			match.EmitNoise(noiseRampSpot, NOISE_RAMP_AMOUNT);
+
+			if (match.NoiseWarnings > 0 && noiseWarnSeenAt <= 0.0)
+			{
+				noiseWarnSeenAt = EditorApplication.timeSinceStartup;
+				Debug.Log(TAG + " 소리 — 미리 알림이 떴다(들리는 크기 "
+					+ match.NoiseHeardAt(noiseRampTarget).ToString("F1")
+					+ " · 문턱 " + match.NoiseWakeThreshold.ToString("F1") + ")");
+			}
+		}
+
+		private static double noiseWarnSeenAt;
 		private static double noiseSustainAt;
 		private static float noiseLoudestFirst;
 
