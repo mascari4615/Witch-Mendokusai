@@ -1432,6 +1432,41 @@ namespace WitchMendokusai
 			}
 		}
 
+		// 마지막으로 알린 적응 — 같은 말을 매 프레임 다시 띄우지 않기 위해.
+		private string lastAdaptationNote = string.Empty;
+
+		/// <summary>
+		/// 마수가 무엇에 익숙해졌는지 알린다.
+		///
+		/// ★ 적응은 *판을 바꾸는 규칙*이다(한 수단에만 기대면 그 수단이 덜 먹힌다). 그런데 그걸 그리던
+		///   칸이 숨겨지면서 화면 어디에도 안 나오게 됐다 — 그러면 사람은 자기 포탑이 고장 났다고 여긴다
+		///   (이 규칙을 처음 넣을 때 정본 주석에 적어 둔 그대로다: 「안 보이는 규칙은 없는 규칙이다」).
+		/// ★ 숫자가 아니라 **말**로 알린다("광역에 익숙해졌다") — 판이 도는 중에 수치를 늘어놓지
+		///   않기로 한 결정과 어긋나지 않는다.
+		/// ★ 바뀔 때만 한 번 — 매 프레임 띄우면 다른 알림을 덮어 정작 급한 것을 가린다.
+		/// </summary>
+		private void AnnounceAdaptation()
+		{
+			if (stage == null || coreCombatant == null)
+				return;
+
+			string note = TowerDefenseAdaptation.Describe(Adaptation);
+			if (note == lastAdaptationNote)
+				return;
+
+			lastAdaptationNote = note;
+			if (string.IsNullOrEmpty(note))
+				return;
+
+			// "광역에 익숙함" → "마수가 광역에 익숙해졌다".
+			string spoken = "마수가 " + note.Replace("에 익숙함", "에 익숙해졌다");
+			alerts.Raise(spoken, coreCombatant.Position, Time.time, stage.AlertSeconds);
+			Debug.Log($"{nameof(TowerDefenseMatch)}: 적응 — {spoken}");
+		}
+
+		/// <summary> 지금 적응이 무엇이라 말하는가 — 하네스가 「보이는가」를 잴 때 기준으로 쓴다. </summary>
+		public string AdaptationNote => TowerDefenseAdaptation.Describe(Adaptation);
+
 		/// <summary>
 		/// 다 쓸어낸 서식지에 보상을 준다.
 		///
@@ -1741,6 +1776,7 @@ namespace WitchMendokusai
 			UnstickEnemies();     // 굳은 마수를 풀어준다 — 한 마리가 굳으면 웨이브가 영영 안 끝난다.
 			CullDestroyedNests(); // 부순 둥지의 출구를 닫는다 — 「버틴다」가 「밀어낸다」가 되는 자리.
 			WakeNearbyLairs();    // 내 것이 가까이 갔으면 잠든 서식지가 깨어난다.
+			AnnounceAdaptation(); // 마수가 무엇에 익숙해졌는지 — 안 보이면 없는 규칙이다.
 			TickLairLeash();      // 깨어난 것은 제 자리를 지킨다 — 코어로 행진하면 그냥 파도가 하나 더다.
 			CollectClearedLairs();// 다 쓴 서식지는 정수를 낸다 — 싸워서 버는 길.
 			TrackLostBuildings(); // 내 것이 부서지면 *그 자리*를 알린다 — 화면 밖이면 알 길이 없었다.

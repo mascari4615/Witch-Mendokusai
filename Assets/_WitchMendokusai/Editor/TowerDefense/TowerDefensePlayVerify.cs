@@ -1068,6 +1068,13 @@ namespace WitchMendokusai.EditorTools
 					Debug.LogError(TAG + " 예고 FAIL — 다음 파도에 성격이 있는데 예고가 방향만 말한다.");
 				}
 
+				// 적응은 판을 바꾸는 규칙인데 그리던 칸이 숨겨져 화면에서 사라졌었다 —
+				// 「규칙이 말하는 것」과 「화면이 말하는 것」을 나란히 놓고 본다.
+				string adaptation = match != null ? match.AdaptationNote : string.Empty;
+				Debug.Log($"{TAG} 적응 — 규칙 「{adaptation}」 · 화면 경고 {alertMarks}개");
+				if (string.IsNullOrEmpty(adaptation))
+					Debug.Log(TAG + " 적응 — 못 쟀다(아직 아무것에도 안 익숙하다). 실패가 아니다.");
+
 				bool mapOpen = TowerDefenseModeController.TryGetExistingInstance(out TowerDefenseModeController mapView)
 					&& mapView.IsMapOpenForVerification;
 				// ★ 「안 그려졌다」와 「그릴 게 없다」는 다르다 — 서식지는 *밝힌 곳만* 그린다(시야 규칙).
