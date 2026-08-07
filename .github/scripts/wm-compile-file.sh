@@ -84,7 +84,9 @@ for dll in "$script_assemblies"/*.dll; do
 	refs+=("-r:$dll")
 done
 
-for dll in "$unity_data"/Managed/UnityEngine/UnityEngine*.dll; do
+# `UnityEngine*` 만 넣으면 모자란다 — 같은 폴더에 `Unity.Scripting.dll` 같은 것들이 섞여 있고,
+# `[RuntimeInitializeOnLoadMethod]` 하나 쓰면 바로 「참조 없다」가 뜬다(실측). 폴더째 넣는다.
+for dll in "$unity_data"/Managed/UnityEngine/*.dll; do
 	[ -f "$dll" ] && refs+=("-r:$dll")
 done
 
@@ -104,7 +106,21 @@ out=$(mktemp -u)".dll"
 # 0436(같은 타입이 소스와 dll 양쪽에) 도 끈다 — 위에서 자기 어셈블리를 일부러 넣었기 때문이다.
 # `[SerializeField] private int foo;` 는 코드가 아니라 **인스펙터가** 채우므로 컴파일러 눈엔 안 채워진
 # 것처럼 보인다. 이 저장소 곳곳이 그 모양이라, 안 끄면 멀쩡한 코드가 전부 빨강이 된다(실측).
-output=$("$mono" "$csc" -target:library -nostdlib+ -noconfig "-langversion:$lang_version" -nowarn:0649,0169,0436 "${refs[@]}" -out:"$out" "$@" 2>&1)
+# 참조가 200개를 넘으면 명령줄 길이 한계에 걸린다("Argument list too long" — 실측).
+# 컴파일러가 읽는 응답 파일로 넘긴다. 경로에 공백이 있으니 한 줄씩 따옴표로 싼다.
+work_dir=$(mktemp -d)
+trap 'rm -rf "$work_dir"' EXIT
+rsp="$work_dir/refs.rsp"
+: > "$rsp"
+# ⚠ 응답 파일 안의 경로는 셸이 안 고쳐 준다. 명령줄로 넘길 땐 `/c/...` 가 자동으로 윈도우 경로로
+# 바뀌지만 파일 안에 적으면 그대로 넘어가 「그런 파일 없다」가 된다(실측 175건).
+# 경로마다 `cygpath` 를 부르면 200번 프로세스를 띄워 느려진다 — 다 적고 한 번에 바꾼다.
+for ref in "${refs[@]}"; do
+	printf '"%s"\n' "$ref" >> "$rsp"
+done
+sed -i 's|"-r:/\([a-zA-Z]\)/|"-r:\1:/|' "$rsp"
+
+output=$("$mono" "$csc" -target:library -nostdlib+ -noconfig "-langversion:$lang_version" -nowarn:0649,0169,0436 "@$rsp" -out:"$out" "$@" 2>&1)
 status=$?
 rm -f "$out"
 
