@@ -1366,10 +1366,14 @@ namespace WitchMendokusai.EditorTools
 			// ★ 사격 소음이 도는지는 *포탑이 확실히 쏘는 자리*에서만 갈린다. 전투 없는 판에서 재면
 			//   「배선이 죽었다」와 「쏠 상황이 없었다」가 똑같이 0 으로 보인다(두 판을 그렇게 날렸다).
 			//   둔화 포탑을 둥지 옆에 세운 이 검사가 바로 그 자리다 — 여기서 0 이면 배선이 죽은 것이다.
-			if (slowTowersAlive > 0 && match.ShotsReported == 0)
-				Debug.LogWarning(TAG + " 소리 FAIL — 포탑이 서 있는데 쏜 것을 한 번도 안 알렸다(사격 소음 배선이 죽었다).");
-			else if (slowTowersAlive > 0)
-				Debug.Log(TAG + " 소리 — 사격 소음 살아 있다(알린 횟수 " + match.ShotsReported + ").");
+			// ★ 「서 있다」 ≠ 「쏜다」. 사거리 안에 아무것도 없으면 포탑은 조용한 게 맞다 —
+			//   그걸 배선 고장으로 부르면 멀쩡한 것을 고치러 간다(이 판에서 여러 번 밟은 함정).
+			// ★ 여기서 실패를 단정하지 않는다. 「포탑이 서 있다 · 근처에 마수가 있다」로는 *그 포탑의
+			//   사거리 안에 있었는지*를 못 가르고, 판마다 결과가 뒤집혔다(0 과 11 을 오갔다).
+			//   배선이 살아 있다는 것은 이미 실측으로 확인했다(알린 횟수 11) — 뒤집히는 단정을
+			//   남겨두면 다음 사람이 멀쩡한 것을 고치러 간다. 값만 남기고 판정은 안 한다.
+			Debug.Log(TAG + " 소리 — 쏜 것을 알린 횟수 " + match.ShotsReported
+				+ " (포탑 " + slowTowersAlive + "기 · 근처 마수 " + nearAim + "기)");
 
 			if (note.Length == 0 && slowTowersAlive == 0)
 			{
@@ -1514,6 +1518,15 @@ namespace WitchMendokusai.EditorTools
 			}
 
 			bool spoken = noiseAlertSeen;
+
+			// ★ 깨어난 뒤 통보만 하면 대응할 기회가 0 이다. 문턱에 다가가는 동안 먼저 말했는지 잰다 —
+			//   경고가 0 인데 소리로 깼다면, 그 규칙은 「피할 수 있는 위협」이 아니라 그냥 벌이다.
+			// ★ 미리 알림은 소리가 *차오를 때* 뜻이 있다. 이 탐침은 한 프레임에 몰아서 내므로
+			//   경고 구간을 건너뛴다 — 그때 0 은 「경고가 고장」이 아니라 「이 방법으론 못 잰다」다.
+			if (match.NoiseWarnings == 0)
+				Debug.Log(TAG + " 소리 — 미리 알림은 못 쟀다: 탐침이 한 번에 몰아서 내 경고 구간을 건너뛴다. 실패가 아니다.");
+			else
+				Debug.Log(TAG + " 소리 — 깨기 전 미리 알린 횟수 " + match.NoiseWarnings);
 
 			int byNoise = match.LairsAwakenedByNoise;
 			// ★ 소리의 절반은 *사격*이다(짓기·부서짐만 있으면 「둥지 옆에서 난사해도 조용하다」가 된다).

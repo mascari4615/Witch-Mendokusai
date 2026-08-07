@@ -460,6 +460,9 @@ namespace WitchMendokusai
 		[Tooltip("서식지가 이만큼 들으면 깨어난다. 0 이면 소리로는 안 깨어난다(규칙 끄기).")]
 		[field: SerializeField, Min(0f)] public float NoiseWakeThreshold { get; private set; } = 6f;
 
+		[Tooltip("깨는 문턱의 몇 할에서 미리 경고할지. 0.6 이면 문턱의 60% 에서 한 번 알린다. 0 이면 미리 알림 끄기.")]
+		[field: SerializeField, Range(0f, 1f)] public float NoiseWarnFraction { get; private set; } = 0.6f;
+
 		[Tooltip("소리가 들리는 거리. 이 밖은 아무리 시끄러워도 안 들린다 — 안 그러면 판 전체가 한 번에 깬다.")]
 		[field: SerializeField, Min(0f)] public float NoiseHearingRadius { get; private set; } = 26f;
 

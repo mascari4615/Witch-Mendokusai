@@ -1120,6 +1120,7 @@ namespace WitchMendokusai
 			public readonly List<UnitObject> Guards = new();
 			public readonly List<TacticDriver> Drivers = new();
 			public bool Awake;
+			public bool NoiseWarned; // 「여기 소리가 크다」는 한 곳당 한 번만.
 			public bool Cleared; // 보상은 한 번만 — 안 그러면 빈 서식지가 매 프레임 정수를 찍어낸다.
 		}
 
@@ -1418,6 +1419,9 @@ namespace WitchMendokusai
 		/// <summary> 그중 *소리만으로* 깨어난 수 — 거리로 깬 것과 갈라야 소리 규칙을 잴 수 있다. </summary>
 		public int LairsAwakenedByNoise { get; private set; }
 
+		/// <summary> 깨기 전에 「소리가 크다」고 미리 알린 횟수 — 대응할 기회를 줬는지의 창. </summary>
+		public int NoiseWarnings { get; private set; }
+
 		/// <summary>
 		/// 판 곳곳에 잠든 마수를 깐다 (TASK-WM-194, 데아빌 레퍼런스).
 		///
@@ -1537,8 +1541,21 @@ namespace WitchMendokusai
 				// ★ 거리만 보면 「멀찍이서 조용히 크는 것」과 「바로 옆에서 난사하는 것」이 똑같이
 				//   안전하다 — 개척의 위험이 거리 하나로 납작해진다. 소리도 깨운다:
 				//   짓고, 쏘고, 얻어맞는 소리가 마수를 부른다(데아빌의 축은 거리가 아니라 내 행동이다).
-				bool tooLoud = stage.NoiseWakeThreshold > 0f
-					&& noise.LevelAt(lair.WorldPosition, stage.NoiseHearingRadius) >= stage.NoiseWakeThreshold;
+				float heard = stage.NoiseWakeThreshold > 0f
+					? noise.LevelAt(lair.WorldPosition, stage.NoiseHearingRadius)
+					: 0f;
+				bool tooLoud = stage.NoiseWakeThreshold > 0f && heard >= stage.NoiseWakeThreshold;
+
+				// ★ 깨어난 뒤에 알리면 대응할 기회가 0 이다 — 이미 벌어진 일을 통보받을 뿐이다.
+				//   문턱에 다가가는 동안 한 번 말해 줘야 「그만 쏠까 · 물러설까」가 결정이 된다.
+				//   한 곳당 한 번만(매 프레임 외치면 다른 알림을 덮는다).
+				if (tooLoud == false && lair.NoiseWarned == false && stage.NoiseWarnFraction > 0f
+					&& heard >= stage.NoiseWakeThreshold * stage.NoiseWarnFraction)
+				{
+					lair.NoiseWarned = true;
+					NoiseWarnings++;
+					alerts.Raise("여기 소리가 크다", lair.WorldPosition, Time.time, stage.AlertSeconds);
+				}
 
 				if (tooClose == false && tooLoud == false)
 					continue;
