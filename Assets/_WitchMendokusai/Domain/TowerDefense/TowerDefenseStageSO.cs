@@ -456,6 +456,25 @@ namespace WitchMendokusai
 		[Tooltip("열기가 1초에 식는 양. 0.1 이면 한 번 잃은 자리가 10초쯤 뒤 잊힌다 — 실수가 영원한 벌이 되지 않게.")]
 		[field: SerializeField, Min(0f)] public float BreachCoolPerSecond { get; private set; } = 0.1f;
 
+		[Header("소리 — 내 행동이 마수를 부른다")]
+		[Tooltip("서식지가 이만큼 들으면 깨어난다. 0 이면 소리로는 안 깨어난다(규칙 끄기).")]
+		[field: SerializeField, Min(0f)] public float NoiseWakeThreshold { get; private set; } = 6f;
+
+		[Tooltip("소리가 들리는 거리. 이 밖은 아무리 시끄러워도 안 들린다 — 안 그러면 판 전체가 한 번에 깬다.")]
+		[field: SerializeField, Min(0f)] public float NoiseHearingRadius { get; private set; } = 26f;
+
+		[Tooltip("건물 한 채 지을 때 나는 소리.")]
+		[field: SerializeField, Min(0f)] public float NoiseFromBuild { get; private set; } = 3f;
+
+		[Tooltip("내 건물이 부서질 때 나는 소리 — 가장 크다. 소리 사태의 시작점이다.")]
+		[field: SerializeField, Min(0f)] public float NoiseFromLoss { get; private set; } = 9f;
+
+		[Tooltip("이 거리 안에서 난 소리는 한 자리로 합친다 — 같은 자리에서 거듭 나면 자리가 아니라 크기가 늘어야 한다.")]
+		[field: SerializeField, Min(0f)] public float NoiseMergeDistance { get; private set; } = 4f;
+
+		[Tooltip("소리가 1초에 잦아드는 비율. 0.5 면 1초마다 절반 — 조용해질 기회가 있어야 한다.")]
+		[field: SerializeField, Range(0f, 1f)] public float NoiseDecayPerSecond { get; private set; } = 0.35f;
+
 		[field: Tooltip("테두리가 코어까지 닿는지 볼 때 몇 도 간격으로 훑을지. 촘촘할수록 안전하고 판정이 무겁다.")]
 		[field: SerializeField, Min(1f)] public float BorderCheckStepDegrees { get; private set; } = 5f;
 

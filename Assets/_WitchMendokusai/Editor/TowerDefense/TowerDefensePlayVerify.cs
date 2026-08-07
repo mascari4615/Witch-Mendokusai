@@ -158,6 +158,9 @@ namespace WitchMendokusai.EditorTools
 			adaptationTargetsNest = false;
 			adaptationMatch = null;
 			breachCheckAt = 0.0;
+			noiseArmed = false;
+			noiseCheckAt = 0.0;
+			noiseMatch = null;
 			breachArmed = false;
 			breachMatch = null;
 			markCheckAt = 0.0;
@@ -221,6 +224,13 @@ namespace WitchMendokusai.EditorTools
 
 			ArmAdaptationProbe();
 			PollAdaptation(now);
+
+			ArmNoiseProbe();
+			if (noiseCheckAt > 0.0 && now >= noiseCheckAt)
+			{
+				noiseCheckAt = 0.0;
+				CheckNoiseWake();
+			}
 
 			ArmBreachProbe(now);
 			if (breachCheckAt > 0.0 && now >= breachCheckAt)
@@ -447,7 +457,7 @@ namespace WitchMendokusai.EditorTools
 					{
 						// 아직 재기로 한 것이 남아 있으면 끝내지 않는다 — 끝내버리면 그 항목은 영영 안 재진다.
 						if (lairDriftCheckAt > 0.0 || markCheckAt > 0.0 || lairClearCheckAt > 0.0 || pressureCheckAt > 0.0
-							|| relayProbeAt > 0.0 || adaptationProbeAt > 0.0 || breachCheckAt > 0.0)
+							|| relayProbeAt > 0.0 || adaptationProbeAt > 0.0 || breachCheckAt > 0.0 || noiseCheckAt > 0.0)
 							return;
 
 						Debug.Log(TAG + " PLACE-ONLY 배치 확인 끝 — 조기 종료");
@@ -1313,6 +1323,112 @@ namespace WitchMendokusai.EditorTools
 				Debug.LogWarning(TAG + " 적응 FAIL — 마수가 있었는데도 둔화 포탑이 아무 편중도 못 만들었다.");
 			else
 				Debug.LogWarning(TAG + " 적응 FAIL — 규칙은 「" + note + "」인데 화면 어디에도 안 떴다(안 보이는 규칙 = 없는 규칙).");
+		}
+
+		private static bool noiseArmed;
+
+		/// <summary>
+		/// 소리가 자는 것을 깨우는가 — 「멀찍이서 조용히」와 「옆에서 시끄럽게」가 실제로 다른가.
+		///
+		/// ★ 기다리지 않는다(적응에서 다섯 사이클을 그렇게 흘렸다). 아직 자고 있는 서식지를 골라
+		///   그 옆에서 *일부러 소리를 낸다*. 소리는 짓기·부서짐과 같은 문으로 들어가므로
+		///   검사만 통과하는 길이 아니다.
+		/// ★ 거리로 깨어난 것과 구별해야 한다 — 그래서 서식지에서 **깨우는 거리 밖**에 소리를 낸다.
+		///   그 자리에서 깨어나면 그건 소리 때문이다.
+		/// </summary>
+		private static void ArmNoiseProbe()
+		{
+			if (noiseArmed || match == null || match.SurvivedSeconds < 8f)
+				return;
+
+			Vector3 target = Vector3.zero;
+			bool found = false;
+			foreach (TowerDefenseMatch.LairMarker marker in match.LairMarkers)
+			{
+				if (marker.Awake)
+					continue;
+				target = marker.Position;
+				found = true;
+				break;
+			}
+
+			if (found == false)
+			{
+				noiseArmed = true;
+				Debug.Log(TAG + " 소리 — 못 쟀다: 아직 자는 서식지가 없다. 실패가 아니다.");
+				return;
+			}
+
+			noiseArmed = true;
+			int before = match.LairsAwakened;
+			float heardBefore = match.NoiseHeardAt(target);
+
+			// 깨우는 거리 밖에서 크게 낸다 — 깨어나면 그건 거리가 아니라 소리 때문이다.
+			Vector3 loudSpot = target + new Vector3(1f, 0f, 0f) * (match.LairWakeRadius + 4f);
+			for (int shout = 0; shout < 12; shout++)
+				match.EmitNoise(loudSpot, 3f);
+
+			float heardAfter = match.NoiseHeardAt(target);
+			Debug.Log($"{TAG} 소리 — 자는 서식지 옆(깨우는 거리 밖)에서 크게 냈다 · 들리는 크기 {heardBefore:F1} → {heardAfter:F1}"
+				+ $" · 문턱 {match.NoiseWakeThreshold:F1} · 깨어난 곳 {before}");
+
+			if (heardAfter < match.NoiseWakeThreshold)
+			{
+				Debug.LogWarning(TAG + " 소리 FAIL — 바로 옆에서 크게 냈는데 문턱에도 안 닿는다(소리가 아무 일도 안 한다).");
+				return;
+			}
+
+			// ★ 「문턱을 넘었다」는 계산일 뿐이다. 실제로 깨어나는지는 다음 틱에 판이 정한다 —
+			//   같은 프레임에 물으면 늘 「안 깼다」다. 그 자리를 기억해 두고 잠시 뒤 확인한다.
+			noiseTarget = target;
+			noiseAwakenedBefore = before;
+			noiseCheckAt = EditorApplication.timeSinceStartup + 2.0;
+			noiseMatch = match;
+		}
+
+		private static double noiseCheckAt;
+		private static Vector3 noiseTarget;
+		private static int noiseAwakenedBefore;
+		private static TowerDefenseMatch noiseMatch;
+
+		/// <summary> 그 서식지가 *소리 때문에* 깨어났는가 — 깨우는 거리 밖에서 냈으니 거리는 아니다. </summary>
+		private static void CheckNoiseWake()
+		{
+			if (match == null || match != noiseMatch)
+			{
+				Debug.Log(TAG + " 소리 — 못 쟀다: 재는 중에 판이 새로 시작됐다. 실패가 아니다.");
+				return;
+			}
+
+			bool awake = false;
+			foreach (TowerDefenseMatch.LairMarker marker in match.LairMarkers)
+			{
+				if ((marker.Position - noiseTarget).sqrMagnitude > 1f)
+					continue;
+				awake = marker.Awake;
+				break;
+			}
+
+			bool spoken = false;
+			foreach (TowerDefenseAlerts.Alert alert in match.Alerts)
+			{
+				if (alert.Label.Contains("소리를 듣고") == false)
+					continue;
+				spoken = true;
+				Debug.Log(TAG + " 소리 — 알림: 「" + alert.Label + "」");
+				break;
+			}
+
+			int byNoise = match.LairsAwakenedByNoise;
+			Debug.Log($"{TAG} 소리 결과 — 그 서식지 깨어남 {awake} · 깨어난 곳 {noiseAwakenedBefore} → {match.LairsAwakened}"
+				+ $" · 그중 소리만으로 {byNoise} · 「소리를 듣고」 알림 {spoken}");
+
+			if (awake == false)
+				Debug.LogWarning(TAG + " 소리 FAIL — 문턱을 넘게 들렸는데 서식지가 안 깬다(계산만 돌고 판은 안 움직인다).");
+			else if (byNoise == 0)
+				Debug.Log(TAG + " 소리 — 못 쟀다: 그 서식지는 거리로도 깰 자리였다(소리만의 몫을 못 가른다). 실패가 아니다.");
+			else if (spoken == false)
+				Debug.LogWarning(TAG + " 소리 FAIL — 소리로 깨웠는데 화면이 그 이유를 말하지 않는다.");
 		}
 
 		private static double breachCheckAt;

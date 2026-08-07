@@ -1404,6 +1404,9 @@ namespace WitchMendokusai
 		/// <summary> 지금까지 깨운 서식지 수 — 결과 기록판이 「얼마나 파고들었나」를 말한다. </summary>
 		public int LairsAwakened { get; private set; }
 
+		/// <summary> 그중 *소리만으로* 깨어난 수 — 거리로 깬 것과 갈라야 소리 규칙을 잴 수 있다. </summary>
+		public int LairsAwakenedByNoise { get; private set; }
+
 		/// <summary>
 		/// 판 곳곳에 잠든 마수를 깐다 (TASK-WM-194, 데아빌 레퍼런스).
 		///
@@ -1426,6 +1429,7 @@ namespace WitchMendokusai
 			alerts.Clear();
 			lastBuildingPositions.Clear();
 			breach.Clear(); // 새 판은 새 판이다 — 지난 판에서 뚫린 자리가 방향을 끌면 안 된다.
+			noise.Clear(); // 지난 판의 소리가 새 판의 둥지를 깨우면 안 된다(판 넘는 상태를 여기서 세 번 잡았다).
 
 			if (stage == null || stage.LairCount <= 0 || mapLayout == null || stage.EnemyUnit == null)
 				yield break;
@@ -1505,10 +1509,28 @@ namespace WitchMendokusai
 			{
 				if (lair.Awake)
 					continue;
-				if (TowerDefenseLairPlacement.ShouldWake(lair.WorldPosition, lairWakeProbe, stage.LairWakeRadius) == false)
+
+				bool tooClose = TowerDefenseLairPlacement.ShouldWake(
+					lair.WorldPosition, lairWakeProbe, stage.LairWakeRadius);
+
+				// ★ 거리만 보면 「멀찍이서 조용히 크는 것」과 「바로 옆에서 난사하는 것」이 똑같이
+				//   안전하다 — 개척의 위험이 거리 하나로 납작해진다. 소리도 깨운다:
+				//   짓고, 쏘고, 얻어맞는 소리가 마수를 부른다(데아빌의 축은 거리가 아니라 내 행동이다).
+				bool tooLoud = stage.NoiseWakeThreshold > 0f
+					&& noise.LevelAt(lair.WorldPosition, stage.NoiseHearingRadius) >= stage.NoiseWakeThreshold;
+
+				if (tooClose == false && tooLoud == false)
 					continue;
 
-				WakeLair(lair);
+				// ★ 「소리 때문」과 「가까이 갔기 때문」은 사람에게 다른 사건이다. 가까이 간 건 스스로
+				//   아는데(내가 걸어갔다), 소리는 *멀리서* 일어난 일이라 말해 주지 않으면 이유를 모른다.
+				//   그래서 소리만으로 깬 경우에만 알린다 — 그리고 그 수를 따로 센다.
+				//   둘을 안 세면 검사가 「소리로 깼나 거리로 깼나」를 영영 못 가른다(실측에서 막혔다).
+				bool byNoise = tooLoud && tooClose == false;
+				if (byNoise)
+					LairsAwakenedByNoise++;
+
+				WakeLair(lair, byNoise);
 			}
 		}
 
@@ -1527,6 +1549,7 @@ namespace WitchMendokusai
 
 			alerts.Prune(Time.time);
 			breach.Tick(Time.deltaTime, stage.BreachCoolPerSecond); // 한 번 실수가 영원한 벌이 되면 안 된다.
+			noise.Tick(Time.deltaTime, stage.NoiseDecayPerSecond); // 소리는 잦아든다 — 조용해질 기회가 있어야 한다.
 
 			foreach (Transform building in supplyChain.Buildings)
 			{
@@ -1545,6 +1568,8 @@ namespace WitchMendokusai
 				// ★ 그리고 그걸 *말해 준다*. 방향만 조용히 바꾸면 사람은 「이번엔 왜 여기로 오지」만
 				//   남고 자기 선택과 결과를 못 잇는다 — 안 보이는 규칙은 없는 규칙이다.
 				//   처음 뜨거워지는 순간 딱 한 번만 외친다(잃을 때마다 외치면 급한 알림을 덮는다).
+				// 무너지는 소리가 가장 크다 — 이게 소리 사태의 시작점이다.
+				EmitNoise(tracked.Value, stage.NoiseFromLoss);
 				if (breach.Add(tracked.Value, stage.BreachMergeDistance, stage.BreachHeatPerLoss))
 					alerts.Raise("뚫린 곳을 다시 노린다", tracked.Value, Time.time, stage.AlertSeconds);
 				lost ??= new List<Transform>();
@@ -1733,7 +1758,12 @@ namespace WitchMendokusai
 		/// <summary> 쓸어낸 서식지 수 — 결과 기록판이 「얼마나 밀어냈나」를 말한다. </summary>
 		public int LairsCleared { get; private set; }
 
-		private void WakeLair(SleepingLair lair)
+		/// <param name="byNoise">
+		/// 소리만으로 깼는가. ★ 한 사건에는 알림 하나여야 한다 — 예전엔 「소리를 듣고 깨어났다」를
+		/// 띄운 직후 여기서 「서식지가 깨어났다」를 또 띄웠고, 둘이 같은 자리라 합쳐지면서
+		/// *뒤엣것이 앞엣것을 덮었다*. 이유를 말하려고 띄운 문구가 조용히 사라진 것이다(실측으로 잡음).
+		/// </param>
+		private void WakeLair(SleepingLair lair, bool byNoise = false)
 		{
 			lair.Awake = true;
 			LairsAwakened++;
@@ -1761,7 +1791,8 @@ namespace WitchMendokusai
 			}
 
 			PopWorldText("깨어났다", lair.WorldPosition, TextType.Warning);
-			alerts.Raise("서식지가 깨어났다", lair.WorldPosition, Time.time, stage.AlertSeconds);
+			alerts.Raise(byNoise ? "소리를 듣고 깨어났다" : "서식지가 깨어났다",
+				lair.WorldPosition, Time.time, stage.AlertSeconds);
 			Debug.Log($"{nameof(TowerDefenseMatch)}: 서식지 하나가 깨어났다 — 지금까지 {LairsAwakened}곳.");
 		}
 
@@ -2268,6 +2299,35 @@ namespace WitchMendokusai
 
 		/// <summary> 부서진 자리는 잊히지 않는다 — 다음 파도가 그쪽으로 끌린다. </summary>
 		private readonly TowerDefenseBreach breach = new();
+
+		/// <summary> 내가 낸 소리 — 자는 것을 깨운다. </summary>
+		private readonly TowerDefenseNoise noise = new();
+
+		/// <summary> 지금 판에서 가장 시끄러운 소리 — 화면·검사가 「규칙이 도나」를 볼 창. </summary>
+		public float LoudestNoise => noise.LoudestLevel;
+
+		/// <summary> 서식지가 깨어나는 소리 문턱 · 거리 — 검사가 값을 박지 않고 판에서 읽는다. </summary>
+		public float NoiseWakeThreshold => stage != null ? stage.NoiseWakeThreshold : 0f;
+		public float LairWakeRadius => stage != null ? stage.LairWakeRadius : 0f;
+
+		/// <summary> 그 자리에서 들리는 소리 — 검사가 「둥지가 들을 만한가」를 직접 잰다. </summary>
+		public float NoiseHeardAt(Vector3 worldPosition)
+		{
+			return stage != null ? noise.LevelAt(worldPosition, stage.NoiseHearingRadius) : 0f;
+		}
+
+		/// <summary>
+		/// 소리를 낸다 — 짓기·사격·얻어맞기가 전부 이 문으로 들어온다.
+		///
+		/// ★ 문을 하나로 두는 이유: 소리를 내는 자리가 늘어날 때마다 합치는 거리·상한을 각자
+		///   정하면, 어떤 소리는 자리를 스무 개 만들고 어떤 소리는 하나로 뭉친다. 규칙이 갈라진다.
+		/// </summary>
+		public void EmitNoise(Vector3 worldPosition, float amount)
+		{
+			if (stage == null)
+				return;
+			noise.Emit(worldPosition, amount, stage.NoiseMergeDistance);
+		}
 
 		/// <summary>
 		/// 다음 파도의 성격 이름 + 조사("떼거리가"). 성격이 없으면 빈 문자열.
@@ -4988,6 +5048,8 @@ namespace WitchMendokusai
 				return Reject($"자원 부족 {core.Resource}/{towerCost}", worldPosition);
 
 			occupiedCells.Add(cellKey);
+			// 짓는 소리 — 「멀리 조용히 크는 것」과 「둥지 옆에 세우는 것」이 달라야 개척이 결정이 된다.
+			EmitNoise(worldPosition, stage.NoiseFromBuild);
 			// 종류가 정의돼 있으면 개척 전용 무기로, 없으면 기존 전술 경로로(하위 호환).
 			TowerDefenseTowerArchetype archetype = TowerArchetypeAt(towerIndex);
 			StartCoroutine(SpawnDefensiveUnitRoutine(
