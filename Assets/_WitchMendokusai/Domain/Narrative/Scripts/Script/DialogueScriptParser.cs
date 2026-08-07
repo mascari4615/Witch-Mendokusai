@@ -356,6 +356,7 @@ namespace WitchMendokusai
 			FlushChoices(current, ref pendingChoices, pendingChoiceLine);
 			FlushEffects(current, ref pendingEffects, pendingEffectLine);
 			ValidateSectionNames(parsed);
+			ValidateChoiceLabels(parsed);
 			ValidateTargets(parsed);
 			return parsed;
 		}
@@ -638,6 +639,38 @@ namespace WitchMendokusai
 			}
 		}
 
+		/// <summary>
+		/// 한 묶음 안에 **같은 라벨의 선택지**가 둘 이상인가.
+		/// 플레이어 눈엔 똑같은 두 칸이 뜬다 — 무엇이 다른지 알 길이 없고, 고르고 나서야 다른 데로 간다.
+		/// 대개 복사해 붙이고 라벨 고치는 걸 잊은 것이다.
+		/// </summary>
+		private static void ValidateChoiceLabels(ParsedDialogueScript parsed)
+		{
+			for (int s = 0; s < parsed.Sections.Count; s++)
+			{
+				List<DialogueScriptEntry> entries = parsed.Sections[s].Entries;
+				for (int e = 0; e < entries.Count; e++)
+				{
+					if (entries[e].Kind != DialogueScriptEntryKind.Choice)
+					{
+						continue;
+					}
+
+					HashSet<string> labels = new(StringComparer.Ordinal);
+					IReadOnlyList<DialogueScriptChoice> choices = entries[e].Choices;
+					for (int c = 0; c < choices.Count; c++)
+					{
+						if (labels.Add(choices[c].Label))
+						{
+							continue;
+						}
+						parsed.Issues.Add(new DialogueScriptIssue(entries[e].LineNumber,
+							$"선택지 라벨이 겹친다: \"{choices[c].Label}\" — 플레이어 눈엔 같은 칸이 둘이다"));
+					}
+				}
+			}
+		}
+
 		/// <summary>갈 곳 이름이 실제 장면인지 — 오타는 여기서 잡아야 한다(런타임엔 그냥 대화가 끝나 버린다).</summary>
 		private static void ValidateTargets(ParsedDialogueScript parsed)
 		{
@@ -666,11 +699,20 @@ namespace WitchMendokusai
 
 		private static void RequireSection(ParsedDialogueScript parsed, string name, int lineNumber)
 		{
-			if (parsed.FindSection(name) != null)
+			DialogueScriptSection target = parsed.FindSection(name);
+			if (target == null)
 			{
+				parsed.Issues.Add(new DialogueScriptIssue(lineNumber, $"그런 장면이 없다: \"{name}\""));
 				return;
 			}
-			parsed.Issues.Add(new DialogueScriptIssue(lineNumber, $"그런 장면이 없다: \"{name}\""));
+
+			// 빈 장면 자체는 흠이 아니다(원고엔 산문만 있는 장면이 흔하다). 하지만 **거기로 보내면** 다르다 —
+			// 아무 말도 없이 다음 장면으로 흘러가서, 쓴 사람은 「저기로 갔다」고 믿는데 화면은 딴 데를 보여준다.
+			if (target.Entries.Count == 0)
+			{
+				parsed.Issues.Add(new DialogueScriptIssue(lineNumber,
+					$"\"{name}\" 장면엔 대사가 없다 — 거기로 가면 그냥 다음 장면으로 흘러간다"));
+			}
 		}
 	}
 }
