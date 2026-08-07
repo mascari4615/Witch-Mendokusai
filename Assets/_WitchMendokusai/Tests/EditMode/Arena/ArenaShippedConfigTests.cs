@@ -86,6 +86,36 @@ namespace WitchMendokusai.Tests
 		}
 
 		[Test]
+		public void 전술이_그_유닛에게_없는_스킬_칸을_가리키지_않는다()
+		{
+			// 스킬 칸은 유닛의 기본 스킬 목록 **순번**이다(0번부터). 목록에 없는 번호를 시전하면
+			// 조용히 false 만 돌아온다 — 로그도 예외도 없다. 즉 그 유닛은 **한 판 내내 스킬을 안 쓴다.**
+			// 「2번 슬롯을 쓴다」는 전술을 스킬 2개짜리 유닛에게 주는 순간 이 일이 벌어진다.
+			foreach (ArenaMatchConfig config in LoadShippedConfigs())
+			{
+				foreach (ArenaMatchConfig.ArenaUnitEntry entry in config.Roster)
+				{
+					if (entry.UnitData == null || entry.Tactic == null)
+						continue; // 위 시험들이 잡는다.
+
+					int skillCount = entry.UnitData.DefaultSkills != null ? entry.UnitData.DefaultSkills.Length : 0;
+
+					foreach (TacticRule rule in entry.Tactic.Rules)
+					{
+						if (rule.Action.Kind != ActionKind.UseSkill)
+							continue;
+
+						Assert.Less(rule.Action.SkillSlot, skillCount,
+							$"{config.name}: {entry.UnitData.name} 의 전술이 {rule.Action.SkillSlot} 번 스킬 칸을 쓰는데 "
+							+ $"이 유닛의 스킬은 {skillCount} 개뿐이다 — 그 줄은 조용히 실패해서 판 내내 스킬을 안 쓴다");
+						Assert.GreaterOrEqual(rule.Action.SkillSlot, 0,
+							$"{config.name}: {entry.UnitData.name} 의 전술 스킬 칸이 음수다");
+					}
+				}
+			}
+		}
+
+		[Test]
 		public void 체력_조건이_죽어야_참인_채로_남아있지_않다()
 		{
 			// ★ 실제로 났던 사고(WM-165): 편집기가 한동안 비교칸을 안 그려서 체력 조건이 전부
