@@ -152,6 +152,8 @@ namespace WitchMendokusai.EditorTools
 			lastGateLog = -1.0;
 			startClicked = false;
 			signalChecked = false;
+			adaptationProbeAt = 0.0;
+			adaptationArmed = false;
 			markCheckAt = 0.0;
 			lairDriftCheckAt = 0.0;
 			pressureCheckAt = 0.0;
@@ -209,6 +211,13 @@ namespace WitchMendokusai.EditorTools
 			{
 				relayProbeAt = 0.0;
 				CheckRelayChain();
+			}
+
+			ArmAdaptationProbe();
+			if (adaptationProbeAt > 0.0 && now >= adaptationProbeAt)
+			{
+				adaptationProbeAt = 0.0;
+				CheckAdaptation();
 			}
 
 			if (lairClearCheckAt > 0.0 && now >= lairClearCheckAt)
@@ -1028,6 +1037,100 @@ namespace WitchMendokusai.EditorTools
 				lairClearCheckAt = EditorApplication.timeSinceStartup + 1.0;
 			lairClearEssenceBefore = essenceBefore;
 			lairClearBefore = clearedBefore;
+		}
+
+		private static double adaptationProbeAt;
+		private static bool adaptationArmed;
+
+		/// <summary>
+		/// 적응 규칙이 화면까지 오는가 — 이걸 안 재면 영영 못 본다.
+		///
+		/// ★ 왜 일부러 세우나: 적응은 *편중*으로만 생기는데, 하네스가 늘 짓던 기본 포탑은
+		///   관통 1이라 아무 셈도 안 올린다(관통은 2번째 대상부터 센다). 그래서 여태 적응이
+		///   0 이었고, 「규칙이 죽었나」와 「안 건드렸나」가 똑같이 빈 값으로 보였다.
+		///   둔화 포탑만 몰아 세워 편중을 만든 뒤, 규칙과 *화면 글자*를 둘 다 읽는다.
+		/// </summary>
+		private static void ArmAdaptationProbe()
+		{
+			if (adaptationArmed || match == null || match.CoreCombatant == null)
+				return;
+			if (match.SurvivedSeconds < 6f || match.Adaptation.HasAny)
+				return;
+
+			int slowSlot = -1;
+			for (int index = 0; index < match.TowerArchetypeCount; index++)
+			{
+				TowerDefenseTowerArchetype candidate = match.TowerArchetypeAt(index);
+				if (candidate != null && candidate.SlowFactor > 0f)
+				{
+					slowSlot = index;
+					break;
+				}
+			}
+
+			if (slowSlot < 0)
+			{
+				adaptationArmed = true;
+				Debug.Log(TAG + " 적응 — 못 쟀다: 이 판에 둔화 포탑이 아예 없다(편중을 만들 수단 X).");
+				return;
+			}
+
+			adaptationArmed = true;
+			int placed = 0;
+			for (int ring = 0; ring < 4; ring++)
+			{
+				float angle = ring * 90f * Mathf.Deg2Rad;
+				Vector3 spot = match.CoreCombatant.Position
+					+ new Vector3(Mathf.Cos(angle), 0f, Mathf.Sin(angle)) * 5f;
+				if (match.TryPlaceTower(spot, slowSlot))
+					placed++;
+			}
+
+			adaptationProbeAt = EditorApplication.timeSinceStartup + 10.0;
+			Debug.Log(TAG + " 적응 — 둔화 포탑 " + placed + "기 세움(칸 " + slowSlot + ") · 10초 뒤 화면을 읽는다.");
+		}
+
+		/// <summary> 둔화만 썼으면 마수가 「둔화에 익숙함」이라고 *화면에* 말해야 한다. </summary>
+		private static void CheckAdaptation()
+		{
+			if (match == null)
+			{
+				Debug.Log(TAG + " 적응 — 못 쟀다: 판이 사라졌다.");
+				return;
+			}
+
+			TowerDefenseAdaptationState state = match.Adaptation;
+			string note = match.AdaptationNote;
+
+			UIRoot adaptationUiRoot = Object.FindAnyObjectByType<UIRoot>();
+			VisualElement hud = adaptationUiRoot != null && adaptationUiRoot.ModeHudLayer != null
+				? adaptationUiRoot.ModeHudLayer.Q(nameof(TowerDefenseHudView))
+				: null;
+			if (hud == null)
+			{
+				Debug.Log(TAG + " 적응 — 못 쟀다: HUD 를 못 찾았다 (규칙값 둔화저항 "
+					+ state.SlowResist.ToString("F2") + " · 말 「" + note + "」).");
+				return;
+			}
+
+			bool onScreen = false;
+			foreach (Label label in hud.Query<Label>().ToList())
+			{
+				if (label != null && string.IsNullOrEmpty(label.text) == false && label.text.Contains("익숙함"))
+				{
+					onScreen = true;
+					Debug.Log(TAG + " 적응 — 화면 글자: 「" + label.text + "」");
+					break;
+				}
+			}
+
+			Debug.Log(TAG + " 적응 결과 — 둔화저항 " + state.SlowResist.ToString("F2")
+				+ " · 말 「" + note + "」 · 화면표시 " + onScreen);
+
+			if (note.Length == 0)
+				Debug.LogWarning(TAG + " 적응 FAIL — 둔화 포탑만 세웠는데 규칙이 아무 편중도 안 봤다.");
+			else if (onScreen == false)
+				Debug.LogWarning(TAG + " 적응 FAIL — 규칙은 「" + note + "」인데 화면 어디에도 안 뜬다(안 보이는 규칙 = 없는 규칙).");
 		}
 
 		private static double relayProbeAt;
