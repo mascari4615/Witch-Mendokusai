@@ -68,8 +68,19 @@ namespace WitchMendokusai
 
 			// 한 칸 더 내다본다 — 다음 칸과 그 다음 칸 사이를 섞으면 모서리가 둥글어진다.
 			// 못 내다보면(막다른 길·목표 직전) 그냥 다음 칸을 본다 — 길은 그대로다.
-			if (cornerSmoothing > 0f && flowField.TryGetNextCell(nextCell, lane, out Vector2Int afterCell))
+			//
+			// ★ 단, *벽 모서리에서는 섞지 않는다.* 「길은 그대로」라고 적어 뒀지만 벽을 낀 모서리에서는
+			//   사실이 아니었다: 흐름장이 안전한 ㄱ자를 줘도 이 섞기가 그걸 대각선 지름길로 되돌려
+			//   마수를 바위 모서리에 처박았다. 몸 지름이 칸과 같아서(반경 0.50 · 칸 1.00) 그 틈으로는
+			//   못 들어간다 — 라이브 실측에서 「갈 수 있다는 칸인데 암반에 막힘」이 73줄이었고,
+			//   흐름장 쪽 대각선을 막은 뒤에도 그대로 남아 있었다(원인이 여기였다는 증거).
+			//   트인 곳에서는 그대로 둥글게 돈다 — 각진 걸음은 벽 옆에서만 생긴다.
+			if (cornerSmoothing > 0f
+				&& flowField.TryGetNextCell(nextCell, lane, out Vector2Int afterCell)
+				&& IsShortcutClear(fromCell, afterCell))
+			{
 				nextLocal = Vector3.Lerp(nextLocal, layout.CellToWorld(afterCell), cornerSmoothing);
+			}
 
 			Vector3 localDirection = nextLocal - fromLocal;
 			localDirection.y = 0f;
@@ -80,6 +91,30 @@ namespace WitchMendokusai
 			worldDirection.y = 0f;
 
 			direction = worldDirection.normalized;
+			return true;
+		}
+
+		/// <summary>
+		/// 지금 칸에서 두 칸 뒤를 향해 질러가도 벽에 안 닿는가 — 둘러싼 네 칸 중 하나라도 벽이면 안 된다.
+		///
+		/// ★ 「두 칸 사이를 다 훑는」 정밀 검사가 아니라, 몸이 칸만큼 굵다는 사실에 맞춘 보수적 판정이다.
+		///   지름길은 벽이 하나도 없을 때만 허용한다 — 애매하면 안 질러가는 쪽이 옳다(끼면 판이 안 끝난다).
+		/// </summary>
+		private bool IsShortcutClear(Vector2Int fromCell, Vector2Int afterCell)
+		{
+			int minX = Mathf.Min(fromCell.x, afterCell.x);
+			int maxX = Mathf.Max(fromCell.x, afterCell.x);
+			int minY = Mathf.Min(fromCell.y, afterCell.y);
+			int maxY = Mathf.Max(fromCell.y, afterCell.y);
+
+			for (int x = minX; x <= maxX; x++)
+			{
+				for (int y = minY; y <= maxY; y++)
+				{
+					if (layout.IsBlocked(new Vector2Int(x, y)))
+						return false;
+				}
+			}
 			return true;
 		}
 	}
