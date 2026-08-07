@@ -2895,6 +2895,18 @@ namespace WitchMendokusai.EditorTools
 						Debug.Log($"{TAG} 재시작 알림 — 「부서졌다」 {falseBreak}개 · 전체 {fresh.Alerts.Count}개 (둘 다 0 이어야 한다)");
 						if (falseBreak > 0)
 							Debug.LogError(TAG + " 재시작 FAIL — 새 판이 시작하자마자 옛 판 건물을 「부서졌다」고 알린다.");
+
+						// ★ 그림도 판마다 하나여야 한다. 옛 판 것이 안 치워지면 신호장이 두 벌 겹쳐 그려지고,
+						//   판을 거듭할수록 는다(눈에는 「좀 진해졌네」로만 보여서 늦게 발견된다).
+						int fields = 0;
+						foreach (GameObject candidate in Object.FindObjectsByType<GameObject>(FindObjectsInactive.Include))
+						{
+							if (candidate.name == "SignalField")
+								fields++;
+						}
+						Debug.Log($"{TAG} 재시작 그림 — 신호장 {fields}벌 (1 이어야 한다)");
+						if (fields > 1)
+							Debug.LogError($"{TAG} 재시작 FAIL — 신호장이 {fields}벌 겹쳐 있다(옛 판 것이 안 치워졌다).");
 					}
 
 			if (freshWave && freshOutcome && freshResource)

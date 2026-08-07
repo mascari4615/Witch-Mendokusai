@@ -5225,6 +5225,11 @@ namespace WitchMendokusai
 					Destroy(stageRoot.GetChild(childIndex).gameObject);
 			}
 
+			// ★ 신호장 그림도 여기서 놓는다. 무대 자식은 위에서 전부 파괴하지만 **파괴는 프레임 끝에**
+			//   일어나므로 그 사이 이 참조는 아직 살아 있다 — 같은 프레임에 새 판이 시작하면 *죽을 예정인*
+			//   그림에 계속 그리게 된다. 참조를 여기서 끊으면 그런 틈이 아예 없다.
+			signalView = null;
+
 			// 재진입 — 다음 Begin() 이 새 매치를 돌릴 수 있게 진입 상태 리셋.
 			core = null;
 			coreCombatant = null;
