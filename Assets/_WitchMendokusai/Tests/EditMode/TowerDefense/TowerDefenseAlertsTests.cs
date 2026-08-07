@@ -1,4 +1,4 @@
-using NUnit.Framework;
+﻿using NUnit.Framework;
 using UnityEngine;
 using WitchMendokusai;
 
@@ -106,6 +106,38 @@ namespace WitchMendokusai.Tests
 			alerts.Raise("깨어났다", Vector3.zero, now: 0f, lifetime: 0f);
 
 			Assert.AreEqual(0, alerts.Active.Count, "말이 없거나 시간이 0 인 알림은 자리만 차지한다.");
+		}
+
+		[Test]
+		public void 다른_말은_같은_자리라도_안_합쳐진다()
+		{
+			// 합치기는 *같은 말*일 때만이다. 이걸 헷갈리면 「내 문구가 덮였다」는 잘못된 진단으로 간다
+			// (실제로 한 번 그렇게 짚었다 — 진짜 원인은 자리 밀림이었다).
+			TowerDefenseAlerts alerts = new();
+
+			alerts.Raise("소리를 듣고 깨어났다", Vector3.zero, now: 0f, lifetime: 5f);
+			alerts.Raise("서식지가 깨어났다", Vector3.zero, now: 0f, lifetime: 5f);
+
+			Assert.AreEqual(2, alerts.Active.Count);
+		}
+
+		[Test]
+		public void 같은_순간에_여럿_터지면_먼저_난_것이_밀려난다()
+		{
+			// ★ 이게 「띄웠는데 화면에 없다」의 진짜 원인이다. 알림 칸은 유한하고, 넘치면 가장 먼저
+			//   사라질 것부터 버린다 — 수명이 같으면 *먼저 난 것*이다. 그래서 한 사건에 알림을
+			//   두 개 띄우면 내가 정작 보여주려던 이유가 조용히 밀려난다.
+			TowerDefenseAlerts alerts = new();
+			alerts.Raise("소리를 듣고 깨어났다", Vector3.zero, now: 0f, lifetime: 5f);
+
+			for (int index = 0; index < TowerDefenseAlerts.MAX_ALERTS; index++)
+				alerts.Raise("일 " + index, new Vector3(100f + index * 50f, 0f, 0f), now: 0f, lifetime: 5f);
+
+			bool survived = false;
+			foreach (TowerDefenseAlerts.Alert alert in alerts.Active)
+				survived |= alert.Label == "소리를 듣고 깨어났다";
+
+			Assert.IsFalse(survived, "먼저 난 것이 밀려나는 것이 지금 규칙이다 — 이유를 보여주려면 한 사건에 알림 하나여야 한다.");
 		}
 	}
 }

@@ -1427,8 +1427,15 @@ namespace WitchMendokusai.EditorTools
 				Debug.LogWarning(TAG + " 소리 FAIL — 문턱을 넘게 들렸는데 서식지가 안 깬다(계산만 돌고 판은 안 움직인다).");
 			else if (byNoise == 0)
 				Debug.Log(TAG + " 소리 — 못 쟀다: 그 서식지는 거리로도 깰 자리였다(소리만의 몫을 못 가른다). 실패가 아니다.");
+			else if (spoken == false && match.Alerts.Count >= TowerDefenseAlerts.MAX_ALERTS)
+			{
+				// ★ 알림 칸은 유한하다(가득 차면 *먼저 난 것*부터 밀려난다). 같은 순간에 여러 사건이
+				//   터지면 내 알림이 밀려난 것일 뿐인데, 그걸 「화면이 말 안 한다」로 부르면 멀쩡한
+				//   규칙을 고치러 간다. 자리가 남아 있었을 때만 실패로 부른다.
+				Debug.Log(TAG + " 소리 — 화면은 못 쟀다: 알림 칸이 이미 꽉 차 있었다(먼저 난 것이 밀려난다). 실패가 아니다.");
+			}
 			else if (spoken == false)
-				Debug.LogWarning(TAG + " 소리 FAIL — 소리로 깨웠는데 화면이 그 이유를 말하지 않는다.");
+				Debug.LogWarning(TAG + " 소리 FAIL — 자리가 남아 있는데도 소리로 깬 이유를 화면이 말하지 않는다.");
 		}
 
 		private static double breachCheckAt;
