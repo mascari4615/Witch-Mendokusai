@@ -2199,6 +2199,45 @@ namespace WitchMendokusai
 		/// <summary> 지금 뜨거운 뚫린 자리 수 — 화면·검사가 「규칙이 살아 있나」를 볼 창. </summary>
 		public int BreachHotCount => breach.HotCount;
 
+		/// <summary>
+		/// 내 건물 하나를 코어에서 *가장 먼* 것으로 골라 없앤다 — 검사 전용.
+		///
+		/// ★ 왜 필요한가: 「뚫린 자리가 다음 파도를 끌어당긴다」는 건물을 잃어야만 확인된다. 그런데
+		///   하네스는 마수가 내 건물을 부술 때까지 기다릴 수밖에 없고, 그건 판마다 오거나 안 온다
+		///   (적응 검사에서 이미 다섯 사이클을 그렇게 날렸다). 재는 쪽이 사건을 일으킬 수 있어야 한다.
+		/// ★ 왜 가장 먼 것인가: 코어 바로 옆을 없애면 방향이 거의 안 바뀌어 「끌렸다」를 못 가른다.
+		///   멀수록 각이 뚜렷해 참·거짓이 갈린다.
+		/// ★ 없애는 방법은 마수가 부수는 것과 같은 문(오브젝트 소멸)이다 — 다른 문으로 들어가면
+		///   *검사만 통과하는* 길이 생긴다.
+		/// </summary>
+		public bool DestroyFarthestBuildingForVerification(out Vector3 destroyedAt)
+		{
+			destroyedAt = Vector3.zero;
+			if (coreCombatant == null)
+				return false;
+
+			Transform farthest = null;
+			float bestDistance = -1f;
+			foreach (Transform building in supplyChain.Buildings)
+			{
+				if (building == null || building == coreCombatant.transform)
+					continue;
+
+				float distance = Vector3.Distance(building.position, coreCombatant.Position);
+				if (distance <= bestDistance)
+					continue;
+				bestDistance = distance;
+				farthest = building;
+			}
+
+			if (farthest == null)
+				return false;
+
+			destroyedAt = farthest.position;
+			Destroy(farthest.gameObject);
+			return true;
+		}
+
 		/// <summary> 부서진 자리는 잊히지 않는다 — 다음 파도가 그쪽으로 끌린다. </summary>
 		private readonly TowerDefenseBreach breach = new();
 

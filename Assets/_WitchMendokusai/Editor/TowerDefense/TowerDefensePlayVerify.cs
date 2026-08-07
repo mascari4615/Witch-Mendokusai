@@ -157,6 +157,9 @@ namespace WitchMendokusai.EditorTools
 			adaptationSawEnemies = false;
 			adaptationTargetsNest = false;
 			adaptationMatch = null;
+			breachCheckAt = 0.0;
+			breachArmed = false;
+			breachMatch = null;
 			markCheckAt = 0.0;
 			lairDriftCheckAt = 0.0;
 			pressureCheckAt = 0.0;
@@ -218,6 +221,13 @@ namespace WitchMendokusai.EditorTools
 
 			ArmAdaptationProbe();
 			PollAdaptation(now);
+
+			ArmBreachProbe(now);
+			if (breachCheckAt > 0.0 && now >= breachCheckAt)
+			{
+				breachCheckAt = 0.0;
+				CheckBreachPull();
+			}
 
 			if (lairClearCheckAt > 0.0 && now >= lairClearCheckAt)
 			{
@@ -437,7 +447,7 @@ namespace WitchMendokusai.EditorTools
 					{
 						// 아직 재기로 한 것이 남아 있으면 끝내지 않는다 — 끝내버리면 그 항목은 영영 안 재진다.
 						if (lairDriftCheckAt > 0.0 || markCheckAt > 0.0 || lairClearCheckAt > 0.0 || pressureCheckAt > 0.0
-							|| relayProbeAt > 0.0 || adaptationProbeAt > 0.0)
+							|| relayProbeAt > 0.0 || adaptationProbeAt > 0.0 || breachCheckAt > 0.0)
 							return;
 
 						Debug.Log(TAG + " PLACE-ONLY 배치 확인 끝 — 조기 종료");
@@ -1266,6 +1276,72 @@ namespace WitchMendokusai.EditorTools
 				Debug.LogWarning(TAG + " 적응 FAIL — 마수가 있었는데도 둔화 포탑이 아무 편중도 못 만들었다.");
 			else
 				Debug.LogWarning(TAG + " 적응 FAIL — 규칙은 「" + note + "」인데 화면 어디에도 안 떴다(안 보이는 규칙 = 없는 규칙).");
+		}
+
+		private static double breachCheckAt;
+		private static bool breachArmed;
+		private static float breachAngleBefore;
+		private static Vector3 breachLostAt;
+		private static TowerDefenseMatch breachMatch;
+
+		/// <summary>
+		/// 「뚫린 자리가 다음 파도를 끌어당긴다」를 실제로 재려면 *건물을 잃어야* 한다.
+		///
+		/// ★ 마수가 부술 때까지 기다리는 검사는 판마다 오거나 안 온다 — 적응 검사에서 그렇게
+		///   다섯 사이클을 날렸다. 재는 쪽이 사건을 일으킨다: 가장 먼 건물을 일부러 없앤다.
+		/// </summary>
+		private static void ArmBreachProbe(double now)
+		{
+			if (breachArmed || match == null || match.CoreCombatant == null)
+				return;
+			if (match.SurvivedSeconds < 12f)
+				return;
+
+			breachAngleBefore = match.InvasionAngleAt(match.WaveIndex + 1);
+			if (match.DestroyFarthestBuildingForVerification(out Vector3 lostAt) == false)
+			{
+				breachArmed = true;
+				Debug.Log(TAG + " 뚫린 자리 — 못 쟀다: 없앨 내 건물이 없다(코어뿐). 실패가 아니다.");
+				return;
+			}
+
+			breachArmed = true;
+			breachLostAt = lostAt;
+			breachMatch = match;
+			breachCheckAt = now + 2.0; // 손실은 다음 틱에 집계된다 — 같은 프레임에 재면 늘 「안 바뀜」이다.
+			Debug.Log(TAG + " 뚫린 자리 — 가장 먼 건물을 없앴다 · 끌리기 전 방향 "
+				+ breachAngleBefore.ToString("F1") + "도(" + TowerDefenseWaveOrigin.DirectionName(breachAngleBefore) + ")");
+		}
+
+		/// <summary> 잃은 쪽으로 다음 파도가 끌렸는가 — 안 끌리면 이 규칙은 화면에 없는 규칙이다. </summary>
+		private static void CheckBreachPull()
+		{
+			if (match == null || match != breachMatch)
+			{
+				Debug.Log(TAG + " 뚫린 자리 — 못 쟀다: 재는 중에 판이 새로 시작됐다. 실패가 아니다.");
+				return;
+			}
+
+			int hot = match.BreachHotCount;
+			float after = match.InvasionAngleAt(match.WaveIndex + 1);
+
+			Vector3 core = match.CoreCombatant != null ? match.CoreCombatant.Position : Vector3.zero;
+			Vector3 offset = breachLostAt - core;
+			float lostAngle = Mathf.Repeat(Mathf.Atan2(offset.x, offset.z) * Mathf.Rad2Deg, 360f);
+
+			float movedBefore = Mathf.Abs(Mathf.DeltaAngle(breachAngleBefore, lostAngle));
+			float movedAfter = Mathf.Abs(Mathf.DeltaAngle(after, lostAngle));
+
+			Debug.Log($"{TAG} 뚫린 자리 결과 — 뜨거운 자리 {hot}곳 · 잃은 쪽 {lostAngle:F1}도"
+				+ $" · 파도 방향 {breachAngleBefore:F1} → {after:F1}"
+				+ $" · 잃은 쪽과의 차이 {movedBefore:F1} → {movedAfter:F1}");
+
+			if (hot == 0)
+				Debug.LogWarning(TAG + " 뚫린 자리 FAIL — 건물을 잃었는데 뜨거운 자리가 0곳이다(규칙이 손실을 못 봤다).");
+			else if (movedAfter >= movedBefore - 0.5f)
+				Debug.LogWarning(TAG + " 뚫린 자리 FAIL — 뜨거운 자리는 생겼는데 다음 파도가 그쪽으로 안 끌린다.");
+			else
+				Debug.Log(TAG + " 뚫린 자리 — 끌렸다. 잃은 쪽으로 " + (movedBefore - movedAfter).ToString("F1") + "도 다가왔다.");
 		}
 
 		private static double relayProbeAt;
