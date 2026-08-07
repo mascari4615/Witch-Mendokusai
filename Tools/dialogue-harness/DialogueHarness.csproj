@@ -54,13 +54,10 @@
 
   <!-- MonoBehaviour·에디터 의존이라 유니티 밖에서 못 서는 것들 -->
   <ItemGroup>
-    <Compile Remove="../../Assets/_WitchMendokusai/Domain/Narrative/Scripts/DialogueRunner.cs" />
+
     <Compile Remove="../../Assets/_WitchMendokusai/Domain/Narrative/Scripts/DialogueSpeakerTag.cs" />
-    <Compile Remove="../../Assets/_WitchMendokusai/Domain/Narrative/Scripts/EffectRunnerDialogueSink.cs" />
     <!-- 가방(Inventory)에 붙는 얇은 어댑터 — 게임 타입이라 유니티 밖에서는 못 선다(안쪽 조건은 시험됨). -->
-    <Compile Remove="../../Assets/_WitchMendokusai/Domain/Narrative/Scripts/InventoryDialogueItemSource.cs" />
     <!-- 퀘스트 관리자에 붙는 어댑터도 같은 이유로 제외(조건 자체는 시험된다 — 그래서 파일을 갈랐다). -->
-    <Compile Remove="../../Assets/_WitchMendokusai/Domain/Narrative/Scripts/QuestManagerDialogueQuestSource.cs" />
     <!-- 에디터 자산 데이터베이스를 쓰는 시험 — 유니티 안에서만 뜻이 있다(거기선 CI 가 돌린다). -->
     <Compile Remove="../../Assets/_WitchMendokusai/Tests/EditMode/DialogueShippedScriptTests.cs" />
     <!-- 저장 왕복 시험 — Json.NET 과 GameData(게임 전역 타입)를 쓴다. 유니티 안에서만 뜻이 있다. -->
