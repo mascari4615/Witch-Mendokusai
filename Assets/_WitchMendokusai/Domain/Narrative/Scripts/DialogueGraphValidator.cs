@@ -38,6 +38,9 @@ namespace WitchMendokusai
 
 		/// <summary>거기 들어가면 대화가 영영 안 끝난다 — 끝으로 가는 길이 없는 고리.</summary>
 		CannotReachEnd = 10,
+
+		/// <summary>조건이 물어볼 것을 안 갖고 있다 — 절대 안 맞으니 그 가지는 죽은 가지다.</summary>
+		ConditionCanNeverMatch = 11,
 	}
 
 	public sealed class DialogueGraphIssue
@@ -186,6 +189,24 @@ namespace WitchMendokusai
 						node.Id));
 				}
 
+				if (node is DialogueBranchNode branchWithCondition)
+				{
+					CheckCondition(branchWithCondition.Condition, node.Id, "branch", result);
+				}
+
+				if (node is DialogueChoiceNode choiceWithConditions)
+				{
+					for (int option = 0; option < choiceWithConditions.Options.Count; option++)
+					{
+						DialogueChoiceOption choiceOption = choiceWithConditions.Options[option];
+						if (choiceOption == null)
+						{
+							continue;
+						}
+						CheckCondition(choiceOption.Condition, node.Id, $"option {option} (\"{choiceOption.Label}\")", result);
+					}
+				}
+
 				if (node is DialogueWaitNode waitNode
 					&& waitNode.Kind == DialogueWaitKind.Event
 					&& string.IsNullOrWhiteSpace(waitNode.EventId))
@@ -253,6 +274,32 @@ namespace WitchMendokusai
 				NodeGraphIssueSeverity.Warning,
 				$"DialogueChoiceNode '{choiceNode.Id}': every option is conditional — if none match, the dialogue ends here with nothing shown. Consider one unconditional fallback.",
 				choiceNode.Id));
+		}
+
+		/// <summary>
+		/// 조건이 **물어볼 것을 안 갖고 있는** 경우를 짚는다.
+		///
+		/// ★ 왜 이게 필요한가: 조건은 틀려도 안 터진다. 그냥 **늘 거짓**이 되고, 그 가지는 한 번도 안 밟힌다.
+		///   원고에서 온 조건은 읽는 쪽이 막지만, **손으로 만든 자산**은 아무도 안 본다 —
+		///   칸을 비워 둔 채로 저장하면 끝이다. 화면엔 아무 흔적이 없다.
+		///
+		/// 지금 아는 것은 「고른 답」 조건뿐이다. 답을 안 적으면 비교할 게 없어 **절대 안 맞는다.**
+		/// (번호가 0 인 경우는 안 센다 — 0 이 뜻 있는 번호인지 여기서 단정할 수 없다.
+		///  단정 못 하는 것을 잡으면 멀쩡한 자산을 잡는 검사가 된다.)
+		/// </summary>
+		private static void CheckCondition(Criteria condition, string nodeId, string where, DialogueGraphValidationResult result)
+		{
+			DialogueChosenCriteria chosen = condition as DialogueChosenCriteria;
+			if (chosen == null || string.IsNullOrWhiteSpace(chosen.Label) == false)
+			{
+				return;
+			}
+
+			result.Add(new DialogueGraphIssue(
+				DialogueGraphIssueKind.ConditionCanNeverMatch,
+				NodeGraphIssueSeverity.Warning,
+				$"Node '{nodeId}' {where}: DialogueChosenCriteria has no Label — it can never match, so that path is dead.",
+				nodeId));
 		}
 
 		private static void ValidateReachability(DialogueGraph graph, IReadOnlyList<NodeBase> nodes, DialogueGraphValidationResult result)
