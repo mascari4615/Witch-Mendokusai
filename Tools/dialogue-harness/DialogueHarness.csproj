@@ -56,6 +56,8 @@
     <Compile Remove="../../Assets/_WitchMendokusai/Domain/Narrative/Scripts/DialogueRunner.cs" />
     <Compile Remove="../../Assets/_WitchMendokusai/Domain/Narrative/Scripts/DialogueSpeakerTag.cs" />
     <Compile Remove="../../Assets/_WitchMendokusai/Domain/Narrative/Scripts/EffectRunnerDialogueSink.cs" />
+    <!-- 에디터 자산 데이터베이스를 쓰는 시험 — 유니티 안에서만 뜻이 있다(거기선 CI 가 돌린다). -->
+    <Compile Remove="../../Assets/_WitchMendokusai/Tests/EditMode/DialogueShippedScriptTests.cs" />
   </ItemGroup>
 
 </Project>
