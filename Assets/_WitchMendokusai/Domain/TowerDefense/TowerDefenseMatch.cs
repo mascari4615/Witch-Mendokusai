@@ -1602,9 +1602,26 @@ namespace WitchMendokusai
 				if (lair.Awake == false)
 					continue;
 
-				foreach (UnitObject guard in lair.Guards)
+				for (int index = lair.Guards.Count - 1; index >= 0; index--)
 				{
-					if (guard == null || guard.gameObject.activeInHierarchy == false)
+					UnitObject guard = lair.Guards[index];
+					if (guard == null)
+					{
+						lair.Guards.RemoveAt(index);
+						continue;
+					}
+
+					// ★ 죽은 마수의 몸은 풀로 돌아가 *다른 곳에서 다른 마수로* 되살아난다. 그런데 이 목록이
+					//   그 몸을 계속 들고 있으면, 테두리에서 막 나온 파도 마수를 이 서식지가 집으로 끌어당긴다
+					//   — 실측에서 「집에서 123 (목줄 20)」이 그것이었다. 죽는 순간 목록에서 뺀다.
+					MatchCombatant combatant = guard.GetComponent<MatchCombatant>();
+					if (combatant == null || combatant.IsAlive == false)
+					{
+						lair.Guards.RemoveAt(index);
+						continue;
+					}
+
+					if (guard.gameObject.activeInHierarchy == false)
 						continue;
 
 					Vector3 toHome = lair.WorldPosition - guard.transform.position;
@@ -2269,6 +2286,9 @@ namespace WitchMendokusai
 		/// ★ 없애는 방법은 마수가 부수는 것과 같은 문(오브젝트 소멸)이다 — 다른 문으로 들어가면
 		///   *검사만 통과하는* 길이 생긴다.
 		/// </summary>
+		/// <summary> 이보다 가까운 것을 없애면 방향이 안 나온다 — 재는 의미가 없다. </summary>
+		private const float MIN_VERIFY_LOSS_DISTANCE = 6f;
+
 		public bool DestroyFarthestBuildingForVerification(out Vector3 destroyedAt)
 		{
 			destroyedAt = Vector3.zero;
@@ -2289,7 +2309,11 @@ namespace WitchMendokusai
 				farthest = building;
 			}
 
-			if (farthest == null)
+			// ★ 코어 위(또는 코앞)에 있는 것을 고르면 잃은 방향이 0 도로 나와 「끌렸나」를 못 가른다.
+			//   실제로 전체 실행에서 그렇게 뽑혀 「잃은 쪽 0.0도 · 뜨거운 자리 0곳」이라는 읽을 수
+			//   없는 결과가 나왔다. 방향이 성립할 만큼 떨어진 것이 없으면 **없앨 것이 없다**고 답한다
+			//   — 아무거나 없애고 재는 것보다 「못 쟀다」가 낫다.
+			if (farthest == null || bestDistance < MIN_VERIFY_LOSS_DISTANCE)
 				return false;
 
 			destroyedAt = farthest.position;

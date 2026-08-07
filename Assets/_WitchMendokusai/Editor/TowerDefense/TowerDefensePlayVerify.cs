@@ -1107,6 +1107,9 @@ namespace WitchMendokusai.EditorTools
 		private static bool adaptationSawEnemies;
 		private static bool adaptationTargetsNest;
 
+		/// <summary> 둔화 포탑을 실제로 세운 자리 — 마수가 사거리에 왔는지는 여기 기준으로 잰다. </summary>
+		private static Vector3 adaptationAim;
+
 		/// <summary> 탐침을 박은 그 판 — 판이 바뀌면 비교 자체가 무의미하다. </summary>
 		private static TowerDefenseMatch adaptationMatch;
 
@@ -1211,6 +1214,8 @@ namespace WitchMendokusai.EditorTools
 
 			adaptationMatch = match;
 			adaptationTargetsNest = placed > 0 && rejected.Length == 0 && nearest < float.MaxValue;
+			// 재는 자리 = 포탑이 실제로 선 자리. 둥지 옆에 섰으면 둥지 옆, 물러났으면 코어 둘레.
+			adaptationAim = adaptationTargetsNest ? target : core;
 			Debug.Log(TAG + " 적응 — 가장 가까운 둥지까지 " + (nearest < float.MaxValue ? nearest.ToString("F1") : "없음")
 				+ rejected + " · 전초기지 " + outposts + "기 · 겨눈 곳 " + (adaptationTargetsNest ? "둥지 옆" : "코어 둘레"));
 
@@ -1248,9 +1253,12 @@ namespace WitchMendokusai.EditorTools
 			if (adaptationTargetsNest)
 				adaptationSawEnemies = true; // 둥지는 도망가지 않는다 — 겨눴으면 맞힐 것이 있었다.
 
-			if (adaptationSawEnemies == false && match.CoreCombatant != null)
+			if (adaptationSawEnemies == false)
 			{
-				Vector3 core = match.CoreCombatant.Position;
+				// ★ 포탑을 둥지 옆(코어에서 35 밖)에 세워 놓고 *코어 주변*의 마수를 세고 있었다.
+				//   그래서 「마수는 있었는데 편중 0」이라는 거짓 FAIL 이 났다 — 재는 자리는
+				//   포탑이 선 자리여야 한다. 겨눈 곳을 기억해 두고 그 둘레를 본다.
+				Vector3 core = adaptationAim;
 				foreach (MatchCombatant enemy in match.WaveEnemies)
 				{
 					if (enemy == null || enemy.IsAlive == false)
@@ -1532,13 +1540,24 @@ namespace WitchMendokusai.EditorTools
 				}
 			}
 
-			if (breachHud == null)
-				Debug.Log(TAG + " 뚫린 자리 — 화면은 못 쟀다: HUD 를 못 찾았다.");
-			else if (spoken == false)
-				Debug.LogWarning(TAG + " 뚫린 자리 FAIL — 방향은 끌리는데 화면이 아무 말도 안 한다(왜 그쪽으로 오는지 알 길이 없다).");
-
+			// ★ 순서가 중요하다. 규칙이 손실을 아예 못 봤으면 화면을 탓할 일이 아니다 —
+			//   예전엔 둘 다 FAIL 로 찍혀 「화면 문제」라는 잘못된 실마리를 하나 더 만들었다.
 			if (hot == 0)
+			{
 				Debug.LogWarning(TAG + " 뚫린 자리 FAIL — 건물을 잃었는데 뜨거운 자리가 0곳이다(규칙이 손실을 못 봤다).");
+			}
+			else if (breachHud == null)
+			{
+				Debug.Log(TAG + " 뚫린 자리 — 화면은 못 쟀다: HUD 를 못 찾았다.");
+			}
+			else if (spoken == false)
+			{
+				// 알림 칸은 유한하다 — 꽉 차 있었으면 밀려난 것이지 안 뜬 것이 아니다.
+				if (match.Alerts.Count >= TowerDefenseAlerts.MAX_ALERTS)
+					Debug.Log(TAG + " 뚫린 자리 — 화면은 못 쟀다: 알림 칸이 이미 꽉 차 있었다. 실패가 아니다.");
+				else
+					Debug.LogWarning(TAG + " 뚫린 자리 FAIL — 자리가 남았는데도 왜 그쪽으로 오는지 화면이 말하지 않는다.");
+			}
 			else if (movedAfter >= movedBefore - 0.5f)
 				Debug.LogWarning(TAG + " 뚫린 자리 FAIL — 뜨거운 자리는 생겼는데 다음 파도가 그쪽으로 안 끌린다.");
 			else
