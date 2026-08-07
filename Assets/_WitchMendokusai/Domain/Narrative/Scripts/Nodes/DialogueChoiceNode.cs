@@ -15,6 +15,10 @@ namespace WitchMendokusai
 	/// prompt/옵션 라벨 = 디자이너 노출(수치/문자열 노출 룰). 옵션별 결과는 *연결*이 정본
 	/// (DialogueLine 중복 보유 X — Speak 노드가 분기 끝에서 말함). Options setter =
 	/// DialogueSpeakNode.Line / QuestNode.Target 선례 일관(런타임·테스트 구성).
+	///
+	/// 각 칸은 *보일 조건*(<see cref="DialogueChoiceOption.Condition"/>)을 가질 수 있다 —
+	/// 조건이 안 맞는 칸은 목록에서 아예 빠진다(회색 처리 X: 못 고르는 선택지를 보여 주면
+	/// 「무엇이 부족한지」를 대화 밖에서 설명해야 한다. 그건 대사가 할 일이다).
 	/// </summary>
 	[Serializable]
 	public class DialogueChoiceNode : NodeBase
@@ -23,10 +27,16 @@ namespace WitchMendokusai
 		private const string PORT_CHOICE_PREFIX = "choice";
 
 		[SerializeField, TextArea] private string prompt;
-		[SerializeField] private List<string> options = new();
+		[SerializeField] private List<DialogueChoiceOption> options = new();
 
 		public string Prompt { get => prompt; set => prompt = value; }
-		public List<string> Options { get => options; set => options = value ?? new(); }
+
+		/// <summary>
+		/// 선택지 칸들. **포트 번호는 여기 적힌 순서(authored index)로 고정**이다 —
+		/// 조건 때문에 화면에서 몇 칸이 빠져도 연결이 밀리면 안 되기 때문.
+		/// 화면에 보이는 순번 ↔ 여기 순번의 변환은 <see cref="DialogueGraphTraversal"/> 가 맡는다.
+		/// </summary>
+		public List<DialogueChoiceOption> Options { get => options; set => options = value ?? new(); }
 
 		/// <summary>i 번째 선택지의 출력 포트 id — traversal 분기 + 에디터 연결이 공유하는 안정 식별.</summary>
 		public static string ChoicePortId(int index) => PORT_CHOICE_PREFIX + index;

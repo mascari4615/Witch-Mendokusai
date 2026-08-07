@@ -158,7 +158,7 @@ namespace WitchMendokusai.Tests
 		{
 			DialogueGraph graph = NewGraph();
 			DialogueStartNode start = SeedStart(graph);
-			DialogueChoiceNode choice = new() { Prompt = "어느 쪽?", Options = new List<string> { "A", "B" } };
+			DialogueChoiceNode choice = new() { Prompt = "어느 쪽?", Options = new List<DialogueChoiceOption> { "A", "B" } };
 			DialogueLine firstOptionLine = NewLine();
 			secondOptionLine = NewLine();
 			DialogueSpeakNode firstOption = new() { Line = firstOptionLine };

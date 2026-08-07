@@ -73,6 +73,10 @@ namespace WitchMendokusai
 		private NodeBase currentNode;
 		private int pendingChoice = -1;
 
+		// 화면에 보이는 순번 → 노드에 적힌 순번. 조건이 안 맞아 빠진 칸이 있으면 둘이 어긋나는데,
+		// 포트는 *적힌 순번* 으로 고정이라 이 표가 없으면 엉뚱한 가지로 간다.
+		private readonly List<int> visibleToAuthored = new();
+
 		public DialogueGraphTraversal(DialogueGraph graph)
 		{
 			this.graph = graph;
@@ -123,15 +127,15 @@ namespace WitchMendokusai
 		/// </summary>
 		public bool SelectChoice(int index)
 		{
-			if (currentNode is DialogueChoiceNode choiceNode == false)
+			if (currentNode is DialogueChoiceNode == false)
 			{
 				return false;
 			}
-			if (index < 0 || index >= choiceNode.Options.Count)
+			if (index < 0 || index >= visibleToAuthored.Count)
 			{
 				return false;
 			}
-			pendingChoice = index;
+			pendingChoice = visibleToAuthored[index];
 			return true;
 		}
 
@@ -200,13 +204,47 @@ namespace WitchMendokusai
 			if (currentNode is DialogueChoiceNode choiceNode)
 			{
 				pendingChoice = -1;
-				return DialogueStep.Choice(choiceNode.Prompt, choiceNode.Options);
+				List<string> availableLabels = BuildAvailableOptions(choiceNode);
+
+				// 고를 수 있는 칸이 하나도 없으면 선택지를 띄울 수 없다 — 빈 목록을 보여 주고 멈추는 대신
+				// 대화를 끝낸다(연결 안 된 가지와 같은 결말). 이 상황은 검사기가 미리 경고한다.
+				if (availableLabels.Count == 0)
+				{
+					currentNode = null;
+					return DialogueStep.End;
+				}
+
+				return DialogueStep.Choice(choiceNode.Prompt, availableLabels);
 			}
 			if (currentNode is DialogueWaitNode waitNode)
 			{
 				return DialogueStep.Wait(waitNode.Kind, waitNode.Seconds, waitNode.EventId);
 			}
 			return DialogueStep.End;
+		}
+
+		/// <summary>
+		/// 조건이 맞는 칸의 라벨만 모으고, 그 순번 → 적힌 순번 표를 다시 만든다.
+		/// 조건 평가는 *선택지를 띄우는 그 순간* 한 번 — 띄운 뒤 상황이 바뀌어도 목록은 안 흔들린다
+		/// (고르는 중에 항목이 사라지면 손가락이 엉뚱한 걸 누른다).
+		/// </summary>
+		private List<string> BuildAvailableOptions(DialogueChoiceNode choiceNode)
+		{
+			visibleToAuthored.Clear();
+			List<string> labels = new();
+
+			List<DialogueChoiceOption> options = choiceNode.Options;
+			for (int i = 0; i < options.Count; i++)
+			{
+				DialogueChoiceOption option = options[i];
+				if (option == null || option.IsAvailable() == false)
+				{
+					continue;
+				}
+				visibleToAuthored.Add(i);
+				labels.Add(option.Label);
+			}
+			return labels;
 		}
 
 		private DialogueStartNode FindStartNode()
