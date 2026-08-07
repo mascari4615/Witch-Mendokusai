@@ -122,8 +122,18 @@ namespace WitchMendokusai
 			Vector3 nextLocal = layout.CellToWorld(follower.Path[follower.Index]);
 
 			// 한 칸 더 내다보고 섞는다 — 같은 길을 곡선으로 걷는다(길 자체는 안 바뀐다).
-			if (cornerSmoothing > 0f && follower.Index + 1 < follower.Path.Count)
+			//
+			// ★ 「길 자체는 안 바뀐다」는 벽이 없을 때만 참이다. 길찾기는 모서리를 안 뚫는 길을 주는데,
+			//   이 섞기가 그 ㄱ자를 대각선으로 되돌려 마수를 바위 모서리에 처박는다 — 마수의 몸 지름은
+			//   칸과 같아서(반경 0.50 · 칸 1.00) 벽 모서리 옆 0.13 짜리 틈으로는 못 들어간다.
+			//   라이브 실측: 「갈 수 있다는 칸인데 암반에 막힘」이 판마다 36~73줄이었다.
+			// ★ 그래서 지름길이 훑는 칸에 벽이 하나라도 있으면 안 섞는다. 트인 곳에서는 그대로 둥글게 돈다
+			//   (사용자가 지적한 「뚝뚝 끊기는 움직임」은 트인 곳 이야기다 — 거기 곡선은 그대로 살아 있다).
+			if (cornerSmoothing > 0f && follower.Index + 1 < follower.Path.Count
+				&& IsShortcutClear(fromCell, follower.Path[follower.Index + 1]))
+			{
 				nextLocal = Vector3.Lerp(nextLocal, layout.CellToWorld(follower.Path[follower.Index + 1]), cornerSmoothing);
+			}
 
 			Vector3 delta = stageRoot.TransformPoint(nextLocal) - from;
 			delta.y = 0f;
@@ -131,6 +141,30 @@ namespace WitchMendokusai
 				return false;
 
 			direction = delta.normalized;
+			return true;
+		}
+
+		/// <summary>
+		/// 지금 칸에서 두 칸 뒤로 질러가도 벽에 안 닿는가 — 사이를 감싸는 네모 안에 벽이 하나라도 있으면 안 된다.
+		///
+		/// ★ 정밀한 선분 검사가 아니라, 몸이 칸만큼 굵다는 사실에 맞춘 보수적 판정이다.
+		///   애매하면 안 질러가는 쪽이 옳다 — 끼면 그 마수는 판이 끝날 때까지 바위를 민다.
+		/// </summary>
+		private bool IsShortcutClear(Vector2Int fromCell, Vector2Int afterCell)
+		{
+			int minX = Mathf.Min(fromCell.x, afterCell.x);
+			int maxX = Mathf.Max(fromCell.x, afterCell.x);
+			int minY = Mathf.Min(fromCell.y, afterCell.y);
+			int maxY = Mathf.Max(fromCell.y, afterCell.y);
+
+			for (int x = minX; x <= maxX; x++)
+			{
+				for (int y = minY; y <= maxY; y++)
+				{
+					if (layout.IsBlocked(new Vector2Int(x, y)))
+						return false;
+				}
+			}
 			return true;
 		}
 
