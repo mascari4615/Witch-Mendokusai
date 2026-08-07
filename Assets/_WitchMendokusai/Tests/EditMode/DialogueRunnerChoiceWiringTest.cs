@@ -19,6 +19,15 @@ namespace WitchMendokusai.Tests
 		private const string NL = "\n";
 		private const int GRAPH_ID = 5300;
 
+		private static DialogueGraph BuildGraph(params string[] lines)
+		{
+			DialogueGraph graph = DialogueScriptGraphBuilder.Build(DialogueScriptParser.Parse(string.Join(NL, lines)));
+			graph.ID = GRAPH_ID;
+			return graph;
+		}
+
+		private static DialogueRunner NewRunner() => new GameObject("DialogueRunnerTest").AddComponent<DialogueRunner>();
+
 		private static DialogueGraph BuildGraph()
 		{
 			DialogueGraph graph = DialogueScriptGraphBuilder.Build(DialogueScriptParser.Parse(string.Join(NL,
@@ -52,6 +61,51 @@ namespace WitchMendokusai.Tests
 			Assert.That(runner.Transcript.Last.IsChoice, Is.False, "그 뒤 대사는 고른 답이 아니다");
 
 			Object.DestroyImmediate(host);
+		}
+
+		[Test]
+		public void ListeningToTheEnd_LeavesItAsHeard()
+		{
+			// 「끝까지 들었다」를 남기는 자리도 잇는 줄이다 — 재생기는 끝났다고만 말하고,
+			// 그걸 이력에 옮기는 건 러너다. 그 줄이 빠져도 부품은 전부 초록이다.
+			DialogueRunner runner = NewRunner();
+			runner.Play(BuildGraph("## 시작", "> 욘: \"하나.\"", "> 욘: \"둘.\""));
+			runner.Skip();
+
+			Assert.That(runner.IsPlaying, Is.False);
+			Assert.That(runner.History.HasSeen(GRAPH_ID, DialogueSeenKind.Completed), Is.True);
+		}
+
+		[Test]
+		public void StoppingHalfway_DoesNotCountAsHeard()
+		{
+			// 중간에 접은 대화는 다음에 다시 보여줘야 한다 — 「시작했다」와 「들었다」가 달라야 하는 이유.
+			DialogueRunner runner = NewRunner();
+			runner.Play(BuildGraph("## 시작", "> 욘: \"하나.\"", "> 욘: \"둘.\""));
+			runner.Stop();
+
+			Assert.That(runner.IsPlaying, Is.False);
+			Assert.That(runner.History.HasSeen(GRAPH_ID, DialogueSeenKind.Started), Is.True);
+			Assert.That(runner.History.HasSeen(GRAPH_ID, DialogueSeenKind.Completed), Is.False);
+		}
+
+		[Test]
+		public void SkipStopsAtAChoice_SoThePlayerStillPicks()
+		{
+			// 러너의 건너뛰기가 재생기 규칙을 그대로 물려받는지 — 대신 골라 주면 안 된다.
+			DialogueRunner runner = NewRunner();
+			runner.Play(BuildGraph(
+				"## 시작",
+				"> 욘: \"하나.\"",
+				"> - 왼쪽 -> 끝",
+				"> - 오른쪽 -> 끝",
+				"## 끝",
+				"> 욘: \"끝.\""));
+
+			Assert.That(runner.Skip(), Is.GreaterThan(0));
+			Assert.That(runner.CurrentChoices, Is.Not.Null);
+			Assert.That(runner.History.HasSeen(GRAPH_ID, DialogueSeenKind.Completed), Is.False,
+				"아직 안 끝났다 — 건너뛰기가 「들었다」를 앞당기면 안 된다");
 		}
 	}
 }
