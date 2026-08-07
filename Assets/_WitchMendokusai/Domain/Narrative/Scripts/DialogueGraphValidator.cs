@@ -32,6 +32,9 @@ namespace WitchMendokusai
 
 		/// <summary>모든 선택지에 조건이 걸렸다 — 하나도 안 맞는 상황이 오면 대화가 거기서 끝난다.</summary>
 		ChoiceMayHaveNoAvailableOption = 8,
+
+		/// <summary>효과 노드가 비었다 — 뭔가 일으키라고 놓고 아무것도 안 적혔다.</summary>
+		EffectNodeWithoutEffects = 9,
 	}
 
 	public sealed class DialogueGraphIssue
@@ -187,6 +190,15 @@ namespace WitchMendokusai
 						DialogueGraphIssueKind.WaitEventWithoutId,
 						NodeGraphIssueSeverity.Error,
 						$"DialogueWaitNode '{node.Id}' waits for an event but has no EventId — it can never resolve.",
+						node.Id));
+				}
+
+				if (node is DialogueEffectNode effectNode && effectNode.Effects.Count == 0)
+				{
+					result.Add(new DialogueGraphIssue(
+						DialogueGraphIssueKind.EffectNodeWithoutEffects,
+						NodeGraphIssueSeverity.Warning,
+						$"DialogueEffectNode '{node.Id}' has no effects — it passes through doing nothing.",
 						node.Id));
 				}
 

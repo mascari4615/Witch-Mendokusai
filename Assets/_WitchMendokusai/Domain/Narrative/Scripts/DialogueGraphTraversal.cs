@@ -9,6 +9,7 @@ namespace WitchMendokusai
 		Speak,
 		Choice,
 		Wait,
+		Effect,
 		End,
 	}
 
@@ -16,6 +17,7 @@ namespace WitchMendokusai
 	/// traversal 이 방출하는 한 스텝.
 	/// Speak → <see cref="SpeakLine"/> 유효. Choice → <see cref="Prompt"/> + <see cref="Options"/>
 	/// 유효(소비자는 <see cref="DialogueGraphTraversal.SelectChoice"/> 로 분기 선택).
+	/// Effect → <see cref="Effects"/> 유효(소비자가 적용 후 <see cref="DialogueGraphTraversal.Next"/>).
 	/// Wait → <see cref="WaitKind"/> + <see cref="WaitSeconds"/> + <see cref="WaitEventId"/> 유효
 	/// (소비자가 시간/이벤트 만족 후 <see cref="DialogueGraphTraversal.Next"/> = 대기 완료 신호).
 	/// End → 전부 기본값.
@@ -29,10 +31,12 @@ namespace WitchMendokusai
 		public DialogueWaitKind WaitKind { get; }
 		public float WaitSeconds { get; }
 		public string WaitEventId { get; }
+		public IReadOnlyList<EffectInfo> Effects { get; }
 
 		private DialogueStep(DialogueStepKind kind, DialogueLine speakLine, string prompt, IReadOnlyList<string> options,
-			DialogueWaitKind waitKind, float waitSeconds, string waitEventId)
+			DialogueWaitKind waitKind, float waitSeconds, string waitEventId, IReadOnlyList<EffectInfo> effects = null)
 		{
+			Effects = effects;
 			Kind = kind;
 			SpeakLine = speakLine;
 			Prompt = prompt;
@@ -42,6 +46,8 @@ namespace WitchMendokusai
 			WaitEventId = waitEventId;
 		}
 
+		public static DialogueStep Effect(IReadOnlyList<EffectInfo> effects) =>
+			new(DialogueStepKind.Effect, null, null, null, default, 0f, null, effects);
 		public static DialogueStep Speak(DialogueLine line) =>
 			new(DialogueStepKind.Speak, line, null, null, default, 0f, null);
 		public static DialogueStep Choice(string prompt, IReadOnlyList<string> options) =>
@@ -154,6 +160,10 @@ namespace WitchMendokusai
 			{
 				return DialogueWaitNode.PORT_NEXT;
 			}
+			if (node is DialogueEffectNode)
+			{
+				return DialogueEffectNode.PORT_NEXT;
+			}
 			return null;
 		}
 
@@ -219,6 +229,10 @@ namespace WitchMendokusai
 			if (currentNode is DialogueWaitNode waitNode)
 			{
 				return DialogueStep.Wait(waitNode.Kind, waitNode.Seconds, waitNode.EventId);
+			}
+			if (currentNode is DialogueEffectNode effectNode)
+			{
+				return DialogueStep.Effect(effectNode.Effects);
 			}
 			return DialogueStep.End;
 		}
