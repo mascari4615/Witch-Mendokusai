@@ -46,6 +46,13 @@ namespace WitchMendokusai
 		[Tooltip("선택지가 떴는데 아무도 안 고르면 이만큼 뒤에 접는다(초). 0 이면 안 접는다.")]
 		[SerializeField] private float choiceStallSeconds = 15f;
 
+		[Header("담아 두는 양")]
+		[Tooltip("지나간 대사를 몇 줄까지 들고 있나. 넘치면 오래된 것부터 버린다.")]
+		[SerializeField] private int transcriptCapacity = DialogueTranscript.DEFAULT_CAPACITY;
+
+		[Tooltip("동시에 몇 개까지 줄을 세우나. 꽉 차면 새로 온 것을 흘린다(경고를 찍는다).")]
+		[SerializeField] private int dialogueQueueCapacity = DialoguePlayQueue.DEFAULT_CAPACITY;
+
 		private UIManager uiManager;
 		private IDialogueEffectSink effectSink;
 		private IDialogueItemCountSource itemCountSource;
@@ -90,12 +97,12 @@ namespace WitchMendokusai
 				return;
 			}
 			coordinatorWired = true;
-			coordinator.OnStartRequested += StartRequested;
+			Coordinator.OnStartRequested += StartRequested;
 		}
 
 		private void OnDestroy()
 		{
-			coordinator.OnStartRequested -= StartRequested;
+			Coordinator.OnStartRequested -= StartRequested;
 			coordinatorWired = false;
 			DialogueItemBridge.Clear(itemCountSource);
 			DialogueQuestBridge.Clear(questStateSource);
@@ -115,12 +122,25 @@ namespace WitchMendokusai
 		/// <summary>「이 대화를 본 적 있나」 기록 — 조건이 <see cref="DialogueHistoryBridge"/> 로 찾아온다.</summary>
 		public DialogueHistory History { get; } = new();
 
-		/// <summary>지나간 대사 — 「방금 뭐라고 했지」를 위해 남긴다(저장 대상 아님).</summary>
-		public DialogueTranscript Transcript { get; } = new();
+		private DialogueTranscript transcript;
+		private DialoguePlayCoordinator coordinator;
+		private bool coordinatorWired;
+
+		/// <summary>
+		/// 지나간 대사 — 「방금 뭐라고 했지」를 위해 남긴다(저장 대상 아님).
+		///
+		/// ★ 왜 첫 사용 때 만드나: 몇 줄까지 들고 있을지가 **인스펙터 값**이다.
+		///   필드 초기화로 만들면 그 값이 읽히기 전에 만들어져서, 조절해도 안 먹는다.
+		/// </summary>
+		public DialogueTranscript Transcript =>
+			transcript ??= new DialogueTranscript(
+				transcriptCapacity <= 0 ? DialogueTranscript.DEFAULT_CAPACITY : transcriptCapacity);
 
 		// 「언제 거는가」는 조정자가 정한다(순수 — 화면 없이 검증된다). 러너는 「어떻게 거는가」만 맡는다.
-		private readonly DialoguePlayCoordinator coordinator = new();
-		private bool coordinatorWired;
+		// 줄 길이도 인스펙터 값이라 같은 이유로 첫 사용 때 만든다.
+		private DialoguePlayCoordinator Coordinator =>
+			coordinator ??= new DialoguePlayCoordinator(new DialoguePlayQueue(
+				dialogueQueueCapacity <= 0 ? DialoguePlayQueue.DEFAULT_CAPACITY : dialogueQueueCapacity));
 
 		/// <summary>선택지가 제시됐다 — UI 가 버튼을 그리고 <see cref="SubmitChoice"/> 로 돌려준다.</summary>
 		public event Action<IReadOnlyList<string>> OnChoicesPresented = delegate { };
@@ -133,7 +153,7 @@ namespace WitchMendokusai
 		public IReadOnlyList<string> CurrentChoices => playback?.CurrentChoices;
 
 		/// <summary>기다리는 대화 수(지금 재생 중인 것은 안 센다).</summary>
-		public int PendingCount => coordinator.PendingCount;
+		public int PendingCount => Coordinator.PendingCount;
 
 		/// <summary>
 		/// 대화 그래프 재생 — 이 게임에서 그래프를 실제로 쓰는 지점.
@@ -151,7 +171,7 @@ namespace WitchMendokusai
 			}
 
 			EnsureCoordinatorWired();
-			if (coordinator.Request(new DialoguePlayRequest(null, null, speakerTransform, graph)) == false)
+			if (Coordinator.Request(new DialoguePlayRequest(null, null, speakerTransform, graph)) == false)
 			{
 				Debug.LogWarning($"[DialogueRunner] 대화 차례가 꽉 찼거나 이미 줄에 있다 — 흘림: {graph.name}");
 			}
@@ -196,7 +216,7 @@ namespace WitchMendokusai
 
 			// 「지금 걸지 줄 세울지」는 조정자가 정한다(순수 — 화면 없이 검증된다).
 			EnsureCoordinatorWired();
-			if (coordinator.Request(new DialoguePlayRequest(source, null, speakerTransform)) == false)
+			if (Coordinator.Request(new DialoguePlayRequest(source, null, speakerTransform)) == false)
 			{
 				Debug.LogWarning($"[DialogueRunner] 대화 차례가 꽉 찼거나 이미 줄에 있다 — 흘림: {source.name}");
 			}
@@ -250,7 +270,7 @@ namespace WitchMendokusai
 		/// <summary>재생 중단 — 기다리던 것도 같이 접는다(「지금 대화 그만」이면 그게 맞다).</summary>
 		public void Stop()
 		{
-			coordinator.Reset();
+			Coordinator.Reset();
 			StopActive();
 		}
 
@@ -373,7 +393,7 @@ namespace WitchMendokusai
 			// 지금 막 끝난 재생을 정리한 *뒤* 다음 것을 건다 — 안 그러면 「재생 중」으로 보여 또 줄을 선다.
 			playback = null;
 			playingGraph = null;
-			coordinator.NotifyFinished();
+			Coordinator.NotifyFinished();
 		}
 
 		private void StopActive()
@@ -424,7 +444,7 @@ namespace WitchMendokusai
 
 			// 옛 입구도 같은 줄에 선다 — 두 입구가 서로를 끊으면 한쪽이 통째로 사라진다.
 			EnsureCoordinatorWired();
-			coordinator.Request(new DialoguePlayRequest(null, first, speakerTransform));
+			Coordinator.Request(new DialoguePlayRequest(null, first, speakerTransform));
 		}
 
 		/// <summary>

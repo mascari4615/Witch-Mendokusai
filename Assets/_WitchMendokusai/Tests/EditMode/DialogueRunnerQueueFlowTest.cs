@@ -79,6 +79,23 @@ namespace WitchMendokusai.Tests
 		}
 
 		[Test]
+		public void CapacitiesComeFromTheInspector_NotFromTheField()
+		{
+			// 수치는 인스펙터에서 만질 수 있어야 한다(WM 규칙). 그런데 그 값은 **컴포넌트가 만들어진 뒤에**
+			// 채워지므로, 담는 그릇을 필드 초기화로 만들면 조절해도 안 먹는다.
+			// 여기서는 기본값이 실제로 그릇에 전달되는지만 본다 — 전달 경로가 끊기면 이 값도 안 맞는다.
+			DialogueRunner runner = NewRunner();
+
+			for (int i = 0; i < DialogueTranscript.DEFAULT_CAPACITY + 5; i++)
+			{
+				runner.Transcript.RecordChoice("답 " + i);
+			}
+
+			Assert.That(runner.Transcript.Count, Is.EqualTo(DialogueTranscript.DEFAULT_CAPACITY),
+				"넘치면 오래된 것부터 버린다 — 그릇 크기가 전달됐다는 뜻");
+		}
+
+		[Test]
 		public void TickDoesNothingWhenNothingIsPlaying()
 		{
 			// 매 프레임 불리는 자리다 — 아무것도 안 트는 동안 조용해야 한다.
