@@ -443,6 +443,9 @@ namespace WitchMendokusai
 		[field: Tooltip("테두리에서 안쪽으로 당길 거리(월드). 0 이면 판 끝에 딱 붙어 나온다.")]
 		[field: SerializeField, Min(0f)] public float InvasionEdgeInset { get; private set; } = 2f;
 
+		[field: Tooltip("테두리가 코어까지 닿는지 볼 때 몇 도 간격으로 훑을지. 촘촘할수록 안전하고 판정이 무겁다.")]
+		[field: SerializeField, Min(1f)] public float BorderCheckStepDegrees { get; private set; } = 5f;
+
 		[field: Tooltip("토막 위에 몇 군데로 나눠 세울지. 마릿수보다 적어도 되며, 많을수록 넓게 흩어진다.")]
 		[field: SerializeField, Min(1)] public int InvasionFrontPoints { get; private set; } = 9;
 

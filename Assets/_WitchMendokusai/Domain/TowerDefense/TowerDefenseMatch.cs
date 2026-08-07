@@ -773,6 +773,12 @@ namespace WitchMendokusai
 					return false;
 			}
 
+			// ★ 파도는 이제 **테두리 어디서든** 온다(테두리 침공). 그런데 이 검사는 옛 개념인 *둥지 자리*만
+			//   보고 있었다 — 그래서 다음 파도가 올 토막을 벽으로 막아도 통과했고, 그러면 그 파도는
+			//   길이 없는 자리에서 태어나 판이 교착된다. 「어디서든 온다」면 **테두리 전체**를 봐야 한다.
+			if (stage.BorderInvasion && IsBorderReachable() == false)
+				return false;
+
 			// 이미 걷고 있는 마수도 새 길을 따라야 한다 — 안 그러면 벽 안쪽에 갇힌다.
 			foreach (TacticDriver driver in drivers)
 			{
@@ -781,6 +787,47 @@ namespace WitchMendokusai
 			}
 
 			terrainView.BuildPathLanes();
+			return true;
+		}
+
+		/// <summary>
+		/// 판 테두리의 어느 지점에서든 코어까지 닿는가.
+		///
+		/// ★ 파도가 매번 다른 토막에서 오므로 「그 토막만」 검사할 수는 없다 — 지금 막아둔 벽은 *나중*
+		///   파도에도 그대로 남기 때문이다. 테두리를 고르게 훑어 하나라도 갇히면 그 벽은 거절한다.
+		/// 각도 간격은 노출값 — 촘촘할수록 안전하고 그만큼 판정이 무겁다.
+		/// </summary>
+		private bool IsBorderReachable()
+		{
+			if (mapLayout == null || flowField == null)
+				return true;
+
+			// ★ 「테두리의 *모든* 점이 닿아야 한다」로 만들었더니 **벽이 하나도 안 섰다**(실측: placed=0).
+			//   테두리에는 원래 암반이 박혀 있어서, 내 벽과 무관하게 못 닿는 점이 늘 있다 —
+			//   새로 만든 자물쇠가 주인을 막은 것이다.
+			// 진짜로 막아야 하는 것은 「한 방향이 통째로 봉인되는 것」이다. 출현 자리는 어차피
+			//   갈 수 있는 칸으로 스냅되므로, **방위마다 한 곳이라도 닿으면** 그 방향은 살아 있다.
+			float step = Mathf.Max(1f, stage.BorderCheckStepDegrees);
+			for (int sector = 0; sector < 8; sector++)
+			{
+				float from = sector * 45f;
+				bool anyReachable = false;
+
+				for (float angle = from; angle < from + 45f; angle += step)
+				{
+					Vector3 local = TowerDefenseWaveOrigin.BorderPoint(
+						angle, activeGroundWidth * 0.5f, activeGroundLength * 0.5f, stage.InvasionEdgeInset);
+
+					if (flowField.IsReachable(mapLayout.WorldToCell(local)) == false)
+						continue;
+
+					anyReachable = true;
+					break;
+				}
+
+				if (anyReachable == false)
+					return false; // 이 방위가 통째로 막혔다 — 그쪽에서 올 파도가 갇힌다.
+			}
 			return true;
 		}
 
