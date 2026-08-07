@@ -150,13 +150,8 @@ namespace WitchMendokusai
 			UpdateOverheadHint(show, InputManager.TryGetExistingInstance(out InputManager held) ? held : null);
 			UpdateInteractButton(show, playerProvider);
 			UpdateLookBackdropBlocking();
-
-			// 화면을 돌리면 노치·제스처 바의 자리가 통째로 바뀐다 — 그때만 다시 잰다.
-			if (controlsRoot != null && Screen.safeArea != lastSafeArea)
-			{
-				lastSafeArea = Screen.safeArea;
-				ApplySafeArea(controlsRoot);
-			}
+			// 화면을 돌렸을 때의 처리는 위(다시 세우기) 한 곳뿐이다. 여기에 「여백만 다시 재기」를
+			// 따로 두면 위에서 이미 값을 갱신한 뒤라 *영영 안 불리는 죽은 가지*가 된다.
 		}
 
 		/// <summary>
@@ -895,8 +890,6 @@ namespace WitchMendokusai
 
 		/// <summary>패널이 기준으로 삼는 세로 크기 — 화면 픽셀을 이 화면의 좌표로 바꿀 때 쓴다.</summary>
 		private const float PANEL_REFERENCE_HEIGHT = 800f;
-
-		private Rect lastSafeArea;
 
 		private static float TouchFriendly(float logicalSize)
 		{
