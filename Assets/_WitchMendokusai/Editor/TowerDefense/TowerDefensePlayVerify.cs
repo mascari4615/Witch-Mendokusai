@@ -230,6 +230,16 @@ namespace WitchMendokusai.EditorTools
 		{
 			double now = EditorApplication.timeSinceStartup;
 
+			// ★ 검사는 *같은 땅*에서 돌아야 두 실행을 견줄 수 있다. 씨앗이 매번 다르면 암반 배치가 통째로
+			//   달라져, 좋아진 것이 내 수정 덕인지 판이 쉬웠던 덕인지 영영 못 가른다(실측: 같은 코드로
+			//   굳음 경고가 99~421 을 오갔고, 그 흔들림을 수정 효과로 두 번 잘못 읽었다).
+			// ★ 매 틱 다시 건다 — 한 실행 안에서 판이 여러 번 새로 태어나는데(재시작·무방비 판),
+			//   한 번만 걸었더니 첫 판만 고정되고 나머지는 도로 무작위였다(실측으로 확인).
+			//   지정값은 판이 태어날 때 한 번 쓰이고 지워지므로, 매 틱 거는 것이 곧 「매 판 고정」이다.
+			//   사람이 노는 판은 그대로 매번 새로 생성된다 — 이 코드는 검사에만 있다.
+			if (match != null)
+				match.SetNextMatchSeed(VERIFY_MAP_SEED);
+
 			// 안전망 — 무슨 일이 있어도 공유 에디터를 Play 에 물리지 않는다.
 			if (now - playStart > HARD_TIMEOUT)
 			{
@@ -384,11 +394,6 @@ namespace WitchMendokusai.EditorTools
 					// 코어 생성 = TowerDefenseCore 존재 = Resource 가 시작자원으로 채워짐.
 					if (match == null || match.Resource <= 0)
 						return;
-					// ★ 판을 고정한다. 검사는 *같은 땅*에서 돌아야 두 실행을 견줄 수 있다 —
-					//   씨앗이 매번 다르면 암반 배치가 통째로 달라져, 고친 것이 좋아졌는지 판이 쉬웠는지를
-					//   영영 못 가른다(실측: 같은 코드로 굳음 경고가 99~421 사이를 오갔고, 그 흔들림을
-					//   수정 효과로 두 번 잘못 읽었다). 사람이 노는 판은 그대로 매번 새로 생성된다.
-					match.SetNextMatchSeed(VERIFY_MAP_SEED);
 					Debug.Log(TAG + " MATCH-READY resource=" + match.Resource + " phase=" + match.Phase
 						+ " conclusionOnly=" + conclusionOnly);
 					// 결말만 모드 = 아무것도 짓지 않은 채 그대로 관측 — 이미 무방비 상태라 재시작조차 필요 없다.
