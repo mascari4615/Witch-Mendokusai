@@ -77,6 +77,9 @@ namespace WitchMendokusai
 		/// <summary>「이 대화를 본 적 있나」 기록 — 조건이 <see cref="DialogueHistoryBridge"/> 로 찾아온다.</summary>
 		public DialogueHistory History { get; } = new();
 
+		// 재생 중에 또 들어온 대화 — 끊지 않고 차례를 세운다(끊으면 한 편이 통째로 사라진다).
+		private readonly DialoguePlayQueue playQueue = new();
+
 		/// <summary>선택지가 제시됐다 — UI 가 버튼을 그리고 <see cref="SubmitChoice"/> 로 돌려준다.</summary>
 		public event Action<IReadOnlyList<string>> OnChoicesPresented = delegate { };
 
@@ -86,6 +89,9 @@ namespace WitchMendokusai
 		public bool IsPlaying => playback != null && playback.IsPlaying;
 		public DialogueLine CurrentLine => playback?.CurrentLine;
 		public IReadOnlyList<string> CurrentChoices => playback?.CurrentChoices;
+
+		/// <summary>기다리는 대화 수(지금 재생 중인 것은 안 센다).</summary>
+		public int PendingCount => playQueue.Count;
 
 		/// <summary>대화 그래프 재생 — 이 게임에서 그래프를 실제로 쓰는 지점.</summary>
 		public void Play(DialogueGraph graph, Transform speakerTransform = null)
@@ -128,6 +134,16 @@ namespace WitchMendokusai
 				return;
 			}
 
+			// 이미 말하는 중이면 끊지 않고 줄을 세운다 — 퀘스트 보상 대사와 NPC 말이 겹치는 순간이 실제로 있다.
+			if (IsPlaying)
+			{
+				if (playQueue.Enqueue(new DialoguePlayRequest(source, null, speakerTransform)) == false)
+				{
+					Debug.LogWarning($"[DialogueRunner] 대화 차례가 꽉 찼거나 이미 줄에 있다 — 흘림: {source.name}");
+				}
+				return;
+			}
+
 			DialogueGraph graph = source.BuildGraph(out ParsedDialogueScript parsed);
 			for (int i = 0; i < parsed.Issues.Count; i++)
 			{
@@ -146,8 +162,12 @@ namespace WitchMendokusai
 		/// <summary>바깥 사건 통지 — 사건 대기 노드를 푼다(퀘스트 완료 등).</summary>
 		public void NotifyDialogueEvent(string eventId) => playback?.NotifyEvent(eventId);
 
-		/// <summary>재생 중단. 재생 중이 아니면 아무 일도 안 한다.</summary>
-		public void Stop() => StopActive();
+		/// <summary>재생 중단 — 기다리던 것도 같이 접는다(「지금 대화 그만」이면 그게 맞다).</summary>
+		public void Stop()
+		{
+			playQueue.Clear();
+			StopActive();
+		}
 
 		private IEnumerator DriveGraph()
 		{
@@ -219,6 +239,27 @@ namespace WitchMendokusai
 				History.MarkCompleted(playingScriptId == DataSO.NONE_ID ? playingGraph.ID : playingScriptId);
 			}
 			OnDialogueFinished();
+			PlayNextInQueue();
+		}
+
+		/// <summary>기다리던 대화가 있으면 이어서 시작한다. 없으면 아무 일도 안 한다.</summary>
+		private void PlayNextInQueue()
+		{
+			if (playQueue.TryDequeue(out DialoguePlayRequest next) == false)
+			{
+				return;
+			}
+
+			// 지금 막 끝난 재생을 정리한 *뒤* 다음 것을 건다 — 안 그러면 「재생 중」으로 보여 또 줄을 선다.
+			playback = null;
+			playingGraph = null;
+
+			if (next.Script != null)
+			{
+				Play(next.Script, next.SpeakerTransform);
+				return;
+			}
+			Play(next.Line, next.SpeakerTransform);
 		}
 
 		private void StopActive()
