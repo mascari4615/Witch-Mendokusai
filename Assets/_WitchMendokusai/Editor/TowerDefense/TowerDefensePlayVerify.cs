@@ -155,6 +155,8 @@ namespace WitchMendokusai.EditorTools
 			adaptationProbeAt = 0.0;
 			adaptationArmed = false;
 			adaptationSawEnemies = false;
+			adaptationTargetsNest = false;
+			adaptationMatch = null;
 			markCheckAt = 0.0;
 			lairDriftCheckAt = 0.0;
 			pressureCheckAt = 0.0;
@@ -1039,6 +1041,10 @@ namespace WitchMendokusai.EditorTools
 		private static double adaptationProbeAt;
 		private static bool adaptationArmed;
 		private static bool adaptationSawEnemies;
+		private static bool adaptationTargetsNest;
+
+		/// <summary> 탐침을 박은 그 판 — 판이 바뀌면 비교 자체가 무의미하다. </summary>
+		private static TowerDefenseMatch adaptationMatch;
 
 		/// <summary> 코어 둘레 5칸에 세운 둔화 포탑이 닿는 거리 — 이 안에 들어와야 「맞힐 기회가 있었다」. </summary>
 		private const float ADAPTATION_REACH = 14f;
@@ -1077,15 +1083,54 @@ namespace WitchMendokusai.EditorTools
 			}
 
 			adaptationArmed = true;
-			int placed = 0;
-			for (int ring = 0; ring < 4; ring++)
+
+			// ★ 코어 둘레에만 세우면 *마수가 와 주기를 기다리는* 검사가 된다 — 두 번 연속 「60초 동안
+			//   아무도 사거리에 안 왔다」로 끝났다. 둥지는 제자리에 있고 포탑이 쏘는 대상이므로,
+			//   둥지 옆에 세우면 맞힐 것이 반드시 있다. 운에 기대지 않는 유일한 자리다.
+			Vector3 core = match.CoreCombatant.Position;
+			Vector3 target = core;
+			float nearest = float.MaxValue;
+			foreach (TowerDefenseMatch.LairMarker marker in match.LairMarkers)
 			{
-				float angle = ring * 90f * Mathf.Deg2Rad;
-				Vector3 spot = match.CoreCombatant.Position
-					+ new Vector3(Mathf.Cos(angle), 0f, Mathf.Sin(angle)) * 5f;
-				if (match.TryPlaceTower(spot, slowSlot))
-					placed++;
+				float distance = Vector3.Distance(marker.Position, core);
+				if (distance >= nearest)
+					continue;
+				nearest = distance;
+				target = marker.Position;
 			}
+
+			int placed = 0;
+			string rejected = string.Empty;
+			if (nearest < float.MaxValue)
+			{
+				// 둥지에서 코어 쪽으로 조금 물러난 자리 — 사거리 안이면서 내 보급이 닿을 가능성이 높다.
+				Vector3 toCore = (core - target).normalized;
+				for (int step = 0; step < 4; step++)
+				{
+					Vector3 spot = target + toCore * (4f + step * 2f);
+					if (match.TryPlaceTower(spot, slowSlot))
+						placed++;
+				}
+				if (placed == 0)
+					rejected = " · 둥지 옆에는 한 기도 못 세웠다(보급 밖으로 보인다)";
+			}
+
+			// 둥지 옆이 막혔으면 코어 둘레라도 세운다 — 아무것도 안 세우는 것보단 잴 확률이 있다.
+			if (placed == 0)
+			{
+				for (int ring = 0; ring < 4; ring++)
+				{
+					float angle = ring * 90f * Mathf.Deg2Rad;
+					Vector3 spot = core + new Vector3(Mathf.Cos(angle), 0f, Mathf.Sin(angle)) * 5f;
+					if (match.TryPlaceTower(spot, slowSlot))
+						placed++;
+				}
+			}
+
+			adaptationMatch = match;
+			adaptationTargetsNest = placed > 0 && rejected.Length == 0 && nearest < float.MaxValue;
+			Debug.Log(TAG + " 적응 — 가장 가까운 둥지까지 " + (nearest < float.MaxValue ? nearest.ToString("F1") : "없음")
+				+ rejected + " · 겨눈 곳 " + (adaptationTargetsNest ? "둥지 옆" : "코어 둘레"));
 
 			adaptationProbeAt = EditorApplication.timeSinceStartup + 60.0;
 			Debug.Log(TAG + " 적응 — 둔화 포탑 " + placed + "기 세움(칸 " + slowSlot + ") · 60초 동안 화면을 지켜본다.");
@@ -1102,13 +1147,25 @@ namespace WitchMendokusai.EditorTools
 		/// </summary>
 		private static void PollAdaptation(double now)
 		{
-			if (adaptationProbeAt <= 0.0 || match == null)
+			if (adaptationProbeAt <= 0.0)
 				return;
+
+			// ★ 창이 열린 채 판이 새로 시작되면(재시작·이어하기) 예전엔 아무 말 없이 사라졌다 —
+			//   「재봤는데 조용하다」와 「아예 못 쟀다」가 구별이 안 됐다. 판이 바뀌면 그렇다고 말한다.
+			if (match == null || match != adaptationMatch)
+			{
+				adaptationProbeAt = 0.0;
+				Debug.Log(TAG + " 적응 — 못 쟀다: 창이 도는 중에 판이 새로 시작됐다. 실패가 아니다.");
+				return;
+			}
 
 			// ★ 둔화는 *맞혀야* 세어진다. 그런데 「마수가 살아 있다」로는 부족하다 — 테두리에서 막
 			//   나온 놈은 코어에서 수십 칸 밖이라 내가 세운 포탑의 사거리 안에 영영 안 들어온다.
 			//   실제로 「마수가 있었는데 편중 0」으로 한 번 틀리게 FAIL 을 찍었다. 재는 것은
 			//   **포탑이 닿는 거리까지 왔는가**여야 한다.
+			if (adaptationTargetsNest)
+				adaptationSawEnemies = true; // 둥지는 도망가지 않는다 — 겨눴으면 맞힐 것이 있었다.
+
 			if (adaptationSawEnemies == false && match.CoreCombatant != null)
 			{
 				Vector3 core = match.CoreCombatant.Position;
