@@ -192,6 +192,67 @@ namespace WitchMendokusai.Tests
 		}
 
 		[Test]
+		public void StalledChoice_IsReportedOnce()
+		{
+			// 고르는 쪽(선택지 화면)이 아직 없다. 그 상태로 선택지가 뜨면 대화는 영원히 서고,
+			// 뒤에 줄 선 대화까지 전부 막힌다 — 조용히 멈추는 대신 크게 알린다.
+			DialoguePlayback playback = ChoicePlayback(out DialogueLine _);
+			playback.ChoiceStallSeconds = 5f;
+			int stalls = 0;
+			playback.OnChoiceStalled += () => stalls++;
+
+			playback.Tick(4f);
+			Assert.That(stalls, Is.Zero, "아직 기다릴 만하다");
+
+			playback.Tick(2f);
+			Assert.That(stalls, Is.EqualTo(1));
+
+			playback.Tick(10f);
+			Assert.That(stalls, Is.EqualTo(1), "한 번만 울린다 — 매 프레임 경고를 쏟으면 콘솔이 죽는다");
+		}
+
+		[Test]
+		public void StallTimerResets_OnEachNewChoice()
+		{
+			DialoguePlayback playback = ChoicePlayback(out DialogueLine _);
+			playback.ChoiceStallSeconds = 5f;
+			int stalls = 0;
+			playback.OnChoiceStalled += () => stalls++;
+
+			playback.Tick(4f);
+			playback.SubmitChoice(0);
+			playback.Tick(4f);
+
+			Assert.That(stalls, Is.Zero, "고르고 넘어갔으면 시계는 처음부터다");
+		}
+
+		[Test]
+		public void StallOff_NeverReports()
+		{
+			DialoguePlayback playback = ChoicePlayback(out DialogueLine _);
+			playback.ChoiceStallSeconds = 0f;
+			int stalls = 0;
+			playback.OnChoiceStalled += () => stalls++;
+
+			playback.Tick(999f);
+
+			Assert.That(stalls, Is.Zero, "끄면 안 울린다 — 사람이 오래 고민하는 게임도 있다");
+		}
+
+		[Test]
+		public void ChoiceDoesNotAdvanceByTime()
+		{
+			DialoguePlayback playback = ChoicePlayback(out DialogueLine _);
+			playback.ReadingCharactersPerSecond = 10f;
+			playback.DefaultSpeakSeconds = 1f;
+
+			playback.Tick(999f);
+
+			Assert.That(playback.Current.Kind, Is.EqualTo(DialogueStepKind.Choice),
+				"시간이 흘렀다고 선택지가 저절로 넘어가면 플레이어가 고른 적 없는 길로 간다");
+		}
+
+		[Test]
 		public void Stop_FinishesExactlyOnce()
 		{
 			DialoguePlayback playback = ChoicePlayback(out DialogueLine _);

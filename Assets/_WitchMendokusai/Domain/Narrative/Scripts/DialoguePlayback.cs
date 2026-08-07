@@ -30,6 +30,7 @@ namespace WitchMendokusai
 		private readonly IDialogueEffectSink effectSink;
 		private readonly int nodeCount;
 		private float waitElapsed;
+		private bool stallReported;
 
 		/// <summary>스텝이 바뀔 때마다 — 소비자가 말풍선/선택지 UI 를 갱신하는 자리.</summary>
 		public event Action<DialogueStep> OnStepChanged = delegate { };
@@ -54,6 +55,19 @@ namespace WitchMendokusai
 		/// <summary>읽기 시간의 아래·위 한계(초). 위가 0 이하면 위 한계 없음.</summary>
 		public float MinimumSpeakSeconds { get; set; }
 		public float MaximumSpeakSeconds { get; set; }
+
+		/// <summary>
+		/// 선택지가 떴는데 아무도 안 고르는 채로 이만큼 지나면 <see cref="OnChoiceStalled"/> 를 한 번 울린다.
+		/// 0 이하 = 안 씀.
+		///
+		/// ★ 왜 필요한가: 고르는 쪽(선택지 화면)이 **아직 없다.** 그 상태에서 선택지가 뜨면 대화는
+		///   영원히 그 자리에 선다 — 그리고 뒤에 줄 선 대화(퀘스트 보상 대사 등)까지 **전부 막힌다.**
+		///   조용히 멈추는 것보다, 크게 알리고 이 대화를 접는 편이 낫다(줄은 계속 흐른다).
+		/// </summary>
+		public float ChoiceStallSeconds { get; set; }
+
+		/// <summary>선택지가 떴는데 아무도 안 고른다 — 한 번만 울린다.</summary>
+		public event Action OnChoiceStalled = delegate { };
 
 		public DialogueStep Current { get; private set; } = DialogueStep.End;
 
@@ -143,6 +157,18 @@ namespace WitchMendokusai
 			}
 
 			waitElapsed += deltaTime;
+
+			// 선택지에 선 채로 시간이 흐르면 = 고르는 쪽이 없다는 뜻이다.
+			if (Current.Kind == DialogueStepKind.Choice)
+			{
+				if (stallReported == false && ChoiceStallSeconds > 0f && waitElapsed >= ChoiceStallSeconds)
+				{
+					stallReported = true;
+					OnChoiceStalled();
+				}
+				return;
+			}
+
 			while (IsPlaying && TryGetTimedSeconds(out float seconds) && waitElapsed >= seconds)
 			{
 				float carry = waitElapsed - seconds;
@@ -269,6 +295,7 @@ namespace WitchMendokusai
 
 			Current = step;
 			waitElapsed = 0f;
+			stallReported = false;
 			OnStepChanged(step);
 
 			if (step.Kind != DialogueStepKind.End)

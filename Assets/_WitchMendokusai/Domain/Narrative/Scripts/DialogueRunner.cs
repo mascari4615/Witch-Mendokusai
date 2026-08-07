@@ -40,6 +40,9 @@ namespace WitchMendokusai
 		[Tooltip("아무리 길어도 이만큼에서 멈춘다(초). 0 이면 위 한계 없음.")]
 		[SerializeField] private float maximumLineSeconds = 8f;
 
+		[Tooltip("선택지가 떴는데 아무도 안 고르면 이만큼 뒤에 접는다(초). 0 이면 안 접는다.")]
+		[SerializeField] private float choiceStallSeconds = 15f;
+
 		private Coroutine activeCoroutine;
 
 		private UIManager uiManager;
@@ -119,7 +122,9 @@ namespace WitchMendokusai
 				ReadingCharactersPerSecond = readingCharactersPerSecond,
 				MinimumSpeakSeconds = minimumLineSeconds,
 				MaximumSpeakSeconds = maximumLineSeconds,
+				ChoiceStallSeconds = choiceStallSeconds,
 			};
+			playback.OnChoiceStalled += HandleChoiceStalled;
 			playback.OnStepChanged += HandleStepChanged;
 			playback.OnFinished += HandlePlaybackFinished;
 
@@ -247,6 +252,16 @@ namespace WitchMendokusai
 			return bubbleTarget;
 		}
 
+		/// <summary>
+		/// 선택지가 떴는데 고르는 쪽이 없다 — **선택지 화면이 아직 없어서** 생기는 상황이다.
+		/// 조용히 서 있으면 뒤에 줄 선 대화까지 전부 막히므로, 크게 알리고 이 대화만 접는다(줄은 계속 흐른다).
+		/// </summary>
+		private void HandleChoiceStalled()
+		{
+			Debug.LogWarning($"[DialogueRunner] 선택지가 {choiceStallSeconds}초째 그대로다 — 고르는 쪽(선택지 화면)이 없다. 이 대화를 접는다.");
+			playback?.Stop();
+		}
+
 		private void HandlePlaybackFinished()
 		{
 			// 끝까지 간 것만 「들었다」로 남긴다 — 중간에 접은 대화는 다음에 다시 보여줘야 한다.
@@ -276,6 +291,7 @@ namespace WitchMendokusai
 
 			playback.OnStepChanged -= HandleStepChanged;
 			playback.OnFinished -= HandlePlaybackFinished;
+			playback.OnChoiceStalled -= HandleChoiceStalled;
 			DialoguePlayback stopping = playback;
 			playback = null;
 
