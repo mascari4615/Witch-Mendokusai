@@ -4945,7 +4945,18 @@ namespace WitchMendokusai
 						crowd++;
 				}
 
-				string why = "브레인 " + (stuckDriver == null ? "없음" : stuckDriver.enabled ? "켜짐" : "꺼짐")
+				// ★ 「길찾기가 실패했다」는 판 전체 셈이라, *이 마수가* 길을 못 받는지는 따로 물어야 한다.
+				//   같은 자리에서 안내를 직접 요청해 보면 그 하나가 갈린다 — 안내가 나오는데 안 가면
+				//   원인은 길이 아니라 이동 쪽이고, 안내 자체가 없으면 길 쪽이다. 지금 로그는 그걸 못 가른다.
+				string guide = "안내 물어봄 X";
+				if (flowNavigator != null && coreCombatant != null)
+				{
+					guide = flowNavigator.TryGetSteering(position, coreCombatant.Position, enemy.CombatantId, out Vector3 steer)
+						? "안내 있음(" + steer.x.ToString("F2") + "," + steer.z.ToString("F2") + ")"
+						: "안내 없음";
+				}
+
+				string why = guide + " · 브레인 " + (stuckDriver == null ? "없음" : stuckDriver.enabled ? "켜짐" : "꺼짐")
 					+ " · 이동 " + (stuckMovement == null ? "없음" : stuckMovement.enabled ? "켜짐" : "꺼짐")
 					+ " · 소속 " + (stuckMember != null ? stuckMember.LairId.ToString() : "없음")
 					+ " · 옆에 " + crowd + "마리";
