@@ -154,6 +154,7 @@ namespace WitchMendokusai.EditorTools
 			signalChecked = false;
 			adaptationProbeAt = 0.0;
 			adaptationArmed = false;
+			adaptationSawEnemies = false;
 			markCheckAt = 0.0;
 			lairDriftCheckAt = 0.0;
 			pressureCheckAt = 0.0;
@@ -214,11 +215,7 @@ namespace WitchMendokusai.EditorTools
 			}
 
 			ArmAdaptationProbe();
-			if (adaptationProbeAt > 0.0 && now >= adaptationProbeAt)
-			{
-				adaptationProbeAt = 0.0;
-				CheckAdaptation();
-			}
+			PollAdaptation(now);
 
 			if (lairClearCheckAt > 0.0 && now >= lairClearCheckAt)
 			{
@@ -1041,6 +1038,7 @@ namespace WitchMendokusai.EditorTools
 
 		private static double adaptationProbeAt;
 		private static bool adaptationArmed;
+		private static bool adaptationSawEnemies;
 
 		/// <summary>
 		/// 적응 규칙이 화면까지 오는가 — 이걸 안 재면 영영 못 본다.
@@ -1086,12 +1084,66 @@ namespace WitchMendokusai.EditorTools
 					placed++;
 			}
 
-			adaptationProbeAt = EditorApplication.timeSinceStartup + 10.0;
-			Debug.Log(TAG + " 적응 — 둔화 포탑 " + placed + "기 세움(칸 " + slowSlot + ") · 10초 뒤 화면을 읽는다.");
+			adaptationProbeAt = EditorApplication.timeSinceStartup + 20.0;
+			Debug.Log(TAG + " 적응 — 둔화 포탑 " + placed + "기 세움(칸 " + slowSlot + ") · 20초 동안 화면을 지켜본다.");
 		}
 
-		/// <summary> 둔화만 썼으면 마수가 「둔화에 익숙함」이라고 *화면에* 말해야 한다. </summary>
-		private static void CheckAdaptation()
+		/// <summary>
+		/// 둔화만 썼으면 마수가 「둔화에 익숙해졌다」고 *화면에* 말해야 한다.
+		///
+		/// ★ 한 번만 보고 판정하면 안 된다 — 이 말은 알림으로 뜨고 알림은 몇 초 뒤 사라진다.
+		///   정해진 시각에 딱 한 번 읽으면 *떴다 진 것*을 「안 떴다」로 잡는다(실제로 한 번 잡았다).
+		///   그래서 창을 두고 매 틱 훑다가, 처음 보이는 순간 통과시킨다.
+		/// ★ 찾는 말은 「익숙」이다. 규칙이 쓰는 말(「둔화에 익숙함」)과 화면이 쓰는 말
+		///   (「마수가 둔화에 익숙해졌다」)이 서로 다르다 — 한쪽 말로 다른 쪽을 찾으면 영영 못 만난다.
+		/// </summary>
+		private static void PollAdaptation(double now)
+		{
+			if (adaptationProbeAt <= 0.0 || match == null)
+				return;
+
+			// ★ 둔화는 *맞혀야* 세어진다. 창이 도는 동안 마수가 한 기도 없었다면 그건 실패가 아니라
+			//   「못 쟀다」다 — 둘을 같은 FAIL 로 부르면 다음 사람이 멀쩡한 규칙을 고치러 간다.
+			if (match.AliveEnemyCount > 0)
+				adaptationSawEnemies = true;
+
+			if (ScreenSaysAdapted())
+			{
+				adaptationProbeAt = 0.0;
+				Debug.Log(TAG + " 적응 결과 — 화면이 말했다 · 둔화저항 "
+					+ match.Adaptation.SlowResist.ToString("F2") + " · 규칙 「" + match.AdaptationNote + "」");
+				return;
+			}
+
+			if (now < adaptationProbeAt)
+				return;
+
+			adaptationProbeAt = 0.0;
+			ReportAdaptationMiss();
+		}
+
+		/// <summary> HUD 라벨 어딘가가 적응을 말하고 있는가 — 알림이든 어디든. </summary>
+		private static bool ScreenSaysAdapted()
+		{
+			UIRoot uiRoot = Object.FindAnyObjectByType<UIRoot>();
+			VisualElement hud = uiRoot != null && uiRoot.ModeHudLayer != null
+				? uiRoot.ModeHudLayer.Q(nameof(TowerDefenseHudView))
+				: null;
+			if (hud == null)
+				return false;
+
+			foreach (Label label in hud.Query<Label>().ToList())
+			{
+				if (label != null && string.IsNullOrEmpty(label.text) == false && label.text.Contains("익숙"))
+				{
+					Debug.Log(TAG + " 적응 — 화면 글자: 「" + label.text + "」");
+					return true;
+				}
+			}
+			return false;
+		}
+
+		private static void ReportAdaptationMiss()
 		{
 			if (match == null)
 			{
@@ -1113,24 +1165,15 @@ namespace WitchMendokusai.EditorTools
 				return;
 			}
 
-			bool onScreen = false;
-			foreach (Label label in hud.Query<Label>().ToList())
-			{
-				if (label != null && string.IsNullOrEmpty(label.text) == false && label.text.Contains("익숙함"))
-				{
-					onScreen = true;
-					Debug.Log(TAG + " 적응 — 화면 글자: 「" + label.text + "」");
-					break;
-				}
-			}
-
 			Debug.Log(TAG + " 적응 결과 — 둔화저항 " + state.SlowResist.ToString("F2")
-				+ " · 말 「" + note + "」 · 화면표시 " + onScreen);
+				+ " · 규칙 「" + note + "」 · 창이 닫힐 때까지 화면에 한 번도 안 떴다.");
 
-			if (note.Length == 0)
-				Debug.LogWarning(TAG + " 적응 FAIL — 둔화 포탑만 세웠는데 규칙이 아무 편중도 안 봤다.");
-			else if (onScreen == false)
-				Debug.LogWarning(TAG + " 적응 FAIL — 규칙은 「" + note + "」인데 화면 어디에도 안 뜬다(안 보이는 규칙 = 없는 규칙).");
+			if (note.Length == 0 && adaptationSawEnemies == false)
+				Debug.Log(TAG + " 적응 — 못 쟀다: 창이 도는 20초 동안 마수가 한 기도 없었다(맞힐 것이 없으면 편중도 없다). 실패가 아니다.");
+			else if (note.Length == 0)
+				Debug.LogWarning(TAG + " 적응 FAIL — 마수가 있었는데도 둔화 포탑이 아무 편중도 못 만들었다.");
+			else
+				Debug.LogWarning(TAG + " 적응 FAIL — 규칙은 「" + note + "」인데 화면 어디에도 안 떴다(안 보이는 규칙 = 없는 규칙).");
 		}
 
 		private static double relayProbeAt;
