@@ -28,6 +28,15 @@ namespace WitchMendokusai
 		/// </summary>
 		public float MaxStopDistance => Mathf.Max(0f, minStopDistance) + Mathf.Max(0, ringSlotCount - 1) * ringSlotSpacing;
 
+		/// <summary>
+		/// 마지막으로 「이쪽으로 가라」고 받은 목표 — 진단용.
+		///
+		/// ★ 왜 밖에 내주나: 굳은 마수를 볼 때 「길이 잘못됐나」와 「목표가 잘못됐나」를 못 가르면
+		///   길만 고치다 헛돈다(실제로 네 번 헛돌았다). 길찾기는 *부술 벽*도 목표로 받는데,
+		///   못 부수는 것을 목표로 잡으면 그 마수는 판이 끝날 때까지 그것을 민다.
+		/// </summary>
+		public ICombatant LastCommandedTarget => lastMoveTarget;
+
 		private MatchCombatant self;
 		private UnitObject unitObject;
 		private TimeManager timeManager;

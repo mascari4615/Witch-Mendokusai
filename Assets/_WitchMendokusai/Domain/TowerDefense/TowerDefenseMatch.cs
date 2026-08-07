@@ -473,7 +473,7 @@ namespace WitchMendokusai
 				mapLayout.Width, mapLayout.Length, mapLayout.CoreCell, IsPathBlocked);
 			gridPath = new TowerDefenseGridPath(mapLayout.Width, mapLayout.Length, IsPathBlocked);
 			flowNavigator = new TowerDefensePathNavigator(
-				mapLayout, gridPath, stageRoot, stage.GroundCellSize * 2f, stage.EnemyCornerSmoothing);
+				mapLayout, gridPath, stageRoot, stage.GroundCellSize * 2f, stage.EnemyCornerSmoothing, stage.EnemyWallPush);
 
 			vision = new TowerDefenseVision(mapLayout.Width, mapLayout.Length);
 			visionSources.Clear();
@@ -766,7 +766,7 @@ namespace WitchMendokusai
 				mapLayout.Width, mapLayout.Length, pathGoals, IsPathBlocked);
 			gridPath = new TowerDefenseGridPath(mapLayout.Width, mapLayout.Length, IsPathBlocked);
 			flowNavigator = new TowerDefensePathNavigator(
-				mapLayout, gridPath, stageRoot, stage.GroundCellSize * 2f, stage.EnemyCornerSmoothing);
+				mapLayout, gridPath, stageRoot, stage.GroundCellSize * 2f, stage.EnemyCornerSmoothing, stage.EnemyWallPush);
 
 			foreach (Vector3 spawnLocal in activeSpawnPoints)
 			{
@@ -4985,7 +4985,17 @@ namespace WitchMendokusai
 						+ " · 몸반경 " + stuckMovement.BodyRadius.ToString("F2")
 						+ " · 칸 " + mapLayout.CellSize.ToString("F2");
 
-				string why = body + " · " + guide + " · 브레인 " + (stuckDriver == null ? "없음" : stuckDriver.enabled ? "켜짐" : "꺼짐")
+				// ★ 「길이 잘못됐나」와 「목표가 잘못됐나」는 고치는 자리가 전혀 다르다 — 길만 네 번 고치다
+				//   헛돌았다. 이 마수가 지금 무엇을 향해 가라고 명령받았는지를 같이 찍는다.
+				string aim = "목표 없음";
+				if (stuckDriver != null && stuckDriver.LastCommandedTarget != null)
+				{
+					ICombatant aimTarget = stuckDriver.LastCommandedTarget;
+					aim = "목표 " + (aimTarget is Component aimComponent ? aimComponent.gameObject.name : aimTarget.GetType().Name)
+						+ "(" + Vector3.Distance(aimTarget.Position, enemy.Position).ToString("F1") + ")";
+				}
+
+				string why = body + " · " + aim + " · " + guide + " · 브레인 " + (stuckDriver == null ? "없음" : stuckDriver.enabled ? "켜짐" : "꺼짐")
 					+ " · 이동 " + (stuckMovement == null ? "없음" : stuckMovement.enabled ? "켜짐" : "꺼짐")
 					+ " · 소속 " + (stuckMember != null ? stuckMember.LairId.ToString() : "없음")
 					+ " · 옆에 " + crowd + "마리";
