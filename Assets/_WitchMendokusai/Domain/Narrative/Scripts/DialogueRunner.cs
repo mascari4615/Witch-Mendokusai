@@ -12,11 +12,15 @@ namespace WitchMendokusai
 	/// 진행 규칙(무엇이 언제 넘어가는가)은 전부 <see cref="DialoguePlayback"/> 에 있다. 여기 두면
 	/// 검증이 PlayMode 로 올라가 버리기 때문이다 — 그쪽은 화면 없이 EditMode 에서 돈다.
 	///
-	/// 두 입구:
+	/// 입구는 셋인데 **길은 하나다** — 셋 다 차례를 서고, 세워진 그래프를 같은 방식으로 튼다.
 	/// <list type="bullet">
-	/// <item><see cref="Play(DialogueGraph, Transform)"/> — 정본. 말하기·선택지·기다리기·분기 다 된다.</item>
+	/// <item><see cref="Play(DialogueScriptSource, Transform)"/> — 정본. 원고 자산에서 세운다.</item>
+	/// <item><see cref="Play(DialogueGraph, Transform)"/> — 이미 세워진 그래프(미리보기·시험·직접 호출).</item>
 	/// <item><see cref="Play(DialogueLine)"/> — TASK-WM-013 시절 선형 사슬. 옛 호출처 호환용으로 남긴다.</item>
 	/// </list>
+	///
+	/// ★ 입구마다 길이 따로면 한쪽은 반드시 뒤처진다. 실제로 옛 사슬은 건너뛰기·시간 주입을 못 받았고,
+	///   그래프 입구는 차례를 안 서서 남의 대화를 끊었다. 지금은 셋 다 같은 자리로 모인다.
 	///
 	/// TASK-WM-078 γ P2-2 (2026-05-13) 부터 SceneLifetimeScope.RegisterComponentOnNewGameObject 가 spawn (UIManager AddComponent 폐기).
 	/// </summary>
@@ -134,7 +138,13 @@ namespace WitchMendokusai
 		/// <summary>기다리는 대화 수(지금 재생 중인 것은 안 센다).</summary>
 		public int PendingCount => coordinator.PendingCount;
 
-		/// <summary>대화 그래프 재생 — 이 게임에서 그래프를 실제로 쓰는 지점.</summary>
+		/// <summary>
+		/// 대화 그래프 재생 — 이 게임에서 그래프를 실제로 쓰는 지점.
+		///
+		/// ★ 이 입구도 **줄을 선다.** 예전엔 여기만 조정자를 건너뛰고 바로 틀었다 —
+		///   그래서 말하는 중에 그래프를 걸면 앞 대화가 그냥 끊기고, 반대도 마찬가지였다.
+		///   어느 쪽도 「사라졌다」는 흔적을 안 남긴다. 입구가 셋이면 줄도 셋이 다 서야 한다.
+		/// </summary>
 		public void Play(DialogueGraph graph, Transform speakerTransform = null)
 		{
 			if (graph == null)
@@ -143,6 +153,16 @@ namespace WitchMendokusai
 				return;
 			}
 
+			EnsureCoordinatorWired();
+			if (coordinator.Request(new DialoguePlayRequest(null, null, speakerTransform, graph)) == false)
+			{
+				Debug.LogWarning($"[DialogueRunner] 대화 차례가 꽉 찼거나 이미 줄에 있다 — 흘림: {graph.name}");
+			}
+		}
+
+		/// <summary>조정자가 「이 그래프를 걸어라」 할 때 실제로 거는 자리.</summary>
+		private void StartGraph(DialogueGraph graph, Transform speakerTransform)
+		{
 			StopActive();
 
 			bubbleTarget = ResolveTarget(speakerTransform);
@@ -193,6 +213,11 @@ namespace WitchMendokusai
 				StartScript(request.Script, request.SpeakerTransform);
 				return;
 			}
+			if (request.Graph != null)
+			{
+				StartGraph(request.Graph, request.SpeakerTransform);
+				return;
+			}
 			StartLine(request.Line, request.SpeakerTransform);
 		}
 
@@ -205,7 +230,8 @@ namespace WitchMendokusai
 				Debug.LogWarning($"[DialogueRunner] {source.name} L{parsed.Issues[i].LineNumber}: {parsed.Issues[i].Message}");
 			}
 
-			Play(graph, speakerTransform);
+			// 이미 조정자가 「걸어라」 한 뒤다 — 여기서 또 줄을 서면 자기 뒤에 서서 영영 안 걸린다.
+			StartGraph(graph, speakerTransform);
 			History.MarkStarted(source.ID);
 			playingScriptId = source.ID;
 		}
@@ -428,7 +454,7 @@ namespace WitchMendokusai
 					$"[DialogueRunner] 옛 대사 사슬에 갈래 {skippedBranchCount}개가 버려진다 — 옛 길은 늘 첫째만 간다: \"{first.Text}\"");
 			}
 
-			Play(graph, speakerTransform);
+			StartGraph(graph, speakerTransform);
 		}
 	}
 }

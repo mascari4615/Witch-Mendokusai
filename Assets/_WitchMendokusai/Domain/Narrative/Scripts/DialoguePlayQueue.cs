@@ -8,19 +8,32 @@ namespace WitchMendokusai
 	{
 		public DialogueScriptSource Script { get; }
 		public DialogueLine Line { get; }
+
+		/// <summary>
+		/// 이미 세워진 그래프를 직접 트는 경우(원고 자산 없이). 미리보기 창·시험·직접 호출이 쓴다.
+		///
+		/// ★ 왜 여기 있어야 하나: 그래프 입구가 **줄을 안 서고** 바로 틀던 시절이 있었다.
+		///   그러면 말하는 중에 그래프를 걸면 앞 대화가 그냥 끊기고, 반대로 그래프가 트는 중에
+		///   원고를 걸면 그래프 쪽이 끊긴다 — 어느 쪽도 「사라졌다」는 흔적을 안 남긴다.
+		/// </summary>
+		public DialogueGraph Graph { get; }
+
 		public Transform SpeakerTransform { get; }
 
-		public DialoguePlayRequest(DialogueScriptSource script, DialogueLine line, Transform speakerTransform)
+		public DialoguePlayRequest(DialogueScriptSource script, DialogueLine line, Transform speakerTransform,
+			DialogueGraph graph = null)
 		{
 			Script = script;
 			Line = line;
 			SpeakerTransform = speakerTransform;
+			Graph = graph;
 		}
 
-		public bool IsEmpty => Script == null && Line == null;
+		public bool IsEmpty => Script == null && Line == null && Graph == null;
 
 		/// <summary>같은 것을 또 넣었는지 — 연타·중복 트리거 거르기용.</summary>
-		public bool SameContentAs(DialoguePlayRequest other) => Script == other.Script && Line == other.Line;
+		public bool SameContentAs(DialoguePlayRequest other) =>
+			Script == other.Script && Line == other.Line && Graph == other.Graph;
 	}
 
 	/// <summary>

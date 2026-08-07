@@ -44,6 +44,41 @@ namespace WitchMendokusai.Tests
 		}
 
 		[Test]
+		public void WhenOneEnds_TheNextInLineStartsByItself()
+		{
+			// 이 줄이 끊기면 첫 대화 뒤의 모든 대화가 **줄에 선 채로 영영 안 나온다** — 그리고 아무것도 안 터진다.
+			// 오늘 아침까지는 시간을 유니티만 줄 수 있어서 이걸 볼 방법 자체가 없었다.
+			DialogueRunner runner = NewRunner();
+			runner.Play(BuildGraph(5401, "첫째."));
+			runner.Play(ScriptableObject.CreateInstance<DialogueLine>());
+
+			Assert.That(runner.PendingCount, Is.EqualTo(1), "둘째는 기다린다");
+
+			runner.Tick(60f);
+
+			Assert.That(runner.PendingCount, Is.EqualTo(0), "첫째가 끝나면 줄이 빠진다");
+			Assert.That(runner.IsPlaying, Is.True, "둘째가 저절로 걸린다");
+			Assert.That(runner.History.HasSeen(5401, DialogueSeenKind.Completed), Is.True);
+		}
+
+		[Test]
+		public void TheQueueDrainsToTheEnd()
+		{
+			// 줄이 끝까지 빠지는지 — 마지막 것까지 끝나야 조용해진다.
+			DialogueRunner runner = NewRunner();
+			runner.Play(BuildGraph(5402, "첫째."));
+			runner.Play(BuildGraph(5403, "둘째."));
+
+			runner.Tick(60f);
+			runner.Tick(60f);
+
+			Assert.That(runner.IsPlaying, Is.False);
+			Assert.That(runner.PendingCount, Is.EqualTo(0));
+			Assert.That(runner.History.HasSeen(5403, DialogueSeenKind.Completed), Is.True,
+				"둘째도 끝까지 갔다");
+		}
+
+		[Test]
 		public void TickDoesNothingWhenNothingIsPlaying()
 		{
 			// 매 프레임 불리는 자리다 — 아무것도 안 트는 동안 조용해야 한다.
