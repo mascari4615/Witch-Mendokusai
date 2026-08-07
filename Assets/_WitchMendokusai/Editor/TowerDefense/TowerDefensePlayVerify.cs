@@ -349,6 +349,11 @@ namespace WitchMendokusai.EditorTools
 				// ★ 패널은 *다음 배치 패스*에 열린다 — 클릭한 그 틱에 재면 「아직 안 뜬 것」을 재고
 				//   「겹침 0」이라 적는다(거짓 통과). 한 틱 기다렸다 잰다.
 				case Step.SelectedLayout:
+					// ★ 서식지 이동 측정이 아직 안 끝났으면 모드를 나가지 않는다 — 나가면 판이 새로 태어나
+					//   깨운 서식지가 통째로 사라져 그 측정이 영영 성립하지 않는다.
+					if (lairDriftCheckAt > 0.0)
+						return;
+
 					// ★ 앞 단계에서 열어둔 성좌를 *여기서* 닫는다. 닫는 자리를 재시작 단계에 뒀더니,
 					//   이 단계가 그 앞으로 끼어드는 순간 성좌가 열린 채로 남아 판이 멈추고,
 					//   멈춘 판은 시계가 안 가니 아래 시계 게이트를 영영 못 넘어 7분 뒤 시간초과로 죽었다.
@@ -869,7 +874,8 @@ namespace WitchMendokusai.EditorTools
 			{
 				lairWakeFrom = match.AwakenedGuardDistanceToCore(out lairWakeGuards);
 				lairWakePosition = wokenAt;
-				lairDriftCheckAt = EditorApplication.timeSinceStartup + 8.0;
+				lairDriftCheckAt = EditorApplication.timeSinceStartup + 5.0;
+				lairWakeMatch = match; // ★ 잰 판이 깨운 판과 같은지 확인용 — 다르면 비교 자체가 무의미하다.
 				lairWakeLives = match.Lives;
 				lairWakeEnemies = match.WaveEnemies.Count;
 				Debug.Log($"{TAG} 서식지 강제 기상 — 마수 {lairWakeGuards}기 · 코어까지 {lairWakeFrom:F1}"
@@ -880,6 +886,7 @@ namespace WitchMendokusai.EditorTools
 		private static double lairDriftCheckAt;
 		private static float lairWakeFrom;
 		private static int lairWakeGuards;
+		private static TowerDefenseMatch lairWakeMatch;
 		private static int lairWakeLives;
 		private static int lairWakeEnemies;
 		private static Vector3 lairWakePosition;
@@ -890,8 +897,18 @@ namespace WitchMendokusai.EditorTools
 			if (match == null)
 				return;
 
-			float now = match.AwakenedGuardDistanceToCore(out int aliveNow);
-			Debug.Log($"{TAG} 서식지 이동 — 마수 {lairWakeGuards}기 → {aliveNow}기 · 코어까지 {lairWakeFrom:F1} → {now:F1}");
+			// ★ 깨운 판과 지금 판이 다르면 비교가 성립하지 않는다 — 모드를 나갔다 들어오면 판이 새로 태어나
+			//   서식지도 전부 다시 잠든 채로 깔린다. 그걸 모르고 재면 「깨운 마수가 전부 사라졌다」는
+			//   *존재하지 않는 결함*을 보고하게 된다(실제로 그렇게 두 사이클을 썼다).
+			if (lairWakeMatch == null || match != lairWakeMatch)
+			{
+				Debug.Log(TAG + " 서식지 이동 — 잴 수 없음(판이 그 사이에 새로 시작됐다). 이번 회차는 건너뛴다.");
+				return;
+			}
+
+			float now = match.AwakenedGuardDistanceToCore(out int aliveNow, out int destroyedNow, out int disabledNow);
+			Debug.Log($"{TAG} 서식지 이동 — 마수 {lairWakeGuards}기 → 살아있음 {aliveNow} · 파괴됨 {destroyedNow} · 꺼짐 {disabledNow}"
+				+ $" · 코어까지 {lairWakeFrom:F1} → {now:F1}");
 
 			// ★ 살아남은 것이 없으면 거리는 뜻이 없다 — 「가까워졌다」가 아니라 「죽어서 없다」다.
 			if (aliveNow == 0)
@@ -899,14 +916,30 @@ namespace WitchMendokusai.EditorTools
 				// ★ 「죽었다」와 「유출로 사라졌다」와 「무대 밖으로 치워졌다」는 고치는 자리가 전부 다르다.
 				//   목숨이 줄었으면 유출, 안 줄었으면 죽거나 치워진 것 — 그 둘을 여기서 가른다.
 				Debug.LogError($"{TAG} 서식지 FAIL — 깨운 마수 {lairWakeGuards}기가 8초 만에 전부 사라졌다"
-					+ $" (목숨 {lairWakeLives}→{match.Lives} · 판 위 마수 {lairWakeEnemies}→{match.WaveEnemies.Count})."
+					+ $" (목숨 {lairWakeLives}→{match.Lives} · 판 위 마수 {lairWakeEnemies}→{match.WaveEnemies.Count}"
+					+ $" · 파괴 {destroyedNow} · 꺼짐 {disabledNow})."
 					+ " 코어에서 멀어 포탑에 죽은 것이 아니다 — 서식지가 판에 아무 영향을 못 준다.");
 				return;
 			}
 
-			float closed = lairWakeFrom - now;
-			if (closed > 6f)
-				Debug.LogWarning($"{TAG} 서식지가 코어로 행진한다 — 「넓히는 것이 위험」이 아니라 파도가 하나 더 있는 것이다.");
+			// ★ 판정은 **집에서 얼마나 멀어졌나**로 한다 — 코어까지의 거리로 재면 그 서식지가 원래
+			//   코어에 가까웠는지 멀었는지에 답이 좌우된다(같은 행동이 판마다 통과·실패로 갈린다).
+			float fromHome = match.AwakenedGuardDistanceFromHome();
+			float leash = TowerDefenseModeControllerLeash();
+			Debug.Log($"{TAG} 서식지 목줄 — 집에서 최대 {fromHome:F1} (목줄 {leash:F1})");
+
+			if (leash > 0f && fromHome > leash * 1.5f)
+			{
+				Debug.LogError($"{TAG} 서식지 FAIL — 집에서 {fromHome:F1} 까지 벗어났다(목줄 {leash:F1})."
+					+ " 「넓히는 것이 위험」이 아니라 파도가 하나 더 있는 것이다.");
+			}
+		}
+
+		/// <summary> 지금 스테이지의 목줄 반경 — 판정 기준을 규칙에서 그대로 읽는다(하네스가 따로 박지 않는다). </summary>
+		private static float TowerDefenseModeControllerLeash()
+		{
+			TowerDefenseModeController controller = Object.FindAnyObjectByType<TowerDefenseModeController>();
+			return controller != null && controller.Stage != null ? controller.Stage.LairLeashRadius : 0f;
 		}
 
 		private static void CountOnScreenMarks()

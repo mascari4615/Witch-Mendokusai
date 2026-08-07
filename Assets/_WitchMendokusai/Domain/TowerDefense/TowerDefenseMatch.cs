@@ -1100,9 +1100,17 @@ namespace WitchMendokusai
 		public float AwakenedGuardDistanceToCore() => AwakenedGuardDistanceToCore(out _);
 
 		/// <summary> 같은 값 + *몇 기를 재고 있나*. 0 기면 「가까워졌다」가 아니라 「죽어서 없다」다. </summary>
-		public float AwakenedGuardDistanceToCore(out int aliveGuards)
+		public float AwakenedGuardDistanceToCore(out int aliveGuards) => AwakenedGuardDistanceToCore(out aliveGuards, out _, out _);
+
+		/// <summary>
+		/// 같은 값 + **사라진 방식**까지. 「참조가 비었다(파괴)」와 「꺼져 있다(풀 반납)」는 원인이 전혀 다르다 —
+		/// 숫자 하나만 보면 둘이 똑같이 「없다」로 보여서 엉뚱한 데를 파게 된다.
+		/// </summary>
+		public float AwakenedGuardDistanceToCore(out int aliveGuards, out int destroyedGuards, out int disabledGuards)
 		{
 			aliveGuards = 0;
+			destroyedGuards = 0;
+			disabledGuards = 0;
 			if (coreCombatant == null)
 				return -1f;
 
@@ -1115,13 +1123,44 @@ namespace WitchMendokusai
 				foreach (UnitObject guard in lair.Guards)
 				{
 					if (guard == null)
+					{
+						destroyedGuards++;
 						continue;
+					}
+					if (guard.gameObject.activeInHierarchy == false)
+					{
+						disabledGuards++;
+						continue;
+					}
 					total += Vector3.Distance(guard.transform.position, coreCombatant.Position);
 					count++;
 				}
 			}
 			aliveGuards = count;
 			return count > 0 ? total / count : -1f;
+		}
+
+		/// <summary>
+		/// 깨어난 마수가 *제 서식지에서* 얼마나 멀어졌나(최대). 「지킨다」의 진짜 판정은 이것이다 —
+		/// 코어까지의 거리로 재면 서식지가 원래 코어에 가까웠는지 멀었는지에 답이 좌우된다.
+		/// </summary>
+		public float AwakenedGuardDistanceFromHome()
+		{
+			float worst = -1f;
+			foreach (SleepingLair lair in lairs)
+			{
+				if (lair.Awake == false)
+					continue;
+				foreach (UnitObject guard in lair.Guards)
+				{
+					if (guard == null || guard.gameObject.activeInHierarchy == false)
+						continue;
+					float distance = Vector3.Distance(guard.transform.position, lair.WorldPosition);
+					if (distance > worst)
+						worst = distance;
+				}
+			}
+			return worst;
 		}
 
 		/// <summary> 지금 판에 깔려 있는 함정 수 — 이어하기가 함정을 잃는지 하네스가 직접 센다. </summary>
@@ -1281,6 +1320,48 @@ namespace WitchMendokusai
 				return;
 			foreach (Transform gone in lost)
 				lastBuildingPositions.Remove(gone);
+		}
+
+		/// <summary>
+		/// 깨어난 서식지 마수를 제 자리에 묶어 둔다.
+		///
+		/// ★ 실측으로 잡았다: 깨우면 8초에 코어 쪽으로 58 만큼 다가갔다(101 → 43). 그러면 서식지는
+		///   「파도 하나 더」일 뿐이고, 「넓히는 행위 자체가 위험」이라는 이 기능의 존재 이유가 사라진다.
+		///   *그 자리를 지켜야* 「저기 자는 걸 깨우면 저기가 위험해진다」가 성립한다.
+		/// ★ 목줄 밖에서는 전술을 잠시 끄고 집으로 몬다 — 켜둔 채 방향만 덮어쓰면 같은 프레임에
+		///   전술이 다시 코어를 겨눠 서로 밀치며 덜덜 떤다(어느 쪽이 나중에 도는지에 결과가 달림).
+		/// </summary>
+		private void TickLairLeash()
+		{
+			if (stage == null || stage.LairLeashRadius <= 0f || lairs.Count == 0)
+				return;
+
+			float leash = stage.LairLeashRadius;
+			foreach (SleepingLair lair in lairs)
+			{
+				if (lair.Awake == false)
+					continue;
+
+				foreach (UnitObject guard in lair.Guards)
+				{
+					if (guard == null || guard.gameObject.activeInHierarchy == false)
+						continue;
+
+					Vector3 toHome = lair.WorldPosition - guard.transform.position;
+					bool tooFar = toHome.sqrMagnitude > leash * leash;
+
+					TacticDriver driver = guard.GetComponent<TacticDriver>();
+					if (driver != null && driver.enabled == tooFar)
+						driver.enabled = tooFar == false;
+
+					if (tooFar == false)
+						continue;
+
+					UnitMovement movement = guard.GetComponent<UnitMovement>();
+					if (movement != null)
+						movement.SetMoveDirection(toHome.normalized);
+				}
+			}
 		}
 
 		private void WakeLair(SleepingLair lair)
@@ -1526,6 +1607,7 @@ namespace WitchMendokusai
 			UnstickEnemies();     // 굳은 마수를 풀어준다 — 한 마리가 굳으면 웨이브가 영영 안 끝난다.
 			CullDestroyedNests(); // 부순 둥지의 출구를 닫는다 — 「버틴다」가 「밀어낸다」가 되는 자리.
 			WakeNearbyLairs();    // 내 것이 가까이 갔으면 잠든 서식지가 깨어난다.
+			TickLairLeash();      // 깨어난 것은 제 자리를 지킨다 — 코어로 행진하면 그냥 파도가 하나 더다.
 			TrackLostBuildings(); // 내 것이 부서지면 *그 자리*를 알린다 — 화면 밖이면 알 길이 없었다.
 			RefreshPower();       // 전기를 못 받는 건물은 선다(도시 건설의 규칙 그대로).
 			TickSignalView();     // 신호가 번지는 것을 눈으로 보여준다 — 테두리와 파동.

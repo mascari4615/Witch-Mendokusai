@@ -421,6 +421,9 @@ namespace WitchMendokusai
 		[field: Tooltip("내 것이 이 거리(월드) 안에 들어오면 깨어난다. 넓히는 행위가 위험이 되는 손잡이.")]
 		[field: SerializeField, Min(0f)] public float LairWakeRadius { get; private set; } = 9f;
 
+		[field: Tooltip("깨어난 마수가 서식지에서 벗어날 수 있는 거리(월드). 넘으면 돌아온다 — 0 이면 목줄 없음(코어로 행진).")]
+		[field: SerializeField, Min(0f)] public float LairLeashRadius { get; private set; } = 20f;
+
 		[field: Tooltip("잠든 마수 색 — 깨어나면 보통 마수 색으로 돌아간다.")]
 		[field: SerializeField] public Color LairSleepTint { get; private set; } = new Color(0.32f, 0.3f, 0.42f, 1f);
 

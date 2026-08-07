@@ -38,6 +38,9 @@ namespace WitchMendokusai
 		[SerializeField] private TowerDefenseMatch match;
 		[SerializeField] private TowerDefensePlacement placement;
 		[SerializeField] private TowerDefenseStageSO stage;
+
+		/// <summary> 지금 도는 스테이지 — 검증 하네스가 판정 기준(수치)을 규칙에서 그대로 읽게 한다. </summary>
+		public TowerDefenseStageSO Stage => stage;
 		[SerializeField] private Transform stageRoot;
 
 		// 전이 감지 — 직전 적용이 TD 모드였는지. 초기 Default 재적용 no-op + enter/exit 1회 보장.
