@@ -84,6 +84,47 @@ namespace WitchMendokusai.Tests
 		}
 
 		[Test]
+		public void EnsureRegistry_CreatesOnceAndKeepsIt()
+		{
+			DialogueSpeakerBridge.Clear(DialogueSpeakerBridge.Current);
+
+			DialogueSpeakerRegistry created = DialogueSpeakerBridge.EnsureRegistry();
+			try
+			{
+				Assert.That(created, Is.Not.Null);
+				Assert.That(DialogueSpeakerBridge.EnsureRegistry(), Is.SameAs(created),
+					"두 번 부르면 두 개가 생기던 식이면 먼저 등록한 캐릭터가 사라진다");
+				Assert.That(DialogueSpeakerBridge.Current, Is.SameAs(created));
+			}
+			finally
+			{
+				DialogueSpeakerBridge.Clear(created);
+			}
+		}
+
+		[Test]
+		public void EnsureRegistry_LetsCharactersRegisterBeforeTheRunner()
+		{
+			DialogueSpeakerBridge.Clear(DialogueSpeakerBridge.Current);
+
+			// 캐릭터가 먼저 깨어난 상황 — 대화 쪽은 아직 아무것도 안 만들었다.
+			DialogueSpeakerRegistry early = DialogueSpeakerBridge.EnsureRegistry();
+			Transform anchor = NewAnchor("욘");
+			early.Register("욘", anchor);
+			try
+			{
+				// 그 뒤에 대화 쪽이 찾는다 — 같은 표를 봐야 한다.
+				Assert.That(DialogueSpeakerBridge.TryGetAnchor("욘", out Transform found), Is.True,
+					"러너보다 먼저 깨어난 캐릭터가 영영 등록 안 되던 사고를 막는다");
+				Assert.That(found, Is.SameAs(anchor));
+			}
+			finally
+			{
+				DialogueSpeakerBridge.Clear(early);
+			}
+		}
+
+		[Test]
 		public void Bridge_FindsThroughRegisteredRegistry()
 		{
 			DialogueSpeakerRegistry registry = new();
