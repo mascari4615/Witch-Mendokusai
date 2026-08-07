@@ -60,6 +60,14 @@ namespace UnityEngine
 			this.name = name;
 			transform = new Transform { name = name, gameObject = this };
 		}
+
+		/// <summary>
+		/// 붙이는 시늉만 한다 — 그냥 새로 만들어 준다(붙은 것들을 들고 있을 이유가 없다).
+		///
+		/// ★ 왜 있어야 하나: 이게 있으면 러너 시험을 **유니티와 하네스 양쪽에서 같은 글로** 쓸 수 있다.
+		///   없으면 하네스 전용 시험을 따로 쓰게 되고, 그건 CI 에서 안 돈다.
+		/// </summary>
+		public T AddComponent<T>() where T : MonoBehaviour, new() => new();
 	}
 
 	public class ScriptableObject : Object
