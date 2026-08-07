@@ -32,6 +32,7 @@ namespace WitchMendokusai.EditorTools
 		// 「연구 인형을 지으면 배수가 오르는가」처럼 *배치 시점에 결판나는* 확인은 90초면 끝난다.
 		// 확인하려는 것보다 긴 루프를 도는 것이 작업이 오래 걸린 두 번째 원인(사용자 지적).
 		private const string PLACE_ONLY_PREF = "WM.TD.PlayVerify.PlaceOnly";
+		private const string WAVES_ONLY_PREF = "WM.TD.PlayVerify.WavesOnly";
 		private const string TAG = "[TD-Verify]";
 		private const double SETTLE_SECONDS = 2.0;
 		private const double HARD_TIMEOUT = 420.0;
@@ -86,6 +87,7 @@ namespace WitchMendokusai.EditorTools
 		private static double restartAt;
 		private static bool conclusionOnly;
 		private static bool placeOnly;
+		private static bool wavesOnly;
 		private static double defendedStart;
 		private static int defendedLastResource;
 		private static int killIncomeEvents;
@@ -109,6 +111,7 @@ namespace WitchMendokusai.EditorTools
 		{
 			EditorPrefs.SetBool(CONCLUSION_ONLY_PREF, false);
 			EditorPrefs.SetBool(PLACE_ONLY_PREF, false);
+			EditorPrefs.SetBool(WAVES_ONLY_PREF, false);
 			EditorPrefs.SetBool(ARM_PREF, true);
 			Debug.Log(TAG + " armed — Play 진입");
 			EditorApplication.EnterPlaymode();
@@ -119,6 +122,7 @@ namespace WitchMendokusai.EditorTools
 		public static void ArmConclusionOnly()
 		{
 			EditorPrefs.SetBool(PLACE_ONLY_PREF, false);
+			EditorPrefs.SetBool(WAVES_ONLY_PREF, false);
 			EditorPrefs.SetBool(CONCLUSION_ONLY_PREF, true);
 			EditorPrefs.SetBool(ARM_PREF, true);
 			Debug.Log(TAG + " armed (결말만) — Play 진입");
@@ -130,9 +134,28 @@ namespace WitchMendokusai.EditorTools
 		public static void ArmPlaceOnly()
 		{
 			EditorPrefs.SetBool(CONCLUSION_ONLY_PREF, false);
+			EditorPrefs.SetBool(WAVES_ONLY_PREF, false);
 			EditorPrefs.SetBool(PLACE_ONLY_PREF, true);
 			EditorPrefs.SetBool(ARM_PREF, true);
 			Debug.Log(TAG + " armed (배치만) — Play 진입");
+			EditorApplication.EnterPlaymode();
+		}
+
+		/// <summary>
+		/// 파도만 — 마수가 도는 동안만 본다. 배치·결말·이어하기·재시작을 건너뛴다.
+		///
+		/// ★ 왜 필요한가: 파도 중에만 나타나는 것(굳는 마수·사격 소음·성능)을 한 번 확인하려고
+		///   배치→파도→결말→재시작 전 과정 5분을 매번 태웠다. 확인 하나에 5분은 너무 비싸서
+		///   「한 사이클에 한 번」밖에 못 본다 — 진단이 느려지는 진짜 이유가 이것이었다.
+		/// </summary>
+		[MenuItem("WM/TowerDefense/Arm Play-Verify (파도만)")]
+		public static void ArmWavesOnly()
+		{
+			EditorPrefs.SetBool(CONCLUSION_ONLY_PREF, false);
+			EditorPrefs.SetBool(PLACE_ONLY_PREF, false);
+			EditorPrefs.SetBool(WAVES_ONLY_PREF, true);
+			EditorPrefs.SetBool(ARM_PREF, true);
+			Debug.Log(TAG + " armed (파도만) — Play 진입");
 			EditorApplication.EnterPlaymode();
 		}
 
@@ -144,6 +167,7 @@ namespace WitchMendokusai.EditorTools
 			EditorPrefs.SetBool(ARM_PREF, false);
 			conclusionOnly = EditorPrefs.GetBool(CONCLUSION_ONLY_PREF, false);
 			placeOnly = EditorPrefs.GetBool(PLACE_ONLY_PREF, false);
+			wavesOnly = EditorPrefs.GetBool(WAVES_ONLY_PREF, false);
 			step = Step.WaitWorld;
 			playStart = EditorApplication.timeSinceStartup;
 			readyAt = -1.0;
@@ -410,6 +434,15 @@ namespace WitchMendokusai.EditorTools
 					// ★ 전체 실행도 이 길로 보낸다. 예전엔 「배치만」 변형만 들렀는데, 그 변형을 아무도
 					//   안 돌리는 바람에 *선택 패널 겹침 · 툴팁 겹침 · 코어 카드 · 이어하기* 검사가
 					//   로그 전체에서 0회였다(오늘 하루치를 다 뒤져도 한 줄도 없다). 도는 길에 있어야 검사다.
+					// ★ 파도만 실행은 여기서 끝낸다 — 확인하려던 것(파도 중 현상)은 이미 다 봤고,
+					//   그 뒤 배치·결말·이어하기·재시작이 4분을 더 먹는다.
+					if (wavesOnly)
+					{
+						Debug.Log(TAG + " WAVES-ONLY 파도 확인 끝 — 조기 종료");
+						Finish();
+						return;
+					}
+
 					step = Step.SelectedLayout;
 					selectedLayoutAt = now;
 					return;
@@ -3738,7 +3771,7 @@ namespace WitchMendokusai.EditorTools
 			//   정상 종료했는데 10분을 「행」으로 의심하며 기다렸다. 검사는 자기 상태를 말해야 한다.
 			double elapsed = EditorApplication.timeSinceStartup - playStart;
 			Debug.Log($"{TAG} 검증 끝 — 마지막 단계 {step} · {elapsed:F0}초 · 모드 "
-				+ (placeOnly ? "배치만" : conclusionOnly ? "결말만" : "전체")
+				+ (placeOnly ? "배치만" : wavesOnly ? "파도만" : conclusionOnly ? "결말만" : "전체")
 				+ " (실패 항목은 위에 별도로 찍힌다. 없으면 없다.)");
 
 			EditorApplication.update -= Tick;
