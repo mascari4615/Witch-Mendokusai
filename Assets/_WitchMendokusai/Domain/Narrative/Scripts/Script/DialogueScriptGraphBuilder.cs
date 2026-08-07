@@ -211,6 +211,16 @@ namespace WitchMendokusai
 				};
 			}
 
+			if (condition.Kind == DialogueScriptConditionKind.Chosen)
+			{
+				return new DialogueChosenCriteria
+				{
+					DialogueId = condition.DialogueId,
+					Label = condition.Label,
+					ExpectedChosen = condition.Expected,
+				};
+			}
+
 			if (condition.Kind == DialogueScriptConditionKind.ItemCount)
 			{
 				return new DialogueItemCriteria

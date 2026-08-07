@@ -113,13 +113,49 @@ namespace WitchMendokusai
 				return;
 			}
 
-			string word = condition.Started ? "시작함" : condition.Expected ? "봤음" : "안봤음";
+			string body = ConditionBody(condition);
 			if (bracketed)
 			{
-				builder.Append(" [").Append(word).Append(' ').Append(condition.DialogueId).Append(']');
+				builder.Append(" [").Append(body).Append(']');
 				return;
 			}
-			builder.Append(word).Append(' ').Append(condition.DialogueId);
+			builder.Append(body);
+		}
+
+		/// <summary>
+		/// 조건 한 마디를 원고 말로.
+		///
+		/// ★ 여기는 **종류를 다 봐야 한다.** 예전엔 이력 조건만 보고 늘 「봤음/안봤음」으로 적었는데,
+		///   그러면 물건·퀘스트 조건이 되돌려 쓸 때 **다른 조건으로 바뀐다** — 글은 멀쩡해 보이는데
+		///   뜻이 조용히 달라지는, 제일 나쁜 종류의 어긋남이다.
+		/// </summary>
+		private static string ConditionBody(DialogueScriptCondition condition)
+		{
+			if (condition.Kind == DialogueScriptConditionKind.Chosen)
+			{
+				return (condition.Expected ? "골랐음 " : "안골랐음 ") + condition.DialogueId + " " + condition.Label;
+			}
+
+			if (condition.Kind == DialogueScriptConditionKind.ItemCount)
+			{
+				string word = condition.Expected ? "아이템" : "아이템없음";
+				// 개수 1 은 안 적는다 — 읽는 쪽 기본값이라, 적으면 사람이 쓴 글과 달라진다.
+				return condition.Amount == 1
+					? word + " " + condition.DialogueId
+					: word + " " + condition.DialogueId + " " + condition.Amount;
+			}
+
+			if (condition.Kind == DialogueScriptConditionKind.QuestState)
+			{
+				if (condition.QuestState == QuestState.Unlocked)
+				{
+					return "퀘스트열림 " + condition.DialogueId;
+				}
+				return (condition.Expected ? "퀘스트완료 " : "퀘스트미완 ") + condition.DialogueId;
+			}
+
+			string seenWord = condition.Started ? "시작함" : condition.Expected ? "봤음" : "안봤음";
+			return seenWord + " " + condition.DialogueId;
 		}
 
 		private static void WriteEffects(StringBuilder builder, IReadOnlyList<EffectInfoData> effects)

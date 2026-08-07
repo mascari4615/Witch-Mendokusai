@@ -29,6 +29,9 @@ namespace WitchMendokusai
 
 		/// <summary>그 퀘스트가 어떤 상태인가.</summary>
 		QuestState = 3,
+
+		/// <summary>그 대화에서 이 답을 골랐나.</summary>
+		Chosen = 4,
 	}
 
 	/// <summary>
@@ -48,8 +51,11 @@ namespace WitchMendokusai
 		/// <summary>퀘스트 조건에서 묻는 상태. 다른 조건에서는 안 쓴다.</summary>
 		public QuestState QuestState { get; }
 
+		/// <summary>「고른 답」 조건에서 묻는 라벨 — 원고에 쓴 글자 그대로. 다른 조건에서는 비어 있다.</summary>
+		public string Label { get; }
+
 		public DialogueScriptCondition(DialogueScriptConditionKind kind, int dialogueId, bool expected, bool started,
-			int amount = 1, QuestState questState = WitchMendokusai.QuestState.Completed)
+			int amount = 1, QuestState questState = WitchMendokusai.QuestState.Completed, string label = null)
 		{
 			Kind = kind;
 			DialogueId = dialogueId;
@@ -57,6 +63,7 @@ namespace WitchMendokusai
 			Started = started;
 			Amount = amount;
 			QuestState = questState;
+			Label = label;
 		}
 
 		public bool HasCondition => Kind != DialogueScriptConditionKind.None;
@@ -419,6 +426,13 @@ namespace WitchMendokusai
 				return false;
 			}
 
+			// 「고른 답」은 라벨이 문장이라 공백을 품는다 — 토큰으로 쪼개기 **전에** 따로 읽는다.
+			// (쪼개고 다시 붙이면 원고에 쓴 띄어쓰기가 달라져서 라벨이 안 맞는다.)
+			if (TryReadChosenCondition(text, out condition))
+			{
+				return true;
+			}
+
 			string[] parts = text.Split(new[] { ' ', '	', ':' }, StringSplitOptions.RemoveEmptyEntries);
 			if (parts.Length < 2 || parts.Length > 3)
 			{
@@ -487,6 +501,60 @@ namespace WitchMendokusai
 				default:
 					return false;
 			}
+		}
+
+		/// <summary>
+		/// `골랐음 5200 그냥 간다` — 그 대화에서 **그 답을 고른 적 있나**.
+		///
+		/// ★ 왜 따로 읽나: 라벨은 사람이 쓴 문장이라 **공백을 품는다.** 다른 조건처럼 토큰으로 쪼개면
+		///   「그냥 간다」가 두 조각이 되고, 다시 붙이면 원고에 쓴 띄어쓰기와 달라져 영영 안 맞는다.
+		///   그래서 번호 뒤는 **남은 글자 그대로** 라벨로 쓴다.
+		/// </summary>
+		private static bool TryReadChosenCondition(string text, out DialogueScriptCondition condition)
+		{
+			condition = default;
+
+			string trimmed = text.Trim();
+			bool expected;
+			if (trimmed.StartsWith("골랐음", StringComparison.Ordinal) || trimmed.StartsWith("chose", StringComparison.Ordinal))
+			{
+				expected = true;
+			}
+			else if (trimmed.StartsWith("안골랐음", StringComparison.Ordinal) || trimmed.StartsWith("notchose", StringComparison.Ordinal))
+			{
+				expected = false;
+			}
+			else
+			{
+				return false;
+			}
+
+			int wordEnd = trimmed.IndexOf(' ');
+			if (wordEnd < 0)
+			{
+				return false;
+			}
+
+			string rest = trimmed.Substring(wordEnd + 1).Trim();
+			int idEnd = rest.IndexOf(' ');
+			if (idEnd < 0)
+			{
+				return false;
+			}
+			if (int.TryParse(rest.Substring(0, idEnd), out int dialogueId) == false)
+			{
+				return false;
+			}
+
+			string label = rest.Substring(idEnd + 1).Trim();
+			if (label.Length == 0)
+			{
+				return false;
+			}
+
+			condition = new DialogueScriptCondition(DialogueScriptConditionKind.Chosen, dialogueId, expected, false,
+				1, WitchMendokusai.QuestState.Completed, label);
+			return true;
 		}
 
 		/// <summary>소제목에서 `#` 과 앞뒤 공백만 걷어낸다 — 제목 글자 그대로가 장면 이름이다.</summary>
