@@ -177,6 +177,20 @@ namespace WitchMendokusai.Tests
 		}
 
 		[Test]
+		public void 두_손가락으로_확대하고_떼면_톡이_아니다()
+		{
+			TouchGesture gesture = new TouchGesture();
+
+			// 첫 손가락은 제자리, 둘째만 벌어진다 — 시간·흔들림만 재면 이게 「톡」으로 새어 나온다.
+			gesture.Update(Two(new Vector2(500f, 500f), new Vector2(560f, 500f)), FRAME);
+			gesture.Update(Two(new Vector2(500f, 500f), new Vector2(620f, 500f)), FRAME);
+			gesture.Update(One(500f, 500f), FRAME);
+			gesture.Update(NONE, FRAME);
+
+			Assert.IsFalse(gesture.TappedThisFrame, "확대하고 손을 뗐을 뿐인데 톡으로 셌다 — 그 자리에 건물이 선다.");
+		}
+
+		[Test]
 		public void 아무도_안_닿으면_마지막_자리를_지킨다()
 		{
 			TouchGesture gesture = new TouchGesture();

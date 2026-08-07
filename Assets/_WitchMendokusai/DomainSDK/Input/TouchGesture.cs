@@ -21,6 +21,7 @@ namespace WitchMendokusai
 		private float pressSeconds;
 		private float pressTravel;
 		private bool wasPressed;
+		private bool multiTouched;
 		private float twistPending;
 		private bool twistUnlocked;
 
@@ -95,11 +96,18 @@ namespace WitchMendokusai
 				if (countChanged == false && previous.Count > 0)
 					PrimaryDelta = current[0] - previous[0];
 
+				// ★ 두 손가락이 한 번이라도 얹혔으면 이 누름은 「톡」이 될 수 없다. 오므리기는 첫
+				//   손가락이 거의 안 움직이고 순식간에 끝날 수 있어서, 시간·흔들림만 재면 확대하고
+				//   손을 뗀 자리에 건물이 서 버린다 — 이 파일이 막으려던 바로 그 사고다.
+				if (current.Count >= 2)
+					multiTouched = true;
+
 				if (PressedThisFrame)
 				{
 					pressStartPosition = current[0];
 					pressSeconds = 0f;
 					pressTravel = 0f;
+					multiTouched = current.Count >= 2;
 					IsDragging = false;
 				}
 				else
@@ -123,7 +131,8 @@ namespace WitchMendokusai
 				if (ReleasedThisFrame)
 				{
 					// 톡 = 짧게 + 거의 안 움직임. 둘 중 하나라도 어기면 끌기였다.
-					if (pressSeconds <= Tuning.TapMaxSeconds
+					if (multiTouched == false
+						&& pressSeconds <= Tuning.TapMaxSeconds
 						&& pressTravel <= Tuning.TapMaxTravelPixels
 						&& Vector2.Distance(PrimaryPosition, pressStartPosition) <= Tuning.TapMaxTravelPixels)
 					{
@@ -161,6 +170,7 @@ namespace WitchMendokusai
 			TwistDelta = 0f;
 			pressSeconds = 0f;
 			pressTravel = 0f;
+			multiTouched = false;
 			twistPending = 0f;
 			twistUnlocked = false;
 		}
