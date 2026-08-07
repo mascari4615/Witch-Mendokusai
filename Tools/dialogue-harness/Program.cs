@@ -17,8 +17,8 @@ internal static class Program
 		failed += testFailed;
 
 		Console.WriteLine();
-		Console.WriteLine("== 게임에 들어간 원고 ==");
-		ShippedScript.Run(Path.Combine(repoRoot, "Assets", "_WitchMendokusai", "Domain", "Narrative", "Demo", "오프닝.txt"), Check);
+		Console.WriteLine("== 게임에 들어간 원고 (전부) ==");
+		ShippedScript.Run(Path.Combine(repoRoot, "Assets", "_WitchMendokusai"), Check);
 
 		Console.WriteLine();
 		Console.WriteLine("== 설계 문서 원고 (있으면) ==");
