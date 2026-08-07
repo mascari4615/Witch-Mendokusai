@@ -86,6 +86,40 @@ namespace WitchMendokusai.Tests
 		}
 
 		[Test]
+		public void 체력_조건이_죽어야_참인_채로_남아있지_않다()
+		{
+			// ★ 실제로 났던 사고(WM-165): 편집기가 한동안 비교칸을 안 그려서 체력 조건이 전부
+			//   기본값 「== 0」 으로 굳었다. 「체력이 정확히 0일 때」 = **죽어야 참**이라 그 줄은
+			//   영영 발동하지 않는다. 화면에선 「저 규칙이 왜 안 먹지」로만 보인다.
+			//
+			// 아군 수는 일부러 뺐다 — 「아군 0명 = 혼자 남았을 때」는 멀쩡한 전술이다.
+			// 틀린 경고를 한 번 내면 다음부터 아무도 안 읽는다.
+			ConditionKind[] hpKinds = { ConditionKind.SelfHp, ConditionKind.SelfHpRatio, ConditionKind.TargetHpRatio };
+
+			foreach (ArenaMatchConfig config in LoadShippedConfigs())
+			{
+				foreach (ArenaMatchConfig.ArenaUnitEntry entry in config.Roster)
+				{
+					if (entry.Tactic == null)
+						continue; // 위 시험이 잡는다.
+
+					string who = entry.UnitData != null ? entry.UnitData.name : "이름 없는 줄";
+					foreach (TacticRule rule in entry.Tactic.Rules)
+					{
+						foreach (TacticCondition condition in rule.Conditions)
+						{
+							bool isHpKind = System.Array.IndexOf(hpKinds, condition.Kind) >= 0;
+							bool neverFires = condition.Operator == ComparisonOperator.Equal && Mathf.Approximately(condition.Value, 0f);
+
+							Assert.IsFalse(isHpKind && neverFires,
+								$"{config.name}: {who} 의 「{condition.Kind}」 조건이 「== 0」 이다 — 죽어야 참이라 그 줄은 영영 안 발동한다");
+						}
+					}
+				}
+			}
+		}
+
+		[Test]
 		public void 로스터가_맵이_감당할_수_있는_인원이다()
 		{
 			foreach (ArenaMatchConfig config in LoadShippedConfigs())
