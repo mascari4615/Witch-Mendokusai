@@ -26,6 +26,10 @@ namespace WitchMendokusai
 		private readonly int[] distance;      // 코어까지 걸음 수(격자 기준). UNREACHABLE = 못 감.
 		private readonly Vector2Int[] nextStep; // 이 칸에서 다음에 밟을 칸.
 
+		// ★ 「내 갈래」로 이웃을 고를 때도 모서리 규칙을 물어야 해서 들고 있는다. 이걸 안 들고 있어서
+		//   BFS 쪽만 모서리를 막았는데 정작 마수가 쓰는 갈래 경로는 그대로 대각선을 골랐다(실측으로 드러남).
+		private readonly System.Func<Vector2Int, bool> blockedQuery;
+
 		public Vector2Int GoalCell { get; }
 
 		/// <summary> 코어(goal)에서 BFS 로 퍼뜨려 만든다. isBlocked = 그 칸이 통행 불가인지. </summary>
@@ -44,6 +48,7 @@ namespace WitchMendokusai
 			this.width = width < 1 ? 1 : width;
 			this.length = length < 1 ? 1 : length;
 			GoalCell = goalCell;
+			blockedQuery = isBlocked;
 
 			int cellCount = this.width * this.length;
 			distance = new int[cellCount];
@@ -150,6 +155,9 @@ namespace WitchMendokusai
 				int value = distance[ToIndex(neighbor)];
 				if (value < 0 || value >= here)
 					continue; // 목표에서 멀어지는 칸은 후보가 아니다.
+				// ★ 여기서도 모서리를 물어야 한다 — 안 물어서 BFS 쪽만 고친 수정이 헛돌았다(실측).
+				if (IsDiagonalCornerCut(cell, neighbor, blockedQuery))
+					continue;
 				if (value < best)
 					best = value;
 			}
@@ -166,6 +174,8 @@ namespace WitchMendokusai
 			{
 				Vector2Int neighbor = cell + Neighbors[i];
 				if (IsInside(neighbor) == false || distance[ToIndex(neighbor)] != best)
+					continue;
+				if (IsDiagonalCornerCut(cell, neighbor, blockedQuery))
 					continue;
 				candidateOrder[count] = i;
 				candidateAngle[count] = SignedAngle(referenceStep, Neighbors[i]);

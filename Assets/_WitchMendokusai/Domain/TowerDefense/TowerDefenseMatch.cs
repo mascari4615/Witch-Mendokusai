@@ -4963,8 +4963,14 @@ namespace WitchMendokusai
 				//   그래서 이번 틱이 *실제로 옮긴 거리*와 *벽에 닿은 횟수*를 같이 찍는다:
 				//   실제이동 0 + 벽닿음 있음 = 물리 벽에 눌림(격자는 갈 수 있다는데 씬엔 벽이 있다),
 				//   실제이동 있음 + 제자리 = 왔다 갔다 하는 왕복, 둘 다 0 = 스스로 안 가는 것.
+				// ★ 여태 「받은방향」은 *길이*만 찍었다 — 1.00 이면 방향을 받았다는 뜻일 뿐, 그게 *안내와 같은
+				//   방향인지*는 한 번도 안 봤다. 아래 「안내」는 진단이 직접 물어본 값이라, 둘이 다르면
+				//   마수는 흐름장을 안 쓰고 딴 데(눈앞의 포탑 등)를 보고 직선으로 걷는 중이다.
+				//   길 고치는 것과 목표 고르는 것은 고치는 자리가 전혀 다르다.
 				string body = stuckMovement == null ? "이동부품 없음"
-					: "받은방향 " + stuckMovement.MoveDirectionWorld.magnitude.ToString("F2")
+					: "받은쪽(" + stuckMovement.MoveDirectionWorld.x.ToString("F2")
+						+ "," + stuckMovement.MoveDirectionWorld.z.ToString("F2") + ")"
+						+ " · 받은방향 " + stuckMovement.MoveDirectionWorld.magnitude.ToString("F2")
 						+ " · 속도 " + stuckMovement.Velocity.magnitude.ToString("F2")
 						+ " · 실제이동 " + stuckMovement.LastMoveDelta.magnitude.ToString("F3")
 						+ " · 벽닿음 " + stuckMovement.WallContactCount
