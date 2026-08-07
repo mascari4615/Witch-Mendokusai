@@ -76,10 +76,39 @@ namespace WitchMendokusai
 			{
 				DialogueScriptEntry entry = section.Entries[e];
 				NodeBase node = CreateNode(entry);
+				if (node is DialogueChoiceNode choiceNode)
+				{
+					choiceNode.Prompt = FindPromptFor(section, e);
+				}
 				nodes.Add(node);
 				graph.AddNode(node);
 			}
 			return nodes;
+		}
+
+		/// <summary>
+		/// 선택지에 딸릴 「무슨 질문이었나」 — **바로 앞 대사**를 쓴다.
+		///
+		/// ★ 왜 필요한가: 고를 것만 뜨고 질문이 없으면 화면은 「뭘 묻는 건지」를 못 보여준다.
+		///   원고에는 늘 그 앞줄에 물음이 있다(「뭘 해볼까?」). 새 문법을 만들지 않고 그걸 쓴다 —
+		///   쓰는 사람이 따로 적을 게 없어야 실제로 채워진다.
+		///
+		/// 앞줄이 말이 아니면(지문·기다림) 더 위로 안 올라간다. 붙어 있는 물음만 질문으로 친다 —
+		/// 멀리서 끌어오면 엉뚱한 문장이 질문으로 뜬다.
+		/// </summary>
+		private static string FindPromptFor(DialogueScriptSection section, int choiceIndex)
+		{
+			if (choiceIndex <= 0)
+			{
+				return null;
+			}
+
+			DialogueScriptEntry previous = section.Entries[choiceIndex - 1];
+			if (previous.Kind != DialogueScriptEntryKind.Speak)
+			{
+				return null;
+			}
+			return string.IsNullOrWhiteSpace(previous.Text) ? null : previous.Text;
 		}
 
 		private static NodeBase CreateNode(DialogueScriptEntry entry)

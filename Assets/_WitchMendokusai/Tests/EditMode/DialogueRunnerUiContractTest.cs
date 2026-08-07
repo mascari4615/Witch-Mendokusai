@@ -70,6 +70,44 @@ namespace WitchMendokusai.Tests
 		}
 
 		[Test]
+		public void TheQuestionRightBeforeTheChoicesBecomesThePrompt()
+		{
+			// 고를 것만 뜨고 질문이 없으면 화면은 「뭘 묻는 건지」를 못 보여준다.
+			// 원고엔 늘 앞줄에 물음이 있다 — 새 문법 없이 그걸 쓴다(쓰는 사람이 따로 적을 게 없어야 채워진다).
+			DialoguePlayback playback = new(BuildGraph(
+				"## 시작",
+				"> 링: \"뭘 해볼까?\"",
+				"> - 왼쪽 -> 끝",
+				"> - 오른쪽 -> 끝",
+				"## 끝",
+				"> 욘: \"끝.\""));
+			playback.Begin();
+			playback.Advance();
+
+			Assert.That(playback.Current.Kind, Is.EqualTo(DialogueStepKind.Choice));
+			Assert.That(playback.Current.Prompt, Is.EqualTo("뭘 해볼까?"));
+		}
+
+		[Test]
+		public void WithoutALineRightBefore_ThereIsNoPrompt()
+		{
+			// 멀리서 끌어오면 엉뚱한 문장이 질문으로 뜬다 — 붙어 있는 물음만 질문으로 친다.
+			DialoguePlayback playback = new(BuildGraph(
+				"## 시작",
+				"> 링: \"먼 옛날 이야기다.\"",
+				"> wait 1s",
+				"> - 왼쪽 -> 끝",
+				"## 끝",
+				"> 욘: \"끝.\""));
+			playback.Begin();
+			playback.Advance();
+			playback.Tick(5f);
+
+			Assert.That(playback.Current.Kind, Is.EqualTo(DialogueStepKind.Choice));
+			Assert.That(playback.Current.Prompt, Is.Null);
+		}
+
+		[Test]
 		public void FinishedIsAnnouncedOnce_WhenItRunsOut()
 		{
 			DialogueRunner runner = NewRunner();
