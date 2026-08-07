@@ -49,7 +49,7 @@ work_dir=$(mktemp -d)
 trap 'rm -rf "$work_dir"' EXIT
 
 haystack="$work_dir/haystack.txt"
-git ls-files 'Assets/_WitchMendokusai/*.cs' \
+git -c core.quotepath=false ls-files 'Assets/_WitchMendokusai/*.cs' \
 	| grep -v "^$sdk_root/" \
 	| grep -v "/Tests/" > "$haystack"
 
@@ -57,7 +57,7 @@ git ls-files 'Assets/_WitchMendokusai/*.cs' \
 # (규칙 조건, 노드 그래프 노드 등). 코드 호출처만 세면 그 부류가 통째로 오탐이 된다.
 # 다른 슬롯이 짚어 준 지적이다(2026-08-08 session-bus). 자산 쪽도 같이 센다.
 asset_haystack="$work_dir/assets.txt"
-git ls-files 'Assets/_WitchMendokusai/*.asset' 'Assets/_WitchMendokusai/*.prefab' 'Assets/_WitchMendokusai/*.unity' > "$asset_haystack"
+git -c core.quotepath=false ls-files 'Assets/_WitchMendokusai/*.asset' 'Assets/_WitchMendokusai/*.prefab' 'Assets/_WitchMendokusai/*.unity' > "$asset_haystack"
 
 if [ ! -s "$haystack" ]; then
 	echo "훑을 게임 코드가 하나도 안 잡혔다 — 경로 가정이 틀렸다" >&2
@@ -90,11 +90,14 @@ for layer_dir in "$sdk_root"/*/; do
 	[ "$type_count" -eq 0 ] && continue
 
 	# -w = 이름 전체가 맞을 때만(부분 일치로 부풀지 않게), -F = 정규식 아님, -f = 이름 목록 파일.
-	call_sites=$(grep -lwF -f "$names" $(cat "$haystack") 2>/dev/null | wc -l)
+	# 경로 공백에서 쪼개지지 않게 줄 단위로 넘긴다(실측 오탐 원인).
+	call_sites=$(xargs -d '
+' -a "$haystack" grep -lwF -f "$names" 2>/dev/null | wc -l)
 
 	asset_refs=0
 	if [ -s "$asset_haystack" ]; then
-		asset_refs=$(grep -lwF -f "$names" $(cat "$asset_haystack") 2>/dev/null | wc -l)
+		asset_refs=$(xargs -d '
+' -a "$asset_haystack" grep -lwF -f "$names" 2>/dev/null | wc -l)
 	fi
 
 	# 코드가 부르든 자산이 부르든, 어느 쪽이든 「불린다」로 본다.

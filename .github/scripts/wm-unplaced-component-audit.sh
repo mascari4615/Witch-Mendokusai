@@ -43,9 +43,13 @@ components="$work_dir/components.tsv"   # 이름 \t 소스경로 \t guid
 # 파일 하나하나에 grep 을 걸면 1000개 넘게 돌아 몇 분이 걸린다(실측 3분 30초).
 # 먼저 **MonoBehaviour 가 들어 있는 파일만** 한 번에 걸러 낸다.
 candidates="$work_dir/candidates.txt"
-git ls-files 'Assets/_WitchMendokusai/Domain/*.cs' > "$work_dir/domain-cs.txt"
-grep -lE 'class[[:space:]]+[A-Za-z_][A-Za-z0-9_]*[[:space:]]*:[[:space:]]*([A-Za-z0-9_.]+,[[:space:]]*)*MonoBehaviour' \
-	$(cat "$work_dir/domain-cs.txt") 2>/dev/null > "$candidates"
+git -c core.quotepath=false ls-files 'Assets/_WitchMendokusai/Domain/*.cs' > "$work_dir/domain-cs.txt"
+# ⚠ 파일 목록을 `$(cat …)` 로 펼치면 **경로에 있는 공백에서 쪼개진다.**
+#   이 저장소엔 `[Panel] DungeonRuntime.prefab` 처럼 공백·대괄호가 든 이름이 많고,
+#   그래서 「자산에 안 박혔다」는 오탐이 무더기로 났다(실측). 줄 단위로 넘긴다.
+xargs -d '\n' -a "$work_dir/domain-cs.txt" \
+	grep -lE 'class[[:space:]]+[A-Za-z_][A-Za-z0-9_]*[[:space:]]*:[[:space:]]*([A-Za-z0-9_.]+,[[:space:]]*)*MonoBehaviour' \
+	2>/dev/null > "$candidates"
 
 while IFS= read -r source; do
 	[ -f "$source" ] || continue
@@ -73,21 +77,23 @@ guids="$work_dir/guids.txt"
 cut -f3 "$components" | sort -u > "$guids"
 
 placed="$work_dir/placed.txt"
-git ls-files '*.unity' '*.prefab' > "$work_dir/assets.txt"
+git -c core.quotepath=false ls-files '*.unity' '*.prefab' > "$work_dir/assets.txt"
 if [ -s "$work_dir/assets.txt" ]; then
-	grep -ohF -f "$guids" $(cat "$work_dir/assets.txt") 2>/dev/null | sort -u > "$placed"
+	xargs -d '
+' -a "$work_dir/assets.txt" grep -ohF -f "$guids" 2>/dev/null | sort -u > "$placed"
 else
 	: > "$placed"
 fi
 
 # ③ 코드가 붙이는 것들.
 sources="$work_dir/sources.txt"
-git ls-files 'Assets/_WitchMendokusai/*.cs' > "$sources"
+git -c core.quotepath=false ls-files 'Assets/_WitchMendokusai/*.cs' > "$sources"
 added="$work_dir/added.txt"
 # ⚠ 붙이는 길이 하나 더 있다 — **DI 등록**이다(`RegisterComponentOnNewGameObject<T>` 등).
 #   컨테이너가 게임오브젝트를 만들어 부품을 달아 준다. 이걸 빼먹고 처음 돌렸더니 23건 중
 #   여럿이 오탐이었다(대화 러너 등 — 코드에서 15곳이 쓰는데 「닿을 길 없음」으로 잡혔다).
-grep -ohE 'AddComponent[[:space:]]*<[[:space:]]*[A-Za-z_][A-Za-z0-9_]*|AddComponent[[:space:]]*\([[:space:]]*typeof[[:space:]]*\([[:space:]]*[A-Za-z_][A-Za-z0-9_]*|Register[A-Za-z]*[[:space:]]*<[[:space:]]*[A-Za-z_][A-Za-z0-9_]*' $(cat "$sources") 2>/dev/null \
+xargs -d '
+' -a "$sources" grep -ohE 'AddComponent[[:space:]]*<[[:space:]]*[A-Za-z_][A-Za-z0-9_]*|AddComponent[[:space:]]*\([[:space:]]*typeof[[:space:]]*\([[:space:]]*[A-Za-z_][A-Za-z0-9_]*|Register[A-Za-z]*[[:space:]]*<[[:space:]]*[A-Za-z_][A-Za-z0-9_]*' 2>/dev/null \
 	| grep -oE '[A-Za-z_][A-Za-z0-9_]*$' | sort -u > "$added"
 
 unplaced="$work_dir/unplaced.txt"
