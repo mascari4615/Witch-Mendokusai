@@ -494,6 +494,9 @@ namespace WitchMendokusai
 			stickBase.RegisterCallback<PointerDownEvent>(OnStickDown);
 			stickBase.RegisterCallback<PointerMoveEvent>(OnStickMove);
 			stickBase.RegisterCallback<PointerUpEvent>(OnStickUp);
+			// 동작 버튼과 같은 이유 — 손가락을 잡고 있던 권한을 잃으면 「뗐다」가 영영 안 온다.
+			// 그러면 스틱이 기울어진 채로 굳어서 캐릭터가 그 방향으로 계속 걷는다.
+			stickBase.RegisterCallback<PointerCaptureOutEvent>(_ => ReleaseStick());
 
 			parent.Add(stickBase);
 			RegisterMovable(stickBase);
