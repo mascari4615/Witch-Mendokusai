@@ -435,7 +435,7 @@ namespace WitchMendokusai.EditorTools
 					{
 						// 아직 재기로 한 것이 남아 있으면 끝내지 않는다 — 끝내버리면 그 항목은 영영 안 재진다.
 						if (lairDriftCheckAt > 0.0 || markCheckAt > 0.0 || lairClearCheckAt > 0.0 || pressureCheckAt > 0.0
-							|| relayProbeAt > 0.0)
+							|| relayProbeAt > 0.0 || adaptationProbeAt > 0.0)
 							return;
 
 						Debug.Log(TAG + " PLACE-ONLY 배치 확인 끝 — 조기 종료");
@@ -1040,6 +1040,9 @@ namespace WitchMendokusai.EditorTools
 		private static bool adaptationArmed;
 		private static bool adaptationSawEnemies;
 
+		/// <summary> 코어 둘레 5칸에 세운 둔화 포탑이 닿는 거리 — 이 안에 들어와야 「맞힐 기회가 있었다」. </summary>
+		private const float ADAPTATION_REACH = 14f;
+
 		/// <summary>
 		/// 적응 규칙이 화면까지 오는가 — 이걸 안 재면 영영 못 본다.
 		///
@@ -1084,8 +1087,8 @@ namespace WitchMendokusai.EditorTools
 					placed++;
 			}
 
-			adaptationProbeAt = EditorApplication.timeSinceStartup + 20.0;
-			Debug.Log(TAG + " 적응 — 둔화 포탑 " + placed + "기 세움(칸 " + slowSlot + ") · 20초 동안 화면을 지켜본다.");
+			adaptationProbeAt = EditorApplication.timeSinceStartup + 60.0;
+			Debug.Log(TAG + " 적응 — 둔화 포탑 " + placed + "기 세움(칸 " + slowSlot + ") · 60초 동안 화면을 지켜본다.");
 		}
 
 		/// <summary>
@@ -1102,10 +1105,24 @@ namespace WitchMendokusai.EditorTools
 			if (adaptationProbeAt <= 0.0 || match == null)
 				return;
 
-			// ★ 둔화는 *맞혀야* 세어진다. 창이 도는 동안 마수가 한 기도 없었다면 그건 실패가 아니라
-			//   「못 쟀다」다 — 둘을 같은 FAIL 로 부르면 다음 사람이 멀쩡한 규칙을 고치러 간다.
-			if (match.AliveEnemyCount > 0)
-				adaptationSawEnemies = true;
+			// ★ 둔화는 *맞혀야* 세어진다. 그런데 「마수가 살아 있다」로는 부족하다 — 테두리에서 막
+			//   나온 놈은 코어에서 수십 칸 밖이라 내가 세운 포탑의 사거리 안에 영영 안 들어온다.
+			//   실제로 「마수가 있었는데 편중 0」으로 한 번 틀리게 FAIL 을 찍었다. 재는 것은
+			//   **포탑이 닿는 거리까지 왔는가**여야 한다.
+			if (adaptationSawEnemies == false && match.CoreCombatant != null)
+			{
+				Vector3 core = match.CoreCombatant.Position;
+				foreach (MatchCombatant enemy in match.WaveEnemies)
+				{
+					if (enemy == null || enemy.IsAlive == false)
+						continue;
+					if ((enemy.Position - core).sqrMagnitude <= ADAPTATION_REACH * ADAPTATION_REACH)
+					{
+						adaptationSawEnemies = true;
+						break;
+					}
+				}
+			}
 
 			if (ScreenSaysAdapted())
 			{
@@ -1169,7 +1186,7 @@ namespace WitchMendokusai.EditorTools
 				+ " · 규칙 「" + note + "」 · 창이 닫힐 때까지 화면에 한 번도 안 떴다.");
 
 			if (note.Length == 0 && adaptationSawEnemies == false)
-				Debug.Log(TAG + " 적응 — 못 쟀다: 창이 도는 20초 동안 마수가 한 기도 없었다(맞힐 것이 없으면 편중도 없다). 실패가 아니다.");
+				Debug.Log(TAG + " 적응 — 못 쟀다: 창이 도는 60초 동안 마수가 포탑 사거리 안에 한 기도 안 들어왔다(맞힐 것이 없으면 편중도 없다). 실패가 아니다.");
 			else if (note.Length == 0)
 				Debug.LogWarning(TAG + " 적응 FAIL — 마수가 있었는데도 둔화 포탑이 아무 편중도 못 만들었다.");
 			else
