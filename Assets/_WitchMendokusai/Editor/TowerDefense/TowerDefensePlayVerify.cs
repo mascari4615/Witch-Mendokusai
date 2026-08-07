@@ -1068,6 +1068,33 @@ namespace WitchMendokusai.EditorTools
 					Debug.LogError(TAG + " 예고 FAIL — 다음 파도에 성격이 있는데 예고가 방향만 말한다.");
 				}
 
+				// ★ 서식지가 *만나지는 층인가* — 만들어놓고 도달 불가면 그 층은 통째로 죽은 것이다.
+				//   보급이 닿는 거리와 가장 가까운 서식지 거리를 나란히 놓고 본다.
+				if (match != null)
+				{
+					float nearest = float.MaxValue;
+					int lairTotal = 0;
+					foreach (TowerDefenseMatch.LairMarker lair in match.LairMarkers)
+					{
+						lairTotal++;
+						float distance = Vector3.Distance(lair.Position, match.CoreCombatant != null
+							? match.CoreCombatant.Position
+							: Vector3.zero);
+						if (distance < nearest)
+							nearest = distance;
+					}
+
+					float reach = match.EffectiveSupplyReach;
+					Debug.Log($"{TAG} 서식지 도달 — {lairTotal}곳 · 가장 가까운 것 {(lairTotal > 0 ? nearest : -1f):F1}"
+						+ $" · 보급 거리 {reach:F1} · 깨우는 거리 안에 들려면 {(lairTotal > 0 ? nearest - reach : 0f):F1} 더 나가야 한다");
+
+					if (lairTotal > 0 && nearest > reach * 4f)
+					{
+						Debug.LogWarning($"{TAG} 서식지 도달 — 가장 가까운 서식지가 보급 거리의 {nearest / Mathf.Max(1f, reach):F1}배다."
+							+ " 한 판에 한 번도 안 만나면 이 층은 없는 것과 같다.");
+					}
+				}
+
 				// 강도는 시간이 올리는 규칙이다 — 「내 포탑이 약해졌다」로 오해하지 않으려면 보여야 한다.
 				Debug.Log($"{TAG} 강도 — 마수 강도 {(match != null ? match.Pressure : 0f):F2}");
 

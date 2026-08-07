@@ -1088,15 +1088,31 @@ namespace WitchMendokusai
 		public bool WakeNearestLairForVerification(out Vector3 lairPosition)
 		{
 			lairPosition = Vector3.zero;
+
+			// ★ 이름이 「가장 가까운」인데 실제로는 *목록의 첫 번째*를 깨우고 있었다. 그래서 판 반대편
+			//   서식지가 뽑혀 「코어까지 102」 같은 값이 나왔고, 그걸 근거로 「서식지가 너무 멀다」고
+			//   의심했다 — 실제 가장 가까운 것은 16 이었다. **이름이 거짓말하면 측정이 거짓말한다.**
+			SleepingLair best = null;
+			float bestDistance = float.MaxValue;
+			Vector3 from = coreCombatant != null ? coreCombatant.Position : Vector3.zero;
+
 			foreach (SleepingLair lair in lairs)
 			{
 				if (lair.Awake)
 					continue;
-				lairPosition = lair.WorldPosition;
-				WakeLair(lair);
-				return true;
+				float distance = Vector3.Distance(lair.WorldPosition, from);
+				if (distance >= bestDistance)
+					continue;
+				bestDistance = distance;
+				best = lair;
 			}
-			return false;
+
+			if (best == null)
+				return false;
+
+			lairPosition = best.WorldPosition;
+			WakeLair(best);
+			return true;
 		}
 
 		/// <summary>
