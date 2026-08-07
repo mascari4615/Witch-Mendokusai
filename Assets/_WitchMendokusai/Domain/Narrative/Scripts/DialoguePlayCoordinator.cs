@@ -47,7 +47,7 @@ namespace WitchMendokusai
 			}
 
 			IsBusy = true;
-			RaiseStart(request);
+			StartOrGiveUp(request);
 			return true;
 		}
 
@@ -65,6 +65,27 @@ namespace WitchMendokusai
 		///   효과 통로가 없을 때 터뜨리는 것과 같은 판단 —
 		///   「하기로 적어 둔 것이 조용히 안 되는 것」이 제일 나쁜 결말이다.
 		/// </summary>
+		/// <summary>
+		/// 걸어 보고, **터지면 바쁨 표시를 되돌린다.**
+		///
+		/// ★ 왜: 바쁨을 먼저 켜 놓고 터지면 아무도 그걸 못 끈다 — 그 뒤에 온 대화는 전부
+		///   시작도 못 한 대화 뒤에 줄을 서서 **영영 안 나온다.** 한 번 크게 알리려던 것이
+		///   조용한 영구 정지가 되어 버린다(고치려던 것보다 나쁘다).
+		///   알림은 그대로 내보내되(다시 던진다) 상태는 안 망가뜨린다.
+		/// </summary>
+		private void StartOrGiveUp(DialoguePlayRequest request)
+		{
+			try
+			{
+				RaiseStart(request);
+			}
+			catch
+			{
+				IsBusy = false;
+				throw;
+			}
+		}
+
 		private void RaiseStart(DialoguePlayRequest request)
 		{
 			// 초기값 `delegate { }` 가 하나 들어 있으므로, 진짜 구독자는 그 다음부터다.
@@ -96,7 +117,7 @@ namespace WitchMendokusai
 
 			// 바쁨을 유지한 채 다음 것을 건다 — 중간에 잠깐 「안 바쁨」이 되면
 			// 그 틈에 들어온 요청이 줄을 건너뛰어 순서가 뒤집힌다.
-			RaiseStart(next);
+			StartOrGiveUp(next);
 		}
 
 		/// <summary>전부 접는다 — 「지금 대화 그만」이면 기다리던 것도 같이 버린다.</summary>

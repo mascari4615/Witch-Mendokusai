@@ -62,12 +62,30 @@ namespace UnityEngine
 		}
 
 		/// <summary>
-		/// 붙이는 시늉만 한다 — 그냥 새로 만들어 준다(붙은 것들을 들고 있을 이유가 없다).
+		/// 붙이는 시늉을 하고 **Awake 까지 불러 준다.**
 		///
 		/// ★ 왜 있어야 하나: 이게 있으면 러너 시험을 **유니티와 하네스 양쪽에서 같은 글로** 쓸 수 있다.
 		///   없으면 하네스 전용 시험을 따로 쓰게 되고, 그건 CI 에서 안 돈다.
+		///
+		/// ★ 왜 Awake 를 부르나: 안 부르면 **Awake 에서 하는 배선이 아무 검사도 못 받는다.**
+		///   유니티에서는 붙는 즉시 도는 코드인데 하네스에서만 안 돌면, 두 쪽이 다른 물건이 된다.
+		///   (자체 리뷰가 짚어 준 자리다 — 「유일하게 돌릴 수 있는 검사가 그 배선을 안 본다」.)
+		///   Start/OnEnable 은 아직 안 부른다 — 필요해지면 그때 같은 자리에 더한다.
 		/// </summary>
-		public T AddComponent<T>() where T : MonoBehaviour, new() => new();
+		public T AddComponent<T>() where T : MonoBehaviour, new()
+		{
+			T component = new();
+			System.Reflection.MethodInfo awake = typeof(T).GetMethod(
+				"Awake",
+				System.Reflection.BindingFlags.Instance
+					| System.Reflection.BindingFlags.Public
+					| System.Reflection.BindingFlags.NonPublic);
+			if (awake != null && awake.GetParameters().Length == 0)
+			{
+				awake.Invoke(component, null);
+			}
+			return component;
+		}
 	}
 
 	public class ScriptableObject : Object

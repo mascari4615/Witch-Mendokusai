@@ -106,6 +106,23 @@ namespace WitchMendokusai.Tests
 		}
 
 		[Test]
+		public void AfterALoudFailure_TheCoordinatorStillWorks()
+		{
+			// 크게 알리려던 것이 **조용한 영구 정지**가 되면 안 된다.
+			// 바쁨을 켠 채로 터지면 그 뒤에 온 대화가 전부 시작도 못 한 대화 뒤에 줄을 서서 영영 안 나온다.
+			DialoguePlayCoordinator coordinator = new();
+
+			Assert.That(() => coordinator.Request(Request(NewScript("혼자"))), Throws.InvalidOperationException);
+			Assert.That(coordinator.IsBusy, Is.False, "터졌으면 바쁨 표시를 되돌려야 한다");
+
+			int started = 0;
+			coordinator.OnStartRequested += _ => started++;
+
+			Assert.That(coordinator.Request(Request(NewScript("다음"))), Is.True);
+			Assert.That(started, Is.EqualTo(1), "귀가 붙은 뒤에는 정상으로 걸린다");
+		}
+
+		[Test]
 		public void QueuedOneAlsoFailsLoudly_IfTheListenerLeft()
 		{
 			// 걸 때는 있었는데 끝날 때 없어진 경우 — 다음 것을 거는 자리도 같은 판단이라야 한다.

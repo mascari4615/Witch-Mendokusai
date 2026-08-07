@@ -96,6 +96,16 @@ namespace WitchMendokusai.Tests
 		}
 
 		[Test]
+		public void AwakeActuallyRuns_SoItsWiringIsChecked()
+		{
+			// 붙는 즉시 도는 코드가 검사에서만 안 돌면 두 쪽이 다른 물건이 된다.
+			// 여기서는 「Awake 가 돌았다」의 눈에 보이는 증거 하나만 본다 — 자기 자신을 등록한다.
+			NewRunner();
+
+			Assert.That(DialogueRunner.Instance, Is.Not.Null);
+		}
+
+		[Test]
 		public void TickDoesNothingWhenNothingIsPlaying()
 		{
 			// 매 프레임 불리는 자리다 — 아무것도 안 트는 동안 조용해야 한다.
