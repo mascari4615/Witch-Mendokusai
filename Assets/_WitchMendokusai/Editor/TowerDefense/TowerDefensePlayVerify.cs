@@ -1049,6 +1049,9 @@ namespace WitchMendokusai.EditorTools
 		/// <summary> 코어 둘레 5칸에 세운 둔화 포탑이 닿는 거리 — 이 안에 들어와야 「맞힐 기회가 있었다」. </summary>
 		private const float ADAPTATION_REACH = 14f;
 
+		/// <summary> 보급을 끌고 갈 때 전초기지 사이 간격 — 너무 벌리면 다음 자리가 보급 밖이 된다. </summary>
+		private const float OUTPOST_STEP = 10f;
+
 		/// <summary>
 		/// 적응 규칙이 화면까지 오는가 — 이걸 안 재면 영영 못 본다.
 		///
@@ -1100,11 +1103,26 @@ namespace WitchMendokusai.EditorTools
 			}
 
 			int placed = 0;
+			int outposts = 0;
 			string rejected = string.Empty;
 			if (nearest < float.MaxValue)
 			{
-				// 둥지에서 코어 쪽으로 조금 물러난 자리 — 사거리 안이면서 내 보급이 닿을 가능성이 높다.
-				Vector3 toCore = (core - target).normalized;
+				// ★ 둥지는 늘 보급 밖(실측 40~50)이라 그 옆엔 바로 못 짓는다. 게임이 준 답이
+				//   전초기지(보급 원점)이므로, 코어에서 둥지 쪽으로 징검다리를 놓아 보급을 끌고 간다.
+				//   검사가 잔고 때문에 실패하면 *기능이 아니라 지갑*을 재는 꼴이라 먼저 채워 준다.
+				match.GrantForVerification(4000, 400);
+
+				Vector3 toNest = (target - core).normalized;
+				for (float distance = OUTPOST_STEP; distance < nearest - 6f; distance += OUTPOST_STEP)
+				{
+					if (match.TryPlaceOutpost(core + toNest * distance))
+						outposts++;
+					else
+						break; // 더 못 뻗으면 거기까지가 내 보급이다.
+				}
+
+				// 둥지에서 코어 쪽으로 조금 물러난 자리 — 사거리 안이면서 보급이 닿을 가능성이 높다.
+				Vector3 toCore = -toNest;
 				for (int step = 0; step < 4; step++)
 				{
 					Vector3 spot = target + toCore * (4f + step * 2f);
@@ -1112,7 +1130,7 @@ namespace WitchMendokusai.EditorTools
 						placed++;
 				}
 				if (placed == 0)
-					rejected = " · 둥지 옆에는 한 기도 못 세웠다(보급 밖으로 보인다)";
+					rejected = " · 전초기지 " + outposts + "기를 놓고도 둥지 옆엔 한 기도 못 세웠다";
 			}
 
 			// 둥지 옆이 막혔으면 코어 둘레라도 세운다 — 아무것도 안 세우는 것보단 잴 확률이 있다.
@@ -1130,7 +1148,7 @@ namespace WitchMendokusai.EditorTools
 			adaptationMatch = match;
 			adaptationTargetsNest = placed > 0 && rejected.Length == 0 && nearest < float.MaxValue;
 			Debug.Log(TAG + " 적응 — 가장 가까운 둥지까지 " + (nearest < float.MaxValue ? nearest.ToString("F1") : "없음")
-				+ rejected + " · 겨눈 곳 " + (adaptationTargetsNest ? "둥지 옆" : "코어 둘레"));
+				+ rejected + " · 전초기지 " + outposts + "기 · 겨눈 곳 " + (adaptationTargetsNest ? "둥지 옆" : "코어 둘레"));
 
 			adaptationProbeAt = EditorApplication.timeSinceStartup + 60.0;
 			Debug.Log(TAG + " 적응 — 둔화 포탑 " + placed + "기 세움(칸 " + slowSlot + ") · 60초 동안 화면을 지켜본다.");
