@@ -338,6 +338,7 @@ namespace WitchMendokusai.EditorTools
 					// 예산 순 — 채집(60)이 필요한 정수 확인을 먼저, 비싼 연구를 맨 뒤로.
 					VerifyEssence();
 					VerifyUpgrade();
+					VerifyEssenceShortageTalks();
 					VerifySell();
 					VerifyTrap();
 					VerifyWall();
@@ -2099,6 +2100,46 @@ namespace WitchMendokusai.EditorTools
 		}
 
 		/// <summary> 승급 — 같은 자리에 같은 종류를 다시 지으면 단계가 오르고 사거리·피해가 자라는가. </summary>
+		/// <summary>
+		/// 정수가 모자랄 때 화면이 **버는 법까지** 말하는가.
+		///
+		/// ★ 사용자가 직접 물은 것이다: "정수 어떻게 얻어? 강화를 할 수가 없는데?" 화면이 「부족」만
+		///   말하면 사람은 거기서 막힌다 — 모자란 건 이미 아는 사실이고, 필요한 건 *다음 행동*이다.
+		/// ★ 승급은 아예 조용히 실패하고 있었다(눌러도 아무 말이 없다 = 고장으로 읽힌다).
+		/// </summary>
+		private static void VerifyEssenceShortageTalks()
+		{
+			if (match == null)
+				return;
+
+			// 정수를 바닥내고 정수로 사는 것을 눌러 본다 — 거절 문구가 나와야 한다.
+			int essence = match.Essence;
+			if (essence > 0)
+				match.SpendEssenceForVerification(essence);
+
+			int before = match.Essence;
+			bool outpostRejected = match.TryPlaceOutpost(FindStageRoot() != null
+				? FindStageRoot().TransformPoint(new Vector3(6f, 0f, 6f))
+				: Vector3.zero) == false;
+
+			Debug.Log($"{TAG} 정수 안내 — 정수 {before} · 전초기지 거절 {outpostRejected}");
+
+			if (outpostRejected == false)
+			{
+				Debug.Log(TAG + " 정수 안내 — 못 쟀다(정수 0 인데도 지어졌다면 값이 0 인 스테이지다).");
+				return;
+			}
+
+			// 마지막 거절 문구를 매치가 들고 있어야 화면이 무엇을 말했는지 잴 수 있다.
+			string said = match.LastRejectReason;
+			Debug.Log($"{TAG} 정수 안내 — 화면이 한 말: 「{said}」");
+
+			if (string.IsNullOrEmpty(said) || said.Contains("정수 부족") == false)
+				Debug.LogError(TAG + " 정수 안내 FAIL — 정수가 모자란데 그렇게 말하지 않는다.");
+			else if (said.Contains("채집") == false || said.Contains("둥지") == false || said.Contains("서식지") == false)
+				Debug.LogError(TAG + " 정수 안내 FAIL — 「부족」만 말하고 *버는 법*을 안 말한다: 「" + said + "」");
+		}
+
 		private static void VerifyUpgrade()
 		{
 			Transform stageRoot = FindStageRoot();

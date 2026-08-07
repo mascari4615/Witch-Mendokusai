@@ -521,7 +521,12 @@ namespace WitchMendokusai
 				int upgradeCost = Mathf.Max(1, Mathf.RoundToInt(
 					stage.UpgradeEssenceCost * (weapon.Level + 1) * stage.UpgradeCostGrowth));
 				if (core.TrySpendEssence(upgradeCost) == false)
+				{
+					// ★ 조용히 false 를 돌려주면 「눌렀는데 아무 일도 안 일어난다」가 된다 —
+					//   사람은 그걸 고장으로 읽는다. 왜 안 되는지와 어떻게 버는지를 그 자리에서 말한다.
+					Reject(EssenceShortText(upgradeCost), unit.transform.position);
 					return false;
+				}
 
 				weapon.TryUpgrade();
 
@@ -2615,7 +2620,7 @@ namespace WitchMendokusai
 				if (core.TrySpendEssence(cost) == false)
 				{
 					if (coreCombatant != null)
-						Reject($"정수 부족 {core.Essence}/{cost}", coreCombatant.Position);
+						Reject(EssenceShortText(cost), coreCombatant.Position);
 					return false;
 				}
 			}
@@ -3713,6 +3718,27 @@ namespace WitchMendokusai
 		/// 성좌에서 마디 하나를 찍는다 — 값을 치르고 효과를 쌓는다.
 		/// 값이 모자라면 아무 일도 안 일어난다(화면이 찍힌 척하면 안 되므로 false 를 돌려준다).
 		/// </summary>
+		/// <summary>
+		/// 정수가 모자랄 때 하는 말 — **어디서 버는지까지** 한 곳에서 만든다.
+		///
+		/// ★ 사용자 실증: "정수 어떻게 얻어? 강화를 할 수가 없는데?" — 화면은 「부족」만 말하고
+		///   *버는 법*을 어디서도 말하지 않았다. 값이 모자라다는 것은 이미 눈에 보이는 사실이고,
+		///   사람이 막히는 지점은 「그럼 어떻게 벌지」다. 세 갈래를 그 자리에서 말한다.
+		/// ★ 한 곳에서 만드는 이유: 정수를 쓰는 자리가 넷(승급·연구 인형·성좌·전초기지)인데
+		///   따로 적으면 하나만 고쳐도 나머지가 옛말을 한다.
+		/// </summary>
+		/// <summary> 정수를 깎는다(검증 전용) — 「모자랄 때 뭐라고 하나」는 모자라게 만들어야 잴 수 있다. </summary>
+		public void SpendEssenceForVerification(int amount)
+		{
+			if (core != null && amount > 0)
+				core.TrySpendEssence(amount);
+		}
+
+		private string EssenceShortText(int cost)
+		{
+			return $"정수 부족 {core.Essence}/{cost} — 바깥 광맥 채집 · 둥지 부수기 · 서식지 소탕";
+		}
+
 		public bool TryTakeResearchNode(TowerDefenseResearchEffect effect, float amount, int cost, bool usesEssence)
 		{
 			if (core == null)
@@ -3730,7 +3756,7 @@ namespace WitchMendokusai
 				bool paid = usesEssence ? core.TrySpendEssence(cost) : core.TrySpend(cost);
 				if (paid == false)
 				{
-					string lack = usesEssence ? $"정수 부족 {core.Essence}/{cost}" : $"자원 부족 {core.Resource}/{cost}";
+					string lack = usesEssence ? EssenceShortText(cost) : $"자원 부족 {core.Resource}/{cost}";
 					if (coreCombatant != null)
 						Reject(lack, coreCombatant.Position);
 					Debug.Log($"{nameof(TowerDefenseMatch)}: 연구 거절 — {lack}.");
@@ -4227,7 +4253,7 @@ namespace WitchMendokusai
 			if (ValidateSite(worldPosition) == false)
 				return false;
 			if (core.TrySpendEssence(stage.OutpostEssenceCost) == false)
-				return Reject($"정수 부족 {core.Essence}/{stage.OutpostEssenceCost}", worldPosition);
+				return Reject(EssenceShortText(stage.OutpostEssenceCost), worldPosition);
 
 			occupiedCells.Add(cellKey);
 
