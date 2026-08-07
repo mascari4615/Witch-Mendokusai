@@ -70,6 +70,27 @@ namespace WitchMendokusai.Tests
 			Assert.AreEqual(-1, field.DistanceTo(new Vector2Int(0, 0)));
 		}
 
+		/// <summary>
+		/// 한쪽만 벽이어도 대각선으로 스쳐 지나가라고 안내하지 않는다.
+		///
+		/// ★ 왜 못으로 박나 — 마수의 몸 지름은 한 칸과 똑같다(실측: 반경 0.50 · 칸 1.00).
+		///   벽 모서리와 대각선 사이에 남는 틈은 0.13 뿐이라 몸이 절대 못 들어간다. 그런데 예전 규칙은
+		///   「양옆이 *둘 다* 벽일 때만」 막아서, 한쪽만 벽인 대각선을 정답이라고 알려줬다 —
+		///   마수는 그 자리에서 영원히 바위를 밀었다(라이브 경고 243줄 중 54줄이 이것이었다).
+		/// </summary>
+		[Test]
+		public void 한쪽만_벽이어도_대각선으로_모서리를_스치지_않는다()
+		{
+			// 목표 바로 왼쪽 한 칸만 벽. 그 아래칸에서 목표로 가는 대각선은 그 벽 모서리를 스친다.
+			Vector2Int wall = new Vector2Int(Goal.x - 1, Goal.y);
+			TowerDefenseFlowField field = new(WIDTH, LENGTH, Goal, cell => cell == wall);
+			Vector2Int corner = new Vector2Int(Goal.x - 1, Goal.y - 1);
+
+			Assert.IsTrue(field.TryGetNextCell(corner, out Vector2Int next), "안내 자체가 끊기면 안 된다 — 돌아가는 길은 있다.");
+			Assert.AreNotEqual(Goal, next,
+				"한쪽이 벽인데 대각선으로 질러가라고 안내했다 — 몸이 칸만큼 굵어서 그 틈으로는 못 들어간다.");
+		}
+
 		[Test]
 		public void 벽칸_자체는_도달불가()
 		{

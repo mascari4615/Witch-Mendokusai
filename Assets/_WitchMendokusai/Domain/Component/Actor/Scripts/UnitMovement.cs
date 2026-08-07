@@ -80,6 +80,14 @@ namespace WitchMendokusai
 		/// <summary> 직전 tick 에 앞을 막은 그 물체 — 지형인지 다른 유닛인지는 이름을 봐야 갈린다. </summary>
 		public Collider LastWallCollider => motor != null ? motor.Context.LastWallCollider : null;
 
+		/// <summary>
+		/// 이 몸이 실제로 차지하는 반경(크기 배율 반영). 길찾기는 유닛을 *점*으로 보는데 몸에는 굵기가 있다 —
+		/// 몸이 칸보다 굵으면 「갈 수 있다」고 안내받은 칸으로도 못 들어간다.
+		/// </summary>
+		public float BodyRadius => unitCapsule != null
+			? unitCapsule.radius * Mathf.Max(transform.lossyScale.x, transform.lossyScale.z)
+			: 0f;
+
 		private GameManager gameManager;
 		private TimeManager timeManager;
 

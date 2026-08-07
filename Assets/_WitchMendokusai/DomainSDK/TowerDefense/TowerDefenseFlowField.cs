@@ -220,7 +220,16 @@ namespace WitchMendokusai
 			return cell.y * width + cell.x;
 		}
 
-		// 대각선으로 건널 때 양옆이 둘 다 벽이면 벽 모서리를 뚫고 지나가는 그림이 된다 — 물리로는 낄 자리.
+		/// <summary>
+		/// 대각선으로 건널 때 벽 모서리를 스치는가 — 스치면 안내하지 않는다.
+		///
+		/// ★ 예전엔 「양옆이 *둘 다* 벽일 때만」 금지했다. 그건 마수를 *점*으로 볼 때만 맞는 규칙이다.
+		///   실측: 마수의 몸 지름은 한 칸과 똑같다(반경 0.50 · 칸 1.00). 한쪽만 벽이어도 그 모서리와
+		///   대각선 사이에 남는 틈은 0.13 밖에 안 되어, 몸(반경 0.50)은 절대 못 지나간다.
+		///   그런데 안내는 그 길을 정답이라고 알려줬다 — 마수는 그 자리에서 영원히 바위를 민다
+		///   (라이브 실측 243줄 중 54줄이 「갈 수 있다는 칸인데 암반에 막힘」이었고 안내는 전부 대각선이었다).
+		/// ★ 그래서 *한쪽만* 벽이어도 금지한다. 몸이 칸보다 가늘어지면 그때 다시 완화할 것.
+		/// </summary>
 		private static bool IsDiagonalCornerCut(Vector2Int from, Vector2Int to, System.Func<Vector2Int, bool> isBlocked)
 		{
 			int deltaX = to.x - from.x;
@@ -230,7 +239,7 @@ namespace WitchMendokusai
 			if (isBlocked == null)
 				return false;
 
-			return isBlocked(new Vector2Int(from.x + deltaX, from.y)) && isBlocked(new Vector2Int(from.x, from.y + deltaY));
+			return isBlocked(new Vector2Int(from.x + deltaX, from.y)) || isBlocked(new Vector2Int(from.x, from.y + deltaY));
 		}
 
 		private static readonly Vector2Int[] Neighbors =

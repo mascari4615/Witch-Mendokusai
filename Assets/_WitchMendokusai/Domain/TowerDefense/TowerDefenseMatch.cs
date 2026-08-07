@@ -4972,7 +4972,12 @@ namespace WitchMendokusai
 						//   다른 마수면 길이 아니라 *길목이 좁아* 밀리는 것이라 고치는 자리가 전혀 다르다.
 						+ " · 막은것 " + (stuckMovement.LastWallCollider != null
 							? stuckMovement.LastWallCollider.name
-							: "없음");
+							: "없음")
+						// ★ 길찾기는 마수를 *점*으로 보고 칸 단위로 답한다. 그런데 몸에는 굵기가 있다 —
+						//   몸 지름이 칸보다 크면 「갈 수 있다」는 칸으로도 못 들어가고, 옆 칸 암반에 낀다.
+						//   같은 이유로 좁은 길목에서는 서로가 서로의 벽이 된다(정체 119건).
+						+ " · 몸반경 " + stuckMovement.BodyRadius.ToString("F2")
+						+ " · 칸 " + mapLayout.CellSize.ToString("F2");
 
 				string why = body + " · " + guide + " · 브레인 " + (stuckDriver == null ? "없음" : stuckDriver.enabled ? "켜짐" : "꺼짐")
 					+ " · 이동 " + (stuckMovement == null ? "없음" : stuckMovement.enabled ? "켜짐" : "꺼짐")
