@@ -79,8 +79,11 @@ jobs:
     # ★ 진짜 원인은 push 레인이 아니라 「앞선 것을 죽인다」였다. 취소를 끄면 깃허브는 한 그룹에
     #   *도는 것 1 + 기다리는 것 1* 만 남기고 그 사이 것들만 지운다 — 즉 폭주해도 줄은 안 밀리고,
     #   마지막 push 는 반드시 돈다. 3시간 주기는 그대로 바닥으로 남긴다.
+    # ★ 레인은 event 별로 가른다. 한 그룹으로 묶으면 push 가 몰릴 때 *기다리던 예약·수동 실행이
+    #   대신 지워진다* — 취소를 꺼도 그렇다(깃허브는 한 그룹에 기다리는 것 하나만 남긴다).
+    #   push 끼리는 최신만 의미 있으니 서로 밀어내도 되지만, 다른 레인까지 같이 죽으면 안 된다.
     concurrency:
-      group: wm-quality-unity
+      group: wm-quality-unity-${{ github.event_name }}
       cancel-in-progress: false
     steps:
       - uses: actions/checkout@v4
