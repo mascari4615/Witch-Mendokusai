@@ -166,6 +166,15 @@ namespace NUnit.Framework
 			new(actual => actual is T, $"throws {typeof(T).Name} (or subclass)");
 
 		public static Constraint Nothing => new(actual => actual == null, "nothing thrown");
+
+		// 진짜 NUnit 에 있는 지름길들. 시험 파일이 **저장소의 진짜 파일**이므로, 여기 없으면
+		// 「Unity 에서는 되는데 하네스에서만 안 되는」 문법이 생긴다 — 그러면 시험을 하네스에 맞춰
+		// 비틀게 되고, 그게 쌓이면 하네스가 진짜 시험을 못 돌린다. 없는 것만 그때그때 채운다.
+		public static Constraint InvalidOperationException => TypeOf<InvalidOperationException>();
+
+		public static Constraint ArgumentException => TypeOf<ArgumentException>();
+
+		public static Constraint ArgumentNullException => TypeOf<ArgumentNullException>();
 	}
 
 	public static class Assert
