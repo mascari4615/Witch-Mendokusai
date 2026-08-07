@@ -45,6 +45,8 @@ namespace WitchMendokusai
 		[Header("둘러보기 안내")]
 		[Tooltip("처음 온 사람에게 보여줄 한 줄. 한 번 둘러보면 다시 안 뜬다.")]
 		[SerializeField] private string lookHintText = "화면을 문지르면 둘러봅니다";
+		[Tooltip("부감 시점(개척·도시)에서 뜨는 한 줄 — 두 손가락 조작은 화면에 안 보여서 말해 줘야 한다.")]
+		[SerializeField] private string overheadHintText = "두 손가락으로 밀면 시점 이동 · 비틀면 회전 · 오므리면 확대";
 		[Tooltip("안내 글자 크기(픽셀).")]
 		[SerializeField, Min(8f)] private float lookHintFontSize = 22f;
 		[Tooltip("안내의 진하기. 게임 화면을 가리지 않을 만큼만.")]
@@ -58,6 +60,7 @@ namespace WitchMendokusai
 
 		private VisualElement lookBackdrop;
 		private Label lookHint;
+		private Label overheadHint;
 		private VisualElement controlsRoot;
 		private VisualElement stickBase;
 		private VisualElement stickKnob;
@@ -128,6 +131,7 @@ namespace WitchMendokusai
 			}
 
 			PushStickValue();
+			UpdateOverheadHint(show, InputManager.TryGetExistingInstance(out InputManager held) ? held : null);
 			UpdateInteractButton(show, playerProvider);
 			UpdateLookBackdropBlocking();
 
@@ -243,6 +247,7 @@ namespace WitchMendokusai
 
 			BuildLookBackdrop(uiRoot);
 			BuildControls(uiRoot);
+			BuildOverheadHint(uiRoot);
 			built = true;
 		}
 
@@ -291,6 +296,64 @@ namespace WitchMendokusai
 			lookHint.style.opacity = lookHintOpacity;
 			lookHint.style.color = Color.white;
 			lookBackdrop.Add(lookHint);
+		}
+
+		/// <summary>
+		/// 부감(개척·도시) 시점에서 「두 손가락」을 알려 주는 한 줄 (TASK-WM-200).
+		///
+		/// ★ 왜 따로 만드나: 게임 속 게임에 들어가면 조작 장치도 훑기 판도 통째로 숨는다. 그래서
+		///   기존 안내는 거기서 절대 안 뜬다. 그런데 *정작 안 보이는 조작이 거기 있다* — 두 손가락으로
+		///   밀면 시점이 움직이고 비틀면 돈다는 것은 화면 어디에도 안 적혀 있다(실기 2026-08-07:
+		///   "영웅은 움직이는데 카메라 못 움직임").
+		/// ★ 손가락은 통과시킨다 — 가르치려다 그 자리를 막으면 안 된다.
+		/// ★ 한 번 그렇게 해 보면 영영 안 뜬다.
+		/// </summary>
+		private void BuildOverheadHint(UIRoot uiRoot)
+		{
+			if (OverheadHintSeen)
+				return;
+
+			overheadHint = new Label(overheadHintText) { name = "MobileOverheadHint" };
+			overheadHint.pickingMode = PickingMode.Ignore;
+			overheadHint.style.position = Position.Absolute;
+			overheadHint.style.left = 0;
+			overheadHint.style.right = 0;
+			overheadHint.style.top = Length.Percent(12f);
+			overheadHint.style.unityTextAlign = TextAnchor.MiddleCenter;
+			overheadHint.style.fontSize = lookHintFontSize;
+			overheadHint.style.opacity = lookHintOpacity;
+			overheadHint.style.color = Color.white;
+			overheadHint.style.display = DisplayStyle.None;
+			uiRoot.HudLayer.Add(overheadHint);
+		}
+
+		private const string OVERHEAD_HINT_SEEN_KEY = "WM.Mobile.OverheadHintSeen";
+
+		private static bool OverheadHintSeen => PlayerPrefs.GetInt(OVERHEAD_HINT_SEEN_KEY, 0) == 1;
+
+		/// <summary>
+		/// 부감 안내를 띄울지 정하고, 실제로 두 손가락을 써 보면 지운다.
+		/// 「조작 장치가 숨는 상황」이 곧 「부감 시점」이라 그 판정을 그대로 재사용한다.
+		/// </summary>
+		private void UpdateOverheadHint(bool controlsShown, InputManager inputManager)
+		{
+			if (overheadHint == null)
+				return;
+
+			bool overhead = controlsShown == false && inputManager != null && inputManager.IsTouchMode;
+			overheadHint.style.display = overhead ? DisplayStyle.Flex : DisplayStyle.None;
+			if (overhead == false)
+				return;
+
+			bool used = inputManager.PointerTwoFingerPanDelta.sqrMagnitude > 0f
+				|| Mathf.Abs(inputManager.PointerTwistDelta) > 0f;
+			if (used == false)
+				return;
+
+			overheadHint.RemoveFromHierarchy();
+			overheadHint = null;
+			PlayerPrefs.SetInt(OVERHEAD_HINT_SEEN_KEY, 1);
+			PlayerPrefs.Save();
 		}
 
 		private const string LOOK_HINT_SEEN_KEY = "WM.Mobile.LookHintSeen";
