@@ -1,0 +1,101 @@
+using System.Collections.Generic;
+using NUnit.Framework;
+using UnityEditor;
+using UnityEngine;
+
+namespace WitchMendokusai.Tests
+{
+	/// <summary>
+	/// 게임에 **실제로 들어 있는** 투기장 설정(`ArenaMatchConfig` 에셋)이 매치를 시작할 수 있는지 잠근다.
+	///
+	/// ★ 왜 필요한가: `ArenaMatch.Begin` 은 로스터가 맵과 안 맞으면 <b>LogError 만 남기고 조용히 돌아온다.</b>
+	///   그런데 그 시점엔 모드·카메라·입력이 이미 투기장으로 바뀐 뒤라, 플레이어에게는
+	///   <b>「관전 시점인데 아무도 없는 빈 판」</b>으로 보인다 — 화면이 고장난 줄 안다.
+	///   기존 시험들은 <i>가짜</i> 로스터로 규칙만 확인한다(`ArenaDryMatchTests`). 정작 배포되는
+	///   에셋이 그 규칙을 지키는지는 **아무도 안 보고 있었다** — 에셋은 사람이 인스펙터에서 만지는
+	///   물건이라 코드 리뷰에도 안 걸린다.
+	///
+	/// 여기서 세는 조건은 `ArenaMatch.ValidateRoster` 와 같은 것들이다. 같은 판정을 두 벌 쓰는 게
+	/// 아니라, <b>런타임이 거절할 에셋을 커밋 전에 먼저 잡는 것</b>이다.
+	/// </summary>
+	public class ArenaShippedConfigTests
+	{
+		private static List<ArenaMatchConfig> LoadShippedConfigs()
+		{
+			List<ArenaMatchConfig> configs = new();
+			foreach (string guid in AssetDatabase.FindAssets("t:" + nameof(ArenaMatchConfig)))
+			{
+				string path = AssetDatabase.GUIDToAssetPath(guid);
+				ArenaMatchConfig config = AssetDatabase.LoadAssetAtPath<ArenaMatchConfig>(path);
+				if (config != null)
+					configs.Add(config);
+			}
+			return configs;
+		}
+
+		[Test]
+		public void 투기장_설정이_적어도_하나는_있다()
+		{
+			// 0개면 아래 시험들이 「아무것도 안 보고 통과」가 된다 — 그건 통과가 아니다.
+			Assert.IsNotEmpty(LoadShippedConfigs(), "투기장 설정 에셋이 하나도 없다 — 아래 검사들이 빈손으로 통과하게 된다");
+		}
+
+		[Test]
+		public void 모든_투기장_설정이_맵과_모드를_갖는다()
+		{
+			foreach (ArenaMatchConfig config in LoadShippedConfigs())
+			{
+				Assert.IsNotNull(config.Map, $"{config.name}: 맵이 비었다 — 진입하면 빈 판이 뜬다");
+				Assert.IsNotNull(config.Mode, $"{config.name}: 모드가 비었다 — 승패 규칙이 없어 판이 안 끝난다");
+			}
+		}
+
+		[Test]
+		public void 로스터의_모든_줄이_유닛과_프리팹을_갖는다()
+		{
+			foreach (ArenaMatchConfig config in LoadShippedConfigs())
+			{
+				for (int entryIndex = 0; entryIndex < config.Roster.Count; entryIndex++)
+				{
+					ArenaMatchConfig.ArenaUnitEntry entry = config.Roster[entryIndex];
+
+					Assert.IsNotNull(entry.UnitData, $"{config.name}: 로스터 {entryIndex} 번의 유닛이 비었다 — 그 줄은 인원에서 조용히 빠진다");
+					Assert.IsNotNull(entry.UnitData.Prefab,
+						$"{config.name}: 로스터 {entryIndex} 번({entry.UnitData.name})의 프리팹이 비었다 — "
+						+ "3v3 인 줄 알고 3v2 로 시작하거나, 더 빠지면 「팀이 1개」로 거절된다(증상만 보이고 원인은 안 보인다)");
+				}
+			}
+		}
+
+		[Test]
+		public void 로스터가_맵이_감당할_수_있는_인원이다()
+		{
+			foreach (ArenaMatchConfig config in LoadShippedConfigs())
+			{
+				if (config.Map == null)
+					continue; // 위 시험이 이미 잡는다 — 여기서 또 죽으면 원인이 흐려진다.
+
+				Dictionary<int, int> perTeam = new();
+				foreach (ArenaMatchConfig.ArenaUnitEntry entry in config.Roster)
+				{
+					if (entry.UnitData == null || entry.UnitData.Prefab == null)
+						continue; // 런타임도 이 줄은 인원에서 뺀다 — 같은 셈법을 쓴다.
+
+					Assert.GreaterOrEqual(entry.TeamId, 0, $"{config.name}: 팀 번호 {entry.TeamId} 가 음수다 — 시작 불가");
+					Assert.Less(entry.TeamId, config.Map.TeamCount,
+						$"{config.name}: 팀 번호 {entry.TeamId} 가 맵이 가진 팀 수({config.Map.TeamCount}) 밖이다 — 시작 불가");
+
+					perTeam[entry.TeamId] = (perTeam.TryGetValue(entry.TeamId, out int count) ? count : 0) + 1;
+				}
+
+				Assert.GreaterOrEqual(perTeam.Count, 2, $"{config.name}: 실제로 설 수 있는 팀이 {perTeam.Count} 개 — 한타는 최소 2팀이다");
+
+				foreach (KeyValuePair<int, int> team in perTeam)
+				{
+					Assert.LessOrEqual(team.Value, config.Map.SpawnsPerTeam,
+						$"{config.name}: 팀 {team.Key} 인원 {team.Value} 명이 맵의 팀당 자리 {config.Map.SpawnsPerTeam} 개를 넘는다 — 겹쳐 서거나 시작이 거절된다");
+				}
+			}
+		}
+	}
+}
