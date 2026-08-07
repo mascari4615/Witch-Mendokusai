@@ -51,6 +51,32 @@ namespace WitchMendokusai
 			{
 				EnhancedTouchSupport.Enable();
 			}
+
+			ReportDevicesOnce();
+		}
+
+		/// <summary>
+		/// 이 기기가 무엇을 「입력 장치」로 내놓는지 한 줄 남긴다 (TASK-WM-200).
+		///
+		/// ★ 왜: 폰 조작 문제의 절반은 「그 장치가 아예 없다」였다. 뒤로가기 키가 그 예다 —
+		///   안드로이드는 그걸 자판의 Esc 로 넘겨주기도 하고 자판 자체를 안 만들기도 하는데,
+		///   어느 쪽인지 *추측으로는 영영 못 정한다*. 실기 로그에 목록이 한 줄 있으면 바로 갈린다.
+		/// ★ 부팅 직후라 늦게 붙는 장치는 안 보인다 — 그건 다음 줄(첫 조작)에서 드러난다.
+		///   여기서 알고 싶은 건 「자판이 애초에 있나」다.
+		/// </summary>
+		private static void ReportDevicesOnce()
+		{
+			System.Text.StringBuilder names = new System.Text.StringBuilder();
+			foreach (InputDevice device in InputSystem.devices)
+			{
+				if (names.Length > 0)
+					names.Append(", ");
+				names.Append(device.name);
+			}
+
+			Debug.Log($"[InputSystemBootstrap] 부팅 시 입력 장치: {(names.Length == 0 ? "없음" : names.ToString())}"
+				+ $" · 자판={(Keyboard.current != null ? "있음" : "없음")}"
+				+ $" · 화면터치={(Touchscreen.current != null ? "있음" : "없음")}");
 		}
 	}
 }
