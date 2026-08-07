@@ -937,13 +937,27 @@ namespace WitchMendokusai.EditorTools
 			//   한 장도 안 지난 채* 재게 된다(오늘 세 번째로 같은 실수를 했다). 실제 시간이 흐른 뒤에 센다.
 			markCheckAt = EditorApplication.timeSinceStartup + 1.5;
 
-			// ★ 강도는 *시간이* 올린다 — 짧은 하네스에서는 1.02 까지밖에 안 올라 알림 조건에 영영 안 닿는다.
-			//   새 훅을 만들 것 없이 **사람이 쓰는 배속 버튼**을 눌러 시간을 빨리 흐르게 한다
-			//   (검증 전용 통로를 또 파면 「실제로 도는 길」과 「재는 길」이 갈라진다).
+			// ★ 강도는 *시간이* 올린다. 배속 버튼을 세 번 눌러 75초를 기다려도 1.02 까지밖에 안 올라
+			//   알림 조건(한 칸 = 0.5)에 영영 안 닿았다 — 그래서 이 알림은 여태 한 번도 화면에 안 떴다.
+			//   기다리는 검사는 안 닫힌다(적응에서 다섯 사이클을 그렇게 흘렸다). 시계를 직접 감는다.
+			// ★ 감을 초는 **규칙에서 역산**한다 — 판 자산의 곡선이 바뀌면 이 검사도 같이 따라가야
+			//   한다. 여기에 초를 박아 두면 곡선을 완만하게 바꾸는 순간 조용히 안 닿는 검사가 된다.
+			pressureBefore = match.Pressure;
+			float perMinute = match.PressurePerMinute;
+			if (perMinute > 0f)
+			{
+				// 한 칸을 확실히 넘도록 1.5칸어치를 감는다.
+				float wanted = match.PressureAnnounceStep * 1.5f;
+				match.AdvanceClockForVerification(wanted / perMinute * 60f);
+			}
+			else
+			{
+				Debug.Log(TAG + " 강도 알림 — 못 쟀다: 이 판은 시간이 지나도 강도가 안 오른다(곡선 0). 실패가 아니다.");
+			}
+
 			for (int step = 0; step < 3; step++)
 				match.CycleSpeed();
-			pressureCheckAt = EditorApplication.timeSinceStartup + 75.0;
-			pressureBefore = match.Pressure;
+			pressureCheckAt = EditorApplication.timeSinceStartup + 3.0;
 		}
 
 		private static double pressureCheckAt;
@@ -963,7 +977,30 @@ namespace WitchMendokusai.EditorTools
 					alerts++;
 			}
 
-			Debug.Log($"{TAG} 강도 알림 — 강도 {pressureBefore:F2} → {now:F2} · 「더 단단해졌다」 알림 {alerts}개");
+			// ★ 알림 목록에 있다 ≠ 화면에 떴다. 이 판에서 그 둘이 갈린 적이 있어(숨긴 칸에 얹혀 있던
+			//   규칙들) 목록만 보고 통과시키면 안 된다. 알림은 몇 초면 사라지므로 *여기서* 훑는다.
+			bool onScreen = false;
+			UIRoot pressureUiRoot = Object.FindAnyObjectByType<UIRoot>();
+			VisualElement pressureHud = pressureUiRoot != null && pressureUiRoot.ModeHudLayer != null
+				? pressureUiRoot.ModeHudLayer.Q(nameof(TowerDefenseHudView))
+				: null;
+			if (pressureHud != null)
+			{
+				foreach (Label label in pressureHud.Query<Label>().ToList())
+				{
+					if (label == null || string.IsNullOrEmpty(label.text) || label.text.Contains("단단해졌") == false)
+						continue;
+					onScreen = true;
+					Debug.Log(TAG + " 강도 알림 — 화면 글자: 「" + label.text + "」");
+					break;
+				}
+			}
+
+			Debug.Log($"{TAG} 강도 알림 — 강도 {pressureBefore:F2} → {now:F2} · 「더 단단해졌다」 알림 {alerts}개"
+				+ " · 화면표시 " + onScreen);
+
+			if (alerts > 0 && pressureHud != null && onScreen == false)
+				Debug.LogWarning(TAG + " 강도 알림 FAIL — 규칙은 알렸는데 화면 어디에도 안 뜬다.");
 
 			if (now <= pressureBefore + 0.01f)
 				Debug.Log(TAG + " 강도 알림 — 못 쟀다(배속을 올려도 강도가 안 올랐다). 실패가 아니다.");

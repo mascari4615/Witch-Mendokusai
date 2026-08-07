@@ -2204,6 +2204,30 @@ namespace WitchMendokusai
 		public int BreachHotCount => breach.HotCount;
 
 		/// <summary>
+		/// 판의 시계를 앞으로 감는다 — 검사 전용.
+		///
+		/// ★ 왜 필요한가: 마수 강도는 *시간*이 올린다. 한 칸 오르는 데 실제로 몇 분이 걸려서
+		///   하네스가 도는 1~2분 안에는 절대 안 오른다 — 그래서 「강도가 올랐다」는 알림이
+		///   여태 한 번도 화면에 안 떴고, 계산만 시험으로 덮인 채 남아 있었다.
+		///   재는 쪽이 사건을 일으킬 수 있어야 닫힌다(적응·뚫린 자리에서 두 번 통한 방법).
+		/// ★ 이어하기가 쓰는 것과 **같은 문**(시계 되돌리기)으로 들어간다 — 다른 문을 새로 뚫으면
+		///   검사만 통과하는 길이 생긴다.
+		/// </summary>
+		/// <summary> 1분당 강도 상승폭 — 검사가 「몇 초를 감아야 한 칸 오르나」를 역산한다(초 박기 금지). </summary>
+		public float PressurePerMinute => stage != null ? stage.Rules.PressurePerMinute : 0f;
+
+		/// <summary> 알림이 뜨는 강도 간격 — 위와 같은 이유로 밖에서 읽을 수 있어야 한다. </summary>
+		public float PressureAnnounceStep => stage != null ? stage.PressureAnnounceStep : 0f;
+
+		public void AdvanceClockForVerification(float seconds)
+		{
+			if (core == null || seconds <= 0f)
+				return;
+
+			core.Restore(core.ElapsedSeconds + seconds, core.WaveIndex, core.Lives);
+		}
+
+		/// <summary>
 		/// 내 건물 하나를 코어에서 *가장 먼* 것으로 골라 없앤다 — 검사 전용.
 		///
 		/// ★ 왜 필요한가: 「뚫린 자리가 다음 파도를 끌어당긴다」는 건물을 잃어야만 확인된다. 그런데
