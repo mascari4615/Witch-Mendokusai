@@ -69,6 +69,9 @@ namespace WitchMendokusai
 		public int LineNumber { get; }
 		public string Speaker { get; }
 		public string Text { get; }
+
+		/// <summary>말이 아닌 것 — 「(한숨)」·「(이불 속)」. 원고에 흔하고, 말풍선에 넣으면 안 된다.</summary>
+		public string StageDirection { get; private set; }
 		public string TargetSection { get; }
 		public float Seconds { get; }
 		public string EventId { get; }
@@ -93,8 +96,8 @@ namespace WitchMendokusai
 			Choices = choices;
 		}
 
-		public static DialogueScriptEntry Speak(int lineNumber, string speaker, string text) =>
-			new(DialogueScriptEntryKind.Speak, lineNumber, speaker, text, null, 0f, null, null);
+		public static DialogueScriptEntry Speak(int lineNumber, string speaker, string text, string stageDirection = null) =>
+			new(DialogueScriptEntryKind.Speak, lineNumber, speaker, text, null, 0f, null, null) { StageDirection = stageDirection };
 		public static DialogueScriptEntry Choice(int lineNumber, IReadOnlyList<DialogueScriptChoice> choices) =>
 			new(DialogueScriptEntryKind.Choice, lineNumber, null, null, null, 0f, null, choices);
 		public static DialogueScriptEntry Goto(int lineNumber, string targetSection) =>
@@ -172,7 +175,7 @@ namespace WitchMendokusai
 	/// <list type="bullet">
 	/// <item><c>## 제목</c> / <c>### 장면 1 — 욘의 방</c> → 장면(점프 대상). 제목이 곧 이름이다.</item>
 	/// <item><c>&gt; 욘: "귀찮아."</c> → 말하기. 따옴표는 벗긴다.</item>
-	/// <item><c>&gt; 욘: (한숨) "응."</c> → 지문은 대사 앞에 그대로 남긴다(연출 정보 유실 X).</item>
+	/// <item><c>&gt; 욘: (한숨) "응."</c> → **지문은 따로 담는다**(말풍선엔 말만 들어간다).</item>
 	/// <item><c>&gt; - 응, 좀. -&gt; 사정설명</c> → 선택지 한 칸. 연달아 오면 한 묶음이 된다.</item>
 	/// <item><c>&gt; -&gt; 끝인사</c> → 그 장면으로 건너뛰기.</item>
 	/// <item><c>&gt; ?안봤음 4615 -&gt; 첫인사</c> → **조건이 맞을 때만** 그 장면으로(아니면 다음 줄로).</item>
@@ -330,7 +333,7 @@ namespace WitchMendokusai
 				if (colon <= 0)
 				{
 					// 이름이 없다 — 따옴표로 감싼 것만 나레이션으로 본다. 나머지는 대사가 아니다(경구·메모·문서 인용).
-					if (TryStripQuotes(body, out string narration) && narration.Length > 0)
+					if (TryStripQuotes(StripEmphasis(body), out string narration) && narration.Length > 0)
 					{
 						current.Entries.Add(DialogueScriptEntry.Speak(lineNumber, null, narration));
 						continue;
@@ -340,13 +343,14 @@ namespace WitchMendokusai
 				}
 
 				string speaker = body.Substring(0, colon).Trim();
-				string text = StripQuotes(body.Substring(colon + 1).Trim());
-				if (text.Length == 0)
+				string spoken = SplitStageDirection(body.Substring(colon + 1).Trim(), out string stageDirection);
+				string text = StripQuotes(spoken);
+				if (text.Length == 0 && string.IsNullOrEmpty(stageDirection))
 				{
 					parsed.Issues.Add(new DialogueScriptIssue(lineNumber, $"대사가 비었다: \"{body}\""));
 					continue;
 				}
-				current.Entries.Add(DialogueScriptEntry.Speak(lineNumber, speaker, text));
+				current.Entries.Add(DialogueScriptEntry.Speak(lineNumber, speaker, text, stageDirection));
 			}
 
 			FlushChoices(current, ref pendingChoices, pendingChoiceLine);
@@ -547,6 +551,41 @@ namespace WitchMendokusai
 			}
 			entry = DialogueScriptEntry.WaitTime(lineNumber, seconds);
 			return true;
+		}
+
+		/// <summary>
+		/// 앞머리의 `(지문)` 을 떼어낸다 — 「욘: (한숨) "응."」. 실측(2026-08-08): 원고에 흔한 모양이다.
+		/// 안 떼면 **말풍선에 「(한숨) "응."」 이 통째로 뜬다** — 지문은 말이 아니다.
+		/// 지문만 있고 말이 없는 줄(「(오래 바라본다)」)도 정상으로 본다.
+		/// </summary>
+		private static string SplitStageDirection(string text, out string stageDirection)
+		{
+			stageDirection = null;
+			string trimmed = StripEmphasis(text);
+			if (trimmed.StartsWith("(", StringComparison.Ordinal) == false)
+			{
+				return trimmed;
+			}
+
+			int close = trimmed.IndexOf(')');
+			if (close < 0)
+			{
+				return trimmed;
+			}
+
+			stageDirection = trimmed.Substring(0, close + 1).Trim();
+			return trimmed.Substring(close + 1).Trim();
+		}
+
+		/// <summary>`*기울임*` 표시를 걷어낸다 — 원고의 강조는 글쓰기 표기지 대사 글자가 아니다.</summary>
+		private static string StripEmphasis(string text)
+		{
+			string trimmed = text.Trim();
+			while (trimmed.Length >= 2 && trimmed[0] == '*' && trimmed[trimmed.Length - 1] == '*')
+			{
+				trimmed = trimmed.Substring(1, trimmed.Length - 2).Trim();
+			}
+			return trimmed;
 		}
 
 		/// <summary>따옴표(곧은 것·굽은 것 양쪽)로 감싼 대사는 벗긴다 — 원고는 둘을 섞어 쓴다.</summary>

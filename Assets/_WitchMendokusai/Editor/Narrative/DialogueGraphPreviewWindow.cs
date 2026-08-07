@@ -215,6 +215,11 @@ namespace WitchMendokusai
 				GUI.DrawTexture(rect, portrait.texture, ScaleMode.ScaleToFit);
 			}
 
+			if (string.IsNullOrEmpty(line.StageDirection) == false)
+			{
+				EditorGUILayout.LabelField("지문", line.StageDirection);
+			}
+
 			EditorGUILayout.LabelField("대사", EditorStyles.boldLabel);
 			EditorGUILayout.SelectableLabel(line.Text, EditorStyles.wordWrappedLabel, GUILayout.MinHeight(48f));
 

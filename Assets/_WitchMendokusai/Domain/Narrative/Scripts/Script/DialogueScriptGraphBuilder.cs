@@ -82,7 +82,7 @@ namespace WitchMendokusai
 			switch (entry.Kind)
 			{
 				case DialogueScriptEntryKind.Speak:
-					return new DialogueSpeakNode { Line = DialogueLine.CreateRuntime(entry.Speaker, entry.Text) };
+					return new DialogueSpeakNode { Line = DialogueLine.CreateRuntime(entry.Speaker, entry.Text, 0f, entry.StageDirection) };
 
 				case DialogueScriptEntryKind.Choice:
 					DialogueChoiceNode choiceNode = new();

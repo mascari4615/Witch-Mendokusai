@@ -31,9 +31,42 @@ namespace WitchMendokusai.Tests
 			Assert.That(parsed.Sections[0].Entries.Count, Is.EqualTo(2), "산문 두 줄은 대사가 아니다");
 			Assert.That(parsed.Sections[0].Entries[0].Speaker, Is.EqualTo("알리사"));
 			Assert.That(parsed.Sections[0].Entries[0].Text, Is.EqualTo("주인님, 아침입니다."), "따옴표는 벗긴다");
-			Assert.That(parsed.Sections[0].Entries[1].Text, Is.EqualTo("(이불 속) \"...\""),
-				"지문은 버리지 않는다 — 연출 정보다");
+			Assert.That(parsed.Sections[0].Entries[1].StageDirection, Is.EqualTo("(이불 속)"),
+				"지문은 버리지 않되 말과 섞지 않는다");
+			Assert.That(parsed.Sections[0].Entries[1].Text, Is.EqualTo("..."), "말풍선엔 말만 들어간다");
 			Assert.That(parsed.HasIssues, Is.False);
+		}
+
+		[Test]
+		public void StageDirection_IsSplitFromSpokenText()
+		{
+			// 실측(2026-08-08): 원고에 흔한 모양 — 「욘: (한숨) "응."」.
+			// 안 떼면 말풍선에 「(한숨) "응."」 이 통째로 뜬다.
+			ParsedDialogueScript parsed = DialogueScriptParser.Parse("> 욘: (한숨) \"응.\"");
+
+			DialogueScriptEntry entry = parsed.Sections[0].Entries[0];
+			Assert.That(entry.StageDirection, Is.EqualTo("(한숨)"));
+			Assert.That(entry.Text, Is.EqualTo("응."));
+		}
+
+		[Test]
+		public void StageDirectionOnly_IsStillALine()
+		{
+			ParsedDialogueScript parsed = DialogueScriptParser.Parse("> 욘: (오래 바라본다)");
+
+			DialogueScriptEntry entry = parsed.Sections[0].Entries[0];
+			Assert.That(entry.StageDirection, Is.EqualTo("(오래 바라본다)"));
+			Assert.That(entry.Text, Is.Empty, "말 없는 지문 줄도 연출이다 — 버리지 않는다");
+			Assert.That(parsed.HasIssues, Is.False);
+		}
+
+		[Test]
+		public void EmphasisMarkersAreStripped()
+		{
+			// 원고: `> *"우리는 진짜야?"*` — 별표는 글쓰기 표기지 대사 글자가 아니다.
+			ParsedDialogueScript parsed = DialogueScriptParser.Parse("> *\"우리는 진짜야?\"*");
+
+			Assert.That(parsed.Sections[0].Entries[0].Text, Is.EqualTo("우리는 진짜야?"));
 		}
 
 		[Test]
