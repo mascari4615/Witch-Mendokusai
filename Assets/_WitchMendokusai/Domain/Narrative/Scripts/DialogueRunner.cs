@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using VContainer;
@@ -46,8 +45,6 @@ namespace WitchMendokusai
 
 		[Tooltip("선택지가 떴는데 아무도 안 고르면 이만큼 뒤에 접는다(초). 0 이면 안 접는다.")]
 		[SerializeField] private float choiceStallSeconds = 15f;
-
-		private Coroutine activeCoroutine;
 
 		private UIManager uiManager;
 		private IDialogueEffectSink effectSink;
@@ -381,11 +378,6 @@ namespace WitchMendokusai
 
 		private void StopActive()
 		{
-			if (activeCoroutine != null)
-			{
-				StopCoroutine(activeCoroutine);
-				activeCoroutine = null;
-			}
 			if (playback == null)
 			{
 				return;
