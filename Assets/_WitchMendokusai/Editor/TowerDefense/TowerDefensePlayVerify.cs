@@ -2378,6 +2378,11 @@ namespace WitchMendokusai.EditorTools
 					+ " frameMs=" + averageMs.ToString("F1")
 					+ " fps=" + (averageMs > 0f ? (1000f / averageMs).ToString("F0") : "-")
 					+ " noise=" + (match != null ? match.LoudestNoise.ToString("F1") : "-")
+					// ★ 「깨어 있고 걸을 수 있는 땅인데 안 간다」의 다음 갈림길 — 길찾기가 답을 못 준 것인지,
+					//   탐색 상한에 걸린 것인지. 판이 끝난 뒤엔 못 물어보므로 도는 동안 같이 찍는다.
+					+ " noPath=" + (match != null ? match.NavigatorNoPathCount.ToString() : "-")
+					+ " capHit=" + (match != null ? match.PathCapHits.ToString() : "-")
+					+ " peak=" + (match != null ? match.PathPeakCells.ToString() : "-")
 					+ " shots=" + (match != null ? match.ShotsReported.ToString() : "-"));
 
 				lastPerfLog = now;

@@ -4865,6 +4865,9 @@ namespace WitchMendokusai
 		///   (실측: 경고 30개 중 21개 · 전부 소속이 찍힌 자는 식구였다). 진짜 굳음이 그 안에 묻힌다.
 		/// ★ 깨어난 뒤에는 다시 감지 대상이다 — 그때는 정말로 안 움직이면 사고다.
 		/// </summary>
+		/// <summary> 「뭉쳐서 못 간다」를 가를 반경 — 이 안의 다른 마수를 센다. </summary>
+		private const float STUCK_CROWD_RADIUS = 2.5f;
+
 		private bool IsSleepingLairMember(MatchCombatant enemy)
 		{
 			TowerDefenseLairMember member = enemy.GetComponent<TowerDefenseLairMember>();
@@ -4931,9 +4934,21 @@ namespace WitchMendokusai
 				TacticDriver stuckDriver = enemy.GetComponent<TacticDriver>();
 				UnitMovement stuckMovement = enemy.GetComponent<UnitMovement>();
 				TowerDefenseLairMember stuckMember = enemy.GetComponent<TowerDefenseLairMember>();
+				// ★ 깨어 있고 이동도 켜졌는데 안 가는 것들이 *붙은 칸에 뭉쳐* 있었다. 서로 밀어 막는
+				//   것인지(뭉침) 혼자 굳은 것인지(다른 원인)는 옆에 몇 마리가 있는지로 갈린다.
+				int crowd = 0;
+				foreach (MatchCombatant other in waveEnemies)
+				{
+					if (other == null || other == enemy || other.IsAlive == false)
+						continue;
+					if ((other.Position - position).sqrMagnitude <= STUCK_CROWD_RADIUS * STUCK_CROWD_RADIUS)
+						crowd++;
+				}
+
 				string why = "브레인 " + (stuckDriver == null ? "없음" : stuckDriver.enabled ? "켜짐" : "꺼짐")
 					+ " · 이동 " + (stuckMovement == null ? "없음" : stuckMovement.enabled ? "켜짐" : "꺼짐")
-					+ " · 소속 " + (stuckMember != null ? stuckMember.LairId.ToString() : "없음");
+					+ " · 소속 " + (stuckMember != null ? stuckMember.LairId.ToString() : "없음")
+					+ " · 옆에 " + crowd + "마리";
 
 				// ★ 밀어주지 않는다 (사용자 지시: "밀어주는게 어딨어... 밀어주는거 제거하세요").
 				//   예전엔 굳은 마수를 다음 칸으로 *순간이동*시켜 길을 뚫었다 — 그건 길찾기가 답을 못 준
