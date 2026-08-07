@@ -1163,6 +1163,15 @@ namespace WitchMendokusai
 			return worst;
 		}
 
+		/// <summary>
+		/// 그 자리를 밝힌다(검증 전용) — 「밝힌 서식지만 지도에 뜬다」는 규칙 때문에, 밝히지 않으면
+		/// 그 표시를 영영 못 잰다(못 잰 것을 통과로 세면 검사가 있으나 마나다).
+		/// </summary>
+		public void RevealForVerification(Vector3 worldPosition, float radius)
+		{
+			AddVisionSource(worldPosition, radius);
+		}
+
 		/// <summary> 미니맵이 읽는 서식지 표식 — 자리와 「깨어났나」. </summary>
 		public readonly struct LairMarker
 		{

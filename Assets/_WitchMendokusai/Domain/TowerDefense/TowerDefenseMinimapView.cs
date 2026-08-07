@@ -235,6 +235,9 @@ namespace WitchMendokusai
 				return; // 판 밖 — 그릴 자리가 없다.
 
 			VisualElement dot = RentDot();
+			// ★ 점에 이름을 준다 — 「점이 있나」와 「설명이 붙었나」는 다른 문제인데, 이름이 없으면
+			//   하네스가 그 둘을 못 가려 「지도가 통째로 없다」와 구분이 안 된다(실측에서 겪었다).
+			dot.name = "MapDot";
 			dot.style.display = DisplayStyle.Flex;
 			dot.style.width = size;
 			dot.style.height = size;

@@ -39,6 +39,9 @@ namespace WitchMendokusai
 		[SerializeField] private TowerDefensePlacement placement;
 		[SerializeField] private TowerDefenseStageSO stage;
 
+		/// <summary> 펼친 지도가 열려 있나(검증 전용) — 「안 열렸다」와 「열렸는데 비었다」는 원인이 다르다. </summary>
+		public bool IsMapOpenForVerification => hud != null && hud.IsMapOpen;
+
 		/// <summary> 펼친 지도를 연다(검증 전용) — 지도 위 점이 무엇으로 읽히는지는 열어야 잴 수 있다. </summary>
 		public void OpenMapForVerification()
 		{

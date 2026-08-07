@@ -869,6 +869,14 @@ namespace WitchMendokusai.EditorTools
 			//   펼친 지도뿐이라, 「서식지가 서식지로 읽히는가」는 지도를 열어야만 잴 수 있다.
 			if (TowerDefenseModeController.TryGetExistingInstance(out TowerDefenseModeController mapOwner))
 				mapOwner.OpenMapForVerification();
+
+			// ★ 서식지 표시는 *밝힌 곳만* 뜬다 — 안 밝히면 이 검사는 영영 「못 쟀다」로 끝난다.
+			//   한 곳만 밝혀서 「밝히면 서식지로 뜨는가」를 실제로 재게 만든다.
+			foreach (TowerDefenseMatch.LairMarker lair in match.LairMarkers)
+			{
+				match.RevealForVerification(lair.Position, 6f);
+				break;
+			}
 			// ★ 한 틱 미루는 것으로는 부족하다 — 에디터가 앞에 없으면 Play 루프가 느려져 *게임 프레임이
 			//   한 장도 안 지난 채* 재게 된다(오늘 세 번째로 같은 실수를 했다). 실제 시간이 흐른 뒤에 센다.
 			markCheckAt = EditorApplication.timeSinceStartup + 1.5;
@@ -991,17 +999,46 @@ namespace WitchMendokusai.EditorTools
 				// 미니맵이 서식지를 「마수」가 아니라 *서식지*로 말하는지 — 말이 틀리면 판단이 틀린다.
 				int lairDots = 0;
 				int lyingEnemyDots = 0;
+				int mapDots = 0;
+				int mapDotsWithTip = 0;
 				foreach (VisualElement element in document.rootVisualElement.Query<VisualElement>().Build())
 				{
+					if (element.name == "MapDot" && element.resolvedStyle.display != DisplayStyle.None)
+						mapDots++;
+
 					string tip = element.tooltip;
 					if (string.IsNullOrEmpty(tip))
 						continue;
+					if (element.name == "MapDot")
+						mapDotsWithTip++;
 					if (tip.StartsWith("서식지"))
 						lairDots++;
 					else if (tip.StartsWith("마수"))
 						lyingEnemyDots++;
 				}
-				Debug.Log($"{TAG} 미니맵 — 서식지 점 {lairDots}개 · 마수 점 {lyingEnemyDots}개");
+				// ★ 「지도 점이 있나 / 설명이 붙었나 / 무엇이라 부르나」를 갈라 찍는다.
+				//   숫자 하나만 보면 「지도가 없다」와 「이름이 틀렸다」가 똑같이 0 으로 보인다.
+				bool mapOpen = TowerDefenseModeController.TryGetExistingInstance(out TowerDefenseModeController mapView)
+					&& mapView.IsMapOpenForVerification;
+				// ★ 「안 그려졌다」와 「그릴 게 없다」는 다르다 — 서식지는 *밝힌 곳만* 그린다(시야 규칙).
+				//   밝힌 서식지가 0 곳이면 이 검사는 실패가 아니라 **못 잰 것**이다.
+				int exploredLairs = 0;
+				if (match != null)
+				{
+					foreach (TowerDefenseMatch.LairMarker lair in match.LairMarkers)
+					{
+						if (match.IsExploredAt(lair.Position))
+							exploredLairs++;
+					}
+				}
+
+				Debug.Log($"{TAG} 지도 — 열림 {mapOpen} · 점 {mapDots}개 · 설명 붙은 점 {mapDotsWithTip}개"
+					+ $" · 서식지로 읽힘 {lairDots}개 (밝힌 서식지 {exploredLairs}곳) · 마수로 읽힘 {lyingEnemyDots}개");
+
+				if (exploredLairs == 0)
+					Debug.Log(TAG + " 지도 — 서식지 표시는 못 쟀다(아직 밝힌 서식지가 0곳). 실패가 아니다.");
+				else if (lairDots == 0)
+					Debug.LogError(TAG + " 지도 FAIL — 밝힌 서식지가 있는데 지도에 서식지로 안 뜬다.");
 
 				Debug.Log($"{TAG} 화면 표식 — 파도 예고 {invasionMarks}개 · 경고 {alertMarks}개"
 					+ $" (규칙층 알림 {ruleAlerts}개 · 글자든 알림칸 {alertSlots}개 · 숨은 경고 {alertMarksHidden}개)");
