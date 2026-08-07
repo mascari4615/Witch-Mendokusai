@@ -152,3 +152,7 @@ bash.exe.stackdump*
 # 검증 스크린샷 (로컬 산출물)
 /Assets/Screenshots/
 /Assets/Screenshots.meta
+
+# Unity 강제 종료 뒤 남는 씬 복구본 — 남의 미저장 편집이 공개 레포로 새는 자리다.
+/Assets/_Recovery/
+/Assets/_Recovery.meta
