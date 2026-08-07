@@ -96,6 +96,9 @@ namespace WitchMendokusai
 				case DialogueScriptEntryKind.ConditionalGoto:
 					return new DialogueBranchNode { Condition = CreateCriteria(entry.Condition) };
 
+				case DialogueScriptEntryKind.Effect:
+					return new DialogueEffectNode { EffectData = new List<EffectInfoData>(entry.Effects) };
+
 				case DialogueScriptEntryKind.WaitTime:
 					return new DialogueWaitNode { Kind = DialogueWaitKind.Time, Seconds = entry.Seconds };
 
@@ -121,6 +124,10 @@ namespace WitchMendokusai
 				case DialogueScriptEntryKind.WaitTime:
 				case DialogueScriptEntryKind.WaitEvent:
 					Connect(graph, node, DialogueWaitNode.PORT_NEXT, following);
+					return;
+
+				case DialogueScriptEntryKind.Effect:
+					Connect(graph, node, DialogueEffectNode.PORT_NEXT, following);
 					return;
 
 				case DialogueScriptEntryKind.Goto:
@@ -205,6 +212,10 @@ namespace WitchMendokusai
 			if (node is DialogueBranchNode)
 			{
 				return DialogueBranchNode.PORT_IN;
+			}
+			if (node is DialogueEffectNode)
+			{
+				return DialogueEffectNode.PORT_IN;
 			}
 			if (node is DialogueChoiceNode)
 			{

@@ -10,6 +10,8 @@ namespace WitchMendokusai
 		Goto = 2,
 		/// <summary>조건이 맞으면 그 장면으로, 아니면 다음 줄로.</summary>
 		ConditionalGoto = 5,
+		/// <summary>물건·퀘스트 같은 것을 실제로 일으킨다.</summary>
+		Effect = 6,
 		WaitTime = 3,
 		WaitEvent = 4,
 	}
@@ -72,6 +74,9 @@ namespace WitchMendokusai
 		public string EventId { get; }
 		public IReadOnlyList<DialogueScriptChoice> Choices { get; }
 
+		/// <summary>글로 적은 효과들(번호로 가리킨다). 다른 종류에서는 비어 있다.</summary>
+		public IReadOnlyList<EffectInfoData> Effects { get; private set; }
+
 		/// <summary>조건부 건너뛰기의 조건. 다른 종류에서는 비어 있다.</summary>
 		public DialogueScriptCondition Condition { get; private set; }
 
@@ -94,6 +99,8 @@ namespace WitchMendokusai
 			new(DialogueScriptEntryKind.Choice, lineNumber, null, null, null, 0f, null, choices);
 		public static DialogueScriptEntry Goto(int lineNumber, string targetSection) =>
 			new(DialogueScriptEntryKind.Goto, lineNumber, null, null, targetSection, 0f, null, null);
+		public static DialogueScriptEntry Effect(int lineNumber, IReadOnlyList<EffectInfoData> effects) =>
+			new(DialogueScriptEntryKind.Effect, lineNumber, null, null, null, 0f, null, null) { Effects = effects };
 		public static DialogueScriptEntry ConditionalGoto(int lineNumber, string targetSection, DialogueScriptCondition condition) =>
 			new(DialogueScriptEntryKind.ConditionalGoto, lineNumber, null, null, targetSection, 0f, null, null) { Condition = condition };
 		public static DialogueScriptEntry WaitTime(int lineNumber, float seconds) =>
@@ -170,6 +177,7 @@ namespace WitchMendokusai
 	/// <item><c>&gt; -&gt; 끝인사</c> → 그 장면으로 건너뛰기.</item>
 	/// <item><c>&gt; ?안봤음 4615 -&gt; 첫인사</c> → **조건이 맞을 때만** 그 장면으로(아니면 다음 줄로).</item>
 	/// <item><c>&gt; - 열쇠를 보여준다 [봤음 4615] -&gt; 장면</c> → 조건이 맞을 때만 **보이는** 선택지.</item>
+	/// <item><c>&gt; !아이템 1001 3</c> → 실제로 일으킨다(아이템·카드·퀘스트추가·퀘스트열기·레시피).</item>
 	/// <item><c>&gt; 기다림 2초</c> / <c>&gt; wait 2s</c> → 시간 대기.</item>
 	/// <item><c>&gt; 기다림 사건 boss-defeated</c> / <c>&gt; wait event boss-defeated</c> → 사건 대기.</item>
 	/// <item><c>&gt; "우리는 진짜야?"</c> → 이름 없이 따옴표만 있으면 **나레이션**(말하는 이 없음).</item>
@@ -196,6 +204,8 @@ namespace WitchMendokusai
 			DialogueScriptSection current = null;
 			List<DialogueScriptChoice> pendingChoices = null;
 			int pendingChoiceLine = 0;
+			List<EffectInfoData> pendingEffects = null;
+			int pendingEffectLine = 0;
 
 			string[] lines = scriptText.Replace("\r\n", "\n").Replace('\r', '\n').Split('\n');
 			for (int i = 0; i < lines.Length; i++)
@@ -206,6 +216,7 @@ namespace WitchMendokusai
 				if (line.StartsWith("#", StringComparison.Ordinal))
 				{
 					FlushChoices(current, ref pendingChoices, pendingChoiceLine);
+					FlushEffects(current, ref pendingEffects, pendingEffectLine);
 					current = new DialogueScriptSection(ReadHeading(line), lineNumber);
 					parsed.Sections.Add(current);
 					continue;
@@ -251,10 +262,33 @@ namespace WitchMendokusai
 				}
 
 				FlushChoices(current, ref pendingChoices, pendingChoiceLine);
+				if (body.StartsWith("!", StringComparison.Ordinal) == false)
+				{
+					FlushEffects(current, ref pendingEffects, pendingEffectLine);
+				}
 
 				if (body.StartsWith(GOTO_ARROW, StringComparison.Ordinal))
 				{
 					current.Entries.Add(DialogueScriptEntry.Goto(lineNumber, body.Substring(GOTO_ARROW.Length).Trim()));
+					continue;
+				}
+
+				// `!아이템 1001 3` — 물건·퀘스트 같은 것을 일으킨다. 잇달아 오면 한 묶음이 된다.
+				if (body.StartsWith("!", StringComparison.Ordinal))
+				{
+					string effectBody = body.Substring(1).Trim();
+					if (TryReadEffect(effectBody, out EffectInfoData effectData) == false)
+					{
+						parsed.Issues.Add(new DialogueScriptIssue(lineNumber, $"모르는 효과다: \"{effectBody}\""));
+						continue;
+					}
+
+					pendingEffects ??= new List<EffectInfoData>();
+					if (pendingEffects.Count == 0)
+					{
+						pendingEffectLine = lineNumber;
+					}
+					pendingEffects.Add(effectData);
 					continue;
 				}
 
@@ -316,6 +350,7 @@ namespace WitchMendokusai
 			}
 
 			FlushChoices(current, ref pendingChoices, pendingChoiceLine);
+			FlushEffects(current, ref pendingEffects, pendingEffectLine);
 			ValidateTargets(parsed);
 			return parsed;
 		}
@@ -410,6 +445,73 @@ namespace WitchMendokusai
 			}
 			section.Entries.Add(DialogueScriptEntry.Choice(lineNumber, pending));
 			pending = null;
+		}
+
+		private static void FlushEffects(DialogueScriptSection section, ref List<EffectInfoData> pending, int lineNumber)
+		{
+			if (pending == null || pending.Count == 0 || section == null)
+			{
+				pending = null;
+				return;
+			}
+			section.Entries.Add(DialogueScriptEntry.Effect(lineNumber, pending));
+			pending = null;
+		}
+
+		/// <summary>
+		/// 효과 한 줄을 읽는다: `<무엇> <번호> [수량]`. 아는 말만 받는다 —
+		/// 모르는 말을 숫자로 넘겨 짐작하면 **엉뚱한 게 지급된다**(그건 되돌리기 어려운 종류의 사고다).
+		/// </summary>
+		private static bool TryReadEffect(string text, out EffectInfoData effect)
+		{
+			effect = default;
+			string[] parts = text.Split(new[] { ' ', '	' }, StringSplitOptions.RemoveEmptyEntries);
+			if (parts.Length < 2 || int.TryParse(parts[1], out int dataId) == false)
+			{
+				return false;
+			}
+
+			int value = 1;
+			if (parts.Length >= 3 && int.TryParse(parts[2], out int parsedValue))
+			{
+				value = parsedValue;
+			}
+
+			EffectType type;
+			switch (parts[0])
+			{
+				case "아이템":
+				case "item":
+					type = EffectType.Item;
+					break;
+				case "카드":
+				case "card":
+					type = EffectType.AddCard;
+					break;
+				case "퀘스트추가":
+				case "quest":
+					type = EffectType.AddQuest;
+					break;
+				case "퀘스트열기":
+				case "unlockquest":
+					type = EffectType.UnlockQuest;
+					break;
+				case "레시피":
+				case "recipe":
+					type = EffectType.UnlockRecipe;
+					break;
+				default:
+					return false;
+			}
+
+			effect = new EffectInfoData
+			{
+				Type = type,
+				DataSoID = dataId,
+				ArithmeticOperator = ArithmeticOperator.Add,
+				Value = value,
+			};
+			return true;
 		}
 
 		private static bool TryReadWait(string body, int lineNumber, out DialogueScriptEntry entry, out string problem)

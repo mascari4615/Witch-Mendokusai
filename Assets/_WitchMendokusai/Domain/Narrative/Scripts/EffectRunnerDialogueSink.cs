@@ -23,5 +23,11 @@ namespace WitchMendokusai
 				effectRunner.ApplyEffect(effects[i]);
 			}
 		}
+
+		public void ApplyData(IReadOnlyList<EffectInfoData> effects)
+		{
+			// 게임 쪽 목록형 API 가 번호 → 자산 해석까지 해 준다(그 로직을 여기서 베끼지 않는다).
+			effectRunner.ApplyEffects(new List<EffectInfoData>(effects));
+		}
 	}
 }

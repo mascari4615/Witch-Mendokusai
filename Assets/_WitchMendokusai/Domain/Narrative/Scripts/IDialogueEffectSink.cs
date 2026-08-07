@@ -16,6 +16,13 @@ namespace WitchMendokusai
 	/// </summary>
 	public interface IDialogueEffectSink
 	{
+		/// <summary>인스펙터에서 자산을 직접 물린 효과.</summary>
 		void Apply(IReadOnlyList<EffectInfo> effects);
+
+		/// <summary>
+		/// **글로 적은** 효과 — 자산 대신 번호로 가리킨다(`!아이템 1001 3`).
+		/// 번호 → 자산 찾기는 게임 쪽이 이미 하는 일이라, 여기서 흉내내지 않고 그대로 넘긴다.
+		/// </summary>
+		void ApplyData(IReadOnlyList<EffectInfoData> effects);
 	}
 }
