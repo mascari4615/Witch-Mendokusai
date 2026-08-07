@@ -44,6 +44,7 @@
     <Compile Include="../../Assets/_WitchMendokusai/DomainSDK/Criteria/ICriteria.cs" />
     <Compile Include="../../Assets/_WitchMendokusai/DomainSDK/Effect/EffectType.cs" />
     <Compile Include="../../Assets/_WitchMendokusai/DomainSDK/Common/ArithmeticOperator.cs" />
+    <Compile Include="../../Assets/_WitchMendokusai/DomainSDK/Quest/QuestState.cs" />
   </ItemGroup>
 
   <!-- 진짜 EditMode 시험 파일 (복사 X — 「시험을 썼다」가 아니라 「시험이 돈다」) -->
@@ -56,6 +57,10 @@
     <Compile Remove="../../Assets/_WitchMendokusai/Domain/Narrative/Scripts/DialogueRunner.cs" />
     <Compile Remove="../../Assets/_WitchMendokusai/Domain/Narrative/Scripts/DialogueSpeakerTag.cs" />
     <Compile Remove="../../Assets/_WitchMendokusai/Domain/Narrative/Scripts/EffectRunnerDialogueSink.cs" />
+    <!-- 가방(Inventory)에 붙는 얇은 어댑터 — 게임 타입이라 유니티 밖에서는 못 선다(안쪽 조건은 시험됨). -->
+    <Compile Remove="../../Assets/_WitchMendokusai/Domain/Narrative/Scripts/InventoryDialogueItemSource.cs" />
+    <!-- 퀘스트 관리자에 붙는 어댑터도 같은 이유로 제외(조건 자체는 시험된다 — 그래서 파일을 갈랐다). -->
+    <Compile Remove="../../Assets/_WitchMendokusai/Domain/Narrative/Scripts/QuestManagerDialogueQuestSource.cs" />
     <!-- 에디터 자산 데이터베이스를 쓰는 시험 — 유니티 안에서만 뜻이 있다(거기선 CI 가 돌린다). -->
     <Compile Remove="../../Assets/_WitchMendokusai/Tests/EditMode/DialogueShippedScriptTests.cs" />
     <!-- 저장 왕복 시험 — Json.NET 과 GameData(게임 전역 타입)를 쓴다. 유니티 안에서만 뜻이 있다. -->

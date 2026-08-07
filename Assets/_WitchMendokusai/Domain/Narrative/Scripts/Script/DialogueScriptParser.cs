@@ -26,6 +26,9 @@ namespace WitchMendokusai
 
 		/// <summary>그 물건을 몇 개 이상 가졌는가.</summary>
 		ItemCount = 2,
+
+		/// <summary>그 퀘스트가 어떤 상태인가.</summary>
+		QuestState = 3,
 	}
 
 	/// <summary>
@@ -42,13 +45,18 @@ namespace WitchMendokusai
 		/// <summary>물건 조건에서 쓰는 「이만큼 이상」. 이력 조건에서는 안 쓴다.</summary>
 		public int Amount { get; }
 
-		public DialogueScriptCondition(DialogueScriptConditionKind kind, int dialogueId, bool expected, bool started, int amount = 1)
+		/// <summary>퀘스트 조건에서 묻는 상태. 다른 조건에서는 안 쓴다.</summary>
+		public QuestState QuestState { get; }
+
+		public DialogueScriptCondition(DialogueScriptConditionKind kind, int dialogueId, bool expected, bool started,
+			int amount = 1, QuestState questState = WitchMendokusai.QuestState.Completed)
 		{
 			Kind = kind;
 			DialogueId = dialogueId;
 			Expected = expected;
 			Started = started;
 			Amount = amount;
+			QuestState = questState;
 		}
 
 		public bool HasCondition => Kind != DialogueScriptConditionKind.None;
@@ -188,6 +196,7 @@ namespace WitchMendokusai
 	/// <item><c>&gt; ?안봤음 4615 -&gt; 첫인사</c> → **조건이 맞을 때만** 그 장면으로(아니면 다음 줄로).</item>
 	/// <item><c>&gt; - 열쇠를 보여준다 [봤음 4615] -&gt; 장면</c> → 조건이 맞을 때만 **보이는** 선택지.</item>
 	/// <item><c>[아이템 1001]</c> · <c>[아이템 1001 3]</c> · <c>[아이템없음 1001]</c> → 물건을 가졌는지로 가른다.</item>
+	/// <item><c>[퀘스트완료 5000]</c> · <c>[퀘스트미완 5000]</c> · <c>[퀘스트열림 5000]</c> → 의뢰 진행으로 가른다.</item>
 	/// <item><c>&gt; !아이템 1001 3</c> → 실제로 일으킨다(아이템·카드·퀘스트추가·퀘스트열기·레시피).</item>
 	/// <item><c>&gt; 기다림 2초</c> / <c>&gt; wait 2s</c> → 시간 대기.</item>
 	/// <item><c>&gt; 기다림 사건 boss-defeated</c> / <c>&gt; wait event boss-defeated</c> → 사건 대기.</item>
@@ -429,6 +438,18 @@ namespace WitchMendokusai
 
 			switch (parts[0])
 			{
+				case "퀘스트완료":
+				case "questdone":
+					condition = new DialogueScriptCondition(DialogueScriptConditionKind.QuestState, dialogueId, true, false, 1, WitchMendokusai.QuestState.Completed);
+					return true;
+				case "퀘스트미완":
+				case "questnotdone":
+					condition = new DialogueScriptCondition(DialogueScriptConditionKind.QuestState, dialogueId, false, false, 1, WitchMendokusai.QuestState.Completed);
+					return true;
+				case "퀘스트열림":
+				case "questopen":
+					condition = new DialogueScriptCondition(DialogueScriptConditionKind.QuestState, dialogueId, true, false, 1, WitchMendokusai.QuestState.Unlocked);
+					return true;
 				case "아이템":
 				case "item":
 					condition = new DialogueScriptCondition(DialogueScriptConditionKind.ItemCount, dialogueId, true, false, amount);
