@@ -64,6 +64,27 @@ namespace WitchMendokusai.Tests
 		}
 
 		[Test]
+		public void PlayingWithoutTheUnityLifecycle_StillWiresTheQueue()
+		{
+			// 러너가 귀를 붙이는 자리가 Awake 뿐이었다면, 그 전에 대화를 걸면 조정자가 터진다
+			// (터지게 만들어 뒀다 — 예전엔 조용히 사라졌다). 거는 자리에서도 붙이므로 안 터져야 한다.
+			DialogueRunner runner = NewRunner();
+
+			Assert.That(() => runner.Play(ScriptableObject.CreateInstance<DialogueLine>()), Throws.Nothing);
+		}
+
+		[Test]
+		public void SecondDialogueWaitsInLine_InsteadOfOverwriting()
+		{
+			// 말하는 중에 또 걸면 **덮어쓰지 않고 줄을 선다** — 퀘스트 보상 대사가 인사말에 먹히면 안 된다.
+			DialogueRunner runner = NewRunner();
+			runner.Play(ScriptableObject.CreateInstance<DialogueLine>());
+			runner.Play(ScriptableObject.CreateInstance<DialogueLine>());
+
+			Assert.That(runner.PendingCount, Is.EqualTo(1), "둘째는 기다린다");
+		}
+
+		[Test]
 		public void ListeningToTheEnd_LeavesItAsHeard()
 		{
 			// 「끝까지 들었다」를 남기는 자리도 잇는 줄이다 — 재생기는 끝났다고만 말하고,
