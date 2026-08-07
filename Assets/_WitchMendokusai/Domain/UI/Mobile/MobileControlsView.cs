@@ -780,6 +780,9 @@ namespace WitchMendokusai
 			// 시점 바꾸기(1인칭/3인칭 순환)도 키 하나에만 있었다 — 폰에선 시점을 영영 못 바꿨다.
 			// 자주 쓰는 조작이 아니라 화면에 상시 띄우지 않고 이 서랍에 둔다.
 			windowMenuColumn.Add(MakeTapButton("시점", InputEventType.CameraViewCycle));
+			// 1인칭↔3인칭은 위의 「시점 순환」과 다른 축이다(그건 부감·자유비행을 도는 것).
+			// 이것도 키 하나(F5)에만 있어서 폰에선 1인칭으로 갈 방법이 0 이었다.
+			windowMenuColumn.Add(MakeTapButton("1인칭", InputEventType.CameraPerspectiveToggle));
 			windowMenuColumn.Add(MakeLayoutEditButton());
 
 			Label toggle = MakeMenuToggleButton();
