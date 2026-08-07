@@ -129,6 +129,7 @@ namespace WitchMendokusai
 		// 이번 파도가 밀려오는 테두리 토막(무대 로컬). 파도마다 다시 뽑히므로 출구가 고정되지 않는다
 		// = 「길」이 안 생긴다. 비어 있으면 옛 고정 둥지 방식으로 되돌아간다.
 		private readonly List<Vector3> invasionFront = new();
+
 		private readonly List<Vector3> activeNodePositions = new();
 		private readonly List<float> activeNodeIncomeMultipliers = new();
 		// 노드 등급 — 바깥 노드는 정수를 낸다(안쪽은 자원). 「멀리 나가야 강해진다」의 근거.
@@ -1385,7 +1386,6 @@ namespace WitchMendokusai
 		/// <summary> 지금 판의 벽 칸 수 — 같은 이유. </summary>
 		public int WallCellCount => wallCells.Count;
 
-
 		/// <summary> 화면이 읽는 알림 목록. </summary>
 		public IReadOnlyList<TowerDefenseAlerts.Alert> Alerts => alerts.Active;
 
@@ -1425,6 +1425,7 @@ namespace WitchMendokusai
 			//   판이 끝나며 청산된 것을 적이 부순 것으로 오인한다(시작하자마자 거짓 경고 넷).
 			alerts.Clear();
 			lastBuildingPositions.Clear();
+			breach.Clear(); // 새 판은 새 판이다 — 지난 판에서 뚫린 자리가 방향을 끌면 안 된다.
 
 			if (stage == null || stage.LairCount <= 0 || mapLayout == null || stage.EnemyUnit == null)
 				yield break;
@@ -1525,6 +1526,7 @@ namespace WitchMendokusai
 				return;
 
 			alerts.Prune(Time.time);
+			breach.Tick(Time.deltaTime, stage.BreachCoolPerSecond); // 한 번 실수가 영원한 벌이 되면 안 된다.
 
 			foreach (Transform building in supplyChain.Buildings)
 			{
@@ -1539,6 +1541,8 @@ namespace WitchMendokusai
 					continue;
 
 				alerts.Raise("내 것이 부서졌다", tracked.Value, Time.time, stage.AlertSeconds);
+				// 부서진 자리는 잊히지 않는다 — 다음 파도가 이쪽으로 끌린다.
+				breach.Add(tracked.Value, stage.BreachMergeDistance, stage.BreachHeatPerLoss);
 				lost ??= new List<Transform>();
 				lost.Add(tracked.Key);
 			}
@@ -2164,9 +2168,8 @@ namespace WitchMendokusai
 			if (stage == null || stage.BorderInvasion == false)
 				return;
 
-			TowerDefenseWaveOrigin.Sample(
-				waveIndex,
-				MapSeed,
+			TowerDefenseWaveOrigin.SampleAt(
+				InvasionAngleAt(waveIndex),
 				stage.InvasionArcDegrees,
 				activeGroundWidth * 0.5f,
 				activeGroundLength * 0.5f,
@@ -2175,11 +2178,29 @@ namespace WitchMendokusai
 				invasionFront);
 		}
 
-		/// <summary> 그 파도가 들어오는 방향(도). 화면 예고가 이걸 그대로 읽는다 — 미래 파도도 물어볼 수 있다. </summary>
+		/// <summary>
+		/// 그 파도가 들어오는 방향(도). 화면 예고가 이걸 그대로 읽는다 — 미래 파도도 물어볼 수 있다.
+		///
+		/// ★ 뚫린 자리가 있으면 그쪽으로 끌린다 — 「지킬 수 있는 만큼만 넓혀라」를 말이 아니라 규칙으로
+		///   만드는 자리다. 예고와 스폰이 **같은 이 함수**를 봐야 한다. 갈라지면 화면이 북이라 하고
+		///   마수는 남에서 오는, 준비 자체가 무의미해지는 거짓말이 된다.
+		/// </summary>
 		public float InvasionAngleAt(int waveIndex)
 		{
-			return TowerDefenseWaveOrigin.AngleDegrees(waveIndex, MapSeed);
+			float baseAngle = TowerDefenseWaveOrigin.AngleDegrees(waveIndex, MapSeed);
+			if (stage == null || stage.BreachPull <= 0f || coreCombatant == null)
+				return baseAngle;
+			if (breach.TryGetBiasAngle(coreCombatant.Position, out float biasAngle) == false)
+				return baseAngle;
+
+			return TowerDefenseWaveOrigin.Blend(baseAngle, biasAngle, stage.BreachPull);
 		}
+
+		/// <summary> 지금 뜨거운 뚫린 자리 수 — 화면·검사가 「규칙이 살아 있나」를 볼 창. </summary>
+		public int BreachHotCount => breach.HotCount;
+
+		/// <summary> 부서진 자리는 잊히지 않는다 — 다음 파도가 그쪽으로 끌린다. </summary>
+		private readonly TowerDefenseBreach breach = new();
 
 		/// <summary>
 		/// 다음 파도의 성격 이름 + 조사("떼거리가"). 성격이 없으면 빈 문자열.
@@ -2514,12 +2535,6 @@ namespace WitchMendokusai
 			}
 
 			// 표적 등록은 세우는 문이 이미 했다 — 여기서 또 하면 같은 것이 목록에 두 번 들어간다.
-
-			// ★ 마수는 영웅을 *통과한다* (사용자 실증: "영웅 유닛으로 길막이 됨").
-			//   이동이 몸통을 쓸어 미끄러지는 방식이라, 영웅을 길목에 세워두면 그 자체가 벽이 된다 —
-			//   지어야 막는 게임에서 공짜 벽이다. 영웅은 여전히 지형·건물에 막히되(그건 유지),
-			//   마수와의 몸싸움만 서로 무시한다. 때리는 것은 사거리로 하지 몸으로 하지 않는다.
-			IgnoreCollisionsWithEnemies(heroGameObject);
 
 			// ★ 마수는 영웅을 *통과한다* (사용자 실증: "영웅 유닛으로 길막이 됨").
 			//   이동이 몸통을 쓸어 미끄러지는 방식이라, 영웅을 길목에 세워두면 그 자체가 벽이 된다 —
@@ -3414,14 +3429,6 @@ namespace WitchMendokusai
 				core.TrySpendEssence(core.Essence - save.Essence);
 
 			RestoreInProgress = false;
-
-			// 지갑을 저장된 액수로 정확히 맞춘다 — 남거나 모자라면 이어할 때마다 판이 조금씩 달라진다.
-			core.AddResource(Mathf.Max(0, save.Resource - core.Resource));
-			if (core.Resource > save.Resource)
-				core.TrySpend(core.Resource - save.Resource);
-			core.AddEssence(Mathf.Max(0, save.Essence - core.Essence));
-			if (core.Essence > save.Essence)
-				core.TrySpendEssence(core.Essence - save.Essence);
 
 			Debug.Log($"{nameof(TowerDefenseMatch)}: 이어하기 복원 끝 — 건물 {dollLabels.Count}채"
 				+ $" · 자원 {core.Resource}/{save.Resource} · 정수 {core.Essence}/{save.Essence}.");

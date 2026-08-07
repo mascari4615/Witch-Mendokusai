@@ -443,6 +443,19 @@ namespace WitchMendokusai
 		[field: Tooltip("테두리에서 안쪽으로 당길 거리(월드). 0 이면 판 끝에 딱 붙어 나온다.")]
 		[field: SerializeField, Min(0f)] public float InvasionEdgeInset { get; private set; } = 2f;
 
+		[Header("뚫린 자리 — 부서진 곳이 다음 파도를 부른다")]
+		[Tooltip("다음 파도가 뚫린 쪽으로 끌리는 정도(0=안 끌림, 1=완전히 그쪽). 0 이면 이 규칙이 꺼진다.")]
+		[field: SerializeField, Range(0f, 1f)] public float BreachPull { get; private set; } = 0.45f;
+
+		[Tooltip("건물 하나를 잃을 때마다 그 자리에 쌓이는 열기. 상한은 규칙 쪽에 박혀 있다(3).")]
+		[field: SerializeField, Min(0f)] public float BreachHeatPerLoss { get; private set; } = 1f;
+
+		[Tooltip("이 거리 안에서 잃은 건물들은 한 자리로 친다 — 한 구역이 무너진 것과 사방에서 하나씩 잃은 것은 다른 사건이다.")]
+		[field: SerializeField, Min(0f)] public float BreachMergeDistance { get; private set; } = 12f;
+
+		[Tooltip("열기가 1초에 식는 양. 0.1 이면 한 번 잃은 자리가 10초쯤 뒤 잊힌다 — 실수가 영원한 벌이 되지 않게.")]
+		[field: SerializeField, Min(0f)] public float BreachCoolPerSecond { get; private set; } = 0.1f;
+
 		[field: Tooltip("테두리가 코어까지 닿는지 볼 때 몇 도 간격으로 훑을지. 촘촘할수록 안전하고 판정이 무겁다.")]
 		[field: SerializeField, Min(1f)] public float BorderCheckStepDegrees { get; private set; } = 5f;
 

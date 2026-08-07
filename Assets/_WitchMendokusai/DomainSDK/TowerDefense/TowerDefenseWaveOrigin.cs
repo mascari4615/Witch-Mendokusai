@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 namespace WitchMendokusai
@@ -53,7 +53,30 @@ namespace WitchMendokusai
 			if (count <= 0)
 				return;
 
-			float center = AngleDegrees(waveIndex, seed);
+			SampleAt(AngleDegrees(waveIndex, seed), arcDegrees, halfWidth, halfLength, inset, count, into);
+		}
+
+		/// <summary>
+		/// 중심 각을 *직접 줘서* 뽑는다 — 뚫린 자리가 파도를 끌어당길 때처럼, 각이 씨앗이 아니라
+		/// 판 상태에서 나오는 경우가 있다. 예고와 스폰이 같은 각을 봐야 하므로 문은 하나여야 한다.
+		/// </summary>
+		public static void SampleAt(
+			float centerDegrees,
+			float arcDegrees,
+			float halfWidth,
+			float halfLength,
+			float inset,
+			int count,
+			List<Vector3> into)
+		{
+			if (into == null)
+				return;
+
+			into.Clear();
+			if (count <= 0)
+				return;
+
+			float center = Wrap360(centerDegrees);
 			float arc = Mathf.Max(0f, arcDegrees);
 
 			for (int index = 0; index < count; index++)
@@ -114,5 +137,16 @@ namespace WitchMendokusai
 			float wrapped = degrees % 360f;
 			return wrapped < 0f ? wrapped + 360f : wrapped;
 		}
+
+		/// <summary>
+		/// 두 각 사이를 *짧은 쪽으로* 섞는다. 350도와 10도의 중간은 180도가 아니라 0도다 —
+		/// 그냥 보간하면 파도가 정반대에서 온다.
+		/// </summary>
+		public static float Blend(float fromDegrees, float toDegrees, float t)
+		{
+			float delta = Mathf.Repeat(toDegrees - fromDegrees + 180f, 360f) - 180f;
+			return Wrap360(fromDegrees + delta * Mathf.Clamp01(t));
+		}
+
 	}
 }
