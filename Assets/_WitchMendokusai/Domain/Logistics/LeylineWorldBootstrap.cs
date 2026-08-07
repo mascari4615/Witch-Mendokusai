@@ -24,7 +24,7 @@ namespace WitchMendokusai
 		private const string DEMO_SINK = "공방";
 		private const float DEMO_SOURCE_TO_RELAY = 6f;
 		private const float DEMO_RELAY_TO_SINK = 9f;
-		private const float DEMO_SEND_PER_HOUR = 20f;
+		private const float DEMO_SEND_PER_DAY = 20f;
 
 		/// <summary>false 면 안 얹는다.</summary>
 		public static bool Enabled { get; set; } = true;
@@ -71,7 +71,7 @@ namespace WitchMendokusai
 			{
 				root.AddComponent<LeylineDemoPulse>().Configure(
 					director, DEMO_SOURCE, DEMO_RELAY, DEMO_SINK,
-					DEMO_SOURCE_TO_RELAY, DEMO_RELAY_TO_SINK, DEMO_SEND_PER_HOUR);
+					DEMO_SOURCE_TO_RELAY, DEMO_RELAY_TO_SINK, DEMO_SEND_PER_DAY);
 			}
 		}
 	}
