@@ -111,6 +111,58 @@ namespace WitchMendokusai.Tests
 		}
 
 		[Test]
+		public void Bridge_CaptureWithoutHistory_ReturnsEmptyNotNull()
+		{
+			DialogueHistoryBridge.Clear(DialogueHistoryBridge.Current);
+
+			DialogueHistorySaveData captured = DialogueHistoryBridge.CaptureSaveData();
+
+			Assert.That(captured.StartedDialogueIds, Is.Not.Null,
+				"저장 시점에 대화 시스템이 안 떠 있을 수 있다 — 그때 건너뛰면 다음 저장이 옛 기록을 덮어써 다 사라진다");
+			Assert.That(captured.CompletedDialogueIds, Is.Not.Null);
+		}
+
+		[Test]
+		public void Bridge_SaveAndRestore_RoundTripsThroughRegisteredHistory()
+		{
+			DialogueHistory saving = new();
+			saving.MarkCompleted(GREETING_ID);
+			DialogueHistoryBridge.Register(saving);
+			DialogueHistorySaveData captured;
+			try
+			{
+				captured = DialogueHistoryBridge.CaptureSaveData();
+			}
+			finally
+			{
+				DialogueHistoryBridge.Clear(saving);
+			}
+
+			DialogueHistory loading = new();
+			DialogueHistoryBridge.Register(loading);
+			try
+			{
+				DialogueHistoryBridge.RestoreSaveData(captured);
+
+				Assert.That(loading.HasSeen(GREETING_ID, DialogueSeenKind.Completed), Is.True,
+					"껐다 켜도 「봤다」가 남아야 조건부 대사가 뜻을 갖는다");
+			}
+			finally
+			{
+				DialogueHistoryBridge.Clear(loading);
+			}
+		}
+
+		[Test]
+		public void Bridge_RestoreWithoutHistory_DoesNotThrow()
+		{
+			DialogueHistoryBridge.Clear(DialogueHistoryBridge.Current);
+
+			Assert.That(() => DialogueHistoryBridge.RestoreSaveData(new DialogueHistorySaveData()), Throws.Nothing,
+				"불러오기가 대화 시스템보다 먼저 돌 수 있다");
+		}
+
+		[Test]
 		public void Criteria_DrivesBranchNode()
 		{
 			DialogueHistory history = new();
