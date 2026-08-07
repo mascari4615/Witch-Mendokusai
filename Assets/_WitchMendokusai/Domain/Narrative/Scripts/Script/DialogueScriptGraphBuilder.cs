@@ -200,6 +200,17 @@ namespace WitchMendokusai
 			{
 				return null;
 			}
+
+			if (condition.Kind == DialogueScriptConditionKind.ItemCount)
+			{
+				return new DialogueItemCriteria
+				{
+					ItemId = condition.DialogueId,
+					MinimumCount = condition.Amount,
+					ExpectedHave = condition.Expected,
+				};
+			}
+
 			return new DialogueSeenCriteria
 			{
 				DialogueId = condition.DialogueId,
