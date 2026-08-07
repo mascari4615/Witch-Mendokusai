@@ -45,6 +45,21 @@ namespace WitchMendokusai.Tests
 		}
 
 		[Test]
+		public void FinishingAlsoCountsAsStarting()
+		{
+			// 끝까지 들었으면 시작도 한 것이다. 안 그러면 「시작함」 조건이 **끝낸 대화에 대해 거짓**이 된다 —
+			// 「말은 걸어 봤지?」 같은 대사가 정작 끝까지 들은 사람에게만 안 나온다.
+			//
+			// (이 규칙은 저장 왕복 시험에도 있지만 그 파일은 하네스 밖이라 매 증분에는 안 돈다.
+			//  일부러 깨 보는 점검에서 아무도 안 잡아서 여기 하나 더 둔다.)
+			DialogueHistory history = new();
+			history.MarkCompleted(TALK_ID);
+
+			Assert.That(history.HasSeen(TALK_ID, DialogueSeenKind.Started), Is.True);
+			Assert.That(history.HasSeen(TALK_ID, DialogueSeenKind.Completed), Is.True);
+		}
+
+		[Test]
 		public void AnswersDoNotLeakBetweenDialogues()
 		{
 			DialogueHistory history = new();
