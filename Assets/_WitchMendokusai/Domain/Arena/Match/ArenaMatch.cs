@@ -52,7 +52,19 @@ namespace WitchMendokusai
 		// 던전이나 본편에서 나올 때 하늘색·빨강 그대로 나온다(스폰 경로에 색 초기화가 없다 — 실측).
 		private readonly List<(SpriteRenderer Renderer, Color Original)> tintedRenderers = new();
 
+		// 편입 때 우리가 *직접 끈* brain 들 — 반납 전에 이것만 되돌린다(원래 꺼져 있던 건 안 건드림).
+		// 색과 같은 이유다: 풀은 상태를 안 씻으므로, 끈 채로 보내면 그 인스턴스가 다음에 던전에서
+		// 나올 때 **안 움직인다**. 색보다 나쁘고 눈에도 안 띈다.
+		private readonly List<UnitBrain> silencedBrains = new();
+
 		public event System.Action<int> MatchEnded = delegate { };
+
+		/// <summary>
+		/// Begin 이 실제로 매치를 띄웠나. **검증 하네스가 이걸 봐야 한다** — `Begin` 은 로스터·맵 검증에
+		/// 걸리면 LogError 만 남기고 조용히 돌아오는데, 그러면 `MatchEnded` 도 영영 안 온다.
+		/// 그걸 모르면 자동 검증이 판정 없이 Play 에 매달린 채로 끝난다.
+		/// </summary>
+		public bool IsRunning => started;
 
 		public bool IsConcluded => core != null && core.IsConcluded;
 		public int WinnerTeamId => core != null ? core.WinnerTeamId : ArenaModeSO.NO_WINNER;
@@ -90,11 +102,25 @@ namespace WitchMendokusai
 			int teamCount = config.Map.TeamCount;
 			int spawnsPerTeam = config.Map.SpawnsPerTeam;
 			Dictionary<int, int> perTeam = new();
+			int skipped = 0;
 
-			foreach (ArenaMatchConfig.ArenaUnitEntry entry in config.Roster)
+			for (int entryIndex = 0; entryIndex < config.Roster.Count; entryIndex++)
 			{
+				ArenaMatchConfig.ArenaUnitEntry entry = config.Roster[entryIndex];
+
+				// ★ 여기서 조용히 넘기면 **그 다음 판정이 전부 거짓말이 된다.** 이 검사가 센 팀 인원이
+				//   로스터에 보이는 인원과 달라지기 때문이다: 3v3 에서 프리팹 하나가 비면 검증은
+				//   3v2 를 통과시키고(사람은 3v3 인 줄 안다), 더 비면 「유효 팀 1 개 — 최소 2팀 필요」로
+				//   죽는데 그건 **원인이 아니라 증상**이다(로스터엔 팀이 둘 다 있다).
+				//   스폰 루프는 이미 같은 조건에 경고를 찍고 있었다 — 정작 먼저 도는 이쪽만 말이 없었다.
 				if (entry.UnitData == null || entry.UnitData.Prefab == null)
+				{
+					skipped++;
+					Debug.LogWarning($"{nameof(ArenaMatch)}: 로스터 {entryIndex} 번(팀 {entry.TeamId}) 은 "
+						+ (entry.UnitData == null ? "UnitData 가 비었다" : $"{entry.UnitData.name} 의 Prefab 이 비었다")
+						+ " — 이 줄은 인원에서 빠진다.");
 					continue;
+				}
 
 				if (entry.TeamId < 0 || entry.TeamId >= teamCount)
 				{
@@ -106,7 +132,9 @@ namespace WitchMendokusai
 
 			if (perTeam.Count < 2)
 			{
-				Debug.LogError($"{nameof(ArenaMatch)}: 유효 팀 {perTeam.Count} 개 — 한타는 최소 2팀 필요. 시작 불가.");
+				// 빠진 줄이 있으면 그것부터 말한다 — 「팀이 1개」는 대개 결과지 원인이 아니다.
+				Debug.LogError($"{nameof(ArenaMatch)}: 유효 팀 {perTeam.Count} 개 — 한타는 최소 2팀 필요. 시작 불가."
+					+ (skipped > 0 ? $" (로스터 {config.Roster.Count} 줄 중 {skipped} 줄이 UnitData/Prefab 누락으로 빠졌다 — 위 경고 확인)" : string.Empty));
 				return false;
 			}
 
@@ -123,12 +151,50 @@ namespace WitchMendokusai
 				//   밀어낼 방향을 못 찾아 유닛을 맵 밖으로 날리고, 그 유닛은 죽지도 않아 매치가 안 끝난다.
 				//   이 가드의 주석이 원래부터 「스폰 겹침 차단」이라고 말하고 있었는데 실제로는 개수만 봤다.
 				IReadOnlyList<Vector3> teamSpawns = config.Map.GetSpawns(pair.Key);
+
+				// ★ 선언(SpawnsPerTeam)과 실제(GetSpawns().Count)는 **다를 수 있다.** 위 검사는 선언만 봤다.
+				//   스폰 배치는 `teamSpawns[memberIndex % teamSpawns.Count]` 로 집으므로, 실제가 유닛 수보다
+				//   적으면 **modulo 가 돌아 뒷 유닛이 앞 유닛과 정확히 같은 점에 선다** — 겹침 그 자체다.
+				//   `RectangleArenaMap` 은 둘 다 `PerTeam` 에서 나와 어긋날 수 없지만, `ArenaMapSO` 는
+				//   abstract 이고 WM-165 는 원형·레인 맵을 예고한다. 계약을 지키는 쪽에서 못 박는다.
+				if (teamSpawns.Count < pair.Value)
+				{
+					Debug.LogError($"{nameof(ArenaMatch)}: 팀 {pair.Key} 유닛 {pair.Value} 인데 맵이 준 스폰은 "
+						+ $"{teamSpawns.Count} 개다(선언은 {spawnsPerTeam}) — 모자란 만큼 앞자리에 겹쳐 선다. 시작 불가. "
+						+ $"{config.Map.GetType().Name} 의 SpawnsPerTeam 과 GetSpawns 가 어긋났다.");
+					return false;
+				}
+
 				if (SpawnRules.TryFindOverlap(teamSpawns, minSpawnSeparation, out int firstSpawn, out int secondSpawn))
 				{
 					Debug.LogError($"{nameof(ArenaMatch)}: 팀 {pair.Key} 스폰 {firstSpawn}·{secondSpawn} 이 "
 						+ $"{minSpawnSeparation} 보다 가깝다({teamSpawns[firstSpawn]} / {teamSpawns[secondSpawn]}) — "
 						+ $"맵 수치(폭 대비 여백) 확인. 시작 불가.");
 					return false;
+				}
+			}
+
+			// ★ 팀 *사이* 겹침 — 위 루프는 팀 안만 본다. 그런데 가장 나쁜 겹침은 팀끼리다:
+			//   RectangleArenaMap 은 스폰 z 를 `±(Length/2 - SpawnInset)` 로 잡으므로,
+			//   SpawnInset 이 Length/2 면 **두 팀이 똑같이 z=0** 에 선다. 이때 **넓은 판**(Width > 2*SpawnInset)
+			//   이면 X 는 멀쩡히 퍼져 있어 팀 안 검사엔 아무 이상도 안 보이고 **팀끼리만 정확히 포개진다**
+			//   (실측: 40×20 inset 10 → 팀 안 정상 / 팀 간 완전 겹침. 좁은 판이면 X 도 같이 붕괴해 위 검사가 먼저 잡는다).
+			//   적끼리 완전히 포개진 캡슐이야말로 물리가 밀 방향을 못 찾는 그 경우다.
+			List<int> teamIds = new(perTeam.Keys);
+			for (int left = 0; left < teamIds.Count; left++)
+			{
+				for (int right = left + 1; right < teamIds.Count; right++)
+				{
+					IReadOnlyList<Vector3> leftSpawns = config.Map.GetSpawns(teamIds[left]);
+					IReadOnlyList<Vector3> rightSpawns = config.Map.GetSpawns(teamIds[right]);
+					if (SpawnRules.TryFindOverlapAcross(leftSpawns, rightSpawns, minSpawnSeparation, out int leftIndex, out int rightIndex))
+					{
+						Debug.LogError($"{nameof(ArenaMatch)}: 팀 {teamIds[left]} 스폰 {leftIndex} 와 "
+							+ $"팀 {teamIds[right]} 스폰 {rightIndex} 가 {minSpawnSeparation} 보다 가깝다"
+							+ $"({leftSpawns[leftIndex]} / {rightSpawns[rightIndex]}) — "
+							+ "맵 수치 확인(SpawnInset 이 Length/2 에 가까우면 두 팀이 한 줄에 선다). 시작 불가.");
+						return false;
+					}
 				}
 			}
 
@@ -202,7 +268,7 @@ namespace WitchMendokusai
 
 				// 트랩#2 — prefab 내장 FSM(FSMSlime/FSMWisp 등)이 BT_MoveToPlayer 로 같은 UnitMovement 채널을
 				// TacticDriver 와 last-writer-wins 경쟁(패트롤/지터/전진실패)하므로 출전 유닛은 brain 비활성.
-				CombatUnitSpawner.SilenceBrains(unitGameObject);
+				CombatUnitSpawner.SilenceBrains(unitGameObject, silencedBrains);
 
 				// 팀 식별 틴트. 칠하기 전 색을 적어둔다 — Dispose 가 되돌린다(안 되돌리면 풀이 물고 간다).
 				if (unitObject.SpriteRenderer != null)
@@ -334,6 +400,14 @@ namespace WitchMendokusai
 			}
 			tintedRenderers.Clear();
 
+			// ★ 색과 같은 자리에서 **거동**도 되돌린다 — brain(안 움직임) + 자동시전(스킬 안 씀).
+			//   자동시전은 `UnitObject.Init` 이 일부러 보존하므로 재-Init 로도 안 돌아온다(명시 복구뿐).
+			//   개척은 같은 문제를 `TowerDefenseUnitLease` 스냅샷/복구로 이미 풀어놨다.
+			CombatUnitSpawner.RestoreBrains(silencedBrains);
+			silencedBrains.Clear();
+			foreach (GameObject unit in spawnedUnits)
+				CombatUnitSpawner.RestoreAutoCast(unit);
+
 			if (ObjectPoolManager.TryGetExistingInstance(out ObjectPoolManager pool))
 			{
 				foreach (GameObject unit in spawnedUnits)
@@ -344,6 +418,15 @@ namespace WitchMendokusai
 			}
 			spawnedUnits.Clear();
 
+			// ⚠ Teardown 은 `arenaRoot` 의 **자식을 전부 Destroy** 한다. 그래서 스폰 유닛을 arenaRoot
+			//   밑에 매달면 안 된다 — 지금은 안 매단다(풀이 준 부모 그대로 두고 위치만 옮긴다).
+			//
+			//   「관리하기 좋게 매치 유닛을 arenaRoot 자식으로 모으자」는 자연스러운 정리처럼 보이는데,
+			//   그렇게 하면 **풀이 깨진다**: 바로 위 `pool.Despawn` 의 반납 경로(ObjectPool.Push)는
+			//   비활성화·스택 push 까지만 즉시 하고 **부모 되돌리기를 UniTask.DelayFrame(1) 로 미룬다.**
+			//   즉 이 줄이 도는 같은 프레임엔 유닛이 아직 arenaRoot 자식이라, Teardown 이 **풀 스택 안에
+			//   들어있는 오브젝트를 Destroy** 한다 → 다음 Pop 이 파괴된 오브젝트를 돌려준다(MissingReference).
+			//   증상은 투기장이 아니라 **다음에 그 프리팹을 쓰는 아무 곳에서나** 터진다.
 			if (config != null && config.Map != null && arenaRoot != null)
 				config.Map.Teardown(arenaRoot);
 
