@@ -57,25 +57,11 @@ for required in "$mono" "$csc" "$netstandard"; do
 	fi
 done
 
-# 대상 파일이 **자기 어셈블리**에 이미 들어 있으면 같은 타입이 두 번 보여 CS0433 이 난다.
-# 파일 위치에서 가장 가까운 .asmdef 를 찾아 그 dll 만 참조에서 뺀다.
-own_assemblies=""
 for source in "$@"; do
 	if [ ! -f "$source" ]; then
 		echo "그런 파일이 없다: $source" >&2
 		exit 2
 	fi
-
-	dir=$(dirname "$source")
-	while [ "$dir" != "." ] && [ "$dir" != "/" ]; do
-		asmdef=$(find "$dir" -maxdepth 1 -name '*.asmdef' 2>/dev/null | head -1)
-		if [ -n "$asmdef" ]; then
-			name=$(sed -n 's/.*"name"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$asmdef" | head -1)
-			[ -n "$name" ] && own_assemblies="$own_assemblies $name"
-			break
-		fi
-		dir=$(dirname "$dir")
-	done
 done
 
 # 경로에 공백이 들어간다("Program Files") — 문자열로 이어붙이면 거기서 쪼개져
@@ -88,13 +74,10 @@ refs=("-r:$netstandard")
 netfx_shim="$unity_data/NetStandard/compat/2.1.0/shims/netfx/mscorlib.dll"
 [ -f "$netfx_shim" ] && refs+=("-r:$netfx_shim")
 
+# 자기 어셈블리도 **넣는다.** 안 넣으면 같은 폴더의 이웃 타입들이 전부 「없는 이름」이 돼
+# 오탐이 쏟아진다(실측). 넣으면 같은 타입이 두 벌 보이지만 컴파일러는 *소스 쪽을 쓴다* 고
+# 알려줄 뿐이라(CS0436) 판정에 지장이 없다 — 그 경고만 아래에서 끈다.
 for dll in "$script_assemblies"/*.dll; do
-	base=$(basename "$dll" .dll)
-	skip=0
-	for own in $own_assemblies; do
-		[ "$base" = "$own" ] && skip=1
-	done
-	[ "$skip" -eq 1 ] && continue
 	refs+=("-r:$dll")
 done
 
@@ -107,16 +90,22 @@ nunit=$(find Library/PackageCache -name 'nunit.framework.dll' 2>/dev/null | head
 [ -n "$nunit" ] && refs+=("-r:$nunit")
 
 out=$(mktemp -u)".dll"
-output=$("$mono" "$csc" -target:library -nostdlib+ -noconfig "${refs[@]}" -out:"$out" "$@" 2>&1)
+# 0649(값이 한 번도 대입 안 됨) · 0169(안 쓰는 필드) 는 끈다 — 유니티도 끈다.
+# 0436(같은 타입이 소스와 dll 양쪽에) 도 끈다 — 위에서 자기 어셈블리를 일부러 넣었기 때문이다.
+# `[SerializeField] private int foo;` 는 코드가 아니라 **인스펙터가** 채우므로 컴파일러 눈엔 안 채워진
+# 것처럼 보인다. 이 저장소 곳곳이 그 모양이라, 안 끄면 멀쩡한 코드가 전부 빨강이 된다(실측).
+output=$("$mono" "$csc" -target:library -nostdlib+ -noconfig -nowarn:0649,0169,0436 "${refs[@]}" -out:"$out" "$@" 2>&1)
 status=$?
 rm -f "$out"
 
-errors=$(printf '%s\n' "$output" | grep -c 'error CS')
+# 경고도 실패로 센다 — 이 프로젝트는 자기 어셈블리마다 `csc.rsp` 에 `-warnaserror+` 를 걸어 뒀다.
+# 즉 유니티에서는 경고 하나가 곧 컴파일 에러다. 여기서만 통과시키면 초록을 잘못 본 것이 된다.
+findings=$(printf '%s\n' "$output" | grep -cE "error CS|warning CS")
 
-if [ "$errors" -gt 0 ]; then
-	printf '%s\n' "$output" | grep 'error CS'
+if [ "$findings" -gt 0 ]; then
+	printf '%s\n' "$output" | grep -E "error CS|warning CS"
 	echo
-	echo "=== 컴파일 에러 $errors 건 ==="
+	echo "=== 에러·경고 합쳐 $findings 건 (이 프로젝트는 경고도 에러다) ==="
 	echo "    (전체 컴파일이 아니다 — 남이 쓰던 시그니처를 바꿨는지는 여기서 안 보인다)"
 	exit 1
 fi
