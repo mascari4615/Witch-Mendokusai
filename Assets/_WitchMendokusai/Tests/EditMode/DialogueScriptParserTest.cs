@@ -187,6 +187,47 @@ namespace WitchMendokusai.Tests
 		}
 
 		[Test]
+		public void LikelySpeakerTypo_IsAsked()
+		{
+			// 이름이 틀려도 아무 일도 안 일어난다 — 그냥 다른 사람이 말한 게 되고 말풍선이 엉뚱한 데 뜬다.
+			ParsedDialogueScript parsed = DialogueScriptParser.Parse(string.Join(NL,
+				"## 아침",
+				"> 알리사: \"주인님, 아침입니다.\"",
+				"> 알리사: \"오늘 할 일이 있습니다.\"",
+				"> 알리자: \"차를 두고 갑니다.\""));
+
+			Assert.That(parsed.Issues.Count, Is.EqualTo(1));
+			Assert.That(parsed.Issues[0].LineNumber, Is.EqualTo(4));
+			Assert.That(parsed.Issues[0].Message.Contains("오타"), Is.True);
+		}
+
+		[Test]
+		public void ShortNames_AreNeverCalledTypos()
+		{
+			// 실측으로 배운 것: 「욘」과 「링」은 서로 글자 하나 차이다.
+			// 짧은 이름끼리 이 규칙을 적용하면 멀쩡한 원고가 잡힌다(실제로 시험 둘이 빨개졌다).
+			ParsedDialogueScript parsed = DialogueScriptParser.Parse(string.Join(NL,
+				"## 방",
+				"> 욘: \"귀찮아.\"",
+				"> 욘: \"...\"",
+				"> 링: \"가자!\""));
+
+			Assert.That(parsed.HasIssues, Is.False, "짧은 이름은 아예 안 본다");
+		}
+
+		[Test]
+		public void NewCharacter_IsNotCalledATypo()
+		{
+			ParsedDialogueScript parsed = DialogueScriptParser.Parse(string.Join(NL,
+				"## 만남",
+				"> 알리사: \"안녕하세요.\"",
+				"> 알리사: \"처음 뵙겠습니다.\"",
+				"> 미지의손님: \"...\""));
+
+			Assert.That(parsed.HasIssues, Is.False, "새 등장인물을 오타라고 우기면 이 검사는 곧 무시당한다");
+		}
+
+		[Test]
 		public void ChoiceWithoutTarget_IsReported()
 		{
 			ParsedDialogueScript parsed = DialogueScriptParser.Parse(string.Join("\n",

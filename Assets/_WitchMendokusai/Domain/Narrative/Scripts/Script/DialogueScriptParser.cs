@@ -374,6 +374,7 @@ namespace WitchMendokusai
 			FlushEffects(current, ref pendingEffects, pendingEffectLine);
 			ValidateSectionNames(parsed);
 			ValidateChoiceLabels(parsed);
+			ValidateSpeakerNames(parsed);
 			ValidateTargets(parsed);
 			return parsed;
 		}
@@ -727,6 +728,104 @@ namespace WitchMendokusai
 					}
 				}
 			}
+		}
+
+		/// <summary>
+		/// 화자 이름 오타로 **보이는** 것을 짚는다 — 「욘」을 「온」이라 쓴 경우.
+		///
+		/// ★ 왜 필요한가: 이름이 틀려도 **아무 일도 안 일어난다.** 그냥 다른 사람이 말한 게 되고,
+		///   그 이름으로 등록된 캐릭터가 없으니 말풍선이 엉뚱한 자리(카메라 앞)에 뜬다.
+		///   원고에도 게임에도 오류가 안 남아서 눈으로만 잡아야 하는 종류다.
+		///
+		/// 판정은 **보수적으로**: 그 원고에서 **딱 한 번** 나온 이름이면서, 여러 번 나온 이름과
+		/// **글자 하나 차이**일 때만 묻는다. 새 등장인물을 오타라고 우기면 그 검사는 곧 무시당한다.
+		///
+		/// ★ 실측(2026-08-08)으로 배운 것: **두 글자 미만 이름은 아예 안 본다.**
+		///   「욘」과 「링」은 서로 글자 하나 차이라, 짧은 이름끼리는 이 규칙이 **아무 뜻이 없다**
+		///   (실제로 멀쩡한 원고 둘을 오타라고 잡았다). 그래서 「온」 같은 진짜 오타도 놓치지만,
+		///   정상을 잡는 검사보다 낫다.
+		/// </summary>
+		private static void ValidateSpeakerNames(ParsedDialogueScript parsed)
+		{
+			Dictionary<string, int> counts = new(StringComparer.Ordinal);
+			Dictionary<string, int> firstLine = new(StringComparer.Ordinal);
+
+			for (int s = 0; s < parsed.Sections.Count; s++)
+			{
+				List<DialogueScriptEntry> entries = parsed.Sections[s].Entries;
+				for (int e = 0; e < entries.Count; e++)
+				{
+					DialogueScriptEntry entry = entries[e];
+					if (entry.Kind != DialogueScriptEntryKind.Speak || string.IsNullOrEmpty(entry.Speaker))
+					{
+						continue;
+					}
+					counts.TryGetValue(entry.Speaker, out int count);
+					counts[entry.Speaker] = count + 1;
+					if (firstLine.ContainsKey(entry.Speaker) == false)
+					{
+						firstLine[entry.Speaker] = entry.LineNumber;
+					}
+				}
+			}
+
+			foreach (KeyValuePair<string, int> rare in counts)
+			{
+				if (rare.Value != 1 || rare.Key.Length < 2)
+				{
+					continue;
+				}
+				foreach (KeyValuePair<string, int> common in counts)
+				{
+					if (common.Value < 2 || common.Key.Length < 2 || IsOneEditApart(rare.Key, common.Key) == false)
+					{
+						continue;
+					}
+					parsed.Issues.Add(new DialogueScriptIssue(firstLine[rare.Key],
+						$"\"{rare.Key}\" 는 이 원고에 한 번뿐인데 \"{common.Key}\" 와 글자 하나 차이다 — 오타인가?"));
+					break;
+				}
+			}
+		}
+
+		/// <summary>글자 하나 차이인가(바꿈·넣음·뺌 한 번). 같은 글자면 false — 오타 후보가 아니다.</summary>
+		private static bool IsOneEditApart(string left, string right)
+		{
+			if (left == right)
+			{
+				return false;
+			}
+			if (Math.Abs(left.Length - right.Length) > 1)
+			{
+				return false;
+			}
+
+			string shorter = left.Length <= right.Length ? left : right;
+			string longer = left.Length <= right.Length ? right : left;
+
+			int shortIndex = 0;
+			int longIndex = 0;
+			bool usedEdit = false;
+			while (shortIndex < shorter.Length && longIndex < longer.Length)
+			{
+				if (shorter[shortIndex] == longer[longIndex])
+				{
+					shortIndex++;
+					longIndex++;
+					continue;
+				}
+				if (usedEdit)
+				{
+					return false;
+				}
+				usedEdit = true;
+				if (shorter.Length == longer.Length)
+				{
+					shortIndex++;
+				}
+				longIndex++;
+			}
+			return true;
 		}
 
 		/// <summary>갈 곳 이름이 실제 장면인지 — 오타는 여기서 잡아야 한다(런타임엔 그냥 대화가 끝나 버린다).</summary>
