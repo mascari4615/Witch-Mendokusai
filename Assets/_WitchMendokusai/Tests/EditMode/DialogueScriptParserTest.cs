@@ -104,6 +104,40 @@ namespace WitchMendokusai.Tests
 		}
 
 		[Test]
+		public void DuplicateSectionName_IsReported()
+		{
+			// 찾는 쪽은 첫 번째를 집고 세우는 쪽은 마지막으로 가면, 검사는 A 를 보고 재생은 B 로 간다.
+			// 「### 만남」 같은 흔한 제목은 두 번 쓰기 쉽다.
+			ParsedDialogueScript parsed = DialogueScriptParser.Parse(string.Join("\n",
+				"## 만남",
+				"> 욘: \"처음\"",
+				"## 만남",
+				"> 욘: \"두 번째\""));
+
+			Assert.That(parsed.Issues.Count, Is.EqualTo(1));
+			Assert.That(parsed.Issues[0].LineNumber, Is.EqualTo(3), "겹친 쪽(나중 것)의 줄을 짚는다");
+		}
+
+		[Test]
+		public void DuplicateSectionName_JumpGoesToTheFirst()
+		{
+			DialogueGraph graph = DialogueScriptGraphBuilder.Build(DialogueScriptParser.Parse(string.Join("\n",
+				"## 시작",
+				"> -> 만남",
+				"## 만남",
+				"> 욘: \"처음\"",
+				"## 만남",
+				"> 욘: \"두 번째\"")));
+			DialoguePlayback playback = new(graph);
+
+			playback.Begin();
+			playback.Tick(0.1f);
+
+			Assert.That(playback.CurrentLine.Text, Is.EqualTo("처음"),
+				"이름으로 찾는 쪽과 실제로 가는 곳이 같아야 한다 — 어느 쪽이든 하나로 정해져야 눈으로 쫓을 수 있다");
+		}
+
+		[Test]
 		public void ChoiceWithoutTarget_IsReported()
 		{
 			ParsedDialogueScript parsed = DialogueScriptParser.Parse(string.Join("\n",
