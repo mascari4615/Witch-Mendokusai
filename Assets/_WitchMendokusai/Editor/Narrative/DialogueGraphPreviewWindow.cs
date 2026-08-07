@@ -42,6 +42,13 @@ namespace WitchMendokusai
 		private readonly DialogueTranscript transcript = new(30);
 		private bool transcriptFolded = true;
 
+		// 조건 흉내내기 — 조건은 게임 상태(이력·가방·의뢰)를 보는데 이 창은 게임을 안 켠다.
+		// 그래서 「봤다 치고 / 가졌다 치고」 걸어볼 수 있게 가짜를 끼운다(Play 중엔 안 쓴다 — 진짜가 있으니까).
+		private bool pretendFolded = true;
+		private string pretendSeenIds = string.Empty;
+		private string pretendItemIds = string.Empty;
+		private string pretendDoneQuestIds = string.Empty;
+
 		private void OnGUI()
 		{
 			DrawSourcePicker();
@@ -53,6 +60,7 @@ namespace WitchMendokusai
 			}
 
 			DrawControls();
+			DrawPretend();
 			EditorGUILayout.Space(6f);
 
 			scroll = EditorGUILayout.BeginScrollView(scroll);
@@ -144,6 +152,7 @@ namespace WitchMendokusai
 
 			if (GUILayout.Button("처음부터"))
 			{
+				ApplyPretend();
 				traversal = new DialogueGraphTraversal(graph);
 				transcript.Clear();
 				step = traversal.Start();
@@ -177,6 +186,98 @@ namespace WitchMendokusai
 			if (walking)
 			{
 				EditorGUILayout.LabelField("스텝 " + stepCount + " — " + KindLabel(step.Kind), EditorStyles.miniLabel);
+			}
+		}
+
+		/// <summary>
+		/// 「봤다 치고 / 가졌다 치고 / 끝냈다 치고」 — 조건이 걸린 가지를 게임 없이 걸어보기 위한 손잡이.
+		///
+		/// ★ 왜: 조건은 게임 상태를 본다. 이 창은 게임을 안 켜므로 **조건이 늘 거짓**이고,
+		///   조건부 가지는 **한 번도 안 밟힌다.** 원고를 쓰는 사람이 제일 보고 싶은 게 그 가지인데도.
+		///
+		/// Play 중에는 안 끼운다 — 그땐 진짜 상태가 있고, 가짜로 덮으면 게임 쪽 판단까지 흔든다.
+		/// </summary>
+		private void DrawPretend()
+		{
+			if (Application.isPlaying)
+			{
+				return;
+			}
+
+			pretendFolded = EditorGUILayout.Foldout(pretendFolded, "조건 흉내내기 (게임 없이 가지 밟아보기)", true);
+			if (pretendFolded == false)
+			{
+				return;
+			}
+
+			pretendSeenIds = EditorGUILayout.TextField("본 대화 번호", pretendSeenIds);
+			pretendItemIds = EditorGUILayout.TextField("가진 물건 번호", pretendItemIds);
+			pretendDoneQuestIds = EditorGUILayout.TextField("끝낸 의뢰 번호", pretendDoneQuestIds);
+			EditorGUILayout.LabelField("쉼표로 여러 개. 「처음부터」를 누르면 반영된다.", EditorStyles.miniLabel);
+		}
+
+		/// <summary>적어 둔 번호들을 가짜 상태로 끼운다 — 걷기 시작할 때 한 번.</summary>
+		private void ApplyPretend()
+		{
+			if (Application.isPlaying)
+			{
+				return;
+			}
+
+			DialogueHistory history = new();
+			foreach (int id in ParseIds(pretendSeenIds))
+			{
+				history.MarkCompleted(id);
+			}
+			DialogueHistoryBridge.Register(history);
+
+			DialogueItemBridge.Register(new PretendItems(new HashSet<int>(ParseIds(pretendItemIds))));
+			DialogueQuestBridge.Register(new PretendQuests(new HashSet<int>(ParseIds(pretendDoneQuestIds))));
+		}
+
+		private static List<int> ParseIds(string text)
+		{
+			List<int> ids = new();
+			if (string.IsNullOrWhiteSpace(text))
+			{
+				return ids;
+			}
+			foreach (string part in text.Split(','))
+			{
+				if (int.TryParse(part.Trim(), out int id))
+				{
+					ids.Add(id);
+				}
+			}
+			return ids;
+		}
+
+		private sealed class PretendItems : IDialogueItemCountSource
+		{
+			private readonly HashSet<int> owned;
+
+			public PretendItems(HashSet<int> ownedItemIds)
+			{
+				owned = ownedItemIds;
+			}
+
+			// 「가졌다」고 한 것은 넉넉히 가진 것으로 본다 — 개수까지 흉내내면 손잡이가 복잡해진다.
+			public int GetItemAmount(int itemId) => owned.Contains(itemId) ? 99 : 0;
+		}
+
+		private sealed class PretendQuests : IDialogueQuestStateSource
+		{
+			private readonly HashSet<int> completed;
+
+			public PretendQuests(HashSet<int> completedQuestIds)
+			{
+				completed = completedQuestIds;
+			}
+
+			public bool TryGetQuestState(int questId, out QuestState state)
+			{
+				state = completed.Contains(questId) ? QuestState.Completed : QuestState.Locked;
+				return true;
 			}
 		}
 
