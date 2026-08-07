@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
@@ -36,6 +37,11 @@ namespace WitchMendokusai
 		private Vector2 scroll;
 		private int stepCount;
 
+		// 지금까지 지나온 대사 — 한 스텝씩 걸으면 앞 대사가 화면에서 사라져서 「어디로 왔는지」가 안 보인다.
+		// 게임과 같은 기록 클래스를 쓴다(창 전용으로 따로 만들면 둘이 다르게 군다).
+		private readonly DialogueTranscript transcript = new(30);
+		private bool transcriptFolded = true;
+
 		private void OnGUI()
 		{
 			DrawSourcePicker();
@@ -57,6 +63,7 @@ namespace WitchMendokusai
 			else
 			{
 				DrawStep();
+				DrawTranscript();
 			}
 			EditorGUILayout.EndScrollView();
 		}
@@ -138,9 +145,11 @@ namespace WitchMendokusai
 			if (GUILayout.Button("처음부터"))
 			{
 				traversal = new DialogueGraphTraversal(graph);
+				transcript.Clear();
 				step = traversal.Start();
 				walking = true;
 				stepCount = 1;
+				RecordStep();
 			}
 
 			// 선택지 스텝에서는 「다음」이 아니라 선택지 버튼으로 진행한다(미선택 Next = End 라 오해 유발).
@@ -151,6 +160,7 @@ namespace WitchMendokusai
 				{
 					step = traversal.Next();
 					stepCount++;
+					RecordStep();
 				}
 			}
 
@@ -167,6 +177,40 @@ namespace WitchMendokusai
 			if (walking)
 			{
 				EditorGUILayout.LabelField("스텝 " + stepCount + " — " + KindLabel(step.Kind), EditorStyles.miniLabel);
+			}
+		}
+
+		private void RecordStep()
+		{
+			if (step.Kind == DialogueStepKind.Speak)
+			{
+				transcript.Record(step.SpeakLine);
+			}
+		}
+
+		/// <summary>
+		/// 지나온 대사 — 한 스텝씩 걸으면 앞 대사는 화면에서 사라진다. 어느 길로 왔는지 안 보이면
+		/// 분기를 확인하는 의미가 절반이다. 접어 두고 필요할 때 펴게 한다.
+		/// </summary>
+		private void DrawTranscript()
+		{
+			if (transcript.Count == 0)
+			{
+				return;
+			}
+
+			EditorGUILayout.Space(6f);
+			transcriptFolded = EditorGUILayout.Foldout(transcriptFolded, $"지나온 대사 {transcript.Count}", true);
+			if (transcriptFolded == false)
+			{
+				return;
+			}
+
+			IReadOnlyList<DialogueTranscript.Entry> entries = transcript.Entries;
+			for (int i = 0; i < entries.Count; i++)
+			{
+				string speaker = string.IsNullOrEmpty(entries[i].Speaker) ? "(나레이션)" : entries[i].Speaker;
+				EditorGUILayout.LabelField($"{i + 1}. {speaker}: {entries[i].Text}", EditorStyles.wordWrappedMiniLabel);
 			}
 		}
 
@@ -292,6 +336,7 @@ namespace WitchMendokusai
 					{
 						step = traversal.Next();
 						stepCount++;
+						RecordStep();
 					}
 				}
 			}
