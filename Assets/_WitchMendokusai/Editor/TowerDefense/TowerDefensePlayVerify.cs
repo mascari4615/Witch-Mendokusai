@@ -1342,8 +1342,12 @@ namespace WitchMendokusai.EditorTools
 			//   나온 놈은 코어에서 수십 칸 밖이라 내가 세운 포탑의 사거리 안에 영영 안 들어온다.
 			//   실제로 「마수가 있었는데 편중 0」으로 한 번 틀리게 FAIL 을 찍었다. 재는 것은
 			//   **포탑이 닿는 거리까지 왔는가**여야 한다.
-			if (adaptationTargetsNest)
-				adaptationSawEnemies = true; // 둥지는 도망가지 않는다 — 겨눴으면 맞힐 것이 있었다.
+			// ★ 「둥지를 겨눴으면 맞힐 것이 있었다」는 *깨어 있을 때만* 참이다. 자는 둥지는 식구가 안 나오고
+			//   둥지 본체는 둔화를 쌓을 대상이 아니다 — 그래서 「둘레 마수 0마리」인데도 FAIL 을 찍었다
+			//   (전체 검사 실측: 겨눈 자리에 포탑 2기 · 그 둘레 마수 0 · 그런데 실패로 보고).
+			//   재는 쪽이 「실패」와 「못 쟀다」를 헷갈리면 진짜 실패를 못 믿게 된다.
+			if (adaptationTargetsNest && match.LairsAwakened > 0)
+				adaptationSawEnemies = true;
 
 			if (adaptationSawEnemies == false)
 			{
