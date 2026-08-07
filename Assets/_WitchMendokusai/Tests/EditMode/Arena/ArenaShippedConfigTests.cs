@@ -86,6 +86,44 @@ namespace WitchMendokusai.Tests
 		}
 
 		[Test]
+		public void 모든_전술의_마지막_줄은_무조건_참이다()
+		{
+			// 전술은 위에서부터 조건을 보고 **처음 맞는 줄 하나**만 실행한다. 그래서 맨 아랫줄이
+			// 조건부면, 그 조건들이 다 어긋나는 순간 그 유닛은 **그 틱에 아무것도 안 한다** —
+			// 사거리 밖이면 다가가지도 않고 그 자리에 선다. 화면에선 「쟤 왜 멈춰 있지」로만 보인다.
+			// 그래서 맨 아래는 「무조건 참」인 줄(조건 없음 또는 Always)이어야 한다.
+			foreach (ArenaMatchConfig config in LoadShippedConfigs())
+			{
+				foreach (ArenaMatchConfig.ArenaUnitEntry entry in config.Roster)
+				{
+					if (entry.Tactic == null || entry.Tactic.Rules.Count == 0)
+						continue; // 위 시험들이 잡는다.
+
+					string who = entry.UnitData != null ? entry.UnitData.name : "이름 없는 줄";
+					TacticRule last = entry.Tactic.Rules[entry.Tactic.Rules.Count - 1];
+
+					bool alwaysTrue = last.Conditions == null || last.Conditions.Count == 0;
+					if (alwaysTrue == false)
+					{
+						alwaysTrue = true;
+						foreach (TacticCondition condition in last.Conditions)
+						{
+							if (condition.Kind != ConditionKind.Always)
+							{
+								alwaysTrue = false;
+								break;
+							}
+						}
+					}
+
+					Assert.IsTrue(alwaysTrue,
+						$"{config.name}: {who} 의 전술 맨 아랫줄이 조건부다 — 그 조건이 어긋나는 틱마다 "
+						+ "이 유닛은 아무것도 안 하고 제자리에 선다. 맨 아래에는 조건 없는 줄을 둬라");
+				}
+			}
+		}
+
+		[Test]
 		public void 전술이_그_유닛에게_없는_스킬_칸을_가리키지_않는다()
 		{
 			// 스킬 칸은 유닛의 기본 스킬 목록 **순번**이다(0번부터). 목록에 없는 번호를 시전하면
