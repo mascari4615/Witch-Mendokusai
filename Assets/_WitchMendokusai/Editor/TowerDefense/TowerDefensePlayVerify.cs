@@ -162,6 +162,7 @@ namespace WitchMendokusai.EditorTools
 			noiseCheckAt = 0.0;
 			noiseMatch = null;
 			noiseAlertSeen = false;
+			noiseSustainAt = 0.0;
 			breachArmed = false;
 			breachMatch = null;
 			markCheckAt = 0.0;
@@ -229,6 +230,12 @@ namespace WitchMendokusai.EditorTools
 			ArmNoiseProbe();
 			// ★ 알림 칸은 넷뿐이고 같은 순간에 여럿 터지면 *먼저 난 것*이 밀려난다. 2초 뒤에 물으면
 			//   이미 밀려난 뒤라 늘 「없음」이다 — 그래서 뜨는 순간을 매 틱 지켜본다(시험으로 못 박은 함정).
+			if (noiseSustainAt > 0.0 && now >= noiseSustainAt)
+			{
+				noiseSustainAt = 0.0;
+				CheckNoiseSustained();
+			}
+
 			if (noiseCheckAt > 0.0)
 			{
 				WatchNoiseAlert();
@@ -464,7 +471,7 @@ namespace WitchMendokusai.EditorTools
 					{
 						// 아직 재기로 한 것이 남아 있으면 끝내지 않는다 — 끝내버리면 그 항목은 영영 안 재진다.
 						if (lairDriftCheckAt > 0.0 || markCheckAt > 0.0 || lairClearCheckAt > 0.0 || pressureCheckAt > 0.0
-							|| relayProbeAt > 0.0 || adaptationProbeAt > 0.0 || breachCheckAt > 0.0 || noiseCheckAt > 0.0)
+							|| relayProbeAt > 0.0 || adaptationProbeAt > 0.0 || breachCheckAt > 0.0 || noiseCheckAt > 0.0 || noiseSustainAt > 0.0)
 							return;
 
 						Debug.Log(TAG + " PLACE-ONLY 배치 확인 끝 — 조기 종료");
@@ -1431,6 +1438,31 @@ namespace WitchMendokusai.EditorTools
 		}
 
 		private static bool noiseAlertSeen;
+		private static double noiseSustainAt;
+		private static float noiseLoudestFirst;
+
+		/// <summary>
+		/// 소음이 *유지되는가* — 짓는 소리는 한 번 나고 잦아들지만 쏘는 소리는 쏘는 동안 계속 난다.
+		/// 이걸 안 가르면 「사격 소음이 도는지」를 영영 모른다(한 번 재서 크면 짓느라 난 것일 수 있다).
+		/// </summary>
+		private static void CheckNoiseSustained()
+		{
+			if (match == null)
+			{
+				Debug.Log(TAG + " 소리 유지 — 못 쟀다: 판이 사라졌다. 실패가 아니다.");
+				return;
+			}
+
+			float now = match.LoudestNoise;
+			Debug.Log($"{TAG} 소리 유지 — 12초 전 {noiseLoudestFirst:F1} → 지금 {now:F1}"
+				+ $" (아무것도 안 나면 이 사이에 거의 0 이 된다 · 잦아드는 비율로 계산하면 {noiseLoudestFirst * 0.0057f:F2} 쯤)");
+
+			if (now >= 1f)
+				Debug.Log(TAG + " 소리 유지 — 계속 나고 있다 = 쏘는 소리가 살아 있다.");
+			else
+				Debug.Log(TAG + " 소리 유지 — 못 쟀다: 이 사이에 아무도 안 쐈다(잦아든 것과 구별 불가). 실패가 아니다.");
+		}
+
 
 		/// <summary> 「소리를 듣고 깨어났다」가 뜨는 *순간*을 잡는다 — 나중에 물으면 밀려난 뒤다. </summary>
 		private static void WatchNoiseAlert()
@@ -1476,8 +1508,14 @@ namespace WitchMendokusai.EditorTools
 			int byNoise = match.LairsAwakenedByNoise;
 			// ★ 소리의 절반은 *사격*이다(짓기·부서짐만 있으면 「둥지 옆에서 난사해도 조용하다」가 된다).
 			//   쏘는 소리가 실제로 판에 쌓이는지는 따로 재야 한다 — 안 그러면 그 절반은 죽은 규칙이다.
-			Debug.Log(TAG + " 소리 — 지금 판에서 가장 시끄러운 곳 " + match.LoudestNoise.ToString("F1")
-				+ " (한 발 " + match.NoiseFromShotForVerification.ToString("F2") + ")");
+			// ★ 한 번만 재면 「짓느라 난 소리가 아직 안 잦아든 것」과 구별이 안 된다. 짓는 소리는
+			//   한 번 나고 끝이라 몇 초면 사그라들지만, 사격 소리는 쏘는 동안 계속 다시 난다.
+			//   그래서 시간을 두고 두 번 재서 *유지되는지*를 본다 — 유지되면 그건 쏘는 소리다.
+			noiseSustainAt = EditorApplication.timeSinceStartup + 12.0;
+			noiseLoudestFirst = match.LoudestNoise;
+			Debug.Log(TAG + " 소리 — 지금 판에서 가장 시끄러운 곳 " + noiseLoudestFirst.ToString("F1")
+				+ " (한 발 " + match.NoiseFromShotForVerification.ToString("F2")
+				+ ") · 12초 뒤 다시 재서 유지되는지 본다");
 
 			Debug.Log($"{TAG} 소리 결과 — 그 서식지 깨어남 {awake} · 깨어난 곳 {noiseAwakenedBefore} → {match.LairsAwakened}"
 				+ $" · 그중 소리만으로 {byNoise} · 「소리를 듣고」 알림 {spoken}");
