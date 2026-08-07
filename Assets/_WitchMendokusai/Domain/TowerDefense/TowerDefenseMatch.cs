@@ -4933,6 +4933,17 @@ namespace WitchMendokusai
 				//   전혀 다른데 지금 로그는 셋을 구별 못 한다 — 추측으로 고치다 한 번 헛짚었다.
 				TacticDriver stuckDriver = enemy.GetComponent<TacticDriver>();
 				UnitMovement stuckMovement = enemy.GetComponent<UnitMovement>();
+
+				// ★ 「제자리」와 「굳음」은 다르다. 실측에서 굳었다고 찍힌 다섯 중 넷은 *정상 속도로 걷고 있었다* —
+				//   앞뒤로 왔다 갔다 해서 4초 전후 위치만 같았을 뿐이다(목줄이 끌고 브레인이 다시 나가는 식).
+				//   그걸 「못 나아감」으로 부르면 진짜 막힌 것이 그 안에 묻힌다(예전에 자는 식구를 뺀 것과 같은 이유).
+				//   몸이 실제로 나아가고 있으면 굳음이 아니라 왕복이다 — 따로 세고, 경고는 안 쏟는다.
+				if (stuckMovement != null && stuckMovement.LastMoveDelta.sqrMagnitude > moveEpsilonSqr)
+				{
+					oscillatingCells.Add(mapLayout.WorldToCell(stageRoot.InverseTransformPoint(position)));
+					enemyStillness[enemy.CombatantId] = (position, 0f);
+					continue;
+				}
 				TowerDefenseLairMember stuckMember = enemy.GetComponent<TowerDefenseLairMember>();
 				// ★ 깨어 있고 이동도 켜졌는데 안 가는 것들이 *붙은 칸에 뭉쳐* 있었다. 서로 밀어 막는
 				//   것인지(뭉침) 혼자 굳은 것인지(다른 원인)는 옆에 몇 마리가 있는지로 갈린다.
@@ -5027,6 +5038,10 @@ namespace WitchMendokusai
 		private readonly HashSet<Vector2Int> stuckCells = new();
 		private readonly HashSet<Vector2Int> stuckByTerrainCells = new();
 		private readonly HashSet<Vector2Int> stuckByUnitCells = new();
+		private readonly HashSet<Vector2Int> oscillatingCells = new();
+
+		/// <summary> 굳은 게 아니라 *왔다 갔다* 한 자리 수 — 몸은 정상 속도로 나아가고 있었다. </summary>
+		public int OscillatingCellCount => oscillatingCells.Count;
 
 		/// <summary>
 		/// 이 판에서 마수가 굳었던 *자리* 수 — 「지형에 막힘 / 서로 막음」으로 갈라 센다.

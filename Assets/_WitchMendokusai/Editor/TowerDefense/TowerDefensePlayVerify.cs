@@ -3795,6 +3795,7 @@ namespace WitchMendokusai.EditorTools
 			{
 				(int total, int byTerrain, int byUnit) = match.StuckCellSummary;
 				Debug.Log($"{TAG} STUCK-SUMMARY 굳은 자리 {total}곳 (지형에 막힘 {byTerrain} · 서로 막음 {byUnit})"
+					+ $" · 왕복(굳음 아님) {match.OscillatingCellCount}곳"
 					+ $" · 판 씨앗 {match.MapSeed} · 암반 {match.ObstacleCount}칸"
 					+ " → 두 실행을 견줄 때는 이 줄만 보면 된다(경고 줄 수는 판 길이에 휘둘린다).");
 			}
