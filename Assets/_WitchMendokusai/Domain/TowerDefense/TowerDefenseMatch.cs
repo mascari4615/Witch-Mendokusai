@@ -1477,8 +1477,19 @@ namespace WitchMendokusai
 					float angle = guard * Mathf.PI * 2f / Mathf.Max(1, stage.LairGuardCount);
 					Vector3 offset = new(Mathf.Cos(angle) * stage.EnemySpawnSpread, 0f, Mathf.Sin(angle) * stage.EnemySpawnSpread);
 
+					// ★ 둘레로 벌린 그 자리가 암반일 수 있다 — 그러면 그 식구는 깨어나도 못 걷고
+					//   판이 끝날 때까지 바위 안에서 민다(실측: 마지막까지 남은 굳음 1곳이 정확히 이것이었다).
+					//   파도 마수는 태어날 때 걸을 수 있는 칸으로 밀어주는데 식구에겐 그 장치가 없었다.
+					Vector3 guardLocal = localPosition + offset;
+					if (mapLayout != null)
+					{
+						Vector2Int guardCell = mapLayout.WorldToCell(guardLocal);
+						if (IsPathBlocked(guardCell) && TrySnapToReachable(guardCell, out Vector2Int freeCell))
+							guardLocal = mapLayout.CellToWorld(freeCell);
+					}
+
 					SpawnedUnit spawned = new();
-					yield return SpawnUnitRoutine(stage.EnemyUnit, stageRoot.TransformPoint(localPosition + offset),
+					yield return SpawnUnitRoutine(stage.EnemyUnit, stageRoot.TransformPoint(guardLocal),
 						ATTACKER_TEAM, stage.LairSleepTint, stage.EnemyScale, spawned);
 					if (spawned.Ok == false)
 						continue;
