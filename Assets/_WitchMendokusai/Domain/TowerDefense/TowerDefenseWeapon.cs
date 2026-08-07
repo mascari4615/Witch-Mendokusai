@@ -146,16 +146,34 @@ namespace WitchMendokusai
 			self = owner;
 			enemyPool = enemies;
 			cooldownRemaining = 0f;
+
+			// ★ 이 세 줄이 없으면 적응이 영원히 부풀어 있다. 포탑을 팔면 그 몸은 풀로 돌아가고,
+			//   다음에 짓는 포탑이 *같은 몸*을 받는다(TowerDefenseMatch.ReleaseUnit(pool, sold)).
+			//   Configure = 「이 몸은 이제 다른 포탑이다」는 선언이므로, 앞 포탑이 꿰뚫고 터뜨리고
+			//   늦춘 횟수를 여기서 지우지 않으면 관통 포탑을 판 자리에 세운 기본 포탑이 관통 셈을
+			//   물려받아, 아무도 안 꿰뚫는데 마수는 관통에 계속 적응한다.
+			PierceHits = 0;
+			SplashHits = 0;
+			SlowApplied = 0;
 		}
 
 		private void Update()
+		{
+			Tick(Time.deltaTime);
+		}
+
+		/// <summary>
+		/// 한 틱 — 조준·발사 규칙 전부. Update 가 이걸 부르는 얇은 껍데기인 이유는,
+		/// 시험·하네스가 프레임 없이도 *같은 규칙*을 몰 수 있어야 하기 때문이다.
+		/// </summary>
+		public void Tick(float deltaTime)
 		{
 			UpdateTracer();
 
 			if (archetype == null || self == null || self.IsAlive == false || enemyPool == null)
 				return;
 
-			cooldownRemaining -= Time.deltaTime;
+			cooldownRemaining -= deltaTime;
 			if (cooldownRemaining > 0f)
 				return;
 
