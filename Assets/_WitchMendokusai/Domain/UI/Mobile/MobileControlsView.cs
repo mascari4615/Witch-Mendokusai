@@ -54,6 +54,9 @@ namespace WitchMendokusai
 		[Tooltip("이만큼(픽셀) 문지르면 「알았다」로 보고 안내를 영영 내린다.")]
 		[SerializeField, Min(1f)] private float lookHintDismissDistance = 60f;
 
+		[Tooltip("이만큼(픽셀) 안에서 뗐을 때만 「눌렀다」로 본다 — 서랍을 굴리려던 손가락과 구별하는 문턱.")]
+		[SerializeField, Min(1f)] private float tapSlopPixels = 16f;
+
 		[Header("자리 옮기기")]
 		[Tooltip("옮긴 조작 장치가 화면 안에 최소한 남겨야 하는 크기(픽셀). 다시 잡을 수 있게.")]
 		[SerializeField, Min(8f)] private float layoutMinVisible = 44f;
@@ -847,8 +850,28 @@ namespace WitchMendokusai
 			Label button = new Label(label) { name = "MobileWindowButton_" + inputEventType };
 			StyleRoundButton(button, actionButtonSize * 0.7f);
 			button.style.width = actionButtonSize * 1.15f;
+			// ★ 예전엔 *닿는 순간* 곧바로 눌렀다. 그런데 이 버튼들은 위아래로 굴러가는 서랍 안에 있다 —
+			//   서랍을 굴리려고 버튼 위에서 손가락을 끌면, 끌기가 시작되기도 전에 창이 열려 버린다.
+			//   그래서 「닿았다 → 거의 안 움직이고 → 그 자리에서 뗐다」일 때만 누른 것으로 친다.
+			// ★ 손가락을 붙잡지(capture) 않는다 — 붙잡으면 서랍이 그 끌기를 못 받아 아예 안 굴러간다.
+			Vector2 pressedAt = Vector2.zero;
+			int pressedPointerId = -1;
+
 			button.RegisterCallback<PointerDownEvent>(evt =>
 			{
+				pressedAt = evt.position;
+				pressedPointerId = evt.pointerId;
+			});
+
+			button.RegisterCallback<PointerUpEvent>(evt =>
+			{
+				if (evt.pointerId != pressedPointerId)
+					return;
+				pressedPointerId = -1;
+
+				if (Vector2.Distance(evt.position, pressedAt) > tapSlopPixels)
+					return; // 굴린 것이지 누른 것이 아니다
+
 				if (InputManager.TryGetExistingInstance(out InputManager inputManager))
 				{
 					inputManager.PressFromScreenButton(inputEventType);
