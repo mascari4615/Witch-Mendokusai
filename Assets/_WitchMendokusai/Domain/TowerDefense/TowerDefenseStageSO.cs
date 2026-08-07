@@ -466,6 +466,9 @@ namespace WitchMendokusai
 		[Tooltip("건물 한 채 지을 때 나는 소리.")]
 		[field: SerializeField, Min(0f)] public float NoiseFromBuild { get; private set; } = 3f;
 
+		[Tooltip("포탑이 한 발 쏠 때 나는 소리. 작아야 한다 — 연사가 곧 소음 폭발이 되면 방어 자체가 벌칙이 된다.")]
+		[field: SerializeField, Min(0f)] public float NoiseFromShot { get; private set; } = 0.25f;
+
 		[Tooltip("내 건물이 부서질 때 나는 소리 — 가장 크다. 소리 사태의 시작점이다.")]
 		[field: SerializeField, Min(0f)] public float NoiseFromLoss { get; private set; } = 9f;
 

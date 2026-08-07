@@ -2032,6 +2032,7 @@ namespace WitchMendokusai
 					coreWeapon = coreGameObject.AddComponent<TowerDefenseWeapon>();
 				coreWeapon.Configure(stage.CoreWeapon, targeting, combatant, waveEnemies,
 					IsVisibleAt, DamageMultiplierFor, () => Adaptation, () => TowerRangeMultiplier);
+				coreWeapon.ReportNoise = ReportShotNoise;
 			}
 
 			AddVisionSource(coreGameObject.transform.position, stage.CoreVisionRadius);
@@ -2362,6 +2363,7 @@ namespace WitchMendokusai
 
 		/// <summary> 서식지가 깨어나는 소리 문턱 · 거리 — 검사가 값을 박지 않고 판에서 읽는다. </summary>
 		public float NoiseWakeThreshold => stage != null ? stage.NoiseWakeThreshold : 0f;
+		public float NoiseFromShotForVerification => stage != null ? stage.NoiseFromShot : 0f;
 		public float LairWakeRadius => stage != null ? stage.LairWakeRadius : 0f;
 
 		/// <summary> 그 자리에서 들리는 소리 — 검사가 「둥지가 들을 만한가」를 직접 잰다. </summary>
@@ -2376,6 +2378,14 @@ namespace WitchMendokusai
 		/// ★ 문을 하나로 두는 이유: 소리를 내는 자리가 늘어날 때마다 합치는 거리·상한을 각자
 		///   정하면, 어떤 소리는 자리를 스무 개 만들고 어떤 소리는 하나로 뭉친다. 규칙이 갈라진다.
 		/// </summary>
+		/// <summary> 한 발의 소리 — 무기가 부르는 통로. 값은 판 자산이 정한다(무기에 박지 X). </summary>
+		private void ReportShotNoise(Vector3 worldPosition)
+		{
+			if (stage == null || stage.NoiseFromShot <= 0f)
+				return;
+			EmitNoise(worldPosition, stage.NoiseFromShot);
+		}
+
 		public void EmitNoise(Vector3 worldPosition, float amount)
 		{
 			if (stage == null)
@@ -2713,6 +2723,7 @@ namespace WitchMendokusai
 					IsVisibleAt,
 					target => DamageMultiplierFor(target) * (1f + ResearchBonus(TowerDefenseResearchEffect.HeroPower)),
 					() => Adaptation, () => TowerRangeMultiplier);
+				heroWeapon.ReportNoise = ReportShotNoise;
 			}
 
 			// 표적 등록은 세우는 문이 이미 했다 — 여기서 또 하면 같은 것이 목록에 두 번 들어간다.
@@ -5404,6 +5415,7 @@ namespace WitchMendokusai
 					if (weapon == null)
 						weapon = unitObject.gameObject.AddComponent<TowerDefenseWeapon>();
 					weapon.Configure(towerArchetype, targeting, combatant, waveEnemies, IsVisibleAt, DamageMultiplierFor, () => Adaptation, () => TowerRangeMultiplier);
+					weapon.ReportNoise = ReportShotNoise;
 				}
 
 				// 지어놓은 포탑의 원도 연구를 따라 자란다 — 원형 그대로 그리면 총과 원이 갈라진다.

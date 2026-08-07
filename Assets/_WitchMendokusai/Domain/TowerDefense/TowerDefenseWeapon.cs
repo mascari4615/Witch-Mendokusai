@@ -246,9 +246,19 @@ namespace WitchMendokusai
 			return visibilityTest == null || visibilityTest(worldPosition);
 		}
 
+		/// <summary>
+		/// 한 발 쏠 때마다 나는 소리 — 판이 꽂아 준다.
+		///
+		/// ★ 이게 없으면 소리 규칙의 절반이 없는 것이다. 짓는 소리와 부서지는 소리만 있으면
+		///   「둥지 옆에서 난사해도 조용하다」가 되어, 정작 사람이 *매 순간 고르는 행동*인 사격이
+		///   아무 대가가 없다. 데아빌에서 마수를 부르는 가장 흔한 소리가 총성이다.
+		/// </summary>
+		public System.Action<Vector3> ReportNoise { get; set; }
+
 		private void Fire(ICombatant target)
 		{
 			ShowTracer(self.Position, target.Position);
+			ReportNoise?.Invoke(self.Position);
 			ApplyHit(target);
 
 			// 관통 — 표적 너머로 이어지는 직선상의 마수를 추가로 맞힌다(줄지어 오는 무리에 강함).

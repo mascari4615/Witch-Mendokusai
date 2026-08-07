@@ -1474,6 +1474,11 @@ namespace WitchMendokusai.EditorTools
 			bool spoken = noiseAlertSeen;
 
 			int byNoise = match.LairsAwakenedByNoise;
+			// ★ 소리의 절반은 *사격*이다(짓기·부서짐만 있으면 「둥지 옆에서 난사해도 조용하다」가 된다).
+			//   쏘는 소리가 실제로 판에 쌓이는지는 따로 재야 한다 — 안 그러면 그 절반은 죽은 규칙이다.
+			Debug.Log(TAG + " 소리 — 지금 판에서 가장 시끄러운 곳 " + match.LoudestNoise.ToString("F1")
+				+ " (한 발 " + match.NoiseFromShotForVerification.ToString("F2") + ")");
+
 			Debug.Log($"{TAG} 소리 결과 — 그 서식지 깨어남 {awake} · 깨어난 곳 {noiseAwakenedBefore} → {match.LairsAwakened}"
 				+ $" · 그중 소리만으로 {byNoise} · 「소리를 듣고」 알림 {spoken}");
 
