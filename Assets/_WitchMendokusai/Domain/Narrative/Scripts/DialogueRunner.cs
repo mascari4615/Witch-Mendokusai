@@ -32,6 +32,14 @@ namespace WitchMendokusai
 
 		private const float DEFAULT_LINE_DURATION = 3f;
 
+		[Header("대사 노출 시간")]
+		[Tooltip("초당 읽는 글자 수. 0 이면 안 쓰고 아래 기본 시간을 그대로 쓴다.")]
+		[SerializeField] private float readingCharactersPerSecond = 11f;
+		[Tooltip("아무리 짧아도 이만큼은 보여준다(초).")]
+		[SerializeField] private float minimumLineSeconds = 1.2f;
+		[Tooltip("아무리 길어도 이만큼에서 멈춘다(초). 0 이면 위 한계 없음.")]
+		[SerializeField] private float maximumLineSeconds = 8f;
+
 		private Coroutine activeCoroutine;
 
 		private UIManager uiManager;
@@ -94,7 +102,13 @@ namespace WitchMendokusai
 			playingGraph = graph;
 			playingScriptId = DataSO.NONE_ID;
 			History.MarkStarted(graph.ID);
-			playback = new DialoguePlayback(graph, effectSink) { DefaultSpeakSeconds = DEFAULT_LINE_DURATION };
+			playback = new DialoguePlayback(graph, effectSink)
+			{
+				DefaultSpeakSeconds = DEFAULT_LINE_DURATION,
+				ReadingCharactersPerSecond = readingCharactersPerSecond,
+				MinimumSpeakSeconds = minimumLineSeconds,
+				MaximumSpeakSeconds = maximumLineSeconds,
+			};
 			playback.OnStepChanged += HandleStepChanged;
 			playback.OnFinished += HandlePlaybackFinished;
 
@@ -164,7 +178,15 @@ namespace WitchMendokusai
 			{
 				return;
 			}
-			float duration = line.Wait > 0f ? line.Wait : DEFAULT_LINE_DURATION;
+			// 말풍선이 사라지는 시간과 대화가 넘어가는 시간은 **같아야 한다** — 다르면 빈 자리가 생기거나
+			// 다음 대사가 앞 말풍선 위에 겹친다. 그래서 같은 계산을 쓴다.
+			float duration = line.Wait > 0f
+				? line.Wait
+				: DialogueReadingTime.For(line.Text, readingCharactersPerSecond, minimumLineSeconds, maximumLineSeconds);
+			if (duration <= 0f)
+			{
+				duration = DEFAULT_LINE_DURATION;
+			}
 			Transform anchor = ResolveLineAnchor(line);
 			if (uiManager != null && uiManager.SpeechBubble != null && anchor != null)
 			{
