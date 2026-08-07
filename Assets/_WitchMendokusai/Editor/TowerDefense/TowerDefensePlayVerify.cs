@@ -2875,6 +2875,16 @@ namespace WitchMendokusai.EditorTools
 				+ " resource=" + match.Resource
 				+ " phase=" + match.Phase;
 
+					// ★ 다시 시작한 판은 신호가 **0 부터** 차야 한다. 안 비우면 두 번째 판이 이미 가득 찬 채로
+					//   시작해 「점점 채워진다」가 통째로 사라진다(사용자가 콕 집어 요구한 것).
+					TowerDefenseMatch fresh = Object.FindAnyObjectByType<TowerDefenseMatch>();
+					if (fresh != null)
+					{
+						Debug.Log($"{TAG} 재시작 신호 — 코어 충전 {fresh.CoreSignalCharge:F2} (0 에 가까워야 한다)");
+						if (fresh.CoreSignalCharge > 0.9f)
+							Debug.LogError(TAG + " 재시작 FAIL — 새 판이 이미 가득 찬 신호로 시작한다(옛 판 상태가 남았다).");
+					}
+
 			if (freshWave && freshOutcome && freshResource)
 				Debug.Log(verdict + " → 새 판 성립 ✔");
 			else

@@ -1332,6 +1332,10 @@ namespace WitchMendokusai
 			lairs.Clear();
 			LairsAwakened = 0;
 			LairsCleared = 0;
+			// ★ 「바뀔 때만 알린다」용 기억도 판마다 비운다. 안 비우면 새 판이 옛 판의 상태를 이어받아
+			//   *같은 일이 처음 일어나도 알리지 않는다*(적응) 또는 *한참 뒤까지 안 알린다*(강도).
+			lastAdaptationNote = string.Empty;
+			lastPressureStep = -1;
 
 			if (stage == null || stage.LairCount <= 0 || mapLayout == null || stage.EnemyUnit == null)
 				yield break;

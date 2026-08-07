@@ -59,6 +59,9 @@ namespace WitchMendokusai
 		/// <summary> 판을 새로 시작한다. </summary>
 		public void Clear()
 		{
+			// ★ 신호장도 비운다. 안 비우면 코어 이름표가 고정값이라 **다음 판이 이미 가득 찬 채로 시작한다**
+			//   — 「즉시 안 켜지고 점점 채워진다」가 두 번째 판부터 통째로 사라진다(사용자가 콕 집어 요구한 것).
+			field.Clear();
 			generators.Clear();
 			generatorKeys.Clear();
 			consumerTransforms.Clear();
