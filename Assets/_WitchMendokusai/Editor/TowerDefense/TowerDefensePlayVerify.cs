@@ -34,6 +34,8 @@ namespace WitchMendokusai.EditorTools
 		private const string PLACE_ONLY_PREF = "WM.TD.PlayVerify.PlaceOnly";
 		private const string WAVES_ONLY_PREF = "WM.TD.PlayVerify.WavesOnly";
 		private const string TAG = "[TD-Verify]";
+		// 검사 전용 고정 판 — 두 실행을 견주려면 같은 땅이어야 한다. 사람이 노는 판은 그대로 매번 새로 생성된다.
+		private const int VERIFY_MAP_SEED = 194194;
 		private const double SETTLE_SECONDS = 2.0;
 		private const double HARD_TIMEOUT = 420.0;
 		private const double OBSERVE_SECONDS = 170.0; // 무방비 판 기준 — 첫 웨이브가 코어를 깎아 결말이 온다.
@@ -382,6 +384,11 @@ namespace WitchMendokusai.EditorTools
 					// 코어 생성 = TowerDefenseCore 존재 = Resource 가 시작자원으로 채워짐.
 					if (match == null || match.Resource <= 0)
 						return;
+					// ★ 판을 고정한다. 검사는 *같은 땅*에서 돌아야 두 실행을 견줄 수 있다 —
+					//   씨앗이 매번 다르면 암반 배치가 통째로 달라져, 고친 것이 좋아졌는지 판이 쉬웠는지를
+					//   영영 못 가른다(실측: 같은 코드로 굳음 경고가 99~421 사이를 오갔고, 그 흔들림을
+					//   수정 효과로 두 번 잘못 읽었다). 사람이 노는 판은 그대로 매번 새로 생성된다.
+					match.SetNextMatchSeed(VERIFY_MAP_SEED);
 					Debug.Log(TAG + " MATCH-READY resource=" + match.Resource + " phase=" + match.Phase
 						+ " conclusionOnly=" + conclusionOnly);
 					// 결말만 모드 = 아무것도 짓지 않은 채 그대로 관측 — 이미 무방비 상태라 재시작조차 필요 없다.
@@ -3775,6 +3782,18 @@ namespace WitchMendokusai.EditorTools
 			// ★ 끝났다는 말을 안 하면 로그만 보고는 「끝났나 멈췄나」를 못 가린다 — 실제로 전체 실행이
 			//   정상 종료했는데 10분을 「행」으로 의심하며 기다렸다. 검사는 자기 상태를 말해야 한다.
 			double elapsed = EditorApplication.timeSinceStartup - playStart;
+
+			// ★ 견줄 수 있는 한 줄. 경고 *줄 수*는 같은 마수가 4초마다 다시 찍혀 부풀고 판 길이에 휘둘린다 —
+			//   그걸로 두 실행을 비교하다 두 번 헛짚었다(좋아진 줄 알았던 것이 그냥 다른 판이었다).
+			//   굳은 *자리 수*는 「판의 어디가 막히는가」라서 실행끼리 견줄 수 있다.
+			if (match != null)
+			{
+				(int total, int byTerrain, int byUnit) = match.StuckCellSummary;
+				Debug.Log($"{TAG} STUCK-SUMMARY 굳은 자리 {total}곳 (지형에 막힘 {byTerrain} · 서로 막음 {byUnit})"
+					+ $" · 판 씨앗 {match.MapSeed} · 암반 {match.ObstacleCount}칸"
+					+ " → 두 실행을 견줄 때는 이 줄만 보면 된다(경고 줄 수는 판 길이에 휘둘린다).");
+			}
+
 			Debug.Log($"{TAG} 검증 끝 — 마지막 단계 {step} · {elapsed:F0}초 · 모드 "
 				+ (placeOnly ? "배치만" : wavesOnly ? "파도만" : conclusionOnly ? "결말만" : "전체")
 				+ " (실패 항목은 위에 별도로 찍힌다. 없으면 없다.)");

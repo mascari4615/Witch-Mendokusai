@@ -5008,9 +5008,35 @@ namespace WitchMendokusai
 				Debug.LogWarning($"{nameof(TowerDefenseMatch)}: 마수가 {stillSeconds:F1}s 째 못 나아감 — cell={cell} "
 					+ $"blocked={blocked} reachable={reachable} · {why} (길이 막혔으면 앞을 부순다)");
 
+				// ★ 판마다 값이 크게 흔들려(같은 코드로 경고 99~421) 한 판 비교로는 작은 차이를 못 가른다.
+				//   경고 *줄 수*는 같은 마수가 4초마다 다시 찍혀 부풀고, 판이 길수록 늘어난다.
+				//   그래서 「몇 *자리*가 굳었나」를 따로 센다 — 이쪽이 판 길이에 덜 흔들린다.
+				stuckCells.Add(cell);
+				if (stuckMovement != null && stuckMovement.LastWallCollider != null)
+				{
+					if (stuckMovement.LastWallCollider.GetComponentInParent<MatchCombatant>() != null)
+						stuckByUnitCells.Add(cell);
+					else
+						stuckByTerrainCells.Add(cell);
+				}
+
 				enemyStillness[enemy.CombatantId] = (enemy.Position, 0f);
 			}
 		}
+
+		private readonly HashSet<Vector2Int> stuckCells = new();
+		private readonly HashSet<Vector2Int> stuckByTerrainCells = new();
+		private readonly HashSet<Vector2Int> stuckByUnitCells = new();
+
+		/// <summary>
+		/// 이 판에서 마수가 굳었던 *자리* 수 — 「지형에 막힘 / 서로 막음」으로 갈라 센다.
+		///
+		/// ★ 왜 자리로 세나: 경고 줄 수는 같은 마수가 4초마다 다시 찍혀 부풀고 판 길이에 휘둘린다.
+		///   자리 수는 「판의 어디가 막히는가」를 세므로 판끼리 견줄 수 있다(이 값 없이 한 판씩 비교하다
+		///   두 번 헛짚었다 — 좋아진 줄 알았던 것이 그냥 다른 판이었다).
+		/// </summary>
+		public (int Total, int ByTerrain, int ByUnit) StuckCellSummary =>
+			(stuckCells.Count, stuckByTerrainCells.Count, stuckByUnitCells.Count);
 
 		/// <summary> 그 칸에서 가장 가까운 「갈 수 있는」 칸 — 나선으로 넓혀 찾는다(없으면 false). </summary>
 		private bool TrySnapToReachable(Vector2Int cell, out Vector2Int result)
