@@ -27,6 +27,8 @@ namespace WitchMendokusai
 	public sealed class DialoguePlayback
 	{
 		private readonly DialogueGraphTraversal traversal;
+		private readonly IDialogueEffectSink effectSink;
+		private readonly int nodeCount;
 		private float waitElapsed;
 
 		/// <summary>스텝이 바뀔 때마다 — 소비자가 말풍선/선택지 UI 를 갱신하는 자리.</summary>
@@ -53,9 +55,15 @@ namespace WitchMendokusai
 		/// <summary>지금 제시된 선택지. Choice 스텝이 아니면 null.</summary>
 		public IReadOnlyList<string> CurrentChoices => Current.Kind == DialogueStepKind.Choice ? Current.Options : null;
 
-		public DialoguePlayback(DialogueGraph graph)
+		/// <param name="effectSink">
+		/// 효과 노드를 실제로 일으킬 통로. 그래프에 효과 노드가 있는데 여기가 비어 있으면 터뜨린다
+		/// (「주기로 적어 둔 물건이 조용히 안 나오는」 것이 제일 나쁜 결말이라서).
+		/// </param>
+		public DialoguePlayback(DialogueGraph graph, IDialogueEffectSink effectSink = null)
 		{
 			traversal = new DialogueGraphTraversal(graph);
+			this.effectSink = effectSink;
+			nodeCount = graph == null ? 0 : graph.Nodes.Count;
 		}
 
 		/// <summary>첫 스텝으로 진입. 빈 그래프면 시작하자마자 끝난다(End 통지 1회).</summary>
@@ -185,8 +193,38 @@ namespace WitchMendokusai
 			OnFinished();
 		}
 
+		/// <summary>
+		/// 효과 노드는 소비자에게 안 보인다 — 여기서 일으키고 다음으로 넘긴다(분기와 같은 결).
+		/// 효과가 연달아 있어도 스텝 하나 안에서 다 처리한다. 손편집 자산이 효과끼리 고리를 이루면
+		/// 노드 수만큼만 돌고 터뜨린다.
+		/// </summary>
+		private DialogueStep ApplyEffectsUntilVisibleStep(DialogueStep step)
+		{
+			int hopBudget = nodeCount;
+			while (step.Kind == DialogueStepKind.Effect)
+			{
+				if (hopBudget <= 0)
+				{
+					throw new InvalidOperationException(
+						$"DialogueEffectNode chain did not terminate within {nodeCount} hops — effect nodes form a loop.");
+				}
+				hopBudget--;
+
+				if (effectSink == null)
+				{
+					throw new InvalidOperationException(
+						"Dialogue graph has a DialogueEffectNode but no effect sink was given — the authored effects would silently do nothing.");
+				}
+				effectSink.Apply(step.Effects);
+				step = traversal.Next();
+			}
+			return step;
+		}
+
 		private void Apply(DialogueStep step)
 		{
+			step = ApplyEffectsUntilVisibleStep(step);
+
 			Current = step;
 			waitElapsed = 0f;
 			OnStepChanged(step);

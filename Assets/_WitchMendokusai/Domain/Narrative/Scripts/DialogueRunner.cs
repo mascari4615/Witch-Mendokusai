@@ -35,11 +35,13 @@ namespace WitchMendokusai
 		private Coroutine activeCoroutine;
 
 		private UIManager uiManager;
+		private IDialogueEffectSink effectSink;
 
 		[Inject]
-		public void Construct(UIManager uiManager)
+		public void Construct(UIManager uiManager, IEffectRunner effectRunner)
 		{
 			this.uiManager = uiManager;
+			effectSink = new EffectRunnerDialogueSink(effectRunner);
 		}
 
 		private void Awake()
@@ -79,7 +81,7 @@ namespace WitchMendokusai
 			StopActive();
 
 			bubbleTarget = ResolveTarget(speakerTransform);
-			playback = new DialoguePlayback(graph) { DefaultSpeakSeconds = DEFAULT_LINE_DURATION };
+			playback = new DialoguePlayback(graph, effectSink) { DefaultSpeakSeconds = DEFAULT_LINE_DURATION };
 			playback.OnStepChanged += HandleStepChanged;
 			playback.OnFinished += HandlePlaybackFinished;
 
