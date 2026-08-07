@@ -27,6 +27,9 @@ namespace WitchMendokusai
 		private readonly HashSet<int> started = new();
 		private readonly HashSet<int> completed = new();
 
+		// 「그 대화에서 무슨 답을 골랐나」. 대화 하나에 답이 여럿 남을 수 있어 집합이다.
+		private readonly Dictionary<int, HashSet<string>> chosenLabels = new();
+
 		public void MarkStarted(int dialogueId) => started.Add(dialogueId);
 
 		/// <summary>끝까지 간 대화 — 시작 기록도 같이 남는다(끝났으면 시작한 것이므로).</summary>
@@ -36,19 +39,73 @@ namespace WitchMendokusai
 			completed.Add(dialogueId);
 		}
 
+		/// <summary>
+		/// 「그 대화에서 이 답을 골랐다」를 남긴다.
+		///
+		/// ★ 왜 「봤다」로는 부족한가: 서사에서 되짚는 건 **본 적**이 아니라 **한 말**이다.
+		///   「그때 거절했잖아」는 대화를 봤는지가 아니라 무엇을 골랐는지를 묻는다.
+		///   본 적만 남기면 어느 가지로 갔든 똑같은 기록이라, 지난 선택을 아는 대사를 쓸 수가 없다.
+		///
+		/// 어느 선택지 묶음이었는지는 안 남긴다 — 원고 쓰는 사람이 세어야 하는 번호를 만들면 안 쓴다.
+		/// 라벨이 곧 그 사람이 한 말이고, 한 묶음 안 라벨 겹침은 검사가 이미 막는다.
+		/// </summary>
+		public void MarkChoice(int dialogueId, string label)
+		{
+			if (string.IsNullOrEmpty(label))
+			{
+				return;
+			}
+			started.Add(dialogueId);
+			if (chosenLabels.TryGetValue(dialogueId, out HashSet<string> labels) == false)
+			{
+				labels = new HashSet<string>(StringComparer.Ordinal);
+				chosenLabels[dialogueId] = labels;
+			}
+			labels.Add(label);
+		}
+
+		/// <summary>그 대화에서 이 답을 고른 적 있나. 라벨은 **원고에 쓴 그대로** 비교한다.</summary>
+		public bool HasChosen(int dialogueId, string label) =>
+			string.IsNullOrEmpty(label) == false
+			&& chosenLabels.TryGetValue(dialogueId, out HashSet<string> labels)
+			&& labels.Contains(label);
+
 		public bool HasSeen(int dialogueId, DialogueSeenKind kind) =>
 			kind == DialogueSeenKind.Completed ? completed.Contains(dialogueId) : started.Contains(dialogueId);
 
-		public DialogueHistorySaveData ToSaveData() => new()
+		public DialogueHistorySaveData ToSaveData()
 		{
-			StartedDialogueIds = new List<int>(started),
-			CompletedDialogueIds = new List<int>(completed),
-		};
+			List<DialogueChoiceRecord> records = new();
+			foreach (KeyValuePair<int, HashSet<string>> pair in chosenLabels)
+			{
+				foreach (string label in pair.Value)
+				{
+					records.Add(new DialogueChoiceRecord { DialogueId = pair.Key, Label = label });
+				}
+			}
+
+			return new DialogueHistorySaveData
+			{
+				StartedDialogueIds = new List<int>(started),
+				CompletedDialogueIds = new List<int>(completed),
+				Choices = records,
+			};
+		}
 
 		public void FromSaveData(DialogueHistorySaveData saveData)
 		{
 			started.Clear();
 			completed.Clear();
+			chosenLabels.Clear();
+
+			if (saveData.Choices != null)
+			{
+				for (int i = 0; i < saveData.Choices.Count; i++)
+				{
+					// 고른 적 있으면 시작한 적도 있는 것이다 — 저장본이 한쪽만 들고 있어도 앞뒤가 맞아야 한다.
+					MarkChoice(saveData.Choices[i].DialogueId, saveData.Choices[i].Label);
+				}
+			}
 
 			if (saveData.StartedDialogueIds != null)
 			{
@@ -70,11 +127,22 @@ namespace WitchMendokusai
 		}
 	}
 
+	/// <summary>저장 파일에 남는 「그 대화에서 고른 답」 한 줄.</summary>
+	[Serializable]
+	public struct DialogueChoiceRecord
+	{
+		public int DialogueId;
+		public string Label;
+	}
+
 	[Serializable]
 	public struct DialogueHistorySaveData
 	{
 		public List<int> StartedDialogueIds;
 		public List<int> CompletedDialogueIds;
+
+		/// <summary>이 칸이 생기기 전 저장본에는 없다 — 비어 온다(옛 저장이 안 열리는 게 제일 큰 사고다).</summary>
+		public List<DialogueChoiceRecord> Choices;
 	}
 
 	/// <summary>
@@ -107,7 +175,12 @@ namespace WitchMendokusai
 		/// </summary>
 		public static DialogueHistorySaveData CaptureSaveData() =>
 			history == null
-				? new DialogueHistorySaveData { StartedDialogueIds = new List<int>(), CompletedDialogueIds = new List<int>() }
+				? new DialogueHistorySaveData
+				{
+					StartedDialogueIds = new List<int>(),
+					CompletedDialogueIds = new List<int>(),
+					Choices = new List<DialogueChoiceRecord>(),
+				}
 				: history.ToSaveData();
 
 		/// <summary>불러온 것을 되돌린다. 이력이 아직 없으면 아무 일도 안 한다(등록 뒤 다시 부르면 된다).</summary>

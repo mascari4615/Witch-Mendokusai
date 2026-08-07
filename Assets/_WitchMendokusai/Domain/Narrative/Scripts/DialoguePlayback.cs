@@ -126,6 +126,15 @@ namespace WitchMendokusai
 			Apply(traversal.Next());
 		}
 
+		/// <summary>
+		/// 고른 답의 **라벨**을 알린다 — 「무엇을 골랐나」를 남기려는 쪽(이력)을 위해.
+		///
+		/// ★ 왜 이벤트인가: 재생기는 대화 번호를 모른다(그래프만 안다). 번호를 아는 건 부르는 쪽이다.
+		///   재생기가 이력에 직접 쓰게 하면 번호를 들려 줘야 하고, 그러면 이 순수 상태기가
+		///   저장·이력을 아는 물건이 된다. 「무슨 일이 있었는지」만 말하고 기록은 남에게 맡긴다.
+		/// </summary>
+		public event Action<string> OnChoiceSelected = delegate { };
+
 		/// <summary>i 번째 선택지를 고르고 그 가지로 진행. Choice 스텝이 아니거나 범위 밖이면 false(상태 불변).</summary>
 		public bool SubmitChoice(int index)
 		{
@@ -137,9 +146,18 @@ namespace WitchMendokusai
 			{
 				return false;
 			}
+
+			// 라벨은 **넘어가기 전에** 집는다 — Apply 뒤엔 Current 가 다음 스텝이라 이미 없다.
+			IReadOnlyList<string> options = Current.Options;
+			string label = options != null && index >= 0 && index < options.Count ? options[index] : null;
+
 			if (traversal.SelectChoice(index) == false)
 			{
 				return false;
+			}
+			if (string.IsNullOrEmpty(label) == false)
+			{
+				OnChoiceSelected(label);
 			}
 			Apply(traversal.Next());
 			return true;
