@@ -205,6 +205,12 @@ namespace WitchMendokusai.EditorTools
 				return;
 			}
 
+			if (relayProbeAt > 0.0 && now >= relayProbeAt)
+			{
+				relayProbeAt = 0.0;
+				CheckRelayChain();
+			}
+
 			if (lairClearCheckAt > 0.0 && now >= lairClearCheckAt)
 			{
 				lairClearCheckAt = 0.0;
@@ -422,7 +428,8 @@ namespace WitchMendokusai.EditorTools
 					if (placeOnly)
 					{
 						// 아직 재기로 한 것이 남아 있으면 끝내지 않는다 — 끝내버리면 그 항목은 영영 안 재진다.
-						if (lairDriftCheckAt > 0.0 || markCheckAt > 0.0 || lairClearCheckAt > 0.0 || pressureCheckAt > 0.0)
+						if (lairDriftCheckAt > 0.0 || markCheckAt > 0.0 || lairClearCheckAt > 0.0 || pressureCheckAt > 0.0
+							|| relayProbeAt > 0.0)
 							return;
 
 						Debug.Log(TAG + " PLACE-ONLY 배치 확인 끝 — 조기 종료");
@@ -835,6 +842,22 @@ namespace WitchMendokusai.EditorTools
 
 			// ★ 「왜 0 인가」를 가르는 값들을 같이 찍는다 — 판이 아직 안 도는 것과 계산이 안 도는 것은
 			//   똑같이 0 으로 보이는데 고치는 자리가 전혀 다르다.
+			// ★ 중계가 하나도 없으면 이 검사는 영영 「0」이다 — 그런 검사는 있으나 마나다.
+			//   코어 옆에 하나 **일부러 세워서** 「받는가 · 용량이 느는가」를 실제로 재게 만든다.
+			if (match.FedRelayCount == 0 && match.CoreCombatant != null && relayProbeAt <= 0.0)
+			{
+				Vector3 beside = match.CoreCombatant.Position + new Vector3(4f, 0f, 4f);
+				bool placed = match.TryPlaceGenerator(beside);
+				relayCapacityBefore = match.PowerCapacity;
+				relayProbeAt = EditorApplication.timeSinceStartup + 6.0;
+				Debug.Log($"{TAG} 신호 사슬 — 코어 옆에 발전 인형 세우기 {placed} (용량 {relayCapacityBefore})");
+			}
+
+			// ★ 컨트롤넷의 핵심 약속 = 「중계탑이 신호를 *받아서* 넘긴다」. 받는 중계가 0 이면
+			//   사슬이 한 칸도 안 뻗은 것이고, 전기는 결국 「코어 반경 안」이 전부가 된다.
+			Debug.Log($"{TAG} 신호 사슬 — 신호 받는 중계 {match.FedRelayCount}기 / 노드 {nodes - 1}기"
+				+ $" · 용량 {match.PowerCapacity}(코어만이면 6)");
+
 			Debug.Log($"{TAG} 신호장 — 코어 충전 {charge:F2} 덮는반경 {radius:F1} 노드 {nodes}"
 				+ $" / 그림 테두리 {edges} 파동 {pulses}"
 				+ $" / 전기 용량 {match.PowerCapacity} 요구 {match.PowerDemand} 버틴시간 {match.SurvivedSeconds}s");
@@ -1005,6 +1028,25 @@ namespace WitchMendokusai.EditorTools
 				lairClearCheckAt = EditorApplication.timeSinceStartup + 1.0;
 			lairClearEssenceBefore = essenceBefore;
 			lairClearBefore = clearedBefore;
+		}
+
+		private static double relayProbeAt;
+		private static int relayCapacityBefore;
+
+		/// <summary> 세운 중계가 신호를 받아 용량을 늘렸는가 — 컨트롤넷이 말뿐인지 아닌지의 결론. </summary>
+		private static void CheckRelayChain()
+		{
+			if (match == null)
+				return;
+
+			int fed = match.FedRelayCount;
+			int capacity = match.PowerCapacity;
+			Debug.Log($"{TAG} 신호 사슬 결과 — 받는 중계 {fed}기 · 용량 {relayCapacityBefore} → {capacity}");
+
+			if (fed == 0)
+				Debug.LogError(TAG + " 사슬 FAIL — 코어 옆에 세운 중계가 신호를 못 받는다(사슬이 한 칸도 안 뻗는다).");
+			else if (capacity <= relayCapacityBefore)
+				Debug.LogError(TAG + " 사슬 FAIL — 중계가 신호는 받는데 용량이 안 는다(받아도 아무 일도 안 일어난다).");
 		}
 
 		private static double lairClearCheckAt;

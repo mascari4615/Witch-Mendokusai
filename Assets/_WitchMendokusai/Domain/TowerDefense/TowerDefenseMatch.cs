@@ -1351,6 +1351,25 @@ namespace WitchMendokusai
 			? pathNavigator.NoPathCount
 			: 0;
 
+		/// <summary>
+		/// 신호를 받고 있는 중계(발전 인형) 수 — **컨트롤넷의 핵심 약속이 실제로 서는지**의 유일한 증거.
+		/// 0 이면 사슬이 한 칸도 안 뻗은 것이고, 그러면 전기는 「코어 반경 안」이 전부다.
+		/// </summary>
+		public int FedRelayCount
+		{
+			get
+			{
+				int fed = 0;
+				// 0 번은 코어(스스로 낸다) — 중계만 센다.
+				for (int index = 1; index < powerGrid.Field.NodeCount; index++)
+				{
+					if (powerGrid.Field.IsFed(index))
+						fed++;
+				}
+				return fed;
+			}
+		}
+
 		/// <summary> 길찾기가 상한에 걸려 포기한 횟수 — 0 이 아니면 갈 길이 있는데도 못 가는 마수가 있다. </summary>
 		public int PathCapHits => gridPath != null ? gridPath.CapHits : 0;
 
