@@ -27,6 +27,13 @@ namespace WitchMendokusai
 			return controller != null;
 		}
 
+		/// <summary>
+		/// 지금 매치가 실제로 돌고 있나 — 검증 하네스가 「관전 화면은 떴는데 매치는 안 돌더라」를
+		/// *있는 신호*로 말할 수 있게 연다. 없으면 읽는 쪽이 **없는 줄(MATCH-START)을 알아채야** 하는데,
+		/// 그건 「no-news is bad-news」라 사람이 놓친다.
+		/// </summary>
+		public bool IsMatchRunning => arenaMatch != null && arenaMatch.IsRunning;
+
 		private GameModeManager gameModeManager;
 		private InputManager inputManager;
 
@@ -83,6 +90,20 @@ namespace WitchMendokusai
 				// 보고 처리한다. 여기서는 입력·매치만.
 				inputManager.SetInputStrategy(new InputStrategyArena());
 				arenaMatch.Begin();
+
+				// ★ `Begin` 은 검증(config 미할당 / 로스터 TeamId / 팀당 유닛 수 / 스폰 겹침)에 걸리면
+				//   **LogError 만 남기고 조용히 돌아온다.** 그런데 이 시점엔 모드·카메라·입력이 이미
+				//   투기장으로 바뀐 뒤다 → 화면은 「관전 시점인데 아무도 없는 빈 판」이 되고,
+				//   원인은 콘솔 위쪽 ArenaMatch 에러 한 줄뿐이라 사람은 **화면이 고장난 줄 안다.**
+				//   되돌리진 않는다(모드 변경 핸들러 안에서 모드를 되돌리면 재진입이 된다) —
+				//   대신 무슨 일이 일어났는지 이름을 붙인다. 개발자 런처(ArenaTestLauncher)엔 같은
+				//   가드가 이미 있는데 **플레이어 경로인 여기만 비어 있었다.**
+				if (arenaMatch.IsRunning == false)
+				{
+					Debug.LogError($"{nameof(ArenaModeController)}: MATCH-NOT-STARTED — 투기장 모드로 들어왔지만 "
+						+ "Begin 이 거절했다(빈 판이 뜬다). 바로 위 ArenaMatch LogError 를 볼 것 — "
+						+ "config/arenaRoot 미할당 · 로스터 TeamId 범위 · 팀당 유닛 수 > 맵 스폰 · 스폰 겹침 중 하나다.");
+				}
 			}
 			else
 			{

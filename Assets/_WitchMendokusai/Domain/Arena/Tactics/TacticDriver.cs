@@ -102,12 +102,19 @@ namespace WitchMendokusai
 			// 걸으면서 쏘는 유닛은 *조준 때문에 목적지를 잊으면* 안 된다. 공격 룰이 선택되는 동안
 			// 접근 룰은 안 돌므로, 마지막으로 향하던 곳을 여기서 다시 겨눠준다
 			// (안 그러면 옛 방향으로 계속 걸어가 판 밖으로 나간다 — 굳는 것만 피하고 새 사고를 만든다).
-			if (StopsToAttack == false && lastApproachTarget != null && lastApproachTarget.IsAlive)
-				unitObject.UnitMovement.SetMoveDirection(SteerToward(lastApproachTarget.Position));
+			if (StopsToAttack == false && lastMoveTarget != null && lastMoveTarget.IsAlive)
+				unitObject.UnitMovement.SetMoveDirection(SteerToward(lastMoveTarget.Position));
 		}
 
-		// 마지막으로 접근하던 목표 — 걸으면서 쏠 때 방향을 되찾는 데 쓴다.
-		private ICombatant lastApproachTarget;
+		// 마지막으로 *향하던* 목표 — 걸으면서 쏠 때 방향을 되찾는 데 쓴다.
+		//
+		// ★ 예전엔 `Approach` 에서만 채웠다. 그런데 되찾기가 필요한 이유(= 공격 룰이 도는 동안
+		//   이동 룰이 안 돌아 방향이 옛것으로 남는다)는 **MoveToTarget 에도 똑같이 해당한다.**
+		//   TD 스테이지 전술이 마침 Approach 를 써서 지금은 드러나지 않을 뿐이고(실측:
+		//   TDS_0 의 EnemyTactic = Kind 3), 누가 걸으며 쏘는 유닛에게 MoveToTarget 을 주는 순간
+		//   「옛 방향으로 계속 걸어 판 밖으로 나간다」가 조용히 돌아온다.
+		//   투기장 유닛(StopsToAttack == true)은 되찾기 자체를 안 하므로 이 대입은 무해하다.
+		private ICombatant lastMoveTarget;
 
 		/// <summary>
 		/// 길 안내자 — 꽂히면 지형을 우회하고, 없으면 직선(투기장 기존 동작 그대로).
@@ -138,6 +145,7 @@ namespace WitchMendokusai
 			if (target == null)
 				return;
 
+			lastMoveTarget = target;
 			unitObject.UnitMovement.SetMoveDirection(SteerToward(target.Position));
 		}
 
@@ -172,7 +180,7 @@ namespace WitchMendokusai
 				return;
 			}
 
-			lastApproachTarget = target;
+			lastMoveTarget = target;
 
 			Vector3 direction = target.Position - self.Position;
 			direction.y = 0f;
