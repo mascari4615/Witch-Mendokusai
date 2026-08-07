@@ -86,6 +86,21 @@ namespace WitchMendokusai
 		/// <summary>재료 재고·골드 원장. 낮 루프가 여기에 전리품을 넣고, 밤 장사가 여기서 뺀다.</summary>
 		public WorkshopLedger Ledger => ledger;
 
+		/// <summary>지난밤에 만들어 판 개수. 0 = 재료가 없어 아무것도 못 만든 밤.</summary>
+		public int LastNightProduced { get; private set; }
+
+		/// <summary>
+		/// 에셋 말고 <b>코드로</b> 상품을 하나 더 얹는다. 시연용 더미나, 나중에 모드가 넣을 상품이 이 문으로 온다.
+		/// 값은 이미 정해진 것으로 받는다(정련 보정을 하려면 부르는 쪽이 하고 넘긴다).
+		/// </summary>
+		public void AddProduct(WorkshopProduct product)
+		{
+			if (product != null)
+			{
+				productValues.Add(product);
+			}
+		}
+
 		/// <summary>지금까지 투자한 만큼 오른 낮 채집 효율. 낮 루프가 수확량에 곱해 쓸 값이다.</summary>
 		public float DayCollectionEfficiency => DayEfficiencyModel.Evaluate(ledger.GoldInvestedInDayEfficiency, Coefficients);
 
@@ -175,7 +190,7 @@ namespace WitchMendokusai
 			if (cycle.Phase == DayNightPhase.Night)
 			{
 				// 밤이 왔다 = 낮에 모은 재료로 장사할 시간. 상품이 하나도 없으면 조용히 0으로 끝난다.
-				WorkshopNightShift.Run(ledger, productValues);
+				LastNightProduced = WorkshopNightShift.Run(ledger, productValues);
 			}
 
 			OnPhaseChanged.Invoke(cycle.Phase);

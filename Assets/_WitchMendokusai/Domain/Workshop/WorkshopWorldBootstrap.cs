@@ -24,6 +24,20 @@ namespace WitchMendokusai
 		/// <summary>false 면 안 얹는다. 씬에 직접 배치하기로 바꾸면 여기부터 끄면 된다.</summary>
 		public static bool Enabled { get; set; } = true;
 
+		/// <summary>
+		/// 더미 장사를 켤지. 상품 에셋이 하나도 없으면 공방은 <b>돌아도 아무 일이 안 일어나</b> 눈에 안 보인다.
+		/// 자율 삶 층이 더미 주민으로 「메커니즘이 돈다」를 보여주는 것과 같은 자리 — 로어 아니고 시연용이다.
+		/// 진짜 상품 에셋이 생기면 여기부터 끈다.
+		/// </summary>
+		public static bool DemoEnabled { get; set; } = true;
+
+		// 더미 수치(시연 손잡이). 진짜 상품이 생기면 통째로 사라질 값들이라 여기 모아 둔다.
+		private const int DEMO_PRODUCT_ID = 900001;
+		private const int DEMO_HERB_ID = 900002;
+		private const int DEMO_HERB_PER_DAY = 7;   // 낮마다 들어오는 약초 (진짜 낮 루프가 붙기 전 대역).
+		private const int DEMO_HERB_PER_POTION = 2;
+		private const int DEMO_POTION_PRICE = 30;
+
 		// Play 진입 시 구독 + 즉시 검사. World 로 바로 Play 를 시작하면 그 sceneLoaded 가 이 훅 *전*에
 		// 끝나 놓치므로, 이미 떠 있는 씬도 그 자리에서 한 번 본다(LifeWorldBootstrap 과 같은 이유).
 		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
@@ -61,6 +75,15 @@ namespace WitchMendokusai
 
 			// 감독이 자기 Start 에서 세계 시계를 찾아 붙는다. 시계가 없으면 조용히 쉰다.
 			root.AddComponent<WorkshopDirector>();
+
+			if (DemoEnabled == true)
+			{
+				// 더미 장사 — 감독이 이미 붙어 있어야 자기 Start 에서 찾는다.
+				// 둘의 Start 순서는 상관없다: 원장도 상품 목록도 부품이 만들어질 때 이미 존재하고,
+				// 감독은 거기에 더하기만 한다(덮어쓰기 X).
+				WorkshopDemoTrickle demo = root.AddComponent<WorkshopDemoTrickle>();
+				demo.Configure(DEMO_PRODUCT_ID, DEMO_HERB_ID, DEMO_HERB_PER_DAY, DEMO_HERB_PER_POTION, DEMO_POTION_PRICE);
+			}
 		}
 	}
 }
