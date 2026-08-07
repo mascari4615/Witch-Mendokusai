@@ -1,0 +1,61 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    대화 시스템의 순수 로직을 **유니티 없이** 컴파일·실행한다 (TASK-WM-052).
+
+    ★ 소스를 복사하지 않는다 — 아래 Compile Include 가 저장소의 *진짜 파일*을 그대로 문다.
+      그래서 코드가 바뀌면 여기도 같이 바뀐다(사본이 낡아 거짓 초록을 내는 일이 없다).
+      가짜인 것은 `stubs/` 뿐이다: UnityEngine 최소 대역 · NUnit 최소 대역 · 게임 쪽 인터페이스 몇 개.
+
+    ⚠ 무엇을 보장하지 *않는가* (README 참조):
+      직렬화 · 에셋 임포트 · MonoBehaviour 수명주기 · PlayMode. 그건 유니티 run_tests 가 정본이다.
+  -->
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <AssemblyName>DialogueHarness</AssemblyName>
+    <RootNamespace>DialogueHarness</RootNamespace>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <NoWarn>CS0414;CS0169;CS0649;CS0108;CS0436</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="stubs/*.cs" />
+    <Compile Include="*.cs" />
+  </ItemGroup>
+
+  <!-- 진짜 게임 소스 (복사 X) -->
+  <ItemGroup>
+    <Compile Include="../../Assets/_WitchMendokusai/Domain/Narrative/**/*.cs" />
+    <Compile Include="../../Assets/_WitchMendokusai/Domain/Data/NodeGraph/NodeBase.cs" />
+    <Compile Include="../../Assets/_WitchMendokusai/Domain/Data/NodeGraph/NodePort.cs" />
+    <Compile Include="../../Assets/_WitchMendokusai/Domain/Data/NodeGraph/NodeGraph.cs" />
+    <Compile Include="../../Assets/_WitchMendokusai/Domain/Data/NodeGraph/NodeExecutionContext.cs" />
+    <Compile Include="../../Assets/_WitchMendokusai/Domain/Data/Effect/Base/EffectInfo.cs" />
+    <Compile Include="../../Assets/_WitchMendokusai/Core/Scripts/NodeGraph/FlowSignal.cs" />
+    <Compile Include="../../Assets/_WitchMendokusai/Core/Scripts/NodeGraph/NodeConnection.cs" />
+    <Compile Include="../../Assets/_WitchMendokusai/Core/Scripts/NodeGraph/NodeDomain.cs" />
+    <Compile Include="../../Assets/_WitchMendokusai/Core/Scripts/NodeGraph/NodeGraphValidationResult.cs" />
+    <Compile Include="../../Assets/_WitchMendokusai/DomainSDK/Criteria/Criteria.cs" />
+    <Compile Include="../../Assets/_WitchMendokusai/DomainSDK/Criteria/ICriteria.cs" />
+    <Compile Include="../../Assets/_WitchMendokusai/DomainSDK/Effect/EffectType.cs" />
+    <Compile Include="../../Assets/_WitchMendokusai/DomainSDK/Common/ArithmeticOperator.cs" />
+  </ItemGroup>
+
+  <!-- 진짜 EditMode 시험 파일 (복사 X — 「시험을 썼다」가 아니라 「시험이 돈다」) -->
+  <ItemGroup>
+    <Compile Include="../../Assets/_WitchMendokusai/Tests/EditMode/Dialogue*Test.cs" />
+  </ItemGroup>
+
+  <!-- MonoBehaviour·에디터 의존이라 유니티 밖에서 못 서는 것들 -->
+  <ItemGroup>
+    <Compile Remove="../../Assets/_WitchMendokusai/Domain/Narrative/Scripts/DialogueRunner.cs" />
+    <Compile Remove="../../Assets/_WitchMendokusai/Domain/Narrative/Scripts/DialogueSpeakerTag.cs" />
+    <Compile Remove="../../Assets/_WitchMendokusai/Domain/Narrative/Scripts/EffectRunnerDialogueSink.cs" />
+  </ItemGroup>
+
+</Project>
