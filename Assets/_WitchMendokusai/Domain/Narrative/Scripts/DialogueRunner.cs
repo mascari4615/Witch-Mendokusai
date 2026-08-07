@@ -47,12 +47,18 @@ namespace WitchMendokusai
 
 		private UIManager uiManager;
 		private IDialogueEffectSink effectSink;
+		private IDialogueItemCountSource itemCountSource;
 
 		[Inject]
-		public void Construct(UIManager uiManager, IEffectRunner effectRunner)
+		public void Construct(UIManager uiManager, IEffectRunner effectRunner, SOManager soManager)
 		{
 			this.uiManager = uiManager;
 			effectSink = new EffectRunnerDialogueSink(effectRunner);
+
+			// 원고의 「그 물건 가졌나」가 실제 가방을 보게 한다. 등록 전이면 조건은 「없다」로 치므로
+			// (터지지 않는다) 이 배선이 늦어도 대화 자체는 돈다 — 다만 그 선택지가 안 뜬다.
+			itemCountSource = new InventoryDialogueItemSource(soManager.ItemInventory);
+			DialogueItemBridge.Register(itemCountSource);
 		}
 
 		private void Awake()
@@ -66,6 +72,7 @@ namespace WitchMendokusai
 		private void OnDestroy()
 		{
 			coordinator.OnStartRequested -= StartRequested;
+			DialogueItemBridge.Clear(itemCountSource);
 			DialogueHistoryBridge.Clear(History);
 			if (Instance == this)
 				Instance = null;
