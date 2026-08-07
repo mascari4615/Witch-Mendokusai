@@ -962,6 +962,13 @@ namespace WitchMendokusai
 			if (lease != null)
 				lease.Release(unit.GetComponent<UnitObject>());
 
+			// ★ **끈 것은 켜서 돌려준다.** 서식지 목줄이 전술을 잠시 꺼두는데, 그 상태로 풀에 들어가면
+			//   그 몸을 재사용한 *다음 마수*가 꺼진 채로 태어나 영영 안 움직인다 — 한 마리만 굳어도
+			//   파도가 안 끝나던 그 사고와 같은 종류다. 풀은 남의 상태를 기억하면 안 된다.
+			TacticDriver driver = unit.GetComponent<TacticDriver>();
+			if (driver != null)
+				driver.enabled = true;
+
 			targetPool.Despawn(unit);
 		}
 
@@ -1236,6 +1243,49 @@ namespace WitchMendokusai
 			foreach (SleepingLair lair in lairs)
 			{
 				if (lair.Awake)
+					continue;
+				foreach (UnitObject guard in lair.Guards)
+				{
+					if (guard != null && guard.gameObject == combatant.gameObject)
+						return true;
+				}
+			}
+			return false;
+		}
+
+		/// <summary>
+		/// 전술이 꺼진 채 살아 있는 마수 수 — 0 이 아니면 누군가 상태를 켜서 안 돌려준 것이다.
+		/// (목줄이 잠시 끄는 것은 *서식지 마수*뿐이고 그건 제 자리를 지키는 중이라 정상이므로 뺀다.)
+		/// </summary>
+		public int FrozenEnemyCount
+		{
+			get
+			{
+				int frozen = 0;
+				foreach (MatchCombatant enemy in waveEnemies)
+				{
+					if (enemy == null || enemy.IsAlive == false)
+						continue;
+					if (IsSleepingLairGuard(enemy) || IsAwakenedLairGuard(enemy))
+						continue;
+
+					TacticDriver driver = enemy.GetComponent<TacticDriver>();
+					if (driver != null && driver.enabled == false)
+						frozen++;
+				}
+				return frozen;
+			}
+		}
+
+		/// <summary> 깨어난 서식지 소속인가 — 목줄이 그 전술을 잠시 끌 수 있어 굳음 판정에서 뺀다. </summary>
+		private bool IsAwakenedLairGuard(MatchCombatant combatant)
+		{
+			if (combatant == null)
+				return false;
+
+			foreach (SleepingLair lair in lairs)
+			{
+				if (lair.Awake == false)
 					continue;
 				foreach (UnitObject guard in lair.Guards)
 				{
@@ -1958,6 +2008,7 @@ namespace WitchMendokusai
 				TacticDriver enemyDriver = enemyUnitObject.GetComponent<TacticDriver>();
 				if (enemyDriver == null)
 					enemyDriver = enemyUnitObject.gameObject.AddComponent<TacticDriver>();
+				enemyDriver.enabled = true; // 풀이 어떤 상태로 주든 켜고 시작한다(허리띠 + 멜빵).
 				enemyDriver.Initialize(stage.EnemyTactic, targeting, timeManager);
 				IgnoreHeroCollision(enemyUnitObject.gameObject); // 새로 온 마수도 영웅을 통과한다.
 				enemyDriver.Navigator = flowNavigator; // 지형이 있으면 돌아가고, 없으면(null) 직선 그대로.

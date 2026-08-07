@@ -1137,6 +1137,13 @@ namespace WitchMendokusai.EditorTools
 					}
 				}
 
+				// ★ 풀이 남의 상태를 기억하면 재사용된 마수가 꺼진 채로 태어나 영영 안 움직인다.
+				//   한 마리만 굳어도 파도가 안 끝난다 — 0 이 아니면 그 자리에서 실패다.
+				int frozen = match != null ? match.FrozenEnemyCount : 0;
+				Debug.Log($"{TAG} 굳은 마수 — 전술 꺼진 채 살아있는 마수 {frozen}기");
+				if (frozen > 0)
+					Debug.LogError($"{TAG} 굳음 FAIL — {frozen}기가 전술이 꺼진 채로 살아 있다(풀에 상태가 새어 나갔다).");
+
 				// 강도는 시간이 올리는 규칙이다 — 「내 포탑이 약해졌다」로 오해하지 않으려면 보여야 한다.
 				Debug.Log($"{TAG} 강도 — 마수 강도 {(match != null ? match.Pressure : 0f):F2}");
 
