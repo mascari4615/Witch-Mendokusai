@@ -127,6 +127,9 @@ namespace WitchMendokusai
 		/// 사격 준비. enemyPool = 사거리 안에서 고를 후보(매치가 관리하는 웨이브 목록) —
 		/// 표적 선택을 매치의 생존 목록과 같은 출처로 두어야 「죽은 걸 계속 쏘는」 어긋남이 안 생긴다.
 		/// </summary>
+		/// <summary> 이 포탑이 둔화 포탑인가 — 검사가 「내가 세운 것이 아직 서 있나」를 셀 때 쓴다. </summary>
+		public float SlowFactorForVerification => archetype != null ? archetype.SlowFactor : 0f;
+
 		public void Configure(
 			TowerDefenseTowerArchetype towerArchetype,
 			TargetingSystem targetingSystem,

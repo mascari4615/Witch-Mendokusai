@@ -1023,8 +1023,10 @@ namespace WitchMendokusai.EditorTools
 				Debug.Log(TAG + " 강도 알림 — 못 쟀다(배속을 올려도 강도가 안 올랐다). 실패가 아니다.");
 			else if (now - 1f < 0.5f)
 				Debug.Log($"{TAG} 강도 알림 — 못 쟀다(아직 한 칸 못 올랐다: {now - 1f:F2}/0.50). 실패가 아니다.");
+			else if (alerts == 0 && match.Alerts.Count >= TowerDefenseAlerts.MAX_ALERTS)
+				Debug.Log(TAG + " 강도 알림 — 못 쟀다: 알림 칸이 꽉 차 먼저 난 것이 밀려났다. 실패가 아니다.");
 			else if (alerts == 0)
-				Debug.LogError(TAG + " 강도 FAIL — 강도가 한 칸 넘게 올랐는데 화면이 아무 말도 안 한다.");
+				Debug.LogError(TAG + " 강도 FAIL — 자리가 남았는데도 강도가 오른 것을 화면이 말하지 않는다.");
 
 			// ★ 깨어난 서식지 마수가 *어디로 가는지*를 잰다. 코어로 행진하면 서식지는 그냥 「파도 하나 더」이고,
 			//   그 일대에 머물면 「넓히는 것이 위험」이 성립한다 — 둘은 완전히 다른 게임이라 재봐야 안다.
@@ -1329,8 +1331,35 @@ namespace WitchMendokusai.EditorTools
 				return;
 			}
 
+			// ★ 「편중이 0」은 결론이 아니라 증상이다. 세운 포탑이 아직 서 있는지, 그 둘레에 맞힐
+			//   것이 있었는지를 같이 찍어야 다음 사람이 어디를 볼지 안다(추측하지 말라는 그 규칙).
+			int slowTowersAlive = 0;
+			foreach (TowerDefenseWeapon weapon in Object.FindObjectsByType<TowerDefenseWeapon>())
+			{
+				if (weapon == null || weapon.SlowFactorForVerification <= 0f)
+					continue;
+				if ((weapon.transform.position - adaptationAim).sqrMagnitude <= ADAPTATION_REACH * ADAPTATION_REACH)
+					slowTowersAlive++;
+			}
+
+			int nearAim = 0;
+			foreach (MatchCombatant enemy in match.WaveEnemies)
+			{
+				if (enemy == null || enemy.IsAlive == false)
+					continue;
+				if ((enemy.Position - adaptationAim).sqrMagnitude <= ADAPTATION_REACH * ADAPTATION_REACH)
+					nearAim++;
+			}
+
 			Debug.Log(TAG + " 적응 결과 — 둔화저항 " + state.SlowResist.ToString("F2")
-				+ " · 규칙 「" + note + "」 · 창이 닫힐 때까지 화면에 한 번도 안 떴다.");
+				+ " · 규칙 「" + note + "」 · 창이 닫힐 때까지 화면에 한 번도 안 떴다"
+				+ " · 겨눈 자리에 살아있는 둔화 포탑 " + slowTowersAlive + "기 · 그 둘레 마수 " + nearAim + "기");
+
+			if (note.Length == 0 && slowTowersAlive == 0)
+			{
+				Debug.Log(TAG + " 적응 — 못 쟀다: 세운 둔화 포탑이 창이 닫힐 때까지 하나도 안 남았다(부서졌다). 실패가 아니다.");
+				return;
+			}
 
 			if (note.Length == 0 && adaptationSawEnemies == false)
 				Debug.Log(TAG + " 적응 — 못 쟀다: 창이 도는 60초 동안 마수가 포탑 사거리 안에 한 기도 안 들어왔다(맞힐 것이 없으면 편중도 없다). 실패가 아니다.");
@@ -2830,8 +2859,13 @@ namespace WitchMendokusai.EditorTools
 			string said = match.LastRejectReason;
 			Debug.Log($"{TAG} 정수 안내 — 화면이 한 말: 「{said}」");
 
-			if (string.IsNullOrEmpty(said) || said.Contains("정수 부족") == false)
-				Debug.LogError(TAG + " 정수 안내 FAIL — 정수가 모자란데 그렇게 말하지 않는다.");
+			// ★ 거절 사유가 *정수 말고 다른 것*일 수 있다 — 그 자리가 이미 찼거나 보급 밖이면
+			//   화면은 그 이유를 말하는 게 맞다. 그걸 「정수를 안 말한다」로 부르면 멀쩡한 문구를
+			//   고치러 간다. 실제로 다른 탐침이 그 자리에 전초기지를 놓아 이 검사가 거짓 실패했다.
+			if (string.IsNullOrEmpty(said))
+				Debug.LogError(TAG + " 정수 안내 FAIL — 거절해 놓고 이유를 아무것도 안 남긴다.");
+			else if (said.Contains("정수 부족") == false)
+				Debug.Log(TAG + " 정수 안내 — 못 쟀다: 정수가 아니라 다른 이유로 거절됐다(「" + said + "」). 실패가 아니다.");
 			else if (said.Contains("채집") == false || said.Contains("둥지") == false || said.Contains("서식지") == false)
 				Debug.LogError(TAG + " 정수 안내 FAIL — 「부족」만 말하고 *버는 법*을 안 말한다: 「" + said + "」");
 		}
