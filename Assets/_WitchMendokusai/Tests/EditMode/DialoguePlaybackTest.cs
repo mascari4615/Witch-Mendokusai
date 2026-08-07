@@ -232,6 +232,48 @@ namespace WitchMendokusai.Tests
 		}
 
 		[Test]
+		public void Speak_AutoAdvancesWhenDefaultSecondsSet()
+		{
+			DialogueGraph graph = NewGraph();
+			DialogueStartNode start = SeedStart(graph);
+			DialogueLine firstLine = NewLine();
+			DialogueLine secondLine = NewLine();
+			DialogueSpeakNode firstSpeak = new() { Line = firstLine };
+			DialogueSpeakNode secondSpeak = new() { Line = secondLine };
+			graph.AddNode(firstSpeak);
+			graph.AddNode(secondSpeak);
+			graph.Connect(start.FindPort(DialogueStartNode.PORT_NEXT), firstSpeak.FindPort(DialogueSpeakNode.PORT_IN));
+			graph.Connect(firstSpeak.FindPort(DialogueSpeakNode.PORT_NEXT), secondSpeak.FindPort(DialogueSpeakNode.PORT_IN));
+
+			DialoguePlayback playback = new(graph) { DefaultSpeakSeconds = 2f };
+			playback.Begin();
+
+			playback.Tick(1.5f);
+			Assert.That(playback.CurrentLine, Is.SameAs(firstLine), "아직 시간이 안 됐다");
+
+			playback.Tick(1f);
+			Assert.That(playback.CurrentLine, Is.SameAs(secondLine), "시간이 차면 대사도 저절로 넘어간다");
+		}
+
+		[Test]
+		public void Speak_WithoutDuration_WaitsForExplicitAdvance()
+		{
+			DialogueGraph graph = NewGraph();
+			DialogueStartNode start = SeedStart(graph);
+			DialogueLine onlyLine = NewLine();
+			DialogueSpeakNode speak = new() { Line = onlyLine };
+			graph.AddNode(speak);
+			graph.Connect(start.FindPort(DialogueStartNode.PORT_NEXT), speak.FindPort(DialogueSpeakNode.PORT_IN));
+
+			DialoguePlayback playback = new(graph);
+			playback.Begin();
+			playback.Tick(999f);
+
+			Assert.That(playback.CurrentLine, Is.SameAs(onlyLine),
+				"시간이 안 정해진 대사는 저절로 안 넘어간다 — 클릭으로 넘기는 연출을 위해");
+		}
+
+		[Test]
 		public void EmptyGraph_FinishesOnBegin()
 		{
 			DialogueGraph graph = NewGraph();
