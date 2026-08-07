@@ -147,11 +147,17 @@ namespace WitchMendokusai
 				rock.transform.localPosition = mapLayout.CellToWorld(obstacleCell) + new Vector3(0f, cell * 0.3f, 0f);
 				rock.transform.localScale = new Vector3(cell, cell * 0.6f, cell);
 
-				// ★ 충돌 상자를 칸보다 살짝 작게 — 길찾기는 1칸 통로를 정상 경로로 주는데, 몸통이 칸을 꽉 채우면
+				// ★ 충돌 상자를 칸보다 작게 — 길찾기는 1칸 통로를 정상 경로로 주는데, 몸통이 칸을 꽉 채우면
 				//   그 통로에서 물리적으로 낀다(라이브: 마수 1기가 40초 가까이 도착 못 함). 보이는 크기는 그대로.
+				// ★ 이 값이 코드에 박혀 있어서(0.82) 여유가 얼마나 남는지를 아무도 조절할 수 없었다.
+				//   마수 몸 반경이 0.50 이므로 남는 여유 = 1.00 - 0.50 - (값/2). 0.82 면 0.09 뿐이라,
+				//   무리에 밀려 반 칸만 치우쳐도 바위를 스치고 그 자리에서 판이 끝날 때까지 민다(실측).
 				BoxCollider rockCollider = rock.GetComponent<BoxCollider>();
 				if (rockCollider != null)
-					rockCollider.size = new Vector3(0.82f, 1f, 0.82f);
+				{
+					float side = stage != null ? stage.ObstacleColliderScale : 0.82f;
+					rockCollider.size = new Vector3(side, 1f, side);
+				}
 
 				Renderer rockRenderer = rock.GetComponent<Renderer>();
 				if (rockRenderer == null)

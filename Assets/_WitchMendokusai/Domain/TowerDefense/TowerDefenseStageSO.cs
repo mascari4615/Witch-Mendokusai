@@ -221,6 +221,14 @@ namespace WitchMendokusai
 		[field: Tooltip("모서리를 얼마나 둥글게 도나(0 = 칸 중심을 딱딱 밟는다, 1 = 다음 칸 너머를 본다).")]
 		[field: SerializeField, Range(0f, 1f)] public float EnemyCornerSmoothing { get; private set; } = 0.6f;
 
+		// ★ 암반은 보이는 크기는 한 칸이지만 실제로 막는 상자는 그보다 작다. 왜 작아야 하나:
+		//   마수 몸 반경이 0.50 이고 칸이 1.00 이라, 옆 칸을 지날 때 남는 여유 = 1.00 - 0.50 - (이 값/2).
+		//   0.82 면 0.09 뿐이라 무리에 밀려 조금만 치우쳐도 바위를 스치고, 그 자리에서 판이 끝날 때까지 민다
+		//   (라이브 실측: 「갈 수 있다는 칸인데 암반에 막힘」이 판마다 36~73줄). 0.70 이면 여유가 0.15 다.
+		//   ※ 값이 코드에 박혀 있어서 여태 아무도 이걸 조절해 볼 수 없었다 — 그래서 밖으로 낸다.
+		[field: Tooltip("암반이 실제로 막는 상자의 한 변(칸 대비). 보이는 크기는 그대로 한 칸. 작을수록 옆을 지나갈 여유가 는다.")]
+		[field: SerializeField, Range(0.4f, 1f)] public float ObstacleColliderScale { get; private set; } = 0.7f;
+
 
 
 		[field: Header("연구 해금 — 처음엔 거의 아무것도 못 한다")]
