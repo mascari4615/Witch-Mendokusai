@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Text;
 using NUnit.Framework;
 using UnityEditor;
 
@@ -45,6 +47,84 @@ namespace WitchMendokusai.Tests
 
 			Assert.That(parsed.Issues, Is.Empty, "게임에 들어간 원고에 걸림이 있으면 안 된다");
 			Assert.That(parsed.Sections.Count, Is.EqualTo(3), "장면 3 (오프닝 3~5)");
+		}
+
+		/// <summary>
+		/// 게임에 들어간 **모든** 대화 자산 — 하나를 경로로 박아 두면 두 번째 원고부터는 아무도 안 본다.
+		/// 원고는 늘어나라고 만든 것이므로 검사도 같이 늘어나야 한다(하네스 쪽과 같은 판단).
+		/// </summary>
+		private static IEnumerable<DialogueScriptSource> LoadAllScripts()
+		{
+			string[] guids = AssetDatabase.FindAssets("t:" + nameof(DialogueScriptSource));
+			for (int i = 0; i < guids.Length; i++)
+			{
+				DialogueScriptSource source = AssetDatabase.LoadAssetAtPath<DialogueScriptSource>(
+					AssetDatabase.GUIDToAssetPath(guids[i]));
+				if (source != null)
+				{
+					yield return source;
+				}
+			}
+		}
+
+		[Test]
+		public void EveryShippedScript_ParsesAndValidatesClean()
+		{
+			StringBuilder problems = new();
+			int checkedCount = 0;
+
+			foreach (DialogueScriptSource source in LoadAllScripts())
+			{
+				checkedCount++;
+				string path = AssetDatabase.GetAssetPath(source);
+
+				if (source.Script == null)
+				{
+					problems.AppendLine($"{path}: 글 파일이 안 물려 있다");
+					continue;
+				}
+
+				ParsedDialogueScript parsed = source.ParseFresh();
+				for (int i = 0; i < parsed.Issues.Count; i++)
+				{
+					problems.AppendLine($"{path} L{parsed.Issues[i].LineNumber}: {parsed.Issues[i].Message}");
+				}
+
+				// 읽기만 되고 그래프가 이상한 경우 — 못 닿는 마디·조건 없는 분기 등은 여기서만 잡힌다.
+				DialogueGraphValidationResult validation = DialogueGraphValidator.Validate(source.BuildGraph());
+				for (int i = 0; i < validation.Issues.Count; i++)
+				{
+					if (validation.Issues[i].Severity == NodeGraph.NodeGraphIssueSeverity.Error)
+					{
+						problems.AppendLine($"{path}: {validation.Issues[i].Message}");
+					}
+				}
+			}
+
+			Assert.That(checkedCount, Is.GreaterThan(0), "대화 자산이 하나도 없다 — 검사가 아무것도 안 보고 있다");
+			Assert.That(problems.ToString(), Is.Empty, "게임에 들어간 원고는 깨끗해야 한다");
+		}
+
+		[Test]
+		public void ShippedScriptIds_AreUnique()
+		{
+			Dictionary<int, string> byId = new();
+			StringBuilder duplicates = new();
+
+			foreach (DialogueScriptSource source in LoadAllScripts())
+			{
+				string path = AssetDatabase.GetAssetPath(source);
+				if (byId.TryGetValue(source.ID, out string existing))
+				{
+					// 번호가 겹치면 「이 대화 봤나」 조건이 엉뚱한 대화를 가리킨다 —
+					// 한참 뒤에 「왜 이 대사가 안 나오지」로 발견되는 종류다.
+					duplicates.AppendLine($"번호 {source.ID} 가 겹친다: {existing} ↔ {path}");
+					continue;
+				}
+				byId[source.ID] = path;
+			}
+
+			Assert.That(duplicates.ToString(), Is.Empty);
 		}
 
 		[Test]
