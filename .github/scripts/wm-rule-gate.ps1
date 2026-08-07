@@ -209,6 +209,16 @@ foreach ($file in $subjects)
 # (b) die silently when removed. A fat list blocks honest refactoring.
 # ---------------------------------------------------------------------------
 $anchors = @(
+    # 2026-08-07: this exact line vanished for a day in a stale-copy commit. The arena
+    # then handed units back to the pool with their brains still switched off, so the
+    # SAME instance came out of the next dungeon unable to move. Compile green, tests
+    # green, silent -- the failure shape this list exists for.
+    @{ File = 'Domain/Arena/Match/ArenaMatch.cs'
+       Needle = 'CombatUnitSpawner.RestoreBrains'
+       Why = 'units go back to the pool with their brains off -- they stop moving in the dungeon afterwards' },
+    @{ File = 'Domain/Arena/Match/ArenaMatch.cs'
+       Needle = 'CombatUnitSpawner.RestoreAutoCast'
+       Why = 'units go back to the pool with autocast off -- they never use skills again' },
     @{ File = 'Domain/UI/UIRoot.cs'
        Needle = 'AddComponent<MobileControlsView>'
        Why = 'phone controls are never created -- the screen shows but nothing is touchable' },
