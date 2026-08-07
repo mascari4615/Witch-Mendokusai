@@ -254,6 +254,9 @@ namespace WitchMendokusai
 
 				if (isWall)
 				{
+					// 무엇이 막았는지 남긴다 — 「격자는 갈 수 있다는데 몸은 못 간다」의 범인을 이름으로 묻기 위해.
+					context.LastWallCollider = hit.collider;
+
 					// Step offset 시도 (한 sweep 당 한 번만): wall hit을 stepHeight 위로 들어올려 재sweep, walkable이면 step-up.
 					if (stepOffsetAttempted == false &&
 						TryStepOffset(currentPosition, direction, leftover.magnitude, out Vector3 steppedPosition))

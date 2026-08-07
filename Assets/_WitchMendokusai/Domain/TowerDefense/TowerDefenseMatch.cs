@@ -4967,7 +4967,12 @@ namespace WitchMendokusai
 					: "받은방향 " + stuckMovement.MoveDirectionWorld.magnitude.ToString("F2")
 						+ " · 속도 " + stuckMovement.Velocity.magnitude.ToString("F2")
 						+ " · 실제이동 " + stuckMovement.LastMoveDelta.magnitude.ToString("F3")
-						+ " · 벽닿음 " + stuckMovement.WallContactCount;
+						+ " · 벽닿음 " + stuckMovement.WallContactCount
+						// ★ 막은 것의 *이름*이 마지막 갈림길이다 — 지형이면 지도가 틀린 것이고,
+						//   다른 마수면 길이 아니라 *길목이 좁아* 밀리는 것이라 고치는 자리가 전혀 다르다.
+						+ " · 막은것 " + (stuckMovement.LastWallCollider != null
+							? stuckMovement.LastWallCollider.name
+							: "없음");
 
 				string why = body + " · " + guide + " · 브레인 " + (stuckDriver == null ? "없음" : stuckDriver.enabled ? "켜짐" : "꺼짐")
 					+ " · 이동 " + (stuckMovement == null ? "없음" : stuckMovement.enabled ? "켜짐" : "꺼짐")

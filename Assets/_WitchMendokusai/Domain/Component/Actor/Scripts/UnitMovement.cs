@@ -77,6 +77,9 @@ namespace WitchMendokusai
 		/// <summary> 직전 tick 에 벽에 몇 번 닿았나 — 0 이면 막힌 게 아니라 스스로 안 간 것이다. </summary>
 		public int WallContactCount => motor != null ? motor.Context.WallContactNormals.Count : 0;
 
+		/// <summary> 직전 tick 에 앞을 막은 그 물체 — 지형인지 다른 유닛인지는 이름을 봐야 갈린다. </summary>
+		public Collider LastWallCollider => motor != null ? motor.Context.LastWallCollider : null;
+
 		private GameManager gameManager;
 		private TimeManager timeManager;
 

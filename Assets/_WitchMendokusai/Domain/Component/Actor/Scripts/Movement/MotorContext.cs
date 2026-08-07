@@ -43,11 +43,17 @@ namespace WitchMendokusai
 		//   (실측: 전속 1.60 인데 4초 동안 제자리인 개체가 있었다).
 		public Vector3 LastMoveDelta;
 
+		// ★ 이번 tick 에 앞을 막은 그 벽. 「격자는 갈 수 있다는데 몸은 못 간다」를 만난 자리에서
+		//   *무엇이* 막았는지를 이름으로 물을 수 있어야 한다 — 없으면 지도와 씬 중 어느 쪽이 틀렸는지
+		//   영영 못 가른다(실측: 판 가장자리에서 갈 수 있는 칸인데 벽에 닿아 실제이동 0 이었다).
+		public Collider LastWallCollider;
+
 		public System.Action<Collider> OnHitCollider = delegate { };
 
 		public void ResetPerTick()
 		{
 			WallContactNormals.Clear();
+			LastWallCollider = null;
 		}
 	}
 }
