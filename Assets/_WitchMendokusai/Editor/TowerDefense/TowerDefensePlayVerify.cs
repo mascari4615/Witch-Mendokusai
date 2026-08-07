@@ -2846,6 +2846,13 @@ namespace WitchMendokusai.EditorTools
 
 		private static void Finish()
 		{
+			// ★ 끝났다는 말을 안 하면 로그만 보고는 「끝났나 멈췄나」를 못 가린다 — 실제로 전체 실행이
+			//   정상 종료했는데 10분을 「행」으로 의심하며 기다렸다. 검사는 자기 상태를 말해야 한다.
+			double elapsed = EditorApplication.timeSinceStartup - playStart;
+			Debug.Log($"{TAG} 검증 끝 — 마지막 단계 {step} · {elapsed:F0}초 · 모드 "
+				+ (placeOnly ? "배치만" : conclusionOnly ? "결말만" : "전체")
+				+ " (실패 항목은 위에 FAIL 로 찍힌다. 없으면 없다.)");
+
 			EditorApplication.update -= Tick;
 			if (match != null)
 				match.MatchEnded -= OnMatchEnded;
