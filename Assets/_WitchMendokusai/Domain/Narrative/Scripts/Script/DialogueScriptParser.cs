@@ -377,6 +377,7 @@ namespace WitchMendokusai
 			ValidateSpeakerNames(parsed);
 			ValidateTargets(parsed);
 			ValidateReachableSections(parsed);
+			ValidateChoicesHaveAWayOut(parsed);
 			return parsed;
 		}
 
@@ -827,6 +828,52 @@ namespace WitchMendokusai
 				longIndex++;
 			}
 			return true;
+		}
+
+		/// <summary>
+		/// **전부 조건부인 선택지 묶음**을 짚는다 — 조건이 다 거짓이면 아무 칸도 안 뜬다.
+		///
+		/// ★ 그때 무슨 일이 일어나나: 재생 쪽은 **대화를 그냥 끝낸다.** 그게 옳은 처리다 —
+		///   고를 게 없는 화면에서 플레이어를 붙잡아 두는 것보다 낫다. 하지만 원고를 쓴 사람은
+		///   그 규칙을 모른다. 눈에는 「말하다 말고 대화가 툭 끊긴다」로만 보이고,
+		///   **재현도 안 된다**(조건이 하나라도 참인 저장에서는 멀쩡히 돌아가니까).
+		///
+		/// 그래서 쓰는 자리에서 알린다. 고치는 법은 하나 — **조건 없는 칸을 하나 두는 것**
+		/// (「그냥 간다」 같은 퇴로). 잡아 두는 게 아니라 나갈 문을 만들어 두라는 뜻이다.
+		/// </summary>
+		private static void ValidateChoicesHaveAWayOut(ParsedDialogueScript parsed)
+		{
+			for (int s = 0; s < parsed.Sections.Count; s++)
+			{
+				List<DialogueScriptEntry> entries = parsed.Sections[s].Entries;
+				for (int e = 0; e < entries.Count; e++)
+				{
+					DialogueScriptEntry entry = entries[e];
+					if (entry.Kind != DialogueScriptEntryKind.Choice || entry.Choices.Count == 0)
+					{
+						continue;
+					}
+
+					bool hasUnconditionalChoice = false;
+					for (int c = 0; c < entry.Choices.Count; c++)
+					{
+						if (entry.Choices[c].Condition.HasCondition)
+						{
+							continue;
+						}
+						hasUnconditionalChoice = true;
+						break;
+					}
+
+					if (hasUnconditionalChoice)
+					{
+						continue;
+					}
+
+					parsed.Issues.Add(new DialogueScriptIssue(entry.LineNumber,
+						"선택지가 전부 조건부다 — 조건이 다 거짓이면 아무 칸도 안 뜨고 대화가 그냥 끝난다. 조건 없는 칸을 하나 둬라"));
+				}
+			}
 		}
 
 		/// <summary>
