@@ -165,10 +165,28 @@ namespace WitchMendokusai
 				return;
 			}
 			float duration = line.Wait > 0f ? line.Wait : DEFAULT_LINE_DURATION;
-			if (uiManager != null && uiManager.SpeechBubble != null && bubbleTarget != null)
+			Transform anchor = ResolveLineAnchor(line);
+			if (uiManager != null && uiManager.SpeechBubble != null && anchor != null)
 			{
-				uiManager.SpeechBubble.Show(bubbleTarget, line.Text, duration);
+				uiManager.SpeechBubble.Show(anchor, line.Text, duration);
 			}
+		}
+
+		/// <summary>
+		/// 이 대사를 **누구 위에** 띄울지. 순서: ① 원고에 쓴 이름으로 등록된 캐릭터
+		/// ② 재생할 때 넘겨받은 대상 ③ 카메라(옛 거동).
+		///
+		/// ①이 없다고 대화가 멈추면 안 된다 — 캐릭터 배선이 아직인 원고도 그냥 읽혀야 한다.
+		/// </summary>
+		private Transform ResolveLineAnchor(DialogueLine line)
+		{
+			string speakerName = line.ResolveSpeakerName();
+			if (string.IsNullOrEmpty(speakerName) == false
+				&& DialogueSpeakerBridge.TryGetAnchor(speakerName, out Transform speakerAnchor))
+			{
+				return speakerAnchor;
+			}
+			return bubbleTarget;
 		}
 
 		private void HandlePlaybackFinished()
