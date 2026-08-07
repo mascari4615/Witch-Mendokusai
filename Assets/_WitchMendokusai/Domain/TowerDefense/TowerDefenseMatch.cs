@@ -2381,10 +2381,18 @@ namespace WitchMendokusai
 		/// <summary> 한 발의 소리 — 무기가 부르는 통로. 값은 판 자산이 정한다(무기에 박지 X). </summary>
 		private void ReportShotNoise(Vector3 worldPosition)
 		{
+			ShotsReported++;
 			if (stage == null || stage.NoiseFromShot <= 0f)
 				return;
 			EmitNoise(worldPosition, stage.NoiseFromShot);
 		}
+
+		/// <summary>
+		/// 「쏜 것을 알린」 횟수 — 검사가 「소리가 0 인 이유」를 가르는 유일한 창.
+		/// 0 이면 통로가 안 불린 것(죽은 배선)이고, 0 이 아닌데 소리가 0 이면 값이나 잦아듦 문제다.
+		/// 둘은 고치는 자리가 전혀 다른데 화면에는 똑같이 「조용함」으로 보인다.
+		/// </summary>
+		public int ShotsReported { get; private set; }
 
 		public void EmitNoise(Vector3 worldPosition, float amount)
 		{

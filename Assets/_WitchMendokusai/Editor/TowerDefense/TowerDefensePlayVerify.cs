@@ -2284,9 +2284,14 @@ namespace WitchMendokusai.EditorTools
 				if (aliveNow > perfPeakAlive)
 					perfPeakAlive = aliveNow;
 
+				// ★ 소음도 여기서 같이 찍는다. 사격 소음은 *전투 중에만* 나는데, 따로 둔 창은
+				//   판이 도는 시점에 열려 전투 전에 닫혀 버렸다(두 번 그렇게 「못 쟀다」로 끝났다).
+				//   이 표본은 마수가 살아 있는 동안 되풀이되므로 쏘는 소리를 못 놓친다.
 				Debug.Log(TAG + " PERF alive=" + aliveNow + " peak=" + perfPeakAlive
 					+ " frameMs=" + averageMs.ToString("F1")
-					+ " fps=" + (averageMs > 0f ? (1000f / averageMs).ToString("F0") : "-"));
+					+ " fps=" + (averageMs > 0f ? (1000f / averageMs).ToString("F0") : "-")
+					+ " noise=" + (match != null ? match.LoudestNoise.ToString("F1") : "-")
+					+ " shots=" + (match != null ? match.ShotsReported.ToString() : "-"));
 
 				lastPerfLog = now;
 				frameSamples = 0;
