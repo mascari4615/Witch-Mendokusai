@@ -25,6 +25,9 @@ namespace NUnit.Framework
 
 	public class Constraint
 	{
+		/// <summary>NUnit 의 `.AsCollection` — 이 대역에서는 비교 방식이 이미 컬렉션 동등이라 자기 자신.</summary>
+		public Constraint AsCollection => this;
+
 		private readonly Func<object, bool> predicate;
 		private readonly string description;
 
@@ -62,7 +65,25 @@ namespace NUnit.Framework
 		public static Constraint Zero => new(actual => Convert.ToDouble(actual) == 0d, "zero");
 		public static Constraint Empty => new(actual => CountInternal(actual) == 0, "empty");
 
-		public static Constraint EqualTo(object expected) => new(actual => AreEqualInternal(actual, expected), $"equal to {Format(expected)}");
+		public static Constraint EqualTo(object expected) => new(actual =>
+		{
+			// 배열·목록끼리는 「순서까지 같은가」로 본다 — 참조 비교로는 시험이 늘 빨개진다.
+			if (actual is IEnumerable actualItems && expected is IEnumerable expectedItems
+				&& actual is string == false && expected is string == false)
+			{
+				List<object> left = new();
+				foreach (object item in actualItems) { left.Add(item); }
+				List<object> right = new();
+				foreach (object item in expectedItems) { right.Add(item); }
+				if (left.Count != right.Count) { return false; }
+				for (int i = 0; i < left.Count; i++)
+				{
+					if (AreEqualInternal(left[i], right[i]) == false) { return false; }
+				}
+				return true;
+			}
+			return AreEqualInternal(actual, expected);
+		}, $"equal to {Format(expected)}");
 		public static Constraint SameAs(object expected) => new(actual => ReferenceEquals(actual, expected), "same instance");
 		public static Constraint EquivalentTo(IEnumerable expected) => new(actual =>
 		{
