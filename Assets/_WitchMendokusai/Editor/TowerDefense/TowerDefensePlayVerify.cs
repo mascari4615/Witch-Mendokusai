@@ -434,12 +434,17 @@ namespace WitchMendokusai.EditorTools
 					// ★ 전체 실행도 이 길로 보낸다. 예전엔 「배치만」 변형만 들렀는데, 그 변형을 아무도
 					//   안 돌리는 바람에 *선택 패널 겹침 · 툴팁 겹침 · 코어 카드 · 이어하기* 검사가
 					//   로그 전체에서 0회였다(오늘 하루치를 다 뒤져도 한 줄도 없다). 도는 길에 있어야 검사다.
-					// ★ 파도만 실행은 여기서 끝낸다 — 확인하려던 것(파도 중 현상)은 이미 다 봤고,
-					//   그 뒤 배치·결말·이어하기·재시작이 4분을 더 먹는다.
+					// ★ 파도만 실행은 여기서 *끝내는* 게 아니라 파도 관측으로 **건너뛴다**.
+					//   앞 판에서 여기서 끝냈더니 100초에 죽었지만 파도 표본이 한 줄도 없었다 —
+					//   이 지점은 아직 배치 직후라 파도를 본 적이 없다. 화면·성능·굳음은 전부
+					//   그 뒤(방어 관찰 → 무방비 결말)에서 나온다. 건너뛸 것은 화면 배치·이어하기·재시작이다.
 					if (wavesOnly)
 					{
-						Debug.Log(TAG + " WAVES-ONLY 파도 확인 끝 — 조기 종료");
-						Finish();
+						Debug.Log(TAG + " WAVES-ONLY 파도 관측으로 건너뛴다(화면배치·이어하기·재시작 생략)");
+						defendedStart = now;
+						defendedLastResource = match != null ? match.Resource : -1;
+						killIncomeEvents = 0;
+						step = Step.ObserveDefended;
 						return;
 					}
 
