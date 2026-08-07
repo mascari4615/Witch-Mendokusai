@@ -1467,10 +1467,21 @@ namespace WitchMendokusai.EditorTools
 				return;
 			}
 
+			// ★ 적응은 총량이 아니라 *편중*으로 붙는다 — 한 수단이 전체의 1/3 을 넘어야 저항이 생긴다.
+			//   그러니 「둔화를 썼는데 저항 0」은 결함일 수도, 규칙대로일 수도 있다. 쓴 횟수를 물어 가른다.
+			(int slowUses, int splashHits, int pierceHits) = match.AdaptationUseCounts;
+			int totalUses = slowUses + splashHits + pierceHits;
+
 			if (note.Length == 0 && adaptationSawEnemies == false)
 				Debug.Log(TAG + " 적응 — 못 쟀다: 창이 도는 60초 동안 마수가 포탑 사거리 안에 한 기도 안 들어왔다(맞힐 것이 없으면 편중도 없다). 실패가 아니다.");
+			else if (note.Length == 0 && slowUses == 0)
+				Debug.LogWarning(TAG + " 적응 FAIL — 사거리 안에 마수가 있었는데 둔화가 한 번도 안 걸렸다"
+					+ " (쓴 횟수 둔화 0 · 광역 " + splashHits + " · 관통 " + pierceHits + ").");
 			else if (note.Length == 0)
-				Debug.LogWarning(TAG + " 적응 FAIL — 마수가 있었는데도 둔화 포탑이 아무 편중도 못 만들었다.");
+				Debug.Log(TAG + " 적응 — 못 쟀다: 둔화는 걸렸지만 편중이 안 생겼다"
+					+ " (둔화 " + slowUses + " · 광역 " + splashHits + " · 관통 " + pierceHits
+					+ " → 둔화 몫 " + (totalUses > 0 ? (slowUses * 100f / totalUses).ToString("F0") : "0")
+					+ "%, 저항이 붙으려면 33% 를 넘어야 한다). 규칙대로다 — 실패가 아니다.");
 			else
 				Debug.LogWarning(TAG + " 적응 FAIL — 규칙은 「" + note + "」인데 화면 어디에도 안 떴다(안 보이는 규칙 = 없는 규칙).");
 		}

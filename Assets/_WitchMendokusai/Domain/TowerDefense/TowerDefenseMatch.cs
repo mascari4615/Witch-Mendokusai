@@ -4354,6 +4354,35 @@ namespace WitchMendokusai
 			}
 		}
 
+		/// <summary>
+		/// 지금까지 각 수단을 몇 번 썼나 — 적응이 0 일 때 「안 쐈다」와 「골고루 썼다」를 가르는 유일한 값.
+		///
+		/// ★ 적응은 총량이 아니라 *편중*으로 붙는다(한 수단이 1/3 을 넘게 차지해야 저항이 생긴다).
+		///   그래서 「둔화 포탑을 세웠는데 저항이 0」은 결함일 수도, 규칙대로일 수도 있다 —
+		///   이 숫자 없이는 그 둘을 못 가른다(실측에서 멀쩡한 것을 두 번 실패로 찍었다).
+		/// </summary>
+		public (int Slow, int Splash, int Pierce) AdaptationUseCounts
+		{
+			get
+			{
+				int slowUses = 0;
+				int splashHits = 0;
+				int pierceHits = 0;
+				foreach (GameObject unit in spawnedUnits)
+				{
+					if (unit == null)
+						continue;
+					TowerDefenseWeapon weapon = unit.GetComponent<TowerDefenseWeapon>();
+					if (weapon == null)
+						continue;
+					slowUses += weapon.SlowApplied;
+					splashHits += weapon.SplashHits;
+					pierceHits += weapon.PierceHits;
+				}
+				return (slowUses, splashHits, pierceHits);
+			}
+		}
+
 		/// <summary> waveIndex 파의 성격 — 예고와 스폰이 같은 함수를 본다. </summary>
 		public TowerDefenseWaveEventKind WaveEventAt(int waveIndex)
 		{
