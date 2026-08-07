@@ -409,37 +409,26 @@ namespace WitchMendokusai
 			coordinator.Request(new DialoguePlayRequest(null, first, speakerTransform));
 		}
 
+		/// <summary>
+		/// 옛 대사 사슬도 **그래프로 세워서 같은 길로** 튼다.
+		///
+		/// ★ 왜 바꿨나: 예전엔 이쪽만 코루틴이 직접 말풍선을 띄우며 걸었다. 그래서 이 길로 나온 대화는
+		///   건너뛰기도, 시간 주입도, 로그의 고른 답도 못 받았다. 같은 일을 두 군데서 다르게 하면
+		///   한쪽은 반드시 뒤처진다 — 실제로 뒤처져 있었다.
+		///
+		/// 뜻은 그대로다: 갈래가 여럿이어도 첫째만 간다(옛 동작). 다만 이제 **버린 가지를 알린다** —
+		/// 고르는 화면이 생기면 그때 진짜 선택지로 올리면 된다.
+		/// </summary>
 		private void StartLine(DialogueLine first, Transform speakerTransform)
 		{
-			StopActive();
-			activeCoroutine = StartCoroutine(PlaySequence(first, speakerTransform));
-		}
-
-		private IEnumerator PlaySequence(DialogueLine first, Transform speakerTransform)
-		{
-			Transform target = ResolveTarget(speakerTransform);
-
-			DialogueLine current = first;
-			while (current != null)
+			DialogueGraph graph = DialogueLineChainGraphBuilder.Build(first, out int skippedBranchCount);
+			if (skippedBranchCount > 0)
 			{
-				Debug.Log($"[DialogueRunner] Speak: \"{current.Text}\" wait={current.Wait}");
-				Transcript.Record(current);
-
-				float duration = current.Wait > 0f ? current.Wait : DEFAULT_LINE_DURATION;
-
-				if (uiManager != null && uiManager.SpeechBubble != null && target != null)
-					uiManager.SpeechBubble.Show(target, current.Text, duration);
-
-				yield return new WaitForSeconds(duration);
-
-				if (current.Choices.Count > 0)
-					current = current.Choices[0];
-				else
-					current = null;
+				Debug.LogWarning(
+					$"[DialogueRunner] 옛 대사 사슬에 갈래 {skippedBranchCount}개가 버려진다 — 옛 길은 늘 첫째만 간다: \"{first.Text}\"");
 			}
 
-			activeCoroutine = null;
-			coordinator.NotifyFinished();
+			Play(graph, speakerTransform);
 		}
 	}
 }
