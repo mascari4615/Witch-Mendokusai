@@ -65,6 +65,19 @@ jobs:
         run: |
           ./.github/scripts/wm-init-order-audit.ps1
 
+      # 대화 하네스 — 유니티 없이 도는 순수 로직 시험(TASK-WM-052). 몇 초면 끝난다.
+      #
+      # ★ 왜 여기(ubuntu)에도 두나: 아래 EditMode 잡은 노트북 러너 한 대에 걸려 있어 자주 밀리거나
+      #   취소된다(이 파일 위쪽 주석의 실측 그대로). 그때 대화 쪽은 **아무 신호도 안 남는다.**
+      #   이 단계는 러너 상태와 무관하게 항상 돌아, 적어도 순수 로직이 깨졌는지는 바로 알려준다.
+      #   유니티 시험의 대체가 아니다 — 직렬화·에셋·PlayMode 는 여전히 아래 잡만 본다.
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Run dialogue harness
+        run: dotnet run --project Tools/dialogue-harness
+
   unity:
     name: EditMode tests (laptop runner)
     runs-on: [self-hosted, unity, windows-build]
