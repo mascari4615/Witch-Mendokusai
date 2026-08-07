@@ -1360,7 +1360,16 @@ namespace WitchMendokusai.EditorTools
 
 			Debug.Log(TAG + " 적응 결과 — 둔화저항 " + state.SlowResist.ToString("F2")
 				+ " · 규칙 「" + note + "」 · 창이 닫힐 때까지 화면에 한 번도 안 떴다"
-				+ " · 겨눈 자리에 살아있는 둔화 포탑 " + slowTowersAlive + "기 · 그 둘레 마수 " + nearAim + "기");
+				+ " · 겨눈 자리에 살아있는 둔화 포탑 " + slowTowersAlive + "기 · 그 둘레 마수 " + nearAim + "기"
+				+ " · 쏜 것을 알린 횟수 " + match.ShotsReported + " · 가장 시끄러운 곳 " + match.LoudestNoise.ToString("F1"));
+
+			// ★ 사격 소음이 도는지는 *포탑이 확실히 쏘는 자리*에서만 갈린다. 전투 없는 판에서 재면
+			//   「배선이 죽었다」와 「쏠 상황이 없었다」가 똑같이 0 으로 보인다(두 판을 그렇게 날렸다).
+			//   둔화 포탑을 둥지 옆에 세운 이 검사가 바로 그 자리다 — 여기서 0 이면 배선이 죽은 것이다.
+			if (slowTowersAlive > 0 && match.ShotsReported == 0)
+				Debug.LogWarning(TAG + " 소리 FAIL — 포탑이 서 있는데 쏜 것을 한 번도 안 알렸다(사격 소음 배선이 죽었다).");
+			else if (slowTowersAlive > 0)
+				Debug.Log(TAG + " 소리 — 사격 소음 살아 있다(알린 횟수 " + match.ShotsReported + ").");
 
 			if (note.Length == 0 && slowTowersAlive == 0)
 			{
@@ -1454,6 +1463,7 @@ namespace WitchMendokusai.EditorTools
 			}
 
 			float now = match.LoudestNoise;
+			Debug.Log($"{TAG} 소리 유지 — 쏜 것을 알린 횟수 {match.ShotsReported}");
 			Debug.Log($"{TAG} 소리 유지 — 12초 전 {noiseLoudestFirst:F1} → 지금 {now:F1}"
 				+ $" (아무것도 안 나면 이 사이에 거의 0 이 된다 · 잦아드는 비율로 계산하면 {noiseLoudestFirst * 0.0057f:F2} 쯤)");
 
