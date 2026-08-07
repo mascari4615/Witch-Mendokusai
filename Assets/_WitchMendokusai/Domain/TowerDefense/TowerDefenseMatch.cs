@@ -4956,7 +4956,13 @@ namespace WitchMendokusai
 						: "안내 없음";
 				}
 
-				string why = guide + " · 브레인 " + (stuckDriver == null ? "없음" : stuckDriver.enabled ? "켜짐" : "꺼짐")
+				// ★ 마지막 한 겹 — 방향을 *받았는지*와 실제로 *나가는지*는 다르다. 받은 방향이 0 이면
+				//   브레인이 명령을 안 준 것이고, 방향은 있는데 속도가 0 이면 몸이 막힌 것이다.
+				string body = stuckMovement == null ? "이동부품 없음"
+					: "받은방향 " + stuckMovement.MoveDirectionWorld.magnitude.ToString("F2")
+						+ " · 속도 " + stuckMovement.Velocity.magnitude.ToString("F2");
+
+				string why = body + " · " + guide + " · 브레인 " + (stuckDriver == null ? "없음" : stuckDriver.enabled ? "켜짐" : "꺼짐")
 					+ " · 이동 " + (stuckMovement == null ? "없음" : stuckMovement.enabled ? "켜짐" : "꺼짐")
 					+ " · 소속 " + (stuckMember != null ? stuckMember.LairId.ToString() : "없음")
 					+ " · 옆에 " + crowd + "마리";
