@@ -18,6 +18,10 @@ namespace WitchMendokusai
 		[field: Tooltip("Speaker 자산이 없을 때 쓸 이름 — 대본에서 만들어진 줄이 여기 이름만 들고 온다.")]
 		public string SpeakerName { get; private set; }
 		[field: SerializeField, TextArea(3, 10)] public string Text { get; private set; }
+
+		[field: SerializeField]
+		[field: Tooltip("무대 지시 — 「(한숨)」 처럼 *말이 아닌* 것. 말풍선엔 안 들어간다.")]
+		public string StageDirection { get; private set; }
 		[field: SerializeField] public Sprite Portrait { get; private set; }
 		[field: SerializeField] public AudioClip Sfx { get; private set; }
 		[field: SerializeField] public float Wait { get; private set; } = 0f;
@@ -28,11 +32,12 @@ namespace WitchMendokusai
 		/// 자산이 아니라 메모리에만 사는 줄이라 파일이 안 생긴다(모드·UGC 가 글만으로 대화를 넣을 길).
 		/// 이 통로 말고 다른 데서 값을 바꾸지 말 것 — 나머지는 인스펙터가 정본이다.
 		/// </summary>
-		public static DialogueLine CreateRuntime(string speakerName, string text, float wait = 0f)
+		public static DialogueLine CreateRuntime(string speakerName, string text, float wait = 0f, string stageDirection = null)
 		{
 			DialogueLine line = CreateInstance<DialogueLine>();
 			line.SpeakerName = speakerName;
 			line.Text = text;
+			line.StageDirection = stageDirection;
 			line.Wait = wait;
 			line.name = string.IsNullOrEmpty(speakerName) ? "DialogueLine_" : $"DialogueLine_{speakerName}";
 			return line;
