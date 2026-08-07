@@ -29,6 +29,11 @@ namespace WitchMendokusai.Tests
 					Applied.Add(effects[i]);
 				}
 			}
+
+			/// <summary>이 시험은 인스펙터로 물린 효과만 본다 — 글로 적은 효과는 대본 시험이 따로 잠근다.</summary>
+			public void ApplyData(IReadOnlyList<EffectInfoData> effects)
+			{
+			}
 		}
 
 		private static DialogueGraph NewGraph() => ScriptableObject.CreateInstance<DialogueGraph>();

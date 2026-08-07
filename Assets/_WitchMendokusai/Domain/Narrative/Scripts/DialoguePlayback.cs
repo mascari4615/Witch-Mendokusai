@@ -222,7 +222,14 @@ namespace WitchMendokusai
 					throw new InvalidOperationException(
 						"Dialogue graph has a DialogueEffectNode but no effect sink was given — the authored effects would silently do nothing.");
 				}
-				effectSink.Apply(step.Effects);
+				if (step.Effects != null && step.Effects.Count > 0)
+				{
+					effectSink.Apply(step.Effects);
+				}
+				if (step.EffectData != null && step.EffectData.Count > 0)
+				{
+					effectSink.ApplyData(step.EffectData);
+				}
 				step = traversal.Next();
 			}
 			return step;

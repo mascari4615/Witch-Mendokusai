@@ -193,7 +193,7 @@ namespace WitchMendokusai
 						node.Id));
 				}
 
-				if (node is DialogueEffectNode effectNode && effectNode.Effects.Count == 0)
+				if (node is DialogueEffectNode effectNode && effectNode.Effects.Count == 0 && effectNode.EffectData.Count == 0)
 				{
 					result.Add(new DialogueGraphIssue(
 						DialogueGraphIssueKind.EffectNodeWithoutEffects,

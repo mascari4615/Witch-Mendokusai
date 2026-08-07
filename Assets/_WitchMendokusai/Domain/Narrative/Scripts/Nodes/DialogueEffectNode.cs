@@ -27,7 +27,12 @@ namespace WitchMendokusai
 
 		[SerializeField] private List<EffectInfo> effects = new();
 
+		[SerializeField]
+		[Tooltip("글로 적은 효과 — 자산 대신 번호로 가리킨다. 대본에서 세워진 노드가 이쪽을 쓴다.")]
+		private List<EffectInfoData> effectData = new();
+
 		public List<EffectInfo> Effects { get => effects; set => effects = value ?? new(); }
+		public List<EffectInfoData> EffectData { get => effectData; set => effectData = value ?? new(); }
 
 		protected override IEnumerable<NodePort> CreatePorts()
 		{

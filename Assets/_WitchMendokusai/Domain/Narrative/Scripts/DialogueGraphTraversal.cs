@@ -32,11 +32,14 @@ namespace WitchMendokusai
 		public float WaitSeconds { get; }
 		public string WaitEventId { get; }
 		public IReadOnlyList<EffectInfo> Effects { get; }
+		public IReadOnlyList<EffectInfoData> EffectData { get; }
 
 		private DialogueStep(DialogueStepKind kind, DialogueLine speakLine, string prompt, IReadOnlyList<string> options,
-			DialogueWaitKind waitKind, float waitSeconds, string waitEventId, IReadOnlyList<EffectInfo> effects = null)
+			DialogueWaitKind waitKind, float waitSeconds, string waitEventId, IReadOnlyList<EffectInfo> effects = null,
+			IReadOnlyList<EffectInfoData> effectData = null)
 		{
 			Effects = effects;
+			EffectData = effectData;
 			Kind = kind;
 			SpeakLine = speakLine;
 			Prompt = prompt;
@@ -46,8 +49,8 @@ namespace WitchMendokusai
 			WaitEventId = waitEventId;
 		}
 
-		public static DialogueStep Effect(IReadOnlyList<EffectInfo> effects) =>
-			new(DialogueStepKind.Effect, null, null, null, default, 0f, null, effects);
+		public static DialogueStep Effect(IReadOnlyList<EffectInfo> effects, IReadOnlyList<EffectInfoData> effectData = null) =>
+			new(DialogueStepKind.Effect, null, null, null, default, 0f, null, effects, effectData);
 		public static DialogueStep Speak(DialogueLine line) =>
 			new(DialogueStepKind.Speak, line, null, null, default, 0f, null);
 		public static DialogueStep Choice(string prompt, IReadOnlyList<string> options) =>
@@ -232,7 +235,7 @@ namespace WitchMendokusai
 			}
 			if (currentNode is DialogueEffectNode effectNode)
 			{
-				return DialogueStep.Effect(effectNode.Effects);
+				return DialogueStep.Effect(effectNode.Effects, effectNode.EffectData);
 			}
 			return DialogueStep.End;
 		}
