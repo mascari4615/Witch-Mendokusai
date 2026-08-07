@@ -93,21 +93,39 @@ def run_harness():
     return 'BUILD-FAIL'
 
 
+def read_text(path):
+    # 줄바꿈을 그대로 둔다 — 안 그러면 복구할 때 파일 전체가 「바뀐 것」이 되어 작업 트리가 더러워진다.
+    with io.open(path, encoding='utf-8', newline='') as handle:
+        return handle.read()
+
+
+def write_text(path, text):
+    with io.open(path, 'w', encoding='utf-8', newline='') as handle:
+        handle.write(text)
+
+
 def main():
     missed = 0
     for name, relative_path, original, broken in MUTATIONS:
         path = ROOT + relative_path
-        source = io.open(path, encoding='utf-8').read()
+        source = read_text(path)
+
+        # 목록은 줄바꿈을 \n 으로 적어 두지만 파일은 윈도우에서 \r\n 일 수 있다.
+        # 파일 쪽에 맞춰서 찾는다 — 안 맞추면 전부 SKIP 이 되고, 그건 「구멍 없음」처럼 보인다.
+        if '\r\n' in source:
+            original = original.replace('\n', '\r\n')
+            broken = broken.replace('\n', '\r\n')
+
         if original not in source:
             print('SKIP(코드가 바뀌었다) ::', name)
             missed += 1
             continue
 
-        io.open(path, 'w', encoding='utf-8').write(source.replace(original, broken, 1))
+        write_text(path, source.replace(original, broken, 1))
         try:
             result = run_harness()
         finally:
-            io.open(path, 'w', encoding='utf-8').write(source)
+            write_text(path, source)
 
         caught = result == 'BUILD-FAIL' or (result.startswith('passed=') and not result.endswith('failed=0'))
         if caught is False:
