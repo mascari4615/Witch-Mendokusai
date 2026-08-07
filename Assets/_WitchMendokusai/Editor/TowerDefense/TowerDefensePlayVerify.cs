@@ -1144,6 +1144,16 @@ namespace WitchMendokusai.EditorTools
 				if (frozen > 0)
 					Debug.LogError($"{TAG} 굳음 FAIL — {frozen}기가 전술이 꺼진 채로 살아 있다(풀에 상태가 새어 나갔다).");
 
+				// ★ 길찾기 상한이 판에 비해 모자라면 마수가 「갈 길이 있는데」 못 간다 — 증상은
+				//   「몇 마리가 그냥 안 움직인다」로만 보여서 원인을 길찾기로 짚기가 어렵다.
+				if (match != null)
+				{
+					Debug.Log($"{TAG} 길찾기 — 판 {match.MapCellCount}칸 · 한 번에 최대 {match.PathPeakCells}칸 펼침"
+						+ $" · 상한에 걸려 포기 {match.PathCapHits}회");
+					if (match.PathCapHits > 0)
+						Debug.LogError($"{TAG} 길찾기 FAIL — 상한에 걸려 {match.PathCapHits}회 포기했다(마수가 갈 길이 있는데 못 간다).");
+				}
+
 				// 강도는 시간이 올리는 규칙이다 — 「내 포탑이 약해졌다」로 오해하지 않으려면 보여야 한다.
 				Debug.Log($"{TAG} 강도 — 마수 강도 {(match != null ? match.Pressure : 0f):F2}");
 

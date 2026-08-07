@@ -101,6 +101,19 @@ namespace WitchMendokusai.Tests
 		}
 
 		[Test]
+		public void 탐색_상한이_판_크기를_따라_커진다()
+		{
+			// ★ 상수 상한은 판이 커질수록 조용히 모자라진다 — 그 증상은 「몇 마리가 안 움직인다」뿐이다.
+			//   작은 판에서는 최소값을 지키고, 큰 판에서는 판을 따라 커져야 한다.
+			TowerDefenseGridPath small = Make(20, 20, new HashSet<Vector2Int>());
+			TowerDefenseGridPath big = Make(200, 200, new HashSet<Vector2Int>());
+
+			Assert.AreEqual(4000, small.MaxExpandedCells, "작은 판은 최소값을 지킨다.");
+			Assert.Greater(big.MaxExpandedCells, small.MaxExpandedCells, "큰 판인데 상한이 그대로면 길을 못 찾는다.");
+			Assert.AreEqual(20000, big.MaxExpandedCells);
+		}
+
+		[Test]
 		public void 같은_입력이면_같은_길이_나온다()
 		{
 			HashSet<Vector2Int> walls = new();

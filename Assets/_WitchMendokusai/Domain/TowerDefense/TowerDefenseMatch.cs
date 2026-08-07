@@ -1296,6 +1296,15 @@ namespace WitchMendokusai
 			return false;
 		}
 
+		/// <summary> 길찾기가 상한에 걸려 포기한 횟수 — 0 이 아니면 갈 길이 있는데도 못 가는 마수가 있다. </summary>
+		public int PathCapHits => gridPath != null ? gridPath.CapHits : 0;
+
+		/// <summary> 한 번의 길찾기에서 가장 많이 펼친 칸 수 — 상한(기본 4000)에 얼마나 가까운지. </summary>
+		public int PathPeakCells => gridPath != null ? gridPath.PeakExpandedCells : 0;
+
+		/// <summary> 판 크기(칸) — 상한이 판에 비해 충분한지 함께 봐야 판단이 된다. </summary>
+		public int MapCellCount => mapLayout != null ? mapLayout.Width * mapLayout.Length : 0;
+
 		/// <summary> 지금 판에 깔려 있는 함정 수 — 이어하기가 함정을 잃는지 하네스가 직접 센다. </summary>
 		public int TrapCount => stageRoot != null ? stageRoot.GetComponentsInChildren<TowerDefenseTrap>(true).Length : 0;
 

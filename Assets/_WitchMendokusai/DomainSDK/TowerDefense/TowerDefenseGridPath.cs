@@ -31,17 +31,36 @@ namespace WitchMendokusai
 		private readonly Dictionary<Vector2Int, Vector2Int> cameFrom = new();
 		private readonly HashSet<Vector2Int> closed = new();
 
-		/// <summary> 한 번의 탐색이 열어볼 수 있는 칸 수 상한 — 길이 없을 때 판 전체를 훑고 프레임을 잡아먹지 않게. </summary>
-		public int MaxExpandedCells { get; set; } = 4000;
+		/// <summary>
+		/// 한 번의 탐색이 열어볼 수 있는 칸 수 상한 — 길이 없을 때 판 전체를 훑고 프레임을 잡아먹지 않게.
+		///
+		/// ★ **판 크기에서 나온다.** 예전엔 4000 이라는 상수였는데, 판은 200×200(=40000칸)까지 자란다 —
+		///   상수는 판이 커질수록 *조용히* 모자라진다. 실측에서 이미 한 번에 2196칸(상한의 55%)을
+		///   펼치고 있었다. 넘는 순간의 증상은 「몇 마리가 그냥 안 움직인다」뿐이라 원인을 짚기가 어렵다.
+		///   판의 절반이면 막다른 길을 훑기엔 넉넉하고, 폭주는 여전히 막는다.
+		/// </summary>
+		public int MaxExpandedCells { get; set; }
 
 		/// <summary> 마지막 탐색이 연 칸 수 — 비용을 눈으로 볼 수 있어야 느려질 때 원인을 짚는다. </summary>
 		public int LastExpandedCells { get; private set; }
+
+		/// <summary>
+		/// 상한에 걸려 「길 없음」으로 끝난 횟수 — **0 이 아니면 마수가 갈 길이 있는데도 못 간다.**
+		/// 상한은 판이 커지면 모자랄 수 있는데, 그 증상은 「몇 마리가 그냥 안 움직인다」로만 보여서
+		/// 원인을 길찾기로 짚기가 어렵다. 그래서 규칙층이 직접 센다.
+		/// </summary>
+		public int CapHits { get; private set; }
+
+		/// <summary> 지금까지 한 번의 탐색에서 가장 많이 펼친 칸 수 — 상한에 얼마나 가까운지 본다. </summary>
+		public int PeakExpandedCells { get; private set; }
 
 		public TowerDefenseGridPath(int width, int length, System.Func<Vector2Int, bool> isBlocked)
 		{
 			this.width = width;
 			this.length = length;
 			this.isBlocked = isBlocked;
+			// 상한은 판에서 파생된다 — 상수로 두면 판이 커질 때 아무도 안 고치고 조용히 모자라진다.
+			MaxExpandedCells = Mathf.Max(4000, width * length / 2);
 		}
 
 		private static readonly Vector2Int[] STEPS =
@@ -98,8 +117,13 @@ namespace WitchMendokusai
 				}
 
 				LastExpandedCells++;
+				if (LastExpandedCells > PeakExpandedCells)
+					PeakExpandedCells = LastExpandedCells;
 				if (LastExpandedCells > MaxExpandedCells)
+				{
+					CapHits++; // 「길이 없다」가 아니라 「그만 찾았다」다 — 둘을 뭉치면 원인을 영영 못 찾는다.
 					break;
+				}
 
 				for (int index = 0; index < STEPS.Length; index++)
 				{
