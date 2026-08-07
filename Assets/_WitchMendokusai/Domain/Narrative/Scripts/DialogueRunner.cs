@@ -103,6 +103,26 @@ namespace WitchMendokusai
 			Coordinator.OnStartRequested += StartRequested;
 		}
 
+		/// <summary>
+		/// 우리가 그 자리에서 세운 그래프를 버린다.
+		///
+		/// ★ 왜: 옛 대사 사슬은 틀 때마다 그래프 하나와 노드들을 새로 만든다. 안 버리면
+		///   마을 사람에게 말 걸 때마다 하나씩 쌓인다(예전 코루틴 길은 아무것도 안 만들었다).
+		///   원고에서 세운 그래프는 **자산이 들고 재사용**하므로 여기서 손대면 안 된다 — 그래서 표시를 본다.
+		/// </summary>
+		private void DiscardOwnedGraph()
+		{
+			if (ownsPlayingGraph == false)
+			{
+				return;
+			}
+			ownsPlayingGraph = false;
+			if (playingGraph != null)
+			{
+				Destroy(playingGraph);
+			}
+		}
+
 		private void OnDestroy()
 		{
 			Coordinator.OnStartRequested -= StartRequested;
@@ -118,9 +138,12 @@ namespace WitchMendokusai
 		private Transform bubbleTarget;
 		private DialogueGraph playingGraph;
 
-		// 원고로 재생 중이면 그 자산 ID — 이력은 그래프가 아니라 *원고* 단위로 남아야 한다
-		// (그래프는 원고에서 매번 세워지는 사본이라 ID 가 없다).
-		private int playingScriptId = DataSO.NONE_ID;
+		// 지금 트는 대화의 번호 — 이력은 이 번호로 남는다. 원고로 틀면 원고 자산 번호,
+		// 그래프를 직접 틀면 그 그래프 번호, 그 자리에서 세운 것이면 NONE_ID(= 안 남김).
+		private int playingDialogueId = DataSO.NONE_ID;
+
+		// 이 그래프를 우리가 만들었나 — 만들었으면 끝나고 버려야 한다(안 버리면 틀 때마다 쌓인다).
+		private bool ownsPlayingGraph;
 
 		/// <summary>「이 대화를 본 적 있나」 기록 — 조건이 <see cref="DialogueHistoryBridge"/> 로 찾아온다.</summary>
 		public DialogueHistory History { get; } = new();
@@ -180,15 +203,31 @@ namespace WitchMendokusai
 			}
 		}
 
-		/// <summary>조정자가 「이 그래프를 걸어라」 할 때 실제로 거는 자리.</summary>
-		private void StartGraph(DialogueGraph graph, Transform speakerTransform)
+		/// <summary>
+		/// 조정자가 「이 그래프를 걸어라」 할 때 실제로 거는 자리.
+		///
+		/// ★ 번호를 **인자로 받는 이유**: 재생을 시작하면 그 자리에서 끝까지 갈 수도 있다
+		///   (빈 그래프·못 읽은 원고). 그러면 「끝났다」 처리가 <see cref="playback"/> 을 만드는 줄 안에서
+		///   먼저 일어나므로, 번호를 **그 뒤에** 적으면 이미 늦다 — 엉뚱한 번호로 기록되고,
+		///   그 사이 걸린 다음 대화에 앞 대화의 번호가 찍힌다. 시작 전에 확정한다.
+		/// </summary>
+		/// <param name="dialogueId">
+		/// 이력에 남길 번호. <see cref="DataSO.NONE_ID"/> 면 **아무것도 안 남긴다** —
+		/// 옛 대사 사슬처럼 그 자리에서 세운 그래프는 번호가 없다(기본값 0 을 쓰면
+		/// 0 번 자산을 「봤다」고 적어 버린다).
+		/// </param>
+		private void StartGraph(DialogueGraph graph, Transform speakerTransform, int dialogueId)
 		{
 			StopActive();
+			DiscardOwnedGraph();
 
 			bubbleTarget = ResolveTarget(speakerTransform);
 			playingGraph = graph;
-			playingScriptId = DataSO.NONE_ID;
-			History.MarkStarted(graph.ID);
+			playingDialogueId = dialogueId;
+			if (dialogueId != DataSO.NONE_ID)
+			{
+				History.MarkStarted(dialogueId);
+			}
 			playback = new DialoguePlayback(graph, effectSink)
 			{
 				DefaultSpeakSeconds = defaultLineSeconds,
@@ -235,7 +274,7 @@ namespace WitchMendokusai
 			}
 			if (request.Graph != null)
 			{
-				StartGraph(request.Graph, request.SpeakerTransform);
+				StartGraph(request.Graph, request.SpeakerTransform, request.Graph.ID);
 				return;
 			}
 			StartLine(request.Line, request.SpeakerTransform);
@@ -251,9 +290,8 @@ namespace WitchMendokusai
 			}
 
 			// 이미 조정자가 「걸어라」 한 뒤다 — 여기서 또 줄을 서면 자기 뒤에 서서 영영 안 걸린다.
-			StartGraph(graph, speakerTransform);
-			History.MarkStarted(source.ID);
-			playingScriptId = source.ID;
+			// 번호는 **넘겨서** 시작 전에 박는다(시작하자마자 끝나는 원고가 있다).
+			StartGraph(graph, speakerTransform, source.ID);
 		}
 
 		/// <summary>선택지 고르기 — UI 가 호출. Choice 스텝이 아니면 false.</summary>
@@ -376,20 +414,24 @@ namespace WitchMendokusai
 		/// </summary>
 		private void HandleChoiceSelected(string label)
 		{
-			History.MarkChoice(CurrentDialogueId, label);
+			// 번호 없는 재생(그 자리에서 세운 사슬)은 남길 자리가 없다 — 0 번에 적으면 남의 칸을 더럽힌다.
+			if (CurrentDialogueId != DataSO.NONE_ID)
+			{
+				History.MarkChoice(CurrentDialogueId, label);
+			}
 
 			// 로그에도 남긴다 — 되짚는 이유의 절반은 「내가 뭐라고 했더라」다.
 			Transcript.RecordChoice(label);
 		}
 
-		/// <summary>지금 틀고 있는 대화의 번호 — 원고 자산이면 그 자산 번호, 아니면 그래프 번호.</summary>
-		private int CurrentDialogueId =>
-			playingScriptId == DataSO.NONE_ID ? (playingGraph == null ? DataSO.NONE_ID : playingGraph.ID) : playingScriptId;
+		/// <summary>지금 틀고 있는 대화의 번호. 번호 없는 재생이면 <see cref="DataSO.NONE_ID"/>.</summary>
+		private int CurrentDialogueId => playingDialogueId;
 
 		private void HandlePlaybackFinished()
 		{
 			// 끝까지 간 것만 「들었다」로 남긴다 — 중간에 접은 대화는 다음에 다시 보여줘야 한다.
-			if (playingGraph != null && playback != null && playback.ReachedEnd)
+			if (playingGraph != null && playback != null && playback.ReachedEnd
+				&& CurrentDialogueId != DataSO.NONE_ID)
 			{
 				History.MarkCompleted(CurrentDialogueId);
 			}
@@ -397,6 +439,7 @@ namespace WitchMendokusai
 
 			// 지금 막 끝난 재생을 정리한 *뒤* 다음 것을 건다 — 안 그러면 「재생 중」으로 보여 또 줄을 선다.
 			playback = null;
+			DiscardOwnedGraph();
 			playingGraph = null;
 			Coordinator.NotifyFinished();
 		}
@@ -471,7 +514,10 @@ namespace WitchMendokusai
 					$"[DialogueRunner] 옛 대사 사슬에 갈래 {skippedBranchCount}개가 버려진다 — 옛 길은 늘 첫째만 간다: \"{first.Text}\"");
 			}
 
-			StartGraph(graph, speakerTransform);
+			// 그 자리에서 세운 그래프라 번호가 없다 — 이력에 아무것도 안 남긴다.
+			// (기본값 0 을 그대로 쓰면 0 번 자산을 「봤다」고 적는다. 0 은 실제로 쓰이는 번호다.)
+			ownsPlayingGraph = true;
+			StartGraph(graph, speakerTransform, DataSO.NONE_ID);
 		}
 	}
 }

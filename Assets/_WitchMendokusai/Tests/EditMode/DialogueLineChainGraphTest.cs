@@ -103,5 +103,19 @@ namespace WitchMendokusai.Tests
 
 			Assert.That(runner.IsPlaying, Is.False, "시간이 지나면 끝까지 흐른다");
 		}
+
+		[Test]
+		public void TheOldEntryLeavesNoHistoryUnderIdZero()
+		{
+			// 그 자리에서 세운 그래프는 번호가 없다. 기본값 0 을 그대로 쓰면
+			// **0 번 자산을 「봤다」고 적어 버린다** — 0 은 이 프로젝트에서 실제로 쓰이는 번호다.
+			// 그러면 그 대화의 「처음 만났을 때만」 대사가 영영 안 나온다. 저장 파일까지 따라간다.
+			DialogueRunner runner = new GameObject("DialogueLineChainHistoryTest").AddComponent<DialogueRunner>();
+			runner.Play(Chain(NewLine(), NewLine()));
+			runner.Tick(60f);
+
+			Assert.That(runner.History.HasSeen(0, DialogueSeenKind.Started), Is.False);
+			Assert.That(runner.History.HasSeen(0, DialogueSeenKind.Completed), Is.False);
+		}
 	}
 }
