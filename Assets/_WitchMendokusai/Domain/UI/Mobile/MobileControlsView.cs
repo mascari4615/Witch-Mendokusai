@@ -64,6 +64,7 @@ namespace WitchMendokusai
 		private VisualElement lookBackdrop;
 		private Label lookHint;
 		private Label overheadHint;
+		private Label arenaExitButton;
 		private Rect lastSafeArea;
 		private int lastScreenWidth;
 		private int lastScreenHeight;
@@ -96,6 +97,8 @@ namespace WitchMendokusai
 			// 안내는 층에 따로 붙어 있어서 같이 안 걷으면 조작 장치가 사라진 화면에 글자만 남는다.
 			if (overheadHint != null)
 				overheadHint.RemoveFromHierarchy();
+			if (arenaExitButton != null)
+				arenaExitButton.RemoveFromHierarchy();
 			built = false;
 		}
 
@@ -150,7 +153,9 @@ namespace WitchMendokusai
 			}
 
 			PushStickValue();
-			UpdateOverheadHint(show, InputManager.TryGetExistingInstance(out InputManager held) ? held : null);
+			InputManager touch = InputManager.TryGetExistingInstance(out InputManager held) ? held : null;
+			UpdateOverheadHint(show, touch);
+			UpdateArenaExitButton(touch);
 			UpdateInteractButton(show, playerProvider);
 			UpdateLookBackdropBlocking();
 			// 화면을 돌렸을 때의 처리는 위(다시 세우기) 한 곳뿐이다. 여기에 「여백만 다시 재기」를
@@ -262,6 +267,7 @@ namespace WitchMendokusai
 			BuildLookBackdrop(uiRoot);
 			BuildControls(uiRoot);
 			BuildOverheadHint(uiRoot);
+			BuildArenaExitButton(uiRoot);
 			built = true;
 		}
 
@@ -339,6 +345,40 @@ namespace WitchMendokusai
 			overheadHint.style.color = Color.white;
 			overheadHint.style.display = DisplayStyle.None;
 			uiRoot.HudLayer.Add(overheadHint);
+		}
+
+		/// <summary>
+		/// 투기장(관전)에서 나가는 버튼 — 폰에는 이 길이 **아예 없었다** (TASK-WM-200).
+		///
+		/// ★ 투기장은 나가는 방법이 키 하나(X)뿐이다. 그런데 그 모드에선 손가락 조작 장치가 통째로
+		///   숨고, 투기장은 자기 화면 메뉴를 안 가졌다(개척은 가졌다). 그래서 폰에서 투기장에 들어가면
+		///   **앱을 죽이는 것 말고 나갈 방법이 0** 이었다.
+		/// ★ 개척에는 이미 자기 메뉴가 있으니 여기서는 투기장일 때만 띄운다 — 나가는 문이 둘이면
+		///   어느 쪽이 진짜인지 헷갈린다.
+		/// </summary>
+		private void BuildArenaExitButton(UIRoot uiRoot)
+		{
+			arenaExitButton = MakeTapButton("나가기", InputEventType.Cancel);
+			arenaExitButton.name = "MobileArenaExit";
+			arenaExitButton.style.position = Position.Absolute;
+			arenaExitButton.style.left = edgeMargin;
+			arenaExitButton.style.top = edgeMargin;
+			arenaExitButton.style.display = DisplayStyle.None;
+			uiRoot.HudLayer.Add(arenaExitButton);
+		}
+
+		private void UpdateArenaExitButton(InputManager inputManager)
+		{
+			if (arenaExitButton == null)
+				return;
+
+			bool inArena = GameModeManager.TryGetExistingInstance(out GameModeManager gameModeManager)
+				&& gameModeManager.CurrentMode == GameMode.Arena;
+			DisplayStyle display = inArena && inputManager != null && inputManager.IsTouchMode
+				? DisplayStyle.Flex
+				: DisplayStyle.None;
+			if (arenaExitButton.style.display != display)
+				arenaExitButton.style.display = display;
 		}
 
 		private const string OVERHEAD_HINT_SEEN_KEY = "WM.Mobile.OverheadHintSeen";
