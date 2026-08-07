@@ -162,7 +162,6 @@ namespace WitchMendokusai
 			playback.OnStepChanged += HandleStepChanged;
 			playback.OnFinished += HandlePlaybackFinished;
 
-			activeCoroutine = StartCoroutine(DriveGraph());
 			playback.Begin();
 		}
 
@@ -232,14 +231,27 @@ namespace WitchMendokusai
 			StopActive();
 		}
 
-		private IEnumerator DriveGraph()
+		private void Update()
 		{
-			while (playback != null && playback.IsPlaying)
+			Tick(Time.deltaTime);
+		}
+
+		/// <summary>
+		/// 시간 주입 — 그래프 재생을 그만큼 민다.
+		///
+		/// ★ 왜 코루틴을 걷어냈나: 예전엔 코루틴이 매 프레임 밀었다. 그러면 **화면 없이는 대화가 한 발도 못 간다** —
+		///   시간을 주는 쪽이 유니티뿐이라, 「끝까지 갔을 때 다음 대화가 이어 걸리나」 같은 걸 볼 방법이 없었다.
+		///   재생기가 이미 시간을 밖에서 받는 것과 같은 결로 맞춘다(그쪽이 화면 없이 검증되는 이유가 그것이다).
+		///
+		/// 게임에서는 <c>Update</c> 가 부른다. 재생 중이 아니면 아무 일도 안 한다.
+		/// </summary>
+		public void Tick(float deltaTime)
+		{
+			if (playback == null || playback.IsPlaying == false)
 			{
-				playback.Tick(Time.deltaTime);
-				yield return null;
+				return;
 			}
-			activeCoroutine = null;
+			playback.Tick(deltaTime);
 		}
 
 		private void HandleStepChanged(DialogueStep step)
