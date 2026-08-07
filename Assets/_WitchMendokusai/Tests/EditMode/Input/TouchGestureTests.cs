@@ -122,6 +122,60 @@ namespace WitchMendokusai.Tests
 			Assert.AreEqual(90f, gesture.TwistDelta, 0.001f);
 		}
 
+		/// <summary> 첫 손가락은 원점, 둘째 손가락은 100 픽셀 떨어진 자리에서 주어진 각도만큼 돌아가 있다. </summary>
+		private static List<Vector2> Rotated(float degrees)
+		{
+			float radians = degrees * Mathf.Deg2Rad;
+			return Two(Vector2.zero, new Vector2(Mathf.Cos(radians), Mathf.Sin(radians)) * 100f);
+		}
+
+		[Test]
+		public void 오므리다_딸려_돈_각도로는_시점이_안_돈다()
+		{
+			TouchGesture gesture = new TouchGesture();
+
+			gesture.Update(Rotated(0f), FRAME);
+			gesture.Update(Rotated(3f), FRAME);
+			Assert.AreEqual(0f, gesture.TwistDelta, 0.001f, "3도 돌았을 뿐인데 시점이 돌았다.");
+
+			gesture.Update(Rotated(6f), FRAME);
+			Assert.AreEqual(0f, gesture.TwistDelta, 0.001f, "문턱(8도)을 안 넘었는데 시점이 돌았다.");
+		}
+
+		[Test]
+		public void 문턱을_넘으면_모아_둔_각도가_한꺼번에_나온다()
+		{
+			TouchGesture gesture = new TouchGesture();
+
+			gesture.Update(Rotated(0f), FRAME);
+			gesture.Update(Rotated(3f), FRAME);
+			gesture.Update(Rotated(6f), FRAME);
+			gesture.Update(Rotated(9f), FRAME);
+
+			// 참았던 9도가 통째로 나와야 손가락과 화면이 안 어긋난다.
+			Assert.AreEqual(9f, gesture.TwistDelta, 0.01f);
+
+			// 한 번 열린 뒤엔 문턱보다 작아도 그대로 통과한다 — 아니면 돌리는 중에 덜컹거린다.
+			gesture.Update(Rotated(11f), FRAME);
+			Assert.AreEqual(2f, gesture.TwistDelta, 0.01f);
+		}
+
+		[Test]
+		public void 손가락을_뗐다_다시_얹으면_문턱이_다시_잠긴다()
+		{
+			TouchGesture gesture = new TouchGesture();
+
+			gesture.Update(Rotated(0f), FRAME);
+			gesture.Update(Rotated(20f), FRAME);
+			Assert.AreEqual(20f, gesture.TwistDelta, 0.01f, "문턱이 안 열렸다 — 앞선 전제가 깨졌다.");
+
+			gesture.Update(NONE, FRAME);
+			gesture.Update(Rotated(0f), FRAME);
+			gesture.Update(Rotated(3f), FRAME);
+
+			Assert.AreEqual(0f, gesture.TwistDelta, 0.001f, "다시 얹자마자 3도로 시점이 돌았다.");
+		}
+
 		[Test]
 		public void 아무도_안_닿으면_마지막_자리를_지킨다()
 		{

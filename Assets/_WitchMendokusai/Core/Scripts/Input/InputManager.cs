@@ -126,6 +126,8 @@ namespace WitchMendokusai
 		[SerializeField] private float tapMaxTravelPixels = 24f;
 		[SerializeField] private float dragSlopPixels = 12f;
 		[SerializeField] private float pinchToZoomScale = 0.5f;
+		[Tooltip("두 손가락이 이만큼 돌아가기 전엔 시점을 안 돌린다 (도). 오므릴 때 손이 딸려 도는 각도를 거른다.")]
+		[SerializeField, Min(0f)] private float twistDeadZoneDegrees = 8f;
 
 		/// <summary>
 		/// 손가락 조작을 강제로 켠다 — 컴퓨터에서 *폰 화면을 확인하기 위한* 스위치 (TASK-WM-200).
@@ -489,6 +491,7 @@ namespace WitchMendokusai
 				TapMaxSeconds = tapMaxSeconds,
 				TapMaxTravelPixels = tapMaxTravelPixels,
 				DragSlopPixels = dragSlopPixels,
+				TwistDeadZoneDegrees = twistDeadZoneDegrees,
 			};
 			pointer.PinchToZoomScale = pinchToZoomScale;
 			pointer.Update(Time.unscaledDeltaTime);

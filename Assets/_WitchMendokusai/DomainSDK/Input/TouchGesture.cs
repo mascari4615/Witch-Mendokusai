@@ -21,6 +21,8 @@ namespace WitchMendokusai
 		private float pressSeconds;
 		private float pressTravel;
 		private bool wasPressed;
+		private float twistPending;
+		private bool twistUnlocked;
 
 		public TouchGestureTuning Tuning { get; set; } = TouchGestureTuning.Default;
 
@@ -113,7 +115,7 @@ namespace WitchMendokusai
 				{
 					PinchDelta = Vector2.Distance(current[0], current[1]) - Vector2.Distance(previous[0], previous[1]);
 					TwoFingerPanDelta = Midpoint(current) - Midpoint(previous);
-					TwistDelta = Mathf.DeltaAngle(AngleOf(previous), AngleOf(current));
+					TwistDelta = Twist(Mathf.DeltaAngle(AngleOf(previous), AngleOf(current)));
 				}
 			}
 			else
@@ -130,6 +132,14 @@ namespace WitchMendokusai
 					}
 				}
 				IsDragging = false;
+			}
+
+			// 두 손가락이 아니게 된 순간 「돌릴 마음」 판정을 처음으로 되돌린다 — 다음에 다시
+			// 두 손가락을 얹었을 때 지난번 문턱이 그대로 열려 있으면 얹자마자 화면이 돈다.
+			if (current.Count < 2)
+			{
+				twistPending = 0f;
+				twistUnlocked = false;
 			}
 
 			wasPressed = isPressed;
@@ -151,6 +161,35 @@ namespace WitchMendokusai
 			TwistDelta = 0f;
 			pressSeconds = 0f;
 			pressTravel = 0f;
+			twistPending = 0f;
+			twistUnlocked = false;
+		}
+
+		/// <summary>
+		/// 「돌리려던 것인가, 오므리다 딸려 돈 것인가」를 가른다.
+		///
+		/// ★ 두 손가락으로 확대하거나 밀 때 손은 *반드시* 몇 도씩 딸려 돈다. 그 값을 그대로
+		///   시점 회전에 먹이면, 확대만 하려 해도 화면이 같이 빙 돈다 — 손가락이 닿는 순간부터
+		///   모든 몸짓이 서로를 오염시킨다.
+		/// ★ 그래서 문턱까지는 *모아만 두고* 내보내지 않는다. 살짝 갔다 돌아온 흔들림은 부호가
+		///   달라 서로 지워지고, 진짜로 돌리려 한 손만 문턱을 넘는다. 한 번 넘으면 손가락을 뗄
+		///   때까지 그대로 통과시킨다 — 중간에 다시 잠그면 돌리는 도중 화면이 덜컹거린다.
+		/// ★ 문턱을 넘은 첫 프레임엔 *모아 둔 값 전부*를 내보낸다. 안 그러면 그 각도만큼
+		///   화면이 안 따라와서, 손가락과 지도가 어긋난 채로 남는다.
+		/// </summary>
+		private float Twist(float rawDegrees)
+		{
+			if (twistUnlocked)
+				return rawDegrees;
+
+			twistPending += rawDegrees;
+			if (Mathf.Abs(twistPending) < Tuning.TwistDeadZoneDegrees)
+				return 0f;
+
+			twistUnlocked = true;
+			float released = twistPending;
+			twistPending = 0f;
+			return released;
 		}
 
 		private static Vector2 Midpoint(List<Vector2> points) => (points[0] + points[1]) * 0.5f;
@@ -177,11 +216,15 @@ namespace WitchMendokusai
 		/// <summary> 이만큼 넘게 움직이면 「끌기」로 굳는다 (픽셀). </summary>
 		public float DragSlopPixels;
 
+		/// <summary> 두 손가락이 이만큼 돌아가기 전엔 「돌린 것」으로 안 친다 (도). 오므리다 딸려 도는 각도 거름망. </summary>
+		public float TwistDeadZoneDegrees;
+
 		public static TouchGestureTuning Default => new TouchGestureTuning
 		{
 			TapMaxSeconds = 0.35f,
 			TapMaxTravelPixels = 24f,
 			DragSlopPixels = 12f,
+			TwistDeadZoneDegrees = 8f,
 		};
 	}
 }
