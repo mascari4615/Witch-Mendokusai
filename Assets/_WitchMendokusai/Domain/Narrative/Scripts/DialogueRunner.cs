@@ -48,9 +48,10 @@ namespace WitchMendokusai
 		private UIManager uiManager;
 		private IDialogueEffectSink effectSink;
 		private IDialogueItemCountSource itemCountSource;
+		private IDialogueQuestStateSource questStateSource;
 
 		[Inject]
-		public void Construct(UIManager uiManager, IEffectRunner effectRunner, SOManager soManager)
+		public void Construct(UIManager uiManager, IEffectRunner effectRunner, SOManager soManager, QuestManager questManager)
 		{
 			this.uiManager = uiManager;
 			effectSink = new EffectRunnerDialogueSink(effectRunner);
@@ -59,6 +60,11 @@ namespace WitchMendokusai
 			// (터지지 않는다) 이 배선이 늦어도 대화 자체는 돈다 — 다만 그 선택지가 안 뜬다.
 			itemCountSource = new InventoryDialogueItemSource(soManager.ItemInventory);
 			DialogueItemBridge.Register(itemCountSource);
+
+			// 원고의 「그 의뢰 끝냈나」가 실제 진행을 보게 한다. 여기도 등록 전이면 「잠김」으로 치므로
+			// 배선이 늦어도 대화는 돈다(그 대사가 안 나올 뿐).
+			questStateSource = new QuestManagerDialogueQuestSource(questManager);
+			DialogueQuestBridge.Register(questStateSource);
 		}
 
 		private void Awake()
@@ -73,6 +79,7 @@ namespace WitchMendokusai
 		{
 			coordinator.OnStartRequested -= StartRequested;
 			DialogueItemBridge.Clear(itemCountSource);
+			DialogueQuestBridge.Clear(questStateSource);
 			DialogueHistoryBridge.Clear(History);
 			if (Instance == this)
 				Instance = null;
