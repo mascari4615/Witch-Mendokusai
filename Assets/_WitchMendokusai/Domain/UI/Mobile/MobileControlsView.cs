@@ -340,7 +340,12 @@ namespace WitchMendokusai
 			if (overheadHint == null)
 				return;
 
-			bool overhead = controlsShown == false && inputManager != null && inputManager.IsTouchMode;
+			// ★ 「조작 장치가 숨어 있다」만으로는 부족하다 — 제목 화면에서도 숨는다. 거기서 두 손가락
+			//   안내가 뜨면 아무 뜻도 없는 글자가 첫 화면을 덮는다. *게임 속 게임에 들어와 있을 때*로
+			//   좁힌다.
+			bool inSubGame = GameModeManager.TryGetExistingInstance(out GameModeManager gameModeManager)
+				&& gameModeManager.CurrentMode != GameMode.Default;
+			bool overhead = inSubGame && controlsShown == false && inputManager != null && inputManager.IsTouchMode;
 			overheadHint.style.display = overhead ? DisplayStyle.Flex : DisplayStyle.None;
 			if (overhead == false)
 				return;
