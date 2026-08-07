@@ -864,6 +864,11 @@ namespace WitchMendokusai.EditorTools
 				return;
 
 			match.RaiseAlertForVerification("검증 알림");
+
+			// ★ 곁눈질용 미니맵은 마우스 설명을 안 단다(그 아래 땅을 눌러야 하므로). 설명이 붙는 것은
+			//   펼친 지도뿐이라, 「서식지가 서식지로 읽히는가」는 지도를 열어야만 잴 수 있다.
+			if (TowerDefenseModeController.TryGetExistingInstance(out TowerDefenseModeController mapOwner))
+				mapOwner.OpenMapForVerification();
 			// ★ 한 틱 미루는 것으로는 부족하다 — 에디터가 앞에 없으면 Play 루프가 느려져 *게임 프레임이
 			//   한 장도 안 지난 채* 재게 된다(오늘 세 번째로 같은 실수를 했다). 실제 시간이 흐른 뒤에 센다.
 			markCheckAt = EditorApplication.timeSinceStartup + 1.5;
@@ -983,6 +988,21 @@ namespace WitchMendokusai.EditorTools
 
 				// ★ 「규칙에 있나 / 화면에 갔나」를 갈라 찍는다 — 0 하나만 보면 어디서 끊겼는지 모른다.
 				int ruleAlerts = match != null ? match.Alerts.Count : -1;
+				// 미니맵이 서식지를 「마수」가 아니라 *서식지*로 말하는지 — 말이 틀리면 판단이 틀린다.
+				int lairDots = 0;
+				int lyingEnemyDots = 0;
+				foreach (VisualElement element in document.rootVisualElement.Query<VisualElement>().Build())
+				{
+					string tip = element.tooltip;
+					if (string.IsNullOrEmpty(tip))
+						continue;
+					if (tip.StartsWith("서식지"))
+						lairDots++;
+					else if (tip.StartsWith("마수"))
+						lyingEnemyDots++;
+				}
+				Debug.Log($"{TAG} 미니맵 — 서식지 점 {lairDots}개 · 마수 점 {lyingEnemyDots}개");
+
 				Debug.Log($"{TAG} 화면 표식 — 파도 예고 {invasionMarks}개 · 경고 {alertMarks}개"
 					+ $" (규칙층 알림 {ruleAlerts}개 · 글자든 알림칸 {alertSlots}개 · 숨은 경고 {alertMarksHidden}개)");
 				if (invasionMarks == 0)

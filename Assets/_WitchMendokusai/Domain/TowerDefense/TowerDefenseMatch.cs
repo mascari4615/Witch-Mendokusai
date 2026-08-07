@@ -1163,6 +1163,58 @@ namespace WitchMendokusai
 			return worst;
 		}
 
+		/// <summary> 미니맵이 읽는 서식지 표식 — 자리와 「깨어났나」. </summary>
+		public readonly struct LairMarker
+		{
+			public readonly Vector3 Position;
+			public readonly bool Awake;
+
+			public LairMarker(Vector3 position, bool awake)
+			{
+				Position = position;
+				Awake = awake;
+			}
+		}
+
+		private readonly List<LairMarker> lairMarkers = new();
+
+		/// <summary>
+		/// 서식지 자리 목록. **밝힌 것만 그리는 판단은 화면이 한다**(시야 규칙은 화면 공통).
+		///
+		/// ★ 왜 따로 내주나: 잠든 마수도 마수 목록에 있어서 미니맵이 「코어로 오는 중」이라는 *거짓말*을
+		///   붙이고 있었다. 잠든 무리와 몰려오는 무리는 대응이 정반대다(피한다 / 막는다) —
+		///   같은 점으로 그리면 「깨울지 말지」를 계산할 수가 없다.
+		/// </summary>
+		public IReadOnlyList<LairMarker> LairMarkers
+		{
+			get
+			{
+				lairMarkers.Clear();
+				foreach (SleepingLair lair in lairs)
+					lairMarkers.Add(new LairMarker(lair.WorldPosition, lair.Awake));
+				return lairMarkers;
+			}
+		}
+
+		/// <summary> 그 마수가 아직 잠든 서식지 소속인가 — 미니맵이 마수 점에서 걸러낸다. </summary>
+		public bool IsSleepingLairGuard(MatchCombatant combatant)
+		{
+			if (combatant == null)
+				return false;
+
+			foreach (SleepingLair lair in lairs)
+			{
+				if (lair.Awake)
+					continue;
+				foreach (UnitObject guard in lair.Guards)
+				{
+					if (guard != null && guard.gameObject == combatant.gameObject)
+						return true;
+				}
+			}
+			return false;
+		}
+
 		/// <summary> 지금 판에 깔려 있는 함정 수 — 이어하기가 함정을 잃는지 하네스가 직접 센다. </summary>
 		public int TrapCount => stageRoot != null ? stageRoot.GetComponentsInChildren<TowerDefenseTrap>(true).Length : 0;
 

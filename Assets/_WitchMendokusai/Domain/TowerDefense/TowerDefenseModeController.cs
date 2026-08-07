@@ -39,6 +39,14 @@ namespace WitchMendokusai
 		[SerializeField] private TowerDefensePlacement placement;
 		[SerializeField] private TowerDefenseStageSO stage;
 
+		/// <summary> 펼친 지도를 연다(검증 전용) — 지도 위 점이 무엇으로 읽히는지는 열어야 잴 수 있다. </summary>
+		public void OpenMapForVerification()
+		{
+			TowerDefenseHudView view = EnsureHud();
+			if (view != null && view.IsMapOpen == false)
+				view.ToggleMap();
+		}
+
 		/// <summary> 지금 도는 스테이지 — 검증 하네스가 판정 기준(수치)을 규칙에서 그대로 읽게 한다. </summary>
 		public TowerDefenseStageSO Stage => stage;
 		[SerializeField] private Transform stageRoot;

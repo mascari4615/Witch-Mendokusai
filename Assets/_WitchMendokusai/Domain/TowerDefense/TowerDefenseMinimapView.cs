@@ -125,6 +125,10 @@ namespace WitchMendokusai
 					continue;
 				if (match.IsNestCombatant(enemy))
 					continue; // 둥지는 아래에서 크게 따로 그린다.
+				// ★ 잠든 서식지 마수를 여기서 그리면 「코어로 오는 중」이라는 거짓말이 붙는다 —
+				//   잠든 무리는 피하는 것이고 몰려오는 무리는 막는 것이라 대응이 정반대다. 아래서 따로.
+				if (match.IsSleepingLairGuard(enemy))
+					continue;
 
 				PlaceDot(match, enemy.Position, stage.EnemyTint, 3.5f, tip: "마수 — 코어로 오는 중.");
 			}
@@ -137,6 +141,18 @@ namespace WitchMendokusai
 					continue;
 
 				PlaceDot(match, nest, stage.NestTint, 10f, tip: "둥지 — 부수면 그 출구가 닫힌다.");
+			}
+
+			// 서식지 — 밝힌 곳만. 「저기 자고 있다」가 보여야 어느 쪽으로 넓힐지를 고를 수 있다.
+			foreach (TowerDefenseMatch.LairMarker lair in match.LairMarkers)
+			{
+				if (match.IsExploredAt(lair.Position) == false)
+					continue;
+
+				PlaceDot(match, lair.Position,
+					lair.Awake ? stage.EnemyTint : stage.LairSleepTint,
+					8f, square: true,
+					tip: lair.Awake ? "서식지 — 깨어났다. 그 일대를 지킨다." : "서식지 — 잠들어 있다. 가까이 가면 깨어난다.");
 			}
 
 			if (match.HasHero)
