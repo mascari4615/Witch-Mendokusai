@@ -19,7 +19,9 @@ namespace WitchMendokusai.Tests
     /// 판정은 *Unity API ground-truth* 로만 한다 (텍스트+GUIDToAssetPath 휴리스틱은
     /// Unity 빌트인 guid `0000…e000…` / 패키지·서브에셋 스크립트에 false-positive 를
     /// 내 CI 를 헛fail 시킴 — 2026-05-16 URP 렌더러 오탐으로 실증):
-    ///   - 프리팹: GameObjectUtility.GetMonoBehavioursWithMissingScriptCount
+    ///   - 프리팹: 씬과 같은 YAML guid 판정 (2026-08-06 전환 — 예전엔
+    ///     GameObjectUtility.GetMonoBehavioursWithMissingScriptCount 로 *개수만* 세서
+    ///     서드파티와 진짜 사고를 못 갈랐고, 그래서 Bakery 없는 환경에선 통째로 skip 됐다)
     ///   - 씬: 텍스트 파싱하되 빌트인 guid 제외 + 해소 가능 guid 제외 (씬은 안 엶 =
     ///         비파괴·결정적; 씬 MonoBehaviour 의 패키지 스크립트 guid 는 AssetDatabase
     ///         에 정상 등재돼 해소되므로 오탐 없음).
@@ -51,60 +53,108 @@ namespace WitchMendokusai.Tests
             {
                 { "ec0b4dd729a12d046982652f834580a2", "Bakery / BakeryLightmapGroup" },
                 { "b7fa80e7116296f4eb4f49ec1544ee22", "Bakery / ftLightmapsStorage" },
+
+                // ★ 아래 셋은 **프리팹 검사를 실제로 돌리자마자** 나왔다 (2026-08-06 후속).
+                //   씬은 위 둘만 있으면 통과했는데, 프리팹은 조명 컴포넌트를 더 쓴다 —
+                //   즉 통째 skip 하던 동안 이 셋은 목록에 오를 기회조차 없었다.
+                //   셋 다 WM-137 절차대로 **main 체크아웃에서 guid 를 되짚어** 확인했다:
+                //   전부 `Assets/Bakery/*.cs` 로 해소된다(= 의도적 gitignore 서드파티).
+                //   → 진짜 실종 스크립트는 **0건**이었다. 프로젝트는 이 부류에서 깨끗하다.
+                { "c74ce2158ae608549902afb4112fd042", "Bakery / BakeryDirectLight" },
+                { "57f24a4aaa0761b45ba25e7e5108e2c7", "Bakery / BakeryPointLight" },
+                { "306a56f30ff21b5439963fc745cfe9cc", "Bakery / BakerySkyLight" },
             };
-
-        private static bool GuidResolves(string guid)
-        {
-            string path = AssetDatabase.GUIDToAssetPath(guid);
-            return string.IsNullOrEmpty(path) == false
-                && AssetDatabase.LoadAssetAtPath<MonoScript>(path) != null;
-        }
-
-        private static void SkipIfOptionalThirdPartyAssetsMissing()
-        {
-            foreach (KeyValuePair<string, string> entry in OPTIONAL_THIRD_PARTY_SCRIPT_GUIDS)
-            {
-                if (GuidResolves(entry.Key) == false)
-                {
-                    Assert.Ignore(
-                        "이 체크아웃엔 '" + entry.Value + "' 가 없다 (git 미추적 외부 에셋). "
-                        + "그 컴포넌트를 쓰는 프리팹·씬의 참조가 전부 죽은 것처럼 보이므로 판정 불가 — "
-                        + "에셋이 깔린 개발 머신에서 이 검사가 진짜로 돈다.");
-                }
-            }
-        }
 
         [Test]
         public void AllPrefabAssets_HaveNoMissingScripts()
         {
-            SkipIfOptionalThirdPartyAssetsMissing();
-
+            // ★ 여기도 **건너뛰지 않는다** (2026-08-06 후속, TASK-WM-137 나머지 절반).
+            //
+            //   예전엔 `GameObjectUtility.GetMonoBehavioursWithMissingScriptCount` 로 **개수만** 셌다.
+            //   개수엔 guid 가 없어서 「Bakery 라서 안 풀리는 것」과 「진짜 깨진 것」을 못 가른다
+            //   → 통째로 skip 할 수밖에 없었고, 그래서 **Bakery 없는 환경(CI·fresh worktree)에선
+            //   이 검사가 영영 안 돌았다.** 초록인데 아무도 안 본 상태다.
+            //
+            //   씬 쪽은 YAML 에서 guid 를 직접 읽어 서드파티만 골라 넘기는 방식으로 이미 고쳤다.
+            //   프리팹도 같은 YAML 이므로 같은 방법이 그대로 통한다 — 그래서 옮겼다.
+            //   (`.prefab` 은 텍스트 직렬화 전제. 이 레포는 ForceText 라 성립한다.)
+            Regex scriptGuid = new Regex(@"m_Script:.*guid:\s*([0-9a-f]{32})");
             List<string> offenders = new List<string>();
+            int scanned = 0;
+            int scriptRefs = 0;
+
             foreach (string guid in AssetDatabase.FindAssets("t:Prefab"))
             {
                 string path = AssetDatabase.GUIDToAssetPath(guid);
-                GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
-                if (prefab == null)
+                if (path.StartsWith("Packages/"))
                 {
                     continue;
                 }
-                foreach (Transform child in prefab.GetComponentsInChildren<Transform>(true))
+                string full = Path.GetFullPath(path);
+                if (File.Exists(full) == false)
                 {
-                    int missingCount = GameObjectUtility.GetMonoBehavioursWithMissingScriptCount(child.gameObject);
-                    if (missingCount > 0)
+                    continue;
+                }
+
+                scanned++;
+                foreach (string line in File.ReadAllLines(full))
+                {
+                    Match match = scriptGuid.Match(line);
+                    if (match.Success == false)
                     {
-                        offenders.Add(path + "  ->  '" + child.name + "'  x" + missingCount);
+                        continue;
+                    }
+                    scriptRefs++;
+                    string guidValue = match.Groups[1].Value;
+                    if (guidValue == UNITY_BUILTIN_GUID)
+                    {
+                        continue;
+                    }
+                    // 의도적 gitignore 서드파티(Bakery 등) — 이 체크아웃에 없는 게 **정상**이다.
+                    if (OPTIONAL_THIRD_PARTY_SCRIPT_GUIDS.ContainsKey(guidValue))
+                    {
+                        continue;
+                    }
+                    string scriptPath = AssetDatabase.GUIDToAssetPath(guidValue);
+                    bool resolves = string.IsNullOrEmpty(scriptPath) == false
+                        && AssetDatabase.LoadAssetAtPath<MonoScript>(scriptPath) != null;
+                    if (resolves == false)
+                    {
+                        offenders.Add(path + "  ->  dead m_Script guid=" + guidValue);
                     }
                 }
             }
-            AssertNoOffenders(offenders, "prefab object");
+
+            // ★ 「대상 0건 = 통과」 방지 두 겹.
+            //   ① 파일을 못 읽은 경우
+            Assert.Greater(
+                scanned,
+                50,
+                $"프리팹을 {scanned}개밖에 못 읽었다 — 위반이 없는 게 아니라 스캔이 깨진 것으로 본다.");
+
+            //   ② 읽긴 했는데 **파싱이 안 된** 경우. 직렬화가 ForceText 가 아니게 되면(바이너리)
+            //      정규식이 한 줄도 안 맞아 offenders 0 = 거짓 초록이 된다. 파일 수만 세는 ①로는 못 잡는다.
+            //      프리팹 50개를 읽고 `m_Script` 가 0건일 수는 없다.
+            Assert.Greater(
+                scriptRefs,
+                0,
+                $"프리팹 {scanned}개를 읽었는데 `m_Script` 참조가 0건이다 — 텍스트 직렬화가 아니거나 파싱이 깨졌다.\n" +
+                "이 상태의 「위반 0」은 「깨끗함」이 아니라 「아무것도 못 봄」이다.");
+
+            AssertNoOffenders(offenders, "prefab");
         }
 
         [Test]
         public void AllProjectScenes_HaveNoMissingScripts()
         {
-            SkipIfOptionalThirdPartyAssetsMissing();
-
+            // ★ 여기선 **건너뛰지 않는다** (2026-08-06, TASK-WM-137).
+            //   이 검사는 씬 YAML 에서 guid 를 직접 읽으므로 「어느 guid 가 안 풀리는지」를 안다
+            //   → Bakery 처럼 의도적으로 gitignore 된 서드파티 guid 만 **골라서** 넘기면 된다.
+            //   프리팹 쪽도 같은 이유로 오래 skip 했는데, 같은 YAML 방식으로 옮겨서 이제 함께 돈다
+            //   (2026-08-06 후속). 즉 **이 파일의 세 검사 모두 더는 통째 skip 하지 않는다.**
+            //
+            //   왜 바꿨나: 통째로 skip 하면 Bakery 없는 환경(CI·fresh worktree)에서 **이 검사가
+            //   영영 안 돈다.** 초록인데 아무도 안 본 상태 = 검사가 없는 것과 같다.
             Regex scriptGuid = new Regex(@"m_Script:.*guid:\s*([0-9a-f]{32})");
             List<string> offenders = new List<string>();
 
@@ -130,6 +180,12 @@ namespace WitchMendokusai.Tests
                     }
                     string guidValue = match.Groups[1].Value;
                     if (guidValue == UNITY_BUILTIN_GUID)
+                    {
+                        continue;
+                    }
+                    // 의도적 gitignore 서드파티(Bakery 등) — 이 체크아웃에 없는 게 **정상**이다.
+                    // 없다고 빨간불을 켜면 거짓 경고가 게이트를 죽인다. 대신 나머지는 계속 본다.
+                    if (OPTIONAL_THIRD_PARTY_SCRIPT_GUIDS.ContainsKey(guidValue))
                     {
                         continue;
                     }
