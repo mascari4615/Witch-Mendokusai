@@ -34,8 +34,77 @@ namespace WitchMendokusai.Tests
 					Assert.That(after.Speaker, Is.EqualTo(before.Speaker), "말하는 이");
 					Assert.That(after.Text, Is.EqualTo(before.Text), "대사");
 					Assert.That(after.StageDirection, Is.EqualTo(before.StageDirection), "지문");
+					AssertSameCondition(after.Condition, before.Condition, "조건");
+					Assert.That(after.TargetSection, Is.EqualTo(before.TargetSection), "갈 곳");
+					AssertSameWait(after, before);
+					AssertSameChoices(after, before);
+					AssertSameEffects(after, before);
 				}
 			}
+		}
+
+
+		/// <summary>
+		/// 조건이 **같은 조건으로** 돌아왔는지.
+		///
+		/// ★ 왜 따로 필요한가: 말·화자만 비교하면 조건이 **다른 조건으로 바뀌어도 통과한다.**
+		///   글은 멀쩡해 보이고 다시 읽히기도 하니까 — 실제로 물건·퀘스트 조건이 「봤음」으로
+		///   바뀌던 흠이 그렇게 왕복 시험을 통과하고 있었다. 뜻까지 봐야 왕복 시험이 값을 한다.
+		/// </summary>
+		private static void AssertSameCondition(DialogueScriptCondition after, DialogueScriptCondition before, string what)
+		{
+			Assert.That(after.Kind, Is.EqualTo(before.Kind), what + " 종류");
+			Assert.That(after.DialogueId, Is.EqualTo(before.DialogueId), what + " 번호");
+			Assert.That(after.Expected, Is.EqualTo(before.Expected), what + " 뒤집기");
+			Assert.That(after.Started, Is.EqualTo(before.Started), what + " 시작함 여부");
+			Assert.That(after.Amount, Is.EqualTo(before.Amount), what + " 개수");
+			Assert.That(after.QuestState, Is.EqualTo(before.QuestState), what + " 의뢰 상태");
+			Assert.That(after.Label, Is.EqualTo(before.Label), what + " 고른 답");
+		}
+
+		private static void AssertSameWait(DialogueScriptEntry after, DialogueScriptEntry before)
+		{
+			Assert.That(after.Seconds, Is.EqualTo(before.Seconds), "기다리는 초");
+			Assert.That(after.EventId, Is.EqualTo(before.EventId), "기다리는 사건");
+		}
+
+		private static void AssertSameChoices(DialogueScriptEntry after, DialogueScriptEntry before)
+		{
+			// 선택지가 아닌 마디는 목록이 아예 없다(null). 없음과 빈 목록은 같은 뜻으로 본다.
+			Assert.That(CountOf(after.Choices), Is.EqualTo(CountOf(before.Choices)), "선택지 수");
+			for (int c = 0; c < CountOf(before.Choices); c++)
+			{
+				Assert.That(after.Choices[c].Label, Is.EqualTo(before.Choices[c].Label), "선택지 글자");
+				Assert.That(after.Choices[c].TargetSection, Is.EqualTo(before.Choices[c].TargetSection), "선택지 갈 곳");
+				AssertSameCondition(after.Choices[c].Condition, before.Choices[c].Condition, "선택지 조건");
+			}
+		}
+
+		private static void AssertSameEffects(DialogueScriptEntry after, DialogueScriptEntry before)
+		{
+			Assert.That(CountOf(after.Effects), Is.EqualTo(CountOf(before.Effects)), "효과 수");
+			for (int f = 0; f < CountOf(before.Effects); f++)
+			{
+				Assert.That(after.Effects[f].Type, Is.EqualTo(before.Effects[f].Type), "효과 종류");
+				Assert.That(after.Effects[f].DataSoID, Is.EqualTo(before.Effects[f].DataSoID), "효과 번호");
+				Assert.That(after.Effects[f].Value, Is.EqualTo(before.Effects[f].Value), "효과 값");
+			}
+		}
+
+		private static int CountOf<T>(System.Collections.Generic.IReadOnlyList<T> list) => list == null ? 0 : list.Count;
+
+		[Test]
+		public void EveryEffectKind_RoundTrips()
+		{
+			// 조건에서 났던 것과 같은 종류의 흠이 효과에도 날 수 있다 — 다섯 가지를 한 판에 넣는다.
+			AssertRoundTrip(string.Join("\n",
+				"## 보상",
+				"> !아이템 1001 3",
+				"> !카드 200",
+				"> !퀘스트추가 5000",
+				"> !퀘스트열기 5001",
+				"> !레시피 300",
+				"> 욘: \"가져가.\""));
 		}
 
 		[Test]
