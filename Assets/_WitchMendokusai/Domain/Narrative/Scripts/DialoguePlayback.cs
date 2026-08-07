@@ -40,9 +40,20 @@ namespace WitchMendokusai
 		/// <summary>
 		/// 대사에 <see cref="DialogueLine.Wait"/> 가 안 적혀 있을 때 대신 쓸 노출 시간(초).
 		/// 0 = 자동 진행 안 함(소비자가 <see cref="Advance"/> 로 넘긴다 — 클릭으로 넘기는 연출).
+		/// <see cref="ReadingCharactersPerSecond"/> 가 켜져 있으면 그쪽이 먼저다.
 		/// 시간을 상태기 안에 두는 이유: 「몇 초 뒤 넘어가는가」가 화면 없이 검증돼야 하기 때문.
 		/// </summary>
 		public float DefaultSpeakSeconds { get; set; }
+
+		/// <summary>
+		/// 읽는 속도(초당 글자). 0 이하 = 안 씀. 켜면 **대사 길이에 따라** 머무는 시간이 달라진다 —
+		/// 「응.」과 두 줄짜리 설명이 같은 시간이면 하나는 지루하고 하나는 다 못 읽는다.
+		/// </summary>
+		public float ReadingCharactersPerSecond { get; set; }
+
+		/// <summary>읽기 시간의 아래·위 한계(초). 위가 0 이하면 위 한계 없음.</summary>
+		public float MinimumSpeakSeconds { get; set; }
+		public float MaximumSpeakSeconds { get; set; }
 
 		public DialogueStep Current { get; private set; } = DialogueStep.End;
 
@@ -160,13 +171,30 @@ namespace WitchMendokusai
 			}
 
 			DialogueLine line = Current.SpeakLine;
-			float lineSeconds = line != null && line.Wait > 0f ? line.Wait : DefaultSpeakSeconds;
+			float lineSeconds = ResolveSpeakSeconds(line);
 			if (lineSeconds <= 0f)
 			{
 				return false;
 			}
 			seconds = lineSeconds;
 			return true;
+		}
+
+		/// <summary>
+		/// 이 대사가 머무는 시간. 순서: ① 대사에 직접 적힌 시간 ② 읽는 속도로 계산한 시간
+		/// ③ 기본값. 셋 다 없으면 0 = 눌러야 넘어간다.
+		/// ①이 제일 센 이유: 작가가 「여기서 3초 쉬어」라고 적었으면 그게 연출이다.
+		/// </summary>
+		private float ResolveSpeakSeconds(DialogueLine line)
+		{
+			if (line != null && line.Wait > 0f)
+			{
+				return line.Wait;
+			}
+
+			float readingSeconds = DialogueReadingTime.For(
+				line == null ? null : line.Text, ReadingCharactersPerSecond, MinimumSpeakSeconds, MaximumSpeakSeconds);
+			return readingSeconds > 0f ? readingSeconds : DefaultSpeakSeconds;
 		}
 
 		/// <summary>바깥 사건 통지 — 기다리던 id 와 같을 때만 진행.</summary>
