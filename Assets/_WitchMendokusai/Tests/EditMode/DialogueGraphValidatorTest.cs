@@ -119,7 +119,7 @@ namespace WitchMendokusai.Tests
 		{
 			DialogueGraph graph = NewGraph();
 			DialogueStartNode start = new();
-			DialogueChoiceNode choice = new() { Prompt = "?", Options = new List<string> { "A", "B" } };
+			DialogueChoiceNode choice = new() { Prompt = "?", Options = new List<DialogueChoiceOption> { "A", "B" } };
 			DialogueSpeakNode firstOption = new() { Line = NewLine() };
 			graph.AddNode(start);
 			graph.AddNode(choice);

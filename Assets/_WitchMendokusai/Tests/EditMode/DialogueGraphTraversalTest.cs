@@ -78,7 +78,7 @@ namespace WitchMendokusai.Tests
 			DialogueStartNode start = new();
 			DialogueLine intro = NewLine();
 			DialogueSpeakNode speakIntro = new() { Line = intro };
-			DialogueChoiceNode choice = new() { Prompt = "pick", Options = new List<string> { "A", "B" } };
+			DialogueChoiceNode choice = new() { Prompt = "pick", Options = new List<DialogueChoiceOption> { "A", "B" } };
 			DialogueLine lineA = NewLine();
 			DialogueLine lineB = NewLine();
 			DialogueSpeakNode speakA = new() { Line = lineA };
@@ -116,7 +116,7 @@ namespace WitchMendokusai.Tests
 		{
 			DialogueGraph graph = NewGraph();
 			DialogueStartNode start = new();
-			DialogueChoiceNode choice = new() { Prompt = "p", Options = new List<string> { "X" } };
+			DialogueChoiceNode choice = new() { Prompt = "p", Options = new List<DialogueChoiceOption> { "X" } };
 			DialogueSpeakNode after = new() { Line = NewLine() };
 			graph.AddNode(start);
 			graph.AddNode(choice);

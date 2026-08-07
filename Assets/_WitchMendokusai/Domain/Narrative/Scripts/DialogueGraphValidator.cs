@@ -29,6 +29,9 @@ namespace WitchMendokusai
 
 		/// <summary>시작점에서 닿을 수 없는 노드 — 만들어 놓고 안 이어진 것.</summary>
 		UnreachableNode = 7,
+
+		/// <summary>모든 선택지에 조건이 걸렸다 — 하나도 안 맞는 상황이 오면 대화가 거기서 끝난다.</summary>
+		ChoiceMayHaveNoAvailableOption = 8,
 	}
 
 	public sealed class DialogueGraphIssue
@@ -206,8 +209,14 @@ namespace WitchMendokusai
 				return;
 			}
 
+			bool everyOptionConditional = true;
 			for (int i = 0; i < choiceNode.Options.Count; i++)
 			{
+				DialogueChoiceOption option = choiceNode.Options[i];
+				if (option == null || option.Condition == null)
+				{
+					everyOptionConditional = false;
+				}
 				if (HasOutgoing(graph, choiceNode.Id, DialogueChoiceNode.ChoicePortId(i)))
 				{
 					continue;
@@ -215,9 +224,19 @@ namespace WitchMendokusai
 				result.Add(new DialogueGraphIssue(
 					DialogueGraphIssueKind.ChoiceOptionNotConnected,
 					NodeGraphIssueSeverity.Warning,
-					$"DialogueChoiceNode '{choiceNode.Id}' option {i} (\"{choiceNode.Options[i]}\") goes nowhere — picking it ends the dialogue silently.",
+					$"DialogueChoiceNode '{choiceNode.Id}' option {i} (\"{choiceNode.Options[i].Label}\") goes nowhere — picking it ends the dialogue silently.",
 					choiceNode.Id));
 			}
+
+			if (everyOptionConditional == false)
+			{
+				return;
+			}
+			result.Add(new DialogueGraphIssue(
+				DialogueGraphIssueKind.ChoiceMayHaveNoAvailableOption,
+				NodeGraphIssueSeverity.Warning,
+				$"DialogueChoiceNode '{choiceNode.Id}': every option is conditional — if none match, the dialogue ends here with nothing shown. Consider one unconditional fallback.",
+				choiceNode.Id));
 		}
 
 		private static void ValidateReachability(DialogueGraph graph, IReadOnlyList<NodeBase> nodes, DialogueGraphValidationResult result)
