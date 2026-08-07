@@ -161,6 +161,7 @@ namespace WitchMendokusai.EditorTools
 			noiseArmed = false;
 			noiseCheckAt = 0.0;
 			noiseMatch = null;
+			noiseAlertSeen = false;
 			breachArmed = false;
 			breachMatch = null;
 			markCheckAt = 0.0;
@@ -226,10 +227,16 @@ namespace WitchMendokusai.EditorTools
 			PollAdaptation(now);
 
 			ArmNoiseProbe();
-			if (noiseCheckAt > 0.0 && now >= noiseCheckAt)
+			// ★ 알림 칸은 넷뿐이고 같은 순간에 여럿 터지면 *먼저 난 것*이 밀려난다. 2초 뒤에 물으면
+			//   이미 밀려난 뒤라 늘 「없음」이다 — 그래서 뜨는 순간을 매 틱 지켜본다(시험으로 못 박은 함정).
+			if (noiseCheckAt > 0.0)
 			{
-				noiseCheckAt = 0.0;
-				CheckNoiseWake();
+				WatchNoiseAlert();
+				if (now >= noiseCheckAt)
+				{
+					noiseCheckAt = 0.0;
+					CheckNoiseWake();
+				}
 			}
 
 			ArmBreachProbe(now);
@@ -1386,6 +1393,24 @@ namespace WitchMendokusai.EditorTools
 			noiseMatch = match;
 		}
 
+		private static bool noiseAlertSeen;
+
+		/// <summary> 「소리를 듣고 깨어났다」가 뜨는 *순간*을 잡는다 — 나중에 물으면 밀려난 뒤다. </summary>
+		private static void WatchNoiseAlert()
+		{
+			if (noiseAlertSeen || match == null)
+				return;
+
+			foreach (TowerDefenseAlerts.Alert alert in match.Alerts)
+			{
+				if (alert.Label.Contains("소리를 듣고") == false)
+					continue;
+				noiseAlertSeen = true;
+				Debug.Log(TAG + " 소리 — 알림: 「" + alert.Label + "」");
+				return;
+			}
+		}
+
 		private static double noiseCheckAt;
 		private static Vector3 noiseTarget;
 		private static int noiseAwakenedBefore;
@@ -1409,15 +1434,7 @@ namespace WitchMendokusai.EditorTools
 				break;
 			}
 
-			bool spoken = false;
-			foreach (TowerDefenseAlerts.Alert alert in match.Alerts)
-			{
-				if (alert.Label.Contains("소리를 듣고") == false)
-					continue;
-				spoken = true;
-				Debug.Log(TAG + " 소리 — 알림: 「" + alert.Label + "」");
-				break;
-			}
+			bool spoken = noiseAlertSeen;
 
 			int byNoise = match.LairsAwakenedByNoise;
 			Debug.Log($"{TAG} 소리 결과 — 그 서식지 깨어남 {awake} · 깨어난 곳 {noiseAwakenedBefore} → {match.LairsAwakened}"
