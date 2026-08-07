@@ -48,22 +48,18 @@ namespace WitchMendokusai
 			if (previewPrefabCache.TryGetValue(block.Identifier, out GameObject cached) && cached != null)
 				return cached;
 
-			GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+			// TASK-WM-208 — 셰이더 이름을 여기서 문자열로 직접 부르면 「항상 포함할 셰이더」 대조를 안 받는다.
+			// 화면이 멀쩡해 보이므로 영원히 안 걸리다가, 목록에서 빠지는 순간 **빌드에서만** 죽는다. 공용 입구 경유.
+			GameObject cube = CombatPrimitive.Create(PrimitiveType.Cube, unlit: true);
 			cube.name = $"BlockPreview_{block.Identifier}";
 			cube.SetActive(false);
 			Object.DontDestroyOnLoad(cube);
 
-			Renderer renderer = cube.GetComponent<Renderer>();
-			Shader unlitShader = Shader.Find("Universal Render Pipeline/Unlit");
-			if (unlitShader != null)
-			{
-				Material material = new(unlitShader);
-				if (block.SideTexture != null)
-					material.SetTexture("_BaseMap", block.SideTexture);
-				else
-					material.SetColor("_BaseColor", block.Color);
-				renderer.sharedMaterial = material;
-			}
+			Material material = cube.GetComponent<Renderer>().sharedMaterial;
+			if (block.SideTexture != null)
+				material.SetTexture("_BaseMap", block.SideTexture);
+			else
+				material.SetColor("_BaseColor", block.Color);
 
 			previewPrefabCache[block.Identifier] = cube;
 			return cube;

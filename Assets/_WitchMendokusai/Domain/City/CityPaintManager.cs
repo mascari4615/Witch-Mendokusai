@@ -158,9 +158,10 @@ namespace WitchMendokusai
 			visualRoot = new GameObject("CityPaintVisuals").transform;
 			visualRoot.SetParent(transform, false);
 
-			GameObject probe = GameObject.CreatePrimitive(PrimitiveType.Cube);
-			templateMaterial = probe.GetComponent<Renderer>().sharedMaterial;
-			Destroy(probe);
+			// TASK-WM-208 — 예전엔 큐브를 하나 만들어 그 **기본 재질**을 견본으로 훔쳐 왔다. 그 기본 재질은
+			// 옛 렌더러용이라 에디터에선 그럭저럭 보이지만 **빌드에서 도시 전체가 밋밋한 회색**이 된다
+			// (모든 칸 재질이 이 견본의 복제라 한 곳에서 판 전체로 번졌다). 이제 프로젝트 셰이더에서 받는다.
+			templateMaterial = CombatPrimitive.CreateMaterial();
 		}
 
 		private void Start()
@@ -506,7 +507,7 @@ namespace WitchMendokusai
 		// 시민 placeholder 큐브 (실 prefab/스킨 deferred).
 		private GameObject CreateCitizenCube()
 		{
-			GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+			GameObject cube = CombatPrimitive.Create(PrimitiveType.Cube);
 			cube.transform.SetParent(visualRoot, false);
 			cube.name = "Citizen";
 			cube.layer = IGNORE_RAYCAST_LAYER;
@@ -728,7 +729,7 @@ namespace WitchMendokusai
 		// 셀 좌표에 큐브 1개 생성 (height = Y 크기·바닥에서 띄움). Grid 회전 상속.
 		private GameObject CreateCellCube(Vector3Int cell, float height)
 		{
-			GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+			GameObject cube = CombatPrimitive.Create(PrimitiveType.Cube);
 			cube.transform.SetParent(visualRoot, false);
 			cube.name = $"Cell_{cell.x}_{cell.y}";
 

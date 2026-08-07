@@ -412,7 +412,7 @@ namespace WitchMendokusai
 				return;
 			}
 
-			GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+			GameObject cube = CombatPrimitive.Create(PrimitiveType.Cube);
 			cube.name = $"Plot_{plotId}";
 			cube.transform.SetParent(transform, worldPositionStays: false);
 			cube.transform.localPosition = new Vector3(plotId * autoPlotSpacing, 0f, 0f);

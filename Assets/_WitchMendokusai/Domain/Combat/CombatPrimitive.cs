@@ -21,9 +21,21 @@ namespace WitchMendokusai
 
 			Renderer renderer = primitive.GetComponent<Renderer>();
 			if (renderer != null)
-				renderer.sharedMaterial = new Material(FindShader(unlit ? CombatShaderNames.Unlit : CombatShaderNames.Lit));
+				renderer.sharedMaterial = CreateMaterial(unlit);
 
 			return primitive;
+		}
+
+		/// <summary>
+		/// 도형 없이 <b>재질만</b> 필요할 때 (색만 갈아끼우는 인스턴스를 여러 개 찍는 쪽).
+		///
+		/// ★ 왜 따로 있나 (TASK-WM-208, 도시): 도시는 큐브를 하나 만들어 <b>그 기본 재질을 견본으로 캐시</b>한 뒤
+		///   모든 칸을 그 견본의 복제로 칠하고 있었다. 즉 맨 <c>CreatePrimitive</c> 를 한 번만 불러도
+		///   그 잘못된 재질이 <b>판 전체로 번진다.</b> 견본을 여기서 받아 가면 그 경로가 막힌다.
+		/// </summary>
+		public static Material CreateMaterial(bool unlit = false)
+		{
+			return new Material(FindShader(unlit ? CombatShaderNames.Unlit : CombatShaderNames.Lit));
 		}
 
 		/// <summary>

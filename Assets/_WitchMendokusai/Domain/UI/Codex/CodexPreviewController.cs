@@ -96,24 +96,16 @@ namespace WitchMendokusai
 
 		private void ShowPlaceholder()
 		{
-			GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+			// Light 안 만들었으니 Unlit 이라야 보인다. 셰이더 이름은 공용 정본에서 — 여기서 문자열로 부르면
+			// 「항상 포함할 셰이더」 대조를 안 받아 빌드에서만 죽는다 (TASK-WM-208).
+			GameObject cube = CombatPrimitive.Create(PrimitiveType.Cube, unlit: true);
 			cube.name = "CodexPreviewPlaceholder";
 			cube.transform.SetParent(modelMount.transform);
 			cube.transform.localPosition = Vector3.zero;
 			cube.transform.localScale = Vector3.one * 0.8f;
 			SetLayerRecursive(cube, CAMERA_LAYER);
 
-			// Light 안 만들었으니 Unlit material 로 박아야 보임. URP/Unlit 셰이더.
-			Renderer renderer = cube.GetComponent<Renderer>();
-			Shader unlitShader = Shader.Find("Universal Render Pipeline/Unlit");
-			if (unlitShader != null)
-			{
-				Material unlitMaterial = new(unlitShader)
-				{
-					color = new Color(0.6f, 0.65f, 0.75f, 1f),
-				};
-				renderer.material = unlitMaterial;
-			}
+			cube.GetComponent<Renderer>().sharedMaterial.color = new Color(0.6f, 0.65f, 0.75f, 1f);
 
 			currentModel = cube;
 		}

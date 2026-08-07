@@ -94,7 +94,7 @@ namespace WitchMendokusai
 
 			foreach ((WitchMendokusai.DomainSDK.Life.ActivityKind activity, Vector3 offset, string label) zone in zones)
 			{
-				GameObject pad = GameObject.CreatePrimitive(PrimitiveType.Cube);
+				GameObject pad = CombatPrimitive.Create(PrimitiveType.Cube);
 				pad.name = $"장소 [{zone.label}]";
 				pad.transform.SetParent(root.transform);
 				pad.transform.localScale = new Vector3(3f, 0.1f, 3f); // 납작한 패드.
@@ -120,7 +120,7 @@ namespace WitchMendokusai
 			float start = -(DUMMY_COUNT - 1) * DUMMY_SPACING * 0.5f;
 			for (int index = 0; index < DUMMY_COUNT; index++)
 			{
-				GameObject dummy = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+				GameObject dummy = CombatPrimitive.Create(PrimitiveType.Capsule);
 				dummy.name = $"더미 주민 {index + 1}"; // 루트에 이미 [Life] — 로그 `[Life] 더미 주민 N` 깔끔.
 				dummy.transform.SetParent(root.transform);
 				dummy.transform.position = PLAZA_CENTER + new Vector3(start + index * DUMMY_SPACING, 0f, 0f);
