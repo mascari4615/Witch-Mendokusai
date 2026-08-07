@@ -93,6 +93,12 @@ namespace WitchMendokusai
 		public List<DialogueScriptSection> Sections { get; } = new();
 		public List<DialogueScriptIssue> Issues { get; } = new();
 
+		/// <summary>
+		/// 대사로 안 본 인용줄 — 오류가 아니라 **기록**이다. 원고엔 경구·메모가 섞여 있어서
+		/// 그걸 오류로 세면 진짜 오류가 묻힌다. 대신 「이만큼은 안 읽었다」를 사람이 볼 수 있게 남긴다.
+		/// </summary>
+		public List<DialogueScriptIssue> SkippedQuoteLines { get; } = new();
+
 		public bool HasIssues => Issues.Count > 0;
 
 		public DialogueScriptSection FindSection(string name)
@@ -124,7 +130,10 @@ namespace WitchMendokusai
 	/// <item><c>&gt; -&gt; 끝인사</c> → 그 장면으로 건너뛰기.</item>
 	/// <item><c>&gt; 기다림 2초</c> / <c>&gt; wait 2s</c> → 시간 대기.</item>
 	/// <item><c>&gt; 기다림 사건 boss-defeated</c> / <c>&gt; wait event boss-defeated</c> → 사건 대기.</item>
-	/// <item>그 밖의 줄(산문·지시문) → **무시한다.** 원고에는 카메라·음악 설명이 섞여 있고 그건 대사가 아니다.</item>
+	/// <item><c>&gt; "우리는 진짜야?"</c> → 이름 없이 따옴표만 있으면 **나레이션**(말하는 이 없음).</item>
+	/// <item>그 밖의 줄(산문·지시문·문서 인용) → **무시하고 세어만 둔다**(<see cref="ParsedDialogueScript.SkippedQuoteLines"/>).
+	///   실측(2026-08-08): 원고의 인용줄 절반은 대사가 아니라 경구·메모였다. 그걸 오류라고 하면
+	///   **진짜 오류가 그 소음에 묻힌다.**</item>
 	/// </list>
 	///
 	/// 순수 함수 — 파일 입출력도 Unity 의존도 없다. 문자열만 받는다.
@@ -217,8 +226,13 @@ namespace WitchMendokusai
 				int colon = body.IndexOf(':');
 				if (colon <= 0)
 				{
-					parsed.Issues.Add(new DialogueScriptIssue(lineNumber,
-						$"누가 말하는지가 없다(`이름: 대사` 모양이어야 한다): \"{body}\""));
+					// 이름이 없다 — 따옴표로 감싼 것만 나레이션으로 본다. 나머지는 대사가 아니다(경구·메모·문서 인용).
+					if (TryStripQuotes(body, out string narration) && narration.Length > 0)
+					{
+						current.Entries.Add(DialogueScriptEntry.Speak(lineNumber, null, narration));
+						continue;
+					}
+					parsed.SkippedQuoteLines.Add(new DialogueScriptIssue(lineNumber, body));
 					continue;
 				}
 
@@ -299,17 +313,29 @@ namespace WitchMendokusai
 		}
 
 		/// <summary>따옴표(곧은 것·굽은 것 양쪽)로 감싼 대사는 벗긴다 — 원고는 둘을 섞어 쓴다.</summary>
-		private static string StripQuotes(string text)
+		private static string StripQuotes(string text) => TryStripQuotes(text, out string stripped) ? stripped : text;
+
+		/// <summary>
+		/// 감싼 따옴표를 벗겼으면 true. 「벗겨졌는가」 자체가 판단 근거라서 따로 낸다 —
+		/// 이름 없는 인용줄이 *대사인지 경구인지* 를 이걸로 가른다.
+		/// </summary>
+		private static bool TryStripQuotes(string text, out string stripped)
 		{
+			stripped = text;
 			if (text.Length < 2)
 			{
-				return text;
+				return false;
 			}
 			char first = text[0];
 			char last = text[text.Length - 1];
 			bool straight = first == '"' && last == '"';
 			bool curly = first == '“' && last == '”';
-			return straight || curly ? text.Substring(1, text.Length - 2).Trim() : text;
+			if (straight == false && curly == false)
+			{
+				return false;
+			}
+			stripped = text.Substring(1, text.Length - 2).Trim();
+			return true;
 		}
 
 		/// <summary>갈 곳 이름이 실제 장면인지 — 오타는 여기서 잡아야 한다(런타임엔 그냥 대화가 끝나 버린다).</summary>

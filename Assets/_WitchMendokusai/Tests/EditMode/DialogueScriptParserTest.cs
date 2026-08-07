@@ -82,11 +82,50 @@ namespace WitchMendokusai.Tests
 		}
 
 		[Test]
-		public void SpeakerlessQuoteLine_IsReported()
+		public void QuotedLineWithoutSpeaker_IsNarration()
 		{
-			ParsedDialogueScript parsed = DialogueScriptParser.Parse("> 이건 그냥 인용문이다");
+			ParsedDialogueScript parsed = DialogueScriptParser.Parse("> \"우리는 진짜야?\"");
 
-			Assert.That(parsed.Issues.Count, Is.EqualTo(1), "누가 말하는지 없는 인용줄은 조용히 버리지 않는다");
+			Assert.That(parsed.Sections[0].Entries.Count, Is.EqualTo(1));
+			Assert.That(parsed.Sections[0].Entries[0].Speaker, Is.Null, "말하는 이 없는 대사 = 나레이션");
+			Assert.That(parsed.Sections[0].Entries[0].Text, Is.EqualTo("우리는 진짜야?"));
+			Assert.That(parsed.HasIssues, Is.False);
+		}
+
+		[Test]
+		public void ProseQuote_IsSkippedNotReportedAsError()
+		{
+			// 실측(2026-08-08): 원고의 인용줄 절반은 경구·메모였다. 그걸 오류로 세면 진짜 오류가 묻힌다.
+			ParsedDialogueScript parsed = DialogueScriptParser.Parse(string.Join("\n",
+				"## 도토리",
+				"> 도토리는 땅에 묻혀서 나무가 된다.",
+				"> 욘: \"그런가.\""));
+
+			Assert.That(parsed.HasIssues, Is.False, "대사가 아닌 인용줄은 오류가 아니다");
+			Assert.That(parsed.SkippedQuoteLines.Count, Is.EqualTo(1), "다만 안 읽었다는 사실은 남긴다");
+			Assert.That(parsed.SkippedQuoteLines[0].LineNumber, Is.EqualTo(2));
+			Assert.That(parsed.Sections[0].Entries.Count, Is.EqualTo(1), "대사는 하나만 읽힌다");
+		}
+
+		[Test]
+		public void RealOpeningExcerpt_ParsesCleanly()
+		{
+			// `memo/wm/design/narrative/opening.md` 에서 그대로 떼어 온 조각 — 원고 모양이 바뀌면 여기서 걸린다.
+			ParsedDialogueScript parsed = DialogueScriptParser.Parse(string.Join("\n",
+				"### 장면 3 — 알리사 등장",
+				"",
+				"문 두드리는 소리. 쟁반에 차를 들고 옴.",
+				"",
+				"> 알리사: \"주인님, 아침입니다.\"",
+				"> 욘: (이불 속) \"...\"",
+				"> 알리사: \"오늘 할 일이 있습니다.\"",
+				"> 욘: \"귀찮아.\"",
+				"",
+				"알리사가 차를 탁자에 내려놓고 나간다."));
+
+			Assert.That(parsed.HasIssues, Is.False);
+			Assert.That(parsed.Sections[0].Entries.Count, Is.EqualTo(4));
+			Assert.That(parsed.Sections[0].Entries[3].Speaker, Is.EqualTo("욘"));
 		}
 
 		[Test]
