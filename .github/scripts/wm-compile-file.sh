@@ -92,12 +92,19 @@ done
 nunit=$(find Library/PackageCache -name 'nunit.framework.dll' 2>/dev/null | head -1)
 [ -n "$nunit" ] && refs+=("-r:$nunit")
 
+# 언어 버전 — 유니티가 쓰는 것과 맞춘다. 안 맞추면 csc 기본값(C# 7.3)으로 재서
+# `new()` 같은 멀쩡한 문법이 전부 "Preview 기능이라 안 된다"(CS8652)로 나온다.
+# 실측(2026-08-08): 저장소의 기존 파일(NodeGraph.cs 등)조차 이 오탐으로 빨개졌다 = 도구 쪽 문제였다.
+# Unity 2021.2+ = C# 9. csproj 가 있으면 거기 적힌 값을 그대로 쓰고, 없으면 9.0.
+lang_version=$(sed -n 's/.*<LangVersion>\(.*\)<\/LangVersion>.*/\1/p' Assembly-CSharp.csproj 2>/dev/null | head -1)
+[ -z "$lang_version" ] && lang_version="9.0"
+
 out=$(mktemp -u)".dll"
 # 0649(값이 한 번도 대입 안 됨) · 0169(안 쓰는 필드) 는 끈다 — 유니티도 끈다.
 # 0436(같은 타입이 소스와 dll 양쪽에) 도 끈다 — 위에서 자기 어셈블리를 일부러 넣었기 때문이다.
 # `[SerializeField] private int foo;` 는 코드가 아니라 **인스펙터가** 채우므로 컴파일러 눈엔 안 채워진
 # 것처럼 보인다. 이 저장소 곳곳이 그 모양이라, 안 끄면 멀쩡한 코드가 전부 빨강이 된다(실측).
-output=$("$mono" "$csc" -target:library -nostdlib+ -noconfig -langversion:9.0 -nowarn:0649,0169,0436 "${refs[@]}" -out:"$out" "$@" 2>&1)
+output=$("$mono" "$csc" -target:library -nostdlib+ -noconfig "-langversion:$lang_version" -nowarn:0649,0169,0436 "${refs[@]}" -out:"$out" "$@" 2>&1)
 status=$?
 rm -f "$out"
 

@@ -48,16 +48,22 @@ namespace WitchMendokusai
 		{
 			if (Instance != null && Instance != this) { Destroy(gameObject); return; }
 			Instance = this;
+			DialogueHistoryBridge.Register(History);
 		}
 
 		private void OnDestroy()
 		{
+			DialogueHistoryBridge.Clear(History);
 			if (Instance == this)
 				Instance = null;
 		}
 
 		private DialoguePlayback playback;
 		private Transform bubbleTarget;
+		private DialogueGraph playingGraph;
+
+		/// <summary>「이 대화를 본 적 있나」 기록 — 조건이 <see cref="DialogueHistoryBridge"/> 로 찾아온다.</summary>
+		public DialogueHistory History { get; } = new();
 
 		/// <summary>선택지가 제시됐다 — UI 가 버튼을 그리고 <see cref="SubmitChoice"/> 로 돌려준다.</summary>
 		public event Action<IReadOnlyList<string>> OnChoicesPresented = delegate { };
@@ -81,6 +87,8 @@ namespace WitchMendokusai
 			StopActive();
 
 			bubbleTarget = ResolveTarget(speakerTransform);
+			playingGraph = graph;
+			History.MarkStarted(graph.ID);
 			playback = new DialoguePlayback(graph, effectSink) { DefaultSpeakSeconds = DEFAULT_LINE_DURATION };
 			playback.OnStepChanged += HandleStepChanged;
 			playback.OnFinished += HandlePlaybackFinished;
@@ -136,6 +144,11 @@ namespace WitchMendokusai
 
 		private void HandlePlaybackFinished()
 		{
+			// 끝까지 간 것만 「들었다」로 남긴다 — 중간에 접은 대화는 다음에 다시 보여줘야 한다.
+			if (playingGraph != null && playback != null && playback.ReachedEnd)
+			{
+				History.MarkCompleted(playingGraph.ID);
+			}
 			OnDialogueFinished();
 		}
 

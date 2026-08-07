@@ -49,6 +49,12 @@ namespace WitchMendokusai
 		/// <summary>End 스텝에 닿기 전까지 true. <see cref="Begin"/> 전에는 false.</summary>
 		public bool IsPlaying { get; private set; }
 
+		/// <summary>
+		/// 끝까지 갔는가. 중간에 <see cref="Stop"/> 으로 접은 것과 구별한다 —
+		/// 「이 대화를 끝까지 들었다」를 기록하려면 이 둘이 달라야 한다.
+		/// </summary>
+		public bool ReachedEnd { get; private set; }
+
 		/// <summary>지금 말하는 줄. Speak 스텝이 아니면 null.</summary>
 		public DialogueLine CurrentLine => Current.Kind == DialogueStepKind.Speak ? Current.SpeakLine : null;
 
@@ -70,6 +76,7 @@ namespace WitchMendokusai
 		public void Begin()
 		{
 			IsPlaying = true;
+			ReachedEnd = false;
 			Apply(traversal.Start());
 		}
 
@@ -234,6 +241,7 @@ namespace WitchMendokusai
 				return;
 			}
 			IsPlaying = false;
+			ReachedEnd = true;
 			OnFinished();
 		}
 	}
