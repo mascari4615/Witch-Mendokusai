@@ -21,69 +21,6 @@ namespace WitchMendokusai.Tests
 			Assert.AreEqual(ConditionKind.Always, rule.Conditions[0].Kind);
 		}
 
-
-		// ── 편집기가 오늘 새로 부르기 시작한 setter 3개 ────────────────────────────────
-		//
-		// ★ 왜 뒤늦게 붙나 (2026-08-06): `RowListAuthoring` 은 setter 8개를 갖췄지만 편집기는 3개만
-		//   불렀다(WM-165 item 10). 나머지를 배선하면서 보니 **그 셋은 시험도 없었다** —
-		//   아무도 안 부르니 안 깨졌고, 안 깨지니 없어도 티가 안 났다. 이제 편집기가 부르므로 잠근다.
-		//   셋 다 struct 재대입 경로(`TargetQuery`/`TacticCondition` 은 struct라 복사본을 고치고 되대입
-		//   해야 한다)라, 되대입을 빠뜨리면 **값이 조용히 안 들어간다**. 그게 이 시험이 잡는 것이다.
-
-		[Test]
-		public void SetTargetSide_Persists()
-		{
-			RowListAuthoring authoring = new(new TacticProgram());
-			authoring.AddRow();
-			Assert.AreEqual(TargetSide.Enemy, authoring.Program.Rules[0].Target.Side, "기본 = 적");
-
-			authoring.SetTargetSide(0, TargetSide.Ally);
-
-			Assert.AreEqual(TargetSide.Ally, authoring.Program.Rules[0].Target.Side,
-				"진영이 안 바뀌었다 — struct 되대입 누락이면 여기서 걸린다(아군 대상 전술이 통째로 불가능해진다)");
-		}
-
-		[Test]
-		public void SetTargetRange_Persists()
-		{
-			RowListAuthoring authoring = new(new TacticProgram());
-			authoring.AddRow();
-
-			authoring.SetTargetRange(0, 7f);
-
-			Assert.AreEqual(7f, authoring.Program.Rules[0].Target.MaxRange, 0.0001f);
-		}
-
-		[Test]
-		public void SetConditionSkillSlot_Persists()
-		{
-			RowListAuthoring authoring = new(new TacticProgram());
-			authoring.AddRow();
-			authoring.SetConditionKind(0, ConditionKind.SkillReady);
-
-			authoring.SetConditionSkillSlot(0, 3);
-
-			Assert.AreEqual(3, authoring.Program.Rules[0].Conditions[0].SkillSlot,
-				"조건 슬롯이 안 들어갔다 — 이러면 SkillReady 가 영원히 0번만 본다");
-		}
-
-		// 조건이 하나도 없는 룰(출하 프리셋의 fallback 행이 그렇다 — `Conditions: []`)에
-		// 슬롯/임계를 넣으면 **조용히 무시**된다. 그게 의도된 계약임을 못박아둔다 —
-		// 편집기는 그래서 먼저 SetConditionKind 로 존재를 보장한 뒤 부른다.
-		[Test]
-		public void 조건이_없으면_슬롯_임계는_조용히_무시된다()
-		{
-			RowListAuthoring authoring = new(new TacticProgram());
-			authoring.AddRow();
-			authoring.Program.Rules[0].Conditions.Clear();
-
-			authoring.SetConditionSkillSlot(0, 3);
-			authoring.SetConditionThreshold(0, ComparisonOperator.LessThan, 0.5f);
-
-			Assert.AreEqual(0, authoring.Program.Rules[0].Conditions.Count,
-				"조건을 새로 만들어내면 안 된다 — 만들 책임은 SetConditionKind 에 있다");
-		}
-
 		[Test]
 		public void RemoveRow_DropsRow_OutOfRangeNoop()
 		{

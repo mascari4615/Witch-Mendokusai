@@ -1,4 +1,4 @@
-﻿# Tools/git-hooks/install.ps1 — TASK-WM-109-F
+# Tools/git-hooks/install.ps1 — TASK-WM-109-F
 #
 # Installs the WM post-commit hook into the shared .git/hooks/ dir for the
 # main checkout (and, by extension, every linked worktree — git uses the
@@ -31,28 +31,20 @@ if (-not [System.IO.Path]::IsPathRooted($commonDir))
     $commonDir = [System.IO.Path]::GetFullPath((Join-Path $repoRoot $commonDir))
 }
 
-$hooksDir = Join-Path $commonDir 'hooks'
 $hookSource = Join-Path $repoRoot 'Tools\git-hooks\post-commit'
+$hooksDir = Join-Path $commonDir 'hooks'
 $hookTarget = Join-Path $hooksDir 'post-commit'
-
-# pre-push = 「내가 안 만진 줄이 왜 바뀌었나」 관문 (TASK-WM-205/207).
-# 그동안 `wm-rule-gate.ps1` 머리말은 이 seam 이 있다고 적어뒀는데 아무도 안 깔고 있었다.
-$prePushSource = Join-Path $repoRoot 'Tools\git-hooks\pre-push'
-$prePushTarget = Join-Path $hooksDir 'pre-push'
 
 if ($Uninstall)
 {
-    foreach ($target in @($hookTarget, $prePushTarget))
+    if (Test-Path -LiteralPath $hookTarget)
     {
-        if (Test-Path -LiteralPath $target)
-        {
-            Remove-Item -LiteralPath $target -Force
-            Write-Host "[wm-hooks] removed: $target"
-        }
-        else
-        {
-            Write-Host "[wm-hooks] nothing to remove at $target"
-        }
+        Remove-Item -LiteralPath $hookTarget -Force
+        Write-Host "[wm-hooks] removed: $hookTarget"
+    }
+    else
+    {
+        Write-Host "[wm-hooks] nothing to remove at $hookTarget"
     }
     exit 0
 }
@@ -97,31 +89,5 @@ if ($null -ne $bash)
 }
 
 Write-Host "[wm-hooks] installed: $hookTarget"
-
-# --- pre-push (되돌림 감지) — 없으면 조용히 넘어간다(구 체크아웃 호환). ---
-if (Test-Path -LiteralPath $prePushSource)
-{
-    $installPrePush = $true
-    if ((Test-Path -LiteralPath $prePushTarget) -and -not $Force)
-    {
-        $existingPrePush = Get-Content -LiteralPath $prePushTarget -Raw -ErrorAction SilentlyContinue
-        if ($existingPrePush -notmatch 'wm-revert-audit')
-        {
-            Write-Host "[wm-hooks] foreign pre-push already at $prePushTarget — 건너뜀 (-Force 로 덮어쓰기)"
-            $installPrePush = $false
-        }
-    }
-    if ($installPrePush)
-    {
-        Copy-Item -LiteralPath $prePushSource -Destination $prePushTarget -Force
-        if ($null -ne $bash)
-        {
-            $prePushPosix = ($prePushTarget -replace '\', '/')
-            & $bash.Source -c "chmod +x '$prePushPosix'" 2>$null | Out-Null
-        }
-        Write-Host "[wm-hooks] installed: $prePushTarget"
-    }
-}
-
 Write-Host "[wm-hooks]   ledger:  $(Join-Path $commonDir 'wm-commit-log.tsv')"
 Write-Host "[wm-hooks]   docs:    Tools/git-hooks/README.md"

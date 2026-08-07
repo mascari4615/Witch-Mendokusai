@@ -29,4 +29,4 @@
 
 ## Git
 
-이 폴더는 독립 git repo다. 코드 변경 커밋은 `Witch-Mendokusai/` repo에서 한다.
+이 폴더는 독립 git repo다. 코드 변경 커밋은 `WitchMendokusai/` repo에서 한다.

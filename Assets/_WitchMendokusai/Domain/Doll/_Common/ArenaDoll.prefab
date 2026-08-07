@@ -12189,6 +12189,7 @@ GameObject:
   - component: {fileID: 5660067560609634866}
   - component: {fileID: 6398364464145290214}
   - component: {fileID: 3328640858817917447}
+  - component: {fileID: 2453044989214278447}
   m_Layer: 6
   m_Name: ArenaDoll
   m_TagString: Player
@@ -12246,6 +12247,7 @@ MonoBehaviour:
   <HeadAnchor>k__BackingField: {fileID: 1359031009584764154}
   headRenderer: {fileID: 6211528932960658215}
   bodyRenderer: {fileID: 8384957213776914705}
+  invincibleBlinkInterval: 0.1
 --- !u!114 &6262708460998372854
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -12258,6 +12260,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9f67cc09feccff944bfd88c4f9bfe2d2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WitchMendokusai.UnitMovement
+  sprintSpeedMultiplier: 2
+  motorTuning:
+    maxWalkableSlopeDegrees: 60
+    wallSlopeDegrees: 60
+    stepOffsetHeight: 0.15
+    groundSnapDistance: 0.3
+    groundTouchDistance: 0.04
+    stabilityProbeDistance: 0.2
+    skinWidth: 0.02
   jumpForce: 5.6
   fallGravityMultiplier: 2.2
   lowJumpGravityMultiplier: 3.1
@@ -12327,6 +12338,26 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: eb34caf6f1e8b7d4d92f7b134bddf22d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WitchMendokusai.UnitHealth
+  hitScaleMultiplier: 1.4
+  hitScaleUpDuration: 0.1
+  hitScaleDownDuration: 0.2
+--- !u!114 &2453044989214278447
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4424679600471619191}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5081210ff2a42bb48a17dff0e2bae1cd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: WM.Domain::WitchMendokusai.PlayerKnockbackCameraGlue
+  minimumAmplitude: 0.18
+  forceScale: 0.04
+  maxAmplitude: 0.9
+  forceExponent: 0.85
+  forceThreshold: 0
 --- !u!1 &4427780032331360595
 GameObject:
   m_ObjectHideFlags: 0

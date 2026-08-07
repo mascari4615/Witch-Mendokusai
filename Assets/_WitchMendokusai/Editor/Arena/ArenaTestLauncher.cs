@@ -55,43 +55,18 @@ namespace WitchMendokusai
 			if (UIRoot.TryGetExistingInstance(out UIRoot uiRoot) && uiRoot.ScreenLayer != null)
 			{
 				List<TacticEditorView.Entry> entries = new List<TacticEditorView.Entry>();
-				for (int entryIndex = 0; entryIndex < config.Roster.Count; entryIndex++)
+				foreach (ArenaMatchConfig.ArenaUnitEntry rosterEntry in config.Roster)
 				{
-					ArenaMatchConfig.ArenaUnitEntry rosterEntry = config.Roster[entryIndex];
-
-					// 조용히 넘기면 **패널이 왜 비었는지 알 길이 없다.** 편집기는 로스터에서 온 유닛만
-					// 보여주므로, 여기서 빠진 줄은 화면에서 그냥 존재하지 않는다.
 					if (rosterEntry.UnitData == null || rosterEntry.Tactic == null)
-					{
-						Debug.LogWarning("[Arena-Verify] 로스터 " + entryIndex + " 번(팀 " + rosterEntry.TeamId + ") 은 "
-							+ (rosterEntry.UnitData == null ? "UnitData" : "Tactic") + " 이 비어 편집기에 안 올라간다.");
 						continue;
-					}
-
 					entries.Add(new TacticEditorView.Entry
 					{
 						Label = rosterEntry.UnitData.Name + " (팀" + rosterEntry.TeamId + ")",
 						Authoring = new RowListAuthoring(rosterEntry.Tactic),
 					});
 				}
-
-				// ★ 편집할 게 하나도 없으면 편집기를 띄우지 않는다. 띄우면 유닛 드롭다운이 비고 행이
-				//   0개이며 [+ 행 추가] 는 **아무 일도 안 하는 버튼**이 된다(붙일 대상이 없어서).
-				//   그 화면은 「패널이 고장났다」로 읽힌다 — 실제로는 설정이 빈 것뿐인데.
-				//   UIRoot 가 없을 때와 같은 처리(= 바로 시작)로 맞춘다.
-				if (entries.Count == 0)
-				{
-					Debug.LogError("[Arena-Verify] EDITOR-SKIPPED — 로스터 " + config.Roster.Count
-						+ " 줄 중 편집 가능한 게 0개다(UnitData/Tactic 누락, 위 경고 확인). "
-						+ "빈 편집기는 [+ 행 추가] 가 안 먹는 화면이라 띄우지 않고 바로 시작한다.");
-					match.Begin(config, root);
-				}
-				else
-				{
-					new TacticEditorView(uiRoot.ScreenLayer, entries, () => match.Begin(config, root));
-					Debug.Log("ArenaTestLauncher: 전술 에디터 열림 — 유닛 " + entries.Count
-						+ "기, 행 편집 후 [매치 시작] 클릭. z=" + ARENA_OFFSET_Z + " 관전.");
-				}
+				new TacticEditorView(uiRoot.ScreenLayer, entries, () => match.Begin(config, root));
+				Debug.Log("ArenaTestLauncher: 전술 에디터 열림 — 행 편집 후 [매치 시작] 클릭. z=" + ARENA_OFFSET_Z + " 관전.");
 			}
 			else
 			{
@@ -136,18 +111,6 @@ namespace WitchMendokusai
 				return null;
 
 			match.Begin(config, root);
-
-			// ★ Begin 은 로스터·맵 검증(팀 수 / 팀당 스폰 / 스폰 겹침)에 걸리면 **LogError 만 남기고
-			//   조용히 돌아온다.** 그러면 코루틴도 안 돌고 MatchEnded 도 안 와서, 자동 검증은
-			//   판정 한 줄 없이 Play 에 매달린 채 끝난다(타임아웃은 부팅 대기 구간에만 있다).
-			//   0클릭 검증은 「왜 안 됐는지」를 스스로 말해야 쓸모가 있다.
-			if (match.IsRunning == false)
-			{
-				Debug.LogError("[Arena-Verify] MATCH-NOT-STARTED — Begin 이 거절했다. "
-					+ "바로 위 ArenaMatch LogError 를 볼 것(로스터 TeamId 범위 / 팀당 유닛 수 / 스폰 겹침 / config 미할당).");
-				return null;
-			}
-
 			Debug.Log("[Arena-Verify] HEADLESS — UI 게이트 우회, 즉시 매치 시작. z=" + ARENA_OFFSET_Z);
 			return match;
 		}
@@ -370,11 +333,7 @@ namespace WitchMendokusai
 
 				bool spectatorActive = UnityEngine.GameObject.Find("ArenaSpectatorCamera") != null;
 				bool isSpectating = GameConditionBridge.Get(GameConditionType.IsSpectating);
-				// 매치 구동 여부를 *있는 신호*로 찍는다 — 예전엔 「별도 MATCH-START 로그가 있나」를
-				// 읽는 쪽이 알아채야 했다(없는 줄을 알아채는 건 사람이 제일 못 하는 일).
-				bool matchRunning = ArenaModeController.TryGetExistingInstance(out ArenaModeController arenaController)
-					&& arenaController.IsMatchRunning;
-				Debug.Log($"[Arena-Mode-Verify] ENTER-STATE mode={GameModeManager.Instance.CurrentMode} spectatorCamActive={spectatorActive} isSpectating={isSpectating} matchRunning={matchRunning} (셋 다 True = 관전화면+입력잠금+매치 구동)");
+				Debug.Log($"[Arena-Mode-Verify] ENTER-STATE mode={GameModeManager.Instance.CurrentMode} spectatorCamActive={spectatorActive} isSpectating={isSpectating} (spectatorCamActive=True + 별도 MATCH-START 로그 = 관전화면+매치 구동)");
 
 				GameModeManager.Instance.SetMode(GameMode.Default);
 				modeVerifyPhase = 1;

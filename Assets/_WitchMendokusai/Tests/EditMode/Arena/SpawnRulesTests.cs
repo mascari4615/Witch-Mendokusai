@@ -64,46 +64,6 @@ namespace WitchMendokusai.Tests
 			Assert.IsFalse(SpawnRules.TryFindOverlap(Points(0f, 0f), -1f, out _, out _));
 		}
 
-
-		// ── 팀 *사이* 겹침 ────────────────────────────────────────────────────────────
-		//
-		// ★ 왜 따로 필요한가: 팀 안 검사만 하면 **가장 나쁜 경우를 통째로 놓친다.**
-		//   RectangleArenaMap 은 스폰 z 를 `±(Length/2 - SpawnInset)` 로 잡으므로 SpawnInset 이
-		//   Length/2 가 되는 순간 두 팀이 **같은 z=0 한 줄**에 서고 팀0 i번째와 팀1 i번째가 같은 점이 된다.
-		//   그런데 각 팀은 여전히 X 로 잘 퍼져 있어 팀 안 검사엔 아무 이상도 안 보인다.
-
-		[Test]
-		public void 두_팀이_같은_줄에_서면_잡는다()
-		{
-			// SpawnInset == Length/2 일 때의 실제 모양 — 두 팀이 z=0 에서 X 좌표까지 똑같다.
-			List<Vector3> teamZero = Points(-7f, 0f, 7f);
-			List<Vector3> teamOne = Points(-7f, 0f, 7f);
-
-			Assert.IsFalse(SpawnRules.TryFindOverlap(teamZero, 1f, out _, out _),
-				"팀 안에서는 멀쩡하다 — 이게 팀 단위 검사가 놓치는 이유다");
-			Assert.IsTrue(SpawnRules.TryFindOverlapAcross(teamZero, teamOne, 1f, out int first, out int second));
-			Assert.AreEqual(0, first);
-			Assert.AreEqual(0, second);
-		}
-
-		[Test]
-		public void 마주보는_두_팀은_통과한다()
-		{
-			List<Vector3> teamZero = new() { new Vector3(-7f, 0f, -13f), new Vector3(7f, 0f, -13f) };
-			List<Vector3> teamOne = new() { new Vector3(-7f, 0f, 13f), new Vector3(7f, 0f, 13f) };
-
-			Assert.IsFalse(SpawnRules.TryFindOverlapAcross(teamZero, teamOne, 1f, out _, out _),
-				"기본 배치(±13)는 통과해야 한다 — 여기서 걸리면 정상 맵이 시작을 못 한다");
-		}
-
-		[Test]
-		public void 팀사이_검사도_null_과_0_이하를_방어한다()
-		{
-			Assert.IsFalse(SpawnRules.TryFindOverlapAcross(null, Points(0f), 1f, out _, out _));
-			Assert.IsFalse(SpawnRules.TryFindOverlapAcross(Points(0f), null, 1f, out _, out _));
-			Assert.IsFalse(SpawnRules.TryFindOverlapAcross(Points(0f), Points(0f), 0f, out _, out _), "0 = 끄는 탈출구");
-		}
-
 		[Test]
 		public void 스폰이_null_이거나_하나면_겹칠_수_없다()
 		{

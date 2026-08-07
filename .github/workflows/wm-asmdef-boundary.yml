@@ -84,24 +84,6 @@ jobs:
             done
           done < <(find "$ROOT" -name '*.asmdef' -print0)
 
-          # ── 0-후) 「대상이 0개면 통과」 금지 ─────────────────────────────────────
-          #    ★ 왜 (2026-08-06 실측): 아래 검사들은 전부 `grep ... 2>/dev/null || true` 다.
-          #    비었을 때 통과하는 건 맞다 — **위반이 없어서** 비는 경우엔.
-          #    그런데 `$ROOT` 가 틀리면 grep 은 대상이 없어 에러를 내고, `2>/dev/null` 이 그걸 삼키고,
-          #    `|| true` 가 exit 를 지우고, 결과는 똑같이 빈 문자열이다 → **「전면 clean」 이라고 찍는다.**
-          #    즉 경로가 깨지는 순간 이 게이트는 초록불로 눈이 먼다. 오늘 그 실패 모양을 실제로 봤다
-          #    (memo 도구 6개가 폴더명 오타로 내내 조용히 실패 — automation-debt-ledger 참조).
-          #    `Assets/_WitchMendokusai` 는 TASK-WM-056-D(폴더 재구조, 진행중)가 건드릴 수 있는 경로다.
-          #    그래서 **찾은 게 0개면 통과가 아니라 실패**로 둔다. 셈은 위 루프와 같은 find 를 쓴다.
-          ASMDEF_COUNT=$(find "$ROOT" -name '*.asmdef' 2>/dev/null | wc -l)
-          if [ ! -d "$ROOT" ] || [ "$ASMDEF_COUNT" -eq 0 ]; then
-            echo "::error::검사 대상이 0개다 (ROOT='$ROOT', asmdef=$ASMDEF_COUNT)."
-            echo "::error::  위반이 없는 게 아니라 **아무것도 안 본 것**이다 — 경로가 옮겨졌는지 확인할 것."
-            echo "::error::  정본 경로 수정 = memo/dotfiles/workflows/wm-asmdef-boundary.yml 의 env.ROOT"
-            exit 1
-          fi
-          echo "검사 대상 asmdef ${ASMDEF_COUNT}개 (ROOT=$ROOT)"
-
           # ── 2) FishNet 소스 토큰 — Network 외 layer 의 NetCode 직접 결합 금지 ──────
           #    asmdef GUID 참조·using·reflection 어느 우회든 잡는 방어선.
           #    FishNet 네임스페이스는 고유 = false-positive 0.

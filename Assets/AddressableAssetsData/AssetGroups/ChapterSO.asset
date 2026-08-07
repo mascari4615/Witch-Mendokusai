@@ -16,13 +16,13 @@ MonoBehaviour:
   m_GUID: 1ef909cd36b521345b09fc312d85ee3b
   m_SerializeEntries:
   - m_GUID: 0ed87ef5a2e822848ae01bedb3596402
-    m_Address: ChapterSO/0
+    m_Address: ChapterSO/1
     m_ReadOnly: 0
     m_SerializedLabels:
     - ChapterSO
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 4d4a83cb3b0ca364f89f9c550b18945d
-    m_Address: ChapterSO/0
+    m_Address: ChapterSO/2
     m_ReadOnly: 0
     m_SerializedLabels:
     - ChapterSO

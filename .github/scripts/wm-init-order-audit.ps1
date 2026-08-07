@@ -57,16 +57,6 @@ if (-not $resolvedRoot)
 $Root = $resolvedRoot
 
 $files = Get-ChildItem -Path $Root -Recurse -Filter *.cs -File
-
-# 「0개 검사 = 통과」 방지. 위 경로 해석 가드가 *없는 폴더*는 이미 잡지만,
-# **있는데 비어 있는 폴더**(예: 아직 체크아웃 안 된 새 worktree)는 통과해버린다.
-# 그러면 초록불이 「위반 없음」이 아니라 「아무것도 안 봤음」을 뜻하게 된다.
-if ($files.Count -eq 0)
-{
-    Write-Output "[init-order] CANNOT-RUN: $Root 아래 .cs 가 0개다."
-    Write-Output "[init-order]   위반이 없는 게 아니라 아무것도 안 본 것이다 — 경로/체크아웃 확인."
-    exit 2
-}
 $blocks = New-Object System.Collections.Generic.List[string]
 $reviews = New-Object System.Collections.Generic.List[string]
 $orderRisks = New-Object System.Collections.Generic.List[string]

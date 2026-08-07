@@ -17,10 +17,8 @@ TASK-WM-109 이슈 6 — 한 세션 35+ commits 누적 → 사용자 Play 진입
 | 파일 | 역할 |
 |---|---|
 | `post-commit` | bash POSIX hook. 매 commit 후 자동. PS verify 스크립트에 위임 (없으면 silent skip). 항상 exit 0 — *commit 차단 X*. |
-| `wm-commit-verify.ps1` | 실제 검증 로직 (PowerShell). ledger append + `.cs` / `.meta` / `.asset` / `.prefab` / `.unity` 카운트 + `.cs` ↔ `.cs.meta` 짝 검사 + **은퇴한 식별자 canary** + Unity-MCP TCP probe(포트는 `.mcp.json` 에서 읽는다) + big-commit hint. *Unity 호출 X* (hook 은 빨라야). |
-| `retired-identifiers.tsv` | 은퇴한 이름 표(`옛이름 <TAB> 새이름 <TAB> 사유`). 커밋의 *추가된 줄*에 옛 이름이 나오면 「옛 사본을 들고 있다」고 알린다 — 2026-08-06 하루에 네 번, 서로 다른 파일이 개명 전 내용으로 통째 되돌아와 main 이 `CS0246` 로 죽었다. **이름을 바꿀 때마다 한 줄 추가할 것**(로직 수정 불요). 막지는 않는다. |
-| `pre-push` | bash POSIX hook. **푸시 전** 그 푸시에 「다른 커밋의 일을 되돌린」 커밋이 있는지 본다(`wm-revert-audit.sh` 호출). **항상 exit 0 — 막지 않는다**(의도적 `git revert` 도 같은 모양이라 거짓 차단이 게이트를 죽인다). 최대 20 커밋만 훑어 훅이 안 늘어지게. |
-| `install.ps1` | `.git/hooks/` 로 hook 복사(**post-commit + pre-push 둘 다**). git common dir 사용 → 메인 + 모든 worktree 한 번에 적용. idempotent (이미 설치돼 있으면 no-op). `-Force` / `-Uninstall` 지원. |
+| `wm-commit-verify.ps1` | 실제 검증 로직 (PowerShell). ledger append + `.cs` / `.meta` / `.asset` / `.prefab` / `.unity` 카운트 + `.cs` ↔ `.cs.meta` 짝 검사 + Unity-MCP `:8080` TCP probe + big-commit hint. *Unity 호출 X* (hook 은 빨라야). |
+| `install.ps1` | `.git/hooks/post-commit` 으로 hook 복사. git common dir 사용 → 메인 + 모든 worktree 한 번에 적용. idempotent (이미 설치돼 있으면 no-op). `-Force` / `-Uninstall` 지원. |
 
 ## 설치
 

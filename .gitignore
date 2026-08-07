@@ -37,7 +37,6 @@ ExportedObj/
 *.csproj
 *.unityproj
 *.sln
-*.slnx
 *.suo
 *.tmp
 *.user
@@ -153,8 +152,3 @@ bash.exe.stackdump*
 # 검증 스크린샷 (로컬 산출물)
 /Assets/Screenshots/
 /Assets/Screenshots.meta
-
-# 크래시 뒤 씬 복구본 — 에디터가 비정상 종료하면 Unity 가 여기에 백업을 복사한다.
-# 저장소에 들어갈 물건이 아니다(남의 미저장 편집이 공개 레포에 박힌다).
-/Assets/_Recovery/
-/Assets/_Recovery.meta
