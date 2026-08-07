@@ -715,6 +715,9 @@ namespace WitchMendokusai
 			bottomRow.pickingMode = PickingMode.Ignore;
 			bottomRow.Add(MakeHoldButton("점프", InputEventType.Jump, actionButtonSize));
 			bottomRow.Add(MakeHoldButton("공격", InputEventType.Click0, actionButtonSize * 1.25f));
+			// 앉기도 키 하나(C)에만 있었다. 「누르는 동안 앉는다」라서 누름·뗌을 그대로 넘기는
+			// 이 버튼이 맞다 — 톡 버튼에 걸면 켜지자마자 꺼져 아무 일도 안 일어난다.
+			bottomRow.Add(MakeHoldButton("앉기", InputEventType.Crouch, actionButtonSize * 0.8f));
 			column.Add(bottomRow);
 
 			column.name = "MobileActionButtons";
