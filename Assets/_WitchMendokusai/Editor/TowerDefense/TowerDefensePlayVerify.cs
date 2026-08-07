@@ -2883,6 +2883,18 @@ namespace WitchMendokusai.EditorTools
 						Debug.Log($"{TAG} 재시작 신호 — 코어 충전 {fresh.CoreSignalCharge:F2} (0 에 가까워야 한다)");
 						if (fresh.CoreSignalCharge > 0.9f)
 							Debug.LogError(TAG + " 재시작 FAIL — 새 판이 이미 가득 찬 신호로 시작한다(옛 판 상태가 남았다).");
+
+						// ★ 새 판이 시작하자마자 「내 것이 부서졌다」가 뜨면, 판이 끝나며 청산된 것을
+						//   적이 부순 것으로 오인한 것이다 — 첫인상이 거짓 경고면 알림 전체를 못 믿게 된다.
+						int falseBreak = 0;
+						foreach (TowerDefenseAlerts.Alert alert in fresh.Alerts)
+						{
+							if (alert.Label.Contains("부서졌다"))
+								falseBreak++;
+						}
+						Debug.Log($"{TAG} 재시작 알림 — 「부서졌다」 {falseBreak}개 · 전체 {fresh.Alerts.Count}개 (둘 다 0 이어야 한다)");
+						if (falseBreak > 0)
+							Debug.LogError(TAG + " 재시작 FAIL — 새 판이 시작하자마자 옛 판 건물을 「부서졌다」고 알린다.");
 					}
 
 			if (freshWave && freshOutcome && freshResource)

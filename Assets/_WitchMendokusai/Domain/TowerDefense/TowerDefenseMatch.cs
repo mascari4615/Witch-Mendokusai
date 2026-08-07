@@ -1337,6 +1337,12 @@ namespace WitchMendokusai
 			lastAdaptationNote = string.Empty;
 			lastPressureStep = -1;
 
+			// ★ 알림과 「건물이 서 있던 자리」 기억도 판마다 비운다.
+			//   안 비우면 새 판 첫 틱에 *옛 판 건물들*이 전부 「내 것이 부서졌다」로 뜬다 —
+			//   판이 끝나며 청산된 것을 적이 부순 것으로 오인한다(시작하자마자 거짓 경고 넷).
+			alerts.Clear();
+			lastBuildingPositions.Clear();
+
 			if (stage == null || stage.LairCount <= 0 || mapLayout == null || stage.EnemyUnit == null)
 				yield break;
 
