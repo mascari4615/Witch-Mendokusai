@@ -63,6 +63,20 @@ WMInput.inputactions → InputManager.BindEvents() → On{Start/Performed/Cancel
 
 모든 수치·시간·길이·가중치·확률 하드코딩 금지. SO / `[SerializeField]` / `Variable<T>` 노출, 매니저는 SO 값 캐싱 X(매 사용 시 read). 같은 수치 두 곳 박기 X. MCP `manage_components.set_property` 로 수치 변경 시 SO 정본 우회 위험 — 디버그 외 사용 X.
 
+### 코드로 짓는 UIToolkit 은 USS 로 (TASK-WM-206)
+
+`[SerializeField]` 는 MonoBehaviour 에만 붙는다. 코드로 짓는 순수 C# `VisualElement` 클래스
+(`TacticEditorView` / `EdgeRuntimeElement` 등)의 **색·간격·글자 크기는 USS 로 내린다.**
+
+- 스타일시트는 **`[SerializeField] StyleSheet` 로 받아 `styleSheets.Add`** — `UIRoot` 선례.
+  `Resources.Load<StyleSheet>("문자열")` 신규 사용 X (경로 오타 시 조용히 null → 그냥 못생기게 뜬다).
+- 패널 클래스는 스타일시트를 **자기가 로드하지 않는다.** 마운트하는 MonoBehaviour 가 붙여준다
+  (그래야 누가 무슨 스타일을 쓰는지 인스펙터에 보인다). 클래스는 USS 클래스 이름만 안다.
+- 값이 아니라 *의미* 로 이름 짓는다(`--wm-panel-bg`) — 팔레트가 한 자리에 산다.
+
+⚠ 색을 `static readonly` 로 옮기는 절반짜리는 룰을 못 채운다 — 리터럴만 이사할 뿐 런타임 tweak 은
+여전히 불가. 그건 「겉만 깨끗해진 것」이다.
+
 ## 에러 처리 — FastFail 유지
 
 방어 코드(TryGet/null체크/기본값 반환)로 증상 덮지 말고, 등록 누락 등 근본 원인 고침. `[]` 직접 접근 등 FastFail 메서드 그대로 유지.
