@@ -221,13 +221,6 @@ namespace WitchMendokusai
 		[field: Tooltip("모서리를 얼마나 둥글게 도나(0 = 칸 중심을 딱딱 밟는다, 1 = 다음 칸 너머를 본다).")]
 		[field: SerializeField, Range(0f, 1f)] public float EnemyCornerSmoothing { get; private set; } = 0.6f;
 
-		// ★ 왜 필요한가 (라이브 실측): 마수의 몸 지름은 한 칸과 같다(반경 0.50 · 칸 1.00). 길찾기가 아무리
-		//   안전한 길을 줘도 마수는 칸 한가운데에만 서 있지 않다 — 무리에 밀리고 개체별 간격이 흔들린다.
-		//   벽 쪽으로 반 칸만 치우쳐도 곧게 가는 동안 바위를 스치고, 그 자리에서 판이 끝날 때까지 민다
-		//   (경고 중 「갈 수 있다는 칸인데 암반에 막힘」이 판마다 36~73줄이었고, 길 규칙을 세 번 조여도
-		//   그 수가 안 줄었다 — 길이 아니라 *몸이 서 있는 자리*가 원인이라는 뜻이다).
-		[field: Tooltip("옆 칸이 암반이면 그 반대쪽으로 얼마나 밀어내며 걷나(0 = 안 밀어냄). 몸이 칸만큼 굵어 벽에 스치는 것을 막는다.")]
-		[field: SerializeField, Range(0f, 2f)] public float EnemyWallPush { get; private set; } = 0.6f;
 
 
 		[field: Header("연구 해금 — 처음엔 거의 아무것도 못 한다")]

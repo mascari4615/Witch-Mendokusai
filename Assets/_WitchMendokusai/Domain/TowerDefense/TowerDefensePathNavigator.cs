@@ -27,8 +27,6 @@ namespace WitchMendokusai
 		private readonly float directGoalDistance;
 		private readonly float cornerSmoothing;
 
-		/// <summary> 옆 칸이 암반이면 그 반대쪽으로 얼마나 밀어내며 걷나 — 몸이 칸만큼 굵어 벽에 스치는 것을 막는다. </summary>
-		private readonly float wallPush;
 
 		/// <summary> 판이 바뀐 횟수 — 벽이 서거나 부서지면 올린다. 들고 있던 경로는 그 순간 낡은 것이 된다. </summary>
 		public int Version { get; private set; }
@@ -40,15 +38,13 @@ namespace WitchMendokusai
 			TowerDefenseGridPath finder,
 			Transform stageRoot,
 			float directGoalDistance,
-			float cornerSmoothing = 0f,
-			float wallPush = 0f)
+			float cornerSmoothing = 0f)
 		{
 			this.layout = layout;
 			this.finder = finder;
 			this.stageRoot = stageRoot;
 			this.directGoalDistance = directGoalDistance;
 			this.cornerSmoothing = Mathf.Clamp01(cornerSmoothing);
-			this.wallPush = Mathf.Max(0f, wallPush);
 		}
 
 		private sealed class Follower
@@ -140,11 +136,6 @@ namespace WitchMendokusai
 				nextLocal = Vector3.Lerp(nextLocal, layout.CellToWorld(follower.Path[follower.Index + 1]), cornerSmoothing);
 			}
 
-			// ★ 길이 안전해도 몸은 칸 한가운데에만 서 있지 않다 — 무리에 밀리고 간격이 흔들린다.
-			//   벽 쪽으로 치우친 채 곧게 가면 그대로 바위를 스친다. 그래서 *지금 서 있는 자리*에서
-			//   옆 칸이 벽이면 그 반대쪽으로 조금 밀어내며 걷게 한다(길은 그대로, 서는 자리만 안쪽으로).
-			nextLocal += WallAvoidOffset(fromLocal, fromCell);
-
 			Vector3 delta = stageRoot.TransformPoint(nextLocal) - from;
 			delta.y = 0f;
 			if (delta.sqrMagnitude <= 0.0001f)
@@ -152,43 +143,6 @@ namespace WitchMendokusai
 
 			direction = delta.normalized;
 			return true;
-		}
-
-		/// <summary>
-		/// 옆 칸이 벽이면 그 반대쪽으로 얼마나 비켜설지 — 벽에 가까이 붙어 있을수록 크게 민다.
-		///
-		/// ★ 「밀어주기」가 아니다. 예전에 지웠던 그 임시방편은 굳은 마수를 다음 칸으로 *순간이동*시켰다.
-		///   이건 *가는 방향*만 안쪽으로 살짝 트는 것이다 — 순간이동도, 벽 통과도 없다.
-		/// ★ 벽에 이미 닿아 있어도 밀어낸다: 몸 지름이 칸과 같아서, 한가운데로 돌아오지 않으면
-		///   그 마수는 판이 끝날 때까지 그 자리에서 바위를 민다(실측).
-		/// </summary>
-		private Vector3 WallAvoidOffset(Vector3 fromLocal, Vector2Int fromCell)
-		{
-			if (wallPush <= 0f)
-				return Vector3.zero;
-
-			Vector3 cellCenter = layout.CellToWorld(fromCell);
-			Vector3 offset = Vector3.zero;
-
-			// 네 옆 칸만 본다 — 대각선은 길찾기가 이미 모서리를 안 뚫게 막는다.
-			if (layout.IsBlocked(new Vector2Int(fromCell.x + 1, fromCell.y)))
-				offset.x -= WallLean(fromLocal.x - cellCenter.x);
-			if (layout.IsBlocked(new Vector2Int(fromCell.x - 1, fromCell.y)))
-				offset.x += WallLean(cellCenter.x - fromLocal.x);
-			if (layout.IsBlocked(new Vector2Int(fromCell.x, fromCell.y + 1)))
-				offset.z -= WallLean(fromLocal.z - cellCenter.z);
-			if (layout.IsBlocked(new Vector2Int(fromCell.x, fromCell.y - 1)))
-				offset.z += WallLean(cellCenter.z - fromLocal.z);
-
-			return offset;
-		}
-
-		/// <summary> 벽 쪽으로 얼마나 치우쳐 있나(0 이하면 안 치우침) → 밀어낼 양. </summary>
-		private float WallLean(float towardWall)
-		{
-			if (towardWall <= 0f)
-				return 0f;
-			return towardWall * wallPush;
 		}
 
 		/// <summary>
