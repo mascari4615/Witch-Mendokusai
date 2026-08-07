@@ -129,7 +129,8 @@ namespace WitchMendokusai
 			{
 				// 키 이동 + 화면 가장자리 이동은 *같은 축*으로 합산한다 — 둘을 따로 처리하면
 				// 동시에 눌렀을 때 속도가 두 배가 되거나 서로를 덮는다.
-				Move = Vector2.ClampMagnitude(InputManager.CameraMoveInput + EdgePanInput(), 1f),
+				Move = Vector2.ClampMagnitude(
+					InputManager.CameraMoveInput + EdgePanInput() + TwoFingerPanInput(), 1f),
 				Rotate = InputManager.CameraRotateInput,
 				ScrollDelta = InputManager.ScrollWheelDelta,
 				SpeedMultiplier = SpeedMultiplier,
@@ -152,6 +153,32 @@ namespace WitchMendokusai
 		///   다른 창을 보다 돌아오면 판이 저 멀리 가 있는 식이라, 화면 안에 있을 때만 민다.
 		/// ★ 가장자리 폭·속도는 값으로 노출한다 — 화면 크기와 손 감각에 따라 달라지는 수치다.
 		/// </summary>
+		[Header("손가락")]
+		[Tooltip("두 손가락으로 끈 화면 픽셀 → 시점 이동량 배율.")]
+		[SerializeField, Min(0f)] private float twoFingerPanStrength = 0.012f;
+
+		/// <summary>
+		/// 두 손가락으로 밀어 시점을 옮긴다 (TASK-WM-200).
+		///
+		/// ★ 폰에는 키보드도 화면 가장자리 밀기도 없다 — 즉 **시점을 옮길 방법이 0** 이었다
+		///   (2026-08-07 실기: "영웅은 움직이는데 카메라를 못 움직임"). 확대·축소만 손가락에
+		///   닿아 있었다.
+		/// ★ 두 손가락인 이유: 한 손가락은 이미 「짓기·고르기·영웅 보내기」가 쓴다. 거기에 시점까지
+		///   얹으면 톡 한 번의 뜻이 상황마다 달라져서, 무엇이 일어날지 예측이 안 된다.
+		/// ★ 미는 방향과 지도가 따라오는 방향은 반대다 — 종이를 손으로 끌 때처럼(지도를 잡아 끈다).
+		/// </summary>
+		private Vector2 TwoFingerPanInput()
+		{
+			if (twoFingerPanStrength <= 0f)
+				return Vector2.zero;
+
+			Vector2 delta = InputManager.PointerTwoFingerPanDelta;
+			if (delta.sqrMagnitude <= 0f)
+				return Vector2.zero;
+
+			return -delta * twoFingerPanStrength;
+		}
+
 		private Vector2 EdgePanInput()
 		{
 			if (edgePanBand <= 0f)
