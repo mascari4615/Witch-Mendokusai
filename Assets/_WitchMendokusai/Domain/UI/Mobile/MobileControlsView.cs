@@ -872,6 +872,10 @@ namespace WitchMendokusai
 				if (Vector2.Distance(evt.position, pressedAt) > tapSlopPixels)
 					return; // 굴린 것이지 누른 것이 아니다
 
+				// 자리를 옮기는 중이면 버튼은 손잡이일 뿐이다 — 살짝 옮기고 뗐다고 창이 열리면 안 된다.
+				if (layoutEditMode)
+					return;
+
 				if (InputManager.TryGetExistingInstance(out InputManager inputManager))
 				{
 					inputManager.PressFromScreenButton(inputEventType);
