@@ -135,6 +135,56 @@ namespace WitchMendokusai.Tests
 		}
 
 		[Test]
+		public void LoopWithNoWayOut_IsError()
+		{
+			// 흐름이 여럿 모일 수 있게 된 뒤로 정상 편집으로도 고리를 만들 수 있다. 고리 자체는 정상이지만
+			// **나가는 길이 하나도 없으면** 플레이어가 영원히 같은 대사를 돈다(그 사이 뒤 대화도 다 막힌다).
+			DialogueGraph graph = NewGraph();
+			DialogueStartNode start = new();
+			DialogueSpeakNode first = new() { Line = NewLine() };
+			DialogueSpeakNode second = new() { Line = NewLine() };
+			graph.AddNode(start);
+			graph.AddNode(first);
+			graph.AddNode(second);
+			graph.Connect(start.FindPort(DialogueStartNode.PORT_NEXT), first.FindPort(DialogueSpeakNode.PORT_IN));
+			graph.Connect(first.FindPort(DialogueSpeakNode.PORT_NEXT), second.FindPort(DialogueSpeakNode.PORT_IN));
+			graph.Connect(second.FindPort(DialogueSpeakNode.PORT_NEXT), first.FindPort(DialogueSpeakNode.PORT_IN));
+
+			DialogueGraphValidationResult result = DialogueGraphValidator.Validate(graph);
+
+			Assert.That(result.CountOf(DialogueGraphIssueKind.CannotReachEnd), Is.GreaterThan(0));
+			Assert.That(result.HasErrors, Is.True);
+		}
+
+		[Test]
+		public void LoopWithAnExit_IsFine()
+		{
+			// 허브로 돌아오는 대화는 정상이다 — 나갈 길이 하나라도 있으면 걸리면 안 된다.
+			DialogueGraph graph = NewGraph();
+			DialogueStartNode start = new();
+			DialogueChoiceNode hub = new()
+			{
+				Prompt = "무엇을 물을까",
+				Options = new List<DialogueChoiceOption> { "다시 묻는다", "그만한다" },
+			};
+			DialogueSpeakNode answer = new() { Line = NewLine() };
+			DialogueSpeakNode farewell = new() { Line = NewLine() };
+			graph.AddNode(start);
+			graph.AddNode(hub);
+			graph.AddNode(answer);
+			graph.AddNode(farewell);
+			graph.Connect(start.FindPort(DialogueStartNode.PORT_NEXT), hub.FindPort(DialogueChoiceNode.PORT_IN));
+			graph.Connect(hub.FindPort(DialogueChoiceNode.ChoicePortId(0)), answer.FindPort(DialogueSpeakNode.PORT_IN));
+			graph.Connect(answer.FindPort(DialogueSpeakNode.PORT_NEXT), hub.FindPort(DialogueChoiceNode.PORT_IN));
+			graph.Connect(hub.FindPort(DialogueChoiceNode.ChoicePortId(1)), farewell.FindPort(DialogueSpeakNode.PORT_IN));
+
+			DialogueGraphValidationResult result = DialogueGraphValidator.Validate(graph);
+
+			Assert.That(result.CountOf(DialogueGraphIssueKind.CannotReachEnd), Is.Zero,
+				"돌아오는 대화는 정상이다 — 나갈 길이 있으면 걸면 안 된다");
+		}
+
+		[Test]
 		public void UnreachableNode_IsWarning()
 		{
 			DialogueGraph graph = NewGraph();
