@@ -355,6 +355,7 @@ namespace WitchMendokusai
 
 			FlushChoices(current, ref pendingChoices, pendingChoiceLine);
 			FlushEffects(current, ref pendingEffects, pendingEffectLine);
+			ValidateSectionNames(parsed);
 			ValidateTargets(parsed);
 			return parsed;
 		}
@@ -612,6 +613,29 @@ namespace WitchMendokusai
 			}
 			stripped = text.Substring(1, text.Length - 2).Trim();
 			return true;
+		}
+
+		/// <summary>
+		/// 같은 이름의 장면이 둘 이상인가.
+		///
+		/// ★ 왜 오류인가: 이름으로 찾는 쪽(<see cref="ParsedDialogueScript.FindSection"/>)은 **첫 번째**를 집고,
+		///   그래프를 세우는 쪽은 나중 것으로 덮어써 **마지막**으로 간다. 즉 검사는 A 를 보고 실제 재생은 B 로 간다 —
+		///   눈으로는 「분명 저 장면을 가리켰는데 다른 대사가 나온다」로만 보이는 종류다.
+		///   원고에서 「### 만남」 같은 흔한 제목을 두 번 쓰기 쉬우므로 반드시 잡아야 한다.
+		/// </summary>
+		private static void ValidateSectionNames(ParsedDialogueScript parsed)
+		{
+			HashSet<string> seen = new(StringComparer.Ordinal);
+			for (int i = 0; i < parsed.Sections.Count; i++)
+			{
+				DialogueScriptSection section = parsed.Sections[i];
+				if (seen.Add(section.Name))
+				{
+					continue;
+				}
+				parsed.Issues.Add(new DialogueScriptIssue(section.LineNumber,
+					$"장면 이름이 겹친다: \"{section.Name}\" — 가리키는 쪽과 실제로 가는 곳이 달라진다"));
+			}
 		}
 
 		/// <summary>갈 곳 이름이 실제 장면인지 — 오타는 여기서 잡아야 한다(런타임엔 그냥 대화가 끝나 버린다).</summary>

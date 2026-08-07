@@ -37,7 +37,12 @@ namespace WitchMendokusai
 			for (int s = 0; s < script.Sections.Count; s++)
 			{
 				DialogueScriptSection section = script.Sections[s];
-				sectionIndexByName[section.Name] = s;
+				// 이름이 겹치면 **첫 번째**를 쓴다 — 이름으로 찾는 쪽(FindSection)이 첫 번째를 집기 때문.
+				// 덮어쓰면 「검사는 A 를 보고 재생은 B 로 가는」 어긋남이 생긴다(파서가 그 겹침을 오류로 알린다).
+				if (sectionIndexByName.ContainsKey(section.Name) == false)
+				{
+					sectionIndexByName[section.Name] = s;
+				}
 				nodesBySection.Add(CreateNodes(graph, section));
 			}
 
