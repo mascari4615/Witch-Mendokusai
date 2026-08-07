@@ -224,61 +224,8 @@ namespace WitchMendokusai
 				return;
 			}
 
-			DialogueHistory history = new();
-			foreach (int id in ParseIds(pretendSeenIds))
-			{
-				history.MarkCompleted(id);
-			}
-			DialogueHistoryBridge.Register(history);
-
-			DialogueItemBridge.Register(new PretendItems(new HashSet<int>(ParseIds(pretendItemIds))));
-			DialogueQuestBridge.Register(new PretendQuests(new HashSet<int>(ParseIds(pretendDoneQuestIds))));
-		}
-
-		private static List<int> ParseIds(string text)
-		{
-			List<int> ids = new();
-			if (string.IsNullOrWhiteSpace(text))
-			{
-				return ids;
-			}
-			foreach (string part in text.Split(','))
-			{
-				if (int.TryParse(part.Trim(), out int id))
-				{
-					ids.Add(id);
-				}
-			}
-			return ids;
-		}
-
-		private sealed class PretendItems : IDialogueItemCountSource
-		{
-			private readonly HashSet<int> owned;
-
-			public PretendItems(HashSet<int> ownedItemIds)
-			{
-				owned = ownedItemIds;
-			}
-
-			// 「가졌다」고 한 것은 넉넉히 가진 것으로 본다 — 개수까지 흉내내면 손잡이가 복잡해진다.
-			public int GetItemAmount(int itemId) => owned.Contains(itemId) ? 99 : 0;
-		}
-
-		private sealed class PretendQuests : IDialogueQuestStateSource
-		{
-			private readonly HashSet<int> completed;
-
-			public PretendQuests(HashSet<int> completedQuestIds)
-			{
-				completed = completedQuestIds;
-			}
-
-			public bool TryGetQuestState(int questId, out QuestState state)
-			{
-				state = completed.Contains(questId) ? QuestState.Completed : QuestState.Locked;
-				return true;
-			}
+			// 무엇을 참으로 칠지는 이 창이 안 정한다 — 화면 없이 시험되는 쪽에 있다.
+			DialoguePretendState.From(pretendSeenIds, pretendItemIds, pretendDoneQuestIds).Register();
 		}
 
 		private void RecordStep()
