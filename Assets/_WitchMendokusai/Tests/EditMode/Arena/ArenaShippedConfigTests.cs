@@ -68,6 +68,24 @@ namespace WitchMendokusai.Tests
 		}
 
 		[Test]
+		public void 로스터의_모든_줄이_전술을_한_줄이라도_갖는다()
+		{
+			// 빈 전술은 시작을 막지 않는다 — 그 유닛만 **한 판 내내 가만히 서 있는다.**
+			// 로그도 예외도 안 뜨고 화면에서 「쟤는 왜 안 움직이지」로만 보인다(트랩#2 와 같은 얼굴).
+			foreach (ArenaMatchConfig config in LoadShippedConfigs())
+			{
+				for (int entryIndex = 0; entryIndex < config.Roster.Count; entryIndex++)
+				{
+					ArenaMatchConfig.ArenaUnitEntry entry = config.Roster[entryIndex];
+					string who = entry.UnitData != null ? entry.UnitData.name : $"{entryIndex} 번";
+
+					Assert.IsNotNull(entry.Tactic, $"{config.name}: {who} 의 전술이 비었다 — 그 유닛은 판 내내 가만히 서 있는다");
+					Assert.IsNotEmpty(entry.Tactic.Rules, $"{config.name}: {who} 의 전술에 규칙이 한 줄도 없다 — 그 유닛은 판 내내 가만히 서 있는다");
+				}
+			}
+		}
+
+		[Test]
 		public void 로스터가_맵이_감당할_수_있는_인원이다()
 		{
 			foreach (ArenaMatchConfig config in LoadShippedConfigs())
