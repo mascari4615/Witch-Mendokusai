@@ -61,6 +61,9 @@ namespace WitchMendokusai
 		private VisualElement lookBackdrop;
 		private Label lookHint;
 		private Label overheadHint;
+		private Rect lastSafeArea;
+		private int lastScreenWidth;
+		private int lastScreenHeight;
 		private VisualElement controlsRoot;
 		private VisualElement stickBase;
 		private VisualElement stickKnob;
@@ -87,6 +90,9 @@ namespace WitchMendokusai
 				lookBackdrop.RemoveFromHierarchy();
 			if (controlsRoot != null)
 				controlsRoot.RemoveFromHierarchy();
+			// 안내는 층에 따로 붙어 있어서 같이 안 걷으면 조작 장치가 사라진 화면에 글자만 남는다.
+			if (overheadHint != null)
+				overheadHint.RemoveFromHierarchy();
 			built = false;
 		}
 
@@ -98,6 +104,16 @@ namespace WitchMendokusai
 			//   붙어 있는지 매 프레임 확인하고, 떨어졌으면 다시 붙는다(조용히 없어지는 것보다 낫다).
 			if (built && IsAttached() == false)
 				built = false;
+
+			// ★ 화면 크기·가장자리 여백은 *한 번만* 재고 끝이었다. 폰을 180도 돌리면(이 게임은 가로
+			//   두 방향을 다 허용한다) 노치가 반대편으로 가는데 층은 그대로라, 버튼이 카메라 구멍
+			//   아래로 들어간다. 화면 모양이 달라지면 다시 세운다.
+			Rect safeArea = Screen.safeArea;
+			if (built && (safeArea != lastSafeArea || Screen.width != lastScreenWidth || Screen.height != lastScreenHeight))
+				built = false;
+			lastSafeArea = safeArea;
+			lastScreenWidth = Screen.width;
+			lastScreenHeight = Screen.height;
 
 			if (built == false)
 			{
