@@ -105,6 +105,19 @@ namespace WitchMendokusai
 		/// <summary>등록된 표. 아직 없으면 null — 부르는 쪽이 판단한다.</summary>
 		public static DialogueSpeakerRegistry Current => registry;
 
+		/// <summary>
+		/// 표를 얻는다. 없으면 만들어 등록한다.
+		///
+		/// ★ 왜 필요한가(초기화 순서): 캐릭터가 대화 러너보다 **먼저** 깨어날 수 있다. 그때 표가 없다고
+		///   그냥 넘어가면 그 캐릭터는 영영 등록되지 않는다(자기 Awake 는 다시 안 온다).
+		///   누가 먼저 오든 같은 표에 모이게 하려면 「없으면 만든다」가 맞다.
+		/// </summary>
+		public static DialogueSpeakerRegistry EnsureRegistry()
+		{
+			registry ??= new DialogueSpeakerRegistry();
+			return registry;
+		}
+
 		/// <summary>표가 없거나 이름이 없으면 false. 캐릭터 쪽 배선이 아직이어도 대화는 돌아야 한다.</summary>
 		public static bool TryGetAnchor(string speakerName, out Transform anchor)
 		{
