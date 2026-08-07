@@ -1,0 +1,24 @@
+# 씬·프리팹 어디에도 없고 코드도 안 붙이는 부품 — 물려받은 빚. (TASK-WM-209)
+#
+# ⚠ 이 17개를 「죽었다」고 판정한 게 아니다. 첫 측정에서 나온 그대로 적어 둔 것이고,
+#   하나씩 확인한 적 없다. 이 파일의 목적은 **새로 생기는 것을 막는 것**이지 옛것 정리가 아니다.
+#   확인해서 진짜 죽었으면 지우고 이 줄도 빼라. 살아 있으면(내가 못 본 경로가 있으면) 사유를 적어라.
+#
+# 이름	사유
+BrewMapDebugView	디버그 뷰. 필요할 때 손으로 붙이는 물건일 수 있음 — 미확인.
+CauldronMapDebugHost	위와 같은 부류 — 미확인.
+ChestStorage	상자 보관. 프리팹이 아직 없거나 옛 시스템 잔재 — 미확인.
+ChunkManager	복셀 계열. 시스템 자체가 현역인지부터 확인 필요.
+ChunkPool	복셀 계열 — 위와 함께 판단.
+VoxelInteraction	복셀 계열 — 위와 함께 판단.
+VoxelTestRunner	복셀 시험용 러너 — 위와 함께 판단.
+InteractiveObject_UI	상호작용 UI. 옛 UI 계열로 보임 — 미확인.
+PrefabLightmapData	프리팹 라이트맵 굽기 도구. 굽는 순간에만 쓰이는 부류일 수 있음 — 미확인.
+RotateObject	연출용 회전. 프리팹에 붙일 용도로 만들어 두고 아직 안 쓴 것으로 보임 — 미확인.
+ToolTip	툴팁. 새 UIToolkit 계열로 갈아타며 남은 것일 수 있음(WM-113 참조) — 미확인.
+UIBossHpBar	보스 체력바 — 미확인.
+UIChat	채팅 UI — 미확인.
+UIPopup	팝업 기반 클래스인데 **코드에서 부르는 곳도 0곳**이다. 죽었을 가능성 높음 — 확인 후 삭제 후보.
+UIQuestTooltipCriteria	퀘스트 툴팁 조건 표시 — 미확인.
+UIRewards	보상 표시 UI — 미확인.
+UIStagePopup	무대 팝업 — 미확인.
