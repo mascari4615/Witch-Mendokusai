@@ -697,6 +697,9 @@ namespace WitchMendokusai
 			topRow.Add(MakeHoldButton("스킬", InputEventType.Space, actionButtonSize * 0.8f));
 			topRow.Add(MakeHoldButton("보조", InputEventType.Click1, actionButtonSize * 0.8f));
 			topRow.Add(MakeHoldButton("뛰기", InputEventType.Sprint, actionButtonSize * 0.8f));
+			// 조준 모드도 키 하나(Y)에만 있었다 — 폰에선 조준으로 바꿀 방법이 0 이었다.
+			// 누르는 순간 「바꿔라」가 나가는 종류라 이 버튼으로 그대로 된다(떼는 것은 아무도 안 듣는다).
+			topRow.Add(MakeHoldButton("조준", InputEventType.ChangeMode, actionButtonSize * 0.8f));
 			column.Add(topRow);
 
 			// 말걸기는 *가끔* 뜨는 것이라 늘 있는 버튼들과 줄을 섞지 않는다 — 섞으면 나타날 때마다
