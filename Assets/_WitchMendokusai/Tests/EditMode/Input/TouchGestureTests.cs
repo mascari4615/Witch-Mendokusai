@@ -177,6 +177,22 @@ namespace WitchMendokusai.Tests
 		}
 
 		[Test]
+		public void 손가락이_통째로_바뀐_프레임은_움직임이_0이다()
+		{
+			TouchGesture gesture = new TouchGesture();
+			List<int> first = new List<int> { 1, 2 };
+			List<int> second = new List<int> { 3, 4 };
+
+			gesture.Update(Two(new Vector2(100f, 100f), new Vector2(200f, 100f)), first, FRAME);
+			// 같은 프레임에 저쪽 손가락 둘이 화면 반대편에 닿았다 — 수는 그대로 둘이다.
+			gesture.Update(Two(new Vector2(900f, 900f), new Vector2(1000f, 900f)), second, FRAME);
+
+			Assert.AreEqual(0f, gesture.TwoFingerPanDelta.magnitude, 0.001f, "다른 손가락으로 갈아탄 것을 800픽셀 움직인 것으로 셌다.");
+			Assert.AreEqual(0f, gesture.PrimaryDelta.magnitude, 0.001f);
+			Assert.AreEqual(0f, gesture.PinchDelta, 0.001f);
+		}
+
+		[Test]
 		public void 두_손가락으로_확대하고_떼면_톡이_아니다()
 		{
 			TouchGesture gesture = new TouchGesture();

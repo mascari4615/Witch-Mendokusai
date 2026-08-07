@@ -16,6 +16,8 @@ namespace WitchMendokusai
 	{
 		private readonly List<Vector2> current = new();
 		private readonly List<Vector2> previous = new();
+		private readonly List<int> currentIds = new();
+		private readonly List<int> previousIds = new();
 
 		private Vector2 pressStartPosition;
 		private float pressSeconds;
@@ -68,16 +70,37 @@ namespace WitchMendokusai
 		/// </summary>
 		public void Update(IReadOnlyList<Vector2> positions, float deltaSeconds)
 		{
+			Update(positions, null, deltaSeconds);
+		}
+
+		/// <summary>
+		/// 손가락 이름표(ids)까지 같이 먹인다.
+		///
+		/// ★ 왜 이름표가 필요한가: 수만 세면 「한 손가락이 떨어지고 다른 손가락이 같은 프레임에
+		///   닿은 것」과 「그 손가락들이 그대로 움직인 것」을 구별할 수 없다. 둘 다 둘이다. 그러면
+		///   전혀 다른 두 자리 사이의 거리가 「움직인 양」으로 잡혀 화면이 순간이동한다.
+		/// ★ 이름표를 안 주면 예전처럼 수만 본다 — 마우스처럼 이름표가 없는 장치도 있기 때문이다.
+		/// </summary>
+		public void Update(IReadOnlyList<Vector2> positions, IReadOnlyList<int> ids, float deltaSeconds)
+		{
 			previous.Clear();
 			previous.AddRange(current);
 			current.Clear();
+			previousIds.Clear();
+			previousIds.AddRange(currentIds);
+			currentIds.Clear();
 			if (positions != null)
 			{
 				for (int i = 0; i < positions.Count; i++)
 					current.Add(positions[i]);
 			}
+			if (ids != null)
+			{
+				for (int i = 0; i < ids.Count; i++)
+					currentIds.Add(ids[i]);
+			}
 
-			bool countChanged = current.Count != previous.Count;
+			bool countChanged = current.Count != previous.Count || IdsChanged();
 			bool isPressed = current.Count > 0;
 
 			PressedThisFrame = isPressed && wasPressed == false;
@@ -159,6 +182,8 @@ namespace WitchMendokusai
 		{
 			current.Clear();
 			previous.Clear();
+			currentIds.Clear();
+			previousIds.Clear();
 			wasPressed = false;
 			IsDragging = false;
 			PressedThisFrame = false;
@@ -200,6 +225,20 @@ namespace WitchMendokusai
 			float released = twistPending;
 			twistPending = 0f;
 			return released;
+		}
+
+		/// <summary> 지난 프레임과 *다른 손가락들*인가. 이름표를 안 받는 장치는 언제나 거짓. </summary>
+		private bool IdsChanged()
+		{
+			if (currentIds.Count == 0 || currentIds.Count != previousIds.Count)
+				return false;
+
+			for (int i = 0; i < currentIds.Count; i++)
+			{
+				if (currentIds[i] != previousIds[i])
+					return true;
+			}
+			return false;
 		}
 
 		private static Vector2 Midpoint(List<Vector2> points) => (points[0] + points[1]) * 0.5f;

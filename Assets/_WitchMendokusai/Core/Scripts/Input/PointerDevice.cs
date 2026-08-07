@@ -19,6 +19,7 @@ namespace WitchMendokusai
 	{
 		private readonly TouchGesture gesture = new();
 		private readonly List<Vector2> touchPositions = new();
+		private readonly List<int> touchIds = new();
 
 		/// <summary> 지금 손가락으로 조작 중인가 — 화면 조작 UI 를 띄울지, 가장자리 밀기를 끌지의 단일 판정. </summary>
 		public bool IsTouchMode { get; private set; }
@@ -72,7 +73,7 @@ namespace WitchMendokusai
 		public void Update(float deltaSeconds)
 		{
 			ReadTouches();
-			gesture.Update(touchPositions, deltaSeconds);
+			gesture.Update(touchPositions, touchIds, deltaSeconds);
 
 			bool touchActive = touchPositions.Count > 0;
 			bool mouseActive = IsMouseActingThisFrame();
@@ -91,6 +92,7 @@ namespace WitchMendokusai
 		private void ReadTouches()
 		{
 			touchPositions.Clear();
+			touchIds.Clear();
 
 			Touchscreen screen = Touchscreen.current;
 			if (screen == null)
@@ -100,8 +102,12 @@ namespace WitchMendokusai
 			for (int i = 0; i < touches.Count; i++)
 			{
 				TouchControl touch = touches[i];
-				if (touch.press.isPressed)
-					touchPositions.Add(touch.position.ReadValue());
+				if (touch.press.isPressed == false)
+					continue;
+
+				touchPositions.Add(touch.position.ReadValue());
+				// 이름표를 같이 넘긴다 — 손가락이 바뀌었는데 수만 같은 프레임을 몸짓 계산이 알아채야 한다.
+				touchIds.Add(touch.touchId.ReadValue());
 			}
 		}
 
