@@ -35,6 +35,13 @@ namespace WitchMendokusai
 		/// <summary>대화가 끝났을 때 한 번.</summary>
 		public event Action OnFinished = delegate { };
 
+		/// <summary>
+		/// 대사에 <see cref="DialogueLine.Wait"/> 가 안 적혀 있을 때 대신 쓸 노출 시간(초).
+		/// 0 = 자동 진행 안 함(소비자가 <see cref="Advance"/> 로 넘긴다 — 클릭으로 넘기는 연출).
+		/// 시간을 상태기 안에 두는 이유: 「몇 초 뒤 넘어가는가」가 화면 없이 검증돼야 하기 때문.
+		/// </summary>
+		public float DefaultSpeakSeconds { get; set; }
+
 		public DialogueStep Current { get; private set; } = DialogueStep.End;
 
 		/// <summary>End 스텝에 닿기 전까지 true. <see cref="Begin"/> 전에는 false.</summary>
@@ -98,28 +105,53 @@ namespace WitchMendokusai
 			return true;
 		}
 
-		/// <summary>시간 주입 — Wait(Time) 만 소비한다. 남는 시간은 버리지 않고 다음 대기로 넘긴다.</summary>
+		/// <summary>
+		/// 시간 주입 — Wait(Time) 과 *시간이 정해진 대사* 를 소비한다. 남는 시간은 버리지 않고
+		/// 다음 것으로 넘긴다(프레임이 길어도 안 밀린다). 그 외 스텝에서는 아무 일도 안 한다.
+		/// </summary>
 		public void Tick(float deltaTime)
 		{
 			if (IsPlaying == false)
 			{
 				return;
 			}
-			if (Current.Kind != DialogueStepKind.Wait || Current.WaitKind != DialogueWaitKind.Time)
-			{
-				return;
-			}
 
 			waitElapsed += deltaTime;
-			while (IsPlaying
-				&& Current.Kind == DialogueStepKind.Wait
-				&& Current.WaitKind == DialogueWaitKind.Time
-				&& waitElapsed >= Current.WaitSeconds)
+			while (IsPlaying && TryGetTimedSeconds(out float seconds) && waitElapsed >= seconds)
 			{
-				float carry = waitElapsed - Current.WaitSeconds;
+				float carry = waitElapsed - seconds;
 				Apply(traversal.Next());
 				waitElapsed = carry;
 			}
+		}
+
+		/// <summary>
+		/// 지금 스텝이 「시간이 다 되면 저절로 넘어가는」 것인지와 그 초. Wait(Time) 은 노드에 적힌 초,
+		/// Speak 는 대사에 적힌 초(없으면 <see cref="DefaultSpeakSeconds"/>, 그것도 0 이면 자동 진행 X).
+		/// </summary>
+		private bool TryGetTimedSeconds(out float seconds)
+		{
+			seconds = 0f;
+
+			if (Current.Kind == DialogueStepKind.Wait && Current.WaitKind == DialogueWaitKind.Time)
+			{
+				seconds = Current.WaitSeconds;
+				return true;
+			}
+
+			if (Current.Kind != DialogueStepKind.Speak)
+			{
+				return false;
+			}
+
+			DialogueLine line = Current.SpeakLine;
+			float lineSeconds = line != null && line.Wait > 0f ? line.Wait : DefaultSpeakSeconds;
+			if (lineSeconds <= 0f)
+			{
+				return false;
+			}
+			seconds = lineSeconds;
+			return true;
 		}
 
 		/// <summary>바깥 사건 통지 — 기다리던 id 와 같을 때만 진행.</summary>
