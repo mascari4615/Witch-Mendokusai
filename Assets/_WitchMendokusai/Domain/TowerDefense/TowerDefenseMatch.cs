@@ -1017,6 +1017,13 @@ namespace WitchMendokusai
 			if (driver != null)
 				driver.enabled = true;
 
+			// ★ 소속도 끊어서 돌려준다. 안 끊으면 이 몸으로 되살아난 *파도 마수*를 옛 서식지가
+			//   집으로 끌어당긴다(실측 「집에서 95~123, 목줄 20」). 반납 지점이 여기 하나뿐이라
+			//   여기서 끊는 것이 빠뜨릴 자리가 없는 유일한 방법이다.
+			TowerDefenseLairMember member = unit.GetComponent<TowerDefenseLairMember>();
+			if (member != null)
+				member.Leave();
+
 			targetPool.Despawn(unit);
 		}
 
@@ -1103,8 +1110,12 @@ namespace WitchMendokusai
 		}
 
 		// 잠들어 있는 서식지 마수 — 깨어나기 전까지는 걷지도 때리지도 않는다.
+		/// <summary> 서식지 번호 발급기 — 판이 새로 시작돼도 옛 번호와 안 겹치게 계속 는다. </summary>
+		private int lastLairId;
+
 		private sealed class SleepingLair
 		{
+			public int Id;
 			public Vector3 WorldPosition;
 			public readonly List<UnitObject> Guards = new();
 			public readonly List<TacticDriver> Drivers = new();
@@ -1449,7 +1460,12 @@ namespace WitchMendokusai
 			foreach (Vector2Int cell in cells)
 			{
 				Vector3 localPosition = mapLayout.CellToWorld(cell);
-				SleepingLair lair = new() { WorldPosition = stageRoot.TransformPoint(localPosition) };
+				// 번호는 판 안에서만 유일하면 된다 — 소속 표가 이 번호로 「내 집인가」를 가른다.
+				SleepingLair lair = new()
+				{
+					Id = ++lastLairId,
+					WorldPosition = stageRoot.TransformPoint(localPosition),
+				};
 
 				for (int guard = 0; guard < stage.LairGuardCount; guard++)
 				{
@@ -1474,6 +1490,11 @@ namespace WitchMendokusai
 
 					IgnoreHeroCollision(spawned.GameObject);
 					lair.Guards.Add(spawned.UnitObject);
+					// 소속을 *몸에* 붙인다 — 목록만으로는 풀에서 되살아난 남의 몸을 못 가른다.
+					TowerDefenseLairMember member = spawned.GameObject.GetComponent<TowerDefenseLairMember>();
+					if (member == null)
+						member = spawned.GameObject.AddComponent<TowerDefenseLairMember>();
+					member.Join(lair.Id);
 					waveEnemies.Add(spawned.Combatant); // 포탑이 쏘는 대상 — 잠들었어도 때릴 수는 있다.
 					enemyBountyById[spawned.Combatant.CombatantId] = core.BountyPerKill;
 				}
@@ -1616,6 +1637,15 @@ namespace WitchMendokusai
 					//   — 실측에서 「집에서 123 (목줄 20)」이 그것이었다. 죽는 순간 목록에서 뺀다.
 					MatchCombatant combatant = guard.GetComponent<MatchCombatant>();
 					if (combatant == null || combatant.IsAlive == false)
+					{
+						lair.Guards.RemoveAt(index);
+						continue;
+					}
+
+					// ★ 살아 있다고 내 식구인 것은 아니다 — 죽었다가 풀에서 *다른 마수로* 되살아난
+					//   몸은 멀쩡히 살아 있다. 소속 표를 봐야 가른다(「죽었으면 뺀다」로는 못 막았다).
+					TowerDefenseLairMember member = guard.GetComponent<TowerDefenseLairMember>();
+					if (member == null || member.LairId != lair.Id)
 					{
 						lair.Guards.RemoveAt(index);
 						continue;
