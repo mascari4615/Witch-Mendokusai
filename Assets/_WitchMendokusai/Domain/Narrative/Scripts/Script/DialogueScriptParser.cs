@@ -378,6 +378,7 @@ namespace WitchMendokusai
 			ValidateTargets(parsed);
 			ValidateReachableSections(parsed);
 			ValidateChoicesHaveAWayOut(parsed);
+			ValidateNoDeadEntries(parsed);
 			return parsed;
 		}
 
@@ -828,6 +829,40 @@ namespace WitchMendokusai
 				longIndex++;
 			}
 			return true;
+		}
+
+		/// <summary>
+		/// 한 장면 안에서 **이미 다른 데로 보낸 뒤에 더 쓴 줄**을 짚는다 — 그 줄부터는 절대 안 나온다.
+		///
+		/// ★ 왜 생기나: 갈 곳(<c>-&gt; 어디</c>)이나 선택지는 그 자리에서 흐름을 **가로챈다.**
+		///   그 아래 대사는 다음 장면 것이 아니라 **아무 데도 아닌 글**이 된다.
+		///   대개 선택지를 위로 옮기거나, 장면을 나눠야 할 걸 안 나눈 경우다.
+		///
+		/// ★ 왜 아무도 못 잡나: 도달 검사(<see cref="ValidateReachableSections"/>)는 **장면 단위**라
+		///   여길 못 본다 — 장면 자체는 멀쩡히 도달하고, 그 안의 뒷줄만 굶는다.
+		///   화면엔 아무 흔적이 없다. 「분명 썼는데 안 나온다」로만 보인다.
+		///
+		/// 조건부 갈 곳은 세지 않는다 — 조건이 거짓이면 그대로 아래로 읽어 내려가니까.
+		/// </summary>
+		private static void ValidateNoDeadEntries(ParsedDialogueScript parsed)
+		{
+			for (int s = 0; s < parsed.Sections.Count; s++)
+			{
+				List<DialogueScriptEntry> entries = parsed.Sections[s].Entries;
+				for (int e = 0; e < entries.Count - 1; e++)
+				{
+					DialogueScriptEntryKind kind = entries[e].Kind;
+					if (kind != DialogueScriptEntryKind.Goto && kind != DialogueScriptEntryKind.Choice)
+					{
+						continue;
+					}
+
+					string reason = kind == DialogueScriptEntryKind.Goto ? "갈 곳" : "선택지";
+					parsed.Issues.Add(new DialogueScriptIssue(entries[e + 1].LineNumber,
+						$"이 줄부터는 절대 안 나온다 — 위 {reason}에서 이미 다른 데로 보냈다. 장면을 나눠라"));
+					break;
+				}
+			}
 		}
 
 		/// <summary>
