@@ -1424,6 +1424,17 @@
                 },
                 {
                     "name": "",
+                    "id": "f34bd4c1-9725-48ef-8645-c82ac11344b9",
+                    "path": "<Keyboard>/escape",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Cancel",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
                     "id": "8b910cea-4ddb-49f5-b865-f80eae036813",
                     "path": "<Mouse>/position",
                     "interactions": "",
