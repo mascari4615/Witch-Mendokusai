@@ -114,8 +114,16 @@ namespace WitchMendokusai.NodeGraph
 		}
 
 		/// <summary>
-		/// 두 포트 연결 — 타입 + 방향 검증. 같은 input 에 기존 연결 있으면 교체 (단일 input 의미, ShaderGraph 식).
-		/// 성공 true. 검증 실패 시 false.
+		/// 두 포트 연결 — 타입 + 방향 검증. 성공 true. 검증 실패 시 false.
+		///
+		/// **데이터 포트**: 같은 input 에 기존 연결 있으면 교체 (단일 input 의미, ShaderGraph 식) —
+		/// Pull 실행기가 값을 하나만 읽으므로 둘이면 어느 쪽인지 정할 수 없다.
+		///
+		/// **플로우 포트(`FlowSignal`)**: 여럿을 그대로 받는다. 흐름은 반대로 *모이는 게 정상*이다 —
+		/// 대화에서 여러 갈래가 같은 장면으로 합류하거나 되돌아오는 건 예외가 아니라 기본형이다.
+		/// (2026-08-08 실측: 교체 규칙 때문에 「여러 곳에서 한 장면으로 가기」가 조용히 끊겼다.
+		///  나중에 연결한 쪽이 앞의 것을 밀어내서, 원고대로 세운 대화가 중간에서 끝나 버렸다.)
+		/// 흐름 순회기는 *출발 포트* 로 다음을 찾으므로 입력이 여럿이어도 모호함이 없다.
 		/// </summary>
 		public bool Connect(NodePort source, NodePort target)
 		{
@@ -128,7 +136,8 @@ namespace WitchMendokusai.NodeGraph
 			if (source.DataType != target.DataType)
 				return false;
 
-			connections.RemoveAll(c => c.TargetNodeId == target.Owner.Id && c.TargetPortId == target.PortId);
+			if (target.DataType != typeof(FlowSignal))
+				connections.RemoveAll(c => c.TargetNodeId == target.Owner.Id && c.TargetPortId == target.PortId);
 			connections.Add(new NodeConnection(source.Owner.Id, source.PortId, target.Owner.Id, target.PortId));
 			InvalidateLookupCache();
 			return true;

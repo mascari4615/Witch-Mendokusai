@@ -214,11 +214,11 @@ namespace WitchMendokusai.Tests
 		}
 
 		[Test]
-		public void Connect_CannotBuildReachableCycle()
+		public void Connect_AllowsFlowMerge_AndThusRealCycles()
 		{
-			// 위 테스트가 왜 손편집 대역을 쓰는지의 근거를 코드로 남긴다 — 정상 편집 경로로는
-			// 닿는 고리가 안 만들어진다는 구조적 성질. 이게 깨지면(다중 input 허용 등)
-			// 위 고리 테스트의 전제도 같이 다시 봐야 한다.
+			// 2026-08-08 정정: 예전엔 흐름 입력도 「하나만」이라 되돌아오는 연결이 진입 연결을 밀어냈고,
+			// 그래서 닿는 고리를 못 만들었다. 이제 흐름은 여럿이 모일 수 있다(대화의 합류가 기본형이라서).
+			// = 정상 편집 경로로도 고리가 만들어질 수 있다 → 위의 고리 방어가 손편집 전용이 아니게 됐다.
 			DialogueGraph graph = NewGraph();
 			DialogueStartNode start = new();
 			DialogueBranchNode first = new() { Condition = new FixedCriteria(true) };
@@ -231,8 +231,33 @@ namespace WitchMendokusai.Tests
 			Assert.That(graph.Connect(first.FindPort(DialogueBranchNode.PORT_TRUE), second.FindPort(DialogueBranchNode.PORT_IN)), Is.True);
 			Assert.That(graph.Connect(second.FindPort(DialogueBranchNode.PORT_TRUE), first.FindPort(DialogueBranchNode.PORT_IN)), Is.True);
 
-			Assert.That(new DialogueGraphTraversal(graph).Start().Kind, Is.EqualTo(DialogueStepKind.End),
-				"되돌아오는 연결이 진입 연결을 밀어낸다(단일 input 의미) → 시작 노드에서 아무 데도 못 간다");
+			Assert.That(graph.Connections.Count, Is.EqualTo(3),
+				"되돌아오는 연결이 진입 연결을 밀어내지 않는다 — 흐름 입력은 여럿이 정상");
+
+			DialogueGraphTraversal traversal = new(graph);
+			Assert.That(() => traversal.Start(), Throws.TypeOf<InvalidOperationException>(),
+				"그래서 고리 방어가 실제로 필요해졌다");
+		}
+
+		[Test]
+		public void FlowMerge_TwoBranchesIntoOneLine()
+		{
+			// 대화에서 제일 흔한 모양 — 갈라졌다가 같은 자리로 모인다.
+			DialogueGraph graph = NewGraph();
+			DialogueStartNode start = new();
+			DialogueBranchNode branch = new() { Condition = new FixedCriteria(true) };
+			DialogueLine mergedLine = NewLine();
+			DialogueSpeakNode merged = new() { Line = mergedLine };
+			graph.AddNode(start);
+			graph.AddNode(branch);
+			graph.AddNode(merged);
+
+			ConnectStart(graph, start, branch);
+			Assert.That(graph.Connect(branch.FindPort(DialogueBranchNode.PORT_TRUE), merged.FindPort(DialogueSpeakNode.PORT_IN)), Is.True);
+			Assert.That(graph.Connect(branch.FindPort(DialogueBranchNode.PORT_FALSE), merged.FindPort(DialogueSpeakNode.PORT_IN)), Is.True);
+
+			Assert.That(new DialogueGraphTraversal(graph).Start().SpeakLine, Is.SameAs(mergedLine),
+				"참이든 거짓이든 같은 자리로 모인다");
 		}
 
 		/// <summary>

@@ -74,6 +74,7 @@ namespace WitchMendokusai.NodeGraph
 		{
 			IReadOnlyList<NodeConnection> connections = graph.Connections;
 			Dictionary<(string nodeId, string portId), int> targetCounts = new();
+			HashSet<(string nodeId, string portId)> flowInputs = new();
 
 			for (int i = 0; i < connections.Count; i++)
 			{
@@ -164,6 +165,12 @@ namespace WitchMendokusai.NodeGraph
 						connection.TargetPortId));
 				}
 
+				// 플로우 입력은 여럿이 정상이다(대화의 합류) — 셈에서 뺀다.
+				if (targetPort != null && targetPort.DataType == typeof(FlowSignal))
+				{
+					flowInputs.Add((connection.TargetNodeId, connection.TargetPortId));
+				}
+
 				(string, string) targetKey = (connection.TargetNodeId, connection.TargetPortId);
 				if (targetCounts.TryGetValue(targetKey, out int existing))
 				{
@@ -177,7 +184,7 @@ namespace WitchMendokusai.NodeGraph
 
 			foreach (KeyValuePair<(string nodeId, string portId), int> entry in targetCounts)
 			{
-				if (entry.Value <= 1)
+				if (entry.Value <= 1 || flowInputs.Contains(entry.Key))
 				{
 					continue;
 				}
