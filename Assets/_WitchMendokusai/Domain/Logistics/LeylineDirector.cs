@@ -25,7 +25,10 @@ namespace WitchMendokusai
 		/// <summary>마력이 도착할 때마다 알린다 — (보낸 곳, 받는 곳, 보낸 양, 도착한 양).</summary>
 		public event Action<string, string, float, float> OnManaDelivered = delegate { };
 
-		/// <summary>거점 하나 얹기. 같은 이름이 이미 있으면 계산층이 거절한다.</summary>
+		/// <summary>
+		/// 거점 하나 얹기. <b>같은 이름을 다시 얹으면 덮어쓴다</b>(거절 아님) — 계산층이 그렇게 동작한다.
+		/// 이름이 곧 열쇠라, 같은 이름을 두 곳에서 쓰면 나중에 얹은 쪽만 남는다.
+		/// </summary>
 		public void AddNode(string id, LeylineNodeKind kind) => graph.AddNode(new LeylineNode(id, kind));
 
 		/// <summary>배선 하나 얹기. 길이가 곧 마력이 새는 양이다.</summary>
