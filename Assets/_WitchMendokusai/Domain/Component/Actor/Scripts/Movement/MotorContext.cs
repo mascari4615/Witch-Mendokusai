@@ -38,6 +38,11 @@ namespace WitchMendokusai
 		// 이번 tick 발생한 벽 충돌 노멀들 (디버그/이벤트 송출용)
 		public readonly List<Vector3> WallContactNormals = new();
 
+		// ★ 이번 tick 이 *실제로* 옮긴 거리. Velocity 는 「가려던 속도」를 sweep 이 깎은 값이라
+		//   0 이 아니어도 몸은 한 발도 못 나갈 수 있다 — 둘을 같이 봐야 「벽에 눌림」과 「왕복」이 갈린다
+		//   (실측: 전속 1.60 인데 4초 동안 제자리인 개체가 있었다).
+		public Vector3 LastMoveDelta;
+
 		public System.Action<Collider> OnHitCollider = delegate { };
 
 		public void ResetPerTick()

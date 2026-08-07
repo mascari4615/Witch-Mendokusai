@@ -92,6 +92,7 @@ namespace WitchMendokusai
 			Depenetrate(ref newPosition);
 
 			unitRigidBody.MovePosition(newPosition);
+			context.LastMoveDelta = newPosition - position;
 			context.Position = newPosition;
 		}
 

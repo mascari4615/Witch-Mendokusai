@@ -4958,9 +4958,16 @@ namespace WitchMendokusai
 
 				// ★ 마지막 한 겹 — 방향을 *받았는지*와 실제로 *나가는지*는 다르다. 받은 방향이 0 이면
 				//   브레인이 명령을 안 준 것이고, 방향은 있는데 속도가 0 이면 몸이 막힌 것이다.
+				// ★ 속도만으로는 못 가른다 — 실측에서 *전속(1.60)인데 4초 동안 제자리*인 개체가 나왔다.
+				//   속도는 「가려던 값」을 sweep 이 깎은 뒤의 값이라, 0 이 아니어도 몸은 한 발도 못 나갈 수 있다.
+				//   그래서 이번 틱이 *실제로 옮긴 거리*와 *벽에 닿은 횟수*를 같이 찍는다:
+				//   실제이동 0 + 벽닿음 있음 = 물리 벽에 눌림(격자는 갈 수 있다는데 씬엔 벽이 있다),
+				//   실제이동 있음 + 제자리 = 왔다 갔다 하는 왕복, 둘 다 0 = 스스로 안 가는 것.
 				string body = stuckMovement == null ? "이동부품 없음"
 					: "받은방향 " + stuckMovement.MoveDirectionWorld.magnitude.ToString("F2")
-						+ " · 속도 " + stuckMovement.Velocity.magnitude.ToString("F2");
+						+ " · 속도 " + stuckMovement.Velocity.magnitude.ToString("F2")
+						+ " · 실제이동 " + stuckMovement.LastMoveDelta.magnitude.ToString("F3")
+						+ " · 벽닿음 " + stuckMovement.WallContactCount;
 
 				string why = body + " · " + guide + " · 브레인 " + (stuckDriver == null ? "없음" : stuckDriver.enabled ? "켜짐" : "꺼짐")
 					+ " · 이동 " + (stuckMovement == null ? "없음" : stuckMovement.enabled ? "켜짐" : "꺼짐")

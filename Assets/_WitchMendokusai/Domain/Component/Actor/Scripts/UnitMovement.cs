@@ -68,6 +68,15 @@ namespace WitchMendokusai
 		/// </summary>
 		public Vector3 Velocity => motor != null ? motor.Context.Velocity : Vector3.zero;
 
+		/// <summary>
+		/// 직전 tick 이 *실제로* 옮긴 거리. <see cref="Velocity"/> 는 sweep 이 깎기 전후가 섞인 값이라
+		/// 0 이 아니어도 몸은 한 발도 못 나갔을 수 있다 — 「굳었다」의 원인을 가르려면 이쪽을 봐야 한다.
+		/// </summary>
+		public Vector3 LastMoveDelta => motor != null ? motor.Context.LastMoveDelta : Vector3.zero;
+
+		/// <summary> 직전 tick 에 벽에 몇 번 닿았나 — 0 이면 막힌 게 아니라 스스로 안 간 것이다. </summary>
+		public int WallContactCount => motor != null ? motor.Context.WallContactNormals.Count : 0;
+
 		private GameManager gameManager;
 		private TimeManager timeManager;
 
