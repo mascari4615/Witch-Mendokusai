@@ -23,6 +23,9 @@ namespace WitchMendokusai
 
 		/// <summary>그 대화를 봤는가(끝까지 갔는가 / 시작이라도 했는가는 <see cref="DialogueScriptCondition.Started"/>).</summary>
 		Seen = 1,
+
+		/// <summary>그 물건을 몇 개 이상 가졌는가.</summary>
+		ItemCount = 2,
 	}
 
 	/// <summary>
@@ -36,12 +39,16 @@ namespace WitchMendokusai
 		public bool Expected { get; }
 		public bool Started { get; }
 
-		public DialogueScriptCondition(DialogueScriptConditionKind kind, int dialogueId, bool expected, bool started)
+		/// <summary>물건 조건에서 쓰는 「이만큼 이상」. 이력 조건에서는 안 쓴다.</summary>
+		public int Amount { get; }
+
+		public DialogueScriptCondition(DialogueScriptConditionKind kind, int dialogueId, bool expected, bool started, int amount = 1)
 		{
 			Kind = kind;
 			DialogueId = dialogueId;
 			Expected = expected;
 			Started = started;
+			Amount = amount;
 		}
 
 		public bool HasCondition => Kind != DialogueScriptConditionKind.None;
@@ -180,6 +187,7 @@ namespace WitchMendokusai
 	/// <item><c>&gt; -&gt; 끝인사</c> → 그 장면으로 건너뛰기.</item>
 	/// <item><c>&gt; ?안봤음 4615 -&gt; 첫인사</c> → **조건이 맞을 때만** 그 장면으로(아니면 다음 줄로).</item>
 	/// <item><c>&gt; - 열쇠를 보여준다 [봤음 4615] -&gt; 장면</c> → 조건이 맞을 때만 **보이는** 선택지.</item>
+	/// <item><c>[아이템 1001]</c> · <c>[아이템 1001 3]</c> · <c>[아이템없음 1001]</c> → 물건을 가졌는지로 가른다.</item>
 	/// <item><c>&gt; !아이템 1001 3</c> → 실제로 일으킨다(아이템·카드·퀘스트추가·퀘스트열기·레시피).</item>
 	/// <item><c>&gt; 기다림 2초</c> / <c>&gt; wait 2s</c> → 시간 대기.</item>
 	/// <item><c>&gt; 기다림 사건 boss-defeated</c> / <c>&gt; wait event boss-defeated</c> → 사건 대기.</item>
@@ -356,6 +364,7 @@ namespace WitchMendokusai
 			FlushChoices(current, ref pendingChoices, pendingChoiceLine);
 			FlushEffects(current, ref pendingEffects, pendingEffectLine);
 			ValidateSectionNames(parsed);
+			ValidateChoiceLabels(parsed);
 			ValidateTargets(parsed);
 			return parsed;
 		}
@@ -398,11 +407,40 @@ namespace WitchMendokusai
 			}
 
 			string[] parts = text.Split(new[] { ' ', '	', ':' }, StringSplitOptions.RemoveEmptyEntries);
-			if (parts.Length != 2)
+			if (parts.Length < 2 || parts.Length > 3)
 			{
 				return false;
 			}
 			if (int.TryParse(parts[1], out int dialogueId) == false)
+			{
+				return false;
+			}
+
+			// 물건 조건은 개수를 하나 더 받는다: `아이템 1001 3` = 세 개 이상.
+			int amount = 1;
+			if (parts.Length == 3 && int.TryParse(parts[2], out int parsedAmount))
+			{
+				amount = parsedAmount;
+			}
+			else if (parts.Length == 3)
+			{
+				return false;
+			}
+
+			switch (parts[0])
+			{
+				case "아이템":
+				case "item":
+					condition = new DialogueScriptCondition(DialogueScriptConditionKind.ItemCount, dialogueId, true, false, amount);
+					return true;
+				case "아이템없음":
+				case "noitem":
+					condition = new DialogueScriptCondition(DialogueScriptConditionKind.ItemCount, dialogueId, false, false, amount);
+					return true;
+			}
+
+			// 이력 조건은 개수를 안 받는다 — 셋을 적었으면 오타다.
+			if (parts.Length == 3)
 			{
 				return false;
 			}
@@ -638,6 +676,38 @@ namespace WitchMendokusai
 			}
 		}
 
+		/// <summary>
+		/// 한 묶음 안에 **같은 라벨의 선택지**가 둘 이상인가.
+		/// 플레이어 눈엔 똑같은 두 칸이 뜬다 — 무엇이 다른지 알 길이 없고, 고르고 나서야 다른 데로 간다.
+		/// 대개 복사해 붙이고 라벨 고치는 걸 잊은 것이다.
+		/// </summary>
+		private static void ValidateChoiceLabels(ParsedDialogueScript parsed)
+		{
+			for (int s = 0; s < parsed.Sections.Count; s++)
+			{
+				List<DialogueScriptEntry> entries = parsed.Sections[s].Entries;
+				for (int e = 0; e < entries.Count; e++)
+				{
+					if (entries[e].Kind != DialogueScriptEntryKind.Choice)
+					{
+						continue;
+					}
+
+					HashSet<string> labels = new(StringComparer.Ordinal);
+					IReadOnlyList<DialogueScriptChoice> choices = entries[e].Choices;
+					for (int c = 0; c < choices.Count; c++)
+					{
+						if (labels.Add(choices[c].Label))
+						{
+							continue;
+						}
+						parsed.Issues.Add(new DialogueScriptIssue(entries[e].LineNumber,
+							$"선택지 라벨이 겹친다: \"{choices[c].Label}\" — 플레이어 눈엔 같은 칸이 둘이다"));
+					}
+				}
+			}
+		}
+
 		/// <summary>갈 곳 이름이 실제 장면인지 — 오타는 여기서 잡아야 한다(런타임엔 그냥 대화가 끝나 버린다).</summary>
 		private static void ValidateTargets(ParsedDialogueScript parsed)
 		{
@@ -666,11 +736,20 @@ namespace WitchMendokusai
 
 		private static void RequireSection(ParsedDialogueScript parsed, string name, int lineNumber)
 		{
-			if (parsed.FindSection(name) != null)
+			DialogueScriptSection target = parsed.FindSection(name);
+			if (target == null)
 			{
+				parsed.Issues.Add(new DialogueScriptIssue(lineNumber, $"그런 장면이 없다: \"{name}\""));
 				return;
 			}
-			parsed.Issues.Add(new DialogueScriptIssue(lineNumber, $"그런 장면이 없다: \"{name}\""));
+
+			// 빈 장면 자체는 흠이 아니다(원고엔 산문만 있는 장면이 흔하다). 하지만 **거기로 보내면** 다르다 —
+			// 아무 말도 없이 다음 장면으로 흘러가서, 쓴 사람은 「저기로 갔다」고 믿는데 화면은 딴 데를 보여준다.
+			if (target.Entries.Count == 0)
+			{
+				parsed.Issues.Add(new DialogueScriptIssue(lineNumber,
+					$"\"{name}\" 장면엔 대사가 없다 — 거기로 가면 그냥 다음 장면으로 흘러간다"));
+			}
 		}
 	}
 }

@@ -13,6 +13,8 @@ namespace WitchMendokusai.Tests
 	/// </summary>
 	public sealed class DialogueScriptParserTest
 	{
+		private const string NL = "\n";
+
 		[Test]
 		public void QuotedLines_BecomeSpeakEntries_AndProseIsIgnored()
 		{
@@ -135,6 +137,53 @@ namespace WitchMendokusai.Tests
 
 			Assert.That(playback.CurrentLine.Text, Is.EqualTo("처음"),
 				"이름으로 찾는 쪽과 실제로 가는 곳이 같아야 한다 — 어느 쪽이든 하나로 정해져야 눈으로 쫓을 수 있다");
+		}
+
+		[Test]
+		public void DuplicateChoiceLabel_IsReported()
+		{
+			// 복사해 붙이고 라벨 고치는 걸 잊은 경우 — 플레이어 눈엔 똑같은 두 칸이 뜨고,
+			// 무엇이 다른지는 고르고 나서야 안다.
+			ParsedDialogueScript parsed = DialogueScriptParser.Parse(string.Join(NL,
+				"## 물음",
+				"> - 간다 -> 가기",
+				"> - 간다 -> 남기",
+				"## 가기",
+				"> 욘: \"응\"",
+				"## 남기",
+				"> 욘: \"아니\""));
+
+			Assert.That(parsed.Issues.Count, Is.EqualTo(1));
+			Assert.That(parsed.Issues[0].Message.Contains("겹친다"), Is.True);
+		}
+
+		[Test]
+		public void JumpToEmptySection_IsReported()
+		{
+			// 빈 장면 자체는 흠이 아니다(산문만 있는 장면은 원고에 흔하다).
+			// 하지만 거기로 **보내면** 아무 말 없이 다음 장면으로 흘러간다 — 쓴 사람 의도와 화면이 갈린다.
+			ParsedDialogueScript parsed = DialogueScriptParser.Parse(string.Join(NL,
+				"## 시작",
+				"> -> 빈곳",
+				"## 빈곳",
+				"카메라가 방을 훑는다.",
+				"## 끝",
+				"> 욘: \"끝\""));
+
+			Assert.That(parsed.Issues.Count, Is.EqualTo(1));
+			Assert.That(parsed.Issues[0].LineNumber, Is.EqualTo(2), "보내는 줄을 짚는다");
+		}
+
+		[Test]
+		public void EmptySectionAlone_IsNotAnIssue()
+		{
+			ParsedDialogueScript parsed = DialogueScriptParser.Parse(string.Join(NL,
+				"## 장면 1",
+				"카메라가 방을 천천히 훑는다. 나레이션 없음.",
+				"## 장면 2",
+				"> 욘: \"...\""));
+
+			Assert.That(parsed.HasIssues, Is.False, "산문만 있는 장면은 원고에서 정상이다");
 		}
 
 		[Test]
