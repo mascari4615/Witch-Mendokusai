@@ -88,9 +88,13 @@ namespace WitchMendokusai
 					DialogueChoiceNode choiceNode = new();
 					for (int i = 0; i < entry.Choices.Count; i++)
 					{
-						choiceNode.Options.Add(new DialogueChoiceOption(entry.Choices[i].Label));
+						choiceNode.Options.Add(new DialogueChoiceOption(
+							entry.Choices[i].Label, CreateCriteria(entry.Choices[i].Condition)));
 					}
 					return choiceNode;
+
+				case DialogueScriptEntryKind.ConditionalGoto:
+					return new DialogueBranchNode { Condition = CreateCriteria(entry.Condition) };
 
 				case DialogueScriptEntryKind.WaitTime:
 					return new DialogueWaitNode { Kind = DialogueWaitKind.Time, Seconds = entry.Seconds };
@@ -122,6 +126,13 @@ namespace WitchMendokusai
 				case DialogueScriptEntryKind.Goto:
 					Connect(graph, node, DialogueWaitNode.PORT_NEXT,
 						FindSectionEntry(entry.TargetSection, nodesBySection, sectionIndexByName));
+					return;
+
+				case DialogueScriptEntryKind.ConditionalGoto:
+					// 맞으면 적힌 장면으로, 아니면 **바로 다음 줄로** — 원고를 위에서 아래로 읽는 감각 그대로.
+					Connect(graph, node, DialogueBranchNode.PORT_TRUE,
+						FindSectionEntry(entry.TargetSection, nodesBySection, sectionIndexByName));
+					Connect(graph, node, DialogueBranchNode.PORT_FALSE, following);
 					return;
 
 				case DialogueScriptEntryKind.Choice:
@@ -167,11 +178,33 @@ namespace WitchMendokusai
 			graph.Connect(source.FindPort(sourcePort), target.FindPort(InputPortOf(target)));
 		}
 
+		/// <summary>
+		/// 대본에 적힌 조건 → 실제 조건 객체. **여기서만 만든다** — 읽는 쪽(파서)은 조건을 모르는 채
+		/// 「무엇이 적혔나」만 담아 오고, 조건 종류가 늘어도 파서는 안 바뀐다.
+		/// </summary>
+		private static Criteria CreateCriteria(DialogueScriptCondition condition)
+		{
+			if (condition.HasCondition == false)
+			{
+				return null;
+			}
+			return new DialogueSeenCriteria
+			{
+				DialogueId = condition.DialogueId,
+				Kind = condition.Started ? DialogueSeenKind.Started : DialogueSeenKind.Completed,
+				ExpectedSeen = condition.Expected,
+			};
+		}
+
 		private static string InputPortOf(NodeBase node)
 		{
 			if (node is DialogueSpeakNode)
 			{
 				return DialogueSpeakNode.PORT_IN;
+			}
+			if (node is DialogueBranchNode)
+			{
+				return DialogueBranchNode.PORT_IN;
 			}
 			if (node is DialogueChoiceNode)
 			{
