@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using WitchMendokusai.NodeGraph;
 
@@ -60,6 +61,11 @@ namespace WitchMendokusai
 	/// <see cref="DialogueChoiceNode"/>)* → 종료. #6 Choice 추가 시 코어 "현재 노드의 출력
 	/// 포트 → 연결 → 타깃"(<see cref="FollowFlow"/>) 는 *불변* — 따라갈 출력 포트 id 만
 	/// 노드 타입별로 분기(<see cref="OutputPortToFollow"/>). Wait/Branch 도 동일 패턴 확장.
+	///
+	/// <see cref="DialogueBranchNode"/> 는 *스텝을 방출하지 않는* 유일한 노드다 — 게임 상태가
+	/// 고르는 분기라 플레이어에게 보여줄 것이 없다. 그래서 traversal 이 도달 즉시 조건을 평가하고
+	/// 다음 노드로 건너뛴다(<see cref="ResolveBranchChain"/>). 소비자(DialogueRunner)는 분기의
+	/// 존재를 모른 채 Speak/Choice/Wait/End 만 계속 받는다 = 연출 코드 변경 0.
 	/// </summary>
 	public sealed class DialogueGraphTraversal
 	{
@@ -147,8 +153,46 @@ namespace WitchMendokusai
 			return null;
 		}
 
+		/// <summary>
+		/// 현재 노드가 분기면 조건을 평가해 통과 포트로 계속 건너뛴다 — 분기가 연달아 있어도
+		/// 스텝 하나 안에서 다 해소된다. 분기끼리 고리를 이루면(A→B→A) 영원히 돌 수 있으므로
+		/// 노드 수만큼만 건너뛰고 그 이상은 **터뜨린다**(조용히 대화를 끝내면 원인이 안 보인다).
+		/// </summary>
+		private void ResolveBranchChain()
+		{
+			int hopBudget = graph == null ? 0 : graph.Nodes.Count;
+			while (currentNode is DialogueBranchNode branchNode)
+			{
+				if (hopBudget <= 0)
+				{
+					throw new InvalidOperationException(
+						$"DialogueBranchNode chain did not terminate within {graph.Nodes.Count} hops — branch nodes form a loop (last: {branchNode.Id}).");
+				}
+				hopBudget--;
+
+				bool conditionMet = EvaluateBranch(branchNode);
+				currentNode = FollowFlow(branchNode, conditionMet ? DialogueBranchNode.PORT_TRUE : DialogueBranchNode.PORT_FALSE);
+			}
+		}
+
+		/// <summary>
+		/// 분기 조건 평가. 조건 미할당 = *데이터 오류* 라 기본값으로 덮지 않고 터뜨린다
+		/// (FastFail — 어느 쪽으로 흘려보내도 "왜 이 대사가 나왔지" 를 못 되짚는다).
+		/// </summary>
+		private bool EvaluateBranch(DialogueBranchNode branchNode)
+		{
+			if (branchNode.Condition == null)
+			{
+				throw new InvalidOperationException(
+					$"DialogueBranchNode '{branchNode.Id}' has no Condition assigned — cannot decide a branch.");
+			}
+			return branchNode.Condition.Evaluate();
+		}
+
 		private DialogueStep StepForCurrent()
 		{
+			ResolveBranchChain();
+
 			if (currentNode is DialogueSpeakNode speakNode)
 			{
 				return DialogueStep.Speak(speakNode.Line);
