@@ -17,6 +17,9 @@
 # 사용:
 #   .github/scripts/wm-compile-file.sh Assets/.../Foo.cs [Bar.cs ...]
 #
+# ⚠ 아직 유니티가 한 번도 안 컴파일한 **새 파일**은 참조 dll 에 없다. 새 파일끼리 서로 부르면
+#   그 파일들을 **같이** 넘겨라 (안 그러면 「그런 이름 없다」가 뜬다 — 실측).
+#
 # 종료 코드: 0 = 에러 0 / 1 = 컴파일 에러 / 2 = 환경 미비(사용법·유니티·어셈블리 없음)
 
 set -u
@@ -94,7 +97,7 @@ out=$(mktemp -u)".dll"
 # 0436(같은 타입이 소스와 dll 양쪽에) 도 끈다 — 위에서 자기 어셈블리를 일부러 넣었기 때문이다.
 # `[SerializeField] private int foo;` 는 코드가 아니라 **인스펙터가** 채우므로 컴파일러 눈엔 안 채워진
 # 것처럼 보인다. 이 저장소 곳곳이 그 모양이라, 안 끄면 멀쩡한 코드가 전부 빨강이 된다(실측).
-output=$("$mono" "$csc" -target:library -nostdlib+ -noconfig -nowarn:0649,0169,0436 "${refs[@]}" -out:"$out" "$@" 2>&1)
+output=$("$mono" "$csc" -target:library -nostdlib+ -noconfig -langversion:9.0 -nowarn:0649,0169,0436 "${refs[@]}" -out:"$out" "$@" 2>&1)
 status=$?
 rm -f "$out"
 

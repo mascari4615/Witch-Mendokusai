@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using WitchMendokusai.DomainSDK.Refining;
 using WitchMendokusai.DomainSDK.Workshop;
 
 namespace WitchMendokusai
@@ -45,6 +46,25 @@ namespace WitchMendokusai
 		[Tooltip("효율 상한 — 없으면 밤 수익이 무한히 굴러 밸런스가 무너진다.")]
 		[SerializeField] private float maxEfficiency = 3f;
 
+		[Header("정련 (TASK-WM-172) — 품질만 값에 반영한다")]
+		[Tooltip("정련을 시작할 때의 품질(0~1).")]
+		[SerializeField] private float refiningInitialQuality = 0.3f;
+
+		[Tooltip("빨리 함부로 했을 때 한 단계당 품질 변화.")]
+		[SerializeField] private float refiningFastQualityDelta = 0.05f;
+
+		[Tooltip("애도하며 정성껏 했을 때 한 단계당 품질 변화.")]
+		[SerializeField] private float refiningCarefulQualityDelta = 0.2f;
+
+		[Tooltip("빨리 함부로 했을 때 한 단계당 온기 변화. 온기는 값에 안 들어간다 — 보여주기만 한다.")]
+		[SerializeField] private float refiningFastWarmthDelta = -0.3f;
+
+		[Tooltip("애도하며 정성껏 했을 때 한 단계당 온기 변화. 온기는 값에 안 들어간다.")]
+		[SerializeField] private float refiningCarefulWarmthDelta = 0.3f;
+
+		[Tooltip("품질이 값을 얼마나 올리나. 1 = 품질 최대일 때 두 배. 0 이면 정련해도 값이 그대로다.")]
+		[SerializeField] private float qualityPriceBonus = 1f;
+
 		private WorldClock worldClock;
 		private DayNightCycle cycle;
 		private readonly WorkshopLedger ledger = new WorkshopLedger();
@@ -68,6 +88,11 @@ namespace WitchMendokusai
 
 		/// <summary>지금까지 투자한 만큼 오른 낮 채집 효율. 낮 루프가 수확량에 곱해 쓸 값이다.</summary>
 		public float DayCollectionEfficiency => DayEfficiencyModel.Evaluate(ledger.GoldInvestedInDayEfficiency, Coefficients);
+
+		/// <summary>정련 계수 묶음 — 인스펙터 값들을 계산 층이 받는 모양으로.</summary>
+		public RefiningCoefficients RefiningCoefficients =>
+			new RefiningCoefficients(refiningInitialQuality, refiningFastQualityDelta, refiningCarefulQualityDelta,
+				refiningFastWarmthDelta, refiningCarefulWarmthDelta);
 
 		private DayEfficiencyCoefficients Coefficients =>
 			new DayEfficiencyCoefficients(baseEfficiency, goldPerEfficiencyStep, efficiencyPerStep, maxEfficiency);
@@ -105,12 +130,20 @@ namespace WitchMendokusai
 			worldClock.OnHourChanged += OnHourChanged;
 
 			// 에셋(유니티) → 순수 값(계산 층). 한 번만 옮겨 두고 밤마다 재사용한다.
+			// 정련 단계는 상품마다 고정이라 값도 여기서 한 번만 정해 둔다(밤마다 다시 셀 이유가 없다).
 			for (int index = 0; index < products.Length; index++)
 			{
-				if (products[index] != null)
+				WorkshopProductSO asset = products[index];
+				if (asset == null)
 				{
-					productValues.Add(products[index].ToProduct());
+					continue;
 				}
+
+				WorkshopProduct baseProduct = asset.ToProduct();
+				List<RefiningStage> stages = asset.ToStages();
+				int refinedPrice = WorkshopRefinedPrice.Evaluate(baseProduct.SalePrice, stages, RefiningCoefficients, qualityPriceBonus);
+
+				productValues.Add(new WorkshopProduct(baseProduct.ProductId, baseProduct.Materials, refinedPrice));
 			}
 		}
 

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using WitchMendokusai.DomainSDK.Refining;
 using WitchMendokusai.DomainSDK.Workshop;
 
 namespace WitchMendokusai
@@ -34,6 +35,39 @@ namespace WitchMendokusai
 
 		[Tooltip("팔았을 때 들어오는 골드. 정수 — 소수 가격은 결정성이 깨져 일부러 안 쓴다.")]
 		[SerializeField] private int salePrice;
+
+		[Header("정련 (TASK-WM-172) — 비워 두면 정련 안 하는 상품이다")]
+		[Tooltip("이 상품을 만들 때 거치는 정련 단계들. 순서대로 적용된다. 비어 있으면 품질 보정 없이 기본가로 팔린다.")]
+		[SerializeField] private List<RefiningStageLine> refiningStages = new List<RefiningStageLine>();
+
+		/// <summary>인스펙터에서 정련 단계를 적기 위한 한 줄.</summary>
+		[Serializable]
+		public class RefiningStageLine
+		{
+			[Tooltip("무슨 단계인가 — 해체 / 정화 / 정제.")]
+			public RefiningStageKind Kind;
+
+			[Tooltip("어떻게 하는가 — 빨리 함부로(링) / 애도하며 정성껏(알리사).")]
+			public RefiningApproach Approach;
+		}
+
+		/// <summary>정련 단계들을 순수 값으로. 비어 있으면 빈 목록(정련 안 하는 상품).</summary>
+		public List<RefiningStage> ToStages()
+		{
+			List<RefiningStage> stages = new List<RefiningStage>(refiningStages.Count);
+			for (int index = 0; index < refiningStages.Count; index++)
+			{
+				RefiningStageLine line = refiningStages[index];
+				if (line == null)
+				{
+					continue;
+				}
+
+				stages.Add(new RefiningStage(line.Kind, line.Approach));
+			}
+
+			return stages;
+		}
 
 		/// <summary>에셋의 내용을 순수 값으로 옮긴다 — 계산 층은 유니티를 모른다.</summary>
 		public WorkshopProduct ToProduct()
