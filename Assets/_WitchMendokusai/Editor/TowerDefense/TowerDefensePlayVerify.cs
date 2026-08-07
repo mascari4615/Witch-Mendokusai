@@ -419,8 +419,19 @@ namespace WitchMendokusai.EditorTools
 				case Step.SelectedLayout:
 					// ★ 서식지 이동 측정이 아직 안 끝났으면 모드를 나가지 않는다 — 나가면 판이 새로 태어나
 					//   깨운 서식지가 통째로 사라져 그 측정이 영영 성립하지 않는다.
+					// ★ 무엇을 기다리는지 말한다. 예전엔 조용히 머물다 7분 뒤 「행」으로만 죽어서,
+					//   어느 항목이 안 끝났는지 알 길이 없었다(실측에서 이 단계가 통째로 막혔다).
 					if (lairDriftCheckAt > 0.0 || lairClearCheckAt > 0.0 || pressureCheckAt > 0.0)
+					{
+						if (now - lastGateLog > 5.0)
+						{
+							lastGateLog = now;
+							Debug.Log($"{TAG} SelectedLayout 대기 — 서식지이동 {lairDriftCheckAt > 0.0}"
+								+ $" · 소탕보상 {lairClearCheckAt > 0.0} · 강도 {pressureCheckAt > 0.0}"
+								+ $" · 버틴시간 {(match != null ? match.SurvivedSeconds : -1f):F0}");
+						}
 						return;
+					}
 
 					// ★ 앞 단계에서 열어둔 성좌를 *여기서* 닫는다. 닫는 자리를 재시작 단계에 뒀더니,
 					//   이 단계가 그 앞으로 끼어드는 순간 성좌가 열린 채로 남아 판이 멈추고,
@@ -443,7 +454,15 @@ namespace WitchMendokusai.EditorTools
 					// ★ 시계가 0 일 때 나가면 「되감겼는지」를 가릴 수 없다(0 이나 1 이나 통과).
 					//   눈금이 실제로 쌓인 뒤에 나가야 이어하기가 시계를 지키는지가 증명된다.
 					if (match != null && match.SurvivedSeconds < RESUME_MIN_CLOCK)
+					{
+						if (now - lastGateLog > 5.0)
+						{
+							lastGateLog = now;
+							Debug.Log($"{TAG} SelectedLayout 대기 — 시계가 아직 {match.SurvivedSeconds:F0}"
+								+ $"/{RESUME_MIN_CLOCK} (판이 멈춰 있으면 시계도 안 간다)");
+						}
 						return;
+					}
 					CaptureResumeSnapshot();
 					if (GameModeManager.TryGetExistingInstance(out GameModeManager exitManager))
 						exitManager.SetMode(GameMode.Default);
