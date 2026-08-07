@@ -154,6 +154,7 @@ namespace WitchMendokusai.EditorTools
 			signalChecked = false;
 			markCheckAt = 0.0;
 			lairDriftCheckAt = 0.0;
+			pressureCheckAt = 0.0;
 			lairClearCheckAt = 0.0;
 			selectedLayoutChecked = false; // 판마다 다시 잰다.
 			assaultStart = -1.0;
@@ -214,6 +215,12 @@ namespace WitchMendokusai.EditorTools
 			{
 				lairDriftCheckAt = 0.0;
 				CheckLairDrift();
+			}
+
+			if (pressureCheckAt > 0.0 && now >= pressureCheckAt)
+			{
+				pressureCheckAt = 0.0;
+				CheckPressureNotice();
 			}
 
 			if (markCheckAt > 0.0 && now >= markCheckAt)
@@ -359,7 +366,7 @@ namespace WitchMendokusai.EditorTools
 				case Step.SelectedLayout:
 					// ★ 서식지 이동 측정이 아직 안 끝났으면 모드를 나가지 않는다 — 나가면 판이 새로 태어나
 					//   깨운 서식지가 통째로 사라져 그 측정이 영영 성립하지 않는다.
-					if (lairDriftCheckAt > 0.0 || lairClearCheckAt > 0.0)
+					if (lairDriftCheckAt > 0.0 || lairClearCheckAt > 0.0 || pressureCheckAt > 0.0)
 						return;
 
 					// ★ 앞 단계에서 열어둔 성좌를 *여기서* 닫는다. 닫는 자리를 재시작 단계에 뒀더니,
@@ -415,7 +422,7 @@ namespace WitchMendokusai.EditorTools
 					if (placeOnly)
 					{
 						// 아직 재기로 한 것이 남아 있으면 끝내지 않는다 — 끝내버리면 그 항목은 영영 안 재진다.
-						if (lairDriftCheckAt > 0.0 || markCheckAt > 0.0 || lairClearCheckAt > 0.0)
+						if (lairDriftCheckAt > 0.0 || markCheckAt > 0.0 || lairClearCheckAt > 0.0 || pressureCheckAt > 0.0)
 							return;
 
 						Debug.Log(TAG + " PLACE-ONLY 배치 확인 끝 — 조기 종료");
@@ -888,6 +895,41 @@ namespace WitchMendokusai.EditorTools
 			// ★ 한 틱 미루는 것으로는 부족하다 — 에디터가 앞에 없으면 Play 루프가 느려져 *게임 프레임이
 			//   한 장도 안 지난 채* 재게 된다(오늘 세 번째로 같은 실수를 했다). 실제 시간이 흐른 뒤에 센다.
 			markCheckAt = EditorApplication.timeSinceStartup + 1.5;
+
+			// ★ 강도는 *시간이* 올린다 — 짧은 하네스에서는 1.02 까지밖에 안 올라 알림 조건에 영영 안 닿는다.
+			//   새 훅을 만들 것 없이 **사람이 쓰는 배속 버튼**을 눌러 시간을 빨리 흐르게 한다
+			//   (검증 전용 통로를 또 파면 「실제로 도는 길」과 「재는 길」이 갈라진다).
+			for (int step = 0; step < 3; step++)
+				match.CycleSpeed();
+			pressureCheckAt = EditorApplication.timeSinceStartup + 75.0;
+			pressureBefore = match.Pressure;
+		}
+
+		private static double pressureCheckAt;
+		private static float pressureBefore;
+
+		/// <summary> 시간이 흐르면 강도가 오르고, 오르면 화면이 말하는가. </summary>
+		private static void CheckPressureNotice()
+		{
+			if (match == null)
+				return;
+
+			float now = match.Pressure;
+			int alerts = 0;
+			foreach (TowerDefenseAlerts.Alert alert in match.Alerts)
+			{
+				if (alert.Label.Contains("단단해졌다"))
+					alerts++;
+			}
+
+			Debug.Log($"{TAG} 강도 알림 — 강도 {pressureBefore:F2} → {now:F2} · 「더 단단해졌다」 알림 {alerts}개");
+
+			if (now <= pressureBefore + 0.01f)
+				Debug.Log(TAG + " 강도 알림 — 못 쟀다(배속을 올려도 강도가 안 올랐다). 실패가 아니다.");
+			else if (now - 1f < 0.5f)
+				Debug.Log($"{TAG} 강도 알림 — 못 쟀다(아직 한 칸 못 올랐다: {now - 1f:F2}/0.50). 실패가 아니다.");
+			else if (alerts == 0)
+				Debug.LogError(TAG + " 강도 FAIL — 강도가 한 칸 넘게 올랐는데 화면이 아무 말도 안 한다.");
 
 			// ★ 깨어난 서식지 마수가 *어디로 가는지*를 잰다. 코어로 행진하면 서식지는 그냥 「파도 하나 더」이고,
 			//   그 일대에 머물면 「넓히는 것이 위험」이 성립한다 — 둘은 완전히 다른 게임이라 재봐야 안다.
