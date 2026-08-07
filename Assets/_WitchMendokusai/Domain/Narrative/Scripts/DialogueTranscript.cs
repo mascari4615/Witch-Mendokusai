@@ -22,10 +22,21 @@ namespace WitchMendokusai
 			public string Speaker { get; }
 			public string Text { get; }
 
-			public Entry(string speaker, string text)
+			/// <summary>
+			/// 이 줄이 **플레이어가 고른 답**인가.
+			///
+			/// ★ 왜 구별해 두나: 로그를 되짚는 이유의 절반은 「내가 뭐라고 했더라」다.
+			///   남의 대사와 똑같이 찍어 두면 그걸 찾을 수 없고, 나중에 화면을 만들 때
+			///   이미 섞여 버린 기록에서 다시 갈라낼 방법이 없다(말투로 추측할 수는 없다).
+			///   보여주는 모양(들여쓰기·색·기호)은 화면 쪽이 정한다 — 여기서는 **표시만** 남긴다.
+			/// </summary>
+			public bool IsChoice { get; }
+
+			public Entry(string speaker, string text, bool isChoice = false)
 			{
 				Speaker = speaker;
 				Text = text;
+				IsChoice = isChoice;
 			}
 		}
 
@@ -52,6 +63,24 @@ namespace WitchMendokusai
 			}
 
 			entries.Add(new Entry(line.ResolveSpeakerName(), line.Text));
+			if (entries.Count > capacity)
+			{
+				entries.RemoveAt(0);
+			}
+		}
+
+		/// <summary>
+		/// 플레이어가 고른 답을 남긴다. 말한 이는 없다 — 고른 사람은 **화면 밖**이고,
+		/// 이름을 붙이면(예: 「나」) 그 순간 원고에 없는 화자가 로그에 생긴다.
+		/// </summary>
+		public void RecordChoice(string label)
+		{
+			if (string.IsNullOrWhiteSpace(label))
+			{
+				return;
+			}
+
+			entries.Add(new Entry(null, label, true));
 			if (entries.Count > capacity)
 			{
 				entries.RemoveAt(0);

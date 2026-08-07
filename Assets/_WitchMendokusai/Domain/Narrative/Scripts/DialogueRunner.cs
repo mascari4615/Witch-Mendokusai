@@ -297,6 +297,9 @@ namespace WitchMendokusai
 		private void HandleChoiceSelected(string label)
 		{
 			History.MarkChoice(CurrentDialogueId, label);
+
+			// 로그에도 남긴다 — 되짚는 이유의 절반은 「내가 뭐라고 했더라」다.
+			Transcript.RecordChoice(label);
 		}
 
 		/// <summary>지금 틀고 있는 대화의 번호 — 원고 자산이면 그 자산 번호, 아니면 그래프 번호.</summary>
