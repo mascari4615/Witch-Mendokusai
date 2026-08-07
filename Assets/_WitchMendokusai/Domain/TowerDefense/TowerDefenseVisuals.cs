@@ -116,12 +116,17 @@ namespace WitchMendokusai
 	/// </summary>
 	public static class TowerDefenseShaderNames
 	{
-		public const string Lit = "Universal Render Pipeline/Lit";
-		public const string Unlit = "Universal Render Pipeline/Unlit";
+		// ★ 문자열 정본은 공용 `CombatShaderNames` 다(TASK-WM-208) — 투기장 맵도 같은 이름을 쓰기 때문.
+		//   여기서 const 포워딩만 해 두면 개척 호출부(7곳)는 한 줄도 안 고쳐도 되고,
+		//   아래 `MustBeIncluded` 를 보는 인클루전 시험이 **두 게임 몫을 함께** 지킨다.
+		public const string Lit = CombatShaderNames.Lit;
+		public const string Unlit = CombatShaderNames.Unlit;
+
+		/// <summary> 개척 전용(공용 아님) — 사거리·경로 오버레이 선. </summary>
 		public const string OverlayLine = "WM/TowerDefenseOverlayLine";
 
 		/// <summary> 정말 아무것도 없을 때의 마지막 수단 — 보이기는 한다. </summary>
-		public const string LegacyFallback = "Sprites/Default";
+		public const string LegacyFallback = CombatShaderNames.LegacyFallback;
 
 		/// <summary> 빌드에 반드시 실려야 하는 것들. </summary>
 		public static readonly string[] MustBeIncluded = { Lit, Unlit, OverlayLine };
