@@ -35,6 +35,9 @@ namespace WitchMendokusai
 
 		private const float DEFAULT_LINE_DURATION = 3f;
 
+		[Tooltip("대사에 시간이 안 적혀 있고 읽는 속도도 안 쓸 때 머무는 시간(초). 0 이면 눌러야 넘어간다.")]
+		[SerializeField] private float defaultLineSeconds = DEFAULT_LINE_DURATION;
+
 		[Header("대사 노출 시간")]
 		[Tooltip("초당 읽는 글자 수. 0 이면 안 쓰고 아래 기본 시간을 그대로 쓴다.")]
 		[SerializeField] private float readingCharactersPerSecond = 11f;
@@ -188,7 +191,7 @@ namespace WitchMendokusai
 			History.MarkStarted(graph.ID);
 			playback = new DialoguePlayback(graph, effectSink)
 			{
-				DefaultSpeakSeconds = DEFAULT_LINE_DURATION,
+				DefaultSpeakSeconds = defaultLineSeconds,
 				ReadingCharactersPerSecond = readingCharactersPerSecond,
 				MinimumSpeakSeconds = minimumLineSeconds,
 				MaximumSpeakSeconds = maximumLineSeconds,
@@ -324,7 +327,9 @@ namespace WitchMendokusai
 				: DialogueReadingTime.For(line.Text, readingCharactersPerSecond, minimumLineSeconds, maximumLineSeconds);
 			if (duration <= 0f)
 			{
-				duration = DEFAULT_LINE_DURATION;
+				// 재생기에 넘긴 값과 **같은 값**이라야 한다 — 여기만 박아 두면 인스펙터로 조절했을 때
+				// 말풍선과 대화가 서로 다른 시간을 쓰게 된다(위 주석이 경계하는 바로 그 어긋남).
+				duration = defaultLineSeconds;
 			}
 			Transform anchor = ResolveLineAnchor(line);
 			if (uiManager != null && uiManager.SpeechBubble != null && anchor != null)

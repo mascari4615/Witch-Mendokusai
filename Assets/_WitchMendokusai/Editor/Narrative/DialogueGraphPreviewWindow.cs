@@ -310,6 +310,14 @@ namespace WitchMendokusai
 			IReadOnlyList<DialogueTranscript.Entry> entries = transcript.Entries;
 			for (int i = 0; i < entries.Count; i++)
 			{
+				if (entries[i].IsChoice)
+				{
+					// 고른 답은 남의 대사와 **눈에 띄게** 갈라 둔다 — 되짚을 때 제일 먼저 찾는 게 이것이다.
+					// (게임 화면의 모양은 화면 쪽이 정한다. 여기 화살표는 이 도구 안에서만 쓰는 표시다.)
+					EditorGUILayout.LabelField($"{i + 1}. ▸ {entries[i].Text}", EditorStyles.wordWrappedMiniLabel);
+					continue;
+				}
+
 				string speaker = string.IsNullOrEmpty(entries[i].Speaker) ? "(나레이션)" : entries[i].Speaker;
 				EditorGUILayout.LabelField($"{i + 1}. {speaker}: {entries[i].Text}", EditorStyles.wordWrappedMiniLabel);
 			}
@@ -433,8 +441,12 @@ namespace WitchMendokusai
 			{
 				if (GUILayout.Button(i + 1 + ". " + step.Options[i]))
 				{
+					// 고른 답도 지나온 기록에 남긴다 — 게임 로그와 같은 판단이다.
+					// 안 남기면 갈래를 여럿 걸어 본 뒤 「내가 어디서 뭘 골랐더라」를 못 되짚는다.
+					string chosenLabel = step.Options[i];
 					if (traversal.SelectChoice(i))
 					{
+						transcript.RecordChoice(chosenLabel);
 						step = traversal.Next();
 						stepCount++;
 						RecordStep();
