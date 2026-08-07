@@ -132,6 +132,9 @@ namespace WitchMendokusai
 				Move = Vector2.ClampMagnitude(
 					InputManager.CameraMoveInput + EdgePanInput() + TwoFingerPanInput(), 1f),
 				Rotate = InputManager.CameraRotateInput,
+				// 손가락 비틀기는 *이미 각도*라 시간을 곱하면 안 된다 — 리그가 그 용도로 열어 둔
+				// 「각도 직접」 통로로 넣는다(키 회전과 더해져도 서로 안 덮는다).
+				YawDegrees = TwoFingerTwistInput(),
 				ScrollDelta = InputManager.ScrollWheelDelta,
 				SpeedMultiplier = SpeedMultiplier,
 			};
@@ -156,6 +159,24 @@ namespace WitchMendokusai
 		[Header("손가락")]
 		[Tooltip("두 손가락으로 끈 화면 픽셀 → 시점 이동량 배율.")]
 		[SerializeField, Min(0f)] private float twoFingerPanStrength = 0.012f;
+
+		[Tooltip("두 손가락을 비튼 각도 → 시점 회전 배율. 1 이면 손가락이 돈 만큼 그대로 돈다.")]
+		[SerializeField, Min(0f)] private float twoFingerTwistStrength = 1f;
+
+		/// <summary>
+		/// 두 손가락을 비틀어 시점을 돌린다 (TASK-WM-200).
+		///
+		/// ★ 시점 회전이 **키보드 Q·E 에만** 걸려 있었다 — 폰엔 그 키가 없으니 *돌릴 방법이 0*.
+		///   손가락 비틀기 값은 이미 계산되고 있었는데 아무도 안 읽고 있었다(시험 하나가 유일한 사용처).
+		/// ★ 이 값은 *각도 그 자체*라 시간을 곱하면 안 된다 — 리그가 그 용도로 따로 열어 둔
+		///   통로에 넣는다. 키 회전(속도×시간)과 더해져도 서로를 덮지 않는다.
+		/// </summary>
+		private float TwoFingerTwistInput()
+		{
+			if (twoFingerTwistStrength <= 0f)
+				return 0f;
+			return InputManager.PointerTwistDelta * twoFingerTwistStrength;
+		}
 
 		/// <summary>
 		/// 두 손가락으로 밀어 시점을 옮긴다 (TASK-WM-200).
