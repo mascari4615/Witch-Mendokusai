@@ -67,20 +67,21 @@ jobs:
 
   unity:
     name: EditMode tests (laptop runner)
-    # push 마다 돌리지 않는다 — 실측(2026-08-05): 노트북 1대가 빌드로 차 있는 사이 push 가 몇 분
-    # 간격으로 들어와 EditMode job 이 **5연속 취소**됐다. 큐를 못 이기는 구조라 push 레인은
-    # "돌 것처럼 보이지만 실제로는 0회" 가 된다 — 게이트가 거짓 안심을 주는 최악의 형태.
-    # → 결정적 rules 티어는 push 마다(수초), 유니티 티어는 3시간 주기 + 필요할 때 수동.
-    if: github.event_name != 'push' && github.event_name != 'pull_request'
     runs-on: [self-hosted, unity, windows-build]
     timeout-minutes: 90
-    # 노트북 한 대 = 프로젝트 폴더 하나.
-    #   push 레인   : 최신 것만 의미 있으므로 앞선 실행 취소 (빠른 피드백)
-    #   그 외 레인  : cron·수동 = 절대 취소 X. push 가 아무리 몰려도 이 레인은 끝까지 간다.
-    # 레인을 event 별로 가르지 않으면 push 폭풍이 예약 실행까지 같이 죽여서 커버리지가 0 이 된다.
+    # 노트북 한 대 = 프로젝트 폴더 하나라 이 잡은 언제나 한 번에 하나만 돈다.
+    #
+    # ★ 한때 push·PR 을 통째로 막아 뒀었다. 이유는 실측이었다(2026-08-05): 빌드로 찬 러너에
+    #   push 가 몇 분 간격으로 들어오자 EditMode 잡이 **5연속 취소**돼 실제 실행이 0회가 됐다.
+    #   그런데 막아 버린 쪽의 대가가 더 컸다 — push 로 만든 실행은 시험 잡을 건너뛴 채 초록이
+    #   되고, 깃허브는 건너뛴 잡이 있어도 실행을 success 라 부른다. **한 번도 안 돈 시험이
+    #   「통과」로 보고됐다** (2026-08-07 발각).
+    # ★ 진짜 원인은 push 레인이 아니라 「앞선 것을 죽인다」였다. 취소를 끄면 깃허브는 한 그룹에
+    #   *도는 것 1 + 기다리는 것 1* 만 남기고 그 사이 것들만 지운다 — 즉 폭주해도 줄은 안 밀리고,
+    #   마지막 push 는 반드시 돈다. 3시간 주기는 그대로 바닥으로 남긴다.
     concurrency:
-      group: wm-quality-unity-${{ github.event_name }}
-      cancel-in-progress: ${{ github.event_name == 'push' }}
+      group: wm-quality-unity
+      cancel-in-progress: false
     steps:
       - uses: actions/checkout@v4
         with:
