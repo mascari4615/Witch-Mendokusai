@@ -79,6 +79,9 @@ namespace WitchMendokusai
 		/// <summary>「이 대화를 본 적 있나」 기록 — 조건이 <see cref="DialogueHistoryBridge"/> 로 찾아온다.</summary>
 		public DialogueHistory History { get; } = new();
 
+		/// <summary>지나간 대사 — 「방금 뭐라고 했지」를 위해 남긴다(저장 대상 아님).</summary>
+		public DialogueTranscript Transcript { get; } = new();
+
 		// 「언제 거는가」는 조정자가 정한다(순수 — 화면 없이 검증된다). 러너는 「어떻게 거는가」만 맡는다.
 		private readonly DialoguePlayCoordinator coordinator = new();
 
@@ -195,6 +198,7 @@ namespace WitchMendokusai
 		{
 			if (step.Kind == DialogueStepKind.Speak)
 			{
+				Transcript.Record(step.SpeakLine);
 				ShowBubble(step.SpeakLine);
 				return;
 			}
@@ -325,6 +329,7 @@ namespace WitchMendokusai
 			while (current != null)
 			{
 				Debug.Log($"[DialogueRunner] Speak: \"{current.Text}\" wait={current.Wait}");
+				Transcript.Record(current);
 
 				float duration = current.Wait > 0f ? current.Wait : DEFAULT_LINE_DURATION;
 
