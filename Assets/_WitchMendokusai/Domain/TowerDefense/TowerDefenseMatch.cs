@@ -2040,8 +2040,19 @@ namespace WitchMendokusai
 					break;
 				}
 
-				// 테두리 침공이 켜져 있으면 이번 파도의 토막에서, 아니면 옛 고정 둥지에서.
-				IReadOnlyList<Vector3> origins = invasionFront.Count > 0 ? invasionFront : activeSpawnPoints;
+				// ★ **파도는 테두리, 상시로 새는 것은 둥지.**
+				//   테두리 침공을 넣으면서 둘 다 테두리로 보냈더니 「둥지를 부수면 그 출구가 닫힌다」가
+				//   거짓말이 됐다 — 부숴도 오는 양이 그대로였다(규칙은 바꿨는데 그 약속을 안 옮긴 것).
+				//   파도가 테두리에서 오는 것과, 둥지가 상시 압박의 출구인 것은 서로 다른 층이라 둘 다 산다.
+				bool isWave = count > 1;
+				IReadOnlyList<Vector3> origins = isWave && invasionFront.Count > 0
+					? invasionFront
+					: activeSpawnPoints;
+
+				// 둥지를 다 부쉈으면 상시로 샐 곳이 없다 — 그게 「출구가 닫혔다」의 실제 모습이다.
+				// (여기서 안 막으면 자리가 없어 무대 한가운데(0,0)에서 솟는다.)
+				if (isWave == false && origins.Count == 0)
+					yield break;
 				Vector3 localSpawn = origins.Count > 0
 					? origins[enemyIndex % origins.Count] + SpawnSpreadOffset(enemyIndex, origins.Count)
 					: Vector3.zero;

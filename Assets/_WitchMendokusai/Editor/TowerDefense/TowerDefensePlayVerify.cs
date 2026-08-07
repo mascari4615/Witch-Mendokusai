@@ -1150,6 +1150,13 @@ namespace WitchMendokusai.EditorTools
 				{
 					Debug.Log($"{TAG} 길찾기 — 판 {match.MapCellCount}칸 · 한 번에 최대 {match.PathPeakCells}칸 펼침"
 						+ $" · 상한에 걸려 포기 {match.PathCapHits}회");
+					// ★ 파도와 상시 압박은 *다른 출구*를 써야 한다 — 테두리 침공을 넣으면서 둘 다 테두리로
+					//   보내면 「둥지를 부수면 그 출구가 닫힌다」가 거짓말이 된다.
+					Debug.Log($"{TAG} 출구 — 둥지 {match.NestCount}곳 · 이번 파도 토막 {match.InvasionFrontCount}점"
+						+ $" · 테두리 침공 {match.IsBorderInvasion}");
+					if (match.IsBorderInvasion && match.InvasionFrontCount == 0)
+						Debug.LogError(TAG + " 출구 FAIL — 테두리 침공인데 파도 토막이 0점이다(파도가 어디서 오는지 없다).");
+
 					// 「길 없음」은 그 자체로 실패가 아니다 — 벽을 부수러 붙는 중일 수 있다.
 					// 다만 *얼마나 자주* 나는지는 알아야, 나중에 「판이 안 끝난다」가 나올 때 여기부터 본다.
 					Debug.Log($"{TAG} 안내 — 길 없음 {match.NavigatorNoPathCount}회 (부수러 가는 중이면 정상)");
