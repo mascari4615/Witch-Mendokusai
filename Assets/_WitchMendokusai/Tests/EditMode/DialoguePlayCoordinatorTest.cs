@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using NUnit.Framework;
 using UnityEngine;
@@ -94,9 +95,36 @@ namespace WitchMendokusai.Tests
 		}
 
 		[Test]
+		public void StartingWithNobodyListening_FailsLoudly()
+		{
+			// 듣는 쪽이 없으면 이 대화는 그냥 사라진다. 그런데 바쁨 표시는 켜지므로
+			// **그 뒤에 온 대화까지 전부** 줄에서 기다리다 같이 묻힌다 — 화면엔 아무 일도 안 난 것처럼 보인다.
+			// 러너가 귀를 붙이는 자리가 유니티 수명주기라, 다른 컴포넌트가 먼저 대화를 걸면 실제로 이렇게 된다.
+			DialoguePlayCoordinator coordinator = new();
+
+			Assert.That(() => coordinator.Request(Request(NewScript("혼자"))), Throws.InvalidOperationException);
+		}
+
+		[Test]
+		public void QueuedOneAlsoFailsLoudly_IfTheListenerLeft()
+		{
+			// 걸 때는 있었는데 끝날 때 없어진 경우 — 다음 것을 거는 자리도 같은 판단이라야 한다.
+			DialoguePlayCoordinator coordinator = new();
+			Action<DialoguePlayRequest> listener = _ => { };
+			coordinator.OnStartRequested += listener;
+			coordinator.Request(Request(NewScript("첫째")));
+			coordinator.Request(Request(NewScript("둘째")));
+			coordinator.OnStartRequested -= listener;
+
+			Assert.That(() => coordinator.NotifyFinished(), Throws.InvalidOperationException);
+		}
+
+		[Test]
 		public void FinishedWithEmptyQueue_GoesQuiet()
 		{
+			// 듣는 쪽을 붙여 둔다 — 아무도 안 들으면 조정자가 터진다(대화가 조용히 사라지는 걸 막는 판단).
 			DialoguePlayCoordinator coordinator = new();
+			coordinator.OnStartRequested += _ => { };
 			coordinator.Request(Request(NewScript("혼자")));
 
 			coordinator.NotifyFinished();
@@ -121,6 +149,7 @@ namespace WitchMendokusai.Tests
 		public void Reset_DropsPendingAndGoesQuiet()
 		{
 			DialoguePlayCoordinator coordinator = new();
+			coordinator.OnStartRequested += _ => { };
 			coordinator.Request(Request(NewScript("첫째")));
 			coordinator.Request(Request(NewScript("둘째")));
 

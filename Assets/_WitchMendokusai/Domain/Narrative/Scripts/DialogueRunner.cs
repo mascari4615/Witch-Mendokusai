@@ -72,12 +72,30 @@ namespace WitchMendokusai
 			if (Instance != null && Instance != this) { Destroy(gameObject); return; }
 			Instance = this;
 			DialogueHistoryBridge.Register(History);
+			EnsureCoordinatorWired();
+		}
+
+		/// <summary>
+		/// 조정자에 「걸어라」를 받을 귀를 붙인다. 여러 번 불러도 한 번만 붙는다.
+		///
+		/// ★ 왜 Awake 만으로 부족한가: 다른 컴포넌트가 **자기 Awake 에서** 대화를 걸 수 있고,
+		///   그때 이쪽 Awake 가 아직 안 돌았을 수 있다(유니티는 순서를 보장하지 않는다).
+		///   그러면 그 대화도, 그 뒤에 줄 선 것도 전부 사라진다. 그래서 거는 자리에서도 확인한다.
+		/// </summary>
+		private void EnsureCoordinatorWired()
+		{
+			if (coordinatorWired)
+			{
+				return;
+			}
+			coordinatorWired = true;
 			coordinator.OnStartRequested += StartRequested;
 		}
 
 		private void OnDestroy()
 		{
 			coordinator.OnStartRequested -= StartRequested;
+			coordinatorWired = false;
 			DialogueItemBridge.Clear(itemCountSource);
 			DialogueQuestBridge.Clear(questStateSource);
 			DialogueHistoryBridge.Clear(History);
@@ -101,6 +119,7 @@ namespace WitchMendokusai
 
 		// 「언제 거는가」는 조정자가 정한다(순수 — 화면 없이 검증된다). 러너는 「어떻게 거는가」만 맡는다.
 		private readonly DialoguePlayCoordinator coordinator = new();
+		private bool coordinatorWired;
 
 		/// <summary>선택지가 제시됐다 — UI 가 버튼을 그리고 <see cref="SubmitChoice"/> 로 돌려준다.</summary>
 		public event Action<IReadOnlyList<string>> OnChoicesPresented = delegate { };
@@ -160,6 +179,7 @@ namespace WitchMendokusai
 			}
 
 			// 「지금 걸지 줄 세울지」는 조정자가 정한다(순수 — 화면 없이 검증된다).
+			EnsureCoordinatorWired();
 			if (coordinator.Request(new DialoguePlayRequest(source, null, speakerTransform)) == false)
 			{
 				Debug.LogWarning($"[DialogueRunner] 대화 차례가 꽉 찼거나 이미 줄에 있다 — 흘림: {source.name}");
@@ -373,6 +393,7 @@ namespace WitchMendokusai
 			}
 
 			// 옛 입구도 같은 줄에 선다 — 두 입구가 서로를 끊으면 한쪽이 통째로 사라진다.
+			EnsureCoordinatorWired();
 			coordinator.Request(new DialoguePlayRequest(null, first, speakerTransform));
 		}
 

@@ -47,8 +47,34 @@ namespace WitchMendokusai
 			}
 
 			IsBusy = true;
-			OnStartRequested(request);
+			RaiseStart(request);
 			return true;
+		}
+
+		/// <summary>
+		/// 「걸어라」를 알린다 — **듣는 쪽이 없으면 터뜨린다.**
+		///
+		/// ★ 왜 조용히 넘기지 않나: 듣는 쪽이 없으면 이 대화는 **그냥 사라진다.**
+		///   그런데 바쁨 표시는 켜졌으니 그 뒤에 온 대화는 전부 줄에서 기다리다 같이 묻힌다 —
+		///   퀘스트 보상 대사도, 다음 장면도. 화면엔 아무 일도 안 일어난 것처럼 보인다.
+		///
+		///   실제로 이렇게 될 수 있다: 러너가 구독을 붙이는 자리가 유니티 수명주기(Awake)라,
+		///   **다른 컴포넌트가 자기 Awake 에서 대화를 걸면** 순서에 따라 아직 안 붙어 있다.
+		///   그 순서는 씬마다 다르고, 안 터지면 아무도 못 찾는다.
+		///
+		///   효과 통로가 없을 때 터뜨리는 것과 같은 판단 —
+		///   「하기로 적어 둔 것이 조용히 안 되는 것」이 제일 나쁜 결말이다.
+		/// </summary>
+		private void RaiseStart(DialoguePlayRequest request)
+		{
+			// 초기값 `delegate { }` 가 하나 들어 있으므로, 진짜 구독자는 그 다음부터다.
+			if (OnStartRequested.GetInvocationList().Length <= 1)
+			{
+				throw new InvalidOperationException(
+					"DialoguePlayCoordinator was asked to start a dialogue but nothing is listening to OnStartRequested — "
+					+ "the dialogue (and everything queued behind it) would vanish silently.");
+			}
+			OnStartRequested(request);
 		}
 
 		/// <summary>
@@ -70,7 +96,7 @@ namespace WitchMendokusai
 
 			// 바쁨을 유지한 채 다음 것을 건다 — 중간에 잠깐 「안 바쁨」이 되면
 			// 그 틈에 들어온 요청이 줄을 건너뛰어 순서가 뒤집힌다.
-			OnStartRequested(next);
+			RaiseStart(next);
 		}
 
 		/// <summary>전부 접는다 — 「지금 대화 그만」이면 기다리던 것도 같이 버린다.</summary>
