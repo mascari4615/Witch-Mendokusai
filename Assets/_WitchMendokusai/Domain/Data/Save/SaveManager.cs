@@ -215,6 +215,9 @@ namespace WitchMendokusai
 				upgrade.Load(upgradeData);
 			}
 
+			// 대화 이력 복원 — 대화 시스템이 아직 안 떠 있으면 조용히 넘어간다(등록 뒤 다시 부르면 된다).
+			DialogueHistoryBridge.RestoreSaveData(saveData.dialogueHistory);
+
 			// 윈도우 레이아웃 복원
 			soManager.WindowLayoutData.Load(saveData.windowLayouts);
 
@@ -249,6 +252,7 @@ namespace WitchMendokusai
 			ForEach<WorldStage>(worldStage => gameData.worldStages.Add(worldStage.ID, worldStage.Save()));
 			ForEach<UpgradeData>(upgradeData => gameData.upgrades.Add(upgradeData.ID, upgradeData.Save()));
 
+			gameData.dialogueHistory = DialogueHistoryBridge.CaptureSaveData();
 			gameData.windowLayouts = soManager.WindowLayoutData.Save();
 
 			if (AppSetting.Data.UseLocalData)

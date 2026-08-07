@@ -39,6 +39,9 @@ namespace WitchMendokusai
 		public Dictionary<int, DungeonSaveData> dungeons = new(); // DungeonID
 		public Dictionary<int, WorldStageSaveData> worldStages = new(); // WorldStageID, RuntimeBuildingData
 		public Dictionary<int, UpgradeSaveData> upgrades = new(); // UpgradeID, UpgradeSaveData
+		// 대화 이력(TASK-WM-052) — 「이 대화를 봤나」. 이게 없으면 껐다 켤 때마다 「처음 만남」이 반복돼
+		// 조건부 대사(첫 인사 / 이미 들은 이야기)가 영원히 첫 판처럼 군다.
+		public DialogueHistorySaveData dialogueHistory = new();
 		public List<WindowLayoutEntry> windowLayouts = new();
 	}
 }

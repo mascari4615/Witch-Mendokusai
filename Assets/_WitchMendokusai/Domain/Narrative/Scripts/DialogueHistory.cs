@@ -99,5 +99,18 @@ namespace WitchMendokusai
 
 		/// <summary>등록된 이력. 아직 없으면 null — 부르는 쪽이 판단한다.</summary>
 		public static DialogueHistory Current => history;
+
+		/// <summary>
+		/// 저장할 것을 꺼낸다. 이력이 아직 없으면 **빈 것**을 준다 —
+		/// 저장 시점에 대화 시스템이 안 떠 있을 수 있는데(로비 등), 그때 저장을 건너뛰면
+		/// 다음 저장이 옛 기록을 덮어써서 **봤던 대화가 통째로 사라진다.**
+		/// </summary>
+		public static DialogueHistorySaveData CaptureSaveData() =>
+			history == null
+				? new DialogueHistorySaveData { StartedDialogueIds = new List<int>(), CompletedDialogueIds = new List<int>() }
+				: history.ToSaveData();
+
+		/// <summary>불러온 것을 되돌린다. 이력이 아직 없으면 아무 일도 안 한다(등록 뒤 다시 부르면 된다).</summary>
+		public static void RestoreSaveData(DialogueHistorySaveData saveData) => history?.FromSaveData(saveData);
 	}
 }
