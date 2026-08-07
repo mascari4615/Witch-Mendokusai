@@ -71,8 +71,11 @@ namespace WitchMendokusai
 		/// <summary>
 		/// 건물 하나를 잃었다. 가까운 자리가 이미 있으면 거기에 얹는다 —
 		/// 한 구역이 무너지는 것과 사방에서 하나씩 잃는 것은 다른 사건이다.
+		///
+		/// 돌려주는 값 = **이번에 그 자리가 처음으로 뜨거워졌는가.** 화면이 이걸 보고 딱 한 번
+		/// 알린다 — 잃을 때마다 매번 외치면 정작 급한 알림을 덮고, 안 외치면 규칙이 안 보인다.
 		/// </summary>
-		public void Add(Vector3 worldPosition, float mergeDistance, float heatPerLoss)
+		public bool Add(Vector3 worldPosition, float mergeDistance, float heatPerLoss)
 		{
 			float mergeSqr = mergeDistance * mergeDistance;
 			for (int index = 0; index < positions.Count; index++)
@@ -80,12 +83,15 @@ namespace WitchMendokusai
 				if ((positions[index] - worldPosition).sqrMagnitude > mergeSqr)
 					continue;
 
+				bool wasHot = heats[index] >= HOT_THRESHOLD;
 				heats[index] = Mathf.Min(MAX_HEAT, heats[index] + heatPerLoss);
-				return;
+				return wasHot == false && heats[index] >= HOT_THRESHOLD;
 			}
 
 			positions.Add(worldPosition);
-			heats.Add(Mathf.Min(MAX_HEAT, heatPerLoss));
+			float heat = Mathf.Min(MAX_HEAT, heatPerLoss);
+			heats.Add(heat);
+			return heat >= HOT_THRESHOLD;
 		}
 
 		/// <summary> 열기가 식는다. 다 식은 자리는 지워진다 — 목록이 무한히 자라면 안 된다. </summary>

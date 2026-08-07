@@ -43,6 +43,44 @@ namespace WitchMendokusai.Tests
 		}
 
 		[Test]
+		public void 처음_뜨거워질_때만_알린다()
+		{
+			// 잃을 때마다 외치면 정작 급한 알림을 덮고, 한 번도 안 외치면 규칙이 안 보인다.
+			TowerDefenseBreach breach = new();
+
+			bool first = breach.Add(Vector3.right * 10f, mergeDistance: 6f, heatPerLoss: 1f);
+			bool second = breach.Add(Vector3.right * 11f, mergeDistance: 6f, heatPerLoss: 1f);
+			bool third = breach.Add(Vector3.right * 12f, mergeDistance: 6f, heatPerLoss: 1f);
+
+			Assert.IsTrue(first, "처음 뜨거워진 순간은 알려야 한다.");
+			Assert.IsFalse(second);
+			Assert.IsFalse(third, "같은 자리를 또 잃었다고 매번 외치면 알림 칸이 이걸로 꽉 찬다.");
+		}
+
+		[Test]
+		public void 아직_안_뜨거우면_안_알리고_넘어설_때_알린다()
+		{
+			// 열기가 문턱 아래인 동안은 「잊힐 자리」다 — 그걸 알리면 알림이 늑대소년이 된다.
+			TowerDefenseBreach breach = new();
+
+			bool below = breach.Add(Vector3.right * 10f, mergeDistance: 6f, heatPerLoss: 0.2f);
+			bool crossing = breach.Add(Vector3.right * 10f, mergeDistance: 6f, heatPerLoss: 0.4f);
+
+			Assert.IsFalse(below);
+			Assert.IsTrue(crossing, "문턱을 넘는 그 순간이 알릴 때다.");
+		}
+
+		[Test]
+		public void 다른_자리는_각각_한_번씩_알린다()
+		{
+			TowerDefenseBreach breach = new();
+
+			Assert.IsTrue(breach.Add(new Vector3(30f, 0f, 0f), mergeDistance: 6f, heatPerLoss: 1f));
+			Assert.IsTrue(breach.Add(new Vector3(-30f, 0f, 0f), mergeDistance: 6f, heatPerLoss: 1f),
+				"멀리 떨어진 두 번째 구역이 뚫린 것은 첫 구역과 다른 사건이라 따로 알려야 한다.");
+		}
+
+		[Test]
 		public void 열기는_상한을_안_넘는다()
 		{
 			// 한 곳을 열 번 잃었다고 영영 지옥이 되면 벌칙이지 규칙이 아니다.

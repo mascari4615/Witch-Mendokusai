@@ -1542,7 +1542,11 @@ namespace WitchMendokusai
 
 				alerts.Raise("내 것이 부서졌다", tracked.Value, Time.time, stage.AlertSeconds);
 				// 부서진 자리는 잊히지 않는다 — 다음 파도가 이쪽으로 끌린다.
-				breach.Add(tracked.Value, stage.BreachMergeDistance, stage.BreachHeatPerLoss);
+				// ★ 그리고 그걸 *말해 준다*. 방향만 조용히 바꾸면 사람은 「이번엔 왜 여기로 오지」만
+				//   남고 자기 선택과 결과를 못 잇는다 — 안 보이는 규칙은 없는 규칙이다.
+				//   처음 뜨거워지는 순간 딱 한 번만 외친다(잃을 때마다 외치면 급한 알림을 덮는다).
+				if (breach.Add(tracked.Value, stage.BreachMergeDistance, stage.BreachHeatPerLoss))
+					alerts.Raise("뚫린 곳을 다시 노린다", tracked.Value, Time.time, stage.AlertSeconds);
 				lost ??= new List<Transform>();
 				lost.Add(tracked.Key);
 			}

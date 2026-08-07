@@ -1336,6 +1336,30 @@ namespace WitchMendokusai.EditorTools
 				+ $" · 파도 방향 {breachAngleBefore:F1} → {after:F1}"
 				+ $" · 잃은 쪽과의 차이 {movedBefore:F1} → {movedAfter:F1}");
 
+			// ★ 방향이 조용히 바뀌기만 하면 사람은 자기 선택과 결과를 못 잇는다 — 말도 떠야 규칙이다.
+			//   열기는 10초쯤이면 식으므로 *여기서* 훑는다. 나중에 보면 늘 「없음」이다(한 번 겪었다).
+			bool spoken = false;
+			UIRoot breachUiRoot = Object.FindAnyObjectByType<UIRoot>();
+			VisualElement breachHud = breachUiRoot != null && breachUiRoot.ModeHudLayer != null
+				? breachUiRoot.ModeHudLayer.Q(nameof(TowerDefenseHudView))
+				: null;
+			if (breachHud != null)
+			{
+				foreach (Label label in breachHud.Query<Label>().ToList())
+				{
+					if (label == null || string.IsNullOrEmpty(label.text) || label.text.Contains("노린다") == false)
+						continue;
+					spoken = true;
+					Debug.Log(TAG + " 뚫린 자리 — 화면 글자: 「" + label.text + "」");
+					break;
+				}
+			}
+
+			if (breachHud == null)
+				Debug.Log(TAG + " 뚫린 자리 — 화면은 못 쟀다: HUD 를 못 찾았다.");
+			else if (spoken == false)
+				Debug.LogWarning(TAG + " 뚫린 자리 FAIL — 방향은 끌리는데 화면이 아무 말도 안 한다(왜 그쪽으로 오는지 알 길이 없다).");
+
 			if (hot == 0)
 				Debug.LogWarning(TAG + " 뚫린 자리 FAIL — 건물을 잃었는데 뜨거운 자리가 0곳이다(규칙이 손실을 못 봤다).");
 			else if (movedAfter >= movedBefore - 0.5f)
