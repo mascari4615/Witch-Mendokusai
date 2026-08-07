@@ -380,7 +380,38 @@ namespace WitchMendokusai
 			if (hasRunner == false)
 			{
 				EditorGUILayout.HelpBox("씬에 DialogueRunner 가 아직 없다.", MessageType.None);
+				return;
 			}
+
+			DrawLiveChoiceButtons(runner);
+		}
+
+		/// <summary>
+		/// **게임 화면에서 도는 대화의 선택지를 여기서 고른다.**
+		///
+		/// ★ 왜: 선택지 화면(게임 UI)이 아직 없다(사용자 결정 대기). 그래서 지금은 선택지가 뜨면
+		///   아무도 못 고르고 15초 뒤 접힌다 — **선택지 있는 원고를 실제 화면에서 한 번도 못 본다.**
+		///   창에서라도 고를 수 있게 해 두면, 화면이 생기기 전에 원고를 끝까지 태워볼 수 있다.
+		///   (게임 UI 의 대체가 아니라 **작가·개발자용 임시 손잡이**다.)
+		/// </summary>
+		private static void DrawLiveChoiceButtons(DialogueRunner runner)
+		{
+			IReadOnlyList<string> choices = runner.CurrentChoices;
+			if (choices == null || choices.Count == 0)
+			{
+				return;
+			}
+
+			EditorGUILayout.Space(4f);
+			EditorGUILayout.LabelField("게임에서 지금 뜬 선택지", EditorStyles.boldLabel);
+			for (int i = 0; i < choices.Count; i++)
+			{
+				if (GUILayout.Button($"▸ {choices[i]}"))
+				{
+					runner.SubmitChoice(i);
+				}
+			}
+			EditorGUILayout.HelpBox("선택지 화면이 생기기 전까지 쓰는 임시 손잡이다.", MessageType.None);
 		}
 
 		private static string SpeakerName(DialogueLine line)

@@ -35,6 +35,9 @@ namespace WitchMendokusai
 
 		/// <summary>효과 노드가 비었다 — 뭔가 일으키라고 놓고 아무것도 안 적혔다.</summary>
 		EffectNodeWithoutEffects = 9,
+
+		/// <summary>거기 들어가면 대화가 영영 안 끝난다 — 끝으로 가는 길이 없는 고리.</summary>
+		CannotReachEnd = 10,
 	}
 
 	public sealed class DialogueGraphIssue
@@ -122,6 +125,7 @@ namespace WitchMendokusai
 			ValidateStartNodes(nodes, result);
 			ValidateNodeContents(graph, nodes, result);
 			ValidateReachability(graph, nodes, result);
+			ValidateCanReachEnd(graph, nodes, result);
 			return result;
 		}
 
@@ -300,6 +304,85 @@ namespace WitchMendokusai
 					DialogueGraphIssueKind.UnreachableNode,
 					NodeGraphIssueSeverity.Warning,
 					$"{node.GetType().Name} '{node.Id}' cannot be reached from the start node — it never plays.",
+					node.Id));
+			}
+		}
+
+		/// <summary>
+		/// **거기 들어가면 대화가 영영 안 끝나는 자리**를 찾는다.
+		///
+		/// ★ 왜 필요한가: 흐름 연결이 여럿 모일 수 있게 된 뒤로 **고리(A→B→A)를 정상 편집으로도 만들 수 있다.**
+		///   고리 자체는 정상이다(허브로 돌아오는 대화). 문제는 **그 고리에서 나가는 길이 하나도 없을 때**다 —
+		///   플레이어는 같은 대사를 영원히 돌게 되고, 그 사이 뒤에 줄 선 대화까지 전부 막힌다.
+		///   눈으로는 「무한 반복」으로만 보이고 어디가 원인인지 안 보인다.
+		///
+		/// 판정: 나가는 연결이 없는 자리(= 대화 끝) 에서 **거꾸로** 훑어, 거기 닿지 못하는 노드를 고른다.
+		/// </summary>
+		private static void ValidateCanReachEnd(DialogueGraph graph, IReadOnlyList<NodeBase> nodes, DialogueGraphValidationResult result)
+		{
+			IReadOnlyList<NodeConnection> connections = graph.Connections;
+
+			Dictionary<string, List<string>> incoming = new();
+			HashSet<string> hasOutgoing = new();
+			for (int i = 0; i < connections.Count; i++)
+			{
+				NodeConnection connection = connections[i];
+				if (connection == null)
+				{
+					continue;
+				}
+				hasOutgoing.Add(connection.SourceNodeId);
+				if (incoming.TryGetValue(connection.TargetNodeId, out List<string> sources) == false)
+				{
+					sources = new List<string>();
+					incoming[connection.TargetNodeId] = sources;
+				}
+				sources.Add(connection.SourceNodeId);
+			}
+
+			// 끝나는 자리 = 나가는 연결이 하나도 없는 노드. 거기서 거꾸로 닿는 곳은 다 「끝에 갈 수 있다」.
+			HashSet<string> canReachEnd = new();
+			Queue<string> frontier = new();
+			for (int i = 0; i < nodes.Count; i++)
+			{
+				NodeBase node = nodes[i];
+				if (node == null || hasOutgoing.Contains(node.Id))
+				{
+					continue;
+				}
+				if (canReachEnd.Add(node.Id))
+				{
+					frontier.Enqueue(node.Id);
+				}
+			}
+
+			while (frontier.Count > 0)
+			{
+				string current = frontier.Dequeue();
+				if (incoming.TryGetValue(current, out List<string> sources) == false)
+				{
+					continue;
+				}
+				for (int i = 0; i < sources.Count; i++)
+				{
+					if (canReachEnd.Add(sources[i]))
+					{
+						frontier.Enqueue(sources[i]);
+					}
+				}
+			}
+
+			for (int i = 0; i < nodes.Count; i++)
+			{
+				NodeBase node = nodes[i];
+				if (node == null || canReachEnd.Contains(node.Id))
+				{
+					continue;
+				}
+				result.Add(new DialogueGraphIssue(
+					DialogueGraphIssueKind.CannotReachEnd,
+					NodeGraphIssueSeverity.Error,
+					$"{node.GetType().Name} '{node.Id}' 에서는 대화가 끝나는 곳으로 갈 수 없다 — 들어가면 영원히 돈다.",
 					node.Id));
 			}
 		}

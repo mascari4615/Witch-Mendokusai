@@ -52,16 +52,36 @@ internal static class ShippedScript
 			check($"{name}: 걸림 0 (장면 {parsed.Sections.Count} · 마디 {lines})", parsed.Issues.Count == 0);
 
 			// 세워서 실제로 끝까지 흐르는지 — 읽히기만 하고 못 도는 원고가 있으면 안 된다.
-			DialoguePlayback playback = new(DialogueScriptGraphBuilder.Build(parsed));
+			// 선택지가 나오면 **첫 칸을 고른다** — 안 고르면 거기서 서고, 그러면 「끝까지 흐르나」를 못 잰다.
+			// (모든 가지를 다 도는 검사는 아니다. 「어느 길로든 끝까지 간다」만 본다.)
+			RecordingSink sink = new();
+			DialoguePlayback playback = new(DialogueScriptGraphBuilder.Build(parsed), sink);
 			playback.Begin();
 			int steps = 0;
 			while (playback.IsPlaying && steps < 500)
 			{
 				steps++;
+				if (playback.Current.Kind == DialogueStepKind.Choice)
+				{
+					playback.SubmitChoice(0);
+					continue;
+				}
 				playback.Advance();
 				playback.Tick(30f);
 			}
 			check($"{name}: 끝까지 흐른다", playback.IsPlaying == false && steps > 0);
+		}
+	}
+
+	/// <summary>효과를 실제로 일으키지 않고 세기만 하는 대역 — 검사가 게임 상태를 건드리면 안 된다.</summary>
+	private sealed class RecordingSink : IDialogueEffectSink
+	{
+		public void Apply(IReadOnlyList<EffectInfo> effects)
+		{
+		}
+
+		public void ApplyData(IReadOnlyList<EffectInfoData> effects)
+		{
 		}
 	}
 
