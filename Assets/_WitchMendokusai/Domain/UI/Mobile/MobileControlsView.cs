@@ -121,7 +121,10 @@ namespace WitchMendokusai
 				lookBackdrop.style.display = display;
 				controlsRoot.style.display = display;
 				if (show == false)
+				{
 					ReleaseStick();
+					ReleaseAllHeld();
+				}
 			}
 
 			PushStickValue();
@@ -231,6 +234,8 @@ namespace WitchMendokusai
 			//   화면엔 이유가 아무 데도 안 적힌다.** 무대를 옮기면 옮기기는 끝난 것으로 본다.
 			layoutEditMode = false;
 			movable.Clear();
+			// 화면을 다시 짓기 전에 누른 채로 남은 것을 놓는다 — 옛 버튼은 사라져서 영영 못 놓는다.
+			ReleaseAllHeld();
 			dragTarget = null;
 			dragPointerId = -1;
 			if (UIRoot.TryGetExistingInstance(out UIRoot uiRoot) == false || uiRoot.HudLayer == null)
@@ -546,6 +551,31 @@ namespace WitchMendokusai
 			stickValue = raw.magnitude <= stickDeadZone ? Vector2.zero : raw;
 		}
 
+		/// <summary> 누른 채로 적어 둔 버튼 하나를 놓는다. 두 번 놓아도 안전(멱등). </summary>
+		private void ReleaseHeld(InputEventType inputEventType, VisualElement button)
+		{
+			if (button != null)
+				button.style.backgroundColor = new Color(0.1f, 0.12f, 0.17f, 0.55f);
+			if (heldButtons.Remove(inputEventType) == false)
+				return;
+			if (InputManager.TryGetExistingInstance(out InputManager inputManager))
+				inputManager.ReleaseFromScreenButton(inputEventType);
+		}
+
+		/// <summary> 조작 장치가 사라질 때 누른 채로 남은 것을 전부 놓는다. </summary>
+		private void ReleaseAllHeld()
+		{
+			if (heldButtons.Count == 0)
+				return;
+
+			if (InputManager.TryGetExistingInstance(out InputManager inputManager))
+			{
+				for (int i = 0; i < heldButtons.Count; i++)
+					inputManager.ReleaseFromScreenButton(heldButtons[i]);
+			}
+			heldButtons.Clear();
+		}
+
 		private void ReleaseStick()
 		{
 			if (stickBase != null && stickPointerId >= 0 && stickBase.HasPointerCapture(stickPointerId))
@@ -606,6 +636,9 @@ namespace WitchMendokusai
 
 		private VisualElement windowMenuColumn;
 		private Label interactButton;
+
+		/// <summary> 지금 누른 채로 있는 동작 버튼들 — 뗄 기회를 잃었을 때 대신 놓아 주기 위한 목록. </summary>
+		private readonly System.Collections.Generic.List<InputEventType> heldButtons = new();
 
 		/// <summary>
 		/// 창으로 가는 길 (TASK-WM-200) — 폰엔 키보드가 없다.
@@ -832,17 +865,24 @@ namespace WitchMendokusai
 				button.style.backgroundColor = new Color(0.24f, 0.42f, 0.72f, 0.8f);
 				if (InputManager.TryGetExistingInstance(out InputManager inputManager))
 					inputManager.PressFromScreenButton(inputEventType);
+				// 「지금 눌린 채로 있는 것」을 적어 둔다 — 뗄 기회를 잃어도 누군가는 놓아 줘야 한다.
+				if (heldButtons.Contains(inputEventType) == false)
+					heldButtons.Add(inputEventType);
 				evt.StopPropagation();
 			});
 			button.RegisterCallback<PointerUpEvent>(evt =>
 			{
 				if (button.HasPointerCapture(evt.pointerId))
 					button.ReleasePointer(evt.pointerId);
-				button.style.backgroundColor = new Color(0.1f, 0.12f, 0.17f, 0.55f);
-				if (InputManager.TryGetExistingInstance(out InputManager inputManager))
-					inputManager.ReleaseFromScreenButton(inputEventType);
+				ReleaseHeld(inputEventType, button);
 				evt.StopPropagation();
 			});
+
+			// ★ 손가락을 잡고 있던 권한을 잃는 경우가 있다 — 창이 열리거나, 화면이 다시 그려지거나,
+			//   조작 장치가 통째로 숨는 순간이다(개척에 들어가면 실제로 숨는다). 그때는 「뗐다」가
+			//   영영 안 오므로 **누른 채로 굳는다** — 뛰기를 누르고 개척에 들어가면 마을에 돌아와도
+			//   계속 뛰는 식이다. 권한을 잃는 순간을 뗀 것으로 친다.
+			button.RegisterCallback<PointerCaptureOutEvent>(_ => ReleaseHeld(inputEventType, button));
 
 			return button;
 		}
