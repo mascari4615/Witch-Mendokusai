@@ -46,6 +46,17 @@ namespace UnityEngine
 		public Transform transform { get; } = new();
 	}
 
+	/// <summary>
+	/// 지금 놀고 있나. 하네스는 **언제나 아니다** — 유니티 EditMode 와 같은 자리다.
+	///
+	/// ★ 여기서 true 를 주면 흉내가 진짜보다 더 살아 있게 된다. 그 함정으로 한 번 빠진 적 있다
+	///   (Awake 를 대신 불러 주다 하네스만 초록이었던 일, 2026-08-08).
+	/// </summary>
+	public static class Application
+	{
+		public static bool isPlaying => false;
+	}
+
 	/// <summary>러너의 경고·오류 통지. 하네스에서는 **삼킨다** — 여기서 재는 건 「컴파일되나」지 「무슨 말을 하나」가 아니다.</summary>
 	public static class Debug
 	{

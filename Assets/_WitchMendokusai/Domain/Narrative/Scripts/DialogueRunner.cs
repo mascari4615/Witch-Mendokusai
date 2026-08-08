@@ -87,12 +87,33 @@ namespace WitchMendokusai
 			if (Instance != null && Instance != this)
 			{
 				lostToAnotherRunner = true;
-				Destroy(gameObject);
+				RetireAsDuplicate();
 				return;
 			}
 			Instance = this;
 			DialogueHistoryBridge.Register(History);
 			EnsureCoordinatorWired();
+		}
+
+		/// <summary>
+		/// 진 쪽이 물러난다 — 놀 때는 스스로 사라지고, 편집 중에는 말로만 알린다.
+		///
+		/// ★ 왜 두 갈래인가: 편집 중(플레이 아님)에는 <c>Destroy</c> 가 **아무것도 안 하고 에러만 남긴다.**
+		///   러너를 실수로 둘 둔 채 씬을 만지는 동안 진 쪽은 그대로 있고 콘솔만 빨개진다 —
+		///   고치라는 신호가 「고칠 수 없는 에러」로 온다.
+		///
+		/// ★ 왜 편집 중엔 안 지우나: 사람이 방금 놓은 오브젝트를 말없이 지우는 건 편집 도구가 할 일이 아니다.
+		///   놀기 시작하면 어차피 하나만 남으므로, 편집 중에는 **알리고 두는 것**이 맞다.
+		/// </summary>
+		private void RetireAsDuplicate()
+		{
+			if (Application.isPlaying)
+			{
+				Destroy(gameObject);
+				return;
+			}
+
+			Debug.LogWarning($"{name}: 대화 러너가 둘이다 — 놀기 시작하면 나중 것이 스스로 물러난다. 씬에서 하나로 정리해 두는 게 좋다.");
 		}
 
 		/// <summary>
