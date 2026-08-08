@@ -26,6 +26,9 @@ namespace WitchMendokusai
 		private void Start()
 		{
 			labelPrefab = Resources.Load<GameObject>("Life/LifeLabel");
+			// init-order-ok: 주민은 부팅이 이 담당자를 붙이기 **전에** 전부 만들어 둔다(LifeWorldBootstrap:
+			// 주민 생성 → 그 다음 이 컴포넌트 부착). 그리고 주민이 나중에 늘어나는 길은 아직 없다
+			// (전수 확인 2026-08-08 — 생기면 그날 이 자리를 「소유자가 밀어주기」로 바꿔야 한다).
 			foreach (LifeAgent agent in FindObjectsByType<LifeAgent>())
 			{
 				agents.Add(agent);

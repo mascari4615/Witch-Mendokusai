@@ -44,6 +44,8 @@ namespace WitchMendokusai
 
 		private void Start()
 		{
+			// init-order-ok: 위 Install 이 **청크 관리자가 이미 있을 때만** 이 오브젝트를 만든다 —
+			// 없으면 아예 태어나지 않는다. 그래서 여기선 반드시 있다(없으면 아래에서 스스로 사라진다).
 			chunkManager = FindAnyObjectByType<ChunkManager>();
 			if (chunkManager == null || UIRoot.TryGetExistingInstance(out uiRoot) == false)
 			{

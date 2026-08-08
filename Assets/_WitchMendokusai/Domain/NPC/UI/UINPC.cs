@@ -31,6 +31,9 @@ namespace WitchMendokusai
 		public override bool CanBeClosedByCancelInput => true;
 		public override NPCPanelType DefaultPanel => NPCPanelType.None;
 
+		// init-order-ok: 상점·모루·화로·제작대·강화·연구 창은 **코드로 만들어지지 않는다** — 전부 씬·프리팹에
+		// 미리 놓인 것이라 찾는 시점에 반드시 있다(전수 확인: Instantiate/AddComponent 0건). 꺼진 것까지 포함해 찾고,
+		// 이 Init 은 모든 깨우기가 끝난 뒤에 불린다(UIPanelGroup.Start). 확인 2026-08-08 / TASK-WM-212.
 		public override void Init()
 		{
 			Panels[NPCPanelType.NPC] = FindAnyObjectByType<UINPCMenu>(FindObjectsInactive.Include);

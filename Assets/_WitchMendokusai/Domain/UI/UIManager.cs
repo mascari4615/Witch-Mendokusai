@@ -182,8 +182,9 @@ namespace WitchMendokusai
 			adventurerGuild = InstantiateInjectedActive(adventurerGuildPrefab, BaseCanvas.transform, activateAfter: false);
 
 			// Common UIs
+			// init-order-ok: 둘 다 씬·프리팹에 미리 놓인 것이다 — 코드로 만드는 곳이 0곳(전수 확인 2026-08-08).
 			CutSceneModule = FindAnyObjectByType<CutSceneModule>(FindObjectsInactive.Include);
-			Chat = FindAnyObjectByType<UIChat>(FindObjectsInactive.Include);
+			Chat = FindAnyObjectByType<UIChat>(FindObjectsInactive.Include); // init-order-ok: 위와 같은 이유.
 			container.Inject(Chat);
 
 			// TASK-WM-118 I3 — NPC 할당 제거(이제 lazy 프로퍼티, 접근 시 self-resolve =

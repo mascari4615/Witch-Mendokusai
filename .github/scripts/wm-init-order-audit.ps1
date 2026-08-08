@@ -146,8 +146,10 @@ function Get-ReportPath([string]$fullPath, [string]$scanRoot)
     return $fullPath
 }
 
-# 메서드 시그니처 줄, 또는 바로 위에 붙은 주석/어트리뷰트 블록에 마커가 있으면 그 메서드 전체가 정당화된 것.
-# 이유는 보통 한 줄이 아니라 메서드 위 주석으로 쓴다 — 마커를 같은 줄에서만 찾으면 그 이유는 없는 셈이 된다.
+# 어떤 줄이든, 그 줄 자체나 **바로 위에 붙은 주석 블록**에 마커가 있으면 정당화된 것으로 본다.
+# (메서드 시그니처에 쓰면 그 메서드 전체 / 문장 위에 쓰면 그 문장 하나.)
+# 사람이 이유를 쓰는 자리가 「바로 위 줄」이다 — 같은 줄에서만 찾으면 그 이유는 없는 셈이 된다.
+# 코드 줄을 만나면 거슬러 올라가기를 멈추므로 옆 문장으로 새지 않는다.
 function Test-MethodScopeOk([string[]]$lines, [int]$sigIndex, [string]$okRx)
 {
     if ($lines[$sigIndex] -match $okRx) { return $true }
@@ -192,7 +194,7 @@ foreach ($f in $files) {
         else {
             $depth += ([regex]::Matches($line, '\{')).Count
             $depth -= ([regex]::Matches($line, '\}')).Count
-            if ($line -match $findRx -and $line -notmatch $okRx -and -not $methodOk) {
+            if ($line -match $findRx -and (Test-MethodScopeOk $lines $i $okRx) -eq $false -and -not $methodOk) {
                 # 주석 안의 언급은 호출이 아니다 — 「이 함수는 여기서 쓰면 안 된다」고 적어 둔 줄까지 잡으면
                 # 게이트가 자기 설명서를 위반으로 신고한다(실측: DungeonManager 의 경고 주석).
                 $cm = $line.IndexOf('//')
@@ -235,7 +237,7 @@ foreach ($f in $files) {
             else {
                 $cdepth += ([regex]::Matches($line, '\{')).Count
                 $cdepth -= ([regex]::Matches($line, '\}')).Count
-                if ($line -match $findRx -and $line -notmatch $okRx -and -not $calleeOk) {
+                if ($line -match $findRx -and (Test-MethodScopeOk $lines $i $okRx) -eq $false -and -not $calleeOk) {
                     $cm3 = $line.IndexOf('//')
                     $fm3 = [regex]::Match($line, $findRx).Index
                     if (-not ($cm3 -ge 0 -and $cm3 -lt $fm3)) {
@@ -278,7 +280,7 @@ foreach ($f in $files) {
         else {
             $rdepth += ([regex]::Matches($line, '\{')).Count
             $rdepth -= ([regex]::Matches($line, '\}')).Count
-            if ($line -match $findRx -and $line -notmatch $okRx -and -not $riskOk) {
+            if ($line -match $findRx -and (Test-MethodScopeOk $lines $i $okRx) -eq $false -and -not $riskOk) {
                 $cm2 = $line.IndexOf('//')
                 $fm2 = [regex]::Match($line, $findRx).Index
                 if (-not ($cm2 -ge 0 -and $cm2 -lt $fm2)) {
