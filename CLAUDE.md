@@ -90,7 +90,11 @@ WMInput.inputactions → InputManager.BindEvents() → On{Start/Performed/Cancel
 2. `container.Inject(component)` 금지 → `container.InjectGameObject(go)` (자식·형제 재귀)
 3. 준비 안 된 값 스냅샷 캐싱 금지 → live 파생 프로퍼티 (`=> source?.Value`)
 
-**게이트**: `wm-init-order-audit.ps1` — [BLOCK](exit 1): Awake 안 Find → root fix 또는 `// init-order-ok`. [ORDER-RISK]: Start/OnEnable 안 cross-ref Find → lazy/owner-push/scope 결정합성, 적용외면 `// init-order-ok` + 사유. [REVIEW]: `container.Inject(` → InjectGameObject 검토. PR 시 BLOCK 0 + ORDER-RISK 0(또는 정당화) 확인.
+**게이트**: `.github/scripts/wm-init-order-audit.ps1` — [BLOCK](exit 1): Awake 안 Find → root fix 또는 `// init-order-ok`. [ORDER-RISK]: Start/OnEnable 안 cross-ref Find → lazy/owner-push/scope 결정합성, 적용외면 `// init-order-ok` + 사유. [REVIEW]: `container.Inject(` → InjectGameObject 검토. PR 시 BLOCK 0 + ORDER-RISK 0(또는 정당화) 확인.
+
+면제 마커 `// init-order-ok: <사유>` 는 **그 줄** 또는 **메서드 시그니처 줄·바로 위 주석 블록**에 둔다 (메서드 스코프). 코드를 만나면 거슬러 올라가기를 멈추므로 파일 전체로 새지 않는다.
+
+**게이트를 고쳤으면 `-SelfTest` 를 돌려라** (TASK-WM-211). 표본(`.github/scripts/fixtures/init-order/`)으로 *잡을 것을 잡고 면제할 것을 면제하는지* 검사한다. 이 검사가 없던 동안, 패턴이 `FindAnyObjectByType` 을 못 잡는 채로 몇 달간 「위반 0 / PASS」 였다 — **초록이 「위반 없음」이 아니라 「안 봤음」을 뜻할 수 있다.**
 
 **`Singleton<T>` dontDestroyOnLoad** = prefab SerializeField 정본(코드 `DontDestroyOnLoad()` 강제 호출 X).
 

@@ -7,17 +7,62 @@
 #           -> target may not exist yet (Awake < Start); use lazy Ensure / owner-push / [Inject].
 #   [REVIEW] container.Inject( ... )  -> verify it should be InjectGameObject(go) for hierarchies.
 #
-# Suppress a justified single line with a trailing comment:  // init-order-ok: <reason>
+# Suppress a justified line with a trailing comment:  // init-order-ok: <reason>
+# 메서드 전체를 정당화하려면 같은 마커를 **메서드 시그니처 줄이나 바로 위 주석 블록**에 둔다.
+#   // init-order-ok: 씬 정적 배치라 Start 시점 존재 보장
+#   private void Start()
+# (2026-08-08 실측: 이유를 메서드 위에 적어 둔 파일 2개가 계속 잡히고 있었다 — 마커가
+#  같은 줄에만 걸려서. 사람은 이유를 붙였다고 믿고, 게이트는 영원히 빨간 줄을 3개 들고 있었다.)
 #
 # Exit 1 if any unsuppressed [BLOCK]. [REVIEW] is informational (exit unaffected).
 #
 # Usage:  powershell -File memo/dotfiles/scripts/wm-init-order-audit.ps1 [-Root <path>]
 
 param(
-    [string]$Root
+    [string]$Root,
+    # 표본으로 「게이트가 아직 눈을 뜨고 있는지」 자기 검사. 잡을 것을 잡고 면제할 것을 면제하는지 본다.
+    # 이게 없던 동안 게이트는 못 보는 이름을 찾으며 몇 달간 초록이었다 (TASK-WM-211).
+    [switch]$SelfTest
 )
 
 $ErrorActionPreference = "Stop"
+
+if ($SelfTest)
+{
+    $fixtureRoot = Join-Path $PSScriptRoot "fixtures/init-order"
+    if (-not (Test-Path $fixtureRoot))
+    {
+        Write-Output "[self-test] CANNOT-RUN: 표본 폴더가 없다: $fixtureRoot"
+        exit 2
+    }
+
+    $out = & powershell -NoProfile -File $PSCommandPath -Root $fixtureRoot 2>&1 | Out-String
+    $expected = @{ "BLOCK" = 1; "ORDER-RISK" = 2 }
+    $failures = New-Object System.Collections.Generic.List[string]
+
+    foreach ($kind in @("BLOCK", "ORDER-RISK"))
+    {
+        $m = [regex]::Match($out, "\[$([regex]::Escape($kind))\][^\r\n]*?: (\d+)")
+        $actual = if ($m.Success) { [int]$m.Groups[1].Value } else { -1 }
+        if ($actual -ne $expected[$kind])
+        {
+            $failures.Add("[$kind] 기대 $($expected[$kind]) / 실제 $actual")
+        }
+    }
+
+    Write-Output "=== wm-init-order-audit --SelfTest (TASK-WM-211) ==="
+    Write-Output $out.Trim()
+    Write-Output ""
+    if ($failures.Count -gt 0)
+    {
+        Write-Output "SELF-TEST: FAIL -- 게이트가 표본을 예전처럼 못 본다."
+        foreach ($x in $failures) { Write-Output ("  " + $x) }
+        Write-Output "  표본을 일부러 바꿨다면 이 스크립트의 기대값도 같이 고쳐라."
+        exit 1
+    }
+    Write-Output "SELF-TEST: PASS -- 잡을 것을 잡고, 면제할 것을 면제한다."
+    exit 0
+}
 
 # 레포 폴더명을 하나 박아두면 그 이름이 아닌 순간 인자 없는 호출이 전부 죽는다.
 # (실측 2026-08-05: 기본값이 `WitchMendokusai/...` 였는데 실제 폴더는 `Witch-Mendokusai`(하이픈)
@@ -73,7 +118,10 @@ $orderRisks = New-Object System.Collections.Generic.List[string]
 
 $methodSigRx = '(\bvoid\s+Awake\s*\(|\bpublic\s+void\s+Construct\s*\()'
 $injectAttrRx = '^\s*\[Inject\]'
-$findRx = 'Find(Any|Objects)ByType'
+# 2026-08-08 실측: 옛 패턴 'Find(Any|Objects)ByType' 은 `FindAnyObjectByType` 을 **한 번도 못 봤다**
+# (그 이름엔 Any 와 ByType 사이에 Object 가 있다). 룰이 1순위로 금지하는 바로 그 호출이 안 보였고,
+# 게이트는 「위반 0」이 아니라 「그건 안 봤음」을 초록으로 보고하고 있었다. 이름을 통째로 적는다.
+$findRx = '\bFind(AnyObjectByType|ObjectsByType|ObjectOfType|ObjectsOfType)\b'
 $injectCallRx = '\bcontainer\.Inject\s*\('
 $okRx = '//\s*init-order-ok'
 # TASK-WM-118 — cross-ref-at-lifecycle 클래스 (마스킹체인 :51→:47→:74 의 메커니즘):
@@ -82,11 +130,39 @@ $okRx = '//\s*init-order-ok'
 # 아니나 그 클래스이므로 가시화). 근본 = lazy/owner-push/scope 결정합성 (WM-118 I3 정합).
 $riskSigRx = '(\bvoid\s+Start\s*\(|\bIEnumerator\s+Start\s*\(|\bvoid\s+OnEnable\s*\(|\b(override\s+)?void\s+(On)?Init\s*\()'
 
+# 보고용 경로. 게임 소스는 `Assets\...` 로 잘라 읽기 좋게, 그 밖(표본 폴더 등)은 스캔 루트 기준 상대경로로.
+# ("Assets" 를 무조건 찾던 옛 코드는 표본 검사에서 그대로 터졌다 — 못 찾으면 -1 을 잘라내려 든다.)
+function Get-ReportPath([string]$fullPath, [string]$scanRoot)
+{
+    $marker = $fullPath.IndexOf("Assets")
+    if ($marker -ge 0) { return $fullPath.Substring($marker) }
+    $rootFull = (Resolve-Path -LiteralPath $scanRoot).Path.TrimEnd('\', '/')
+    if ($fullPath.StartsWith($rootFull)) { return $fullPath.Substring($rootFull.Length).TrimStart('\', '/') }
+    return $fullPath
+}
+
+# 메서드 시그니처 줄, 또는 바로 위에 붙은 주석/어트리뷰트 블록에 마커가 있으면 그 메서드 전체가 정당화된 것.
+# 이유는 보통 한 줄이 아니라 메서드 위 주석으로 쓴다 — 마커를 같은 줄에서만 찾으면 그 이유는 없는 셈이 된다.
+function Test-MethodScopeOk([string[]]$lines, [int]$sigIndex, [string]$okRx)
+{
+    if ($lines[$sigIndex] -match $okRx) { return $true }
+    for ($j = $sigIndex - 1; $j -ge 0; $j--)
+    {
+        $above = $lines[$j].Trim()
+        if ($above -eq '') { continue }
+        # 주석도 어트리뷰트도 아니면 그 위는 남의 코드다 — 블록 끝.
+        if ($above -notmatch '^(//|/\*|\*|\[)') { break }
+        if ($above -match $okRx) { return $true }
+    }
+    return $false
+}
+
 foreach ($f in $files) {
     $lines = Get-Content -LiteralPath $f.FullName
     $inMethod = $false       # inside Awake/Construct body
     $depth = 0
     $sawInjectAttr = $false
+    $methodOk = $false       # 이 메서드 전체가 // init-order-ok 로 정당화됐나
     for ($i = 0; $i -lt $lines.Count; $i++) {
         $line = $lines[$i]
 
@@ -97,6 +173,7 @@ foreach ($f in $files) {
             $isConstruct = ($line -match '\bvoid\s+Construct\s*\(') -and $sawInjectAttr
             if ($isAwake -or $isConstruct) {
                 $inMethod = $true
+                $methodOk = Test-MethodScopeOk $lines $i $okRx
                 $depth = 0
                 $depth += ([regex]::Matches($line, '\{')).Count
                 $depth -= ([regex]::Matches($line, '\}')).Count
@@ -108,9 +185,15 @@ foreach ($f in $files) {
         else {
             $depth += ([regex]::Matches($line, '\{')).Count
             $depth -= ([regex]::Matches($line, '\}')).Count
-            if ($line -match $findRx -and $line -notmatch $okRx) {
-                $rel = $f.FullName.Substring($f.FullName.IndexOf("Assets"))
-                $blocks.Add(("{0}:{1}: {2}" -f $rel, ($i + 1), $line.Trim()))
+            if ($line -match $findRx -and $line -notmatch $okRx -and -not $methodOk) {
+                # 주석 안의 언급은 호출이 아니다 — 「이 함수는 여기서 쓰면 안 된다」고 적어 둔 줄까지 잡으면
+                # 게이트가 자기 설명서를 위반으로 신고한다(실측: DungeonManager 의 경고 주석).
+                $cm = $line.IndexOf('//')
+                $fm = [regex]::Match($line, $findRx).Index
+                if (-not ($cm -ge 0 -and $cm -lt $fm)) {
+                    $rel = Get-ReportPath $f.FullName $Root
+                    $blocks.Add(("{0}:{1}: {2}" -f $rel, ($i + 1), $line.Trim()))
+                }
             }
             if ($depth -le 0) { $inMethod = $false }
         }
@@ -125,18 +208,20 @@ foreach ($f in $files) {
         $cm = $ln.IndexOf('//')
         $cl = $ln.IndexOf('container.Inject')
         if ($cm -ge 0 -and $cm -lt $cl) { continue }
-        $rel = $f.FullName.Substring($f.FullName.IndexOf("Assets"))
+        $rel = Get-ReportPath $f.FullName $Root
         $reviews.Add(("{0}:{1}: {2}" -f $rel, ($i + 1), $ln.Trim()))
     }
 
     # TASK-WM-118: Find*ObjectByType inside Start/OnEnable/Init/OnInit = [ORDER-RISK]
     $inRisk = $false
     $rdepth = 0
+    $riskOk = $false
     for ($i = 0; $i -lt $lines.Count; $i++) {
         $line = $lines[$i]
         if (-not $inRisk) {
             if ($line -match $riskSigRx) {
                 $inRisk = $true
+                $riskOk = Test-MethodScopeOk $lines $i $okRx
                 $rdepth = ([regex]::Matches($line, '\{')).Count - ([regex]::Matches($line, '\}')).Count
                 continue
             }
@@ -144,11 +229,11 @@ foreach ($f in $files) {
         else {
             $rdepth += ([regex]::Matches($line, '\{')).Count
             $rdepth -= ([regex]::Matches($line, '\}')).Count
-            if ($line -match $findRx -and $line -notmatch $okRx) {
+            if ($line -match $findRx -and $line -notmatch $okRx -and -not $riskOk) {
                 $cm2 = $line.IndexOf('//')
                 $fm2 = [regex]::Match($line, $findRx).Index
                 if (-not ($cm2 -ge 0 -and $cm2 -lt $fm2)) {
-                    $rel = $f.FullName.Substring($f.FullName.IndexOf("Assets"))
+                    $rel = Get-ReportPath $f.FullName $Root
                     $orderRisks.Add(("{0}:{1}: {2}" -f $rel, ($i + 1), $line.Trim()))
                 }
             }
