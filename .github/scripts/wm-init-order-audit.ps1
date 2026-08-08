@@ -36,7 +36,9 @@ if ($SelfTest)
         exit 2
     }
 
-    $out = & powershell -NoProfile -File $PSCommandPath -Root $fixtureRoot 2>&1 | Out-String
+    # CI 는 리눅스라 `powershell` 이라는 실행 파일이 없다 — 자기를 부르는 이름은 지금 도는 판에서 고른다.
+    $psExe = if ($PSVersionTable.PSEdition -eq "Core") { "pwsh" } else { "powershell" }
+    $out = & $psExe -NoProfile -File $PSCommandPath -Root $fixtureRoot 2>&1 | Out-String
     $expected = @{ "BLOCK" = 1; "ORDER-RISK" = 2 }
     $failures = New-Object System.Collections.Generic.List[string]
 
