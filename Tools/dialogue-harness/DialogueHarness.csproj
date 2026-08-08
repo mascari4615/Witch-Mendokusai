@@ -50,6 +50,8 @@
   <!-- 진짜 EditMode 시험 파일 (복사 X — 「시험을 썼다」가 아니라 「시험이 돈다」) -->
   <ItemGroup>
     <Compile Include="../../Assets/_WitchMendokusai/Tests/EditMode/Dialogue*Test.cs" />
+    <!-- 시험 도우미 — 이름이 *Test.cs 로 안 끝나니 따로 문다. Awake 를 양쪽 세계에서 같은 자리에서 부른다. -->
+    <Compile Include="../../Assets/_WitchMendokusai/Tests/EditMode/DialogueTestHost.cs" />
   </ItemGroup>
 
   <!-- MonoBehaviour·에디터 의존이라 유니티 밖에서 못 서는 것들 -->

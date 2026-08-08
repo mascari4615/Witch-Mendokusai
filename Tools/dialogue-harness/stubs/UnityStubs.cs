@@ -93,15 +93,15 @@ namespace UnityEngine
 		}
 
 		/// <summary>
-		/// 붙이는 시늉을 하고 **Awake 까지 불러 준다.**
+		/// 붙이는 시늉만 한다 — **Awake 는 부르지 않는다.**
 		///
-		/// ★ 왜 있어야 하나: 이게 있으면 러너 시험을 **유니티와 하네스 양쪽에서 같은 글로** 쓸 수 있다.
-		///   없으면 하네스 전용 시험을 따로 쓰게 되고, 그건 CI 에서 안 돈다.
+		/// ★ 예전엔 여기서 Awake 를 불러 줬다. 의도는 좋았지만 결과가 나빴다: 진짜 유니티는
+		///   EditMode 에서 Awake 를 안 돌려주는데 흉내만 돌려주니, **흉내가 진짜보다 더 살아 있는**
+		///   상태가 됐다. 그래서 하네스 255개 전부 초록인 채로 유니티 쪽 대화 시험 둘이 넘어져
+		///   있었다(2026-08-08). 초록이 「된다」가 아니라 「흉내에서만 된다」를 뜻하게 된 것이다.
 		///
-		/// ★ 왜 Awake 를 부르나: 안 부르면 **Awake 에서 하는 배선이 아무 검사도 못 받는다.**
-		///   유니티에서는 붙는 즉시 도는 코드인데 하네스에서만 안 돌면, 두 쪽이 다른 물건이 된다.
-		///   (자체 리뷰가 짚어 준 자리다 — 「유일하게 돌릴 수 있는 검사가 그 배선을 안 본다」.)
-		///   Start/OnEnable 은 아직 안 부른다 — 필요해지면 그때 같은 자리에 더한다.
+		/// ★ 지금은 시험이 <c>DialogueTestHost.Attach</c> 로 **직접** 돌린다 — 양쪽 세계가 같은 글로
+		///   같은 것을 본다. 배선 검사가 사라진 게 아니라, 부르는 자리가 시험 쪽으로 옮겨졌다.
 		/// </summary>
 		public System.Collections.Generic.List<MonoBehaviour> Components { get; } = new();
 
@@ -110,7 +110,6 @@ namespace UnityEngine
 			T component = new();
 			Components.Add(component);
 			component.AttachTo(this);
-			InvokeLifecycle(component, "Awake");
 			return component;
 		}
 	}

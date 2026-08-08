@@ -100,7 +100,11 @@ namespace WitchMendokusai.Tests
 		{
 			// 붙는 즉시 도는 코드가 검사에서만 안 돌면 두 쪽이 다른 물건이 된다.
 			// 여기서는 「Awake 가 돌았다」의 눈에 보이는 증거 하나만 본다 — 자기 자신을 등록한다.
-			NewRunner();
+			//
+			// ★ 손으로 돌리는 이유: 유니티는 EditMode 에서 Awake 를 안 돌려준다. 예전엔 하네스 쪽
+			//   흉내만 대신 돌려줘서 이 시험이 **하네스에서만** 초록이었다(유니티 쪽은 빨갰다).
+			//   이제 두 세계 모두 같은 자리에서 부른다.
+			DialogueTestHost.Attach<DialogueRunner>("DialogueRunnerAwakeTest");
 
 			Assert.That(DialogueRunner.Instance, Is.Not.Null);
 		}

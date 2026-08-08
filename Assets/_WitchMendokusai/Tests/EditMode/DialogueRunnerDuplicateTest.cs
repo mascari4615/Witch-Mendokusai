@@ -27,12 +27,13 @@ namespace WitchMendokusai.Tests
 				Object.DestroyImmediate(DialogueRunner.Instance);
 			}
 
+			// 붙이고 Awake 까지 손으로 돌린다 — 유니티는 EditMode 에서 안 돌려준다(DialogueTestHost 참조).
 			GameObject winnerHost = new("DialogueRunnerWinner");
-			DialogueRunner winner = winnerHost.AddComponent<DialogueRunner>();
+			DialogueRunner winner = DialogueTestHost.Attach<DialogueRunner>(winnerHost);
 			Assert.That(DialogueHistoryBridge.Current, Is.SameAs(winner.History), "먼저 깬 쪽이 창구를 쥔다");
 
 			GameObject loserHost = new("DialogueRunnerLoser");
-			loserHost.AddComponent<DialogueRunner>();
+			DialogueTestHost.Attach<DialogueRunner>(loserHost);
 			Object.DestroyImmediate(loserHost);
 
 			Assert.That(DialogueHistoryBridge.Current, Is.SameAs(winner.History),
