@@ -35,7 +35,10 @@ namespace WitchMendokusai.Tests
 			GameObject host = new("DialogueRunnerPlainAttach");
 			host.AddComponent<DialogueRunner>();
 
-			Assert.That(DialogueRunner.Instance, Is.Null,
+			// ★ `Is.Null` 로 물으면 안 된다. 지워진 오브젝트는 유니티 눈엔 「없는 것」이지만 참조는 남아 있어,
+			//   시험 틀은 그걸 **있는 것**으로 본다("Expected: null But was: <null>" 이라는 이상한 실패가 그 증상).
+			//   그래서 유니티 규칙으로 묻는다 — 이 비교는 하네스 쪽 흉내도 같은 규칙을 따른다.
+			Assert.That(DialogueRunner.Instance == null, Is.True,
 				"그냥 붙이는 것만으로 Awake 가 돌면, 빠른 검사가 진짜 유니티보다 더 친절한 것이다");
 
 			Object.DestroyImmediate(host);
