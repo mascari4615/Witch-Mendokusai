@@ -28,11 +28,25 @@ on:
     paths:
       - 'Assets/_WitchMendokusai/**'
       - '.github/scripts/wm-rule-gate.ps1'
+      # ★ 2026-08-08 실측: 이 둘이 빠져 있어서 **검사기 자신을 고칠 때 그 검사기가 안 돌았다.**
+      #   자기검사(-SelfTest)를 붙여 놓고도 정작 필요한 순간(검사기 수정)엔 안 도는 셈이었다.
+      #   표본까지 넣는 이유 = 표본을 흔들면 검사기가 눈먼 것과 같은 결과가 나기 때문.
+      - '.github/scripts/wm-init-order-audit.ps1'
+      - '.github/scripts/fixtures/**'
+      # 대화 하네스도 이 워크플로가 직접 돌린다 — 하네스만 고치면 안 돌던 자리.
+      - 'Tools/dialogue-harness/**'
       - '.github/workflows/wm-quality-gate.yml'
   pull_request:
     paths:
       - 'Assets/_WitchMendokusai/**'
       - '.github/scripts/wm-rule-gate.ps1'
+      # ★ 2026-08-08 실측: 이 둘이 빠져 있어서 **검사기 자신을 고칠 때 그 검사기가 안 돌았다.**
+      #   자기검사(-SelfTest)를 붙여 놓고도 정작 필요한 순간(검사기 수정)엔 안 도는 셈이었다.
+      #   표본까지 넣는 이유 = 표본을 흔들면 검사기가 눈먼 것과 같은 결과가 나기 때문.
+      - '.github/scripts/wm-init-order-audit.ps1'
+      - '.github/scripts/fixtures/**'
+      # 대화 하네스도 이 워크플로가 직접 돌린다 — 하네스만 고치면 안 돌던 자리.
+      - 'Tools/dialogue-harness/**'
       - '.github/workflows/wm-quality-gate.yml'
   # 3시간마다 — push 레인이 굶어도 커버리지가 0 이 되지 않게 하는 바닥.
   # (실측 2026-08-05: 노트북이 빌드 2개로 꽉 찬 사이 push 가 몇 분 간격으로 들어와
