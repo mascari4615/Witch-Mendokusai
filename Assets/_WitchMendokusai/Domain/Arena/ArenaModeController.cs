@@ -10,7 +10,7 @@ namespace WitchMendokusai
 	///
 	/// ★ 엣지 트리거 — Build 와 달리 전략 스왑(InputManager.SetInputStrategy)·매치 Begin/Dispose 는
 	///   상태 전이(enter/exit)에서만 1회. 초기 Start(Default) 재적용이 InputStrategySelector(씬 로드 시
-	///   World 전략 세팅)와 레이스/중복 스왑하지 않도록 wasArena 로 전이만 감지.
+	///   World 전략 세팅)와 레이스/중복 스왑하지 않도록 <see cref="ModeControllerEdgeTrigger"/> 로 전이만 감지.
 	/// ★ 관전 카메라 = **정식 content 카메라**(ContentCameraMode.Arena vcam, priority 전환) — TASK-WM-194 근본 수정.
 	///   구 구현은 본편 카메라 *위에* 별도 Camera 를 덧대 렌더했다("추종 궤도라 안 맞는다"는 당시 판단은
 	///   자유 위치 카메라(CityView/FreeFly/개척)가 생기면서 낡았다). 덧대는 방식은 밑에서 본편이 계속 돌아
@@ -39,8 +39,8 @@ namespace WitchMendokusai
 
 		[SerializeField] private ArenaMatch arenaMatch;
 
-		// 전이 감지 — 직전 적용이 투기장 모드였는지. 초기 Default 재적용 no-op + enter/exit 1회 보장.
-		private bool wasArena;
+		// 전이 감지 — 초기 Default 재적용 no-op + enter/exit 1회 보장. 개척 컨트롤러와 같은 물건을 쓴다(WM-196 단계 7).
+		private readonly ModeControllerEdgeTrigger modeEdge = new();
 
 		[Inject]
 		public void Construct(GameModeManager gameModeManager, InputManager inputManager)
@@ -79,10 +79,8 @@ namespace WitchMendokusai
 		{
 			bool isArena = mode == GameMode.Arena;
 
-			if (isArena == wasArena)
+			if (modeEdge.Crossed(isArena) == false)
 				return; // 전이 아님 — 전략 스왑/매치 토글 생략(셀렉터 레이스·중복 방지).
-
-			wasArena = isArena;
 
 			if (isArena)
 			{

@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using UnityEngine;
 using VContainer;
 
@@ -12,7 +12,7 @@ namespace WitchMendokusai
 	///
 	/// ★ 엣지 트리거 — ArenaModeController 와 동형: 전략 스왑·매치 Begin/Dispose 는 상태 전이(enter/exit)에서만
 	///   1회. 초기 Start(Default) 재적용이 InputStrategySelector(씬 로드 시 World 전략 세팅)와 레이스/중복
-	///   스왑하지 않도록 wasTowerDefense 로 전이만 감지.
+	///   스왑하지 않도록 <see cref="ModeControllerEdgeTrigger"/> 로 전이만 감지.
 	/// ★ 모드 카메라 = **정식 content 카메라**(ContentCameraMode.TowerDefense vcam, priority 전환).
 	///   구 구현은 본편 카메라 *위에* 별도 Camera 를 덧대 렌더했는데, 그러면 밑에서 본편이 계속 돌고
 	///   화면 기준 카메라가 둘로 갈라진다 — 게임 속 게임이라도 **진입한 순간 그 게임이 주체**여야 한다
@@ -54,8 +54,9 @@ namespace WitchMendokusai
 		public TowerDefenseStageSO Stage => stage;
 		[SerializeField] private Transform stageRoot;
 
-		// 전이 감지 — 직전 적용이 TD 모드였는지. 초기 Default 재적용 no-op + enter/exit 1회 보장.
-		private bool wasTowerDefense;
+		// 전이 감지 + 「지금 이 모드인가」. 초기 Default 재적용 no-op + enter/exit 1회 보장.
+		// 투기장 컨트롤러와 같은 물건을 쓴다(WM-196 단계 7).
+		private readonly ModeControllerEdgeTrigger modeEdge = new();
 
 
 		[Inject]
@@ -166,7 +167,7 @@ namespace WitchMendokusai
 		// HUD 갱신 + 카메라 이동 — TD 모드 동안만.
 		private void Update()
 		{
-			if (wasTowerDefense == false)
+			if (modeEdge.IsActive == false)
 				return;
 
 			hud?.Tick(match, stage);
@@ -190,7 +191,7 @@ namespace WitchMendokusai
 		/// </summary>
 		private void LateUpdate()
 		{
-			if (wasTowerDefense == false)
+			if (modeEdge.IsActive == false)
 				return;
 			hud?.TickWorldAnchored();
 		}
@@ -760,7 +761,7 @@ namespace WitchMendokusai
 		/// </summary>
 		public void Restart()
 		{
-			if (wasTowerDefense == false)
+			if (modeEdge.IsActive == false)
 				return;
 
 			// 버튼을 누른 그 클릭이 배치로도 새는 것을 **즉시** 삼킨다(코루틴 안에서 하면 같은 프레임에 늦는다).
@@ -820,10 +821,8 @@ namespace WitchMendokusai
 		{
 			bool isTowerDefense = mode == GameMode.TowerDefense;
 
-			if (isTowerDefense == wasTowerDefense)
+			if (modeEdge.Crossed(isTowerDefense) == false)
 				return; // 전이 아님 — 전략 스왑/매치 토글 생략(셀렉터 레이스·중복 방지).
-
-			wasTowerDefense = isTowerDefense;
 
 			if (isTowerDefense)
 			{
