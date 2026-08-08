@@ -42,15 +42,22 @@ namespace WitchMendokusai
 		// Toolkit 패널 생성용 (Init 시점 = Construct 후이므로 uiManager 보장). TASK-WM-113 S2.
 		protected UIManager UIManager => uiManager;
 
-		protected virtual void Awake()
-		{
-			Init();
-		}
-
 		public abstract void Init();
 
+		/// <summary>
+		/// ★ <c>Init</c> 은 예전에 <c>Awake</c> 에서 불렸다. 그런데 하위 묶음들의 <c>Init</c> 은
+		///   **씬을 훑어 자기 창들을 찾아 쥔다.** 유니티는 누가 먼저 깨어나는지 보장하지 않으므로,
+		///   상대가 아직 안 깨어났으면 그 손잡이는 **영영 빈 채로 굳는다** — 그리고 아무것도 안 터진다.
+		///   그 창만 조용히 안 열릴 뿐이라 원인을 찾기가 아주 어렵다 (TASK-WM-212).
+		///
+		///   지금 자리(<c>Start</c> 맨 앞)는 **모든 깨어나기가 끝난 뒤**라 찾을 것이 반드시 있다.
+		///   순서는 그대로다 — 아래 줄들이 이미 <c>Panels</c> 를 읽고 있었고, 그 전에 채워진다.
+		///   (<c>Panels</c> 를 깨어날 때 읽는 코드는 없다. 전수 확인 2026-08-08.)
+		/// </summary>
 		protected virtual void Start()
 		{
+			Init();
+
 			uiManager.RegisterOverlayUI(this);
 
 			foreach (IUIPanel uiPanel in Panels.Values)
