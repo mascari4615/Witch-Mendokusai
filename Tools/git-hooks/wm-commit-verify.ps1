@@ -147,6 +147,16 @@ $csMissingMeta = @()
 $dirMissingMeta = @()
 $checkedDirs = @{}
 
+# 유니티가 짝(.meta)을 만들어 주는 곳은 `Assets/` 와 `Packages/` 뿐이다.
+# 그 밖의 .cs — 빌드 도구, 게이트 표본, 하네스 스텁 — 은 짝이 애초에 없다.
+# 그런 줄에 매번 「짝이 없다」고 외치면 진짜 GUID 사고가 났을 때 아무도 안 본다.
+# (2026-08-08 실측: 하네스 스텁·게이트 표본 커밋에서 이 경고가 그냥 울렸다.)
+function Test-UnityManagedPath
+{
+    param([string]$RelPath)
+    return ($RelPath -match '^"?(Assets|Packages)/')
+}
+
 foreach ($line in $cs)
 {
     $parts = $line -split "`t", 2
@@ -154,6 +164,7 @@ foreach ($line in $cs)
     $status = $parts[0]
     $path = $parts[1]
     if ($status -notmatch '^[AM]') { continue }
+    if (-not (Test-UnityManagedPath $path)) { continue }
 
     if (-not (Test-InCommitTree $Sha "$path.meta"))
     {
