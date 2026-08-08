@@ -8,6 +8,13 @@ public class Bad : MonoBehaviour
 	private void Awake()
 	{
 		Thing thing = FindAnyObjectByType<Thing>();
+		Setup();
+	}
+
+	// 이름은 Awake 가 아니지만 Awake 가 부른다 — 도는 시점이 같으므로 [AWAKE-CHAIN] 1건이어야 한다.
+	private void Setup()
+	{
+		Thing[] all = FindObjectsByType<Thing>();
 	}
 
 	// 마커 없는 Start-Find — 반드시 [ORDER-RISK] 로 잡혀야 한다.

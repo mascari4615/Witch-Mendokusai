@@ -39,10 +39,10 @@ if ($SelfTest)
     # CI 는 리눅스라 `powershell` 이라는 실행 파일이 없다 — 자기를 부르는 이름은 지금 도는 판에서 고른다.
     $psExe = if ($PSVersionTable.PSEdition -eq "Core") { "pwsh" } else { "powershell" }
     $out = & $psExe -NoProfile -File $PSCommandPath -Root $fixtureRoot 2>&1 | Out-String
-    $expected = @{ "BLOCK" = 1; "ORDER-RISK" = 2 }
+    $expected = @{ "BLOCK" = 1; "ORDER-RISK" = 2; "AWAKE-CHAIN" = 1 }
     $failures = New-Object System.Collections.Generic.List[string]
 
-    foreach ($kind in @("BLOCK", "ORDER-RISK"))
+    foreach ($kind in @("BLOCK", "ORDER-RISK", "AWAKE-CHAIN"))
     {
         $m = [regex]::Match($out, "\[$([regex]::Escape($kind))\][^\r\n]*?: (\d+)")
         $actual = if ($m.Success) { [int]$m.Groups[1].Value } else { -1 }
@@ -117,6 +117,9 @@ if ($files.Count -eq 0)
 $blocks = New-Object System.Collections.Generic.List[string]
 $reviews = New-Object System.Collections.Generic.List[string]
 $orderRisks = New-Object System.Collections.Generic.List[string]
+# Awake/Construct 가 *부르는* 메서드 안의 Find. 메서드 이름만 보면 안 잡힌다 —
+# 그런데 도는 시점은 Awake 와 같다(TASK-WM-212 실측: 창 묶음이 Awake→Init 로 씬을 훑고 있었다).
+$awakeChains = New-Object System.Collections.Generic.List[string]
 
 $methodSigRx = '(\bvoid\s+Awake\s*\(|\bpublic\s+void\s+Construct\s*\()'
 $injectAttrRx = '^\s*\[Inject\]'
@@ -165,6 +168,8 @@ foreach ($f in $files) {
     $depth = 0
     $sawInjectAttr = $false
     $methodOk = $false       # 이 메서드 전체가 // init-order-ok 로 정당화됐나
+    # Awake/Construct 가 인자 없이 부르는 같은 클래스 메서드 이름들 (한 단계만 따라간다).
+    $awakeCallees = New-Object System.Collections.Generic.HashSet[string]
     for ($i = 0; $i -lt $lines.Count; $i++) {
         $line = $lines[$i]
 
@@ -197,7 +202,49 @@ foreach ($f in $files) {
                     $blocks.Add(("{0}:{1}: {2}" -f $rel, ($i + 1), $line.Trim()))
                 }
             }
+
+            # Awake 가 부르는 자기 메서드 이름 수집 — `Init();` 처럼 인자 없이 부르는 것만.
+            # 한 단계면 충분하다: 실제로 걸린 모양(Awake → Init → 씬 훑기)이 딱 그 깊이였다.
+            $callMatch = [regex]::Match($line, '^\s*([A-Za-z_]\w*)\s*\(\s*\)\s*;')
+            if ($callMatch.Success) {
+                $null = $awakeCallees.Add($callMatch.Groups[1].Value)
+            }
             if ($depth -le 0) { $inMethod = $false }
+        }
+    }
+
+    # Awake/Construct 가 부르는 메서드 안의 Find — 이름은 Init/Setup 이어도 **도는 시점은 Awake 다.**
+    # (TASK-WM-212: 창 묶음이 Awake → Init 로 씬을 훑고 있었는데 등급이 한 칸 낮게 잡혔다.)
+    if ($awakeCallees.Count -gt 0) {
+        $inCallee = $false
+        $cdepth = 0
+        $calleeOk = $false
+        $calleeName = ''
+        for ($i = 0; $i -lt $lines.Count; $i++) {
+            $line = $lines[$i]
+            if (-not $inCallee) {
+                $sig = [regex]::Match($line, '\b(?:void)\s+([A-Za-z_]\w*)\s*\(\s*\)')
+                if ($sig.Success -and $awakeCallees.Contains($sig.Groups[1].Value)) {
+                    $inCallee = $true
+                    $calleeName = $sig.Groups[1].Value
+                    $calleeOk = Test-MethodScopeOk $lines $i $okRx
+                    $cdepth = ([regex]::Matches($line, '\{')).Count - ([regex]::Matches($line, '\}')).Count
+                    continue
+                }
+            }
+            else {
+                $cdepth += ([regex]::Matches($line, '\{')).Count
+                $cdepth -= ([regex]::Matches($line, '\}')).Count
+                if ($line -match $findRx -and $line -notmatch $okRx -and -not $calleeOk) {
+                    $cm3 = $line.IndexOf('//')
+                    $fm3 = [regex]::Match($line, $findRx).Index
+                    if (-not ($cm3 -ge 0 -and $cm3 -lt $fm3)) {
+                        $rel = Get-ReportPath $f.FullName $Root
+                        $awakeChains.Add(("{0}:{1}: [Awake -> {2}] {3}" -f $rel, ($i + 1), $calleeName, $line.Trim()))
+                    }
+                }
+                if ($cdepth -le 0) { $inCallee = $false }
+            }
         }
     }
 
@@ -255,6 +302,9 @@ foreach ($r in $reviews) { Write-Output ("  " + $r) }
 Write-Output ""
 Write-Output ("[ORDER-RISK] Find*ObjectByType in Start/OnEnable/Init/OnInit (cross-ref-at-lifecycle, WM-118) : {0}" -f $orderRisks.Count)
 foreach ($o in $orderRisks) { Write-Output ("  " + $o) }
+Write-Output ""
+Write-Output ("[AWAKE-CHAIN] Awake/Construct 가 부르는 메서드 안의 Find (이름은 Init 이어도 시점은 Awake, WM-212) : {0}" -f $awakeChains.Count)
+foreach ($c in $awakeChains) { Write-Output ("  " + $c) }
 Write-Output ""
 
 if ($blocks.Count -gt 0) {
