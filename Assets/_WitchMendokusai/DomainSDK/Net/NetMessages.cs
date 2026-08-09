@@ -159,8 +159,12 @@ namespace WitchMendokusai.Net
 	{
 		public string type = NetMessageType.WORLD;
 		public WorldDollView[] dolls = Array.Empty<WorldDollView>();
-		public BuildingView[] buildings = Array.Empty<BuildingView>();
-		public GatherableView[] gatherables = Array.Empty<GatherableView>();
+
+		// ★ 기본값이 <b>없음(null)</b>이다 (TASK-WM-217): 이 목록들은 바뀐 프레임에만 실린다.
+		//   빈 배열로 두면 「안 실려 옴」과 「진짜로 비었음」이 구별되지 않아
+		//   ① 매 프레임 집이 사라지거나 ② 마지막 하나를 부숴도 화면에 남는다.
+		public BuildingView[] buildings;
+		public GatherableView[] gatherables;
 		public WorldTimeView time;
 		public WorldBrewView brew;
 	}

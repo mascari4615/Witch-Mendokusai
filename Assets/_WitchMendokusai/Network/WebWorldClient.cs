@@ -237,10 +237,12 @@ namespace WitchMendokusai
 				Dolls = world.dolls ?? Array.Empty<WorldDollView>();
 				// ★ 안 실려 온 목록은 「비었다」가 아니라 「안 바뀌었다」다 (TASK-WM-217).
 				//   비운 것으로 읽으면 집과 들판이 매 프레임 사라졌다 나타난다.
-				if (world.buildings != null && world.buildings.Length > 0)
+				// ⚠ 반대로 <b>빈 목록이 실려 온 것</b>은 진짜로 비었다는 뜻이다 — 길이로 거르면
+				//   마지막 하나를 부순 순간 그것이 화면에 영영 남는다(실측 2026-08-10).
+				if (world.buildings != null)
 					Buildings = world.buildings;
 
-				if (world.gatherables != null && world.gatherables.Length > 0)
+				if (world.gatherables != null)
 					Gatherables = world.gatherables;
 
 				// 시각은 서버가 보낼 때만 갱신한다 — 안 보낸 스냅샷 하나에 세계 시간이 0시로 튀면 안 된다.

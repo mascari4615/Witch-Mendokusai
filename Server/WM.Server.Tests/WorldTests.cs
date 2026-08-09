@@ -137,6 +137,27 @@ namespace WitchMendokusai.Server.Tests
 		}
 
 		[Test]
+		public void 마지막_건물을_부수면_빈_목록이_실린다()
+		{
+			// ⚠ 창이 이걸 「안 바뀜」으로 읽으면 부순 집이 화면에 영영 남는다 —
+			//   그래서 <b>빈 목록도 실어 보낸다</b>는 것이 계약이다.
+			string json = Protocol.WorldSnapshot(
+				new System.Collections.Generic.List<WorldDoll>(),
+				new System.Collections.Generic.List<PlacedBuilding>());
+
+			StringAssert.Contains("\"buildings\":[]", json);
+		}
+
+		[Test]
+		public void 안_바뀐_목록은_아예_안_실린다()
+		{
+			string json = Protocol.WorldSnapshot(new System.Collections.Generic.List<WorldDoll>(), null);
+
+			StringAssert.DoesNotContain("\"buildings\"", json);
+			StringAssert.DoesNotContain("\"gatherables\"", json);
+		}
+
+		[Test]
 		public void 낱말표는_이름을_그대로_싣는다()
 		{
 			string json = Protocol.Catalog(new[]
