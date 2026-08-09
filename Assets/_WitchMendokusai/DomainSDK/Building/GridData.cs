@@ -25,7 +25,7 @@ namespace WitchMendokusai
 			// Debug.Log("AddObjectAt " + pivot);
 			if (BuildingData.ContainsKey(pivot))
 			{
-				Debug.LogWarning("Already has object at " + pivot);
+				SdkLog.Warning("Already has object at " + pivot);
 				return;
 			}
 
@@ -37,7 +37,7 @@ namespace WitchMendokusai
 			// Debug.Log("RemoveObjectAt " + pivot);
 			if (BuildingData.ContainsKey(pivot) == false)
 			{
-				Debug.LogWarning("No object at " + pivot);
+				SdkLog.Warning("No object at " + pivot);
 				return;
 			}
 
