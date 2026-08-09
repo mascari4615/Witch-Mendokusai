@@ -38,6 +38,12 @@ namespace WitchMendokusai.Server
 		public const string CATALOG = Net.NetMessageType.CATALOG;
 		public const string BUILD_CATALOG = Net.NetMessageType.BUILD_CATALOG;
 		public const string BREW_SHELF = Net.NetMessageType.BREW_SHELF;
+		public const string DENIED = Net.NetMessageType.DENIED;
+
+		// 무엇이 거절됐나 — 창이 자리별로 다르게 보여 줄 수 있게 이름을 준다.
+		public const string DENIED_PLACE = "place";
+		public const string DENIED_GATHER = "gather";
+		public const string DENIED_COMPLETE = "brewcomplete";
 		public const string CHEST_ASK = Net.NetMessageType.CHEST_ASK;
 		public const string CHEST = Net.NetMessageType.CHEST;
 		public const string CHEST_PUT = Net.NetMessageType.CHEST_PUT;
@@ -134,6 +140,9 @@ namespace WitchMendokusai.Server
 			builder.Append("/** 창 -> 서버: 다른 기기를 이을 초대 열쇠를 만들어 줘. */\n");
 			builder.Append("export interface InviteAsk {\n\ttype: '").Append(INVITE_ASK).Append("';\n}\n\n");
 
+			builder.Append("/** 서버 -> 그 창에게만: 그건 안 된다(무엇을·왜). 거절도 대답이다. */\n");
+			builder.Append("export interface Denied {\n\ttype: '").Append(DENIED).Append("';\n\twhat: string;\n\twhy: string;\n}\n\n");
+
 			builder.Append("/** 서버 -> 그 창에게만: 초대 열쇠(한 번만 쓴다). */\n");
 			builder.Append("export interface Invite {\n\ttype: '").Append(INVITE).Append("';\n\tcode: string;\n}\n\n");
 
@@ -146,7 +155,7 @@ namespace WitchMendokusai.Server
 			builder.Append("/** 서버 -> 그 창에게만: 다른 곳에서 같은 사람이 들어왔다(여기서는 나간다). */\n");
 			builder.Append("export interface Kicked {\n\ttype: '").Append(KICKED).Append("';\n\treason: string;\n}\n\n");
 
-			builder.Append("export type ServerMessage = Welcome | WorldSnapshot | BrewTaken | Bag | Catalog | BuildCatalog | BrewShelf | Chest | Invite | Linked | Kicked;\n");
+			builder.Append("export type ServerMessage = Welcome | WorldSnapshot | BrewTaken | Bag | Catalog | BuildCatalog | BrewShelf | Chest | Denied | Invite | Linked | Kicked;\n");
 			builder.Append("export type ClientMessage = MoveRequest | PlaceRequest | RemoveRequest | GatherRequest | ChestAsk | ChestPut | ChestTake | BrewRequest | BrewResetRequest | BrewCompleteRequest | Hello | BagAsk | ConsumeRequest | InviteAsk | LinkRequest;\n");
 
 			return builder.ToString();
@@ -280,6 +289,16 @@ namespace WitchMendokusai.Server
 
 			builder.Append("]}");
 			return builder.ToString();
+		}
+
+		/// <summary>
+		/// 그 창에게만: <b>그건 안 된다, 왜냐면</b> (TASK-WM-217).
+		/// 조용히 무시하면 사람은 「고장났나」로 읽는다 — 거절도 대답이다.
+		/// </summary>
+		public static string Denied(string what, string why)
+		{
+			return "{\"type\":\"" + DENIED + "\",\"what\":" + JsonSerializer.Serialize(what ?? string.Empty, textOptions)
+				+ ",\"why\":" + JsonSerializer.Serialize(why ?? string.Empty, textOptions) + "}";
 		}
 
 		/// <summary>그 창에게만: 초대 열쇠(한 번만 쓴다).</summary>

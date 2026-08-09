@@ -336,6 +336,12 @@ socket.onmessage = (event) => {
 		return;
 	}
 
+	if (message.type === 'denied') {
+		// 거절도 대답이다 — 조용히 실패하면 사람은 「고장났나」로 읽는다.
+		statusElement.textContent = message.why;
+		return;
+	}
+
 	if (message.type === 'chest') {
 		openChest = { x: message.x, y: message.y, z: message.z };
 		chestItems = message.items || [];

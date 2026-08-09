@@ -211,6 +211,13 @@ export interface InviteAsk {
 	type: 'inviteask';
 }
 
+/** 서버 -> 그 창에게만: 그건 안 된다(무엇을·왜). 거절도 대답이다. */
+export interface Denied {
+	type: 'denied';
+	what: string;
+	why: string;
+}
+
 /** 서버 -> 그 창에게만: 초대 열쇠(한 번만 쓴다). */
 export interface Invite {
 	type: 'invite';
@@ -236,5 +243,5 @@ export interface Kicked {
 	reason: string;
 }
 
-export type ServerMessage = Welcome | WorldSnapshot | BrewTaken | Bag | Catalog | BuildCatalog | BrewShelf | Chest | Invite | Linked | Kicked;
+export type ServerMessage = Welcome | WorldSnapshot | BrewTaken | Bag | Catalog | BuildCatalog | BrewShelf | Chest | Denied | Invite | Linked | Kicked;
 export type ClientMessage = MoveRequest | PlaceRequest | RemoveRequest | GatherRequest | ChestAsk | ChestPut | ChestTake | BrewRequest | BrewResetRequest | BrewCompleteRequest | Hello | BagAsk | ConsumeRequest | InviteAsk | LinkRequest;

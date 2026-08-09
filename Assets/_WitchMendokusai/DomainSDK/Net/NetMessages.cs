@@ -45,10 +45,29 @@ namespace WitchMendokusai.Net
 		/// <summary>서버 → 창: 솥에 넣을 수 있는 재료 목록(들어올 때 한 번).</summary>
 		public const string BREW_SHELF = "brewshelf";
 
+		/// <summary>
+		/// 서버 → 그 창에게만: <b>그건 안 된다, 왜냐면</b> (TASK-WM-217).
+		/// ★ 없으면 창은 아무 말도 없이 실패한다 — 사람은 「고장났나」로 읽는다.
+		/// </summary>
+		public const string DENIED = "denied";
+
 		/// <summary>창 → 서버: 그 상자 안을 보여 줘.</summary>
 		public const string CHEST_ASK = "chestask";
 
-		/// <summary>서버 → 그 창에게만: 그 상자 안은 이렇다.</summary>
+		/// <summary>서버 → 그 창에게만: 그건 안 된다(무엇을·왜).</summary>
+	[Serializable]
+	public class DeniedMessage
+	{
+		public string type = NetMessageType.DENIED;
+
+		/// <summary>무엇을 하려 했나 — place · gather · brewcomplete · chestput …</summary>
+		public string what = string.Empty;
+
+		/// <summary>왜 안 됐나 — 사람에게 그대로 보여 줄 수 있는 짧은 말.</summary>
+		public string why = string.Empty;
+	}
+
+	/// <summary>서버 → 그 창에게만: 그 상자 안은 이렇다.</summary>
 		public const string CHEST = "chest";
 
 		/// <summary>창 → 서버: 이걸 상자에 넣겠다(가방에서 빠진다).</summary>
@@ -246,6 +265,19 @@ namespace WitchMendokusai.Net
 
 		/// <summary>세계에 서 있는 그것의 번호 — 무엇이 몇 개 나오는지는 세계가 안다.</summary>
 		public int nodeId;
+	}
+
+	/// <summary>서버 → 그 창에게만: 그건 안 된다(무엇을·왜).</summary>
+	[Serializable]
+	public class DeniedMessage
+	{
+		public string type = NetMessageType.DENIED;
+
+		/// <summary>무엇을 하려 했나 — place · gather · brewcomplete · chestput …</summary>
+		public string what = string.Empty;
+
+		/// <summary>왜 안 됐나 — 사람에게 그대로 보여 줄 수 있는 짧은 말.</summary>
+		public string why = string.Empty;
 	}
 
 	/// <summary>서버 → 그 창에게만: 그 상자 안은 이렇다.</summary>

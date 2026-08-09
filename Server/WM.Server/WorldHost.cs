@@ -451,7 +451,9 @@ namespace WitchMendokusai.Server
 					if (World.Gatherables.TryTake(nodeId, standing.x, standing.z, World.Calendar.TotalMinutes(),
 						out int itemId, out int amount) == false)
 					{
-						return; // 없는 자리거나, 손이 안 닿거나, 방금 남이 가져갔다
+						// 없는 자리거나, 손이 안 닿거나, 방금 남이 가져갔다 — 어느 쪽이든 말은 해 준다.
+						Tell(dollId, Protocol.DENIED_GATHER, "손이 안 닿거나, 방금 남이 가져갔다");
+						return;
 					}
 
 					// 가방이 꽉 차서 못 받으면 <b>도로 세운다</b> — 자리도 비고 손도 비는 일은 없다.
@@ -542,7 +544,9 @@ namespace WitchMendokusai.Server
 					if (peek.Empty == false
 						&& World.CanReceive(dollId, ServerItemCatalog.Find(peek.ResultItemId), peek.Amount) == false)
 					{
-						return; // 가방을 비우고 다시 오면 그 솥은 그대로 있다
+						// 가방을 비우고 다시 오면 그 솥은 그대로 있다 — 조용히 무시하면 「고장」으로 읽힌다.
+						Tell(dollId, Protocol.DENIED_COMPLETE, "가방이 꽉 찼다 — 비우고 다시 오면 그 솥은 그대로 있다");
+						return;
 					}
 
 					// 완성은 세계가 한 사람에게만 내준다 — 둘이 같은 순간에 눌러도 뒤엣사람은 빈 솥.
@@ -595,6 +599,8 @@ namespace WitchMendokusai.Server
 					// 남의 집에 겹쳐 짓는 길이 아예 없다. 모르는 건물은 서지 않는다.
 					if (World.TryPlaceBuilding(new Vector3Int(cellX, cellY, cellZ), buildingId, World.Buildables))
 						Interlocked.Exchange(ref worldDirty, 1);
+					else
+						Tell(dollId, Protocol.DENIED_PLACE, "거기엔 못 짓는다 — 겹치거나, 세계가 모르는 것이다");
 				}
 			}
 			catch (JsonException)
@@ -618,6 +624,13 @@ namespace WitchMendokusai.Server
 				counts.Add(new System.Collections.Generic.KeyValuePair<int, int>(bag[i].itemId, bag[i].amount));
 
 			await SendAsync(socket, Protocol.Bag(counts));
+		}
+
+		/// <summary>그 창에게만 「안 된다」고 말한다 — 답장은 옆으로 보낸다(세계가 기다리지 않게).</summary>
+		private void Tell(int dollId, string what, string why)
+		{
+			if (sockets.TryGetValue(dollId, out Connection listener))
+				_ = SendAsync(listener, Protocol.Denied(what, why));
 		}
 
 		private int ReadInt(JsonElement root, string name)
