@@ -35,6 +35,9 @@ namespace WitchMendokusai
 		/// <summary>서버가 마지막으로 알려준 건물들.</summary>
 		public BuildingView[] Buildings { get; private set; } = Array.Empty<BuildingView>();
 
+		/// <summary>서버가 마지막으로 알려준 세계의 시각. 아직 못 받았으면 null.</summary>
+		public WorldTimeView Time { get; private set; }
+
 		public bool IsConnected => socket != null && socket.State == WebSocketState.Open;
 
 		/// <summary>같은 줄 규약 — 게임은 어디에 붙었는지 묻지 않는다 (TASK-WM-217).</summary>
@@ -117,6 +120,10 @@ namespace WitchMendokusai
 				WorldMessage world = JsonUtility.FromJson<WorldMessage>(json);
 				Dolls = world.dolls ?? Array.Empty<WorldDollView>();
 				Buildings = world.buildings ?? Array.Empty<BuildingView>();
+
+				// 시각은 서버가 보낼 때만 갱신한다 — 안 보낸 스냅샷 하나에 세계 시간이 0시로 튀면 안 된다.
+				if (world.time != null)
+					Time = world.time;
 			}
 		}
 

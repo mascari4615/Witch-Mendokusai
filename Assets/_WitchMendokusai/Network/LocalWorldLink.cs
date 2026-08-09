@@ -77,6 +77,16 @@ namespace WitchMendokusai
 			}
 		}
 
+		/// <summary>내 안의 세계도 시각을 준다 — 같은 규약이라 화면은 어느 쪽인지 몰라도 된다.</summary>
+		public WorldTimeView Time => new WorldTimeView
+		{
+			year = world.Calendar.Year,
+			season = world.Calendar.Season,
+			day = world.Calendar.Day,
+			hour = world.Calendar.Hour,
+			minute = world.Calendar.Minute,
+		};
+
 		public void RequestMove(float x, float z)
 		{
 			world.TryMove(me.Id, new Numerics.Vector3(x, 0f, z));

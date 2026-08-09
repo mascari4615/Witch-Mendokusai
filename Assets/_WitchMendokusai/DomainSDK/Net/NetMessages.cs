@@ -44,6 +44,20 @@ namespace WitchMendokusai.Net
 		public float z;
 	}
 
+	/// <summary>
+	/// 세계의 시각 — <b>서버가 굴린다</b> (TASK-WM-217). 창은 받아서 보여 주기만 한다.
+	/// 시계가 호스트에 매달려 있으면 그 사람이 나갈 때 세계의 시간이 멈춘다.
+	/// </summary>
+	[Serializable]
+	public class WorldTimeView
+	{
+		public int year = 1;
+		public int season;
+		public int day = 1;
+		public int hour;
+		public int minute;
+	}
+
 	/// <summary>서버 → 창: 지금 세계는 이렇게 생겼다.</summary>
 	[Serializable]
 	public class WorldMessage
@@ -51,6 +65,7 @@ namespace WitchMendokusai.Net
 		public string type = NetMessageType.WORLD;
 		public WorldDollView[] dolls = Array.Empty<WorldDollView>();
 		public BuildingView[] buildings = Array.Empty<BuildingView>();
+		public WorldTimeView time;
 	}
 
 	/// <summary>창 → 서버: 이쪽으로 가고 싶다(얼마나 갈지는 서버가 정한다).</summary>

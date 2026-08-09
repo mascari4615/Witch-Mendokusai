@@ -21,6 +21,9 @@ namespace WitchMendokusai.Net
 		/// <summary>지금 서 있는 건물들.</summary>
 		BuildingView[] Buildings { get; }
 
+		/// <summary>세계의 시각 — 아직 못 받았으면 null(그동안은 게임이 자기 시계를 쓴다).</summary>
+		WorldTimeView Time { get; }
+
 		/// <summary>이쪽으로 가고 싶다 — 얼마나 갈지는 세계가 정한다.</summary>
 		void RequestMove(float x, float z);
 
