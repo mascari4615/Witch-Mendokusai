@@ -330,21 +330,10 @@ namespace WitchMendokusai
 			objectPoolManager.Despawn(buildingObject.gameObject);
 		}
 
+		// 어느 칸을 깔고 앉는가 = 판정 층 규칙 (TASK-WM-215). 여기선 게임 쪽 크기 타입만 맞춰 넘긴다.
 		public List<Vector3Int> GetBuildingCoords(Vector3Int pivot, Vector2 size)
 		{
-			List<Vector3Int> coords = new();
-
-			for (int x = 0; x < size.x; x++)
-			{
-				for (int z = 0; z < size.y; z++)
-				{
-					// TASK-WM-181 INC-2 — 월드-정수 셀이라 footprint 도 월드 XZ (-X, +Z). 옛 그리드 XY(-x, y, 0) 폐기.
-					Vector3Int coord = pivot + new Vector3Int(-x, 0, z);
-					coords.Add(coord);
-				}
-			}
-
-			return coords;
+			return BuildingFootprint.Cells(pivot, new Vector2Int((int)size.x, (int)size.y));
 		}
 	}
 }
