@@ -45,6 +45,9 @@ namespace WitchMendokusai
 		/// <summary>서버가 마지막으로 알려준 세계의 시각. 아직 못 받았으면 null.</summary>
 		public WorldTimeView Time { get; private set; }
 
+		/// <summary>다른 곳에서 같은 사람이 들어와 밀려났나 — 화면이 사람에게 알려 줄 때 쓴다.</summary>
+		public bool Kicked { get; private set; }
+
 		/// <summary>서버가 마지막으로 알려준 솥. 아직 못 받았으면 null.</summary>
 		public WorldBrewView Brew { get; private set; }
 
@@ -135,6 +138,7 @@ namespace WitchMendokusai
 
 				// 첫 말은 인사 (TASK-WM-218) — 기기에 적어 둔 열쇠가 있으면 같이 낸다.
 				// 없으면 세계가 새 사람으로 받고 새 열쇠를 준다.
+				// ⚠ KarmoLab 세션은 게임 창에서 아직 안 싣는다(로그인 경로가 없다) — 웹 창만 싣는다.
 				Send(JsonUtility.ToJson(new HelloMessage { secret = WorldKeyStore.Load() }));
 
 				byte[] buffer = new byte[8192];
@@ -180,6 +184,16 @@ namespace WitchMendokusai
 			{
 				BrewTakenMessage taken = JsonUtility.FromJson<BrewTakenMessage>(json);
 				completed = new WorldBrewView { x = taken.x, y = taken.y, steps = taken.steps, side = taken.side };
+				return;
+			}
+
+			if (json.Contains("\"" + NetMessageType.KICKED + "\""))
+			{
+				// 다른 곳에서 같은 사람이 들어왔다. ★ 여기서 다시 붙으면 두 창이 서로를 밀어내며
+				//   영원히 왕복한다 — 그래서 <b>다시 붙기를 끈다</b>.
+				Debug.LogWarning($"{nameof(WebWorldClient)}: 다른 곳에서 접속했다 — 이 창은 세계에서 나간다.");
+				Kicked = true;
+				Disconnect();
 				return;
 			}
 
