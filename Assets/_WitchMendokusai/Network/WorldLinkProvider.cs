@@ -1,5 +1,6 @@
 using System.Collections;
 using UnityEngine;
+using WitchMendokusai.DomainSDK.Building;
 using WitchMendokusai.Net;
 
 namespace WitchMendokusai
@@ -39,6 +40,7 @@ namespace WitchMendokusai
 		[SerializeField] private float connectTimeoutSeconds = 2f;
 
 		private WebWorldClient remote;
+		private WorldLinkBuildChannel buildChannel;
 
 		/// <summary>지금 이어진 줄. 아직 안 들어갔으면 null.</summary>
 		public IWorldLink Current { get; private set; }
@@ -85,6 +87,7 @@ namespace WitchMendokusai
 				Current = remote;
 				IsLocalWorld = false;
 				EnsureBinder();
+				RegisterBuildChannel();
 				yield break;
 			}
 
@@ -100,6 +103,17 @@ namespace WitchMendokusai
 			Current = new LocalWorldLink(world);
 			IsLocalWorld = true;
 			EnsureBinder();
+			RegisterBuildChannel();
+		}
+
+		/// <summary>
+		/// 게임의 건설이 이 줄을 타게 꽂는다 (TASK-WM-217 단계 4).
+		/// 게임은 「공유 건설 채널」이라는 구멍으로만 말하므로, 그 구멍을 줄이 채우면 통로만 갈린다.
+		/// </summary>
+		private void RegisterBuildChannel()
+		{
+			buildChannel = new WorldLinkBuildChannel(Current);
+			SharedBuildChannelBridge.Register(buildChannel);
 		}
 
 		/// <summary>내 안의 세계였다면 지금 모습을 적어 둔다 — 다음에 켜면 그대로 있다.</summary>
@@ -132,6 +146,12 @@ namespace WitchMendokusai
 		public void Leave()
 		{
 			SaveLocalWorld();
+
+			if (buildChannel != null)
+			{
+				SharedBuildChannelBridge.Clear(buildChannel);
+				buildChannel = null;
+			}
 
 			if (remote != null)
 			{
