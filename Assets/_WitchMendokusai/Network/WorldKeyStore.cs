@@ -13,6 +13,7 @@ namespace WitchMendokusai
 	public static class WorldKeyStore
 	{
 		private const string KEY = "wm.world.secret";
+		private const string ACCOUNT_CODE_KEY = "wm.world.klcode";
 
 		/// <summary>적어 둔 열쇠. 없으면 빈 문자열(그때는 세계가 새로 준다).</summary>
 		public static string Load() => PlayerPrefs.GetString(KEY, string.Empty);
@@ -24,6 +25,32 @@ namespace WitchMendokusai
 				return;
 
 			PlayerPrefs.SetString(KEY, secret);
+			PlayerPrefs.Save();
+		}
+
+		/// <summary>
+		/// KarmoLab 연결 코드가 적혀 있으면 그것 (TASK-WM-218). 없으면 빈 문자열.
+		///
+		/// 사람이 KarmoLab 에서 받은 코드를 여기 넣으면, 다음 접속부터 <b>그 계정의 나</b>로 들어간다.
+		/// ⚠ 아직 화면(입력창)이 없다 — 지금은 환경변수 <c>WM_KL_CODE</c> 나 이 저장 자리로만 넣는다.
+		///   화면은 세계관 톤이 필요해 사용자 컨펌 뒤에 만든다.
+		/// </summary>
+		public static string LoadAccountCode()
+		{
+			string fromEnvironment = System.Environment.GetEnvironmentVariable("WM_KL_CODE");
+			if (string.IsNullOrWhiteSpace(fromEnvironment) == false)
+				return fromEnvironment;
+
+			return PlayerPrefs.GetString(ACCOUNT_CODE_KEY, string.Empty);
+		}
+
+		/// <summary>연결 코드를 적어 둔다(한 번 쓰면 세계가 계정을 기억하므로 그 뒤엔 없어도 된다).</summary>
+		public static void SaveAccountCode(string code)
+		{
+			if (string.IsNullOrWhiteSpace(code))
+				return;
+
+			PlayerPrefs.SetString(ACCOUNT_CODE_KEY, code);
 			PlayerPrefs.Save();
 		}
 

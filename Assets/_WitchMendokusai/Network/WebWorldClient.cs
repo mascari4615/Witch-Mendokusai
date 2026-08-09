@@ -138,8 +138,13 @@ namespace WitchMendokusai
 
 				// 첫 말은 인사 (TASK-WM-218) — 기기에 적어 둔 열쇠가 있으면 같이 낸다.
 				// 없으면 세계가 새 사람으로 받고 새 열쇠를 준다.
-				// ⚠ KarmoLab 세션은 게임 창에서 아직 안 싣는다(로그인 경로가 없다) — 웹 창만 싣는다.
-				Send(JsonUtility.ToJson(new HelloMessage { secret = WorldKeyStore.Load() }));
+				// KarmoLab 연결 코드가 적혀 있으면 같이 낸다 — 그러면 어느 기기에서든 그 계정의 나다.
+				// (쿠키는 도메인이 달라 게임 창에서 못 읽는다. 그래서 코드로 온다.)
+				Send(JsonUtility.ToJson(new HelloMessage
+				{
+					secret = WorldKeyStore.Load(),
+					klCode = WorldKeyStore.LoadAccountCode(),
+				}));
 
 				byte[] buffer = new byte[8192];
 				while (token.IsCancellationRequested == false && socket.State == WebSocketState.Open)
