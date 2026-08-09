@@ -157,6 +157,15 @@ namespace WitchMendokusai.Server
 					return;
 				}
 
+				if (kind == Protocol.REMOVE)
+				{
+					// 부수기도 서버가 판정한다 — 빈 칸을 찍으면 아무 일도 안 일어난다.
+					if (world.TryRemoveBuilding(new Vector3Int(ReadInt(root, "x"), ReadInt(root, "y"), ReadInt(root, "z"))))
+						Interlocked.Exchange(ref worldDirty, 1);
+
+					return;
+				}
+
 				if (kind == Protocol.PLACE)
 				{
 					int cellX = ReadInt(root, "x");

@@ -25,6 +25,9 @@ namespace WitchMendokusai.Net
 
 		/// <summary>서버 → 그 창에게만: 네 가방은 이렇다.</summary>
 		public const string BAG = "bag";
+
+		/// <summary>창 → 서버: 이걸 부수고 싶다(그 칸을 문 건물이 통째로 사라진다).</summary>
+		public const string REMOVE = "remove";
 	}
 
 	/// <summary>서버 → 창: 접속했다, 네 인형 번호는 이것이다.</summary>
@@ -112,6 +115,16 @@ namespace WitchMendokusai.Net
 		public string type = NetMessageType.GATHER;
 		public int itemId;
 		public int amount = 1;
+	}
+
+	/// <summary>창 → 서버: 이 칸의 건물을 부수고 싶다.</summary>
+	[Serializable]
+	public class RemoveMessage
+	{
+		public string type = NetMessageType.REMOVE;
+		public int x;
+		public int y;
+		public int z;
 	}
 
 	/// <summary>창 → 서버: 여기에 짓고 싶다. 겹치면 서버가 거절한다.</summary>

@@ -130,6 +130,12 @@ namespace WitchMendokusai
 		/// <summary>「이쪽으로 가고 싶다」를 보낸다. 얼마나 갈지는 서버가 정한다.</summary>
 		public void RequestMove(float x, float z) => Send(JsonUtility.ToJson(new MoveMessage { x = x, z = z }));
 
+		/// <summary>「이 칸을 부수고 싶다」 — 정말 사라질지는 서버가 정한다.</summary>
+		public void RequestRemove(int cellX, int cellY, int cellZ)
+		{
+			Send(JsonUtility.ToJson(new RemoveMessage { x = cellX, y = cellY, z = cellZ }));
+		}
+
 		/// <summary>「여기에 짓고 싶다」 — 겹치는지는 서버가 본다.</summary>
 		public void RequestPlace(int cellX, int cellY, int cellZ, int width, int length, int buildingId)
 		{

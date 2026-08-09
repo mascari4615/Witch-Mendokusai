@@ -30,6 +30,9 @@ namespace WitchMendokusai.Net
 		/// <summary>여기에 짓고 싶다 — 겹치는지는 세계가 본다.</summary>
 		void RequestPlace(int cellX, int cellY, int cellZ, int width, int length, int buildingId);
 
+		/// <summary>이 칸의 건물을 부수고 싶다 — 정말 사라질지는 세계가 정한다.</summary>
+		void RequestRemove(int cellX, int cellY, int cellZ);
+
 		/// <summary>이걸 줍고 싶다 — 가방에 들어갈지는 세계가 본다.</summary>
 		void RequestGather(int itemId, int amount);
 	}

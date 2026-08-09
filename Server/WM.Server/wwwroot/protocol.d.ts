@@ -38,5 +38,13 @@ export interface MoveRequest {
 	z: number;
 }
 
+/** 창 -> 서버: 이 칸의 건물을 부수고 싶다. */
+export interface RemoveRequest {
+	type: 'remove';
+	x: number;
+	y: number;
+	z: number;
+}
+
 export type ServerMessage = Welcome | WorldSnapshot;
-export type ClientMessage = MoveRequest;
+export type ClientMessage = MoveRequest | RemoveRequest;

@@ -100,6 +100,11 @@ namespace WitchMendokusai
 				buildingId);
 		}
 
+		public void RequestRemove(int cellX, int cellY, int cellZ)
+		{
+			world.TryRemoveBuilding(new Numerics.Vector3Int(cellX, cellY, cellZ));
+		}
+
 		public void RequestGather(int itemId, int amount)
 		{
 			world.TryGather(me.Id, ItemCatalog.Find(itemId), amount);

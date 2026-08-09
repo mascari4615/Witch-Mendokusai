@@ -18,6 +18,7 @@ namespace WitchMendokusai.Server
 		public const string MOVE = Net.NetMessageType.MOVE;
 		public const string PLACE = Net.NetMessageType.PLACE;
 		public const string GATHER = Net.NetMessageType.GATHER;
+		public const string REMOVE = Net.NetMessageType.REMOVE;
 		public const string BAG = Net.NetMessageType.BAG;
 
 		/// <summary>계약을 웹이 읽을 수 있는 형태로 뽑는다.</summary>
@@ -43,8 +44,11 @@ namespace WitchMendokusai.Server
 			builder.Append("/** 창 -> 서버: 이쪽으로 가고 싶다(얼마나 갈지는 서버가 정한다). */\n");
 			builder.Append("export interface MoveRequest {\n\ttype: '").Append(MOVE).Append("';\n\tx: number;\n\tz: number;\n}\n\n");
 
+			builder.Append("/** 창 -> 서버: 이 칸의 건물을 부수고 싶다. */\n");
+			builder.Append("export interface RemoveRequest {\n\ttype: '").Append(REMOVE).Append("';\n\tx: number;\n\ty: number;\n\tz: number;\n}\n\n");
+
 			builder.Append("export type ServerMessage = Welcome | WorldSnapshot;\n");
-			builder.Append("export type ClientMessage = MoveRequest;\n");
+			builder.Append("export type ClientMessage = MoveRequest | RemoveRequest;\n");
 
 			return builder.ToString();
 		}
