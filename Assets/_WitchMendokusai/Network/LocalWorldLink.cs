@@ -121,7 +121,9 @@ namespace WitchMendokusai
 				if (costAmount - missing > 0)
 					world.TryGather(me.Id, ItemCatalog.Find(costItemId), costAmount - missing);
 
-				return; // 재료가 모자라면 안 선다
+				// 혼자 놀 때도 이유는 말해 준다 — 조용히 실패하면 「고장」으로 읽힌다.
+				Net.WorldNoticeBridge.Deliver("재료가 모자란다 — " + costAmount + "개가 든다");
+				return;
 			}
 
 			if (world.TryPlaceBuilding(new Numerics.Vector3Int(cellX, cellY, cellZ), buildingId, world.Buildables) == false
@@ -333,6 +335,7 @@ namespace WitchMendokusai
 			if (world.Gatherables.TryTake(nodeId, standing.x, standing.z, world.Calendar.TotalMinutes(),
 				out int itemId, out int amount) == false)
 			{
+				Net.WorldNoticeBridge.Deliver("손이 안 닿는다");
 				return;
 			}
 

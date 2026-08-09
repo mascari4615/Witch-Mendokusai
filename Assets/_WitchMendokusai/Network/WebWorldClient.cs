@@ -218,6 +218,14 @@ namespace WitchMendokusai
 				return;
 			}
 
+			if (json.Contains("\"" + NetMessageType.DENIED + "\""))
+			{
+				// 거절도 대답이다 — 게임 창에서도 사람이 이유를 봐야 한다.
+				DeniedMessage denied = JsonUtility.FromJson<DeniedMessage>(json);
+				WorldNoticeBridge.Deliver(denied?.why);
+				return;
+			}
+
 			if (json.Contains("\"" + NetMessageType.CHEST + "\""))
 			{
 				Chest = JsonUtility.FromJson<ChestView>(json);
