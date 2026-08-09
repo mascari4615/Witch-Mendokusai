@@ -25,7 +25,7 @@ namespace WitchMendokusai.Server
 		/// <summary>1초에 몇 번 모두에게 알릴 것인가.</summary>
 		private const int SNAPSHOT_HZ = 20;
 
-		private static readonly World world = new World();
+		private static readonly WorldSim world = new WorldSim();
 		private static readonly ConcurrentDictionary<int, WebSocket> sockets = new ConcurrentDictionary<int, WebSocket>();
 
 		public static async Task Main(string[] args)
@@ -131,7 +131,7 @@ namespace WitchMendokusai.Server
 					int amount = System.Math.Max(1, ReadInt(root, "amount"));
 
 					// 가방이 꽉 차면 서버가 덜 넣는다 — 창이 우겨도 소용없다.
-					world.TryGather(dollId, itemId, amount);
+					world.TryGather(dollId, ServerItemCatalog.Find(itemId), amount);
 					_ = SendBagAsync(dollId);
 					return;
 				}

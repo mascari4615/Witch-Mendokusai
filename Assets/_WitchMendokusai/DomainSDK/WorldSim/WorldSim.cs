@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using WitchMendokusai.Numerics;
 
-namespace WitchMendokusai.Server
+namespace WitchMendokusai
 {
 	/// <summary>접속한 사람 하나 — 서버가 아는 것은 이만큼이다 (TASK-WM-216).</summary>
 	public sealed class Doll
@@ -44,12 +44,16 @@ namespace WitchMendokusai.Server
 	}
 
 	/// <summary>
-	/// 서버가 굴리는 세계 — <b>판정만</b> 있고 화면은 없다 (TASK-WM-216).
+	/// 세계 하나 — <b>판정만</b> 있고 화면은 없다 (TASK-WM-216 → 217).
 	///
-	/// 여기 있는 규칙은 게임과 같은 것을 쓴다(좌표·수학 = DomainSDK).
+	/// ★ 판정 층에 둔 이유 (TASK-WM-217): 「혼자 놀기」를 별도 모드로 만들지 않으려면
+	///   게임 자신이 이 세계를 품고 돌 수 있어야 한다. 서버 프로세스를 따로 끼워 배포하는 대신,
+	///   같은 클래스를 .NET 서버가 호스팅하거나 유니티가 자기 안에서 돌린다 — <b>코드는 한 벌</b>.
+	///
+	/// 여기 있는 규칙은 게임과 같은 것을 쓴다(좌표·수학·가방·건축 = DomainSDK).
 	/// 「어떻게 보이나」는 각 창(Unity · 웹)이 알아서 한다.
 	/// </summary>
-	public sealed class World
+	public sealed class WorldSim
 	{
 		/// <summary>한 번 움직임에 갈 수 있는 거리 상한 — 순간이동 방지(서버 권위의 최소선).</summary>
 		public const float MAX_STEP = 1.5f;
@@ -120,15 +124,14 @@ namespace WitchMendokusai.Server
 		/// <summary>
 		/// 줍기 — 서버가 가방 규칙으로 넣는다. <b>못 넣고 남은 개수</b>를 돌려준다(가방이 꽉 찼을 때).
 		/// </summary>
-		public int TryGather(int dollId, int itemId, int amount)
+		public int TryGather(int dollId, IItemData itemData, int amount)
 		{
+			if (itemData == null)
+				return amount;
+
 			lock (gate)
 			{
 				if (dolls.TryGetValue(dollId, out Doll doll) == false)
-					return amount;
-
-				IItemData itemData = ServerItemCatalog.Find(itemId);
-				if (itemData == null)
 					return amount;
 
 				return doll.Bag.Add(itemData, amount);
