@@ -27,6 +27,8 @@
 		border-radius: 6px; padding: 6px 12px; font: inherit; cursor: pointer;
 	}
 	button:hover { background: #352d47; }
+	input { background: #1d1a26; color: #d8d2e8; border: 1px solid #453c5c; border-radius: 6px; padding: 5px 8px; font: inherit; }
+	code { background: #241f30; padding: 4px 8px; border-radius: 5px; letter-spacing: .08em; }
 </style>
 </head>
 <body>
@@ -34,6 +36,12 @@
 	<div class="worldline"><span id="clock">—</span><span class="dot">·</span><span id="peers">0명</span></div>
 	<canvas id="board" width="480" height="360"></canvas>
 	<div class="worldline">솥: <span id="brew">아직 안 저음</span></div>
+	<div class="worldline">
+		<button id="invite">초대 열쇠 만들기</button>
+		<code id="invitecode">—</code>
+		<input id="linkcode" placeholder="받은 열쇠" size="10" />
+		<button id="link">잇기</button>
+	</div>
 	<div class="worldline">
 		<button id="stir">젓기 (무작위 방향)</button>
 		<button id="complete">완성 가져가기</button>
@@ -76,6 +84,20 @@
 
 	socket.onmessage = function (event) {
 		var message = JSON.parse(event.data);
+		if (message.type === 'invite') {
+			// 이 창에게만 온다. 사람이 옮겨 적을 수 있게 그대로 보여 준다.
+			document.getElementById('invitecode').textContent = message.code || '(못 만들었다)';
+			return;
+		}
+
+		if (message.type === 'linked') {
+			// 이었어도 지금 붙어 있는 인형은 안 바뀐다 — 다시 들어와야 그 사람이다.
+			statusElement.textContent = message.ok
+				? '이었다 — 새로고침하면 ' + message.identityId + '번 사람으로 들어간다'
+				: '그 열쇠는 안 통한다(이미 썼거나 없는 열쇠다)';
+			return;
+		}
+
 		if (message.type === 'brewtaken') {
 			statusElement.textContent = '완성을 가져갔다 — ' + message.steps + '번 저은 솥 ('
 				+ message.x.toFixed(2) + ', ' + message.y.toFixed(2) + ')';
@@ -157,6 +179,19 @@
 		}
 		document.getElementById('brew').textContent = brewText;
 	}
+
+	// 다른 기기 잇기 — 열쇠는 세계가 만들고, 한 번 쓰면 사라진다.
+	document.getElementById('invite').addEventListener('click', function () {
+		if (socket.readyState !== WebSocket.OPEN) return;
+		socket.send(JSON.stringify({ type: 'inviteask' }));
+	});
+
+	document.getElementById('link').addEventListener('click', function () {
+		if (socket.readyState !== WebSocket.OPEN) return;
+		var code = document.getElementById('linkcode').value.trim();
+		if (!code) return;
+		socket.send(JSON.stringify({ type: 'link', code: code }));
+	});
 
 	// 솥은 여기서도 젓는다 — 웹 창과 게임이 **같은 솥**을 젓는지 눈으로 보려면 여기서도 손이 닿아야 한다.
 	document.getElementById('stir').addEventListener('click', function () {
