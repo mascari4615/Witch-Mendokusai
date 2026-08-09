@@ -62,7 +62,15 @@
 
 	var socket = new WebSocket((location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host + '/ws');
 
-	socket.onopen = function () { statusElement.textContent = '붙었다. 방향키로 움직여라.'; };
+	// 브라우저에 적어 둔 열쇠 — 이게 있어야 다음에 와도 「나」다. 없으면 세계가 새로 준다.
+	var KEY_NAME = 'wm.world.secret';
+
+	socket.onopen = function () {
+		statusElement.textContent = '붙었다. 방향키로 움직여라.';
+		var saved = '';
+		try { saved = localStorage.getItem(KEY_NAME) || ''; } catch (e) { saved = ''; }
+		socket.send(JSON.stringify({ type: 'hello', secret: saved }));
+	};
 	socket.onclose = function () { statusElement.textContent = '끊겼다.'; };
 	socket.onerror = function () { statusElement.textContent = '연결에 문제가 있다.'; };
 
@@ -76,7 +84,14 @@
 
 		if (message.type === 'welcome') {
 			myId = message.id;
-			statusElement.textContent = '내 인형 번호 ' + myId;
+
+			// 새 열쇠를 줬으면 적어 둔다(빈 값으로 덮어쓰지 않는다 — 잃으면 새 사람이 된다).
+			if (message.secret) {
+				try { localStorage.setItem(KEY_NAME, message.secret); } catch (e) { /* 저장 못 해도 게임은 돈다 */ }
+			}
+
+			statusElement.textContent = '내 인형 번호 ' + myId
+				+ (message.identityId ? '  (나: ' + message.identityId + ')' : '');
 			return;
 		}
 
