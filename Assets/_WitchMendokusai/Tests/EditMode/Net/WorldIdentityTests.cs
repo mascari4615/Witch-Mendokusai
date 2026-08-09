@@ -97,6 +97,72 @@ namespace WitchMendokusai.Tests.EditMode.Net
 		}
 
 		[Test]
+		public void 초대_열쇠로_다른_기기도_같은_사람이_된다()
+		{
+			WorldIdentityRegistry registry = Fresh();
+			WorldIdentityRecord phone = registry.Recognize(null, out bool _);
+
+			string invite = registry.IssueInvite(phone.id);
+			WorldIdentityRecord laptopSeen = registry.RedeemInvite(invite, "노트북-열쇠");
+
+			Assert.That(laptopSeen, Is.Not.Null);
+			Assert.That(laptopSeen.id, Is.EqualTo(phone.id));
+
+			// 이제 그 기기의 열쇠로 들어와도 같은 사람이다.
+			Assert.That(registry.Recognize("노트북-열쇠", out bool created).id, Is.EqualTo(phone.id));
+			Assert.That(created, Is.False);
+			Assert.That(registry.Count, Is.EqualTo(1), "사람이 늘어나면 안 된다 — 기기가 는 것이다.");
+		}
+
+		[Test]
+		public void 초대_열쇠는_한_번만_쓴다()
+		{
+			WorldIdentityRegistry registry = Fresh();
+			WorldIdentityRecord person = registry.Recognize(null, out bool _);
+			string invite = registry.IssueInvite(person.id);
+
+			registry.RedeemInvite(invite, "첫-기기");
+
+			// 남이 주워도 이미 쓴 것은 소용없다.
+			Assert.That(registry.RedeemInvite(invite, "주운-기기"), Is.Null);
+			Assert.That(registry.PendingInvites, Is.EqualTo(0));
+			Assert.That(registry.Recognize("주운-기기", out bool created).id, Is.Not.EqualTo(person.id));
+			Assert.That(created, Is.True);
+		}
+
+		[Test]
+		public void 모르는_초대_열쇠는_아무_일도_없다()
+		{
+			WorldIdentityRegistry registry = Fresh();
+			registry.Recognize(null, out bool _);
+
+			Assert.That(registry.RedeemInvite("없는코드", "기기"), Is.Null);
+			Assert.That(registry.RedeemInvite(null, "기기"), Is.Null);
+		}
+
+		[Test]
+		public void 초대_열쇠는_서버가_꺼졌다_켜져도_살아_있다()
+		{
+			WorldIdentityRegistry before = Fresh();
+			WorldIdentityRecord person = before.Recognize(null, out bool _);
+			string invite = before.IssueInvite(person.id);
+
+			WorldIdentityRegistry after = new WorldIdentityRegistry(new Random(3));
+			after.Load(before.Save());
+
+			Assert.That(after.RedeemInvite(invite, "다른-기기")?.id, Is.EqualTo(person.id));
+		}
+
+		[Test]
+		public void 없는_사람의_초대_열쇠는_안_낸다()
+		{
+			WorldIdentityRegistry registry = Fresh();
+
+			Assert.That(registry.IssueInvite(999), Is.Null);
+			Assert.That(registry.PendingInvites, Is.EqualTo(0));
+		}
+
+		[Test]
 		public void 망가진_줄은_버리고_세계는_열린다()
 		{
 			WorldIdentityBook broken = new WorldIdentityBook

@@ -22,12 +22,23 @@ namespace WitchMendokusai.Identity
 		public int lastSeenDay;
 	}
 
+	/// <summary>다른 기기를 같은 사람에 잇기 위한 <b>한 번 쓰는 초대 열쇠</b> (TASK-WM-218).</summary>
+	[Serializable]
+	public class WorldLinkInvite
+	{
+		public string code = string.Empty;
+		public int identityId;
+	}
+
 	/// <summary>세계가 아는 사람들 — 저장되는 모양 (TASK-WM-218).</summary>
 	[Serializable]
 	public class WorldIdentityBook
 	{
 		public WorldIdentityRecord[] people = Array.Empty<WorldIdentityRecord>();
 		public int nextId = 1;
+
+		/// <summary>아직 안 쓴 초대 열쇠들 — 서버가 꺼졌다 켜져도 살아 있어야 쓸모가 있다.</summary>
+		public WorldLinkInvite[] invites = Array.Empty<WorldLinkInvite>();
 	}
 
 	/// <summary>
@@ -122,7 +133,12 @@ namespace WitchMendokusai.Identity
 			{
 				WorldIdentityRecord[] people = new WorldIdentityRecord[byId.Count];
 				byId.Values.CopyTo(people, 0);
-				return new WorldIdentityBook { people = people, nextId = nextId };
+				WorldLinkInvite[] saved = new WorldLinkInvite[invites.Count];
+				int index = 0;
+				foreach (KeyValuePair<string, int> invite in invites)
+					saved[index++] = new WorldLinkInvite { code = invite.Key, identityId = invite.Value };
+
+				return new WorldIdentityBook { people = people, nextId = nextId, invites = saved };
 			}
 		}
 
@@ -151,6 +167,19 @@ namespace WitchMendokusai.Identity
 					bySecret[record.secret] = record;
 				}
 
+				invites.Clear();
+				if (book.invites != null)
+				{
+					for (int i = 0; i < book.invites.Length; i++)
+					{
+						WorldLinkInvite invite = book.invites[i];
+						if (invite == null || string.IsNullOrEmpty(invite.code) || byId.ContainsKey(invite.identityId) == false)
+							continue;
+
+						invites[invite.code] = invite.identityId;
+					}
+				}
+
 				nextId = book.nextId > 0 ? book.nextId : 1;
 
 				// 저장된 번호보다 작은 nextId 는 이미 있는 사람을 덮어쓴다 — 그건 남의 것을 주는 짓이다.
@@ -160,6 +189,73 @@ namespace WitchMendokusai.Identity
 						nextId = entry.Key + 1;
 				}
 			}
+		}
+
+		/// <summary>초대 열쇠 길이 — 사람이 손으로 옮겨 적을 수 있어야 해서 짧다.</summary>
+		public const int INVITE_LENGTH = 8;
+
+		private readonly Dictionary<string, int> invites = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+
+		/// <summary>
+		/// 다른 기기를 <b>같은 사람</b>에 잇기 위한 초대 열쇠를 낸다 (TASK-WM-218).
+		/// 짧은 대신 <b>한 번 쓰면 사라진다</b> — 남이 주워도 이미 쓴 것은 소용없다.
+		/// </summary>
+		public string IssueInvite(int identityId)
+		{
+			lock (gate)
+			{
+				if (byId.ContainsKey(identityId) == false)
+					return null;
+
+				string code = NewCode(INVITE_LENGTH);
+				invites[code] = identityId;
+				return code;
+			}
+		}
+
+		/// <summary>
+		/// 초대 열쇠를 쓴다 — 그 기기의 열쇠를 <b>같은 사람</b>에 붙인다.
+		/// 모르는 코드거나 이미 쓴 코드면 아무 일도 없다(남의 사람이 되지 않는다).
+		/// </summary>
+		public WorldIdentityRecord RedeemInvite(string code, string deviceSecret)
+		{
+			lock (gate)
+			{
+				if (string.IsNullOrEmpty(code) || invites.TryGetValue(code, out int identityId) == false)
+					return null;
+
+				if (byId.TryGetValue(identityId, out WorldIdentityRecord person) == false)
+					return null;
+
+				invites.Remove(code); // 한 번 쓰면 사라진다.
+
+				if (string.IsNullOrEmpty(deviceSecret) == false && bySecret.ContainsKey(deviceSecret) == false)
+					bySecret[deviceSecret] = person;
+
+				return person;
+			}
+		}
+
+		/// <summary>아직 안 쓴 초대 열쇠 수 — 시험·점검용.</summary>
+		public int PendingInvites
+		{
+			get
+			{
+				lock (gate)
+				{
+					return invites.Count;
+				}
+			}
+		}
+
+		private string NewCode(int length)
+		{
+			char[] buffer = new char[length];
+			for (int i = 0; i < buffer.Length; i++)
+				buffer[i] = ALPHABET[random.Next(ALPHABET.Length)];
+
+			string code = new string(buffer);
+			return invites.ContainsKey(code) ? NewCode(length) : code;
 		}
 
 		private string NewSecret()
