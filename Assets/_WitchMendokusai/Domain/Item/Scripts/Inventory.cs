@@ -95,22 +95,30 @@ namespace WitchMendokusai
 			if (itemIds == null || amounts == null || lookup == null)
 				return;
 
+			// 무엇을 얼마나 만질지는 판정 층이 정한다(BagReconcile) — 여기서는 그 답대로만 한다.
+			Dictionary<int, int> target = new Dictionary<int, int>();
+			for (int i = 0; i < itemIds.Count && i < amounts.Count; i++)
+			{
+				if (lookup(itemIds[i]) == null)
+					continue; // 게임이 모르는 물건 — 화면에 만들 수 없다.
+
+				target[itemIds[i]] = amounts[i];
+			}
+
+			Dictionary<int, int> current = new Dictionary<int, int>();
+			foreach (KeyValuePair<int, int> want in target)
+				current[want.Key] = Core.CountById(want.Key);
+
 			applyingWorldBag = true;
 			try
 			{
-				for (int i = 0; i < itemIds.Count && i < amounts.Count; i++)
+				List<BagAdjustment> plan = BagReconcile.Plan(current, target);
+				for (int i = 0; i < plan.Count; i++)
 				{
-					IItemData data = lookup(itemIds[i]);
-					if (data == null)
-						continue;
-
-					int have = Core.CountById(itemIds[i]);
-					int want = amounts[i];
-
-					if (want > have)
-						Core.Add(data, want - have);
-					else if (want < have)
-						Core.Consume(itemIds[i], have - want);
+					if (plan[i].Add > 0)
+						Core.Add(lookup(plan[i].ItemId), plan[i].Add);
+					else if (plan[i].Remove > 0)
+						Core.Consume(plan[i].ItemId, plan[i].Remove);
 				}
 			}
 			finally
