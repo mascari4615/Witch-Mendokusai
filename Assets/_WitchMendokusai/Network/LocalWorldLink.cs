@@ -170,6 +170,11 @@ namespace WitchMendokusai
 		public void RequestBrewComplete()
 		{
 			// 혼자여도 규칙은 같다 — 세계가 내주고(마도서 판정), 빈 솥이면 아무 일도 없다.
+			// ★ 받을 자리부터 본다: 완성은 되돌릴 수 없다(만들었는데 사라지면 안 된다).
+			BrewCompletion peek = RecipeBook.Loaded.Judge(world.Cauldron.State);
+			if (peek.Empty == false && world.CanReceive(me.Id, ItemCatalog.Find(peek.ResultItemId), peek.Amount) == false)
+				return;
+
 			if (world.Cauldron.TryComplete(RecipeBook.Loaded, out BrewCompletion taken) == false)
 				return;
 

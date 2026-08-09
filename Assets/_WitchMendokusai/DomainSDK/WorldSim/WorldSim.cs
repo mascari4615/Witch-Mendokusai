@@ -537,6 +537,15 @@ namespace WitchMendokusai
 			}
 		}
 
+		/// <summary>그 인형이 이만큼을 받을 자리가 있나 — 되돌릴 수 없는 보상 전에 묻는다.</summary>
+		public bool CanReceive(int dollId, IItemData itemData, int amount)
+		{
+			lock (gate)
+			{
+				return dolls.TryGetValue(dollId, out WorldDoll doll) && doll.Bag.CanReceive(itemData, amount);
+			}
+		}
+
 		/// <summary>그 인형이 그 아이템을 몇 개 가졌나.</summary>
 		public int BagCount(int dollId, int itemId)
 		{

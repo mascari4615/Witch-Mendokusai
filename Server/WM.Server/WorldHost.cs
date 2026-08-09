@@ -536,6 +536,15 @@ namespace WitchMendokusai.Server
 
 				if (kind == Protocol.BREW_COMPLETE)
 				{
+					// ★ 받을 자리부터 본다 (TASK-WM-217): 완성은 되돌릴 수 없다 —
+					//   넣고 남은 걸 버리면 사람 눈엔 「만들었는데 사라졌다」다. 자리가 없으면 솥을 그대로 둔다.
+					BrewCompletion peek = ServerRecipeBook.Book.Judge(World.Cauldron.State);
+					if (peek.Empty == false
+						&& World.CanReceive(dollId, ServerItemCatalog.Find(peek.ResultItemId), peek.Amount) == false)
+					{
+						return; // 가방을 비우고 다시 오면 그 솥은 그대로 있다
+					}
+
 					// 완성은 세계가 한 사람에게만 내준다 — 둘이 같은 순간에 눌러도 뒤엣사람은 빈 솥.
 					// 무엇이 나왔는지도 세계가 정한다(마도서) — 그리고 **그 자리에서 가방에 넣는다**.
 					if (World.Cauldron.TryComplete(ServerRecipeBook.Book, out BrewCompletion taken))

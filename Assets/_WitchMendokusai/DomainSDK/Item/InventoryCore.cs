@@ -75,6 +75,40 @@ namespace WitchMendokusai
 		}
 
 		/// <summary>
+		/// 이만큼을 <b>넣어 보지 않고</b> 받을 수 있나 (TASK-WM-217).
+		///
+		/// ★ 왜 필요한가: 「완성」 보상처럼 <b>되돌릴 수 없는 것</b>은 먼저 물어야 한다.
+		///   넣고 나서 남은 걸 버리면 사람 눈엔 「만들었는데 사라졌다」다.
+		/// </summary>
+		public bool CanReceive(IItemData itemData, int amount)
+		{
+			if (itemData == null || amount <= 0)
+				return false;
+
+			int room = 0;
+			int max = itemData.MaxAmount < 1 ? 1 : itemData.MaxAmount;
+
+			for (int i = 0; i < slots.Count && room < amount; i++)
+			{
+				Item item = slots[i];
+				if (item == null)
+				{
+					room += max;
+					continue;
+				}
+
+				if (item.Data == null || item.Data.ID != itemData.ID)
+					continue;
+
+				int left = max - item.Amount;
+				if (left > 0)
+					room += left;
+			}
+
+			return room >= amount;
+		}
+
+		/// <summary>
 		/// 넣는다. <b>못 넣고 남은 개수</b>를 돌려준다(0 이면 전부 들어갔다).
 		/// 수량이 쌓이는 아이템은 이미 있는 칸부터 채우고, 남으면 빈 칸으로 간다.
 		/// </summary>
