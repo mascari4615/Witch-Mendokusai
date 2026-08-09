@@ -15,11 +15,33 @@ namespace WitchMendokusai.DomainSDK.Network
     }
 
     /// <summary>Domain impl → Network 프록시 static accessor (WM IXxxBridge 패턴).</summary>
+    /// <summary>세계가 아는 자리로 로컬 플레이어를 옮길 수 있는 것 (TASK-WM-217).</summary>
+    public interface ILocalPlayerPull
+    {
+        /// <summary>여기로 옮긴다(높이는 게임이 알아서 — 세계는 y 를 모른다).</summary>
+        void PullTo(float x, float z);
+    }
+
     public static class LocalPlayerProbeBridge
     {
         public static ILocalPlayerProbe Instance { get; private set; }
 
         public static void Register(ILocalPlayerProbe probe) => Instance = probe;
+
+        /// <summary>
+        /// 세계가 아는 자리로 <b>끌어당길</b> 수 있나 (TASK-WM-217). 읽기만 하던 probe 의 반쪽 —
+        /// 서버가 걸음을 자르는데 화면의 나만 앞서가면 남에게는 내가 딴 데 있다.
+        /// </summary>
+        public static bool TryPullTo(float x, float z)
+        {
+            if (Instance is ILocalPlayerPull pull)
+            {
+                pull.PullTo(x, z);
+                return true;
+            }
+
+            return false;
+        }
 
         public static bool TryGetPose(out float x, out float y, out float z, out float yaw)
         {

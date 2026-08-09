@@ -16,8 +16,28 @@ namespace WitchMendokusai
             LocalPlayerProbeBridge.Register(new Probe());
         }
 
-        private sealed class Probe : ILocalPlayerProbe
+        private sealed class Probe : ILocalPlayerProbe, ILocalPlayerPull
         {
+            /// <summary>
+            /// 세계가 아는 자리로 옮긴다 (TASK-WM-217). <b>높이는 안 건드린다</b> —
+            /// 세계는 y 를 모르고, 건드리면 땅에 박히거나 공중에 뜬다.
+            /// </summary>
+            public void PullTo(float x, float z)
+            {
+                if (PlayerProvider.TryGetExistingInstance(out PlayerProvider provider) == false)
+                {
+                    return;
+                }
+                PlayerObject playerObject = provider.CurrentObject;
+                if (playerObject == null)
+                {
+                    return;
+                }
+
+                Vector3 position = playerObject.transform.position;
+                playerObject.transform.position = new Vector3(x, position.y, z);
+            }
+
             public bool TryGetPose(out float x, out float y, out float z, out float yaw)
             {
                 x = 0f;

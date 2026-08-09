@@ -191,6 +191,14 @@ namespace WitchMendokusai
 
 			if (MoveIntent.TryStep(known, new SimVector3(x, 0f, z), WorldSim.MAX_STEP, out SimVector3 step))
 				link.RequestMove(step.x, step.z);
+
+			// 서버 권위의 반쪽 — 세계가 걸음을 잘라 내가 앞서 있으면 끌어당긴다.
+			// 안 하면 나는 문 앞인데 남들 화면의 나는 아직 복도에 있다.
+			PositionCorrection.Action action = PositionCorrection.Resolve(
+				new SimVector3(x, 0f, z), known, deltaTime, out SimVector3 corrected);
+
+			if (action != PositionCorrection.Action.Keep)
+				LocalPlayerProbeBridge.TryPullTo(corrected.x, corrected.z);
 		}
 
 		private void ClearBodies()
