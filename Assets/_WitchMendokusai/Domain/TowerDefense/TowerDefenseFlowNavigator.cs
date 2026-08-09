@@ -40,7 +40,8 @@ namespace WitchMendokusai
 			this.directGoalDistance = directGoalDistance;
 		}
 
-		public bool TryGetSteering(Vector3 from, Vector3 to, float lane, out Vector3 direction)
+		// ITacticNavigator 구현 — 서명은 SDK 좌표 타입이어야 인터페이스를 만족한다 (TASK-WM-214).
+		public bool TryGetSteering(Numerics.Vector3 from, Numerics.Vector3 to, float lane, out Numerics.Vector3 direction)
 		{
 			direction = Vector3.zero;
 			if (layout == null || flowField == null || stageRoot == null)
