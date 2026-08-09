@@ -95,12 +95,16 @@ export interface GatherRequest {
 	nodeId: number;
 }
 
-/** 창 -> 서버: 솥을 한 번 젓는다(모두가 같은 솥). */
+/** 창 -> 서버: 이 재료를 솥에 넣는다(가방에서 실제로 빠진다). 어디로 밀지는 세계가 안다. */
 export interface BrewRequest {
 	type: 'brew';
-	dx: number;
-	dy: number;
-	grind: number;
+	itemId: number;
+}
+
+/** 서버 -> 창: 솥에 넣을 수 있는 재료 목록(들어올 때 한 번). */
+export interface BrewShelf {
+	type: 'brewshelf';
+	items: { itemId: number; name: string }[];
 }
 
 /** 창 -> 서버: 솥을 비운다. */
@@ -195,5 +199,5 @@ export interface Kicked {
 	reason: string;
 }
 
-export type ServerMessage = Welcome | WorldSnapshot | BrewTaken | Bag | Catalog | BuildCatalog | Invite | Linked | Kicked;
+export type ServerMessage = Welcome | WorldSnapshot | BrewTaken | Bag | Catalog | BuildCatalog | BrewShelf | Invite | Linked | Kicked;
 export type ClientMessage = MoveRequest | PlaceRequest | RemoveRequest | GatherRequest | BrewRequest | BrewResetRequest | BrewCompleteRequest | Hello | BagAsk | ConsumeRequest | InviteAsk | LinkRequest;

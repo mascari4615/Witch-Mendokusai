@@ -114,8 +114,9 @@
 		<section class="pot">
 			<h2>솥</h2>
 			<div class="line" id="brew">아직 안 저음</div>
+			<select id="brewpick"></select>
 			<div class="buttons">
-				<button id="stir">젓기</button>
+				<button id="stir">넣고 젓기</button>
 				<button id="complete">가져가기</button>
 				<button id="clear">비우기</button>
 			</div>
@@ -157,6 +158,8 @@ let gatherables = [];
 let bag = [];
 let buildKinds = [];      // 지을 수 있는 것 — 들어올 때 한 번 받는다.
 let pickedBuilding = 0;
+let brewShelf = [];       // 솥에 넣을 수 있는 재료 — 들어올 때 한 번 받는다.
+let pickedIngredient = 0;
 let breaking = false;     // 지금은 짓나, 부수나
 const itemNames = {};   // 번호 → 이름. 들어올 때 한 번 받는다.
 const pressed = {};
@@ -300,6 +303,22 @@ socket.onmessage = (event) => {
 
 		pickedBuilding = buildKinds.length > 0 ? buildKinds[0].buildingId : 0;
 		picker.value = pickedBuilding;
+		return;
+	}
+
+	if (message.type === 'brewshelf') {
+		brewShelf = message.items || [];
+		const picker = document.getElementById('brewpick');
+		picker.textContent = '';
+		for (const item of brewShelf) {
+			const option = document.createElement('option');
+			option.value = item.itemId;
+			option.textContent = item.name;
+			picker.appendChild(option);
+		}
+
+		pickedIngredient = brewShelf.length > 0 ? brewShelf[0].itemId : 0;
+		picker.value = pickedIngredient;
 		return;
 	}
 
@@ -643,11 +662,15 @@ document.getElementById('link').addEventListener('click', () => {
 	socket.send(JSON.stringify({ type: 'link', code }));
 });
 
-// 솥은 여기서도 젓는다 — 웹 창과 게임이 **같은 솥**을 젓는지 눈으로 보려면 여기서도 손이 닿아야 한다.
+document.getElementById('brewpick').addEventListener('change', (event) => {
+	pickedIngredient = Number(event.target.value);
+});
+
+// 솥에 재료를 넣는다 — 가방에서 실제로 빠진다(없으면 아무 일도 안 일어난다).
+// 어느 쪽으로 얼마나 미는지는 세계가 재료에서 읽는다(창이 방향을 우기던 길은 없앴다).
 document.getElementById('stir').addEventListener('click', () => {
-	if (socket.readyState !== WebSocket.OPEN) return;
-	const angle = Math.random() * Math.PI * 2;
-	socket.send(JSON.stringify({ type: 'brew', dx: Math.cos(angle), dy: Math.sin(angle), grind: 1 }));
+	if (socket.readyState !== WebSocket.OPEN || pickedIngredient === 0) return;
+	socket.send(JSON.stringify({ type: 'brew', itemId: pickedIngredient }));
 });
 
 // 완성은 선착순 한 사람에게만 간다 — 못 받으면 아무 일도 안 일어난다(그게 정상이다).

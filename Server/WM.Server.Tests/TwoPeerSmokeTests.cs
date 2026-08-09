@@ -98,14 +98,20 @@ namespace WitchMendokusai.ServerTests
 		{
 			using ClientWebSocket stirrer = await ConnectAsync();
 			using ClientWebSocket watcher = await ConnectAsync();
-			await ReadWelcomeAsync(stirrer);
+			int stirrerId = await ReadWelcomeAsync(stirrer);
 			await ReadWelcomeAsync(watcher);
 
-			await SendAsync(stirrer, "{\"type\":\"brew\",\"dx\":1.0,\"dy\":0.0,\"grind\":1.0}");
-			await SendAsync(stirrer, "{\"type\":\"brew\",\"dx\":0.0,\"dy\":1.0,\"grind\":1.0}");
+			// ★ 이제 빈손으로는 못 젓는다 (TASK-WM-217) — 넣을 것을 먼저 주워 온다.
+			int item = await WalkToAndGatherAsync(stirrer, 0, stirrerId);
+			await SendAsync(stirrer, "{\"type\":\"brew\",\"itemId\":" + item + "}");
 
-			// 두 번 저은 것이 다른 쪽 화면에도 두 번으로 보인다(마커뿐 아니라 저은 길까지).
-			await WaitForAsync(watcher, text => text.Contains("\"steps\":2") && text.Contains("\"path\":[{"));
+			// 한쪽이 넣은 것이 다른 쪽 화면에도 보인다(마커뿐 아니라 저은 길까지).
+			await WaitForAsync(watcher, text => text.Contains("\"steps\":1") && text.Contains("\"path\":[{"));
+
+			// 빈손이면 안 들어간다 — 없는 것을 넣겠다고 우겨도 솥은 그대로다.
+			await SendAsync(stirrer, "{\"type\":\"brew\",\"itemId\":999999}");
+			await Task.Delay(300);
+			await WaitForAsync(watcher, text => text.Contains("\"steps\":1"));
 		}
 
 		[Test]
@@ -302,11 +308,11 @@ namespace WitchMendokusai.ServerTests
 		/// 손이 닿아야 줍히므로, 이 걸음 자체가 「줍기 판정이 서 있다」는 증거다.
 		/// 주운 아이템 번호를 돌려준다.
 		/// </summary>
-		private static async Task<int> WalkToAndGatherAsync(ClientWebSocket socket)
+		private static async Task<int> WalkToAndGatherAsync(ClientWebSocket socket, int which = 0, int myDollId = 0)
 		{
 			string snapshot = await WaitForAsync(socket, text => text.Contains("\"gatherables\":[{"));
 			System.Text.Json.JsonElement first = System.Text.Json.JsonDocument.Parse(snapshot)
-				.RootElement.GetProperty("gatherables")[0];
+				.RootElement.GetProperty("gatherables")[which];
 
 			int nodeId = first.GetProperty("id").GetInt32();
 			double targetX = first.GetProperty("x").GetDouble();
@@ -314,19 +320,35 @@ namespace WitchMendokusai.ServerTests
 			int itemId = first.GetProperty("itemId").GetInt32();
 
 			// 서버가 한 걸음의 길이를 자른다 — 그러니 여러 번, 그리고 **도착을 확인하며** 간다.
-			// ⚠ 한꺼번에 쏟아부으면 말 예산에 걸려 조용히 버려진다(그래서 안 도착한다).
+			// ⚠ move 는 「목적지」가 아니라 「이쪽으로」다 — 지금 자리에서 뺀 방향을 보내야 한다
+			//   (절대 좌표를 그대로 보내면 원점 근처에서만 우연히 맞는다, 실측 2026-08-10).
+			// ⚠ 한꺼번에 쏟아부으면 말 예산에 걸려 조용히 버려진다.
 			for (int step = 0; step < 60; step++)
 			{
-				await SendAsync(socket, "{\"type\":\"move\",\"x\":" + targetX.ToString("F3", System.Globalization.CultureInfo.InvariantCulture)
-					+ ",\"z\":" + targetZ.ToString("F3", System.Globalization.CultureInfo.InvariantCulture) + "}");
-				await Task.Delay(60);
-
 				string now = await WaitForAsync(socket, text => text.Contains("\"dolls\":[{"));
-				System.Text.Json.JsonElement me = System.Text.Json.JsonDocument.Parse(now).RootElement.GetProperty("dolls")[0];
-				double dx = me.GetProperty("x").GetDouble() - targetX;
-				double dz = me.GetProperty("z").GetDouble() - targetZ;
-				if (dx * dx + dz * dz <= 2.0 * 2.0)
+				System.Text.Json.JsonElement dollList = System.Text.Json.JsonDocument.Parse(now).RootElement.GetProperty("dolls");
+
+				double atX = 0;
+				double atZ = 0;
+				foreach (System.Text.Json.JsonElement one in dollList.EnumerateArray())
+				{
+					// 남이 같이 있으면 목록의 첫 칸이 내가 아니다 — 번호로 찾는다.
+					if (myDollId != 0 && one.GetProperty("id").GetInt32() != myDollId)
+						continue;
+
+					atX = one.GetProperty("x").GetDouble();
+					atZ = one.GetProperty("z").GetDouble();
 					break;
+				}
+
+				double toX = targetX - atX;
+				double toZ = targetZ - atZ;
+				if (toX * toX + toZ * toZ <= 2.0 * 2.0)
+					break;
+
+				await SendAsync(socket, "{\"type\":\"move\",\"x\":" + toX.ToString("F3", System.Globalization.CultureInfo.InvariantCulture)
+					+ ",\"z\":" + toZ.ToString("F3", System.Globalization.CultureInfo.InvariantCulture) + "}");
+				await Task.Delay(60);
 			}
 
 			await SendAsync(socket, "{\"type\":\"gather\",\"nodeId\":" + nodeId + "}");

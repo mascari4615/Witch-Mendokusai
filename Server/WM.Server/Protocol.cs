@@ -37,6 +37,7 @@ namespace WitchMendokusai.Server
 		public const string BAG_ASK = Net.NetMessageType.BAG_ASK;
 		public const string CATALOG = Net.NetMessageType.CATALOG;
 		public const string BUILD_CATALOG = Net.NetMessageType.BUILD_CATALOG;
+		public const string BREW_SHELF = Net.NetMessageType.BREW_SHELF;
 		public const string CONSUME = Net.NetMessageType.CONSUME;
 		public const string INVITE_ASK = Net.NetMessageType.INVITE_ASK;
 		public const string INVITE = Net.NetMessageType.INVITE;
@@ -82,8 +83,11 @@ namespace WitchMendokusai.Server
 			builder.Append("/** 창 -> 서버: 저기 있는 저것을 줍겠다. 손이 닿는지는 세계가 본다. */\n");
 			builder.Append("export interface GatherRequest {\n\ttype: '").Append(GATHER).Append("';\n\tnodeId: number;\n}\n\n");
 
-			builder.Append("/** 창 -> 서버: 솥을 한 번 젓는다(모두가 같은 솥). */\n");
-			builder.Append("export interface BrewRequest {\n\ttype: '").Append(BREW).Append("';\n\tdx: number;\n\tdy: number;\n\tgrind: number;\n}\n\n");
+			builder.Append("/** 창 -> 서버: 이 재료를 솥에 넣는다(가방에서 실제로 빠진다). 어디로 밀지는 세계가 안다. */\n");
+			builder.Append("export interface BrewRequest {\n\ttype: '").Append(BREW).Append("';\n\titemId: number;\n}\n\n");
+
+			builder.Append("/** 서버 -> 창: 솥에 넣을 수 있는 재료 목록(들어올 때 한 번). */\n");
+			builder.Append("export interface BrewShelf {\n\ttype: '").Append(BREW_SHELF).Append("';\n\titems: { itemId: number; name: string }[];\n}\n\n");
 
 			builder.Append("/** 창 -> 서버: 솥을 비운다. */\n");
 			builder.Append("export interface BrewResetRequest {\n\ttype: '").Append(BREW_RESET).Append("';\n}\n\n");
@@ -127,7 +131,7 @@ namespace WitchMendokusai.Server
 			builder.Append("/** 서버 -> 그 창에게만: 다른 곳에서 같은 사람이 들어왔다(여기서는 나간다). */\n");
 			builder.Append("export interface Kicked {\n\ttype: '").Append(KICKED).Append("';\n\treason: string;\n}\n\n");
 
-			builder.Append("export type ServerMessage = Welcome | WorldSnapshot | BrewTaken | Bag | Catalog | BuildCatalog | Invite | Linked | Kicked;\n");
+			builder.Append("export type ServerMessage = Welcome | WorldSnapshot | BrewTaken | Bag | Catalog | BuildCatalog | BrewShelf | Invite | Linked | Kicked;\n");
 			builder.Append("export type ClientMessage = MoveRequest | PlaceRequest | RemoveRequest | GatherRequest | BrewRequest | BrewResetRequest | BrewCompleteRequest | Hello | BagAsk | ConsumeRequest | InviteAsk | LinkRequest;\n");
 
 			return builder.ToString();
@@ -212,6 +216,26 @@ namespace WitchMendokusai.Server
 					.Append(",\"name\":").Append(JsonSerializer.Serialize(buildings[i].name ?? string.Empty, textOptions))
 					.Append(",\"w\":").Append(buildings[i].w < 1 ? 1 : buildings[i].w)
 					.Append(",\"l\":").Append(buildings[i].l < 1 ? 1 : buildings[i].l)
+					.Append('}');
+			}
+
+			builder.Append("]}");
+			return builder.ToString();
+		}
+
+		/// <summary>솥에 넣을 수 있는 재료 목록 — 들어올 때 한 번.</summary>
+		public static string BrewShelf(System.Collections.Generic.IReadOnlyList<IngredientCatalogEntry> shelf)
+		{
+			StringBuilder builder = new StringBuilder();
+			builder.Append("{\"type\":\"").Append(BREW_SHELF).Append("\",\"items\":[");
+
+			for (int i = 0; i < shelf.Count; i++)
+			{
+				if (i > 0)
+					builder.Append(',');
+
+				builder.Append("{\"itemId\":").Append(shelf[i].itemId)
+					.Append(",\"name\":").Append(JsonSerializer.Serialize(shelf[i].name ?? string.Empty, textOptions))
 					.Append('}');
 			}
 

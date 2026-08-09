@@ -113,6 +113,12 @@ namespace WitchMendokusai
 		/// </summary>
 		public WorldBuildingCatalog Buildables { get; set; } = new WorldBuildingCatalog(null);
 
+		/// <summary>
+		/// 솥에 넣을 수 있는 재료들 (TASK-WM-217) — 「무엇을 넣으면 어디로 가나」의 정본.
+		/// 안 꽂으면 아무것도 못 넣는다(창이 방향을 우기던 길을 대신한다).
+		/// </summary>
+		public WorldIngredients Ingredients { get; set; } = new WorldIngredients(null);
+
 		/// <summary>시간을 흘린다. 하루가 바뀌었으면 true.</summary>
 		public bool AdvanceMinutes(float minutes)
 		{

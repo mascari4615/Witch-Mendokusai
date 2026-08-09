@@ -65,6 +65,16 @@ namespace WitchMendokusai.Server
 			public WebSocket Socket { get; }
 
 			public SemaphoreSlim SendGate { get; } = new SemaphoreSlim(1, 1);
+
+			/// <summary>
+			/// 지금 이 창에 알림을 보내는 중인가 (TASK-WM-217).
+			///
+			/// ★ 왜 필요한가: 방송 루프가 창들을 <b>차례로 기다리며</b> 보냈다. 그래서 화면을 안 읽는
+			///   창이 하나 있으면(브라우저 탭이 잠들었거나, 시험이 잠깐 안 읽거나) 그 창의 버퍼가 차는
+			///   순간 <b>모두의 세계가 멈췄다</b> — 다른 사람은 이유도 모른 채 얼어붙는다(실측 2026-08-10).
+			///   밀린 창에는 이번 그림을 <b>버린다</b>. 세계 그림은 낡으면 값이 없다.
+			/// </summary>
+			public int Sending;
 		}
 
 		private readonly ConcurrentDictionary<int, Connection> sockets = new ConcurrentDictionary<int, Connection>();
@@ -80,6 +90,7 @@ namespace WitchMendokusai.Server
 		{
 			Gatherables = ServerGatherables.Field,
 			Buildables = ServerBuildingCatalog.Catalog,
+			Ingredients = ServerIngredients.Shelf,
 		};
 
 		/// <summary>KarmoLab 계정에 「이 사람 누구냐」고 묻는 자리 — 못 물어보면 손님으로 받는다.</summary>
@@ -166,6 +177,9 @@ namespace WitchMendokusai.Server
 
 			// 지을 수 있는 것도 한 번 — 크기를 세계가 알려 줘야 창이 미리 그려 볼 수 있다.
 			await SendAsync(connection, Protocol.BuildCatalog(World.Buildables.All));
+
+			// 솥에 넣을 수 있는 것도 한 번 — 창이 「무엇을 넣을까」 고르게 하려면 필요하다.
+			await SendAsync(connection, Protocol.BrewShelf(World.Ingredients.All));
 
 			// 이 연결의 말 예산 — 창 하나가 모두의 세계를 느리게 만들지 못하게 (TASK-WM-218).
 			WitchMendokusai.Net.MessageBudget budget = new WitchMendokusai.Net.MessageBudget();
@@ -406,16 +420,21 @@ namespace WitchMendokusai.Server
 
 				if (kind == Protocol.BREW)
 				{
-					float dx = root.TryGetProperty("dx", out JsonElement dxElement) ? (float)dxElement.GetDouble() : 0f;
-					float dy = root.TryGetProperty("dy", out JsonElement dyElement) ? (float)dyElement.GetDouble() : 0f;
-					float grind = root.TryGetProperty("grind", out JsonElement grindElement) ? (float)grindElement.GetDouble() : 1f;
+					// ★ 창은 「무엇을 넣는지」만 말한다 (TASK-WM-217).
+					//   전에는 방향과 세기를 창이 보냈다 — 아무것도 안 들고 저을 수 있었고,
+					//   창을 고친 사람은 한 번에 목표 한가운데로 갈 수 있었다.
+					//   이제 재료를 <b>가방에서 실제로 꺼내</b> 넣는다 — 그래서 줍기가 조리의 재료가 된다.
+					int ingredientId = ReadInt(root, "itemId");
+					if (World.Ingredients.TryStep(ingredientId, out WitchMendokusai.DomainSDK.Alchemy.BrewStep step) == false)
+						return; // 재료가 아닌 것은 안 들어간다
 
-					// 누가 젓든 같은 솥에 쌓인다 — 솥은 세계의 물건이다.
-					World.Cauldron.AddStep(new WitchMendokusai.DomainSDK.Alchemy.BrewStep
-					{
-						Direction = new WitchMendokusai.DomainSDK.Alchemy.BrewVector(dx, dy),
-						Grind = grind,
-					});
+					if (World.TryConsume(dollId, ingredientId, 1) != 0)
+						return; // 가방에 없으면 못 넣는다(빈손으로는 못 젓는다)
+
+					// 누가 넣든 같은 솥에 쌓인다 — 솥은 세계의 물건이다.
+					World.Cauldron.AddStep(step);
+					Interlocked.Exchange(ref worldDirty, 1);
+					_ = SendBagAsync(dollId);
 
 					return;
 				}
@@ -543,6 +562,19 @@ namespace WitchMendokusai.Server
 			}
 		}
 
+		/// <summary>한 창에 그림 하나 — 끝나면 다음 그림을 받을 수 있다고 표시한다.</summary>
+		private async Task SendSnapshotAsync(Connection target, string snapshot)
+		{
+			try
+			{
+				await SendAsync(target, snapshot);
+			}
+			finally
+			{
+				Interlocked.Exchange(ref target.Sending, 0);
+			}
+		}
+
 		private async Task RunBroadcastLoopAsync(CancellationToken stopping)
 		{
 			try
@@ -573,7 +605,12 @@ namespace WitchMendokusai.Server
 					if (entry.Value.Socket.State != WebSocketState.Open)
 						continue;
 
-					await SendAsync(entry.Value, snapshot);
+					// 아직 지난 그림을 못 보낸 창은 건너뛴다 — 기다리면 모두가 그 창의 속도로 산다.
+					if (Interlocked.CompareExchange(ref entry.Value.Sending, 1, 0) != 0)
+						continue;
+
+					Connection target = entry.Value;
+					_ = SendSnapshotAsync(target, snapshot);
 				}
 
 				await Task.Delay(delayMilliseconds, CancellationToken.None);
