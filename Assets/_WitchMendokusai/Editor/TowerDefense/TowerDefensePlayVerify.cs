@@ -2306,7 +2306,7 @@ namespace WitchMendokusai.EditorTools
 				if (unit == null)
 					continue;
 
-				Vector3 world = unit.transform.position;
+				Vector3 world = (Vector3)unit.transform.position;
 				Vector3 local = stageRoot != null ? (Vector3)stageRoot.InverseTransformPoint(world) : world;
 
 				int animatorsEnabled = 0;
@@ -2343,7 +2343,7 @@ namespace WitchMendokusai.EditorTools
 
 		private static Vector2 WorldToScreen(Camera camera, Vector3 worldPosition)
 		{
-			Vector3 screenPoint = camera.WorldToScreenPoint(worldPosition);
+			Vector3 screenPoint = (Vector3)camera.WorldToScreenPoint(worldPosition);
 			return new Vector2(screenPoint.x, screenPoint.y);
 		}
 
@@ -3052,7 +3052,7 @@ namespace WitchMendokusai.EditorTools
 
 			int before = match.Essence;
 			bool outpostRejected = match.TryPlaceOutpost(FindStageRoot() != null
-				? FindStageRoot().TransformPoint(new Vector3(6f, 0f, 6f))
+				? (Vector3)FindStageRoot().TransformPoint(new Vector3(6f, 0f, 6f))
 				: Vector3.zero) == false;
 
 			Debug.Log($"{TAG} 정수 안내 — 정수 {before} · 전초기지 거절 {outpostRejected}");
@@ -3432,7 +3432,7 @@ namespace WitchMendokusai.EditorTools
 				return;
 
 			controller.Hud.ShowUnitTooltip("확인용 설명 · 두 줄짜리",
-				new Vector2(Screen.width * 0.9f, Screen.height * 0.15f));
+				new WitchMendokusai.Numerics.Vector2(Screen.width * 0.9f, Screen.height * 0.15f));
 		}
 
 		// 남이 건넨 씨앗처럼 쓸 숫자 — 이 값으로 연 판이 정말 그 땅인지 본다.

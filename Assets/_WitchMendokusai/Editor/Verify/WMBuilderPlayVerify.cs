@@ -88,7 +88,7 @@ namespace WitchMendokusai.EditorTools
 			if (placed && hasCollider)
 			{
 				Camera camera = Camera.main;
-				Vector3 buildingCenter = collider.bounds.center;
+				Vector3 buildingCenter = (Vector3)collider.bounds.center;
 				camera.transform.position = buildingCenter + new Vector3(0f, CAMERA_OVERHEAD, 0f);
 				// 탑다운: 시선 아래(down), 화면 상단 = +Z (LookRotation 의 up 인자에 forward 전달).
 				camera.transform.rotation = Quaternion.LookRotation(Vector3.down, Vector3.forward);

@@ -43,7 +43,7 @@ namespace WitchMendokusai.EditorTools
 			Debug.Log(TAG + " 값 지급 — 자원 " + match.Resource + " 정수 " + match.Essence);
 
 			// 코어에서 바깥으로 뻗으며 전초기지를 세운다(보급이 닿는 데까지).
-			Vector3 core = match.CoreCombatant != null ? match.CoreCombatant.Position : match.StageRoot.position;
+			Vector3 core = match.CoreCombatant != null ? match.CoreCombatant.Position : (Vector3)match.StageRoot.position;
 			int outpostsBuilt = 0;
 			for (int step = 1; step <= 6; step++)
 			{
@@ -60,7 +60,7 @@ namespace WitchMendokusai.EditorTools
 			// ★ *먼* 노드부터 잡는다 — 가까운 것부터 잡으면 안쪽만 채워져 「바깥 채집」이 영영 0 이 되고,
 			//   확인하려던 바로 그것(바깥에서 정수가 나는가)이 확인되지 않는다(지난 실행이 그랬다).
 			List<Vector3> byDistance = new(match.ActiveResourceNodeLocalPositions);
-			Vector3 coreLocal = match.StageRoot.InverseTransformPoint(core);
+			Vector3 coreLocal = (Vector3)match.StageRoot.InverseTransformPoint(core);
 			byDistance.Sort((left, right) =>
 				(right - coreLocal).sqrMagnitude.CompareTo((left - coreLocal).sqrMagnitude));
 
@@ -71,7 +71,7 @@ namespace WitchMendokusai.EditorTools
 				if (tried >= 20)
 					break;
 				tried++;
-				match.TryPlaceHarvester(match.StageRoot.TransformPoint(local));
+				match.TryPlaceHarvester((Vector3)match.StageRoot.TransformPoint(local));
 			}
 
 			Debug.Log(TAG + " HARVESTERS " + harvestersBefore + " → " + match.HarvesterCount
