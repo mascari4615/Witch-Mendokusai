@@ -63,6 +63,11 @@ namespace WitchMendokusai
 		private float lastClickTime = 0f;
 		private const float CLICK_COOLDOWN = 0.1f; // 클릭 간 최소 시간 간격 (초)
 		private const float BUILD_REACH_DISTANCE = 100f; // 빌더 레이캐스트 도달 거리
+		// 세계의 답을 기다리는 배치들 (TASK-WM-217) — 판정은 판정 층, 여기는 그릇만.
+		private readonly PlacementReconciler reconciler = new PlacementReconciler();
+		private readonly List<BuildingPlacement> worldPlacements = new List<BuildingPlacement>();
+		private readonly List<Vector3Int> worldCells = new List<Vector3Int>();
+
 		private ChunkManager chunkManager; // TASK-WM-181 — 빌드모드 지형(복셀) 부수기용. lazy resolve (스테이지 스코프).
 
 		private void Awake()
@@ -124,6 +129,10 @@ namespace WitchMendokusai
 
 		private void Update()
 		{
+			// 세계가 거절한 것을 되돌린다 (TASK-WM-217) — 빌드모드가 아니어도 해야 한다.
+			// 짓자마자 모드를 바꾸면 유령 건물이 영영 남는다.
+			ReconcilePredictedPlacements();
+
 			if (gameModeManager.IsBuildMode == false)
 				return;
 			if (TryBuildRaycast(out RaycastHit hit) == false)
@@ -211,11 +220,16 @@ namespace WitchMendokusai
 			SpawnBuildingObject(placeCell, worldStage.GridData.BuildingData[placeCell]);
 
 			// 세계에도 알린다 (TASK-WM-217) — 안 알리면 내 화면에만 서고 남에겐 안 보인다.
-			// 내 화면에는 먼저 세운다(기다리면 손맛이 죽는다). 세계가 거절했을 때 되돌리는 일 = 후속.
+			// 내 화면에는 먼저 세운다(기다리면 손맛이 죽는다). 거절당하면 Update 에서 되돌린다.
 			if (SharedBuildChannelBridge.IsActive)
+			{
 				SharedBuildChannelBridge.Channel.PlaceBuilding(
 					placeCell.x, placeCell.y, placeCell.z,
 					selectedBuilding.Size.x, selectedBuilding.Size.y, selectedBuilding.ID);
+
+				// 세계가 인정할 때까지 지켜본다 — 거절당하면 되돌린다(유령 건물 방지).
+				reconciler.Predicted(placeCell, Time.time);
+			}
 		}
 
 		// 빌드모드 좌클릭 = 부수기 (월드 편집 통일). 가리킨 게 건물이면 건물 제거, 지형(복셀)이면 복셀 블록 부수기.
@@ -325,6 +339,39 @@ namespace WitchMendokusai
 		}
 
 		// GridData는 따로 처리해야 함 - 2025.03.24 00:32
+		/// <summary>
+		/// 내가 먼저 세운 것 중 <b>세계가 끝내 인정 안 한 것</b>을 지운다 (TASK-WM-217).
+		/// 판정은 판정 층(<see cref="PlacementReconciler"/>)이 하고, 여기는 그 답대로 치운다.
+		/// </summary>
+		private void ReconcilePredictedPlacements()
+		{
+			if (reconciler.PendingCount == 0)
+				return;
+
+			if (SharedBuildChannelBridge.IsActive == false)
+			{
+				// 세계와 끊겼다 — 답이 올 곳이 없으니 기다림도 뜻이 없다(혼자 지은 것은 그대로 둔다).
+				reconciler.Clear();
+				return;
+			}
+
+			worldPlacements.Clear();
+			SharedBuildChannelBridge.Channel.ReadPlacements(worldPlacements);
+
+			worldCells.Clear();
+			for (int i = 0; i < worldPlacements.Count; i++)
+				worldCells.Add(new Vector3Int(worldPlacements[i].CellX, worldPlacements[i].CellY, worldPlacements[i].CellZ));
+
+			IReadOnlyList<Vector3Int> rejected = reconciler.Reconcile(worldCells, Time.time);
+			for (int i = 0; i < rejected.Count; i++)
+			{
+				if (stageManager.CurStage is WorldStage worldStage)
+					worldStage.GridData.RemoveBuildingAt(rejected[i]);
+
+				DespawnBuildingObject(rejected[i]);
+			}
+		}
+
 		private void DespawnBuildingObject(Vector3Int pivot)
 		{
 			// 잘못된 좌표이거나, 아래에서 이미 제거된 경우
