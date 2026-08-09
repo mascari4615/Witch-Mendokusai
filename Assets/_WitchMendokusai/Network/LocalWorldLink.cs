@@ -133,7 +133,14 @@ namespace WitchMendokusai
 
 		public void RequestRemove(int cellX, int cellY, int cellZ)
 		{
-			world.TryRemoveBuilding(new Numerics.Vector3Int(cellX, cellY, cellZ));
+			// 혼자 놀 때도 같은 규칙 — 부수면 재료 절반이 돌아온다.
+			if (world.TryRemoveBuilding(new Numerics.Vector3Int(cellX, cellY, cellZ), out int removedBuildingId) == false)
+				return;
+
+			world.Buildables.TryCost(removedBuildingId, out int backItemId, out int backAmount);
+			int refund = backAmount / 2;
+			if (refund > 0)
+				world.TryGather(me.Id, ItemCatalog.Find(backItemId), refund);
 		}
 
 		/// <summary>내 안의 세계에서도 솥은 세계의 것이다 — 같은 규약으로 내어 준다.</summary>

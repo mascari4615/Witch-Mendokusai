@@ -486,8 +486,15 @@ namespace WitchMendokusai
 		/// 놓은 것을 <b>부순다</b> — 그 칸을 물고 있는 건물을 통째로 지운다 (TASK-WM-217).
 		/// 모서리를 찍든 가운데를 찍든 같은 건물이 지워진다(사람은 「건물」을 부수지 「칸」을 부수지 않는다).
 		/// </summary>
-		public bool TryRemoveBuilding(Vector3Int cell)
+		public bool TryRemoveBuilding(Vector3Int cell) => TryRemoveBuilding(cell, out int _);
+
+		/// <summary>
+		/// 부순다 — <b>무엇이었는지</b>도 알려 준다 (TASK-WM-217).
+		/// 재료를 얼마쯤 돌려주려면 부르는 쪽이 「그게 뭐였나」를 알아야 한다.
+		/// </summary>
+		public bool TryRemoveBuilding(Vector3Int cell, out int removedBuildingId)
 		{
+			removedBuildingId = 0;
 			lock (gate)
 			{
 				if (occupiedCells.ContainsKey(cell) == false)
@@ -505,6 +512,7 @@ namespace WitchMendokusai
 					for (int c = 0; c < cells.Count; c++)
 						occupiedCells.Remove(cells[c]);
 
+					removedBuildingId = placed[i].BuildingId;
 					placed.RemoveAt(i);
 					BuildVersion++;
 					return true;

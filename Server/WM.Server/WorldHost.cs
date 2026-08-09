@@ -589,8 +589,21 @@ namespace WitchMendokusai.Server
 				if (kind == Protocol.REMOVE)
 				{
 					// 부수기도 서버가 판정한다 — 빈 칸을 찍으면 아무 일도 안 일어난다.
-					if (World.TryRemoveBuilding(new Vector3Int(ReadInt(root, "x"), ReadInt(root, "y"), ReadInt(root, "z"))))
+					if (World.TryRemoveBuilding(new Vector3Int(ReadInt(root, "x"), ReadInt(root, "y"), ReadInt(root, "z")),
+						out int removedBuildingId))
+					{
+						// ★ 재료를 <b>절반</b> 돌려준다 (TASK-WM-217): 잘못 지었을 때 손해만 남으면
+						//   사람은 아예 안 짓는다. 전액이면 남의 집을 부숴 재료를 버는 길이 열린다.
+						World.Buildables.TryCost(removedBuildingId, out int backItemId, out int backAmount);
+						int refund = backAmount / 2;
+						if (refund > 0)
+						{
+							World.TryGather(dollId, ServerItemCatalog.Find(backItemId), refund);
+							_ = SendBagAsync(dollId);
+						}
+
 						Interlocked.Exchange(ref worldDirty, 1);
+					}
 
 					return;
 				}
