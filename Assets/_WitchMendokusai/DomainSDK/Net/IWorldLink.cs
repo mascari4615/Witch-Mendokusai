@@ -33,6 +33,15 @@ namespace WitchMendokusai.Net
 		/// <summary>이 칸의 건물을 부수고 싶다 — 정말 사라질지는 세계가 정한다.</summary>
 		void RequestRemove(int cellX, int cellY, int cellZ);
 
+		/// <summary>지금 솥의 모습 — 아직 못 받았으면 null.</summary>
+		WorldBrewView Brew { get; }
+
+		/// <summary>솥을 한 번 젓는다 — 누가 젓든 같은 솥에 쌓인다.</summary>
+		void RequestBrewStep(float dx, float dy, float grind);
+
+		/// <summary>솥을 비운다.</summary>
+		void RequestBrewReset();
+
 		/// <summary>이걸 줍고 싶다 — 가방에 들어갈지는 세계가 본다.</summary>
 		void RequestGather(int itemId, int amount);
 	}

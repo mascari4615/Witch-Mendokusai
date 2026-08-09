@@ -46,5 +46,18 @@ export interface RemoveRequest {
 	z: number;
 }
 
+/** 창 -> 서버: 솥을 한 번 젓는다(모두가 같은 솥). */
+export interface BrewRequest {
+	type: 'brew';
+	dx: number;
+	dy: number;
+	grind: number;
+}
+
+/** 창 -> 서버: 솥을 비운다. */
+export interface BrewResetRequest {
+	type: 'brewreset';
+}
+
 export type ServerMessage = Welcome | WorldSnapshot;
-export type ClientMessage = MoveRequest | RemoveRequest;
+export type ClientMessage = MoveRequest | RemoveRequest | BrewRequest | BrewResetRequest;

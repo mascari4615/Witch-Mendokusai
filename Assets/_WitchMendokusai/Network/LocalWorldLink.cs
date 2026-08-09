@@ -105,6 +105,48 @@ namespace WitchMendokusai
 			world.TryRemoveBuilding(new Numerics.Vector3Int(cellX, cellY, cellZ));
 		}
 
+		/// <summary>내 안의 세계에서도 솥은 세계의 것이다 — 같은 규약으로 내어 준다.</summary>
+		public WorldBrewView Brew
+		{
+			get
+			{
+				List<DomainSDK.Alchemy.BrewStep> steps = new List<DomainSDK.Alchemy.BrewStep>();
+				world.Cauldron.ReadSteps(steps);
+
+				BrewStepView[] path = new BrewStepView[steps.Count];
+				for (int i = 0; i < steps.Count; i++)
+				{
+					path[i] = new BrewStepView
+					{
+						dx = steps[i].Direction.X,
+						dy = steps[i].Direction.Y,
+						grind = steps[i].Grind,
+					};
+				}
+
+				DomainSDK.Alchemy.BrewState state = world.Cauldron.State;
+				return new WorldBrewView
+				{
+					x = state.Position.X,
+					y = state.Position.Y,
+					steps = state.StepCount,
+					side = state.AccruedSideEffect,
+					path = path,
+				};
+			}
+		}
+
+		public void RequestBrewStep(float dx, float dy, float grind)
+		{
+			world.Cauldron.AddStep(new DomainSDK.Alchemy.BrewStep
+			{
+				Direction = new DomainSDK.Alchemy.BrewVector(dx, dy),
+				Grind = grind,
+			});
+		}
+
+		public void RequestBrewReset() => world.Cauldron.ResetBrew();
+
 		public void RequestGather(int itemId, int amount)
 		{
 			world.TryGather(me.Id, ItemCatalog.Find(itemId), amount);

@@ -38,6 +38,9 @@ namespace WitchMendokusai
 		/// <summary>서버가 마지막으로 알려준 세계의 시각. 아직 못 받았으면 null.</summary>
 		public WorldTimeView Time { get; private set; }
 
+		/// <summary>서버가 마지막으로 알려준 솥. 아직 못 받았으면 null.</summary>
+		public WorldBrewView Brew { get; private set; }
+
 		public bool IsConnected => socket != null && socket.State == WebSocketState.Open;
 
 		/// <summary>같은 줄 규약 — 게임은 어디에 붙었는지 묻지 않는다 (TASK-WM-217).</summary>
@@ -124,11 +127,23 @@ namespace WitchMendokusai
 				// 시각은 서버가 보낼 때만 갱신한다 — 안 보낸 스냅샷 하나에 세계 시간이 0시로 튀면 안 된다.
 				if (world.time != null)
 					Time = world.time;
+
+				if (world.brew != null)
+					Brew = world.brew;
 			}
 		}
 
 		/// <summary>「이쪽으로 가고 싶다」를 보낸다. 얼마나 갈지는 서버가 정한다.</summary>
 		public void RequestMove(float x, float z) => Send(JsonUtility.ToJson(new MoveMessage { x = x, z = z }));
+
+		/// <summary>솥을 한 번 젓는다 — 모두가 같은 솥을 젓는다.</summary>
+		public void RequestBrewStep(float dx, float dy, float grind)
+		{
+			Send(JsonUtility.ToJson(new BrewMessage { dx = dx, dy = dy, grind = grind }));
+		}
+
+		/// <summary>솥을 비운다.</summary>
+		public void RequestBrewReset() => Send(JsonUtility.ToJson(new BrewResetMessage()));
 
 		/// <summary>「이 칸을 부수고 싶다」 — 정말 사라질지는 서버가 정한다.</summary>
 		public void RequestRemove(int cellX, int cellY, int cellZ)

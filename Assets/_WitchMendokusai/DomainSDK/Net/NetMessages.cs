@@ -28,6 +28,12 @@ namespace WitchMendokusai.Net
 
 		/// <summary>창 → 서버: 이걸 부수고 싶다(그 칸을 문 건물이 통째로 사라진다).</summary>
 		public const string REMOVE = "remove";
+
+		/// <summary>창 → 서버: 솥에 한 번 넣고 젓는다(모두가 같은 솥을 젓는다).</summary>
+		public const string BREW = "brew";
+
+		/// <summary>창 → 서버: 솥을 비운다.</summary>
+		public const string BREW_RESET = "brewreset";
 	}
 
 	/// <summary>서버 → 창: 접속했다, 네 인형 번호는 이것이다.</summary>
@@ -69,6 +75,7 @@ namespace WitchMendokusai.Net
 		public WorldDollView[] dolls = Array.Empty<WorldDollView>();
 		public BuildingView[] buildings = Array.Empty<BuildingView>();
 		public WorldTimeView time;
+		public WorldBrewView brew;
 	}
 
 	/// <summary>창 → 서버: 이쪽으로 가고 싶다(얼마나 갈지는 서버가 정한다).</summary>
@@ -115,6 +122,46 @@ namespace WitchMendokusai.Net
 		public string type = NetMessageType.GATHER;
 		public int itemId;
 		public int amount = 1;
+	}
+
+	/// <summary>솥을 한 번 젓는 방향과 세기 — 창 → 서버.</summary>
+	[Serializable]
+	public class BrewMessage
+	{
+		public string type = NetMessageType.BREW;
+		public float dx;
+		public float dy;
+		public float grind = 1f;
+	}
+
+	/// <summary>창 → 서버: 솥을 비운다.</summary>
+	[Serializable]
+	public class BrewResetMessage
+	{
+		public string type = NetMessageType.BREW_RESET;
+	}
+
+	/// <summary>솥에 저은 한 걸음 — 경로선을 그리는 쪽이 읽어 간다.</summary>
+	[Serializable]
+	public class BrewStepView
+	{
+		public float dx;
+		public float dy;
+		public float grind = 1f;
+	}
+
+	/// <summary>
+	/// 지금 솥의 모습 — <b>모두가 같은 솥을 본다</b> (TASK-WM-217).
+	/// 호스트가 갖고 있으면 그 사람이 나갈 때 젓던 게 사라진다.
+	/// </summary>
+	[Serializable]
+	public class WorldBrewView
+	{
+		public float x;
+		public float y;
+		public int steps;
+		public float side;
+		public BrewStepView[] path = Array.Empty<BrewStepView>();
 	}
 
 	/// <summary>창 → 서버: 이 칸의 건물을 부수고 싶다.</summary>

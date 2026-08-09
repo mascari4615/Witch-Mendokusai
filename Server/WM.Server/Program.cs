@@ -157,6 +157,28 @@ namespace WitchMendokusai.Server
 					return;
 				}
 
+				if (kind == Protocol.BREW)
+				{
+					float dx = root.TryGetProperty("dx", out JsonElement dxElement) ? (float)dxElement.GetDouble() : 0f;
+					float dy = root.TryGetProperty("dy", out JsonElement dyElement) ? (float)dyElement.GetDouble() : 0f;
+					float grind = root.TryGetProperty("grind", out JsonElement grindElement) ? (float)grindElement.GetDouble() : 1f;
+
+					// 누가 젓든 같은 솥에 쌓인다 — 솥은 세계의 물건이다.
+					world.Cauldron.AddStep(new WitchMendokusai.DomainSDK.Alchemy.BrewStep
+					{
+						Direction = new WitchMendokusai.DomainSDK.Alchemy.BrewVector(dx, dy),
+						Grind = grind,
+					});
+
+					return;
+				}
+
+				if (kind == Protocol.BREW_RESET)
+				{
+					world.Cauldron.ResetBrew();
+					return;
+				}
+
 				if (kind == Protocol.REMOVE)
 				{
 					// 부수기도 서버가 판정한다 — 빈 칸을 찍으면 아무 일도 안 일어난다.
@@ -254,7 +276,7 @@ namespace WitchMendokusai.Server
 				if (world.AdvanceMinutes(minutesPerTick))
 					Interlocked.Exchange(ref worldDirty, 1);
 
-				string snapshot = Protocol.WorldSnapshot(world.Snapshot(), world.Buildings(), world.Calendar);
+				string snapshot = Protocol.WorldSnapshot(world.Snapshot(), world.Buildings(), world.Calendar, world.Cauldron);
 				foreach (System.Collections.Generic.KeyValuePair<int, WebSocket> entry in sockets)
 				{
 					if (entry.Value.State != WebSocketState.Open)

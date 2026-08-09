@@ -19,6 +19,8 @@ namespace WitchMendokusai.Server
 		public const string PLACE = Net.NetMessageType.PLACE;
 		public const string GATHER = Net.NetMessageType.GATHER;
 		public const string REMOVE = Net.NetMessageType.REMOVE;
+		public const string BREW = Net.NetMessageType.BREW;
+		public const string BREW_RESET = Net.NetMessageType.BREW_RESET;
 		public const string BAG = Net.NetMessageType.BAG;
 
 		/// <summary>계약을 웹이 읽을 수 있는 형태로 뽑는다.</summary>
@@ -47,8 +49,14 @@ namespace WitchMendokusai.Server
 			builder.Append("/** 창 -> 서버: 이 칸의 건물을 부수고 싶다. */\n");
 			builder.Append("export interface RemoveRequest {\n\ttype: '").Append(REMOVE).Append("';\n\tx: number;\n\ty: number;\n\tz: number;\n}\n\n");
 
+			builder.Append("/** 창 -> 서버: 솥을 한 번 젓는다(모두가 같은 솥). */\n");
+			builder.Append("export interface BrewRequest {\n\ttype: '").Append(BREW).Append("';\n\tdx: number;\n\tdy: number;\n\tgrind: number;\n}\n\n");
+
+			builder.Append("/** 창 -> 서버: 솥을 비운다. */\n");
+			builder.Append("export interface BrewResetRequest {\n\ttype: '").Append(BREW_RESET).Append("';\n}\n\n");
+
 			builder.Append("export type ServerMessage = Welcome | WorldSnapshot;\n");
-			builder.Append("export type ClientMessage = MoveRequest | RemoveRequest;\n");
+			builder.Append("export type ClientMessage = MoveRequest | RemoveRequest | BrewRequest | BrewResetRequest;\n");
 
 			return builder.ToString();
 		}
@@ -83,7 +91,7 @@ namespace WitchMendokusai.Server
 		}
 
 		/// <summary>서버가 보내는 세계 모습.</summary>
-		public static string WorldSnapshot(IEnumerable<WorldDoll> dolls, IEnumerable<PlacedBuilding> buildings, WorldCalendar calendar = null)
+		public static string WorldSnapshot(IEnumerable<WorldDoll> dolls, IEnumerable<PlacedBuilding> buildings, WorldCalendar calendar = null, WorldCauldron cauldron = null)
 		{
 			StringBuilder builder = new StringBuilder();
 			builder.Append("{\"type\":\"").Append(WORLD).Append("\",\"dolls\":[");
@@ -130,6 +138,32 @@ namespace WitchMendokusai.Server
 					.Append(",\"hour\":").Append(calendar.Hour)
 					.Append(",\"minute\":").Append(calendar.Minute)
 					.Append('}');
+			}
+
+			// 솥 — 모두가 같은 솥을 본다. 저은 길까지 보내야 경로선이 서로 같게 그려진다.
+			if (cauldron != null)
+			{
+				DomainSDK.Alchemy.BrewState state = cauldron.State;
+				builder.Append(",\"brew\":{\"x\":").Append(state.Position.X.ToString("F3"))
+					.Append(",\"y\":").Append(state.Position.Y.ToString("F3"))
+					.Append(",\"steps\":").Append(state.StepCount)
+					.Append(",\"side\":").Append(state.AccruedSideEffect.ToString("F3"))
+					.Append(",\"path\":[");
+
+				List<DomainSDK.Alchemy.BrewStep> steps = new List<DomainSDK.Alchemy.BrewStep>();
+				cauldron.ReadSteps(steps);
+				for (int i = 0; i < steps.Count; i++)
+				{
+					if (i > 0)
+						builder.Append(',');
+
+					builder.Append("{\"dx\":").Append(steps[i].Direction.X.ToString("F3"))
+						.Append(",\"dy\":").Append(steps[i].Direction.Y.ToString("F3"))
+						.Append(",\"grind\":").Append(steps[i].Grind.ToString("F3"))
+						.Append('}');
+				}
+
+				builder.Append("]}");
 			}
 
 			builder.Append('}');
