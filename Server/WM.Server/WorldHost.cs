@@ -55,6 +55,7 @@ namespace WitchMendokusai.Server
 		private readonly ConcurrentDictionary<int, Vector3Int> watchingChest = new ConcurrentDictionary<int, Vector3Int>();
 
 		private int sentStorageVersion = -1;
+		private int sentPotVersion = -1;
 
 		/// <summary>이만큼(세계의 날) 안 오고 아무것도 안 남긴 사람은 장부에서 지운다.</summary>
 		private const int GUEST_FORGET_DAYS = 90;
@@ -206,7 +207,8 @@ namespace WitchMendokusai.Server
 				World.Calendar,
 				World.Cauldron,
 				World.Gatherables.Alive(World.Calendar.TotalMinutes()),
-				Identities.NameOf));
+				Identities.NameOf,
+				World.Cauldrons));
 
 			// 이 연결의 말 예산 — 창 하나가 모두의 세계를 느리게 만들지 못하게 (TASK-WM-218).
 			WitchMendokusai.Net.MessageBudget budget = new WitchMendokusai.Net.MessageBudget();
@@ -807,8 +809,11 @@ namespace WitchMendokusai.Server
 				int fieldVersion = World.Gatherables.Version;
 				bool sendBuildings = buildVersion != sentBuildVersion;
 				bool sendField = fieldVersion != sentFieldVersion;
+				int potVersion = World.Cauldrons.Version;
+				bool sendPots = potVersion != sentPotVersion;
 				sentBuildVersion = buildVersion;
 				sentFieldVersion = fieldVersion;
+				sentPotVersion = potVersion;
 
 				// 상자 안이 바뀌었으면, 그 상자를 보고 있는 창들에 다시 보낸다.
 				int storageVersion = World.Storages.Version;
@@ -831,7 +836,8 @@ namespace WitchMendokusai.Server
 					World.Calendar,
 					World.Cauldron,
 					sendField ? World.Gatherables.Alive(World.Calendar.TotalMinutes()) : null,
-					Identities.NameOf);
+					Identities.NameOf,
+					sendPots ? World.Cauldrons : null);
 				foreach (System.Collections.Generic.KeyValuePair<int, Connection> entry in sockets)
 				{
 					if (entry.Value.Socket.State != WebSocketState.Open)

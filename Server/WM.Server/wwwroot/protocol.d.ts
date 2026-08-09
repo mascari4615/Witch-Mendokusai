@@ -66,11 +66,23 @@ export interface GatherableView {
 }
 
 /** buildings·gatherables 는 바뀐 프레임에만 실린다 — 없으면 지난 것을 그대로 쓸 것. */
+/** 지은 자리마다의 솥 — 여럿이 각자 젓는다. */
+export interface CauldronView {
+	x: number;
+	y: number;
+	z: number;
+	px: number;
+	py: number;
+	steps: number;
+	side: number;
+}
+
 export interface WorldSnapshot {
 	type: 'world';
 	dolls: WorldDollView[];
 	buildings?: WorldBuildingView[];
 	gatherables?: GatherableView[];
+	cauldrons?: CauldronView[];
 	time?: WorldTime;
 	brew?: BrewView;
 }

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Text.Json;
+using WitchMendokusai.Numerics;
 
 namespace WitchMendokusai.Server
 {
@@ -84,7 +85,9 @@ namespace WitchMendokusai.Server
 			builder.Append("export interface BrewView {\n\tx: number;\n\ty: number;\n\tsteps: number;\n\tside: number;\n\tpath: BrewStepView[];\n}\n\n");
 			builder.Append("export interface GatherableView {\n\tid: number;\n\tx: number;\n\tz: number;\n\titemId: number;\n\tamount: number;\n}\n\n");
 			builder.Append("/** buildings·gatherables 는 바뀐 프레임에만 실린다 — 없으면 지난 것을 그대로 쓸 것. */\n");
-			builder.Append("export interface WorldSnapshot {\n\ttype: '").Append(WORLD).Append("';\n\tdolls: WorldDollView[];\n\tbuildings?: WorldBuildingView[];\n\tgatherables?: GatherableView[];\n\ttime?: WorldTime;\n\tbrew?: BrewView;\n}\n\n");
+			builder.Append("/** 지은 자리마다의 솥 — 여럿이 각자 젓는다. */\n");
+			builder.Append("export interface CauldronView {\n\tx: number;\n\ty: number;\n\tz: number;\n\tpx: number;\n\tpy: number;\n\tsteps: number;\n\tside: number;\n}\n\n");
+			builder.Append("export interface WorldSnapshot {\n\ttype: '").Append(WORLD).Append("';\n\tdolls: WorldDollView[];\n\tbuildings?: WorldBuildingView[];\n\tgatherables?: GatherableView[];\n\tcauldrons?: CauldronView[];\n\ttime?: WorldTime;\n\tbrew?: BrewView;\n}\n\n");
 
 			builder.Append("/** 창 -> 서버: 이쪽으로 가고 싶다(얼마나 갈지는 서버가 정한다). */\n");
 			builder.Append("export interface MoveRequest {\n\ttype: '").Append(MOVE).Append("';\n\tx: number;\n\tz: number;\n}\n\n");
@@ -364,7 +367,7 @@ namespace WitchMendokusai.Server
 		}
 
 		/// <summary>서버가 보내는 세계 모습.</summary>
-		public static string WorldSnapshot(IEnumerable<WorldDoll> dolls, IEnumerable<PlacedBuilding> buildings, WorldCalendar calendar = null, WorldCauldron cauldron = null, IEnumerable<GatherableNode> gatherables = null, System.Func<int, string> nameOf = null)
+		public static string WorldSnapshot(IEnumerable<WorldDoll> dolls, IEnumerable<PlacedBuilding> buildings, WorldCalendar calendar = null, WorldCauldron cauldron = null, IEnumerable<GatherableNode> gatherables = null, System.Func<int, string> nameOf = null, WorldCauldrons cauldrons = null)
 		{
 			StringBuilder builder = new StringBuilder();
 			builder.Append("{\"type\":\"").Append(WORLD).Append("\",\"dolls\":[");
@@ -467,6 +470,36 @@ namespace WitchMendokusai.Server
 						.Append(",\"z\":").Append(node.Z.ToString("F2"))
 						.Append(",\"itemId\":").Append(node.ItemId)
 						.Append(",\"amount\":").Append(node.Amount)
+						.Append('}');
+				}
+
+				builder.Append(']');
+			}
+
+			// 자리마다의 솥 — 바뀐 프레임에만 실린다(여럿이 각자 젓는 것을 창이 봐야 한다).
+			if (cauldrons != null)
+			{
+				builder.Append(",\"cauldrons\":[");
+
+				bool firstPot = true;
+				foreach (Vector3Int cell in cauldrons.Cells())
+				{
+					WorldCauldron pot = cauldrons.At(cell);
+					if (pot == null)
+						continue;
+
+					if (firstPot == false)
+						builder.Append(',');
+
+					firstPot = false;
+					DomainSDK.Alchemy.BrewState state = pot.State;
+					builder.Append("{\"x\":").Append(cell.x)
+						.Append(",\"y\":").Append(cell.y)
+						.Append(",\"z\":").Append(cell.z)
+						.Append(",\"px\":").Append(state.Position.X.ToString("F3"))
+						.Append(",\"py\":").Append(state.Position.Y.ToString("F3"))
+						.Append(",\"steps\":").Append(state.StepCount)
+						.Append(",\"side\":").Append(state.AccruedSideEffect.ToString("F3"))
 						.Append('}');
 				}
 

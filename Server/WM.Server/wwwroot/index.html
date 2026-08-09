@@ -113,6 +113,7 @@
 
 		<section class="pot">
 			<h2>솥</h2>
+			<div class="line" id="potwhere">솥이 없다 — 지어서 쓰거나 가까이 가라</div>
 			<div class="line" id="brew">아직 안 저음</div>
 			<div class="line" id="aiming">—</div>
 			<select id="brewpick"></select>
@@ -172,6 +173,8 @@ let pickedBuilding = 0;
 let brewShelf = [];       // 솥에 넣을 수 있는 재료 — 들어올 때 한 번 받는다.
 let pickedIngredient = 0;
 let spellbook = [];       // 마도서 — 무엇을 만들 수 있나(들어올 때 한 번)
+let cauldrons = [];       // 지은 자리마다의 솥
+let myPot = null;         // 지금 쓰는 솥의 자리 (없으면 옛 전역 솥)
 let openChest = null;     // 지금 열어 둔 상자의 자리 (없으면 null)
 let chestItems = [];
 const MOVE_STEPS = [1, 5, 0];   // 0 = 전부
@@ -407,6 +410,7 @@ socket.onmessage = (event) => {
 		// 안 실려 온 목록은 「비었다」가 아니라 「안 바뀌었다」다 — 지난 것을 그대로 쓴다.
 		if (message.buildings) buildings = message.buildings;
 		if (message.gatherables) gatherables = message.gatherables;
+		if (message.cauldrons) cauldrons = message.cauldrons;
 		time = message.time || time;
 		brew = message.brew || brew;
 		drawWorldLines();
@@ -509,6 +513,15 @@ function placeAt(clientX, clientY) {
 	if (onBuilt.length > 0) {
 		const cell = onBuilt[0].object.userData.cell;
 		if (cell) {
+			// 솥이면 그 솥을 고른다 — 여럿이 각자 자기 솥에서 젓는다.
+			const pot = cauldrons.find((one) => one.x === cell.x && one.z === cell.z);
+			if (pot) {
+				myPot = { x: pot.x, y: pot.y, z: pot.z };
+				statusElement.textContent = `(${pot.x}, ${pot.z}) 솥을 쓴다`;
+				drawWorldLines();
+				return;
+			}
+
 			socket.send(JSON.stringify({ type: 'chestask', x: cell.x, y: cell.y, z: cell.z }));
 			return;
 		}
@@ -538,6 +551,14 @@ function drawWorldLines() {
 	}
 
 	document.getElementById('peers').textContent = `◈ ${dolls.length}명`;
+
+	// 고른 솥이 있으면 그 솥을 본다 — 없으면 옛 전역 솥.
+	const mine = myPot === null ? null : cauldrons.find((one) => one.x === myPot.x && one.z === myPot.z);
+	document.getElementById('potwhere').textContent = mine
+		? `(${mine.x}, ${mine.z}) 솥`
+		: '솥이 없다 — 솥을 짓고 눌러서 고른다';
+
+	if (mine) brew = { x: mine.px, y: mine.py, steps: mine.steps, side: mine.side, path: [] };
 
 	let brewText = '아직 안 저음';
 	if (brew && brew.steps > 0) {
@@ -775,18 +796,20 @@ document.getElementById('brewpick').addEventListener('change', (event) => {
 // 어느 쪽으로 얼마나 미는지는 세계가 재료에서 읽는다(창이 방향을 우기던 길은 없앴다).
 document.getElementById('stir').addEventListener('click', () => {
 	if (socket.readyState !== WebSocket.OPEN || pickedIngredient === 0) return;
-	socket.send(JSON.stringify({ type: 'brew', itemId: pickedIngredient }));
+	socket.send(JSON.stringify(myPot === null
+		? { type: 'brew', itemId: pickedIngredient }
+		: { type: 'brew', itemId: pickedIngredient, ...myPot }));
 });
 
 // 완성은 선착순 한 사람에게만 간다 — 못 받으면 아무 일도 안 일어난다(그게 정상이다).
 document.getElementById('complete').addEventListener('click', () => {
 	if (socket.readyState !== WebSocket.OPEN) return;
-	socket.send(JSON.stringify({ type: 'brewcomplete' }));
+	socket.send(JSON.stringify(myPot === null ? { type: 'brewcomplete' } : { type: 'brewcomplete', ...myPot }));
 });
 
 document.getElementById('clear').addEventListener('click', () => {
 	if (socket.readyState !== WebSocket.OPEN) return;
-	socket.send(JSON.stringify({ type: 'brewreset' }));
+	socket.send(JSON.stringify(myPot === null ? { type: 'brewreset' } : { type: 'brewreset', ...myPot }));
 });
 </script>
 </body>
