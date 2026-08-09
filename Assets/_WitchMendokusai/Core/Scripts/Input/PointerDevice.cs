@@ -18,7 +18,8 @@ namespace WitchMendokusai
 	public sealed class PointerDevice
 	{
 		private readonly TouchGesture gesture = new();
-		private readonly List<Vector2> touchPositions = new();
+		// 손가락 자리는 판정(TouchGesture)으로 넘어가므로 SDK 좌표 타입으로 담는다 — 엔진 밖에서도 도는 쪽 (TASK-WM-214).
+		private readonly List<Numerics.Vector2> touchPositions = new();
 		private readonly List<int> touchIds = new();
 
 		/// <summary> 지금 손가락으로 조작 중인가 — 화면 조작 UI 를 띄울지, 가장자리 밀기를 끌지의 단일 판정. </summary>
