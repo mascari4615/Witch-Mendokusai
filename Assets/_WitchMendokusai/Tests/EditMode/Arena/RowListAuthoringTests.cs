@@ -172,7 +172,7 @@ namespace WitchMendokusai.Tests
 			public int CombatantId { get; set; }
 			public int TeamId { get; set; }
 			public bool IsAlive { get; set; } = true;
-			public UnityEngine.Vector3 Position { get; set; }
+			public Vector3 Position { get; set; }
 			public int Hp { get; set; } = 100;
 			public int HpMax { get; set; } = 100;
 		}
