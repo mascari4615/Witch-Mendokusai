@@ -24,6 +24,9 @@ namespace WitchMendokusai
 		/// <summary>줍기까지 걸어갈 때 한 번에 보내는 걸음 사이 간격 (초).</summary>
 		private const float STEP_SECONDS = 0.1f;
 
+		/// <summary>다 놀았어도 이만큼은 세계에 머문다 — 늦게 온 사람과 겹칠 시간(초).</summary>
+		private const float LINGER_SECONDS = 12f;
+
 		private string resultPath;
 		private float waited;
 		private bool finished;
@@ -118,7 +121,19 @@ namespace WitchMendokusai
 					return;
 				}
 
-				if (leftBehind)
+				// ★ 솥은 <b>하나</b>고 완성은 선착순이다 (실측 2026-08-10) — 남이 먼저 가져가면
+				//   내 재료로 만든 것도 내 것이 아니다. 그건 규칙대로이지 고장이 아니므로,
+				//   「줍고·상자까지 됐다」면 물약 없이도 논 것으로 센다.
+				if (completedItemId == 0 && chestSeenAmount != 0 && waited >= LINGER_SECONDS)
+				{
+					Write("pass", link.Dolls.Length, link, "played but potion went to someone else");
+					return;
+				}
+
+				// ★ 다 놀았어도 <b>잠깐 머문다</b> (실측 2026-08-10): 3초 만에 끝내고 나갔더니
+				//   나중에 들어온 판과 한 번도 겹치지 않아 「둘이 만났나」를 잴 수가 없었다.
+				//   사람도 볼일 끝내자마자 창을 닫지는 않는다.
+				if (leftBehind && waited >= LINGER_SECONDS)
 				{
 					Write("pass", link.Dolls.Length, link, "played one round");
 					return;
