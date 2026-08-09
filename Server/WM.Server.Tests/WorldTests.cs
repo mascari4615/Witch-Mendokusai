@@ -135,6 +135,33 @@ namespace WitchMendokusai.Server.Tests
 			StringAssert.Contains("WorldSnapshot", typescript);
 			StringAssert.Contains("MoveRequest", typescript);
 		}
+
+		[Test]
+		public void 낱말표는_이름을_그대로_싣는다()
+		{
+			string json = Protocol.Catalog(new[]
+			{
+				new System.Collections.Generic.KeyValuePair<int, string>(7, "치유 물약"),
+			});
+
+			StringAssert.Contains("\"itemId\":7", json);
+			StringAssert.Contains("치유 물약", json);
+		}
+
+		[Test]
+		public void 이름에_따옴표가_있어도_창이_안_깨진다()
+		{
+			// 사람이 지은 이름에 " 나 \ 가 들어가면, 감싸지 않은 낱말표는 그 자리에서 문장을 끊는다.
+			string json = Protocol.Catalog(new[]
+			{
+				new System.Collections.Generic.KeyValuePair<int, string>(8, "이름에 \" 와 \\ 가 있다"),
+			});
+
+			System.Text.Json.JsonDocument parsed = System.Text.Json.JsonDocument.Parse(json);
+			System.Text.Json.JsonElement first = parsed.RootElement.GetProperty("items")[0];
+
+			Assert.AreEqual("이름에 \" 와 \\ 가 있다", first.GetProperty("name").GetString());
+		}
 	}
 
 	/// <summary>서버가 「짓기」도 판정한다 (TASK-WM-216).</summary>
@@ -205,6 +232,31 @@ namespace WitchMendokusai.Server.Tests
 		}
 
 		[Test]
+		public void 가방을_통째로_묻는다()
+		{
+			// 창이 가방을 그리려면 「서버가 아는 두 종류」가 아니라 **든 것 전부**를 받아야 한다.
+			WorldSim world = new WorldSim();
+			WorldDoll doll = world.Join();
+
+			world.TryGather(doll.Id, new ServerItemData(880001, 99), 3);
+			world.TryGather(doll.Id, new ServerItemData(880002, 99), 7);
+
+			System.Collections.Generic.List<BagSaveEntry> bag = world.BagOf(doll.Id);
+
+			Assert.AreEqual(2, bag.Count, "두 종류를 넣었으면 두 종류가 나와야 한다");
+			Assert.AreEqual(3, bag.Find(entry => entry.itemId == 880001).amount);
+			Assert.AreEqual(7, bag.Find(entry => entry.itemId == 880002).amount);
+		}
+
+		[Test]
+		public void 없는_인형의_가방은_빈_목록이다()
+		{
+			WorldSim world = new WorldSim();
+
+			Assert.AreEqual(0, world.BagOf(9999).Count, "없는 사람을 물어도 죽지 않는다");
+		}
+
+		[Test]
 		public void 모르는_아이템은_안_들어간다()
 		{
 			WorldSim world = new WorldSim();
@@ -221,9 +273,12 @@ namespace WitchMendokusai.Server.Tests
 			WorldSim world = new WorldSim();
 			WorldDoll doll = world.Join();
 
-			world.TryGather(doll.Id, ServerItemCatalog.Find(ServerItemCatalog.HERB), 45); // 한 칸 20
+			// ⚠ 서버 목록에 기대지 않는다 — 게임에서 뽑은 목록이 옆에 있으면 한 칸 크기가 달라져
+			//   이 시험이 「가방 규칙」이 아니라 「그날의 데이터」를 재게 된다(실측 2026-08-10).
+			ServerItemData small = new ServerItemData(770001, 20);
+			world.TryGather(doll.Id, small, 45); // 한 칸 20
 
-			Assert.AreEqual(45, world.BagCount(doll.Id, ServerItemCatalog.HERB), "세 칸에 나뉘어 들어간다");
+			Assert.AreEqual(45, world.BagCount(doll.Id, small.ID), "세 칸에 나뉘어 들어간다");
 		}
 
 		[Test]
@@ -232,11 +287,12 @@ namespace WitchMendokusai.Server.Tests
 			WorldSim world = new WorldSim();
 			WorldDoll doll = world.Join();
 
-			// 30칸 * 20 = 600 이 한계
-			int leftover = world.TryGather(doll.Id, ServerItemCatalog.Find(ServerItemCatalog.HERB), 650);
+			// 30칸 * 20 = 600 이 한계 (한 칸 크기는 시험이 정한다 — 데이터가 바뀌어도 규칙은 그대로다)
+			ServerItemData small = new ServerItemData(770002, 20);
+			int leftover = world.TryGather(doll.Id, small, 650);
 
 			Assert.AreEqual(50, leftover);
-			Assert.AreEqual(600, world.BagCount(doll.Id, ServerItemCatalog.HERB));
+			Assert.AreEqual(600, world.BagCount(doll.Id, small.ID));
 		}
 
 		[Test]

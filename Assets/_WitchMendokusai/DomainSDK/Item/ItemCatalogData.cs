@@ -8,6 +8,7 @@ namespace WitchMendokusai
 	public class ItemCatalogEntry
 	{
 		public int id;
+		public string name = string.Empty;
 		public int maxAmount = 1;
 		public int type;
 		public int grade;
@@ -36,12 +37,15 @@ namespace WitchMendokusai
 			public Entry(ItemCatalogEntry source)
 			{
 				ID = source.id;
+				// 이름이 비면 번호로 부른다 — 창에 「(빈칸) 3개」가 뜨는 것보다 낫다.
+				Name = string.IsNullOrWhiteSpace(source.name) ? "#" + source.id : source.name;
 				MaxAmount = source.maxAmount < 1 ? 1 : source.maxAmount;
 				Type = (ItemType)source.type;
 				Grade = (ItemGrade)source.grade;
 			}
 
 			public int ID { get; }
+			public string Name { get; }
 			public int MaxAmount { get; }
 			public ItemType Type { get; }
 			public ItemGrade Grade { get; }
@@ -73,5 +77,18 @@ namespace WitchMendokusai
 
 		/// <summary>그 번호의 아이템. 모르면 null(세계는 모르는 것을 가방에 넣지 않는다).</summary>
 		public IItemData Find(int itemId) => byId.TryGetValue(itemId, out Entry entry) ? entry : null;
+
+		/// <summary>
+		/// 사람에게 보일 이름 (TASK-WM-217 — 창이 「17450 3개」가 아니라 「돌 3개」를 보이려면 필요하다).
+		/// 모르는 번호면 <c>#번호</c> — 빈칸을 보이면 「없는 것」처럼 읽힌다.
+		/// </summary>
+		public string NameOf(int itemId) => byId.TryGetValue(itemId, out Entry entry) ? entry.Name : "#" + itemId;
+
+		/// <summary>아는 것 전부 — 창에 한 번 내려보내는 낱말표를 만들 때 쓴다.</summary>
+		public IEnumerable<KeyValuePair<int, string>> Names()
+		{
+			foreach (KeyValuePair<int, Entry> pair in byId)
+				yield return new KeyValuePair<int, string>(pair.Key, pair.Value.Name);
+		}
 	}
 }

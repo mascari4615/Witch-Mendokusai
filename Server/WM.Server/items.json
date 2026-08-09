@@ -2,834 +2,973 @@
     "items": [
         {
             "id": 17450,
+            "name": "치유 물약",
             "maxAmount": 500,
             "type": 0,
             "grade": 0
         },
         {
             "id": 9000000,
+            "name": "나무 갑옷",
             "maxAmount": 1,
             "type": 2,
             "grade": 0
         },
         {
             "id": 9000001,
+            "name": "가죽 갑옷",
             "maxAmount": 1,
             "type": 2,
             "grade": 0
         },
         {
             "id": 9000002,
+            "name": "금 갑옷",
             "maxAmount": 1,
             "type": 2,
             "grade": 0
         },
         {
             "id": 9000003,
+            "name": "철 갑옷",
             "maxAmount": 1,
             "type": 2,
             "grade": 0
         },
         {
             "id": 9000004,
+            "name": "강철 갑옷",
             "maxAmount": 1,
             "type": 2,
             "grade": 0
         },
         {
             "id": 9000005,
+            "name": "흑요석 갑옷",
             "maxAmount": 1,
             "type": 2,
             "grade": 0
         },
         {
             "id": 9000006,
+            "name": "광물7 갑옷",
             "maxAmount": 1,
             "type": 2,
             "grade": 0
         },
         {
             "id": 9000007,
+            "name": "에메랄드 갑옷",
             "maxAmount": 1,
             "type": 2,
             "grade": 0
         },
         {
             "id": 9000008,
+            "name": "사파이어 갑옷",
             "maxAmount": 1,
             "type": 2,
             "grade": 0
         },
         {
             "id": 10000000,
+            "name": "빈 플라스크 (소)",
             "maxAmount": 9999,
             "type": 1,
             "grade": 0
         },
         {
             "id": 10000001,
+            "name": "빈 플라스크 (중)",
             "maxAmount": 9999,
             "type": 1,
             "grade": 0
         },
         {
             "id": 10000002,
+            "name": "빈 병",
             "maxAmount": 9999,
             "type": 1,
             "grade": 0
         },
         {
             "id": 10001000,
+            "name": "빨간 포션 (소)",
             "maxAmount": 500,
             "type": 1,
             "grade": 0
         },
         {
             "id": 10001001,
+            "name": "빨간 포션 (중)",
             "maxAmount": 9999,
             "type": 1,
             "grade": 0
         },
         {
             "id": 10002000,
+            "name": "파란 포션 (소)",
             "maxAmount": 500,
             "type": 1,
             "grade": 0
         },
         {
             "id": 10002001,
+            "name": "파란 포션 (중)",
             "maxAmount": 500,
             "type": 1,
             "grade": 0
         },
         {
             "id": 10003000,
+            "name": "보라빛 포션 (소)",
             "maxAmount": 500,
             "type": 1,
             "grade": 0
         },
         {
             "id": 10003001,
+            "name": "보라빛 포션 (중)",
             "maxAmount": 500,
             "type": 1,
             "grade": 0
         },
         {
             "id": 10004000,
+            "name": "초록빛 포션 (소)",
             "maxAmount": 500,
             "type": 1,
             "grade": 0
         },
         {
             "id": 10004001,
+            "name": "초록빛 포션 (중)",
             "maxAmount": 500,
             "type": 1,
             "grade": 0
         },
         {
             "id": 10100000,
+            "name": "하얀 포션",
             "maxAmount": 500,
             "type": 1,
             "grade": 0
         },
         {
             "id": 10100001,
+            "name": "고동빛 포션",
             "maxAmount": 500,
             "type": 1,
             "grade": 0
         },
         {
             "id": 10100002,
+            "name": "분홍빛 포션",
             "maxAmount": 500,
             "type": 1,
             "grade": 0
         },
         {
             "id": 11000000,
+            "name": "연두빛 사탕",
             "maxAmount": 500,
             "type": 1,
             "grade": 0
         },
         {
             "id": 11000001,
+            "name": "커피맛 사탕",
             "maxAmount": 500,
             "type": 1,
             "grade": 0
         },
         {
             "id": 11000002,
+            "name": "레몬맛 사탕",
             "maxAmount": 500,
             "type": 1,
             "grade": 0
         },
         {
             "id": 20000000,
+            "name": "자석",
             "maxAmount": 1,
             "type": 2,
             "grade": 0
         },
         {
             "id": 20000001,
+            "name": "도깨비불",
             "maxAmount": 1,
             "type": 2,
             "grade": 0
         },
         {
             "id": 20000002,
+            "name": "정령",
             "maxAmount": 1,
             "type": 2,
             "grade": 0
         },
         {
             "id": 20000003,
+            "name": "도끼",
             "maxAmount": 1,
             "type": 2,
             "grade": 0
         },
         {
             "id": 20000004,
+            "name": "단추",
             "maxAmount": 1,
             "type": 2,
             "grade": 0
         },
         {
             "id": 20000005,
+            "name": "포탑",
             "maxAmount": 1,
             "type": 2,
             "grade": 0
         },
         {
             "id": 20000006,
+            "name": "커피",
             "maxAmount": 1,
             "type": 2,
             "grade": 0
         },
         {
             "id": 20000007,
+            "name": "작은 망치",
             "maxAmount": 1,
             "type": 2,
             "grade": 0
         },
         {
             "id": 20000008,
+            "name": "기어",
             "maxAmount": 1,
             "type": 2,
             "grade": 0
         },
         {
             "id": 20000009,
+            "name": "검",
             "maxAmount": 1,
             "type": 2,
             "grade": 0
         },
         {
             "id": 20000010,
+            "name": "큐브",
             "maxAmount": 1,
             "type": 2,
             "grade": 0
         },
         {
             "id": 20000011,
+            "name": "폭탄",
             "maxAmount": 1,
             "type": 2,
             "grade": 0
         },
         {
             "id": 20000012,
+            "name": "낚싯대",
             "maxAmount": 1,
             "type": 2,
             "grade": 0
         },
         {
             "id": 0,
+            "name": "나무",
             "maxAmount": 500,
             "type": 0,
             "grade": 0
         },
         {
             "id": 1,
+            "name": "나무 판자",
             "maxAmount": 500,
             "type": 0,
             "grade": 0
         },
         {
             "id": 2,
+            "name": "나뭇가지",
             "maxAmount": 500,
             "type": 0,
             "grade": 0
         },
         {
             "id": 3,
+            "name": "뼈다귀",
             "maxAmount": 500,
             "type": 0,
             "grade": 0
         },
         {
             "id": 4,
+            "name": "석탄",
             "maxAmount": 500,
             "type": 0,
             "grade": 0
         },
         {
             "id": 5,
+            "name": "철광석",
             "maxAmount": 500,
             "type": 0,
             "grade": 0
         },
         {
             "id": 6,
+            "name": "짙은 나무",
             "maxAmount": 500,
             "type": 0,
             "grade": 0
         },
         {
             "id": 7,
+            "name": "짙은 나무 판자",
             "maxAmount": 500,
             "type": 0,
             "grade": 0
         },
         {
             "id": 8,
+            "name": "자작 나무",
             "maxAmount": 500,
             "type": 0,
             "grade": 0
         },
         {
             "id": 9,
+            "name": "자작 나무 판자",
             "maxAmount": 500,
             "type": 0,
             "grade": 0
         },
         {
             "id": 10,
+            "name": "석재1",
             "maxAmount": 500,
             "type": 0,
             "grade": 0
         },
         {
             "id": 11,
+            "name": "석재2",
             "maxAmount": 500,
             "type": 0,
             "grade": 0
         },
         {
             "id": 12,
+            "name": "석재3",
             "maxAmount": 500,
             "type": 0,
             "grade": 0
         },
         {
             "id": 13,
+            "name": "석재4",
             "maxAmount": 500,
             "type": 0,
             "grade": 0
         },
         {
             "id": 14,
+            "name": "석재5",
             "maxAmount": 500,
             "type": 0,
             "grade": 0
         },
         {
             "id": 15,
+            "name": "벽돌",
             "maxAmount": 500,
             "type": 0,
             "grade": 0
         },
         {
             "id": 16,
+            "name": "석재6",
             "maxAmount": 500,
             "type": 0,
             "grade": 0
         },
         {
             "id": 17,
+            "name": "석재7",
             "maxAmount": 500,
             "type": 0,
             "grade": 0
         },
         {
             "id": 18,
+            "name": "석재8",
             "maxAmount": 500,
             "type": 0,
             "grade": 0
         },
         {
             "id": 19,
+            "name": "에이자의 적석",
             "maxAmount": 500,
             "type": 0,
             "grade": 0
         },
         {
             "id": 20,
+            "name": "무지개빛 보석",
             "maxAmount": 500,
             "type": 0,
             "grade": 0
         },
         {
             "id": 21,
+            "name": "에메랄드",
             "maxAmount": 500,
             "type": 0,
             "grade": 0
         },
         {
             "id": 22,
+            "name": "자수정",
             "maxAmount": 500,
             "type": 0,
             "grade": 0
         },
         {
             "id": 23,
+            "name": "흑요석",
             "maxAmount": 500,
             "type": 0,
             "grade": 0
         },
         {
             "id": 24,
+            "name": "광물1",
             "maxAmount": 500,
             "type": 0,
             "grade": 0
         },
         {
             "id": 25,
+            "name": "사파이어",
             "maxAmount": 500,
             "type": 0,
             "grade": 0
         },
         {
             "id": 26,
+            "name": "루비",
             "maxAmount": 500,
             "type": 0,
             "grade": 0
         },
         {
             "id": 27,
+            "name": "광물2",
             "maxAmount": 500,
             "type": 0,
             "grade": 0
         },
         {
             "id": 28,
+            "name": "금광석",
             "maxAmount": 500,
             "type": 0,
             "grade": 0
         },
         {
             "id": 29,
+            "name": "조약돌",
             "maxAmount": 500,
             "type": 0,
             "grade": 0
         },
         {
             "id": 30,
+            "name": "구리광석",
             "maxAmount": 500,
             "type": 0,
             "grade": 0
         },
         {
             "id": 31,
+            "name": "광물3",
             "maxAmount": 500,
             "type": 0,
             "grade": 0
         },
         {
             "id": 32,
+            "name": "광물4",
             "maxAmount": 500,
             "type": 0,
             "grade": 0
         },
         {
             "id": 33,
+            "name": "광물5",
             "maxAmount": 500,
             "type": 0,
             "grade": 0
         },
         {
             "id": 34,
+            "name": "광물6",
             "maxAmount": 500,
             "type": 0,
             "grade": 0
         },
         {
             "id": 35,
+            "name": "광물7",
             "maxAmount": 500,
             "type": 0,
             "grade": 0
         },
         {
             "id": 36,
+            "name": "화약",
             "maxAmount": 500,
             "type": 0,
             "grade": 0
         },
         {
             "id": 37,
+            "name": "동화",
             "maxAmount": 500,
             "type": 0,
             "grade": 0
         },
         {
             "id": 38,
+            "name": "금조각",
             "maxAmount": 500,
             "type": 0,
             "grade": 0
         },
         {
             "id": 39,
+            "name": "은조각",
             "maxAmount": 500,
             "type": 0,
             "grade": 0
         },
         {
             "id": 40,
+            "name": "동조각",
             "maxAmount": 500,
             "type": 0,
             "grade": 0
         },
         {
             "id": 41,
+            "name": "광물8",
             "maxAmount": 500,
             "type": 0,
             "grade": 0
         },
         {
             "id": 42,
+            "name": "철조각",
             "maxAmount": 500,
             "type": 0,
             "grade": 0
         },
         {
             "id": 43,
+            "name": "광물9",
             "maxAmount": 500,
             "type": 0,
             "grade": 0
         },
         {
             "id": 44,
+            "name": "광물10",
             "maxAmount": 500,
             "type": 0,
             "grade": 0
         },
         {
             "id": 45,
+            "name": "광물11",
             "maxAmount": 500,
             "type": 0,
             "grade": 0
         },
         {
             "id": 46,
+            "name": "광물12",
             "maxAmount": 500,
             "type": 0,
             "grade": 0
         },
         {
             "id": 47,
+            "name": "은화",
             "maxAmount": 500,
             "type": 0,
             "grade": 0
         },
         {
             "id": 48,
+            "name": "금괴",
             "maxAmount": 500,
             "type": 0,
             "grade": 0
         },
         {
             "id": 49,
+            "name": "은괴",
             "maxAmount": 500,
             "type": 0,
             "grade": 0
         },
         {
             "id": 50,
+            "name": "동괴",
             "maxAmount": 500,
             "type": 0,
             "grade": 0
         },
         {
             "id": 51,
+            "name": "석탄괴",
             "maxAmount": 500,
             "type": 0,
             "grade": 0
         },
         {
             "id": 52,
+            "name": "돌괴",
             "maxAmount": 500,
             "type": 0,
             "grade": 0
         },
         {
             "id": 53,
+            "name": "철괴",
             "maxAmount": 500,
             "type": 0,
             "grade": 0
         },
         {
             "id": 54,
+            "name": "괴1",
             "maxAmount": 500,
             "type": 0,
             "grade": 0
         },
         {
             "id": 55,
+            "name": "괴2",
             "maxAmount": 500,
             "type": 0,
             "grade": 0
         },
         {
             "id": 56,
+            "name": "괴3",
             "maxAmount": 500,
             "type": 0,
             "grade": 0
         },
         {
             "id": 57,
+            "name": "금화",
             "maxAmount": 500,
             "type": 0,
             "grade": 0
         },
         {
             "id": 58,
+            "name": "양송이 버섯",
             "maxAmount": 500,
             "type": 0,
             "grade": 0
         },
         {
             "id": 59,
+            "name": "고추",
             "maxAmount": 500,
             "type": 0,
             "grade": 0
         },
         {
             "id": 60,
+            "name": "매실",
             "maxAmount": 500,
             "type": 0,
             "grade": 0
         },
         {
             "id": 61,
+            "name": "밀",
             "maxAmount": 500,
             "type": 0,
             "grade": 0
         },
         {
             "id": 62,
+            "name": "종이",
             "maxAmount": 500,
             "type": 0,
             "grade": 0
         },
         {
             "id": 63,
+            "name": "빵조각",
             "maxAmount": 500,
             "type": 0,
             "grade": 0
         },
         {
             "id": 64,
+            "name": "우유",
             "maxAmount": 500,
             "type": 0,
             "grade": 0
         },
         {
             "id": 65,
+            "name": "달걀",
             "maxAmount": 500,
             "type": 0,
             "grade": 0
         },
         {
             "id": 66,
+            "name": "사탕수수",
             "maxAmount": 500,
             "type": 0,
             "grade": 0
         },
         {
             "id": 67,
+            "name": "딸기우유",
             "maxAmount": 500,
             "type": 0,
             "grade": 0
         },
         {
             "id": 68,
+            "name": "초코우유",
             "maxAmount": 500,
             "type": 0,
             "grade": 0
         },
         {
             "id": 69,
+            "name": "꿀",
             "maxAmount": 500,
             "type": 0,
             "grade": 0
         },
         {
             "id": 70,
+            "name": "소고기",
             "maxAmount": 500,
             "type": 0,
             "grade": 0
         },
         {
             "id": 71,
+            "name": "잘린생선",
             "maxAmount": 500,
             "type": 0,
             "grade": 0
         },
         {
             "id": 72,
+            "name": "닭고기",
             "maxAmount": 500,
             "type": 0,
             "grade": 0
         },
         {
             "id": 73,
+            "name": "햄",
             "maxAmount": 500,
             "type": 0,
             "grade": 0
         },
         {
             "id": 74,
+            "name": "심장",
             "maxAmount": 500,
             "type": 0,
             "grade": 0
         },
         {
             "id": 75,
+            "name": "깃털",
             "maxAmount": 500,
             "type": 0,
             "grade": 0
         },
         {
             "id": 76,
+            "name": "양털",
             "maxAmount": 500,
             "type": 0,
             "grade": 0
         },
         {
             "id": 77,
+            "name": "가죽1",
             "maxAmount": 500,
             "type": 0,
             "grade": 0
         },
         {
             "id": 78,
+            "name": "가죽2",
             "maxAmount": 500,
             "type": 0,
             "grade": 0
         },
         {
             "id": 79,
+            "name": "가죽3",
             "maxAmount": 500,
             "type": 0,
             "grade": 0
         },
         {
             "id": 80,
+            "name": "가죽4",
             "maxAmount": 500,
             "type": 0,
             "grade": 0
         },
         {
             "id": 81,
+            "name": "가죽5",
             "maxAmount": 500,
             "type": 0,
             "grade": 0
         },
         {
             "id": 82,
+            "name": "가죽6",
             "maxAmount": 500,
             "type": 0,
             "grade": 0
         },
         {
             "id": 83,
+            "name": "가죽7",
             "maxAmount": 500,
             "type": 0,
             "grade": 0
         },
         {
             "id": 84,
+            "name": "가죽8",
             "maxAmount": 500,
             "type": 0,
             "grade": 0
         },
         {
             "id": 85,
+            "name": "가죽9",
             "maxAmount": 500,
             "type": 0,
             "grade": 0
         },
         {
             "id": 86,
+            "name": "가죽10",
             "maxAmount": 500,
             "type": 0,
             "grade": 0
         },
         {
             "id": 87,
+            "name": "잎파리",
             "maxAmount": 500,
             "type": 0,
             "grade": 0
         },
         {
             "id": 88,
+            "name": "잡초",
             "maxAmount": 500,
             "type": 0,
             "grade": 0
         },
         {
             "id": 89,
+            "name": "쑥",
             "maxAmount": 500,
             "type": 0,
             "grade": 0
         },
         {
             "id": 90,
+            "name": "튤립",
             "maxAmount": 500,
             "type": 0,
             "grade": 0
         },
         {
             "id": 91,
+            "name": "민들레",
             "maxAmount": 500,
             "type": 0,
             "grade": 0
         },
         {
             "id": 92,
+            "name": "목화",
             "maxAmount": 500,
             "type": 0,
             "grade": 0
         },
         {
             "id": 93,
+            "name": "끈끈이주걱",
             "maxAmount": 500,
             "type": 0,
             "grade": 0
         },
         {
             "id": 18211,
+            "name": "마수 고기",
             "maxAmount": 500,
             "type": 0,
             "grade": 0
         },
         {
             "id": 18212,
+            "name": "거친 가죽",
             "maxAmount": 500,
             "type": 0,
             "grade": 0
         },
         {
             "id": 18213,
+            "name": "마수 뼈",
             "maxAmount": 500,
             "type": 0,
             "grade": 0
         },
         {
             "id": 30000000,
+            "name": "나무씨앗",
             "maxAmount": 99,
             "type": 0,
             "grade": 0
         },
         {
             "id": 90000167,
+            "name": "달빛이끼 잎",
             "maxAmount": 500,
             "type": 0,
             "grade": 0

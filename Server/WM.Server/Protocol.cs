@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Text;
+using System.Text.Json;
 
 namespace WitchMendokusai.Server
 {
@@ -12,6 +13,14 @@ namespace WitchMendokusai.Server
 	/// </summary>
 	public static class Protocol
 	{
+		// 한글 이름을 \uXXXX 로 바꾸지 않는다 — 기본값은 ASCII 밖을 전부 escape 해서 낱말표가
+		// 사람 눈에도, 시험 눈에도 안 읽히는 덩어리가 된다. <, >, & 는 그대로 escape 되므로
+		// 창이 이름을 HTML 로 오해할 여지는 남지 않는다.
+		private static readonly JsonSerializerOptions textOptions = new JsonSerializerOptions
+		{
+			Encoder = System.Text.Encodings.Web.JavaScriptEncoder.Create(System.Text.Unicode.UnicodeRanges.All),
+		};
+
 		// 말의 이름과 모양은 판정 층(WitchMendokusai.Net)이 정본이다 — Unity 도 같은 소스를 본다.
 		public const string HELLO = Net.NetMessageType.HELLO;
 		public const string WELCOME = Net.NetMessageType.WELCOME;
@@ -26,6 +35,7 @@ namespace WitchMendokusai.Server
 		public const string BREW_TAKEN = Net.NetMessageType.BREW_TAKEN;
 		public const string BAG = Net.NetMessageType.BAG;
 		public const string BAG_ASK = Net.NetMessageType.BAG_ASK;
+		public const string CATALOG = Net.NetMessageType.CATALOG;
 		public const string CONSUME = Net.NetMessageType.CONSUME;
 		public const string INVITE_ASK = Net.NetMessageType.INVITE_ASK;
 		public const string INVITE = Net.NetMessageType.INVITE;
@@ -83,6 +93,9 @@ namespace WitchMendokusai.Server
 			builder.Append("/** 서버 -> 그 창에게만: 네 가방은 이렇다. */\n");
 			builder.Append("export interface Bag {\n\ttype: '").Append(BAG).Append("';\n\titems: { itemId: number; amount: number }[];\n}\n\n");
 
+			builder.Append("/** 서버 -> 창: 아이템 낱말표(들어올 때 한 번). 그 뒤로는 번호만 나른다. */\n");
+			builder.Append("export interface Catalog {\n\ttype: '").Append(CATALOG).Append("';\n\titems: { itemId: number; name: string }[];\n}\n\n");
+
 			builder.Append("/** 창 -> 서버: 다른 기기를 이을 초대 열쇠를 만들어 줘. */\n");
 			builder.Append("export interface InviteAsk {\n\ttype: '").Append(INVITE_ASK).Append("';\n}\n\n");
 
@@ -98,7 +111,7 @@ namespace WitchMendokusai.Server
 			builder.Append("/** 서버 -> 그 창에게만: 다른 곳에서 같은 사람이 들어왔다(여기서는 나간다). */\n");
 			builder.Append("export interface Kicked {\n\ttype: '").Append(KICKED).Append("';\n\treason: string;\n}\n\n");
 
-			builder.Append("export type ServerMessage = Welcome | WorldSnapshot | BrewTaken | Bag | Invite | Linked | Kicked;\n");
+			builder.Append("export type ServerMessage = Welcome | WorldSnapshot | BrewTaken | Bag | Catalog | Invite | Linked | Kicked;\n");
 			builder.Append("export type ClientMessage = MoveRequest | RemoveRequest | BrewRequest | BrewResetRequest | BrewCompleteRequest | Hello | BagAsk | ConsumeRequest | InviteAsk | LinkRequest;\n");
 
 			return builder.ToString();
@@ -121,6 +134,30 @@ namespace WitchMendokusai.Server
 
 				first = false;
 				builder.Append("{\"itemId\":").Append(entry.Key).Append(",\"amount\":").Append(entry.Value).Append('}');
+			}
+
+			builder.Append("]}");
+			return builder.ToString();
+		}
+
+		/// <summary>
+		/// 아이템 낱말표 — 들어올 때 한 번 (TASK-WM-217).
+		/// 이름에 따옴표·역슬래시가 들어와도 창이 안 깨지게 <b>반드시 감싸서</b> 낸다.
+		/// </summary>
+		public static string Catalog(IEnumerable<KeyValuePair<int, string>> names)
+		{
+			StringBuilder builder = new StringBuilder();
+			builder.Append("{\"type\":\"").Append(CATALOG).Append("\",\"items\":[");
+
+			bool first = true;
+			foreach (KeyValuePair<int, string> entry in names)
+			{
+				if (first == false)
+					builder.Append(',');
+
+				first = false;
+				builder.Append("{\"itemId\":").Append(entry.Key).Append(",\"name\":")
+					.Append(JsonSerializer.Serialize(entry.Value ?? string.Empty, textOptions)).Append('}');
 			}
 
 			builder.Append("]}");

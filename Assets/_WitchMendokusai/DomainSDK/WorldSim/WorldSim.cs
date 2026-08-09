@@ -490,6 +490,18 @@ namespace WitchMendokusai
 			}
 		}
 
+		/// <summary>
+		/// 그 인형의 가방 전부 (TASK-WM-217 — 창이 진짜 가방을 보이려면 필요하다).
+		/// ⚠ 전에는 서버가 <b>아는 아이템 두 종류만</b> 물어 봤다 — 나머지는 가방에 있어도 창에 안 보였다.
+		/// </summary>
+		public List<BagSaveEntry> BagOf(int dollId)
+		{
+			lock (gate)
+			{
+				return dolls.TryGetValue(dollId, out WorldDoll doll) ? doll.SaveBag() : new List<BagSaveEntry>();
+			}
+		}
+
 		/// <summary>제작 등으로 재료를 쓴다. 못 쓰고 남은 개수를 돌려준다.</summary>
 		public int TryConsume(int dollId, int itemId, int amount)
 		{

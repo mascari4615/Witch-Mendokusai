@@ -32,6 +32,13 @@ namespace WitchMendokusai.Net
 		/// <summary>창 → 서버: 내 가방 좀 알려줘 (TASK-WM-218 — 다시 들어왔을 때 화면을 채우려면 물어봐야 한다).</summary>
 		public const string BAG_ASK = "bagask";
 
+		/// <summary>
+		/// 서버 → 창: 아이템 번호↔이름 낱말표 (들어올 때 한 번).
+		/// ★ 왜 한 번인가: 가방이 바뀔 때마다 이름을 같이 보내면 같은 낱말을 초당 몇 번씩 나른다.
+		///   낱말표는 세계가 도는 동안 안 바뀐다 — 한 번 주고, 그 뒤로는 번호만 나른다.
+		/// </summary>
+		public const string CATALOG = "catalog";
+
 		/// <summary>창 → 서버: 이걸 썼다(제작 재료 등). 안 알리면 쓴 게 다시 생긴다.</summary>
 		public const string CONSUME = "consume";
 
@@ -163,6 +170,22 @@ namespace WitchMendokusai.Net
 	{
 		public int itemId;
 		public int amount;
+	}
+
+	/// <summary>낱말표 한 줄 — 이 번호는 이렇게 부른다.</summary>
+	[Serializable]
+	public class CatalogEntry
+	{
+		public int itemId;
+		public string name = string.Empty;
+	}
+
+	/// <summary>서버 → 창: 아이템 낱말표(들어올 때 한 번).</summary>
+	[Serializable]
+	public class CatalogMessage
+	{
+		public string type = NetMessageType.CATALOG;
+		public CatalogEntry[] items = Array.Empty<CatalogEntry>();
 	}
 
 	/// <summary>서버 → 그 창에게만: 네 가방은 이렇다.</summary>

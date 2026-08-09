@@ -36,6 +36,8 @@ namespace WitchMendokusai.EditorTools
 				entries.Add(new ItemCatalogEntry
 				{
 					id = data.ID,
+					// 이름까지 뽑는 이유: 창(웹)은 유니티 에셋을 못 읽는다 — 이름이 없으면 「17450 3개」로 보인다.
+					name = data.Name,
 					maxAmount = data.MaxAmount,
 					type = (int)data.Type,
 					grade = (int)data.Grade,

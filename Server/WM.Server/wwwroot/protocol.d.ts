@@ -99,6 +99,12 @@ export interface Bag {
 	items: { itemId: number; amount: number }[];
 }
 
+/** 서버 -> 창: 아이템 낱말표(들어올 때 한 번). 그 뒤로는 번호만 나른다. */
+export interface Catalog {
+	type: 'catalog';
+	items: { itemId: number; name: string }[];
+}
+
 /** 창 -> 서버: 다른 기기를 이을 초대 열쇠를 만들어 줘. */
 export interface InviteAsk {
 	type: 'inviteask';
@@ -129,5 +135,5 @@ export interface Kicked {
 	reason: string;
 }
 
-export type ServerMessage = Welcome | WorldSnapshot | BrewTaken | Bag | Invite | Linked | Kicked;
+export type ServerMessage = Welcome | WorldSnapshot | BrewTaken | Bag | Catalog | Invite | Linked | Kicked;
 export type ClientMessage = MoveRequest | RemoveRequest | BrewRequest | BrewResetRequest | BrewCompleteRequest | Hello | BagAsk | ConsumeRequest | InviteAsk | LinkRequest;

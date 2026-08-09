@@ -157,6 +157,9 @@ namespace WitchMendokusai.Server
 			sockets[doll.Id] = connection;
 			await SendAsync(connection, Protocol.Welcome(doll.Id));
 
+			// 낱말표는 들어올 때 한 번 — 이게 있어야 창이 「돌 3개」라고 말할 수 있다(없으면 「17450 3개」).
+			await SendAsync(connection, Protocol.Catalog(ItemsCatalog.Names()));
+
 			// 이 연결의 말 예산 — 창 하나가 모두의 세계를 느리게 만들지 못하게 (TASK-WM-218).
 			WitchMendokusai.Net.MessageBudget budget = new WitchMendokusai.Net.MessageBudget();
 			DateTime lastSpoke = DateTime.UtcNow;
@@ -454,12 +457,13 @@ namespace WitchMendokusai.Server
 			if (sockets.TryGetValue(dollId, out Connection socket) == false)
 				return;
 
+			// 가방에 든 것 **전부**. 전에는 서버가 아는 두 종류만 물어 봐서, 나머지는 갖고 있어도 창에 안 보였다.
+			System.Collections.Generic.List<BagSaveEntry> bag = World.BagOf(dollId);
 			System.Collections.Generic.List<System.Collections.Generic.KeyValuePair<int, int>> counts =
-				new System.Collections.Generic.List<System.Collections.Generic.KeyValuePair<int, int>>
-				{
-					new System.Collections.Generic.KeyValuePair<int, int>(ServerItemCatalog.STONE, World.BagCount(dollId, ServerItemCatalog.STONE)),
-					new System.Collections.Generic.KeyValuePair<int, int>(ServerItemCatalog.HERB, World.BagCount(dollId, ServerItemCatalog.HERB)),
-				};
+				new System.Collections.Generic.List<System.Collections.Generic.KeyValuePair<int, int>>(bag.Count);
+
+			for (int i = 0; i < bag.Count; i++)
+				counts.Add(new System.Collections.Generic.KeyValuePair<int, int>(bag[i].itemId, bag[i].amount));
 
 			await SendAsync(socket, Protocol.Bag(counts));
 		}
