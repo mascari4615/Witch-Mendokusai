@@ -244,6 +244,29 @@ namespace WitchMendokusai.Net
 		public int nodeId;
 	}
 
+	/// <summary>서버 → 그 창에게만: 그 상자 안은 이렇다.</summary>
+	[Serializable]
+	public class ChestView
+	{
+		public string type = NetMessageType.CHEST;
+		public int x;
+		public int y;
+		public int z;
+		public BagEntry[] items = Array.Empty<BagEntry>();
+	}
+
+	/// <summary>창 → 서버: 그 상자 안을 보여 줘 / 넣겠다 / 꺼내겠다.</summary>
+	[Serializable]
+	public class ChestMessage
+	{
+		public string type = NetMessageType.CHEST_ASK;
+		public int x;
+		public int y;
+		public int z;
+		public int itemId;
+		public int amount = 1;
+	}
+
 	/// <summary>세계에 서 있는 주울 것 하나 — 창이 그리는 데 필요한 최소.</summary>
 	[Serializable]
 	public class GatherableView

@@ -218,6 +218,12 @@ namespace WitchMendokusai
 				return;
 			}
 
+			if (json.Contains("\"" + NetMessageType.CHEST + "\""))
+			{
+				Chest = JsonUtility.FromJson<ChestView>(json);
+				return;
+			}
+
 			if (json.Contains("\"" + NetMessageType.BAG + "\""))
 			{
 				BagMessage bag = JsonUtility.FromJson<BagMessage>(json);
@@ -305,6 +311,24 @@ namespace WitchMendokusai
 
 		/// <summary>「이걸 줍고 싶다」 — 가방에 들어갈지는 서버가 본다.</summary>
 		public void RequestGather(int nodeId) => Send(JsonUtility.ToJson(new GatherMessage { nodeId = nodeId }));
+
+		/// <summary>마지막으로 받은 상자 안 — 아직 없으면 null.</summary>
+		public ChestView Chest { get; private set; }
+
+		public void RequestChest(int cellX, int cellY, int cellZ)
+		{
+			Send(JsonUtility.ToJson(new ChestMessage { type = NetMessageType.CHEST_ASK, x = cellX, y = cellY, z = cellZ }));
+		}
+
+		public void RequestChestPut(int cellX, int cellY, int cellZ, int itemId, int amount)
+		{
+			Send(JsonUtility.ToJson(new ChestMessage { type = NetMessageType.CHEST_PUT, x = cellX, y = cellY, z = cellZ, itemId = itemId, amount = amount }));
+		}
+
+		public void RequestChestTake(int cellX, int cellY, int cellZ, int itemId, int amount)
+		{
+			Send(JsonUtility.ToJson(new ChestMessage { type = NetMessageType.CHEST_TAKE, x = cellX, y = cellY, z = cellZ, itemId = itemId, amount = amount }));
+		}
 
 		/// <summary>세계에 서 있는 주울 것들 — 알림마다 갈아 끼운다.</summary>
 		public GatherableView[] Gatherables { get; private set; } = Array.Empty<GatherableView>();

@@ -38,6 +38,16 @@ namespace WitchMendokusai
 		private int completedItemId;
 		private float stepCooldown;
 
+		// 상자 왕복 — 지은 상자에 넣고 그대로 다시 꺼내 본다(같이 노는 알맹이).
+		private const int CHEST_BUILDING_ID = 4005;
+		private bool chestPlaced;
+		private bool chestFilled;
+		private int chestSeenAmount;
+
+		// ★ 두 판이 같은 자리에 지으면 한쪽은 영영 상자가 없다 — 각자 <b>자기가 선 자리</b>에 짓는다.
+		private int chestX;
+		private int chestZ;
+
 		/// <summary>
 		/// 파수꾼은 <b>스스로 선다</b> — 스모크 때만(환경변수가 있을 때만).
 		/// 씬에 얹어야 켜지는 구조면 「스모크용 씬」이 따로 생기고, 그건 진짜 게임이 아니게 된다.
@@ -91,6 +101,7 @@ namespace WitchMendokusai
 			string why = link == null ? "no link"
 				: sawOther == false ? "nobody else"
 				: gatheredItemId == 0 ? "could not gather"
+				: chestSeenAmount == 0 ? "chest did not take it"
 				: brewed == false ? "could not brew"
 				: "no potion";
 
@@ -112,6 +123,39 @@ namespace WitchMendokusai
 				return;
 			}
 
+			// 주운 것으로 먼저 상자 왕복을 해 본다 — 넣고, 그대로 다시 꺼낸다.
+			// ★ 두 판이 같은 자리에 지으면 한쪽은 영영 상자가 없다 — 각자 자기가 선 자리에 짓는다.
+			if (chestPlaced == false)
+			{
+				WhereIStand(link, out float standX, out float standZ);
+				chestX = Mathf.RoundToInt(standX);
+				chestZ = Mathf.RoundToInt(standZ);
+				link.RequestPlace(chestX, 0, chestZ, CHEST_BUILDING_ID);
+				chestPlaced = true;
+				return;
+			}
+
+			if (chestFilled == false)
+			{
+				link.RequestChestPut(chestX, 0, chestZ, gatheredItemId, 1);
+				chestFilled = true;
+				return;
+			}
+
+			if (chestSeenAmount == 0)
+			{
+				// 상자가 정말 받았나 — 받았으면 도로 꺼내 가방으로 되돌린다.
+				if (link.Chest != null && link.Chest.items != null && link.Chest.items.Length > 0)
+				{
+					chestSeenAmount = link.Chest.items[0].amount;
+					link.RequestChestTake(chestX, 0, chestZ, gatheredItemId, chestSeenAmount);
+					return;
+				}
+
+				link.RequestChest(chestX, 0, chestZ);
+				return;
+			}
+
 			if (brewed == false)
 			{
 				link.RequestBrewStep(gatheredItemId);
@@ -125,6 +169,23 @@ namespace WitchMendokusai
 			WorldBrewView taken = link.TakeCompletedBrew();
 			if (taken != null && taken.itemId != 0)
 				completedItemId = taken.itemId;
+		}
+
+		/// <summary>내가 지금 선 자리 — 없으면 원점.</summary>
+		private static void WhereIStand(IWorldLink link, out float x, out float z)
+		{
+			x = 0f;
+			z = 0f;
+			WorldDollView[] dolls = link.Dolls;
+			for (int i = 0; i < dolls.Length; i++)
+			{
+				if (dolls[i].id != link.MyDollId)
+					continue;
+
+				x = dolls[i].x;
+				z = dolls[i].z;
+				return;
+			}
 		}
 
 		private void WalkAndGather(IWorldLink link)
@@ -192,6 +253,8 @@ namespace WitchMendokusai
 				"potion=", completedItemId.ToString(CultureInfo.InvariantCulture), "\n",
 				// 세계가 준 열쇠 — 다음 판이 「같은 사람」으로 들어오려면 이걸 물려받아야 한다.
 				"secret=", WorldKeyStore.LastGranted, "\n",
+				// 상자에 넣고 다시 꺼내 봤나 — 0 이면 나눔이 안 도는 세계다.
+				"chest=", chestSeenAmount.ToString(CultureInfo.InvariantCulture), "\n",
 				"reason=", reason, "\n");
 
 			try

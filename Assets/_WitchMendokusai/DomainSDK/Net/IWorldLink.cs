@@ -68,5 +68,17 @@ namespace WitchMendokusai.Net
 
 		/// <summary>이걸 썼다 — 정말 있었는지는 세계가 본다(없으면 아무 일도 안 일어난다).</summary>
 		void RequestConsume(int itemId, int amount);
+
+		/// <summary>그 상자 안을 보여 달라 — 손이 닿는지는 세계가 본다.</summary>
+		void RequestChest(int cellX, int cellY, int cellZ);
+
+		/// <summary>가방 → 상자. 넣다 남으면 세계가 도로 가방에 돌려준다(사라지는 물건은 없다).</summary>
+		void RequestChestPut(int cellX, int cellY, int cellZ, int itemId, int amount);
+
+		/// <summary>상자 → 가방. 가방이 좁으면 세계가 남은 만큼 상자에 도로 넣는다.</summary>
+		void RequestChestTake(int cellX, int cellY, int cellZ, int itemId, int amount);
+
+		/// <summary>마지막으로 받은 상자 안 — 아직 없으면 null.</summary>
+		ChestView Chest { get; }
 	}
 }

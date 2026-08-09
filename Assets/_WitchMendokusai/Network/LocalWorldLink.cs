@@ -230,6 +230,58 @@ namespace WitchMendokusai
 			world.TryConsume(me.Id, itemId, amount);
 		}
 
+		/// <summary>마지막으로 들여다본 상자 — 혼자 놀 때도 같은 규약이다.</summary>
+		public ChestView Chest { get; private set; }
+
+		public void RequestChest(int cellX, int cellY, int cellZ)
+		{
+			Chest = Look(new Numerics.Vector3Int(cellX, cellY, cellZ));
+		}
+
+		public void RequestChestPut(int cellX, int cellY, int cellZ, int itemId, int amount)
+		{
+			Numerics.Vector3Int cell = new Numerics.Vector3Int(cellX, cellY, cellZ);
+			Numerics.Vector3 standing = world.PositionOf(me.Id);
+
+			// 가방에서 먼저 뺀다 — 넣다 남으면 도로 돌려준다(사라지는 물건은 없다).
+			int missing = world.TryConsume(me.Id, itemId, amount);
+			int moving = amount - missing;
+			if (moving > 0)
+			{
+				int leftover = world.Storages.Put(cell, ItemCatalog.Find(itemId), moving, standing.x, standing.z);
+				if (leftover > 0)
+					world.TryGather(me.Id, ItemCatalog.Find(itemId), leftover);
+			}
+
+			Chest = Look(cell);
+		}
+
+		public void RequestChestTake(int cellX, int cellY, int cellZ, int itemId, int amount)
+		{
+			Numerics.Vector3Int cell = new Numerics.Vector3Int(cellX, cellY, cellZ);
+			Numerics.Vector3 standing = world.PositionOf(me.Id);
+
+			int taken = world.Storages.Take(cell, itemId, amount, standing.x, standing.z);
+			if (taken > 0)
+			{
+				int leftover = world.TryGather(me.Id, ItemCatalog.Find(itemId), taken);
+				if (leftover > 0)
+					world.Storages.Put(cell, ItemCatalog.Find(itemId), leftover, standing.x, standing.z);
+			}
+
+			Chest = Look(cell);
+		}
+
+		private ChestView Look(Numerics.Vector3Int cell)
+		{
+			List<BagSaveEntry> contents = world.Storages.Contents(cell);
+			BagEntry[] items = new BagEntry[contents.Count];
+			for (int i = 0; i < contents.Count; i++)
+				items[i] = new BagEntry { itemId = contents[i].itemId, amount = contents[i].amount };
+
+			return new ChestView { x = cell.x, y = cell.y, z = cell.z, items = items };
+		}
+
 		/// <summary>내 가방 — 화면이 읽어 간다.</summary>
 		public int BagCount(int itemId) => world.BagCount(me.Id, itemId);
 	}
