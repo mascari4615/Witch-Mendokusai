@@ -20,11 +20,15 @@
 	canvas { background: #1d1a26; border: 1px solid #322c42; touch-action: none; }
 	.status { font-variant-numeric: tabular-nums; opacity: .8; }
 	.hint { opacity: .55; max-width: 44ch; text-align: center; }
+	.worldline { font-variant-numeric: tabular-nums; opacity: .75; display: flex; gap: 8px; }
+	.worldline .dot { opacity: .4; }
 </style>
 </head>
 <body>
 	<div class="status" id="status">붙는 중…</div>
+	<div class="worldline"><span id="clock">—</span><span class="dot">·</span><span id="peers">0명</span></div>
 	<canvas id="board" width="480" height="360"></canvas>
+	<div class="worldline">솥: <span id="brew">아직 안 저음</span></div>
 	<div class="hint">
 		방향키(또는 WASD)로 움직이고, 판을 눌러 짓는다. 판정은 서버가 한다 —
 		한 번에 갈 수 있는 거리는 서버가 잘라낸다. 창을 두 개 열면 서로가 보인다.
@@ -42,6 +46,8 @@
 	var dolls = [];
 	var buildings = [];
 	var pressed = {};
+	var time = null;   // 세계의 시각 — 서버가 굴린다(사람이 없어도 흐른다).
+	var brew = null;   // 모두가 같이 젓는 솥.
 	var SCALE = 12; // 한 칸을 몇 픽셀로 그릴 것인가 (보기용일 뿐, 규칙 아님)
 
 	var socket = new WebSocket((location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host + '/ws');
@@ -61,6 +67,9 @@
 		if (message.type === 'world') {
 			dolls = message.dolls;
 			buildings = message.buildings || [];
+			time = message.time || time;
+			brew = message.brew || brew;
+			drawWorldLines();
 			draw();
 		}
 	};
@@ -96,6 +105,27 @@
 
 		socket.send(JSON.stringify({ type: 'place', x: cellX, y: 0, z: cellZ, w: 2, l: 2, buildingId: 4000 }));
 	});
+
+	var SEASONS = ['봄', '여름', '가을', '겨울'];
+
+	// 서버가 보내는 것을 **눈으로** 확인할 자리. 안 그리면 시각·솥이 조용히 죽어도 아무도 모른다.
+	function drawWorldLines() {
+		if (time) {
+			var season = SEASONS[time.season % SEASONS.length];
+			var minute = time.minute < 10 ? '0' + time.minute : String(time.minute);
+			document.getElementById('clock').textContent =
+				time.year + '년 ' + season + ' ' + time.day + '일  ' + time.hour + ':' + minute;
+		}
+
+		document.getElementById('peers').textContent = dolls.length + '명';
+
+		var brewText = '아직 안 저음';
+		if (brew && brew.steps > 0) {
+			brewText = brew.steps + '번 저음  (' + brew.x.toFixed(2) + ', ' + brew.y.toFixed(2) + ')';
+			if (brew.side > 0) brewText += '  부작용 ' + brew.side.toFixed(2);
+		}
+		document.getElementById('brew').textContent = brewText;
+	}
 
 	function draw() {
 		context.clearRect(0, 0, canvas.width, canvas.height);
