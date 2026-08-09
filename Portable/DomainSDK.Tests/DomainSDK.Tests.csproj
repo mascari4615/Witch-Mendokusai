@@ -67,6 +67,7 @@
     <Compile Include="$(TestsRoot)Net/WorldGatherablesTests.cs" />
     <Compile Include="$(TestsRoot)Net/WorldBuildingCatalogTests.cs" />
     <Compile Include="$(TestsRoot)Net/WorldIngredientsTests.cs" />
+    <Compile Include="$(TestsRoot)Net/BuildingFollowPlanTests.cs" />
     <Compile Include="$(TestsRoot)Net/PlacementReconcilerTests.cs" />
     <Compile Include="$(TestsRoot)Net/ReconnectBackoffTests.cs" />
     <Compile Include="$(TestsRoot)Net/WorldItemCatalogTests.cs" />

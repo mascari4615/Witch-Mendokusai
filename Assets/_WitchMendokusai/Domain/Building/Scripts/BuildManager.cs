@@ -67,6 +67,9 @@ namespace WitchMendokusai
 		private readonly PlacementReconciler reconciler = new PlacementReconciler();
 		private readonly List<BuildingPlacement> worldPlacements = new List<BuildingPlacement>();
 		private readonly List<Vector3Int> worldCells = new List<Vector3Int>();
+		private readonly List<Vector3Int> followGone = new List<Vector3Int>();
+		private readonly List<Vector3Int> followSpawn = new List<Vector3Int>();
+		private readonly List<Vector3Int> followPending = new List<Vector3Int>();
 
 		private ChunkManager chunkManager; // TASK-WM-181 — 빌드모드 지형(복셀) 부수기용. lazy resolve (스테이지 스코프).
 
@@ -132,6 +135,9 @@ namespace WitchMendokusai
 			// 세계가 거절한 것을 되돌린다 (TASK-WM-217) — 빌드모드가 아니어도 해야 한다.
 			// 짓자마자 모드를 바꾸면 유령 건물이 영영 남는다.
 			ReconcilePredictedPlacements();
+
+			// 세계에 선 것을 화면에도 세운다 — 남이 지은 집도 여기 보여야 「같은 세계」다.
+			FollowWorldBuildings();
 
 			if (gameModeManager.IsBuildMode == false)
 				return;
@@ -370,6 +376,74 @@ namespace WitchMendokusai
 
 				DespawnBuildingObject(rejected[i]);
 			}
+		}
+
+		/// <summary>
+		/// <b>세계에 선 것을 화면이 따라 세운다</b> (TASK-WM-217).
+		///
+		/// ★ 왜 필요한가: 여태 게임은 <b>자기가 지은 것</b>만 세웠고, 세계 목록은 「내 것이 거절됐나」를
+		///   보는 데만 썼다. 그래서 웹 창이나 다른 사람이 지은 집이 <b>게임 화면에는 영영 안 보였다</b> —
+		///   접속은 됐는데 서로 다른 마을을 보는 셈이라, 그건 같은 세계가 아니다.
+		///
+		/// 없앤 것도 따라 없앤다(남이 부순 집이 내 화면에만 남으면 그 자리에 다시 못 짓는다).
+		/// </summary>
+		private void FollowWorldBuildings()
+		{
+			if (SharedBuildChannelBridge.IsActive == false)
+				return;
+
+			if (stageManager.CurStage is WorldStage worldStage == false)
+				return;
+
+			worldPlacements.Clear();
+			SharedBuildChannelBridge.Channel.ReadPlacements(worldPlacements);
+
+			worldCells.Clear();
+			followPending.Clear();
+			for (int i = 0; i < worldPlacements.Count; i++)
+			{
+				worldCells.Add(new Vector3Int(worldPlacements[i].CellX, worldPlacements[i].CellY, worldPlacements[i].CellZ));
+			}
+
+			foreach (KeyValuePair<Vector3Int, BuildingObject> entry in BuildingObjectsByPos)
+			{
+				if (reconciler.IsPending(entry.Key))
+					followPending.Add(entry.Key);
+			}
+
+			// 무엇을 세우고 무엇을 지울지는 판정 층이 정한다 (시험이 그 규칙을 지킨다).
+			BuildingFollowPlan.Compute(worldCells, BuildingObjectsByPos.Keys, followPending, followSpawn, followGone);
+
+			for (int i = 0; i < followSpawn.Count; i++)
+			{
+				BuildingPlacement placement = FindPlacement(followSpawn[i]);
+
+				// 세계가 모르는 번호는 안 세운다 — 모양을 못 찾으면 조용히 터지는 것보다 안 세우는 게 낫다.
+				if (SOHelper.Get<Building>(placement.BuildingId) == null)
+					continue;
+
+				BuildingInstanceData data = new BuildingInstanceData(placement.BuildingId);
+				worldStage.GridData.AddBuildingAt(followSpawn[i], data);
+				SpawnBuildingObject(followSpawn[i], data);
+			}
+
+			for (int i = 0; i < followGone.Count; i++)
+			{
+				worldStage.GridData.RemoveBuildingAt(followGone[i]);
+				DespawnBuildingObject(followGone[i]);
+			}
+		}
+
+		/// <summary>그 자리에 세계가 무엇을 세워 두었나 — 못 찾으면 빈 것(번호 0)을 돌려준다.</summary>
+		private BuildingPlacement FindPlacement(Vector3Int cell)
+		{
+			for (int i = 0; i < worldPlacements.Count; i++)
+			{
+				if (worldPlacements[i].CellX == cell.x && worldPlacements[i].CellY == cell.y && worldPlacements[i].CellZ == cell.z)
+					return worldPlacements[i];
+			}
+
+			return default;
 		}
 
 		private void DespawnBuildingObject(Vector3Int pivot)

@@ -73,6 +73,12 @@ namespace WitchMendokusai.DomainSDK.Building
 		}
 
 		/// <summary>세계에서 나올 때 — 기다리던 것을 잊는다.</summary>
+		/// <summary>
+		/// 이 칸이 <b>아직 답을 기다리는 내 것</b>인가 (TASK-WM-217).
+		/// 세계 목록을 따라 그리는 쪽이 이걸 물어야, 방금 내가 세운 집을 「세계에 없다」며 도로 지우지 않는다.
+		/// </summary>
+		public bool IsPending(Vector3Int cell) => pending.ContainsKey(cell);
+
 		public void Clear() => pending.Clear();
 	}
 }
