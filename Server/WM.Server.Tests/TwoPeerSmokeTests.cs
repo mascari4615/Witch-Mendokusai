@@ -253,6 +253,27 @@ namespace WitchMendokusai.ServerTests
 			StringAssert.Contains("\"ok\":false", linked);
 		}
 
+		[Test]
+		public async Task 쏟아부어도_세계는_계속_돌고_곧_다시_말할_수_있다()
+		{
+			using ClientWebSocket flooder = await ConnectAsync();
+			using ClientWebSocket watcher = await ConnectAsync();
+			await ReadWelcomeAsync(flooder);
+			await ReadWelcomeAsync(watcher);
+
+			// 버그 난 창처럼 쏟아붓는다 — 예산을 넘긴 말은 버려지되 연결은 살아 있어야 한다.
+			for (int i = 0; i < 300; i++)
+				await SendAsync(flooder, "{\"type\":\"move\",\"x\":0.01,\"z\":0.0}");
+
+			// 옆 사람의 세계는 멀쩡히 돈다(스냅샷이 계속 온다).
+			await WaitForAsync(watcher, text => text.Contains("\"type\":\"world\""));
+
+			// 잠깐 쉬면 물통이 차서 다시 말이 먹힌다 — 「막았다」가 「영영 못 쓴다」가 되면 안 된다.
+			await Task.Delay(1200);
+			await SendAsync(flooder, "{\"type\":\"place\",\"x\":11,\"y\":0,\"z\":11,\"w\":1,\"l\":1,\"buildingId\":123}");
+			await WaitForAsync(watcher, text => text.Contains("\"buildingId\":123"));
+		}
+
 		private static string ReadField(string json, string marker)
 		{
 			int start = json.IndexOf(marker, StringComparison.Ordinal);
