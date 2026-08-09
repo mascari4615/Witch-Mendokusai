@@ -72,7 +72,23 @@ namespace WitchMendokusai.ServerTests
 				text.Contains("\"id\":" + secondId) &&
 				text.Contains("\"x\":1.000"));
 
-			StringAssert.Contains("\"buildings\"", snapshot);
+			// ⚠ 건물 목록은 이제 <b>바뀐 프레임에만</b> 실린다 (TASK-WM-217) — 움직임만 있는 이 그림엔 없다.
+			//   「들어오자마자 전체 그림 한 장」이 오는지는 아래에서 따로 본다.
+			StringAssert.Contains("\"dolls\"", snapshot);
+		}
+
+		[Test]
+		public async Task 늦게_들어와도_집과_들판이_보인다()
+		{
+			// 방송이 「바뀐 것만」 실으므로, 새 창에는 전체 그림을 한 번 줘야 한다.
+			// 안 그러면 늦게 온 사람은 누가 뭘 지을 때까지 빈 세계를 본다.
+			using ClientWebSocket latecomer = await ConnectAsync();
+			await ReadWelcomeAsync(latecomer);
+
+			string firstPicture = await WaitForAsync(latecomer, text => text.Contains("\"type\":\"world\""));
+
+			StringAssert.Contains("\"buildings\"", firstPicture);
+			StringAssert.Contains("\"gatherables\"", firstPicture);
 		}
 
 		[Test]

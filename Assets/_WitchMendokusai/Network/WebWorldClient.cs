@@ -229,8 +229,13 @@ namespace WitchMendokusai
 			{
 				WorldMessage world = JsonUtility.FromJson<WorldMessage>(json);
 				Dolls = world.dolls ?? Array.Empty<WorldDollView>();
-				Buildings = world.buildings ?? Array.Empty<BuildingView>();
-				Gatherables = world.gatherables ?? Array.Empty<GatherableView>();
+				// ★ 안 실려 온 목록은 「비었다」가 아니라 「안 바뀌었다」다 (TASK-WM-217).
+				//   비운 것으로 읽으면 집과 들판이 매 프레임 사라졌다 나타난다.
+				if (world.buildings != null && world.buildings.Length > 0)
+					Buildings = world.buildings;
+
+				if (world.gatherables != null && world.gatherables.Length > 0)
+					Gatherables = world.gatherables;
 
 				// 시각은 서버가 보낼 때만 갱신한다 — 안 보낸 스냅샷 하나에 세계 시간이 0시로 튀면 안 된다.
 				if (world.time != null)

@@ -72,7 +72,8 @@ namespace WitchMendokusai.Server
 			builder.Append("export interface BrewStepView {\n\tdx: number;\n\tdy: number;\n\tgrind: number;\n}\n\n");
 			builder.Append("export interface BrewView {\n\tx: number;\n\ty: number;\n\tsteps: number;\n\tside: number;\n\tpath: BrewStepView[];\n}\n\n");
 			builder.Append("export interface GatherableView {\n\tid: number;\n\tx: number;\n\tz: number;\n\titemId: number;\n\tamount: number;\n}\n\n");
-			builder.Append("export interface WorldSnapshot {\n\ttype: '").Append(WORLD).Append("';\n\tdolls: WorldDollView[];\n\tbuildings: WorldBuildingView[];\n\tgatherables: GatherableView[];\n\ttime?: WorldTime;\n\tbrew?: BrewView;\n}\n\n");
+			builder.Append("/** buildings·gatherables 는 바뀐 프레임에만 실린다 — 없으면 지난 것을 그대로 쓸 것. */\n");
+			builder.Append("export interface WorldSnapshot {\n\ttype: '").Append(WORLD).Append("';\n\tdolls: WorldDollView[];\n\tbuildings?: WorldBuildingView[];\n\tgatherables?: GatherableView[];\n\ttime?: WorldTime;\n\tbrew?: BrewView;\n}\n\n");
 
 			builder.Append("/** 창 -> 서버: 이쪽으로 가고 싶다(얼마나 갈지는 서버가 정한다). */\n");
 			builder.Append("export interface MoveRequest {\n\ttype: '").Append(MOVE).Append("';\n\tx: number;\n\tz: number;\n}\n\n");
@@ -292,25 +293,31 @@ namespace WitchMendokusai.Server
 					.Append('}');
 			}
 
-			builder.Append("],\"buildings\":[");
-
-			first = true;
-			foreach (PlacedBuilding building in buildings)
-			{
-				if (first == false)
-					builder.Append(',');
-
-				first = false;
-				builder.Append("{\"x\":").Append(building.Pivot.x)
-					.Append(",\"y\":").Append(building.Pivot.y)
-					.Append(",\"z\":").Append(building.Pivot.z)
-					.Append(",\"w\":").Append(building.Size.x)
-					.Append(",\"l\":").Append(building.Size.y)
-					.Append(",\"buildingId\":").Append(building.BuildingId)
-					.Append('}');
-			}
-
 			builder.Append(']');
+
+			// 건물 목록은 <b>바뀐 프레임에만</b> 실린다 — 없으면 창은 지난 것을 그대로 쓴다.
+			if (buildings != null)
+			{
+				builder.Append(",\"buildings\":[");
+
+				first = true;
+				foreach (PlacedBuilding building in buildings)
+				{
+					if (first == false)
+						builder.Append(',');
+
+					first = false;
+					builder.Append("{\"x\":").Append(building.Pivot.x)
+						.Append(",\"y\":").Append(building.Pivot.y)
+						.Append(",\"z\":").Append(building.Pivot.z)
+						.Append(",\"w\":").Append(building.Size.x)
+						.Append(",\"l\":").Append(building.Size.y)
+						.Append(",\"buildingId\":").Append(building.BuildingId)
+						.Append('}');
+				}
+
+				builder.Append(']');
+			}
 
 			// 세계의 시각 — 서버가 굴린다(내가 없어도 밤이 온다). 창은 받아서 보여 주기만 한다.
 			if (calendar != null)

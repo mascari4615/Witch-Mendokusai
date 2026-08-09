@@ -43,6 +43,10 @@ namespace WitchMendokusai.Server
 
 		private int savedAtWorldMinute;
 
+		// 마지막으로 창들에 보낸 판 — 이 수가 그대로면 그 목록은 다시 안 보낸다.
+		private int sentBuildVersion = -1;
+		private int sentFieldVersion = -1;
+
 		/// <summary>이만큼(세계의 날) 안 오고 아무것도 안 남긴 사람은 장부에서 지운다.</summary>
 		private const int GUEST_FORGET_DAYS = 90;
 
@@ -181,6 +185,17 @@ namespace WitchMendokusai.Server
 			// 솥에 넣을 수 있는 것도 한 번 — 창이 「무엇을 넣을까」 고르게 하려면 필요하다.
 			await SendAsync(connection, Protocol.BrewShelf(World.Ingredients.All));
 
+			// ★ 방금 온 창에는 <b>전체 그림</b>을 한 번 준다 (TASK-WM-217).
+			//   방송은 「바뀐 것만」 싣기 때문에, 늦게 들어온 사람은 이 한 장이 없으면
+			//   집도 들판도 없는 빈 세계를 본다(다음에 누가 뭘 지을 때까지).
+			await SendAsync(connection, Protocol.WorldSnapshot(
+				World.Snapshot(),
+				World.Buildings(),
+				World.Calendar,
+				World.Cauldron,
+				World.Gatherables.Alive(World.Calendar.TotalMinutes()),
+				Identities.NameOf));
+
 			// 이 연결의 말 예산 — 창 하나가 모두의 세계를 느리게 만들지 못하게 (TASK-WM-218).
 			WitchMendokusai.Net.MessageBudget budget = new WitchMendokusai.Net.MessageBudget();
 			DateTime lastSpoke = DateTime.UtcNow;
@@ -287,6 +302,17 @@ namespace WitchMendokusai.Server
 				}
 
 				await SendAsync(socket, Protocol.Welcome(dollId, created ? person.secret : string.Empty, person.id));
+
+				// 인사 뒤에도 전체 그림을 한 번 — 이때 자리·가방이 그 사람 것으로 바뀌고,
+				// 방송은 「바뀐 것만」 실으므로 이 한 장이 없으면 집·들판을 영영 못 볼 수 있다.
+				await SendAsync(socket, Protocol.WorldSnapshot(
+					World.Snapshot(),
+					World.Buildings(),
+					World.Calendar,
+					World.Cauldron,
+					World.Gatherables.Alive(World.Calendar.TotalMinutes()),
+					Identities.NameOf));
+
 				Interlocked.Exchange(ref worldDirty, 1);
 				return;
 			}
@@ -605,8 +631,22 @@ namespace WitchMendokusai.Server
 				if (World.AdvanceMinutes(minutesPerTick))
 					Interlocked.Exchange(ref worldDirty, 1);
 
-				string snapshot = Protocol.WorldSnapshot(World.Snapshot(), World.Buildings(), World.Calendar, World.Cauldron,
-					World.Gatherables.Alive(World.Calendar.TotalMinutes()), Identities.NameOf);
+				// ★ 안 바뀐 것은 안 보낸다 (TASK-WM-217). 건물 63채 + 들판 169자리를 20Hz 로 나르면
+				//   사람이 몇 늘기도 전에 줄이 막힌다 — 창은 못 받은 프레임엔 지난 그림을 그대로 쓴다.
+				int buildVersion = World.BuildVersion;
+				int fieldVersion = World.Gatherables.Version;
+				bool sendBuildings = buildVersion != sentBuildVersion;
+				bool sendField = fieldVersion != sentFieldVersion;
+				sentBuildVersion = buildVersion;
+				sentFieldVersion = fieldVersion;
+
+				string snapshot = Protocol.WorldSnapshot(
+					World.Snapshot(),
+					sendBuildings ? World.Buildings() : null,
+					World.Calendar,
+					World.Cauldron,
+					sendField ? World.Gatherables.Alive(World.Calendar.TotalMinutes()) : null,
+					Identities.NameOf);
 				foreach (System.Collections.Generic.KeyValuePair<int, Connection> entry in sockets)
 				{
 					if (entry.Value.Socket.State != WebSocketState.Open)

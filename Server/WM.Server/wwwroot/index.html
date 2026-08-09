@@ -367,8 +367,9 @@ socket.onmessage = (event) => {
 
 	if (message.type === 'world') {
 		dolls = message.dolls;
-		buildings = message.buildings || [];
-		gatherables = message.gatherables || [];
+		// 안 실려 온 목록은 「비었다」가 아니라 「안 바뀌었다」다 — 지난 것을 그대로 쓴다.
+		if (message.buildings) buildings = message.buildings;
+		if (message.gatherables) gatherables = message.gatherables;
 		time = message.time || time;
 		brew = message.brew || brew;
 		drawWorldLines();

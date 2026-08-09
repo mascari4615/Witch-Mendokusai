@@ -65,6 +65,13 @@ namespace WitchMendokusai
 		/// <summary>몇 종류를 아는가 — 0 이면 세계에 주울 것이 없다.</summary>
 		public int KindCount => kinds.Count;
 
+		/// <summary>
+		/// 들판이 바뀔 때마다 오르는 수 (TASK-WM-217) — 뽑히거나 다시 자라면 오른다.
+		/// ★ 왜: 안 바뀐 들판(169자리)을 20Hz 로 나르면 그건 세계가 아니라 소음이다.
+		///   창은 이 수가 그대로면 지난 그림을 그대로 쓴다.
+		/// </summary>
+		public int Version { get; private set; }
+
 		/// <summary>지금 서 있는 것들 — 뽑아 간 자리는 다시 자랄 때까지 빠진다.</summary>
 		public List<GatherableNode> Alive(int nowMinute)
 		{
@@ -74,6 +81,9 @@ namespace WitchMendokusai
 
 			lock (gate)
 			{
+				// 다시 자란 것이 있으면 그것도 「바뀐 것」이다 — 안 그러면 창에 영영 안 돌아온다.
+				RegrowUnlocked(nowMinute);
+
 				for (int gx = -HALF_SPAN; gx <= HALF_SPAN; gx++)
 				{
 					for (int gz = -HALF_SPAN; gz <= HALF_SPAN; gz++)
@@ -121,6 +131,7 @@ namespace WitchMendokusai
 				regrowAt[nodeId] = kind.respawnMinutes > 0
 					? nowMinute + kind.respawnMinutes
 					: int.MaxValue; // 안 자라는 것은 영영 비어 있다
+				Version++;
 				return true;
 			}
 		}
@@ -138,11 +149,36 @@ namespace WitchMendokusai
 			return saved;
 		}
 
+		/// <summary>때가 된 자리를 장부에서 지운다 — 지워지면 다시 서 있는 것이 된다(버전도 오른다).</summary>
+		private void RegrowUnlocked(int nowMinute)
+		{
+			List<int> regrown = null;
+			foreach (KeyValuePair<int, int> pair in regrowAt)
+			{
+				if (nowMinute < pair.Value)
+					continue;
+
+				if (regrown == null)
+					regrown = new List<int>();
+
+				regrown.Add(pair.Key);
+			}
+
+			if (regrown == null)
+				return;
+
+			for (int i = 0; i < regrown.Count; i++)
+				regrowAt.Remove(regrown[i]);
+
+			Version++;
+		}
+
 		public void Load(IEnumerable<GatherTakenSaveEntry> saved)
 		{
 			lock (gate)
 			{
 				regrowAt.Clear();
+				Version++;
 				if (saved == null)
 					return;
 

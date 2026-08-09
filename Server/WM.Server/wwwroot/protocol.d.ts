@@ -65,11 +65,12 @@ export interface GatherableView {
 	amount: number;
 }
 
+/** buildings·gatherables 는 바뀐 프레임에만 실린다 — 없으면 지난 것을 그대로 쓸 것. */
 export interface WorldSnapshot {
 	type: 'world';
 	dolls: WorldDollView[];
-	buildings: WorldBuildingView[];
-	gatherables: GatherableView[];
+	buildings?: WorldBuildingView[];
+	gatherables?: GatherableView[];
 	time?: WorldTime;
 	brew?: BrewView;
 }
