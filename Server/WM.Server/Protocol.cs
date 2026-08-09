@@ -12,14 +12,10 @@ namespace WitchMendokusai.Server
 	/// </summary>
 	public static class Protocol
 	{
-		/// <summary>서버 → 창: 접속했다, 네 인형 번호는 이것이다.</summary>
-		public const string WELCOME = "welcome";
-
-		/// <summary>서버 → 창: 지금 세계는 이렇게 생겼다.</summary>
-		public const string WORLD = "world";
-
-		/// <summary>창 → 서버: 이쪽으로 가고 싶다(얼마나 갈지는 서버가 정한다).</summary>
-		public const string MOVE = "move";
+		// 말의 이름과 모양은 판정 층(WitchMendokusai.Net)이 정본이다 — Unity 도 같은 소스를 본다.
+		public const string WELCOME = Net.NetMessageType.WELCOME;
+		public const string WORLD = Net.NetMessageType.WORLD;
+		public const string MOVE = Net.NetMessageType.MOVE;
 
 		/// <summary>계약을 웹이 읽을 수 있는 형태로 뽑는다.</summary>
 		public static string ToTypeScript()
