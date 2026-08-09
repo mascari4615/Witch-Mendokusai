@@ -61,6 +61,7 @@
     <Compile Include="$(TestsRoot)Net/DollRosterTests.cs" />
     <Compile Include="$(TestsRoot)Net/WorldSaveTests.cs" />
     <Compile Include="$(TestsRoot)Net/WorldCalendarTests.cs" />
+    <Compile Include="$(TestsRoot)Net/WorldBuildRemoveTests.cs" />
   </ItemGroup>
 
 </Project>

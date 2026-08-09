@@ -132,9 +132,45 @@ namespace WitchMendokusai
 					occupiedCells[cells[i]] = buildingId;
 
 				placed.Add(new PlacedBuilding(pivot, size, buildingId));
+				BuildVersion++;
 				return true;
 			}
 		}
+
+		/// <summary>
+		/// 놓은 것을 <b>부순다</b> — 그 칸을 물고 있는 건물을 통째로 지운다 (TASK-WM-217).
+		/// 모서리를 찍든 가운데를 찍든 같은 건물이 지워진다(사람은 「건물」을 부수지 「칸」을 부수지 않는다).
+		/// </summary>
+		public bool TryRemoveBuilding(Vector3Int cell)
+		{
+			lock (gate)
+			{
+				if (occupiedCells.ContainsKey(cell) == false)
+					return false;
+
+				for (int i = 0; i < placed.Count; i++)
+				{
+					List<Vector3Int> cells = BuildingFootprint.Cells(placed[i].Pivot, placed[i].Size);
+					if (cells.Contains(cell) == false)
+						continue;
+
+					for (int c = 0; c < cells.Count; c++)
+						occupiedCells.Remove(cells[c]);
+
+					placed.RemoveAt(i);
+					BuildVersion++;
+					return true;
+				}
+
+				// 칸은 물려 있는데 주인이 없다 = 장부가 어긋난 것. 그냥 두면 그 칸에 영영 못 짓는다.
+				occupiedCells.Remove(cell);
+				BuildVersion++;
+				return true;
+			}
+		}
+
+		/// <summary>지어지거나 부서질 때마다 오른다 — 창이 「내 화면이 낡았나」를 이 수로 안다.</summary>
+		public int BuildVersion { get; private set; }
 
 		/// <summary>
 		/// 줍기 — 서버가 가방 규칙으로 넣는다. <b>못 넣고 남은 개수</b>를 돌려준다(가방이 꽉 찼을 때).
@@ -267,6 +303,7 @@ namespace WitchMendokusai
 						occupiedCells[cells[cell]] = saved.buildingId;
 
 					placed.Add(new PlacedBuilding(pivot, size, saved.buildingId));
+					BuildVersion++;
 					restored++;
 				}
 
