@@ -17,6 +17,8 @@ namespace WitchMendokusai.Server
 		public const string WORLD = Net.NetMessageType.WORLD;
 		public const string MOVE = Net.NetMessageType.MOVE;
 		public const string PLACE = Net.NetMessageType.PLACE;
+		public const string GATHER = Net.NetMessageType.GATHER;
+		public const string BAG = Net.NetMessageType.BAG;
 
 		/// <summary>계약을 웹이 읽을 수 있는 형태로 뽑는다.</summary>
 		public static string ToTypeScript()
@@ -41,6 +43,29 @@ namespace WitchMendokusai.Server
 			builder.Append("export type ServerMessage = Welcome | WorldSnapshot;\n");
 			builder.Append("export type ClientMessage = MoveRequest;\n");
 
+			return builder.ToString();
+		}
+
+		/// <summary>그 창에게만 보내는 가방 상태.</summary>
+		public static string Bag(IEnumerable<KeyValuePair<int, int>> counts)
+		{
+			StringBuilder builder = new StringBuilder();
+			builder.Append("{\"type\":\"").Append(BAG).Append("\",\"items\":[");
+
+			bool first = true;
+			foreach (KeyValuePair<int, int> entry in counts)
+			{
+				if (entry.Value <= 0)
+					continue;
+
+				if (first == false)
+					builder.Append(',');
+
+				first = false;
+				builder.Append("{\"itemId\":").Append(entry.Key).Append(",\"amount\":").Append(entry.Value).Append('}');
+			}
+
+			builder.Append("]}");
 			return builder.ToString();
 		}
 

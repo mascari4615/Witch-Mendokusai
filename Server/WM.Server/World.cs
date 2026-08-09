@@ -6,14 +6,26 @@ namespace WitchMendokusai.Server
 	/// <summary>접속한 사람 하나 — 서버가 아는 것은 이만큼이다 (TASK-WM-216).</summary>
 	public sealed class Doll
 	{
+		/// <summary>가방 칸 수 — 게임 쪽 기본값과 같은 30.</summary>
+		public const int BAG_SLOTS = 30;
+
+		private readonly List<Item> slots = new List<Item>();
+
 		public Doll(int id, Vector3 position)
 		{
 			Id = id;
 			Position = position;
+
+			for (int i = 0; i < BAG_SLOTS; i++)
+				slots.Add(null);
+
+			// 가방 규칙은 게임과 같은 것을 그대로 쓴다 (TASK-WM-215 에서 판정 층으로 내린 그것).
+			Bag = new InventoryCore(slots, BAG_SLOTS);
 		}
 
 		public int Id { get; }
 		public Vector3 Position { get; set; }
+		public InventoryCore Bag { get; }
 	}
 
 	/// <summary>세워진 건물 하나 — 서버가 기억하는 최소 (TASK-WM-216).</summary>
@@ -102,6 +114,42 @@ namespace WitchMendokusai.Server
 
 				placed.Add(new PlacedBuilding(pivot, size, buildingId));
 				return true;
+			}
+		}
+
+		/// <summary>
+		/// 줍기 — 서버가 가방 규칙으로 넣는다. <b>못 넣고 남은 개수</b>를 돌려준다(가방이 꽉 찼을 때).
+		/// </summary>
+		public int TryGather(int dollId, int itemId, int amount)
+		{
+			lock (gate)
+			{
+				if (dolls.TryGetValue(dollId, out Doll doll) == false)
+					return amount;
+
+				IItemData itemData = ServerItemCatalog.Find(itemId);
+				if (itemData == null)
+					return amount;
+
+				return doll.Bag.Add(itemData, amount);
+			}
+		}
+
+		/// <summary>그 인형이 그 아이템을 몇 개 가졌나.</summary>
+		public int BagCount(int dollId, int itemId)
+		{
+			lock (gate)
+			{
+				return dolls.TryGetValue(dollId, out Doll doll) ? doll.Bag.CountById(itemId) : 0;
+			}
+		}
+
+		/// <summary>제작 등으로 재료를 쓴다. 못 쓰고 남은 개수를 돌려준다.</summary>
+		public int TryConsume(int dollId, int itemId, int amount)
+		{
+			lock (gate)
+			{
+				return dolls.TryGetValue(dollId, out Doll doll) ? doll.Bag.Consume(itemId, amount) : amount;
 			}
 		}
 

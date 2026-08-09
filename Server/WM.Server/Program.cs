@@ -125,6 +125,17 @@ namespace WitchMendokusai.Server
 					return;
 				}
 
+				if (kind == Protocol.GATHER)
+				{
+					int itemId = ReadInt(root, "itemId");
+					int amount = System.Math.Max(1, ReadInt(root, "amount"));
+
+					// 가방이 꽉 차면 서버가 덜 넣는다 — 창이 우겨도 소용없다.
+					world.TryGather(dollId, itemId, amount);
+					_ = SendBagAsync(dollId);
+					return;
+				}
+
 				if (kind == Protocol.PLACE)
 				{
 					int cellX = ReadInt(root, "x");
@@ -142,6 +153,22 @@ namespace WitchMendokusai.Server
 			{
 				// 못 알아들을 말은 그냥 버린다 — 창이 이상한 걸 보냈다고 서버가 죽지 않는다.
 			}
+		}
+
+		/// <summary>그 창에게만 자기 가방을 알린다.</summary>
+		private static async Task SendBagAsync(int dollId)
+		{
+			if (sockets.TryGetValue(dollId, out WebSocket socket) == false)
+				return;
+
+			System.Collections.Generic.List<System.Collections.Generic.KeyValuePair<int, int>> counts =
+				new System.Collections.Generic.List<System.Collections.Generic.KeyValuePair<int, int>>
+				{
+					new System.Collections.Generic.KeyValuePair<int, int>(ServerItemCatalog.STONE, world.BagCount(dollId, ServerItemCatalog.STONE)),
+					new System.Collections.Generic.KeyValuePair<int, int>(ServerItemCatalog.HERB, world.BagCount(dollId, ServerItemCatalog.HERB)),
+				};
+
+			await SendAsync(socket, Protocol.Bag(counts));
 		}
 
 		private static int ReadInt(JsonElement root, string name)

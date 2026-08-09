@@ -188,4 +188,77 @@ namespace WitchMendokusai.Server.Tests
 			Assert.AreEqual(0, world.CountBuildings(9999));
 		}
 	}
+
+	/// <summary>서버가 가방도 굴린다 — 게임과 같은 규칙으로 (TASK-WM-216).</summary>
+	public sealed class WorldBagTests
+	{
+		[Test]
+		public void 주우면_가방에_쌓인다()
+		{
+			World world = new World();
+			Doll doll = world.Join();
+
+			int leftover = world.TryGather(doll.Id, ServerItemCatalog.STONE, 10);
+
+			Assert.AreEqual(0, leftover);
+			Assert.AreEqual(10, world.BagCount(doll.Id, ServerItemCatalog.STONE));
+		}
+
+		[Test]
+		public void 모르는_아이템은_안_들어간다()
+		{
+			World world = new World();
+			Doll doll = world.Join();
+
+			int leftover = world.TryGather(doll.Id, 9999, 5);
+
+			Assert.AreEqual(5, leftover, "서버가 모르는 건 그대로 남는다");
+		}
+
+		[Test]
+		public void 칸_최대치를_넘으면_다음_칸으로_간다()
+		{
+			World world = new World();
+			Doll doll = world.Join();
+
+			world.TryGather(doll.Id, ServerItemCatalog.HERB, 45); // 한 칸 20
+
+			Assert.AreEqual(45, world.BagCount(doll.Id, ServerItemCatalog.HERB), "세 칸에 나뉘어 들어간다");
+		}
+
+		[Test]
+		public void 가방이_꽉_차면_남은_개수를_알려준다()
+		{
+			World world = new World();
+			Doll doll = world.Join();
+
+			// 30칸 * 20 = 600 이 한계
+			int leftover = world.TryGather(doll.Id, ServerItemCatalog.HERB, 650);
+
+			Assert.AreEqual(50, leftover);
+			Assert.AreEqual(600, world.BagCount(doll.Id, ServerItemCatalog.HERB));
+		}
+
+		[Test]
+		public void 쓰면_줄어든다()
+		{
+			World world = new World();
+			Doll doll = world.Join();
+			world.TryGather(doll.Id, ServerItemCatalog.STONE, 30);
+
+			int missing = world.TryConsume(doll.Id, ServerItemCatalog.STONE, 12);
+
+			Assert.AreEqual(0, missing);
+			Assert.AreEqual(18, world.BagCount(doll.Id, ServerItemCatalog.STONE));
+		}
+
+		[Test]
+		public void 없는_인형의_가방은_비어_있다()
+		{
+			World world = new World();
+
+			Assert.AreEqual(0, world.BagCount(123, ServerItemCatalog.STONE));
+			Assert.AreEqual(3, world.TryGather(123, ServerItemCatalog.STONE, 3));
+		}
+	}
 }

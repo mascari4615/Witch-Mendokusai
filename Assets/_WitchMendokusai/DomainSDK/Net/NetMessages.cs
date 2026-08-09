@@ -19,6 +19,12 @@ namespace WitchMendokusai.Net
 
 		/// <summary>창 → 서버: 여기에 짓고 싶다(겹치는지는 서버가 본다).</summary>
 		public const string PLACE = "place";
+
+		/// <summary>창 → 서버: 이걸 줍고 싶다(가방에 들어갈지는 서버가 본다).</summary>
+		public const string GATHER = "gather";
+
+		/// <summary>서버 → 그 창에게만: 네 가방은 이렇다.</summary>
+		public const string BAG = "bag";
 	}
 
 	/// <summary>서버 → 창: 접속했다, 네 인형 번호는 이것이다.</summary>
@@ -66,6 +72,31 @@ namespace WitchMendokusai.Net
 		public int w;
 		public int l;
 		public int buildingId;
+	}
+
+	/// <summary>가방 안 한 종류 — 몇 개 있나.</summary>
+	[Serializable]
+	public class BagEntry
+	{
+		public int itemId;
+		public int amount;
+	}
+
+	/// <summary>서버 → 그 창에게만: 네 가방은 이렇다.</summary>
+	[Serializable]
+	public class BagMessage
+	{
+		public string type = NetMessageType.BAG;
+		public BagEntry[] items = Array.Empty<BagEntry>();
+	}
+
+	/// <summary>창 → 서버: 이걸 줍고 싶다.</summary>
+	[Serializable]
+	public class GatherMessage
+	{
+		public string type = NetMessageType.GATHER;
+		public int itemId;
+		public int amount = 1;
 	}
 
 	/// <summary>창 → 서버: 여기에 짓고 싶다. 겹치면 서버가 거절한다.</summary>
