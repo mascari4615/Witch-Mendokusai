@@ -508,4 +508,32 @@ namespace WitchMendokusai.Net
 		/// <summary>무엇을 짓나 — 크기는 세계가 안다(창이 「이건 1×1 이다」로 우기던 길은 없앴다).</summary>
 		public int buildingId;
 	}
+
+	/// <summary>마도서 한 쪽 — 「여기까지 저으면 이게 나온다」 (TASK-WM-217).</summary>
+	[Serializable]
+	public class SpellbookPage
+	{
+		public int id;
+		public string name = string.Empty;
+		public float x;
+		public float y;
+		public float radius;
+		public int itemId;
+		public int amount;
+	}
+
+	/// <summary>
+	/// 서버 → 창: 세계의 마도서(들어올 때 한 번).
+	///
+	/// ★ 왜 게임도 이걸 받아야 하나 (TASK-WM-217): 완성 보상은 세계가 정하는데 게임 화면은
+	///   목표·등급을 자기 자산으로 그렸다. 둘이 어긋나면 표시대로 저은 사람이 딴 것을 받는다 —
+	///   화면은 「최상급」인데 세계는 「조잡」인 상태도 만들어진다.
+	/// </summary>
+	[Serializable]
+	public class SpellbookMessage
+	{
+		public string type = NetMessageType.SPELLBOOK;
+		public SpellbookPage[] pages = Array.Empty<SpellbookPage>();
+	}
+
 }

@@ -197,6 +197,14 @@ namespace WitchMendokusai
 				return;
 			}
 
+			if (json.Contains("\"" + NetMessageType.SPELLBOOK + "\""))
+			{
+				// ★ 화면의 목표도 세계 것이어야 한다 (TASK-WM-217) — 안 그러면 표시대로 저은 사람이 딴 것을 받는다.
+				SpellbookMessage book = JsonUtility.FromJson<SpellbookMessage>(json);
+				Spellbook = book?.pages ?? System.Array.Empty<SpellbookPage>();
+				return;
+			}
+
 			if (json.Contains("\"" + NetMessageType.BREW_TAKEN + "\""))
 			{
 				BrewTakenMessage taken = JsonUtility.FromJson<BrewTakenMessage>(json);
@@ -345,6 +353,9 @@ namespace WitchMendokusai
 
 		/// <summary>마지막으로 받은 상자 안 — 아직 없으면 null.</summary>
 		public ChestView Chest { get; private set; }
+
+		/// <summary>세계의 마도서 — 들어올 때 한 번 받는다 (TASK-WM-217).</summary>
+		public SpellbookPage[] Spellbook { get; private set; } = System.Array.Empty<SpellbookPage>();
 
 		public void RequestChest(int cellX, int cellY, int cellZ)
 		{

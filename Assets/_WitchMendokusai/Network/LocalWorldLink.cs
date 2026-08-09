@@ -353,6 +353,30 @@ namespace WitchMendokusai
 		/// <summary>마지막으로 들여다본 상자 — 혼자 놀 때도 같은 규약이다.</summary>
 		public ChestView Chest { get; private set; }
 
+		/// <summary>
+		/// 내 안의 세계가 쓰는 마도서 — <b>같은 것</b>을 화면에 준다 (TASK-WM-217).
+		/// 혼자 놀 때만 화면이 다른 목표를 그리면, 혼자/같이가 또 갈라진다.
+		/// </summary>
+		public SpellbookPage[] Spellbook
+		{
+			get
+			{
+				System.Collections.Generic.IReadOnlyList<RecipeCatalogEntry> pages = RecipeBook.Loaded.Pages;
+				SpellbookPage[] view = new SpellbookPage[pages.Count];
+				for (int i = 0; i < pages.Count; i++)
+				{
+					RecipeCatalogEntry page = pages[i];
+					view[i] = new SpellbookPage
+					{
+						id = page.id, name = page.name, x = page.targetX, y = page.targetY,
+						radius = page.radius, itemId = page.resultItemId, amount = page.amount,
+					};
+				}
+
+				return view;
+			}
+		}
+
 		public void RequestChest(int cellX, int cellY, int cellZ)
 		{
 			Chest = Look(new Numerics.Vector3Int(cellX, cellY, cellZ));

@@ -94,5 +94,13 @@ namespace WitchMendokusai.Net
 
 		/// <summary>마지막으로 받은 상자 안 — 아직 없으면 null.</summary>
 		ChestView Chest { get; }
+
+		/// <summary>
+		/// 세계의 마도서 — 어디까지 저으면 무엇이 나오나 (TASK-WM-217). 아직 못 받았으면 빈 배열.
+		///
+		/// ★ 왜 게임이 이걸 봐야 하나: 보상은 세계가 정한다. 화면이 자기 자산으로 목표를 그리면
+		///   표시대로 저은 사람이 딴 것을 받는다(화면은 「최상급」, 세계는 「조잡」도 가능).
+		/// </summary>
+		SpellbookPage[] Spellbook { get; }
 	}
 }

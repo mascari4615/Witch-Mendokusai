@@ -297,6 +297,25 @@ namespace WitchMendokusai
         // 공유 가마솥(네트워크) 활성 여부 — 경로 렌더·소스 분기 근거.
         private static bool IsNetworked => SharedBrewChannelBridge.IsActive;
 
+        /// <summary>
+        /// 지금 화면이 그리고 채점하는 <b>목표</b> — 세계에 붙어 있으면 <b>세계의 마도서</b>다 (TASK-WM-217).
+        ///
+        /// ★ 왜: 완성 보상은 이미 세계가 정하는데 목표·등급만 자기 자산(SO)으로 그렸다. 둘이 어긋나면
+        ///   사람은 「여기까지 저으면 된다」는 표시를 보고 저은 뒤 딴 것을 받는다 —
+        ///   화면은 「최상급」인데 세계는 「조잡」인 상태도 만들어진다. 그건 같은 세계가 아니다.
+        ///   세계가 마도서를 아직 안 줬으면 자기 것으로 그린다(빈 화면보다 낫다).
+        /// </summary>
+        private BrewRecipe ActiveRecipe()
+        {
+            if (SharedBrewChannelBridge.IsActive
+                && WorldSpellbookView.TryAim(SharedBrewChannelBridge.Channel.Spellbook, CurrentState(), out BrewRecipe aimed))
+            {
+                return aimed;
+            }
+
+            return session.Recipe;
+        }
+
         // 현재 마커 상태 = 공유 솥이면 SyncVar 수신값, 솔로면 로컬 세션. 채점·렌더 공통 소스(레시피는 항상 로컬).
         private BrewState CurrentState()
         {
@@ -346,7 +365,7 @@ namespace WitchMendokusai
             }
             // 채점 = 현재 마커(공유 솥이면 SyncVar 수신값) + 로컬 레시피·규칙(양 피어 동일 SO).
             BrewState state = CurrentState();
-            BrewCompleted?.Invoke(BrewEngine.Evaluate(state, session.Recipe.Target, rules));
+            BrewCompleted?.Invoke(BrewEngine.Evaluate(state, ActiveRecipe().Target, rules));
             RestartSession();
         }
 
@@ -385,8 +404,8 @@ namespace WitchMendokusai
                 FillCircle(painter, EffectToPixels(hazards[i].Center), hazards[i].Radius * pixelsPerUnit, HazardColor);
             }
 
-            // 목표 효과 좌표 (청록 원 + 중심점).
-            EffectTarget target = session.Recipe.Target;
+            // 목표 효과 좌표 (청록 원 + 중심점). 붙어 있으면 세계의 마도서가 정본이다.
+            EffectTarget target = ActiveRecipe().Target;
             Vector2 targetPixels = EffectToPixels(target.Position);
             StrokeCircle(painter, targetPixels, Mathf.Max(target.Radius * pixelsPerUnit, 6f), TargetColor, 2f);
             FillCircle(painter, targetPixels, 3f, TargetColor);
@@ -492,7 +511,7 @@ namespace WitchMendokusai
             {
                 // 공유 솥/솔로 공통 소스 = CurrentState (네트워크면 SyncVar, 솔로면 로컬 세션) + 로컬 레시피.
                 BrewState state = CurrentState();
-                EffectTarget target = session.Recipe.Target;
+                EffectTarget target = ActiveRecipe().Target;
                 BrewOutcome outcome = BrewEngine.Evaluate(state, target, rules);
                 bool reached = BrewEngine.IsReached(state, target);
                 float distance = BrewEngine.DistanceTo(state, target);

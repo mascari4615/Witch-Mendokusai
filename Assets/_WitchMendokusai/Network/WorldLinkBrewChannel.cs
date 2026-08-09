@@ -15,6 +15,10 @@ namespace WitchMendokusai
 	{
 		private readonly IWorldLink link;
 
+		// 마도서는 들어올 때 한 번 오고 잘 안 바뀐다 — 매 프레임 새 목록을 짓지 않는다.
+		private SpellbookPage[] lastPages;
+		private RecipeCatalogEntry[] pageCache = System.Array.Empty<RecipeCatalogEntry>();
+
 		public WorldLinkBrewChannel(IWorldLink link)
 		{
 			this.link = link;
@@ -82,6 +86,35 @@ namespace WitchMendokusai
 		{
 			// ⚠ 이제 방향이 아니라 <b>재료</b>를 보낸다 (TASK-WM-217) — 여기로 오는 옛 호출은 뜻을 잃었다.
 			//   게임 UI 가 재료 번호를 넘기도록 고칠 때까지, 방향만 아는 호출은 아무 일도 안 한다.
+		}
+
+		/// <summary>세계의 마도서 — 화면이 그리는 목표가 여기서 온다 (TASK-WM-217).</summary>
+		public System.Collections.Generic.IReadOnlyList<RecipeCatalogEntry> Spellbook
+		{
+			get
+			{
+				SpellbookPage[] pages = link?.Spellbook;
+				if (pages == null)
+					return System.Array.Empty<RecipeCatalogEntry>();
+
+				if (ReferenceEquals(pages, lastPages))
+					return pageCache;
+
+				RecipeCatalogEntry[] book = new RecipeCatalogEntry[pages.Length];
+				for (int i = 0; i < pages.Length; i++)
+				{
+					SpellbookPage page = pages[i];
+					book[i] = new RecipeCatalogEntry
+					{
+						id = page.id, name = page.name, targetX = page.x, targetY = page.y,
+						radius = page.radius, resultItemId = page.itemId, amount = page.amount,
+					};
+				}
+
+				lastPages = pages;
+				pageCache = book;
+				return pageCache;
+			}
 		}
 
 		public void ResetBrew()

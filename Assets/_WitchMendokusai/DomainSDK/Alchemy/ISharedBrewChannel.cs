@@ -33,6 +33,15 @@ namespace WitchMendokusai.DomainSDK.Alchemy
         /// </summary>
         bool TryUseNearbyCauldron(int itemId);
 
+        /// <summary>
+        /// 세계의 마도서 — 어디까지 저으면 무엇이 나오나 (TASK-WM-217). 못 받았으면 빈 목록.
+        ///
+        /// ★ 왜 채널이 이걸 나르나: 완성 보상은 세계가 정하는데 화면은 목표·등급을 자기 자산으로
+        ///   그렸다. 둘이 어긋나면 표시대로 저은 사람이 딴 것을 받는다 — 화면은 「최상급」인데
+        ///   세계는 「조잡」인 상태도 만들어진다.
+        /// </summary>
+        IReadOnlyList<WitchMendokusai.RecipeCatalogEntry> Spellbook { get; }
+
         /// <summary>같은 솥 비우고 다시(서버 권위 리셋). 이름 Reset X = NetworkBehaviour.Reset() magic 메서드 충돌 회피.</summary>
         void ResetBrew();
 
