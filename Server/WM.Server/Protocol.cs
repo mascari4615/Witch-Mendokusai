@@ -240,6 +240,8 @@ namespace WitchMendokusai.Server
 					.Append(",\"name\":").Append(JsonSerializer.Serialize(buildings[i].name ?? string.Empty, textOptions))
 					.Append(",\"w\":").Append(buildings[i].w < 1 ? 1 : buildings[i].w)
 					.Append(",\"l\":").Append(buildings[i].l < 1 ? 1 : buildings[i].l)
+					.Append(",\"costItemId\":").Append(buildings[i].costItemId)
+					.Append(",\"costAmount\":").Append(buildings[i].costAmount < 0 ? 0 : buildings[i].costAmount)
 					.Append('}');
 			}
 

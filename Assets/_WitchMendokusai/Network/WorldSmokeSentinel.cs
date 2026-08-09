@@ -40,6 +40,13 @@ namespace WitchMendokusai
 
 		/// <summary>주웠나 — <b>번호로 판단하지 않는다</b>: 게임의 나무가 0번이라 「못 주웠다」로 읽힌다.</summary>
 		private bool gathered;
+
+		/// <summary>
+		/// 모을 나무 — 상자 한 채(2개)를 짓고도 <b>상자에 넣어 볼 것</b>이 남아야 한다.
+		/// 딱 2개만 모으면 짓는 순간 빈손이 되어 그 다음 걸음이 전부 막힌다(실측 2026-08-10).
+		/// </summary>
+		private const int WOOD_NEEDED = 4;
+		private int gatheredWood;
 		private int gatheredAmount;
 		private bool brewed;
 		private int completedItemId;
@@ -289,10 +296,17 @@ namespace WitchMendokusai
 				break;
 			}
 
-			GatherableView nearest = alive[0];
+			// ★ 아무거나 줍지 않는다 (TASK-WM-217): 짓기에 <b>나무</b>가 드는데 철광석만 주우면
+			//   상자를 못 지어 관문이 그 자리에서 죽는다. 아직 재료가 모자라면 나무부터 찾는다.
+			bool needWood = gatheredWood < WOOD_NEEDED;
+
+			GatherableView nearest = null;
 			float best = float.MaxValue;
 			for (int i = 0; i < alive.Length; i++)
 			{
+				if (needWood && alive[i].itemId != WorldSeeds.WOOD)
+					continue;
+
 				float dx = alive[i].x - meX;
 				float dz = alive[i].z - meZ;
 				float distance = dx * dx + dz * dz;
@@ -303,12 +317,20 @@ namespace WitchMendokusai
 				nearest = alive[i];
 			}
 
+			if (nearest == null)
+				return;
+
 			if (best <= 2.0f * 2.0f)
 			{
 				link.RequestGather(nearest.id);
 				gatheredItemId = nearest.itemId;
 				gatheredAmount = nearest.amount;
-				gathered = true;
+
+				if (nearest.itemId == WorldSeeds.WOOD)
+					gatheredWood += nearest.amount;
+
+				// 지을 재료(나무)가 찼을 때 비로소 「주웠다」 — 그전엔 계속 나무를 찾는다.
+				gathered = gatheredWood >= WOOD_NEEDED;
 				return;
 			}
 
@@ -332,7 +354,9 @@ namespace WitchMendokusai
 				// 「놀 수 있나」의 알맹이 — 주웠나·물약을 받았나. 붙기만 하고 아무것도 못 하면 이게 0 이다.
 				// 한 번이라도 같이 있던 사람 수(나 포함) — 「둘이 만났나」는 러너가 이 수로 본다.
 				"peers=", mostPeersSeen.ToString(CultureInfo.InvariantCulture), "\n",
-				"gathered=", gatheredItemId.ToString(CultureInfo.InvariantCulture), "\n",
+				// ⚠ 번호로 적으면 안 된다 — 나무가 0번이라 「못 주웠다」로 읽힌다(그 함정을 또 밟았다).
+				"gathered=", gathered ? "1" : "0", "\n",
+				"gathereditem=", gatheredItemId.ToString(CultureInfo.InvariantCulture), "\n",
 				"gatheredAmount=", gatheredAmount.ToString(CultureInfo.InvariantCulture), "\n",
 				"potion=", completedItemId.ToString(CultureInfo.InvariantCulture), "\n",
 				// 세계가 준 열쇠 — 다음 판이 「같은 사람」으로 들어오려면 이걸 물려받아야 한다.

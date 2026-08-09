@@ -309,9 +309,12 @@ socket.onmessage = (event) => {
 		for (const kind of buildKinds) {
 			const option = document.createElement('option');
 			option.value = kind.buildingId;
-			option.textContent = kind.w > 1 || kind.l > 1
-				? `${kind.name} (${kind.w}×${kind.l})`
-				: kind.name;
+			const size = kind.w > 1 || kind.l > 1 ? ` ${kind.w}×${kind.l}` : '';
+			// 무엇이 드는지 보여 준다 — 안 보이면 「왜 안 되지」를 매번 눌러 봐야 안다.
+			const cost = kind.costAmount > 0
+				? ` — ${itemNames[kind.costItemId] || '#' + kind.costItemId} ${kind.costAmount}`
+				: '';
+			option.textContent = `${kind.name}${size}${cost}`;
 			picker.appendChild(option);
 		}
 
