@@ -55,7 +55,9 @@ namespace WitchMendokusai
 
 			foreach (GatherableKind kind in kinds)
 			{
-				if (kind == null || kind.itemId == 0)
+				// ⚠ 번호 0 을 「없음」으로 거르면 안 된다 (실측 2026-08-10): 게임의 <b>나무</b>가 0 이라
+				//   씨앗 넷 중 하나가 조용히 빠진 채 몇 판을 돌았다. 없음은 null 로만 판단한다.
+				if (kind == null)
 					continue;
 
 				this.kinds.Add(kind);
@@ -133,6 +135,21 @@ namespace WitchMendokusai
 					: int.MaxValue; // 안 자라는 것은 영영 비어 있다
 				Version++;
 				return true;
+			}
+		}
+
+		/// <summary>
+		/// 뽑은 것을 <b>도로 세운다</b> (TASK-WM-217).
+		///
+		/// ★ 왜 필요한가: 가방이 꽉 차면 주운 것이 <b>그냥 사라졌다</b> — 자리는 비었는데 손에도 없다.
+		///   사람 눈엔 「주웠는데 없어졌다」다. 못 받으면 세계로 되돌리는 게 맞다.
+		/// </summary>
+		public void Restore(int nodeId)
+		{
+			lock (gate)
+			{
+				if (regrowAt.Remove(nodeId))
+					Version++;
 			}
 		}
 

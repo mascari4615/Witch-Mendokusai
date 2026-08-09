@@ -228,7 +228,10 @@ namespace WitchMendokusai
 				return;
 			}
 
-			world.TryGather(me.Id, ItemCatalog.Find(itemId), amount);
+			// 가방이 꽉 차서 못 받으면 도로 세운다 — 혼자 놀 때도 같은 규칙이다.
+			int leftover = world.TryGather(me.Id, ItemCatalog.Find(itemId), amount);
+			if (leftover >= amount)
+				world.Gatherables.Restore(nodeId);
 		}
 
 		public void RequestConsume(int itemId, int amount)

@@ -35,8 +35,12 @@ namespace WitchMendokusai
 		public int ResultItemId;
 		public int Amount;
 
-		/// <summary>아무 쪽에도 못 닿았다 — 솥은 비지만 손에는 아무것도 없다.</summary>
-		public bool Empty => ResultItemId == 0;
+		/// <summary>
+		/// 아무 쪽에도 못 닿았다 — 솥은 비지만 손에는 아무것도 없다.
+		/// ⚠ 아이템 번호로 판단하지 않는다 (실측 2026-08-10): 게임의 <b>나무</b>가 0 번이라,
+		///   결과가 나무인 레시피가 조용히 「빈 결과」로 읽힌다. 레시피 번호는 1부터라 안전하다.
+		/// </summary>
+		public bool Empty => RecipeId == 0;
 	}
 
 	/// <summary>
@@ -66,7 +70,8 @@ namespace WitchMendokusai
 			for (int i = 0; i < data.recipes.Length; i++)
 			{
 				RecipeCatalogEntry entry = data.recipes[i];
-				if (entry == null || entry.resultItemId == 0)
+				// 번호 0 을 「없음」으로 거르지 않는다 — 0 은 실제 아이템(나무)이다.
+				if (entry == null || entry.id == 0)
 					continue;
 
 				pages.Add(entry);
@@ -95,7 +100,7 @@ namespace WitchMendokusai
 					continue;
 
 				// 이미 더 좋은 쪽을 찾았으면 그대로 둔다 — 같은 값이면 먼저 적힌 쪽이 이긴다.
-				if (best.ResultItemId != 0 && outcome.Quality <= best.Quality)
+				if (best.RecipeId != 0 && outcome.Quality <= best.Quality)
 					continue;
 
 				best = new BrewCompletion

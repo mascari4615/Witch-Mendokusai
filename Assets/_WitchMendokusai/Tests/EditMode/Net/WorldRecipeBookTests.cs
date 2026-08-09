@@ -78,6 +78,21 @@ namespace WitchMendokusai.Tests
 		}
 
 		[Test]
+		public void 결과가_나무여도_빈_결과가_아니다()
+		{
+			// ⚠ 게임의 나무는 <b>0번</b>이다 — 아이템 번호로 「없음」을 판단하면 이 레시피가 통째로 사라진다.
+			WorldRecipeBook book = new WorldRecipeBook(Book(new RecipeCatalogEntry
+			{
+				id = 9, name = "장작", targetX = 0f, targetY = 0f, radius = 1f, resultItemId = 0, amount = 1,
+			}));
+
+			BrewCompletion result = book.Judge(At(0f, 0f, 3));
+
+			Assert.IsFalse(result.Empty, "0번 아이템도 진짜 결과다");
+			Assert.AreEqual(9, result.RecipeId);
+		}
+
+		[Test]
 		public void 빈_마도서면_아무것도_안_나온다()
 		{
 			WorldRecipeBook book = new WorldRecipeBook(new RecipeCatalogData());

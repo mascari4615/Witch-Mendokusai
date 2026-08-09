@@ -454,8 +454,11 @@ namespace WitchMendokusai.Server
 						return; // 없는 자리거나, 손이 안 닿거나, 방금 남이 가져갔다
 					}
 
-					// 가방이 꽉 차면 서버가 덜 넣는다.
-					World.TryGather(dollId, ServerItemCatalog.Find(itemId), amount);
+					// 가방이 꽉 차서 못 받으면 <b>도로 세운다</b> — 자리도 비고 손도 비는 일은 없다.
+					int leftover = World.TryGather(dollId, ServerItemCatalog.Find(itemId), amount);
+					if (leftover >= amount)
+						World.Gatherables.Restore(nodeId);
+
 					Interlocked.Exchange(ref worldDirty, 1);
 					_ = SendBagAsync(dollId);
 					return;
