@@ -2,10 +2,18 @@
 // 정본 = WitchMendokusai/Server/WM.Server/Protocol.cs
 // 서버가 계약을 소유하고, 이 파일은 거기서 뽑혀 나온다.
 
-/** 서버 -> 창: 접속했다. 네 인형 번호는 이것이다. */
+/** 창 -> 서버: 나 왔다(열쇠가 있으면 같이). 첫 말이다. */
+export interface Hello {
+	type: 'hello';
+	secret: string;
+}
+
+/** 서버 -> 창: 접속했다. secret 이 비어있지 않으면 새로 받은 열쇠(적어 둘 것). */
 export interface Welcome {
 	type: 'welcome';
 	id: number;
+	identityId: number;
+	secret: string;
 }
 
 /** 세계에 있는 인형 하나. */
@@ -78,5 +86,18 @@ export interface BagAsk {
 	type: 'bagask';
 }
 
-export type ServerMessage = Welcome | WorldSnapshot | BrewTaken;
-export type ClientMessage = MoveRequest | RemoveRequest | BrewRequest | BrewResetRequest | BrewCompleteRequest | Hello | BagAsk;
+/** 창 -> 서버: 이걸 썼다(제작 재료 등). 안 알리면 쓴 게 다시 생긴다. */
+export interface ConsumeRequest {
+	type: 'consume';
+	itemId: number;
+	amount: number;
+}
+
+/** 서버 -> 그 창에게만: 네 가방은 이렇다. */
+export interface Bag {
+	type: 'bag';
+	items: { itemId: number; amount: number }[];
+}
+
+export type ServerMessage = Welcome | WorldSnapshot | BrewTaken | Bag;
+export type ClientMessage = MoveRequest | RemoveRequest | BrewRequest | BrewResetRequest | BrewCompleteRequest | Hello | BagAsk | ConsumeRequest;

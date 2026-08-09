@@ -32,6 +32,9 @@ namespace WitchMendokusai.Net
 		/// <summary>창 → 서버: 내 가방 좀 알려줘 (TASK-WM-218 — 다시 들어왔을 때 화면을 채우려면 물어봐야 한다).</summary>
 		public const string BAG_ASK = "bagask";
 
+		/// <summary>창 → 서버: 이걸 썼다(제작 재료 등). 안 알리면 쓴 게 다시 생긴다.</summary>
+		public const string CONSUME = "consume";
+
 		/// <summary>창 → 서버: 이걸 부수고 싶다(그 칸을 문 건물이 통째로 사라진다).</summary>
 		public const string REMOVE = "remove";
 
@@ -141,6 +144,15 @@ namespace WitchMendokusai.Net
 	{
 		public string type = NetMessageType.BAG;
 		public BagEntry[] items = Array.Empty<BagEntry>();
+	}
+
+	/// <summary>창 → 서버: 이걸 썼다.</summary>
+	[Serializable]
+	public class ConsumeMessage
+	{
+		public string type = NetMessageType.CONSUME;
+		public int itemId;
+		public int amount = 1;
 	}
 
 	/// <summary>창 → 서버: 내 가방 좀 알려줘.</summary>

@@ -14,6 +14,12 @@ namespace WitchMendokusai
 	{
 		/// <summary>이만큼 주웠다 — 세계도 같이 알아야 다시 왔을 때 있다.</summary>
 		void Gathered(int itemId, int amount);
+
+		/// <summary>
+		/// 이만큼 썼다(제작 재료 등) — 안 알리면 <b>쓴 게 다시 생긴다</b>.
+		/// 줍기만 알리고 쓰기를 안 알리면 세계의 가방은 영영 불어나기만 한다.
+		/// </summary>
+		void Consumed(int itemId, int amount);
 	}
 
 	/// <summary>게임 ↔ 세계 가방을 잇는 자리. 통신 층이 꽂고, 게임이 부른다.</summary>
@@ -36,6 +42,15 @@ namespace WitchMendokusai
 				return;
 
 			sink.Gathered(itemId, amount);
+		}
+
+		/// <summary>썼다고 알린다.</summary>
+		public static void Consumed(int itemId, int amount)
+		{
+			if (sink == null || amount <= 0)
+				return;
+
+			sink.Consumed(itemId, amount);
 		}
 	}
 }

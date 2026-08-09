@@ -207,6 +207,15 @@ namespace WitchMendokusai.Server
 					return;
 				}
 
+				if (kind == Protocol.CONSUME)
+				{
+					// 없는 걸 썼다고 우겨도 소용없다 — 있는 만큼만 빠진다.
+					World.TryConsume(dollId, ReadInt(root, "itemId"), System.Math.Max(1, ReadInt(root, "amount")));
+					_ = SendBagAsync(dollId);
+					Interlocked.Exchange(ref worldDirty, 1);
+					return;
+				}
+
 				if (kind == Protocol.BAG_ASK)
 				{
 					// 다시 들어온 창이 자기 가방을 그리려면 물어볼 수 있어야 한다.

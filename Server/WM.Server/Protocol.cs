@@ -26,6 +26,7 @@ namespace WitchMendokusai.Server
 		public const string BREW_TAKEN = Net.NetMessageType.BREW_TAKEN;
 		public const string BAG = Net.NetMessageType.BAG;
 		public const string BAG_ASK = Net.NetMessageType.BAG_ASK;
+		public const string CONSUME = Net.NetMessageType.CONSUME;
 
 		/// <summary>계약을 웹이 읽을 수 있는 형태로 뽑는다.</summary>
 		public static string ToTypeScript()
@@ -35,8 +36,11 @@ namespace WitchMendokusai.Server
 			builder.Append("// 정본 = WitchMendokusai/Server/WM.Server/Protocol.cs\n");
 			builder.Append("// 서버가 계약을 소유하고, 이 파일은 거기서 뽑혀 나온다.\n\n");
 
-			builder.Append("/** 서버 -> 창: 접속했다. 네 인형 번호는 이것이다. */\n");
-			builder.Append("export interface Welcome {\n\ttype: '").Append(WELCOME).Append("';\n\tid: number;\n}\n\n");
+			builder.Append("/** 창 -> 서버: 나 왔다(열쇠가 있으면 같이). 첫 말이다. */\n");
+			builder.Append("export interface Hello {\n\ttype: '").Append(HELLO).Append("';\n\tsecret: string;\n}\n\n");
+
+			builder.Append("/** 서버 -> 창: 접속했다. secret 이 비어있지 않으면 새로 받은 열쇠(적어 둘 것). */\n");
+			builder.Append("export interface Welcome {\n\ttype: '").Append(WELCOME).Append("';\n\tid: number;\n\tidentityId: number;\n\tsecret: string;\n}\n\n");
 
 			builder.Append("/** 세계에 있는 인형 하나. */\n");
 			builder.Append("export interface WorldDollView {\n\tid: number;\n\tx: number;\n\tz: number;\n}\n\n");
@@ -68,8 +72,14 @@ namespace WitchMendokusai.Server
 			builder.Append("/** 창 -> 서버: 내 가방 좀 알려줘. */\n");
 			builder.Append("export interface BagAsk {\n\ttype: '").Append(BAG_ASK).Append("';\n}\n\n");
 
-			builder.Append("export type ServerMessage = Welcome | WorldSnapshot | BrewTaken;\n");
-			builder.Append("export type ClientMessage = MoveRequest | RemoveRequest | BrewRequest | BrewResetRequest | BrewCompleteRequest | Hello | BagAsk;\n");
+			builder.Append("/** 창 -> 서버: 이걸 썼다(제작 재료 등). 안 알리면 쓴 게 다시 생긴다. */\n");
+			builder.Append("export interface ConsumeRequest {\n\ttype: '").Append(CONSUME).Append("';\n\titemId: number;\n\tamount: number;\n}\n\n");
+
+			builder.Append("/** 서버 -> 그 창에게만: 네 가방은 이렇다. */\n");
+			builder.Append("export interface Bag {\n\ttype: '").Append(BAG).Append("';\n\titems: { itemId: number; amount: number }[];\n}\n\n");
+
+			builder.Append("export type ServerMessage = Welcome | WorldSnapshot | BrewTaken | Bag;\n");
+			builder.Append("export type ClientMessage = MoveRequest | RemoveRequest | BrewRequest | BrewResetRequest | BrewCompleteRequest | Hello | BagAsk | ConsumeRequest;\n");
 
 			return builder.ToString();
 		}

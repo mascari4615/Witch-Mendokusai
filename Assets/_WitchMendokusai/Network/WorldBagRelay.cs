@@ -21,5 +21,10 @@ namespace WitchMendokusai
 			// 가방에 정말 들어갈지는 세계가 본다(꽉 찼으면 덜 넣는다) — 창이 우기지 않는다.
 			link?.RequestGather(itemId, amount);
 		}
+
+		public void Consumed(int itemId, int amount)
+		{
+			link?.RequestConsume(itemId, amount);
+		}
 	}
 }

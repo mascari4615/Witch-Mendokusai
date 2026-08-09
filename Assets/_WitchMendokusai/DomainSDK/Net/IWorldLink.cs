@@ -50,5 +50,8 @@ namespace WitchMendokusai.Net
 
 		/// <summary>이걸 줍고 싶다 — 가방에 들어갈지는 세계가 본다.</summary>
 		void RequestGather(int itemId, int amount);
+
+		/// <summary>이걸 썼다 — 정말 있었는지는 세계가 본다(없으면 아무 일도 안 일어난다).</summary>
+		void RequestConsume(int itemId, int amount);
 	}
 }

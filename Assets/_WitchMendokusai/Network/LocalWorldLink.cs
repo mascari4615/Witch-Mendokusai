@@ -177,6 +177,11 @@ namespace WitchMendokusai
 			world.TryGather(me.Id, ItemCatalog.Find(itemId), amount);
 		}
 
+		public void RequestConsume(int itemId, int amount)
+		{
+			world.TryConsume(me.Id, itemId, amount);
+		}
+
 		/// <summary>내 가방 — 화면이 읽어 간다.</summary>
 		public int BagCount(int itemId) => world.BagCount(me.Id, itemId);
 	}

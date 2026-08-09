@@ -238,6 +238,12 @@ namespace WitchMendokusai
 		/// <summary>「이걸 줍고 싶다」 — 가방에 들어갈지는 서버가 본다.</summary>
 		public void RequestGather(int itemId, int amount) => Send(JsonUtility.ToJson(new GatherMessage { itemId = itemId, amount = amount }));
 
+		/// <summary>「이걸 썼다」 — 정말 있었는지는 서버가 본다.</summary>
+		public void RequestConsume(int itemId, int amount)
+		{
+			Send(JsonUtility.ToJson(new ConsumeMessage { itemId = itemId, amount = amount }));
+		}
+
 		private void Send(string json)
 		{
 			if (IsConnected == false)
