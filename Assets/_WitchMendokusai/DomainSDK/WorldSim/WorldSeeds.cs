@@ -15,6 +15,9 @@ namespace WitchMendokusai
 		public const int COAL = 4;
 		public const int IRON = 5;
 		public const int HEALING_POTION = 17450;
+		public const int PLANK = 1;
+		public const int STONE_BLOCK = 10;
+		public const int BRICK = 15;
 
 		/// <summary>땅에서 자라는 것들 — 넷을 네 방향 재료로 쓴다.</summary>
 		public static GatherableKind[] Gatherables()
@@ -43,22 +46,51 @@ namespace WitchMendokusai
 			};
 		}
 
-		/// <summary>마도서 씨앗 — 가운데 근처에서 멈추면 치유 물약.</summary>
+		/// <summary>
+		/// 마도서 씨앗 — <b>어디서 멈추느냐</b>가 무엇이 되느냐다 (TASK-WM-217).
+		///
+		/// ★ 왜 여러 쪽인가: 쪽이 하나뿐이면 어떻게 저어도 같은 것만 나온다 — 「무엇을 만들까」라는
+		///   고름이 없으면 조리는 버튼 누르기다. 재료 넷이 미는 방향이 서로 반대이므로,
+		///   그 방향들 끝에 쪽을 놓으면 <b>무엇을 넣느냐가 곧 무엇을 만드느냐</b>가 된다.
+		///
+		/// 나무 → +X · 나뭇가지 → −X · 석탄 → +Y · 철광석 → −Y (한 번에 0.5씩).
+		/// </summary>
 		public static RecipeCatalogData Recipes()
 		{
 			return new RecipeCatalogData
 			{
 				recipes = new[]
 				{
+					// 이쪽저쪽 섞어 가운데로 돌아오면 — 물약.
 					new RecipeCatalogEntry
 					{
-						id = 1,
-						name = "치유 물약",
-						targetX = 0f,
-						targetY = 0f,
-						radius = 1.5f,
-						resultItemId = HEALING_POTION,
-						amount = 1,
+						id = 1, name = "치유 물약",
+						targetX = 0f, targetY = 0f, radius = 0.8f,
+						resultItemId = HEALING_POTION, amount = 1,
+					},
+
+					// 나무만 계속 — 판자.
+					new RecipeCatalogEntry
+					{
+						id = 2, name = "나무 판자",
+						targetX = 2f, targetY = 0f, radius = 0.8f,
+						resultItemId = PLANK, amount = 2,
+					},
+
+					// 석탄 쪽으로 — 석재.
+					new RecipeCatalogEntry
+					{
+						id = 3, name = "석재",
+						targetX = 0f, targetY = 2f, radius = 0.8f,
+						resultItemId = STONE_BLOCK, amount = 2,
+					},
+
+					// 철광석 쪽으로 — 벽돌.
+					new RecipeCatalogEntry
+					{
+						id = 4, name = "벽돌",
+						targetX = 0f, targetY = -2f, radius = 0.8f,
+						resultItemId = BRICK, amount = 2,
 					},
 				},
 			};

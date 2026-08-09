@@ -38,6 +38,7 @@ namespace WitchMendokusai.Server
 		public const string CATALOG = Net.NetMessageType.CATALOG;
 		public const string BUILD_CATALOG = Net.NetMessageType.BUILD_CATALOG;
 		public const string BREW_SHELF = Net.NetMessageType.BREW_SHELF;
+		public const string SPELLBOOK = Net.NetMessageType.SPELLBOOK;
 		public const string DENIED = Net.NetMessageType.DENIED;
 
 		// 무엇이 거절됐나 — 창이 자리별로 다르게 보여 줄 수 있게 이름을 준다.
@@ -97,6 +98,9 @@ namespace WitchMendokusai.Server
 			builder.Append("/** 창 -> 서버: 이 재료를 솥에 넣는다(가방에서 실제로 빠진다). 어디로 밀지는 세계가 안다. */\n");
 			builder.Append("export interface BrewRequest {\n\ttype: '").Append(BREW).Append("';\n\titemId: number;\n}\n\n");
 
+			builder.Append("/** 서버 -> 창: 마도서 — 무엇을 만들 수 있고 어디를 겨냥하나(들어올 때 한 번). */\n");
+			builder.Append("export interface Spellbook {\n\ttype: '").Append(SPELLBOOK).Append("';\n\tpages: { id: number; name: string; x: number; y: number; radius: number; itemId: number; amount: number }[];\n}\n\n");
+
 			builder.Append("/** 서버 -> 창: 솥에 넣을 수 있는 재료 목록(들어올 때 한 번). */\n");
 			builder.Append("export interface BrewShelf {\n\ttype: '").Append(BREW_SHELF).Append("';\n\titems: { itemId: number; name: string }[];\n}\n\n");
 
@@ -155,7 +159,7 @@ namespace WitchMendokusai.Server
 			builder.Append("/** 서버 -> 그 창에게만: 다른 곳에서 같은 사람이 들어왔다(여기서는 나간다). */\n");
 			builder.Append("export interface Kicked {\n\ttype: '").Append(KICKED).Append("';\n\treason: string;\n}\n\n");
 
-			builder.Append("export type ServerMessage = Welcome | WorldSnapshot | BrewTaken | Bag | Catalog | BuildCatalog | BrewShelf | Chest | Denied | Invite | Linked | Kicked;\n");
+			builder.Append("export type ServerMessage = Welcome | WorldSnapshot | BrewTaken | Bag | Catalog | BuildCatalog | BrewShelf | Spellbook | Chest | Denied | Invite | Linked | Kicked;\n");
 			builder.Append("export type ClientMessage = MoveRequest | PlaceRequest | RemoveRequest | GatherRequest | ChestAsk | ChestPut | ChestTake | BrewRequest | BrewResetRequest | BrewCompleteRequest | Hello | BagAsk | ConsumeRequest | InviteAsk | LinkRequest;\n");
 
 			return builder.ToString();
@@ -287,6 +291,33 @@ namespace WitchMendokusai.Server
 
 				first = false;
 				builder.Append("{\"itemId\":").Append(entry.itemId).Append(",\"amount\":").Append(entry.amount).Append('}');
+			}
+
+			builder.Append("]}");
+			return builder.ToString();
+		}
+
+		/// <summary>마도서 — 무엇을 만들 수 있고 어디를 겨냥하나. 들어올 때 한 번.</summary>
+		public static string Spellbook(System.Collections.Generic.IEnumerable<RecipeCatalogEntry> pages)
+		{
+			StringBuilder builder = new StringBuilder();
+			builder.Append("{\"type\":\"").Append(SPELLBOOK).Append("\",\"pages\":[");
+
+			bool first = true;
+			foreach (RecipeCatalogEntry page in pages)
+			{
+				if (first == false)
+					builder.Append(',');
+
+				first = false;
+				builder.Append("{\"id\":").Append(page.id)
+					.Append(",\"name\":").Append(JsonSerializer.Serialize(page.name ?? string.Empty, textOptions))
+					.Append(",\"x\":").Append(page.targetX.ToString("F2"))
+					.Append(",\"y\":").Append(page.targetY.ToString("F2"))
+					.Append(",\"radius\":").Append(page.radius.ToString("F2"))
+					.Append(",\"itemId\":").Append(page.resultItemId)
+					.Append(",\"amount\":").Append(page.amount)
+					.Append('}');
 			}
 
 			builder.Append("]}");

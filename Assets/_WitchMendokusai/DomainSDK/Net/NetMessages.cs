@@ -45,6 +45,9 @@ namespace WitchMendokusai.Net
 		/// <summary>서버 → 창: 솥에 넣을 수 있는 재료 목록(들어올 때 한 번).</summary>
 		public const string BREW_SHELF = "brewshelf";
 
+		/// <summary>서버 → 창: 마도서(무엇을 만들 수 있나·어디를 겨냥하나). 들어올 때 한 번.</summary>
+		public const string SPELLBOOK = "spellbook";
+
 		/// <summary>
 		/// 서버 → 그 창에게만: <b>그건 안 된다, 왜냐면</b> (TASK-WM-217).
 		/// ★ 없으면 창은 아무 말도 없이 실패한다 — 사람은 「고장났나」로 읽는다.

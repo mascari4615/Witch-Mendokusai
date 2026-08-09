@@ -114,6 +114,7 @@
 		<section class="pot">
 			<h2>솥</h2>
 			<div class="line" id="brew">아직 안 저음</div>
+			<div class="line" id="aiming">—</div>
 			<select id="brewpick"></select>
 			<div class="buttons">
 				<button id="stir">넣고 젓기</button>
@@ -170,6 +171,7 @@ let buildKinds = [];      // 지을 수 있는 것 — 들어올 때 한 번 받
 let pickedBuilding = 0;
 let brewShelf = [];       // 솥에 넣을 수 있는 재료 — 들어올 때 한 번 받는다.
 let pickedIngredient = 0;
+let spellbook = [];       // 마도서 — 무엇을 만들 수 있나(들어올 때 한 번)
 let openChest = null;     // 지금 열어 둔 상자의 자리 (없으면 null)
 let chestItems = [];
 const MOVE_STEPS = [1, 5, 0];   // 0 = 전부
@@ -336,6 +338,11 @@ socket.onmessage = (event) => {
 
 		pickedIngredient = brewShelf.length > 0 ? brewShelf[0].itemId : 0;
 		picker.value = pickedIngredient;
+		return;
+	}
+
+	if (message.type === 'spellbook') {
+		spellbook = message.pages || [];
 		return;
 	}
 
@@ -538,6 +545,23 @@ function drawWorldLines() {
 		if (brew.side > 0) brewText += ` · 부작용 ${brew.side.toFixed(2)}`;
 	}
 	document.getElementById('brew').textContent = brewText;
+
+	// 지금 어느 쪽에 가까운가 — 이게 없으면 「무엇을 만드는 중인지」 모른 채 젓는다.
+	const here = brew || { x: 0, y: 0 };
+	let closest = null;
+	let closestGap = Infinity;
+	for (const page of spellbook) {
+		const gap = Math.hypot(page.x - here.x, page.y - here.y);
+		if (gap >= closestGap) continue;
+		closestGap = gap;
+		closest = page;
+	}
+
+	document.getElementById('aiming').textContent = closest === null
+		? '마도서가 비었다'
+		: closestGap <= closest.radius
+			? `지금 멈추면 → ${closest.name} ${closest.amount}개`
+			: `${closest.name} 까지 ${closestGap.toFixed(2)}`;
 }
 
 /** 가방 — 번호가 아니라 이름으로 보인다(낱말표를 못 받았으면 번호로 버틴다). */

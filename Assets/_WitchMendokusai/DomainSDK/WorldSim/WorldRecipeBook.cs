@@ -81,6 +81,9 @@ namespace WitchMendokusai
 		/// <summary>아는 쪽 수 — 0이면 「빈 마도서」다(완성해도 아무것도 안 나온다).</summary>
 		public int Count => pages.Count;
 
+		/// <summary>쪽 그대로 — 창이 「무엇을 만들 수 있나」를 보이려면 필요하다.</summary>
+		public IReadOnlyList<RecipeCatalogEntry> Pages => pages;
+
 		/// <summary>이 솥이 닿은 쪽. 아무 데도 못 닿았으면 빈 결과.</summary>
 		public BrewCompletion Judge(BrewState state)
 		{

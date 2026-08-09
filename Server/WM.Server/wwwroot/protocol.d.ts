@@ -102,6 +102,12 @@ export interface BrewRequest {
 	itemId: number;
 }
 
+/** 서버 -> 창: 마도서 — 무엇을 만들 수 있고 어디를 겨냥하나(들어올 때 한 번). */
+export interface Spellbook {
+	type: 'spellbook';
+	pages: { id: number; name: string; x: number; y: number; radius: number; itemId: number; amount: number }[];
+}
+
 /** 서버 -> 창: 솥에 넣을 수 있는 재료 목록(들어올 때 한 번). */
 export interface BrewShelf {
 	type: 'brewshelf';
@@ -243,5 +249,5 @@ export interface Kicked {
 	reason: string;
 }
 
-export type ServerMessage = Welcome | WorldSnapshot | BrewTaken | Bag | Catalog | BuildCatalog | BrewShelf | Chest | Denied | Invite | Linked | Kicked;
+export type ServerMessage = Welcome | WorldSnapshot | BrewTaken | Bag | Catalog | BuildCatalog | BrewShelf | Spellbook | Chest | Denied | Invite | Linked | Kicked;
 export type ClientMessage = MoveRequest | PlaceRequest | RemoveRequest | GatherRequest | ChestAsk | ChestPut | ChestTake | BrewRequest | BrewResetRequest | BrewCompleteRequest | Hello | BagAsk | ConsumeRequest | InviteAsk | LinkRequest;

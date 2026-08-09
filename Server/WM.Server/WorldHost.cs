@@ -194,6 +194,9 @@ namespace WitchMendokusai.Server
 			// 솥에 넣을 수 있는 것도 한 번 — 창이 「무엇을 넣을까」 고르게 하려면 필요하다.
 			await SendAsync(connection, Protocol.BrewShelf(World.Ingredients.All));
 
+			// 마도서도 한 번 — 무엇을 만들 수 있는지 모르면 조리는 그냥 버튼 누르기다.
+			await SendAsync(connection, Protocol.Spellbook(ServerRecipeBook.Book.Pages));
+
 			// ★ 방금 온 창에는 <b>전체 그림</b>을 한 번 준다 (TASK-WM-217).
 			//   방송은 「바뀐 것만」 싣기 때문에, 늦게 들어온 사람은 이 한 장이 없으면
 			//   집도 들판도 없는 빈 세계를 본다(다음에 누가 뭘 지을 때까지).
