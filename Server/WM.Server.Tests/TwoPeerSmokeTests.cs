@@ -122,17 +122,18 @@ namespace WitchMendokusai.ServerTests
 		{
 			using ClientWebSocket builder = await ConnectAsync();
 			using ClientWebSocket watcher = await ConnectAsync();
-			await ReadWelcomeAsync(builder);
+			int builderId = await ReadWelcomeAsync(builder);
 			await ReadWelcomeAsync(watcher);
 
-			await SendAsync(builder, "{\"type\":\"place\",\"x\":3,\"y\":0,\"z\":4,\"buildingId\":4000}");
+			// 재료를 모아서 짓는다 — 앞 시험이 남긴 재료에 기대면 혼자 돌릴 때 빨강이 된다(거짓 초록).
+			await BuildWithMaterialsAsync(builder, builderId, 4005, 3, 4);
 
-			await WaitForAsync(watcher, text => text.Contains("\"buildingId\":4000"));
+			await WaitForAsync(watcher, text => text.Contains("\"buildingId\":4005"));
 
 			// 부수면 다른 쪽에서도 사라진다.
 			await SendAsync(builder, "{\"type\":\"remove\",\"x\":3,\"y\":0,\"z\":4}");
 			await WaitForAsync(watcher, text =>
-				text.Contains("\"type\":\"world\"") && text.Contains("\"buildingId\":4000") == false);
+				text.Contains("\"type\":\"world\"") && text.Contains("\"buildingId\":4005") == false);
 		}
 
 		[Test]
@@ -322,8 +323,8 @@ namespace WitchMendokusai.ServerTests
 
 			// 잠깐 쉬면 물통이 차서 다시 말이 먹힌다 — 「막았다」가 「영영 못 쓴다」가 되면 안 된다.
 			await Task.Delay(1200);
-			await SendAsync(flooder, "{\"type\":\"place\",\"x\":11,\"y\":0,\"z\":11,\"buildingId\":4001}");
-			await WaitForAsync(watcher, text => text.Contains("\"buildingId\":4001"));
+			await SendAsync(flooder, "{\"type\":\"place\",\"x\":11,\"y\":0,\"z\":11,\"buildingId\":4005}");
+			await WaitForAsync(watcher, text => text.Contains("\"buildingId\":4005"));
 		}
 
 		[Test]
@@ -333,8 +334,8 @@ namespace WitchMendokusai.ServerTests
 			int peerId = await ReadWelcomeAsync(peer);
 
 			// 짓기는 재료를 쓴다 — 주워서 짓는다(공짜로 지어지면 줍기가 뜻을 잃는다).
-			await BuildWithMaterialsAsync(peer, peerId, 4000, 2, 2);
-			await WaitForAsync(peer, text => text.Contains("\"buildingId\":4000"));
+			await BuildWithMaterialsAsync(peer, peerId, 4005, 2, 2);
+			await WaitForAsync(peer, text => text.Contains("\"buildingId\":4005"));
 
 			using System.Net.Http.HttpClient http = new System.Net.Http.HttpClient();
 			string body = await http.GetStringAsync($"http://127.0.0.1:{PORT}/health");

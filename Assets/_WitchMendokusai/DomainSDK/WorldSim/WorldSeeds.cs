@@ -96,6 +96,22 @@ namespace WitchMendokusai
 			};
 		}
 
+		/// <summary>
+		/// 이 건물은 무엇으로 짓나 (TASK-WM-217) — 씨앗 규칙.
+		/// 목록에 적힌 게 있으면 그것, 없으면 나무(처음 온 사람도 지을 수 있게).
+		/// </summary>
+		public static int CostItemOf(int buildingId)
+		{
+			BuildingCatalogData seeds = Buildings();
+			for (int i = 0; i < seeds.buildings.Length; i++)
+			{
+				if (seeds.buildings[i].id == buildingId)
+					return seeds.buildings[i].costItemId;
+			}
+
+			return WOOD;
+		}
+
 		/// <summary>지을 것 씨앗 — 뽑아 둔 목록이 없을 때도 뭔가는 지어 볼 수 있어야 한다.</summary>
 		public static BuildingCatalogData Buildings()
 		{
@@ -103,9 +119,12 @@ namespace WitchMendokusai
 			{
 				buildings = new[]
 				{
-					new BuildingCatalogEntry { id = 4000, name = "솥", w = 1, l = 1, costItemId = WOOD, costAmount = 2 },
-					new BuildingCatalogEntry { id = 4001, name = "모루", w = 1, l = 1, costItemId = WOOD, costAmount = 2 },
+					// ★ 만든 것이 <b>다음 것을 짓는 재료</b>가 된다 (TASK-WM-217):
+					//   나무 → (솥에서) 판자 → 더 좋은 건물. 사슬이 없으면 조리는 막다른 길이다.
+					//   상자만은 나무로 짓는다 — 처음 온 사람이 아무것도 없이 시작하기 때문이다.
 					new BuildingCatalogEntry { id = 4005, name = "보관 상자", w = 1, l = 1, slots = 30, costItemId = WOOD, costAmount = 2 },
+					new BuildingCatalogEntry { id = 4000, name = "솥", w = 1, l = 1, costItemId = PLANK, costAmount = 2 },
+					new BuildingCatalogEntry { id = 4001, name = "모루", w = 1, l = 1, costItemId = STONE_BLOCK, costAmount = 2 },
 				},
 			};
 		}

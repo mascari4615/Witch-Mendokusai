@@ -24,7 +24,7 @@
             "w": 1,
             "l": 1,
             "slots": 0,
-            "costItemId": 0,
+            "costItemId": 1,
             "costAmount": 2
         },
         {
@@ -33,7 +33,7 @@
             "w": 1,
             "l": 1,
             "slots": 0,
-            "costItemId": 0,
+            "costItemId": 10,
             "costAmount": 2
         },
         {
