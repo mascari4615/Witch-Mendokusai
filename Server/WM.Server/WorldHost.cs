@@ -162,7 +162,12 @@ namespace WitchMendokusai.Server
 			{
 				string code = ReadStringField(text, "code");
 				string deviceSecret = CurrentSecretOf(dollId);
-				WitchMendokusai.Identity.WorldIdentityRecord linked = Identities.RedeemInvite(code, deviceSecret, World.Calendar.TotalDays());
+				WitchMendokusai.Identity.WorldIdentityRecord linked = Identities.RedeemInvite(
+					code, deviceSecret, World.Calendar.TotalDays(), out int previousIdentity);
+
+				// 이 기기가 전에 쓰던 사람이 갖고 있던 것을 옮겨 준다 — 안 옮기면 사람 눈엔 사라진 것이다.
+				if (linked != null && previousIdentity != 0 && previousIdentity != linked.id)
+					World.MergePerson(previousIdentity, linked.id, ItemsCatalog);
 
 				// 이었어도 지금 인형은 안 바꾼다(접속 도중 주인 갈아타기는 막혀 있다) —
 				// 다시 들어오면 그때부터 그 사람이다.

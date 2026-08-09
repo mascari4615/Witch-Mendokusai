@@ -249,6 +249,64 @@ namespace WitchMendokusai
 			}
 		}
 
+		/// <summary>
+		/// 한 사람이 갖고 있던 것을 <b>다른 사람에게 옮긴다</b> (TASK-WM-218 — 기기를 이을 때).
+		///
+		/// ★ 왜 필요한가: 컴퓨터에서 잠깐 놀다(손님 신원으로 몇 개 주움) 폰의 열쇠로 이으면,
+		///   그 손님이 갖고 있던 것이 <b>주인 없는 채로 남는다</b> — 사람 눈엔 그냥 사라진 것이다.
+		///
+		/// 가방은 합치고(넘치면 남는 건 버려진다 — 가방 규칙은 그대로), 자리는 <b>받는 쪽</b>을 지킨다.
+		/// 옮긴 뒤 옛 사람의 기록은 지운다(둘 다 남으면 다음 접속에 어느 쪽이 나올지 알 수 없다).
+		/// </summary>
+		public bool MergePerson(int fromIdentityId, int intoIdentityId, WorldItemCatalog catalog)
+		{
+			if (fromIdentityId == 0 || intoIdentityId == 0 || fromIdentityId == intoIdentityId)
+				return false;
+
+			lock (gate)
+			{
+				if (remembered.TryGetValue(fromIdentityId, out PersonSaveData from) == false)
+					return false;
+
+				if (remembered.TryGetValue(intoIdentityId, out PersonSaveData into) == false)
+				{
+					// 받는 쪽 기록이 아직 없으면 그대로 옮겨 준다(자리도 같이 간다).
+					from.identityId = intoIdentityId;
+					remembered[intoIdentityId] = from;
+					remembered.Remove(fromIdentityId);
+					return true;
+				}
+
+				Dictionary<int, int> merged = new Dictionary<int, int>();
+				AddBagInto(merged, into.bag);
+				AddBagInto(merged, from.bag);
+
+				List<BagSaveEntry> bag = new List<BagSaveEntry>();
+				foreach (KeyValuePair<int, int> entry in merged)
+					bag.Add(new BagSaveEntry { itemId = entry.Key, amount = entry.Value });
+
+				into.bag = bag.ToArray();
+				remembered.Remove(fromIdentityId);
+				return true;
+			}
+		}
+
+		private static void AddBagInto(Dictionary<int, int> target, BagSaveEntry[] source)
+		{
+			if (source == null)
+				return;
+
+			for (int i = 0; i < source.Length; i++)
+			{
+				BagSaveEntry entry = source[i];
+				if (entry == null || entry.amount <= 0)
+					continue;
+
+				target.TryGetValue(entry.itemId, out int had);
+				target[entry.itemId] = had + entry.amount;
+			}
+		}
+
 		/// <summary>지금 접속 중인 사람들 것까지 포함해 뜬다 — 서버가 꺼질 때도 안 잃는다.</summary>
 		public PersonSaveData[] SavePeople()
 		{

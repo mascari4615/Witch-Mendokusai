@@ -120,6 +120,59 @@ namespace WitchMendokusai.Tests.EditMode.Net
 		}
 
 		[Test]
+		public void 기기를_이으면_그_기기가_모은_것도_따라온다()
+		{
+			WorldSim world = new WorldSim();
+			WorldItemCatalog catalog = Catalog();
+
+			// 컴퓨터에서 손님으로 잠깐 놀며 3개 주움
+			WorldDoll guest = world.Join(identityId: 2, catalog: catalog);
+			world.TryGather(guest.Id, catalog.Find(STONE), 3);
+			world.Leave(guest.Id);
+
+			// 폰(주인)은 이미 5개 갖고 있었음
+			WorldDoll owner = world.Join(identityId: 1, catalog: catalog);
+			world.TryGather(owner.Id, catalog.Find(STONE), 5);
+			world.Leave(owner.Id);
+
+			Assert.That(world.MergePerson(2, 1, catalog), Is.True);
+
+			WorldDoll after = world.Join(identityId: 1, catalog: catalog);
+			Assert.That(world.BagCount(after.Id, STONE), Is.EqualTo(8), "합쳐져야 한다 — 안 그러면 사람 눈엔 사라진 것이다.");
+
+			// 옛 사람 기록은 남지 않는다(둘 다 남으면 다음 접속에 어느 쪽이 나올지 알 수 없다).
+			WorldDoll orphan = world.Join(identityId: 2, catalog: catalog);
+			Assert.That(world.BagCount(orphan.Id, STONE), Is.EqualTo(0));
+		}
+
+		[Test]
+		public void 받는_쪽_기록이_없으면_그대로_옮긴다()
+		{
+			WorldSim world = new WorldSim();
+			WorldItemCatalog catalog = Catalog();
+			WorldDoll guest = world.Join(identityId: 5, catalog: catalog);
+			world.TryGather(guest.Id, catalog.Find(STONE), 2);
+			world.TryMove(guest.Id, new Vector3(1f, 0f, 0f));
+			world.Leave(guest.Id);
+
+			Assert.That(world.MergePerson(5, 9, catalog), Is.True);
+
+			WorldDoll target = world.Join(identityId: 9, catalog: catalog);
+			Assert.That(world.BagCount(target.Id, STONE), Is.EqualTo(2));
+			Assert.That(target.Position.x, Is.GreaterThan(0f), "받는 쪽 기록이 없었으니 자리도 같이 온다.");
+		}
+
+		[Test]
+		public void 같은_사람끼리는_합치지_않는다()
+		{
+			WorldSim world = new WorldSim();
+
+			Assert.That(world.MergePerson(1, 1, Catalog()), Is.False);
+			Assert.That(world.MergePerson(0, 1, Catalog()), Is.False);
+			Assert.That(world.MergePerson(3, 4, Catalog()), Is.False, "기록이 없으면 옮길 것도 없다.");
+		}
+
+		[Test]
 		public void 신원_없이_들어오면_옛_방식_그대로다()
 		{
 			WorldSim world = new WorldSim();

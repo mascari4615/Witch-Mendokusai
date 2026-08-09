@@ -243,8 +243,21 @@ namespace WitchMendokusai.Identity
 		/// </summary>
 		public WorldIdentityRecord RedeemInvite(string code, string deviceSecret, int today = 0)
 		{
+			return RedeemInvite(code, deviceSecret, today, out int _);
+		}
+
+		/// <summary>
+		/// 초대 열쇠를 쓴다. <paramref name="previousIdentityId"/> = 그 기기가 <b>전에 쓰던 사람</b> 번호
+		/// (0 이면 없음) — 그 사람이 갖고 있던 것을 옮겨 줘야 하는지 부르는 쪽이 판단한다.
+		/// </summary>
+		public WorldIdentityRecord RedeemInvite(string code, string deviceSecret, int today, out int previousIdentityId)
+		{
+			previousIdentityId = 0;
 			lock (gate)
 			{
+				if (string.IsNullOrEmpty(deviceSecret) == false && bySecret.TryGetValue(deviceSecret, out WorldIdentityRecord before))
+					previousIdentityId = before.id;
+
 				if (string.IsNullOrEmpty(code) || invites.TryGetValue(code, out WorldLinkInvite invite) == false)
 					return null;
 
