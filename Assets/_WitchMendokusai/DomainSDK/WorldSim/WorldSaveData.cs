@@ -63,5 +63,11 @@ namespace WitchMendokusai
 
 		/// <summary>세계가 아는 사람들의 신원 장부 (TASK-WM-218).</summary>
 		public Identity.WorldIdentityBook identities = new Identity.WorldIdentityBook();
+
+		/// <summary>
+		/// 뽑아 간 자리들 (TASK-WM-217) — 언제 다시 자라나.
+		/// 자리 자체는 저장하지 않는다(계산으로 늘 같은 자리). 여기 담기는 건 「비어 있는 곳」뿐이다.
+		/// </summary>
+		public GatherTakenSaveEntry[] gathered = Array.Empty<GatherTakenSaveEntry>();
 	}
 }

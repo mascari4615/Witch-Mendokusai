@@ -159,6 +159,7 @@ namespace WitchMendokusai.ServerTests
 		public async Task 나갔다_와도_내_가방이_그대로다()
 		{
 			string secret;
+			int gathered;
 
 			using (ClientWebSocket first = await ConnectAsync())
 			{
@@ -167,9 +168,8 @@ namespace WitchMendokusai.ServerTests
 				string granted = await WaitForAsync(first, text => text.Contains("\"secret\":\"") && text.Contains("\"secret\":\"\"") == false);
 				secret = ReadField(granted, "\"secret\":\"");
 
-				// 돌 3개를 줍고 그대로 나간다.
-				await SendAsync(first, "{\"type\":\"gather\",\"itemId\":1,\"amount\":3}");
-				await WaitForAsync(first, text => text.Contains("\"type\":\"bag\"") && text.Contains("\"amount\":3"));
+				// 가까운 것을 찾아가 줍고 그대로 나간다 (TASK-WM-217 — 이제 세계에 실제로 있는 것만 줍힌다).
+				gathered = await WalkToAndGatherAsync(first);
 			}
 
 			using ClientWebSocket again = await ConnectAsync();
@@ -177,19 +177,19 @@ namespace WitchMendokusai.ServerTests
 			await SendAsync(again, "{\"type\":\"hello\",\"secret\":\"" + secret + "\"}");
 
 			await SendAsync(again, "{\"type\":\"bagask\"}");
-			await WaitForAsync(again, text => text.Contains("\"type\":\"bag\"") && text.Contains("\"amount\":3"));
+			await WaitForAsync(again, text => text.Contains("\"type\":\"bag\"") && text.Contains("\"itemId\":" + gathered));
 		}
 
 		[Test]
 		public async Task 남은_남의_가방을_못_가져간다()
 		{
+			int taken;
 			using (ClientWebSocket owner = await ConnectAsync())
 			{
 				await ReadWelcomeAsync(owner);
 				await SendAsync(owner, "{\"type\":\"hello\",\"secret\":\"\"}");
 				await WaitForAsync(owner, text => text.Contains("\"identityId\":") && text.Contains("\"identityId\":0") == false);
-				await SendAsync(owner, "{\"type\":\"gather\",\"itemId\":1,\"amount\":5}");
-				await WaitForAsync(owner, text => text.Contains("\"amount\":5"));
+				taken = await WalkToAndGatherAsync(owner);
 			}
 
 			using ClientWebSocket stranger = await ConnectAsync();
@@ -200,8 +200,8 @@ namespace WitchMendokusai.ServerTests
 			await SendAsync(stranger, "{\"type\":\"bagask\"}");
 			string bag = await WaitForAsync(stranger, text => text.Contains("\"type\":\"bag\""));
 
-			// 남의 돌 5개가 딸려 오면 안 된다 — 빈 가방이어야 한다.
-			StringAssert.DoesNotContain("\"amount\":5", bag);
+			// 남이 주운 것이 딸려 오면 안 된다 — 빈 가방이어야 한다.
+			StringAssert.DoesNotContain("\"itemId\":" + taken, bag);
 		}
 
 		[Test]
@@ -296,6 +296,43 @@ namespace WitchMendokusai.ServerTests
 		// ⚠ 보류 (TASK-WM-218): 「계정으로 들어오면 기기가 달라도 같은 사람」을 서버 왕복으로 재려다
 		//   두 번째 창이 인사에 대한 답을 못 받는 자리를 만났다. 판정 층 시험은 이미 그 규칙을 지킨다
 		//   (WorldIdentityTests). 왕복 시험은 원인을 잡은 뒤 다시 넣는다 — 빨간 묶음을 남기지 않는다.
+
+		/// <summary>
+		/// 가장 가까운 주울 것까지 <b>걸어가서</b> 줍는다 (TASK-WM-217).
+		/// 손이 닿아야 줍히므로, 이 걸음 자체가 「줍기 판정이 서 있다」는 증거다.
+		/// 주운 아이템 번호를 돌려준다.
+		/// </summary>
+		private static async Task<int> WalkToAndGatherAsync(ClientWebSocket socket)
+		{
+			string snapshot = await WaitForAsync(socket, text => text.Contains("\"gatherables\":[{"));
+			System.Text.Json.JsonElement first = System.Text.Json.JsonDocument.Parse(snapshot)
+				.RootElement.GetProperty("gatherables")[0];
+
+			int nodeId = first.GetProperty("id").GetInt32();
+			double targetX = first.GetProperty("x").GetDouble();
+			double targetZ = first.GetProperty("z").GetDouble();
+			int itemId = first.GetProperty("itemId").GetInt32();
+
+			// 서버가 한 걸음의 길이를 자른다 — 그러니 여러 번, 그리고 **도착을 확인하며** 간다.
+			// ⚠ 한꺼번에 쏟아부으면 말 예산에 걸려 조용히 버려진다(그래서 안 도착한다).
+			for (int step = 0; step < 60; step++)
+			{
+				await SendAsync(socket, "{\"type\":\"move\",\"x\":" + targetX.ToString("F3", System.Globalization.CultureInfo.InvariantCulture)
+					+ ",\"z\":" + targetZ.ToString("F3", System.Globalization.CultureInfo.InvariantCulture) + "}");
+				await Task.Delay(60);
+
+				string now = await WaitForAsync(socket, text => text.Contains("\"dolls\":[{"));
+				System.Text.Json.JsonElement me = System.Text.Json.JsonDocument.Parse(now).RootElement.GetProperty("dolls")[0];
+				double dx = me.GetProperty("x").GetDouble() - targetX;
+				double dz = me.GetProperty("z").GetDouble() - targetZ;
+				if (dx * dx + dz * dz <= 2.0 * 2.0)
+					break;
+			}
+
+			await SendAsync(socket, "{\"type\":\"gather\",\"nodeId\":" + nodeId + "}");
+			await WaitForAsync(socket, text => text.Contains("\"type\":\"bag\"") && text.Contains("\"itemId\":" + itemId));
+			return itemId;
+		}
 
 		private static string ReadField(string json, string marker)
 		{

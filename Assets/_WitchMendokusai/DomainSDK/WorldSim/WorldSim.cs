@@ -101,6 +101,12 @@ namespace WitchMendokusai
 		/// <summary>모두가 같이 젓는 하나의 솥 — 호스트가 아니라 세계가 갖는다 (TASK-WM-217).</summary>
 		public WorldCauldron Cauldron { get; } = new WorldCauldron();
 
+		/// <summary>
+		/// 세계에 흩어져 있는 주울 것 (TASK-WM-217). 서버가 「무엇이 자라는 세계인가」를 정해 꽂아 준다.
+		/// 안 꽂으면 빈 들판이다 — 아무것도 안 자라는 세계에서는 아무도 못 줍는다(우겨도).
+		/// </summary>
+		public WorldGatherables Gatherables { get; set; } = new WorldGatherables(null);
+
 		/// <summary>시간을 흘린다. 하루가 바뀌었으면 true.</summary>
 		public bool AdvanceMinutes(float minutes)
 		{
@@ -221,6 +227,15 @@ namespace WitchMendokusai
 					return true;
 
 				return kept.x != 0f || kept.z != 0f;
+			}
+		}
+
+		/// <summary>그 인형이 지금 서 있는 자리 — 없는 인형이면 원점.</summary>
+		public Vector3 PositionOf(int dollId)
+		{
+			lock (gate)
+			{
+				return dolls.TryGetValue(dollId, out WorldDoll doll) ? doll.Position : Vector3.zero;
 			}
 		}
 
@@ -564,6 +579,7 @@ namespace WitchMendokusai
 					day = Calendar.Day,
 					hour = Calendar.Hour,
 					minute = Calendar.Minute,
+					gathered = Gatherables.Save().ToArray(),
 				};
 			}
 		}
@@ -586,6 +602,7 @@ namespace WitchMendokusai
 
 				Calendar.Set(data.year, data.season, data.day, data.hour, data.minute);
 				LoadPeopleUnlocked(data.people);
+				Gatherables.Load(data.gathered);
 
 				if (data.buildings == null)
 					return 0;

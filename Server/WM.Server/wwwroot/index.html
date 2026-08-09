@@ -124,7 +124,7 @@
 
 	<footer>
 		<span class="status" id="status">붙는 중…</span>
-		<span>방향키·WASD 로 걷고, 땅을 눌러 짓는다 · 드래그로 둘러본다</span>
+		<span>방향키·WASD 로 걷고 · 노란 것을 눌러 줍고 · 땅을 눌러 짓는다 · 드래그로 둘러본다</span>
 	</footer>
 
 <script type="module">
@@ -141,6 +141,7 @@ const canvas = document.getElementById('board');
 let myId = null;
 let dolls = [];
 let buildings = [];
+let gatherables = [];
 let bag = [];
 const itemNames = {};   // 번호 → 이름. 들어올 때 한 번 받는다.
 const pressed = {};
@@ -199,6 +200,13 @@ scene.add(dollGroup);
 const buildingGeometry = new THREE.BoxGeometry(1, 1, 1);
 const buildingMaterial = new THREE.MeshLambertMaterial({ color: '#3c5a4a' });
 const buildingEdge = new THREE.LineBasicMaterial({ color: '#6f9c82' });
+
+// 주울 것 — 땅에 박힌 작은 기둥. 손이 닿는 것만 밝게 선다.
+const nodeGeometry = new THREE.BoxGeometry(0.5, 0.9, 0.5);
+const nodeNear = new THREE.MeshLambertMaterial({ color: '#c9b06a', emissive: '#3a3008' });
+const nodeFar = new THREE.MeshLambertMaterial({ color: '#5d6b52' });
+const nodeGroup = new THREE.Group();
+scene.add(nodeGroup);
 
 const dollGeometry = new THREE.CapsuleGeometry(0.32, 0.7, 4, 12);
 const myMaterial = new THREE.MeshLambertMaterial({ color: '#e8c46a', emissive: '#3a2c08' });
@@ -308,6 +316,7 @@ socket.onmessage = (event) => {
 	if (message.type === 'world') {
 		dolls = message.dolls;
 		buildings = message.buildings || [];
+		gatherables = message.gatherables || [];
 		time = message.time || time;
 		brew = message.brew || brew;
 		drawWorldLines();
@@ -388,6 +397,13 @@ function placeAt(clientX, clientY) {
 	pointer.y = -(clientY / window.innerHeight) * 2 + 1;
 	raycaster.setFromCamera(pointer, camera);
 
+	// 주울 것을 눌렀으면 줍는다 — 땅을 눌렀을 때만 짓는다(둘을 섞으면 주우려다 집이 선다).
+	const onNode = raycaster.intersectObjects(nodeGroup.children);
+	if (onNode.length > 0) {
+		socket.send(JSON.stringify({ type: 'gather', nodeId: onNode[0].object.userData.nodeId }));
+		return;
+	}
+
 	const hits = raycaster.intersectObject(ground);
 	if (hits.length === 0) return;
 
@@ -454,6 +470,9 @@ function drawBag() {
 // ── 세계를 세우기 ──────────────────────────────────────────────────────
 const BUILDING_HEIGHT = 1.6;
 
+// 서버가 정한 손 닿는 거리 — 창은 「닿는지」를 미리 보여 주기만 한다(판정은 서버).
+const REACH = 2.5;
+
 function clearGroup(group) {
 	while (group.children.length > 0) {
 		const child = group.children.pop();
@@ -479,6 +498,16 @@ function rebuildWorld() {
 		edges.scale.copy(box.scale);
 		edges.position.copy(box.position);
 		buildingGroup.add(edges);
+	}
+
+	clearGroup(nodeGroup);
+	const me = myPlace();
+	for (const node of gatherables) {
+		const near = (node.x - me.x) ** 2 + (node.z - me.z) ** 2 <= REACH * REACH;
+		const pole = new THREE.Mesh(nodeGeometry, near ? nodeNear : nodeFar);
+		pole.position.set(node.x, 0.45, -node.z);
+		pole.userData.nodeId = node.id;
+		nodeGroup.add(pole);
 	}
 
 	clearGroup(dollGroup);

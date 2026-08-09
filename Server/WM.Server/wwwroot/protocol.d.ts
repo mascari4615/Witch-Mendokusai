@@ -57,10 +57,19 @@ export interface BrewView {
 	path: BrewStepView[];
 }
 
+export interface GatherableView {
+	id: number;
+	x: number;
+	z: number;
+	itemId: number;
+	amount: number;
+}
+
 export interface WorldSnapshot {
 	type: 'world';
 	dolls: WorldDollView[];
 	buildings: WorldBuildingView[];
+	gatherables: GatherableView[];
 	time?: WorldTime;
 	brew?: BrewView;
 }
@@ -78,6 +87,12 @@ export interface RemoveRequest {
 	x: number;
 	y: number;
 	z: number;
+}
+
+/** 창 -> 서버: 저기 있는 저것을 줍겠다. 손이 닿는지는 세계가 본다. */
+export interface GatherRequest {
+	type: 'gather';
+	nodeId: number;
 }
 
 /** 창 -> 서버: 솥을 한 번 젓는다(모두가 같은 솥). */
@@ -166,4 +181,4 @@ export interface Kicked {
 }
 
 export type ServerMessage = Welcome | WorldSnapshot | BrewTaken | Bag | Catalog | Invite | Linked | Kicked;
-export type ClientMessage = MoveRequest | RemoveRequest | BrewRequest | BrewResetRequest | BrewCompleteRequest | Hello | BagAsk | ConsumeRequest | InviteAsk | LinkRequest;
+export type ClientMessage = MoveRequest | RemoveRequest | GatherRequest | BrewRequest | BrewResetRequest | BrewCompleteRequest | Hello | BagAsk | ConsumeRequest | InviteAsk | LinkRequest;

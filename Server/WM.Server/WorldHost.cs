@@ -76,7 +76,7 @@ namespace WitchMendokusai.Server
 		}
 
 		/// <summary>이 서버가 굴리는 세계 — 시험이 들여다본다.</summary>
-		public WorldSim World { get; } = new WorldSim();
+		public WorldSim World { get; } = new WorldSim { Gatherables = ServerGatherables.Field };
 
 		/// <summary>KarmoLab 계정에 「이 사람 누구냐」고 묻는 자리 — 못 물어보면 손님으로 받는다.</summary>
 		public KarmoLabAccounts Accounts { get; set; } = new KarmoLabAccounts();
@@ -379,11 +379,20 @@ namespace WitchMendokusai.Server
 
 				if (kind == Protocol.GATHER)
 				{
-					int itemId = ReadInt(root, "itemId");
-					int amount = System.Math.Max(1, ReadInt(root, "amount"));
+					// ★ 창은 「저기 있는 저것을 줍겠다」만 말한다 (TASK-WM-217).
+					//   전에는 「아이템 X 를 N개 주웠다」고 말하면 세계가 그냥 넣어 줬다 — 그건
+					//   판정이 아니라 신고였고, 창을 고친 사람은 무엇이든 무한히 가질 수 있었다.
+					int nodeId = ReadInt(root, "nodeId");
+					Vector3 standing = World.PositionOf(dollId);
+					if (World.Gatherables.TryTake(nodeId, standing.x, standing.z, World.Calendar.TotalMinutes(),
+						out int itemId, out int amount) == false)
+					{
+						return; // 없는 자리거나, 손이 안 닿거나, 방금 남이 가져갔다
+					}
 
-					// 가방이 꽉 차면 서버가 덜 넣는다 — 창이 우겨도 소용없다.
+					// 가방이 꽉 차면 서버가 덜 넣는다.
 					World.TryGather(dollId, ServerItemCatalog.Find(itemId), amount);
+					Interlocked.Exchange(ref worldDirty, 1);
 					_ = SendBagAsync(dollId);
 					return;
 				}
@@ -549,7 +558,8 @@ namespace WitchMendokusai.Server
 				if (World.AdvanceMinutes(minutesPerTick))
 					Interlocked.Exchange(ref worldDirty, 1);
 
-				string snapshot = Protocol.WorldSnapshot(World.Snapshot(), World.Buildings(), World.Calendar, World.Cauldron);
+				string snapshot = Protocol.WorldSnapshot(World.Snapshot(), World.Buildings(), World.Calendar, World.Cauldron,
+					World.Gatherables.Alive(World.Calendar.TotalMinutes()));
 				foreach (System.Collections.Generic.KeyValuePair<int, Connection> entry in sockets)
 				{
 					if (entry.Value.Socket.State != WebSocketState.Open)

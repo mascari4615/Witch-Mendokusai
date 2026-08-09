@@ -69,13 +69,17 @@ namespace WitchMendokusai.Server
 			builder.Append("export interface WorldBuildingView {\n\tx: number;\n\ty: number;\n\tz: number;\n\tw: number;\n\tl: number;\n\tbuildingId: number;\n}\n\n");
 			builder.Append("export interface BrewStepView {\n\tdx: number;\n\tdy: number;\n\tgrind: number;\n}\n\n");
 			builder.Append("export interface BrewView {\n\tx: number;\n\ty: number;\n\tsteps: number;\n\tside: number;\n\tpath: BrewStepView[];\n}\n\n");
-			builder.Append("export interface WorldSnapshot {\n\ttype: '").Append(WORLD).Append("';\n\tdolls: WorldDollView[];\n\tbuildings: WorldBuildingView[];\n\ttime?: WorldTime;\n\tbrew?: BrewView;\n}\n\n");
+			builder.Append("export interface GatherableView {\n\tid: number;\n\tx: number;\n\tz: number;\n\titemId: number;\n\tamount: number;\n}\n\n");
+			builder.Append("export interface WorldSnapshot {\n\ttype: '").Append(WORLD).Append("';\n\tdolls: WorldDollView[];\n\tbuildings: WorldBuildingView[];\n\tgatherables: GatherableView[];\n\ttime?: WorldTime;\n\tbrew?: BrewView;\n}\n\n");
 
 			builder.Append("/** 창 -> 서버: 이쪽으로 가고 싶다(얼마나 갈지는 서버가 정한다). */\n");
 			builder.Append("export interface MoveRequest {\n\ttype: '").Append(MOVE).Append("';\n\tx: number;\n\tz: number;\n}\n\n");
 
 			builder.Append("/** 창 -> 서버: 이 칸의 건물을 부수고 싶다. */\n");
 			builder.Append("export interface RemoveRequest {\n\ttype: '").Append(REMOVE).Append("';\n\tx: number;\n\ty: number;\n\tz: number;\n}\n\n");
+
+			builder.Append("/** 창 -> 서버: 저기 있는 저것을 줍겠다. 손이 닿는지는 세계가 본다. */\n");
+			builder.Append("export interface GatherRequest {\n\ttype: '").Append(GATHER).Append("';\n\tnodeId: number;\n}\n\n");
 
 			builder.Append("/** 창 -> 서버: 솥을 한 번 젓는다(모두가 같은 솥). */\n");
 			builder.Append("export interface BrewRequest {\n\ttype: '").Append(BREW).Append("';\n\tdx: number;\n\tdy: number;\n\tgrind: number;\n}\n\n");
@@ -117,7 +121,7 @@ namespace WitchMendokusai.Server
 			builder.Append("export interface Kicked {\n\ttype: '").Append(KICKED).Append("';\n\treason: string;\n}\n\n");
 
 			builder.Append("export type ServerMessage = Welcome | WorldSnapshot | BrewTaken | Bag | Catalog | Invite | Linked | Kicked;\n");
-			builder.Append("export type ClientMessage = MoveRequest | RemoveRequest | BrewRequest | BrewResetRequest | BrewCompleteRequest | Hello | BagAsk | ConsumeRequest | InviteAsk | LinkRequest;\n");
+			builder.Append("export type ClientMessage = MoveRequest | RemoveRequest | GatherRequest | BrewRequest | BrewResetRequest | BrewCompleteRequest | Hello | BagAsk | ConsumeRequest | InviteAsk | LinkRequest;\n");
 
 			return builder.ToString();
 		}
@@ -215,7 +219,7 @@ namespace WitchMendokusai.Server
 		}
 
 		/// <summary>서버가 보내는 세계 모습.</summary>
-		public static string WorldSnapshot(IEnumerable<WorldDoll> dolls, IEnumerable<PlacedBuilding> buildings, WorldCalendar calendar = null, WorldCauldron cauldron = null)
+		public static string WorldSnapshot(IEnumerable<WorldDoll> dolls, IEnumerable<PlacedBuilding> buildings, WorldCalendar calendar = null, WorldCauldron cauldron = null, IEnumerable<GatherableNode> gatherables = null)
 		{
 			StringBuilder builder = new StringBuilder();
 			builder.Append("{\"type\":\"").Append(WORLD).Append("\",\"dolls\":[");
@@ -291,6 +295,29 @@ namespace WitchMendokusai.Server
 				}
 
 				builder.Append("]}");
+			}
+
+			// 주울 것 — 뽑아 간 자리는 빠져 있다(다시 자라면 돌아온다).
+			if (gatherables != null)
+			{
+				builder.Append(",\"gatherables\":[");
+
+				bool firstNode = true;
+				foreach (GatherableNode node in gatherables)
+				{
+					if (firstNode == false)
+						builder.Append(',');
+
+					firstNode = false;
+					builder.Append("{\"id\":").Append(node.Id)
+						.Append(",\"x\":").Append(node.X.ToString("F2"))
+						.Append(",\"z\":").Append(node.Z.ToString("F2"))
+						.Append(",\"itemId\":").Append(node.ItemId)
+						.Append(",\"amount\":").Append(node.Amount)
+						.Append('}');
+				}
+
+				builder.Append(']');
 			}
 
 			builder.Append('}');
