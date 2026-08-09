@@ -15,6 +15,9 @@ namespace WitchMendokusai.Net
 		/// <summary>세계에 붙어 있나.</summary>
 		bool IsLinked { get; }
 
+		/// <summary>세계가 아는 <b>나</b>(신원 번호). 아직 모르면 0 — 인형 번호와 다르다(그건 접속마다 새로 준다).</summary>
+		int MyIdentityId { get; }
+
 		/// <summary>지금 보이는 인형들.</summary>
 		WorldDollView[] Dolls { get; }
 

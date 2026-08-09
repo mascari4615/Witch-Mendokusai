@@ -33,6 +33,9 @@ namespace WitchMendokusai
 		/// <summary>서버가 준 내 인형 번호. 아직 못 받았으면 0.</summary>
 		public int MyDollId { get; private set; }
 
+		/// <summary>세계가 아는 나(신원 번호). 인사에 답이 오면 채워진다.</summary>
+		public int MyIdentityId { get; private set; }
+
 		/// <summary>서버가 마지막으로 알려준 세계. 그리는 쪽이 읽어 간다.</summary>
 		public WorldDollView[] Dolls { get; private set; } = Array.Empty<WorldDollView>();
 
@@ -117,6 +120,7 @@ namespace WitchMendokusai
 			socket?.Dispose();
 			socket = null;
 			MyDollId = 0;
+			MyIdentityId = 0;
 			Dolls = Array.Empty<WorldDollView>();
 		}
 
@@ -160,6 +164,10 @@ namespace WitchMendokusai
 			{
 				WelcomeMessage welcome = JsonUtility.FromJson<WelcomeMessage>(json);
 				MyDollId = welcome.id;
+
+				// 0 이면 아직 인사 전이다 — 덮어쓰지 않는다(첫 환영에는 신원이 없다).
+				if (welcome.identityId != 0)
+					MyIdentityId = welcome.identityId;
 
 				// 새 열쇠를 줬으면 적어 둔다 — 이게 있어야 다음에 「나」로 들어간다.
 				if (string.IsNullOrEmpty(welcome.secret) == false)

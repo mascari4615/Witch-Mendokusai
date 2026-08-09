@@ -35,6 +35,9 @@ namespace WitchMendokusai
 
 		public int MyDollId => me.Id;
 
+		/// <summary>내 안의 세계에는 신원 장부가 없다 — 기기가 곧 나다.</summary>
+		public int MyIdentityId => 0;
+
 		public bool IsLinked => true;
 
 		public WorldDollView[] Dolls

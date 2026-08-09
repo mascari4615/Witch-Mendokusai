@@ -81,6 +81,8 @@ namespace WitchMendokusai
 				"dolls=", dolls.ToString(CultureInfo.InvariantCulture), "\n",
 				"local=", local ? "true" : "false", "\n",
 				"myid=", (link?.MyDollId ?? 0).ToString(CultureInfo.InvariantCulture), "\n",
+				// 인형 번호는 접속마다 새로 준다 — 「다시 들어와도 나」는 신원 번호로 확인한다.
+				"identity=", (link?.MyIdentityId ?? 0).ToString(CultureInfo.InvariantCulture), "\n",
 				"reason=", reason, "\n");
 
 			try
