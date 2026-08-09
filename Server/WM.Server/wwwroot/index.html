@@ -3,62 +3,134 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>WM — 서버가 굴리는 세계 (골격)</title>
+<title>마녀여 영원히 — 세계</title>
 <style>
-	:root { color-scheme: dark; }
+	:root {
+		color-scheme: dark;
+		--ground: #14121a;
+		--panel: #1d1a26;
+		--line: #322c42;
+		--ink: #d8d2e8;
+		--dim: #8d86a6;
+		--me: #e8c46a;
+		--other: #8f89a8;
+		--built: #3c5a4a;
+		--built-line: #5f8a72;
+	}
+	* { box-sizing: border-box; }
 	body {
 		margin: 0;
-		background: #14121a;
-		color: #d8d2e8;
+		height: 100vh;
+		background: var(--ground);
+		color: var(--ink);
 		font: 14px/1.5 system-ui, sans-serif;
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		gap: 12px;
-		padding: 16px;
+		display: grid;
+		grid-template-rows: auto 1fr auto;
+		overflow: hidden;
 	}
-	canvas { background: #1d1a26; border: 1px solid #322c42; touch-action: none; }
-	.status { font-variant-numeric: tabular-nums; opacity: .8; }
-	.hint { opacity: .55; max-width: 44ch; text-align: center; }
-	.worldline { font-variant-numeric: tabular-nums; opacity: .75; display: flex; gap: 8px; }
-	.worldline .dot { opacity: .4; }
+
+	/* 머리띠 — 세계의 지금 */
+	header {
+		display: flex; align-items: center; gap: 16px;
+		padding: 10px 16px; border-bottom: 1px solid var(--line);
+		background: var(--panel);
+	}
+	header .title { font-weight: 600; letter-spacing: .02em; }
+	header .when, header .who { font-variant-numeric: tabular-nums; color: var(--dim); }
+	header .spacer { flex: 1; }
+
+	main { display: grid; grid-template-columns: 1fr 260px; min-height: 0; }
+	#board { width: 100%; height: 100%; display: block; touch-action: none; cursor: crosshair; }
+
+	aside {
+		border-left: 1px solid var(--line); background: var(--panel);
+		padding: 12px; display: flex; flex-direction: column; gap: 16px;
+		overflow-y: auto;
+	}
+	aside h2 { margin: 0 0 6px; font-size: 12px; letter-spacing: .16em; color: var(--dim); font-weight: 600; }
+
+	.bag { display: flex; flex-direction: column; gap: 2px; }
+	.bag .row { display: flex; justify-content: space-between; gap: 8px; padding: 3px 6px; border-radius: 4px; }
+	.bag .row:nth-child(odd) { background: #221e2e; }
+	.bag .row .amount { font-variant-numeric: tabular-nums; color: var(--dim); }
+	.bag .empty { color: var(--dim); padding: 3px 6px; }
+
+	.pot .line { color: var(--dim); font-variant-numeric: tabular-nums; }
+	.buttons { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+
 	button {
-		background: #2a2436; color: #d8d2e8; border: 1px solid #453c5c;
-		border-radius: 6px; padding: 6px 12px; font: inherit; cursor: pointer;
+		background: #2a2436; color: var(--ink); border: 1px solid #453c5c;
+		border-radius: 6px; padding: 5px 10px; font: inherit; cursor: pointer;
 	}
 	button:hover { background: #352d47; }
-	input { background: #1d1a26; color: #d8d2e8; border: 1px solid #453c5c; border-radius: 6px; padding: 5px 8px; font: inherit; }
-	code { background: #241f30; padding: 4px 8px; border-radius: 5px; letter-spacing: .08em; }
+	input {
+		background: var(--ground); color: var(--ink); border: 1px solid #453c5c;
+		border-radius: 6px; padding: 5px 8px; font: inherit; width: 100%;
+	}
+	code { background: #241f30; padding: 3px 7px; border-radius: 5px; letter-spacing: .08em; }
+
+	footer {
+		display: flex; align-items: center; gap: 12px;
+		padding: 8px 16px; border-top: 1px solid var(--line);
+		color: var(--dim); background: var(--panel);
+	}
+	footer .status { color: var(--ink); }
+
+	/* 신원 서랍 — 평소엔 접혀 있다. 매일 쓰는 것이 아니다. */
+	details summary { cursor: pointer; color: var(--dim); font-size: 12px; letter-spacing: .16em; }
+	details[open] summary { margin-bottom: 8px; }
+	details .stack { display: flex; flex-direction: column; gap: 6px; }
 </style>
 </head>
 <body>
-	<div class="status" id="status">붙는 중…</div>
-	<div class="worldline"><span id="clock">—</span><span class="dot">·</span><span id="peers">0명</span></div>
-	<canvas id="board" width="480" height="360"></canvas>
-	<div class="worldline">솥: <span id="brew">아직 안 저음</span></div>
-	<div class="worldline">
-		<input id="klcode" placeholder="KarmoLab 코드 (AAA-000)" size="14" />
-		<button id="signin">그 계정으로 들어가기</button>
-	</div>
-	<div class="worldline">
-		<button id="invite">초대 열쇠 만들기</button>
-		<code id="invitecode">—</code>
-		<input id="linkcode" placeholder="받은 열쇠" size="10" />
-		<button id="link">잇기</button>
-	</div>
-	<div class="worldline">
-		<button id="stir">젓기 (무작위 방향)</button>
-		<button id="complete">완성 가져가기</button>
-		<button id="clear">솥 비우기</button>
-	</div>
-	<div class="hint">
-		방향키(또는 WASD)로 움직이고, 판을 눌러 짓는다. 판정은 서버가 한다 —
-		한 번에 갈 수 있는 거리는 서버가 잘라낸다. 창을 두 개 열면 서로가 보인다.
-	</div>
+	<header>
+		<span class="title">마녀여 영원히</span>
+		<span class="when" id="clock">—</span>
+		<span class="who" id="peers">·</span>
+		<span class="spacer"></span>
+		<span class="who" id="me">—</span>
+	</header>
+
+	<main>
+		<canvas id="board"></canvas>
+		<aside>
+			<section>
+				<h2>가방</h2>
+				<div class="bag" id="bag"><div class="empty">비었다</div></div>
+			</section>
+
+			<section class="pot">
+				<h2>솥</h2>
+				<div class="line" id="brew">아직 안 저음</div>
+				<div class="buttons">
+					<button id="stir">젓기</button>
+					<button id="complete">가져가기</button>
+					<button id="clear">비우기</button>
+				</div>
+			</section>
+
+			<details>
+				<summary>나</summary>
+				<div class="stack">
+					<input id="klcode" placeholder="KarmoLab 코드" />
+					<button id="signin">그 계정으로 들어가기</button>
+					<button id="invite">이 사람으로 들어올 열쇠 만들기</button>
+					<code id="invitecode">—</code>
+					<input id="linkcode" placeholder="받은 열쇠" />
+					<button id="link">잇기</button>
+				</div>
+			</details>
+		</aside>
+	</main>
+
+	<footer>
+		<span class="status" id="status">붙는 중…</span>
+		<span>방향키·WASD 로 걷고, 땅을 눌러 짓는다</span>
+	</footer>
 
 <script>
-// TASK-WM-216 증분 2 — 「서버가 굴리는 세계」를 보는 가장 얇은 창.
-// 여기엔 규칙이 없다. 눌린 키를 보내고, 서버가 준 자리를 그린다. 그게 전부다.
+// TASK-WM-216 → 217 — 「서버가 굴리는 세계」를 보는 창.
+// 여기엔 규칙이 없다. 눌린 키를 보내고, 서버가 준 세계를 그린다. 판정은 전부 서버 것이다.
 (function () {
 	var statusElement = document.getElementById('status');
 	var canvas = document.getElementById('board');
@@ -67,10 +139,23 @@
 	var myId = null;
 	var dolls = [];
 	var buildings = [];
+	var bag = [];
+	var itemNames = {};   // 번호 → 이름. 들어올 때 한 번 받는다.
 	var pressed = {};
-	var time = null;   // 세계의 시각 — 서버가 굴린다(사람이 없어도 흐른다).
-	var brew = null;   // 모두가 같이 젓는 솥.
-	var SCALE = 12; // 한 칸을 몇 픽셀로 그릴 것인가 (보기용일 뿐, 규칙 아님)
+	var time = null;      // 세계의 시각 — 서버가 굴린다(사람이 없어도 흐른다).
+	var brew = null;      // 모두가 같이 젓는 솥.
+	var SCALE = 16;       // 한 칸을 몇 픽셀로 그릴 것인가 (보기용일 뿐, 규칙 아님)
+
+	// 화면이 몇 픽셀이든 흐리지 않게 — 창 크기가 바뀌면 다시 잰다.
+	function fitCanvas() {
+		var ratio = window.devicePixelRatio || 1;
+		var rect = canvas.getBoundingClientRect();
+		canvas.width = Math.floor(rect.width * ratio);
+		canvas.height = Math.floor(rect.height * ratio);
+		context.setTransform(ratio, 0, 0, ratio, 0, 0);
+		draw();
+	}
+	window.addEventListener('resize', fitCanvas);
 
 	var socket = new WebSocket((location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host + '/ws');
 
@@ -78,12 +163,12 @@
 	var KEY_NAME = 'wm.world.secret';
 
 	socket.onopen = function () {
-		statusElement.textContent = '붙었다. 방향키로 움직여라.';
+		statusElement.textContent = '붙었다';
 		var saved = '';
 		try { saved = localStorage.getItem(KEY_NAME) || ''; } catch (e) { saved = ''; }
+
 		// KarmoLab 로그인 세션이 있으면 같이 낸다 — 그러면 어느 기기에서든 나다.
-		// ⚠ 이 쿠키는 다른 주소(yawnbot)의 것이라 여기서 못 읽는 경우가 많다. 그때는 손님으로 논다
-		//   (읽히면 더 좋고, 안 읽혀도 게임은 그대로 열린다).
+		// ⚠ 이 쿠키는 다른 주소(yawnbot)의 것이라 여기서 못 읽는 경우가 많다. 그때는 손님으로 논다.
 		var klSession = '';
 		try {
 			var found = document.cookie.split(';').map(function (c) { return c.trim(); })
@@ -95,23 +180,37 @@
 		try { klCode = localStorage.getItem('wm.world.klcode') || ''; } catch (e) { klCode = ''; }
 
 		socket.send(JSON.stringify({ type: 'hello', secret: saved, klSession: klSession, klCode: klCode }));
+		socket.send(JSON.stringify({ type: 'bagask' }));
 
 		// 코드는 한 번 쓰면 사라진다 — 들고 있어 봐야 다음엔 안 통한다(그때는 기기 열쇠가 나를 안다).
 		try { localStorage.removeItem('wm.world.klcode'); } catch (e) { /* 무시 */ }
 	};
-	socket.onclose = function () { statusElement.textContent = '끊겼다.'; };
-	socket.onerror = function () { statusElement.textContent = '연결에 문제가 있다.'; };
+	socket.onclose = function () { statusElement.textContent = '끊겼다'; };
+	socket.onerror = function () { statusElement.textContent = '연결에 문제가 있다'; };
 
 	socket.onmessage = function (event) {
 		var message = JSON.parse(event.data);
+
 		if (message.type === 'kicked') {
 			// 일반 MMORPG 처럼 나중에 온 쪽이 이긴다 — 조용히 끊기면 사람은 「버그」로 읽는다.
 			statusElement.textContent = '다른 곳에서 접속했다 — 여기서는 나간다';
 			return;
 		}
 
+		if (message.type === 'catalog') {
+			for (var c = 0; c < message.items.length; c++)
+				itemNames[message.items[c].itemId] = message.items[c].name;
+			drawBag();
+			return;
+		}
+
+		if (message.type === 'bag') {
+			bag = message.items || [];
+			drawBag();
+			return;
+		}
+
 		if (message.type === 'invite') {
-			// 이 창에게만 온다. 사람이 옮겨 적을 수 있게 그대로 보여 준다.
 			document.getElementById('invitecode').textContent = message.code || '(못 만들었다)';
 			return;
 		}
@@ -125,8 +224,8 @@
 		}
 
 		if (message.type === 'brewtaken') {
-			statusElement.textContent = '완성을 가져갔다 — ' + message.steps + '번 저은 솥 ('
-				+ message.x.toFixed(2) + ', ' + message.y.toFixed(2) + ')';
+			statusElement.textContent = '완성을 가져갔다 — ' + message.steps + '번 저은 솥';
+			socket.send(JSON.stringify({ type: 'bagask' }));
 			return;
 		}
 
@@ -138,8 +237,8 @@
 				try { localStorage.setItem(KEY_NAME, message.secret); } catch (e) { /* 저장 못 해도 게임은 돈다 */ }
 			}
 
-			statusElement.textContent = '내 인형 번호 ' + myId
-				+ (message.identityId ? '  (나: ' + message.identityId + ')' : '');
+			document.getElementById('me').textContent =
+				message.identityId ? message.identityId + '번 사람' : '손님';
 			return;
 		}
 
@@ -153,8 +252,13 @@
 		}
 	};
 
-	window.addEventListener('keydown', function (e) { pressed[e.key] = true; });
+	window.addEventListener('keydown', function (e) {
+		// 이름을 적는 중에는 걷지 않는다 — 글자를 치다 세계가 움직이면 창이 고장 난 것처럼 보인다.
+		if (document.activeElement && document.activeElement.tagName === 'INPUT') return;
+		pressed[e.key] = true;
+	});
 	window.addEventListener('keyup', function (e) { pressed[e.key] = false; });
+	window.addEventListener('blur', function () { pressed = {}; });
 
 	function axis(negativeKeys, positiveKeys) {
 		var value = 0;
@@ -174,13 +278,22 @@
 		socket.send(JSON.stringify({ type: 'move', x: x, z: z }));
 	}, 100);
 
-	// 클릭한 자리를 칸으로 바꿔 「여기 짓고 싶다」를 보낸다. 겹치는지는 서버가 본다.
+	/** 내가 선 자리 — 카메라가 여기를 가운데 둔다. 아직 나를 모르면 세계의 원점을 본다. */
+	function myPlace() {
+		for (var i = 0; i < dolls.length; i++)
+			if (dolls[i].id === myId) return dolls[i];
+
+		return { x: 0, z: 0 };
+	}
+
+	// 누른 자리를 칸으로 바꿔 「여기 짓고 싶다」를 보낸다. 겹치는지는 서버가 본다.
 	canvas.addEventListener('click', function (event) {
 		if (socket.readyState !== WebSocket.OPEN) return;
 
 		var rect = canvas.getBoundingClientRect();
-		var cellX = Math.floor((event.clientX - rect.left - canvas.width / 2) / SCALE);
-		var cellZ = Math.floor((canvas.height / 2 - (event.clientY - rect.top)) / SCALE);
+		var me = myPlace();
+		var cellX = Math.floor((event.clientX - rect.left - rect.width / 2) / SCALE + me.x);
+		var cellZ = Math.floor((rect.height / 2 - (event.clientY - rect.top)) / SCALE + me.z);
 
 		socket.send(JSON.stringify({ type: 'place', x: cellX, y: 0, z: cellZ, w: 2, l: 2, buildingId: 4000 }));
 	});
@@ -196,18 +309,48 @@
 				time.year + '년 ' + season + ' ' + time.day + '일  ' + time.hour + ':' + minute;
 		}
 
-		document.getElementById('peers').textContent = dolls.length + '명';
+		document.getElementById('peers').textContent = '◈ ' + dolls.length + '명';
 
 		var brewText = '아직 안 저음';
 		if (brew && brew.steps > 0) {
-			brewText = brew.steps + '번 저음  (' + brew.x.toFixed(2) + ', ' + brew.y.toFixed(2) + ')';
-			if (brew.side > 0) brewText += '  부작용 ' + brew.side.toFixed(2);
+			brewText = brew.steps + '번 저음';
+			if (brew.side > 0) brewText += ' · 부작용 ' + brew.side.toFixed(2);
 		}
 		document.getElementById('brew').textContent = brewText;
 	}
 
+	/** 가방 — 번호가 아니라 이름으로 보인다(낱말표를 못 받았으면 번호로 버틴다). */
+	function drawBag() {
+		var host = document.getElementById('bag');
+		host.textContent = '';
+
+		if (bag.length === 0) {
+			var empty = document.createElement('div');
+			empty.className = 'empty';
+			empty.textContent = '비었다';
+			host.appendChild(empty);
+			return;
+		}
+
+		for (var i = 0; i < bag.length; i++) {
+			var row = document.createElement('div');
+			row.className = 'row';
+
+			var name = document.createElement('span');
+			// textContent 로 넣는다 — 이름은 사람이 지은 글자라, 그림표로 읽히면 안 된다.
+			name.textContent = itemNames[bag[i].itemId] || ('#' + bag[i].itemId);
+
+			var amount = document.createElement('span');
+			amount.className = 'amount';
+			amount.textContent = bag[i].amount;
+
+			row.appendChild(name);
+			row.appendChild(amount);
+			host.appendChild(row);
+		}
+	}
+
 	// KarmoLab 계정으로 들어가기 — 그 사이트에서 받은 코드를 여기 넣으면 어느 기기에서든 나다.
-	// 코드는 인사에 실려 가므로, 넣고 나면 다시 붙는다(같은 창에서 사람을 바꾸는 길이기도 하다).
 	document.getElementById('signin').addEventListener('click', function () {
 		var code = document.getElementById('klcode').value.trim();
 		if (!code) return;
@@ -216,7 +359,6 @@
 		location.reload();
 	});
 
-	// 다른 기기 잇기 — 열쇠는 세계가 만들고, 한 번 쓰면 사라진다.
 	document.getElementById('invite').addEventListener('click', function () {
 		if (socket.readyState !== WebSocket.OPEN) return;
 		socket.send(JSON.stringify({ type: 'inviteask' }));
@@ -248,15 +390,30 @@
 	});
 
 	function draw() {
-		context.clearRect(0, 0, canvas.width, canvas.height);
+		var width = canvas.clientWidth;
+		var height = canvas.clientHeight;
+		context.clearRect(0, 0, width, height);
 
-		var centerX = canvas.width / 2;
-		var centerY = canvas.height / 2;
+		// 카메라 = 내 인형. 세계가 아니라 내가 가운데 있다 — 그래야 「내가 걷는다」로 읽힌다.
+		var me = myPlace();
+		var centerX = width / 2 - me.x * SCALE;
+		var centerY = height / 2 + me.z * SCALE;
 
-		context.strokeStyle = '#2a2436';
+		// 땅의 격자 — 발밑이 흐르는 게 보여야 걷는 느낌이 난다.
+		context.strokeStyle = '#221e2e';
+		context.lineWidth = 1;
 		context.beginPath();
-		context.moveTo(centerX, 0); context.lineTo(centerX, canvas.height);
-		context.moveTo(0, centerY); context.lineTo(canvas.width, centerY);
+		var firstX = centerX % SCALE;
+		for (var gx = firstX; gx < width; gx += SCALE) { context.moveTo(gx, 0); context.lineTo(gx, height); }
+		var firstY = centerY % SCALE;
+		for (var gy = firstY; gy < height; gy += SCALE) { context.moveTo(0, gy); context.lineTo(width, gy); }
+		context.stroke();
+
+		// 세계의 원점 — 여기가 어디쯤인지 알려 주는 유일한 표식.
+		context.strokeStyle = '#2f2942';
+		context.beginPath();
+		context.moveTo(centerX, 0); context.lineTo(centerX, height);
+		context.moveTo(0, centerY); context.lineTo(width, centerY);
 		context.stroke();
 
 		// 건물 먼저 (인형이 위에 오도록)
@@ -271,20 +428,26 @@
 			context.strokeRect(left, top, building.w * SCALE, building.l * SCALE);
 		}
 
+		context.font = '11px system-ui, sans-serif';
 		for (var i = 0; i < dolls.length; i++) {
 			var doll = dolls[i];
 			var px = centerX + doll.x * SCALE;
 			var py = centerY - doll.z * SCALE;
+			var mine = doll.id === myId;
 
-			context.fillStyle = (doll.id === myId) ? '#e8c46a' : '#7f7a96';
+			context.fillStyle = mine ? '#e8c46a' : '#8f89a8';
 			context.beginPath();
-			context.arc(px, py, 7, 0, Math.PI * 2);
+			context.arc(px, py, mine ? 8 : 7, 0, Math.PI * 2);
 			context.fill();
 
-			context.fillStyle = '#d8d2e8';
-			context.fillText(String(doll.id), px + 10, py + 4);
+			if (mine === false) {
+				context.fillStyle = '#8d86a6';
+				context.fillText(String(doll.id), px + 11, py + 4);
+			}
 		}
 	}
+
+	fitCanvas();
 })();
 </script>
 </body>

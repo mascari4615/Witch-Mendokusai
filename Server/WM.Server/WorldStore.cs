@@ -38,9 +38,72 @@ namespace WitchMendokusai.Server
 		{
 			string path = Environment.GetEnvironmentVariable("WM_WORLD_FILE");
 			if (string.IsNullOrWhiteSpace(path))
-				path = System.IO.Path.Combine(AppContext.BaseDirectory, "world.json");
+			{
+				path = System.IO.Path.Combine(HomeFolder(), "world.json");
+				RescueFromBuildFolder(path);
+			}
 
 			return new WorldStore(path);
+		}
+
+		/// <summary>
+		/// 세계가 사는 자리 (TASK-WM-217 단계 5).
+		///
+		/// ★ 왜 빌드 폴더가 아닌가 (실측 2026-08-10): 전에는 <c>AppContext.BaseDirectory</c>,
+		///   즉 <c>bin/Debug/net8.0</c> 였다. 그러면 ① Debug 로 놀던 세계가 Release 로 켜면
+		///   <b>빈 세계</b>로 보이고(둘이 다른 파일) ② 청소 한 번에 통째로 사라진다.
+		///   세계는 빌드 산출물이 아니다 — 사람의 것이라, 빌드와 상관없는 자리에 둔다.
+		/// </summary>
+		private static string HomeFolder()
+		{
+			string root = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+			if (string.IsNullOrWhiteSpace(root))
+				root = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+
+			string folder = System.IO.Path.Combine(root, "WitchMendokusai");
+			System.IO.Directory.CreateDirectory(folder);
+			return folder;
+		}
+
+		/// <summary>
+		/// 옛 자리(빌드 폴더)에 있던 세계를 새 자리로 <b>한 번만</b> 데려온다.
+		/// 안 하면 자리를 옮긴 그날, 놀던 사람의 세계가 「빈 세계」로 보인다 — 파일은 멀쩡한데.
+		/// </summary>
+		private static void RescueFromBuildFolder(string newPath)
+		{
+			if (System.IO.File.Exists(newPath))
+				return;
+
+			// Debug 로 놀았든 Release 로 놀았든, **가장 최근 것**이 그 사람의 세계다.
+			string binRoot = System.IO.Path.GetFullPath(System.IO.Path.Combine(AppContext.BaseDirectory, "..", ".."));
+			if (System.IO.Directory.Exists(binRoot) == false)
+				return;
+
+			string newest = null;
+			DateTime newestTime = DateTime.MinValue;
+			foreach (string candidate in System.IO.Directory.GetFiles(binRoot, "world.json", System.IO.SearchOption.AllDirectories))
+			{
+				DateTime written = System.IO.File.GetLastWriteTimeUtc(candidate);
+				if (written <= newestTime)
+					continue;
+
+				newest = candidate;
+				newestTime = written;
+			}
+
+			if (newest == null)
+				return;
+
+			try
+			{
+				System.IO.File.Copy(newest, newPath);
+				Console.WriteLine("[world] 옛 자리에 있던 세계를 데려왔다: " + newest + " → " + newPath);
+			}
+			catch (Exception error)
+			{
+				// 못 데려와도 세계는 뜬다(빈 세계로). 조용히 죽는 것보다 낫다.
+				Console.WriteLine("[world] 옛 세계를 데려오지 못했다 — 빈 세계로 시작한다: " + error.Message);
+			}
 		}
 
 		/// <summary>바로 앞 판 — 지금 것이 깨졌을 때 돌아갈 자리.</summary>
