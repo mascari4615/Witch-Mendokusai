@@ -43,6 +43,7 @@ namespace WitchMendokusai
 		private WebWorldClient remote;
 		private WorldLinkBuildChannel buildChannel;
 		private WorldLinkBrewChannel brewChannel;
+		private WorldLinkCraftChannel craftChannel;
 		private WorldBagRelay bagRelay;
 
 		/// <summary>지금 이어진 줄. 아직 안 들어갔으면 null.</summary>
@@ -130,6 +131,10 @@ namespace WitchMendokusai
 			brewChannel = new WorldLinkBrewChannel(Current);
 			SharedBrewChannelBridge.Register(brewChannel);
 
+			// 제작도 세계가 판정한다 (TASK-WM-217) — 안 꽂으면 게임 창만 자기 주사위로 만든다.
+			craftChannel = new WorldLinkCraftChannel(Current);
+			WorldCraftBridge.Register(craftChannel);
+
 			bagRelay = new WorldBagRelay(Current);
 			WorldBagBridge.Register(bagRelay);
 
@@ -178,6 +183,12 @@ namespace WitchMendokusai
 			{
 				SharedBuildChannelBridge.Clear(buildChannel);
 				buildChannel = null;
+			}
+
+			if (craftChannel != null)
+			{
+				WorldCraftBridge.Clear(craftChannel);
+				craftChannel = null;
 			}
 
 			if (brewChannel != null)

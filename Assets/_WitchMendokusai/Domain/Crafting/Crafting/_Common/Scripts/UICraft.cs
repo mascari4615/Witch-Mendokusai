@@ -50,6 +50,26 @@ namespace WitchMendokusai
 			StopAllCoroutines();
 		}
 
+		/// <summary>세계가 돌려준 결과를 사람에게 보여 준다 — 조용히 끝나면 「고장」으로 읽힌다.</summary>
+		private void ShowWorldCraftResult()
+		{
+			if (WorldCraftBridge.IsActive == false)
+				return;
+
+			if (WorldCraftBridge.Channel.TryTakeResult(out CraftResult result) == false)
+				return;
+
+			if (result.Attempted == false)
+			{
+				uiManager.PopText(string.IsNullOrEmpty(result.Denied) ? "제작을 못 했습니다." : result.Denied, TextType.Warning);
+				return;
+			}
+
+			// 재료는 들었는데 주사위를 진 것과, 재료가 없어 못 한 것은 사람에게 전혀 다른 일이다.
+			uiManager.PopText(result.Succeeded ? "제작 성공 !" : "제작 실패 !",
+				result.Succeeded ? TextType.Heal : TextType.Warning);
+		}
+
 		private IEnumerator Loop()
 		{
 			UpdateRecipeGrid();
@@ -60,6 +80,7 @@ namespace WitchMendokusai
 			while (true)
 			{
 				// Debug.Log($"{nameof(UICraft)} {nameof(Loop)}");
+				ShowWorldCraftResult();
 				UpdateUI();
 				yield return wait;
 			}
@@ -115,6 +136,16 @@ namespace WitchMendokusai
 
 			ItemData itemData = recipeGrid.Data[recipeGrid.CurSlotIndex];
 			Recipe recipe = itemData.Recipes[0];
+
+			// ★ 세계에 붙어 있으면 <b>세계가 판정한다</b> (TASK-WM-217): 재료 확인도, 성공 주사위도,
+			//   지급도. 여기서 게임이 굴리면 창을 고친 사람은 언제나 성공하고, 게임 창과 웹 창이
+			//   같은 재료로 서로 다른 결과를 본다(같은 세계가 아니게 된다).
+			//   제작 줄의 번호 = 결과 아이템 번호다.
+			if (WorldCraftBridge.IsActive)
+			{
+				WorldCraftBridge.Channel.Request(itemData.ID);
+				return;
+			}
 
 			percentageText.text = $"{recipe.Percentage}%";
 			priceText.text = $"{recipe.PriceNyang}냥";
@@ -184,6 +215,16 @@ namespace WitchMendokusai
 
 			ItemData itemData = recipeGrid.Data[recipeGrid.CurSlotIndex];
 			Recipe recipe = itemData.Recipes[0];
+
+			// ★ 세계에 붙어 있으면 <b>세계가 판정한다</b> (TASK-WM-217): 재료 확인도, 성공 주사위도,
+			//   지급도. 여기서 게임이 굴리면 창을 고친 사람은 언제나 성공하고, 게임 창과 웹 창이
+			//   같은 재료로 서로 다른 결과를 본다(같은 세계가 아니게 된다).
+			//   제작 줄의 번호 = 결과 아이템 번호다.
+			if (WorldCraftBridge.IsActive)
+			{
+				WorldCraftBridge.Channel.Request(itemData.ID);
+				return;
+			}
 
 			// Has Ingredients
 			if (recipeType < RecipeType.Distillation)

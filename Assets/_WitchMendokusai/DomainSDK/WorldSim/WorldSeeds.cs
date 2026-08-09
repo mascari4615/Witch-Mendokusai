@@ -141,17 +141,20 @@ namespace WitchMendokusai
 			{
 				recipes = new[]
 				{
+					// ★ 제작 줄의 번호 = <b>결과 아이템 번호</b> (TASK-WM-217).
+					//   게임 화면은 「이 아이템을 만들겠다」로 고르고, 세계는 그 번호로 줄을 찾는다.
+					//   따로 매기면 자산에서 뽑을 때마다 번호가 흔들려 어제 되던 제작이 오늘 안 된다.
 					// 나무 셋 → 판자 둘. 반드시 된다(제작이 도는지 보는 줄).
 					new CraftRecipeEntry
 					{
-						id = 1, name = "나무 판자", resultItemId = PLANK, resultAmount = 2, percentage = 100f,
+						id = PLANK, name = "나무 판자", resultItemId = PLANK, resultAmount = 2, percentage = 100f,
 						items = new[] { new CraftIngredientEntry { itemId = WOOD, amount = 3 } },
 					},
 
 					// 석탄 + 철 → 벽돌. 가끔 실패한다(주사위가 세계에 있는지 보는 줄).
 					new CraftRecipeEntry
 					{
-						id = 2, name = "벽돌", resultItemId = BRICK, resultAmount = 1, percentage = 70f,
+						id = BRICK, name = "벽돌", resultItemId = BRICK, resultAmount = 1, percentage = 70f,
 						items = new[]
 						{
 							new CraftIngredientEntry { itemId = COAL, amount = 1 },

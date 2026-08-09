@@ -109,6 +109,18 @@ namespace WitchMendokusai.Net
 		/// </summary>
 		BuildCatalogEntryView[] BuildCatalog { get; }
 
+		/// <summary>세계가 아는 <b>제작표</b> — 재료·성공률까지 (TASK-WM-217). 못 받았으면 빈 배열.</summary>
+		CraftBookEntryView[] CraftBook { get; }
+
+		/// <summary>
+		/// 이 줄대로 만들겠다 — <b>재료도 주사위도 세계가 본다</b> (TASK-WM-217).
+		/// 창이 굴리면 창을 고친 사람은 언제나 성공한다.
+		/// </summary>
+		void RequestCraft(int recipeId);
+
+		/// <summary>세계가 돌려준 제작 결과. 아직 없으면 null. 한 번 읽으면 비운다.</summary>
+		CraftedMessage TakeCraftResult();
+
 		/// <summary>세계가 아는 아이템 이름 — 「나무 1/2」의 「나무」다. 못 받았으면 빈 배열.</summary>
 		CatalogEntry[] ItemNames { get; }
 	}

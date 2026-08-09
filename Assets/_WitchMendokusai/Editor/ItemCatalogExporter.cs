@@ -21,6 +21,8 @@ namespace WitchMendokusai.EditorTools
 		private const string RESOURCES_PATH = "Assets/_WitchMendokusai/Resources/items.json";
 		private const string BUILDINGS_SERVER_RELATIVE = "Server/WM.Server/buildings.json";
 		private const string BUILDINGS_RESOURCES_PATH = "Assets/_WitchMendokusai/Resources/buildings.json";
+		private const string CRAFTS_SERVER_RELATIVE = "Server/WM.Server/crafts.json";
+		private const string CRAFTS_RESOURCES_PATH = "Assets/_WitchMendokusai/Resources/crafts.json";
 
 		[MenuItem("WM/아이템 목록 뽑기 (세계용)")]
 		public static void Export()
@@ -61,9 +63,72 @@ namespace WitchMendokusai.EditorTools
 			WriteIfChanged(RESOURCES_PATH, json);
 
 			ExportBuildings();
+			ExportCrafts();
 
 			AssetDatabase.Refresh();
 			Debug.Log($"[items] 아이템 {entries.Count}종을 뽑았다.");
+		}
+
+		/// <summary>
+		/// 제작표도 같이 뽑는다 (TASK-WM-217) — <b>재료도 성공률도 세계가 판정</b>하려면 세계가 알아야 한다.
+		///
+		/// ★ 줄의 번호 = <b>결과 아이템 번호</b>. 따로 매기면 뽑을 때마다 번호가 흔들려
+		///   어제 되던 제작이 오늘 안 된다. 게임 화면도 「이 아이템을 만들겠다」로 고른다.
+		/// </summary>
+		private static void ExportCrafts()
+		{
+			List<CraftRecipeEntry> entries = new List<CraftRecipeEntry>();
+			string[] guids = AssetDatabase.FindAssets("t:ItemData");
+
+			for (int i = 0; i < guids.Length; i++)
+			{
+				ItemData data = AssetDatabase.LoadAssetAtPath<ItemData>(AssetDatabase.GUIDToAssetPath(guids[i]));
+				if (data == null || data.Recipes == null || data.Recipes.Count == 0)
+					continue;
+
+				Recipe recipe = data.Recipes[0];
+				if (recipe.Items == null || recipe.Items.Count == 0)
+					continue; // 재료가 없는 줄은 「공짜로 무엇이든」이 된다 — 세계에 안 올린다.
+
+				List<CraftIngredientEntry> items = new List<CraftIngredientEntry>();
+				bool broken = false;
+				foreach (ItemInfo need in recipe.Items)
+				{
+					if (need.ItemData == null)
+					{
+						broken = true; // 재료 한 칸이 비면 그 줄은 공짜가 된다 — 통째로 버린다.
+						break;
+					}
+
+					items.Add(new CraftIngredientEntry { itemId = need.ItemData.ID, amount = need.Amount <= 0 ? 1 : need.Amount });
+				}
+
+				if (broken)
+					continue;
+
+				entries.Add(new CraftRecipeEntry
+				{
+					id = data.ID,
+					name = data.Name,
+					resultItemId = data.ID,
+					resultAmount = recipe.Amount <= 0 ? 1 : recipe.Amount,
+					percentage = recipe.Percentage <= 0f ? 100f : recipe.Percentage,
+					items = items.ToArray(),
+				});
+			}
+
+			if (entries.Count == 0)
+			{
+				Debug.LogWarning("[crafts] 재료가 적힌 제작 줄을 하나도 못 찾았다 — 덮어쓰지 않는다(씨앗으로 돈다).");
+				return;
+			}
+
+			string json = JsonUtility.ToJson(new CraftCatalogData { recipes = entries.ToArray() }, true);
+			string projectRoot = Directory.GetParent(Application.dataPath).Parent.FullName;
+			WriteIfChanged(Path.Combine(projectRoot, "WitchMendokusai", CRAFTS_SERVER_RELATIVE), json);
+			WriteIfChanged(CRAFTS_RESOURCES_PATH, json);
+
+			Debug.Log($"[crafts] 제작 {entries.Count}줄을 뽑았다.");
 		}
 
 		/// <summary>

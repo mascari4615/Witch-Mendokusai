@@ -1,0 +1,236 @@
+{
+    "recipes": [
+        {
+            "id": 9000000,
+            "name": "나무 갑옷",
+            "resultItemId": 9000000,
+            "resultAmount": 1,
+            "percentage": 100.0,
+            "items": [
+                {
+                    "itemId": 0,
+                    "amount": 1
+                }
+            ]
+        },
+        {
+            "id": 9000001,
+            "name": "가죽 갑옷",
+            "resultItemId": 9000001,
+            "resultAmount": 1,
+            "percentage": 90.0,
+            "items": [
+                {
+                    "itemId": 9000000,
+                    "amount": 1
+                }
+            ]
+        },
+        {
+            "id": 9000002,
+            "name": "금 갑옷",
+            "resultItemId": 9000002,
+            "resultAmount": 1,
+            "percentage": 80.0,
+            "items": [
+                {
+                    "itemId": 9000001,
+                    "amount": 1
+                }
+            ]
+        },
+        {
+            "id": 9000003,
+            "name": "철 갑옷",
+            "resultItemId": 9000003,
+            "resultAmount": 1,
+            "percentage": 70.0,
+            "items": [
+                {
+                    "itemId": 9000002,
+                    "amount": 1
+                }
+            ]
+        },
+        {
+            "id": 9000004,
+            "name": "강철 갑옷",
+            "resultItemId": 9000004,
+            "resultAmount": 1,
+            "percentage": 60.0,
+            "items": [
+                {
+                    "itemId": 9000003,
+                    "amount": 1
+                }
+            ]
+        },
+        {
+            "id": 9000005,
+            "name": "흑요석 갑옷",
+            "resultItemId": 9000005,
+            "resultAmount": 1,
+            "percentage": 50.0,
+            "items": [
+                {
+                    "itemId": 9000004,
+                    "amount": 1
+                }
+            ]
+        },
+        {
+            "id": 9000006,
+            "name": "광물7 갑옷",
+            "resultItemId": 9000006,
+            "resultAmount": 1,
+            "percentage": 40.0,
+            "items": [
+                {
+                    "itemId": 9000005,
+                    "amount": 1
+                }
+            ]
+        },
+        {
+            "id": 9000007,
+            "name": "에메랄드 갑옷",
+            "resultItemId": 9000007,
+            "resultAmount": 1,
+            "percentage": 30.0,
+            "items": [
+                {
+                    "itemId": 9000006,
+                    "amount": 1
+                }
+            ]
+        },
+        {
+            "id": 9000008,
+            "name": "사파이어 갑옷",
+            "resultItemId": 9000008,
+            "resultAmount": 1,
+            "percentage": 20.0,
+            "items": [
+                {
+                    "itemId": 9000007,
+                    "amount": 1
+                }
+            ]
+        },
+        {
+            "id": 10001000,
+            "name": "빨간 포션 (소)",
+            "resultItemId": 10001000,
+            "resultAmount": 1,
+            "percentage": 100.0,
+            "items": [
+                {
+                    "itemId": 10000000,
+                    "amount": 1
+                },
+                {
+                    "itemId": 90,
+                    "amount": 2
+                }
+            ]
+        },
+        {
+            "id": 10001001,
+            "name": "빨간 포션 (중)",
+            "resultItemId": 10001001,
+            "resultAmount": 1,
+            "percentage": 100.0,
+            "items": [
+                {
+                    "itemId": 10000001,
+                    "amount": 1
+                },
+                {
+                    "itemId": 90,
+                    "amount": 2
+                }
+            ]
+        },
+        {
+            "id": 10002000,
+            "name": "파란 포션 (소)",
+            "resultItemId": 10002000,
+            "resultAmount": 1,
+            "percentage": 100.0,
+            "items": [
+                {
+                    "itemId": 10000000,
+                    "amount": 1
+                },
+                {
+                    "itemId": 89,
+                    "amount": 2
+                }
+            ]
+        },
+        {
+            "id": 10002001,
+            "name": "파란 포션 (중)",
+            "resultItemId": 10002001,
+            "resultAmount": 1,
+            "percentage": 100.0,
+            "items": [
+                {
+                    "itemId": 10000001,
+                    "amount": 1
+                },
+                {
+                    "itemId": 89,
+                    "amount": 2
+                }
+            ]
+        },
+        {
+            "id": 10003000,
+            "name": "보라빛 포션 (소)",
+            "resultItemId": 10003000,
+            "resultAmount": 1,
+            "percentage": 100.0,
+            "items": [
+                {
+                    "itemId": 10000000,
+                    "amount": 1
+                },
+                {
+                    "itemId": 93,
+                    "amount": 2
+                }
+            ]
+        },
+        {
+            "id": 10003001,
+            "name": "보라빛 포션 (중)",
+            "resultItemId": 10003001,
+            "resultAmount": 1,
+            "percentage": 100.0,
+            "items": [
+                {
+                    "itemId": 10000001,
+                    "amount": 1
+                },
+                {
+                    "itemId": 93,
+                    "amount": 2
+                }
+            ]
+        },
+        {
+            "id": 28,
+            "name": "금광석",
+            "resultItemId": 28,
+            "resultAmount": 1,
+            "percentage": 100.0,
+            "items": [
+                {
+                    "itemId": 48,
+                    "amount": 1
+                }
+            ]
+        }
+    ]
+}

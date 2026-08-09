@@ -197,6 +197,19 @@ namespace WitchMendokusai
 				return;
 			}
 
+			if (json.Contains("\"type\":\"" + NetMessageType.CRAFT_BOOK + "\""))
+			{
+				CraftBookMessage book = JsonUtility.FromJson<CraftBookMessage>(json);
+				CraftBook = book?.recipes ?? System.Array.Empty<CraftBookEntryView>();
+				return;
+			}
+
+			if (json.Contains("\"type\":\"" + NetMessageType.CRAFTED + "\""))
+			{
+				crafted = JsonUtility.FromJson<CraftedMessage>(json);
+				return;
+			}
+
 			if (json.Contains("\"" + NetMessageType.BUILD_CATALOG + "\""))
 			{
 				// ★ 짓기 목록도 세계 것이어야 한다 (TASK-WM-217) — 자기 자산으로 늘어놓으면
@@ -377,6 +390,25 @@ namespace WitchMendokusai
 
 		/// <summary>세계가 아는 지을 것 목록 — 재료까지 (TASK-WM-217).</summary>
 		public BuildCatalogEntryView[] BuildCatalog { get; private set; } = System.Array.Empty<BuildCatalogEntryView>();
+
+		/// <summary>세계가 아는 제작표 — 재료·성공률까지 (TASK-WM-217).</summary>
+		public CraftBookEntryView[] CraftBook { get; private set; } = System.Array.Empty<CraftBookEntryView>();
+
+		private CraftedMessage crafted;
+
+		/// <summary>이 줄대로 만들겠다 — 되나 안 되나는 세계가 정한다.</summary>
+		public void RequestCraft(int recipeId)
+		{
+			Send(JsonUtility.ToJson(new CraftMessage { recipeId = recipeId }));
+		}
+
+		/// <summary>세계가 돌려준 제작 결과 — 한 번 읽으면 비운다(두 번 표시되지 않게).</summary>
+		public CraftedMessage TakeCraftResult()
+		{
+			CraftedMessage taken = crafted;
+			crafted = null;
+			return taken;
+		}
 
 		/// <summary>세계가 아는 아이템 이름 — 「나무 1/2」의 「나무」.</summary>
 		public CatalogEntry[] ItemNames { get; private set; } = System.Array.Empty<CatalogEntry>();

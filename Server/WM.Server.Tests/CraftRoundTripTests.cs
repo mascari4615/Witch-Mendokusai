@@ -21,9 +21,6 @@ namespace WitchMendokusai.ServerTests
 	public sealed class CraftRoundTripTests
 	{
 		private const int PORT = 5401;
-		private const int WOOD = 0;
-		private const int PLANK = 1;
-		private const int PLANK_RECIPE = 1;
 
 		private static readonly Uri address = new Uri($"ws://127.0.0.1:{PORT}/ws");
 
@@ -77,7 +74,11 @@ namespace WitchMendokusai.ServerTests
 			await window.ConnectAsync(address, CancellationToken.None);
 			await Read(window, "\"welcome\"");
 
-			await Send(window, "{\"type\":\"" + Protocol.CRAFT + "\",\"recipeId\":" + PLANK_RECIPE + "}");
+			// ★ 시험이 씨앗 줄을 알고 있으면 안 된다 (실측 2026-08-10): 진짜 제작표를 뽑아 꽂자
+			//   씨앗에만 있던 줄이 사라져 시험이 「세계가 모르는 제작」으로 죽었다.
+			//   그 세계에 실제로 있는 첫 줄을 쓴다 — 자산이 바뀌어도 이 시험은 산다.
+			CraftRecipeEntry first = ServerCraftBook.Book.Recipes[0];
+			await Send(window, "{\"type\":\"" + Protocol.CRAFT + "\",\"recipeId\":" + first.id + "}");
 			string made = await Read(window, "\"type\":\"" + Protocol.CRAFTED + "\"");
 
 			using JsonDocument result = JsonDocument.Parse(made);
@@ -96,18 +97,42 @@ namespace WitchMendokusai.ServerTests
 			string welcome = await Read(window, "\"welcome\"");
 			int dollId = JsonDocument.Parse(welcome).RootElement.GetProperty("id").GetInt32();
 
-			// 재료는 세계가 쥐여 준다 — 여기서 재는 것은 「줍기」가 아니라 「제작」이다.
-			host.World.TryGather(dollId, ServerItemCatalog.Find(WOOD), 3);
+			// 그 세계에 실제로 있는 줄로 잰다 — 반드시 되는 줄(성공률 100)을 고른다.
+			CraftRecipeEntry recipe = null;
+			for (int i = 0; i < ServerCraftBook.Book.Recipes.Count; i++)
+			{
+				if (ServerCraftBook.Book.Recipes[i].percentage < 100f)
+					continue;
 
-			await Send(window, "{\"type\":\"" + Protocol.CRAFT + "\",\"recipeId\":" + PLANK_RECIPE + "}");
+				recipe = ServerCraftBook.Book.Recipes[i];
+				break;
+			}
+
+			Assert.IsNotNull(recipe, "반드시 되는 제작 줄이 하나도 없으면 이 시험은 주사위를 재는 게 된다");
+
+			// 재료는 세계가 쥐여 준다 — 여기서 재는 것은 「줍기」가 아니라 「제작」이다.
+			for (int i = 0; i < recipe.items.Length; i++)
+				host.World.TryGather(dollId, ServerItemCatalog.Find(recipe.items[i].itemId), recipe.items[i].amount);
+
+			await Send(window, "{\"type\":\"" + Protocol.CRAFT + "\",\"recipeId\":" + recipe.id + "}");
 			string made = await Read(window, "\"type\":\"" + Protocol.CRAFTED + "\"");
 
 			using JsonDocument result = JsonDocument.Parse(made);
 			Assert.IsTrue(result.RootElement.GetProperty("succeeded").GetBoolean(), made);
-			Assert.AreEqual(PLANK, result.RootElement.GetProperty("itemId").GetInt32());
+			Assert.AreEqual(recipe.resultItemId, result.RootElement.GetProperty("itemId").GetInt32());
 
-			Assert.AreEqual(2, host.World.BagCount(dollId, PLANK), "만든 것이 가방에 안 들어가면 만든 게 아니다");
-			Assert.AreEqual(0, host.World.BagCount(dollId, WOOD), "재료가 안 빠지면 무한히 만들 수 있다");
+			Assert.AreEqual(recipe.resultAmount, host.World.BagCount(dollId, recipe.resultItemId),
+				"만든 것이 가방에 안 들어가면 만든 게 아니다");
+
+			for (int i = 0; i < recipe.items.Length; i++)
+			{
+				// 결과가 재료이기도 한 줄(나무 → 나무 판자 등)은 남은 수가 0 이 아닐 수 있다 — 그것만 뺀다.
+				if (recipe.items[i].itemId == recipe.resultItemId)
+					continue;
+
+				Assert.AreEqual(0, host.World.BagCount(dollId, recipe.items[i].itemId),
+					"재료가 안 빠지면 무한히 만들 수 있다");
+			}
 		}
 
 		private static async Task Send(ClientWebSocket socket, string json)
