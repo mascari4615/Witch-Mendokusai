@@ -26,6 +26,10 @@ namespace WitchMendokusai
 		private ClientWebSocket socket;
 		private CancellationTokenSource cancellation;
 
+		// 끊기면 스스로 다시 붙는다 (TASK-WM-217) — 간격 규칙은 판정 층이 정한다.
+		private readonly ReconnectBackoff backoff = new ReconnectBackoff();
+		private bool wantConnection;
+
 		/// <summary>서버가 준 내 인형 번호. 아직 못 받았으면 0.</summary>
 		public int MyDollId { get; private set; }
 
@@ -68,13 +72,47 @@ namespace WitchMendokusai
 			if (socket != null)
 				return;
 
+			wantConnection = true;
 			cancellation = new CancellationTokenSource();
-			socket = new ClientWebSocket();
-			_ = RunAsync(cancellation.Token);
+			_ = RunUntilStoppedAsync(cancellation.Token);
+		}
+
+		/// <summary>
+		/// 붙어 있는 동안 계속 듣고, 끊기면 <b>기다렸다 다시</b> 붙는다.
+		/// 사람이 그만두라고 하기 전까지(<see cref="Disconnect"/>) 포기하지 않는다 —
+		/// 서버가 잠깐 재시작하는 동안 게임이 죽어 있으면 안 된다.
+		/// </summary>
+		private async Task RunUntilStoppedAsync(CancellationToken token)
+		{
+			while (wantConnection && token.IsCancellationRequested == false)
+			{
+				socket = new ClientWebSocket();
+				await RunAsync(token);
+
+				socket?.Dispose();
+				socket = null;
+				MyDollId = 0;
+				Dolls = Array.Empty<WorldDollView>();
+
+				if (wantConnection == false || token.IsCancellationRequested)
+					break;
+
+				float delay = backoff.NextDelay();
+				Debug.Log($"{nameof(WebWorldClient)}: {delay:0.#}초 뒤 다시 붙어 본다 (헛걸음 {backoff.Attempts}회)");
+				try
+				{
+					await Task.Delay((int)(delay * 1000f), token);
+				}
+				catch (OperationCanceledException)
+				{
+					break;
+				}
+			}
 		}
 
 		public void Disconnect()
 		{
+			wantConnection = false;
 			cancellation?.Cancel();
 			socket?.Dispose();
 			socket = null;
@@ -89,6 +127,7 @@ namespace WitchMendokusai
 			try
 			{
 				await socket.ConnectAsync(new Uri(serverUrl), token);
+				backoff.Reset(); // 붙었다 — 다음에 끊기면 다시 빠르게 시도한다.
 
 				byte[] buffer = new byte[8192];
 				while (token.IsCancellationRequested == false && socket.State == WebSocketState.Open)
