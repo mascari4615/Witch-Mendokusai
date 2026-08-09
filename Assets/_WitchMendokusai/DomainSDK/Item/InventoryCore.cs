@@ -172,6 +172,57 @@ namespace WitchMendokusai
 			SlotChanged(index);
 		}
 
+		/// <summary>그 종류를 다 합쳐 몇 개나 가지고 있나 — 「만들 수 있나」를 묻는 자리.</summary>
+		public int CountById(int itemId)
+		{
+			int total = 0;
+			for (int i = 0; i < Capacity; i++)
+			{
+				Item item = slots[i];
+				if (item == null)
+					continue;
+
+				if (item.Data.ID == itemId)
+					total += item.Amount;
+			}
+
+			return total;
+		}
+
+		/// <summary>
+		/// 그 종류를 <paramref name="amount"/> 개만큼 쓴다(제작 재료 소모).
+		/// <b>못 쓰고 남은 개수</b>를 돌려준다 — 0 이면 다 썼다.
+		///
+		/// ★ 모자라면 있는 만큼만 쓰고 남은 수를 알려준다. 옛 구현은 없는 재료를 찾으면
+		///   빈 칸을 붙잡고 <b>영영 돌았다</b>(부르기 전에 확인했겠거니 하고 있었다).
+		/// </summary>
+		public int Consume(int itemId, int amount)
+		{
+			while (amount > 0)
+			{
+				int index = FindItemIndex(itemId);
+				if (index == NONE)
+					break;
+
+				Item item = slots[index];
+				if (item == null)
+					break;
+
+				int slotAmount = item.Amount;
+				if (slotAmount > amount)
+				{
+					item.SetAmount(slotAmount - amount);
+					SlotChanged(index);
+					return 0;
+				}
+
+				Remove(index, slotAmount);
+				amount -= slotAmount;
+			}
+
+			return amount;
+		}
+
 		public IItemData GetItemData(int index) => IsValidIndex(index) ? slots[index]?.Data : null;
 
 		public Item GetItem(int index) => IsValidIndex(index) ? slots[index] : null;

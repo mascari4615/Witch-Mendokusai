@@ -125,6 +125,53 @@ namespace WitchMendokusai.Tests
 		}
 
 		[Test]
+		public void 제작_재료는_여러_칸에_흩어져_있어도_모아_쓴다()
+		{
+			InventoryCore inventory = MakeInventory(5, out List<Item> slots);
+			FakeItemData stone = new FakeItemData(1, 10);
+			inventory.Add(stone, 25); // 10 + 10 + 5
+
+			int remaining = inventory.Consume(1, 22);
+
+			Assert.AreEqual(0, remaining, "22 개를 다 썼다");
+			Assert.AreEqual(3, inventory.CountById(1), "25 - 22 = 3 남는다");
+		}
+
+		[Test]
+		public void 재료가_모자라면_있는_만큼만_쓰고_남은_수를_알려준다()
+		{
+			InventoryCore inventory = MakeInventory(5, out List<Item> _);
+			FakeItemData stone = new FakeItemData(1, 10);
+			inventory.Add(stone, 4);
+
+			int remaining = inventory.Consume(1, 10);
+
+			Assert.AreEqual(6, remaining, "4 개만 있었으니 6 이 모자란다");
+			Assert.AreEqual(0, inventory.CountById(1));
+		}
+
+		[Test]
+		public void 아예_없는_재료를_써도_멈춘다()
+		{
+			InventoryCore inventory = MakeInventory(3, out List<Item> _);
+
+			int remaining = inventory.Consume(999, 5);
+
+			Assert.AreEqual(5, remaining, "영영 도는 대신 남은 수를 알려준다");
+		}
+
+		[Test]
+		public void 가진_개수는_흩어진_칸을_다_합친다()
+		{
+			InventoryCore inventory = MakeInventory(5, out List<Item> _);
+			FakeItemData stone = new FakeItemData(1, 10);
+			inventory.Add(stone, 23);
+
+			Assert.AreEqual(23, inventory.CountById(1));
+			Assert.AreEqual(0, inventory.CountById(2));
+		}
+
+		[Test]
 		public void 같은_종류를_다시_넣으면_있던_칸부터_채운다()
 		{
 			InventoryCore inventory = MakeInventory(5, out List<Item> slots);
