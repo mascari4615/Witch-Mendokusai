@@ -37,6 +37,10 @@
 	<canvas id="board" width="480" height="360"></canvas>
 	<div class="worldline">솥: <span id="brew">아직 안 저음</span></div>
 	<div class="worldline">
+		<input id="klcode" placeholder="KarmoLab 코드 (AAA-000)" size="14" />
+		<button id="signin">그 계정으로 들어가기</button>
+	</div>
+	<div class="worldline">
 		<button id="invite">초대 열쇠 만들기</button>
 		<code id="invitecode">—</code>
 		<input id="linkcode" placeholder="받은 열쇠" size="10" />
@@ -87,7 +91,13 @@
 			if (found) klSession = decodeURIComponent(found.slice('kl_session='.length));
 		} catch (e) { klSession = ''; }
 
-		socket.send(JSON.stringify({ type: 'hello', secret: saved, klSession: klSession }));
+		var klCode = '';
+		try { klCode = localStorage.getItem('wm.world.klcode') || ''; } catch (e) { klCode = ''; }
+
+		socket.send(JSON.stringify({ type: 'hello', secret: saved, klSession: klSession, klCode: klCode }));
+
+		// 코드는 한 번 쓰면 사라진다 — 들고 있어 봐야 다음엔 안 통한다(그때는 기기 열쇠가 나를 안다).
+		try { localStorage.removeItem('wm.world.klcode'); } catch (e) { /* 무시 */ }
 	};
 	socket.onclose = function () { statusElement.textContent = '끊겼다.'; };
 	socket.onerror = function () { statusElement.textContent = '연결에 문제가 있다.'; };
@@ -195,6 +205,16 @@
 		}
 		document.getElementById('brew').textContent = brewText;
 	}
+
+	// KarmoLab 계정으로 들어가기 — 그 사이트에서 받은 코드를 여기 넣으면 어느 기기에서든 나다.
+	// 코드는 인사에 실려 가므로, 넣고 나면 다시 붙는다(같은 창에서 사람을 바꾸는 길이기도 하다).
+	document.getElementById('signin').addEventListener('click', function () {
+		var code = document.getElementById('klcode').value.trim();
+		if (!code) return;
+		try { localStorage.setItem('wm.world.klcode', code); } catch (e) { /* 저장 못 해도 이번 접속엔 쓴다 */ }
+		statusElement.textContent = '그 계정으로 다시 들어간다…';
+		location.reload();
+	});
 
 	// 다른 기기 잇기 — 열쇠는 세계가 만들고, 한 번 쓰면 사라진다.
 	document.getElementById('invite').addEventListener('click', function () {

@@ -79,15 +79,26 @@ namespace WitchMendokusai.ServerTests
 		}
 
 		[Test]
-		public async Task 확인_길이_아직_없으면_코드는_손님이다()
+		public async Task 설정_없이도_기본_길로_묻는다()
 		{
 			Environment.SetEnvironmentVariable("WM_KARMOLAB_VERIFY", null);
 			FakeServer fake = new FakeServer(_ => Json("{\"handle\":\"mascari\"}"));
 			KarmoLabAccounts accounts = new KarmoLabAccounts("http://kl.test", fake);
 
-			// KarmoLab 쪽 확인 엔드포인트가 아직 없다 — 조용히 손님으로(게임은 그대로 열린다).
-			Assert.IsNull(await accounts.TryResolveCodeAsync("코드"));
-			Assert.IsNull(fake.LastRequest, "없는 길을 두드리지 않는다.");
+			// 그 길은 이제 실재한다 — 손으로 설정해야만 동작하는 기능은 아무도 안 켠다.
+			Assert.AreEqual("karmolab:mascari", await accounts.TryResolveCodeAsync("코드"));
+			StringAssert.Contains(KarmoLabAccounts.DEFAULT_VERIFY_PATH, fake.LastRequest.RequestUri.ToString());
+		}
+
+		[Test]
+		public async Task 코드가_없으면_묻지도_않는다()
+		{
+			FakeServer fake = new FakeServer(_ => Json("{\"handle\":\"mascari\"}"));
+			KarmoLabAccounts accounts = new KarmoLabAccounts("http://kl.test", fake);
+
+			Assert.IsNull(await accounts.TryResolveCodeAsync(null));
+			Assert.IsNull(await accounts.TryResolveCodeAsync("  "));
+			Assert.IsNull(fake.LastRequest);
 		}
 
 		[Test]

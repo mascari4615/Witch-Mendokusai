@@ -19,6 +19,9 @@ namespace WitchMendokusai.Server
 		/// <summary>이 시간을 넘기면 없는 셈 친다 — 남의 서버 때문에 우리 세계가 멈추면 안 된다.</summary>
 		private static readonly TimeSpan TIMEOUT = TimeSpan.FromSeconds(4);
 
+		/// <summary>KarmoLab 이 「이 코드 누구 거냐」에 답하는 자리 (io repo: karmolab-api.ts).</summary>
+		public const string DEFAULT_VERIFY_PATH = "/kl/link/verify";
+
 		private readonly HttpClient http;
 
 		public KarmoLabAccounts(string apiBase = null, HttpMessageHandler handler = null)
@@ -48,9 +51,11 @@ namespace WitchMendokusai.Server
 			if (string.IsNullOrWhiteSpace(code))
 				return null;
 
+			// 그 길은 이제 실재한다(KarmoLab /kl/link/verify) — 기본값으로 둔다.
+			// 다른 자리에 옮기면 환경변수로 바꾼다.
 			string verifyPath = Environment.GetEnvironmentVariable("WM_KARMOLAB_VERIFY");
 			if (string.IsNullOrWhiteSpace(verifyPath))
-				return null; // 아직 그 길이 없다 — 조용히 손님으로.
+				verifyPath = DEFAULT_VERIFY_PATH;
 
 			try
 			{
