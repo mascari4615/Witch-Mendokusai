@@ -43,6 +43,7 @@
     <Compile Include="$(TestsRoot)SimulationTickSchedulerTest.cs" />
     <!-- UGCRecipeLoaderTest = 게임 층(Domain)의 로더가 필요하다 — 유니티 러너가 정본. -->
     <Compile Include="$(TestsRoot)FreshnessTest.cs" />
+    <Compile Include="$(TestsRoot)Combat/UnitStatEngineFreeTests.cs" />
     <Compile Include="$(TestsRoot)TowerDefense/TowerDefenseSignalFieldTests.cs" />
     <Compile Include="$(TestsRoot)TowerDefense/TowerDefensePowerTests.cs" />
     <Compile Include="$(TestsRoot)TowerDefense/TowerDefenseVisionTests.cs" />
