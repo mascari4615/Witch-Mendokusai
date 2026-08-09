@@ -246,6 +246,7 @@ namespace WitchMendokusai
                     Label = ingredient.Name,
                     Direction = ingredient.Direction,
                     Grind = ingredient.DefaultGrind,
+                    ItemId = ingredientSO.Item != null ? ingredientSO.Item.ID : 0,
                 });
             }
             return list;

@@ -65,6 +65,9 @@ namespace WitchMendokusai
             public string Label;
             public BrewVector Direction;
             public float Grind;
+
+            /// <summary>가방에서 꺼낼 아이템 번호 (TASK-WM-217). 0 이면 세계의 솥엔 못 넣는다.</summary>
+            public int ItemId;
         }
 
         public CauldronMapElement()
@@ -265,6 +268,14 @@ namespace WitchMendokusai
 
         private void AddIngredient(Ingredient ingredient)
         {
+            // 세계에 붙어 있으면 <b>가방에서 꺼내</b> 넣는다 — 방향은 세계가 재료에서 읽는다.
+            if (SharedBrewChannelBridge.IsActive)
+            {
+                SharedBrewChannelBridge.Channel.AddIngredient(ingredient.ItemId);
+                Refresh();
+                return;
+            }
+
             AddStepRouted(new BrewStep { Direction = ingredient.Direction, Grind = ingredient.Grind });
         }
 

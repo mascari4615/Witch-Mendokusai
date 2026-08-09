@@ -10,12 +10,6 @@ namespace WitchMendokusai.Server
 	/// </summary>
 	public static class ServerGatherables
 	{
-		/// <summary>씨앗에 쓰는 아이템 번호 — 게임 목록의 진짜 재료들(나무·나뭇가지·석탄·철광석).</summary>
-		private const int WOOD = 0;
-		private const int BRANCH = 2;
-		private const int COAL = 4;
-		private const int IRON = 5;
-
 		public static WorldGatherables Field { get; } = Load();
 
 		private static WorldGatherables Load()
@@ -43,13 +37,7 @@ namespace WitchMendokusai.Server
 				System.Console.WriteLine("[gather] 목록을 못 읽었다 — 씨앗으로 돈다: " + error.Message);
 			}
 
-			return new WorldGatherables(new[]
-			{
-				new GatherableKind { itemId = WOOD, amount = 2, respawnMinutes = 180 },
-				new GatherableKind { itemId = BRANCH, amount = 3, respawnMinutes = 120 },
-				new GatherableKind { itemId = COAL, amount = 1, respawnMinutes = 300 },
-				new GatherableKind { itemId = IRON, amount = 1, respawnMinutes = 360 },
-			});
+			return new WorldGatherables(WorldSeeds.Gatherables());
 		}
 	}
 }

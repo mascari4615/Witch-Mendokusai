@@ -218,6 +218,7 @@ namespace WitchMendokusai
 				WorldMessage world = JsonUtility.FromJson<WorldMessage>(json);
 				Dolls = world.dolls ?? Array.Empty<WorldDollView>();
 				Buildings = world.buildings ?? Array.Empty<BuildingView>();
+				Gatherables = world.gatherables ?? Array.Empty<GatherableView>();
 
 				// 시각은 서버가 보낼 때만 갱신한다 — 안 보낸 스냅샷 하나에 세계 시간이 0시로 튀면 안 된다.
 				if (world.time != null)
@@ -249,10 +250,7 @@ namespace WitchMendokusai
 		public void RequestMove(float x, float z) => Send(JsonUtility.ToJson(new MoveMessage { x = x, z = z }));
 
 		/// <summary>솥을 한 번 젓는다 — 모두가 같은 솥을 젓는다.</summary>
-		public void RequestBrewStep(float dx, float dy, float grind)
-		{
-			Send(JsonUtility.ToJson(new BrewMessage { dx = dx, dy = dy, grind = grind }));
-		}
+		public void RequestBrewStep(int itemId) => Send(JsonUtility.ToJson(new BrewMessage { itemId = itemId }));
 
 		/// <summary>솥을 비운다.</summary>
 		public void RequestBrewReset() => Send(JsonUtility.ToJson(new BrewResetMessage()));
@@ -275,15 +273,13 @@ namespace WitchMendokusai
 		}
 
 		/// <summary>「여기에 짓고 싶다」 — 겹치는지는 서버가 본다.</summary>
-		public void RequestPlace(int cellX, int cellY, int cellZ, int width, int length, int buildingId)
+		public void RequestPlace(int cellX, int cellY, int cellZ, int buildingId)
 		{
 			PlaceMessage message = new PlaceMessage
 			{
 				x = cellX,
 				y = cellY,
 				z = cellZ,
-				w = width,
-				l = length,
 				buildingId = buildingId,
 			};
 
@@ -291,7 +287,10 @@ namespace WitchMendokusai
 		}
 
 		/// <summary>「이걸 줍고 싶다」 — 가방에 들어갈지는 서버가 본다.</summary>
-		public void RequestGather(int itemId, int amount) => Send(JsonUtility.ToJson(new GatherMessage { itemId = itemId, amount = amount }));
+		public void RequestGather(int nodeId) => Send(JsonUtility.ToJson(new GatherMessage { nodeId = nodeId }));
+
+		/// <summary>세계에 서 있는 주울 것들 — 알림마다 갈아 끼운다.</summary>
+		public GatherableView[] Gatherables { get; private set; } = Array.Empty<GatherableView>();
 
 		/// <summary>「내 가방 뭐 있냐」고 묻는다 — 다시 들어왔을 때 화면을 채우려면 물어야 한다.</summary>
 		public void AskBag() => Send(JsonUtility.ToJson(new BagAskMessage()));

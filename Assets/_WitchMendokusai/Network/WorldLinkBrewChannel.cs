@@ -31,9 +31,12 @@ namespace WitchMendokusai
 		/// </summary>
 		public bool IsServerPeer => false;
 
+		public void AddIngredient(int itemId) => link?.RequestBrewStep(itemId);
+
 		public void AddStep(BrewStep step)
 		{
-			link?.RequestBrewStep(step.Direction.X, step.Direction.Y, step.Grind);
+			// ⚠ 이제 방향이 아니라 <b>재료</b>를 보낸다 (TASK-WM-217) — 여기로 오는 옛 호출은 뜻을 잃었다.
+			//   게임 UI 가 재료 번호를 넘기도록 고칠 때까지, 방향만 아는 호출은 아무 일도 안 한다.
 		}
 
 		public void ResetBrew()

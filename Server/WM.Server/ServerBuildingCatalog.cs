@@ -34,14 +34,7 @@ namespace WitchMendokusai.Server
 				System.Console.WriteLine("[buildings] 목록을 못 읽었다 — 씨앗으로 돈다: " + error.Message);
 			}
 
-			return new WorldBuildingCatalog(new BuildingCatalogData
-			{
-				buildings = new[]
-				{
-					new BuildingCatalogEntry { id = 4000, name = "솥", w = 1, l = 1 },
-					new BuildingCatalogEntry { id = 4001, name = "모루", w = 1, l = 1 },
-				},
-			});
+			return new WorldBuildingCatalog(WorldSeeds.Buildings());
 		}
 	}
 }

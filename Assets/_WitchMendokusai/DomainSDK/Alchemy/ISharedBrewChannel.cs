@@ -17,8 +17,14 @@ namespace WitchMendokusai.DomainSDK.Alchemy
         /// <summary>네트워크 가마솥 채널이 스폰·활성인가(= co-op 세션 진행 중). false 면 UI 는 로컬 경로.</summary>
         bool IsActive { get; }
 
-        /// <summary>재료 한 step 투입 — 서버 권위 brew 에 전진(소유 불요, 둘 다 같은 솥에 넣음).</summary>
+        /// <summary>재료 한 step 투입 — 로컬(혼자) 경로에서만 뜻이 있다.</summary>
         void AddStep(BrewStep step);
+
+        /// <summary>
+        /// 이 재료를 세계의 솥에 넣는다 (TASK-WM-217) — <b>가방에서 실제로 빠진다</b>.
+        /// 방향·세기는 세계가 재료에서 읽으므로 창은 번호만 말한다(우길 자리가 없다).
+        /// </summary>
+        void AddIngredient(int itemId);
 
         /// <summary>같은 솥 비우고 다시(서버 권위 리셋). 이름 Reset X = NetworkBehaviour.Reset() magic 메서드 충돌 회피.</summary>
         void ResetBrew();

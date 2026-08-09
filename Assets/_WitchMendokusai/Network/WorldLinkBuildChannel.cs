@@ -64,7 +64,8 @@ namespace WitchMendokusai
 		public void PlaceBuilding(int cellX, int cellY, int cellZ, int width, int length, int buildingId)
 		{
 			// 크기를 그대로 나른다 — 세계의 겹침 판정이 게임 화면과 같은 넓이를 본다.
-			link?.RequestPlace(cellX, cellY, cellZ, width < 1 ? 1 : width, length < 1 ? 1 : length, buildingId);
+			// 크기는 안 보낸다 — 세계가 안다 (TASK-WM-217).
+			link?.RequestPlace(cellX, cellY, cellZ, buildingId);
 		}
 
 		public void RemoveBuilding(int cellX, int cellY, int cellZ)

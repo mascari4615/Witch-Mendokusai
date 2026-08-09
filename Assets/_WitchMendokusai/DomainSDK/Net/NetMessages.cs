@@ -145,6 +145,7 @@ namespace WitchMendokusai.Net
 		public string type = NetMessageType.WORLD;
 		public WorldDollView[] dolls = Array.Empty<WorldDollView>();
 		public BuildingView[] buildings = Array.Empty<BuildingView>();
+		public GatherableView[] gatherables = Array.Empty<GatherableView>();
 		public WorldTimeView time;
 		public WorldBrewView brew;
 	}
@@ -223,8 +224,20 @@ namespace WitchMendokusai.Net
 	public class GatherMessage
 	{
 		public string type = NetMessageType.GATHER;
+
+		/// <summary>세계에 서 있는 그것의 번호 — 무엇이 몇 개 나오는지는 세계가 안다.</summary>
+		public int nodeId;
+	}
+
+	/// <summary>세계에 서 있는 주울 것 하나 — 창이 그리는 데 필요한 최소.</summary>
+	[Serializable]
+	public class GatherableView
+	{
+		public int id;
+		public float x;
+		public float z;
 		public int itemId;
-		public int amount = 1;
+		public int amount;
 	}
 
 	/// <summary>솥을 한 번 젓는 방향과 세기 — 창 → 서버.</summary>
@@ -232,9 +245,9 @@ namespace WitchMendokusai.Net
 	public class BrewMessage
 	{
 		public string type = NetMessageType.BREW;
-		public float dx;
-		public float dy;
-		public float grind = 1f;
+
+		/// <summary>넣을 재료 — 가방에서 실제로 빠진다. 미는 방향은 세계가 안다.</summary>
+		public int itemId;
 	}
 
 	/// <summary>창 → 서버: 솥을 비운다.</summary>
@@ -365,8 +378,8 @@ namespace WitchMendokusai.Net
 		public int x;
 		public int y;
 		public int z;
-		public int w = 1;
-		public int l = 1;
+
+		/// <summary>무엇을 짓나 — 크기는 세계가 안다(창이 「이건 1×1 이다」로 우기던 길은 없앴다).</summary>
 		public int buildingId;
 	}
 }

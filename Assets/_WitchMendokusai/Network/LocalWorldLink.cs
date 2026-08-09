@@ -23,6 +23,13 @@ namespace WitchMendokusai
 		public LocalWorldLink(WorldSim world)
 		{
 			this.world = world;
+
+			// 내 안의 세계도 <b>같은 규칙</b>으로 돈다 (TASK-WM-217) — 목록이 없으면 씨앗으로.
+			// 안 꽂으면 혼자 놀 때만 아무것도 못 줍고 못 짓는 세계가 된다(같은 게임이 아니게 된다).
+			world.Gatherables = new WorldGatherables(WorldSeeds.Gatherables());
+			world.Ingredients = new WorldIngredients(WorldSeeds.Ingredients());
+			world.Buildables = BuildingCatalog.Loaded;
+
 			me = world.Join();
 		}
 
@@ -98,12 +105,10 @@ namespace WitchMendokusai
 			world.TryMove(me.Id, new Numerics.Vector3(x, 0f, z));
 		}
 
-		public void RequestPlace(int cellX, int cellY, int cellZ, int width, int length, int buildingId)
+		public void RequestPlace(int cellX, int cellY, int cellZ, int buildingId)
 		{
-			world.TryPlaceBuilding(
-				new Numerics.Vector3Int(cellX, cellY, cellZ),
-				new Numerics.Vector2Int(width, length),
-				buildingId);
+			// 크기는 내 안의 세계도 목록에서 읽는다 — 혼자 놀 때와 같이 놀 때가 갈라지면 안 된다.
+			world.TryPlaceBuilding(new Numerics.Vector3Int(cellX, cellY, cellZ), buildingId, world.Buildables);
 		}
 
 		public void RequestRemove(int cellX, int cellY, int cellZ)
@@ -142,29 +147,39 @@ namespace WitchMendokusai
 			}
 		}
 
-		public void RequestBrewStep(float dx, float dy, float grind)
+		public void RequestBrewStep(int itemId)
 		{
-			world.Cauldron.AddStep(new DomainSDK.Alchemy.BrewStep
-			{
-				Direction = new DomainSDK.Alchemy.BrewVector(dx, dy),
-				Grind = grind,
-			});
+			// 넣을 것이 가방에 <b>실제로 있어야</b> 들어간다 — 혼자여도 빈손으로는 못 젓는다.
+			if (world.Ingredients.TryStep(itemId, out DomainSDK.Alchemy.BrewStep step) == false)
+				return;
+
+			if (world.TryConsume(me.Id, itemId, 1) != 0)
+				return;
+
+			world.Cauldron.AddStep(step);
 		}
 
 		public void RequestBrewReset() => world.Cauldron.ResetBrew();
 
 		public void RequestBrewComplete()
 		{
-			// 혼자여도 규칙은 같다 — 세계가 내주고, 빈 솥이면 아무 일도 없다.
-			if (world.Cauldron.TryComplete(out DomainSDK.Alchemy.BrewState taken) == false)
+			// 혼자여도 규칙은 같다 — 세계가 내주고(마도서 판정), 빈 솥이면 아무 일도 없다.
+			if (world.Cauldron.TryComplete(RecipeBook.Loaded, out BrewCompletion taken) == false)
 				return;
+
+			if (taken.Empty == false)
+				world.TryGather(me.Id, ItemCatalog.Find(taken.ResultItemId), taken.Amount);
 
 			completed = new WorldBrewView
 			{
-				x = taken.Position.X,
-				y = taken.Position.Y,
-				steps = taken.StepCount,
-				side = taken.AccruedSideEffect,
+				x = taken.State.Position.X,
+				y = taken.State.Position.Y,
+				steps = taken.State.StepCount,
+				side = taken.State.AccruedSideEffect,
+				itemId = taken.ResultItemId,
+				amount = taken.Amount,
+				grade = (int)taken.Grade,
+				recipe = taken.RecipeName,
 			};
 		}
 
@@ -175,8 +190,38 @@ namespace WitchMendokusai
 			return taken;
 		}
 
-		public void RequestGather(int itemId, int amount)
+		public GatherableView[] Gatherables
 		{
+			get
+			{
+				List<GatherableNode> alive = world.Gatherables.Alive(world.Calendar.TotalMinutes());
+				GatherableView[] views = new GatherableView[alive.Count];
+				for (int i = 0; i < alive.Count; i++)
+				{
+					views[i] = new GatherableView
+					{
+						id = alive[i].Id,
+						x = alive[i].X,
+						z = alive[i].Z,
+						itemId = alive[i].ItemId,
+						amount = alive[i].Amount,
+					};
+				}
+
+				return views;
+			}
+		}
+
+		public void RequestGather(int nodeId)
+		{
+			// 손이 닿아야 줍힌다 — 혼자 놀 때도 같은 규칙이다(아니면 두 세계가 갈라진다).
+			Numerics.Vector3 standing = world.PositionOf(me.Id);
+			if (world.Gatherables.TryTake(nodeId, standing.x, standing.z, world.Calendar.TotalMinutes(),
+				out int itemId, out int amount) == false)
+			{
+				return;
+			}
+
 			world.TryGather(me.Id, ItemCatalog.Find(itemId), amount);
 		}
 
@@ -221,5 +266,42 @@ namespace WitchMendokusai
 			catalog = new WorldItemCatalog(JsonUtility.FromJson<ItemCatalogData>(asset.text));
 			return catalog;
 		}
+	}
+
+	/// <summary>
+	/// 내 안의 세계가 아는 <b>지을 것</b> 목록 (TASK-WM-217) — 아이템 목록과 같은 방식.
+	/// 뽑아 둔 <c>Resources/buildings.json</c> 이 있으면 그것을, 없으면 씨앗으로.
+	/// </summary>
+	public static class BuildingCatalog
+	{
+		private const string RESOURCE_NAME = "buildings";
+
+		private static WorldBuildingCatalog catalog;
+
+		public static WorldBuildingCatalog Loaded => catalog ?? (catalog = Load());
+
+		private static WorldBuildingCatalog Load()
+		{
+			TextAsset asset = Resources.Load<TextAsset>(RESOURCE_NAME);
+			if (asset == null)
+			{
+				Debug.LogWarning("[buildings] Resources/buildings.json 이 없다 — WM > 아이템 목록 뽑기 를 한 번 돌릴 것(씨앗으로 돈다).");
+				return new WorldBuildingCatalog(WorldSeeds.Buildings());
+			}
+
+			WorldBuildingCatalog fromAsset = new WorldBuildingCatalog(JsonUtility.FromJson<BuildingCatalogData>(asset.text));
+			return fromAsset.Count > 0 ? fromAsset : new WorldBuildingCatalog(WorldSeeds.Buildings());
+		}
+	}
+
+	/// <summary>
+	/// 내 안의 세계가 든 마도서 (TASK-WM-217) — 완성이 무엇을 주는지의 정본.
+	/// 아직 뽑는 도구가 없으므로 씨앗으로 돈다(서버와 <b>같은</b> 씨앗이라 갈라지지 않는다).
+	/// </summary>
+	public static class RecipeBook
+	{
+		private static WorldRecipeBook book;
+
+		public static WorldRecipeBook Loaded => book ?? (book = new WorldRecipeBook(WorldSeeds.Recipes()));
 	}
 }

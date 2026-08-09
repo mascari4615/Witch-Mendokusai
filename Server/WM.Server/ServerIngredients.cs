@@ -35,17 +35,7 @@ namespace WitchMendokusai.Server
 				System.Console.WriteLine("[brew] 재료 목록을 못 읽었다 — 씨앗으로 돈다: " + error.Message);
 			}
 
-			// 주울 것 넷을 네 방향으로 — 섞는 만큼 솥이 움직이고, 원점 근처에 멈추면 치유 물약이 된다.
-			return new WorldIngredients(new IngredientCatalogData
-			{
-				ingredients = new[]
-				{
-					new IngredientCatalogEntry { itemId = 0, name = "나무", dx = 1f, dy = 0f, grind = 0.5f },
-					new IngredientCatalogEntry { itemId = 2, name = "나뭇가지", dx = -1f, dy = 0f, grind = 0.5f },
-					new IngredientCatalogEntry { itemId = 4, name = "석탄", dx = 0f, dy = 1f, grind = 0.5f },
-					new IngredientCatalogEntry { itemId = 5, name = "철광석", dx = 0f, dy = -1f, grind = 0.5f },
-				},
-			});
+			return new WorldIngredients(WorldSeeds.Ingredients());
 		}
 	}
 }

@@ -53,24 +53,6 @@ namespace WitchMendokusai.Server
 		/// 씨앗 마도서 — 원점 근처로 저으면 「치유 물약」(17450) 한 병.
 		/// 진짜 마도서가 나올 때까지 <b>솥이 손에 뭔가를 쥐여 주는지</b> 확인할 수 있어야 한다.
 		/// </summary>
-		private static WorldRecipeBook Seed()
-		{
-			return new WorldRecipeBook(new RecipeCatalogData
-			{
-				recipes = new[]
-				{
-					new RecipeCatalogEntry
-					{
-						id = 1,
-						name = "치유 물약",
-						targetX = 0f,
-						targetY = 0f,
-						radius = 1.5f,
-						resultItemId = 17450,
-						amount = 1,
-					},
-				},
-			});
-		}
+		private static WorldRecipeBook Seed() => new WorldRecipeBook(WorldSeeds.Recipes());
 	}
 }
