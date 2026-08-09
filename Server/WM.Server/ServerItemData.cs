@@ -45,6 +45,9 @@ namespace WitchMendokusai.Server
 
 		private static readonly WorldItemCatalog exported = LoadExported();
 
+		/// <summary>가방을 되살릴 때 쓰는 목록(없으면 null — 그때는 되살릴 물건도 없다).</summary>
+		public static WorldItemCatalog Catalog => exported;
+
 		/// <summary>게임에서 뽑아 온 목록이 있나 — 없으면 씨앗으로 돈다.</summary>
 		public static bool UsingExported => exported != null && exported.Count > 0;
 

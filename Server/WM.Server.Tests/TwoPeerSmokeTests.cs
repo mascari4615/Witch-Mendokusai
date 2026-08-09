@@ -108,6 +108,72 @@ namespace WitchMendokusai.ServerTests
 		}
 
 		[Test]
+		public async Task 열쇠를_들고_다시_오면_같은_사람이다()
+		{
+			string secret;
+			int firstIdentity;
+
+			using (ClientWebSocket first = await ConnectAsync())
+			{
+				await ReadWelcomeAsync(first);
+				await SendAsync(first, "{\"type\":\"hello\",\"secret\":\"\"}");
+
+				// 처음 온 사람에게는 세계가 열쇠를 준다.
+				string granted = await WaitForAsync(first, text => text.Contains("\"secret\":\"") && text.Contains("\"secret\":\"\"") == false);
+				secret = ReadField(granted, "\"secret\":\"");
+				firstIdentity = int.Parse(ReadNumber(granted, "\"identityId\":"));
+				Assert.Greater(firstIdentity, 0);
+			}
+
+			using ClientWebSocket again = await ConnectAsync();
+			await ReadWelcomeAsync(again);
+			await SendAsync(again, "{\"type\":\"hello\",\"secret\":\"" + secret + "\"}");
+
+			string second = await WaitForAsync(again, text => text.Contains("\"identityId\":") && text.Contains("\"identityId\":0") == false);
+
+			// 같은 열쇠 = 같은 사람. 새 열쇠는 다시 주지 않는다.
+			Assert.AreEqual(firstIdentity.ToString(), ReadNumber(second, "\"identityId\":"));
+			Assert.AreEqual(string.Empty, ReadField(second, "\"secret\":\""));
+		}
+
+		[Test]
+		public async Task 모르는_열쇠는_남의_사람이_안_된다()
+		{
+			using ClientWebSocket owner = await ConnectAsync();
+			await ReadWelcomeAsync(owner);
+			await SendAsync(owner, "{\"type\":\"hello\",\"secret\":\"\"}");
+			string granted = await WaitForAsync(owner, text => text.Contains("\"identityId\":") && text.Contains("\"identityId\":0") == false);
+			string ownerIdentity = ReadNumber(granted, "\"identityId\":");
+
+			using ClientWebSocket stranger = await ConnectAsync();
+			await ReadWelcomeAsync(stranger);
+			await SendAsync(stranger, "{\"type\":\"hello\",\"secret\":\"내가-지어낸-열쇠\"}");
+			string strangerWelcome = await WaitForAsync(stranger, text => text.Contains("\"identityId\":") && text.Contains("\"identityId\":0") == false);
+
+			// 찍어서 남의 사람이 될 수 없다.
+			Assert.AreNotEqual(ownerIdentity, ReadNumber(strangerWelcome, "\"identityId\":"));
+		}
+
+		private static string ReadField(string json, string marker)
+		{
+			int start = json.IndexOf(marker, StringComparison.Ordinal);
+			if (start < 0) return string.Empty;
+			start += marker.Length;
+			int end = json.IndexOf('"', start);
+			return end < 0 ? string.Empty : json.Substring(start, end - start);
+		}
+
+		private static string ReadNumber(string json, string marker)
+		{
+			int start = json.IndexOf(marker, StringComparison.Ordinal);
+			if (start < 0) return string.Empty;
+			start += marker.Length;
+			int end = start;
+			while (end < json.Length && char.IsDigit(json[end])) end++;
+			return json.Substring(start, end - start);
+		}
+
+		[Test]
 		public async Task 세계의_시각이_모두에게_같이_간다()
 		{
 			using ClientWebSocket peer = await ConnectAsync();
@@ -134,7 +200,12 @@ namespace WitchMendokusai.ServerTests
 		{
 			string welcome = await WaitForAsync(socket, text => text.Contains("\"type\":\"welcome\""));
 			int marker = welcome.IndexOf("\"id\":", StringComparison.Ordinal) + 5;
-			int end = welcome.IndexOf('}', marker);
+
+			// 인사말에 칸이 늘어도(신원·열쇠) 안 깨지게 — 숫자만 읽는다.
+			int end = marker;
+			while (end < welcome.Length && (char.IsDigit(welcome[end]) || welcome[end] == '-'))
+				end++;
+
 			return int.Parse(welcome.Substring(marker, end - marker));
 		}
 

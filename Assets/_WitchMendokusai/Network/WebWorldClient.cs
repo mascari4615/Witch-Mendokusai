@@ -129,6 +129,10 @@ namespace WitchMendokusai
 				await socket.ConnectAsync(new Uri(serverUrl), token);
 				backoff.Reset(); // 붙었다 — 다음에 끊기면 다시 빠르게 시도한다.
 
+				// 첫 말은 인사 (TASK-WM-218) — 기기에 적어 둔 열쇠가 있으면 같이 낸다.
+				// 없으면 세계가 새 사람으로 받고 새 열쇠를 준다.
+				Send(JsonUtility.ToJson(new HelloMessage { secret = WorldKeyStore.Load() }));
+
 				byte[] buffer = new byte[8192];
 				while (token.IsCancellationRequested == false && socket.State == WebSocketState.Open)
 				{
@@ -156,6 +160,11 @@ namespace WitchMendokusai
 			{
 				WelcomeMessage welcome = JsonUtility.FromJson<WelcomeMessage>(json);
 				MyDollId = welcome.id;
+
+				// 새 열쇠를 줬으면 적어 둔다 — 이게 있어야 다음에 「나」로 들어간다.
+				if (string.IsNullOrEmpty(welcome.secret) == false)
+					WorldKeyStore.Save(welcome.secret);
+
 				return;
 			}
 

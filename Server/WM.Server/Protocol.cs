@@ -13,6 +13,7 @@ namespace WitchMendokusai.Server
 	public static class Protocol
 	{
 		// 말의 이름과 모양은 판정 층(WitchMendokusai.Net)이 정본이다 — Unity 도 같은 소스를 본다.
+		public const string HELLO = Net.NetMessageType.HELLO;
 		public const string WELCOME = Net.NetMessageType.WELCOME;
 		public const string WORLD = Net.NetMessageType.WORLD;
 		public const string MOVE = Net.NetMessageType.MOVE;
@@ -96,9 +97,12 @@ namespace WitchMendokusai.Server
 		}
 
 		/// <summary>서버가 보내는 인사말.</summary>
-		public static string Welcome(int dollId)
+		public static string Welcome(int dollId, string newSecret = "", int identityId = 0)
 		{
-			return "{\"type\":\"" + WELCOME + "\",\"id\":" + dollId + "}";
+			string secret = string.IsNullOrEmpty(newSecret) ? string.Empty : newSecret;
+			return "{\"type\":\"" + WELCOME + "\",\"id\":" + dollId
+				+ ",\"identityId\":" + identityId
+				+ ",\"secret\":\"" + secret + "\"}";
 		}
 
 		/// <summary>서버가 보내는 세계 모습.</summary>

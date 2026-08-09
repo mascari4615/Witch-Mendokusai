@@ -13,6 +13,9 @@ namespace WitchMendokusai.Net
 	/// </summary>
 	public static class NetMessageType
 	{
+		/// <summary>창 → 서버: 나 왔다(열쇠가 있으면 같이). 첫 말이다.</summary>
+		public const string HELLO = "hello";
+
 		public const string WELCOME = "welcome";
 		public const string WORLD = "world";
 		public const string MOVE = "move";
@@ -42,12 +45,28 @@ namespace WitchMendokusai.Net
 		public const string BREW_TAKEN = "brewtaken";
 	}
 
-	/// <summary>서버 → 창: 접속했다, 네 인형 번호는 이것이다.</summary>
+	/// <summary>
+	/// 창 → 서버: 나 왔다 (TASK-WM-218). 열쇠가 있으면 같이 낸다 —
+	/// 없거나 모르는 열쇠면 세계가 <b>새 사람</b>으로 받고 새 열쇠를 준다(남의 것은 안 준다).
+	/// </summary>
+	[Serializable]
+	public class HelloMessage
+	{
+		public string type = NetMessageType.HELLO;
+		public string secret = string.Empty;
+	}
+
+	/// <summary>
+	/// 서버 → 창: 접속했다, 네 인형 번호는 이것이다.
+	/// <see cref="secret"/> 가 비어 있지 않으면 <b>새로 받은 열쇠</b>다 — 기기에 적어 둬야 다음에 「나」다.
+	/// </summary>
 	[Serializable]
 	public class WelcomeMessage
 	{
 		public string type = NetMessageType.WELCOME;
 		public int id;
+		public string secret = string.Empty;
+		public int identityId;
 	}
 
 	/// <summary>세계에 있는 인형 하나 — 창이 그리는 데 필요한 최소.</summary>

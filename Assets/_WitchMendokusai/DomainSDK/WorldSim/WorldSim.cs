@@ -144,6 +144,35 @@ namespace WitchMendokusai
 			}
 		}
 
+		/// <summary>
+		/// 이미 들어와 있는 인형에 <b>주인을 붙인다</b> (TASK-WM-218).
+		///
+		/// ★ 왜 나중에 붙이나: 「인사를 받고 나서 인형을 준다」로 만들었더니, 인사를 안 하는 옛 창이
+		///   영영 환영을 못 받고 멈춰 섰다(시험 4개가 그 자리에서 죽었다). 그래서 <b>먼저 받아 주고</b>
+		///   열쇠가 오면 그때 기억을 얹는다 — 인사를 안 해도 게임은 돈다.
+		/// </summary>
+		public bool Adopt(int dollId, int identityId, WorldItemCatalog catalog)
+		{
+			lock (gate)
+			{
+				if (identityId == 0 || dolls.TryGetValue(dollId, out WorldDoll doll) == false)
+					return false;
+
+				if (doll.IdentityId == identityId)
+					return true;
+
+				doll.IdentityId = identityId;
+
+				if (remembered.TryGetValue(identityId, out PersonSaveData kept))
+				{
+					doll.Position = new Vector3(kept.x, 0f, kept.z);
+					RestoreBag(doll, kept, catalog);
+				}
+
+				return true;
+			}
+		}
+
 		/// <summary>그 사람이 어디에 있었고 뭘 갖고 있었는지 — 나갈 때 여기 적힌다.</summary>
 		private readonly Dictionary<int, PersonSaveData> remembered = new Dictionary<int, PersonSaveData>();
 

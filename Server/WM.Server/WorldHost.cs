@@ -44,6 +44,12 @@ namespace WitchMendokusai.Server
 		/// <summary>이 서버가 굴리는 세계 — 시험이 들여다본다.</summary>
 		public WorldSim World { get; } = new WorldSim();
 
+		/// <summary>세계가 아는 사람들 (TASK-WM-218) — 열쇠로 알아본다.</summary>
+		public WitchMendokusai.Identity.WorldIdentityRegistry Identities { get; } = new WitchMendokusai.Identity.WorldIdentityRegistry();
+
+		/// <summary>가방을 되살릴 때 쓰는 아이템 목록 — 게임에서 뽑아 온 그것.</summary>
+		private WorldItemCatalog ItemsCatalog => ServerItemCatalog.Catalog;
+
 		/// <summary>세계를 띄운다. <paramref name="url"/> 를 주면 그 자리에(시험은 빈 포트를 쓴다).</summary>
 		public WebApplication Build(string[] args, string url = null)
 		{
@@ -73,7 +79,9 @@ namespace WitchMendokusai.Server
 			});
 
 			// 세계는 서버보다 오래 산다 (단계 5) — 뜨자마자 지난 기억을 되살린다.
-			int restored = World.Load(store.TryLoad());
+			WorldSaveData loaded = store.TryLoad();
+			Identities.Load(loaded?.identities);
+			int restored = World.Load(loaded);
 			Console.WriteLine($"[world] 되살린 건물 {restored}개 ({store.Path})");
 
 			// 알림 루프는 서버가 실제로 뜬 뒤에 시작한다 — 뜨기 전에 시작하면 조용히 죽어도 아무도 모른다.
@@ -84,29 +92,30 @@ namespace WitchMendokusai.Server
 			});
 
 			// 꺼질 때 한 번 더 — 마지막 몇 초 사이에 지은 것도 남는다.
-			app.Lifetime.ApplicationStopping.Register(() => store.TrySave(World.Save()));
+			app.Lifetime.ApplicationStopping.Register(() => store.TrySave(SaveWorld()));
 
 			return app;
 		}
 
 		private async Task ServeAsync(WebSocket socket)
 		{
+			// ★ 먼저 받아 주고, 열쇠는 오면 그때 붙인다 (TASK-WM-218).
+			//   「인사를 받고 나서 인형을 준다」로 했더니 인사 안 하는 옛 창이 영영 환영을 못 받고
+			//   멈춰 섰다(스모크 4개가 그 자리에서 죽었다). 접속은 인사를 기다리지 않는다.
 			WorldDoll doll = World.Join();
 			sockets[doll.Id] = socket;
-
 			await SendAsync(socket, Protocol.Welcome(doll.Id));
 
-			byte[] buffer = new byte[1024];
+			byte[] buffer = new byte[4096];
 			try
 			{
 				while (socket.State == WebSocketState.Open)
 				{
-					WebSocketReceiveResult received = await socket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
-					if (received.MessageType == WebSocketMessageType.Close)
+					string text = await ReceiveTextAsync(socket, buffer);
+					if (text == null)
 						break;
 
-					string text = Encoding.UTF8.GetString(buffer, 0, received.Count);
-					HandleMessage(doll.Id, text);
+					await HandleMessageAsync(doll.Id, socket, text);
 				}
 			}
 			catch (WebSocketException)
@@ -117,6 +126,63 @@ namespace WitchMendokusai.Server
 			{
 				sockets.TryRemove(doll.Id, out WebSocket _);
 				World.Leave(doll.Id);
+				Interlocked.Exchange(ref worldDirty, 1); // 나간 사람의 자리·가방을 디스크로 내린다.
+			}
+		}
+
+		/// <summary>인사를 받으면 그 연결의 인형에 주인을 붙이고, 새 사람이면 열쇠를 준다.</summary>
+		private async Task HandleMessageAsync(int dollId, WebSocket socket, string text)
+		{
+			if (text.Contains("\"" + Protocol.HELLO + "\""))
+			{
+				string secret = ReadHelloSecret(text);
+				WitchMendokusai.Identity.WorldIdentityRecord person = Identities.Recognize(secret, out bool created);
+				World.Adopt(dollId, person.id, ItemsCatalog);
+
+				// 새 열쇠는 새로 만들었을 때만 — 기기에 적어 둬야 다음에 「나」다.
+				await SendAsync(socket, Protocol.Welcome(dollId, created ? person.secret : string.Empty, person.id));
+				Interlocked.Exchange(ref worldDirty, 1);
+				return;
+			}
+
+			HandleMessage(dollId, text);
+		}
+
+		/// <summary>세계 + 신원 장부를 함께 뜬다 — 둘이 따로 저장되면 「누구 가방인지」가 갈라진다.</summary>
+		private WorldSaveData SaveWorld()
+		{
+			WorldSaveData data = World.Save();
+			data.identities = Identities.Save();
+			return data;
+		}
+
+		/// <summary>한 마디 받는다. 닫히면 null.</summary>
+		private static async Task<string> ReceiveTextAsync(WebSocket socket, byte[] buffer)
+		{
+			try
+			{
+				WebSocketReceiveResult received = await socket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
+				if (received.MessageType == WebSocketMessageType.Close)
+					return null;
+
+				return Encoding.UTF8.GetString(buffer, 0, received.Count);
+			}
+			catch (WebSocketException)
+			{
+				return null;
+			}
+		}
+
+		private static string ReadHelloSecret(string text)
+		{
+			try
+			{
+				using JsonDocument document = JsonDocument.Parse(text);
+				return document.RootElement.TryGetProperty("secret", out JsonElement secret) ? secret.GetString() : null;
+			}
+			catch (JsonException)
+			{
+				return null;
 			}
 		}
 
@@ -251,7 +317,7 @@ namespace WitchMendokusai.Server
 					if (Interlocked.Exchange(ref worldDirty, 0) == 0)
 						continue;
 
-					store.TrySave(World.Save());
+					store.TrySave(SaveWorld());
 				}
 			}
 			catch (Exception exception)
