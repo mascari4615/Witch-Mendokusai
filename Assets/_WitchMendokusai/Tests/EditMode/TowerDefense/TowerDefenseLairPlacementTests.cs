@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using NUnit.Framework;
-using UnityEngine;
 // ★ 좌표는 판정 쪽 (TASK-WM-214).
 using Vector3 = WitchMendokusai.Numerics.Vector3;
 using Vector2 = WitchMendokusai.Numerics.Vector2;

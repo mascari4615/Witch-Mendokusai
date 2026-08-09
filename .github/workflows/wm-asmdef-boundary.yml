@@ -185,7 +185,7 @@ jobs:
           OUT=$(dotnet test Portable/DomainSDK.Tests/DomainSDK.Tests.csproj -c Release --nologo 2>&1)
           echo "$OUT"
           PASSED=$(printf '%s' "$OUT" | grep -oE 'Passed:[[:space:]]*[0-9]+' | grep -oE '[0-9]+' | tail -1 || true)
-          if [ -z "${PASSED:-}" ] || [ "$PASSED" -lt 40 ]; then
+          if [ -z "${PASSED:-}" ] || [ "$PASSED" -lt 100 ]; then
             echo "::error::엔진 밖 시험이 ${PASSED:-0}개만 돌았다 — 통과가 아니라 **안 돈 것**이다."
             echo "::error::  (시험 파일이 옮겨졌거나 목록에서 빠졌는지 확인: Portable/DomainSDK.Tests/DomainSDK.Tests.csproj)"
             exit 1
