@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using UnityEngine;
 using DG.Tweening;
 
@@ -59,13 +59,14 @@ namespace WitchMendokusai
 		{
 			if (Unit == null) return;
 
+			// 「얼마 남고 죽었나」는 판정 층이 정한다 (TASK-WM-215) — 여기선 그 결과를 씬에 반영만 한다.
 			int maxHp = Unit.UnitStat[UnitStatType.HP_MAX];
-			newHp = Mathf.Clamp(newHp, 0, maxHp);
-			Unit.UnitStat[UnitStatType.HP_CUR] = newHp;
+			HealthChange change = HealthResolution.Apply(Unit.UnitStat[UnitStatType.HP_CUR], maxHp, newHp - Unit.UnitStat[UnitStatType.HP_CUR]);
 
-			OnHealthChanged?.Invoke(newHp, maxHp);
+			Unit.UnitStat[UnitStatType.HP_CUR] = change.NewHp;
+			OnHealthChanged?.Invoke(change.NewHp, change.MaxHp);
 
-			if (newHp <= 0)
+			if (change.Died)
 			{
 				Die();
 			}
