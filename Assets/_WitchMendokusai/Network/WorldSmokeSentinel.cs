@@ -45,7 +45,7 @@ namespace WitchMendokusai
 		/// 모을 나무 — 상자 한 채(2개)를 짓고도 <b>상자에 넣어 볼 것</b>이 남아야 한다.
 		/// 딱 2개만 모으면 짓는 순간 빈손이 되어 그 다음 걸음이 전부 막힌다(실측 2026-08-10).
 		/// </summary>
-		private const int WOOD_NEEDED = 4;
+		private const int WOOD_NEEDED = 6;
 		private int gatheredWood;
 		private int gatheredAmount;
 		private bool brewed;
@@ -57,6 +57,7 @@ namespace WitchMendokusai
 		private const int CHEST_BUILDING_ID = 4005;
 		private bool chestPlaced;
 		private bool chestFilled;
+		private bool potPlaced;
 		private int chestSeenAmount;
 
 		// ★ 두 판이 같은 자리에 지으면 한쪽은 영영 상자가 없다 — 각자 <b>자기가 선 자리</b>에 짓는다.
@@ -212,15 +213,23 @@ namespace WitchMendokusai
 				return;
 			}
 
+			// 솥도 짓는다 — 세계에 솥이 없으면 아무도 조리할 수 없다(전역 솥은 폐기됐다).
+			if (potPlaced == false)
+			{
+				link.RequestPlace(chestX + 1, 0, chestZ, WorldSim.CAULDRON_BUILDING_ID);
+				potPlaced = true;
+				return;
+			}
+
 			if (brewed == false)
 			{
-				link.RequestBrewStep(gatheredItemId);
+				link.RequestBrewStepAt(gatheredItemId, chestX + 1, 0, chestZ);
 				brewed = true;
 				return;
 			}
 
 			// 완성은 세계가 내준다 — 못 받으면 다음 걸음에 다시 청한다(남이 먼저 가져갔을 수도 있다).
-			link.RequestBrewComplete();
+			link.RequestBrewCompleteAt(chestX + 1, 0, chestZ);
 
 			WorldBrewView taken = link.TakeCompletedBrew();
 			// 완성했나 — 여기도 번호가 아니라 「받았나」로 본다(0번 물건도 진짜 결과다).

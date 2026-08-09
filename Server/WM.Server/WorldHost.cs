@@ -205,7 +205,7 @@ namespace WitchMendokusai.Server
 				World.Snapshot(),
 				World.Buildings(),
 				World.Calendar,
-				World.Cauldron,
+				null,
 				World.Gatherables.Alive(World.Calendar.TotalMinutes()),
 				Identities.NameOf,
 				World.Cauldrons));
@@ -324,7 +324,7 @@ namespace WitchMendokusai.Server
 					World.Snapshot(),
 					World.Buildings(),
 					World.Calendar,
-					World.Cauldron,
+					null,
 					World.Gatherables.Alive(World.Calendar.TotalMinutes()),
 					Identities.NameOf));
 
@@ -713,8 +713,10 @@ namespace WitchMendokusai.Server
 		/// </summary>
 		private WorldCauldron PotFor(int dollId, JsonElement root)
 		{
+			// ★ 자리를 안 주면 <b>솥이 없다</b> (TASK-WM-217): 세계에 하나뿐이던 옛 솥은 폐기했다.
+			//   규칙이 두 벌이면 「내 솥에 넣었는데 남의 화면에선 딴 솥이 움직이는」 일이 생긴다.
 			if (root.TryGetProperty("x", out JsonElement _) == false)
-				return World.Cauldron;
+				return null;
 
 			Vector3 standing = World.PositionOf(dollId);
 			Vector3Int cell = new Vector3Int(ReadInt(root, "x"), ReadInt(root, "y"), ReadInt(root, "z"));
@@ -834,7 +836,7 @@ namespace WitchMendokusai.Server
 					World.Snapshot(),
 					sendBuildings ? World.Buildings() : null,
 					World.Calendar,
-					World.Cauldron,
+					null,
 					sendField ? World.Gatherables.Alive(World.Calendar.TotalMinutes()) : null,
 					Identities.NameOf,
 					sendPots ? World.Cauldrons : null);

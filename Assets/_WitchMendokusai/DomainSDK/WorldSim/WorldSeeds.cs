@@ -123,7 +123,9 @@ namespace WitchMendokusai
 					//   나무 → (솥에서) 판자 → 더 좋은 건물. 사슬이 없으면 조리는 막다른 길이다.
 					//   상자만은 나무로 짓는다 — 처음 온 사람이 아무것도 없이 시작하기 때문이다.
 					new BuildingCatalogEntry { id = 4005, name = "보관 상자", w = 1, l = 1, slots = 30, costItemId = WOOD, costAmount = 2 },
-					new BuildingCatalogEntry { id = 4000, name = "솥", w = 1, l = 1, costItemId = PLANK, costAmount = 2 },
+					// ⚠ 솥은 <b>나무</b>로 짓는다: 판자는 솥에서 나오므로, 솥을 판자로 지으면
+					//   「솥이 있어야 판자, 판자가 있어야 솥」인 닭·달걀이 된다(아무도 시작 못 한다).
+					new BuildingCatalogEntry { id = 4000, name = "솥", w = 1, l = 1, costItemId = WOOD, costAmount = 2 },
 					new BuildingCatalogEntry { id = 4001, name = "모루", w = 1, l = 1, costItemId = STONE_BLOCK, costAmount = 2 },
 				},
 			};

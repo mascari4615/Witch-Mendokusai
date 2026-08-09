@@ -101,7 +101,11 @@ namespace WitchMendokusai
 		/// </summary>
 		public WorldCalendar Calendar { get; } = new WorldCalendar(24, 28, 4, 6, 0);
 
-		/// <summary>모두가 같이 젓는 하나의 솥 — 호스트가 아니라 세계가 갖는다 (TASK-WM-217).</summary>
+		/// <summary>
+		/// ⚠ <b>폐기</b> — 세계에 하나뿐이던 솥 (TASK-WM-217). 지은 자리마다의 <see cref="Cauldrons"/> 로 옮겼다.
+		/// 규칙이 두 벌이면 「내 솥에 넣었는데 남의 화면에선 딴 솥이 움직이는」 일이 생긴다.
+		/// 아직 지우지 않은 이유는 하나뿐: 옛 시험이 이걸 부른다(그 시험이 옮겨지면 지운다).
+		/// </summary>
 		public WorldCauldron Cauldron { get; } = new WorldCauldron();
 
 		/// <summary>
