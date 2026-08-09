@@ -22,6 +22,11 @@
 	.hint { opacity: .55; max-width: 44ch; text-align: center; }
 	.worldline { font-variant-numeric: tabular-nums; opacity: .75; display: flex; gap: 8px; }
 	.worldline .dot { opacity: .4; }
+	button {
+		background: #2a2436; color: #d8d2e8; border: 1px solid #453c5c;
+		border-radius: 6px; padding: 6px 12px; font: inherit; cursor: pointer;
+	}
+	button:hover { background: #352d47; }
 </style>
 </head>
 <body>
@@ -29,6 +34,11 @@
 	<div class="worldline"><span id="clock">—</span><span class="dot">·</span><span id="peers">0명</span></div>
 	<canvas id="board" width="480" height="360"></canvas>
 	<div class="worldline">솥: <span id="brew">아직 안 저음</span></div>
+	<div class="worldline">
+		<button id="stir">젓기 (무작위 방향)</button>
+		<button id="complete">완성 가져가기</button>
+		<button id="clear">솥 비우기</button>
+	</div>
 	<div class="hint">
 		방향키(또는 WASD)로 움직이고, 판을 눌러 짓는다. 판정은 서버가 한다 —
 		한 번에 갈 수 있는 거리는 서버가 잘라낸다. 창을 두 개 열면 서로가 보인다.
@@ -58,6 +68,12 @@
 
 	socket.onmessage = function (event) {
 		var message = JSON.parse(event.data);
+		if (message.type === 'brewtaken') {
+			statusElement.textContent = '완성을 가져갔다 — ' + message.steps + '번 저은 솥 ('
+				+ message.x.toFixed(2) + ', ' + message.y.toFixed(2) + ')';
+			return;
+		}
+
 		if (message.type === 'welcome') {
 			myId = message.id;
 			statusElement.textContent = '내 인형 번호 ' + myId;
@@ -126,6 +142,24 @@
 		}
 		document.getElementById('brew').textContent = brewText;
 	}
+
+	// 솥은 여기서도 젓는다 — 웹 창과 게임이 **같은 솥**을 젓는지 눈으로 보려면 여기서도 손이 닿아야 한다.
+	document.getElementById('stir').addEventListener('click', function () {
+		if (socket.readyState !== WebSocket.OPEN) return;
+		var angle = Math.random() * Math.PI * 2;
+		socket.send(JSON.stringify({ type: 'brew', dx: Math.cos(angle), dy: Math.sin(angle), grind: 1 }));
+	});
+
+	// 완성은 선착순 한 사람에게만 간다 — 못 받으면 아무 일도 안 일어난다(그게 정상이다).
+	document.getElementById('complete').addEventListener('click', function () {
+		if (socket.readyState !== WebSocket.OPEN) return;
+		socket.send(JSON.stringify({ type: 'brewcomplete' }));
+	});
+
+	document.getElementById('clear').addEventListener('click', function () {
+		if (socket.readyState !== WebSocket.OPEN) return;
+		socket.send(JSON.stringify({ type: 'brewreset' }));
+	});
 
 	function draw() {
 		context.clearRect(0, 0, canvas.width, canvas.height);
