@@ -47,6 +47,15 @@ namespace WitchMendokusai.Server
 		private int sentBuildVersion = -1;
 		private int sentFieldVersion = -1;
 
+		/// <summary>
+		/// 지금 어느 상자를 열어 두고 있나 (TASK-WM-217).
+		/// ★ 왜: 둘이 같은 상자를 열어 두면, 한쪽이 꺼내 갔는데 다른 쪽 화면엔 그대로 남아 있다 —
+		///   그 상태로 누르면 「왜 안 되지」가 된다. 안이 바뀌면 보고 있는 창에 다시 보낸다.
+		/// </summary>
+		private readonly ConcurrentDictionary<int, Vector3Int> watchingChest = new ConcurrentDictionary<int, Vector3Int>();
+
+		private int sentStorageVersion = -1;
+
 		/// <summary>이만큼(세계의 날) 안 오고 아무것도 안 남긴 사람은 장부에서 지운다.</summary>
 		private const int GUEST_FORGET_DAYS = 90;
 
@@ -227,6 +236,7 @@ namespace WitchMendokusai.Server
 			finally
 			{
 				sockets.TryRemove(doll.Id, out Connection _);
+				watchingChest.TryRemove(doll.Id, out Vector3Int _);
 				World.Leave(doll.Id);
 				Interlocked.Exchange(ref worldDirty, 1); // 나간 사람의 자리·가방을 디스크로 내린다.
 			}
@@ -490,6 +500,9 @@ namespace WitchMendokusai.Server
 						}
 					}
 
+					// 이 창은 지금 그 상자를 보고 있다 — 안이 바뀌면 다시 보내 준다.
+					watchingChest[dollId] = cell;
+
 					// 이 자리는 async 가 아니다 — 답장은 옆으로 보낸다(창 하나 때문에 세계가 기다리지 않게).
 					if (sockets.TryGetValue(dollId, out Connection asking))
 						_ = SendAsync(asking, Protocol.Chest(cell.x, cell.y, cell.z, World.Storages.Contents(cell)));
@@ -685,6 +698,21 @@ namespace WitchMendokusai.Server
 				bool sendField = fieldVersion != sentFieldVersion;
 				sentBuildVersion = buildVersion;
 				sentFieldVersion = fieldVersion;
+
+				// 상자 안이 바뀌었으면, 그 상자를 보고 있는 창들에 다시 보낸다.
+				int storageVersion = World.Storages.Version;
+				if (storageVersion != sentStorageVersion)
+				{
+					sentStorageVersion = storageVersion;
+					foreach (System.Collections.Generic.KeyValuePair<int, Vector3Int> watcher in watchingChest)
+					{
+						if (sockets.TryGetValue(watcher.Key, out Connection looking) == false)
+							continue;
+
+						_ = SendAsync(looking, Protocol.Chest(watcher.Value.x, watcher.Value.y, watcher.Value.z,
+							World.Storages.Contents(watcher.Value)));
+					}
+				}
 
 				string snapshot = Protocol.WorldSnapshot(
 					World.Snapshot(),
