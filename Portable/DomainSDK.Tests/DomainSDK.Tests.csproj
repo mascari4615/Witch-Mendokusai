@@ -58,6 +58,7 @@
     <Compile Include="$(TestsRoot)TowerDefense/TowerDefenseMapGeneratorTests.cs" />
     <Compile Include="$(TestsRoot)TowerDefense/TowerDefenseWaveOriginTests.cs" />
     <Compile Include="$(TestsRoot)TowerDefense/TowerDefenseLairPlacementTests.cs" />
+    <Compile Include="$(TestsRoot)Net/DollRosterTests.cs" />
   </ItemGroup>
 
 </Project>

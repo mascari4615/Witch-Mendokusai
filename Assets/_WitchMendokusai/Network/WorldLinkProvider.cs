@@ -68,6 +68,7 @@ namespace WitchMendokusai
 			{
 				Current = remote;
 				IsLocalWorld = false;
+				EnsureBinder();
 				yield break;
 			}
 
@@ -78,6 +79,17 @@ namespace WitchMendokusai
 
 			Current = new LocalWorldLink();
 			IsLocalWorld = true;
+			EnsureBinder();
+		}
+
+		/// <summary>
+		/// 세계에 들어왔으면 <b>사람들이 보여야 한다</b> — 그리는 쪽을 문이 직접 붙인다 (TASK-WM-217 단계 3).
+		/// 씬에 손으로 얹어야만 보이는 구조면 「씬에 안 얹혀서 조용히 아무도 안 보이는」 사고가 난다.
+		/// </summary>
+		private void EnsureBinder()
+		{
+			if (GetComponent<WorldDollBinder>() == null)
+				gameObject.AddComponent<WorldDollBinder>();
 		}
 
 		/// <summary>세계에서 나온다.</summary>
