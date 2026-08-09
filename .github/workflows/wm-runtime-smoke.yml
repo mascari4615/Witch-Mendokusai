@@ -127,6 +127,32 @@ jobs:
           }
           exit $code
 
+      # TASK-WM-217 -- 혼자 켠 판도 놀 수 있나(서버 없이). 사람 대부분은 혼자 켠다 —
+      # 서버가 있을 때만 재면 「인터넷 끊긴 날 게임이 통째로 죽는」 회귀를 못 잡는다.
+      - name: Run solo gate (no server)
+        shell: powershell
+        run: |
+          $scripts = $env:WM_MEMO_SCRIPTS
+          if ([string]::IsNullOrWhiteSpace($scripts))
+          {
+              $scripts = 'C:/Users/masca/repos/karmoddrine/memo/dotfiles/scripts'
+          }
+          $gate = Join-Path $scripts 'wm-world-solo-smoke.ps1'
+          if (-not (Test-Path $gate))
+          {
+              Write-Host "ERROR: solo gate not found: $gate"
+              exit 1
+          }
+
+          & powershell -NoProfile -ExecutionPolicy Bypass -File $gate -BuildOut '${{ steps.build.outputs.exe }}'
+          $code = $LASTEXITCODE
+          if ($code -eq 2)
+          {
+              Write-Host "ERROR: solo gate could not run (exit 2) -- treating as failure."
+              exit 1
+          }
+          exit $code
+
       # TASK-WM-217 -- WS(.NET 서버) 판 2-peer. FishNet 관문의 대체품이라, 지우기 전에
       # 먼저 여기서 초록이 나야 한다. FishNet 관문(위 단계)과 당분간 나란히 돈다.
       - name: Run world 2-peer gate (WS server)
