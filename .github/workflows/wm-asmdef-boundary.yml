@@ -20,6 +20,7 @@ on:
       - 'Assets/_WitchMendokusai/Mods/**'
       - 'Assets/_WitchMendokusai/Network/**'
       - 'Portable/**'
+      - 'Assets/_WitchMendokusai/Tests/**'
       - '.github/workflows/wm-asmdef-boundary.yml'
   pull_request:
     paths:
@@ -29,6 +30,7 @@ on:
       - 'Assets/_WitchMendokusai/Mods/**'
       - 'Assets/_WitchMendokusai/Network/**'
       - 'Portable/**'
+      - 'Assets/_WitchMendokusai/Tests/**'
   workflow_dispatch: {}
 
 permissions:
