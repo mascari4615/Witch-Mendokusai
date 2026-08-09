@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -25,14 +25,9 @@ namespace WitchMendokusai
 			// HACK: 좀 더 아름다운 방법이 있을텐데
 			// TODO: 어느 시점에 계산, 갱신할지
 
-			int potCount = 0;
-
-			List<BuildingInstanceData> allBuildingInstanceData = GetAllBuildingInstanceData();
-			foreach (BuildingInstanceData buildingInstanceData in allBuildingInstanceData)
-			{
-				if (buildingInstanceData.BuildingID == 4000)
-					potCount++;
-			}
+			// 세는 규칙은 판정 층에 있다 (TASK-WM-215) — 여기선 「어디를 볼지」만 정한다.
+			// TODO: 4000(솥) 은 여전히 코드에 박힌 번호다 — 수치 노출 룰 대상, 별 증분에서 SO 로 뺀다.
+			int potCount = BuildingCensus.CountById(GetAllBuildingInstanceData(), 4000);
 
 			DataManager.Instance.GameStat[GameStatType.POT_COUNT] = potCount;
 		}
