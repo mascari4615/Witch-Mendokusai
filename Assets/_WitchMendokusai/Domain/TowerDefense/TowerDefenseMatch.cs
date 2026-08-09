@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 // ★ 이 파일의 좌표는 「판정 쪽」이다 (TASK-WM-214).
 //   개척 판의 셈은 거의 전부 시뮬이고(Vector3 118 · Vector2Int 27 · Vector3Int 13),
-//   엔진을 실제로 만지는 자리는 스무 곳 남짓(transform.position 등)이다.
+//   엔진을 실제로 만지는 자리는 스무 곳 남짓((Vector3)transform.position 등)이다.
 //   그래서 이 파일에서 Vector* 는 SDK 타입을 뜻하고, 엔진으로 나갈 때만 자동으로 변환된다.
 //   반대로 엔진 값을 받아올 때는 캐스트가 필요하다 — 그 자리가 곧 경계다.
 using Vector2 = WitchMendokusai.Numerics.Vector2;
@@ -511,7 +511,7 @@ namespace WitchMendokusai
 			{
 				if (unit == null || unit.activeInHierarchy == false)
 					continue;
-				if (ToCellKey(unit.transform.position) != cellKey)
+				if (ToCellKey((Vector3)unit.transform.position) != cellKey)
 					continue;
 				// 그 칸을 지나가던 마수가 먼저 잡히면 승급이 조용히 거절된다 — 내가 세운 것만 본다.
 				if (supplyChain.Contains(unit.transform) == false)
@@ -534,7 +534,7 @@ namespace WitchMendokusai
 				{
 					// ★ 조용히 false 를 돌려주면 「눌렀는데 아무 일도 안 일어난다」가 된다 —
 					//   사람은 그걸 고장으로 읽는다. 왜 안 되는지와 어떻게 버는지를 그 자리에서 말한다.
-					Reject(EssenceShortText(upgradeCost), unit.transform.position);
+					Reject(EssenceShortText(upgradeCost), (Vector3)unit.transform.position);
 					return false;
 				}
 
@@ -545,7 +545,7 @@ namespace WitchMendokusai
 				if (label != null)
 					label.Level = weapon.Level;
 
-				PopWorldText("Lv." + weapon.Level, unit.transform.position, TextType.Exp);
+				PopWorldText("Lv." + weapon.Level, (Vector3)unit.transform.position, TextType.Exp);
 				RefreshTowerRing(unit);
 				return true;
 			}
@@ -702,7 +702,7 @@ namespace WitchMendokusai
 			if (ValidateSite(worldPosition) == false)
 				return false;
 
-			Vector2Int cell = mapLayout.WorldToCell(stageRoot.InverseTransformPoint(worldPosition));
+			Vector2Int cell = mapLayout.WorldToCell((Vector3)stageRoot.InverseTransformPoint(worldPosition));
 			if (mapLayout.IsInside(cell) == false || IsPathBlocked(cell))
 				return false;
 
@@ -768,7 +768,7 @@ namespace WitchMendokusai
 			foreach (Transform outpost in outposts)
 			{
 				if (outpost != null)
-					pathGoals.Add(mapLayout.WorldToCell(stageRoot.InverseTransformPoint(outpost.position)));
+					pathGoals.Add(mapLayout.WorldToCell((Vector3)stageRoot.InverseTransformPoint(outpost.position)));
 			}
 
 			flowField = new TowerDefenseFlowField(
@@ -1082,7 +1082,7 @@ namespace WitchMendokusai
 					continue;
 
 				SpawnedUnit spawned = new();
-				yield return SpawnUnitRoutine(stage.EnemyUnit, stageRoot.TransformPoint(localPosition),
+				yield return SpawnUnitRoutine(stage.EnemyUnit, (Vector3)stageRoot.TransformPoint(localPosition),
 					ATTACKER_TEAM, stage.NestTint, stage.NestScale, spawned);
 				if (spawned.Ok == false)
 					continue;
@@ -1230,7 +1230,7 @@ namespace WitchMendokusai
 						disabledGuards++;
 						continue;
 					}
-					total += Vector3.Distance(guard.transform.position, coreCombatant.Position);
+					total += Vector3.Distance((Vector3)guard.transform.position, coreCombatant.Position);
 					count++;
 				}
 			}
@@ -1253,7 +1253,7 @@ namespace WitchMendokusai
 				{
 					if (guard == null || guard.gameObject.activeInHierarchy == false)
 						continue;
-					float distance = Vector3.Distance(guard.transform.position, lair.WorldPosition);
+					float distance = Vector3.Distance((Vector3)guard.transform.position, lair.WorldPosition);
 					if (distance > worst)
 						worst = distance;
 				}
@@ -1477,7 +1477,7 @@ namespace WitchMendokusai
 				SleepingLair lair = new()
 				{
 					Id = ++lastLairId,
-					WorldPosition = stageRoot.TransformPoint(localPosition),
+					WorldPosition = (Vector3)stageRoot.TransformPoint(localPosition),
 				};
 
 				for (int guard = 0; guard < stage.LairGuardCount; guard++)
@@ -1498,7 +1498,7 @@ namespace WitchMendokusai
 					}
 
 					SpawnedUnit spawned = new();
-					yield return SpawnUnitRoutine(stage.EnemyUnit, stageRoot.TransformPoint(guardLocal),
+					yield return SpawnUnitRoutine(stage.EnemyUnit, (Vector3)stageRoot.TransformPoint(guardLocal),
 						ATTACKER_TEAM, stage.LairSleepTint, stage.EnemyScale, spawned);
 					if (spawned.Ok == false)
 						continue;
@@ -1545,10 +1545,10 @@ namespace WitchMendokusai
 			foreach (Transform building in supplyChain.Buildings)
 			{
 				if (building != null)
-					lairWakeProbe.Add(building.position);
+					lairWakeProbe.Add((Vector3)building.position);
 			}
 			if (heroTransform != null)
-				lairWakeProbe.Add(heroTransform.position); // 영웅이 정찰 나가는 것도 건드리는 것이다.
+				lairWakeProbe.Add((Vector3)heroTransform.position); // 영웅이 정찰 나가는 것도 건드리는 것이다.
 
 			foreach (SleepingLair lair in lairs)
 			{
@@ -1612,7 +1612,7 @@ namespace WitchMendokusai
 			foreach (Transform building in supplyChain.Buildings)
 			{
 				if (building != null)
-					lastBuildingPositions[building] = building.position;
+					lastBuildingPositions[building] = (Vector3)building.position;
 			}
 
 			List<Transform> lost = null;
@@ -1691,7 +1691,7 @@ namespace WitchMendokusai
 					if (guard.gameObject.activeInHierarchy == false)
 						continue;
 
-					Vector3 toHome = lair.WorldPosition - guard.transform.position;
+					Vector3 toHome = lair.WorldPosition - (Vector3)guard.transform.position;
 					bool tooFar = toHome.sqrMagnitude > leash * leash;
 
 					TacticDriver driver = guard.GetComponent<TacticDriver>();
@@ -1901,10 +1901,10 @@ namespace WitchMendokusai
 					// ★ 「정수 수급」 카드를 여기 태운다. 카드는 뽑히는데 **걸리는 자리가 한 군데도 없어서**
 					//   화면엔 「정수↑」라 적히고 실제로는 한 톨도 더 안 들어왔다(뽑으면 그 선택이 버려진다).
 					core.AddEssence(Mathf.Max(0, Mathf.RoundToInt(stage.NestEssenceReward * boons.EssenceMultiplier)));
-					PopWorldText("정수 +" + stage.NestEssenceReward, stageRoot.TransformPoint(localPosition), TextType.Exp);
+					PopWorldText("정수 +" + stage.NestEssenceReward, (Vector3)stageRoot.TransformPoint(localPosition), TextType.Exp);
 				}
 				activeSpawnPoints.Remove(localPosition);
-				PopWorldText("둥지 파괴", stageRoot.TransformPoint(localPosition), TextType.Heal);
+				PopWorldText("둥지 파괴", (Vector3)stageRoot.TransformPoint(localPosition), TextType.Heal);
 				Debug.Log($"{nameof(TowerDefenseMatch)}: 둥지 하나가 무너졌다 — 남은 출구 {activeSpawnPoints.Count}곳.");
 
 				// ★ 마지막 둥지가 무너지면 이긴다 — 실시간 전환으로 「N웨이브를 넘기면 승리」가 사라진 뒤
@@ -2046,7 +2046,7 @@ namespace WitchMendokusai
 		private IEnumerator SpawnCoreRoutine()
 		{
 			SpawnedUnit spawned = new();
-			yield return SpawnUnitRoutine(stage.CoreUnit, stageRoot.TransformPoint(activeCorePosition),
+			yield return SpawnUnitRoutine(stage.CoreUnit, (Vector3)stageRoot.TransformPoint(activeCorePosition),
 				DEFENDER_TEAM, stage.CoreTint, stage.CoreScale, spawned);
 			if (spawned.Ok == false)
 				yield break;
@@ -2072,7 +2072,7 @@ namespace WitchMendokusai
 				coreWeapon.ReportNoise = ReportShotNoise;
 			}
 
-			AddVisionSource(coreGameObject.transform.position, stage.CoreVisionRadius);
+			AddVisionSource((Vector3)coreGameObject.transform.position, stage.CoreVisionRadius);
 
 			// 보급이 여기서 출발해 어디까지 닿는지 — 안 보이면 「왜 안 이어지지」를 짐작으로 풀어야 한다.
 			ShowSupplyReachRing(coreGameObject.transform);
@@ -2211,7 +2211,7 @@ namespace WitchMendokusai
 					: null;
 
 				SpawnedUnit spawned = new();
-				yield return SpawnUnitRoutine(stage.EnemyUnit, stageRoot.TransformPoint(localSpawn), ATTACKER_TEAM,
+				yield return SpawnUnitRoutine(stage.EnemyUnit, (Vector3)stageRoot.TransformPoint(localSpawn), ATTACKER_TEAM,
 					archetype != null ? archetype.Tint : stage.EnemyTint,
 					stage.EnemyScale * (archetype != null ? archetype.ScaleMultiplier : 1f), spawned);
 				if (spawned.Ok == false)
@@ -2405,7 +2405,7 @@ namespace WitchMendokusai
 				if (building == null || building == coreCombatant.transform)
 					continue;
 
-				float distance = Vector3.Distance(building.position, coreCombatant.Position);
+				float distance = Vector3.Distance((Vector3)building.position, coreCombatant.Position);
 				if (distance <= bestDistance)
 					continue;
 				bestDistance = distance;
@@ -2419,7 +2419,7 @@ namespace WitchMendokusai
 			if (farthest == null || bestDistance < MIN_VERIFY_LOSS_DISTANCE)
 				return false;
 
-			destroyedAt = farthest.position;
+			destroyedAt = (Vector3)farthest.position;
 			Destroy(farthest.gameObject);
 			return true;
 		}
@@ -2518,7 +2518,7 @@ namespace WitchMendokusai
 				into);
 
 			for (int index = 0; index < into.Count; index++)
-				into[index] = stageRoot.TransformPoint(into[index]);
+				into[index] = (Vector3)stageRoot.TransformPoint(into[index]);
 		}
 
 		private Vector3 SpawnSpreadOffset(int enemyIndex, int pointCount)
@@ -2575,7 +2575,7 @@ namespace WitchMendokusai
 				if (enemy == null || enemy.IsAlive == false)
 					continue;
 
-				Vector3 local = stageRoot.InverseTransformPoint(enemy.Position);
+				Vector3 local = (Vector3)stageRoot.InverseTransformPoint(enemy.Position);
 				bool escaped = local.y < stage.StageFloorDepth
 					|| Mathf.Abs(local.x) > halfWidth
 					|| Mathf.Abs(local.z) > halfLength;
@@ -2650,7 +2650,7 @@ namespace WitchMendokusai
 			if (vision == null || mapLayout == null || stageRoot == null)
 				return true; // 시야 없는 판(고정 레이아웃) = 전부 보임.
 
-			return vision.IsVisible(mapLayout.WorldToCell(stageRoot.InverseTransformPoint(worldPosition)));
+			return vision.IsVisible(mapLayout.WorldToCell((Vector3)stageRoot.InverseTransformPoint(worldPosition)));
 		}
 
 		/// <summary> 한 번이라도 밝혔던 자리인가 — 기억한 지형·노드는 계속 보여준다. </summary>
@@ -2659,7 +2659,7 @@ namespace WitchMendokusai
 			if (vision == null || mapLayout == null || stageRoot == null)
 				return true;
 
-			return vision.IsExplored(mapLayout.WorldToCell(stageRoot.InverseTransformPoint(worldPosition)));
+			return vision.IsExplored(mapLayout.WorldToCell((Vector3)stageRoot.InverseTransformPoint(worldPosition)));
 		}
 
 		/// <summary> 시야원 하나 추가 + 즉시 반영 — 건물을 세운 그 순간 밝아져야 「넓혔다」가 읽힌다. </summary>
@@ -2669,7 +2669,7 @@ namespace WitchMendokusai
 				return;
 
 			visionSources.Add(new TowerDefenseVision.Source(
-				mapLayout.WorldToCell(stageRoot.InverseTransformPoint(worldPosition)), radius));
+				mapLayout.WorldToCell((Vector3)stageRoot.InverseTransformPoint(worldPosition)), radius));
 			RefreshVision();
 		}
 
@@ -2723,7 +2723,7 @@ namespace WitchMendokusai
 		public bool HasHero => heroActive && heroTransform != null;
 
 		/// <summary> 영웅 현재 위치(없으면 코어 자리). </summary>
-		public Vector3 HeroPosition => heroTransform != null ? heroTransform.position : activeCorePosition;
+		public Vector3 HeroPosition => heroTransform != null ? (Vector3)heroTransform.position : activeCorePosition;
 
 		/// <summary> 영웅을 그 자리로 보낸다 — 걸어간다(순간이동 X, 늦는 것 자체가 판단의 대가다). </summary>
 		public bool CommandHero(Vector3 worldPosition)
@@ -2731,7 +2731,7 @@ namespace WitchMendokusai
 			if (HasHero == false)
 				return false;
 
-			heroTargetPosition = new Vector3(worldPosition.x, heroTransform.position.y, worldPosition.z);
+			heroTargetPosition = new Vector3(worldPosition.x, (Vector3)heroTransform.position.y, worldPosition.z);
 			return true;
 		}
 
@@ -2740,7 +2740,7 @@ namespace WitchMendokusai
 			if (stage.HeroUnit == null || stage.HeroUnit.Prefab == null)
 				yield break; // 영웅 미설정 스테이지 — 기존 판과 완전히 동일하게 진행.
 
-			Vector3 spawnPosition = stageRoot.TransformPoint(activeCorePosition) + new Vector3(stage.GroundCellSize * 1.5f, 0f, 0f);
+			Vector3 spawnPosition = (Vector3)stageRoot.TransformPoint(activeCorePosition) + new Vector3(stage.GroundCellSize * 1.5f, 0f, 0f);
 
 			SpawnedUnit spawned = new();
 			yield return SpawnUnitRoutine(stage.HeroUnit, spawnPosition,
@@ -2815,7 +2815,7 @@ namespace WitchMendokusai
 			IgnoreCollisionsWithEnemies(heroGameObject);
 
 			heroTransform = heroGameObject.transform;
-			heroTargetPosition = heroTransform.position;
+			heroTargetPosition = (Vector3)heroTransform.position;
 			heroActive = true;
 			// 영웅 칸은 영웅이 실제로 서야 생긴다 — 없는데 칸만 있으면 또 「눌리지 않는 칸」이다.
 			RefreshAvailableSlots();
@@ -2854,10 +2854,10 @@ namespace WitchMendokusai
 				heroRespawnRemaining = stage.HeroRespawnSeconds;
 				Debug.Log($"{nameof(TowerDefenseMatch)}: 영웅 쓰러짐 — {stage.HeroRespawnSeconds:F0}초 뒤 코어에서 일어난다.");
 				if (coreCombatant != null)
-					PopWorldText("영웅 쓰러짐", heroTransform.position, TextType.Warning);
+					PopWorldText("영웅 쓰러짐", (Vector3)heroTransform.position, TextType.Warning);
 				// ★ 월드에 뜨는 글자는 그 자리를 보고 있어야만 보인다 — 영웅은 대개 화면 밖에서 죽는다
 				//   (혼자 정찰 나가 있으니까). 가장자리 알림으로도 알린다.
-				alerts.Raise("영웅이 쓰러졌다", heroTransform != null ? heroTransform.position : coreCombatant.Position,
+				alerts.Raise("영웅이 쓰러졌다", heroTransform != null ? (Vector3)heroTransform.position : coreCombatant.Position,
 					Time.time, stage.AlertSeconds);
 				return;
 			}
@@ -2865,7 +2865,7 @@ namespace WitchMendokusai
 			if (heroMovement == null)
 				return;
 
-			Vector3 delta = heroTargetPosition - heroTransform.position;
+			Vector3 delta = heroTargetPosition - (Vector3)heroTransform.position;
 			delta.y = 0f;
 
 			// 도착 판정은 *한 틱에 갈 거리*로 잡는다 — 더 좁게 잡으면 목표를 지나쳤다 되돌아오길 반복하며 떤다.
@@ -2901,11 +2901,11 @@ namespace WitchMendokusai
 
 			heroTransform.position = coreCombatant.Position + new Vector3(stage.GroundCellSize * 1.5f, 0f, 0f);
 			heroUnit.UnitStat[UnitStatType.HP_CUR] = heroUnit.UnitStat[UnitStatType.HP_MAX];
-			heroTargetPosition = heroTransform.position;
+			heroTargetPosition = (Vector3)heroTransform.position;
 			heroActive = true;
 			heroRespawnRemaining = 0f;
 
-			PopWorldText("영웅 복귀", heroTransform.position, TextType.Heal);
+			PopWorldText("영웅 복귀", (Vector3)heroTransform.position, TextType.Heal);
 			Debug.Log($"{nameof(TowerDefenseMatch)}: 영웅이 코어에서 다시 일어났다.");
 		}
 
@@ -2917,7 +2917,7 @@ namespace WitchMendokusai
 			if (vision == null || mapLayout == null || stageRoot == null || heroTransform == null || stage.HeroVisionRadius <= 0f)
 				return;
 
-			Vector2Int cell = mapLayout.WorldToCell(stageRoot.InverseTransformPoint(heroTransform.position));
+			Vector2Int cell = mapLayout.WorldToCell((Vector3)stageRoot.InverseTransformPoint(heroTransform.position));
 			if (cell == heroVisionCell)
 				return;
 
@@ -2979,7 +2979,7 @@ namespace WitchMendokusai
 				Variant = variant,
 			};
 			dollLabels.Add(doll);
-			PopWorldText("「" + name + "」 " + TowerDefenseNames.Greeting(MapSeed, ordinal), anchor.position, TextType.Heal);
+			PopWorldText("「" + name + "」 " + TowerDefenseNames.Greeting(MapSeed, ordinal), (Vector3)anchor.position, TextType.Heal);
 		}
 
 		/// <summary>
@@ -3315,7 +3315,7 @@ namespace WitchMendokusai
 				TowerDefenseWeapon weapon = doll.Anchor.GetComponent<TowerDefenseWeapon>();
 				if (weapon == null)
 					continue;
-				if ((doll.Anchor.position - deathPosition).sqrMagnitude > weapon.Range * weapon.Range)
+				if (((Vector3)doll.Anchor.position - deathPosition).sqrMagnitude > weapon.Range * weapon.Range)
 					continue;
 
 				doll.Progress.AddExperience(Mathf.RoundToInt(stage.KillExperience * boons.ExperienceMultiplier));
@@ -3601,7 +3601,7 @@ namespace WitchMendokusai
 					// ★ 남은 횟수를 도로 얹는다 — 안 하면 다 쓴 함정이 새것으로 살아나 「닳는다」가 무효가 된다.
 					foreach (TowerDefenseTrap trap in stageRoot.GetComponentsInChildren<TowerDefenseTrap>(true))
 					{
-						if ((trap.transform.position - trapWorld).sqrMagnitude <= 1f)
+						if (((Vector3)trap.transform.position - trapWorld).sqrMagnitude <= 1f)
 						{
 							trap.RestoreCharges(trapSave.ChargesLeft);
 							break;
@@ -3711,7 +3711,7 @@ namespace WitchMendokusai
 		{
 			foreach (TowerDefenseDollLabel label in dollLabels)
 			{
-				if (label.IsAlive && (label.Anchor.position - worldPosition).sqrMagnitude <= 1f)
+				if (label.IsAlive && ((Vector3)label.Anchor.position - worldPosition).sqrMagnitude <= 1f)
 					return label;
 			}
 			return null;
@@ -4782,7 +4782,7 @@ namespace WitchMendokusai
 			for (int index = 0; index < activeNodePositions.Count; index++)
 			{
 				Vector3 nodeWorld = (Vector3)stageRoot.TransformPoint(activeNodePositions[index]);
-				if ((nodeWorld - harvester.position).sqrMagnitude <= reachSqr)
+				if ((nodeWorld - (Vector3)harvester.position).sqrMagnitude <= reachSqr)
 					total += NodeIncomeMultiplierAt(index);
 			}
 
@@ -4797,7 +4797,7 @@ namespace WitchMendokusai
 
 			foreach (Transform outpost in outposts)
 			{
-				if (outpost != null && (position - outpost.position).sqrMagnitude <= radiusSqr)
+				if (outpost != null && (position - (Vector3)outpost.position).sqrMagnitude <= radiusSqr)
 					return true;
 			}
 			return false;

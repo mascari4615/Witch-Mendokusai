@@ -1,4 +1,5 @@
-using UnityEngine;
+﻿using UnityEngine;
+// ★ 조준 셈(ProjectileAim)은 판정이다 (TASK-WM-214) — 엔진 값은 캐스트로 들여 넘긴다.
 using VContainer;
 
 namespace WitchMendokusai
@@ -47,14 +48,15 @@ namespace WitchMendokusai
 			else
 			{
 				// WM-165: 비-플레이어(아레나 AI 등) 발사 — 전술 타겟 우선 호밍, 없으면 레거시(플레이어 위치). Current null 가드.
-				Vector3 origin = skillObject.Context.User.transform.position;
-				Vector3? targetPosition = skillObject.Context.Target != null
-					? skillObject.Context.Target.transform.position
-					: (Vector3?)null;
-				Vector3? fallbackAim = playerProvider.Current != null
-					? playerProvider.Current.transform.position - origin
-					: (Vector3?)null;
-				SetMoveDirection(ProjectileAim.Resolve(origin, targetPosition, fallbackAim, transform.forward));
+				// 조준 셈(ProjectileAim)은 판정 쪽이라 엔진 좌표를 캐스트로 들인다 (TASK-WM-214).
+				Numerics.Vector3 origin = (Numerics.Vector3)skillObject.Context.User.transform.position;
+				Numerics.Vector3? targetPosition = skillObject.Context.Target != null
+					? (Numerics.Vector3)skillObject.Context.Target.transform.position
+					: (Numerics.Vector3?)null;
+				Numerics.Vector3? fallbackAim = playerProvider.Current != null
+					? (Numerics.Vector3)playerProvider.Current.transform.position - origin
+					: (Numerics.Vector3?)null;
+				SetMoveDirection(ProjectileAim.Resolve(origin, targetPosition, fallbackAim, (Numerics.Vector3)transform.forward));
 			}
 		}
 	}

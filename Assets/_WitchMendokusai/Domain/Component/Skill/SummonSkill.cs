@@ -1,6 +1,7 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+// ★ 조준 셈(ProjectileAim)은 판정이다 (TASK-WM-214) — 엔진 값은 캐스트로 들여 넘긴다.
 
 namespace WitchMendokusai
 {
@@ -19,12 +20,13 @@ namespace WitchMendokusai
 			if (SetRotation)
 			{
 				// WM-165: 전술 타겟(context.Target) 우선 조준, 없으면 레거시 플레이어 조준(Current null 가드).
-				Vector3? targetPosition = context.Target != null ? context.Target.transform.position : (Vector3?)null;
-				Vector3? fallbackAim = (context.PlayerProvider != null && context.PlayerProvider.Current != null)
-					? context.PlayerProvider.Current.AimDirection
-					: (Vector3?)null;
+				// 조준 셈(ProjectileAim)은 판정 쪽이라 엔진 좌표를 캐스트로 들인다 (TASK-WM-214).
+				Numerics.Vector3? targetPosition = context.Target != null ? (Numerics.Vector3)context.Target.transform.position : (Numerics.Vector3?)null;
+				Numerics.Vector3? fallbackAim = (context.PlayerProvider != null && context.PlayerProvider.Current != null)
+					? (Numerics.Vector3)context.PlayerProvider.Current.AimDirection
+					: (Numerics.Vector3?)null;
 				o.transform.rotation = Quaternion.LookRotation(
-					ProjectileAim.Resolve(o.transform.position, targetPosition, fallbackAim, o.transform.forward));
+					ProjectileAim.Resolve((Numerics.Vector3)o.transform.position, targetPosition, fallbackAim, (Numerics.Vector3)o.transform.forward));
 			}
 
 			if (o.TryGetComponent(out SkillObject skillObject))
