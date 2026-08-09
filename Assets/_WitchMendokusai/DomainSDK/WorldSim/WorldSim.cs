@@ -4,14 +4,14 @@ using WitchMendokusai.Numerics;
 namespace WitchMendokusai
 {
 	/// <summary>접속한 사람 하나 — 서버가 아는 것은 이만큼이다 (TASK-WM-216).</summary>
-	public sealed class Doll
+	public sealed class WorldDoll
 	{
 		/// <summary>가방 칸 수 — 게임 쪽 기본값과 같은 30.</summary>
 		public const int BAG_SLOTS = 30;
 
 		private readonly List<Item> slots = new List<Item>();
 
-		public Doll(int id, Vector3 position)
+		public WorldDoll(int id, Vector3 position)
 		{
 			Id = id;
 			Position = position;
@@ -62,27 +62,27 @@ namespace WitchMendokusai
 		//   자물쇠 없이 두었더니 알림 루프가 훑는 도중 목록이 바뀌어 **터졌다**(NullReference).
 		//   화면 없는 서버라 터져도 티가 안 난다 — 그래서 상태를 만지는 자리를 전부 한 자물쇠 아래 둔다.
 		private readonly object gate = new object();
-		private readonly Dictionary<int, Doll> dolls = new Dictionary<int, Doll>();
+		private readonly Dictionary<int, WorldDoll> dolls = new Dictionary<int, WorldDoll>();
 		private readonly Dictionary<Vector3Int, int> occupiedCells = new Dictionary<Vector3Int, int>();
 		private readonly List<PlacedBuilding> placed = new List<PlacedBuilding>();
 		private int nextId = 1;
 
 		/// <summary>훑을 때는 <b>그 순간의 사본</b>을 준다 — 훑는 동안 목록이 바뀌어도 안전하다.</summary>
-		public Doll[] Snapshot()
+		public WorldDoll[] Snapshot()
 		{
 			lock (gate)
 			{
-				Doll[] copy = new Doll[dolls.Count];
+				WorldDoll[] copy = new WorldDoll[dolls.Count];
 				dolls.Values.CopyTo(copy, 0);
 				return copy;
 			}
 		}
 
-		public Doll Join()
+		public WorldDoll Join()
 		{
 			lock (gate)
 			{
-				Doll doll = new Doll(nextId++, Vector3.zero);
+				WorldDoll doll = new WorldDoll(nextId++, Vector3.zero);
 				dolls[doll.Id] = doll;
 				return doll;
 			}
@@ -131,7 +131,7 @@ namespace WitchMendokusai
 
 			lock (gate)
 			{
-				if (dolls.TryGetValue(dollId, out Doll doll) == false)
+				if (dolls.TryGetValue(dollId, out WorldDoll doll) == false)
 					return amount;
 
 				return doll.Bag.Add(itemData, amount);
@@ -143,7 +143,7 @@ namespace WitchMendokusai
 		{
 			lock (gate)
 			{
-				return dolls.TryGetValue(dollId, out Doll doll) ? doll.Bag.CountById(itemId) : 0;
+				return dolls.TryGetValue(dollId, out WorldDoll doll) ? doll.Bag.CountById(itemId) : 0;
 			}
 		}
 
@@ -152,7 +152,7 @@ namespace WitchMendokusai
 		{
 			lock (gate)
 			{
-				return dolls.TryGetValue(dollId, out Doll doll) ? doll.Bag.Consume(itemId, amount) : amount;
+				return dolls.TryGetValue(dollId, out WorldDoll doll) ? doll.Bag.Consume(itemId, amount) : amount;
 			}
 		}
 
@@ -249,7 +249,7 @@ namespace WitchMendokusai
 		{
 			lock (gate)
 			{
-				if (dolls.TryGetValue(dollId, out Doll doll) == false)
+				if (dolls.TryGetValue(dollId, out WorldDoll doll) == false)
 					return false;
 
 				Vector3 clamped = Vector3.ClampMagnitude(delta, MAX_STEP);

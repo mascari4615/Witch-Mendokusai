@@ -93,7 +93,7 @@ namespace WitchMendokusai.Server
 
 		private static async Task ServeAsync(WebSocket socket)
 		{
-			Doll doll = world.Join();
+			WorldDoll doll = world.Join();
 			sockets[doll.Id] = socket;
 
 			await SendAsync(socket, Protocol.Welcome(doll.Id));

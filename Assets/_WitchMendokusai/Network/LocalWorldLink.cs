@@ -15,7 +15,7 @@ namespace WitchMendokusai
 	public sealed class LocalWorldLink : IWorldLink
 	{
 		private readonly WorldSim world;
-		private readonly Doll me;
+		private readonly WorldDoll me;
 
 		public LocalWorldLink(WorldSim world)
 		{
@@ -38,7 +38,7 @@ namespace WitchMendokusai
 		{
 			get
 			{
-				Doll[] snapshot = world.Snapshot();
+				WorldDoll[] snapshot = world.Snapshot();
 				DollView[] views = new DollView[snapshot.Length];
 				for (int i = 0; i < snapshot.Length; i++)
 				{

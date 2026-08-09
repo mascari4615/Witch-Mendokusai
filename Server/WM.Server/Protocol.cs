@@ -76,13 +76,13 @@ namespace WitchMendokusai.Server
 		}
 
 		/// <summary>서버가 보내는 세계 모습.</summary>
-		public static string WorldSnapshot(IEnumerable<Doll> dolls, IEnumerable<PlacedBuilding> buildings)
+		public static string WorldSnapshot(IEnumerable<WorldDoll> dolls, IEnumerable<PlacedBuilding> buildings)
 		{
 			StringBuilder builder = new StringBuilder();
 			builder.Append("{\"type\":\"").Append(WORLD).Append("\",\"dolls\":[");
 
 			bool first = true;
-			foreach (Doll doll in dolls)
+			foreach (WorldDoll doll in dolls)
 			{
 				if (first == false)
 					builder.Append(',');

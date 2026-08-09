@@ -13,9 +13,24 @@ namespace WitchMendokusai
 	/// ★ 왜 「못 붙으면 실패」가 아닌가: 인터넷이 없다고 게임이 안 열리면 그건 게임이 아니다.
 	///   접속은 <b>더 좋은 경우</b>이지 <b>필요 조건</b>이 아니다.
 	/// </summary>
-	public sealed class WorldLinkProvider : MonoBehaviour
+	public sealed class WorldLinkProvider : MonoBehaviour, IWorldDoor
 	{
 		public static WorldLinkProvider Instance { get; private set; }
+
+		/// <summary>
+		/// 문은 <b>스스로 선다</b> (TASK-WM-217). 로비가 만들어 주는 구조면
+		/// 「로비를 안 거치고 들어온 경우」에 문이 없어서 조용히 아무 일도 안 일어난다.
+		/// </summary>
+		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+		private static void StandUp()
+		{
+			if (Instance != null)
+				return;
+
+			GameObject holder = new GameObject(nameof(WorldLinkProvider));
+			DontDestroyOnLoad(holder);
+			holder.AddComponent<WorldLinkProvider>();
+		}
 
 		[Header("멀리 있는 세계")]
 		[SerializeField] private string remoteUrl = "ws://127.0.0.1:5199/ws";
@@ -40,6 +55,7 @@ namespace WitchMendokusai
 			}
 
 			Instance = this;
+			WorldDoor.Register(this);
 		}
 
 		/// <summary>세계로 들어간다. 이미 들어와 있으면 그대로 둔다.</summary>

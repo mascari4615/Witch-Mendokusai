@@ -17,8 +17,8 @@ namespace WitchMendokusai.Server.Tests
 		{
 			WorldSim world = new WorldSim();
 
-			Doll first = world.Join();
-			Doll second = world.Join();
+			WorldDoll first = world.Join();
+			WorldDoll second = world.Join();
 
 			Assert.AreNotEqual(first.Id, second.Id, "번호는 겹치지 않는다");
 			Assert.AreEqual(2, world.Snapshot().Length);
@@ -28,7 +28,7 @@ namespace WitchMendokusai.Server.Tests
 		public void 나가면_세계에서_사라진다()
 		{
 			WorldSim world = new WorldSim();
-			Doll doll = world.Join();
+			WorldDoll doll = world.Join();
 
 			world.Leave(doll.Id);
 
@@ -39,7 +39,7 @@ namespace WitchMendokusai.Server.Tests
 		public void 한_번에_갈_수_있는_거리를_넘으면_잘린다()
 		{
 			WorldSim world = new WorldSim();
-			Doll doll = world.Join();
+			WorldDoll doll = world.Join();
 
 			world.TryMove(doll.Id, new Vector3(100f, 0f, 0f));
 
@@ -50,7 +50,7 @@ namespace WitchMendokusai.Server.Tests
 		public void 상한_안쪽_움직임은_그대로_간다()
 		{
 			WorldSim world = new WorldSim();
-			Doll doll = world.Join();
+			WorldDoll doll = world.Join();
 
 			world.TryMove(doll.Id, new Vector3(0.5f, 0f, 0.5f));
 
@@ -78,15 +78,15 @@ namespace WitchMendokusai.Server.Tests
 			{
 				for (int i = 0; i < 2000; i++)
 				{
-					Doll doll = world.Join();
+					WorldDoll doll = world.Join();
 					world.Leave(doll.Id);
 				}
 			});
 
 			for (int i = 0; i < 2000; i++)
 			{
-				Doll[] snapshot = world.Snapshot();
-				foreach (Doll doll in snapshot)
+				WorldDoll[] snapshot = world.Snapshot();
+				foreach (WorldDoll doll in snapshot)
 					Assert.IsNotNull(doll, "사본에 빈 자리가 섞이면 안 된다");
 			}
 
@@ -196,7 +196,7 @@ namespace WitchMendokusai.Server.Tests
 		public void 주우면_가방에_쌓인다()
 		{
 			WorldSim world = new WorldSim();
-			Doll doll = world.Join();
+			WorldDoll doll = world.Join();
 
 			int leftover = world.TryGather(doll.Id, ServerItemCatalog.Find(ServerItemCatalog.STONE), 10);
 
@@ -208,7 +208,7 @@ namespace WitchMendokusai.Server.Tests
 		public void 모르는_아이템은_안_들어간다()
 		{
 			WorldSim world = new WorldSim();
-			Doll doll = world.Join();
+			WorldDoll doll = world.Join();
 
 			int leftover = world.TryGather(doll.Id, ServerItemCatalog.Find(9999), 5);
 
@@ -219,7 +219,7 @@ namespace WitchMendokusai.Server.Tests
 		public void 칸_최대치를_넘으면_다음_칸으로_간다()
 		{
 			WorldSim world = new WorldSim();
-			Doll doll = world.Join();
+			WorldDoll doll = world.Join();
 
 			world.TryGather(doll.Id, ServerItemCatalog.Find(ServerItemCatalog.HERB), 45); // 한 칸 20
 
@@ -230,7 +230,7 @@ namespace WitchMendokusai.Server.Tests
 		public void 가방이_꽉_차면_남은_개수를_알려준다()
 		{
 			WorldSim world = new WorldSim();
-			Doll doll = world.Join();
+			WorldDoll doll = world.Join();
 
 			// 30칸 * 20 = 600 이 한계
 			int leftover = world.TryGather(doll.Id, ServerItemCatalog.Find(ServerItemCatalog.HERB), 650);
@@ -243,7 +243,7 @@ namespace WitchMendokusai.Server.Tests
 		public void 쓰면_줄어든다()
 		{
 			WorldSim world = new WorldSim();
-			Doll doll = world.Join();
+			WorldDoll doll = world.Join();
 			world.TryGather(doll.Id, ServerItemCatalog.Find(ServerItemCatalog.STONE), 30);
 
 			int missing = world.TryConsume(doll.Id, ServerItemCatalog.STONE, 12);

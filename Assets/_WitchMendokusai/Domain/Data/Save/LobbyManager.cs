@@ -89,22 +89,10 @@ namespace WitchMendokusai
 		{
 			Debug.Log(nameof(StartGame));
 
-			EnsureWorldLink().Enter();
+			// 문은 통신 층이 스스로 세우고 여기 꽂아 둔다 (WorldDoor) — 로비는 통신을 몰라야 한다.
+			// 어셈블리 방향이 Network → Domain 단방향이라, 로비가 문의 타입을 직접 부르면 컴파일이 깨진다.
+			WitchMendokusai.Net.WorldDoor.Enter();
 			UISceneLoading.LoadScene("World");
-		}
-
-		/// <summary>
-		/// 세계로 이어줄 문을 준비한다. 씬에 없으면 만든다 —
-		/// 없다고 게임이 안 열리면 안 되기 때문이다(접속은 필요 조건이 아니다).
-		/// </summary>
-		private WorldLinkProvider EnsureWorldLink()
-		{
-			if (WorldLinkProvider.Instance != null)
-				return WorldLinkProvider.Instance;
-
-			GameObject holder = new GameObject(nameof(WorldLinkProvider));
-			DontDestroyOnLoad(holder);
-			return holder.AddComponent<WorldLinkProvider>();
 		}
 
 		/// <summary>
