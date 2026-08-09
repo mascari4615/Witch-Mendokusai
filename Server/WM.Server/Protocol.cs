@@ -25,6 +25,7 @@ namespace WitchMendokusai.Server
 		public const string BREW_COMPLETE = Net.NetMessageType.BREW_COMPLETE;
 		public const string BREW_TAKEN = Net.NetMessageType.BREW_TAKEN;
 		public const string BAG = Net.NetMessageType.BAG;
+		public const string BAG_ASK = Net.NetMessageType.BAG_ASK;
 
 		/// <summary>계약을 웹이 읽을 수 있는 형태로 뽑는다.</summary>
 		public static string ToTypeScript()
@@ -58,8 +59,17 @@ namespace WitchMendokusai.Server
 			builder.Append("/** 창 -> 서버: 솥을 비운다. */\n");
 			builder.Append("export interface BrewResetRequest {\n\ttype: '").Append(BREW_RESET).Append("';\n}\n\n");
 
-			builder.Append("export type ServerMessage = Welcome | WorldSnapshot;\n");
-			builder.Append("export type ClientMessage = MoveRequest | RemoveRequest | BrewRequest | BrewResetRequest;\n");
+			builder.Append("/** 창 -> 서버: 이 솥을 완성으로 가져가겠다(선착순 한 번). */\n");
+			builder.Append("export interface BrewCompleteRequest {\n\ttype: '").Append(BREW_COMPLETE).Append("';\n}\n\n");
+
+			builder.Append("/** 서버 -> 그 창에게만: 완성은 네 것이다. */\n");
+			builder.Append("export interface BrewTaken {\n\ttype: '").Append(BREW_TAKEN).Append("';\n\tx: number;\n\ty: number;\n\tsteps: number;\n\tside: number;\n}\n\n");
+
+			builder.Append("/** 창 -> 서버: 내 가방 좀 알려줘. */\n");
+			builder.Append("export interface BagAsk {\n\ttype: '").Append(BAG_ASK).Append("';\n}\n\n");
+
+			builder.Append("export type ServerMessage = Welcome | WorldSnapshot | BrewTaken;\n");
+			builder.Append("export type ClientMessage = MoveRequest | RemoveRequest | BrewRequest | BrewResetRequest | BrewCompleteRequest | Hello | BagAsk;\n");
 
 			return builder.ToString();
 		}

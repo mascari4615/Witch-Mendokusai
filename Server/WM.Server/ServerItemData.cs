@@ -45,8 +45,21 @@ namespace WitchMendokusai.Server
 
 		private static readonly WorldItemCatalog exported = LoadExported();
 
-		/// <summary>가방을 되살릴 때 쓰는 목록(없으면 null — 그때는 되살릴 물건도 없다).</summary>
-		public static WorldItemCatalog Catalog => exported;
+		/// <summary>
+		/// 가방을 되살릴 때 쓰는 목록 (TASK-WM-218).
+		/// ⚠ 전에는 「뽑아 온 목록」만 돌려줬다 — 그게 없으면 **가방이 조용히 빈 채로** 되살아났다
+		///   (씨앗으로 도는 서버에서 저장은 되는데 복원만 안 되는 모양). 그래서 늘 목록을 준다.
+		/// </summary>
+		public static WorldItemCatalog Catalog => exported ?? seedCatalog;
+
+		private static readonly WorldItemCatalog seedCatalog = new WorldItemCatalog(new ItemCatalogData
+		{
+			items = new[]
+			{
+				new ItemCatalogEntry { id = STONE, maxAmount = 99 },
+				new ItemCatalogEntry { id = HERB, maxAmount = 20 },
+			},
+		});
 
 		/// <summary>게임에서 뽑아 온 목록이 있나 — 없으면 씨앗으로 돈다.</summary>
 		public static bool UsingExported => exported != null && exported.Count > 0;

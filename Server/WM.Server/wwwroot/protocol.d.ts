@@ -59,5 +59,24 @@ export interface BrewResetRequest {
 	type: 'brewreset';
 }
 
-export type ServerMessage = Welcome | WorldSnapshot;
-export type ClientMessage = MoveRequest | RemoveRequest | BrewRequest | BrewResetRequest;
+/** 창 -> 서버: 이 솥을 완성으로 가져가겠다(선착순 한 번). */
+export interface BrewCompleteRequest {
+	type: 'brewcomplete';
+}
+
+/** 서버 -> 그 창에게만: 완성은 네 것이다. */
+export interface BrewTaken {
+	type: 'brewtaken';
+	x: number;
+	y: number;
+	steps: number;
+	side: number;
+}
+
+/** 창 -> 서버: 내 가방 좀 알려줘. */
+export interface BagAsk {
+	type: 'bagask';
+}
+
+export type ServerMessage = Welcome | WorldSnapshot | BrewTaken;
+export type ClientMessage = MoveRequest | RemoveRequest | BrewRequest | BrewResetRequest | BrewCompleteRequest | Hello | BagAsk;

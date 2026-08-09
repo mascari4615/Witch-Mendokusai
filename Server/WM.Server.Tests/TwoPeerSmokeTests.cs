@@ -154,6 +154,55 @@ namespace WitchMendokusai.ServerTests
 			Assert.AreNotEqual(ownerIdentity, ReadNumber(strangerWelcome, "\"identityId\":"));
 		}
 
+		[Test]
+		public async Task 나갔다_와도_내_가방이_그대로다()
+		{
+			string secret;
+
+			using (ClientWebSocket first = await ConnectAsync())
+			{
+				await ReadWelcomeAsync(first);
+				await SendAsync(first, "{\"type\":\"hello\",\"secret\":\"\"}");
+				string granted = await WaitForAsync(first, text => text.Contains("\"secret\":\"") && text.Contains("\"secret\":\"\"") == false);
+				secret = ReadField(granted, "\"secret\":\"");
+
+				// 돌 3개를 줍고 그대로 나간다.
+				await SendAsync(first, "{\"type\":\"gather\",\"itemId\":1,\"amount\":3}");
+				await WaitForAsync(first, text => text.Contains("\"type\":\"bag\"") && text.Contains("\"amount\":3"));
+			}
+
+			using ClientWebSocket again = await ConnectAsync();
+			await ReadWelcomeAsync(again);
+			await SendAsync(again, "{\"type\":\"hello\",\"secret\":\"" + secret + "\"}");
+
+			await SendAsync(again, "{\"type\":\"bagask\"}");
+			await WaitForAsync(again, text => text.Contains("\"type\":\"bag\"") && text.Contains("\"amount\":3"));
+		}
+
+		[Test]
+		public async Task 남은_남의_가방을_못_가져간다()
+		{
+			using (ClientWebSocket owner = await ConnectAsync())
+			{
+				await ReadWelcomeAsync(owner);
+				await SendAsync(owner, "{\"type\":\"hello\",\"secret\":\"\"}");
+				await WaitForAsync(owner, text => text.Contains("\"identityId\":") && text.Contains("\"identityId\":0") == false);
+				await SendAsync(owner, "{\"type\":\"gather\",\"itemId\":1,\"amount\":5}");
+				await WaitForAsync(owner, text => text.Contains("\"amount\":5"));
+			}
+
+			using ClientWebSocket stranger = await ConnectAsync();
+			await ReadWelcomeAsync(stranger);
+			await SendAsync(stranger, "{\"type\":\"hello\",\"secret\":\"내가-지어낸-열쇠\"}");
+			await WaitForAsync(stranger, text => text.Contains("\"identityId\":") && text.Contains("\"identityId\":0") == false);
+
+			await SendAsync(stranger, "{\"type\":\"bagask\"}");
+			string bag = await WaitForAsync(stranger, text => text.Contains("\"type\":\"bag\""));
+
+			// 남의 돌 5개가 딸려 오면 안 된다 — 빈 가방이어야 한다.
+			StringAssert.DoesNotContain("\"amount\":5", bag);
+		}
+
 		private static string ReadField(string json, string marker)
 		{
 			int start = json.IndexOf(marker, StringComparison.Ordinal);

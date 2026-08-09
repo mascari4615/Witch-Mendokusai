@@ -207,6 +207,13 @@ namespace WitchMendokusai.Server
 					return;
 				}
 
+				if (kind == Protocol.BAG_ASK)
+				{
+					// 다시 들어온 창이 자기 가방을 그리려면 물어볼 수 있어야 한다.
+					_ = SendBagAsync(dollId);
+					return;
+				}
+
 				if (kind == Protocol.GATHER)
 				{
 					int itemId = ReadInt(root, "itemId");
