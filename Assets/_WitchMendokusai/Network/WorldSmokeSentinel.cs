@@ -31,7 +31,8 @@ namespace WitchMendokusai
 		// ── 「놀 수 있나」 재기 (TASK-WM-217) ──────────────────────────────
 		// 남을 본 뒤에도 끝내지 않고 <b>루프 한 바퀴</b>를 돌아 본다: 걸어가 줍고 → 넣고 → 완성.
 		// 붙는 것만 재면 「접속은 되는데 아무것도 못 하는」 세계를 초록으로 통과시킨다.
-		private bool sawOther;
+		/// <summary>한 번이라도 같이 있던 사람 수(나 포함) — 「둘이 만났나」는 러너가 이 수로 본다.</summary>
+		private int mostPeersSeen;
 		private int gatheredItemId;
 		private int gatheredAmount;
 		private bool brewed;
@@ -79,11 +80,14 @@ namespace WitchMendokusai
 			waited += Time.unscaledDeltaTime;
 
 			IWorldLink link = WorldDoor.Current;
-			if (link != null && link.IsLinked && link.Dolls != null && link.Dolls.Length >= 2)
-				sawOther = true;
 
-			// 남을 봤으면 이제 <b>놀아 본다</b> — 줍고, 넣고, 가져간다.
-			if (sawOther && link != null && link.IsLinked)
+			// ★ 「만났나」와 「놀 수 있나」는 다른 물음이다 (실측 2026-08-10).
+			//   남을 기다렸다 노는 구조였더니 <b>혼자 켠 판은 영영 아무것도 못 했다</b> —
+			//   그런데 사람 대부분은 혼자 켠다. 만남은 <b>세어서 적기만</b> 하고, 놀기는 붙자마자 시작한다.
+			if (link != null && link.Dolls != null && link.Dolls.Length > mostPeersSeen)
+				mostPeersSeen = link.Dolls.Length;
+
+			if (link != null && link.IsLinked)
 			{
 				PlayOneRound(link);
 
@@ -99,7 +103,6 @@ namespace WitchMendokusai
 
 			int seen = link?.Dolls?.Length ?? 0;
 			string why = link == null ? "no link"
-				: sawOther == false ? "nobody else"
 				: gatheredItemId == 0 ? "could not gather"
 				: chestSeenAmount == 0 ? "chest did not take it"
 				: brewed == false ? "could not brew"
@@ -248,6 +251,8 @@ namespace WitchMendokusai
 				// 인형 번호는 접속마다 새로 준다 — 「다시 들어와도 나」는 신원 번호로 확인한다.
 				"identity=", (link?.MyIdentityId ?? 0).ToString(CultureInfo.InvariantCulture), "\n",
 				// 「놀 수 있나」의 알맹이 — 주웠나·물약을 받았나. 붙기만 하고 아무것도 못 하면 이게 0 이다.
+				// 한 번이라도 같이 있던 사람 수(나 포함) — 「둘이 만났나」는 러너가 이 수로 본다.
+				"peers=", mostPeersSeen.ToString(CultureInfo.InvariantCulture), "\n",
 				"gathered=", gatheredItemId.ToString(CultureInfo.InvariantCulture), "\n",
 				"gatheredAmount=", gatheredAmount.ToString(CultureInfo.InvariantCulture), "\n",
 				"potion=", completedItemId.ToString(CultureInfo.InvariantCulture), "\n",
