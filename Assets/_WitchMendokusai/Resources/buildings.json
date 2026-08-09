@@ -5,77 +5,99 @@
             "name": "가문의 나무",
             "w": 1,
             "l": 1,
-            "slots": 0
+            "slots": 0,
+            "costItemId": 0,
+            "costAmount": 2
         },
         {
             "id": 1,
             "name": "마녀의 집",
             "w": 1,
             "l": 1,
-            "slots": 0
+            "slots": 0,
+            "costItemId": 0,
+            "costAmount": 2
         },
         {
             "id": 4000,
             "name": "솥",
             "w": 1,
             "l": 1,
-            "slots": 0
+            "slots": 0,
+            "costItemId": 0,
+            "costAmount": 2
         },
         {
             "id": 4001,
             "name": "모루",
             "w": 1,
             "l": 1,
-            "slots": 0
+            "slots": 0,
+            "costItemId": 0,
+            "costAmount": 2
         },
         {
             "id": 4002,
             "name": "용광로",
             "w": 1,
             "l": 1,
-            "slots": 0
+            "slots": 0,
+            "costItemId": 0,
+            "costAmount": 2
         },
         {
             "id": 4003,
             "name": "제작대",
             "w": 1,
             "l": 1,
-            "slots": 0
+            "slots": 0,
+            "costItemId": 0,
+            "costAmount": 2
         },
         {
             "id": 4004,
             "name": "연구소",
             "w": 1,
             "l": 1,
-            "slots": 0
+            "slots": 0,
+            "costItemId": 0,
+            "costAmount": 2
         },
         {
             "id": 4005,
             "name": "보관 상자",
             "w": 1,
             "l": 1,
-            "slots": 30
+            "slots": 30,
+            "costItemId": 0,
+            "costAmount": 2
         },
         {
             "id": 2,
             "name": "임시 블럭",
             "w": 1,
             "l": 1,
-            "slots": 0
+            "slots": 0,
+            "costItemId": 0,
+            "costAmount": 2
         },
         {
             "id": 3,
             "name": "임시 블럭_Copy",
             "w": 2,
             "l": 2,
-            "slots": 0
+            "slots": 0,
+            "costItemId": 0,
+            "costAmount": 2
         },
         {
             "id": 5000,
             "name": "밭",
             "w": 1,
             "l": 1,
-            "slots": 0
+            "slots": 0,
+            "costItemId": 0,
+            "costAmount": 2
         }
     ]
 }

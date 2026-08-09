@@ -113,8 +113,22 @@ namespace WitchMendokusai
 
 		public void RequestPlace(int cellX, int cellY, int cellZ, int buildingId)
 		{
-			// 크기는 내 안의 세계도 목록에서 읽는다 — 혼자 놀 때와 같이 놀 때가 갈라지면 안 된다.
-			world.TryPlaceBuilding(new Numerics.Vector3Int(cellX, cellY, cellZ), buildingId, world.Buildables);
+			// 크기도 재료도 내 안의 세계가 목록에서 읽는다 — 혼자 놀 때와 같이 놀 때가 갈라지면 안 된다.
+			world.Buildables.TryCost(buildingId, out int costItemId, out int costAmount);
+			int missing = costAmount > 0 ? world.TryConsume(me.Id, costItemId, costAmount) : 0;
+			if (missing > 0)
+			{
+				if (costAmount - missing > 0)
+					world.TryGather(me.Id, ItemCatalog.Find(costItemId), costAmount - missing);
+
+				return; // 재료가 모자라면 안 선다
+			}
+
+			if (world.TryPlaceBuilding(new Numerics.Vector3Int(cellX, cellY, cellZ), buildingId, world.Buildables) == false
+				&& costAmount > 0)
+			{
+				world.TryGather(me.Id, ItemCatalog.Find(costItemId), costAmount); // 못 지었으면 재료를 돌려준다
+			}
 		}
 
 		public void RequestRemove(int cellX, int cellY, int cellZ)

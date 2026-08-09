@@ -14,6 +14,10 @@ namespace WitchMendokusai
 
 		/// <summary>물건을 넣어 둘 수 있는 칸 수 (0 = 상자가 아니다).</summary>
 		public int slots;
+
+		/// <summary>지을 때 드는 재료 — 무엇을 몇 개. amount 0 = 공짜.</summary>
+		public int costItemId;
+		public int costAmount;
 	}
 
 	/// <summary>세계가 아는 건물 목록 (아이템 목록과 같은 모양 — 정본은 게임 자산).</summary>
@@ -73,6 +77,19 @@ namespace WitchMendokusai
 
 			width = entry.w < 1 ? 1 : entry.w;
 			length = entry.l < 1 ? 1 : entry.l;
+			return true;
+		}
+
+		/// <summary>이걸 지으려면 무엇이 몇 개 드나 — amount 0 이면 공짜다.</summary>
+		public bool TryCost(int buildingId, out int itemId, out int amount)
+		{
+			itemId = 0;
+			amount = 0;
+			if (byId.TryGetValue(buildingId, out BuildingCatalogEntry entry) == false)
+				return false;
+
+			itemId = entry.costItemId;
+			amount = entry.costAmount < 0 ? 0 : entry.costAmount;
 			return true;
 		}
 

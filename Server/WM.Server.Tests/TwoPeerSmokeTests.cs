@@ -307,8 +307,11 @@ namespace WitchMendokusai.ServerTests
 		{
 			using ClientWebSocket flooder = await ConnectAsync();
 			using ClientWebSocket watcher = await ConnectAsync();
-			await ReadWelcomeAsync(flooder);
+			int flooderId = await ReadWelcomeAsync(flooder);
 			await ReadWelcomeAsync(watcher);
+
+			// 쏟아붓기 전에 재료부터 — 짓기는 공짜가 아니다(나무 2개).
+			await WalkToAndGatherAsync(flooder, 0, flooderId, WorldSeeds.WOOD);
 
 			// 버그 난 창처럼 쏟아붓는다 — 예산을 넘긴 말은 버려지되 연결은 살아 있어야 한다.
 			for (int i = 0; i < 300; i++)
@@ -327,8 +330,10 @@ namespace WitchMendokusai.ServerTests
 		public async Task 살아있음_확인_자리가_세계_상태를_말한다()
 		{
 			using ClientWebSocket peer = await ConnectAsync();
-			await ReadWelcomeAsync(peer);
-			await SendAsync(peer, "{\"type\":\"place\",\"x\":2,\"y\":0,\"z\":2,\"buildingId\":4000}");
+			int peerId = await ReadWelcomeAsync(peer);
+
+			// 짓기는 재료를 쓴다 — 주워서 짓는다(공짜로 지어지면 줍기가 뜻을 잃는다).
+			await BuildWithMaterialsAsync(peer, peerId, 4000, 2, 2);
 			await WaitForAsync(peer, text => text.Contains("\"buildingId\":4000"));
 
 			using System.Net.Http.HttpClient http = new System.Net.Http.HttpClient();
@@ -350,11 +355,30 @@ namespace WitchMendokusai.ServerTests
 		/// 손이 닿아야 줍히므로, 이 걸음 자체가 「줍기 판정이 서 있다」는 증거다.
 		/// 주운 아이템 번호를 돌려준다.
 		/// </summary>
-		private static async Task<int> WalkToAndGatherAsync(ClientWebSocket socket, int which = 0, int myDollId = 0)
+		private static async Task<int> WalkToAndGatherAsync(ClientWebSocket socket, int which = 0, int myDollId = 0, int wantItemId = -1)
 		{
 			string snapshot = await WaitForAsync(socket, text => text.Contains("\"gatherables\":[{"));
-			System.Text.Json.JsonElement first = System.Text.Json.JsonDocument.Parse(snapshot)
-				.RootElement.GetProperty("gatherables")[which];
+			System.Text.Json.JsonElement all = System.Text.Json.JsonDocument.Parse(snapshot).RootElement.GetProperty("gatherables");
+
+			// 특정 재료를 원하면 그것만 골라 센다 — 아무거나 주우면 「나무 2개」를 못 채운다.
+			System.Text.Json.JsonElement first = all[which];
+			if (wantItemId >= 0)
+			{
+				int seen = 0;
+				foreach (System.Text.Json.JsonElement one in all.EnumerateArray())
+				{
+					if (one.GetProperty("itemId").GetInt32() != wantItemId)
+						continue;
+
+					if (seen == which)
+					{
+						first = one;
+						break;
+					}
+
+					seen++;
+				}
+			}
 
 			int nodeId = first.GetProperty("id").GetInt32();
 			double targetX = first.GetProperty("x").GetDouble();
@@ -396,6 +420,19 @@ namespace WitchMendokusai.ServerTests
 			await SendAsync(socket, "{\"type\":\"gather\",\"nodeId\":" + nodeId + "}");
 			await WaitForAsync(socket, text => text.Contains("\"type\":\"bag\"") && text.Contains("\"itemId\":" + itemId));
 			return itemId;
+		}
+
+		/// <summary>
+		/// 지을 재료(나무)를 <b>모아서</b> 짓는다 (TASK-WM-217).
+		/// 짓기가 공짜가 아니게 되면서, 시험도 사람과 같은 길을 걷는다.
+		/// </summary>
+		private static async Task BuildWithMaterialsAsync(ClientWebSocket socket, int myDollId, int buildingId, int cellX, int cellZ)
+		{
+			// 나무는 여러 자리에서 조금씩 나온다 — 나무만 골라 두 곳이면 넉넉하다(한 곳당 2개).
+			await WalkToAndGatherAsync(socket, 0, myDollId, WorldSeeds.WOOD);
+
+			await SendAsync(socket, "{\"type\":\"place\",\"x\":" + cellX + ",\"y\":0,\"z\":" + cellZ
+				+ ",\"buildingId\":" + buildingId + "}");
 		}
 
 		private static string ReadField(string json, string marker)

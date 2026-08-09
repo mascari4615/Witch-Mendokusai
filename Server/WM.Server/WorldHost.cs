@@ -523,10 +523,16 @@ namespace WitchMendokusai.Server
 					//   이제 재료를 <b>가방에서 실제로 꺼내</b> 넣는다 — 그래서 줍기가 조리의 재료가 된다.
 					int ingredientId = ReadInt(root, "itemId");
 					if (World.Ingredients.TryStep(ingredientId, out WitchMendokusai.DomainSDK.Alchemy.BrewStep step) == false)
-						return; // 재료가 아닌 것은 안 들어간다
+					{
+						Tell(dollId, Protocol.BREW, "그건 솥에 넣는 것이 아니다");
+						return;
+					}
 
 					if (World.TryConsume(dollId, ingredientId, 1) != 0)
-						return; // 가방에 없으면 못 넣는다(빈손으로는 못 젓는다)
+					{
+						Tell(dollId, Protocol.BREW, "가방에 없다 — 빈손으로는 못 젓는다");
+						return;
+					}
 
 					// 누가 넣든 같은 솥에 쌓인다 — 솥은 세계의 물건이다.
 					World.Cauldron.AddStep(step);
@@ -597,10 +603,34 @@ namespace WitchMendokusai.Server
 					// 겹치면 서버가 거절한다 — 거절도 판정이다(창이 우기지 못한다).
 					// 크기도 창에게 안 묻는다 (TASK-WM-217): 세계의 목록이 정본이라, 「이건 1×1 이다」로
 					// 남의 집에 겹쳐 짓는 길이 아예 없다. 모르는 건물은 서지 않는다.
+					// ★ 짓기는 <b>재료를 쓴다</b> (TASK-WM-217): 공짜로 무한히 지으면 줍기가 뜻을 잃는다.
+					//   먼저 빼고, 못 지으면 도로 돌려준다(사라지는 물건은 없다).
+					World.Buildables.TryCost(buildingId, out int costItemId, out int costAmount);
+					int missing = costAmount > 0 ? World.TryConsume(dollId, costItemId, costAmount) : 0;
+					if (missing > 0)
+					{
+						// 뺀 만큼은 도로 넣어 준다 — 절반만 빠지는 일은 없다.
+						if (costAmount - missing > 0)
+							World.TryGather(dollId, ServerItemCatalog.Find(costItemId), costAmount - missing);
+
+						Tell(dollId, Protocol.DENIED_PLACE,
+							"재료가 모자란다 — " + ServerItemCatalog.Catalog.NameOf(costItemId) + " " + costAmount + "개가 든다");
+						return;
+					}
+
 					if (World.TryPlaceBuilding(new Vector3Int(cellX, cellY, cellZ), buildingId, World.Buildables))
+					{
 						Interlocked.Exchange(ref worldDirty, 1);
+						if (costAmount > 0)
+							_ = SendBagAsync(dollId);
+					}
 					else
+					{
+						if (costAmount > 0)
+							World.TryGather(dollId, ServerItemCatalog.Find(costItemId), costAmount);
+
 						Tell(dollId, Protocol.DENIED_PLACE, "거기엔 못 짓는다 — 겹치거나, 세계가 모르는 것이다");
+					}
 				}
 			}
 			catch (JsonException)

@@ -88,6 +88,10 @@ namespace WitchMendokusai.EditorTools
 					w = data.Size.x < 1 ? 1 : data.Size.x,
 					l = data.Size.y < 1 ? 1 : data.Size.y,
 					slots = data.StorageSlots,
+					// 재료 = 나무 몇 개. 자산의 Cost 가 0 이면 씨앗 값(2개)을 쓴다 —
+					// 공짜로 지어지면 줍기가 뜻을 잃는다(수치는 나중에 자산에서 정한다).
+					costItemId = WorldSeeds.WOOD,
+					costAmount = data.Cost > 0 ? data.Cost : 2,
 				});
 			}
 

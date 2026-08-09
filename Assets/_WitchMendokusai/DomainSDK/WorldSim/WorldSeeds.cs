@@ -71,9 +71,9 @@ namespace WitchMendokusai
 			{
 				buildings = new[]
 				{
-					new BuildingCatalogEntry { id = 4000, name = "솥", w = 1, l = 1 },
-					new BuildingCatalogEntry { id = 4001, name = "모루", w = 1, l = 1 },
-					new BuildingCatalogEntry { id = 4005, name = "보관 상자", w = 1, l = 1, slots = 30 },
+					new BuildingCatalogEntry { id = 4000, name = "솥", w = 1, l = 1, costItemId = WOOD, costAmount = 2 },
+					new BuildingCatalogEntry { id = 4001, name = "모루", w = 1, l = 1, costItemId = WOOD, costAmount = 2 },
+					new BuildingCatalogEntry { id = 4005, name = "보관 상자", w = 1, l = 1, slots = 30, costItemId = WOOD, costAmount = 2 },
 				},
 			};
 		}
