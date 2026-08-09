@@ -77,9 +77,29 @@ namespace WitchMendokusai
 			Destroy(remote);
 			remote = null;
 
-			Current = new LocalWorldLink();
+			// 지난번에 지은 것을 되살려 들어간다 — 혼자 놀아도 세계는 이어진다 (단계 5).
+			WorldSim world = new WorldSim();
+			world.Load(LocalWorldStore.TryLoad());
+
+			Current = new LocalWorldLink(world);
 			IsLocalWorld = true;
 			EnsureBinder();
+		}
+
+		/// <summary>내 안의 세계였다면 지금 모습을 적어 둔다 — 다음에 켜면 그대로 있다.</summary>
+		private void SaveLocalWorld()
+		{
+			if (Current is LocalWorldLink local)
+				LocalWorldStore.TrySave(local.World.Save());
+		}
+
+		private void OnApplicationQuit() => SaveLocalWorld();
+
+		private void OnApplicationPause(bool paused)
+		{
+			// 폰은 「끄기」 없이 그냥 사라진다 — 멈출 때 적어 두지 않으면 그날 지은 게 통째로 없어진다.
+			if (paused)
+				SaveLocalWorld();
 		}
 
 		/// <summary>
@@ -95,6 +115,8 @@ namespace WitchMendokusai
 		/// <summary>세계에서 나온다.</summary>
 		public void Leave()
 		{
+			SaveLocalWorld();
+
 			if (remote != null)
 			{
 				remote.Disconnect();

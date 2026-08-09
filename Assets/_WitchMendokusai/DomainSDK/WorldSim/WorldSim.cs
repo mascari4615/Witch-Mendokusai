@@ -178,6 +178,73 @@ namespace WitchMendokusai
 			}
 		}
 
+		/// <summary>
+		/// 세계의 기억을 뜬다 (TASK-WM-217 단계 5). 뜨는 동안 세계가 바뀌어도 안전하게 자물쇠 안에서.
+		/// </summary>
+		public WorldSaveData Save()
+		{
+			lock (gate)
+			{
+				BuildingSaveData[] saved = new BuildingSaveData[placed.Count];
+				for (int i = 0; i < placed.Count; i++)
+				{
+					saved[i] = new BuildingSaveData
+					{
+						x = placed[i].Pivot.x,
+						y = placed[i].Pivot.y,
+						z = placed[i].Pivot.z,
+						w = placed[i].Size.x,
+						l = placed[i].Size.y,
+						buildingId = placed[i].BuildingId,
+					};
+				}
+
+				return new WorldSaveData { buildings = saved };
+			}
+		}
+
+		/// <summary>
+		/// 기억을 되살린다 (TASK-WM-217 단계 5). <b>지금 있는 건물은 지우고</b> 저장된 것으로 갈아끼운다.
+		///
+		/// 겹치는 건물은 <b>버린다</b> — 저장 파일이 망가졌거나 규칙이 바뀌었을 때
+		/// 겹친 채로 되살리면 그 뒤로 짓기 판정이 영원히 이상해진다. 되살린 개수를 돌려준다.
+		/// </summary>
+		public int Load(WorldSaveData data)
+		{
+			lock (gate)
+			{
+				placed.Clear();
+				occupiedCells.Clear();
+
+				if (data == null || data.buildings == null)
+					return 0;
+
+				int restored = 0;
+				for (int i = 0; i < data.buildings.Length; i++)
+				{
+					BuildingSaveData saved = data.buildings[i];
+					if (saved == null)
+						continue;
+
+					Vector3Int pivot = new Vector3Int(saved.x, saved.y, saved.z);
+					Vector2Int size = new Vector2Int(saved.w, saved.l);
+
+					HashSet<Vector3Int> occupied = new HashSet<Vector3Int>(occupiedCells.Keys);
+					if (BuildingFootprint.IsBlocked(pivot, size, occupied))
+						continue;
+
+					List<Vector3Int> cells = BuildingFootprint.Cells(pivot, size);
+					for (int cell = 0; cell < cells.Count; cell++)
+						occupiedCells[cells[cell]] = saved.buildingId;
+
+					placed.Add(new PlacedBuilding(pivot, size, saved.buildingId));
+					restored++;
+				}
+
+				return restored;
+			}
+		}
+
 		public bool TryMove(int dollId, Vector3 delta)
 		{
 			lock (gate)

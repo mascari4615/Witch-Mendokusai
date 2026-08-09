@@ -25,7 +25,14 @@ namespace WitchMendokusai.Server
 		/// <summary>1초에 몇 번 모두에게 알릴 것인가.</summary>
 		private const int SNAPSHOT_HZ = 20;
 
+		/// <summary>세계를 디스크로 내리는 간격 — 바뀐 게 있을 때만 쓴다.</summary>
+		private const int SAVE_INTERVAL_MILLISECONDS = 5000;
+
 		private static readonly WorldSim world = new WorldSim();
+		private static readonly WorldStore store = WorldStore.Default();
+
+		/// <summary>지은 것이 생겼다 — 다음 저장 때 디스크로 내려간다.</summary>
+		private static int worldDirty;
 		private static readonly ConcurrentDictionary<int, WebSocket> sockets = new ConcurrentDictionary<int, WebSocket>();
 
 		public static async Task Main(string[] args)
@@ -67,8 +74,19 @@ namespace WitchMendokusai.Server
 				await ServeAsync(socket);
 			});
 
+			// 세계는 서버보다 오래 산다 (TASK-WM-217 단계 5) — 뜨자마자 지난 기억을 되살린다.
+			int restored = world.Load(store.TryLoad());
+			Console.WriteLine($"[world] 되살린 건물 {restored}개 ({store.Path})");
+
 			// 알림 루프는 서버가 실제로 뜬 뒤에 시작한다 — 뜨기 전에 시작하면 조용히 죽어도 아무도 모른다.
-			app.Lifetime.ApplicationStarted.Register(() => _ = RunBroadcastLoopAsync(app.Lifetime.ApplicationStopping));
+			app.Lifetime.ApplicationStarted.Register(() =>
+			{
+				_ = RunBroadcastLoopAsync(app.Lifetime.ApplicationStopping);
+				_ = RunSaveLoopAsync(app.Lifetime.ApplicationStopping);
+			});
+
+			// 꺼질 때 한 번 더 — 마지막 몇 초 사이에 지은 것도 남는다.
+			app.Lifetime.ApplicationStopping.Register(() => store.TrySave(world.Save()));
 
 			await app.RunAsync();
 		}
@@ -146,7 +164,8 @@ namespace WitchMendokusai.Server
 					int buildingId = ReadInt(root, "buildingId");
 
 					// 겹치면 서버가 거절한다 — 거절도 판정이다(창이 우기지 못한다).
-					world.TryPlaceBuilding(new Vector3Int(cellX, cellY, cellZ), new Vector2Int(width, length), buildingId);
+					if (world.TryPlaceBuilding(new Vector3Int(cellX, cellY, cellZ), new Vector2Int(width, length), buildingId))
+						Interlocked.Exchange(ref worldDirty, 1);
 				}
 			}
 			catch (JsonException)
@@ -174,6 +193,30 @@ namespace WitchMendokusai.Server
 		private static int ReadInt(JsonElement root, string name)
 		{
 			return root.TryGetProperty(name, out JsonElement element) ? (int)element.GetDouble() : 0;
+		}
+
+		/// <summary>
+		/// 바뀐 게 있을 때만 디스크로 내려간다 (TASK-WM-217 단계 5).
+		/// 매번 쓰면 아무도 안 짓는 밤에도 디스크가 초당 20번 돈다 — 그건 세계가 아니라 소음이다.
+		/// </summary>
+		private static async Task RunSaveLoopAsync(CancellationToken stopping)
+		{
+			try
+			{
+				while (stopping.IsCancellationRequested == false)
+				{
+					await Task.Delay(SAVE_INTERVAL_MILLISECONDS, CancellationToken.None);
+
+					if (Interlocked.Exchange(ref worldDirty, 0) == 0)
+						continue;
+
+					store.TrySave(world.Save());
+				}
+			}
+			catch (Exception exception)
+			{
+				Console.WriteLine("[wm-server] 저장 루프가 죽었다: " + exception);
+			}
 		}
 
 		private static async Task RunBroadcastLoopAsync(CancellationToken stopping)
