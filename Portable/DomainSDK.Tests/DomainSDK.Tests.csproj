@@ -70,6 +70,7 @@
     <Compile Include="$(TestsRoot)Net/WorldIdentityTests.cs" />
     <Compile Include="$(TestsRoot)Net/WorldPeopleMemoryTests.cs" />
     <Compile Include="$(TestsRoot)Net/BagReconcileTests.cs" />
+    <Compile Include="$(TestsRoot)Net/MessageBudgetTests.cs" />
   </ItemGroup>
 
 </Project>

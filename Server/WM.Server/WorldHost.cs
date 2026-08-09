@@ -109,6 +109,10 @@ namespace WitchMendokusai.Server
 			sockets[doll.Id] = socket;
 			await SendAsync(socket, Protocol.Welcome(doll.Id));
 
+			// 이 연결의 말 예산 — 창 하나가 모두의 세계를 느리게 만들지 못하게 (TASK-WM-218).
+			WitchMendokusai.Net.MessageBudget budget = new WitchMendokusai.Net.MessageBudget();
+			DateTime lastSpoke = DateTime.UtcNow;
+
 			byte[] buffer = new byte[4096];
 			try
 			{
@@ -117,6 +121,14 @@ namespace WitchMendokusai.Server
 					string text = await ReceiveTextAsync(socket, buffer);
 					if (text == null)
 						break;
+
+					DateTime now = DateTime.UtcNow;
+					budget.Refill((float)(now - lastSpoke).TotalSeconds);
+					lastSpoke = now;
+
+					// 예산을 넘긴 말은 버린다(끊지는 않는다 — 잠깐 몰릴 수도 있다).
+					if (budget.TrySpend() == false)
+						continue;
 
 					await HandleMessageAsync(doll.Id, socket, text);
 				}
