@@ -32,6 +32,17 @@ namespace WitchMendokusai.Server
 		/// <summary>실제 1초에 세계의 몇 분이 흐르나 — 게임의 WorldClockSO 와 맞춰야 할 값.</summary>
 		private const float MINUTES_PER_REAL_SECOND = 1f;
 
+		/// <summary>
+		/// 아무도 없어도 <b>세계의 시간이 이만큼 흐르면</b> 한 번 적는다 (TASK-WM-218).
+		///
+		/// ★ 왜: 시각은 사람이 없어도 흐르는데 저장은 사람이 있을 때만 했다 — 그래서 서버를 껐다 켜면
+		///   <b>시계가 뒤로 감겼다</b>(실측: 7:34 → 6:45). 지은 건 남는데 시간만 되돌아가는 세계는 이상하다.
+		///   그렇다고 매번 쓰면 빈 밤에도 디스크가 돈다 — 그 사이를 이 값이 정한다.
+		/// </summary>
+		private const int IDLE_SAVE_WORLD_MINUTES = 60;
+
+		private int savedAtWorldMinute;
+
 		/// <summary>이만큼(세계의 날) 안 오고 아무것도 안 남긴 사람은 장부에서 지운다.</summary>
 		private const int GUEST_FORGET_DAYS = 90;
 
@@ -120,6 +131,7 @@ namespace WitchMendokusai.Server
 			WorldSaveData loaded = store.TryLoad();
 			Identities.Load(loaded?.identities);
 			int restored = World.Load(loaded);
+			savedAtWorldMinute = World.Calendar.TotalMinutes();
 			Console.WriteLine($"[world] 되살린 건물 {restored}개 ({store.Path})");
 
 			// 알림 루프는 서버가 실제로 뜬 뒤에 시작한다 — 뜨기 전에 시작하면 조용히 죽어도 아무도 모른다.
@@ -473,8 +485,15 @@ namespace WitchMendokusai.Server
 					//   그 자체로 「바뀌는 중」으로 본다 — 안 그러면 걷기만 하다 서버가 죽었을 때
 					//   그동안 걸어온 자리가 통째로 사라진다(가방은 남고 자리만 옛것이 되는 이상한 상태).
 					bool someoneIsHere = World.Snapshot().Length > 0;
-					if (Interlocked.Exchange(ref worldDirty, 0) == 0 && someoneIsHere == false)
+
+					// 아무도 없어도 시간이 꽤 흘렀으면 적는다 — 안 그러면 시계가 뒤로 감긴다.
+					int now = World.Calendar.TotalMinutes();
+					bool clockDrifted = now - savedAtWorldMinute >= IDLE_SAVE_WORLD_MINUTES;
+
+					if (Interlocked.Exchange(ref worldDirty, 0) == 0 && someoneIsHere == false && clockDrifted == false)
 						continue;
+
+					savedAtWorldMinute = now;
 
 					// 빈손이고 오래 안 온 손님은 장부에서 지운다 — 안 그러면 장부가 영원히 커진다.
 					// 뭔가 남긴 사람은 절대 안 지운다(세계를 지우는 짓이다).

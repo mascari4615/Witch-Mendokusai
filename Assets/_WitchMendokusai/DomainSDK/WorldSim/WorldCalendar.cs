@@ -72,6 +72,9 @@ namespace WitchMendokusai
 			minuteRemainder = 0f;
 		}
 
+		/// <summary>세계가 시작한 뒤 몇 분 지났나 — 「얼마나 흘렀나」를 재는 자리.</summary>
+		public int TotalMinutes() => (TotalDays() * HoursPerDay + Hour) * MINUTES_PER_HOUR + Minute;
+
 		/// <summary>세계가 시작한 뒤 며칠 지났나 — 「하루가 바뀌었나」를 재는 데 쓴다.</summary>
 		public int TotalDays() => ((Year - 1) * SeasonsPerYear + Season) * DaysPerSeason + (Day - 1);
 
