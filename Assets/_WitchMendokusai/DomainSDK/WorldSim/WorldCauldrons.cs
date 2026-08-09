@@ -87,6 +87,72 @@ namespace WitchMendokusai
 			}
 		}
 
+		/// <summary>솥들을 적어 둔다 — 자리와 <b>젓던 자국</b>까지(껐다 켜도 이어진다).</summary>
+		public List<CauldronSaveEntry> Save()
+		{
+			List<CauldronSaveEntry> saved = new List<CauldronSaveEntry>();
+			lock (gate)
+			{
+				foreach (KeyValuePair<Vector3Int, WorldCauldron> pair in pots)
+				{
+					List<DomainSDK.Alchemy.BrewStep> steps = new List<DomainSDK.Alchemy.BrewStep>();
+					pair.Value.ReadSteps(steps);
+
+					BrewStepSaveEntry[] path = new BrewStepSaveEntry[steps.Count];
+					for (int i = 0; i < steps.Count; i++)
+					{
+						path[i] = new BrewStepSaveEntry
+						{
+							dx = steps[i].Direction.X,
+							dy = steps[i].Direction.Y,
+							grind = steps[i].Grind,
+						};
+					}
+
+					saved.Add(new CauldronSaveEntry { x = pair.Key.x, y = pair.Key.y, z = pair.Key.z, path = path });
+				}
+			}
+
+			return saved;
+		}
+
+		/// <summary>
+		/// 기억에서 되살린다 — <b>저은 길을 그대로 다시 젓는다</b>.
+		/// 마커 좌표를 그냥 적어 두면 규칙이 바뀌었을 때 그 자국이 거짓이 된다(길이 정본이다).
+		/// </summary>
+		public void Load(IEnumerable<CauldronSaveEntry> saved)
+		{
+			lock (gate)
+			{
+				pots.Clear();
+				Version++;
+
+				if (saved == null)
+					return;
+
+				foreach (CauldronSaveEntry entry in saved)
+				{
+					if (entry == null)
+						continue;
+
+					WorldCauldron pot = new WorldCauldron();
+					if (entry.path != null)
+					{
+						for (int i = 0; i < entry.path.Length; i++)
+						{
+							pot.AddStep(new DomainSDK.Alchemy.BrewStep
+							{
+								Direction = new DomainSDK.Alchemy.BrewVector(entry.path[i].dx, entry.path[i].dy),
+								Grind = entry.path[i].grind,
+							});
+						}
+					}
+
+					pots[new Vector3Int(entry.x, entry.y, entry.z)] = pot;
+				}
+			}
+		}
+
 		/// <summary>솥 안이 바뀌었다고 알린다 — 젓기·비우기·완성이 지나간 뒤 부른다.</summary>
 		public void Touch()
 		{
@@ -95,5 +161,24 @@ namespace WitchMendokusai
 				Version++;
 			}
 		}
+	}
+
+	/// <summary>솥 하나가 기억하는 것 — 어느 자리에, 어떻게 저었나.</summary>
+	[System.Serializable]
+	public class CauldronSaveEntry
+	{
+		public int x;
+		public int y;
+		public int z;
+		public BrewStepSaveEntry[] path = System.Array.Empty<BrewStepSaveEntry>();
+	}
+
+	/// <summary>저은 한 걸음 — 방향과 세기.</summary>
+	[System.Serializable]
+	public class BrewStepSaveEntry
+	{
+		public float dx;
+		public float dy;
+		public float grind = 1f;
 	}
 }

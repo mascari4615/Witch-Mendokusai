@@ -72,5 +72,8 @@ namespace WitchMendokusai
 
 		/// <summary>세계에 놓인 상자들과 그 안에 든 것 — 넣어 둔 게 사라지면 아무도 안 쓴다.</summary>
 		public StorageSaveEntry[] storages = Array.Empty<StorageSaveEntry>();
+
+		/// <summary>지은 자리마다의 솥 — 젓던 자국까지(껐다 켜도 이어진다).</summary>
+		public CauldronSaveEntry[] cauldrons = Array.Empty<CauldronSaveEntry>();
 	}
 }

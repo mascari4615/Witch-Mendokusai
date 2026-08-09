@@ -654,6 +654,7 @@ namespace WitchMendokusai
 					minute = Calendar.Minute,
 					gathered = Gatherables.Save().ToArray(),
 					storages = Storages.Save().ToArray(),
+					cauldrons = Cauldrons.Save().ToArray(),
 				};
 			}
 		}
@@ -718,6 +719,9 @@ namespace WitchMendokusai
 
 				// 상자는 건물을 다 세운 뒤에 채운다 — 어느 자리가 몇 칸인지 건물이 정하기 때문이다.
 				RestoreStoragesUnlocked(storagesToRestore, catalog);
+
+				// 솥도 같이 되살린다 — 안 하면 지은 솥이 남아 있는데 못 젓는 세계가 된다.
+				Cauldrons.Load(data.cauldrons);
 				return restored;
 			}
 		}
