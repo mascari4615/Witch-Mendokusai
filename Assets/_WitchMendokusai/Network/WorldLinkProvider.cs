@@ -74,7 +74,9 @@ namespace WitchMendokusai
 		private IEnumerator EnterRoutine()
 		{
 			remote = gameObject.AddComponent<WebWorldClient>();
-			remote.SetServerUrl(remoteUrl);
+			// 붙을 곳은 환경변수가 이긴다 — 스모크·개발 서버가 인스펙터 값을 고치지 않고도 붙는다.
+			string overrideUrl = System.Environment.GetEnvironmentVariable("WM_WORLD_SERVER");
+			remote.SetServerUrl(string.IsNullOrWhiteSpace(overrideUrl) ? remoteUrl : overrideUrl);
 			remote.Connect();
 
 			float waited = 0f;
