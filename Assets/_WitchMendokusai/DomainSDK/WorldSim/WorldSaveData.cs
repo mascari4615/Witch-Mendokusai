@@ -14,15 +14,35 @@ namespace WitchMendokusai
 		public int buildingId;
 	}
 
+	/// <summary>가방 안 한 종류 — 몇 개 (TASK-WM-218).</summary>
+	[Serializable]
+	public class BagSaveEntry
+	{
+		public int itemId;
+		public int amount;
+	}
+
+	/// <summary>
+	/// 그 사람이 어디에 있었고 뭘 갖고 있었나 (TASK-WM-218).
+	/// 인형 번호가 아니라 <b>신원 번호</b>에 붙는다 — 인형 번호는 접속마다 새로 준다.
+	/// </summary>
+	[Serializable]
+	public class PersonSaveData
+	{
+		public int identityId;
+		public float x;
+		public float z;
+		public BagSaveEntry[] bag = Array.Empty<BagSaveEntry>();
+	}
+
 	/// <summary>
 	/// 세계의 기억 (TASK-WM-217 단계 5).
 	///
 	/// ★ MMO 의 핵심은 「내가 없을 때도 세계가 있다」다. 서버가 꺼지면 지은 게 사라지는 세계는
 	///   접속할 이유가 없다 — 그래서 저장은 부가 기능이 아니라 <b>세계의 정의</b>다.
 	///
-	/// <b>사람은 저장하지 않는다</b>: 지금 인형 번호는 접속마다 새로 주는 것이라 다음에 켰을 때
-	/// 「누구의 가방」인지 이을 수 없다. 사람별 저장은 <b>신원(계정)이 먼저</b>다 — 그 전에 저장하면
-	/// 남의 가방을 물려받는 사고가 난다.
+	/// <b>사람도 저장한다 (TASK-WM-218)</b> — 신원이 생겨서다. 인형 번호가 아니라 <b>신원 번호</b>에
+	/// 붙여 적는다(인형 번호는 접속마다 새로 주므로, 그걸로 적으면 남의 가방을 물려받는다).
 	///
 	/// 필드가 <c>public</c> 인 이유 = 서버(System.Text.Json)와 유니티(JsonUtility) 둘 다 이 모양만 읽는다.
 	/// </summary>
@@ -37,5 +57,11 @@ namespace WitchMendokusai
 		public int day = 1;
 		public int hour = 6;
 		public int minute;
+
+		/// <summary>사람들 — 신원별 자리·가방 (TASK-WM-218).</summary>
+		public PersonSaveData[] people = Array.Empty<PersonSaveData>();
+
+		/// <summary>세계가 아는 사람들의 신원 장부 (TASK-WM-218).</summary>
+		public Identity.WorldIdentityBook identities = new Identity.WorldIdentityBook();
 	}
 }

@@ -24,8 +24,33 @@ namespace WitchMendokusai
 		}
 
 		public int Id { get; }
+
+		/// <summary>이 인형의 주인 (TASK-WM-218). 0 = 아직 아무도 아님(옛 방식).</summary>
+		public int IdentityId { get; set; }
+
 		public Vector3 Position { get; set; }
 		public InventoryCore Bag { get; }
+
+		/// <summary>가방을 뜬다 — 종류별 개수만(칸 배치는 세계의 관심사가 아니다).</summary>
+		public List<BagSaveEntry> SaveBag()
+		{
+			Dictionary<int, int> counts = new Dictionary<int, int>();
+			for (int i = 0; i < slots.Count; i++)
+			{
+				Item item = slots[i];
+				if (item == null || item.Data == null)
+					continue;
+
+				counts.TryGetValue(item.Data.ID, out int had);
+				counts[item.Data.ID] = had + item.Amount;
+			}
+
+			List<BagSaveEntry> saved = new List<BagSaveEntry>();
+			foreach (KeyValuePair<int, int> entry in counts)
+				saved.Add(new BagSaveEntry { itemId = entry.Key, amount = entry.Value });
+
+			return saved;
+		}
 	}
 
 	/// <summary>세워진 건물 하나 — 서버가 기억하는 최소 (TASK-WM-216).</summary>
@@ -96,13 +121,48 @@ namespace WitchMendokusai
 			}
 		}
 
-		public WorldDoll Join()
+		public WorldDoll Join() => Join(identityId: 0, catalog: null);
+
+		/// <summary>
+		/// 그 사람의 인형을 내준다 (TASK-WM-218). 전에 왔던 사람이면 <b>기억해 둔 자리·가방</b>으로,
+		/// 처음이면 빈 인형으로. 신원이 0 이면 옛 방식(매번 새 인형)이다.
+		/// </summary>
+		public WorldDoll Join(int identityId, WorldItemCatalog catalog)
 		{
 			lock (gate)
 			{
-				WorldDoll doll = new WorldDoll(nextId++, Vector3.zero);
+				WorldDoll doll = new WorldDoll(nextId++, Vector3.zero) { IdentityId = identityId };
+
+				if (identityId != 0 && remembered.TryGetValue(identityId, out PersonSaveData kept))
+				{
+					doll.Position = new Vector3(kept.x, 0f, kept.z);
+					RestoreBag(doll, kept, catalog);
+				}
+
 				dolls[doll.Id] = doll;
 				return doll;
+			}
+		}
+
+		/// <summary>그 사람이 어디에 있었고 뭘 갖고 있었는지 — 나갈 때 여기 적힌다.</summary>
+		private readonly Dictionary<int, PersonSaveData> remembered = new Dictionary<int, PersonSaveData>();
+
+		private static void RestoreBag(WorldDoll doll, PersonSaveData kept, WorldItemCatalog catalog)
+		{
+			if (kept.bag == null || catalog == null)
+				return;
+
+			for (int i = 0; i < kept.bag.Length; i++)
+			{
+				BagSaveEntry entry = kept.bag[i];
+				if (entry == null || entry.amount <= 0)
+					continue;
+
+				IItemData item = catalog.Find(entry.itemId);
+				if (item == null)
+					continue; // 세계가 더는 모르는 물건 — 조용히 버린다(가방이 안 열리는 것보다 낫다).
+
+				doll.Bag.Add(item, entry.amount);
 			}
 		}
 
@@ -110,7 +170,81 @@ namespace WitchMendokusai
 		{
 			lock (gate)
 			{
+				if (dolls.TryGetValue(dollId, out WorldDoll doll) && doll.IdentityId != 0)
+				{
+					// 나가도 자리·가방은 세계가 들고 있는다 — 그래야 다시 왔을 때 「내 것」이 있다.
+					remembered[doll.IdentityId] = new PersonSaveData
+					{
+						identityId = doll.IdentityId,
+						x = doll.Position.x,
+						z = doll.Position.z,
+						bag = doll.SaveBag().ToArray(),
+					};
+				}
+
 				dolls.Remove(dollId);
+			}
+		}
+
+		/// <summary>지금 접속 중인 사람들 것까지 포함해 뜬다 — 서버가 꺼질 때도 안 잃는다.</summary>
+		public PersonSaveData[] SavePeople()
+		{
+			lock (gate)
+			{
+				return SavePeopleUnlocked();
+			}
+		}
+
+		// ⚠ 이미 자물쇠를 쥔 자리에서 부른다 — 여기서 또 lock 하면 안 된다(재진입은 되지만 뜻이 흐려진다).
+		private PersonSaveData[] SavePeopleUnlocked()
+		{
+			{
+				Dictionary<int, PersonSaveData> merged = new Dictionary<int, PersonSaveData>(remembered);
+				foreach (KeyValuePair<int, WorldDoll> entry in dolls)
+				{
+					WorldDoll doll = entry.Value;
+					if (doll.IdentityId == 0)
+						continue;
+
+					merged[doll.IdentityId] = new PersonSaveData
+					{
+						identityId = doll.IdentityId,
+						x = doll.Position.x,
+						z = doll.Position.z,
+						bag = doll.SaveBag().ToArray(),
+					};
+				}
+
+				PersonSaveData[] people = new PersonSaveData[merged.Count];
+				merged.Values.CopyTo(people, 0);
+				return people;
+			}
+		}
+
+		/// <summary>사람들의 기억을 되살린다.</summary>
+		public void LoadPeople(PersonSaveData[] people)
+		{
+			lock (gate)
+			{
+				LoadPeopleUnlocked(people);
+			}
+		}
+
+		private void LoadPeopleUnlocked(PersonSaveData[] people)
+		{
+			{
+				remembered.Clear();
+				if (people == null)
+					return;
+
+				for (int i = 0; i < people.Length; i++)
+				{
+					PersonSaveData person = people[i];
+					if (person == null || person.identityId == 0)
+						continue;
+
+					remembered[person.identityId] = person;
+				}
 			}
 		}
 
@@ -256,6 +390,7 @@ namespace WitchMendokusai
 				return new WorldSaveData
 				{
 					buildings = saved,
+					people = SavePeopleUnlocked(),
 					// 시간도 기억한다 — 껐다 켰더니 다시 아침이면 그건 이어진 세계가 아니다.
 					year = Calendar.Year,
 					season = Calendar.Season,
@@ -283,6 +418,7 @@ namespace WitchMendokusai
 					return 0;
 
 				Calendar.Set(data.year, data.season, data.day, data.hour, data.minute);
+				LoadPeopleUnlocked(data.people);
 
 				if (data.buildings == null)
 					return 0;
