@@ -17,7 +17,7 @@ namespace WitchMendokusai
 	///
 	/// 말의 모양은 판정 층(<see cref="WitchMendokusai.Net"/>)이 정본 — 웹·서버와 같은 소스다.
 	/// </summary>
-	public sealed class WebWorldClient : MonoBehaviour
+	public sealed class WebWorldClient : MonoBehaviour, IWorldLink
 	{
 		[Header("붙을 서버")]
 		[SerializeField] private string serverUrl = "ws://127.0.0.1:5199/ws";
@@ -32,7 +32,13 @@ namespace WitchMendokusai
 		/// <summary>서버가 마지막으로 알려준 세계. 그리는 쪽이 읽어 간다.</summary>
 		public DollView[] Dolls { get; private set; } = Array.Empty<DollView>();
 
+		/// <summary>서버가 마지막으로 알려준 건물들.</summary>
+		public BuildingView[] Buildings { get; private set; } = Array.Empty<BuildingView>();
+
 		public bool IsConnected => socket != null && socket.State == WebSocketState.Open;
+
+		/// <summary>같은 줄 규약 — 게임은 어디에 붙었는지 묻지 않는다 (TASK-WM-217).</summary>
+		public bool IsLinked => IsConnected;
 
 		private void Start()
 		{
@@ -101,17 +107,38 @@ namespace WitchMendokusai
 			{
 				WorldMessage world = JsonUtility.FromJson<WorldMessage>(json);
 				Dolls = world.dolls ?? Array.Empty<DollView>();
+				Buildings = world.buildings ?? Array.Empty<BuildingView>();
 			}
 		}
 
 		/// <summary>「이쪽으로 가고 싶다」를 보낸다. 얼마나 갈지는 서버가 정한다.</summary>
-		public void RequestMove(float x, float z)
+		public void RequestMove(float x, float z) => Send(JsonUtility.ToJson(new MoveMessage { x = x, z = z }));
+
+		/// <summary>「여기에 짓고 싶다」 — 겹치는지는 서버가 본다.</summary>
+		public void RequestPlace(int cellX, int cellY, int cellZ, int width, int length, int buildingId)
+		{
+			PlaceMessage message = new PlaceMessage
+			{
+				x = cellX,
+				y = cellY,
+				z = cellZ,
+				w = width,
+				l = length,
+				buildingId = buildingId,
+			};
+
+			Send(JsonUtility.ToJson(message));
+		}
+
+		/// <summary>「이걸 줍고 싶다」 — 가방에 들어갈지는 서버가 본다.</summary>
+		public void RequestGather(int itemId, int amount) => Send(JsonUtility.ToJson(new GatherMessage { itemId = itemId, amount = amount }));
+
+		private void Send(string json)
 		{
 			if (IsConnected == false)
 				return;
 
-			MoveMessage message = new MoveMessage { x = x, z = z };
-			byte[] payload = Encoding.UTF8.GetBytes(JsonUtility.ToJson(message));
+			byte[] payload = Encoding.UTF8.GetBytes(json);
 			_ = socket.SendAsync(new ArraySegment<byte>(payload), WebSocketMessageType.Text, true, cancellation.Token);
 		}
 	}
