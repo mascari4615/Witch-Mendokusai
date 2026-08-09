@@ -55,6 +55,37 @@ namespace WitchMendokusai.Tests.EditMode.Net
 		}
 
 		[Test]
+		public void 완성은_한_사람에게만_간다()
+		{
+			WorldSim world = new WorldSim();
+			world.Cauldron.AddStep(Step(1f, 0f));
+			world.Cauldron.AddStep(Step(0f, 1f));
+
+			bool first = world.Cauldron.TryComplete(out BrewState taken);
+			bool second = world.Cauldron.TryComplete(out BrewState empty);
+
+			// 같은 순간에 둘이 눌러도 뒤엣사람은 빈 솥을 받는다 = 이중지급이 구조적으로 불가능.
+			Assert.That(first, Is.True);
+			Assert.That(taken.StepCount, Is.EqualTo(2));
+			Assert.That(second, Is.False);
+			Assert.That(empty.StepCount, Is.EqualTo(0));
+		}
+
+		[Test]
+		public void 완성_뒤에는_솥이_비어_있다()
+		{
+			WorldSim world = new WorldSim();
+			world.Cauldron.AddStep(Step(1f, 0f));
+
+			world.Cauldron.TryComplete(out BrewState _);
+
+			Assert.That(world.Cauldron.State.StepCount, Is.EqualTo(0));
+			List<BrewStep> buffer = new List<BrewStep>();
+			world.Cauldron.ReadSteps(buffer);
+			Assert.That(buffer, Is.Empty);
+		}
+
+		[Test]
 		public void 저은_길을_읽어_갈_수_있다()
 		{
 			WorldSim world = new WorldSim();

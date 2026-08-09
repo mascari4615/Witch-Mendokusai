@@ -41,6 +41,8 @@ namespace WitchMendokusai
 		/// <summary>서버가 마지막으로 알려준 솥. 아직 못 받았으면 null.</summary>
 		public WorldBrewView Brew { get; private set; }
 
+		private WorldBrewView completed;
+
 		public bool IsConnected => socket != null && socket.State == WebSocketState.Open;
 
 		/// <summary>같은 줄 규약 — 게임은 어디에 붙었는지 묻지 않는다 (TASK-WM-217).</summary>
@@ -118,6 +120,13 @@ namespace WitchMendokusai
 				return;
 			}
 
+			if (json.Contains("\"" + NetMessageType.BREW_TAKEN + "\""))
+			{
+				BrewTakenMessage taken = JsonUtility.FromJson<BrewTakenMessage>(json);
+				completed = new WorldBrewView { x = taken.x, y = taken.y, steps = taken.steps, side = taken.side };
+				return;
+			}
+
 			if (json.Contains("\"" + NetMessageType.WORLD + "\""))
 			{
 				WorldMessage world = JsonUtility.FromJson<WorldMessage>(json);
@@ -144,6 +153,17 @@ namespace WitchMendokusai
 
 		/// <summary>솥을 비운다.</summary>
 		public void RequestBrewReset() => Send(JsonUtility.ToJson(new BrewResetMessage()));
+
+		/// <summary>완성을 달라고 한다 — 줄지는 서버가 정한다(선착순 한 번).</summary>
+		public void RequestBrewComplete() => Send(JsonUtility.ToJson(new BrewCompleteMessage()));
+
+		/// <summary>서버가 내준 완성. 한 번 읽으면 비운다(두 번 채점하지 않게).</summary>
+		public WorldBrewView TakeCompletedBrew()
+		{
+			WorldBrewView taken = completed;
+			completed = null;
+			return taken;
+		}
 
 		/// <summary>「이 칸을 부수고 싶다」 — 정말 사라질지는 서버가 정한다.</summary>
 		public void RequestRemove(int cellX, int cellY, int cellZ)

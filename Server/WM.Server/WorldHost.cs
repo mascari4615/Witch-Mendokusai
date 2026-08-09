@@ -168,6 +168,18 @@ namespace WitchMendokusai.Server
 					return;
 				}
 
+				if (kind == Protocol.BREW_COMPLETE)
+				{
+					// 완성은 세계가 한 사람에게만 내준다 — 둘이 같은 순간에 눌러도 뒤엣사람은 빈 솥.
+					if (World.Cauldron.TryComplete(out WitchMendokusai.DomainSDK.Alchemy.BrewState taken)
+						&& sockets.TryGetValue(dollId, out WebSocket claimer))
+					{
+						_ = SendAsync(claimer, Protocol.BrewTaken(taken));
+					}
+
+					return;
+				}
+
 				if (kind == Protocol.BREW_RESET)
 				{
 					World.Cauldron.ResetBrew();

@@ -17,6 +17,8 @@ namespace WitchMendokusai
 		private readonly WorldSim world;
 		private readonly WorldDoll me;
 
+		private WorldBrewView completed;
+
 		public LocalWorldLink(WorldSim world)
 		{
 			this.world = world;
@@ -146,6 +148,28 @@ namespace WitchMendokusai
 		}
 
 		public void RequestBrewReset() => world.Cauldron.ResetBrew();
+
+		public void RequestBrewComplete()
+		{
+			// 혼자여도 규칙은 같다 — 세계가 내주고, 빈 솥이면 아무 일도 없다.
+			if (world.Cauldron.TryComplete(out DomainSDK.Alchemy.BrewState taken) == false)
+				return;
+
+			completed = new WorldBrewView
+			{
+				x = taken.Position.X,
+				y = taken.Position.Y,
+				steps = taken.StepCount,
+				side = taken.AccruedSideEffect,
+			};
+		}
+
+		public WorldBrewView TakeCompletedBrew()
+		{
+			WorldBrewView taken = completed;
+			completed = null;
+			return taken;
+		}
 
 		public void RequestGather(int itemId, int amount)
 		{

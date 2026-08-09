@@ -34,6 +34,12 @@ namespace WitchMendokusai.Net
 
 		/// <summary>창 → 서버: 솥을 비운다.</summary>
 		public const string BREW_RESET = "brewreset";
+
+		/// <summary>창 → 서버: 이 솥을 완성으로 가져가겠다(선착순 한 번).</summary>
+		public const string BREW_COMPLETE = "brewcomplete";
+
+		/// <summary>서버 → 그 창에게만: 완성은 네 것이다(이 상태로 채점해라).</summary>
+		public const string BREW_TAKEN = "brewtaken";
 	}
 
 	/// <summary>서버 → 창: 접속했다, 네 인형 번호는 이것이다.</summary>
@@ -139,6 +145,27 @@ namespace WitchMendokusai.Net
 	public class BrewResetMessage
 	{
 		public string type = NetMessageType.BREW_RESET;
+	}
+
+	/// <summary>창 → 서버: 이 솥을 완성으로 가져가겠다.</summary>
+	[Serializable]
+	public class BrewCompleteMessage
+	{
+		public string type = NetMessageType.BREW_COMPLETE;
+	}
+
+	/// <summary>
+	/// 서버 → 그 창에게만: <b>완성은 네 것이다</b> (TASK-WM-217).
+	/// 둘이 같은 순간에 눌러도 이 말은 한 사람에게만 간다 — 이중지급이 구조적으로 불가능하다.
+	/// </summary>
+	[Serializable]
+	public class BrewTakenMessage
+	{
+		public string type = NetMessageType.BREW_TAKEN;
+		public float x;
+		public float y;
+		public int steps;
+		public float side;
 	}
 
 	/// <summary>솥에 저은 한 걸음 — 경로선을 그리는 쪽이 읽어 간다.</summary>

@@ -42,6 +42,12 @@ namespace WitchMendokusai.Net
 		/// <summary>솥을 비운다.</summary>
 		void RequestBrewReset();
 
+		/// <summary>이 솥을 완성으로 가져가겠다 — 줄지 말지는 세계가 정한다(선착순 한 번).</summary>
+		void RequestBrewComplete();
+
+		/// <summary>세계가 나에게 내준 완성. 아직 없으면 null. 한 번 읽으면 비운다.</summary>
+		WorldBrewView TakeCompletedBrew();
+
 		/// <summary>이걸 줍고 싶다 — 가방에 들어갈지는 세계가 본다.</summary>
 		void RequestGather(int itemId, int amount);
 	}

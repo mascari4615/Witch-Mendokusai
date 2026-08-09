@@ -43,6 +43,28 @@ namespace WitchMendokusai
 			}
 		}
 
+		/// <summary>
+		/// 「완성」을 <b>세계가 한 사람에게만 준다</b> (TASK-WM-217).
+		///
+		/// ★ 왜 세계인가: 전에는 호스트만 완성 버튼을 눌렀다(이중지급 방지). 호스트가 없는 세계에서는
+		///   그 규칙이 「아무도 못 누른다」가 되어 기능이 죽는다. 대신 세계가 <b>선착순 한 번</b>만 내준다 —
+		///   같은 순간에 둘이 눌러도 뒤엣사람은 빈 솥을 받는다(자물쇠 안에서 뜨고 비운다).
+		/// </summary>
+		public bool TryComplete(out BrewState completed)
+		{
+			lock (gate)
+			{
+				completed = state;
+				if (state.StepCount <= 0)
+					return false;
+
+				steps.Clear();
+				state = BrewState.Start;
+				Version++;
+				return true;
+			}
+		}
+
 		/// <summary>솥을 비운다(같은 솥, 처음부터).</summary>
 		public void ResetBrew()
 		{

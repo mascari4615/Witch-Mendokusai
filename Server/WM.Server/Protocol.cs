@@ -21,6 +21,8 @@ namespace WitchMendokusai.Server
 		public const string REMOVE = Net.NetMessageType.REMOVE;
 		public const string BREW = Net.NetMessageType.BREW;
 		public const string BREW_RESET = Net.NetMessageType.BREW_RESET;
+		public const string BREW_COMPLETE = Net.NetMessageType.BREW_COMPLETE;
+		public const string BREW_TAKEN = Net.NetMessageType.BREW_TAKEN;
 		public const string BAG = Net.NetMessageType.BAG;
 
 		/// <summary>계약을 웹이 읽을 수 있는 형태로 뽑는다.</summary>
@@ -82,6 +84,15 @@ namespace WitchMendokusai.Server
 
 			builder.Append("]}");
 			return builder.ToString();
+		}
+
+		/// <summary>그 창에게만: 완성은 네 것이다(선착순 한 번).</summary>
+		public static string BrewTaken(DomainSDK.Alchemy.BrewState state)
+		{
+			return "{\"type\":\"" + BREW_TAKEN + "\",\"x\":" + state.Position.X.ToString("F3")
+				+ ",\"y\":" + state.Position.Y.ToString("F3")
+				+ ",\"steps\":" + state.StepCount
+				+ ",\"side\":" + state.AccruedSideEffect.ToString("F3") + "}";
 		}
 
 		/// <summary>서버가 보내는 인사말.</summary>
