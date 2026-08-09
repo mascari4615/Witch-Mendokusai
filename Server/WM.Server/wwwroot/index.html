@@ -81,7 +81,7 @@
 		var z = axis(['ArrowDown', 's', 'S'], ['ArrowUp', 'w', 'W']);
 		if (x === 0 && z === 0) return;
 
-		socket.send('move ' + x + ' ' + z);
+		socket.send(JSON.stringify({ type: 'move', x: x, z: z }));
 	}, 100);
 
 	function draw() {

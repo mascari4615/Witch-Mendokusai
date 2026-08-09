@@ -2,6 +2,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Net.WebSockets;
 using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
@@ -29,6 +30,20 @@ namespace WitchMendokusai.Server
 
 		public static async Task Main(string[] args)
 		{
+			// 계약 뽑기 — 서버가 소유한 정의에서 웹이 쓸 타입 선언을 만든다.
+			// 시험이 「뽑은 것 == 저장된 것」을 보므로, 계약을 고치면 이 명령을 다시 돌려야 한다.
+			if (args.Length > 0 && args[0] == "--emit-protocol")
+			{
+				string outputPath = System.IO.Path.Combine(AppContext.BaseDirectory, "wwwroot", "protocol.d.ts");
+				if (args.Length > 1)
+					outputPath = args[1];
+
+				System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(outputPath));
+				System.IO.File.WriteAllText(outputPath, Protocol.ToTypeScript());
+				Console.WriteLine("계약을 뽑았다: " + outputPath);
+				return;
+			}
+
 			WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 			WebApplication app = builder.Build();
 
@@ -63,7 +78,7 @@ namespace WitchMendokusai.Server
 			Doll doll = world.Join();
 			sockets[doll.Id] = socket;
 
-			await SendAsync(socket, "{\"type\":\"welcome\",\"id\":" + doll.Id + "}");
+			await SendAsync(socket, Protocol.Welcome(doll.Id));
 
 			byte[] buffer = new byte[1024];
 			try
@@ -89,26 +104,31 @@ namespace WitchMendokusai.Server
 			}
 		}
 
-		/// <summary>
-		/// 아주 단순한 약속: <c>move x z</c>.
-		/// 제대로 된 계약(스키마 한 자리에서 생성)은 증분 2 — 지금은 <b>도는 것</b>이 먼저다.
-		/// </summary>
+		/// <summary>창이 보낸 말을 계약(<see cref="Protocol"/>)대로 읽는다.</summary>
 		private static void HandleMessage(int dollId, string text)
 		{
-			string[] parts = text.Split(' ');
-			if (parts.Length != 3 || parts[0] != "move")
-				return;
+			try
+			{
+				using JsonDocument document = JsonDocument.Parse(text);
+				JsonElement root = document.RootElement;
 
-			if (float.TryParse(parts[1], out float x) == false)
-				return;
+				if (root.TryGetProperty("type", out JsonElement type) == false)
+					return;
 
-			if (float.TryParse(parts[2], out float z) == false)
-				return;
+				if (type.GetString() != Protocol.MOVE)
+					return;
 
-			world.TryMove(dollId, new Vector3(x, 0f, z));
+				float x = root.TryGetProperty("x", out JsonElement xElement) ? (float)xElement.GetDouble() : 0f;
+				float z = root.TryGetProperty("z", out JsonElement zElement) ? (float)zElement.GetDouble() : 0f;
+
+				world.TryMove(dollId, new Vector3(x, 0f, z));
+			}
+			catch (JsonException)
+			{
+				// 못 알아들을 말은 그냥 버린다 — 창이 이상한 걸 보냈다고 서버가 죽지 않는다.
+			}
 		}
 
-		/// <summary>루프가 조용히 죽는 걸 막는다 — 터지면 적어도 콘솔에 남긴다.</summary>
 		private static async Task RunBroadcastLoopAsync(CancellationToken stopping)
 		{
 			try
@@ -127,7 +147,7 @@ namespace WitchMendokusai.Server
 
 			while (stopping.IsCancellationRequested == false)
 			{
-				string snapshot = BuildSnapshot();
+				string snapshot = Protocol.WorldSnapshot(world.Snapshot());
 				foreach (System.Collections.Generic.KeyValuePair<int, WebSocket> entry in sockets)
 				{
 					if (entry.Value.State != WebSocketState.Open)
@@ -138,28 +158,6 @@ namespace WitchMendokusai.Server
 
 				await Task.Delay(delayMilliseconds, CancellationToken.None);
 			}
-		}
-
-		private static string BuildSnapshot()
-		{
-			StringBuilder builder = new StringBuilder();
-			builder.Append("{\"type\":\"world\",\"dolls\":[");
-
-			bool first = true;
-			foreach (Doll doll in world.Snapshot())
-			{
-				if (first == false)
-					builder.Append(',');
-
-				first = false;
-				builder.Append("{\"id\":").Append(doll.Id)
-					.Append(",\"x\":").Append(doll.Position.x.ToString("F3"))
-					.Append(",\"z\":").Append(doll.Position.z.ToString("F3"))
-					.Append('}');
-			}
-
-			builder.Append("]}");
-			return builder.ToString();
 		}
 
 		private static async Task SendAsync(WebSocket socket, string text)
