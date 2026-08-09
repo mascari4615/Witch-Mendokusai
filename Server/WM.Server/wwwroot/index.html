@@ -579,10 +579,41 @@ function rebuildWorld() {
 		const body = new THREE.Mesh(dollGeometry, doll.id === myId ? myMaterial : otherMaterial);
 		body.position.set(doll.x, 0.67, -doll.z);
 		dollGroup.add(body);
+
+		// 이름표 — 누가 누구인지 모르면 「같이 논다」가 아니다(그림이 아니라 글자다).
+		if (doll.name) {
+			const tag = makeNameTag(doll.name);
+			tag.position.set(doll.x, 1.7, -doll.z);
+			dollGroup.add(tag);
+		}
 	}
 }
 
 /** 내가 선 자리 — 눈이 여기를 따라온다. 아직 나를 모르면 세계의 원점을 본다. */
+/** 이름표 하나 — 글자를 그려 항상 보는 쪽을 향하게 세운다. */
+const nameTags = new Map();
+function makeNameTag(name) {
+	let texture = nameTags.get(name);
+	if (texture === undefined) {
+		const canvas = document.createElement('canvas');
+		canvas.width = 256;
+		canvas.height = 64;
+		const paint = canvas.getContext('2d');
+		paint.font = '28px system-ui, sans-serif';
+		paint.textAlign = 'center';
+		paint.textBaseline = 'middle';
+		paint.fillStyle = '#d8d2e8';
+		paint.fillText(name, 128, 32);
+
+		texture = new THREE.CanvasTexture(canvas);
+		nameTags.set(name, texture);
+	}
+
+	const tag = new THREE.Sprite(new THREE.SpriteMaterial({ map: texture, transparent: true, depthTest: false }));
+	tag.scale.set(2.4, 0.6, 1);
+	return tag;
+}
+
 function myPlace() {
 	for (const doll of dolls) if (doll.id === myId) return doll;
 	return { x: 0, z: 0 };

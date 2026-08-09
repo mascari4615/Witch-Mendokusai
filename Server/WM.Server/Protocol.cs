@@ -272,7 +272,7 @@ namespace WitchMendokusai.Server
 		}
 
 		/// <summary>서버가 보내는 세계 모습.</summary>
-		public static string WorldSnapshot(IEnumerable<WorldDoll> dolls, IEnumerable<PlacedBuilding> buildings, WorldCalendar calendar = null, WorldCauldron cauldron = null, IEnumerable<GatherableNode> gatherables = null)
+		public static string WorldSnapshot(IEnumerable<WorldDoll> dolls, IEnumerable<PlacedBuilding> buildings, WorldCalendar calendar = null, WorldCauldron cauldron = null, IEnumerable<GatherableNode> gatherables = null, System.Func<int, string> nameOf = null)
 		{
 			StringBuilder builder = new StringBuilder();
 			builder.Append("{\"type\":\"").Append(WORLD).Append("\",\"dolls\":[");
@@ -284,9 +284,11 @@ namespace WitchMendokusai.Server
 					builder.Append(',');
 
 				first = false;
+				string who = nameOf == null ? string.Empty : (nameOf(doll.IdentityId) ?? string.Empty);
 				builder.Append("{\"id\":").Append(doll.Id)
 					.Append(",\"x\":").Append(doll.Position.x.ToString("F3"))
 					.Append(",\"z\":").Append(doll.Position.z.ToString("F3"))
+					.Append(",\"name\":").Append(JsonSerializer.Serialize(who, textOptions))
 					.Append('}');
 			}
 

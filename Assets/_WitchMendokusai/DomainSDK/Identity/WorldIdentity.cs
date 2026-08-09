@@ -22,6 +22,12 @@ namespace WitchMendokusai.Identity
 		public int lastSeenDay;
 
 		/// <summary>
+		/// 세계에서 불리는 이름 (TASK-WM-218). 비어 있으면 창이 「손님 N」으로 부른다.
+		/// 계정으로 들어오면 그 계정의 이름이 여기 들어간다 — 그래야 남이 나를 알아본다.
+		/// </summary>
+		public string name = string.Empty;
+
+		/// <summary>
 		/// 바깥 계정(KarmoLab 등)의 이름표 — 있으면 <b>그게 진짜 나</b>다 (TASK-WM-218).
 		/// 형식 = "제공자:아이디"(예: karmolab:mascari). 없으면 빈 문자열(기기 열쇠만 쓰는 손님).
 		/// </summary>
@@ -138,6 +144,37 @@ namespace WitchMendokusai.Identity
 		/// 처음 보는 계정이면 그 자리에서 사람을 만든다(가입 화면은 여전히 없다).
 		/// 기기 열쇠를 같이 주면 그 기기도 이 사람 쪽으로 붙는다 — 다음부터는 계정 없이도 나다.
 		/// </summary>
+		/// <summary>
+		/// 그 사람을 뭐라고 부를까 (TASK-WM-218). 계정 이름이 있으면 그것, 없으면 「손님 N」.
+		/// ★ 빈칸으로 두면 창마다 다르게 부르게 된다 — 부르는 법도 세계가 정한다.
+		/// </summary>
+		public string NameOf(int identityId)
+		{
+			lock (gate)
+			{
+				if (byId.TryGetValue(identityId, out WorldIdentityRecord record) == false)
+					return string.Empty;
+
+				return string.IsNullOrWhiteSpace(record.name) ? "손님 " + record.id : record.name;
+			}
+		}
+
+		/// <summary>계정으로 들어온 사람의 이름을 적어 둔다 — 이미 있으면 덮어쓰지 않는다(사람이 고친 게 이긴다).</summary>
+		public void NameIfEmpty(int identityId, string name)
+		{
+			if (string.IsNullOrWhiteSpace(name))
+				return;
+
+			lock (gate)
+			{
+				if (byId.TryGetValue(identityId, out WorldIdentityRecord record) == false)
+					return;
+
+				if (string.IsNullOrWhiteSpace(record.name))
+					record.name = name;
+			}
+		}
+
 		public WorldIdentityRecord RecognizeExternal(string externalId, string deviceSecret, int today, out bool created)
 		{
 			created = false;

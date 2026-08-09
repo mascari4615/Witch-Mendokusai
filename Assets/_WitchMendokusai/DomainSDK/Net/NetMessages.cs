@@ -122,6 +122,9 @@ namespace WitchMendokusai.Net
 		public int id;
 		public float x;
 		public float z;
+
+		/// <summary>세계에서 불리는 이름 (TASK-WM-218) — 손님이면 「손님 N」.</summary>
+		public string name = string.Empty;
 	}
 
 	/// <summary>

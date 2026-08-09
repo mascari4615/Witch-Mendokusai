@@ -266,6 +266,13 @@ namespace WitchMendokusai.Server
 					person = Identities.RecognizeExternal(externalId, secret, World.Calendar.TotalDays(), out created);
 				else
 					person = Identities.Recognize(secret, out created, World.Calendar.TotalDays());
+				// 계정으로 들어왔으면 그 이름으로 불린다 — 「karmolab:mascari」 뒤쪽만 쓴다.
+				if (string.IsNullOrEmpty(externalId) == false)
+				{
+					int mark = externalId.IndexOf(':');
+					Identities.NameIfEmpty(person.id, mark >= 0 ? externalId.Substring(mark + 1) : externalId);
+				}
+
 				World.Adopt(dollId, person.id, ItemsCatalog, out int evictedDollId);
 
 				// 중복 로그인 — 일반 MMORPG 처럼 나중에 온 쪽이 이긴다. 밀려난 창에는 이유를 말하고 닫는다
@@ -599,7 +606,7 @@ namespace WitchMendokusai.Server
 					Interlocked.Exchange(ref worldDirty, 1);
 
 				string snapshot = Protocol.WorldSnapshot(World.Snapshot(), World.Buildings(), World.Calendar, World.Cauldron,
-					World.Gatherables.Alive(World.Calendar.TotalMinutes()));
+					World.Gatherables.Alive(World.Calendar.TotalMinutes()), Identities.NameOf);
 				foreach (System.Collections.Generic.KeyValuePair<int, Connection> entry in sockets)
 				{
 					if (entry.Value.Socket.State != WebSocketState.Open)
