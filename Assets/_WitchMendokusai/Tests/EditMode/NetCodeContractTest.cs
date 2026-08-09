@@ -44,35 +44,27 @@ namespace WitchMendokusai.Tests
                 "WorldClock.RequiredAuthority 가 Authority.Server 아님 — sync 권위 회귀");
         }
 
-        // Phase B — WorldClockNetworkBridge 가 WMNetworkBehaviour 상속 유지 +
-        // WMNetworkBehaviour 가 FishNet NetworkBehaviour 기반인지.
-        // WM.Network = FishNet 의존 → 본 asmdef 는 그걸 참조 안 함(격리). 로드된
-        // 어셈블리에서 이름으로 reflection (EditMode 런타임에 WM.Network 적재됨).
+        // TASK-WM-218 — FishNet 브리지는 지웠다(세계는 WS 한 통로로 돈다). 그 자리에
+        // **지금 규약**을 지킨다: 시계는 세계가 주면 그걸 따르고, 못 받는 동안만 스스로 흐른다.
+        // 이 자리를 빈칸으로 두면 「시계가 세계를 안 따라가는」 회귀가 조용히 들어온다.
         [Test]
-        public void WorldClockNetworkBridge_Inherits_WMNetworkBehaviour()
+        public void WorldClock_Follows_WorldTime_When_Linked()
         {
-            Type bridgeType = FindLoadedType("WitchMendokusai.WorldClockNetworkBridge");
-            Type baseType = FindLoadedType("WitchMendokusai.WMNetworkBehaviour");
+            Type clockType = typeof(WorldClock);
+            MethodInfo follow = clockType.GetMethod(
+                "TryFollowWorldTime",
+                BindingFlags.Instance | BindingFlags.NonPublic);
 
-            Assert.That(bridgeType, Is.Not.Null,
-                "WitchMendokusai.WorldClockNetworkBridge 미발견 — 타입/asmdef 회귀");
-            Assert.That(baseType, Is.Not.Null,
-                "WitchMendokusai.WMNetworkBehaviour 미발견 — 타입/asmdef 회귀");
+            Assert.That(follow, Is.Not.Null,
+                "WorldClock 이 세계 시각을 따라가는 자리(TryFollowWorldTime)가 없다 — 시계 권위 회귀");
+            Assert.That(follow.ReturnType, Is.EqualTo(typeof(bool)),
+                "따라갔는지 여부를 돌려줘야 한다(못 받으면 스스로 흐르는 분기 근거)");
 
-            Assert.That(baseType.IsAssignableFrom(bridgeType), Is.True,
-                "WorldClockNetworkBridge 가 WMNetworkBehaviour 를 상속하지 않음 — Bridge 구조 회귀");
-
-            // WMNetworkBehaviour 의 base = FishNet NetworkBehaviour (타입 ref 없이 이름만 검사).
-            Type fishNetBase = baseType.BaseType;
-            Assert.That(fishNetBase, Is.Not.Null,
-                "WMNetworkBehaviour 에 base 타입 없음 — NetCode 백엔드 회귀");
-            Assert.That(fishNetBase.FullName, Is.EqualTo("FishNet.Object.NetworkBehaviour"),
-                "WMNetworkBehaviour base 가 FishNet.Object.NetworkBehaviour 아님 (실제: "
-                    + fishNetBase.FullName + ") — NetCode 백엔드 회귀");
+            Type doorType = FindLoadedType("WitchMendokusai.Net.WorldDoor");
+            Assert.That(doorType, Is.Not.Null,
+                "세계로 이어진 줄의 문(WorldDoor)이 없다 — 시계가 볼 곳이 사라졌다");
         }
 
-        // 메타 — 본 테스트 어셈블리가 FishNet 에 결합되지 않음(asmdef 단방향
-        // self-check). wm-asmdef-boundary.yml 게이트의 테스트측 거울.
         [Test]
         public void TestAssembly_DoesNotReference_FishNet()
         {
