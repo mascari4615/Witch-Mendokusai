@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using UnityEngine;
+using WitchMendokusai.Numerics;
 
 namespace WitchMendokusai.DomainSDK.Refining
 {

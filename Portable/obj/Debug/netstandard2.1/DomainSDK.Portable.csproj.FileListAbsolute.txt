@@ -1,0 +1,3 @@
+C:\Users\masca\repos\karmoddrine\WitchMendokusai\Portable\obj\Debug\netstandard2.1\DomainSDK.Portable.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\masca\repos\karmoddrine\WitchMendokusai\Portable\obj\Debug\netstandard2.1\DomainSDK.Portable.csproj.CoreCompileInputs.cache
+C:\Users\masca\repos\karmoddrine\WitchMendokusai\Portable\obj\Debug\netstandard2.1\DomainSDK.Portable.sourcelink.json
