@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>WM — 서버가 굴리는 세계 (골격)</title>
+<style>
+	:root { color-scheme: dark; }
+	body {
+		margin: 0;
+		background: #14121a;
+		color: #d8d2e8;
+		font: 14px/1.5 system-ui, sans-serif;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 12px;
+		padding: 16px;
+	}
+	canvas { background: #1d1a26; border: 1px solid #322c42; touch-action: none; }
+	.status { font-variant-numeric: tabular-nums; opacity: .8; }
+	.hint { opacity: .55; max-width: 44ch; text-align: center; }
+</style>
+</head>
+<body>
+	<div class="status" id="status">붙는 중…</div>
+	<canvas id="board" width="480" height="360"></canvas>
+	<div class="hint">
+		방향키(또는 WASD)로 움직인다. 판정은 서버가 한다 —
+		한 번에 갈 수 있는 거리는 서버가 잘라낸다. 창을 두 개 열면 서로가 보인다.
+	</div>
+
+<script>
+// TASK-WM-216 증분 2 — 「서버가 굴리는 세계」를 보는 가장 얇은 창.
+// 여기엔 규칙이 없다. 눌린 키를 보내고, 서버가 준 자리를 그린다. 그게 전부다.
+(function () {
+	var statusElement = document.getElementById('status');
+	var canvas = document.getElementById('board');
+	var context = canvas.getContext('2d');
+
+	var myId = null;
+	var dolls = [];
+	var pressed = {};
+	var SCALE = 12; // 한 칸을 몇 픽셀로 그릴 것인가 (보기용일 뿐, 규칙 아님)
+
+	var socket = new WebSocket((location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host + '/ws');
+
+	socket.onopen = function () { statusElement.textContent = '붙었다. 방향키로 움직여라.'; };
+	socket.onclose = function () { statusElement.textContent = '끊겼다.'; };
+	socket.onerror = function () { statusElement.textContent = '연결에 문제가 있다.'; };
+
+	socket.onmessage = function (event) {
+		var message = JSON.parse(event.data);
+		if (message.type === 'welcome') {
+			myId = message.id;
+			statusElement.textContent = '내 인형 번호 ' + myId;
+			return;
+		}
+
+		if (message.type === 'world') {
+			dolls = message.dolls;
+			draw();
+		}
+	};
+
+	window.addEventListener('keydown', function (e) { pressed[e.key] = true; });
+	window.addEventListener('keyup', function (e) { pressed[e.key] = false; });
+
+	function axis(negativeKeys, positiveKeys) {
+		var value = 0;
+		for (var i = 0; i < negativeKeys.length; i++) if (pressed[negativeKeys[i]]) value -= 1;
+		for (var j = 0; j < positiveKeys.length; j++) if (pressed[positiveKeys[j]]) value += 1;
+		return value;
+	}
+
+	// 보내는 것은 「어디로 가고 싶다」뿐. 얼마나 갈 수 있는지는 서버가 정한다.
+	setInterval(function () {
+		if (socket.readyState !== WebSocket.OPEN) return;
+
+		var x = axis(['ArrowLeft', 'a', 'A'], ['ArrowRight', 'd', 'D']);
+		var z = axis(['ArrowDown', 's', 'S'], ['ArrowUp', 'w', 'W']);
+		if (x === 0 && z === 0) return;
+
+		socket.send('move ' + x + ' ' + z);
+	}, 100);
+
+	function draw() {
+		context.clearRect(0, 0, canvas.width, canvas.height);
+
+		var centerX = canvas.width / 2;
+		var centerY = canvas.height / 2;
+
+		context.strokeStyle = '#2a2436';
+		context.beginPath();
+		context.moveTo(centerX, 0); context.lineTo(centerX, canvas.height);
+		context.moveTo(0, centerY); context.lineTo(canvas.width, centerY);
+		context.stroke();
+
+		for (var i = 0; i < dolls.length; i++) {
+			var doll = dolls[i];
+			var px = centerX + doll.x * SCALE;
+			var py = centerY - doll.z * SCALE;
+
+			context.fillStyle = (doll.id === myId) ? '#e8c46a' : '#7f7a96';
+			context.beginPath();
+			context.arc(px, py, 7, 0, Math.PI * 2);
+			context.fill();
+
+			context.fillStyle = '#d8d2e8';
+			context.fillText(String(doll.id), px + 10, py + 4);
+		}
+	}
+})();
+</script>
+</body>
+</html>

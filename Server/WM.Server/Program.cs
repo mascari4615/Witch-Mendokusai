@@ -32,6 +32,9 @@ namespace WitchMendokusai.Server
 			WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 			WebApplication app = builder.Build();
 
+			// 골격 창(wwwroot/index.html) — 서버가 자기 확인용 화면을 같이 준다.
+			app.UseDefaultFiles();
+			app.UseStaticFiles();
 			app.UseWebSockets();
 
 			// 사람이 눈으로 살아있음을 확인하는 자리 — 게이트도 여기를 찌른다.
@@ -143,7 +146,7 @@ namespace WitchMendokusai.Server
 			builder.Append("{\"type\":\"world\",\"dolls\":[");
 
 			bool first = true;
-			foreach (Doll doll in world.Dolls)
+			foreach (Doll doll in world.Snapshot())
 			{
 				if (first == false)
 					builder.Append(',');
