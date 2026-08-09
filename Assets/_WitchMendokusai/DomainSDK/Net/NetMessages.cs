@@ -536,4 +536,31 @@ namespace WitchMendokusai.Net
 		public SpellbookPage[] pages = Array.Empty<SpellbookPage>();
 	}
 
+
+	/// <summary>지을 수 있는 것 하나 — 세계가 보내는 모양(필드 이름이 계약이다).</summary>
+	[Serializable]
+	public class BuildCatalogEntryView
+	{
+		public int buildingId;
+		public string name = string.Empty;
+		public int w = 1;
+		public int l = 1;
+		public int costItemId;
+		public int costAmount;
+	}
+
+	/// <summary>
+	/// 서버 → 창: 세계가 아는 <b>지을 것 목록</b>(들어올 때 한 번).
+	///
+	/// ★ 왜 게임도 받아야 하나 (TASK-WM-217): 게임의 짓기 바는 자기 자산 전부를 늘어놓았다.
+	///   세계가 모르는 것을 고르면 내 화면에만 섰다가 사라진다 — 사람은 「고장」으로 읽는다.
+	///   재료(costItemId·costAmount)도 여기 실려야 <b>왜 안 지어지는지</b>를 보여 줄 수 있다.
+	/// </summary>
+	[Serializable]
+	public class BuildCatalogMessage
+	{
+		public string type = NetMessageType.BUILD_CATALOG;
+		public BuildCatalogEntryView[] buildings = Array.Empty<BuildCatalogEntryView>();
+	}
+
 }

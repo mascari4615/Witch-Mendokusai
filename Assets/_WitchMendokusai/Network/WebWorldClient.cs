@@ -197,6 +197,24 @@ namespace WitchMendokusai
 				return;
 			}
 
+			if (json.Contains("\"" + NetMessageType.BUILD_CATALOG + "\""))
+			{
+				// ★ 짓기 목록도 세계 것이어야 한다 (TASK-WM-217) — 자기 자산으로 늘어놓으면
+				//   세계가 모르는 것을 고르게 되고, 그건 내 화면에만 섰다가 사라진다.
+				BuildCatalogMessage catalog = JsonUtility.FromJson<BuildCatalogMessage>(json);
+				BuildCatalog = catalog?.buildings ?? System.Array.Empty<BuildCatalogEntryView>();
+				return;
+			}
+
+			// ★ 「catalog」는 「buildcatalog」 안에도 들어 있다 — 이름만 찾으면 순서에 기대는 코드가 된다.
+			//   누가 위아래를 바꾸는 순간 건물 목록이 아이템 이름으로 읽힌다.
+			if (json.Contains("\"type\":\"" + NetMessageType.CATALOG + "\""))
+			{
+				CatalogMessage names = JsonUtility.FromJson<CatalogMessage>(json);
+				ItemNames = names?.items ?? System.Array.Empty<CatalogEntry>();
+				return;
+			}
+
 			if (json.Contains("\"" + NetMessageType.SPELLBOOK + "\""))
 			{
 				// ★ 화면의 목표도 세계 것이어야 한다 (TASK-WM-217) — 안 그러면 표시대로 저은 사람이 딴 것을 받는다.
@@ -356,6 +374,12 @@ namespace WitchMendokusai
 
 		/// <summary>세계의 마도서 — 들어올 때 한 번 받는다 (TASK-WM-217).</summary>
 		public SpellbookPage[] Spellbook { get; private set; } = System.Array.Empty<SpellbookPage>();
+
+		/// <summary>세계가 아는 지을 것 목록 — 재료까지 (TASK-WM-217).</summary>
+		public BuildCatalogEntryView[] BuildCatalog { get; private set; } = System.Array.Empty<BuildCatalogEntryView>();
+
+		/// <summary>세계가 아는 아이템 이름 — 「나무 1/2」의 「나무」.</summary>
+		public CatalogEntry[] ItemNames { get; private set; } = System.Array.Empty<CatalogEntry>();
 
 		public void RequestChest(int cellX, int cellY, int cellZ)
 		{

@@ -32,6 +32,17 @@ namespace WitchMendokusai.DomainSDK.Building
         /// <summary>셀의 건물 제거(서버 권위).</summary>
         void RemoveBuilding(int cellX, int cellY, int cellZ);
 
+        /// <summary>
+        /// 세계가 아는 <b>지을 것 목록</b> — 재료까지 (TASK-WM-217). 못 받았으면 빈 목록.
+        ///
+        /// ★ 왜 채널이 나르나: 짓기 바가 자기 자산을 늘어놓으면 세계가 모르는 것을 고르게 되고,
+        ///   그건 내 화면에만 섰다가 사라진다(사람은 「고장」으로 읽는다).
+        /// </summary>
+        IReadOnlyList<WitchMendokusai.BuildingCatalogEntry> Catalog { get; }
+
+        /// <summary>그 아이템을 세계는 뭐라 부르나 — 「나무 1/2」의 「나무」. 모르면 빈 글.</summary>
+        string NameOfItem(int itemId);
+
         /// <summary>현재 동기된 전체 배치맵을 buffer 에 복사(피어별 스폰 동기용, FishNet 타입 미노출).</summary>
         void ReadPlacements(List<BuildingPlacement> buffer);
     }

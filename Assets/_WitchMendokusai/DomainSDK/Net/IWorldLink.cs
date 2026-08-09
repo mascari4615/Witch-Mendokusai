@@ -102,5 +102,14 @@ namespace WitchMendokusai.Net
 		///   표시대로 저은 사람이 딴 것을 받는다(화면은 「최상급」, 세계는 「조잡」도 가능).
 		/// </summary>
 		SpellbookPage[] Spellbook { get; }
+
+		/// <summary>
+		/// 세계가 아는 <b>지을 것 목록</b> — 재료까지 (TASK-WM-217). 못 받았으면 빈 배열.
+		/// 화면은 이 목록만 늘어놓는다(세계가 모르는 것을 고르면 섰다가 사라진다).
+		/// </summary>
+		BuildCatalogEntryView[] BuildCatalog { get; }
+
+		/// <summary>세계가 아는 아이템 이름 — 「나무 1/2」의 「나무」다. 못 받았으면 빈 배열.</summary>
+		CatalogEntry[] ItemNames { get; }
 	}
 }

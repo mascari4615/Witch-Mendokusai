@@ -73,6 +73,55 @@ namespace WitchMendokusai
 			link?.RequestRemove(cellX, cellY, cellZ);
 		}
 
+		// 목록은 들어올 때 한 번 오고 안 바뀐다 — 매번 새로 짓지 않는다.
+		private BuildCatalogEntryView[] lastCatalog;
+		private BuildingCatalogEntry[] catalogCache = System.Array.Empty<BuildingCatalogEntry>();
+
+		/// <summary>세계가 아는 지을 것 — 화면의 짓기 바가 여기서 온다 (TASK-WM-217).</summary>
+		public System.Collections.Generic.IReadOnlyList<BuildingCatalogEntry> Catalog
+		{
+			get
+			{
+				BuildCatalogEntryView[] catalog = link?.BuildCatalog;
+				if (catalog == null)
+					return System.Array.Empty<BuildingCatalogEntry>();
+
+				if (ReferenceEquals(catalog, lastCatalog))
+					return catalogCache;
+
+				BuildingCatalogEntry[] list = new BuildingCatalogEntry[catalog.Length];
+				for (int i = 0; i < catalog.Length; i++)
+				{
+					BuildCatalogEntryView entry = catalog[i];
+					list[i] = new BuildingCatalogEntry
+					{
+						id = entry.buildingId, name = entry.name, w = entry.w, l = entry.l,
+						costItemId = entry.costItemId, costAmount = entry.costAmount,
+					};
+				}
+
+				lastCatalog = catalog;
+				catalogCache = list;
+				return catalogCache;
+			}
+		}
+
+		/// <summary>세계가 부르는 이름 — 모르면 빈 글(화면이 「재료」로 대신 쓴다).</summary>
+		public string NameOfItem(int itemId)
+		{
+			CatalogEntry[] names = link?.ItemNames;
+			if (names == null)
+				return string.Empty;
+
+			for (int i = 0; i < names.Length; i++)
+			{
+				if (names[i] != null && names[i].itemId == itemId)
+					return names[i].name;
+			}
+
+			return string.Empty;
+		}
+
 		public void ReadPlacements(List<BuildingPlacement> buffer)
 		{
 			if (buffer == null)

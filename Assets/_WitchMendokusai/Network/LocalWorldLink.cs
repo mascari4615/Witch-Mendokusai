@@ -357,6 +357,33 @@ namespace WitchMendokusai
 		/// 내 안의 세계가 쓰는 마도서 — <b>같은 것</b>을 화면에 준다 (TASK-WM-217).
 		/// 혼자 놀 때만 화면이 다른 목표를 그리면, 혼자/같이가 또 갈라진다.
 		/// </summary>
+		/// <summary>내 안의 세계가 아는 지을 것 — <b>같은 목록</b>을 화면에 준다 (TASK-WM-217).</summary>
+		public BuildCatalogEntryView[] BuildCatalog
+		{
+			get
+			{
+				System.Collections.Generic.IReadOnlyList<BuildingCatalogEntry> catalog = world?.Buildables?.All;
+				if (catalog == null)
+					return System.Array.Empty<BuildCatalogEntryView>();
+
+				BuildCatalogEntryView[] view = new BuildCatalogEntryView[catalog.Count];
+				for (int i = 0; i < catalog.Count; i++)
+				{
+					BuildingCatalogEntry entry = catalog[i];
+					view[i] = new BuildCatalogEntryView
+					{
+						buildingId = entry.id, name = entry.name, w = entry.w, l = entry.l,
+						costItemId = entry.costItemId, costAmount = entry.costAmount,
+					};
+				}
+
+				return view;
+			}
+		}
+
+		/// <summary>혼자 노는 세계도 이름을 안다 — 게임 자산이 정본이라 여기선 빈 목록으로 둔다.</summary>
+		public CatalogEntry[] ItemNames => System.Array.Empty<CatalogEntry>();
+
 		public SpellbookPage[] Spellbook
 		{
 			get
