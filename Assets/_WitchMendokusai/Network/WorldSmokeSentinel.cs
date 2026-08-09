@@ -55,6 +55,8 @@ namespace WitchMendokusai
 		private int gatheredWood;
 		private int gatheredAmount;
 		private bool brewed;
+		private int potsSeen;
+		private int myPotSteps;
 		private int completedItemId;
 		private bool completed;
 		private float stepCooldown;
@@ -144,7 +146,8 @@ namespace WitchMendokusai
 				//   「줍고·상자까지 됐다」면 물약 없이도 논 것으로 센다.
 				if (completed == false && chestSeenAmount != 0 && waited >= LINGER_SECONDS)
 				{
-					Write("pass", link.Dolls.Length, link, "played but potion went to someone else");
+					Write("pass", link.Dolls.Length, link,
+						link.Dolls.Length > 1 ? "played but potion went to someone else" : "played but never completed");
 					return;
 				}
 
@@ -260,6 +263,22 @@ namespace WitchMendokusai
 				link.RequestBrewStepAt(gatheredItemId, chestX + 1, 0, chestZ);
 				brewed = true;
 				return;
+			}
+
+			// 솥이 실제로 섰나 · 저은 자국이 남았나 — 완성이 0 일 때 <b>어디서 끊겼는지</b>를 남긴다
+			// (실측 2026-08-10: potion=0 인데 이유가 「남이 가져갔다」로 나와 혼자 판에서도 오해를 샀다).
+			CauldronView[] pots = link.Cauldrons;
+			potsSeen = pots == null ? 0 : pots.Length;
+			if (pots != null)
+			{
+				for (int i = 0; i < pots.Length; i++)
+				{
+					if (pots[i].x != chestX + 1 || pots[i].z != chestZ)
+						continue;
+
+					myPotSteps = pots[i].steps;
+					break;
+				}
 			}
 
 			// 완성은 세계가 내준다 — 못 받으면 다음 걸음에 다시 청한다(남이 먼저 가져갔을 수도 있다).
@@ -424,6 +443,14 @@ namespace WitchMendokusai
 				// 상자를 어디에 지었나 — 다음 판이 그 자리를 찾아가 「남아 있나」를 본다.
 				"chestx=", chestX.ToString(CultureInfo.InvariantCulture), "\n",
 				"chestz=", chestZ.ToString(CultureInfo.InvariantCulture), "\n",
+				// 이름을 정했고 그게 세계의 그림에 실렸나 — 안 실리면 남의 화면에서 나는 영영 「손님」이다.
+				"named=", myName, "\n",
+				"worldname=", NameInWorld(link), "\n",
+				// 제작을 청해 무엇이 나왔나 · 솥은 실제로 섰고 저은 자국이 남았나.
+				// potion=0 일 때 <b>어디서 끊겼는지</b>를 남긴다 — 없으면 매번 처음부터 추측한다.
+				"crafted=", craftedItemId.ToString(CultureInfo.InvariantCulture), "\n",
+				"pots=", potsSeen.ToString(CultureInfo.InvariantCulture), "\n",
+				"potsteps=", myPotSteps.ToString(CultureInfo.InvariantCulture), "\n",
 				"reason=", reason, "\n");
 
 			try
