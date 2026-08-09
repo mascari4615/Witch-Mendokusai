@@ -180,7 +180,22 @@ namespace WitchMendokusai.Server
 			{
 				string secret = ReadHelloSecret(text);
 				WitchMendokusai.Identity.WorldIdentityRecord person = Identities.Recognize(secret, out bool created, World.Calendar.TotalDays());
-				World.Adopt(dollId, person.id, ItemsCatalog);
+				World.Adopt(dollId, person.id, ItemsCatalog, out int evictedDollId);
+
+				// 중복 로그인 — 일반 MMORPG 처럼 나중에 온 쪽이 이긴다. 밀려난 창에는 이유를 말하고 닫는다
+				// (조용히 끊으면 사람은 「버그」로 읽는다).
+				if (evictedDollId != 0 && sockets.TryRemove(evictedDollId, out WebSocket evicted))
+				{
+					await SendAsync(evicted, Protocol.Kicked());
+					try
+					{
+						await evicted.CloseAsync(WebSocketCloseStatus.NormalClosure, "same person elsewhere", CancellationToken.None);
+					}
+					catch (WebSocketException)
+					{
+						// 이미 끊긴 창 — 그대로 둔다.
+					}
+				}
 
 				// 새 열쇠는 새로 만들었을 때만 — 기기에 적어 둬야 다음에 「나」다.
 				await SendAsync(socket, Protocol.Welcome(dollId, created ? person.secret : string.Empty, person.id));

@@ -151,10 +151,36 @@ namespace WitchMendokusai
 		///   영영 환영을 못 받고 멈춰 섰다(시험 4개가 그 자리에서 죽었다). 그래서 <b>먼저 받아 주고</b>
 		///   열쇠가 오면 그때 기억을 얹는다 — 인사를 안 해도 게임은 돈다.
 		/// </summary>
-		public bool Adopt(int dollId, int identityId, WorldItemCatalog catalog)
+		public bool Adopt(int dollId, int identityId, WorldItemCatalog catalog) => Adopt(dollId, identityId, catalog, out int _);
+
+		/// <summary>
+		/// 주인을 붙인다. 그 사람이 <b>이미 다른 창으로 들어와 있으면 그 창을 내보낸다</b>
+		/// (<paramref name="evictedDollId"/> 로 알려 준다) — 일반 MMORPG 의 중복 로그인 규칙이다.
+		///
+		/// ★ 왜 내보내나: 창 둘이 각자 인형을 가지면 나갈 때 서로의 자리·가방을 덮어쓴다
+		///   (마지막에 나간 쪽이 이긴다 = 조용한 데이터 유실). 새로 온 쪽을 살리는 이유는
+		///   「지금 손에 쥔 사람」이 진짜 그 사람일 확률이 높아서다(끊긴 옛 연결이 남아 있는 경우 포함).
+		/// </summary>
+		public bool Adopt(int dollId, int identityId, WorldItemCatalog catalog, out int evictedDollId)
 		{
+			evictedDollId = 0;
 			lock (gate)
 			{
+				if (identityId != 0)
+				{
+					foreach (KeyValuePair<int, WorldDoll> existing in dolls)
+					{
+						if (existing.Key != dollId && existing.Value.IdentityId == identityId)
+						{
+							evictedDollId = existing.Key;
+							break;
+						}
+					}
+
+					if (evictedDollId != 0)
+						RememberAndRemove(evictedDollId); // 내보내기 전에 그 창의 것을 적어 둔다.
+				}
+
 				if (identityId == 0 || dolls.TryGetValue(dollId, out WorldDoll doll) == false)
 					return false;
 
@@ -232,6 +258,14 @@ namespace WitchMendokusai
 		public void Leave(int dollId)
 		{
 			lock (gate)
+			{
+				RememberAndRemove(dollId);
+			}
+		}
+
+		// ⚠ 이미 자물쇠를 쥔 자리에서 부른다.
+		private void RememberAndRemove(int dollId)
+		{
 			{
 				if (dolls.TryGetValue(dollId, out WorldDoll doll) && doll.IdentityId != 0)
 				{

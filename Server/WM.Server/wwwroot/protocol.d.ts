@@ -123,5 +123,11 @@ export interface Linked {
 	identityId: number;
 }
 
-export type ServerMessage = Welcome | WorldSnapshot | BrewTaken | Bag | Invite | Linked;
+/** 서버 -> 그 창에게만: 다른 곳에서 같은 사람이 들어왔다(여기서는 나간다). */
+export interface Kicked {
+	type: 'kicked';
+	reason: string;
+}
+
+export type ServerMessage = Welcome | WorldSnapshot | BrewTaken | Bag | Invite | Linked | Kicked;
 export type ClientMessage = MoveRequest | RemoveRequest | BrewRequest | BrewResetRequest | BrewCompleteRequest | Hello | BagAsk | ConsumeRequest | InviteAsk | LinkRequest;

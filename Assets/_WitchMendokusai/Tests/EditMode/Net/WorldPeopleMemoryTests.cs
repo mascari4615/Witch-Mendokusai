@@ -163,6 +163,48 @@ namespace WitchMendokusai.Tests.EditMode.Net
 		}
 
 		[Test]
+		public void 중복_로그인은_먼저_있던_창을_내보낸다()
+		{
+			WorldSim world = new WorldSim();
+			WorldItemCatalog catalog = Catalog();
+
+			WorldDoll firstWindow = world.Join(identityId: 4, catalog: catalog);
+			world.TryGather(firstWindow.Id, catalog.Find(STONE), 6);
+
+			// 두 번째 창이 같은 사람으로 들어온다 — 일반 MMORPG 처럼 나중에 온 쪽이 이긴다.
+			WorldDoll secondWindow = world.Join();
+			Assert.That(world.Adopt(secondWindow.Id, 4, catalog, out int evicted), Is.True);
+
+			Assert.That(evicted, Is.EqualTo(firstWindow.Id));
+			Assert.That(world.OwnerOf(firstWindow.Id), Is.EqualTo(0), "밀려난 인형은 세계에서 빠진다.");
+			Assert.That(world.OwnerOf(secondWindow.Id), Is.EqualTo(4));
+
+			// 내보내기 전에 그 창의 것을 적어 뒀으므로, 새 창이 그대로 이어받는다.
+			Assert.That(world.BagCount(secondWindow.Id, STONE), Is.EqualTo(6));
+		}
+
+		[Test]
+		public void 밀려난_창이_나가도_새_창의_것을_안_덮는다()
+		{
+			WorldSim world = new WorldSim();
+			WorldItemCatalog catalog = Catalog();
+
+			WorldDoll old = world.Join(identityId: 7, catalog: catalog);
+			world.TryGather(old.Id, catalog.Find(STONE), 2);
+
+			WorldDoll fresh = world.Join();
+			world.Adopt(fresh.Id, 7, catalog, out int _);
+			world.TryGather(fresh.Id, catalog.Find(STONE), 3);
+
+			// 밀려난 창의 소켓이 뒤늦게 닫히며 Leave 가 오더라도 — 이미 세계에서 빠진 인형이다.
+			world.Leave(old.Id);
+			world.Leave(fresh.Id);
+
+			WorldDoll again = world.Join(identityId: 7, catalog: catalog);
+			Assert.That(world.BagCount(again.Id, STONE), Is.EqualTo(5), "새 창이 이어받은 뒤 모은 것까지 남아야 한다.");
+		}
+
+		[Test]
 		public void 같은_사람끼리는_합치지_않는다()
 		{
 			WorldSim world = new WorldSim();

@@ -47,6 +47,9 @@ namespace WitchMendokusai.Net
 		/// <summary>서버 → 그 창에게만: 이었다(또는 못 이었다).</summary>
 		public const string LINKED = "linked";
 
+		/// <summary>서버 → 그 창에게만: 다른 곳에서 같은 사람이 들어왔다(여기서는 나간다).</summary>
+		public const string KICKED = "kicked";
+
 		/// <summary>창 → 서버: 이걸 부수고 싶다(그 칸을 문 건물이 통째로 사라진다).</summary>
 		public const string REMOVE = "remove";
 
@@ -277,6 +280,17 @@ namespace WitchMendokusai.Net
 		public string type = NetMessageType.LINKED;
 		public bool ok;
 		public int identityId;
+	}
+
+	/// <summary>
+	/// 서버 → 그 창에게만: <b>다른 곳에서 같은 사람이 들어왔다</b> (TASK-WM-218).
+	/// 일반 MMORPG 의 중복 로그인 규칙 — 나중에 온 쪽이 이긴다. 여기까지 온 창은 조용히 나간다.
+	/// </summary>
+	[Serializable]
+	public class KickedMessage
+	{
+		public string type = NetMessageType.KICKED;
+		public string reason = "다른 곳에서 접속했다";
 	}
 
 	/// <summary>창 → 서버: 이 칸의 건물을 부수고 싶다.</summary>

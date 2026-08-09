@@ -31,6 +31,7 @@ namespace WitchMendokusai.Server
 		public const string INVITE = Net.NetMessageType.INVITE;
 		public const string LINK = Net.NetMessageType.LINK;
 		public const string LINKED = Net.NetMessageType.LINKED;
+		public const string KICKED = Net.NetMessageType.KICKED;
 
 		/// <summary>계약을 웹이 읽을 수 있는 형태로 뽑는다.</summary>
 		public static string ToTypeScript()
@@ -94,7 +95,10 @@ namespace WitchMendokusai.Server
 			builder.Append("/** 서버 -> 그 창에게만: 이었나(이었으면 다시 들어와야 그 사람으로 논다). */\n");
 			builder.Append("export interface Linked {\n\ttype: '").Append(LINKED).Append("';\n\tok: boolean;\n\tidentityId: number;\n}\n\n");
 
-			builder.Append("export type ServerMessage = Welcome | WorldSnapshot | BrewTaken | Bag | Invite | Linked;\n");
+			builder.Append("/** 서버 -> 그 창에게만: 다른 곳에서 같은 사람이 들어왔다(여기서는 나간다). */\n");
+			builder.Append("export interface Kicked {\n\ttype: '").Append(KICKED).Append("';\n\treason: string;\n}\n\n");
+
+			builder.Append("export type ServerMessage = Welcome | WorldSnapshot | BrewTaken | Bag | Invite | Linked | Kicked;\n");
 			builder.Append("export type ClientMessage = MoveRequest | RemoveRequest | BrewRequest | BrewResetRequest | BrewCompleteRequest | Hello | BagAsk | ConsumeRequest | InviteAsk | LinkRequest;\n");
 
 			return builder.ToString();
@@ -143,6 +147,12 @@ namespace WitchMendokusai.Server
 		{
 			return "{\"type\":\"" + LINKED + "\",\"ok\":" + (ok ? "true" : "false")
 				+ ",\"identityId\":" + identityId + "}";
+		}
+
+		/// <summary>그 창에게만: 다른 곳에서 같은 사람이 들어왔다.</summary>
+		public static string Kicked()
+		{
+			return "{\"type\":\"" + KICKED + "\",\"reason\":\"다른 곳에서 접속했다\"}";
 		}
 
 		/// <summary>서버가 보내는 인사말.</summary>
