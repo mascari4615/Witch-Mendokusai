@@ -32,6 +32,9 @@ namespace WitchMendokusai.Server
 		/// <summary>실제 1초에 세계의 몇 분이 흐르나 — 게임의 WorldClockSO 와 맞춰야 할 값.</summary>
 		private const float MINUTES_PER_REAL_SECOND = 1f;
 
+		/// <summary>이만큼(세계의 날) 안 오고 아무것도 안 남긴 사람은 장부에서 지운다.</summary>
+		private const int GUEST_FORGET_DAYS = 90;
+
 		private readonly WorldStore store;
 		private readonly ConcurrentDictionary<int, WebSocket> sockets = new ConcurrentDictionary<int, WebSocket>();
 		private int worldDirty;
@@ -159,7 +162,7 @@ namespace WitchMendokusai.Server
 			if (text.Contains("\"" + Protocol.HELLO + "\""))
 			{
 				string secret = ReadHelloSecret(text);
-				WitchMendokusai.Identity.WorldIdentityRecord person = Identities.Recognize(secret, out bool created);
+				WitchMendokusai.Identity.WorldIdentityRecord person = Identities.Recognize(secret, out bool created, World.Calendar.TotalDays());
 				World.Adopt(dollId, person.id, ItemsCatalog);
 
 				// 새 열쇠는 새로 만들었을 때만 — 기기에 적어 둬야 다음에 「나」다.
@@ -375,6 +378,12 @@ namespace WitchMendokusai.Server
 
 					if (Interlocked.Exchange(ref worldDirty, 0) == 0)
 						continue;
+
+					// 빈손이고 오래 안 온 손님은 장부에서 지운다 — 안 그러면 장부가 영원히 커진다.
+					// 뭔가 남긴 사람은 절대 안 지운다(세계를 지우는 짓이다).
+					int forgotten = Identities.PruneGuests(World.Calendar.TotalDays(), GUEST_FORGET_DAYS, World.OwnsSomething);
+					if (forgotten > 0)
+						Console.WriteLine($"[identity] 빈손 손님 {forgotten}명을 장부에서 지웠다.");
 
 					store.TrySave(SaveWorld());
 				}

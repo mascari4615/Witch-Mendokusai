@@ -200,6 +200,46 @@ namespace WitchMendokusai.Tests.EditMode.Net
 		}
 
 		[Test]
+		public void 빈손이고_오래_안_온_손님만_지운다()
+		{
+			WorldIdentityRegistry registry = Fresh();
+			WorldIdentityRecord guest = registry.Recognize(null, out bool _, today: 0);
+			WorldIdentityRecord owner = registry.Recognize(null, out bool _, today: 0);
+
+			// owner 는 세계에 뭔가 남겼다 — 오래 안 왔어도 지우지 않는다.
+			int pruned = registry.PruneGuests(today: 100, notSeenForDays: 30, ownsSomething: id => id == owner.id);
+
+			Assert.That(pruned, Is.EqualTo(1));
+			Assert.That(registry.Find(guest.id), Is.Null);
+			Assert.That(registry.Find(owner.id), Is.Not.Null);
+		}
+
+		[Test]
+		public void 최근에_온_사람은_안_지운다()
+		{
+			WorldIdentityRegistry registry = Fresh();
+			WorldIdentityRecord person = registry.Recognize(null, out bool _, today: 0);
+
+			// 다시 왔으면 그 날짜가 새로 찍힌다.
+			registry.Recognize(person.secret, out bool _, today: 95);
+
+			Assert.That(registry.PruneGuests(today: 100, notSeenForDays: 30, ownsSomething: id => false), Is.EqualTo(0));
+		}
+
+		[Test]
+		public void 지운_사람의_초대_열쇠도_같이_버린다()
+		{
+			WorldIdentityRegistry registry = Fresh();
+			WorldIdentityRecord guest = registry.Recognize(null, out bool _, today: 0);
+			string invite = registry.IssueInvite(guest.id, today: 0);
+
+			registry.PruneGuests(today: 100, notSeenForDays: 30, ownsSomething: id => false);
+
+			Assert.That(registry.PendingInvites, Is.EqualTo(0));
+			Assert.That(registry.RedeemInvite(invite, "기기", today: 100), Is.Null);
+		}
+
+		[Test]
 		public void 망가진_줄은_버리고_세계는_열린다()
 		{
 			WorldIdentityBook broken = new WorldIdentityBook

@@ -96,12 +96,13 @@ namespace WitchMendokusai.Identity
 		/// 창이 내민 열쇠로 사람을 찾는다. 맞으면 그 사람, 아니면 <b>새 사람</b>을 만들어 준다.
 		/// <paramref name="created"/> 가 true 면 창에 새 열쇠를 줘야 한다(기기에 저장하도록).
 		/// </summary>
-		public WorldIdentityRecord Recognize(string secret, out bool created)
+		public WorldIdentityRecord Recognize(string secret, out bool created, int today = 0)
 		{
 			lock (gate)
 			{
 				if (string.IsNullOrEmpty(secret) == false && bySecret.TryGetValue(secret, out WorldIdentityRecord known))
 				{
+					known.lastSeenDay = today;
 					created = false;
 					return known;
 				}
@@ -111,6 +112,7 @@ namespace WitchMendokusai.Identity
 				{
 					id = nextId++,
 					secret = NewSecret(),
+					lastSeenDay = today,
 				};
 
 				bySecret[record.secret] = record;
@@ -278,6 +280,52 @@ namespace WitchMendokusai.Identity
 				{
 					return invites.Count;
 				}
+			}
+		}
+
+		/// <summary>
+		/// <b>빈손이고 오래 안 온</b> 사람만 지운다 (TASK-WM-218).
+		///
+		/// ★ 왜 조심스러운가: 신원을 지우는 건 그 사람의 세계를 지우는 것이다. 그래서 두 조건을
+		///   <b>둘 다</b> 만족할 때만 지운다 — ① 세계에 남긴 게 하나도 없다(<paramref name="ownsSomething"/>)
+		///   ② 오래 안 왔다. 하나라도 걸리면 남긴다. 「깨끗한 장부」보다 「남의 것을 안 지우는 것」이 위다.
+		///
+		/// 지운 사람의 초대 열쇠도 같이 버린다(주인 없는 열쇠는 아무 데도 못 간다).
+		/// </summary>
+		public int PruneGuests(int today, int notSeenForDays, Func<int, bool> ownsSomething)
+		{
+			lock (gate)
+			{
+				List<WorldIdentityRecord> doomed = new List<WorldIdentityRecord>();
+				foreach (KeyValuePair<int, WorldIdentityRecord> entry in byId)
+				{
+					WorldIdentityRecord person = entry.Value;
+					if (today - person.lastSeenDay < notSeenForDays)
+						continue;
+
+					if (ownsSomething != null && ownsSomething(person.id))
+						continue;
+
+					doomed.Add(person);
+				}
+
+				for (int i = 0; i < doomed.Count; i++)
+				{
+					byId.Remove(doomed[i].id);
+					bySecret.Remove(doomed[i].secret);
+
+					List<string> orphanCodes = new List<string>();
+					foreach (KeyValuePair<string, WorldLinkInvite> invite in invites)
+					{
+						if (invite.Value.identityId == doomed[i].id)
+							orphanCodes.Add(invite.Key);
+					}
+
+					for (int c = 0; c < orphanCodes.Count; c++)
+						invites.Remove(orphanCodes[c]);
+				}
+
+				return doomed.Count;
 			}
 		}
 

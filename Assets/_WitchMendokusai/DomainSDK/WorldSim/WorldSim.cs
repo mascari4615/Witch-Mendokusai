@@ -179,6 +179,25 @@ namespace WitchMendokusai
 			}
 		}
 
+		/// <summary>
+		/// 그 사람이 세계에 남긴 게 있나 (TASK-WM-218) — 신원 정리 전에 반드시 묻는다.
+		/// 지금은 「가방에 뭔가 있거나, 어디엔가 서 있던 자리가 원점이 아니거나」.
+		/// ⚠ 나중에 집·밭·친구가 생기면 여기도 같이 늘어야 한다 — 안 그러면 가진 사람이 지워진다.
+		/// </summary>
+		public bool OwnsSomething(int identityId)
+		{
+			lock (gate)
+			{
+				if (remembered.TryGetValue(identityId, out PersonSaveData kept) == false)
+					return false;
+
+				if (kept.bag != null && kept.bag.Length > 0)
+					return true;
+
+				return kept.x != 0f || kept.z != 0f;
+			}
+		}
+
 		/// <summary>그 인형의 주인(신원 번호) — 아직 안 붙었으면 0.</summary>
 		public int OwnerOf(int dollId)
 		{
