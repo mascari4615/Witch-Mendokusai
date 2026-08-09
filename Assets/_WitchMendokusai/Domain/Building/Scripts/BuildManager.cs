@@ -7,6 +7,7 @@ using Vector2Int = WitchMendokusai.Numerics.Vector2Int;
 using Vector3 = WitchMendokusai.Numerics.Vector3;
 using UnityEngine.InputSystem;
 using VContainer;
+using WitchMendokusai.DomainSDK.Building;
 
 namespace WitchMendokusai
 {
@@ -208,6 +209,11 @@ namespace WitchMendokusai
 			lastClickTime = Time.time;
 			worldStage.GridData.AddBuildingAt(placeCell, new BuildingInstanceData(selectedBuilding.ID));
 			SpawnBuildingObject(placeCell, worldStage.GridData.BuildingData[placeCell]);
+
+			// 세계에도 알린다 (TASK-WM-217) — 안 알리면 내 화면에만 서고 남에겐 안 보인다.
+			// 내 화면에는 먼저 세운다(기다리면 손맛이 죽는다). 세계가 거절했을 때 되돌리는 일 = 후속.
+			if (SharedBuildChannelBridge.IsActive)
+				SharedBuildChannelBridge.Channel.PlaceBuilding(placeCell.x, placeCell.y, placeCell.z, selectedBuilding.ID);
 		}
 
 		// 빌드모드 좌클릭 = 부수기 (월드 편집 통일). 가리킨 게 건물이면 건물 제거, 지형(복셀)이면 복셀 블록 부수기.
@@ -229,8 +235,14 @@ namespace WitchMendokusai
 			BuildingObject buildingObject = hit.collider.GetComponentInParent<BuildingObject>();
 			if (buildingObject != null)
 			{
-				worldStage.GridData.RemoveBuildingAt(buildingObject.Pivot);
-				DespawnBuildingObject(buildingObject.Pivot);
+				Vector3Int removedPivot = buildingObject.Pivot;
+				worldStage.GridData.RemoveBuildingAt(removedPivot);
+				DespawnBuildingObject(removedPivot);
+
+				// 부순 것도 세계에 알린다 — 안 알리면 남의 화면엔 그대로 서 있다.
+				if (SharedBuildChannelBridge.IsActive)
+					SharedBuildChannelBridge.Channel.RemoveBuilding(removedPivot.x, removedPivot.y, removedPivot.z);
+
 				return;
 			}
 
