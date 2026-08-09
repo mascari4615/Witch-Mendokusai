@@ -174,3 +174,18 @@ jobs:
           # (로컬에서 그 거짓 초록을 봤다 — 게이트가 '안 봤음'을 '통과'로 찍는 모양).
           dotnet build Portable/DomainSDK.Portable.csproj -c Release --nologo -warnaserror --no-incremental
           echo "엔진 밖 빌드 OK — 이 커밋의 DomainSDK 는 Unity 프로세스 밖에서 돈다."
+
+      - name: Test — 판정 시험이 엔진 밖에서도 같은 답을 내나
+        run: |
+          set -euo pipefail
+          # "컴파일된다" 는 반쪽이다. 같은 EditMode 시험 파일이 엔진 밖에서도 통과해야
+          # 시뮬이 진짜로 옮겨간 것이다(사본 아님 — Assets 아래 진짜 파일을 문다).
+          OUT=$(dotnet test Portable/DomainSDK.Tests/DomainSDK.Tests.csproj -c Release --nologo 2>&1)
+          echo "$OUT"
+          PASSED=$(printf '%s' "$OUT" | grep -oE 'Passed:[[:space:]]*[0-9]+' | grep -oE '[0-9]+' | tail -1 || true)
+          if [ -z "${PASSED:-}" ] || [ "$PASSED" -lt 40 ]; then
+            echo "::error::엔진 밖 시험이 ${PASSED:-0}개만 돌았다 — 통과가 아니라 **안 돈 것**이다."
+            echo "::error::  (시험 파일이 옮겨졌거나 목록에서 빠졌는지 확인: Portable/DomainSDK.Tests/DomainSDK.Tests.csproj)"
+            exit 1
+          fi
+          echo "엔진 밖 시험 ${PASSED}개 통과."

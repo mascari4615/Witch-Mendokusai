@@ -1,0 +1,48 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    TASK-WM-214 — 판정 시험을 Unity 없이 **실제로 돌린다**.
+
+    "컴파일된다" 는 반쪽이다. 시뮬이 엔진 밖에서 같은 답을 내는지는 시험이 돌아야 안다.
+    여기 담기는 건 저장소의 진짜 EditMode 시험 파일이다(사본 0) — 유니티 안에서 도는 것과
+    같은 파일이 엔진 밖에서도 돈다. 둘이 갈리면 그건 이식이 덜 된 것이다.
+
+    담는 기준 = 엔진(UnityEngine/UnityEditor/MonoBehaviour/UnityTest)을 안 쓰는 시험 중
+    DomainSDK 만으로 서는 것. 게임 층(Domain)이 필요한 시험은 유니티 러너가 정본이다.
+  -->
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <LangVersion>9.0</LangVersion>
+    <Nullable>disable</Nullable>
+    <IsPackable>false</IsPackable>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <!-- 서식 분석기는 이 게이트의 관심사가 아니다 (본체 csproj 와 같은 이유). -->
+    <EnforceCodeStyleInBuild>false</EnforceCodeStyleInBuild>
+    <AnalysisLevel>none</AnalysisLevel>
+    <TestsRoot>$(MSBuildThisFileDirectory)../../Assets/_WitchMendokusai/Tests/EditMode/</TestsRoot>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
+    <PackageReference Include="NUnit" Version="3.14.0" />
+    <PackageReference Include="NUnit3TestAdapter" Version="4.6.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../DomainSDK.Portable.csproj" />
+  </ItemGroup>
+
+  <!-- 진짜 시험 파일 (복사 X) -->
+  <ItemGroup>
+    <Compile Include="$(TestsRoot)BuildingProductionModelTest.cs" />
+    <Compile Include="$(TestsRoot)CityEconomyTest.cs" />
+    <Compile Include="$(TestsRoot)CitySimulationSystemTest.cs" />
+    <Compile Include="$(TestsRoot)LeylineGraphTest.cs" />
+    <Compile Include="$(TestsRoot)ManaFlowTest.cs" />
+    <Compile Include="$(TestsRoot)SimulationTickSchedulerTest.cs" />
+    <!-- UGCRecipeLoaderTest = 게임 층(Domain)의 로더가 필요하다 — 유니티 러너가 정본. -->
+    <Compile Include="$(TestsRoot)FreshnessTest.cs" />
+  </ItemGroup>
+
+</Project>
