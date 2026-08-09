@@ -1,0 +1,838 @@
+{
+    "items": [
+        {
+            "id": 17450,
+            "maxAmount": 500,
+            "type": 0,
+            "grade": 0
+        },
+        {
+            "id": 9000000,
+            "maxAmount": 1,
+            "type": 2,
+            "grade": 0
+        },
+        {
+            "id": 9000001,
+            "maxAmount": 1,
+            "type": 2,
+            "grade": 0
+        },
+        {
+            "id": 9000002,
+            "maxAmount": 1,
+            "type": 2,
+            "grade": 0
+        },
+        {
+            "id": 9000003,
+            "maxAmount": 1,
+            "type": 2,
+            "grade": 0
+        },
+        {
+            "id": 9000004,
+            "maxAmount": 1,
+            "type": 2,
+            "grade": 0
+        },
+        {
+            "id": 9000005,
+            "maxAmount": 1,
+            "type": 2,
+            "grade": 0
+        },
+        {
+            "id": 9000006,
+            "maxAmount": 1,
+            "type": 2,
+            "grade": 0
+        },
+        {
+            "id": 9000007,
+            "maxAmount": 1,
+            "type": 2,
+            "grade": 0
+        },
+        {
+            "id": 9000008,
+            "maxAmount": 1,
+            "type": 2,
+            "grade": 0
+        },
+        {
+            "id": 10000000,
+            "maxAmount": 9999,
+            "type": 1,
+            "grade": 0
+        },
+        {
+            "id": 10000001,
+            "maxAmount": 9999,
+            "type": 1,
+            "grade": 0
+        },
+        {
+            "id": 10000002,
+            "maxAmount": 9999,
+            "type": 1,
+            "grade": 0
+        },
+        {
+            "id": 10001000,
+            "maxAmount": 500,
+            "type": 1,
+            "grade": 0
+        },
+        {
+            "id": 10001001,
+            "maxAmount": 9999,
+            "type": 1,
+            "grade": 0
+        },
+        {
+            "id": 10002000,
+            "maxAmount": 500,
+            "type": 1,
+            "grade": 0
+        },
+        {
+            "id": 10002001,
+            "maxAmount": 500,
+            "type": 1,
+            "grade": 0
+        },
+        {
+            "id": 10003000,
+            "maxAmount": 500,
+            "type": 1,
+            "grade": 0
+        },
+        {
+            "id": 10003001,
+            "maxAmount": 500,
+            "type": 1,
+            "grade": 0
+        },
+        {
+            "id": 10004000,
+            "maxAmount": 500,
+            "type": 1,
+            "grade": 0
+        },
+        {
+            "id": 10004001,
+            "maxAmount": 500,
+            "type": 1,
+            "grade": 0
+        },
+        {
+            "id": 10100000,
+            "maxAmount": 500,
+            "type": 1,
+            "grade": 0
+        },
+        {
+            "id": 10100001,
+            "maxAmount": 500,
+            "type": 1,
+            "grade": 0
+        },
+        {
+            "id": 10100002,
+            "maxAmount": 500,
+            "type": 1,
+            "grade": 0
+        },
+        {
+            "id": 11000000,
+            "maxAmount": 500,
+            "type": 1,
+            "grade": 0
+        },
+        {
+            "id": 11000001,
+            "maxAmount": 500,
+            "type": 1,
+            "grade": 0
+        },
+        {
+            "id": 11000002,
+            "maxAmount": 500,
+            "type": 1,
+            "grade": 0
+        },
+        {
+            "id": 20000000,
+            "maxAmount": 1,
+            "type": 2,
+            "grade": 0
+        },
+        {
+            "id": 20000001,
+            "maxAmount": 1,
+            "type": 2,
+            "grade": 0
+        },
+        {
+            "id": 20000002,
+            "maxAmount": 1,
+            "type": 2,
+            "grade": 0
+        },
+        {
+            "id": 20000003,
+            "maxAmount": 1,
+            "type": 2,
+            "grade": 0
+        },
+        {
+            "id": 20000004,
+            "maxAmount": 1,
+            "type": 2,
+            "grade": 0
+        },
+        {
+            "id": 20000005,
+            "maxAmount": 1,
+            "type": 2,
+            "grade": 0
+        },
+        {
+            "id": 20000006,
+            "maxAmount": 1,
+            "type": 2,
+            "grade": 0
+        },
+        {
+            "id": 20000007,
+            "maxAmount": 1,
+            "type": 2,
+            "grade": 0
+        },
+        {
+            "id": 20000008,
+            "maxAmount": 1,
+            "type": 2,
+            "grade": 0
+        },
+        {
+            "id": 20000009,
+            "maxAmount": 1,
+            "type": 2,
+            "grade": 0
+        },
+        {
+            "id": 20000010,
+            "maxAmount": 1,
+            "type": 2,
+            "grade": 0
+        },
+        {
+            "id": 20000011,
+            "maxAmount": 1,
+            "type": 2,
+            "grade": 0
+        },
+        {
+            "id": 20000012,
+            "maxAmount": 1,
+            "type": 2,
+            "grade": 0
+        },
+        {
+            "id": 0,
+            "maxAmount": 500,
+            "type": 0,
+            "grade": 0
+        },
+        {
+            "id": 1,
+            "maxAmount": 500,
+            "type": 0,
+            "grade": 0
+        },
+        {
+            "id": 2,
+            "maxAmount": 500,
+            "type": 0,
+            "grade": 0
+        },
+        {
+            "id": 3,
+            "maxAmount": 500,
+            "type": 0,
+            "grade": 0
+        },
+        {
+            "id": 4,
+            "maxAmount": 500,
+            "type": 0,
+            "grade": 0
+        },
+        {
+            "id": 5,
+            "maxAmount": 500,
+            "type": 0,
+            "grade": 0
+        },
+        {
+            "id": 6,
+            "maxAmount": 500,
+            "type": 0,
+            "grade": 0
+        },
+        {
+            "id": 7,
+            "maxAmount": 500,
+            "type": 0,
+            "grade": 0
+        },
+        {
+            "id": 8,
+            "maxAmount": 500,
+            "type": 0,
+            "grade": 0
+        },
+        {
+            "id": 9,
+            "maxAmount": 500,
+            "type": 0,
+            "grade": 0
+        },
+        {
+            "id": 10,
+            "maxAmount": 500,
+            "type": 0,
+            "grade": 0
+        },
+        {
+            "id": 11,
+            "maxAmount": 500,
+            "type": 0,
+            "grade": 0
+        },
+        {
+            "id": 12,
+            "maxAmount": 500,
+            "type": 0,
+            "grade": 0
+        },
+        {
+            "id": 13,
+            "maxAmount": 500,
+            "type": 0,
+            "grade": 0
+        },
+        {
+            "id": 14,
+            "maxAmount": 500,
+            "type": 0,
+            "grade": 0
+        },
+        {
+            "id": 15,
+            "maxAmount": 500,
+            "type": 0,
+            "grade": 0
+        },
+        {
+            "id": 16,
+            "maxAmount": 500,
+            "type": 0,
+            "grade": 0
+        },
+        {
+            "id": 17,
+            "maxAmount": 500,
+            "type": 0,
+            "grade": 0
+        },
+        {
+            "id": 18,
+            "maxAmount": 500,
+            "type": 0,
+            "grade": 0
+        },
+        {
+            "id": 19,
+            "maxAmount": 500,
+            "type": 0,
+            "grade": 0
+        },
+        {
+            "id": 20,
+            "maxAmount": 500,
+            "type": 0,
+            "grade": 0
+        },
+        {
+            "id": 21,
+            "maxAmount": 500,
+            "type": 0,
+            "grade": 0
+        },
+        {
+            "id": 22,
+            "maxAmount": 500,
+            "type": 0,
+            "grade": 0
+        },
+        {
+            "id": 23,
+            "maxAmount": 500,
+            "type": 0,
+            "grade": 0
+        },
+        {
+            "id": 24,
+            "maxAmount": 500,
+            "type": 0,
+            "grade": 0
+        },
+        {
+            "id": 25,
+            "maxAmount": 500,
+            "type": 0,
+            "grade": 0
+        },
+        {
+            "id": 26,
+            "maxAmount": 500,
+            "type": 0,
+            "grade": 0
+        },
+        {
+            "id": 27,
+            "maxAmount": 500,
+            "type": 0,
+            "grade": 0
+        },
+        {
+            "id": 28,
+            "maxAmount": 500,
+            "type": 0,
+            "grade": 0
+        },
+        {
+            "id": 29,
+            "maxAmount": 500,
+            "type": 0,
+            "grade": 0
+        },
+        {
+            "id": 30,
+            "maxAmount": 500,
+            "type": 0,
+            "grade": 0
+        },
+        {
+            "id": 31,
+            "maxAmount": 500,
+            "type": 0,
+            "grade": 0
+        },
+        {
+            "id": 32,
+            "maxAmount": 500,
+            "type": 0,
+            "grade": 0
+        },
+        {
+            "id": 33,
+            "maxAmount": 500,
+            "type": 0,
+            "grade": 0
+        },
+        {
+            "id": 34,
+            "maxAmount": 500,
+            "type": 0,
+            "grade": 0
+        },
+        {
+            "id": 35,
+            "maxAmount": 500,
+            "type": 0,
+            "grade": 0
+        },
+        {
+            "id": 36,
+            "maxAmount": 500,
+            "type": 0,
+            "grade": 0
+        },
+        {
+            "id": 37,
+            "maxAmount": 500,
+            "type": 0,
+            "grade": 0
+        },
+        {
+            "id": 38,
+            "maxAmount": 500,
+            "type": 0,
+            "grade": 0
+        },
+        {
+            "id": 39,
+            "maxAmount": 500,
+            "type": 0,
+            "grade": 0
+        },
+        {
+            "id": 40,
+            "maxAmount": 500,
+            "type": 0,
+            "grade": 0
+        },
+        {
+            "id": 41,
+            "maxAmount": 500,
+            "type": 0,
+            "grade": 0
+        },
+        {
+            "id": 42,
+            "maxAmount": 500,
+            "type": 0,
+            "grade": 0
+        },
+        {
+            "id": 43,
+            "maxAmount": 500,
+            "type": 0,
+            "grade": 0
+        },
+        {
+            "id": 44,
+            "maxAmount": 500,
+            "type": 0,
+            "grade": 0
+        },
+        {
+            "id": 45,
+            "maxAmount": 500,
+            "type": 0,
+            "grade": 0
+        },
+        {
+            "id": 46,
+            "maxAmount": 500,
+            "type": 0,
+            "grade": 0
+        },
+        {
+            "id": 47,
+            "maxAmount": 500,
+            "type": 0,
+            "grade": 0
+        },
+        {
+            "id": 48,
+            "maxAmount": 500,
+            "type": 0,
+            "grade": 0
+        },
+        {
+            "id": 49,
+            "maxAmount": 500,
+            "type": 0,
+            "grade": 0
+        },
+        {
+            "id": 50,
+            "maxAmount": 500,
+            "type": 0,
+            "grade": 0
+        },
+        {
+            "id": 51,
+            "maxAmount": 500,
+            "type": 0,
+            "grade": 0
+        },
+        {
+            "id": 52,
+            "maxAmount": 500,
+            "type": 0,
+            "grade": 0
+        },
+        {
+            "id": 53,
+            "maxAmount": 500,
+            "type": 0,
+            "grade": 0
+        },
+        {
+            "id": 54,
+            "maxAmount": 500,
+            "type": 0,
+            "grade": 0
+        },
+        {
+            "id": 55,
+            "maxAmount": 500,
+            "type": 0,
+            "grade": 0
+        },
+        {
+            "id": 56,
+            "maxAmount": 500,
+            "type": 0,
+            "grade": 0
+        },
+        {
+            "id": 57,
+            "maxAmount": 500,
+            "type": 0,
+            "grade": 0
+        },
+        {
+            "id": 58,
+            "maxAmount": 500,
+            "type": 0,
+            "grade": 0
+        },
+        {
+            "id": 59,
+            "maxAmount": 500,
+            "type": 0,
+            "grade": 0
+        },
+        {
+            "id": 60,
+            "maxAmount": 500,
+            "type": 0,
+            "grade": 0
+        },
+        {
+            "id": 61,
+            "maxAmount": 500,
+            "type": 0,
+            "grade": 0
+        },
+        {
+            "id": 62,
+            "maxAmount": 500,
+            "type": 0,
+            "grade": 0
+        },
+        {
+            "id": 63,
+            "maxAmount": 500,
+            "type": 0,
+            "grade": 0
+        },
+        {
+            "id": 64,
+            "maxAmount": 500,
+            "type": 0,
+            "grade": 0
+        },
+        {
+            "id": 65,
+            "maxAmount": 500,
+            "type": 0,
+            "grade": 0
+        },
+        {
+            "id": 66,
+            "maxAmount": 500,
+            "type": 0,
+            "grade": 0
+        },
+        {
+            "id": 67,
+            "maxAmount": 500,
+            "type": 0,
+            "grade": 0
+        },
+        {
+            "id": 68,
+            "maxAmount": 500,
+            "type": 0,
+            "grade": 0
+        },
+        {
+            "id": 69,
+            "maxAmount": 500,
+            "type": 0,
+            "grade": 0
+        },
+        {
+            "id": 70,
+            "maxAmount": 500,
+            "type": 0,
+            "grade": 0
+        },
+        {
+            "id": 71,
+            "maxAmount": 500,
+            "type": 0,
+            "grade": 0
+        },
+        {
+            "id": 72,
+            "maxAmount": 500,
+            "type": 0,
+            "grade": 0
+        },
+        {
+            "id": 73,
+            "maxAmount": 500,
+            "type": 0,
+            "grade": 0
+        },
+        {
+            "id": 74,
+            "maxAmount": 500,
+            "type": 0,
+            "grade": 0
+        },
+        {
+            "id": 75,
+            "maxAmount": 500,
+            "type": 0,
+            "grade": 0
+        },
+        {
+            "id": 76,
+            "maxAmount": 500,
+            "type": 0,
+            "grade": 0
+        },
+        {
+            "id": 77,
+            "maxAmount": 500,
+            "type": 0,
+            "grade": 0
+        },
+        {
+            "id": 78,
+            "maxAmount": 500,
+            "type": 0,
+            "grade": 0
+        },
+        {
+            "id": 79,
+            "maxAmount": 500,
+            "type": 0,
+            "grade": 0
+        },
+        {
+            "id": 80,
+            "maxAmount": 500,
+            "type": 0,
+            "grade": 0
+        },
+        {
+            "id": 81,
+            "maxAmount": 500,
+            "type": 0,
+            "grade": 0
+        },
+        {
+            "id": 82,
+            "maxAmount": 500,
+            "type": 0,
+            "grade": 0
+        },
+        {
+            "id": 83,
+            "maxAmount": 500,
+            "type": 0,
+            "grade": 0
+        },
+        {
+            "id": 84,
+            "maxAmount": 500,
+            "type": 0,
+            "grade": 0
+        },
+        {
+            "id": 85,
+            "maxAmount": 500,
+            "type": 0,
+            "grade": 0
+        },
+        {
+            "id": 86,
+            "maxAmount": 500,
+            "type": 0,
+            "grade": 0
+        },
+        {
+            "id": 87,
+            "maxAmount": 500,
+            "type": 0,
+            "grade": 0
+        },
+        {
+            "id": 88,
+            "maxAmount": 500,
+            "type": 0,
+            "grade": 0
+        },
+        {
+            "id": 89,
+            "maxAmount": 500,
+            "type": 0,
+            "grade": 0
+        },
+        {
+            "id": 90,
+            "maxAmount": 500,
+            "type": 0,
+            "grade": 0
+        },
+        {
+            "id": 91,
+            "maxAmount": 500,
+            "type": 0,
+            "grade": 0
+        },
+        {
+            "id": 92,
+            "maxAmount": 500,
+            "type": 0,
+            "grade": 0
+        },
+        {
+            "id": 93,
+            "maxAmount": 500,
+            "type": 0,
+            "grade": 0
+        },
+        {
+            "id": 18211,
+            "maxAmount": 500,
+            "type": 0,
+            "grade": 0
+        },
+        {
+            "id": 18212,
+            "maxAmount": 500,
+            "type": 0,
+            "grade": 0
+        },
+        {
+            "id": 18213,
+            "maxAmount": 500,
+            "type": 0,
+            "grade": 0
+        },
+        {
+            "id": 30000000,
+            "maxAmount": 99,
+            "type": 0,
+            "grade": 0
+        },
+        {
+            "id": 90000167,
+            "maxAmount": 500,
+            "type": 0,
+            "grade": 0
+        }
+    ]
+}
