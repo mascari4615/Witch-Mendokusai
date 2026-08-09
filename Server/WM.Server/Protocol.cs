@@ -32,10 +32,10 @@ namespace WitchMendokusai.Server
 			builder.Append("export interface Welcome {\n\ttype: '").Append(WELCOME).Append("';\n\tid: number;\n}\n\n");
 
 			builder.Append("/** 세계에 있는 인형 하나. */\n");
-			builder.Append("export interface DollView {\n\tid: number;\n\tx: number;\n\tz: number;\n}\n\n");
+			builder.Append("export interface WorldDollView {\n\tid: number;\n\tx: number;\n\tz: number;\n}\n\n");
 
 			builder.Append("/** 서버 -> 창: 지금 세계는 이렇게 생겼다. */\n");
-			builder.Append("export interface WorldSnapshot {\n\ttype: '").Append(WORLD).Append("';\n\tdolls: DollView[];\n}\n\n");
+			builder.Append("export interface WorldSnapshot {\n\ttype: '").Append(WORLD).Append("';\n\tdolls: WorldDollView[];\n}\n\n");
 
 			builder.Append("/** 창 -> 서버: 이쪽으로 가고 싶다(얼마나 갈지는 서버가 정한다). */\n");
 			builder.Append("export interface MoveRequest {\n\ttype: '").Append(MOVE).Append("';\n\tx: number;\n\tz: number;\n}\n\n");

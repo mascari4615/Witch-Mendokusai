@@ -10,7 +10,7 @@ namespace WitchMendokusai.Tests.EditMode.Net
 	/// </summary>
 	public sealed class DollRosterTests
 	{
-		private static DollView Doll(int id, float x, float z) => new DollView { id = id, x = x, z = z };
+		private static WorldDollView Doll(int id, float x, float z) => new WorldDollView { id = id, x = x, z = z };
 
 		[Test]
 		public void 처음_보인_인형은_왔다고_알린다()
@@ -80,7 +80,7 @@ namespace WitchMendokusai.Tests.EditMode.Net
 			DollRoster roster = new DollRoster();
 			roster.Sync(new[] { Doll(2, 0f, 0f), Doll(3, 0f, 0f) }, myDollId: 1);
 
-			RosterChange change = roster.Sync(new DollView[0], myDollId: 1);
+			RosterChange change = roster.Sync(new WorldDollView[0], myDollId: 1);
 
 			Assert.That(change.Left, Is.EquivalentTo(new[] { 2, 3 }));
 			Assert.That(roster.Count, Is.EqualTo(0));

@@ -30,7 +30,7 @@ namespace WitchMendokusai
 		public int MyDollId { get; private set; }
 
 		/// <summary>서버가 마지막으로 알려준 세계. 그리는 쪽이 읽어 간다.</summary>
-		public DollView[] Dolls { get; private set; } = Array.Empty<DollView>();
+		public WorldDollView[] Dolls { get; private set; } = Array.Empty<WorldDollView>();
 
 		/// <summary>서버가 마지막으로 알려준 건물들.</summary>
 		public BuildingView[] Buildings { get; private set; } = Array.Empty<BuildingView>();
@@ -71,7 +71,7 @@ namespace WitchMendokusai
 			socket?.Dispose();
 			socket = null;
 			MyDollId = 0;
-			Dolls = Array.Empty<DollView>();
+			Dolls = Array.Empty<WorldDollView>();
 		}
 
 		private void OnDestroy() => Disconnect();
@@ -115,7 +115,7 @@ namespace WitchMendokusai
 			if (json.Contains("\"" + NetMessageType.WORLD + "\""))
 			{
 				WorldMessage world = JsonUtility.FromJson<WorldMessage>(json);
-				Dolls = world.dolls ?? Array.Empty<DollView>();
+				Dolls = world.dolls ?? Array.Empty<WorldDollView>();
 				Buildings = world.buildings ?? Array.Empty<BuildingView>();
 			}
 		}

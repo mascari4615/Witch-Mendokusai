@@ -34,15 +34,15 @@ namespace WitchMendokusai
 
 		public bool IsLinked => true;
 
-		public DollView[] Dolls
+		public WorldDollView[] Dolls
 		{
 			get
 			{
 				WorldDoll[] snapshot = world.Snapshot();
-				DollView[] views = new DollView[snapshot.Length];
+				WorldDollView[] views = new WorldDollView[snapshot.Length];
 				for (int i = 0; i < snapshot.Length; i++)
 				{
-					views[i] = new DollView
+					views[i] = new WorldDollView
 					{
 						id = snapshot[i].Id,
 						x = snapshot[i].Position.x,

@@ -45,14 +45,14 @@ namespace WitchMendokusai
 				return;
 			}
 
-			DollView[] dolls = link.Dolls;
+			WorldDollView[] dolls = link.Dolls;
 			SyncBodies(dolls, link.MyDollId);
 			SendMyStep(link, dolls, Time.deltaTime);
 		}
 
 		private void OnDestroy() => ClearBodies();
 
-		private void SyncBodies(DollView[] dolls, int myDollId)
+		private void SyncBodies(WorldDollView[] dolls, int myDollId)
 		{
 			RosterChange change = roster.Sync(dolls, myDollId);
 
@@ -103,7 +103,7 @@ namespace WitchMendokusai
 			return body.transform;
 		}
 
-		private void SendMyStep(IWorldLink link, DollView[] dolls, float deltaTime)
+		private void SendMyStep(IWorldLink link, WorldDollView[] dolls, float deltaTime)
 		{
 			sendCooldown -= deltaTime;
 			if (sendCooldown > 0f)

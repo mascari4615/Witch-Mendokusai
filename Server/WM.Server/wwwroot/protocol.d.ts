@@ -9,7 +9,7 @@ export interface Welcome {
 }
 
 /** 세계에 있는 인형 하나. */
-export interface DollView {
+export interface WorldDollView {
 	id: number;
 	x: number;
 	z: number;
@@ -18,7 +18,7 @@ export interface DollView {
 /** 서버 -> 창: 지금 세계는 이렇게 생겼다. */
 export interface WorldSnapshot {
 	type: 'world';
-	dolls: DollView[];
+	dolls: WorldDollView[];
 }
 
 /** 창 -> 서버: 이쪽으로 가고 싶다(얼마나 갈지는 서버가 정한다). */

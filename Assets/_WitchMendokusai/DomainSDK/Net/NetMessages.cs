@@ -37,7 +37,7 @@ namespace WitchMendokusai.Net
 
 	/// <summary>세계에 있는 인형 하나 — 창이 그리는 데 필요한 최소.</summary>
 	[Serializable]
-	public class DollView
+	public class WorldDollView
 	{
 		public int id;
 		public float x;
@@ -49,7 +49,7 @@ namespace WitchMendokusai.Net
 	public class WorldMessage
 	{
 		public string type = NetMessageType.WORLD;
-		public DollView[] dolls = Array.Empty<DollView>();
+		public WorldDollView[] dolls = Array.Empty<WorldDollView>();
 		public BuildingView[] buildings = Array.Empty<BuildingView>();
 	}
 

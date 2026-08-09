@@ -40,7 +40,7 @@ namespace WitchMendokusai.Net
 		public int Count => positions.Count;
 
 		/// <summary>세계가 보낸 목록을 받아 <b>차이</b>를 낸다. 돌려준 목록은 다음 훑기에서 다시 쓰인다.</summary>
-		public RosterChange Sync(IReadOnlyList<DollView> dolls, int myDollId)
+		public RosterChange Sync(IReadOnlyList<WorldDollView> dolls, int myDollId)
 		{
 			appeared.Clear();
 			left.Clear();
@@ -50,7 +50,7 @@ namespace WitchMendokusai.Net
 			{
 				for (int i = 0; i < dolls.Count; i++)
 				{
-					DollView view = dolls[i];
+					WorldDollView view = dolls[i];
 					if (view == null || view.id == myDollId)
 						continue;
 

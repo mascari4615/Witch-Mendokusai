@@ -16,7 +16,7 @@ namespace WitchMendokusai.Net
 		bool IsLinked { get; }
 
 		/// <summary>지금 보이는 인형들.</summary>
-		DollView[] Dolls { get; }
+		WorldDollView[] Dolls { get; }
 
 		/// <summary>지금 서 있는 건물들.</summary>
 		BuildingView[] Buildings { get; }

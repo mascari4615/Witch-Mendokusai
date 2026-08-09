@@ -169,6 +169,13 @@ jobs:
           fi
           echo "DomainSDK .cs ${COUNT}개를 엔진 밖에서 굽는다."
 
+      - name: Gate — 판정 층 이름이 게임 층과 부딪히나 (유니티에서만 터지는 종류)
+        run: |
+          set -euo pipefail
+          # 엔진 밖 빌드는 DomainSDK 만 굽는다 = 게임 층과의 이름 충돌을 **못 본다**.
+          # 실제로 두 번 이 게이트를 초록으로 통과한 커밋이 유니티에서 CS0436/CS0246 으로 터졌다.
+          bash .github/scripts/wm-sdk-name-collision.sh
+
       - name: Build — Unity 없이 컴파일
         run: |
           set -euo pipefail
