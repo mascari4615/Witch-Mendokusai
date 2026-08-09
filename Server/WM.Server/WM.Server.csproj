@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <!--
+    TASK-WM-216 — 판정을 굴리는 서버.
+
+    ★ 규칙을 다시 구현하지 않는다. 게임과 **같은 DomainSDK 소스**를 참조한다
+      (Portable 프로젝트가 Assets 아래 진짜 파일을 물고, 이 서버는 그 프로젝트를 문다).
+      사본을 두면 반드시 갈라지고, 갈라지는 순간 「같은 게임」이 아니게 된다.
+
+    유니티는 이 폴더를 모른다(Assets 밖). 서버가 죽어도 게임은 그대로 돈다.
+  -->
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <!-- 서버는 유니티 컴파일러 제약(C# 9)을 받지 않는다 — 최신 문법을 쓴다. -->
+    <LangVersion>latest</LangVersion>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <RootNamespace>WitchMendokusai.Server</RootNamespace>
+    <AssemblyName>WM.Server</AssemblyName>
+    <!-- 서식 분석기는 이 프로젝트의 관심사가 아니다 (Portable 과 같은 이유). -->
+    <EnforceCodeStyleInBuild>false</EnforceCodeStyleInBuild>
+    <AnalysisLevel>none</AnalysisLevel>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../Portable/DomainSDK.Portable.csproj" />
+  </ItemGroup>
+
+</Project>
