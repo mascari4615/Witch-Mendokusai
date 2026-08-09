@@ -23,12 +23,8 @@ namespace WitchMendokusai
 		[SerializeField] private string serverUrl = "ws://127.0.0.1:5199/ws";
 		[SerializeField] private bool connectOnStart = false;
 
-		[Header("보내는 간격 (초)")]
-		[SerializeField] private float sendInterval = 0.1f;
-
 		private ClientWebSocket socket;
 		private CancellationTokenSource cancellation;
-		private float sendTimer;
 
 		/// <summary>서버가 준 내 인형 번호. 아직 못 받았으면 0.</summary>
 		public int MyDollId { get; private set; }
@@ -106,18 +102,6 @@ namespace WitchMendokusai
 				WorldMessage world = JsonUtility.FromJson<WorldMessage>(json);
 				Dolls = world.dolls ?? Array.Empty<DollView>();
 			}
-		}
-
-		private void Update()
-		{
-			if (IsConnected == false)
-				return;
-
-			sendTimer += Time.deltaTime;
-			if (sendTimer < sendInterval)
-				return;
-
-			sendTimer = 0f;
 		}
 
 		/// <summary>「이쪽으로 가고 싶다」를 보낸다. 얼마나 갈지는 서버가 정한다.</summary>
