@@ -537,8 +537,20 @@ namespace WitchMendokusai.Server
 						return;
 					}
 
-					// 누가 넣든 같은 솥에 쌓인다 — 솥은 세계의 물건이다.
-					World.Cauldron.AddStep(step);
+					// ★ 자리를 주면 <b>그 자리의 솥</b>에 넣는다 (TASK-WM-217) — 여럿이 각자 조리한다.
+					//   자리를 안 주는 옛 창은 세계에 하나뿐인 솥을 쓴다(회귀 0).
+					WitchMendokusai.DomainSDK.Alchemy.BrewStep placed = step;
+					WorldCauldron pot = PotFor(dollId, root);
+					if (pot == null)
+					{
+						// 재료는 이미 뺐다 — 못 넣으면 도로 돌려준다.
+						World.TryGather(dollId, ServerItemCatalog.Find(ingredientId), 1);
+						Tell(dollId, Protocol.BREW, "거기엔 솥이 없다 — 솥을 짓거나 가까이 가야 한다");
+						return;
+					}
+
+					pot.AddStep(placed);
+					World.Cauldrons.Touch();
 					Interlocked.Exchange(ref worldDirty, 1);
 					_ = SendBagAsync(dollId);
 
@@ -549,7 +561,14 @@ namespace WitchMendokusai.Server
 				{
 					// ★ 받을 자리부터 본다 (TASK-WM-217): 완성은 되돌릴 수 없다 —
 					//   넣고 남은 걸 버리면 사람 눈엔 「만들었는데 사라졌다」다. 자리가 없으면 솥을 그대로 둔다.
-					BrewCompletion peek = ServerRecipeBook.Book.Judge(World.Cauldron.State);
+					WorldCauldron completing = PotFor(dollId, root);
+					if (completing == null)
+					{
+						Tell(dollId, Protocol.DENIED_COMPLETE, "거기엔 솥이 없다");
+						return;
+					}
+
+					BrewCompletion peek = ServerRecipeBook.Book.Judge(completing.State);
 					if (peek.Empty == false
 						&& World.CanReceive(dollId, ServerItemCatalog.Find(peek.ResultItemId), peek.Amount) == false)
 					{
@@ -560,7 +579,7 @@ namespace WitchMendokusai.Server
 
 					// 완성은 세계가 한 사람에게만 내준다 — 둘이 같은 순간에 눌러도 뒤엣사람은 빈 솥.
 					// 무엇이 나왔는지도 세계가 정한다(마도서) — 그리고 **그 자리에서 가방에 넣는다**.
-					if (World.Cauldron.TryComplete(ServerRecipeBook.Book, out BrewCompletion taken))
+					if (completing.TryComplete(ServerRecipeBook.Book, out BrewCompletion taken))
 					{
 						if (taken.Empty == false)
 						{
@@ -573,6 +592,8 @@ namespace WitchMendokusai.Server
 							_ = SendBagAsync(dollId);
 						}
 
+						World.Cauldrons.Touch();
+
 						if (sockets.TryGetValue(dollId, out Connection claimer))
 							_ = SendAsync(claimer, Protocol.BrewTaken(taken));
 					}
@@ -582,7 +603,12 @@ namespace WitchMendokusai.Server
 
 				if (kind == Protocol.BREW_RESET)
 				{
-					World.Cauldron.ResetBrew();
+					WorldCauldron clearing = PotFor(dollId, root);
+					if (clearing == null)
+						return;
+
+					clearing.ResetBrew();
+					World.Cauldrons.Touch();
 					return;
 				}
 
@@ -677,6 +703,20 @@ namespace WitchMendokusai.Server
 		{
 			if (sockets.TryGetValue(dollId, out Connection listener))
 				_ = SendAsync(listener, Protocol.Denied(what, why));
+		}
+
+		/// <summary>
+		/// 이 말이 가리키는 솥 (TASK-WM-217). 자리(x·z)를 주면 그 자리의 솥,
+		/// 안 주면 세계에 하나뿐인 옛 솥. 손이 닿는지는 세계가 본다.
+		/// </summary>
+		private WorldCauldron PotFor(int dollId, JsonElement root)
+		{
+			if (root.TryGetProperty("x", out JsonElement _) == false)
+				return World.Cauldron;
+
+			Vector3 standing = World.PositionOf(dollId);
+			Vector3Int cell = new Vector3Int(ReadInt(root, "x"), ReadInt(root, "y"), ReadInt(root, "z"));
+			return World.Cauldrons.Reachable(cell, standing.x, standing.z);
 		}
 
 		private int ReadInt(JsonElement root, string name)

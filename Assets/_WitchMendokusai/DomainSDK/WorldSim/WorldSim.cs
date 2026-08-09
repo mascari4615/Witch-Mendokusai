@@ -83,6 +83,9 @@ namespace WitchMendokusai
 		/// <summary>한 번 움직임에 갈 수 있는 거리 상한 — 순간이동 방지(서버 권위의 최소선).</summary>
 		public const float MAX_STEP = 1.5f;
 
+		/// <summary>솥 건물의 번호 — 이걸 지으면 그 자리에 솥이 하나 생긴다 (TASK-WM-217).</summary>
+		public const int CAULDRON_BUILDING_ID = 4000;
+
 		// ★ 여러 갈래가 동시에 만진다 (TASK-WM-216): 접속·퇴장은 각 연결의 흐름에서, 훑기는 알림 루프에서.
 		//   자물쇠 없이 두었더니 알림 루프가 훑는 도중 목록이 바뀌어 **터졌다**(NullReference).
 		//   화면 없는 서버라 터져도 티가 안 난다 — 그래서 상태를 만지는 자리를 전부 한 자물쇠 아래 둔다.
@@ -124,6 +127,12 @@ namespace WitchMendokusai
 		/// 상자인지·몇 칸인지는 건물 목록이 정한다.
 		/// </summary>
 		public WorldStorages Storages { get; } = new WorldStorages();
+
+		/// <summary>
+		/// 지은 자리마다의 솥 (TASK-WM-217) — 여럿이 <b>동시에</b> 조리하려면 솥도 여럿이어야 한다.
+		/// 세계에 하나뿐인 <see cref="Cauldron"/> 은 옛 경로로 남는다(아직 그걸 쓰는 창이 있다).
+		/// </summary>
+		public WorldCauldrons Cauldrons { get; } = new WorldCauldrons();
 
 		/// <summary>시간을 흘린다. 하루가 바뀌었으면 true.</summary>
 		public bool AdvanceMinutes(float minutes)
@@ -461,6 +470,11 @@ namespace WitchMendokusai
 
 			// 상자면 그 자리에 빈 상자를 놓는다 — 지은 것이 쓸모를 갖는 자리다.
 			Storages.Place(pivot, catalog.SlotsOf(buildingId));
+
+			// 솥이면 그 자리에 빈 솥을 놓는다 — 지은 사람이 자기 솥에서 젓는다.
+			if (buildingId == CAULDRON_BUILDING_ID)
+				Cauldrons.Place(pivot);
+
 			return true;
 		}
 
@@ -502,6 +516,7 @@ namespace WitchMendokusai
 
 				// 상자였으면 상자도 같이 사라진다(안에 든 것도) — 창이 사람에게 먼저 물어야 한다.
 				Storages.Remove(cell);
+				Cauldrons.Remove(cell);
 
 				for (int i = 0; i < placed.Count; i++)
 				{

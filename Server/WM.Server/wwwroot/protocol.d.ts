@@ -97,9 +97,13 @@ export interface GatherRequest {
 }
 
 /** 창 -> 서버: 이 재료를 솥에 넣는다(가방에서 실제로 빠진다). 어디로 밀지는 세계가 안다. */
+/** x·y·z 를 주면 그 자리의 솥, 안 주면 세계에 하나뿐인 옛 솥(회귀 0). 손이 닿아야 한다. */
 export interface BrewRequest {
 	type: 'brew';
 	itemId: number;
+	x?: number;
+	y?: number;
+	z?: number;
 }
 
 /** 서버 -> 창: 마도서 — 무엇을 만들 수 있고 어디를 겨냥하나(들어올 때 한 번). */

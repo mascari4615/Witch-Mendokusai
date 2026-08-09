@@ -96,7 +96,8 @@ namespace WitchMendokusai.Server
 			builder.Append("export interface GatherRequest {\n\ttype: '").Append(GATHER).Append("';\n\tnodeId: number;\n}\n\n");
 
 			builder.Append("/** 창 -> 서버: 이 재료를 솥에 넣는다(가방에서 실제로 빠진다). 어디로 밀지는 세계가 안다. */\n");
-			builder.Append("export interface BrewRequest {\n\ttype: '").Append(BREW).Append("';\n\titemId: number;\n}\n\n");
+			builder.Append("/** x·y·z 를 주면 그 자리의 솥, 안 주면 세계에 하나뿐인 옛 솥(회귀 0). 손이 닿아야 한다. */\n");
+			builder.Append("export interface BrewRequest {\n\ttype: '").Append(BREW).Append("';\n\titemId: number;\n\tx?: number;\n\ty?: number;\n\tz?: number;\n}\n\n");
 
 			builder.Append("/** 서버 -> 창: 마도서 — 무엇을 만들 수 있고 어디를 겨냥하나(들어올 때 한 번). */\n");
 			builder.Append("export interface Spellbook {\n\ttype: '").Append(SPELLBOOK).Append("';\n\tpages: { id: number; name: string; x: number; y: number; radius: number; itemId: number; amount: number }[];\n}\n\n");
