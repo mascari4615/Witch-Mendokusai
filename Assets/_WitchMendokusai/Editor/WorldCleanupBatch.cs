@@ -37,6 +37,7 @@ namespace WitchMendokusai.EditorTools
 			bool ok = true;
 
 			ok &= Step("아이템 목록 뽑기", ExportItems);
+			ok &= Step("솥 재료를 아이템에 잇기", BrewIngredientLinker.LinkAndReport);
 			ok &= Step("멀티 버튼 제거", RemoveMultiButton);
 			ok &= Step("빠진 스크립트 정리", RemoveMissingScripts);
 

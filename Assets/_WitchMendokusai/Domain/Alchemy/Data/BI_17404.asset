@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: BI_17404
   m_EditorClassIdentifier: WM.Domain::WitchMendokusai.BrewIngredientSO
   <ID>k__BackingField: 17404
-  <Name>k__BackingField: "\uC11C(\u2190)"
+  <Name>k__BackingField: "\uB098\uBB47\uAC00\uC9C0"
   <Description>k__BackingField: 
   <Sprite>k__BackingField: {fileID: 0}
   <Sprites>k__BackingField: []
@@ -21,3 +21,4 @@ MonoBehaviour:
     X: -1
     Y: 0
   <DefaultGrind>k__BackingField: 1
+  <Item>k__BackingField: {fileID: 11400000, guid: 11ab32abe18d2f84b8951f0e09594515, type: 2}

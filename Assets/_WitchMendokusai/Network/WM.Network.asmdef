@@ -3,7 +3,8 @@
     "rootNamespace": "WitchMendokusai",
     "references": [
         "WM.Core",
-        "WitchMendokusai.DomainSDK"
+        "WitchMendokusai.DomainSDK",
+        "Unity.InputSystem"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

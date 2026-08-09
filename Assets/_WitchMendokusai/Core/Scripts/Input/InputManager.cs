@@ -36,6 +36,8 @@ namespace WitchMendokusai
 		Crouch,
 		[InputEvent("월드", "건축 모드", "<Keyboard>/g")]
 		BuildModeToggle,
+		[InputEvent("월드", "줍기", "<Keyboard>/e")]
+		Gather,
 		// HotbarSlot1~9는 연속 정의 유지 — UIHotbar이 (HotbarSlot1 + i) 산수에 의존
 		[InputEvent("핫바", "핫바 슬롯 1", "<Keyboard>/1")]
 		HotbarSlot1,
@@ -156,6 +158,7 @@ namespace WitchMendokusai
 			{ InputEventType.Sprint, InputMapType.Player },
 			{ InputEventType.Crouch, InputMapType.Player },
 			{ InputEventType.BuildModeToggle, InputMapType.Player },
+			{ InputEventType.Gather, InputMapType.Player },
 			{ InputEventType.HotbarSlot1, InputMapType.Player },
 			{ InputEventType.HotbarSlot2, InputMapType.Player },
 			{ InputEventType.HotbarSlot3, InputMapType.Player },

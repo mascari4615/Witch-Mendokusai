@@ -156,6 +156,10 @@ namespace WitchMendokusai
 		{
 			if (GetComponent<WorldDollBinder>() == null)
 				gameObject.AddComponent<WorldDollBinder>();
+
+			// 주울 것도 같이 — 안 보이면 게임 창에서는 아무것도 못 줍는다(웹 창만 노는 세계가 된다).
+			if (GetComponent<WorldGatherableBinder>() == null)
+				gameObject.AddComponent<WorldGatherableBinder>();
 		}
 
 		/// <summary>세계에서 나온다.</summary>
