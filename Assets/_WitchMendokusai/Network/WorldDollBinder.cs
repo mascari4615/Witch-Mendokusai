@@ -27,8 +27,15 @@ namespace WitchMendokusai
 		/// <summary>남의 인형이 순간이동해 보이지 않게 따라가는 속도(1 = 즉시).</summary>
 		private const float FOLLOW_LERP = 12f;
 
+		/// <summary>이보다 빨리 움직이면 걷는 중으로 본다 (m/s).</summary>
+		private const float MOVE_SPEED_THRESHOLD = 0.3f;
+
+		private const string MOVE_PARAM = "MOVE";
+
 		private readonly DollRoster roster = new DollRoster();
 		private readonly Dictionary<int, Transform> bodies = new Dictionary<int, Transform>();
+		private readonly Dictionary<int, Animator[]> bodyAnimators = new Dictionary<int, Animator[]>();
+		private readonly Dictionary<int, bool> bodyMoving = new Dictionary<int, bool>();
 		private GameObject prefab;
 		private float sendCooldown;
 
@@ -64,6 +71,8 @@ namespace WitchMendokusai
 						Destroy(body.gameObject);
 
 					bodies.Remove(change.Left[i]);
+					bodyAnimators.Remove(change.Left[i]);
+					bodyMoving.Remove(change.Left[i]);
 				}
 			}
 
@@ -85,7 +94,16 @@ namespace WitchMendokusai
 
 				// 세계는 20 번/초 알려주고 화면은 그보다 자주 그린다 — 그 사이를 메워야 걷는 것처럼 보인다.
 				Vector3 desired = new Vector3(target.x, entry.Value.position.y, target.z);
-				entry.Value.position = Vector3.Lerp(entry.Value.position, desired, follow);
+				Vector3 before = entry.Value.position;
+				entry.Value.position = Vector3.Lerp(before, desired, follow);
+
+				// 가는 쪽을 본다 — 제자리에서 떨 때 홱홱 돌지 않게 임계 위에서만.
+				Vector3 step = entry.Value.position - before;
+				float speed = step.magnitude / Mathf.Max(Time.deltaTime, 0.0001f);
+				if (speed > MOVE_SPEED_THRESHOLD)
+					entry.Value.rotation = Quaternion.LookRotation(new Vector3(step.x, 0f, step.z));
+
+				ApplyWalking(entry.Key, speed > MOVE_SPEED_THRESHOLD);
 			}
 		}
 
@@ -100,7 +118,49 @@ namespace WitchMendokusai
 
 			body.name = $"WorldDoll {dollId}";
 			body.transform.position = new Vector3(position.x, 0f, position.z);
+
+			// 걷기 애니를 가진 애니메이터만 캐시한다 — 없는 데 SetBool 하면 경고가 쏟아진다.
+			bodyAnimators[dollId] = CollectMoveAnimators(body);
+			bodyMoving[dollId] = false;
 			return body.transform;
+		}
+
+		private static Animator[] CollectMoveAnimators(GameObject body)
+		{
+			List<Animator> withMove = new List<Animator>();
+			foreach (Animator animator in body.GetComponentsInChildren<Animator>(true))
+			{
+				if (animator == null || animator.runtimeAnimatorController == null)
+					continue;
+
+				foreach (AnimatorControllerParameter parameter in animator.parameters)
+				{
+					if (parameter.type == AnimatorControllerParameterType.Bool && parameter.name == MOVE_PARAM)
+					{
+						withMove.Add(animator);
+						break;
+					}
+				}
+			}
+
+			return withMove.ToArray();
+		}
+
+		/// <summary>걷기 애니는 <b>바뀔 때만</b> 건드린다 — 매 프레임 SetBool 은 낭비다.</summary>
+		private void ApplyWalking(int dollId, bool moving)
+		{
+			if (bodyMoving.TryGetValue(dollId, out bool wasMoving) && wasMoving == moving)
+				return;
+
+			bodyMoving[dollId] = moving;
+			if (bodyAnimators.TryGetValue(dollId, out Animator[] animators) == false)
+				return;
+
+			for (int i = 0; i < animators.Length; i++)
+			{
+				if (animators[i] != null)
+					animators[i].SetBool(MOVE_PARAM, moving);
+			}
 		}
 
 		private void SendMyStep(IWorldLink link, WorldDollView[] dolls, float deltaTime)
@@ -142,6 +202,8 @@ namespace WitchMendokusai
 			}
 
 			bodies.Clear();
+			bodyAnimators.Clear();
+			bodyMoving.Clear();
 			roster.Clear();
 		}
 	}
