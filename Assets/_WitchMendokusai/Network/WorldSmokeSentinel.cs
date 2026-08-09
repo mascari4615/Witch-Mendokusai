@@ -231,25 +231,6 @@ namespace WitchMendokusai
 				return;
 			}
 
-			// 제작도 한 번 청해 본다 (TASK-WM-217) — 되든 안 되든 <b>세계가 판정한다</b>.
-			//   재료가 없으면 거절이 오는 게 정상이라, 여기서는 「대답이 오나」까지만 본다.
-			if (askedCraft == false)
-			{
-				CraftBookEntryView[] book = link.CraftBook;
-				if (book != null && book.Length > 0)
-					link.RequestCraft(book[0].recipeId);
-
-				askedCraft = true;
-				return;
-			}
-
-			if (craftedItemId == 0)
-			{
-				CraftedMessage made = link.TakeCraftResult();
-				if (made != null && made.succeeded)
-					craftedItemId = made.itemId;
-			}
-
 			// 솥도 짓는다 — 세계에 솥이 없으면 아무도 조리할 수 없다(전역 솥은 폐기됐다).
 			if (potPlaced == false)
 			{
@@ -279,6 +260,26 @@ namespace WitchMendokusai
 					myPotSteps = pots[i].steps;
 					break;
 				}
+			}
+
+			// ★ 제작은 <b>솥에 넣은 뒤에</b> 청한다 (실측 2026-08-10): 조리보다 먼저 청했더니
+			//   제작이 조리에 쓸 나무를 먼저 먹어 <b>솥에 넣을 것이 없었다</b> — 저은 자국 0,
+			//   완성 0. 관문은 「어디서 끊겼는지」를 potsteps 로 말해 줬고, 그게 이 순서를 정했다.
+			if (askedCraft == false)
+			{
+				CraftBookEntryView[] book = link.CraftBook;
+				if (book != null && book.Length > 0)
+					link.RequestCraft(book[0].recipeId);
+
+				askedCraft = true;
+				return;
+			}
+
+			if (craftedItemId == 0)
+			{
+				CraftedMessage made = link.TakeCraftResult();
+				if (made != null && made.succeeded)
+					craftedItemId = made.itemId;
 			}
 
 			// 완성은 세계가 내준다 — 못 받으면 다음 걸음에 다시 청한다(남이 먼저 가져갔을 수도 있다).
