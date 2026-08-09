@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using UnityEngine;
+using WitchMendokusai.Numerics; // 엔진 API 를 하나도 안 쓴다 — 좌표 타입만 필요했다 (TASK-WM-214)
 
 namespace WitchMendokusai
 {
