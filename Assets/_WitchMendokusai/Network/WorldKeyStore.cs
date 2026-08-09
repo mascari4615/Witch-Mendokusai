@@ -13,15 +13,40 @@ namespace WitchMendokusai
 	public static class WorldKeyStore
 	{
 		private const string KEY = "wm.world.secret";
+
+		/// <summary>이번 접속에서 세계가 새로 준 열쇠 — 아직 없으면 빈 문자열(스모크가 물려줄 때 쓴다).</summary>
+		public static string LastGranted { get; private set; } = string.Empty;
+
 		private const string ACCOUNT_CODE_KEY = "wm.world.klcode";
 
-		/// <summary>적어 둔 열쇠. 없으면 빈 문자열(그때는 세계가 새로 준다).</summary>
-		public static string Load() => PlayerPrefs.GetString(KEY, string.Empty);
+		/// <summary>
+		/// 적어 둔 열쇠. 없으면 빈 문자열(그때는 세계가 새로 준다).
+		///
+		/// ★ 환경변수 <c>WM_WORLD_SECRET</c> 가 있으면 그것이 이긴다 (TASK-WM-217).
+		///   왜: 한 기기에서 판을 둘 띄우면 <b>둘이 같은 사람</b>이 되어 서로를 밀어낸다(중복 로그인 규칙).
+		///   그러면 「둘이 같이 논다」를 한 기기에서 시험할 수 없다 — 실측으로 스모크 한쪽이 그렇게 죽었다.
+		///   사람이 쓰는 길이 아니라 <b>시험·여러 계정</b>을 위한 옆문이다.
+		/// </summary>
+		public static string Load()
+		{
+			string fromEnvironment = System.Environment.GetEnvironmentVariable("WM_WORLD_SECRET");
+			if (string.IsNullOrEmpty(fromEnvironment) == false)
+				return fromEnvironment;
+
+			return PlayerPrefs.GetString(KEY, string.Empty);
+		}
 
 		/// <summary>새로 받은 열쇠를 적어 둔다. 빈 값으로는 덮어쓰지 않는다(잃어버리면 새 사람이 된다).</summary>
 		public static void Save(string secret)
 		{
 			if (string.IsNullOrEmpty(secret))
+				return;
+
+			// 세계가 준 열쇠는 <b>기억은 해 둔다</b> — 옆문으로 들어온 판이 「다음에 또 나」로 들어오려면 필요하다.
+			LastGranted = secret;
+
+			// 옆문(환경변수)으로 들어온 판은 기기의 열쇠를 덮어쓰지 않는다 — 시험이 사람의 것을 갈아치우면 안 된다.
+			if (string.IsNullOrEmpty(System.Environment.GetEnvironmentVariable("WM_WORLD_SECRET")) == false)
 				return;
 
 			PlayerPrefs.SetString(KEY, secret);

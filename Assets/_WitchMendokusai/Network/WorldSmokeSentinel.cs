@@ -186,6 +186,12 @@ namespace WitchMendokusai
 				"myid=", (link?.MyDollId ?? 0).ToString(CultureInfo.InvariantCulture), "\n",
 				// 인형 번호는 접속마다 새로 준다 — 「다시 들어와도 나」는 신원 번호로 확인한다.
 				"identity=", (link?.MyIdentityId ?? 0).ToString(CultureInfo.InvariantCulture), "\n",
+				// 「놀 수 있나」의 알맹이 — 주웠나·물약을 받았나. 붙기만 하고 아무것도 못 하면 이게 0 이다.
+				"gathered=", gatheredItemId.ToString(CultureInfo.InvariantCulture), "\n",
+				"gatheredAmount=", gatheredAmount.ToString(CultureInfo.InvariantCulture), "\n",
+				"potion=", completedItemId.ToString(CultureInfo.InvariantCulture), "\n",
+				// 세계가 준 열쇠 — 다음 판이 「같은 사람」으로 들어오려면 이걸 물려받아야 한다.
+				"secret=", WorldKeyStore.LastGranted, "\n",
 				"reason=", reason, "\n");
 
 			try
