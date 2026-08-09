@@ -24,7 +24,7 @@ namespace WitchMendokusai
 
 		public bool IsAlive => unitObject != null && unitObject.IsAlive;
 		// 판정 쪽(ICombatant)이 보는 좌표 — SDK 타입 (TASK-WM-214). 대입은 암시적 변환.
-		public Numerics.Vector3 Position => transform.position;
+		public Numerics.Vector3 Position => (Numerics.Vector3)transform.position;
 		public int Hp => unitObject.UnitStat[UnitStatType.HP_CUR];
 		public int HpMax => unitObject.UnitStat[UnitStatType.HP_MAX];
 

@@ -1,4 +1,6 @@
-using UnityEngine;
+﻿using UnityEngine;
+// ★ 초점 좌표는 판정 쪽 (TASK-WM-214).
+using Vector3 = WitchMendokusai.Numerics.Vector3;
 using UnityEngine.UIElements;
 
 namespace WitchMendokusai

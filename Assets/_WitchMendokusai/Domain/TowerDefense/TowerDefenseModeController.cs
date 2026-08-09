@@ -238,7 +238,7 @@ namespace WitchMendokusai
 				return;
 			}
 
-			Vector3 center = stageRoot != null ? stageRoot.position : Vector3.zero;
+			Vector3 center = stageRoot != null ? (Vector3)stageRoot.position : Vector3.zero;
 			overhead.SetFocusBounds(center, stage.CameraPanLimit);
 			overhead.ConfigureZoom(stage.CameraMinHeight, stage.CameraMaxHeight, stage.CameraZoomSpeed);
 			overhead.ResetView(center, yaw: 0f, height: stage.CameraInitialHeight);

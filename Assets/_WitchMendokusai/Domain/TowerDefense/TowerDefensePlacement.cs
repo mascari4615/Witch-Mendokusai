@@ -818,7 +818,7 @@ namespace WitchMendokusai
 			if (Physics.Raycast(ray, out RaycastHit hit, raycastDistance, ~0, QueryTriggerInteraction.Ignore) == false)
 				return false;
 
-			groundPosition = hit.point;
+			groundPosition = (Vector3)hit.point;
 			return true;
 		}
 

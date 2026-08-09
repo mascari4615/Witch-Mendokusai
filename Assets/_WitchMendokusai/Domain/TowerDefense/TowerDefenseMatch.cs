@@ -416,12 +416,16 @@ namespace WitchMendokusai
 
 			if (stage.UseProceduralMap == false)
 			{
-				activeCorePosition = stage.CorePosition;
+				// 스테이지 SO 는 디자이너가 인스펙터에서 적는 자리(엔진 쪽)라 값을 들일 때 캐스트한다 (TASK-WM-214).
+			activeCorePosition = (Vector3)stage.CorePosition;
 				activeGroundWidth = stage.GroundWidth;
 				activeGroundLength = stage.GroundLength;
 
 				if (stage.EnemySpawnPoints != null)
-					activeSpawnPoints.AddRange(stage.EnemySpawnPoints);
+					for (int spawnIndex = 0; spawnIndex < stage.EnemySpawnPoints.Length; spawnIndex++)
+			{
+				activeSpawnPoints.Add((Vector3)stage.EnemySpawnPoints[spawnIndex]);
+			}
 				if (stage.ResourceNodePositions != null)
 				{
 					foreach (Vector3 nodePosition in stage.ResourceNodePositions)
@@ -2731,7 +2735,7 @@ namespace WitchMendokusai
 			if (HasHero == false)
 				return false;
 
-			heroTargetPosition = new Vector3(worldPosition.x, (Vector3)heroTransform.position.y, worldPosition.z);
+			heroTargetPosition = new Vector3(worldPosition.x, heroTransform.position.y, worldPosition.z);
 			return true;
 		}
 

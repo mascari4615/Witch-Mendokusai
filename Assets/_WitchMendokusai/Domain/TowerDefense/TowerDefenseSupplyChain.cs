@@ -62,7 +62,7 @@ namespace WitchMendokusai
 
 			positions.Clear();
 			foreach (Transform building in buildings)
-				positions.Add(building.position);
+				positions.Add((Vector3)building.position);
 
 			seeds.Clear();
 			seeds.Add(corePosition);
@@ -71,7 +71,7 @@ namespace WitchMendokusai
 				foreach (Transform outpost in outposts)
 				{
 					if (outpost != null)
-						seeds.Add(outpost.position);
+						seeds.Add((Vector3)outpost.position);
 				}
 			}
 
