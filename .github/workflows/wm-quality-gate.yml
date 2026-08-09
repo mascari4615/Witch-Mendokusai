@@ -103,6 +103,21 @@ jobs:
       - name: Run dialogue harness
         run: dotnet run --project Tools/dialogue-harness
 
+      # TASK-WM-217 -- 「번호 0을 없음으로」 쓰는 자리를 막는다. WM 의 나무가 0번이라
+      # 그 자리는 그 종류를 조용히 지운다(하루에 세 번 밟았다 — 사람 기억으로 막을 부류가 아니다).
+      - name: Run zero-id guard
+        shell: bash
+        run: |
+          guard="$GITHUB_WORKSPACE/../memo/scripts/wm-zero-id-guard.mjs"
+          if [ ! -f "$guard" ]; then
+            guard="C:/Users/masca/repos/karmoddrine/memo/scripts/wm-zero-id-guard.mjs"
+          fi
+          if [ ! -f "$guard" ]; then
+            echo "ERROR: zero-id guard not found: $guard"
+            exit 1
+          fi
+          node "$guard"
+
   unity:
     name: EditMode tests (laptop runner)
     runs-on: [self-hosted, unity, windows-build]
