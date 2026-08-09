@@ -29,6 +29,15 @@ namespace WitchMendokusai.DomainSDK.Alchemy
         /// <summary>이 피어가 서버(host)인가 — 「완성」 보상은 host 권위(이중지급 방지) 분기 근거.</summary>
         bool IsServerPeer { get; }
 
+        /// <summary>
+        /// 「이 솥을 완성으로 가져가겠다」 (TASK-WM-217). 줄지 말지는 <b>세계</b>가 정한다.
+        /// 옛 규칙(host 만 완성)은 호스트가 없는 세계에서 「아무도 못 누른다」가 되어 기능이 죽는다.
+        /// </summary>
+        void RequestCompletion();
+
+        /// <summary>세계가 나에게 완성을 내줬나. 내줬으면 <b>한 번만</b> true(두 번 채점 방지).</summary>
+        bool TryTakeCompletion(out BrewState taken);
+
         /// <summary>동기된 전체 경로 step 을 buffer 에 복사(경로선 렌더용 — 마커뿐 아니라 경로까지 공유).</summary>
         void ReadSteps(List<BrewStep> buffer);
     }

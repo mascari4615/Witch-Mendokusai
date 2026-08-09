@@ -41,6 +41,26 @@ namespace WitchMendokusai
 			link?.RequestBrewReset();
 		}
 
+		public void RequestCompletion() => link?.RequestBrewComplete();
+
+		public bool TryTakeCompletion(out BrewState taken)
+		{
+			WorldBrewView given = link?.TakeCompletedBrew();
+			if (given == null)
+			{
+				taken = default;
+				return false;
+			}
+
+			taken = new BrewState
+			{
+				Position = new BrewVector(given.x, given.y),
+				StepCount = given.steps,
+				AccruedSideEffect = given.side,
+			};
+			return true;
+		}
+
 		public bool TryGetState(out BrewVector position, out int stepCount, out float accruedSideEffect)
 		{
 			WorldBrewView brew = link?.Brew;

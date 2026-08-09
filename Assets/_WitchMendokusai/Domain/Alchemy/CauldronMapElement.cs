@@ -89,10 +89,19 @@ namespace WitchMendokusai
         // 네트워크 공유 솥일 때만 재드로(서버 권위 마커 변화 반영). 솔로 = no-op(입력 시 즉시 Refresh 로 충분).
         private void PollShared()
         {
-            if (SharedBrewChannelBridge.IsActive)
+            if (SharedBrewChannelBridge.IsActive == false)
             {
-                Refresh();
+                return;
             }
+
+            // 세계가 완성을 내줬으면 그 상태로 채점한다 (TASK-WM-217). 못 받았으면 아무 일도 없다
+            // (남이 먼저 가져갔거나 빈 솥이었다) — 그래도 화면은 계속 갱신된다.
+            if (SharedBrewChannelBridge.Channel.TryTakeCompletion(out BrewState taken))
+            {
+                BrewCompleted?.Invoke(BrewEngine.Evaluate(taken, session.Recipe.Target, rules));
+            }
+
+            Refresh();
         }
 
         /// <summary>제조 한 판 셋업 — 목표 레시피 + 위험지대 + 고를 재료 + 채점 규칙(placeholder/SO 무관).</summary>
@@ -308,9 +317,11 @@ namespace WitchMendokusai
         // host 에게 수확 요청 RPC)는 후속 — 현재 = host 만 수확(비-host 「완성」 버튼 비활성).
         private void OnCompleteClicked()
         {
-            // 공유 솥: 보상은 host 권위(이중지급 방지) — 비-host 클릭 무시(버튼도 disable). 솔로면 통과.
-            if (IsNetworked && SharedBrewChannelBridge.Channel.IsServerPeer == false)
+            // 공유 솥: 「달라」고 말하고 기다린다 (TASK-WM-217). 세계가 선착순 한 사람에게만 내주므로
+            // 이중지급은 구조적으로 막힌다 — 옛 규칙(host 만 누름)은 호스트가 없어져 기능이 죽었었다.
+            if (IsNetworked)
             {
+                SharedBrewChannelBridge.Channel.RequestCompletion();
                 return;
             }
             // 채점 = 현재 마커(공유 솥이면 SyncVar 수신값) + 로컬 레시피·규칙(양 피어 동일 SO).
@@ -473,8 +484,8 @@ namespace WitchMendokusai
                     + "등급: " + GradeText(outcome.Grade) + "\n"
                     + "넣은 재료 수: " + state.StepCount;
             }
-            // 공유 솥 = host 만 「완성」 가능(보상 host-권위, 이중지급 방지). 솔로 = 항상 가능.
-            completeButton?.SetEnabled(IsNetworked == false || SharedBrewChannelBridge.Channel.IsServerPeer);
+            // 이제 누구나 누를 수 있다 — 누가 가져갈지는 세계가 정한다(선착순 한 번).
+            completeButton?.SetEnabled(true);
             mapCanvas?.MarkDirtyRepaint();
         }
 

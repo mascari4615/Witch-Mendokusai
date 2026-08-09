@@ -78,6 +78,33 @@ namespace WitchMendokusai
         public bool IsServerPeer => base.IsServerInitialized;
 
         /// <summary>UI seam: 동기된 전체 경로 step 을 buffer 에 복사(경로선 렌더용, FishNet 타입 미노출).</summary>
+        // TASK-WM-217 — 옛 통로의 완성 규칙은 그대로다(host 만 가져간다). WS 통로가 선착순으로 바꾼다.
+        private bool completionPending;
+
+        public void RequestCompletion()
+        {
+            if (IsServerPeer)
+            {
+                completionPending = true;
+            }
+        }
+
+        public bool TryTakeCompletion(out BrewState taken)
+        {
+            taken = default;
+            if (completionPending == false)
+            {
+                return false;
+            }
+            completionPending = false;
+            if (TryGetState(out BrewVector position, out int stepCount, out float sideEffect) == false)
+            {
+                return false;
+            }
+            taken = new BrewState { Position = position, StepCount = stepCount, AccruedSideEffect = sideEffect };
+            return true;
+        }
+
         public void ReadSteps(List<BrewStep> buffer)
         {
             buffer.Clear();
