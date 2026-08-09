@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using UnityEngine;
 using WitchMendokusai.Net;
 
 namespace WitchMendokusai
@@ -181,31 +182,36 @@ namespace WitchMendokusai
 	}
 
 	/// <summary>
-	/// 지금 세계가 아는 아이템 목록 — 씨앗 (TASK-WM-217).
-	/// ⚠ 진짜 목록은 게임 데이터(ItemData 에셋)에서 뽑아 와야 한다. 그 다리는 후속.
+	/// 내 안의 세계가 아는 아이템 목록 (TASK-WM-217).
+	///
+	/// <b>정본은 게임 자산</b>이고, 에디터에서 뽑아 둔 목록(<c>Resources/items.json</c>)을 읽는다 —
+	/// 서버가 읽는 것과 <b>같은 파일 모양</b>이라 혼자 놀 때와 같이 놀 때가 갈라지지 않는다.
+	/// 목록이 아직 없으면(뽑기 전) 아무 것도 모르는 세계가 된다 — 조용히 씨앗으로 때우면
+	/// 「왜 이 아이템만 안 들어가지」로 나중에 나타난다.
 	/// </summary>
 	public static class ItemCatalog
 	{
-		private sealed class SeedItem : IItemData
+		private const string RESOURCE_NAME = "items";
+
+		private static WorldItemCatalog catalog;
+
+		public static IItemData Find(int itemId) => Ensure().Find(itemId);
+
+		private static WorldItemCatalog Ensure()
 		{
-			public SeedItem(int id, int maxAmount)
+			if (catalog != null)
+				return catalog;
+
+			TextAsset asset = Resources.Load<TextAsset>(RESOURCE_NAME);
+			if (asset == null)
 			{
-				ID = id;
-				MaxAmount = maxAmount;
+				Debug.LogWarning("[items] Resources/items.json 이 없다 — WM > 아이템 목록 뽑기 를 한 번 돌릴 것.");
+				catalog = new WorldItemCatalog(null);
+				return catalog;
 			}
 
-			public int ID { get; }
-			public int MaxAmount { get; }
-			public ItemType Type => default;
-			public ItemGrade Grade => default;
+			catalog = new WorldItemCatalog(JsonUtility.FromJson<ItemCatalogData>(asset.text));
+			return catalog;
 		}
-
-		private static readonly Dictionary<int, SeedItem> byId = new Dictionary<int, SeedItem>
-		{
-			{ 1, new SeedItem(1, 99) },
-			{ 2, new SeedItem(2, 20) },
-		};
-
-		public static IItemData Find(int itemId) => byId.TryGetValue(itemId, out SeedItem item) ? item : null;
 	}
 }

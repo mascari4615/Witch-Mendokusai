@@ -25,21 +25,60 @@ namespace WitchMendokusai.Server
 		public ItemGrade Grade => default;
 	}
 
-	/// <summary>서버가 아는 아이템 목록 — 씨앗.</summary>
+	/// <summary>
+	/// 서버가 아는 아이템 목록 (TASK-WM-216 → 217).
+	///
+	/// <b>정본은 게임 자산이다.</b> 거기서 뽑은 목록 파일(<c>items.json</c>)이 있으면 그걸 쓰고,
+	/// 없으면 씨앗 둘로 돈다 — 손으로 적은 낱말표는 반드시 새기 때문에, 있는 쪽이 늘 이긴다.
+	/// 파일 자리 = 환경변수 <c>WM_ITEMS_FILE</c> 또는 서버 옆 <c>items.json</c>.
+	/// </summary>
 	public static class ServerItemCatalog
 	{
 		public const int STONE = 1;
 		public const int HERB = 2;
 
-		private static readonly Dictionary<int, ServerItemData> byId = new Dictionary<int, ServerItemData>
+		private static readonly Dictionary<int, ServerItemData> seed = new Dictionary<int, ServerItemData>
 		{
 			{ STONE, new ServerItemData(STONE, 99) },
 			{ HERB, new ServerItemData(HERB, 20) },
 		};
 
+		private static readonly WorldItemCatalog exported = LoadExported();
+
+		/// <summary>게임에서 뽑아 온 목록이 있나 — 없으면 씨앗으로 돈다.</summary>
+		public static bool UsingExported => exported != null && exported.Count > 0;
+
 		public static IItemData Find(int itemId)
 		{
-			return byId.TryGetValue(itemId, out ServerItemData data) ? data : null;
+			if (UsingExported)
+				return exported.Find(itemId);
+
+			return seed.TryGetValue(itemId, out ServerItemData data) ? data : null;
+		}
+
+		private static WorldItemCatalog LoadExported()
+		{
+			string path = System.Environment.GetEnvironmentVariable("WM_ITEMS_FILE");
+			if (string.IsNullOrWhiteSpace(path))
+				path = System.IO.Path.Combine(System.AppContext.BaseDirectory, "items.json");
+
+			try
+			{
+				if (System.IO.File.Exists(path) == false)
+					return null;
+
+				System.Text.Json.JsonSerializerOptions options = new System.Text.Json.JsonSerializerOptions { IncludeFields = true };
+				ItemCatalogData data = System.Text.Json.JsonSerializer.Deserialize<ItemCatalogData>(System.IO.File.ReadAllText(path), options);
+				WorldItemCatalog catalog = new WorldItemCatalog(data);
+				System.Console.WriteLine($"[items] 게임에서 뽑은 목록 {catalog.Count}종 ({path})");
+				return catalog;
+			}
+			catch (System.Exception error) when (error is System.IO.IOException || error is System.Text.Json.JsonException)
+			{
+				// 못 읽었다고 서버가 안 뜨면 그게 더 나쁘다 — 씨앗으로 돌고 알린다.
+				System.Console.WriteLine("[items] 목록을 못 읽었다 — 씨앗으로 돈다: " + error.Message);
+				return null;
+			}
 		}
 	}
 }
