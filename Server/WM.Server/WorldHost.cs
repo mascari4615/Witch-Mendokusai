@@ -137,7 +137,7 @@ namespace WitchMendokusai.Server
 			{
 				// 지금 이 연결의 주인에게만 초대 열쇠를 낸다 — 손님(주인 없음)은 낼 수 없다.
 				int owner = World.OwnerOf(dollId);
-				string code = owner == 0 ? null : Identities.IssueInvite(owner);
+				string code = owner == 0 ? null : Identities.IssueInvite(owner, World.Calendar.TotalDays());
 				await SendAsync(socket, Protocol.Invite(code));
 				Interlocked.Exchange(ref worldDirty, 1);
 				return;
@@ -147,7 +147,7 @@ namespace WitchMendokusai.Server
 			{
 				string code = ReadStringField(text, "code");
 				string deviceSecret = CurrentSecretOf(dollId);
-				WitchMendokusai.Identity.WorldIdentityRecord linked = Identities.RedeemInvite(code, deviceSecret);
+				WitchMendokusai.Identity.WorldIdentityRecord linked = Identities.RedeemInvite(code, deviceSecret, World.Calendar.TotalDays());
 
 				// 이었어도 지금 인형은 안 바꾼다(접속 도중 주인 갈아타기는 막혀 있다) —
 				// 다시 들어오면 그때부터 그 사람이다.

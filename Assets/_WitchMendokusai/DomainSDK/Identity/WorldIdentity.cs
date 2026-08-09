@@ -28,6 +28,9 @@ namespace WitchMendokusai.Identity
 	{
 		public string code = string.Empty;
 		public int identityId;
+
+		/// <summary>이 날(세계 기준 총 일수)이 지나면 못 쓴다 — 주운 종이 한 장이 영원하면 안 된다.</summary>
+		public int expiresOnDay;
 	}
 
 	/// <summary>세계가 아는 사람들 — 저장되는 모양 (TASK-WM-218).</summary>
@@ -134,9 +137,7 @@ namespace WitchMendokusai.Identity
 				WorldIdentityRecord[] people = new WorldIdentityRecord[byId.Count];
 				byId.Values.CopyTo(people, 0);
 				WorldLinkInvite[] saved = new WorldLinkInvite[invites.Count];
-				int index = 0;
-				foreach (KeyValuePair<string, int> invite in invites)
-					saved[index++] = new WorldLinkInvite { code = invite.Key, identityId = invite.Value };
+				invites.Values.CopyTo(saved, 0);
 
 				return new WorldIdentityBook { people = people, nextId = nextId, invites = saved };
 			}
@@ -176,7 +177,7 @@ namespace WitchMendokusai.Identity
 						if (invite == null || string.IsNullOrEmpty(invite.code) || byId.ContainsKey(invite.identityId) == false)
 							continue;
 
-						invites[invite.code] = invite.identityId;
+						invites[invite.code] = invite;
 					}
 				}
 
@@ -194,21 +195,42 @@ namespace WitchMendokusai.Identity
 		/// <summary>초대 열쇠 길이 — 사람이 손으로 옮겨 적을 수 있어야 해서 짧다.</summary>
 		public const int INVITE_LENGTH = 8;
 
-		private readonly Dictionary<string, int> invites = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+		private readonly Dictionary<string, WorldLinkInvite> invites = new Dictionary<string, WorldLinkInvite>(StringComparer.OrdinalIgnoreCase);
 
 		/// <summary>
 		/// 다른 기기를 <b>같은 사람</b>에 잇기 위한 초대 열쇠를 낸다 (TASK-WM-218).
 		/// 짧은 대신 <b>한 번 쓰면 사라진다</b> — 남이 주워도 이미 쓴 것은 소용없다.
 		/// </summary>
-		public string IssueInvite(int identityId)
+		/// <summary>초대 열쇠가 살아 있는 날수 — 세계의 하루 기준.</summary>
+		public const int INVITE_DAYS = 3;
+
+		public string IssueInvite(int identityId, int today = 0)
 		{
 			lock (gate)
 			{
 				if (byId.ContainsKey(identityId) == false)
 					return null;
 
+				// 한 사람에게 살아 있는 열쇠는 하나뿐 — 새로 만들면 옛것은 그 자리에서 죽는다.
+				// 안 그러면 예전에 만든 종이들이 계속 유효한 채로 굴러다닌다.
+				List<string> stale = new List<string>();
+				foreach (KeyValuePair<string, WorldLinkInvite> existing in invites)
+				{
+					if (existing.Value.identityId == identityId)
+						stale.Add(existing.Key);
+				}
+
+				for (int i = 0; i < stale.Count; i++)
+					invites.Remove(stale[i]);
+
 				string code = NewCode(INVITE_LENGTH);
-				invites[code] = identityId;
+				invites[code] = new WorldLinkInvite
+				{
+					code = code,
+					identityId = identityId,
+					expiresOnDay = today + INVITE_DAYS,
+				};
+
 				return code;
 			}
 		}
@@ -217,14 +239,21 @@ namespace WitchMendokusai.Identity
 		/// 초대 열쇠를 쓴다 — 그 기기의 열쇠를 <b>같은 사람</b>에 붙인다.
 		/// 모르는 코드거나 이미 쓴 코드면 아무 일도 없다(남의 사람이 되지 않는다).
 		/// </summary>
-		public WorldIdentityRecord RedeemInvite(string code, string deviceSecret)
+		public WorldIdentityRecord RedeemInvite(string code, string deviceSecret, int today = 0)
 		{
 			lock (gate)
 			{
-				if (string.IsNullOrEmpty(code) || invites.TryGetValue(code, out int identityId) == false)
+				if (string.IsNullOrEmpty(code) || invites.TryGetValue(code, out WorldLinkInvite invite) == false)
 					return null;
 
-				if (byId.TryGetValue(identityId, out WorldIdentityRecord person) == false)
+				if (today > invite.expiresOnDay)
+				{
+					// 지난 열쇠는 그 자리에서 버린다 — 남아 있으면 나중에 또 시도된다.
+					invites.Remove(code);
+					return null;
+				}
+
+				if (byId.TryGetValue(invite.identityId, out WorldIdentityRecord person) == false)
 					return null;
 
 				invites.Remove(code); // 한 번 쓰면 사라진다.

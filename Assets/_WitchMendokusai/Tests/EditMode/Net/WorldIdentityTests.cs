@@ -131,6 +131,43 @@ namespace WitchMendokusai.Tests.EditMode.Net
 		}
 
 		[Test]
+		public void 지난_초대_열쇠는_안_통한다()
+		{
+			WorldIdentityRegistry registry = Fresh();
+			WorldIdentityRecord person = registry.Recognize(null, out bool _);
+			string invite = registry.IssueInvite(person.id, today: 10);
+
+			// 주운 종이 한 장이 영원히 유효하면 안 된다.
+			Assert.That(registry.RedeemInvite(invite, "기기", today: 10 + WorldIdentityRegistry.INVITE_DAYS + 1), Is.Null);
+			Assert.That(registry.PendingInvites, Is.EqualTo(0), "지난 열쇠는 그 자리에서 버린다.");
+		}
+
+		[Test]
+		public void 기한_안이면_통한다()
+		{
+			WorldIdentityRegistry registry = Fresh();
+			WorldIdentityRecord person = registry.Recognize(null, out bool _);
+			string invite = registry.IssueInvite(person.id, today: 10);
+
+			Assert.That(registry.RedeemInvite(invite, "기기", today: 10 + WorldIdentityRegistry.INVITE_DAYS)?.id,
+				Is.EqualTo(person.id));
+		}
+
+		[Test]
+		public void 새로_만들면_옛_열쇠는_죽는다()
+		{
+			WorldIdentityRegistry registry = Fresh();
+			WorldIdentityRecord person = registry.Recognize(null, out bool _);
+
+			string first = registry.IssueInvite(person.id);
+			string second = registry.IssueInvite(person.id);
+
+			Assert.That(registry.PendingInvites, Is.EqualTo(1), "한 사람에게 살아 있는 열쇠는 하나뿐.");
+			Assert.That(registry.RedeemInvite(first, "기기A"), Is.Null);
+			Assert.That(registry.RedeemInvite(second, "기기B")?.id, Is.EqualTo(person.id));
+		}
+
+		[Test]
 		public void 모르는_초대_열쇠는_아무_일도_없다()
 		{
 			WorldIdentityRegistry registry = Fresh();
