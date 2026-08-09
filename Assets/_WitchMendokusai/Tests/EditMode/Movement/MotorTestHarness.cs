@@ -1,10 +1,6 @@
 ﻿using System;
 using UnityEngine;
-// ★ 좌표는 판정 쪽 (TASK-WM-214).
-using Vector3 = WitchMendokusai.Numerics.Vector3;
-using Vector2 = WitchMendokusai.Numerics.Vector2;
-using Vector2Int = WitchMendokusai.Numerics.Vector2Int;
-using Vector3Int = WitchMendokusai.Numerics.Vector3Int;
+// 이 시험이 만지는 건 엔진 쪽 값이다(화면 배치·충돌체·모터 문맥) — 좌표 별칭 없음 (TASK-WM-214).
 
 namespace WitchMendokusai.Tests
 {
