@@ -2,7 +2,6 @@
     "name": "WM.Network",
     "rootNamespace": "WitchMendokusai",
     "references": [
-        "FishNet.Runtime",
         "WM.Core",
         "WitchMendokusai.DomainSDK"
     ],
