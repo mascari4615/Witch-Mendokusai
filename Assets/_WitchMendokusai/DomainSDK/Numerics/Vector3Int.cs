@@ -72,6 +72,22 @@ namespace WitchMendokusai.Numerics
 
 		public static float Distance(Vector3Int a, Vector3Int b) => (a - b).magnitude;
 
+		/// <summary>실수 좌표를 아래로 내려 격자 칸으로 (Unity 와 같은 규칙).</summary>
+		public static Vector3Int FloorToInt(Vector3 value)
+		{
+			return new Vector3Int(Mathf.FloorToInt(value.x), Mathf.FloorToInt(value.y), Mathf.FloorToInt(value.z));
+		}
+
+		public static Vector3Int CeilToInt(Vector3 value)
+		{
+			return new Vector3Int(Mathf.CeilToInt(value.x), Mathf.CeilToInt(value.y), Mathf.CeilToInt(value.z));
+		}
+
+		public static Vector3Int RoundToInt(Vector3 value)
+		{
+			return new Vector3Int(Mathf.RoundToInt(value.x), Mathf.RoundToInt(value.y), Mathf.RoundToInt(value.z));
+		}
+
 		public static Vector3Int Min(Vector3Int lhs, Vector3Int rhs)
 		{
 			return new Vector3Int(Mathf.Min(lhs.x, rhs.x), Mathf.Min(lhs.y, rhs.y), Mathf.Min(lhs.z, rhs.z));

@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
+// ★ 좌표는 판정 쪽 (TASK-WM-214) — 사거리·조준은 시뮬이고, 엔진은 몸을 놓는 자리만 맡는다.
+using Vector3 = WitchMendokusai.Numerics.Vector3;
 
 namespace WitchMendokusai
 {

@@ -89,6 +89,13 @@ namespace WitchMendokusai.Numerics
 
 		public static Vector2Int Scale(Vector2Int a, Vector2Int b) => new Vector2Int(a.x * b.x, a.y * b.y);
 
+		/// <summary>실수 좌표를 아래로 내려 격자 칸으로 (Unity 와 같은 규칙).</summary>
+		public static Vector2Int FloorToInt(Vector2 value) => new Vector2Int(Mathf.FloorToInt(value.x), Mathf.FloorToInt(value.y));
+
+		public static Vector2Int CeilToInt(Vector2 value) => new Vector2Int(Mathf.CeilToInt(value.x), Mathf.CeilToInt(value.y));
+
+		public static Vector2Int RoundToInt(Vector2 value) => new Vector2Int(Mathf.RoundToInt(value.x), Mathf.RoundToInt(value.y));
+
 		public static Vector2Int operator +(Vector2Int a, Vector2Int b) => new Vector2Int(a.x + b.x, a.y + b.y);
 		public static Vector2Int operator -(Vector2Int a, Vector2Int b) => new Vector2Int(a.x - b.x, a.y - b.y);
 		public static Vector2Int operator -(Vector2Int a) => new Vector2Int(-a.x, -a.y);

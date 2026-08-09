@@ -3468,7 +3468,7 @@ namespace WitchMendokusai
 				{
 					Kind = (int)(doll.IsHarvester ? TowerDefensePlaceableKind.Harvester : TowerDefensePlaceableKind.Tower),
 					Variant = doll.Variant,
-					Position = stageRoot.InverseTransformPoint(doll.Anchor.position),
+					Position = (Vector3)stageRoot.InverseTransformPoint(doll.Anchor.position),
 					Level = doll.Level,
 					Experience = doll.Progress.Experience,
 					PendingChoices = doll.Progress.PendingChoices,
@@ -3487,7 +3487,7 @@ namespace WitchMendokusai
 				{
 					save.Traps.Add(new TowerDefenseTrapSave
 					{
-						Position = stageRoot.InverseTransformPoint(trap.transform.position),
+						Position = (Vector3)stageRoot.InverseTransformPoint(trap.transform.position),
 						ChargesLeft = trap.ChargesLeft,
 					});
 				}
@@ -3497,7 +3497,7 @@ namespace WitchMendokusai
 			foreach (Transform outpost in outposts)
 			{
 				if (outpost != null)
-					save.Outposts.Add(stageRoot.InverseTransformPoint(outpost.position));
+					save.Outposts.Add((Vector3)stageRoot.InverseTransformPoint(outpost.position));
 			}
 
 			// 벽도 적는다 — 벽은 보급 징검다리라, 안 적으면 사슬이 짧아져 그 너머 포탑이 되살아나지 못한다.
@@ -3562,7 +3562,7 @@ namespace WitchMendokusai
 				foreach (Vector3 outpostLocal in save.Outposts)
 				{
 					core.AddEssence(stage.OutpostEssenceCost); // 되살리는 것은 짓는 일이 아니다.
-					if (TryPlaceOutpost(stageRoot.TransformPoint(outpostLocal)) == false)
+					if (TryPlaceOutpost((Vector3)stageRoot.TransformPoint(outpostLocal)) == false)
 						core.TrySpendEssence(stage.OutpostEssenceCost);
 					yield return null;
 				}
@@ -3575,7 +3575,7 @@ namespace WitchMendokusai
 				foreach (Vector3 wallLocal in save.Walls)
 				{
 					core.AddResource(stage.WallCost); // 되살리는 것은 짓는 일이 아니다 — 값은 아래에서 정확히 맞춘다.
-					if (TryPlaceWall(stageRoot.TransformPoint(wallLocal)))
+					if (TryPlaceWall((Vector3)stageRoot.TransformPoint(wallLocal)))
 						wallsBack++;
 					else
 						core.TrySpend(stage.WallCost);
@@ -3590,7 +3590,7 @@ namespace WitchMendokusai
 			{
 				foreach (TowerDefenseTrapSave trapSave in save.Traps)
 				{
-					Vector3 trapWorld = stageRoot.TransformPoint(trapSave.Position);
+					Vector3 trapWorld = (Vector3)stageRoot.TransformPoint(trapSave.Position);
 					core.AddResource(stage.TrapCost); // 되살리는 것은 짓는 일이 아니다.
 					if (TryPlaceTrap(trapWorld) == false)
 					{
@@ -3625,7 +3625,7 @@ namespace WitchMendokusai
 
 				foreach (TowerDefenseBuildingSave building in pending)
 				{
-					Vector3 world = stageRoot.TransformPoint(building.Position);
+					Vector3 world = (Vector3)stageRoot.TransformPoint(building.Position);
 					// ★ 되살리는 것은 *짓는 일이 아니다* — 이미 치른 값을 또 치르면 이어할 때마다 지갑이 깎인다.
 					//   배치 경로를 그대로 쓰되(자리·보급 규칙은 지켜야 한다) 그 값만큼 미리 채워 넣고,
 					//   전부 세운 뒤 저장된 액수로 정확히 되돌린다.
@@ -3816,7 +3816,7 @@ namespace WitchMendokusai
 				return false;
 
 			ApplyPerk(doll, perk);
-			PopWorldText(TowerDefenseBuildingProgress.NameOf(perk), doll.Anchor.position, TextType.Exp);
+			PopWorldText(TowerDefenseBuildingProgress.NameOf(perk), (Vector3)doll.Anchor.position, TextType.Exp);
 			return true;
 		}
 
@@ -3948,7 +3948,7 @@ namespace WitchMendokusai
 		{
 			if (mapLayout == null || stageRoot == null)
 				return true;
-			return mapLayout.IsInsideWindow(stageRoot.InverseTransformPoint(worldPosition));
+			return mapLayout.IsInsideWindow((Vector3)stageRoot.InverseTransformPoint(worldPosition));
 		}
 
 		/// <summary> 내 것 중 가장 바깥이 창 가장자리에서 몇 칸 남았나 — 창을 넓힐 시점을 정하는 값. </summary>
@@ -3964,7 +3964,7 @@ namespace WitchMendokusai
 				{
 					if (building == null)
 						continue;
-					int distance = mapLayout.CellsToWindowEdge(stageRoot.InverseTransformPoint(building.position));
+					int distance = mapLayout.CellsToWindowEdge((Vector3)stageRoot.InverseTransformPoint(building.position));
 					if (distance < nearest)
 						nearest = distance;
 				}
@@ -4781,7 +4781,7 @@ namespace WitchMendokusai
 			float total = 0f;
 			for (int index = 0; index < activeNodePositions.Count; index++)
 			{
-				Vector3 nodeWorld = stageRoot.TransformPoint(activeNodePositions[index]);
+				Vector3 nodeWorld = (Vector3)stageRoot.TransformPoint(activeNodePositions[index]);
 				if ((nodeWorld - harvester.position).sqrMagnitude <= reachSqr)
 					total += NodeIncomeMultiplierAt(index);
 			}
@@ -4972,7 +4972,7 @@ namespace WitchMendokusai
 					continue;
 				}
 
-				Vector2Int cell = mapLayout.WorldToCell(stageRoot.InverseTransformPoint(position));
+				Vector2Int cell = mapLayout.WorldToCell((Vector3)stageRoot.InverseTransformPoint(position));
 				bool blocked = IsPathBlocked(cell);
 				bool reachable = flowField.IsReachable(cell);
 
@@ -4994,7 +4994,7 @@ namespace WitchMendokusai
 				if (stuckMovement != null && intendedStep > 0f
 					&& stuckMovement.LastMoveDelta.magnitude > intendedStep * 0.25f)
 				{
-					oscillatingCells.Add(mapLayout.WorldToCell(stageRoot.InverseTransformPoint(position)));
+					oscillatingCells.Add(mapLayout.WorldToCell((Vector3)stageRoot.InverseTransformPoint(position)));
 					enemyStillness[enemy.CombatantId] = (position, 0f);
 					continue;
 				}
@@ -5209,7 +5209,7 @@ namespace WitchMendokusai
 				if (earned <= 0)
 					continue;
 
-				PopWorldText("+" + earned, harvester.position, TextType.Heal);
+				PopWorldText("+" + earned, (Vector3)harvester.position, TextType.Heal);
 
 				// ★ 바깥 채집은 정수를 낸다 — 그게 「멀리 나간」 보상인데 들어와도 화면이 한 마디도 안 했다.
 				//   보이지 않는 보상은 배울 수가 없다(왜 위험을 무릅쓰는지가 안 남는다).
@@ -5220,7 +5220,7 @@ namespace WitchMendokusai
 				int essence = Mathf.RoundToInt(
 					stage.Rules.EssencePerHarvester * HarvesterMultiplierOf(harvester));
 				if (essence > 0)
-					PopWorldText("정수 +" + essence, harvester.position, TextType.Exp);
+					PopWorldText("정수 +" + essence, (Vector3)harvester.position, TextType.Exp);
 			}
 		}
 
@@ -5451,7 +5451,7 @@ namespace WitchMendokusai
 			{
 				if (unit == null || unit.activeInHierarchy == false)
 					continue;
-				if (ToCellKey(unit.transform.position) != cellKey)
+				if (ToCellKey((Vector3)unit.transform.position) != cellKey)
 					continue;
 				if (coreCombatant != null && unit == coreCombatant.gameObject)
 					return false; // 코어는 못 판다.
@@ -5476,7 +5476,7 @@ namespace WitchMendokusai
 			LastSoldValue = soldValue;
 			LastSellRefund = refund;
 			core.AddResource(refund);
-			PopWorldText("+" + refund, sold.transform.position, TextType.Heal);
+			PopWorldText("+" + refund, (Vector3)sold.transform.position, TextType.Heal);
 
 			ReleaseSoldUnit(sold);
 			occupiedCells.Remove(cellKey);
@@ -5492,7 +5492,7 @@ namespace WitchMendokusai
 					continue;
 
 				harvesterTransforms.RemoveAt(index);
-				ReleaseNodeAt(sold.transform.position);
+				ReleaseNodeAt((Vector3)sold.transform.position);
 				return stage.HarvesterCost;
 			}
 
@@ -5524,7 +5524,7 @@ namespace WitchMendokusai
 			{
 				if (claimedNodes.Contains(index) == false)
 					continue;
-				Vector3 nodeWorld = stageRoot.TransformPoint(activeNodePositions[index]);
+				Vector3 nodeWorld = (Vector3)stageRoot.TransformPoint(activeNodePositions[index]);
 				if ((nodeWorld - worldPosition).sqrMagnitude > 1f)
 					continue;
 
@@ -5579,7 +5579,7 @@ namespace WitchMendokusai
 				if (claimedNodes.Contains(index))
 					continue;
 
-				Vector3 candidateWorldPosition = stageRoot.TransformPoint(activeNodePositions[index]);
+				Vector3 candidateWorldPosition = (Vector3)stageRoot.TransformPoint(activeNodePositions[index]);
 				float sqrDistance = (candidateWorldPosition - worldPosition).sqrMagnitude;
 				if (sqrDistance > captureRadiusSqr)
 					continue;
@@ -5594,7 +5594,7 @@ namespace WitchMendokusai
 				return false;
 
 			nodeIndex = bestIndex;
-			nodeWorldPosition = stageRoot.TransformPoint(activeNodePositions[bestIndex]);
+			nodeWorldPosition = (Vector3)stageRoot.TransformPoint(activeNodePositions[bestIndex]);
 			return true;
 		}
 
@@ -5617,7 +5617,7 @@ namespace WitchMendokusai
 			if (mapLayout == null || stageRoot == null)
 				return false;
 
-			return mapLayout.IsBlocked(stageRoot.InverseTransformPoint(worldPosition));
+			return mapLayout.IsBlocked((Vector3)stageRoot.InverseTransformPoint(worldPosition));
 		}
 
 		// 셀 키 = FloorToInt(worldPosition), y 는 0 고정(층 무관 단일 격자 — 위로 쌓기 원천 차단).
