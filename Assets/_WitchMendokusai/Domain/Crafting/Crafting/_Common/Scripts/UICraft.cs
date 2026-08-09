@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -208,28 +208,10 @@ namespace WitchMendokusai
 
 				// Craft
 				// 1. Remove Ingredients
+				// 쓰는 규칙은 판정 층에 있다 (TASK-WM-215) — 흩어진 칸을 모아 쓰고, 모자라면 남은 수를 알려준다.
 				foreach (ItemInfo ingredientInfo in recipe.Items)
 				{
-					int remain = ingredientInfo.Amount;
-
-					while (remain > 0)
-					{
-						int slotIndex = soManager.ItemInventory.FindItemIndex(ingredientInfo.ItemData.ID);
-
-						Item item = soManager.ItemInventory.GetItem(slotIndex);
-						int slotAmount = item.Amount;
-
-						if (slotAmount > remain)
-						{
-							soManager.ItemInventory.SetItemAmount(slotIndex, slotAmount - remain);
-							break;
-						}
-						else
-						{
-							soManager.ItemInventory.Remove(slotIndex);
-							remain -= slotAmount;
-						}
-					}
+					soManager.ItemInventory.Consume(ingredientInfo.ItemData.ID, ingredientInfo.Amount);
 				}
 
 				dataManager.GameStat[GameStatType.NYANG] -= recipePrice;
@@ -271,26 +253,8 @@ namespace WitchMendokusai
 
 				// Craft
 				// 1. Remove Ingredients
-				int remain = recipe.Amount;
-
-				while (remain > 0)
-				{
-					int slotIndex = soManager.ItemInventory.FindItemIndex(itemData.ID);
-
-					Item item = soManager.ItemInventory.GetItem(slotIndex);
-					int slotAmount = item.Amount;
-
-					if (slotAmount > remain)
-					{
-						soManager.ItemInventory.SetItemAmount(slotIndex, slotAmount - remain);
-						break;
-					}
-					else
-					{
-						soManager.ItemInventory.Remove(slotIndex);
-						remain -= slotAmount;
-					}
-				}
+				// 쓰는 규칙은 판정 층에 있다 (TASK-WM-215).
+				soManager.ItemInventory.Consume(itemData.ID, recipe.Amount);
 
 				dataManager.GameStat[GameStatType.NYANG] -= recipePrice;
 				uiManager.PopText($"- {recipePrice}", TextType.Warning);

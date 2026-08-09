@@ -80,6 +80,12 @@ namespace WitchMendokusai
 
 		public void Remove(int index, int amount = 1) => Core.Remove(index, amount);
 
+		/// <summary>제작 재료처럼 「그 종류를 이만큼」 쓴다. 못 쓰고 남은 개수를 돌려준다.</summary>
+		public int Consume(int itemID, int amount) => Core.Consume(itemID, amount);
+
+		/// <summary>흩어진 칸을 다 합쳐 몇 개 가지고 있나.</summary>
+		public int CountByID(int itemID) => Core.CountById(itemID);
+
 		private bool IsValidIndex(int index)
 		{
 			return index >= 0 && index < Capacity;
