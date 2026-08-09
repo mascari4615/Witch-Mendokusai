@@ -131,6 +131,69 @@ namespace WitchMendokusai.Tests.EditMode.Net
 		}
 
 		[Test]
+		public void 계정으로_들어오면_어느_기기에서든_같은_사람이다()
+		{
+			WorldIdentityRegistry registry = Fresh();
+
+			WorldIdentityRecord onPhone = registry.RecognizeExternal("karmolab:mascari", "폰-열쇠", today: 1, out bool created);
+			WorldIdentityRecord onLaptop = registry.RecognizeExternal("karmolab:mascari", "노트북-열쇠", today: 2, out bool again);
+
+			Assert.That(created, Is.True);
+			Assert.That(again, Is.False);
+			Assert.That(onLaptop.id, Is.EqualTo(onPhone.id), "기기가 달라도 계정이 같으면 같은 사람.");
+
+			// 이제 계정 없이(기기 열쇠만으로) 들어와도 그 사람이다.
+			Assert.That(registry.Recognize("노트북-열쇠", out bool _).id, Is.EqualTo(onPhone.id));
+		}
+
+		[Test]
+		public void 손님으로_놀던_기기가_계정을_대면_그_손님이_승격된다()
+		{
+			WorldIdentityRegistry registry = Fresh();
+			WorldIdentityRecord guest = registry.Recognize(null, out bool _);
+
+			WorldIdentityRecord signedIn = registry.RecognizeExternal("karmolab:mascari", guest.secret, today: 5, out bool created);
+
+			// 새로 만들면 손님이 모은 게 주인 없이 남는다 — 사람 눈엔 사라진 것이다.
+			Assert.That(created, Is.False);
+			Assert.That(signedIn.id, Is.EqualTo(guest.id));
+			Assert.That(registry.Count, Is.EqualTo(1));
+		}
+
+		[Test]
+		public void 다른_계정은_다른_사람이다()
+		{
+			WorldIdentityRegistry registry = Fresh();
+			WorldIdentityRecord mine = registry.RecognizeExternal("karmolab:mascari", "기기A", today: 0, out bool _);
+			WorldIdentityRecord other = registry.RecognizeExternal("karmolab:someone", "기기B", today: 0, out bool _);
+
+			Assert.That(other.id, Is.Not.EqualTo(mine.id));
+		}
+
+		[Test]
+		public void 계정이_없으면_아무_일도_없다()
+		{
+			WorldIdentityRegistry registry = Fresh();
+
+			Assert.That(registry.RecognizeExternal(null, "기기", today: 0, out bool _), Is.Null);
+			Assert.That(registry.RecognizeExternal("", "기기", today: 0, out bool _), Is.Null);
+		}
+
+		[Test]
+		public void 계정_이름표도_껐다_켜면_남는다()
+		{
+			WorldIdentityRegistry before = Fresh();
+			WorldIdentityRecord person = before.RecognizeExternal("karmolab:mascari", "기기", today: 0, out bool _);
+
+			WorldIdentityRegistry after = new WorldIdentityRegistry(new Random(11));
+			after.Load(before.Save());
+
+			Assert.That(after.RecognizeExternal("karmolab:mascari", "새-기기", today: 1, out bool created).id,
+				Is.EqualTo(person.id));
+			Assert.That(created, Is.False);
+		}
+
+		[Test]
 		public void 지난_초대_열쇠는_안_통한다()
 		{
 			WorldIdentityRegistry registry = Fresh();

@@ -20,6 +20,12 @@ namespace WitchMendokusai.Identity
 
 		/// <summary>마지막으로 본 시각(세계 기준 총 일수) — 오래된 신원 정리에 쓸 수 있다.</summary>
 		public int lastSeenDay;
+
+		/// <summary>
+		/// 바깥 계정(KarmoLab 등)의 이름표 — 있으면 <b>그게 진짜 나</b>다 (TASK-WM-218).
+		/// 형식 = "제공자:아이디"(예: karmolab:mascari). 없으면 빈 문자열(기기 열쇠만 쓰는 손님).
+		/// </summary>
+		public string externalId = string.Empty;
 	}
 
 	/// <summary>다른 기기를 같은 사람에 잇기 위한 <b>한 번 쓰는 초대 열쇠</b> (TASK-WM-218).</summary>
@@ -120,6 +126,69 @@ namespace WitchMendokusai.Identity
 				created = true;
 				return record;
 			}
+		}
+
+		/// <summary>
+		/// 바깥 계정으로 들어온 사람을 찾는다 (TASK-WM-218 — KarmoLab 계정 공유).
+		///
+		/// ★ 왜 이 자리가 필요한가: 기기 열쇠는 <b>기기</b>를 알아볼 뿐이다. 사람이 새 기기를 사거나
+		///   브라우저를 지우면 남이 된다. 이미 있는 계정(KarmoLab)이 「그 사람」을 알고 있으니,
+		///   그 이름표를 신원에 붙이면 <b>어느 기기에서든 나</b>가 된다.
+		///
+		/// 처음 보는 계정이면 그 자리에서 사람을 만든다(가입 화면은 여전히 없다).
+		/// 기기 열쇠를 같이 주면 그 기기도 이 사람 쪽으로 붙는다 — 다음부터는 계정 없이도 나다.
+		/// </summary>
+		public WorldIdentityRecord RecognizeExternal(string externalId, string deviceSecret, int today, out bool created)
+		{
+			created = false;
+			if (string.IsNullOrEmpty(externalId))
+				return null;
+
+			lock (gate)
+			{
+				foreach (KeyValuePair<int, WorldIdentityRecord> entry in byId)
+				{
+					if (string.Equals(entry.Value.externalId, externalId, StringComparison.Ordinal) == false)
+						continue;
+
+					entry.Value.lastSeenDay = today;
+					AttachDevice(deviceSecret, entry.Value);
+					return entry.Value;
+				}
+
+				// 처음 보는 계정 — 그 기기가 이미 손님으로 놀고 있었다면 <b>그 손님을 그대로 승격</b>한다.
+				// 새로 만들면 그때까지 모은 게 주인 없이 남는다(사람 눈엔 사라진 것이다).
+				if (string.IsNullOrEmpty(deviceSecret) == false && bySecret.TryGetValue(deviceSecret, out WorldIdentityRecord guest)
+					&& string.IsNullOrEmpty(guest.externalId))
+				{
+					guest.externalId = externalId;
+					guest.lastSeenDay = today;
+					return guest;
+				}
+
+				WorldIdentityRecord record = new WorldIdentityRecord
+				{
+					id = nextId++,
+					secret = NewSecret(),
+					externalId = externalId,
+					lastSeenDay = today,
+				};
+
+				bySecret[record.secret] = record;
+				byId[record.id] = record;
+				AttachDevice(deviceSecret, record);
+				created = true;
+				return record;
+			}
+		}
+
+		// ⚠ 자물쇠 안에서만 부른다.
+		private void AttachDevice(string deviceSecret, WorldIdentityRecord person)
+		{
+			if (string.IsNullOrEmpty(deviceSecret))
+				return;
+
+			bySecret[deviceSecret] = person;
 		}
 
 		/// <summary>그 번호의 사람 — 모르면 null.</summary>
