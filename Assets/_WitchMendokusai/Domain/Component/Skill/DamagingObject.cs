@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
 using VContainer;
@@ -169,17 +169,15 @@ namespace WitchMendokusai
 					? ownerCombatant.UnitObject.UnitStat
 					: playerProvider.Current.UnitStat;
 
-				calcDamage = (int)(calcDamage * (1 + (unitStat[UnitStatType.DAMAGE_BONUS] / 100f)));
+				// 계산 규칙은 판정 층에 있다 (TASK-WM-215). 주사위는 여기서 굴려 넘긴다 —
+				// 게임은 전역 난수, 서버는 판마다 씨앗 고정 난수를 쓸 수 있게 된다.
+				// (옛 주석의 NONDETERMINISTIC 문제는 이 분리로 풀린다: 굴리는 쪽만 갈아끼우면 된다.)
+				int roll = UnityEngine.Random.Range(0, DamageCalculation.ROLL_RANGE);
+				DamageOutcome outcome = DamageCalculation.Resolve(damage, damageBonus, unitStat, roll);
 
-				if (unitStat[UnitStatType.CRITICAL_CHANCE] > 0)
-				{
-					// NONDETERMINISTIC: UnityEngine.Random 전역 — 아레나 리플레이/lockstep(P6) 진입 시 per-match seeded RNG 격리 필요 (WM-165 후속 / TASK-WM-085).
-					if (UnityEngine.Random.Range(0, 100) < unitStat[UnitStatType.CRITICAL_CHANCE])
-					{
-						calcDamage = (int)(calcDamage * (1 + (unitStat[UnitStatType.CRITICAL_DAMAGE] / 100f)));
-						damageInfo.type = DamageType.Critical;
-					}
-				}
+				calcDamage = outcome.Damage;
+				if (outcome.IsCritical)
+					damageInfo.type = DamageType.Critical;
 			}
 
 			damageInfo.damage = calcDamage;

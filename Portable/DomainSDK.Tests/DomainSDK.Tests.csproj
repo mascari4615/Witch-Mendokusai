@@ -48,6 +48,7 @@
     <Compile Include="$(TestsRoot)Item/InventoryCoreTests.cs" />
     <Compile Include="$(TestsRoot)Item/RecipeKeyTests.cs" />
     <Compile Include="$(TestsRoot)Building/BuildingCensusTests.cs" />
+    <Compile Include="$(TestsRoot)Combat/DamageCalculationTests.cs" />
     <Compile Include="$(TestsRoot)TowerDefense/TowerDefenseSignalFieldTests.cs" />
     <Compile Include="$(TestsRoot)TowerDefense/TowerDefensePowerTests.cs" />
     <Compile Include="$(TestsRoot)TowerDefense/TowerDefenseVisionTests.cs" />
