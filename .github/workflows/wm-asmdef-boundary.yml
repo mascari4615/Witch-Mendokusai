@@ -19,6 +19,7 @@ on:
       - 'Assets/_WitchMendokusai/DomainSDK/**'
       - 'Assets/_WitchMendokusai/Mods/**'
       - 'Assets/_WitchMendokusai/Network/**'
+      - 'Portable/**'
       - '.github/workflows/wm-asmdef-boundary.yml'
   pull_request:
     paths:
@@ -27,6 +28,7 @@ on:
       - 'Assets/_WitchMendokusai/DomainSDK/**'
       - 'Assets/_WitchMendokusai/Mods/**'
       - 'Assets/_WitchMendokusai/Network/**'
+      - 'Portable/**'
   workflow_dispatch: {}
 
 permissions:
@@ -130,3 +132,43 @@ jobs:
             exit 1
           fi
           echo "asmdef 단방향 경계 OK — DomainSDK/Mods/Core/Domain/ViewModel 전면 clean."
+
+  # ── DomainSDK 가 엔진 없이 서는가 (TASK-WM-214) ────────────────────────────────
+  #   경계의 마지막 칸. asmdef 참조·using·reflection 을 다 통과해도, 판정 코드가
+  #   UnityEngine 타입을 쓰고 있으면 그건 여전히 "Unity 안에서만 도는 게임" 이다.
+  #   웹 클라가 같은 서버로 같은 게임을 하려면 시뮬이 Unity 프로세스 밖에서 돌아야 한다.
+  #   grep 이 아니라 **실제로 굽는다** — 통과 = 그 순간의 SDK 는 헤드리스로 옮길 수 있다.
+  portable:
+    name: DomainSDK 엔진 밖 빌드
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: 검사 대상이 실재하나 (0개면 통과 아니라 실패)
+        run: |
+          set -euo pipefail
+          PROJ='Portable/DomainSDK.Portable.csproj'
+          if [ ! -f "$PROJ" ]; then
+            echo "::error::$PROJ 가 없다. 게이트가 통과한 게 아니라 **아무것도 안 본 것**이다."
+            echo "::error::  (한 번 실제로 났던 사고: 루트 .gitignore 의 *.csproj 에 걸려 저장소에 안 들어가 있었다.)"
+            exit 1
+          fi
+          COUNT=$(find Assets/_WitchMendokusai/DomainSDK -name '*.cs' | wc -l)
+          if [ "$COUNT" -lt 50 ]; then
+            echo "::error::DomainSDK .cs 가 ${COUNT}개뿐이다 — 경로가 옮겨졌는지 확인할 것."
+            exit 1
+          fi
+          echo "DomainSDK .cs ${COUNT}개를 엔진 밖에서 굽는다."
+
+      - name: Build — Unity 없이 컴파일
+        run: |
+          set -euo pipefail
+          dotnet build Portable/DomainSDK.Portable.csproj -c Release --nologo -warnaserror
+          echo "엔진 밖 빌드 OK — 이 커밋의 DomainSDK 는 Unity 프로세스 밖에서 돈다."
