@@ -229,7 +229,11 @@ namespace WitchMendokusai.Identity
 
 				invites.Remove(code); // 한 번 쓰면 사라진다.
 
-				if (string.IsNullOrEmpty(deviceSecret) == false && bySecret.ContainsKey(deviceSecret) == false)
+				// ★ 그 기기의 열쇠를 <b>그 사람 쪽으로 옮긴다</b>(이미 딴 사람에 붙어 있어도).
+				//   처음엔 「이미 있으면 두기」로 짰는데, 그러면 이어도 아무 일이 안 일어난다 —
+				//   기기는 첫 접속에 이미 자기 사람을 갖기 때문이다(시험이 잡았다).
+				//   ⚠ 옮기기 전 그 기기의 옛 사람이 갖고 있던 것은 그 사람에게 남는다(합치기는 후속).
+				if (string.IsNullOrEmpty(deviceSecret) == false)
 					bySecret[deviceSecret] = person;
 
 				return person;

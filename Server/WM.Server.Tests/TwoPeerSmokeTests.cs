@@ -203,6 +203,56 @@ namespace WitchMendokusai.ServerTests
 			StringAssert.DoesNotContain("\"amount\":5", bag);
 		}
 
+		[Test]
+		public async Task 초대_열쇠로_다른_기기가_같은_사람이_된다()
+		{
+			string invite;
+
+			using (ClientWebSocket phone = await ConnectAsync())
+			{
+				await ReadWelcomeAsync(phone);
+				await SendAsync(phone, "{\"type\":\"hello\",\"secret\":\"\"}");
+				await WaitForAsync(phone, text => text.Contains("\"identityId\":") && text.Contains("\"identityId\":0") == false);
+
+				await SendAsync(phone, "{\"type\":\"inviteask\"}");
+				string granted = await WaitForAsync(phone, text => text.Contains("\"type\":\"invite\""));
+				invite = ReadField(granted, "\"code\":\"");
+				Assert.IsNotEmpty(invite);
+			}
+
+			using ClientWebSocket laptop = await ConnectAsync();
+			await ReadWelcomeAsync(laptop);
+			await SendAsync(laptop, "{\"type\":\"hello\",\"secret\":\"\"}");
+			string mine = await WaitForAsync(laptop, text => text.Contains("\"secret\":\"") && text.Contains("\"secret\":\"\"") == false);
+			string laptopSecret = ReadField(mine, "\"secret\":\"");
+
+			await SendAsync(laptop, "{\"type\":\"link\",\"code\":\"" + invite + "\"}");
+			string linked = await WaitForAsync(laptop, text => text.Contains("\"type\":\"linked\""));
+			StringAssert.Contains("\"ok\":true", linked);
+
+			// 다시 들어오면 그 사람이다(접속 도중에는 안 바뀐다).
+			using ClientWebSocket again = await ConnectAsync();
+			await ReadWelcomeAsync(again);
+			await SendAsync(again, "{\"type\":\"hello\",\"secret\":\"" + laptopSecret + "\"}");
+			string welcome = await WaitForAsync(again, text => text.Contains("\"identityId\":") && text.Contains("\"identityId\":0") == false);
+
+			Assert.AreEqual(ReadNumber(linked, "\"identityId\":"), ReadNumber(welcome, "\"identityId\":"));
+		}
+
+		[Test]
+		public async Task 모르는_초대_열쇠는_거절당한다()
+		{
+			using ClientWebSocket peer = await ConnectAsync();
+			await ReadWelcomeAsync(peer);
+			await SendAsync(peer, "{\"type\":\"hello\",\"secret\":\"\"}");
+			await WaitForAsync(peer, text => text.Contains("\"identityId\":") && text.Contains("\"identityId\":0") == false);
+
+			await SendAsync(peer, "{\"type\":\"link\",\"code\":\"내가지어낸코드\"}");
+			string linked = await WaitForAsync(peer, text => text.Contains("\"type\":\"linked\""));
+
+			StringAssert.Contains("\"ok\":false", linked);
+		}
+
 		private static string ReadField(string json, string marker)
 		{
 			int start = json.IndexOf(marker, StringComparison.Ordinal);

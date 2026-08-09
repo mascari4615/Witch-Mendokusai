@@ -99,5 +99,29 @@ export interface Bag {
 	items: { itemId: number; amount: number }[];
 }
 
-export type ServerMessage = Welcome | WorldSnapshot | BrewTaken | Bag;
-export type ClientMessage = MoveRequest | RemoveRequest | BrewRequest | BrewResetRequest | BrewCompleteRequest | Hello | BagAsk | ConsumeRequest;
+/** 창 -> 서버: 다른 기기를 이을 초대 열쇠를 만들어 줘. */
+export interface InviteAsk {
+	type: 'inviteask';
+}
+
+/** 서버 -> 그 창에게만: 초대 열쇠(한 번만 쓴다). */
+export interface Invite {
+	type: 'invite';
+	code: string;
+}
+
+/** 창 -> 서버: 이 초대 열쇠로 나를 그 사람에 이어 줘. */
+export interface LinkRequest {
+	type: 'link';
+	code: string;
+}
+
+/** 서버 -> 그 창에게만: 이었나(이었으면 다시 들어와야 그 사람으로 논다). */
+export interface Linked {
+	type: 'linked';
+	ok: boolean;
+	identityId: number;
+}
+
+export type ServerMessage = Welcome | WorldSnapshot | BrewTaken | Bag | Invite | Linked;
+export type ClientMessage = MoveRequest | RemoveRequest | BrewRequest | BrewResetRequest | BrewCompleteRequest | Hello | BagAsk | ConsumeRequest | InviteAsk | LinkRequest;

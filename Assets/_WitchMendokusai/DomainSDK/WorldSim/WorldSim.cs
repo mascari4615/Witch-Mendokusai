@@ -179,6 +179,15 @@ namespace WitchMendokusai
 			}
 		}
 
+		/// <summary>그 인형의 주인(신원 번호) — 아직 안 붙었으면 0.</summary>
+		public int OwnerOf(int dollId)
+		{
+			lock (gate)
+			{
+				return dolls.TryGetValue(dollId, out WorldDoll doll) ? doll.IdentityId : 0;
+			}
+		}
+
 		/// <summary>그 사람이 어디에 있었고 뭘 갖고 있었는지 — 나갈 때 여기 적힌다.</summary>
 		private readonly Dictionary<int, PersonSaveData> remembered = new Dictionary<int, PersonSaveData>();
 

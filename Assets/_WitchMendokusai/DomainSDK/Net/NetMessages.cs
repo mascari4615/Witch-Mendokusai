@@ -35,6 +35,18 @@ namespace WitchMendokusai.Net
 		/// <summary>창 → 서버: 이걸 썼다(제작 재료 등). 안 알리면 쓴 게 다시 생긴다.</summary>
 		public const string CONSUME = "consume";
 
+		/// <summary>창 → 서버: 다른 기기를 이을 초대 열쇠를 만들어 줘.</summary>
+		public const string INVITE_ASK = "inviteask";
+
+		/// <summary>서버 → 그 창에게만: 초대 열쇠는 이것이다(한 번만 쓴다).</summary>
+		public const string INVITE = "invite";
+
+		/// <summary>창 → 서버: 이 초대 열쇠로 나를 그 사람에 이어 줘.</summary>
+		public const string LINK = "link";
+
+		/// <summary>서버 → 그 창에게만: 이었다(또는 못 이었다).</summary>
+		public const string LINKED = "linked";
+
 		/// <summary>창 → 서버: 이걸 부수고 싶다(그 칸을 문 건물이 통째로 사라진다).</summary>
 		public const string REMOVE = "remove";
 
@@ -230,6 +242,41 @@ namespace WitchMendokusai.Net
 		public int steps;
 		public float side;
 		public BrewStepView[] path = Array.Empty<BrewStepView>();
+	}
+
+	/// <summary>창 → 서버: 초대 열쇠를 만들어 줘.</summary>
+	[Serializable]
+	public class InviteAskMessage
+	{
+		public string type = NetMessageType.INVITE_ASK;
+	}
+
+	/// <summary>서버 → 그 창에게만: 초대 열쇠(한 번만 쓴다).</summary>
+	[Serializable]
+	public class InviteMessage
+	{
+		public string type = NetMessageType.INVITE;
+		public string code = string.Empty;
+	}
+
+	/// <summary>창 → 서버: 이 초대 열쇠로 나를 그 사람에 이어 줘.</summary>
+	[Serializable]
+	public class LinkMessage
+	{
+		public string type = NetMessageType.LINK;
+		public string code = string.Empty;
+	}
+
+	/// <summary>
+	/// 서버 → 그 창에게만: 이었나 (TASK-WM-218).
+	/// 이었으면 <b>다시 들어와야</b> 그 사람의 인형으로 논다 — 접속 도중 주인 갈아타기는 막혀 있다.
+	/// </summary>
+	[Serializable]
+	public class LinkedMessage
+	{
+		public string type = NetMessageType.LINKED;
+		public bool ok;
+		public int identityId;
 	}
 
 	/// <summary>창 → 서버: 이 칸의 건물을 부수고 싶다.</summary>

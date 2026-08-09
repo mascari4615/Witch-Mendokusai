@@ -27,6 +27,10 @@ namespace WitchMendokusai.Server
 		public const string BAG = Net.NetMessageType.BAG;
 		public const string BAG_ASK = Net.NetMessageType.BAG_ASK;
 		public const string CONSUME = Net.NetMessageType.CONSUME;
+		public const string INVITE_ASK = Net.NetMessageType.INVITE_ASK;
+		public const string INVITE = Net.NetMessageType.INVITE;
+		public const string LINK = Net.NetMessageType.LINK;
+		public const string LINKED = Net.NetMessageType.LINKED;
 
 		/// <summary>계약을 웹이 읽을 수 있는 형태로 뽑는다.</summary>
 		public static string ToTypeScript()
@@ -78,8 +82,20 @@ namespace WitchMendokusai.Server
 			builder.Append("/** 서버 -> 그 창에게만: 네 가방은 이렇다. */\n");
 			builder.Append("export interface Bag {\n\ttype: '").Append(BAG).Append("';\n\titems: { itemId: number; amount: number }[];\n}\n\n");
 
-			builder.Append("export type ServerMessage = Welcome | WorldSnapshot | BrewTaken | Bag;\n");
-			builder.Append("export type ClientMessage = MoveRequest | RemoveRequest | BrewRequest | BrewResetRequest | BrewCompleteRequest | Hello | BagAsk | ConsumeRequest;\n");
+			builder.Append("/** 창 -> 서버: 다른 기기를 이을 초대 열쇠를 만들어 줘. */\n");
+			builder.Append("export interface InviteAsk {\n\ttype: '").Append(INVITE_ASK).Append("';\n}\n\n");
+
+			builder.Append("/** 서버 -> 그 창에게만: 초대 열쇠(한 번만 쓴다). */\n");
+			builder.Append("export interface Invite {\n\ttype: '").Append(INVITE).Append("';\n\tcode: string;\n}\n\n");
+
+			builder.Append("/** 창 -> 서버: 이 초대 열쇠로 나를 그 사람에 이어 줘. */\n");
+			builder.Append("export interface LinkRequest {\n\ttype: '").Append(LINK).Append("';\n\tcode: string;\n}\n\n");
+
+			builder.Append("/** 서버 -> 그 창에게만: 이었나(이었으면 다시 들어와야 그 사람으로 논다). */\n");
+			builder.Append("export interface Linked {\n\ttype: '").Append(LINKED).Append("';\n\tok: boolean;\n\tidentityId: number;\n}\n\n");
+
+			builder.Append("export type ServerMessage = Welcome | WorldSnapshot | BrewTaken | Bag | Invite | Linked;\n");
+			builder.Append("export type ClientMessage = MoveRequest | RemoveRequest | BrewRequest | BrewResetRequest | BrewCompleteRequest | Hello | BagAsk | ConsumeRequest | InviteAsk | LinkRequest;\n");
 
 			return builder.ToString();
 		}
@@ -114,6 +130,19 @@ namespace WitchMendokusai.Server
 				+ ",\"y\":" + state.Position.Y.ToString("F3")
 				+ ",\"steps\":" + state.StepCount
 				+ ",\"side\":" + state.AccruedSideEffect.ToString("F3") + "}";
+		}
+
+		/// <summary>그 창에게만: 초대 열쇠(한 번만 쓴다).</summary>
+		public static string Invite(string code)
+		{
+			return "{\"type\":\"" + INVITE + "\",\"code\":\"" + (code ?? string.Empty) + "\"}";
+		}
+
+		/// <summary>그 창에게만: 이었나.</summary>
+		public static string Linked(bool ok, int identityId)
+		{
+			return "{\"type\":\"" + LINKED + "\",\"ok\":" + (ok ? "true" : "false")
+				+ ",\"identityId\":" + identityId + "}";
 		}
 
 		/// <summary>서버가 보내는 인사말.</summary>

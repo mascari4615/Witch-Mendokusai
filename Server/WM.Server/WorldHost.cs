@@ -133,6 +133,29 @@ namespace WitchMendokusai.Server
 		/// <summary>인사를 받으면 그 연결의 인형에 주인을 붙이고, 새 사람이면 열쇠를 준다.</summary>
 		private async Task HandleMessageAsync(int dollId, WebSocket socket, string text)
 		{
+			if (text.Contains("\"" + Protocol.INVITE_ASK + "\""))
+			{
+				// 지금 이 연결의 주인에게만 초대 열쇠를 낸다 — 손님(주인 없음)은 낼 수 없다.
+				int owner = World.OwnerOf(dollId);
+				string code = owner == 0 ? null : Identities.IssueInvite(owner);
+				await SendAsync(socket, Protocol.Invite(code));
+				Interlocked.Exchange(ref worldDirty, 1);
+				return;
+			}
+
+			if (text.Contains("\"" + Protocol.LINK + "\""))
+			{
+				string code = ReadStringField(text, "code");
+				string deviceSecret = CurrentSecretOf(dollId);
+				WitchMendokusai.Identity.WorldIdentityRecord linked = Identities.RedeemInvite(code, deviceSecret);
+
+				// 이었어도 지금 인형은 안 바꾼다(접속 도중 주인 갈아타기는 막혀 있다) —
+				// 다시 들어오면 그때부터 그 사람이다.
+				await SendAsync(socket, Protocol.Linked(linked != null, linked?.id ?? 0));
+				Interlocked.Exchange(ref worldDirty, 1);
+				return;
+			}
+
 			if (text.Contains("\"" + Protocol.HELLO + "\""))
 			{
 				string secret = ReadHelloSecret(text);
@@ -168,6 +191,26 @@ namespace WitchMendokusai.Server
 				return Encoding.UTF8.GetString(buffer, 0, received.Count);
 			}
 			catch (WebSocketException)
+			{
+				return null;
+			}
+		}
+
+		/// <summary>그 연결이 지금 쓰고 있는 기기 열쇠 — 이을 때 이 열쇠를 그 사람에 붙인다.</summary>
+		private string CurrentSecretOf(int dollId)
+		{
+			int owner = World.OwnerOf(dollId);
+			return owner == 0 ? null : Identities.Find(owner)?.secret;
+		}
+
+		private static string ReadStringField(string text, string name)
+		{
+			try
+			{
+				using JsonDocument document = JsonDocument.Parse(text);
+				return document.RootElement.TryGetProperty(name, out JsonElement value) ? value.GetString() : null;
+			}
+			catch (JsonException)
 			{
 				return null;
 			}
