@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using VContainer;
+using WitchMendokusai.Net;
 
 namespace WitchMendokusai
 {
@@ -85,6 +86,11 @@ namespace WitchMendokusai
 
 		private void AdvanceTick()
 		{
+			// 세계가 시각을 알려주면 그걸 따른다 (TASK-WM-217) — 시계는 세계의 것이지 내 것이 아니다.
+			// 못 받는 동안에는 아래처럼 스스로 흘린다(접속 전 타이틀·에디터 단독 실행).
+			if (TryFollowWorldTime() == true)
+				return;
+
 			if (IsClockPaused == true)
 				return;
 
@@ -100,6 +106,44 @@ namespace WitchMendokusai
 			ApplyMinutes(wholeMinutes);
 			// Hour/Day/Season 포함 모든 상태 갱신 후 발화 — ViewModel이 풀 상태 읽기 가능
 			OnMinuteChanged.Invoke(Minute);
+		}
+
+		/// <summary>
+		/// 세계가 준 시각으로 맞춘다 (TASK-WM-217). 값이 실제로 바뀐 것만 알린다 —
+		/// 세계는 초당 20번 말하지만, 「시가 바뀌었다」는 한 번만 일어난 일이다.
+		/// </summary>
+		private bool TryFollowWorldTime()
+		{
+			WorldTimeView time = WorldDoor.Current?.Time;
+			if (time == null)
+				return false;
+
+			bool minuteChanged = Minute != time.minute;
+			bool hourChanged = Hour != time.hour;
+			bool dayChanged = Day != time.day;
+			bool seasonChanged = Season != time.season;
+
+			// 상태를 전부 맞춘 뒤에 알린다 — 구독자가 풀 상태를 읽는다(WM-189 에서 얻은 순서).
+			Year = time.year;
+			Season = time.season;
+			Day = time.day;
+			Hour = time.hour;
+			Minute = time.minute;
+			minuteAccumulator = 0f;
+
+			if (minuteChanged == true)
+				OnMinuteChanged.Invoke(Minute);
+
+			if (hourChanged == true)
+				OnHourChanged.Invoke(Hour);
+
+			if (dayChanged == true)
+				OnDayChanged.Invoke(Day);
+
+			if (seasonChanged == true)
+				OnSeasonChanged.Invoke(Season);
+
+			return true;
 		}
 
 		private void ApplyMinutes(int minutesToAdd)
