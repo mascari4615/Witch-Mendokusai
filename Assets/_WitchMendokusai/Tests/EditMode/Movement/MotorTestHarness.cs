@@ -1,5 +1,10 @@
-using System;
+﻿using System;
 using UnityEngine;
+// ★ 좌표는 판정 쪽 (TASK-WM-214).
+using Vector3 = WitchMendokusai.Numerics.Vector3;
+using Vector2 = WitchMendokusai.Numerics.Vector2;
+using Vector2Int = WitchMendokusai.Numerics.Vector2Int;
+using Vector3Int = WitchMendokusai.Numerics.Vector3Int;
 
 namespace WitchMendokusai.Tests
 {
