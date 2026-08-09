@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -31,47 +31,34 @@ namespace WitchMendokusai
 		protected virtual int DefaultCapacity => 30;
 		public int Capacity { get; protected set; }
 
-		private int FindEmptySlotIndex(int startIndex = 0)
+		// 가방 규칙 본체는 판정 층에 있다 (TASK-WM-215) — 여기선 에셋·화면 쪽만 맡는다.
+		// Data 는 불러오기·역직렬화 때 **통째로 갈린다**. 그래서 목록이 바뀌었으면 다시 묶어 준다
+		// (안 그러면 규칙이 옛 목록을 만지고, 화면은 새 목록을 봐서 서로 다른 가방이 된다).
+		private InventoryCore boundCore;
+		private List<Item> boundSlots;
+		private int boundCapacity;
+
+		protected InventoryCore Core
 		{
-			for (int i = startIndex; i < Capacity; i++)
+			get
 			{
-				if (Data[i] == null)
-					return i;
+				if (boundCore == null || ReferenceEquals(boundSlots, Data) == false || boundCapacity != Capacity)
+				{
+					boundCore = new InventoryCore(Data, Capacity);
+					boundCore.SlotChanged += UpdateSlot;
+					boundSlots = Data;
+					boundCapacity = Capacity;
+				}
+
+				return boundCore;
 			}
-			return NONE;
 		}
 
-		public int FindItemIndex(int targetID, int startIndex = 0)
-		{
-			for (int i = startIndex; i < Capacity; i++)
-			{
-				Item cur = Data[i];
-				if (cur == null)
-					continue;
+		private int FindEmptySlotIndex(int startIndex = 0) => Core.FindEmptySlotIndex(startIndex);
 
-				if (cur.Data.ID == targetID)
-					return i;
-			}
+		public int FindItemIndex(int targetID, int startIndex = 0) => Core.FindItemIndex(targetID, startIndex);
 
-			// Debug.LogWarning("Item not found");
-			return NONE;
-		}
-
-		public int FindItemIndex(IItemData target, int startIndex = 0)
-		{
-			for (int i = startIndex; i < Capacity; i++)
-			{
-				Item cur = Data[i];
-				if (cur == null)
-					continue;
-
-				if (cur.Data == target)
-					return i;
-			}
-
-			// Debug.LogWarning("Item not found");
-			return NONE;
-		}
+		public int FindItemIndex(IItemData target, int startIndex = 0) => Core.FindItemIndex(target, startIndex);
 
 		/// <summary> 인벤토리에 아이템 추가
 		/// <para/> 넣는 데 실패한 잉여 아이템 개수 리턴
@@ -79,107 +66,9 @@ namespace WitchMendokusai
 		/// </summary>
 		public int Add(IItemData itemData, int amount = 1)
 		{
-			// 1. 수량이 있는 아이템
-			if (itemData.IsCountable)
-			{
-				bool findNextCountable = true;
-				int index = -1;
-
-				while (amount > 0)
-				{
-					// 1-1. 추가할 아이템을 이미 가지고 있는지 확인, 개수 여유 있는지 검사
-					if (findNextCountable)
-					{
-						index = FindItemIndex(itemData, index + 1);
-
-						// 기존 아이템 슬롯을 찾은 경우, 양 증가시키고 초과량 존재 시 amount에 초기화
-						if (index != NONE)
-						{
-							if (Data[index].IsMax)
-							{
-								continue;
-							}
-							else
-							{
-								amount = Data[index].AddAmountAndGetExcess(amount);
-								UpdateSlot(index);
-							}
-						}
-						// 개수 여유있는 기존 아이템 슬롯이 더이상 없다고 판단될 경우, 빈 슬롯부터 탐색 시작
-						else
-						{
-							findNextCountable = false;
-						}
-					}
-					// 1-2. 빈 슬롯 탐색
-					else
-					{
-						index = FindEmptySlotIndex(index + 1);
-
-						// 빈 슬롯조차 없는 경우 종료
-						if (index == NONE)
-						{
-							break;
-						}
-						// 빈 슬롯 발견 시, 슬롯에 아이템 추가 및 잉여량 계산
-						else
-						{
-							// 새로운 아이템 생성
-							Item newItem = itemData.CreateItem();
-							newItem.SetAmount(amount);
-
-							// 슬롯에 추가
-							Data[index] = newItem;
-
-							// 남은 개수 계산
-							amount = (amount > itemData.MaxAmount) ? (amount - itemData.MaxAmount) : 0;
-
-							UpdateSlot(index);
-						}
-					}
-				}
-			}
-			// 2. 수량이 없는 아이템
-			else
-			{
-				int index;
-
-				// 2-1. 1개만 넣는 경우, 간단히 수행
-				if (amount == 1)
-				{
-					index = FindEmptySlotIndex();
-					if (index != NONE)
-					{
-						// 아이템을 생성하여 슬롯에 추가
-						Data[index] = itemData.CreateItem();
-						amount = 0;
-
-						UpdateSlot(index);
-					}
-				}
-
-				// 2-2. 2개 이상의 수량 없는 아이템을 동시에 추가하는 경우
-				index = -1;
-				for (; amount > 0; amount--)
-				{
-					// 아이템 넣은 인덱스의 다음 인덱스부터 슬롯 탐색
-					index = FindEmptySlotIndex(index + 1);
-
-					// 다 넣지 못한 경우 루프 종료
-					if (index == NONE)
-					{
-						break;
-					}
-
-					// 아이템을 생성하여 슬롯에 추가
-					Data[index] = itemData.CreateItem();
-
-					UpdateSlot(index);
-				}
-			}
-
+			int excess = Core.Add(itemData, amount);
 			OnItemAdded((ItemData)itemData);
-			return amount;
+			return excess;
 		}
 
 		// Add 직후 호출. 기본 = '마지막 장착 아이템' 전역 갱신(플레이어 인벤토리 용도).
@@ -189,28 +78,7 @@ namespace WitchMendokusai
 			SOManager.Instance.LastEquippedItem.RuntimeValue = itemData;
 		}
 
-		public void Remove(int index, int amount = 1)
-		{
-			if (index < 0 || index >= Capacity)
-				return;
-
-			Item item = Data[index];
-			if (item == null)
-				return;
-
-			if (item.Data.IsCountable)
-			{
-				item.SetAmount(item.Amount - amount);
-				if (item.IsEmpty)
-					Data[index] = null;
-			}
-			else
-			{
-				Data[index] = null;
-			}
-
-			UpdateSlot(index);
-		}
+		public void Remove(int index, int amount = 1) => Core.Remove(index, amount);
 
 		private bool IsValidIndex(int index)
 		{
