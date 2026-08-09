@@ -96,6 +96,11 @@ namespace WitchMendokusai
 					CellY = view.y,
 					CellZ = view.z,
 					BuildingId = view.buildingId,
+
+					// ★ 크기는 세계가 정본이다 (TASK-WM-217). 여기서 버렸더니 화면이 pivot 한 칸만
+					//   「세계에 있는 것」으로 알아, 여러 칸 건물의 나머지 칸이 매 프레임 지워졌다.
+					Width = view.w,
+					Length = view.l,
 				});
 			}
 		}

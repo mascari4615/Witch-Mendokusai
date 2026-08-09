@@ -15,5 +15,23 @@ namespace WitchMendokusai.DomainSDK.Building
         public int CellY;
         public int CellZ;
         public int BuildingId;
+
+        /// <summary>
+        /// 몇 칸을 깔고 앉나 — <b>세계가 정한 크기</b> (TASK-WM-217).
+        ///
+        /// ★ 왜 여기 실리나: 세계는 크기를 알고 보내는데(스냅샷 w·l) 이 자료형이 그걸 버렸다.
+        ///   그래서 화면은 크기를 자기 자산으로 짐작했고, 「세계에 선 것」을 pivot 한 칸으로만 알았다.
+        ///   결과: 2×2 를 세우면 나머지 3칸이 「세계에 없는 것」이 되어 즉시 지워졌다 —
+        ///   사람 눈에는 여러 칸 건물이 <b>한 칸으로 접히는</b> 것으로 보인다.
+        ///   0 이면 예전 값(한 칸)으로 읽는다 — 옛 통로도 그대로 돈다.
+        /// </summary>
+        public int Width;
+
+        public int Length;
+
+        /// <summary>한 칸짜리로 읽어도 안전한 크기 — 0·음수는 1로 본다.</summary>
+        public int WidthOrOne => Width < 1 ? 1 : Width;
+
+        public int LengthOrOne => Length < 1 ? 1 : Length;
     }
 }

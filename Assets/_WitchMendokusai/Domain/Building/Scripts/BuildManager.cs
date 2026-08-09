@@ -398,12 +398,7 @@ namespace WitchMendokusai
 			worldPlacements.Clear();
 			SharedBuildChannelBridge.Channel.ReadPlacements(worldPlacements);
 
-			worldCells.Clear();
 			followPending.Clear();
-			for (int i = 0; i < worldPlacements.Count; i++)
-			{
-				worldCells.Add(new Vector3Int(worldPlacements[i].CellX, worldPlacements[i].CellY, worldPlacements[i].CellZ));
-			}
 
 			foreach (KeyValuePair<Vector3Int, BuildingObject> entry in BuildingObjectsByPos)
 			{
@@ -412,7 +407,9 @@ namespace WitchMendokusai
 			}
 
 			// 무엇을 세우고 무엇을 지울지는 판정 층이 정한다 (시험이 그 규칙을 지킨다).
-			BuildingFollowPlan.Compute(worldCells, BuildingObjectsByPos.Keys, followPending, followSpawn, followGone);
+			// ★ 세계가 아는 <b>건물</b>을 그대로 넘긴다 — 크기까지 (TASK-WM-217). 전에는 pivot 자리만
+			//   넘겨서, 여러 칸 건물이 깔고 앉은 나머지 칸이 「세계에 없는 것」이 되어 즉시 지워졌다.
+			BuildingFollowPlan.Compute(worldPlacements, BuildingObjectsByPos.Keys, followPending, followSpawn, followGone);
 
 			for (int i = 0; i < followSpawn.Count; i++)
 			{
