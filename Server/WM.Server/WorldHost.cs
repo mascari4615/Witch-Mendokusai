@@ -92,6 +92,10 @@ namespace WitchMendokusai.Server
 		}
 
 		private readonly ConcurrentDictionary<int, Connection> sockets = new ConcurrentDictionary<int, Connection>();
+
+		// 제작 주사위 — <b>세계가 굴린다</b>. 창이 굴리면 창을 고친 사람은 언제나 성공한다.
+		// 시험이 성공·실패를 모두 잴 수 있게 판정 자체는 WorldCraftBook 이 하고, 여기선 숫자만 넣는다.
+		private readonly System.Random craftDice = new System.Random();
 		private int worldDirty;
 
 		public WorldHost(WorldStore worldStore)
@@ -197,6 +201,9 @@ namespace WitchMendokusai.Server
 
 			// 마도서도 한 번 — 무엇을 만들 수 있는지 모르면 조리는 그냥 버튼 누르기다.
 			await SendAsync(connection, Protocol.Spellbook(ServerRecipeBook.Book.Pages));
+
+			// 제작표도 한 번 — 솥과 갈라지는 자리다(솥은 저어서, 제작은 재료를 모아서).
+			await SendAsync(connection, Protocol.CraftBook(ServerCraftBook.Book.Recipes));
 
 			// ★ 방금 온 창에는 <b>전체 그림</b>을 한 번 준다 (TASK-WM-217).
 			//   방송은 「바뀐 것만」 싣기 때문에, 늦게 들어온 사람은 이 한 장이 없으면
@@ -599,6 +606,64 @@ namespace WitchMendokusai.Server
 						if (sockets.TryGetValue(dollId, out Connection claimer))
 							_ = SendAsync(claimer, Protocol.BrewTaken(taken));
 					}
+
+					return;
+				}
+
+				if (kind == Protocol.CRAFT)
+				{
+					// ★ 제작도 세계가 판정한다 (TASK-WM-217). 전에는 재료 확인도, <b>성공 주사위도</b>,
+					//   지급도 창이 했다 — 창을 고친 사람은 언제나 성공하고 무엇이든 만들었다.
+					int recipeId = ReadInt(root, "recipeId");
+					CraftResult judged = ServerCraftBook.Book.Judge(
+						recipeId,
+						itemId => World.BagCount(dollId, itemId),
+						(float)(craftDice.NextDouble() * 100.0));
+
+					if (judged.Attempted == false)
+					{
+						Tell(dollId, Protocol.CRAFT, judged.Denied);
+						if (sockets.TryGetValue(dollId, out Connection refused))
+							_ = SendAsync(refused, Protocol.Crafted(judged));
+
+						return;
+					}
+
+					// ★ 받을 자리부터 본다: 만들고 나서 못 받으면 재료만 사라진다.
+					if (judged.Succeeded
+						&& World.CanReceive(dollId, ServerItemCatalog.Find(judged.ResultItemId), judged.ResultAmount) == false)
+					{
+						CraftResult noRoom = new CraftResult
+						{
+							RecipeId = recipeId, Denied = "가방이 꽉 찼다 — 비우고 다시 오면 재료는 그대로다",
+						};
+
+						Tell(dollId, Protocol.CRAFT, noRoom.Denied);
+						if (sockets.TryGetValue(dollId, out Connection full))
+							_ = SendAsync(full, Protocol.Crafted(noRoom));
+
+						return;
+					}
+
+					// 재료는 <b>성공하든 실패하든</b> 든다 — 그게 주사위를 굴리는 값이다.
+					CraftRecipeEntry recipe = ServerCraftBook.Book.Find(recipeId);
+					CraftIngredientEntry[] items = recipe.items ?? System.Array.Empty<CraftIngredientEntry>();
+					for (int i = 0; i < items.Length; i++)
+					{
+						if (items[i] == null || items[i].amount <= 0)
+							continue;
+
+						World.TryConsume(dollId, items[i].itemId, items[i].amount);
+					}
+
+					if (judged.Succeeded)
+						World.TryGather(dollId, ServerItemCatalog.Find(judged.ResultItemId), judged.ResultAmount);
+
+					Interlocked.Exchange(ref worldDirty, 1);
+					_ = SendBagAsync(dollId);
+
+					if (sockets.TryGetValue(dollId, out Connection maker))
+						_ = SendAsync(maker, Protocol.Crafted(judged));
 
 					return;
 				}

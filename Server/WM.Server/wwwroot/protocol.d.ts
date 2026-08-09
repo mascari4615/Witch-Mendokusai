@@ -166,6 +166,40 @@ export interface ConsumeRequest {
 }
 
 /** 서버 -> 그 창에게만: 네 가방은 이렇다. */
+/** 창 -> 서버: 이 줄대로 만들겠다. 재료도 주사위도 세계가 본다. */
+export interface CraftRequest {
+	type: 'craft';
+	recipeId: number;
+}
+
+/** 세계가 아는 제작 한 줄 — 재료는 itemIds·amounts 짝. */
+export interface CraftBookEntry {
+	recipeId: number;
+	name: string;
+	resultItemId: number;
+	resultAmount: number;
+	percentage: number;
+	itemIds: number[];
+	amounts: number[];
+}
+
+/** 서버 -> 창: 세계가 아는 제작표(들어올 때 한 번). */
+export interface CraftBook {
+	type: 'craftbook';
+	recipes: CraftBookEntry[];
+}
+
+/** 서버 -> 그 창에게만: 만든 결과. 재료가 없어 못 한 것과 주사위를 진 것은 다른 일이다. */
+export interface Crafted {
+	type: 'crafted';
+	recipeId: number;
+	attempted: boolean;
+	succeeded: boolean;
+	itemId: number;
+	amount: number;
+	denied: string;
+}
+
 export interface Bag {
 	type: 'bag';
 	items: { itemId: number; amount: number }[];
@@ -265,5 +299,5 @@ export interface Kicked {
 	reason: string;
 }
 
-export type ServerMessage = Welcome | WorldSnapshot | BrewTaken | Bag | Catalog | BuildCatalog | BrewShelf | Spellbook | Chest | Denied | Invite | Linked | Kicked;
+export type ServerMessage = Welcome | WorldSnapshot | BrewTaken | Bag | Catalog | BuildCatalog | BrewShelf | Spellbook | CraftBook | Crafted | Chest | Denied | Invite | Linked | Kicked;
 export type ClientMessage = MoveRequest | PlaceRequest | RemoveRequest | GatherRequest | ChestAsk | ChestPut | ChestTake | BrewRequest | BrewResetRequest | BrewCompleteRequest | Hello | BagAsk | ConsumeRequest | InviteAsk | LinkRequest;

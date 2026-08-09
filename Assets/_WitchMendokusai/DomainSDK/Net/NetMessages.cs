@@ -135,6 +135,15 @@ namespace WitchMendokusai.Net
 
 		/// <summary>서버 → 그 창에게만: 완성은 네 것이다(이 상태로 채점해라).</summary>
 		public const string BREW_TAKEN = "brewtaken";
+
+		/// <summary>창 → 서버: 이 줄대로 만들겠다. 재료도 주사위도 세계가 본다 (TASK-WM-217).</summary>
+		public const string CRAFT = "craft";
+
+		/// <summary>서버 → 그 창에게만: 만든 결과(됐나 · 무엇이 몇 개).</summary>
+		public const string CRAFTED = "crafted";
+
+		/// <summary>서버 → 창: 세계가 아는 제작표(들어올 때 한 번).</summary>
+		public const string CRAFT_BOOK = "craftbook";
 	}
 
 	/// <summary>
@@ -561,6 +570,54 @@ namespace WitchMendokusai.Net
 	{
 		public string type = NetMessageType.BUILD_CATALOG;
 		public BuildCatalogEntryView[] buildings = Array.Empty<BuildCatalogEntryView>();
+	}
+
+
+	/// <summary>창 → 서버: 이 줄대로 만들겠다 (TASK-WM-217).</summary>
+	[Serializable]
+	public class CraftMessage
+	{
+		public string type = NetMessageType.CRAFT;
+		public int recipeId;
+	}
+
+	/// <summary>
+	/// 서버 → 그 창에게만: 만든 결과.
+	///
+	/// ★ 실패도 <b>말해 준다</b>: 재료는 들었는데 주사위를 진 것과, 재료가 없어 시도조차 못 한 것은
+	///   사람에게 전혀 다른 일이다. 구별해서 안 보여 주면 둘 다 「고장」으로 읽힌다.
+	/// </summary>
+	[Serializable]
+	public class CraftedMessage
+	{
+		public string type = NetMessageType.CRAFTED;
+		public int recipeId;
+		public bool attempted;
+		public bool succeeded;
+		public int itemId;
+		public int amount;
+		public string denied = string.Empty;
+	}
+
+	/// <summary>제작표 한 줄이 창에 보이는 모양 — 재료는 itemIds·amounts 짝으로 나른다.</summary>
+	[Serializable]
+	public class CraftBookEntryView
+	{
+		public int recipeId;
+		public string name = string.Empty;
+		public int resultItemId;
+		public int resultAmount;
+		public float percentage;
+		public int[] itemIds = Array.Empty<int>();
+		public int[] amounts = Array.Empty<int>();
+	}
+
+	/// <summary>서버 → 창: 세계가 아는 제작표(들어올 때 한 번).</summary>
+	[Serializable]
+	public class CraftBookMessage
+	{
+		public string type = NetMessageType.CRAFT_BOOK;
+		public CraftBookEntryView[] recipes = Array.Empty<CraftBookEntryView>();
 	}
 
 }

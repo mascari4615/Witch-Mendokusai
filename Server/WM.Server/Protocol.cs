@@ -41,6 +41,9 @@ namespace WitchMendokusai.Server
 		public const string BREW_SHELF = Net.NetMessageType.BREW_SHELF;
 		public const string SPELLBOOK = Net.NetMessageType.SPELLBOOK;
 		public const string DENIED = Net.NetMessageType.DENIED;
+		public const string CRAFT = Net.NetMessageType.CRAFT;
+		public const string CRAFTED = Net.NetMessageType.CRAFTED;
+		public const string CRAFT_BOOK = Net.NetMessageType.CRAFT_BOOK;
 
 		// 무엇이 거절됐나 — 창이 자리별로 다르게 보여 줄 수 있게 이름을 준다.
 		public const string DENIED_PLACE = "place";
@@ -124,6 +127,18 @@ namespace WitchMendokusai.Server
 			builder.Append("export interface ConsumeRequest {\n\ttype: '").Append(CONSUME).Append("';\n\titemId: number;\n\tamount: number;\n}\n\n");
 
 			builder.Append("/** 서버 -> 그 창에게만: 네 가방은 이렇다. */\n");
+			builder.Append("/** 창 -> 서버: 이 줄대로 만들겠다. 재료도 주사위도 세계가 본다. */\n");
+			builder.Append("export interface CraftRequest {\n\ttype: '").Append(CRAFT).Append("';\n\trecipeId: number;\n}\n\n");
+
+			builder.Append("/** 세계가 아는 제작 한 줄 — 재료는 itemIds·amounts 짝. */\n");
+			builder.Append("export interface CraftBookEntry {\n\trecipeId: number;\n\tname: string;\n\tresultItemId: number;\n\tresultAmount: number;\n\tpercentage: number;\n\titemIds: number[];\n\tamounts: number[];\n}\n\n");
+
+			builder.Append("/** 서버 -> 창: 세계가 아는 제작표(들어올 때 한 번). */\n");
+			builder.Append("export interface CraftBook {\n\ttype: '").Append(CRAFT_BOOK).Append("';\n\trecipes: CraftBookEntry[];\n}\n\n");
+
+			builder.Append("/** 서버 -> 그 창에게만: 만든 결과. 재료가 없어 못 한 것과 주사위를 진 것은 다른 일이다. */\n");
+			builder.Append("export interface Crafted {\n\ttype: '").Append(CRAFTED).Append("';\n\trecipeId: number;\n\tattempted: boolean;\n\tsucceeded: boolean;\n\titemId: number;\n\tamount: number;\n\tdenied: string;\n}\n\n");
+
 			builder.Append("export interface Bag {\n\ttype: '").Append(BAG).Append("';\n\titems: { itemId: number; amount: number }[];\n}\n\n");
 
 			builder.Append("/** 서버 -> 창: 아이템 낱말표(들어올 때 한 번). 그 뒤로는 번호만 나른다. */\n");
@@ -163,7 +178,7 @@ namespace WitchMendokusai.Server
 			builder.Append("/** 서버 -> 그 창에게만: 다른 곳에서 같은 사람이 들어왔다(여기서는 나간다). */\n");
 			builder.Append("export interface Kicked {\n\ttype: '").Append(KICKED).Append("';\n\treason: string;\n}\n\n");
 
-			builder.Append("export type ServerMessage = Welcome | WorldSnapshot | BrewTaken | Bag | Catalog | BuildCatalog | BrewShelf | Spellbook | Chest | Denied | Invite | Linked | Kicked;\n");
+			builder.Append("export type ServerMessage = Welcome | WorldSnapshot | BrewTaken | Bag | Catalog | BuildCatalog | BrewShelf | Spellbook | CraftBook | Crafted | Chest | Denied | Invite | Linked | Kicked;\n");
 			builder.Append("export type ClientMessage = MoveRequest | PlaceRequest | RemoveRequest | GatherRequest | ChestAsk | ChestPut | ChestTake | BrewRequest | BrewResetRequest | BrewCompleteRequest | Hello | BagAsk | ConsumeRequest | InviteAsk | LinkRequest;\n");
 
 			return builder.ToString();
@@ -255,6 +270,62 @@ namespace WitchMendokusai.Server
 
 			builder.Append("]}");
 			return builder.ToString();
+		}
+
+		/// <summary>세계가 아는 제작표 — 들어올 때 한 번 (TASK-WM-217).</summary>
+		public static string CraftBook(System.Collections.Generic.IReadOnlyList<CraftRecipeEntry> recipes)
+		{
+			StringBuilder builder = new StringBuilder();
+			builder.Append("{\"type\":\"").Append(CRAFT_BOOK).Append("\",\"recipes\":[");
+
+			for (int i = 0; i < recipes.Count; i++)
+			{
+				if (i > 0)
+					builder.Append(',');
+
+				CraftRecipeEntry recipe = recipes[i];
+				CraftIngredientEntry[] items = recipe.items ?? System.Array.Empty<CraftIngredientEntry>();
+
+				builder.Append("{\"recipeId\":").Append(recipe.id)
+					.Append(",\"name\":").Append(JsonSerializer.Serialize(recipe.name ?? string.Empty, textOptions))
+					.Append(",\"resultItemId\":").Append(recipe.resultItemId)
+					.Append(",\"resultAmount\":").Append(recipe.resultAmount <= 0 ? 1 : recipe.resultAmount)
+					.Append(",\"percentage\":").Append((recipe.percentage <= 0f ? 100f : recipe.percentage).ToString("0.##"))
+					.Append(",\"itemIds\":[");
+
+				for (int need = 0; need < items.Length; need++)
+				{
+					if (need > 0)
+						builder.Append(',');
+
+					builder.Append(items[need].itemId);
+				}
+
+				builder.Append("],\"amounts\":[");
+				for (int need = 0; need < items.Length; need++)
+				{
+					if (need > 0)
+						builder.Append(',');
+
+					builder.Append(items[need].amount);
+				}
+
+				builder.Append("]}");
+			}
+
+			builder.Append("]}");
+			return builder.ToString();
+		}
+
+		/// <summary>만든 결과 — 실패도 말해 준다(조용히 아무 일도 안 일어나면 「고장」으로 읽힌다).</summary>
+		public static string Crafted(CraftResult result)
+		{
+			return "{\"type\":\"" + CRAFTED + "\",\"recipeId\":" + result.RecipeId
+				+ ",\"attempted\":" + (result.Attempted ? "true" : "false")
+				+ ",\"succeeded\":" + (result.Succeeded ? "true" : "false")
+				+ ",\"itemId\":" + result.ResultItemId
+				+ ",\"amount\":" + result.ResultAmount
+				+ ",\"denied\":" + JsonSerializer.Serialize(result.Denied ?? string.Empty, textOptions) + "}";
 		}
 
 		/// <summary>솥에 넣을 수 있는 재료 목록 — 들어올 때 한 번.</summary>

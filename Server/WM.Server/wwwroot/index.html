@@ -124,6 +124,15 @@
 			</div>
 		</section>
 
+		<section class="craft">
+			<h2>제작</h2>
+			<div class="line" id="craftresult">—</div>
+			<select id="craftpick"></select>
+			<div class="buttons">
+				<button id="make">만들기</button>
+			</div>
+		</section>
+
 		<section id="chestbox" style="display:none">
 			<h2>상자</h2>
 			<div class="line" id="chestwhere">—</div>
@@ -173,6 +182,8 @@ let pickedBuilding = 0;
 let brewShelf = [];       // 솥에 넣을 수 있는 재료 — 들어올 때 한 번 받는다.
 let pickedIngredient = 0;
 let spellbook = [];       // 마도서 — 무엇을 만들 수 있나(들어올 때 한 번)
+let craftBook = [];       // 제작표 — 재료를 모아 만드는 것(솥과 갈라지는 자리)
+let pickedRecipe = 0;
 let cauldrons = [];       // 지은 자리마다의 솥
 let myPot = null;         // 지금 쓰는 솥의 자리 (없으면 옛 전역 솥)
 let openChest = null;     // 지금 열어 둔 상자의 자리 (없으면 null)
@@ -317,6 +328,7 @@ socket.onmessage = (event) => {
 		bag = message.items || [];
 		drawBag();
 		drawBuildPicker();   // 가진 게 바뀌면 「지을 수 있나」도 바뀐다
+		drawCraftPicker();   // 만들 수 있나도 같이
 		return;
 	}
 
@@ -333,6 +345,30 @@ socket.onmessage = (event) => {
 
 		pickedIngredient = brewShelf.length > 0 ? brewShelf[0].itemId : 0;
 		picker.value = pickedIngredient;
+		return;
+	}
+
+	if (message.type === 'craftbook') {
+		// 무엇을 만들 수 있는지도 세계가 정한다 — 창이 자기 목록을 들면 세계가 모르는 걸 고른다.
+		craftBook = message.recipes || [];
+		drawCraftPicker();
+		return;
+	}
+
+	if (message.type === 'crafted') {
+		// ★ 「재료가 없어 못 했다」와 「주사위를 졌다」는 사람에게 전혀 다른 일이다.
+		//   구별해서 안 보여 주면 둘 다 「고장」으로 읽힌다.
+		if (message.attempted === false) {
+			document.getElementById('craftresult').textContent = '못 만들었다 — ' + (message.denied || '');
+		} else if (message.succeeded) {
+			const made = craftBook.find((one) => one.recipeId === message.recipeId);
+			document.getElementById('craftresult').textContent =
+				'만들었다 — ' + (made ? made.name : '') + ' ' + message.amount + '개';
+		} else {
+			document.getElementById('craftresult').textContent = '실패했다 — 재료는 들었다';
+		}
+
+		drawCraftPicker();
 		return;
 	}
 
@@ -601,6 +637,40 @@ function drawBuildPicker() {
 	picker.value = pickedBuilding;
 }
 
+/**
+ * 만들 것 고르기 — 재료와 성공률을 그 자리에서 보여 준다.
+ * 「왜 안 되지」를 눌러 봐야 알게 되면 그건 손해만 보는 배움이다.
+ */
+function drawCraftPicker() {
+	const picker = document.getElementById('craftpick');
+	if (craftBook.length === 0) return;
+
+	const chosen = pickedRecipe;
+	picker.textContent = '';
+
+	for (const recipe of craftBook) {
+		const option = document.createElement('option');
+		option.value = recipe.recipeId;
+
+		let enough = true;
+		const needs = [];
+		for (let i = 0; i < recipe.itemIds.length; i++) {
+			const itemId = recipe.itemIds[i];
+			const need = recipe.amounts[i];
+			const have = bag.find((r) => r.itemId === itemId)?.amount ?? 0;
+			if (have < need) enough = false;
+			needs.push(`${itemNames[itemId] || '#' + itemId} ${have}/${need}`);
+		}
+
+		const luck = recipe.percentage >= 100 ? '' : ` (${recipe.percentage}%)`;
+		option.textContent = `${enough ? '' : '· '}${recipe.name}${luck} — ${needs.join(', ')}`;
+		picker.appendChild(option);
+	}
+
+	pickedRecipe = chosen !== 0 ? chosen : craftBook[0].recipeId;
+	picker.value = pickedRecipe;
+}
+
 /** 가방 — 번호가 아니라 이름으로 보인다(낱말표를 못 받았으면 번호로 버틴다). */
 function drawBag() {
 	const host = document.getElementById('bag');
@@ -836,6 +906,16 @@ document.getElementById('brewpick').addEventListener('change', (event) => {
 
 // 솥에 재료를 넣는다 — 가방에서 실제로 빠진다(없으면 아무 일도 안 일어난다).
 // 어느 쪽으로 얼마나 미는지는 세계가 재료에서 읽는다(창이 방향을 우기던 길은 없앴다).
+document.getElementById('craftpick').addEventListener('change', (event) => {
+	pickedRecipe = Number(event.target.value);
+});
+
+document.getElementById('make').addEventListener('click', () => {
+	// 되나 안 되나는 세계가 정한다 — 창은 「이 줄대로 만들겠다」만 말한다.
+	if (socket.readyState !== WebSocket.OPEN || pickedRecipe === 0) return;
+	socket.send(JSON.stringify({ type: 'craft', recipeId: pickedRecipe }));
+});
+
 document.getElementById('stir').addEventListener('click', () => {
 	if (socket.readyState !== WebSocket.OPEN || pickedIngredient === 0) return;
 	socket.send(JSON.stringify(myPot === null

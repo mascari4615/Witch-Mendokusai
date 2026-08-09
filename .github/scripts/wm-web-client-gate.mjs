@@ -97,6 +97,8 @@ const HANDLES = [
   ['id="stir"', '넣고 젓기'],
   ['id="complete"', '완성 가져가기'],
   ['id="me"', '내 이름'],
+  ['id="craftpick"', '만들 것 고르기'],
+  ['id="make"', '만들기'],
 ];
 
 for (const [needle, what] of HANDLES) {

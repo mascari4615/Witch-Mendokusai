@@ -130,5 +130,37 @@ namespace WitchMendokusai
 				},
 			};
 		}
+
+		/// <summary>
+		/// 씨앗 제작표 (TASK-WM-217) — 진짜 자산을 뽑기 전까지 <b>제작이 도는지</b> 볼 수 있어야 한다.
+		/// 솥과 갈라지는 자리다: 솥은 「저어서」, 제작은 「재료를 모아서」.
+		/// </summary>
+		public static CraftCatalogData Crafts()
+		{
+			return new CraftCatalogData
+			{
+				recipes = new[]
+				{
+					// 나무 셋 → 판자 둘. 반드시 된다(제작이 도는지 보는 줄).
+					new CraftRecipeEntry
+					{
+						id = 1, name = "나무 판자", resultItemId = PLANK, resultAmount = 2, percentage = 100f,
+						items = new[] { new CraftIngredientEntry { itemId = WOOD, amount = 3 } },
+					},
+
+					// 석탄 + 철 → 벽돌. 가끔 실패한다(주사위가 세계에 있는지 보는 줄).
+					new CraftRecipeEntry
+					{
+						id = 2, name = "벽돌", resultItemId = BRICK, resultAmount = 1, percentage = 70f,
+						items = new[]
+						{
+							new CraftIngredientEntry { itemId = COAL, amount = 1 },
+							new CraftIngredientEntry { itemId = IRON, amount = 1 },
+						},
+					},
+				},
+			};
+		}
+
 	}
 }
