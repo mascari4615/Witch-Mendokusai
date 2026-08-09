@@ -1,0 +1,202 @@
+using System;
+using System.IO;
+using System.Net.WebSockets;
+using System.Text;
+using System.Text.Json;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Builder;
+using NUnit.Framework;
+using WitchMendokusai.Numerics;
+using WitchMendokusai.Server;
+
+namespace WitchMendokusai.ServerTests
+{
+	/// <summary>
+	/// <b>여럿이 붙어도 세계가 돈다</b> (TASK-WM-217).
+	///
+	/// ★ 왜: 지금까지 잰 것은 하나·둘이었다. 그런데 「같이 노는 세계」의 값은 사람이 늘 때 드러난다 —
+	///   한 사람이 늦게 읽으면 모두가 멈추던 자리(방송이 차례로 기다리던 것)를 이미 한 번 밟았다.
+	///   그때 증상은 「접속은 되는데 아무도 못 움직인다」였고, 사람 눈에는 서버가 죽은 것으로 보인다.
+	///
+	/// 진짜 소켓 여럿으로 잰다. 재는 것은 속도가 아니라 <b>버티나</b>다 —
+	/// 모두가 세계를 받고, 각자 한 짓이 서로에게 보이고, 안 읽는 창 하나가 남을 멈추지 않는다.
+	/// </summary>
+	public sealed class ManyPeopleTests
+	{
+		private const int PORT = 5405;
+		private const int PEOPLE = 12;
+
+		private static readonly Uri address = new Uri($"ws://127.0.0.1:{PORT}/ws");
+
+		private WebApplication app;
+		private WorldHost host;
+		private string worldFile;
+
+		[SetUp]
+		public async Task SetUp()
+		{
+			worldFile = Path.Combine(Path.GetTempPath(), "wm-many-" + Path.GetRandomFileName() + ".json");
+			host = new WorldHost(new WorldStore(worldFile));
+			app = host.Build(Array.Empty<string>(), $"http://127.0.0.1:{PORT}");
+			await app.StartAsync();
+		}
+
+		[TearDown]
+		public async Task TearDown()
+		{
+			if (app != null)
+			{
+				await app.StopAsync();
+				await app.DisposeAsync();
+				app = null;
+			}
+
+			foreach (string path in new[] { worldFile, worldFile + ".bak", worldFile + ".tmp" })
+			{
+				if (File.Exists(path))
+					File.Delete(path);
+			}
+		}
+
+		[Test]
+		public async Task 열두_명이_한꺼번에_들어와도_모두_세계를_받는다()
+		{
+			ClientWebSocket[] windows = new ClientWebSocket[PEOPLE];
+
+			try
+			{
+				Task<ClientWebSocket>[] joining = new Task<ClientWebSocket>[PEOPLE];
+				for (int i = 0; i < PEOPLE; i++)
+					joining[i] = JoinAsync("기기-" + i);
+
+				windows = await Task.WhenAll(joining);
+
+				// 모두가 세계 그림을 한 장씩은 받아야 한다 — 못 받은 사람은 빈 화면을 본다.
+				for (int i = 0; i < PEOPLE; i++)
+				{
+					string world = await Read(windows[i], "\"type\":\"world\"");
+					Assert.IsNotNull(world, "들어왔는데 세계를 못 받은 사람이 있다");
+				}
+
+				Assert.AreEqual(PEOPLE, host.World.Snapshot().Length, "세계가 사람 수를 잘못 세고 있다");
+			}
+			finally
+			{
+				Close(windows);
+			}
+		}
+
+		// ⚠ 「안 읽는 창 하나가 모두를 멈추나」는 여기서 <b>안 잰다</b> (2026-08-10).
+		//   그 시험을 써 봤지만, 방송의 밀린-창 건너뛰기(Connection.Sending)를 <b>일부러 빼도
+		//   초록이었다</b> — 즉 잡으려던 것을 못 보는 시험이었다. 창 몇 개를 안 읽게 두는 것만으로는
+		//   OS 버퍼가 넉넉해 압박이 안 생긴다. 「초록인데 안 보는 시험」은 없는 것보다 나쁘다
+		//   (사람이 그걸 보고 「그 자리는 지켜진다」고 믿기 때문에). 진짜로 재려면 버퍼를 채울 만큼
+		//   큰 그림 · 많은 창이 필요하고, 그건 이 자리(단위 시험)가 아니라 부하 관문의 몫이다.
+
+		[Test]
+		public async Task 여럿이_동시에_지어도_세계가_한_벌로_남는다()
+		{
+			ClientWebSocket[] windows = new ClientWebSocket[PEOPLE];
+
+			try
+			{
+				for (int i = 0; i < PEOPLE; i++)
+					windows[i] = await JoinAsync("기기-짓는사람-" + i);
+
+				WorldDoll[] dolls = host.World.Snapshot();
+				for (int i = 0; i < dolls.Length; i++)
+				{
+					ServerBuildingCatalog.Catalog.TryCost(WorldSim.CAULDRON_BUILDING_ID, out int itemId, out int amount);
+					host.World.TryGather(dolls[i].Id, ServerItemCatalog.Find(itemId), amount);
+				}
+
+				// 각자 다른 칸에 짓는다 — 겹치지 않으니 전부 서야 한다.
+				for (int i = 0; i < PEOPLE; i++)
+				{
+					await Send(windows[i], "{\"type\":\"" + Protocol.PLACE + "\",\"x\":" + (100 + i)
+						+ ",\"y\":0,\"z\":100,\"buildingId\":" + WorldSim.CAULDRON_BUILDING_ID + "}");
+				}
+
+				await Task.Delay(1500);
+
+				Assert.AreEqual(PEOPLE, host.World.Buildings().Length,
+					"동시에 지으면 몇 채가 조용히 사라진다 — 그건 손이 미끄러진 게 아니라 세계가 잃은 것이다");
+			}
+			finally
+			{
+				Close(windows);
+			}
+		}
+
+		private static void Close(ClientWebSocket[] windows)
+		{
+			for (int i = 0; i < windows.Length; i++)
+			{
+				if (windows[i] == null)
+					continue;
+
+				try
+				{
+					windows[i].Dispose();
+				}
+				catch (ObjectDisposedException)
+				{
+					// 이미 닫힌 창 — 정리 중이라 문제될 게 없다.
+				}
+			}
+		}
+
+		private static async Task<ClientWebSocket> JoinAsync(string secret)
+		{
+			ClientWebSocket window = new ClientWebSocket();
+			await window.ConnectAsync(address, CancellationToken.None);
+			await Read(window, "\"welcome\"");
+			await Send(window, "{\"type\":\"hello\",\"secret\":\"" + secret + "\"}");
+			await Read(window, "\"identityId\"");
+			return window;
+		}
+
+		private static async Task Send(ClientWebSocket socket, string json)
+		{
+			byte[] payload = Encoding.UTF8.GetBytes(json);
+			await socket.SendAsync(new ArraySegment<byte>(payload), WebSocketMessageType.Text, true, CancellationToken.None);
+		}
+
+		private static async Task<string> Read(ClientWebSocket socket, string needle)
+		{
+			using CancellationTokenSource timeout = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+			byte[] buffer = new byte[32768];
+			StringBuilder pending = new StringBuilder();
+
+			while (timeout.IsCancellationRequested == false)
+			{
+				WebSocketReceiveResult received;
+				try
+				{
+					received = await socket.ReceiveAsync(new ArraySegment<byte>(buffer), timeout.Token);
+				}
+				catch (OperationCanceledException)
+				{
+					break;
+				}
+
+				if (received.MessageType == WebSocketMessageType.Close)
+					break;
+
+				pending.Append(Encoding.UTF8.GetString(buffer, 0, received.Count));
+				if (received.EndOfMessage == false)
+					continue;
+
+				string text = pending.ToString();
+				pending.Clear();
+
+				if (text.Contains(needle))
+					return text;
+			}
+
+			Assert.Fail($"「{needle}」 가 안 왔다.");
+			return null;
+		}
+	}
+}
