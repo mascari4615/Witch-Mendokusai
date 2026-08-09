@@ -53,12 +53,12 @@ namespace WitchMendokusai
 				return false;
 
 			// 코어 말고 다른 걸 노리는 중이면 안내 대상이 아니다(흐름장은 코어행 전용).
-			Vector3 goalLocal = stageRoot.InverseTransformPoint(to);
+			Vector3 goalLocal = (Vector3)stageRoot.InverseTransformPoint(to);
 			Vector2Int goalCell = layout.WorldToCell(goalLocal);
 			if (goalCell != flowField.GoalCell)
 				return false;
 
-			Vector3 fromLocal = stageRoot.InverseTransformPoint(from);
+			Vector3 fromLocal = (Vector3)stageRoot.InverseTransformPoint(from);
 			Vector2Int fromCell = layout.WorldToCell(fromLocal);
 
 			// 코어가 코앞이면 화살표(칸 단위)보다 직선이 정확하다 — 마지막 한 칸에서 덜덜 떠는 것 방지.
@@ -93,7 +93,7 @@ namespace WitchMendokusai
 			if (localDirection.sqrMagnitude <= Mathf.Epsilon)
 				return false;
 
-			Vector3 worldDirection = stageRoot.TransformDirection(localDirection);
+			Vector3 worldDirection = (Vector3)stageRoot.TransformDirection(localDirection);
 			worldDirection.y = 0f;
 
 			direction = worldDirection.normalized;

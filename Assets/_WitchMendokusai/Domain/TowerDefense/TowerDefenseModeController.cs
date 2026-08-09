@@ -1,5 +1,8 @@
-using System.Collections;
+﻿using System.Collections;
 using UnityEngine;
+// ★ 좌표는 판정 쪽 (TASK-WM-214) — 엔진으로 나갈 땐 자동, 엔진에서 받을 땐 캐스트.
+using Vector3 = WitchMendokusai.Numerics.Vector3;
+using Vector2Int = WitchMendokusai.Numerics.Vector2Int;
 using VContainer;
 
 namespace WitchMendokusai
