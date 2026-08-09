@@ -161,6 +161,12 @@ namespace WitchMendokusai
 				if (doll.IdentityId == identityId)
 					return true;
 
+				// ★ 주인은 접속당 한 번만 붙는다 (TASK-WM-218).
+				//   안 막으면: A 로 들어와 물건을 줍고 → 도중에 B 열쇠를 내밀어 갈아타고 → 나가면
+				//   그 물건이 B 의 것으로 저장된다. 물건이 복제되고 남의 것이 된다.
+				if (doll.IdentityId != 0)
+					return false;
+
 				doll.IdentityId = identityId;
 
 				if (remembered.TryGetValue(identityId, out PersonSaveData kept))

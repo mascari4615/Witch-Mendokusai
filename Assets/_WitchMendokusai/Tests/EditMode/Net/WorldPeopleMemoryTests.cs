@@ -102,6 +102,24 @@ namespace WitchMendokusai.Tests.EditMode.Net
 		}
 
 		[Test]
+		public void 접속_도중에_주인을_갈아탈_수_없다()
+		{
+			WorldSim world = new WorldSim();
+			WorldItemCatalog catalog = Catalog();
+			WorldDoll doll = world.Join();
+
+			Assert.That(world.Adopt(doll.Id, 1, catalog), Is.True);
+			world.TryGather(doll.Id, catalog.Find(STONE), 4);
+
+			// 막지 않으면: 1 로 주워 놓고 2 로 갈아타 나가면 그 물건이 2 의 것으로 저장된다(복제·도용).
+			Assert.That(world.Adopt(doll.Id, 2, catalog), Is.False);
+
+			world.Leave(doll.Id);
+			WorldDoll stranger = world.Join(identityId: 2, catalog: catalog);
+			Assert.That(world.BagCount(stranger.Id, STONE), Is.EqualTo(0));
+		}
+
+		[Test]
 		public void 신원_없이_들어오면_옛_방식_그대로다()
 		{
 			WorldSim world = new WorldSim();
