@@ -48,6 +48,20 @@ namespace WitchMendokusai.Net
 		/// </summary>
 		void RequestBrewStep(int itemId);
 
+		/// <summary>
+		/// <b>그 자리의 솥</b>에 넣는다 (TASK-WM-217) — 여럿이 각자 자기 솥에서 젓는다.
+		/// 손이 닿는지는 세계가 본다.
+		/// </summary>
+		void RequestBrewStepAt(int itemId, int cellX, int cellY, int cellZ);
+
+		/// <summary>그 자리의 솥을 비운다 / 완성을 가져간다.</summary>
+		void RequestBrewResetAt(int cellX, int cellY, int cellZ);
+
+		void RequestBrewCompleteAt(int cellX, int cellY, int cellZ);
+
+		/// <summary>지금 세계에 서 있는 솥들 — 창이 가까운 것을 고른다.</summary>
+		CauldronView[] Cauldrons { get; }
+
 		/// <summary>솥을 비운다.</summary>
 		void RequestBrewReset();
 

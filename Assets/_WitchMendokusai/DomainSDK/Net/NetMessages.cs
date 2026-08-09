@@ -103,7 +103,31 @@ namespace WitchMendokusai.Net
 		/// <summary>창 → 서버: 솥에 한 번 넣고 젓는다(모두가 같은 솥을 젓는다).</summary>
 		public const string BREW = "brew";
 
-		/// <summary>창 → 서버: 솥을 비운다.</summary>
+		/// <summary>세계에 서 있는 솥 하나 — 자리와 지금 저은 자국.</summary>
+	[Serializable]
+	public class CauldronView
+	{
+		public int x;
+		public int y;
+		public int z;
+		public float px;
+		public float py;
+		public int steps;
+		public float side;
+	}
+
+	/// <summary>창 → 서버: 그 자리의 솥에 넣는다 / 비운다 / 가져간다.</summary>
+	[Serializable]
+	public class CauldronMessage
+	{
+		public string type = NetMessageType.BREW;
+		public int itemId;
+		public int x;
+		public int y;
+		public int z;
+	}
+
+	/// <summary>창 → 서버: 솥을 비운다.</summary>
 		public const string BREW_RESET = "brewreset";
 
 		/// <summary>창 → 서버: 이 솥을 완성으로 가져가겠다(선착순 한 번).</summary>
@@ -187,6 +211,7 @@ namespace WitchMendokusai.Net
 		//   ① 매 프레임 집이 사라지거나 ② 마지막 하나를 부숴도 화면에 남는다.
 		public BuildingView[] buildings;
 		public GatherableView[] gatherables;
+		public CauldronView[] cauldrons;
 		public WorldTimeView time;
 		public WorldBrewView brew;
 	}
@@ -325,6 +350,30 @@ namespace WitchMendokusai.Net
 
 		/// <summary>넣을 재료 — 가방에서 실제로 빠진다. 미는 방향은 세계가 안다.</summary>
 		public int itemId;
+	}
+
+	/// <summary>세계에 서 있는 솥 하나 — 자리와 지금 저은 자국.</summary>
+	[Serializable]
+	public class CauldronView
+	{
+		public int x;
+		public int y;
+		public int z;
+		public float px;
+		public float py;
+		public int steps;
+		public float side;
+	}
+
+	/// <summary>창 → 서버: 그 자리의 솥에 넣는다 / 비운다 / 가져간다.</summary>
+	[Serializable]
+	public class CauldronMessage
+	{
+		public string type = NetMessageType.BREW;
+		public int itemId;
+		public int x;
+		public int y;
+		public int z;
 	}
 
 	/// <summary>창 → 서버: 솥을 비운다.</summary>

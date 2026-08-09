@@ -245,6 +245,9 @@ namespace WitchMendokusai
 				if (world.gatherables != null)
 					Gatherables = world.gatherables;
 
+				if (world.cauldrons != null)
+					Cauldrons = world.cauldrons;
+
 				// 시각은 서버가 보낼 때만 갱신한다 — 안 보낸 스냅샷 하나에 세계 시간이 0시로 튀면 안 된다.
 				if (world.time != null)
 					Time = world.time;
@@ -276,6 +279,24 @@ namespace WitchMendokusai
 
 		/// <summary>솥을 한 번 젓는다 — 모두가 같은 솥을 젓는다.</summary>
 		public void RequestBrewStep(int itemId) => Send(JsonUtility.ToJson(new BrewMessage { itemId = itemId }));
+
+		/// <summary>세계에 서 있는 솥들 — 알림마다 갈아 끼운다.</summary>
+		public CauldronView[] Cauldrons { get; private set; } = Array.Empty<CauldronView>();
+
+		public void RequestBrewStepAt(int itemId, int cellX, int cellY, int cellZ)
+		{
+			Send(JsonUtility.ToJson(new CauldronMessage { type = NetMessageType.BREW, itemId = itemId, x = cellX, y = cellY, z = cellZ }));
+		}
+
+		public void RequestBrewResetAt(int cellX, int cellY, int cellZ)
+		{
+			Send(JsonUtility.ToJson(new CauldronMessage { type = NetMessageType.BREW_RESET, x = cellX, y = cellY, z = cellZ }));
+		}
+
+		public void RequestBrewCompleteAt(int cellX, int cellY, int cellZ)
+		{
+			Send(JsonUtility.ToJson(new CauldronMessage { type = NetMessageType.BREW_COMPLETE, x = cellX, y = cellY, z = cellZ }));
+		}
 
 		/// <summary>솥을 비운다.</summary>
 		public void RequestBrewReset() => Send(JsonUtility.ToJson(new BrewResetMessage()));

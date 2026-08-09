@@ -33,6 +33,51 @@ namespace WitchMendokusai
 
 		public void AddIngredient(int itemId) => link?.RequestBrewStep(itemId);
 
+		/// <summary>내가 선 자리에서 가장 가까운 솥에 넣는다 — 없으면 false(짓거나 다가가야 한다).</summary>
+		public bool TryUseNearbyCauldron(int itemId)
+		{
+			if (link == null)
+				return false;
+
+			CauldronView[] pots = link.Cauldrons;
+			if (pots == null || pots.Length == 0)
+				return false;
+
+			float meX = 0f;
+			float meZ = 0f;
+			WorldDollView[] dolls = link.Dolls;
+			for (int i = 0; i < dolls.Length; i++)
+			{
+				if (dolls[i].id != link.MyDollId)
+					continue;
+
+				meX = dolls[i].x;
+				meZ = dolls[i].z;
+				break;
+			}
+
+			CauldronView nearest = null;
+			float best = float.MaxValue;
+			for (int i = 0; i < pots.Length; i++)
+			{
+				float dx = pots[i].x - meX;
+				float dz = pots[i].z - meZ;
+				float distance = dx * dx + dz * dz;
+				if (distance >= best)
+					continue;
+
+				best = distance;
+				nearest = pots[i];
+			}
+
+			// 손이 닿는지는 세계가 다시 본다 — 여기서는 「가까운 것」만 고른다.
+			if (nearest == null)
+				return false;
+
+			link.RequestBrewStepAt(itemId, nearest.x, nearest.y, nearest.z);
+			return true;
+		}
+
 		public void AddStep(BrewStep step)
 		{
 			// ⚠ 이제 방향이 아니라 <b>재료</b>를 보낸다 (TASK-WM-217) — 여기로 오는 옛 호출은 뜻을 잃었다.

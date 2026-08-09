@@ -26,6 +26,13 @@ namespace WitchMendokusai.DomainSDK.Alchemy
         /// </summary>
         void AddIngredient(int itemId);
 
+        /// <summary>
+        /// <b>가까운 솥</b>을 쓴다 (TASK-WM-217) — 세계에 솥이 여럿이라 「어느 솥」이 필요하다.
+        /// 창은 자리를 몰라도 된다: 내가 선 자리에서 가장 가까운 솥을 줄이 골라 준다.
+        /// 가까운 솥이 없으면 아무 일도 안 일어난다(짓거나 다가가야 한다).
+        /// </summary>
+        bool TryUseNearbyCauldron(int itemId);
+
         /// <summary>같은 솥 비우고 다시(서버 권위 리셋). 이름 Reset X = NetworkBehaviour.Reset() magic 메서드 충돌 회피.</summary>
         void ResetBrew();
 
