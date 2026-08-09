@@ -115,18 +115,38 @@ namespace WitchMendokusai.Server
 				if (root.TryGetProperty("type", out JsonElement type) == false)
 					return;
 
-				if (type.GetString() != Protocol.MOVE)
+				string kind = type.GetString();
+
+				if (kind == Protocol.MOVE)
+				{
+					float x = root.TryGetProperty("x", out JsonElement xElement) ? (float)xElement.GetDouble() : 0f;
+					float z = root.TryGetProperty("z", out JsonElement zElement) ? (float)zElement.GetDouble() : 0f;
+					world.TryMove(dollId, new Vector3(x, 0f, z));
 					return;
+				}
 
-				float x = root.TryGetProperty("x", out JsonElement xElement) ? (float)xElement.GetDouble() : 0f;
-				float z = root.TryGetProperty("z", out JsonElement zElement) ? (float)zElement.GetDouble() : 0f;
+				if (kind == Protocol.PLACE)
+				{
+					int cellX = ReadInt(root, "x");
+					int cellY = ReadInt(root, "y");
+					int cellZ = ReadInt(root, "z");
+					int width = System.Math.Max(1, ReadInt(root, "w"));
+					int length = System.Math.Max(1, ReadInt(root, "l"));
+					int buildingId = ReadInt(root, "buildingId");
 
-				world.TryMove(dollId, new Vector3(x, 0f, z));
+					// 겹치면 서버가 거절한다 — 거절도 판정이다(창이 우기지 못한다).
+					world.TryPlaceBuilding(new Vector3Int(cellX, cellY, cellZ), new Vector2Int(width, length), buildingId);
+				}
 			}
 			catch (JsonException)
 			{
 				// 못 알아들을 말은 그냥 버린다 — 창이 이상한 걸 보냈다고 서버가 죽지 않는다.
 			}
+		}
+
+		private static int ReadInt(JsonElement root, string name)
+		{
+			return root.TryGetProperty(name, out JsonElement element) ? (int)element.GetDouble() : 0;
 		}
 
 		private static async Task RunBroadcastLoopAsync(CancellationToken stopping)
@@ -147,7 +167,7 @@ namespace WitchMendokusai.Server
 
 			while (stopping.IsCancellationRequested == false)
 			{
-				string snapshot = Protocol.WorldSnapshot(world.Snapshot());
+				string snapshot = Protocol.WorldSnapshot(world.Snapshot(), world.Buildings());
 				foreach (System.Collections.Generic.KeyValuePair<int, WebSocket> entry in sockets)
 				{
 					if (entry.Value.State != WebSocketState.Open)

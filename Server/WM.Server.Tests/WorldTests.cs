@@ -136,4 +136,56 @@ namespace WitchMendokusai.Server.Tests
 			StringAssert.Contains("MoveRequest", typescript);
 		}
 	}
+
+	/// <summary>서버가 「짓기」도 판정한다 (TASK-WM-216).</summary>
+	public sealed class WorldBuildingTests
+	{
+		[Test]
+		public void 빈_자리에는_지어진다()
+		{
+			World world = new World();
+
+			bool placed = world.TryPlaceBuilding(new Vector3Int(0, 0, 0), new Vector2Int(2, 2), 4000);
+
+			Assert.IsTrue(placed);
+			Assert.AreEqual(1, world.Buildings().Length);
+		}
+
+		[Test]
+		public void 겹치면_거절한다()
+		{
+			World world = new World();
+			world.TryPlaceBuilding(new Vector3Int(0, 0, 0), new Vector2Int(2, 2), 4000);
+
+			bool second = world.TryPlaceBuilding(new Vector3Int(-1, 0, 1), new Vector2Int(1, 1), 4000);
+
+			Assert.IsFalse(second, "이미 깔린 칸이면 못 짓는다");
+			Assert.AreEqual(1, world.Buildings().Length);
+		}
+
+		[Test]
+		public void 옆_칸에는_지어진다()
+		{
+			World world = new World();
+			world.TryPlaceBuilding(new Vector3Int(0, 0, 0), new Vector2Int(1, 1), 4000);
+
+			bool second = world.TryPlaceBuilding(new Vector3Int(5, 0, 5), new Vector2Int(1, 1), 4000);
+
+			Assert.IsTrue(second);
+			Assert.AreEqual(2, world.Buildings().Length);
+		}
+
+		[Test]
+		public void 종류별로_몇_개인지_센다()
+		{
+			World world = new World();
+			world.TryPlaceBuilding(new Vector3Int(0, 0, 0), new Vector2Int(1, 1), 4000);
+			world.TryPlaceBuilding(new Vector3Int(3, 0, 0), new Vector2Int(1, 1), 4000);
+			world.TryPlaceBuilding(new Vector3Int(6, 0, 0), new Vector2Int(1, 1), 4004);
+
+			Assert.AreEqual(2, world.CountBuildings(4000));
+			Assert.AreEqual(1, world.CountBuildings(4004));
+			Assert.AreEqual(0, world.CountBuildings(9999));
+		}
+	}
 }

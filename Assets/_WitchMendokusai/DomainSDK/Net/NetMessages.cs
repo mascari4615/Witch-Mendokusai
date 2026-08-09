@@ -16,6 +16,9 @@ namespace WitchMendokusai.Net
 		public const string WELCOME = "welcome";
 		public const string WORLD = "world";
 		public const string MOVE = "move";
+
+		/// <summary>창 → 서버: 여기에 짓고 싶다(겹치는지는 서버가 본다).</summary>
+		public const string PLACE = "place";
 	}
 
 	/// <summary>서버 → 창: 접속했다, 네 인형 번호는 이것이다.</summary>
@@ -41,6 +44,7 @@ namespace WitchMendokusai.Net
 	{
 		public string type = NetMessageType.WORLD;
 		public DollView[] dolls = Array.Empty<DollView>();
+		public BuildingView[] buildings = Array.Empty<BuildingView>();
 	}
 
 	/// <summary>창 → 서버: 이쪽으로 가고 싶다(얼마나 갈지는 서버가 정한다).</summary>
@@ -50,5 +54,30 @@ namespace WitchMendokusai.Net
 		public string type = NetMessageType.MOVE;
 		public float x;
 		public float z;
+	}
+
+	/// <summary>세계에 서 있는 건물 하나 — 창이 그리는 데 필요한 최소.</summary>
+	[Serializable]
+	public class BuildingView
+	{
+		public int x;
+		public int y;
+		public int z;
+		public int w;
+		public int l;
+		public int buildingId;
+	}
+
+	/// <summary>창 → 서버: 여기에 짓고 싶다. 겹치면 서버가 거절한다.</summary>
+	[Serializable]
+	public class PlaceMessage
+	{
+		public string type = NetMessageType.PLACE;
+		public int x;
+		public int y;
+		public int z;
+		public int w = 1;
+		public int l = 1;
+		public int buildingId;
 	}
 }

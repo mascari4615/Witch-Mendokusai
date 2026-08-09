@@ -16,6 +16,7 @@ namespace WitchMendokusai.Server
 		public const string WELCOME = Net.NetMessageType.WELCOME;
 		public const string WORLD = Net.NetMessageType.WORLD;
 		public const string MOVE = Net.NetMessageType.MOVE;
+		public const string PLACE = Net.NetMessageType.PLACE;
 
 		/// <summary>계약을 웹이 읽을 수 있는 형태로 뽑는다.</summary>
 		public static string ToTypeScript()
@@ -50,7 +51,7 @@ namespace WitchMendokusai.Server
 		}
 
 		/// <summary>서버가 보내는 세계 모습.</summary>
-		public static string WorldSnapshot(IEnumerable<Doll> dolls)
+		public static string WorldSnapshot(IEnumerable<Doll> dolls, IEnumerable<PlacedBuilding> buildings)
 		{
 			StringBuilder builder = new StringBuilder();
 			builder.Append("{\"type\":\"").Append(WORLD).Append("\",\"dolls\":[");
@@ -65,6 +66,24 @@ namespace WitchMendokusai.Server
 				builder.Append("{\"id\":").Append(doll.Id)
 					.Append(",\"x\":").Append(doll.Position.x.ToString("F3"))
 					.Append(",\"z\":").Append(doll.Position.z.ToString("F3"))
+					.Append('}');
+			}
+
+			builder.Append("],\"buildings\":[");
+
+			first = true;
+			foreach (PlacedBuilding building in buildings)
+			{
+				if (first == false)
+					builder.Append(',');
+
+				first = false;
+				builder.Append("{\"x\":").Append(building.Pivot.x)
+					.Append(",\"y\":").Append(building.Pivot.y)
+					.Append(",\"z\":").Append(building.Pivot.z)
+					.Append(",\"w\":").Append(building.Size.x)
+					.Append(",\"l\":").Append(building.Size.y)
+					.Append(",\"buildingId\":").Append(building.BuildingId)
 					.Append('}');
 			}
 

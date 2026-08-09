@@ -26,7 +26,7 @@
 	<div class="status" id="status">붙는 중…</div>
 	<canvas id="board" width="480" height="360"></canvas>
 	<div class="hint">
-		방향키(또는 WASD)로 움직인다. 판정은 서버가 한다 —
+		방향키(또는 WASD)로 움직이고, 판을 눌러 짓는다. 판정은 서버가 한다 —
 		한 번에 갈 수 있는 거리는 서버가 잘라낸다. 창을 두 개 열면 서로가 보인다.
 	</div>
 
@@ -40,6 +40,7 @@
 
 	var myId = null;
 	var dolls = [];
+	var buildings = [];
 	var pressed = {};
 	var SCALE = 12; // 한 칸을 몇 픽셀로 그릴 것인가 (보기용일 뿐, 규칙 아님)
 
@@ -59,6 +60,7 @@
 
 		if (message.type === 'world') {
 			dolls = message.dolls;
+			buildings = message.buildings || [];
 			draw();
 		}
 	};
@@ -84,6 +86,17 @@
 		socket.send(JSON.stringify({ type: 'move', x: x, z: z }));
 	}, 100);
 
+	// 클릭한 자리를 칸으로 바꿔 「여기 짓고 싶다」를 보낸다. 겹치는지는 서버가 본다.
+	canvas.addEventListener('click', function (event) {
+		if (socket.readyState !== WebSocket.OPEN) return;
+
+		var rect = canvas.getBoundingClientRect();
+		var cellX = Math.floor((event.clientX - rect.left - canvas.width / 2) / SCALE);
+		var cellZ = Math.floor((canvas.height / 2 - (event.clientY - rect.top)) / SCALE);
+
+		socket.send(JSON.stringify({ type: 'place', x: cellX, y: 0, z: cellZ, w: 2, l: 2, buildingId: 4000 }));
+	});
+
 	function draw() {
 		context.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -95,6 +108,18 @@
 		context.moveTo(centerX, 0); context.lineTo(centerX, canvas.height);
 		context.moveTo(0, centerY); context.lineTo(canvas.width, centerY);
 		context.stroke();
+
+		// 건물 먼저 (인형이 위에 오도록)
+		for (var b = 0; b < buildings.length; b++) {
+			var building = buildings[b];
+			// 기준 칸에서 -X, +Z 로 퍼진다 — 규칙은 서버가 알고, 창은 받은 대로 그린다.
+			var left = centerX + (building.x - (building.w - 1)) * SCALE;
+			var top = centerY - (building.z + building.l - 1) * SCALE - SCALE;
+			context.fillStyle = '#3c5a4a';
+			context.fillRect(left, top, building.w * SCALE, building.l * SCALE);
+			context.strokeStyle = '#5f8a72';
+			context.strokeRect(left, top, building.w * SCALE, building.l * SCALE);
+		}
 
 		for (var i = 0; i < dolls.length; i++) {
 			var doll = dolls[i];
