@@ -36,7 +36,27 @@ namespace WitchMendokusai.Server
 		private const int GUEST_FORGET_DAYS = 90;
 
 		private readonly WorldStore store;
-		private readonly ConcurrentDictionary<int, WebSocket> sockets = new ConcurrentDictionary<int, WebSocket>();
+		/// <summary>
+		/// 창 하나 — 소켓과 <b>차례 서는 자리</b> (TASK-WM-218).
+		///
+		/// ★ 왜 차례가 필요한가: 소켓 하나에 두 곳에서 동시에 쓰면 터진다(알림 루프는 20Hz 로 쓰고,
+		///   답장은 사람이 말할 때 쓴다). 그 예외는 WebSocketException 이 아니라서 조용히 새 나가
+		///   <b>인사에 대한 답이 통째로 사라졌다</b> — 창은 접속은 됐는데 자기가 누군지 모르게 됐다.
+		///   시험이 그 자리를 재현해 잡았다.
+		/// </summary>
+		private sealed class Connection
+		{
+			public Connection(WebSocket socket)
+			{
+				Socket = socket;
+			}
+
+			public WebSocket Socket { get; }
+
+			public SemaphoreSlim SendGate { get; } = new SemaphoreSlim(1, 1);
+		}
+
+		private readonly ConcurrentDictionary<int, Connection> sockets = new ConcurrentDictionary<int, Connection>();
 		private int worldDirty;
 
 		public WorldHost(WorldStore worldStore)
@@ -121,8 +141,9 @@ namespace WitchMendokusai.Server
 			//   「인사를 받고 나서 인형을 준다」로 했더니 인사 안 하는 옛 창이 영영 환영을 못 받고
 			//   멈춰 섰다(스모크 4개가 그 자리에서 죽었다). 접속은 인사를 기다리지 않는다.
 			WorldDoll doll = World.Join();
-			sockets[doll.Id] = socket;
-			await SendAsync(socket, Protocol.Welcome(doll.Id));
+			Connection connection = new Connection(socket);
+			sockets[doll.Id] = connection;
+			await SendAsync(connection, Protocol.Welcome(doll.Id));
 
 			// 이 연결의 말 예산 — 창 하나가 모두의 세계를 느리게 만들지 못하게 (TASK-WM-218).
 			WitchMendokusai.Net.MessageBudget budget = new WitchMendokusai.Net.MessageBudget();
@@ -145,7 +166,7 @@ namespace WitchMendokusai.Server
 					if (budget.TrySpend() == false)
 						continue;
 
-					await HandleMessageAsync(doll.Id, socket, text);
+					await HandleMessageAsync(doll.Id, connection, text);
 				}
 			}
 			catch (WebSocketException)
@@ -154,14 +175,14 @@ namespace WitchMendokusai.Server
 			}
 			finally
 			{
-				sockets.TryRemove(doll.Id, out WebSocket _);
+				sockets.TryRemove(doll.Id, out Connection _);
 				World.Leave(doll.Id);
 				Interlocked.Exchange(ref worldDirty, 1); // 나간 사람의 자리·가방을 디스크로 내린다.
 			}
 		}
 
 		/// <summary>인사를 받으면 그 연결의 인형에 주인을 붙이고, 새 사람이면 열쇠를 준다.</summary>
-		private async Task HandleMessageAsync(int dollId, WebSocket socket, string text)
+		private async Task HandleMessageAsync(int dollId, Connection socket, string text)
 		{
 			if (text.Contains("\"" + Protocol.INVITE_ASK + "\""))
 			{
@@ -213,29 +234,37 @@ namespace WitchMendokusai.Server
 
 				// 중복 로그인 — 일반 MMORPG 처럼 나중에 온 쪽이 이긴다. 밀려난 창에는 이유를 말하고 닫는다
 				// (조용히 끊으면 사람은 「버그」로 읽는다).
-				if (evictedDollId != 0 && sockets.TryRemove(evictedDollId, out WebSocket evicted))
+				if (evictedDollId != 0 && sockets.TryRemove(evictedDollId, out Connection evicted))
 				{
-					// ⚠ 밀려난 창을 정리하다 난 문제가 **새로 온 창의 환영을 삼키면 안 된다**.
-					//   실제로 그랬다: 닫기에서 예외가 나 이 흐름이 통째로 끝나 버렸고,
-					//   새 창은 인사에 대한 답을 영영 못 받은 채 스냅샷만 받았다(시험이 잡았다).
-					try
-					{
-						await SendAsync(evicted, Protocol.Kicked());
-						await evicted.CloseAsync(WebSocketCloseStatus.NormalClosure, "same person elsewhere", CancellationToken.None);
-					}
-					catch (Exception error)
-					{
-						Console.WriteLine("[identity] 밀려난 창을 닫다 문제 — 무시하고 계속: " + error.Message);
-					}
+					// ★ 밀려난 창 정리를 <b>기다리지 않는다</b> (TASK-WM-218).
+					//   기다렸더니 새 창의 인사 답장이 통째로 막혔다 — 닫기(CloseAsync)는 상대의 답을
+					//   기다리는데, 그 상대는 이미 우리 말을 안 듣는 중일 수 있다(시험이 잡았다).
+					//   그래서 「보내고 닫기」는 옆으로 보내고, 새로 온 사람의 길을 먼저 연다.
+					_ = EvictAsync(evicted);
 				}
 
-				// 새 열쇠는 새로 만들었을 때만 — 기기에 적어 둬야 다음에 「나」다.
 				await SendAsync(socket, Protocol.Welcome(dollId, created ? person.secret : string.Empty, person.id));
 				Interlocked.Exchange(ref worldDirty, 1);
 				return;
 			}
 
 			HandleMessage(dollId, text);
+		}
+
+		/// <summary>밀려난 창에 이유를 말하고 닫는다 — 오래 걸려도 다른 사람의 길을 막지 않는다.</summary>
+		private async Task EvictAsync(Connection evicted)
+		{
+			try
+			{
+				await SendAsync(evicted, Protocol.Kicked());
+
+				// 답을 안 하는 상대도 있다 — 출력만 닫고 손을 뗀다(CloseAsync 는 상대의 답을 기다린다).
+				await evicted.Socket.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "same person elsewhere", CancellationToken.None);
+			}
+			catch (Exception error)
+			{
+				Console.WriteLine("[identity] 밀려난 창을 닫다 문제 — 무시하고 계속: " + error.Message);
+			}
 		}
 
 		/// <summary>세계 + 신원 장부를 함께 뜬다 — 둘이 따로 저장되면 「누구 가방인지」가 갈라진다.</summary>
@@ -364,7 +393,7 @@ namespace WitchMendokusai.Server
 				{
 					// 완성은 세계가 한 사람에게만 내준다 — 둘이 같은 순간에 눌러도 뒤엣사람은 빈 솥.
 					if (World.Cauldron.TryComplete(out WitchMendokusai.DomainSDK.Alchemy.BrewState taken)
-						&& sockets.TryGetValue(dollId, out WebSocket claimer))
+						&& sockets.TryGetValue(dollId, out Connection claimer))
 					{
 						_ = SendAsync(claimer, Protocol.BrewTaken(taken));
 					}
@@ -410,7 +439,7 @@ namespace WitchMendokusai.Server
 		/// <summary>그 창에게만 자기 가방을 알린다.</summary>
 		private async Task SendBagAsync(int dollId)
 		{
-			if (sockets.TryGetValue(dollId, out WebSocket socket) == false)
+			if (sockets.TryGetValue(dollId, out Connection socket) == false)
 				return;
 
 			System.Collections.Generic.List<System.Collections.Generic.KeyValuePair<int, int>> counts =
@@ -486,9 +515,9 @@ namespace WitchMendokusai.Server
 					Interlocked.Exchange(ref worldDirty, 1);
 
 				string snapshot = Protocol.WorldSnapshot(World.Snapshot(), World.Buildings(), World.Calendar, World.Cauldron);
-				foreach (System.Collections.Generic.KeyValuePair<int, WebSocket> entry in sockets)
+				foreach (System.Collections.Generic.KeyValuePair<int, Connection> entry in sockets)
 				{
-					if (entry.Value.State != WebSocketState.Open)
+					if (entry.Value.Socket.State != WebSocketState.Open)
 						continue;
 
 					await SendAsync(entry.Value, snapshot);
@@ -498,16 +527,24 @@ namespace WitchMendokusai.Server
 			}
 		}
 
-		private async Task SendAsync(WebSocket socket, string text)
+		/// <summary>
+		/// 한 창에 한 마디. <b>차례를 서서</b> 보낸다 — 두 곳에서 동시에 쓰면 소켓이 터진다.
+		/// </summary>
+		private async Task SendAsync(Connection connection, string text)
 		{
 			byte[] payload = Encoding.UTF8.GetBytes(text);
+			await connection.SendGate.WaitAsync();
 			try
 			{
-				await socket.SendAsync(new ArraySegment<byte>(payload), WebSocketMessageType.Text, true, CancellationToken.None);
+				await connection.Socket.SendAsync(new ArraySegment<byte>(payload), WebSocketMessageType.Text, true, CancellationToken.None);
 			}
 			catch (WebSocketException)
 			{
 				// 끊긴 창에 보내다 나는 오류 — 다음 정리 때 빠진다.
+			}
+			finally
+			{
+				connection.SendGate.Release();
 			}
 		}
 	}
