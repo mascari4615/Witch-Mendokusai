@@ -1,5 +1,7 @@
-using NUnit.Framework;
+﻿using NUnit.Framework;
 using UnityEngine;
+// ★ 좌표는 판정 쪽 (TASK-WM-214) — 시험이 구현하는 ICombatant 가 판정 타입을 쓴다.
+using Vector3 = WitchMendokusai.Numerics.Vector3;
 
 namespace WitchMendokusai.Tests
 {
