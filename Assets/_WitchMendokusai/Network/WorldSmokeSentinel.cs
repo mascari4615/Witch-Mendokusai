@@ -37,9 +37,13 @@ namespace WitchMendokusai
 		/// <summary>한 번이라도 같이 있던 사람 수(나 포함) — 「둘이 만났나」는 러너가 이 수로 본다.</summary>
 		private int mostPeersSeen;
 		private int gatheredItemId;
+
+		/// <summary>주웠나 — <b>번호로 판단하지 않는다</b>: 게임의 나무가 0번이라 「못 주웠다」로 읽힌다.</summary>
+		private bool gathered;
 		private int gatheredAmount;
 		private bool brewed;
 		private int completedItemId;
+		private bool completed;
 		private float stepCooldown;
 
 		// 상자 왕복 — 지은 상자에 넣고 그대로 다시 꺼내 본다(같이 노는 알맹이).
@@ -114,7 +118,7 @@ namespace WitchMendokusai
 				PlayOneRound(link);
 
 				// 만든 물약을 상자에 <b>두고</b> 끝낸다 — 다음 판이 「껐다 켜도 남나」를 볼 수 있게.
-				if (completedItemId != 0 && leftBehind == false)
+				if (completed && leftBehind == false)
 				{
 					link.RequestChestPut(chestX, 0, chestZ, completedItemId, 1);
 					leftBehind = true;
@@ -124,7 +128,7 @@ namespace WitchMendokusai
 				// ★ 솥은 <b>하나</b>고 완성은 선착순이다 (실측 2026-08-10) — 남이 먼저 가져가면
 				//   내 재료로 만든 것도 내 것이 아니다. 그건 규칙대로이지 고장이 아니므로,
 				//   「줍고·상자까지 됐다」면 물약 없이도 논 것으로 센다.
-				if (completedItemId == 0 && chestSeenAmount != 0 && waited >= LINGER_SECONDS)
+				if (completed == false && chestSeenAmount != 0 && waited >= LINGER_SECONDS)
 				{
 					Write("pass", link.Dolls.Length, link, "played but potion went to someone else");
 					return;
@@ -145,7 +149,7 @@ namespace WitchMendokusai
 
 			int seen = link?.Dolls?.Length ?? 0;
 			string why = link == null ? "no link"
-				: gatheredItemId == 0 ? "could not gather"
+				: gathered == false ? "could not gather"
 				: chestSeenAmount == 0 ? "chest did not take it"
 				: brewed == false ? "could not brew"
 				: "no potion";
@@ -162,7 +166,7 @@ namespace WitchMendokusai
 
 			stepCooldown = STEP_SECONDS;
 
-			if (gatheredItemId == 0)
+			if (gathered == false)
 			{
 				WalkAndGather(link);
 				return;
@@ -212,8 +216,12 @@ namespace WitchMendokusai
 			link.RequestBrewComplete();
 
 			WorldBrewView taken = link.TakeCompletedBrew();
-			if (taken != null && taken.itemId != 0)
+			// 완성했나 — 여기도 번호가 아니라 「받았나」로 본다(0번 물건도 진짜 결과다).
+			if (taken != null && taken.recipe != null && taken.grade > 0)
+			{
 				completedItemId = taken.itemId;
+				completed = true;
+			}
 		}
 
 		/// <summary>지난 판이 상자에 넣어 둔 것이 아직 있나 — 자리는 환경변수로 받는다.</summary>
@@ -300,6 +308,7 @@ namespace WitchMendokusai
 				link.RequestGather(nearest.id);
 				gatheredItemId = nearest.itemId;
 				gatheredAmount = nearest.amount;
+				gathered = true;
 				return;
 			}
 

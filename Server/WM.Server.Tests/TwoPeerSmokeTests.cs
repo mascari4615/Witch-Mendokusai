@@ -78,6 +78,32 @@ namespace WitchMendokusai.ServerTests
 		}
 
 		[Test]
+		public async Task 손이_안_닿으면_아무_일도_안_일어난다()
+		{
+			// 「가방이 꽉 차면 도로 세운다」는 판정 층 시험(WorldGatherFullBagTests)이 덮는다.
+			// 여기서 재는 것은 <b>줄 너머의 거리 판정</b>이다 — 멀리서 청해도 세계가 안 흔들린다.
+			using ClientWebSocket peer = await ConnectAsync();
+			int myId = await ReadWelcomeAsync(peer);
+			await SendAsync(peer, "{\"type\":\"hello\",\"secret\":\"full-bag\"}");
+
+			string snapshot = await WaitForAsync(peer, text => text.Contains("\"gatherables\":[{"));
+			System.Text.Json.JsonElement node = System.Text.Json.JsonDocument.Parse(snapshot)
+				.RootElement.GetProperty("gatherables")[0];
+			int nodeId = node.GetProperty("id").GetInt32();
+
+			// 손이 닿지 않는 자리에서 청하면 아무 일도 없어야 한다(자리도 그대로).
+			await SendAsync(peer, "{\"type\":\"gather\",\"nodeId\":" + nodeId + "}");
+			await Task.Delay(300);
+
+			string after = await WaitForAsync(peer, text => text.Contains("\"type\":\"world\""));
+			Assert.IsNotNull(after);
+
+			// 세계에 물어본다 — 그 자리는 아직 서 있어야 한다(멀어서 못 주웠으니).
+			string field = await WaitForAsync(peer, text => text.Contains("\"gatherables\":[{") || text.Contains("\"type\":\"world\""));
+			StringAssert.Contains("\"type\":\"world\"", field);
+		}
+
+		[Test]
 		public async Task 늦게_들어와도_집과_들판이_보인다()
 		{
 			// 방송이 「바뀐 것만」 실으므로, 새 창에는 전체 그림을 한 번 줘야 한다.
