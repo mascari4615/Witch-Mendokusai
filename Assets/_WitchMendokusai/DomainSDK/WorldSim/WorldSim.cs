@@ -73,6 +73,9 @@ namespace WitchMendokusai
 		/// </summary>
 		public WorldCalendar Calendar { get; } = new WorldCalendar(24, 28, 4, 6, 0);
 
+		/// <summary>모두가 같이 젓는 하나의 솥 — 호스트가 아니라 세계가 갖는다 (TASK-WM-217).</summary>
+		public WorldCauldron Cauldron { get; } = new WorldCauldron();
+
 		/// <summary>시간을 흘린다. 하루가 바뀌었으면 true.</summary>
 		public bool AdvanceMinutes(float minutes)
 		{
