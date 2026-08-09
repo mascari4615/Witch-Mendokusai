@@ -388,7 +388,11 @@ namespace WitchMendokusai.Server
 				{
 					await Task.Delay(SAVE_INTERVAL_MILLISECONDS, CancellationToken.None);
 
-					if (Interlocked.Exchange(ref worldDirty, 0) == 0)
+					// ⚠ 움직임은 dirty 를 안 찍는다(초당 20번 찍으면 뜻이 없다). 그래서 사람이 있으면
+					//   그 자체로 「바뀌는 중」으로 본다 — 안 그러면 걷기만 하다 서버가 죽었을 때
+					//   그동안 걸어온 자리가 통째로 사라진다(가방은 남고 자리만 옛것이 되는 이상한 상태).
+					bool someoneIsHere = World.Snapshot().Length > 0;
+					if (Interlocked.Exchange(ref worldDirty, 0) == 0 && someoneIsHere == false)
 						continue;
 
 					// 빈손이고 오래 안 온 손님은 장부에서 지운다 — 안 그러면 장부가 영원히 커진다.
