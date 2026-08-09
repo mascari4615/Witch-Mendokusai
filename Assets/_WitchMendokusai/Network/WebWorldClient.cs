@@ -46,6 +46,15 @@ namespace WitchMendokusai
 				Connect();
 		}
 
+		/// <summary>붙을 곳을 바꾼다 — 들어가기 전에만 뜻이 있다.</summary>
+		public void SetServerUrl(string url)
+		{
+			if (string.IsNullOrWhiteSpace(url))
+				return;
+
+			serverUrl = url;
+		}
+
 		public void Connect()
 		{
 			if (socket != null)
