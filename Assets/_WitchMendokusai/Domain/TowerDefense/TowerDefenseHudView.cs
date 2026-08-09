@@ -2070,7 +2070,7 @@ namespace WitchMendokusai
 					continue;
 				}
 
-				Vector3 screenPosition = camera.WorldToScreenPoint(active[index].Position);
+				Vector3 screenPosition = (Vector3)camera.WorldToScreenPoint(active[index].Position);
 				if (screenPosition.z <= 0f)
 				{
 					// 카메라 뒤쪽이면 그대로 두면 반대편에 찍힌다 — 좌우만 뒤집어 가장자리에 붙인다.
@@ -2145,7 +2145,7 @@ namespace WitchMendokusai
 					continue;
 				}
 
-				Vector3 screenPosition = camera.WorldToScreenPoint(invasionPoints[index]);
+				Vector3 screenPosition = (Vector3)camera.WorldToScreenPoint(invasionPoints[index]);
 				if (screenPosition.z <= 0f)
 				{
 					mark.style.display = DisplayStyle.None;
@@ -2166,7 +2166,7 @@ namespace WitchMendokusai
 			}
 
 			// 글자는 토막 한가운데에 하나만 — 표식마다 붙이면 판이 글자로 덮인다.
-			Vector3 middleScreen = camera.WorldToScreenPoint(invasionPoints[invasionPoints.Count / 2]);
+			Vector3 middleScreen = (Vector3)camera.WorldToScreenPoint(invasionPoints[invasionPoints.Count / 2]);
 			if (middleScreen.z <= 0f)
 			{
 				invasionDirectionLabel.style.display = DisplayStyle.None;
@@ -2220,7 +2220,7 @@ namespace WitchMendokusai
 					continue;
 				}
 
-				Vector3 worldPosition = stageRoot.TransformPoint(nodes[index]);
+				Vector3 worldPosition = (Vector3)stageRoot.TransformPoint(nodes[index]);
 
 				// 아직 못 가본 자리의 벌이를 알려주면 시야가 무의미해진다 — 밝혔던 곳만 숫자를 보여준다.
 				if (match.IsExploredAt(worldPosition) == false)
@@ -2229,7 +2229,7 @@ namespace WitchMendokusai
 					continue;
 				}
 
-				Vector3 screenPosition = camera.WorldToScreenPoint(worldPosition);
+				Vector3 screenPosition = (Vector3)camera.WorldToScreenPoint(worldPosition);
 				if (screenPosition.z <= 0f)
 				{
 					label.style.display = DisplayStyle.None;
@@ -2307,8 +2307,8 @@ namespace WitchMendokusai
 				}
 
 				TowerDefenseDollLabel doll = dolls[index];
-				Vector3 screenPosition = camera.WorldToScreenPoint(doll.Anchor.position);
-				if (screenPosition.z <= 0f || match.IsExploredAt(doll.Anchor.position) == false)
+				Vector3 screenPosition = (Vector3)camera.WorldToScreenPoint(doll.Anchor.position);
+				if (screenPosition.z <= 0f || match.IsExploredAt((Vector3)doll.Anchor.position) == false)
 				{
 					label.style.display = DisplayStyle.None;
 					bar.style.display = DisplayStyle.None;
