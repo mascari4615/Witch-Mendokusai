@@ -82,6 +82,46 @@ namespace WitchMendokusai
 			return true;
 		}
 
+		/// <summary>내가 선 자리에서 가장 가까운 솥 — 없으면 false(짓거나 다가가야 한다).</summary>
+		private bool TryFindNearbyCauldron(out CauldronView nearest)
+		{
+			nearest = null;
+			if (link == null)
+				return false;
+
+			CauldronView[] pots = link.Cauldrons;
+			if (pots == null || pots.Length == 0)
+				return false;
+
+			float meX = 0f;
+			float meZ = 0f;
+			WorldDollView[] dolls = link.Dolls;
+			for (int i = 0; i < dolls.Length; i++)
+			{
+				if (dolls[i].id != link.MyDollId)
+					continue;
+
+				meX = dolls[i].x;
+				meZ = dolls[i].z;
+				break;
+			}
+
+			float best = float.MaxValue;
+			for (int i = 0; i < pots.Length; i++)
+			{
+				float dx = pots[i].x - meX;
+				float dz = pots[i].z - meZ;
+				float distance = (dx * dx) + (dz * dz);
+				if (distance >= best)
+					continue;
+
+				best = distance;
+				nearest = pots[i];
+			}
+
+			return nearest != null;
+		}
+
 		public void AddStep(BrewStep step)
 		{
 			// ⚠ 이제 방향이 아니라 <b>재료</b>를 보낸다 (TASK-WM-217) — 여기로 오는 옛 호출은 뜻을 잃었다.
@@ -117,12 +157,29 @@ namespace WitchMendokusai
 			}
 		}
 
+		/// <summary>
+		/// 비우기·완성도 <b>가까운 솥</b>에 건다 (TASK-WM-217).
+		///
+		/// ★ 실측 2026-08-10: 여기가 <b>자리 없는 옛 길</b>(RequestBrewReset / RequestBrewComplete)을
+		///   불렀다. 세계에 하나뿐이던 옛 솥은 폐기됐으므로, 서버는 「거기엔 솥이 없다」로 거절한다 —
+		///   즉 게임 창에서는 <b>비우기도 완성도 조용히 안 됐다</b>(넣기만 자리별 길을 쓰고 있었다).
+		///   웹 창은 자리를 보내고 있었으니, 같은 솥에서 두 창이 다르게 굴던 셈이다.
+		/// </summary>
 		public void ResetBrew()
 		{
-			link?.RequestBrewReset();
+			if (TryFindNearbyCauldron(out CauldronView pot) == false)
+				return;
+
+			link.RequestBrewResetAt(pot.x, pot.y, pot.z);
 		}
 
-		public void RequestCompletion() => link?.RequestBrewComplete();
+		public void RequestCompletion()
+		{
+			if (TryFindNearbyCauldron(out CauldronView pot) == false)
+				return;
+
+			link.RequestBrewCompleteAt(pot.x, pot.y, pot.z);
+		}
 
 		/// <summary>세계가 정한 완성 — 무엇이 몇 개, 어느 등급으로 나왔나(가방에는 이미 들어가 있다).</summary>
 		public bool TryTakeCompletionResult(out BrewCompletion completion)
