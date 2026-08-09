@@ -170,5 +170,7 @@ jobs:
       - name: Build — Unity 없이 컴파일
         run: |
           set -euo pipefail
-          dotnet build Portable/DomainSDK.Portable.csproj -c Release --nologo -warnaserror
+          # --no-incremental 필수: 두 번째 실행이 컴파일을 건너뛰고 초록을 내는 일이 실제로 있었다
+          # (로컬에서 그 거짓 초록을 봤다 — 게이트가 '안 봤음'을 '통과'로 찍는 모양).
+          dotnet build Portable/DomainSDK.Portable.csproj -c Release --nologo -warnaserror --no-incremental
           echo "엔진 밖 빌드 OK — 이 커밋의 DomainSDK 는 Unity 프로세스 밖에서 돈다."

@@ -18,6 +18,15 @@
     <RootNamespace>WitchMendokusai</RootNamespace>
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <!--
+      이 게이트가 묻는 것은 단 하나 - "Unity 없이 컴파일되는가".
+      루트 Directory.Build.props 의 EnforceCodeStyleInBuild=true 를 그대로 물면
+      .NET 기본 서식 규칙(IDE0055 등)이 WM 스타일(탭/Allman)과 부딪혀 4500여 개의
+      '서식 오류'가 쏟아진다 - 엔진 독립성과 아무 상관 없는 잡음이다.
+      WM 코드 룰의 정본 집행자는 .github/scripts/wm-rule-gate.ps1 (pre-push + CI) 이다.
+    -->
+    <EnforceCodeStyleInBuild>false</EnforceCodeStyleInBuild>
+    <AnalysisLevel>none</AnalysisLevel>
     <!-- 소스는 Assets 아래 한 벌뿐 — 여기로 복사하지 않는다(사본 = drift). -->
     <SdkSourceRoot>$(MSBuildThisFileDirectory)../Assets/_WitchMendokusai/DomainSDK/</SdkSourceRoot>
   </PropertyGroup>
