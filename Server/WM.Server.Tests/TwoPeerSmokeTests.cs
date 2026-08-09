@@ -274,6 +274,24 @@ namespace WitchMendokusai.ServerTests
 			await WaitForAsync(watcher, text => text.Contains("\"buildingId\":123"));
 		}
 
+		[Test]
+		public async Task 살아있음_확인_자리가_세계_상태를_말한다()
+		{
+			using ClientWebSocket peer = await ConnectAsync();
+			await ReadWelcomeAsync(peer);
+			await SendAsync(peer, "{\"type\":\"place\",\"x\":2,\"y\":0,\"z\":2,\"w\":1,\"l\":1,\"buildingId\":5}");
+			await WaitForAsync(peer, text => text.Contains("\"buildingId\":5"));
+
+			using System.Net.Http.HttpClient http = new System.Net.Http.HttpClient();
+			string body = await http.GetStringAsync($"http://127.0.0.1:{PORT}/health");
+
+			// 「떠 있다」만으로는 부족하다 — 세계가 돌고 있는지(사람·건물·시각)를 말해야 한다.
+			StringAssert.Contains("\"ok\":true", body);
+			StringAssert.Contains("\"people\":1", body);
+			StringAssert.Contains("\"buildings\":1", body);
+			StringAssert.Contains("\"hour\":", body);
+		}
+
 		private static string ReadField(string json, string marker)
 		{
 			int start = json.IndexOf(marker, StringComparison.Ordinal);

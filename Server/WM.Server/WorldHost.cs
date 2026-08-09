@@ -70,7 +70,19 @@ namespace WitchMendokusai.Server
 			app.UseWebSockets();
 
 			// 사람이 눈으로 살아있음을 확인하는 자리 — 게이트도 여기를 찌른다.
-			app.MapGet("/health", () => "wm-server ok");
+			// ★ 「살아 있다」만으로는 부족하다: 세계가 <b>돌고 있는지</b>(시각이 흐르는지, 사람이 있는지,
+			//   장부가 남아 있는지)를 같이 말한다. 안 그러면 「떠 있는데 시간이 멈춘 세계」를 못 알아본다.
+			app.MapGet("/health", () => Results.Json(new
+			{
+				ok = true,
+				people = World.Snapshot().Length,
+				identities = Identities.Count,
+				buildings = World.Buildings().Length,
+				day = World.Calendar.TotalDays(),
+				hour = World.Calendar.Hour,
+				minute = World.Calendar.Minute,
+				worldFile = store.Path,
+			}));
 
 			app.Map("/ws", async (HttpContext context) =>
 			{
