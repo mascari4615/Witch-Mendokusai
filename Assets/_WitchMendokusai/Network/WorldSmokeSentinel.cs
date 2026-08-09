@@ -49,6 +49,12 @@ namespace WitchMendokusai
 		private int chestX;
 		private int chestZ;
 
+		/// <summary>이 판은 놀지 않고 「지난 판이 남긴 것」만 확인한다.</summary>
+		private bool checkKeptOnly;
+
+		/// <summary>만든 것을 상자에 두고 끝냈나 — 다음 판이 그걸 확인한다.</summary>
+		private bool leftBehind;
+
 		/// <summary>
 		/// 파수꾼은 <b>스스로 선다</b> — 스모크 때만(환경변수가 있을 때만).
 		/// 씬에 얹어야 켜지는 구조면 「스모크용 씬」이 따로 생기고, 그건 진짜 게임이 아니게 된다.
@@ -67,6 +73,9 @@ namespace WitchMendokusai
 		private void Start()
 		{
 			resultPath = Environment.GetEnvironmentVariable("WM_WORLD_SMOKE_RESULT");
+
+			// 「껐다 켜도 남나」를 재는 판 — 새로 놀지 않고, 지난 판이 상자에 넣어 둔 것을 확인만 한다.
+			checkKeptOnly = string.IsNullOrEmpty(Environment.GetEnvironmentVariable("WM_WORLD_SMOKE_KEEP")) == false;
 
 			// 스모크는 사람이 버튼을 안 누른다 — 파수꾼이 직접 세계로 들어간다.
 			WorldDoor.Enter();
@@ -87,11 +96,29 @@ namespace WitchMendokusai
 			if (link != null && link.Dolls != null && link.Dolls.Length > mostPeersSeen)
 				mostPeersSeen = link.Dolls.Length;
 
-			if (link != null && link.IsLinked)
+			if (link != null && link.IsLinked && checkKeptOnly)
+			{
+				CheckKept(link);
+
+				if (chestSeenAmount != 0)
+				{
+					Write("pass", link.Dolls.Length, link, "kept what was left");
+					return;
+				}
+			}
+			else if (link != null && link.IsLinked)
 			{
 				PlayOneRound(link);
 
-				if (completedItemId != 0)
+				// 만든 물약을 상자에 <b>두고</b> 끝낸다 — 다음 판이 「껐다 켜도 남나」를 볼 수 있게.
+				if (completedItemId != 0 && leftBehind == false)
+				{
+					link.RequestChestPut(chestX, 0, chestZ, completedItemId, 1);
+					leftBehind = true;
+					return;
+				}
+
+				if (leftBehind)
 				{
 					Write("pass", link.Dolls.Length, link, "played one round");
 					return;
@@ -172,6 +199,34 @@ namespace WitchMendokusai
 			WorldBrewView taken = link.TakeCompletedBrew();
 			if (taken != null && taken.itemId != 0)
 				completedItemId = taken.itemId;
+		}
+
+		/// <summary>지난 판이 상자에 넣어 둔 것이 아직 있나 — 자리는 환경변수로 받는다.</summary>
+		private void CheckKept(IWorldLink link)
+		{
+			stepCooldown -= Time.unscaledDeltaTime;
+			if (stepCooldown > 0f)
+				return;
+
+			stepCooldown = STEP_SECONDS;
+
+			int cellX = ReadNumber("WM_WORLD_SMOKE_CHEST_X");
+			int cellZ = ReadNumber("WM_WORLD_SMOKE_CHEST_Z");
+
+			if (link.Chest != null && link.Chest.items != null && link.Chest.items.Length > 0)
+			{
+				chestSeenAmount = link.Chest.items[0].amount;
+				gatheredItemId = link.Chest.items[0].itemId;
+				return;
+			}
+
+			link.RequestChest(cellX, 0, cellZ);
+		}
+
+		private static int ReadNumber(string name)
+		{
+			string raw = Environment.GetEnvironmentVariable(name);
+			return int.TryParse(raw, out int value) ? value : 0;
 		}
 
 		/// <summary>내가 지금 선 자리 — 없으면 원점.</summary>
@@ -260,6 +315,9 @@ namespace WitchMendokusai
 				"secret=", WorldKeyStore.LastGranted, "\n",
 				// 상자에 넣고 다시 꺼내 봤나 — 0 이면 나눔이 안 도는 세계다.
 				"chest=", chestSeenAmount.ToString(CultureInfo.InvariantCulture), "\n",
+				// 상자를 어디에 지었나 — 다음 판이 그 자리를 찾아가 「남아 있나」를 본다.
+				"chestx=", chestX.ToString(CultureInfo.InvariantCulture), "\n",
+				"chestz=", chestZ.ToString(CultureInfo.InvariantCulture), "\n",
 				"reason=", reason, "\n");
 
 			try
@@ -271,6 +329,10 @@ namespace WitchMendokusai
 			{
 				Debug.LogWarning($"[WORLD-SMOKE] 결과를 못 적었다: {error.Message}");
 			}
+
+			// ★ 스스로 끝낸다 (실측 2026-08-10): 러너가 밖에서 죽이면 「나갈 때 적어 두는」 훅이 안 돌아
+			//   혼자 놀던 세계가 <b>저장 없이</b> 사라진다 — 사람이 창을 닫는 것과 같게 만든다.
+			Application.Quit();
 		}
 	}
 }

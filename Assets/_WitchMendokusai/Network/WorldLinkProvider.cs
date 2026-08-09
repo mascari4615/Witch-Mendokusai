@@ -103,7 +103,14 @@ namespace WitchMendokusai
 
 			// 지난번에 지은 것을 되살려 들어간다 — 혼자 놀아도 세계는 이어진다 (단계 5).
 			WorldSim world = new WorldSim();
-			world.Load(LocalWorldStore.TryLoad());
+
+			// ★ 목록을 <b>먼저</b> 꽂고 되살린다 (실측 2026-08-10).
+			//   순서를 바꿨더니 「그 자리가 몇 칸짜리 상자인가」를 모른 채 되살려 <b>상자를 통째로 버렸고</b>,
+			//   그 상태로 다시 저장되면서 넣어 둔 것이 조용히 사라졌다(파일엔 건물만 남아 무증상).
+			world.Buildables = BuildingCatalog.Loaded;
+			world.Gatherables = new WorldGatherables(WorldSeeds.Gatherables());
+			world.Ingredients = new WorldIngredients(WorldSeeds.Ingredients());
+			world.Load(LocalWorldStore.TryLoad(), ItemCatalog.Loaded);
 
 			Current = new LocalWorldLink(world);
 			IsLocalWorld = true;

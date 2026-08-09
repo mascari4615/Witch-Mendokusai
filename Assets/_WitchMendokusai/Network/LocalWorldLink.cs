@@ -26,9 +26,15 @@ namespace WitchMendokusai
 
 			// 내 안의 세계도 <b>같은 규칙</b>으로 돈다 (TASK-WM-217) — 목록이 없으면 씨앗으로.
 			// 안 꽂으면 혼자 놀 때만 아무것도 못 줍고 못 짓는 세계가 된다(같은 게임이 아니게 된다).
-			world.Gatherables = new WorldGatherables(WorldSeeds.Gatherables());
-			world.Ingredients = new WorldIngredients(WorldSeeds.Ingredients());
-			world.Buildables = BuildingCatalog.Loaded;
+			// 이미 꽂혀 있으면 그대로 둔다 — 되살리기 전에 꽂아 둔 것을 덮으면 안 된다.
+			if (world.Gatherables.KindCount == 0)
+				world.Gatherables = new WorldGatherables(WorldSeeds.Gatherables());
+
+			if (world.Ingredients.Count == 0)
+				world.Ingredients = new WorldIngredients(WorldSeeds.Ingredients());
+
+			if (world.Buildables.Count == 0)
+				world.Buildables = BuildingCatalog.Loaded;
 
 			me = world.Join();
 		}
@@ -301,6 +307,9 @@ namespace WitchMendokusai
 		private static WorldItemCatalog catalog;
 
 		public static IItemData Find(int itemId) => Ensure().Find(itemId);
+
+		/// <summary>목록 그대로 — 상자 안을 되살릴 때 「이 번호가 무엇인가」를 알아야 한다.</summary>
+		public static WorldItemCatalog Loaded => Ensure();
 
 		private static WorldItemCatalog Ensure()
 		{
