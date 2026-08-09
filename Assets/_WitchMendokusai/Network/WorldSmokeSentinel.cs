@@ -57,6 +57,7 @@ namespace WitchMendokusai
 		private bool brewed;
 		private int potsSeen;
 		private int myPotSteps;
+		private string craftWhy = string.Empty;
 		private int completedItemId;
 		private bool completed;
 		private float stepCooldown;
@@ -278,8 +279,13 @@ namespace WitchMendokusai
 			if (craftedItemId == 0)
 			{
 				CraftedMessage made = link.TakeCraftResult();
-				if (made != null && made.succeeded)
-					craftedItemId = made.itemId;
+				if (made != null)
+				{
+					// 왜 못 만들었는지도 적는다 — 「0」만 남으면 재료가 없던 건지 주사위를 진 건지 모른다.
+					craftWhy = made.succeeded ? "made" : (made.attempted ? "lost the dice" : made.denied);
+					if (made.succeeded)
+						craftedItemId = made.itemId;
+				}
 			}
 
 			// 완성은 세계가 내준다 — 못 받으면 다음 걸음에 다시 청한다(남이 먼저 가져갔을 수도 있다).
@@ -452,6 +458,7 @@ namespace WitchMendokusai
 				"crafted=", craftedItemId.ToString(CultureInfo.InvariantCulture), "\n",
 				"pots=", potsSeen.ToString(CultureInfo.InvariantCulture), "\n",
 				"potsteps=", myPotSteps.ToString(CultureInfo.InvariantCulture), "\n",
+				"craftwhy=", craftWhy, "\n",
 				"reason=", reason, "\n");
 
 			try
