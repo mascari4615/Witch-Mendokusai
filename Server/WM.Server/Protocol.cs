@@ -38,6 +38,10 @@ namespace WitchMendokusai.Server
 		public const string CATALOG = Net.NetMessageType.CATALOG;
 		public const string BUILD_CATALOG = Net.NetMessageType.BUILD_CATALOG;
 		public const string BREW_SHELF = Net.NetMessageType.BREW_SHELF;
+		public const string CHEST_ASK = Net.NetMessageType.CHEST_ASK;
+		public const string CHEST = Net.NetMessageType.CHEST;
+		public const string CHEST_PUT = Net.NetMessageType.CHEST_PUT;
+		public const string CHEST_TAKE = Net.NetMessageType.CHEST_TAKE;
 		public const string CONSUME = Net.NetMessageType.CONSUME;
 		public const string INVITE_ASK = Net.NetMessageType.INVITE_ASK;
 		public const string INVITE = Net.NetMessageType.INVITE;
@@ -117,6 +121,16 @@ namespace WitchMendokusai.Server
 			builder.Append("/** 창 -> 서버: 여기에 이걸 짓고 싶다. 크기는 세계가 안다(창이 못 우긴다). */\n");
 			builder.Append("export interface PlaceRequest {\n\ttype: '").Append(PLACE).Append("';\n\tx: number;\n\ty: number;\n\tz: number;\n\tbuildingId: number;\n}\n\n");
 
+			builder.Append("/** 창 -> 서버: 그 상자 안을 보여 줘. 손이 닿는지는 세계가 본다. */\n");
+			builder.Append("export interface ChestAsk {\n\ttype: '").Append(CHEST_ASK).Append("';\n\tx: number;\n\ty: number;\n\tz: number;\n}\n\n");
+
+			builder.Append("/** 서버 -> 그 창에게만: 그 상자 안은 이렇다(없는 상자면 items 가 빈다). */\n");
+			builder.Append("export interface Chest {\n\ttype: '").Append(CHEST).Append("';\n\tx: number;\n\ty: number;\n\tz: number;\n\titems: { itemId: number; amount: number }[];\n}\n\n");
+
+			builder.Append("/** 창 -> 서버: 이걸 상자에 넣겠다 / 꺼내겠다. 되는지는 세계가 본다. */\n");
+			builder.Append("export interface ChestPut {\n\ttype: '").Append(CHEST_PUT).Append("';\n\tx: number;\n\ty: number;\n\tz: number;\n\titemId: number;\n\tamount: number;\n}\n\n");
+			builder.Append("export interface ChestTake {\n\ttype: '").Append(CHEST_TAKE).Append("';\n\tx: number;\n\ty: number;\n\tz: number;\n\titemId: number;\n\tamount: number;\n}\n\n");
+
 			builder.Append("/** 창 -> 서버: 다른 기기를 이을 초대 열쇠를 만들어 줘. */\n");
 			builder.Append("export interface InviteAsk {\n\ttype: '").Append(INVITE_ASK).Append("';\n}\n\n");
 
@@ -132,8 +146,8 @@ namespace WitchMendokusai.Server
 			builder.Append("/** 서버 -> 그 창에게만: 다른 곳에서 같은 사람이 들어왔다(여기서는 나간다). */\n");
 			builder.Append("export interface Kicked {\n\ttype: '").Append(KICKED).Append("';\n\treason: string;\n}\n\n");
 
-			builder.Append("export type ServerMessage = Welcome | WorldSnapshot | BrewTaken | Bag | Catalog | BuildCatalog | BrewShelf | Invite | Linked | Kicked;\n");
-			builder.Append("export type ClientMessage = MoveRequest | PlaceRequest | RemoveRequest | GatherRequest | BrewRequest | BrewResetRequest | BrewCompleteRequest | Hello | BagAsk | ConsumeRequest | InviteAsk | LinkRequest;\n");
+			builder.Append("export type ServerMessage = Welcome | WorldSnapshot | BrewTaken | Bag | Catalog | BuildCatalog | BrewShelf | Chest | Invite | Linked | Kicked;\n");
+			builder.Append("export type ClientMessage = MoveRequest | PlaceRequest | RemoveRequest | GatherRequest | ChestAsk | ChestPut | ChestTake | BrewRequest | BrewResetRequest | BrewCompleteRequest | Hello | BagAsk | ConsumeRequest | InviteAsk | LinkRequest;\n");
 
 			return builder.ToString();
 		}
@@ -238,6 +252,30 @@ namespace WitchMendokusai.Server
 				builder.Append("{\"itemId\":").Append(shelf[i].itemId)
 					.Append(",\"name\":").Append(JsonSerializer.Serialize(shelf[i].name ?? string.Empty, textOptions))
 					.Append('}');
+			}
+
+			builder.Append("]}");
+			return builder.ToString();
+		}
+
+		/// <summary>그 상자 안 — 그 창에게만. 없는 상자면 빈 목록(창이 「비었다」로 그린다).</summary>
+		public static string Chest(int x, int y, int z, IEnumerable<BagSaveEntry> contents)
+		{
+			StringBuilder builder = new StringBuilder();
+			builder.Append("{\"type\":\"").Append(CHEST).Append("\",\"x\":").Append(x)
+				.Append(",\"y\":").Append(y).Append(",\"z\":").Append(z).Append(",\"items\":[");
+
+			bool first = true;
+			foreach (BagSaveEntry entry in contents)
+			{
+				if (entry == null || entry.amount <= 0)
+					continue;
+
+				if (first == false)
+					builder.Append(',');
+
+				first = false;
+				builder.Append("{\"itemId\":").Append(entry.itemId).Append(",\"amount\":").Append(entry.amount).Append('}');
 			}
 
 			builder.Append("]}");

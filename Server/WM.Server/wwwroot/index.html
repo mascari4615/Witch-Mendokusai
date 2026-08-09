@@ -122,6 +122,15 @@
 			</div>
 		</section>
 
+		<section id="chestbox" style="display:none">
+			<h2>상자</h2>
+			<div class="line" id="chestwhere">—</div>
+			<div class="bag" id="chest"></div>
+			<div class="buttons">
+				<button id="chestclose">닫기</button>
+			</div>
+		</section>
+
 		<details>
 			<summary>나</summary>
 			<div class="stack">
@@ -160,6 +169,8 @@ let buildKinds = [];      // 지을 수 있는 것 — 들어올 때 한 번 받
 let pickedBuilding = 0;
 let brewShelf = [];       // 솥에 넣을 수 있는 재료 — 들어올 때 한 번 받는다.
 let pickedIngredient = 0;
+let openChest = null;     // 지금 열어 둔 상자의 자리 (없으면 null)
+let chestItems = [];
 let breaking = false;     // 지금은 짓나, 부수나
 const itemNames = {};   // 번호 → 이름. 들어올 때 한 번 받는다.
 const pressed = {};
@@ -322,6 +333,13 @@ socket.onmessage = (event) => {
 		return;
 	}
 
+	if (message.type === 'chest') {
+		openChest = { x: message.x, y: message.y, z: message.z };
+		chestItems = message.items || [];
+		drawChest();
+		return;
+	}
+
 	if (message.type === 'bag') {
 		bag = message.items || [];
 		drawBag();
@@ -467,6 +485,16 @@ function placeAt(clientX, clientY) {
 		return;
 	}
 
+	// 세워진 것을 누르면 상자를 열어 본다 — 상자가 아니면 세계가 빈 목록을 준다.
+	const onBuilt = raycaster.intersectObjects(buildingGroup.children);
+	if (onBuilt.length > 0) {
+		const cell = onBuilt[0].object.userData.cell;
+		if (cell) {
+			socket.send(JSON.stringify({ type: 'chestask', x: cell.x, y: cell.y, z: cell.z }));
+			return;
+		}
+	}
+
 	const hits = raycaster.intersectObject(ground);
 	if (hits.length === 0 || pickedBuilding === 0) return;
 
@@ -527,6 +555,15 @@ function drawBag() {
 
 		row.appendChild(name);
 		row.appendChild(amount);
+
+		// 상자를 열어 뒀으면 가방 줄을 눌러 하나씩 넣는다 — 넣고 꺼내기가 한 화면에서 된다.
+		row.style.cursor = 'pointer';
+		row.title = '상자를 열어 두면 눌러서 하나 넣기';
+		row.addEventListener('click', () => {
+			if (openChest === null) return;
+			socket.send(JSON.stringify({ type: 'chestput', x: openChest.x, y: openChest.y, z: openChest.z, itemId: entry.itemId, amount: 1 }));
+		});
+
 		host.appendChild(row);
 	}
 }

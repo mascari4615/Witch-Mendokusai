@@ -451,6 +451,52 @@ namespace WitchMendokusai.Server
 					return;
 				}
 
+				if (kind == Protocol.CHEST_ASK || kind == Protocol.CHEST_PUT || kind == Protocol.CHEST_TAKE)
+				{
+					Vector3Int cell = new Vector3Int(ReadInt(root, "x"), ReadInt(root, "y"), ReadInt(root, "z"));
+					Vector3 standing = World.PositionOf(dollId);
+
+					if (kind == Protocol.CHEST_PUT)
+					{
+						// 가방에서 먼저 뺀다 — 넣다 남으면 도로 돌려준다(중간에 사라지면 안 된다).
+						int itemId = ReadInt(root, "itemId");
+						int wanted = System.Math.Max(1, ReadInt(root, "amount"));
+						int missing = World.TryConsume(dollId, itemId, wanted);
+						int moving = wanted - missing;
+						if (moving > 0)
+						{
+							int leftover = World.Storages.Put(cell, ServerItemCatalog.Find(itemId), moving, standing.x, standing.z);
+							if (leftover > 0)
+								World.TryGather(dollId, ServerItemCatalog.Find(itemId), leftover);
+
+							Interlocked.Exchange(ref worldDirty, 1);
+							_ = SendBagAsync(dollId);
+						}
+					}
+					else if (kind == Protocol.CHEST_TAKE)
+					{
+						int itemId = ReadInt(root, "itemId");
+						int wanted = System.Math.Max(1, ReadInt(root, "amount"));
+						int taken = World.Storages.Take(cell, itemId, wanted, standing.x, standing.z);
+						if (taken > 0)
+						{
+							// 가방이 좁아 못 받으면 그만큼 상자로 되돌린다 — 사라지는 물건은 없다.
+							int leftover = World.TryGather(dollId, ServerItemCatalog.Find(itemId), taken);
+							if (leftover > 0)
+								World.Storages.Put(cell, ServerItemCatalog.Find(itemId), leftover, standing.x, standing.z);
+
+							Interlocked.Exchange(ref worldDirty, 1);
+							_ = SendBagAsync(dollId);
+						}
+					}
+
+					// 이 자리는 async 가 아니다 — 답장은 옆으로 보낸다(창 하나 때문에 세계가 기다리지 않게).
+					if (sockets.TryGetValue(dollId, out Connection asking))
+						_ = SendAsync(asking, Protocol.Chest(cell.x, cell.y, cell.z, World.Storages.Contents(cell)));
+
+					return;
+				}
+
 				if (kind == Protocol.BREW)
 				{
 					// ★ 창은 「무엇을 넣는지」만 말한다 (TASK-WM-217).

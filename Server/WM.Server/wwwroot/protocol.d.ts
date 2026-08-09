@@ -170,6 +170,42 @@ export interface PlaceRequest {
 	buildingId: number;
 }
 
+/** 창 -> 서버: 그 상자 안을 보여 줘. 손이 닿는지는 세계가 본다. */
+export interface ChestAsk {
+	type: 'chestask';
+	x: number;
+	y: number;
+	z: number;
+}
+
+/** 서버 -> 그 창에게만: 그 상자 안은 이렇다(없는 상자면 items 가 빈다). */
+export interface Chest {
+	type: 'chest';
+	x: number;
+	y: number;
+	z: number;
+	items: { itemId: number; amount: number }[];
+}
+
+/** 창 -> 서버: 이걸 상자에 넣겠다 / 꺼내겠다. 되는지는 세계가 본다. */
+export interface ChestPut {
+	type: 'chestput';
+	x: number;
+	y: number;
+	z: number;
+	itemId: number;
+	amount: number;
+}
+
+export interface ChestTake {
+	type: 'chesttake';
+	x: number;
+	y: number;
+	z: number;
+	itemId: number;
+	amount: number;
+}
+
 /** 창 -> 서버: 다른 기기를 이을 초대 열쇠를 만들어 줘. */
 export interface InviteAsk {
 	type: 'inviteask';
@@ -200,5 +236,5 @@ export interface Kicked {
 	reason: string;
 }
 
-export type ServerMessage = Welcome | WorldSnapshot | BrewTaken | Bag | Catalog | BuildCatalog | BrewShelf | Invite | Linked | Kicked;
-export type ClientMessage = MoveRequest | PlaceRequest | RemoveRequest | GatherRequest | BrewRequest | BrewResetRequest | BrewCompleteRequest | Hello | BagAsk | ConsumeRequest | InviteAsk | LinkRequest;
+export type ServerMessage = Welcome | WorldSnapshot | BrewTaken | Bag | Catalog | BuildCatalog | BrewShelf | Chest | Invite | Linked | Kicked;
+export type ClientMessage = MoveRequest | PlaceRequest | RemoveRequest | GatherRequest | ChestAsk | ChestPut | ChestTake | BrewRequest | BrewResetRequest | BrewCompleteRequest | Hello | BagAsk | ConsumeRequest | InviteAsk | LinkRequest;

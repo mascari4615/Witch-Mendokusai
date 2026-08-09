@@ -45,6 +45,18 @@ namespace WitchMendokusai.Net
 		/// <summary>서버 → 창: 솥에 넣을 수 있는 재료 목록(들어올 때 한 번).</summary>
 		public const string BREW_SHELF = "brewshelf";
 
+		/// <summary>창 → 서버: 그 상자 안을 보여 줘.</summary>
+		public const string CHEST_ASK = "chestask";
+
+		/// <summary>서버 → 그 창에게만: 그 상자 안은 이렇다.</summary>
+		public const string CHEST = "chest";
+
+		/// <summary>창 → 서버: 이걸 상자에 넣겠다(가방에서 빠진다).</summary>
+		public const string CHEST_PUT = "chestput";
+
+		/// <summary>창 → 서버: 이걸 상자에서 꺼내겠다(가방으로 들어온다).</summary>
+		public const string CHEST_TAKE = "chesttake";
+
 		/// <summary>창 → 서버: 이걸 썼다(제작 재료 등). 안 알리면 쓴 게 다시 생긴다.</summary>
 		public const string CONSUME = "consume";
 
