@@ -1,5 +1,10 @@
-using System.Collections.Generic;
-using WitchMendokusai.Numerics; // 엔진 API 를 하나도 안 쓴다 — 좌표 타입만 필요했다 (TASK-WM-214)
+﻿using System.Collections.Generic;
+using UnityEngine;
+// ★ 이 파일의 좌표는 「판정 쪽」이다 (TASK-WM-214). 엔진에서 쓰는 건 Transform 같은 씬 손잡이뿐.
+using Vector2 = WitchMendokusai.Numerics.Vector2;
+using Vector3 = WitchMendokusai.Numerics.Vector3;
+using Vector2Int = WitchMendokusai.Numerics.Vector2Int;
+using Vector3Int = WitchMendokusai.Numerics.Vector3Int;
 
 namespace WitchMendokusai
 {
@@ -67,7 +72,7 @@ namespace WitchMendokusai
 		public int NoPathCount { get; private set; }
 
 		// ITacticNavigator 구현 — 서명은 SDK 좌표 타입이어야 인터페이스를 만족한다 (TASK-WM-214).
-		public bool TryGetSteering(Numerics.Vector3 from, Numerics.Vector3 to, float lane, out Numerics.Vector3 direction)
+		public bool TryGetSteering(Vector3 from, Vector3 to, float lane, out Vector3 direction)
 		{
 			direction = Vector3.zero;
 			if (layout == null || finder == null || stageRoot == null)
