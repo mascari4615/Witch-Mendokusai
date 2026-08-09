@@ -44,7 +44,6 @@ namespace WitchMendokusai
 		private WorldLinkBuildChannel buildChannel;
 		private WorldLinkBrewChannel brewChannel;
 		private WorldBagRelay bagRelay;
-		private PlayerBagSync bagSync;
 
 		/// <summary>지금 이어진 줄. 아직 안 들어갔으면 null.</summary>
 		public IWorldLink Current { get; private set; }
@@ -127,9 +126,7 @@ namespace WitchMendokusai
 			bagRelay = new WorldBagRelay(Current);
 			WorldBagBridge.Register(bagRelay);
 
-			bagSync = new PlayerBagSync();
-			WorldBagBridge.RegisterReceiver(bagSync);
-
+			// 화면 쪽(PlayerBagSync)은 Domain 이 스스로 꽂는다 — 통신 층에서는 그 타입이 안 보인다.
 			// 들어오자마자 「내 가방 뭐 있냐」고 묻는다 — 안 물으면 화면이 빈 채로 남는다.
 			if (Current is WebWorldClient web)
 				web.AskBag();
@@ -182,12 +179,6 @@ namespace WitchMendokusai
 			{
 				WorldBagBridge.Clear(bagRelay);
 				bagRelay = null;
-			}
-
-			if (bagSync != null)
-			{
-				WorldBagBridge.ClearReceiver(bagSync);
-				bagSync = null;
 			}
 
 			if (remote != null)
