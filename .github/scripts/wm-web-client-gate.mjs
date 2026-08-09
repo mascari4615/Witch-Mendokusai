@@ -99,6 +99,8 @@ const HANDLES = [
   ['id="me"', '내 이름'],
   ['id="craftpick"', '만들 것 고르기'],
   ['id="make"', '만들기'],
+  ['id="myname"', '내 이름 적기'],
+  ['id="rename"', '이름 정하기'],
 ];
 
 for (const [needle, what] of HANDLES) {

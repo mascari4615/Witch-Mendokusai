@@ -610,6 +610,28 @@ namespace WitchMendokusai.Server
 					return;
 				}
 
+				if (kind == Protocol.RENAME)
+				{
+					// ★ 이름은 남에게 보이는 것이라 <b>세계가 검사한다</b> (TASK-WM-218):
+					//   빈 이름·공백만·끝없이 긴 이름·남과 똑같은 이름이 박히면 「누가 누군지」가 무너진다.
+					int owner = World.OwnerOf(dollId);
+					if (owner == 0)
+					{
+						Tell(dollId, Protocol.RENAME, "먼저 인사를 해야 이름을 정할 수 있다");
+						return;
+					}
+
+					string wanted = root.TryGetProperty("name", out JsonElement said) ? said.GetString() : null;
+					if (Identities.TryRename(owner, wanted, out string refused))
+					{
+						Interlocked.Exchange(ref worldDirty, 1);
+						return;
+					}
+
+					Tell(dollId, Protocol.RENAME, refused);
+					return;
+				}
+
 				if (kind == Protocol.CRAFT)
 				{
 					// ★ 제작도 세계가 판정한다 (TASK-WM-217). 전에는 재료 확인도, <b>성공 주사위도</b>,

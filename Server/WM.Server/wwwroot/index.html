@@ -95,6 +95,8 @@
 		<span class="who" id="peers">·</span>
 		<span class="spacer"></span>
 		<span class="who" id="me">—</span>
+		<input id="myname" maxlength="16" placeholder="내 이름" />
+		<button id="rename">이렇게 불러</button>
 	</header>
 
 	<aside>
@@ -906,6 +908,13 @@ document.getElementById('brewpick').addEventListener('change', (event) => {
 
 // 솥에 재료를 넣는다 — 가방에서 실제로 빠진다(없으면 아무 일도 안 일어난다).
 // 어느 쪽으로 얼마나 미는지는 세계가 재료에서 읽는다(창이 방향을 우기던 길은 없앴다).
+document.getElementById('rename').addEventListener('click', () => {
+	// 되나 안 되나는 세계가 본다 — 짧거나 길거나 남과 겹치면 거절 이유가 온다.
+	const wanted = document.getElementById('myname').value;
+	if (socket.readyState !== WebSocket.OPEN) return;
+	socket.send(JSON.stringify({ type: 'rename', name: wanted }));
+});
+
 document.getElementById('craftpick').addEventListener('change', (event) => {
 	pickedRecipe = Number(event.target.value);
 });

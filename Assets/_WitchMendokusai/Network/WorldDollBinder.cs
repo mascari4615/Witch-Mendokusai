@@ -54,6 +54,7 @@ namespace WitchMendokusai
 
 			WorldDollView[] dolls = link.Dolls;
 			SyncBodies(dolls, link.MyDollId);
+			ShowNames(dolls);
 			SendMyStep(link, dolls, Time.deltaTime);
 		}
 
@@ -71,6 +72,7 @@ namespace WitchMendokusai
 						Destroy(body.gameObject);
 
 					bodies.Remove(change.Left[i]);
+					nameTags.Remove(change.Left[i]); // 몸과 함께 사라진다(자식이라 따로 지울 필요는 없다)
 					bodyAnimators.Remove(change.Left[i]);
 					bodyMoving.Remove(change.Left[i]);
 				}
@@ -105,6 +107,49 @@ namespace WitchMendokusai
 
 				ApplyWalking(entry.Key, speed > MOVE_SPEED_THRESHOLD);
 			}
+		}
+
+		// 이름표 — 누가 누군지 (TASK-WM-218). 몸은 네모라도 <b>이름은 있어야</b> 같이 노는 것이 된다.
+		private readonly Dictionary<int, TextMesh> nameTags = new Dictionary<int, TextMesh>();
+
+		private const float NAME_HEIGHT = 2.2f;
+
+		/// <summary>세계가 부르는 이름을 인형 위에 띄운다 — 세계가 정본이라 화면은 따라 적기만 한다.</summary>
+		private void ShowNames(WorldDollView[] dolls)
+		{
+			for (int i = 0; i < dolls.Length; i++)
+			{
+				WorldDollView doll = dolls[i];
+				if (bodies.TryGetValue(doll.id, out Transform body) == false || body == null)
+					continue;
+
+				if (nameTags.TryGetValue(doll.id, out TextMesh tag) == false || tag == null)
+				{
+					tag = CreateNameTag(body);
+					nameTags[doll.id] = tag;
+				}
+
+				// 이름이 아직 안 왔으면 번호로 버틴다 — 빈 이름표는 「누구인지 모르겠다」보다 나쁘다.
+				tag.text = string.IsNullOrEmpty(doll.name) ? "#" + doll.id : doll.name;
+
+				// 늘 사람 쪽을 본다 — 뒤돌면 글자가 뒤집혀 읽을 수 없다.
+				if (Camera.main != null)
+					tag.transform.rotation = Camera.main.transform.rotation;
+			}
+		}
+
+		private static TextMesh CreateNameTag(Transform body)
+		{
+			GameObject label = new GameObject("NameTag");
+			label.transform.SetParent(body, false);
+			label.transform.localPosition = new Vector3(0f, NAME_HEIGHT, 0f);
+
+			TextMesh mesh = label.AddComponent<TextMesh>();
+			mesh.anchor = TextAnchor.LowerCenter;
+			mesh.alignment = TextAlignment.Center;
+			mesh.characterSize = 0.12f;
+			mesh.fontSize = 64;
+			return mesh;
 		}
 
 		private Transform CreateBody(int dollId, SimVector3 position)

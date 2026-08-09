@@ -44,6 +44,7 @@ namespace WitchMendokusai.Server
 		public const string CRAFT = Net.NetMessageType.CRAFT;
 		public const string CRAFTED = Net.NetMessageType.CRAFTED;
 		public const string CRAFT_BOOK = Net.NetMessageType.CRAFT_BOOK;
+		public const string RENAME = Net.NetMessageType.RENAME;
 
 		// 무엇이 거절됐나 — 창이 자리별로 다르게 보여 줄 수 있게 이름을 준다.
 		public const string DENIED_PLACE = "place";
@@ -127,6 +128,9 @@ namespace WitchMendokusai.Server
 			builder.Append("export interface ConsumeRequest {\n\ttype: '").Append(CONSUME).Append("';\n\titemId: number;\n\tamount: number;\n}\n\n");
 
 			builder.Append("/** 서버 -> 그 창에게만: 네 가방은 이렇다. */\n");
+			builder.Append("/** 창 -> 서버: 나를 이렇게 불러 달라. 짧거나 길거나 남과 겹치면 세계가 거절한다. */\n");
+			builder.Append("export interface RenameRequest {\n\ttype: '").Append(RENAME).Append("';\n\tname: string;\n}\n\n");
+
 			builder.Append("/** 창 -> 서버: 이 줄대로 만들겠다. 재료도 주사위도 세계가 본다. */\n");
 			builder.Append("export interface CraftRequest {\n\ttype: '").Append(CRAFT).Append("';\n\trecipeId: number;\n}\n\n");
 

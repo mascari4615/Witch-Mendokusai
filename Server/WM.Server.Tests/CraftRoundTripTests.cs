@@ -135,6 +135,36 @@ namespace WitchMendokusai.ServerTests
 			}
 		}
 
+
+		[Test]
+		public async Task 정한_이름이_세계의_그림에_실린다()
+		{
+			using ClientWebSocket window = new ClientWebSocket();
+			await window.ConnectAsync(address, CancellationToken.None);
+			await Read(window, "\"welcome\"");
+			await Send(window, "{\"type\":\"hello\",\"secret\":\"기기-이름\"}");
+			await Read(window, "\"identityId\"");
+
+			await Send(window, "{\"type\":\"" + Protocol.RENAME + "\",\"name\":\"욘\"}");
+
+			// 이름은 매 그림에 실린다 — 안 실리면 남의 화면에서 나는 영영 「손님」이다.
+			string world = await Read(window, "\"name\":\"욘\"");
+			StringAssert.Contains("\"name\":\"욘\"", world);
+		}
+
+		[Test]
+		public async Task 인사도_안_하고_이름부터_정하면_거절한다()
+		{
+			using ClientWebSocket window = new ClientWebSocket();
+			await window.ConnectAsync(address, CancellationToken.None);
+			await Read(window, "\"welcome\"");
+
+			await Send(window, "{\"type\":\"" + Protocol.RENAME + "\",\"name\":\"누구\"}");
+			string denied = await Read(window, "\"type\":\"denied\"");
+
+			StringAssert.Contains("먼저 인사를", denied, "조용히 무시하면 사람은 「고장」으로 읽는다");
+		}
+
 		private static async Task Send(ClientWebSocket socket, string json)
 		{
 			byte[] payload = Encoding.UTF8.GetBytes(json);

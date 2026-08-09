@@ -166,6 +166,12 @@ export interface ConsumeRequest {
 }
 
 /** 서버 -> 그 창에게만: 네 가방은 이렇다. */
+/** 창 -> 서버: 나를 이렇게 불러 달라. 짧거나 길거나 남과 겹치면 세계가 거절한다. */
+export interface RenameRequest {
+	type: 'rename';
+	name: string;
+}
+
 /** 창 -> 서버: 이 줄대로 만들겠다. 재료도 주사위도 세계가 본다. */
 export interface CraftRequest {
 	type: 'craft';

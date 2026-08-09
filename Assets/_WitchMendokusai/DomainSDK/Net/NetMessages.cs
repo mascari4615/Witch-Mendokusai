@@ -144,6 +144,9 @@ namespace WitchMendokusai.Net
 
 		/// <summary>서버 → 창: 세계가 아는 제작표(들어올 때 한 번).</summary>
 		public const string CRAFT_BOOK = "craftbook";
+
+		/// <summary>창 → 서버: 나를 이렇게 불러 달라. 되나 안 되나는 세계가 본다 (TASK-WM-218).</summary>
+		public const string RENAME = "rename";
 	}
 
 	/// <summary>
@@ -618,6 +621,15 @@ namespace WitchMendokusai.Net
 	{
 		public string type = NetMessageType.CRAFT_BOOK;
 		public CraftBookEntryView[] recipes = Array.Empty<CraftBookEntryView>();
+	}
+
+
+	/// <summary>창 → 서버: 나를 이렇게 불러 달라 (TASK-WM-218).</summary>
+	[Serializable]
+	public class RenameMessage
+	{
+		public string type = NetMessageType.RENAME;
+		public string name = string.Empty;
 	}
 
 }

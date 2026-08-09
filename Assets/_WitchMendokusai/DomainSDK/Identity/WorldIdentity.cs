@@ -159,6 +159,61 @@ namespace WitchMendokusai.Identity
 			}
 		}
 
+		/// <summary>
+		/// 사람이 <b>스스로 이름을 정한다</b> (TASK-WM-218).
+		///
+		/// ★ 왜 세계가 검사하나: 이름은 <b>남에게 보이는 것</b>이다. 창이 정하게 두면 빈 이름·공백만·
+		///   끝없이 긴 이름·남과 똑같은 이름이 그대로 세계에 박힌다 — 그러면 「누가 누군지」가 무너진다.
+		///   거절할 때는 <b>이유를 준다</b>(조용히 안 바뀌면 사람은 「고장」으로 읽는다).
+		/// </summary>
+		public bool TryRename(int identityId, string wanted, out string denied)
+		{
+			denied = null;
+			string trimmed = wanted == null ? string.Empty : wanted.Trim();
+
+			if (trimmed.Length < MIN_NAME)
+			{
+				denied = "이름이 너무 짧다";
+				return false;
+			}
+
+			if (trimmed.Length > MAX_NAME)
+			{
+				denied = "이름이 너무 길다";
+				return false;
+			}
+
+			lock (gate)
+			{
+				if (byId.TryGetValue(identityId, out WorldIdentityRecord record) == false)
+				{
+					denied = "세계가 모르는 사람이다";
+					return false;
+				}
+
+				foreach (WorldIdentityRecord other in byId.Values)
+				{
+					if (other.id == identityId)
+						continue;
+
+					// 같은 이름이 둘이면 「누가 누군지」가 무너진다 — 대소문자만 다른 것도 같은 이름으로 본다.
+					if (string.Equals(other.name, trimmed, StringComparison.OrdinalIgnoreCase))
+					{
+						denied = "이미 그렇게 불리는 사람이 있다";
+						return false;
+					}
+				}
+
+				record.name = trimmed;
+				return true;
+			}
+		}
+
+		/// <summary>이름 길이 — 너무 짧으면 못 알아보고, 너무 길면 남의 화면을 덮는다.</summary>
+		public const int MIN_NAME = 1;
+
+		public const int MAX_NAME = 16;
+
 		/// <summary>계정으로 들어온 사람의 이름을 적어 둔다 — 이미 있으면 덮어쓰지 않는다(사람이 고친 게 이긴다).</summary>
 		public void NameIfEmpty(int identityId, string name)
 		{
