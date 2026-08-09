@@ -79,6 +79,36 @@ namespace WitchMendokusai.ServerTests
 		}
 
 		[Test]
+		public async Task 확인_길이_아직_없으면_코드는_손님이다()
+		{
+			Environment.SetEnvironmentVariable("WM_KARMOLAB_VERIFY", null);
+			FakeServer fake = new FakeServer(_ => Json("{\"handle\":\"mascari\"}"));
+			KarmoLabAccounts accounts = new KarmoLabAccounts("http://kl.test", fake);
+
+			// KarmoLab 쪽 확인 엔드포인트가 아직 없다 — 조용히 손님으로(게임은 그대로 열린다).
+			Assert.IsNull(await accounts.TryResolveCodeAsync("코드"));
+			Assert.IsNull(fake.LastRequest, "없는 길을 두드리지 않는다.");
+		}
+
+		[Test]
+		public async Task 코드가_맞으면_계정_이름표로_온다()
+		{
+			Environment.SetEnvironmentVariable("WM_KARMOLAB_VERIFY", "/kl/link/verify");
+			try
+			{
+				FakeServer fake = new FakeServer(_ => Json("{\"handle\":\"mascari\"}"));
+				KarmoLabAccounts accounts = new KarmoLabAccounts("http://kl.test", fake);
+
+				Assert.AreEqual("karmolab:mascari", await accounts.TryResolveCodeAsync("코드"));
+				StringAssert.Contains("/kl/link/verify?code=", fake.LastRequest.RequestUri.ToString());
+			}
+			finally
+			{
+				Environment.SetEnvironmentVariable("WM_KARMOLAB_VERIFY", null);
+			}
+		}
+
+		[Test]
 		public async Task 이상한_답도_그냥_손님으로()
 		{
 			KarmoLabAccounts accounts = new KarmoLabAccounts("http://kl.test", new FakeServer(_ => Json("이건 json 이 아니다")));

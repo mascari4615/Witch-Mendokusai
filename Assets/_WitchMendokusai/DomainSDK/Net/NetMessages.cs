@@ -77,6 +77,12 @@ namespace WitchMendokusai.Net
 		public string secret = string.Empty;
 
 		/// <summary>
+		/// KarmoLab 에서 받은 <b>연결 코드</b>(있으면) — 세션 쿠키를 못 읽는 창(게임)용 길이다.
+		/// 초대 열쇠와 같은 모양이라 사람이 이미 아는 손짓이다.
+		/// </summary>
+		public string klCode = string.Empty;
+
+		/// <summary>
 		/// KarmoLab 로그인 세션(있으면) — 이게 있으면 <b>어느 기기에서든 나</b>다 (TASK-WM-218).
 		/// 없어도 된다: 그때는 기기 열쇠만으로 손님처럼 논다.
 		/// </summary>

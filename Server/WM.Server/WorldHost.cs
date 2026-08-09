@@ -187,6 +187,10 @@ namespace WitchMendokusai.Server
 				string klSession = ReadStringField(text, "klSession");
 				string externalId = await Accounts.TryResolveAsync(klSession);
 
+				// 쿠키를 못 읽는 창(게임)은 코드로 온다 — 둘 중 되는 쪽을 쓴다.
+				if (string.IsNullOrEmpty(externalId))
+					externalId = await Accounts.TryResolveCodeAsync(ReadStringField(text, "klCode"));
+
 				WitchMendokusai.Identity.WorldIdentityRecord person;
 				bool created;
 				if (string.IsNullOrEmpty(externalId) == false)

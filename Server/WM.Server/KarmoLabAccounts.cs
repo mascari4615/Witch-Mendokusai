@@ -34,6 +34,46 @@ namespace WitchMendokusai.Server
 		public string ApiBase { get; }
 
 		/// <summary>
+		/// KarmoLab 에서 받은 <b>연결 코드</b>가 누구인지 물어본다 (TASK-WM-218).
+		///
+		/// ★ 왜 코드인가: 세션 쿠키는 KarmoLab 도메인의 것이라 게임 창(다른 주소)에서는 <b>못 읽는다</b>.
+		///   그래서 사람이 KarmoLab 에서 코드를 받아 게임에 적어 넣는 길을 쓴다 —
+		///   초대 열쇠와 같은 모양이라 사람이 이미 아는 손짓이다.
+		///
+		/// ⚠ 이 길은 <b>KarmoLab 쪽에 확인 엔드포인트가 생겨야</b> 완성된다(WM_KARMOLAB_VERIFY).
+		///   그전까지는 늘 null 을 돌려준다 = 손님으로 논다(게임은 그대로 열린다).
+		/// </summary>
+		public async Task<string> TryResolveCodeAsync(string code)
+		{
+			if (string.IsNullOrWhiteSpace(code))
+				return null;
+
+			string verifyPath = Environment.GetEnvironmentVariable("WM_KARMOLAB_VERIFY");
+			if (string.IsNullOrWhiteSpace(verifyPath))
+				return null; // 아직 그 길이 없다 — 조용히 손님으로.
+
+			try
+			{
+				string url = ApiBase.TrimEnd('/') + verifyPath + "?code=" + Uri.EscapeDataString(code);
+				using HttpResponseMessage response = await http.GetAsync(url);
+				if (response.IsSuccessStatusCode == false)
+					return null;
+
+				using JsonDocument document = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+				string handle = document.RootElement.TryGetProperty("handle", out JsonElement handleElement)
+					? handleElement.GetString()
+					: null;
+
+				return string.IsNullOrWhiteSpace(handle) ? null : "karmolab:" + handle;
+			}
+			catch (Exception error) when (error is HttpRequestException || error is TaskCanceledException || error is JsonException)
+			{
+				Console.WriteLine("[identity] KarmoLab 코드 확인 실패 — 손님으로 받는다: " + error.Message);
+				return null;
+			}
+		}
+
+		/// <summary>
 		/// 그 세션 쿠키가 누구인지 물어본다. 모르면 null(손님으로 논다).
 		/// 돌려주는 값 = 신원 이름표 "karmolab:핸들".
 		/// </summary>
