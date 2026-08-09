@@ -74,6 +74,22 @@ namespace WitchMendokusai
 		/// </summary>
 		public int Version { get; private set; }
 
+		/// <summary>
+		/// 시간이 흘렀다 — <b>때가 된 것을 다시 세운다</b> (TASK-WM-217).
+		///
+		/// ★ 왜 따로 부르나 (실측 2026-08-10): 재생이 <c>Alive()</c> 안에서만 일어났다. 그런데 방송은
+		///   「버전이 올랐을 때만」 <c>Alive()</c> 를 부른다 — <b>아무도 안 부르니 버전이 안 오르고,
+		///   버전이 안 오르니 아무도 안 부른다.</b> 다시 자란 것이 창에 영영 안 돌아오는 자물쇠였다.
+		///   그래서 재생은 <b>시간이 흐르는 자리</b>에서 굴린다(세계 시계가 부른다).
+		/// </summary>
+		public void Tick(int nowMinute)
+		{
+			lock (gate)
+			{
+				RegrowUnlocked(nowMinute);
+			}
+		}
+
 		/// <summary>지금 서 있는 것들 — 뽑아 간 자리는 다시 자랄 때까지 빠진다.</summary>
 		public List<GatherableNode> Alive(int nowMinute)
 		{

@@ -141,10 +141,16 @@ namespace WitchMendokusai
 		/// <summary>시간을 흘린다. 하루가 바뀌었으면 true.</summary>
 		public bool AdvanceMinutes(float minutes)
 		{
+			bool moved;
 			lock (gate)
 			{
-				return Calendar.AdvanceMinutes(minutes);
+				moved = Calendar.AdvanceMinutes(minutes);
 			}
+
+			// ★ 시간이 흐르면 들판도 자란다 (TASK-WM-217). 전에는 재생이 「들판을 훑을 때」만 일어났고,
+			//   훑는 쪽은 「바뀌었을 때만」 훑었다 — 서로를 기다리다 다시 자란 것이 창에 안 돌아왔다.
+			Gatherables?.Tick(Calendar.TotalMinutes());
+			return moved;
 		}
 
 		/// <summary>훑을 때는 <b>그 순간의 사본</b>을 준다 — 훑는 동안 목록이 바뀌어도 안전하다.</summary>

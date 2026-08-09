@@ -102,5 +102,42 @@ namespace WitchMendokusai.Tests
 			Assert.AreEqual(0, empty.KindCount);
 			Assert.AreEqual(0, empty.Alive(0).Count);
 		}
+
+		/// <summary>
+		/// 다시 자란 것이 <b>창에 돌아온다</b> (TASK-WM-217).
+		///
+		/// ★ 실측 2026-08-10 — 자물쇠였다: 재생은 들판을 훑을 때만 일어나고, 훑는 쪽(방송)은
+		///   「버전이 올랐을 때만」 훑는다. 아무도 안 훑으니 버전이 안 오르고, 버전이 안 오르니
+		///   아무도 안 훑는다. 그 사이 다시 자란 자리는 화면에 영영 안 나타난다.
+		/// </summary>
+		[Test]
+		public void 시간이_흐르면_훑지_않아도_다시_자란다()
+		{
+			WorldGatherables field = new WorldGatherables(new[] { new GatherableKind { itemId = 5, amount = 1, respawnMinutes = 100 } });
+			GatherableNode node = field.Alive(0)[0];
+			Assert.IsTrue(field.TryTake(node.Id, node.X, node.Z, 0, out int _, out int _));
+
+			int afterTaken = field.Version;
+
+			// 방송이 하는 일 그대로 — 시계만 흐르고, 아무도 들판을 훑지 않는다.
+			field.Tick(200);
+
+			Assert.AreNotEqual(afterTaken, field.Version,
+				"버전이 안 오르면 방송은 들판을 안 보낸다 — 다시 자란 것이 화면에 영영 안 나타난다");
+		}
+
+		[Test]
+		public void 아직_때가_아니면_버전이_흔들리지_않는다()
+		{
+			WorldGatherables field = new WorldGatherables(new[] { new GatherableKind { itemId = 5, amount = 1, respawnMinutes = 100 } });
+			GatherableNode node = field.Alive(0)[0];
+			field.TryTake(node.Id, node.X, node.Z, 0, out int _, out int _);
+
+			int afterTaken = field.Version;
+			field.Tick(50);
+
+			Assert.AreEqual(afterTaken, field.Version, "안 바뀐 들판을 매 프레임 나르면 그건 세계가 아니라 소음이다");
+		}
+
 	}
 }
