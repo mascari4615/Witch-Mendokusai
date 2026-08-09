@@ -61,10 +61,15 @@ namespace WitchMendokusai.Server
 			builder.Append("export interface WorldDollView {\n\tid: number;\n\tx: number;\n\tz: number;\n}\n\n");
 
 			builder.Append("/** 세계의 시각 — 서버가 굴린다(사람이 없어도 흐른다). */\n");
-			builder.Append("export interface WorldTime {\n\tyear: number;\n\tseason: number;\n\tday: number;\n\thour: number;\n\tminute: number;\n}\n\n");
+			builder.Append("export interface WorldTime {\n\tyear: number;\n\tseason: number;\n\tday: number;\n\thour: number;\n\tminute: number;\n\thoursPerDay: number;\n}\n\n");
 
 			builder.Append("/** 서버 -> 창: 지금 세계는 이렇게 생겼다. */\n");
-			builder.Append("export interface WorldSnapshot {\n\ttype: '").Append(WORLD).Append("';\n\tdolls: WorldDollView[];\n\ttime?: WorldTime;\n}\n\n");
+			// ⚠ 여기 적힌 것이 창이 믿는 전부다 — 실제로 보내는데 안 적으면, 창은 「없는 것」으로 읽는다
+			//   (건물·솥이 그 꼴이었다: 몇 주 동안 보내면서 계약엔 없었다, 2026-08-10).
+			builder.Append("export interface WorldBuildingView {\n\tx: number;\n\ty: number;\n\tz: number;\n\tw: number;\n\tl: number;\n\tbuildingId: number;\n}\n\n");
+			builder.Append("export interface BrewStepView {\n\tdx: number;\n\tdy: number;\n\tgrind: number;\n}\n\n");
+			builder.Append("export interface BrewView {\n\tx: number;\n\ty: number;\n\tsteps: number;\n\tside: number;\n\tpath: BrewStepView[];\n}\n\n");
+			builder.Append("export interface WorldSnapshot {\n\ttype: '").Append(WORLD).Append("';\n\tdolls: WorldDollView[];\n\tbuildings: WorldBuildingView[];\n\ttime?: WorldTime;\n\tbrew?: BrewView;\n}\n\n");
 
 			builder.Append("/** 창 -> 서버: 이쪽으로 가고 싶다(얼마나 갈지는 서버가 정한다). */\n");
 			builder.Append("export interface MoveRequest {\n\ttype: '").Append(MOVE).Append("';\n\tx: number;\n\tz: number;\n}\n\n");
@@ -248,6 +253,9 @@ namespace WitchMendokusai.Server
 					.Append(",\"day\":").Append(calendar.Day)
 					.Append(",\"hour\":").Append(calendar.Hour)
 					.Append(",\"minute\":").Append(calendar.Minute)
+					// 하루가 몇 시간인지도 같이 보낸다 — 창이 「지금 밤인가」를 스스로 셀 수 있어야
+					// 하늘빛을 세계의 시각에 맞춘다(24를 박으면 게임이 자릿수를 바꾸는 날 어긋난다).
+					.Append(",\"hoursPerDay\":").Append(calendar.HoursPerDay)
 					.Append('}');
 			}
 

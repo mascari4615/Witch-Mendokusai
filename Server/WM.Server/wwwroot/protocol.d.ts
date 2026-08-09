@@ -30,13 +30,39 @@ export interface WorldTime {
 	day: number;
 	hour: number;
 	minute: number;
+	hoursPerDay: number;
 }
 
 /** 서버 -> 창: 지금 세계는 이렇게 생겼다. */
+export interface WorldBuildingView {
+	x: number;
+	y: number;
+	z: number;
+	w: number;
+	l: number;
+	buildingId: number;
+}
+
+export interface BrewStepView {
+	dx: number;
+	dy: number;
+	grind: number;
+}
+
+export interface BrewView {
+	x: number;
+	y: number;
+	steps: number;
+	side: number;
+	path: BrewStepView[];
+}
+
 export interface WorldSnapshot {
 	type: 'world';
 	dolls: WorldDollView[];
+	buildings: WorldBuildingView[];
 	time?: WorldTime;
+	brew?: BrewView;
 }
 
 /** 창 -> 서버: 이쪽으로 가고 싶다(얼마나 갈지는 서버가 정한다). */
