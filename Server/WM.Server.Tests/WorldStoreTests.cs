@@ -26,6 +26,9 @@ namespace WitchMendokusai.ServerTests
 
 			if (File.Exists(path + ".tmp"))
 				File.Delete(path + ".tmp");
+
+			if (File.Exists(path + ".bak"))
+				File.Delete(path + ".bak");
 		}
 
 		[Test]
@@ -72,6 +75,41 @@ namespace WitchMendokusai.ServerTests
 			Assert.AreEqual(before.Calendar.Day, after.Calendar.Day);
 			Assert.AreEqual(before.Calendar.Hour, after.Calendar.Hour);
 			Assert.AreEqual(before.Calendar.Minute, after.Calendar.Minute);
+		}
+
+		[Test]
+		public void 지금_기억이_깨지면_앞_판으로_되살린다()
+		{
+			WorldStore store = new WorldStore(path);
+
+			WorldSim first = new WorldSim();
+			first.TryPlaceBuilding(new Vector3Int(0, 0, 0), new Vector2Int(1, 1), 1);
+			store.TrySave(first.Save());
+
+			WorldSim second = new WorldSim();
+			second.TryPlaceBuilding(new Vector3Int(5, 0, 5), new Vector2Int(1, 1), 2);
+			store.TrySave(second.Save()); // 이 시점에 앞 판(건물 1개)이 .bak 으로 넘어간다
+
+			File.WriteAllText(path, "{ 망가짐");
+
+			WorldSaveData loaded = store.TryLoad();
+
+			// 모두의 신원 장부가 같이 든 파일이라 「그냥 빈 세계」로 뜨면 전원이 처음 온 사람이 된다.
+			Assert.IsNotNull(loaded);
+			Assert.AreEqual(1, loaded.buildings.Length);
+		}
+
+		[Test]
+		public void 둘_다_못_읽으면_빈_세계로_뜬다()
+		{
+			WorldStore store = new WorldStore(path);
+			store.TrySave(new WorldSaveData());
+			File.WriteAllText(path, "{ 망가짐");
+			if (File.Exists(store.BackupPath))
+				File.WriteAllText(store.BackupPath, "{ 이것도 망가짐");
+
+			// 안 뜨는 것보다 낫다.
+			Assert.IsNull(store.TryLoad());
 		}
 
 		[Test]

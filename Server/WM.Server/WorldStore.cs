@@ -43,25 +43,49 @@ namespace WitchMendokusai.Server
 			return new WorldStore(path);
 		}
 
-		/// <summary>기억을 읽는다. 없거나 망가졌으면 <c>null</c> — 그때는 빈 세계로 시작한다.</summary>
+		/// <summary>바로 앞 판 — 지금 것이 깨졌을 때 돌아갈 자리.</summary>
+		public string BackupPath => Path + ".bak";
+
+		/// <summary>
+		/// 기억을 읽는다. 지금 것이 깨졌으면 <b>바로 앞 판</b>으로 되살린다 (TASK-WM-218).
+		///
+		/// ★ 왜: 이 한 파일에 건물·시각뿐 아니라 <b>사람들의 신원 장부</b>가 같이 들어 있다.
+		///   파일 하나가 깨지면 모두가 「처음 온 사람」이 된다 — 세계에서 가장 잃으면 안 되는 것이다.
+		///   둘 다 못 읽으면 빈 세계로 뜬다(안 뜨는 것보다 낫다).
+		/// </summary>
 		public WorldSaveData TryLoad()
 		{
 			lock (gate)
 			{
-				try
-				{
-					if (File.Exists(Path) == false)
-						return null;
+				WorldSaveData current = TryReadFile(Path);
+				if (current != null)
+					return current;
 
-					string json = File.ReadAllText(Path);
-					return JsonSerializer.Deserialize<WorldSaveData>(json, options);
-				}
-				catch (Exception error) when (error is IOException || error is JsonException || error is UnauthorizedAccessException)
+				WorldSaveData backup = TryReadFile(BackupPath);
+				if (backup != null)
 				{
-					// 망가진 파일 때문에 서버가 아예 안 뜨면 그게 더 나쁘다 — 빈 세계로 뜨고 알린다.
-					Console.WriteLine("[world] 기억을 못 읽었다 — 빈 세계로 시작한다: " + error.Message);
-					return null;
+					Console.WriteLine("[world] 지금 기억이 깨졌다 — 바로 앞 판으로 되살린다: " + BackupPath);
+					return backup;
 				}
+
+				return null;
+			}
+		}
+
+		private static WorldSaveData TryReadFile(string path)
+		{
+			try
+			{
+				if (File.Exists(path) == false)
+					return null;
+
+				string json = File.ReadAllText(path);
+				return JsonSerializer.Deserialize<WorldSaveData>(json, options);
+			}
+			catch (Exception error) when (error is IOException || error is JsonException || error is UnauthorizedAccessException)
+			{
+				Console.WriteLine("[world] 못 읽었다(" + path + "): " + error.Message);
+				return null;
 			}
 		}
 
@@ -81,6 +105,11 @@ namespace WitchMendokusai.Server
 
 					string temporary = Path + ".tmp";
 					File.WriteAllText(temporary, JsonSerializer.Serialize(data, options));
+
+					// 갈아끼우기 전에 지금 판을 앞 판으로 넘긴다 — 새 판이 깨져도 돌아갈 자리가 남는다.
+					if (File.Exists(Path))
+						File.Copy(Path, BackupPath, overwrite: true);
+
 					File.Move(temporary, Path, overwrite: true);
 					return true;
 				}

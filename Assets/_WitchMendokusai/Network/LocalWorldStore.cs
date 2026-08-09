@@ -16,19 +16,35 @@ namespace WitchMendokusai
 		/// <summary>기기마다 다른 자리 — 유니티가 정해 주는 저장 폴더.</summary>
 		public static string Path => System.IO.Path.Combine(Application.persistentDataPath, FILE_NAME);
 
-		/// <summary>지난 기억. 없거나 망가졌으면 null — 그때는 빈 세계로 시작한다.</summary>
+		/// <summary>바로 앞 판 — 지금 것이 깨졌을 때 돌아갈 자리 (TASK-WM-218).</summary>
+		public static string BackupPath => Path + ".bak";
+
+		/// <summary>지난 기억. 지금 것이 깨졌으면 <b>바로 앞 판</b>으로 되살린다. 둘 다 안 되면 빈 세계.</summary>
 		public static WorldSaveData TryLoad()
+		{
+			WorldSaveData current = TryRead(Path);
+			if (current != null)
+				return current;
+
+			WorldSaveData backup = TryRead(BackupPath);
+			if (backup != null)
+				Debug.LogWarning("[world] 지금 기억이 깨졌다 — 바로 앞 판으로 되살린다.");
+
+			return backup;
+		}
+
+		private static WorldSaveData TryRead(string path)
 		{
 			try
 			{
-				if (File.Exists(Path) == false)
+				if (File.Exists(path) == false)
 					return null;
 
-				return JsonUtility.FromJson<WorldSaveData>(File.ReadAllText(Path));
+				return JsonUtility.FromJson<WorldSaveData>(File.ReadAllText(path));
 			}
 			catch (IOException error)
 			{
-				Debug.LogWarning("[world] 기억을 못 읽었다 — 빈 세계로 시작한다: " + error.Message);
+				Debug.LogWarning("[world] 못 읽었다(" + path + "): " + error.Message);
 				return null;
 			}
 		}
@@ -43,8 +59,13 @@ namespace WitchMendokusai
 			{
 				string temporary = Path + ".tmp";
 				File.WriteAllText(temporary, JsonUtility.ToJson(data, true));
+
+				// 갈아끼우기 전에 지금 판을 앞 판으로 — 새 판이 깨져도 돌아갈 자리가 남는다.
 				if (File.Exists(Path))
+				{
+					File.Copy(Path, BackupPath, true);
 					File.Delete(Path);
+				}
 
 				File.Move(temporary, Path);
 				return true;
