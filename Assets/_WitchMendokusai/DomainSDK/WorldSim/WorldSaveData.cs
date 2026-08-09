@@ -30,5 +30,12 @@ namespace WitchMendokusai
 	public class WorldSaveData
 	{
 		public BuildingSaveData[] buildings = Array.Empty<BuildingSaveData>();
+
+		// 세계의 시각 — 껐다 켰더니 다시 아침이면 그건 이어진 세계가 아니다.
+		public int year = 1;
+		public int season;
+		public int day = 1;
+		public int hour = 6;
+		public int minute;
 	}
 }

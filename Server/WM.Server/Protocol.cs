@@ -34,8 +34,11 @@ namespace WitchMendokusai.Server
 			builder.Append("/** 세계에 있는 인형 하나. */\n");
 			builder.Append("export interface WorldDollView {\n\tid: number;\n\tx: number;\n\tz: number;\n}\n\n");
 
+			builder.Append("/** 세계의 시각 — 서버가 굴린다(사람이 없어도 흐른다). */\n");
+			builder.Append("export interface WorldTime {\n\tyear: number;\n\tseason: number;\n\tday: number;\n\thour: number;\n\tminute: number;\n}\n\n");
+
 			builder.Append("/** 서버 -> 창: 지금 세계는 이렇게 생겼다. */\n");
-			builder.Append("export interface WorldSnapshot {\n\ttype: '").Append(WORLD).Append("';\n\tdolls: WorldDollView[];\n}\n\n");
+			builder.Append("export interface WorldSnapshot {\n\ttype: '").Append(WORLD).Append("';\n\tdolls: WorldDollView[];\n\ttime?: WorldTime;\n}\n\n");
 
 			builder.Append("/** 창 -> 서버: 이쪽으로 가고 싶다(얼마나 갈지는 서버가 정한다). */\n");
 			builder.Append("export interface MoveRequest {\n\ttype: '").Append(MOVE).Append("';\n\tx: number;\n\tz: number;\n}\n\n");
@@ -76,7 +79,7 @@ namespace WitchMendokusai.Server
 		}
 
 		/// <summary>서버가 보내는 세계 모습.</summary>
-		public static string WorldSnapshot(IEnumerable<WorldDoll> dolls, IEnumerable<PlacedBuilding> buildings)
+		public static string WorldSnapshot(IEnumerable<WorldDoll> dolls, IEnumerable<PlacedBuilding> buildings, WorldCalendar calendar = null)
 		{
 			StringBuilder builder = new StringBuilder();
 			builder.Append("{\"type\":\"").Append(WORLD).Append("\",\"dolls\":[");
@@ -112,7 +115,20 @@ namespace WitchMendokusai.Server
 					.Append('}');
 			}
 
-			builder.Append("]}");
+			builder.Append(']');
+
+			// 세계의 시각 — 서버가 굴린다(내가 없어도 밤이 온다). 창은 받아서 보여 주기만 한다.
+			if (calendar != null)
+			{
+				builder.Append(",\"time\":{\"year\":").Append(calendar.Year)
+					.Append(",\"season\":").Append(calendar.Season)
+					.Append(",\"day\":").Append(calendar.Day)
+					.Append(",\"hour\":").Append(calendar.Hour)
+					.Append(",\"minute\":").Append(calendar.Minute)
+					.Append('}');
+			}
+
+			builder.Append('}');
 			return builder.ToString();
 		}
 	}

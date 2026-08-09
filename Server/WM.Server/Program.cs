@@ -28,6 +28,9 @@ namespace WitchMendokusai.Server
 		/// <summary>세계를 디스크로 내리는 간격 — 바뀐 게 있을 때만 쓴다.</summary>
 		private const int SAVE_INTERVAL_MILLISECONDS = 5000;
 
+		/// <summary>실제 1초에 세계의 몇 분이 흐르나 — 게임의 WorldClockSO 와 맞춰야 할 값(지금은 서버 기본).</summary>
+		private const float MINUTES_PER_REAL_SECOND = 1f;
+
 		private static readonly WorldSim world = new WorldSim();
 		private static readonly WorldStore store = WorldStore.Default();
 
@@ -234,10 +237,15 @@ namespace WitchMendokusai.Server
 		private static async Task BroadcastLoopAsync(CancellationToken stopping)
 		{
 			int delayMilliseconds = 1000 / SNAPSHOT_HZ;
+			float minutesPerTick = MINUTES_PER_REAL_SECOND * (delayMilliseconds / 1000f);
 
 			while (stopping.IsCancellationRequested == false)
 			{
-				string snapshot = Protocol.WorldSnapshot(world.Snapshot(), world.Buildings());
+				// 세계의 시간은 <b>사람이 있든 없든</b> 흐른다 — 서버가 굴리는 이유가 그것이다.
+				if (world.AdvanceMinutes(minutesPerTick))
+					Interlocked.Exchange(ref worldDirty, 1);
+
+				string snapshot = Protocol.WorldSnapshot(world.Snapshot(), world.Buildings(), world.Calendar);
 				foreach (System.Collections.Generic.KeyValuePair<int, WebSocket> entry in sockets)
 				{
 					if (entry.Value.State != WebSocketState.Open)

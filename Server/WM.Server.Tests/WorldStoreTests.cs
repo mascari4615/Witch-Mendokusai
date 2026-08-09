@@ -46,6 +46,35 @@ namespace WitchMendokusai.ServerTests
 		}
 
 		[Test]
+		public void 세계의_시각도_창에게_간다()
+		{
+			WorldSim world = new WorldSim();
+			world.AdvanceMinutes(90f);
+
+			string snapshot = Protocol.WorldSnapshot(world.Snapshot(), world.Buildings(), world.Calendar);
+
+			StringAssert.Contains("\"time\":", snapshot);
+			StringAssert.Contains("\"hour\":" + world.Calendar.Hour, snapshot);
+		}
+
+		[Test]
+		public void 시각도_껐다_켜면_이어진다()
+		{
+			WorldSim before = new WorldSim();
+			before.AdvanceMinutes(5f * 24f * 60f + 137f);
+
+			WorldStore store = new WorldStore(path);
+			store.TrySave(before.Save());
+
+			WorldSim after = new WorldSim();
+			after.Load(store.TryLoad());
+
+			Assert.AreEqual(before.Calendar.Day, after.Calendar.Day);
+			Assert.AreEqual(before.Calendar.Hour, after.Calendar.Hour);
+			Assert.AreEqual(before.Calendar.Minute, after.Calendar.Minute);
+		}
+
+		[Test]
 		public void 기억이_아직_없으면_빈_세계로_시작한다()
 		{
 			WorldStore store = new WorldStore(path);

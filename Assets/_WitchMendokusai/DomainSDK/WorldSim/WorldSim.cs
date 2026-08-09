@@ -67,6 +67,21 @@ namespace WitchMendokusai
 		private readonly List<PlacedBuilding> placed = new List<PlacedBuilding>();
 		private int nextId = 1;
 
+		/// <summary>
+		/// 세계의 시계 — <b>사람이 없어도 흐른다</b> (TASK-WM-217).
+		/// 자릿수는 게임의 WorldClockSO 가 정본이고, 서버는 그 값을 받아 여기 꽂는다.
+		/// </summary>
+		public WorldCalendar Calendar { get; } = new WorldCalendar(24, 28, 4, 6, 0);
+
+		/// <summary>시간을 흘린다. 하루가 바뀌었으면 true.</summary>
+		public bool AdvanceMinutes(float minutes)
+		{
+			lock (gate)
+			{
+				return Calendar.AdvanceMinutes(minutes);
+			}
+		}
+
 		/// <summary>훑을 때는 <b>그 순간의 사본</b>을 준다 — 훑는 동안 목록이 바뀌어도 안전하다.</summary>
 		public WorldDoll[] Snapshot()
 		{
@@ -199,7 +214,16 @@ namespace WitchMendokusai
 					};
 				}
 
-				return new WorldSaveData { buildings = saved };
+				return new WorldSaveData
+				{
+					buildings = saved,
+					// 시간도 기억한다 — 껐다 켰더니 다시 아침이면 그건 이어진 세계가 아니다.
+					year = Calendar.Year,
+					season = Calendar.Season,
+					day = Calendar.Day,
+					hour = Calendar.Hour,
+					minute = Calendar.Minute,
+				};
 			}
 		}
 
@@ -216,7 +240,12 @@ namespace WitchMendokusai
 				placed.Clear();
 				occupiedCells.Clear();
 
-				if (data == null || data.buildings == null)
+				if (data == null)
+					return 0;
+
+				Calendar.Set(data.year, data.season, data.day, data.hour, data.minute);
+
+				if (data.buildings == null)
 					return 0;
 
 				int restored = 0;
