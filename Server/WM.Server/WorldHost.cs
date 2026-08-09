@@ -407,10 +407,22 @@ namespace WitchMendokusai.Server
 				if (kind == Protocol.BREW_COMPLETE)
 				{
 					// 완성은 세계가 한 사람에게만 내준다 — 둘이 같은 순간에 눌러도 뒤엣사람은 빈 솥.
-					if (World.Cauldron.TryComplete(out WitchMendokusai.DomainSDK.Alchemy.BrewState taken)
-						&& sockets.TryGetValue(dollId, out Connection claimer))
+					// 무엇이 나왔는지도 세계가 정한다(마도서) — 그리고 **그 자리에서 가방에 넣는다**.
+					if (World.Cauldron.TryComplete(ServerRecipeBook.Book, out BrewCompletion taken))
 					{
-						_ = SendAsync(claimer, Protocol.BrewTaken(taken));
+						if (taken.Empty == false)
+						{
+							IItemData reward = ServerItemCatalog.Find(taken.ResultItemId);
+							int leftover = World.TryGather(dollId, reward, taken.Amount);
+							if (leftover > 0)
+								Console.WriteLine($"[brew] 가방이 좁아 {leftover}개는 못 넣었다 (인형 {dollId})");
+
+							Interlocked.Exchange(ref worldDirty, 1);
+							_ = SendBagAsync(dollId);
+						}
+
+						if (sockets.TryGetValue(dollId, out Connection claimer))
+							_ = SendAsync(claimer, Protocol.BrewTaken(taken));
 					}
 
 					return;

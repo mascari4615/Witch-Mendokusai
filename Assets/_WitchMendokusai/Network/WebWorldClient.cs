@@ -188,7 +188,11 @@ namespace WitchMendokusai
 			if (json.Contains("\"" + NetMessageType.BREW_TAKEN + "\""))
 			{
 				BrewTakenMessage taken = JsonUtility.FromJson<BrewTakenMessage>(json);
-				completed = new WorldBrewView { x = taken.x, y = taken.y, steps = taken.steps, side = taken.side };
+				completed = new WorldBrewView
+				{
+					x = taken.x, y = taken.y, steps = taken.steps, side = taken.side,
+					itemId = taken.itemId, amount = taken.amount, grade = taken.grade, recipe = taken.recipe,
+				};
 				return;
 			}
 

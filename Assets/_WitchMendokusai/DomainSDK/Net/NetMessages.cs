@@ -257,6 +257,13 @@ namespace WitchMendokusai.Net
 		public float y;
 		public int steps;
 		public float side;
+
+		// 무엇이 나왔는지도 세계가 정한다 (TASK-WM-217). itemId 0 = 아무 쪽에도 못 닿았다.
+		// ★ 이 값이 오기 전에는 게임이 자기 레시피로 다시 채점하고 **또 인벤토리에 넣었다** — 이중지급.
+		public int itemId;
+		public int amount;
+		public int grade;
+		public string recipe = string.Empty;
 	}
 
 	/// <summary>솥에 저은 한 걸음 — 경로선을 그리는 쪽이 읽어 간다.</summary>
@@ -280,6 +287,12 @@ namespace WitchMendokusai.Net
 		public int steps;
 		public float side;
 		public BrewStepView[] path = Array.Empty<BrewStepView>();
+
+		// 완성으로 받아 온 것일 때만 채워진다(그냥 보고 있는 솥에는 없다).
+		public int itemId;
+		public int amount;
+		public int grade;
+		public string recipe = string.Empty;
 	}
 
 	/// <summary>창 → 서버: 초대 열쇠를 만들어 줘.</summary>

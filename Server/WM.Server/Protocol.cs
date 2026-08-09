@@ -87,7 +87,7 @@ namespace WitchMendokusai.Server
 			builder.Append("export interface BrewCompleteRequest {\n\ttype: '").Append(BREW_COMPLETE).Append("';\n}\n\n");
 
 			builder.Append("/** 서버 -> 그 창에게만: 완성은 네 것이다. */\n");
-			builder.Append("export interface BrewTaken {\n\ttype: '").Append(BREW_TAKEN).Append("';\n\tx: number;\n\ty: number;\n\tsteps: number;\n\tside: number;\n}\n\n");
+			builder.Append("export interface BrewTaken {\n\ttype: '").Append(BREW_TAKEN).Append("';\n\tx: number;\n\ty: number;\n\tsteps: number;\n\tside: number;\n\titemId: number;\n\tamount: number;\n\tgrade: number;\n\trecipe: string;\n}\n\n");
 
 			builder.Append("/** 창 -> 서버: 내 가방 좀 알려줘. */\n");
 			builder.Append("export interface BagAsk {\n\ttype: '").Append(BAG_ASK).Append("';\n}\n\n");
@@ -169,13 +169,21 @@ namespace WitchMendokusai.Server
 			return builder.ToString();
 		}
 
-		/// <summary>그 창에게만: 완성은 네 것이다(선착순 한 번).</summary>
-		public static string BrewTaken(DomainSDK.Alchemy.BrewState state)
+		/// <summary>
+		/// 그 창에게만: 완성은 네 것이다(선착순 한 번) — <b>무엇이 나왔는지까지</b>.
+		/// itemId 0 = 아무 쪽에도 못 닿았다(솥은 비고 손은 빈다). 그것도 결과라 말해 준다.
+		/// </summary>
+		public static string BrewTaken(BrewCompletion completion)
 		{
+			DomainSDK.Alchemy.BrewState state = completion.State;
 			return "{\"type\":\"" + BREW_TAKEN + "\",\"x\":" + state.Position.X.ToString("F3")
 				+ ",\"y\":" + state.Position.Y.ToString("F3")
 				+ ",\"steps\":" + state.StepCount
-				+ ",\"side\":" + state.AccruedSideEffect.ToString("F3") + "}";
+				+ ",\"side\":" + state.AccruedSideEffect.ToString("F3")
+				+ ",\"itemId\":" + completion.ResultItemId
+				+ ",\"amount\":" + completion.Amount
+				+ ",\"grade\":" + (int)completion.Grade
+				+ ",\"recipe\":" + JsonSerializer.Serialize(completion.RecipeName ?? string.Empty, textOptions) + "}";
 		}
 
 		/// <summary>그 창에게만: 초대 열쇠(한 번만 쓴다).</summary>

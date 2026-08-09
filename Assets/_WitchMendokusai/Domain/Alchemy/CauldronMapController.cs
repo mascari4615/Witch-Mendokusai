@@ -103,6 +103,25 @@ namespace WitchMendokusai
             }
 
             map.BrewCompleted = HandleBrewComplete;
+            map.WorldGranted = HandleWorldGranted;
+        }
+
+        /// <summary>
+        /// 세계가 내준 완성 (TASK-WM-217) — <b>인벤토리에 넣지 않는다</b>.
+        /// 물건은 이미 세계의 가방에 들어갔고, 그 가방이 화면으로 내려온다(PlayerBagSync).
+        /// 여기서 또 넣으면 같은 한 판으로 두 번 받는다.
+        /// </summary>
+        private void HandleWorldGranted(BrewCompletion given)
+        {
+            EventBusBridge.Publish(new PotionBrewedEvent(
+                given.RecipeId,
+                given.Grade,
+                given.Quality,
+                given.State.AccruedSideEffect,
+                given.ResultItemId,
+                given.Amount));
+
+            Close();
         }
 
         // 제조 "완성" = 보상 루프 닫기: 마을 벌크 재료 소비(INC-W7) → 등급별 포션 인벤토리 투입 + PotionBrewedEvent 발행 + 패널 닫기.

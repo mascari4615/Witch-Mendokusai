@@ -105,6 +105,10 @@ export interface BrewTaken {
 	y: number;
 	steps: number;
 	side: number;
+	itemId: number;
+	amount: number;
+	grade: number;
+	recipe: string;
 }
 
 /** 창 -> 서버: 내 가방 좀 알려줘. */

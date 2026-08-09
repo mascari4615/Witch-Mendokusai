@@ -43,6 +43,32 @@ namespace WitchMendokusai
 
 		public void RequestCompletion() => link?.RequestBrewComplete();
 
+		/// <summary>세계가 정한 완성 — 무엇이 몇 개, 어느 등급으로 나왔나(가방에는 이미 들어가 있다).</summary>
+		public bool TryTakeCompletionResult(out BrewCompletion completion)
+		{
+			WorldBrewView given = link?.TakeCompletedBrew();
+			if (given == null)
+			{
+				completion = default;
+				return false;
+			}
+
+			completion = new BrewCompletion
+			{
+				State = new BrewState
+				{
+					Position = new BrewVector(given.x, given.y),
+					StepCount = given.steps,
+					AccruedSideEffect = given.side,
+				},
+				RecipeName = given.recipe ?? string.Empty,
+				Grade = (BrewGrade)given.grade,
+				ResultItemId = given.itemId,
+				Amount = given.amount,
+			};
+			return true;
+		}
+
 		public bool TryTakeCompletion(out BrewState taken)
 		{
 			WorldBrewView given = link?.TakeCompletedBrew();

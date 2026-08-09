@@ -31,7 +31,14 @@ namespace WitchMendokusai
         private float pixelsPerUnit = 56f;
 
         /// <summary>"완성" 클릭 시 현재 채점 결과 통지 — 호스트가 보상(인벤토리)·이벤트 처리. UI 는 채점만, 보상은 호스트.</summary>
+        /// <summary>혼자 노는 솥의 채점 결과 — 보상도 게임이 준다.</summary>
         public System.Action<BrewOutcome> BrewCompleted;
+
+        /// <summary>
+        /// 세계가 내준 완성 (TASK-WM-217) — 무엇이 나왔는지까지 정해져 온다.
+        /// 보상은 <b>이미 세계가 가방에 넣었다</b>. 받는 쪽은 보여 주기만 한다.
+        /// </summary>
+        public System.Action<BrewCompletion> WorldGranted;
 
         private VisualElement mapCanvas;
         private VisualElement ingredientRow;
@@ -96,9 +103,11 @@ namespace WitchMendokusai
 
             // 세계가 완성을 내줬으면 그 상태로 채점한다 (TASK-WM-217). 못 받았으면 아무 일도 없다
             // (남이 먼저 가져갔거나 빈 솥이었다) — 그래도 화면은 계속 갱신된다.
-            if (SharedBrewChannelBridge.Channel.TryTakeCompletion(out BrewState taken))
+            // ★ 채점도 세계가 한 것을 그대로 쓴다 (TASK-WM-217). 여기서 다시 채점하면 게임과 웹이
+            //   같은 솥에서 다른 등급을 보고, 게임은 세계가 이미 넣어 준 물건을 한 번 더 넣는다.
+            if (SharedBrewChannelBridge.Channel.TryTakeCompletionResult(out BrewCompletion given))
             {
-                BrewCompleted?.Invoke(BrewEngine.Evaluate(taken, session.Recipe.Target, rules));
+                WorldGranted?.Invoke(given);
             }
 
             Refresh();

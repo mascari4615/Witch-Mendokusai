@@ -282,9 +282,15 @@ socket.onmessage = (event) => {
 	}
 
 	if (message.type === 'brewtaken') {
-		statusElement.textContent = `완성을 가져갔다 — ${message.steps}번 저은 솥`;
-		socket.send(JSON.stringify({ type: 'bagask' }));
-		return;
+		// 무엇이 나왔는지는 세계가 정해서 보내 준다 — 창이 우기지 않는다.
+		if (message.itemId === 0) {
+			statusElement.textContent = `${message.steps}번 저었지만 아무 쪽에도 못 닿았다 — 솥만 비었다`;
+		} else {
+			const name = itemNames[message.itemId] || `#${message.itemId}`;
+			statusElement.textContent =
+				`${GRADES[message.grade] || ''} ${message.recipe || name} ${message.amount}개 — 가방에 들어갔다`.trim();
+		}
+		return; // 가방은 서버가 곧바로 다시 보내 준다(물어볼 필요 없다)
 	}
 
 	if (message.type === 'welcome') {
@@ -394,6 +400,7 @@ function placeAt(clientX, clientY) {
 
 // ── 판들 ───────────────────────────────────────────────────────────────
 const SEASONS = ['봄', '여름', '가을', '겨울'];
+const GRADES = ['실패', '조악품', '양품', '명품'];
 
 function drawWorldLines() {
 	if (time) {

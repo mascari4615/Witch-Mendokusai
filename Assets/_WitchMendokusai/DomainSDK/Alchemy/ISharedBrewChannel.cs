@@ -38,6 +38,15 @@ namespace WitchMendokusai.DomainSDK.Alchemy
         /// <summary>세계가 나에게 완성을 내줬나. 내줬으면 <b>한 번만</b> true(두 번 채점 방지).</summary>
         bool TryTakeCompletion(out BrewState taken);
 
+        /// <summary>
+        /// 세계가 내준 완성 — <b>무엇이 나왔는지까지</b> (TASK-WM-217).
+        ///
+        /// ★ 왜 따로 있나: 위의 것은 마커 상태만 준다. 그러면 게임이 <b>자기 레시피로 다시 채점하고
+        ///   또 인벤토리에 넣는다</b> — 세계가 이미 가방에 넣어 준 것 위에 한 번 더(이중지급).
+        ///   이 값이 오면 게임은 넣지 않고 <b>보여 주기만</b> 한다.
+        /// </summary>
+        bool TryTakeCompletionResult(out BrewCompletion completion);
+
         /// <summary>동기된 전체 경로 step 을 buffer 에 복사(경로선 렌더용 — 마커뿐 아니라 경로까지 공유).</summary>
         void ReadSteps(List<BrewStep> buffer);
     }

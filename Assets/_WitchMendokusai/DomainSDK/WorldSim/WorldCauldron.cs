@@ -65,6 +65,34 @@ namespace WitchMendokusai
 			}
 		}
 
+		/// <summary>
+		/// 완성을 <b>한 사람에게만</b> 주되, <b>무엇이 나왔는지도 세계가 정한다</b> (TASK-WM-217).
+		///
+		/// ★ 왜: 위의 <see cref="TryComplete(out BrewState)"/> 는 「누가 먼저 눌렀나」만 정했다.
+		///   무엇이 나오는지는 창이 정했으므로, 창을 고친 사람이 원하는 것을 뽑을 수 있었다.
+		///   마도서를 세계가 들고 판정하면 게임 창과 웹 창이 같은 답을 받는다.
+		///
+		/// 아무 쪽에도 못 닿았어도 <b>솥은 비운다</b> — 실패도 결과다(빈손으로 다시 시작).
+		/// </summary>
+		public bool TryComplete(WorldRecipeBook book, out BrewCompletion completion)
+		{
+			lock (gate)
+			{
+				completion = new BrewCompletion { State = state };
+				if (state.StepCount <= 0)
+					return false;
+
+				completion = book != null
+					? book.Judge(state)
+					: new BrewCompletion { State = state };
+
+				steps.Clear();
+				state = BrewState.Start;
+				Version++;
+				return true;
+			}
+		}
+
 		/// <summary>솥을 비운다(같은 솥, 처음부터).</summary>
 		public void ResetBrew()
 		{
