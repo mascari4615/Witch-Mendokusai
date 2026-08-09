@@ -48,10 +48,14 @@ namespace WitchMendokusai
 		private bool gathered;
 
 		/// <summary>
-		/// 모을 나무 — 상자 한 채(2개)를 짓고도 <b>상자에 넣어 볼 것</b>이 남아야 한다.
-		/// 딱 2개만 모으면 짓는 순간 빈손이 되어 그 다음 걸음이 전부 막힌다(실측 2026-08-10).
+		/// 모을 나무 — 한 바퀴에 드는 것을 <b>다 더한 값</b>이다 (실측 2026-08-10).
+		/// 상자 2 + 솥 2 + 솥에 넣을 1 + 제작 한 줄 3 = 8. 여기에 여유 1.
+		///
+		/// ★ 6 이었을 때: 조리까지는 됐는데 <b>제작만 조용히 실패</b>했다(crafted=0). 재료가 모자라
+		///   거절된 것인데, 결과에는 0 만 남아 「제작이 고장났나」로 읽혔다.
+		///   딱 2개만 모으던 그 전에는 상자를 짓는 순간 빈손이 되어 그 다음 걸음이 전부 막혔다.
 		/// </summary>
-		private const int WOOD_NEEDED = 6;
+		private const int WOOD_NEEDED = 9;
 		private int gatheredWood;
 		private int gatheredAmount;
 		private bool brewed;
