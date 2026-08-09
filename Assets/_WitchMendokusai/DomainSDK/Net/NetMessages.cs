@@ -75,6 +75,12 @@ namespace WitchMendokusai.Net
 	{
 		public string type = NetMessageType.HELLO;
 		public string secret = string.Empty;
+
+		/// <summary>
+		/// KarmoLab 로그인 세션(있으면) — 이게 있으면 <b>어느 기기에서든 나</b>다 (TASK-WM-218).
+		/// 없어도 된다: 그때는 기기 열쇠만으로 손님처럼 논다.
+		/// </summary>
+		public string klSession = string.Empty;
 	}
 
 	/// <summary>

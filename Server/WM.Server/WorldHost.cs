@@ -47,6 +47,9 @@ namespace WitchMendokusai.Server
 		/// <summary>이 서버가 굴리는 세계 — 시험이 들여다본다.</summary>
 		public WorldSim World { get; } = new WorldSim();
 
+		/// <summary>KarmoLab 계정에 「이 사람 누구냐」고 묻는 자리 — 못 물어보면 손님으로 받는다.</summary>
+		public KarmoLabAccounts Accounts { get; set; } = new KarmoLabAccounts();
+
 		/// <summary>세계가 아는 사람들 (TASK-WM-218) — 열쇠로 알아본다.</summary>
 		public WitchMendokusai.Identity.WorldIdentityRegistry Identities { get; } = new WitchMendokusai.Identity.WorldIdentityRegistry();
 
@@ -179,7 +182,17 @@ namespace WitchMendokusai.Server
 			if (text.Contains("\"" + Protocol.HELLO + "\""))
 			{
 				string secret = ReadHelloSecret(text);
-				WitchMendokusai.Identity.WorldIdentityRecord person = Identities.Recognize(secret, out bool created, World.Calendar.TotalDays());
+
+				// 계정을 댔으면 그걸 먼저 본다 — 기기 열쇠는 기기만 알아보기 때문이다.
+				string klSession = ReadStringField(text, "klSession");
+				string externalId = await Accounts.TryResolveAsync(klSession);
+
+				WitchMendokusai.Identity.WorldIdentityRecord person;
+				bool created;
+				if (string.IsNullOrEmpty(externalId) == false)
+					person = Identities.RecognizeExternal(externalId, secret, World.Calendar.TotalDays(), out created);
+				else
+					person = Identities.Recognize(secret, out created, World.Calendar.TotalDays());
 				World.Adopt(dollId, person.id, ItemsCatalog, out int evictedDollId);
 
 				// 중복 로그인 — 일반 MMORPG 처럼 나중에 온 쪽이 이긴다. 밀려난 창에는 이유를 말하고 닫는다
