@@ -215,14 +215,17 @@ namespace WitchMendokusai.Server
 				// (조용히 끊으면 사람은 「버그」로 읽는다).
 				if (evictedDollId != 0 && sockets.TryRemove(evictedDollId, out WebSocket evicted))
 				{
-					await SendAsync(evicted, Protocol.Kicked());
+					// ⚠ 밀려난 창을 정리하다 난 문제가 **새로 온 창의 환영을 삼키면 안 된다**.
+					//   실제로 그랬다: 닫기에서 예외가 나 이 흐름이 통째로 끝나 버렸고,
+					//   새 창은 인사에 대한 답을 영영 못 받은 채 스냅샷만 받았다(시험이 잡았다).
 					try
 					{
+						await SendAsync(evicted, Protocol.Kicked());
 						await evicted.CloseAsync(WebSocketCloseStatus.NormalClosure, "same person elsewhere", CancellationToken.None);
 					}
-					catch (WebSocketException)
+					catch (Exception error)
 					{
-						// 이미 끊긴 창 — 그대로 둔다.
+						Console.WriteLine("[identity] 밀려난 창을 닫다 문제 — 무시하고 계속: " + error.Message);
 					}
 				}
 

@@ -14,7 +14,7 @@ namespace WitchMendokusai.Server
 	/// ★ 못 물어봐도 게임은 열린다(fail-open). 그 서버가 죽었거나 느리면 <b>손님으로</b> 논다 —
 	///   계정은 「더 좋은 경우」이지 「필요 조건」이 아니다. 이 원칙은 KarmoLab 쪽 account.ts 와 같다.
 	/// </summary>
-	public sealed class KarmoLabAccounts
+	public class KarmoLabAccounts
 	{
 		/// <summary>이 시간을 넘기면 없는 셈 친다 — 남의 서버 때문에 우리 세계가 멈추면 안 된다.</summary>
 		private static readonly TimeSpan TIMEOUT = TimeSpan.FromSeconds(4);
@@ -46,7 +46,7 @@ namespace WitchMendokusai.Server
 		/// ⚠ 이 길은 <b>KarmoLab 쪽에 확인 엔드포인트가 생겨야</b> 완성된다(WM_KARMOLAB_VERIFY).
 		///   그전까지는 늘 null 을 돌려준다 = 손님으로 논다(게임은 그대로 열린다).
 		/// </summary>
-		public async Task<string> TryResolveCodeAsync(string code)
+		public virtual async Task<string> TryResolveCodeAsync(string code)
 		{
 			if (string.IsNullOrWhiteSpace(code))
 				return null;
@@ -82,7 +82,7 @@ namespace WitchMendokusai.Server
 		/// 그 세션 쿠키가 누구인지 물어본다. 모르면 null(손님으로 논다).
 		/// 돌려주는 값 = 신원 이름표 "karmolab:핸들".
 		/// </summary>
-		public async Task<string> TryResolveAsync(string sessionCookie)
+		public virtual async Task<string> TryResolveAsync(string sessionCookie)
 		{
 			if (string.IsNullOrWhiteSpace(sessionCookie))
 				return null;
