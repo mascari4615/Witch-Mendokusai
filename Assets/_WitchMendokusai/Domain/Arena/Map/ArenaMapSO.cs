@@ -1,5 +1,7 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
+// ★ 스폰 자리는 판정 쪽 (TASK-WM-214) — 규칙(SpawnRules)이 읽는 값이다.
+using Vector3 = WitchMendokusai.Numerics.Vector3;
 
 namespace WitchMendokusai
 {

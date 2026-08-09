@@ -176,7 +176,7 @@ namespace WitchMendokusai
 			hud?.Tick(match, stage);
 
 			// 커서가 얹힌 유닛 설명 — 배치가 찾은 대상을 그대로 쓴다(둘이 갈라지면 툴팁이 거짓말한다).
-			hud?.ShowUnitTooltip(match.DescribeUnit(placement.HoveredUnit), placement.HoverScreenPosition);
+			hud?.ShowUnitTooltip(match.DescribeUnit(placement.HoveredUnit), (Numerics.Vector2)placement.HoverScreenPosition);
 
 			// 사거리는 묻는 순간에만 — 얹힌 그 건물 하나만 켠다(상시 표시는 노이즈).
 			match.HighlightRangeOf(placement.HoveredUnit != null ? placement.HoveredUnit.transform : null);
