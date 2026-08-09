@@ -150,6 +150,21 @@ export interface Catalog {
 	items: { itemId: number; name: string }[];
 }
 
+/** 서버 -> 창: 지을 수 있는 것 목록(들어올 때 한 번). 크기의 정본은 세계다. */
+export interface BuildCatalog {
+	type: 'buildcatalog';
+	buildings: { buildingId: number; name: string; w: number; l: number }[];
+}
+
+/** 창 -> 서버: 여기에 이걸 짓고 싶다. 크기는 세계가 안다(창이 못 우긴다). */
+export interface PlaceRequest {
+	type: 'place';
+	x: number;
+	y: number;
+	z: number;
+	buildingId: number;
+}
+
 /** 창 -> 서버: 다른 기기를 이을 초대 열쇠를 만들어 줘. */
 export interface InviteAsk {
 	type: 'inviteask';
@@ -180,5 +195,5 @@ export interface Kicked {
 	reason: string;
 }
 
-export type ServerMessage = Welcome | WorldSnapshot | BrewTaken | Bag | Catalog | Invite | Linked | Kicked;
-export type ClientMessage = MoveRequest | RemoveRequest | GatherRequest | BrewRequest | BrewResetRequest | BrewCompleteRequest | Hello | BagAsk | ConsumeRequest | InviteAsk | LinkRequest;
+export type ServerMessage = Welcome | WorldSnapshot | BrewTaken | Bag | Catalog | BuildCatalog | Invite | Linked | Kicked;
+export type ClientMessage = MoveRequest | PlaceRequest | RemoveRequest | GatherRequest | BrewRequest | BrewResetRequest | BrewCompleteRequest | Hello | BagAsk | ConsumeRequest | InviteAsk | LinkRequest;

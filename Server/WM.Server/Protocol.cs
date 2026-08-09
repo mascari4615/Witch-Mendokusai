@@ -36,6 +36,7 @@ namespace WitchMendokusai.Server
 		public const string BAG = Net.NetMessageType.BAG;
 		public const string BAG_ASK = Net.NetMessageType.BAG_ASK;
 		public const string CATALOG = Net.NetMessageType.CATALOG;
+		public const string BUILD_CATALOG = Net.NetMessageType.BUILD_CATALOG;
 		public const string CONSUME = Net.NetMessageType.CONSUME;
 		public const string INVITE_ASK = Net.NetMessageType.INVITE_ASK;
 		public const string INVITE = Net.NetMessageType.INVITE;
@@ -105,6 +106,12 @@ namespace WitchMendokusai.Server
 			builder.Append("/** 서버 -> 창: 아이템 낱말표(들어올 때 한 번). 그 뒤로는 번호만 나른다. */\n");
 			builder.Append("export interface Catalog {\n\ttype: '").Append(CATALOG).Append("';\n\titems: { itemId: number; name: string }[];\n}\n\n");
 
+			builder.Append("/** 서버 -> 창: 지을 수 있는 것 목록(들어올 때 한 번). 크기의 정본은 세계다. */\n");
+			builder.Append("export interface BuildCatalog {\n\ttype: '").Append(BUILD_CATALOG).Append("';\n\tbuildings: { buildingId: number; name: string; w: number; l: number }[];\n}\n\n");
+
+			builder.Append("/** 창 -> 서버: 여기에 이걸 짓고 싶다. 크기는 세계가 안다(창이 못 우긴다). */\n");
+			builder.Append("export interface PlaceRequest {\n\ttype: '").Append(PLACE).Append("';\n\tx: number;\n\ty: number;\n\tz: number;\n\tbuildingId: number;\n}\n\n");
+
 			builder.Append("/** 창 -> 서버: 다른 기기를 이을 초대 열쇠를 만들어 줘. */\n");
 			builder.Append("export interface InviteAsk {\n\ttype: '").Append(INVITE_ASK).Append("';\n}\n\n");
 
@@ -120,8 +127,8 @@ namespace WitchMendokusai.Server
 			builder.Append("/** 서버 -> 그 창에게만: 다른 곳에서 같은 사람이 들어왔다(여기서는 나간다). */\n");
 			builder.Append("export interface Kicked {\n\ttype: '").Append(KICKED).Append("';\n\treason: string;\n}\n\n");
 
-			builder.Append("export type ServerMessage = Welcome | WorldSnapshot | BrewTaken | Bag | Catalog | Invite | Linked | Kicked;\n");
-			builder.Append("export type ClientMessage = MoveRequest | RemoveRequest | GatherRequest | BrewRequest | BrewResetRequest | BrewCompleteRequest | Hello | BagAsk | ConsumeRequest | InviteAsk | LinkRequest;\n");
+			builder.Append("export type ServerMessage = Welcome | WorldSnapshot | BrewTaken | Bag | Catalog | BuildCatalog | Invite | Linked | Kicked;\n");
+			builder.Append("export type ClientMessage = MoveRequest | PlaceRequest | RemoveRequest | GatherRequest | BrewRequest | BrewResetRequest | BrewCompleteRequest | Hello | BagAsk | ConsumeRequest | InviteAsk | LinkRequest;\n");
 
 			return builder.ToString();
 		}
@@ -188,6 +195,28 @@ namespace WitchMendokusai.Server
 				+ ",\"amount\":" + completion.Amount
 				+ ",\"grade\":" + (int)completion.Grade
 				+ ",\"recipe\":" + JsonSerializer.Serialize(completion.RecipeName ?? string.Empty, textOptions) + "}";
+		}
+
+		/// <summary>지을 수 있는 것 목록 — 들어올 때 한 번. 크기까지 같이 준다(창이 미리 그려 볼 수 있게).</summary>
+		public static string BuildCatalog(System.Collections.Generic.IReadOnlyList<BuildingCatalogEntry> buildings)
+		{
+			StringBuilder builder = new StringBuilder();
+			builder.Append("{\"type\":\"").Append(BUILD_CATALOG).Append("\",\"buildings\":[");
+
+			for (int i = 0; i < buildings.Count; i++)
+			{
+				if (i > 0)
+					builder.Append(',');
+
+				builder.Append("{\"buildingId\":").Append(buildings[i].id)
+					.Append(",\"name\":").Append(JsonSerializer.Serialize(buildings[i].name ?? string.Empty, textOptions))
+					.Append(",\"w\":").Append(buildings[i].w < 1 ? 1 : buildings[i].w)
+					.Append(",\"l\":").Append(buildings[i].l < 1 ? 1 : buildings[i].l)
+					.Append('}');
+			}
+
+			builder.Append("]}");
+			return builder.ToString();
 		}
 
 		/// <summary>그 창에게만: 초대 열쇠(한 번만 쓴다).</summary>

@@ -107,6 +107,12 @@ namespace WitchMendokusai
 		/// </summary>
 		public WorldGatherables Gatherables { get; set; } = new WorldGatherables(null);
 
+		/// <summary>
+		/// 세계가 아는 건물 목록 (TASK-WM-217) — 「그건 몇 칸짜리인가」의 정본.
+		/// 안 꽂으면 아무것도 못 짓는다(세계가 모르는 것은 서지 않는다).
+		/// </summary>
+		public WorldBuildingCatalog Buildables { get; set; } = new WorldBuildingCatalog(null);
+
 		/// <summary>시간을 흘린다. 하루가 바뀌었으면 true.</summary>
 		public bool AdvanceMinutes(float minutes)
 		{
@@ -426,6 +432,21 @@ namespace WitchMendokusai
 		/// 짓기 요청을 <b>서버가 판정한다</b> — 겹치면 거절.
 		/// 겹침 규칙은 게임과 같은 것(<see cref="BuildingFootprint"/>)을 쓴다.
 		/// </summary>
+		/// <summary>
+		/// 짓는다 — <b>크기는 세계가 정한다</b> (TASK-WM-217).
+		///
+		/// ★ 왜: 전에는 창이 크기를 같이 보냈고 세계는 그대로 믿었다. 그러면 창을 고친 사람이
+		///   「이건 1×1 이다」라고 우기며 남의 집에 겹쳐 지을 수 있고, 게임 창과 웹 창이 같은 집을
+		///   다른 크기로 그린다. 세계가 모르는 건물은 아예 서지 않는다.
+		/// </summary>
+		public bool TryPlaceBuilding(Vector3Int pivot, int buildingId, WorldBuildingCatalog catalog)
+		{
+			if (catalog == null || catalog.TrySize(buildingId, out int width, out int length) == false)
+				return false;
+
+			return TryPlaceBuilding(pivot, new Vector2Int(width, length), buildingId);
+		}
+
 		public bool TryPlaceBuilding(Vector3Int pivot, Vector2Int size, int buildingId)
 		{
 			lock (gate)

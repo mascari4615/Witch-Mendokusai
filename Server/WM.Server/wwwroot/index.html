@@ -48,6 +48,10 @@
 		padding: 12px; display: flex; flex-direction: column; gap: 16px;
 		overflow-y: auto;
 	}
+	select {
+		background: #14121a; color: var(--ink); border: 1px solid #453c5c;
+		border-radius: 6px; padding: 5px 8px; font: inherit; width: 100%;
+	}
 	aside h2 { margin: 0 0 6px; font-size: 12px; letter-spacing: .16em; color: var(--dim); font-weight: 600; }
 
 	.bag { display: flex; flex-direction: column; gap: 2px; }
@@ -99,6 +103,14 @@
 			<div class="bag" id="bag"><div class="empty">비었다</div></div>
 		</section>
 
+		<section>
+			<h2>짓기</h2>
+			<select id="buildpick"></select>
+			<div class="buttons">
+				<button id="mode">지금: 짓기</button>
+			</div>
+		</section>
+
 		<section class="pot">
 			<h2>솥</h2>
 			<div class="line" id="brew">아직 안 저음</div>
@@ -143,6 +155,9 @@ let dolls = [];
 let buildings = [];
 let gatherables = [];
 let bag = [];
+let buildKinds = [];      // 지을 수 있는 것 — 들어올 때 한 번 받는다.
+let pickedBuilding = 0;
+let breaking = false;     // 지금은 짓나, 부수나
 const itemNames = {};   // 번호 → 이름. 들어올 때 한 번 받는다.
 const pressed = {};
 let time = null;        // 세계의 시각 — 서버가 굴린다(사람이 없어도 흐른다).
@@ -267,6 +282,24 @@ socket.onmessage = (event) => {
 	if (message.type === 'catalog') {
 		for (const item of message.items) itemNames[item.itemId] = item.name;
 		drawBag();
+		return;
+	}
+
+	if (message.type === 'buildcatalog') {
+		buildKinds = message.buildings || [];
+		const picker = document.getElementById('buildpick');
+		picker.textContent = '';
+		for (const kind of buildKinds) {
+			const option = document.createElement('option');
+			option.value = kind.buildingId;
+			option.textContent = kind.w > 1 || kind.l > 1
+				? `${kind.name} (${kind.w}×${kind.l})`
+				: kind.name;
+			picker.appendChild(option);
+		}
+
+		pickedBuilding = buildKinds.length > 0 ? buildKinds[0].buildingId : 0;
+		picker.value = pickedBuilding;
 		return;
 	}
 
@@ -404,14 +437,25 @@ function placeAt(clientX, clientY) {
 		return;
 	}
 
+	// 부수기는 세워진 것을 눌러 고른다 — 빈 땅을 눌러 봐야 부술 게 없다.
+	if (breaking) {
+		const onBuilding = raycaster.intersectObjects(buildingGroup.children);
+		if (onBuilding.length === 0) return;
+
+		const cell = onBuilding[0].object.userData.cell;
+		if (cell) socket.send(JSON.stringify({ type: 'remove', x: cell.x, y: cell.y, z: cell.z }));
+		return;
+	}
+
 	const hits = raycaster.intersectObject(ground);
-	if (hits.length === 0) return;
+	if (hits.length === 0 || pickedBuilding === 0) return;
 
 	const point = hits[0].point;
 	const cellX = Math.floor(point.x);
 	const cellZ = Math.floor(-point.z); // three 의 -Z 가 세계의 +Z 다(카메라가 그쪽을 본다)
 
-	socket.send(JSON.stringify({ type: 'place', x: cellX, y: 0, z: cellZ, w: 2, l: 2, buildingId: 4000 }));
+	// 크기는 안 보낸다 — 세계가 안다(창이 「이건 1×1 이다」로 우길 자리를 없앤다).
+	socket.send(JSON.stringify({ type: 'place', x: cellX, y: 0, z: cellZ, buildingId: pickedBuilding }));
 }
 
 // ── 판들 ───────────────────────────────────────────────────────────────
@@ -492,6 +536,7 @@ function rebuildWorld() {
 			BUILDING_HEIGHT / 2 + building.y,
 			-(building.z + (building.l - 1) / 2) - 0.5
 		);
+		box.userData.cell = { x: building.x, y: building.y, z: building.z };
 		buildingGroup.add(box);
 
 		const edges = new THREE.LineSegments(new THREE.EdgesGeometry(buildingGeometry), buildingEdge);
@@ -574,6 +619,16 @@ document.getElementById('signin').addEventListener('click', () => {
 	try { localStorage.setItem('wm.world.klcode', code); } catch (e) { /* 저장 못 해도 이번 접속엔 쓴다 */ }
 	statusElement.textContent = '그 계정으로 다시 들어간다…';
 	location.reload();
+});
+
+document.getElementById('buildpick').addEventListener('change', (event) => {
+	pickedBuilding = Number(event.target.value);
+});
+
+document.getElementById('mode').addEventListener('click', (event) => {
+	breaking = breaking === false;
+	event.target.textContent = breaking ? '지금: 부수기' : '지금: 짓기';
+	canvas.style.cursor = breaking ? 'not-allowed' : 'crosshair';
 });
 
 document.getElementById('invite').addEventListener('click', () => {

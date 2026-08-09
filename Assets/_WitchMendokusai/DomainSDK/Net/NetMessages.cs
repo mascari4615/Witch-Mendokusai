@@ -39,6 +39,9 @@ namespace WitchMendokusai.Net
 		/// </summary>
 		public const string CATALOG = "catalog";
 
+		/// <summary>서버 → 창: 지을 수 있는 것 목록(들어올 때 한 번). 크기의 정본은 세계다.</summary>
+		public const string BUILD_CATALOG = "buildcatalog";
+
 		/// <summary>창 → 서버: 이걸 썼다(제작 재료 등). 안 알리면 쓴 게 다시 생긴다.</summary>
 		public const string CONSUME = "consume";
 

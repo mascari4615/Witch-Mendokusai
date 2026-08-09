@@ -76,7 +76,11 @@ namespace WitchMendokusai.Server
 		}
 
 		/// <summary>이 서버가 굴리는 세계 — 시험이 들여다본다.</summary>
-		public WorldSim World { get; } = new WorldSim { Gatherables = ServerGatherables.Field };
+		public WorldSim World { get; } = new WorldSim
+		{
+			Gatherables = ServerGatherables.Field,
+			Buildables = ServerBuildingCatalog.Catalog,
+		};
 
 		/// <summary>KarmoLab 계정에 「이 사람 누구냐」고 묻는 자리 — 못 물어보면 손님으로 받는다.</summary>
 		public KarmoLabAccounts Accounts { get; set; } = new KarmoLabAccounts();
@@ -159,6 +163,9 @@ namespace WitchMendokusai.Server
 
 			// 낱말표는 들어올 때 한 번 — 이게 있어야 창이 「돌 3개」라고 말할 수 있다(없으면 「17450 3개」).
 			await SendAsync(connection, Protocol.Catalog(ItemsCatalog.Names()));
+
+			// 지을 수 있는 것도 한 번 — 크기를 세계가 알려 줘야 창이 미리 그려 볼 수 있다.
+			await SendAsync(connection, Protocol.BuildCatalog(World.Buildables.All));
 
 			// 이 연결의 말 예산 — 창 하나가 모두의 세계를 느리게 만들지 못하게 (TASK-WM-218).
 			WitchMendokusai.Net.MessageBudget budget = new WitchMendokusai.Net.MessageBudget();
@@ -457,12 +464,13 @@ namespace WitchMendokusai.Server
 					int cellX = ReadInt(root, "x");
 					int cellY = ReadInt(root, "y");
 					int cellZ = ReadInt(root, "z");
-					int width = System.Math.Max(1, ReadInt(root, "w"));
-					int length = System.Math.Max(1, ReadInt(root, "l"));
+
 					int buildingId = ReadInt(root, "buildingId");
 
 					// 겹치면 서버가 거절한다 — 거절도 판정이다(창이 우기지 못한다).
-					if (World.TryPlaceBuilding(new Vector3Int(cellX, cellY, cellZ), new Vector2Int(width, length), buildingId))
+					// 크기도 창에게 안 묻는다 (TASK-WM-217): 세계의 목록이 정본이라, 「이건 1×1 이다」로
+					// 남의 집에 겹쳐 짓는 길이 아예 없다. 모르는 건물은 서지 않는다.
+					if (World.TryPlaceBuilding(new Vector3Int(cellX, cellY, cellZ), buildingId, World.Buildables))
 						Interlocked.Exchange(ref worldDirty, 1);
 				}
 			}

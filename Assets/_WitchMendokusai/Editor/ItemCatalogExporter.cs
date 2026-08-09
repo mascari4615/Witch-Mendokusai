@@ -19,6 +19,8 @@ namespace WitchMendokusai.EditorTools
 	{
 		private const string SERVER_RELATIVE = "Server/WM.Server/items.json";
 		private const string RESOURCES_PATH = "Assets/_WitchMendokusai/Resources/items.json";
+		private const string BUILDINGS_SERVER_RELATIVE = "Server/WM.Server/buildings.json";
+		private const string BUILDINGS_RESOURCES_PATH = "Assets/_WitchMendokusai/Resources/buildings.json";
 
 		[MenuItem("WM/아이템 목록 뽑기 (세계용)")]
 		public static void Export()
@@ -58,8 +60,47 @@ namespace WitchMendokusai.EditorTools
 			WriteIfChanged(Path.Combine(projectRoot, "WitchMendokusai", SERVER_RELATIVE), json);
 			WriteIfChanged(RESOURCES_PATH, json);
 
+			ExportBuildings();
+
 			AssetDatabase.Refresh();
 			Debug.Log($"[items] 아이템 {entries.Count}종을 뽑았다.");
+		}
+
+		/// <summary>
+		/// 지을 수 있는 것들도 같이 뽑는다 (TASK-WM-217) — <b>크기는 세계가 알아야 한다</b>.
+		/// 안 뽑으면 세계는 아무것도 못 짓는다(모르는 것은 서지 않는다).
+		/// </summary>
+		private static void ExportBuildings()
+		{
+			List<BuildingCatalogEntry> entries = new List<BuildingCatalogEntry>();
+			string[] guids = AssetDatabase.FindAssets("t:Building");
+
+			for (int i = 0; i < guids.Length; i++)
+			{
+				Building data = AssetDatabase.LoadAssetAtPath<Building>(AssetDatabase.GUIDToAssetPath(guids[i]));
+				if (data == null)
+					continue;
+
+				entries.Add(new BuildingCatalogEntry
+				{
+					id = data.ID,
+					name = data.Name,
+					w = data.Size.x < 1 ? 1 : data.Size.x,
+					l = data.Size.y < 1 ? 1 : data.Size.y,
+				});
+			}
+
+			if (entries.Count == 0)
+			{
+				Debug.LogError("[buildings] 지을 것을 하나도 못 찾았다 — 덮어쓰지 않는다.");
+				return;
+			}
+
+			string json = JsonUtility.ToJson(new BuildingCatalogData { buildings = entries.ToArray() }, true);
+			string projectRoot = Directory.GetParent(Application.dataPath).Parent.FullName;
+			WriteIfChanged(Path.Combine(projectRoot, "WitchMendokusai", BUILDINGS_SERVER_RELATIVE), json);
+			WriteIfChanged(BUILDINGS_RESOURCES_PATH, json);
+			Debug.Log($"[buildings] 지을 것 {entries.Count}종을 뽑았다.");
 		}
 
 		private static void WriteIfChanged(string path, string json)
