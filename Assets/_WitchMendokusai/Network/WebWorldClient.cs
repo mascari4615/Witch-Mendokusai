@@ -396,6 +396,12 @@ namespace WitchMendokusai
 
 		private CraftedMessage crafted;
 
+		/// <summary>나를 이렇게 불러 달라 — 되나 안 되나는 세계가 본다.</summary>
+		public void RequestRename(string name)
+		{
+			Send(JsonUtility.ToJson(new RenameMessage { name = name }));
+		}
+
 		/// <summary>이 줄대로 만들겠다 — 되나 안 되나는 세계가 정한다.</summary>
 		public void RequestCraft(int recipeId)
 		{

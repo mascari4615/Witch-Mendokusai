@@ -66,6 +66,11 @@ namespace WitchMendokusai
 						id = snapshot[i].Id,
 						x = snapshot[i].Position.x,
 						z = snapshot[i].Position.z,
+
+						// 이름도 같은 규약으로 실린다 — 혼자 놀 때만 이름표가 비면 그건 같은 게임이 아니다.
+						name = snapshot[i].Id == me.Id && string.IsNullOrEmpty(myName) == false
+							? myName
+							: "손님 " + snapshot[i].Id,
 					};
 				}
 
@@ -415,6 +420,28 @@ namespace WitchMendokusai
 
 				return view;
 			}
+		}
+
+		private string myName = string.Empty;
+
+		/// <summary>
+		/// 내 안의 세계에서도 이름을 정한다 (TASK-WM-218) — 겹칠 남이 없으니 길이만 본다.
+		/// 혼자 놀 때만 이름이 안 되면 혼자/같이가 또 갈라진다.
+		/// </summary>
+		public void RequestRename(string name)
+		{
+			string trimmed = name == null ? string.Empty : name.Trim();
+			if (trimmed.Length < Identity.WorldIdentityRegistry.MIN_NAME
+				|| trimmed.Length > Identity.WorldIdentityRegistry.MAX_NAME)
+			{
+				WorldNoticeBridge.Deliver(trimmed.Length < Identity.WorldIdentityRegistry.MIN_NAME
+					? "이름이 너무 짧다"
+					: "이름이 너무 길다");
+
+				return;
+			}
+
+			myName = trimmed;
 		}
 
 		private CraftedMessage crafted;

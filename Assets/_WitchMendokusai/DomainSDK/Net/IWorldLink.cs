@@ -109,6 +109,12 @@ namespace WitchMendokusai.Net
 		/// </summary>
 		BuildCatalogEntryView[] BuildCatalog { get; }
 
+		/// <summary>
+		/// 나를 이렇게 불러 달라 (TASK-WM-218) — 짧거나 길거나 남과 겹치면 <b>세계가 거절한다</b>.
+		/// 거절 이유는 알림(denied)으로 온다.
+		/// </summary>
+		void RequestRename(string name);
+
 		/// <summary>세계가 아는 <b>제작표</b> — 재료·성공률까지 (TASK-WM-217). 못 받았으면 빈 배열.</summary>
 		CraftBookEntryView[] CraftBook { get; }
 

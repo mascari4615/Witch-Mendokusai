@@ -28,6 +28,12 @@ namespace WitchMendokusai
 		private const float LINGER_SECONDS = 12f;
 
 		private string resultPath;
+
+		// 이름을 정했나 · 만들어 봤나 (TASK-WM-217/218) — 관문이 새 기능까지 진짜 판으로 잰다.
+		private bool named;
+		private bool askedCraft;
+		private int craftedItemId;
+		private string myName = string.Empty;
 		private float waited;
 		private bool finished;
 
@@ -174,6 +180,15 @@ namespace WitchMendokusai
 
 			stepCooldown = STEP_SECONDS;
 
+			// 이름부터 정한다 — 남의 화면에서 「손님 3」으로 남으면 누가 누군지 알 수 없다.
+			if (named == false)
+			{
+				myName = "파수꾼" + (link.MyDollId % 100);
+				link.RequestRename(myName);
+				named = true;
+				return;
+			}
+
 			if (gathered == false)
 			{
 				WalkAndGather(link);
@@ -211,6 +226,25 @@ namespace WitchMendokusai
 
 				link.RequestChest(chestX, 0, chestZ);
 				return;
+			}
+
+			// 제작도 한 번 청해 본다 (TASK-WM-217) — 되든 안 되든 <b>세계가 판정한다</b>.
+			//   재료가 없으면 거절이 오는 게 정상이라, 여기서는 「대답이 오나」까지만 본다.
+			if (askedCraft == false)
+			{
+				CraftBookEntryView[] book = link.CraftBook;
+				if (book != null && book.Length > 0)
+					link.RequestCraft(book[0].recipeId);
+
+				askedCraft = true;
+				return;
+			}
+
+			if (craftedItemId == 0)
+			{
+				CraftedMessage made = link.TakeCraftResult();
+				if (made != null && made.succeeded)
+					craftedItemId = made.itemId;
 			}
 
 			// 솥도 짓는다 — 세계에 솥이 없으면 아무도 조리할 수 없다(전역 솥은 폐기됐다).
@@ -344,6 +378,21 @@ namespace WitchMendokusai
 			}
 
 			link.RequestMove(nearest.x - meX, nearest.z - meZ);
+		}
+
+		/// <summary>세계가 지금 나를 뭐라고 부르나 — 정한 이름이 그림에 실렸는지 본다.</summary>
+		private static string NameInWorld(IWorldLink link)
+		{
+			if (link?.Dolls == null)
+				return string.Empty;
+
+			for (int i = 0; i < link.Dolls.Length; i++)
+			{
+				if (link.Dolls[i].id == link.MyDollId)
+					return link.Dolls[i].name ?? string.Empty;
+			}
+
+			return string.Empty;
 		}
 
 		private void Write(string result, int dolls, IWorldLink link, string reason)
