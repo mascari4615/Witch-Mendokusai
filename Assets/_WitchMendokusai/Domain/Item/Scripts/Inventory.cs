@@ -71,7 +71,7 @@ namespace WitchMendokusai
 
 			// 주운 사실이 세계까지 간다 (TASK-WM-218) — 안 알리면 다시 들어왔을 때 없다.
 			// 실제로 들어간 만큼만 알린다(넘친 건 안 들어간 것이다).
-			if (ReportsToWorld)
+			if (ReportsToWorld && applyingWorldBag == false)
 				WorldBagBridge.Gathered(itemData.ID, amount - excess);
 
 			return excess;
@@ -82,6 +82,42 @@ namespace WitchMendokusai
 		/// 세계에 알리지 않는다 — 알리면 상자에 넣은 것이 내 것으로 둔갑한다.
 		/// </summary>
 		protected virtual bool ReportsToWorld => true;
+
+		// 세계 값으로 맞추는 동안은 세계에 되알리지 않는다 — 안 그러면 둘이 무한히 오간다.
+		private bool applyingWorldBag;
+
+		/// <summary>
+		/// 세계가 아는 내 가방으로 <b>맞춘다</b> (TASK-WM-218). 세계가 주인이므로 화면이 따라간다.
+		/// 부족한 만큼만 채우고 남는 만큼만 뺀다 — 통째로 비우고 다시 채우면 칸 배치가 매번 뒤집힌다.
+		/// </summary>
+		public void ApplyWorldCounts(IReadOnlyList<int> itemIds, IReadOnlyList<int> amounts, Func<int, IItemData> lookup)
+		{
+			if (itemIds == null || amounts == null || lookup == null)
+				return;
+
+			applyingWorldBag = true;
+			try
+			{
+				for (int i = 0; i < itemIds.Count && i < amounts.Count; i++)
+				{
+					IItemData data = lookup(itemIds[i]);
+					if (data == null)
+						continue;
+
+					int have = Core.CountById(itemIds[i]);
+					int want = amounts[i];
+
+					if (want > have)
+						Core.Add(data, want - have);
+					else if (want < have)
+						Core.Consume(itemIds[i], have - want);
+				}
+			}
+			finally
+			{
+				applyingWorldBag = false;
+			}
+		}
 
 		// Add 직후 호출. 기본 = '마지막 장착 아이템' 전역 갱신(플레이어 인벤토리 용도).
 		// 보관 상자 등 비-플레이어 per-instance 인벤토리는 override 로 무력화 (TASK-WM-169).
@@ -99,7 +135,7 @@ namespace WitchMendokusai
 
 			// 쓴 것도 세계에 알린다 (TASK-WM-218) — 줍기만 알리면 세계의 가방은 불어나기만 한다.
 			// 실제로 쓴 만큼만(못 쓴 건 안 쓴 것이다).
-			if (ReportsToWorld)
+			if (ReportsToWorld && applyingWorldBag == false)
 				WorldBagBridge.Consumed(itemID, amount - missing);
 
 			return missing;

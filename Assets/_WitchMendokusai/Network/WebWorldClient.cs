@@ -175,6 +175,13 @@ namespace WitchMendokusai
 				return;
 			}
 
+			if (json.Contains("\"" + NetMessageType.BAG + "\""))
+			{
+				BagMessage bag = JsonUtility.FromJson<BagMessage>(json);
+				DeliverBag(bag);
+				return;
+			}
+
 			if (json.Contains("\"" + NetMessageType.WORLD + "\""))
 			{
 				WorldMessage world = JsonUtility.FromJson<WorldMessage>(json);
@@ -188,6 +195,23 @@ namespace WitchMendokusai
 				if (world.brew != null)
 					Brew = world.brew;
 			}
+		}
+
+		/// <summary>세계가 알려준 가방을 화면 쪽으로 넘긴다 — 다시 들어왔을 때 「내 것」이 보이게.</summary>
+		private static void DeliverBag(BagMessage bag)
+		{
+			if (bag?.items == null)
+				return;
+
+			int[] ids = new int[bag.items.Length];
+			int[] amounts = new int[bag.items.Length];
+			for (int i = 0; i < bag.items.Length; i++)
+			{
+				ids[i] = bag.items[i].itemId;
+				amounts[i] = bag.items[i].amount;
+			}
+
+			WorldBagBridge.DeliverBag(ids, amounts);
 		}
 
 		/// <summary>「이쪽으로 가고 싶다」를 보낸다. 얼마나 갈지는 서버가 정한다.</summary>
@@ -237,6 +261,9 @@ namespace WitchMendokusai
 
 		/// <summary>「이걸 줍고 싶다」 — 가방에 들어갈지는 서버가 본다.</summary>
 		public void RequestGather(int itemId, int amount) => Send(JsonUtility.ToJson(new GatherMessage { itemId = itemId, amount = amount }));
+
+		/// <summary>「내 가방 뭐 있냐」고 묻는다 — 다시 들어왔을 때 화면을 채우려면 물어야 한다.</summary>
+		public void AskBag() => Send(JsonUtility.ToJson(new BagAskMessage()));
 
 		/// <summary>「이걸 썼다」 — 정말 있었는지는 서버가 본다.</summary>
 		public void RequestConsume(int itemId, int amount)

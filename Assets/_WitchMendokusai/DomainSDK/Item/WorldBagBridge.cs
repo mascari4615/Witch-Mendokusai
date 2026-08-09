@@ -22,10 +22,21 @@ namespace WitchMendokusai
 		void Consumed(int itemId, int amount);
 	}
 
+	/// <summary>
+	/// 세계가 알려준 가방을 <b>화면에 반영하는 쪽</b> (TASK-WM-218).
+	/// 게임이 구현하고, 통신 층이 부른다 — 방향이 반대인 구멍이다.
+	/// </summary>
+	public interface IWorldBagReceiver
+	{
+		/// <summary>세계가 아는 내 가방은 이렇다 — 화면(인벤토리)을 여기에 맞춘다.</summary>
+		void ApplyWorldBag(int[] itemIds, int[] amounts);
+	}
+
 	/// <summary>게임 ↔ 세계 가방을 잇는 자리. 통신 층이 꽂고, 게임이 부른다.</summary>
 	public static class WorldBagBridge
 	{
 		private static IWorldBagSink sink;
+		private static IWorldBagReceiver receiver;
 
 		public static void Register(IWorldBagSink worldBagSink) => sink = worldBagSink;
 
@@ -33,6 +44,27 @@ namespace WitchMendokusai
 		{
 			if (sink == worldBagSink)
 				sink = null;
+		}
+
+		/// <summary>화면 쪽을 꽂는다(게임이 부른다).</summary>
+		public static void RegisterReceiver(IWorldBagReceiver worldBagReceiver) => receiver = worldBagReceiver;
+
+		public static void ClearReceiver(IWorldBagReceiver worldBagReceiver)
+		{
+			if (receiver == worldBagReceiver)
+				receiver = null;
+		}
+
+		/// <summary>
+		/// 세계가 알려준 가방을 화면에 넘긴다 (TASK-WM-218).
+		/// ⚠ 받는 쪽은 이걸 반영하는 동안 <b>다시 세계에 알리면 안 된다</b> — 그러면 무한히 오간다.
+		/// </summary>
+		public static void DeliverBag(int[] itemIds, int[] amounts)
+		{
+			if (receiver == null || itemIds == null || amounts == null)
+				return;
+
+			receiver.ApplyWorldBag(itemIds, amounts);
 		}
 
 		/// <summary>세계에 알린다. 안 꽂혀 있으면 아무 일도 안 한다.</summary>
