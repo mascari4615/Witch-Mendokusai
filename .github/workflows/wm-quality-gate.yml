@@ -33,6 +33,10 @@ on:
       #   표본까지 넣는 이유 = 표본을 흔들면 검사기가 눈먼 것과 같은 결과가 나기 때문.
       - '.github/scripts/wm-init-order-audit.ps1'
       - '.github/scripts/fixtures/**'
+      # 웹 창·계약과 그 검사기 — 창에는 시험이 없어 이 게이트가 유일한 눈이다.
+      - '.github/scripts/wm-web-client-gate.mjs'
+      - '.github/scripts/wm-zero-id-guard.mjs'
+      - 'Server/WM.Server/wwwroot/**'
       # 대화 하네스도 이 워크플로가 직접 돌린다 — 하네스만 고치면 안 돌던 자리.
       - 'Tools/dialogue-harness/**'
       - '.github/workflows/wm-quality-gate.yml'
@@ -45,6 +49,10 @@ on:
       #   표본까지 넣는 이유 = 표본을 흔들면 검사기가 눈먼 것과 같은 결과가 나기 때문.
       - '.github/scripts/wm-init-order-audit.ps1'
       - '.github/scripts/fixtures/**'
+      # 웹 창·계약과 그 검사기 — 창에는 시험이 없어 이 게이트가 유일한 눈이다.
+      - '.github/scripts/wm-web-client-gate.mjs'
+      - '.github/scripts/wm-zero-id-guard.mjs'
+      - 'Server/WM.Server/wwwroot/**'
       # 대화 하네스도 이 워크플로가 직접 돌린다 — 하네스만 고치면 안 돌던 자리.
       - 'Tools/dialogue-harness/**'
       - '.github/workflows/wm-quality-gate.yml'
@@ -103,20 +111,16 @@ jobs:
       - name: Run dialogue harness
         run: dotnet run --project Tools/dialogue-harness
 
+      # TASK-WM-217 -- 웹 창이 계약을 따라가고 있나(문법·서버 말·손잡이). 창엔 시험이 없다.
+      - name: Run web client gate
+        run: node ./.github/scripts/wm-web-client-gate.mjs
+
       # TASK-WM-217 -- 「번호 0을 없음으로」 쓰는 자리를 막는다. WM 의 나무가 0번이라
       # 그 자리는 그 종류를 조용히 지운다(하루에 세 번 밟았다 — 사람 기억으로 막을 부류가 아니다).
+      # ★ 이 둘은 한때 memo 체크아웃에 살았다 — 그래서 리눅스 러너에서 파일을 못 찾았다.
+      #   검사기는 검사할 저장소 안에 있어야 어디서든 돈다.
       - name: Run zero-id guard
-        shell: bash
-        run: |
-          guard="$GITHUB_WORKSPACE/../memo/scripts/wm-zero-id-guard.mjs"
-          if [ ! -f "$guard" ]; then
-            guard="C:/Users/masca/repos/karmoddrine/memo/scripts/wm-zero-id-guard.mjs"
-          fi
-          if [ ! -f "$guard" ]; then
-            echo "ERROR: zero-id guard not found: $guard"
-            exit 1
-          fi
-          node "$guard"
+        run: node ./.github/scripts/wm-zero-id-guard.mjs
 
   unity:
     name: EditMode tests (laptop runner)
