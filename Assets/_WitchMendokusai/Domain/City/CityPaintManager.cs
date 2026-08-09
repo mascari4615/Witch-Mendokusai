@@ -1,6 +1,10 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using DG.Tweening;
 using UnityEngine;
+// ★ 이 파일의 칸 좌표는 「판정 쪽」이다 (TASK-WM-214) — 도로망·전력·지구 수요는 전부 시뮬 타입이고,
+//   타일맵에 칠할 때는 자동으로 엔진 좌표가 된다. 반대로 엔진에서 칸을 받아올 때만 캐스트한다.
+using Vector3Int = WitchMendokusai.Numerics.Vector3Int;
+using Vector2Int = WitchMendokusai.Numerics.Vector2Int;
 using VContainer;
 
 namespace WitchMendokusai
@@ -225,7 +229,8 @@ namespace WitchMendokusai
 				return false;
 
 			Vector3 groundPoint = ray.GetPoint(enter);
-			cell = grid.WorldToCell(groundPoint);
+			// 엔진이 고른 칸을 판정 세계로 들인다 — 여기가 경계다.
+			cell = (Vector3Int)grid.WorldToCell(groundPoint);
 			return true;
 		}
 
