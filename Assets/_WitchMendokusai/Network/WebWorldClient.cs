@@ -146,14 +146,26 @@ namespace WitchMendokusai
 					klCode = WorldKeyStore.LoadAccountCode(),
 				}));
 
+				// ★ 한 번의 Receive 가 <b>말 한 마디를 다 주지 않는다</b> (실측 2026-08-10).
+				//   낱말표(139종)·들판(169자리)이 실리면서 알림이 8KB 를 넘자, 조각난 앞부분만 파싱하다
+				//   매번 「JSON parse error」로 끊겼다 — 게임은 세계에 <b>영영 못 붙었다</b>.
+				//   (웹 창은 브라우저가 조각을 합쳐 줘서 멀쩡해 보였다 = 한쪽만 도는 세계.)
+				//   그래서 <b>끝 표시가 올 때까지</b> 이어 붙인다.
 				byte[] buffer = new byte[8192];
+				StringBuilder inbox = new StringBuilder();
 				while (token.IsCancellationRequested == false && socket.State == WebSocketState.Open)
 				{
 					WebSocketReceiveResult received = await socket.ReceiveAsync(new ArraySegment<byte>(buffer), token);
 					if (received.MessageType == WebSocketMessageType.Close)
 						break;
 
-					HandleMessage(Encoding.UTF8.GetString(buffer, 0, received.Count));
+					inbox.Append(Encoding.UTF8.GetString(buffer, 0, received.Count));
+					if (received.EndOfMessage == false)
+						continue;
+
+					string message = inbox.ToString();
+					inbox.Clear();
+					HandleMessage(message);
 				}
 			}
 			catch (OperationCanceledException)
