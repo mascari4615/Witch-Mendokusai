@@ -2,6 +2,15 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+// ★ 이 파일의 좌표는 「판정 쪽」이다 (TASK-WM-214).
+//   개척 판의 셈은 거의 전부 시뮬이고(Vector3 118 · Vector2Int 27 · Vector3Int 13),
+//   엔진을 실제로 만지는 자리는 스무 곳 남짓(transform.position 등)이다.
+//   그래서 이 파일에서 Vector* 는 SDK 타입을 뜻하고, 엔진으로 나갈 때만 자동으로 변환된다.
+//   반대로 엔진 값을 받아올 때는 캐스트가 필요하다 — 그 자리가 곧 경계다.
+using Vector2 = WitchMendokusai.Numerics.Vector2;
+using Vector3 = WitchMendokusai.Numerics.Vector3;
+using Vector2Int = WitchMendokusai.Numerics.Vector2Int;
+using Vector3Int = WitchMendokusai.Numerics.Vector3Int;
 
 namespace WitchMendokusai
 {

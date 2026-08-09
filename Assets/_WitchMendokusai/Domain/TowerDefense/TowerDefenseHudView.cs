@@ -1958,7 +1958,8 @@ namespace WitchMendokusai
 
 			// 웨이브 성격은 색까지 바꿔 예고한다 — 「무엇이 오는가」를 한눈에 알아야 대비가 성립한다.
 			TowerDefenseWaveEventKind previewEvent = match.WaveEventAt(previewWave);
-			nextWaveValue.style.color = TowerDefenseWaveEvent.DisplayColor(previewEvent);
+			// 판정 색 → 엔진 색 → 스타일 색. 사용자 정의 변환은 두 번 연달아 안 걸리므로 가운데를 명시한다 (TASK-WM-214).
+			nextWaveValue.style.color = (UnityEngine.Color)TowerDefenseWaveEvent.DisplayColor(previewEvent);
 			string eventPrefix = previewEvent == TowerDefenseWaveEventKind.None
 				? string.Empty
 				: "《" + TowerDefenseWaveEvent.DisplayName(previewEvent) + "》 ";
