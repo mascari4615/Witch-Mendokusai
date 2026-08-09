@@ -68,8 +68,20 @@ namespace WitchMendokusai
 		{
 			int excess = Core.Add(itemData, amount);
 			OnItemAdded((ItemData)itemData);
+
+			// 주운 사실이 세계까지 간다 (TASK-WM-218) — 안 알리면 다시 들어왔을 때 없다.
+			// 실제로 들어간 만큼만 알린다(넘친 건 안 들어간 것이다).
+			if (ReportsToWorld)
+				WorldBagBridge.Gathered(itemData.ID, amount - excess);
+
 			return excess;
 		}
+
+		/// <summary>
+		/// 이 가방이 <b>내 가방</b>인가 (TASK-WM-218). 보관 상자처럼 per-instance 인 가방은
+		/// 세계에 알리지 않는다 — 알리면 상자에 넣은 것이 내 것으로 둔갑한다.
+		/// </summary>
+		protected virtual bool ReportsToWorld => true;
 
 		// Add 직후 호출. 기본 = '마지막 장착 아이템' 전역 갱신(플레이어 인벤토리 용도).
 		// 보관 상자 등 비-플레이어 per-instance 인벤토리는 override 로 무력화 (TASK-WM-169).

@@ -43,6 +43,7 @@ namespace WitchMendokusai
 		private WebWorldClient remote;
 		private WorldLinkBuildChannel buildChannel;
 		private WorldLinkBrewChannel brewChannel;
+		private WorldBagRelay bagRelay;
 
 		/// <summary>지금 이어진 줄. 아직 안 들어갔으면 null.</summary>
 		public IWorldLink Current { get; private set; }
@@ -121,6 +122,9 @@ namespace WitchMendokusai
 
 			brewChannel = new WorldLinkBrewChannel(Current);
 			SharedBrewChannelBridge.Register(brewChannel);
+
+			bagRelay = new WorldBagRelay(Current);
+			WorldBagBridge.Register(bagRelay);
 		}
 
 		/// <summary>내 안의 세계였다면 지금 모습을 적어 둔다 — 다음에 켜면 그대로 있다.</summary>
@@ -164,6 +168,12 @@ namespace WitchMendokusai
 			{
 				SharedBrewChannelBridge.Clear(brewChannel);
 				brewChannel = null;
+			}
+
+			if (bagRelay != null)
+			{
+				WorldBagBridge.Clear(bagRelay);
+				bagRelay = null;
 			}
 
 			if (remote != null)
