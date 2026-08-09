@@ -1,6 +1,8 @@
 ﻿using System;
 using NUnit.Framework;
 using UnityEngine;
+// 히트맵 색은 판정 쪽이 정본이다(HeatmapGradient = DomainSDK) — TASK-WM-214.
+using Color = WitchMendokusai.Numerics.Color;
 
 namespace WitchMendokusai.Tests
 {
