@@ -191,3 +191,22 @@ jobs:
             exit 1
           fi
           echo "엔진 밖 시험 ${PASSED}개 통과."
+
+      - name: Test — 서버 판정 시험
+        run: |
+          set -euo pipefail
+          # 서버는 게임과 같은 규칙 위에 선다(TASK-WM-216). 그 위에서 「클라 값을 그대로 믿지 않는다」를
+          # 시험이 증명한다. 서버가 없는 체크아웃에서는 조용히 넘긴다 — 아직 안 만든 것은 실패가 아니다.
+          PROJ='Server/WM.Server.Tests/WM.Server.Tests.csproj'
+          if [ ! -f "$PROJ" ]; then
+            echo "서버 시험 프로젝트가 아직 없다 — 넘어간다."
+            exit 0
+          fi
+          OUT=$(dotnet test "$PROJ" -c Release --nologo 2>&1)
+          echo "$OUT"
+          PASSED=$(printf '%s' "$OUT" | grep -oE 'Passed:[[:space:]]*[0-9]+' | grep -oE '[0-9]+' | tail -1 || true)
+          if [ -z "${PASSED:-}" ] || [ "$PASSED" -lt 5 ]; then
+            echo "::error::서버 시험이 ${PASSED:-0}개만 돌았다 — 통과가 아니라 **안 돈 것**이다."
+            exit 1
+          fi
+          echo "서버 시험 ${PASSED}개 통과."

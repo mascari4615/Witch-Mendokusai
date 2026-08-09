@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    TASK-WM-216 — 서버 판정 시험.
+    서버가 「클라가 보낸 값을 그대로 믿지 않는다」를 시험이 증명한다.
+    이 묶음은 CI 의 엔진 밖 게이트에서 함께 돈다(WM-214 가 세운 자리).
+  -->
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>disable</Nullable>
+    <IsPackable>false</IsPackable>
+    <EnforceCodeStyleInBuild>false</EnforceCodeStyleInBuild>
+    <AnalysisLevel>none</AnalysisLevel>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
+    <PackageReference Include="NUnit" Version="3.14.0" />
+    <PackageReference Include="NUnit3TestAdapter" Version="4.6.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../WM.Server/WM.Server.csproj" />
+  </ItemGroup>
+
+</Project>
