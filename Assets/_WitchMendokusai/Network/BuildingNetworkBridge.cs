@@ -69,6 +69,15 @@ namespace WitchMendokusai
             _version.Value = _version.Value + 1;
         }
 
+        /// <summary>
+        /// 크기를 받는 자리 (TASK-WM-217). ⚠ 이 통로의 배치맵은 칸 단위라 크기를 못 나른다 —
+        /// 한 칸으로 떨어뜨린다. 크기가 필요한 쪽은 WS 통로(WorldLinkBuildChannel)를 쓴다.
+        /// </summary>
+        public void PlaceBuilding(int cellX, int cellY, int cellZ, int width, int length, int buildingId)
+        {
+            PlaceBuilding(cellX, cellY, cellZ, buildingId);
+        }
+
         /// <summary>UI seam: 셀 건물 제거 → ServerRpc.</summary>
         [ServerRpc(RequireOwnership = false)]
         public void RemoveBuilding(int cellX, int cellY, int cellZ)

@@ -213,7 +213,9 @@ namespace WitchMendokusai
 			// 세계에도 알린다 (TASK-WM-217) — 안 알리면 내 화면에만 서고 남에겐 안 보인다.
 			// 내 화면에는 먼저 세운다(기다리면 손맛이 죽는다). 세계가 거절했을 때 되돌리는 일 = 후속.
 			if (SharedBuildChannelBridge.IsActive)
-				SharedBuildChannelBridge.Channel.PlaceBuilding(placeCell.x, placeCell.y, placeCell.z, selectedBuilding.ID);
+				SharedBuildChannelBridge.Channel.PlaceBuilding(
+					placeCell.x, placeCell.y, placeCell.z,
+					selectedBuilding.Size.x, selectedBuilding.Size.y, selectedBuilding.ID);
 		}
 
 		// 빌드모드 좌클릭 = 부수기 (월드 편집 통일). 가리킨 게 건물이면 건물 제거, 지형(복셀)이면 복셀 블록 부수기.

@@ -58,9 +58,13 @@ namespace WitchMendokusai
 
 		public void PlaceBuilding(int cellX, int cellY, int cellZ, int buildingId)
 		{
-			// 크기는 아직 세계가 모른다(건물 정의는 게임 쪽 자산) — 한 칸으로 보낸다.
-			// ⚠ 여러 칸 건물의 크기를 세계에 알리는 일은 후속: 그전까진 겹침 판정이 한 칸 기준이다.
-			link?.RequestPlace(cellX, cellY, cellZ, 1, 1, buildingId);
+			PlaceBuilding(cellX, cellY, cellZ, 1, 1, buildingId);
+		}
+
+		public void PlaceBuilding(int cellX, int cellY, int cellZ, int width, int length, int buildingId)
+		{
+			// 크기를 그대로 나른다 — 세계의 겹침 판정이 게임 화면과 같은 넓이를 본다.
+			link?.RequestPlace(cellX, cellY, cellZ, width < 1 ? 1 : width, length < 1 ? 1 : length, buildingId);
 		}
 
 		public void RemoveBuilding(int cellX, int cellY, int cellZ)

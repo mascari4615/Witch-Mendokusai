@@ -23,6 +23,12 @@ namespace WitchMendokusai.DomainSDK.Building
         /// <summary>건물 한 채 배치(서버 권위, 소유 불요 — 둘 다 같은 World). 중복 셀 = 서버서 무시.</summary>
         void PlaceBuilding(int cellX, int cellY, int cellZ, int buildingId);
 
+        /// <summary>
+        /// 건물 한 채 배치 -- <b>크기까지</b> (TASK-WM-217). 여러 칸 건물을 한 칸으로 보내면
+        /// 남의 화면에선 한 칸만 서고, 세계의 겹침 판정도 한 칸 기준이 된다(그 옆에 겹쳐 지어진다).
+        /// </summary>
+        void PlaceBuilding(int cellX, int cellY, int cellZ, int width, int length, int buildingId);
+
         /// <summary>셀의 건물 제거(서버 권위).</summary>
         void RemoveBuilding(int cellX, int cellY, int cellZ);
 
