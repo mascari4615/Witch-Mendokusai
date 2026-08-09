@@ -1,6 +1,9 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
+// ★ 좌표는 판정 쪽 (TASK-WM-214) — 검증 스크립트도 게임과 같은 타입으로 말해야 한다.
+using Vector3 = WitchMendokusai.Numerics.Vector3;
+using Vector2Int = WitchMendokusai.Numerics.Vector2Int;
 
 namespace WitchMendokusai.EditorTools
 {
