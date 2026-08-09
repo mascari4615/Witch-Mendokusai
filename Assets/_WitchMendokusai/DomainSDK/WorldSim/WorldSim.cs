@@ -119,6 +119,12 @@ namespace WitchMendokusai
 		/// </summary>
 		public WorldIngredients Ingredients { get; set; } = new WorldIngredients(null);
 
+		/// <summary>
+		/// 세계에 놓인 상자들 (TASK-WM-217 후속) — 내가 넣고 친구가 꺼낸다.
+		/// 상자인지·몇 칸인지는 건물 목록이 정한다.
+		/// </summary>
+		public WorldStorages Storages { get; } = new WorldStorages();
+
 		/// <summary>시간을 흘린다. 하루가 바뀌었으면 true.</summary>
 		public bool AdvanceMinutes(float minutes)
 		{
@@ -450,7 +456,12 @@ namespace WitchMendokusai
 			if (catalog == null || catalog.TrySize(buildingId, out int width, out int length) == false)
 				return false;
 
-			return TryPlaceBuilding(pivot, new Vector2Int(width, length), buildingId);
+			if (TryPlaceBuilding(pivot, new Vector2Int(width, length), buildingId) == false)
+				return false;
+
+			// 상자면 그 자리에 빈 상자를 놓는다 — 지은 것이 쓸모를 갖는 자리다.
+			Storages.Place(pivot, catalog.SlotsOf(buildingId));
+			return true;
 		}
 
 		public bool TryPlaceBuilding(Vector3Int pivot, Vector2Int size, int buildingId)
@@ -481,6 +492,9 @@ namespace WitchMendokusai
 			{
 				if (occupiedCells.ContainsKey(cell) == false)
 					return false;
+
+				// 상자였으면 상자도 같이 사라진다(안에 든 것도) — 창이 사람에게 먼저 물어야 한다.
+				Storages.Remove(cell);
 
 				for (int i = 0; i < placed.Count; i++)
 				{
@@ -607,6 +621,7 @@ namespace WitchMendokusai
 					hour = Calendar.Hour,
 					minute = Calendar.Minute,
 					gathered = Gatherables.Save().ToArray(),
+					storages = Storages.Save().ToArray(),
 				};
 			}
 		}
@@ -617,7 +632,13 @@ namespace WitchMendokusai
 		/// 겹치는 건물은 <b>버린다</b> — 저장 파일이 망가졌거나 규칙이 바뀌었을 때
 		/// 겹친 채로 되살리면 그 뒤로 짓기 판정이 영원히 이상해진다. 되살린 개수를 돌려준다.
 		/// </summary>
-		public int Load(WorldSaveData data)
+		public int Load(WorldSaveData data) => Load(data, null);
+
+		/// <summary>
+		/// 기억을 되살린다. <paramref name="catalog"/> 는 상자 안의 물건을 알아보는 데 쓴다 —
+		/// 없으면 상자는 서되 <b>안은 빈다</b>(모르는 물건을 지어내지 않는다).
+		/// </summary>
+		public int Load(WorldSaveData data, WorldItemCatalog catalog)
 		{
 			lock (gate)
 			{
@@ -631,8 +652,14 @@ namespace WitchMendokusai
 				LoadPeopleUnlocked(data.people);
 				Gatherables.Load(data.gathered);
 
+				// 상자는 건물을 되살린 <b>뒤에</b> 채운다 — 어느 자리가 몇 칸인지 건물이 정하기 때문이다.
+				StorageSaveEntry[] storagesToRestore = data.storages;
+
 				if (data.buildings == null)
+				{
+					RestoreStoragesUnlocked(storagesToRestore, catalog);
 					return 0;
+				}
 
 				int restored = 0;
 				for (int i = 0; i < data.buildings.Length; i++)
@@ -657,8 +684,25 @@ namespace WitchMendokusai
 					restored++;
 				}
 
+				// 상자는 건물을 다 세운 뒤에 채운다 — 어느 자리가 몇 칸인지 건물이 정하기 때문이다.
+				RestoreStoragesUnlocked(storagesToRestore, catalog);
 				return restored;
 			}
+		}
+
+		/// <summary>되살린 건물 위에 상자를 얹는다 — 그 자리에 선 건물이 상자가 아니면 버린다.</summary>
+		private void RestoreStoragesUnlocked(StorageSaveEntry[] saved, WorldItemCatalog catalog)
+		{
+			Storages.Load(saved, cell =>
+			{
+				for (int i = 0; i < placed.Count; i++)
+				{
+					if (placed[i].Pivot.Equals(cell))
+						return Buildables.SlotsOf(placed[i].BuildingId);
+				}
+
+				return 0;
+			}, catalog);
 		}
 
 		public bool TryMove(int dollId, Vector3 delta)

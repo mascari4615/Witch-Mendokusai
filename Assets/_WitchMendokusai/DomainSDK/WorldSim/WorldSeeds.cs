@@ -73,6 +73,7 @@ namespace WitchMendokusai
 				{
 					new BuildingCatalogEntry { id = 4000, name = "솥", w = 1, l = 1 },
 					new BuildingCatalogEntry { id = 4001, name = "모루", w = 1, l = 1 },
+					new BuildingCatalogEntry { id = 4005, name = "보관 상자", w = 1, l = 1, slots = 30 },
 				},
 			};
 		}

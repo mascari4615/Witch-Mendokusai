@@ -87,6 +87,7 @@ namespace WitchMendokusai.EditorTools
 					name = data.Name,
 					w = data.Size.x < 1 ? 1 : data.Size.x,
 					l = data.Size.y < 1 ? 1 : data.Size.y,
+					slots = data.StorageSlots,
 				});
 			}
 

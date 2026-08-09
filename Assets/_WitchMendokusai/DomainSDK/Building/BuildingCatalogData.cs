@@ -11,6 +11,9 @@ namespace WitchMendokusai
 		public string name = string.Empty;
 		public int w = 1;
 		public int l = 1;
+
+		/// <summary>물건을 넣어 둘 수 있는 칸 수 (0 = 상자가 아니다).</summary>
+		public int slots;
 	}
 
 	/// <summary>세계가 아는 건물 목록 (아이템 목록과 같은 모양 — 정본은 게임 자산).</summary>
@@ -71,6 +74,12 @@ namespace WitchMendokusai
 			width = entry.w < 1 ? 1 : entry.w;
 			length = entry.l < 1 ? 1 : entry.l;
 			return true;
+		}
+
+		/// <summary>이건 몇 칸짜리 상자인가 — 0 이면 상자가 아니다.</summary>
+		public int SlotsOf(int buildingId)
+		{
+			return byId.TryGetValue(buildingId, out BuildingCatalogEntry entry) ? entry.slots : 0;
 		}
 
 		/// <summary>사람에게 보일 이름 — 모르면 <c>#번호</c>.</summary>

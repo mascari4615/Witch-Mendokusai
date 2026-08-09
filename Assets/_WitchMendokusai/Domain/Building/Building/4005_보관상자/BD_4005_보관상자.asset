@@ -22,3 +22,4 @@ MonoBehaviour:
   <Prefab>k__BackingField: {fileID: 1068869984922438772, guid: 0aa5bef53899c494d93247985d89eb51, type: 3}
   <Mascot>k__BackingField: {fileID: 0}
   <Size>k__BackingField: {x: 1, y: 1}
+  <StorageSlots>k__BackingField: 30

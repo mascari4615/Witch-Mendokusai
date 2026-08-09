@@ -149,7 +149,7 @@ namespace WitchMendokusai.Server
 			// 세계는 서버보다 오래 산다 (단계 5) — 뜨자마자 지난 기억을 되살린다.
 			WorldSaveData loaded = store.TryLoad();
 			Identities.Load(loaded?.identities);
-			int restored = World.Load(loaded);
+			int restored = World.Load(loaded, ItemsCatalog);
 			savedAtWorldMinute = World.Calendar.TotalMinutes();
 			Console.WriteLine($"[world] 되살린 건물 {restored}개 ({store.Path})");
 

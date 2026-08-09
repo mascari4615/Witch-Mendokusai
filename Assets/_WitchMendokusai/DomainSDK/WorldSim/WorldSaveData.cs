@@ -69,5 +69,8 @@ namespace WitchMendokusai
 		/// 자리 자체는 저장하지 않는다(계산으로 늘 같은 자리). 여기 담기는 건 「비어 있는 곳」뿐이다.
 		/// </summary>
 		public GatherTakenSaveEntry[] gathered = Array.Empty<GatherTakenSaveEntry>();
+
+		/// <summary>세계에 놓인 상자들과 그 안에 든 것 — 넣어 둔 게 사라지면 아무도 안 쓴다.</summary>
+		public StorageSaveEntry[] storages = Array.Empty<StorageSaveEntry>();
 	}
 }
