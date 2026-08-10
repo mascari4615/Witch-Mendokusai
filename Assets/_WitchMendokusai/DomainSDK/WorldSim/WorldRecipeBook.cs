@@ -40,7 +40,7 @@ namespace WitchMendokusai
 		/// ⚠ 아이템 번호로 판단하지 않는다 (실측 2026-08-10): 게임의 <b>나무</b>가 0 번이라,
 		///   결과가 나무인 레시피가 조용히 「빈 결과」로 읽힌다. 레시피 번호는 1부터라 안전하다.
 		/// </summary>
-		public bool Empty => RecipeId == 0;
+		public bool Empty => RecipeId == 0; // zero-id-ok: 마도서 쪽 번호는 1부터다(아이템 번호가 아니다)
 	}
 
 	/// <summary>
@@ -103,7 +103,7 @@ namespace WitchMendokusai
 					continue;
 
 				// 이미 더 좋은 쪽을 찾았으면 그대로 둔다 — 같은 값이면 먼저 적힌 쪽이 이긴다.
-				if (best.RecipeId != 0 && outcome.Quality <= best.Quality)
+				if (best.RecipeId != 0 && outcome.Quality <= best.Quality) // zero-id-ok: 마도서 번호는 1부터
 					continue;
 
 				best = new BrewCompletion
