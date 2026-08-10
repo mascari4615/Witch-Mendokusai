@@ -18,8 +18,15 @@ namespace WitchMendokusai
 	/// </summary>
 	public sealed class WorldSmokeSentinel : MonoBehaviour
 	{
-		/// <summary>이만큼 기다려도 남이 안 보이면 실패로 적는다 (초).</summary>
-		private const float DEADLINE_SECONDS = 60f;
+		/// <summary>
+		/// 이만큼 걸려도 한 바퀴를 못 돌면 실패로 적는다 (초).
+		///
+		/// ★ 60 이었을 때 (실측 2026-08-10): 모을 나무를 9로 올리자 <b>줍는 데만 마감을 다 썼다</b>
+		///   (<c>reason=could not gather</c>) — 들판이 넓어 노드 다섯 곳을 걸어 다녀야 한다.
+		///   그래서 솥·제작은 <b>시작도 못 해 본 채</b> 「안 됐다」로 적혔고, 나는 그걸 결함으로 읽을 뻔했다.
+		///   관문은 「놀 수 있는가」를 재는 것이지 「빨리 노나」를 재는 게 아니다.
+		/// </summary>
+		private const float DEADLINE_SECONDS = 180f;
 
 		/// <summary>줍기까지 걸어갈 때 한 번에 보내는 걸음 사이 간격 (초).</summary>
 		private const float STEP_SECONDS = 0.1f;
