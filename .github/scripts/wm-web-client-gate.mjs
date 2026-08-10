@@ -108,6 +108,48 @@ for (const [needle, what] of HANDLES) {
     problems.push(`손잡이가 사라졌다: ${what} (${needle})`);
 }
 
+// ── 그리는 함수에서 세계에 <b>말을 걸지</b> 않는다 ──────────────────────────
+// ★ 게임 창에서 실제로 밟은 부류다 (2026-08-10): 「만들겠다」 요청이 툴팁 갱신 자리에 있어
+//   마우스만 옮겨도 제작이 나갔다. 웹 창도 같은 실수를 할 수 있으므로 같은 눈으로 본다.
+//   ⚠ 단, 그리면서 <b>핸들러를 다는 것</b>은 정상이다 — 그건 「누르면 보낸다」지 「그리면 보낸다」가 아니다.
+//   그래서 addEventListener 안쪽(=> 로 감싼 자리)은 세지 않는다.
+{
+  const drawing = [...script[1].matchAll(/^function (draw\w+|render\w+|update\w+)\s*\([^)]*\)\s*\{/gm)];
+  for (const found of drawing) {
+    const from = found.index;
+    let depth = 0;
+    let to = from;
+    let started = false;
+
+    for (let i = from; i < script[1].length; i++) {
+      const letter = script[1][i];
+      if (letter === '{') {
+        depth += 1;
+        started = true;
+      } else if (letter === '}') {
+        depth -= 1;
+      }
+
+      if (started === true && depth === 0) {
+        to = i;
+        break;
+      }
+    }
+
+    const inside = script[1].slice(from, to);
+    for (const line of inside.split('\n')) {
+      const trimmed = line.trim();
+      if (trimmed.startsWith('//')) continue;
+      if (/socket\.send\s*\(/.test(trimmed) === false) continue;
+
+      // 「누르면 보낸다」는 정상 — 화살표 함수 안에 들어 있으면 그 자리다.
+      if (/=>/.test(trimmed) || inside.includes('addEventListener')) continue;
+
+      problems.push(`그리는 함수(${found[1]})가 세계에 말을 건다 — 그리면 보내는 창은 사람이 안 눌러도 세계를 바꾼다\n      ${trimmed}`);
+    }
+  }
+}
+
 console.log(`[web-client] 계약의 서버 말 ${names.length}개 · 손잡이 ${HANDLES.length}개 확인`);
 
 if (problems.length === 0) {
