@@ -35,6 +35,8 @@ on:
       - '.github/scripts/fixtures/**'
       # 웹 창·계약과 그 검사기 — 창에는 시험이 없어 이 게이트가 유일한 눈이다.
       - '.github/scripts/wm-web-client-gate.mjs'
+      - '.github/scripts/wm-web-picker-test.mjs'
+      - '.github/scripts/wm-game-client-gate.mjs'
       - '.github/scripts/wm-zero-id-guard.mjs'
       - 'Server/WM.Server/wwwroot/**'
       # 대화 하네스도 이 워크플로가 직접 돌린다 — 하네스만 고치면 안 돌던 자리.
@@ -51,6 +53,8 @@ on:
       - '.github/scripts/fixtures/**'
       # 웹 창·계약과 그 검사기 — 창에는 시험이 없어 이 게이트가 유일한 눈이다.
       - '.github/scripts/wm-web-client-gate.mjs'
+      - '.github/scripts/wm-web-picker-test.mjs'
+      - '.github/scripts/wm-game-client-gate.mjs'
       - '.github/scripts/wm-zero-id-guard.mjs'
       - 'Server/WM.Server/wwwroot/**'
       # 대화 하네스도 이 워크플로가 직접 돌린다 — 하네스만 고치면 안 돌던 자리.
@@ -124,6 +128,11 @@ jobs:
       # 솥 비우기·완성이 폐기된 옛 길로 나가 조용히 안 됐다(둘 다 컴파일은 초록이었다).
       - name: Run game client gate
         run: node ./.github/scripts/wm-game-client-gate.mjs
+
+      # TASK-WM-217 -- 웹 창이 <b>보여 주는 글</b>이 맞나(「나무 2/2」 같은 것).
+      # 창의 순수 계산(picker.mjs)만 떼어 진짜 데이터로 돌린다 — DOM 없이 도는 자리다.
+      - name: Run web picker test
+        run: node ./.github/scripts/wm-web-picker-test.mjs
 
       - name: Run zero-id guard
         run: node ./.github/scripts/wm-zero-id-guard.mjs
