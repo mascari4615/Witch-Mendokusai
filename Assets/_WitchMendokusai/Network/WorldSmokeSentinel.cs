@@ -277,7 +277,7 @@ namespace WitchMendokusai
 
 			if (brewed == false)
 			{
-				link.RequestBrewStepAt(gatheredItemId, chestX + 1, 0, chestZ);
+				DomainSDK.Alchemy.SharedBrewChannelBridge.Channel.TryUseNearbyCauldron(gatheredItemId);
 				brewed = true;
 				return;
 			}
@@ -387,7 +387,7 @@ namespace WitchMendokusai
 			}
 
 			// 완성은 세계가 내준다 — 못 받으면 다음 걸음에 다시 청한다(남이 먼저 가져갔을 수도 있다).
-			link.RequestBrewCompleteAt(chestX + 1, 0, chestZ);
+			DomainSDK.Alchemy.SharedBrewChannelBridge.Channel.RequestCompletion();
 
 			WorldBrewView taken = link.TakeCompletedBrew();
 			// 완성했나 — 여기도 번호가 아니라 「받았나」로 본다(0번 물건도 진짜 결과다).
