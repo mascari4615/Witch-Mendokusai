@@ -552,6 +552,10 @@ namespace WitchMendokusai
 				"crafteditem=", craftedItemId.ToString(CultureInfo.InvariantCulture), "\n",
 				"pots=", potsSeen.ToString(CultureInfo.InvariantCulture), "\n",
 				"potsteps=", myPotSteps.ToString(CultureInfo.InvariantCulture), "\n",
+				// 세계의 시각이 <b>흐르고 있나</b> — 혼자 켠 판은 아무도 시계를 안 굴려 멈춰 있었다.
+				// 멈추면 들판이 영영 안 자라고 밤낮도 안 바뀐다(실측 2026-08-10).
+				"worldminute=", (link?.Time == null ? 0 : (link.Time.hour * 60) + link.Time.minute)
+					.ToString(CultureInfo.InvariantCulture), "\n",
 				"craftwhy=", craftWhy, "\n",
 				// 세계가 마지막으로 「안 된다」고 한 말 — 관문에는 화면이 없어 이게 없으면 이유를 못 본다.
 				"denied=", WorldNoticeBridge.LastNotice, "\n",

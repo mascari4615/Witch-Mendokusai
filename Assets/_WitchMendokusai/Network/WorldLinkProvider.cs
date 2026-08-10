@@ -155,6 +155,27 @@ namespace WitchMendokusai
 		}
 
 		/// <summary>내 안의 세계였다면 지금 모습을 적어 둔다 — 다음에 켜면 그대로 있다.</summary>
+		/// <summary>
+		/// 내 안의 세계도 <b>시간이 흐른다</b> (TASK-WM-217, 실측 2026-08-10).
+		///
+		/// ★ 왜 여기인가: 게임 시계는 「세계가 알려주는 시각」을 따라간다. 멀리 있는 세계는 서버가
+		///   굴려 주지만, <b>내 안의 세계는 아무도 안 굴렸다</b> — 혼자 켜면 시간이 멈춰 있었고,
+		///   그러면 들판이 영영 안 자라고(재생은 시각으로 잰다) 밤낮도 안 바뀐다.
+		///   혼자와 같이가 같은 규칙으로 돌아야 하므로, 서버가 하는 일을 여기서 그대로 한다.
+		///   흐르는 양은 <b>실제로 지난 시간</b>으로 잰다(틱 수로 세면 20% 느려진다 — 서버에서 밟았다).
+		/// </summary>
+		private void Update()
+		{
+			if (IsLocalWorld == false)
+				return;
+
+			if (Current is LocalWorldLink local)
+				local.World.AdvanceMinutes(MINUTES_PER_REAL_SECOND * Time.unscaledDeltaTime);
+		}
+
+		/// <summary>실제 1초에 세계의 몇 분이 흐르나 — 서버(WorldHost)와 같은 값이어야 한다.</summary>
+		private const float MINUTES_PER_REAL_SECOND = 1f;
+
 		private void SaveLocalWorld()
 		{
 			if (Current is LocalWorldLink local)
