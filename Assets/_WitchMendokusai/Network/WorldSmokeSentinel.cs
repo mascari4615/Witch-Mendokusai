@@ -62,7 +62,7 @@ namespace WitchMendokusai
 		///   거절된 것인데, 결과에는 0 만 남아 「제작이 고장났나」로 읽혔다.
 		///   딱 2개만 모으던 그 전에는 상자를 짓는 순간 빈손이 되어 그 다음 걸음이 전부 막혔다.
 		/// </summary>
-		private const int WOOD_NEEDED = 9;
+		private const int WOOD_NEEDED = 11;
 		private int gatheredWood;
 		private int gatheredAmount;
 		private bool brewed;
@@ -78,6 +78,12 @@ namespace WitchMendokusai
 		private const int CHEST_BUILDING_ID = 4005;
 		private bool chestPlaced;
 		private bool chestOpened;
+
+		/// <summary>여러 칸 건물 한 채 — 세계가 몇 칸으로 아는지 재려고 짓는다 (2×2 임시 블럭).</summary>
+		private const int BIG_BUILDING_ID = 3;
+		private bool bigPlaced;
+		private int bigWidth;
+		private int bigLength;
 		private bool chestFilled;
 		private bool potPlaced;
 		private int chestSeenAmount;
@@ -290,6 +296,30 @@ namespace WitchMendokusai
 				}
 			}
 
+			// ★ <b>여러 칸 건물</b>도 한 채 지어 본다 (TASK-WM-217): 「2×2 가 한 칸으로 접히는가」는
+			//   판정 층 시험과 따라그리기 시험이 덮지만, <b>진짜 판에서 세계가 몇 칸으로 아는지</b>는
+			//   아무도 안 쟀다. 세계가 돌려주는 크기를 그대로 결과지에 적는다.
+			if (bigPlaced == false)
+			{
+				link.RequestPlace(chestX, 0, chestZ + 3, BIG_BUILDING_ID);
+				bigPlaced = true;
+				return;
+			}
+
+			if (bigWidth == 0)
+			{
+				BuildingView[] standing = link.Buildings;
+				for (int i = 0; standing != null && i < standing.Length; i++)
+				{
+					if (standing[i] == null || standing[i].buildingId != BIG_BUILDING_ID)
+						continue;
+
+					bigWidth = standing[i].w;
+					bigLength = standing[i].l;
+					break;
+				}
+			}
+
 			// ★ 제작은 <b>솥에 넣은 뒤에</b> 청한다 (실측 2026-08-10): 조리보다 먼저 청했더니
 			//   제작이 조리에 쓸 나무를 먼저 먹어 <b>솥에 넣을 것이 없었다</b> — 저은 자국 0,
 			//   완성 0. 관문은 「어디서 끊겼는지」를 potsteps 로 말해 줬고, 그게 이 순서를 정했다.
@@ -494,6 +524,9 @@ namespace WitchMendokusai
 				"craftwhy=", craftWhy, "\n",
 				// 세계가 마지막으로 「안 된다」고 한 말 — 관문에는 화면이 없어 이게 없으면 이유를 못 본다.
 				"denied=", WorldNoticeBridge.LastNotice, "\n",
+				// 세계가 그 여러 칸 건물을 몇 칸으로 아나 — 1×1 로 접히면 여기서 드러난다.
+				"bigw=", bigWidth.ToString(CultureInfo.InvariantCulture), "\n",
+				"bigl=", bigLength.ToString(CultureInfo.InvariantCulture), "\n",
 				"reason=", reason, "\n");
 
 			try
