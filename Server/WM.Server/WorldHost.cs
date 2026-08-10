@@ -891,12 +891,22 @@ namespace WitchMendokusai.Server
 		private async Task BroadcastLoopAsync(CancellationToken stopping)
 		{
 			int delayMilliseconds = 1000 / SNAPSHOT_HZ;
-			float minutesPerTick = MINUTES_PER_REAL_SECOND * (delayMilliseconds / 1000f);
+
+			// ★ 시계는 <b>틱 수</b>가 아니라 <b>실제로 흐른 시간</b>으로 굴린다 (실측 2026-08-10).
+			//   전에는 「한 바퀴 = 0.05분」으로 셌는데, 한 바퀴는 Task.Delay(50) 라 늘 50ms 보다 길다.
+			//   그래서 <b>실제 5초에 세계는 4분</b>만 흘렀다 — 20% 느림, 하루면 다섯 시간이 밀린다.
+			//   밤낮도 재생 시각도 다 같이 밀리고, 사람은 「이 세계는 시간이 이상하다」고 느낀다.
+			System.Diagnostics.Stopwatch clock = System.Diagnostics.Stopwatch.StartNew();
+			double lastSeconds = 0.0;
 
 			while (stopping.IsCancellationRequested == false)
 			{
+				double nowSeconds = clock.Elapsed.TotalSeconds;
+				float sinceLast = (float)(nowSeconds - lastSeconds);
+				lastSeconds = nowSeconds;
+
 				// 세계의 시간은 <b>사람이 있든 없든</b> 흐른다 — 서버가 굴리는 이유가 그것이다.
-				if (World.AdvanceMinutes(minutesPerTick))
+				if (World.AdvanceMinutes(MINUTES_PER_REAL_SECOND * sinceLast))
 					Interlocked.Exchange(ref worldDirty, 1);
 
 				// ★ 안 바뀐 것은 안 보낸다 (TASK-WM-217). 건물 63채 + 들판 169자리를 20Hz 로 나르면
