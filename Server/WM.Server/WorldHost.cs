@@ -476,9 +476,25 @@ namespace WitchMendokusai.Server
 					}
 
 					// 가방이 꽉 차서 못 받으면 <b>도로 세운다</b> — 자리도 비고 손도 비는 일은 없다.
+					//
+					// ★ 실측 2026-08-10: 「하나도 못 받았을 때」만 되돌렸다. 그래서 3개짜리 자리를
+					//   한 칸 남은 가방으로 주우면 1개만 들어가고 <b>2개가 증발했다</b>(자리도 비었다).
+					//   못 든 만큼은 그 자리에 그대로 남아야 한다.
 					int leftover = World.TryGather(dollId, ServerItemCatalog.Find(itemId), amount);
 					if (leftover >= amount)
+					{
 						World.Gatherables.Restore(nodeId);
+
+						// 왜 안 되는지 말해 준다 — 아무 말도 없으면 사람은 버튼이 고장 난 줄 안다.
+						Tell(dollId, Protocol.DENIED_GATHER, "가방이 꽉 찼다 — 비우고 다시 오라");
+						return;
+					}
+
+					if (leftover > 0)
+					{
+						World.Gatherables.RestorePartial(nodeId, leftover);
+						Tell(dollId, Protocol.DENIED_GATHER, $"가방이 모자라 {leftover}개는 그 자리에 두고 왔다");
+					}
 
 					Interlocked.Exchange(ref worldDirty, 1);
 					_ = SendBagAsync(dollId);

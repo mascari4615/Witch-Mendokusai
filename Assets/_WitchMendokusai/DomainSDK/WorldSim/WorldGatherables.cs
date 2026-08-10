@@ -45,6 +45,15 @@ namespace WitchMendokusai
 		private readonly object gate = new object();
 		private readonly List<GatherableKind> kinds = new List<GatherableKind>();
 		private readonly Dictionary<int, int> regrowAt = new Dictionary<int, int>();
+
+		/// <summary>
+		/// 손에 다 못 든 만큼 <b>도로 놓아 둔 개수</b> (TASK-WM-217) — 자리 번호 → 남은 개수.
+		///
+		/// ★ 왜 필요한가 (실측 2026-08-10): 3개짜리 자리를 가방에 1칸만 남기고 주웠더니 1개만 들어가고
+		///   <b>2개가 증발했다</b>. 자리는 「있다/없다」 둘뿐이라 「2개만 남았다」를 적을 데가 없었기 때문이다.
+		///   비었으면 그냥 사라지므로, 이 장부는 <b>덜 가져간 자리만큼만</b> 커진다.
+		/// </summary>
+		private readonly Dictionary<int, int> leftBehind = new Dictionary<int, int>();
 		private readonly int seed;
 
 		public WorldGatherables(IEnumerable<GatherableKind> kinds, int seed = 20260810)
@@ -146,6 +155,9 @@ namespace WitchMendokusai
 				GatherableKind kind = KindOf(nodeId);
 				itemId = node.ItemId;
 				amount = node.Amount;
+
+				// 남겨 뒀던 것을 다 가져가면 그 장부는 지운다 — 다음엔 온전한 자리로 다시 자란다.
+				leftBehind.Remove(nodeId);
 				regrowAt[nodeId] = kind.respawnMinutes > 0
 					? nowMinute + kind.respawnMinutes
 					: int.MaxValue; // 안 자라는 것은 영영 비어 있다
@@ -164,8 +176,30 @@ namespace WitchMendokusai
 		{
 			lock (gate)
 			{
-				if (regrowAt.Remove(nodeId))
+				bool changed = regrowAt.Remove(nodeId);
+				changed |= leftBehind.Remove(nodeId);
+				if (changed)
 					Version++;
+			}
+		}
+
+		/// <summary>
+		/// 손에 다 못 들어서 <b>얼마만 도로 놓는다</b> (TASK-WM-217).
+		///
+		/// ★ 왜: 가방에 한 칸만 남았는데 3개짜리를 주우면, 전엔 1개만 들어가고 2개가 증발했다.
+		///   그건 사람이 손해 보는 방향의 조용한 사고다 — 못 든 만큼은 그 자리에 그대로 있어야 한다.
+		///   <paramref name="amount"/> 가 0 이하면 다 가져간 것과 같다(자리는 비어 있는 채로 둔다).
+		/// </summary>
+		public void RestorePartial(int nodeId, int amount)
+		{
+			if (amount <= 0)
+				return;
+
+			lock (gate)
+			{
+				regrowAt.Remove(nodeId);
+				leftBehind[nodeId] = amount;
+				Version++;
 			}
 		}
 
@@ -177,6 +211,10 @@ namespace WitchMendokusai
 			{
 				foreach (KeyValuePair<int, int> pair in regrowAt)
 					saved.Add(new GatherTakenSaveEntry { nodeId = pair.Key, regrowAtMinute = pair.Value });
+
+				// 덜 가져간 자리도 적어 둔다 — 세계가 잠들었다 깨면 남은 개수가 도로 늘어나면 안 된다.
+				foreach (KeyValuePair<int, int> pair in leftBehind)
+					saved.Add(new GatherTakenSaveEntry { nodeId = pair.Key, regrowAtMinute = 0, remaining = pair.Value });
 			}
 
 			return saved;
@@ -211,6 +249,7 @@ namespace WitchMendokusai
 			lock (gate)
 			{
 				regrowAt.Clear();
+				leftBehind.Clear();
 				Version++;
 				if (saved == null)
 					return;
@@ -219,6 +258,13 @@ namespace WitchMendokusai
 				{
 					if (entry == null)
 						continue;
+
+					// 남은 개수가 적힌 줄은 「덜 가져간 자리」다 — 뽑힌 자리가 아니다.
+					if (entry.remaining > 0)
+					{
+						leftBehind[entry.nodeId] = entry.remaining;
+						continue;
+					}
 
 					regrowAt[entry.nodeId] = entry.regrowAtMinute;
 				}
@@ -254,7 +300,9 @@ namespace WitchMendokusai
 				X = gx * SPACING + offsetX,
 				Z = gz * SPACING + offsetZ,
 				ItemId = kind.itemId,
-				Amount = kind.amount < 1 ? 1 : kind.amount,
+				Amount = leftBehind.TryGetValue(id, out int left)
+					? left
+					: (kind.amount < 1 ? 1 : kind.amount),
 			};
 		}
 
@@ -281,5 +329,8 @@ namespace WitchMendokusai
 	{
 		public int nodeId;
 		public int regrowAtMinute;
+
+		/// <summary>덜 가져가서 그 자리에 남겨 둔 개수 (TASK-WM-217). 0 = 뽑힌 자리(옛 저장도 이 값).</summary>
+		public int remaining;
 	}
 }
