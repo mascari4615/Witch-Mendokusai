@@ -110,7 +110,12 @@ for (const row of golden.build) {
   check(`골든: ${row.case} (지을 수 있나)`, picker.canBuild(row.kind, row.bag), row.canBuild);
 }
 
-console.log(`[web-picker] 창의 고르개 계산 17가지 · 골든 표 ${golden.build.length}줄 확인`);
+for (const row of golden.craft) {
+  check(`골든(제작): ${row.case} (글)`, picker.craftLabel(row.recipe, row.bag, golden.itemNames), row.label);
+  check(`골든(제작): ${row.case} (만들 수 있나)`, picker.canCraft(row.recipe, row.bag), row.canCraft);
+}
+
+console.log(`[web-picker] 창의 고르개 계산 17가지 · 골든 표 ${golden.build.length + golden.craft.length}줄 확인`);
 
 if (failures.length === 0) {
   console.log('[web-picker] ✅ 보여 주는 글이 맞다');

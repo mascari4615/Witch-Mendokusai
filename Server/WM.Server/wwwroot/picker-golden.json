@@ -56,5 +56,42 @@
       "label": "· 낯선 것 — #77 0/2",
       "canBuild": false
     }
+  ],
+  "craft": [
+    {
+      "case": "반드시 되는 줄은 성공률을 안 붙인다",
+      "recipe": { "recipeId": 1, "name": "나무 판자", "percentage": 100, "itemIds": [0], "amounts": [3] },
+      "bag": [{ "itemId": 0, "amount": 3 }],
+      "label": "나무 판자 — 나무 3/3",
+      "canCraft": true
+    },
+    {
+      "case": "가끔 실패하는 줄은 성공률을 붙인다",
+      "recipe": { "recipeId": 15, "name": "벽돌", "percentage": 70, "itemIds": [4, 5], "amounts": [1, 1] },
+      "bag": [{ "itemId": 4, "amount": 1 }, { "itemId": 5, "amount": 1 }],
+      "label": "벽돌 (70%) — 석탄 1/1, 철광석 1/1",
+      "canCraft": true
+    },
+    {
+      "case": "재료가 모자라면 앞에 점이 붙는다",
+      "recipe": { "recipeId": 1, "name": "나무 판자", "percentage": 100, "itemIds": [0], "amounts": [3] },
+      "bag": [{ "itemId": 0, "amount": 1 }],
+      "label": "· 나무 판자 — 나무 1/3",
+      "canCraft": false
+    },
+    {
+      "case": "빈손이어도 나무(0번)는 0개로 보인다",
+      "recipe": { "recipeId": 1, "name": "나무 판자", "percentage": 100, "itemIds": [0], "amounts": [3] },
+      "bag": [],
+      "label": "· 나무 판자 — 나무 0/3",
+      "canCraft": false
+    },
+    {
+      "case": "이름을 모르면 번호로 버틴다",
+      "recipe": { "recipeId": 88, "name": "낯선 것", "percentage": 100, "itemIds": [88], "amounts": [1] },
+      "bag": [],
+      "label": "· 낯선 것 — #88 0/1",
+      "canCraft": false
+    }
   ]
 }

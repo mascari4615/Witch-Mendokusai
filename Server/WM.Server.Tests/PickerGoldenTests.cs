@@ -44,10 +44,29 @@ namespace WitchMendokusai.ServerTests
 			public bool canBuild { get; set; }
 		}
 
+		private sealed class GoldenRecipe
+		{
+			public int recipeId { get; set; }
+			public string name { get; set; }
+			public float percentage { get; set; }
+			public int[] itemIds { get; set; }
+			public int[] amounts { get; set; }
+		}
+
+		private sealed class GoldenCraftRow
+		{
+			public string @case { get; set; }
+			public GoldenRecipe recipe { get; set; }
+			public GoldenBag[] bag { get; set; }
+			public string label { get; set; }
+			public bool canCraft { get; set; }
+		}
+
 		private sealed class GoldenTable
 		{
 			public Dictionary<string, string> itemNames { get; set; }
 			public GoldenRow[] build { get; set; }
+			public GoldenCraftRow[] craft { get; set; }
 		}
 
 		[Test]
@@ -93,6 +112,42 @@ namespace WitchMendokusai.ServerTests
 
 				StringAssert.Contains(cost, row.label,
 					$"「{row.@case}」 — 게임이 보여 주는 재료({cost})가 웹의 글({row.label}) 안에 없다");
+			}
+		}
+
+		[Test]
+		public void 게임_쪽_제작_고르개가_골든_표와_같은_답을_낸다()
+		{
+			GoldenTable golden = Load();
+			Assert.IsNotNull(golden?.craft, "골든 표에 제작 줄이 없다");
+
+			foreach (GoldenCraftRow row in golden.craft)
+			{
+				CraftIngredientEntry[] items = new CraftIngredientEntry[row.recipe.itemIds.Length];
+				for (int i = 0; i < items.Length; i++)
+					items[i] = new CraftIngredientEntry { itemId = row.recipe.itemIds[i], amount = row.recipe.amounts[i] };
+
+				CraftRecipeEntry recipe = new CraftRecipeEntry
+				{
+					id = row.recipe.recipeId,
+					name = row.recipe.name,
+					percentage = row.recipe.percentage,
+					items = items,
+				};
+
+				Dictionary<int, int> bag = new Dictionary<int, int>();
+				foreach (GoldenBag carried in row.bag)
+					bag[carried.itemId] = carried.amount;
+
+				int Carrying(int itemId) => bag.TryGetValue(itemId, out int amount) ? amount : 0;
+				string Named(int itemId) =>
+					golden.itemNames.TryGetValue(itemId.ToString(), out string named) ? named : null;
+
+				Assert.AreEqual(row.canCraft, CraftAffordability.CanCraft(recipe, Carrying),
+					$"「{row.@case}」 — 만들 수 있나가 웹과 다르다");
+
+				Assert.AreEqual(row.label, CraftAffordability.Label(recipe, Carrying, Named),
+					$"「{row.@case}」 — 보여 주는 글이 웹과 다르다");
 			}
 		}
 

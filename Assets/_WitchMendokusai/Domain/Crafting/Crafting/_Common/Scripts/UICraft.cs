@@ -122,6 +122,19 @@ namespace WitchMendokusai
 			recipeGrid.UpdateUI();
 		}
 
+		/// <summary>세계의 제작표에서 그 줄을 찾는다 — 줄의 번호 = 결과 아이템 번호다.</summary>
+		private static CraftRecipeEntry FindWorldRecipe(int itemId)
+		{
+			System.Collections.Generic.IReadOnlyList<CraftRecipeEntry> book = WorldCraftBridge.Channel.Recipes;
+			for (int i = 0; book != null && i < book.Count; i++)
+			{
+				if (book[i] != null && book[i].id == itemId)
+					return book[i];
+			}
+
+			return null;
+		}
+
 		private void UpdateTooltip()
 		{
 			if (percentageText == null || priceText == null)
@@ -137,14 +150,29 @@ namespace WitchMendokusai
 			ItemData itemData = recipeGrid.Data[recipeGrid.CurSlotIndex];
 			Recipe recipe = itemData.Recipes[0];
 
-			// ★ 세계에 붙어 있으면 <b>세계가 판정한다</b> (TASK-WM-217): 재료 확인도, 성공 주사위도,
-			//   지급도. 여기서 게임이 굴리면 창을 고친 사람은 언제나 성공하고, 게임 창과 웹 창이
-			//   같은 재료로 서로 다른 결과를 본다(같은 세계가 아니게 된다).
-			//   제작 줄의 번호 = 결과 아이템 번호다.
+			// ★ 여기는 <b>보여 주기만</b> 하는 자리다 (실측 2026-08-10): 한때 이 자리에 「만들겠다」
+			//   요청이 들어가 있었다 — 툴팁이 갱신될 때마다 제작이 나갔다는 뜻이다(마우스만 옮겨도).
+			//   요청은 사람이 버튼을 눌렀을 때(TryCraft)만 나간다.
+			//
+			// 세계에 붙어 있으면 <b>세계가 아는 재료</b>를 보여 준다 — 웹 창과 같은 글이어야 하므로
+			// 계산은 판정 층(CraftAffordability)이 하고, 답은 골든 표가 묶는다.
 			if (WorldCraftBridge.IsActive)
 			{
-				WorldCraftBridge.Channel.Request(itemData.ID);
-				return;
+				CraftRecipeEntry world = FindWorldRecipe(itemData.ID);
+				if (world != null)
+				{
+					percentageText.text = CraftAffordability.NeedsText(
+						world,
+						id => SOManagerBridge.ItemInventory.CountByID(id),
+						id => SOHelper.Get<ItemData>(id)?.Name);
+
+					priceText.text = CraftAffordability.CanCraft(
+						world, id => SOManagerBridge.ItemInventory.CountByID(id))
+						? "만들 수 있다"
+						: "재료가 모자란다";
+
+					return;
+				}
 			}
 
 			percentageText.text = $"{recipe.Percentage}%";
