@@ -20,12 +20,22 @@ namespace WitchMendokusai.Net
 
 		public static void RegisterReceiver(IWorldNoticeReceiver worldNoticeReceiver) => receiver = worldNoticeReceiver;
 
+		/// <summary>
+		/// 세계가 마지막으로 「안 된다」고 한 말 (TASK-WM-217).
+		///
+		/// ★ 왜 남겨 두나: 관문(파수꾼)에는 화면이 없다. 그래서 거절이 오면 사람은 이유를 보는데
+		///   <b>기계는 아무것도 못 본 채</b> 「안 됐다」만 적었다 — 솥이 안 서는 판에서 그 이유를
+		///   찾느라 판을 몇 번씩 다시 구웠다. 마지막 한 마디만 들고 있으면 결과지에 그대로 적힌다.
+		/// </summary>
+		public static string LastNotice { get; private set; } = string.Empty;
+
 		/// <summary>보여 줄 곳이 없으면 조용히 흘린다 — 알림 하나 때문에 게임이 죽지 않는다.</summary>
 		public static void Deliver(string message)
 		{
 			if (string.IsNullOrWhiteSpace(message))
 				return;
 
+			LastNotice = message;
 			receiver?.ShowWorldNotice(message);
 		}
 	}

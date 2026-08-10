@@ -485,6 +485,8 @@ namespace WitchMendokusai
 				"pots=", potsSeen.ToString(CultureInfo.InvariantCulture), "\n",
 				"potsteps=", myPotSteps.ToString(CultureInfo.InvariantCulture), "\n",
 				"craftwhy=", craftWhy, "\n",
+				// 세계가 마지막으로 「안 된다」고 한 말 — 관문에는 화면이 없어 이게 없으면 이유를 못 본다.
+				"denied=", WorldNoticeBridge.LastNotice, "\n",
 				"reason=", reason, "\n");
 
 			try
