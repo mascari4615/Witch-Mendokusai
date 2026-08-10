@@ -44,6 +44,8 @@ namespace WitchMendokusai
 		private WorldLinkBuildChannel buildChannel;
 		private WorldLinkBrewChannel brewChannel;
 		private WorldLinkCraftChannel craftChannel;
+		private WorldLinkChestChannel chestChannel;
+		private WorldLinkNameChannel nameChannel;
 		private WorldBagRelay bagRelay;
 
 		/// <summary>지금 이어진 줄. 아직 안 들어갔으면 null.</summary>
@@ -135,6 +137,14 @@ namespace WitchMendokusai
 			craftChannel = new WorldLinkCraftChannel(Current);
 			WorldCraftBridge.Register(craftChannel);
 
+			// 상자·이름도 게임 화면이 쓸 수 있어야 한다 (TASK-WM-217/218) — 웹 창에만 있으면
+			// 「같이 노는 세계」의 알맹이(나눔·누가 누군지)가 한쪽 창에만 있는 셈이다.
+			chestChannel = new WorldLinkChestChannel(Current);
+			WorldChestBridge.Register(chestChannel);
+
+			nameChannel = new WorldLinkNameChannel(Current);
+			WorldNameBridge.Register(nameChannel);
+
 			bagRelay = new WorldBagRelay(Current);
 			WorldBagBridge.Register(bagRelay);
 
@@ -183,6 +193,18 @@ namespace WitchMendokusai
 			{
 				SharedBuildChannelBridge.Clear(buildChannel);
 				buildChannel = null;
+			}
+
+			if (chestChannel != null)
+			{
+				WorldChestBridge.Clear(chestChannel);
+				chestChannel = null;
+			}
+
+			if (nameChannel != null)
+			{
+				WorldNameBridge.Clear(nameChannel);
+				nameChannel = null;
 			}
 
 			if (craftChannel != null)

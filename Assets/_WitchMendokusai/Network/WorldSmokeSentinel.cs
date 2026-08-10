@@ -62,6 +62,7 @@ namespace WitchMendokusai
 		private int potsSeen;
 		private int myPotSteps;
 		private string craftWhy = string.Empty;
+		private bool crafted;
 		private int completedItemId;
 		private bool completed;
 		private float stepCooldown;
@@ -280,7 +281,9 @@ namespace WitchMendokusai
 				return;
 			}
 
-			if (craftedItemId == 0)
+			// ⚠ 「만들었나」를 번호로 판단하지 않는다: 게임의 <b>나무가 0번</b>이라, 나무를 만든 판이
+			//   「아무것도 안 만들었다」로 읽힌다(줍기에서 이미 한 번 밟은 함정이다).
+			if (crafted == false)
 			{
 				CraftedMessage made = link.TakeCraftResult();
 				if (made != null)
@@ -288,7 +291,10 @@ namespace WitchMendokusai
 					// 왜 못 만들었는지도 적는다 — 「0」만 남으면 재료가 없던 건지 주사위를 진 건지 모른다.
 					craftWhy = made.succeeded ? "made" : (made.attempted ? "lost the dice" : made.denied);
 					if (made.succeeded)
+					{
+						crafted = true;
 						craftedItemId = made.itemId;
+					}
 				}
 			}
 
@@ -459,7 +465,8 @@ namespace WitchMendokusai
 				"worldname=", NameInWorld(link), "\n",
 				// 제작을 청해 무엇이 나왔나 · 솥은 실제로 섰고 저은 자국이 남았나.
 				// potion=0 일 때 <b>어디서 끊겼는지</b>를 남긴다 — 없으면 매번 처음부터 추측한다.
-				"crafted=", craftedItemId.ToString(CultureInfo.InvariantCulture), "\n",
+				"crafted=", crafted ? "1" : "0", "\n",
+				"crafteditem=", craftedItemId.ToString(CultureInfo.InvariantCulture), "\n",
 				"pots=", potsSeen.ToString(CultureInfo.InvariantCulture), "\n",
 				"potsteps=", myPotSteps.ToString(CultureInfo.InvariantCulture), "\n",
 				"craftwhy=", craftWhy, "\n",

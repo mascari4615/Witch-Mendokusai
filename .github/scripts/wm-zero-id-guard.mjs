@@ -70,7 +70,10 @@ for (const file of files) {
     if (SUSPECT.test(lines[i]) === false) continue;
     if (EXEMPT.test(lines[i]) || (i > 0 && EXEMPT.test(lines[i - 1]))) continue;
 
-    hits.push(`${file.replace(`${umbrella}/`, '')}:${i + 1}\n      ${lines[i].trim()}`);
+    // ★ 저장소 뿌리를 기준으로 짧게 적는다. 여기가 옛 이름(umbrella)을 그대로 들고 있어서,
+    //   <b>위반이 처음 생긴 순간 검사기가 터졌다</b> — 위반 0 인 동안에는 아무도 몰랐다.
+    //   보고하는 자리는 위반이 있을 때만 도니까, 그 자리도 한 번은 밟아 봐야 한다.
+    hits.push(`${file.replace(repo + '\\', '').replace(repo + '/', '')}:${i + 1}\n      ${lines[i].trim()}`);
   }
 }
 
