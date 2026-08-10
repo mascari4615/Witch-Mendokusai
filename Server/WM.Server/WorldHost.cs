@@ -157,7 +157,7 @@ namespace WitchMendokusai.Server
 				}
 
 				WebSocket socket = await context.WebSockets.AcceptWebSocketAsync();
-				await ServeAsync(socket);
+				await ServeAsync(socket, app.Lifetime.ApplicationStopping);
 			});
 
 			// 세계는 서버보다 오래 산다 (단계 5) — 뜨자마자 지난 기억을 되살린다.
@@ -180,7 +180,7 @@ namespace WitchMendokusai.Server
 			return app;
 		}
 
-		private async Task ServeAsync(WebSocket socket)
+		private async Task ServeAsync(WebSocket socket, CancellationToken stopping)
 		{
 			// ★ 먼저 받아 주고, 열쇠는 오면 그때 붙인다 (TASK-WM-218).
 			//   「인사를 받고 나서 인형을 준다」로 했더니 인사 안 하는 옛 창이 영영 환영을 못 받고
@@ -224,9 +224,9 @@ namespace WitchMendokusai.Server
 			byte[] buffer = new byte[4096];
 			try
 			{
-				while (socket.State == WebSocketState.Open)
+				while (socket.State == WebSocketState.Open && stopping.IsCancellationRequested == false)
 				{
-					string text = await ReceiveTextAsync(socket, buffer);
+					string text = await ReceiveTextAsync(socket, buffer, stopping);
 					if (text == null)
 						break;
 
@@ -367,11 +367,11 @@ namespace WitchMendokusai.Server
 		}
 
 		/// <summary>한 마디 받는다. 닫히면 null.</summary>
-		private static async Task<string> ReceiveTextAsync(WebSocket socket, byte[] buffer)
+		private static async Task<string> ReceiveTextAsync(WebSocket socket, byte[] buffer, CancellationToken stopping)
 		{
 			try
 			{
-				WebSocketReceiveResult received = await socket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
+				WebSocketReceiveResult received = await socket.ReceiveAsync(new ArraySegment<byte>(buffer), stopping);
 				if (received.MessageType == WebSocketMessageType.Close)
 					return null;
 
@@ -379,6 +379,13 @@ namespace WitchMendokusai.Server
 			}
 			catch (WebSocketException)
 			{
+				return null;
+			}
+			catch (OperationCanceledException)
+			{
+				// ★ 세계가 닫히는 중이다 — 이 사람의 다음 말을 더 기다리지 않는다 (TASK-WM-217).
+				//   전에는 <b>사람이 한 명만 붙어 있어도 서버가 멎는 데 30초</b>가 걸렸다(실측):
+				//   수신이 「영원히」로 걸려 있어 종료가 그 대기를 붙잡았다. 배포마다 그만큼 세계가 닫힌다.
 				return null;
 			}
 		}
