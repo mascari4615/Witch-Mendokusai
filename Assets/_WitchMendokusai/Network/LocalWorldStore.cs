@@ -14,7 +14,24 @@ namespace WitchMendokusai
 		private const string FILE_NAME = "world.json";
 
 		/// <summary>기기마다 다른 자리 — 유니티가 정해 주는 저장 폴더.</summary>
-		public static string Path => System.IO.Path.Combine(Application.persistentDataPath, FILE_NAME);
+		/// <summary>
+		/// 내 안의 세계가 적히는 자리.
+		///
+		/// ★ 환경변수 <c>WM_LOCAL_WORLD_FILE</c> 로 바꿀 수 있다 (TASK-WM-217, 실측 2026-08-10):
+		///   관문이 <b>사람이 놀던 그 세계</b>에 그대로 들어가고 있었다. 판을 돌릴수록 들판이 고갈돼
+		///   (뽑아 간 자리 46곳) 결국 「아무것도 못 줍는다」로 빨개졌다 — 코드는 멀쩡한데
+		///   <b>검사가 자기가 남긴 흔적에 걸려 넘어지는</b> 구조였다. 관문은 자기 세계에서 재야 한다.
+		/// </summary>
+		public static string Path
+		{
+			get
+			{
+				string chosen = System.Environment.GetEnvironmentVariable("WM_LOCAL_WORLD_FILE");
+				return string.IsNullOrWhiteSpace(chosen)
+					? System.IO.Path.Combine(Application.persistentDataPath, FILE_NAME)
+					: chosen;
+			}
+		}
 
 		/// <summary>바로 앞 판 — 지금 것이 깨졌을 때 돌아갈 자리 (TASK-WM-218).</summary>
 		public static string BackupPath => Path + ".bak";
