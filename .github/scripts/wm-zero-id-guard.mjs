@@ -27,6 +27,11 @@ const ROOTS = [
 const SUSPECT = /\b\w*[Ii]tem\w*Id\s*(==|!=)\s*0\b/;
 const EXEMPT = /zero-id-ok/;
 
+// ★ 웹 창(자바스크립트)도 같은 함정을 밟는다 (실측 2026-08-10): 창은 `=== 0` 을 쓰고,
+//   여기엔 <b>건물 번호</b>까지 걸린다 — 「아직 안 골랐다」를 0 으로 쓰면 건물 0번(가문의 나무)만
+//   영영 못 짓는다. 실제로 그 상태였고, 나무가 나온 조리는 「아무것도 못 얻었다」로 표시됐다.
+const SUSPECT_WEB = /\b(\w*[Ii]tem\w*Id|picked\w*|\w*[Bb]uildingId)\s*(===|!==|==|!=)\s*0\b/;
+
 // 저장소 안에서 자기 위치로 뿌리를 잡는다 — 남의 기계·CI 어디서도 돈다
 // (memo 에 두었더니 리눅스 러너에서 파일을 못 찾아 게이트가 통째로 안 돌았다).
 const here = fileURLToPath(new URL('.', import.meta.url));
@@ -40,7 +45,10 @@ function listFiles() {
         encoding: 'utf8',
       });
       for (const line of listed.split('\n')) {
-        if (line.trim().endsWith('.cs')) out.push(resolve(repo, line.trim()));
+        const path = line.trim();
+
+        // 웹 창도 같은 함정을 밟는다 — 창 하나가 조용히 그 종류를 지운다.
+        if (path.endsWith('.cs') || path.endsWith('.html')) out.push(resolve(repo, path));
       }
     } catch {
       // 목록을 못 얻으면 아래에서 「못 돌림」으로 끝난다.
@@ -66,8 +74,9 @@ for (const file of files) {
   }
 
   const lines = text.split('\n');
+  const rule = file.endsWith('.html') ? SUSPECT_WEB : SUSPECT;
   for (let i = 0; i < lines.length; i++) {
-    if (SUSPECT.test(lines[i]) === false) continue;
+    if (rule.test(lines[i]) === false) continue;
     if (EXEMPT.test(lines[i]) || (i > 0 && EXEMPT.test(lines[i - 1]))) continue;
 
     // ★ 저장소 뿌리를 기준으로 짧게 적는다. 여기가 옛 이름(umbrella)을 그대로 들고 있어서,

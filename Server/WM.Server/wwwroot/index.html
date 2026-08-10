@@ -180,12 +180,15 @@ let buildings = [];
 let gatherables = [];
 let bag = [];
 let buildKinds = [];      // 지을 수 있는 것 — 들어올 때 한 번 받는다.
-let pickedBuilding = 0;
+// ⚠ 「아직 안 골랐다」를 0 으로 쓰면 안 된다 — 건물 0번(가문의 나무)이 실재해서 그것만 못 짓는다.
+let pickedBuilding = null;
 let brewShelf = [];       // 솥에 넣을 수 있는 재료 — 들어올 때 한 번 받는다.
-let pickedIngredient = 0;
+// ⚠ 「아직 안 골랐다」를 0 으로 쓰면 나무(0번)를 솥에 못 넣는다 — 가장 흔한 재료가 막힌다.
+let pickedIngredient = null;
 let spellbook = [];       // 마도서 — 무엇을 만들 수 있나(들어올 때 한 번)
 let craftBook = [];       // 제작표 — 재료를 모아 만드는 것(솥과 갈라지는 자리)
-let pickedRecipe = 0;
+// ⚠ 제작 줄의 번호 = 결과 아이템 번호다 — 0 을 「안 골랐다」로 쓰면 나무를 만드는 줄이 막힌다.
+let pickedRecipe = null;
 let cauldrons = [];       // 지은 자리마다의 솥
 let myPot = null;         // 지금 쓰는 솥의 자리 (없으면 옛 전역 솥)
 let openChest = null;     // 지금 열어 둔 상자의 자리 (없으면 null)
@@ -345,7 +348,7 @@ socket.onmessage = (event) => {
 			picker.appendChild(option);
 		}
 
-		pickedIngredient = brewShelf.length > 0 ? brewShelf[0].itemId : 0;
+		pickedIngredient = brewShelf.length > 0 ? brewShelf[0].itemId : null;
 		picker.value = pickedIngredient;
 		return;
 	}
@@ -407,7 +410,9 @@ socket.onmessage = (event) => {
 
 	if (message.type === 'brewtaken') {
 		// 무엇이 나왔는지는 세계가 정해서 보내 준다 — 창이 우기지 않는다.
-		if (message.itemId === 0) {
+		// ⚠ 「못 닿았다」를 itemId 0 으로 읽으면 안 된다: 게임의 나무가 0번이라,
+		//   나무가 나오는 쪽에 닿은 판이 「아무것도 못 얻었다」로 표시된다. 개수로 본다.
+		if (message.amount === 0) {
 			statusElement.textContent = `${message.steps}번 저었지만 아무 쪽에도 못 닿았다 — 솥만 비었다`;
 		} else {
 			const name = itemNames[message.itemId] || `#${message.itemId}`;
@@ -552,7 +557,7 @@ function placeAt(clientX, clientY) {
 	}
 
 	const hits = raycaster.intersectObject(ground);
-	if (hits.length === 0 || pickedBuilding === 0) return;
+	if (hits.length === 0 || pickedBuilding === null) return;
 
 	const point = hits[0].point;
 	const cellX = Math.floor(point.x);
@@ -635,7 +640,7 @@ function drawBuildPicker() {
 		picker.appendChild(option);
 	}
 
-	pickedBuilding = chosen !== 0 ? chosen : buildKinds[0].buildingId;
+	pickedBuilding = chosen !== null ? chosen : buildKinds[0].buildingId;
 	picker.value = pickedBuilding;
 }
 
@@ -669,7 +674,7 @@ function drawCraftPicker() {
 		picker.appendChild(option);
 	}
 
-	pickedRecipe = chosen !== 0 ? chosen : craftBook[0].recipeId;
+	pickedRecipe = chosen !== null ? chosen : craftBook[0].recipeId;
 	picker.value = pickedRecipe;
 }
 
@@ -921,12 +926,12 @@ document.getElementById('craftpick').addEventListener('change', (event) => {
 
 document.getElementById('make').addEventListener('click', () => {
 	// 되나 안 되나는 세계가 정한다 — 창은 「이 줄대로 만들겠다」만 말한다.
-	if (socket.readyState !== WebSocket.OPEN || pickedRecipe === 0) return;
+	if (socket.readyState !== WebSocket.OPEN || pickedRecipe === null) return;
 	socket.send(JSON.stringify({ type: 'craft', recipeId: pickedRecipe }));
 });
 
 document.getElementById('stir').addEventListener('click', () => {
-	if (socket.readyState !== WebSocket.OPEN || pickedIngredient === 0) return;
+	if (socket.readyState !== WebSocket.OPEN || pickedIngredient === null) return;
 	socket.send(JSON.stringify(myPot === null
 		? { type: 'brew', itemId: pickedIngredient }
 		: { type: 'brew', itemId: pickedIngredient, ...myPot }));
