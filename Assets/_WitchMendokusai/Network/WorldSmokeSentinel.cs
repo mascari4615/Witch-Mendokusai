@@ -84,6 +84,8 @@ namespace WitchMendokusai
 		private bool bigPlaced;
 		private int bigWidth;
 		private int bigLength;
+		private bool bigRemoved;
+		private bool bigGone;
 		private bool chestFilled;
 		private bool potPlaced;
 		private int chestSeenAmount;
@@ -318,6 +320,35 @@ namespace WitchMendokusai
 					bigLength = standing[i].l;
 					break;
 				}
+
+				return; // 아직 세계가 안 세웠다 — 다음 걸음에 다시 본다.
+			}
+
+			// ★ <b>부수기</b>도 진짜 판으로 잰다 (TASK-WM-217 ④): 짓기만 재고 부수기를 안 재면,
+			//   「지은 것을 무를 수 없는 세계」가 초록으로 지나간다. 부순 자리는 <b>비어야</b> 하고
+			//   (안 그러면 그 칸에 영영 못 짓는다) 재료도 절반 돌아와야 한다.
+			if (bigRemoved == false)
+			{
+				link.RequestRemove(chestX, 0, chestZ + 3);
+				bigRemoved = true;
+				return;
+			}
+
+			if (bigGone == false)
+			{
+				bool stillThere = false;
+				BuildingView[] standing = link.Buildings;
+				for (int i = 0; standing != null && i < standing.Length; i++)
+				{
+					if (standing[i] != null && standing[i].buildingId == BIG_BUILDING_ID)
+						stillThere = true;
+				}
+
+				if (stillThere)
+					return; // 세계가 아직 안 지웠다 — 기다린다(거절이면 마감이 잡는다).
+
+				bigGone = true;
+				return;
 			}
 
 			// ★ 제작은 <b>솥에 넣은 뒤에</b> 청한다 (실측 2026-08-10): 조리보다 먼저 청했더니
@@ -527,6 +558,8 @@ namespace WitchMendokusai
 				// 세계가 그 여러 칸 건물을 몇 칸으로 아나 — 1×1 로 접히면 여기서 드러난다.
 				"bigw=", bigWidth.ToString(CultureInfo.InvariantCulture), "\n",
 				"bigl=", bigLength.ToString(CultureInfo.InvariantCulture), "\n",
+				// 부순 자리가 실제로 비었나 — 안 비면 그 칸에 영영 못 짓는다.
+				"biggone=", bigGone ? "1" : "0", "\n",
 				"reason=", reason, "\n");
 
 			try
