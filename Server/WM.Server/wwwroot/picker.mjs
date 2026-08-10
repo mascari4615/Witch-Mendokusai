@@ -58,6 +58,36 @@ export function craftLabel(recipe, bag, names) {
 	return `${enough ? '' : '· '}${recipe.name}${luck} — ${needs.join(', ')}`;
 }
 
+/**
+ * 지금 <b>어느 쪽을 노리고 있나</b> — 저은 자리에서 가장 가까운 마도서 쪽.
+ *
+ * ★ 이게 없으면 사람은 「무엇을 만드는 중인지」 모른 채 젓는다. 세계가 완성을 채점할 때도
+ *   「닿았나」를 보므로, 가장 가까운 쪽을 말해 주면 화면이 세계와 같은 것을 가리킨다.
+ *   같은 규칙이 판정 층(WorldSpellbookView)에도 있다 — 답은 골든 표가 묶는다.
+ */
+export function aimingText(spellbook, at) {
+	if (Array.isArray(spellbook) === false || spellbook.length === 0)
+		return '마도서가 비었다';
+
+	const here = at || { x: 0, y: 0 };
+	let closest = null;
+	let closestGap = Infinity;
+
+	for (const page of spellbook) {
+		const gap = Math.hypot(page.x - here.x, page.y - here.y);
+
+		// 같은 거리면 먼저 적힌 쪽 — 목표가 프레임마다 흔들리면 사람은 조준을 못 한다.
+		if (gap >= closestGap) continue;
+
+		closestGap = gap;
+		closest = page;
+	}
+
+	return closestGap <= closest.radius
+		? `지금 멈추면 → ${closest.name} ${closest.amount}개`
+		: `${closest.name} 까지 ${closestGap.toFixed(2)}`;
+}
+
 /** 지금 그 줄대로 만들 수 있나 — 재료만 본다(주사위는 세계가 굴린다). */
 export function canCraft(recipe, bag) {
 	const itemIds = recipe.itemIds || [];

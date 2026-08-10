@@ -115,7 +115,18 @@ for (const row of golden.craft) {
   check(`골든(제작): ${row.case} (만들 수 있나)`, picker.canCraft(row.recipe, row.bag), row.canCraft);
 }
 
-console.log(`[web-picker] 창의 고르개 계산 17가지 · 골든 표 ${golden.build.length + golden.craft.length}줄 확인`);
+// 겨냥 — 세계의 마도서 쪽은 `targetX/targetY` 로 적힌다. 창은 그것을 x/y 로 받아 그린다.
+for (const row of golden.aim) {
+  const pages = row.pages.map((page) => ({
+    id: page.id, name: page.name, x: page.targetX, y: page.targetY,
+    radius: page.radius, amount: page.amount,
+  }));
+
+  check(`골든(겨냥): ${row.case}`, picker.aimingText(pages, row.at), row.text);
+}
+
+console.log(`[web-picker] 창의 고르개 계산 17가지 · 골든 표 `
+  + `${golden.build.length + golden.craft.length + golden.aim.length}줄 확인`);
 
 if (failures.length === 0) {
   console.log('[web-picker] ✅ 보여 주는 글이 맞다');

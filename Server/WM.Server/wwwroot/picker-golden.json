@@ -1,97 +1,356 @@
 {
-  "why": [
-    "두 창(웹 JS · 게임 C#)이 같은 규칙을 두 벌로 들고 있다 (TASK-WM-217).",
-    "두 벌은 언젠가 갈라진다 — 그러면 같은 세계에서 웹은 「지을 수 있다」, 게임은 「못 짓는다」가 된다.",
-    "그래서 답을 여기 한 곳에 적어 두고, 양쪽 시험이 각자 이 표와 대조한다.",
-    "규칙을 바꾸려면 이 파일부터 바꾼다 — 그러면 안 고친 쪽이 그 자리에서 빨개진다."
-  ],
-  "itemNames": { "0": "나무", "4": "석탄", "5": "철광석" },
-  "build": [
-    {
-      "case": "재료가 넉넉하다",
-      "kind": { "buildingId": 4005, "name": "보관 상자", "w": 1, "l": 1, "costItemId": 0, "costAmount": 2 },
-      "bag": [{ "itemId": 0, "amount": 5 }],
-      "label": "보관 상자 — 나무 5/2",
-      "canBuild": true
-    },
-    {
-      "case": "재료가 딱 맞다 — 지을 수 있어야 한다",
-      "kind": { "buildingId": 4005, "name": "보관 상자", "w": 1, "l": 1, "costItemId": 0, "costAmount": 2 },
-      "bag": [{ "itemId": 0, "amount": 2 }],
-      "label": "보관 상자 — 나무 2/2",
-      "canBuild": true
-    },
-    {
-      "case": "재료가 모자라면 앞에 점이 붙는다",
-      "kind": { "buildingId": 4005, "name": "보관 상자", "w": 1, "l": 1, "costItemId": 0, "costAmount": 2 },
-      "bag": [{ "itemId": 0, "amount": 1 }],
-      "label": "· 보관 상자 — 나무 1/2",
-      "canBuild": false
-    },
-    {
-      "case": "빈손이어도 나무(0번)는 0개로 보인다 — 「없음」이 아니다",
-      "kind": { "buildingId": 4005, "name": "보관 상자", "w": 1, "l": 1, "costItemId": 0, "costAmount": 2 },
-      "bag": [],
-      "label": "· 보관 상자 — 나무 0/2",
-      "canBuild": false
-    },
-    {
-      "case": "여러 칸 건물은 크기를 같이 보여 준다",
-      "kind": { "buildingId": 3, "name": "임시 블럭", "w": 2, "l": 2, "costItemId": 0, "costAmount": 2 },
-      "bag": [{ "itemId": 0, "amount": 2 }],
-      "label": "임시 블럭 2×2 — 나무 2/2",
-      "canBuild": true
-    },
-    {
-      "case": "공짜인 것에는 재료를 안 붙인다",
-      "kind": { "buildingId": 9, "name": "공짜 것", "w": 1, "l": 1, "costItemId": 0, "costAmount": 0 },
-      "bag": [],
-      "label": "공짜 것",
-      "canBuild": true
-    },
-    {
-      "case": "이름을 모르면 번호로 버틴다",
-      "kind": { "buildingId": 77, "name": "낯선 것", "w": 1, "l": 1, "costItemId": 77, "costAmount": 2 },
-      "bag": [],
-      "label": "· 낯선 것 — #77 0/2",
-      "canBuild": false
-    }
-  ],
-  "craft": [
-    {
-      "case": "반드시 되는 줄은 성공률을 안 붙인다",
-      "recipe": { "recipeId": 1, "name": "나무 판자", "percentage": 100, "itemIds": [0], "amounts": [3] },
-      "bag": [{ "itemId": 0, "amount": 3 }],
-      "label": "나무 판자 — 나무 3/3",
-      "canCraft": true
-    },
-    {
-      "case": "가끔 실패하는 줄은 성공률을 붙인다",
-      "recipe": { "recipeId": 15, "name": "벽돌", "percentage": 70, "itemIds": [4, 5], "amounts": [1, 1] },
-      "bag": [{ "itemId": 4, "amount": 1 }, { "itemId": 5, "amount": 1 }],
-      "label": "벽돌 (70%) — 석탄 1/1, 철광석 1/1",
-      "canCraft": true
-    },
-    {
-      "case": "재료가 모자라면 앞에 점이 붙는다",
-      "recipe": { "recipeId": 1, "name": "나무 판자", "percentage": 100, "itemIds": [0], "amounts": [3] },
-      "bag": [{ "itemId": 0, "amount": 1 }],
-      "label": "· 나무 판자 — 나무 1/3",
-      "canCraft": false
-    },
-    {
-      "case": "빈손이어도 나무(0번)는 0개로 보인다",
-      "recipe": { "recipeId": 1, "name": "나무 판자", "percentage": 100, "itemIds": [0], "amounts": [3] },
-      "bag": [],
-      "label": "· 나무 판자 — 나무 0/3",
-      "canCraft": false
-    },
-    {
-      "case": "이름을 모르면 번호로 버틴다",
-      "recipe": { "recipeId": 88, "name": "낯선 것", "percentage": 100, "itemIds": [88], "amounts": [1] },
-      "bag": [],
-      "label": "· 낯선 것 — #88 0/1",
-      "canCraft": false
-    }
-  ]
+	"why": "두 창(웹 JS · 게임 C#)이 같은 규칙을 두 벌로 들고 있다 (TASK-WM-217).,두 벌은 언젠가 갈라진다 — 그러면 같은 세계에서 웹은 「지을 수 있다」, 게임은 「못 짓는다」가 된다.,그래서 답을 여기 한 곳에 적어 두고, 양쪽 시험이 각자 이 표와 대조한다.,규칙을 바꾸려면 이 파일부터 바꾼다 — 그러면 안 고친 쪽이 그 자리에서 빨개진다. | aim = 「지금 무엇을 만드는 중인가」 — 이게 갈라지면 화면과 세계가 다른 것을 가리킨다.",
+	"itemNames": {
+		"0": "나무",
+		"4": "석탄",
+		"5": "철광석"
+	},
+	"build": [
+		{
+			"case": "재료가 넉넉하다",
+			"kind": {
+				"buildingId": 4005,
+				"name": "보관 상자",
+				"w": 1,
+				"l": 1,
+				"costItemId": 0,
+				"costAmount": 2
+			},
+			"bag": [
+				{
+					"itemId": 0,
+					"amount": 5
+				}
+			],
+			"label": "보관 상자 — 나무 5/2",
+			"canBuild": true
+		},
+		{
+			"case": "재료가 딱 맞다 — 지을 수 있어야 한다",
+			"kind": {
+				"buildingId": 4005,
+				"name": "보관 상자",
+				"w": 1,
+				"l": 1,
+				"costItemId": 0,
+				"costAmount": 2
+			},
+			"bag": [
+				{
+					"itemId": 0,
+					"amount": 2
+				}
+			],
+			"label": "보관 상자 — 나무 2/2",
+			"canBuild": true
+		},
+		{
+			"case": "재료가 모자라면 앞에 점이 붙는다",
+			"kind": {
+				"buildingId": 4005,
+				"name": "보관 상자",
+				"w": 1,
+				"l": 1,
+				"costItemId": 0,
+				"costAmount": 2
+			},
+			"bag": [
+				{
+					"itemId": 0,
+					"amount": 1
+				}
+			],
+			"label": "· 보관 상자 — 나무 1/2",
+			"canBuild": false
+		},
+		{
+			"case": "빈손이어도 나무(0번)는 0개로 보인다 — 「없음」이 아니다",
+			"kind": {
+				"buildingId": 4005,
+				"name": "보관 상자",
+				"w": 1,
+				"l": 1,
+				"costItemId": 0,
+				"costAmount": 2
+			},
+			"bag": [],
+			"label": "· 보관 상자 — 나무 0/2",
+			"canBuild": false
+		},
+		{
+			"case": "여러 칸 건물은 크기를 같이 보여 준다",
+			"kind": {
+				"buildingId": 3,
+				"name": "임시 블럭",
+				"w": 2,
+				"l": 2,
+				"costItemId": 0,
+				"costAmount": 2
+			},
+			"bag": [
+				{
+					"itemId": 0,
+					"amount": 2
+				}
+			],
+			"label": "임시 블럭 2×2 — 나무 2/2",
+			"canBuild": true
+		},
+		{
+			"case": "공짜인 것에는 재료를 안 붙인다",
+			"kind": {
+				"buildingId": 9,
+				"name": "공짜 것",
+				"w": 1,
+				"l": 1,
+				"costItemId": 0,
+				"costAmount": 0
+			},
+			"bag": [],
+			"label": "공짜 것",
+			"canBuild": true
+		},
+		{
+			"case": "이름을 모르면 번호로 버틴다",
+			"kind": {
+				"buildingId": 77,
+				"name": "낯선 것",
+				"w": 1,
+				"l": 1,
+				"costItemId": 77,
+				"costAmount": 2
+			},
+			"bag": [],
+			"label": "· 낯선 것 — #77 0/2",
+			"canBuild": false
+		}
+	],
+	"craft": [
+		{
+			"case": "반드시 되는 줄은 성공률을 안 붙인다",
+			"recipe": {
+				"recipeId": 1,
+				"name": "나무 판자",
+				"percentage": 100,
+				"itemIds": [
+					0
+				],
+				"amounts": [
+					3
+				]
+			},
+			"bag": [
+				{
+					"itemId": 0,
+					"amount": 3
+				}
+			],
+			"label": "나무 판자 — 나무 3/3",
+			"canCraft": true
+		},
+		{
+			"case": "가끔 실패하는 줄은 성공률을 붙인다",
+			"recipe": {
+				"recipeId": 15,
+				"name": "벽돌",
+				"percentage": 70,
+				"itemIds": [
+					4,
+					5
+				],
+				"amounts": [
+					1,
+					1
+				]
+			},
+			"bag": [
+				{
+					"itemId": 4,
+					"amount": 1
+				},
+				{
+					"itemId": 5,
+					"amount": 1
+				}
+			],
+			"label": "벽돌 (70%) — 석탄 1/1, 철광석 1/1",
+			"canCraft": true
+		},
+		{
+			"case": "재료가 모자라면 앞에 점이 붙는다",
+			"recipe": {
+				"recipeId": 1,
+				"name": "나무 판자",
+				"percentage": 100,
+				"itemIds": [
+					0
+				],
+				"amounts": [
+					3
+				]
+			},
+			"bag": [
+				{
+					"itemId": 0,
+					"amount": 1
+				}
+			],
+			"label": "· 나무 판자 — 나무 1/3",
+			"canCraft": false
+		},
+		{
+			"case": "빈손이어도 나무(0번)는 0개로 보인다",
+			"recipe": {
+				"recipeId": 1,
+				"name": "나무 판자",
+				"percentage": 100,
+				"itemIds": [
+					0
+				],
+				"amounts": [
+					3
+				]
+			},
+			"bag": [],
+			"label": "· 나무 판자 — 나무 0/3",
+			"canCraft": false
+		},
+		{
+			"case": "이름을 모르면 번호로 버틴다",
+			"recipe": {
+				"recipeId": 88,
+				"name": "낯선 것",
+				"percentage": 100,
+				"itemIds": [
+					88
+				],
+				"amounts": [
+					1
+				]
+			},
+			"bag": [],
+			"label": "· 낯선 것 — #88 0/1",
+			"canCraft": false
+		}
+	],
+	"aim": [
+		{
+			"case": "닿았으면 「지금 멈추면 뭐가 나오나」를 말한다",
+			"pages": [
+				{
+					"id": 1,
+					"name": "치유 물약",
+					"targetX": 0,
+					"targetY": 0.5,
+					"radius": 0.4,
+					"amount": 2
+				},
+				{
+					"id": 2,
+					"name": "석재",
+					"targetX": 0,
+					"targetY": 2,
+					"radius": 0.8,
+					"amount": 1
+				}
+			],
+			"at": {
+				"x": 0,
+				"y": 0.5
+			},
+			"aimedId": 1,
+			"text": "지금 멈추면 → 치유 물약 2개"
+		},
+		{
+			"case": "아직 못 닿았으면 남은 거리를 말한다 (반경 0.4 인데 0.6 남음)",
+			"pages": [
+				{
+					"id": 1,
+					"name": "치유 물약",
+					"targetX": 0,
+					"targetY": 0.5,
+					"radius": 0.4,
+					"amount": 2
+				},
+				{
+					"id": 2,
+					"name": "석재",
+					"targetX": 0,
+					"targetY": 2,
+					"radius": 0.8,
+					"amount": 1
+				}
+			],
+			"at": {
+				"x": 0,
+				"y": 1.1
+			},
+			"aimedId": 1,
+			"text": "치유 물약 까지 0.60"
+		},
+		{
+			"case": "안 저었으면 가장 가까운 쪽을 노린다",
+			"pages": [
+				{
+					"id": 1,
+					"name": "치유 물약",
+					"targetX": 0,
+					"targetY": 0.5,
+					"radius": 0.4,
+					"amount": 2
+				},
+				{
+					"id": 2,
+					"name": "석재",
+					"targetX": 0,
+					"targetY": 2,
+					"radius": 0.8,
+					"amount": 1
+				}
+			],
+			"at": {
+				"x": 0,
+				"y": 0
+			},
+			"aimedId": 1,
+			"text": "치유 물약 까지 0.50"
+		},
+		{
+			"case": "같은 거리면 먼저 적힌 쪽 — 목표가 흔들리면 조준을 못 한다",
+			"pages": [
+				{
+					"id": 7,
+					"name": "왼쪽",
+					"targetX": -1,
+					"targetY": 0,
+					"radius": 0.2,
+					"amount": 1
+				},
+				{
+					"id": 8,
+					"name": "오른쪽",
+					"targetX": 1,
+					"targetY": 0,
+					"radius": 0.2,
+					"amount": 1
+				}
+			],
+			"at": {
+				"x": 0,
+				"y": 0
+			},
+			"aimedId": 7,
+			"text": "왼쪽 까지 1.00"
+		},
+		{
+			"case": "마도서가 비면 노릴 것이 없다",
+			"pages": [],
+			"at": {
+				"x": 0,
+				"y": 0
+			},
+			"aimedId": 0,
+			"text": "마도서가 비었다"
+		}
+	]
 }

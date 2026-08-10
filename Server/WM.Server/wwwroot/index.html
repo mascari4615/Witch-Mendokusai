@@ -171,7 +171,7 @@
 //   three.js 는 서버 옆에 같이 두고 쓴다(남의 CDN 에 세계를 의탁하지 않는다).
 import * as THREE from './vendor/three.module.js';
 // 고르개가 보여 줄 글은 순수 계산이라 따로 두고 시험한다 (wm-web-picker-test).
-import { buildLabel, craftLabel } from './picker.mjs';
+import { buildLabel, craftLabel, aimingText } from './picker.mjs';
 
 const statusElement = document.getElementById('status');
 const canvas = document.getElementById('board');
@@ -599,21 +599,8 @@ function drawWorldLines() {
 	document.getElementById('brew').textContent = brewText;
 
 	// 지금 어느 쪽에 가까운가 — 이게 없으면 「무엇을 만드는 중인지」 모른 채 젓는다.
-	const here = brew || { x: 0, y: 0 };
-	let closest = null;
-	let closestGap = Infinity;
-	for (const page of spellbook) {
-		const gap = Math.hypot(page.x - here.x, page.y - here.y);
-		if (gap >= closestGap) continue;
-		closestGap = gap;
-		closest = page;
-	}
-
-	document.getElementById('aiming').textContent = closest === null
-		? '마도서가 비었다'
-		: closestGap <= closest.radius
-			? `지금 멈추면 → ${closest.name} ${closest.amount}개`
-			: `${closest.name} 까지 ${closestGap.toFixed(2)}`;
+	//   계산은 순수 모듈이 한다(picker.mjs) — 판정 층과 답이 갈라지지 않게 골든 표가 묶는다.
+	document.getElementById('aiming').textContent = aimingText(spellbook, brew || { x: 0, y: 0 });
 }
 
 /**

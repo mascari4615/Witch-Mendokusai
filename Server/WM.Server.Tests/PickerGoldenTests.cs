@@ -3,6 +3,7 @@ using System.IO;
 using System.Text.Json;
 using NUnit.Framework;
 using WitchMendokusai;
+using WitchMendokusai.DomainSDK.Alchemy;
 
 namespace WitchMendokusai.ServerTests
 {
@@ -62,11 +63,37 @@ namespace WitchMendokusai.ServerTests
 			public bool canCraft { get; set; }
 		}
 
+		private sealed class GoldenAimPage
+		{
+			public int id { get; set; }
+			public string name { get; set; }
+			public float targetX { get; set; }
+			public float targetY { get; set; }
+			public float radius { get; set; }
+			public int amount { get; set; }
+		}
+
+		private sealed class GoldenAt
+		{
+			public float x { get; set; }
+			public float y { get; set; }
+		}
+
+		private sealed class GoldenAimRow
+		{
+			public string @case { get; set; }
+			public GoldenAimPage[] pages { get; set; }
+			public GoldenAt at { get; set; }
+			public int aimedId { get; set; }
+			public string text { get; set; }
+		}
+
 		private sealed class GoldenTable
 		{
 			public Dictionary<string, string> itemNames { get; set; }
 			public GoldenRow[] build { get; set; }
 			public GoldenCraftRow[] craft { get; set; }
+			public GoldenAimRow[] aim { get; set; }
 		}
 
 		[Test]
@@ -148,6 +175,54 @@ namespace WitchMendokusai.ServerTests
 
 				Assert.AreEqual(row.label, CraftAffordability.Label(recipe, Carrying, Named),
 					$"「{row.@case}」 — 보여 주는 글이 웹과 다르다");
+			}
+		}
+
+		[Test]
+		public void 두_창이_같은_쪽을_노린다()
+		{
+			// ★ 왜: 「지금 무엇을 만드는 중인가」를 웹은 자바스크립트로, 게임은 판정 층으로 고른다.
+			//   두 벌이 갈라지면 웹은 「석재 쪽」, 게임은 「물약 쪽」을 가리키면서 <b>같은 솥</b>을 그린다.
+			//   글자 모양은 창마다 달라도 되지만, <b>어느 쪽을 노리는가</b>는 반드시 같아야 한다.
+			GoldenTable golden = Load();
+			Assert.IsNotNull(golden?.aim, "골든 표에 겨냥 줄이 없다");
+			Assert.Greater(golden.aim.Length, 0);
+
+			foreach (GoldenAimRow row in golden.aim)
+			{
+				RecipeCatalogEntry[] pages = new RecipeCatalogEntry[row.pages.Length];
+				for (int i = 0; i < pages.Length; i++)
+				{
+					GoldenAimPage page = row.pages[i];
+					pages[i] = new RecipeCatalogEntry
+					{
+						id = page.id,
+						name = page.name,
+						targetX = page.targetX,
+						targetY = page.targetY,
+						radius = page.radius,
+						resultItemId = page.id,
+						amount = page.amount,
+					};
+				}
+
+				BrewState state = new BrewState
+				{
+					Position = new BrewVector(row.at.x, row.at.y),
+					StepCount = 1,
+				};
+
+				bool aiming = WorldSpellbookView.TryAim(pages, state, out BrewRecipe aimed);
+
+				// aimedId 0 = 노릴 것이 없다(마도서가 비었다).
+				Assert.AreEqual(row.aimedId != 0, aiming,
+					$"「{row.@case}」 — 노릴 것이 있나가 웹과 다르다");
+
+				if (aiming == false)
+					continue;
+
+				Assert.AreEqual(row.aimedId, aimed.Id,
+					$"「{row.@case}」 — 게임이 노리는 쪽이 웹({row.text})과 다르다");
 			}
 		}
 
