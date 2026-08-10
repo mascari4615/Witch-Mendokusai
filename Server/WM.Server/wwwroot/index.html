@@ -170,6 +170,8 @@
 //   판정은 여전히 전부 서버 것이고, 여기는 받은 것을 **세워서** 그린다 — 표현만 다른 같은 세계.
 //   three.js 는 서버 옆에 같이 두고 쓴다(남의 CDN 에 세계를 의탁하지 않는다).
 import * as THREE from './vendor/three.module.js';
+// 고르개가 보여 줄 글은 순수 계산이라 따로 두고 시험한다 (wm-web-picker-test).
+import { buildLabel, craftLabel } from './picker.mjs';
 
 const statusElement = document.getElementById('status');
 const canvas = document.getElementById('board');
@@ -629,14 +631,7 @@ function drawBuildPicker() {
 		const option = document.createElement('option');
 		option.value = kind.buildingId;
 
-		const size = kind.w > 1 || kind.l > 1 ? ` ${kind.w}×${kind.l}` : '';
-		const have = bag.find((r) => r.itemId === kind.costItemId)?.amount ?? 0;
-		const enough = kind.costAmount === 0 || have >= kind.costAmount;
-		const cost = kind.costAmount > 0
-			? ` — ${itemNames[kind.costItemId] || '#' + kind.costItemId} ${have}/${kind.costAmount}`
-			: '';
-
-		option.textContent = `${enough ? '' : '· '}${kind.name}${size}${cost}`;
+		option.textContent = buildLabel(kind, bag, itemNames);
 		picker.appendChild(option);
 	}
 
@@ -659,18 +654,7 @@ function drawCraftPicker() {
 		const option = document.createElement('option');
 		option.value = recipe.recipeId;
 
-		let enough = true;
-		const needs = [];
-		for (let i = 0; i < recipe.itemIds.length; i++) {
-			const itemId = recipe.itemIds[i];
-			const need = recipe.amounts[i];
-			const have = bag.find((r) => r.itemId === itemId)?.amount ?? 0;
-			if (have < need) enough = false;
-			needs.push(`${itemNames[itemId] || '#' + itemId} ${have}/${need}`);
-		}
-
-		const luck = recipe.percentage >= 100 ? '' : ` (${recipe.percentage}%)`;
-		option.textContent = `${enough ? '' : '· '}${recipe.name}${luck} — ${needs.join(', ')}`;
+		option.textContent = craftLabel(recipe, bag, itemNames);
 		picker.appendChild(option);
 	}
 
