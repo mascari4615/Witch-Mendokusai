@@ -56,7 +56,9 @@ namespace WitchMendokusai.ServerTests
 			int before = host.World.Calendar.TotalMinutes();
 			Stopwatch clock = Stopwatch.StartNew();
 
-			await Task.Delay(5000);
+			// ★ 10초를 잰다 (실측 2026-08-10): 5초로 재면 「분」이 정수라 늘 최대 1분이 잘려
+			//   4 vs 5 경계에 걸린다 — 고쳐 놓고도 시험이 오락가락했다. 길게 재면 그 절삭이 묻힌다.
+			await Task.Delay(10000);
 
 			clock.Stop();
 			int after = host.World.Calendar.TotalMinutes();
@@ -65,8 +67,8 @@ namespace WitchMendokusai.ServerTests
 			double expected = clock.Elapsed.TotalSeconds;
 			int moved = after - before;
 
-			// 5분 흐를 자리에서 1분 이상 어긋나면(20%) 하루에 몇 시간씩 밀린다.
-			Assert.That(moved, Is.EqualTo(expected).Within(1.0),
+			// 10분 흐를 자리에서 1.5분 이상 어긋나면(15%) 하루에 몇 시간씩 밀린다.
+			Assert.That(moved, Is.EqualTo(expected).Within(1.5),
 				$"실제 {expected:0.0}초 동안 세계는 {moved}분 흘렀다 — 오래 켜 두면 밤낮이 밀린다");
 		}
 	}
