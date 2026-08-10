@@ -354,11 +354,17 @@ namespace WitchMendokusai
 			// ★ 제작은 <b>솥에 넣은 뒤에</b> 청한다 (실측 2026-08-10): 조리보다 먼저 청했더니
 			//   제작이 조리에 쓸 나무를 먼저 먹어 <b>솥에 넣을 것이 없었다</b> — 저은 자국 0,
 			//   완성 0. 관문은 「어디서 끊겼는지」를 potsteps 로 말해 줬고, 그게 이 순서를 정했다.
+			// ★ 제작도 <b>게임이 쓰는 길</b>로 청한다 (TASK-WM-217): 게임의 제작 화면은 브릿지
+			//   (WorldCraftBridge)를 거친다. 파수꾼만 줄을 직접 부르면 그 길이 실제로 도는지는
+			//   아무도 안 잰 채 초록만 남는다 — 상자에서 이미 그 자리를 밟았다.
 			if (askedCraft == false)
 			{
-				CraftBookEntryView[] book = link.CraftBook;
-				if (book != null && book.Length > 0)
-					link.RequestCraft(book[0].recipeId);
+				if (WorldCraftBridge.IsActive == false)
+					return; // 아직 줄이 안 꽂혔다 — 다음 걸음에 다시 본다.
+
+				System.Collections.Generic.IReadOnlyList<CraftRecipeEntry> book = WorldCraftBridge.Channel.Recipes;
+				if (book != null && book.Count > 0)
+					WorldCraftBridge.Channel.Request(book[0].id);
 
 				askedCraft = true;
 				return;
@@ -368,15 +374,14 @@ namespace WitchMendokusai
 			//   「아무것도 안 만들었다」로 읽힌다(줍기에서 이미 한 번 밟은 함정이다).
 			if (crafted == false)
 			{
-				CraftedMessage made = link.TakeCraftResult();
-				if (made != null)
+				if (WorldCraftBridge.Channel.TryTakeResult(out CraftResult made))
 				{
 					// 왜 못 만들었는지도 적는다 — 「0」만 남으면 재료가 없던 건지 주사위를 진 건지 모른다.
-					craftWhy = made.succeeded ? "made" : (made.attempted ? "lost the dice" : made.denied);
-					if (made.succeeded)
+					craftWhy = made.Succeeded ? "made" : (made.Attempted ? "lost the dice" : made.Denied);
+					if (made.Succeeded)
 					{
 						crafted = true;
-						craftedItemId = made.itemId;
+						craftedItemId = made.ResultItemId;
 					}
 				}
 			}
