@@ -70,6 +70,7 @@ namespace WitchMendokusai
 		// 상자 왕복 — 지은 상자에 넣고 그대로 다시 꺼내 본다(같이 노는 알맹이).
 		private const int CHEST_BUILDING_ID = 4005;
 		private bool chestPlaced;
+		private bool chestOpened;
 		private bool chestFilled;
 		private bool potPlaced;
 		private int chestSeenAmount;
@@ -216,9 +217,22 @@ namespace WitchMendokusai
 				return;
 			}
 
+			// ★ 상자는 <b>게임 화면이 쓰는 길</b>로 쓴다 (TASK-WM-217): 게임의 상자 손잡이는
+			//   브릿지(WorldChestBridge)를 거친다. 파수꾼만 줄을 직접 부르면, 그 손잡이가
+			//   실제로 도는지는 <b>아무도 재지 않은 채</b> 초록만 남는다 — 게임 창에 상자가
+			//   아예 없던 시절에도 관문은 초록이었다(그 길을 안 지나갔으니까).
+			if (chestOpened == false)
+			{
+				if (WorldChestBridge.IsActive == false || WorldChestBridge.Channel.TryOpenNearby() == false)
+					return; // 아직 그 자리에 상자가 안 섰다 — 다음 걸음에 다시 연다.
+
+				chestOpened = true;
+				return;
+			}
+
 			if (chestFilled == false)
 			{
-				link.RequestChestPut(chestX, 0, chestZ, gatheredItemId, 1);
+				WorldChestBridge.Channel.Put(gatheredItemId, 1);
 				chestFilled = true;
 				return;
 			}
@@ -226,14 +240,15 @@ namespace WitchMendokusai
 			if (chestSeenAmount == 0)
 			{
 				// 상자가 정말 받았나 — 받았으면 도로 꺼내 가방으로 되돌린다.
-				if (link.Chest != null && link.Chest.items != null && link.Chest.items.Length > 0)
+				System.Collections.Generic.IReadOnlyList<ChestSlot> inside = WorldChestBridge.Channel.Contents;
+				if (inside.Count > 0)
 				{
-					chestSeenAmount = link.Chest.items[0].amount;
-					link.RequestChestTake(chestX, 0, chestZ, gatheredItemId, chestSeenAmount);
+					chestSeenAmount = inside[0].Amount;
+					WorldChestBridge.Channel.Take(inside[0].ItemId, chestSeenAmount);
 					return;
 				}
 
-				link.RequestChest(chestX, 0, chestZ);
+				WorldChestBridge.Channel.TryOpenNearby();
 				return;
 			}
 
