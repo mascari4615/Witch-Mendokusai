@@ -97,9 +97,12 @@ if (reading.length === 0 || talking.length === 0) {
 
 let body = '';
 let files = 0;
+const sources = [];
 for (const root of roots) {
   for (const path of csharpFiles(root)) {
-    body += readFileSync(path, 'utf8');
+    const text = readFileSync(path, 'utf8');
+    body += text;
+    sources.push({ path, text });
     files += 1;
   }
 }
@@ -123,6 +126,63 @@ for (const name of talking) {
 
   if (new RegExp(`\\.${name}\\s*\\(`).test(body) === false)
     problems.push(`세계에 말하는 「${name}」 를 게임이 한 번도 안 부른다 — 사람에게 그 손잡이가 없다`);
+}
+
+// ── 보여 주는 자리에서 세계에 <b>말을 걸지</b> 않는다 ─────────────────────────
+// ★ 실측 2026-08-10: 게임 제작 화면에서 「만들겠다」 요청이 <b>툴팁 갱신 자리</b>에 들어가 있었다 —
+//   마우스를 옮겨 툴팁이 갱신될 때마다 제작이 나갔다는 뜻이다. 컴파일도 시험도 초록이었고,
+//   사람이 눈치채려면 재료가 저절로 줄어드는 걸 봐야 한다.
+//   그리는 자리는 그리기만 한다. 요청은 사람이 누를 때만 나간다.
+const DRAWING = /^\s*(?:private|public|protected|internal)?\s*(?:static\s+)?(?:void|bool|string)\s+(Update\w*|Draw\w*|Refresh\w*|\w*Tooltip\w*|OnGUI)\s*\(/;
+// ⚠ 「Channel.Request(」 만 찾으면 안 된다 (자가 시험이 잡았다): 실제 코드는
+//   `WorldCraftBridge.Channel.Request(...)` 처럼 <b>앞에 이름이 더 붙는다</b>.
+//   앞을 묶지 말고 「무엇이든 .Request…(」 를 찾되, 계약을 적은 파일은 애초에 안 본다.
+//   그리고 `Request\w+` 라고 적으면 <b>`Request(` 자체를 놓친다</b>(뒤에 글자를 요구하니까) —
+//   실제 결함이 `Channel.Request(...)` 여서 그 한 글자에 검사가 눈을 감았다. `\w*` 로 연다.
+const SHOUTING = /\.(Request\w*|PlaceBuilding|RemoveBuilding|Rename)\s*\(/;
+
+for (const source of sources) {
+  const lines = source.text.split('\n');
+  let inDrawing = false;
+  let drawingName = '';
+  let depth = 0;
+  let started = false;
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+
+    if (inDrawing === false) {
+      const found = DRAWING.exec(line);
+      if (found !== null) {
+        inDrawing = true;
+        drawingName = found[1];
+        depth = 0;
+        started = false;
+      }
+
+      continue;
+    }
+
+    // ⚠ 메서드가 <b>언제 끝났나</b>를 잘못 세면 검사가 눈을 감는다 (자가 시험이 잡았다):
+    //   처음엔 「중괄호 수가 0 이하면 끝」으로 봤는데, 메서드 안 첫 if 블록이 닫히는 순간
+    //   0 이 되어 그 뒤를 안 봤다 — 실제 결함이 그 뒤에 있었다. 첫 `{` 를 만난 뒤부터 센다.
+    const opens = (line.match(/\{/g) || []).length;
+    const closes = (line.match(/\}/g) || []).length;
+    if (started === false && opens > 0)
+      started = true;
+
+    depth += opens - closes;
+
+    if (SHOUTING.test(line) && line.trim().startsWith('//') === false) {
+      problems.push(
+        `${source.path.split(/[\\/]/).pop()}:${i + 1} — 보여 주는 자리(${drawingName})에서 세계에 말을 건다\n` +
+        `      ${line.trim()}\n` +
+        '      그리는 자리는 그리기만 한다 — 요청은 사람이 누를 때만 나가야 한다');
+    }
+
+    if (started === true && depth <= 0)
+      inDrawing = false;
+  }
 }
 
 console.log(`[game-client] 게임 소스 ${files}개 · 읽는 자리 ${reading.length} · 말하는 길 ${talking.length} 확인`);
