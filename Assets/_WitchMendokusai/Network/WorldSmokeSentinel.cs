@@ -209,7 +209,7 @@ namespace WitchMendokusai
 			if (named == false)
 			{
 				myName = "파수꾼" + (link.MyDollId % 100);
-				link.RequestRename(myName);
+				WorldNameBridge.Channel.Rename(myName);
 				named = true;
 				return;
 			}
@@ -227,7 +227,7 @@ namespace WitchMendokusai
 				WhereIStand(link, out float standX, out float standZ);
 				chestX = Mathf.RoundToInt(standX);
 				chestZ = Mathf.RoundToInt(standZ);
-				link.RequestPlace(chestX, 0, chestZ, CHEST_BUILDING_ID);
+				DomainSDK.Building.SharedBuildChannelBridge.Channel.PlaceBuilding(chestX, 0, chestZ, CHEST_BUILDING_ID);
 				chestPlaced = true;
 				return;
 			}
@@ -270,7 +270,7 @@ namespace WitchMendokusai
 			// 솥도 짓는다 — 세계에 솥이 없으면 아무도 조리할 수 없다(전역 솥은 폐기됐다).
 			if (potPlaced == false)
 			{
-				link.RequestPlace(chestX + 1, 0, chestZ, WorldSim.CAULDRON_BUILDING_ID);
+				DomainSDK.Building.SharedBuildChannelBridge.Channel.PlaceBuilding(chestX + 1, 0, chestZ, WorldSim.CAULDRON_BUILDING_ID);
 				potPlaced = true;
 				return;
 			}
@@ -303,7 +303,7 @@ namespace WitchMendokusai
 			//   아무도 안 쟀다. 세계가 돌려주는 크기를 그대로 결과지에 적는다.
 			if (bigPlaced == false)
 			{
-				link.RequestPlace(chestX, 0, chestZ + 3, BIG_BUILDING_ID);
+				DomainSDK.Building.SharedBuildChannelBridge.Channel.PlaceBuilding(chestX, 0, chestZ + 3, BIG_BUILDING_ID);
 				bigPlaced = true;
 				return;
 			}
@@ -329,7 +329,7 @@ namespace WitchMendokusai
 			//   (안 그러면 그 칸에 영영 못 짓는다) 재료도 절반 돌아와야 한다.
 			if (bigRemoved == false)
 			{
-				link.RequestRemove(chestX, 0, chestZ + 3);
+				DomainSDK.Building.SharedBuildChannelBridge.Channel.RemoveBuilding(chestX, 0, chestZ + 3);
 				bigRemoved = true;
 				return;
 			}
