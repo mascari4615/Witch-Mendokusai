@@ -75,9 +75,13 @@ namespace WitchMendokusai
 			if (option.CostAmount <= 0)
 				return string.Empty;
 
+			// ★ 이름을 모르면 <b>번호로 버틴다</b> (실측 2026-08-10): 여기가 「재료」라고만 적었는데
+			//   웹 창은 「#77」로 적고 있었다 — 같은 세계에서 두 창이 다른 글을 보여 준 것이다.
+			//   「재료」는 아무것도 안 알려 준다. 번호라도 있으면 사람이 무엇인지 찾아볼 수 있다.
+			//   (골든 표가 그 어긋남을 잡았다 — wwwroot/picker-golden.json)
 			string material = nameOf == null ? null : nameOf(option.CostItemId);
 			if (string.IsNullOrEmpty(material))
-				material = "재료";
+				material = "#" + option.CostItemId;
 
 			return material + " " + option.Carrying + "/" + option.CostAmount;
 		}

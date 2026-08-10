@@ -8,6 +8,7 @@
 //
 // exit: 0 = 다 맞음 · 1 = 틀린 것 있음 · 2 = 못 돌림
 
+import { readFileSync } from 'node:fs';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { resolve } from 'node:path';
 
@@ -90,7 +91,26 @@ check('재료가 다 있으면 만들 수 있다', picker.canCraft(plank, [{ ite
 check('하나라도 모자라면 못 만든다',
   picker.canCraft(brick, [{ itemId: 4, amount: 1 }]), false);
 
-console.log(`[web-picker] 창의 고르개 계산 ${17}가지 확인`);
+
+// ── 두 창이 같은 답을 내나 — 골든 표와 대조 ───────────────────────────────
+// ★ 같은 규칙이 웹 JS 와 게임 C# 두 벌로 있다. 두 벌은 언젠가 갈라지고, 그러면 같은 세계에서
+//   웹은 「지을 수 있다」, 게임은 「못 짓는다」가 된다. 답을 한 곳(picker-golden.json)에 적어 두고
+//   양쪽이 각자 그 표와 대조한다 — 규칙을 바꾸려면 표부터 바꾸고, 안 고친 쪽이 그 자리에서 빨개진다.
+const goldenPath = resolve(repo, 'Server/WM.Server/wwwroot/picker-golden.json');
+let golden;
+try {
+  golden = JSON.parse(readFileSync(goldenPath, 'utf8'));
+} catch (error) {
+  console.error(`[web-picker] CANNOT-RUN: 골든 표를 못 읽었다 — ${error.message}`);
+  process.exit(2);
+}
+
+for (const row of golden.build) {
+  check(`골든: ${row.case} (글)`, picker.buildLabel(row.kind, row.bag, golden.itemNames), row.label);
+  check(`골든: ${row.case} (지을 수 있나)`, picker.canBuild(row.kind, row.bag), row.canBuild);
+}
+
+console.log(`[web-picker] 창의 고르개 계산 17가지 · 골든 표 ${golden.build.length}줄 확인`);
 
 if (failures.length === 0) {
   console.log('[web-picker] ✅ 보여 주는 글이 맞다');

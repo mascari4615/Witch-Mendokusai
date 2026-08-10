@@ -1,0 +1,60 @@
+{
+  "why": [
+    "두 창(웹 JS · 게임 C#)이 같은 규칙을 두 벌로 들고 있다 (TASK-WM-217).",
+    "두 벌은 언젠가 갈라진다 — 그러면 같은 세계에서 웹은 「지을 수 있다」, 게임은 「못 짓는다」가 된다.",
+    "그래서 답을 여기 한 곳에 적어 두고, 양쪽 시험이 각자 이 표와 대조한다.",
+    "규칙을 바꾸려면 이 파일부터 바꾼다 — 그러면 안 고친 쪽이 그 자리에서 빨개진다."
+  ],
+  "itemNames": { "0": "나무", "4": "석탄", "5": "철광석" },
+  "build": [
+    {
+      "case": "재료가 넉넉하다",
+      "kind": { "buildingId": 4005, "name": "보관 상자", "w": 1, "l": 1, "costItemId": 0, "costAmount": 2 },
+      "bag": [{ "itemId": 0, "amount": 5 }],
+      "label": "보관 상자 — 나무 5/2",
+      "canBuild": true
+    },
+    {
+      "case": "재료가 딱 맞다 — 지을 수 있어야 한다",
+      "kind": { "buildingId": 4005, "name": "보관 상자", "w": 1, "l": 1, "costItemId": 0, "costAmount": 2 },
+      "bag": [{ "itemId": 0, "amount": 2 }],
+      "label": "보관 상자 — 나무 2/2",
+      "canBuild": true
+    },
+    {
+      "case": "재료가 모자라면 앞에 점이 붙는다",
+      "kind": { "buildingId": 4005, "name": "보관 상자", "w": 1, "l": 1, "costItemId": 0, "costAmount": 2 },
+      "bag": [{ "itemId": 0, "amount": 1 }],
+      "label": "· 보관 상자 — 나무 1/2",
+      "canBuild": false
+    },
+    {
+      "case": "빈손이어도 나무(0번)는 0개로 보인다 — 「없음」이 아니다",
+      "kind": { "buildingId": 4005, "name": "보관 상자", "w": 1, "l": 1, "costItemId": 0, "costAmount": 2 },
+      "bag": [],
+      "label": "· 보관 상자 — 나무 0/2",
+      "canBuild": false
+    },
+    {
+      "case": "여러 칸 건물은 크기를 같이 보여 준다",
+      "kind": { "buildingId": 3, "name": "임시 블럭", "w": 2, "l": 2, "costItemId": 0, "costAmount": 2 },
+      "bag": [{ "itemId": 0, "amount": 2 }],
+      "label": "임시 블럭 2×2 — 나무 2/2",
+      "canBuild": true
+    },
+    {
+      "case": "공짜인 것에는 재료를 안 붙인다",
+      "kind": { "buildingId": 9, "name": "공짜 것", "w": 1, "l": 1, "costItemId": 0, "costAmount": 0 },
+      "bag": [],
+      "label": "공짜 것",
+      "canBuild": true
+    },
+    {
+      "case": "이름을 모르면 번호로 버틴다",
+      "kind": { "buildingId": 77, "name": "낯선 것", "w": 1, "l": 1, "costItemId": 77, "costAmount": 2 },
+      "bag": [],
+      "label": "· 낯선 것 — #77 0/2",
+      "canBuild": false
+    }
+  ]
+}
