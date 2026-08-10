@@ -185,6 +185,38 @@ for (const source of sources) {
   }
 }
 
+// ── 파수꾼은 <b>게임이 쓰는 길</b>로만 논다 ─────────────────────────────────
+// ★ 왜: 파수꾼이 줄(IWorldLink)을 직접 부르면 관문은 초록인데 <b>게임 화면의 손잡이는 죽어</b>
+//   있을 수 있다 — 실제로 게임 창에 상자가 아예 없던 시절에도 관문은 초록이었다(그 길을 안 지나갔다).
+//   그래서 게임이 브릿지로 쓰는 것은 파수꾼도 브릿지로 쓴다. 줍기처럼 게임도 줄을 직접 쓰는 것은 예외.
+{
+  const sentinel = resolve(repo, 'Assets/_WitchMendokusai/Network/WorldSmokeSentinel.cs');
+  const BRIDGED = ['RequestPlace', 'RequestRemove', 'RequestRename', 'RequestCraft',
+    'RequestBrewStepAt', 'RequestBrewCompleteAt', 'RequestBrewResetAt', 'TakeCraftResult'];
+
+  let watcher;
+  try {
+    watcher = readFileSync(sentinel, 'utf8');
+  } catch {
+    watcher = '';
+  }
+
+  const lines = watcher.split('\n');
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    if (line.trim().startsWith('//')) continue;
+
+    for (const name of BRIDGED) {
+      if (new RegExp(`\\blink\\??\\.${name}\\s*\\(`).test(line) === false) continue;
+
+      problems.push(
+        `WorldSmokeSentinel.cs:${i + 1} — 파수꾼이 줄을 직접 부른다 (${name})\n` +
+        `      ${line.trim()}\n` +
+        '      게임 화면은 브릿지를 거친다 — 파수꾼도 그 길로 가야 그 손잡이가 도는지 잰다');
+    }
+  }
+}
+
 console.log(`[game-client] 게임 소스 ${files}개 · 읽는 자리 ${reading.length} · 말하는 길 ${talking.length} 확인`);
 
 if (problems.length === 0) {
