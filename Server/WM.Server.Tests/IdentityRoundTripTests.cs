@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Net.WebSockets;
 using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
@@ -58,6 +59,22 @@ namespace WitchMendokusai.ServerTests
 				if (File.Exists(path))
 					File.Delete(path);
 			}
+		}
+
+		[Test]
+		public async Task Provisional_welcome_is_not_an_adopted_identity()
+		{
+			using ClientWebSocket window = new ClientWebSocket();
+			await window.ConnectAsync(address, CancellationToken.None);
+
+			string provisional = await Read(window, "\"type\":\"welcome\"");
+			int provisionalIdentity = JsonDocument.Parse(provisional).RootElement.GetProperty("identityId").GetInt32();
+			Assert.AreEqual(0, provisionalIdentity, "the first welcome only reserves a temporary doll");
+
+			await Send(window, "{\"type\":\"hello\",\"secret\":\"device\",\"klCode\":\"AAA-111\"}");
+			string adopted = await Read(window, "\"identityId\":1");
+			int adoptedIdentity = JsonDocument.Parse(adopted).RootElement.GetProperty("identityId").GetInt32();
+			Assert.AreEqual(1, adoptedIdentity, "the identity is established only after hello");
 		}
 
 		[Test]

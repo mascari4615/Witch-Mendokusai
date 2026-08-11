@@ -29,7 +29,7 @@ namespace WitchMendokusai
 		// 끊기면 스스로 다시 붙는다 (TASK-WM-217) — 간격 규칙은 판정 층이 정한다.
 		private readonly ReconnectBackoff backoff = new ReconnectBackoff();
 		private bool wantConnection;
-		private bool receivedWelcome;
+		private bool receivedIdentityWelcome;
 		private bool receivedInitialWorld;
 
 		/// <summary>서버가 준 내 인형 번호. 아직 못 받았으면 0.</summary>
@@ -58,7 +58,7 @@ namespace WitchMendokusai
 		public bool IsConnected => socket != null && socket.State == WebSocketState.Open;
 
 		/// <summary>같은 줄 규약 — 게임은 어디에 붙었는지 묻지 않는다 (TASK-WM-217).</summary>
-		public bool IsLinked => IsConnected && receivedWelcome && receivedInitialWorld;
+		public bool IsLinked => IsConnected && receivedIdentityWelcome && receivedInitialWorld;
 
 		private void Start()
 		{
@@ -136,7 +136,7 @@ namespace WitchMendokusai
 
 		private void ResetHandshakeState()
 		{
-			receivedWelcome = false;
+			receivedIdentityWelcome = false;
 			receivedInitialWorld = false;
 		}
 
@@ -198,7 +198,10 @@ namespace WitchMendokusai
 			{
 				WelcomeMessage welcome = JsonUtility.FromJson<WelcomeMessage>(json);
 				MyDollId = welcome.id;
-				receivedWelcome = true;
+				// The server sends a provisional welcome before hello, then sends the
+				// identity-bearing welcome after adopting this connection.
+				if (welcome.identityId != 0)
+					receivedIdentityWelcome = true;
 
 				// 0 이면 아직 인사 전이다 — 덮어쓰지 않는다(첫 환영에는 신원이 없다).
 				if (welcome.identityId != 0)
