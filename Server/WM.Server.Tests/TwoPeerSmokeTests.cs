@@ -342,6 +342,29 @@ namespace WitchMendokusai.ServerTests
 		}
 
 		[Test]
+		public async Task Static_world_payloads_follow_each_viewers_interest_cell()
+		{
+			using ClientWebSocket viewer = await ConnectAsync();
+			using ClientWebSocket traveler = await ConnectAsync();
+			await ReadWelcomeAsync(viewer);
+			int travelerId = await ReadWelcomeAsync(traveler);
+
+			Assert.IsTrue(host.World.TryPlaceBuilding(
+				new WitchMendokusai.Numerics.Vector3Int(0, 0, 0),
+				new WitchMendokusai.Numerics.Vector2Int(1, 1),
+				4005));
+
+			string nearby = await WaitForAsync(traveler, text => ReadWorldBuildingCount(text) == 1);
+			Assert.AreEqual(1, ReadWorldBuildingCount(nearby));
+
+			for (int step = 0; step < 40; step++)
+				host.World.TryMove(travelerId, new WitchMendokusai.Numerics.Vector3(1f, 0f, 0f));
+
+			string farAway = await WaitForAsync(traveler, text => ReadWorldBuildingCount(text) == 0);
+			Assert.AreEqual(0, ReadWorldBuildingCount(farAway));
+		}
+
+		[Test]
 		public async Task 쏟아부어도_세계는_계속_돌고_곧_다시_말할_수_있다()
 		{
 			using ClientWebSocket flooder = await ConnectAsync();
@@ -508,6 +531,18 @@ namespace WitchMendokusai.ServerTests
 				return -1;
 
 			return dolls.GetArrayLength();
+		}
+
+		private static int ReadWorldBuildingCount(string json)
+		{
+			using System.Text.Json.JsonDocument document = System.Text.Json.JsonDocument.Parse(json);
+			System.Text.Json.JsonElement root = document.RootElement;
+			if (root.TryGetProperty("type", out System.Text.Json.JsonElement type) == false
+				|| type.GetString() != "world"
+				|| root.TryGetProperty("buildings", out System.Text.Json.JsonElement buildings) == false)
+				return -1;
+
+			return buildings.GetArrayLength();
 		}
 
 		[Test]

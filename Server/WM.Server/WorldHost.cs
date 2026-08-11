@@ -42,13 +42,11 @@ namespace WitchMendokusai.Server
 		private const int IDLE_SAVE_WORLD_MINUTES = 60;
 		private const int MAX_MESSAGE_BYTES = 1024 * 1024;
 		private const float PLAYER_INTEREST_RADIUS = 32f;
+		private const float INTEREST_CELL_SIZE = 16f;
 
 		private int savedAtWorldMinute;
 
 		// 마지막으로 창들에 보낸 판 — 이 수가 그대로면 그 목록은 다시 안 보낸다.
-		private int sentBuildVersion = -1;
-		private int sentFieldVersion = -1;
-
 		/// <summary>
 		/// 지금 어느 상자를 열어 두고 있나 (TASK-WM-217).
 		/// ★ 왜: 둘이 같은 상자를 열어 두면, 한쪽이 꺼내 갔는데 다른 쪽 화면엔 그대로 남아 있다 —
@@ -57,8 +55,6 @@ namespace WitchMendokusai.Server
 		private readonly ConcurrentDictionary<int, Vector3Int> watchingChest = new ConcurrentDictionary<int, Vector3Int>();
 
 		private int sentStorageVersion = -1;
-		private int sentPotVersion = -1;
-
 		/// <summary>이만큼(세계의 날) 안 오고 아무것도 안 남긴 사람은 장부에서 지운다.</summary>
 		private const int GUEST_FORGET_DAYS = 90;
 
@@ -91,6 +87,12 @@ namespace WitchMendokusai.Server
 			///   밀린 창에는 이번 그림을 <b>버린다</b>. 세계 그림은 낡으면 값이 없다.
 			/// </summary>
 			public int Sending;
+
+			public int SentBuildVersion = -1;
+			public int SentFieldVersion = -1;
+			public int SentPotVersion = -1;
+			public int InterestCellX = int.MinValue;
+			public int InterestCellZ = int.MinValue;
 		}
 
 		private readonly ConcurrentDictionary<int, Connection> sockets = new ConcurrentDictionary<int, Connection>();
@@ -213,13 +215,14 @@ namespace WitchMendokusai.Server
 			//   집도 들판도 없는 빈 세계를 본다(다음에 누가 뭘 지을 때까지).
 			await SendAsync(connection, Protocol.WorldSnapshot(
 				DollsVisibleTo(doll.Id),
-				World.Buildings(),
+				BuildingsVisibleTo(doll.Id),
 				World.Calendar,
 				null,
-				World.Gatherables.Alive(World.Calendar.TotalMinutes()),
+				GatherablesVisibleTo(doll.Id),
 				Identities.NameOf,
 				World.Cauldrons,
 				NextSnapshotSequence()));
+			MarkSnapshotState(connection, doll.Id);
 
 			// 이 연결의 말 예산 — 창 하나가 모두의 세계를 느리게 만들지 못하게 (TASK-WM-218).
 			WitchMendokusai.Net.MessageBudget budget = new WitchMendokusai.Net.MessageBudget();
@@ -334,13 +337,14 @@ namespace WitchMendokusai.Server
 				// 방송은 「바뀐 것만」 실으므로 이 한 장이 없으면 집·들판을 영영 못 볼 수 있다.
 				await SendAsync(socket, Protocol.WorldSnapshot(
 					DollsVisibleTo(dollId),
-					World.Buildings(),
+					BuildingsVisibleTo(dollId),
 					World.Calendar,
 					null,
-					World.Gatherables.Alive(World.Calendar.TotalMinutes()),
+					GatherablesVisibleTo(dollId),
 					Identities.NameOf,
 					World.Cauldrons,
 					NextSnapshotSequence()));
+				MarkSnapshotState(socket, dollId);
 
 				Interlocked.Exchange(ref worldDirty, 1);
 				return;
@@ -976,13 +980,7 @@ namespace WitchMendokusai.Server
 				//   사람이 몇 늘기도 전에 줄이 막힌다 — 창은 못 받은 프레임엔 지난 그림을 그대로 쓴다.
 				int buildVersion = World.BuildVersion;
 				int fieldVersion = World.Gatherables.Version;
-				bool sendBuildings = buildVersion != sentBuildVersion;
-				bool sendField = fieldVersion != sentFieldVersion;
 				int potVersion = World.Cauldrons.Version;
-				bool sendPots = potVersion != sentPotVersion;
-				sentBuildVersion = buildVersion;
-				sentFieldVersion = fieldVersion;
-				sentPotVersion = potVersion;
 
 				// 상자 안이 바뀌었으면, 그 상자를 보고 있는 창들에 다시 보낸다.
 				int storageVersion = World.Storages.Version;
@@ -1010,12 +1008,23 @@ namespace WitchMendokusai.Server
 						continue;
 
 					Connection target = entry.Value;
+					bool interestChanged = UpdateInterestCell(target, entry.Key);
+					bool sendBuildings = buildVersion != target.SentBuildVersion || interestChanged;
+					bool sendField = fieldVersion != target.SentFieldVersion || interestChanged;
+					bool sendPots = potVersion != target.SentPotVersion;
+					if (sendBuildings)
+						target.SentBuildVersion = buildVersion;
+					if (sendField)
+						target.SentFieldVersion = fieldVersion;
+					if (sendPots)
+						target.SentPotVersion = potVersion;
+
 					string snapshot = Protocol.WorldSnapshot(
 						DollsVisibleTo(entry.Key),
-						sendBuildings ? World.Buildings() : null,
+						sendBuildings ? BuildingsVisibleTo(entry.Key) : null,
 						World.Calendar,
 						null,
-						sendField ? World.Gatherables.Alive(World.Calendar.TotalMinutes()) : null,
+						sendField ? GatherablesVisibleTo(entry.Key) : null,
 						Identities.NameOf,
 						sendPots ? World.Cauldrons : null,
 						sequence);
@@ -1029,6 +1038,25 @@ namespace WitchMendokusai.Server
 		private long NextSnapshotSequence()
 		{
 			return Interlocked.Increment(ref snapshotSequence);
+		}
+
+		private void MarkSnapshotState(Connection connection, int viewerDollId)
+		{
+			connection.SentBuildVersion = World.BuildVersion;
+			connection.SentFieldVersion = World.Gatherables.Version;
+			connection.SentPotVersion = World.Cauldrons.Version;
+			UpdateInterestCell(connection, viewerDollId);
+		}
+
+		private bool UpdateInterestCell(Connection connection, int viewerDollId)
+		{
+			Vector3 viewer = World.PositionOf(viewerDollId);
+			int cellX = (int)MathF.Floor(viewer.x / INTEREST_CELL_SIZE);
+			int cellZ = (int)MathF.Floor(viewer.z / INTEREST_CELL_SIZE);
+			bool changed = connection.InterestCellX != cellX || connection.InterestCellZ != cellZ;
+			connection.InterestCellX = cellX;
+			connection.InterestCellZ = cellZ;
+			return changed;
 		}
 
 		private WorldDoll[] DollsVisibleTo(int viewerDollId)
@@ -1048,6 +1076,50 @@ namespace WitchMendokusai.Server
 			}
 
 			return visible.ToArray();
+		}
+
+		private PlacedBuilding[] BuildingsVisibleTo(int viewerDollId)
+		{
+			PlacedBuilding[] all = World.Buildings();
+			Vector3 viewer = World.PositionOf(viewerDollId);
+			float radiusSquared = PLAYER_INTEREST_RADIUS * PLAYER_INTEREST_RADIUS;
+			System.Collections.Generic.List<PlacedBuilding> visible = new System.Collections.Generic.List<PlacedBuilding>();
+
+			for (int i = 0; i < all.Length; i++)
+			{
+				PlacedBuilding candidate = all[i];
+				float minX = candidate.Pivot.x;
+				float maxX = candidate.Pivot.x + candidate.Size.x;
+				float minZ = candidate.Pivot.z;
+				float maxZ = candidate.Pivot.z + candidate.Size.y;
+				float closestX = viewer.x < minX ? minX : viewer.x > maxX ? maxX : viewer.x;
+				float closestZ = viewer.z < minZ ? minZ : viewer.z > maxZ ? maxZ : viewer.z;
+				float deltaX = closestX - viewer.x;
+				float deltaZ = closestZ - viewer.z;
+				if (deltaX * deltaX + deltaZ * deltaZ <= radiusSquared)
+					visible.Add(candidate);
+			}
+
+			return visible.ToArray();
+		}
+
+		private System.Collections.Generic.List<GatherableNode> GatherablesVisibleTo(int viewerDollId)
+		{
+			System.Collections.Generic.List<GatherableNode> all = World.Gatherables.Alive(World.Calendar.TotalMinutes());
+			Vector3 viewer = World.PositionOf(viewerDollId);
+			float radiusSquared = PLAYER_INTEREST_RADIUS * PLAYER_INTEREST_RADIUS;
+			System.Collections.Generic.List<GatherableNode> visible = new System.Collections.Generic.List<GatherableNode>();
+
+			for (int i = 0; i < all.Count; i++)
+			{
+				GatherableNode candidate = all[i];
+				float deltaX = candidate.X - viewer.x;
+				float deltaZ = candidate.Z - viewer.z;
+				if (deltaX * deltaX + deltaZ * deltaZ <= radiusSquared)
+					visible.Add(candidate);
+			}
+
+			return visible;
 		}
 
 		/// <summary>
