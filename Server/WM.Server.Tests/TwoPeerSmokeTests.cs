@@ -322,6 +322,26 @@ namespace WitchMendokusai.ServerTests
 		}
 
 		[Test]
+		public async Task World_snapshots_filter_dolls_outside_viewer_interest_radius()
+		{
+			using ClientWebSocket viewer = await ConnectAsync();
+			using ClientWebSocket traveler = await ConnectAsync();
+			int viewerId = await ReadWelcomeAsync(viewer);
+			int travelerId = await ReadWelcomeAsync(traveler);
+
+			string nearby = await WaitForAsync(viewer, text => ReadWorldDollCount(text) == 2);
+			Assert.AreEqual(2, ReadWorldDollCount(nearby));
+
+			for (int step = 0; step < 40; step++)
+				host.World.TryMove(travelerId, new WitchMendokusai.Numerics.Vector3(1f, 0f, 0f));
+
+			string farAway = await WaitForAsync(viewer, text => ReadWorldDollCount(text) == 1);
+			Assert.AreEqual(1, ReadWorldDollCount(farAway));
+			StringAssert.Contains("\"id\":" + viewerId, farAway);
+			StringAssert.DoesNotContain("\"id\":" + travelerId, farAway);
+		}
+
+		[Test]
 		public async Task 쏟아부어도_세계는_계속_돌고_곧_다시_말할_수_있다()
 		{
 			using ClientWebSocket flooder = await ConnectAsync();
@@ -476,6 +496,18 @@ namespace WitchMendokusai.ServerTests
 		private static long ReadSequence(string json)
 		{
 			return System.Text.Json.JsonDocument.Parse(json).RootElement.GetProperty("sequence").GetInt64();
+		}
+
+		private static int ReadWorldDollCount(string json)
+		{
+			using System.Text.Json.JsonDocument document = System.Text.Json.JsonDocument.Parse(json);
+			System.Text.Json.JsonElement root = document.RootElement;
+			if (root.TryGetProperty("type", out System.Text.Json.JsonElement type) == false
+				|| type.GetString() != "world"
+				|| root.TryGetProperty("dolls", out System.Text.Json.JsonElement dolls) == false)
+				return -1;
+
+			return dolls.GetArrayLength();
 		}
 
 		[Test]

@@ -41,6 +41,7 @@ namespace WitchMendokusai.Server
 		/// </summary>
 		private const int IDLE_SAVE_WORLD_MINUTES = 60;
 		private const int MAX_MESSAGE_BYTES = 1024 * 1024;
+		private const float PLAYER_INTEREST_RADIUS = 32f;
 
 		private int savedAtWorldMinute;
 
@@ -211,7 +212,7 @@ namespace WitchMendokusai.Server
 			//   방송은 「바뀐 것만」 싣기 때문에, 늦게 들어온 사람은 이 한 장이 없으면
 			//   집도 들판도 없는 빈 세계를 본다(다음에 누가 뭘 지을 때까지).
 			await SendAsync(connection, Protocol.WorldSnapshot(
-				World.Snapshot(),
+				DollsVisibleTo(doll.Id),
 				World.Buildings(),
 				World.Calendar,
 				null,
@@ -332,7 +333,7 @@ namespace WitchMendokusai.Server
 				// 인사 뒤에도 전체 그림을 한 번 — 이때 자리·가방이 그 사람 것으로 바뀌고,
 				// 방송은 「바뀐 것만」 실으므로 이 한 장이 없으면 집·들판을 영영 못 볼 수 있다.
 				await SendAsync(socket, Protocol.WorldSnapshot(
-					World.Snapshot(),
+					DollsVisibleTo(dollId),
 					World.Buildings(),
 					World.Calendar,
 					null,
@@ -998,15 +999,7 @@ namespace WitchMendokusai.Server
 					}
 				}
 
-				string snapshot = Protocol.WorldSnapshot(
-					World.Snapshot(),
-					sendBuildings ? World.Buildings() : null,
-					World.Calendar,
-					null,
-					sendField ? World.Gatherables.Alive(World.Calendar.TotalMinutes()) : null,
-					Identities.NameOf,
-					sendPots ? World.Cauldrons : null,
-					NextSnapshotSequence());
+				long sequence = NextSnapshotSequence();
 				foreach (System.Collections.Generic.KeyValuePair<int, Connection> entry in sockets)
 				{
 					if (entry.Value.Socket.State != WebSocketState.Open)
@@ -1017,6 +1010,15 @@ namespace WitchMendokusai.Server
 						continue;
 
 					Connection target = entry.Value;
+					string snapshot = Protocol.WorldSnapshot(
+						DollsVisibleTo(entry.Key),
+						sendBuildings ? World.Buildings() : null,
+						World.Calendar,
+						null,
+						sendField ? World.Gatherables.Alive(World.Calendar.TotalMinutes()) : null,
+						Identities.NameOf,
+						sendPots ? World.Cauldrons : null,
+						sequence);
 					_ = SendSnapshotAsync(target, snapshot);
 				}
 
@@ -1027,6 +1029,25 @@ namespace WitchMendokusai.Server
 		private long NextSnapshotSequence()
 		{
 			return Interlocked.Increment(ref snapshotSequence);
+		}
+
+		private WorldDoll[] DollsVisibleTo(int viewerDollId)
+		{
+			WorldDoll[] all = World.Snapshot();
+			Vector3 viewer = World.PositionOf(viewerDollId);
+			float radiusSquared = PLAYER_INTEREST_RADIUS * PLAYER_INTEREST_RADIUS;
+			System.Collections.Generic.List<WorldDoll> visible = new System.Collections.Generic.List<WorldDoll>();
+
+			for (int i = 0; i < all.Length; i++)
+			{
+				WorldDoll candidate = all[i];
+				float deltaX = candidate.Position.x - viewer.x;
+				float deltaZ = candidate.Position.z - viewer.z;
+				if (deltaX * deltaX + deltaZ * deltaZ <= radiusSquared)
+					visible.Add(candidate);
+			}
+
+			return visible.ToArray();
 		}
 
 		/// <summary>
