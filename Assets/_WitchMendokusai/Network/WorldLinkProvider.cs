@@ -35,10 +35,10 @@ namespace WitchMendokusai
 		}
 
 		[Header("멀리 있는 세계")]
-		[SerializeField] private string remoteUrl = "ws://127.0.0.1:5199/ws";
+		[SerializeField] private string remoteUrl = "wss://wm.mascari4615.com/ws";
 
 		[Tooltip("이만큼 기다려도 안 붙으면 내 안의 세계로 들어간다 (초).")]
-		[SerializeField] private float connectTimeoutSeconds = 2f;
+		[SerializeField] private float connectTimeoutSeconds = 5f;
 
 		private WebWorldClient remote;
 		private WorldLinkBuildChannel buildChannel;
@@ -78,9 +78,11 @@ namespace WitchMendokusai
 		private IEnumerator EnterRoutine()
 		{
 			remote = gameObject.AddComponent<WebWorldClient>();
-			// 붙을 곳은 환경변수가 이긴다 — 스모크·개발 서버가 인스펙터 값을 고치지 않고도 붙는다.
-			string overrideUrl = System.Environment.GetEnvironmentVariable("WM_WORLD_SERVER");
-			remote.SetServerUrl(string.IsNullOrWhiteSpace(overrideUrl) ? remoteUrl : overrideUrl);
+			// 붙을 곳은 기본값(빌드) 위에 기기 저장값, 그 위에 환경변수가 탄다.
+			// 공개 배포 뒤에도 씬을 다시 굽지 않고 서버 자리를 옮길 수 있어야 한다.
+			string targetUrl = WorldKeyStore.LoadServerUrl(remoteUrl);
+			remote.SetServerUrl(targetUrl);
+			WorldKeyStore.SaveServerUrl(targetUrl);
 			remote.Connect();
 
 			float waited = 0f;

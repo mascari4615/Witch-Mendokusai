@@ -20,7 +20,7 @@ namespace WitchMendokusai
 	public sealed class WebWorldClient : MonoBehaviour, IWorldLink
 	{
 		[Header("붙을 서버")]
-		[SerializeField] private string serverUrl = "ws://127.0.0.1:5199/ws";
+		[SerializeField] private string serverUrl = "wss://wm.mascari4615.com/ws";
 		[SerializeField] private bool connectOnStart = false;
 
 		private ClientWebSocket socket;
@@ -29,6 +29,8 @@ namespace WitchMendokusai
 		// 끊기면 스스로 다시 붙는다 (TASK-WM-217) — 간격 규칙은 판정 층이 정한다.
 		private readonly ReconnectBackoff backoff = new ReconnectBackoff();
 		private bool wantConnection;
+		private bool receivedWelcome;
+		private bool receivedInitialWorld;
 
 		/// <summary>서버가 준 내 인형 번호. 아직 못 받았으면 0.</summary>
 		public int MyDollId { get; private set; }
@@ -56,7 +58,7 @@ namespace WitchMendokusai
 		public bool IsConnected => socket != null && socket.State == WebSocketState.Open;
 
 		/// <summary>같은 줄 규약 — 게임은 어디에 붙었는지 묻지 않는다 (TASK-WM-217).</summary>
-		public bool IsLinked => IsConnected;
+		public bool IsLinked => IsConnected && receivedWelcome && receivedInitialWorld;
 
 		private void Start()
 		{
@@ -79,6 +81,8 @@ namespace WitchMendokusai
 				return;
 
 			wantConnection = true;
+			Kicked = false;
+			ResetHandshakeState();
 			cancellation = new CancellationTokenSource();
 			_ = RunUntilStoppedAsync(cancellation.Token);
 		}
@@ -93,12 +97,14 @@ namespace WitchMendokusai
 			while (wantConnection && token.IsCancellationRequested == false)
 			{
 				socket = new ClientWebSocket();
+				ResetHandshakeState();
 				await RunAsync(token);
 
 				socket?.Dispose();
 				socket = null;
 				MyDollId = 0;
 				Dolls = Array.Empty<WorldDollView>();
+				ResetHandshakeState();
 
 				if (wantConnection == false || token.IsCancellationRequested)
 					break;
@@ -125,6 +131,13 @@ namespace WitchMendokusai
 			MyDollId = 0;
 			MyIdentityId = 0;
 			Dolls = Array.Empty<WorldDollView>();
+			ResetHandshakeState();
+		}
+
+		private void ResetHandshakeState()
+		{
+			receivedWelcome = false;
+			receivedInitialWorld = false;
 		}
 
 		private void OnDestroy() => Disconnect();
@@ -185,6 +198,7 @@ namespace WitchMendokusai
 			{
 				WelcomeMessage welcome = JsonUtility.FromJson<WelcomeMessage>(json);
 				MyDollId = welcome.id;
+				receivedWelcome = true;
 
 				// 0 이면 아직 인사 전이다 — 덮어쓰지 않는다(첫 환영에는 신원이 없다).
 				if (welcome.identityId != 0)
@@ -281,6 +295,7 @@ namespace WitchMendokusai
 			if (json.Contains("\"" + NetMessageType.WORLD + "\""))
 			{
 				WorldMessage world = JsonUtility.FromJson<WorldMessage>(json);
+				receivedInitialWorld = true;
 				Dolls = world.dolls ?? Array.Empty<WorldDollView>();
 				// ★ 안 실려 온 목록은 「비었다」가 아니라 「안 바뀌었다」다 (TASK-WM-217).
 				//   비운 것으로 읽으면 집과 들판이 매 프레임 사라졌다 나타난다.
