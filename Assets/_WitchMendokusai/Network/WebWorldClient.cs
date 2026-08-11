@@ -195,7 +195,19 @@ namespace WitchMendokusai
 
 		private void HandleMessage(string json)
 		{
-			if (json.Contains("\"" + NetMessageType.WELCOME + "\""))
+			NetMessageEnvelope envelope;
+			try
+			{
+				envelope = JsonUtility.FromJson<NetMessageEnvelope>(json);
+			}
+			catch (ArgumentException)
+			{
+				Debug.LogWarning($"{nameof(WebWorldClient)}: invalid protocol message");
+				return;
+			}
+
+			string type = envelope == null ? string.Empty : envelope.type;
+			if (type == NetMessageType.WELCOME)
 			{
 				WelcomeMessage welcome = JsonUtility.FromJson<WelcomeMessage>(json);
 				MyDollId = welcome.id;
@@ -215,20 +227,20 @@ namespace WitchMendokusai
 				return;
 			}
 
-			if (json.Contains("\"type\":\"" + NetMessageType.CRAFT_BOOK + "\""))
+			if (type == NetMessageType.CRAFT_BOOK)
 			{
 				CraftBookMessage book = JsonUtility.FromJson<CraftBookMessage>(json);
 				CraftBook = book?.recipes ?? System.Array.Empty<CraftBookEntryView>();
 				return;
 			}
 
-			if (json.Contains("\"type\":\"" + NetMessageType.CRAFTED + "\""))
+			if (type == NetMessageType.CRAFTED)
 			{
 				crafted = JsonUtility.FromJson<CraftedMessage>(json);
 				return;
 			}
 
-			if (json.Contains("\"" + NetMessageType.BUILD_CATALOG + "\""))
+			if (type == NetMessageType.BUILD_CATALOG)
 			{
 				// ★ 짓기 목록도 세계 것이어야 한다 (TASK-WM-217) — 자기 자산으로 늘어놓으면
 				//   세계가 모르는 것을 고르게 되고, 그건 내 화면에만 섰다가 사라진다.
@@ -239,14 +251,14 @@ namespace WitchMendokusai
 
 			// ★ 「catalog」는 「buildcatalog」 안에도 들어 있다 — 이름만 찾으면 순서에 기대는 코드가 된다.
 			//   누가 위아래를 바꾸는 순간 건물 목록이 아이템 이름으로 읽힌다.
-			if (json.Contains("\"type\":\"" + NetMessageType.CATALOG + "\""))
+			if (type == NetMessageType.CATALOG)
 			{
 				CatalogMessage names = JsonUtility.FromJson<CatalogMessage>(json);
 				ItemNames = names?.items ?? System.Array.Empty<CatalogEntry>();
 				return;
 			}
 
-			if (json.Contains("\"" + NetMessageType.SPELLBOOK + "\""))
+			if (type == NetMessageType.SPELLBOOK)
 			{
 				// ★ 화면의 목표도 세계 것이어야 한다 (TASK-WM-217) — 안 그러면 표시대로 저은 사람이 딴 것을 받는다.
 				SpellbookMessage book = JsonUtility.FromJson<SpellbookMessage>(json);
@@ -254,7 +266,7 @@ namespace WitchMendokusai
 				return;
 			}
 
-			if (json.Contains("\"" + NetMessageType.BREW_TAKEN + "\""))
+			if (type == NetMessageType.BREW_TAKEN)
 			{
 				BrewTakenMessage taken = JsonUtility.FromJson<BrewTakenMessage>(json);
 				completed = new WorldBrewView
@@ -265,7 +277,7 @@ namespace WitchMendokusai
 				return;
 			}
 
-			if (json.Contains("\"" + NetMessageType.KICKED + "\""))
+			if (type == NetMessageType.KICKED)
 			{
 				// 다른 곳에서 같은 사람이 들어왔다. ★ 여기서 다시 붙으면 두 창이 서로를 밀어내며
 				//   영원히 왕복한다 — 그래서 <b>다시 붙기를 끈다</b>.
@@ -275,7 +287,7 @@ namespace WitchMendokusai
 				return;
 			}
 
-			if (json.Contains("\"" + NetMessageType.DENIED + "\""))
+			if (type == NetMessageType.DENIED)
 			{
 				// 거절도 대답이다 — 게임 창에서도 사람이 이유를 봐야 한다.
 				DeniedMessage denied = JsonUtility.FromJson<DeniedMessage>(json);
@@ -283,20 +295,20 @@ namespace WitchMendokusai
 				return;
 			}
 
-			if (json.Contains("\"" + NetMessageType.CHEST + "\""))
+			if (type == NetMessageType.CHEST)
 			{
 				Chest = JsonUtility.FromJson<ChestView>(json);
 				return;
 			}
 
-			if (json.Contains("\"" + NetMessageType.BAG + "\""))
+			if (type == NetMessageType.BAG)
 			{
 				BagMessage bag = JsonUtility.FromJson<BagMessage>(json);
 				DeliverBag(bag);
 				return;
 			}
 
-			if (json.Contains("\"" + NetMessageType.WORLD + "\""))
+			if (type == NetMessageType.WORLD)
 			{
 				WorldMessage world = JsonUtility.FromJson<WorldMessage>(json);
 				receivedInitialWorld = true;

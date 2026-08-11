@@ -149,10 +149,14 @@ namespace WitchMendokusai.Net
 		public const string RENAME = "rename";
 	}
 
-	/// <summary>
-	/// 창 → 서버: 나 왔다 (TASK-WM-218). 열쇠가 있으면 같이 낸다 —
-	/// 없거나 모르는 열쇠면 세계가 <b>새 사람</b>으로 받고 새 열쇠를 준다(남의 것은 안 준다).
-	/// </summary>
+	/// <summary>모든 수신 메시지의 첫 판별에 쓰는 공통 envelope.</summary>
+	[Serializable]
+	public class NetMessageEnvelope
+	{
+		public string type = string.Empty;
+	}
+
+	/// <summary>클라이언트가 세계에 들어오며 자신의 기기 열쇠를 제출하는 메시지.</summary>
 	[Serializable]
 	public class HelloMessage
 	{
