@@ -1,0 +1,70 @@
+name: WM server deploy
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'global.json'
+      - 'Portable/**'
+      - 'Server/WM.Server/**'
+      - '.github/workflows/wm-server-deploy.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: wm-server-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: [self-hosted, unity, windows-build]
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          clean: false
+          fetch-depth: 1
+
+      - name: Select .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.407
+
+      - name: Publish and restart WM server
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $publishDir = 'C:\wm-world\app'
+          $dataDir = 'C:\wm-world\data'
+          $serviceName = 'wm-world'
+          $nssm = (Get-Command nssm -ErrorAction SilentlyContinue).Source
+          if (-not $nssm) {
+            $nssm = 'C:\Users\masca\AppData\Local\Microsoft\WinGet\Links\nssm.exe'
+          }
+          if (-not (Test-Path $nssm)) { throw "nssm not found: $nssm" }
+
+          New-Item -ItemType Directory -Force -Path $publishDir, $dataDir | Out-Null
+          & $nssm stop $serviceName | Out-Host
+          try {
+            dotnet publish Server\WM.Server\WM.Server.csproj -c Release -o $publishDir --nologo
+            if ($LASTEXITCODE -ne 0) { throw "dotnet publish failed: $LASTEXITCODE" }
+          }
+          finally {
+            & $nssm start $serviceName | Out-Host
+          }
+
+          $healthy = $false
+          for ($attempt = 0; $attempt -lt 12; $attempt++) {
+            Start-Sleep -Seconds 2
+            try {
+              $health = Invoke-RestMethod 'http://127.0.0.1:5199/health'
+              if ($health.ok -eq $true) {
+                $healthy = $true
+                $health | ConvertTo-Json -Depth 6 | Write-Host
+                break
+              }
+            }
+            catch { }
+          }
+          if (-not $healthy) { throw 'WM server did not become healthy within 24 seconds' }
