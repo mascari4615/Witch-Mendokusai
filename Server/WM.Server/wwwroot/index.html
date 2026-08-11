@@ -36,15 +36,16 @@
 
 	header {
 		top: 12px; left: 12px; right: 12px;
-		display: flex; align-items: center; gap: 16px;
+		display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
 		padding: 8px 14px;
 	}
 	header .title { font-weight: 600; letter-spacing: .02em; }
 	header .when, header .who { font-variant-numeric: tabular-nums; color: var(--dim); }
 	header .spacer { flex: 1; }
+	header input { flex: 1 1 180px; min-width: 120px; }
 
 	aside {
-		top: 64px; right: 12px; width: 240px; max-height: calc(100vh - 130px);
+		top: 64px; right: 12px; width: min(240px, calc(100vw - 24px)); max-height: calc(100vh - 130px);
 		padding: 12px; display: flex; flex-direction: column; gap: 16px;
 		overflow-y: auto;
 	}
@@ -57,7 +58,9 @@
 	.bag { display: flex; flex-direction: column; gap: 2px; }
 	.bag .row { display: flex; justify-content: space-between; gap: 8px; padding: 3px 6px; border-radius: 4px; }
 	.bag .row:nth-child(odd) { background: #241f3088; }
+	.bag .row span:first-child { flex: 1 1 auto; }
 	.bag .row .amount { font-variant-numeric: tabular-nums; color: var(--dim); }
+	.bag .row .amount { white-space: nowrap; flex: 0 0 auto; }
 	.bag .empty { color: var(--dim); padding: 3px 6px; }
 
 	.pot .line { color: var(--dim); font-variant-numeric: tabular-nums; }
@@ -66,24 +69,40 @@
 	button {
 		background: #2a2436; color: var(--ink); border: 1px solid #453c5c;
 		border-radius: 6px; padding: 5px 10px; font: inherit; cursor: pointer;
+		white-space: normal;
 	}
 	button:hover { background: #352d47; }
 	input {
 		background: #14121a; color: var(--ink); border: 1px solid #453c5c;
 		border-radius: 6px; padding: 5px 8px; font: inherit; width: 100%;
 	}
-	code { background: #241f30; padding: 3px 7px; border-radius: 5px; letter-spacing: .08em; }
+	code { background: #241f30; padding: 3px 7px; border-radius: 5px; letter-spacing: .08em; white-space: pre-wrap; }
 
 	footer {
-		left: 12px; bottom: 12px;
-		display: flex; align-items: center; gap: 12px;
+		left: 12px; right: 12px; bottom: 12px;
+		display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
 		padding: 7px 14px; color: var(--dim);
+		max-width: min(720px, calc(100vw - 24px));
 	}
 	footer .status { color: var(--ink); }
 
 	details summary { cursor: pointer; color: var(--dim); font-size: 12px; letter-spacing: .16em; }
 	details[open] summary { margin-bottom: 8px; }
 	details .stack { display: flex; flex-direction: column; gap: 6px; }
+	header > *, aside section, .line, button, input, select, code, footer span { min-width: 0; overflow-wrap: anywhere; }
+
+	@media (max-width: 900px) {
+		header { right: 264px; }
+	}
+
+	@media (max-width: 720px) {
+		header { right: 12px; }
+		aside {
+			left: 12px; right: 12px; top: auto; bottom: 72px; width: auto;
+			max-height: min(42vh, 360px);
+		}
+		footer { max-width: none; }
+	}
 </style>
 </head>
 <body>
@@ -249,8 +268,10 @@ scene.add(origin);
 // 지은 것 / 사람 — 스냅샷이 올 때마다 갈아 끼운다.
 const buildingGroup = new THREE.Group();
 const dollGroup = new THREE.Group();
+const staticLabelGroup = new THREE.Group();
 scene.add(buildingGroup);
 scene.add(dollGroup);
+scene.add(staticLabelGroup);
 
 const buildingGeometry = new THREE.BoxGeometry(1, 1, 1);
 const buildingMaterial = new THREE.MeshLambertMaterial({ color: '#3c5a4a' });
@@ -266,6 +287,22 @@ scene.add(nodeGroup);
 const dollGeometry = new THREE.CapsuleGeometry(0.32, 0.7, 4, 12);
 const myMaterial = new THREE.MeshLambertMaterial({ color: '#e8c46a', emissive: '#3a2c08' });
 const otherMaterial = new THREE.MeshLambertMaterial({ color: '#8f89a8' });
+const buildingEdgesGeometry = new THREE.EdgesGeometry(buildingGeometry);
+const dollViews = new Map();
+const nodeViews = new Map();
+const frameClock = new THREE.Clock();
+const MAX_STEP = 1.5;
+const LOCAL_MOVE_STEP = 1.5;
+const MOVE_SEND_INTERVAL = 50;
+const LOCAL_MOVE_SPEED = 3;
+const POSITION_IGNORE_DISTANCE = 0.35;
+const POSITION_TELEPORT_DISTANCE = 4;
+const POSITION_PULL_PER_SECOND = 3;
+let staticWorldDirty = true;
+let lastStaticAnchorX = NaN;
+let lastStaticAnchorZ = NaN;
+let lastHighlightAnchorX = NaN;
+let lastHighlightAnchorZ = NaN;
 
 function resize() {
 	const width = window.innerWidth;
@@ -442,10 +479,11 @@ socket.onmessage = (event) => {
 		if (message.buildings) buildings = message.buildings;
 		if (message.gatherables) gatherables = message.gatherables;
 		if (message.cauldrons) cauldrons = message.cauldrons;
+		if (message.buildings || message.gatherables || message.cauldrons) staticWorldDirty = true;
 		time = message.time || time;
 		brew = message.brew || brew;
 		drawWorldLines();
-		rebuildWorld();
+		syncDolls();
 	}
 };
 
@@ -467,20 +505,58 @@ function axis(negativeKeys, positiveKeys) {
 
 // 보내는 것은 「어디로 가고 싶다」뿐. 얼마나 갈 수 있는지는 서버가 정한다.
 // ★ 눈이 돌아간 만큼 방향도 돌린다 — 3D 에서 「위로 가기」는 화면 위쪽이지 세계의 +Z 가 아니다.
-setInterval(() => {
-	if (socket.readyState !== WebSocket.OPEN) return;
+function cameraRelativeMove(right, forward) {
+	const length = Math.hypot(right, forward);
+	if (length === 0) return null;
+
+	const forwardVec = new THREE.Vector3();
+	camera.getWorldDirection(forwardVec);
+	forwardVec.y = 0;
+	forwardVec.normalize();
+
+	const rightVec = new THREE.Vector3().crossVectors(forwardVec, camera.up).normalize();
+	return {
+		x: (right * rightVec.x + forward * forwardVec.x) / length,
+		z: -((right * rightVec.z + forward * forwardVec.z) / length),
+	};
+}
+
+function updateLocalMovement(dt) {
+	if (myId === null) return;
+
+	const selfView = dollViews.get(myId);
+	if (!selfView) return;
 
 	const right = axis(['ArrowLeft', 'a', 'A'], ['ArrowRight', 'd', 'D']);
 	const forward = axis(['ArrowDown', 's', 'S'], ['ArrowUp', 'w', 'W']);
 	if (right === 0 && forward === 0) return;
 
-	const sin = Math.sin(orbit.angle);
-	const cos = Math.cos(orbit.angle);
-	const x = right * cos + forward * sin;
-	const z = forward * cos - right * sin;
+	const move = cameraRelativeMove(right, forward);
+	if (!move) return;
 
-	socket.send(JSON.stringify({ type: 'move', x, z }));
-}, 100);
+	selfView.targetX += move.x * LOCAL_MOVE_SPEED * dt;
+	selfView.targetZ += move.z * LOCAL_MOVE_SPEED * dt;
+}
+
+setInterval(() => {
+	if (socket.readyState !== WebSocket.OPEN || myId === null) return;
+
+	const selfView = dollViews.get(myId);
+	if (!selfView) return;
+
+	let stepX = selfView.targetX - selfView.serverX;
+	let stepZ = selfView.targetZ - selfView.serverZ;
+	const stepLength = Math.hypot(stepX, stepZ);
+	if (stepLength <= 0.01) return;
+
+	if (stepLength > MAX_STEP) {
+		const scale = MAX_STEP / stepLength;
+		stepX *= scale;
+		stepZ *= scale;
+	}
+
+	socket.send(JSON.stringify({ type: 'move', x: stepX, z: stepZ }));
+}, MOVE_SEND_INTERVAL);
 
 // 드래그로 둘러보기 — 세계를 도는 것은 눈뿐이고, 세계 자체는 서버 것이다.
 let dragging = null;
@@ -774,6 +850,158 @@ function rebuildWorld() {
 	}
 }
 
+function rebuildStaticWorld() {
+	clearGroup(buildingGroup);
+	clearGroup(nodeGroup);
+	clearGroup(staticLabelGroup);
+	nodeViews.clear();
+
+	const me = myPlace();
+	for (const building of buildings) {
+		const box = new THREE.Mesh(buildingGeometry, buildingMaterial);
+		box.scale.set(building.w, BUILDING_HEIGHT, building.l);
+		box.position.set(
+			building.x - (building.w - 1) / 2 + 0.5,
+			BUILDING_HEIGHT / 2 + building.y,
+			-(building.z + (building.l - 1) / 2) - 0.5
+		);
+		box.userData.cell = { x: building.x, y: building.y, z: building.z };
+		buildingGroup.add(box);
+
+		const edges = new THREE.LineSegments(buildingEdgesGeometry, buildingEdge);
+		edges.scale.copy(box.scale);
+		edges.position.copy(box.position);
+		buildingGroup.add(edges);
+
+		const gap = (building.x - me.x) ** 2 + (building.z - me.z) ** 2;
+		if (gap > LABEL_RANGE * LABEL_RANGE) continue;
+
+		const kind = buildKinds.find((one) => one.buildingId === building.buildingId);
+		if (!kind) continue;
+
+		const tag = makeNameTag(kind.name);
+		tag.position.set(building.x, 2.2, -building.z);
+		tag.scale.set(2.0, 0.5, 1);
+		staticLabelGroup.add(tag);
+	}
+
+	for (const node of gatherables) {
+		const gap = (node.x - me.x) ** 2 + (node.z - me.z) ** 2;
+		const near = gap <= REACH * REACH;
+		const pole = new THREE.Mesh(nodeGeometry, near ? nodeNear : nodeFar);
+		pole.position.set(node.x, 0.45, -node.z);
+		pole.userData.nodeId = node.id;
+		nodeGroup.add(pole);
+		nodeViews.set(node.id, { x: node.x, z: node.z, mesh: pole });
+
+		if (gap <= LABEL_RANGE * LABEL_RANGE) {
+			const tag = makeNameTag(`${itemNames[node.itemId] || '#' + node.itemId} ${node.amount}`);
+			tag.position.set(node.x, 1.3, -node.z);
+			tag.scale.set(1.8, 0.45, 1);
+			staticLabelGroup.add(tag);
+		}
+	}
+}
+
+function syncDolls() {
+	const alive = new Set();
+
+	for (const doll of dolls) {
+		alive.add(doll.id);
+		let view = dollViews.get(doll.id);
+		if (!view) {
+			const body = new THREE.Mesh(dollGeometry, doll.id === myId ? myMaterial : otherMaterial);
+			dollGroup.add(body);
+			body.position.set(doll.x, 0.67, -doll.z);
+			view = {
+				body,
+				isLocal: doll.id === myId,
+				tag: null,
+				name: '',
+				targetX: doll.x,
+				targetZ: doll.z,
+				serverX: doll.x,
+				serverZ: doll.z,
+			};
+			dollViews.set(doll.id, view);
+		}
+
+		view.body.material = doll.id === myId ? myMaterial : otherMaterial;
+		view.isLocal = doll.id === myId;
+		view.serverX = doll.x;
+		view.serverZ = doll.z;
+		if (doll.id !== myId) {
+			view.targetX = doll.x;
+			view.targetZ = doll.z;
+		}
+
+		if (doll.name) {
+			if (!view.tag || view.name !== doll.name) {
+				if (view.tag) dollGroup.remove(view.tag);
+				view.tag = makeNameTag(doll.name);
+				dollGroup.add(view.tag);
+				view.name = doll.name;
+			}
+			view.tag.position.set(view.body.position.x, 1.7, view.body.position.z);
+		} else if (view.tag) {
+			dollGroup.remove(view.tag);
+			view.tag = null;
+			view.name = '';
+		}
+	}
+
+	for (const [dollId, view] of dollViews) {
+		if (alive.has(dollId)) continue;
+		dollGroup.remove(view.body);
+		if (view.tag) dollGroup.remove(view.tag);
+		dollViews.delete(dollId);
+	}
+}
+
+function updateDollVisuals(dt) {
+	for (const view of dollViews.values()) {
+		const gapX = view.targetX - view.serverX;
+		const gapZ = view.targetZ - view.serverZ;
+		const distance = Math.hypot(gapX, gapZ);
+
+		if (view.isLocal) {
+			if (distance >= POSITION_TELEPORT_DISTANCE) {
+				view.targetX = view.serverX;
+				view.targetZ = view.serverZ;
+			}
+		} else if (distance >= POSITION_TELEPORT_DISTANCE) {
+			view.targetX = view.serverX;
+			view.targetZ = view.serverZ;
+		} else if (distance > POSITION_IGNORE_DISTANCE) {
+			const pull = Math.min(1, POSITION_PULL_PER_SECOND * dt);
+			view.targetX += gapX * pull;
+			view.targetZ += gapZ * pull;
+		}
+
+		if (view.isLocal) {
+			view.body.position.x = view.targetX;
+			view.body.position.z = -view.targetZ;
+		} else {
+			const follow = 1 - Math.exp(-14 * dt);
+			view.body.position.x += (view.targetX - view.body.position.x) * follow;
+			view.body.position.z += (-view.targetZ - view.body.position.z) * follow;
+		}
+		if (view.tag) {
+			view.tag.position.x = view.body.position.x;
+			view.tag.position.z = view.body.position.z;
+		}
+	}
+}
+
+function updateNodeHighlights() {
+	const nearLimit = REACH * REACH;
+	const me = myPlace();
+	for (const view of nodeViews.values()) {
+		const gap = (view.x - me.x) ** 2 + (view.z - me.z) ** 2;
+		view.mesh.material = gap <= nearLimit ? nodeNear : nodeFar;
+	}
+}
+
 /** 내가 선 자리 — 눈이 여기를 따라온다. 아직 나를 모르면 세계의 원점을 본다. */
 /** 이름표 하나 — 글자를 그려 항상 보는 쪽을 향하게 세운다. */
 const nameTags = new Map();
@@ -800,6 +1028,11 @@ function makeNameTag(name) {
 }
 
 function myPlace() {
+	const selfView = myId === null ? null : dollViews.get(myId);
+	if (selfView) {
+		return { x: selfView.targetX, z: selfView.targetZ };
+	}
+
 	for (const doll of dolls) if (doll.id === myId) return doll;
 	return { x: 0, z: 0 };
 }
@@ -830,8 +1063,30 @@ const eyeTarget = new THREE.Vector3();
 const eyeAt = new THREE.Vector3();
 
 function frame() {
+	const dt = Math.min(0.05, frameClock.getDelta());
+	updateLocalMovement(dt);
 	const me = myPlace();
-	eyeTarget.set(me.x, 0.8, -me.z);
+	const anchorX = Math.round(me.x);
+	const anchorZ = Math.round(me.z);
+	if (staticWorldDirty || anchorX !== lastStaticAnchorX || anchorZ !== lastStaticAnchorZ) {
+		rebuildStaticWorld();
+		staticWorldDirty = false;
+		lastStaticAnchorX = anchorX;
+		lastStaticAnchorZ = anchorZ;
+		lastHighlightAnchorX = NaN;
+		lastHighlightAnchorZ = NaN;
+	}
+	if (anchorX !== lastHighlightAnchorX || anchorZ !== lastHighlightAnchorZ) {
+		updateNodeHighlights();
+		lastHighlightAnchorX = anchorX;
+		lastHighlightAnchorZ = anchorZ;
+	}
+	updateDollVisuals(dt);
+
+	const selfView = dollViews.get(myId);
+	const focusX = selfView ? selfView.targetX : me.x;
+	const focusZ = selfView ? -selfView.targetZ : -me.z;
+	eyeTarget.set(focusX, 0.8, focusZ);
 	eyeAt.lerp(eyeTarget, 0.15);
 
 	camera.position.set(
