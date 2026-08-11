@@ -98,6 +98,7 @@ namespace WitchMendokusai.Server
 		// 시험이 성공·실패를 모두 잴 수 있게 판정 자체는 WorldCraftBook 이 하고, 여기선 숫자만 넣는다.
 		private readonly System.Random craftDice = new System.Random();
 		private int worldDirty;
+		private long snapshotSequence;
 
 		public WorldHost(WorldStore worldStore)
 		{
@@ -216,7 +217,8 @@ namespace WitchMendokusai.Server
 				null,
 				World.Gatherables.Alive(World.Calendar.TotalMinutes()),
 				Identities.NameOf,
-				World.Cauldrons));
+				World.Cauldrons,
+				NextSnapshotSequence()));
 
 			// 이 연결의 말 예산 — 창 하나가 모두의 세계를 느리게 만들지 못하게 (TASK-WM-218).
 			WitchMendokusai.Net.MessageBudget budget = new WitchMendokusai.Net.MessageBudget();
@@ -335,7 +337,9 @@ namespace WitchMendokusai.Server
 					World.Calendar,
 					null,
 					World.Gatherables.Alive(World.Calendar.TotalMinutes()),
-					Identities.NameOf));
+					Identities.NameOf,
+					World.Cauldrons,
+					NextSnapshotSequence()));
 
 				Interlocked.Exchange(ref worldDirty, 1);
 				return;
@@ -1001,7 +1005,8 @@ namespace WitchMendokusai.Server
 					null,
 					sendField ? World.Gatherables.Alive(World.Calendar.TotalMinutes()) : null,
 					Identities.NameOf,
-					sendPots ? World.Cauldrons : null);
+					sendPots ? World.Cauldrons : null,
+					NextSnapshotSequence());
 				foreach (System.Collections.Generic.KeyValuePair<int, Connection> entry in sockets)
 				{
 					if (entry.Value.Socket.State != WebSocketState.Open)
@@ -1017,6 +1022,11 @@ namespace WitchMendokusai.Server
 
 				await Task.Delay(delayMilliseconds, CancellationToken.None);
 			}
+		}
+
+		private long NextSnapshotSequence()
+		{
+			return Interlocked.Increment(ref snapshotSequence);
 		}
 
 		/// <summary>

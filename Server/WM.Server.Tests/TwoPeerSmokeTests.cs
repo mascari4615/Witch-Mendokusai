@@ -301,6 +301,27 @@ namespace WitchMendokusai.ServerTests
 		}
 
 		[Test]
+		public async Task World_snapshots_have_monotonic_sequences()
+		{
+			using ClientWebSocket peer = await ConnectAsync();
+			await ReadWelcomeAsync(peer);
+
+			string first = await WaitForAsync(peer, text => text.Contains("\"type\":\"world\"")
+				&& text.Contains("\"sequence\":"));
+			long firstSequence = ReadSequence(first);
+			long secondSequence = firstSequence;
+
+			while (secondSequence <= firstSequence)
+			{
+				string next = await WaitForAsync(peer, text => text.Contains("\"type\":\"world\"")
+					&& text.Contains("\"sequence\":"));
+				secondSequence = ReadSequence(next);
+			}
+
+			Assert.Greater(secondSequence, firstSequence);
+		}
+
+		[Test]
 		public async Task 쏟아부어도_세계는_계속_돌고_곧_다시_말할_수_있다()
 		{
 			using ClientWebSocket flooder = await ConnectAsync();
@@ -450,6 +471,11 @@ namespace WitchMendokusai.ServerTests
 			int end = start;
 			while (end < json.Length && char.IsDigit(json[end])) end++;
 			return json.Substring(start, end - start);
+		}
+
+		private static long ReadSequence(string json)
+		{
+			return System.Text.Json.JsonDocument.Parse(json).RootElement.GetProperty("sequence").GetInt64();
 		}
 
 		[Test]

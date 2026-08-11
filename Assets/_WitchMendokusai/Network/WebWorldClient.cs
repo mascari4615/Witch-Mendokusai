@@ -31,6 +31,7 @@ namespace WitchMendokusai
 		private bool wantConnection;
 		private bool receivedIdentityWelcome;
 		private bool receivedInitialWorld;
+		private long lastWorldSequence;
 
 		/// <summary>서버가 준 내 인형 번호. 아직 못 받았으면 0.</summary>
 		public int MyDollId { get; private set; }
@@ -139,6 +140,7 @@ namespace WitchMendokusai
 		{
 			receivedIdentityWelcome = false;
 			receivedInitialWorld = false;
+			lastWorldSequence = 0;
 		}
 
 		private void OnDestroy() => Disconnect();
@@ -311,6 +313,12 @@ namespace WitchMendokusai
 			if (type == NetMessageType.WORLD)
 			{
 				WorldMessage world = JsonUtility.FromJson<WorldMessage>(json);
+				if (world.sequence > 0 && world.sequence <= lastWorldSequence)
+					return;
+
+				if (world.sequence > 0)
+					lastWorldSequence = world.sequence;
+
 				receivedInitialWorld = true;
 				Dolls = world.dolls ?? Array.Empty<WorldDollView>();
 				// ★ 안 실려 온 목록은 「비었다」가 아니라 「안 바뀌었다」다 (TASK-WM-217).

@@ -197,6 +197,7 @@ const canvas = document.getElementById('board');
 
 let myId = null;
 let dolls = [];
+let lastWorldSequence = 0;
 let buildings = [];
 let gatherables = [];
 let bag = [];
@@ -322,6 +323,7 @@ const KEY_NAME = 'wm.world.secret';
 
 socket.onopen = () => {
 	statusElement.textContent = '붙었다';
+	lastWorldSequence = 0;
 
 	let saved = '';
 	try { saved = localStorage.getItem(KEY_NAME) || ''; } catch (e) { saved = ''; }
@@ -474,6 +476,8 @@ socket.onmessage = (event) => {
 	}
 
 	if (message.type === 'world') {
+		if (message.sequence > 0 && message.sequence <= lastWorldSequence) return;
+		if (message.sequence > 0) lastWorldSequence = message.sequence;
 		dolls = message.dolls;
 		// 안 실려 온 목록은 「비었다」가 아니라 「안 바뀌었다」다 — 지난 것을 그대로 쓴다.
 		if (message.buildings) buildings = message.buildings;

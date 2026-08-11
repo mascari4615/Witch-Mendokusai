@@ -91,7 +91,7 @@ namespace WitchMendokusai.Server
 			builder.Append("/** buildings·gatherables 는 바뀐 프레임에만 실린다 — 없으면 지난 것을 그대로 쓸 것. */\n");
 			builder.Append("/** 지은 자리마다의 솥 — 여럿이 각자 젓는다. */\n");
 			builder.Append("export interface CauldronView {\n\tx: number;\n\ty: number;\n\tz: number;\n\tpx: number;\n\tpy: number;\n\tsteps: number;\n\tside: number;\n}\n\n");
-			builder.Append("export interface WorldSnapshot {\n\ttype: '").Append(WORLD).Append("';\n\tdolls: WorldDollView[];\n\tbuildings?: WorldBuildingView[];\n\tgatherables?: GatherableView[];\n\tcauldrons?: CauldronView[];\n\ttime?: WorldTime;\n\tbrew?: BrewView;\n}\n\n");
+			builder.Append("export interface WorldSnapshot {\n\ttype: '").Append(WORLD).Append("';\n\tsequence: number;\n\tdolls: WorldDollView[];\n\tbuildings?: WorldBuildingView[];\n\tgatherables?: GatherableView[];\n\tcauldrons?: CauldronView[];\n\ttime?: WorldTime;\n\tbrew?: BrewView;\n}\n\n");
 
 			builder.Append("/** 창 -> 서버: 이쪽으로 가고 싶다(얼마나 갈지는 서버가 정한다). */\n");
 			builder.Append("export interface MoveRequest {\n\ttype: '").Append(MOVE).Append("';\n\tx: number;\n\tz: number;\n}\n\n");
@@ -442,10 +442,10 @@ namespace WitchMendokusai.Server
 		}
 
 		/// <summary>서버가 보내는 세계 모습.</summary>
-		public static string WorldSnapshot(IEnumerable<WorldDoll> dolls, IEnumerable<PlacedBuilding> buildings, WorldCalendar calendar = null, WorldCauldron cauldron = null, IEnumerable<GatherableNode> gatherables = null, System.Func<int, string> nameOf = null, WorldCauldrons cauldrons = null)
+		public static string WorldSnapshot(IEnumerable<WorldDoll> dolls, IEnumerable<PlacedBuilding> buildings, WorldCalendar calendar = null, WorldCauldron cauldron = null, IEnumerable<GatherableNode> gatherables = null, System.Func<int, string> nameOf = null, WorldCauldrons cauldrons = null, long sequence = 0)
 		{
 			StringBuilder builder = new StringBuilder();
-			builder.Append("{\"type\":\"").Append(WORLD).Append("\",\"dolls\":[");
+			builder.Append("{\"type\":\"").Append(WORLD).Append("\",\"sequence\":").Append(sequence).Append(",\"dolls\":[");
 
 			bool first = true;
 			foreach (WorldDoll doll in dolls)

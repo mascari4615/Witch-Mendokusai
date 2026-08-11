@@ -220,6 +220,7 @@ namespace WitchMendokusai.Net
 	public class WorldMessage
 	{
 		public string type = NetMessageType.WORLD;
+		public long sequence;
 		public WorldDollView[] dolls = Array.Empty<WorldDollView>();
 
 		// ★ 기본값이 <b>없음(null)</b>이다 (TASK-WM-217): 이 목록들은 바뀐 프레임에만 실린다.
