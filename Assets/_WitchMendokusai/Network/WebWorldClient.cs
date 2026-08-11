@@ -103,6 +103,7 @@ namespace WitchMendokusai
 				socket?.Dispose();
 				socket = null;
 				MyDollId = 0;
+				MyIdentityId = 0;
 				Dolls = Array.Empty<WorldDollView>();
 				ResetHandshakeState();
 
@@ -153,7 +154,7 @@ namespace WitchMendokusai
 				// 없으면 세계가 새 사람으로 받고 새 열쇠를 준다.
 				// KarmoLab 연결 코드가 적혀 있으면 같이 낸다 — 그러면 어느 기기에서든 그 계정의 나다.
 				// (쿠키는 도메인이 달라 게임 창에서 못 읽는다. 그래서 코드로 온다.)
-				Send(JsonUtility.ToJson(new HelloMessage
+				SendRaw(JsonUtility.ToJson(new HelloMessage
 				{
 					secret = WorldKeyStore.Load(),
 					klCode = WorldKeyStore.LoadAccountCode(),
@@ -465,6 +466,14 @@ namespace WitchMendokusai
 		}
 
 		private void Send(string json)
+		{
+			if (IsLinked == false)
+				return;
+
+			SendRaw(json);
+		}
+
+		private void SendRaw(string json)
 		{
 			if (IsConnected == false)
 				return;
