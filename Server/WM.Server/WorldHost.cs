@@ -221,7 +221,8 @@ namespace WitchMendokusai.Server
 				GatherablesVisibleTo(doll.Id),
 				Identities.NameOf,
 				World.Cauldrons,
-				NextSnapshotSequence()));
+				NextSnapshotSequence(),
+				CauldronCellsVisibleTo(doll.Id)));
 			MarkSnapshotState(connection, doll.Id);
 
 			// 이 연결의 말 예산 — 창 하나가 모두의 세계를 느리게 만들지 못하게 (TASK-WM-218).
@@ -343,7 +344,8 @@ namespace WitchMendokusai.Server
 					GatherablesVisibleTo(dollId),
 					Identities.NameOf,
 					World.Cauldrons,
-					NextSnapshotSequence()));
+					NextSnapshotSequence(),
+					CauldronCellsVisibleTo(dollId)));
 				MarkSnapshotState(socket, dollId);
 
 				Interlocked.Exchange(ref worldDirty, 1);
@@ -1011,7 +1013,7 @@ namespace WitchMendokusai.Server
 					bool interestChanged = UpdateInterestCell(target, entry.Key);
 					bool sendBuildings = buildVersion != target.SentBuildVersion || interestChanged;
 					bool sendField = fieldVersion != target.SentFieldVersion || interestChanged;
-					bool sendPots = potVersion != target.SentPotVersion;
+					bool sendPots = potVersion != target.SentPotVersion || interestChanged;
 					if (sendBuildings)
 						target.SentBuildVersion = buildVersion;
 					if (sendField)
@@ -1027,7 +1029,8 @@ namespace WitchMendokusai.Server
 						sendField ? GatherablesVisibleTo(entry.Key) : null,
 						Identities.NameOf,
 						sendPots ? World.Cauldrons : null,
-						sequence);
+						sequence,
+						sendPots ? CauldronCellsVisibleTo(entry.Key) : null);
 					_ = SendSnapshotAsync(target, snapshot);
 				}
 
@@ -1115,6 +1118,25 @@ namespace WitchMendokusai.Server
 				GatherableNode candidate = all[i];
 				float deltaX = candidate.X - viewer.x;
 				float deltaZ = candidate.Z - viewer.z;
+				if (deltaX * deltaX + deltaZ * deltaZ <= radiusSquared)
+					visible.Add(candidate);
+			}
+
+			return visible;
+		}
+
+		private System.Collections.Generic.List<Vector3Int> CauldronCellsVisibleTo(int viewerDollId)
+		{
+			System.Collections.Generic.List<Vector3Int> all = World.Cauldrons.Cells();
+			Vector3 viewer = World.PositionOf(viewerDollId);
+			float radiusSquared = PLAYER_INTEREST_RADIUS * PLAYER_INTEREST_RADIUS;
+			System.Collections.Generic.List<Vector3Int> visible = new System.Collections.Generic.List<Vector3Int>();
+
+			for (int i = 0; i < all.Count; i++)
+			{
+				Vector3Int candidate = all[i];
+				float deltaX = candidate.x - viewer.x;
+				float deltaZ = candidate.z - viewer.z;
 				if (deltaX * deltaX + deltaZ * deltaZ <= radiusSquared)
 					visible.Add(candidate);
 			}

@@ -442,7 +442,7 @@ namespace WitchMendokusai.Server
 		}
 
 		/// <summary>서버가 보내는 세계 모습.</summary>
-		public static string WorldSnapshot(IEnumerable<WorldDoll> dolls, IEnumerable<PlacedBuilding> buildings, WorldCalendar calendar = null, WorldCauldron cauldron = null, IEnumerable<GatherableNode> gatherables = null, System.Func<int, string> nameOf = null, WorldCauldrons cauldrons = null, long sequence = 0)
+		public static string WorldSnapshot(IEnumerable<WorldDoll> dolls, IEnumerable<PlacedBuilding> buildings, WorldCalendar calendar = null, WorldCauldron cauldron = null, IEnumerable<GatherableNode> gatherables = null, System.Func<int, string> nameOf = null, WorldCauldrons cauldrons = null, long sequence = 0, IEnumerable<Vector3Int> cauldronCells = null)
 		{
 			StringBuilder builder = new StringBuilder();
 			builder.Append("{\"type\":\"").Append(WORLD).Append("\",\"sequence\":").Append(sequence).Append(",\"dolls\":[");
@@ -557,7 +557,8 @@ namespace WitchMendokusai.Server
 				builder.Append(",\"cauldrons\":[");
 
 				bool firstPot = true;
-				foreach (Vector3Int cell in cauldrons.Cells())
+				IEnumerable<Vector3Int> cells = cauldronCells ?? cauldrons.Cells();
+				foreach (Vector3Int cell in cells)
 				{
 					WorldCauldron pot = cauldrons.At(cell);
 					if (pot == null)

@@ -353,15 +353,20 @@ namespace WitchMendokusai.ServerTests
 				new WitchMendokusai.Numerics.Vector3Int(0, 0, 0),
 				new WitchMendokusai.Numerics.Vector2Int(1, 1),
 				4005));
+			host.World.Cauldrons.Place(new WitchMendokusai.Numerics.Vector3Int(0, 0, 0));
 
-			string nearby = await WaitForAsync(traveler, text => ReadWorldBuildingCount(text) == 1);
+			string nearby = await WaitForAsync(traveler, text => ReadWorldBuildingCount(text) == 1
+				&& ReadWorldCauldronCount(text) == 1);
 			Assert.AreEqual(1, ReadWorldBuildingCount(nearby));
+			Assert.AreEqual(1, ReadWorldCauldronCount(nearby));
 
 			for (int step = 0; step < 40; step++)
 				host.World.TryMove(travelerId, new WitchMendokusai.Numerics.Vector3(1f, 0f, 0f));
 
-			string farAway = await WaitForAsync(traveler, text => ReadWorldBuildingCount(text) == 0);
+			string farAway = await WaitForAsync(traveler, text => ReadWorldBuildingCount(text) == 0
+				&& ReadWorldCauldronCount(text) == 0);
 			Assert.AreEqual(0, ReadWorldBuildingCount(farAway));
+			Assert.AreEqual(0, ReadWorldCauldronCount(farAway));
 		}
 
 		[Test]
@@ -543,6 +548,18 @@ namespace WitchMendokusai.ServerTests
 				return -1;
 
 			return buildings.GetArrayLength();
+		}
+
+		private static int ReadWorldCauldronCount(string json)
+		{
+			using System.Text.Json.JsonDocument document = System.Text.Json.JsonDocument.Parse(json);
+			System.Text.Json.JsonElement root = document.RootElement;
+			if (root.TryGetProperty("type", out System.Text.Json.JsonElement type) == false
+				|| type.GetString() != "world"
+				|| root.TryGetProperty("cauldrons", out System.Text.Json.JsonElement cauldrons) == false)
+				return -1;
+
+			return cauldrons.GetArrayLength();
 		}
 
 		[Test]
