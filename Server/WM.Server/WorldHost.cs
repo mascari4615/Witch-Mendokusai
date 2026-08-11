@@ -40,6 +40,7 @@ namespace WitchMendokusai.Server
 		///   그렇다고 매번 쓰면 빈 밤에도 디스크가 돈다 — 그 사이를 이 값이 정한다.
 		/// </summary>
 		private const int IDLE_SAVE_WORLD_MINUTES = 60;
+		private const int MAX_MESSAGE_BYTES = 1024 * 1024;
 
 		private int savedAtWorldMinute;
 
@@ -371,11 +372,26 @@ namespace WitchMendokusai.Server
 		{
 			try
 			{
-				WebSocketReceiveResult received = await socket.ReceiveAsync(new ArraySegment<byte>(buffer), stopping);
-				if (received.MessageType == WebSocketMessageType.Close)
-					return null;
+				StringBuilder message = new StringBuilder();
+				int receivedBytes = 0;
 
-				return Encoding.UTF8.GetString(buffer, 0, received.Count);
+				while (true)
+				{
+					WebSocketReceiveResult received = await socket.ReceiveAsync(new ArraySegment<byte>(buffer), stopping);
+					if (received.MessageType == WebSocketMessageType.Close)
+						return null;
+
+					if (received.MessageType != WebSocketMessageType.Text)
+						return null;
+
+					receivedBytes += received.Count;
+					if (receivedBytes > MAX_MESSAGE_BYTES)
+						return null;
+
+					message.Append(Encoding.UTF8.GetString(buffer, 0, received.Count));
+					if (received.EndOfMessage)
+						return message.ToString();
+				}
 			}
 			catch (WebSocketException)
 			{
