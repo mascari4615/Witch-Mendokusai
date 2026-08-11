@@ -288,6 +288,19 @@ namespace WitchMendokusai.ServerTests
 		}
 
 		[Test]
+		public async Task Type_field_is_required_for_hello_dispatch()
+		{
+			using ClientWebSocket peer = await ConnectAsync();
+			int dollId = await ReadWelcomeAsync(peer);
+
+			await SendAsync(peer, "{\"note\":\"hello\",\"secret\":\"type-guard\"}");
+			await Task.Delay(250);
+
+			Assert.AreEqual(0, host.World.OwnerOf(dollId),
+				"a hello string in another field must not adopt the connection");
+		}
+
+		[Test]
 		public async Task 쏟아부어도_세계는_계속_돌고_곧_다시_말할_수_있다()
 		{
 			using ClientWebSocket flooder = await ConnectAsync();

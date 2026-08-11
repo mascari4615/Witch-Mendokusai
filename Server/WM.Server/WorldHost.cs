@@ -258,7 +258,8 @@ namespace WitchMendokusai.Server
 		/// <summary>인사를 받으면 그 연결의 인형에 주인을 붙이고, 새 사람이면 열쇠를 준다.</summary>
 		private async Task HandleMessageAsync(int dollId, Connection socket, string text)
 		{
-			if (text.Contains("\"" + Protocol.INVITE_ASK + "\""))
+			string kind = ReadMessageType(text);
+			if (kind == Protocol.INVITE_ASK)
 			{
 				// 지금 이 연결의 주인에게만 초대 열쇠를 낸다 — 손님(주인 없음)은 낼 수 없다.
 				int owner = World.OwnerOf(dollId);
@@ -268,7 +269,7 @@ namespace WitchMendokusai.Server
 				return;
 			}
 
-			if (text.Contains("\"" + Protocol.LINK + "\""))
+			if (kind == Protocol.LINK)
 			{
 				string code = ReadStringField(text, "code");
 				string deviceSecret = CurrentSecretOf(dollId);
@@ -286,7 +287,7 @@ namespace WitchMendokusai.Server
 				return;
 			}
 
-			if (text.Contains("\"" + Protocol.HELLO + "\""))
+			if (kind == Protocol.HELLO)
 			{
 				string secret = ReadHelloSecret(text);
 
@@ -852,6 +853,31 @@ namespace WitchMendokusai.Server
 		private int ReadInt(JsonElement root, string name)
 		{
 			return root.TryGetProperty(name, out JsonElement element) ? (int)element.GetDouble() : 0;
+		}
+
+		private static string ReadMessageType(string text)
+		{
+			try
+			{
+				using JsonDocument document = JsonDocument.Parse(text);
+				JsonElement root = document.RootElement;
+				if (root.ValueKind != JsonValueKind.Object)
+					return null;
+
+				if (root.TryGetProperty("type", out JsonElement type) == false
+					|| type.ValueKind != JsonValueKind.String)
+					return null;
+
+				return type.GetString();
+			}
+			catch (JsonException)
+			{
+				return null;
+			}
+			catch (InvalidOperationException)
+			{
+				return null;
+			}
 		}
 
 		/// <summary>
