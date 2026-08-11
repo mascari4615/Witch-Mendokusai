@@ -6,6 +6,8 @@
 export interface Hello {
 	type: 'hello';
 	secret: string;
+	klCode?: string;
+	klSession?: string;
 }
 
 /** 서버 -> 창: 접속했다. secret 이 비어있지 않으면 새로 받은 열쇠(적어 둘 것). */

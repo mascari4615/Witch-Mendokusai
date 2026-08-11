@@ -70,7 +70,7 @@ namespace WitchMendokusai.Server
 			builder.Append("// 서버가 계약을 소유하고, 이 파일은 거기서 뽑혀 나온다.\n\n");
 
 			builder.Append("/** 창 -> 서버: 나 왔다(열쇠가 있으면 같이). 첫 말이다. */\n");
-			builder.Append("export interface Hello {\n\ttype: '").Append(HELLO).Append("';\n\tsecret: string;\n}\n\n");
+			builder.Append("export interface Hello {\n\ttype: '").Append(HELLO).Append("';\n\tsecret: string;\n\tklCode?: string;\n\tklSession?: string;\n}\n\n");
 
 			builder.Append("/** 서버 -> 창: 접속했다. secret 이 비어있지 않으면 새로 받은 열쇠(적어 둘 것). */\n");
 			builder.Append("export interface Welcome {\n\ttype: '").Append(WELCOME).Append("';\n\tid: number;\n\tidentityId: number;\n\tsecret: string;\n}\n\n");

@@ -134,6 +134,8 @@ namespace WitchMendokusai.Server.Tests
 			StringAssert.Contains("Welcome", typescript);
 			StringAssert.Contains("WorldSnapshot", typescript);
 			StringAssert.Contains("MoveRequest", typescript);
+			StringAssert.Contains("klCode?: string", typescript);
+			StringAssert.Contains("klSession?: string", typescript);
 		}
 
 		[Test]
