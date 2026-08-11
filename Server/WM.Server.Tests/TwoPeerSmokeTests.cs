@@ -1,7 +1,9 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Net.WebSockets;
 using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
@@ -20,12 +22,10 @@ namespace WitchMendokusai.ServerTests
 	/// </summary>
 	public sealed class TwoPeerSmokeTests
 	{
-		private const int PORT = 5391;
-		private static readonly Uri address = new Uri($"ws://127.0.0.1:{PORT}/ws");
-
 		private WebApplication app;
 		private WorldHost host;
 		private string worldFile;
+		private Uri address;
 
 		[SetUp]
 		public async Task SetUp()
@@ -34,8 +34,10 @@ namespace WitchMendokusai.ServerTests
 
 			// 시험마다 자기 세계·자기 저장 파일 — 서로를 오염시키지 않는다.
 			host = new WorldHost(new WorldStore(worldFile));
-			app = host.Build(Array.Empty<string>(), $"http://127.0.0.1:{PORT}");
+			app = host.Build(Array.Empty<string>(), "http://127.0.0.1:0");
 			await app.StartAsync();
+			Uri httpAddress = new Uri(app.Urls.First());
+			address = new UriBuilder(httpAddress) { Scheme = "ws", Path = "/ws" }.Uri;
 		}
 
 		[TearDown]
@@ -404,7 +406,7 @@ namespace WitchMendokusai.ServerTests
 			await WaitForAsync(peer, text => text.Contains("\"buildingId\":4005"));
 
 			using System.Net.Http.HttpClient http = new System.Net.Http.HttpClient();
-			string body = await http.GetStringAsync($"http://127.0.0.1:{PORT}/health");
+			string body = await http.GetStringAsync(app.Urls.First().TrimEnd('/') + "/health");
 
 			// 「떠 있다」만으로는 부족하다 — 세계가 돌고 있는지(사람·건물·시각)를 말해야 한다.
 			StringAssert.Contains("\"ok\":true", body);
@@ -413,6 +415,14 @@ namespace WitchMendokusai.ServerTests
 			StringAssert.Contains("\"hour\":", body);
 			StringAssert.Contains("\"broadcastSnapshotMessages\":", body);
 			StringAssert.Contains("\"largestBroadcastSnapshotBytes\":", body);
+			using JsonDocument health = JsonDocument.Parse(body);
+			JsonElement healthRoot = health.RootElement;
+			Assert.Greater(healthRoot.GetProperty("broadcastSnapshotMessages").GetInt64(), 0,
+				"연결된 클라이언트에 보낸 방송 스냅샷이 계측되지 않았다");
+			Assert.Greater(healthRoot.GetProperty("broadcastSnapshotBytes").GetInt64(), 0,
+				"방송 스냅샷의 누적 바이트가 계측되지 않았다");
+			Assert.Greater(healthRoot.GetProperty("largestBroadcastSnapshotBytes").GetInt64(), 0,
+				"방송 스냅샷의 최대 크기가 계측되지 않았다");
 		}
 
 		// ⚠ 보류 (TASK-WM-218): 「계정으로 들어오면 기기가 달라도 같은 사람」을 서버 왕복으로 재려다
@@ -573,7 +583,7 @@ namespace WitchMendokusai.ServerTests
 			await WaitForAsync(peer, text => text.Contains("\"time\":{\"year\":"));
 		}
 
-		private static async Task<ClientWebSocket> ConnectAsync()
+		private async Task<ClientWebSocket> ConnectAsync()
 		{
 			ClientWebSocket socket = new ClientWebSocket();
 			using CancellationTokenSource timeout = new CancellationTokenSource(TimeSpan.FromSeconds(10));
