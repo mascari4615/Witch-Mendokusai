@@ -411,6 +411,8 @@ namespace WitchMendokusai.ServerTests
 			StringAssert.Contains("\"people\":1", body);
 			StringAssert.Contains("\"buildings\":1", body);
 			StringAssert.Contains("\"hour\":", body);
+			StringAssert.Contains("\"broadcastSnapshotMessages\":", body);
+			StringAssert.Contains("\"largestBroadcastSnapshotBytes\":", body);
 		}
 
 		// ⚠ 보류 (TASK-WM-218): 「계정으로 들어오면 기기가 달라도 같은 사람」을 서버 왕복으로 재려다

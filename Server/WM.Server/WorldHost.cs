@@ -45,6 +45,9 @@ namespace WitchMendokusai.Server
 		private const float INTEREST_CELL_SIZE = 16f;
 
 		private int savedAtWorldMinute;
+		private long broadcastSnapshotMessages;
+		private long broadcastSnapshotBytes;
+		private long largestBroadcastSnapshotBytes;
 
 		// 마지막으로 창들에 보낸 판 — 이 수가 그대로면 그 목록은 다시 안 보낸다.
 		/// <summary>
@@ -150,6 +153,9 @@ namespace WitchMendokusai.Server
 				day = World.Calendar.TotalDays(),
 				hour = World.Calendar.Hour,
 				minute = World.Calendar.Minute,
+				broadcastSnapshotMessages = Interlocked.Read(ref broadcastSnapshotMessages),
+				broadcastSnapshotBytes = Interlocked.Read(ref broadcastSnapshotBytes),
+				largestBroadcastSnapshotBytes = Interlocked.Read(ref largestBroadcastSnapshotBytes),
 				worldFile = store.Path,
 			}));
 
@@ -937,6 +943,10 @@ namespace WitchMendokusai.Server
 		{
 			try
 			{
+				long bytes = Encoding.UTF8.GetByteCount(snapshot);
+				Interlocked.Increment(ref broadcastSnapshotMessages);
+				Interlocked.Add(ref broadcastSnapshotBytes, bytes);
+				UpdateLargestSnapshot(bytes);
 				await SendAsync(target, snapshot);
 			}
 			finally
@@ -1035,6 +1045,19 @@ namespace WitchMendokusai.Server
 				}
 
 				await Task.Delay(delayMilliseconds, CancellationToken.None);
+			}
+		}
+
+		private void UpdateLargestSnapshot(long bytes)
+		{
+			long previous = Interlocked.Read(ref largestBroadcastSnapshotBytes);
+			while (bytes > previous)
+			{
+				long exchanged = Interlocked.CompareExchange(ref largestBroadcastSnapshotBytes, bytes, previous);
+				if (exchanged == previous)
+					return;
+
+				previous = exchanged;
 			}
 		}
 
