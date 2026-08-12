@@ -249,6 +249,34 @@ namespace WitchMendokusai
 				return;
 			}
 
+			// ★ 말·싸움·국경 (TASK-WM-261). 웹 창만 다루고 게임 창이 안 다루면, 컴파일은 멀쩡한데
+			//   게임 쪽 사람에게는 그 기능이 <b>조용히 없다</b> — 같은 세계에 사는 두 창이 갈린다.
+			if (type == NetMessageType.SAID)
+			{
+				SaidMessage said = JsonUtility.FromJson<SaidMessage>(json);
+				if (said != null)
+					heard.Add(said);
+
+				return;
+			}
+
+			if (type == NetMessageType.HURT)
+			{
+				HurtMessage hurt = JsonUtility.FromJson<HurtMessage>(json);
+				if (hurt != null)
+					hurts.Add(hurt);
+
+				return;
+			}
+
+			if (type == NetMessageType.MOVE_ON)
+			{
+				// ⚠ 여기서 붙잡아 두기만 한다 — 저 세계로 옮겨 붙는 것은 줄을 쥔 쪽의 일이다.
+				//   안 읽으면 국경에서 그 창만 멈춰 선다(세계는 이미 내보냈다).
+				moveOn = JsonUtility.FromJson<MoveOnMessage>(json);
+				return;
+			}
+
 			if (type == NetMessageType.BUILD_CATALOG)
 			{
 				// ★ 짓기 목록도 세계 것이어야 한다 (TASK-WM-217) — 자기 자산으로 늘어놓으면
@@ -555,6 +583,56 @@ namespace WitchMendokusai
 		public void RequestRename(string name)
 		{
 			Send(JsonUtility.ToJson(new RenameMessage { name = name }));
+		}
+
+		private readonly System.Collections.Generic.List<SaidMessage> heard =
+			new System.Collections.Generic.List<SaidMessage>();
+
+		private readonly System.Collections.Generic.List<HurtMessage> hurts =
+			new System.Collections.Generic.List<HurtMessage>();
+
+		private MoveOnMessage moveOn;
+
+		/// <summary>이렇게 말했다 — 다듬는 것도 자르는 것도 세계가 한다 (TASK-WM-261).</summary>
+		public void RequestSay(string line)
+		{
+			Send(JsonUtility.ToJson(new SayMessage { text = line ?? string.Empty }));
+		}
+
+		/// <summary>들린 말 — 한 번 읽으면 비운다(두 번 뜨지 않게).</summary>
+		public SaidMessage[] TakeHeard()
+		{
+			if (heard.Count == 0)
+				return System.Array.Empty<SaidMessage>();
+
+			SaidMessage[] taken = heard.ToArray();
+			heard.Clear();
+			return taken;
+		}
+
+		/// <summary>저 사람을 때린다 — 거리·간격·대상은 세계가 본다 (TASK-WM-261).</summary>
+		public void RequestStrike(int targetDollId)
+		{
+			Send(JsonUtility.ToJson(new StrikeMessage { targetId = targetDollId }));
+		}
+
+		/// <summary>누가 맞았다 — 한 번 읽으면 비운다.</summary>
+		public HurtMessage[] TakeHurts()
+		{
+			if (hurts.Count == 0)
+				return System.Array.Empty<HurtMessage>();
+
+			HurtMessage[] taken = hurts.ToArray();
+			hurts.Clear();
+			return taken;
+		}
+
+		/// <summary>여기부터는 저 세계다 — 한 번 읽으면 비운다(같은 통행증으로 두 번 넘지 않게).</summary>
+		public MoveOnMessage TakeMoveOn()
+		{
+			MoveOnMessage taken = moveOn;
+			moveOn = null;
+			return taken;
 		}
 
 		/// <summary>이 줄대로 만들겠다 — 되나 안 되나는 세계가 정한다.</summary>

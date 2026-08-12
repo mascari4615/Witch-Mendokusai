@@ -44,6 +44,10 @@ const EXEMPT = new Map([
   ['RequestBrewStep', '자리 없는 옛 길 — 자리별 솥(RequestBrewStepAt)이 대신한다'],
   ['RequestBrewReset', '자리 없는 옛 길 — RequestBrewResetAt 이 대신한다'],
   ['RequestBrewComplete', '자리 없는 옛 길 — RequestBrewCompleteAt 이 대신한다'],
+  // 줄(WebWorldClient/LocalWorldLink)은 WM-261 에 이미 놓았다 — 없는 것은 <유니티 화면의 손잡이>다.
+  // 말할 칸·때리는 입력은 씬/입력 자산이라 에디터가 있어야 만든다(러너가 죽어 있다 — TASK-WM-221).
+  ['RequestSay', '게임 창의 말 칸이 아직 없다 — 줄은 WM-261 에 있다(웹 창이 먼저다)'],
+  ['RequestStrike', '게임 창의 때리기 입력이 아직 없다 — 줄은 WM-261 에 있다(웹 창이 먼저다)'],
 ]);
 
 function cannotRun(message) {
@@ -241,6 +245,8 @@ const CLIENT_TO_SERVER = new Set([
   'HELLO', 'MOVE', 'PLACE', 'GATHER', 'BAG_ASK', 'CONSUME', 'REMOVE', 'BREW',
   'BREW_RESET', 'BREW_COMPLETE', 'CRAFT', 'RENAME', 'CHEST_ASK', 'CHEST_PUT',
   'CHEST_TAKE', 'INVITE_ASK', 'LINK',
+  // 창이 <b>보내는</b> 말이다 — 「안 다룬다」로 잡히면 안 된다(WM-250·251, 이 목록이 낡았었다).
+  'SAY', 'STRIKE',
 ]);
 
 // 게임 창이 안 다뤄도 되는 것 — 이유를 적어 둔다(비면 안 된다).

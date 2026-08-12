@@ -508,6 +508,62 @@ namespace WitchMendokusai
 			};
 		}
 
+		private readonly System.Collections.Generic.List<SaidMessage> heard =
+			new System.Collections.Generic.List<SaidMessage>();
+
+		private readonly System.Collections.Generic.List<HurtMessage> hurts =
+			new System.Collections.Generic.List<HurtMessage>();
+
+		/// <summary>
+		/// 혼자 노는 세계에서도 말은 한다 (TASK-WM-261) — 들을 남이 없으니 <b>나에게</b> 돌아온다.
+		///
+		/// ★ 왜 그냥 버리지 않나: 혼자와 같이가 갈리면 그게 곧 두 벌의 게임이다.
+		///   말이 화면에 뜨는 <b>길</b>은 두 경우가 같아야 한다 — 다듬는 규칙(SaidLine)도 같은 것을 쓴다.
+		/// </summary>
+		public void RequestSay(string line)
+		{
+			string clean = SaidLine.Clean(line);
+			if (clean == null)
+				return;
+
+			heard.Add(new SaidMessage { dollId = me.Id, name = myName ?? string.Empty, text = clean });
+		}
+
+		public SaidMessage[] TakeHeard()
+		{
+			if (heard.Count == 0)
+				return System.Array.Empty<SaidMessage>();
+
+			SaidMessage[] taken = heard.ToArray();
+			heard.Clear();
+			return taken;
+		}
+
+		/// <summary>혼자 노는 세계에서 때린다 — 판정은 <b>같은 규칙</b>(WorldSim.TryStrike)이 본다.</summary>
+		public void RequestStrike(int targetDollId)
+		{
+			if (world.TryStrike(me.Id, targetDollId, System.Environment.TickCount64,
+				out int healthLeft, out bool wentDown) != StrikeRule.Denial.None)
+			{
+				return;
+			}
+
+			hurts.Add(new HurtMessage { dollId = targetDollId, by = me.Id, health = healthLeft, down = wentDown });
+		}
+
+		public HurtMessage[] TakeHurts()
+		{
+			if (hurts.Count == 0)
+				return System.Array.Empty<HurtMessage>();
+
+			HurtMessage[] taken = hurts.ToArray();
+			hurts.Clear();
+			return taken;
+		}
+
+		/// <summary>내 안의 세계는 하나뿐이라 국경이 없다 — 넘어갈 곳이 없으니 늘 null.</summary>
+		public MoveOnMessage TakeMoveOn() => null;
+
 		/// <summary>혼자 노는 세계도 이름을 안다 — 게임 자산이 정본이라 여기선 빈 목록으로 둔다.</summary>
 		public CatalogEntry[] ItemNames => System.Array.Empty<CatalogEntry>();
 

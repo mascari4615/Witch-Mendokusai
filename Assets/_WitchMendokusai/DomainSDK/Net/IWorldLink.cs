@@ -127,6 +127,33 @@ namespace WitchMendokusai.Net
 		/// <summary>세계가 돌려준 제작 결과. 아직 없으면 null. 한 번 읽으면 비운다.</summary>
 		CraftedMessage TakeCraftResult();
 
+		/// <summary>
+		/// 이렇게 말했다 (TASK-WM-261) — <b>보이는 사람에게만</b> 간다(확성기가 아니다).
+		/// 다듬는 것도 자르는 것도 세계가 한다(SaidLine) — 창이 미리 다듬으면 두 벌이 갈린다.
+		/// </summary>
+		void RequestSay(string line);
+
+		/// <summary>
+		/// 들린 말 — 한 번 읽으면 비운다 (TASK-WM-261). 없으면 빈 배열.
+		/// ⚠ 「지금 화면에 띄울 것」이지 대화 기록이 아니다 — 기록은 화면 쪽 몫이다.
+		/// </summary>
+		SaidMessage[] TakeHeard();
+
+		/// <summary>
+		/// 저 사람을 때린다 (TASK-WM-261) — 거리·간격·대상은 <b>세계가</b> 본다(StrikeRule).
+		/// 창이 우기면 그건 그 창의 화면에서만 일어난 일이다.
+		/// </summary>
+		void RequestStrike(int targetDollId);
+
+		/// <summary>누가 맞았다 — 한 번 읽으면 비운다. 몸은 <b>이 말로만</b> 안다(스스로 셈하면 갈라진다).</summary>
+		HurtMessage[] TakeHurts();
+
+		/// <summary>
+		/// <b>여기부터는 저 세계다</b> (TASK-WM-261) — 한 번 읽으면 비운다. 아직이면 null.
+		/// 이걸 안 읽으면 국경에서 그 창만 멈춰 선다(세계는 이미 내보냈다).
+		/// </summary>
+		MoveOnMessage TakeMoveOn();
+
 		/// <summary>세계가 아는 아이템 이름 — 「나무 1/2」의 「나무」다. 못 받았으면 빈 배열.</summary>
 		CatalogEntry[] ItemNames { get; }
 	}

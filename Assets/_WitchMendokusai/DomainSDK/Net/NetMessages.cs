@@ -717,4 +717,59 @@ namespace WitchMendokusai.Net
 		public string name = string.Empty;
 	}
 
+	/// <summary>창 → 세계: 이렇게 말했다 (TASK-WM-250·261). 다듬는 것은 세계가 한다(SaidLine).</summary>
+	[Serializable]
+	public class SayMessage
+	{
+		public string type = NetMessageType.SAY;
+		public string text = string.Empty;
+	}
+
+	/// <summary>세계 → 창: 누가 이렇게 말했다 — <b>보이는 사람에게만</b> 온다.</summary>
+	[Serializable]
+	public class SaidMessage
+	{
+		public string type = NetMessageType.SAID;
+		public int dollId;
+		public string name = string.Empty;
+		public string text = string.Empty;
+	}
+
+	/// <summary>창 → 세계: 저 사람을 때린다 (TASK-WM-251·261). 되는지는 세계가 본다.</summary>
+	[Serializable]
+	public class StrikeMessage
+	{
+		public string type = NetMessageType.STRIKE;
+		public int targetId;
+	}
+
+	/// <summary>
+	/// 세계 → 창: 누가 맞았다 — 남은 몸과 <b>쓰러졌는지</b>.
+	/// ⚠ 창이 스스로 몸을 셈하면 세계와 갈라진다 — 몸은 이 말로만 안다.
+	/// </summary>
+	[Serializable]
+	public class HurtMessage
+	{
+		public string type = NetMessageType.HURT;
+		public int dollId;
+		public int by;
+		public int health;
+		public bool down;
+	}
+
+	/// <summary>
+	/// 세계 → 창: <b>여기부터는 저 세계다</b> (TASK-WM-254·261).
+	/// 창은 통행증을 들고 저 주소에 hello 한다 — 안 다루면 국경에서 그 창만 멈춰 선다.
+	/// </summary>
+	[Serializable]
+	public class MoveOnMessage
+	{
+		public string type = NetMessageType.MOVE_ON;
+		public string zone = string.Empty;
+		public string address = string.Empty;
+		public float x;
+		public float z;
+		public string pass = string.Empty;
+	}
+
 }
