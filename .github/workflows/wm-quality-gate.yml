@@ -48,6 +48,7 @@ on:
       - '.github/scripts/wm-web-border-test.mjs'
       - '.github/scripts/wm-web-strike-lag-test.mjs'
       - '.github/scripts/wm-web-beyond-test.mjs'
+      - '.github/scripts/wm-web-say-test.mjs'
       - '.github/scripts/wm-dead-parameter-audit.mjs'
       - '.github/scripts/lib/bad-line.mjs'
       - '.github/scripts/wm-game-client-gate.mjs'
@@ -80,6 +81,7 @@ on:
       - '.github/scripts/wm-web-border-test.mjs'
       - '.github/scripts/wm-web-strike-lag-test.mjs'
       - '.github/scripts/wm-web-beyond-test.mjs'
+      - '.github/scripts/wm-web-say-test.mjs'
       - '.github/scripts/wm-dead-parameter-audit.mjs'
       - '.github/scripts/lib/bad-line.mjs'
       - '.github/scripts/wm-game-client-gate.mjs'
@@ -278,6 +280,13 @@ jobs:
         env:
           WM_PLAYWRIGHT_ROOT: /tmp/wm-playwright
         run: node ./.github/scripts/wm-web-beyond-test.mjs
+
+      # TASK-WM-268 -- 세계는 말을 나를 줄 알았는데(WM-250) 창에 말할 자리가 없어 사람은 한 마디도
+      # 못 했다. 혼자 걷는 화면과 같이 노는 세계를 가르는 것이 그것이다.
+      - name: Run web say test
+        env:
+          WM_PLAYWRIGHT_ROOT: /tmp/wm-playwright
+        run: node ./.github/scripts/wm-web-say-test.mjs
 
   unity:
     name: EditMode tests (laptop runner)

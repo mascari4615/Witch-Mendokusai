@@ -78,6 +78,15 @@
 	}
 	code { background: #241f30; padding: 3px 7px; border-radius: 5px; letter-spacing: .08em; white-space: pre-wrap; }
 
+	/* 말할 자리 (TASK-WM-268) — 같이 노는 세계에서 말은 곁다리가 아니라 최소 조건이다. */
+	#saybox {
+		flex: 1 1 220px; min-width: 140px;
+		background: rgba(0, 0, 0, 0.35);
+		color: inherit; font: inherit;
+		border: 1px solid var(--line); border-radius: 8px;
+		padding: 4px 10px;
+	}
+
 	footer {
 		left: 12px; right: 12px; bottom: 12px;
 		display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
@@ -179,7 +188,8 @@
 
 	<footer>
 		<span class="status" id="status">붙는 중…</span>
-		<span>방향키·WASD 로 걷고 · 노란 것을 눌러 줍고 · 땅을 눌러 짓는다 · 드래그로 둘러본다</span>
+		<span>방향키·WASD 로 걷고 · 노란 것을 눌러 줍고 · 땅을 눌러 짓는다 · <b>Enter</b> 로 말한다</span>
+		<input id="saybox" maxlength="140" placeholder="Enter 를 눌러 말한다" />
 	</footer>
 
 <canvas id="early" style="position:fixed;inset:0;display:block;z-index:1"></canvas>
@@ -991,10 +1001,58 @@ function onLinkMessage(event) {
 // 첫 접속 — 이 뒤로는 끊길 때마다 위 계획이 스스로 다시 붙는다.
 connect();
 
+// ── 말할 자리 (TASK-WM-268) ────────────────────────────────────────────
+//
+// ★ 왜: 세계는 말을 나를 줄 알고(WM-250), 남의 말을 이름표에 띄울 줄도 안다. 그런데 창에
+//   <b>말할 자리</b>가 없어서 사람은 한 마디도 못 했다 — 같이 노는 세계에서 말은 곁다리가
+//   아니라 최소 조건이다(혼자 걷는 화면과 같이 노는 세계를 가르는 것이 그것이다).
+//
+// Enter 로 열고, Enter 로 보내고, Esc 로 그만둔다 — 게임에서 몸에 밴 그 손놀림 그대로.
+const sayBox = document.getElementById('saybox');
+
+function openSayBox() {
+	sayBox.focus();
+	sayBox.select();
+}
+
+function sendWhatISaid() {
+	const line = sayBox.value.trim();
+	sayBox.value = '';
+	sayBox.blur();
+	if (line.length === 0) return;
+
+	// 다듬는 것도 자르는 것도 <b>세계가</b> 한다(SaidLine) — 창이 미리 다듬으면 두 벌이 갈린다.
+	tell({ type: 'say', text: line });
+}
+
+sayBox.addEventListener('keydown', (event) => {
+	if (event.key === 'Enter') {
+		// ⚠ 여기서 <b>안 막으면</b> 같은 Enter 가 창 전체로 흘러가 말할 자리를 <b>도로 연다</b> —
+		//   보내자마자 다시 열려서 걷기가 죽는다(관문이 잡았다).
+		event.preventDefault();
+		event.stopPropagation();
+		sendWhatISaid();
+		return;
+	}
+
+	if (event.key === 'Escape') {
+		sayBox.value = '';
+		sayBox.blur();
+	}
+});
+
 // ── 사람의 손 ──────────────────────────────────────────────────────────
 window.addEventListener('keydown', (e) => {
 	// 이름을 적는 중에는 걷지 않는다 — 글자를 치다 세계가 움직이면 창이 고장 난 것처럼 보인다.
 	if (document.activeElement && document.activeElement.tagName === 'INPUT') return;
+
+	// 어디서든 Enter 면 말할 자리가 열린다 — 손이 자판을 안 떠난다.
+	if (e.key === 'Enter') {
+		e.preventDefault();
+		openSayBox();
+		return;
+	}
+
 	pressed[e.key] = true;
 });
 window.addEventListener('keyup', (e) => { pressed[e.key] = false; });
