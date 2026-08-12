@@ -1016,16 +1016,16 @@ namespace WitchMendokusai.Server
 		}
 
 		/// <summary>한 창에 그림 하나 — 끝나면 다음 그림을 받을 수 있다고 표시한다.</summary>
-		private async Task SendSnapshotAsync(Connection target, string snapshot,
+		private async Task SendSnapshotAsync(Connection target, byte[] snapshot,
 			int? sentBuildVersion = null, int? sentFieldVersion = null, int? sentPotVersion = null)
 		{
 			try
 			{
-				long bytes = Encoding.UTF8.GetByteCount(snapshot);
+				long bytes = snapshot.Length;
 				Interlocked.Increment(ref broadcastSnapshotMessages);
 				Interlocked.Add(ref broadcastSnapshotBytes, bytes);
 				UpdateLargestSnapshot(bytes);
-				await SendAsync(target, snapshot);
+				await SendBytesAsync(target, snapshot);
 
 				// 나갔다 — 이제서야 「이 판까지 보냈다」고 적는다(위 ⚠ 참고).
 				if (sentBuildVersion.HasValue)
@@ -1117,8 +1117,8 @@ namespace WitchMendokusai.Server
 				// ★ 같은 칸에 선 사람들은 <b>거의 같은 것</b>을 본다 — 그러면 글도 한 번만 지으면 된다
 				//   (TASK-WM-217). 창마다 짓던 때, 400명이면 같은 글을 400번 지었다.
 				//   칸에 상한보다 많이 모이면 공유가 깨지므로 그때만 창마다 짓는다(아래 fallback).
-				System.Collections.Generic.Dictionary<string, (string Text, System.Collections.Generic.HashSet<int> Inside)> madeForCell =
-					new System.Collections.Generic.Dictionary<string, (string, System.Collections.Generic.HashSet<int>)>();
+				System.Collections.Generic.Dictionary<string, (byte[] Bytes, System.Collections.Generic.HashSet<int> Inside)> madeForCell =
+					new System.Collections.Generic.Dictionary<string, (byte[], System.Collections.Generic.HashSet<int>)>();
 				WorldDoll[] everyone = World.Snapshot();
 
 				foreach (System.Collections.Generic.KeyValuePair<int, Connection> entry in sockets)
@@ -1155,14 +1155,18 @@ namespace WitchMendokusai.Server
 						+ (sendField ? "f" : string.Empty)
 						+ (sendPots ? "p" : string.Empty);
 
-					if (madeForCell.TryGetValue(key, out (string Text, System.Collections.Generic.HashSet<int> Inside) ready) == false)
+					if (madeForCell.TryGetValue(key, out (byte[] Bytes, System.Collections.Generic.HashSet<int> Inside) ready) == false)
 					{
-						ready = SnapshotForCell(everyone, target.InterestCellX, target.InterestCellZ,
+						(string text, System.Collections.Generic.HashSet<int> inside) = SnapshotForCell(
+							everyone, target.InterestCellX, target.InterestCellZ,
 							sendBuildings, sendField, sendPots, sequence, interestChanged);
+
+						// ★ 글자 → 바이트는 <b>한 번만</b>. 이 한 벌을 그 칸의 모든 창이 같이 쓴다.
+						ready = (Encoding.UTF8.GetBytes(text), inside);
 						madeForCell[key] = ready;
 					}
 
-					string snapshot = ready.Text;
+					byte[] snapshot = ready.Bytes;
 
 					// ★ 몰린 칸에서는 가까운 몇 명만 그 한 벌에 든다 — 자기가 빠진 창에게는
 					//   <b>자기 자리만</b> 따로 알려 준다(60바이트). 자기가 안 보이면 화면이 통째로 멎는다.
@@ -1559,7 +1563,18 @@ namespace WitchMendokusai.Server
 		/// </summary>
 		private async Task SendAsync(Connection connection, string text)
 		{
-			byte[] payload = Encoding.UTF8.GetBytes(text);
+			await SendBytesAsync(connection, Encoding.UTF8.GetBytes(text));
+		}
+
+		/// <summary>
+		/// 이미 바이트로 만들어 둔 말을 보낸다 — <b>같은 말은 한 번만 만든다</b> (TASK-WM-220).
+		///
+		/// ★ 왜: 한 칸의 소식은 한 벌인데, 보낼 때마다 그 글자를 다시 바이트로 바꿨다.
+		///   사람 800명이면 같은 3KB 를 800번 다시 만든 셈이고, 그 쓰레기가 쌓여
+		///   이따금 세계가 <b>170ms 씩 멎었다</b>(GC). 만든 바이트는 안 바뀌니 같이 쓰면 된다.
+		/// </summary>
+		private async Task SendBytesAsync(Connection connection, byte[] payload)
+		{
 			await connection.SendGate.WaitAsync();
 			try
 			{
