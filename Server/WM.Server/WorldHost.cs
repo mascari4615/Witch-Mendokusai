@@ -161,6 +161,11 @@ namespace WitchMendokusai.Server
 			/// <summary>연달아 몇 판을 못 받았나 — 이만큼 사람 수를 줄여 준다 (TASK-WM-228).</summary>
 			public int MissedInARow;
 
+			/// <summary>이 창에 마지막으로 말해 준 「네 자리」 (TASK-WM-236) — 안 바뀌면 다시 안 말한다.</summary>
+			public float ToldMyX = float.NaN;
+
+			public float ToldMyZ = float.NaN;
+
 			/// <summary>이 창이 인사 때 내민 기기 열쇠 — 세계는 지문만 갖기에 여기 들고 있는다.</summary>
 			public string DeviceSecret = string.Empty;
 
@@ -1354,10 +1359,15 @@ namespace WitchMendokusai.Server
 
 					// ★ 몰린 칸에서는 가까운 몇 명만 그 한 벌에 든다 — 자기가 빠진 창에게는
 					//   <b>자기 자리만</b> 따로 알려 준다(60바이트). 자기가 안 보이면 화면이 통째로 멎는다.
+					//
+					// ⚠ 단 <b>안 바뀌었으면 안 보낸다</b> (TASK-WM-236): 한때 이 자리는 매 판 나갔다 —
+					//   광장에 가만히 선 사람에게도 초당 20번, 사람 수만큼. 실측 2026-08-12:
+					//   200명 광장에서 창 하나가 8초에 me 326개를 받았고 그중 움직인 판은 거의 없었다.
+					//   「바뀐 것만 보낸다」는 이 세계의 규칙인데(WM-220) 이 한 자리만 예외였다.
 					if (ready.Inside != null && ready.Inside.Contains(entry.Key) == false)
 					{
 						WorldDoll mine = FindDoll(everyone, entry.Key);
-						if (mine != null)
+						if (mine != null && MyPlaceChanged(target, mine))
 							_ = SendAsync(target, Protocol.Me(mine, Identities.NameOf));
 					}
 					// ⚠ 「보냈다」 표시는 <b>실제로 나간 뒤에</b> 한다. 먼저 표시했다가 그 보내기가
@@ -1695,6 +1705,20 @@ namespace WitchMendokusai.Server
 				gone,
 				fieldIsDelta,
 				fieldGone), inside);
+		}
+
+		/// <summary>
+		/// 이 창에게 「네 자리는 여기다」를 <b>다시 말할 필요가 있나</b> (TASK-WM-236).
+		/// 자리가 그대로면 안 말한다 — 안 바뀐 것을 초당 20번 말하는 것은 소음이다.
+		/// </summary>
+		private static bool MyPlaceChanged(Connection target, WorldDoll mine)
+		{
+			if (target.ToldMyX == mine.Position.x && target.ToldMyZ == mine.Position.z)
+				return false;
+
+			target.ToldMyX = mine.Position.x;
+			target.ToldMyZ = mine.Position.z;
+			return true;
 		}
 
 		/// <summary>그 번호의 인형 — 이번 틱에 뜬 목록에서 찾는다(다시 뜨면 자리가 어긋난다).</summary>
