@@ -25,7 +25,25 @@ namespace WitchMendokusai.Server
 		/// <summary>이만큼보다 작으면 안 누른다 — 눌러 봐야 줄지 않고 헤더만 붙는다.</summary>
 		private const int SMALLEST_WORTH_SQUEEZING = 1024;
 
-		private readonly ConcurrentDictionary<string, byte[]> pressed = new ConcurrentDictionary<string, byte[]>();
+		/// <summary>눌러 둔 것 하나 — 몸통과 <b>이름표</b>(같은 것인지 알아보는 표).</summary>
+		public readonly struct Pressed
+		{
+			public Pressed(byte[] bytes, string tag, DateTimeOffset when)
+			{
+				Bytes = bytes;
+				Tag = tag;
+				When = when;
+			}
+
+			public byte[] Bytes { get; }
+
+			/// <summary>이 몸통의 이름표(ETag) — 창이 「이거 그대로면 안 보내도 돼」 라고 물을 때 쓴다.</summary>
+			public string Tag { get; }
+
+			public DateTimeOffset When { get; }
+		}
+
+		private readonly ConcurrentDictionary<string, Pressed> pressed = new ConcurrentDictionary<string, Pressed>();
 		private readonly string root;
 
 		public StaticSqueeze(string webRoot)
@@ -64,7 +82,9 @@ namespace WitchMendokusai.Server
 						if (raw.Length < SMALLEST_WORTH_SQUEEZING)
 							continue;
 
-						pressed[KeyOf(file)] = Squeeze(raw);
+						byte[] small = Squeeze(raw);
+						DateTimeOffset when = File.GetLastWriteTimeUtc(file);
+						pressed[KeyOf(file)] = new Pressed(small, TagOf(small, when), when);
 					}
 					catch (IOException)
 					{
@@ -75,9 +95,21 @@ namespace WitchMendokusai.Server
 		}
 
 		/// <summary>이 길에 대해 눌러 둔 것이 있으면 준다.</summary>
-		public bool TryTake(string requestPath, out byte[] bytes)
+		public bool TryTake(string requestPath, out Pressed ready)
 		{
-			return pressed.TryGetValue(Normalize(requestPath), out bytes);
+			return pressed.TryGetValue(Normalize(requestPath), out ready);
+		}
+
+		/// <summary>
+		/// 같은 몸통엔 같은 이름표 — 창이 두 번째 올 때 <b>안 받아도 되게</b> 한다 (TASK-WM-233).
+		///
+		/// ★ 왜 필요했나: 미리 눌러 보내기(WM-226)를 넣으면서 정적 파일 미들웨어를 비켜 갔고,
+		///   그때 <b>이름표·마지막 손댄 시각도 같이 잃었다</b>. 그래서 다시 방문할 때마다 138KB 를
+		///   또 받았다 — 누르기로 번 것을 다시 오는 사람에게서 도로 빼앗고 있었다.
+		/// </summary>
+		public static string TagOf(byte[] bytes, DateTimeOffset when)
+		{
+			return "\"" + bytes.Length.ToString("x") + "-" + when.ToUnixTimeSeconds().ToString("x") + "\"";
 		}
 
 		/// <summary>「/」 는 index.html 이다 — 창이 처음 여는 문이라 이걸 놓치면 제일 큰 파일이 샌다.</summary>

@@ -239,13 +239,24 @@ namespace WitchMendokusai.Server
 			{
 				if (HttpMethods.IsGet(context.Request.Method)
 					&& StaticSqueeze.WantsBrotli(context.Request)
-					&& squeeze.TryTake(context.Request.Path.Value, out byte[] ready))
+					&& squeeze.TryTake(context.Request.Path.Value, out StaticSqueeze.Pressed ready))
 				{
 					context.Response.Headers.ContentEncoding = "br";
 					context.Response.Headers.Vary = "Accept-Encoding";
+					context.Response.Headers.ETag = ready.Tag;
+					context.Response.Headers.LastModified = ready.When.ToString("R");
+					context.Response.Headers.CacheControl = "public, max-age=0, must-revalidate";
 					context.Response.ContentType = StaticSqueeze.KindOf(context.Request.Path.Value);
-					context.Response.ContentLength = ready.Length;
-					await context.Response.Body.WriteAsync(ready);
+
+					// 「이거 그대로면 안 보내도 돼」 — 다시 오는 사람에게 138KB 를 또 받게 하지 않는다.
+					if (context.Request.Headers.IfNoneMatch.ToString() == ready.Tag)
+					{
+						context.Response.StatusCode = StatusCodes.Status304NotModified;
+						return;
+					}
+
+					context.Response.ContentLength = ready.Bytes.Length;
+					await context.Response.Body.WriteAsync(ready.Bytes);
 					return;
 				}
 

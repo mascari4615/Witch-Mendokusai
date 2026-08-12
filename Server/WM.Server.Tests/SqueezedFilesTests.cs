@@ -121,6 +121,38 @@ namespace WitchMendokusai.ServerTests
 		}
 
 		[Test]
+		public async Task 두_번째_오는_창은_다시_안_받는다()
+		{
+			using HttpClient window = new HttpClient();
+			window.DefaultRequestHeaders.AcceptEncoding.ParseAdd("br");
+
+			using CancellationTokenSource timeout = TestTimeout.After(30);
+			string tag = null;
+			while (timeout.IsCancellationRequested == false)
+			{
+				using HttpResponseMessage first = await window.GetAsync($"http://127.0.0.1:{PORT}/vendor/three.module.min.js");
+				tag = first.Headers.ETag?.ToString();
+				if (tag != null)
+					break;
+
+				await Task.Delay(300);
+			}
+
+			Assert.IsNotNull(tag, "이름표가 없으면 창은 매번 처음부터 받는다");
+
+			using HttpRequestMessage again = new HttpRequestMessage(HttpMethod.Get,
+				$"http://127.0.0.1:{PORT}/vendor/three.module.min.js");
+			again.Headers.AcceptEncoding.ParseAdd("br");
+			again.Headers.TryAddWithoutValidation("If-None-Match", tag);
+			using HttpResponseMessage second = await window.SendAsync(again);
+			byte[] came = await second.Content.ReadAsByteArrayAsync();
+
+			Assert.AreEqual(System.Net.HttpStatusCode.NotModified, second.StatusCode,
+				"다시 온 창에게 138KB 를 또 보내면 누르기로 번 것을 도로 빼앗는 것이다");
+			Assert.AreEqual(0, came.Length, "안 바뀌었다고 해 놓고 몸통을 또 보냈다");
+		}
+
+		[Test]
 		public async Task br_을_모르는_창에도_그대로_준다()
 		{
 			using HttpClient old = new HttpClient();
