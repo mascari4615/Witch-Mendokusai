@@ -28,12 +28,38 @@ param(
     # the working tree. Without this, one session's half-finished edits block another
     # session's unrelated push -- reported from the field within an hour of shipping the hook.
     [string]$Sha,
-    [string[]]$Paths
+    [string[]]$Paths,
+    # Same as -Paths, but read from a file (one path per line).
+    #
+    # WHY (2026-08-13): a new-branch push carries *every* .cs in the commit (1354 files
+    # here). Passing that list as command-line arguments kills the call itself with
+    # "Argument list too long" -- and the caller printed "fix your rule violations",
+    # which is a lie: the gate never ran. A file has no such ceiling.
+    [string]$PathsFrom
 )
 
 $ErrorActionPreference = 'Stop'
 
+if (-not [string]::IsNullOrWhiteSpace($PathsFrom))
+{
+    if (-not (Test-Path $PathsFrom))
+    {
+        Write-Host "wm-rule-gate -- CANNOT-RUN: -PathsFrom file not found: $PathsFrom"
+        exit 1
+    }
+
+    $Paths = @(Get-Content -LiteralPath $PathsFrom -Encoding UTF8 | Where-Object { $_.Trim().Length -gt 0 })
+}
+
 $commitScoped = -not [string]::IsNullOrWhiteSpace($Sha)
+
+# A commit-scoped run that was *given* a list but ended up with none is the "gate did not
+# run" case again (bad file, wrong encoding) -- say so instead of exiting 0.
+if ($commitScoped -and -not [string]::IsNullOrWhiteSpace($PathsFrom) -and $Paths.Count -eq 0)
+{
+    Write-Host "wm-rule-gate -- CANNOT-RUN: -PathsFrom listed 0 paths: $PathsFrom"
+    exit 1
+}
 
 if (-not $commitScoped)
 {
