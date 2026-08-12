@@ -57,7 +57,14 @@ const MAX_FROZEN_FRAME_RATIO = 0.25;
 //   더 날카로운 칸은 아래 「멎은 프레임」이다(유실 2% 에서 5%, 기준 25%).
 const MAX_SPEED_WOBBLE = 1.3;
 const MAX_LAG_METERS = 1.2;
+// ⚠ 이 값은 <b>제품 주장</b>이어야 한다. 3초로 못박았더니 2코어 CI 에서 3192ms 로 빨갰다
+//   (같은 관문이 이 기계에서는 1180ms). 회선이 더한 몫은 왕복 0.2초 + 첫 그림 몇 KB 이고,
+//   나머지는 <b>그 기계가 브라우저를 얼마나 빨리 세우나</b>다 — 그건 제품이 아니다.
+//   그래서 <b>같은 판에서 곧은 회선으로 한 번 더 재</b> 그 차이를 본다(아래 addedByLine).
 const MAX_FIRST_PAINT_MS = 3000;
+
+/** 나쁜 회선이 <b>더하는</b> 시간의 상한 — 왕복 0.2초 회선에서 이만큼이면 사람은 안 떠난다. */
+const MOST_ADDED_BY_LINE_MS = 3000;
 
 /** 3D 엔진(138KB)이 나쁜 회선으로 다 오기까지 — 세계에 들어간 시간과는 다른 값이다. */
 const MAX_ENGINE_MS = 20000;
@@ -232,8 +239,30 @@ try {
 } catch { /* 아래 칸이 잡는다 */ }
 
 check('나쁜 회선으로도 창이 세계에 들어간다', firstPaint >= 0, firstPaint >= 0 ? `${firstPaint}ms` : '안 들어갔다');
-check(`세계에 ${MAX_FIRST_PAINT_MS}ms 안에 들어간다`, firstPaint >= 0 && firstPaint <= MAX_FIRST_PAINT_MS,
-	`${firstPaint}ms (왕복 ${ONE_WAY_MS * 2}ms · 유실 ${LOSS_PERCENT}% 회선)`);
+
+// ★ 같은 창을 <b>곧은 회선</b>으로도 한 번 열어 이 기계의 몫을 잰다 — 그래야 「회선이 더한 시간」이 나온다.
+let straightPaint = -1;
+{
+	const other = await browser.newPage();
+	const startedAt = Date.now();
+	await other.goto(`http://127.0.0.1:${worldPort}/`);
+	try {
+		await other.waitForFunction(
+			() => (window.__wmEarly && window.__wmEarly.socket && window.__wmEarly.socket.readyState === 1)
+				|| typeof window.__wmView === 'object',
+			null, { timeout: 30000 });
+		straightPaint = Date.now() - startedAt;
+	} catch { /* 아래에서 -1 로 잡힌다 */ }
+
+	await other.close();
+}
+
+const addedByLine = straightPaint < 0 || firstPaint < 0 ? -1 : firstPaint - straightPaint;
+console.log(`  ⓘ 세계에 들어가기 — 곧은 회선 ${straightPaint}ms · 나쁜 회선 ${firstPaint}ms`
+	+ ` (회선이 더한 몫 ${addedByLine}ms)`);
+check(`나쁜 회선이 더하는 시간이 ${MOST_ADDED_BY_LINE_MS}ms 안이다`,
+	addedByLine >= 0 && addedByLine <= MOST_ADDED_BY_LINE_MS,
+	`${addedByLine}ms 더 걸렸다 (곧은 ${straightPaint}ms → 나쁜 ${firstPaint}ms)`);
 
 // 3D 는 뒤에 온다 — 엔진 138KB 를 나쁜 회선으로 받는 값이다. 여기서는 <b>오기는 하나</b>만 본다.
 let engineAt = -1;
