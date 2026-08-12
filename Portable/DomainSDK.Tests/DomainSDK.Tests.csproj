@@ -88,6 +88,7 @@
     <Compile Include="$(TestsRoot)Net/SaidLineTests.cs" />
     <Compile Include="$(TestsRoot)Net/StrikeRuleTests.cs" />
     <Compile Include="$(TestsRoot)Net/ZonePatchTests.cs" />
+    <Compile Include="$(TestsRoot)Net/TravelPassTests.cs" />
     <Compile Include="$(TestsRoot)Net/WorldIdentityNameTests.cs" />
     <Compile Include="$(TestsRoot)Net/WorldPeopleMemoryTests.cs" />
     <Compile Include="$(TestsRoot)Net/BagReconcileTests.cs" />
