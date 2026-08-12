@@ -53,6 +53,7 @@ on:
       - '.github/scripts/wm-web-lead-test.mjs'
       - '.github/scripts/wm-web-contest-test.mjs'
       - '.github/scripts/wm-web-still-me-test.mjs'
+      - '.github/scripts/wm-web-answer-test.mjs'
       - '.github/scripts/wm-dead-parameter-audit.mjs'
       - '.github/scripts/lib/bad-line.mjs'
       - '.github/scripts/wm-game-client-gate.mjs'
@@ -90,6 +91,7 @@ on:
       - '.github/scripts/wm-web-lead-test.mjs'
       - '.github/scripts/wm-web-contest-test.mjs'
       - '.github/scripts/wm-web-still-me-test.mjs'
+      - '.github/scripts/wm-web-answer-test.mjs'
       - '.github/scripts/wm-dead-parameter-audit.mjs'
       - '.github/scripts/lib/bad-line.mjs'
       - '.github/scripts/wm-game-client-gate.mjs'
@@ -324,6 +326,13 @@ jobs:
         env:
           WM_PLAYWRIGHT_ROOT: /tmp/wm-playwright
         run: node ./.github/scripts/wm-web-still-me-test.mjs
+
+      # TASK-WM-283 -- 걸음은 앞질러 그려 곧바로 움직이는데, 줍기·짓기는 세계의 답을 기다린다.
+      # 왕복 200ms 에서 271ms 동안 화면이 아무 말도 안 했다 -- 사람은 "안 눌렸다"로 읽고 또 누른다.
+      - name: Run instant answer test
+        env:
+          WM_PLAYWRIGHT_ROOT: /tmp/wm-playwright
+        run: node ./.github/scripts/wm-web-answer-test.mjs
 
   unity:
     name: EditMode tests (laptop runner)
