@@ -252,6 +252,11 @@ namespace WitchMendokusai.Server
 		/// <summary>세계를 띄운다. <paramref name="url"/> 를 주면 그 자리에(시험은 빈 포트를 쓴다).</summary>
 		public WebApplication Build(string[] args, string url = null)
 		{
+			// ★ 이 세계가 맡은 땅 (TASK-WM-252) — 「이름:fromX,fromZ,toX,toZ」.
+			//   안 주면 온 세상이 내 것이다(안 나눈 세계는 지금 그대로 돈다).
+			World.Patch = WitchMendokusai.Net.ZonePatch.Read(
+				System.Environment.GetEnvironmentVariable("WM_ZONE"));
+
 			WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 			// ★ 창을 통째로 눌러서 보낸다 (TASK-WM-225).
@@ -334,6 +339,10 @@ namespace WitchMendokusai.Server
 				builtSnapshots = Interlocked.Read(ref builtSnapshots),
 				refusedSteps = Interlocked.Read(ref refusedSteps),
 				longestTickGapMs = Interlocked.Read(ref longestTickGapMs),
+				zone = World.Patch.Bounded
+					? World.Patch.Name + ":" + World.Patch.FromX + "," + World.Patch.FromZ
+						+ "," + World.Patch.ToX + "," + World.Patch.ToZ
+					: "온 세상",
 				catalogsSkipped = Interlocked.Read(ref catalogsSkipped),
 				narrowedWindows = CountNarrowed(),
 				squeezedFiles = squeeze == null ? 0 : squeeze.Count,

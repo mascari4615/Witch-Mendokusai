@@ -799,6 +799,12 @@ namespace WitchMendokusai
 			}
 		}
 
+		/// <summary>
+		/// 이 세계가 <b>맡은 땅</b> (TASK-WM-252). 기본은 온 세상 — 안 나눈 세계는 그대로 돈다.
+		/// 나뉜 세계에서는 사람이 이 밖으로 못 나간다: 남의 땅을 내가 굴리면 두 세계가 갈라진다.
+		/// </summary>
+		public Net.ZonePatch Patch { get; set; } = Net.ZonePatch.Everywhere;
+
 		public bool TryMove(int dollId, Vector3 delta)
 		{
 			lock (gate)
@@ -807,7 +813,7 @@ namespace WitchMendokusai
 					return false;
 
 				Vector3 clamped = Vector3.ClampMagnitude(delta, MAX_STEP);
-				doll.Position = doll.Position + clamped;
+				doll.Position = Patch.Clamp(doll.Position + clamped);
 				return true;
 			}
 		}
