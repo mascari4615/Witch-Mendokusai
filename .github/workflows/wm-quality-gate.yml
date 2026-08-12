@@ -46,6 +46,7 @@ on:
       - '.github/scripts/wm-web-herd-test.mjs'
       - '.github/scripts/wm-web-map-only-test.mjs'
       - '.github/scripts/wm-web-border-test.mjs'
+      - '.github/scripts/wm-web-strike-lag-test.mjs'
       - '.github/scripts/wm-dead-parameter-audit.mjs'
       - '.github/scripts/lib/bad-line.mjs'
       - '.github/scripts/wm-game-client-gate.mjs'
@@ -76,6 +77,7 @@ on:
       - '.github/scripts/wm-web-herd-test.mjs'
       - '.github/scripts/wm-web-map-only-test.mjs'
       - '.github/scripts/wm-web-border-test.mjs'
+      - '.github/scripts/wm-web-strike-lag-test.mjs'
       - '.github/scripts/wm-dead-parameter-audit.mjs'
       - '.github/scripts/lib/bad-line.mjs'
       - '.github/scripts/wm-game-client-gate.mjs'
@@ -260,6 +262,12 @@ jobs:
         env:
           WM_PLAYWRIGHT_ROOT: /tmp/wm-playwright
         run: node ./.github/scripts/wm-web-border-test.mjs
+
+      # TASK-WM-262 -- 싸움 판정은 세계의 <지금> 자리로 본다. 그런데 창이 보는 자리는 회선만큼
+      # 낡았다(왕복 200ms 면 상대는 이미 0.6m 옆). 「붙어서 쳤는데 안 맞는다」가 거기서 난다.
+      # 지금까지의 싸움 측정은 전부 지연 0 의 loopback 이었다 -- 여기서 처음 나쁜 회선으로 잰다.
+      - name: Run strike lag test
+        run: node ./.github/scripts/wm-web-strike-lag-test.mjs
 
   unity:
     name: EditMode tests (laptop runner)
