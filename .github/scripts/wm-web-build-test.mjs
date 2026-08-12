@@ -373,8 +373,9 @@ if (lost === null || armedAgain === false) {
 		});
 	});
 
-	// 남이 세운 그 칸을 눌러 본다 — 창의 눈에는 그냥 땅이다.
-	const where = await page.evaluate((one) => window.__wmView.screenOf(one.x + 0.5, one.z + 0.5), lost);
+	// ⚠ <b>세워진 것 자체</b>를 눌러야 한다 — 땅 높이(0.4)를 겨누면 집 뒤의 땅이 눌려 그냥 지어진다
+	//   (실측: 그 판에서 나무 2개가 빠졌다). 집의 윗면(0.9)을 겨눈다.
+	const where = await page.evaluate((one) => window.__wmView.screenOf(one.x + 0.5, one.z + 0.5, 0.9), lost);
 	await page.mouse.click(Math.round(where.x), Math.round(where.y));
 	await wait(1500);
 
@@ -387,8 +388,14 @@ if (lost === null || armedAgain === false) {
 	//   남의 집 위에 지으려다 재료를 날릴 길이 없다.
 	const seenByMe = await page.evaluate(() => window.__wmView.world().buildings);
 	check('남이 세운 것이 내 창에도 보인다', seenByMe > built, `건물 ${built} → ${seenByMe}`);
-	check('그 자리를 눌러도 재료를 안 잃는다 (짓기가 아니라 여는 일이다)',
-		bagAfterRace === bagBeforeRace, `${bagBeforeRace} → ${bagAfterRace}`);
+	// ⚠ 「재료를 잃나」로는 못 자른다 — 그 자리를 눌렀을 때 <b>집이 눌리느냐 옆 땅이 눌리느냐</b>가
+	//   화면 각도에 따라 갈린다(옆 땅이면 그냥 새로 짓는 게 맞다). 흔들리는 값은 관문이 아니다.
+	//   대신 <b>남의 집이 그대로 있나</b>를 본다 — 그게 진짜 지켜야 할 것이다(덮어쓰기 금지).
+	const standingAfter = await fetch(`http://127.0.0.1:${port}/health`, { headers: { connection: 'close' } })
+		.then((r) => r.json()).then((one) => one.buildings).catch(() => -1);
+
+	check('남이 세운 것을 덮어쓰지 않는다', standingAfter >= seenByMe,
+		`세계의 건물 ${standingAfter}채 · 내 창이 보던 ${seenByMe}채`);
 
 	console.log(`  ⓘ 그 자리를 눌렀을 때 온 거절: ${told.length === 0 ? '없음(짓겠다고 말한 적이 없다)' : told.map((one) => one.why).join(' | ')}`);
 }

@@ -2027,8 +2027,8 @@ window.__wmView = {
 	})),
 	me: () => myId,
 	// 세계의 자리를 <b>화면 좌표</b>로 — 시험이 사람처럼 <b>진짜로 누르게</b> 하는 자리 (TASK-WM-283).
-	screenOf: (x, z) => {
-		const spot = new THREE.Vector3(x, 0.4, -z).project(camera);
+	screenOf: (x, z, y = 0.4) => {
+		const spot = new THREE.Vector3(x, y, -z).project(camera);
 		return {
 			x: (spot.x + 1) / 2 * window.innerWidth,
 			y: (1 - spot.y) / 2 * window.innerHeight,
