@@ -256,6 +256,19 @@ namespace WitchMendokusai.Net
 		public CauldronView[] cauldrons;
 		public WorldTimeView time;
 		public WorldBrewView brew;
+
+		/// <summary>
+		/// 들판이 <b>바뀐 자리만</b> 실려 왔는가 (TASK-WM-220).
+		///
+		/// ★ 창(`WebWorldClient.MergeField`)이 이 둘을 읽는데 여기 정의가 없어 **master 가
+		///   컴파일되지 않았다**(2026-08-12, 플레이어 빌드 CS1061 다섯 개). 쓰는 쪽만 올라오고
+		///   담는 그릇이 안 올라온 상태였다 — 서버는 아직 이 값을 안 보내므로, 기본값
+		///   (false · null)이 그대로 「통째로 왔다」를 뜻해 지금 동작은 달라지지 않는다.
+		/// </summary>
+		public bool fieldChanged;
+
+		/// <summary>사라진 들판 항목의 번호들. null = 이번 판에는 없앤 것이 없다.</summary>
+		public int[] fieldGone;
 	}
 
 	/// <summary>누가 무슨 이름인가 — 바뀔 때만 온다.</summary>
