@@ -116,6 +116,15 @@ namespace WitchMendokusai.Server
 			public int SentBuildVersion = -1;
 			public int SentFieldVersion = -1;
 			public int SentPotVersion = -1;
+			/// <summary>
+			/// 지난 판을 <b>건너뛰었다</b> — 다음엔 「전부」를 줘야 한다 (TASK-WM-220).
+			///
+			/// ⚠ 「바뀐 것만」 보내기가 생기면서 <b>건너뛰기가 위험해졌다</b>: 밀린 창은 그 판을
+			///   영영 못 받는다. 그 판에 움직이고 그 뒤로 가만히 선 사람은 그 창에서 <b>엉뚱한
+			///   자리에 영원히</b> 서 있게 된다. 전에는(늘 전부 보낼 때) 다음 판이 알아서 고쳐 줬다.
+			/// </summary>
+			public bool MissedAPlate;
+
 			public int InterestCellX = int.MinValue;
 			public int InterestCellZ = int.MinValue;
 		}
@@ -1112,11 +1121,22 @@ namespace WitchMendokusai.Server
 						continue;
 
 					// 아직 지난 그림을 못 보낸 창은 건너뛴다 — 기다리면 모두가 그 창의 속도로 산다.
+					// 대신 「건너뛰었다」고 적어 둔다: 다음 판은 <b>전부</b>를 줘야 그 창의 세계가 안 어긋난다.
 					if (Interlocked.CompareExchange(ref entry.Value.Sending, 1, 0) != 0)
+					{
+						entry.Value.MissedAPlate = true;
 						continue;
+					}
 
 					Connection target = entry.Value;
 					bool interestChanged = UpdateInterestCell(target, entry.Key);
+
+					// 건너뛴 창은 이번에 전부 받는다(그리고 표시를 지운다).
+					if (target.MissedAPlate)
+					{
+						interestChanged = true;
+						target.MissedAPlate = false;
+					}
 					bool sendBuildings = buildVersion != target.SentBuildVersion || interestChanged;
 					bool sendField = fieldVersion != target.SentFieldVersion || interestChanged;
 					bool sendPots = potVersion != target.SentPotVersion || interestChanged;
@@ -1160,6 +1180,13 @@ namespace WitchMendokusai.Server
 				nextDue = due;
 				await Task.Delay(waitMilliseconds < 1.0 ? 1 : (int)waitMilliseconds, CancellationToken.None);
 			}
+		}
+
+		/// <summary>시험용 — 모든 창을 「지난 판 건너뜀」으로 표시한다 (TASK-WM-220).</summary>
+		public void MarkMissedForTest()
+		{
+			foreach (System.Collections.Generic.KeyValuePair<int, Connection> entry in sockets)
+				entry.Value.MissedAPlate = true;
 		}
 
 		private void UpdateLargestSnapshot(long bytes)

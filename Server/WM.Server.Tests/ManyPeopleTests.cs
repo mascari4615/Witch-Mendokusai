@@ -163,6 +163,27 @@ namespace WitchMendokusai.ServerTests
 			}
 		}
 
+		[Test]
+		public async Task 판을_건너뛴_창은_다음에_전부를_받는다()
+		{
+			// 「바뀐 것만」 보내기(TASK-WM-220)의 위험한 자리 — 밀려서 건너뛴 창이 그 판을 영영
+			// 못 받으면, 그때 움직이고 멈춘 사람이 그 창에선 엉뚱한 자리에 영원히 서 있게 된다.
+			using ClientWebSocket window = new ClientWebSocket();
+			await window.ConnectAsync(address, CancellationToken.None);
+			await Read(window, "\"welcome\"");
+
+			// ⚠ 들어올 때 받는 한 장은 원래 「전부」다 — 그걸로 판정하면 거짓 초록이다.
+			//   <b>「바뀐 것만」 판이 오기 시작한 뒤</b>에 재야 한다.
+			await Read(window, "\"changed\":true");
+
+			// 이 창이 「밀린 것」으로 표시되게 한다 — 그 다음 판은 반드시 전부여야 한다.
+			host.MarkMissedForTest();
+			string plate = await Read(window, "\"type\":\"world\"");
+
+			StringAssert.DoesNotContain("\"changed\":true", plate,
+				"건너뛴 창에 「바뀐 것만」을 주면 그 창의 세계는 영영 어긋난다");
+		}
+
 		/// <summary>
 		/// 들어올 때 받는 <b>첫 전체 그림</b>을 지나친 뒤에 그 말을 찾는다.
 		///
