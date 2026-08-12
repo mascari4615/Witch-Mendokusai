@@ -25,13 +25,14 @@ namespace WitchMendokusai.Net
 		/// <summary>들고 가는 것.</summary>
 		public readonly struct Bundle
 		{
-			public Bundle(int identityId, float x, float z, IReadOnlyList<(int ItemId, int Amount)> bag, long madeAtMs)
+			public Bundle(int identityId, float x, float z, IReadOnlyList<(int ItemId, int Amount)> bag, long madeAtMs, int health)
 			{
 				IdentityId = identityId;
 				X = x;
 				Z = z;
 				Bag = bag ?? new List<(int, int)>();
 				MadeAtMs = madeAtMs;
+				Health = health;
 			}
 
 			public int IdentityId { get; }
@@ -43,6 +44,12 @@ namespace WitchMendokusai.Net
 			public IReadOnlyList<(int ItemId, int Amount)> Bag { get; }
 
 			public long MadeAtMs { get; }
+
+			/// <summary>
+			/// 넘어갈 때의 몸 (TASK-WM-258).
+			/// ⚠ 이걸 안 들고 가면 <b>국경이 회복 장소</b>가 된다 — 맞기 직전에 넘어갔다 오면 가득 찬다.
+			/// </summary>
+			public int Health { get; }
 		}
 
 		/// <summary>왜 안 받나.</summary>
@@ -97,10 +104,14 @@ namespace WitchMendokusai.Net
 			if (parts.Length < 4)
 				return false;
 
+			if (parts.Length < 5)
+				return false;
+
 			if (int.TryParse(parts[0], out int identityId) == false
 				|| TryReadFloat(parts[1], out float x) == false
 				|| TryReadFloat(parts[2], out float z) == false
-				|| long.TryParse(parts[3], out long madeAtMs) == false)
+				|| long.TryParse(parts[3], out long madeAtMs) == false
+				|| int.TryParse(parts[4], out int health) == false)
 			{
 				return false;
 			}
@@ -118,7 +129,7 @@ namespace WitchMendokusai.Net
 			}
 
 			List<(int ItemId, int Amount)> bag = new List<(int, int)>();
-			for (int i = 4; i < parts.Length; i++)
+			for (int i = 5; i < parts.Length; i++)
 			{
 				if (parts[i].Length == 0)
 					continue;
@@ -134,7 +145,7 @@ namespace WitchMendokusai.Net
 					bag.Add((itemId, amount));
 			}
 
-			bundle = new Bundle(identityId, x, z, bag, madeAtMs);
+			bundle = new Bundle(identityId, x, z, bag, madeAtMs, health);
 			why = Refusal.None;
 			return true;
 		}
@@ -145,7 +156,8 @@ namespace WitchMendokusai.Net
 			builder.Append(bundle.IdentityId).Append(';')
 				.Append(bundle.X.ToString("F2", System.Globalization.CultureInfo.InvariantCulture)).Append(';')
 				.Append(bundle.Z.ToString("F2", System.Globalization.CultureInfo.InvariantCulture)).Append(';')
-				.Append(bundle.MadeAtMs);
+				.Append(bundle.MadeAtMs).Append(';')
+				.Append(bundle.Health);
 
 			foreach ((int ItemId, int Amount) held in bundle.Bag)
 				builder.Append(';').Append(held.ItemId).Append(',').Append(held.Amount);

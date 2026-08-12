@@ -621,7 +621,7 @@ namespace WitchMendokusai.Server
 						System.DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
 						out WitchMendokusai.Net.TravelPass.Bundle came, out _))
 				{
-					World.WelcomeTraveller(dollId, came.IdentityId, new Vector3(came.X, 0f, came.Z), came.Bag, ItemsCatalog);
+					World.WelcomeTraveller(dollId, came.IdentityId, new Vector3(came.X, 0f, came.Z), came.Bag, ItemsCatalog, came.Health);
 					Interlocked.Exchange(ref worldDirty, 1);
 				}
 
@@ -1695,7 +1695,7 @@ namespace WitchMendokusai.Server
 
 			string pass = WitchMendokusai.Net.TravelPass.Write(
 				new WitchMendokusai.Net.TravelPass.Bundle(identityId, landing.x, landing.z, carried,
-					System.DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()),
+					System.DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), World.HealthOf(dollId)),
 				zoneSecret);
 
 			await SendAsync(socket, Protocol.MoveOn(zoneName, zoneAddress, landing.x, landing.z, pass));

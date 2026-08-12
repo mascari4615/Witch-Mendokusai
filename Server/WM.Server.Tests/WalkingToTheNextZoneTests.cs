@@ -122,6 +122,44 @@ namespace WitchMendokusai.ServerTests
 		}
 
 		[Test]
+		public async Task 다친_몸으로_넘어가면_다친_채로_선다()
+		{
+			using ClientWebSocket window = new ClientWebSocket();
+			await window.ConnectAsync(new Uri($"ws://127.0.0.1:{EAST_PORT}/ws"), CancellationToken.None);
+			await SendAsync(window, "{\"type\":\"hello\",\"secret\":\"\"}");
+			await Task.Delay(300);
+
+			int dollId = eastHost.World.Snapshot()[0].Id;
+
+			// 세계의 손으로 몸을 깎는다(때리기 판정을 재는 자리가 아니다).
+			using ClientWebSocket hitter = new ClientWebSocket();
+			await hitter.ConnectAsync(new Uri($"ws://127.0.0.1:{EAST_PORT}/ws"), CancellationToken.None);
+			await SendAsync(hitter, "{\"type\":\"hello\",\"secret\":\"\"}");
+			await Task.Delay(300);
+			eastHost.World.TryStrike(eastHost.World.Snapshot()[1].Id, dollId,
+				System.Environment.TickCount64, out int left, out _);
+			Assert.Less(left, WitchMendokusai.Net.StrikeRule.FULL_HEALTH, "먼저 다치게 해 놓아야 재는 뜻이 있다");
+
+			eastHost.World.TryMove(dollId, new Vector3(-100f, 0f, 0f));
+			await SendAsync(window, "{\"type\":\"move\",\"x\":-1.0,\"z\":0}");
+
+			string moveOn = await ReadUntilAsync(window, text => text.Contains("\"type\":\"" + Protocol.MOVE_ON + "\""), 10);
+			string pass = Between(moveOn, "\"pass\":\"", "\"");
+
+			using ClientWebSocket next = new ClientWebSocket();
+			await next.ConnectAsync(new Uri($"ws://127.0.0.1:{WEST_PORT}/ws"), CancellationToken.None);
+			await SendAsync(next, "{\"type\":\"hello\",\"secret\":\"\",\"pass\":\"" + pass + "\"}");
+			await Task.Delay(600);
+
+			WorldDoll[] overThere = westHost.World.Snapshot();
+			Assert.AreEqual(1, overThere.Length);
+			Assert.AreEqual(left, overThere[0].Health,
+				"국경을 넘으니 몸이 가득 찼다 — 맞기 직전에 넘어갔다 오면 회복되는 세계다");
+
+			hitter.Dispose();
+		}
+
+		[Test]
 		public async Task 지어낸_통행증으로는_안_받아_준다()
 		{
 			using ClientWebSocket cheat = new ClientWebSocket();

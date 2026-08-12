@@ -17,7 +17,7 @@ namespace WitchMendokusai.Tests.EditMode.Net
 		private static TravelPass.Bundle Sample(long madeAtMs)
 		{
 			return new TravelPass.Bundle(42, 12.5f, -3.25f,
-				new List<(int, int)> { (7, 3), (9, 1) }, madeAtMs);
+				new List<(int, int)> { (7, 3), (9, 1) }, madeAtMs, 70);
 		}
 
 		[Test]
@@ -30,9 +30,20 @@ namespace WitchMendokusai.Tests.EditMode.Net
 			Assert.AreEqual(42, came.IdentityId);
 			Assert.AreEqual(12.5f, came.X, 0.01f);
 			Assert.AreEqual(-3.25f, came.Z, 0.01f);
+			Assert.AreEqual(70, came.Health, "몸을 안 들고 가면 국경이 회복 장소가 된다");
 			Assert.AreEqual(2, came.Bag.Count);
 			Assert.AreEqual(7, came.Bag[0].ItemId);
 			Assert.AreEqual(3, came.Bag[0].Amount);
+		}
+
+		[Test]
+		public void 몸을_고쳐_오면_안_받는다()
+		{
+			string pass = TravelPass.Write(Sample(1000L), SECRET);
+			string healed = pass.Replace(";70;", ";100;");
+
+			Assert.IsFalse(TravelPass.TryRead(healed, SECRET, 2000L, out _, out TravelPass.Refusal why));
+			Assert.AreEqual(TravelPass.Refusal.BadSeal, why, "국경을 넘으며 몸을 채울 수 있으면 싸움이 뜻이 없다");
 		}
 
 		[Test]
@@ -100,7 +111,7 @@ namespace WitchMendokusai.Tests.EditMode.Net
 		[Test]
 		public void 빈_가방도_그대로_간다()
 		{
-			TravelPass.Bundle empty = new TravelPass.Bundle(5, 0f, 0f, null, 1000L);
+			TravelPass.Bundle empty = new TravelPass.Bundle(5, 0f, 0f, null, 1000L, 100);
 			string pass = TravelPass.Write(empty, SECRET);
 
 			Assert.IsTrue(TravelPass.TryRead(pass, SECRET, 1500L, out TravelPass.Bundle came, out _));

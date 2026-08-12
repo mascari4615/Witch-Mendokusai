@@ -318,7 +318,7 @@ namespace WitchMendokusai
 		/// 통행증에 적힌 신원·자리·가방을 그대로 얹는다 — 도장은 이미 확인된 뒤에 부른다.
 		/// </summary>
 		public void WelcomeTraveller(int dollId, int identityId, Vector3 spot,
-			IReadOnlyList<(int ItemId, int Amount)> carried, WorldItemCatalog catalog)
+			IReadOnlyList<(int ItemId, int Amount)> carried, WorldItemCatalog catalog, int health)
 		{
 			lock (gate)
 			{
@@ -326,6 +326,11 @@ namespace WitchMendokusai
 					return;
 
 				doll.IdentityId = identityId;
+
+				// ⚠ 몸도 들고 온 그대로다 (TASK-WM-258) — 안 그러면 <b>국경이 회복 장소</b>가 된다
+				//   (맞기 직전에 넘어갔다 오면 가득 찬다). 0 이하로 온 것은 안 받는다(쓰러진 채 걸어올 순 없다).
+				if (health > 0)
+					doll.Health = health < Net.StrikeRule.FULL_HEALTH ? health : Net.StrikeRule.FULL_HEALTH;
 
 				// 들어온 자리가 내 땅이 아니면 경계로 당긴다 — 남의 땅에 세우면 두 세계가 갈라진다.
 				doll.Position = Patch.Clamp(spot);
@@ -634,6 +639,15 @@ namespace WitchMendokusai
 		/// 그 인형의 가방 전부 (TASK-WM-217 — 창이 진짜 가방을 보이려면 필요하다).
 		/// ⚠ 전에는 서버가 <b>아는 아이템 두 종류만</b> 물어 봤다 — 나머지는 가방에 있어도 창에 안 보였다.
 		/// </summary>
+		/// <summary>그 사람의 몸 — 없으면 0 (TASK-WM-258).</summary>
+		public int HealthOf(int dollId)
+		{
+			lock (gate)
+			{
+				return dolls.TryGetValue(dollId, out WorldDoll doll) ? doll.Health : 0;
+			}
+		}
+
 		public List<BagSaveEntry> BagOf(int dollId)
 		{
 			lock (gate)
