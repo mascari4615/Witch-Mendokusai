@@ -86,6 +86,8 @@ export interface CauldronView {
 export interface WorldSnapshot {
 	type: 'world';
 	sequence: number;
+	/** 세계의 시계 도장 — 창은 자기 말에 ack 로 얹는다 (TASK-WM-303). */
+	at: number;
 	changed?: boolean;
 	gone?: number[];
 	dolls: WorldDollView[];
@@ -112,6 +114,7 @@ export interface MoveOn {
 export interface StrikeRequest {
 	type: 'strike';
 	targetId: number;
+	ack?: number;
 }
 
 /** 서버 -> 창: 누가 맞았다. down 이면 그 자리에서 다시 세워졌다. */
@@ -142,6 +145,9 @@ export interface MoveRequest {
 	type: 'move';
 	x: number;
 	z: number;
+	seq?: number;
+	/** 마지막으로 본 세계 도장 (TASK-WM-303). */
+	ack?: number;
 }
 
 /** 창 -> 서버: 이 칸의 건물을 부수고 싶다. */

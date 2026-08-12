@@ -845,6 +845,23 @@ namespace WitchMendokusai
 		public Net.StrikeRule.Denial TryStrike(int attackerId, int targetId, long nowMs,
 			out int healthLeft, out bool wentDown)
 		{
+			return TryStrike(attackerId, targetId, nowMs, null, 0, out healthLeft, out wentDown);
+		}
+
+		/// <summary>
+		/// 때린다 — 다만 <b>때린 사람이 보고 있던 순간</b>으로 되감아 판정한다 (TASK-WM-303).
+		///
+		/// ★ 왜: 회선이 먼 사람의 화면은 <paramref name="rewindMs"/> 만큼 옛것이다. 그 사람이 화면에서
+		///   닿는 것을 보고 휘둘렀는데 세계가 <b>지금</b> 자리로 재면, 그 사이 움직인 만큼 늘 헛친다 —
+		///   손해가 회선에 비례해 자란다(실측: 곧은 46번 · 100ms 58번 · 250ms 70번).
+		///
+		/// ★ 무엇이 안 흔들리나: 되감는 것은 <b>남의 자리</b>뿐이다. 거리·간격·대상 규칙과
+		///   때린 사람 자리는 그대로다 — 창이 우겨서 얻는 것은 여전히 없다
+		///   (회선은 세계가 재고, 되감기는 <see cref="Net.LineTime.MOST_REWIND_MS"/> 로 묶인다).
+		/// </summary>
+		public Net.StrikeRule.Denial TryStrike(int attackerId, int targetId, long nowMs,
+			Net.PastPlaces past, long rewindMs, out int healthLeft, out bool wentDown)
+		{
 			healthLeft = 0;
 			wentDown = false;
 
@@ -855,6 +872,13 @@ namespace WitchMendokusai
 
 				bool targetExists = dolls.TryGetValue(targetId, out WorldDoll target);
 				Vector3 to = targetExists ? target.Position : Vector3.zero;
+
+				// 되감을 것이 있고 그 순간을 기억하고 있으면, <b>그때</b>의 자리로 잰다.
+				if (targetExists && past != null && rewindMs > 0
+					&& past.Where(targetId, nowMs - rewindMs, out Vector3 wasAt))
+				{
+					to = wasAt;
+				}
 				int health = targetExists ? target.Health : 0;
 
 				Net.StrikeRule.Denial why = Net.StrikeRule.CanStrike(attackerId, targetId, targetExists,

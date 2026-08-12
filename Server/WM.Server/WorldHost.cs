@@ -266,6 +266,12 @@ namespace WitchMendokusai.Server
 		/// <summary>걸음 심판 — 시계를 보고 「걸어서 갈 수 있는 만큼」만 통과시킨다 (TASK-WM-222).</summary>
 		private readonly WitchMendokusai.Net.MoveAllowance moveAllowance = new WitchMendokusai.Net.MoveAllowance();
 
+		/// <summary>사람마다 최근 1초의 발자국 (TASK-WM-303) — 되감아 판정할 때 읽는다.</summary>
+		private readonly WitchMendokusai.Net.PastPlaces pastPlaces = new WitchMendokusai.Net.PastPlaces();
+
+		/// <summary>사람마다 회선이 얼마나 먼가 (TASK-WM-303) — <b>세계가</b> 잰다, 창이 말한 값이 아니다.</summary>
+		private readonly WitchMendokusai.Net.LineTime lineTime = new WitchMendokusai.Net.LineTime();
+
 		/// <summary>국경 너머에서 비쳐 오는 사람들 (TASK-WM-263) — 보이기만 하고 못 건드린다.</summary>
 		private readonly NeighbourShadows shadows = new NeighbourShadows();
 
@@ -636,6 +642,8 @@ namespace WitchMendokusai.Server
 				sockets.TryRemove(doll.Id, out Connection _);
 				watchingChest.TryRemove(doll.Id, out Vector3Int _);
 				moveAllowance.Forget(doll.Id);
+				pastPlaces.Forget(doll.Id);
+				lineTime.Forget(doll.Id);
 				movedAt.TryRemove(doll.Id, out long _);
 				World.Leave(doll.Id);
 				Interlocked.Exchange(ref worldDirty, 1); // 나간 사람의 자리·가방을 디스크로 내린다.
@@ -917,6 +925,15 @@ namespace WitchMendokusai.Server
 			return moving;
 		}
 
+		/// <summary>창이 얹어 보낸 <b>세계의 도장</b>으로 그 사람의 회선을 잰다 (TASK-WM-303).</summary>
+		private void HearLine(int dollId, JsonElement root)
+		{
+			if (root.TryGetProperty("ack", out JsonElement stamp) == false)
+				return;
+
+			lineTime.HeardStamp(dollId, (long)stamp.GetDouble(), System.Environment.TickCount64);
+		}
+
 		private void HandleMessage(int dollId, string text)
 		{
 			try
@@ -942,6 +959,9 @@ namespace WitchMendokusai.Server
 						int step = root.TryGetProperty("seq", out JsonElement seqElement) ? (int)seqElement.GetDouble() : 0;
 						if (step > walking.SawStep)
 							walking.SawStep = step;
+
+						// ★ 창이 세계의 도장을 되돌려 줬으면 그것으로 회선을 잰다 (TASK-WM-303).
+						HearLine(dollId, root);
 					}
 
 					// 한 걸음 크기만 자르는 것으로는 못 막는다 — 빨리 보내면 빨리 갔다. 시계가 심판한다.
@@ -971,11 +991,18 @@ namespace WitchMendokusai.Server
 
 				if (kind == Protocol.STRIKE)
 				{
+					// 때리는 사람은 가만히 서 있을 수 있다 — 이 말에 얹힌 도장으로도 회선을 잰다.
+					HearLine(dollId, root);
+
 					// ★ 싸움도 <b>세계가</b> 판정한다 (TASK-WM-251) — 거리·간격·대상 셋 다.
 					//   창이 우기면 그건 창의 화면에서만 일어난 일이다.
 					int targetId = ReadInt(root, "targetId");
+					// ★ 판정은 <b>때린 사람이 보고 있던 순간</b>으로 되감아 한다 (TASK-WM-303).
+					//   회선이 먼 사람은 옛 화면을 보고 휘두른다 — 지금 자리로만 재면 그 사람만 계속 헛친다
+					//   (실측: 같은 싸움에 곧은 회선 46번 · 지연 250ms 70번).
+					long rewindMs = lineTime.RewindMsFor(dollId);
 					WitchMendokusai.Net.StrikeRule.Denial why = World.TryStrike(dollId, targetId,
-						System.Environment.TickCount64, out int healthLeft, out bool wentDown);
+						System.Environment.TickCount64, pastPlaces, rewindMs, out int healthLeft, out bool wentDown);
 					if (why != WitchMendokusai.Net.StrikeRule.Denial.None)
 						return;
 
@@ -1628,6 +1655,12 @@ namespace WitchMendokusai.Server
 					new System.Collections.Generic.Dictionary<string, (byte[], System.Collections.Generic.HashSet<int>)>();
 				WorldDoll[] everyone = EveryoneNow();
 
+				// ★ 지나간 자리를 적어 둔다 (TASK-WM-303) — 되감아 판정하려면 <b>조금 전</b> 자리를 알아야 한다.
+				//   그림을 만드는 이 자리가 곧 「세계가 정한 자리」라, 여기서 적으면 판정과 그림이 같은 것을 본다.
+				long placeStampMs = System.Environment.TickCount64;
+				for (int i = 0; i < everyone.Length; i += 1)
+					pastPlaces.Remember(everyone[i].Id, placeStampMs, everyone[i].Position);
+
 				foreach (System.Collections.Generic.KeyValuePair<int, Connection> entry in sockets)
 				{
 					if (entry.Value.Socket.State != WebSocketState.Open)
@@ -1712,6 +1745,7 @@ namespace WitchMendokusai.Server
 					if (target.SawStep != target.ToldStep)
 					{
 						target.ToldStep = target.SawStep;
+
 						_ = SendAsync(target, Protocol.StepSeen(target.SawStep));
 					}
 

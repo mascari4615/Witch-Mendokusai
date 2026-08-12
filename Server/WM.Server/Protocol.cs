@@ -117,13 +117,13 @@ namespace WitchMendokusai.Server
 			builder.Append("/** buildings·gatherables 는 바뀐 프레임에만 실린다 — 없으면 지난 것을 그대로 쓸 것. */\n");
 			builder.Append("/** 지은 자리마다의 솥 — 여럿이 각자 젓는다. */\n");
 			builder.Append("export interface CauldronView {\n\tx: number;\n\ty: number;\n\tz: number;\n\tpx: number;\n\tpy: number;\n\tsteps: number;\n\tside: number;\n}\n\n");
-			builder.Append("export interface WorldSnapshot {\n\ttype: '").Append(WORLD).Append("';\n\tsequence: number;\n\tchanged?: boolean;\n\tgone?: number[];\n\tdolls: WorldDollView[];\n\tbuildings?: WorldBuildingView[];\n\tfieldChanged?: boolean;\n\tfieldGone?: number[];\n\tgatherables?: GatherableView[];\n\tcauldrons?: CauldronView[];\n\ttime?: WorldTime;\n\tbrew?: BrewView;\n}\n\n");
+			builder.Append("export interface WorldSnapshot {\n\ttype: '").Append(WORLD).Append("';\n\tsequence: number;\n\t/** 세계의 시계 도장 — 창은 자기 말에 ack 로 얹는다 (TASK-WM-303). */\n\tat: number;\n\tchanged?: boolean;\n\tgone?: number[];\n\tdolls: WorldDollView[];\n\tbuildings?: WorldBuildingView[];\n\tfieldChanged?: boolean;\n\tfieldGone?: number[];\n\tgatherables?: GatherableView[];\n\tcauldrons?: CauldronView[];\n\ttime?: WorldTime;\n\tbrew?: BrewView;\n}\n\n");
 
 			builder.Append("/** 서버 -> 창: 여기부터는 저 세계다. 그 주소로 옮겨 붙고 pass 를 hello 에 낸다. */\n");
 			builder.Append("export interface MoveOn {\n\ttype: '").Append(MOVE_ON).Append("';\n\tzone: string;\n\taddress: string;\n\tx: number;\n\tz: number;\n\tpass: string;\n}\n\n");
 
 			builder.Append("/** 창 -> 서버: 저 사람을 때린다. 거리·간격·대상은 세계가 본다. */\n");
-			builder.Append("export interface StrikeRequest {\n\ttype: '").Append(STRIKE).Append("';\n\ttargetId: number;\n}\n\n");
+			builder.Append("export interface StrikeRequest {\n\ttype: '").Append(STRIKE).Append("';\n\ttargetId: number;\n\tack?: number;\n}\n\n");
 
 			builder.Append("/** 서버 -> 창: 누가 맞았다. down 이면 그 자리에서 다시 세워졌다. */\n");
 			builder.Append("export interface Hurt {\n\ttype: '").Append(HURT).Append("';\n\tdollId: number;\n\tby: number;\n\thealth: number;\n\tdown: boolean;\n}\n\n");
@@ -135,7 +135,7 @@ namespace WitchMendokusai.Server
 			builder.Append("export interface Said {\n\ttype: '").Append(SAID).Append("';\n\tdollId: number;\n\tname: string;\n\ttext: string;\n}\n\n");
 
 			builder.Append("/** 창 -> 서버: 이쪽으로 가고 싶다(얼마나 갈지는 서버가 정한다). */\n");
-			builder.Append("export interface MoveRequest {\n\ttype: '").Append(MOVE).Append("';\n\tx: number;\n\tz: number;\n}\n\n");
+			builder.Append("export interface MoveRequest {\n\ttype: '").Append(MOVE).Append("';\n\tx: number;\n\tz: number;\n\tseq?: number;\n\t/** 마지막으로 본 세계 도장 (TASK-WM-303). */\n\tack?: number;\n}\n\n");
 
 			builder.Append("/** 창 -> 서버: 이 칸의 건물을 부수고 싶다. */\n");
 			builder.Append("export interface RemoveRequest {\n\ttype: '").Append(REMOVE).Append("';\n\tx: number;\n\ty: number;\n\tz: number;\n}\n\n");
@@ -621,6 +621,10 @@ namespace WitchMendokusai.Server
 		{
 			StringBuilder builder = new StringBuilder();
 			builder.Append("{\"type\":\"").Append(WORLD).Append("\",\"sequence\":").Append(sequence);
+
+			// ★ 세계의 시계 도장 (TASK-WM-303) — 창이 이걸 그대로 되돌려 주면 세계가 그 사람의 회선을 안다.
+			//   그림은 <b>모두에게</b> 가므로 가만히 선 사람도 재어진다(걸음 답장은 걷는 사람에게만 갔다).
+			builder.Append(",\"at\":").Append(System.Environment.TickCount64);
 
 			// ★ 「전부」인가 「바뀐 것만」인가 (TASK-WM-220). 안 움직인 사람은 안 싣는다 —
 			//   광장에 200명이 서 있어도, 그 판에 실리는 건 <b>움직인 사람</b>뿐이다.

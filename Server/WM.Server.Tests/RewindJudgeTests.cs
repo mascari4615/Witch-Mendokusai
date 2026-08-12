@@ -60,16 +60,16 @@ namespace WitchMendokusai.ServerTests
 		public void 세계가_왕복을_재고_절반만_되감는다()
 		{
 			LineTime line = new LineTime();
-			line.Told(7, 12, 1000);
-			Assert.That(line.HeardBack(7, 12, 1200), Is.True, "보낸 표를 되받으면 왕복이 나온다");
+			Assert.That(line.HeardStamp(7, 1000, 1200), Is.True, "세계가 찍은 도장을 되받으면 왕복이 나온다");
 			Assert.That(line.RewindMsFor(7), Is.EqualTo(100), "왕복 200ms → 화면은 100ms 옛것");
 		}
 
 		[Test]
-		public void 모르는_표는_안_받는다()
+		public void 말이_안_되는_도장은_안_받는다()
 		{
 			LineTime line = new LineTime();
-			Assert.That(line.HeardBack(7, 5, 1200), Is.False, "안 보낸 표로 회선을 늘릴 수 없어야 한다");
+			Assert.That(line.HeardStamp(7, 5000, 1200), Is.False, "미래에서 온 도장");
+			Assert.That(line.HeardStamp(7, 1000, 100000), Is.False, "한참 전 도장으로 회선을 늘릴 수 없다");
 			Assert.That(line.RewindMsFor(7), Is.EqualTo(0));
 		}
 
@@ -78,12 +78,20 @@ namespace WitchMendokusai.ServerTests
 		{
 			LineTime line = new LineTime();
 			for (int i = 1; i <= 40; i += 1)
-			{
-				line.Told(8, i, i * 10000);
-				line.HeardBack(8, i, i * 10000 + 3000);
-			}
+				line.HeardStamp(8, i * 10000, i * 10000 + 3000);
 
 			Assert.That(line.RewindMsFor(8), Is.EqualTo(LineTime.MOST_REWIND_MS));
+		}
+
+		[Test]
+		public void 나간_사람은_회선도_놓는다()
+		{
+			LineTime line = new LineTime();
+			line.HeardStamp(9, 1000, 1300);
+			Assert.That(line.RewindMsFor(9), Is.GreaterThan(0));
+
+			line.Forget(9);
+			Assert.That(line.RewindMsFor(9), Is.EqualTo(0));
 		}
 	}
 }

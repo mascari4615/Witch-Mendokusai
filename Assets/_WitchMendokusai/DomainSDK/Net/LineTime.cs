@@ -8,9 +8,18 @@ namespace WitchMendokusai.Net
 	/// ★ 왜 세계가 재는가: 창이 말한 값을 믿으면 「나 300ms 밀려요」라고 우겨 되감기를 늘릴 수 있다.
 	///   그건 남을 <b>맞은 걸로 만드는</b> 힘이다. 그래서 회선은 세계만 잰다.
 	///
-	/// ★ 어떻게: 이미 오가는 말을 쓴다. 세계는 걸음마다 「여기까지 봤다」를 보낸다(stepseen, WM-271).
-	///   창이 다음 걸음에 「그거 받았다」를 얹어 보내면, 그 왕복 시간이 곧 회선이다 —
-	///   새 말을 안 만들고, 창의 시계를 안 믿는다(양쪽 다 <b>세계의 시계</b>로만 잰다).
+	/// ★ 어떻게: 세계가 <b>제 시계 도장</b>을 그림마다 찍는다(`at`). 창은 마지막으로 본 도장을
+	///   자기가 보내는 말(걸음·때리기)에 그대로 얹는다. 왕복 = 지금 − 그 도장이다.
+	///   양쪽 다 <b>세계의 시계</b>다 — 창의 시계는 한 번도 안 쓴다.
+	///
+	/// ★ 왜 걸음(stepseen)이 아니라 그림인가 (실측 2026-08-13): 걸음 답장은 <b>걷는 사람에게만</b> 간다.
+	///   가만히 서서 때리는 사람은 회선이 영영 0으로 남아 되감기를 못 받았다 — 배선해 놓고도
+	///   격차가 그대로였다(58 → 57). 그림은 <b>모두에게</b> 가므로 서 있는 사람도 재어진다.
+	///
+	/// ★ 우기면 얻는 것 (솔직히): 창이 <b>일부러 옛 도장</b>을 얹으면 되감기를 늘릴 수 있다.
+	///   다만 그 이득은 <see cref="MOST_REWIND_MS"/> 까지다 — 회선이 500ms 인 <b>정직한</b> 사람이
+	///   받는 것과 똑같다. 즉 우겨서 갈 수 있는 가장 먼 곳이 「나쁜 회선인 척」이다.
+	///   더 조이려면 세계가 낸 도장을 통째로 기억해야 하는데, 그건 사람 수 × 판만큼 자란다.
 	///
 	/// ★ 왜 부드럽게(평활): 한 번의 왕복은 흔들린다(지터·밀림). 그대로 쓰면 되감기가 춤춘다.
 	///   그래서 새 값을 <see cref="SMOOTHING"/> 만큼만 섞는다.
@@ -26,39 +35,31 @@ namespace WitchMendokusai.Net
 		/// <summary>되감아 줄 수 있는 최대 (ms).</summary>
 		public const long MOST_REWIND_MS = 250;
 
+		/// <summary>이보다 긴 왕복은 안 믿는다 (ms) — 한참 전 도장을 얹어도 회선으로 안 쳐 준다.</summary>
+		public const long MOST_BELIEVABLE_MS = 5000;
+
 		private readonly object gate = new object();
-		private readonly Dictionary<int, long> sentAt = new Dictionary<int, long>();
 		private readonly Dictionary<int, float> roundTrips = new Dictionary<int, float>();
 
-		/// <summary>이 사람에게 <paramref name="token"/> 표를 이 시각에 보냈다.</summary>
-		public void Told(int dollId, int token, long nowMs)
+		/// <summary>
+		/// 창이 <paramref name="stampMs"/> 도장을 되돌려 줬다 — 왕복이 여기서 나온다.
+		/// 말이 안 되는 도장(미래·너무 옛것)은 안 받는다.
+		/// </summary>
+		public bool HeardStamp(int dollId, long stampMs, long nowMs)
 		{
-			lock (gate)
-				sentAt[Key(dollId, token)] = nowMs;
-		}
+			long roundTrip = nowMs - stampMs;
+			if (roundTrip < 0 || roundTrip > MOST_BELIEVABLE_MS)
+				return false;
 
-		/// <summary>그 표를 되받았다 — 왕복이 여기서 나온다. 모르는 표면 <c>false</c>.</summary>
-		public bool HeardBack(int dollId, int token, long nowMs)
-		{
 			lock (gate)
 			{
-				int key = Key(dollId, token);
-				if (sentAt.TryGetValue(key, out long when) == false)
-					return false;
-
-				sentAt.Remove(key);
-
-				long roundTrip = nowMs - when;
-				if (roundTrip < 0)
-					return false;
-
 				if (roundTrips.TryGetValue(dollId, out float smoothed) == false)
 					roundTrips[dollId] = roundTrip;
 				else
 					roundTrips[dollId] = smoothed + (roundTrip - smoothed) * SMOOTHING;
-
-				return true;
 			}
+
+			return true;
 		}
 
 		/// <summary>이 사람의 화면이 얼마나 옛것인가 (ms) — 왕복의 절반, 한도까지.</summary>
@@ -81,24 +82,8 @@ namespace WitchMendokusai.Net
 		public void Forget(int dollId)
 		{
 			lock (gate)
-			{
 				roundTrips.Remove(dollId);
-				List<int> mine = new List<int>();
-				foreach (KeyValuePair<int, long> entry in sentAt)
-				{
-					if (entry.Key >> 8 == dollId)
-						mine.Add(entry.Key);
-				}
-
-				for (int i = 0; i < mine.Count; i += 1)
-					sentAt.Remove(mine[i]);
-			}
 		}
 
-		private static int Key(int dollId, int token)
-		{
-			// 표는 걸음 번호다 — 사람마다 따로 세므로 사람 번호와 함께 묶는다.
-			return (dollId << 8) | (token & 0xFF);
-		}
 	}
 }

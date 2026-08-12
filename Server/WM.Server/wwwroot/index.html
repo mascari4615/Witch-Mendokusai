@@ -1166,6 +1166,9 @@ function onLinkMessage(event) {
 		//   판이 뒤바뀌어 오면(지연 0 인 회선에서 실측: seq 10 → 9) 진짜 첫 전체 그림이
 		//   「지난 판」으로 버려지고, 그러면 창은 붙은 채로 <b>텅 빈 세계</b>를 본다.
 		//   세계 쪽도 순서를 지키게 고쳤지만(WM-301), 창도 스스로를 지킨다.
+		// 세계의 도장을 기억해 둔다 (TASK-WM-303) — 내가 보내는 말에 그대로 얹어 회선을 재게 한다.
+		if (typeof message.at === 'number') lastWorldAt = message.at;
+
 		const wholeWorld = message.changed !== true;
 		const firstWholeWorld = sawWholeWorld === false && wholeWorld;
 		if (firstWholeWorld) sawWholeWorld = true;
@@ -1318,6 +1321,7 @@ function updateLocalMovement(dt) {
 let stepNumber = 0;
 let stepsWaiting = [];      // 아직 「봤다」가 안 온 걸음들
 let sentUpTo = null;        // 마지막으로 보낸 걸음까지 갔을 때의 자리
+let lastWorldAt = 0;        // 세계 그림에 찍혀 온 도장 — 내 말에 그대로 얹는다 (TASK-WM-303)
 
 /** 세계가 아는 자리 + 아직 답 안 온 걸음 = <b>세계가 곧 알게 될</b> 내 자리. */
 function whereWorldWillPutMe(selfView) {
@@ -1362,7 +1366,7 @@ setInterval(() => {
 	stepNumber += 1;
 	stepsWaiting.push({ seq: stepNumber, x: step.x, z: step.z });
 	sentUpTo = { x: from.x + step.x, z: from.z + step.z };
-	tell({ type: 'move', x: step.x, z: step.z, seq: stepNumber });
+	tell({ type: 'move', x: step.x, z: step.z, seq: stepNumber, ack: lastWorldAt });
 }, SEND_EVERY_MS);
 
 // 드래그로 둘러보기 — 세계를 도는 것은 눈뿐이고, 세계 자체는 서버 것이다.
