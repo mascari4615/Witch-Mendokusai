@@ -272,7 +272,23 @@ if (trail.length > 30) {
 //   안 바뀐 자리 수십 개가 한 번에 사라진다(오류 없이 조용히, TASK-WM-230).
 //   그래서 한 번 본 들판의 <b>가장 많았던 수</b>를 적어 두고, 그 아래로 안 떨어지는지 본다.
 const fieldWatch = await page.evaluate(() => {
-	window.__wmField = { most: 0, least: 1e9 };
+	window.__wmField = { most: 0, least: 1e9, plates: 0, withField: 0, kinds: {} };
+
+	// 빨갛게 나왔을 때 <b>왜</b>인지 알려면, 들판이 실린 말이 오기는 했는지부터 봐야 한다.
+	const seen = window.__wmView.socket();
+	if (seen) {
+		seen.addEventListener('message', (event) => {
+			let said;
+			try { said = JSON.parse(event.data); } catch { return; }
+
+			window.__wmField.kinds[said.type] = (window.__wmField.kinds[said.type] || 0) + 1;
+			if (said.type !== 'world') return;
+
+			window.__wmField.plates += 1;
+			if (said.gatherables) window.__wmField.withField += 1;
+		});
+	}
+
 	window.__wmFieldTimer = setInterval(() => {
 		const now = window.__wmView.world().gatherables;
 		if (now > window.__wmField.most) window.__wmField.most = now;
@@ -285,7 +301,8 @@ await new Promise((done) => setTimeout(done, 3000));
 const field = await page.evaluate(() => window.__wmField);
 
 check('본 들판이 도중에 사라지지 않는다', field.most > 0 && field.least >= field.most,
-	`가장 많을 때 ${field.most}자리 · 가장 적을 때 ${field.least === 1e9 ? '-' : field.least}자리`);
+	`가장 많을 때 ${field.most}자리 · 가장 적을 때 ${field.least === 1e9 ? '-' : field.least}자리`
+	+ ` · 받은 판 ${field.plates}(들판 실린 판 ${field.withField}) · 종류 ${JSON.stringify(field.kinds)}`);
 
 const beforeCut = await page.evaluate(() => window.__wmView.world());
 badLine.cut();
