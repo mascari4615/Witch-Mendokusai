@@ -430,6 +430,10 @@ namespace WitchMendokusai.Server
 				people = World.Snapshot().Length,
 				identities = Identities.Count,
 				buildings = World.Buildings().Length,
+
+				// 지금 살아 있는 들판 자리 (TASK-WM-306) — 창이 아는 수와 <b>대조</b>하는 자리다.
+				//   창은 델타만 받으므로, 오래 돌면 세계의 진실과 갈라졌는지 밖에서 볼 길이 있어야 한다.
+				gatherables = World.Gatherables.Alive(World.Calendar.TotalMinutes()).Count,
 				day = World.Calendar.TotalDays(),
 				hour = World.Calendar.Hour,
 				minute = World.Calendar.Minute,

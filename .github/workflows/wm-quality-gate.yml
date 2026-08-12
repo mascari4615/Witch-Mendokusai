@@ -61,6 +61,7 @@ on:
       - '.github/scripts/wm-badline-strike-fairness-test.mjs'
       - '.github/scripts/wm-web-smooth-test.mjs'
       - '.github/scripts/wm-lost-action-test.mjs'
+      - '.github/scripts/wm-web-ghost-test.mjs'
       - '.github/scripts/wm-dead-parameter-audit.mjs'
       - '.github/scripts/lib/bad-line.mjs'
       - '.github/scripts/wm-game-client-gate.mjs'
@@ -106,6 +107,7 @@ on:
       - '.github/scripts/wm-badline-strike-fairness-test.mjs'
       - '.github/scripts/wm-web-smooth-test.mjs'
       - '.github/scripts/wm-lost-action-test.mjs'
+      - '.github/scripts/wm-web-ghost-test.mjs'
       - '.github/scripts/wm-dead-parameter-audit.mjs'
       - '.github/scripts/lib/bad-line.mjs'
       - '.github/scripts/wm-game-client-gate.mjs'
@@ -396,6 +398,12 @@ jobs:
       # 끊기는 순간 누른 것이 사라지지도 두 번 되지도 않는다 (TASK-WM-305).
       - name: Run lost action test
         run: node ./.github/scripts/wm-lost-action-test.mjs
+
+      # 나간 사람이 화면에 유령으로 안 남는다 (TASK-WM-306).
+      - name: Run ghost test
+        env:
+          WM_PLAYWRIGHT_ROOT: /tmp/wm-playwright
+        run: node ./.github/scripts/wm-web-ghost-test.mjs
 
   unity:
     name: EditMode tests (laptop runner)
