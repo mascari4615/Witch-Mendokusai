@@ -3,18 +3,32 @@ using System.Collections.Generic;
 namespace WitchMendokusai.Net
 {
 	/// <summary>
-	/// 이미 쓴 <b>통행증</b>을 기억한다 (TASK-WM-259) — 순수 셈, 엔진 밖.
+	/// 통행증 한 장으로 <b>짐은 한 번만</b> 건네준다 (TASK-WM-259 → 309) — 순수 셈, 엔진 밖.
 	///
 	/// ★ 왜 필요한가: 통행증은 결국 <b>글자</b>다. 창은 그걸 복사할 수 있고 남에게 줄 수도 있다.
 	///   도장(<see cref="TravelPass"/>)은 「지어낸 것」만 막는다 — 진짜 통행증 한 장으로 <b>두 번</b>
 	///   들어오는 것은 못 막는다. 그러면 가방이 두 벌 들어온다(전형적인 복사 버그).
 	///
-	/// ★ 기한이 지난 것은 안 들고 있는다 — 어차피 통행증 자체가 거절되므로, 여기 쌓아 둘 이유가 없다
-	///   (안 버리면 이 표가 곧 세계의 기억을 먹는다).
+	/// ★ 그런데 「내밀면 곧 쓴 것」으로 세면 <b>더 나쁜 일</b>이 생긴다 (실측 2026-08-13):
+	///   통행증을 내밀다 줄이 끊기면 짐은 아직 안 건너왔는데 통행증만 타 버린다.
+	///   그 사람이 다시 붙으면 세계는 그를 처음 보는 손님으로 맞는다 — <b>가방도 자리도 없이</b>.
+	///
+	/// ★ 그래서 두 단계다:
+	///   ① <see cref="TryClaim"/> — 「지금 이 통행증으로 들어가는 중」이라고 <b>맡아 둔다</b>.
+	///      같은 순간에 둘이 같은 통행증을 내밀면 뒤엣것은 거절한다(그게 진짜 복사 시도다).
+	///   ② <see cref="MarkDelivered"/> — 짐을 <b>실제로 건넨 뒤에야</b> 「썼다」고 적는다.
+	///      그 뒤 같은 통행증으로 다시 들어오면 <b>받아 주되 짐은 다시 안 준다</b>(이미 그 세계에 있다).
+	///
+	/// ★ 맡아 둔 것은 <see cref="CLAIM_GOOD_FOR_MS"/> 뒤 풀린다 — 반쪽으로 죽은 시도가 통행증을
+	///   영영 묶어 두면, 그것도 사람을 가두는 것이다.
 	/// </summary>
 	public sealed class PassOnce
 	{
-		private readonly Dictionary<string, long> used = new Dictionary<string, long>();
+		/// <summary>맡아 둔 것이 풀리기까지 (ms) — 도착이 이보다 오래 걸리면 그건 실패한 도착이다.</summary>
+		public const long CLAIM_GOOD_FOR_MS = 10000;
+
+		private readonly Dictionary<string, long> claimed = new Dictionary<string, long>();
+		private readonly Dictionary<string, long> delivered = new Dictionary<string, long>();
 		private readonly object gate = new object();
 
 		/// <summary>지금 기억하고 있는 장수 — 안 늘어나는지 보는 자리다.</summary>
@@ -24,14 +38,18 @@ namespace WitchMendokusai.Net
 			{
 				lock (gate)
 				{
-					return used.Count;
+					return delivered.Count + claimed.Count;
 				}
 			}
 		}
 
-		/// <summary>이 통행증을 지금 쓴다. <b>두 번째부터는 false</b>.</summary>
-		public bool TryUse(string pass, long nowMs)
+		/// <summary>
+		/// 이 통행증으로 지금 들어가도 되나. <paramref name="needsLuggage"/> 는
+		/// <b>짐을 건네야 하는가</b> — 이미 건넨 통행증이면 <c>false</c>(그 사람 짐은 이 세계에 있다).
+		/// </summary>
+		public bool TryClaim(string pass, long nowMs, out bool needsLuggage)
 		{
+			needsLuggage = false;
 			if (string.IsNullOrEmpty(pass))
 				return false;
 
@@ -39,21 +57,44 @@ namespace WitchMendokusai.Net
 			{
 				ForgetOld(nowMs);
 
-				if (used.ContainsKey(pass))
+				if (delivered.ContainsKey(pass))
+					return true;
+
+				if (claimed.TryGetValue(pass, out long when) && nowMs - when <= CLAIM_GOOD_FOR_MS)
 					return false;
 
-				used[pass] = nowMs;
+				claimed[pass] = nowMs;
+				needsLuggage = true;
 				return true;
+			}
+		}
+
+		/// <summary>짐을 건넸다 — 이제부터 이 통행증으로는 <b>짐 없이</b>만 들어올 수 있다.</summary>
+		public void MarkDelivered(string pass, long nowMs)
+		{
+			if (string.IsNullOrEmpty(pass))
+				return;
+
+			lock (gate)
+			{
+				claimed.Remove(pass);
+				delivered[pass] = nowMs;
 			}
 		}
 
 		// ⚠ 이미 자물쇠를 쥔 자리에서 부른다.
 		private void ForgetOld(long nowMs)
 		{
+			Sweep(delivered, nowMs, TravelPass.GOOD_FOR_MS);
+			Sweep(claimed, nowMs, CLAIM_GOOD_FOR_MS);
+		}
+
+		private static void Sweep(Dictionary<string, long> book, long nowMs, long keepMs)
+		{
 			List<string> stale = null;
-			foreach (KeyValuePair<string, long> one in used)
+			foreach (KeyValuePair<string, long> one in book)
 			{
-				if (nowMs - one.Value <= TravelPass.GOOD_FOR_MS)
+				if (nowMs - one.Value <= keepMs)
 					continue;
 
 				stale = stale ?? new List<string>();
@@ -63,8 +104,8 @@ namespace WitchMendokusai.Net
 			if (stale == null)
 				return;
 
-			foreach (string one in stale)
-				used.Remove(one);
+			for (int i = 0; i < stale.Count; i++)
+				book.Remove(stale[i]);
 		}
 	}
 }

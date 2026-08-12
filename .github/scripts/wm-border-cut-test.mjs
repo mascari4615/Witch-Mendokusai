@@ -1,0 +1,266 @@
+#!/usr/bin/env node
+// wm-border-cut-test.mjs — <b>국경을 넘다 끊겨도 나로 도착한다</b> (TASK-WM-309).
+//
+// ★ 무엇이 있었나 (실측 2026-08-13): 통행증을 내밀다 <b>줄이 끊기면</b> 그 통행증은 이미 쓴 것이 된다.
+//   그 사람이 다시 붙으면 통행증이 거절되고, 옆 세계는 그를 <b>처음 보는 손님</b>으로 맞았다 —
+//   가방도 자리도 없이. 장부에는 신원이 하나 더 쌓였다(안 끊고 넘으면 1, 끊기면 2).
+//
+// ★ 고친 자리: 「통행증 한 장 = 한 번」을 <b>「짐은 한 번」</b>으로 좁혔다. 다시 들어오는 것은
+//   허락하되(같은 사람이니까) 가방·자리·몸은 <b>처음 넘어올 때만</b> 준다 — 안 그러면 그게 복사다.
+//
+// 재는 것:
+//   ① 대조군 — 안 끊고 넘으면 옆 세계 장부는 1, 가방은 그대로
+//   ② 넘다 끊고 다시 붙으면 — 받아 주나 · 장부가 그대로 1인가 · 가방이 그대로인가(두 벌 아님)
+//
+// ⚠ 아직 CI 에 안 걸었다 (2026-08-13): 「짐이 그대로다」가 <b>다른 이유로</b> 빨갛다 —
+//   통행증에 실려 오는 가방이 0 이었다(창은 1개를 들고 있었는데). 국경에서 통행증을 만들 때
+//   짐을 안 싣는 자리가 따로 있다는 뜻이다. 그것부터 밝힌 뒤 CI 에 건다(TASK-WM-309 남은 것).
+//
+// exit: 0 = 나로 도착한다 · 1 = 손님이 되거나 짐이 는다 · 2 = 못 돌림
+
+import { spawn, execSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
+import { resolve, join, dirname } from 'node:path';
+import { mkdtempSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+
+const here = fileURLToPath(new URL('.', import.meta.url));
+const repo = resolve(here, '..', '..');
+const eastPort = Number(process.env.WM_SMOKE_PORT || 5570);
+const westPort = eastPort + 1;
+const SECRET = '두 세계만 아는 말';
+
+function cannotRun(message) {
+	console.error(`[border-cut] CANNOT-RUN: ${message}`);
+	process.exit(2);
+}
+
+const wait = (ms) => new Promise((done) => setTimeout(done, ms));
+
+let dll;
+try {
+	const out = join(mkdtempSync(join(tmpdir(), 'wm-bcut-app-')), 'app');
+	execSync(`dotnet publish "${repo}/Server/WM.Server/WM.Server.csproj" -c Release -o "${out}" --nologo`,
+		{ cwd: repo, stdio: 'pipe' });
+	dll = join(out, 'WM.Server.dll');
+} catch (error) {
+	cannotRun(`세계를 못 지었다 — ${String(error.stderr || error.message).slice(-400)}`);
+}
+
+const worlds = [];
+function startWorld(port, zone, neighbours) {
+	const worldFile = join(mkdtempSync(join(tmpdir(), 'wm-bcut-')), 'world.json');
+	worlds.push(spawn('dotnet', [dll, '--urls', `http://127.0.0.1:${port}`], {
+		cwd: dirname(dll),
+		env: { ...process.env, WM_WORLD_FILE: worldFile, WM_ZONE: zone, WM_ZONE_NEIGHBOURS: neighbours, WM_ZONE_SECRET: SECRET },
+		stdio: 'ignore',
+	}));
+}
+
+function killWorlds() {
+	for (const one of worlds) {
+		try {
+			if (process.platform === 'win32') execSync(`taskkill /PID ${one.pid} /F /T`, { stdio: 'ignore' });
+			else one.kill('SIGKILL');
+		} catch { /* 이미 죽었다 */ }
+	}
+
+	worlds.length = 0;
+}
+
+startWorld(eastPort, `동:0,-40,40,40`, `서:-40,-40,0,40=ws://127.0.0.1:${westPort}/ws`);
+startWorld(westPort, `서:-40,-40,0,40`, `동:0,-40,40,40=ws://127.0.0.1:${eastPort}/ws`);
+
+for (const port of [eastPort, westPort]) {
+	let up = false;
+	const until = Date.now() + 120000;
+	while (Date.now() < until) {
+		try {
+			const answer = await fetch(`http://127.0.0.1:${port}/health`, { headers: { connection: 'close' } });
+			if (answer.ok) { up = true; break; }
+		} catch { /* 아직 */ }
+		await wait(300);
+	}
+
+	if (up === false) {
+		killWorlds();
+		cannotRun(`세계가 안 떴다 (${port})`);
+	}
+}
+
+function joinWorld(port, { secret = '', pass = '' } = {}) {
+	const one = { id: null, secret: '', here: undefined, moveOn: null, bag: new Map(), field: [] };
+	one.socket = new WebSocket(`ws://127.0.0.1:${port}/ws`);
+	one.socket.onopen = () => one.socket.send(JSON.stringify(pass ? { type: 'hello', secret, pass } : { type: 'hello', secret }));
+	one.socket.onerror = () => { /* 아래가 잡는다 */ };
+	one.socket.onmessage = (event) => {
+		let said;
+		try { said = JSON.parse(event.data); } catch { return; }
+
+		if (said.type === 'welcome') { one.id = said.id; one.secret = said.secret; }
+		if (said.type === 'moveon') one.moveOn = said;
+		if (said.type === 'me') one.here = { x: said.x, z: said.z };
+		if (said.type === 'world') {
+			if (Array.isArray(said.gatherables) && said.gatherables.length > 0) one.field = said.gatherables;
+			if (Array.isArray(said.dolls) && one.id !== null) {
+				const mine = said.dolls.find((doll) => doll.id === one.id);
+				if (mine !== undefined) one.here = { x: mine.x, z: mine.z };
+			}
+		}
+
+		if (said.type === 'bag' && Array.isArray(said.items)) one.bag = new Map(said.items.map((item) => [item.itemId, item.amount]));
+	};
+
+	return one;
+}
+
+const send = (one, message) => {
+	if (one.socket.readyState === 1) one.socket.send(JSON.stringify(message));
+};
+
+const bagSize = (one) => [...one.bag.values()].reduce((sum, amount) => sum + amount, 0);
+const health = (port) => fetch(`http://127.0.0.1:${port}/health`, { headers: { connection: 'close' } }).then((one) => one.json());
+
+/** 동쪽에서 물건을 하나 줍고, 서쪽 국경까지 걸어가 통행증을 받는다. */
+async function walkToBorderWithLuggage() {
+	const me = joinWorld(eastPort);
+	await wait(3000);
+	if (me.id === null) return null;
+
+	// 가까운 들판까지 걸어가 줍는다 — 짐이 있어야 「짐이 두 벌 왔나」를 잴 수 있다.
+	//   ⚠ 들판 목록이 <b>오기 전에</b> 고르면 아무 데도 못 간다(첫 판이 그랬다: 짐 0으로 CANNOT-RUN).
+	for (let i = 0; i < 40 && me.field.length === 0; i += 1) await wait(250);
+
+	const mineNow = me.here || { x: 0, z: 0 };
+	const nearby = [...me.field].sort((one, other) =>
+		Math.hypot(one.x - mineNow.x, one.z - mineNow.z) - Math.hypot(other.x - mineNow.x, other.z - mineNow.z));
+
+	// ⚠ 가장 가까운 자리 하나만 노리면 <b>앞사람이 방금 주운 자리</b>일 수 있다(다시 자라는 중이라 거절).
+	//   그러면 짐이 0 이 되어 검사가 빈 검사가 된다 — 그래서 몇 자리를 차례로 시도한다.
+	for (const spot of nearby.slice(0, 5)) {
+		if (bagSize(me) > 0) break;
+
+		for (let i = 0; i < 500; i += 1) {
+			const mine = me.here;
+			if (mine !== undefined && Math.hypot(spot.x - mine.x, spot.z - mine.z) < 1.2) break;
+
+			if (mine !== undefined) {
+				send(me, {
+					type: 'move', seq: i,
+					x: Math.max(-0.15, Math.min(0.15, spot.x - mine.x)),
+					z: Math.max(-0.15, Math.min(0.15, spot.z - mine.z)),
+				});
+			}
+
+			await wait(50);
+		}
+
+		for (let tries = 1; tries <= 2 && bagSize(me) === 0; tries += 1) {
+			send(me, { type: 'gather', nodeId: spot.id, did: spot.id + tries });
+			await wait(1000);
+			send(me, { type: 'bagask' });
+			await wait(1000);
+		}
+	}
+
+	// 서쪽 국경으로.
+	for (let i = 0; i < 600 && me.moveOn === null; i += 1) {
+		send(me, { type: 'move', x: -0.15, z: 0, seq: 1000 + i });
+		await wait(50);
+	}
+
+	return me;
+}
+
+let failures = 0;
+function check(what, ok, detail) {
+	if (ok === false) failures += 1;
+	console.log(`  ${ok ? '✅' : '❌'} ${what} — ${detail}`);
+}
+
+// ── ① 대조군: 안 끊고 넘는다 ──────────────────────────────────────────
+const cleanOne = await walkToBorderWithLuggage();
+if (cleanOne === null || cleanOne.moveOn === null) {
+	killWorlds();
+	cannotRun('국경까지 못 갔다 (넘어가라는 말이 안 왔다)');
+}
+
+const luggage = bagSize(cleanOne);
+if (luggage <= 0) {
+	killWorlds();
+	cannotRun('짐이 없다 — 「짐이 두 벌 왔나」를 잴 수 없다');
+}
+
+const overClean = joinWorld(westPort, { secret: cleanOne.secret, pass: cleanOne.moveOn.pass });
+await wait(3500);
+cleanOne.socket.close();
+await wait(2000);
+send(overClean, { type: 'bagask' });
+await wait(1500);
+
+const westClean = await health(westPort);
+check('안 끊고 넘으면 나로 도착한다 (대조군)', overClean.id !== null && bagSize(overClean) === luggage,
+	`장부 ${westClean.identities} · 가방 ${luggage} → ${bagSize(overClean)}`);
+
+if (overClean.id === null) {
+	killWorlds();
+	cannotRun('대조군조차 못 넘었다 — 재는 자가 고장 난 것이다');
+}
+
+overClean.socket.close();
+await wait(1500);
+
+// ── ② 넘다 끊고 다시 붙는다 ───────────────────────────────────────────
+const cutOne = await walkToBorderWithLuggage();
+if (cutOne === null || cutOne.moveOn === null) {
+	killWorlds();
+	cannotRun('두 번째 사람이 국경까지 못 갔다');
+}
+
+const cutLuggage = bagSize(cutOne);
+if (cutLuggage <= 0) {
+	killWorlds();
+	cannotRun('두 번째 사람이 짐을 못 챙겼다 — 「짐이 두 벌 왔나」가 빈 검사가 된다');
+}
+
+const beforeLedger = (await health(westPort)).identities;
+
+// 인사만 보내고 곧바로 죽는다 — 세계가 받아들이는 중에 줄이 끊긴 셈이다.
+const halfWay = new WebSocket(`ws://127.0.0.1:${westPort}/ws`);
+halfWay.onopen = () => {
+	// ⚠ 진짜 창은 <b>제 기기 열쇠</b>를 함께 낸다. 빈 열쇠로 내밀면 세계가 남의 기록과 헷갈려
+	//   통행증을 물리고 손님으로 맞는다 — 그건 재는 자가 만든 고장이다(첫 판이 그랬다).
+	halfWay.send(JSON.stringify({ type: 'hello', secret: cutOne.secret, pass: cutOne.moveOn.pass }));
+	setTimeout(() => halfWay.close(), Number(process.env.WM_HALF_MS || 30));
+};
+
+halfWay.onerror = () => { /* 아래가 잡는다 */ };
+await wait(3000);
+cutOne.socket.close();
+await wait(5000);
+
+// 창이 하는 그대로 — 같은 통행증으로 다시 들어간다.
+const overCut = joinWorld(westPort, { secret: cutOne.secret, pass: cutOne.moveOn.pass });
+await wait(4000);
+send(overCut, { type: 'bagask' });
+await wait(2000);
+
+const westCut = await health(westPort);
+const grew = westCut.identities - beforeLedger;
+
+check('넘다 끊겨도 받아 준다', overCut.id !== null,
+	overCut.id === null ? '못 들어갔다 — 그 사람은 어디에도 없는 사람이 된다' : `사람 ${overCut.id}`);
+check('손님이 아니라 나로 도착한다 (장부가 안 는다)', grew <= 1,
+	`서쪽 장부 ${beforeLedger} → ${westCut.identities} (2 늘면 반쪽 시도가 남긴 유령 신원이다)`);
+check('짐이 그대로다 (두 벌도, 빈손도 아니다)', bagSize(overCut) === cutLuggage,
+	`가방 ${cutLuggage} → ${bagSize(overCut)}`);
+
+killWorlds();
+
+if (failures === 0) {
+	console.log('[border-cut] ✅ 국경을 넘다 끊겨도 나로, 짐 그대로 도착한다');
+	process.exit(0);
+}
+
+console.log(`\n[border-cut] RESULT: ${failures}건`);
+process.exit(1);

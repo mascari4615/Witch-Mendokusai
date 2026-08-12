@@ -722,6 +722,8 @@ namespace WitchMendokusai.Server
 				string travelPass = ReadStringField(text, "pass");
 				long nowMs = System.DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
 				WitchMendokusai.Net.TravelPass.Bundle came = default;
+				// 이 통행증으로 <b>처음</b> 들어오나 — 짐(가방·자리·몸)은 처음에만 준다 (TASK-WM-309).
+				bool firstCrossing = false;
 				bool travelling = string.IsNullOrEmpty(travelPass) == false
 					&& WitchMendokusai.Net.TravelPass.TryRead(travelPass, zoneSecret, nowMs, out came, out _);
 
@@ -735,9 +737,12 @@ namespace WitchMendokusai.Server
 					{
 						travelling = false;
 					}
-					// 그리고 한 장은 <b>한 번</b>만 — 복사한 통행증으로 두 번 들어오면 가방이 두 벌 온다.
-					else if (passesUsed.TryUse(travelPass, nowMs) == false)
+					// 그리고 <b>짐은</b> 한 번만 — 복사한 통행증으로 두 번 들어오면 가방이 두 벌 온다.
+					//   다만 <b>들어오는 것</b> 자체는 다시 허락한다 (TASK-WM-309): 통행증을 내밀다 줄이
+					//   끊긴 사람을 손님으로 맞으면 가방도 자리도 잃는다(실측: 그때 장부에 신원이 하나 더 쌓였다).
+					else if (passesUsed.TryClaim(travelPass, nowMs, out firstCrossing) == false)
 					{
+						// 같은 순간에 같은 통행증을 둘이 내밀었다 — 뒤엣것이 진짜 복사 시도다.
 						travelling = false;
 					}
 				}
@@ -770,8 +775,18 @@ namespace WitchMendokusai.Server
 				{
 					// 이름도 같이 건너온다 — 안 그러면 국경을 넘는 순간 친구가 「손님 7」이 된다.
 					Identities.NameIfEmpty(person.id, came.Name);
-					World.WelcomeTraveller(dollId, person.id, new Vector3(came.X, 0f, came.Z), came.Bag, ItemsCatalog, came.Health);
-					Interlocked.Exchange(ref worldDirty, 1);
+
+					// ⚠ 짐은 <b>처음 넘어올 때만</b> 준다. 다시 들어오는 사람은 이미 이 세계에 제 가방이 있다 —
+					//   또 주면 그게 복사다(TASK-WM-309).
+					if (firstCrossing)
+					{
+						World.WelcomeTraveller(dollId, person.id, new Vector3(came.X, 0f, came.Z), came.Bag, ItemsCatalog, came.Health);
+						Interlocked.Exchange(ref worldDirty, 1);
+
+						// ★ 「썼다」는 <b>짐을 건넨 뒤에</b> 적는다 (TASK-WM-309) — 내밀자마자 적으면
+						//   그 사이에 줄이 끊긴 사람은 짐도 못 받고 통행증만 태운다(실측: 가방 1 → 0).
+						passesUsed.MarkDelivered(travelPass, nowMs);
+					}
 				}
 
 				// 중복 로그인 — 일반 MMORPG 처럼 나중에 온 쪽이 이긴다. 밀려난 창에는 이유를 말하고 닫는다
