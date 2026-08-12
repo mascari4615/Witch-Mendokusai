@@ -29,7 +29,9 @@ const worldFile = join(mkdtempSync(join(tmpdir(), 'wm-build-')), 'world.json');
 const ONE_WAY_MS = 100;
 const JITTER_MS = 20;
 const REACH = 2.5;
-const GATHER_UP_TO_MS = 90000;
+// ⚠ 느린 기계에서는 걷기·줍기 한 판이 훨씬 오래 걸린다 — 2코어 CI 에서 90초로는 못 모았다.
+//   이건 <b>문턱</b>이 아니라 <b>품</b>이다: 넉넉히 주고, 그래도 못 모으면 CANNOT-RUN 으로 세운다.
+const GATHER_UP_TO_MS = Number(process.env.WM_GATHER_MS || 180000);
 
 function cannotRun(message) {
 	console.error(`[web-build] CANNOT-RUN: ${message}`);
@@ -165,7 +167,7 @@ async function gatherUntilBuildable(msLimit) {
 			const where = await page.evaluate((spot) => window.__wmView.screenOf(spot.x, spot.z), near);
 			await page.mouse.click(Math.round(where.x), Math.round(where.y));
 			taken.add(near.id);
-			await wait(600);
+			await wait(350);
 			continue;
 		}
 
@@ -175,7 +177,7 @@ async function gatherUntilBuildable(msLimit) {
 			if (key !== null) await page.keyboard.down(key);
 		}
 
-		await wait(120);
+		await wait(200);
 		for (const key of [keyX, keyZ]) {
 			if (key !== null) await page.keyboard.up(key);
 		}
