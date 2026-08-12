@@ -49,6 +49,7 @@ on:
       - '.github/scripts/wm-web-strike-lag-test.mjs'
       - '.github/scripts/wm-web-beyond-test.mjs'
       - '.github/scripts/wm-web-say-test.mjs'
+      - '.github/scripts/wm-web-crowd-badline-test.mjs'
       - '.github/scripts/wm-dead-parameter-audit.mjs'
       - '.github/scripts/lib/bad-line.mjs'
       - '.github/scripts/wm-game-client-gate.mjs'
@@ -82,6 +83,7 @@ on:
       - '.github/scripts/wm-web-strike-lag-test.mjs'
       - '.github/scripts/wm-web-beyond-test.mjs'
       - '.github/scripts/wm-web-say-test.mjs'
+      - '.github/scripts/wm-web-crowd-badline-test.mjs'
       - '.github/scripts/wm-dead-parameter-audit.mjs'
       - '.github/scripts/lib/bad-line.mjs'
       - '.github/scripts/wm-game-client-gate.mjs'
@@ -287,6 +289,14 @@ jobs:
         env:
           WM_PLAYWRIGHT_ROOT: /tmp/wm-playwright
         run: node ./.github/scripts/wm-web-say-test.mjs
+
+      # TASK-WM-269 -- 몰린 곳 측정(WM-217)은 전부 loopback 이었다. 몰린 곳에서 제일 먼저 무너지는
+      # 것이 회선인데, 지연이 붙었을 때 세계가 창을 "뒤처졌다"고 보고 사람을 줄이는 자리(WM-228)가
+      # 진짜 회선에서도 제대로 도는지는 한 번도 안 봤다.
+      - name: Run crowd on a bad line test
+        env:
+          WM_PLAYWRIGHT_ROOT: /tmp/wm-playwright
+        run: node ./.github/scripts/wm-web-crowd-badline-test.mjs
 
   unity:
     name: EditMode tests (laptop runner)
