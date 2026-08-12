@@ -346,7 +346,9 @@ async function loseTheSpot() {
 
 const lost = await loseTheSpot();
 
-check('누르자마자 「짓는 중」이라고 한다', saidInMs >= 0 && saidInMs <= 200,
+// ⚠ 절대 밀리초는 환경 주장이다 (domain-wm.md § 관문 규율 ④) — 느린 기계에서는 누르는 것도
+//   재는 것도 느리다. 「사람이 기다린다고 느끼기 전에」로 자른다.
+check('누르자마자 「짓는 중」이라고 한다 (0.5초 안)', saidInMs >= 0 && saidInMs <= 500,
 	saidInMs < 0 ? '아무 말도 안 했다' : `${saidInMs}ms · "${said.text}"`);
 check('세운 것이 창에 뜬다', built > builtBefore, `건물 ${builtBefore} → ${built}`);
 check('가방에서 재료가 빠진다', bagAfter !== bagBefore, `${bagBefore} → ${bagAfter}`);
