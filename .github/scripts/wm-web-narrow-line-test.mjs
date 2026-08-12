@@ -171,10 +171,16 @@ walker.onmessage = (event) => {
 };
 await new Promise((done) => setTimeout(done, 3000));
 
-const walking = setInterval(() => {
-	if (walker.readyState !== 1) return;
-	walker.send(JSON.stringify({ type: 'move', x: 0.15, z: 0 }));
-}, 50);
+// ⚠ 걷기는 <b>창이 다 붙고 갈고리를 건 뒤에</b> 시작한다 (실측 2026-08-12): 먼저 걷게 두면
+//   창이 뜨는 동안 걷는 사람이 관심 반경(32m) 밖으로 나가 버린다 — 사람이 많을수록 창이 늦게
+//   뜨므로 200명에서 「걷는 사람이 한 판도 안 실린다」로 나왔다(서버는 멀쩡했다).
+let walking = null;
+const startWalking = () => {
+	walking = setInterval(() => {
+		if (walker.readyState !== 1) return;
+		walker.send(JSON.stringify({ type: 'move', x: 0.15, z: 0 }));
+	}, 50);
+};
 
 // ── 좁은 회선을 창 앞에만 세운다 ───────────────────────────────────────
 const badLine = openBadLine({
@@ -218,6 +224,11 @@ await page.evaluate((who) => {
 
 		for (const one of from) {
 			if (one.id !== window.__wmWalker) continue;
+
+			// ⚠ 이름표(names)에도 dolls 가 있다 — 거기엔 <b>자리가 없다</b>(id·name 뿐).
+			//   그걸 자리로 읽으면 나이가 NaN 이 되고, 판정이 조용히 무의미해진다(CI 실측 2026-08-12).
+			if (typeof one.x !== 'number') continue;
+
 			window.__wmAges.push({ at: Date.now(), id: one.id, sawX: one.x });
 		}
 	};
@@ -225,6 +236,7 @@ await page.evaluate((who) => {
 	window.__wmView.socket().addEventListener('message', (event) => write(event.data));
 }, walkerDollId);
 
+startWalking();
 await new Promise((done) => setTimeout(done, 1500));
 await new Promise((done) => setTimeout(done, MEASURE_MS));
 const ages = await page.evaluate(() => window.__wmAges.slice());
@@ -274,7 +286,10 @@ const agesOf = (list) => {
 		if (one.id !== walkerDollId) continue;
 		if (one.at < truth[0].at || one.at > truth[truth.length - 1].at) continue;
 
-		out.push((trulyAt(one.at) - one.sawX) / WALK_SPEED);
+		const age = (trulyAt(one.at) - one.sawX) / WALK_SPEED;
+		if (Number.isFinite(age) === false) continue;
+
+		out.push(age);
 	}
 
 	return out;
