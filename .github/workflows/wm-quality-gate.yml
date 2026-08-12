@@ -40,6 +40,8 @@ on:
       - '.github/scripts/wm-web-reconnect-smoke.mjs'
       - '.github/scripts/wm-web-crowd-smoke.mjs'
       - '.github/scripts/wm-web-smoothness-test.mjs'
+      - '.github/scripts/wm-web-badline-test.mjs'
+      - '.github/scripts/lib/bad-line.mjs'
       - '.github/scripts/wm-game-client-gate.mjs'
       - '.github/scripts/wm-zero-id-guard.mjs'
       - 'Server/WM.Server/wwwroot/**'
@@ -62,6 +64,8 @@ on:
       - '.github/scripts/wm-web-reconnect-smoke.mjs'
       - '.github/scripts/wm-web-crowd-smoke.mjs'
       - '.github/scripts/wm-web-smoothness-test.mjs'
+      - '.github/scripts/wm-web-badline-test.mjs'
+      - '.github/scripts/lib/bad-line.mjs'
       - '.github/scripts/wm-game-client-gate.mjs'
       - '.github/scripts/wm-zero-id-guard.mjs'
       - 'Server/WM.Server/wwwroot/**'
@@ -198,6 +202,13 @@ jobs:
         env:
           WM_PLAYWRIGHT_ROOT: /tmp/wm-playwright
         run: node ./.github/scripts/wm-web-smoothness-test.mjs
+
+      # TASK-WM-224 -- 지금까지의 모든 수치는 loopback(지연 0)에서 나왔다. 세계 앞에 진짜
+      # TCP 회선(왕복 200ms·흔들림 30ms)을 세우고 창도 봇도 그리로만 붙인다.
+      - name: Run web bad-line test
+        env:
+          WM_PLAYWRIGHT_ROOT: /tmp/wm-playwright
+        run: node ./.github/scripts/wm-web-badline-test.mjs
 
   unity:
     name: EditMode tests (laptop runner)
