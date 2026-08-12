@@ -59,6 +59,7 @@ on:
       - '.github/scripts/wm-web-long-outage-test.mjs'
       - '.github/scripts/wm-web-alone-test.mjs'
       - '.github/scripts/wm-badline-strike-fairness-test.mjs'
+      - '.github/scripts/wm-web-smooth-test.mjs'
       - '.github/scripts/wm-dead-parameter-audit.mjs'
       - '.github/scripts/lib/bad-line.mjs'
       - '.github/scripts/wm-game-client-gate.mjs'
@@ -102,6 +103,7 @@ on:
       - '.github/scripts/wm-web-long-outage-test.mjs'
       - '.github/scripts/wm-web-alone-test.mjs'
       - '.github/scripts/wm-badline-strike-fairness-test.mjs'
+      - '.github/scripts/wm-web-smooth-test.mjs'
       - '.github/scripts/wm-dead-parameter-audit.mjs'
       - '.github/scripts/lib/bad-line.mjs'
       - '.github/scripts/wm-game-client-gate.mjs'
@@ -382,6 +384,12 @@ jobs:
       # 나쁜 회선이라고 계속 헛치지는 않는다 (TASK-WM-303).
       - name: Run strike fairness test
         run: node ./.github/scripts/wm-badline-strike-fairness-test.mjs
+
+      # 남의 걸음이 나쁜 회선에서도 매끄러운가 (TASK-WM-304).
+      - name: Run smoothness test
+        env:
+          WM_PLAYWRIGHT_ROOT: /tmp/wm-playwright
+        run: node ./.github/scripts/wm-web-smooth-test.mjs
 
   unity:
     name: EditMode tests (laptop runner)
