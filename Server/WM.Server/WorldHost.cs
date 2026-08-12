@@ -46,6 +46,12 @@ namespace WitchMendokusai.Server
 
 		private int savedAtWorldMinute;
 		private long broadcastSnapshotMessages;
+
+		/// <summary>
+		/// 세계 소식을 <b>몇 벌 지었나</b> — 보낸 건수와 견주면 「한 칸이 같이 쓰기」가 도는지 보인다.
+		/// (같이 쓰기가 안 돌면 지은 벌 수 = 보낸 건수다. 눈으로는 절대 못 보는 자리라 숫자로 남긴다.)
+		/// </summary>
+		private long builtSnapshots;
 		private long broadcastSnapshotBytes;
 		private long largestBroadcastSnapshotBytes;
 
@@ -154,6 +160,7 @@ namespace WitchMendokusai.Server
 				hour = World.Calendar.Hour,
 				minute = World.Calendar.Minute,
 				broadcastSnapshotMessages = Interlocked.Read(ref broadcastSnapshotMessages),
+				builtSnapshots = Interlocked.Read(ref builtSnapshots),
 				broadcastSnapshotBytes = Interlocked.Read(ref broadcastSnapshotBytes),
 				largestBroadcastSnapshotBytes = Interlocked.Read(ref largestBroadcastSnapshotBytes),
 				worldFile = store.Path,
@@ -1065,6 +1072,9 @@ namespace WitchMendokusai.Server
 							madeForCell[key] = ready;
 					}
 
+					if (ready == null)
+						Interlocked.Increment(ref builtSnapshots);
+
 					string snapshot = ready ?? Protocol.WorldSnapshot(
 						DollsVisibleTo(entry.Key),
 						sendBuildings ? BuildingsVisibleTo(entry.Key) : null,
@@ -1157,6 +1167,8 @@ namespace WitchMendokusai.Server
 			WorldDoll[] shared = InterestCrowd.SharedForCell(candidates, members, center, InterestCrowd.MAX_VISIBLE_DOLLS);
 			if (shared == null)
 				return null;
+
+			Interlocked.Increment(ref builtSnapshots);
 
 			// ⚠ 지은 것·들판·솥도 <b>칸 한복판 기준</b>으로 담는다. 칸에 선 아무개 한 사람 기준으로
 			//   담으면, 같은 칸의 다른 사람이 봐야 할 집이 빠진다 — 「남이 지은 집이 안 보이던 것」의 재판이다.
