@@ -191,6 +191,7 @@
 import * as THREE from './vendor/three.module.js';
 // 고르개가 보여 줄 글은 순수 계산이라 따로 두고 시험한다 (wm-web-picker-test).
 import { buildLabel, craftLabel, aimingText } from './picker.mjs';
+import { createReconnectPlan, linkStatusText } from './link.mjs';
 
 const statusElement = document.getElementById('status');
 const canvas = document.getElementById('board');
@@ -316,13 +317,59 @@ window.addEventListener('resize', resize);
 resize();
 
 // ── 서버와의 줄 ────────────────────────────────────────────────────────
-const socket = new WebSocket((location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host + '/ws');
+//
+// ★ 줄은 끊긴다 — 배포 한 번에도 세계는 잠깐 내려간다. 그때 화면이 「끊겼다」로 굳으면
+//   사람은 고장으로 읽고 새로고침한다. 게임 창은 이미 스스로 다시 붙는다(ReconnectBackoff).
+//   여기도 같은 규칙을 쓴다 — 언제 · 붙을까는 link.mjs 가 정하고(시험 있음), 여기는 실행만.
+let socket = null;
+const reconnect = createReconnectPlan();
+let retryTimer = null;
 
 // 브라우저에 적어 둔 열쇠 — 이게 있어야 다음에 와도 「나」다. 없으면 세계가 새로 준다.
 const KEY_NAME = 'wm.world.secret';
 
-socket.onopen = () => {
-	statusElement.textContent = '붙었다';
+function worldAddress() {
+	return (location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host + '/ws';
+}
+
+function connect() {
+	if (retryTimer !== null) { clearTimeout(retryTimer); retryTimer = null; }
+
+	statusElement.textContent = linkStatusText(reconnect.attempts > 0 ? 'retrying' : 'connecting', reconnect.attempts);
+
+	socket = new WebSocket(worldAddress());
+	socket.onopen = onLinkOpen;
+	socket.onclose = onLinkClose;
+	socket.onerror = onLinkError;
+	socket.onmessage = onLinkMessage;
+}
+
+function onLinkClose() {
+	// 다시 붙으면 세계는 나를 처음부터 그려 준다 — 지난 판의 번호·차례를 들고 있으면
+	// 새 스냅샷을 「오래된 것」으로 읽고 버린다(화면이 영원히 안 갱신된다).
+	myId = null;
+	lastWorldSequence = 0;
+
+	const next = reconnect.closed();
+	if (next.retry === false) {
+		statusElement.textContent = linkStatusText('evicted', 0);
+		return;
+	}
+
+	statusElement.textContent = linkStatusText('retrying', next.attempts);
+	retryTimer = setTimeout(connect, next.delayMs);
+}
+
+function onLinkError() {
+	// 여기서는 알리기만 한다 — 다시 붙는 것은 언제나 onclose 가 맡는다(두 번 붙지 않게).
+	if (reconnect.evicted === false && reconnect.attempts === 0) {
+		statusElement.textContent = linkStatusText('error', 0);
+	}
+}
+
+function onLinkOpen() {
+	reconnect.opened();
+	statusElement.textContent = linkStatusText('open', 0);
 	lastWorldSequence = 0;
 
 	let saved = '';
@@ -345,16 +392,17 @@ socket.onopen = () => {
 
 	// 코드는 한 번 쓰면 사라진다 — 들고 있어 봐야 다음엔 안 통한다(그때는 기기 열쇠가 나를 안다).
 	try { localStorage.removeItem('wm.world.klcode'); } catch (e) { /* 무시 */ }
-};
-socket.onclose = () => { statusElement.textContent = '끊겼다'; };
-socket.onerror = () => { statusElement.textContent = '연결에 문제가 있다'; };
+}
 
-socket.onmessage = (event) => {
+function onLinkMessage(event) {
 	const message = JSON.parse(event.data);
 
 	if (message.type === 'kicked') {
 		// 일반 MMORPG 처럼 나중에 온 쪽이 이긴다 — 조용히 끊기면 사람은 「버그」로 읽는다.
-		statusElement.textContent = '다른 곳에서 접속했다 — 여기서는 나간다';
+		// ⚠ 여기서 다시 붙으면 방금 들어간 창을 도로 쫓아낸다 — 두 창이 서로를 영원히 민다.
+		//   그래서 이 창은 물러난다(다시 놀려면 새로고침).
+		reconnect.kicked();
+		statusElement.textContent = linkStatusText('evicted', 0);
 		return;
 	}
 
@@ -489,7 +537,10 @@ socket.onmessage = (event) => {
 		drawWorldLines();
 		syncDolls();
 	}
-};
+}
+
+// 첫 접속 — 이 뒤로는 끊길 때마다 위 계획이 스스로 다시 붙는다.
+connect();
 
 // ── 사람의 손 ──────────────────────────────────────────────────────────
 window.addEventListener('keydown', (e) => {
