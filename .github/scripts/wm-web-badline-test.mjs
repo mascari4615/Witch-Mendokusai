@@ -309,17 +309,12 @@ if (trail.length > 30) {
 await page.waitForFunction(() => window.__wmView.world().gatherables > 0, null, { timeout: 20000 })
 	.catch(() => { /* 그래도 안 오면 아래 칸이 0 으로 잡는다 */ });
 
-// ⚠ 먼저 <b>창이 들판을 알기까지</b> 기다린다 (2026-08-13). 나쁜 회선에서는 첫 전체 그림
-//   (들판 67자리 ≈ 7KB)이 늦게 온다 — 오기도 전에 재면 「가장 많을 때 0자리」가 나오고,
-//   그건 「사라졌다」가 아니라 <b>아직 안 왔다</b>이다(느린 CI 에서 그 값으로 빨갰다).
-await page.waitForFunction(() => (window.__wmView.world().gatherables || 0) > 0, null, { timeout: 30000 })
-	.catch(() => { /* 아래에서 CANNOT-RUN 으로 잡는다 */ });
-
+// ⚠ 그래도 안 왔으면 <b>못 잰 것</b>이다 — 0 을 「사라졌다」로 적지 않는다(2026-08-13, 느린 CI).
 if (await page.evaluate(() => (window.__wmView.world().gatherables || 0) === 0)) {
 	await browser.close();
-	await line.close();
+	await badLine.close();
 	killWorld();
-	cannotRun('창이 30초를 기다려도 들판을 못 받았다 — 이 상태로는 「사라졌나」를 잴 수 없다');
+	cannotRun('창이 20초를 기다려도 들판을 못 받았다 — 이 상태로는 「사라졌나」를 잴 수 없다');
 }
 
 const fieldWatch = await page.evaluate(() => {
