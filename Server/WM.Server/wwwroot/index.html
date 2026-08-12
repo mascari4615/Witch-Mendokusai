@@ -626,6 +626,15 @@ let travelPass = '';
 /** 지금 붙을 세계 — 넘어가면 옆 세계 주소로 바뀐다. */
 let worldAt = '';
 
+/** 넘어오기 전 세계 — 저쪽이 안 열리면 이리로 돌아간다 (TASK-WM-256). */
+let cameFrom = '';
+
+/** 돌아갈 때 다시 낼 통행증 — 한 번 쓰고 버리는 travelPass 와 달리 들고 있는다. */
+let passKeptFor = '';
+
+/** 넘어간 세계에 이만큼 못 붙으면 돌아온다. */
+const GIVE_UP_ON_NEXT_WORLD_MS = 4000;
+
 function worldAddress() {
 	if (worldAt) return worldAt;
 
@@ -708,6 +717,18 @@ function onLinkClose() {
 		return;
 	}
 
+	// ★ 넘어간 세계에 <b>한 번도 못 붙었으면</b> 원래 세계로 돌아간다 (TASK-WM-256).
+	//   저쪽이 꺼져 있는데 계속 두드리면 그 사람은 영영 어디에도 없다.
+	if (cameFrom && next.delayMs >= GIVE_UP_ON_NEXT_WORLD_MS) {
+		statusElement.textContent = '저 세계가 안 열린다 — 왔던 곳으로 돌아간다';
+		worldAt = cameFrom;
+		cameFrom = '';
+		travelPass = passKeptFor;
+		reconnect.opened();
+		retryTimer = setTimeout(connect, 200);
+		return;
+	}
+
 	statusElement.textContent = linkStatusText('retrying', next.attempts);
 	retryTimer = setTimeout(connect, next.delayMs);
 }
@@ -720,6 +741,8 @@ function onLinkError() {
 }
 
 function onLinkOpen() {
+	// 저 세계에 <b>붙었다</b> — 이제 돌아갈 곳은 없다(다음 국경이 새로 정해 준다).
+	cameFrom = '';
 	reconnect.opened();
 	statusElement.textContent = linkStatusText('open', 0);
 	lastWorldSequence = 0;
@@ -873,7 +896,12 @@ function onLinkMessage(event) {
 	// ★ 여기부터는 저 세계다 (TASK-WM-254) — 주소를 갈아타고 통행증을 낸다.
 	//   사람에게는 <b>걸어서 넘어간 것</b>으로 보여야 한다: 화면이 안 꺼지고 그대로 이어진다.
 	if (message.type === 'moveon') {
+		// ⚠ 넘어가다 <b>못 닿으면 돌아온다</b> (TASK-WM-256): 보낸 세계는 이미 나를 내보냈고
+		//   받는 세계가 안 열리면 나는 <b>어디에도 없는 사람</b>이 된다(가방째 사라진다).
+		//   통행증에는 신원과 가방이 들어 있으니, 그걸 들고 원래 세계로 돌아가면 그대로 선다.
+		cameFrom = worldAddress();
 		travelPass = message.pass;
+		passKeptFor = message.pass;
 		worldAt = message.address;
 		statusElement.textContent = `${message.zone} 으로 넘어간다`;
 

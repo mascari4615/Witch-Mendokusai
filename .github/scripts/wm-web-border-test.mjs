@@ -183,6 +183,68 @@ const gone = await fetch(`http://127.0.0.1:${eastPort}/health`, { headers: { con
 check('보낸 세계에서는 나갔다 (두 곳에 동시에 있지 않다)', gone.people === 0,
 	`동쪽에 남은 사람 ${gone.people}명`);
 
+// ── ② 저 세계가 <b>안 열려 있으면</b> 어떻게 되나 (TASK-WM-256) ─────────
+//   보낸 세계는 이미 나를 내보냈다. 저쪽이 꺼져 있으면 나는 어디에도 없는 사람이 된다.
+//   그러면 <b>왔던 곳으로 돌아와야</b> 한다 — 통행증에 신원과 가방이 들어 있으니 그대로 선다.
+{
+	// 동쪽으로 다시 넘어가게 두고, 이번엔 동쪽 세계를 죽여 둔다.
+	const east = worlds[0];
+	try {
+		if (process.platform === 'win32') execSync(`taskkill /PID ${east.pid} /F /T`, { stdio: 'ignore' });
+		else east.kill('SIGKILL');
+	} catch { /* 이미 죽었다 */ }
+
+	// ⚠ 넘어가면 <b>줄이 바뀐다</b> — 옛 줄에 귀를 대고 있으면 아무 말도 안 들린다.
+	//   창이 새로 연 줄에 다시 붙인다(그리고 다시 붙을 때마다 또 붙게 둔다).
+	await page.evaluate(() => {
+		window.__wmMoveOn = null;
+		const listen = () => {
+			const now = window.__wmView.socket();
+			if (!now || now === window.__wmHeard) return;
+
+			window.__wmHeard = now;
+			now.addEventListener('message', (event) => {
+				let said;
+				try { said = JSON.parse(event.data); } catch { return; }
+
+				if (said.type === 'moveon') window.__wmMoveOn = said;
+			});
+		};
+
+		listen();
+		if (window.__wmListenTimer) clearInterval(window.__wmListenTimer);
+		window.__wmListenTimer = setInterval(listen, 200);
+	});
+
+	const untilTold = Date.now() + 40000;
+	let toldAgain = null;
+	while (Date.now() < untilTold) {
+		await page.keyboard.down('d');
+		await wait(300);
+		await page.keyboard.up('d');
+
+		toldAgain = await page.evaluate(() => window.__wmMoveOn);
+		if (toldAgain !== null) break;
+	}
+
+	check('죽은 세계로도 「가라」는 온다 (세계는 이웃이 살았는지 모른다)', toldAgain !== null);
+
+	let cameBack = false;
+	if (toldAgain !== null) {
+		const untilBack = Date.now() + 25000;
+		while (Date.now() < untilBack) {
+			const here = await fetch(`http://127.0.0.1:${westPort}/health`, { headers: { connection: 'close' } })
+				.then((r) => r.json()).catch(() => ({ people: 0 }));
+			if (here.people >= 1) { cameBack = true; break; }
+
+			await wait(400);
+		}
+	}
+
+	check('저 세계가 안 열리면 왔던 곳으로 돌아온다', cameBack,
+		cameBack ? '' : '두 세계 어디에도 없는 사람이 됐다 — 가방째 사라졌다');
+}
+
 check('창이 조용히 안 터졌다', pageErrors.length === 0, pageErrors.join(' | ') || '오류 없음');
 
 await browser.close();
