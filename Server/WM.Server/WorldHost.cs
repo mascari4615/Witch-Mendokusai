@@ -227,6 +227,9 @@ namespace WitchMendokusai.Server
 		/// <summary>걸음 심판 — 시계를 보고 「걸어서 갈 수 있는 만큼」만 통과시킨다 (TASK-WM-222).</summary>
 		private readonly WitchMendokusai.Net.MoveAllowance moveAllowance = new WitchMendokusai.Net.MoveAllowance();
 
+		/// <summary>이미 쓴 통행증 (TASK-WM-259) — 한 장으로 두 번 들어오면 가방이 두 벌 온다.</summary>
+		private readonly WitchMendokusai.Net.PassOnce passesUsed = new WitchMendokusai.Net.PassOnce();
+
 		// 제작 주사위 — <b>세계가 굴린다</b>. 창이 굴리면 창을 고친 사람은 언제나 성공한다.
 		// 시험이 성공·실패를 모두 잴 수 있게 판정 자체는 WorldCraftBook 이 하고, 여기선 숫자만 넣는다.
 		private readonly System.Random craftDice = new System.Random();
@@ -592,10 +595,37 @@ namespace WitchMendokusai.Server
 				if (string.IsNullOrEmpty(externalId))
 					externalId = await Accounts.TryResolveCodeAsync(ReadStringField(text, "klCode"));
 
+				// ★ 옆 세계에서 <b>걸어 들어온</b> 사람인가 (TASK-WM-254·259). 신원을 정하기 <b>전</b>에 본다 —
+				//   이 통행증이 이 사람의 것이면, 이 세계는 그 이름표로 그를 <b>이어서</b> 알아봐야 한다.
+				string travelPass = ReadStringField(text, "pass");
+				long nowMs = System.DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+				WitchMendokusai.Net.TravelPass.Bundle came = default;
+				bool travelling = string.IsNullOrEmpty(travelPass) == false
+					&& WitchMendokusai.Net.TravelPass.TryRead(travelPass, zoneSecret, nowMs, out came, out _);
+
+				if (travelling)
+				{
+					// ⚠ 이 창이 <b>이미 이 세계의 딴 사람</b>이면 통행증은 안 통한다 — 주워 온 남의 통행증이다.
+					WitchMendokusai.Identity.WorldIdentityRecord already =
+						string.IsNullOrEmpty(externalId) ? Identities.TryFind(secret) : Identities.TryFindExternal(externalId);
+					if (already != null
+						&& string.Equals(WitchMendokusai.Identity.WorldIdentityRegistry.MarkOf(already), came.Mark, StringComparison.Ordinal) == false)
+					{
+						travelling = false;
+					}
+					// 그리고 한 장은 <b>한 번</b>만 — 복사한 통행증으로 두 번 들어오면 가방이 두 벌 온다.
+					else if (passesUsed.TryUse(travelPass, nowMs) == false)
+					{
+						travelling = false;
+					}
+				}
+
 				WitchMendokusai.Identity.WorldIdentityRecord person;
-				bool created;
-				string grantedSecret;
-				if (string.IsNullOrEmpty(externalId) == false)
+				bool created = false;
+				string grantedSecret = string.Empty;
+				if (travelling)
+					person = Identities.RecognizeMark(came.Mark, secret, World.Calendar.TotalDays());
+				else if (string.IsNullOrEmpty(externalId) == false)
 					person = Identities.RecognizeExternal(externalId, secret, World.Calendar.TotalDays(), out created, out grantedSecret);
 				else
 					person = Identities.Recognize(secret, out created, out grantedSecret, World.Calendar.TotalDays());
@@ -612,16 +642,13 @@ namespace WitchMendokusai.Server
 
 				World.Adopt(dollId, person.id, ItemsCatalog, out int evictedDollId);
 
-				// ★ 옆 세계에서 <b>걸어 들어온</b> 사람 (TASK-WM-254): 통행증에 도장이 맞으면
-				//   그 자리·그 가방으로 세운다. 도장이 안 맞으면 그냥 손님으로 둔다 —
-				//   창이 지어낸 통행증으로 남의 가방을 들고 오지 못한다.
-				string travelPass = ReadStringField(text, "pass");
-				if (string.IsNullOrEmpty(travelPass) == false
-					&& WitchMendokusai.Net.TravelPass.TryRead(travelPass, zoneSecret,
-						System.DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
-						out WitchMendokusai.Net.TravelPass.Bundle came, out _))
+				// 도장이 맞는 통행증이면 그 자리·그 가방·그 몸으로 세운다 — <b>이 세계의</b> 번호로.
+				//   도장이 안 맞으면 그냥 손님이다(지어낸 통행증으로 남의 가방을 들고 오지 못한다).
+				if (travelling)
 				{
-					World.WelcomeTraveller(dollId, came.IdentityId, new Vector3(came.X, 0f, came.Z), came.Bag, ItemsCatalog, came.Health);
+					// 이름도 같이 건너온다 — 안 그러면 국경을 넘는 순간 친구가 「손님 7」이 된다.
+					Identities.NameIfEmpty(person.id, came.Name);
+					World.WelcomeTraveller(dollId, person.id, new Vector3(came.X, 0f, came.Z), came.Bag, ItemsCatalog, came.Health);
 					Interlocked.Exchange(ref worldDirty, 1);
 				}
 
@@ -1693,8 +1720,11 @@ namespace WitchMendokusai.Server
 			foreach (BagSaveEntry held in World.BagOf(dollId))
 				carried.Add((held.itemId, held.amount));
 
+			// ⚠ 실어 보내는 것은 <b>세계 공통 이름표</b>다 (TASK-WM-259) — 이 세계의 번호를 보내면
+			//   저쪽에서 그 번호로 사는 <b>남</b>이 된다(이름도 저장분도 그 사람 것이 된다).
 			string pass = WitchMendokusai.Net.TravelPass.Write(
-				new WitchMendokusai.Net.TravelPass.Bundle(identityId, landing.x, landing.z, carried,
+				new WitchMendokusai.Net.TravelPass.Bundle(Identities.MarkOf(identityId), Identities.NameOf(identityId),
+					landing.x, landing.z, carried,
 					System.DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), World.HealthOf(dollId)),
 				zoneSecret);
 
@@ -1703,6 +1733,9 @@ namespace WitchMendokusai.Server
 			// 잠깐 뒤에 내보낸다 — 말이 나가기 전에 끊으면 창은 어디로 갈지 모른 채 남는다.
 			await Task.Delay(200);
 			World.Leave(dollId);
+
+			// 들고 간 것을 이 세계도 기억하고 있으면, 돌아왔을 때 <b>두 벌</b>이 된다 (TASK-WM-259).
+			World.ForgetPerson(identityId);
 			Interlocked.Exchange(ref worldDirty, 1);
 		}
 

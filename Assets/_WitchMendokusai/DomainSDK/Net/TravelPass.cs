@@ -25,9 +25,10 @@ namespace WitchMendokusai.Net
 		/// <summary>들고 가는 것.</summary>
 		public readonly struct Bundle
 		{
-			public Bundle(int identityId, float x, float z, IReadOnlyList<(int ItemId, int Amount)> bag, long madeAtMs, int health)
+			public Bundle(string mark, string name, float x, float z, IReadOnlyList<(int ItemId, int Amount)> bag, long madeAtMs, int health)
 			{
-				IdentityId = identityId;
+				Mark = mark ?? string.Empty;
+				Name = name ?? string.Empty;
 				X = x;
 				Z = z;
 				Bag = bag ?? new List<(int, int)>();
@@ -35,7 +36,15 @@ namespace WitchMendokusai.Net
 				Health = health;
 			}
 
-			public int IdentityId { get; }
+			/// <summary>
+			/// 그 사람의 <b>세계 공통 이름표</b> (TASK-WM-259) — 계정이거나 열쇠의 지문이다.
+			/// ⚠ 세계 안의 번호를 실으면 안 된다. 번호는 세계마다 따로 매겨서,
+			///   저쪽에 이미 그 번호로 사는 <b>남</b>이 있다(그 사람이 돼 버린다).
+			/// </summary>
+			public string Mark { get; }
+
+			/// <summary>불리는 이름 — 이 이름도 같이 가야 국경을 넘어도 <b>같은 사람</b>으로 보인다.</summary>
+			public string Name { get; }
 
 			public float X { get; }
 
@@ -101,13 +110,12 @@ namespace WitchMendokusai.Net
 			}
 
 			string[] parts = body.Split(';');
-			if (parts.Length < 4)
+			if (parts.Length < 6)
 				return false;
 
-			if (parts.Length < 5)
-				return false;
-
-			if (int.TryParse(parts[0], out int identityId) == false
+			string mark = Unescape(parts[0]);
+			string name = Unescape(parts[5]);
+			if (mark.Length == 0
 				|| TryReadFloat(parts[1], out float x) == false
 				|| TryReadFloat(parts[2], out float z) == false
 				|| long.TryParse(parts[3], out long madeAtMs) == false
@@ -129,7 +137,7 @@ namespace WitchMendokusai.Net
 			}
 
 			List<(int ItemId, int Amount)> bag = new List<(int, int)>();
-			for (int i = 5; i < parts.Length; i++)
+			for (int i = 6; i < parts.Length; i++)
 			{
 				if (parts[i].Length == 0)
 					continue;
@@ -145,7 +153,7 @@ namespace WitchMendokusai.Net
 					bag.Add((itemId, amount));
 			}
 
-			bundle = new Bundle(identityId, x, z, bag, madeAtMs, health);
+			bundle = new Bundle(mark, name, x, z, bag, madeAtMs, health);
 			why = Refusal.None;
 			return true;
 		}
@@ -153,16 +161,34 @@ namespace WitchMendokusai.Net
 		private static string Body(Bundle bundle)
 		{
 			StringBuilder builder = new StringBuilder();
-			builder.Append(bundle.IdentityId).Append(';')
+			builder.Append(Escape(bundle.Mark)).Append(';')
 				.Append(bundle.X.ToString("F2", System.Globalization.CultureInfo.InvariantCulture)).Append(';')
 				.Append(bundle.Z.ToString("F2", System.Globalization.CultureInfo.InvariantCulture)).Append(';')
 				.Append(bundle.MadeAtMs).Append(';')
-				.Append(bundle.Health);
+				.Append(bundle.Health).Append(';')
+				.Append(Escape(bundle.Name));
 
 			foreach ((int ItemId, int Amount) held in bundle.Bag)
 				builder.Append(';').Append(held.ItemId).Append(',').Append(held.Amount);
 
 			return builder.ToString();
+		}
+
+		/// <summary>칸 나누는 글자가 <b>내용 안에</b> 들어 있으면 칸이 어긋난다 — 사람 이름은 아무 글자나 된다.</summary>
+		private static string Escape(string text)
+		{
+			if (string.IsNullOrEmpty(text))
+				return string.Empty;
+
+			return text.Replace("%", "%25").Replace(";", "%3b").Replace("|", "%7c");
+		}
+
+		private static string Unescape(string text)
+		{
+			if (string.IsNullOrEmpty(text))
+				return string.Empty;
+
+			return text.Replace("%7c", "|").Replace("%3b", ";").Replace("%25", "%");
 		}
 
 		private static string Seal(string body, string sharedSecret)

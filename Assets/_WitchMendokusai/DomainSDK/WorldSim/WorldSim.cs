@@ -37,6 +37,13 @@ namespace WitchMendokusai
 		/// <summary>마지막으로 때린 시각 (ms) — 얼마나 자주 때리나를 세계가 본다.</summary>
 		public long LastStruckMs { get; set; }
 
+		/// <summary>가방을 <b>비운다</b> (TASK-WM-259) — 통행증이 진실인 자리에서 옛 것을 걷어낸다.</summary>
+		public void EmptyBag()
+		{
+			foreach (BagSaveEntry held in SaveBag())
+				Bag.Consume(held.itemId, held.amount);
+		}
+
 		/// <summary>가방을 뜬다 — 종류별 개수만(칸 배치는 세계의 관심사가 아니다).</summary>
 		public List<BagSaveEntry> SaveBag()
 		{
@@ -338,8 +345,9 @@ namespace WitchMendokusai
 				if (carried == null || catalog == null)
 					return;
 
-				// ⚠ 새로 들어온 인형의 가방은 <b>비어 있다</b> — 그러니 그냥 얹는다.
-				//   이미 든 것에 <b>더하면</b> 국경을 오가며 가방이 불어난다.
+				// ⚠ 통행증이 <b>진실</b>이다 — 이 세계가 들고 있던 옛 가방 위에 얹으면 오가며 불어난다
+				//   (TASK-WM-259: 국경을 넘을 때 보낸 세계가 기억을 지우지만, 낡은 저장분이 남아 있을 수 있다).
+				doll.EmptyBag();
 				foreach ((int ItemId, int Amount) held in carried)
 				{
 					if (held.Amount <= 0)
@@ -351,6 +359,23 @@ namespace WitchMendokusai
 
 					doll.Bag.Add(item, held.Amount);
 				}
+			}
+		}
+
+		/// <summary>
+		/// 이 사람이 이 세계에 두고 간 것을 <b>지운다</b> (TASK-WM-259).
+		///
+		/// ★ 왜: 국경을 넘을 때 자리·가방은 통행증에 실려 <b>같이 간다</b>. 그런데 나가면서 세계가
+		///   「다시 오면 줄 것」으로 한 벌 더 기억해 두면, 돌아왔을 때 <b>두 벌</b>이 된다(복사).
+		/// </summary>
+		public void ForgetPerson(int identityId)
+		{
+			if (identityId == 0)
+				return;
+
+			lock (gate)
+			{
+				remembered.Remove(identityId);
 			}
 		}
 

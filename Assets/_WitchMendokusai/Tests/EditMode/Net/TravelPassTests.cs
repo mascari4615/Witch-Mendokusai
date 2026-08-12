@@ -14,9 +14,11 @@ namespace WitchMendokusai.Tests.EditMode.Net
 	{
 		private const string SECRET = "두 세계만 아는 말";
 
+		private const string MARK = "9f2c1abe";
+
 		private static TravelPass.Bundle Sample(long madeAtMs)
 		{
-			return new TravelPass.Bundle(42, 12.5f, -3.25f,
+			return new TravelPass.Bundle(MARK, "마스카", 12.5f, -3.25f,
 				new List<(int, int)> { (7, 3), (9, 1) }, madeAtMs, 70);
 		}
 
@@ -27,7 +29,8 @@ namespace WitchMendokusai.Tests.EditMode.Net
 
 			Assert.IsTrue(TravelPass.TryRead(pass, SECRET, 2000L, out TravelPass.Bundle came, out TravelPass.Refusal why));
 			Assert.AreEqual(TravelPass.Refusal.None, why);
-			Assert.AreEqual(42, came.IdentityId);
+			Assert.AreEqual(MARK, came.Mark, "번호가 아니라 세계 공통 이름표가 건너간다");
+			Assert.AreEqual("마스카", came.Name, "이름이 안 가면 국경을 넘는 순간 친구가 「손님 7」이 된다");
 			Assert.AreEqual(12.5f, came.X, 0.01f);
 			Assert.AreEqual(-3.25f, came.Z, 0.01f);
 			Assert.AreEqual(70, came.Health, "몸을 안 들고 가면 국경이 회복 장소가 된다");
@@ -61,7 +64,7 @@ namespace WitchMendokusai.Tests.EditMode.Net
 		public void 남의_이름으로_들어오지_못한다()
 		{
 			string pass = TravelPass.Write(Sample(1000L), SECRET);
-			string stolen = pass.Replace("42;", "43;");
+			string stolen = pass.Replace(MARK + ";", "9f2c1abf;");
 
 			Assert.IsFalse(TravelPass.TryRead(stolen, SECRET, 2000L, out _, out TravelPass.Refusal why));
 			Assert.AreEqual(TravelPass.Refusal.BadSeal, why);
@@ -111,12 +114,37 @@ namespace WitchMendokusai.Tests.EditMode.Net
 		[Test]
 		public void 빈_가방도_그대로_간다()
 		{
-			TravelPass.Bundle empty = new TravelPass.Bundle(5, 0f, 0f, null, 1000L, 100);
+			TravelPass.Bundle empty = new TravelPass.Bundle(MARK, string.Empty, 0f, 0f, null, 1000L, 100);
 			string pass = TravelPass.Write(empty, SECRET);
 
 			Assert.IsTrue(TravelPass.TryRead(pass, SECRET, 1500L, out TravelPass.Bundle came, out _));
 			Assert.AreEqual(0, came.Bag.Count);
-			Assert.AreEqual(5, came.IdentityId);
+			Assert.AreEqual(MARK, came.Mark);
+		}
+
+		[Test]
+		public void 이름에_칸_나누는_글자가_있어도_안_어긋난다()
+		{
+			// 이름은 사람이 짓는다 — 「;」 하나로 가방 칸이 밀리면 남의 물건이 들어온다.
+			TravelPass.Bundle odd = new TravelPass.Bundle(MARK, "가;나|다%라", 1f, 2f,
+				new List<(int, int)> { (4, 2) }, 1000L, 55);
+			string pass = TravelPass.Write(odd, SECRET);
+
+			Assert.IsTrue(TravelPass.TryRead(pass, SECRET, 1500L, out TravelPass.Bundle came, out _));
+			Assert.AreEqual("가;나|다%라", came.Name);
+			Assert.AreEqual(1, came.Bag.Count);
+			Assert.AreEqual(4, came.Bag[0].ItemId);
+			Assert.AreEqual(2, came.Bag[0].Amount);
+			Assert.AreEqual(55, came.Health);
+		}
+
+		[Test]
+		public void 이름표가_없는_통행증은_안_받는다()
+		{
+			// 이름표가 비면 「누구인지 모르는 사람」이 남의 가방을 들고 서 있게 된다.
+			TravelPass.Bundle nameless = new TravelPass.Bundle(string.Empty, "가", 0f, 0f, null, 1000L, 100);
+
+			Assert.IsFalse(TravelPass.TryRead(TravelPass.Write(nameless, SECRET), SECRET, 1500L, out _, out _));
 		}
 	}
 }
