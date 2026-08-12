@@ -647,6 +647,9 @@ namespace WitchMendokusai.Server
 		}
 
 		/// <summary>창이 보낸 말을 계약(<see cref="Protocol"/>)대로 읽는다.</summary>
+		/// <summary>시험용 — 회선이 좁아 사람 수를 줄여 준 창 수 (TASK-WM-228).</summary>
+		public int NarrowedWindowCount => CountNarrowed();
+
 		/// <summary>회선이 좁아 사람 수를 줄여 준 창이 몇이나 되나 — /health 창구 (TASK-WM-228).</summary>
 		private int CountNarrowed()
 		{
