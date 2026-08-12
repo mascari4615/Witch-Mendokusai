@@ -110,6 +110,13 @@ async function walkOn(oneWayMs, listenPort, label, lossPercent = 0) {
 	await page.waitForFunction(() => typeof window.__wmView === 'object', null, { timeout: 40000 })
 		.catch(() => { /* 아래에서 잡힌다 */ });
 
+	// ⚠ <b>내 인형이 설 때까지</b> 기다린다 — 앞섬은 내 인형에만 붙는 값이라, 인형이 아직 없으면
+	//   6초를 걸어도 0.00m 가 나온다. 그걸 「앞서지 않았다」로 읽으면 세계 탓이 된다
+	//   (느린 CI 에서 실제로 그렇게 빨갰다).
+	await page.waitForFunction(
+		() => (window.__wmView.dolls() || []).some((one) => one.isLocal), null, { timeout: 30000 })
+		.catch(() => { /* 아래 칸이 잡는다 */ });
+
 	// 붙자마자의 출렁임은 안 센다 — 도는 중을 본다.
 	await wait(1500);
 	await page.evaluate(() => window.__wmView.forgetLead());
@@ -123,8 +130,20 @@ async function walkOn(oneWayMs, listenPort, label, lossPercent = 0) {
 	}
 
 	const lead = await page.evaluate(() => window.__wmView.lead());
+	const walked = await page.evaluate(() => {
+		const me = (window.__wmView.dolls() || []).find((one) => one.isLocal);
+		return me ? Math.hypot(me.serverX, me.serverZ) : 0;
+	});
+
 	await page.close();
 	await line.close();
+
+	// 안 걸었으면 <b>잰 게 아니다</b> — 0.00m 를 제품 값으로 적지 않는다.
+	if (walked < 1) {
+		killWorld();
+		cannotRun(`${label}: 창이 6초를 걸었는데 세계에서 ${walked.toFixed(2)}m 밖에 안 갔다`
+			+ ' — 이 판은 잰 것이 없다(느린 기계에서 창이 아직 안 선 것).');
+	}
 
 	console.log(`  ⓘ ${label}: 가장 많이 앞선 거리 ${lead.worst.toFixed(2)}m`
 		+ ` · 도로 끌려간 횟수 ${lead.snapped}번 (셈으로는 ${(oneWayMs * 2 / 1000 * WALK_SPEED).toFixed(2)}m)`);
