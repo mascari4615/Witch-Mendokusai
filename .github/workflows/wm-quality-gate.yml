@@ -41,6 +41,7 @@ on:
       - '.github/scripts/wm-web-crowd-smoke.mjs'
       - '.github/scripts/wm-web-smoothness-test.mjs'
       - '.github/scripts/wm-web-badline-test.mjs'
+      - '.github/scripts/wm-web-narrow-line-test.mjs'
       - '.github/scripts/lib/bad-line.mjs'
       - '.github/scripts/wm-game-client-gate.mjs'
       - '.github/scripts/wm-zero-id-guard.mjs'
@@ -65,6 +66,7 @@ on:
       - '.github/scripts/wm-web-crowd-smoke.mjs'
       - '.github/scripts/wm-web-smoothness-test.mjs'
       - '.github/scripts/wm-web-badline-test.mjs'
+      - '.github/scripts/wm-web-narrow-line-test.mjs'
       - '.github/scripts/lib/bad-line.mjs'
       - '.github/scripts/wm-game-client-gate.mjs'
       - '.github/scripts/wm-zero-id-guard.mjs'
@@ -209,6 +211,14 @@ jobs:
         env:
           WM_PLAYWRIGHT_ROOT: /tmp/wm-playwright
         run: node ./.github/scripts/wm-web-badline-test.mjs
+
+      # TASK-WM-225 -- 좁은 회선에서 창이 「과거」를 보고 있지 않나. 화면은 부드러운 채로
+      # 몇 초 전 세계를 보여 줄 수 있다(버퍼가 쌓이면). 정보의 나이를 직접 잰다.
+      - name: Run web narrow-line test
+        env:
+          WM_PLAYWRIGHT_ROOT: /tmp/wm-playwright
+          WM_CROWD: '40'
+        run: node ./.github/scripts/wm-web-narrow-line-test.mjs
 
   unity:
     name: EditMode tests (laptop runner)

@@ -104,6 +104,8 @@ export function openBadLine({ listenPort, targetPort, latencyMs = 0, jitterMs = 
 
 	return {
 		listen: () => new Promise((done) => server.listen(listenPort, host, done)),
+		/** 회선을 <b>도중에</b> 좁힌다 — 지하철에 들어간 순간 같은 것(이미 붙은 연결에도 먹는다). */
+		squeeze: (bytesPerSecond) => { line.bytesPerSecond = bytesPerSecond; },
 		/** 회선을 <b>끊는다</b> — 잃은 조각이 끝내 안 닿았을 때 진짜로 일어나는 일. */
 		cut: () => {
 			for (const socket of sockets) {

@@ -8,6 +8,8 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.ResponseCompression;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using WitchMendokusai.Numerics;
 
@@ -191,9 +193,32 @@ namespace WitchMendokusai.Server
 		public WebApplication Build(string[] args, string url = null)
 		{
 			WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+
+			// ★ 창을 통째로 눌러서 보낸다 (TASK-WM-225).
+			//   실측: 창이 쓰는 three.module.js 는 <b>1.3MB 무압축</b>이다. 좁은 회선(256kbps)에서는
+			//   그것만 40초 — 그동안 사람은 <b>백지</b>를 본다(30초 시험이 아예 안 붙었다).
+			//   글(js·html)은 눌리면 4분의 1 이하가 된다. 회선이 좋을 때는 안 보이지만,
+			//   모바일에서는 「세계가 있다」와 「안 뜬다」를 가르는 자리다.
+			builder.Services.AddResponseCompression(options =>
+			{
+				// 로컬 시험도 https 로 돌 수 있다 — 켜 두지 않으면 그 길에서만 조용히 안 눌린다.
+				options.EnableForHttps = true;
+				options.Providers.Add<BrotliCompressionProvider>();
+				options.Providers.Add<GzipCompressionProvider>();
+				options.MimeTypes = new[]
+				{
+					"text/html", "text/css", "text/plain", "text/javascript",
+					"application/javascript", "application/json", "application/wasm",
+					"image/svg+xml",
+				};
+			});
+
 			WebApplication app = builder.Build();
 			if (string.IsNullOrEmpty(url) == false)
 				app.Urls.Add(url);
+
+			// 누르기는 <b>정적 파일보다 먼저</b> 서야 한다 — 뒤에 서면 이미 나간 뒤라 아무 일도 안 한다.
+			app.UseResponseCompression();
 
 			// 골격 창(wwwroot/index.html) — 서버가 자기 확인용 화면을 같이 준다.
 			app.UseDefaultFiles();
