@@ -51,6 +51,7 @@ namespace WitchMendokusai.Server
 		public const string SAID = Net.NetMessageType.SAID;
 		public const string STRIKE = Net.NetMessageType.STRIKE;
 		public const string HURT = Net.NetMessageType.HURT;
+		public const string MOVE_ON = Net.NetMessageType.MOVE_ON;
 
 		// 무엇이 거절됐나 — 창이 자리별로 다르게 보여 줄 수 있게 이름을 준다.
 		public const string DENIED_PLACE = "place";
@@ -98,6 +99,9 @@ namespace WitchMendokusai.Server
 			builder.Append("/** 지은 자리마다의 솥 — 여럿이 각자 젓는다. */\n");
 			builder.Append("export interface CauldronView {\n\tx: number;\n\ty: number;\n\tz: number;\n\tpx: number;\n\tpy: number;\n\tsteps: number;\n\tside: number;\n}\n\n");
 			builder.Append("export interface WorldSnapshot {\n\ttype: '").Append(WORLD).Append("';\n\tsequence: number;\n\tchanged?: boolean;\n\tgone?: number[];\n\tdolls: WorldDollView[];\n\tbuildings?: WorldBuildingView[];\n\tfieldChanged?: boolean;\n\tfieldGone?: number[];\n\tgatherables?: GatherableView[];\n\tcauldrons?: CauldronView[];\n\ttime?: WorldTime;\n\tbrew?: BrewView;\n}\n\n");
+
+			builder.Append("/** 서버 -> 창: 여기부터는 저 세계다. 그 주소로 옮겨 붙고 pass 를 hello 에 낸다. */\n");
+			builder.Append("export interface MoveOn {\n\ttype: '").Append(MOVE_ON).Append("';\n\tzone: string;\n\taddress: string;\n\tx: number;\n\tz: number;\n\tpass: string;\n}\n\n");
 
 			builder.Append("/** 창 -> 서버: 저 사람을 때린다. 거리·간격·대상은 세계가 본다. */\n");
 			builder.Append("export interface StrikeRequest {\n\ttype: '").Append(STRIKE).Append("';\n\ttargetId: number;\n}\n\n");
@@ -207,7 +211,7 @@ namespace WitchMendokusai.Server
 			builder.Append("export interface DollNameView {\n\tid: number;\n\tname: string;\n}\n\n");
 			builder.Append("export interface Names {\n\ttype: '").Append(NAMES).Append("';\n\tdolls: DollNameView[];\n}\n\n");
 
-			builder.Append("export type ServerMessage = Welcome | Me | Names | WorldSnapshot | BrewTaken | Bag | Catalog | BuildCatalog | BrewShelf | Spellbook | CraftBook | Crafted | Chest | Denied | Invite | Linked | Kicked | Said | Hurt;\n");
+			builder.Append("export type ServerMessage = Welcome | Me | Names | WorldSnapshot | BrewTaken | Bag | Catalog | BuildCatalog | BrewShelf | Spellbook | CraftBook | Crafted | Chest | Denied | Invite | Linked | Kicked | Said | Hurt | MoveOn;\n");
 			builder.Append("export type ClientMessage = MoveRequest | PlaceRequest | RemoveRequest | GatherRequest | ChestAsk | ChestPut | ChestTake | BrewRequest | BrewResetRequest | BrewCompleteRequest | Hello | BagAsk | ConsumeRequest | InviteAsk | LinkRequest | SayRequest | StrikeRequest;\n");
 
 			return builder.ToString();
@@ -490,6 +494,19 @@ namespace WitchMendokusai.Server
 				+ ",\"by\":" + byDollId
 				+ ",\"health\":" + health
 				+ ",\"down\":" + (wentDown ? "true" : "false") + "}";
+		}
+
+		/// <summary>
+		/// 여기부터는 저 세계다 (TASK-WM-254) — 주소와 <b>통행증</b>을 같이 준다.
+		/// 창은 그걸 들고 옆 세계에 hello 한다(통행증에 도장이 찍혀 있어 가방을 못 고친다).
+		/// </summary>
+		public static string MoveOn(string zone, string address, float x, float z, string pass)
+		{
+			return "{\"type\":\"" + MOVE_ON + "\",\"zone\":" + JsonSerializer.Serialize(zone ?? string.Empty, textOptions)
+				+ ",\"address\":" + JsonSerializer.Serialize(address ?? string.Empty, textOptions)
+				+ ",\"x\":" + x.ToString("F2", System.Globalization.CultureInfo.InvariantCulture)
+				+ ",\"z\":" + z.ToString("F2", System.Globalization.CultureInfo.InvariantCulture)
+				+ ",\"pass\":" + JsonSerializer.Serialize(pass ?? string.Empty, textOptions) + "}";
 		}
 
 		/// <summary>이름표 — 바뀐 사람만 담아 모두에게 보낸다 (TASK-WM-220).</summary>

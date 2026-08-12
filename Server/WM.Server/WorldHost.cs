@@ -79,6 +79,12 @@ namespace WitchMendokusai.Server
 		/// <summary>미리 눌러 둔 창 파일들 (TASK-WM-226).</summary>
 		private StaticSqueeze squeeze;
 
+		/// <summary>옆 세계들 (TASK-WM-254).</summary>
+		private WitchMendokusai.Net.ZoneMap neighbours = WitchMendokusai.Net.ZoneMap.Alone;
+
+		/// <summary>통행증 도장에 쓰는, 두 세계만 아는 말.</summary>
+		private string zoneSecret = string.Empty;
+
 		private string catalogStampCache;
 
 		/// <summary>
@@ -256,6 +262,13 @@ namespace WitchMendokusai.Server
 			//   안 주면 온 세상이 내 것이다(안 나눈 세계는 지금 그대로 돈다).
 			World.Patch = WitchMendokusai.Net.ZonePatch.Read(
 				System.Environment.GetEnvironmentVariable("WM_ZONE"));
+
+			// 옆 세계가 어디에 있나 (TASK-WM-254) — 「이름:from,from,to,to=주소」 를 ; 로 이어서.
+			neighbours = WitchMendokusai.Net.ZoneMap.Read(
+				System.Environment.GetEnvironmentVariable("WM_ZONE_NEIGHBOURS"));
+
+			// 두 세계만 아는 말 — 통행증 도장을 찍고 확인하는 데 쓴다.
+			zoneSecret = System.Environment.GetEnvironmentVariable("WM_ZONE_SECRET") ?? string.Empty;
 
 			WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
@@ -599,6 +612,19 @@ namespace WitchMendokusai.Server
 
 				World.Adopt(dollId, person.id, ItemsCatalog, out int evictedDollId);
 
+				// ★ 옆 세계에서 <b>걸어 들어온</b> 사람 (TASK-WM-254): 통행증에 도장이 맞으면
+				//   그 자리·그 가방으로 세운다. 도장이 안 맞으면 그냥 손님으로 둔다 —
+				//   창이 지어낸 통행증으로 남의 가방을 들고 오지 못한다.
+				string travelPass = ReadStringField(text, "pass");
+				if (string.IsNullOrEmpty(travelPass) == false
+					&& WitchMendokusai.Net.TravelPass.TryRead(travelPass, zoneSecret,
+						System.DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
+						out WitchMendokusai.Net.TravelPass.Bundle came, out _))
+				{
+					World.WelcomeTraveller(dollId, came.IdentityId, new Vector3(came.X, 0f, came.Z), came.Bag, ItemsCatalog);
+					Interlocked.Exchange(ref worldDirty, 1);
+				}
+
 				// 중복 로그인 — 일반 MMORPG 처럼 나중에 온 쪽이 이긴다. 밀려난 창에는 이유를 말하고 닫는다
 				// (조용히 끊으면 사람은 「버그」로 읽는다).
 				if (evictedDollId != 0 && sockets.TryRemove(evictedDollId, out Connection evicted))
@@ -792,6 +818,18 @@ namespace WitchMendokusai.Server
 					if (allowed.x == 0f && allowed.z == 0f)
 					{
 						Interlocked.Increment(ref refusedSteps);
+						return;
+					}
+
+					// ★ 내 땅 밖으로 가려 하는데 <b>이웃이 그 자리를 맡았으면</b> 넘겨준다 (TASK-WM-254).
+					//   안 넘겨주면 경계는 벽이 된다 — 나눈 세계가 하나로 안 이어진다.
+					Vector3 wanted = World.PositionOf(dollId) + allowed;
+					if (World.Patch.Contains(wanted) == false
+						&& neighbours.TryOwner(wanted, out string zoneName, out string zoneAddress))
+					{
+						if (sockets.TryGetValue(dollId, out Connection leaving))
+							_ = HandOverAsync(dollId, leaving, zoneName, zoneAddress, wanted);
+
 						return;
 					}
 
@@ -1639,6 +1677,33 @@ namespace WitchMendokusai.Server
 			connection.InterestCellX = cellX;
 			connection.InterestCellZ = cellZ;
 			return changed;
+		}
+
+		/// <summary>
+		/// 그 사람을 옆 세계로 <b>넘겨준다</b> (TASK-WM-254).
+		/// 통행증(신원·자리·가방 + 도장)을 쥐여 보내고, 이 세계에서는 내보낸다 —
+		/// 둘 다 데리고 있으면 그 사람은 두 세계에 동시에 있게 된다(가방이 복사된다).
+		/// </summary>
+		private async Task HandOverAsync(int dollId, Connection socket, string zoneName, string zoneAddress, Vector3 landing)
+		{
+			int identityId = World.OwnerOf(dollId);
+			System.Collections.Generic.List<(int ItemId, int Amount)> carried =
+				new System.Collections.Generic.List<(int, int)>();
+
+			foreach (BagSaveEntry held in World.BagOf(dollId))
+				carried.Add((held.itemId, held.amount));
+
+			string pass = WitchMendokusai.Net.TravelPass.Write(
+				new WitchMendokusai.Net.TravelPass.Bundle(identityId, landing.x, landing.z, carried,
+					System.DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()),
+				zoneSecret);
+
+			await SendAsync(socket, Protocol.MoveOn(zoneName, zoneAddress, landing.x, landing.z, pass));
+
+			// 잠깐 뒤에 내보낸다 — 말이 나가기 전에 끊으면 창은 어디로 갈지 모른 채 남는다.
+			await Task.Delay(200);
+			World.Leave(dollId);
+			Interlocked.Exchange(ref worldDirty, 1);
 		}
 
 		/// <summary>누가 맞았다를 <b>그 사람이 보이는 사람</b>에게 나른다 (TASK-WM-251).</summary>

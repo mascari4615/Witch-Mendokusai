@@ -177,6 +177,12 @@ namespace WitchMendokusai.Net
 
 		/// <summary>세계 -> 창: 누가 맞았다 — 그 사람이 보이는 사람에게 간다.</summary>
 		public const string HURT = "hurt";
+
+		/// <summary>
+		/// 세계 -> 창: <b>여기부터는 저 세계다</b> (TASK-WM-254).
+		/// 주소와 통행증을 같이 준다 — 창은 그걸 들고 옆 세계에 hello 한다.
+		/// </summary>
+		public const string MOVE_ON = "moveon";
 	}
 
 	/// <summary>모든 수신 메시지의 첫 판별에 쓰는 공통 envelope.</summary>

@@ -98,6 +98,16 @@ export interface WorldSnapshot {
 	brew?: BrewView;
 }
 
+/** 서버 -> 창: 여기부터는 저 세계다. 그 주소로 옮겨 붙고 pass 를 hello 에 낸다. */
+export interface MoveOn {
+	type: 'moveon';
+	zone: string;
+	address: string;
+	x: number;
+	z: number;
+	pass: string;
+}
+
 /** 창 -> 서버: 저 사람을 때린다. 거리·간격·대상은 세계가 본다. */
 export interface StrikeRequest {
 	type: 'strike';
@@ -362,5 +372,5 @@ export interface Names {
 	dolls: DollNameView[];
 }
 
-export type ServerMessage = Welcome | Me | Names | WorldSnapshot | BrewTaken | Bag | Catalog | BuildCatalog | BrewShelf | Spellbook | CraftBook | Crafted | Chest | Denied | Invite | Linked | Kicked | Said | Hurt;
+export type ServerMessage = Welcome | Me | Names | WorldSnapshot | BrewTaken | Bag | Catalog | BuildCatalog | BrewShelf | Spellbook | CraftBook | Crafted | Chest | Denied | Invite | Linked | Kicked | Said | Hurt | MoveOn;
 export type ClientMessage = MoveRequest | PlaceRequest | RemoveRequest | GatherRequest | ChestAsk | ChestPut | ChestTake | BrewRequest | BrewResetRequest | BrewCompleteRequest | Hello | BagAsk | ConsumeRequest | InviteAsk | LinkRequest | SayRequest | StrikeRequest;

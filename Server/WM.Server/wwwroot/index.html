@@ -620,7 +620,15 @@ let retryTimer = null;
 // 브라우저에 적어 둔 열쇠 — 이게 있어야 다음에 와도 「나」다. 없으면 세계가 새로 준다.
 const KEY_NAME = 'wm.world.secret';
 
+/** 옆 세계로 넘어갈 때 받은 통행증 — 다음 인사에 한 번 낸다 (TASK-WM-254). */
+let travelPass = '';
+
+/** 지금 붙을 세계 — 넘어가면 옆 세계 주소로 바뀐다. */
+let worldAt = '';
+
 function worldAddress() {
+	if (worldAt) return worldAt;
+
 	return (location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host + '/ws';
 }
 
@@ -735,7 +743,10 @@ function onLinkOpen() {
 	let knownCatalogs = '';
 	try { knownCatalogs = sessionStorage.getItem('wm.world.catalogstamp') || ''; } catch (e) { knownCatalogs = ''; }
 
-	tell({ type: 'hello', secret: saved, klSession, klCode, knownCatalogs });
+	// 통행증은 <b>한 번만</b> 낸다 — 들고 있으면 다시 붙을 때마다 옛 자리로 돌아간다.
+	const pass = travelPass;
+	travelPass = '';
+	tell({ type: 'hello', secret: saved, klSession, klCode, knownCatalogs, pass });
 	tell({ type: 'bagask' });
 
 	// 코드는 한 번 쓰면 사라진다 — 들고 있어 봐야 다음엔 안 통한다(그때는 기기 열쇠가 나를 안다).
@@ -857,6 +868,18 @@ function onLinkMessage(event) {
 				`${GRADES[message.grade] || ''} ${message.recipe || name} ${message.amount}개 — 가방에 들어갔다`.trim();
 		}
 		return; // 가방은 서버가 곧바로 다시 보내 준다(물어볼 필요 없다)
+	}
+
+	// ★ 여기부터는 저 세계다 (TASK-WM-254) — 주소를 갈아타고 통행증을 낸다.
+	//   사람에게는 <b>걸어서 넘어간 것</b>으로 보여야 한다: 화면이 안 꺼지고 그대로 이어진다.
+	if (message.type === 'moveon') {
+		travelPass = message.pass;
+		worldAt = message.address;
+		statusElement.textContent = `${message.zone} 으로 넘어간다`;
+
+		// 지금 줄은 버린다 — 저 세계가 이제 나를 맡는다(둘 다 붙어 있으면 두 세계에 동시에 있게 된다).
+		try { socket.close(); } catch (e) { /* 이미 닫혔다 */ }
+		return;
 	}
 
 	// 누가 맞았다 (TASK-WM-251) — 몸은 <b>세계가 준 값</b>만 쓴다(스스로 셈하면 갈라진다).

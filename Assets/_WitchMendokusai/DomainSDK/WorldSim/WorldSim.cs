@@ -313,6 +313,42 @@ namespace WitchMendokusai
 			}
 		}
 
+		/// <summary>
+		/// 옆 세계에서 <b>걸어 들어온 사람</b>을 세운다 (TASK-WM-254).
+		/// 통행증에 적힌 신원·자리·가방을 그대로 얹는다 — 도장은 이미 확인된 뒤에 부른다.
+		/// </summary>
+		public void WelcomeTraveller(int dollId, int identityId, Vector3 spot,
+			IReadOnlyList<(int ItemId, int Amount)> carried, WorldItemCatalog catalog)
+		{
+			lock (gate)
+			{
+				if (dolls.TryGetValue(dollId, out WorldDoll doll) == false)
+					return;
+
+				doll.IdentityId = identityId;
+
+				// 들어온 자리가 내 땅이 아니면 경계로 당긴다 — 남의 땅에 세우면 두 세계가 갈라진다.
+				doll.Position = Patch.Clamp(spot);
+
+				if (carried == null || catalog == null)
+					return;
+
+				// ⚠ 새로 들어온 인형의 가방은 <b>비어 있다</b> — 그러니 그냥 얹는다.
+				//   이미 든 것에 <b>더하면</b> 국경을 오가며 가방이 불어난다.
+				foreach ((int ItemId, int Amount) held in carried)
+				{
+					if (held.Amount <= 0)
+						continue;
+
+					IItemData item = catalog.Find(held.ItemId);
+					if (item == null)
+						continue; // 저 세계에만 있던 물건 — 조용히 버린다(가방이 안 열리는 것보다 낫다).
+
+					doll.Bag.Add(item, held.Amount);
+				}
+			}
+		}
+
 		public void Leave(int dollId)
 		{
 			lock (gate)
