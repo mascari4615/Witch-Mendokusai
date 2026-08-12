@@ -128,17 +128,18 @@ const buildableNow = async () => page.evaluate(() => {
 	return able.length > 0 ? able[0].value : null;
 });
 
-let ready = false;
-{
-	const until = Date.now() + GATHER_UP_TO_MS;
-	const taken = new Set();
+const alreadyTaken = new Set();
+
+/** 지을 수 있을 때까지 걸어가서 줍는다 — 되면 그 건물을 고르고 true. */
+async function gatherUntilBuildable(msLimit) {
+	const until = Date.now() + msLimit;
+	const taken = alreadyTaken;
 	while (Date.now() < until) {
 		const able = await buildableNow();
 		if (able !== null) {
 			// 지을 수 있는 것을 고른다 — 고르지 않으면 땅을 눌러도 아무 일도 안 일어난다.
 			await page.selectOption('#buildpick', able);
-			ready = true;
-			break;
+			return true;
 		}
 
 		const near = await page.evaluate((seen) => {
@@ -176,7 +177,11 @@ let ready = false;
 			if (key !== null) await page.keyboard.up(key);
 		}
 	}
+
+	return false;
 }
+
+const ready = await gatherUntilBuildable(GATHER_UP_TO_MS);
 
 if (ready === false) {
 	await browser.close();
@@ -229,10 +234,160 @@ let built = builtBefore;
 
 const bagAfter = await page.evaluate(() => (document.getElementById('bag').textContent || '').trim());
 
+// ── ② 남이 먼저 세운 자리에 지으려 하면 (TASK-WM-289) ──────────────────
+//   겨루기에 <b>진 쪽</b>이 무엇을 보나: 왜 안 됐는지 아나 · 재료를 안 잃나 · 남의 것이 보이나.
+async function loseTheSpot() {
+	const bot = new WebSocket(`ws://127.0.0.1:${port}/ws`);
+	const state = { id: 0, at: { x: 0, z: 0 }, bag: [], field: null, built: false };
+	bot.onopen = () => { bot.send(JSON.stringify({ type: 'hello', secret: '' })); bot.send(JSON.stringify({ type: 'bagask' })); };
+	bot.onmessage = (event) => {
+		let said;
+		try { said = JSON.parse(event.data); } catch { return; }
+
+		if (said.type === 'welcome' && said.id) state.id = said.id;
+		if (said.type === 'bag') state.bag = said.items || [];
+		if (said.type === 'world') {
+			if (Array.isArray(said.gatherables) && said.gatherables.length > 0) state.field = said.gatherables;
+			if (Array.isArray(said.dolls)) {
+				const mine = said.dolls.find((one) => one.id === state.id);
+				if (mine && typeof mine.x === 'number') state.at = { x: mine.x, z: mine.z };
+			}
+		}
+	};
+
+	{
+		const until = Date.now() + 10000;
+		while (Date.now() < until && (state.id === 0 || state.field === null)) await wait(150);
+	}
+
+	if (state.id === 0 || state.field === null) return null;
+
+	// 봇도 재료를 모은다 — 나무 2개(보관 상자·솥 값).
+	const wood = () => (state.bag.find((one) => one.itemId === 0) || { amount: 0 }).amount;
+	const taken = new Set();
+	{
+		const until = Date.now() + 60000;
+		while (Date.now() < until && wood() < 2) {
+			let best = null;
+			for (const node of state.field) {
+				if (taken.has(node.id)) continue;
+
+				const away = Math.hypot(node.x - state.at.x, node.z - state.at.z);
+				if (best === null || away < best.away) best = { ...node, away };
+			}
+
+			if (best === null) break;
+
+			if (best.away <= REACH * 0.6) {
+				bot.send(JSON.stringify({ type: 'gather', nodeId: best.id }));
+				taken.add(best.id);
+				bot.send(JSON.stringify({ type: 'bagask' }));
+				await wait(400);
+				continue;
+			}
+
+			const step = Math.min(1.2, best.away);
+			bot.send(JSON.stringify({
+				type: 'move',
+				x: (best.x - state.at.x) / best.away * step,
+				z: (best.z - state.at.z) / best.away * step,
+			}));
+
+			await wait(120);
+		}
+	}
+
+	if (wood() < 2) { try { bot.close(); } catch { /* 닫혔다 */ } return null; }
+
+	// 창 옆의 빈 칸을 <b>봇이 먼저</b> 차지한다.
+	const me = await page.evaluate(() => (window.__wmView.dolls() || []).find((one) => one.isLocal));
+	const cell = { x: Math.floor(me.drawnX) - 2, z: Math.floor(me.drawnZ) + 2 };
+
+	// 봇도 손이 닿아야 짓는다 — 그 칸 쪽으로 걸어간다.
+	{
+		const until = Date.now() + 30000;
+		while (Date.now() < until) {
+			const away = Math.hypot(cell.x + 0.5 - state.at.x, cell.z + 0.5 - state.at.z);
+			if (away <= 2) break;
+
+			const step = Math.min(1.2, away);
+			bot.send(JSON.stringify({
+				type: 'move',
+				x: (cell.x + 0.5 - state.at.x) / away * step,
+				z: (cell.z + 0.5 - state.at.z) / away * step,
+			}));
+
+			await wait(120);
+		}
+	}
+
+	// ⚠ <b>봇이 정말 세웠는지</b>부터 본다. 안 세웠는데 「겨루기」라고 부르면 그건 겨루기가 아니다
+	//   (첫 판이 그랬다: 봇이 못 세운 자리에 창이 그냥 지어 놓고 초록이 났다).
+	const before = await fetch(`http://127.0.0.1:${port}/health`, { headers: { connection: 'close' } })
+		.then((r) => r.json()).then((one) => one.buildings).catch(() => -1);
+
+	bot.send(JSON.stringify({ type: 'place', x: cell.x, y: 0, z: cell.z, buildingId: 4005 }));
+
+	let landed = false;
+	{
+		const until = Date.now() + 6000;
+		while (Date.now() < until) {
+			const now = await fetch(`http://127.0.0.1:${port}/health`, { headers: { connection: 'close' } })
+				.then((r) => r.json()).then((one) => one.buildings).catch(() => -1);
+			if (now > before) { landed = true; break; }
+
+			await wait(300);
+		}
+	}
+
+	try { bot.close(); } catch { /* 닫혔다 */ }
+	return landed ? cell : null;
+}
+
+const lost = await loseTheSpot();
+
 check('누르자마자 「짓는 중」이라고 한다', saidInMs >= 0 && saidInMs <= 200,
 	saidInMs < 0 ? '아무 말도 안 했다' : `${saidInMs}ms · "${said.text}"`);
 check('세운 것이 창에 뜬다', built > builtBefore, `건물 ${builtBefore} → ${built}`);
 check('가방에서 재료가 빠진다', bagAfter !== bagBefore, `${bagBefore} → ${bagAfter}`);
+// ⚠ 겨루기 전에 <b>재료를 다시</b> 채운다. 안 그러면 세계는 「재료가 모자란다」로 답하고,
+//   그건 <b>자리 다툼</b>이 아니라 다른 얘기다(첫 판이 그 값으로 초록이었다 — 거짓 초록).
+const armedAgain = lost === null ? false : await gatherUntilBuildable(60000);
+
+if (lost === null || armedAgain === false) {
+	console.log('  ⓘ 겨루기는 못 쟀다 — 봇이나 창이 재료를 못 모았다(다음 칸은 건너뛴다)');
+} else {
+	const bagBeforeRace = await page.evaluate(() => (document.getElementById('bag').textContent || '').trim());
+	await page.evaluate(() => { window.__wmDenied = []; });
+	await page.evaluate(() => {
+		window.__wmView.socket().addEventListener('message', (event) => {
+			let said;
+			try { said = JSON.parse(event.data); } catch { return; }
+
+			if (said.type === 'denied') window.__wmDenied.push(said);
+		});
+	});
+
+	// 남이 세운 그 칸을 눌러 본다 — 창의 눈에는 그냥 땅이다.
+	const where = await page.evaluate((one) => window.__wmView.screenOf(one.x + 0.5, one.z + 0.5), lost);
+	await page.mouse.click(Math.round(where.x), Math.round(where.y));
+	await wait(1500);
+
+	const told = await page.evaluate(() => window.__wmDenied || []);
+	const bagAfterRace = await page.evaluate(() => (document.getElementById('bag').textContent || '').trim());
+
+	// ★ 알고 보니 <b>겨루기 자체가 안 일어난다</b> (실측): 3D 창에서 세워진 것을 누르면
+	//   그건 「짓기」가 아니라 <b>그것을 여는 일</b>이다(상자 열기). 그래서 거절도 안 온다 —
+	//   창이 애초에 짓겠다고 말하지 않았기 때문이다. 사람 눈에는 이게 옳다:
+	//   남의 집 위에 지으려다 재료를 날릴 길이 없다.
+	const seenByMe = await page.evaluate(() => window.__wmView.world().buildings);
+	check('남이 세운 것이 내 창에도 보인다', seenByMe > built, `건물 ${built} → ${seenByMe}`);
+	check('그 자리를 눌러도 재료를 안 잃는다 (짓기가 아니라 여는 일이다)',
+		bagAfterRace === bagBeforeRace, `${bagBeforeRace} → ${bagAfterRace}`);
+
+	console.log(`  ⓘ 그 자리를 눌렀을 때 온 거절: ${told.length === 0 ? '없음(짓겠다고 말한 적이 없다)' : told.map((one) => one.why).join(' | ')}`);
+}
+
 check('창이 조용히 안 터졌다', pageErrors.length === 0, pageErrors.join(' | ') || '오류 없음');
 
 await browser.close();
