@@ -177,8 +177,15 @@ for (let i = 0; i < 8; i += 1) {
 
 // 걷는 상대 — 이 사람도 나쁜 회선으로 붙는다.
 const walker = new WebSocket(`ws://127.0.0.1:${linePort}/ws`);
+let walkerDollId = null;
 walker.onopen = () => walker.send(JSON.stringify({ type: 'hello', secret: '' }));
 walker.onerror = () => { /* 아래 칸이 잡는다 */ };
+walker.onmessage = (event) => {
+	try {
+		const said = JSON.parse(event.data);
+		if (said.type === 'welcome') walkerDollId = said.id;
+	} catch { /* 우리 말이 아니다 */ }
+};
 await new Promise((done) => setTimeout(done, 2500));
 
 const walking = setInterval(() => {
@@ -206,18 +213,17 @@ check(`첫 화면이 ${MAX_FIRST_PAINT_MS}ms 안에 뜬다`, firstPaint >= 0 && 
 	`${firstPaint}ms (왕복 ${ONE_WAY_MS * 2}ms 회선)`);
 
 // ── ④ 남이 걷는 게 부드러운가 ─────────────────────────────────────────
-await page.evaluate(() => {
+// ⚠ 「남 중 첫 번째」를 잡으면 안 된다 (실측 2026-08-12): 가만히 선 사람이 잡히면
+//   멎은 프레임 100% 가 나온다 — 재려던 것은 <b>걷는 사람</b>이 부드러운가다.
+await page.evaluate((who) => {
 	window.__wmTrail = [];
 	const write = () => {
-		const others = window.__wmView.dolls().filter((one) => one.isLocal === false);
-		if (others.length > 0) {
-			const one = others[0];
-			window.__wmTrail.push({ at: performance.now(), drawnX: one.drawnX, serverX: one.serverX });
-		}
+		const one = window.__wmView.dolls().find((doll) => doll.id === who);
+		if (one) window.__wmTrail.push({ at: performance.now(), drawnX: one.drawnX, serverX: one.serverX });
 		requestAnimationFrame(write);
 	};
 	requestAnimationFrame(write);
-});
+}, walkerDollId);
 
 await new Promise((done) => setTimeout(done, 4000));
 const trail = await page.evaluate(() => window.__wmTrail.slice());
