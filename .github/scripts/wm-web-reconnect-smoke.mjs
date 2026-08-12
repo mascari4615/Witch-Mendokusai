@@ -159,14 +159,33 @@ startWorld(dll);
 const back = await statusHas('붙었다', 90000);
 check('세계가 돌아오면 사람 손 없이 다시 붙는다', back === '붙었다', back);
 
-let clockAfter = clockBefore;
-try {
-	await page.waitForFunction(
-		(was) => (document.getElementById('clock')?.textContent || '') !== was,
-		clockBefore, { timeout: 20000 });
-} catch { /* 아래에서 실제 글자를 보여 준다 */ }
-clockAfter = await page.textContent('#clock');
-check('다시 붙은 뒤 세계 소식이 다시 흐른다', clockAfter !== clockBefore, `${clockBefore} → ${clockAfter}`);
+// ⚠ 「소식이 흐른다」를 <b>세계 시계 글자</b>로 보면 안 된다 (실측 2026-08-13, 세 판에 한 판 빨강):
+//   세계가 다시 뜰 때 마지막 저장 이후 흐른 만큼은 <b>되감긴다</b>. 그러면 글자가 그대로라
+//   「안 흐른다」로 읽힌다 — 세계는 멀쩡히 돌고 있는데.
+//   흐르는지는 <b>판이 오나</b>로 본다. 그게 원래 재려던 것이다.
+void clockBefore;
+const flowing = await page.evaluate(() => {
+	window.__wmPlates = 0;
+	const socket = window.__wmView.socket();
+	if (!socket) return false;
+
+	socket.addEventListener('message', (event) => {
+		if (String(event.data).includes('"type":"world"')) window.__wmPlates += 1;
+	});
+
+	return true;
+});
+
+let plates = 0;
+if (flowing) {
+	try {
+		await page.waitForFunction(() => window.__wmPlates >= 3, null, { timeout: 20000 });
+	} catch { /* 아래 칸이 숫자를 보여 준다 */ }
+
+	plates = await page.evaluate(() => window.__wmPlates);
+}
+
+check('다시 붙은 뒤 세계 소식이 다시 흐른다', plates >= 3, `다시 붙은 뒤 받은 판 ${plates}장`);
 check('창이 조용히 터지지 않았다', pageErrors.length === 0, pageErrors.join(' | ') || '오류 없음');
 
 await browser.close();
