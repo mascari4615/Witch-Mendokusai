@@ -68,6 +68,47 @@ function check(what, ok, detail) {
 		releaseAt(0, 1000, 10000, { latencyMs: 0, jitterMs: 0, bytesPerSecond: 10000 }, 0) === 2000);
 }
 
+/*
+ * ①-b 회선이 <b>정말로</b> 그 속도인가 — 자를 재는 자 (TASK-WM-229).
+ *
+ * ★ 왜: 셈이 맞아도 회선이 맞다는 뜻은 아니다. 실제로 밟았다(2026-08-12): 받기를 멈춰 둔 사이
+ *   노드가 버퍼를 64KB 한 덩어리로 합쳐 주는 바람에, 「초당 4KB」라 해 놓고 회선은 몰아치고
+ *   멎기를 반복했다(실측 8~16KB/s, 어떤 구간은 0). 그 위에서 난 초록은 전부 거짓이었다.
+ *   그래서 살아 있는 것을 재기 전에 <b>자부터 잰다</b>.
+ */
+{
+	const net = await import('node:net');
+	const source = net.createServer((one) => {
+		const blob = Buffer.alloc(4096, 65);
+		const push = setInterval(() => { if (one.destroyed === false) one.write(blob); }, 20);
+		one.on('close', () => clearInterval(push));
+		one.on('error', () => clearInterval(push));
+	});
+	await new Promise((done) => source.listen(0, '127.0.0.1', done));
+
+	const want = 4000;
+	const ruler = openBadLine({ listenPort: 0, targetPort: source.address().port, latencyMs: 20, jitterMs: 0, bytesPerSecond: want });
+	await ruler.listen();
+	const sink = net.connect(ruler.port(), '127.0.0.1');
+	let came = 0;
+	sink.on('data', (piece) => { came += piece.length; });
+	sink.on('error', () => { /* 아래 칸이 잡는다 */ });
+
+	await new Promise((done) => setTimeout(done, 6000));   // 줄이 찰 때까지
+	came = 0;
+	const from = Date.now();
+	await new Promise((done) => setTimeout(done, 6000));
+	const rate = came / ((Date.now() - from) / 1000);
+
+	sink.destroy();
+	await ruler.close();
+	source.close();
+
+	check('회선이 적어 놓은 속도로 흐른다 (자를 먼저 잰다)',
+		rate > want * 0.75 && rate < want * 1.25,
+		`${(rate / 1000).toFixed(2)} KB/s (건 ${(want / 1000).toFixed(0)} KB/s)`);
+}
+
 let chromium;
 try {
 	const root = process.env.WM_PLAYWRIGHT_ROOT;

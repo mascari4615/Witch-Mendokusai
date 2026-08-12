@@ -16,6 +16,9 @@
 
 import net from 'node:net';
 
+/** 한 번에 흘려보내는 크기 — 진짜 회선의 패킷만 하게 (이더넷 MTU 언저리). */
+const PACKET_BYTES = 1400;
+
 /**
  * 이 조각을 언제 내보낼까 — 순수 셈(시험 대상).
  *
@@ -45,6 +48,7 @@ export function releaseAt(readyAt, now, bytes, line, roll) {
 export function openBadLine({ listenPort, targetPort, latencyMs = 0, jitterMs = 0, bytesPerSecond = 0, host = '127.0.0.1', queueBytes = 64 * 1024 }) {
 	const line = { latencyMs, jitterMs, bytesPerSecond };
 	const sockets = new Set();
+	const pipes = [];
 
 	const pipeThrough = (from, to) => {
 		// ⚠ 조각마다 setTimeout 을 따로 걸면 <b>순서가 뒤집힌다</b> (실측 2026-08-12):
@@ -83,16 +87,27 @@ export function openBadLine({ listenPort, targetPort, latencyMs = 0, jitterMs = 
 		};
 
 		from.on('data', (chunk) => {
-			const now = Date.now();
-			readyAt = releaseAt(readyAt, now, chunk.length, line, Math.random());
-			queue.push({ at: readyAt, chunk });
-			waiting += chunk.length;
-			if (timer === null) timer = setTimeout(drain, Math.max(1, readyAt - now));
+			// ⚠ 온 덩어리를 <b>그대로</b> 줄에 세우면 안 된다 (실측 2026-08-12): 받기를 멈춰 둔 사이
+			//   노드가 버퍼를 <b>64KB 한 덩어리</b>로 합쳐 준다. 그러면 회선이 그 덩어리를 통째로
+			//   한 번에 뱉어 「초당 4KB」라 해 놓고 실제로는 몰아치고 멎기를 반복한다.
+			//   진짜 회선은 패킷 단위로 흐른다 — 그러니 여기서도 그만큼씩 쪼갠다.
+			for (let at = 0; at < chunk.length; at += PACKET_BYTES) {
+				const piece = chunk.subarray(at, Math.min(at + PACKET_BYTES, chunk.length));
+				const now = Date.now();
 
-			// ⚠ 줄을 무한히 받으면 그건 <b>회선이 아니다</b> (실측 2026-08-12): 보내는 쪽은 영영
-			//   「다 보냈다」고 믿고 계속 밀어 넣는다. 진짜 회선은 중간 상자가 차면 더 안 받고,
-			//   그러면 TCP 창이 닫혀 <b>보내는 쪽이 막힌다</b> — 그래야 서버가 밀린 걸 알아챈다.
-			//   무한 줄로 재면 서버의 배압이 한 번도 안 눌러진 채 초록이 나온다(거짓 안심).
+				// 줄이 비었으면 「다음 나갈 시각」도 지금으로 되돌린다 — 등에 진 것이 없으면 늦출 이유가 없다.
+				if (queue.length === 0)
+					readyAt = 0;
+
+				readyAt = releaseAt(readyAt, now, piece.length, line, Math.random());
+				queue.push({ at: readyAt, chunk: piece });
+				waiting += piece.length;
+				if (timer === null) timer = setTimeout(drain, Math.max(1, readyAt - now));
+			}
+
+			// ⚠ 줄을 무한히 받으면 그건 <b>회선이 아니다</b>: 보내는 쪽은 영영 「다 보냈다」고 믿고
+			//   계속 밀어 넣는다. 진짜 회선은 중간 상자가 차면 더 안 받고, 그러면 TCP 창이 닫혀
+			//   보내는 쪽이 막힌다 — 그래야 서버가 밀린 걸 알아챈다.
 			if (waiting >= queueBytes && paused === false) {
 				paused = true;
 				from.pause();
@@ -104,6 +119,8 @@ export function openBadLine({ listenPort, targetPort, latencyMs = 0, jitterMs = 
 			ended = true;
 			if (timer === null) drain();
 		});
+
+		pipes.push(() => ({ queued: queue.length, waiting, paused, aheadMs: readyAt - Date.now() }));
 
 		from.on('error', () => { if (to.destroyed === false) to.destroy(); });
 	};
@@ -123,6 +140,10 @@ export function openBadLine({ listenPort, targetPort, latencyMs = 0, jitterMs = 
 
 	return {
 		listen: () => new Promise((done) => server.listen(listenPort, host, done)),
+		/** 실제로 열린 문 번호 — 0 을 주면 빈 자리를 골라 준다. */
+		port: () => server.address().port,
+		/** 시험용 창구 — 줄이 지금 어떤 상태인가. */
+		peek: () => pipes.map((one) => one()),
 		/** 회선을 <b>도중에</b> 좁힌다 — 지하철에 들어간 순간 같은 것(이미 붙은 연결에도 먹는다). */
 		squeeze: (bytesPerSecond) => { line.bytesPerSecond = bytesPerSecond; },
 		/** 회선을 <b>끊는다</b> — 잃은 조각이 끝내 안 닿았을 때 진짜로 일어나는 일. */
