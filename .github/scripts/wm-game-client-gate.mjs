@@ -217,7 +217,55 @@ for (const source of sources) {
   }
 }
 
-console.log(`[game-client] 게임 소스 ${files}개 · 읽는 자리 ${reading.length} · 말하는 길 ${talking.length} 확인`);
+// ③ 세계가 <b>보내는 말</b>을 게임 창이 다 다루는가 (TASK-WM-220).
+//
+// ★ 왜 필요해졌나: 계약에 새 말이 생길 때(`names`·`me`·「바뀐 것만」) 웹 창은 게이트가 지키는데
+//   게임 창은 아무도 안 봤다. 유니티 게이트는 노트북 러너에 걸려 있고, 그 러너가 며칠씩
+//   못 도는 일이 실제로 있다(라이선스·점유). 그동안 게임 창은 <b>조용히 뒤처진다</b> —
+//   컴파일은 되고, 화면만 안 따라온다. 그건 유니티 없이도 잴 수 있다.
+const clientPath = resolve(repo, 'Assets/_WitchMendokusai/Network/WebWorldClient.cs');
+const typesPath = resolve(repo, 'Assets/_WitchMendokusai/DomainSDK/Net/NetMessages.cs');
+
+let clientSource = '';
+let typesSource = '';
+try {
+  clientSource = readFileSync(clientPath, 'utf8');
+  typesSource = readFileSync(typesPath, 'utf8');
+} catch (error) {
+  console.error(`[game-client] CANNOT-RUN: 게임 창·계약을 못 읽었다 — ${error.message}`);
+  process.exit(2);
+}
+
+// 서버 → 창 방향의 말만 본다(창이 보내는 말은 이 검사의 대상이 아니다).
+const CLIENT_TO_SERVER = new Set([
+  'HELLO', 'MOVE', 'PLACE', 'GATHER', 'BAG_ASK', 'CONSUME', 'REMOVE', 'BREW',
+  'BREW_RESET', 'BREW_COMPLETE', 'CRAFT', 'RENAME', 'CHEST_ASK', 'CHEST_PUT',
+  'CHEST_TAKE', 'INVITE_ASK', 'LINK',
+]);
+
+// 게임 창이 안 다뤄도 되는 것 — 이유를 적어 둔다(비면 안 된다).
+const CLIENT_EXEMPT = new Map([
+  ['INVITE', '초대 열쇠는 웹 창에서만 만든다(게임 창에는 그 손잡이가 없다)'],
+  ['LINKED', '위와 같다 — 잇기는 웹 창 몫'],
+  ['BREW_SHELF', '게임 창은 자기 자산으로 재료를 고른다(세계 목록은 웹 창용)'],
+]);
+
+const declared = [...typesSource.matchAll(/public const string ([A-Z_]+) = "([a-z]+)";/g)];
+for (const [, name] of declared) {
+  if (CLIENT_TO_SERVER.has(name)) continue;
+  if (CLIENT_EXEMPT.has(name)) continue;
+  // ⚠ 정규식 대신 그냥 포함으로 본다 — 템플릿 문자열 안의  는 <b>백스페이스 문자</b>라
+  //   말짱한 코드를 「안 다룬다」로 잡았다(실측).
+  if (clientSource.includes(`NetMessageType.${name}`)) continue;
+
+  problems.push(
+    `게임 창이 세계의 말 「${name}」 를 안 다룬다 (WebWorldClient.cs)
+` +
+    '      계약에 있는 말을 창이 무시하면, 컴파일은 멀쩡한데 그 기능만 조용히 없다');
+}
+
+console.log(`[game-client] 게임 소스 ${files}개 · 읽는 자리 ${reading.length} · 말하는 길 ${talking.length} `
+  + `· 세계의 말 ${declared.length - CLIENT_TO_SERVER.size}개 확인`);
 
 if (problems.length === 0) {
   console.log('[game-client] ✅ 게임 창이 세계를 실제로 쓰고 있다');
