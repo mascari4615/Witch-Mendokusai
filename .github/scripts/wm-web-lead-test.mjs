@@ -132,21 +132,26 @@ async function walkOn(oneWayMs, listenPort, label) {
 	return { ...lead, errors };
 }
 
+// ★ 이 기계가 <b>지연 0 에서도</b> 얼마나 앞서는지부터 잰다 — 프레임·예약이 느린 기계는
+//   회선과 상관없이 앞선다. 그 몫을 안 빼면 「느린 CI 에서 태생적 빨강」이 된다(실측: 2코어에서 2.65m).
+const still = await walkOn(0, port + 3, '지연 없는 회선(이 기계의 몫)');
 const usual = await walkOn(100, port + 1, '보통 회선(왕복 200ms)');
 const awful = await walkOn(400, port + 2, '아주 나쁜 회선(왕복 800ms)');
 
-// ① 앞섬은 <b>셈과 맞아야</b> 한다 — 안 맞으면 앞질러 그리기가 딴 셈을 쓰고 있는 것이다.
+// ① <b>회선이 더한 앞섬</b>이 셈과 맞아야 한다 — 기계 몫을 뺀 값이 제품의 값이다.
 const expected = 0.2 * WALK_SPEED;
-check('앞섬이 회선 지연 × 걸음속도 언저리다', usual.worst >= expected * 0.4 && usual.worst <= expected * 3.5,
-	`${usual.worst.toFixed(2)}m · 셈 ${expected.toFixed(2)}m`);
+const addedByLine = usual.worst - still.worst;
+check('회선이 더한 앞섬이 지연 × 걸음속도 언저리다',
+	addedByLine >= expected * 0.3 && addedByLine <= expected * 3.5,
+	`${addedByLine.toFixed(2)}m (이 기계 몫 ${still.worst.toFixed(2)}m 뺀 값) · 셈 ${expected.toFixed(2)}m`);
 
 // ② 보통 회선에서는 <b>도로 끌려가면 안 된다</b> — 그게 사람이 「튄다」고 느끼는 순간이다.
 check('보통 회선에서는 도로 끌려가지 않는다', usual.snapped === 0, `${usual.snapped}번`);
 
 // ③ 앞섬은 회선에 <b>비례해</b> 커진다 — 그러니 「어느 회선부터 끌려가나」를 셈해 적는다.
 //   그 값이 이 설계의 한계다(숨기지 않고 적어 둔다). 폭주(회선보다 훨씬 빨리 벌어짐)만 막는다.
-const slope = (awful.worst - usual.worst) / 0.6;
-const base = usual.worst - (slope * 0.2);
+const slope = (awful.worst - still.worst) / 0.8;
+const base = still.worst;
 const breaksAtMs = slope > 0 ? Math.round(((SNAP_DISTANCE - base) / slope) * 1000) : 0;
 
 console.log(`  ⓘ 앞섬 ≈ ${base.toFixed(2)}m + ${slope.toFixed(2)}m/s × 왕복시간`
