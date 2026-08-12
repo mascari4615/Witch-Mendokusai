@@ -165,6 +165,16 @@ world = spawn('dotnet', [dll, '--urls', `http://127.0.0.1:${worldPort}`], {
 const badLine = openBadLine({ listenPort: linePort, targetPort: worldPort, latencyMs: ONE_WAY_MS, jitterMs: JITTER_MS });
 await badLine.listen();
 
+// 가만히 선 사람 몇 — 끊겼다 돌아왔을 때 <b>안 움직인 사람</b>이 다시 보이는지가 핵심이라
+// (움직이는 사람은 어차피 다음 판에 실린다) 일부러 아무것도 안 하는 사람을 둔다.
+const idlers = [];
+for (let i = 0; i < 8; i += 1) {
+	const one = new WebSocket(`ws://127.0.0.1:${worldPort}/ws`);
+	one.onopen = () => one.send(JSON.stringify({ type: 'hello', secret: '' }));
+	one.onerror = () => { /* 아래 칸이 잡는다 */ };
+	idlers.push(one);
+}
+
 // 걷는 상대 — 이 사람도 나쁜 회선으로 붙는다.
 const walker = new WebSocket(`ws://127.0.0.1:${linePort}/ws`);
 walker.onopen = () => walker.send(JSON.stringify({ type: 'hello', secret: '' }));
@@ -248,6 +258,30 @@ if (trail.length > 30) {
 }
 
 // ── ⑤ 회선이 끊기면 — 잃은 조각이 끝내 안 닿았을 때 진짜로 일어나는 일 ──
+//
+// ★ 끊김은 「다시 붙나」로 안 끝난다 (TASK-WM-230). 세계는 <b>바뀐 것만</b> 보낸다 —
+//   다시 붙은 창에 델타를 주면 그 창의 세계는 <b>영영 반쪽</b>이다(안 움직인 사람·안 바뀐 건물이
+//   통째로 빈다). 화면은 멀쩡해 보이고 오류도 없다. 그래서 눈으로는 절대 안 잡힌다.
+// ★ 들판이 <b>줄지 않는가</b> — 세계는 「바뀐 자리만」 보낸다. 창이 그걸 전체로 알고 갈아 끼우면
+//   안 바뀐 자리 수십 개가 한 번에 사라진다(오류 없이 조용히, TASK-WM-230).
+//   그래서 한 번 본 들판의 <b>가장 많았던 수</b>를 적어 두고, 그 아래로 안 떨어지는지 본다.
+const fieldWatch = await page.evaluate(() => {
+	window.__wmField = { most: 0, least: 1e9 };
+	window.__wmFieldTimer = setInterval(() => {
+		const now = window.__wmView.world().gatherables;
+		if (now > window.__wmField.most) window.__wmField.most = now;
+		if (window.__wmField.most > 0 && now < window.__wmField.least) window.__wmField.least = now;
+	}, 100);
+	return true;
+});
+void fieldWatch;
+await new Promise((done) => setTimeout(done, 3000));
+const field = await page.evaluate(() => window.__wmField);
+
+check('본 들판이 도중에 사라지지 않는다', field.most > 0 && field.least >= field.most,
+	`가장 많을 때 ${field.most}자리 · 가장 적을 때 ${field.least === 1e9 ? '-' : field.least}자리`);
+
+const beforeCut = await page.evaluate(() => window.__wmView.world());
 badLine.cut();
 await page.waitForFunction(
 	() => (document.getElementById('status')?.textContent || '').includes('붙었다') === false,
@@ -264,9 +298,27 @@ try {
 
 check('회선이 끊겨도 사람 손 없이 돌아온다', recovered >= 0,
 	recovered >= 0 ? `${recovered}ms 만에` : `${MAX_RECOVER_MS}ms 안에 못 돌아왔다`);
+
+// 돌아온 뒤 세계가 <b>통째로</b> 돌아오나 — 델타만 받으면 여기서 빈다.
+const afterCut = await page.waitForFunction(
+	(was) => {
+		const now = window.__wmView.world();
+		return now.dolls >= was.dolls && now.buildings >= was.buildings && now.gatherables >= was.gatherables
+			? now : false;
+	},
+	beforeCut, { timeout: 10000, polling: 200 })
+	.then((handle) => handle.jsonValue())
+	.catch(() => page.evaluate(() => window.__wmView.world()));
+
+check('돌아온 뒤 세계가 통째로 다시 보인다 (반쪽 델타가 아니다)',
+	afterCut.dolls >= beforeCut.dolls && afterCut.buildings >= beforeCut.buildings
+		&& afterCut.gatherables >= beforeCut.gatherables,
+	`끊기기 전 사람 ${beforeCut.dolls}·건물 ${beforeCut.buildings}·들판 ${beforeCut.gatherables}`
+	+ ` → 돌아온 뒤 사람 ${afterCut.dolls}·건물 ${afterCut.buildings}·들판 ${afterCut.gatherables}`);
 check('창이 조용히 안 터졌다', pageErrors.length === 0, pageErrors.join(' | ') || '오류 없음');
 
 clearInterval(walking);
+for (const one of idlers) { try { one.close(); } catch { /* 이미 닫혔다 */ } }
 try { walker.close(); } catch { /* 이미 닫혔다 */ }
 await browser.close();
 await badLine.close();

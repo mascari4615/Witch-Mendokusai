@@ -1160,7 +1160,18 @@ function applyPendingWorld() {
 		dolls = dolls.concat([{ ...myPlaceFromWorld, name: dollNames[myPlaceFromWorld.id] || '' }]);
 	// 안 실려 온 목록은 「비었다」가 아니라 「안 바뀌었다」다 — 지난 것을 그대로 쓴다.
 	if (message.buildings) buildings = message.buildings;
-	if (message.gatherables) gatherables = message.gatherables;
+	// ★ 들판도 「바뀐 자리만」 올 수 있다 (TASK-WM-230) — 그때 통째로 갈아 끼우면
+	//   안 바뀐 자리 수십 개가 화면에서 한 번에 사라진다(오류 없이, 조용히).
+	if (message.gatherables) {
+		if (message.fieldChanged) {
+			const byId = new Map(gatherables.map((one) => [one.id, one]));
+			for (const one of message.gatherables) byId.set(one.id, one);
+			for (const goneId of message.fieldGone || []) byId.delete(goneId);
+			gatherables = [...byId.values()];
+		} else {
+			gatherables = message.gatherables;
+		}
+	}
 	if (message.cauldrons) cauldrons = message.cauldrons;
 	if (message.buildings || message.gatherables || message.cauldrons) staticWorldDirty = true;
 	time = message.time || time;
@@ -1231,6 +1242,8 @@ window.__wmView = {
 	me: () => myId,
 	// 지금 열려 있는 줄 — 「소식이 도착한 그 자리」에서 재려면 이게 있어야 한다(다시 붙으면 바뀐다).
 	socket: () => socket,
+	// 창이 지금 알고 있는 세계의 크기 — 끊겼다 돌아온 뒤 <b>통째로</b> 돌아왔는지 보는 자리.
+	world: () => ({ dolls: dolls.length, buildings: buildings.length, gatherables: gatherables.length }),
 };
 
 // ── 서랍 안의 손잡이들 ─────────────────────────────────────────────────

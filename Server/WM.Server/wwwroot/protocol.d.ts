@@ -86,6 +86,8 @@ export interface WorldSnapshot {
 	gone?: number[];
 	dolls: WorldDollView[];
 	buildings?: WorldBuildingView[];
+	fieldChanged?: boolean;
+	fieldGone?: number[];
 	gatherables?: GatherableView[];
 	cauldrons?: CauldronView[];
 	time?: WorldTime;

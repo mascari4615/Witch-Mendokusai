@@ -93,7 +93,7 @@ namespace WitchMendokusai.Server
 			builder.Append("/** buildings·gatherables 는 바뀐 프레임에만 실린다 — 없으면 지난 것을 그대로 쓸 것. */\n");
 			builder.Append("/** 지은 자리마다의 솥 — 여럿이 각자 젓는다. */\n");
 			builder.Append("export interface CauldronView {\n\tx: number;\n\ty: number;\n\tz: number;\n\tpx: number;\n\tpy: number;\n\tsteps: number;\n\tside: number;\n}\n\n");
-			builder.Append("export interface WorldSnapshot {\n\ttype: '").Append(WORLD).Append("';\n\tsequence: number;\n\tchanged?: boolean;\n\tgone?: number[];\n\tdolls: WorldDollView[];\n\tbuildings?: WorldBuildingView[];\n\tgatherables?: GatherableView[];\n\tcauldrons?: CauldronView[];\n\ttime?: WorldTime;\n\tbrew?: BrewView;\n}\n\n");
+			builder.Append("export interface WorldSnapshot {\n\ttype: '").Append(WORLD).Append("';\n\tsequence: number;\n\tchanged?: boolean;\n\tgone?: number[];\n\tdolls: WorldDollView[];\n\tbuildings?: WorldBuildingView[];\n\tfieldChanged?: boolean;\n\tfieldGone?: number[];\n\tgatherables?: GatherableView[];\n\tcauldrons?: CauldronView[];\n\ttime?: WorldTime;\n\tbrew?: BrewView;\n}\n\n");
 
 			builder.Append("/** 창 -> 서버: 이쪽으로 가고 싶다(얼마나 갈지는 서버가 정한다). */\n");
 			builder.Append("export interface MoveRequest {\n\ttype: '").Append(MOVE).Append("';\n\tx: number;\n\tz: number;\n}\n\n");
@@ -597,8 +597,32 @@ namespace WitchMendokusai.Server
 			}
 
 			// 주울 것 — 뽑아 간 자리는 빠져 있다(다시 자라면 돌아온다).
+			//
+			// ★ 「바뀐 자리만」 실을 때는 <b>그렇다고 말해야 한다</b> (TASK-WM-230).
+			//   실측 2026-08-12: 이 표시를 안 붙여 보내니, 창은 부분 목록을 <b>전체</b>로 알고
+			//   통째로 갈아 끼웠다 — 들판 67자리가 한 번에 사라졌다(화면은 멀쩡, 오류도 없다).
+			//   서버는 이 값을 <b>인자로 받아 놓고 쓰지 않고 있었다</b>(반쪽 배선).
 			if (gatherables != null)
 			{
+				if (fieldChanged)
+					builder.Append(",\"fieldChanged\":true");
+
+				if (fieldGone != null)
+				{
+					builder.Append(",\"fieldGone\":[");
+					bool firstGone = true;
+					foreach (int nodeId in fieldGone)
+					{
+						if (firstGone == false)
+							builder.Append(',');
+
+						firstGone = false;
+						builder.Append(nodeId);
+					}
+
+					builder.Append(']');
+				}
+
 				builder.Append(",\"gatherables\":[");
 
 				bool firstNode = true;
