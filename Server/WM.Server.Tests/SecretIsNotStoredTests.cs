@@ -61,6 +61,26 @@ namespace WitchMendokusai.ServerTests
 		}
 
 		[Test]
+		public void 초대_열쇠도_장부에는_지문만_남는다()
+		{
+			// 초대 열쇠는 3일 살아 있는 <b>남의 사람이 되는 종이</b>다 — 파일에 그대로 적으면
+			// 그 파일을 본 사람이 그 사이에 남이 될 수 있다.
+			WorldIdentityRegistry people = new WorldIdentityRegistry();
+			WorldIdentityRecord person = people.Recognize(string.Empty, out _, out _);
+
+			string code = people.IssueInvite(person.id, 0);
+			Assert.That(code, Is.Not.Empty);
+
+			string saved = Dump(people.Save());
+			StringAssert.DoesNotContain(code, saved, "세계 파일에 초대 열쇠가 그대로 적혀 있다");
+			StringAssert.Contains(WorldIdentityRegistry.Fingerprint(code), saved);
+
+			// 그래도 그 종이는 통해야 한다.
+			WorldIdentityRecord linked = people.RedeemInvite(code, "다른-기기-열쇠", 0);
+			Assert.That(linked?.id, Is.EqualTo(person.id));
+		}
+
+		[Test]
 		public void 옛_파일의_평문_열쇠는_읽으면서_지문으로_옮긴다()
 		{
 			// 옛 세계 파일 모양 — 열쇠가 그대로 적혀 있다.

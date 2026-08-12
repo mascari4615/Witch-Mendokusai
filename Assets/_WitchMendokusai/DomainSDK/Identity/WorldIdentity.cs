@@ -50,7 +50,14 @@ namespace WitchMendokusai.Identity
 	[Serializable]
 	public class WorldLinkInvite
 	{
+		/// <summary>
+		/// ⚠ <b>옛 저장 파일을 읽기 위해서만</b> 남아 있는 자리 (TASK-WM-220). 새로 적을 때는 비어 있다.
+		/// 초대 열쇠도 그대로 적으면, 파일 한 장으로 <b>남의 사람이 될 수 있다</b>(3일 안이면).
+		/// </summary>
 		public string code = string.Empty;
+
+		/// <summary>초대 열쇠의 지문 — 세계는 이것만 갖는다.</summary>
+		public string codeHash = string.Empty;
 		public int identityId;
 
 		/// <summary>이 날(세계 기준 총 일수)이 지나면 못 쓴다 — 주운 종이 한 장이 영원하면 안 된다.</summary>
@@ -403,10 +410,18 @@ namespace WitchMendokusai.Identity
 					for (int i = 0; i < book.invites.Length; i++)
 					{
 						WorldLinkInvite invite = book.invites[i];
-						if (invite == null || string.IsNullOrEmpty(invite.code) || byId.ContainsKey(invite.identityId) == false)
+
+						// 옛 파일의 평문 코드도 읽으면서 지문으로 옮긴다(사람이 들고 있는 종이는 그대로 통한다).
+						if (invite != null && string.IsNullOrEmpty(invite.codeHash) && string.IsNullOrEmpty(invite.code) == false)
+						{
+							invite.codeHash = Fingerprint(invite.code);
+							invite.code = string.Empty;
+						}
+
+						if (invite == null || string.IsNullOrEmpty(invite.codeHash) || byId.ContainsKey(invite.identityId) == false)
 							continue;
 
-						invites[invite.code] = invite;
+						invites[invite.codeHash] = invite;
 					}
 				}
 
@@ -453,9 +468,9 @@ namespace WitchMendokusai.Identity
 					invites.Remove(stale[i]);
 
 				string code = NewCode(INVITE_LENGTH);
-				invites[code] = new WorldLinkInvite
+				invites[Fingerprint(code)] = new WorldLinkInvite
 				{
-					code = code,
+					codeHash = Fingerprint(code),
 					identityId = identityId,
 					expiresOnDay = today + INVITE_DAYS,
 				};
@@ -485,20 +500,21 @@ namespace WitchMendokusai.Identity
 				if (string.IsNullOrEmpty(deviceSecret) == false && bySecret.TryGetValue(Fingerprint(deviceSecret), out WorldIdentityRecord before))
 					previousIdentityId = before.id;
 
-				if (string.IsNullOrEmpty(code) || invites.TryGetValue(code, out WorldLinkInvite invite) == false)
+				string codeHash = Fingerprint(code);
+				if (string.IsNullOrEmpty(code) || invites.TryGetValue(codeHash, out WorldLinkInvite invite) == false)
 					return null;
 
 				if (today > invite.expiresOnDay)
 				{
 					// 지난 열쇠는 그 자리에서 버린다 — 남아 있으면 나중에 또 시도된다.
-					invites.Remove(code);
+					invites.Remove(codeHash);
 					return null;
 				}
 
 				if (byId.TryGetValue(invite.identityId, out WorldIdentityRecord person) == false)
 					return null;
 
-				invites.Remove(code); // 한 번 쓰면 사라진다.
+				invites.Remove(codeHash); // 한 번 쓰면 사라진다.
 
 				// ★ 그 기기의 열쇠를 <b>그 사람 쪽으로 옮긴다</b>(이미 딴 사람에 붙어 있어도).
 				//   처음엔 「이미 있으면 두기」로 짰는데, 그러면 이어도 아무 일이 안 일어난다 —
