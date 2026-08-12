@@ -129,6 +129,91 @@ namespace WitchMendokusai.ServerTests
 			}
 		}
 
+		[Test]
+		public async Task 광장에_상한보다_많이_모여도_각자_자기_인형을_본다()
+		{
+			// 한 칸(16m)에 상한(48명)보다 많이 모이면 세계는 소식 한 벌을 여럿이 같이 쓴다.
+			// 그 한 벌에는 가까운 몇 명만 들어가므로 잘린 사람은 <b>자기 인형</b>이 빠진다 —
+			// 자기가 안 보이면 화면이 통째로 멎는다. 세계는 그 사람에게 자기 자리를 따로 알려 준다.
+			//
+			// ⚠ 들어올 때 받는 한 장에는 자기가 늘 들어 있다 — 그것만 보면 이 시험은 <b>거짓 초록</b>이다.
+			//   그래서 들어올 때 온 말을 먼저 다 흘려보내고, 그 뒤 <b>방송</b>에서 자기를 보는지 본다.
+			int crowd = InterestCrowd.MAX_VISIBLE_DOLLS + 7;
+			ClientWebSocket[] windows = new ClientWebSocket[crowd];
+
+			try
+			{
+				for (int i = 0; i < crowd; i++)
+					windows[i] = await JoinAsync("광장-" + i);
+
+				WorldDoll[] dolls = host.World.Snapshot();
+				Assert.AreEqual(crowd, dolls.Length, "다 안 들어왔다 — 아래 판정이 의미가 없어진다");
+
+				// 마지막에 들어온 창들이 잘릴 쪽이다(같은 자리면 번호가 큰 쪽부터 잘린다).
+				for (int i = crowd - 5; i < crowd; i++)
+				{
+					int mine = dolls[i].Id;
+					string sawMyself = await ReadAfterFirstWorld(windows[i], "\"id\":" + mine + ",");
+					StringAssert.Contains("\"id\":" + mine + ",", sawMyself);
+				}
+			}
+			finally
+			{
+				Close(windows);
+			}
+		}
+
+		/// <summary>
+		/// 들어올 때 받는 <b>첫 전체 그림</b>을 지나친 뒤에 그 말을 찾는다.
+		///
+		/// ⚠ 첫 그림에는 자기가 늘 들어 있다 — 그것으로 판정하면 이 시험은 거짓 초록이다.
+		/// ⚠ 받는 중에 취소하면 소켓이 <b>끊긴다</b>(Aborted). 그래서 「흘려보내기」는 안 쓴다.
+		/// </summary>
+		private static async Task<string> ReadAfterFirstWorld(ClientWebSocket socket, string needle)
+		{
+			using CancellationTokenSource timeout = TestTimeout.After(15);
+			byte[] buffer = new byte[32768];
+			StringBuilder pending = new StringBuilder();
+			bool passedFirstWorld = false;
+
+			while (timeout.IsCancellationRequested == false)
+			{
+				WebSocketReceiveResult received;
+				try
+				{
+					received = await socket.ReceiveAsync(new ArraySegment<byte>(buffer), timeout.Token);
+				}
+				catch (OperationCanceledException)
+				{
+					break;
+				}
+
+				if (received.MessageType == WebSocketMessageType.Close)
+					break;
+
+				pending.Append(Encoding.UTF8.GetString(buffer, 0, received.Count));
+				if (received.EndOfMessage == false)
+					continue;
+
+				string text = pending.ToString();
+				pending.Clear();
+
+				if (passedFirstWorld == false)
+				{
+					if (text.Contains("\"type\":\"world\""))
+						passedFirstWorld = true;
+
+					continue;
+				}
+
+				if (text.Contains(needle))
+					return text;
+			}
+
+			Assert.Fail($"들어온 뒤로는 「{needle}」 를 한 번도 못 봤다 — 그 창은 자기 인형을 모른다.");
+			return null;
+		}
+
 		private static void Close(ClientWebSocket[] windows)
 		{
 			for (int i = 0; i < windows.Length; i++)

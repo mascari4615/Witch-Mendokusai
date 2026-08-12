@@ -97,6 +97,15 @@ namespace WitchMendokusai.Net
 		/// <summary>서버 → 그 창에게만: 다른 곳에서 같은 사람이 들어왔다(여기서는 나간다).</summary>
 		public const string KICKED = "kicked";
 
+		/// <summary>
+		/// 서버 → 그 창에게만: <b>네 인형은 여기 있다</b> (TASK-WM-217).
+		///
+		/// ★ 왜 따로 보내나: 사람이 몰린 칸에서는 소식 한 벌을 여럿이 같이 쓴다(그래야 서버가 산다).
+		///   그 한 벌에는 가까운 몇 명만 들어가므로, 광장 구석에 선 사람은 <b>자기 인형</b>이 빠질 수 있다.
+		///   자기가 안 보이면 화면이 통째로 멎으니, 그 사람에게만 자기 자리를 따로 알려 준다(60바이트).
+		/// </summary>
+		public const string ME = "me";
+
 		/// <summary>창 → 서버: 이걸 부수고 싶다(그 칸을 문 건물이 통째로 사라진다).</summary>
 		public const string REMOVE = "remove";
 
@@ -231,6 +240,14 @@ namespace WitchMendokusai.Net
 		public CauldronView[] cauldrons;
 		public WorldTimeView time;
 		public WorldBrewView brew;
+	}
+
+	/// <summary>서버 → 그 창에게만: 네 인형은 여기 있다 (몰린 칸에서 공유 소식에 자기가 빠졌을 때).</summary>
+	[Serializable]
+	public class MeMessage
+	{
+		public string type = NetMessageType.ME;
+		public WorldDollView doll;
 	}
 
 	/// <summary>창 → 서버: 이쪽으로 가고 싶다(얼마나 갈지는 서버가 정한다).</summary>

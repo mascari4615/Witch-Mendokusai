@@ -233,6 +233,12 @@ namespace WitchMendokusai.Server
 			// 제작표도 한 번 — 솥과 갈라지는 자리다(솥은 저어서, 제작은 재료를 모아서).
 			await SendAsync(connection, Protocol.CraftBook(ServerCraftBook.Book.Recipes));
 
+			// ⚠ 판 번호를 <b>그림 뜨기 전에</b> 붙잡는다 — 뜬 뒤에 누가 집을 지으면 그 집이
+			//   「이미 보낸 것」으로 둔갑해 이 창에서 영영 안 보인다.
+			int joinBuildVersion = World.BuildVersion;
+			int joinFieldVersion = World.Gatherables.Version;
+			int joinPotVersion = World.Cauldrons.Version;
+
 			// ★ 방금 온 창에는 <b>전체 그림</b>을 한 번 준다 (TASK-WM-217).
 			//   방송은 「바뀐 것만」 싣기 때문에, 늦게 들어온 사람은 이 한 장이 없으면
 			//   집도 들판도 없는 빈 세계를 본다(다음에 누가 뭘 지을 때까지).
@@ -246,7 +252,7 @@ namespace WitchMendokusai.Server
 				World.Cauldrons,
 				NextSnapshotSequence(),
 				CauldronCellsVisibleTo(doll.Id)));
-			MarkSnapshotState(connection, doll.Id);
+			MarkSnapshotState(connection, doll.Id, joinBuildVersion, joinFieldVersion, joinPotVersion);
 
 			// 이 연결의 말 예산 — 창 하나가 모두의 세계를 느리게 만들지 못하게 (TASK-WM-218).
 			WitchMendokusai.Net.MessageBudget budget = new WitchMendokusai.Net.MessageBudget();
@@ -359,6 +365,10 @@ namespace WitchMendokusai.Server
 
 				// 인사 뒤에도 전체 그림을 한 번 — 이때 자리·가방이 그 사람 것으로 바뀌고,
 				// 방송은 「바뀐 것만」 실으므로 이 한 장이 없으면 집·들판을 영영 못 볼 수 있다.
+				// ⚠ 판 번호는 그림 뜨기 <b>전</b>에 붙잡는다(위 MarkSnapshotState 주석 참고).
+				int helloBuildVersion = World.BuildVersion;
+				int helloFieldVersion = World.Gatherables.Version;
+				int helloPotVersion = World.Cauldrons.Version;
 				await SendAsync(socket, Protocol.WorldSnapshot(
 					DollsVisibleTo(dollId),
 					BuildingsVisibleTo(dollId),
@@ -369,7 +379,7 @@ namespace WitchMendokusai.Server
 					World.Cauldrons,
 					NextSnapshotSequence(),
 					CauldronCellsVisibleTo(dollId)));
-				MarkSnapshotState(socket, dollId);
+				MarkSnapshotState(socket, dollId, helloBuildVersion, helloFieldVersion, helloPotVersion);
 
 				Interlocked.Exchange(ref worldDirty, 1);
 				return;
@@ -1040,8 +1050,8 @@ namespace WitchMendokusai.Server
 				// ★ 같은 칸에 선 사람들은 <b>거의 같은 것</b>을 본다 — 그러면 글도 한 번만 지으면 된다
 				//   (TASK-WM-217). 창마다 짓던 때, 400명이면 같은 글을 400번 지었다.
 				//   칸에 상한보다 많이 모이면 공유가 깨지므로 그때만 창마다 짓는다(아래 fallback).
-				System.Collections.Generic.Dictionary<string, string> madeForCell =
-					new System.Collections.Generic.Dictionary<string, string>();
+				System.Collections.Generic.Dictionary<string, (string Text, System.Collections.Generic.HashSet<int> Inside)> madeForCell =
+					new System.Collections.Generic.Dictionary<string, (string, System.Collections.Generic.HashSet<int>)>();
 				WorldDoll[] everyone = World.Snapshot();
 
 				foreach (System.Collections.Generic.KeyValuePair<int, Connection> entry in sockets)
@@ -1064,27 +1074,23 @@ namespace WitchMendokusai.Server
 						+ (sendField ? "f" : string.Empty)
 						+ (sendPots ? "p" : string.Empty);
 
-					if (madeForCell.TryGetValue(key, out string ready) == false)
+					if (madeForCell.TryGetValue(key, out (string Text, System.Collections.Generic.HashSet<int> Inside) ready) == false)
 					{
 						ready = SnapshotForCell(everyone, target.InterestCellX, target.InterestCellZ,
 							sendBuildings, sendField, sendPots, sequence);
-						if (ready != null)
-							madeForCell[key] = ready;
+						madeForCell[key] = ready;
 					}
 
-					if (ready == null)
-						Interlocked.Increment(ref builtSnapshots);
+					string snapshot = ready.Text;
 
-					string snapshot = ready ?? Protocol.WorldSnapshot(
-						DollsVisibleTo(entry.Key),
-						sendBuildings ? BuildingsVisibleTo(entry.Key) : null,
-						World.Calendar,
-						null,
-						sendField ? GatherablesVisibleTo(entry.Key) : null,
-						Identities.NameOf,
-						sendPots ? World.Cauldrons : null,
-						sequence,
-						sendPots ? CauldronCellsVisibleTo(entry.Key) : null);
+					// ★ 몰린 칸에서는 가까운 몇 명만 그 한 벌에 든다 — 자기가 빠진 창에게는
+					//   <b>자기 자리만</b> 따로 알려 준다(60바이트). 자기가 안 보이면 화면이 통째로 멎는다.
+					if (ready.Inside != null && ready.Inside.Contains(entry.Key) == false)
+					{
+						WorldDoll mine = FindDoll(everyone, entry.Key);
+						if (mine != null)
+							_ = SendAsync(target, Protocol.Me(mine, Identities.NameOf));
+					}
 					// ⚠ 「보냈다」 표시는 <b>실제로 나간 뒤에</b> 한다. 먼저 표시했다가 그 보내기가
 					//   실패하면 그 창은 그 집을 <b>영영</b> 못 받는다(다음에 또 바뀌기 전까지).
 					//   화면엔 아무 일도 안 일어난 것처럼 보인다 — 「남이 지은 집이 안 보이던 것」의 부류다.
@@ -1114,11 +1120,19 @@ namespace WitchMendokusai.Server
 			return Interlocked.Increment(ref snapshotSequence);
 		}
 
-		private void MarkSnapshotState(Connection connection, int viewerDollId)
+		/// <summary>
+		/// 「이 판까지 보냈다」를 적는다 — <b>그림을 뜬 그 순간의 판</b>으로 적어야 한다.
+		///
+		/// ⚠ 지금(마친 뒤)의 판으로 적으면, 그림을 뜬 뒤 들어온 집이 <b>이미 보낸 것</b>으로 둔갑한다.
+		///   그 창은 그 집을 영영 못 받는다(다음에 또 누가 지을 때까지). 시험이 이 자리에서
+		///   드문드문 빨개졌고, 원인은 「그림 뜨기 → 짓기 → 표시」 순서였다.
+		/// </summary>
+		private void MarkSnapshotState(Connection connection, int viewerDollId,
+			int buildVersion, int fieldVersion, int potVersion)
 		{
-			connection.SentBuildVersion = World.BuildVersion;
-			connection.SentFieldVersion = World.Gatherables.Version;
-			connection.SentPotVersion = World.Cauldrons.Version;
+			connection.SentBuildVersion = buildVersion;
+			connection.SentFieldVersion = fieldVersion;
+			connection.SentPotVersion = potVersion;
 			UpdateInterestCell(connection, viewerDollId);
 		}
 
@@ -1137,7 +1151,8 @@ namespace WitchMendokusai.Server
 		/// 한 칸이 같이 쓸 세계 소식 한 벌 — 못 만들면 <c>null</c>(그 칸은 창마다 따로 지어야 한다).
 		/// 칸 한복판을 기준으로 고르되, <b>그 칸에 선 사람은 다 들어간다</b>(자기 인형을 찾아야 하니까).
 		/// </summary>
-		private string SnapshotForCell(WorldDoll[] everyone, int cellX, int cellZ,
+		private (string Text, System.Collections.Generic.HashSet<int> Inside) SnapshotForCell(
+			WorldDoll[] everyone, int cellX, int cellZ,
 			bool sendBuildings, bool sendField, bool sendPots, long sequence)
 		{
 			Vector3 center = new Vector3(
@@ -1164,16 +1179,21 @@ namespace WitchMendokusai.Server
 					candidates.Add(one);
 			}
 
-			WorldDoll[] shared = InterestCrowd.SharedForCell(candidates, members, center, InterestCrowd.MAX_VISIBLE_DOLLS);
-			if (shared == null)
-				return null;
+			// 칸에 상한보다 많이 모였으면 <b>칸 한복판에 가까운 순</b>으로 자른다. 잘린 사람에게는
+			// 위(방송 루프)에서 자기 자리를 따로 보낸다 — 그래서 여기서 공유를 포기하지 않아도 된다.
+			WorldDoll[] shared = InterestCrowd.SharedForCell(candidates, members, center, InterestCrowd.MAX_VISIBLE_DOLLS)
+				?? InterestCrowd.Nearest(members, center, 0, InterestCrowd.MAX_VISIBLE_DOLLS);
+
+			System.Collections.Generic.HashSet<int> inside = new System.Collections.Generic.HashSet<int>();
+			for (int i = 0; i < shared.Length; i++)
+				inside.Add(shared[i].Id);
 
 			Interlocked.Increment(ref builtSnapshots);
 
 			// ⚠ 지은 것·들판·솥도 <b>칸 한복판 기준</b>으로 담는다. 칸에 선 아무개 한 사람 기준으로
 			//   담으면, 같은 칸의 다른 사람이 봐야 할 집이 빠진다 — 「남이 지은 집이 안 보이던 것」의 재판이다.
 			//   한복판 + 반경 + 칸 하나만큼이면 그 칸 누구의 시야도 다 덮는다(넉넉히 보내고 창이 고른다).
-			return Protocol.WorldSnapshot(
+			return (Protocol.WorldSnapshot(
 				shared,
 				sendBuildings ? BuildingsNear(center, reach) : null,
 				World.Calendar,
@@ -1182,7 +1202,19 @@ namespace WitchMendokusai.Server
 				Identities.NameOf,
 				sendPots ? World.Cauldrons : null,
 				sequence,
-				sendPots ? CauldronCellsNear(center, reach) : null);
+				sendPots ? CauldronCellsNear(center, reach) : null), inside);
+		}
+
+		/// <summary>그 번호의 인형 — 이번 틱에 뜬 목록에서 찾는다(다시 뜨면 자리가 어긋난다).</summary>
+		private static WorldDoll FindDoll(WorldDoll[] everyone, int dollId)
+		{
+			for (int i = 0; i < everyone.Length; i++)
+			{
+				if (everyone[i].Id == dollId)
+					return everyone[i];
+			}
+
+			return null;
 		}
 
 		private WorldDoll[] DollsVisibleTo(int viewerDollId)

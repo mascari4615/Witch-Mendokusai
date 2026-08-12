@@ -26,6 +26,7 @@ namespace WitchMendokusai.Server
 		public const string HELLO = Net.NetMessageType.HELLO;
 		public const string WELCOME = Net.NetMessageType.WELCOME;
 		public const string WORLD = Net.NetMessageType.WORLD;
+		public const string ME = Net.NetMessageType.ME;
 		public const string MOVE = Net.NetMessageType.MOVE;
 		public const string PLACE = Net.NetMessageType.PLACE;
 		public const string GATHER = Net.NetMessageType.GATHER;
@@ -182,7 +183,10 @@ namespace WitchMendokusai.Server
 			builder.Append("/** 서버 -> 그 창에게만: 다른 곳에서 같은 사람이 들어왔다(여기서는 나간다). */\n");
 			builder.Append("export interface Kicked {\n\ttype: '").Append(KICKED).Append("';\n\treason: string;\n}\n\n");
 
-			builder.Append("export type ServerMessage = Welcome | WorldSnapshot | BrewTaken | Bag | Catalog | BuildCatalog | BrewShelf | Spellbook | CraftBook | Crafted | Chest | Denied | Invite | Linked | Kicked;\n");
+			builder.Append("/** 서버 -> 그 창에게만: 네 인형은 여기 있다(몰린 칸에서 공유 소식에 자기가 빠졌을 때). */\n");
+			builder.Append("export interface Me {\n\ttype: '").Append(ME).Append("';\n\tdoll: WorldDollView;\n}\n\n");
+
+			builder.Append("export type ServerMessage = Welcome | Me | WorldSnapshot | BrewTaken | Bag | Catalog | BuildCatalog | BrewShelf | Spellbook | CraftBook | Crafted | Chest | Denied | Invite | Linked | Kicked;\n");
 			builder.Append("export type ClientMessage = MoveRequest | PlaceRequest | RemoveRequest | GatherRequest | ChestAsk | ChestPut | ChestTake | BrewRequest | BrewResetRequest | BrewCompleteRequest | Hello | BagAsk | ConsumeRequest | InviteAsk | LinkRequest;\n");
 
 			return builder.ToString();
@@ -430,6 +434,18 @@ namespace WitchMendokusai.Server
 		public static string Kicked()
 		{
 			return "{\"type\":\"" + KICKED + "\",\"reason\":\"다른 곳에서 접속했다\"}";
+		}
+
+		/// <summary>
+		/// 그 창에게만: <b>네 인형은 여기 있다.</b> 몰린 칸에서 공유 소식에 자기가 빠졌을 때만 나간다.
+		/// </summary>
+		public static string Me(WorldDoll doll, System.Func<int, string> nameOf = null)
+		{
+			string who = nameOf == null ? string.Empty : (nameOf(doll.IdentityId) ?? string.Empty);
+			return "{\"type\":\"" + ME + "\",\"doll\":{\"id\":" + doll.Id
+				+ ",\"x\":" + doll.Position.x.ToString("F3")
+				+ ",\"z\":" + doll.Position.z.ToString("F3")
+				+ ",\"name\":" + JsonSerializer.Serialize(who, textOptions) + "}}";
 		}
 
 		/// <summary>서버가 보내는 인사말.</summary>
