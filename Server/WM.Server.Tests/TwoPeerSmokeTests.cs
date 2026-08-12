@@ -531,7 +531,12 @@ namespace WitchMendokusai.ServerTests
 				myDollId = here[here.Length - 1].Id;
 			}
 
-			for (int step = 0; step < 60; step++)
+			// ⚠ 걸음은 이제 <b>시계가 심판한다</b> (TASK-WM-222): 소켓으로 몰아 보내면 걸어서 갈 수 있는
+			//   만큼까지만 간다. 이 시험이 하던 「40ms 마다 1.5m」는 초당 37m — 사람이 못 내는 속도였고,
+			//   그건 막힌 구멍을 발판으로 쓰고 있었다는 뜻이다.
+			//   그 계약은 NoTeleportTests 가 소켓으로 지킨다. 여기서는 세계의 손으로 데려다 놓고,
+			//   재는 것(줍기 판정·손 닿음·소켓 왕복)은 그대로 소켓으로 간다.
+			for (int step = 0; step < 400; step++)
 			{
 				WitchMendokusai.Numerics.Vector3 standing = host.World.PositionOf(myDollId);
 				double toX = targetX - standing.x;
@@ -539,10 +544,10 @@ namespace WitchMendokusai.ServerTests
 				if (toX * toX + toZ * toZ <= 1.5 * 1.5)
 					break;
 
-				await SendAsync(socket, "{\"type\":\"move\",\"x\":" + toX.ToString("F3", System.Globalization.CultureInfo.InvariantCulture)
-					+ ",\"z\":" + toZ.ToString("F3", System.Globalization.CultureInfo.InvariantCulture) + "}");
-				await Task.Delay(40);
+				host.World.TryMove(myDollId, new WitchMendokusai.Numerics.Vector3((float)toX, 0f, (float)toZ));
 			}
+
+			await Task.Delay(40);
 
 			await SendAsync(socket, "{\"type\":\"gather\",\"nodeId\":" + nodeId + "}");
 			await WaitForAsync(socket, text => text.Contains("\"type\":\"bag\"") && text.Contains("\"itemId\":" + itemId));

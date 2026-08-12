@@ -62,6 +62,9 @@ namespace WitchMendokusai.Server
 		/// </summary>
 		private long builtSnapshots;
 
+		/// <summary>걸음 지갑이 비어 되돌린 걸음 수 — 속이는 창이 있으면 여기가 오른다 (TASK-WM-222).</summary>
+		private long refusedSteps;
+
 		/// <summary>
 		/// 칸마다 <b>지난 판에 그 칸으로 내보낸 사람과 자리</b> (TASK-WM-220).
 		///
@@ -153,6 +156,9 @@ namespace WitchMendokusai.Server
 
 		private readonly ConcurrentDictionary<int, Connection> sockets = new ConcurrentDictionary<int, Connection>();
 
+		/// <summary>걸음 심판 — 시계를 보고 「걸어서 갈 수 있는 만큼」만 통과시킨다 (TASK-WM-222).</summary>
+		private readonly WitchMendokusai.Net.MoveAllowance moveAllowance = new WitchMendokusai.Net.MoveAllowance();
+
 		// 제작 주사위 — <b>세계가 굴린다</b>. 창이 굴리면 창을 고친 사람은 언제나 성공한다.
 		// 시험이 성공·실패를 모두 잴 수 있게 판정 자체는 WorldCraftBook 이 하고, 여기선 숫자만 넣는다.
 		private readonly System.Random craftDice = new System.Random();
@@ -208,6 +214,7 @@ namespace WitchMendokusai.Server
 				minute = World.Calendar.Minute,
 				broadcastSnapshotMessages = Interlocked.Read(ref broadcastSnapshotMessages),
 				builtSnapshots = Interlocked.Read(ref builtSnapshots),
+				refusedSteps = Interlocked.Read(ref refusedSteps),
 
 				// 쓰레기 치우기 — 세계가 이따금 멎는 이유를 볼 때 쓴다 (TASK-WM-220).
 				gcServerMode = System.Runtime.GCSettings.IsServerGC,
@@ -369,6 +376,7 @@ namespace WitchMendokusai.Server
 			{
 				sockets.TryRemove(doll.Id, out Connection _);
 				watchingChest.TryRemove(doll.Id, out Vector3Int _);
+				moveAllowance.Forget(doll.Id);
 				World.Leave(doll.Id);
 				Interlocked.Exchange(ref worldDirty, 1); // 나간 사람의 자리·가방을 디스크로 내린다.
 			}
@@ -593,7 +601,16 @@ namespace WitchMendokusai.Server
 				{
 					float x = root.TryGetProperty("x", out JsonElement xElement) ? (float)xElement.GetDouble() : 0f;
 					float z = root.TryGetProperty("z", out JsonElement zElement) ? (float)zElement.GetDouble() : 0f;
-					World.TryMove(dollId, new Vector3(x, 0f, z));
+
+					// 한 걸음 크기만 자르는 것으로는 못 막는다 — 빨리 보내면 빨리 갔다. 시계가 심판한다.
+					Vector3 allowed = moveAllowance.Allow(dollId, System.Environment.TickCount64, new Vector3(x, 0f, z));
+					if (allowed.x == 0f && allowed.z == 0f)
+					{
+						Interlocked.Increment(ref refusedSteps);
+						return;
+					}
+
+					World.TryMove(dollId, allowed);
 					return;
 				}
 

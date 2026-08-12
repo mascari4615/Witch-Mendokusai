@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using NUnit.Framework;
+using WitchMendokusai.Numerics;
 using WitchMendokusai.Server;
 
 namespace WitchMendokusai.ServerTests
@@ -30,6 +31,7 @@ namespace WitchMendokusai.ServerTests
 		private static readonly Uri address = new Uri($"ws://127.0.0.1:{PORT}/ws");
 
 		private WebApplication app;
+		private WorldHost host;
 		private string mine;
 		private string worldFile;
 
@@ -131,7 +133,7 @@ namespace WitchMendokusai.ServerTests
 		}
 
 		/// <summary>가장 가까운 주울 것까지 걸어가 한 번 줍는다 — 무엇이 얼마나 들어왔는지 돌려준다.</summary>
-		private static async Task<(int itemId, int amount)> GatherOnce(ClientWebSocket window)
+		private async Task<(int itemId, int amount)> GatherOnce(ClientWebSocket window)
 		{
 			string snapshot = await Read(window, "\"gatherables\"");
 			using JsonDocument world = JsonDocument.Parse(snapshot);
@@ -143,27 +145,11 @@ namespace WitchMendokusai.ServerTests
 			double x = node.GetProperty("x").GetDouble();
 			double z = node.GetProperty("z").GetDouble();
 
-			// ★ 걸음은 <b>한 걸음씩</b>이다 — 서버가 한 번에 갈 수 있는 거리를 자른다(순간이동 금지).
-			//   게다가 서버는 한 창의 <b>말수도</b> 잰다(MessageBudget). 예산을 넘긴 말은
-			//   조용히 버려지므로, 한꺼번에 쏟아 보내면 마지막 「줍겠다」가 사라진다 —
-			//   답도 거절도 없이(실측 2026-08-10, 이 시험이 그 자리에서 멎었다).
-			//   그래서 사람처럼 걷는다: 한 걸음 = 최대치, 그리고 숨을 쉰다.
-			double distance = Math.Sqrt((x * x) + (z * z));
-			int strides = (int)Math.Ceiling(distance / 1.5) + 1;
-			for (int i = 0; i < strides; i++)
-			{
-				double left = distance - (i * 1.5);
-				if (left <= 0.0)
-					break;
-
-				double share = Math.Min(1.5, left) / distance;
-				await Send(window, "{\"type\":\"" + Protocol.MOVE
-					+ "\",\"x\":" + (x * share).ToString("F3") + ",\"z\":" + (z * share).ToString("F3") + "}");
-
-				if (i % 10 == 9)
-					await Task.Delay(400); // 말 예산이 다시 차기를 기다린다(초당 30).
-			}
-
+			// ★ 걸어가는 것은 이 시험의 주제가 아니다 — 주제는 「주운 것이 껐다 켜도 남나」다.
+			//   그리고 소켓으로 걷는 길은 이제 <b>시계가 심판한다</b>(MoveAllowance, TASK-WM-222):
+			//   걸음을 몰아 보내면 걸어서 갈 수 있는 만큼까지만 간다 — 시험이 목적지에 영영 못 닿는다.
+			//   그 계약을 지키는 것은 NoTeleportTests 의 몫이고, 여기서는 세계의 손으로 데려다 놓는다.
+			WalkThere(x, z);
 			await Task.Delay(400);
 			await Send(window, "{\"type\":\"" + Protocol.GATHER + "\",\"nodeId\":" + nodeId + "}");
 
@@ -197,9 +183,29 @@ namespace WitchMendokusai.ServerTests
 			return 0;
 		}
 
+		/// <summary>세계의 손으로 그 자리까지 데려다 놓는다 — 소켓 걸음(심판 있음)이 아니라 발판이다.</summary>
+		private void WalkThere(double x, double z)
+		{
+			WorldDoll[] people = host.World.Snapshot();
+			Assert.AreEqual(1, people.Length, "이 시험은 혼자 있는 세계를 본다");
+			int dollId = people[0].Id;
+
+			// 세계도 한 걸음을 자른다(MAX_STEP) — 그래서 여러 번 나눠 딛는다.
+			for (int i = 0; i < 400; i++)
+			{
+				Vector3 now = host.World.PositionOf(dollId);
+				float gapX = (float)x - now.x;
+				float gapZ = (float)z - now.z;
+				if (new Vector3(gapX, 0f, gapZ).magnitude <= 0.05f)
+					break;
+
+				host.World.TryMove(dollId, new Vector3(gapX, 0f, gapZ));
+			}
+		}
+
 		private async Task StartAsync()
 		{
-			WorldHost host = new WorldHost(new WorldStore(worldFile));
+			host = new WorldHost(new WorldStore(worldFile));
 			app = host.Build(Array.Empty<string>(), $"http://127.0.0.1:{PORT}");
 			await app.StartAsync();
 		}
