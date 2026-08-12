@@ -54,6 +54,7 @@ on:
       - '.github/scripts/wm-web-contest-test.mjs'
       - '.github/scripts/wm-web-still-me-test.mjs'
       - '.github/scripts/wm-web-answer-test.mjs'
+      - '.github/scripts/wm-web-build-test.mjs'
       - '.github/scripts/wm-dead-parameter-audit.mjs'
       - '.github/scripts/lib/bad-line.mjs'
       - '.github/scripts/wm-game-client-gate.mjs'
@@ -92,6 +93,7 @@ on:
       - '.github/scripts/wm-web-contest-test.mjs'
       - '.github/scripts/wm-web-still-me-test.mjs'
       - '.github/scripts/wm-web-answer-test.mjs'
+      - '.github/scripts/wm-web-build-test.mjs'
       - '.github/scripts/wm-dead-parameter-audit.mjs'
       - '.github/scripts/lib/bad-line.mjs'
       - '.github/scripts/wm-game-client-gate.mjs'
@@ -340,6 +342,13 @@ jobs:
         env:
           WM_PLAYWRIGHT_ROOT: /tmp/wm-playwright
         run: node ./.github/scripts/wm-web-answer-test.mjs
+
+      # TASK-WM-287 -- 짓기는 줍기보다 한 겹 더 있다(재료를 쓰고·땅을 고르고·남에게도 보인다).
+      # 세계 쪽 판정은 시험이 있지만 <창에서 눌러 짓는 길>은 진짜 창으로 안 재봤다.
+      - name: Run web build test
+        env:
+          WM_PLAYWRIGHT_ROOT: /tmp/wm-playwright
+        run: node ./.github/scripts/wm-web-build-test.mjs
 
   unity:
     name: EditMode tests (laptop runner)
