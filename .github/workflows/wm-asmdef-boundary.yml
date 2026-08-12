@@ -20,6 +20,10 @@ on:
       - 'Assets/_WitchMendokusai/Mods/**'
       - 'Assets/_WitchMendokusai/Network/**'
       - 'Portable/**'
+      # ★ 이 게이트는 서버 시험도 돌린다 — 그런데 그 입력이 트리거에 없었다 (2026-08-12).
+      #   서버·서버 시험만 고친 커밋에서는 **이 게이트가 한 번도 안 돌았다**. 빨간 게 아니라
+      #   실행이 없어서 초록으로 읽힌다(memo repo gates 가 같은 사고를 겪고 남긴 교훈).
+      - 'Server/**'
       - 'Assets/_WitchMendokusai/Tests/**'
       - '.github/workflows/wm-asmdef-boundary.yml'
   pull_request:
@@ -30,6 +34,10 @@ on:
       - 'Assets/_WitchMendokusai/Mods/**'
       - 'Assets/_WitchMendokusai/Network/**'
       - 'Portable/**'
+      # ★ 이 게이트는 서버 시험도 돌린다 — 그런데 그 입력이 트리거에 없었다 (2026-08-12).
+      #   서버·서버 시험만 고친 커밋에서는 **이 게이트가 한 번도 안 돌았다**. 빨간 게 아니라
+      #   실행이 없어서 초록으로 읽힌다(memo repo gates 가 같은 사고를 겪고 남긴 교훈).
+      - 'Server/**'
       - 'Assets/_WitchMendokusai/Tests/**'
   workflow_dispatch: {}
 
