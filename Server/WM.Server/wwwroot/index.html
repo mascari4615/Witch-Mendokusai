@@ -477,6 +477,10 @@ const itemNames = {};   // 번호 → 이름. 들어올 때 한 번 받는다.
 const pressed = {};
 let time = null;        // 세계의 시각 — 서버가 굴린다(사람이 없어도 흐른다).
 // 도착했지만 아직 화면에 안 세운 마지막 세계 소식 — 프레임마다 하나씩만 세운다.
+/** 방금 들은 말 — 사람 이름표에 잠깐 띄운다 (TASK-WM-250). */
+const heard = new Map();
+const SAID_SHOWS_FOR_MS = 6000;
+
 let pendingWorld = null;
 
 /** 받아 둔 말을 되읽는 중인가 — 그때는 판을 건너뛰지 않는다 (TASK-WM-234). */
@@ -850,6 +854,13 @@ function onLinkMessage(event) {
 				`${GRADES[message.grade] || ''} ${message.recipe || name} ${message.amount}개 — 가방에 들어갔다`.trim();
 		}
 		return; // 가방은 서버가 곧바로 다시 보내 준다(물어볼 필요 없다)
+	}
+
+	// 누가 한 말 — 그 사람 이름표에 잠깐 붙는다 (TASK-WM-250). 판을 새로 만들지 않는다.
+	if (message.type === 'said') {
+		heard.set(message.dollId, { text: message.text, until: performance.now() + SAID_SHOWS_FOR_MS });
+		statusElement.textContent = `${message.name || '누군가'}: ${message.text}`;
+		return;
 	}
 
 	if (message.type === 'welcome') {
@@ -1517,7 +1528,13 @@ function applyPendingWorld() {
 	}
 
 	// 이름은 따로 온 이름표에서 붙인다.
-	for (const one of dolls) one.name = dollNames[one.id] || '';
+	// 이름표에는 이름 + <b>방금 한 말</b>이 같이 붙는다 (TASK-WM-250) — 판을 새로 만들지 않는다.
+	for (const one of dolls) {
+		const saidNow = heard.get(one.id);
+		const bubble = saidNow && saidNow.until > performance.now() ? saidNow.text : '';
+		const called = dollNames[one.id] || '';
+		one.name = bubble ? `${called} 「${bubble}」`.trim() : called;
+	}
 
 	// 몰린 자리에서 세계가 따로 알려 준 「내 자리」 — 공유 목록에 내가 없으면 끼워 넣는다.
 	if (myPlaceFromWorld && dolls.some((one) => one.id === myPlaceFromWorld.id) === false)

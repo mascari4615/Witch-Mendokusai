@@ -165,6 +165,12 @@ namespace WitchMendokusai.Net
 
 		/// <summary>창 → 서버: 나를 이렇게 불러 달라. 되나 안 되나는 세계가 본다 (TASK-WM-218).</summary>
 		public const string RENAME = "rename";
+
+		/// <summary>창 -> 세계: 이렇게 말했다 (TASK-WM-250).</summary>
+		public const string SAY = "say";
+
+		/// <summary>세계 -> 창: 누가 이렇게 말했다 — 그 사람이 보이는 사람에게만 간다.</summary>
+		public const string SAID = "said";
 	}
 
 	/// <summary>모든 수신 메시지의 첫 판별에 쓰는 공통 envelope.</summary>

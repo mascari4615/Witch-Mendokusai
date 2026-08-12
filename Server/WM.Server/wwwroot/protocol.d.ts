@@ -98,6 +98,20 @@ export interface WorldSnapshot {
 	brew?: BrewView;
 }
 
+/** 창 -> 서버: 이렇게 말했다. 빈 줄·너무 긴 줄은 세계가 다듬거나 버린다. */
+export interface SayRequest {
+	type: 'say';
+	text: string;
+}
+
+/** 서버 -> 창: 누가 이렇게 말했다 — 그 사람이 보이는 사람에게만 온다. */
+export interface Said {
+	type: 'said';
+	dollId: number;
+	name: string;
+	text: string;
+}
+
 /** 창 -> 서버: 이쪽으로 가고 싶다(얼마나 갈지는 서버가 정한다). */
 export interface MoveRequest {
 	type: 'move';
@@ -333,5 +347,5 @@ export interface Names {
 	dolls: DollNameView[];
 }
 
-export type ServerMessage = Welcome | Me | Names | WorldSnapshot | BrewTaken | Bag | Catalog | BuildCatalog | BrewShelf | Spellbook | CraftBook | Crafted | Chest | Denied | Invite | Linked | Kicked;
-export type ClientMessage = MoveRequest | PlaceRequest | RemoveRequest | GatherRequest | ChestAsk | ChestPut | ChestTake | BrewRequest | BrewResetRequest | BrewCompleteRequest | Hello | BagAsk | ConsumeRequest | InviteAsk | LinkRequest;
+export type ServerMessage = Welcome | Me | Names | WorldSnapshot | BrewTaken | Bag | Catalog | BuildCatalog | BrewShelf | Spellbook | CraftBook | Crafted | Chest | Denied | Invite | Linked | Kicked | Said;
+export type ClientMessage = MoveRequest | PlaceRequest | RemoveRequest | GatherRequest | ChestAsk | ChestPut | ChestTake | BrewRequest | BrewResetRequest | BrewCompleteRequest | Hello | BagAsk | ConsumeRequest | InviteAsk | LinkRequest | SayRequest;

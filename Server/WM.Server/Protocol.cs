@@ -47,6 +47,8 @@ namespace WitchMendokusai.Server
 		public const string CRAFTED = Net.NetMessageType.CRAFTED;
 		public const string CRAFT_BOOK = Net.NetMessageType.CRAFT_BOOK;
 		public const string RENAME = Net.NetMessageType.RENAME;
+		public const string SAY = Net.NetMessageType.SAY;
+		public const string SAID = Net.NetMessageType.SAID;
 
 		// 무엇이 거절됐나 — 창이 자리별로 다르게 보여 줄 수 있게 이름을 준다.
 		public const string DENIED_PLACE = "place";
@@ -94,6 +96,12 @@ namespace WitchMendokusai.Server
 			builder.Append("/** 지은 자리마다의 솥 — 여럿이 각자 젓는다. */\n");
 			builder.Append("export interface CauldronView {\n\tx: number;\n\ty: number;\n\tz: number;\n\tpx: number;\n\tpy: number;\n\tsteps: number;\n\tside: number;\n}\n\n");
 			builder.Append("export interface WorldSnapshot {\n\ttype: '").Append(WORLD).Append("';\n\tsequence: number;\n\tchanged?: boolean;\n\tgone?: number[];\n\tdolls: WorldDollView[];\n\tbuildings?: WorldBuildingView[];\n\tfieldChanged?: boolean;\n\tfieldGone?: number[];\n\tgatherables?: GatherableView[];\n\tcauldrons?: CauldronView[];\n\ttime?: WorldTime;\n\tbrew?: BrewView;\n}\n\n");
+
+			builder.Append("/** 창 -> 서버: 이렇게 말했다. 빈 줄·너무 긴 줄은 세계가 다듬거나 버린다. */\n");
+			builder.Append("export interface SayRequest {\n\ttype: '").Append(SAY).Append("';\n\ttext: string;\n}\n\n");
+
+			builder.Append("/** 서버 -> 창: 누가 이렇게 말했다 — 그 사람이 보이는 사람에게만 온다. */\n");
+			builder.Append("export interface Said {\n\ttype: '").Append(SAID).Append("';\n\tdollId: number;\n\tname: string;\n\ttext: string;\n}\n\n");
 
 			builder.Append("/** 창 -> 서버: 이쪽으로 가고 싶다(얼마나 갈지는 서버가 정한다). */\n");
 			builder.Append("export interface MoveRequest {\n\ttype: '").Append(MOVE).Append("';\n\tx: number;\n\tz: number;\n}\n\n");
@@ -191,8 +199,8 @@ namespace WitchMendokusai.Server
 			builder.Append("export interface DollNameView {\n\tid: number;\n\tname: string;\n}\n\n");
 			builder.Append("export interface Names {\n\ttype: '").Append(NAMES).Append("';\n\tdolls: DollNameView[];\n}\n\n");
 
-			builder.Append("export type ServerMessage = Welcome | Me | Names | WorldSnapshot | BrewTaken | Bag | Catalog | BuildCatalog | BrewShelf | Spellbook | CraftBook | Crafted | Chest | Denied | Invite | Linked | Kicked;\n");
-			builder.Append("export type ClientMessage = MoveRequest | PlaceRequest | RemoveRequest | GatherRequest | ChestAsk | ChestPut | ChestTake | BrewRequest | BrewResetRequest | BrewCompleteRequest | Hello | BagAsk | ConsumeRequest | InviteAsk | LinkRequest;\n");
+			builder.Append("export type ServerMessage = Welcome | Me | Names | WorldSnapshot | BrewTaken | Bag | Catalog | BuildCatalog | BrewShelf | Spellbook | CraftBook | Crafted | Chest | Denied | Invite | Linked | Kicked | Said;\n");
+			builder.Append("export type ClientMessage = MoveRequest | PlaceRequest | RemoveRequest | GatherRequest | ChestAsk | ChestPut | ChestTake | BrewRequest | BrewResetRequest | BrewCompleteRequest | Hello | BagAsk | ConsumeRequest | InviteAsk | LinkRequest | SayRequest;\n");
 
 			return builder.ToString();
 		}
@@ -451,6 +459,17 @@ namespace WitchMendokusai.Server
 				+ ",\"x\":" + doll.Position.x.ToString("F2")
 				+ ",\"z\":" + doll.Position.z.ToString("F2")
 				+ ",\"name\":" + JsonSerializer.Serialize(who, textOptions) + "}}";
+		}
+
+		/// <summary>
+		/// 누가 이렇게 말했다 (TASK-WM-250) — <b>그 사람이 보이는 사람에게만</b> 간다.
+		/// 이름을 같이 싣는다: 말은 「누가」가 붙어야 말이다(창이 이름표를 못 받았을 수도 있다).
+		/// </summary>
+		public static string Said(int dollId, string name, string line)
+		{
+			return "{\"type\":\"" + SAID + "\",\"dollId\":" + dollId
+				+ ",\"name\":" + JsonSerializer.Serialize(name ?? string.Empty, textOptions)
+				+ ",\"text\":" + JsonSerializer.Serialize(line ?? string.Empty, textOptions) + "}";
 		}
 
 		/// <summary>이름표 — 바뀐 사람만 담아 모두에게 보낸다 (TASK-WM-220).</summary>

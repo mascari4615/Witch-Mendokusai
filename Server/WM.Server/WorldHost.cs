@@ -791,6 +791,20 @@ namespace WitchMendokusai.Server
 					return;
 				}
 
+				if (kind == Protocol.SAY)
+				{
+					// ★ 말은 사람이 직접 짓는 유일한 것이라 세계가 본다 (TASK-WM-250).
+					//   빈 줄은 말이 아니고, 줄바꿈은 한 칸이 되고, 너무 길면 잘린다.
+					string line = WitchMendokusai.Net.SaidLine.Clean(ReadStringField(text, "text"));
+					if (line == null)
+						return;
+
+					// ★ <b>보이는 사람에게만</b> 간다 — 세계 반대편 사람에게까지 가면 그건 확성기다.
+					//   누가 보이나는 이미 세계가 아는 것(관심 반경)이라 여기서 새로 정하지 않는다.
+					_ = TellNearbyAsync(dollId, line);
+					return;
+				}
+
 				if (kind == Protocol.CONSUME)
 				{
 					// 없는 걸 썼다고 우겨도 소용없다 — 있는 만큼만 빠진다.
@@ -1601,6 +1615,29 @@ namespace WitchMendokusai.Server
 			connection.InterestCellX = cellX;
 			connection.InterestCellZ = cellZ;
 			return changed;
+		}
+
+		/// <summary>그 사람이 한 말을 <b>그 사람이 보이는 사람</b>에게 나른다 (TASK-WM-250).</summary>
+		private async Task TellNearbyAsync(int dollId, string line)
+		{
+			string name = Identities.NameOf(World.OwnerOf(dollId)) ?? string.Empty;
+			string said = Protocol.Said(dollId, name, line);
+
+			Vector3 from = World.PositionOf(dollId);
+			float radiusSquared = PLAYER_INTEREST_RADIUS * PLAYER_INTEREST_RADIUS;
+			WorldDoll[] everyone = World.Snapshot();
+
+			for (int i = 0; i < everyone.Length; i++)
+			{
+				WorldDoll one = everyone[i];
+				float awayX = one.Position.x - from.x;
+				float awayZ = one.Position.z - from.z;
+				if ((awayX * awayX) + (awayZ * awayZ) > radiusSquared)
+					continue;
+
+				if (sockets.TryGetValue(one.Id, out Connection listener))
+					await SendAsync(listener, said);
+			}
 		}
 
 		/// <summary>이름이 바뀐 사람만 모두에게 알린다 — 새로 온 사람·이름을 고친 사람 (TASK-WM-220).</summary>
