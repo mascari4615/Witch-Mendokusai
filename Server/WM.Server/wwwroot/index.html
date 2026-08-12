@@ -269,7 +269,11 @@ function read(text) {
 	let said;
 	try { said = JSON.parse(text); } catch (e) { return; }
 
-	if (said.type === 'welcome') mine = said.id;
+	if (said.type === 'welcome') {
+		mine = said.id;
+		// 이 서버 판의 도장 — 다음에 붙을 때 「나 이거 들고 있다」고 말한다.
+		try { if (said.catalogStamp) sessionStorage.setItem('wm.world.catalogstamp', said.catalogStamp); } catch (e) { /* 무시 */ }
+	}
 	if (said.type === 'me' && said.doll) {
 		const without = people.filter((one) => one.id !== said.doll.id);
 		people = without.concat([said.doll]);
@@ -365,7 +369,11 @@ socket.onopen = () => {
 	let klCode = '';
 	try { klCode = localStorage.getItem('wm.world.klcode') || ''; } catch (e) { klCode = ''; }
 
-	socket.send(JSON.stringify({ type: 'hello', secret: saved, klSession, klCode }));
+	// 이 서버 판의 낱말표를 이미 들고 있으면 그렇다고 말한다 — 그러면 7.2KB 를 안 받는다.
+	let knownCatalogs = '';
+	try { knownCatalogs = sessionStorage.getItem('wm.world.catalogstamp') || ''; } catch (e) { knownCatalogs = ''; }
+
+	socket.send(JSON.stringify({ type: 'hello', secret: saved, klSession, klCode, knownCatalogs }));
 	socket.send(JSON.stringify({ type: 'bagask' }));
 };
 
@@ -643,7 +651,11 @@ function onLinkOpen() {
 	let klCode = '';
 	try { klCode = localStorage.getItem('wm.world.klcode') || ''; } catch (e) { klCode = ''; }
 
-	tell({ type: 'hello', secret: saved, klSession, klCode });
+	// 이 서버 판의 낱말표를 이미 들고 있으면 그렇다고 말한다 (TASK-WM-238).
+	let knownCatalogs = '';
+	try { knownCatalogs = sessionStorage.getItem('wm.world.catalogstamp') || ''; } catch (e) { knownCatalogs = ''; }
+
+	tell({ type: 'hello', secret: saved, klSession, klCode, knownCatalogs });
 	tell({ type: 'bagask' });
 
 	// 코드는 한 번 쓰면 사라진다 — 들고 있어 봐야 다음엔 안 통한다(그때는 기기 열쇠가 나를 안다).
@@ -769,6 +781,11 @@ function onLinkMessage(event) {
 
 	if (message.type === 'welcome') {
 		myId = message.id;
+
+		// 이 서버 판의 낱말표 도장 — 다음에 붙을 때 되돌려 주면 그것들을 안 받는다 (TASK-WM-238).
+		try {
+			if (message.catalogStamp) sessionStorage.setItem('wm.world.catalogstamp', message.catalogStamp);
+		} catch (e) { /* 못 적어도 게임은 돈다 — 그냥 다시 받을 뿐이다 */ }
 
 		// 새 열쇠를 줬으면 적어 둔다(빈 값으로 덮어쓰지 않는다 — 잃으면 새 사람이 된다).
 		if (message.secret) {

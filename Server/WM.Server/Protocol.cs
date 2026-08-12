@@ -72,10 +72,10 @@ namespace WitchMendokusai.Server
 			builder.Append("// 서버가 계약을 소유하고, 이 파일은 거기서 뽑혀 나온다.\n\n");
 
 			builder.Append("/** 창 -> 서버: 나 왔다(열쇠가 있으면 같이). 첫 말이다. */\n");
-			builder.Append("export interface Hello {\n\ttype: '").Append(HELLO).Append("';\n\tsecret: string;\n\tklCode?: string;\n\tklSession?: string;\n}\n\n");
+			builder.Append("export interface Hello {\n\ttype: '").Append(HELLO).Append("';\n\tsecret: string;\n\tklCode?: string;\n\tklSession?: string;\n\t/** 이미 들고 있는 낱말표·제작표의 도장 — 같으면 세계가 그것들을 다시 안 보낸다. */\n\tknownCatalogs?: string;\n}\n\n");
 
 			builder.Append("/** 서버 -> 창: 접속했다. secret 이 비어있지 않으면 새로 받은 열쇠(적어 둘 것). */\n");
-			builder.Append("export interface Welcome {\n\ttype: '").Append(WELCOME).Append("';\n\tid: number;\n\tidentityId: number;\n\tsecret: string;\n}\n\n");
+			builder.Append("export interface Welcome {\n\ttype: '").Append(WELCOME).Append("';\n\tid: number;\n\tidentityId: number;\n\tsecret: string;\n\t/** 이 서버 판의 낱말표·제작표 도장 — hello 에 되돌려 주면 그것들을 안 보낸다. */\n\tcatalogStamp: string;\n}\n\n");
 
 			builder.Append("/** 세계에 있는 인형 하나. */\n");
 			builder.Append("export interface WorldDollView {\n\tid: number;\n\tx: number;\n\tz: number;\n}\n\n");
@@ -476,12 +476,17 @@ namespace WitchMendokusai.Server
 		}
 
 		/// <summary>서버가 보내는 인사말.</summary>
-		public static string Welcome(int dollId, string newSecret = "", int identityId = 0)
+		/// <summary>
+		/// 맞아들이는 말. <paramref name="catalogStamp"/> = 이 서버 판의 낱말표·제작표 도장 (TASK-WM-238).
+		/// 창이 다음 hello 에 그 도장을 되돌려 주면 세계는 그것들을 <b>다시 안 보낸다</b>.
+		/// </summary>
+		public static string Welcome(int dollId, string newSecret = "", int identityId = 0, string catalogStamp = "")
 		{
 			string secret = string.IsNullOrEmpty(newSecret) ? string.Empty : newSecret;
 			return "{\"type\":\"" + WELCOME + "\",\"id\":" + dollId
 				+ ",\"identityId\":" + identityId
-				+ ",\"secret\":\"" + secret + "\"}";
+				+ ",\"secret\":\"" + secret + "\""
+				+ ",\"catalogStamp\":\"" + catalogStamp + "\"}";
 		}
 
 		/// <summary>서버가 보내는 세계 모습.</summary>

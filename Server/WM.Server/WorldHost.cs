@@ -67,8 +67,42 @@ namespace WitchMendokusai.Server
 		/// <summary>걸음 지갑이 비어 되돌린 걸음 수 — 속이는 창이 있으면 여기가 오른다 (TASK-WM-222).</summary>
 		private long refusedSteps;
 
+		/// <summary>창이 이미 들고 있어 안 보낸 낱말표 묶음 수 (TASK-WM-238).</summary>
+		private long catalogsSkipped;
+
 		/// <summary>미리 눌러 둔 창 파일들 (TASK-WM-226).</summary>
 		private StaticSqueeze squeeze;
+
+		private string catalogStampCache;
+
+		/// <summary>
+		/// 낱말표·지을 것·솥 재료·마도서·제작표를 아우르는 <b>도장</b> (TASK-WM-238).
+		///
+		/// ★ 왜: 이것들은 서버가 도는 동안 <b>안 바뀐다</b>. 그런데 붙을 때마다 다시 나갔다 —
+		///   실측 2026-08-12: 한 번 붙는 데 30.2KB, 그중 <b>7.2KB 가 이 다섯</b>이다.
+		///   회선이 나쁘면 다시 붙는 일이 잦고, 그때마다 같은 7.2KB 를 또 받는다
+		///   (초당 4KB 회선에서는 그것만 2초다 — 그동안 세계는 안 흐른다).
+		///   창이 「나 이 도장 들고 있다」고 하면 안 보낸다.
+		/// </summary>
+		private string CatalogStamp
+		{
+			get
+			{
+				if (catalogStampCache != null)
+					return catalogStampCache;
+
+				string all = Protocol.Catalog(ItemsCatalog.Names())
+					+ Protocol.BuildCatalog(World.Buildables.All)
+					+ Protocol.BrewShelf(World.Ingredients.All)
+					+ Protocol.Spellbook(ServerRecipeBook.Book.Pages)
+					+ Protocol.CraftBook(ServerCraftBook.Book.Recipes);
+
+				using System.Security.Cryptography.SHA256 maker = System.Security.Cryptography.SHA256.Create();
+				byte[] print = maker.ComputeHash(Encoding.UTF8.GetBytes(all));
+				catalogStampCache = System.Convert.ToHexString(print).Substring(0, 16).ToLowerInvariant();
+				return catalogStampCache;
+			}
+		}
 
 		/// <summary>누가 <b>언제</b> 움직였나 — 몰린 자리에서 자리를 떼어 줄 사람을 고르는 데 쓴다 (TASK-WM-227).</summary>
 		private readonly ConcurrentDictionary<int, long> movedAt = new ConcurrentDictionary<int, long>();
@@ -157,6 +191,9 @@ namespace WitchMendokusai.Server
 			///   자리에 영원히</b> 서 있게 된다. 전에는(늘 전부 보낼 때) 다음 판이 알아서 고쳐 줬다.
 			/// </summary>
 			public bool MissedAPlate;
+
+			/// <summary>낱말표를 이미 보냈나 — 인사와 유예가 겹쳐도 한 번만 나가게 (TASK-WM-238).</summary>
+			public int CatalogsSent;
 
 			/// <summary>연달아 몇 판을 못 받았나 — 이만큼 사람 수를 줄여 준다 (TASK-WM-228).</summary>
 			public int MissedInARow;
@@ -290,6 +327,7 @@ namespace WitchMendokusai.Server
 				broadcastSnapshotMessages = Interlocked.Read(ref broadcastSnapshotMessages),
 				builtSnapshots = Interlocked.Read(ref builtSnapshots),
 				refusedSteps = Interlocked.Read(ref refusedSteps),
+				catalogsSkipped = Interlocked.Read(ref catalogsSkipped),
 				narrowedWindows = CountNarrowed(),
 				squeezedFiles = squeeze == null ? 0 : squeeze.Count,
 
@@ -363,6 +401,34 @@ namespace WitchMendokusai.Server
 			return app;
 		}
 
+		/// <summary>인사를 안 하는 창에도 낱말표를 주기까지 기다리는 시간.</summary>
+		private const int WAIT_FOR_HELLO_MS = 1000;
+
+		/// <summary>
+		/// 낱말표 다섯을 보낸다 — 창이 같은 도장을 들고 있으면 <b>안 보낸다</b> (TASK-WM-238).
+		/// 두 번 보내지 않는다(인사가 와도, 유예가 끝나도 한 번뿐이다).
+		/// </summary>
+		private async Task SendCatalogsUnlessKnownAsync(Connection connection, string knownStamp, int waitMilliseconds)
+		{
+			if (waitMilliseconds > 0)
+				await Task.Delay(waitMilliseconds);
+
+			if (Interlocked.CompareExchange(ref connection.CatalogsSent, 1, 0) != 0)
+				return;
+
+			if (knownStamp == CatalogStamp)
+			{
+				Interlocked.Increment(ref catalogsSkipped);
+				return;
+			}
+
+			await SendAsync(connection, Protocol.Catalog(ItemsCatalog.Names()));
+			await SendAsync(connection, Protocol.BuildCatalog(World.Buildables.All));
+			await SendAsync(connection, Protocol.BrewShelf(World.Ingredients.All));
+			await SendAsync(connection, Protocol.Spellbook(ServerRecipeBook.Book.Pages));
+			await SendAsync(connection, Protocol.CraftBook(ServerCraftBook.Book.Recipes));
+		}
+
 		private async Task ServeAsync(WebSocket socket, CancellationToken stopping)
 		{
 			// ★ 먼저 받아 주고, 열쇠는 오면 그때 붙인다 (TASK-WM-218).
@@ -371,7 +437,7 @@ namespace WitchMendokusai.Server
 			WorldDoll doll = World.Join();
 			Connection connection = new Connection(socket);
 			sockets[doll.Id] = connection;
-			await SendAsync(connection, Protocol.Welcome(doll.Id));
+			await SendAsync(connection, Protocol.Welcome(doll.Id, catalogStamp: CatalogStamp));
 
 			// 이름표도 들어올 때 한 번 — 그 뒤로는 바뀔 때만 온다 (TASK-WM-220).
 			{
@@ -385,20 +451,11 @@ namespace WitchMendokusai.Server
 					await SendAsync(connection, Protocol.Names(allNames));
 			}
 
-			// 낱말표는 들어올 때 한 번 — 이게 있어야 창이 「돌 3개」라고 말할 수 있다(없으면 「17450 3개」).
-			await SendAsync(connection, Protocol.Catalog(ItemsCatalog.Names()));
-
-			// 지을 수 있는 것도 한 번 — 크기를 세계가 알려 줘야 창이 미리 그려 볼 수 있다.
-			await SendAsync(connection, Protocol.BuildCatalog(World.Buildables.All));
-
-			// 솥에 넣을 수 있는 것도 한 번 — 창이 「무엇을 넣을까」 고르게 하려면 필요하다.
-			await SendAsync(connection, Protocol.BrewShelf(World.Ingredients.All));
-
-			// 마도서도 한 번 — 무엇을 만들 수 있는지 모르면 조리는 그냥 버튼 누르기다.
-			await SendAsync(connection, Protocol.Spellbook(ServerRecipeBook.Book.Pages));
-
-			// 제작표도 한 번 — 솥과 갈라지는 자리다(솥은 저어서, 제작은 재료를 모아서).
-			await SendAsync(connection, Protocol.CraftBook(ServerCraftBook.Book.Recipes));
+			// ★ 낱말표·지을 것·솥 재료·마도서·제작표는 <b>인사를 보고</b> 보낸다 (TASK-WM-238).
+			//   창이 「나 이 도장 들고 있다」고 하면 안 보낸다 — 7.2KB 를 아낀다.
+			//   ⚠ 인사를 안 하는 옛 창도 있다(그래서 접속은 인사를 안 기다린다). 그런 창에는
+			//     잠깐 기다렸다가 그냥 보낸다 — 낱말표가 없으면 화면이 「17450 3개」가 된다.
+			_ = SendCatalogsUnlessKnownAsync(connection, null, WAIT_FOR_HELLO_MS);
 
 			// ⚠ 판 번호를 <b>그림 뜨기 전에</b> 붙잡는다 — 뜬 뒤에 누가 집을 지으면 그 집이
 			//   「이미 보낸 것」으로 둔갑해 이 창에서 영영 안 보인다.
@@ -493,6 +550,9 @@ namespace WitchMendokusai.Server
 
 			if (kind == Protocol.HELLO)
 			{
+				// 창이 이미 들고 있다는 도장 — 같으면 낱말표 다섯을 안 보낸다 (TASK-WM-238).
+				_ = SendCatalogsUnlessKnownAsync(socket, ReadStringField(text, "knownCatalogs"), 0);
+
 				string secret = ReadHelloSecret(text);
 
 				// 계정을 댔으면 그걸 먼저 본다 — 기기 열쇠는 기기만 알아보기 때문이다.
@@ -534,7 +594,7 @@ namespace WitchMendokusai.Server
 					_ = EvictAsync(evicted);
 				}
 
-				await SendAsync(socket, Protocol.Welcome(dollId, grantedSecret, person.id));
+				await SendAsync(socket, Protocol.Welcome(dollId, grantedSecret, person.id, CatalogStamp));
 
 				// 인사 뒤에도 전체 그림을 한 번 — 이때 자리·가방이 그 사람 것으로 바뀌고,
 				// 방송은 「바뀐 것만」 실으므로 이 한 장이 없으면 집·들판을 영영 못 볼 수 있다.

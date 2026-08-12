@@ -8,6 +8,8 @@ export interface Hello {
 	secret: string;
 	klCode?: string;
 	klSession?: string;
+	/** 이미 들고 있는 낱말표·제작표의 도장 — 같으면 세계가 그것들을 다시 안 보낸다. */
+	knownCatalogs?: string;
 }
 
 /** 서버 -> 창: 접속했다. secret 이 비어있지 않으면 새로 받은 열쇠(적어 둘 것). */
@@ -16,6 +18,8 @@ export interface Welcome {
 	id: number;
 	identityId: number;
 	secret: string;
+	/** 이 서버 판의 낱말표·제작표 도장 — hello 에 되돌려 주면 그것들을 안 보낸다. */
+	catalogStamp: string;
 }
 
 /** 세계에 있는 인형 하나. */
