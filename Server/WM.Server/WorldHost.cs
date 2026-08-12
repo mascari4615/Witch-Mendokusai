@@ -554,7 +554,12 @@ namespace WitchMendokusai.Server
 			//   멈춰 섰다(스모크 4개가 그 자리에서 죽었다). 접속은 인사를 기다리지 않는다.
 			WorldDoll doll = World.Join();
 			Connection connection = new Connection(socket);
-			sockets[doll.Id] = connection;
+
+			// ⚠ 여기서 <b>아직 방송 목록에 안 넣는다</b> (TASK-WM-301). 넣어 두면 방송 루프가
+			//   <b>첫 전체 그림보다 먼저</b> 「바뀐 것만」 판을 보낼 수 있다 — 그 판은 번호가 더 커서,
+			//   뒤늦게 도착한 첫 전체 그림이 창에게 「지난 판」으로 버려진다.
+			//   그러면 창은 붙었는데도 <b>텅 빈 세계</b>를 본다(실측: 지연 없는 회선에서 seq 10 → 9).
+			//   전체 그림을 보낸 <b>뒤에</b> 목록에 넣는다.
 			await SendAsync(connection, Protocol.Welcome(doll.Id, catalogStamp: CatalogStamp));
 
 			// 이름표도 들어올 때 한 번 — 그 뒤로는 바뀔 때만 온다 (TASK-WM-220).
@@ -594,6 +599,9 @@ namespace WitchMendokusai.Server
 				NextSnapshotSequence(),
 				CauldronCellsVisibleTo(doll.Id)));
 			MarkSnapshotState(connection, doll.Id, joinBuildVersion, joinFieldVersion, joinPotVersion);
+
+			// ★ 이제야 방송 목록에 넣는다 — 첫 전체 그림이 <b>확실히 먼저</b> 나간 뒤다 (TASK-WM-301).
+			sockets[doll.Id] = connection;
 
 			// 이 연결의 말 예산 — 창 하나가 모두의 세계를 느리게 만들지 못하게 (TASK-WM-218).
 			WitchMendokusai.Net.MessageBudget budget = new WitchMendokusai.Net.MessageBudget();

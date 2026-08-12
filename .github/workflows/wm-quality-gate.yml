@@ -56,6 +56,7 @@ on:
       - '.github/scripts/wm-web-answer-test.mjs'
       - '.github/scripts/wm-web-build-test.mjs'
       - '.github/scripts/wm-server-soak-test.mjs'
+      - '.github/scripts/wm-web-long-outage-test.mjs'
       - '.github/scripts/wm-dead-parameter-audit.mjs'
       - '.github/scripts/lib/bad-line.mjs'
       - '.github/scripts/wm-game-client-gate.mjs'
@@ -96,6 +97,7 @@ on:
       - '.github/scripts/wm-web-answer-test.mjs'
       - '.github/scripts/wm-web-build-test.mjs'
       - '.github/scripts/wm-server-soak-test.mjs'
+      - '.github/scripts/wm-web-long-outage-test.mjs'
       - '.github/scripts/wm-dead-parameter-audit.mjs'
       - '.github/scripts/lib/bad-line.mjs'
       - '.github/scripts/wm-game-client-gate.mjs'
@@ -358,6 +360,14 @@ jobs:
         env:
           WM_SOAK_MS: 90000
         run: node ./.github/scripts/wm-server-soak-test.mjs
+
+      # TASK-WM-300/301 -- 지금까지의 "다시 붙기"는 전부 짧은 끊김이었다(몇 초). 배포는 40초 남짓,
+      # 노트북은 잠들었다 깬다. 이 관문이 세우자마자 "같은 기계에서 열면 세계가 텅 빈다"를 잡았다.
+      - name: Run long outage test
+        env:
+          WM_PLAYWRIGHT_ROOT: /tmp/wm-playwright
+          WM_OUTAGE_MS: 30000
+        run: node ./.github/scripts/wm-web-long-outage-test.mjs
 
   unity:
     name: EditMode tests (laptop runner)

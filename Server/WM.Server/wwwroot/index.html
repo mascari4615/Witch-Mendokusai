@@ -469,6 +469,9 @@ const canvas = document.getElementById('board');
 let myId = null;
 let dolls = [];
 let lastWorldSequence = 0;
+
+/** 전체 그림을 한 번이라도 받았나 — 그 전에는 번호가 낮은 전체 그림도 받는다 (TASK-WM-301). */
+let sawWholeWorld = false;
 let buildings = [];
 let gatherables = [];
 let bag = [];
@@ -868,6 +871,7 @@ function takeOver(next, waiting) {
 	// 새 세계는 나를 처음부터 그려 준다 — 지난 판 번호를 들고 있으면 새 그림을 옛것으로 읽는다.
 	myId = null;
 	lastWorldSequence = 0;
+	sawWholeWorld = false;
 	stepNumber = 0;
 	stepsWaiting = [];
 	sentUpTo = null;
@@ -889,6 +893,7 @@ function onLinkClose() {
 	// 새 스냅샷을 「오래된 것」으로 읽고 버린다(화면이 영원히 안 갱신된다).
 	myId = null;
 	lastWorldSequence = 0;
+	sawWholeWorld = false;
 
 	const next = reconnect.closed();
 	if (next.retry === false) {
@@ -1157,7 +1162,15 @@ function onLinkMessage(event) {
 	}
 
 	if (message.type === 'world') {
-		if (message.sequence > 0 && message.sequence <= lastWorldSequence) return;
+		// ★ <b>첫 전체 그림은 번호가 낮아도 받는다</b> (TASK-WM-301).
+		//   판이 뒤바뀌어 오면(지연 0 인 회선에서 실측: seq 10 → 9) 진짜 첫 전체 그림이
+		//   「지난 판」으로 버려지고, 그러면 창은 붙은 채로 <b>텅 빈 세계</b>를 본다.
+		//   세계 쪽도 순서를 지키게 고쳤지만(WM-301), 창도 스스로를 지킨다.
+		const wholeWorld = message.changed !== true;
+		const firstWholeWorld = sawWholeWorld === false && wholeWorld;
+		if (firstWholeWorld) sawWholeWorld = true;
+		else if (message.sequence > 0 && message.sequence <= lastWorldSequence) return;
+
 		if (message.sequence > 0) lastWorldSequence = message.sequence;
 
 		// ★ 여기서 세우지 않는다 — <b>가장 최근 것만</b> 다음 프레임에 세운다.
@@ -1171,7 +1184,13 @@ function onLinkMessage(event) {
 		//   통째로 버려진다 — 들판 67자리가 0 이 됐다(실측 2026-08-12, 관문이 잡았다).
 		//   지나간 판을 건너뛰는 것과 안 읽고 버리는 것은 다르다.
 		pendingWorld = message;
-		if (replaying)
+
+		// ★ <b>첫 전체 그림은 그 자리에서 세운다</b> (TASK-WM-301).
+		//   화면은 초당 60번 그리지만 세계는 초당 20번 말한다 — 그래서 「마지막 것만」 세우는데,
+		//   첫 프레임이 돌기 <b>전에</b> 「바뀐 것만」 판이 뒤이어 오면 그 판이 첫 전체 그림을 덮는다.
+		//   그러면 창은 <b>바탕이 없는 채로</b> 델타만 쌓아 텅 빈 세계를 그린다(실측: 지연 0 회선에서
+		//   처음 세운 판이 seq 14 델타였다 — 앞의 전체 그림 다섯 장이 통째로 지나갔다).
+		if (replaying || firstWholeWorld)
 			applyPendingWorld();
 
 		return;
