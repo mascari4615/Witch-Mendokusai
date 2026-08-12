@@ -474,6 +474,7 @@ namespace WitchMendokusai.ServerTests
 			// ⚠ move 는 「목적지」가 아니라 「이쪽으로」다 — 지금 자리에서 뺀 방향을 보내야 한다
 			//   (절대 좌표를 그대로 보내면 원점 근처에서만 우연히 맞는다, 실측 2026-08-10).
 			// ⚠ 한꺼번에 쏟아부으면 말 예산에 걸려 조용히 버려진다.
+			bool arrived = false;
 			for (int step = 0; step < 60; step++)
 			{
 				string now = await WaitForAsync(socket, text => text.Contains("\"dolls\":[{"));
@@ -495,7 +496,19 @@ namespace WitchMendokusai.ServerTests
 				double toX = targetX - atX;
 				double toZ = targetZ - atZ;
 				if (toX * toX + toZ * toZ <= 2.0 * 2.0)
-					break;
+				{
+					// ⚠ 「닿았다」를 <b>한 판</b>으로 판단하면 안 된다 — 방금 보낸 걸음이 아직 안 실린
+					//   그림일 수 있고, 그 걸음이 나를 <b>지나쳐</b> 세운다. 그러면 곧바로 이어지는
+					//   줍기가 「손이 안 닿는다」로 거절된다(세계가 자주 말할수록 잘 밟힌다 — 실측 5건).
+					//   그래서 <b>연달아 두 판</b>이 닿는 자리일 때만 걸음을 멈춘다.
+					if (arrived)
+						break;
+
+					arrived = true;
+					continue;
+				}
+
+				arrived = false;
 
 				await SendAsync(socket, "{\"type\":\"move\",\"x\":" + toX.ToString("F3", System.Globalization.CultureInfo.InvariantCulture)
 					+ ",\"z\":" + toZ.ToString("F3", System.Globalization.CultureInfo.InvariantCulture) + "}");
@@ -625,6 +638,7 @@ namespace WitchMendokusai.ServerTests
 			using CancellationTokenSource timeout = TestTimeout.After(10);
 			byte[] buffer = new byte[16384];
 			System.Collections.Generic.List<string> heard = new System.Collections.Generic.List<string>();
+			StringBuilder pending = new StringBuilder();
 
 			try
 			{
@@ -634,13 +648,22 @@ namespace WitchMendokusai.ServerTests
 					if (received.MessageType == WebSocketMessageType.Close)
 						break;
 
-					string text = Encoding.UTF8.GetString(buffer, 0, received.Count);
+					// ⚠ 한 말이 여러 조각으로 나뉘어 온다 — 조각째 읽으면 <b>깨진 글</b>을 보게 된다.
+					//   세계가 자주 말할수록 조각날 확률이 커져, 시험이 「안 왔다」로 죽는다(실측 5건).
+					pending.Append(Encoding.UTF8.GetString(buffer, 0, received.Count));
+					if (received.EndOfMessage == false)
+						continue;
+
+					string text = pending.ToString();
+					pending.Clear();
+
 					if (matches(text))
 						return text;
 
 					// 못 만난 말도 몇 개 들고 있는다 — 빨개졌을 때 「대신 뭐가 왔나」를 보여 주려고.
-					heard.Add(text.Length > 400 ? text.Substring(0, 400) + "…" : text);
-					if (heard.Count > 3)
+					if (text.Contains("\"world\"") == false)
+						heard.Add(text.Length > 400 ? text.Substring(0, 400) + "…" : text);
+					if (heard.Count > 6)
 						heard.RemoveAt(0);
 				}
 			}
