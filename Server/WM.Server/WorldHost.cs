@@ -213,6 +213,15 @@ namespace WitchMendokusai.Server
 			public SemaphoreSlim SendGate { get; } = new SemaphoreSlim(1, 1);
 
 			/// <summary>
+			/// 이 창이 보낸 걸음 중 <b>세계가 본 마지막 번호</b> (TASK-WM-271).
+			/// 받아들였든 물렸든 「봤다」다 — 창은 이걸로 아직 답 안 온 걸음을 가려낸다.
+			/// </summary>
+			public int SawStep;
+
+			/// <summary>그중 창에 <b>알려 준</b> 번호 — 안 바뀌었으면 안 보낸다(줄을 먹지 않게).</summary>
+			public int ToldStep;
+
+			/// <summary>
 			/// 지금 이 창에 알림을 보내는 중인가 (TASK-WM-217).
 			///
 			/// ★ 왜 필요한가: 방송 루프가 창들을 <b>차례로 기다리며</b> 보냈다. 그래서 화면을 안 읽는
@@ -905,6 +914,16 @@ namespace WitchMendokusai.Server
 				{
 					float x = root.TryGetProperty("x", out JsonElement xElement) ? (float)xElement.GetDouble() : 0f;
 					float z = root.TryGetProperty("z", out JsonElement zElement) ? (float)zElement.GetDouble() : 0f;
+
+					// ★ 이 걸음의 번호를 적어 둔다 (TASK-WM-271) — <b>물린 걸음도</b> 적는다.
+					//   창은 「세계가 여기까지 봤다」를 알아야 아직 답 안 온 걸음만 다시 굴린다.
+					//   안 그러면 창은 늦은 회선만큼 앞서 나가고, 그 앞섬은 회선에 비례해 자란다(WM-270).
+					if (sockets.TryGetValue(dollId, out Connection walking))
+					{
+						int step = root.TryGetProperty("seq", out JsonElement seqElement) ? (int)seqElement.GetDouble() : 0;
+						if (step > walking.SawStep)
+							walking.SawStep = step;
+					}
 
 					// 한 걸음 크기만 자르는 것으로는 못 막는다 — 빨리 보내면 빨리 갔다. 시계가 심판한다.
 					Vector3 allowed = moveAllowance.Allow(dollId, System.Environment.TickCount64, new Vector3(x, 0f, z));
@@ -1629,6 +1648,14 @@ namespace WitchMendokusai.Server
 						if (mine != null && MyPlaceChanged(target, mine))
 							_ = SendAsync(target, Protocol.Me(mine, Identities.NameOf));
 					}
+					// ★ 네 걸음을 여기까지 봤다 (TASK-WM-271) — <b>바뀌었을 때만</b> 한 마디.
+					//   가만히 선 사람에게는 한 번도 안 간다(걷는 사람만 이 스무 바이트를 받는다).
+					if (target.SawStep != target.ToldStep)
+					{
+						target.ToldStep = target.SawStep;
+						_ = SendAsync(target, Protocol.StepSeen(target.SawStep));
+					}
+
 					// ⚠ 「보냈다」 표시는 <b>실제로 나간 뒤에</b> 한다. 먼저 표시했다가 그 보내기가
 					//   실패하면 그 창은 그 집을 <b>영영</b> 못 받는다(다음에 또 바뀌기 전까지).
 					//   화면엔 아무 일도 안 일어난 것처럼 보인다 — 「남이 지은 집이 안 보이던 것」의 부류다.

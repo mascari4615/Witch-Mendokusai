@@ -64,6 +64,14 @@ namespace WitchMendokusai.Server
 		/// <summary>세계 → <b>이웃 세계</b>: 국경 띠에 선 사람이 이렇게 말했다 (TASK-WM-264).</summary>
 		public const string HEARD = "heard";
 
+		/// <summary>
+		/// 세계 → 그 창에게만: <b>네 걸음을 여기까지 봤다</b> (TASK-WM-271).
+		///
+		/// ⚠ 창의 앞질러 그리기를 <b>되감는</b> 데 쓴다 — 창은 세계가 아는 자리에서 다시 시작해
+		///   아직 답 안 온 걸음만 얹는다. 그래야 앞섬이 회선에 비례해 자라지 않는다.
+		/// </summary>
+		public const string STEP_SEEN = "stepseen";
+
 		// 무엇이 거절됐나 — 창이 자리별로 다르게 보여 줄 수 있게 이름을 준다.
 		public const string DENIED_PLACE = "place";
 		public const string DENIED_GATHER = "gather";
@@ -564,6 +572,12 @@ namespace WitchMendokusai.Server
 				+ ",\"text\":" + JsonSerializer.Serialize(line ?? string.Empty, textOptions)
 				+ ",\"x\":" + x.ToString("F2", System.Globalization.CultureInfo.InvariantCulture)
 				+ ",\"z\":" + z.ToString("F2", System.Globalization.CultureInfo.InvariantCulture) + "}";
+		}
+
+		/// <summary>네 걸음을 여기까지 봤다 (TASK-WM-271) — 스무 바이트짜리 한 마디.</summary>
+		public static string StepSeen(int seq)
+		{
+			return "{\"type\":\"" + STEP_SEEN + "\",\"seq\":" + seq + "}";
 		}
 
 		/// <summary>이름표 — 바뀐 사람만 담아 모두에게 보낸다 (TASK-WM-220).</summary>

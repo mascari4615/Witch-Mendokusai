@@ -929,6 +929,13 @@ function onLinkMessage(event) {
 		return;
 	}
 
+	// 네 걸음을 여기까지 봤다 (TASK-WM-271) — 답 온 걸음은 버리고, 나머지만 다시 굴린다.
+	if (message.type === 'stepseen') {
+		stepsWaiting = stepsWaiting.filter((one) => one.seq > message.seq);
+		replayMySteps();
+		return;
+	}
+
 	// 누가 맞았다 (TASK-WM-251) — 몸은 <b>세계가 준 값</b>만 쓴다(스스로 셈하면 갈라진다).
 	if (message.type === 'hurt') {
 		health.set(message.dollId, message.health);
@@ -958,6 +965,12 @@ function onLinkMessage(event) {
 		if (message.secret) {
 			try { localStorage.setItem(KEY_NAME, message.secret); } catch (e) { /* 저장 못 해도 게임은 돈다 */ }
 		}
+
+		// ⚠ 다시 붙었으면(또는 저 세계로 넘어왔으면) 걸음 번호는 <b>처음부터</b>다 —
+		//   저쪽 세계는 내 옛 번호를 모른다. 안 비우면 답이 영영 안 와 되감기가 멈춘다.
+		stepNumber = 0;
+		stepsWaiting = [];
+		sentUpTo = null;
 
 		document.getElementById('me').textContent = message.identityId ? `${message.identityId}번 사람` : '손님';
 		return;
@@ -1104,17 +1117,63 @@ function updateLocalMovement(dt) {
 	selfView.targetZ = next.z;
 }
 
+/*
+ * <b>되감아 다시 굴리기</b> (TASK-WM-271).
+ *
+ * ★ 왜: 전에는 매번 「내가 그리는 자리 − <b>세계가 아는 자리</b>」를 걸음으로 보냈다. 그런데
+ *   세계가 아는 자리는 회선만큼 낡았다 — 방금 보낸 걸음이 아직 반영 안 된 자리다. 그래서
+ *   같은 땅을 여러 번 보내고, 세계는 그걸 잘라 내며 따라온다. 앞섬이 회선에 <b>비례해</b>
+ *   자란 이유가 그것이다(WM-270 실측: 왕복 200ms 에 1.9m, 800ms 에 4.0m → 뒤로 끌려감).
+ *
+ * ★ 그래서 걸음마다 번호를 붙이고, 세계는 「여기까지 봤다」를 돌려준다(stepseen).
+ *   창은 세계가 아는 자리에서 <b>되감아</b> 아직 답 안 온 걸음만 다시 얹는다 —
+ *   그러면 앞섬은 <b>아직 답 안 온 걸음만큼</b>이고, 회선이 아무리 늦어도 안 자란다.
+ */
+let stepNumber = 0;
+let stepsWaiting = [];      // 아직 「봤다」가 안 온 걸음들
+let sentUpTo = null;        // 마지막으로 보낸 걸음까지 갔을 때의 자리
+
+/** 세계가 아는 자리 + 아직 답 안 온 걸음 = <b>세계가 곧 알게 될</b> 내 자리. */
+function whereWorldWillPutMe(selfView) {
+	let x = selfView.serverX;
+	let z = selfView.serverZ;
+	for (const one of stepsWaiting) {
+		x += one.x;
+		z += one.z;
+	}
+
+	return { x, z };
+}
+
+/** 세계 소식이 왔다 — 되감아 다시 굴린다(아직 안 보낸 몫은 그대로 얹어 둔다). */
+function replayMySteps() {
+	const selfView = myId === null ? null : dollViews.get(myId);
+	if (!selfView) return;
+
+	const base = whereWorldWillPutMe(selfView);
+	const pendingX = sentUpTo === null ? 0 : selfView.targetX - sentUpTo.x;
+	const pendingZ = sentUpTo === null ? 0 : selfView.targetZ - sentUpTo.z;
+
+	selfView.targetX = base.x + pendingX;
+	selfView.targetZ = base.z + pendingZ;
+	sentUpTo = base;
+}
+
 setInterval(() => {
 	if (socket === null || socket.readyState !== WebSocket.OPEN || myId === null) return;
 
 	const selfView = dollViews.get(myId);
 	if (!selfView) return;
 
-	const step = stepToSend({ x: selfView.targetX, z: selfView.targetZ },
-		{ x: selfView.serverX, z: selfView.serverZ });
+	// 보낼 걸음은 <b>이미 보낸 데서부터</b>의 차이다 — 세계가 아는 자리에서 재면 같은 땅을 또 보낸다.
+	const from = sentUpTo === null ? whereWorldWillPutMe(selfView) : sentUpTo;
+	const step = stepToSend({ x: selfView.targetX, z: selfView.targetZ }, from);
 	if (step === null) return;
 
-	tell({ type: 'move', x: step.x, z: step.z });
+	stepNumber += 1;
+	stepsWaiting.push({ seq: stepNumber, x: step.x, z: step.z });
+	sentUpTo = { x: from.x + step.x, z: from.z + step.z };
+	tell({ type: 'move', x: step.x, z: step.z, seq: stepNumber });
 }, SEND_EVERY_MS);
 
 // 드래그로 둘러보기 — 세계를 도는 것은 눈뿐이고, 세계 자체는 서버 것이다.
