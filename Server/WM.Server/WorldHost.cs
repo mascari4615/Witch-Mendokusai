@@ -29,6 +29,15 @@ namespace WitchMendokusai.Server
 		/// <summary>세계를 디스크로 내리는 간격 — 바뀐 게 있을 때만 쓴다.</summary>
 		private const int SAVE_INTERVAL_MILLISECONDS = 5000;
 
+		/// <summary>
+		/// 한 곳에서 한꺼번에 붙을 수 있는 창 수 — 넘으면 더 안 받는다 (TASK-WM-220).
+		///
+		/// ★ 왜: 인사 안 한 손님도 접속마다 인형과 신원을 받는다. 한 사람이 소켓을 계속 열면
+		///   세계의 기억과 품이 그만큼 늘어난다(창 하나로 세계를 재우는 길). 사람이 한 기기에서
+		///   창 몇 개를 여는 건 정상이라, 넉넉히 두되 <b>끝이 있게</b> 한다.
+		/// </summary>
+		private const int MAX_WINDOWS_PER_PLACE = 8;
+
 		/// <summary>실제 1초에 세계의 몇 분이 흐르나 — 게임의 WorldClockSO 와 맞춰야 할 값.</summary>
 		private const float MINUTES_PER_REAL_SECOND = 1f;
 
@@ -66,6 +75,10 @@ namespace WitchMendokusai.Server
 				System.Collections.Generic.Dictionary<int, (float X, float Z)>>();
 
 		/// <summary>칸마다 <b>지난 판에 그 칸으로 내보낸 들판</b> (번호 → 개수) — 바뀐 자리만 보내려고.</summary>
+		/// <summary>곳마다 지금 몇 창이 붙어 있나 (TASK-WM-220).</summary>
+		private readonly System.Collections.Generic.Dictionary<string, int> windowsPerPlace =
+			new System.Collections.Generic.Dictionary<string, int>(System.StringComparer.Ordinal);
+
 		private readonly System.Collections.Generic.Dictionary<string,
 			System.Collections.Generic.Dictionary<int, int>> lastCellField =
 			new System.Collections.Generic.Dictionary<string,
@@ -222,12 +235,28 @@ namespace WitchMendokusai.Server
 				// ★ 창 크기를 11비트로 줄인 이유: 기본값은 창 하나마다 300KB 를 물고 있어
 				//   사람 400명이면 100MB 를 압축 버퍼로만 쓴다. 11비트면 그 1/16 이고,
 				//   판 하나가 3KB 짜리라 압축률은 거의 안 떨어진다.
+				// 한 곳에서 너무 많이 붙으면 더 안 받는다 — 세계가 한 창에 잠기지 않게.
+				string origin = ClientOrigin.Of(context);
+				if (TryEnterPlace(origin) == false)
+				{
+					context.Response.StatusCode = 429;
+					return;
+				}
+
 				WebSocket socket = await context.WebSockets.AcceptWebSocketAsync(new WebSocketAcceptContext
 				{
 					DangerousEnableCompression = true,
 					ServerMaxWindowBits = 11,
 				});
-				await ServeAsync(socket, app.Lifetime.ApplicationStopping);
+				try
+				{
+					await ServeAsync(socket, app.Lifetime.ApplicationStopping);
+				}
+				finally
+				{
+					// 창이 닫히면 그 곳의 자리도 돌려준다 — 안 돌려주면 그 곳은 <b>영영</b> 못 들어온다.
+					LeavePlace(origin);
+				}
 			});
 
 			// 세계는 서버보다 오래 산다 (단계 5) — 뜨자마자 지난 기억을 되살린다.
@@ -1217,6 +1246,42 @@ namespace WitchMendokusai.Server
 		{
 			foreach (System.Collections.Generic.KeyValuePair<int, Connection> entry in sockets)
 				entry.Value.MissedAPlate = true;
+		}
+
+		/// <summary>그 곳에서 하나 더 붙어도 되나 — 되면 세어 둔다.</summary>
+		private bool TryEnterPlace(string origin)
+		{
+			// 같은 기계에서 온 창은 안 센다 — 그건 세계를 돌리는 사람 자신이다(위 ClientOrigin 참고).
+			if (ClientOrigin.IsSameMachine(origin))
+				return true;
+
+			lock (windowsPerPlace)
+			{
+				windowsPerPlace.TryGetValue(origin, out int open);
+				if (open >= MAX_WINDOWS_PER_PLACE)
+					return false;
+
+				windowsPerPlace[origin] = open + 1;
+				return true;
+			}
+		}
+
+		/// <summary>그 곳의 창 하나가 닫혔다 — 0 이 되면 장부에서 지운다(오래 돌아도 안 부풀게).</summary>
+		private void LeavePlace(string origin)
+		{
+			if (ClientOrigin.IsSameMachine(origin))
+				return;
+
+			lock (windowsPerPlace)
+			{
+				if (windowsPerPlace.TryGetValue(origin, out int open) == false)
+					return;
+
+				if (open <= 1)
+					windowsPerPlace.Remove(origin);
+				else
+					windowsPerPlace[origin] = open - 1;
+			}
 		}
 
 		private void UpdateLargestSnapshot(long bytes)
