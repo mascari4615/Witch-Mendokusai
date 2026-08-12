@@ -167,7 +167,17 @@ namespace WitchMendokusai.Server
 					return;
 				}
 
-				WebSocket socket = await context.WebSockets.AcceptWebSocketAsync();
+				// ★ 줄 위에서 <b>압축해서</b> 나른다 (TASK-WM-217). 세계 소식은 같은 낱말이 반복되는
+				//   JSON 이라 잘 줄어든다. 브라우저는 이 압축(permessage-deflate)을 스스로 청한다 —
+				//   못 하는 창은 그냥 예전처럼 받는다(협상이라 깨지지 않는다).
+				// ★ 창 크기를 11비트로 줄인 이유: 기본값은 창 하나마다 300KB 를 물고 있어
+				//   사람 400명이면 100MB 를 압축 버퍼로만 쓴다. 11비트면 그 1/16 이고,
+				//   판 하나가 3KB 짜리라 압축률은 거의 안 떨어진다.
+				WebSocket socket = await context.WebSockets.AcceptWebSocketAsync(new WebSocketAcceptContext
+				{
+					DangerousEnableCompression = true,
+					ServerMaxWindowBits = 11,
+				});
 				await ServeAsync(socket, app.Lifetime.ApplicationStopping);
 			});
 
