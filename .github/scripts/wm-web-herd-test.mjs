@@ -104,6 +104,11 @@ function openWindow(number, where = `ws://127.0.0.1:${port}/ws`) {
 		tries: 0,
 		errors: 0,
 		rearmed: false,
+		id: 0,
+		identity: 0,
+		at: null,
+		bag: null,
+		field: null,
 	};
 
 	// ⚠ 다시 붙기를 <b>닫힘에만</b> 걸면 안 된다 (2026-08-13). node 22 는 <b>못 붙은</b> 소켓에
@@ -128,6 +133,9 @@ function openWindow(number, where = `ws://127.0.0.1:${port}/ws`) {
 		socket.onopen = () => {
 			one.waitMs = 500;
 			socket.send(JSON.stringify({ type: 'hello', secret: one.secret }));
+
+			// ⚠ 가방을 다시 묻는다 — 안 물으면 옛 값이 남아 <b>자기와 자기를</b> 견주게 된다(거짓 초록).
+			socket.send(JSON.stringify({ type: 'bagask' }));
 		};
 
 		socket.onmessage = (event) => {
@@ -136,6 +144,8 @@ function openWindow(number, where = `ws://127.0.0.1:${port}/ws`) {
 
 			if (said.type === 'welcome') {
 				one.joins += 1;
+				one.id = said.id || 0;
+				one.identity = said.identityId || one.identity;
 				if (said.secret) one.secret = said.secret;
 				if (one.backAt < 0) one.backAt = Date.now();
 			}
@@ -143,7 +153,20 @@ function openWindow(number, where = `ws://127.0.0.1:${port}/ws`) {
 			if (said.type === 'world') {
 				one.gotWorld += 1;
 				if (said.changed !== true) one.gotFullWorld += 1;
+
+				// 내 자리를 적어 둔다 — 「배포 뒤에도 제자리에 서 있나」를 보는 자리 (TASK-WM-281).
+				if (Array.isArray(said.dolls)) {
+					const mine = said.dolls.find((doll) => doll.id === one.id);
+					if (mine && typeof mine.x === 'number') one.at = { x: mine.x, z: mine.z };
+				}
 			}
+
+			// 세계가 준 가방 — 배포 뒤에도 그대로여야 한다.
+			if (said.type === 'bag') one.bag = JSON.stringify(said.items || []);
+
+			// 들판도 적어 둔다 — 무언가 주워 둬야 「가방이 그대로다」가 뜻을 가진다.
+			if (said.type === 'world' && Array.isArray(said.gatherables) && said.gatherables.length > 0)
+				one.field = said.gatherables;
 		};
 
 		socket.onerror = () => { one.errors += 1; retryLater(); };
@@ -182,6 +205,88 @@ await wait(4000);
 const joined = await fetch(`http://127.0.0.1:${port}/health`, { headers: { connection: 'close' } }).then((r) => r.json());
 check(`${herd}명이 세계에 있다`, joined.people >= herd, `세계가 세는 사람 ${joined.people}명`);
 
+// ★ 저마다 <b>다른 자리</b>로 걸어가고 무언가를 줍는다 (TASK-WM-281).
+//   배포는 「돌아오나」로 끝나는 일이 아니다 — 돌아온 사람이 <b>제자리에 제 가방으로</b> 서야 한다.
+//   다 원점에 서 있으면 자리가 지켜졌는지 알 수 없다.
+{
+	for (const one of windows) {
+		const angle = (one.number / herd) * Math.PI * 2;
+		for (let step = 0; step < 6; step += 1) {
+			if (one.socket.readyState !== 1) continue;
+
+			one.socket.send(JSON.stringify({ type: 'move', x: Math.cos(angle) * 1.2, z: Math.sin(angle) * 1.2 }));
+		}
+
+		if (one.socket.readyState === 1) one.socket.send(JSON.stringify({ type: 'bagask' }));
+	}
+
+	await wait(1500);
+
+	// 저마다 <b>제 옆의 것</b>까지 걸어가서 줍는다 — 빈 가방끼리 견주면 「그대로다」가 아무 말도 안 한다.
+	// ⚠ 멀리서 누르면 세계가 「손이 안 닿는다」로 물린다. 그리고 걸음은 한꺼번에 몰아 보내면
+	//   시계가 물린다(MoveAllowance) — 사람처럼 <b>띄엄띄엄</b> 보낸다.
+	for (const one of windows) {
+		one.goingTo = null;
+		if (one.field === null || one.at === null) continue;
+
+		for (const node of one.field) {
+			const away = Math.hypot(node.x - one.at.x, node.z - one.at.z);
+			if (one.goingTo === null || away < one.goingTo.away) one.goingTo = { id: node.id, x: node.x, z: node.z, away };
+		}
+	}
+
+	{
+		const until = Date.now() + 8000;
+		while (Date.now() < until) {
+			let walking = 0;
+			for (const one of windows) {
+				if (one.socket.readyState !== 1 || one.goingTo === null || one.at === null) continue;
+
+				const away = Math.hypot(one.goingTo.x - one.at.x, one.goingTo.z - one.at.z);
+				if (away <= 1.5) continue;
+
+				walking += 1;
+				const step = Math.min(1.2, away);
+				one.socket.send(JSON.stringify({
+					type: 'move',
+					x: (one.goingTo.x - one.at.x) / away * step,
+					z: (one.goingTo.z - one.at.z) / away * step,
+				}));
+			}
+
+			if (walking === 0) break;
+			await wait(120);
+		}
+	}
+
+	for (const one of windows) {
+		if (one.socket.readyState === 1 && one.goingTo !== null)
+			one.socket.send(JSON.stringify({ type: 'gather', nodeId: one.goingTo.id }));
+	}
+
+	await wait(1200);
+	for (const one of windows) {
+		if (one.socket.readyState === 1) one.socket.send(JSON.stringify({ type: 'bagask' }));
+	}
+
+	await wait(800);
+}
+
+// ⚠ 세계는 <b>5초마다</b> 적는다. 적기 전에 죽이면 그 몇 초는 원래 잃는 것이다(크래시).
+//   이 관문이 재려는 건 「적힌 뒤에 껐다 켜도 제자리로 오나」이므로, 한 번 적힐 틈을 준다.
+await wait(6500);
+
+const stoodAt = new Map(windows.map((one) => [one.number, one.at]));
+const carried = new Map(windows.map((one) => [one.number, one.bag]));
+const knownAs = new Map(windows.map((one) => [one.number, one.identity]));
+
+check('죽이기 전에 무언가를 든 사람이 있다',
+	[...carried.values()].filter((bag) => bag !== null && bag !== '[]').length > 0,
+	`${[...carried.values()].filter((bag) => bag !== null && bag !== '[]').length}명이 뭔가 들었다`);
+check('죽이기 전에 저마다 다른 자리에 섰다',
+	new Set([...stoodAt.values()].filter((at) => at !== null).map((at) => `${at.x},${at.z}`)).size >= herd / 2,
+	`서로 다른 자리 ${new Set([...stoodAt.values()].filter((at) => at !== null).map((at) => `${at.x},${at.z}`)).size}곳`);
+
 // ⚠ 여기까지의 셈은 <b>전부</b> 잊는다 — 돌아온 횟수까지 지워야 한다.
 //   안 지우면 붙는 도중에 한 번 튄 창이 이미 「돌아왔다」로 세어져 <b>거짓 초록</b>이 된다
 //   (첫 판에 「가장 늦은 사람 0ms」가 나왔다 — 아무도 안 돌아왔는데 통과할 수 있었다).
@@ -190,6 +295,10 @@ for (const one of windows) {
 	one.gotFullWorld = 0;
 	one.joins = 0;
 	one.backAt = -1;
+
+	// ⚠ 자리·가방도 지운다 — 안 지우면 죽기 전 값이 남아 <b>자기와 자기를</b> 견주게 된다.
+	one.at = null;
+	one.bag = null;
 }
 
 // ── 배포가 하는 일: 세계를 껐다 켠다 ─────────────────────────────────
@@ -233,6 +342,25 @@ check('돌아온 뒤 <b>전체 그림</b>을 받았다 (반쪽 세계가 아니�
 	`${gotFull.length}/${herd}명`);
 check(`가장 늦은 사람도 ${MUST_RETURN_WITHIN_MS / 1000}초 안에 돌아왔다`,
 	back.length === herd && slowest <= MUST_RETURN_WITHIN_MS, `가장 늦은 사람 ${slowest}ms`);
+
+// ── 돌아온 뒤 <b>제자리에 제 가방으로</b> 섰나 (TASK-WM-281) ────────────
+{
+	let samePlace = 0;
+	let sameBag = 0;
+	let samePerson = 0;
+	for (const one of windows) {
+		const was = stoodAt.get(one.number);
+		if (was !== null && one.at !== null && Math.hypot(one.at.x - was.x, one.at.z - was.z) <= 1.5)
+			samePlace += 1;
+
+		if (carried.get(one.number) !== null && one.bag === carried.get(one.number)) sameBag += 1;
+		if (knownAs.get(one.number) !== 0 && one.identity === knownAs.get(one.number)) samePerson += 1;
+	}
+
+	check('돌아온 사람이 <b>같은 사람</b>이다', samePerson === herd, `${samePerson}/${herd}명`);
+	check('돌아온 사람이 <b>제자리</b>에 섰다', samePlace === herd, `${samePlace}/${herd}명`);
+	check('돌아온 사람의 <b>가방</b>이 그대로다', sameBag === herd, `${sameBag}/${herd}명`);
+}
 
 console.log(`  ⓘ 사람 ${herd}명 · 세계가 꺼진 순간부터 가장 늦은 복귀 ${slowest}ms`
 	+ ` · 돌아온 뒤 받은 판 ${windows.reduce((sum, one) => sum + one.gotWorld, 0)}장`);
