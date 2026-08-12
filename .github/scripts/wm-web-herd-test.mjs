@@ -176,7 +176,19 @@ if (await waitHealthy(60000) === false) {
 	cannotRun('다시 켠 세계가 안 떴다');
 }
 
-await wait(MUST_RETURN_WITHIN_MS);
+// ⚠ 무조건 20초를 자면 안 된다 — 관문이 느려지면 사람이 끈다.
+//   <b>다 돌아올 때까지</b> 기다리고, 다 왔으면 바로 잰다(늦으면 그때 상한까지 기다린다).
+{
+	const until = Date.now() + MUST_RETURN_WITHIN_MS;
+	while (Date.now() < until) {
+		if (windows.every((one) => one.joins > 0 && one.gotFullWorld > 0)) break;
+
+		await wait(200);
+	}
+
+	// 마지막 판이 오갈 틈은 준다 — 「돌아온 뒤 받은 판」을 세는 칸이 있다.
+	await wait(500);
+}
 
 const back = windows.filter((one) => one.joins > 0);
 const gotFull = windows.filter((one) => one.gotFullWorld > 0);

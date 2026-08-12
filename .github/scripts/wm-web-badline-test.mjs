@@ -111,10 +111,11 @@ function check(what, ok, detail) {
 	sink.on('data', (piece) => { came += piece.length; });
 	sink.on('error', () => { /* 아래 칸이 잡는다 */ });
 
-	await new Promise((done) => setTimeout(done, 6000));   // 줄이 찰 때까지
+	// 줄이 찰 때까지 → 그 뒤로 잰다. 짧게 잡되 흔들리지 않을 만큼(4초면 1400B 조각 수백 개다).
+	await new Promise((done) => setTimeout(done, 4000));
 	came = 0;
 	const from = Date.now();
-	await new Promise((done) => setTimeout(done, 6000));
+	await new Promise((done) => setTimeout(done, 4000));
 	const rate = came / ((Date.now() - from) / 1000);
 
 	sink.destroy();
