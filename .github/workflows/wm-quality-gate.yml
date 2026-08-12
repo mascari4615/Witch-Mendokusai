@@ -50,6 +50,7 @@ on:
       - '.github/scripts/wm-web-beyond-test.mjs'
       - '.github/scripts/wm-web-say-test.mjs'
       - '.github/scripts/wm-web-crowd-badline-test.mjs'
+      - '.github/scripts/wm-web-lead-test.mjs'
       - '.github/scripts/wm-dead-parameter-audit.mjs'
       - '.github/scripts/lib/bad-line.mjs'
       - '.github/scripts/wm-game-client-gate.mjs'
@@ -84,6 +85,7 @@ on:
       - '.github/scripts/wm-web-beyond-test.mjs'
       - '.github/scripts/wm-web-say-test.mjs'
       - '.github/scripts/wm-web-crowd-badline-test.mjs'
+      - '.github/scripts/wm-web-lead-test.mjs'
       - '.github/scripts/wm-dead-parameter-audit.mjs'
       - '.github/scripts/lib/bad-line.mjs'
       - '.github/scripts/wm-game-client-gate.mjs'
@@ -297,6 +299,13 @@ jobs:
         env:
           WM_PLAYWRIGHT_ROOT: /tmp/wm-playwright
         run: node ./.github/scripts/wm-web-crowd-badline-test.mjs
+
+      # TASK-WM-270 -- 내 화면의 나는 세계의 답을 안 기다리고 먼저 간다(앞질러 그리기). 그 앞섬이
+      # "도로 끌어오는 거리"(4m)를 넘으면 사람은 뒤로 끌려간다 = "가끔 튄다". 그 한계를 잰다.
+      - name: Run prediction lead test
+        env:
+          WM_PLAYWRIGHT_ROOT: /tmp/wm-playwright
+        run: node ./.github/scripts/wm-web-lead-test.mjs
 
   unity:
     name: EditMode tests (laptop runner)
