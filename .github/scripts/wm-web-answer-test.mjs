@@ -123,7 +123,10 @@ if (field.length === 0) {
 }
 
 await page.bringToFront();
-await page.mouse.click(400, 300);
+// ⚠ 자판을 쥐려고 <b>세계를 누르면 안 된다</b> (2026-08-13): 그 자리는 땅이라 「짓기」가 나간다
+//   (CI 진단에 「재료가 모자란다」가 찍혔다 — 관문이 세계를 건드리고 있었다).
+//   위쪽 띠(머리말)를 눌러 자판만 가져온다.
+await page.click('header', { position: { x: 5, y: 5 } }).catch(() => { /* 없으면 그냥 둔다 */ });
 
 // 손이 닿는 데까지 걸어간다 — 멀리서 누르면 세계는 「손이 안 닿는다」로 답한다(그건 다른 얘기다).
 const target = field.slice().sort((a, b) => Math.hypot(a.x, a.z) - Math.hypot(b.x, b.z))[0];

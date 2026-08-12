@@ -120,7 +120,10 @@ async function walkOn(oneWayMs, listenPort, label, lossPercent = 0) {
 	// ⚠ 창이 <b>앞으로 나와 있어야</b> 자판이 닿는다 — 판을 여러 번 여는 관문에서는
 	//   먼저 연 창이 자판을 쥐고 있어 뒤 판이 통째로 안 걸었다(0.00m 로 잰 판이 나왔다).
 	await page.bringToFront();
-	await page.mouse.click(400, 300);
+	// ⚠ 자판을 쥐려고 <b>세계를 누르면 안 된다</b> (2026-08-13): 그 자리는 땅이라 「짓기」가 나간다
+//   (CI 진단에 「재료가 모자란다」가 찍혔다 — 관문이 세계를 건드리고 있었다).
+//   위쪽 띠(머리말)를 눌러 자판만 가져온다.
+await page.click('header', { position: { x: 5, y: 5 } }).catch(() => { /* 없으면 그냥 둔다 */ });
 
 	// 붙자마자의 출렁임은 안 센다 — 도는 중을 본다.
 	await wait(1500);

@@ -113,7 +113,10 @@ await page.waitForFunction(
 check('나쁜 회선으로 세계에 붙었다', await page.evaluate(() => typeof window.__wmView === 'object'));
 
 await page.bringToFront();
-await page.mouse.click(400, 300);
+// ⚠ 자판을 쥐려고 <b>세계를 누르면 안 된다</b> (2026-08-13): 그 자리는 땅이라 「짓기」가 나간다
+//   (CI 진단에 「재료가 모자란다」가 찍혔다 — 관문이 세계를 건드리고 있었다).
+//   위쪽 띠(머리말)를 눌러 자판만 가져온다.
+await page.click('header', { position: { x: 5, y: 5 } }).catch(() => { /* 없으면 그냥 둔다 */ });
 
 // ── 재료를 모은다 — 「지을 수 있다」가 될 때까지 걸어가서 줍는다 ────────
 //   ⚠ 재기 전에 <b>잴 것이 있는지</b>부터 (domain-wm.md § 관문 규율).
