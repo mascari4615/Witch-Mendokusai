@@ -17,21 +17,23 @@ namespace WitchMendokusai.Tests.EditMode.Net
 		{
 			WorldIdentityRegistry registry = Fresh();
 
-			WorldIdentityRecord person = registry.Recognize(null, out bool created);
+			WorldIdentityRecord person = registry.Recognize(null, out bool created, out string granted);
 
 			// 가입 화면 없이 그냥 논다 — 열쇠는 세계가 만들어 준다.
 			Assert.That(created, Is.True);
 			Assert.That(person.id, Is.GreaterThan(0));
-			Assert.That(person.secret.Length, Is.EqualTo(WorldIdentityRegistry.SECRET_LENGTH));
+			Assert.That(granted.Length, Is.EqualTo(WorldIdentityRegistry.SECRET_LENGTH),
+				"새 사람에게 줄 열쇠가 없다");
+			Assert.That(person.secret, Is.Empty, "장부에 열쇠가 그대로 남았다 (TASK-WM-220)");
 		}
 
 		[Test]
 		public void 같은_열쇠면_같은_사람이다()
 		{
 			WorldIdentityRegistry registry = Fresh();
-			WorldIdentityRecord first = registry.Recognize(null, out bool _);
+			WorldIdentityRecord first = registry.Recognize(null, out bool _, out string firstKey);
 
-			WorldIdentityRecord again = registry.Recognize(first.secret, out bool created);
+			WorldIdentityRecord again = registry.Recognize(firstKey, out bool created);
 
 			Assert.That(created, Is.False);
 			Assert.That(again.id, Is.EqualTo(first.id));
@@ -56,10 +58,10 @@ namespace WitchMendokusai.Tests.EditMode.Net
 		{
 			WorldIdentityRegistry registry = Fresh();
 
-			WorldIdentityRecord first = registry.Recognize(null, out bool _);
-			WorldIdentityRecord second = registry.Recognize(null, out bool _);
+			WorldIdentityRecord first = registry.Recognize(null, out bool _, out string firstKey);
+			WorldIdentityRecord second = registry.Recognize(null, out bool _, out string secondKey);
 
-			Assert.That(second.secret, Is.Not.EqualTo(first.secret));
+			Assert.That(secondKey, Is.Not.EqualTo(firstKey));
 			Assert.That(second.id, Is.Not.EqualTo(first.id));
 		}
 
@@ -67,12 +69,12 @@ namespace WitchMendokusai.Tests.EditMode.Net
 		public void 껐다_켜도_같은_사람으로_알아본다()
 		{
 			WorldIdentityRegistry before = Fresh();
-			WorldIdentityRecord person = before.Recognize(null, out bool _);
+			WorldIdentityRecord person = before.Recognize(null, out bool _, out string key);
 
 			WorldIdentityRegistry after = new WorldIdentityRegistry(new Random(99));
 			after.Load(before.Save());
 
-			WorldIdentityRecord again = after.Recognize(person.secret, out bool created);
+			WorldIdentityRecord again = after.Recognize(key, out bool created);
 
 			Assert.That(created, Is.False);
 			Assert.That(again.id, Is.EqualTo(person.id));
@@ -150,9 +152,9 @@ namespace WitchMendokusai.Tests.EditMode.Net
 		public void 손님으로_놀던_기기가_계정을_대면_그_손님이_승격된다()
 		{
 			WorldIdentityRegistry registry = Fresh();
-			WorldIdentityRecord guest = registry.Recognize(null, out bool _);
+			WorldIdentityRecord guest = registry.Recognize(null, out bool _, out string guestKey);
 
-			WorldIdentityRecord signedIn = registry.RecognizeExternal("karmolab:mascari", guest.secret, today: 5, out bool created);
+			WorldIdentityRecord signedIn = registry.RecognizeExternal("karmolab:mascari", guestKey, today: 5, out bool created);
 
 			// 새로 만들면 손님이 모은 게 주인 없이 남는다 — 사람 눈엔 사라진 것이다.
 			Assert.That(created, Is.False);
@@ -281,10 +283,10 @@ namespace WitchMendokusai.Tests.EditMode.Net
 		public void 최근에_온_사람은_안_지운다()
 		{
 			WorldIdentityRegistry registry = Fresh();
-			WorldIdentityRecord person = registry.Recognize(null, out bool _, today: 0);
+			WorldIdentityRecord person = registry.Recognize(null, out bool _, out string personKey, today: 0);
 
 			// 다시 왔으면 그 날짜가 새로 찍힌다.
-			registry.Recognize(person.secret, out bool _, today: 95);
+			registry.Recognize(personKey, out bool _, today: 95);
 
 			Assert.That(registry.PruneGuests(today: 100, notSeenForDays: 30, ownsSomething: id => false), Is.EqualTo(0));
 		}
