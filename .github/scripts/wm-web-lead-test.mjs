@@ -117,9 +117,18 @@ async function walkOn(oneWayMs, listenPort, label, lossPercent = 0) {
 		() => (window.__wmView.dolls() || []).some((one) => one.isLocal), null, { timeout: 30000 })
 		.catch(() => { /* 아래 칸이 잡는다 */ });
 
+	// ⚠ 창이 <b>앞으로 나와 있어야</b> 자판이 닿는다 — 판을 여러 번 여는 관문에서는
+	//   먼저 연 창이 자판을 쥐고 있어 뒤 판이 통째로 안 걸었다(0.00m 로 잰 판이 나왔다).
+	await page.bringToFront();
+	await page.mouse.click(400, 300);
+
 	// 붙자마자의 출렁임은 안 센다 — 도는 중을 본다.
 	await wait(1500);
 	await page.evaluate(() => window.__wmView.forgetLead());
+	const stoodAt = await page.evaluate(() => {
+		const me = (window.__wmView.dolls() || []).find((one) => one.isLocal);
+		return me ? { x: me.serverX, z: me.serverZ } : { x: 0, z: 0 };
+	});
 
 	const until = Date.now() + WALK_FOR_MS;
 	while (Date.now() < until) {
@@ -130,20 +139,29 @@ async function walkOn(oneWayMs, listenPort, label, lossPercent = 0) {
 	}
 
 	const lead = await page.evaluate(() => window.__wmView.lead());
-	const walked = await page.evaluate(() => {
+	// 얼마나 걸었나 — <b>이 판을 시작한 자리에서</b> 잰다(원점에서 재면 옛 판의 자리가 섞인다).
+	const walked = await page.evaluate((from) => {
 		const me = (window.__wmView.dolls() || []).find((one) => one.isLocal);
-		return me ? Math.hypot(me.serverX, me.serverZ) : 0;
-	});
+		return me ? Math.hypot(me.serverX - from.x, me.serverZ - from.z) : 0;
+	}, stoodAt);
 
-	await page.close();
-	await line.close();
-
-	// 안 걸었으면 <b>잰 게 아니다</b> — 0.00m 를 제품 값으로 적지 않는다.
+	// 안 걸었으면 <b>잰 게 아니다</b> — 0.00m 를 제품 값으로 적지 않는다(창을 닫기 전에 본다).
 	if (walked < 1) {
+		console.log('  ⓘ 진단:', JSON.stringify(await page.evaluate(() => ({
+			me: (window.__wmView.dolls() || []).find((one) => one.isLocal) || null,
+			myId: window.__wmView.me(),
+			focus: document.activeElement ? document.activeElement.id || document.activeElement.tagName : null,
+			status: (document.getElementById('status') || {}).textContent,
+		})).catch(() => ({}))));
+		await page.close();
+		await line.close();
 		killWorld();
 		cannotRun(`${label}: 창이 6초를 걸었는데 세계에서 ${walked.toFixed(2)}m 밖에 안 갔다`
 			+ ' — 이 판은 잰 것이 없다(느린 기계에서 창이 아직 안 선 것).');
 	}
+
+	await page.close();
+	await line.close();
 
 	console.log(`  ⓘ ${label}: 가장 많이 앞선 거리 ${lead.worst.toFixed(2)}m`
 		+ ` · 도로 끌려간 횟수 ${lead.snapped}번 (셈으로는 ${(oneWayMs * 2 / 1000 * WALK_SPEED).toFixed(2)}m)`);
