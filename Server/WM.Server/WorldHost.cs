@@ -67,6 +67,9 @@ namespace WitchMendokusai.Server
 		/// <summary>걸음 지갑이 비어 되돌린 걸음 수 — 속이는 창이 있으면 여기가 오른다 (TASK-WM-222).</summary>
 		private long refusedSteps;
 
+		/// <summary>미리 눌러 둔 창 파일들 (TASK-WM-226).</summary>
+		private StaticSqueeze squeeze;
+
 		/// <summary>
 		/// 칸마다 <b>지난 판에 그 칸으로 내보낸 사람과 자리</b> (TASK-WM-220).
 		///
@@ -218,6 +221,28 @@ namespace WitchMendokusai.Server
 				app.Urls.Add(url);
 
 			// 누르기는 <b>정적 파일보다 먼저</b> 서야 한다 — 뒤에 서면 이미 나간 뒤라 아무 일도 안 한다.
+			//
+			// ★ 두 겹이다 (TASK-WM-226): 창을 이루는 파일들은 <b>미리 최고로 눌러 둔 것</b>을 그대로 주고
+			//   (요청당 CPU 0 · 최고 압축률), 그 밖의 답(세계 상태·json)은 아래 UseResponseCompression 이 맡는다.
+			squeeze = new StaticSqueeze(app.Environment.WebRootPath);
+			squeeze.SqueezeAllInBackground();
+			app.Use(async (context, next) =>
+			{
+				if (HttpMethods.IsGet(context.Request.Method)
+					&& StaticSqueeze.WantsBrotli(context.Request)
+					&& squeeze.TryTake(context.Request.Path.Value, out byte[] ready))
+				{
+					context.Response.Headers.ContentEncoding = "br";
+					context.Response.Headers.Vary = "Accept-Encoding";
+					context.Response.ContentType = StaticSqueeze.KindOf(context.Request.Path.Value);
+					context.Response.ContentLength = ready.Length;
+					await context.Response.Body.WriteAsync(ready);
+					return;
+				}
+
+				await next();
+			});
+
 			app.UseResponseCompression();
 
 			// 골격 창(wwwroot/index.html) — 서버가 자기 확인용 화면을 같이 준다.
@@ -240,6 +265,7 @@ namespace WitchMendokusai.Server
 				broadcastSnapshotMessages = Interlocked.Read(ref broadcastSnapshotMessages),
 				builtSnapshots = Interlocked.Read(ref builtSnapshots),
 				refusedSteps = Interlocked.Read(ref refusedSteps),
+				squeezedFiles = squeeze == null ? 0 : squeeze.Count,
 
 				// 쓰레기 치우기 — 세계가 이따금 멎는 이유를 볼 때 쓴다 (TASK-WM-220).
 				gcServerMode = System.Runtime.GCSettings.IsServerGC,
