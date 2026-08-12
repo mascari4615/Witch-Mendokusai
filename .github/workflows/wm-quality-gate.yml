@@ -37,6 +37,7 @@ on:
       - '.github/scripts/wm-web-client-gate.mjs'
       - '.github/scripts/wm-web-picker-test.mjs'
       - '.github/scripts/wm-web-link-test.mjs'
+      - '.github/scripts/wm-web-walk-test.mjs'
       - '.github/scripts/wm-web-reconnect-smoke.mjs'
       - '.github/scripts/wm-web-crowd-smoke.mjs'
       - '.github/scripts/wm-web-smoothness-test.mjs'
@@ -63,6 +64,7 @@ on:
       - '.github/scripts/wm-web-client-gate.mjs'
       - '.github/scripts/wm-web-picker-test.mjs'
       - '.github/scripts/wm-web-link-test.mjs'
+      - '.github/scripts/wm-web-walk-test.mjs'
       - '.github/scripts/wm-web-reconnect-smoke.mjs'
       - '.github/scripts/wm-web-crowd-smoke.mjs'
       - '.github/scripts/wm-web-smoothness-test.mjs'
@@ -161,6 +163,11 @@ jobs:
       # TASK-WM-217 -- 끊긴 줄을 언제 다시 이을까 (웹 창 몫). 게임 창엔 있고 웹엔 없던 규칙이다.
       - name: Run web link test
         run: node ./.github/scripts/wm-web-link-test.mjs
+
+      # TASK-WM-235 -- 걷는 자리가 둘이 됐다(지도 2D · 세계 3D). 같은 규칙을 두 벌 적으면
+      # 갈라지고, 갈라진 걸음은 「나만 다른 데 서 있는」 세계가 된다. 한 벌을 여기서 못박는다.
+      - name: Run web walk test
+        run: node ./.github/scripts/wm-web-walk-test.mjs
 
       - name: Run zero-id guard
         run: node ./.github/scripts/wm-zero-id-guard.mjs

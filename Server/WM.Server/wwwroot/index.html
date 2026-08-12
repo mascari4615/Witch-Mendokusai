@@ -224,7 +224,9 @@ function draw() {
 	brush.fillStyle = '#14121a';
 	brush.fillRect(0, 0, w, h);
 
-	const me = people.find((one) => one.id === mine) || { x: 0, z: 0 };
+	const me = early.drawnMe && early.drawnMe()
+		? early.drawnMe()
+		: (people.find((one) => one.id === mine) || { x: 0, z: 0 });
 	const scale = Math.min(w, h) / 70;   // 화면에 대략 70m 가 들어온다
 	const at = (x, z) => [w / 2 + (x - me.x) * scale, h / 2 - (z - me.z) * scale];
 
@@ -253,7 +255,7 @@ function draw() {
 	}
 
 	for (const one of people) {
-		const [x, y] = at(one.x, one.z);
+		const [x, y] = at(one.id === mine ? me.x : one.x, one.id === mine ? me.z : one.z);
 		brush.fillStyle = one.id === mine ? '#ffd479' : '#8ab4ff';
 		brush.beginPath();
 		brush.arc(x, y, one.id === mine ? 7 : 5, 0, Math.PI * 2);
@@ -297,6 +299,50 @@ function read(text) {
 
 	if (said.buildings) places = said.buildings;
 }
+
+// 지도에서도 걷는다 — 3D 와 <b>같은 셈</b>을 쓴다(따로 적으면 갈라진다).
+const { stepTowards, stepToSend, SEND_EVERY_MS } = await import('./walk.mjs');
+
+const held = {};
+window.addEventListener('keydown', (event) => { held[event.key] = true; });
+window.addEventListener('keyup', (event) => { held[event.key] = false; });
+
+const pull = (minus, plus) => {
+	let value = 0;
+	for (const key of minus) if (held[key]) value -= 1;
+	for (const key of plus) if (held[key]) value += 1;
+	return value;
+};
+
+let target = null;      // 내가 그리고 있는 내 자리
+let lastStepAt = 0;
+
+setInterval(() => {
+	if (early.alive === false || mine === null || socket.readyState !== 1) return;
+
+	const now = performance.now();
+	const dt = lastStepAt === 0 ? 0 : Math.min(0.1, (now - lastStepAt) / 1000);
+	lastStepAt = now;
+
+	const me = people.find((one) => one.id === mine);
+	if (!me) return;
+
+	if (target === null) target = { x: me.x, z: me.z };
+
+	const right = pull(['ArrowLeft', 'a', 'A'], ['ArrowRight', 'd', 'D']);
+	const forward = pull(['ArrowDown', 's', 'S'], ['ArrowUp', 'w', 'W']);
+	target = stepTowards(target, right, forward, dt);
+
+	// 세계가 아는 자리에서 너무 벌어지면 그쪽으로 당긴다 — 지도가 혼자 딴 데 가 있으면 안 된다.
+	const gap = Math.hypot(target.x - me.x, target.z - me.z);
+	if (gap > 4) target = { x: me.x, z: me.z };
+
+	const step = stepToSend(target, me);
+	if (step !== null) socket.send(JSON.stringify({ type: 'move', x: step.x, z: step.z }));
+}, SEND_EVERY_MS);
+
+// 그릴 때는 앞질러 그린 내 자리를 쓴다 — 안 그러면 눌러도 왕복 시간만큼 안 움직인다.
+early.drawnMe = () => target;
 
 const address = (location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host + '/ws';
 const socket = new WebSocket(address);
@@ -351,6 +397,8 @@ import * as THREE from './vendor/three.module.min.js';
 // 고르개가 보여 줄 글은 순수 계산이라 따로 두고 시험한다 (wm-web-picker-test).
 import { buildLabel, craftLabel, aimingText } from './picker.mjs';
 import { createReconnectPlan, linkStatusText } from './link.mjs';
+// 걷기의 셈은 지도(2D)와 <b>한 벌</b>로 쓴다 — 두 벌 적으면 갈라진다 (TASK-WM-235).
+import { stepTowards, stepToSend, SEND_EVERY_MS } from './walk.mjs';
 
 const statusElement = document.getElementById('status');
 const canvas = document.getElementById('board');
@@ -464,10 +512,6 @@ const buildingEdgesGeometry = new THREE.EdgesGeometry(buildingGeometry);
 const dollViews = new Map();
 const nodeViews = new Map();
 const frameClock = new THREE.Clock();
-const MAX_STEP = 1.5;
-const LOCAL_MOVE_STEP = 1.5;
-const MOVE_SEND_INTERVAL = 50;
-const LOCAL_MOVE_SPEED = 3;
 const POSITION_IGNORE_DISTANCE = 0.35;
 const POSITION_TELEPORT_DISTANCE = 4;
 const POSITION_PULL_PER_SECOND = 3;
@@ -817,32 +861,29 @@ function updateLocalMovement(dt) {
 	const forward = axis(['ArrowDown', 's', 'S'], ['ArrowUp', 'w', 'W']);
 	if (right === 0 && forward === 0) return;
 
-	const move = cameraRelativeMove(right, forward);
-	if (!move) return;
+	// ★ 눈이 돌아간 만큼 방향도 돌린다 — 3D 에서 「위로 가기」는 화면 위쪽이지 세계의 +Z 가 아니다.
+	//   지도(2D)는 눈이 안 돌아가므로 세계의 +Z 를 앞으로 쓴다. 셈은 같고 앞쪽만 다르다.
+	const ahead = new THREE.Vector3();
+	camera.getWorldDirection(ahead);
 
-	selfView.targetX += move.x * LOCAL_MOVE_SPEED * dt;
-	selfView.targetZ += move.z * LOCAL_MOVE_SPEED * dt;
+	const next = stepTowards({ x: selfView.targetX, z: selfView.targetZ }, right, forward, dt,
+		{ x: ahead.x, z: -ahead.z });
+	selfView.targetX = next.x;
+	selfView.targetZ = next.z;
 }
 
 setInterval(() => {
-	if (socket.readyState !== WebSocket.OPEN || myId === null) return;
+	if (socket === null || socket.readyState !== WebSocket.OPEN || myId === null) return;
 
 	const selfView = dollViews.get(myId);
 	if (!selfView) return;
 
-	let stepX = selfView.targetX - selfView.serverX;
-	let stepZ = selfView.targetZ - selfView.serverZ;
-	const stepLength = Math.hypot(stepX, stepZ);
-	if (stepLength <= 0.01) return;
+	const step = stepToSend({ x: selfView.targetX, z: selfView.targetZ },
+		{ x: selfView.serverX, z: selfView.serverZ });
+	if (step === null) return;
 
-	if (stepLength > MAX_STEP) {
-		const scale = MAX_STEP / stepLength;
-		stepX *= scale;
-		stepZ *= scale;
-	}
-
-	tell({ type: 'move', x: stepX, z: stepZ });
-}, MOVE_SEND_INTERVAL);
+	tell({ type: 'move', x: step.x, z: step.z });
+}, SEND_EVERY_MS);
 
 // 드래그로 둘러보기 — 세계를 도는 것은 눈뿐이고, 세계 자체는 서버 것이다.
 let dragging = null;
