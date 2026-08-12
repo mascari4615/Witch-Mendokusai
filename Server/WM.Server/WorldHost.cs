@@ -504,6 +504,7 @@ namespace WitchMendokusai.Server
 				_ = RunBroadcastLoopAsync(app.Lifetime.ApplicationStopping);
 				_ = RunSaveLoopAsync(app.Lifetime.ApplicationStopping);
 				_ = RunBorderLoopsAsync(app.Lifetime.ApplicationStopping);
+				_ = RunHealthJournalLoopAsync(app.Lifetime.ApplicationStopping);
 			});
 
 			// 꺼질 때 한 번 더 — 마지막 몇 초 사이에 지은 것도 남는다.
@@ -1413,6 +1414,45 @@ namespace WitchMendokusai.Server
 			catch (InvalidOperationException)
 			{
 				return null;
+			}
+		}
+
+		/// <summary>세계가 제 상태를 적는 간격 (ms) — 기본 10분, 시험은 짧게 준다.</summary>
+		private static int HealthEveryMs =>
+			int.TryParse(System.Environment.GetEnvironmentVariable("WM_HEALTH_EVERY_MS"), out int given) && given > 0
+				? given
+				: 600000;
+
+		/// <summary>세계 파일 옆에 남는 상태 기록 (TASK-WM-297).</summary>
+		private HealthJournal journal;
+
+		/// <summary>
+		/// 몇 분마다 <b>한 줄</b>씩 적는다 (TASK-WM-297).
+		///
+		/// ★ 왜: 소크 시험은 3분짜리다. 「며칠 돌면 어떻게 되나」는 prod 에서만 답이 나오는데,
+		///   지금은 그 답을 볼 <b>기록이 없다</b> — 서버가 죽으면 그때까지의 상태도 같이 사라진다.
+		/// </summary>
+		private async Task RunHealthJournalLoopAsync(CancellationToken stopping)
+		{
+			journal = journal ?? new HealthJournal(store.Path);
+
+			while (stopping.IsCancellationRequested == false)
+			{
+				try { await Task.Delay(HealthEveryMs, stopping); }
+				catch (System.OperationCanceledException) { return; }
+
+				journal.Write(JsonSerializer.Serialize(new
+				{
+					at = System.DateTimeOffset.UtcNow.ToString("o"),
+					people = World.Snapshot().Length,
+					heldMegabytes = GC.GetTotalMemory(false) / 1048576,
+					allocatedMegabytes = GC.GetTotalAllocatedBytes(false) / 1048576,
+					gcGen2 = GC.CollectionCount(2),
+					longestTickGapMs = Interlocked.Read(ref longestTickGapMs),
+					worldMinutes = World.Calendar.TotalMinutes(),
+					buildings = World.Buildings().Length,
+					identities = Identities.Count,
+				}));
 			}
 		}
 
