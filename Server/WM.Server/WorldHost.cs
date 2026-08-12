@@ -949,7 +949,8 @@ namespace WitchMendokusai.Server
 		}
 
 		/// <summary>한 창에 그림 하나 — 끝나면 다음 그림을 받을 수 있다고 표시한다.</summary>
-		private async Task SendSnapshotAsync(Connection target, string snapshot)
+		private async Task SendSnapshotAsync(Connection target, string snapshot,
+			int? sentBuildVersion = null, int? sentFieldVersion = null, int? sentPotVersion = null)
 		{
 			try
 			{
@@ -958,6 +959,14 @@ namespace WitchMendokusai.Server
 				Interlocked.Add(ref broadcastSnapshotBytes, bytes);
 				UpdateLargestSnapshot(bytes);
 				await SendAsync(target, snapshot);
+
+				// 나갔다 — 이제서야 「이 판까지 보냈다」고 적는다(위 ⚠ 참고).
+				if (sentBuildVersion.HasValue)
+					target.SentBuildVersion = sentBuildVersion.Value;
+				if (sentFieldVersion.HasValue)
+					target.SentFieldVersion = sentFieldVersion.Value;
+				if (sentPotVersion.HasValue)
+					target.SentPotVersion = sentPotVersion.Value;
 			}
 			finally
 			{
@@ -1020,6 +1029,14 @@ namespace WitchMendokusai.Server
 				}
 
 				long sequence = NextSnapshotSequence();
+
+				// ★ 같은 칸에 선 사람들은 <b>거의 같은 것</b>을 본다 — 그러면 글도 한 번만 지으면 된다
+				//   (TASK-WM-217). 창마다 짓던 때, 400명이면 같은 글을 400번 지었다.
+				//   칸에 상한보다 많이 모이면 공유가 깨지므로 그때만 창마다 짓는다(아래 fallback).
+				System.Collections.Generic.Dictionary<string, string> madeForCell =
+					new System.Collections.Generic.Dictionary<string, string>();
+				WorldDoll[] everyone = World.Snapshot();
+
 				foreach (System.Collections.Generic.KeyValuePair<int, Connection> entry in sockets)
 				{
 					if (entry.Value.Socket.State != WebSocketState.Open)
@@ -1034,14 +1051,21 @@ namespace WitchMendokusai.Server
 					bool sendBuildings = buildVersion != target.SentBuildVersion || interestChanged;
 					bool sendField = fieldVersion != target.SentFieldVersion || interestChanged;
 					bool sendPots = potVersion != target.SentPotVersion || interestChanged;
-					if (sendBuildings)
-						target.SentBuildVersion = buildVersion;
-					if (sendField)
-						target.SentFieldVersion = fieldVersion;
-					if (sendPots)
-						target.SentPotVersion = potVersion;
 
-					string snapshot = Protocol.WorldSnapshot(
+					string key = target.InterestCellX + ":" + target.InterestCellZ
+						+ (sendBuildings ? "b" : string.Empty)
+						+ (sendField ? "f" : string.Empty)
+						+ (sendPots ? "p" : string.Empty);
+
+					if (madeForCell.TryGetValue(key, out string ready) == false)
+					{
+						ready = SnapshotForCell(everyone, target.InterestCellX, target.InterestCellZ,
+							sendBuildings, sendField, sendPots, sequence);
+						if (ready != null)
+							madeForCell[key] = ready;
+					}
+
+					string snapshot = ready ?? Protocol.WorldSnapshot(
 						DollsVisibleTo(entry.Key),
 						sendBuildings ? BuildingsVisibleTo(entry.Key) : null,
 						World.Calendar,
@@ -1051,7 +1075,11 @@ namespace WitchMendokusai.Server
 						sendPots ? World.Cauldrons : null,
 						sequence,
 						sendPots ? CauldronCellsVisibleTo(entry.Key) : null);
-					_ = SendSnapshotAsync(target, snapshot);
+					// ⚠ 「보냈다」 표시는 <b>실제로 나간 뒤에</b> 한다. 먼저 표시했다가 그 보내기가
+					//   실패하면 그 창은 그 집을 <b>영영</b> 못 받는다(다음에 또 바뀌기 전까지).
+					//   화면엔 아무 일도 안 일어난 것처럼 보인다 — 「남이 지은 집이 안 보이던 것」의 부류다.
+					_ = SendSnapshotAsync(target, snapshot, sendBuildings ? buildVersion : (int?)null,
+						sendField ? fieldVersion : (int?)null, sendPots ? potVersion : (int?)null);
 				}
 
 				await Task.Delay(delayMilliseconds, CancellationToken.None);
@@ -1095,6 +1123,56 @@ namespace WitchMendokusai.Server
 			return changed;
 		}
 
+		/// <summary>
+		/// 한 칸이 같이 쓸 세계 소식 한 벌 — 못 만들면 <c>null</c>(그 칸은 창마다 따로 지어야 한다).
+		/// 칸 한복판을 기준으로 고르되, <b>그 칸에 선 사람은 다 들어간다</b>(자기 인형을 찾아야 하니까).
+		/// </summary>
+		private string SnapshotForCell(WorldDoll[] everyone, int cellX, int cellZ,
+			bool sendBuildings, bool sendField, bool sendPots, long sequence)
+		{
+			Vector3 center = new Vector3(
+				(cellX + 0.5f) * INTEREST_CELL_SIZE, 0f, (cellZ + 0.5f) * INTEREST_CELL_SIZE);
+
+			// 칸 한복판에서 반경만큼 + 칸 반쪽만큼 — 칸 구석에 선 사람이 봐야 할 것을 안 놓치게.
+			float reach = PLAYER_INTEREST_RADIUS + INTEREST_CELL_SIZE;
+			float reachSquared = reach * reach;
+
+			System.Collections.Generic.List<WorldDoll> candidates = new System.Collections.Generic.List<WorldDoll>();
+			System.Collections.Generic.List<WorldDoll> members = new System.Collections.Generic.List<WorldDoll>();
+
+			for (int i = 0; i < everyone.Length; i++)
+			{
+				WorldDoll one = everyone[i];
+				int oneCellX = (int)MathF.Floor(one.Position.x / INTEREST_CELL_SIZE);
+				int oneCellZ = (int)MathF.Floor(one.Position.z / INTEREST_CELL_SIZE);
+				if (oneCellX == cellX && oneCellZ == cellZ)
+					members.Add(one);
+
+				float deltaX = one.Position.x - center.x;
+				float deltaZ = one.Position.z - center.z;
+				if (deltaX * deltaX + deltaZ * deltaZ <= reachSquared)
+					candidates.Add(one);
+			}
+
+			WorldDoll[] shared = InterestCrowd.SharedForCell(candidates, members, center, InterestCrowd.MAX_VISIBLE_DOLLS);
+			if (shared == null)
+				return null;
+
+			// ⚠ 지은 것·들판·솥도 <b>칸 한복판 기준</b>으로 담는다. 칸에 선 아무개 한 사람 기준으로
+			//   담으면, 같은 칸의 다른 사람이 봐야 할 집이 빠진다 — 「남이 지은 집이 안 보이던 것」의 재판이다.
+			//   한복판 + 반경 + 칸 하나만큼이면 그 칸 누구의 시야도 다 덮는다(넉넉히 보내고 창이 고른다).
+			return Protocol.WorldSnapshot(
+				shared,
+				sendBuildings ? BuildingsNear(center, reach) : null,
+				World.Calendar,
+				null,
+				sendField ? GatherablesNear(center, reach) : null,
+				Identities.NameOf,
+				sendPots ? World.Cauldrons : null,
+				sequence,
+				sendPots ? CauldronCellsNear(center, reach) : null);
+		}
+
 		private WorldDoll[] DollsVisibleTo(int viewerDollId)
 		{
 			WorldDoll[] all = World.Snapshot();
@@ -1118,9 +1196,13 @@ namespace WitchMendokusai.Server
 
 		private PlacedBuilding[] BuildingsVisibleTo(int viewerDollId)
 		{
+			return BuildingsNear(World.PositionOf(viewerDollId), PLAYER_INTEREST_RADIUS);
+		}
+
+		private PlacedBuilding[] BuildingsNear(Vector3 viewer, float radius)
+		{
 			PlacedBuilding[] all = World.Buildings();
-			Vector3 viewer = World.PositionOf(viewerDollId);
-			float radiusSquared = PLAYER_INTEREST_RADIUS * PLAYER_INTEREST_RADIUS;
+			float radiusSquared = radius * radius;
 			System.Collections.Generic.List<PlacedBuilding> visible = new System.Collections.Generic.List<PlacedBuilding>();
 
 			for (int i = 0; i < all.Length; i++)
@@ -1143,9 +1225,13 @@ namespace WitchMendokusai.Server
 
 		private System.Collections.Generic.List<GatherableNode> GatherablesVisibleTo(int viewerDollId)
 		{
+			return GatherablesNear(World.PositionOf(viewerDollId), PLAYER_INTEREST_RADIUS);
+		}
+
+		private System.Collections.Generic.List<GatherableNode> GatherablesNear(Vector3 viewer, float radius)
+		{
 			System.Collections.Generic.List<GatherableNode> all = World.Gatherables.Alive(World.Calendar.TotalMinutes());
-			Vector3 viewer = World.PositionOf(viewerDollId);
-			float radiusSquared = PLAYER_INTEREST_RADIUS * PLAYER_INTEREST_RADIUS;
+			float radiusSquared = radius * radius;
 			System.Collections.Generic.List<GatherableNode> visible = new System.Collections.Generic.List<GatherableNode>();
 
 			for (int i = 0; i < all.Count; i++)
@@ -1162,9 +1248,13 @@ namespace WitchMendokusai.Server
 
 		private System.Collections.Generic.List<Vector3Int> CauldronCellsVisibleTo(int viewerDollId)
 		{
+			return CauldronCellsNear(World.PositionOf(viewerDollId), PLAYER_INTEREST_RADIUS);
+		}
+
+		private System.Collections.Generic.List<Vector3Int> CauldronCellsNear(Vector3 viewer, float radius)
+		{
 			System.Collections.Generic.List<Vector3Int> all = World.Cauldrons.Cells();
-			Vector3 viewer = World.PositionOf(viewerDollId);
-			float radiusSquared = PLAYER_INTEREST_RADIUS * PLAYER_INTEREST_RADIUS;
+			float radiusSquared = radius * radius;
 			System.Collections.Generic.List<Vector3Int> visible = new System.Collections.Generic.List<Vector3Int>();
 
 			for (int i = 0; i < all.Count; i++)

@@ -360,12 +360,12 @@ namespace WitchMendokusai.ServerTests
 				4005));
 			host.World.Cauldrons.Place(new WitchMendokusai.Numerics.Vector3Int(0, 0, 0));
 
-			// ⚠ 집과 솥은 <b>각각 바뀐 판</b>에 실린다 — 한 판에 둘 다 실릴 이유가 없다.
-			//   「둘 다 든 판」을 기다리면 순서가 갈릴 때마다 10초를 기다리다 죽는다(실제로 그랬다).
-			string sawBuilding = await WaitForAsync(traveler, text => ReadWorldBuildingCount(text) == 1);
-			string sawCauldron = await WaitForAsync(traveler, text => ReadWorldCauldronCount(text) == 1);
-			Assert.AreEqual(1, ReadWorldBuildingCount(sawBuilding));
-			Assert.AreEqual(1, ReadWorldCauldronCount(sawCauldron));
+			// ⚠ 둘을 따로 기다리면 안 된다 — 집과 솥은 <b>같은 판</b>에 실려 온다(같은 틱에 둘 다 바뀌었으니).
+			//   따로 기다리면 첫 기다림이 그 판을 먹고, 둘째는 영영 안 오는 판을 기다린다(실측 10초 타임아웃).
+			string nearby = await WaitForAsync(traveler, text => ReadWorldBuildingCount(text) == 1
+				&& ReadWorldCauldronCount(text) == 1);
+			Assert.AreEqual(1, ReadWorldBuildingCount(nearby));
+			Assert.AreEqual(1, ReadWorldCauldronCount(nearby));
 
 			// 위와 같은 이유로 칸 하나만큼 더 걸어 나간다.
 			for (int step = 0; step < 70; step++)
@@ -624,19 +624,34 @@ namespace WitchMendokusai.ServerTests
 		{
 			using CancellationTokenSource timeout = TestTimeout.After(10);
 			byte[] buffer = new byte[16384];
+			System.Collections.Generic.List<string> heard = new System.Collections.Generic.List<string>();
 
-			while (timeout.IsCancellationRequested == false)
+			try
 			{
-				WebSocketReceiveResult received = await socket.ReceiveAsync(new ArraySegment<byte>(buffer), timeout.Token);
-				if (received.MessageType == WebSocketMessageType.Close)
-					break;
+				while (timeout.IsCancellationRequested == false)
+				{
+					WebSocketReceiveResult received = await socket.ReceiveAsync(new ArraySegment<byte>(buffer), timeout.Token);
+					if (received.MessageType == WebSocketMessageType.Close)
+						break;
 
-				string text = Encoding.UTF8.GetString(buffer, 0, received.Count);
-				if (matches(text))
-					return text;
+					string text = Encoding.UTF8.GetString(buffer, 0, received.Count);
+					if (matches(text))
+						return text;
+
+					// 못 만난 말도 몇 개 들고 있는다 — 빨개졌을 때 「대신 뭐가 왔나」를 보여 주려고.
+					heard.Add(text.Length > 400 ? text.Substring(0, 400) + "…" : text);
+					if (heard.Count > 3)
+						heard.RemoveAt(0);
+				}
+			}
+			catch (OperationCanceledException)
+			{
+				// 시간이 다 됐다 — 여기서 그냥 터지면 「무엇이 대신 왔나」가 안 보인다. 아래에서 보여 준다.
 			}
 
-			Assert.Fail("기다리던 말이 10초 안에 안 왔다 — 통로가 조용히 죽었다는 뜻이다.");
+			Assert.Fail("기다리던 말이 10초 안에 안 왔다 — 통로가 조용히 죽었다는 뜻이다." + Environment.NewLine
+				+ "대신 온 마지막 말들:" + Environment.NewLine + "  "
+				+ string.Join(Environment.NewLine + "  ", heard));
 			return null;
 		}
 	}

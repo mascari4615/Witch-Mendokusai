@@ -62,6 +62,54 @@ namespace WitchMendokusai.Server
 			return nearest;
 		}
 
+		/// <summary>
+		/// 한 칸(interest cell) 사람들이 <b>같이 쓸</b> 보이는 목록 — 한 번 만들어 여럿에게 보낸다.
+		///
+		/// ★ 왜: 지금은 창 하나마다 목록을 고르고 글(JSON)을 새로 짓는다. 사람 400명이면
+		///   그 일을 400번 하고, 400번 다 거의 같은 글이다(같은 칸에 서 있으면 보는 것도 거의 같다).
+		///
+		/// ★ 안 잘리는 것: <b>이 칸에 서 있는 사람은 전부 들어간다.</b> 그래야 각자 자기 인형을
+		///   목록에서 찾는다 — 못 찾으면 그 창은 화면이 통째로 멎는다. 남는 자리는 가까운 순으로 채운다.
+		///   칸 사람 수가 상한을 넘으면 <c>null</c> — 그때는 창마다 따로 골라야 한다(공유 불가).
+		/// </summary>
+		public static WorldDoll[] SharedForCell(IReadOnlyList<WorldDoll> candidates, IReadOnlyList<WorldDoll> cellMembers, Vector3 cellCenter, int limit)
+		{
+			if (candidates == null || cellMembers == null)
+				return null;
+
+			if (cellMembers.Count > limit)
+				return null;
+
+			HashSet<int> taken = new HashSet<int>();
+			List<WorldDoll> chosen = new List<WorldDoll>(limit);
+			for (int i = 0; i < cellMembers.Count; i++)
+			{
+				if (taken.Add(cellMembers[i].Id))
+					chosen.Add(cellMembers[i]);
+			}
+
+			if (chosen.Count >= limit)
+				return chosen.ToArray();
+
+			List<WorldDoll> others = new List<WorldDoll>();
+			for (int i = 0; i < candidates.Count; i++)
+			{
+				if (taken.Contains(candidates[i].Id) == false)
+					others.Add(candidates[i]);
+			}
+
+			others.Sort((left, right) =>
+			{
+				int byDistance = DistanceSquared(left, cellCenter).CompareTo(DistanceSquared(right, cellCenter));
+				return byDistance != 0 ? byDistance : left.Id.CompareTo(right.Id);
+			});
+
+			for (int i = 0; i < others.Count && chosen.Count < limit; i++)
+				chosen.Add(others[i]);
+
+			return chosen.ToArray();
+		}
+
 		private static float DistanceSquared(WorldDoll doll, Vector3 viewer)
 		{
 			float deltaX = doll.Position.x - viewer.x;
