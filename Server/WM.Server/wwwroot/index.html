@@ -585,6 +585,15 @@ scene.add(nodeGroup);
 const dollGeometry = new THREE.CapsuleGeometry(0.32, 0.7, 4, 12);
 const myMaterial = new THREE.MeshLambertMaterial({ color: '#e8c46a', emissive: '#3a2c08' });
 const otherMaterial = new THREE.MeshLambertMaterial({ color: '#8f89a8' });
+
+// 국경 너머 사람 — <b>저편 세계</b>에 서 있다 (TASK-WM-267). 보이기만 하고 못 건드린다.
+// 똑같이 그리면 사람은 「왜 저 사람만 반응이 없지」로 읽는다 — 비쳐 보이게 그려서 그 자리를 알린다.
+const beyondMaterial = new THREE.MeshLambertMaterial({
+	color: '#8f89a8', transparent: true, opacity: 0.45, depthWrite: false,
+});
+
+/** 저 세계에서 비쳐 온 사람인가 — 세계가 번호를 음수로 준다(BorderBand.ShadowId). */
+const isBeyond = (dollId) => dollId < 0;
 const buildingEdgesGeometry = new THREE.EdgesGeometry(buildingGeometry);
 const dollViews = new Map();
 const nodeViews = new Map();
@@ -1348,7 +1357,8 @@ function rebuildWorld() {
 
 	clearGroup(dollGroup);
 	for (const doll of dolls) {
-		const body = new THREE.Mesh(dollGeometry, doll.id === myId ? myMaterial : otherMaterial);
+		const body = new THREE.Mesh(dollGeometry,
+			doll.id === myId ? myMaterial : (isBeyond(doll.id) ? beyondMaterial : otherMaterial));
 		body.position.set(doll.x, 0.67, -doll.z);
 		dollGroup.add(body);
 
@@ -1437,8 +1447,9 @@ function syncDolls() {
 			dollViews.set(doll.id, view);
 		}
 
-		view.body.material = doll.id === myId ? myMaterial : otherMaterial;
+		view.body.material = doll.id === myId ? myMaterial : (isBeyond(doll.id) ? beyondMaterial : otherMaterial);
 		view.isLocal = doll.id === myId;
+		view.beyond = isBeyond(doll.id);
 		view.serverX = doll.x;
 		view.serverZ = doll.z;
 		if (doll.id !== myId) {
@@ -1688,6 +1699,9 @@ window.__wmView = {
 		serverX: view.serverX,
 		serverZ: view.serverZ,
 		isLocal: view.isLocal,
+		// 저 세계에서 비쳐 온 사람인가 — 그리고 <b>정말로</b> 비쳐 보이게 그렸나 (TASK-WM-267).
+		beyond: view.beyond === true,
+		seeThrough: view.body.material.transparent === true,
 	})),
 	me: () => myId,
 	// 지금 열려 있는 줄 — 「소식이 도착한 그 자리」에서 재려면 이게 있어야 한다(다시 붙으면 바뀐다).

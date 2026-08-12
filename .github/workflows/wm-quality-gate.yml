@@ -47,6 +47,7 @@ on:
       - '.github/scripts/wm-web-map-only-test.mjs'
       - '.github/scripts/wm-web-border-test.mjs'
       - '.github/scripts/wm-web-strike-lag-test.mjs'
+      - '.github/scripts/wm-web-beyond-test.mjs'
       - '.github/scripts/wm-dead-parameter-audit.mjs'
       - '.github/scripts/lib/bad-line.mjs'
       - '.github/scripts/wm-game-client-gate.mjs'
@@ -78,6 +79,7 @@ on:
       - '.github/scripts/wm-web-map-only-test.mjs'
       - '.github/scripts/wm-web-border-test.mjs'
       - '.github/scripts/wm-web-strike-lag-test.mjs'
+      - '.github/scripts/wm-web-beyond-test.mjs'
       - '.github/scripts/wm-dead-parameter-audit.mjs'
       - '.github/scripts/lib/bad-line.mjs'
       - '.github/scripts/wm-game-client-gate.mjs'
@@ -268,6 +270,14 @@ jobs:
       # 지금까지의 싸움 측정은 전부 지연 0 의 loopback 이었다 -- 여기서 처음 나쁜 회선으로 잰다.
       - name: Run strike lag test
         run: node ./.github/scripts/wm-web-strike-lag-test.mjs
+
+      # TASK-WM-267 -- 국경 너머 보기·말 건너기(WM-263·264)는 서버 시험으로만 쟀다. 사람이 보는 것은
+      # 창이다: 세계가 보내 줘도 창이 안 그리면 그 사람에게는 여전히 벽이다. 그리고 그림자는
+      # 못 때리는 사람이라, 이 세계 사람과 똑같이 그리면 "왜 저 사람만 반응이 없지"가 된다.
+      - name: Run web beyond-the-border test
+        env:
+          WM_PLAYWRIGHT_ROOT: /tmp/wm-playwright
+        run: node ./.github/scripts/wm-web-beyond-test.mjs
 
   unity:
     name: EditMode tests (laptop runner)
