@@ -398,8 +398,14 @@ socket.onopen = () => {
 	try { klCode = localStorage.getItem('wm.world.klcode') || ''; } catch (e) { klCode = ''; }
 
 	// 이 서버 판의 낱말표를 이미 들고 있으면 그렇다고 말한다 — 그러면 7.2KB 를 안 받는다.
+	// ⚠ 인사는 <b>지도가 먼저</b> 한다. 여기서 「낱말표 안다」고 하면 세계는 안 보내고,
+	//   뒤늦게 온 3D 는 손쓸 수 없다 — 그래서 <b>다 있다는 표</b>가 설 때만 도장을 낸다
+	//   (TASK-WM-277: 새로고침 뒤 가방에 「석탄」 대신 #41 이 뜨던 자리).
 	let knownCatalogs = '';
-	try { knownCatalogs = sessionStorage.getItem('wm.world.catalogstamp') || ''; } catch (e) { knownCatalogs = ''; }
+	try {
+		const stamp = sessionStorage.getItem('wm.world.catalogstamp') || '';
+		knownCatalogs = sessionStorage.getItem(`wm.world.cat.${stamp}.all`) === '1' ? stamp : '';
+	} catch (e) { knownCatalogs = ''; }
 
 	socket.send(JSON.stringify({ type: 'hello', secret: saved, klSession, klCode, knownCatalogs }));
 	socket.send(JSON.stringify({ type: 'bagask' }));
@@ -484,6 +490,62 @@ const MOVE_STEPS = [1, 5, 0];   // 0 = 전부
 let moveStep = 0;               // 지금 고른 단위(위 배열의 자리)
 let breaking = false;     // 지금은 짓나, 부수나
 const itemNames = {};   // 번호 → 이름. 들어올 때 한 번 받는다.
+
+/*
+ * <b>낱말표를 적어 둔다</b> (TASK-WM-277).
+ *
+ * ★ 왜: 세계는 창이 낱말표를 안다고 하면 안 보낸다(WM-238, 7.3KB 아낀다). 그런데 창은
+ *   <b>도장만</b> 적어 두고 낱말표는 안 적어 뒀다 — 새로고침하면 도장은 남고 낱말표는 사라진다.
+ *   그러면 세계는 안 보내고, 창은 이름을 모른다: 가방에 「석탄」 대신 <b>#41</b> 이 뜬다.
+ *
+ * ★ 그래서 낱말표도 같이 적어 두고, <b>둘 다 있을 때만</b> 도장을 낸다.
+ */
+const CATALOG_KINDS = ['catalog', 'buildcatalog', 'brewshelf', 'spellbook', 'craftbook'];
+
+function keepCatalog(kind, message) {
+	try {
+		const stamp = sessionStorage.getItem('wm.world.catalogstamp') || '';
+		sessionStorage.setItem(`wm.world.cat.${stamp}.${kind}`, JSON.stringify(message));
+
+		// 다섯이 다 모였을 때만 「다 있다」 표를 세운다 — 지도(2D)도 이 표 하나만 본다.
+		if (CATALOG_KINDS.every((one) => sessionStorage.getItem(`wm.world.cat.${stamp}.${one}`) !== null))
+			sessionStorage.setItem(`wm.world.cat.${stamp}.all`, '1');
+	} catch (e) { /* 못 적어도 게임은 돈다 — 다음에 또 받을 뿐이다 */ }
+}
+
+/** 다 적어 뒀을 때의 도장 — 아니면 빈 글자(그러면 세계가 다시 보내 준다). */
+function stampIfKept() {
+	try {
+		const stamp = sessionStorage.getItem('wm.world.catalogstamp') || '';
+		return sessionStorage.getItem(`wm.world.cat.${stamp}.all`) === '1' ? stamp : '';
+	} catch (e) {
+		return '';
+	}
+}
+
+/**
+ * 적어 둔 낱말표를 되살린다 — <b>창이 뜨자마자</b> 한 번.
+ * ⚠ 인사 때 하면 늦다: 인사는 지도(2D)가 먼저 하고, 그 인사에 도장이 실리면 세계는 안 보낸다.
+ */
+function restoreCatalogs() {
+	const stamp = stampIfKept();
+	if (stamp === '') return '';
+
+	const kept = [];
+	for (const kind of CATALOG_KINDS) {
+		let raw = null;
+		try { raw = sessionStorage.getItem(`wm.world.cat.${stamp}.${kind}`); } catch (e) { raw = null; }
+		if (raw === null) return '';
+
+		try { kept.push(JSON.parse(raw)); } catch (e) { return ''; }
+	}
+
+	for (const message of kept) onLinkMessage({ data: JSON.stringify(message) });
+	return stamp;
+}
+
+// 뜨자마자 되살린다 — 지도가 이미 「안다」고 인사했을 수 있으므로 여기서 채워 둬야 한다.
+restoreCatalogs();
 const pressed = {};
 let time = null;        // 세계의 시각 — 서버가 굴린다(사람이 없어도 흐른다).
 // 도착했지만 아직 화면에 안 세운 마지막 세계 소식 — 프레임마다 하나씩만 세운다.
@@ -782,8 +844,10 @@ function onLinkOpen() {
 	try { klCode = localStorage.getItem('wm.world.klcode') || ''; } catch (e) { klCode = ''; }
 
 	// 이 서버 판의 낱말표를 이미 들고 있으면 그렇다고 말한다 (TASK-WM-238).
-	let knownCatalogs = '';
-	try { knownCatalogs = sessionStorage.getItem('wm.world.catalogstamp') || ''; } catch (e) { knownCatalogs = ''; }
+	// ★ 낱말표를 <b>정말로</b> 들고 있을 때만 도장을 낸다 (TASK-WM-277).
+	//   전에는 도장만 적어 두고 낱말표는 안 적어 뒀다 — 새로고침하면 창에는 낱말표가 <b>없는데</b>
+	//   세계는 「안다면서?」 하고 안 보냈다. 그래서 가방에 「석탄」 대신 <b>#41</b> 이 떴다(실측).
+	const knownCatalogs = stampIfKept();
 
 	// 통행증은 <b>한 번만</b> 낸다 — 들고 있으면 다시 붙을 때마다 옛 자리로 돌아간다.
 	const pass = travelPass;
@@ -809,12 +873,14 @@ function onLinkMessage(event) {
 
 	if (message.type === 'catalog') {
 		for (const item of message.items) itemNames[item.itemId] = item.name;
+		keepCatalog('catalog', message);
 		drawBag();
 		return;
 	}
 
 	if (message.type === 'buildcatalog') {
 		buildKinds = message.buildings || [];
+		keepCatalog('buildcatalog', message);
 		drawBuildPicker();
 		return;
 	}
@@ -829,6 +895,7 @@ function onLinkMessage(event) {
 
 	if (message.type === 'brewshelf') {
 		brewShelf = message.items || [];
+		keepCatalog('brewshelf', message);
 		const picker = document.getElementById('brewpick');
 		picker.textContent = '';
 		for (const item of brewShelf) {
@@ -846,6 +913,7 @@ function onLinkMessage(event) {
 	if (message.type === 'craftbook') {
 		// 무엇을 만들 수 있는지도 세계가 정한다 — 창이 자기 목록을 들면 세계가 모르는 걸 고른다.
 		craftBook = message.recipes || [];
+		keepCatalog('craftbook', message);
 		drawCraftPicker();
 		return;
 	}
@@ -869,6 +937,7 @@ function onLinkMessage(event) {
 
 	if (message.type === 'spellbook') {
 		spellbook = message.pages || [];
+		keepCatalog('spellbook', message);
 		return;
 	}
 

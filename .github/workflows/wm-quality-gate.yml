@@ -52,6 +52,7 @@ on:
       - '.github/scripts/wm-web-crowd-badline-test.mjs'
       - '.github/scripts/wm-web-lead-test.mjs'
       - '.github/scripts/wm-web-contest-test.mjs'
+      - '.github/scripts/wm-web-still-me-test.mjs'
       - '.github/scripts/wm-dead-parameter-audit.mjs'
       - '.github/scripts/lib/bad-line.mjs'
       - '.github/scripts/wm-game-client-gate.mjs'
@@ -88,6 +89,7 @@ on:
       - '.github/scripts/wm-web-crowd-badline-test.mjs'
       - '.github/scripts/wm-web-lead-test.mjs'
       - '.github/scripts/wm-web-contest-test.mjs'
+      - '.github/scripts/wm-web-still-me-test.mjs'
       - '.github/scripts/wm-dead-parameter-audit.mjs'
       - '.github/scripts/lib/bad-line.mjs'
       - '.github/scripts/wm-game-client-gate.mjs'
@@ -315,6 +317,13 @@ jobs:
         env:
           WM_PLAYWRIGHT_ROOT: /tmp/wm-playwright
         run: node ./.github/scripts/wm-web-contest-test.mjs
+
+      # TASK-WM-277 -- 사람이 실제로 겪는 것은 "창을 새로 여는 일"이다(새로고침·탭 닫았다 열기).
+      # 그때 열쇠를 못 들고 가면 남이 된다: 가방도 자리도 남의 것이 된다.
+      - name: Run still-me after reload test
+        env:
+          WM_PLAYWRIGHT_ROOT: /tmp/wm-playwright
+        run: node ./.github/scripts/wm-web-still-me-test.mjs
 
   unity:
     name: EditMode tests (laptop runner)
