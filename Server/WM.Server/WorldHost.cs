@@ -53,6 +53,18 @@ namespace WitchMendokusai.Server
 		/// </summary>
 		private long builtSnapshots;
 
+		/// <summary>
+		/// 칸마다 <b>지난 판에 그 칸으로 내보낸 사람과 자리</b> (TASK-WM-220).
+		///
+		/// ★ 왜 칸마다인가: 「이 사람 자리는 이미 알렸다」를 세계 통틀어 하나로 두면,
+		///   A 칸에 보낸 것을 B 칸도 보낸 셈이 된다 — B 의 창들은 그 사람이 <b>영영 안 움직이는</b>
+		///   것으로 본다. 알린 것은 칸마다 따로 세야 한다.
+		/// </summary>
+		private readonly System.Collections.Generic.Dictionary<string,
+			System.Collections.Generic.Dictionary<int, (float X, float Z)>> lastCellCast =
+			new System.Collections.Generic.Dictionary<string,
+				System.Collections.Generic.Dictionary<int, (float X, float Z)>>();
+
 		/// <summary>마지막으로 모두에게 알린 이름표 — 바뀐 사람만 다시 보내려고 들고 있는다 (TASK-WM-220).</summary>
 		private readonly System.Collections.Generic.Dictionary<int, string> toldNames =
 			new System.Collections.Generic.Dictionary<int, string>();
@@ -1109,7 +1121,10 @@ namespace WitchMendokusai.Server
 					bool sendField = fieldVersion != target.SentFieldVersion || interestChanged;
 					bool sendPots = potVersion != target.SentPotVersion || interestChanged;
 
-					string key = target.InterestCellX + ":" + target.InterestCellZ
+					// ⚠ 칸을 막 옮긴 창은 <b>전부</b> 받아야 한다 — 「바뀐 것만」을 주면 안 움직이는 사람들이
+					//   그 창에는 영영 안 보인다(들어올 때 한 장을 못 받은 셈이다).
+					string key = (interestChanged ? "F" : string.Empty)
+						+ target.InterestCellX + ":" + target.InterestCellZ
 						+ (sendBuildings ? "b" : string.Empty)
 						+ (sendField ? "f" : string.Empty)
 						+ (sendPots ? "p" : string.Empty);
@@ -1117,7 +1132,7 @@ namespace WitchMendokusai.Server
 					if (madeForCell.TryGetValue(key, out (string Text, System.Collections.Generic.HashSet<int> Inside) ready) == false)
 					{
 						ready = SnapshotForCell(everyone, target.InterestCellX, target.InterestCellZ,
-							sendBuildings, sendField, sendPots, sequence);
+							sendBuildings, sendField, sendPots, sequence, interestChanged);
 						madeForCell[key] = ready;
 					}
 
@@ -1245,7 +1260,7 @@ namespace WitchMendokusai.Server
 		/// </summary>
 		private (string Text, System.Collections.Generic.HashSet<int> Inside) SnapshotForCell(
 			WorldDoll[] everyone, int cellX, int cellZ,
-			bool sendBuildings, bool sendField, bool sendPots, long sequence)
+			bool sendBuildings, bool sendField, bool sendPots, long sequence, bool forceFull = false)
 		{
 			Vector3 center = new Vector3(
 				(cellX + 0.5f) * INTEREST_CELL_SIZE, 0f, (cellZ + 0.5f) * INTEREST_CELL_SIZE);
@@ -1282,11 +1297,55 @@ namespace WitchMendokusai.Server
 
 			Interlocked.Increment(ref builtSnapshots);
 
+			// ★ 안 움직인 사람은 안 싣는다 (TASK-WM-220) — 광장에 200명이 서 있어도
+			//   그 판에 실리는 건 <b>움직인 사람</b>뿐이다. 창은 못 받은 사람을 그 자리에 그대로 둔다.
+			string castKey = cellX + ":" + cellZ;
+			lastCellCast.TryGetValue(castKey, out System.Collections.Generic.Dictionary<int, (float X, float Z)> lastCast);
+			bool firstTimeForCell = lastCast == null || forceFull;
+
+			System.Collections.Generic.Dictionary<int, (float X, float Z)> nowCast =
+				new System.Collections.Generic.Dictionary<int, (float X, float Z)>(shared.Length);
+			System.Collections.Generic.List<WorldDoll> changed = new System.Collections.Generic.List<WorldDoll>();
+
+			for (int i = 0; i < shared.Length; i++)
+			{
+				WorldDoll one = shared[i];
+				nowCast[one.Id] = (one.Position.x, one.Position.z);
+
+				if (firstTimeForCell == false
+					&& lastCast.TryGetValue(one.Id, out (float X, float Z) was)
+					&& was.X == one.Position.x && was.Z == one.Position.z)
+				{
+					continue;
+				}
+
+				changed.Add(one);
+			}
+
+			// 이 칸에서 빠진 사람 = 창이 지워야 할 사람.
+			System.Collections.Generic.List<int> gone = null;
+			if (firstTimeForCell == false)
+			{
+				foreach (int dollId in lastCast.Keys)
+				{
+					if (nowCast.ContainsKey(dollId))
+						continue;
+
+					gone ??= new System.Collections.Generic.List<int>();
+					gone.Add(dollId);
+				}
+			}
+
+			// ⚠ 「전부」 판은 칸 장부를 건드리지 않는다 — 그 판은 한 창을 위한 것이고,
+			//   장부를 흔들면 같은 칸의 다른 창들이 받을 「바뀐 것」이 어긋난다.
+			if (forceFull == false)
+				lastCellCast[castKey] = nowCast;
+
 			// ⚠ 지은 것·들판·솥도 <b>칸 한복판 기준</b>으로 담는다. 칸에 선 아무개 한 사람 기준으로
 			//   담으면, 같은 칸의 다른 사람이 봐야 할 집이 빠진다 — 「남이 지은 집이 안 보이던 것」의 재판이다.
 			//   한복판 + 반경 + 칸 하나만큼이면 그 칸 누구의 시야도 다 덮는다(넉넉히 보내고 창이 고른다).
 			return (Protocol.WorldSnapshot(
-				shared,
+				firstTimeForCell ? shared : (System.Collections.Generic.IEnumerable<WorldDoll>)changed,
 				sendBuildings ? BuildingsNear(center, reach) : null,
 				World.Calendar,
 				null,
@@ -1294,7 +1353,9 @@ namespace WitchMendokusai.Server
 				Identities.NameOf,
 				sendPots ? World.Cauldrons : null,
 				sequence,
-				sendPots ? CauldronCellsNear(center, reach) : null), inside);
+				sendPots ? CauldronCellsNear(center, reach) : null,
+				firstTimeForCell,
+				gone), inside);
 		}
 
 		/// <summary>그 번호의 인형 — 이번 틱에 뜬 목록에서 찾는다(다시 뜨면 자리가 어긋난다).</summary>

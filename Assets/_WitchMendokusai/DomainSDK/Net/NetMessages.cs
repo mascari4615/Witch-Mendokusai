@@ -239,6 +239,13 @@ namespace WitchMendokusai.Net
 	{
 		public string type = NetMessageType.WORLD;
 		public long sequence;
+
+		/// <summary>참이면 <b>바뀐 사람만</b> 실려 있다 (TASK-WM-220) — 안 실린 사람은 그 자리 그대로.</summary>
+		public bool changed;
+
+		/// <summary>이제 안 보이는 사람들 — 창에서 지운다.</summary>
+		public int[] gone;
+
 		public WorldDollView[] dolls = Array.Empty<WorldDollView>();
 
 		// ★ 기본값이 <b>없음(null)</b>이다 (TASK-WM-217): 이 목록들은 바뀐 프레임에만 실린다.

@@ -93,7 +93,7 @@ namespace WitchMendokusai.Server
 			builder.Append("/** buildings·gatherables 는 바뀐 프레임에만 실린다 — 없으면 지난 것을 그대로 쓸 것. */\n");
 			builder.Append("/** 지은 자리마다의 솥 — 여럿이 각자 젓는다. */\n");
 			builder.Append("export interface CauldronView {\n\tx: number;\n\ty: number;\n\tz: number;\n\tpx: number;\n\tpy: number;\n\tsteps: number;\n\tside: number;\n}\n\n");
-			builder.Append("export interface WorldSnapshot {\n\ttype: '").Append(WORLD).Append("';\n\tsequence: number;\n\tdolls: WorldDollView[];\n\tbuildings?: WorldBuildingView[];\n\tgatherables?: GatherableView[];\n\tcauldrons?: CauldronView[];\n\ttime?: WorldTime;\n\tbrew?: BrewView;\n}\n\n");
+			builder.Append("export interface WorldSnapshot {\n\ttype: '").Append(WORLD).Append("';\n\tsequence: number;\n\tchanged?: boolean;\n\tgone?: number[];\n\tdolls: WorldDollView[];\n\tbuildings?: WorldBuildingView[];\n\tgatherables?: GatherableView[];\n\tcauldrons?: CauldronView[];\n\ttime?: WorldTime;\n\tbrew?: BrewView;\n}\n\n");
 
 			builder.Append("/** 창 -> 서버: 이쪽으로 가고 싶다(얼마나 갈지는 서버가 정한다). */\n");
 			builder.Append("export interface MoveRequest {\n\ttype: '").Append(MOVE).Append("';\n\tx: number;\n\tz: number;\n}\n\n");
@@ -485,10 +485,35 @@ namespace WitchMendokusai.Server
 		}
 
 		/// <summary>서버가 보내는 세계 모습.</summary>
-		public static string WorldSnapshot(IEnumerable<WorldDoll> dolls, IEnumerable<PlacedBuilding> buildings, WorldCalendar calendar = null, WorldCauldron cauldron = null, IEnumerable<GatherableNode> gatherables = null, System.Func<int, string> nameOf = null, WorldCauldrons cauldrons = null, long sequence = 0, IEnumerable<Vector3Int> cauldronCells = null)
+		public static string WorldSnapshot(IEnumerable<WorldDoll> dolls, IEnumerable<PlacedBuilding> buildings, WorldCalendar calendar = null, WorldCauldron cauldron = null, IEnumerable<GatherableNode> gatherables = null, System.Func<int, string> nameOf = null, WorldCauldrons cauldrons = null, long sequence = 0, IEnumerable<Vector3Int> cauldronCells = null, bool full = true, IEnumerable<int> gone = null)
 		{
 			StringBuilder builder = new StringBuilder();
-			builder.Append("{\"type\":\"").Append(WORLD).Append("\",\"sequence\":").Append(sequence).Append(",\"dolls\":[");
+			builder.Append("{\"type\":\"").Append(WORLD).Append("\",\"sequence\":").Append(sequence);
+
+			// ★ 「전부」인가 「바뀐 것만」인가 (TASK-WM-220). 안 움직인 사람은 안 싣는다 —
+			//   광장에 200명이 서 있어도, 그 판에 실리는 건 <b>움직인 사람</b>뿐이다.
+			//   ⚠ 이 표시가 없으면 창은 「안 실림 = 사라짐」으로 읽고 사람들이 매 판 깜빡인다.
+			if (full == false)
+				builder.Append(",\"changed\":true");
+
+			if (gone != null)
+			{
+				builder.Append(",\"gone\":[");
+
+				bool firstGone = true;
+				foreach (int dollId in gone)
+				{
+					if (firstGone == false)
+						builder.Append(',');
+
+					firstGone = false;
+					builder.Append(dollId);
+				}
+
+				builder.Append(']');
+			}
+
+			builder.Append(",\"dolls\":[");
 
 			bool first = true;
 			foreach (WorldDoll doll in dolls)

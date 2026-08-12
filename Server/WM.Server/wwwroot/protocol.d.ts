@@ -82,6 +82,8 @@ export interface CauldronView {
 export interface WorldSnapshot {
 	type: 'world';
 	sequence: number;
+	changed?: boolean;
+	gone?: number[];
 	dolls: WorldDollView[];
 	buildings?: WorldBuildingView[];
 	gatherables?: GatherableView[];

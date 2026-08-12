@@ -340,10 +340,10 @@ namespace WitchMendokusai.ServerTests
 			for (int step = 0; step < 70; step++)
 				host.World.TryMove(travelerId, new WitchMendokusai.Numerics.Vector3(1f, 0f, 0f));
 
-			string farAway = await WaitForAsync(viewer, text => ReadWorldDollCount(text) == 1);
-			Assert.AreEqual(1, ReadWorldDollCount(farAway));
-			StringAssert.Contains("\"id\":" + viewerId, farAway);
-			StringAssert.DoesNotContain("\"id\":" + travelerId, farAway);
+			// ★ 이제 판에는 <b>바뀐 사람만</b> 실린다 (TASK-WM-220) — 「한 명 남았다」가 아니라
+			//   <b>「그 사람은 나갔다」</b>가 온다. 창은 그 말을 듣고 지운다.
+			string farAway = await WaitForAsync(viewer, text => text.Contains("\"gone\":[" + travelerId + "]"));
+			StringAssert.Contains("\"gone\":[" + travelerId + "]", farAway);
 		}
 
 		[Test]

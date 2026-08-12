@@ -351,7 +351,7 @@ namespace WitchMendokusai
 					lastWorldSequence = world.sequence;
 
 				receivedInitialWorld = true;
-				Dolls = WithNames(WithMyself(world.dolls ?? Array.Empty<WorldDollView>()));
+				Dolls = WithNames(WithMyself(MergeDolls(world)));
 				// ★ 안 실려 온 목록은 「비었다」가 아니라 「안 바뀌었다」다 (TASK-WM-217).
 				//   비운 것으로 읽으면 집과 들판이 매 프레임 사라졌다 나타난다.
 				// ⚠ 반대로 <b>빈 목록이 실려 온 것</b>은 진짜로 비었다는 뜻이다 — 길이로 거르면
@@ -372,6 +372,35 @@ namespace WitchMendokusai
 				if (world.brew != null)
 					Brew = world.brew;
 			}
+		}
+
+		/// <summary>
+		/// 「바뀐 것만」 온 판을 지난 판 위에 얹는다 (TASK-WM-220).
+		/// ⚠ 안 실린 사람을 「사라졌다」로 읽으면 광장의 사람들이 매 판 깜빡인다.
+		/// </summary>
+		private WorldDollView[] MergeDolls(WorldMessage world)
+		{
+			WorldDollView[] coming = world.dolls ?? Array.Empty<WorldDollView>();
+			if (world.changed == false)
+				return coming;
+
+			System.Collections.Generic.Dictionary<int, WorldDollView> byId =
+				new System.Collections.Generic.Dictionary<int, WorldDollView>();
+			for (int i = 0; i < Dolls.Length; i++)
+				byId[Dolls[i].id] = Dolls[i];
+
+			for (int i = 0; i < coming.Length; i++)
+				byId[coming[i].id] = coming[i];
+
+			if (world.gone != null)
+			{
+				for (int i = 0; i < world.gone.Length; i++)
+					byId.Remove(world.gone[i]);
+			}
+
+			WorldDollView[] merged = new WorldDollView[byId.Count];
+			byId.Values.CopyTo(merged, 0);
+			return merged;
 		}
 
 		/// <summary>따로 온 이름표를 인형에 붙인다 — 자리 소식에는 이름이 안 실린다 (TASK-WM-220).</summary>

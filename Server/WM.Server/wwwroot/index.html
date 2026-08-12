@@ -1141,7 +1141,17 @@ function applyPendingWorld() {
 	const message = pendingWorld;
 	pendingWorld = null;
 
-	dolls = message.dolls;
+	// ★ 「바뀐 것만」 실려 온다 (TASK-WM-220) — 안 움직인 사람은 안 온다. 그 사람은 그 자리에 그대로 둔다.
+	//   ⚠ 안 실린 것을 「사라졌다」로 읽으면 광장의 사람들이 매 판 깜빡인다.
+	if (message.changed) {
+		const byId = new Map(dolls.map((one) => [one.id, one]));
+		for (const one of message.dolls) byId.set(one.id, one);
+		for (const goneId of message.gone || []) byId.delete(goneId);
+		dolls = [...byId.values()];
+	} else {
+		dolls = message.dolls;
+	}
+
 	// 이름은 따로 온 이름표에서 붙인다.
 	for (const one of dolls) one.name = dollNames[one.id] || '';
 
