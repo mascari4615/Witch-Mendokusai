@@ -359,8 +359,8 @@ namespace WitchMendokusai
 				if (world.buildings != null)
 					Buildings = world.buildings;
 
-				if (world.gatherables != null)
-					Gatherables = world.gatherables;
+				if (world.gatherables != null || world.fieldGone != null)
+					Gatherables = MergeField(world);
 
 				if (world.cauldrons != null)
 					Cauldrons = world.cauldrons;
@@ -399,6 +399,32 @@ namespace WitchMendokusai
 			}
 
 			WorldDollView[] merged = new WorldDollView[byId.Count];
+			byId.Values.CopyTo(merged, 0);
+			return merged;
+		}
+
+		/// <summary>「바뀐 자리만」 온 들판을 지난 것 위에 얹는다 (TASK-WM-220).</summary>
+		private GatherableView[] MergeField(WorldMessage world)
+		{
+			GatherableView[] coming = world.gatherables ?? Array.Empty<GatherableView>();
+			if (world.fieldChanged == false)
+				return coming;
+
+			System.Collections.Generic.Dictionary<int, GatherableView> byId =
+				new System.Collections.Generic.Dictionary<int, GatherableView>();
+			for (int i = 0; i < Gatherables.Length; i++)
+				byId[Gatherables[i].id] = Gatherables[i];
+
+			for (int i = 0; i < coming.Length; i++)
+				byId[coming[i].id] = coming[i];
+
+			if (world.fieldGone != null)
+			{
+				for (int i = 0; i < world.fieldGone.Length; i++)
+					byId.Remove(world.fieldGone[i]);
+			}
+
+			GatherableView[] merged = new GatherableView[byId.Count];
 			byId.Values.CopyTo(merged, 0);
 			return merged;
 		}

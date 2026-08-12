@@ -347,6 +347,58 @@ namespace WitchMendokusai.ServerTests
 		}
 
 		[Test]
+		public async Task 남이_멀리서_주워도_내_들판이_통째로_다시_오지는_않는다()
+		{
+			// ★ 들판 목록은 「누가 하나 주웠다」에 통째로 다시 실려 왔다 (TASK-WM-220).
+			//   주울 자리가 139개면 한 번 주울 때마다 8KB 가 <b>보는 사람 모두에게</b> 날아간다.
+			//   광장에서 200명이 줍는 세계에서는 그것만으로 줄이 막힌다.
+			using ClientWebSocket viewer = await ConnectAsync();
+			using ClientWebSocket picker = await ConnectAsync();
+			await ReadWelcomeAsync(viewer);
+			int pickerId = await ReadWelcomeAsync(picker);
+
+			// ① 통째로 오는 장은 <b>둘</b>이다: 들어올 때 한 장 + 내가 선 칸의 들판 기준 한 장.
+			//   그 둘은 정상이다. 여기서는 그 둘을 흘려보낸다.
+			await WaitForAsync(viewer, text => text.Contains("\"gatherables\":[{") && text.Length > 2000);
+			await WalkToAndGatherAsync(picker, 0, pickerId);
+			await WaitForAsync(viewer, text => text.Contains("\"gatherables\":[{") && text.Length > 2000);
+
+			// ② 두 번째 줍기부터가 진짜다 — 이제 큰 판이 또 오면 안 된다.
+			await WalkToAndGatherAsync(picker, 1, pickerId);
+
+			string big = null;
+			using CancellationTokenSource watching = TestTimeout.After(3);
+			byte[] buffer = new byte[65536];
+			StringBuilder pending = new StringBuilder();
+
+			try
+			{
+				while (watching.IsCancellationRequested == false)
+				{
+					WebSocketReceiveResult received = await viewer.ReceiveAsync(new ArraySegment<byte>(buffer), watching.Token);
+					pending.Append(Encoding.UTF8.GetString(buffer, 0, received.Count));
+					if (received.EndOfMessage == false)
+						continue;
+
+					string text = pending.ToString();
+					pending.Clear();
+
+					if (text.Contains("\"type\":\"world\"") && text.Length > 2000)
+					{
+						big = text;
+						break;
+					}
+				}
+			}
+			catch (OperationCanceledException)
+			{
+				// 3초 동안 큰 판이 안 왔다 — 그게 바라던 결과다.
+			}
+
+			Assert.IsNull(big, "남이 멀리서 주웠는데 내 들판이 통째로 다시 왔다 — 판 " + (big?.Length ?? 0) + "바이트");
+		}
+
+		[Test]
 		public async Task Static_world_payloads_follow_each_viewers_interest_cell()
 		{
 			using ClientWebSocket viewer = await ConnectAsync();
@@ -442,33 +494,23 @@ namespace WitchMendokusai.ServerTests
 		/// </summary>
 		private async Task<int> WalkToAndGatherAsync(ClientWebSocket socket, int which = 0, int myDollId = 0, int wantItemId = -1)
 		{
-			string snapshot = await WaitForAsync(socket, text => text.Contains("\"gatherables\":[{"));
-			System.Text.Json.JsonElement all = System.Text.Json.JsonDocument.Parse(snapshot).RootElement.GetProperty("gatherables");
+			// ⚠ 주울 자리를 <b>그림에서</b> 고르면 안 된다 (TASK-WM-220): 들판도 이제 「바뀐 자리만」
+			//   실려 오므로, 그림 한 장에는 세계의 일부만 있다. 시험은 세계와 같은 프로세스에 있으니
+			//   세계에 직접 묻는다(자리 읽기를 그렇게 고친 것과 같은 이유다).
+			System.Collections.Generic.List<GatherableNode> nodes =
+				host.World.Gatherables.Alive(host.World.Calendar.TotalMinutes());
+			nodes.Sort((left, right) => left.Id.CompareTo(right.Id));
 
-			// 특정 재료를 원하면 그것만 골라 센다 — 아무거나 주우면 「나무 2개」를 못 채운다.
-			System.Text.Json.JsonElement first = all[which];
 			if (wantItemId >= 0)
-			{
-				int seen = 0;
-				foreach (System.Text.Json.JsonElement one in all.EnumerateArray())
-				{
-					if (one.GetProperty("itemId").GetInt32() != wantItemId)
-						continue;
+				nodes = nodes.FindAll(one => one.ItemId == wantItemId);
 
-					if (seen == which)
-					{
-						first = one;
-						break;
-					}
+			Assert.Greater(nodes.Count, which, "세계에 주울 자리가 모자란다");
+			GatherableNode picked = nodes[which];
 
-					seen++;
-				}
-			}
-
-			int nodeId = first.GetProperty("id").GetInt32();
-			double targetX = first.GetProperty("x").GetDouble();
-			double targetZ = first.GetProperty("z").GetDouble();
-			int itemId = first.GetProperty("itemId").GetInt32();
+			int nodeId = picked.Id;
+			double targetX = picked.X;
+			double targetZ = picked.Z;
+			int itemId = picked.ItemId;
 
 			// 서버가 한 걸음의 길이를 자른다 — 그러니 여러 번, 그리고 **도착을 확인하며** 간다.
 			// ⚠ move 는 「목적지」가 아니라 「이쪽으로」다 — 지금 자리에서 뺀 방향을 보내야 한다

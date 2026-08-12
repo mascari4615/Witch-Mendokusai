@@ -65,6 +65,12 @@ namespace WitchMendokusai.Server
 			new System.Collections.Generic.Dictionary<string,
 				System.Collections.Generic.Dictionary<int, (float X, float Z)>>();
 
+		/// <summary>칸마다 <b>지난 판에 그 칸으로 내보낸 들판</b> (번호 → 개수) — 바뀐 자리만 보내려고.</summary>
+		private readonly System.Collections.Generic.Dictionary<string,
+			System.Collections.Generic.Dictionary<int, int>> lastCellField =
+			new System.Collections.Generic.Dictionary<string,
+				System.Collections.Generic.Dictionary<int, int>>();
+
 		/// <summary>마지막으로 모두에게 알린 이름표 — 바뀐 사람만 다시 보내려고 들고 있는다 (TASK-WM-220).</summary>
 		private readonly System.Collections.Generic.Dictionary<int, string> toldNames =
 			new System.Collections.Generic.Dictionary<int, string>();
@@ -1371,18 +1377,73 @@ namespace WitchMendokusai.Server
 			// ⚠ 지은 것·들판·솥도 <b>칸 한복판 기준</b>으로 담는다. 칸에 선 아무개 한 사람 기준으로
 			//   담으면, 같은 칸의 다른 사람이 봐야 할 집이 빠진다 — 「남이 지은 집이 안 보이던 것」의 재판이다.
 			//   한복판 + 반경 + 칸 하나만큼이면 그 칸 누구의 시야도 다 덮는다(넉넉히 보내고 창이 고른다).
+			// 들판도 「바뀐 자리만」 — 남이 저 멀리서 하나 주웠다고 내 들판 169자리가 다시 올 이유가 없다.
+			System.Collections.Generic.List<GatherableNode> field = null;
+			System.Collections.Generic.List<int> fieldGone = null;
+			bool fieldIsDelta = false;
+
+			if (sendField)
+			{
+				System.Collections.Generic.List<GatherableNode> nearby = GatherablesNear(center, reach);
+				lastCellField.TryGetValue(castKey, out System.Collections.Generic.Dictionary<int, int> lastField);
+				// ⚠ 들판은 <b>사람 목록의 「전부 다시」와 무관</b>하다 (TASK-WM-220).
+				//   묶어 뒀더니, 밀린 창이 「전부」를 받을 때마다 들판 8KB 가 같이 날아갔고,
+				//   그 큰 판 때문에 다시 밀려서 또 「전부」를 받는 <b>고리</b>가 생겼다(실측).
+				//   들판이 그 칸에 이미 나갔는지는 들판 장부만 보면 된다.
+				bool fieldFromScratch = lastField == null;
+
+				System.Collections.Generic.Dictionary<int, int> nowField =
+					new System.Collections.Generic.Dictionary<int, int>(nearby.Count);
+				field = new System.Collections.Generic.List<GatherableNode>();
+
+				for (int i = 0; i < nearby.Count; i++)
+				{
+					GatherableNode one = nearby[i];
+					nowField[one.Id] = one.Amount;
+
+					if (fieldFromScratch == false
+						&& lastField.TryGetValue(one.Id, out int wasAmount) && wasAmount == one.Amount)
+					{
+						continue;
+					}
+
+					field.Add(one);
+				}
+
+				if (fieldFromScratch == false)
+				{
+					foreach (int nodeId in lastField.Keys)
+					{
+						if (nowField.ContainsKey(nodeId))
+							continue;
+
+						fieldGone ??= new System.Collections.Generic.List<int>();
+						fieldGone.Add(nodeId);
+					}
+				}
+
+				fieldIsDelta = fieldFromScratch == false;
+				lastCellField[castKey] = nowField;
+
+				// 바뀐 게 없으면 아예 안 싣는다(그 자리는 「안 바뀌었다」로 읽힌다).
+				if (fieldIsDelta && field.Count == 0 && fieldGone == null)
+					field = null;
+			}
+
 			return (Protocol.WorldSnapshot(
 				firstTimeForCell ? shared : (System.Collections.Generic.IEnumerable<WorldDoll>)changed,
 				sendBuildings ? BuildingsNear(center, reach) : null,
 				World.Calendar,
 				null,
-				sendField ? GatherablesNear(center, reach) : null,
+				field,
 				Identities.NameOf,
 				sendPots ? World.Cauldrons : null,
 				sequence,
 				sendPots ? CauldronCellsNear(center, reach) : null,
 				firstTimeForCell,
-				gone), inside);
+				gone,
+				fieldIsDelta,
+				fieldGone), inside);
 		}
 
 		/// <summary>그 번호의 인형 — 이번 틱에 뜬 목록에서 찾는다(다시 뜨면 자리가 어긋난다).</summary>
