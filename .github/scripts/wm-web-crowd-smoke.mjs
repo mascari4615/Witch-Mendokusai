@@ -165,10 +165,20 @@ await page.addInitScript(() => {
 	requestAnimationFrame(tick);
 });
 
+// ★ 「들어가서 세계가 보이기까지」 (TASK-WM-220) — 사람이 가장 먼저 겪는 것이다.
+//   사람이 몰린 세계일수록 이 한 장이 커지고(들어올 때는 통째로 온다), 그러다 조용히
+//   몇십 초가 되는 자리다. 절대 시간은 기계마다 다르니 <b>사람이 포기하는 선</b>으로만 자른다.
+const cameIn = Date.now();
 await page.goto(url);
 await page.waitForFunction(
 	() => (document.getElementById('status')?.textContent || '').includes('붙었다'),
 	null, { timeout: 30000 }).catch(() => { /* 아래 칸이 잡는다 */ });
+
+// 세계가 실제로 <b>보이기</b>까지 — 사람 수가 화면에 뜨면 그림이 선 것이다.
+await page.waitForFunction(
+	() => /\d/.test(document.getElementById('peers')?.textContent || ''),
+	null, { timeout: 30000 }).catch(() => { /* 아래 칸이 잡는다 */ });
+const openedInMilliseconds = Date.now() - cameIn;
 
 // ── ① 한산할 때 — 사람은 다 들어와 있지만 아무도 안 움직인다. 이 기계의 기준선이다.
 const reset = () => page.evaluate(() => { window.__wmSeen = { ...window.__wmSeen, messages: 0, bytes: 0, frames: 0, since: Date.now() }; });
@@ -191,6 +201,8 @@ const shown = await page.textContent('#peers');
 const status = await page.textContent('#status');
 
 check('창이 사람들 한복판에서도 붙어 있다', status === '붙었다', status);
+check('들어가면 곧 세계가 보인다 (10초 안)', openedInMilliseconds <= 10000,
+	`${(openedInMilliseconds / 1000).toFixed(1)}초`);
 check(`창이 사람들을 본다`, /\d/.test(shown || '') && Number((shown || '').replace(/\D/g, '')) > 1,
 	`화면 표시: ${shown}`);
 const keepFloor = Math.max(MIN_FRAMES_PER_SECOND, idleFps * MIN_CROWD_KEEP_RATIO);
@@ -215,7 +227,12 @@ for (let i = 0; i < 30; i++) {
 
 const fewest = Math.min(...seenCounts);
 const most = Math.max(...seenCounts);
-check('사람들이 깜빡이지 않는다', most - fewest <= 1, `3초 동안 ${fewest}~${most}명`);
+
+// ⚠ 「한 명도 안 바뀐다」로 자르면 안 된다 — 사람들이 걸어다니면 가까운 순 상한(48명)에
+//   드나드는 사람이 생겨 47~53 처럼 출렁인다. 그건 정상이다.
+//   깜빡임은 그런 출렁임이 아니라 <b>화면이 통째로 비었다 채워지는 것</b>이다(실측 1~48명).
+//   그래서 「많을 때의 7할 밑으로 떨어지나」로 본다.
+check('사람들이 깜빡이지 않는다', fewest >= most * 0.7, `3초 동안 ${fewest}~${most}명`);
 
 check('창이 조용히 안 터졌다', pageErrors.length === 0, pageErrors.join(' | ') || '오류 없음');
 

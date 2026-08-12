@@ -192,6 +192,14 @@ namespace WitchMendokusai.Server
 				minute = World.Calendar.Minute,
 				broadcastSnapshotMessages = Interlocked.Read(ref broadcastSnapshotMessages),
 				builtSnapshots = Interlocked.Read(ref builtSnapshots),
+
+				// 쓰레기 치우기 — 세계가 이따금 멎는 이유를 볼 때 쓴다 (TASK-WM-220).
+				gcServerMode = System.Runtime.GCSettings.IsServerGC,
+				gcGen0 = GC.CollectionCount(0),
+				gcGen1 = GC.CollectionCount(1),
+				gcGen2 = GC.CollectionCount(2),
+				gcPausePercent = System.Math.Round(GC.GetGCMemoryInfo().PauseTimePercentage, 2),
+				allocatedMegabytes = GC.GetTotalAllocatedBytes(false) / 1048576,
 				broadcastSnapshotBytes = Interlocked.Read(ref broadcastSnapshotBytes),
 				largestBroadcastSnapshotBytes = Interlocked.Read(ref largestBroadcastSnapshotBytes),
 				worldFile = store.Path,
