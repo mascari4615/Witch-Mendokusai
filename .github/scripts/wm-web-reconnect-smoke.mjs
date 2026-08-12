@@ -6,8 +6,8 @@
 //   붙었다 끊긴 뒤 다시 붙는지는 아무도 안 봤다 — 그 자리에서 사람이 새로고침해 왔다.
 //   여기서는 진짜 세계를 띄우고, 진짜 창을 열고, <b>세계를 죽였다 살린다</b>.
 //
-// 재는 것 넷: ① 창이 붙는다 ② 끊기면 스스로 다시 붙으려 한다
-//             ③ 세계가 돌아오면 사람 손 없이 다시 붙는다 ④ 그 뒤 세계가 다시 그려진다
+// 재는 것 다섯: ① 창이 붙는다 ② 세계가 진짜로 내려갔다 ③ 끊기면 스스로 다시 붙으려 한다
+//               ④ 세계가 돌아오면 사람 손 없이 다시 붙는다 ⑤ 그 뒤 세계 소식이 다시 흐른다
 //
 // 필요한 것: .NET 8 (dotnet) · playwright + chromium.
 //   playwright 가 이 저장소에 없으므로 `WM_PLAYWRIGHT_ROOT`(playwright 를 깐 폴더)로 알려 준다.
@@ -18,7 +18,7 @@
 import { spawn, execSync } from 'node:child_process';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
-import { resolve, join } from 'node:path';
+import { resolve, join, dirname } from 'node:path';
 import { mkdtempSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 
@@ -44,17 +44,48 @@ try {
 	cannotRun(`playwright 를 못 찾았다 — ${error.message} (WM_PLAYWRIGHT_ROOT 로 알려 준다)`);
 }
 
-function startWorld() {
-	spawn('dotnet', ['run', '--project', `${repo}/Server/WM.Server/WM.Server.csproj`,
-		'--', '--urls', `http://127.0.0.1:${port}`],
-		{ cwd: repo, env: { ...process.env, WM_WORLD_FILE: worldFile }, stdio: 'ignore', shell: true });
+// 세계를 <b>한 번 짓고</b> 그 결과물을 직접 띄운다.
+//
+// ⚠ `dotnet run` 을 쓰면 안 된다: 그건 자식(진짜 서버)을 낳는 껍데기라 손잡이가 안 잡히고,
+//   그래서 「포트를 쥔 놈을 찾아 죽이는」 우회로를 쓰게 된다. 그 우회로가 리눅스에서
+//   <b>자기 자신을 죽였다</b>(node 의 fetch 가 같은 포트로 살아 있는 줄을 붙들고 있어서
+//   같이 잡혔다 — CI 가 exit 137 로 죽었다). 자식 하나를 직접 들고 있으면 그런 일이 없다.
+let world = null;
+
+function buildWorld() {
+	// ★ publish 다 (build 아님) — 배포가 쓰는 그 모양이어야 창(wwwroot)이 같이 실린다.
+	//   그냥 build 하면 산출물에 창이 없어 화면이 통째로 안 뜬다(실측: 시험이 #status 를 못 찾았다).
+	const out = join(mkdtempSync(join(tmpdir(), 'wm-web-publish-')), 'app');
+	execSync(`dotnet publish "${repo}/Server/WM.Server/WM.Server.csproj" -c Release -o "${out}" --nologo`,
+		{ cwd: repo, stdio: 'pipe' });
+	return join(out, 'WM.Server.dll');
+}
+
+function startWorld(dll) {
+	world = spawn('dotnet', [dll, '--urls', `http://127.0.0.1:${port}`], {
+		cwd: dirname(dll),
+		env: { ...process.env, WM_WORLD_FILE: worldFile },
+		stdio: 'ignore',
+	});
+}
+
+function killWorld() {
+	if (world === null) return;
+
+	try {
+		if (process.platform === 'win32') execSync(`taskkill /PID ${world.pid} /F /T`, { stdio: 'ignore' });
+		else world.kill('SIGKILL');
+	} catch { /* 이미 죽었다 */ }
+
+	world = null;
 }
 
 async function waitHealthy(milliseconds) {
 	const until = Date.now() + milliseconds;
 	while (Date.now() < until) {
 		try {
-			const response = await fetch(`${url}health`);
+			// ★ 줄을 남기지 않는다 — 남겨 두면 「포트를 쥔 놈」에 이 시험 자신이 낀다.
+			const response = await fetch(`${url}health`, { headers: { connection: 'close' } });
 			if (response.ok) return true;
 		} catch { /* 아직 안 떴다 */ }
 		await new Promise((done) => setTimeout(done, 400));
@@ -62,22 +93,17 @@ async function waitHealthy(milliseconds) {
 	return false;
 }
 
-function killWorld() {
-	// `dotnet run` 은 자식을 낳는다 — 포트를 쥔 놈을 직접 죽여야 세계가 진짜로 내려간다.
-	try {
-		if (process.platform === 'win32') {
-			const found = execSync(`netstat -ano | findstr :${port} | findstr LISTENING`, { shell: 'cmd.exe' })
-				.toString().trim().split('\n');
-			for (const line of found) {
-				const pid = line.trim().split(/\s+/).pop();
-				if (pid && pid !== '0') execSync(`taskkill /PID ${pid} /F /T`, { stdio: 'ignore', shell: 'cmd.exe' });
-			}
-			return;
+async function waitGone(milliseconds) {
+	const until = Date.now() + milliseconds;
+	while (Date.now() < until) {
+		try {
+			await fetch(`${url}health`, { headers: { connection: 'close' } });
+		} catch {
+			return true;
 		}
-
-		const pid = execSync(`lsof -ti tcp:${port}`).toString().trim().split('\n')[0];
-		if (pid) execSync(`kill -9 ${pid}`);
-	} catch { /* 이미 죽었다 */ }
+		await new Promise((done) => setTimeout(done, 200));
+	}
+	return false;
 }
 
 let failures = 0;
@@ -86,7 +112,14 @@ function check(what, ok, detail) {
 	console.log(`  ${ok ? '✅' : '❌'} ${what}${detail ? ` — ${detail}` : ''}`);
 }
 
-startWorld();
+let dll;
+try {
+	dll = buildWorld();
+} catch (error) {
+	cannotRun(`세계를 못 지었다 — ${String(error.stderr || error.message).slice(-400)}`);
+}
+
+startWorld(dll);
 if (await waitHealthy(120000) === false) {
 	killWorld();
 	cannotRun('세계가 안 떴다 (dotnet 이 없거나 포트가 막혔다)');
@@ -117,10 +150,12 @@ check('창이 세계에 붙는다', opened === '붙었다', opened);
 const clockBefore = await page.textContent('#clock');
 
 killWorld();
+check('세계가 진짜로 내려갔다', await waitGone(15000), `${url}health 가 안 받는다`);
+
 const dropped = await statusHas('다시 붙는 중', 25000);
 check('끊기면 스스로 다시 붙으려 한다', dropped.includes('다시 붙는 중'), dropped);
 
-startWorld();
+startWorld(dll);
 const back = await statusHas('붙었다', 90000);
 check('세계가 돌아오면 사람 손 없이 다시 붙는다', back === '붙었다', back);
 
