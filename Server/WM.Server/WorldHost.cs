@@ -26,7 +26,10 @@ namespace WitchMendokusai.Server
 	public sealed class WorldHost
 	{
 		/// <summary>1초에 몇 번 모두에게 알릴 것인가.</summary>
-		private const int SNAPSHOT_HZ = 20;
+		// ⚠ 실험용 손잡이 — 「20Hz 가 정말 필요한가」를 재려고 잠깐 연다 (TASK-WM-243).
+		//   값을 정하는 것은 실측이지 취향이 아니다.
+		private static readonly int SNAPSHOT_HZ =
+			int.TryParse(System.Environment.GetEnvironmentVariable("WM_SNAPSHOT_HZ"), out int said) && said > 0 ? said : 20;
 
 		/// <summary>세계를 디스크로 내리는 간격 — 바뀐 게 있을 때만 쓴다.</summary>
 		private const int SAVE_INTERVAL_MILLISECONDS = 5000;
