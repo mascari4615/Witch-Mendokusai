@@ -1,0 +1,36 @@
+{
+  "kind": "9-slice",
+  "size": {
+    "w": 192,
+    "h": 28
+  },
+  "border": {
+    "left": 12,
+    "bottom": 10,
+    "right": 12,
+    "top": 10
+  },
+  "unityBorder": [
+    12,
+    10,
+    12,
+    10
+  ],
+  "note": "네 모서리는 늘어나지 않는다. 가장자리와 가운데만 늘어난다.",
+  "madeWith": "KarmoLab 본",
+  "tool": "bon",
+  "license": "CC0-1.0",
+  "knobs": {
+    "w": 192,
+    "h": 28,
+    "radius": 8,
+    "border": 2,
+    "fill": "#8a3b3b",
+    "fillTo": "#4a1f1f",
+    "angle": 90,
+    "borderColor": "#e0603f",
+    "bevel": 0.3,
+    "padding": 5,
+    "value": 1
+  }
+}
