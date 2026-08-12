@@ -38,6 +38,7 @@ on:
       - '.github/scripts/wm-web-picker-test.mjs'
       - '.github/scripts/wm-web-link-test.mjs'
       - '.github/scripts/wm-web-reconnect-smoke.mjs'
+      - '.github/scripts/wm-web-crowd-smoke.mjs'
       - '.github/scripts/wm-game-client-gate.mjs'
       - '.github/scripts/wm-zero-id-guard.mjs'
       - 'Server/WM.Server/wwwroot/**'
@@ -58,6 +59,7 @@ on:
       - '.github/scripts/wm-web-picker-test.mjs'
       - '.github/scripts/wm-web-link-test.mjs'
       - '.github/scripts/wm-web-reconnect-smoke.mjs'
+      - '.github/scripts/wm-web-crowd-smoke.mjs'
       - '.github/scripts/wm-game-client-gate.mjs'
       - '.github/scripts/wm-zero-id-guard.mjs'
       - 'Server/WM.Server/wwwroot/**'
@@ -179,6 +181,14 @@ jobs:
         env:
           WM_PLAYWRIGHT_ROOT: /tmp/wm-playwright
         run: node ./.github/scripts/wm-web-reconnect-smoke.mjs
+
+      # TASK-WM-217 -- 둘이 되는 것과 마흔이 되는 것은 다른 일이다. 봇을 몰아넣고
+      # 그 한복판에서 창이 계속 그려지는지·알림이 사람 수만큼 부푸는지 <b>수치로</b> 본다.
+      - name: Run web crowd smoke
+        env:
+          WM_PLAYWRIGHT_ROOT: /tmp/wm-playwright
+          WM_CROWD: '40'
+        run: node ./.github/scripts/wm-web-crowd-smoke.mjs
 
   unity:
     name: EditMode tests (laptop runner)
