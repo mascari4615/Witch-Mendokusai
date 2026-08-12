@@ -52,6 +52,10 @@ jobs:
           }
           finally {
             & $nssm start $serviceName | Out-Host
+            # ⚠ nssm 은 「이미 도는 중」 같은 자리에서 0 이 아닌 값을 낸다. 그 값이 남아 있으면
+            #   깃허브가 <스텝 전체>를 실패로 읽는다 — 세계는 멀쩡히 떴는데 배포가 빨강이 된다
+            #   (2026-08-13 실측: health 까지 찍고 exit 1). 여기서 지운다.
+            $global:LASTEXITCODE = 0
           }
 
           $healthy = $false
@@ -68,3 +72,6 @@ jobs:
             catch { }
           }
           if (-not $healthy) { throw 'WM server did not become healthy within 24 seconds' }
+
+          # 세계가 떴으면 <이 스텝은 성공이다> — 남아 있는 옛 종료 코드에 끌려가지 않는다.
+          exit 0
