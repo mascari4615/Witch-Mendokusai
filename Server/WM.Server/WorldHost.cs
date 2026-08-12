@@ -429,7 +429,11 @@ namespace WitchMendokusai.Server
 				gcGen1 = GC.CollectionCount(1),
 				gcGen2 = GC.CollectionCount(2),
 				gcPausePercent = System.Math.Round(GC.GetGCMemoryInfo().PauseTimePercentage, 2),
+				// ⚠ 이건 <b>여태 얼마나 새로 담았나</b>(누적)다 — 늘 자란다. 「새는가」는 이걸로 못 본다.
 				allocatedMegabytes = GC.GetTotalAllocatedBytes(false) / 1048576,
+
+				// ★ 지금 <b>들고 있는</b> 양 (TASK-WM-296) — 오래 돌 때 자라는지 보는 자리는 이쪽이다.
+				heldMegabytes = GC.GetTotalMemory(false) / 1048576,
 				broadcastSnapshotBytes = Interlocked.Read(ref broadcastSnapshotBytes),
 				largestBroadcastSnapshotBytes = Interlocked.Read(ref largestBroadcastSnapshotBytes),
 				worldFile = store.Path,

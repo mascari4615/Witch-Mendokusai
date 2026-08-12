@@ -55,6 +55,7 @@ on:
       - '.github/scripts/wm-web-still-me-test.mjs'
       - '.github/scripts/wm-web-answer-test.mjs'
       - '.github/scripts/wm-web-build-test.mjs'
+      - '.github/scripts/wm-server-soak-test.mjs'
       - '.github/scripts/wm-dead-parameter-audit.mjs'
       - '.github/scripts/lib/bad-line.mjs'
       - '.github/scripts/wm-game-client-gate.mjs'
@@ -94,6 +95,7 @@ on:
       - '.github/scripts/wm-web-still-me-test.mjs'
       - '.github/scripts/wm-web-answer-test.mjs'
       - '.github/scripts/wm-web-build-test.mjs'
+      - '.github/scripts/wm-server-soak-test.mjs'
       - '.github/scripts/wm-dead-parameter-audit.mjs'
       - '.github/scripts/lib/bad-line.mjs'
       - '.github/scripts/wm-game-client-gate.mjs'
@@ -349,6 +351,13 @@ jobs:
         env:
           WM_PLAYWRIGHT_ROOT: /tmp/wm-playwright
         run: node ./.github/scripts/wm-web-build-test.mjs
+
+      # TASK-WM-296 -- 지금까지 잰 것은 전부 몇 초짜리다. 세계는 며칠 돈다(prod = 노트북 24시간).
+      # 며칠 도는 서버에서 무너지는 것은 프레임이 아니라 천천히 자라는 것이다.
+      - name: Run server soak test
+        env:
+          WM_SOAK_MS: 90000
+        run: node ./.github/scripts/wm-server-soak-test.mjs
 
   unity:
     name: EditMode tests (laptop runner)
