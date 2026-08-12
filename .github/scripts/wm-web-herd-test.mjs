@@ -90,7 +90,7 @@ async function waitHealthy(milliseconds) {
  * 창 하나 — 진짜 창처럼 <b>스스로 다시 붙는다</b>(0.5초에서 시작해 두 배씩, 10초 상한).
  * 세계가 준 열쇠를 들고 돌아가므로 「같은 사람」으로 돌아온다.
  */
-function openWindow(number) {
+function openWindow(number, where = `ws://127.0.0.1:${port}/ws`) {
 	const one = {
 		number,
 		secret: '',
@@ -101,12 +101,29 @@ function openWindow(number) {
 		socket: null,
 		waitMs: 500,
 		alive: true,
+		tries: 0,
+		errors: 0,
+		rearmed: false,
+	};
+
+	// ⚠ 다시 붙기를 <b>닫힘에만</b> 걸면 안 된다 (2026-08-13). node 22 는 <b>못 붙은</b> 소켓에
+	//   error 만 주고 close 를 안 준다(node 24 는 둘 다 준다 — 실측). 그러면 세계가 내려가 있는
+	//   동안의 첫 재시도에서 줄이 끊겨 <b>영영 안 붙는다</b>. 그때 이 관문은 「아무도 안 돌아왔다」
+	//   라고 적었다 — 세계 탓이 아니라 <b>재는 자</b>가 고장 난 것이었다(CI 15판 빨강).
+	const retryLater = () => {
+		if (one.alive === false || one.rearmed) return;
+
+		one.rearmed = true;
+		setTimeout(connect, one.waitMs);
+		one.waitMs = Math.min(10000, one.waitMs * 2);
 	};
 
 	const connect = () => {
 		if (one.alive === false) return;
 
-		const socket = new WebSocket(`ws://127.0.0.1:${port}/ws`);
+		one.tries += 1;
+		one.rearmed = false;
+		const socket = new WebSocket(where);
 		one.socket = socket;
 		socket.onopen = () => {
 			one.waitMs = 500;
@@ -129,17 +146,27 @@ function openWindow(number) {
 			}
 		};
 
-		socket.onerror = () => { /* onclose 가 다시 붙인다 */ };
-		socket.onclose = () => {
-			if (one.alive === false) return;
-
-			setTimeout(connect, one.waitMs);
-			one.waitMs = Math.min(10000, one.waitMs * 2);
-		};
+		socket.onerror = () => { one.errors += 1; retryLater(); };
+		socket.onclose = () => retryLater();
 	};
 
 	connect();
 	return one;
+}
+
+// ── 자를 먼저 잰다 — <b>재는 자</b>가 다시 붙을 줄 아나 ─────────────────
+//   이 관문이 재는 것은 「세계가 내려갔다 와도 다들 돌아오나」다. 그런데 돌아오는 쪽(창 대역)이
+//   못 돌아오면, 세계가 멀쩡해도 빨강이 뜬다 — 실제로 그렇게 15판을 세계 탓으로 적었다.
+//   그러니 아무도 안 듣는 포트에 대고 <b>일부러</b> 실패시켜, 스스로 다시 시도하는지부터 본다.
+{
+	const nobody = openWindow(-1, 'ws://127.0.0.1:59997/ws');
+	await wait(2500);
+	nobody.alive = false;
+
+	if (nobody.tries < 2) {
+		cannotRun(`재는 자가 다시 안 붙는다 — 2.5초에 시도 ${nobody.tries}번 (node ${process.version}).`
+			+ ' 이 상태로는 무엇을 재도 「아무도 안 돌아왔다」가 나온다.');
+	}
 }
 
 startWorld();
@@ -195,7 +222,12 @@ const gotFull = windows.filter((one) => one.gotFullWorld > 0);
 const slowest = back.reduce((worst, one) => Math.max(worst, one.backAt - wentDownAt), 0);
 const after = await fetch(`http://127.0.0.1:${port}/health`, { headers: { connection: 'close' } }).then((r) => r.json());
 
-check('모두가 스스로 돌아왔다', back.length === herd, `${back.length}/${herd}명`);
+// 빨강 줄에는 <b>왜인지</b>를 같이 적는다 — 「0/40」만 보면 세계 탓으로 읽힌다.
+const tried = windows.reduce((sum, one) => sum + one.tries, 0);
+const errored = windows.reduce((sum, one) => sum + one.errors, 0);
+
+check('모두가 스스로 돌아왔다', back.length === herd,
+	`${back.length}/${herd}명 · 다시 붙어 본 횟수 ${tried}번 · 붙다 만 횟수 ${errored}번`);
 check('세계도 그만큼 세고 있다', after.people >= herd, `세계가 세는 사람 ${after.people}명`);
 check('돌아온 뒤 <b>전체 그림</b>을 받았다 (반쪽 세계가 아니다)', gotFull.length === herd,
 	`${gotFull.length}/${herd}명`);
