@@ -1101,6 +1101,12 @@ function onLinkMessage(event) {
 		return;
 	}
 
+	// 그 번호는 세계가 처리했다 (TASK-WM-305) — 이제 손을 놓는다(다시 안 보낸다).
+	if (message.type === 'did') {
+		waitingActions.delete(message.did);
+		return;
+	}
+
 	// 네 걸음을 여기까지 봤다 (TASK-WM-271) — 답 온 걸음은 버리고, 나머지만 다시 굴린다.
 	if (message.type === 'stepseen') {
 		stepsWaiting = stepsWaiting.filter((one) => one.seq > message.seq);
@@ -1127,6 +1133,9 @@ function onLinkMessage(event) {
 
 	if (message.type === 'welcome') {
 		myId = message.id;
+
+		// 끊겨 있는 동안 눌러 둔 것 · 답 못 받은 것을 다시 보낸다 (TASK-WM-305).
+		resendWaitingActions();
 
 		// 이 서버 판의 낱말표 도장 — 다음에 붙을 때 되돌려 주면 그것들을 안 받는다 (TASK-WM-238).
 		try {
@@ -1412,6 +1421,40 @@ const pointer = new THREE.Vector2();
  *   사람에게는 「눌렀는데 반응이 없다」 = 고장이다. 끊긴 것과 무시된 것은 다른 일이고,
  *   그 차이를 화면이 말해 줘야 한다.
  */
+/*
+ * <b>누른 것이 사라지지 않게</b> (TASK-WM-305).
+ *
+ * ★ 무엇이 있었나: 줍기를 보낸 <b>그 순간</b> 회선이 끊기면 그 줍기는 조용히 사라졌다 —
+ *   가방도 들판도 그대로고, 창은 아무 말도 안 했다(실측: 회선을 안 끊으면 잘 주워진다).
+ *   사람에게는 「눌렀는데 안 됐다」만 남는다.
+ *
+ * ★ 어떻게: 행동마다 번호를 붙이고, 세계가 <b>「그 번호 했다」</b>(did)고 할 때까지 들고 있는다.
+ *   다시 붙으면 아직 답 못 받은 것만 다시 보낸다. 세계는 같은 번호를 두 번 안 한다(ActionOnce).
+ *   걸음은 여기 안 들어간다 — 걸음은 다음 걸음이 곧 고쳐 주므로 다시 보낼 이유가 없다.
+ */
+let actionNumber = 0;
+const waitingActions = new Map();
+
+/** 행동 하나를 보낸다 — 번호를 붙이고, 답이 올 때까지 들고 있는다. */
+function doAction(message) {
+	actionNumber += 1;
+	const numbered = { ...message, did: actionNumber };
+	waitingActions.set(actionNumber, numbered);
+
+	// 줄이 끊겨 있어도 <b>들고 있는다</b> — 다시 붙는 순간 나간다(그게 이 장치의 전부다).
+	if (socket !== null && socket.readyState === WebSocket.OPEN) socket.send(JSON.stringify(numbered));
+	else statusElement.textContent = '끊겼다 — 다시 붙으면 보낸다';
+
+	return true;
+}
+
+/** 다시 붙었다 — 답 못 받은 것을 다시 보낸다. */
+function resendWaitingActions() {
+	if (socket === null || socket.readyState !== WebSocket.OPEN) return;
+
+	for (const numbered of waitingActions.values()) socket.send(JSON.stringify(numbered));
+}
+
 function tell(message) {
 	if (socket === null || socket.readyState !== WebSocket.OPEN) {
 		statusElement.textContent = '끊겼다 — 다시 붙는 중이다';
@@ -1452,7 +1495,7 @@ function placeAt(clientX, clientY) {
 	// 주울 것을 눌렀으면 줍는다 — 땅을 눌렀을 때만 짓는다(둘을 섞으면 주우려다 집이 선다).
 	const onNode = raycaster.intersectObjects(nodeGroup.children);
 	if (onNode.length > 0) {
-		if (tell({ type: 'gather', nodeId: onNode[0].object.userData.nodeId })) askedFor('줍는 중');
+		if (doAction({ type: 'gather', nodeId: onNode[0].object.userData.nodeId })) askedFor('줍는 중');
 		return;
 	}
 
@@ -1462,7 +1505,7 @@ function placeAt(clientX, clientY) {
 		if (onBuilding.length === 0) return;
 
 		const cell = onBuilding[0].object.userData.cell;
-		if (cell) tell({ type: 'remove', x: cell.x, y: cell.y, z: cell.z });
+		if (cell) doAction({ type: 'remove', x: cell.x, y: cell.y, z: cell.z });
 		return;
 	}
 
@@ -1493,7 +1536,7 @@ function placeAt(clientX, clientY) {
 	const cellZ = Math.floor(-point.z); // three 의 -Z 가 세계의 +Z 다(카메라가 그쪽을 본다)
 
 	// 크기는 안 보낸다 — 세계가 안다(창이 「이건 1×1 이다」로 우길 자리를 없앤다).
-	if (tell({ type: 'place', x: cellX, y: 0, z: cellZ, buildingId: pickedBuilding })) askedFor('짓는 중');
+	if (doAction({ type: 'place', x: cellX, y: 0, z: cellZ, buildingId: pickedBuilding })) askedFor('짓는 중');
 }
 
 // ── 판들 ───────────────────────────────────────────────────────────────

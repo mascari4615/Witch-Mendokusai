@@ -72,6 +72,9 @@ namespace WitchMendokusai.Server
 		/// </summary>
 		public const string STEP_SEEN = "stepseen";
 
+		/// <summary>그 번호는 처리했다 (TASK-WM-305).</summary>
+		public const string DID = "did";
+
 		// 무엇이 거절됐나 — 창이 자리별로 다르게 보여 줄 수 있게 이름을 준다.
 		public const string DENIED_PLACE = "place";
 		public const string DENIED_GATHER = "gather";
@@ -123,6 +126,7 @@ namespace WitchMendokusai.Server
 			builder.Append("export interface MoveOn {\n\ttype: '").Append(MOVE_ON).Append("';\n\tzone: string;\n\taddress: string;\n\tx: number;\n\tz: number;\n\tpass: string;\n}\n\n");
 
 			builder.Append("/** 창 -> 서버: 저 사람을 때린다. 거리·간격·대상은 세계가 본다. */\n");
+			builder.Append("export interface Did {\n\ttype: 'did';\n\tdid: number;\n}\n\n");
 			builder.Append("export interface StrikeRequest {\n\ttype: '").Append(STRIKE).Append("';\n\ttargetId: number;\n\tack?: number;\n}\n\n");
 
 			builder.Append("/** 서버 -> 창: 누가 맞았다. down 이면 그 자리에서 다시 세워졌다. */\n");
@@ -230,7 +234,7 @@ namespace WitchMendokusai.Server
 			builder.Append("export interface DollNameView {\n\tid: number;\n\tname: string;\n}\n\n");
 			builder.Append("export interface Names {\n\ttype: '").Append(NAMES).Append("';\n\tdolls: DollNameView[];\n}\n\n");
 
-			builder.Append("export type ServerMessage = Welcome | Me | Names | WorldSnapshot | BrewTaken | Bag | Catalog | BuildCatalog | BrewShelf | Spellbook | CraftBook | Crafted | Chest | Denied | Invite | Linked | Kicked | Said | Hurt | MoveOn;\n");
+			builder.Append("export type ServerMessage = Welcome | Me | Names | WorldSnapshot | BrewTaken | Bag | Catalog | BuildCatalog | BrewShelf | Spellbook | CraftBook | Crafted | Chest | Denied | Invite | Linked | Kicked | Said | Hurt | MoveOn | Did;\n");
 			builder.Append("export type ClientMessage = MoveRequest | PlaceRequest | RemoveRequest | GatherRequest | ChestAsk | ChestPut | ChestTake | BrewRequest | BrewResetRequest | BrewCompleteRequest | Hello | BagAsk | ConsumeRequest | InviteAsk | LinkRequest | SayRequest | StrikeRequest;\n");
 
 			return builder.ToString();
@@ -507,6 +511,15 @@ namespace WitchMendokusai.Server
 		/// 누가 맞았다 (TASK-WM-251) — 남은 몸과 <b>쓰러졌는지</b>를 같이 낸다.
 		/// 창은 이 말로만 몸을 안다(스스로 셈하면 세계와 갈라진다).
 		/// </summary>
+		/// <summary>
+		/// <b>그 번호는 처리했다</b> (TASK-WM-305). 창은 이 말을 받을 때까지 그 행동을 들고 있다가,
+		/// 다시 붙으면 또 보낸다 — 그래야 끊기는 순간 누른 것이 사라지지 않는다.
+		/// </summary>
+		public static string Did(long actionId)
+		{
+			return "{\"type\":\"" + DID + "\",\"did\":" + actionId + "}";
+		}
+
 		public static string Hurt(int dollId, int byDollId, int health, bool wentDown)
 		{
 			return "{\"type\":\"" + HURT + "\",\"dollId\":" + dollId

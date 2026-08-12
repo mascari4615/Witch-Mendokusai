@@ -111,6 +111,11 @@ export interface MoveOn {
 }
 
 /** 창 -> 서버: 저 사람을 때린다. 거리·간격·대상은 세계가 본다. */
+export interface Did {
+	type: 'did';
+	did: number;
+}
+
 export interface StrikeRequest {
 	type: 'strike';
 	targetId: number;
@@ -378,5 +383,5 @@ export interface Names {
 	dolls: DollNameView[];
 }
 
-export type ServerMessage = Welcome | Me | Names | WorldSnapshot | BrewTaken | Bag | Catalog | BuildCatalog | BrewShelf | Spellbook | CraftBook | Crafted | Chest | Denied | Invite | Linked | Kicked | Said | Hurt | MoveOn;
+export type ServerMessage = Welcome | Me | Names | WorldSnapshot | BrewTaken | Bag | Catalog | BuildCatalog | BrewShelf | Spellbook | CraftBook | Crafted | Chest | Denied | Invite | Linked | Kicked | Said | Hurt | MoveOn | Did;
 export type ClientMessage = MoveRequest | PlaceRequest | RemoveRequest | GatherRequest | ChestAsk | ChestPut | ChestTake | BrewRequest | BrewResetRequest | BrewCompleteRequest | Hello | BagAsk | ConsumeRequest | InviteAsk | LinkRequest | SayRequest | StrikeRequest;

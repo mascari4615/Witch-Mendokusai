@@ -66,6 +66,19 @@ namespace WitchMendokusai.Server
 			return long.TryParse(said, out long given) && given > 0 ? given : SKY_BEGAN_DEFAULT_MS;
 		}
 
+		/// <summary>
+		/// 하늘을 <b>앞으로 당겨 둔 분</b> (TASK-WM-305).
+		///
+		/// ★ 왜 필요한가: 하늘은 벽시계에서 유도된다(WM-266). 그래서 시험이 <c>AdvanceMinutes</c> 로
+		///   날을 밀어도 <b>다음 판에 되돌아간다</b> — 「하루가 지나면 창이 안다」 시험이 판마다
+		///   되기도 안 되기도 했다(실측 2026-08-13, 207개 중 이 하나). 밀 수 있는 자리를 안 두면
+		///   시험은 <b>운</b>에 기댈 수밖에 없다.
+		///
+		/// ★ 무엇이 안 흔들리나: 구역끼리 같은 하늘을 쓰는 성질은 그대로다 — 이 값은 이 세계 안에서만
+		///   더해지고, 기본값은 0이다(아무도 안 건드리면 예전과 똑같이 돈다).
+		/// </summary>
+		public static long SkyHurryMinutes { get; set; }
+
 		/// <summary>세계가 시작한 뒤 몇 분이 흘렀나 — 벽시계에서 바로 유도한다.</summary>
 		private static long SkyMinutesNow()
 		{
@@ -73,7 +86,7 @@ namespace WitchMendokusai.Server
 			if (sinceMs < 0)
 				return 0;
 
-			return (long)(sinceMs / 1000.0 * MINUTES_PER_REAL_SECOND);
+			return (long)(sinceMs / 1000.0 * MINUTES_PER_REAL_SECOND) + SkyHurryMinutes;
 		}
 
 		/// <summary>
@@ -271,6 +284,9 @@ namespace WitchMendokusai.Server
 
 		/// <summary>사람마다 회선이 얼마나 먼가 (TASK-WM-303) — <b>세계가</b> 잰다, 창이 말한 값이 아니다.</summary>
 		private readonly WitchMendokusai.Net.LineTime lineTime = new WitchMendokusai.Net.LineTime();
+
+		/// <summary>이 사람의 이 번호를 이미 했나 (TASK-WM-305) — 다시 보낸 것을 두 번 하지 않는다.</summary>
+		private readonly WitchMendokusai.Net.ActionOnce actionOnce = new WitchMendokusai.Net.ActionOnce();
 
 		/// <summary>국경 너머에서 비쳐 오는 사람들 (TASK-WM-263) — 보이기만 하고 못 건드린다.</summary>
 		private readonly NeighbourShadows shadows = new NeighbourShadows();
@@ -925,6 +941,28 @@ namespace WitchMendokusai.Server
 			return moving;
 		}
 
+		/// <summary>
+		/// 이 행동을 <b>지금 해도 되나</b> (TASK-WM-305) — 번호가 붙어 있고 이미 한 것이면 안 한다.
+		///
+		/// ★ 왜 필요한가: 끊기는 순간 보낸 줍기는 <b>조용히 사라진다</b>(실측). 그걸 고치려면 창이
+		///   답 못 받은 것을 다시 보내야 하는데, 그러면 세계가 두 번 할 위험이 생긴다.
+		///   여기서 한 번만 하게 막고, 이미 한 것에도 <b>했다</b>고 답해 준다 — 창은 그래야 손을 놓는다.
+		/// </summary>
+		private bool ShouldDo(int dollId, JsonElement root, out long actionId)
+		{
+			actionId = root.TryGetProperty("did", out JsonElement idElement) ? (long)idElement.GetDouble() : 0;
+			if (actionId <= 0)
+				return true;
+
+			int identityId = World.OwnerOf(dollId);
+			if (actionOnce.FirstTime(identityId, actionId))
+				return true;
+
+			// 이미 한 일이다 — 다시 하진 않지만, 창이 계속 다시 보내지 않도록 답은 준다.
+			TellRaw(dollId, Protocol.Did(actionId));
+			return false;
+		}
+
 		/// <summary>창이 얹어 보낸 <b>세계의 도장</b>으로 그 사람의 회선을 잰다 (TASK-WM-303).</summary>
 		private void HearLine(int dollId, JsonElement root)
 		{
@@ -1027,6 +1065,14 @@ namespace WitchMendokusai.Server
 
 				if (kind == Protocol.CONSUME)
 				{
+					// 같은 것을 두 번 하지 않는다 (TASK-WM-305) — 다시 보낸 먹기 라면 답만 준다.
+					if (ShouldDo(dollId, root, out long actionId) == false)
+						return;
+
+					// ★ 「받았다」를 먼저 말한다 — 되든 안 되든 <b>이 번호는 처리했다</b>는 뜻이다.
+					//   거절이면 거절대로 따로 말이 간다(창은 그 둘을 다르게 읽는다).
+					if (actionId > 0) TellRaw(dollId, Protocol.Did(actionId));
+
 					// 없는 걸 썼다고 우겨도 소용없다 — 있는 만큼만 빠진다.
 					World.TryConsume(dollId, ReadInt(root, "itemId"), System.Math.Max(1, ReadInt(root, "amount")));
 					_ = SendBagAsync(dollId);
@@ -1043,6 +1089,14 @@ namespace WitchMendokusai.Server
 
 				if (kind == Protocol.GATHER)
 				{
+					// 같은 것을 두 번 하지 않는다 (TASK-WM-305) — 다시 보낸 줍기 라면 답만 준다.
+					if (ShouldDo(dollId, root, out long actionId) == false)
+						return;
+
+					// ★ 「받았다」를 먼저 말한다 — 되든 안 되든 <b>이 번호는 처리했다</b>는 뜻이다.
+					//   거절이면 거절대로 따로 말이 간다(창은 그 둘을 다르게 읽는다).
+					if (actionId > 0) TellRaw(dollId, Protocol.Did(actionId));
+
 					// ★ 창은 「저기 있는 저것을 줍겠다」만 말한다 (TASK-WM-217).
 					//   전에는 「아이템 X 를 N개 주웠다」고 말하면 세계가 그냥 넣어 줬다 — 그건
 					//   판정이 아니라 신고였고, 창을 고친 사람은 무엇이든 무한히 가질 수 있었다.
@@ -1315,6 +1369,14 @@ namespace WitchMendokusai.Server
 
 				if (kind == Protocol.REMOVE)
 				{
+					// 같은 것을 두 번 하지 않는다 (TASK-WM-305) — 다시 보낸 부수기 라면 답만 준다.
+					if (ShouldDo(dollId, root, out long actionId) == false)
+						return;
+
+					// ★ 「받았다」를 먼저 말한다 — 되든 안 되든 <b>이 번호는 처리했다</b>는 뜻이다.
+					//   거절이면 거절대로 따로 말이 간다(창은 그 둘을 다르게 읽는다).
+					if (actionId > 0) TellRaw(dollId, Protocol.Did(actionId));
+
 					// 부수기도 서버가 판정한다 — 빈 칸을 찍으면 아무 일도 안 일어난다.
 					if (World.TryRemoveBuilding(new Vector3Int(ReadInt(root, "x"), ReadInt(root, "y"), ReadInt(root, "z")),
 						out int removedBuildingId))
@@ -1337,6 +1399,14 @@ namespace WitchMendokusai.Server
 
 				if (kind == Protocol.PLACE)
 				{
+					// 같은 것을 두 번 하지 않는다 (TASK-WM-305) — 다시 보낸 짓기 라면 답만 준다.
+					if (ShouldDo(dollId, root, out long actionId) == false)
+						return;
+
+					// ★ 「받았다」를 먼저 말한다 — 되든 안 되든 <b>이 번호는 처리했다</b>는 뜻이다.
+					//   거절이면 거절대로 따로 말이 간다(창은 그 둘을 다르게 읽는다).
+					if (actionId > 0) TellRaw(dollId, Protocol.Did(actionId));
+
 					int cellX = ReadInt(root, "x");
 					int cellY = ReadInt(root, "y");
 					int cellZ = ReadInt(root, "z");
@@ -1400,6 +1470,13 @@ namespace WitchMendokusai.Server
 		}
 
 		/// <summary>그 창에게만 「안 된다」고 말한다 — 답장은 옆으로 보낸다(세계가 기다리지 않게).</summary>
+		/// <summary>이 사람에게 <b>그대로</b> 한 마디 (TASK-WM-305) — 거절이 아닌 말도 보내야 한다.</summary>
+		private void TellRaw(int dollId, string line)
+		{
+			if (sockets.TryGetValue(dollId, out Connection listener))
+				_ = SendAsync(listener, line);
+		}
+
 		private void Tell(int dollId, string what, string why)
 		{
 			if (sockets.TryGetValue(dollId, out Connection listener))
