@@ -89,7 +89,7 @@ namespace WitchMendokusai.ServerTests
 		[Test]
 		public async Task 서쪽_끝까지_걸으면_옆_세계가_받아_준다()
 		{
-			using ClientWebSocket window = new ClientWebSocket();
+			ClientWebSocket window = new ClientWebSocket();
 			await window.ConnectAsync(new Uri($"ws://127.0.0.1:{EAST_PORT}/ws"), CancellationToken.None);
 			await SendAsync(window, "{\"type\":\"hello\",\"secret\":\"\"}");
 
@@ -119,8 +119,19 @@ namespace WitchMendokusai.ServerTests
 			Assert.AreEqual(1, overThere.Length, "옆 세계가 안 받아 주면 그 사람은 사라진다");
 			Assert.LessOrEqual(overThere[0].Position.x, 0f, "받은 자리는 그 세계의 땅 안이어야 한다");
 
-			// 그리고 원래 세계에서는 나갔다 — 둘 다 데리고 있으면 두 세계에 동시에 있게 된다.
-			Assert.AreEqual(0, eastHost.World.Snapshot().Length,
+			// ★ 창은 저 세계의 첫 그림을 보고 나서 옛 줄을 놓는다 (TASK-WM-279) — 그 놓는 시늉을 한다.
+			//   보낸 세계는 <b>줄이 닫힐 때</b> 내보낸다(그 전에 내보내면 저쪽이 꺼졌을 때
+			//   두 세계 어디에도 없는 사람이 된다).
+			window.Dispose();
+
+			bool leftTheEast = false;
+			for (int look = 0; look < 40 && leftTheEast == false; look++)
+			{
+				await Task.Delay(100);
+				leftTheEast = eastHost.World.Snapshot().Length == 0;
+			}
+
+			Assert.IsTrue(leftTheEast,
 				"보낸 세계가 계속 데리고 있으면 그 사람은 두 세계에 동시에 있다(가방이 복사된다)");
 		}
 

@@ -508,6 +508,12 @@ namespace WitchMendokusai.Server
 			return app;
 		}
 
+		/// <summary>
+		/// 국경을 넘는 창을 <b>데리고 있어 주는</b> 시간 (ms, TASK-WM-279).
+		/// 창은 저 세계에 먼저 붙어 보고 첫 그림이 온 뒤에 이 줄을 놓는다 — 그 사이를 기다린다.
+		/// </summary>
+		private const int HANDOVER_GRACE_MS = 5000;
+
 		/// <summary>인사를 안 하는 창에도 낱말표를 주기까지 기다리는 시간.</summary>
 		private const int WAIT_FOR_HELLO_MS = 1000;
 
@@ -1827,8 +1833,19 @@ namespace WitchMendokusai.Server
 
 			await SendAsync(socket, Protocol.MoveOn(zoneName, zoneAddress, landing.x, landing.z, pass));
 
-			// 잠깐 뒤에 내보낸다 — 말이 나가기 전에 끊으면 창은 어디로 갈지 모른 채 남는다.
-			await Task.Delay(200);
+			// ★ <b>창이 실제로 떠날 때까지</b> 데리고 있는다 (TASK-WM-279).
+			//   전에는 200ms 뒤 무조건 내보냈다. 그런데 창은 이제 저 세계에 <b>먼저 붙어 보고</b>
+			//   첫 그림이 온 뒤에 이 줄을 놓는다(멎는 시간 1097ms → 341ms). 그 사이에 내보내면
+			//   저 세계가 꺼져 있을 때 그 사람은 <b>두 세계 어디에도 없는</b> 사람이 된다.
+			//   그러니 줄이 닫히면 그때 내보낸다 — 안 닫히면 유예까지만 기다린다.
+			long until = System.Environment.TickCount64 + HANDOVER_GRACE_MS;
+			while (System.Environment.TickCount64 < until && socket.Socket.State == WebSocketState.Open)
+				await Task.Delay(50);
+
+			// 아직 붙어 있으면 안 넘어간 것이다 — 저 세계가 안 열렸다(그대로 여기 산다).
+			if (socket.Socket.State == WebSocketState.Open)
+				return;
+
 			World.Leave(dollId);
 
 			// 들고 간 것을 이 세계도 기억하고 있으면, 돌아왔을 때 <b>두 벌</b>이 된다 (TASK-WM-259).

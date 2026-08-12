@@ -213,9 +213,22 @@ if (told !== null) {
 check('옆 세계가 실제로 받아 줬다', landed,
 	landed ? '' : '두 세계 어디에도 없는 사람이 됐다');
 
-const gone = await fetch(`http://127.0.0.1:${eastPort}/health`, { headers: { connection: 'close' } })
-	.then((r) => r.json()).catch(() => ({ people: -1 }));
-check('보낸 세계에서는 나갔다 (두 곳에 동시에 있지 않다)', gone.people === 0,
+// ★ 이제 넘어가는 순간에는 <b>잠깐 두 세계에 다 있다</b> (TASK-WM-279): 창이 저 세계에
+//   먼저 붙어 보고 첫 그림이 온 뒤에 옛 줄을 놓기 때문이다. 그 겹침이 <b>곧 풀리는지</b>를 본다
+//   — 안 풀리면 그 사람은 정말로 두 세계에 산다(가방이 복사된다).
+let gone = { people: -1 };
+{
+	const untilGone = Date.now() + 5000;
+	while (Date.now() < untilGone) {
+		gone = await fetch(`http://127.0.0.1:${eastPort}/health`, { headers: { connection: 'close' } })
+			.then((r) => r.json()).catch(() => ({ people: -1 }));
+		if (gone.people === 0) break;
+
+		await wait(200);
+	}
+}
+
+check('보낸 세계에서는 곧 나간다 (두 세계에 눌러앉지 않는다)', gone.people === 0,
 	`동쪽에 남은 사람 ${gone.people}명`);
 
 // ── 국경을 넘는 동안 화면이 <b>몇 초 멎었나</b> (TASK-WM-278) ─────────────
@@ -230,8 +243,8 @@ check('보낸 세계에서는 나갔다 (두 곳에 동시에 있지 않다)', g
 		+ ` (받은 판 ${plates.length}장)`);
 
 	// 사람이 「끊겼다」로 읽기 시작하는 선 — 넘겨주기(200ms 대기) + 붙기 + 첫 그림.
-	// 판이 몇 장 없으면 그건 「안 멎었다」가 아니라 <b>못 잰 것</b>이다.
-	if (plates.length < 40) {
+	// 판이 몇 장 없으면 그건 「안 멎었다」가 아니라 <b>못 잰 것</b>이다(20Hz 라 25장 ≈ 1.3초).
+	if (plates.length < 25) {
 		await browser.close();
 		for (const one of lines) await one.close();
 		killWorlds();
@@ -288,20 +301,22 @@ check('보낸 세계에서는 나갔다 (두 곳에 동시에 있지 않다)', g
 
 	check('죽은 세계로도 「가라」는 온다 (세계는 이웃이 살았는지 모른다)', toldAgain !== null);
 
-	let cameBack = false;
+	// ★ 이제는 <b>떠나기 전에 붙어 본다</b> (TASK-WM-279) — 저 세계가 안 열리면 아예 안 떠난다.
+	//   보낸 세계도 창이 실제로 줄을 놓을 때까지 데리고 있으므로, 「어디에도 없는 사람」이 안 생긴다.
+	let stayed = false;
 	if (toldAgain !== null) {
 		const untilBack = Date.now() + 25000;
 		while (Date.now() < untilBack) {
 			const here = await fetch(`http://127.0.0.1:${westPort}/health`, { headers: { connection: 'close' } })
 				.then((r) => r.json()).catch(() => ({ people: 0 }));
-			if (here.people >= 1) { cameBack = true; break; }
+			if (here.people >= 1) { stayed = true; break; }
 
 			await wait(400);
 		}
 	}
 
-	check('저 세계가 안 열리면 왔던 곳으로 돌아온다', cameBack,
-		cameBack ? '' : '두 세계 어디에도 없는 사람이 됐다 — 가방째 사라졌다');
+	check('저 세계가 안 열리면 원래 세계에 그대로 있다', stayed,
+		stayed ? '' : '두 세계 어디에도 없는 사람이 됐다 — 가방째 사라졌다');
 }
 
 check('창이 조용히 안 터졌다', pageErrors.length === 0, pageErrors.join(' | ') || '오류 없음');

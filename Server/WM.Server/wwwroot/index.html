@@ -786,6 +786,101 @@ function connect() {
 	socket.onmessage = onLinkMessage;
 }
 
+/*
+ * <b>미리 붙어 두고 넘어간다</b> (TASK-WM-279).
+ *
+ * ★ 왜: 전에는 「가라」를 듣자마자 이 줄을 끊었다. 그러면 <b>끊고 · 붙고 · 첫 그림</b> 동안
+ *   화면이 통째로 멎는다 — 왕복 200ms 회선에서 <b>1097ms</b> 였다(WM-278 실측).
+ *   사람 눈에는 국경마다 한 번씩 세계가 멈추는 것이다.
+ *
+ * ★ 그래서 <b>새 줄을 먼저 연다</b>. 보낸 세계는 200ms 를 기다려 주므로 그동안 소식이 계속 온다.
+ *   저 세계의 <b>첫 그림</b>이 오면 그때 옛 줄을 놓는다 — 멎는 자리가 없다.
+ *
+ * ★ 저 세계가 안 열리면? 옛 줄을 안 놓았으니 그냥 옛 줄로 남는다. 그러다 옛 줄마저 끊기면
+ *   지금까지의 길(WM-256, 왔던 곳으로 돌아가기)이 그대로 받는다.
+ */
+let crossing = null;
+
+function crossOver(address) {
+	if (crossing !== null) return;
+
+	const next = new WebSocket(address);
+	const waiting = [];
+	crossing = { socket: next, waiting };
+
+	// 저 세계가 늦으면 옛 줄을 그냥 쓴다 — 끊지 않았으니 잃는 것이 없다.
+	const giveUp = setTimeout(() => {
+		if (crossing === null || crossing.socket !== next) return;
+
+		crossing = null;
+		try { next.close(); } catch (e) { /* 이미 닫혔다 */ }
+		statusElement.textContent = '저 세계가 안 열린다 — 여기 그대로 있는다';
+	}, GIVE_UP_ON_NEXT_WORLD_MS);
+
+	next.onopen = () => {
+		let knownCatalogs = stampIfKept();
+		let saved = '';
+		try { saved = localStorage.getItem(KEY_NAME) || ''; } catch (e) { saved = ''; }
+
+		const pass = travelPass;
+		travelPass = '';
+		next.send(JSON.stringify({ type: 'hello', secret: saved, knownCatalogs, pass }));
+		next.send(JSON.stringify({ type: 'bagask' }));
+	};
+
+	// 첫 그림이 올 때까지는 <b>담아만 둔다</b> — 옛 세계의 소식과 섞이면 자리가 튄다.
+	next.onmessage = (event) => {
+		let said;
+		try { said = JSON.parse(event.data); } catch (e) { said = null; }
+
+		waiting.push(event.data);
+		if (said === null || said.type !== 'world') return;
+
+		clearTimeout(giveUp);
+		takeOver(next, waiting);
+	};
+
+	next.onerror = () => { /* onclose 가 정리한다 */ };
+	next.onclose = () => {
+		if (crossing === null || crossing.socket !== next) return;
+
+		clearTimeout(giveUp);
+		crossing = null;
+	};
+}
+
+/** 저 세계의 첫 그림이 왔다 — 이제 옛 줄을 놓고 이 줄로 산다. */
+function takeOver(next, waiting) {
+	crossing = null;
+
+	// 옛 줄은 <b>조용히</b> 놓는다 — 닫힘을 그냥 두면 「끊겼다」로 읽고 다시 붙으러 간다.
+	const old = socket;
+	if (old) {
+		old.onmessage = null;
+		old.onclose = null;
+		old.onerror = null;
+		try { old.close(); } catch (e) { /* 이미 닫혔다 */ }
+	}
+
+	// 새 세계는 나를 처음부터 그려 준다 — 지난 판 번호를 들고 있으면 새 그림을 옛것으로 읽는다.
+	myId = null;
+	lastWorldSequence = 0;
+	stepNumber = 0;
+	stepsWaiting = [];
+	sentUpTo = null;
+	cameFrom = '';
+
+	socket = next;
+	socket.onopen = onLinkOpen;
+	socket.onclose = onLinkClose;
+	socket.onerror = onLinkError;
+	socket.onmessage = onLinkMessage;
+	reconnect.opened();
+	statusElement.textContent = linkStatusText('open', 0);
+
+	for (const data of waiting) onLinkMessage({ data });
+}
+
 function onLinkClose() {
 	// 다시 붙으면 세계는 나를 처음부터 그려 준다 — 지난 판의 번호·차례를 들고 있으면
 	// 새 스냅샷을 「오래된 것」으로 읽고 버린다(화면이 영원히 안 갱신된다).
@@ -992,9 +1087,7 @@ function onLinkMessage(event) {
 		passKeptFor = message.pass;
 		worldAt = message.address;
 		statusElement.textContent = `${message.zone} 으로 넘어간다`;
-
-		// 지금 줄은 버린다 — 저 세계가 이제 나를 맡는다(둘 다 붙어 있으면 두 세계에 동시에 있게 된다).
-		try { socket.close(); } catch (e) { /* 이미 닫혔다 */ }
+		crossOver(message.address);
 		return;
 	}
 
@@ -1230,6 +1323,9 @@ function replayMySteps() {
 
 setInterval(() => {
 	if (socket === null || socket.readyState !== WebSocket.OPEN || myId === null) return;
+
+	// 국경을 넘는 중이면 옛 세계에 걸음을 안 보낸다 — 곧 놓을 줄이고, 저쪽이 자리를 정한다.
+	if (crossing !== null) return;
 
 	const selfView = dollViews.get(myId);
 	if (!selfView) return;
