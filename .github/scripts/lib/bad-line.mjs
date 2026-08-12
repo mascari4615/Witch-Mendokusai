@@ -45,7 +45,7 @@ export function releaseAt(readyAt, now, bytes, line, roll) {
  * 나쁜 회선을 하나 세운다. 창은 <c>listenPort</c> 로 붙고, 세계는 <c>targetPort</c> 에 있다.
  * HTTP·WebSocket 을 안 가린다 — 바이트만 다루기 때문이다(업그레이드도 그냥 흘러간다).
  */
-export function openBadLine({ listenPort, targetPort, latencyMs = 0, jitterMs = 0, bytesPerSecond = 0, host = '127.0.0.1', queueBytes = 64 * 1024 }) {
+export function openBadLine({ listenPort, targetPort, latencyMs = 0, jitterMs = 0, bytesPerSecond = 0, host = '127.0.0.1', queueBytes = 64 * 1024, lossPercent = 0, retransmitMs = 300 }) {
 	const line = { latencyMs, jitterMs, bytesPerSecond };
 	const sockets = new Set();
 	const pipes = [];
@@ -100,6 +100,13 @@ export function openBadLine({ listenPort, targetPort, latencyMs = 0, jitterMs = 
 					readyAt = 0;
 
 				readyAt = releaseAt(readyAt, now, piece.length, line, Math.random());
+
+				// ★ <b>유실</b>은 「사라짐」이 아니라 <b>기다림</b>이다 (TASK-WM-245).
+				//   TCP 는 잃은 조각을 다시 보내므로 앱에는 안 사라진다 — 대신 그 조각이 다시 올 때까지
+				//   <b>뒤의 것이 전부 함께 멈춘다</b>(head-of-line). 그래서 이 조각 하나가 늦으면
+				//   readyAt 이 밀리고, 그 뒤 조각도 다 같이 밀린다 — 실제로 일어나는 모양 그대로다.
+				if (lossPercent > 0 && Math.random() * 100 < lossPercent)
+					readyAt += retransmitMs;
 				queue.push({ at: readyAt, chunk: piece });
 				waiting += piece.length;
 				if (timer === null) timer = setTimeout(drain, Math.max(1, readyAt - now));

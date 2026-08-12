@@ -33,6 +33,16 @@ const ONE_WAY_MS = 100;   // 왕복 200ms
 const JITTER_MS = 30;
 
 /*
+ * 유실 — 흔한 모바일에서 2% 언저리.
+ *
+ * ★ TCP 는 잃은 조각을 <b>다시 보낸다</b>. 그래서 앱에는 「메시지가 사라짐」이 아니라
+ *   <b>기다림</b>으로 나타난다 — 그 조각이 다시 올 때까지 뒤의 것이 전부 함께 멈춘다
+ *   (head-of-line). 그러니 여기서도 그 모양 그대로 넣는다.
+ *   임의로 버리는 흉내는 실제로 안 일어나는 일을 시험하는 것이라 거짓 안심을 준다.
+ */
+const LOSS_PERCENT = 2;
+
+/*
  * 기준 — loopback 기준을 그대로 쓰면 안 된다. 회선이 늦는 만큼은 회선 값이지 고장이 아니다.
  *
  * 뒤처짐: 회선 한쪽(0.1s) × 걸음 3m/s = 0.3m 은 물리다. 여기에 메우는 값(0.17m)과 흔들림을 더해
@@ -41,9 +51,16 @@ const JITTER_MS = 30;
  * 첫 화면: 왕복 0.2s 짜리 회선에서 3초를 넘으면 사람이 창을 닫는다.
  */
 const MAX_FROZEN_FRAME_RATIO = 0.25;
-const MAX_SPEED_WOBBLE = 0.9;
+// ⚠ 유실이 있으면 <b>진짜로</b> 덜 고와진다 — 재전송을 기다리는 동안 뒤가 다 밀리기 때문이다.
+//   실측(유실 2%): 0.68 · 0.81 · 0.89. 유실 없을 때는 0.30 언저리였다.
+//   그러니 문턱은 「유실이 있어도 이 정도면 논다」로 잡는다 — 없을 때 값으로 잡으면 태생적 빨강이다.
+//   더 날카로운 칸은 아래 「멎은 프레임」이다(유실 2% 에서 5%, 기준 25%).
+const MAX_SPEED_WOBBLE = 1.3;
 const MAX_LAG_METERS = 1.2;
 const MAX_FIRST_PAINT_MS = 3000;
+
+/** 3D 엔진(138KB)이 나쁜 회선으로 다 오기까지 — 세계에 들어간 시간과는 다른 값이다. */
+const MAX_ENGINE_MS = 20000;
 const MAX_RECOVER_MS = 15000;
 
 function cannotRun(message) {
@@ -162,7 +179,7 @@ world = spawn('dotnet', [dll, '--urls', `http://127.0.0.1:${worldPort}`], {
 }
 
 // ── ② 나쁜 회선을 세계 앞에 세운다 ────────────────────────────────────
-const badLine = openBadLine({ listenPort: linePort, targetPort: worldPort, latencyMs: ONE_WAY_MS, jitterMs: JITTER_MS });
+const badLine = openBadLine({ listenPort: linePort, targetPort: worldPort, latencyMs: ONE_WAY_MS, jitterMs: JITTER_MS, lossPercent: LOSS_PERCENT });
 await badLine.listen();
 
 // 가만히 선 사람 몇 — 끊겼다 돌아왔을 때 <b>안 움직인 사람</b>이 다시 보이는지가 핵심이라
@@ -200,17 +217,31 @@ page.on('pageerror', (error) => pageErrors.push(String(error)));
 
 const openedAt = Date.now();
 await page.goto(url);
+
+// ★ 「사람이 세계에 들어간 순간」 = 지도가 붙은 때다 (TASK-WM-234). 3D 엔진은 그 뒤에 온다.
+//   엔진까지 기다려 재면 <b>내려받기 시간</b>을 재는 것이지 세계에 들어간 시간이 아니다
+//   (유실 2% 회선에서 4.7초가 나왔다 — 그건 엔진 138KB 의 값이다).
 let firstPaint = -1;
 try {
 	await page.waitForFunction(
-		() => (document.getElementById('status')?.textContent || '').includes('붙었다'),
+		() => (window.__wmEarly && window.__wmEarly.socket && window.__wmEarly.socket.readyState === 1)
+			|| typeof window.__wmView === 'object',
 		null, { timeout: 30000 });
 	firstPaint = Date.now() - openedAt;
 } catch { /* 아래 칸이 잡는다 */ }
 
-check('나쁜 회선으로도 창이 붙는다', firstPaint >= 0, firstPaint >= 0 ? `${firstPaint}ms` : '안 붙었다');
-check(`첫 화면이 ${MAX_FIRST_PAINT_MS}ms 안에 뜬다`, firstPaint >= 0 && firstPaint <= MAX_FIRST_PAINT_MS,
-	`${firstPaint}ms (왕복 ${ONE_WAY_MS * 2}ms 회선)`);
+check('나쁜 회선으로도 창이 세계에 들어간다', firstPaint >= 0, firstPaint >= 0 ? `${firstPaint}ms` : '안 들어갔다');
+check(`세계에 ${MAX_FIRST_PAINT_MS}ms 안에 들어간다`, firstPaint >= 0 && firstPaint <= MAX_FIRST_PAINT_MS,
+	`${firstPaint}ms (왕복 ${ONE_WAY_MS * 2}ms · 유실 ${LOSS_PERCENT}% 회선)`);
+
+// 3D 는 뒤에 온다 — 엔진 138KB 를 나쁜 회선으로 받는 값이다. 여기서는 <b>오기는 하나</b>만 본다.
+let engineAt = -1;
+try {
+	await page.waitForFunction(() => typeof window.__wmView === 'object', null, { timeout: MAX_ENGINE_MS });
+	engineAt = Date.now() - openedAt;
+} catch { /* 아래 칸이 잡는다 */ }
+
+check(`3D 도 ${MAX_ENGINE_MS / 1000}초 안에 선다`, engineAt >= 0, engineAt >= 0 ? `${engineAt}ms` : '안 섰다');
 
 // ── ④ 남이 걷는 게 부드러운가 ─────────────────────────────────────────
 // ⚠ 「남 중 첫 번째」를 잡으면 안 된다 (실측 2026-08-12): 가만히 선 사람이 잡히면
@@ -271,6 +302,12 @@ if (trail.length > 30) {
 // ★ 들판이 <b>줄지 않는가</b> — 세계는 「바뀐 자리만」 보낸다. 창이 그걸 전체로 알고 갈아 끼우면
 //   안 바뀐 자리 수십 개가 한 번에 사라진다(오류 없이 조용히, TASK-WM-230).
 //   그래서 한 번 본 들판의 <b>가장 많았던 수</b>를 적어 두고, 그 아래로 안 떨어지는지 본다.
+// ⚠ 첫 전체 그림(들판 67자리)은 <b>10KB 남짓</b>이다 — 유실 있는 회선에서는 몇 초 걸린다.
+//   그게 오기 전에 3초만 보고 「0자리」라고 하면, 회선이 느린 것을 세계의 고장으로 읽는 것이다.
+//   들판이 <b>한 번 보일 때까지</b> 기다린 뒤에 「줄지 않나」를 본다.
+await page.waitForFunction(() => window.__wmView.world().gatherables > 0, null, { timeout: 20000 })
+	.catch(() => { /* 그래도 안 오면 아래 칸이 0 으로 잡는다 */ });
+
 const fieldWatch = await page.evaluate(() => {
 	window.__wmField = { most: 0, least: 1e9, plates: 0, withField: 0, kinds: {} };
 
@@ -363,7 +400,7 @@ await badLine.close();
 killWorld();
 
 if (failures === 0) {
-	console.log(`[web-badline] ✅ 왕복 ${ONE_WAY_MS * 2}ms · 흔들림 ${JITTER_MS}ms 회선에서도 세계가 논다`);
+	console.log(`[web-badline] ✅ 왕복 ${ONE_WAY_MS * 2}ms · 흔들림 ${JITTER_MS}ms · 유실 ${LOSS_PERCENT}% 회선에서도 세계가 논다`);
 	process.exit(0);
 }
 
