@@ -67,6 +67,9 @@ namespace WitchMendokusai.Server
 		/// <summary>걸음 지갑이 비어 되돌린 걸음 수 — 속이는 창이 있으면 여기가 오른다 (TASK-WM-222).</summary>
 		private long refusedSteps;
 
+		/// <summary>판과 판 사이가 가장 많이 벌어진 순간 (ms) — 세계가 멎은 자리 (TASK-WM-242).</summary>
+		private long longestTickGapMs;
+
 		/// <summary>창이 이미 들고 있어 안 보낸 낱말표 묶음 수 (TASK-WM-238).</summary>
 		private long catalogsSkipped;
 
@@ -327,6 +330,7 @@ namespace WitchMendokusai.Server
 				broadcastSnapshotMessages = Interlocked.Read(ref broadcastSnapshotMessages),
 				builtSnapshots = Interlocked.Read(ref builtSnapshots),
 				refusedSteps = Interlocked.Read(ref refusedSteps),
+				longestTickGapMs = Interlocked.Read(ref longestTickGapMs),
 				catalogsSkipped = Interlocked.Read(ref catalogsSkipped),
 				narrowedWindows = CountNarrowed(),
 				squeezedFiles = squeeze == null ? 0 : squeeze.Count,
@@ -721,6 +725,9 @@ namespace WitchMendokusai.Server
 		}
 
 		/// <summary>창이 보낸 말을 계약(<see cref="Protocol"/>)대로 읽는다.</summary>
+		/// <summary>시험용 — 판과 판 사이가 가장 많이 벌어진 순간 (ms) (TASK-WM-242).</summary>
+		public long LongestTickGapMs => Interlocked.Read(ref longestTickGapMs);
+
 		/// <summary>시험용 — 회선이 좁아 사람 수를 줄여 준 창 수 (TASK-WM-228).</summary>
 		public int NarrowedWindowCount => CountNarrowed();
 
@@ -1316,6 +1323,20 @@ namespace WitchMendokusai.Server
 				double nowSeconds = clock.Elapsed.TotalSeconds;
 				float sinceLast = (float)(nowSeconds - lastSeconds);
 				lastSeconds = nowSeconds;
+
+				// ★ 판과 판 사이가 <b>가장 많이 벌어진</b> 순간을 적어 둔다 (TASK-WM-242).
+				//   평균은 예뻐도 한 번 크게 멎으면 사람은 그걸 「끊겼다」로 느낀다.
+				//   저장(5초마다 세계를 통째로 적는다)이 세계를 멈추는지가 여기에 드러난다.
+				long gapMs = (long)(sinceLast * 1000.0);
+				long wasWorst = Interlocked.Read(ref longestTickGapMs);
+				while (gapMs > wasWorst)
+				{
+					long swapped = Interlocked.CompareExchange(ref longestTickGapMs, gapMs, wasWorst);
+					if (swapped == wasWorst)
+						break;
+
+					wasWorst = swapped;
+				}
 
 				// 세계의 시간은 <b>사람이 있든 없든</b> 흐른다 — 서버가 굴리는 이유가 그것이다.
 				if (World.AdvanceMinutes(MINUTES_PER_REAL_SECOND * sinceLast))
