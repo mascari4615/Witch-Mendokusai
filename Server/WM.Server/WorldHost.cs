@@ -1801,7 +1801,8 @@ namespace WitchMendokusai.Server
 					if (text == null)
 						break;
 
-					if (ReadMessageType(text) != Protocol.NEARBY)
+					string kind = ReadMessageType(text);
+					if (kind != Protocol.NEARBY && kind != Protocol.HEARD)
 						continue;
 
 					string zone = ReadStringField(text, "zone");
@@ -1811,6 +1812,15 @@ namespace WitchMendokusai.Server
 					// ⚠ 도장이 없으면 아무나 남의 세계에 사람을 그려 넣는다(있지도 않은 무리를 세운다).
 					if (SameSeal(ReadStringField(text, "seal"), BorderSeal(zone)) == false)
 						continue;
+
+					if (kind == Protocol.HEARD)
+					{
+						// 국경 너머에서 건너온 말 (TASK-WM-264) — 그 자리 가까이 있는 내 사람들에게.
+						(int who, float x, float z) = ReadHeardWhere(text);
+						await HearFromNeighbourAsync(zone, who,
+							ReadStringField(text, "name"), ReadStringField(text, "text"), x, z);
+						continue;
+					}
 
 					shadows.TakeFrom(zone, ReadNearby(text), System.Environment.TickCount64);
 				}
@@ -1832,6 +1842,24 @@ namespace WitchMendokusai.Server
 				different |= said[i] ^ mine[i];
 
 			return different == 0;
+		}
+
+		/// <summary>건너온 말이 <b>어디서</b> 났나 — 못 읽으면 0,0(그 자리엔 아무도 없다).</summary>
+		private static (int Who, float X, float Z) ReadHeardWhere(string text)
+		{
+			try
+			{
+				using JsonDocument document = JsonDocument.Parse(text);
+				JsonElement root = document.RootElement;
+				return (
+					root.TryGetProperty("dollId", out JsonElement who) ? who.GetInt32() : 0,
+					root.TryGetProperty("x", out JsonElement x) ? (float)x.GetDouble() : 0f,
+					root.TryGetProperty("z", out JsonElement z) ? (float)z.GetDouble() : 0f);
+			}
+			catch (JsonException)
+			{
+				return (0, 0f, 0f);
+			}
 		}
 
 		private static System.Collections.Generic.List<(int DollId, float X, float Z, string Name)> ReadNearby(string text)
@@ -1868,6 +1896,51 @@ namespace WitchMendokusai.Server
 		/// <summary>이웃에게 국경 띠를 알려 주는 간격 (ms) — 사람 판(50ms)보다 뜸해도 눈에 안 띈다.</summary>
 		private const int TELL_NEIGHBOURS_EVERY_MS = 100;
 
+		/// <summary>
+		/// 이웃마다 살아 있는 줄 하나 (TASK-WM-264) — 국경 띠 알림도, 넘어가는 말도 이 줄로 간다.
+		/// ⚠ 한 줄에 두 곳에서 동시에 쓰면 소켓이 깨진다 — 자물쇠를 같이 들고 다닌다.
+		/// </summary>
+		private sealed class PeerLine
+		{
+			public PeerLine(System.Net.WebSockets.ClientWebSocket socket)
+			{
+				Socket = socket;
+			}
+
+			public System.Net.WebSockets.ClientWebSocket Socket { get; }
+
+			public SemaphoreSlim Turn { get; } = new SemaphoreSlim(1, 1);
+		}
+
+		private readonly System.Collections.Concurrent.ConcurrentDictionary<string, PeerLine> peerLines =
+			new System.Collections.Concurrent.ConcurrentDictionary<string, PeerLine>();
+
+		/// <summary>그 이웃에게 한 마디 — 줄이 아직 안 이어졌으면 조용히 흘린다(다음 판이 곧 온다).</summary>
+		private async Task SendToPeerAsync(string address, string word)
+		{
+			if (peerLines.TryGetValue(address, out PeerLine line) == false)
+				return;
+
+			if (line.Socket.State != WebSocketState.Open)
+				return;
+
+			await line.Turn.WaitAsync();
+			try
+			{
+				byte[] payload = Encoding.UTF8.GetBytes(word);
+				await line.Socket.SendAsync(new System.ArraySegment<byte>(payload),
+					WebSocketMessageType.Text, true, CancellationToken.None);
+			}
+			catch (System.Exception)
+			{
+				// 줄이 끊겼다 — 잇는 것은 저쪽 루프가 한다.
+			}
+			finally
+			{
+				line.Turn.Release();
+			}
+		}
+
 		/// <summary>이웃마다 줄 하나 — 끊기면 다시 잇는다(옆 세계가 나중에 떠도 저절로 이어진다).</summary>
 		private async Task RunBorderLoopsAsync(CancellationToken stopping)
 		{
@@ -1890,18 +1963,17 @@ namespace WitchMendokusai.Server
 
 			while (stopping.IsCancellationRequested == false)
 			{
-				System.Net.WebSockets.ClientWebSocket line = new System.Net.WebSockets.ClientWebSocket();
+				System.Net.WebSockets.ClientWebSocket socket = new System.Net.WebSockets.ClientWebSocket();
+				PeerLine line = new PeerLine(socket);
 				try
 				{
-					await line.ConnectAsync(new System.Uri(door), stopping);
-					while (line.State == WebSocketState.Open && stopping.IsCancellationRequested == false)
-					{
-						string word = Protocol.Nearby(World.Patch.Name, BorderSeal(World.Patch.Name),
-							AtTheBorderOf(land), Identities.NameOf);
+					await socket.ConnectAsync(new System.Uri(door), stopping);
+					peerLines[address] = line;
 
-						byte[] payload = Encoding.UTF8.GetBytes(word);
-						await line.SendAsync(new System.ArraySegment<byte>(payload),
-							WebSocketMessageType.Text, true, stopping);
+					while (socket.State == WebSocketState.Open && stopping.IsCancellationRequested == false)
+					{
+						await SendToPeerAsync(address, Protocol.Nearby(World.Patch.Name,
+							BorderSeal(World.Patch.Name), AtTheBorderOf(land), Identities.NameOf));
 
 						await Task.Delay(TELL_NEIGHBOURS_EVERY_MS, stopping);
 					}
@@ -1912,7 +1984,8 @@ namespace WitchMendokusai.Server
 				}
 				finally
 				{
-					line.Dispose();
+					peerLines.TryRemove(address, out PeerLine _);
+					socket.Dispose();
 				}
 
 				if (stopping.IsCancellationRequested)
@@ -1997,6 +2070,45 @@ namespace WitchMendokusai.Server
 				WorldDoll one = everyone[i];
 				float awayX = one.Position.x - from.x;
 				float awayZ = one.Position.z - from.z;
+				if ((awayX * awayX) + (awayZ * awayZ) > radiusSquared)
+					continue;
+
+				if (sockets.TryGetValue(one.Id, out Connection listener))
+					await SendAsync(listener, said);
+			}
+
+			// ★ 말도 국경을 건넌다 (TASK-WM-264) — 안 건너가면 1m 옆 사람에게 말을 못 건다.
+			//   보이는데 말이 안 통하면 그건 더 이상한 세계다(WM-263 이 눈만 이어 준 셈).
+			await TellNeighboursHeardAsync(dollId, name, line, from);
+		}
+
+		/// <summary>국경 띠에 선 사람의 말을 이웃 세계로 넘긴다 (TASK-WM-264).</summary>
+		private async Task TellNeighboursHeardAsync(int dollId, string name, string line, Vector3 from)
+		{
+			foreach ((WitchMendokusai.Net.ZonePatch Patch, string Address) land in neighbours.Lands)
+			{
+				if (WitchMendokusai.Net.BorderBand.WorthTelling(land.Patch, from) == false)
+					continue;
+
+				await SendToPeerAsync(land.Address, Protocol.Heard(World.Patch.Name,
+					BorderSeal(World.Patch.Name), dollId, name, line, from.x, from.z));
+			}
+		}
+
+		/// <summary>이웃이 넘겨 온 말을 <b>그 자리 가까이</b> 있는 내 사람들에게 나른다.</summary>
+		private async Task HearFromNeighbourAsync(string zone, int dollId, string name, string line, float x, float z)
+		{
+			int shadowId = WitchMendokusai.Net.BorderBand.ShadowId(zone, dollId);
+			if (shadowId == 0)
+				return;
+
+			string said = Protocol.Said(shadowId, name, line);
+			float radiusSquared = PLAYER_INTEREST_RADIUS * PLAYER_INTEREST_RADIUS;
+
+			foreach (WorldDoll one in World.Snapshot())
+			{
+				float awayX = one.Position.x - x;
+				float awayZ = one.Position.z - z;
 				if ((awayX * awayX) + (awayZ * awayZ) > radiusSquared)
 					continue;
 

@@ -145,6 +145,70 @@ namespace WitchMendokusai.ServerTests
 		}
 
 		[Test]
+		public async Task 국경_너머로_말이_건너간다()
+		{
+			// ★ 보이는데 말이 안 통하면 그건 더 이상한 세계다 (TASK-WM-264) — 눈만 이어 준 셈이다.
+			using ClientWebSocket inTheEast = new ClientWebSocket();
+			await inTheEast.ConnectAsync(new Uri($"ws://127.0.0.1:{EAST_PORT}/ws"), CancellationToken.None);
+			await SendAsync(inTheEast, "{\"type\":\"hello\",\"secret\":\"\"}");
+
+			using ClientWebSocket inTheWest = new ClientWebSocket();
+			await inTheWest.ConnectAsync(new Uri($"ws://127.0.0.1:{WEST_PORT}/ws"), CancellationToken.None);
+			await SendAsync(inTheWest, "{\"type\":\"hello\",\"secret\":\"\"}");
+			await Task.Delay(500);
+
+			eastHost.World.TryMove(eastHost.World.Snapshot()[0].Id, new Vector3(0.5f, 0f, 0f));
+			westHost.World.TryMove(westHost.World.Snapshot()[0].Id, new Vector3(-100f, 0f, 0f));
+
+			// 줄이 이어질 틈을 준 뒤 서쪽에서 말한다.
+			await Task.Delay(700);
+			await SendAsync(inTheWest, "{\"type\":\"say\",\"text\":\"거기 누구 있소\"}");
+
+			string heard = await ReadUntilAsync(inTheEast, text => text.Contains("\"type\":\"said\""), 10);
+
+			StringAssert.Contains("거기 누구 있소", heard,
+				"국경 너머 사람의 말이 안 들린다 — 1m 옆인데 보이기만 하는 사람이 된다");
+			StringAssert.Contains("\"dollId\":-", heard,
+				"건너온 말은 <b>그림자</b>가 한 말이어야 한다 — 이 세계 번호로 오면 남이 말한 것이 된다");
+		}
+
+		[Test]
+		public async Task 멀리서_한_말은_국경_너머에_안_들린다()
+		{
+			// 저 세계 <b>어디서 한 말이든</b> 다 들리면 그건 확성기다 — 세계를 나눈 뜻이 없다.
+			//
+			// ⚠ 이 시험은 「무엇이 막았나」는 안 가른다: 막는 자리가 둘이다(보내는 쪽의 국경 띠,
+			//   받는 쪽의 들리는 거리). 실제로 띠 검사를 꺼 보고 이 시험을 돌렸더니 그대로 초록이었다
+			//   — 받는 쪽이 막고 있었다. 띠 자체의 셈은 엔진 밖 시험(BorderBandTests)이 지킨다.
+			using ClientWebSocket inTheEast = new ClientWebSocket();
+			await inTheEast.ConnectAsync(new Uri($"ws://127.0.0.1:{EAST_PORT}/ws"), CancellationToken.None);
+			await SendAsync(inTheEast, "{\"type\":\"hello\",\"secret\":\"\"}");
+
+			using ClientWebSocket inTheWest = new ClientWebSocket();
+			await inTheWest.ConnectAsync(new Uri($"ws://127.0.0.1:{WEST_PORT}/ws"), CancellationToken.None);
+			await SendAsync(inTheWest, "{\"type\":\"hello\",\"secret\":\"\"}");
+			await Task.Delay(500);
+
+			eastHost.World.TryMove(eastHost.World.Snapshot()[0].Id, new Vector3(0.5f, 0f, 0f));
+
+			// 서쪽 사람은 국경에서 아주 멀리 — 띠(32m) 바깥이다.
+			// ⚠ 한 걸음은 MAX_STEP 까지만 간다 — 한 번 부르고 「멀리 갔다」고 믿으면 그 자리는 1.5m 다.
+			int westDoll = westHost.World.Snapshot()[0].Id;
+			for (int step = 0; step < 40; step++)
+				westHost.World.TryMove(westDoll, new Vector3(-100f, 0f, 0f));
+
+			Assert.Less(westHost.World.Snapshot()[0].Position.x, -WitchMendokusai.Net.BorderBand.BAND,
+				"띠 안에 서 있으면 이 시험은 뜻이 없다");
+			await Task.Delay(700);
+
+			await SendAsync(inTheWest, "{\"type\":\"say\",\"text\":\"저 멀리서\"}");
+
+			string everything = await EverythingForAsync(inTheEast, 1500);
+			StringAssert.DoesNotContain("저 멀리서", everything,
+				"띠 밖의 말까지 넘어오면 그건 확성기다 — 세계를 나눈 뜻이 없다");
+		}
+
+		[Test]
 		public async Task 옆_세계가_꺼지면_그림자도_사라진다()
 		{
 			using ClientWebSocket inTheEast = new ClientWebSocket();
@@ -173,6 +237,33 @@ namespace WitchMendokusai.ServerTests
 			string plate = await FreshPlateAsync(inTheEast);
 			StringAssert.DoesNotContain("\"id\":-", plate,
 				"밀린 판을 다 비운 뒤에도 국경에 그림자가 서 있다");
+		}
+
+		/// <summary>정해진 시간 동안 온 말을 <b>전부</b> 이어 붙여 준다 — 「안 왔다」를 볼 때 쓴다.</summary>
+		private static async Task<string> EverythingForAsync(ClientWebSocket window, int milliseconds)
+		{
+			byte[] bin = new byte[65536];
+			StringBuilder all = new StringBuilder();
+			DateTime until = DateTime.UtcNow.AddMilliseconds(milliseconds);
+
+			while (DateTime.UtcNow < until)
+			{
+				using CancellationTokenSource quiet = new CancellationTokenSource(300);
+				try
+				{
+					WebSocketReceiveResult came = await window.ReceiveAsync(new ArraySegment<byte>(bin), quiet.Token);
+					if (came.MessageType == WebSocketMessageType.Close)
+						break;
+
+					all.Append(Encoding.UTF8.GetString(bin, 0, came.Count));
+				}
+				catch (OperationCanceledException)
+				{
+					// 잠깐 조용한 것뿐이다 — 시간이 남았으면 계속 듣는다.
+				}
+			}
+
+			return all.ToString();
 		}
 
 		/// <summary>

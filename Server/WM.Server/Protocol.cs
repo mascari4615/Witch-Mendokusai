@@ -61,6 +61,9 @@ namespace WitchMendokusai.Server
 		/// </summary>
 		public const string NEARBY = "nearby";
 
+		/// <summary>세계 → <b>이웃 세계</b>: 국경 띠에 선 사람이 이렇게 말했다 (TASK-WM-264).</summary>
+		public const string HEARD = "heard";
+
 		// 무엇이 거절됐나 — 창이 자리별로 다르게 보여 줄 수 있게 이름을 준다.
 		public const string DENIED_PLACE = "place";
 		public const string DENIED_GATHER = "gather";
@@ -545,6 +548,22 @@ namespace WitchMendokusai.Server
 			}
 
 			return builder.Append("]}").ToString();
+		}
+
+		/// <summary>
+		/// 국경 너머로 넘기는 말 (TASK-WM-264) — <b>어디서</b> 났는지도 같이 보낸다.
+		/// 받는 세계는 그 자리 가까이 있는 제 사람들에게만 나른다(확성기가 아니다).
+		/// </summary>
+		public static string Heard(string zone, string seal, int dollId, string name, string line, float x, float z)
+		{
+			return "{\"type\":\"" + HEARD
+				+ "\",\"zone\":" + JsonSerializer.Serialize(zone ?? string.Empty, textOptions)
+				+ ",\"seal\":" + JsonSerializer.Serialize(seal ?? string.Empty, textOptions)
+				+ ",\"dollId\":" + dollId
+				+ ",\"name\":" + JsonSerializer.Serialize(name ?? string.Empty, textOptions)
+				+ ",\"text\":" + JsonSerializer.Serialize(line ?? string.Empty, textOptions)
+				+ ",\"x\":" + x.ToString("F2", System.Globalization.CultureInfo.InvariantCulture)
+				+ ",\"z\":" + z.ToString("F2", System.Globalization.CultureInfo.InvariantCulture) + "}";
 		}
 
 		/// <summary>이름표 — 바뀐 사람만 담아 모두에게 보낸다 (TASK-WM-220).</summary>
