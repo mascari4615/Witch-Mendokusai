@@ -51,6 +51,13 @@ const MAX_AGE_GROWTH_SECONDS = 0.3;
 const MAX_SQUEEZED_AGE_SECONDS = 2;
 const WALK_SPEED = 3;      // m/s — 봇이 내는 속도 (0.15m / 50ms)
 const MEASURE_MS = 8000;
+/*
+ * 표본 = 세계가 <b>말한 횟수</b>다(그린 횟수가 아니라). 20Hz × 8초 = 160판이 나올 자리.
+ * 넉넉할 때는 그 절반은 와야 하고, 회선을 조인 뒤에는 <b>적게 오는 것이 정상</b>이다 —
+ * 그래도 아예 안 오면 그건 죽은 것이라, 몇 판은 와야 한다.
+ */
+const LEAST_SAMPLES_ROOMY = 60;
+const LEAST_SAMPLES_SQUEEZED = 15;
 
 /*
  * 도중에 확 좁아진 회선 — 지하철·엘리베이터. 40명 광장의 알림(7KB/s)보다 <b>좁다</b>:
@@ -192,23 +199,31 @@ await page.waitForFunction(
 const joined = await fetch(`http://127.0.0.1:${worldPort}/health`, { headers: { connection: 'close' } }).then((r) => r.json());
 check(`광장에 ${crowd}명이 있다`, joined.people >= crowd, `세계가 세는 사람 ${joined.people}명`);
 
-// 창이 받은 「걷는 사람의 자리」를 시각과 함께 적는다. 가장 멀리 간 사람 = 걷는 사람이다
-// (다른 봇들은 제자리에 서 있다).
-await page.evaluate(() => {
+// 창이 받은 「걷는 사람의 자리」를 <b>소식이 올 때</b> 적는다.
+//
+// ⚠ 프레임(rAF)으로도, 시계(setInterval)로도 적으면 안 된다 (CI 실측 2026-08-12):
+//   둘 다 창의 본 줄(main thread)에 매달려 있어 표본 수가 <b>기계 성능</b>을 따라간다 —
+//   2코어 러너에서 6개까지 떨어져 게이트가 태어날 때부터 흔들렸다(내 기계 63개).
+//   재는 것은 「소식이 얼마나 늙었나」다. 그러니 <b>소식이 도착한 그 자리</b>에서 적는다 —
+//   그리기와 아무 상관이 없고, 표본 수는 세계가 말한 횟수와 같아진다(= 뜻이 있는 숫자다).
+await page.evaluate((who) => {
 	window.__wmAges = [];
-	const write = () => {
-		const others = window.__wmView.dolls().filter((one) => one.isLocal === false);
-		if (others.length > 0) {
-			let far = others[0];
-			for (const one of others) {
-				if (Math.abs(one.serverX) > Math.abs(far.serverX)) far = one;
-			}
-			window.__wmAges.push({ at: Date.now(), id: far.id, sawX: far.serverX });
+	window.__wmWalker = who;
+	const write = (text) => {
+		let said;
+		try { said = JSON.parse(text); } catch { return; }
+
+		const from = said.type === 'me' && said.doll ? [said.doll] : said.dolls;
+		if (Array.isArray(from) === false) return;
+
+		for (const one of from) {
+			if (one.id !== window.__wmWalker) continue;
+			window.__wmAges.push({ at: Date.now(), id: one.id, sawX: one.x });
 		}
-		requestAnimationFrame(write);
 	};
-	requestAnimationFrame(write);
-});
+
+	window.__wmView.socket().addEventListener('message', (event) => write(event.data));
+}, walkerDollId);
 
 await new Promise((done) => setTimeout(done, 1500));
 await new Promise((done) => setTimeout(done, MEASURE_MS));
@@ -231,9 +246,9 @@ await browser.close();
 await badLine.close();
 killWorld();
 
-check('창이 걷는 사람을 봤다', ages.length > 30, `프레임 ${ages.length}장`);
+check('창이 걷는 사람을 봤다', ages.length >= LEAST_SAMPLES_ROOMY, `세계가 말한 판 ${ages.length}개`);
 check('봇이 자기 자리를 세계에서 읽었다', truth.length > 30, `표본 ${truth.length}개`);
-if (ages.length <= 30 || truth.length <= 30) {
+if (ages.length < LEAST_SAMPLES_ROOMY || truth.length <= 30) {
 	console.log('\n[web-narrow] RESULT: 잴 것이 없다');
 	process.exit(1);
 }
@@ -268,8 +283,8 @@ const agesOf = (list) => {
 const mean = (list) => list.reduce((sum, one) => sum + one, 0) / Math.max(1, list.length);
 
 const roomy = agesOf(ages);
-check('나이를 잴 표본이 있다', roomy.length > 20, `${roomy.length}개 (걷는 사람 번호 ${walkerDollId})`);
-if (roomy.length <= 20) process.exit(1);
+check('나이를 잴 표본이 있다', roomy.length >= LEAST_SAMPLES_ROOMY, `${roomy.length}개 (적어도 ${LEAST_SAMPLES_ROOMY}개 · 걷는 사람 번호 ${walkerDollId})`);
+if (roomy.length < LEAST_SAMPLES_ROOMY) process.exit(1);
 
 const half = Math.floor(roomy.length / 2);
 const early = mean(roomy.slice(0, half));
@@ -283,9 +298,9 @@ check('시간이 가도 나이가 안 불어난다 (버퍼가 안 쌓인다)', l
 
 // ── 좁아진 뒤 ─────────────────────────────────────────────────────────
 const squeezed = agesOf(squeezedAges);
-check('회선이 좁아져도 창은 계속 소식을 받는다', squeezed.length > 20, `${squeezed.length}개`);
+check('회선이 좁아져도 창은 계속 소식을 받는다', squeezed.length >= LEAST_SAMPLES_SQUEEZED, `${squeezed.length}판 (적어도 ${LEAST_SAMPLES_SQUEEZED}판)`);
 
-if (squeezed.length > 20) {
+if (squeezed.length >= LEAST_SAMPLES_SQUEEZED) {
 	const tightHalf = Math.floor(squeezed.length / 2);
 	const tightEarly = mean(squeezed.slice(0, tightHalf));
 	const tightLate = mean(squeezed.slice(tightHalf));
