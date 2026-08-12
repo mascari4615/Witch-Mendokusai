@@ -181,11 +181,19 @@ namespace WitchMendokusai.Server.Tests
 		}
 
 		[Test]
-		public void 밀릴수록_반씩_줄어든다()
+		public void 한두_판_밀린_것으로는_안_줄인다()
 		{
-			Assert.That(InterestCrowd.LimitWhenBehind(1), Is.EqualTo(24));
-			Assert.That(InterestCrowd.LimitWhenBehind(2), Is.EqualTo(12));
-			Assert.That(InterestCrowd.LimitWhenBehind(3), Is.EqualTo(6));
+			// 한 판 밀리는 건 느린 기계에서 늘 있는 일이다 — 그걸로 줄이면 화면이 들썩인다.
+			Assert.That(InterestCrowd.LimitWhenBehind(1), Is.EqualTo(InterestCrowd.MAX_VISIBLE_DOLLS));
+			Assert.That(InterestCrowd.LimitWhenBehind(2), Is.EqualTo(InterestCrowd.MAX_VISIBLE_DOLLS));
+		}
+
+		[Test]
+		public void 연달아_밀리면_반씩_줄어든다()
+		{
+			Assert.That(InterestCrowd.LimitWhenBehind(3), Is.EqualTo(24));
+			Assert.That(InterestCrowd.LimitWhenBehind(4), Is.EqualTo(12));
+			Assert.That(InterestCrowd.LimitWhenBehind(5), Is.EqualTo(6));
 		}
 
 		[Test]

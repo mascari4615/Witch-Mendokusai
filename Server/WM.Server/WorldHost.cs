@@ -1403,7 +1403,10 @@ namespace WitchMendokusai.Server
 					int allowedDolls = InterestCrowd.LimitWhenBehind(target.MissedInARow);
 					if (allowedDolls < InterestCrowd.MAX_VISIBLE_DOLLS)
 					{
-						target.MissedAPlate = false;
+						// ⚠ 작은 한 장에는 <b>「그 사람 나갔다」가 없다</b>(칸 장부를 안 쓰기 때문이다).
+						//   그래서 이 창이 좁힘에서 돌아오면 <b>전체</b>를 한 장 줘야 한다 — 안 그러면
+						//   좁힘 동안 떠난 사람이 그 창에 <b>유령으로 영영</b> 남는다(CI 가 그 자리를 잡았다).
+						target.MissedAPlate = true;
 						_ = SendSnapshotAsync(target, Encoding.UTF8.GetBytes(SmallPlateFor(entry.Key, allowedDolls, sequence)),
 							null, null, null);
 						continue;
@@ -1493,6 +1496,22 @@ namespace WitchMendokusai.Server
 				sequence, null, true, null, false, null);
 		}
 
+		/// <summary>
+		/// 시험용 — 모든 창을 「연달아 이만큼 놓쳤다」로 표시한다 (TASK-WM-246).
+		/// 회선이 진짜로 막히기를 기다리면 기계 속도에 기대게 된다(그 시험은 느린 러너에서 못 잰다).
+		/// </summary>
+		public void MarkBehindForTest(int misses)
+		{
+			foreach (System.Collections.Generic.KeyValuePair<int, Connection> entry in sockets)
+			{
+				entry.Value.MissedInARow = misses;
+
+				// ⚠ 「놓쳤다」 표식도 같이 세운다 — 진짜로 밀릴 때는 둘이 함께 선다.
+				//   숫자만 세우면 다음 판이 곧바로 0 으로 되돌린다(그래서 좁힘이 아예 안 걸렸다).
+				entry.Value.MissedAPlate = misses > 0;
+			}
+		}
+
 		/// <summary>시험용 — 모든 창을 「지난 판 건너뜀」으로 표시한다 (TASK-WM-220).</summary>
 		public void MarkMissedForTest()
 		{
@@ -1548,6 +1567,9 @@ namespace WitchMendokusai.Server
 				previous = exchanged;
 			}
 		}
+
+		/// <summary>시험용 — 지금까지 나간 판의 마지막 번호 (TASK-WM-246).</summary>
+		public long LastSnapshotSequence => Interlocked.Read(ref snapshotSequence);
 
 		private long NextSnapshotSequence()
 		{

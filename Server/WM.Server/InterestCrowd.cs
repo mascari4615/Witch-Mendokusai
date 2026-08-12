@@ -51,13 +51,21 @@ namespace WitchMendokusai.Server
 		/// ★ 그래서 <b>감당할 만큼만</b> 보여 준다. 48명이 안 오는 것보다 6명이 제때 오는 것이
 		///   낫다 — 옆 사람이라도 움직이는 게 보여야 세계가 살아 있다. 회선이 풀리면 곧바로 48로 돌아온다.
 		/// </summary>
+		/// <summary>
+		/// 이만큼 <b>연달아</b> 놓치기 전에는 안 줄인다 (TASK-WM-246).
+		///
+		/// ★ 왜: 한 판 밀리는 것은 느린 기계에서 늘 있는 일이다. 그걸로 곧바로 보이는 사람을 반으로
+		///   줄이면 <b>화면이 들썩인다</b> — 사람이 사라졌다 나타났다 한다. 회선이 정말 못 따라올 때만 줄인다.
+		/// </summary>
+		public const int MISSES_BEFORE_NARROWING = 3;
+
 		public static int LimitWhenBehind(int missedInARow)
 		{
-			if (missedInARow <= 0)
+			if (missedInARow < MISSES_BEFORE_NARROWING)
 				return MAX_VISIBLE_DOLLS;
 
 			int limit = MAX_VISIBLE_DOLLS;
-			for (int i = 0; i < missedInARow && limit > FEWEST_VISIBLE_DOLLS; i++)
+			for (int i = MISSES_BEFORE_NARROWING - 1; i < missedInARow && limit > FEWEST_VISIBLE_DOLLS; i++)
 				limit /= 2;
 
 			return limit < FEWEST_VISIBLE_DOLLS ? FEWEST_VISIBLE_DOLLS : limit;
