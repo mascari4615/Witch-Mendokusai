@@ -34,6 +34,21 @@ namespace WitchMendokusai
 	/// 자리는 <b>세계 번호에서 계산해 낸다</b> — 어디에 무엇이 있는지 저장하지 않는다(같은 세계면 늘 같은 자리).
 	/// 저장하는 건 「언제 다시 자라나」뿐이라, 세계 파일이 자리 수만큼 부풀지 않는다.
 	/// </summary>
+	/// <summary>줍기가 안 된 <b>이유</b> — 사람에게도 다르고, 고칠 자리도 다르다 (TASK-WM-220).</summary>
+	public enum GatherDenial
+	{
+		NONE = 0,
+
+		/// <summary>그런 자리가 없다(번호가 엉뚱하다).</summary>
+		NO_SUCH_PLACE = 1,
+
+		/// <summary>손이 안 닿는다 — 더 가까이 가면 된다.</summary>
+		OUT_OF_REACH = 2,
+
+		/// <summary>아직 다시 자라는 중이다 — 기다리면 된다(남이 방금 가져갔을 때도 이쪽).</summary>
+		STILL_REGROWING = 3,
+	}
+
 	public sealed class WorldGatherables
 	{
 		/// <summary>주울 수 있는 거리 — 이보다 멀면 손이 안 닿는다(창이 우겨도).</summary>
@@ -133,24 +148,51 @@ namespace WitchMendokusai
 		/// </summary>
 		public bool TryTake(int nodeId, float fromX, float fromZ, int nowMinute, out int itemId, out int amount)
 		{
+			return TryTake(nodeId, fromX, fromZ, nowMinute, out itemId, out amount, out _);
+		}
+
+		/// <summary>
+		/// 줍는다 — <b>안 되면 왜 안 되는지</b>도 말한다 (TASK-WM-220).
+		///
+		/// ★ 왜 이유를 가르나: 세 가지가 한 문장으로 뭉쳐 있었다 —
+		///   「없는 자리 / 손이 안 닿음 / 아직 다시 자라는 중」. 사람에게도 다른 말이고,
+		///   고칠 때도 다른 자리다. 뭉쳐 두면 관문이 빨개져도 어디를 봐야 할지 모른다
+		///   (실제로 그 자리에서 하루를 썼다).
+		/// </summary>
+		public bool TryTake(int nodeId, float fromX, float fromZ, int nowMinute,
+			out int itemId, out int amount, out GatherDenial why)
+		{
+			why = GatherDenial.NONE;
 			itemId = 0;
 			amount = 0;
 			if (kinds.Count == 0)
+			{
+				why = GatherDenial.NO_SUCH_PLACE;
 				return false;
+			}
 
 			if (Locate(nodeId, out int gx, out int gz) == false)
+			{
+				why = GatherDenial.NO_SUCH_PLACE;
 				return false;
+			}
 
 			lock (gate)
 			{
 				if (regrowAt.TryGetValue(nodeId, out int at) && nowMinute < at)
+				{
+					why = GatherDenial.STILL_REGROWING;
 					return false;
+				}
 
 				GatherableNode node = Describe(nodeId, gx, gz);
 				float dx = node.X - fromX;
 				float dz = node.Z - fromZ;
 				if (dx * dx + dz * dz > REACH * REACH)
+				{
+					why = GatherDenial.OUT_OF_REACH;
 					return false;
+				}
 
 				GatherableKind kind = KindOf(nodeId);
 				itemId = node.ItemId;

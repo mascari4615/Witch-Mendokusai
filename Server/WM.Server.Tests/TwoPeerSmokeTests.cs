@@ -440,7 +440,7 @@ namespace WitchMendokusai.ServerTests
 		/// 손이 닿아야 줍히므로, 이 걸음 자체가 「줍기 판정이 서 있다」는 증거다.
 		/// 주운 아이템 번호를 돌려준다.
 		/// </summary>
-		private static async Task<int> WalkToAndGatherAsync(ClientWebSocket socket, int which = 0, int myDollId = 0, int wantItemId = -1)
+		private async Task<int> WalkToAndGatherAsync(ClientWebSocket socket, int which = 0, int myDollId = 0, int wantItemId = -1)
 		{
 			string snapshot = await WaitForAsync(socket, text => text.Contains("\"gatherables\":[{"));
 			System.Text.Json.JsonElement all = System.Text.Json.JsonDocument.Parse(snapshot).RootElement.GetProperty("gatherables");
@@ -473,46 +473,33 @@ namespace WitchMendokusai.ServerTests
 			// 서버가 한 걸음의 길이를 자른다 — 그러니 여러 번, 그리고 **도착을 확인하며** 간다.
 			// ⚠ move 는 「목적지」가 아니라 「이쪽으로」다 — 지금 자리에서 뺀 방향을 보내야 한다
 			//   (절대 좌표를 그대로 보내면 원점 근처에서만 우연히 맞는다, 실측 2026-08-10).
-			// ⚠ 한꺼번에 쏟아부으면 말 예산에 걸려 조용히 버려진다.
-			bool arrived = false;
+			//
+			// ⚠ 내 자리를 <b>그림(스냅샷)으로</b> 읽으면 안 된다 (실측 2026-08-12).
+			//   이 시험은 한 판을 읽고 60ms 쉬는데, 세계는 50ms 마다 말한다 — 읽는 속도가 못 따라가
+			//   버퍼에 밀린 <b>옛 그림</b>을 보게 된다. 그래서 「닿았다」고 판단한 순간 진짜 나는
+			//   3~4 만큼 지나쳐 서 있었고, 이어지는 줍기가 「손이 안 닿는다」로 거절됐다.
+			//   (웹 창이 「가장 최근 것만 그린다」로 고친 것과 같은 부류의 함정이다.)
+			//   시험은 세계와 같은 프로세스에 있으니 <b>세계에 직접</b> 묻는다.
+			// 번호를 안 주면 지금 세계에 있는 사람 중 <b>하나</b>다(혼자 노는 시험이 그렇게 부른다).
+			// ⚠ 0 을 그대로 쓰면 없는 인형의 자리(원점)를 보고 엉뚱한 데로 걸어간다 — 실측으로 밟았다.
+			if (myDollId == 0)
+			{
+				WorldDoll[] here = host.World.Snapshot();
+				Assert.IsNotEmpty(here, "세계에 아무도 없다 — 걸을 사람이 없다");
+				myDollId = here[here.Length - 1].Id;
+			}
+
 			for (int step = 0; step < 60; step++)
 			{
-				string now = await WaitForAsync(socket, text => text.Contains("\"dolls\":[{"));
-				System.Text.Json.JsonElement dollList = System.Text.Json.JsonDocument.Parse(now).RootElement.GetProperty("dolls");
-
-				double atX = 0;
-				double atZ = 0;
-				foreach (System.Text.Json.JsonElement one in dollList.EnumerateArray())
-				{
-					// 남이 같이 있으면 목록의 첫 칸이 내가 아니다 — 번호로 찾는다.
-					if (myDollId != 0 && one.GetProperty("id").GetInt32() != myDollId)
-						continue;
-
-					atX = one.GetProperty("x").GetDouble();
-					atZ = one.GetProperty("z").GetDouble();
+				WitchMendokusai.Numerics.Vector3 standing = host.World.PositionOf(myDollId);
+				double toX = targetX - standing.x;
+				double toZ = targetZ - standing.z;
+				if (toX * toX + toZ * toZ <= 1.5 * 1.5)
 					break;
-				}
-
-				double toX = targetX - atX;
-				double toZ = targetZ - atZ;
-				if (toX * toX + toZ * toZ <= 2.0 * 2.0)
-				{
-					// ⚠ 「닿았다」를 <b>한 판</b>으로 판단하면 안 된다 — 방금 보낸 걸음이 아직 안 실린
-					//   그림일 수 있고, 그 걸음이 나를 <b>지나쳐</b> 세운다. 그러면 곧바로 이어지는
-					//   줍기가 「손이 안 닿는다」로 거절된다(세계가 자주 말할수록 잘 밟힌다 — 실측 5건).
-					//   그래서 <b>연달아 두 판</b>이 닿는 자리일 때만 걸음을 멈춘다.
-					if (arrived)
-						break;
-
-					arrived = true;
-					continue;
-				}
-
-				arrived = false;
 
 				await SendAsync(socket, "{\"type\":\"move\",\"x\":" + toX.ToString("F3", System.Globalization.CultureInfo.InvariantCulture)
 					+ ",\"z\":" + toZ.ToString("F3", System.Globalization.CultureInfo.InvariantCulture) + "}");
-				await Task.Delay(60);
+				await Task.Delay(40);
 			}
 
 			await SendAsync(socket, "{\"type\":\"gather\",\"nodeId\":" + nodeId + "}");
@@ -524,7 +511,7 @@ namespace WitchMendokusai.ServerTests
 		/// 지을 재료(나무)를 <b>모아서</b> 짓는다 (TASK-WM-217).
 		/// 짓기가 공짜가 아니게 되면서, 시험도 사람과 같은 길을 걷는다.
 		/// </summary>
-		private static async Task BuildWithMaterialsAsync(ClientWebSocket socket, int myDollId, int buildingId, int cellX, int cellZ)
+		private async Task BuildWithMaterialsAsync(ClientWebSocket socket, int myDollId, int buildingId, int cellX, int cellZ)
 		{
 			// 나무는 여러 자리에서 조금씩 나온다 — 나무만 골라 두 곳이면 넉넉하다(한 곳당 2개).
 			await WalkToAndGatherAsync(socket, 0, myDollId, WorldSeeds.WOOD);

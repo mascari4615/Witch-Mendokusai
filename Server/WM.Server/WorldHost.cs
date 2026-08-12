@@ -529,10 +529,17 @@ namespace WitchMendokusai.Server
 					int nodeId = ReadInt(root, "nodeId");
 					Vector3 standing = World.PositionOf(dollId);
 					if (World.Gatherables.TryTake(nodeId, standing.x, standing.z, World.Calendar.TotalMinutes(),
-						out int itemId, out int amount) == false)
+						out int itemId, out int amount, out GatherDenial why) == false)
 					{
-						// 없는 자리거나, 손이 안 닿거나, 방금 남이 가져갔다 — 어느 쪽이든 말은 해 준다.
-						Tell(dollId, Protocol.DENIED_GATHER, "손이 안 닿거나, 방금 남이 가져갔다");
+						// 왜 안 되는지 갈라서 말한다 (TASK-WM-220) — 사람에게도 다른 말이고,
+						// 고칠 때도 다른 자리다. 뭉쳐 두면 관문이 빨개져도 어디를 볼지 모른다.
+						Tell(dollId, Protocol.DENIED_GATHER, why switch
+						{
+							GatherDenial.NO_SUCH_PLACE => "거기엔 주울 게 없다",
+							GatherDenial.OUT_OF_REACH => "손이 안 닿는다 — 더 가까이 가야 한다",
+							GatherDenial.STILL_REGROWING => "아직 다시 자라는 중이다",
+							_ => "지금은 주울 수 없다",
+						});
 						return;
 					}
 
@@ -1003,9 +1010,23 @@ namespace WitchMendokusai.Server
 			}
 		}
 
+		/// <summary>윈도우의 잠자기 알갱이를 1ms 로 — 이게 없으면 50ms 를 재워도 62ms 를 잔다.</summary>
+		[System.Runtime.InteropServices.DllImport("winmm.dll", EntryPoint = "timeBeginPeriod")]
+		private static extern uint BeginFineTimers(uint milliseconds);
+
 		private async Task BroadcastLoopAsync(CancellationToken stopping)
 		{
-			int delayMilliseconds = 1000 / SNAPSHOT_HZ;
+			// ★ 「초당 20번 말한다」고 적어 놓고 <b>16번</b>만 말하고 있었다 (실측 2026-08-12, TASK-WM-220).
+			//   윈도우의 잠자기 알갱이가 15.6ms 라 50ms 를 재우면 실제로는 62ms 를 잔다 — 20% 손해다.
+			//   ① 알갱이를 1ms 로 줄이고 ② 「다음 차례」를 붙잡아 <b>늦은 만큼 덜 잔다</b>.
+			double periodMilliseconds = 1000.0 / SNAPSHOT_HZ;
+			double nextDue = periodMilliseconds;
+
+			if (System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Windows))
+			{
+				try { BeginFineTimers(1); }
+				catch (System.Exception) { /* 못 줄여도 세계는 돈다 — 조금 뜸할 뿐이다 */ }
+			}
 
 			// ★ 시계는 <b>틱 수</b>가 아니라 <b>실제로 흐른 시간</b>으로 굴린다 (실측 2026-08-10).
 			//   전에는 「한 바퀴 = 0.05분」으로 셌는데, 한 바퀴는 Task.Delay(50) 라 늘 50ms 보다 길다.
@@ -1098,7 +1119,12 @@ namespace WitchMendokusai.Server
 						sendField ? fieldVersion : (int?)null, sendPots ? potVersion : (int?)null);
 				}
 
-				await Task.Delay(delayMilliseconds, CancellationToken.None);
+				// 셈은 TickSchedule 에 있다(거기서 시험한다) — 여기서는 그만큼 잘 뿐이다.
+				// ⚠ 밀렸어도 <b>1ms 는 잔다</b>: 아예 안 자면 닫기·받기가 끼어들 틈이 없다.
+				(double waitMilliseconds, double due) = TickSchedule.Next(
+					clock.Elapsed.TotalMilliseconds, nextDue, periodMilliseconds);
+				nextDue = due;
+				await Task.Delay(waitMilliseconds < 1.0 ? 1 : (int)waitMilliseconds, CancellationToken.None);
 			}
 		}
 
