@@ -127,6 +127,27 @@ const page = await browser.newPage();
 const pageErrors = [];
 page.on('pageerror', (error) => pageErrors.push(String(error)));
 
+// ⚠ 세계 소식 세기는 <b>창이 열리기 전에</b> 심는다 (TASK-WM-278). 나중에 귀를 대면
+//   국경을 넘느라 <b>줄이 바뀌는 순간</b>을 통째로 놓친다 — 그게 바로 재려는 그 순간이다.
+await page.addInitScript(() => {
+	window.__wmPlates = [];
+	const RealSocket = window.WebSocket;
+	window.WebSocket = function (...args) {
+		const socket = new RealSocket(...args);
+		socket.addEventListener('message', (event) => {
+			let said;
+			try { said = JSON.parse(event.data); } catch { return; }
+
+			if (said.type === 'world') window.__wmPlates.push(Date.now());
+		});
+
+		return socket;
+	};
+
+	window.WebSocket.prototype = RealSocket.prototype;
+	Object.assign(window.WebSocket, RealSocket);
+});
+
 await page.goto(`http://127.0.0.1:${eastLine}/`);
 await page.waitForFunction(() => typeof window.__wmView === 'object', null, { timeout: 40000 })
 	.catch(() => { /* 아래 칸이 잡는다 */ });
@@ -135,14 +156,28 @@ check('나쁜 회선으로 동쪽 세계에 붙었다',
 	await page.evaluate(() => typeof window.__wmView === 'object'));
 
 // 넘어가라는 말을 창 안에서 지켜본다.
+// ★ 그리고 <b>세계 소식이 몇 초 멎나</b>도 같이 잰다 (TASK-WM-278): 국경을 넘는 동안 창은
+//   이 세계에서 떨어져 저 세계에 붙는다 — 그 사이는 사람 눈에 <b>멈춘 화면</b>이다.
+//   넘어간다는 사실만 재고 <b>얼마나 멎나</b>는 한 번도 안 쟀다.
 await page.evaluate(() => {
 	window.__wmMoveOn = null;
-	window.__wmView.socket().addEventListener('message', (event) => {
-		let said;
-		try { said = JSON.parse(event.data); } catch { return; }
+	window.__wmHeardOn = null;
 
-		if (said.type === 'moveon') window.__wmMoveOn = said;
-	});
+	const listen = () => {
+		const now = window.__wmView.socket();
+		if (!now || now === window.__wmHeardOn) return;
+
+		window.__wmHeardOn = now;
+		now.addEventListener('message', (event) => {
+			let said;
+			try { said = JSON.parse(event.data); } catch { return; }
+
+			if (said.type === 'moveon') window.__wmMoveOn = said;
+		});
+	};
+
+	listen();
+	window.__wmWatch = setInterval(listen, 100);
 });
 
 // 세계의 손으로 서쪽 끝에 데려다 놓는다(걸음 심판을 재는 자리가 아니다).
@@ -182,6 +217,30 @@ const gone = await fetch(`http://127.0.0.1:${eastPort}/health`, { headers: { con
 	.then((r) => r.json()).catch(() => ({ people: -1 }));
 check('보낸 세계에서는 나갔다 (두 곳에 동시에 있지 않다)', gone.people === 0,
 	`동쪽에 남은 사람 ${gone.people}명`);
+
+// ── 국경을 넘는 동안 화면이 <b>몇 초 멎었나</b> (TASK-WM-278) ─────────────
+//   왕복 200ms 회선에서 「끊고 · 붙고 · 첫 그림」이 얼마나 걸리는지가 그 값이다.
+{
+	const plates = await page.evaluate(() => window.__wmPlates || []);
+	let worstGapMs = 0;
+	for (let i = 1; i < plates.length; i += 1)
+		worstGapMs = Math.max(worstGapMs, plates[i] - plates[i - 1]);
+
+	console.log(`  ⓘ 국경을 넘는 동안 세계 소식이 가장 오래 멎은 시간 ${worstGapMs}ms`
+		+ ` (받은 판 ${plates.length}장)`);
+
+	// 사람이 「끊겼다」로 읽기 시작하는 선 — 넘겨주기(200ms 대기) + 붙기 + 첫 그림.
+	// 판이 몇 장 없으면 그건 「안 멎었다」가 아니라 <b>못 잰 것</b>이다.
+	if (plates.length < 40) {
+		await browser.close();
+		for (const one of lines) await one.close();
+		killWorlds();
+		cannotRun(`세계 소식을 ${plates.length}장밖에 못 받았다 — 이 상태로 잰 멎음은 뜻이 없다`);
+	}
+
+	check('국경을 넘어도 화면이 3초 넘게 멎지 않는다', worstGapMs <= 3000,
+		`${worstGapMs}ms · 받은 판 ${plates.length}장`);
+}
 
 // ── ② 저 세계가 <b>안 열려 있으면</b> 어떻게 되나 (TASK-WM-256) ─────────
 //   보낸 세계는 이미 나를 내보냈다. 저쪽이 꺼져 있으면 나는 어디에도 없는 사람이 된다.
