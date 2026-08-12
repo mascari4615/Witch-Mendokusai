@@ -98,8 +98,8 @@ const wait = (ms) => new Promise((done) => setTimeout(done, ms));
 const browser = await chromium.launch();
 
 /** 그 회선으로 붙어 한참 걷고, <b>앞섬</b>과 <b>도로 끌려간 횟수</b>를 받아 온다. */
-async function walkOn(oneWayMs, listenPort, label) {
-	const line = openBadLine({ listenPort, targetPort: port, latencyMs: oneWayMs, jitterMs: 10 });
+async function walkOn(oneWayMs, listenPort, label, lossPercent = 0) {
+	const line = openBadLine({ listenPort, targetPort: port, latencyMs: oneWayMs, jitterMs: 10, lossPercent });
 	await line.listen();
 
 	const page = await browser.newPage();
@@ -138,6 +138,10 @@ const still = await walkOn(0, port + 3, '지연 없는 회선(이 기계의 몫)
 const usual = await walkOn(100, port + 1, '보통 회선(왕복 200ms)');
 const awful = await walkOn(400, port + 2, '아주 나쁜 회선(왕복 800ms)');
 
+// ★ 유실이 섞인 회선 — 잃은 조각을 다시 보내는 동안 <b>줄이 통째로 멎는다</b>(머리막힘).
+//   되감기가 그 멎음을 견디나: 멎는 동안 쌓인 걸음이 한꺼번에 반영돼도 앞섬이 안 튀어야 한다.
+const lossy = await walkOn(100, port + 4, '유실 2% 회선(왕복 200ms)', 2);
+
 // ① <b>회선이 더한 앞섬</b>이 셈과 맞아야 한다 — 기계 몫을 뺀 값이 제품의 값이다.
 const expected = 0.2 * WALK_SPEED;
 const addedByLine = usual.worst - still.worst;
@@ -162,8 +166,15 @@ check('아주 나쁜 회선에서도 앞섬이 폭주하지 않는다 (회선의
 check('사람이 흔히 쓰는 회선(왕복 300ms)까지는 안 끌려간다', breaksAtMs >= 300,
 	`왕복 ${breaksAtMs}ms 부터 끌려간다`);
 
-check('창이 조용히 안 터졌다', usual.errors.length === 0 && awful.errors.length === 0,
-	[...usual.errors, ...awful.errors].join(' | ') || '오류 없음');
+// ④ 유실이 섞여도 앞섬은 <b>지연만 있는 회선</b>과 비슷해야 한다 — 다시 보내기가 걸음을 잡아먹으면
+//   그 사이 창은 계속 앞서 나가고, 답이 몰려 오는 순간 뒤로 끌려간다.
+check('유실이 섞여도 앞섬이 지연만 있는 회선과 비슷하다', lossy.worst <= usual.worst * 2.0,
+	`${lossy.worst.toFixed(2)}m · 유실 없는 같은 지연 ${usual.worst.toFixed(2)}m`);
+check('유실이 섞여도 도로 끌려가지 않는다', lossy.snapped === 0, `${lossy.snapped}번`);
+
+check('창이 조용히 안 터졌다',
+	usual.errors.length === 0 && awful.errors.length === 0 && lossy.errors.length === 0 && still.errors.length === 0,
+	[...usual.errors, ...awful.errors, ...lossy.errors].join(' | ') || '오류 없음');
 
 await browser.close();
 killWorld();
