@@ -49,21 +49,33 @@ const MAX_AGE_SECONDS = 0.5;
 const MAX_AGE_GROWTH_SECONDS = 0.3;
 // 회선이 보낼 것보다 좁아지면 늙는 건 물리다 — 하지만 <b>끝없이</b> 늙으면 그건 고장이다.
 const MAX_SQUEEZED_AGE_SECONDS = 2;
-const WALK_SPEED = 3;      // m/s — 봇이 내는 속도 (0.15m / 50ms)
-const MEASURE_MS = 8000;
 
 /*
- * 재기 전에 뒤로 물러나 두는 시간 — 재는 동안(두 구간 + 뜸) 앞으로 걸어도 반경(32m) 안에 남게.
- * 3m/s × 8.5초 ≈ 25m 뒤 → 앞으로 25m 지점까지 걸어도 원점에서 25m 다.
+ * 이 자의 <b>해상도</b> — 대략 ±0.3초다. 두 시계(노드·창)가 다르고, 기준 시계에 직선을 맞추는
+ * 데도 오차가 있다. 그러니 이보다 작은 음수는 「미래를 봤다」가 아니라 <b>자의 떨림</b>이다.
+ * 이 칸이 잡으려는 것은 -2초·-6.9초 같은 <b>말이 안 되는</b> 값이다(그런 값이 초록으로
+ * 통과한 적이 있다 — 그때 판정은 위쪽만 막고 있었다).
  */
-const BACK_UP_MS = 8500;
+const RULER_SLACK_SECONDS = 0.4;
+const WALK_SPEED = 3;      // m/s — 봇이 내는 속도 (0.15m / 50ms)
+const MEASURE_MS = 4000;
+
+/*
+ * ⚠ 재는 시간이 길면 걷는 사람이 <b>관심 반경(32m) 밖</b>으로 나간다 — 3m/s 로 16초면 48m 다.
+ *   한때 「먼저 뒤로 물러나 두기」로 피했는데, 그러면 돌아서는 구간이 표본에 섞여 나이가
+ *   <b>음수</b>로 나왔다(CI 실측 2026-08-12: 나이 -6.9초인데 판정은 초록 — 거짓 초록).
+ *   꼼수 대신 재는 시간을 줄인다: 두 구간 합쳐 8초 × 3m/s = 24m, 반경 안이고 걸음은 한 방향이다.
+ */
 /*
  * 표본 = 세계가 <b>말한 횟수</b>다(그린 횟수가 아니라). 20Hz × 8초 = 160판이 나올 자리.
  * 넉넉할 때는 그 절반은 와야 하고, 회선을 조인 뒤에는 <b>적게 오는 것이 정상</b>이다 —
  * 그래도 아예 안 오면 그건 죽은 것이라, 몇 판은 와야 한다.
  */
-const LEAST_SAMPLES_ROOMY = 60;
-const LEAST_SAMPLES_SQUEEZED = 15;
+// ⚠ 문턱은 <b>재는 시간에서 끌어낸다</b> — 손으로 박아 두면 재는 시간을 줄일 때 같이 안 줄어
+//   「표본이 모자라다」로 빨개진다(실측 2026-08-12, 8초→4초로 줄이자 그렇게 됐다).
+const PLATES_PER_SECOND = 20;
+const LEAST_SAMPLES_ROOMY = Math.floor((MEASURE_MS / 1000) * PLATES_PER_SECOND * 0.5);
+const LEAST_SAMPLES_SQUEEZED = Math.floor((MEASURE_MS / 1000) * PLATES_PER_SECOND * 0.1);
 
 /*
  * 도중에 확 좁아진 회선 — 지하철·엘리베이터. 40명 광장의 알림(7KB/s)보다 <b>좁다</b>:
@@ -172,6 +184,11 @@ walker.onmessage = (event) => {
 
 	for (const one of said.dolls) {
 		if (one.id !== walkerDollId) continue;
+
+		// ⚠ 이름표(names)에도 dolls 가 있고 거기엔 자리가 없다 — 창 쪽에서 한 번 밟은 함정을
+		//   기준 시계 쪽에서 <b>그대로 다시</b> 밟았다(맞춘 속도가 NaN, 실측 2026-08-12).
+		if (typeof one.x !== 'number') continue;
+
 		truth.push({ at: Date.now(), x: one.x });
 	}
 };
@@ -186,12 +203,6 @@ await new Promise((done) => setTimeout(done, 3000));
 //   그걸 「소식이 안 온다」로 읽어 이틀치 엉뚱한 추적을 했다(회선은 멀쩡했고, 창은 322개 말을 받고 있었다).
 //   그래서 먼저 뒤로 걸어 두고, 재는 동안 앞으로 걷는다 — 늘 반경 안에 있으면서 걸음은 한 방향이다.
 let walking = null;
-const stepBackwards = () => new Promise((done) => {
-	const back = setInterval(() => {
-		if (walker.readyState === 1) walker.send(JSON.stringify({ type: 'move', x: -0.15, z: 0 }));
-	}, 50);
-	setTimeout(() => { clearInterval(back); done(); }, BACK_UP_MS);
-});
 
 const startWalking = () => {
 	walking = setInterval(() => {
@@ -254,10 +265,17 @@ await page.evaluate((who) => {
 	window.__wmView.socket().addEventListener('message', (event) => write(event.data));
 }, walkerDollId);
 
-await stepBackwards();
 startWalking();
+
+// ⚠ 방향을 바꾼 <b>직후</b>는 재지 않는다 (CI 실측 2026-08-12): 창이 보는 것은 회선만큼 늦으므로
+//   돌아선 순간 창은 아직 <b>뒷걸음</b>을 보고 있다. 그 구간을 섞으면 나이가 음수로 나오고
+//   「시간이 갈수록 늙는다」로 잘못 읽힌다(앞 절반 -0.15초 → 뒤 절반 0.17초로 빨갰다).
+//   걸음이 한 방향으로 자리 잡은 뒤부터 적는다.
 await new Promise((done) => setTimeout(done, 1500));
+await page.evaluate(() => { window.__wmAges = []; });
+const roomyFrom = Date.now();
 await new Promise((done) => setTimeout(done, MEASURE_MS));
+const roomyTo = Date.now();
 const ages = await page.evaluate(() => window.__wmAges.slice());
 
 /*
@@ -267,7 +285,9 @@ const ages = await page.evaluate(() => window.__wmAges.slice());
  */
 badLine.squeeze(SQUEEZED_BYTES_PER_SECOND);
 await page.evaluate(() => { window.__wmAges = []; });
+const tightFrom = Date.now();
 await new Promise((done) => setTimeout(done, MEASURE_MS));
+const tightTo = Date.now();
 const squeezedAges = await page.evaluate(() => window.__wmAges.slice());
 
 clearInterval(walking);
@@ -278,8 +298,8 @@ await badLine.close();
 killWorld();
 
 check('창이 걷는 사람을 봤다', ages.length >= LEAST_SAMPLES_ROOMY, `세계가 말한 판 ${ages.length}개`);
-check('봇이 자기 자리를 세계에서 읽었다', truth.length > 30, `표본 ${truth.length}개`);
-if (ages.length < LEAST_SAMPLES_ROOMY || truth.length <= 30) {
+check('봇이 자기 자리를 세계에서 읽었다', truth.length >= LEAST_SAMPLES_SQUEEZED, `표본 ${truth.length}개 (적어도 ${LEAST_SAMPLES_SQUEEZED}개)`);
+if (ages.length < LEAST_SAMPLES_ROOMY || truth.length < LEAST_SAMPLES_SQUEEZED) {
 	console.log('\n[web-narrow] RESULT: 잴 것이 없다');
 	process.exit(1);
 }
@@ -289,17 +309,46 @@ if (ages.length < LEAST_SAMPLES_ROOMY || truth.length <= 30) {
  * 봇은 곧게 일정 속도로만 걸으므로 「거리 차」가 곧 「시간 차」다.
  * 진짜 자리는 세계가 봇에게 말해 준 값이다 — 창이 본 값과 <b>같은 뜻</b>의 숫자라 편향이 없다.
  */
-const trulyAt = (when) => {
-	let best = truth[0];
-	for (const one of truth) {
-		if (one.at <= when) best = one;
-		else break;
+/*
+ * 진짜 자리 = <b>직선</b>이다 (걷는 사람은 등속으로 곧게 간다). 그러니 표본에 직선을 맞춰
+ * 아무 시각에서나 읽는다.
+ *
+ * ⚠ 「그 시각 이전의 마지막 표본」으로 읽으면 안 된다 (실측 2026-08-12): 기준 시계의 표본이
+ *   조금만 늦게 도착해도 계단이 한 칸 뒤로 밀려, 창이 <b>미래를 보는</b> 것처럼 음수 나이가 나온다
+ *   (좁힌 구간에서 -2.1초). 직선은 그 흔들림을 안 탄다.
+ */
+const fitOver = (fromAt, toAt) => {
+	const inside = truth.filter((one) => one.at >= fromAt - 500 && one.at <= toAt + 500);
+	const used = inside.length >= 5 ? inside : truth;
+	const t0 = used[0].at;
+	let n = 0;
+	let sumT = 0;
+	let sumX = 0;
+	let sumTT = 0;
+	let sumTX = 0;
+	for (const one of used) {
+		const t = (one.at - t0) / 1000;
+		n += 1;
+		sumT += t;
+		sumX += one.x;
+		sumTT += t * t;
+		sumTX += t * one.x;
 	}
 
-	return best.x;
+	const bottom = (n * sumTT) - (sumT * sumT);
+	const slope = bottom === 0 ? 0 : ((n * sumTX) - (sumT * sumX)) / bottom;
+	return { t0, slope, start: (sumX - (slope * sumT)) / n };
 };
 
-const agesOf = (list) => {
+const roomyLine = fitOver(roomyFrom, roomyTo);
+const tightLine = fitOver(tightFrom, tightTo);
+
+check('기준 시계가 걷는 속도로 곧게 갔다 (안 그러면 잰 값이 뜻이 없다)',
+	Math.abs(roomyLine.slope - WALK_SPEED) <= WALK_SPEED * 0.4,
+	`맞춘 속도 ${roomyLine.slope.toFixed(2)}m/s (걸음 ${WALK_SPEED}m/s)`);
+
+const agesOf = (list, fit) => {
+	const trulyAt = (when) => fit.start + (fit.slope * ((when - fit.t0) / 1000));
 	const out = [];
 	for (const one of list) {
 		if (one.id !== walkerDollId) continue;
@@ -316,7 +365,7 @@ const agesOf = (list) => {
 
 const mean = (list) => list.reduce((sum, one) => sum + one, 0) / Math.max(1, list.length);
 
-const roomy = agesOf(ages);
+const roomy = agesOf(ages, roomyLine);
 check('나이를 잴 표본이 있다', roomy.length >= LEAST_SAMPLES_ROOMY, `${roomy.length}개 (적어도 ${LEAST_SAMPLES_ROOMY}개 · 걷는 사람 번호 ${walkerDollId})`);
 if (roomy.length < LEAST_SAMPLES_ROOMY) process.exit(1);
 
@@ -325,13 +374,19 @@ const early = mean(roomy.slice(0, half));
 const late = mean(roomy.slice(half));
 const worst = Math.max(...roomy);
 
+// ⚠ 나이는 <b>음수가 될 수 없다</b> — 창이 미래를 볼 수는 없다. 음수가 나오면 그건 세계가
+//   빠른 게 아니라 <b>재는 자가 틀린 것</b>이다. 이 칸이 없어서 나이 -6.9초가 초록으로 통과했다
+//   (CI 실측 2026-08-12). 판정은 위쪽만 막으면 반쪽이다.
+const youngest = Math.min(...roomy);
+check('나이가 음수가 아니다 (재는 자가 성한가)', youngest >= -RULER_SLACK_SECONDS, `가장 어린 순간 ${youngest.toFixed(2)}초 (자의 떨림 ±${RULER_SLACK_SECONDS}초)`);
+
 check(`창이 보는 세계가 ${MAX_AGE_SECONDS}초 넘게 늙지 않았다`, late <= MAX_AGE_SECONDS,
 	`나이 ${late.toFixed(2)}초 (가장 늙은 순간 ${worst.toFixed(2)}초)`);
 check('시간이 가도 나이가 안 불어난다 (버퍼가 안 쌓인다)', late - early <= MAX_AGE_GROWTH_SECONDS,
 	`앞 절반 ${early.toFixed(2)}초 → 뒤 절반 ${late.toFixed(2)}초`);
 
 // ── 좁아진 뒤 ─────────────────────────────────────────────────────────
-const squeezed = agesOf(squeezedAges);
+const squeezed = agesOf(squeezedAges, tightLine);
 check('회선이 좁아져도 창은 계속 소식을 받는다', squeezed.length >= LEAST_SAMPLES_SQUEEZED, `${squeezed.length}판 (적어도 ${LEAST_SAMPLES_SQUEEZED}판)`);
 
 if (squeezed.length >= LEAST_SAMPLES_SQUEEZED) {
@@ -339,6 +394,9 @@ if (squeezed.length >= LEAST_SAMPLES_SQUEEZED) {
 	const tightEarly = mean(squeezed.slice(0, tightHalf));
 	const tightLate = mean(squeezed.slice(tightHalf));
 	const tightWorst = Math.max(...squeezed);
+
+	const tightYoungest = Math.min(...squeezed);
+	check('좁아진 뒤에도 나이가 음수가 아니다', tightYoungest >= -RULER_SLACK_SECONDS, `가장 어린 순간 ${tightYoungest.toFixed(2)}초`);
 
 	check(`회선이 초당 ${(SQUEEZED_BYTES_PER_SECOND / 1000).toFixed(0)}KB 로 좁아져도 ${MAX_SQUEEZED_AGE_SECONDS}초 넘게 안 늙는다`,
 		tightLate <= MAX_SQUEEZED_AGE_SECONDS,
