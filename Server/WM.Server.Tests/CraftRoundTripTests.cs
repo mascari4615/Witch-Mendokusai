@@ -174,7 +174,7 @@ namespace WitchMendokusai.ServerTests
 		/// <summary>그 말이 올 때까지 읽는다 — 조각난 알림도 이어 붙인다.</summary>
 		private static async Task<string> Read(ClientWebSocket socket, string needle)
 		{
-			using CancellationTokenSource timeout = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+			using CancellationTokenSource timeout = TestTimeout.After(10);
 			byte[] buffer = new byte[16384];
 			StringBuilder pending = new StringBuilder();
 

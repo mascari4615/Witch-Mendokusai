@@ -245,7 +245,7 @@ namespace WitchMendokusai.ServerTests
 				return remembered;
 			}
 
-			using CancellationTokenSource timeout = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+			using CancellationTokenSource timeout = TestTimeout.After(10);
 			byte[] buffer = new byte[16384];
 			StringBuilder pending = new StringBuilder();
 

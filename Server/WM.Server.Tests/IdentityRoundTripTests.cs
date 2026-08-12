@@ -117,7 +117,7 @@ namespace WitchMendokusai.ServerTests
 
 		private static async Task<string> Read(ClientWebSocket socket, string needle)
 		{
-			using CancellationTokenSource timeout = new CancellationTokenSource(TimeSpan.FromSeconds(8));
+			using CancellationTokenSource timeout = TestTimeout.After(8);
 			byte[] buffer = new byte[16384];
 			while (timeout.IsCancellationRequested == false)
 			{

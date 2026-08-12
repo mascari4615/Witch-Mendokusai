@@ -73,5 +73,42 @@ namespace WitchMendokusai.Server.Tests
 
 			Assert.That(seen.Length, Is.EqualTo(InterestCrowd.MAX_VISIBLE_DOLLS));
 		}
+		[Test]
+		public void 한_칸_사람은_공유_목록에서_안_잘린다()
+		{
+			// 칸에 선 사람 3명 + 옆에서 얼쩡대는 사람 10명, 상한은 5.
+			List<WorldDoll> members = new List<WorldDoll> { At(1, 1, 1), At(2, 2, 2), At(3, 3, 3) };
+			List<WorldDoll> candidates = new List<WorldDoll>(members);
+			for (int i = 0; i < 10; i++)
+				candidates.Add(At(100 + i, 20 + i, 20 + i));
+
+			WorldDoll[] shared = InterestCrowd.SharedForCell(candidates, members, new Vector3(8, 0, 8), 5);
+
+			Assert.That(shared.Length, Is.EqualTo(5));
+			foreach (WorldDoll member in members)
+				Assert.That(System.Array.Exists(shared, one => one.Id == member.Id), Is.True);
+		}
+
+		[Test]
+		public void 칸에_상한보다_많이_모이면_공유를_포기한다()
+		{
+			// 공유 목록으로는 누군가 자기 인형을 못 찾게 된다 — 그때는 창마다 따로 골라야 한다.
+			List<WorldDoll> members = new List<WorldDoll>();
+			for (int i = 0; i < 6; i++)
+				members.Add(At(i, i, 0));
+
+			Assert.That(InterestCrowd.SharedForCell(members, members, new Vector3(8, 0, 8), 5), Is.Null);
+		}
+
+		[Test]
+		public void 남는_자리는_한복판에_가까운_순으로_채운다()
+		{
+			List<WorldDoll> members = new List<WorldDoll> { At(1, 8, 8) };
+			List<WorldDoll> candidates = new List<WorldDoll>(members) { At(5, 40, 40), At(6, 10, 10), At(7, 20, 20) };
+
+			WorldDoll[] shared = InterestCrowd.SharedForCell(candidates, members, new Vector3(8, 0, 8), 3);
+
+			Assert.That(System.Array.ConvertAll(shared, one => one.Id), Is.EqualTo(new[] { 1, 6, 7 }));
+		}
 	}
 }

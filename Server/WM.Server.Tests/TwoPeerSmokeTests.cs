@@ -334,7 +334,10 @@ namespace WitchMendokusai.ServerTests
 			string nearby = await WaitForAsync(viewer, text => ReadWorldDollCount(text) == 2);
 			Assert.AreEqual(2, ReadWorldDollCount(nearby));
 
-			for (int step = 0; step < 40; step++)
+			// ⚠ 「몇 미터까지 보이나」는 <b>칸 단위</b>다 (TASK-WM-217 — 한 칸이 소식 한 벌을 같이 쓴다).
+			//   반경 32 + 칸 하나(16)까지는 아직 보일 수 있다. 지키는 약속은 「멀리 가면 사라진다」이므로
+			//   그 밖으로 걸어 나가게 한다.
+			for (int step = 0; step < 70; step++)
 				host.World.TryMove(travelerId, new WitchMendokusai.Numerics.Vector3(1f, 0f, 0f));
 
 			string farAway = await WaitForAsync(viewer, text => ReadWorldDollCount(text) == 1);
@@ -357,12 +360,15 @@ namespace WitchMendokusai.ServerTests
 				4005));
 			host.World.Cauldrons.Place(new WitchMendokusai.Numerics.Vector3Int(0, 0, 0));
 
-			string nearby = await WaitForAsync(traveler, text => ReadWorldBuildingCount(text) == 1
-				&& ReadWorldCauldronCount(text) == 1);
-			Assert.AreEqual(1, ReadWorldBuildingCount(nearby));
-			Assert.AreEqual(1, ReadWorldCauldronCount(nearby));
+			// ⚠ 집과 솥은 <b>각각 바뀐 판</b>에 실린다 — 한 판에 둘 다 실릴 이유가 없다.
+			//   「둘 다 든 판」을 기다리면 순서가 갈릴 때마다 10초를 기다리다 죽는다(실제로 그랬다).
+			string sawBuilding = await WaitForAsync(traveler, text => ReadWorldBuildingCount(text) == 1);
+			string sawCauldron = await WaitForAsync(traveler, text => ReadWorldCauldronCount(text) == 1);
+			Assert.AreEqual(1, ReadWorldBuildingCount(sawBuilding));
+			Assert.AreEqual(1, ReadWorldCauldronCount(sawCauldron));
 
-			for (int step = 0; step < 40; step++)
+			// 위와 같은 이유로 칸 하나만큼 더 걸어 나간다.
+			for (int step = 0; step < 70; step++)
 				host.World.TryMove(travelerId, new WitchMendokusai.Numerics.Vector3(1f, 0f, 0f));
 
 			string farAway = await WaitForAsync(traveler, text => ReadWorldBuildingCount(text) == 0
@@ -586,7 +592,7 @@ namespace WitchMendokusai.ServerTests
 		private async Task<ClientWebSocket> ConnectAsync()
 		{
 			ClientWebSocket socket = new ClientWebSocket();
-			using CancellationTokenSource timeout = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+			using CancellationTokenSource timeout = TestTimeout.After(10);
 			await socket.ConnectAsync(address, timeout.Token);
 			return socket;
 		}
@@ -616,7 +622,7 @@ namespace WitchMendokusai.ServerTests
 		/// </summary>
 		private static async Task<string> WaitForAsync(ClientWebSocket socket, Func<string, bool> matches)
 		{
-			using CancellationTokenSource timeout = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+			using CancellationTokenSource timeout = TestTimeout.After(10);
 			byte[] buffer = new byte[16384];
 
 			while (timeout.IsCancellationRequested == false)
