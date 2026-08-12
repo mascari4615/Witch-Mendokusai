@@ -1660,7 +1660,7 @@ function drawBag() {
 		row.title = '상자를 열어 두면 눌러서 하나 넣기';
 		row.addEventListener('click', () => {
 			if (openChest === null) return;
-			tell({ type: 'chestput', x: openChest.x, y: openChest.y, z: openChest.z, itemId: entry.itemId, amount: HowMany(entry.amount) });
+			doAction({ type: 'chestput', x: openChest.x, y: openChest.y, z: openChest.z, itemId: entry.itemId, amount: HowMany(entry.amount) });
 		});
 
 		host.appendChild(row);
@@ -2195,7 +2195,7 @@ document.getElementById('brewpick').addEventListener('change', (event) => {
 document.getElementById('rename').addEventListener('click', () => {
 	// 되나 안 되나는 세계가 본다 — 짧거나 길거나 남과 겹치면 거절 이유가 온다.
 	const wanted = document.getElementById('myname').value;
-	tell({ type: 'rename', name: wanted });
+	doAction({ type: 'rename', name: wanted });
 });
 
 document.getElementById('craftpick').addEventListener('change', (event) => {
@@ -2205,23 +2205,23 @@ document.getElementById('craftpick').addEventListener('change', (event) => {
 document.getElementById('make').addEventListener('click', () => {
 	// 되나 안 되나는 세계가 정한다 — 창은 「이 줄대로 만들겠다」만 말한다.
 	if (pickedRecipe === null) return;
-	tell({ type: 'craft', recipeId: pickedRecipe });
+	doAction({ type: 'craft', recipeId: pickedRecipe });
 });
 
 document.getElementById('stir').addEventListener('click', () => {
 	if (pickedIngredient === null) return;
-	tell(myPot === null
+	doAction(myPot === null
 		? { type: 'brew', itemId: pickedIngredient }
 		: { type: 'brew', itemId: pickedIngredient, ...myPot });
 });
 
 // 완성은 선착순 한 사람에게만 간다 — 못 받으면 아무 일도 안 일어난다(그게 정상이다).
 document.getElementById('complete').addEventListener('click', () => {
-	tell(myPot === null ? { type: 'brewcomplete' } : { type: 'brewcomplete', ...myPot });
+	doAction(myPot === null ? { type: 'brewcomplete' } : { type: 'brewcomplete', ...myPot });
 });
 
 document.getElementById('clear').addEventListener('click', () => {
-	tell(myPot === null ? { type: 'brewreset' } : { type: 'brewreset', ...myPot });
+	doAction(myPot === null ? { type: 'brewreset' } : { type: 'brewreset', ...myPot });
 });
 </script>
 </body>

@@ -62,6 +62,7 @@ on:
       - '.github/scripts/wm-web-smooth-test.mjs'
       - '.github/scripts/wm-lost-action-test.mjs'
       - '.github/scripts/wm-web-ghost-test.mjs'
+      - '.github/scripts/wm-action-once-audit.mjs'
       - '.github/scripts/wm-dead-parameter-audit.mjs'
       - '.github/scripts/lib/bad-line.mjs'
       - '.github/scripts/wm-game-client-gate.mjs'
@@ -108,6 +109,7 @@ on:
       - '.github/scripts/wm-web-smooth-test.mjs'
       - '.github/scripts/wm-lost-action-test.mjs'
       - '.github/scripts/wm-web-ghost-test.mjs'
+      - '.github/scripts/wm-action-once-audit.mjs'
       - '.github/scripts/wm-dead-parameter-audit.mjs'
       - '.github/scripts/lib/bad-line.mjs'
       - '.github/scripts/wm-game-client-gate.mjs'
@@ -404,6 +406,10 @@ jobs:
         env:
           WM_PLAYWRIGHT_ROOT: /tmp/wm-playwright
         run: node ./.github/scripts/wm-web-ghost-test.mjs
+
+      # 세계를 바꾸는 말은 모두 「한 번만」 문을 지난다 (TASK-WM-308) — 코드를 읽는 감사라 빠르다.
+      - name: Run action-once audit
+        run: node ./.github/scripts/wm-action-once-audit.mjs
 
   unity:
     name: EditMode tests (laptop runner)

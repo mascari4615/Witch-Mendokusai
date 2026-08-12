@@ -1033,6 +1033,12 @@ namespace WitchMendokusai.Server
 
 				if (kind == Protocol.STRIKE)
 				{
+					// 같은 것을 두 번 하지 않는다 (TASK-WM-308) — 다시 보낸 것이면 답만 준다.
+					if (ShouldDo(dollId, root, out long actionId) == false)
+						return;
+
+					if (actionId > 0) TellRaw(dollId, Protocol.Did(actionId));
+
 					// 때리는 사람은 가만히 서 있을 수 있다 — 이 말에 얹힌 도장으로도 회선을 잰다.
 					HearLine(dollId, root);
 
@@ -1159,6 +1165,15 @@ namespace WitchMendokusai.Server
 					Vector3Int cell = new Vector3Int(ReadInt(root, "x"), ReadInt(root, "y"), ReadInt(root, "z"));
 					Vector3 standing = World.PositionOf(dollId);
 
+					if (kind == Protocol.CHEST_PUT || kind == Protocol.CHEST_TAKE)
+					{
+						// 상자에 넣고 빼는 것은 <b>세계를 바꾼다</b> (TASK-WM-308) — 두 번 하면 물건이 는다/준다.
+						if (ShouldDo(dollId, root, out long chestId) == false)
+							return;
+
+						if (chestId > 0) TellRaw(dollId, Protocol.Did(chestId));
+					}
+
 					if (kind == Protocol.CHEST_PUT)
 					{
 						// 가방에서 먼저 뺀다 — 넣다 남으면 도로 돌려준다(중간에 사라지면 안 된다).
@@ -1205,6 +1220,12 @@ namespace WitchMendokusai.Server
 
 				if (kind == Protocol.BREW)
 				{
+					// 같은 것을 두 번 하지 않는다 (TASK-WM-308) — 다시 보낸 것이면 답만 준다.
+					if (ShouldDo(dollId, root, out long actionId) == false)
+						return;
+
+					if (actionId > 0) TellRaw(dollId, Protocol.Did(actionId));
+
 					// ★ 창은 「무엇을 넣는지」만 말한다 (TASK-WM-217).
 					//   전에는 방향과 세기를 창이 보냈다 — 아무것도 안 들고 저을 수 있었고,
 					//   창을 고친 사람은 한 번에 목표 한가운데로 갈 수 있었다.
@@ -1244,6 +1265,12 @@ namespace WitchMendokusai.Server
 
 				if (kind == Protocol.BREW_COMPLETE)
 				{
+					// 같은 것을 두 번 하지 않는다 (TASK-WM-308) — 다시 보낸 것이면 답만 준다.
+					if (ShouldDo(dollId, root, out long actionId) == false)
+						return;
+
+					if (actionId > 0) TellRaw(dollId, Protocol.Did(actionId));
+
 					// ★ 받을 자리부터 본다 (TASK-WM-217): 완성은 되돌릴 수 없다 —
 					//   넣고 남은 걸 버리면 사람 눈엔 「만들었는데 사라졌다」다. 자리가 없으면 솥을 그대로 둔다.
 					WorldCauldron completing = PotFor(dollId, root);
@@ -1288,6 +1315,12 @@ namespace WitchMendokusai.Server
 
 				if (kind == Protocol.RENAME)
 				{
+					// 같은 것을 두 번 하지 않는다 (TASK-WM-308) — 다시 보낸 것이면 답만 준다.
+					if (ShouldDo(dollId, root, out long actionId) == false)
+						return;
+
+					if (actionId > 0) TellRaw(dollId, Protocol.Did(actionId));
+
 					// ★ 이름은 남에게 보이는 것이라 <b>세계가 검사한다</b> (TASK-WM-218):
 					//   빈 이름·공백만·끝없이 긴 이름·남과 똑같은 이름이 박히면 「누가 누군지」가 무너진다.
 					int owner = World.OwnerOf(dollId);
@@ -1310,6 +1343,12 @@ namespace WitchMendokusai.Server
 
 				if (kind == Protocol.CRAFT)
 				{
+					// 같은 것을 두 번 하지 않는다 (TASK-WM-308) — 다시 보낸 것이면 답만 준다.
+					if (ShouldDo(dollId, root, out long actionId) == false)
+						return;
+
+					if (actionId > 0) TellRaw(dollId, Protocol.Did(actionId));
+
 					// ★ 제작도 세계가 판정한다 (TASK-WM-217). 전에는 재료 확인도, <b>성공 주사위도</b>,
 					//   지급도 창이 했다 — 창을 고친 사람은 언제나 성공하고 무엇이든 만들었다.
 					int recipeId = ReadInt(root, "recipeId");
@@ -1368,6 +1407,12 @@ namespace WitchMendokusai.Server
 
 				if (kind == Protocol.BREW_RESET)
 				{
+					// 같은 것을 두 번 하지 않는다 (TASK-WM-308) — 다시 보낸 것이면 답만 준다.
+					if (ShouldDo(dollId, root, out long actionId) == false)
+						return;
+
+					if (actionId > 0) TellRaw(dollId, Protocol.Did(actionId));
+
 					WorldCauldron clearing = PotFor(dollId, root);
 					if (clearing == null)
 						return;
