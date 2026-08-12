@@ -1835,6 +1835,8 @@ window.__wmView = {
 		seeThrough: view.body.material.transparent === true,
 	})),
 	me: () => myId,
+	// 창이 지금 아는 들판 — 「겨루기에 지면 그 자리가 사라지나」를 보는 자리 (TASK-WM-274).
+	field: () => gatherables.map((one) => ({ id: one.id, x: one.x, z: one.z })),
 	// 앞질러 그리기가 얼마나 앞섰나 · 몇 번이나 도로 끌려갔나 (TASK-WM-270).
 	lead: () => ({ worst: worstLead, snapped: snappedBack }),
 	forgetLead: () => { worstLead = 0; snappedBack = 0; },
