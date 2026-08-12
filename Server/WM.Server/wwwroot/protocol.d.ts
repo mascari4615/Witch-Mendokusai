@@ -98,6 +98,21 @@ export interface WorldSnapshot {
 	brew?: BrewView;
 }
 
+/** 창 -> 서버: 저 사람을 때린다. 거리·간격·대상은 세계가 본다. */
+export interface StrikeRequest {
+	type: 'strike';
+	targetId: number;
+}
+
+/** 서버 -> 창: 누가 맞았다. down 이면 그 자리에서 다시 세워졌다. */
+export interface Hurt {
+	type: 'hurt';
+	dollId: number;
+	by: number;
+	health: number;
+	down: boolean;
+}
+
 /** 창 -> 서버: 이렇게 말했다. 빈 줄·너무 긴 줄은 세계가 다듬거나 버린다. */
 export interface SayRequest {
 	type: 'say';
@@ -347,5 +362,5 @@ export interface Names {
 	dolls: DollNameView[];
 }
 
-export type ServerMessage = Welcome | Me | Names | WorldSnapshot | BrewTaken | Bag | Catalog | BuildCatalog | BrewShelf | Spellbook | CraftBook | Crafted | Chest | Denied | Invite | Linked | Kicked | Said;
-export type ClientMessage = MoveRequest | PlaceRequest | RemoveRequest | GatherRequest | ChestAsk | ChestPut | ChestTake | BrewRequest | BrewResetRequest | BrewCompleteRequest | Hello | BagAsk | ConsumeRequest | InviteAsk | LinkRequest | SayRequest;
+export type ServerMessage = Welcome | Me | Names | WorldSnapshot | BrewTaken | Bag | Catalog | BuildCatalog | BrewShelf | Spellbook | CraftBook | Crafted | Chest | Denied | Invite | Linked | Kicked | Said | Hurt;
+export type ClientMessage = MoveRequest | PlaceRequest | RemoveRequest | GatherRequest | ChestAsk | ChestPut | ChestTake | BrewRequest | BrewResetRequest | BrewCompleteRequest | Hello | BagAsk | ConsumeRequest | InviteAsk | LinkRequest | SayRequest | StrikeRequest;

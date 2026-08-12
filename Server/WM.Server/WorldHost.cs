@@ -791,6 +791,21 @@ namespace WitchMendokusai.Server
 					return;
 				}
 
+				if (kind == Protocol.STRIKE)
+				{
+					// ★ 싸움도 <b>세계가</b> 판정한다 (TASK-WM-251) — 거리·간격·대상 셋 다.
+					//   창이 우기면 그건 창의 화면에서만 일어난 일이다.
+					int targetId = ReadInt(root, "targetId");
+					WitchMendokusai.Net.StrikeRule.Denial why = World.TryStrike(dollId, targetId,
+						System.Environment.TickCount64, out int healthLeft, out bool wentDown);
+					if (why != WitchMendokusai.Net.StrikeRule.Denial.None)
+						return;
+
+					_ = TellNearbyHurtAsync(targetId, dollId, healthLeft, wentDown);
+					Interlocked.Exchange(ref worldDirty, 1);
+					return;
+				}
+
 				if (kind == Protocol.SAY)
 				{
 					// ★ 말은 사람이 직접 짓는 유일한 것이라 세계가 본다 (TASK-WM-250).
@@ -1615,6 +1630,30 @@ namespace WitchMendokusai.Server
 			connection.InterestCellX = cellX;
 			connection.InterestCellZ = cellZ;
 			return changed;
+		}
+
+		/// <summary>누가 맞았다를 <b>그 사람이 보이는 사람</b>에게 나른다 (TASK-WM-251).</summary>
+		private async Task TellNearbyHurtAsync(int dollId, int byDollId, int health, bool wentDown)
+		{
+			string hurt = Protocol.Hurt(dollId, byDollId, health, wentDown);
+
+			Vector3 from = World.PositionOf(dollId);
+			float radiusSquared = PLAYER_INTEREST_RADIUS * PLAYER_INTEREST_RADIUS;
+			WorldDoll[] everyone = World.Snapshot();
+
+			for (int i = 0; i < everyone.Length; i++)
+			{
+				WorldDoll one = everyone[i];
+				float awayX = one.Position.x - from.x;
+				float awayZ = one.Position.z - from.z;
+
+				// 때린 사람에게는 늘 간다 — 맞았는지 안 맞았는지 모르면 싸움이 안 된다.
+				if (one.Id != byDollId && (awayX * awayX) + (awayZ * awayZ) > radiusSquared)
+					continue;
+
+				if (sockets.TryGetValue(one.Id, out Connection watcher))
+					await SendAsync(watcher, hurt);
+			}
 		}
 
 		/// <summary>그 사람이 한 말을 <b>그 사람이 보이는 사람</b>에게 나른다 (TASK-WM-250).</summary>

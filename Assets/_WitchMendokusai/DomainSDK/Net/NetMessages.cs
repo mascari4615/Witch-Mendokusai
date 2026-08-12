@@ -171,6 +171,12 @@ namespace WitchMendokusai.Net
 
 		/// <summary>세계 -> 창: 누가 이렇게 말했다 — 그 사람이 보이는 사람에게만 간다.</summary>
 		public const string SAID = "said";
+
+		/// <summary>창 -> 세계: 저 사람을 때린다 (TASK-WM-251). 되는지는 세계가 본다.</summary>
+		public const string STRIKE = "strike";
+
+		/// <summary>세계 -> 창: 누가 맞았다 — 그 사람이 보이는 사람에게 간다.</summary>
+		public const string HURT = "hurt";
 	}
 
 	/// <summary>모든 수신 메시지의 첫 판별에 쓰는 공통 envelope.</summary>

@@ -31,6 +31,12 @@ namespace WitchMendokusai
 		public Vector3 Position { get; set; }
 		public InventoryCore Bag { get; }
 
+		/// <summary>이 사람의 몸 (TASK-WM-251). 0 이면 쓰러진 것이다.</summary>
+		public int Health { get; set; } = Net.StrikeRule.FULL_HEALTH;
+
+		/// <summary>마지막으로 때린 시각 (ms) — 얼마나 자주 때리나를 세계가 본다.</summary>
+		public long LastStruckMs { get; set; }
+
 		/// <summary>가방을 뜬다 — 종류별 개수만(칸 배치는 세계의 관심사가 아니다).</summary>
 		public List<BagSaveEntry> SaveBag()
 		{
@@ -749,6 +755,48 @@ namespace WitchMendokusai
 
 				return 0;
 			}, catalog);
+		}
+
+		/// <summary>
+		/// 때린다 (TASK-WM-251) — 판정은 <see cref="Net.StrikeRule"/> 이 한다.
+		/// 되는 경우에만 몸이 줄고, 0 이 되면 그 사람은 <b>다시 세워진다</b>(원점·가득 찬 몸).
+		/// </summary>
+		public Net.StrikeRule.Denial TryStrike(int attackerId, int targetId, long nowMs,
+			out int healthLeft, out bool wentDown)
+		{
+			healthLeft = 0;
+			wentDown = false;
+
+			lock (gate)
+			{
+				if (dolls.TryGetValue(attackerId, out WorldDoll attacker) == false)
+					return Net.StrikeRule.Denial.NoSuchOne;
+
+				bool targetExists = dolls.TryGetValue(targetId, out WorldDoll target);
+				Vector3 to = targetExists ? target.Position : Vector3.zero;
+				int health = targetExists ? target.Health : 0;
+
+				Net.StrikeRule.Denial why = Net.StrikeRule.CanStrike(attackerId, targetId, targetExists,
+					attacker.Position, to, health, attacker.LastStruckMs, nowMs);
+				if (why != Net.StrikeRule.Denial.None)
+					return why;
+
+				attacker.LastStruckMs = nowMs;
+				target.Health = Net.StrikeRule.HealthAfterHit(target.Health);
+				healthLeft = target.Health;
+
+				if (target.Health <= 0)
+				{
+					// ⚠ 쓰러진 채로 두면 그 사람은 <b>게임에서 나간 것</b>이 된다. 뼈대에서는 곧바로 세운다 —
+					//   어떻게 되살아날지(자리·기다림·잃는 것)는 게임이 정할 몫이다.
+					target.Health = Net.StrikeRule.FULL_HEALTH;
+					target.Position = Vector3.zero;
+					healthLeft = target.Health;
+					wentDown = true;
+				}
+
+				return Net.StrikeRule.Denial.None;
+			}
 		}
 
 		public bool TryMove(int dollId, Vector3 delta)
