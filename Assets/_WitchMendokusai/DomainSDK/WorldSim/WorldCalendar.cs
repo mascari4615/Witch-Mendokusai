@@ -75,6 +75,36 @@ namespace WitchMendokusai
 		/// <summary>세계가 시작한 뒤 몇 분 지났나 — 「얼마나 흘렀나」를 재는 자리.</summary>
 		public int TotalMinutes() => (TotalDays() * HoursPerDay + Hour) * MINUTES_PER_HOUR + Minute;
 
+		/// <summary>
+		/// 시각을 <b>그 값으로</b> 세운다 (TASK-WM-266) — 흘리는 게 아니라 맞춘다.
+		///
+		/// ★ 왜 필요한가: 세계가 여럿이면(구역, WM-252~265) 저마다 제 가동 시간만큼만 흘린다.
+		///   그러면 나중에 뜬 세계·오래 꺼져 있던 세계는 <b>영영 뒤처진다</b> — 국경을 넘는 순간
+		///   밤이 낮이 된다. 그래서 시각은 각자 흘리는 것이 아니라 <b>같은 셈으로 유도</b>해야 한다.
+		///
+		/// 하루가 바뀌었으면 true(하루가 바뀌는 순간에 걸리는 일들이 있다).
+		/// 되돌리는 값(지금보다 이른 시각)은 안 받는다 — 세계의 시간은 거꾸로 안 간다.
+		/// </summary>
+		public bool SetTotalMinutes(long minutes)
+		{
+			if (minutes <= TotalMinutes())
+				return false;
+
+			int startDay = TotalDays();
+			long ahead = minutes - TotalMinutes();
+
+			// 한 번에 아주 멀리 갈 수도 있다(며칠 꺼져 있었다) — 그래도 자릿수 셈은 같다.
+			while (ahead > 0)
+			{
+				int step = ahead > int.MaxValue / 2 ? int.MaxValue / 2 : (int)ahead;
+				ApplyMinutes(step);
+				ahead -= step;
+			}
+
+			minuteRemainder = 0f;
+			return TotalDays() != startDay;
+		}
+
 		/// <summary>세계가 시작한 뒤 며칠 지났나 — 「하루가 바뀌었나」를 재는 데 쓴다.</summary>
 		public int TotalDays() => ((Year - 1) * SeasonsPerYear + Season) * DaysPerSeason + (Day - 1);
 

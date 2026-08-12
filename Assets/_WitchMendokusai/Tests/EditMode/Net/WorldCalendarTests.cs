@@ -97,5 +97,48 @@ namespace WitchMendokusai.Tests.EditMode.Net
 			Assert.That(world.Snapshot().Length, Is.EqualTo(0));
 			Assert.That(world.Calendar.TotalDays(), Is.EqualTo(before + 1));
 		}
+
+		[Test]
+		public void 시각을_그_값으로_세운다()
+		{
+			// 세계가 여럿이면 저마다 흘리는 게 아니라 <b>같은 셈</b>으로 맞춰야 한다 (TASK-WM-266).
+			WorldCalendar sky = Fresh();
+			int began = sky.TotalMinutes();
+
+			Assert.IsFalse(sky.SetTotalMinutes(began + 30), "하루가 안 넘었으면 false");
+			Assert.AreEqual(began + 30, sky.TotalMinutes());
+		}
+
+		[Test]
+		public void 세운_시각이_하루를_넘으면_알려_준다()
+		{
+			WorldCalendar sky = Fresh();
+			Assert.IsTrue(sky.SetTotalMinutes(sky.TotalMinutes() + (24 * 60)),
+				"하루가 바뀌는 순간에 걸리는 일들이 있다");
+		}
+
+		[Test]
+		public void 시각은_거꾸로_안_간다()
+		{
+			// 벽시계가 잠깐 뒤로 가도(시간 맞춤·서머타임) 세계의 어제로 돌아가면 안 된다.
+			WorldCalendar sky = Fresh();
+			sky.SetTotalMinutes(sky.TotalMinutes() + 100);
+			int now = sky.TotalMinutes();
+
+			Assert.IsFalse(sky.SetTotalMinutes(now - 50));
+			Assert.AreEqual(now, sky.TotalMinutes());
+		}
+
+		[Test]
+		public void 아주_멀리_한_번에_가도_자릿수가_맞는다()
+		{
+			// 며칠 꺼져 있다 켜지는 일은 흔하다 — 그때 한 번에 건너뛴다.
+			WorldCalendar sky = Fresh();
+			sky.SetTotalMinutes(sky.TotalMinutes() + (28 * 4 * 24 * 60) + 90);
+
+			Assert.AreEqual(2, sky.Year, "한 해가 지났어야 한다");
+			Assert.AreEqual(7, sky.Hour, "6시에서 90분 뒤 = 7시 30분");
+			Assert.AreEqual(30, sky.Minute);
+		}
 	}
 }

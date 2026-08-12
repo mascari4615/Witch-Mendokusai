@@ -89,7 +89,9 @@ namespace WitchMendokusai.ServerTests
 			Assert.GreaterOrEqual(before, VISITS, "손님이 장부에 안 적히면 이 시험은 뜻이 없다");
 
 			// 세계의 시간이 넉넉히 흐른 뒤 — 빈손으로 스쳐간 사람은 지운다.
-			int forgotten = host.Identities.PruneGuests(500, 90, host.World.OwnsSomething);
+			// ⚠ 「오늘」을 숫자로 박으면 안 된다 — 하늘이 벽시계에서 오면(WM-266) 오늘은 늘 크다.
+			int longAfter = host.World.Calendar.TotalDays() + 90 + 1;
+			int forgotten = host.Identities.PruneGuests(longAfter, 90, host.World.OwnsSomething);
 
 			Assert.Greater(forgotten, 0, "아무도 안 지워지면 장부는 영영 커지기만 한다");
 			Assert.Less(host.Identities.Count, before);

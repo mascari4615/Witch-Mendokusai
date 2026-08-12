@@ -47,6 +47,36 @@ namespace WitchMendokusai.Server
 		private const float MINUTES_PER_REAL_SECOND = 1f;
 
 		/// <summary>
+		/// 하늘이 시작한 순간 (Unix ms) — <b>모든 세계가 같은 값을 쓴다</b> (TASK-WM-266).
+		/// 이 값 하나로 어느 구역이든, 몇 번을 껐다 켜든 같은 시각을 셈해 낸다(세계끼리 조율 0).
+		/// ⚠ 구역들이 <b>같은 값</b>을 써야 한다 — 다르면 그게 곧 다른 하늘이다(`WM_SKY_BEGAN`).
+		/// </summary>
+		private static readonly long SkyBeganMs = ReadSkyBegan();
+
+		/// <summary>
+		/// 기본값 = 2026-08-12T00:00:00Z (세계가 처음 선 날).
+		/// ⚠ <b>반드시 지난 시각</b>이어야 한다 — 앞선 시각을 박으면 하늘이 통째로 멎는다
+		///   (첫 시도가 그랬다: 오늘 날짜를 UTC 로 박았더니 한국 새벽에는 아직 안 온 시각이었다).
+		/// </summary>
+		private const long SKY_BEGAN_DEFAULT_MS = 1786492800000L;
+
+		private static long ReadSkyBegan()
+		{
+			string said = System.Environment.GetEnvironmentVariable("WM_SKY_BEGAN");
+			return long.TryParse(said, out long given) && given > 0 ? given : SKY_BEGAN_DEFAULT_MS;
+		}
+
+		/// <summary>세계가 시작한 뒤 몇 분이 흘렀나 — 벽시계에서 바로 유도한다.</summary>
+		private static long SkyMinutesNow()
+		{
+			long sinceMs = System.DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - SkyBeganMs;
+			if (sinceMs < 0)
+				return 0;
+
+			return (long)(sinceMs / 1000.0 * MINUTES_PER_REAL_SECOND);
+		}
+
+		/// <summary>
 		/// 아무도 없어도 <b>세계의 시간이 이만큼 흐르면</b> 한 번 적는다 (TASK-WM-218).
 		///
 		/// ★ 왜: 시각은 사람이 없어도 흐르는데 저장은 사람이 있을 때만 했다 — 그래서 서버를 껐다 켜면
@@ -1480,8 +1510,11 @@ namespace WitchMendokusai.Server
 					wasWorst = swapped;
 				}
 
-				// 세계의 시간은 <b>사람이 있든 없든</b> 흐른다 — 서버가 굴리는 이유가 그것이다.
-				if (World.AdvanceMinutes(MINUTES_PER_REAL_SECOND * sinceLast))
+				// ★ 세계의 시간은 <b>사람이 있든 없든, 서버가 켜져 있든 아니든</b> 흐른다 (TASK-WM-266).
+				//   가동 시간만큼만 흘리면, 나중에 뜬 세계·오래 꺼져 있던 세계는 영영 뒤처진다 —
+				//   국경을 넘는 순간 밤이 낮이 된다. 그래서 <b>벽시계에서 유도</b>한다:
+				//   맞춰 주는 게 아니라 각자 같은 셈을 하므로, 세계끼리 말을 섞을 필요가 없다.
+				if (World.Calendar.SetTotalMinutes(SkyMinutesNow()))
 					Interlocked.Exchange(ref worldDirty, 1);
 
 				// ★ 안 바뀐 것은 안 보낸다 (TASK-WM-217). 건물 63채 + 들판 169자리를 20Hz 로 나르면
