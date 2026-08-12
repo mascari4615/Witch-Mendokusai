@@ -222,6 +222,8 @@ let breaking = false;     // 지금은 짓나, 부수나
 const itemNames = {};   // 번호 → 이름. 들어올 때 한 번 받는다.
 const pressed = {};
 let time = null;        // 세계의 시각 — 서버가 굴린다(사람이 없어도 흐른다).
+// 도착했지만 아직 화면에 안 세운 마지막 세계 소식 — 프레임마다 하나씩만 세운다.
+let pendingWorld = null;
 let brew = null;        // 모두가 같이 젓는 솥.
 
 // ── 세계를 세우는 자리 ──────────────────────────────────────────────────
@@ -526,16 +528,14 @@ function onLinkMessage(event) {
 	if (message.type === 'world') {
 		if (message.sequence > 0 && message.sequence <= lastWorldSequence) return;
 		if (message.sequence > 0) lastWorldSequence = message.sequence;
-		dolls = message.dolls;
-		// 안 실려 온 목록은 「비었다」가 아니라 「안 바뀌었다」다 — 지난 것을 그대로 쓴다.
-		if (message.buildings) buildings = message.buildings;
-		if (message.gatherables) gatherables = message.gatherables;
-		if (message.cauldrons) cauldrons = message.cauldrons;
-		if (message.buildings || message.gatherables || message.cauldrons) staticWorldDirty = true;
-		time = message.time || time;
-		brew = message.brew || brew;
-		drawWorldLines();
-		syncDolls();
+
+		// ★ 여기서 세우지 않는다 — <b>가장 최근 것만</b> 다음 프레임에 세운다.
+		//   사람이 200명이면 세계는 초당 13번 10KB 를 보낸다. 도착할 때마다 인형 200개를
+		//   세우면 화면 그리는 일이 밀리고, 밀리면 메시지도 늦게 열어 보게 된다
+		//   (실측: 200명에서 창이 초당 5.6건밖에 못 열었다). 화면은 초당 60번 그리므로
+		//   그 사이에 온 판은 어차피 지나간 것이다 — 마지막 것만 쓰면 된다.
+		pendingWorld = message;
+		return;
 	}
 }
 
@@ -1117,8 +1117,28 @@ function applyDaylight() {
 const eyeTarget = new THREE.Vector3();
 const eyeAt = new THREE.Vector3();
 
+/** 도착만 해 둔 마지막 세계 소식을 화면에 세운다 — 한 프레임에 한 번. */
+function applyPendingWorld() {
+	if (pendingWorld === null) return;
+
+	const message = pendingWorld;
+	pendingWorld = null;
+
+	dolls = message.dolls;
+	// 안 실려 온 목록은 「비었다」가 아니라 「안 바뀌었다」다 — 지난 것을 그대로 쓴다.
+	if (message.buildings) buildings = message.buildings;
+	if (message.gatherables) gatherables = message.gatherables;
+	if (message.cauldrons) cauldrons = message.cauldrons;
+	if (message.buildings || message.gatherables || message.cauldrons) staticWorldDirty = true;
+	time = message.time || time;
+	brew = message.brew || brew;
+	drawWorldLines();
+	syncDolls();
+}
+
 function frame() {
 	const dt = Math.min(0.05, frameClock.getDelta());
+	applyPendingWorld();
 	updateLocalMovement(dt);
 	const me = myPlace();
 	const anchorX = Math.round(me.x);
