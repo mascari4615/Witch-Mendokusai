@@ -13,6 +13,7 @@ namespace WitchMendokusai
 	public static class WorldKeyStore
 	{
 		private const string KEY = "wm.world.secret";
+		private const string SERVER_URL_KEY = "wm.world.server";
 
 		/// <summary>이번 접속에서 세계가 새로 준 열쇠 — 아직 없으면 빈 문자열(스모크가 물려줄 때 쓴다).</summary>
 		public static string LastGranted { get; private set; } = string.Empty;
@@ -76,6 +77,38 @@ namespace WitchMendokusai
 				return;
 
 			PlayerPrefs.SetString(ACCOUNT_CODE_KEY, code);
+			PlayerPrefs.Save();
+		}
+
+		/// <summary>
+		/// 이 기기가 붙을 세계 주소. 환경변수 <c>WM_WORLD_SERVER</c> 가 있으면 그것이 이긴다.
+		///
+		/// ★ 왜 따로 적어 두나 (TASK-WM-219): 공개 배포 뒤에도 판마다 씬/프리팹 값을 다시 굽는 구조면
+		///   운영이 너무 무겁다. 기본값은 빌드가 들고 가되, 기기에서 한 번 바꾼 주소는 남아야
+		///   로컬·스테이징·공개 세계를 같은 플레이어로 오갈 수 있다.
+		/// </summary>
+		public static string LoadServerUrl(string fallback)
+		{
+			string fromEnvironment = System.Environment.GetEnvironmentVariable("WM_WORLD_SERVER");
+			if (string.IsNullOrWhiteSpace(fromEnvironment) == false)
+				return fromEnvironment;
+
+			string saved = PlayerPrefs.GetString(SERVER_URL_KEY, string.Empty);
+			return string.IsNullOrWhiteSpace(saved) ? fallback : saved;
+		}
+
+		/// <summary>
+		/// 붙을 세계 주소를 적어 둔다. 환경변수로 강제된 판은 기기 값을 덮어쓰지 않는다.
+		/// </summary>
+		public static void SaveServerUrl(string url)
+		{
+			if (string.IsNullOrWhiteSpace(url))
+				return;
+
+			if (string.IsNullOrWhiteSpace(System.Environment.GetEnvironmentVariable("WM_WORLD_SERVER")) == false)
+				return;
+
+			PlayerPrefs.SetString(SERVER_URL_KEY, url);
 			PlayerPrefs.Save();
 		}
 
