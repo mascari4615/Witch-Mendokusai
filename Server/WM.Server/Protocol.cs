@@ -53,6 +53,14 @@ namespace WitchMendokusai.Server
 		public const string HURT = Net.NetMessageType.HURT;
 		public const string MOVE_ON = Net.NetMessageType.MOVE_ON;
 
+		/// <summary>
+		/// 세계 → <b>이웃 세계</b>: 내 국경 띠에 이 사람들이 있다 (TASK-WM-263).
+		///
+		/// ⚠ 이 말은 창이 쓰는 말이 아니다 — 그래서 창의 계약(NetMessages)에 안 넣는다.
+		///   창에 없는 말을 계약에 적으면 「창이 안 다룬다」로 잡혀야 할 것과 섞인다.
+		/// </summary>
+		public const string NEARBY = "nearby";
+
 		// 무엇이 거절됐나 — 창이 자리별로 다르게 보여 줄 수 있게 이름을 준다.
 		public const string DENIED_PLACE = "place";
 		public const string DENIED_GATHER = "gather";
@@ -507,6 +515,36 @@ namespace WitchMendokusai.Server
 				+ ",\"x\":" + x.ToString("F2", System.Globalization.CultureInfo.InvariantCulture)
 				+ ",\"z\":" + z.ToString("F2", System.Globalization.CultureInfo.InvariantCulture)
 				+ ",\"pass\":" + JsonSerializer.Serialize(pass ?? string.Empty, textOptions) + "}";
+		}
+
+		/// <summary>
+		/// 국경 띠에 선 내 사람들을 이웃에게 알린다 (TASK-WM-263).
+		/// 도장(<paramref name="seal"/>)이 없으면 아무나 남의 세계에 사람을 그려 넣을 수 있다.
+		/// </summary>
+		public static string Nearby(string zone, string seal, IEnumerable<WorldDoll> people, System.Func<int, string> nameOf)
+		{
+			StringBuilder builder = new StringBuilder();
+			builder.Append("{\"type\":\"").Append(NEARBY)
+				.Append("\",\"zone\":").Append(JsonSerializer.Serialize(zone ?? string.Empty, textOptions))
+				.Append(",\"seal\":").Append(JsonSerializer.Serialize(seal ?? string.Empty, textOptions))
+				.Append(",\"dolls\":[");
+
+			bool first = true;
+			foreach (WorldDoll one in people)
+			{
+				if (first == false)
+					builder.Append(',');
+
+				first = false;
+				string who = nameOf == null ? string.Empty : (nameOf(one.IdentityId) ?? string.Empty);
+				builder.Append("{\"id\":").Append(one.Id)
+					.Append(",\"x\":").Append(one.Position.x.ToString("F2", System.Globalization.CultureInfo.InvariantCulture))
+					.Append(",\"z\":").Append(one.Position.z.ToString("F2", System.Globalization.CultureInfo.InvariantCulture))
+					.Append(",\"name\":").Append(JsonSerializer.Serialize(who, textOptions))
+					.Append('}');
+			}
+
+			return builder.Append("]}").ToString();
 		}
 
 		/// <summary>이름표 — 바뀐 사람만 담아 모두에게 보낸다 (TASK-WM-220).</summary>

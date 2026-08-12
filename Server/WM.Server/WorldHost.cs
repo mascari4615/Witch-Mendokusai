@@ -227,6 +227,12 @@ namespace WitchMendokusai.Server
 		/// <summary>걸음 심판 — 시계를 보고 「걸어서 갈 수 있는 만큼」만 통과시킨다 (TASK-WM-222).</summary>
 		private readonly WitchMendokusai.Net.MoveAllowance moveAllowance = new WitchMendokusai.Net.MoveAllowance();
 
+		/// <summary>국경 너머에서 비쳐 오는 사람들 (TASK-WM-263) — 보이기만 하고 못 건드린다.</summary>
+		private readonly NeighbourShadows shadows = new NeighbourShadows();
+
+		/// <summary>지금 비쳐 보이는 국경 너머 사람 수 — 시험이 「유령이 남았나」를 묻는 자리다.</summary>
+		public int ShadowCount => shadows.Alive(System.Environment.TickCount64).Length;
+
 		/// <summary>이미 쓴 통행증 (TASK-WM-259) — 한 장으로 두 번 들어오면 가방이 두 벌 온다.</summary>
 		private readonly WitchMendokusai.Net.PassOnce passesUsed = new WitchMendokusai.Net.PassOnce();
 
@@ -413,6 +419,20 @@ namespace WitchMendokusai.Server
 				}
 			});
 
+			// ★ 이웃 세계 전용 문 (TASK-WM-263) — 사람이 쓰는 문(/ws)과 따로 둔다.
+			//   같은 문으로 받으면 이웃 세계가 <b>사람 하나</b>로 세어져 국경에 인형이 선다.
+			app.Map("/peer", async (HttpContext context) =>
+			{
+				if (context.WebSockets.IsWebSocketRequest == false)
+				{
+					context.Response.StatusCode = 400;
+					return;
+				}
+
+				WebSocket socket = await context.WebSockets.AcceptWebSocketAsync();
+				await ServePeerAsync(socket, app.Lifetime.ApplicationStopping);
+			});
+
 			// 세계는 서버보다 오래 산다 (단계 5) — 뜨자마자 지난 기억을 되살린다.
 			WorldSaveData loaded = store.TryLoad();
 			Identities.Load(loaded?.identities);
@@ -425,6 +445,7 @@ namespace WitchMendokusai.Server
 			{
 				_ = RunBroadcastLoopAsync(app.Lifetime.ApplicationStopping);
 				_ = RunSaveLoopAsync(app.Lifetime.ApplicationStopping);
+				_ = RunBorderLoopsAsync(app.Lifetime.ApplicationStopping);
 			});
 
 			// 꺼질 때 한 번 더 — 마지막 몇 초 사이에 지은 것도 남는다.
@@ -473,11 +494,11 @@ namespace WitchMendokusai.Server
 
 			// 이름표도 들어올 때 한 번 — 그 뒤로는 바뀔 때만 온다 (TASK-WM-220).
 			{
-				WorldDoll[] everyoneNow = World.Snapshot();
+				WorldDoll[] everyoneNow = EveryoneNow();
 				System.Collections.Generic.List<(int DollId, string Name)> allNames =
 					new System.Collections.Generic.List<(int, string)>();
 				for (int i = 0; i < everyoneNow.Length; i++)
-					allNames.Add((everyoneNow[i].Id, Identities.NameOf(everyoneNow[i].IdentityId) ?? string.Empty));
+					allNames.Add((everyoneNow[i].Id, NameOfDoll(everyoneNow[i])));
 
 				if (allNames.Count > 0)
 					await SendAsync(connection, Protocol.Names(allNames));
@@ -1479,7 +1500,7 @@ namespace WitchMendokusai.Server
 				//   칸에 상한보다 많이 모이면 공유가 깨지므로 그때만 창마다 짓는다(아래 fallback).
 				System.Collections.Generic.Dictionary<string, (byte[] Bytes, System.Collections.Generic.HashSet<int> Inside)> madeForCell =
 					new System.Collections.Generic.Dictionary<string, (byte[], System.Collections.Generic.HashSet<int>)>();
-				WorldDoll[] everyone = World.Snapshot();
+				WorldDoll[] everyone = EveryoneNow();
 
 				foreach (System.Collections.Generic.KeyValuePair<int, Connection> entry in sockets)
 				{
@@ -1582,7 +1603,7 @@ namespace WitchMendokusai.Server
 		/// </summary>
 		private string SmallPlateFor(int viewerDollId, int limit, long sequence)
 		{
-			WorldDoll[] all = World.Snapshot();
+			WorldDoll[] all = EveryoneNow();
 			Vector3 viewer = World.PositionOf(viewerDollId);
 			float radiusSquared = PLAYER_INTEREST_RADIUS * PLAYER_INTEREST_RADIUS;
 			System.Collections.Generic.List<WorldDoll> near = new System.Collections.Generic.List<WorldDoll>();
@@ -1739,7 +1760,205 @@ namespace WitchMendokusai.Server
 			Interlocked.Exchange(ref worldDirty, 1);
 		}
 
-		/// <summary>누가 맞았다를 <b>그 사람이 보이는 사람</b>에게 나른다 (TASK-WM-251).</summary>
+		/// <summary>
+		/// 이 인형을 뭐라고 부르나 — 국경 너머 그림자는 <b>빌려 온 이름</b>을 쓴다 (TASK-WM-263).
+		/// 그림자는 이 세계의 신원부에 없으므로, 여기서 안 갈라 주면 국경 너머 사람은 이름이 없다.
+		/// </summary>
+		private string NameOfDoll(WorldDoll one)
+		{
+			if (string.IsNullOrEmpty(one.BorrowedName) == false)
+				return one.BorrowedName;
+
+			return Identities.NameOf(one.IdentityId) ?? string.Empty;
+		}
+
+		/// <summary>이웃 세계임을 증명하는 도장 — 두 세계만 아는 말로 찍는다 (TASK-WM-263).</summary>
+		private string BorderSeal(string zoneName)
+		{
+			using System.Security.Cryptography.HMACSHA256 stamp =
+				new System.Security.Cryptography.HMACSHA256(Encoding.UTF8.GetBytes(zoneSecret ?? string.Empty));
+
+			byte[] print = stamp.ComputeHash(Encoding.UTF8.GetBytes("국경:" + (zoneName ?? string.Empty)));
+			StringBuilder hex = new StringBuilder(print.Length * 2);
+			foreach (byte one in print)
+				hex.Append(one.ToString("x2", System.Globalization.CultureInfo.InvariantCulture));
+
+			return hex.ToString();
+		}
+
+		/// <summary>
+		/// 이웃 세계가 들어오는 문 (TASK-WM-263) — 여기서는 인형을 만들지 않는다.
+		/// 오는 말은 하나뿐이다: 「내 국경 띠에 이 사람들이 있다」.
+		/// </summary>
+		private async Task ServePeerAsync(WebSocket socket, CancellationToken stopping)
+		{
+			byte[] buffer = new byte[65536];
+			try
+			{
+				while (socket.State == WebSocketState.Open && stopping.IsCancellationRequested == false)
+				{
+					string text = await ReceiveTextAsync(socket, buffer, stopping);
+					if (text == null)
+						break;
+
+					if (ReadMessageType(text) != Protocol.NEARBY)
+						continue;
+
+					string zone = ReadStringField(text, "zone");
+					if (string.IsNullOrEmpty(zone))
+						continue;
+
+					// ⚠ 도장이 없으면 아무나 남의 세계에 사람을 그려 넣는다(있지도 않은 무리를 세운다).
+					if (SameSeal(ReadStringField(text, "seal"), BorderSeal(zone)) == false)
+						continue;
+
+					shadows.TakeFrom(zone, ReadNearby(text), System.Environment.TickCount64);
+				}
+			}
+			catch (WebSocketException)
+			{
+				// 이웃이 꺼지는 건 사고가 아니다 — 그림자는 시간이 지나면 스스로 사라진다.
+			}
+		}
+
+		/// <summary>도장 비교는 <b>끝까지</b> 본다 — 빨리 틀리면 맞춰 갈 수 있다.</summary>
+		private static bool SameSeal(string said, string mine)
+		{
+			if (said == null || mine == null || said.Length != mine.Length)
+				return false;
+
+			int different = 0;
+			for (int i = 0; i < said.Length; i++)
+				different |= said[i] ^ mine[i];
+
+			return different == 0;
+		}
+
+		private static System.Collections.Generic.List<(int DollId, float X, float Z, string Name)> ReadNearby(string text)
+		{
+			System.Collections.Generic.List<(int, float, float, string)> people =
+				new System.Collections.Generic.List<(int, float, float, string)>();
+
+			try
+			{
+				using JsonDocument document = JsonDocument.Parse(text);
+				if (document.RootElement.TryGetProperty("dolls", out JsonElement dolls) == false)
+					return people;
+
+				foreach (JsonElement one in dolls.EnumerateArray())
+				{
+					if (one.TryGetProperty("id", out JsonElement id) == false)
+						continue;
+
+					people.Add((
+						id.GetInt32(),
+						one.TryGetProperty("x", out JsonElement x) ? (float)x.GetDouble() : 0f,
+						one.TryGetProperty("z", out JsonElement z) ? (float)z.GetDouble() : 0f,
+						one.TryGetProperty("name", out JsonElement name) ? (name.GetString() ?? string.Empty) : string.Empty));
+				}
+			}
+			catch (JsonException)
+			{
+				// 못 읽는 판은 그냥 버린다 — 다음 판이 100ms 뒤에 온다.
+			}
+
+			return people;
+		}
+
+		/// <summary>이웃에게 국경 띠를 알려 주는 간격 (ms) — 사람 판(50ms)보다 뜸해도 눈에 안 띈다.</summary>
+		private const int TELL_NEIGHBOURS_EVERY_MS = 100;
+
+		/// <summary>이웃마다 줄 하나 — 끊기면 다시 잇는다(옆 세계가 나중에 떠도 저절로 이어진다).</summary>
+		private async Task RunBorderLoopsAsync(CancellationToken stopping)
+		{
+			foreach ((WitchMendokusai.Net.ZonePatch Patch, string Address) land in neighbours.Lands)
+				_ = TellNeighbourLoopAsync(land.Patch, land.Address, stopping);
+
+			await Task.CompletedTask;
+		}
+
+		/// <summary>
+		/// 저 이웃의 땅에서 <see cref="WitchMendokusai.Net.BorderBand.BAND"/> 안에 있는 내 사람들을
+		/// 계속 알려 준다 — 그래야 국경 너머가 보인다.
+		/// </summary>
+		private async Task TellNeighbourLoopAsync(WitchMendokusai.Net.ZonePatch land, string address, CancellationToken stopping)
+		{
+			// 사람이 쓰는 문 주소를 받았다 — 이웃 전용 문으로 바꾼다.
+			string door = address.EndsWith("/ws", System.StringComparison.Ordinal)
+				? address.Substring(0, address.Length - 3) + "/peer"
+				: address;
+
+			while (stopping.IsCancellationRequested == false)
+			{
+				System.Net.WebSockets.ClientWebSocket line = new System.Net.WebSockets.ClientWebSocket();
+				try
+				{
+					await line.ConnectAsync(new System.Uri(door), stopping);
+					while (line.State == WebSocketState.Open && stopping.IsCancellationRequested == false)
+					{
+						string word = Protocol.Nearby(World.Patch.Name, BorderSeal(World.Patch.Name),
+							AtTheBorderOf(land), Identities.NameOf);
+
+						byte[] payload = Encoding.UTF8.GetBytes(word);
+						await line.SendAsync(new System.ArraySegment<byte>(payload),
+							WebSocketMessageType.Text, true, stopping);
+
+						await Task.Delay(TELL_NEIGHBOURS_EVERY_MS, stopping);
+					}
+				}
+				catch (System.Exception)
+				{
+					// 이웃이 아직 안 떴거나 꺼졌다 — 잠깐 뒤에 다시 잇는다(사람 손 없이).
+				}
+				finally
+				{
+					line.Dispose();
+				}
+
+				if (stopping.IsCancellationRequested)
+					return;
+
+				try { await Task.Delay(1000, stopping); }
+				catch (System.OperationCanceledException) { return; }
+			}
+		}
+
+		/// <summary>저 이웃 땅에서 띠 안에 있는 내 사람들 — 붐벼도 정해진 수까지만.</summary>
+		private WorldDoll[] AtTheBorderOf(WitchMendokusai.Net.ZonePatch land)
+		{
+			WorldDoll[] mine = World.Snapshot();
+			System.Collections.Generic.List<WorldDoll> close = new System.Collections.Generic.List<WorldDoll>();
+			foreach (WorldDoll one in mine)
+			{
+				if (WitchMendokusai.Net.BorderBand.WorthTelling(land, one.Position) == false)
+					continue;
+
+				close.Add(one);
+				if (close.Count >= WitchMendokusai.Net.BorderBand.MOST_SHADOWS)
+					break;
+			}
+
+			return close.ToArray();
+		}
+
+		/// <summary>
+		/// 이 세계 사람 + <b>국경 너머 그림자</b> (TASK-WM-263).
+		/// 알림·관심 반경·이름표가 다 이 한 목록을 본다 — 한 곳이라도 빠지면 그 자리에서만 안 보인다.
+		/// </summary>
+		private WorldDoll[] EveryoneNow()
+		{
+			WorldDoll[] mine = World.Snapshot();
+			WorldDoll[] beyond = shadows.Alive(System.Environment.TickCount64);
+			if (beyond.Length == 0)
+				return mine;
+
+			WorldDoll[] all = new WorldDoll[mine.Length + beyond.Length];
+			mine.CopyTo(all, 0);
+			beyond.CopyTo(all, mine.Length);
+			return all;
+		}
+
+		/// <summary>누가 맞았다를 <b>그 사람이 보이는 사람</b>에게 나른다 (TASK-WM-251).</summary>		/// <summary>누가 맞았다를 <b>그 사람이 보이는 사람</b>에게 나른다 (TASK-WM-251).</summary>
 		private async Task TellNearbyHurtAsync(int dollId, int byDollId, int health, bool wentDown)
 		{
 			string hurt = Protocol.Hurt(dollId, byDollId, health, wentDown);
@@ -1789,7 +2008,7 @@ namespace WitchMendokusai.Server
 		/// <summary>이름이 바뀐 사람만 모두에게 알린다 — 새로 온 사람·이름을 고친 사람 (TASK-WM-220).</summary>
 		private async Task TellChangedNamesAsync()
 		{
-			WorldDoll[] everyone = World.Snapshot();
+			WorldDoll[] everyone = EveryoneNow();
 			System.Collections.Generic.List<(int DollId, string Name)> changed =
 				new System.Collections.Generic.List<(int, string)>();
 
@@ -1798,7 +2017,7 @@ namespace WitchMendokusai.Server
 			{
 				WorldDoll one = everyone[i];
 				here.Add(one.Id);
-				string now = Identities.NameOf(one.IdentityId) ?? string.Empty;
+				string now = NameOfDoll(one);
 				if (toldNames.TryGetValue(one.Id, out string was) && was == now)
 					continue;
 
@@ -2024,7 +2243,7 @@ namespace WitchMendokusai.Server
 
 		private WorldDoll[] DollsVisibleTo(int viewerDollId)
 		{
-			WorldDoll[] all = World.Snapshot();
+			WorldDoll[] all = EveryoneNow();
 			Vector3 viewer = World.PositionOf(viewerDollId);
 			float radiusSquared = PLAYER_INTEREST_RADIUS * PLAYER_INTEREST_RADIUS;
 			System.Collections.Generic.List<WorldDoll> visible = new System.Collections.Generic.List<WorldDoll>();

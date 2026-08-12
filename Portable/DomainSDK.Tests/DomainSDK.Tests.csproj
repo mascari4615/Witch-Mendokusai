@@ -90,6 +90,7 @@
     <Compile Include="$(TestsRoot)Net/ZonePatchTests.cs" />
     <Compile Include="$(TestsRoot)Net/TravelPassTests.cs" />
     <Compile Include="$(TestsRoot)Net/PassOnceTests.cs" />
+    <Compile Include="$(TestsRoot)Net/BorderBandTests.cs" />
     <Compile Include="$(TestsRoot)Net/IdentityCrossesZonesTests.cs" />
     <Compile Include="$(TestsRoot)Net/ZoneMapTests.cs" />
     <Compile Include="$(TestsRoot)Net/WorldIdentityNameTests.cs" />

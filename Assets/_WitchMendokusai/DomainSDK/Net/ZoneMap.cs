@@ -29,6 +29,9 @@ namespace WitchMendokusai.Net
 			lands.Add((patch, address));
 		}
 
+		/// <summary>아는 이웃 전부 — 국경 띠를 서로 알려 줄 때 하나씩 돌아본다 (TASK-WM-263).</summary>
+		public IReadOnlyList<(ZonePatch Patch, string Address)> Lands => lands;
+
 		/// <summary>이 자리를 맡은 이웃 — 없으면 <c>false</c>.</summary>
 		public bool TryOwner(Vector3 spot, out string name, out string address)
 		{

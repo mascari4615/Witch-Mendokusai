@@ -37,6 +37,12 @@ namespace WitchMendokusai
 		/// <summary>마지막으로 때린 시각 (ms) — 얼마나 자주 때리나를 세계가 본다.</summary>
 		public long LastStruckMs { get; set; }
 
+		/// <summary>
+		/// 옆 세계에서 <b>빌려 온 이름</b> (TASK-WM-263) — 국경 너머 그림자만 쓴다.
+		/// 이 세계의 사람은 늘 비어 있다(이름은 이 세계의 신원부에서 온다).
+		/// </summary>
+		public string BorrowedName { get; set; } = string.Empty;
+
 		/// <summary>가방을 <b>비운다</b> (TASK-WM-259) — 통행증이 진실인 자리에서 옛 것을 걷어낸다.</summary>
 		public void EmptyBag()
 		{
