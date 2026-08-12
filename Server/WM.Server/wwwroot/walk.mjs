@@ -20,6 +20,38 @@ export const SEND_EVERY_MS = 50;
 export const SMALLEST_STEP = 0.01;
 
 /**
+ * 손이 닿는 거리 (m) — 세계의 `WorldGatherables.REACH` 와 같은 값이다.
+ * 창이 우겨도 세계가 다시 본다. 여기 두는 것은 <b>겨냥</b>을 위해서다(무엇을 집을까).
+ */
+export const REACH = 2.5;
+
+/**
+ * 지금 집을 수 있는 것 — 손이 닿는 것 중 <b>가장 가까운 하나</b> (TASK-WM-249).
+ * 없으면 <c>null</c>. 순수 셈이라 지도(2D)와 세계(3D)가 같이 쓴다.
+ */
+export function whatIsInReach(me, things) {
+	if (Array.isArray(things) === false)
+		return null;
+
+	let best = null;
+	let bestAway = REACH * REACH;
+	for (const one of things) {
+		if (typeof one.x !== 'number' || typeof one.z !== 'number') continue;
+
+		const away = ((one.x - me.x) ** 2) + ((one.z - me.z) ** 2);
+		if (away > bestAway) continue;
+
+		// 같은 거리면 번호 순 — 누를 때마다 다른 게 집히면 사람이 못 겨눈다.
+		if (best !== null && away === bestAway && one.id >= best.id) continue;
+
+		best = one;
+		bestAway = away;
+	}
+
+	return best;
+}
+
+/**
  * 누르고 있는 방향으로 <b>내 화면의 나</b>를 옮긴다 (앞질러 그리기).
  *
  * ★ 왜 앞질러 그리나: 회선이 왕복 200ms 면, 눌러서 세계가 답할 때까지 내가 안 움직인다.

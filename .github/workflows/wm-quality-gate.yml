@@ -44,6 +44,7 @@ on:
       - '.github/scripts/wm-web-badline-test.mjs'
       - '.github/scripts/wm-web-narrow-line-test.mjs'
       - '.github/scripts/wm-web-herd-test.mjs'
+      - '.github/scripts/wm-web-map-only-test.mjs'
       - '.github/scripts/wm-dead-parameter-audit.mjs'
       - '.github/scripts/lib/bad-line.mjs'
       - '.github/scripts/wm-game-client-gate.mjs'
@@ -72,6 +73,7 @@ on:
       - '.github/scripts/wm-web-badline-test.mjs'
       - '.github/scripts/wm-web-narrow-line-test.mjs'
       - '.github/scripts/wm-web-herd-test.mjs'
+      - '.github/scripts/wm-web-map-only-test.mjs'
       - '.github/scripts/wm-dead-parameter-audit.mjs'
       - '.github/scripts/lib/bad-line.mjs'
       - '.github/scripts/wm-game-client-gate.mjs'
@@ -242,6 +244,13 @@ jobs:
         env:
           WM_HERD: '40'
         run: node ./.github/scripts/wm-web-herd-test.mjs
+
+      # TASK-WM-249 -- 회선이 아주 나쁘면 3D 엔진은 몇십 초 뒤에 오거나 끝내 안 온다.
+      # 그 사이 아무것도 못 하면 그건 게임이 아니라 기다리는 화면이다. 엔진을 막고 재 본다.
+      - name: Run web map-only test
+        env:
+          WM_PLAYWRIGHT_ROOT: /tmp/wm-playwright
+        run: node ./.github/scripts/wm-web-map-only-test.mjs
 
   unity:
     name: EditMode tests (laptop runner)

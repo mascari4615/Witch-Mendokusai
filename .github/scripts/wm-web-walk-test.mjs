@@ -97,6 +97,23 @@ const from = { x: 0, z: 0 };
 		JSON.stringify(behind));
 }
 
+// ── 무엇을 집을까 (TASK-WM-249) ────────────────────────────────────────
+{
+	const { whatIsInReach, REACH } = walk;
+	const me = { x: 0, z: 0 };
+
+	check('손이 안 닿으면 아무것도 안 집는다',
+		whatIsInReach(me, [{ id: 1, x: REACH + 0.1, z: 0 }]) === null);
+	check('닿는 것 중 가장 가까운 것을 집는다',
+		whatIsInReach(me, [{ id: 1, x: 2, z: 0 }, { id: 2, x: 0.5, z: 0 }]).id === 2);
+	check('같은 거리면 늘 같은 것을 집는다 (누를 때마다 바뀌면 못 겨눈다)',
+		whatIsInReach(me, [{ id: 7, x: 1, z: 0 }, { id: 3, x: -1, z: 0 }]).id === 3);
+	check('자리가 없는 것은 건너뛴다 (이름표에는 자리가 없다)',
+		whatIsInReach(me, [{ id: 1, name: '나무' }, { id: 2, x: 0.5, z: 0 }]).id === 2);
+	check('아무것도 없으면 null', whatIsInReach(me, []) === null);
+	check('목록이 아니면 null', whatIsInReach(me, undefined) === null);
+}
+
 console.log(`[web-walk] 걷기의 셈 ${looked}가지 확인`);
 
 if (failures === 0) {
