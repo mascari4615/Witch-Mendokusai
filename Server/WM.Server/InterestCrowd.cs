@@ -37,6 +37,32 @@ namespace WitchMendokusai.Server
 		/// </summary>
 		public const int SLOTS_FOR_MOVERS = MAX_VISIBLE_DOLLS / 3;
 
+		/// <summary>회선이 감당 못 하는 창에게 줄이고 줄여도 이만큼은 보여 준다.</summary>
+		public const int FEWEST_VISIBLE_DOLLS = 6;
+
+		/// <summary>
+		/// 지난 판들을 <b>연달아 못 받은</b> 창에게는 사람 수를 줄여 준다 (TASK-WM-228).
+		///
+		/// ★ 왜 (실측 2026-08-12): 200명 광장 + 초당 4KB 회선에서 창이 <b>8초 동안 아무 소식도</b>
+		///   못 받았다. 밀린 창에는 다음 판을 「전부」 주는데, 그 전부가 8.8KB 라 4KB 회선에서는
+		///   한 판을 흘리는 데 2초가 넘는다 — 그 사이 또 밀리고, 또 「전부」가 되고, 영영 못 따라잡는다.
+		///   화면은 얼어붙는데 서버는 열심히 보내는 중이다.
+		///
+		/// ★ 그래서 <b>감당할 만큼만</b> 보여 준다. 48명이 안 오는 것보다 6명이 제때 오는 것이
+		///   낫다 — 옆 사람이라도 움직이는 게 보여야 세계가 살아 있다. 회선이 풀리면 곧바로 48로 돌아온다.
+		/// </summary>
+		public static int LimitWhenBehind(int missedInARow)
+		{
+			if (missedInARow <= 0)
+				return MAX_VISIBLE_DOLLS;
+
+			int limit = MAX_VISIBLE_DOLLS;
+			for (int i = 0; i < missedInARow && limit > FEWEST_VISIBLE_DOLLS; i++)
+				limit /= 2;
+
+			return limit < FEWEST_VISIBLE_DOLLS ? FEWEST_VISIBLE_DOLLS : limit;
+		}
+
 		/// <summary>가까운 사람부터 <paramref name="limit"/> 명까지. 나(viewer)는 늘 들어간다.</summary>
 		public static WorldDoll[] Nearest(IReadOnlyList<WorldDoll> candidates, Vector3 viewer, int viewerDollId, int limit)
 		{

@@ -172,6 +172,30 @@ namespace WitchMendokusai.Server.Tests
 				"가만히 선 사람이 다 밀려나면 광장이 텅 빈 것처럼 보인다");
 		}
 
+		// ── 회선이 감당 못 할 때 (TASK-WM-228) ───────────────────────────────
+
+		[Test]
+		public void 안_밀린_창은_그대로_마흔여덟이다()
+		{
+			Assert.That(InterestCrowd.LimitWhenBehind(0), Is.EqualTo(InterestCrowd.MAX_VISIBLE_DOLLS));
+		}
+
+		[Test]
+		public void 밀릴수록_반씩_줄어든다()
+		{
+			Assert.That(InterestCrowd.LimitWhenBehind(1), Is.EqualTo(24));
+			Assert.That(InterestCrowd.LimitWhenBehind(2), Is.EqualTo(12));
+			Assert.That(InterestCrowd.LimitWhenBehind(3), Is.EqualTo(6));
+		}
+
+		[Test]
+		public void 아무리_밀려도_바닥_밑으로는_안_간다()
+		{
+			// 0 명이 되면 그 창은 자기 자신도 못 본다 — 화면이 통째로 멎는다.
+			Assert.That(InterestCrowd.LimitWhenBehind(50), Is.EqualTo(InterestCrowd.FEWEST_VISIBLE_DOLLS));
+			Assert.That(InterestCrowd.FEWEST_VISIBLE_DOLLS, Is.GreaterThan(0));
+		}
+
 		[Test]
 		public void 아무도_안_움직이면_옛날과_똑같다()
 		{

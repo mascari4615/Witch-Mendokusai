@@ -51,6 +51,12 @@ const MAX_AGE_GROWTH_SECONDS = 0.3;
 const MAX_SQUEEZED_AGE_SECONDS = 2;
 const WALK_SPEED = 3;      // m/s — 봇이 내는 속도 (0.15m / 50ms)
 const MEASURE_MS = 8000;
+
+/*
+ * 재기 전에 뒤로 물러나 두는 시간 — 재는 동안(두 구간 + 뜸) 앞으로 걸어도 반경(32m) 안에 남게.
+ * 3m/s × 8.5초 ≈ 25m 뒤 → 앞으로 25m 지점까지 걸어도 원점에서 25m 다.
+ */
+const BACK_UP_MS = 8500;
 /*
  * 표본 = 세계가 <b>말한 횟수</b>다(그린 횟수가 아니라). 20Hz × 8초 = 160판이 나올 자리.
  * 넉넉할 때는 그 절반은 와야 하고, 회선을 조인 뒤에는 <b>적게 오는 것이 정상</b>이다 —
@@ -174,7 +180,19 @@ await new Promise((done) => setTimeout(done, 3000));
 // ⚠ 걷기는 <b>창이 다 붙고 갈고리를 건 뒤에</b> 시작한다 (실측 2026-08-12): 먼저 걷게 두면
 //   창이 뜨는 동안 걷는 사람이 관심 반경(32m) 밖으로 나가 버린다 — 사람이 많을수록 창이 늦게
 //   뜨므로 200명에서 「걷는 사람이 한 판도 안 실린다」로 나왔다(서버는 멀쩡했다).
+//
+// ⚠ 그리고 <b>곧게 앞으로만</b> 걸리면 안 된다 (실측 2026-08-12): 두 구간을 재는 데 16초가 걸리고,
+//   3m/s 로 16초면 48m — 관심 반경(32m)을 넘어 <b>정상적으로</b> 안 보이게 된다.
+//   그걸 「소식이 안 온다」로 읽어 이틀치 엉뚱한 추적을 했다(회선은 멀쩡했고, 창은 322개 말을 받고 있었다).
+//   그래서 먼저 뒤로 걸어 두고, 재는 동안 앞으로 걷는다 — 늘 반경 안에 있으면서 걸음은 한 방향이다.
 let walking = null;
+const stepBackwards = () => new Promise((done) => {
+	const back = setInterval(() => {
+		if (walker.readyState === 1) walker.send(JSON.stringify({ type: 'move', x: -0.15, z: 0 }));
+	}, 50);
+	setTimeout(() => { clearInterval(back); done(); }, BACK_UP_MS);
+});
+
 const startWalking = () => {
 	walking = setInterval(() => {
 		if (walker.readyState !== 1) return;
@@ -236,6 +254,7 @@ await page.evaluate((who) => {
 	window.__wmView.socket().addEventListener('message', (event) => write(event.data));
 }, walkerDollId);
 
+await stepBackwards();
 startWalking();
 await new Promise((done) => setTimeout(done, 1500));
 await new Promise((done) => setTimeout(done, MEASURE_MS));

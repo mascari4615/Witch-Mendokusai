@@ -42,7 +42,7 @@ export function releaseAt(readyAt, now, bytes, line, roll) {
  * 나쁜 회선을 하나 세운다. 창은 <c>listenPort</c> 로 붙고, 세계는 <c>targetPort</c> 에 있다.
  * HTTP·WebSocket 을 안 가린다 — 바이트만 다루기 때문이다(업그레이드도 그냥 흘러간다).
  */
-export function openBadLine({ listenPort, targetPort, latencyMs = 0, jitterMs = 0, bytesPerSecond = 0, host = '127.0.0.1' }) {
+export function openBadLine({ listenPort, targetPort, latencyMs = 0, jitterMs = 0, bytesPerSecond = 0, host = '127.0.0.1', queueBytes = 64 * 1024 }) {
 	const line = { latencyMs, jitterMs, bytesPerSecond };
 	const sockets = new Set();
 
@@ -55,6 +55,8 @@ export function openBadLine({ listenPort, targetPort, latencyMs = 0, jitterMs = 
 		let readyAt = 0;
 		let timer = null;
 		let ended = false;
+		let waiting = 0;   // 아직 안 나간 바이트
+		let paused = false;
 
 		const drain = () => {
 			timer = null;
@@ -62,7 +64,14 @@ export function openBadLine({ listenPort, targetPort, latencyMs = 0, jitterMs = 
 
 			while (queue.length > 0 && queue[0].at <= now) {
 				const piece = queue.shift();
+				waiting -= piece.chunk.length;
 				if (to.destroyed === false) to.write(piece.chunk);
+			}
+
+			// 줄이 반쯤 비면 다시 받는다.
+			if (paused && waiting <= queueBytes / 2) {
+				paused = false;
+				from.resume();
 			}
 
 			if (queue.length > 0) {
@@ -77,7 +86,17 @@ export function openBadLine({ listenPort, targetPort, latencyMs = 0, jitterMs = 
 			const now = Date.now();
 			readyAt = releaseAt(readyAt, now, chunk.length, line, Math.random());
 			queue.push({ at: readyAt, chunk });
+			waiting += chunk.length;
 			if (timer === null) timer = setTimeout(drain, Math.max(1, readyAt - now));
+
+			// ⚠ 줄을 무한히 받으면 그건 <b>회선이 아니다</b> (실측 2026-08-12): 보내는 쪽은 영영
+			//   「다 보냈다」고 믿고 계속 밀어 넣는다. 진짜 회선은 중간 상자가 차면 더 안 받고,
+			//   그러면 TCP 창이 닫혀 <b>보내는 쪽이 막힌다</b> — 그래야 서버가 밀린 걸 알아챈다.
+			//   무한 줄로 재면 서버의 배압이 한 번도 안 눌러진 채 초록이 나온다(거짓 안심).
+			if (waiting >= queueBytes && paused === false) {
+				paused = true;
+				from.pause();
+			}
 		});
 
 		// 밀린 조각이 다 나간 뒤에 닫는다 — 안 그러면 회선이 마지막 말을 먹는다.

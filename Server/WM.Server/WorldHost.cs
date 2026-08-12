@@ -158,6 +158,9 @@ namespace WitchMendokusai.Server
 			/// </summary>
 			public bool MissedAPlate;
 
+			/// <summary>연달아 몇 판을 못 받았나 — 이만큼 사람 수를 줄여 준다 (TASK-WM-228).</summary>
+			public int MissedInARow;
+
 			/// <summary>이 창이 인사 때 내민 기기 열쇠 — 세계는 지문만 갖기에 여기 들고 있는다.</summary>
 			public string DeviceSecret = string.Empty;
 
@@ -271,6 +274,7 @@ namespace WitchMendokusai.Server
 				broadcastSnapshotMessages = Interlocked.Read(ref broadcastSnapshotMessages),
 				builtSnapshots = Interlocked.Read(ref builtSnapshots),
 				refusedSteps = Interlocked.Read(ref refusedSteps),
+				narrowedWindows = CountNarrowed(),
 				squeezedFiles = squeeze == null ? 0 : squeeze.Count,
 
 				// 쓰레기 치우기 — 세계가 이따금 멎는 이유를 볼 때 쓴다 (TASK-WM-220).
@@ -643,6 +647,19 @@ namespace WitchMendokusai.Server
 		}
 
 		/// <summary>창이 보낸 말을 계약(<see cref="Protocol"/>)대로 읽는다.</summary>
+		/// <summary>회선이 좁아 사람 수를 줄여 준 창이 몇이나 되나 — /health 창구 (TASK-WM-228).</summary>
+		private int CountNarrowed()
+		{
+			int narrowed = 0;
+			foreach (System.Collections.Generic.KeyValuePair<int, Connection> entry in sockets)
+			{
+				if (entry.Value.MissedInARow > 0)
+					narrowed += 1;
+			}
+
+			return narrowed;
+		}
+
 		/// <summary>지금 움직이는 중인 사람들 — 몰린 자리에서 떼어 둔 자리의 주인이 된다 (TASK-WM-227).</summary>
 		private System.Collections.Generic.HashSet<int> MovingNow()
 		{
@@ -1270,10 +1287,26 @@ namespace WitchMendokusai.Server
 					if (Interlocked.CompareExchange(ref entry.Value.Sending, 1, 0) != 0)
 					{
 						entry.Value.MissedAPlate = true;
+						entry.Value.MissedInARow += 1;
 						continue;
 					}
 
 					Connection target = entry.Value;
+
+					// 줄이 뚫렸다 = 회선이 따라오고 있다. 줄여 뒀던 사람 수를 곧바로 되돌린다.
+					if (target.MissedAPlate == false)
+						target.MissedInARow = 0;
+
+					// ★ 회선이 감당 못 하면 <b>감당할 만큼만</b> 보여 준다 (TASK-WM-228).
+					//   이때는 칸 공유도 델타도 안 쓴다 — 작은 한 장을 통째로 준다.
+					int allowedDolls = InterestCrowd.LimitWhenBehind(target.MissedInARow);
+					if (allowedDolls < InterestCrowd.MAX_VISIBLE_DOLLS)
+					{
+						target.MissedAPlate = false;
+						_ = SendSnapshotAsync(target, Encoding.UTF8.GetBytes(SmallPlateFor(entry.Key, allowedDolls, sequence)),
+							null, null, null);
+						continue;
+					}
 					bool interestChanged = UpdateInterestCell(target, entry.Key);
 
 					// 건너뛴 창은 이번에 전부 받는다(그리고 표시를 지운다).
@@ -1329,6 +1362,29 @@ namespace WitchMendokusai.Server
 				nextDue = due;
 				await Task.Delay(waitMilliseconds < 1.0 ? 1 : (int)waitMilliseconds, CancellationToken.None);
 			}
+		}
+
+		/// <summary>
+		/// 회선이 좁은 창에게 주는 <b>작은 한 장</b> (TASK-WM-228) — 가까운 몇 명만, 통째로.
+		/// 건물·들판·솥은 안 싣는다: 지금 이 창에 모자란 건 대역폭이고, 그것들은 안 움직인다.
+		/// </summary>
+		private string SmallPlateFor(int viewerDollId, int limit, long sequence)
+		{
+			WorldDoll[] all = World.Snapshot();
+			Vector3 viewer = World.PositionOf(viewerDollId);
+			float radiusSquared = PLAYER_INTEREST_RADIUS * PLAYER_INTEREST_RADIUS;
+			System.Collections.Generic.List<WorldDoll> near = new System.Collections.Generic.List<WorldDoll>();
+			for (int i = 0; i < all.Length; i++)
+			{
+				float deltaX = all[i].Position.x - viewer.x;
+				float deltaZ = all[i].Position.z - viewer.z;
+				if (deltaX * deltaX + deltaZ * deltaZ <= radiusSquared)
+					near.Add(all[i]);
+			}
+
+			WorldDoll[] few = InterestCrowd.Nearest(near, viewer, viewerDollId, limit, MovingNow());
+			return Protocol.WorldSnapshot(few, null, World.Calendar, null, null, Identities.NameOf, null,
+				sequence, null, true, null, false, null);
 		}
 
 		/// <summary>시험용 — 모든 창을 「지난 판 건너뜀」으로 표시한다 (TASK-WM-220).</summary>
@@ -1500,8 +1556,13 @@ namespace WitchMendokusai.Server
 
 			// 칸에 상한보다 많이 모였으면 <b>칸 한복판에 가까운 순</b>으로 자른다. 잘린 사람에게는
 			// 위(방송 루프)에서 자기 자리를 따로 보낸다 — 그래서 여기서 공유를 포기하지 않아도 된다.
+			//
+			// ⚠ 여기서 고를 대상은 <b>candidates</b>(반경 안 전부)다 — 한때 members(그 칸 사람)만
+			//   골랐는데, 그러면 광장이 몰리는 순간 약속한 반경 32m 가 <b>조용히 「내 칸(16m)」으로</b>
+			//   줄었다. 칸 경계 너머 두 발짝 옆 사람이 안 보인다 — 사람 눈에는 「사람이 사라졌다」다
+			//   (실측 2026-08-12: 200명 광장에서 25m 옆의 걷는 사람이 한 판도 안 실렸다).
 			WorldDoll[] shared = InterestCrowd.SharedForCell(candidates, members, center, InterestCrowd.MAX_VISIBLE_DOLLS)
-				?? InterestCrowd.Nearest(members, center, 0, InterestCrowd.MAX_VISIBLE_DOLLS, MovingNow());
+				?? InterestCrowd.Nearest(candidates, center, 0, InterestCrowd.MAX_VISIBLE_DOLLS, MovingNow());
 
 			System.Collections.Generic.HashSet<int> inside = new System.Collections.Generic.HashSet<int>();
 			for (int i = 0; i < shared.Length; i++)
