@@ -139,5 +139,43 @@ namespace WitchMendokusai.Tests
 			Assert.AreEqual(afterTaken, field.Version, "안 바뀐 들판을 매 프레임 나르면 그건 세계가 아니라 소음이다");
 		}
 
+
+		[Test]
+		public void 남이_방금_가져간_자리는_그렇게_말한다()
+		{
+			// 「자라는 중」과 「방금 남이」는 사람이 겪는 일이 다르다 (TASK-WM-275) —
+			// 뒤엣것은 <b>겨루기에 진 것</b>이다. 같은 말로 뭉치면 왜 졌는지도 모른다.
+			WorldGatherables field = Field();
+			GatherableNode node = field.Alive(0)[0];
+
+			Assert.IsTrue(field.TryTake(node.Id, node.X, node.Z, 0, out _, out _, out _));
+
+			Assert.IsFalse(field.TryTake(node.Id, node.X, node.Z, 1, out _, out _, out GatherDenial rightAfter));
+			Assert.AreEqual(GatherDenial.JUST_TAKEN, rightAfter);
+		}
+
+		[Test]
+		public void 한참_지난_자리는_자라는_중이라고_말한다()
+		{
+			WorldGatherables field = Field();
+			GatherableNode node = field.Alive(0)[0];
+			field.TryTake(node.Id, node.X, node.Z, 0, out _, out _, out _);
+
+			// 「방금」이 지난 뒤 — 아직 다 안 자랐지만 남이 가져간 그 순간은 아니다.
+			Assert.IsFalse(field.TryTake(node.Id, node.X, node.Z, WorldGatherables.JUST_NOW_MINUTES + 5,
+				out _, out _, out GatherDenial later));
+			Assert.AreEqual(GatherDenial.STILL_REGROWING, later);
+		}
+
+		[Test]
+		public void 다_자란_자리는_다시_주울_수_있다()
+		{
+			WorldGatherables field = Field();
+			GatherableNode node = field.Alive(0)[0];
+			field.TryTake(node.Id, node.X, node.Z, 0, out _, out _, out _);
+
+			Assert.IsTrue(field.TryTake(node.Id, node.X, node.Z, 60, out _, out _, out _),
+				"다 자랐는데도 못 주우면 들판이 한 번 쓰고 마는 것이 된다");
+		}
 	}
 }

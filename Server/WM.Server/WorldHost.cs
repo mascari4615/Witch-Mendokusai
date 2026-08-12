@@ -1012,6 +1012,7 @@ namespace WitchMendokusai.Server
 							GatherDenial.NO_SUCH_PLACE => "거기엔 주울 게 없다",
 							GatherDenial.OUT_OF_REACH => "손이 안 닿는다 — 더 가까이 가야 한다",
 							GatherDenial.STILL_REGROWING => "아직 다시 자라는 중이다",
+							GatherDenial.JUST_TAKEN => "남이 방금 가져갔다",
 							_ => "지금은 주울 수 없다",
 						});
 						return;

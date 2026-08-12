@@ -246,6 +246,10 @@ let stillThere = true;
 
 check('진 쪽에게 왜 안 됐는지 말해 준다', told.length > 0,
 	told.length === 0 ? '아무 말도 없었다 — 사람은 「고장났다」로 읽는다' : JSON.stringify(told[0]));
+// 「자라는 중」과 「방금 남이」는 사람이 겪는 일이 다르다 (TASK-WM-275) — 진 사람은 뒤엣말을 들어야 한다.
+check('진 이유가 <b>남이 가져갔다</b>로 온다 (그냥 자라는 중이 아니라)',
+	told.some((one) => String(one.why || '').includes('남이')),
+	told.map((one) => one.why).join(' | ') || '아무 말도 없었다');
 check('없어진 것이 화면에서도 사라진다 (유령이 안 남는다)', stillThere === false,
 	stillThere ? '진 쪽 화면에는 아직 있다' : '사라졌다');
 check('창이 조용히 안 터졌다', pageErrors.length === 0, pageErrors.join(' | ') || '오류 없음');

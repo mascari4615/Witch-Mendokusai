@@ -45,14 +45,29 @@ namespace WitchMendokusai
 		/// <summary>손이 안 닿는다 — 더 가까이 가면 된다.</summary>
 		OUT_OF_REACH = 2,
 
-		/// <summary>아직 다시 자라는 중이다 — 기다리면 된다(남이 방금 가져갔을 때도 이쪽).</summary>
+		/// <summary>아직 다시 자라는 중이다 — 기다리면 된다.</summary>
 		STILL_REGROWING = 3,
+
+		/// <summary>
+		/// <b>남이 방금 가져갔다</b> (TASK-WM-275).
+		///
+		/// ★ 왜 갈랐나: 사람이 겪는 일이 다르다. 「자라는 중」은 내가 아까 주운 자리를 또 누른 것이고,
+		///   「방금 남이」는 <b>겨루기에 진 것</b>이다 — 회선이 늦은 쪽은 이미 없는 것을 보고 누른다.
+		///   같은 말로 뭉치면 진 사람은 자기가 왜 졌는지도 모른다(실측: 나쁜 회선 겨루기 관문).
+		/// </summary>
+		JUST_TAKEN = 4,
 	}
 
 	public sealed class WorldGatherables
 	{
 		/// <summary>주울 수 있는 거리 — 이보다 멀면 손이 안 닿는다(창이 우겨도).</summary>
 		public const float REACH = 2.5f;
+
+		/// <summary>
+		/// 이 안에 뽑힌 자리는 「방금」으로 본다 (세계의 분). 세계의 1분 ≈ 실제 1초라
+		/// 늦은 회선(왕복 200~800ms)에서 눌러도 이 안에 든다.
+		/// </summary>
+		public const int JUST_NOW_MINUTES = 3;
 
 		private const int SPACING = 7;   // 몇 칸마다 하나쯤 서 있나
 		private const int HALF_SPAN = 6; // 원점에서 몇 칸(격자 단위)까지 흩뿌리나
@@ -181,7 +196,12 @@ namespace WitchMendokusai
 			{
 				if (regrowAt.TryGetValue(nodeId, out int at) && nowMinute < at)
 				{
-					why = GatherDenial.STILL_REGROWING;
+					// 방금 뽑힌 자리인가 — 그러면 「자라는 중」이 아니라 <b>겨루기에 졌다</b>가 맞다.
+					GatherableKind taken = KindOf(nodeId);
+					bool justNow = taken != null && taken.respawnMinutes > 0
+						&& (at - nowMinute) > taken.respawnMinutes - JUST_NOW_MINUTES;
+
+					why = justNow ? GatherDenial.JUST_TAKEN : GatherDenial.STILL_REGROWING;
 					return false;
 				}
 
