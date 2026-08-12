@@ -110,5 +110,80 @@ namespace WitchMendokusai.Server.Tests
 
 			Assert.That(System.Array.ConvertAll(shared, one => one.Id), Is.EqualTo(new[] { 1, 6, 7 }));
 		}
+
+		// ── 몰린 광장에서 움직이는 사람 (TASK-WM-227) ────────────────────────────
+
+		[Test]
+		public void 몰린_자리에서_한_발짝_물러난_사람이_안_사라진다()
+		{
+			// 광장에 200명이 같은 자리에 서 있고, 친구 하나가 한 발짝 물러났다.
+			List<WorldDoll> people = new List<WorldDoll>();
+			for (int i = 1; i <= 200; i++)
+				people.Add(At(i, 0, 0));
+
+			WorldDoll friend = At(201, 1.5f, 0);
+			people.Add(friend);
+
+			HashSet<int> moving = new HashSet<int> { friend.Id };
+			WorldDoll[] seen = InterestCrowd.Nearest(people, new Vector3(0, 0, 0), 1, InterestCrowd.MAX_VISIBLE_DOLLS, moving);
+
+			Assert.That(System.Array.Exists(seen, one => one.Id == friend.Id), Is.True,
+				"거리로만 자르면 물러난 순간 꼴찌가 되어 사라진다 — 옆에 있는데 안 보인다");
+			Assert.That(seen.Length, Is.EqualTo(InterestCrowd.MAX_VISIBLE_DOLLS), "상한은 그대로여야 한다");
+		}
+
+		[Test]
+		public void 움직이는_사람이_많아도_상한을_안_넘고_가까운_순이다()
+		{
+			List<WorldDoll> people = new List<WorldDoll>();
+			HashSet<int> moving = new HashSet<int>();
+			for (int i = 1; i <= 200; i++)
+			{
+				people.Add(At(i, i, 0));
+				moving.Add(i);
+			}
+
+			WorldDoll[] seen = InterestCrowd.Nearest(people, new Vector3(0, 0, 0), 1, InterestCrowd.MAX_VISIBLE_DOLLS, moving);
+
+			Assert.That(seen.Length, Is.EqualTo(InterestCrowd.MAX_VISIBLE_DOLLS));
+			Assert.That(System.Array.Exists(seen, one => one.Id == 1), Is.True, "나 자신은 늘 들어간다");
+			Assert.That(System.Array.Exists(seen, one => one.Id == 200), Is.False, "제일 먼 사람까지 들어오면 상한이 무의미하다");
+		}
+
+		[Test]
+		public void 가만히_선_사람도_남은_자리를_채운다()
+		{
+			// 떼어 두는 자리는 <b>일부</b>다 — 광장이 텅 빈 것처럼 보이면 그것도 고장이다.
+			List<WorldDoll> people = new List<WorldDoll>();
+			for (int i = 1; i <= 200; i++)
+				people.Add(At(i, i * 0.1f, 0));
+
+			HashSet<int> moving = new HashSet<int> { 199, 200 };
+			WorldDoll[] seen = InterestCrowd.Nearest(people, new Vector3(0, 0, 0), 1, InterestCrowd.MAX_VISIBLE_DOLLS, moving);
+
+			int standingNearby = 0;
+			foreach (WorldDoll one in seen)
+			{
+				if (moving.Contains(one.Id) == false)
+					standingNearby += 1;
+			}
+
+			Assert.That(standingNearby, Is.GreaterThanOrEqualTo(InterestCrowd.MAX_VISIBLE_DOLLS - InterestCrowd.SLOTS_FOR_MOVERS),
+				"가만히 선 사람이 다 밀려나면 광장이 텅 빈 것처럼 보인다");
+		}
+
+		[Test]
+		public void 아무도_안_움직이면_옛날과_똑같다()
+		{
+			List<WorldDoll> people = new List<WorldDoll>();
+			for (int i = 1; i <= 100; i++)
+				people.Add(At(i, i, 0));
+
+			WorldDoll[] withNone = InterestCrowd.Nearest(people, new Vector3(0, 0, 0), 1, 10, new HashSet<int>());
+			WorldDoll[] oldWay = InterestCrowd.Nearest(people, new Vector3(0, 0, 0), 1, 10);
+
+			Assert.That(System.Array.ConvertAll(withNone, one => one.Id),
+				Is.EqualTo(System.Array.ConvertAll(oldWay, one => one.Id)));
+		}
 	}
 }

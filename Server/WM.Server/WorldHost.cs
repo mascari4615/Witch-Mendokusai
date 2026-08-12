@@ -70,6 +70,12 @@ namespace WitchMendokusai.Server
 		/// <summary>미리 눌러 둔 창 파일들 (TASK-WM-226).</summary>
 		private StaticSqueeze squeeze;
 
+		/// <summary>누가 <b>언제</b> 움직였나 — 몰린 자리에서 자리를 떼어 줄 사람을 고르는 데 쓴다 (TASK-WM-227).</summary>
+		private readonly ConcurrentDictionary<int, long> movedAt = new ConcurrentDictionary<int, long>();
+
+		/// <summary>이 안에 움직였으면 「움직이는 중」으로 본다 — 걸음 한 판(50ms)의 몇 배.</summary>
+		private const long MOVING_WINDOW_MS = 400;
+
 		/// <summary>
 		/// 칸마다 <b>지난 판에 그 칸으로 내보낸 사람과 자리</b> (TASK-WM-220).
 		///
@@ -428,6 +434,7 @@ namespace WitchMendokusai.Server
 				sockets.TryRemove(doll.Id, out Connection _);
 				watchingChest.TryRemove(doll.Id, out Vector3Int _);
 				moveAllowance.Forget(doll.Id);
+				movedAt.TryRemove(doll.Id, out long _);
 				World.Leave(doll.Id);
 				Interlocked.Exchange(ref worldDirty, 1); // 나간 사람의 자리·가방을 디스크로 내린다.
 			}
@@ -636,6 +643,20 @@ namespace WitchMendokusai.Server
 		}
 
 		/// <summary>창이 보낸 말을 계약(<see cref="Protocol"/>)대로 읽는다.</summary>
+		/// <summary>지금 움직이는 중인 사람들 — 몰린 자리에서 떼어 둔 자리의 주인이 된다 (TASK-WM-227).</summary>
+		private System.Collections.Generic.HashSet<int> MovingNow()
+		{
+			long now = System.Environment.TickCount64;
+			System.Collections.Generic.HashSet<int> moving = new System.Collections.Generic.HashSet<int>();
+			foreach (System.Collections.Generic.KeyValuePair<int, long> entry in movedAt)
+			{
+				if (now - entry.Value <= MOVING_WINDOW_MS)
+					moving.Add(entry.Key);
+			}
+
+			return moving;
+		}
+
 		private void HandleMessage(int dollId, string text)
 		{
 			try
@@ -662,6 +683,7 @@ namespace WitchMendokusai.Server
 					}
 
 					World.TryMove(dollId, allowed);
+					movedAt[dollId] = System.Environment.TickCount64;
 					return;
 				}
 
@@ -1479,7 +1501,7 @@ namespace WitchMendokusai.Server
 			// 칸에 상한보다 많이 모였으면 <b>칸 한복판에 가까운 순</b>으로 자른다. 잘린 사람에게는
 			// 위(방송 루프)에서 자기 자리를 따로 보낸다 — 그래서 여기서 공유를 포기하지 않아도 된다.
 			WorldDoll[] shared = InterestCrowd.SharedForCell(candidates, members, center, InterestCrowd.MAX_VISIBLE_DOLLS)
-				?? InterestCrowd.Nearest(members, center, 0, InterestCrowd.MAX_VISIBLE_DOLLS);
+				?? InterestCrowd.Nearest(members, center, 0, InterestCrowd.MAX_VISIBLE_DOLLS, MovingNow());
 
 			System.Collections.Generic.HashSet<int> inside = new System.Collections.Generic.HashSet<int>();
 			for (int i = 0; i < shared.Length; i++)
@@ -1633,7 +1655,7 @@ namespace WitchMendokusai.Server
 
 			// 반경 안이어도 <b>가까운 몇 명까지</b>다 — 광장에 몰리면 반경만으로는 못 버틴다
 			// (실측: 200명이 한자리에 모이자 초당 27MB).
-			return InterestCrowd.Nearest(visible, viewer, viewerDollId, InterestCrowd.MAX_VISIBLE_DOLLS);
+			return InterestCrowd.Nearest(visible, viewer, viewerDollId, InterestCrowd.MAX_VISIBLE_DOLLS, MovingNow());
 		}
 
 		private PlacedBuilding[] BuildingsVisibleTo(int viewerDollId)

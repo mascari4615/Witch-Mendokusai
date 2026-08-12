@@ -23,8 +23,32 @@ namespace WitchMendokusai.Server
 		/// <summary>한 창에 한 번에 보낼 사람 수 상한 — 나를 포함해서 센다.</summary>
 		public const int MAX_VISIBLE_DOLLS = 48;
 
+		/// <summary>
+		/// 그중 <b>움직이는 사람</b>에게 떼어 두는 자리 (TASK-WM-227).
+		///
+		/// ★ 왜 필요한가 (실측 2026-08-12): 광장에 200명이 한자리에 모이면 「가까운 48명」은
+		///   전부 <b>가만히 선 사람</b>으로 찬다. 그 상태에서 친구가 한 발짝 물러나면 그 순간
+		///   거리 순위가 꼴찌가 되어 <b>화면에서 사라진다</b> — 옆에 있는데 안 보인다.
+		///   진짜 시험에서 200명일 때 걷는 사람이 <b>한 판도</b> 안 실렸다.
+		///
+		/// ★ 왜 「움직임」인가: 가만히 선 48명은 한 번 받으면 그다음 판에 아무 소식도 없다(안 바뀌니까).
+		///   자리는 차지하되 정보는 0 이다. 움직이는 사람은 매 판 새 소식이다 — 같은 한 자리가
+		///   훨씬 값지다. 그래서 거리로만 자르지 않고, 움직이는 쪽에 자리를 떼어 둔다.
+		/// </summary>
+		public const int SLOTS_FOR_MOVERS = MAX_VISIBLE_DOLLS / 3;
+
 		/// <summary>가까운 사람부터 <paramref name="limit"/> 명까지. 나(viewer)는 늘 들어간다.</summary>
 		public static WorldDoll[] Nearest(IReadOnlyList<WorldDoll> candidates, Vector3 viewer, int viewerDollId, int limit)
+		{
+			return Nearest(candidates, viewer, viewerDollId, limit, null);
+		}
+
+		/// <summary>
+		/// 가까운 사람부터 <paramref name="limit"/> 명까지. 단 <paramref name="moving"/> 인 사람에게는
+		/// <see cref="SLOTS_FOR_MOVERS"/> 만큼 자리를 <b>떼어 둔다</b> — 몰린 자리에서 움직이는 사람이
+		/// 통째로 잘려 나가지 않게(위 § 참조). 나(viewer)는 늘 들어간다.
+		/// </summary>
+		public static WorldDoll[] Nearest(IReadOnlyList<WorldDoll> candidates, Vector3 viewer, int viewerDollId, int limit, ISet<int> moving)
 		{
 			if (candidates == null)
 				return Array.Empty<WorldDoll>();
@@ -55,11 +79,39 @@ namespace WitchMendokusai.Server
 				return left.Id.CompareTo(right.Id);
 			});
 
-			WorldDoll[] nearest = new WorldDoll[limit];
-			for (int i = 0; i < limit; i++)
-				nearest[i] = sorted[i];
+			// 떼어 둘 자리가 없으면(움직이는 사람을 안 알려 줬으면) 옛날처럼 거리 순으로만 자른다.
+			if (moving == null || moving.Count == 0)
+			{
+				WorldDoll[] justNearest = new WorldDoll[limit];
+				for (int i = 0; i < limit; i++)
+					justNearest[i] = sorted[i];
 
-			return nearest;
+				return justNearest;
+			}
+
+			int keptForMovers = SLOTS_FOR_MOVERS < limit ? SLOTS_FOR_MOVERS : limit;
+			HashSet<int> taken = new HashSet<int>();
+			List<WorldDoll> chosen = new List<WorldDoll>(limit);
+
+			// ① 먼저 움직이는 사람을 가까운 순으로 떼어 둔 자리만큼 (나 자신은 이미 맨 앞이다).
+			for (int i = 0; i < sorted.Count && chosen.Count < keptForMovers; i++)
+			{
+				WorldDoll one = sorted[i];
+				if (one.Id != viewerDollId && moving.Contains(one.Id) == false)
+					continue;
+
+				if (taken.Add(one.Id))
+					chosen.Add(one);
+			}
+
+			// ② 남은 자리는 가까운 순으로 채운다 — 가만히 선 사람도 봐야 광장이 광장이다.
+			for (int i = 0; i < sorted.Count && chosen.Count < limit; i++)
+			{
+				if (taken.Add(sorted[i].Id))
+					chosen.Add(sorted[i]);
+			}
+
+			return chosen.ToArray();
 		}
 
 		/// <summary>
