@@ -1055,6 +1055,12 @@ namespace WitchMendokusai.Server
 
 				if (kind == Protocol.SAY)
 				{
+					// 말도 끊기는 순간 사라지면 안 된다 (TASK-WM-307) — 같은 번호는 두 번 안 옮긴다.
+					if (ShouldDo(dollId, root, out long saidId) == false)
+						return;
+
+					if (saidId > 0) TellRaw(dollId, Protocol.Did(saidId));
+
 					// ★ 말은 사람이 직접 짓는 유일한 것이라 세계가 본다 (TASK-WM-250).
 					//   빈 줄은 말이 아니고, 줄바꿈은 한 칸이 되고, 너무 길면 잘린다.
 					string line = WitchMendokusai.Net.SaidLine.Clean(ReadStringField(text, "text"));

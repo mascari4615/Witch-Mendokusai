@@ -1239,7 +1239,9 @@ function sendWhatISaid() {
 	if (line.length === 0) return;
 
 	// 다듬는 것도 자르는 것도 <b>세계가</b> 한다(SaidLine) — 창이 미리 다듬으면 두 벌이 갈린다.
-	tell({ type: 'say', text: line });
+	// 말도 <b>답이 올 때까지 들고 있는다</b> (TASK-WM-307) — 끊기는 순간 친 말이 사라지면
+	//   사람은 그걸 「무시당했다」로 읽는다(실측: 대조군은 들리고, 끊기면 아무도 못 들었다).
+	doAction({ type: 'say', text: line });
 }
 
 sayBox.addEventListener('keydown', (event) => {

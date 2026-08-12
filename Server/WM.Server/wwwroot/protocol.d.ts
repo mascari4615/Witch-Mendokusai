@@ -135,6 +135,8 @@ export interface Hurt {
 export interface SayRequest {
 	type: 'say';
 	text: string;
+	ack?: number;
+	did?: number;
 }
 
 /** 서버 -> 창: 누가 이렇게 말했다 — 그 사람이 보이는 사람에게만 온다. */

@@ -133,7 +133,7 @@ namespace WitchMendokusai.Server
 			builder.Append("export interface Hurt {\n\ttype: '").Append(HURT).Append("';\n\tdollId: number;\n\tby: number;\n\thealth: number;\n\tdown: boolean;\n}\n\n");
 
 			builder.Append("/** 창 -> 서버: 이렇게 말했다. 빈 줄·너무 긴 줄은 세계가 다듬거나 버린다. */\n");
-			builder.Append("export interface SayRequest {\n\ttype: '").Append(SAY).Append("';\n\ttext: string;\n}\n\n");
+			builder.Append("export interface SayRequest {\n\ttype: '").Append(SAY).Append("';\n\ttext: string;\n\tack?: number;\n\tdid?: number;\n}\n\n");
 
 			builder.Append("/** 서버 -> 창: 누가 이렇게 말했다 — 그 사람이 보이는 사람에게만 온다. */\n");
 			builder.Append("export interface Said {\n\ttype: '").Append(SAID).Append("';\n\tdollId: number;\n\tname: string;\n\ttext: string;\n}\n\n");

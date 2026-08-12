@@ -88,9 +88,9 @@ function newLine() {
 	});
 }
 
-function joinWorld(secretToUse) {
-	const one = { id: null, secret: '', bag: new Map(), field: [], here: undefined };
-	one.socket = new WebSocket(`ws://127.0.0.1:${linePort}/ws`);
+function joinWorld(secretToUse, port = linePort) {
+	const one = { id: null, secret: '', bag: new Map(), field: [], here: undefined, heard: [] };
+	one.socket = new WebSocket(`ws://127.0.0.1:${port}/ws`);
 	one.socket.onopen = () => one.socket.send(JSON.stringify({ type: 'hello', secret: secretToUse || '' }));
 	one.socket.onerror = () => { /* 아래가 잡는다 */ };
 	one.socket.onmessage = (event) => {
@@ -108,6 +108,7 @@ function joinWorld(secretToUse) {
 
 		if (said.type === 'me') one.here = { x: said.x, z: said.z };
 		if (said.type === 'bag' && Array.isArray(said.items)) one.bag = new Map(said.items.map((item) => [item.itemId, item.amount]));
+		if (said.type === 'said') one.heard.push(said.text);
 	};
 
 	return one;
@@ -248,6 +249,74 @@ await wait(1500);
 const afterEating = howMany(again.bag);
 check('같은 번호를 여러 번 보내도 한 번만 된다', afterEating === beforeEating - 1,
 	`가방 ${beforeEating} → ${afterEating} (한 번만 먹었으면 하나만 준다 · 세 번 먹으면 셋이 준다)`);
+
+// ── ④ 말도 사라지지 않는다 ────────────────────────────────────────────
+//
+// ★ 왜 따로 재나: 말은 <b>세계를 안 바꾼다</b>(가방도 들판도 그대로). 그래서 「사라졌나」를
+//   가방으로 못 본다 — 옆에서 <b>듣는 사람</b>을 세워야 보인다.
+//   실측 2026-08-13: 성한 회선에서 한 말은 들리고, 끊기는 순간 한 말은 <b>아무도 못 들었다</b>.
+// ⚠ 말은 <b>32m 안에서만</b> 들린다 — 듣는 사람이 멀면 「사라졌다」로 잘못 읽는다
+//   (첫 판이 그랬다: 줍느라 걸어간 뒤라 대조군조차 안 들렸고, 다시 붙은 뒤에는 자리가 또 달라져
+//   57m 나 떨어져 있었다). 그래서 <b>말할 때마다</b> 둘이 붙어 있는지 확인하고 걸어서 붙인다.
+const ear = joinWorld('', worldPort);
+await wait(2500);
+
+async function standTogether(one, other) {
+	if (other.here === undefined) return false;
+	if (one.here !== undefined && Math.hypot(one.here.x - other.here.x, one.here.z - other.here.z) < 5) return true;
+
+	return walkTo(one, other.here);
+}
+
+if (await standTogether(ear, again) === false) {
+	badLine.close();
+	killWorld();
+	cannotRun('듣는 사람이 말하는 사람 곁까지 못 갔다 — 이 상태로는 말을 잴 수 없다');
+}
+
+const heard = ear.heard;
+await wait(2500);
+
+const plainWord = '성한 회선에서 한 말';
+send(again, { type: 'say', text: plainWord });
+await wait(2000);
+
+if (heard.includes(plainWord) === false) {
+	badLine.close();
+	killWorld();
+	cannotRun('성한 회선에서 한 말도 안 들렸다 — 재는 자(듣는 사람)가 고장 난 것이다');
+}
+
+const cutWord = '끊기는 순간 한 말';
+const sayId = 9;
+send(again, { type: 'say', text: cutWord, did: sayId });
+badLine.close();
+
+await wait(3000);
+
+badLine = newLine();
+await badLine.listen();
+
+const talker = joinWorld(again.secret);
+await wait(3000);
+
+// 다시 붙으면 자리가 달라질 수 있다 — 말하기 전에 다시 곁으로 간다.
+if (await standTogether(talker, ear) === false) {
+	badLine.close();
+	killWorld();
+	cannotRun('다시 붙은 사람이 듣는 사람 곁까지 못 갔다');
+}
+
+// 창이 하는 그대로 — 답 못 받은 말을 같은 번호로 두 번 더 보낸다.
+send(talker, { type: 'say', text: cutWord, did: sayId });
+await wait(1000);
+send(talker, { type: 'say', text: cutWord, did: sayId });
+await wait(2500);
+
+const timesHeard = heard.filter((one) => one === cutWord).length;
+check('끊기는 순간 한 말이 살아난다', timesHeard >= 1,
+	`${timesHeard}번 들렸다 (0이면 사람은 「무시당했다」로 읽는다)`);
+check('같은 말이 두 번 들리지 않는다', timesHeard <= 1, `${timesHeard}번`);
 
 badLine.close();
 killWorld();
