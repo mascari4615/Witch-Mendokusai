@@ -39,6 +39,7 @@ on:
       - '.github/scripts/wm-web-link-test.mjs'
       - '.github/scripts/wm-web-reconnect-smoke.mjs'
       - '.github/scripts/wm-web-crowd-smoke.mjs'
+      - '.github/scripts/wm-web-smoothness-test.mjs'
       - '.github/scripts/wm-game-client-gate.mjs'
       - '.github/scripts/wm-zero-id-guard.mjs'
       - 'Server/WM.Server/wwwroot/**'
@@ -60,6 +61,7 @@ on:
       - '.github/scripts/wm-web-link-test.mjs'
       - '.github/scripts/wm-web-reconnect-smoke.mjs'
       - '.github/scripts/wm-web-crowd-smoke.mjs'
+      - '.github/scripts/wm-web-smoothness-test.mjs'
       - '.github/scripts/wm-game-client-gate.mjs'
       - '.github/scripts/wm-zero-id-guard.mjs'
       - 'Server/WM.Server/wwwroot/**'
@@ -189,6 +191,13 @@ jobs:
           WM_PLAYWRIGHT_ROOT: /tmp/wm-playwright
           WM_CROWD: '40'
         run: node ./.github/scripts/wm-web-crowd-smoke.mjs
+
+      # TASK-WM-223 -- 「얼마나 보냈나」로는 못 보는 자리. 서버가 20Hz 로 정확히 보내도
+      # 그 사이를 안 메우면 화면은 툭툭 끊긴다. 프레임마다 <b>그려진 자리</b>를 직접 본다.
+      - name: Run web smoothness test
+        env:
+          WM_PLAYWRIGHT_ROOT: /tmp/wm-playwright
+        run: node ./.github/scripts/wm-web-smoothness-test.mjs
 
   unity:
     name: EditMode tests (laptop runner)
