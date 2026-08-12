@@ -106,6 +106,15 @@ namespace WitchMendokusai.Net
 		/// </summary>
 		public const string ME = "me";
 
+		/// <summary>
+		/// 서버 → 창: <b>누가 무슨 이름인가</b> (TASK-WM-220).
+		///
+		/// ★ 왜 따로 보내나: 이름은 거의 안 바뀌는데 자리는 초당 20번 바뀐다. 이름을 자리에 얹어
+		///   나르면 같은 글자를 초당 20번 나른다 — 사람 200명이면 그것만으로 판의 3분의 1이다.
+		///   낱말표(catalog)와 같은 생각이다: 바뀔 때만 보내고, 창이 들고 있는다.
+		/// </summary>
+		public const string NAMES = "names";
+
 		/// <summary>창 → 서버: 이걸 부수고 싶다(그 칸을 문 건물이 통째로 사라진다).</summary>
 		public const string REMOVE = "remove";
 
@@ -240,6 +249,22 @@ namespace WitchMendokusai.Net
 		public CauldronView[] cauldrons;
 		public WorldTimeView time;
 		public WorldBrewView brew;
+	}
+
+	/// <summary>누가 무슨 이름인가 — 바뀔 때만 온다.</summary>
+	[Serializable]
+	public class DollNameView
+	{
+		public int id;
+		public string name = string.Empty;
+	}
+
+	/// <summary>서버 → 창: 이름표(바뀐 사람만). 창은 이걸 들고 있다가 인형에 붙인다.</summary>
+	[Serializable]
+	public class NamesMessage
+	{
+		public string type = NetMessageType.NAMES;
+		public DollNameView[] dolls = Array.Empty<DollNameView>();
 	}
 
 	/// <summary>서버 → 그 창에게만: 네 인형은 여기 있다 (몰린 칸에서 공유 소식에 자기가 빠졌을 때).</summary>

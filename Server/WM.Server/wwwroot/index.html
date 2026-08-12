@@ -226,6 +226,8 @@ let time = null;        // 세계의 시각 — 서버가 굴린다(사람이 �
 let pendingWorld = null;
 // 몰린 자리에서 세계가 따로 알려 준 내 인형(공유 소식에 내가 안 들어갔을 때).
 let myPlaceFromWorld = null;
+// 번호 → 이름. 세계가 바뀔 때만 보내 준다(자리와 달리 초당 20번 나르지 않는다).
+const dollNames = {};
 let brew = null;        // 모두가 같이 젓는 솥.
 
 // ── 세계를 세우는 자리 ──────────────────────────────────────────────────
@@ -524,6 +526,12 @@ function onLinkMessage(event) {
 		}
 
 		document.getElementById('me').textContent = message.identityId ? `${message.identityId}번 사람` : '손님';
+		return;
+	}
+
+	if (message.type === 'names') {
+		// 이름은 거의 안 바뀌니 바뀔 때만 온다 — 창이 들고 있다가 인형에 붙인다.
+		for (const one of message.dolls) dollNames[one.id] = one.name;
 		return;
 	}
 
@@ -1134,10 +1142,12 @@ function applyPendingWorld() {
 	pendingWorld = null;
 
 	dolls = message.dolls;
+	// 이름은 따로 온 이름표에서 붙인다.
+	for (const one of dolls) one.name = dollNames[one.id] || '';
 
 	// 몰린 자리에서 세계가 따로 알려 준 「내 자리」 — 공유 목록에 내가 없으면 끼워 넣는다.
 	if (myPlaceFromWorld && dolls.some((one) => one.id === myPlaceFromWorld.id) === false)
-		dolls = dolls.concat([myPlaceFromWorld]);
+		dolls = dolls.concat([{ ...myPlaceFromWorld, name: dollNames[myPlaceFromWorld.id] || '' }]);
 	// 안 실려 온 목록은 「비었다」가 아니라 「안 바뀌었다」다 — 지난 것을 그대로 쓴다.
 	if (message.buildings) buildings = message.buildings;
 	if (message.gatherables) gatherables = message.gatherables;

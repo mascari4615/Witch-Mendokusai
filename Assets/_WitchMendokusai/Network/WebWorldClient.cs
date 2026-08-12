@@ -36,6 +36,10 @@ namespace WitchMendokusai
 		/// <summary>몰린 자리에서 세계가 따로 알려 준 내 인형 — 공유 소식에 내가 없을 때 끼워 넣는다.</summary>
 		private WorldDollView myPlaceFromWorld;
 
+		/// <summary>번호 → 이름 (TASK-WM-220) — 자리와 달리 바뀔 때만 온다.</summary>
+		private readonly System.Collections.Generic.Dictionary<int, string> dollNames =
+			new System.Collections.Generic.Dictionary<int, string>();
+
 		/// <summary>서버가 준 내 인형 번호. 아직 못 받았으면 0.</summary>
 		public int MyDollId { get; private set; }
 
@@ -313,6 +317,19 @@ namespace WitchMendokusai
 				return;
 			}
 
+			if (type == NetMessageType.NAMES)
+			{
+				// 이름은 바뀔 때만 온다 (TASK-WM-220) — 들고 있다가 인형에 붙인다.
+				NamesMessage named = JsonUtility.FromJson<NamesMessage>(json);
+				if (named?.dolls != null)
+				{
+					for (int i = 0; i < named.dolls.Length; i++)
+						dollNames[named.dolls[i].id] = named.dolls[i].name ?? string.Empty;
+				}
+
+				return;
+			}
+
 			if (type == NetMessageType.ME)
 			{
 				// 몰린 자리에서는 소식 한 벌을 여럿이 같이 쓴다 — 그 한 벌에 내가 안 들어갔을 때
@@ -334,7 +351,7 @@ namespace WitchMendokusai
 					lastWorldSequence = world.sequence;
 
 				receivedInitialWorld = true;
-				Dolls = WithMyself(world.dolls ?? Array.Empty<WorldDollView>());
+				Dolls = WithNames(WithMyself(world.dolls ?? Array.Empty<WorldDollView>()));
 				// ★ 안 실려 온 목록은 「비었다」가 아니라 「안 바뀌었다」다 (TASK-WM-217).
 				//   비운 것으로 읽으면 집과 들판이 매 프레임 사라졌다 나타난다.
 				// ⚠ 반대로 <b>빈 목록이 실려 온 것</b>은 진짜로 비었다는 뜻이다 — 길이로 거르면
@@ -355,6 +372,18 @@ namespace WitchMendokusai
 				if (world.brew != null)
 					Brew = world.brew;
 			}
+		}
+
+		/// <summary>따로 온 이름표를 인형에 붙인다 — 자리 소식에는 이름이 안 실린다 (TASK-WM-220).</summary>
+		private WorldDollView[] WithNames(WorldDollView[] dolls)
+		{
+			for (int i = 0; i < dolls.Length; i++)
+			{
+				if (dollNames.TryGetValue(dolls[i].id, out string named))
+					dolls[i].name = named;
+			}
+
+			return dolls;
 		}
 
 		/// <summary>공유 소식에 내 인형이 없으면 끼워 넣는다 — 내가 안 보이면 화면이 통째로 멎는다.</summary>

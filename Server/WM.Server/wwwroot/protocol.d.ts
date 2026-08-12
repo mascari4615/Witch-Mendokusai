@@ -314,5 +314,16 @@ export interface Me {
 	doll: WorldDollView;
 }
 
-export type ServerMessage = Welcome | Me | WorldSnapshot | BrewTaken | Bag | Catalog | BuildCatalog | BrewShelf | Spellbook | CraftBook | Crafted | Chest | Denied | Invite | Linked | Kicked;
+/** 서버 -> 창: 누가 무슨 이름인가(바뀔 때만). 창이 들고 있다가 인형에 붙인다. */
+export interface DollNameView {
+	id: number;
+	name: string;
+}
+
+export interface Names {
+	type: 'names';
+	dolls: DollNameView[];
+}
+
+export type ServerMessage = Welcome | Me | Names | WorldSnapshot | BrewTaken | Bag | Catalog | BuildCatalog | BrewShelf | Spellbook | CraftBook | Crafted | Chest | Denied | Invite | Linked | Kicked;
 export type ClientMessage = MoveRequest | PlaceRequest | RemoveRequest | GatherRequest | ChestAsk | ChestPut | ChestTake | BrewRequest | BrewResetRequest | BrewCompleteRequest | Hello | BagAsk | ConsumeRequest | InviteAsk | LinkRequest;

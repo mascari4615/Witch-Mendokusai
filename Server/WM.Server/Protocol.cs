@@ -27,6 +27,7 @@ namespace WitchMendokusai.Server
 		public const string WELCOME = Net.NetMessageType.WELCOME;
 		public const string WORLD = Net.NetMessageType.WORLD;
 		public const string ME = Net.NetMessageType.ME;
+		public const string NAMES = Net.NetMessageType.NAMES;
 		public const string MOVE = Net.NetMessageType.MOVE;
 		public const string PLACE = Net.NetMessageType.PLACE;
 		public const string GATHER = Net.NetMessageType.GATHER;
@@ -186,7 +187,11 @@ namespace WitchMendokusai.Server
 			builder.Append("/** 서버 -> 그 창에게만: 네 인형은 여기 있다(몰린 칸에서 공유 소식에 자기가 빠졌을 때). */\n");
 			builder.Append("export interface Me {\n\ttype: '").Append(ME).Append("';\n\tdoll: WorldDollView;\n}\n\n");
 
-			builder.Append("export type ServerMessage = Welcome | Me | WorldSnapshot | BrewTaken | Bag | Catalog | BuildCatalog | BrewShelf | Spellbook | CraftBook | Crafted | Chest | Denied | Invite | Linked | Kicked;\n");
+			builder.Append("/** 서버 -> 창: 누가 무슨 이름인가(바뀔 때만). 창이 들고 있다가 인형에 붙인다. */\n");
+			builder.Append("export interface DollNameView {\n\tid: number;\n\tname: string;\n}\n\n");
+			builder.Append("export interface Names {\n\ttype: '").Append(NAMES).Append("';\n\tdolls: DollNameView[];\n}\n\n");
+
+			builder.Append("export type ServerMessage = Welcome | Me | Names | WorldSnapshot | BrewTaken | Bag | Catalog | BuildCatalog | BrewShelf | Spellbook | CraftBook | Crafted | Chest | Denied | Invite | Linked | Kicked;\n");
 			builder.Append("export type ClientMessage = MoveRequest | PlaceRequest | RemoveRequest | GatherRequest | ChestAsk | ChestPut | ChestTake | BrewRequest | BrewResetRequest | BrewCompleteRequest | Hello | BagAsk | ConsumeRequest | InviteAsk | LinkRequest;\n");
 
 			return builder.ToString();
@@ -448,6 +453,28 @@ namespace WitchMendokusai.Server
 				+ ",\"name\":" + JsonSerializer.Serialize(who, textOptions) + "}}";
 		}
 
+		/// <summary>이름표 — 바뀐 사람만 담아 모두에게 보낸다 (TASK-WM-220).</summary>
+		public static string Names(IEnumerable<(int DollId, string Name)> people)
+		{
+			StringBuilder builder = new StringBuilder();
+			builder.Append("{\"type\":\"").Append(NAMES).Append("\",\"dolls\":[");
+
+			bool first = true;
+			foreach ((int dollId, string name) in people)
+			{
+				if (first == false)
+					builder.Append(',');
+
+				first = false;
+				builder.Append("{\"id\":").Append(dollId)
+					.Append(",\"name\":").Append(JsonSerializer.Serialize(name ?? string.Empty, textOptions))
+					.Append('}');
+			}
+
+			builder.Append("]}");
+			return builder.ToString();
+		}
+
 		/// <summary>서버가 보내는 인사말.</summary>
 		public static string Welcome(int dollId, string newSecret = "", int identityId = 0)
 		{
@@ -470,11 +497,11 @@ namespace WitchMendokusai.Server
 					builder.Append(',');
 
 				first = false;
-				string who = nameOf == null ? string.Empty : (nameOf(doll.IdentityId) ?? string.Empty);
+				// ★ 이름은 여기 안 싣는다 (TASK-WM-220) — 거의 안 바뀌는 글자를 초당 20번 나르지 않는다.
+				//   이름표는 `names` 로 따로, 바뀔 때만 간다.
 				builder.Append("{\"id\":").Append(doll.Id)
 					.Append(",\"x\":").Append(doll.Position.x.ToString("F3"))
 					.Append(",\"z\":").Append(doll.Position.z.ToString("F3"))
-					.Append(",\"name\":").Append(JsonSerializer.Serialize(who, textOptions))
 					.Append('}');
 			}
 

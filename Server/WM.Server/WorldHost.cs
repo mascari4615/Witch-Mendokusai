@@ -52,6 +52,10 @@ namespace WitchMendokusai.Server
 		/// (같이 쓰기가 안 돌면 지은 벌 수 = 보낸 건수다. 눈으로는 절대 못 보는 자리라 숫자로 남긴다.)
 		/// </summary>
 		private long builtSnapshots;
+
+		/// <summary>마지막으로 모두에게 알린 이름표 — 바뀐 사람만 다시 보내려고 들고 있는다 (TASK-WM-220).</summary>
+		private readonly System.Collections.Generic.Dictionary<int, string> toldNames =
+			new System.Collections.Generic.Dictionary<int, string>();
 		private long broadcastSnapshotBytes;
 		private long largestBroadcastSnapshotBytes;
 
@@ -217,6 +221,18 @@ namespace WitchMendokusai.Server
 			Connection connection = new Connection(socket);
 			sockets[doll.Id] = connection;
 			await SendAsync(connection, Protocol.Welcome(doll.Id));
+
+			// 이름표도 들어올 때 한 번 — 그 뒤로는 바뀔 때만 온다 (TASK-WM-220).
+			{
+				WorldDoll[] everyoneNow = World.Snapshot();
+				System.Collections.Generic.List<(int DollId, string Name)> allNames =
+					new System.Collections.Generic.List<(int, string)>();
+				for (int i = 0; i < everyoneNow.Length; i++)
+					allNames.Add((everyoneNow[i].Id, Identities.NameOf(everyoneNow[i].IdentityId) ?? string.Empty));
+
+				if (allNames.Count > 0)
+					await SendAsync(connection, Protocol.Names(allNames));
+			}
 
 			// 낱말표는 들어올 때 한 번 — 이게 있어야 창이 「돌 3개」라고 말할 수 있다(없으면 「17450 3개」).
 			await SendAsync(connection, Protocol.Catalog(ItemsCatalog.Names()));
@@ -1066,6 +1082,9 @@ namespace WitchMendokusai.Server
 					}
 				}
 
+				// 이름표는 <b>바뀔 때만</b> — 자리는 초당 20번 바뀌지만 이름은 거의 안 바뀐다 (TASK-WM-220).
+				await TellChangedNamesAsync();
+
 				long sequence = NextSnapshotSequence();
 
 				// ★ 같은 칸에 선 사람들은 <b>거의 같은 것</b>을 본다 — 그러면 글도 한 번만 지으면 된다
@@ -1171,6 +1190,53 @@ namespace WitchMendokusai.Server
 			connection.InterestCellX = cellX;
 			connection.InterestCellZ = cellZ;
 			return changed;
+		}
+
+		/// <summary>이름이 바뀐 사람만 모두에게 알린다 — 새로 온 사람·이름을 고친 사람 (TASK-WM-220).</summary>
+		private async Task TellChangedNamesAsync()
+		{
+			WorldDoll[] everyone = World.Snapshot();
+			System.Collections.Generic.List<(int DollId, string Name)> changed =
+				new System.Collections.Generic.List<(int, string)>();
+
+			System.Collections.Generic.HashSet<int> here = new System.Collections.Generic.HashSet<int>();
+			for (int i = 0; i < everyone.Length; i++)
+			{
+				WorldDoll one = everyone[i];
+				here.Add(one.Id);
+				string now = Identities.NameOf(one.IdentityId) ?? string.Empty;
+				if (toldNames.TryGetValue(one.Id, out string was) && was == now)
+					continue;
+
+				toldNames[one.Id] = now;
+				changed.Add((one.Id, now));
+			}
+
+			// 나간 사람은 장부에서 지운다 — 안 그러면 오래 돌수록 부푼다.
+			if (toldNames.Count > everyone.Length)
+			{
+				System.Collections.Generic.List<int> gone = new System.Collections.Generic.List<int>();
+				foreach (int dollId in toldNames.Keys)
+				{
+					if (here.Contains(dollId) == false)
+						gone.Add(dollId);
+				}
+
+				for (int i = 0; i < gone.Count; i++)
+					toldNames.Remove(gone[i]);
+			}
+
+			if (changed.Count == 0)
+				return;
+
+			string message = Protocol.Names(changed);
+			foreach (System.Collections.Generic.KeyValuePair<int, Connection> entry in sockets)
+			{
+				if (entry.Value.Socket.State == WebSocketState.Open)
+					_ = SendAsync(entry.Value, message);
+			}
+
+			await Task.CompletedTask;
 		}
 
 		/// <summary>
