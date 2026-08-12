@@ -393,8 +393,8 @@ function onLinkOpen() {
 	let klCode = '';
 	try { klCode = localStorage.getItem('wm.world.klcode') || ''; } catch (e) { klCode = ''; }
 
-	socket.send(JSON.stringify({ type: 'hello', secret: saved, klSession, klCode }));
-	socket.send(JSON.stringify({ type: 'bagask' }));
+	tell({ type: 'hello', secret: saved, klSession, klCode });
+	tell({ type: 'bagask' });
 
 	// 코드는 한 번 쓰면 사라진다 — 들고 있어 봐야 다음엔 안 통한다(그때는 기기 열쇠가 나를 안다).
 	try { localStorage.removeItem('wm.world.klcode'); } catch (e) { /* 무시 */ }
@@ -627,7 +627,7 @@ setInterval(() => {
 		stepZ *= scale;
 	}
 
-	socket.send(JSON.stringify({ type: 'move', x: stepX, z: stepZ }));
+	tell({ type: 'move', x: stepX, z: stepZ });
 }, MOVE_SEND_INTERVAL);
 
 // 드래그로 둘러보기 — 세계를 도는 것은 눈뿐이고, 세계 자체는 서버 것이다.
@@ -662,10 +662,29 @@ canvas.addEventListener('wheel', (event) => {
 const raycaster = new THREE.Raycaster();
 const pointer = new THREE.Vector2();
 
+/**
+ * 세계에 <b>말을 건넨다</b> — 모든 보내기는 이 문 하나로 나간다 (TASK-WM-232).
+ *
+ * ★ 왜 한 문인가: 보내는 자리가 열다섯 군데였는데 그중 하나(가방 줄 눌러 상자에 넣기)에
+ *   「줄이 열려 있나」 검사가 <b>빠져 있었다</b>. 끊긴 동안 그 줄을 누르면 창이 터진다
+ *   (InvalidStateError). 자리마다 손으로 지키면 언젠가 하나를 빠뜨린다 — 문을 하나로 모은다.
+ *
+ * ★ 그리고 <b>왜 안 됐는지 말해 준다</b>: 지금까지는 끊겼을 때 눌러도 아무 일도 안 일어났다.
+ *   사람에게는 「눌렀는데 반응이 없다」 = 고장이다. 끊긴 것과 무시된 것은 다른 일이고,
+ *   그 차이를 화면이 말해 줘야 한다.
+ */
+function tell(message) {
+	if (socket === null || socket.readyState !== WebSocket.OPEN) {
+		statusElement.textContent = '끊겼다 — 다시 붙는 중이다';
+		return false;
+	}
+
+	socket.send(JSON.stringify(message));
+	return true;
+}
+
 /** 누른 자리를 땅의 칸으로 바꿔 「여기 짓고 싶다」를 보낸다. 겹치는지는 서버가 본다. */
 function placeAt(clientX, clientY) {
-	if (socket.readyState !== WebSocket.OPEN) return;
-
 	pointer.x = (clientX / window.innerWidth) * 2 - 1;
 	pointer.y = -(clientY / window.innerHeight) * 2 + 1;
 	raycaster.setFromCamera(pointer, camera);
@@ -673,7 +692,7 @@ function placeAt(clientX, clientY) {
 	// 주울 것을 눌렀으면 줍는다 — 땅을 눌렀을 때만 짓는다(둘을 섞으면 주우려다 집이 선다).
 	const onNode = raycaster.intersectObjects(nodeGroup.children);
 	if (onNode.length > 0) {
-		socket.send(JSON.stringify({ type: 'gather', nodeId: onNode[0].object.userData.nodeId }));
+		tell({ type: 'gather', nodeId: onNode[0].object.userData.nodeId });
 		return;
 	}
 
@@ -683,7 +702,7 @@ function placeAt(clientX, clientY) {
 		if (onBuilding.length === 0) return;
 
 		const cell = onBuilding[0].object.userData.cell;
-		if (cell) socket.send(JSON.stringify({ type: 'remove', x: cell.x, y: cell.y, z: cell.z }));
+		if (cell) tell({ type: 'remove', x: cell.x, y: cell.y, z: cell.z });
 		return;
 	}
 
@@ -701,7 +720,7 @@ function placeAt(clientX, clientY) {
 				return;
 			}
 
-			socket.send(JSON.stringify({ type: 'chestask', x: cell.x, y: cell.y, z: cell.z }));
+			tell({ type: 'chestask', x: cell.x, y: cell.y, z: cell.z });
 			return;
 		}
 	}
@@ -714,7 +733,7 @@ function placeAt(clientX, clientY) {
 	const cellZ = Math.floor(-point.z); // three 의 -Z 가 세계의 +Z 다(카메라가 그쪽을 본다)
 
 	// 크기는 안 보낸다 — 세계가 안다(창이 「이건 1×1 이다」로 우길 자리를 없앤다).
-	socket.send(JSON.stringify({ type: 'place', x: cellX, y: 0, z: cellZ, buildingId: pickedBuilding }));
+	tell({ type: 'place', x: cellX, y: 0, z: cellZ, buildingId: pickedBuilding });
 }
 
 // ── 판들 ───────────────────────────────────────────────────────────────
@@ -830,7 +849,7 @@ function drawBag() {
 		row.title = '상자를 열어 두면 눌러서 하나 넣기';
 		row.addEventListener('click', () => {
 			if (openChest === null) return;
-			socket.send(JSON.stringify({ type: 'chestput', x: openChest.x, y: openChest.y, z: openChest.z, itemId: entry.itemId, amount: HowMany(entry.amount) }));
+			tell({ type: 'chestput', x: openChest.x, y: openChest.y, z: openChest.z, itemId: entry.itemId, amount: HowMany(entry.amount) });
 		});
 
 		host.appendChild(row);
@@ -1266,15 +1285,13 @@ document.getElementById('mode').addEventListener('click', (event) => {
 });
 
 document.getElementById('invite').addEventListener('click', () => {
-	if (socket.readyState !== WebSocket.OPEN) return;
-	socket.send(JSON.stringify({ type: 'inviteask' }));
+	tell({ type: 'inviteask' });
 });
 
 document.getElementById('link').addEventListener('click', () => {
-	if (socket.readyState !== WebSocket.OPEN) return;
 	const code = document.getElementById('linkcode').value.trim();
 	if (!code) return;
-	socket.send(JSON.stringify({ type: 'link', code }));
+	tell({ type: 'link', code });
 });
 
 document.getElementById('brewpick').addEventListener('change', (event) => {
@@ -1286,8 +1303,7 @@ document.getElementById('brewpick').addEventListener('change', (event) => {
 document.getElementById('rename').addEventListener('click', () => {
 	// 되나 안 되나는 세계가 본다 — 짧거나 길거나 남과 겹치면 거절 이유가 온다.
 	const wanted = document.getElementById('myname').value;
-	if (socket.readyState !== WebSocket.OPEN) return;
-	socket.send(JSON.stringify({ type: 'rename', name: wanted }));
+	tell({ type: 'rename', name: wanted });
 });
 
 document.getElementById('craftpick').addEventListener('change', (event) => {
@@ -1296,26 +1312,24 @@ document.getElementById('craftpick').addEventListener('change', (event) => {
 
 document.getElementById('make').addEventListener('click', () => {
 	// 되나 안 되나는 세계가 정한다 — 창은 「이 줄대로 만들겠다」만 말한다.
-	if (socket.readyState !== WebSocket.OPEN || pickedRecipe === null) return;
-	socket.send(JSON.stringify({ type: 'craft', recipeId: pickedRecipe }));
+	if (pickedRecipe === null) return;
+	tell({ type: 'craft', recipeId: pickedRecipe });
 });
 
 document.getElementById('stir').addEventListener('click', () => {
-	if (socket.readyState !== WebSocket.OPEN || pickedIngredient === null) return;
-	socket.send(JSON.stringify(myPot === null
+	if (pickedIngredient === null) return;
+	tell(myPot === null
 		? { type: 'brew', itemId: pickedIngredient }
-		: { type: 'brew', itemId: pickedIngredient, ...myPot }));
+		: { type: 'brew', itemId: pickedIngredient, ...myPot });
 });
 
 // 완성은 선착순 한 사람에게만 간다 — 못 받으면 아무 일도 안 일어난다(그게 정상이다).
 document.getElementById('complete').addEventListener('click', () => {
-	if (socket.readyState !== WebSocket.OPEN) return;
-	socket.send(JSON.stringify(myPot === null ? { type: 'brewcomplete' } : { type: 'brewcomplete', ...myPot }));
+	tell(myPot === null ? { type: 'brewcomplete' } : { type: 'brewcomplete', ...myPot });
 });
 
 document.getElementById('clear').addEventListener('click', () => {
-	if (socket.readyState !== WebSocket.OPEN) return;
-	socket.send(JSON.stringify(myPot === null ? { type: 'brewreset' } : { type: 'brewreset', ...myPot }));
+	tell(myPot === null ? { type: 'brewreset' } : { type: 'brewreset', ...myPot });
 });
 </script>
 </body>

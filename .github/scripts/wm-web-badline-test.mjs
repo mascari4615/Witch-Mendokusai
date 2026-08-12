@@ -287,6 +287,19 @@ await page.waitForFunction(
 	() => (document.getElementById('status')?.textContent || '').includes('붙었다') === false,
 	null, { timeout: 15000 }).catch(() => { /* 아래 칸이 잡는다 */ });
 
+// ★ 끊긴 동안 눌러 보면 — 창이 터지지도, 조용히 무시하지도 않아야 한다 (TASK-WM-232).
+//   보내는 자리 열다섯 중 하나에 「줄이 열려 있나」 검사가 빠져 있었다: 끊긴 동안 그 줄을
+//   누르면 창이 터진다. 나머지는 안 터지는 대신 <b>아무 말도 없이</b> 무시했다 —
+//   사람에게는 둘 다 「눌렀는데 반응이 없다」 = 고장이다.
+const errorsBeforeClick = pageErrors.length;
+await page.click('#complete').catch(() => { /* 손잡이가 안 보이면 아래 칸이 잡는다 */ });
+const saidWhy = await page.textContent('#status').catch(() => '');
+
+check('끊긴 동안 눌러도 창이 안 터진다', pageErrors.length === errorsBeforeClick,
+	pageErrors.slice(errorsBeforeClick).join(' | ') || '오류 없음');
+check('끊긴 동안 눌렀을 때 왜 안 되는지 말해 준다', (saidWhy || '').includes('끊'),
+	`화면: "${saidWhy}"`);
+
 const cutAt = Date.now();
 let recovered = -1;
 try {
