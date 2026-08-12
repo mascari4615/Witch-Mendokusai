@@ -1,0 +1,77 @@
+using System.Collections.Generic;
+using WitchMendokusai;
+using WitchMendokusai.Numerics;
+using WitchMendokusai.Server;
+using NUnit.Framework;
+
+namespace WitchMendokusai.Server.Tests
+{
+	/// <summary>광장에 몰려도 줄이 안 막히게 — 가까운 사람부터 몇 명까지 (TASK-WM-217).</summary>
+	public class InterestCrowdTests
+	{
+		private static WorldDoll At(int id, float x, float z)
+		{
+			return new WorldDoll(id, new Vector3(x, 0f, z));
+		}
+
+		[Test]
+		public void 상한보다_적으면_다_보낸다()
+		{
+			List<WorldDoll> people = new List<WorldDoll> { At(1, 0, 0), At(2, 5, 0) };
+
+			WorldDoll[] seen = InterestCrowd.Nearest(people, new Vector3(0, 0, 0), 1, 48);
+
+			Assert.That(seen.Length, Is.EqualTo(2));
+		}
+
+		[Test]
+		public void 가까운_사람부터_채운다()
+		{
+			List<WorldDoll> people = new List<WorldDoll>
+			{
+				At(1, 0, 0), At(2, 30, 0), At(3, 2, 0), At(4, 10, 0),
+			};
+
+			WorldDoll[] seen = InterestCrowd.Nearest(people, new Vector3(0, 0, 0), 1, 3);
+
+			Assert.That(System.Array.ConvertAll(seen, one => one.Id), Is.EqualTo(new[] { 1, 3, 4 }));
+		}
+
+		[Test]
+		public void 내_인형은_아무리_멀어도_안_잘린다()
+		{
+			// 나는 저 멀리 있고, 상한은 1이다 — 그래도 내가 안 보이면 화면이 통째로 멎는다.
+			List<WorldDoll> people = new List<WorldDoll> { At(7, 200, 200), At(1, 0, 0), At(2, 1, 0) };
+
+			WorldDoll[] seen = InterestCrowd.Nearest(people, new Vector3(200, 0, 200), 7, 1);
+
+			Assert.That(seen.Length, Is.EqualTo(1));
+			Assert.That(seen[0].Id, Is.EqualTo(7));
+		}
+
+		[Test]
+		public void 같은_거리면_번호_순이라_판마다_안_뒤바뀐다()
+		{
+			List<WorldDoll> people = new List<WorldDoll> { At(9, 5, 0), At(3, 5, 0), At(1, 0, 0), At(6, 5, 0) };
+
+			WorldDoll[] first = InterestCrowd.Nearest(people, new Vector3(0, 0, 0), 1, 3);
+			people.Reverse();
+			WorldDoll[] second = InterestCrowd.Nearest(people, new Vector3(0, 0, 0), 1, 3);
+
+			Assert.That(System.Array.ConvertAll(first, one => one.Id), Is.EqualTo(new[] { 1, 3, 6 }));
+			Assert.That(System.Array.ConvertAll(second, one => one.Id), Is.EqualTo(System.Array.ConvertAll(first, one => one.Id)));
+		}
+
+		[Test]
+		public void 광장에_이백명이_모여도_한_판은_상한만큼만_나간다()
+		{
+			List<WorldDoll> crowd = new List<WorldDoll>();
+			for (int i = 0; i < 200; i++)
+				crowd.Add(At(i, i % 10, i / 10));
+
+			WorldDoll[] seen = InterestCrowd.Nearest(crowd, new Vector3(0, 0, 0), 0, InterestCrowd.MAX_VISIBLE_DOLLS);
+
+			Assert.That(seen.Length, Is.EqualTo(InterestCrowd.MAX_VISIBLE_DOLLS));
+		}
+	}
+}

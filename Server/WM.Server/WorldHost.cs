@@ -1101,7 +1101,9 @@ namespace WitchMendokusai.Server
 					visible.Add(candidate);
 			}
 
-			return visible.ToArray();
+			// 반경 안이어도 <b>가까운 몇 명까지</b>다 — 광장에 몰리면 반경만으로는 못 버틴다
+			// (실측: 200명이 한자리에 모이자 초당 27MB).
+			return InterestCrowd.Nearest(visible, viewer, viewerDollId, InterestCrowd.MAX_VISIBLE_DOLLS);
 		}
 
 		private PlacedBuilding[] BuildingsVisibleTo(int viewerDollId)
