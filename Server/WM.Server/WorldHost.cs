@@ -399,7 +399,6 @@ namespace WitchMendokusai.Server
 				World.Calendar,
 				null,
 				GatherablesVisibleTo(doll.Id),
-				Identities.NameOf,
 				World.Cauldrons,
 				NextSnapshotSequence(),
 				CauldronCellsVisibleTo(doll.Id)));
@@ -533,7 +532,6 @@ namespace WitchMendokusai.Server
 					World.Calendar,
 					null,
 					GatherablesVisibleTo(dollId),
-					Identities.NameOf,
 					World.Cauldrons,
 					NextSnapshotSequence(),
 					CauldronCellsVisibleTo(dollId)));
@@ -1386,7 +1384,7 @@ namespace WitchMendokusai.Server
 			}
 
 			WorldDoll[] few = InterestCrowd.Nearest(near, viewer, viewerDollId, limit, MovingNow());
-			return Protocol.WorldSnapshot(few, null, World.Calendar, null, null, Identities.NameOf, null,
+			return Protocol.WorldSnapshot(few, null, World.Calendar, null, null, null,
 				sequence, null, true, null, false, null);
 		}
 
@@ -1679,7 +1677,6 @@ namespace WitchMendokusai.Server
 				World.Calendar,
 				null,
 				field,
-				Identities.NameOf,
 				sendPots ? World.Cauldrons : null,
 				sequence,
 				sendPots ? CauldronCellsNear(center, reach) : null,

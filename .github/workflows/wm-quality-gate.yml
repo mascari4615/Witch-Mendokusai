@@ -42,6 +42,7 @@ on:
       - '.github/scripts/wm-web-smoothness-test.mjs'
       - '.github/scripts/wm-web-badline-test.mjs'
       - '.github/scripts/wm-web-narrow-line-test.mjs'
+      - '.github/scripts/wm-dead-parameter-audit.mjs'
       - '.github/scripts/lib/bad-line.mjs'
       - '.github/scripts/wm-game-client-gate.mjs'
       - '.github/scripts/wm-zero-id-guard.mjs'
@@ -67,6 +68,7 @@ on:
       - '.github/scripts/wm-web-smoothness-test.mjs'
       - '.github/scripts/wm-web-badline-test.mjs'
       - '.github/scripts/wm-web-narrow-line-test.mjs'
+      - '.github/scripts/wm-dead-parameter-audit.mjs'
       - '.github/scripts/lib/bad-line.mjs'
       - '.github/scripts/wm-game-client-gate.mjs'
       - '.github/scripts/wm-zero-id-guard.mjs'
@@ -97,6 +99,11 @@ jobs:
         shell: pwsh
         run: |
           ./.github/scripts/wm-rule-gate.ps1
+
+      # TASK-WM-231 -- 받아 놓고 안 쓰는 인자는 「말이 안 나간 것」과 같다. 컴파일러도 시험도
+      # 화면도 멀쩡한 채로 계약이 반쪽이 된다(WM-230 이 그렇게 나갔다).
+      - name: Run dead-parameter audit
+        run: node ./.github/scripts/wm-dead-parameter-audit.mjs
 
       # 검사기가 아직 눈을 뜨고 있나 — 표본으로 먼저 본다 (TASK-WM-211).
       #

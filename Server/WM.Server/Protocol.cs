@@ -485,7 +485,7 @@ namespace WitchMendokusai.Server
 		}
 
 		/// <summary>서버가 보내는 세계 모습.</summary>
-		public static string WorldSnapshot(IEnumerable<WorldDoll> dolls, IEnumerable<PlacedBuilding> buildings, WorldCalendar calendar = null, WorldCauldron cauldron = null, IEnumerable<GatherableNode> gatherables = null, System.Func<int, string> nameOf = null, WorldCauldrons cauldrons = null, long sequence = 0, IEnumerable<Vector3Int> cauldronCells = null, bool full = true, IEnumerable<int> gone = null, bool fieldChanged = false, IEnumerable<int> fieldGone = null)
+		public static string WorldSnapshot(IEnumerable<WorldDoll> dolls, IEnumerable<PlacedBuilding> buildings, WorldCalendar calendar = null, WorldCauldron cauldron = null, IEnumerable<GatherableNode> gatherables = null, WorldCauldrons cauldrons = null, long sequence = 0, IEnumerable<Vector3Int> cauldronCells = null, bool full = true, IEnumerable<int> gone = null, bool fieldChanged = false, IEnumerable<int> fieldGone = null)
 		{
 			StringBuilder builder = new StringBuilder();
 			builder.Append("{\"type\":\"").Append(WORLD).Append("\",\"sequence\":").Append(sequence);

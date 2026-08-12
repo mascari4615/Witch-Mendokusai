@@ -23,8 +23,9 @@ namespace WitchMendokusai.ServerTests
 		[Test]
 		public void 바뀐_자리만_보낼_때는_바뀌었다고_말한다()
 		{
-			string said = Protocol.WorldSnapshot(Enumerable.Empty<WorldDoll>(), null, null, null,
-				OneNode(), null, null, 1, null, true, null, true, null);
+			// 이름을 붙여 부른다 — 자리로 부르면 인자가 하나 빠질 때 <b>조용히</b> 밀린다.
+			string said = Protocol.WorldSnapshot(Enumerable.Empty<WorldDoll>(), null,
+				gatherables: OneNode(), fieldChanged: true);
 
 			StringAssert.Contains("\"fieldChanged\":true", said,
 				"부분 목록을 전체처럼 보내면 창이 나머지를 통째로 지운다");
@@ -33,8 +34,8 @@ namespace WitchMendokusai.ServerTests
 		[Test]
 		public void 사라진_자리도_번호로_알려_준다()
 		{
-			string said = Protocol.WorldSnapshot(Enumerable.Empty<WorldDoll>(), null, null, null,
-				OneNode(), null, null, 1, null, true, null, true, new[] { 11, 12 });
+			string said = Protocol.WorldSnapshot(Enumerable.Empty<WorldDoll>(), null,
+				gatherables: OneNode(), fieldChanged: true, fieldGone: new[] { 11, 12 });
 
 			StringAssert.Contains("\"fieldGone\":[11,12]", said,
 				"뽑아 간 자리를 안 알려 주면 창에는 없는 것이 계속 보인다");
@@ -43,8 +44,8 @@ namespace WitchMendokusai.ServerTests
 		[Test]
 		public void 전부_보낼_때는_바뀌었다는_말을_안_붙인다()
 		{
-			string said = Protocol.WorldSnapshot(Enumerable.Empty<WorldDoll>(), null, null, null,
-				OneNode(), null, null, 1, null, true, null, false, null);
+			string said = Protocol.WorldSnapshot(Enumerable.Empty<WorldDoll>(), null,
+				gatherables: OneNode(), fieldChanged: false);
 
 			StringAssert.DoesNotContain("fieldChanged", said, "전부인데 「바뀐 것만」이라 하면 창이 옛것을 안 지운다");
 		}
