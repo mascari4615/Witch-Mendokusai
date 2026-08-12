@@ -13,7 +13,10 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net10.0</TargetFramework>
+    <!-- 저장소 SDK 는 global.json 이 8.0.407(latestPatch)로 못박고 있고, 나머지 진짜 프로젝트
+         (WM.Server · WM.Server.Tests · DomainSDK.Tests)도 전부 net8.0 이다. 여기만 net10.0 이라
+         `dotnet run` 이 NETSDK1045 로 죽어 품질 게이트가 계속 빨갰다 — 혼자 앞서간 쪽을 맞춘다. -->
+    <TargetFramework>net8.0</TargetFramework>
     <Nullable>disable</Nullable>
     <ImplicitUsings>disable</ImplicitUsings>
     <LangVersion>latest</LangVersion>

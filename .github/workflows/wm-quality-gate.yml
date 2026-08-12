@@ -108,9 +108,12 @@ jobs:
       #   취소된다(이 파일 위쪽 주석의 실측 그대로). 그때 대화 쪽은 **아무 신호도 안 남는다.**
       #   이 단계는 러너 상태와 무관하게 항상 돌아, 적어도 순수 로직이 깨졌는지는 바로 알려준다.
       #   유니티 시험의 대체가 아니다 — 직렬화·에셋·PlayMode 는 여전히 아래 잡만 본다.
+      # ★ 8.0.x 다 — 저장소 root 의 `global.json` 이 SDK 를 8.0.407(latestPatch)로 못박기 때문.
+      #   10 을 깔아 봐야 muxer 는 global.json 을 따라 8 을 고르고, 그러면 net10 을 못 짓는다
+      #   (NETSDK1045 로 이 잡이 계속 빨갰다). 진짜 프로젝트는 전부 net8.0 이다.
       - uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '10.0.x'
+          dotnet-version: '8.0.x'
 
       - name: Run dialogue harness
         run: dotnet run --project Tools/dialogue-harness
