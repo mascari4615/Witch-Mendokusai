@@ -448,8 +448,8 @@ namespace WitchMendokusai.Server
 		{
 			string who = nameOf == null ? string.Empty : (nameOf(doll.IdentityId) ?? string.Empty);
 			return "{\"type\":\"" + ME + "\",\"doll\":{\"id\":" + doll.Id
-				+ ",\"x\":" + doll.Position.x.ToString("F3")
-				+ ",\"z\":" + doll.Position.z.ToString("F3")
+				+ ",\"x\":" + doll.Position.x.ToString("F2")
+				+ ",\"z\":" + doll.Position.z.ToString("F2")
 				+ ",\"name\":" + JsonSerializer.Serialize(who, textOptions) + "}}";
 		}
 
@@ -530,8 +530,8 @@ namespace WitchMendokusai.Server
 				// ★ 이름은 여기 안 싣는다 (TASK-WM-220) — 거의 안 바뀌는 글자를 초당 20번 나르지 않는다.
 				//   이름표는 `names` 로 따로, 바뀔 때만 간다.
 				builder.Append("{\"id\":").Append(doll.Id)
-					.Append(",\"x\":").Append(doll.Position.x.ToString("F3"))
-					.Append(",\"z\":").Append(doll.Position.z.ToString("F3"))
+					.Append(",\"x\":").Append(doll.Position.x.ToString("F2"))
+					.Append(",\"z\":").Append(doll.Position.z.ToString("F2"))
 					.Append('}');
 			}
 

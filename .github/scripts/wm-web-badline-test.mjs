@@ -346,8 +346,10 @@ const afterCut = await page.waitForFunction(
 	.then((handle) => handle.jsonValue())
 	.catch(() => page.evaluate(() => window.__wmView.world()));
 
+// ⚠ 걷는 사람도 <b>같은 회선</b>을 타므로 끊기면 진짜로 나간다 — 그 한 명은 빠지는 게 맞다
+//   (가만히 선 사람들은 좋은 회선이라 남는다). 그걸 「반쪽 델타」로 읽으면 안 된다.
 check('돌아온 뒤 세계가 통째로 다시 보인다 (반쪽 델타가 아니다)',
-	afterCut.dolls >= beforeCut.dolls && afterCut.buildings >= beforeCut.buildings
+	afterCut.dolls >= beforeCut.dolls - 1 && afterCut.buildings >= beforeCut.buildings
 		&& afterCut.gatherables >= beforeCut.gatherables,
 	`끊기기 전 사람 ${beforeCut.dolls}·건물 ${beforeCut.buildings}·들판 ${beforeCut.gatherables}`
 	+ ` → 돌아온 뒤 사람 ${afterCut.dolls}·건물 ${afterCut.buildings}·들판 ${afterCut.gatherables}`);

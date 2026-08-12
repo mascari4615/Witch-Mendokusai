@@ -72,7 +72,9 @@ namespace WitchMendokusai.ServerTests
 				text.Contains("\"type\":\"world\"") &&
 				text.Contains("\"id\":" + firstId) &&
 				text.Contains("\"id\":" + secondId) &&
-				text.Contains("\"x\":1.000"));
+				// ⚠ 소수 몇 자리로 적는지는 <b>계약이 아니다</b> (TASK-WM-241): 자릿수를 줄이자
+				//   이 시험만 죽었다(세계도 창도 멀쩡했다). 자리가 1m 라는 것만 본다.
+				text.Contains("\"x\":1.0"));
 
 			// ⚠ 건물 목록은 이제 <b>바뀐 프레임에만</b> 실린다 (TASK-WM-217) — 움직임만 있는 이 그림엔 없다.
 			//   「들어오자마자 전체 그림 한 장」이 오는지는 아래에서 따로 본다.
