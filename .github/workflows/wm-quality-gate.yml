@@ -43,6 +43,7 @@ on:
       - '.github/scripts/wm-web-smoothness-test.mjs'
       - '.github/scripts/wm-web-badline-test.mjs'
       - '.github/scripts/wm-web-narrow-line-test.mjs'
+      - '.github/scripts/wm-web-herd-test.mjs'
       - '.github/scripts/wm-dead-parameter-audit.mjs'
       - '.github/scripts/lib/bad-line.mjs'
       - '.github/scripts/wm-game-client-gate.mjs'
@@ -70,6 +71,7 @@ on:
       - '.github/scripts/wm-web-smoothness-test.mjs'
       - '.github/scripts/wm-web-badline-test.mjs'
       - '.github/scripts/wm-web-narrow-line-test.mjs'
+      - '.github/scripts/wm-web-herd-test.mjs'
       - '.github/scripts/wm-dead-parameter-audit.mjs'
       - '.github/scripts/lib/bad-line.mjs'
       - '.github/scripts/wm-game-client-gate.mjs'
@@ -233,6 +235,13 @@ jobs:
           WM_PLAYWRIGHT_ROOT: /tmp/wm-playwright
           WM_CROWD: '40'
         run: node ./.github/scripts/wm-web-narrow-line-test.mjs
+
+      # TASK-WM-247 -- prod 는 push 할 때마다 세계를 껐다 켠다. 그 순간 붙어 있던 모두가
+      # 동시에 끊기고 동시에 다시 붙는다 — 들어올 때가 제일 비싼데 그게 한꺼번에 온다.
+      - name: Run web herd test
+        env:
+          WM_HERD: '40'
+        run: node ./.github/scripts/wm-web-herd-test.mjs
 
   unity:
     name: EditMode tests (laptop runner)
