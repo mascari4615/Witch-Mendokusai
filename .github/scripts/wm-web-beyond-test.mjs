@@ -185,6 +185,13 @@ check('그 사람만 비쳐 보이게 그렸다 (못 건드리는 사람이라�
 	JSON.stringify(seen && seen[0] || null));
 
 // 이 세계 사람(나)은 비쳐 보이면 안 된다 — 다 비치면 「다르게 그렸다」가 아니다.
+// ⚠ 재기 전에 <b>내 인형이 서 있는지</b>부터 본다 (domain-wm.md § 관문 규율): 국경 언저리에서
+//   한 걸음 더 가면 저 세계로 넘어가고(WM-254), 그 순간 내 인형은 잠깐 없다 —
+//   그걸 「이 세계 사람 0명」으로 읽으면 창 탓이 아닌 것을 창 탓으로 적게 된다(느린 CI 에서 빨갰다).
+await page.waitForFunction(
+	() => (window.__wmView.dolls() || []).some((one) => one.id > 0), null, { timeout: 15000 })
+	.catch(() => { /* 아래 칸이 잡는다 */ });
+
 const mine = await page.evaluate(() => (window.__wmView.dolls() || []).filter((one) => one.id > 0));
 check('이 세계 사람은 그대로 그린다', mine.length > 0 && mine.every((one) => one.seeThrough === false),
 	`이 세계 사람 ${mine.length}명`);
