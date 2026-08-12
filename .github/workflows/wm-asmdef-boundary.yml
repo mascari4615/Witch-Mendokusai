@@ -189,7 +189,16 @@ jobs:
           set -euo pipefail
           # "컴파일된다" 는 반쪽이다. 같은 EditMode 시험 파일이 엔진 밖에서도 통과해야
           # 시뮬이 진짜로 옮겨간 것이다(사본 아님 — Assets 아래 진짜 파일을 문다).
+          # 실패해도 로그부터 찍는다 (아래 서버 시험 단계 주석과 같은 이유).
+          set +e
           OUT=$(dotnet test Portable/DomainSDK.Tests/DomainSDK.Tests.csproj -c Release --nologo 2>&1)
+          CODE=$?
+          set -e
+          if [ "$CODE" -ne 0 ]; then
+            echo "$OUT"
+            echo "::error::엔진 밖 시험이 깨졌다 (dotnet test exit ${CODE}) — 위 로그 참조."
+            exit 1
+          fi
           echo "$OUT"
           PASSED=$(printf '%s' "$OUT" | grep -oE 'Passed:[[:space:]]*[0-9]+' | grep -oE '[0-9]+' | tail -1 || true)
           if [ -z "${PASSED:-}" ] || [ "$PASSED" -lt 100 ]; then
@@ -209,8 +218,19 @@ jobs:
             echo "서버 시험 프로젝트가 아직 없다 — 넘어간다."
             exit 0
           fi
+          # ★ 실패해도 **로그부터 찍는다** (2026-08-12). `set -e` 아래에서 `OUT=$(...)` 는
+          #   시험이 깨지는 순간 그 자리에서 죽어, `echo "$OUT"` 까지 못 간다 — 실측: 이 게이트가
+          #   25판 내내 빨간데 로그에는 이유가 한 줄도 없었다. 왜 빨간지 안 보이는 빨강은
+          #   고칠 수 없고, 그래서 아무도 안 고친다.
+          set +e
           OUT=$(dotnet test "$PROJ" -c Release --nologo 2>&1)
+          CODE=$?
+          set -e
           echo "$OUT"
+          if [ "$CODE" -ne 0 ]; then
+            echo "::error::서버 시험이 깨졌다 (dotnet test exit ${CODE}) — 위 로그 참조."
+            exit 1
+          fi
           PASSED=$(printf '%s' "$OUT" | grep -oE 'Passed:[[:space:]]*[0-9]+' | grep -oE '[0-9]+' | tail -1 || true)
           if [ -z "${PASSED:-}" ] || [ "$PASSED" -lt 5 ]; then
             echo "::error::서버 시험이 ${PASSED:-0}개만 돌았다 — 통과가 아니라 **안 돈 것**이다."
