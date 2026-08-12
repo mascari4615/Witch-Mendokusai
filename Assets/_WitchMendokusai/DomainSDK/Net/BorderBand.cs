@@ -79,5 +79,41 @@ namespace WitchMendokusai.Net
 
 		/// <summary>이 번호가 옆 세계 사람인가.</summary>
 		public static bool IsShadow(int dollId) => dollId < 0;
+
+		/// <summary>
+		/// 이름이 <b>같은 번호로 뭉개지는</b> 두 세계를 찾는다 (TASK-WM-265). 없으면 <c>null</c>.
+		///
+		/// ★ 왜 필요한가: 세계 이름 → 작은 번호는 굴린 값이라, 이름이 늘면 언젠가 <b>겹친다</b>.
+		///   겹치면 두 세계 사람이 같은 그림자 번호를 써서 <b>한 사람이 다른 한 사람을 지운다</b> —
+		///   그것도 조용히(오류도 안 나고, 국경에서만 사람이 깜빡인다).
+		///   그러니 세계를 띄울 때 <b>미리</b> 찾아 크게 알린다.
+		/// </summary>
+		public static string FirstClash(System.Collections.Generic.IEnumerable<string> zoneNames)
+		{
+			if (zoneNames == null)
+				return null;
+
+			System.Collections.Generic.Dictionary<int, string> byMark =
+				new System.Collections.Generic.Dictionary<int, string>();
+
+			foreach (string one in zoneNames)
+			{
+				if (string.IsNullOrEmpty(one))
+					continue;
+
+				int mark = MarkOfZone(one);
+				if (byMark.TryGetValue(mark, out string already))
+				{
+					if (string.Equals(already, one, System.StringComparison.Ordinal))
+						continue;   // 같은 세계를 두 번 적은 것뿐이다
+
+					return already + " · " + one;
+				}
+
+				byMark[mark] = one;
+			}
+
+			return null;
+		}
 	}
 }

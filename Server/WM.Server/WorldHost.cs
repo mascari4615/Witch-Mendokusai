@@ -276,6 +276,21 @@ namespace WitchMendokusai.Server
 			neighbours = WitchMendokusai.Net.ZoneMap.Read(
 				System.Environment.GetEnvironmentVariable("WM_ZONE_NEIGHBOURS"));
 
+			// ★ 이름이 같은 번호로 뭉개지는 이웃이 있나 (TASK-WM-265) — 있으면 국경에서 한 사람이
+			//   다른 한 사람을 조용히 지운다. 띄울 때 크게 알린다(고치는 것은 이름을 바꾸는 일이다).
+			{
+				System.Collections.Generic.List<string> names = new System.Collections.Generic.List<string>();
+				if (World.Patch.Bounded)
+					names.Add(World.Patch.Name);
+
+				foreach ((WitchMendokusai.Net.ZonePatch Patch, string Address) land in neighbours.Lands)
+					names.Add(land.Patch.Name);
+
+				string clash = WitchMendokusai.Net.BorderBand.FirstClash(names);
+				if (clash != null)
+					Console.WriteLine($"[zone] ⚠ 세계 이름이 같은 번호로 뭉개진다: {clash} — 국경에서 사람이 서로를 지운다");
+			}
+
 			// 두 세계만 아는 말 — 통행증 도장을 찍고 확인하는 데 쓴다.
 			zoneSecret = System.Environment.GetEnvironmentVariable("WM_ZONE_SECRET") ?? string.Empty;
 

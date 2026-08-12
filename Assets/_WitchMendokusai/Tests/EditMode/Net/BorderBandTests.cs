@@ -73,5 +73,28 @@ namespace WitchMendokusai.Tests.EditMode.Net
 		{
 			Assert.AreEqual(0, BorderBand.ShadowId("동", 0));
 		}
+
+		[Test]
+		public void 이름이_같은_번호로_뭉개지면_찾아낸다()
+		{
+			// 이름 → 작은 번호는 굴린 값이라 언젠가 겹친다. 겹치면 국경에서 한 사람이
+			// 다른 한 사람을 <b>조용히</b> 지운다 — 그래서 띄울 때 미리 찾는다.
+			Assert.IsNull(BorderBand.FirstClash(new[] { "동", "서", "북", "남" }));
+			Assert.IsNull(BorderBand.FirstClash(null));
+			Assert.IsNull(BorderBand.FirstClash(new[] { "동", "동" }), "같은 세계를 두 번 적은 것은 겹침이 아니다");
+
+			// 진짜로 겹치는 두 이름을 찾아서 넣는다 — 손으로 지어내면 오늘의 셈에만 맞는다.
+			string first = "가";
+			string clashing = null;
+			for (int i = 0; i < 5000 && clashing == null; i++)
+			{
+				string candidate = "터" + i;
+				if (BorderBand.MarkOfZone(candidate) == BorderBand.MarkOfZone(first))
+					clashing = candidate;
+			}
+
+			Assert.IsNotNull(clashing, "겹치는 이름을 못 찾았다 — 이 시험이 뜻을 잃었다");
+			Assert.IsNotNull(BorderBand.FirstClash(new[] { first, clashing }));
+		}
 	}
 }
