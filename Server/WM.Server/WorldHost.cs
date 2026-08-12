@@ -131,6 +131,9 @@ namespace WitchMendokusai.Server
 			/// </summary>
 			public bool MissedAPlate;
 
+			/// <summary>이 창이 인사 때 내민 기기 열쇠 — 세계는 지문만 갖기에 여기 들고 있는다.</summary>
+			public string DeviceSecret = string.Empty;
+
 			public int InterestCellX = int.MinValue;
 			public int InterestCellZ = int.MinValue;
 		}
@@ -388,10 +391,15 @@ namespace WitchMendokusai.Server
 
 				WitchMendokusai.Identity.WorldIdentityRecord person;
 				bool created;
+				string grantedSecret;
 				if (string.IsNullOrEmpty(externalId) == false)
-					person = Identities.RecognizeExternal(externalId, secret, World.Calendar.TotalDays(), out created);
+					person = Identities.RecognizeExternal(externalId, secret, World.Calendar.TotalDays(), out created, out grantedSecret);
 				else
-					person = Identities.Recognize(secret, out created, World.Calendar.TotalDays());
+					person = Identities.Recognize(secret, out created, out grantedSecret, World.Calendar.TotalDays());
+
+				// 이 창이 내민 기기 열쇠를 적어 둔다 — 세계는 지문만 가지므로 나중에 못 되돌린다.
+				if (sockets.TryGetValue(dollId, out Connection speaking))
+					speaking.DeviceSecret = string.IsNullOrEmpty(grantedSecret) ? secret : grantedSecret;
 				// 계정으로 들어왔으면 그 이름으로 불린다 — 「karmolab:mascari」 뒤쪽만 쓴다.
 				if (string.IsNullOrEmpty(externalId) == false)
 				{
@@ -412,7 +420,7 @@ namespace WitchMendokusai.Server
 					_ = EvictAsync(evicted);
 				}
 
-				await SendAsync(socket, Protocol.Welcome(dollId, created ? person.secret : string.Empty, person.id));
+				await SendAsync(socket, Protocol.Welcome(dollId, grantedSecret, person.id));
 
 				// 인사 뒤에도 전체 그림을 한 번 — 이때 자리·가방이 그 사람 것으로 바뀌고,
 				// 방송은 「바뀐 것만」 실으므로 이 한 장이 없으면 집·들판을 영영 못 볼 수 있다.
@@ -502,11 +510,15 @@ namespace WitchMendokusai.Server
 			}
 		}
 
-		/// <summary>그 연결이 지금 쓰고 있는 기기 열쇠 — 이을 때 이 열쇠를 그 사람에 붙인다.</summary>
+		/// <summary>
+		/// 그 연결이 <b>내민</b> 기기 열쇠 — 이을 때 이 열쇠를 그 사람에 붙인다.
+		///
+		/// ⚠ 전에는 장부에서 그 사람의 열쇠를 꺼내 썼다. 이제 세계는 열쇠를 <b>안 갖는다</b>(지문만) —
+		///   되돌릴 수 없으니, 창이 인사할 때 내민 것을 그 연결에 적어 뒀다가 쓴다 (TASK-WM-220).
+		/// </summary>
 		private string CurrentSecretOf(int dollId)
 		{
-			int owner = World.OwnerOf(dollId);
-			return owner == 0 ? null : Identities.Find(owner)?.secret;
+			return sockets.TryGetValue(dollId, out Connection connection) ? connection.DeviceSecret : null;
 		}
 
 		private static string ReadStringField(string text, string name)

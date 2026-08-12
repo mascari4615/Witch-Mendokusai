@@ -15,8 +15,20 @@ namespace WitchMendokusai.Identity
 		/// <summary>세계 안에서의 번호 — 인형·가방·집이 이 번호에 붙는다.</summary>
 		public int id;
 
-		/// <summary>창이 갖고 다니는 열쇠. 이게 맞아야 그 사람이다.</summary>
+		/// <summary>
+		/// ⚠ <b>옛 저장 파일을 읽기 위해서만</b> 남아 있는 자리 (TASK-WM-220). 새로 적을 때는 비어 있다.
+		///
+		/// 전에는 창이 갖고 다니는 열쇠를 세계가 <b>그대로</b> 적어 뒀다. 그 파일 한 장이 새면
+		/// 모두의 신원을 그대로 가져갈 수 있다(백업·지원 문의·실수로 올린 로그 — 다 새는 길이다).
+		/// 이제 세계는 <see cref="secretHash"/> 만 갖는다.
+		/// </summary>
 		public string secret = string.Empty;
+
+		/// <summary>
+		/// 열쇠의 <b>지문</b>(SHA-256). 세계는 이것만 갖고, 창이 내민 열쇠의 지문과 맞춰 본다.
+		/// 지문에서 열쇠를 되돌릴 수는 없다 — 파일이 새도 남의 사람이 되지는 못한다.
+		/// </summary>
+		public string secretHash = string.Empty;
 
 		/// <summary>마지막으로 본 시각(세계 기준 총 일수) — 오래된 신원 정리에 쓸 수 있다.</summary>
 		public int lastSeenDay;
@@ -77,6 +89,7 @@ namespace WitchMendokusai.Identity
 		private const string ALPHABET = "abcdefghijklmnopqrstuvwxyz0123456789";
 
 		private readonly object gate = new object();
+		/// <summary>열쇠의 <b>지문</b> → 사람. 열쇠 자체는 세계도 안 갖는다 (TASK-WM-220).</summary>
 		private readonly Dictionary<string, WorldIdentityRecord> bySecret = new Dictionary<string, WorldIdentityRecord>(StringComparer.Ordinal);
 		private readonly Dictionary<int, WorldIdentityRecord> byId = new Dictionary<int, WorldIdentityRecord>();
 		private readonly Random random;
@@ -110,9 +123,21 @@ namespace WitchMendokusai.Identity
 		/// </summary>
 		public WorldIdentityRecord Recognize(string secret, out bool created, int today = 0)
 		{
+			return Recognize(secret, out created, out _, today);
+		}
+
+		/// <summary>
+		/// 열쇠로 사람을 찾는다 — 새로 만들었으면 <paramref name="grantedSecret"/> 에 <b>그때만</b>
+		/// 평문 열쇠가 담긴다(창에 줘야 하니까). 세계는 그 뒤로 지문만 갖는다 (TASK-WM-220).
+		/// </summary>
+		public WorldIdentityRecord Recognize(string secret, out bool created, out string grantedSecret, int today = 0)
+		{
 			lock (gate)
 			{
-				if (string.IsNullOrEmpty(secret) == false && bySecret.TryGetValue(secret, out WorldIdentityRecord known))
+				grantedSecret = string.Empty;
+
+				if (string.IsNullOrEmpty(secret) == false
+					&& bySecret.TryGetValue(Fingerprint(secret), out WorldIdentityRecord known))
 				{
 					known.lastSeenDay = today;
 					created = false;
@@ -120,18 +145,38 @@ namespace WitchMendokusai.Identity
 				}
 
 				// 모르는 열쇠 = 새 사람. 남의 번호로 이어 주지 않는다.
+				string fresh = NewSecret();
 				WorldIdentityRecord record = new WorldIdentityRecord
 				{
 					id = nextId++,
-					secret = NewSecret(),
+					secretHash = Fingerprint(fresh),
 					lastSeenDay = today,
 				};
 
-				bySecret[record.secret] = record;
+				bySecret[record.secretHash] = record;
 				byId[record.id] = record;
 				created = true;
+				grantedSecret = fresh;
 				return record;
 			}
+		}
+
+		/// <summary>열쇠의 지문 — 세계가 갖는 유일한 형태다.</summary>
+		public static string Fingerprint(string secret)
+		{
+			if (string.IsNullOrEmpty(secret))
+				return string.Empty;
+
+			using System.Security.Cryptography.SHA256 sha = System.Security.Cryptography.SHA256.Create();
+			byte[] digest = sha.ComputeHash(System.Text.Encoding.UTF8.GetBytes(secret));
+			char[] hex = new char[digest.Length * 2];
+			for (int i = 0; i < digest.Length; i++)
+			{
+				hex[i * 2] = "0123456789abcdef"[digest[i] >> 4];
+				hex[i * 2 + 1] = "0123456789abcdef"[digest[i] & 0xF];
+			}
+
+			return new string(hex);
 		}
 
 		/// <summary>
@@ -232,6 +277,14 @@ namespace WitchMendokusai.Identity
 
 		public WorldIdentityRecord RecognizeExternal(string externalId, string deviceSecret, int today, out bool created)
 		{
+			return RecognizeExternal(externalId, deviceSecret, today, out created, out _);
+		}
+
+		/// <summary>계정으로 들어온 사람 — 새로 만들었으면 그때만 평문 열쇠를 준다 (TASK-WM-220).</summary>
+		public WorldIdentityRecord RecognizeExternal(string externalId, string deviceSecret, int today,
+			out bool created, out string grantedSecret)
+		{
+			grantedSecret = string.Empty;
 			created = false;
 			if (string.IsNullOrEmpty(externalId))
 				return null;
@@ -250,7 +303,7 @@ namespace WitchMendokusai.Identity
 
 				// 처음 보는 계정 — 그 기기가 이미 손님으로 놀고 있었다면 <b>그 손님을 그대로 승격</b>한다.
 				// 새로 만들면 그때까지 모은 게 주인 없이 남는다(사람 눈엔 사라진 것이다).
-				if (string.IsNullOrEmpty(deviceSecret) == false && bySecret.TryGetValue(deviceSecret, out WorldIdentityRecord guest)
+				if (string.IsNullOrEmpty(deviceSecret) == false && bySecret.TryGetValue(Fingerprint(deviceSecret), out WorldIdentityRecord guest)
 					&& string.IsNullOrEmpty(guest.externalId))
 				{
 					guest.externalId = externalId;
@@ -258,15 +311,17 @@ namespace WitchMendokusai.Identity
 					return guest;
 				}
 
+				string freshForAccount = NewSecret();
+				grantedSecret = freshForAccount;
 				WorldIdentityRecord record = new WorldIdentityRecord
 				{
 					id = nextId++,
-					secret = NewSecret(),
+					secretHash = Fingerprint(freshForAccount),
 					externalId = externalId,
 					lastSeenDay = today,
 				};
 
-				bySecret[record.secret] = record;
+				bySecret[record.secretHash] = record;
 				byId[record.id] = record;
 				AttachDevice(deviceSecret, record);
 				created = true;
@@ -280,7 +335,7 @@ namespace WitchMendokusai.Identity
 			if (string.IsNullOrEmpty(deviceSecret))
 				return;
 
-			bySecret[deviceSecret] = person;
+			bySecret[Fingerprint(deviceSecret)] = person;
 		}
 
 		/// <summary>그 번호의 사람 — 모르면 null.</summary>
@@ -321,14 +376,25 @@ namespace WitchMendokusai.Identity
 				for (int i = 0; i < book.people.Length; i++)
 				{
 					WorldIdentityRecord record = book.people[i];
-					if (record == null || string.IsNullOrEmpty(record.secret))
+					if (record == null)
 						continue;
 
-					if (byId.ContainsKey(record.id) || bySecret.ContainsKey(record.secret))
+					// ★ 옛 파일에는 열쇠가 <b>그대로</b> 적혀 있다 (TASK-WM-220). 읽으면서 지문으로 옮기고
+					//   평문은 버린다 — 사람은 쓰던 열쇠를 그대로 쓰고, 파일에서는 사라진다.
+					if (string.IsNullOrEmpty(record.secretHash) && string.IsNullOrEmpty(record.secret) == false)
+					{
+						record.secretHash = Fingerprint(record.secret);
+						record.secret = string.Empty;
+					}
+
+					if (string.IsNullOrEmpty(record.secretHash))
+						continue;
+
+					if (byId.ContainsKey(record.id) || bySecret.ContainsKey(record.secretHash))
 						continue;
 
 					byId[record.id] = record;
-					bySecret[record.secret] = record;
+					bySecret[record.secretHash] = record;
 				}
 
 				invites.Clear();
@@ -416,7 +482,7 @@ namespace WitchMendokusai.Identity
 			previousIdentityId = 0;
 			lock (gate)
 			{
-				if (string.IsNullOrEmpty(deviceSecret) == false && bySecret.TryGetValue(deviceSecret, out WorldIdentityRecord before))
+				if (string.IsNullOrEmpty(deviceSecret) == false && bySecret.TryGetValue(Fingerprint(deviceSecret), out WorldIdentityRecord before))
 					previousIdentityId = before.id;
 
 				if (string.IsNullOrEmpty(code) || invites.TryGetValue(code, out WorldLinkInvite invite) == false)
@@ -439,7 +505,7 @@ namespace WitchMendokusai.Identity
 				//   기기는 첫 접속에 이미 자기 사람을 갖기 때문이다(시험이 잡았다).
 				//   ⚠ 옮기기 전 그 기기의 옛 사람이 갖고 있던 것은 그 사람에게 남는다(합치기는 후속).
 				if (string.IsNullOrEmpty(deviceSecret) == false)
-					bySecret[deviceSecret] = person;
+					bySecret[Fingerprint(deviceSecret)] = person;
 
 				return person;
 			}
@@ -522,7 +588,7 @@ namespace WitchMendokusai.Identity
 			string secret = new string(buffer);
 
 			// 억지로 겹칠 확률은 사실상 0 이지만, 겹치면 조용히 남의 것이 된다 — 그래서 확인한다.
-			return bySecret.ContainsKey(secret) ? NewSecret() : secret;
+			return bySecret.ContainsKey(Fingerprint(secret)) ? NewSecret() : secret;
 		}
 	}
 }
