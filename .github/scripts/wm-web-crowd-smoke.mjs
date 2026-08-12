@@ -200,6 +200,23 @@ check(`사람이 몰려도 화면이 버틴다 (한산할 때의 ${Math.round(MI
 	`${fps.toFixed(1)}fps · 한산할 때 ${idleFps.toFixed(1)}fps · 기준 ${keepFloor.toFixed(1)}fps`);
 check(`알림이 사람 수만큼 부풀지 않는다`, bytesPerSecond <= MAX_BYTES_PER_SECOND,
 	`초당 ${(bytesPerSecond / 1024).toFixed(1)}KB · ${(seen.messages / seconds).toFixed(1)}건`);
+// ── ③ 사람들이 <b>깜빡이지 않나</b> — 「바뀐 것만」 보내기(TASK-WM-220)가 깨지는 자리 ──
+//
+// ★ 왜 재나: 안 실려 온 사람을 창이 「사라졌다」로 읽으면, 광장의 사람들이 매 판 사라졌다
+//   나타난다. 화면은 여전히 그려지고(fps 초록), 바이트도 작아서(초록) 다른 눈에는 안 걸린다.
+//   사람 눈에만 보이는 고장이라 <b>세어 보는 수밖에</b> 없다.
+const seenCounts = [];
+for (let i = 0; i < 30; i++) {
+	const text = await page.textContent('#peers');
+	const found = Number(String(text || '').replace(/\D/g, ''));
+	if (Number.isFinite(found)) seenCounts.push(found);
+	await new Promise((done) => setTimeout(done, 100));
+}
+
+const fewest = Math.min(...seenCounts);
+const most = Math.max(...seenCounts);
+check('사람들이 깜빡이지 않는다', most - fewest <= 1, `3초 동안 ${fewest}~${most}명`);
+
 check('창이 조용히 안 터졌다', pageErrors.length === 0, pageErrors.join(' | ') || '오류 없음');
 
 console.log(`  ⓘ 사람 ${crowd}명 · 창 하나 — 초당 ${(bytesPerSecond / 1024).toFixed(1)}KB, ${fps.toFixed(1)}fps (한산할 때 ${idleFps.toFixed(1)}fps)`);
