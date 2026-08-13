@@ -117,6 +117,38 @@ $rules = @(
         SkipPath = $deviceAllowedPathFragment
     },
     @{
+        # .NET Standard **2.1** 에만 있는 API 다. 이 프로젝트의 API 수준은 2.0
+        # (`ProjectSettings.asset: apiCompatibilityLevel: 6`) 이라 에디터에서는 넘어가도
+        # **플레이어 빌드에서 컴파일이 깨진다.**
+        #
+        # 실제 사고(2026-08-09~13): `Environment.TickCount64` 한 줄 때문에 야간 윈도우 빌드가
+        # 나흘간 죽었고, 그 빌드를 먹는 런타임 관문(부팅·2인 동기)도 같이 빨갛게 멈춰 있었다.
+        # 빌드는 밤에만 도니까 아무도 그날 못 알아챘다 -- push 때 여기서 세운다.
+        #
+        # 목록은 **추측이 아니라 실측**이다: netstandard2.0 으로 실제 컴파일해서 없는 것만 넣었다.
+        # (`string.Contains(char)` 은 넣으려다 빼었다 -- 2.0 에서도 컴파일된다.)
+        # 새 항목을 넣을 땐 같은 방법으로 확인할 것: 빈 netstandard2.0 프로젝트에 한 줄 써 보기.
+        Id      = 'NETSTD21-API'
+        Title   = '.NET Standard 2.1 API is banned -- this project is pinned to 2.0'
+        Fix     = 'use a 2.0 equivalent (e.g. DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() for TickCount64, Mathf for MathF)'
+        Strings = $false
+        Match   = {
+            param($line)
+            # ★ `-cmatch` (대소문자 구분) 필수. `-match` 는 무시하므로 Unity 의 **정상**
+            #   `Mathf.` 606곳을 `MathF.` 로 오인해 전부 빨갛게 만들었다(실측).
+            # ★ `System.` 을 붙여 쓴 꼴도 잡아야 한다. 앞 문자 배제만 쓰면 `MyEnvironment.` 는
+            #   막으면서 **정작 사고를 낸 `System.Environment.TickCount64` 를 놓친다**(실측:
+            #   일부러 그 줄을 넣었는데 안 걸렸다).
+            return ($line -cmatch '(^|[^\w.])(System\.)?Environment\.TickCount64') -or
+                   ($line -cmatch '(^|[^\w.])MathF\.') -or
+                   ($line -cmatch '(^|[^\w.])HashCode\.Combine') -or
+                   ($line -cmatch 'new\s+HashCode\s*\(') -or
+                   ($line -cmatch '\.TryAdd\s*\(') -or
+                   ($line -cmatch '\.ToHashSet\s*\(') -or
+                   ($line -cmatch "\.Split\s*\(\s*'.'\s*,\s*(System\.)?StringSplitOptions")
+        }
+    },
+    @{
         Id      = 'MENU-ROOT'
         Title   = 'Editor menu root must be "WM/"'
         Fix     = 'move the MenuItem under WM/'

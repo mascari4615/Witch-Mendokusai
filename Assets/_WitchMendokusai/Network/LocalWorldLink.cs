@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using WitchMendokusai.Net;
 
@@ -542,7 +542,12 @@ namespace WitchMendokusai
 		/// <summary>혼자 노는 세계에서 때린다 — 판정은 <b>같은 규칙</b>(WorldSim.TryStrike)이 본다.</summary>
 		public void RequestStrike(int targetDollId)
 		{
-			if (world.TryStrike(me.Id, targetDollId, System.Environment.TickCount64,
+			// `Environment.TickCount64` 는 .NET Standard **2.1** 것이다. 이 프로젝트의 API 수준은
+			// 2.0(`apiCompatibilityLevel: 6`) 이라 에디터에서는 넘어가도 **플레이어 빌드에서 컴파일이
+			// 깨진다** — 실제로 이 한 줄 때문에 야간 빌드가 나흘간 죽었고, 그 빌드를 먹는 런타임
+			// 관문(부팅·2인 동기)도 같이 빨갛게 멈춰 있었다.
+			// 여기 시각은 차이(쿨다운·되감기)를 재는 데만 쓰이므로 유닉스 밀리초로 충분하다.
+			if (world.TryStrike(me.Id, targetDollId, System.DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
 				out int healthLeft, out bool wentDown) != StrikeRule.Denial.None)
 			{
 				return;
