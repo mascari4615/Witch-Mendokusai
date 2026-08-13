@@ -288,6 +288,9 @@ namespace WitchMendokusai.Server
 
 			public long PlatesSkippedPlan;
 
+			/// <summary>이 줄에서 <b>읽어 들인</b> 마디 수 (TASK-WM-347) — 「보낸 것」과 「읽은 것」을 가른다.</summary>
+			public long HeardMessages;
+
 			/// <summary>이 줄에 한 장을 밀어 넣는 데 걸린 가장 긴 시간 (TASK-WM-345 — 「줄이 안 빠진다」의 증거).</summary>
 			public long LongestSendMs;
 
@@ -546,6 +549,7 @@ namespace WitchMendokusai.Server
 						skippedBusy = entry.Value.PlatesSkippedBusy,
 						skippedPlan = entry.Value.PlatesSkippedPlan,
 						missedInARow = entry.Value.MissedInARow,
+						heard = entry.Value.HeardMessages,
 						roundTripMs = lineTime.RoundTripMsFor(entry.Key),
 						bestRoundTripMs = lineTime.BestRoundTripMsFor(entry.Key),
 						longestSendMs = entry.Value.LongestSendMs,
@@ -852,6 +856,7 @@ namespace WitchMendokusai.Server
 		/// <summary>인사를 받으면 그 연결의 인형에 주인을 붙이고, 새 사람이면 열쇠를 준다.</summary>
 		private async Task HandleMessageAsync(int dollId, Connection socket, string text)
 		{
+			socket.HeardMessages += 1;   // 「보낸 것」이 아니라 <b>세계가 읽은 것</b> (TASK-WM-347)
 			string kind = ReadMessageType(text);
 			if (kind == Protocol.INVITE_ASK)
 			{

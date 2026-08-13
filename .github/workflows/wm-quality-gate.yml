@@ -41,6 +41,7 @@ on:
       - '.github/scripts/wm-web-reconnect-smoke.mjs'
       - '.github/scripts/wm-web-crowd-smoke.mjs'
       - '.github/scripts/wm-web-crowd-windows-test.mjs'
+      - '.github/scripts/wm-flood-budget-test.mjs'
       - '.github/scripts/wm-web-smoothness-test.mjs'
       - '.github/scripts/wm-web-badline-test.mjs'
       - '.github/scripts/wm-web-narrow-line-test.mjs'
@@ -95,6 +96,7 @@ on:
       - '.github/scripts/wm-web-reconnect-smoke.mjs'
       - '.github/scripts/wm-web-crowd-smoke.mjs'
       - '.github/scripts/wm-web-crowd-windows-test.mjs'
+      - '.github/scripts/wm-flood-budget-test.mjs'
       - '.github/scripts/wm-web-smoothness-test.mjs'
       - '.github/scripts/wm-web-badline-test.mjs'
       - '.github/scripts/wm-web-narrow-line-test.mjs'
@@ -279,6 +281,11 @@ jobs:
 
       # TASK-WM-345 -- 「무리 + 창 하나」와 「창 셋 + 무리 없음」이 다 초록이어도 <b>창 셋이 같은 무리에</b>
       # 있을 때는 다르다. 세계는 창마다 따로 좁히므로 <b>한 창만 굶는</b> 편식이 생긴다(실제로 그랬다).
+      # TASK-WM-347 -- 「보내는 쪽」이 밀릴 때는 여러 번 고쳤는데 <b>받는 쪽</b>은 한 번도 안 쟀다.
+      # 한 사람이 초당 수천 마디를 쏟아도 남들의 세계가 그대로인지 · 말 예산이 실제로 깎는지 본다.
+      - name: Run flood budget test
+        run: node ./.github/scripts/run-gate.mjs ./.github/scripts/wm-flood-budget-test.mjs
+
       - name: Run web crowd windows test
         env:
           WM_PLAYWRIGHT_ROOT: /tmp/wm-playwright
