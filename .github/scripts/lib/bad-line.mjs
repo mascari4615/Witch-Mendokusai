@@ -60,6 +60,7 @@ export function openBadLine({ listenPort, targetPort, latencyMs = 0, jitterMs = 
 		let timer = null;
 		let ended = false;
 		let waiting = 0;   // 아직 안 나간 바이트
+		let carried = 0;   // 이 방향으로 <b>실제로 흘러간</b> 바이트 (선 위의 양 — 창이 푼 뒤의 크기가 아니다)
 		let paused = false;
 
 		const drain = () => {
@@ -91,13 +92,19 @@ export function openBadLine({ listenPort, targetPort, latencyMs = 0, jitterMs = 
 			//   노드가 버퍼를 <b>64KB 한 덩어리</b>로 합쳐 준다. 그러면 회선이 그 덩어리를 통째로
 			//   한 번에 뱉어 「초당 4KB」라 해 놓고 실제로는 몰아치고 멎기를 반복한다.
 			//   진짜 회선은 패킷 단위로 흐른다 — 그러니 여기서도 그만큼씩 쪼갠다.
+			carried += chunk.length;
 			for (let at = 0; at < chunk.length; at += PACKET_BYTES) {
 				const piece = chunk.subarray(at, Math.min(at + PACKET_BYTES, chunk.length));
 				const now = Date.now();
 
-				// 줄이 비었으면 「다음 나갈 시각」도 지금으로 되돌린다 — 등에 진 것이 없으면 늦출 이유가 없다.
-				if (queue.length === 0)
-					readyAt = 0;
+				// 줄이 비었으면 「다음 나갈 시각」을 <b>지금</b>으로 되돌린다 — 등에 진 것이 없으면 늦출 이유가 없다.
+				// ⚠ 0 으로 되돌리면 <b>회선 폭이 사라진다</b> (실측 2026-08-14): 그러면 조각마다
+				//   「자기 몫의 시간」만 붙고 <b>앞 조각과 겹치지 않아</b>, 초당 3KB 로 졸라매도
+				//   창은 초당 14KB 를 그대로 받았다(넓을 때 14.0 → 좁힌 뒤 14.1).
+				//   좁은 회선을 재던 관문들이 그동안 <b>아무것도 안 재고</b> 있었다는 뜻이다.
+				//   폭은 <b>이어달리기</b>다: 다음 조각은 앞 조각이 다 나간 <b>뒤에야</b> 나갈 수 있다.
+				if (queue.length === 0 && readyAt < now)
+					readyAt = now;
 
 				readyAt = releaseAt(readyAt, now, piece.length, line, Math.random());
 
@@ -127,7 +134,7 @@ export function openBadLine({ listenPort, targetPort, latencyMs = 0, jitterMs = 
 			if (timer === null) drain();
 		});
 
-		pipes.push(() => ({ queued: queue.length, waiting, paused, aheadMs: readyAt - Date.now() }));
+		pipes.push(() => ({ queued: queue.length, waiting, carried, paused, aheadMs: readyAt - Date.now() }));
 
 		from.on('error', () => { if (to.destroyed === false) to.destroy(); });
 	};

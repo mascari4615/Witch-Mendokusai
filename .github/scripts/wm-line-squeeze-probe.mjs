@@ -68,11 +68,21 @@ console.log(`넓을 때 — ${plates}판 · ${(bytes / 4 / 1000).toFixed(1)}KB/s
 
 console.log('좁히기 전 파이프:', JSON.stringify(line.peek()));
 line.squeeze(3000);
+for (let i = 0; i < 6; i += 1) {
+	await wait(1000);
+	console.log(`  t+${i + 1}s 파이프: ${JSON.stringify(line.peek())}`);
+}
 await wait(2000);
 bytes = 0; plates = 0;
 await wait(4000);
 console.log(`좁힌 뒤(3.0KB/s 로) — ${plates}판 · ${(bytes / 4 / 1000).toFixed(1)}KB/s`);
 console.log('좁힌 뒤 파이프:', JSON.stringify(line.peek()));
+
+// 이 줄이 진짜 이 회선을 타는지 확인 — 끊으면 소식이 멎어야 한다.
+bytes = 0; plates = 0;
+line.cut();
+await wait(2000);
+console.log(`회선을 끊은 뒤 2초 — ${plates}판 (0이어야 이 줄을 타는 것이다)`);
 
 clearInterval(milling);
 for (const one of bots) { try { one.close(); } catch {} }
