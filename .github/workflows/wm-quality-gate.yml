@@ -66,6 +66,7 @@ on:
       - '.github/scripts/wm-border-cut-test.mjs'
       - '.github/scripts/wm-crash-durability-test.mjs'
       - '.github/scripts/wm-save-failure-test.mjs'
+      - '.github/scripts/wm-web-many-windows-test.mjs'
       - '.github/scripts/wm-dead-parameter-audit.mjs'
       - '.github/scripts/lib/bad-line.mjs'
       - '.github/scripts/wm-game-client-gate.mjs'
@@ -116,6 +117,7 @@ on:
       - '.github/scripts/wm-border-cut-test.mjs'
       - '.github/scripts/wm-crash-durability-test.mjs'
       - '.github/scripts/wm-save-failure-test.mjs'
+      - '.github/scripts/wm-web-many-windows-test.mjs'
       - '.github/scripts/wm-dead-parameter-audit.mjs'
       - '.github/scripts/lib/bad-line.mjs'
       - '.github/scripts/wm-game-client-gate.mjs'
@@ -441,6 +443,12 @@ jobs:
       # 기억을 못 적으면 그 사실이 밖에서 보인다 (TASK-WM-311).
       - name: Run save failure test
         run: node ./.github/scripts/wm-save-failure-test.mjs
+
+      # 진짜 창 여럿이 동시에 들어와도 서로 보인다 (TASK-WM-312).
+      - name: Run many windows test
+        env:
+          WM_PLAYWRIGHT_ROOT: /tmp/wm-playwright
+        run: node ./.github/scripts/wm-web-many-windows-test.mjs
 
   unity:
     name: EditMode tests (laptop runner)
