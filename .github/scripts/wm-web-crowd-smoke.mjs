@@ -201,6 +201,8 @@ const shown = await page.textContent('#peers');
 const status = await page.textContent('#status');
 
 check('창이 사람들 한복판에서도 붙어 있다', status === '붙었다', status);
+// [문턱-사유] (b) 사람이 느끼는 선 — 10초는 「안 뜨네」 하고 닫는 자리다. 아주 넉넉해
+//   느린 기계에서도 태생적 빨강이 안 된다(200명 광장에서도 실측 여유가 컸다).
 check('들어가면 곧 세계가 보인다 (10초 안)', openedInMilliseconds <= 10000,
 	`${(openedInMilliseconds / 1000).toFixed(1)}초`);
 check(`창이 사람들을 본다`, /\d/.test(shown || '') && Number((shown || '').replace(/\D/g, '')) > 1,

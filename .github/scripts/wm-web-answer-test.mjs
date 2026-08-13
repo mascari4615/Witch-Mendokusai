@@ -205,6 +205,8 @@ check('창이 세계의 답보다 훨씬 먼저 말한다 (절반 안쪽)',
 	saidInMs >= 0 && bagInMs > 0 && saidInMs <= bagInMs / 2,
 	saidInMs < 0 ? '아무 말도 안 했다 — 사람은 「안 눌렸다」로 읽고 또 누른다'
 		: `${saidInMs}ms · 세계의 답 ${bagInMs}ms · "${answer.said}"`);
+// [문턱-사유] (b) 사람이 느끼는 선 — 위 줄이 이미 「세계 답의 절반」으로 제품을 주장한다.
+//   이 줄은 그 위에 얹는 <b>바닥</b>이다(세계가 아주 느릴 때 절반도 느릴 수 있으니).
 check('그래도 사람이 기다린다고 느낄 만큼 늦지는 않다 (0.5초 안)', saidInMs >= 0 && saidInMs <= 500,
 	`${saidInMs}ms`);
 check('창이 조용히 안 터졌다', pageErrors.length === 0, pageErrors.join(' | ') || '오류 없음');

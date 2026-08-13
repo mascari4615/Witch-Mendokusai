@@ -163,6 +163,10 @@ jobs:
 
       # TASK-WM-231 -- 받아 놓고 안 쓰는 인자는 「말이 안 나간 것」과 같다. 컴파일러도 시험도
       # 화면도 멀쩡한 채로 계약이 반쪽이 된다(WM-230 이 그렇게 나갔다).
+      # 자르는 숫자마다 「왜 그 숫자인가」가 옆에 적혀 있나 (TASK-WM-323) — 코드만 읽어 몇 초다.
+      - name: Run threshold audit
+        run: node ./.github/scripts/wm-threshold-audit.mjs
+
       - name: Run dead-parameter audit
         run: node ./.github/scripts/wm-dead-parameter-audit.mjs
 

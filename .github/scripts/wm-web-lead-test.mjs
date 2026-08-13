@@ -203,6 +203,8 @@ console.log(`  ⓘ 앞섬 ≈ ${base.toFixed(2)}m + ${slope.toFixed(2)}m/s × �
 
 check('아주 나쁜 회선에서도 앞섬이 폭주하지 않는다 (회선의 두 배 안쪽)',
 	awful.worst <= usual.worst * 3, `${awful.worst.toFixed(2)}m · 보통 회선 ${usual.worst.toFixed(2)}m`);
+// [문턱-사유] (c) 제품 상수 — 300ms 는 <b>회선</b> 값이지 기계 시간이 아니다.
+//   「이 정도 회선까지는 견딘다」는 제품이 정한 선이다.
 check('사람이 흔히 쓰는 회선(왕복 300ms)까지는 안 끌려간다', breaksAtMs >= 300,
 	`왕복 ${breaksAtMs}ms 부터 끌려간다`);
 
