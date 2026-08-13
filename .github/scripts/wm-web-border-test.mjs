@@ -139,6 +139,15 @@ await page.addInitScript(() => {
 			try { said = JSON.parse(event.data); } catch { return; }
 
 			if (said.type === 'world') window.__wmPlates.push(Date.now());
+
+			// ★ <b>내 이름</b>을 따라 적는다 (TASK-WM-318 뒤이어): 「사람 수 ≥ 1」만 보면
+			//   <b>손님으로 다시 태어난 것</b>도 초록이 된다 — 통행증이 안 먹어도 누군가는 도착하니까.
+			//   이름은 통행증에 실려 건너가므로, 그것이 살아 있으면 <b>그 사람</b>이 온 것이다.
+			if (said.type === 'welcome') window.__wmMyId = said.id;
+			if (said.type === 'names' && Array.isArray(said.dolls)) {
+				const mine = said.dolls.find((one) => one.id === window.__wmMyId);
+				if (mine && mine.name) window.__wmMyName = mine.name;
+			}
 		});
 
 		// ★ <b>줄이 바뀐 순간</b>도 적는다 (TASK-WM-317): 사람이 겪는 멎음은 「전체에서 가장 긴 정적」이
@@ -192,6 +201,14 @@ await fetch(`http://127.0.0.1:${eastPort}/health`, { headers: { connection: 'clo
 const until = Date.now() + 40000;
 let told = null;
 while (Date.now() < until) {
+	// 이름을 달고 나선다 — 넘은 뒤 「그 사람인가」를 볼 수 있게 (TASK-WM-318 뒤이어).
+	await page.evaluate(() => {
+		const line = window.__wmView.socket();
+		if (line && line.readyState === 1) line.send(JSON.stringify({ type: 'rename', name: '나그네', did: 4242 }));
+	});
+
+	await new Promise((done) => setTimeout(done, 1200));
+
 	await page.keyboard.down('a');
 	await wait(300);
 	await page.keyboard.up('a');
@@ -217,6 +234,11 @@ if (told !== null) {
 
 check('옆 세계가 실제로 받아 줬다', landed,
 	landed ? '' : '두 세계 어디에도 없는 사람이 됐다');
+
+// 넘기 전에 이름을 달아 두고(아래), 넘은 뒤 그 이름이 살아 있는지 본다.
+const nameAfter = await page.evaluate(() => window.__wmMyName || '');
+check('건너간 사람이 <b>그 사람 그대로</b>다 (이름이 따라온다)', nameAfter === '나그네',
+	nameAfter === '나그네' ? '이름 「나그네」 그대로' : `이름이 「${nameAfter || '(없음)'}」 — 손님으로 다시 태어난 것이다`);
 
 // ★ 이제 넘어가는 순간에는 <b>잠깐 두 세계에 다 있다</b> (TASK-WM-279): 창이 저 세계에
 //   먼저 붙어 보고 첫 그림이 온 뒤에 옛 줄을 놓기 때문이다. 그 겹침이 <b>곧 풀리는지</b>를 본다
