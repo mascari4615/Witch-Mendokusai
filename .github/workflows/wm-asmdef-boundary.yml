@@ -42,6 +42,9 @@ on:
       #   실행이 없어서 초록으로 읽힌다(memo repo gates 가 같은 사고를 겪고 남긴 교훈).
       - 'Server/**'
       - 'Assets/_WitchMendokusai/Tests/**'
+      # ★ push 쪽과 <b>같은 목록</b>이어야 한다 — 부르는 스크립트만 고친 PR 에서는 안 돌았다.
+      - '.github/scripts/wm-sdk-name-collision.sh'
+      - '.github/workflows/wm-asmdef-boundary.yml'
   workflow_dispatch: {}
 
 permissions:
