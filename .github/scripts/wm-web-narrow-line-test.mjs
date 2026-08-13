@@ -21,7 +21,13 @@
 //   ③ 회선을 초당 800바이트까지 졸라맴 → 여전히 초록(0.16초)
 //   즉 <b>자극이 수요보다 크다</b>: 좁힌 4KB/s 가 이 판의 실제 수요(정상 흐름)보다 여전히 넉넉하다.
 //   (32KB/s 는 <b>들어올 때</b> 낱말표·첫 그림까지 낀 값이라 정상 수요가 아니다.)
-//   다음에 할 일 = <b>정상 수요를 따로 재고</b> 그 1/5 로 좁히기. 그 전까지는 빚 목록에 그대로 둔다.
+//   ④ 정상 수요를 재서(15.2KB/s) 그 1/5(3.0KB/s)로 좁힘 + 세 겹 다 끔 → <b>여전히 초록</b>(0.15초).
+//
+//   ★ 그래서 알아낸 것: 이 관문의 「나이」는 <b>그 창만의 늦음</b>을 잰다 — 기준 시계(걷는 봇)도
+//     같은 세계에서 같이 늦기 때문에, 세계가 <b>모두에게</b> 느려지는 판(보내기 await 같은)은
+//     이 자로는 안 잡힌다. 잡히는 것은 「나만 밀린다」 뿐이다.
+//     그 구멍을 재려면 <b>다른 자</b>가 필요하다 — 예: 벽시계로 「세계가 몇 판 보냈나」를 세는 것.
+//     그때까지 빚 목록에 그대로 둔다(거짓 확신보다 낫다).
 
 import { spawn, execSync } from 'node:child_process';
 import { createRequire } from 'node:module';
@@ -289,7 +295,15 @@ await page.evaluate((who) => {
 		}
 	};
 
-	window.__wmView.socket().addEventListener('message', (event) => write(event.data));
+	// ★ <b>정상 수요</b>를 잰다 (2026-08-14): 좁힐 값을 blind 상수로 두면 그 좁힘이 병목인지
+	//   아닌지 알 수가 없다 — 실제로 이 관문은 세계 방어를 셋 다 꺼도 초록이었다(자극이 안 먹었다).
+	//   그래서 창이 <b>받은 바이트</b>를 세고, 좁힐 값을 그 몫으로 정한다.
+	window.__wmBytes = [];
+	window.__wmView.socket().addEventListener('message', (event) => {
+		const size = typeof event.data === 'string' ? event.data.length : (event.data.byteLength || 0);
+		window.__wmBytes.push({ at: Date.now(), size });
+		write(event.data);
+	});
 }, walkerDollId);
 
 startWalking();
@@ -310,7 +324,24 @@ const ages = await page.evaluate(() => window.__wmAges.slice());
  *    새로 받을 것은 세계 소식뿐이다. 여기서 세계가 계속 밀어 넣으면 버퍼가 쌓이고,
  *    창은 점점 <b>과거</b>를 본다(화면은 여전히 부드럽다 — 그래서 안 보인다).
  */
-badLine.squeeze(SQUEEZED_BYTES_PER_SECOND);
+// 정상 수요 = 마지막 4초 동안 창이 실제로 받은 양. 들어올 때(낱말표·첫 그림)는 빼야 하므로 뒤쪽만 본다.
+const steadyDemand = await page.evaluate(() => {
+	const now = Date.now();
+	const lately = (window.__wmBytes || []).filter((one) => now - one.at <= 4000);
+	if (lately.length === 0) return 0;
+	const bytes = lately.reduce((sum, one) => sum + one.size, 0);
+	return Math.round(bytes / 4);
+});
+
+// ★ 좁히는 값은 <b>정상 수요의 1/5</b> — 그래야 회선이 진짜 병목이 된다.
+//   [문턱-사유] (a) 같은 판의 정상 수요와의 견줌 — 기계가 빨라 수요가 커지면 좁힘도 같이 좁아진다.
+const squeezeTo = steadyDemand > 0 ? Math.max(600, Math.round(steadyDemand / 5)) : SQUEEZED_BYTES_PER_SECOND;
+console.log(`  ⓘ 정상 수요 초당 ${(steadyDemand / 1000).toFixed(1)}KB → 좁힐 값 초당 ${(squeezeTo / 1000).toFixed(1)}KB`);
+
+if (steadyDemand <= 0)
+	console.log('  ⚠ 정상 수요를 못 쟀다 — 상수(4KB)로 좁힌다 (이 판의 자극은 약할 수 있다)');
+
+badLine.squeeze(squeezeTo);
 await page.evaluate(() => { window.__wmAges = []; });
 const tightFrom = Date.now();
 await new Promise((done) => setTimeout(done, MEASURE_MS));
@@ -426,7 +457,7 @@ if (squeezed.length >= LEAST_SAMPLES_SQUEEZED) {
 	const tightYoungest = Math.min(...squeezed);
 	check('좁아진 뒤에도 나이가 음수가 아니다', tightYoungest >= -RULER_SLACK_SECONDS, `가장 어린 순간 ${tightYoungest.toFixed(2)}초`);
 
-	check(`회선이 초당 ${(SQUEEZED_BYTES_PER_SECOND / 1000).toFixed(0)}KB 로 좁아져도 ${MAX_SQUEEZED_AGE_SECONDS}초 넘게 안 늙는다`,
+	check(`회선이 정상 수요의 1/5(초당 ${(squeezeTo / 1000).toFixed(1)}KB)로 좁아져도 ${MAX_SQUEEZED_AGE_SECONDS}초 넘게 안 늙는다`,
 		tightLate <= MAX_SQUEEZED_AGE_SECONDS,
 		`나이 ${tightLate.toFixed(2)}초 (가장 늙은 순간 ${tightWorst.toFixed(2)}초)`);
 	check('좁아진 회선에서도 나이가 안 불어난다 (세계가 밀어 넣지 않고 건너뛴다)',
@@ -436,7 +467,8 @@ if (squeezed.length >= LEAST_SAMPLES_SQUEEZED) {
 
 check('창이 조용히 안 터졌다', pageErrors.length === 0, pageErrors.join(' | ') || '오류 없음');
 
-console.log(`  ⓘ 사람 ${crowd}명 · 왕복 ${ONE_WAY_MS * 2}ms · 넓을 때 초당 ${(BYTES_PER_SECOND / 1000).toFixed(0)}KB → 좁을 때 ${(SQUEEZED_BYTES_PER_SECOND / 1000).toFixed(0)}KB`);
+console.log(`  ⓘ 사람 ${crowd}명 · 왕복 ${ONE_WAY_MS * 2}ms · 회선 넓이 초당 ${(BYTES_PER_SECOND / 1000).toFixed(0)}KB`
+	+ ` · 정상 수요 ${(steadyDemand / 1000).toFixed(1)}KB → 좁힘 ${(squeezeTo / 1000).toFixed(1)}KB`);
 
 if (failures === 0) {
 	console.log('[web-narrow] ✅ 좁은 회선에서도 창은 현재를 본다');
