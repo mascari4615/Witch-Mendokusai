@@ -206,6 +206,12 @@ check('창이 조용히 안 터졌다', windows.every((one) => one.errors.length
 	windows.flatMap((one) => one.errors).slice(0, 2).join(' | ') || '오류 없음');
 check('세계가 그 사이 안 멎는다', health.longestTickGapMs <= MOST_TICK_GAP_MS,
 	`가장 벌어진 판 ${health.longestTickGapMs}ms (한도 ${MOST_TICK_GAP_MS}ms)`);
+// ★ 유령 덫이 <b>실제로 걸려 있나</b> (TASK-WM-329). 창은 10초에 한 번 「내가 이 사람들을
+//   그리고 있다」를 물어봐야 한다 — 이 수가 0 이면 덫의 절반(창 쪽)이 조용히 죽은 것이고,
+//   그러면 다음 유령도 무(無)로 지나간다. 여기 15초를 기다리므로 최소 한 번은 와야 한다.
+check('창이 스스로 「내가 누굴 그리나」를 물어본다', health.rostersAsked >= 1,
+	`물어본 횟수 ${health.rostersAsked} · 세계가 찾은 유령 ${health.ghostsFound}명`);
+
 check('기억도 계속 남는다', health.savesFailed === 0, `저장 실패 ${health.savesFailed}번`);
 
 if (failures === 0) {

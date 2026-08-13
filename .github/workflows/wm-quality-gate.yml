@@ -421,6 +421,11 @@ jobs:
       - name: Run lost action test
         run: node ./.github/scripts/run-gate.mjs ./.github/scripts/wm-lost-action-test.mjs
 
+      # 유령을 잡는 <b>덫</b>이 살아 있나 (TASK-WM-329) — 창이 「내가 누굴 그리나」를 묻고
+      # 세계가 「그건 없다」고 답하는 길. 유령 자체는 재현이 안 되므로 덫을 시험한다.
+      - name: Run ghost trap test
+        run: node ./.github/scripts/run-gate.mjs ./.github/scripts/wm-ghost-trap-test.mjs
+
       # 나간 사람이 화면에 유령으로 안 남는다 (TASK-WM-306).
       - name: Run ghost test
         env:

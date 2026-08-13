@@ -320,6 +320,12 @@ namespace WitchMendokusai.Server
 		/// </summary>
 		private long savesDone;
 		private long savesFailed;
+
+		/// <summary>창이 <b>없는 사람을 그리고 있던</b> 횟수 (TASK-WM-329) — 유령의 유일한 흔적이다.</summary>
+		private long ghostsFound;
+
+		/// <summary>창이 <b>스스로 물어본</b> 횟수 (TASK-WM-329) — 이게 0 이면 덫이 안 걸린 것이다.</summary>
+		private long rostersAsked;
 		private long lastSaveOkAtMs;
 		private string lastSaveError = string.Empty;
 
@@ -513,6 +519,10 @@ namespace WitchMendokusai.Server
 				// 기억이 <b>정말 남고 있나</b> (TASK-WM-311) — 이 셋이 없으면 저장 실패는 무음이다.
 				savesDone = Interlocked.Read(ref savesDone),
 				savesFailed = Interlocked.Read(ref savesFailed),
+
+				// 유령을 몇 번 지웠나 (TASK-WM-329) — 0 이 아니면 「나갔다」를 놓친 창이 실제로 있었다는 뜻.
+				ghostsFound = Interlocked.Read(ref ghostsFound),
+				rostersAsked = Interlocked.Read(ref rostersAsked),
 				lastSaveAgoMs = Interlocked.Read(ref lastSaveOkAtMs) == 0
 					? -1
 					: System.Environment.TickCount64 - Interlocked.Read(ref lastSaveOkAtMs),
@@ -1196,6 +1206,15 @@ namespace WitchMendokusai.Server
 					return;
 				}
 
+				if (kind == Protocol.ROSTER)
+				{
+					// 창이 「내가 이 사람들을 그리고 있다」고 물어 왔다 (TASK-WM-329).
+					// 「나갔다」는 한 번밖에 안 간다 — 그 한 번을 놓친 창은 영영 유령을 그린다.
+					// 그러니 <b>창이 스스로 물어보게</b> 하고, 여기서 세계의 진실과 맞춰 준다.
+					AnswerRoster(dollId, root);
+					return;
+				}
+
 				if (kind == Protocol.GATHER)
 				{
 					// 같은 것을 두 번 하지 않는다 (TASK-WM-305) — 다시 보낸 줍기 라면 답만 준다.
@@ -1601,6 +1620,44 @@ namespace WitchMendokusai.Server
 		}
 
 		/// <summary>그 창에게만 자기 가방을 알린다.</summary>
+		/// <summary>
+		/// 창이 그리고 있다는 사람들 중 <b>여기 없는</b> 이를 돌려준다 (TASK-WM-329).
+		///
+		/// ★ 자가 치유이자 <b>덫</b>이다: 답을 받은 창은 그 자리에서 유령을 지우고(사람은 안 겪는다),
+		///   세계는 「유령이 있었다」를 센다(`ghostsFound`) — 그래야 <b>재현 안 되던 고장</b>이
+		///   prod 에서 다시 났을 때 그 사실이 숫자로 남는다. 지금까지는 무(無)로만 나타났다.
+		/// </summary>
+		private void AnswerRoster(int dollId, JsonElement root)
+		{
+			Interlocked.Increment(ref rostersAsked);
+
+			if (root.TryGetProperty("ids", out JsonElement ids) == false || ids.ValueKind != JsonValueKind.Array)
+				return;
+
+			WorldDoll[] here = EveryoneNow();
+			System.Collections.Generic.HashSet<int> alive = new System.Collections.Generic.HashSet<int>();
+			foreach (WorldDoll one in here)
+				alive.Add(one.Id);
+
+			System.Collections.Generic.List<int> ghosts = new System.Collections.Generic.List<int>();
+			foreach (JsonElement one in ids.EnumerateArray())
+			{
+				if (one.ValueKind != JsonValueKind.Number)
+					continue;
+
+				int id = (int)one.GetDouble();
+				if (alive.Contains(id) == false)
+					ghosts.Add(id);
+			}
+
+			if (ghosts.Count == 0)
+				return;   // 조용한 게 정상이다 — 할 말 없으면 안 보낸다.
+
+			Interlocked.Add(ref ghostsFound, ghosts.Count);
+			Console.WriteLine($"[world] 창 {dollId} 이 없는 사람 {ghosts.Count}명을 그리고 있었다 — {string.Join(",", ghosts)} (TASK-WM-329)");
+			TellRaw(dollId, Protocol.Ghosts(ghosts));
+		}
+
 		private async Task SendBagAsync(int dollId)
 		{
 			if (sockets.TryGetValue(dollId, out Connection socket) == false)

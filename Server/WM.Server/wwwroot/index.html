@@ -924,6 +924,36 @@ function onLinkError() {
 	}
 }
 
+/**
+ * 「내가 이 사람들을 그리고 있다」를 이따금 세계에 물어본다 (TASK-WM-329).
+ *
+ * ★ 왜: 「그 사람 나갔다」(gone)는 <b>한 번밖에 안 온다</b>. 그 한 번을 놓친 창은 그 사람을
+ *   영영 유령으로 그린다 — 오류도 없고, 사람이 눈으로 볼 때까지 아무도 모른다. 실제로 한 번
+ *   20초 넘게 그랬는데 26판을 돌려도 재현이 안 됐다(WM-314). 원인을 못 잡으면 <b>물어보면 된다.</b>
+ *
+ * ⚠ 이건 「나갔다」를 대신하는 길이 아니다 — 그건 즉시고, 이건 10초에 한 번이다.
+ *   덮개이지 바닥이 아니다.
+ */
+let rosterTimer = null;
+function startRosterCheck() {
+	if (rosterTimer !== null) return;
+	rosterTimer = setInterval(() => {
+		if (socket === null || socket.readyState !== 1) return;
+		const ids = dolls.map((one) => one.id);
+		if (ids.length === 0) return;
+		socket.send(JSON.stringify({ type: 'roster', ids }));
+	}, 10000);
+}
+
+/** 세계가 「없다」고 한 사람을 지운 횟수 — 관문이 이 수를 본다. */
+window.__wmGhostsErased = 0;
+
+// ★ 여기서 <b>한 번</b> 건다 — 붙는 순간이 아니라. (실측 2026-08-14: `onLinkOpen` 에 걸었더니
+//   한 판도 안 물어봤다. 평소 길은 지도 모듈이 <b>이미 연 줄을 넘겨받는 것</b>이라 `onopen` 이
+//   영영 안 뜬다 — 「붙었을 때 시작」이 이 창에서는 「시작 안 함」이었다.)
+//   시계는 매번 줄 상태를 보고 안 열렸으면 그냥 넘어간다.
+startRosterCheck();
+
 function onLinkOpen() {
 	// 저 세계에 <b>붙었다</b> — 이제 돌아갈 곳은 없다(다음 국경이 새로 정해 준다).
 	cameFrom = '';
@@ -985,6 +1015,20 @@ function onLinkMessage(event) {
 		buildKinds = message.buildings || [];
 		keepCatalog('buildcatalog', message);
 		drawBuildPicker();
+		return;
+	}
+
+	if (message.type === 'ghosts') {
+		// 세계가 「그 사람들 여기 없다」고 했다 — 그 자리에서 지운다 (TASK-WM-329).
+		// 사람은 이 일을 안 겪는다(다음 프레임에 사라진다). 남는 건 숫자뿐이다.
+		const gone = new Set(message.ids || []);
+		if (gone.size > 0) {
+			const before = dolls.length;
+			dolls = dolls.filter((one) => gone.has(one.id) === false);
+			window.__wmGhostsErased += before - dolls.length;
+			console.warn(`[유령] 세계에 없는 사람 ${before - dolls.length}명을 지웠다 — ${[...gone].join(',')}`);
+			syncDolls();
+		}
 		return;
 	}
 

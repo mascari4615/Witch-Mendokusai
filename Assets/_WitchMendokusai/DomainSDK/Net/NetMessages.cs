@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 
 namespace WitchMendokusai.Net
 {
@@ -31,6 +31,18 @@ namespace WitchMendokusai.Net
 
 		/// <summary>창 → 서버: 내 가방 좀 알려줘 (TASK-WM-218 — 다시 들어왔을 때 화면을 채우려면 물어봐야 한다).</summary>
 		public const string BAG_ASK = "bagask";
+
+		/// <summary>
+		/// 창 → 서버: <b>내가 지금 이 사람들을 그리고 있다</b> — 없는 사람 있으면 알려 줘 (TASK-WM-329).
+		///
+		/// ★ 왜 있나: 「나갔다」(gone)는 <b>한 번밖에 안 온다</b>. 그 한 번을 놓친 창은 그 사람을
+		///   영영 유령으로 그린다 — 오류도 없고 아무도 모른다. 한 번은 실제로 20초 넘게 그랬는데
+		///   26판을 돌려도 재현이 안 됐다(WM-314). 재현을 쫓는 대신 <b>스스로 물어보게</b> 한다.
+		/// </summary>
+		public const string ROSTER = "roster";
+
+		/// <summary>서버 → 그 창에게만: <b>그 사람들은 여기 없다</b> — 지워라 (TASK-WM-329).</summary>
+		public const string GHOSTS = "ghosts";
 
 		/// <summary>
 		/// 서버 → 창: 아이템 번호↔이름 낱말표 (들어올 때 한 번).

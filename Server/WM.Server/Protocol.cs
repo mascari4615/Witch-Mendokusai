@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Text;
 using System.Text.Json;
 using WitchMendokusai.Numerics;
@@ -38,6 +38,8 @@ namespace WitchMendokusai.Server
 		public const string BREW_TAKEN = Net.NetMessageType.BREW_TAKEN;
 		public const string BAG = Net.NetMessageType.BAG;
 		public const string BAG_ASK = Net.NetMessageType.BAG_ASK;
+		public const string ROSTER = Net.NetMessageType.ROSTER;
+		public const string GHOSTS = Net.NetMessageType.GHOSTS;
 		public const string CATALOG = Net.NetMessageType.CATALOG;
 		public const string BUILD_CATALOG = Net.NetMessageType.BUILD_CATALOG;
 		public const string BREW_SHELF = Net.NetMessageType.BREW_SHELF;
@@ -241,6 +243,29 @@ namespace WitchMendokusai.Server
 		}
 
 		/// <summary>그 창에게만 보내는 가방 상태.</summary>
+		/// <summary>
+		/// 그 창에게만: <b>이 사람들은 여기 없다</b> (TASK-WM-329).
+		/// 창이 「내가 그리는 사람들」을 물어봤을 때의 답이다 — 빈 목록이면 안 보낸다(조용한 게 정상).
+		/// </summary>
+		public static string Ghosts(IEnumerable<int> ids)
+		{
+			StringBuilder builder = new StringBuilder();
+			builder.Append("{\"type\":\"").Append(GHOSTS).Append("\",\"ids\":[");
+
+			bool first = true;
+			foreach (int id in ids)
+			{
+				if (first == false)
+					builder.Append(',');
+
+				builder.Append(id);
+				first = false;
+			}
+
+			builder.Append("]}");
+			return builder.ToString();
+		}
+
 		public static string Bag(IEnumerable<KeyValuePair<int, int>> counts)
 		{
 			StringBuilder builder = new StringBuilder();
