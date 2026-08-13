@@ -32,7 +32,11 @@
 //   ⑤ 좁힘만 끔 → 여전히 초록(0.15초 · 초당 20판). ⑥ 보내기 await + 건너뛰기 끔 → 초록(초당 19.8판).
 //     남은 의문은 <b>수요와 좁힘의 차</b>다: 좁힘 3.0KB/s 인데 창은 초당 20판을 받는다 = 한 판이 150B 안팎.
 //     즉 이 판의 <b>진짜 델타 수요</b>가 이미 3KB/s 언저리다(넓을 때 잰 15KB/s 는 들어올 때가 섞인 값).
-//     다음 할 일 = 판 크기 분포를 두 구간에서 각각 찍어 어디로 트래픽이 가는지 <b>숫자로</b> 보기.
+//   ⑦ 판 크기를 찍었다: 좁을 때 80판 · 가운데 603B · 합 59.6KB/4초 = <b>14.9KB/s</b> — 좁힘 3.0KB/s 인데도.
+//     그래서 관문 밖에서 <b>자 자체</b>를 쟀다(`wm-line-squeeze-probe.mjs`):
+//     넓을 때 14.0KB/s → 초당 3KB 로 좁힌 뒤 <b>14.1KB/s</b>. <b>좁히기가 안 먹는다.</b>
+//     ⇒ 이 관문의 「좁은 회선」은 <b>지금까지 좁지 않았다</b>. 고칠 곳은 관문이 아니라 회선(bad-line)이다.
+//     그때까지 이 관문의 좁힘 관련 초록은 <b>믿지 마라</b>(나이·판 수는 여전히 뜻이 있다 — 회선이 넓을 뿐).
 //     그때까지 빚 목록에 그대로 둔다(거짓 확신보다 낫다).
 
 import { spawn, execSync } from 'node:child_process';
@@ -359,6 +363,29 @@ const squeezedAges = await page.evaluate(() => window.__wmAges.slice());
 //   창이 <b>실제 시간</b> 동안 몇 판을 받았나 — 세계가 멎으면 이 값이 떨어진다.
 //   [문턱-사유] (c) 제품 상수 — 세계는 초당 20번 말한다(SNAPSHOT_HZ). 좁은 회선에서 그 절반 아래로
 //   떨어지면 사람은 「끊긴다」고 느낀다. 넉넉히 잡아 초당 여덟 판을 바닥으로 둔다.
+// 판 크기 분포 — 트래픽이 어디로 가는지 <b>숫자로</b> 본다 (2026-08-14, 빨강 걷기 ⑦ 준비).
+const plateShape = await page.evaluate(() => {
+	const rows = window.__wmBytes || [];
+	const now = Date.now();
+	const cut = (from, to) => rows.filter((one) => now - one.at <= from && now - one.at > to).map((one) => one.size);
+	const summary = (sizes) => {
+		if (sizes.length === 0) return { plates: 0, bytes: 0, median: 0, biggest: 0 };
+		const sorted = [...sizes].sort((a, b) => a - b);
+		return {
+			plates: sizes.length,
+			bytes: sizes.reduce((sum, one) => sum + one, 0),
+			median: sorted[Math.floor(sorted.length / 2)],
+			biggest: sorted[sorted.length - 1],
+		};
+	};
+	return { squeezed: summary(cut(4000, 0)), wide: summary(cut(20000, 12000)) };
+});
+
+console.log(`  ⓘ 판 크기 — 넓을 때 ${plateShape.wide.plates}판 · 가운데 ${plateShape.wide.median}B · 가장 큰 ${plateShape.wide.biggest}B`
+	+ ` · 합 ${(plateShape.wide.bytes / 1000).toFixed(1)}KB`);
+console.log(`  ⓘ 판 크기 — 좁을 때 ${plateShape.squeezed.plates}판 · 가운데 ${plateShape.squeezed.median}B · 가장 큰 ${plateShape.squeezed.biggest}B`
+	+ ` · 합 ${(plateShape.squeezed.bytes / 1000).toFixed(1)}KB`);
+
 const LEAST_PLATES_PER_SECOND = 8;
 const platesPerSecond = await page.evaluate(() => {
 	const now = Date.now();
