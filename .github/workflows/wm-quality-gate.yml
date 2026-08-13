@@ -43,6 +43,7 @@ on:
       - '.github/scripts/wm-web-crowd-windows-test.mjs'
       - '.github/scripts/wm-flood-budget-test.mjs'
       - '.github/scripts/wm-world-full-test.mjs'
+      - '.github/scripts/wm-frozen-line-test.mjs'
       - '.github/scripts/wm-build-race-test.mjs'
       - '.github/scripts/wm-gather-race-test.mjs'
       - '.github/scripts/wm-honest-budget-test.mjs'
@@ -102,6 +103,7 @@ on:
       - '.github/scripts/wm-web-crowd-windows-test.mjs'
       - '.github/scripts/wm-flood-budget-test.mjs'
       - '.github/scripts/wm-world-full-test.mjs'
+      - '.github/scripts/wm-frozen-line-test.mjs'
       - '.github/scripts/wm-build-race-test.mjs'
       - '.github/scripts/wm-gather-race-test.mjs'
       - '.github/scripts/wm-honest-budget-test.mjs'
@@ -309,6 +311,11 @@ jobs:
 
       - name: Run build race test
         run: node ./.github/scripts/run-gate.mjs ./.github/scripts/wm-build-race-test.mjs
+
+      # TASK-WM-355 -- 얼어붙은 줄(덮개 닫은 노트북)은 스스로 안 끊긴다. 놓아주지 않으면
+      # 인형이 서 있고 정원 한 자리를 몇 시간씩 먹는다 — 고치기 전 실측 6분 뒤에도 그대로였다.
+      - name: Run frozen line test
+        run: node ./.github/scripts/run-gate.mjs ./.github/scripts/wm-frozen-line-test.mjs
 
       - name: Run world full test
         run: node ./.github/scripts/run-gate.mjs ./.github/scripts/wm-world-full-test.mjs

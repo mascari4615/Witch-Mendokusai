@@ -46,7 +46,7 @@ export function releaseAt(readyAt, now, bytes, line, roll) {
  * HTTP·WebSocket 을 안 가린다 — 바이트만 다루기 때문이다(업그레이드도 그냥 흘러간다).
  */
 export function openBadLine({ listenPort, targetPort, latencyMs = 0, jitterMs = 0, bytesPerSecond = 0, host = '127.0.0.1', queueBytes = 64 * 1024, lossPercent = 0, retransmitMs = 300 }) {
-	const line = { latencyMs, jitterMs, bytesPerSecond };
+	const line = { latencyMs, jitterMs, bytesPerSecond, frozen: false };
 	const sockets = new Set();
 	const pipes = [];
 
@@ -66,6 +66,14 @@ export function openBadLine({ listenPort, targetPort, latencyMs = 0, jitterMs = 
 		const drain = () => {
 			timer = null;
 			const now = Date.now();
+
+			// ★ <b>얼린 회선</b> — 아무것도 안 흐르는데 줄은 살아 있다 (TASK-WM-355):
+			//   노트북 덮개를 닫거나 지하철에 들어간 순간이 이렇다. 끊긴 것과 <b>다르다</b>
+			//   (끊기면 양쪽이 그 사실을 곧 안다 — 얼면 아무도 모른 채 서로를 기다린다).
+			if (line.frozen) {
+				timer = setTimeout(drain, 200);
+				return;
+			}
 
 			while (queue.length > 0 && queue[0].at <= now) {
 				const piece = queue.shift();
@@ -160,6 +168,9 @@ export function openBadLine({ listenPort, targetPort, latencyMs = 0, jitterMs = 
 		peek: () => pipes.map((one) => one()),
 		/** 회선을 <b>도중에</b> 좁힌다 — 지하철에 들어간 순간 같은 것(이미 붙은 연결에도 먹는다). */
 		squeeze: (bytesPerSecond) => { line.bytesPerSecond = bytesPerSecond; },
+		/** 회선을 <b>얼린다</b> — 끊지 않고 아무것도 안 흘려보낸다(덮개를 닫은 노트북). */
+		freeze: () => { line.frozen = true; },
+		thaw: () => { line.frozen = false; },
 		/** 회선을 <b>끊는다</b> — 잃은 조각이 끝내 안 닿았을 때 진짜로 일어나는 일. */
 		cut: () => {
 			for (const socket of sockets) {

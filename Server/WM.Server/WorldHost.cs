@@ -75,6 +75,23 @@ namespace WitchMendokusai.Server
 		private const int MAX_WINDOWS_PER_PLACE = 8;
 
 		/// <summary>
+		/// 이만큼 <b>아무 말도 없으면</b> 그 창을 놓아준다 (TASK-WM-355).
+		///
+		/// ★ 왜 필요한가: 노트북 덮개를 닫거나 지하철에 들어가면 줄은 <b>끊기지 않은 채</b> 얼어붙는다.
+		///   그러면 세계는 그 사람을 영원히 「접속 중」으로 들고 있다 — 인형이 그 자리에 서 있고(진짜 유령),
+		///   정원 한 자리를 계속 먹는다. TCP 가 스스로 포기하는 데는 <b>몇 시간</b>이 걸린다.
+		///
+		/// ★ 왜 90초인가: 창은 0.25초마다 숨소리를 보낸다(WM-303) — 성한 창이라면 90초 침묵은
+		///   숨소리 360번을 내리 놓친 것이다. 그건 회선이 흔들린 것이 아니라 <b>사라진 것</b>이다.
+		///   (사람이 「잠깐 끊겼다」로 겪는 폭보다 넉넉히 크고, 자리를 몇 시간씩 잡아먹지는 않는 선.)
+		/// </summary>
+		/// (시험은 <b>수만 작게</b> 낮춰 같은 규칙을 본다 — 90초를 기다리는 관문은 아무도 안 돌린다.)
+		private static readonly long LET_GO_AFTER_SILENT_MS =
+			long.TryParse(System.Environment.GetEnvironmentVariable("WM_LET_GO_SECONDS"), out long asked) && asked > 0
+				? asked * 1000
+				: 90_000;
+
+		/// <summary>
 		/// 이 세계가 <b>한 번에 받는 사람 수</b> (TASK-WM-349).
 		///
 		/// ★ 왜 두나: 여태 정원이 없었다 — 사람이 계속 들어오면 모두가 같이 느려질 뿐,
@@ -176,6 +193,9 @@ namespace WitchMendokusai.Server
 
 		/// <summary>정원이 차서 돌려보낸 사람 수 (TASK-WM-349) — 「조용히 못 들어왔다」를 숫자로 남긴다.</summary>
 		private long turnedAwayPeople;
+
+		/// <summary>얼어붙어 있어서 세계가 놓아준 창 수 (TASK-WM-355).</summary>
+		private long letGoOfFrozen;
 
 		/// <summary>가득 찬데도 통행증을 들고 넘어온 사람 수 (TASK-WM-350) — 정원을 얼마나 넘겼나.</summary>
 		private long crossedIntoFullWorld;
@@ -326,6 +346,9 @@ namespace WitchMendokusai.Server
 
 			/// <summary>이 줄에서 <b>읽어 들인</b> 마디 수 (TASK-WM-347) — 「보낸 것」과 「읽은 것」을 가른다.</summary>
 			public long HeardMessages;
+
+			/// <summary>이 줄에서 <b>마지막으로 뭔가 들은</b> 시각 (TASK-WM-355) — 얼어붙은 창을 가르는 자.</summary>
+			public long LastHeardAtMs = System.Environment.TickCount64;
 
 			/// <summary>
 			/// 말 예산에 걸려 <b>버린</b> 마디 수 (TASK-WM-348).
@@ -576,7 +599,15 @@ namespace WitchMendokusai.Server
 			// 골격 창(wwwroot/index.html) — 서버가 자기 확인용 화면을 같이 준다.
 			app.UseDefaultFiles();
 			app.UseStaticFiles();
-			app.UseWebSockets();
+			// ★ <b>얼어붙은 창</b>을 세계가 놓아준다 (TASK-WM-355). 노트북 덮개를 닫거나 지하철에
+			//   들어가면 줄은 <b>끊기지 않은 채</b> 아무것도 안 흐른다 — 그러면 서버는 그 사람을
+			//   영원히 「접속 중」으로 들고 있는다: 인형이 그 자리에 서 있고(진짜 유령),
+			//   정원 한 자리를 계속 먹는다. 기본값은 「띄엄띄엄 ping 은 보내되 <b>답이 없어도 안 끊는</b>」이다.
+			//   그래서 답을 기다리는 시간을 정해 준다 — 그 시간을 넘기면 .NET 이 그 줄을 접는다.
+			//   ⚠ 줄 자체에 「답 없으면 접어라」를 맡기고 싶었지만 이 .NET 에는 그 손잡이가 없다
+			//     (`WebSocketOptions.KeepAliveTimeout` 은 다음 판에 생긴다). 그래서 <b>세계가 직접</b> 센다 —
+			//     아래 § 조용한 창 쓸어내기.
+			app.UseWebSockets(new WebSocketOptions { KeepAliveInterval = System.TimeSpan.FromSeconds(15) });
 
 			// ★ <b>줄마다 따로 본다</b> (TASK-WM-345) — 창이 여럿일 때 「누가 굶고 있나」를 세는 자리.
 			//   /health 는 세계 전체의 합이라, 한 창만 초당 1.8장을 받아도 합에서는 안 보인다.
@@ -644,6 +675,7 @@ namespace WitchMendokusai.Server
 				builtSnapshots = Interlocked.Read(ref builtSnapshots),
 				refusedSteps = Interlocked.Read(ref refusedSteps),
 				turnedAwayPeople = Interlocked.Read(ref turnedAwayPeople),
+				letGoOfFrozen = Interlocked.Read(ref letGoOfFrozen),
 				crossedIntoFullWorld = Interlocked.Read(ref crossedIntoFullWorld),
 				mostPeopleAtOnce = MOST_PEOPLE_AT_ONCE,
 
@@ -976,6 +1008,7 @@ namespace WitchMendokusai.Server
 		private async Task HandleMessageAsync(int dollId, Connection socket, string text)
 		{
 			socket.HeardMessages += 1;   // 「보낸 것」이 아니라 <b>세계가 읽은 것</b> (TASK-WM-347)
+			socket.LastHeardAtMs = System.Environment.TickCount64;
 			string kind = ReadMessageType(text);
 			if (kind == Protocol.INVITE_ASK)
 			{
@@ -2204,6 +2237,22 @@ namespace WitchMendokusai.Server
 				await TellChangedNamesAsync();
 
 				long sequence = NextSnapshotSequence();
+
+				// ★ § 조용한 창 쓸어내기 (TASK-WM-355) — 1초에 한 번만 훑는다(스무 판마다).
+				//   얼어붙은 줄은 스스로 끊기지 않으므로 세계가 놓아 줘야 한다.
+				if (sequence % 20 == 0)
+				{
+					long nowMs = System.Environment.TickCount64;
+					foreach (System.Collections.Generic.KeyValuePair<int, Connection> line in sockets)
+					{
+						if (nowMs - line.Value.LastHeardAtMs < LET_GO_AFTER_SILENT_MS)
+							continue;
+
+						Interlocked.Increment(ref letGoOfFrozen);
+						Console.WriteLine($"[world] {LET_GO_AFTER_SILENT_MS / 1000}초 동안 아무 말이 없는 창을 놓아준다 — 인형 {line.Key}");
+						try { line.Value.Socket.Abort(); } catch { /* 이미 죽었다 */ }
+					}
+				}
 
 				// ★ 같은 칸에 선 사람들은 <b>거의 같은 것</b>을 본다 — 그러면 글도 한 번만 지으면 된다
 				//   (TASK-WM-217). 창마다 짓던 때, 400명이면 같은 글을 400번 지었다.
