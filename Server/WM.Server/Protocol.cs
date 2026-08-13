@@ -38,6 +38,7 @@ namespace WitchMendokusai.Server
 		public const string BREW_TAKEN = Net.NetMessageType.BREW_TAKEN;
 		public const string BAG = Net.NetMessageType.BAG;
 		public const string BAG_ASK = Net.NetMessageType.BAG_ASK;
+		public const string BEAT = Net.NetMessageType.BEAT;
 		public const string ROSTER = Net.NetMessageType.ROSTER;
 		public const string GHOSTS = Net.NetMessageType.GHOSTS;
 		public const string CATALOG = Net.NetMessageType.CATALOG;

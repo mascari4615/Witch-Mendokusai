@@ -249,6 +249,8 @@ const CLIENT_TO_SERVER = new Set([
   'SAY', 'STRIKE',
   // 창이 스스로 묻는 말 (TASK-WM-329) — 답(GHOSTS)은 창이 <b>다뤄야</b> 하므로 여기 안 넣는다.
   'ROSTER',
+  // 창이 <b>보내는</b> 숨소리 (TASK-WM-339) — 세계는 답을 안 한다(도장만 받아 적는다).
+  'BEAT',
 ]);
 
 // 게임 창이 안 다뤄도 되는 것 — 이유를 적어 둔다(비면 안 된다).

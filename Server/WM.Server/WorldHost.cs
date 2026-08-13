@@ -28,6 +28,19 @@ namespace WitchMendokusai.Server
 		/// <summary>1초에 몇 번 모두에게 알릴 것인가.</summary>
 		// ⚠ 실험용 손잡이 — 「20Hz 가 정말 필요한가」를 재려고 잠깐 연다 (TASK-WM-243).
 		//   값을 정하는 것은 실측이지 취향이 아니다.
+		/// <summary>이 값보다 왕복이 길면 그 창은 <b>밀리는 중</b>이다 (TASK-WM-339).
+		/// [문턱-사유] 제품 상수 — 사람이 「굼뜨다」고 느끼기 시작하는 선(0.4초). 회선 자체가 느린 것과
+		/// 버퍼에 쌓인 것을 여기서 가르지 않는다 — 둘 다 「덜 보내야」 낫는다.</summary>
+		private const long LAG_BUDGET_MILLISECONDS = 400;
+
+		/// <summary>밀리는 창은 <b>이만큼 뒤처진 것으로 친다</b> — 그만큼 좁혀서(작게) 보낸다 (TASK-WM-339).</summary>
+		private const int BEHIND_STEPS_WHEN_LAGGING = 3;
+
+		/// <summary>(안 씀 — 판 건너뛰기는 초당 판 수를 깨뜨려 접었다) 밀리는 창에는 이 판마다 한 번만.
+		/// ★ 5판마다(4Hz)로 줄여 봤더니 초당 5.8판까지 떨어져 「초당 여덟 판」 바닥을 깼다 —
+		///   덜어 내는 것과 <b>끊기는 것</b>은 다르다. 절반까지만 줄인다.</summary>
+		private const long SLOW_EVERY_NTH = 2;
+
 		private static readonly int SNAPSHOT_HZ =
 			int.TryParse(System.Environment.GetEnvironmentVariable("WM_SNAPSHOT_HZ"), out int said) && said > 0 ? said : 20;
 
@@ -1244,6 +1257,13 @@ namespace WitchMendokusai.Server
 					return;
 				}
 
+				if (kind == Protocol.BEAT)
+				{
+					// 도장만 받아 적는다 (TASK-WM-339) — 가만히 있는 창의 밀림도 이걸로 안다.
+					HearLine(dollId, root);
+					return;
+				}
+
 				if (kind == Protocol.ROSTER)
 				{
 					// 창이 「내가 이 사람들을 그리고 있다」고 물어 왔다 (TASK-WM-329).
@@ -2038,6 +2058,18 @@ namespace WitchMendokusai.Server
 					// 줄이 뚫렸다 = 회선이 따라오고 있다. 줄여 뒀던 사람 수를 곧바로 되돌린다.
 					if (target.MissedAPlate == false)
 						target.MissedInARow = 0;
+
+					// ★ <b>밀리는 창에는 덜 자주 보낸다</b> (TASK-WM-339, 2026-08-14 실측).
+					//   버퍼(OS·중간 상자)가 수십 KB 라 세계는 「보냈다」고 믿는 동안에도 창은 옛 세계를 본다 —
+					//   좁은 회선에서 나이가 0.35 → 0.70초로 <b>불어났다</b>. 그 순간 세계가 할 일은
+					//   더 밀어 넣는 것이 아니라 <b>덜 보내는 것</b>이다(밀린 것이 빠질 틈을 준다).
+					//   창이 도로 보내 준 도장으로 왕복을 알 수 있으니(LineTime) 그걸 본다.
+					//   ⚠ <b>덜 보내는</b> 길과 <b>작게 보내는</b> 길이 있다. 판을 건너뛰면(덜 보내기) 나이는 줄지만
+					//     초당 판 수가 7.3장까지 떨어져 「끊긴다」로 넘어갔다(바닥 8장). 그래서 <b>작게</b> 보낸다 —
+					//     같은 박자로 오되 실린 사람 수가 준다(사람은 「멀리 있는 사람이 덜 보인다」로 겪는다).
+					long lag = lineTime.RoundTripMsFor(entry.Key);
+					if (lag > LAG_BUDGET_MILLISECONDS && target.MissedInARow < BEHIND_STEPS_WHEN_LAGGING)
+						target.MissedInARow = BEHIND_STEPS_WHEN_LAGGING;
 
 					// ★ 회선이 감당 못 하면 <b>감당할 만큼만</b> 보여 준다 (TASK-WM-228).
 					//   이때는 칸 공유도 델타도 안 쓴다 — 작은 한 장을 통째로 준다.

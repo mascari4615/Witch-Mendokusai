@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace WitchMendokusai.Net
 {
@@ -60,6 +60,21 @@ namespace WitchMendokusai.Net
 			}
 
 			return true;
+		}
+
+		/// <summary>
+		/// 이 사람의 <b>왕복</b> 그대로 (ms) — 한도를 안 씌운다 (TASK-WM-339).
+		///
+		/// ★ 왜 필요한가: 되감기용 값은 <see cref="MOST_REWIND_MS"/> 로 묶여 있어(250ms) 회선이 아무리
+		///   막혀도 250 이상으로 안 커진다 — 그걸로는 <b>밀리는 중</b>인지 알 수가 없다.
+		///   좁은 회선에서 세계가 스스로 덜어 내려면 <b>안 묶인 값</b>을 봐야 한다.
+		/// </summary>
+		public long RoundTripMsFor(int dollId)
+		{
+			lock (gate)
+			{
+				return roundTrips.TryGetValue(dollId, out float roundTrip) ? (long)roundTrip : 0;
+			}
 		}
 
 		/// <summary>이 사람의 화면이 얼마나 옛것인가 (ms) — 왕복의 절반, 한도까지.</summary>

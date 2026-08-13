@@ -948,6 +948,15 @@ function startRosterCheck() {
 /** 세계가 「없다」고 한 사람을 지운 횟수 — 관문이 이 수를 본다. */
 window.__wmGhostsErased = 0;
 
+// ★ 가만히 있어도 <b>내가 어디까지 봤는지</b>는 알려 준다 (TASK-WM-339).
+//   세계는 이 도장으로 「이 창이 몇 초 밀렸나」를 알고, 밀리면 <b>덜 보낸다</b>.
+//   그 전에는 걸음·때리기에 얹힌 도장만 있어서, 구경만 하는 창은 세계에 안 보였다.
+setInterval(() => {
+	if (socket === null || socket.readyState !== 1) return;
+	if (typeof lastWorldAt !== 'number' || lastWorldAt <= 0) return;
+	socket.send(JSON.stringify({ type: 'beat', ack: lastWorldAt }));
+}, 250);
+
 // ★ 여기서 <b>한 번</b> 건다 — 붙는 순간이 아니라. (실측 2026-08-14: `onLinkOpen` 에 걸었더니
 //   한 판도 안 물어봤다. 평소 길은 지도 모듈이 <b>이미 연 줄을 넘겨받는 것</b>이라 `onopen` 이
 //   영영 안 뜬다 — 「붙었을 때 시작」이 이 창에서는 「시작 안 함」이었다.)

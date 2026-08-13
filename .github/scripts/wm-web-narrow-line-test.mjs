@@ -513,8 +513,11 @@ if (squeezed.length >= LEAST_SAMPLES_SQUEEZED) {
 //   수요의 0.8배 → 나이 0.31 → 0.65초 · 0.5배 → 0.54 → 1.45초 · 0.2배 → 0.45 → 1.78초.
 //   고치기 전까지 이 자리를 빨강으로 두면 관문 전체가 상시 빨강이 된다(그러면 아무도 안 본다).
 //   그래서 <b>재서 적기만</b> 한다 — 고침은 TASK-WM-339 에서. 위의 두 검사(2초 한도·초당 판 수)는 그대로 지킨다.
-	console.log(`  ⓘ 나이가 불어나는 정도 — 앞 절반 ${tightEarly.toFixed(2)}초 → 뒤 절반 ${tightLate.toFixed(2)}초`
-		+ ' (TASK-WM-339: 좁은 회선에서 세계가 덜 덜어 낸다 — 고치면 이 줄을 검사로 올린다)');
+	// ★ 고쳤으니 <b>검사로 올린다</b> (TASK-WM-339): 좁은 회선에서 세계가 <b>작게 보내</b> 덜어 내면
+	//   나이가 안 쌓인다. 실측 0.18 → 0.33초(불어남 0.15초 · 한도 0.3초) — 고치기 전에는 0.30 → 0.68초였다.
+	check('좁아진 회선에서도 나이가 안 불어난다 (세계가 밀어 넣지 않고 덜어 낸다)',
+		tightLate - tightEarly <= MAX_AGE_GROWTH_SECONDS,
+		`앞 절반 ${tightEarly.toFixed(2)}초 → 뒤 절반 ${tightLate.toFixed(2)}초 (한도 ${MAX_AGE_GROWTH_SECONDS}초)`);
 }
 
 check(`좁은 회선에서도 <b>벽시계로</b> 초당 ${LEAST_PLATES_PER_SECOND}판은 온다 (세계가 모두에게 멎는 판을 잡는 자)`,
