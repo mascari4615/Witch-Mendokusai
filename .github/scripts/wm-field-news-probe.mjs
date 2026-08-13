@@ -96,6 +96,7 @@ function join_(url) {
 		if (said.type === 'welcome') one.id = said.id;
 		if (said.type === 'me' && said.doll) one.here = { x: said.doll.x, z: said.doll.z };
 		if (said.type !== 'world') return;
+		if (typeof said.at === 'number') one.lastAt = said.at;
 
 		if (Array.isArray(said.dolls) && one.id !== null) {
 			const mine = said.dolls.find((doll) => doll.id === one.id);
@@ -126,6 +127,14 @@ function join_(url) {
 const crowd = [];
 for (let i = 0; i < 25; i += 1) crowd.push(join_(`ws://127.0.0.1:${worldPort}/ws`));
 const watcher = join_(`ws://127.0.0.1:${linePort}/ws`);
+
+// ★ <b>진짜 창처럼 숨소리를 보낸다</b> (TASK-WM-343): 이걸 안 보내면 왕복이 0 으로 보여
+//   세계가 「안 밀린다」로 읽고 <b>보통 길</b>로 보낸다 — 그러면 이 자는 밀린 길을 못 잰다.
+//   (그 차이 때문에 봇 자는 7/8 인데 브라우저 관문은 1/3 이었다.)
+const beating = setInterval(() => {
+	if (watcher.socket.readyState !== 1 || watcher.lastAt === undefined) return;
+	watcher.socket.send(JSON.stringify({ type: 'beat', ack: watcher.lastAt }));
+}, 250);
 
 const milling = setInterval(() => {
 	for (const one of crowd) {
@@ -207,6 +216,7 @@ for (let round = 1; round <= rounds; round += 1) {
 }
 
 clearInterval(milling);
+clearInterval(beating);
 for (const one of crowd) { try { one.socket.close(); } catch { /* 이미 닫혔다 */ } }
 try { watcher.socket.close(); } catch { /* 이미 닫혔다 */ }
 await badLine.close();

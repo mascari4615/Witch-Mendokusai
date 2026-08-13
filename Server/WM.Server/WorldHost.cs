@@ -31,6 +31,12 @@ namespace WitchMendokusai.Server
 		// ⚠ 밀림 판정·좁힘·박자 상수는 여기 없다 — <b>SendPlan</b> 이 정본이다 (TASK-WM-340).
 		//   여기 두면 이 파일에서 슬쩍 고치게 되고, 그러면 시험 없는 정책이 다시 생긴다.
 
+		/// <summary>
+		/// 회선이 막혀 계속 건너뛰게 되면 <b>이 판마다 한 번은</b> 가장 작은 한 장을 밀어 넣는다 (TASK-WM-343).
+		/// [문턱-사유] (c) 제품 상수 — 20판 = 1초. 사람이 「멈췄다」고 느끼기 전에 무엇이든 한 장은 간다.
+		/// </summary>
+		private const int PUSH_THROUGH_EVERY = 20;
+
 		private static readonly int SNAPSHOT_HZ =
 			int.TryParse(System.Environment.GetEnvironmentVariable("WM_SNAPSHOT_HZ"), out int said) && said > 0 ? said : 20;
 
@@ -2053,6 +2059,18 @@ namespace WitchMendokusai.Server
 						entry.Value.MissedAPlate = true;
 						entry.Value.NeedsWholeField = true;   // 놓친 판에 들판 소식이 있었을 수 있다 (TASK-WM-343)
 						entry.Value.MissedInARow += 1;
+
+						// ★ <b>영영 건너뛰지는 않는다</b> (TASK-WM-343, 실측 8판 중 0판): 회선이 계속 막히면
+						//   이 창은 <b>아무 소식도</b> 못 받는다 — 들판이 바뀌어도, 사람이 나가도.
+						//   실제로 봇 자로 재니 소식이 <b>한 장도</b> 안 갔다(자취가 비었다).
+						//   그러니 오래 밀린 창에는 <b>가장 작은 한 장</b>이라도 밀어 넣는다(그것도 못 나가면 회선이 죽은 것이다).
+						if (entry.Value.MissedInARow % PUSH_THROUGH_EVERY == 0)
+						{
+							_ = SendSnapshotAsync(entry.Value,
+								Encoding.UTF8.GetBytes(SmallPlateFor(entry.Key, InterestCrowd.FEWEST_VISIBLE_DOLLS, sequence, true)),
+								null, fieldVersion, null);
+						}
+
 						continue;
 					}
 
@@ -2097,7 +2115,12 @@ namespace WitchMendokusai.Server
 						//   그래서 이 창이 좁힘에서 돌아오면 <b>전체</b>를 한 장 줘야 한다 — 안 그러면
 						//   좁힘 동안 떠난 사람이 그 창에 <b>유령으로 영영</b> 남는다(CI 가 그 자리를 잡았다).
 						// ★ 밀렸을 때야말로 <b>들판을 먼저</b> — 사람 몇 명보다 「없어진 자리」가 먼저다 (TASK-WM-343).
+						// ★ 소식을 실을 때는 <b>사람을 더 줄인다</b> (TASK-WM-343): 좁은 회선에서 사람 몇 명이
+						//   폭을 다 쓰면 한 번짜리 소식이 못 나간다. 사람은 잠깐 덜 보여도 되지만
+						//   「없어진 자리」가 남으면 사람은 그걸 고장으로 읽는다.
 						bool putFieldIn = fieldVersion != target.SentFieldVersion;
+						if (putFieldIn)
+							allowedDolls = InterestCrowd.FEWEST_VISIBLE_DOLLS;
 						target.MissedAPlate = true;
 						if (putFieldIn == false)
 							target.NeedsWholeField = true;   // 들판을 못 실었으면 다음에 통째로 줘야 한다
