@@ -11,6 +11,8 @@
 //
 // 필요한 것: .NET 8 · playwright + chromium (`WM_PLAYWRIGHT_ROOT`).
 // exit: 0 = 버틴다 · 1 = 못 버틴다 · 2 = 못 돌림
+//
+// [빨강-확인] 세계가 <b>세 명만</b> 보내게 하니 빨강 — 「창이 사람들을 본다(적어도 10명) — ◈ 3명」 (2026-08-14)
 
 import { spawn, execSync } from 'node:child_process';
 import { createRequire } from 'node:module';
@@ -205,7 +207,12 @@ check('창이 사람들 한복판에서도 붙어 있다', status === '붙었다
 //   느린 기계에서도 태생적 빨강이 안 된다(200명 광장에서도 실측 여유가 컸다).
 check('들어가면 곧 세계가 보인다 (10초 안)', openedInMilliseconds <= 10000,
 	`${(openedInMilliseconds / 1000).toFixed(1)}초`);
-check(`창이 사람들을 본다`, /\d/.test(shown || '') && Number((shown || '').replace(/\D/g, '')) > 1,
+// ★ 「한 명보다 많다」로는 <b>세 명만 보이는 판</b>도 통과한다 (관문 규율 ⑦ — 견줌·바닥, 2026-08-14 실측:
+//   세계가 세 명만 보내게 해도 이 관문은 초록이었다). 광장이 광장으로 보이려면 바닥이 있어야 한다.
+//   [문턱-사유] (c) 제품 상수 — 세계가 한 창에 보여 주기로 한 수(48)의 넉넉한 아래쪽, 무리 40명 기준 10명.
+const LEAST_IN_A_CROWD = 10;
+check(`창이 사람들을 본다 (적어도 ${LEAST_IN_A_CROWD}명)`,
+	/\d/.test(shown || '') && Number((shown || '').replace(/\D/g, '')) >= LEAST_IN_A_CROWD,
 	`화면 표시: ${shown}`);
 const keepFloor = Math.max(MIN_FRAMES_PER_SECOND, idleFps * MIN_CROWD_KEEP_RATIO);
 check('한산할 때부터 그려지고 있다', idleFps >= MIN_FRAMES_PER_SECOND, `${idleFps.toFixed(1)}fps`);
