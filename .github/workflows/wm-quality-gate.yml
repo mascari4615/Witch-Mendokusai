@@ -165,10 +165,10 @@ jobs:
       # 화면도 멀쩡한 채로 계약이 반쪽이 된다(WM-230 이 그렇게 나갔다).
       # 자르는 숫자마다 「왜 그 숫자인가」가 옆에 적혀 있나 (TASK-WM-323) — 코드만 읽어 몇 초다.
       - name: Run threshold audit
-        run: node ./.github/scripts/wm-threshold-audit.mjs
+        run: node ./.github/scripts/run-gate.mjs ./.github/scripts/wm-threshold-audit.mjs
 
       - name: Run dead-parameter audit
-        run: node ./.github/scripts/wm-dead-parameter-audit.mjs
+        run: node ./.github/scripts/run-gate.mjs ./.github/scripts/wm-dead-parameter-audit.mjs
 
       # 검사기가 아직 눈을 뜨고 있나 — 표본으로 먼저 본다 (TASK-WM-211).
       #
@@ -206,7 +206,7 @@ jobs:
 
       # TASK-WM-217 -- 웹 창이 계약을 따라가고 있나(문법·서버 말·손잡이). 창엔 시험이 없다.
       - name: Run web client gate
-        run: node ./.github/scripts/wm-web-client-gate.mjs
+        run: node ./.github/scripts/run-gate.mjs ./.github/scripts/wm-web-client-gate.mjs
 
       # TASK-WM-217 -- 「번호 0을 없음으로」 쓰는 자리를 막는다. WM 의 나무가 0번이라
       # 그 자리는 그 종류를 조용히 지운다(하루에 세 번 밟았다 — 사람 기억으로 막을 부류가 아니다).
@@ -216,24 +216,24 @@ jobs:
       # 웹 창에는 감시가 있었는데 게임 창에는 없었다 — 그 사이 마도서를 한 번도 안 읽었고,
       # 솥 비우기·완성이 폐기된 옛 길로 나가 조용히 안 됐다(둘 다 컴파일은 초록이었다).
       - name: Run game client gate
-        run: node ./.github/scripts/wm-game-client-gate.mjs
+        run: node ./.github/scripts/run-gate.mjs ./.github/scripts/wm-game-client-gate.mjs
 
       # TASK-WM-217 -- 웹 창이 <b>보여 주는 글</b>이 맞나(「나무 2/2」 같은 것).
       # 창의 순수 계산(picker.mjs)만 떼어 진짜 데이터로 돌린다 — DOM 없이 도는 자리다.
       - name: Run web picker test
-        run: node ./.github/scripts/wm-web-picker-test.mjs
+        run: node ./.github/scripts/run-gate.mjs ./.github/scripts/wm-web-picker-test.mjs
 
       # TASK-WM-217 -- 끊긴 줄을 언제 다시 이을까 (웹 창 몫). 게임 창엔 있고 웹엔 없던 규칙이다.
       - name: Run web link test
-        run: node ./.github/scripts/wm-web-link-test.mjs
+        run: node ./.github/scripts/run-gate.mjs ./.github/scripts/wm-web-link-test.mjs
 
       # TASK-WM-235 -- 걷는 자리가 둘이 됐다(지도 2D · 세계 3D). 같은 규칙을 두 벌 적으면
       # 갈라지고, 갈라진 걸음은 「나만 다른 데 서 있는」 세계가 된다. 한 벌을 여기서 못박는다.
       - name: Run web walk test
-        run: node ./.github/scripts/wm-web-walk-test.mjs
+        run: node ./.github/scripts/run-gate.mjs ./.github/scripts/wm-web-walk-test.mjs
 
       - name: Run zero-id guard
-        run: node ./.github/scripts/wm-zero-id-guard.mjs
+        run: node ./.github/scripts/run-gate.mjs ./.github/scripts/wm-zero-id-guard.mjs
 
   web-live:
     name: web window lives (real browser)
@@ -265,7 +265,7 @@ jobs:
       - name: Run web reconnect smoke
         env:
           WM_PLAYWRIGHT_ROOT: /tmp/wm-playwright
-        run: node ./.github/scripts/wm-web-reconnect-smoke.mjs
+        run: node ./.github/scripts/run-gate.mjs ./.github/scripts/wm-web-reconnect-smoke.mjs
 
       # TASK-WM-217 -- 둘이 되는 것과 마흔이 되는 것은 다른 일이다. 봇을 몰아넣고
       # 그 한복판에서 창이 계속 그려지는지·알림이 사람 수만큼 부푸는지 <b>수치로</b> 본다.
@@ -273,21 +273,21 @@ jobs:
         env:
           WM_PLAYWRIGHT_ROOT: /tmp/wm-playwright
           WM_CROWD: '40'
-        run: node ./.github/scripts/wm-web-crowd-smoke.mjs
+        run: node ./.github/scripts/run-gate.mjs ./.github/scripts/wm-web-crowd-smoke.mjs
 
       # TASK-WM-223 -- 「얼마나 보냈나」로는 못 보는 자리. 서버가 20Hz 로 정확히 보내도
       # 그 사이를 안 메우면 화면은 툭툭 끊긴다. 프레임마다 <b>그려진 자리</b>를 직접 본다.
       - name: Run web smoothness test
         env:
           WM_PLAYWRIGHT_ROOT: /tmp/wm-playwright
-        run: node ./.github/scripts/wm-web-smoothness-test.mjs
+        run: node ./.github/scripts/run-gate.mjs ./.github/scripts/wm-web-smoothness-test.mjs
 
       # TASK-WM-224 -- 지금까지의 모든 수치는 loopback(지연 0)에서 나왔다. 세계 앞에 진짜
       # TCP 회선(왕복 200ms·흔들림 30ms)을 세우고 창도 봇도 그리로만 붙인다.
       - name: Run web bad-line test
         env:
           WM_PLAYWRIGHT_ROOT: /tmp/wm-playwright
-        run: node ./.github/scripts/wm-web-badline-test.mjs
+        run: node ./.github/scripts/run-gate.mjs ./.github/scripts/wm-web-badline-test.mjs
 
       # TASK-WM-225 -- 좁은 회선에서 창이 「과거」를 보고 있지 않나. 화면은 부드러운 채로
       # 몇 초 전 세계를 보여 줄 수 있다(버퍼가 쌓이면). 정보의 나이를 직접 잰다.
@@ -295,34 +295,34 @@ jobs:
         env:
           WM_PLAYWRIGHT_ROOT: /tmp/wm-playwright
           WM_CROWD: '40'
-        run: node ./.github/scripts/wm-web-narrow-line-test.mjs
+        run: node ./.github/scripts/run-gate.mjs ./.github/scripts/wm-web-narrow-line-test.mjs
 
       # TASK-WM-247 -- prod 는 push 할 때마다 세계를 껐다 켠다. 그 순간 붙어 있던 모두가
       # 동시에 끊기고 동시에 다시 붙는다 — 들어올 때가 제일 비싼데 그게 한꺼번에 온다.
       - name: Run web herd test
         env:
           WM_HERD: '40'
-        run: node ./.github/scripts/wm-web-herd-test.mjs
+        run: node ./.github/scripts/run-gate.mjs ./.github/scripts/wm-web-herd-test.mjs
 
       # TASK-WM-249 -- 회선이 아주 나쁘면 3D 엔진은 몇십 초 뒤에 오거나 끝내 안 온다.
       # 그 사이 아무것도 못 하면 그건 게임이 아니라 기다리는 화면이다. 엔진을 막고 재 본다.
       - name: Run web map-only test
         env:
           WM_PLAYWRIGHT_ROOT: /tmp/wm-playwright
-        run: node ./.github/scripts/wm-web-map-only-test.mjs
+        run: node ./.github/scripts/run-gate.mjs ./.github/scripts/wm-web-map-only-test.mjs
 
       # TASK-WM-255 -- 국경은 가장 위험한 순간이다: 보낸 세계는 나를 내보냈고 받는 세계는 아직
       # 나를 모른다. 그 사이 회선이 늦거나 끊기면 사람은 두 세계 어디에도 없게 된다.
       - name: Run web border test
         env:
           WM_PLAYWRIGHT_ROOT: /tmp/wm-playwright
-        run: node ./.github/scripts/wm-web-border-test.mjs
+        run: node ./.github/scripts/run-gate.mjs ./.github/scripts/wm-web-border-test.mjs
 
       # TASK-WM-262 -- 싸움 판정은 세계의 <지금> 자리로 본다. 그런데 창이 보는 자리는 회선만큼
       # 낡았다(왕복 200ms 면 상대는 이미 0.6m 옆). 「붙어서 쳤는데 안 맞는다」가 거기서 난다.
       # 지금까지의 싸움 측정은 전부 지연 0 의 loopback 이었다 -- 여기서 처음 나쁜 회선으로 잰다.
       - name: Run strike lag test
-        run: node ./.github/scripts/wm-web-strike-lag-test.mjs
+        run: node ./.github/scripts/run-gate.mjs ./.github/scripts/wm-web-strike-lag-test.mjs
 
       # TASK-WM-267 -- 국경 너머 보기·말 건너기(WM-263·264)는 서버 시험으로만 쟀다. 사람이 보는 것은
       # 창이다: 세계가 보내 줘도 창이 안 그리면 그 사람에게는 여전히 벽이다. 그리고 그림자는
@@ -330,14 +330,14 @@ jobs:
       - name: Run web beyond-the-border test
         env:
           WM_PLAYWRIGHT_ROOT: /tmp/wm-playwright
-        run: node ./.github/scripts/wm-web-beyond-test.mjs
+        run: node ./.github/scripts/run-gate.mjs ./.github/scripts/wm-web-beyond-test.mjs
 
       # TASK-WM-268 -- 세계는 말을 나를 줄 알았는데(WM-250) 창에 말할 자리가 없어 사람은 한 마디도
       # 못 했다. 혼자 걷는 화면과 같이 노는 세계를 가르는 것이 그것이다.
       - name: Run web say test
         env:
           WM_PLAYWRIGHT_ROOT: /tmp/wm-playwright
-        run: node ./.github/scripts/wm-web-say-test.mjs
+        run: node ./.github/scripts/run-gate.mjs ./.github/scripts/wm-web-say-test.mjs
 
       # TASK-WM-269 -- 몰린 곳 측정(WM-217)은 전부 loopback 이었다. 몰린 곳에서 제일 먼저 무너지는
       # 것이 회선인데, 지연이 붙었을 때 세계가 창을 "뒤처졌다"고 보고 사람을 줄이는 자리(WM-228)가
@@ -345,49 +345,49 @@ jobs:
       - name: Run crowd on a bad line test
         env:
           WM_PLAYWRIGHT_ROOT: /tmp/wm-playwright
-        run: node ./.github/scripts/wm-web-crowd-badline-test.mjs
+        run: node ./.github/scripts/run-gate.mjs ./.github/scripts/wm-web-crowd-badline-test.mjs
 
       # TASK-WM-270 -- 내 화면의 나는 세계의 답을 안 기다리고 먼저 간다(앞질러 그리기). 그 앞섬이
       # "도로 끌어오는 거리"(4m)를 넘으면 사람은 뒤로 끌려간다 = "가끔 튄다". 그 한계를 잰다.
       - name: Run prediction lead test
         env:
           WM_PLAYWRIGHT_ROOT: /tmp/wm-playwright
-        run: node ./.github/scripts/wm-web-lead-test.mjs
+        run: node ./.github/scripts/run-gate.mjs ./.github/scripts/wm-web-lead-test.mjs
 
       # TASK-WM-274 -- 같은 것을 둘이 노리면 하나만 가진다(세계 판정은 시험 있음). 그런데 진 사람
       # 화면은 아무도 안 봤다: 늦은 회선에서는 이미 없어진 것을 계속 보고 있게 된다.
       - name: Run contest loser view test
         env:
           WM_PLAYWRIGHT_ROOT: /tmp/wm-playwright
-        run: node ./.github/scripts/wm-web-contest-test.mjs
+        run: node ./.github/scripts/run-gate.mjs ./.github/scripts/wm-web-contest-test.mjs
 
       # TASK-WM-277 -- 사람이 실제로 겪는 것은 "창을 새로 여는 일"이다(새로고침·탭 닫았다 열기).
       # 그때 열쇠를 못 들고 가면 남이 된다: 가방도 자리도 남의 것이 된다.
       - name: Run still-me after reload test
         env:
           WM_PLAYWRIGHT_ROOT: /tmp/wm-playwright
-        run: node ./.github/scripts/wm-web-still-me-test.mjs
+        run: node ./.github/scripts/run-gate.mjs ./.github/scripts/wm-web-still-me-test.mjs
 
       # TASK-WM-283 -- 걸음은 앞질러 그려 곧바로 움직이는데, 줍기·짓기는 세계의 답을 기다린다.
       # 왕복 200ms 에서 271ms 동안 화면이 아무 말도 안 했다 -- 사람은 "안 눌렸다"로 읽고 또 누른다.
       - name: Run instant answer test
         env:
           WM_PLAYWRIGHT_ROOT: /tmp/wm-playwright
-        run: node ./.github/scripts/wm-web-answer-test.mjs
+        run: node ./.github/scripts/run-gate.mjs ./.github/scripts/wm-web-answer-test.mjs
 
       # TASK-WM-287 -- 짓기는 줍기보다 한 겹 더 있다(재료를 쓰고·땅을 고르고·남에게도 보인다).
       # 세계 쪽 판정은 시험이 있지만 <창에서 눌러 짓는 길>은 진짜 창으로 안 재봤다.
       - name: Run web build test
         env:
           WM_PLAYWRIGHT_ROOT: /tmp/wm-playwright
-        run: node ./.github/scripts/wm-web-build-test.mjs
+        run: node ./.github/scripts/run-gate.mjs ./.github/scripts/wm-web-build-test.mjs
 
       # TASK-WM-296 -- 지금까지 잰 것은 전부 몇 초짜리다. 세계는 며칠 돈다(prod = 노트북 24시간).
       # 며칠 도는 서버에서 무너지는 것은 프레임이 아니라 천천히 자라는 것이다.
       - name: Run server soak test
         env:
           WM_SOAK_MS: 90000
-        run: node ./.github/scripts/wm-server-soak-test.mjs
+        run: node ./.github/scripts/run-gate.mjs ./.github/scripts/wm-server-soak-test.mjs
 
       # TASK-WM-300/301 -- 지금까지의 "다시 붙기"는 전부 짧은 끊김이었다(몇 초). 배포는 40초 남짓,
       # 노트북은 잠들었다 깬다. 이 관문이 세우자마자 "같은 기계에서 열면 세계가 텅 빈다"를 잡았다.
@@ -395,13 +395,13 @@ jobs:
         env:
           WM_PLAYWRIGHT_ROOT: /tmp/wm-playwright
           WM_OUTAGE_MS: 30000
-        run: node ./.github/scripts/wm-web-long-outage-test.mjs
+        run: node ./.github/scripts/run-gate.mjs ./.github/scripts/wm-web-long-outage-test.mjs
 
       # 가장 빠른 회선 + 혼자 — WM-301 이 났던 바로 그 자리 (TASK-WM-302).
       - name: Run alone test
         env:
           WM_PLAYWRIGHT_ROOT: /tmp/wm-playwright
-        run: node ./.github/scripts/wm-web-alone-test.mjs
+        run: node ./.github/scripts/run-gate.mjs ./.github/scripts/wm-web-alone-test.mjs
 
       # 나쁜 회선이라고 계속 헛치지는 않는다 (TASK-WM-303).
       #
@@ -409,62 +409,53 @@ jobs:
       #   그건 제품이 아니라 재는 자리의 사정이다(domain-wm.md § 관문 규율 ②).
       #   빨강(exit 1)은 그대로 세운다.
       - name: Run strike fairness test
-        run: |
-          set +e
-          node ./.github/scripts/wm-badline-strike-fairness-test.mjs
-          code=$?
-          set -e
-          if [ "$code" = "2" ]; then
-            echo "::warning::공평함 관문을 이번 판에서는 못 쟀다 (표본 부족) — 빨강 아님"
-            exit 0
-          fi
-          exit $code
+        run: node ./.github/scripts/run-gate.mjs ./.github/scripts/wm-badline-strike-fairness-test.mjs
 
       # 남의 걸음이 나쁜 회선에서도 매끄러운가 (TASK-WM-304).
       - name: Run smoothness test
         env:
           WM_PLAYWRIGHT_ROOT: /tmp/wm-playwright
-        run: node ./.github/scripts/wm-web-smooth-test.mjs
+        run: node ./.github/scripts/run-gate.mjs ./.github/scripts/wm-web-smooth-test.mjs
 
       # 끊기는 순간 누른 것이 사라지지도 두 번 되지도 않는다 (TASK-WM-305).
       - name: Run lost action test
-        run: node ./.github/scripts/wm-lost-action-test.mjs
+        run: node ./.github/scripts/run-gate.mjs ./.github/scripts/wm-lost-action-test.mjs
 
       # 나간 사람이 화면에 유령으로 안 남는다 (TASK-WM-306).
       - name: Run ghost test
         env:
           WM_PLAYWRIGHT_ROOT: /tmp/wm-playwright
-        run: node ./.github/scripts/wm-web-ghost-test.mjs
+        run: node ./.github/scripts/run-gate.mjs ./.github/scripts/wm-web-ghost-test.mjs
 
       # 세계를 바꾸는 말은 모두 「한 번만」 문을 지난다 (TASK-WM-308) — 코드를 읽는 감사라 빠르다.
       - name: Run action-once audit
-        run: node ./.github/scripts/wm-action-once-audit.mjs
+        run: node ./.github/scripts/run-gate.mjs ./.github/scripts/wm-action-once-audit.mjs
 
       # 국경을 넘다 끊겨도 나로, 짐 그대로 도착한다 (TASK-WM-309).
       - name: Run border cut test
-        run: node ./.github/scripts/wm-border-cut-test.mjs
+        run: node ./.github/scripts/run-gate.mjs ./.github/scripts/wm-border-cut-test.mjs
 
       # 「했다」고 답한 일은 세계가 갑자기 죽어도 남는다 (TASK-WM-310).
       - name: Run crash durability test
-        run: node ./.github/scripts/wm-crash-durability-test.mjs
+        run: node ./.github/scripts/run-gate.mjs ./.github/scripts/wm-crash-durability-test.mjs
 
       # 기억을 못 적으면 그 사실이 밖에서 보인다 (TASK-WM-311).
       - name: Run save failure test
-        run: node ./.github/scripts/wm-save-failure-test.mjs
+        run: node ./.github/scripts/run-gate.mjs ./.github/scripts/wm-save-failure-test.mjs
 
       # 진짜 창 여럿이 동시에 들어와도 서로 보인다 (TASK-WM-312).
       - name: Run many windows test
         env:
           WM_PLAYWRIGHT_ROOT: /tmp/wm-playwright
-        run: node ./.github/scripts/wm-web-many-windows-test.mjs
+        run: node ./.github/scripts/run-gate.mjs ./.github/scripts/wm-web-many-windows-test.mjs
 
       # 여럿이 같은 순간에 국경을 넘어도 아무도 안 사라진다 (TASK-WM-318).
       - name: Run border stampede test
-        run: node ./.github/scripts/wm-border-stampede-test.mjs
+        run: node ./.github/scripts/run-gate.mjs ./.github/scripts/wm-border-stampede-test.mjs
 
       # 앞서 있는 저장 하늘을 세계가 되돌린다 (TASK-WM-320).
       - name: Run stale sky test
-        run: node ./.github/scripts/wm-stale-sky-test.mjs
+        run: node ./.github/scripts/run-gate.mjs ./.github/scripts/wm-stale-sky-test.mjs
 
   unity:
     name: EditMode tests (laptop runner)
