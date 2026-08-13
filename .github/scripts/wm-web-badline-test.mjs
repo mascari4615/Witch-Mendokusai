@@ -10,6 +10,9 @@
 //
 // 필요한 것: .NET 8 · playwright + chromium (`WM_PLAYWRIGHT_ROOT`).
 // exit: 0 = 논다 · 1 = 못 논다 · 2 = 못 돌림
+//
+// [빨강-확인] 「끊김 안내」 자취 검사를 껐던 판에서 실제로 빨강이 났다(CI: 화면 "붙었다") — 그걸 고친 것이 이 관문이다.
+//   회선 몫 검사도 -57ms 로 빨개졌던 판이 있다(음수를 실패로 읽던 시절) — 지금은 위쪽만 본다 (2026-08-14)
 
 import { spawn, execSync } from 'node:child_process';
 import { createRequire } from 'node:module';
@@ -257,11 +260,25 @@ let straightPaint = -1;
 	await other.close();
 }
 
-const addedByLine = straightPaint < 0 || firstPaint < 0 ? -1 : firstPaint - straightPaint;
+// ⚠ 「못 잼」과 「빨랐다」를 <b>같은 -1 로 뭉개면</b> 안 된다 (2026-08-14 CI 실측):
+//   두 판이 다 1.5초쯤이라 나쁜 회선이 <b>57ms 더 빨랐고</b>, 그걸 「음수 = 실패」로 읽어 빨개졌다.
+//   제품이 더 좋았는데 빨강이 난 것이다. 못 잰 것은 null 로 갈라 CANNOT-RUN 으로 보낸다.
+const measured = straightPaint >= 0 && firstPaint >= 0;
+const addedByLine = measured ? firstPaint - straightPaint : null;
 console.log(`  ⓘ 세계에 들어가기 — 곧은 회선 ${straightPaint}ms · 나쁜 회선 ${firstPaint}ms`
-	+ ` (회선이 더한 몫 ${addedByLine}ms)`);
+	+ ` (회선이 더한 몫 ${addedByLine === null ? '못 잼' : addedByLine + 'ms'})`);
+if (measured === false) {
+	// ⚠ 여기서 그냥 나가면 세계와 창이 <b>살아 남는다</b> — 다음 판이 포트를 못 잡는다(WM-265 의 그 자리).
+	await browser.close().catch(() => { /* 이미 닫혔다 */ });
+	await badLine.close();
+	killWorld();
+	cannotRun(`첫 화면을 한쪽에서 못 쟀다 (곧은 ${straightPaint}ms · 나쁜 ${firstPaint}ms) — 회선 몫을 못 가른다`);
+}
+
+// [문턱-사유] (a) 같은 판의 <b>곧은 회선</b>과의 차이 — 기계가 느리면 두 판이 같이 느려지므로 뜻이 안 변한다.
+//   위쪽만 본다: 나쁜 회선이 더 빠르게 나오는 판도 있다(측정 흔들림) — 그건 제품 소식이 아니다.
 check(`나쁜 회선이 더하는 시간이 ${MOST_ADDED_BY_LINE_MS}ms 안이다`,
-	addedByLine >= 0 && addedByLine <= MOST_ADDED_BY_LINE_MS,
+	addedByLine <= MOST_ADDED_BY_LINE_MS,
 	`${addedByLine}ms 더 걸렸다 (곧은 ${straightPaint}ms → 나쁜 ${firstPaint}ms)`);
 
 // 3D 는 뒤에 온다 — 엔진 138KB 를 나쁜 회선으로 받는 값이다. 여기서는 <b>오기는 하나</b>만 본다.
