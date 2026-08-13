@@ -40,6 +40,7 @@ on:
       - '.github/scripts/wm-web-walk-test.mjs'
       - '.github/scripts/wm-web-reconnect-smoke.mjs'
       - '.github/scripts/wm-web-crowd-smoke.mjs'
+      - '.github/scripts/wm-web-crowd-windows-test.mjs'
       - '.github/scripts/wm-web-smoothness-test.mjs'
       - '.github/scripts/wm-web-badline-test.mjs'
       - '.github/scripts/wm-web-narrow-line-test.mjs'
@@ -93,6 +94,7 @@ on:
       - '.github/scripts/wm-web-walk-test.mjs'
       - '.github/scripts/wm-web-reconnect-smoke.mjs'
       - '.github/scripts/wm-web-crowd-smoke.mjs'
+      - '.github/scripts/wm-web-crowd-windows-test.mjs'
       - '.github/scripts/wm-web-smoothness-test.mjs'
       - '.github/scripts/wm-web-badline-test.mjs'
       - '.github/scripts/wm-web-narrow-line-test.mjs'
@@ -274,6 +276,14 @@ jobs:
           WM_PLAYWRIGHT_ROOT: /tmp/wm-playwright
           WM_CROWD: '40'
         run: node ./.github/scripts/run-gate.mjs ./.github/scripts/wm-web-crowd-smoke.mjs
+
+      # TASK-WM-345 -- 「무리 + 창 하나」와 「창 셋 + 무리 없음」이 다 초록이어도 <b>창 셋이 같은 무리에</b>
+      # 있을 때는 다르다. 세계는 창마다 따로 좁히므로 <b>한 창만 굶는</b> 편식이 생긴다(실제로 그랬다).
+      - name: Run web crowd windows test
+        env:
+          WM_PLAYWRIGHT_ROOT: /tmp/wm-playwright
+          WM_CROWD: '40'
+        run: node ./.github/scripts/run-gate.mjs ./.github/scripts/wm-web-crowd-windows-test.mjs
 
       # TASK-WM-223 -- 「얼마나 보냈나」로는 못 보는 자리. 서버가 20Hz 로 정확히 보내도
       # 그 사이를 안 메우면 화면은 툭툭 끊긴다. 프레임마다 <b>그려진 자리</b>를 직접 본다.

@@ -275,6 +275,25 @@ namespace WitchMendokusai.Server
 			/// </summary>
 			public int Sending;
 
+			/// <summary>
+			/// 이 창 하나에 대한 <b>줄 장부</b> (TASK-WM-345) — 나간 판 · 줄이 막혀 건너뛴 판 · 박자를 늦춰 건너뛴 판.
+			///
+			/// ★ 왜 세나: 창 셋이 같은 무리에 있을 때 <b>한 창만</b> 초당 1.8장을 받는 것을 봤다(다른 둘은 20장).
+			///   화면만 봐서는 「느리다」밖에 모른다 — 세계가 <b>안 보낸 것</b>인지, 보냈는데 <b>줄이 막힌 것</b>인지
+			///   가르려면 이 세 숫자가 있어야 한다. 자를 먼저 세우고 고친다(황금의 정신).
+			/// </summary>
+			public long PlatesSent;
+
+			public long PlatesSkippedBusy;
+
+			public long PlatesSkippedPlan;
+
+			/// <summary>이 줄에 한 장을 밀어 넣는 데 걸린 가장 긴 시간 (TASK-WM-345 — 「줄이 안 빠진다」의 증거).</summary>
+			public long LongestSendMs;
+
+			/// <summary>지금 줄에 밀어 넣는 중인 장 수 — 문(SendGate) 앞에 선 것까지 (TASK-WM-345).</summary>
+			public int InFlight;
+
 			public int SentBuildVersion = -1;
 			public int SentFieldVersion = -1;
 			public int SentPotVersion = -1;
@@ -510,6 +529,33 @@ namespace WitchMendokusai.Server
 			app.UseDefaultFiles();
 			app.UseStaticFiles();
 			app.UseWebSockets();
+
+			// ★ <b>줄마다 따로 본다</b> (TASK-WM-345) — 창이 여럿일 때 「누가 굶고 있나」를 세는 자리.
+			//   /health 는 세계 전체의 합이라, 한 창만 초당 1.8장을 받아도 합에서는 안 보인다.
+			//   나간 판 / 줄이 막혀 건너뛴 판 / 박자를 늦춰 건너뛴 판 — 이 셋이 갈라져야
+			//   「세계가 안 보낸 것」과 「줄이 안 빠진 것」을 가른다.
+			app.MapGet("/lines", () =>
+			{
+				System.Collections.Generic.List<object> lines = new System.Collections.Generic.List<object>();
+				foreach (System.Collections.Generic.KeyValuePair<int, Connection> entry in sockets)
+				{
+					lines.Add(new
+					{
+						dollId = entry.Key,
+						sent = entry.Value.PlatesSent,
+						skippedBusy = entry.Value.PlatesSkippedBusy,
+						skippedPlan = entry.Value.PlatesSkippedPlan,
+						missedInARow = entry.Value.MissedInARow,
+						roundTripMs = lineTime.RoundTripMsFor(entry.Key),
+						bestRoundTripMs = lineTime.BestRoundTripMsFor(entry.Key),
+						longestSendMs = entry.Value.LongestSendMs,
+						inFlight = entry.Value.InFlight,
+						state = entry.Value.Socket.State.ToString(),
+					});
+				}
+
+				return Results.Json(new { ok = true, lines });
+			});
 
 			// 사람이 눈으로 살아있음을 확인하는 자리 — 게이트도 여기를 찌른다.
 			// ★ 「살아 있다」만으로는 부족하다: 세계가 <b>돌고 있는지</b>(시각이 흐르는지, 사람이 있는지,
@@ -1914,6 +1960,7 @@ namespace WitchMendokusai.Server
 			try
 			{
 				long bytes = snapshot.Length;
+				target.PlatesSent += 1;
 				Interlocked.Increment(ref broadcastSnapshotMessages);
 				Interlocked.Add(ref broadcastSnapshotBytes, bytes);
 				UpdateLargestSnapshot(bytes);
@@ -2056,6 +2103,7 @@ namespace WitchMendokusai.Server
 					// 대신 「건너뛰었다」고 적어 둔다: 다음 판은 <b>전부</b>를 줘야 그 창의 세계가 안 어긋난다.
 					if (Interlocked.CompareExchange(ref entry.Value.Sending, 1, 0) != 0)
 					{
+						entry.Value.PlatesSkippedBusy += 1;
 						entry.Value.MissedAPlate = true;
 						entry.Value.NeedsWholeField = true;   // 놓친 판에 들판 소식이 있었을 수 있다 (TASK-WM-343)
 						entry.Value.MissedInARow += 1;
@@ -2094,8 +2142,16 @@ namespace WitchMendokusai.Server
 					target.MissedInARow = plan.BehindSteps;
 					if (plan.Send == false)
 					{
+						target.PlatesSkippedPlan += 1;
 						target.MissedAPlate = true;
 						target.NeedsWholeField = true;   // 건너뛴 판에 들판 소식이 있었을 수 있다 (TASK-WM-343)
+
+						// ★ <b>「보내는 중」 표를 도로 내려놓는다</b> (TASK-WM-345). 이걸 안 내려놓아
+						//   그 창은 <b>영영 「보내는 중」</b>이 되고, 다음 판부터 모든 판이
+						//   「줄이 막혔다」로 건너뛰어졌다 — 스무 판에 한 장(초당 1.8장)만 받는 창이 됐다.
+						//   실측 2026-08-14(창 셋·곧은 회선): 셋째 창 나감 39 · 막힘 277 · 연달아 280,
+						//   그런데 <b>가장 긴 밀어넣기는 15ms</b>였다(줄은 멀쩡했다 — 표만 안 내려놨다).
+						Interlocked.Exchange(ref target.Sending, 0);
 						continue;
 					}
 
@@ -3098,10 +3154,15 @@ namespace WitchMendokusai.Server
 		/// </summary>
 		private async Task SendBytesAsync(Connection connection, byte[] payload)
 		{
+			long startedAt = System.Environment.TickCount64;
+			System.Threading.Interlocked.Increment(ref connection.InFlight);
 			await connection.SendGate.WaitAsync();
 			try
 			{
 				await connection.Socket.SendAsync(new ArraySegment<byte>(payload), WebSocketMessageType.Text, true, CancellationToken.None);
+				long took = System.Environment.TickCount64 - startedAt;
+				if (took > connection.LongestSendMs)
+					connection.LongestSendMs = took;
 			}
 			catch (WebSocketException)
 			{
@@ -3109,6 +3170,7 @@ namespace WitchMendokusai.Server
 			}
 			finally
 			{
+				System.Threading.Interlocked.Decrement(ref connection.InFlight);
 				connection.SendGate.Release();
 			}
 		}
