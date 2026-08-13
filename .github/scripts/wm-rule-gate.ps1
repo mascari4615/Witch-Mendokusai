@@ -43,6 +43,16 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
+# ★ git 출력은 UTF-8 로 받는다 (2026-08-13, TASK-WM-326).
+#   PowerShell 5.1 은 외부 명령의 stdout 을 <콘솔 코드페이지>(여기선 949)로 디코드한다.
+#   한글 주석이 든 .cs 를 그렇게 읽으면 UTF-8 바이트가 이중바이트로 잘못 묶이면서
+#   **뒤따르는 줄바꿈(0x0A)이 통째로 먹힌다** -- 그러면 `// 주석` 이 다음 줄까지 삼켜서
+#   `Mine = 3,` `Craft = 5,` 와 enum 의 닫는 괄호가 텍스트에서 사라진다.
+#   결과는 있지도 않은 룰 위반이다: BootPhase/WorkKind 는 값을 다 적어 뒀는데도
+#   push 때만 ENUM-VALUE 빨강이 났다(작업 트리로 읽는 전수 검사는 초록 -- 같은 코드, 다른 판정).
+#   검사기가 <파일을 잘못 읽어> 내는 빨강은 제품 소식이 아니다.
+[Console]::OutputEncoding = New-Object System.Text.UTF8Encoding($false)
+
 if (-not [string]::IsNullOrWhiteSpace($PathsFrom))
 {
     if (-not (Test-Path $PathsFrom))
@@ -191,7 +201,7 @@ if ($commitScoped)
     foreach ($path in $Paths)
     {
         if ([string]::IsNullOrWhiteSpace($path)) { continue }
-        $blob = & git show "${Sha}:${path}" 2>$null
+        $blob = & git show "${Sha}:${path}" 2>$null   # UTF-8 로 디코드된다 (위 참조)
         if ($LASTEXITCODE -ne 0) { continue }   # deleted in this commit -- nothing to judge
         $relative = $path -replace '^Assets/_WitchMendokusai/', ''
         [void]$subjects.Add([pscustomobject]@{ Relative = $relative; Lines = @($blob) })
