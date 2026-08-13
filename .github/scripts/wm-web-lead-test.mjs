@@ -13,6 +13,10 @@
 //
 // 필요한 것: .NET 8 · playwright + chromium (`WM_PLAYWRIGHT_ROOT`).
 // exit: 0 = 버틴다 · 1 = 못 버틴다 · 2 = 못 돌림
+//
+// [빨강-확인] 창만 세 배로 걷게 하니(WALK_SPEED 3 → 9) 「유실이 섞여도 도로 끌려가지 않는다」 빨강.
+//   ⓘ 앞질러 그리기를 아예 끄거나 끌어당김 거리를 0.2m 로 줄이면 <b>CANNOT-RUN</b> 이 먼저 난다 —
+//     세계에서 실제로 안 움직이므로 이 관문은 <b>등급을 안 매긴다</b>(그게 옳다) (2026-08-14)
 
 import { spawn, execSync } from 'node:child_process';
 import { createRequire } from 'node:module';

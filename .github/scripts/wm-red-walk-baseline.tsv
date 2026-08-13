@@ -13,7 +13,6 @@ wm-web-contest-test.mjs
 wm-web-crowd-badline-test.mjs
 wm-web-crowd-smoke.mjs
 wm-web-herd-test.mjs
-wm-web-lead-test.mjs
 wm-web-link-test.mjs
 wm-web-map-only-test.mjs
 wm-web-narrow-line-test.mjs
