@@ -27,7 +27,10 @@ namespace WitchMendokusai.Net
 		/// <summary>맡아 둔 것이 풀리기까지 (ms) — 도착이 이보다 오래 걸리면 그건 실패한 도착이다.</summary>
 		public const long CLAIM_GOOD_FOR_MS = 10000;
 
-		private readonly Dictionary<string, long> claimed = new Dictionary<string, long>();
+		/// <summary>맡아 둔 통행증 — 언제, <b>누가</b>. 주인을 같이 적어야 「같은 사람의 재시도」와
+		/// 「남의 복사 시도」를 가를 수 있다 (TASK-WM-337).</summary>
+		private readonly Dictionary<string, (long When, string Owner)> claimed =
+			new Dictionary<string, (long When, string Owner)>();
 		private readonly Dictionary<string, long> delivered = new Dictionary<string, long>();
 		private readonly object gate = new object();
 
@@ -49,6 +52,20 @@ namespace WitchMendokusai.Net
 		/// </summary>
 		public bool TryClaim(string pass, long nowMs, out bool needsLuggage)
 		{
+			return TryClaim(pass, nowMs, string.Empty, out needsLuggage);
+		}
+
+		/// <summary>
+		/// 주인을 밝히고 맡는다 (TASK-WM-337).
+		///
+		/// ★ 왜 주인이 필요한가 (실측 2026-08-14): 통행증을 집은 <b>뒤</b> 짐을 받기 전에 줄이 끊기면,
+		///   그 사람은 <see cref="CLAIM_GOOD_FOR_MS"/> 동안 <b>자기 통행증에서 쫓겨난다</b> —
+		///   다시 붙어도 거절당해 <b>가방 없는 손님</b>이 된다(관문 실측: 가방 3 → 0).
+		///   막으려던 것은 「남이 같은 종이를 동시에 내미는 것」이지 <b>그 사람의 재시도</b>가 아니다.
+		///   그래서 맡아 둔 주인과 같으면 <b>다시 맡는다</b>(시각만 새로 적는다).
+		/// </summary>
+		public bool TryClaim(string pass, long nowMs, string owner, out bool needsLuggage)
+		{
 			needsLuggage = false;
 			if (string.IsNullOrEmpty(pass))
 				return false;
@@ -60,10 +77,15 @@ namespace WitchMendokusai.Net
 				if (delivered.ContainsKey(pass))
 					return true;
 
-				if (claimed.TryGetValue(pass, out long when) && nowMs - when <= CLAIM_GOOD_FOR_MS)
-					return false;
+				if (claimed.TryGetValue(pass, out (long When, string Owner) held) && nowMs - held.When <= CLAIM_GOOD_FOR_MS)
+				{
+					// 남이 같은 순간에 같은 종이를 내밀었다 = 진짜 복사 시도.
+					bool sameHand = string.IsNullOrEmpty(owner) == false && owner == held.Owner;
+					if (sameHand == false)
+						return false;
+				}
 
-				claimed[pass] = nowMs;
+				claimed[pass] = (nowMs, owner);
 				needsLuggage = true;
 				return true;
 			}
@@ -86,7 +108,26 @@ namespace WitchMendokusai.Net
 		private void ForgetOld(long nowMs)
 		{
 			Sweep(delivered, nowMs, TravelPass.GOOD_FOR_MS);
-			Sweep(claimed, nowMs, CLAIM_GOOD_FOR_MS);
+			SweepClaims(nowMs);
+		}
+
+		private void SweepClaims(long nowMs)
+		{
+			List<string> stale = null;
+			foreach (KeyValuePair<string, (long When, string Owner)> one in claimed)
+			{
+				if (nowMs - one.Value.When <= CLAIM_GOOD_FOR_MS)
+					continue;
+
+				stale = stale ?? new List<string>();
+				stale.Add(one.Key);
+			}
+
+			if (stale == null)
+				return;
+
+			for (int i = 0; i < stale.Count; i++)
+				claimed.Remove(stale[i]);
 		}
 
 		private static void Sweep(Dictionary<string, long> book, long nowMs, long keepMs)

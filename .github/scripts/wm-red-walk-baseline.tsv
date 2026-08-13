@@ -3,7 +3,6 @@
 # 빚을 갚으면(밟아 보고 적으면) 그 줄을 지운다. 지운 줄이 다시 나타나면 그때부터 빨강이다.
 # 갱신: node .github/scripts/wm-red-walk-audit.mjs --write-baseline
 wm-badline-strike-fairness-test.mjs
-wm-border-cut-test.mjs
 wm-prod-smoke.mjs
 wm-server-soak-test.mjs
 wm-stale-sky-test.mjs

@@ -355,6 +355,17 @@ namespace WitchMendokusai.Server
 		/// <summary>이미 쓴 통행증 (TASK-WM-259) — 한 장으로 두 번 들어오면 가방이 두 벌 온다.</summary>
 		private readonly WitchMendokusai.Net.PassOnce passesUsed = new WitchMendokusai.Net.PassOnce();
 
+		/// <summary>
+		/// 시험용 이음매 — 통행증을 집은 뒤 <b>짐을 건네기 전에</b> 줄을 놓는다 (TASK-WM-337).
+		/// 두 가지가 다 있어야 돈다: 이 env + 인사에 실린 <c>"halt":"1"</c>.
+		/// ★ 왜 둘인가: env 만이면 <b>아무 사람이나</b> 그 자리에서 끊긴다(대조군까지 끊겨 관문이 엉킨다).
+		///   진짜 창은 이 낱말을 안 보내므로, 실수로 prod 에 env 가 들어가도 사람은 안 겪는다.
+		/// </summary>
+		private static readonly bool haltAfterClaim =
+			System.Environment.GetEnvironmentVariable("WM_TEST_HALT_AFTER_CLAIM") == "1";
+
+
+
 		// 제작 주사위 — <b>세계가 굴린다</b>. 창이 굴리면 창을 고친 사람은 언제나 성공한다.
 		// 시험이 성공·실패를 모두 잴 수 있게 판정 자체는 WorldCraftBook 이 하고, 여기선 숫자만 넣는다.
 		private readonly System.Random craftDice = new System.Random();
@@ -841,11 +852,25 @@ namespace WitchMendokusai.Server
 					// 그리고 <b>짐은</b> 한 번만 — 복사한 통행증으로 두 번 들어오면 가방이 두 벌 온다.
 					//   다만 <b>들어오는 것</b> 자체는 다시 허락한다 (TASK-WM-309): 통행증을 내밀다 줄이
 					//   끊긴 사람을 손님으로 맞으면 가방도 자리도 잃는다(실측: 그때 장부에 신원이 하나 더 쌓였다).
-					else if (passesUsed.TryClaim(travelPass, nowMs, out firstCrossing) == false)
+					// 주인을 밝혀 맡는다 (TASK-WM-337) — 같은 사람의 재시도는 막지 않는다.
+					//   주인 표는 통행증에 찍힌 <b>그 사람 표식</b>이다(기기 열쇠는 세계마다 다를 수 있다).
+					else if (passesUsed.TryClaim(travelPass, nowMs, came.Mark ?? string.Empty, out firstCrossing) == false)
 					{
 						// 같은 순간에 같은 통행증을 둘이 내밀었다 — 뒤엣것이 진짜 복사 시도다.
 						travelling = false;
 					}
+				}
+
+				// ★ <b>시험용 이음매</b> (TASK-WM-337). 통행증을 <b>집어 든 뒤 짐을 건네기 전에</b> 줄이 끊기는
+				//   그 한 순간은 밖에서 만들 수가 없다 — 이 기계에서는 인사 처리가 밀리초 안에 끝나기 때문이다.
+				//   그래서 국경 관문(WM-309)은 <b>고침을 되돌려도 초록</b>이었다(2026-08-14 실측 = 거짓 초록).
+				//   이 이음매는 `WM_TEST_HALT_AFTER_CLAIM=1` 일 때 <b>한 번만</b> 그 자리에서 줄을 놓는다.
+				//   ⚠ prod 배포 env 에는 없다(deploy 워크플로가 세우는 값만 들어간다). 없으면 아무 일도 안 한다.
+				if (travelling && haltAfterClaim && ReadStringField(text, "halt") == "1")
+				{
+					Console.WriteLine("[world] 시험 이음매: 통행증을 집은 채 줄을 놓는다 (WM_TEST_HALT_AFTER_CLAIM)");
+					try { socket.Socket.Abort(); } catch { }
+					return;
 				}
 
 				WitchMendokusai.Identity.WorldIdentityRecord person;

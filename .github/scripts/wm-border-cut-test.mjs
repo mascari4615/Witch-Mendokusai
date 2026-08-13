@@ -19,6 +19,9 @@
 //   ② 창이 <b>빈 열쇠</b>로 인사하면 세계가 남의 기록과 헷갈린다 — 진짜 창처럼 제 열쇠를 낸다.
 //
 // exit: 0 = 나로 도착한다 · 1 = 손님이 되거나 짐이 는다 · 2 = 못 돌림
+//
+// [빨강-확인] 시험 이음매(WM_TEST_HALT_AFTER_CLAIM + halt:1)로 「집은 뒤 놓기」를 실제로 만들었더니
+//   가방 3 → 0 으로 빨강 — 그 자리에서 진짜 결함을 찾아 고쳤다 (TASK-WM-337, 2026-08-14)
 
 import { spawn, execSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
@@ -50,11 +53,12 @@ try {
 }
 
 const worlds = [];
-function startWorld(port, zone, neighbours) {
+function startWorld(port, zone, neighbours, { haltAfterClaim = false } = {}) {
 	const worldFile = join(mkdtempSync(join(tmpdir(), 'wm-bcut-')), 'world.json');
+	const extra = haltAfterClaim ? { WM_TEST_HALT_AFTER_CLAIM: '1' } : {};
 	worlds.push(spawn('dotnet', [dll, '--urls', `http://127.0.0.1:${port}`], {
 		cwd: dirname(dll),
-		env: { ...process.env, WM_WORLD_FILE: worldFile, WM_ZONE: zone, WM_ZONE_NEIGHBOURS: neighbours, WM_ZONE_SECRET: SECRET },
+		env: { ...process.env, WM_WORLD_FILE: worldFile, WM_ZONE: zone, WM_ZONE_NEIGHBOURS: neighbours, WM_ZONE_SECRET: SECRET, ...extra },
 		stdio: 'ignore',
 	}));
 }
@@ -71,7 +75,7 @@ function killWorlds() {
 }
 
 startWorld(eastPort, `동:0,-40,40,40`, `서:-40,-40,0,40=ws://127.0.0.1:${westPort}/ws`);
-startWorld(westPort, `서:-40,-40,0,40`, `동:0,-40,40,40=ws://127.0.0.1:${eastPort}/ws`);
+startWorld(westPort, `서:-40,-40,0,40`, `동:0,-40,40,40=ws://127.0.0.1:${eastPort}/ws`, { haltAfterClaim: true });
 
 for (const port of [eastPort, westPort]) {
 	let up = false;
@@ -231,12 +235,17 @@ if (cutLuggage <= 0) {
 
 const beforeLedger = (await health(westPort)).identities;
 
+// ★ 통행증을 <b>집어 든 뒤 짐을 건네기 전에</b> 끊긴다 (TASK-WM-337).
+//   밖에서 30ms 뒤에 끊는 것으로는 그 순간을 못 만든다 — 인사 처리가 그보다 빨리 끝나기 때문이다.
+//   실제로 이 관문은 <b>고침을 되돌려도 초록</b>이었다(거짓 초록). 그래서 세계에 시험용 이음매를 두고
+//   (`WM_TEST_HALT_AFTER_CLAIM=1`, 서쪽 세계에만) 그 자리에서 <b>한 번</b> 줄을 놓게 한다.
 // 인사만 보내고 곧바로 죽는다 — 세계가 받아들이는 중에 줄이 끊긴 셈이다.
 const halfWay = new WebSocket(`ws://127.0.0.1:${westPort}/ws`);
 halfWay.onopen = () => {
 	// ⚠ 진짜 창은 <b>제 기기 열쇠</b>를 함께 낸다. 빈 열쇠로 내밀면 세계가 남의 기록과 헷갈려
 	//   통행증을 물리고 손님으로 맞는다 — 그건 재는 자가 만든 고장이다(첫 판이 그랬다).
-	halfWay.send(JSON.stringify({ type: 'hello', secret: cutOne.secret, pass: cutOne.moveOn.pass }));
+	// `halt: '1'` = 세계에게 「이번 인사는 통행증을 집은 자리에서 놓아라」 (WM_TEST_HALT_AFTER_CLAIM 과 짝).
+	halfWay.send(JSON.stringify({ type: 'hello', secret: cutOne.secret, pass: cutOne.moveOn.pass, halt: '1' }));
 	setTimeout(() => halfWay.close(), Number(process.env.WM_HALF_MS || 30));
 };
 
