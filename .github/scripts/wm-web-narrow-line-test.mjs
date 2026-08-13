@@ -14,9 +14,14 @@
 // 필요한 것: .NET 8 · playwright + chromium (`WM_PLAYWRIGHT_ROOT`).
 // exit: 0 = 현재를 본다 · 1 = 과거를 본다 · 2 = 못 돌림
 //
-// ⚠ 빨강 걷기 <b>못 했다</b> (2026-08-14): 「밀린 창을 건너뛰기」를 꺼도 초록이었다(나이 0.13초).
+// ⚠ 빨강 걷기 <b>못 했다</b> — 세 번 시도한 기록 (2026-08-14): 「밀린 창을 건너뛰기」를 꺼도 초록이었다(나이 0.13초).
 //   이 자리는 <b>방어가 여러 겹</b>이라(건너뛰기 · 작은 한 장 · 보내기 자체가 await) 한 겹만 빼서는 안 늙는다.
-//   겹을 다 빼는 판을 따로 만들어야 한다 — 그때까지 빚 목록에 그대로 둔다(거짓 확신보다 낫다).
+//   ① 「밀린 창 건너뛰기」만 끔 → 초록(나이 0.13초)
+//   ② 세 겹(건너뛰기 · 좁힘 · 보내기 await)을 <b>다</b> 끔 → 여전히 초록(0.13초)
+//   ③ 회선을 초당 800바이트까지 졸라맴 → 여전히 초록(0.16초)
+//   즉 <b>자극이 수요보다 크다</b>: 좁힌 4KB/s 가 이 판의 실제 수요(정상 흐름)보다 여전히 넉넉하다.
+//   (32KB/s 는 <b>들어올 때</b> 낱말표·첫 그림까지 낀 값이라 정상 수요가 아니다.)
+//   다음에 할 일 = <b>정상 수요를 따로 재고</b> 그 1/5 로 좁히기. 그 전까지는 빚 목록에 그대로 둔다.
 
 import { spawn, execSync } from 'node:child_process';
 import { createRequire } from 'node:module';
@@ -159,6 +164,24 @@ for (let i = 0; i < crowd; i += 1) {
 	bots.push(socket);
 }
 
+// ★ <b>광장이 실제로 움직여야</b> 회선이 좁아지는 뜻이 있다 (2026-08-14 실측).
+//   전에는 봇 40명이 <b>가만히</b> 서 있었다 — 그러면 세계가 보낼 것이 거의 없어(바뀐 것만 나른다)
+//   회선을 초당 800바이트로 졸라매도 나이가 0.16초였다. 즉 이 관문의 <b>자극이 안 먹고</b> 있었다:
+//   세계의 방어(건너뛰기·작은 한 장·await)를 <b>셋 다 꺼도</b> 초록이었다.
+//   그래서 모두 걷게 한다 — 그래야 좁은 회선이 진짜 병목이 된다.
+const milling = setInterval(() => {
+	for (let i = 0; i < bots.length; i += 1) {
+		if (bots[i].readyState !== 1) continue;
+		const turn = ((Date.now() / 500) + i) % 4;
+		const step = 0.15;
+		bots[i].send(JSON.stringify({
+			type: 'move',
+			x: turn < 2 ? step : -step,
+			z: turn % 2 === 0 ? step : -step,
+		}));
+	}
+}, 100);
+
 // ── 기준 시계 — 곧게 일정 속도로 걷는 한 사람. 이 사람도 좋은 회선이다.
 //    (창이 늦는 것만 보려면 기준은 안 늦어야 한다.)
 //
@@ -295,6 +318,7 @@ const tightTo = Date.now();
 const squeezedAges = await page.evaluate(() => window.__wmAges.slice());
 
 clearInterval(walking);
+clearInterval(milling);
 for (const socket of bots) { try { socket.close(); } catch { /* 이미 닫혔다 */ } }
 try { walker.close(); } catch { /* 이미 닫혔다 */ }
 await browser.close();
