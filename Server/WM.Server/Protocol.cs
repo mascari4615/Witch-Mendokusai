@@ -92,6 +92,7 @@ namespace WitchMendokusai.Server
 		public const string LINK = Net.NetMessageType.LINK;
 		public const string LINKED = Net.NetMessageType.LINKED;
 		public const string KICKED = Net.NetMessageType.KICKED;
+		public const string FULL = Net.NetMessageType.FULL;
 
 		/// <summary>계약을 웹이 읽을 수 있는 형태로 뽑는다.</summary>
 		public static string ToTypeScript()
@@ -229,6 +230,7 @@ namespace WitchMendokusai.Server
 
 			builder.Append("/** 서버 -> 그 창에게만: 다른 곳에서 같은 사람이 들어왔다(여기서는 나간다). */\n");
 			builder.Append("export interface Kicked {\n\ttype: '").Append(KICKED).Append("';\n\treason: string;\n}\n\n");
+			builder.Append("export interface Full {\n\ttype: '").Append(FULL).Append("';\n\treason: string;\n\tmost: number;\n}\n\n");
 
 			builder.Append("/** 서버 -> 그 창에게만: 네 인형은 여기 있다(몰린 칸에서 공유 소식에 자기가 빠졌을 때). */\n");
 			builder.Append("export interface Me {\n\ttype: '").Append(ME).Append("';\n\tdoll: WorldDollView;\n}\n\n");
@@ -502,6 +504,13 @@ namespace WitchMendokusai.Server
 		{
 			return "{\"type\":\"" + LINKED + "\",\"ok\":" + (ok ? "true" : "false")
 				+ ",\"identityId\":" + identityId + "}";
+		}
+
+		/// <summary>그 창에게만: 다른 곳에서 같은 사람이 들어왔다.</summary>
+		/// <summary>그 창에게만: 이 세계는 지금 가득 찼다 (TASK-WM-349).</summary>
+		public static string Full(int most)
+		{
+			return "{\"type\":\"" + FULL + "\",\"reason\":\"세계가 가득 찼다\",\"most\":" + most + "}";
 		}
 
 		/// <summary>그 창에게만: 다른 곳에서 같은 사람이 들어왔다.</summary>

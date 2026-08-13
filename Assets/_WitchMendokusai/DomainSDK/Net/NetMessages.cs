@@ -118,6 +118,9 @@ namespace WitchMendokusai.Net
 		/// <summary>서버 → 그 창에게만: 다른 곳에서 같은 사람이 들어왔다(여기서는 나간다).</summary>
 		public const string KICKED = "kicked";
 
+		/// <summary>서버 → 그 창에게만: <b>이 세계는 지금 가득 찼다</b> (TASK-WM-349).</summary>
+		public const string FULL = "full";
+
 		/// <summary>
 		/// 서버 → 그 창에게만: <b>네 인형은 여기 있다</b> (TASK-WM-217).
 		///
@@ -621,6 +624,22 @@ namespace WitchMendokusai.Net
 	{
 		public string type = NetMessageType.KICKED;
 		public string reason = "다른 곳에서 접속했다";
+	}
+
+	/// <summary>
+	/// 서버 → 그 창에게만: <b>이 세계는 지금 가득 찼다</b> (TASK-WM-349).
+	///
+	/// ★ 왜 마디로 말하나: 문 앞에서 말없이 끊으면 창에는 「연결이 안 된다」로만 보인다 —
+	///   사람은 자기 인터넷을 의심하고, 우리는 그 사람이 왔었다는 것조차 모른다.
+	///   가득 찬 것은 <b>고장이 아니라 상태</b>이므로, 이유를 말하고 닫는다(밀려남과 같은 예의).
+	/// </summary>
+	[Serializable]
+	public class FullMessage
+	{
+		public string type = NetMessageType.FULL;
+		public string reason = "세계가 가득 찼다";
+		/// <summary>지금 몇 명까지 받나 — 창이 「잠시 뒤 다시」를 말할 때 쓴다.</summary>
+		public int most;
 	}
 
 	/// <summary>창 → 서버: 이 칸의 건물을 부수고 싶다.</summary>

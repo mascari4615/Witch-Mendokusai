@@ -42,6 +42,7 @@ on:
       - '.github/scripts/wm-web-crowd-smoke.mjs'
       - '.github/scripts/wm-web-crowd-windows-test.mjs'
       - '.github/scripts/wm-flood-budget-test.mjs'
+      - '.github/scripts/wm-world-full-test.mjs'
       - '.github/scripts/wm-honest-budget-test.mjs'
       - '.github/scripts/wm-web-smoothness-test.mjs'
       - '.github/scripts/wm-web-badline-test.mjs'
@@ -98,6 +99,7 @@ on:
       - '.github/scripts/wm-web-crowd-smoke.mjs'
       - '.github/scripts/wm-web-crowd-windows-test.mjs'
       - '.github/scripts/wm-flood-budget-test.mjs'
+      - '.github/scripts/wm-world-full-test.mjs'
       - '.github/scripts/wm-honest-budget-test.mjs'
       - '.github/scripts/wm-web-smoothness-test.mjs'
       - '.github/scripts/wm-web-badline-test.mjs'
@@ -291,6 +293,11 @@ jobs:
         env:
           WM_PLAYWRIGHT_ROOT: /tmp/wm-playwright
         run: node ./.github/scripts/run-gate.mjs ./.github/scripts/wm-honest-budget-test.mjs
+
+      # TASK-WM-349 -- 세계에 정원이 없으면 사람이 늘수록 <b>모두가</b> 나빠진다. 가득 차면
+      # 이유를 말하고 닫고, 안에 있는 사람은 지키는지 본다(정원을 낮춰 띄워 규칙만 본다).
+      - name: Run world full test
+        run: node ./.github/scripts/run-gate.mjs ./.github/scripts/wm-world-full-test.mjs
 
       - name: Run flood budget test
         run: node ./.github/scripts/run-gate.mjs ./.github/scripts/wm-flood-budget-test.mjs

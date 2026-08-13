@@ -74,6 +74,27 @@ namespace WitchMendokusai.Server
 		/// </summary>
 		private const int MAX_WINDOWS_PER_PLACE = 8;
 
+		/// <summary>
+		/// 이 세계가 <b>한 번에 받는 사람 수</b> (TASK-WM-349).
+		///
+		/// ★ 왜 두나: 여태 정원이 없었다 — 사람이 계속 들어오면 모두가 같이 느려질 뿐,
+		///   「가득 찼다」고 말해 주는 자리가 없었다. 정원이 없는 세계는 <b>모두가 나빠지는</b> 쪽으로 무너진다.
+		///   MMO 는 그 반대여야 한다: 안에 있는 사람은 지키고, 못 받는 사람에게는 이유를 말한다.
+		///
+		/// ★ 왜 하필 200: 실측(WM-269, 이 기계) 200명 광장에서 창 하나가 34.1fps · 9.4KB/s 로 놀았다 —
+		///   관심 반경과 가까운 48명 상한 덕에 사람이 늘어도 창에 도착하는 양은 거의 그대로다.
+		///   그 위는 안 재 봤으므로 <b>재 본 데까지</b>가 정원이다(안 재 본 수를 약속하지 않는다).
+		///   땅을 더 받고 싶으면 세계를 하나 더 띄운다(zone) — 그게 이 서버의 늘리는 방법이다.
+		/// </summary>
+		/// <summary>
+		/// 정원 — 제품 기본은 200 이고, 시험은 <b>수만 작게</b> 낮춰 같은 규칙을 본다(WM_MOST_PEOPLE).
+		/// 시험에서 200명을 붙이면 느린 기계에서는 「기계 이야기」가 되기 때문이다.
+		/// </summary>
+		private static readonly int MOST_PEOPLE_AT_ONCE =
+			int.TryParse(System.Environment.GetEnvironmentVariable("WM_MOST_PEOPLE"), out int asked) && asked > 0
+				? asked
+				: 200;
+
 		/// <summary>실제 1초에 세계의 몇 분이 흐르나 — 게임의 WorldClockSO 와 맞춰야 할 값.</summary>
 		private const float MINUTES_PER_REAL_SECOND = 1f;
 
@@ -143,6 +164,9 @@ namespace WitchMendokusai.Server
 
 		/// <summary>걸음 지갑이 비어 되돌린 걸음 수 — 속이는 창이 있으면 여기가 오른다 (TASK-WM-222).</summary>
 		private long refusedSteps;
+
+		/// <summary>정원이 차서 돌려보낸 사람 수 (TASK-WM-349) — 「조용히 못 들어왔다」를 숫자로 남긴다.</summary>
+		private long turnedAwayPeople;
 
 		/// <summary>판과 판 사이가 가장 많이 벌어진 순간 (ms) — 세계가 멎은 자리 (TASK-WM-242).</summary>
 		private long longestTickGapMs;
@@ -607,6 +631,8 @@ namespace WitchMendokusai.Server
 				broadcastSnapshotMessages = Interlocked.Read(ref broadcastSnapshotMessages),
 				builtSnapshots = Interlocked.Read(ref builtSnapshots),
 				refusedSteps = Interlocked.Read(ref refusedSteps),
+				turnedAwayPeople = Interlocked.Read(ref turnedAwayPeople),
+				mostPeopleAtOnce = MOST_PEOPLE_AT_ONCE,
 
 				// 기억이 <b>정말 남고 있나</b> (TASK-WM-311) — 이 셋이 없으면 저장 실패는 무음이다.
 				savesDone = Interlocked.Read(ref savesDone),
@@ -771,6 +797,31 @@ namespace WitchMendokusai.Server
 			// ★ 먼저 받아 주고, 열쇠는 오면 그때 붙인다 (TASK-WM-218).
 			//   「인사를 받고 나서 인형을 준다」로 했더니 인사 안 하는 옛 창이 영영 환영을 못 받고
 			//   멈춰 섰다(스모크 4개가 그 자리에서 죽었다). 접속은 인사를 기다리지 않는다.
+			// ★ 정원이 찼으면 <b>이유를 말하고</b> 닫는다 (TASK-WM-349) — 말없이 끊으면
+			//   사람은 자기 인터넷을 의심하고, 우리는 그 사람이 왔었다는 것도 모른다.
+			if (World.Snapshot().Length >= MOST_PEOPLE_AT_ONCE)
+			{
+				Connection turnedAway = new Connection(socket);
+				Interlocked.Increment(ref turnedAwayPeople);
+				await SendAsync(turnedAway, Protocol.Full(MOST_PEOPLE_AT_ONCE));
+				try
+				{
+					// ⚠ 보내자마자 <b>돌아가면</b> 그 말이 안 나간다 (2026-08-14 실측: 창이 1006 으로 끊겼다) —
+					//   미들웨어가 돌아가는 순간 줄을 끊어 버린다. 닫기 인사를 <b>주고받을</b> 때까지 기다린다.
+					await socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "world is full", CancellationToken.None);
+				}
+				catch (WebSocketException)
+				{
+					// 이미 닫힌 창 — 할 일 없다.
+				}
+				catch (OperationCanceledException)
+				{
+					// 세계가 닫히는 중 — 할 일 없다.
+				}
+
+				return;
+			}
+
 			WorldDoll doll = World.Join();
 			Connection connection = new Connection(socket);
 

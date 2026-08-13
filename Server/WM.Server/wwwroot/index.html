@@ -1004,6 +1004,14 @@ function onLinkOpen() {
 function onLinkMessage(event) {
 	const message = JSON.parse(event.data);
 
+	if (message.type === 'full') {
+		// ★ 가득 찬 것은 <b>고장이 아니라 상태</b>다 (TASK-WM-349) — 말없이 끊기면 사람은
+		//   자기 인터넷을 의심한다. 이유를 적고, 다시 붙기도 멈춘다(문을 두드려 봐야 소용없다).
+		reconnect.kicked();
+		statusElement.textContent = `세계가 가득 찼다 (${message.most || '?'}명까지) — 잠시 뒤 새로고침`;
+		return;
+	}
+
 	if (message.type === 'kicked') {
 		// 일반 MMORPG 처럼 나중에 온 쪽이 이긴다 — 조용히 끊기면 사람은 「버그」로 읽는다.
 		// ⚠ 여기서 다시 붙으면 방금 들어간 창을 도로 쫓아낸다 — 두 창이 서로를 영원히 민다.
