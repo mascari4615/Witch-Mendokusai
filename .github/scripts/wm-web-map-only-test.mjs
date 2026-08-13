@@ -10,6 +10,8 @@
 //
 // 필요한 것: .NET 8 · playwright + chromium (`WM_PLAYWRIGHT_ROOT`).
 // exit: 0 = 논다 · 1 = 못 논다 · 2 = 못 돌림
+//
+// [빨강-확인] 지도(2D)에서 줍기를 안 보내게 하니 빨강 — 「가방이 빈 채로 온다」 (2026-08-14)
 
 import { spawn, execSync } from 'node:child_process';
 import { createRequire } from 'node:module';

@@ -14,6 +14,8 @@
 //   CI 는 임시 폴더에 깔아서 넘긴다. 없으면 <b>거짓 초록이 아니라 CANNOT-RUN(exit 2)</b> 이다.
 //
 // exit: 0 = 다 맞음 · 1 = 틀린 것 있음 · 2 = 못 돌림
+//
+// [빨강-확인] 다시 붙기를 아예 끄니 3건 빨강 — 「다시 붙은 뒤 받은 판 0장」 (2026-08-14)
 
 import { spawn, execSync } from 'node:child_process';
 import { createRequire } from 'node:module';

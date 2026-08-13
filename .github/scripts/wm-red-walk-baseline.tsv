@@ -5,6 +5,4 @@
 wm-badline-strike-fairness-test.mjs
 wm-prod-smoke.mjs
 wm-web-crowd-smoke.mjs
-wm-web-map-only-test.mjs
-wm-web-reconnect-smoke.mjs
 wm-web-smoothness-test.mjs
