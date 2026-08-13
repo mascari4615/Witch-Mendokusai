@@ -476,7 +476,20 @@ namespace WitchMendokusai.Server
 			// 사람이 눈으로 살아있음을 확인하는 자리 — 게이트도 여기를 찌른다.
 			// ★ 「살아 있다」만으로는 부족하다: 세계가 <b>돌고 있는지</b>(시각이 흐르는지, 사람이 있는지,
 			//   장부가 남아 있는지)를 같이 말한다. 안 그러면 「떠 있는데 시간이 멈춘 세계」를 못 알아본다.
-			app.MapGet("/health", () => Results.Json(new
+			// ★ <b>진짜 골짜기</b>를 물어보는 자리 (TASK-WM-321): `?collect=1` 이면 큰 청소를 <b>부르고</b>
+			//   그 뒤의 양을 답한다. 안 그러면 「자란다」와 「아직 안 치웠다」를 못 가른다 —
+			//   실측 2026-08-13: 3분 소크에서 gen2 가 <b>0번</b> 돌아 톱니 꼭대기만 보고 「11배 샌다」고 읽었다.
+			//   ⚠ 청소는 세계를 잠깐 멈춘다. 그래서 <b>물어볼 때만</b> 한다(재는 자만 쓴다).
+			app.MapGet("/health", (HttpContext context) =>
+			{
+				if (context.Request.Query.ContainsKey("collect"))
+				{
+					GC.Collect(2, GCCollectionMode.Forced, blocking: true);
+					GC.WaitForPendingFinalizers();
+					GC.Collect(2, GCCollectionMode.Forced, blocking: true);
+				}
+
+				return Results.Json(new
 			{
 				ok = true,
 				people = World.Snapshot().Length,
@@ -523,7 +536,8 @@ namespace WitchMendokusai.Server
 				broadcastSnapshotBytes = Interlocked.Read(ref broadcastSnapshotBytes),
 				largestBroadcastSnapshotBytes = Interlocked.Read(ref largestBroadcastSnapshotBytes),
 				worldFile = store.Path,
-			}));
+				});
+			});
 
 			app.Map("/ws", async (HttpContext context) =>
 			{

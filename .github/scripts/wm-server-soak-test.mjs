@@ -74,6 +74,13 @@ const look = () => fetch(`http://127.0.0.1:${port}/health`, { headers: { connect
 	.then((answer) => answer.json())
 	.catch(() => null);
 
+// ★ <b>진짜 골짜기</b>를 묻는다 (TASK-WM-321): 세계에 큰 청소를 부르고 그 뒤의 양을 받는다.
+//   안 그러면 「자란다」와 「아직 안 치웠다」를 못 가른다 — 실측 2026-08-13: 3분 소크에서
+//   gen2 가 <b>0번</b> 돌아, 톱니 꼭대기만 보고 「11배 샌다」는 <b>거짓 빨강</b>이 났다.
+const lookDeep = () => fetch(`http://127.0.0.1:${port}/health?collect=1`, { headers: { connection: 'close' } })
+	.then((answer) => answer.json())
+	.catch(() => null);
+
 {
 	const until = Date.now() + 120000;
 	let up = false;
@@ -120,6 +127,9 @@ const walking = setInterval(() => {
 }, 200);
 
 // ── 90초 동안 세계의 속을 들여다본다 ───────────────────────────────────
+// 진짜 바닥 하나 — <b>재기 시작할 때</b> 청소를 부르고 받은 값 (TASK-WM-321).
+const deepEarly = await lookDeep();
+
 const seen = [];
 {
 	const until = Date.now() + soakMs;
@@ -151,6 +161,9 @@ if (seen.length < 10) {
 	cannotRun(`세계를 ${seen.length}번밖에 못 들여다봤다 — 이 상태로 잰 값은 뜻이 없다`);
 }
 
+// 진짜 바닥 둘 — 소크 <b>앞</b>과 <b>뒤</b>에서 청소를 부르고 받은 값.
+const deepLate = await lookDeep();
+
 const third = Math.floor(seen.length / 3);
 const early = seen.slice(0, third);
 const late = seen.slice(-third);
@@ -160,8 +173,16 @@ const mean = (rows, pick) => rows.reduce((sum, one) => sum + pick(one), 0) / row
 //   뚝 떨어진다 — 그러니 <b>평균</b>을 견주면 톱니의 어느 자리를 봤느냐를 재게 된다(뜻 없는 값).
 //   새는지는 <b>골짜기</b>(가장 적을 때)로 본다: 청소하고도 안 내려가면 그게 사는 것이다.
 const floorOf = (rows) => Math.min(...rows.map((one) => one.memory));
-const memoryEarly = floorOf(early);
-const memoryLate = floorOf(late);
+
+// ⚠ 톱니의 <b>골짜기</b>도 「청소가 돌았을 때만」 뜻이 있다 (TASK-WM-321).
+//   3분 소크에서 큰 청소가 <b>0번</b> 도는 판이 실제로 났다 — 그때 이 값은 그냥 「쌓인 양」이라
+//   11배로 자란 것처럼 보인다(거짓 빨강). 그래서 앞뒤로 <b>청소를 불러</b> 진짜 바닥을 받는다.
+const cleanFloor = deepEarly !== null && deepLate !== null
+	? { early: deepEarly.heldMegabytes, late: deepLate.heldMegabytes }
+	: null;
+
+const memoryEarly = cleanFloor ? cleanFloor.early : floorOf(early);
+const memoryLate = cleanFloor ? cleanFloor.late : floorOf(late);
 const grew = memoryEarly === 0 ? 0 : memoryLate / memoryEarly;
 const worstGap = seen.reduce((worst, one) => Math.max(worst, one.gap), 0);
 const stayed = seen.every((one) => one.people >= crowd);
