@@ -18,6 +18,8 @@
 // 실행: node .github/scripts/wm-world-full-test.mjs
 // exit: 0 = 정원이 산다 · 1 = 안 산다 · 2 = 못 돌림
 //
+// [빨강-확인] 문 앞에서 <b>도장</b>을 안 보게 하니 빨강 — 「가짜 통행증으로 들어와 버렸다(인형 8)」.
+//   즉 「pass 라는 낱말이 있나」로만 보면 아무나 한 줄로 정원을 넘는다.
 // [빨강-확인] ⑤ 통행증 보는 자리를 꺼 보니 빨강 — 「국경을 넘어오는 사람이 『가득 찼다』를 듣고 튕겼다」.
 //   이 결함은 정원을 넣은 그날 <b>정원이 만든 것</b>이다(새 실패 경로는 한 번 밟아 본다 — 규율 ⑤).
 // [빨강-확인] 정원 보는 자리를 꺼 보니 3건 빨강 (2026-08-14) — 넘어온 셋이 「가득 찼다」를 못 듣고
@@ -148,13 +150,17 @@ for (let step = 0; step < 200 && traveller.moveOn === undefined; step += 1) {
 	await wait(50);
 }
 
+// 가짜 통행증 — 도장이 없는 아무 글자. 이걸로 들어와지면 정원은 없는 것과 같다.
+const faker = join_(worldPort, 'pass-처럼-생긴-아무-글자');
+await wait(2000);
+
 let arrived = null;
 if (traveller.moveOn) {
 	arrived = join_(worldPort, traveller.moveOn.pass);
 	await wait(2500);
 }
 
-for (const one of [...inside, ...extra, late, traveller, ...(arrived ? [arrived] : [])]) {
+for (const one of [...inside, ...extra, late, traveller, faker, ...(arrived ? [arrived] : [])]) {
 	try { one.socket.close(); } catch { /* 이미 */ }
 }
 killWorld();
@@ -193,6 +199,11 @@ check('세계가 돌려보낸 수를 적어 둔다', health.turnedAwayPeople >= 
 if (traveller.moveOn === undefined) {
 	cannotRun('여행자가 국경까지 못 갔다 — ⑤ 를 잴 수 없다');
 }
+
+// ★ 「통행증이 있다고 <b>말만</b> 하는 사람」은 못 들어와야 한다 — 아니면 빗장이 말로만 있는 것이다.
+check('가짜 통행증으로는 정원을 못 넘는다',
+	faker.told !== null && faker.id === undefined,
+	faker.told ? '「가득 찼다」를 듣고 튕겼다' : `들어와 버렸다 (인형 ${faker.id})`);
 
 check('국경을 넘어오는 사람은 가득 차도 들어온다',
 	arrived !== null && arrived.told === null && arrived.id !== undefined,

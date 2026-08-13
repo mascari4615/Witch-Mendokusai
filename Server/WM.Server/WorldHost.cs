@@ -829,7 +829,13 @@ namespace WitchMendokusai.Server
 					// 아무 말 없이 서 있는 창 — 통행증도 없다는 뜻이다.
 				}
 
-				bool crossingOver = firstWord != null && string.IsNullOrEmpty(ReadStringField(firstWord, "pass")) == false;
+				// ⚠ 「pass 라는 낱말이 있나」로 보면 안 된다 (2026-08-14): 그러면 아무나
+				//   `pass:"아무거나"` 한 줄로 정원을 넘어 들어온다 — 빗장이 <b>말로만</b> 있는 꼴이다.
+				//   여기서 <b>도장까지</b> 본다(TravelPass.TryRead = 이 이웃들만 아는 도장 + 시간).
+				string doorPass = firstWord == null ? null : ReadStringField(firstWord, "pass");
+				bool crossingOver = string.IsNullOrEmpty(doorPass) == false
+					&& WitchMendokusai.Net.TravelPass.TryRead(
+						doorPass, zoneSecret, System.DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), out _, out _);
 				if (crossingOver == false)
 				{
 					Connection turnedAway = new Connection(socket);
