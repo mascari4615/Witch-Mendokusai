@@ -1,0 +1,7 @@
+# wm-red-walk 기준선 — 아직 「빨개지는 것을 본 적 없는」 관문들 (이미 진 빚).
+# 여기 없는 <새> 관문은 처음부터 [빨강-확인] 을 적어야 한다.
+# 빚을 갚으면(밟아 보고 적으면) 그 줄을 지운다. 지운 줄이 다시 나타나면 그때부터 빨강이다.
+# 갱신: node .github/scripts/wm-red-walk-audit.mjs --write-baseline
+wm-badline-strike-fairness-test.mjs
+wm-prod-smoke.mjs
+wm-web-smoothness-test.mjs
