@@ -128,3 +128,12 @@ jobs:
 
           # 세계가 떴으면 <이 스텝은 성공이다> — 남아 있는 옛 종료 코드에 끌려가지 않는다.
           exit 0
+
+      # ★ 「떴다」와 「논다」는 다르다 (TASK-WM-319). 오늘 하루만 해도 떠 있는데 안 노는 자리가
+      #   셋이었다 — 땅 이름이 env 를 타며 뭉개지고, 껍데기 서비스가 남고, 두 하늘이 34일 어긋났다.
+      #   그래서 배포 끝에 <b>사람 하나를 실제로 걸려</b> 본다(줍지도 짓지도 않는 손님 하나).
+      - name: Prod smoke (cross the border for real)
+        shell: powershell
+        run: |
+          node .github/scripts/wm-prod-smoke.mjs
+          if ($LASTEXITCODE -ne 0) { throw "prod smoke failed: $LASTEXITCODE" }
