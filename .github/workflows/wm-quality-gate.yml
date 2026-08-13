@@ -44,6 +44,7 @@ on:
       - '.github/scripts/wm-flood-budget-test.mjs'
       - '.github/scripts/wm-world-full-test.mjs'
       - '.github/scripts/wm-frozen-line-test.mjs'
+      - '.github/scripts/wm-web-thaw-test.mjs'
       - '.github/scripts/wm-build-race-test.mjs'
       - '.github/scripts/wm-gather-race-test.mjs'
       - '.github/scripts/wm-honest-budget-test.mjs'
@@ -104,6 +105,7 @@ on:
       - '.github/scripts/wm-flood-budget-test.mjs'
       - '.github/scripts/wm-world-full-test.mjs'
       - '.github/scripts/wm-frozen-line-test.mjs'
+      - '.github/scripts/wm-web-thaw-test.mjs'
       - '.github/scripts/wm-build-race-test.mjs'
       - '.github/scripts/wm-gather-race-test.mjs'
       - '.github/scripts/wm-honest-budget-test.mjs'
@@ -314,6 +316,13 @@ jobs:
 
       # TASK-WM-355 -- 얼어붙은 줄(덮개 닫은 노트북)은 스스로 안 끊긴다. 놓아주지 않으면
       # 인형이 서 있고 정원 한 자리를 몇 시간씩 먹는다 — 고치기 전 실측 6분 뒤에도 그대로였다.
+      # TASK-WM-356 -- 지하철에 들어갔다 나오는 30초. 줄은 안 끊기고 말만 고였다가 한꺼번에 온다.
+      # 그때 창이 현재로 돌아오는지 · 그 사이 세계가 그 사람을 안 놓는지 본다.
+      - name: Run web thaw test
+        env:
+          WM_PLAYWRIGHT_ROOT: /tmp/wm-playwright
+        run: node ./.github/scripts/run-gate.mjs ./.github/scripts/wm-web-thaw-test.mjs
+
       - name: Run frozen line test
         run: node ./.github/scripts/run-gate.mjs ./.github/scripts/wm-frozen-line-test.mjs
 
