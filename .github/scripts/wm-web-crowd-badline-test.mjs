@@ -197,7 +197,12 @@ async function watch(where, label) {
 	// 붙자마자가 아니라 <b>도는 중</b>을 본다.
 	await wait(1500);
 	await page.evaluate(() => { window.__wmSeen = { ...window.__wmSeen, messages: 0, bytes: 0, frames: 0, since: Date.now() }; });
+	// ★ <b>선 위의 양</b>도 같이 잰다 (TASK-WM-339 에서 배웠다): 창이 세는 바이트는 <b>푼 뒤</b>의 크기라
+	//   세계가 눌러 보내는 이 세계에서는 9배까지 부풀어 보인다(실측 창 15KB/s · 선 1.6KB/s).
+	//   견줌(나쁜 ÷ 곧은)은 단위가 같아 그대로 뜻이 있지만, <b>얼마나 나르나</b>는 선 위의 값이 진실이다.
+	const carriedBefore = line.peek().reduce((sum, one) => sum + (one.carried || 0), 0);
 	await wait(MEASURE_MS);
+	const carriedAfter = line.peek().reduce((sum, one) => sum + (one.carried || 0), 0);
 
 	const seen = await page.evaluate(() => ({ ...window.__wmSeen, spent: Date.now() - window.__wmSeen.since }));
 	const peersText = await page.textContent('#peers');
@@ -209,12 +214,13 @@ async function watch(where, label) {
 	const measured = {
 		fps: seen.frames / seconds,
 		bytesPerSecond: seen.bytes / seconds,
+		wireBytesPerSecond: (carriedAfter - carriedBefore) / seconds,
 		people,
 		errors,
 	};
 
-	console.log(`  ⓘ ${label}: ${measured.fps.toFixed(1)}fps · 초당 ${(measured.bytesPerSecond / 1024).toFixed(1)}KB`
-		+ ` · 보이는 사람 ${people}명`);
+	console.log(`  ⓘ ${label}: ${measured.fps.toFixed(1)}fps · 창이 푼 뒤 초당 ${(measured.bytesPerSecond / 1024).toFixed(1)}KB`
+		+ ` · <b>선 위</b> 초당 ${(measured.wireBytesPerSecond / 1024).toFixed(1)}KB · 보이는 사람 ${people}명`);
 
 	await page.close();
 	return measured;
@@ -241,8 +247,12 @@ check(`나쁜 회선에서도 화면이 그려진다 (곧은 회선의 ${Math.ro
 check(`나쁜 회선에서도 사람이 보인다 (곧은 회선의 ${Math.round(KEEP_PEOPLE_RATIO * 100)}% 이상)`,
 	rough.people >= straight.people * KEEP_PEOPLE_RATIO,
 	`${rough.people}명 · 곧은 회선 ${straight.people}명`);
+// ⚠ 견줌은 <b>창이 센 바이트</b>로 한다 — 두 판의 단위가 같아서 뜻이 있다.
+//   선 위의 양은 <b>나쁜 회선 판에만</b> 있다(곧은 판은 회선을 안 거친다) — 그래서 견줌에 못 쓴다.
+//   대신 <b>얼마나 나르나</b>를 알려면 그 값이 진실이라 위 ⓘ 줄에 같이 찍는다 (TASK-WM-339).
 check('늦게 온다고 더 많이 오지는 않는다', rough.bytesPerSecond <= straight.bytesPerSecond * MOST_BYTES_RATIO,
-	`초당 ${(rough.bytesPerSecond / 1024).toFixed(1)}KB · 곧은 회선 ${(straight.bytesPerSecond / 1024).toFixed(1)}KB`);
+	`초당 ${(rough.bytesPerSecond / 1024).toFixed(1)}KB · 곧은 회선 ${(straight.bytesPerSecond / 1024).toFixed(1)}KB`
+		+ ` · 나쁜 회선의 <b>선 위</b> 실제 ${(rough.wireBytesPerSecond / 1024).toFixed(1)}KB`);
 check('창이 조용히 안 터졌다', straight.errors.length === 0 && rough.errors.length === 0,
 	[...straight.errors, ...rough.errors].join(' | ') || '오류 없음');
 
