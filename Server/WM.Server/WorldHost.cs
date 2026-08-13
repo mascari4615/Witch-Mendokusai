@@ -28,18 +28,8 @@ namespace WitchMendokusai.Server
 		/// <summary>1초에 몇 번 모두에게 알릴 것인가.</summary>
 		// ⚠ 실험용 손잡이 — 「20Hz 가 정말 필요한가」를 재려고 잠깐 연다 (TASK-WM-243).
 		//   값을 정하는 것은 실측이지 취향이 아니다.
-		/// <summary>이 값보다 왕복이 길면 그 창은 <b>밀리는 중</b>이다 (TASK-WM-339).
-		/// [문턱-사유] 제품 상수 — 사람이 「굼뜨다」고 느끼기 시작하는 선(0.4초). 회선 자체가 느린 것과
-		/// 버퍼에 쌓인 것을 여기서 가르지 않는다 — 둘 다 「덜 보내야」 낫는다.</summary>
-		private const long LAG_BUDGET_MILLISECONDS = 400;
-
-		/// <summary>밀리는 창은 <b>이만큼 뒤처진 것으로 친다</b> — 그만큼 좁혀서(작게) 보낸다 (TASK-WM-339).</summary>
-		private const int BEHIND_STEPS_WHEN_LAGGING = 3;
-
-		/// <summary>(안 씀 — 판 건너뛰기는 초당 판 수를 깨뜨려 접었다) 밀리는 창에는 이 판마다 한 번만.
-		/// ★ 5판마다(4Hz)로 줄여 봤더니 초당 5.8판까지 떨어져 「초당 여덟 판」 바닥을 깼다 —
-		///   덜어 내는 것과 <b>끊기는 것</b>은 다르다. 절반까지만 줄인다.</summary>
-		private const long SLOW_EVERY_NTH = 2;
+		// ⚠ 밀림 판정·좁힘·박자 상수는 여기 없다 — <b>SendPlan</b> 이 정본이다 (TASK-WM-340).
+		//   여기 두면 이 파일에서 슬쩍 고치게 되고, 그러면 시험 없는 정책이 다시 생긴다.
 
 		private static readonly int SNAPSHOT_HZ =
 			int.TryParse(System.Environment.GetEnvironmentVariable("WM_SNAPSHOT_HZ"), out int said) && said > 0 ? said : 20;
