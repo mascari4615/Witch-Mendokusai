@@ -13,6 +13,9 @@
 //
 // 필요한 것: .NET 8. (창은 안 띄운다 — 이 자리는 서버 문제다.)
 // exit: 0 = 안 샌다 · 1 = 샌다 · 2 = 못 돌림
+//
+// [빨강-확인] 세계가 판마다 256KB 를 쥐게 하니 2건 빨강 — 「끝 골짜기 470MB(처음 19MB)」.
+//   비율 검사만 있을 때는 이런 판도 놓칠 수 있어 바닥(64MB)을 같이 뒀다 (관문 규율 ⑦, 2026-08-14)
 
 import { spawn, execSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
@@ -201,6 +204,15 @@ console.log(`  ⓘ 큰 청소(gen2) ${gen2Ran}번 · 멈춤 비율 ${seen[seen.l
 
 check('청소하고 나서도 안 자란다 (골짜기가 1.6배 안)', grew > 0 && grew <= MOST_MEMORY_GROWTH,
 	`골짜기 ${memoryEarly.toFixed(0)}MB → ${memoryLate.toFixed(0)}MB (${grew.toFixed(2)}배)`);
+
+// ★ 견줌에는 <b>바닥</b>이 있어야 한다 (관문 규율 ⑦). 「몇 배 자랐나」만 보면 <b>이미 크게</b> 들고
+//   시작한 판을 못 잡는다 — 처음부터 400MB 를 쥐고 있어도 1.0배면 초록이다.
+//   [문턱-사유] (c) 제품 상수 — 사람 20명 도는 세계의 한 판이다. 실측 2~4MB(청소 뒤 진짜 바닥)이라
+//   그 스무 배인 64MB 를 천장으로 둔다. 기계 속도와 무관하고, 이 값을 넘으면 배포한 노트북이 아프다.
+const MOST_HELD_MEGABYTES = 64;
+check(`쥐고 있는 양 자체가 ${MOST_HELD_MEGABYTES}MB 안이다 (비율만으로는 못 보는 자리)`,
+	memoryLate <= MOST_HELD_MEGABYTES,
+	`끝 골짜기 ${memoryLate.toFixed(0)}MB · 처음 ${memoryEarly.toFixed(0)}MB`);
 check(`판 사이가 ${MOST_TICK_GAP_MS}ms 넘게 안 벌어진다`, worstGap > 0 && worstGap <= MOST_TICK_GAP_MS,
 	`${worstGap}ms`);
 check('도는 내내 사람이 안 떨어졌다', stayed, `가장 적을 때 ${Math.min(...seen.map((one) => one.people))}명`);
