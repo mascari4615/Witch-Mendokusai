@@ -421,6 +421,10 @@ jobs:
       - name: Run lost action test
         run: node ./.github/scripts/run-gate.mjs ./.github/scripts/wm-lost-action-test.mjs
 
+      # 통행증을 복사해 두 번 내밀어도 짐은 한 벌이다 (TASK-WM-335) — 막는 장치를 끄면 40개가 된다.
+      - name: Run pass replay test
+        run: node ./.github/scripts/run-gate.mjs ./.github/scripts/wm-pass-replay-test.mjs
+
       # 같은 신원으로 탭을 둘 열어도 몸도 가방도 하나다 (TASK-WM-334).
       - name: Run two tabs test
         run: node ./.github/scripts/run-gate.mjs ./.github/scripts/wm-two-tabs-test.mjs
