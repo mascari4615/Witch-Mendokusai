@@ -23,6 +23,12 @@
 // [빨강-확인] 이 관문을 만든 그 날 <b>고치기 전 제품</b>이 곧바로 빨강이었다 (2026-08-14):
 //   「보내는 중」 표를 안 내려놓는 옛 코드에서 셋째 창이 받은 판 27장(다른 둘은 302장) ·
 //   보이는 사람 6명 · 공평 9% — 세 줄 모두 빨강. 표를 내려놓게 고치니 300/303/303 · 24명 · 99%.
+//
+// [빨강-확인] 「나간 사람이 사라진다」 (2026-08-14) — 이 줄은 <b>지우는 길이 셋</b>이라 하나씩 꺼서는 안 빨개졌다:
+//   ① 「그 사람 나갔다」 목록을 안 듣게 → 초록(통째 판이 갈아 끼운다)
+//   ② 통째 판도 덧붙이게 → 초록(유령 덫이 10초마다 물어봐 지운다)
+//   ③ 셋째로 「내가 누굴 그리나」까지 안 물어보게 → <b>빨강</b>: 나간 5명이 창 셋 모두에 그대로(5/5/5, 그린 인형 43).
+//   ⇒ 이 관문은 <b>세 겹이 다 무너질 때</b> 운다. 그 사실 자체가 이 판의 수확이다.
 
 import { spawn, execSync } from 'node:child_process';
 import { createRequire } from 'node:module';
@@ -63,6 +69,13 @@ const LEAST_IN_A_CROWD = 10;
  *   그 아래면 「한 창만 굶었다」는 뜻이다.
  */
 const LEAST_SHARE = 0.5;
+
+/**
+ * 나간 사람이 사라지기까지 봐 주는 시간.
+ * [문턱-사유] (c) 사람이 느끼는 선 — 「유령 20초」가 이 관문이 생긴 이유다. 그 절반도 안 되는 8초를 준다
+ *   (세계는 초당 20번 말하므로 성한 창에서는 한 판 만에 사라진다).
+ */
+const GHOST_WITHIN_MS = 8000;
 
 /** 이보다 오래 세계가 멎으면 창·봇이 세계를 굶긴 것이다(many-windows 와 같은 값). */
 const MOST_TICK_GAP_MS = 1500;
@@ -130,6 +143,13 @@ for (let i = 0; i < CROWD; i += 1) {
 	const socket = new WebSocket(`ws://127.0.0.1:${worldPort}/ws`);
 	socket.onopen = () => socket.send(JSON.stringify({ type: 'hello', secret: '' }));
 	socket.onerror = () => { /* 아래에서 수로 본다 */ };
+	// 자기 번호를 알아 둔다 — 나간 <b>그 사람</b>이 창에서 지워졌나를 봐야 한다(수만 보면 속는다).
+	socket.onmessage = (event) => {
+		try {
+			const said = JSON.parse(String(event.data));
+			if (said.type === 'welcome') socket.dollId = said.id;
+		} catch { /* 딴 소식 */ }
+	};
 	crowd.push(socket);
 }
 
@@ -197,6 +217,39 @@ for (const one of windows) {
 
 await wait(WATCH_SECONDS * 1000);
 
+// ★ <b>나간 사람이 창마다 사라지나</b> (TASK-WM-346) — 「유령 20초」의 자리다.
+//   굶는 창은 「그 사람 나갔다」가 실린 판을 못 받는다(작은 한 장에는 그 목록이 없다).
+//   그래서 굶주림과 유령은 같은 뿌리다 — 여기서 <b>같은 판에</b> 본다.
+// ⚠ <b>아무나 내보내면 안 된다</b> (2026-08-14 실측): 굶는 창은 가까운 여섯 명만 그린다 —
+//   그 여섯 밖의 사람을 내보내면 「아직 그려진 사람 0명」으로 <b>거저 초록</b>이다(빨강 걷기에서 잡혔다).
+//   그래서 <b>창 셋이 지금 다 그리고 있는 사람</b> 중에서 고른다.
+const drawnEverywhere = [];
+for (const one of windows) {
+	if (one.paintedInMs < 0) continue;
+	drawnEverywhere.push(await one.page.evaluate(() => window.__wmView.dolls().map((doll) => doll.id)));
+}
+
+const sharedIds = drawnEverywhere.length === 0
+	? []
+	: drawnEverywhere[0].filter((id) => drawnEverywhere.every((list) => list.includes(id)));
+
+const leftIds = [];
+for (const socket of crowd) {
+	if (leftIds.length >= 5) break;
+	if (socket.readyState !== 1 || socket.dollId === undefined) continue;
+	if (sharedIds.includes(socket.dollId) === false) continue;
+	leftIds.push(socket.dollId);
+	try { socket.close(); } catch { /* 이미 닫혔다 */ }
+}
+
+if (leftIds.length === 0) cannotRun('창 셋이 다 그리고 있는 봇을 못 찾았다 — 유령을 잴 수 없다');
+for (const one of windows) {
+	if (one.paintedInMs < 0) continue;
+	await one.page.evaluate((ids) => { window.__left = ids; }, leftIds);
+}
+
+await wait(GHOST_WITHIN_MS);
+
 const health = await fetch(`http://127.0.0.1:${worldPort}/health`, { headers: { connection: 'close' } }).then((one) => one.json());
 
 const seen = [];
@@ -216,6 +269,8 @@ for (const one of windows) {
 		return {
 			...window.__wmView.world(),
 			plates: window.__plates,
+			drawn: window.__wmView.dolls().length,
+			stillThere: window.__wmView.dolls().map((doll) => doll.id).filter((id) => (window.__left || []).includes(id)),
 			frames: window.__frames,
 			watched,
 			movedOthers,
@@ -256,6 +311,13 @@ check(`창끼리 공평하다 (덜 받은 창 ≥ 가장 많이 받은 창의 ${
 check('창마다 무리가 실제로 움직인다',
 	seen.every((one) => one.watched > 0 && one.movedOthers >= LEAST_IN_A_CROWD),
 	seen.map((one) => `${one.movedOthers}/${one.watched}명 움직임`).join(' · '));
+
+// 세계가 세는 사람 수 아래로 창이 그린 인형이 내려와야 한다 — 나간 다섯이 지워졌다는 뜻이다.
+// ★ <b>그 사람</b>이 지워졌나로 본다 — 「그린 수가 세계 수보다 작다」로는 좁혀진 창이 거저 통과한다.
+check(`나간 사람이 창마다 사라진다 (${GHOST_WITHIN_MS / 1000}초 안)`,
+	seen.every((one) => one.stillThere.length === 0),
+	`나간 ${leftIds.length}명 중 아직 그려진 사람 ${seen.map((one) => one.stillThere.length).join('/')}`
+		+ ` · 창이 그린 인형 ${seen.map((one) => one.drawn).join('/')}`);
 
 check('창이 조용히 안 터졌다', windows.every((one) => one.errors.length === 0),
 	windows.flatMap((one) => one.errors).slice(0, 2).join(' | ') || '오류 없음');
