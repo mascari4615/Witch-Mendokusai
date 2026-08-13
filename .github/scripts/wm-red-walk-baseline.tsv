@@ -14,4 +14,3 @@ wm-web-picker-test.mjs
 wm-web-reconnect-smoke.mjs
 wm-web-smoothness-test.mjs
 wm-web-strike-lag-test.mjs
-wm-web-walk-test.mjs

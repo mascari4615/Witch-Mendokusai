@@ -7,6 +7,8 @@
 //   브라우저도 서버도 필요 없다 — 순수한 셈이라 눈 깜짝할 새에 돈다.
 //
 // exit: 0 = 맞다 · 1 = 틀렸다
+//
+// [빨강-확인] 대각선 정규화를 빼니 3건 빨강 — 「오른쪽이 앞쪽을 시계 방향으로 돌린 쪽」이 (3.00, 0.00) 으로 어긋난다 (2026-08-14)
 
 import { fileURLToPath } from 'node:url';
 import { resolve, join } from 'node:path';

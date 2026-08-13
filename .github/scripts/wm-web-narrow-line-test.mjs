@@ -13,6 +13,10 @@
 //
 // 필요한 것: .NET 8 · playwright + chromium (`WM_PLAYWRIGHT_ROOT`).
 // exit: 0 = 현재를 본다 · 1 = 과거를 본다 · 2 = 못 돌림
+//
+// ⚠ 빨강 걷기 <b>못 했다</b> (2026-08-14): 「밀린 창을 건너뛰기」를 꺼도 초록이었다(나이 0.13초).
+//   이 자리는 <b>방어가 여러 겹</b>이라(건너뛰기 · 작은 한 장 · 보내기 자체가 await) 한 겹만 빼서는 안 늙는다.
+//   겹을 다 빼는 판을 따로 만들어야 한다 — 그때까지 빚 목록에 그대로 둔다(거짓 확신보다 낫다).
 
 import { spawn, execSync } from 'node:child_process';
 import { createRequire } from 'node:module';
