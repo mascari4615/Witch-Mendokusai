@@ -68,6 +68,7 @@ on:
       - '.github/scripts/wm-save-failure-test.mjs'
       - '.github/scripts/wm-web-many-windows-test.mjs'
       - '.github/scripts/wm-border-stampede-test.mjs'
+      - '.github/scripts/wm-stale-sky-test.mjs'
       - '.github/scripts/wm-dead-parameter-audit.mjs'
       - '.github/scripts/lib/bad-line.mjs'
       - '.github/scripts/wm-game-client-gate.mjs'
@@ -120,6 +121,7 @@ on:
       - '.github/scripts/wm-save-failure-test.mjs'
       - '.github/scripts/wm-web-many-windows-test.mjs'
       - '.github/scripts/wm-border-stampede-test.mjs'
+      - '.github/scripts/wm-stale-sky-test.mjs'
       - '.github/scripts/wm-dead-parameter-audit.mjs'
       - '.github/scripts/lib/bad-line.mjs'
       - '.github/scripts/wm-game-client-gate.mjs'
@@ -455,6 +457,10 @@ jobs:
       # 여럿이 같은 순간에 국경을 넘어도 아무도 안 사라진다 (TASK-WM-318).
       - name: Run border stampede test
         run: node ./.github/scripts/wm-border-stampede-test.mjs
+
+      # 앞서 있는 저장 하늘을 세계가 되돌린다 (TASK-WM-320).
+      - name: Run stale sky test
+        run: node ./.github/scripts/wm-stale-sky-test.mjs
 
   unity:
     name: EditMode tests (laptop runner)
