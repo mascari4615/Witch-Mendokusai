@@ -27,6 +27,12 @@
 //     같은 세계에서 같이 늦기 때문에, 세계가 <b>모두에게</b> 느려지는 판(보내기 await 같은)은
 //     이 자로는 안 잡힌다. 잡히는 것은 「나만 밀린다」 뿐이다.
 //     그 구멍을 재려면 <b>다른 자</b>가 필요하다 — 예: 벽시계로 「세계가 몇 판 보냈나」를 세는 것.
+//     그래서 <b>벽시계 자</b>를 하나 더 뒀다(아래 「초당 여덟 판」) — 세계가 모두에게 멎으면 그게 잡는다.
+//
+//   ⑤ 좁힘만 끔 → 여전히 초록(0.15초 · 초당 20판). ⑥ 보내기 await + 건너뛰기 끔 → 초록(초당 19.8판).
+//     남은 의문은 <b>수요와 좁힘의 차</b>다: 좁힘 3.0KB/s 인데 창은 초당 20판을 받는다 = 한 판이 150B 안팎.
+//     즉 이 판의 <b>진짜 델타 수요</b>가 이미 3KB/s 언저리다(넓을 때 잰 15KB/s 는 들어올 때가 섞인 값).
+//     다음 할 일 = 판 크기 분포를 두 구간에서 각각 찍어 어디로 트래픽이 가는지 <b>숫자로</b> 보기.
 //     그때까지 빚 목록에 그대로 둔다(거짓 확신보다 낫다).
 
 import { spawn, execSync } from 'node:child_process';
@@ -348,6 +354,18 @@ await new Promise((done) => setTimeout(done, MEASURE_MS));
 const tightTo = Date.now();
 const squeezedAges = await page.evaluate(() => window.__wmAges.slice());
 
+// ★ <b>벽시계로 재는 자</b> (2026-08-14): 위의 「나이」는 그 창만의 늦음을 잰다 — 세계가 모두에게
+//   느려지면 기준 시계(걷는 봇)도 같이 늦어 나이는 그대로다. 그 구멍을 이 자가 메운다.
+//   창이 <b>실제 시간</b> 동안 몇 판을 받았나 — 세계가 멎으면 이 값이 떨어진다.
+//   [문턱-사유] (c) 제품 상수 — 세계는 초당 20번 말한다(SNAPSHOT_HZ). 좁은 회선에서 그 절반 아래로
+//   떨어지면 사람은 「끊긴다」고 느낀다. 넉넉히 잡아 초당 여덟 판을 바닥으로 둔다.
+const LEAST_PLATES_PER_SECOND = 8;
+const platesPerSecond = await page.evaluate(() => {
+	const now = Date.now();
+	const lately = (window.__wmBytes || []).filter((one) => now - one.at <= 4000);
+	return lately.length / 4;
+});
+
 clearInterval(walking);
 clearInterval(milling);
 for (const socket of bots) { try { socket.close(); } catch { /* 이미 닫혔다 */ } }
@@ -464,6 +482,10 @@ if (squeezed.length >= LEAST_SAMPLES_SQUEEZED) {
 		tightLate - tightEarly <= MAX_AGE_GROWTH_SECONDS,
 		`앞 절반 ${tightEarly.toFixed(2)}초 → 뒤 절반 ${tightLate.toFixed(2)}초`);
 }
+
+check(`좁은 회선에서도 <b>벽시계로</b> 초당 ${LEAST_PLATES_PER_SECOND}판은 온다 (세계가 모두에게 멎는 판을 잡는 자)`,
+	platesPerSecond >= LEAST_PLATES_PER_SECOND,
+	`초당 ${platesPerSecond.toFixed(1)}판 (세계는 초당 20번 말한다)`);
 
 check('창이 조용히 안 터졌다', pageErrors.length === 0, pageErrors.join(' | ') || '오류 없음');
 
