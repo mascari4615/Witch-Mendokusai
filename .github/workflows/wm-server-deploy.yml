@@ -31,47 +31,83 @@ jobs:
         with:
           dotnet-version: 8.0.407
 
-      - name: Publish and restart WM server
+      - name: Publish and restart WM worlds (east + west)
         shell: powershell
         run: |
           $ErrorActionPreference = 'Stop'
           $publishDir = 'C:\wm-world\app'
-          $dataDir = 'C:\wm-world\data'
-          $serviceName = 'wm-world'
           $nssm = (Get-Command nssm -ErrorAction SilentlyContinue).Source
           if (-not $nssm) {
             $nssm = 'C:\Users\masca\AppData\Local\Microsoft\WinGet\Links\nssm.exe'
           }
           if (-not (Test-Path $nssm)) { throw "nssm not found: $nssm" }
 
-          New-Item -ItemType Directory -Force -Path $publishDir, $dataDir | Out-Null
-          & $nssm stop $serviceName | Out-Host
+          # ★ 세계 <b>둘</b>이 붙어 돈다 (TASK-WM-313) — 같은 앱, 다른 땅·다른 기억.
+          #   나눠 놓은 세계(WM-252~255)는 지금까지 시험에서만 돌았다. 코어가 진짜인지 보려면
+          #   prod 가 그 모양이어야 한다 — 국경 넘기·이웃 그림자·건너편 말이 24시간 굴러간다.
+          #
+          # ⚠ 땅 이름은 <b>ASCII</b> 다. 한글로 넣었더니 서비스 env 를 타고 오며 「?」로 뭉개져
+          #   세계가 아예 못 섰다(2026-08-13 실측).
+          $zoneSecret = '${{ secrets.WM_ZONE_SECRET }}'
+          if (-not $zoneSecret) { $zoneSecret = 'wm-zone-shared-secret' }
+
+          $worlds = @(
+            @{ Name = 'wm-world';      Port = 5199; Data = 'C:\wm-world\data';
+               Zone = 'east:0,-200,200,200';   Neighbour = 'west:-200,-200,0,200=ws://127.0.0.1:5200/ws' },
+            @{ Name = 'wm-world-west'; Port = 5200; Data = 'C:\wm-world\data-west';
+               Zone = 'west:-200,-200,0,200';  Neighbour = 'east:0,-200,200,200=ws://127.0.0.1:5199/ws' }
+          )
+
+          New-Item -ItemType Directory -Force -Path $publishDir | Out-Null
+          foreach ($w in $worlds) { New-Item -ItemType Directory -Force -Path $w.Data | Out-Null }
+
+          foreach ($w in $worlds) { & $nssm stop $w.Name | Out-Host }
           try {
             dotnet publish Server\WM.Server\WM.Server.csproj -c Release -o $publishDir --nologo
             if ($LASTEXITCODE -ne 0) { throw "dotnet publish failed: $LASTEXITCODE" }
           }
           finally {
-            & $nssm start $serviceName | Out-Host
+            foreach ($w in $worlds) {
+              # 서비스가 없으면 세운다 — 새 기계에서도 이 워크플로 하나로 선다.
+              $exists = Get-Service -Name $w.Name -ErrorAction SilentlyContinue
+              if (-not $exists) {
+                & $nssm install $w.Name "$publishDir\WM.Server.exe" | Out-Host
+                & $nssm set $w.Name Start SERVICE_AUTO_START | Out-Host
+              }
+
+              & $nssm set $w.Name AppDirectory $publishDir | Out-Host
+              & $nssm set $w.Name AppEnvironmentExtra `
+                "ASPNETCORE_URLS=http://127.0.0.1:$($w.Port)" `
+                "WM_WORLD_FILE=$($w.Data)\world.json" `
+                "WM_ZONE=$($w.Zone)" `
+                "WM_ZONE_NEIGHBOURS=$($w.Neighbour)" `
+                "WM_ZONE_SECRET=$zoneSecret" | Out-Host
+
+              & $nssm start $w.Name | Out-Host
+            }
+
             # ⚠ nssm 은 「이미 도는 중」 같은 자리에서 0 이 아닌 값을 낸다. 그 값이 남아 있으면
             #   깃허브가 <스텝 전체>를 실패로 읽는다 — 세계는 멀쩡히 떴는데 배포가 빨강이 된다
             #   (2026-08-13 실측: health 까지 찍고 exit 1). 여기서 지운다.
             $global:LASTEXITCODE = 0
           }
 
-          $healthy = $false
-          for ($attempt = 0; $attempt -lt 12; $attempt++) {
-            Start-Sleep -Seconds 2
-            try {
-              $health = Invoke-RestMethod 'http://127.0.0.1:5199/health'
-              if ($health.ok -eq $true) {
-                $healthy = $true
-                $health | ConvertTo-Json -Depth 6 | Write-Host
-                break
+          foreach ($w in $worlds) {
+            $healthy = $false
+            for ($attempt = 0; $attempt -lt 12; $attempt++) {
+              Start-Sleep -Seconds 2
+              try {
+                $health = Invoke-RestMethod "http://127.0.0.1:$($w.Port)/health"
+                if ($health.ok -eq $true) {
+                  $healthy = $true
+                  Write-Host "$($w.Name): zone=$($health.zone) day=$($health.day) savesFailed=$($health.savesFailed)"
+                  break
+                }
               }
+              catch { }
             }
-            catch { }
+            if (-not $healthy) { throw "$($w.Name) did not become healthy within 24 seconds" }
           }
-          if (-not $healthy) { throw 'WM server did not become healthy within 24 seconds' }
 
           # 세계가 떴으면 <이 스텝은 성공이다> — 남아 있는 옛 종료 코드에 끌려가지 않는다.
           exit 0
