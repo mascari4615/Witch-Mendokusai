@@ -1,0 +1,110 @@
+# wm-rule-gate ASSET-NAME 기준선 -- 이미 진 빚. 여기 없는 새 위반만 막는다.
+# 갚으면 줄을 지운다. 지운 줄이 다시 나타나면 그때부터 빨강이다.
+# 갱신: powershell -File .github/scripts/wm-rule-gate.ps1 -WriteBaseline
+Core/Resources/AppSettings.asset
+Core/Resources/BuildStampPanelSettings.asset
+Core/Resources/BuildStampSettings.asset
+Core/Resources/DeviceLogSettings.asset
+Core/Resources/ResourceManager.asset
+Core/Resources/SkyPreset_AnimalCrossing.asset
+Core/Resources/SOManager.asset
+Core/Resources/Terrain/TerrainParameters_Active.asset
+Core/Resources/VContainerSettings.asset
+Core/Resources/Weather/Clear.asset
+Core/Resources/Weather/Cloudy.asset
+Core/Resources/Weather/Fog.asset
+Core/Resources/Weather/Magical.asset
+Core/Resources/Weather/Rain.asset
+Core/Resources/Weather/Snow.asset
+Core/Resources/Weather/Storm.asset
+Core/Resources/Weather/WeatherTransitionTable.asset
+Core/Resources/WorldClockSO.asset
+Core/Scripts/NodeGraph/Test/TestGraph.asset
+Core/Scripts/UI/Window/WindowLayoutData.asset
+Core/VContainer/VContainerSettings.asset
+Domain/Alchemy/Data/BI_17401.asset
+Domain/Alchemy/Data/BI_17402.asset
+Domain/Alchemy/Data/BI_17403.asset
+Domain/Alchemy/Data/BI_17404.asset
+Domain/Alchemy/Data/BR_17400.asset
+Domain/Alchemy/Data/I_17450.asset
+Domain/Arena/Map/RectangleArenaMap.asset
+Domain/Arena/Match/ArenaMatchConfig.asset
+Domain/Arena/Match/ArenaMatchConfig_Dolls.asset
+Domain/Arena/Mode/BrawlArenaMode.asset
+Domain/Component/Item/_DungeonItemBuffer.asset
+Domain/Component/Item/_ItemCraftInventory.asset
+Domain/Component/Item/_ItemInventory.asset
+Domain/Component/Item/_ItemUpgradeInventory.asset
+Domain/Component/Item/_ShopInventory.asset
+Domain/Component/Item/_ShopItemDataBuffer.asset
+Domain/Component/Item/Hotbar.asset
+Domain/Data/DataSO/Variable/Impl/CoolTime.asset
+Domain/Data/DataSO/Variable/Impl/InvincibleTime.asset
+Domain/Data/DataSO/Variable/Impl/JoystickX.asset
+Domain/Data/DataSO/Variable/Impl/JoystickY.asset
+Domain/Data/DataSO/Variable/Impl/LastEquippedItem.asset
+Domain/Data/DataSO/Variable/Impl/LastHitMonsterObject.asset
+Domain/Data/Entry/EventEntry/EventEntry.asset
+Domain/Data/Entry/FactEntry/FactEntry 1.asset
+Domain/Data/Entry/FactEntry/FactEntry 10.asset
+Domain/Data/Entry/FactEntry/FactEntry 11.asset
+Domain/Data/Entry/FactEntry/FactEntry 2.asset
+Domain/Data/Entry/FactEntry/FactEntry 3.asset
+Domain/Data/Entry/FactEntry/FactEntry 4.asset
+Domain/Data/Entry/FactEntry/FactEntry 5.asset
+Domain/Data/Entry/FactEntry/FactEntry 6.asset
+Domain/Data/Entry/FactEntry/FactEntry 7.asset
+Domain/Data/Entry/FactEntry/FactEntry 8.asset
+Domain/Data/Entry/FactEntry/FactEntry 9.asset
+Domain/Data/Entry/FactEntry/FactEntry.asset
+Domain/Data/Entry/RuleEntry/RuleEntry.asset
+Domain/Doll/Impl/_Dolls.asset
+Domain/Dungeon/Card/_Cards.asset
+Domain/Dungeon/Card/_SelectedCards.asset
+Domain/Gathering/Fishing/FS_강가낚시터.asset
+Domain/Gathering/Mining/Mineral/ResourceNode.asset
+Domain/Gathering/Wood/RN_나무.asset
+Domain/Narrative/Demo/DialogueLine_YawnGreeting.asset
+Domain/Narrative/Demo/DialogueScript_FeatureCheck.asset
+Domain/Narrative/Demo/DialogueScript_Opening.asset
+Domain/Narrative/Demo/PortraitData_Yawn.asset
+Domain/Quest/_QuestBuffer.asset
+Domain/Quest/_VQs.asset
+Domain/Quest/AchievementDataBuffer.asset
+Domain/Quest/MagicBook/Chapter_.asset
+Domain/Quest/MagicBook/Chapter_0_.asset
+Domain/Quest/MagicBook/Chapter_Research.asset
+Domain/Terrain/Scripts/Biomes/Forest.asset
+Domain/Terrain/Scripts/Biomes/Mountain.asset
+Domain/Terrain/Scripts/Biomes/Plains.asset
+Domain/Terrain/Scripts/DefaultTerrainGraph.asset
+Domain/Terrain/Scripts/TerrainParameters_Default.asset
+Domain/Terrain/Scripts/TerrainParameters_New.asset
+Domain/Terrain/Scripts/TerrainParameters_New_Copy.asset
+Domain/Terrain/Scripts/ThresholdLerpDemoGraph.asset
+Domain/Voxel/Scripts/Resources/Blocks/wm_air.asset
+Domain/Voxel/Scripts/Resources/Blocks/wm_dirt.asset
+Domain/Voxel/Scripts/Resources/Blocks/wm_grass.asset
+Domain/Voxel/Scripts/Resources/Blocks/wm_leaves.asset
+Domain/Voxel/Scripts/Resources/Blocks/wm_sand.asset
+Domain/Voxel/Scripts/Resources/Blocks/wm_stone.asset
+Domain/Voxel/Scripts/Resources/Blocks/wm_wood.asset
+Domain/Voxel/Scripts/Resources/VoxelTextureArray.asset
+Editor/Resources/EditorSettings.asset
+Editor/Voxel/VoxelTextureConfig.asset
+Fonts/갈무리/GalMuri11 Bold FloatingText.asset
+Fonts/갈무리/GalMuri11 Bold Outline.asset
+Fonts/갈무리/GalMuri11 Bold.asset
+Fonts/갈무리/Galmuri11 SDF.asset
+Fonts/갈무리/Galmuri11-Bold SDF.asset
+Fonts/갈무리/Galmuri9 SDF Outline.asset
+Fonts/갈무리/Galmuri9 SDF.asset
+Resources/Life/Profiles/미식가.asset
+Resources/Life/Profiles/수다쟁이.asset
+Resources/Life/Profiles/일꾼.asset
+Scenes/World/World/NavMesh-Home_Mesh.asset
+Scenes/World/World/NavMesh-TempStage_Mesh.asset
+Scenes/World/World_Profiles/Bokeh.asset
+Scenes/World/World_Profiles/Gaussian.asset
+ShaderModdingSDK/Samples/cozy-night/CozyNightVolumeProfile.asset

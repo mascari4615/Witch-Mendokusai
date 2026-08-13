@@ -35,7 +35,10 @@ param(
     # here). Passing that list as command-line arguments kills the call itself with
     # "Argument list too long" -- and the caller printed "fix your rule violations",
     # which is a lie: the gate never ran. A file has no such ceiling.
-    [string]$PathsFrom
+    [string]$PathsFrom,
+    # 기준선을 **게이트 자신이** 써 낸다. 손으로 짜거나 별도 스크립트로 뽑으면 판정과
+    # 목록이 어긋나 「기준선에 있는데도 빨강」이 난다. 빚을 갚은 뒤 갱신할 때도 이걸 쓴다.
+    [switch]$WriteBaseline
 )
 
 $ErrorActionPreference = 'Stop'
@@ -320,6 +323,112 @@ $forbidden = @(
        Why = 'right-click selling was removed on purpose (an irreversible action sitting on the undo gesture)' }
 )
 
+# ---------------------------------------------------------------------------
+# RATCHET -- 이미 진 빚은 통과, 새로 지는 빚만 막는다 (2026-08-13).
+#
+# 코딩 지침의 두 규약(Enum 명시적 값 · 에셋 ID 네이밍)은 지금까지 사람 눈에만 있었다.
+# 그런데 그냥 규칙으로 켜면 첫 판부터 빨강이다 -- 실측으로 enum 138개 중 66개, .asset
+# 499개 중 107개가 이미 어긋나 있었다. 첫 판부터 빨강인 게이트는 지켜지는 게 아니라
+# **꺼진다**. 그래서 집안의 다른 빚과 같은 모양(wm-dead-code-ratchet)으로 간다:
+# 지금 있는 것은 기준선 파일에 적어 통과시키고, **기준선에 없는 새 위반만** 세운다.
+#
+# 빚을 갚으면 기준선에서 줄을 지운다. 지운 줄이 다시 나타나면 그때부터 빨강이다.
+# ---------------------------------------------------------------------------
+
+function Read-Baseline
+{
+    param([string]$Path)
+    $set = New-Object 'System.Collections.Generic.HashSet[string]'
+    # ★ 반드시 `,` 로 감싸 돌려준다. PowerShell 은 함수가 내보내는 컬렉션을 **풀어헤친다** —
+    #   빈 집합을 그냥 return 하면 받는 쪽은 $null 이 되고, 그 뒤 .Contains() 가 터진다.
+    #   (기준선이 비어 있을 때만 터지므로 「빚을 다 갚은 날」에만 고장 나는 함정이었다.)
+    if (-not (Test-Path $Path)) { return ,$set }
+    foreach ($line in [System.IO.File]::ReadAllLines($Path))
+    {
+        $t = $line.Trim()
+        if ($t -eq '' -or $t.StartsWith('#')) { continue }
+        [void]$set.Add($t)
+    }
+    return ,$set
+}
+
+$scriptDir = $PSScriptRoot
+$enumBaselinePath  = Join-Path $scriptDir 'wm-enum-value-baseline.tsv'
+$assetBaselinePath = Join-Path $scriptDir 'wm-asset-name-baseline.tsv'
+$enumBaseline  = Read-Baseline $enumBaselinePath
+$assetBaseline = Read-Baseline $assetBaselinePath
+
+$ratchetMisses = New-Object System.Collections.ArrayList
+
+# --- ENUM-VALUE ---------------------------------------------------------------
+# Unity 는 enum 을 정수로 직렬화한다. 값을 안 적어 두면 항목을 중간에 하나 끼우는 순간
+# 이미 저장된 에셋들이 **다른 항목을 가리킨다** -- 컴파일도 되고 시험도 통과하는데
+# 퀘스트가 엉뚱한 사건에 반응한다. 실제로 GameEventType 에서 났던 사고다.
+$enumOffenders = New-Object System.Collections.ArrayList
+foreach ($file in $subjects)
+{
+    $text = ($file.Lines -join "`n")
+    $text = [regex]::Replace($text, '/\*.*?\*/', '', 'Singleline')
+    $text = [regex]::Replace($text, '//[^\n]*', '')
+    foreach ($m in [regex]::Matches($text, '\benum\s+(\w+)[^{;]*\{(.*?)\}', 'Singleline'))
+    {
+        $enumName = $m.Groups[1].Value
+        $body = $m.Groups[2].Value
+        $members = @()
+        foreach ($piece in $body.Split(','))
+        {
+            $t = $piece.Trim()
+            if ($t -ne '') { $members += $t }
+        }
+        if ($members.Count -eq 0) { continue }
+        $missing = @()
+        foreach ($member in $members)
+        {
+            if ($member -notmatch '=') { $missing += ($member -split '\s+')[0] }
+        }
+        if ($missing.Count -eq 0) { continue }
+        [void]$enumOffenders.Add(("{0}`t{1}" -f $file.Relative, $enumName))
+    }
+}
+foreach ($key in $enumOffenders)
+{
+    if ($enumBaseline.Contains($key)) { continue }
+    $parts = $key -split "`t"
+    [void]$ratchetMisses.Add(("ENUM-VALUE  {0} -- enum '{1}' 의 항목에 명시적 값이 없다; fix: 각 항목에 = <정수> 를 적어라 (끝에 추가가 원칙)" -f $parts[0], $parts[1]))
+}
+
+# --- ASSET-NAME ---------------------------------------------------------------
+# 규격 = {타입}_{ID}_{이름}.asset (예: Q_5000_나무의성질연구.asset). ID 범위를 타입별로
+# 나눠 충돌을 막는 장치라, 이름이 어긋나면 그 장치가 없는 것과 같다.
+$assetSubjects = New-Object System.Collections.ArrayList
+if ($commitScoped)
+{
+    foreach ($path in $Paths)
+    {
+        if ([string]::IsNullOrWhiteSpace($path)) { continue }
+        if (-not $path.EndsWith('.asset')) { continue }
+        # 이 커밋에서 지워진 파일은 판단 대상이 아니다.
+        & git cat-file -e "${Sha}:${path}" 2>$null
+        if ($LASTEXITCODE -ne 0) { continue }
+        [void]$assetSubjects.Add(($path -replace '^Assets/_WitchMendokusai/', ''))
+    }
+}
+else
+{
+    $rootFullForAssets = (Resolve-Path $Root).Path
+    foreach ($file in (Get-ChildItem -Path $Root -Filter *.asset -Recurse -File))
+    {
+        [void]$assetSubjects.Add($file.FullName.Substring($rootFullForAssets.Length).TrimStart('\', '/').Replace('\', '/'))
+    }
+}
+foreach ($relative in $assetSubjects)
+{
+    $name = Split-Path $relative -Leaf
+    if ($name -match '^[A-Za-z]+_\d+_.+\.asset$') { continue }
+    if ($assetBaseline.Contains($relative)) { continue }
+    [void]$ratchetMisses.Add(("ASSET-NAME  {0} -- 이름이 규격에 안 맞는다; fix: {{타입}}_{{ID}}_{{이름}}.asset (예: Q_5000_나무의성질연구.asset)" -f $relative))
+}
+
 $anchorMisses = New-Object System.Collections.ArrayList
 foreach ($anchor in $anchors)
 {
@@ -347,9 +456,37 @@ foreach ($ban in $forbidden)
     }
 }
 
+if ($WriteBaseline)
+{
+    $enumHeader = @(
+        '# wm-rule-gate ENUM-VALUE 기준선 -- 이미 진 빚. 여기 없는 새 위반만 막는다.',
+        '# 갚으면 줄을 지운다. 지운 줄이 다시 나타나면 그때부터 빨강이다.',
+        '# 갱신: powershell -File .github/scripts/wm-rule-gate.ps1 -WriteBaseline'
+    )
+    $assetHeader = @(
+        '# wm-rule-gate ASSET-NAME 기준선 -- 이미 진 빚. 여기 없는 새 위반만 막는다.',
+        '# 갚으면 줄을 지운다. 지운 줄이 다시 나타나면 그때부터 빨강이다.',
+        '# 갱신: powershell -File .github/scripts/wm-rule-gate.ps1 -WriteBaseline'
+    )
+    $enumLines = @($enumOffenders | Sort-Object -Unique)
+    $assetLines = @()
+    foreach ($relative in $assetSubjects)
+    {
+        $name = Split-Path $relative -Leaf
+        if ($name -match '^[A-Za-z]+_\d+_.+\.asset$') { continue }
+        $assetLines += $relative
+    }
+    $assetLines = @($assetLines | Sort-Object -Unique)
+    [System.IO.File]::WriteAllLines($enumBaselinePath, ($enumHeader + $enumLines), (New-Object System.Text.UTF8Encoding($false)))
+    [System.IO.File]::WriteAllLines($assetBaselinePath, ($assetHeader + $assetLines), (New-Object System.Text.UTF8Encoding($false)))
+    Write-Host ("wm-rule-gate -- 기준선을 새로 썼다: enum {0}건 / asset {1}건" -f $enumLines.Count, $assetLines.Count)
+    exit 0
+}
+
 $total = 0
 foreach ($rule in $rules) { $total += $findings[$rule.Id].Count }
 $total += $anchorMisses.Count
+$total += $ratchetMisses.Count
 
 if ($commitScoped)
 {
@@ -389,6 +526,7 @@ Write-Host ''
 if ($total -eq 0)
 {
     Write-Host '  PASS  [ANCHOR] required wiring lines are still present'
+    Write-Host ('  PASS  [RATCHET] 새 위반 없음 (기준선: enum {0}건 / asset {1}건 -- 이미 진 빚)' -f $enumBaseline.Count, $assetBaseline.Count)
     Write-Host 'RESULT: PASS -- 0 rule violations.'
     exit 0
 }
@@ -401,6 +539,22 @@ else
 {
     Write-Host ("  FAIL  [ANCHOR] required wiring line(s) disappeared -- {0} hit(s); fix: put the line back (do not delete it)" -f $anchorMisses.Count)
     foreach ($miss in $anchorMisses) { Write-Host ("          " + $miss) }
+}
+
+if ($ratchetMisses.Count -eq 0)
+{
+    Write-Host ('  PASS  [RATCHET] 새 위반 없음 (기준선: enum {0}건 / asset {1}건 -- 이미 진 빚)' -f $enumBaseline.Count, $assetBaseline.Count)
+}
+else
+{
+    Write-Host ("  FAIL  [RATCHET] 기준선에 없는 새 위반 -- {0}건 (이미 있던 빚은 통과시킨다)" -f $ratchetMisses.Count)
+    $shownRatchet = 0
+    foreach ($miss in $ratchetMisses)
+    {
+        Write-Host ("          " + $miss)
+        $shownRatchet++
+        if ($shownRatchet -ge $MaxShown) { break }
+    }
 }
 
 Write-Host ("RESULT: FAIL -- {0} rule violation(s). Rule text: WitchMendokusai/CLAUDE.md" -f $total)
