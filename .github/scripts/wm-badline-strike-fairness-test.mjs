@@ -226,6 +226,22 @@ if (straightHitter.swings < 20 || badHitter.swings < 20)
 if (straightHitter.landed <= 0)
 	cannotRun('곧은 회선조차 한 대도 못 맞혔다 — 재는 자가 고장 난 것이다');
 
+// ★ 견줌에는 <b>바닥</b>이 있어야 한다 (2026-08-14, 무리 관문에서 배웠다): 둘이 <b>같이</b> 나빠지면
+//   비율은 그대로라 초록이 된다. 「나쁜 회선이 곧은 회선만큼 맞힌다」가 뜻을 가지려면
+//   곧은 회선이 <b>실제로 맞히고</b> 있어야 한다.
+//   [문턱-사유] (c) 제품 상수 — 붙어서 휘두르는 판이다. 실측 38~40% 라 그 절반인 20% 를 바닥으로 둔다
+//   (판정 간격·쿨다운 때문에 100% 는 원래 안 나온다).
+//   ⚠ 밟아 보려 했으나 <b>그 띠가 좁다</b>(2026-08-14): 사거리를 0.05m 로 줄이면 0% → 위의
+//     CANNOT-RUN 이 먼저 나고, 0.7m 로 줄여도 봇이 워낙 붙어 있어 37% 가 나온다.
+//     그래서 이 바닥은 「0% 는 아닌데 20% 도 안 되는」 좁은 띠를 지킨다 — 못 밟아 본 채로 둔다(정직하게 적는다).
+const LANDS_AT_LEAST = 0.2;
+if (straightHitter.landed < LANDS_AT_LEAST) {
+	console.log(`  ❌ 곧은 회선이 ${(straightHitter.landed * 100).toFixed(0)}% 밖에 못 맞혔다`
+		+ ` (바닥 ${(LANDS_AT_LEAST * 100).toFixed(0)}%) — 둘이 같이 나빠지면 비율은 그대로다`);
+	console.log('[strike-fairness] RESULT: 붙어서 휘둘러도 안 맞는다 — 비율보다 이게 먼저다');
+	process.exit(1);
+}
+
 const asWellAs = badHitter.landed / straightHitter.landed;
 console.log(`  ⓘ 회선 ${ONE_WAY_MS}ms · 유실 ${LOSS_PERCENT}% — 나쁜 회선이 곧은 회선의 ${(asWellAs * 100).toFixed(0)}% 만큼 맞혔다`
 	+ ` (되감기 없으면 실측 ${(BEFORE_REWIND * 100).toFixed(0)}% · 한도 ${(AS_WELL_AS_LEAST * 100).toFixed(0)}%)`);
