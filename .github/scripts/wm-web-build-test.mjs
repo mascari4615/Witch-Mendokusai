@@ -225,13 +225,19 @@ await page.evaluate(() => {
 const said = await page.evaluate(() => ({ ...window.__wmSaid, pressedAt: window.__wmPressedAt }));
 const saidInMs = said.at < 0 ? -1 : said.at - said.pressedAt;
 
-// 세운 것이 창에 뜰 때까지
+// 세운 것이 창에 뜰 때까지 — <b>그 시각도</b> 적는다(즉시 대답을 견줄 자다).
 let built = builtBefore;
+let worldAnsweredInMs = -1;
 {
 	const until = Date.now() + 15000;
 	while (Date.now() < until) {
 		built = await page.evaluate(() => window.__wmView.world().buildings);
-		if (built > builtBefore) break;
+		if (built > builtBefore) {
+			// ⚠ 두 시각은 <b>같은 시계</b>여야 한다: 누른 때는 Date.now() 로 적혀 있다.
+			//   performance.now() 와 섞으면 음수가 나와 「못 잼」이 된다(첫 판이 그랬다).
+			worldAnsweredInMs = await page.evaluate(() => Date.now() - window.__wmPressedAt);
+			break;
+		}
 
 		await wait(200);
 	}
@@ -351,10 +357,19 @@ async function loseTheSpot() {
 
 const lost = await loseTheSpot();
 
-// ⚠ 절대 밀리초는 환경 주장이다 (domain-wm.md § 관문 규율 ④) — 느린 기계에서는 누르는 것도
-//   재는 것도 느리다. 「사람이 기다린다고 느끼기 전에」로 자른다.
-check('누르자마자 「짓는 중」이라고 한다 (0.5초 안)', saidInMs >= 0 && saidInMs <= 500,
-	saidInMs < 0 ? '아무 말도 안 했다' : `${saidInMs}ms · "${said.text}"`);
+// ⚠ 절대 밀리초는 <b>환경 주장</b>이다 (domain-wm.md § 관문 규율 ④). 0.5초로 잘랐더니
+//   2코어 CI 에서 빨개졌다(같은 코드가 이 기계에서는 초록) — 느린 기계에서는 누르는 것도
+//   그리는 것도 느리다. 그래서 <b>같은 판의 세계 답</b>과 견준다: 즉시 대답은 세계가 답하기까지의
+//   <b>절반</b> 안에 나와야 한다(WM-292 가 「대답」 관문에서 쓴 그 자다).
+//   세계 답을 못 재면 그때만 사람이 느끼는 선(1초)으로 자른다.
+const halfOfWorld = worldAnsweredInMs > 0 ? Math.round(worldAnsweredInMs / 2) : -1;
+const sayLimitMs = halfOfWorld > 0 ? Math.max(halfOfWorld, 200) : 1000;
+
+check('누르자마자 「짓는 중」이라고 한다 (세계 답의 절반 안)', saidInMs >= 0 && saidInMs <= sayLimitMs,
+	saidInMs < 0
+		? '아무 말도 안 했다'
+		: `${saidInMs}ms · 세계 답 ${worldAnsweredInMs < 0 ? '못 잼' : worldAnsweredInMs + 'ms'}`
+			+ ` · 한도 ${sayLimitMs}ms · "${said.text}"`);
 check('세운 것이 창에 뜬다', built > builtBefore, `건물 ${builtBefore} → ${built}`);
 check('가방에서 재료가 빠진다', bagAfter !== bagBefore, `${bagBefore} → ${bagAfter}`);
 // ⚠ 겨루기 전에 <b>재료를 다시</b> 채운다. 안 그러면 세계는 「재료가 모자란다」로 답하고,
