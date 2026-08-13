@@ -380,6 +380,21 @@ check('본 들판이 도중에 사라지지 않는다', field.most > 0 && field.
 	+ ` · 받은 판 ${field.plates}(들판 실린 판 ${field.withField}) · 종류 ${JSON.stringify(field.kinds)}`);
 
 const beforeCut = await page.evaluate(() => window.__wmView.world());
+
+// ★ 화면 글씨는 <b>지나간다</b> (2026-08-14 CI 실측). 끊긴 뒤 0.5초면 스스로 다시 붙으므로,
+//   느린 기계에서는 누르고 읽는 사이에 이미 「붙었다」로 돌아가 있다 — 제품은 멀쩡한데 빨강이었다.
+//   그래서 <b>지나간 글씨를 다 적어 두고</b> 그 속에서 찾는다(순간을 재지 말고 자취를 재라).
+await page.evaluate(() => {
+	window.__wmStatusLog = [];
+	const status = document.getElementById('status');
+	const note = () => {
+		const now = status?.textContent || '';
+		if (window.__wmStatusLog[window.__wmStatusLog.length - 1] !== now) window.__wmStatusLog.push(now);
+	};
+	note();
+	window.__wmStatusWatch = setInterval(note, 50);
+});
+
 badLine.cut();
 await page.waitForFunction(
 	() => (document.getElementById('status')?.textContent || '').includes('붙었다') === false,
@@ -392,11 +407,16 @@ await page.waitForFunction(
 const errorsBeforeClick = pageErrors.length;
 await page.click('#complete').catch(() => { /* 손잡이가 안 보이면 아래 칸이 잡는다 */ });
 const saidWhy = await page.textContent('#status').catch(() => '');
+const statusTrail = await page.evaluate(() => {
+	clearInterval(window.__wmStatusWatch);
+	return window.__wmStatusLog || [];
+});
+const toldWhy = statusTrail.some((one) => (one || '').includes('끊')) || (saidWhy || '').includes('끊');
 
 check('끊긴 동안 눌러도 창이 안 터진다', pageErrors.length === errorsBeforeClick,
 	pageErrors.slice(errorsBeforeClick).join(' | ') || '오류 없음');
-check('끊긴 동안 눌렀을 때 왜 안 되는지 말해 준다', (saidWhy || '').includes('끊'),
-	`화면: "${saidWhy}"`);
+check('끊긴 동안 눌렀을 때 왜 안 되는지 말해 준다', toldWhy,
+	`화면: "${saidWhy}" · 지나간 글씨 ${JSON.stringify(statusTrail.slice(-4))}`);
 
 const cutAt = Date.now();
 let recovered = -1;
