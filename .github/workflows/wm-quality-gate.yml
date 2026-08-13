@@ -44,6 +44,7 @@ on:
       - '.github/scripts/wm-flood-budget-test.mjs'
       - '.github/scripts/wm-world-full-test.mjs'
       - '.github/scripts/wm-build-race-test.mjs'
+      - '.github/scripts/wm-gather-race-test.mjs'
       - '.github/scripts/wm-honest-budget-test.mjs'
       - '.github/scripts/wm-web-smoothness-test.mjs'
       - '.github/scripts/wm-web-badline-test.mjs'
@@ -102,6 +103,7 @@ on:
       - '.github/scripts/wm-flood-budget-test.mjs'
       - '.github/scripts/wm-world-full-test.mjs'
       - '.github/scripts/wm-build-race-test.mjs'
+      - '.github/scripts/wm-gather-race-test.mjs'
       - '.github/scripts/wm-honest-budget-test.mjs'
       - '.github/scripts/wm-web-smoothness-test.mjs'
       - '.github/scripts/wm-web-badline-test.mjs'
@@ -300,6 +302,11 @@ jobs:
       # 이유를 말하고 닫고, 안에 있는 사람은 지키는지 본다(정원을 낮춰 띄워 규칙만 본다).
       # TASK-WM-351 -- 상자 경합은 쟀는데 <b>짓기 경합</b>은 안 쟀다. 둘이 같은 칸을 같은 순간에
       # 노리면 집이 둘 서거나 진 사람 재료가 사라질 수 있다.
+      # TASK-WM-352 -- 줍기 경합. 여기가 무너지면 한 자리에서 둘이 다 받아 <b>물건이 는다</b>
+      # (MMO 에서 제일 조용한 사고다).
+      - name: Run gather race test
+        run: node ./.github/scripts/run-gate.mjs ./.github/scripts/wm-gather-race-test.mjs
+
       - name: Run build race test
         run: node ./.github/scripts/run-gate.mjs ./.github/scripts/wm-build-race-test.mjs
 
