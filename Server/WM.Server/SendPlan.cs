@@ -17,8 +17,17 @@ namespace WitchMendokusai.Server
 	/// </summary>
 	public static class SendPlan
 	{
-		/// <summary>이 값보다 왕복이 길면 그 창은 <b>밀리는 중</b>이다 (ms).</summary>
-		public const long LAG_BUDGET_MILLISECONDS = 400;
+		/// <summary>
+		/// 「밀린다」는 <b>그 회선의 바닥과의 차</b>다 (TASK-WM-341).
+		///
+		/// ★ 절대 밀리초로 자르면 안 된다 (2026-08-14 CI 실측): 왕복 400ms 회선에서는 <b>모두가</b>
+		///   밀린 것으로 잡혀 좁혀졌고, 그러자 보던 사람이 판에서 빠져 화면이 <b>100% 멎었다</b>.
+		///   회선이 먼 것과 밀리는 것은 다르다 — 바닥보다 이만큼 더 걸릴 때만 밀린 것이다.
+		/// </summary>
+		public const long LAG_OVER_BEST_MILLISECONDS = 250;
+
+		/// <summary>바닥이 이 값보다 좋으면(작으면) 이 값을 바닥으로 친다 — 너무 좋은 바닥은 흔들림에 약하다.</summary>
+		public const long BEST_FLOOR_MILLISECONDS = 60;
 
 		/// <summary>밀리는 창은 이만큼 뒤처진 것으로 쳐서 좁힌다.</summary>
 		public const int BEHIND_STEPS_WHEN_LAGGING = 3;
@@ -45,9 +54,11 @@ namespace WitchMendokusai.Server
 		/// <param name="roundTripMs">그 창의 왕복 (0 = 아직 모른다)</param>
 		/// <param name="missedInARow">연달아 건너뛴 판 수 (이미 세고 있던 값)</param>
 		/// <param name="sequence">이번 판 번호</param>
-		public static Choice For(long roundTripMs, int missedInARow, long sequence)
+		public static Choice For(long roundTripMs, long bestRoundTripMs, int missedInARow, long sequence)
 		{
-			if (roundTripMs <= LAG_BUDGET_MILLISECONDS)
+			long floor = bestRoundTripMs < BEST_FLOOR_MILLISECONDS ? BEST_FLOOR_MILLISECONDS : bestRoundTripMs;
+			bool lagging = bestRoundTripMs > 0 && roundTripMs > floor + LAG_OVER_BEST_MILLISECONDS;
+			if (lagging == false)
 				return new Choice(true, missedInARow);
 
 			int behind = missedInARow < BEHIND_STEPS_WHEN_LAGGING ? BEHIND_STEPS_WHEN_LAGGING : missedInARow;

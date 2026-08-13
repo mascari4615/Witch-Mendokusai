@@ -41,6 +41,9 @@ namespace WitchMendokusai.Net
 		private readonly object gate = new object();
 		private readonly Dictionary<int, float> roundTrips = new Dictionary<int, float>();
 
+		/// <summary>그 창에서 <b>가장 좋았던</b> 왕복 — 그 회선의 바닥이다 (TASK-WM-341).</summary>
+		private readonly Dictionary<int, float> bestRoundTrips = new Dictionary<int, float>();
+
 		/// <summary>
 		/// 창이 <paramref name="stampMs"/> 도장을 되돌려 줬다 — 왕복이 여기서 나온다.
 		/// 말이 안 되는 도장(미래·너무 옛것)은 안 받는다.
@@ -57,6 +60,9 @@ namespace WitchMendokusai.Net
 					roundTrips[dollId] = roundTrip;
 				else
 					roundTrips[dollId] = smoothed + (roundTrip - smoothed) * SMOOTHING;
+
+				if (bestRoundTrips.TryGetValue(dollId, out float best) == false || roundTrip < best)
+					bestRoundTrips[dollId] = roundTrip;
 			}
 
 			return true;
@@ -69,6 +75,21 @@ namespace WitchMendokusai.Net
 		///   막혀도 250 이상으로 안 커진다 — 그걸로는 <b>밀리는 중</b>인지 알 수가 없다.
 		///   좁은 회선에서 세계가 스스로 덜어 내려면 <b>안 묶인 값</b>을 봐야 한다.
 		/// </summary>
+		/// <summary>
+		/// 그 창의 <b>가장 좋았던</b> 왕복 (ms) — 0 이면 아직 모른다 (TASK-WM-341).
+		///
+		/// ★ 왜 필요한가: 「밀린다」를 <b>절대 밀리초</b>로 자르면 회선이 원래 먼 사람은 늘 밀린 것이 된다
+		///   (실측 2026-08-14: 왕복 400ms 회선에서 모두가 「밀림」으로 잡혀 화면이 멎었다).
+		///   밀림은 <b>그 회선의 바닥과의 차</b>다.
+		/// </summary>
+		public long BestRoundTripMsFor(int dollId)
+		{
+			lock (gate)
+			{
+				return bestRoundTrips.TryGetValue(dollId, out float best) ? (long)best : 0;
+			}
+		}
+
 		public long RoundTripMsFor(int dollId)
 		{
 			lock (gate)

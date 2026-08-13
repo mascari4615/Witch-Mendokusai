@@ -11,7 +11,7 @@ namespace WitchMendokusai.ServerTests
 		[Test]
 		public void 안_밀리면_그대로_보낸다()
 		{
-			SendPlan.Choice plan = SendPlan.For(120, 0, 7);
+			SendPlan.Choice plan = SendPlan.For(120, 100, 0, 7);
 
 			Assert.That(plan.Send, Is.True);
 			Assert.That(plan.BehindSteps, Is.EqualTo(0), "안 밀리는 창을 좁힐 이유가 없다");
@@ -20,7 +20,7 @@ namespace WitchMendokusai.ServerTests
 		[Test]
 		public void 밀리면_좁힌다()
 		{
-			SendPlan.Choice plan = SendPlan.For(900, 0, 8);
+			SendPlan.Choice plan = SendPlan.For(900, 200, 0, 8);
 
 			Assert.That(plan.BehindSteps, Is.EqualTo(SendPlan.BEHIND_STEPS_WHEN_LAGGING));
 		}
@@ -32,8 +32,8 @@ namespace WitchMendokusai.ServerTests
 		[Test]
 		public void 밀리면_박자도_절반이다()
 		{
-			Assert.That(SendPlan.For(900, 3, 8).Send, Is.True, "짝수 판은 보낸다");
-			Assert.That(SendPlan.For(900, 3, 9).Send, Is.False, "홀수 판은 건너뛴다");
+			Assert.That(SendPlan.For(900, 200, 3, 8).Send, Is.True, "짝수 판은 보낸다");
+			Assert.That(SendPlan.For(900, 200, 3, 9).Send, Is.False, "홀수 판은 건너뛴다");
 		}
 
 		/// <summary>
@@ -47,17 +47,49 @@ namespace WitchMendokusai.ServerTests
 			int sent = 0;
 			for (long sequence = 0; sequence < worldHz; sequence++)
 			{
-				if (SendPlan.For(900, 3, sequence).Send)
+				if (SendPlan.For(900, 200, 3, sequence).Send)
 					sent++;
 			}
 
 			Assert.That(sent, Is.GreaterThanOrEqualTo(8), $"초당 {sent}판 — 여덟 판 아래면 사람은 「끊긴다」로 읽는다");
 		}
 
+		/// <summary>
+		/// ★ 회선이 <b>원래 먼</b> 것과 <b>밀리는</b> 것은 다르다 (TASK-WM-341).
+		/// 절대 400ms 로 자르던 시절, 왕복 400ms 회선에서는 모두가 밀린 것으로 잡혀
+		/// 좁혀졌고 보던 사람이 판에서 빠져 화면이 100% 멎었다(CI 실측).
+		/// </summary>
+		[Test]
+		public void 원래_먼_회선은_밀리는_것이_아니다()
+		{
+			// 바닥도 400ms · 지금도 420ms — 그냥 먼 회선이다.
+			SendPlan.Choice plan = SendPlan.For(420, 400, 0, 9);
+
+			Assert.That(plan.Send, Is.True, "먼 회선이라고 건너뛰면 그 사람 화면이 멎는다");
+			Assert.That(plan.BehindSteps, Is.EqualTo(0));
+		}
+
+		[Test]
+		public void 바닥보다_많이_늦어지면_그때_밀린_것이다()
+		{
+			SendPlan.Choice plan = SendPlan.For(700, 400, 0, 9);
+
+			Assert.That(plan.Send, Is.False, "홀수 판이라 건너뛴다");
+			Assert.That(plan.BehindSteps, Is.EqualTo(SendPlan.BEHIND_STEPS_WHEN_LAGGING));
+		}
+
+		[Test]
+		public void 아직_왕복을_모르면_안_건드린다()
+		{
+			SendPlan.Choice plan = SendPlan.For(0, 0, 0, 9);
+
+			Assert.That(plan.Send, Is.True);
+		}
+
 		[Test]
 		public void 이미_더_뒤처진_창은_덜_좁히지_않는다()
 		{
-			SendPlan.Choice plan = SendPlan.For(900, 6, 8);
+			SendPlan.Choice plan = SendPlan.For(900, 200, 6, 8);
 
 			Assert.That(plan.BehindSteps, Is.EqualTo(6), "이미 6걸음 뒤처졌으면 3으로 되돌리면 안 된다");
 		}

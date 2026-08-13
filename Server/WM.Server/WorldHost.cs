@@ -2068,7 +2068,8 @@ namespace WitchMendokusai.Server
 					//     초당 판 수가 7.3장까지 떨어져 「끊긴다」로 넘어갔다(바닥 8장). 그래서 <b>작게</b> 보낸다 —
 					//     같은 박자로 오되 실린 사람 수가 준다(사람은 「멀리 있는 사람이 덜 보인다」로 겪는다).
 					// 정책은 순수 셈에 있다 (TASK-WM-340) — 여기서는 그 답만 따른다.
-					SendPlan.Choice plan = SendPlan.For(lineTime.RoundTripMsFor(entry.Key), target.MissedInARow, sequence);
+					SendPlan.Choice plan = SendPlan.For(
+						lineTime.RoundTripMsFor(entry.Key), lineTime.BestRoundTripMsFor(entry.Key), target.MissedInARow, sequence);
 					target.MissedInARow = plan.BehindSteps;
 					if (plan.Send == false)
 					{
