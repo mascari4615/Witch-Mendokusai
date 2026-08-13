@@ -2089,16 +2089,22 @@ namespace WitchMendokusai.Server
 					//   남이 주워 간 자리가 <b>12초를 기다려도 화면에서 안 사라졌다</b>(겨루기 관문 빨강).
 					//   좁힘이 오래가면 그 창의 들판은 영영 옛것이다 — 유령이 사람에서 <b>들판으로</b> 옮겨 간 꼴이다.
 					//   그러니 들판·건물이 바뀐 판에서는 좁히지 <b>않는다</b>(그 판만 제대로 보낸다).
-					bool worldSideChanged = fieldVersion != target.SentFieldVersion || buildVersion != target.SentBuildVersion;
+					// 들판은 이제 <b>작은 한 장에도</b> 실린다(아래) — 그러니 여기서는 건물만 본다.
+					bool worldSideChanged = buildVersion != target.SentBuildVersion;
 					if (allowedDolls < InterestCrowd.MAX_VISIBLE_DOLLS && worldSideChanged == false)
 					{
 						// ⚠ 작은 한 장에는 <b>「그 사람 나갔다」가 없다</b>(칸 장부를 안 쓰기 때문이다).
 						//   그래서 이 창이 좁힘에서 돌아오면 <b>전체</b>를 한 장 줘야 한다 — 안 그러면
 						//   좁힘 동안 떠난 사람이 그 창에 <b>유령으로 영영</b> 남는다(CI 가 그 자리를 잡았다).
+						// ★ 밀렸을 때야말로 <b>들판을 먼저</b> — 사람 몇 명보다 「없어진 자리」가 먼저다 (TASK-WM-343).
+						bool putFieldIn = fieldVersion != target.SentFieldVersion;
 						target.MissedAPlate = true;
-						target.NeedsWholeField = true;   // 작은 한 장에는 들판이 없다 (TASK-WM-343)
-						_ = SendSnapshotAsync(target, Encoding.UTF8.GetBytes(SmallPlateFor(entry.Key, allowedDolls, sequence)),
-							null, null, null);
+						if (putFieldIn == false)
+							target.NeedsWholeField = true;   // 들판을 못 실었으면 다음에 통째로 줘야 한다
+
+						_ = SendSnapshotAsync(target,
+							Encoding.UTF8.GetBytes(SmallPlateFor(entry.Key, allowedDolls, sequence, putFieldIn)),
+							null, putFieldIn ? fieldVersion : (int?)null, null);
 						continue;
 					}
 					bool interestChanged = UpdateInterestCell(target, entry.Key);
@@ -2192,7 +2198,13 @@ namespace WitchMendokusai.Server
 		/// 회선이 좁은 창에게 주는 <b>작은 한 장</b> (TASK-WM-228) — 가까운 몇 명만, 통째로.
 		/// 건물·들판·솥은 안 싣는다: 지금 이 창에 모자란 건 대역폭이고, 그것들은 안 움직인다.
 		/// </summary>
-		private string SmallPlateFor(int viewerDollId, int limit, long sequence)
+		/// <param name="withField">
+		/// 들판을 <b>같이</b> 실을까 (TASK-WM-343). 밀린 창은 회선 폭을 사람 소식이 다 써 버려
+		/// 한 번짜리 들판 소식이 줄을 서다 못 나갔다(실측: 12초 동안 들판 소식 한 장). 그래서
+		/// <b>밀렸을 때야말로</b> 들판을 먼저 실어 준다 — 사람은 몇 명 덜 보여도 되지만
+		/// 「없어진 자리」가 남아 있으면 사람은 그걸 <b>고장</b>으로 읽는다.
+		/// </param>
+		private string SmallPlateFor(int viewerDollId, int limit, long sequence, bool withField = false)
 		{
 			WorldDoll[] all = EveryoneNow();
 			Vector3 viewer = World.PositionOf(viewerDollId);
@@ -2207,7 +2219,12 @@ namespace WitchMendokusai.Server
 			}
 
 			WorldDoll[] few = InterestCrowd.Nearest(near, viewer, viewerDollId, limit, MovingNow());
-			return Protocol.WorldSnapshot(few, null, World.Calendar, null, null, null,
+			System.Collections.Generic.List<GatherableNode> field = withField
+				? GatherablesNear(viewer, PLAYER_INTEREST_RADIUS)
+				: null;
+
+			// ⚠ 작은 한 장은 칸 장부를 안 쓴다 — 그러니 들판은 <b>통째로</b>만 싣는다(델타 X).
+			return Protocol.WorldSnapshot(few, null, World.Calendar, null, field, null,
 				sequence, null, true, null, false, null);
 		}
 
