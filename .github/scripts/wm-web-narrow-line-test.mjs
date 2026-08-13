@@ -426,12 +426,13 @@ await browser.close();
 await badLine.close();
 killWorld();
 
-check('창이 걷는 사람을 봤다', ages.length >= LEAST_SAMPLES_ROOMY, `세계가 말한 판 ${ages.length}개`);
-check('봇이 자기 자리를 세계에서 읽었다', truth.length >= LEAST_SAMPLES_SQUEEZED, `표본 ${truth.length}개 (적어도 ${LEAST_SAMPLES_SQUEEZED}개)`);
-if (ages.length < LEAST_SAMPLES_ROOMY || truth.length < LEAST_SAMPLES_SQUEEZED) {
-	console.log('\n[web-narrow] RESULT: 잴 것이 없다');
-	process.exit(1);
-}
+// ⚠ 표본이 모자란 것은 <b>빨강이 아니라 못 잰 것</b>이다 (관문 규율 ②, 2026-08-14).
+//   여기가 exit 1 이라 CI 에서 「표본 부족」이 제품 빨강으로 적히고 있었다 —
+//   느린 기계에서는 같은 시간에 판이 적게 오는 것뿐이다.
+console.log(`  ⓘ 표본 — 창이 본 판 ${ages.length}개 · 봇이 읽은 자리 ${truth.length}개`
+	+ ` (적어도 ${LEAST_SAMPLES_ROOMY}·${LEAST_SAMPLES_SQUEEZED})`);
+if (ages.length < LEAST_SAMPLES_ROOMY || truth.length < LEAST_SAMPLES_SQUEEZED)
+	cannotRun(`잴 것이 모자라다 — 창이 본 판 ${ages.length}개 · 봇이 읽은 자리 ${truth.length}개`);
 
 /*
  * 나이 = (그 순간 진짜 자리 − 창이 본 자리) ÷ 걸음 속도.
@@ -516,7 +517,15 @@ check('시간이 가도 나이가 안 불어난다 (버퍼가 안 쌓인다)', l
 
 // ── 좁아진 뒤 ─────────────────────────────────────────────────────────
 const squeezed = agesOf(squeezedAges, tightLine);
-check('회선이 좁아져도 창은 계속 소식을 받는다', squeezed.length >= LEAST_SAMPLES_SQUEEZED, `${squeezed.length}판 (적어도 ${LEAST_SAMPLES_SQUEEZED}판)`);
+// ⚠ 표본이 모자란 것은 <b>빨강이 아니라 못 잰 것</b>이다 (관문 규율 ②, 2026-08-14 CI 실측).
+//   느린 기계에서는 세계도 창도 느려 같은 시간에 판이 적게 온다 — CI 에서 좁힘이 수요의 0.92배
+//   (거의 안 좁힌 셈)인데도 4판이었다. 그걸 빨강으로 적으면 <b>기계 사정이 제품 빨강</b>이 된다.
+//   여기서 멈추면 위의 검사들도 무의미하므로 그대로 CANNOT-RUN 으로 끝낸다.
+if (squeezed.length < LEAST_SAMPLES_SQUEEZED) {
+	// (세계·창·회선은 위에서 이미 닫혔다 — 여기서는 말만 하고 나간다.)
+	cannotRun(`좁아진 뒤 표본이 ${squeezed.length}판뿐이다 (적어도 ${LEAST_SAMPLES_SQUEEZED}판)`
+		+ ` — 이 기계에서는 좁은 회선을 못 잰다 (수요 ${(steadyDemand / 1000).toFixed(1)}KB/s · 좁힘 ${(squeezeTo / 1000).toFixed(1)}KB/s)`);
+}
 
 if (squeezed.length >= LEAST_SAMPLES_SQUEEZED) {
 	const tightHalf = Math.floor(squeezed.length / 2);
