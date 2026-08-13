@@ -502,6 +502,10 @@ namespace WitchMendokusai.Server
 				day = World.Calendar.TotalDays(),
 				hour = World.Calendar.Hour,
 				minute = World.Calendar.Minute,
+
+				// 하늘의 <b>총 분</b> (TASK-WM-327) — 세계 둘의 하늘이 갈라졌는지 밖에서 견주는 자다.
+				//   날/시/분으로 다시 계산하면 하루의 길이를 밖에서 또 알아야 한다(두 곳에 박힌 상수).
+				totalMinutes = World.Calendar.TotalMinutes(),
 				broadcastSnapshotMessages = Interlocked.Read(ref broadcastSnapshotMessages),
 				builtSnapshots = Interlocked.Read(ref builtSnapshots),
 				refusedSteps = Interlocked.Read(ref refusedSteps),
