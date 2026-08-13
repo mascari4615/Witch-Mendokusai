@@ -352,7 +352,11 @@ const steadyDemand = Math.round((carriedAfter - carriedBefore) / 4);
 //   (1/5 로 졸라매 보니 나이가 1.78초까지 늘고 판이 초당 6.5장으로 떨어졌다 — 그건 제품 결함이 아니라
 //    <b>설계 지점 밖</b>이다. 세계가 아무리 덜어 내도 필요한 양의 5분의 1로는 현재를 못 보여 준다.)
 //   [문턱-사유] (a) 같은 판의 정상 수요와의 견줌 — 기계가 빨라 수요가 커지면 좁힘도 같이 좁아진다.
-const squeezeTo = steadyDemand > 0 ? Math.max(600, Math.round(steadyDemand * 0.8)) : SQUEEZED_BYTES_PER_SECOND;
+// ⚠ 바닥을 <b>초당 1.2KB</b> 로 올린다 (2026-08-14 CI 실측): 느린 기계에서는 수요가 작게 잡혀
+//   0.8배가 초당 0.6KB까지 내려가고, 그러면 판이 4장밖에 안 와서 「소식이 계속 온다」가 빨갰다.
+//   제품 주장은 「좁아도 소식은 온다」이지 「굶겨도 온다」가 아니다 — 여덟 판(≈150B×8)은 지날 폭을 준다.
+//   [문턱-사유] (c) 제품 상수 — 세계가 초당 여덟 판을 낼 최소 폭. 기계 속도와 무관하다.
+const squeezeTo = steadyDemand > 0 ? Math.max(1200, Math.round(steadyDemand * 0.8)) : SQUEEZED_BYTES_PER_SECOND;
 console.log(`  ⓘ 정상 수요 초당 ${(steadyDemand / 1000).toFixed(1)}KB → 좁힐 값 초당 ${(squeezeTo / 1000).toFixed(1)}KB`);
 
 if (steadyDemand <= 0)
