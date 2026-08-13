@@ -281,6 +281,15 @@ namespace WitchMendokusai.Server
 			/// </summary>
 			public bool MissedAPlate;
 
+			/// <summary>
+			/// 이 창은 <b>들판을 통째로</b> 받아야 한다 (TASK-WM-343).
+			///
+			/// ★ 왜: 들판 델타는 <b>칸 장부</b>에서 만들어진다 — 그 칸의 「없어졌다」는 한 판만 실리고
+			///   장부가 갱신된다. 그 판을 건너뛴 창은 다음 판에 아무것도 못 받고 그 자리를 영영 그린다.
+			///   그래서 <b>판을 건너뛴 그 순간</b> 표시해 두고, 다음에 줄 때 통째로 준다.
+			/// </summary>
+			public bool NeedsWholeField;
+
 			/// <summary>낱말표를 이미 보냈나 — 인사와 유예가 겹쳐도 한 번만 나가게 (TASK-WM-238).</summary>
 			public int CatalogsSent;
 
@@ -2039,6 +2048,7 @@ namespace WitchMendokusai.Server
 					if (Interlocked.CompareExchange(ref entry.Value.Sending, 1, 0) != 0)
 					{
 						entry.Value.MissedAPlate = true;
+						entry.Value.NeedsWholeField = true;   // 놓친 판에 들판 소식이 있었을 수 있다 (TASK-WM-343)
 						entry.Value.MissedInARow += 1;
 						continue;
 					}
@@ -2064,6 +2074,7 @@ namespace WitchMendokusai.Server
 					if (plan.Send == false)
 					{
 						target.MissedAPlate = true;
+						target.NeedsWholeField = true;   // 건너뛴 판에 들판 소식이 있었을 수 있다 (TASK-WM-343)
 						continue;
 					}
 
@@ -2082,6 +2093,7 @@ namespace WitchMendokusai.Server
 						//   그래서 이 창이 좁힘에서 돌아오면 <b>전체</b>를 한 장 줘야 한다 — 안 그러면
 						//   좁힘 동안 떠난 사람이 그 창에 <b>유령으로 영영</b> 남는다(CI 가 그 자리를 잡았다).
 						target.MissedAPlate = true;
+						target.NeedsWholeField = true;   // 작은 한 장에는 들판이 없다 (TASK-WM-343)
 						_ = SendSnapshotAsync(target, Encoding.UTF8.GetBytes(SmallPlateFor(entry.Key, allowedDolls, sequence)),
 							null, null, null);
 						continue;
@@ -2098,9 +2110,17 @@ namespace WitchMendokusai.Server
 					bool sendField = fieldVersion != target.SentFieldVersion || interestChanged;
 					bool sendPots = potVersion != target.SentPotVersion || interestChanged;
 
+					// ★ <b>들판을 한 판이라도 놓쳤으면 통째로 준다</b> (TASK-WM-343, 재현 3판 중 2판).
+					//   들판 델타는 <b>칸 장부</b>에서 만들어진다 — 그 칸의 「없어졌다」는 한 판만 실리고
+					//   장부가 갱신된다. 그 판을 건너뛴 창(밀려서 덜 받는 창)은 다음 판에 아무것도 못 받고
+					//   그 자리를 <b>영영</b> 그린다. 칸 장부에 기대지 말고 <b>그 창이 어디까지 받았나</b>로 가른다.
+					bool fieldFromScratchForThisWindow = sendField
+						&& (interestChanged || target.SentFieldVersion == 0 || target.NeedsWholeField);
+
 					// ⚠ 칸을 막 옮긴 창은 <b>전부</b> 받아야 한다 — 「바뀐 것만」을 주면 안 움직이는 사람들이
 					//   그 창에는 영영 안 보인다(들어올 때 한 장을 못 받은 셈이다).
 					string key = (interestChanged ? "F" : string.Empty)
+						+ (fieldFromScratchForThisWindow ? "S" : string.Empty)
 						+ target.InterestCellX + ":" + target.InterestCellZ
 						+ (sendBuildings ? "b" : string.Empty)
 						+ (sendField ? "f" : string.Empty)
@@ -2110,7 +2130,8 @@ namespace WitchMendokusai.Server
 					{
 						(string text, System.Collections.Generic.HashSet<int> inside) = SnapshotForCell(
 							everyone, target.InterestCellX, target.InterestCellZ,
-							sendBuildings, sendField, sendPots, sequence, interestChanged);
+							sendBuildings, sendField, sendPots, sequence, interestChanged,
+							fieldFromScratchForThisWindow);
 
 						// ★ 글자 → 바이트는 <b>한 번만</b>. 이 한 벌을 그 칸의 모든 창이 같이 쓴다.
 						ready = (Encoding.UTF8.GetBytes(text), inside);
@@ -2144,6 +2165,9 @@ namespace WitchMendokusai.Server
 					// ⚠ 「보냈다」 표시는 <b>실제로 나간 뒤에</b> 한다. 먼저 표시했다가 그 보내기가
 					//   실패하면 그 창은 그 집을 <b>영영</b> 못 받는다(다음에 또 바뀌기 전까지).
 					//   화면엔 아무 일도 안 일어난 것처럼 보인다 — 「남이 지은 집이 안 보이던 것」의 부류다.
+					if (fieldFromScratchForThisWindow)
+						target.NeedsWholeField = false;
+
 					_ = SendSnapshotAsync(target, snapshot, sendBuildings ? buildVersion : (int?)null,
 						sendField ? fieldVersion : (int?)null, sendPots ? potVersion : (int?)null);
 				}
@@ -2200,7 +2224,10 @@ namespace WitchMendokusai.Server
 		public void MarkMissedForTest()
 		{
 			foreach (System.Collections.Generic.KeyValuePair<int, Connection> entry in sockets)
+			{
 				entry.Value.MissedAPlate = true;
+				entry.Value.NeedsWholeField = true;   // 놓친 판에 들판 소식이 있었을 수 있다 (TASK-WM-343)
+			}
 		}
 
 		/// <summary>그 곳에서 하나 더 붙어도 되나 — 되면 세어 둔다.</summary>
@@ -2741,7 +2768,8 @@ namespace WitchMendokusai.Server
 		/// </summary>
 		private (string Text, System.Collections.Generic.HashSet<int> Inside) SnapshotForCell(
 			WorldDoll[] everyone, int cellX, int cellZ,
-			bool sendBuildings, bool sendField, bool sendPots, long sequence, bool forceFull = false)
+			bool sendBuildings, bool sendField, bool sendPots, long sequence, bool forceFull = false,
+			bool fieldFromScratch = false)
 		{
 			Vector3 center = new Vector3(
 				(cellX + 0.5f) * INTEREST_CELL_SIZE, 0f, (cellZ + 0.5f) * INTEREST_CELL_SIZE);
@@ -2847,7 +2875,7 @@ namespace WitchMendokusai.Server
 				//   들판 장부는 <b>칸</b>마다 있고 창마다 있지 않다. 그래서 그 칸의 「없어졌다」가 한 번 나간 뒤
 				//   그 판을 놓친 창은 <b>영영</b> 그 소식을 못 받는다 — 좁혀진 창의 들판이 12초가 지나도 안 바뀌었다.
 				//   forceFull 인 창(판을 놓쳤거나 칸을 옮긴 창)에게는 델타 대신 <b>지금 들판 전부</b>를 준다.
-				bool fieldFromScratch = lastField == null || forceFull;
+				bool startOver = lastField == null || forceFull || fieldFromScratch;
 
 				System.Collections.Generic.Dictionary<int, int> nowField =
 					new System.Collections.Generic.Dictionary<int, int>(nearby.Count);
@@ -2858,7 +2886,7 @@ namespace WitchMendokusai.Server
 					GatherableNode one = nearby[i];
 					nowField[one.Id] = one.Amount;
 
-					if (fieldFromScratch == false
+					if (startOver == false
 						&& lastField.TryGetValue(one.Id, out int wasAmount) && wasAmount == one.Amount)
 					{
 						continue;
@@ -2867,7 +2895,7 @@ namespace WitchMendokusai.Server
 					field.Add(one);
 				}
 
-				if (fieldFromScratch == false)
+				if (startOver == false)
 				{
 					foreach (int nodeId in lastField.Keys)
 					{
@@ -2879,7 +2907,7 @@ namespace WitchMendokusai.Server
 					}
 				}
 
-				fieldIsDelta = fieldFromScratch == false;
+				fieldIsDelta = startOver == false;
 				lastCellField[castKey] = nowField;
 
 				// 바뀐 게 없으면 아예 안 싣는다(그 자리는 「안 바뀌었다」로 읽힌다).
