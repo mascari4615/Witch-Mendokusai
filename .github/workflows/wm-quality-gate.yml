@@ -441,6 +441,12 @@ jobs:
       - name: Run broken memory test
         run: node ./.github/scripts/run-gate.mjs ./.github/scripts/wm-broken-memory-test.mjs
 
+      # 좁혀진 창에도 소식이 가나 (TASK-WM-342) — 백프레셔가 만든 사각지대를 정면으로 잰다.
+      - name: Run narrowed news test
+        env:
+          WM_PLAYWRIGHT_ROOT: /tmp/wm-playwright
+        run: node ./.github/scripts/run-gate.mjs ./.github/scripts/wm-narrowed-news-test.mjs
+
       # 유령을 잡는 <b>덫</b>이 살아 있나 (TASK-WM-329) — 창이 「내가 누굴 그리나」를 묻고
       # 세계가 「그건 없다」고 답하는 길. 유령 자체는 재현이 안 되므로 덫을 시험한다.
       - name: Run ghost trap test

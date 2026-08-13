@@ -2843,7 +2843,11 @@ namespace WitchMendokusai.Server
 				//   묶어 뒀더니, 밀린 창이 「전부」를 받을 때마다 들판 8KB 가 같이 날아갔고,
 				//   그 큰 판 때문에 다시 밀려서 또 「전부」를 받는 <b>고리</b>가 생겼다(실측).
 				//   들판이 그 칸에 이미 나갔는지는 들판 장부만 보면 된다.
-				bool fieldFromScratch = lastField == null;
+				// ⚠ <b>판을 놓친 창에는 들판도 처음부터</b> 줘야 한다 (2026-08-14 실측, TASK-WM-342):
+				//   들판 장부는 <b>칸</b>마다 있고 창마다 있지 않다. 그래서 그 칸의 「없어졌다」가 한 번 나간 뒤
+				//   그 판을 놓친 창은 <b>영영</b> 그 소식을 못 받는다 — 좁혀진 창의 들판이 12초가 지나도 안 바뀌었다.
+				//   forceFull 인 창(판을 놓쳤거나 칸을 옮긴 창)에게는 델타 대신 <b>지금 들판 전부</b>를 준다.
+				bool fieldFromScratch = lastField == null || forceFull;
 
 				System.Collections.Generic.Dictionary<int, int> nowField =
 					new System.Collections.Generic.Dictionary<int, int>(nearby.Count);
