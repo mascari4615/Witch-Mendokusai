@@ -76,7 +76,7 @@ jobs:
               if ($exists) {
                 $app = ((& $nssm get $w.Name Application) -join '').Trim([char]0, ' ')
                 if (-not $app) {
-                  Write-Host "$($w.Name): nssm 설정이 비었다 — 지우고 다시 세운다"
+                  Write-Host "$($w.Name): empty nssm config - reinstalling"  # 한글은 주석에만 (문자열에 넣으면 파서가 죽는다)
                   & $nssm remove $w.Name confirm | Out-Host
                   Start-Sleep -Seconds 2
                   $exists = $null
@@ -89,12 +89,16 @@ jobs:
               }
 
               & $nssm set $w.Name AppDirectory $publishDir | Out-Host
-              & $nssm set $w.Name AppEnvironmentExtra `
-                "ASPNETCORE_URLS=http://127.0.0.1:$($w.Port)" `
-                "WM_WORLD_FILE=$($w.Data)\world.json" `
-                "WM_ZONE=$($w.Zone)" `
-                "WM_ZONE_NEIGHBOURS=$($w.Neighbour)" `
-                "WM_ZONE_SECRET=$zoneSecret" | Out-Host
+              # ⚠ 줄 이음(백틱)을 안 쓴다 — 뒤에 공백 하나만 붙어도 파서가 통째로 무너진다
+              #   (2026-08-13 실측: 「Missing closing '}'」로 배포가 죽었다). 목록으로 만들어 넘긴다.
+              $envLines = @(
+                "ASPNETCORE_URLS=http://127.0.0.1:$($w.Port)",
+                "WM_WORLD_FILE=$($w.Data)\world.json",
+                "WM_ZONE=$($w.Zone)",
+                "WM_ZONE_NEIGHBOURS=$($w.Neighbour)",
+                "WM_ZONE_SECRET=$zoneSecret"
+              )
+              & $nssm set $w.Name AppEnvironmentExtra $envLines | Out-Host
 
               & $nssm start $w.Name | Out-Host
             }
