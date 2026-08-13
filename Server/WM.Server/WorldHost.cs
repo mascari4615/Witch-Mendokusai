@@ -291,6 +291,15 @@ namespace WitchMendokusai.Server
 			/// <summary>이 줄에서 <b>읽어 들인</b> 마디 수 (TASK-WM-347) — 「보낸 것」과 「읽은 것」을 가른다.</summary>
 			public long HeardMessages;
 
+			/// <summary>
+			/// 말 예산에 걸려 <b>버린</b> 마디 수 (TASK-WM-348).
+			///
+			/// ★ 왜 세나: 예산을 넘긴 말은 조용히 버려진다(끊지 않는다). 그 조용함이 문제다 —
+			///   성한 창이 예산에 걸려도 아무도 모르고, 그 창은 「가끔 안 먹히는 게임」이 된다.
+			///   예산은 초당 30, 창은 걸음 20 + 숨소리 4 + 되굴린 걸음… 여유가 생각보다 얇다.
+			/// </summary>
+			public long BudgetDropped;
+
 			/// <summary>이 줄에 한 장을 밀어 넣는 데 걸린 가장 긴 시간 (TASK-WM-345 — 「줄이 안 빠진다」의 증거).</summary>
 			public long LongestSendMs;
 
@@ -550,6 +559,7 @@ namespace WitchMendokusai.Server
 						skippedPlan = entry.Value.PlatesSkippedPlan,
 						missedInARow = entry.Value.MissedInARow,
 						heard = entry.Value.HeardMessages,
+						dropped = entry.Value.BudgetDropped,
 						roundTripMs = lineTime.RoundTripMsFor(entry.Key),
 						bestRoundTripMs = lineTime.BestRoundTripMsFor(entry.Key),
 						longestSendMs = entry.Value.LongestSendMs,
@@ -831,7 +841,10 @@ namespace WitchMendokusai.Server
 
 					// 예산을 넘긴 말은 버린다(끊지는 않는다 — 잠깐 몰릴 수도 있다).
 					if (budget.TrySpend() == false)
+					{
+						connection.BudgetDropped += 1;
 						continue;
+					}
 
 					await HandleMessageAsync(doll.Id, connection, text);
 				}

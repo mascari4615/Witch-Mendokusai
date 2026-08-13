@@ -42,6 +42,7 @@ on:
       - '.github/scripts/wm-web-crowd-smoke.mjs'
       - '.github/scripts/wm-web-crowd-windows-test.mjs'
       - '.github/scripts/wm-flood-budget-test.mjs'
+      - '.github/scripts/wm-honest-budget-test.mjs'
       - '.github/scripts/wm-web-smoothness-test.mjs'
       - '.github/scripts/wm-web-badline-test.mjs'
       - '.github/scripts/wm-web-narrow-line-test.mjs'
@@ -97,6 +98,7 @@ on:
       - '.github/scripts/wm-web-crowd-smoke.mjs'
       - '.github/scripts/wm-web-crowd-windows-test.mjs'
       - '.github/scripts/wm-flood-budget-test.mjs'
+      - '.github/scripts/wm-honest-budget-test.mjs'
       - '.github/scripts/wm-web-smoothness-test.mjs'
       - '.github/scripts/wm-web-badline-test.mjs'
       - '.github/scripts/wm-web-narrow-line-test.mjs'
@@ -283,6 +285,13 @@ jobs:
       # 있을 때는 다르다. 세계는 창마다 따로 좁히므로 <b>한 창만 굶는</b> 편식이 생긴다(실제로 그랬다).
       # TASK-WM-347 -- 「보내는 쪽」이 밀릴 때는 여러 번 고쳤는데 <b>받는 쪽</b>은 한 번도 안 쟀다.
       # 한 사람이 초당 수천 마디를 쏟아도 남들의 세계가 그대로인지 · 말 예산이 실제로 깎는지 본다.
+      # TASK-WM-348 -- 예산은 <b>성한 사람</b>도 자른다. 넘긴 말은 조용히 버려지므로(끊지 않는다)
+      # 아무 데도 안 적힌다. 진짜 창이 나쁜 회선에서 걸을 때 몇 마디를 쓰는지·여유가 남는지 본다.
+      - name: Run honest budget test
+        env:
+          WM_PLAYWRIGHT_ROOT: /tmp/wm-playwright
+        run: node ./.github/scripts/run-gate.mjs ./.github/scripts/wm-honest-budget-test.mjs
+
       - name: Run flood budget test
         run: node ./.github/scripts/run-gate.mjs ./.github/scripts/wm-flood-budget-test.mjs
 
