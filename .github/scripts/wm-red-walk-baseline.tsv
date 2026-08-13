@@ -7,13 +7,11 @@ wm-prod-smoke.mjs
 wm-web-alone-test.mjs
 wm-web-build-test.mjs
 wm-web-crowd-smoke.mjs
-wm-web-herd-test.mjs
 wm-web-link-test.mjs
 wm-web-map-only-test.mjs
 wm-web-narrow-line-test.mjs
 wm-web-picker-test.mjs
 wm-web-reconnect-smoke.mjs
-wm-web-say-test.mjs
 wm-web-smoothness-test.mjs
 wm-web-strike-lag-test.mjs
 wm-web-walk-test.mjs

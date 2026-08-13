@@ -11,6 +11,8 @@
 //
 // 필요한 것: .NET 8. (창은 안 띄운다 — 이 자리는 소켓 문제다.)
 // exit: 0 = 받아 낸다 · 1 = 못 받아 낸다 · 2 = 못 돌림
+//
+// [빨강-확인] 다시 붙을 때마다 새 사람으로 맞게 하니 3건 빨강 — 같은 사람 0/40 · 제자리 0/40 · 가방 36/40 (2026-08-14)
 
 import { spawn, execSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';

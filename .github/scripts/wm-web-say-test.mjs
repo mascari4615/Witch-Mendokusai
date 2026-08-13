@@ -11,6 +11,8 @@
 //
 // 필요한 것: .NET 8 · playwright + chromium (`WM_PLAYWRIGHT_ROOT`).
 // exit: 0 = 말한다 · 1 = 못 한다 · 2 = 못 돌림
+//
+// [빨강-확인] 세계가 남에게 말을 안 나르게 하니 2건 빨강 — 옆 사람이 그 말을 못 듣는다 (2026-08-14)
 
 import { spawn, execSync } from 'node:child_process';
 import { createRequire } from 'node:module';
