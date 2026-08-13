@@ -25,6 +25,9 @@ on:
       #   실행이 없어서 초록으로 읽힌다(memo repo gates 가 같은 사고를 겪고 남긴 교훈).
       - 'Server/**'
       - 'Assets/_WitchMendokusai/Tests/**'
+      # ★ 이 게이트가 <b>부르는 스크립트</b>도 트리거다 (2026-08-13): 그 파일만 고친 커밋에서는
+      #   게이트가 아예 안 돌아 「초록」으로 읽힌다 — 안 도는 것과 통과한 것은 다르다.
+      - '.github/scripts/wm-sdk-name-collision.sh'
       - '.github/workflows/wm-asmdef-boundary.yml'
   pull_request:
     paths:
