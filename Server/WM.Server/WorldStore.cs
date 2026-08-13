@@ -153,6 +153,9 @@ namespace WitchMendokusai.Server
 		}
 
 		/// <summary>기억을 쓴다. 다 쓴 뒤에 갈아끼우므로 도중에 죽어도 이전 기억이 남는다.</summary>
+		/// <summary>마지막으로 기억을 못 쓴 이유 — 밖에서 볼 수 있어야 무음 실패가 아니다 (TASK-WM-311).</summary>
+		public string LastError { get; private set; } = string.Empty;
+
 		public bool TrySave(WorldSaveData data)
 		{
 			if (data == null)
@@ -174,10 +177,12 @@ namespace WitchMendokusai.Server
 						File.Copy(Path, BackupPath, overwrite: true);
 
 					File.Move(temporary, Path, overwrite: true);
+					LastError = string.Empty;
 					return true;
 				}
 				catch (Exception error) when (error is IOException || error is UnauthorizedAccessException)
 				{
+					LastError = error.Message;
 					Console.WriteLine("[world] 기억을 못 썼다: " + error.Message);
 					return false;
 				}

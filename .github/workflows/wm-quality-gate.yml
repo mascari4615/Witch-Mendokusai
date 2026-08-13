@@ -65,6 +65,7 @@ on:
       - '.github/scripts/wm-action-once-audit.mjs'
       - '.github/scripts/wm-border-cut-test.mjs'
       - '.github/scripts/wm-crash-durability-test.mjs'
+      - '.github/scripts/wm-save-failure-test.mjs'
       - '.github/scripts/wm-dead-parameter-audit.mjs'
       - '.github/scripts/lib/bad-line.mjs'
       - '.github/scripts/wm-game-client-gate.mjs'
@@ -114,6 +115,7 @@ on:
       - '.github/scripts/wm-action-once-audit.mjs'
       - '.github/scripts/wm-border-cut-test.mjs'
       - '.github/scripts/wm-crash-durability-test.mjs'
+      - '.github/scripts/wm-save-failure-test.mjs'
       - '.github/scripts/wm-dead-parameter-audit.mjs'
       - '.github/scripts/lib/bad-line.mjs'
       - '.github/scripts/wm-game-client-gate.mjs'
@@ -435,6 +437,10 @@ jobs:
       # 「했다」고 답한 일은 세계가 갑자기 죽어도 남는다 (TASK-WM-310).
       - name: Run crash durability test
         run: node ./.github/scripts/wm-crash-durability-test.mjs
+
+      # 기억을 못 적으면 그 사실이 밖에서 보인다 (TASK-WM-311).
+      - name: Run save failure test
+        run: node ./.github/scripts/wm-save-failure-test.mjs
 
   unity:
     name: EditMode tests (laptop runner)

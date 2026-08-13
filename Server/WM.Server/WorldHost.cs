@@ -307,6 +307,36 @@ namespace WitchMendokusai.Server
 		/// <summary>이 사람의 이 번호를 이미 했나 (TASK-WM-305) — 다시 보낸 것을 두 번 하지 않는다.</summary>
 		private readonly WitchMendokusai.Net.ActionOnce actionOnce = new WitchMendokusai.Net.ActionOnce();
 
+		/// <summary>
+		/// <b>기억을 적는 데 성공하고 있나</b> (TASK-WM-311).
+		///
+		/// ★ 왜 세어야 하나: 저장은 실패해도 세계가 멀쩡히 돈다 — 콘솔에 한 줄 찍고 만다.
+		///   그동안 세계는 계속 「그거 했다」고 답한다(WM-305). 디스크가 안 받으면 그 답은 <b>거짓말</b>이고,
+		///   그 사실을 <b>아무도 모른다</b>. 죽는 순간 통째로 사라져야 알게 된다.
+		///   그래서 성공·실패를 세어 <c>/health</c> 와 장부에 내놓는다 — 밖에서 볼 수 있어야 한다.
+		/// </summary>
+		private long savesDone;
+		private long savesFailed;
+		private long lastSaveOkAtMs;
+		private string lastSaveError = string.Empty;
+
+		/// <summary>기억을 적고 그 결과를 <b>적어 둔다</b> — 결과를 버리면 무음 실패가 된다.</summary>
+		private bool SaveWorldNow()
+		{
+			bool ok = store.TrySave(SaveWorld());
+			if (ok)
+			{
+				Interlocked.Increment(ref savesDone);
+				Interlocked.Exchange(ref lastSaveOkAtMs, System.Environment.TickCount64);
+				lastSaveError = string.Empty;
+				return true;
+			}
+
+			Interlocked.Increment(ref savesFailed);
+			lastSaveError = store.LastError;
+			return false;
+		}
+
 		/// <summary>국경 너머에서 비쳐 오는 사람들 (TASK-WM-263) — 보이기만 하고 못 건드린다.</summary>
 		private readonly NeighbourShadows shadows = new NeighbourShadows();
 
@@ -459,6 +489,14 @@ namespace WitchMendokusai.Server
 				broadcastSnapshotMessages = Interlocked.Read(ref broadcastSnapshotMessages),
 				builtSnapshots = Interlocked.Read(ref builtSnapshots),
 				refusedSteps = Interlocked.Read(ref refusedSteps),
+
+				// 기억이 <b>정말 남고 있나</b> (TASK-WM-311) — 이 셋이 없으면 저장 실패는 무음이다.
+				savesDone = Interlocked.Read(ref savesDone),
+				savesFailed = Interlocked.Read(ref savesFailed),
+				lastSaveAgoMs = Interlocked.Read(ref lastSaveOkAtMs) == 0
+					? -1
+					: System.Environment.TickCount64 - Interlocked.Read(ref lastSaveOkAtMs),
+				lastSaveError,
 				longestTickGapMs = Interlocked.Read(ref longestTickGapMs),
 				zone = World.Patch.Bounded
 					? World.Patch.Name + ":" + World.Patch.FromX + "," + World.Patch.FromZ
@@ -553,7 +591,7 @@ namespace WitchMendokusai.Server
 			});
 
 			// 꺼질 때 한 번 더 — 마지막 몇 초 사이에 지은 것도 남는다.
-			app.Lifetime.ApplicationStopping.Register(() => store.TrySave(SaveWorld()));
+			app.Lifetime.ApplicationStopping.Register(() => SaveWorldNow());
 
 			return app;
 		}
@@ -1650,6 +1688,7 @@ namespace WitchMendokusai.Server
 					allocatedMegabytes = GC.GetTotalAllocatedBytes(false) / 1048576,
 					gcGen2 = GC.CollectionCount(2),
 					longestTickGapMs = Interlocked.Read(ref longestTickGapMs),
+					savesFailed = Interlocked.Read(ref savesFailed),
 					worldMinutes = World.Calendar.TotalMinutes(),
 					buildings = World.Buildings().Length,
 					identities = Identities.Count,
@@ -1711,7 +1750,11 @@ namespace WitchMendokusai.Server
 					if (forgotten > 0)
 						Console.WriteLine($"[identity] 빈손 손님 {forgotten}명을 장부에서 지웠다.");
 
-					store.TrySave(SaveWorld());
+					if (SaveWorldNow() == false)
+					{
+						// ⚠ 세계는 계속 돈다(멈추면 그게 더 나쁘다) — 다만 <b>조용히</b> 넘어가진 않는다.
+						Console.WriteLine($"[world] 기억을 못 적고 있다 — 실패 {Interlocked.Read(ref savesFailed)}번째: {lastSaveError}");
+					}
 				}
 			}
 			catch (Exception exception)
