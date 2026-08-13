@@ -168,6 +168,9 @@ namespace WitchMendokusai.Server
 		/// <summary>정원이 차서 돌려보낸 사람 수 (TASK-WM-349) — 「조용히 못 들어왔다」를 숫자로 남긴다.</summary>
 		private long turnedAwayPeople;
 
+		/// <summary>가득 찬데도 통행증을 들고 넘어온 사람 수 (TASK-WM-350) — 정원을 얼마나 넘겼나.</summary>
+		private long crossedIntoFullWorld;
+
 		/// <summary>판과 판 사이가 가장 많이 벌어진 순간 (ms) — 세계가 멎은 자리 (TASK-WM-242).</summary>
 		private long longestTickGapMs;
 
@@ -632,6 +635,7 @@ namespace WitchMendokusai.Server
 				builtSnapshots = Interlocked.Read(ref builtSnapshots),
 				refusedSteps = Interlocked.Read(ref refusedSteps),
 				turnedAwayPeople = Interlocked.Read(ref turnedAwayPeople),
+				crossedIntoFullWorld = Interlocked.Read(ref crossedIntoFullWorld),
 				mostPeopleAtOnce = MOST_PEOPLE_AT_ONCE,
 
 				// 기억이 <b>정말 남고 있나</b> (TASK-WM-311) — 이 셋이 없으면 저장 실패는 무음이다.
@@ -799,27 +803,59 @@ namespace WitchMendokusai.Server
 			//   멈춰 섰다(스모크 4개가 그 자리에서 죽었다). 접속은 인사를 기다리지 않는다.
 			// ★ 정원이 찼으면 <b>이유를 말하고</b> 닫는다 (TASK-WM-349) — 말없이 끊으면
 			//   사람은 자기 인터넷을 의심하고, 우리는 그 사람이 왔었다는 것도 모른다.
+			// ★ 정원이 찼으면 <b>이유를 말하고</b> 닫는다 (TASK-WM-349) — 말없이 끊으면
+			//   사람은 자기 인터넷을 의심하고, 우리는 그 사람이 왔었다는 것도 모른다.
+			//
+			// ⚠ 단 <b>국경을 넘어오는 사람은 정원에 안 걸린다</b> (TASK-WM-350, 실측으로 잡았다):
+			//   그 사람은 이미 옆 세계에서 <b>나온</b> 뒤라, 여기서 돌려보내면 어디에도 없는 사람이 된다
+			//   (가방은 통행증 안에 있다 — 통째로 사라진다). 정원은 <b>새로 오는 사람</b>에게 거는 것이지
+			//   이미 이 무리에 속한 사람을 내치는 빗장이 아니다.
+			//   그래서 가득 찬 동안에는 <b>첫 마디를 먼저 듣고</b> 통행증이 있으면 받아들인다.
+			string carriedHello = null;
 			if (World.Snapshot().Length >= MOST_PEOPLE_AT_ONCE)
 			{
-				Connection turnedAway = new Connection(socket);
-				Interlocked.Increment(ref turnedAwayPeople);
-				await SendAsync(turnedAway, Protocol.Full(MOST_PEOPLE_AT_ONCE));
+				byte[] doorBuffer = new byte[4096];
+				using System.Threading.CancellationTokenSource doorWait =
+					System.Threading.CancellationTokenSource.CreateLinkedTokenSource(stopping);
+				doorWait.CancelAfter(WAIT_FOR_HELLO_MS);
+
+				string firstWord = null;
 				try
 				{
-					// ⚠ 보내자마자 <b>돌아가면</b> 그 말이 안 나간다 (2026-08-14 실측: 창이 1006 으로 끊겼다) —
-					//   미들웨어가 돌아가는 순간 줄을 끊어 버린다. 닫기 인사를 <b>주고받을</b> 때까지 기다린다.
-					await socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "world is full", CancellationToken.None);
-				}
-				catch (WebSocketException)
-				{
-					// 이미 닫힌 창 — 할 일 없다.
+					firstWord = await ReceiveTextAsync(socket, doorBuffer, doorWait.Token);
 				}
 				catch (OperationCanceledException)
 				{
-					// 세계가 닫히는 중 — 할 일 없다.
+					// 아무 말 없이 서 있는 창 — 통행증도 없다는 뜻이다.
 				}
 
-				return;
+				bool crossingOver = firstWord != null && string.IsNullOrEmpty(ReadStringField(firstWord, "pass")) == false;
+				if (crossingOver == false)
+				{
+					Connection turnedAway = new Connection(socket);
+					Interlocked.Increment(ref turnedAwayPeople);
+					await SendAsync(turnedAway, Protocol.Full(MOST_PEOPLE_AT_ONCE));
+					try
+					{
+						// ⚠ 보내자마자 <b>돌아가면</b> 그 말이 안 나간다 (2026-08-14 실측: 창이 1006 으로 끊겼다) —
+						//   미들웨어가 돌아가는 순간 줄을 끊어 버린다. 닫기 인사를 <b>주고받을</b> 때까지 기다린다.
+						await socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "world is full", CancellationToken.None);
+					}
+					catch (WebSocketException)
+					{
+						// 이미 닫힌 창 — 할 일 없다.
+					}
+					catch (OperationCanceledException)
+					{
+						// 세계가 닫히는 중 — 할 일 없다.
+					}
+
+					return;
+				}
+
+				// 넘어온 사람이다 — 그 첫 마디를 <b>들고 들어간다</b>(안 그러면 통행증이 사라진다).
+				carriedHello = firstWord;
+				Interlocked.Increment(ref crossedIntoFullWorld);
 			}
 
 			WorldDoll doll = World.Join();
@@ -874,6 +910,10 @@ namespace WitchMendokusai.Server
 			sockets[doll.Id] = connection;
 
 			// 이 연결의 말 예산 — 창 하나가 모두의 세계를 느리게 만들지 못하게 (TASK-WM-218).
+			// 문 앞에서 들고 들어온 첫 마디가 있으면 <b>지금</b> 푼다 — 통행증이 여기 들어 있다.
+			if (carriedHello != null)
+				await HandleMessageAsync(doll.Id, connection, carriedHello);
+
 			WitchMendokusai.Net.MessageBudget budget = new WitchMendokusai.Net.MessageBudget();
 			DateTime lastSpoke = DateTime.UtcNow;
 

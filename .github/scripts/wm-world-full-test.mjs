@@ -9,6 +9,8 @@
 // 재는 것 (정원을 낮춰 띄운 세계):
 //   ① 정원까지는 다 들어간다 ② 정원을 넘은 사람은 <b>「가득 찼다」를 듣고</b> 닫힌다
 //   ③ 그때 <b>안에 있던 사람들의 세계는 그대로 흐른다</b> ④ 한 명이 나가면 그 자리는 다시 열린다
+//   ⑤ <b>국경을 넘어오는 사람은 정원에 안 걸린다</b> (TASK-WM-350) — 그 사람은 이미 옆 세계에서
+//      나온 뒤라 여기서 돌려보내면 <b>어디에도 없는 사람</b>이 된다(가방은 통행증 안에 있다).
 //
 // ⚠ 정원(200)은 제품 상수라 시험에서 200명을 붙이면 느린 기계에서 기계 이야기가 된다.
 //   그래서 세계를 <b>정원을 낮춘 채</b> 띄운다(WM_MOST_PEOPLE) — 규칙은 같고 수만 작다.
@@ -16,6 +18,8 @@
 // 실행: node .github/scripts/wm-world-full-test.mjs
 // exit: 0 = 정원이 산다 · 1 = 안 산다 · 2 = 못 돌림
 //
+// [빨강-확인] ⑤ 통행증 보는 자리를 꺼 보니 빨강 — 「국경을 넘어오는 사람이 『가득 찼다』를 듣고 튕겼다」.
+//   이 결함은 정원을 넣은 그날 <b>정원이 만든 것</b>이다(새 실패 경로는 한 번 밟아 본다 — 규율 ⑤).
 // [빨강-확인] 정원 보는 자리를 꺼 보니 3건 빨강 (2026-08-14) — 넘어온 셋이 「가득 찼다」를 못 듣고
 //   그냥 들어와 버렸고(줄도 안 닫힘), 돌려보낸 수도 0 이었다.
 // ⚠ 만들면서 한 번 데었다: 말을 보내자마자 `CloseOutputAsync` 로 돌아갔더니 그 말이 <b>안 나갔다</b>
@@ -52,18 +56,33 @@ try {
 	cannotRun(`세계를 못 지었다 — ${String(error.stderr || error.message).slice(-300)}`);
 }
 
-const worldFile = join(mkdtempSync(join(tmpdir(), 'wm-full-')), 'world.json');
-const world = spawn('dotnet', [dll, '--urls', `http://127.0.0.1:${worldPort}`], {
-	cwd: dirname(dll),
-	env: { ...process.env, WM_WORLD_FILE: worldFile, WM_MOST_PEOPLE: String(MOST) },
-	stdio: 'ignore',
-});
+// 두 세계를 띄운다 — 하나는 가득 찰 곳(서), 하나는 여행자가 출발할 곳(동).
+const SECRET = '두 세계만 아는 말';
+const nextDoorPort = worldPort + 2;
+const worlds = [];
+
+function startWorld(port, zone, neighbours, most) {
+	const worldFile = join(mkdtempSync(join(tmpdir(), 'wm-full-')), 'world.json');
+	worlds.push(spawn('dotnet', [dll, '--urls', `http://127.0.0.1:${port}`], {
+		cwd: dirname(dll),
+		env: {
+			...process.env, WM_WORLD_FILE: worldFile, WM_MOST_PEOPLE: String(most),
+			WM_ZONE: zone, WM_ZONE_NEIGHBOURS: neighbours, WM_ZONE_SECRET: SECRET,
+		},
+		stdio: 'ignore',
+	}));
+}
+
+startWorld(worldPort, '서:-40,-40,0,40', `동:0,-40,40,40=ws://127.0.0.1:${nextDoorPort}/ws`, MOST);
+startWorld(nextDoorPort, '동:0,-40,40,40', `서:-40,-40,0,40=ws://127.0.0.1:${worldPort}/ws`, 50);
 
 function killWorld() {
-	try {
-		if (process.platform === 'win32') execSync(`taskkill /PID ${world.pid} /F /T`, { stdio: 'ignore' });
-		else world.kill('SIGKILL');
-	} catch { /* 이미 죽었다 */ }
+	for (const one of worlds) {
+		try {
+			if (process.platform === 'win32') execSync(`taskkill /PID ${one.pid} /F /T`, { stdio: 'ignore' });
+			else one.kill('SIGKILL');
+		} catch { /* 이미 죽었다 */ }
+	}
 }
 
 {
@@ -79,10 +98,11 @@ function killWorld() {
 	if (up === false) { killWorld(); cannotRun('세계가 안 떴다'); }
 }
 
-function join_() {
+function join_(port = worldPort, pass = '') {
 	const one = { plates: 0, told: null, closed: false };
-	one.socket = new WebSocket(`ws://127.0.0.1:${worldPort}/ws`);
-	one.socket.onopen = () => one.socket.send(JSON.stringify({ type: 'hello', secret: '' }));
+	one.socket = new WebSocket(`ws://127.0.0.1:${port}/ws`);
+	one.socket.onopen = () => one.socket.send(JSON.stringify(
+		pass ? { type: 'hello', secret: '', pass } : { type: 'hello', secret: '' }));
 	one.socket.onerror = () => { /* 아래에서 수로 본다 */ };
 	one.socket.onclose = () => { one.closed = true; };
 	one.socket.onmessage = (event) => {
@@ -91,6 +111,7 @@ function join_() {
 			if (said.type === 'full') one.told = said;
 			if (said.type === 'welcome') one.id = said.id;
 			if (said.type === 'world') one.plates += 1;
+			if (said.type === 'moveon') one.moveOn = said;
 		} catch { /* 딴 소식 */ }
 	};
 
@@ -118,7 +139,24 @@ await wait(2500);
 const late = join_();
 await wait(2500);
 
-for (const one of [...inside, ...extra, late]) { try { one.socket.close(); } catch { /* 이미 */ } }
+// ── ⑤ 가득 찬 세계로 <b>국경을 넘어오는</b> 사람 ───────────────────────────
+// 옆 세계(동)에서 걸어와 서쪽 국경을 넘는다. 서쪽은 지금 가득 차 있다.
+const traveller = join_(nextDoorPort);
+await wait(1500);
+for (let step = 0; step < 200 && traveller.moveOn === undefined; step += 1) {
+	if (traveller.socket.readyState === 1) traveller.socket.send(JSON.stringify({ type: 'move', x: -0.15, z: 0 }));
+	await wait(50);
+}
+
+let arrived = null;
+if (traveller.moveOn) {
+	arrived = join_(worldPort, traveller.moveOn.pass);
+	await wait(2500);
+}
+
+for (const one of [...inside, ...extra, late, traveller, ...(arrived ? [arrived] : [])]) {
+	try { one.socket.close(); } catch { /* 이미 */ }
+}
 killWorld();
 
 let bad = 0;
@@ -149,6 +187,16 @@ check('한 명이 나가면 그 자리는 다시 열린다', late.told === null 
 	late.told === null ? `들어갔다 (인형 ${late.id})` : '아직 가득 찼다고 한다');
 
 check('세계가 돌려보낸 수를 적어 둔다', health.turnedAwayPeople >= 3, `${health.turnedAwayPeople}명`);
+
+// ★ 이 줄이 없으면 정원이 <b>사람을 삼킨다</b> — 옆 세계에서 이미 나온 사람을 여기서 돌려보내면
+//   그 사람은 어디에도 없다(가방은 통행증 안에 있다).
+if (traveller.moveOn === undefined) {
+	cannotRun('여행자가 국경까지 못 갔다 — ⑤ 를 잴 수 없다');
+}
+
+check('국경을 넘어오는 사람은 가득 차도 들어온다',
+	arrived !== null && arrived.told === null && arrived.id !== undefined,
+	arrived === null ? '못 붙었다' : (arrived.told ? '「가득 찼다」를 듣고 튕겼다' : `들어왔다 (인형 ${arrived.id})`));
 
 if (bad === 0) {
 	console.log('[world-full] ✅ 가득 차면 이유를 말하고, 안에 있는 사람은 지킨다');
