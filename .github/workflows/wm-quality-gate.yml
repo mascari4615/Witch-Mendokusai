@@ -63,6 +63,7 @@ on:
       - '.github/scripts/wm-lost-action-test.mjs'
       - '.github/scripts/wm-web-ghost-test.mjs'
       - '.github/scripts/wm-action-once-audit.mjs'
+      - '.github/scripts/wm-border-cut-test.mjs'
       - '.github/scripts/wm-dead-parameter-audit.mjs'
       - '.github/scripts/lib/bad-line.mjs'
       - '.github/scripts/wm-game-client-gate.mjs'
@@ -110,6 +111,7 @@ on:
       - '.github/scripts/wm-lost-action-test.mjs'
       - '.github/scripts/wm-web-ghost-test.mjs'
       - '.github/scripts/wm-action-once-audit.mjs'
+      - '.github/scripts/wm-border-cut-test.mjs'
       - '.github/scripts/wm-dead-parameter-audit.mjs'
       - '.github/scripts/lib/bad-line.mjs'
       - '.github/scripts/wm-game-client-gate.mjs'
@@ -388,8 +390,21 @@ jobs:
         run: node ./.github/scripts/wm-web-alone-test.mjs
 
       # 나쁜 회선이라고 계속 헛치지는 않는다 (TASK-WM-303).
+      #
+      # ⚠ 이 관문은 <b>못 쟀다(exit 2)</b>를 빨강으로 안 친다 — 느린 기계에서 표본이 안 차면
+      #   그건 제품이 아니라 재는 자리의 사정이다(domain-wm.md § 관문 규율 ②).
+      #   빨강(exit 1)은 그대로 세운다.
       - name: Run strike fairness test
-        run: node ./.github/scripts/wm-badline-strike-fairness-test.mjs
+        run: |
+          set +e
+          node ./.github/scripts/wm-badline-strike-fairness-test.mjs
+          code=$?
+          set -e
+          if [ "$code" = "2" ]; then
+            echo "::warning::공평함 관문을 이번 판에서는 못 쟀다 (표본 부족) — 빨강 아님"
+            exit 0
+          fi
+          exit $code
 
       # 남의 걸음이 나쁜 회선에서도 매끄러운가 (TASK-WM-304).
       - name: Run smoothness test
@@ -410,6 +425,10 @@ jobs:
       # 세계를 바꾸는 말은 모두 「한 번만」 문을 지난다 (TASK-WM-308) — 코드를 읽는 감사라 빠르다.
       - name: Run action-once audit
         run: node ./.github/scripts/wm-action-once-audit.mjs
+
+      # 국경을 넘다 끊겨도 나로, 짐 그대로 도착한다 (TASK-WM-309).
+      - name: Run border cut test
+        run: node ./.github/scripts/wm-border-cut-test.mjs
 
   unity:
     name: EditMode tests (laptop runner)

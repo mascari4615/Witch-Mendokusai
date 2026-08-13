@@ -12,9 +12,11 @@
 //   ① 대조군 — 안 끊고 넘으면 옆 세계 장부는 1, 가방은 그대로
 //   ② 넘다 끊고 다시 붙으면 — 받아 주나 · 장부가 그대로 1인가 · 가방이 그대로인가(두 벌 아님)
 //
-// ⚠ 아직 CI 에 안 걸었다 (2026-08-13): 「짐이 그대로다」가 <b>다른 이유로</b> 빨갛다 —
-//   통행증에 실려 오는 가방이 0 이었다(창은 1개를 들고 있었는데). 국경에서 통행증을 만들 때
-//   짐을 안 싣는 자리가 따로 있다는 뜻이다. 그것부터 밝힌 뒤 CI 에 건다(TASK-WM-309 남은 것).
+// ⚠ 이 관문이 걸려 넘어진 자리 (재는 자의 고장, domain-wm.md § 관문 규율):
+//   ① 주우러 가는 들판이 <b>국경 너머</b>라 짐을 챙기기 <b>전에</b> 국경을 넘어 버렸다 —
+//      그때 나온 통행증에는 짐이 0이었고(서버 로그 carried=0), 그걸 「짐이 사라졌다」로 읽을 뻔했다.
+//      → 이 세계 안쪽(x ≥ 4) 자리만 고르고, 서쪽으로 걷기 직전에 옛 통행증을 버린다.
+//   ② 창이 <b>빈 열쇠</b>로 인사하면 세계가 남의 기록과 헷갈린다 — 진짜 창처럼 제 열쇠를 낸다.
 //
 // exit: 0 = 나로 도착한다 · 1 = 손님이 되거나 짐이 는다 · 2 = 못 돌림
 
@@ -97,7 +99,7 @@ function joinWorld(port, { secret = '', pass = '' } = {}) {
 		let said;
 		try { said = JSON.parse(event.data); } catch { return; }
 
-		if (said.type === 'welcome') { one.id = said.id; one.secret = said.secret; }
+		if (said.type === 'welcome') { one.id = said.id; one.secret = said.secret; one.identityId = said.identityId; }
 		if (said.type === 'moveon') one.moveOn = said;
 		if (said.type === 'me') one.here = { x: said.x, z: said.z };
 		if (said.type === 'world') {
@@ -132,7 +134,10 @@ async function walkToBorderWithLuggage() {
 	for (let i = 0; i < 40 && me.field.length === 0; i += 1) await wait(250);
 
 	const mineNow = me.here || { x: 0, z: 0 };
-	const nearby = [...me.field].sort((one, other) =>
+	// ⚠ 들판 자리가 <b>국경 너머</b>면, 주우러 가다가 먼저 국경을 넘어 버린다 —
+	//   그때 나온 통행증에는 <b>짐이 0</b>이다(실측: carried=0). 그걸 나중에 쓰면 「짐이 사라졌다」로 보인다.
+	//   그래서 이 세계 <b>안쪽</b> 자리만 고른다.
+	const nearby = [...me.field].filter((one) => one.x >= 4).sort((one, other) =>
 		Math.hypot(one.x - mineNow.x, one.z - mineNow.z) - Math.hypot(other.x - mineNow.x, other.z - mineNow.z));
 
 	// ⚠ 가장 가까운 자리 하나만 노리면 <b>앞사람이 방금 주운 자리</b>일 수 있다(다시 자라는 중이라 거절).
@@ -163,7 +168,8 @@ async function walkToBorderWithLuggage() {
 		}
 	}
 
-	// 서쪽 국경으로.
+	// 서쪽 국경으로 — <b>여기서부터</b>의 통행증만 센다(앞서 받은 것은 짐 없는 옛것이다).
+	me.moveOn = null;
 	for (let i = 0; i < 600 && me.moveOn === null; i += 1) {
 		send(me, { type: 'move', x: -0.15, z: 0, seq: 1000 + i });
 		await wait(50);

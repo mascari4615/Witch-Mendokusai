@@ -193,7 +193,20 @@ const swinging = setInterval(() => {
 	}
 }, 650);
 
-await wait(40000);
+// ⚠ <b>표본이 찰 때까지</b> 싸운다 (실측 2026-08-13): 2코어 CI 에서 40초로는 나쁜 회선 쪽이
+//   14번밖에 못 휘둘러 CANNOT-RUN 이 났다(내 기계에서는 56번). 시간을 못 박으면 느린 기계에서
+//   태생적으로 못 재는 관문이 된다 — 그래서 <b>휘두른 횟수</b>로 끝을 정하고, 위로만 시간을 막는다.
+const FIGHT_UNTIL_SWINGS = 25;
+const FIGHT_MOST_MS = 150000;
+{
+	const until = Date.now() + FIGHT_MOST_MS;
+	while (Date.now() < until) {
+		if (straightHitter.swings >= FIGHT_UNTIL_SWINGS && badHitter.swings >= FIGHT_UNTIL_SWINGS) break;
+
+		await wait(500);
+	}
+}
+
 clearInterval(walking);
 clearInterval(swinging);
 await wait(1500);
