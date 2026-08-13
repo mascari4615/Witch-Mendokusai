@@ -141,6 +141,11 @@ await page.addInitScript(() => {
 			if (said.type === 'world') window.__wmPlates.push(Date.now());
 		});
 
+		// ★ <b>줄이 바뀐 순간</b>도 적는다 (TASK-WM-317): 사람이 겪는 멎음은 「전체에서 가장 긴 정적」이
+		//   아니라 <b>국경 언저리의 정적</b>이다. 전체 최악은 창이 처음 뜨는 자리에서도 나온다.
+		window.__wmLineOpenedAt = window.__wmLineOpenedAt || [];
+		window.__wmLineOpenedAt.push(Date.now());
+
 		return socket;
 	};
 
@@ -253,6 +258,27 @@ check('보낸 세계에서는 곧 나간다 (두 세계에 눌러앉지 않는�
 
 	check('국경을 넘어도 화면이 3초 넘게 멎지 않는다', worstGapMs <= 3000,
 		`${worstGapMs}ms · 받은 판 ${plates.length}장`);
+
+	// ★ <b>국경 언저리</b>만 따로 (TASK-WM-317). 전체 최악은 「창이 처음 서는 자리」까지 섞여
+	//   느슨해진다 — 사람이 겪는 것은 <b>넘는 순간</b>의 정적이다.
+	//   실측 2026-08-13: 언저리 357ms (같은 판의 전체 최악은 2613ms 였다).
+	const lineOpens = await page.evaluate(() => window.__wmLineOpenedAt || []);
+	const crossedAt = lineOpens.length > 1 ? lineOpens[lineOpens.length - 1] : 0;
+	let crossingGapMs = 0;
+	if (crossedAt > 0) {
+		const near = plates.filter((one) => Math.abs(one - crossedAt) <= 6000);
+		for (let i = 1; i < near.length; i += 1)
+			crossingGapMs = Math.max(crossingGapMs, near[i] - near[i - 1]);
+	}
+
+	console.log(`  ⓘ 국경 언저리(±6초)에서 멎은 시간 ${crossingGapMs}ms · 줄 열린 횟수 ${lineOpens.length}`);
+
+	if (crossedAt === 0) {
+		console.log('  ⓘ 줄이 한 번만 열렸다 — 언저리를 못 골라 이 칸은 건너뛴다(위 전체 값이 남는다).');
+	} else {
+		check('넘는 <b>그 순간</b>은 1.5초 넘게 안 멎는다', crossingGapMs <= 1500,
+			`${crossingGapMs}ms (실측 357ms · 한도 1500ms)`);
+	}
 }
 
 // ── ② 저 세계가 <b>안 열려 있으면</b> 어떻게 되나 (TASK-WM-256) ─────────
