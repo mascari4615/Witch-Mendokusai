@@ -367,6 +367,9 @@ namespace WitchMendokusai.Server
 		/// <summary>이미 쓴 통행증 (TASK-WM-259) — 한 장으로 두 번 들어오면 가방이 두 벌 온다.</summary>
 		private readonly WitchMendokusai.Net.PassOnce passesUsed = new WitchMendokusai.Net.PassOnce();
 
+		/// <summary>들판 소식을 창마다 옳게 고르는 셈 (TASK-WM-343) — 시험은 FieldNewsTests 에 있다.</summary>
+		private readonly FieldNews fieldNews = new FieldNews();
+
 		/// <summary>
 		/// 시험용 이음매 — 통행증을 집은 뒤 <b>짐을 건네기 전에</b> 줄을 놓는다 (TASK-WM-337).
 		/// 두 가지가 다 있어야 돈다: 이 env + 인사에 실린 <c>"halt":"1"</c>.
@@ -2119,8 +2122,11 @@ namespace WitchMendokusai.Server
 
 					// ⚠ 칸을 막 옮긴 창은 <b>전부</b> 받아야 한다 — 「바뀐 것만」을 주면 안 움직이는 사람들이
 					//   그 창에는 영영 안 보인다(들어올 때 한 장을 못 받은 셈이다).
+					// ⚠ 들판을 실을 때는 <b>그 창이 어디까지 받았나</b>도 열쇠에 넣는다 (TASK-WM-343):
+					//   그래야 「같은 칸 · 같은 시점」인 창끼리만 한 판을 나눠 쓴다.
 					string key = (interestChanged ? "F" : string.Empty)
 						+ (fieldFromScratchForThisWindow ? "S" : string.Empty)
+						+ (sendField ? "v" + target.SentFieldVersion : string.Empty)
 						+ target.InterestCellX + ":" + target.InterestCellZ
 						+ (sendBuildings ? "b" : string.Empty)
 						+ (sendField ? "f" : string.Empty)
@@ -2131,7 +2137,8 @@ namespace WitchMendokusai.Server
 						(string text, System.Collections.Generic.HashSet<int> inside) = SnapshotForCell(
 							everyone, target.InterestCellX, target.InterestCellZ,
 							sendBuildings, sendField, sendPots, sequence, interestChanged,
-							fieldFromScratchForThisWindow);
+							fieldFromScratchForThisWindow, fieldVersion,
+							fieldFromScratchForThisWindow ? 0 : target.SentFieldVersion);
 
 						// ★ 글자 → 바이트는 <b>한 번만</b>. 이 한 벌을 그 칸의 모든 창이 같이 쓴다.
 						ready = (Encoding.UTF8.GetBytes(text), inside);
@@ -2769,7 +2776,7 @@ namespace WitchMendokusai.Server
 		private (string Text, System.Collections.Generic.HashSet<int> Inside) SnapshotForCell(
 			WorldDoll[] everyone, int cellX, int cellZ,
 			bool sendBuildings, bool sendField, bool sendPots, long sequence, bool forceFull = false,
-			bool fieldFromScratch = false)
+			bool fieldFromScratch = false, int fieldVersionNow = 0, int windowSawFieldVersion = 0)
 		{
 			Vector3 center = new Vector3(
 				(cellX + 0.5f) * INTEREST_CELL_SIZE, 0f, (cellZ + 0.5f) * INTEREST_CELL_SIZE);
@@ -2866,55 +2873,31 @@ namespace WitchMendokusai.Server
 			if (sendField)
 			{
 				System.Collections.Generic.List<GatherableNode> nearby = GatherablesNear(center, reach);
-				lastCellField.TryGetValue(castKey, out System.Collections.Generic.Dictionary<int, int> lastField);
-				// ⚠ 들판은 <b>사람 목록의 「전부 다시」와 무관</b>하다 (TASK-WM-220).
-				//   묶어 뒀더니, 밀린 창이 「전부」를 받을 때마다 들판 8KB 가 같이 날아갔고,
-				//   그 큰 판 때문에 다시 밀려서 또 「전부」를 받는 <b>고리</b>가 생겼다(실측).
-				//   들판이 그 칸에 이미 나갔는지는 들판 장부만 보면 된다.
-				// ⚠ <b>판을 놓친 창에는 들판도 처음부터</b> 줘야 한다 (2026-08-14 실측, TASK-WM-342):
-				//   들판 장부는 <b>칸</b>마다 있고 창마다 있지 않다. 그래서 그 칸의 「없어졌다」가 한 번 나간 뒤
-				//   그 판을 놓친 창은 <b>영영</b> 그 소식을 못 받는다 — 좁혀진 창의 들판이 12초가 지나도 안 바뀌었다.
-				//   forceFull 인 창(판을 놓쳤거나 칸을 옮긴 창)에게는 델타 대신 <b>지금 들판 전부</b>를 준다.
-				bool startOver = lastField == null || forceFull || fieldFromScratch;
 
-				System.Collections.Generic.Dictionary<int, int> nowField =
+				// ★ 고르는 셈은 <b>FieldNews</b> 가 한다 (TASK-WM-343) — 칸마다 「지금」과 「바로 앞」을 들고 있어
+				//   같은 판의 창들이 서로를 굶기지 않는다. 그 규칙은 FieldNewsTests 가 14ms 에 지킨다.
+				System.Collections.Generic.Dictionary<int, int> amounts =
 					new System.Collections.Generic.Dictionary<int, int>(nearby.Count);
-				field = new System.Collections.Generic.List<GatherableNode>();
-
+				System.Collections.Generic.Dictionary<int, GatherableNode> byId =
+					new System.Collections.Generic.Dictionary<int, GatherableNode>(nearby.Count);
 				for (int i = 0; i < nearby.Count; i++)
 				{
-					GatherableNode one = nearby[i];
-					nowField[one.Id] = one.Amount;
-
-					if (startOver == false
-						&& lastField.TryGetValue(one.Id, out int wasAmount) && wasAmount == one.Amount)
-					{
-						continue;
-					}
-
-					field.Add(one);
+					amounts[nearby[i].Id] = nearby[i].Amount;
+					byId[nearby[i].Id] = nearby[i];
 				}
 
-				if (startOver == false)
+				FieldNews.Choice picked = fieldNews.PickFor(castKey, fieldVersionNow, amounts, windowSawFieldVersion);
+				fieldIsDelta = picked.Whole == false;
+
+				field = new System.Collections.Generic.List<GatherableNode>(picked.Changed.Count);
+				for (int i = 0; i < picked.Changed.Count; i++)
 				{
-					foreach (int nodeId in lastField.Keys)
-					{
-						if (nowField.ContainsKey(nodeId))
-							continue;
-
-						fieldGone ??= new System.Collections.Generic.List<int>();
-						fieldGone.Add(nodeId);
-					}
+					if (byId.TryGetValue(picked.Changed[i], out GatherableNode one))
+						field.Add(one);
 				}
 
-				fieldIsDelta = startOver == false;
-
-				// ⚠ 「통째 판은 칸 장부를 안 건드린다」로 바꿔 봤다가 <b>되돌렸다</b> (2026-08-14):
-				//   재현이 3판 중 1판 → <b>3판 중 3판</b>으로 나빠졌다. 장부를 안 갱신하면 같은 소식이
-				//   다음 델타에 또 실리면서 다른 창들의 셈이 어긋나는 것으로 보인다(정확한 길은 아직 못 짚었다).
-				//   ⇒ 이 자리는 <b>칸 하나에 장부 하나</b>인 구조 자체가 문제다. 다음 = 장부를 <b>판마다 한 번</b>
-				//     미리 셈해 두고(칸별), 통째 판·델타 판이 그 결과를 <b>같이</b> 쓰게 하기.
-				lastCellField[castKey] = nowField;
+				if (picked.Gone.Count > 0)
+					fieldGone = new System.Collections.Generic.List<int>(picked.Gone);
 
 				// 바뀐 게 없으면 아예 안 싣는다(그 자리는 「안 바뀌었다」로 읽힌다).
 				if (fieldIsDelta && field.Count == 0 && fieldGone == null)

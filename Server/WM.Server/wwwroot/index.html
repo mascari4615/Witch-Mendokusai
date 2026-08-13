@@ -2052,8 +2052,19 @@ function mergePlates(waiting, fresh) {
 
 	const merged = { ...waiting, ...fresh, dolls: [...dolls.values()], gone: goneNow };
 
-	// 들판도 같은 셈 — 「바뀐 자리만」이 겹치면 이어 붙인다.
-	if (waiting.fieldChanged === true && fresh.fieldChanged === true) {
+	// ★ <b>통째 판이 델타 판에 먹히면 안 된다</b> (TASK-WM-343): 앞 판이 「들판 전부」인데 뒤 판이
+	//   「바뀐 자리만」이면, 그냥 덮어쓸 경우 전부가 통째로 사라지고 창은 <b>낡은 들판 위에</b> 델타를 얹는다 —
+	//   그러면 남이 주워 간 자리가 영영 남는다(밀린 창에서 실제로 그랬다).
+	//   그러니 <b>전부를 먼저 깔고</b> 그 위에 델타를 얹는다.
+	if (waiting.fieldChanged === false && waiting.gatherables !== undefined && fresh.fieldChanged === true) {
+		const field = new Map((waiting.gatherables || []).map((one) => [one.id, one]));
+		for (const one of fresh.gatherables || []) field.set(one.id, one);
+		for (const goneId of fresh.fieldGone || []) field.delete(goneId);
+
+		merged.gatherables = [...field.values()];
+		merged.fieldChanged = false;   // 창은 이걸 <b>통째로</b> 받아들인다
+		merged.fieldGone = [];
+	} else if (waiting.fieldChanged === true && fresh.fieldChanged === true) {
 		const field = new Map((waiting.gatherables || []).map((one) => [one.id, one]));
 		for (const one of fresh.gatherables || []) field.set(one.id, one);
 
