@@ -13,6 +13,8 @@
 //
 // 필요한 것: .NET 8 · playwright + chromium (`WM_PLAYWRIGHT_ROOT`).
 // exit: 0 = 보인다 · 1 = 안 보인다 · 2 = 못 돌림
+//
+// [빨강-확인] 세계가 들판을 안 보내게 하니 빨강 — 「들판이 통째로 비었다」 (2026-08-14)
 
 import { spawn, execSync } from 'node:child_process';
 import { createRequire } from 'node:module';

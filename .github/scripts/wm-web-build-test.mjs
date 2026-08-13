@@ -11,6 +11,8 @@
 //
 // 필요한 것: .NET 8 · playwright + chromium (`WM_PLAYWRIGHT_ROOT`).
 // exit: 0 = 선다 · 1 = 못 선다 · 2 = 못 돌림
+//
+// [빨강-확인] 세계가 「짓기」(PLACE)를 무시하게 하니 빨강 — 창이 세운 것이 세계에 안 생긴다 (2026-08-14)
 
 import { spawn, execSync } from 'node:child_process';
 import { createRequire } from 'node:module';
