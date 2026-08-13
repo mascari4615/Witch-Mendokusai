@@ -8,8 +8,9 @@
 // 재는 것: 꾸준히 걷는 사람 하나를 나쁜 회선 너머 창에서 <b>매 프레임</b> 지켜보고
 //   ① 한 프레임에 가장 크게 건너뛴 거리 ② 아예 멎어 있던 프레임 비율 ③ 가장 길게 멎어 있던 시간.
 //
-// 문턱은 <b>걸음 한 판</b>(3m/s × 50ms = 0.15m)의 배수다 — 절대 미터가 아니라 이 세계의 걸음에
-// 매인 값이라 기계가 느려도 뜻이 안 변한다.
+// 문턱은 <b>걸음 속도</b>(3m/s)의 배수다 — 미터가 아니라 <b>미터/초</b>다 (WM-325).
+// 미터로 자르면 프레임이 긴 기계에서 태생적 빨강이다: 같은 제품이 60fps 에서 0.27m, 20fps 에서
+// 0.720m 이다. 속도로 보면 5.4배 vs 4.8배 — CI 쪽이 오히려 덜 튄다.
 //
 // 실측 기준선 (2026-08-13, 지연 100ms·유실 2%): 도약 0.27m · 멎음 1% · 가장 길게 80ms.
 //
@@ -40,8 +41,22 @@ const LOSS_PERCENT = 2;
 /** 이 세계의 한 걸음 (m) — 3m/s 로 50ms. 문턱은 전부 이것의 배수다. */
 const ONE_STEP_M = 0.15;
 
-/** 한 프레임에 이보다 크게 건너뛰면 사람 눈에 <b>순간이동</b>이다 (기준선 1.8걸음). */
-const MOST_JUMP_M = ONE_STEP_M * 4;
+/** 이 세계에서 걷는 속도 (m/s) — 한 걸음 0.15m 이 50ms 마다. */
+const WALK_M_PER_S = ONE_STEP_M * 20;
+
+/**
+ * 한 프레임에 걷는 속도의 이 배수보다 빨리 미끄러지면 사람 눈에 <b>순간이동</b>이다.
+ *
+ * ⚠ 미터로 자르면 안 된다 (2026-08-13 실측, TASK-WM-325). 한 프레임에 얼마나 움직이느냐는
+ *   <b>그 프레임이 얼마나 길었느냐</b>에 매인다 — 이 기계는 60fps(16.7ms), CI 는 20fps(50ms).
+ *   같은 제품인데 CI 에서만 0.720m 가 나와 빨갰다. 속도로 고치면 4.8배 — 이 기계 기준선(5.4배)
+ *   보다 오히려 <b>덜</b> 튄다. 미터 문턱은 fps 주장이었지 제품 주장이 아니었다.
+ *   [문턱-사유] (a) 같은 판의 걸음 속도와의 견줌 — 기계와 무관한 제품 상수의 배수다.
+ */
+const MOST_SPEED_MULTIPLE = 8;
+
+/** 이보다 작은 도약은 프레임이 아무리 짧아도 순간이동이 아니다 — 세계가 한 번 말한 만큼이다. */
+const NEVER_TELEPORT_M = ONE_STEP_M;
 
 /** 아예 멎어 있던 프레임이 이보다 많으면 <b>끊겨</b> 보인다 (기준선 1%). */
 const MOST_STILL_PERCENT = 5;
@@ -182,13 +197,29 @@ if (frames.length < 300)
 	cannotRun(`프레임이 너무 적다 (${frames.length}개) — 이 기계에서는 매끄러움을 못 가른다`);
 
 let biggestJump = 0;
+let worstOver = 0;
+let worstMultiple = 0;
+let worstJumpM = 0;
+let worstFrameMs = 0;
 let still = 0;
 let longestStill = 0;
 let stillSince = null;
 let walked = 0;
 for (let i = 1; i < frames.length; i += 1) {
 	const jump = Math.abs(frames[i].x - frames[i - 1].x);
+	const frameMs = Math.max(1, frames[i].at - frames[i - 1].at);
 	walked += jump;
+
+	// 이 프레임이 허락하는 미끄러짐 — 걸음 속도의 배수 × 프레임 길이.
+	// 짧은 프레임에서 값이 요동치지 않게 「세계가 한 번 말한 만큼」을 바닥으로 둔다.
+	const allowed = Math.max(NEVER_TELEPORT_M, WALK_M_PER_S * MOST_SPEED_MULTIPLE * frameMs / 1000);
+	const multiple = jump / (WALK_M_PER_S * frameMs / 1000);
+	if (jump > allowed && jump / allowed > worstOver) worstOver = jump / allowed;
+	if (multiple > worstMultiple) {
+		worstMultiple = multiple;
+		worstJumpM = jump;
+		worstFrameMs = frameMs;
+	}
 	if (jump > biggestJump) biggestJump = jump;
 
 	if (jump < 0.0005) {
@@ -214,8 +245,10 @@ function check(what, ok, detail) {
 	console.log(`  ${ok ? '✅' : '❌'} ${what} — ${detail}`);
 }
 
-check('한 프레임에 순간이동하지 않는다', biggestJump <= MOST_JUMP_M,
-	`가장 큰 도약 ${biggestJump.toFixed(3)}m (한 걸음 ${ONE_STEP_M}m · 한도 ${MOST_JUMP_M.toFixed(2)}m · 기준선 0.27m)`);
+check('한 프레임에 순간이동하지 않는다', worstOver === 0,
+	`가장 빠르게 미끄러진 프레임 ${worstMultiple.toFixed(1)}배 (걸음 속도 ${WALK_M_PER_S}m/s 대비`
+	+ ` · 그때 ${worstJumpM.toFixed(3)}m / ${worstFrameMs.toFixed(0)}ms · 한도 ${MOST_SPEED_MULTIPLE}배`
+	+ ` · 기준선 5.4배 · 가장 큰 도약 ${biggestJump.toFixed(3)}m)`);
 check('멎어 있는 프레임이 드물다', stillPercent <= MOST_STILL_PERCENT,
 	`${stillPercent.toFixed(0)}% (한도 ${MOST_STILL_PERCENT}% · 기준선 1%)`);
 check('한 번에 오래 멎지 않는다', longestStill <= MOST_STILL_MS,
