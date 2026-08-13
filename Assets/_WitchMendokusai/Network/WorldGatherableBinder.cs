@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using WitchMendokusai.Net;
 
@@ -61,7 +61,13 @@ namespace WitchMendokusai
 				GatherableView node = alive[i];
 				seen.Add(node.id);
 
-				if (bodies.TryGetValue(node.id, out Transform body) == false)
+				// `== null` 까지 봐야 한다. 사전에 남아 있어도 **오브젝트가 이미 파괴됐으면**
+				// 유니티는 그것을 null 처럼 취급하고, 그 다음 줄 `body.position` 이 NRE 로 터진다.
+				// 아래 정리 구간(`&& body != null`)은 진작 그렇게 보고 있었는데 여기만 빠져 있었다.
+				//
+				// 실측 2026-08-13: 부팅 스모크가 10초 만에 NRE **181회** — 매 프레임 여기서 났다.
+				// 야간 빌드가 나흘간 죽어 있어(2.1 전용 API 한 줄) 그동안 아무도 못 봤다.
+				if (bodies.TryGetValue(node.id, out Transform body) == false || body == null)
 				{
 					body = CreateBody(node.id);
 					bodies[node.id] = body;
