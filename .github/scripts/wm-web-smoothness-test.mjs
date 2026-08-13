@@ -13,6 +13,9 @@
 //
 // 필요한 것: .NET 8 · playwright + chromium (`WM_PLAYWRIGHT_ROOT`).
 // exit: 0 = 부드럽다 · 1 = 끊긴다 · 2 = 못 돌림
+//
+// [빨강-확인] 사이 메우기(`follow`)를 빼고 세계가 준 자리로 딱딱 튀게 하니 2건 빨강 (2026-08-14):
+//   「멎은 프레임」과 「속도 흔들림 1.49(기준 0.6)」 — 사람이 「툭툭 끊긴다」로 겪는 그 자리다.
 
 import { spawn, execSync } from 'node:child_process';
 import { createRequire } from 'node:module';

@@ -4,4 +4,3 @@
 # 갱신: node .github/scripts/wm-red-walk-audit.mjs --write-baseline
 wm-badline-strike-fairness-test.mjs
 wm-prod-smoke.mjs
-wm-web-smoothness-test.mjs
