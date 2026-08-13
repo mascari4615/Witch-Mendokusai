@@ -124,8 +124,14 @@ for (let i = 0; i < WINDOWS; i += 1) {
 }
 
 // 다 같이 걷는다 — 서로 움직이는 것이 보여야 「같이 논다」다.
+// ★ 걷기 <b>전</b>에 남들이 어디 있는지 적어 둔다 (TASK-WM-328). 이게 없으면 이 관문은
+//   「남의 인형이 <b>서 있는 채로</b> 보이기만 해도」 초록이다 — 부하가 걸려 남의 움직임이
+//   안 오기 시작해도 그대로 통과한다. 우르르 관문에서 겪은 그 구멍과 같은 꼴이다(WM-318:
+//   손님으로 도착해도 수가 맞아 초록이었다 → 이름을 들고 왔나로 고쳤다).
 for (const one of windows) {
 	await one.page.evaluate(() => {
+		window.__before = Object.fromEntries(
+			window.__wmView.dolls().map((doll) => [doll.id, { x: doll.serverX, z: doll.serverZ, mine: doll.isLocal }]));
 		window.__frames = 0;
 		const count = () => { window.__frames += 1; requestAnimationFrame(count); };
 		requestAnimationFrame(count);
@@ -139,7 +145,28 @@ const health = await fetch(`http://127.0.0.1:${worldPort}/health`, { headers: { 
 
 const seen = [];
 for (const one of windows) {
-	seen.push(await one.page.evaluate(() => ({ ...window.__wmView.world(), frames: window.__frames })));
+	seen.push(await one.page.evaluate(() => {
+		// 남이 <b>세계 좌표에서</b> 얼마나 움직였나 — 그리기(보간)가 아니라 세계가 보낸 자리로 본다.
+		const before = window.__before || {};
+		let mine = 0;
+		let othersLeast = Infinity;
+		let others = 0;
+		for (const doll of window.__wmView.dolls()) {
+			const was = before[doll.id];
+			if (!was) continue;   // 걷기 시작한 뒤에 들어온 인형 — 견줄 이전이 없다
+			const moved = Math.hypot(doll.serverX - was.x, doll.serverZ - was.z);
+			if (was.mine) { mine = moved; continue; }
+			others += 1;
+			if (moved < othersLeast) othersLeast = moved;
+		}
+		return {
+			...window.__wmView.world(),
+			frames: window.__frames,
+			mineMoved: mine,
+			othersCounted: others,
+			othersLeastMoved: others === 0 ? -1 : othersLeast,
+		};
+	}));
 }
 
 await browser.close();
@@ -164,6 +191,17 @@ check('모든 창이 첫 화면을 본다', painted.length === WINDOWS,
 	`${painted.length}/${WINDOWS}개`);
 check('서로가 서로를 본다', seen.every((one) => one.dolls >= WINDOWS),
 	`창마다 보이는 사람 ${seen.map((one) => one.dolls).join('/')} (세계는 ${health.people}명)`);
+// ★ 「보인다」로는 모자란다 — 서 있는 인형만 보여도 그건 초록이다. 부하 아래서 <b>남이 계속
+//   움직이는 것</b>이 이 관문의 제품 주장이다. 같은 15초 동안 모두 같은 키를 눌렀으므로
+//   남이 움직인 거리는 내가 움직인 거리와 비슷해야 한다.
+//   [문턱-사유] (a) 같은 판의 내 이동거리와의 견줌 — 기계가 느리면 둘 다 같이 줄어든다.
+const walkedTogether = seen.every((one) =>
+	one.othersCounted > 0 && one.othersLeastMoved >= one.mineMoved * 0.5);
+check('부하 아래서도 남이 계속 움직인다', walkedTogether,
+	seen.map((one) => one.othersCounted === 0
+		? '견줄 남이 없었다'
+		: `남 ${one.othersLeastMoved.toFixed(1)}m / 나 ${one.mineMoved.toFixed(1)}m`).join(' · '));
+
 check('창이 조용히 안 터졌다', windows.every((one) => one.errors.length === 0),
 	windows.flatMap((one) => one.errors).slice(0, 2).join(' | ') || '오류 없음');
 check('세계가 그 사이 안 멎는다', health.longestTickGapMs <= MOST_TICK_GAP_MS,
