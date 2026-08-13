@@ -85,6 +85,38 @@ namespace WitchMendokusai
 		/// 하루가 바뀌었으면 true(하루가 바뀌는 순간에 걸리는 일들이 있다).
 		/// 되돌리는 값(지금보다 이른 시각)은 안 받는다 — 세계의 시간은 거꾸로 안 간다.
 		/// </summary>
+		/// <summary>
+		/// 하늘을 <b>그 시각으로 맞춘다</b> — 뒤로도 간다 (TASK-WM-315).
+		///
+		/// ★ 왜 필요한가 (prod 실측 2026-08-13): <see cref="SetTotalMinutes"/> 는 앞으로만 간다.
+		///   그래서 <b>저장된 달력이 앞서 있으면</b> 벽시계가 영영 못 따라잡는다 —
+		///   두 세계를 나란히 띄웠더니 east 는 125일, west 는 91일이었다. 34일 어긋난 두 하늘이다.
+		///   국경을 넘는 순간 밤이 낮이 되는 그 사고(WM-266)가 <b>저장 파일을 통해</b> 되살아난 것이다.
+		///
+		/// ★ 왜 되감아도 되나: 하늘의 정본은 <b>벽시계</b>다(각 세계가 같은 셈을 한다).
+		///   저장된 값은 그 셈의 결과일 뿐이라, 어긋나면 버리는 쪽이 맞다.
+		/// </summary>
+		public void SetTotalMinutesHard(long minutes)
+		{
+			if (minutes < 0)
+				minutes = 0;
+
+			Year = 1;
+			Season = 0;
+			Day = 1;
+			Hour = 0;
+			Minute = 0;
+			minuteRemainder = 0f;
+
+			long ahead = minutes;
+			while (ahead > 0)
+			{
+				int step = ahead > int.MaxValue / 2 ? int.MaxValue / 2 : (int)ahead;
+				ApplyMinutes(step);
+				ahead -= step;
+			}
+		}
+
 		public bool SetTotalMinutes(long minutes)
 		{
 			if (minutes <= TotalMinutes())

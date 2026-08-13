@@ -34,6 +34,9 @@ namespace WitchMendokusai.Server
 		/// <summary>세계를 디스크로 내리는 간격 — 바뀐 게 있을 때만 쓴다.</summary>
 		private const int SAVE_INTERVAL_MILLISECONDS = 5000;
 
+		/// <summary>세계의 하루 (분) — 하늘이 이보다 더 앞서 있으면 「어긋났다」로 본다.</summary>
+		private const int MINUTES_PER_DAY = 24 * 60;
+
 		/// <summary>
 		/// <b>사람이 한 일</b>이 생긴 뒤 이만큼 안에 적는다 (ms, TASK-WM-310).
 		///
@@ -1850,7 +1853,18 @@ namespace WitchMendokusai.Server
 				//   가동 시간만큼만 흘리면, 나중에 뜬 세계·오래 꺼져 있던 세계는 영영 뒤처진다 —
 				//   국경을 넘는 순간 밤이 낮이 된다. 그래서 <b>벽시계에서 유도</b>한다:
 				//   맞춰 주는 게 아니라 각자 같은 셈을 하므로, 세계끼리 말을 섞을 필요가 없다.
-				if (World.Calendar.SetTotalMinutes(SkyMinutesNow()))
+				// ★ 하늘의 정본은 <b>벽시계</b>다 (TASK-WM-315). 저장된 달력이 <b>앞서</b> 있으면
+				//   전진만 하는 셈으로는 영영 못 맞춘다 — prod 에서 두 세계가 125일 vs 91일로 갈렸다.
+				//   그래서 <b>많이 어긋났으면 되감아서라도</b> 맞춘다(하루 넘게 벌어졌을 때만).
+				long skyNow = SkyMinutesNow();
+				if (World.Calendar.TotalMinutes() - skyNow > MINUTES_PER_DAY)
+				{
+					Console.WriteLine($"[world] 하늘이 앞서 있었다 — {World.Calendar.TotalMinutes()} → {skyNow} 로 맞춘다 (TASK-WM-315)");
+					World.Calendar.SetTotalMinutesHard(skyNow);
+					Interlocked.Exchange(ref worldDirty, 1);
+				}
+
+				if (World.Calendar.SetTotalMinutes(skyNow))
 					Interlocked.Exchange(ref worldDirty, 1);
 
 				// ★ 안 바뀐 것은 안 보낸다 (TASK-WM-217). 건물 63채 + 들판 169자리를 20Hz 로 나르면
