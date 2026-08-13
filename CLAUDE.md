@@ -20,6 +20,12 @@ WMInput.inputactions → InputManager.BindEvents() → On{Start/Performed/Cancel
 
 ### 새 입력 이벤트 추가 — 3곳 동시 수정
 
+추가 전에 키 중복부터 확인한다.
+
+- `WMInput.inputactions`의 `"path": "<Keyboard>/..."` 바인딩 전체를 확인한다.
+- `InputManager`가 연속값으로 직접 읽는 이동·카메라 키도 함께 확인한다.
+- 두 곳 모두와 충돌하지 않는 키를 고른 뒤 아래 세 파일을 수정한다.
+
 1. `InputManager.cs` — `InputEventType` 열거형 항목 추가
 2. `InputManager.cs` — `inputEventBindings` 딕셔너리에 ActionMap 연결
 3. `WMInput.inputactions` — 해당 ActionMap에 Action 추가 (name = InputEventType 문자열, path = `"<Keyboard>/x"` 등)

@@ -81,6 +81,16 @@ namespace WitchMendokusai
 			});
 		}
 
+		public override void ReceiveDamage(DamageInfo damageInfo)
+		{
+			// 일반 피해는 피격 뒤 시작된 무적 시간 동안 막는다.
+			// 낙사·검증용 강제 피해처럼 ignoreInvincible을 명시한 호출만 관통한다.
+			if (damageInfo.ignoreInvincible == false && invincibleRoutine != null)
+				return;
+
+			base.ReceiveDamage(damageInfo);
+		}
+
 		private void OnEnable()
 		{
 			Health.OnTakeDamage += HandleDamageEffects;
