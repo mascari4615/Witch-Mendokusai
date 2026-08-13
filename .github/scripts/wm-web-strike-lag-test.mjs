@@ -12,6 +12,9 @@
 //
 // 필요한 것: .NET 8. (창은 안 띄운다 — 이 자리는 판정 문제다.)
 // exit: 0 = 맞는다 · 1 = 안 맞는다 · 2 = 못 돌림
+//
+// [빨강-확인] 사거리를 2m → 0.9m 로 줄이니 2건 빨강 — 쫓아가며 가장자리 치기가 곧은 회선에서도 1/17(6%).
+//   되감기(MOST_REWIND_MS)를 0 으로 꺼 봐도 이 판은 초록이었다(91%) — 이 거리·속도에서는 되감기가 결정적이지 않다는 뜻 (2026-08-14)
 
 import { spawn, execSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
