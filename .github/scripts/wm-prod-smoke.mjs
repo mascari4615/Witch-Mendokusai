@@ -15,6 +15,11 @@
 //
 // 실행: node .github/scripts/wm-prod-smoke.mjs   (노트북 러너 위, 배포 스텝 끝에서)
 // exit: 0 = 논다 · 1 = 안 논다 · 2 = 못 돌림
+//
+// [빨강-확인] prod 를 부러뜨릴 수는 없으니 <b>같은 얼개의 두 세계를 여기 띄워</b> 걸었다 (2026-08-14):
+//   서쪽의 `WM_ZONE_SECRET` 만 다르게 두니 빨강 — 「건너간 사람이 그 사람 그대로다 — 이름이 「손님 1」」.
+//   즉 통행증 도장이 안 맞으면 사람이 <b>손님으로 다시 태어난다</b>(가방·이름을 잃는다). 그 자리를 이 관문이 잡는다.
+//   거는 법: WM_PROD_EAST/WM_PROD_WEST 로 이 관문을 아무 두 세계에나 겨눌 수 있다.
 
 const eastPort = Number(process.env.WM_PROD_EAST || 5199);
 const westPort = Number(process.env.WM_PROD_WEST || 5200);
