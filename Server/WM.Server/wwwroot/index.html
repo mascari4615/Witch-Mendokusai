@@ -2126,6 +2126,17 @@ function applyPendingWorld() {
 		} else {
 			gatherables = message.gatherables;
 		}
+
+		// ★ <b>멀어진 자리는 내가 지운다</b> (TASK-WM-344): 세계는 <b>가까운 것만</b> 말해 준다(관심 반경 32m).
+		//   내가 걸어서 멀어지면 그 자리 소식은 더 안 오고, 예전에 받아 둔 것이 <b>영영 남는다</b> —
+		//   남이 주워 갔는데도 화면에 있는 것으로 보인다(실측 2026-08-14: 다섯 번째 판부터 늘 그랬다).
+		//   세계의 약속은 「가까운 것」이므로, 그 밖은 창이 스스로 접는다.
+		const me = dolls.find((one) => one.id === myId);
+		if (me) {
+			const forgetBeyond = 40;   // [문턱-사유] (c) 제품 상수 — 세계의 관심 반경 32m + 넉넉한 여유
+			gatherables = gatherables.filter((one) =>
+				((one.x - me.x) ** 2) + ((one.z - me.z) ** 2) <= forgetBeyond * forgetBeyond);
+		}
 	}
 	if (message.cauldrons) cauldrons = message.cauldrons;
 	if (message.buildings || message.gatherables || message.cauldrons) staticWorldDirty = true;
