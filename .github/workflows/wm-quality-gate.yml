@@ -421,6 +421,10 @@ jobs:
       - name: Run lost action test
         run: node ./.github/scripts/run-gate.mjs ./.github/scripts/wm-lost-action-test.mjs
 
+      # 같은 신원으로 탭을 둘 열어도 몸도 가방도 하나다 (TASK-WM-334).
+      - name: Run two tabs test
+        run: node ./.github/scripts/run-gate.mjs ./.github/scripts/wm-two-tabs-test.mjs
+
       # 둘이 같은 상자를 동시에 비벼도 개수는 보존된다 (TASK-WM-332) — 복제는 경제를 죽인다.
       - name: Run chest race test
         run: node ./.github/scripts/run-gate.mjs ./.github/scripts/wm-chest-race-test.mjs
