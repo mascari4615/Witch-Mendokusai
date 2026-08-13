@@ -16,7 +16,6 @@ wm-web-crowd-smoke.mjs
 wm-web-herd-test.mjs
 wm-web-lead-test.mjs
 wm-web-link-test.mjs
-wm-web-long-outage-test.mjs
 wm-web-map-only-test.mjs
 wm-web-narrow-line-test.mjs
 wm-web-picker-test.mjs
