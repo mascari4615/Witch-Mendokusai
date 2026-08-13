@@ -261,6 +261,25 @@ check('손님이 아니라 나로 도착한다 (장부가 안 는다)', grew <= 
 check('짐이 그대로다 (두 벌도, 빈손도 아니다)', bagSize(overCut) === cutLuggage,
 	`가방 ${cutLuggage} → ${bagSize(overCut)}`);
 
+// ── ③ 두 세계가 <b>같은 하늘</b>을 보나 (TASK-WM-315) ─────────────────
+//
+// ★ 왜 여기서 재나: prod 에 세계 둘을 세우자마자 east 125일 · west 91일이 나왔다 —
+//   34일 어긋난 하늘이다(국경을 넘으면 밤이 낮이 된다). 하늘은 벽시계에서 유도되므로
+//   <b>같아야 정상</b>이다. 두 세계를 띄우는 관문이 여기뿐이라 이 자리에서 지킨다.
+//
+// ⚠ 이 검사만으로는 <b>그때 그 고장</b>을 못 만든다: 여기 두 세계는 <b>새 파일</b>로 뜨므로
+//   저장된 달력이 앞설 일이 없다(고침을 꺼도 초록이다 — 실패 경로를 밟아 확인했다).
+//   그 자리는 단위 시험이 지킨다(`SkyAgreesTests`). 여기서는 <b>둘이 어긋나지 않는다</b>는
+//   불변식을 지킨다 — 앞으로 어떤 이유로든 갈리면 이 줄이 빨개진다.
+const eastSky = await health(eastPort);
+const westSky = await health(westPort);
+const dayGap = Math.abs(eastSky.day - westSky.day);
+const minuteGap = Math.abs((eastSky.hour * 60 + eastSky.minute) - (westSky.hour * 60 + westSky.minute));
+
+check('두 세계가 같은 하늘을 본다', dayGap === 0 && minuteGap <= 2,
+	`east ${eastSky.day}일 ${eastSky.hour}:${eastSky.minute} · west ${westSky.day}일 ${westSky.hour}:${westSky.minute}`
+		+ ` (하루 차이 ${dayGap} · 분 차이 ${minuteGap})`);
+
 killWorlds();
 
 if (failures === 0) {
