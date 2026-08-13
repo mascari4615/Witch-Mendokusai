@@ -27,6 +27,24 @@ function Test-RunBlock {
     $tokens = $null
     [System.Management.Automation.Language.Parser]::ParseFile($temp, [ref]$tokens, [ref]$errs) | Out-Null
     Remove-Item $temp -Force -ErrorAction SilentlyContinue
+    # ★ 파싱만으로는 못 잡는 자리가 있다 (2026-08-13 실측): 같은 파일이 이 기계에서는 파싱 실패였는데
+    #   러너에서는 통과했다 — 줄바꿈·인코딩이 달라 깨지는 자리가 옮겨 다닌다.
+    #   그래서 <b>규칙 자체</b>를 본다: run 블록의 <b>문자열 안에 한글</b>이면 빨강.
+    #   (주석 안 한글은 안전하다 — 그건 그대로 둔다.)
+    $lineNo = $StartLine
+    foreach ($one in $Body) {
+        $lineNo++
+        $code = ($one -replace '#.*$', '')
+        foreach ($quoted in [regex]::Matches($code, '"[^"]*"|''[^'']*''')) {
+            if ($quoted.Value -match '[가-힣]') {
+                Write-Host "[FAIL] $File line $lineNo"
+                Write-Host "       run 블록의 문자열에 한글이 있다 — PS 5.1 이 cp949 로 읽어 따옴표가 깨진다."
+                Write-Host "       $($quoted.Value)"
+                return 1
+            }
+        }
+    }
+
     if ($errs.Count -gt 0) {
         Write-Host "[FAIL] $File line $StartLine"
         $errs | Select-Object -First 3 | ForEach-Object { Write-Host "       $($_.Message)" }
