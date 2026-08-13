@@ -496,7 +496,9 @@ const agesOf = (list, fit) => {
 const mean = (list) => list.reduce((sum, one) => sum + one, 0) / Math.max(1, list.length);
 
 const roomy = agesOf(ages, roomyLine);
-check('나이를 잴 표본이 있다', roomy.length >= LEAST_SAMPLES_ROOMY, `${roomy.length}개 (적어도 ${LEAST_SAMPLES_ROOMY}개 · 걷는 사람 번호 ${walkerDollId})`);
+// 여기도 <b>못 잼</b>이다 — 넉넉한 회선에서 표본이 모자라면 그건 이 기계가 느린 것이다 (규율 ②).
+if (roomy.length < LEAST_SAMPLES_ROOMY)
+	cannotRun(`넉넉한 회선에서도 표본이 ${roomy.length}개뿐이다 (적어도 ${LEAST_SAMPLES_ROOMY}개 · 걷는 사람 번호 ${walkerDollId})`);
 if (roomy.length < LEAST_SAMPLES_ROOMY) process.exit(1);
 
 const half = Math.floor(roomy.length / 2);

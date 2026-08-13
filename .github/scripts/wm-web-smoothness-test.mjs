@@ -158,11 +158,11 @@ await browser.close();
 killWorld();
 
 // ── 셈 ────────────────────────────────────────────────────────────────
-check('창이 걷는 상대를 봤다', trail.length > 30, `프레임 ${trail.length}장`);
-if (trail.length <= 30) {
-	console.log('\n[web-smooth] RESULT: 잴 것이 없다');
-	process.exit(1);
-}
+// ⚠ 프레임이 모자란 것은 <b>못 잰 것</b>이다 (관문 규율 ②) — 느린 기계에서는 같은 시간에 덜 그린다.
+//   여기가 exit 1 이라 기계 사정이 제품 빨강으로 적히고 있었다 (2026-08-14).
+console.log(`  ⓘ 창이 걷는 상대를 본 프레임 ${trail.length}장 (적어도 31장)`);
+if (trail.length <= 30)
+	cannotRun(`프레임이 ${trail.length}장뿐이다 — 이 기계에서는 매끄러움을 못 가른다`);
 
 let frozen = 0;
 let moving = 0;
