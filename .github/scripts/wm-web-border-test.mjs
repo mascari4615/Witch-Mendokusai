@@ -10,6 +10,8 @@
 //
 // 필요한 것: .NET 8 · playwright + chromium (`WM_PLAYWRIGHT_ROOT`).
 // exit: 0 = 넘는다 · 1 = 못 넘는다 · 2 = 못 돌림
+//
+// [빨강-확인] 창이 통행증을 안 들고 가게 하니 빨강 — 건너간 사람이 그 사람이 아니게 된다(이름이 안 따라옴) (2026-08-14)
 
 import { spawn, execSync } from 'node:child_process';
 import { createRequire } from 'node:module';

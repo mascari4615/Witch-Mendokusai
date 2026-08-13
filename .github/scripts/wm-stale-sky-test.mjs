@@ -14,6 +14,8 @@
 //   ① 세계가 뜨나 ② 하늘이 <b>벽시계 쪽으로</b> 돌아오나(앞선 값에 안 굳나)
 //
 // exit: 0 = 되돌린다 · 1 = 앞선 채로 굳는다 · 2 = 못 돌림
+//
+// [빨강-확인] 앞선 하늘 되돌리기(SetTotalMinutesHard)를 끄니 빨강 — 「200일에 굳었다(벽시계 103일)」 (2026-08-14)
 
 import { spawn, execSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
