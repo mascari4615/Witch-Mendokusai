@@ -69,7 +69,20 @@ jobs:
           finally {
             foreach ($w in $worlds) {
               # 서비스가 없으면 세운다 — 새 기계에서도 이 워크플로 하나로 선다.
+              # ⚠ <b>있다</b>와 <b>성하다</b>는 다르다 (2026-08-13 실측): 손으로 만들다 만 서비스는
+              #   Get-Service 에는 보이는데 nssm 설정이 비어 있어 시작하자마자 죽는다.
+              #   그런 껍데기는 지우고 다시 세운다 — 안 그러면 이 배포가 영영 그 자리에서 빨갛다.
               $exists = Get-Service -Name $w.Name -ErrorAction SilentlyContinue
+              if ($exists) {
+                $app = ((& $nssm get $w.Name Application) -join '').Trim([char]0, ' ')
+                if (-not $app) {
+                  Write-Host "$($w.Name): nssm 설정이 비었다 — 지우고 다시 세운다"
+                  & $nssm remove $w.Name confirm | Out-Host
+                  Start-Sleep -Seconds 2
+                  $exists = $null
+                }
+              }
+
               if (-not $exists) {
                 & $nssm install $w.Name "$publishDir\WM.Server.exe" | Out-Host
                 & $nssm set $w.Name Start SERVICE_AUTO_START | Out-Host
