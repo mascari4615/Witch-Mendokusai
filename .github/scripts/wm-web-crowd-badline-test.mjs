@@ -19,6 +19,8 @@
 //
 // 필요한 것: .NET 8 · playwright + chromium (`WM_PLAYWRIGHT_ROOT`).
 // exit: 0 = 버틴다 · 1 = 못 버틴다 · 2 = 못 돌림
+//
+// [빨강-확인] 늦은 창에게 늘 두 명만 보여 주게 하니 <b>견줌만으로는 초록</b>이었다(곧은 2·나쁜 2) — 그래서 바닥(10명)을 두고서야 빨강이 된다 (2026-08-14)
 
 import { spawn, execSync } from 'node:child_process';
 import { createRequire } from 'node:module';
@@ -223,8 +225,16 @@ const rough = await watch(`http://127.0.0.1:${linePort}/`, `나쁜 회선(왕복
 
 clearInterval(walking);
 
-check('곧은 회선에서는 무리가 보인다 (견줄 기준)', straight.people > 1 && straight.fps > 5,
-	`${straight.people}명 · ${straight.fps.toFixed(1)}fps`);
+// ★ 견줌만으로는 <b>둘 다 망가진 판</b>을 못 잡는다 (2026-08-14 실측): 세계가 모두에게 두 명만
+//   보여 주게 해 놓고 돌렸더니, 곧은 2명·나쁜 2명이라 「50% 이상」이 통과했다 —
+//   무리 40명 한복판에서 두 명만 보이는데 초록이었다. 그래서 <b>바닥</b>을 같이 둔다.
+//   [문턱-사유] (c) 제품 상수 — 세계가 한 창에 보여 주기로 한 사람 수(InterestCrowd.MAX_VISIBLE_DOLLS)의
+//   절반이다. 기계 속도와 무관하고, 광장이 광장으로 보이려면 그만큼은 있어야 한다.
+const LEAST_IN_A_CROWD = 10;
+
+check(`곧은 회선에서는 무리가 보인다 (적어도 ${LEAST_IN_A_CROWD}명 · 견줄 기준)`,
+	straight.people >= LEAST_IN_A_CROWD && straight.fps > 5,
+	`${straight.people}명 · ${straight.fps.toFixed(1)}fps (무리 ${crowd}명 한복판)`);
 check(`나쁜 회선에서도 화면이 그려진다 (곧은 회선의 ${Math.round(KEEP_FRAMES_RATIO * 100)}% 이상)`,
 	rough.fps >= straight.fps * KEEP_FRAMES_RATIO,
 	`${rough.fps.toFixed(1)}fps · 곧은 회선 ${straight.fps.toFixed(1)}fps`);

@@ -12,6 +12,8 @@
 //
 // 필요한 것: .NET 8 · playwright + chromium (`WM_PLAYWRIGHT_ROOT`).
 // exit: 0 = 말해 준다 · 1 = 조용히 실패한다 · 2 = 못 돌림
+//
+// [빨강-확인] 세계가 「왜 안 됐는지」를 말 안 하게 하니 2건 빨강 — 「아무 말도 없었다」(사람은 고장으로 읽는다) (2026-08-14)
 
 import { spawn, execSync } from 'node:child_process';
 import { createRequire } from 'node:module';

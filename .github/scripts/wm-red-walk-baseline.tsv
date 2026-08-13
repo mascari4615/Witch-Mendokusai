@@ -7,8 +7,6 @@ wm-prod-smoke.mjs
 wm-server-soak-test.mjs
 wm-web-alone-test.mjs
 wm-web-build-test.mjs
-wm-web-contest-test.mjs
-wm-web-crowd-badline-test.mjs
 wm-web-crowd-smoke.mjs
 wm-web-herd-test.mjs
 wm-web-link-test.mjs
