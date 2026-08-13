@@ -42,6 +42,18 @@ const ROUNDS = Number(process.env.WM_GHOST_ROUNDS || 4);
 /** 나간 뒤 이만큼은 기다려 준다 (ms) — 「나갔다」가 오는 데 걸리는 시간(실측 ~270ms)의 몇 배. */
 const SETTLE_MS = 5000;
 
+/**
+ * 한 사람이 나가고 <b>이 시간 안에</b> 화면에서 사라져야 한다 (ms).
+ *
+ * ★ 왜 시간까지 재나: 사람 수만 견주면 「5초 뒤에는 맞다」로 통과한다 — 그런데 WM-306 에서
+ *   <b>20초가 지나도 안 사라진</b> 판이 한 번 있었다(그 뒤 26번 시도해도 재현 X).
+ *   수만 보는 관문은 그 판을 못 잡는다. 시간을 재면 다시 오면 그때 잡힌다.
+ *
+ * 실측 2026-08-13 (15판): 가운데값 264ms · 가장 오래 508ms — 사람이 못 느끼는 자리다.
+ * 3초는 그 여섯 배 — 느린 기계에서 태생적 빨강이 안 되게 넉넉히 잡았다.
+ */
+const VANISH_WITHIN_MS = 3000;
+
 function cannotRun(message) {
 	console.error(`[web-ghost] CANNOT-RUN: ${message}`);
 	process.exit(2);
@@ -179,6 +191,41 @@ for (let round = 0; round < ROUNDS; round += 1) {
 	console.log(`  ⓘ ${round + 1}판 — 창 ${shown}명 · 세계 ${now.people}명 (유령 ${ghosts > 0 ? ghosts : 0})`);
 }
 
+// ── 마지막: 한 사람이 나가고 <b>얼마 만에</b> 사라지는지 (수가 아니라 시간) ────────────
+const lastOne = { id: null, socket: new WebSocket(`ws://127.0.0.1:${worldPort}/ws`) };
+lastOne.socket.onopen = () => lastOne.socket.send(JSON.stringify({ type: 'hello', secret: '' }));
+lastOne.socket.onerror = () => { /* 아래가 잡는다 */ };
+lastOne.socket.onmessage = (event) => {
+	try {
+		const said = JSON.parse(event.data);
+		if (said.type === 'welcome') lastOne.id = said.id;
+	} catch { /* 우리 말이 아니다 */ }
+};
+
+await wait(2500);
+
+let vanishedInMs = -2;
+if (lastOne.id !== null) {
+	const sawIt = await page.waitForFunction(
+		(id) => window.__wmView.dolls().some((one) => one.id === id), lastOne.id, { timeout: 15000 })
+		.then(() => true).catch(() => false);
+
+	if (sawIt) {
+		const leftAt = Date.now();
+		lastOne.socket.close();
+
+		vanishedInMs = -1;
+		while (Date.now() - leftAt < VANISH_WITHIN_MS * 3) {
+			const still = await page.evaluate((id) => window.__wmView.dolls().some((one) => one.id === id), lastOne.id);
+			if (still === false) { vanishedInMs = Date.now() - leftAt; break; }
+
+			await wait(100);
+		}
+	}
+}
+
+if (lastOne.socket.readyState === 1) lastOne.socket.close();
+
 for (const bot of bots) bot.socket.close();
 await wait(SETTLE_MS);
 
@@ -204,6 +251,10 @@ function check(what, ok, detail) {
 check('나간 사람이 화면에 안 남는다', worstGhosts <= 0,
 	`가장 많을 때 유령 ${worstGhosts > 0 ? worstGhosts : 0}명 (창이 세계보다 많으면 그만큼이 유령이다)`);
 check('마지막에도 창과 세계가 같다', endGhosts <= 0, `창 ${endShown}명 · 세계 ${endTruth.people}명`);
+check('나간 사람이 <b>곧</b> 사라진다', vanishedInMs >= 0 && vanishedInMs <= VANISH_WITHIN_MS,
+	vanishedInMs === -2 ? '잴 사람이 안 들어왔다'
+		: vanishedInMs === -1 ? `${VANISH_WITHIN_MS * 3}ms 가 지나도 안 사라졌다 — WM-306 의 그 판이 돌아온 것이다`
+			: `${vanishedInMs}ms (한도 ${VANISH_WITHIN_MS}ms · 실측 가운데값 264ms)`);
 check('창이 조용히 안 터졌다', pageErrors.length === 0, pageErrors.join(' | ') || '오류 없음');
 
 if (failures === 0) {
