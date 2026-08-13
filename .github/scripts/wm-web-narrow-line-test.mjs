@@ -76,6 +76,9 @@ const BYTES_PER_SECOND = 32000;
  */
 const MAX_AGE_SECONDS = 0.5;
 const MAX_AGE_GROWTH_SECONDS = 0.3;
+
+/** 좁혀도 이만큼은 지나갈 폭을 준다 (판/초) — 바닥 계산에 쓴다. */
+const LEAST_PLATES_PER_SECOND_FLOOR = 8;
 // 회선이 보낼 것보다 좁아지면 늙는 건 물리다 — 하지만 <b>끝없이</b> 늙으면 그건 고장이다.
 const MAX_SQUEEZED_AGE_SECONDS = 2;
 
@@ -344,20 +347,31 @@ const ages = await page.evaluate(() => window.__wmAges.slice());
 //   그 9배 차이 때문에 「수요의 1/5」로 좁힌 값이 <b>실제 수요보다 두 배 넓었고</b>, 그래서 이 관문은
 //   세계 방어를 여섯 가지로 꺼도 초록이었다. 이제 <b>회선이 나른 양</b>으로 잰다.
 const carriedBefore = badLine.peek().reduce((sum, one) => sum + (one.carried || 0), 0);
+const platesBefore = await page.evaluate(() => (window.__wmBytes || []).length);
 await new Promise((done) => setTimeout(done, 4000));
 const carriedAfter = badLine.peek().reduce((sum, one) => sum + (one.carried || 0), 0);
+const platesAfter = await page.evaluate(() => (window.__wmBytes || []).length);
 const steadyDemand = Math.round((carriedAfter - carriedBefore) / 4);
+
+// 한 판이 <b>선 위에서</b> 몇 바이트인가 — 바닥을 이걸로 정한다(기계마다 판 크기가 다르다).
+const wirePerPlate = platesAfter > platesBefore
+	? Math.max(60, Math.round((carriedAfter - carriedBefore) / (platesAfter - platesBefore)))
+	: 150;
 
 // ★ 좁히는 값은 <b>정상 수요의 절반</b> — 회선이 진짜 병목이 되되, 제품이 설계상 감당해야 하는 폭이다.
 //   (1/5 로 졸라매 보니 나이가 1.78초까지 늘고 판이 초당 6.5장으로 떨어졌다 — 그건 제품 결함이 아니라
 //    <b>설계 지점 밖</b>이다. 세계가 아무리 덜어 내도 필요한 양의 5분의 1로는 현재를 못 보여 준다.)
 //   [문턱-사유] (a) 같은 판의 정상 수요와의 견줌 — 기계가 빨라 수요가 커지면 좁힘도 같이 좁아진다.
-// ⚠ 바닥을 <b>초당 1.2KB</b> 로 올린다 (2026-08-14 CI 실측): 느린 기계에서는 수요가 작게 잡혀
-//   0.8배가 초당 0.6KB까지 내려가고, 그러면 판이 4장밖에 안 와서 「소식이 계속 온다」가 빨갰다.
-//   제품 주장은 「좁아도 소식은 온다」이지 「굶겨도 온다」가 아니다 — 여덟 판(≈150B×8)은 지날 폭을 준다.
-//   [문턱-사유] (c) 제품 상수 — 세계가 초당 여덟 판을 낼 최소 폭. 기계 속도와 무관하다.
-const squeezeTo = steadyDemand > 0 ? Math.max(1200, Math.round(steadyDemand * 0.8)) : SQUEEZED_BYTES_PER_SECOND;
-console.log(`  ⓘ 정상 수요 초당 ${(steadyDemand / 1000).toFixed(1)}KB → 좁힐 값 초당 ${(squeezeTo / 1000).toFixed(1)}KB`);
+// ⚠ 바닥은 <b>이 기계의 판 크기</b>로 정한다 (2026-08-14, CI 에서 두 번 데었다):
+//   초당 1.2KB 로 못 박았더니 CI 에서는 판이 커서 여전히 4장밖에 안 왔다. 「굶기지 않는다」의 뜻은
+//   <b>여덟 판이 지날 폭</b>이지 특정 KB 가 아니다 — 그러니 판 크기를 재서 곱한다.
+//   [문턱-사유] (a) 같은 판의 판 크기와의 견줌 + (c) 제품 상수(초당 여덟 판).
+const squeezeFloor = LEAST_PLATES_PER_SECOND_FLOOR * wirePerPlate;
+const squeezeTo = steadyDemand > 0
+	? Math.max(squeezeFloor, Math.round(steadyDemand * 0.8))
+	: SQUEEZED_BYTES_PER_SECOND;
+console.log(`  ⓘ 정상 수요 초당 ${(steadyDemand / 1000).toFixed(1)}KB · 한 판 ${wirePerPlate}B(선 위)`
+	+ ` → 좁힐 값 초당 ${(squeezeTo / 1000).toFixed(1)}KB (바닥 ${(squeezeFloor / 1000).toFixed(1)}KB)`);
 
 if (steadyDemand <= 0)
 	console.log('  ⚠ 정상 수요를 못 쟀다 — 상수(4KB)로 좁힌다 (이 판의 자극은 약할 수 있다)');
