@@ -10,6 +10,9 @@
 //
 // 필요한 것: .NET 8 · playwright + chromium (`WM_PLAYWRIGHT_ROOT`).
 // exit: 0 = 대답한다 · 1 = 조용하다 · 2 = 못 돌림
+//
+// [빨강-확인] 창의 즉시 대답(askedFor 의 상태 글씨)을 끄니 「세계 답의 절반 안쪽」이 빨강 —
+//   388ms(세계 답 338ms). 그때도 「1초 안」 바닥은 초록이라, 촘촘한 주장은 위 줄이 한다 (2026-08-14)
 
 import { spawn, execSync } from 'node:child_process';
 import { createRequire } from 'node:module';
@@ -207,7 +210,10 @@ check('창이 세계의 답보다 훨씬 먼저 말한다 (절반 안쪽)',
 		: `${saidInMs}ms · 세계의 답 ${bagInMs}ms · "${answer.said}"`);
 // [문턱-사유] (b) 사람이 느끼는 선 — 위 줄이 이미 「세계 답의 절반」으로 제품을 주장한다.
 //   이 줄은 그 위에 얹는 <b>바닥</b>이다(세계가 아주 느릴 때 절반도 느릴 수 있으니).
-check('그래도 사람이 기다린다고 느낄 만큼 늦지는 않다 (0.5초 안)', saidInMs >= 0 && saidInMs <= 500,
+// ⚠ 0.5초가 아니라 <b>1초</b>다 (2026-08-14, 미리 훑기): 같은 0.5초 문턱이 짓기 관문에서
+//   2코어 CI 만 빨갛게 만들었다(WM-322). 여기 바닥의 뜻은 「사람이 기다린다고 느끼기 전」이고,
+//   그 선은 넉넉해야 한다 — 촘촘한 주장은 이미 위 줄(절반)이 한다.
+check('그래도 사람이 기다린다고 느낄 만큼 늦지는 않다 (1초 안)', saidInMs >= 0 && saidInMs <= 1000,
 	`${saidInMs}ms`);
 check('창이 조용히 안 터졌다', pageErrors.length === 0, pageErrors.join(' | ') || '오류 없음');
 

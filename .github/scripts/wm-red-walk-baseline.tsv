@@ -7,7 +7,6 @@ wm-prod-smoke.mjs
 wm-server-soak-test.mjs
 wm-stale-sky-test.mjs
 wm-web-alone-test.mjs
-wm-web-answer-test.mjs
 wm-web-beyond-test.mjs
 wm-web-border-test.mjs
 wm-web-build-test.mjs
