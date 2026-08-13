@@ -801,8 +801,11 @@ namespace WitchMendokusai
 					Vector3Int pivot = new Vector3Int(saved.x, saved.y, saved.z);
 					Vector2Int size = new Vector2Int(saved.w, saved.l);
 
-					HashSet<Vector3Int> occupied = new HashSet<Vector3Int>(occupiedCells.Keys);
-					if (BuildingFootprint.IsBlocked(pivot, size, occupied))
+					// ⚠ 여기서 <b>칸 장부를 통째로 베끼면</b> 되살리기가 제곱으로 느려진다 (TASK-WM-353):
+					//   집 6만 채는 36초, 30만 채는 <b>5분이 지나도 세계가 안 떴다</b>(실측 2026-08-14).
+					//   배포 때마다 그만큼 세계가 닫혀 있고, 어느 크기부터는 <b>영영 못 뜬다</b>.
+					//   장부는 이미 칸→건물 사전이다 — 그걸 그대로 물어보면 한 번에 끝난다.
+					if (BuildingFootprint.IsBlocked(pivot, size, occupiedCells.Keys))
 						continue;
 
 					List<Vector3Int> cells = BuildingFootprint.Cells(pivot, size);
@@ -826,16 +829,15 @@ namespace WitchMendokusai
 		/// <summary>되살린 건물 위에 상자를 얹는다 — 그 자리에 선 건물이 상자가 아니면 버린다.</summary>
 		private void RestoreStoragesUnlocked(StorageSaveEntry[] saved, WorldItemCatalog catalog)
 		{
-			Storages.Load(saved, cell =>
-			{
-				for (int i = 0; i < placed.Count; i++)
-				{
-					if (placed[i].Pivot.Equals(cell))
-						return Buildables.SlotsOf(placed[i].BuildingId);
-				}
+			// ⚠ 상자마다 <b>선 집을 처음부터 훑으면</b> 이것도 제곱이다 (TASK-WM-353) —
+			//   집이 많은 세계에서 되살리기가 그만큼 또 느려진다. 자리→건물 사전을 한 번 만들어 쓴다.
+			Dictionary<Vector3Int, int> whatStandsAt = new Dictionary<Vector3Int, int>(placed.Count);
+			for (int i = 0; i < placed.Count; i++)
+				whatStandsAt[placed[i].Pivot] = placed[i].BuildingId;
 
-				return 0;
-			}, catalog);
+			Storages.Load(saved, cell => whatStandsAt.TryGetValue(cell, out int buildingId)
+				? Buildables.SlotsOf(buildingId)
+				: 0, catalog);
 		}
 
 		/// <summary>

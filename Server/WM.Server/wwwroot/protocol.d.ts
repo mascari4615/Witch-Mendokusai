@@ -368,6 +368,12 @@ export interface Kicked {
 	reason: string;
 }
 
+export interface Full {
+	type: 'full';
+	reason: string;
+	most: number;
+}
+
 /** 서버 -> 그 창에게만: 네 인형은 여기 있다(몰린 칸에서 공유 소식에 자기가 빠졌을 때). */
 export interface Me {
 	type: 'me';
