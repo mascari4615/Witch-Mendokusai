@@ -4,10 +4,7 @@
 # 갱신: node .github/scripts/wm-red-walk-audit.mjs --write-baseline
 wm-badline-strike-fairness-test.mjs
 wm-border-cut-test.mjs
-wm-crash-durability-test.mjs
-wm-lost-action-test.mjs
 wm-prod-smoke.mjs
-wm-save-failure-test.mjs
 wm-server-soak-test.mjs
 wm-stale-sky-test.mjs
 wm-web-alone-test.mjs

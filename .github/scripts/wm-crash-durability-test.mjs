@@ -13,6 +13,8 @@
 //   되살린다 → 가방이 그대로인가.
 //
 // exit: 0 = 남는다 · 1 = 사라졌다 · 2 = 못 돌림
+//
+// [빨강-확인] 빠른 저장(300ms → 300000ms)을 끄니 「답해 놓고 없던 일」 빨강 (가방 1 → 1)
 
 import { spawn, execSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';

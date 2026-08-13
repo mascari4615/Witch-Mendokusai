@@ -16,6 +16,8 @@
 //   ③ 같은 번호를 여러 번 보내도 <b>한 번만</b> 주워진다
 //
 // exit: 0 = 사라지지도 두 번 되지도 않는다 · 1 = 사라지거나 두 번 됨 · 2 = 못 돌림
+//
+// [빨강-확인] ActionOnce 중복 차단을 끄니 「한 번만 된다」·「말이 두 번 안 들린다」 2건 빨강 (가방 4 → 1, 말 2번)
 
 import { spawn, execSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';

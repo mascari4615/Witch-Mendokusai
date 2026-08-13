@@ -14,6 +14,8 @@
 //   ③ 이유가 비어 있지 않나.
 //
 // exit: 0 = 실패가 보인다 · 1 = 무음 실패 · 2 = 못 돌림
+//
+// [빨강-확인] TrySave 를 무조건 성공으로 바꾸니 3건 빨강 (실패가 0으로 보임 · 이유 빈칸 · 성공 3번으로 보임)
 
 import { spawn, execSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
