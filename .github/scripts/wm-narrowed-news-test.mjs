@@ -32,7 +32,16 @@ const linePort = worldPort + 1;
 
 /** 창을 밀리게 만들 회선 — 왕복이 바닥보다 한참 길어야 세계가 「밀린다」로 본다. */
 const ONE_WAY_MS = 250;
-const SQUEEZE_BYTES_PER_SECOND = 2000;
+
+/**
+ * 회선을 <b>얼마나</b> 좁힐까 — 정상 수요의 이 배수 (TASK-WM-343 진단에서 배웠다).
+ *
+ * ★ 처음에는 초당 2KB 로 못 박았다. 그런데 창이 받은 들판 소식을 적어 보니 12초 동안 <b>한 장</b>뿐이었다 —
+ *   좁힘이 수요보다 훨씬 좁아 창이 <b>굶고</b> 있었던 것이다. 그건 「소식이 안 온다」가 아니라
+ *   「보낼 폭이 없다」이고, 제품 결함이 아니라 <b>자극이 과했던 것</b>이다.
+ *   그래서 좁은 회선 관문과 같은 방식으로 <b>정상 수요를 재서</b> 그 몫으로 좁힌다.
+ */
+const SQUEEZE_OF_DEMAND = 0.8;
 
 /** 소식 하나가 닿기까지 봐 주는 시간 — 좁혀졌어도 이 안에는 와야 한다. */
 const NEWS_WITHIN_MS = 12000;
@@ -148,8 +157,37 @@ async function finish(code, why) {
 
 if (ready === false) await finish(2, '[narrowed-news] CANNOT-RUN: 창이 첫 화면을 못 봤다');
 
+// ★ <b>창이 받은 들판 소식만</b> 따로 적어 둔다 (진단 도구) — 안 사라졌을 때 무엇이 왔는지 봐야
+//   세계 탓인지 창 탓인지 가른다. 세계에 로그를 켜면 박자가 바뀌어 증상이 숨는다(실측).
+await page.evaluate(() => {
+	window.__wmFieldTrail = [];
+	window.__wmView.socket().addEventListener('message', (event) => {
+		let said;
+		try { said = JSON.parse(String(event.data)); } catch { return; }
+		if (said.type !== 'world') return;
+		if (said.gatherables === undefined && said.fieldGone === undefined) return;
+
+		window.__wmFieldTrail.push({
+			at: Date.now(),
+			seq: said.sequence,
+			delta: said.fieldChanged === true,
+			싣고온자리: (said.gatherables || []).length,
+			없어졌다: (said.fieldGone || []).length,
+		});
+		if (window.__wmFieldTrail.length > 40) window.__wmFieldTrail.shift();
+	});
+});
+
 // ★ 여기서부터 <b>좁힌다</b> — 창을 밀리게 만들어 세계가 「작은 한 장」을 주도록.
-badLine.squeeze(SQUEEZE_BYTES_PER_SECOND);
+//   좁힐 값은 <b>선 위의 정상 수요</b>에서 뽑는다(창이 세는 바이트는 푼 뒤라 부풀어 있다).
+const carriedBefore = badLine.peek().reduce((sum, one) => sum + (one.carried || 0), 0);
+await wait(4000);
+const carriedAfter = badLine.peek().reduce((sum, one) => sum + (one.carried || 0), 0);
+const demand = Math.max(1200, Math.round((carriedAfter - carriedBefore) / 4));
+const squeezeTo = Math.round(demand * SQUEEZE_OF_DEMAND);
+console.log(`  ⓘ 정상 수요 초당 ${(demand / 1000).toFixed(1)}KB → 좁힘 초당 ${(squeezeTo / 1000).toFixed(1)}KB`);
+
+badLine.squeeze(squeezeTo);
 await wait(6000);
 
 const before = await page.evaluate(() => ({
@@ -250,6 +288,14 @@ let dollGone = false;
 	}
 }
 
+if (fieldGone === false) {
+	const trail = await page.evaluate(() => window.__wmFieldTrail.slice(-8));
+	console.log('  ⓘ 창이 받은 마지막 들판 소식들:');
+	for (const one of trail)
+		console.log(`     seq=${one.seq} ${one.delta ? '델타' : '통째'} 싣고온자리=${one.싣고온자리} 없어졌다=${one.없어졌다}`);
+	console.log(`     (찾던 자리 ${goal.id})`);
+}
+
 const after = await page.evaluate(() => ({
 	field: window.__wmView.field().length,
 	dolls: window.__wmView.dolls().length,
@@ -262,7 +308,7 @@ function check(what, ok, detail) {
 	console.log(`  ${ok ? '✅' : '❌'} ${what} — ${detail}`);
 }
 
-console.log(`  ⓘ 회선 왕복 ${ONE_WAY_MS * 2}ms · 초당 ${(SQUEEZE_BYTES_PER_SECOND / 1000).toFixed(1)}KB 로 좁힘`
+console.log(`  ⓘ 회선 왕복 ${ONE_WAY_MS * 2}ms · 초당 ${(squeezeTo / 1000).toFixed(1)}KB 로 좁힘`
 	+ ` · 창이 본 것 들판 ${before.field}→${after.field} · 사람 ${before.dolls}→${after.dolls}`);
 
 // ⚠ <b>아직 안 고친 자리</b>다 (TASK-WM-343). 이 관문이 처음 정면으로 재서 찾았다:
@@ -271,6 +317,10 @@ console.log(`  ⓘ 회선 왕복 ${ONE_WAY_MS * 2}ms · 초당 ${(SQUEEZE_BYTES_
 //   ⓘ 재현율이 <b>판마다 흔들린다</b>: 같은 코드로 3/3 · 2/3 · 1/3 을 다 봤다 (2026-08-14).
 //     그래서 <b>한 판으로는 판단하지 마라</b> — 고쳤는지 보려면 같은 코드로 여러 판을 돌려 비율을 견줘야 한다.
 //     (오늘 그 함정에 두 번 빠졌다: 한 판이 초록이라 「고쳐졌다」로 읽었고, 한 판이 빨강이라 「나빠졌다」로 읽었다.)
+//   ⓘ <b>자극이 과했다</b>: 처음엔 초당 2KB 로 못 박았는데, 창이 받은 들판 소식을 적어 보니
+//     12초 동안 <b>한 장</b>뿐이었다 — 좁힘이 수요보다 훨씬 좁아 창이 굶고 있었다.
+//     그건 「소식이 안 온다」가 아니라 「보낼 폭이 없다」다. 이제 <b>정상 수요의 0.8배</b>로 좁힌다.
+//     (그 사실은 세계 로그가 아니라 <b>창이 받은 것을 적어</b> 알았다 — 세계 로그는 박자를 바꿔 증상을 숨긴다.)
 //   ⓘ 지금까지 고친 것(각각 3판씩 재서): 판 놓친 창엔 들판 통째 · FieldNews 로 셈 분리(칸마다 지금+바로 앞) ·
 //     창에서 「통째 판이 델타 판에 먹히던 것」. 그래도 <b>3판 중 1판</b>은 아직 남아 있다.
 //     다음 후보 = 창이 좁힘에서 돌아오는 <b>그 판</b>의 순서(작은 한 장 → 통째 판 사이에 델타가 끼는지)를
