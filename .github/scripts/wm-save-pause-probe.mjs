@@ -29,7 +29,7 @@ const worldPort = Number(process.env.WM_SMOKE_PORT || 5530);
 
 /** 큰 세계 — 집 2000채. 「크면 어떻게 되나」를 보는 것이 이 시험의 전부다. */
 const HOUSES = Number(process.env.WM_HOUSES || 2000);
-const BOTS = 8;
+const BOTS = Number(process.env.WM_BOTS || 8);
 const WATCH_SECONDS = 20;
 
 /**

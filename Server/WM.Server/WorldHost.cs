@@ -81,10 +81,19 @@ namespace WitchMendokusai.Server
 		///   「가득 찼다」고 말해 주는 자리가 없었다. 정원이 없는 세계는 <b>모두가 나빠지는</b> 쪽으로 무너진다.
 		///   MMO 는 그 반대여야 한다: 안에 있는 사람은 지키고, 못 받는 사람에게는 이유를 말한다.
 		///
-		/// ★ 왜 하필 200: 실측(WM-269, 이 기계) 200명 광장에서 창 하나가 34.1fps · 9.4KB/s 로 놀았다 —
-		///   관심 반경과 가까운 48명 상한 덕에 사람이 늘어도 창에 도착하는 양은 거의 그대로다.
-		///   그 위는 안 재 봤으므로 <b>재 본 데까지</b>가 정원이다(안 재 본 수를 약속하지 않는다).
-		///   땅을 더 받고 싶으면 세계를 하나 더 띄운다(zone) — 그게 이 서버의 늘리는 방법이다.
+		/// ★ 왜 400인가 — <b>정원까지 실제로 채워 보고</b> 정했다 (TASK-WM-354, 2026-08-14 실측,
+		///   8코어/32GB. prod 노트북도 같은 급이다):
+		///
+		///   | 사람 | 걷는 동안 받는 판 | 판 간격 | 붙잡은 기억 |
+		///   | --- | --- | --- | --- |
+		///   | 200 | 초당 20.0판(가장 적게 받은 사람도) | 52ms | 105MB |
+		///   | 400 | 초당 20.0판 | 57ms | 218MB |
+		///   | 800 | 초당 20.0판 | 58ms | 353MB |
+		///
+		///   즉 <b>기계는 800도 견뎠다</b>. 그런데 그 판을 밖으로 내보내는 길(cloudflared 터널)은
+		///   아직 그 짐으로 안 재 봤다 — 800일 때 세계가 내보낸 양이 10초에 147MB 였다.
+		///   그래서 <b>견딘 데의 절반</b>을 정원으로 둔다: 재 본 것은 800, 약속하는 것은 400.
+		///   더 받고 싶으면 세계를 하나 더 띄운다(zone) — 그게 이 서버의 늘리는 방법이다.
 		/// </summary>
 		/// <summary>
 		/// 정원 — 제품 기본은 200 이고, 시험은 <b>수만 작게</b> 낮춰 같은 규칙을 본다(WM_MOST_PEOPLE).
@@ -93,7 +102,7 @@ namespace WitchMendokusai.Server
 		private static readonly int MOST_PEOPLE_AT_ONCE =
 			int.TryParse(System.Environment.GetEnvironmentVariable("WM_MOST_PEOPLE"), out int asked) && asked > 0
 				? asked
-				: 200;
+				: 400;
 
 		/// <summary>실제 1초에 세계의 몇 분이 흐르나 — 게임의 WorldClockSO 와 맞춰야 할 값.</summary>
 		private const float MINUTES_PER_REAL_SECOND = 1f;
