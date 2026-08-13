@@ -12,6 +12,8 @@
 //
 // 봇으로 잰다(창 아님) — 여기서 보려는 것은 <b>세계 쪽 경합</b>이지 그리기가 아니다.
 // exit: 0 = 다 같이 넘는다 · 1 = 누가 사라지거나 늘어난다 · 2 = 못 돌림
+//
+// [빨강-확인] 통행증을 아무도 못 쓰게 막으니 이름 들고 온 사람 0/6 으로 빨강
 
 import { spawn, execSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';

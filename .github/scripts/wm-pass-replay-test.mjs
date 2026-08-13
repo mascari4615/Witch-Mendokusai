@@ -11,6 +11,8 @@
 //   다시 들어와야 한다(WM-309). 요구하는 것은 하나 — <b>짐이 두 벌이 되지 않는다.</b>
 //
 // exit: 0 = 짐은 한 벌 · 1 = 두 벌이 됐다(복제) · 2 = 못 돌림
+//
+// [빨강-확인] firstCrossing 자물쇠를 끄니 서쪽 물건 20 → 40 으로 빨강 (2026-08-14)
 
 import { spawn, execSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';

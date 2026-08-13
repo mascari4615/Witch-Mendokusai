@@ -13,6 +13,8 @@
 //          ③ 세계가 그 일을 센다(`/health` 의 ghostsFound)
 //
 // exit: 0 = 덫이 작동한다 · 1 = 덫이 고장났다 · 2 = 못 돌림
+//
+// [빨강-확인] 없는 번호를 대면 되돌려주는 길을 실제로 태웠다 — ghostsFound 0 → 1
 
 import { spawn, execSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';

@@ -12,6 +12,8 @@
 //   ④ 쫓겨난 창이 시키는 일은 세계가 안 듣는다(유령 몸이 안 남는다)
 //
 // exit: 0 = 몸도 가방도 하나다 · 1 = 둘이 됐다 · 2 = 못 돌림
+//
+// [빨강-확인] 「사람이 안 늘었다」를 < 로 뒤집은 사본이 빨강 (1 → 1 에서 걸림)
 
 import { spawn, execSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';

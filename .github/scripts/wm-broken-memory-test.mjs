@@ -14,6 +14,8 @@
 //   조용히 빈 세계로 뜨는 것만이 안 보인다.
 //
 // exit: 0 = 안 뜨고 기억을 지켰다 · 1 = 떴거나 원본을 덮었다 · 2 = 못 돌림
+//
+// [빨강-확인] 깨진 world.json 으로 실제로 돌려 exit 3·원본 보존·.broken 생성을 확인 (그 전 코드였다면 세계가 떠서 빨강)
 
 import { spawn, execSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';

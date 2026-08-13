@@ -421,6 +421,10 @@ jobs:
       - name: Run lost action test
         run: node ./.github/scripts/run-gate.mjs ./.github/scripts/wm-lost-action-test.mjs
 
+      # 관문마다 「빨개지는 것을 봤다」가 적혀 있나 (TASK-WM-336) — 초록은 증거가 아니다.
+      - name: Run red walk audit
+        run: node ./.github/scripts/run-gate.mjs ./.github/scripts/wm-red-walk-audit.mjs
+
       # 통행증을 복사해 두 번 내밀어도 짐은 한 벌이다 (TASK-WM-335) — 막는 장치를 끄면 40개가 된다.
       - name: Run pass replay test
         run: node ./.github/scripts/run-gate.mjs ./.github/scripts/wm-pass-replay-test.mjs

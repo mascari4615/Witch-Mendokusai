@@ -15,6 +15,8 @@
 //   문턱은 개수의 <b>보존</b>이지 승자의 이름이 아니다.
 //
 // exit: 0 = 안 는다 안 준다 · 1 = 복제되거나 사라졌다 · 2 = 못 돌림
+//
+// [빨강-확인] 상자 심기가 안 되면 CANNOT-RUN 으로 멈추는 것을 실제로 밟았다 — 그 길로 WM-333 을 찾았다
 
 import { spawn, execSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';

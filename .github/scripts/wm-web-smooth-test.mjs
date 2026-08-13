@@ -20,6 +20,8 @@
 //   먼저 재라.
 //
 // exit: 0 = 매끄럽다 · 1 = 튄다/멎는다 · 2 = 못 돌림
+//
+// [빨강-확인] 한도를 2배로 낮춘 사본이 빨강 (3.2배에서 걸림)
 
 import { spawn, execSync } from 'node:child_process';
 import { createRequire } from 'node:module';

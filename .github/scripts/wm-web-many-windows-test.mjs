@@ -14,6 +14,8 @@
 //
 // 필요한 것: .NET 8 · playwright + chromium (`WM_PLAYWRIGHT_ROOT`).
 // exit: 0 = 여럿이 같이 논다 · 1 = 누가 못 보거나 터진다 · 2 = 못 돌림
+//
+// [빨강-확인] 한도를 내 이동의 3배로 올린 사본이 빨강 (남 25.0m / 나 26.0m)
 
 import { spawn, execSync } from 'node:child_process';
 import { createRequire } from 'node:module';
