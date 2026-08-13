@@ -607,6 +607,19 @@ namespace WitchMendokusai.Server
 
 			// 세계는 서버보다 오래 산다 (단계 5) — 뜨자마자 지난 기억을 되살린다.
 			WorldSaveData loaded = store.TryLoad();
+
+			// ★ 기억이 <b>있는데 못 읽혔다</b>면 세계를 띄우지 않는다 (TASK-WM-333).
+			//   빈 세계로 뜨면 5초 뒤 저장 루프가 그 빈 세계를 원본 위에 덮는다 — 읽기 실패 한 번이
+			//   <b>기억 파괴</b>가 된다(상자도 사람도 통째로). 안 뜨는 것이 잃는 것보다 낫다.
+			//   ⚠ 안 뜬 것은 곧바로 보인다: 배포가 건강검사에서 막히고, 지킴이가 「대답을 안 한다」로 말한다.
+			if (store.BrokenMemory)
+			{
+				string aside = store.KeepBrokenAside();
+				Console.WriteLine($"[world] 기억을 못 읽어서 세계를 안 띄운다 — {store.Path}");
+				Console.WriteLine($"[world] 깨진 파일은 여기 뒀다: {(string.IsNullOrEmpty(aside) ? "(못 치움)" : aside)}");
+				Console.WriteLine("[world] 고친 뒤 다시 켜라. 빈 세계로 떠서 원본을 덮는 것보다 안 뜨는 것이 낫다 (TASK-WM-333).");
+				Environment.Exit(3);
+			}
 			Identities.Load(loaded?.identities);
 			int restored = World.Load(loaded, ItemsCatalog);
 			savedAtWorldMinute = World.Calendar.TotalMinutes();

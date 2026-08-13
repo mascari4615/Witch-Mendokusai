@@ -116,10 +116,21 @@ namespace WitchMendokusai.Server
 		///   파일 하나가 깨지면 모두가 「처음 온 사람」이 된다 — 세계에서 가장 잃으면 안 되는 것이다.
 		///   둘 다 못 읽으면 빈 세계로 뜬다(안 뜨는 것보다 낫다).
 		/// </summary>
+		/// <summary>
+		/// 파일이 <b>있는데 못 읽었다</b> (TASK-WM-333) — 「기억이 아예 없다」와 <b>정반대</b>의 상황이다.
+		///
+		/// ★ 왜 갈라야 하나: 못 읽은 것을 「없다」로 다루면 세계는 <b>빈 세계로</b> 뜨고,
+		///   5초 뒤 저장 루프가 그 빈 세계를 <b>원본 위에 덮는다</b>. 읽기 실패 한 번이
+		///   기억 파괴로 이어진다 — 상자도 사람도 통째로 사라진다.
+		/// </summary>
+		public bool BrokenMemory { get; private set; }
+
 		public WorldSaveData TryLoad()
 		{
 			lock (gate)
 			{
+				BrokenMemory = false;
+
 				WorldSaveData current = TryReadFile(Path);
 				if (current != null)
 					return current;
@@ -131,7 +142,31 @@ namespace WitchMendokusai.Server
 					return backup;
 				}
 
+				// 지금 판도 앞 판도 못 읽었는데 <b>파일은 있다</b> = 깨진 기억이다.
+				BrokenMemory = File.Exists(Path);
 				return null;
+			}
+		}
+
+		/// <summary>깨진 기억을 옆에 치워 둔다 — 덮어쓰기 전에 사람이 볼 수 있게 (TASK-WM-333).</summary>
+		public string KeepBrokenAside()
+		{
+			lock (gate)
+			{
+				if (File.Exists(Path) == false)
+					return string.Empty;
+
+				string aside = Path + ".broken-" + DateTime.Now.ToString("yyyyMMdd-HHmmss");
+				try
+				{
+					File.Copy(Path, aside, overwrite: true);
+					return aside;
+				}
+				catch (Exception error)
+				{
+					Console.WriteLine("[world] 깨진 기억을 못 치웠다: " + error.Message);
+					return string.Empty;
+				}
 			}
 		}
 

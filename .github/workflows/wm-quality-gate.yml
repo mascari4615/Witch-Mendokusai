@@ -421,6 +421,14 @@ jobs:
       - name: Run lost action test
         run: node ./.github/scripts/run-gate.mjs ./.github/scripts/wm-lost-action-test.mjs
 
+      # 둘이 같은 상자를 동시에 비벼도 개수는 보존된다 (TASK-WM-332) — 복제는 경제를 죽인다.
+      - name: Run chest race test
+        run: node ./.github/scripts/run-gate.mjs ./.github/scripts/wm-chest-race-test.mjs
+
+      # 못 읽는 기억을 만나면 안 뜬다 — 빈 세계로 떠서 원본을 덮지 않는다 (TASK-WM-333).
+      - name: Run broken memory test
+        run: node ./.github/scripts/run-gate.mjs ./.github/scripts/wm-broken-memory-test.mjs
+
       # 유령을 잡는 <b>덫</b>이 살아 있나 (TASK-WM-329) — 창이 「내가 누굴 그리나」를 묻고
       # 세계가 「그건 없다」고 답하는 길. 유령 자체는 재현이 안 되므로 덫을 시험한다.
       - name: Run ghost trap test
