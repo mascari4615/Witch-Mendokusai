@@ -12,6 +12,9 @@
 //
 // 필요한 것: .NET 8 · playwright + chromium (`WM_PLAYWRIGHT_ROOT`).
 // exit: 0 = 보인다 · 1 = 안 보인다 · 2 = 못 돌림
+//
+// [빨강-확인] 세계가 국경 너머 그림자를 안 보내게 하니 2건 빨강 — 창에 저 세계 사람이 안 뜨고
+//   비쳐 보이는 그림도 없다(말은 여전히 들린다 = 말길과 그림길이 갈려 있다) (2026-08-14)
 
 import { spawn, execSync } from 'node:child_process';
 import { createRequire } from 'node:module';
