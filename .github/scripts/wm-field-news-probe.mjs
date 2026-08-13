@@ -9,6 +9,12 @@
 // 재는 것: 광장(봇 여럿) + 좁은 회선 너머 <b>지켜보는 봇</b> 하나. 남이 들판 하나를 주우면
 //   그 봇의 들판에서도 그 자리가 사라지나 — 판마다 O/X 로 세어 비율을 낸다.
 //
+// ⓘ 실측 (2026-08-14, 8판씩 세 번): 7/8 · 6/8 · 6/8. <b>안 오는 판이 늘 5판째</b>다 —
+//   판마다 줍는 봇이 목표까지 걸어가므로 회를 거듭할수록 <b>멀어진다</b>. 그러다 그 자리가
+//   지켜보는 봇의 <b>관심 반경 밖</b>으로 나가면 세계는 그 자리 소식을 더 안 보낸다(설계대로다).
+//   그때 지켜보는 봇에는 <b>예전에 받아 둔 자리</b>가 남는다 — 이건 「소식이 안 온다」가 아니라
+//   <b>반경 밖으로 나간 것을 창이 안 지운다</b>는 다른 문제다(다음 판에서 그걸 따로 잰다).
+//
 // 실행: node .github/scripts/wm-field-news-probe.mjs [판수]
 // exit: 0 = 다 왔다 · 1 = 한 판이라도 안 왔다 · 2 = 못 돌림
 
@@ -81,7 +87,7 @@ await badLine.listen();
 
 /** 봇 하나 — 자기 자리와 들판을 세계가 말해 준 대로 들고 있는다. */
 function join_(url) {
-	const one = { socket: new WebSocket(url), id: null, here: null, field: new Map() };
+	const one = { socket: new WebSocket(url), id: null, here: null, field: new Map(), trail: [] };
 	one.socket.onopen = () => one.socket.send(JSON.stringify({ type: 'hello', secret: '' }));
 	one.socket.onerror = () => { /* 아래가 잡는다 */ };
 	one.socket.onmessage = (event) => {
@@ -94,6 +100,16 @@ function join_(url) {
 		if (Array.isArray(said.dolls) && one.id !== null) {
 			const mine = said.dolls.find((doll) => doll.id === one.id);
 			if (mine && typeof mine.x === 'number') one.here = { x: mine.x, z: mine.z };
+		}
+
+		if (Array.isArray(said.gatherables) || Array.isArray(said.fieldGone)) {
+			one.trail.push({
+				seq: said.sequence,
+				통째: said.fieldChanged !== true,
+				실림: (said.gatherables || []).length,
+				없어짐: (said.fieldGone || []).length,
+			});
+			if (one.trail.length > 12) one.trail.shift();
 		}
 
 		if (Array.isArray(said.gatherables)) {
@@ -180,6 +196,14 @@ for (let round = 1; round <= rounds; round += 1) {
 
 	if (gone) came += 1;
 	console.log(`  ${round}판 — ${gone ? '✅ 왔다' : '❌ 안 왔다'} (자리 ${goal.id})`);
+
+	if (gone === false) {
+		console.log('     지켜보는 봇이 받은 마지막 들판 소식:');
+		for (const one of watcher.trail.slice(-6))
+			console.log(`       seq=${one.seq} ${one.통째 ? '통째' : '델타'} 실림=${one.실림} 없어짐=${one.없어짐}`);
+	}
+
+	watcher.trail.length = 0;
 }
 
 clearInterval(milling);
