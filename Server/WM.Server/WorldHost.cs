@@ -2070,7 +2070,13 @@ namespace WitchMendokusai.Server
 					// ★ 회선이 감당 못 하면 <b>감당할 만큼만</b> 보여 준다 (TASK-WM-228).
 					//   이때는 칸 공유도 델타도 안 쓴다 — 작은 한 장을 통째로 준다.
 					int allowedDolls = InterestCrowd.LimitWhenBehind(target.MissedInARow);
-					if (allowedDolls < InterestCrowd.MAX_VISIBLE_DOLLS)
+
+					// ⚠ <b>작은 한 장에는 들판도 건물도 없다</b> (2026-08-14 CI 실측): 그래서 좁혀진 창은
+					//   남이 주워 간 자리가 <b>12초를 기다려도 화면에서 안 사라졌다</b>(겨루기 관문 빨강).
+					//   좁힘이 오래가면 그 창의 들판은 영영 옛것이다 — 유령이 사람에서 <b>들판으로</b> 옮겨 간 꼴이다.
+					//   그러니 들판·건물이 바뀐 판에서는 좁히지 <b>않는다</b>(그 판만 제대로 보낸다).
+					bool worldSideChanged = fieldVersion != target.SentFieldVersion || buildVersion != target.SentBuildVersion;
+					if (allowedDolls < InterestCrowd.MAX_VISIBLE_DOLLS && worldSideChanged == false)
 					{
 						// ⚠ 작은 한 장에는 <b>「그 사람 나갔다」가 없다</b>(칸 장부를 안 쓰기 때문이다).
 						//   그래서 이 창이 좁힘에서 돌아오면 <b>전체</b>를 한 장 줘야 한다 — 안 그러면
