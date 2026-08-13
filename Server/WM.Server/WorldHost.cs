@@ -2068,8 +2068,20 @@ namespace WitchMendokusai.Server
 					//     초당 판 수가 7.3장까지 떨어져 「끊긴다」로 넘어갔다(바닥 8장). 그래서 <b>작게</b> 보낸다 —
 					//     같은 박자로 오되 실린 사람 수가 준다(사람은 「멀리 있는 사람이 덜 보인다」로 겪는다).
 					long lag = lineTime.RoundTripMsFor(entry.Key);
-					if (lag > LAG_BUDGET_MILLISECONDS && target.MissedInARow < BEHIND_STEPS_WHEN_LAGGING)
-						target.MissedInARow = BEHIND_STEPS_WHEN_LAGGING;
+					if (lag > LAG_BUDGET_MILLISECONDS)
+					{
+						if (target.MissedInARow < BEHIND_STEPS_WHEN_LAGGING)
+							target.MissedInARow = BEHIND_STEPS_WHEN_LAGGING;
+
+						// ⚠ <b>좁히기만 하면 오히려 더 나른다</b> (2026-08-14 CI 실측: 나쁜 회선 16.0KB vs 곧은 8.4KB).
+						//   좁힌 판은 <b>작은 전체 그림</b>이라 델타보다 클 수 있고, 그걸 매 판 보내면 양이 는다.
+						//   그래서 좁히는 동시에 <b>박자도 절반</b>으로 (20Hz → 10Hz) — 초당 여덟 판 바닥은 지킨다.
+						if (sequence % 2 != 0)
+						{
+							target.MissedAPlate = true;
+							continue;
+						}
+					}
 
 					// ★ 회선이 감당 못 하면 <b>감당할 만큼만</b> 보여 준다 (TASK-WM-228).
 					//   이때는 칸 공유도 델타도 안 쓴다 — 작은 한 장을 통째로 준다.

@@ -250,6 +250,11 @@ check(`나쁜 회선에서도 사람이 보인다 (곧은 회선의 ${Math.round
 // ⚠ 견줌은 <b>창이 센 바이트</b>로 한다 — 두 판의 단위가 같아서 뜻이 있다.
 //   선 위의 양은 <b>나쁜 회선 판에만</b> 있다(곧은 판은 회선을 안 거친다) — 그래서 견줌에 못 쓴다.
 //   대신 <b>얼마나 나르나</b>를 알려면 그 값이 진실이라 위 ⓘ 줄에 같이 찍는다 (TASK-WM-339).
+// ⚠ 한쪽이 <b>0바이트</b>면 그건 못 잰 것이다 (관문 규율 ②, 2026-08-14 실측 flake):
+//   곧은 회선 판에서 창이 아직 안 붙었으면 0 이 나오고, 그러면 「나쁜 회선이 더 많이 나른다」로 빨개진다.
+if (straight.bytesPerSecond <= 0 || rough.bytesPerSecond <= 0)
+	cannotRun(`한쪽에서 바이트를 못 쟀다 — 곧은 ${(straight.bytesPerSecond / 1024).toFixed(1)}KB/s · 나쁜 ${(rough.bytesPerSecond / 1024).toFixed(1)}KB/s`);
+
 check('늦게 온다고 더 많이 오지는 않는다', rough.bytesPerSecond <= straight.bytesPerSecond * MOST_BYTES_RATIO,
 	`초당 ${(rough.bytesPerSecond / 1024).toFixed(1)}KB · 곧은 회선 ${(straight.bytesPerSecond / 1024).toFixed(1)}KB`
 		+ ` · 나쁜 회선의 <b>선 위</b> 실제 ${(rough.wireBytesPerSecond / 1024).toFixed(1)}KB`);
