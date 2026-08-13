@@ -7,6 +7,8 @@
 //   쫓겨난 창이 되붙으면 두 창이 서로를 영원히 밀어낸다. 그 규칙은 눈으로 못 본다.
 //
 // exit: 0 = 다 맞음 · 1 = 틀린 것 있음 · 2 = 못 돌림
+//
+// [빨강-확인] 쫓겨남(kicked)이 물러나기를 안 켜게 하니 4건 빨강 — 「받은 것 true · 바란 것 false」 (2026-08-14)
 
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { resolve } from 'node:path';

@@ -7,6 +7,8 @@
 //   DOM 은 여기서 못 돌리지만, 무슨 글을 보여 줄지는 순수 계산이라 그대로 잴 수 있다.
 //
 // exit: 0 = 다 맞음 · 1 = 틀린 것 있음 · 2 = 못 돌림
+//
+// [빨강-확인] 가진 것 세는 함수(carrying)를 빈손으로 만드니 29건 빨강 — 보여 줄 글이 통째로 틀린다 (2026-08-14)
 
 import { readFileSync } from 'node:fs';
 import { fileURLToPath, pathToFileURL } from 'node:url';
