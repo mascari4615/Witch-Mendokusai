@@ -35,6 +35,25 @@ namespace WitchMendokusai.Server
 		private const int SAVE_INTERVAL_MILLISECONDS = 5000;
 
 		/// <summary>
+		/// <b>사람이 한 일</b>이 생긴 뒤 이만큼 안에 적는다 (ms, TASK-WM-310).
+		///
+		/// ★ 왜 따로 두나 (실측 2026-08-13): 세계는 「그거 했다」고 답한 뒤 최대 <b>5초</b>를
+		///   디스크에 안 적고 있었다. 그 사이에 세계가 갑자기 죽으면 <b>답해 놓고 없던 일</b>이 된다 —
+		///   세 판 중 한 판에서 주운 물건이 사라졌다. 사람에겐 「분명히 주웠는데」다.
+		///
+		/// ★ 왜 「했다」를 저장 뒤로 미루지 않나: 그러면 모든 줍기·짓기가 저장을 기다린다 —
+		///   손맛이 통째로 느려진다(WM-283 이 271ms 를 70ms 로 줄인 그 자리를 도로 무른다).
+		///   대신 <b>적는 쪽을 당긴다</b> — 잃을 수 있는 창이 5초에서 이 값으로 줄어든다.
+		///
+		/// ★ 왜 0 이 아닌가: 한 판에 여러 사람이 동시에 주우면 그때마다 세계를 통째로 적게 된다.
+		///   짧게 모아서 한 번에 적는다(디바운스).
+		/// </summary>
+		private const int SAVE_AFTER_DEED_MILLISECONDS = 300;
+
+		/// <summary>저장 루프가 깨어나는 간격 — 위 두 값 중 짧은 쪽을 지킬 수 있어야 한다.</summary>
+		private const int SAVE_TICK_MILLISECONDS = 100;
+
+		/// <summary>
 		/// 한 곳에서 한꺼번에 붙을 수 있는 창 수 — 넘으면 더 안 받는다 (TASK-WM-220).
 		///
 		/// ★ 왜: 인사 안 한 손님도 접속마다 인형과 신원을 받는다. 한 사람이 소켓을 계속 열면
@@ -1646,9 +1665,31 @@ namespace WitchMendokusai.Server
 		{
 			try
 			{
+				long lastSavedAtMs = System.Environment.TickCount64;
+				long deedSeenAtMs = 0;
+
 				while (stopping.IsCancellationRequested == false)
 				{
-					await Task.Delay(SAVE_INTERVAL_MILLISECONDS, CancellationToken.None);
+					// ★ 자주 깨어나되 <b>적는 것은 드물게</b> (TASK-WM-310). 깨어나는 것은 공짜에 가깝고,
+					//   적는 것만 비싸다 — 그래서 「언제 적을지」를 아래에서 따로 고른다.
+					await Task.Delay(SAVE_TICK_MILLISECONDS, CancellationToken.None);
+
+					long nowMs = System.Environment.TickCount64;
+					bool deedWaiting = Interlocked.CompareExchange(ref worldDirty, 0, 0) != 0;
+					if (deedWaiting && deedSeenAtMs == 0)
+						deedSeenAtMs = nowMs;
+
+					// 사람이 한 일이 있으면 <b>곧</b> 적는다(잃을 창을 5초 → 0.3초로).
+					bool deedIsDue = deedSeenAtMs != 0 && nowMs - deedSeenAtMs >= SAVE_AFTER_DEED_MILLISECONDS;
+
+					// 그 밖의 것(걸음·시계)은 예전처럼 느긋하게 — 매번 적으면 그건 세계가 아니라 소음이다.
+					bool slowTurnIsDue = nowMs - lastSavedAtMs >= SAVE_INTERVAL_MILLISECONDS;
+
+					if (deedIsDue == false && slowTurnIsDue == false)
+						continue;
+
+					lastSavedAtMs = nowMs;
+					deedSeenAtMs = 0;
 
 					// ⚠ 움직임은 dirty 를 안 찍는다(초당 20번 찍으면 뜻이 없다). 그래서 사람이 있으면
 					//   그 자체로 「바뀌는 중」으로 본다 — 안 그러면 걷기만 하다 서버가 죽었을 때
