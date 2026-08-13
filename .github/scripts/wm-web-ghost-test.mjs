@@ -15,6 +15,8 @@
 //
 // 필요한 것: .NET 8 · playwright + chromium (`WM_PLAYWRIGHT_ROOT`).
 // exit: 0 = 유령 없음 · 1 = 유령 남음 · 2 = 못 돌림
+//
+// [빨강-확인] 세계가 「나갔다」(gone)를 안 보내게 하니 3건 빨강 — 창 17명 vs 세계 1명 · 사라짐 7266ms (덫이 10초에 겨우 지웠다)
 
 import { spawn, execSync } from 'node:child_process';
 import { createRequire } from 'node:module';

@@ -15,7 +15,6 @@ wm-web-build-test.mjs
 wm-web-contest-test.mjs
 wm-web-crowd-badline-test.mjs
 wm-web-crowd-smoke.mjs
-wm-web-ghost-test.mjs
 wm-web-herd-test.mjs
 wm-web-lead-test.mjs
 wm-web-link-test.mjs
@@ -26,6 +25,5 @@ wm-web-picker-test.mjs
 wm-web-reconnect-smoke.mjs
 wm-web-say-test.mjs
 wm-web-smoothness-test.mjs
-wm-web-still-me-test.mjs
 wm-web-strike-lag-test.mjs
 wm-web-walk-test.mjs

@@ -11,6 +11,8 @@
 //
 // 필요한 것: .NET 8 · playwright + chromium (`WM_PLAYWRIGHT_ROOT`).
 // exit: 0 = 나다 · 1 = 남이 된다 · 2 = 못 돌림
+//
+// [빨강-확인] 창이 열쇠를 안 적게 하니 3건 빨강 — 가방 석탄1 → 빈손 · 자리 (0.25,5.08) → (0,0)
 
 import { spawn, execSync } from 'node:child_process';
 import { createRequire } from 'node:module';
