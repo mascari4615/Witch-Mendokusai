@@ -247,6 +247,8 @@ const CLIENT_TO_SERVER = new Set([
   'CHEST_TAKE', 'INVITE_ASK', 'LINK',
   // 창이 <b>보내는</b> 말이다 — 「안 다룬다」로 잡히면 안 된다(WM-250·251, 이 목록이 낡았었다).
   'SAY', 'STRIKE',
+  // 창이 스스로 묻는 말 (TASK-WM-329) — 답(GHOSTS)은 창이 <b>다뤄야</b> 하므로 여기 안 넣는다.
+  'ROSTER',
 ]);
 
 // 게임 창이 안 다뤄도 되는 것 — 이유를 적어 둔다(비면 안 된다).

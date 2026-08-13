@@ -394,6 +394,25 @@ namespace WitchMendokusai.Net
 		public string type = NetMessageType.BAG_ASK;
 	}
 
+	/// <summary>창 → 서버: 내가 지금 이 사람들을 그리고 있다 (TASK-WM-329).</summary>
+	[Serializable]
+	public class RosterMessage
+	{
+		public string type = NetMessageType.ROSTER;
+
+		/// <summary>지금 화면에 그리고 있는 사람 번호들.</summary>
+		public int[] ids = Array.Empty<int>();
+	}
+
+	/// <summary>서버 → 그 창에게만: 이 번호들은 여기 없다 — 지워라 (TASK-WM-329).</summary>
+	[Serializable]
+	public class GhostsMessage
+	{
+		public string type = NetMessageType.GHOSTS;
+
+		public int[] ids = Array.Empty<int>();
+	}
+
 	/// <summary>창 → 서버: 이걸 줍고 싶다.</summary>
 	[Serializable]
 	public class GatherMessage

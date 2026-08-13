@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Net.WebSockets;
 using System.Text;
 using System.Threading;
@@ -332,6 +332,19 @@ namespace WitchMendokusai
 				return;
 			}
 
+			if (type == NetMessageType.GHOSTS)
+			{
+				// 세계가 「그 사람들 여기 없다」고 했다 (TASK-WM-329) — 그 자리에서 지운다.
+				// ★ 왜 필요한가: 「나갔다」(gone)는 한 번밖에 안 온다. 그 한 번을 놓친 창은 그 사람을
+				//   영영 유령으로 그린다 — 오류도 없이. 웹 창에는 이 덮개가 있는데 게임 창에만 없으면
+				//   같은 세계에서 <b>보이는 것이 갈린다</b>.
+				GhostsMessage ghosts = JsonUtility.FromJson<GhostsMessage>(json);
+				if (ghosts?.ids != null && ghosts.ids.Length > 0)
+					Dolls = WithoutThese(Dolls, ghosts.ids);
+
+				return;
+			}
+
 			if (type == NetMessageType.CHEST)
 			{
 				Chest = JsonUtility.FromJson<ChestView>(json);
@@ -429,6 +442,47 @@ namespace WitchMendokusai
 			WorldDollView[] merged = new WorldDollView[byId.Count];
 			byId.Values.CopyTo(merged, 0);
 			return merged;
+		}
+
+		/// <summary>세계가 「없다」고 한 사람을 뺀 목록 (TASK-WM-329).</summary>
+		private static WorldDollView[] WithoutThese(WorldDollView[] dolls, int[] ids)
+		{
+			System.Collections.Generic.List<WorldDollView> left =
+				new System.Collections.Generic.List<WorldDollView>(dolls.Length);
+
+			for (int i = 0; i < dolls.Length; i++)
+			{
+				bool ghost = false;
+				for (int k = 0; k < ids.Length; k++)
+				{
+					if (dolls[i].id != ids[k])
+						continue;
+
+					ghost = true;
+					break;
+				}
+
+				if (ghost == false)
+					left.Add(dolls[i]);
+			}
+
+			return left.ToArray();
+		}
+
+		/// <summary>
+		/// 「내가 이 사람들을 그리고 있다」를 세계에 묻는다 (TASK-WM-329).
+		/// 부르는 쪽(장면)이 <b>이따금</b> 부른다 — 여기서 시계를 돌리면 시험이 어려워진다.
+		/// </summary>
+		public void AskWhoIsReal()
+		{
+			if (IsConnected == false || Dolls.Length == 0)
+				return;
+
+			int[] ids = new int[Dolls.Length];
+			for (int i = 0; i < Dolls.Length; i++)
+				ids[i] = Dolls[i].id;
+
+			Send(JsonUtility.ToJson(new RosterMessage { ids = ids }));
 		}
 
 		/// <summary>「바뀐 자리만」 온 들판을 지난 것 위에 얹는다 (TASK-WM-220).</summary>
