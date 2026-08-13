@@ -67,7 +67,7 @@ const worldFile = join(mkdtempSync(join(tmpdir(), 'wm-news-')), 'world.json');
 const world = spawn('dotnet', [dll, '--urls', `http://127.0.0.1:${worldPort}`], {
 	cwd: dirname(dll),
 	env: { ...process.env, WM_WORLD_FILE: worldFile },
-	stdio: 'ignore',
+	stdio: process.env.WM_SEND_DEBUG === '1' ? 'inherit' : 'ignore',
 });
 
 function killWorld() {
@@ -161,19 +161,46 @@ const before = await page.evaluate(() => ({
 clearInterval(milling);   // 걸어가는 동안은 광장을 멈춘다(안 그러면 계속 떠밀린다)
 
 // ① 남이 들판 하나를 줍는다
-const target = bots.find((one) => one.field.length > 0)?.field[0] ?? null;
-if (target === null) await finish(2, '[narrowed-news] CANNOT-RUN: 봇이 들판을 못 받았다 — 주울 것을 못 고른다');
+// ⚠ <b>창이 지금 보고 있는</b> 자리를 골라야 한다 (2026-08-14 실측): 봇이 아는 자리 중에 고르면
+//   창의 관심 반경 밖일 수 있고, 그러면 「소식이 안 온다」가 아니라 <b>원래 안 오는 자리</b>다.
+//   그 착각으로 제품을 두 번 헛고칠 뻔했다(세계 로그를 찍어 보고 알았다: 창은 좁혀지지도 않았다).
+const seenByWindow = await page.evaluate(() => window.__wmView.field().map((one) => ({ id: one.id, x: one.x, z: one.z })));
+if (seenByWindow.length === 0) await finish(2, '[narrowed-news] CANNOT-RUN: 창이 들판을 못 보고 있다');
 
 // ⚠ 걸음은 <b>한 걸음씩</b>이다(절대 자리가 아니다) — 예전에 이걸 절대 자리로 보내다가
 //   봇이 그 자리에 못 가서 줍기가 거절됐고, 관문은 「소식이 안 온다」로 읽었다(재는 자의 고장).
-const picker = bots.find((one) => one.field.length > 0 && one.here);
-if (picker === undefined) await finish(2, '[narrowed-news] CANNOT-RUN: 봇이 제 자리를 모른다 — 걸어갈 수가 없다');
+// ⚠ 새 봇을 <b>지금</b> 부른다 (2026-08-14): 광장 봇들은 4초 동안 밀려 다녀 자기 자리를 잃었고,
+//   그 상태로 걸어가게 했더니 줍기가 계속 거절됐다 — 관문은 그걸 「소식이 안 온다」로 잘못 읽었다.
+//   갓 들어온 봇은 원점 근처에 서므로 창이 보는 자리로 걸어가기 쉽다.
+const picker = { socket: new WebSocket(`ws://127.0.0.1:${worldPort}/ws`), id: null, here: null, field: [] };
+picker.socket.onopen = () => picker.socket.send(JSON.stringify({ type: 'hello', secret: '' }));
+picker.socket.onerror = () => { /* 아래가 잡는다 */ };
+picker.socket.onmessage = (event) => {
+	let said;
+	try { said = JSON.parse(String(event.data)); } catch { return; }
+	if (said.type === 'welcome') picker.id = said.id;
+	if (said.type === 'me' && said.doll) picker.here = { x: said.doll.x, z: said.doll.z };
+	if (said.type === 'world' && Array.isArray(said.dolls) && picker.id !== null) {
+		const mine = said.dolls.find((one) => one.id === picker.id);
+		if (mine && typeof mine.x === 'number') picker.here = { x: mine.x, z: mine.z };
+	}
+	if (said.type === 'world' && Array.isArray(said.gatherables) && said.gatherables.length > 0)
+		picker.field = said.gatherables;
+	if (said.type === 'world' && said.fieldChanged && Array.isArray(said.fieldGone))
+		picker.field = picker.field.filter((one) => said.fieldGone.includes(one.id) === false);
+};
 
-// 가장 <b>가까운</b> 자리를 고른다 — 멀리 있는 것을 고르면 걸어가다 시간을 다 쓴다.
-const near = picker.field
+{
+	const until = Date.now() + 15000;
+	while (Date.now() < until && (picker.here === null || picker.field.length === 0)) await wait(200);
+}
+if (picker.here === null) await finish(2, '[narrowed-news] CANNOT-RUN: 새 봇이 제 자리를 못 받았다');
+bots.push(picker);
+
+// 창이 보는 자리 중 <b>봇에게 가장 가까운</b> 것 — 걸어가는 시간을 아낀다.
+const goal = seenByWindow
 	.map((one) => ({ one, away: Math.hypot(one.x - picker.here.x, one.z - picker.here.z) }))
-	.sort((left, right) => left.away - right.away)[0];
-const goal = near.one;
+	.sort((left, right) => left.away - right.away)[0].one;
 
 for (let step = 0; step < 120; step += 1) {
 	const dx = goal.x - picker.here.x;
@@ -192,7 +219,14 @@ await wait(800);
 // 세계에서 정말 사라졌나 — 여기서 확인해야 「창에 안 왔다」와 「애초에 안 없어졌다」를 가른다.
 const worldNow = await fetch(`http://127.0.0.1:${worldPort}/health`, { headers: { connection: 'close' } })
 	.then((one) => one.json()).catch(() => null);
-console.log(`  ⓘ 세계의 들판 ${worldNow === null ? '못 읽음' : worldNow.gatherables}자리 (줍기 전 67 언저리)`);
+// 줍기가 <b>정말</b> 됐나 — 봇(곧은 회선)의 눈으로 확인한다. 이걸 안 보면 「소식이 안 왔다」와
+// 「애초에 안 없어졌다」를 못 가른다(그 착각으로 제품을 헛고칠 뻔했다).
+const pickerStillSees = picker.field.some((one) => one.id === goal.id);
+console.log(`  ⓘ 세계의 들판 ${worldNow === null ? '못 읽음' : worldNow.gatherables}자리`
+	+ ` · 주운 자리 ${goal.id} — 봇(곧은 회선)에게 ${pickerStillSees ? '아직 보인다(줍기 실패?)' : '사라졌다(줍기 성공)'}`);
+
+if (pickerStillSees)
+	await finish(2, `[narrowed-news] CANNOT-RUN: 줍기가 안 됐다 (자리 ${goal.id} 가 봇에게도 남아 있다) — 잴 것이 없다`);
 
 // ② 남이 나간다
 const leaver = bots.find((one) => one.id !== null && one !== picker);
