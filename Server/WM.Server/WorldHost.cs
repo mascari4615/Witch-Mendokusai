@@ -1283,6 +1283,11 @@ namespace WitchMendokusai.Server
 						// ★ 「썼다」는 <b>짐을 건넨 뒤에</b> 적는다 (TASK-WM-309) — 내밀자마자 적으면
 						//   그 사이에 줄이 끊긴 사람은 짐도 못 받고 통행증만 태운다(실측: 가방 1 → 0).
 						passesUsed.MarkDelivered(travelPass, nowMs);
+
+						// ★ <b>보낸 세계에 알린다</b> (TASK-WM-377). 그쪽은 창의 줄이 닫히는 것으로만
+						//   떠남을 알아서, 안 닫고 버티면 그 사람을 계속 데리고 있다(그때 짐이 두 벌이다).
+						//   도착은 여기만 확실히 안다 — 그러니 여기서 말한다.
+						await TellNeighboursLandedAsync(came.Mark);
 					}
 				}
 
@@ -2846,7 +2851,7 @@ namespace WitchMendokusai.Server
 						break;
 
 					string kind = ReadMessageType(text);
-					if (kind != Protocol.NEARBY && kind != Protocol.HEARD)
+					if (kind != Protocol.NEARBY && kind != Protocol.HEARD && kind != Protocol.LANDED)
 						continue;
 
 					string zone = ReadStringField(text, "zone");
@@ -2856,6 +2861,13 @@ namespace WitchMendokusai.Server
 					// ⚠ 도장이 없으면 아무나 남의 세계에 사람을 그려 넣는다(있지도 않은 무리를 세운다).
 					if (SameSeal(ReadStringField(text, "seal"), BorderSeal(zone)) == false)
 						continue;
+
+					if (kind == Protocol.LANDED)
+					{
+						// 옆 세계가 그 사람을 <b>받았다</b> (TASK-WM-377) — 그러면 여기 있는 그는 이제 그림자다.
+						await LetGoOfLandedAsync(ReadStringField(text, "mark"));
+						continue;
+					}
 
 					if (kind == Protocol.HEARD)
 					{
@@ -3147,6 +3159,49 @@ namespace WitchMendokusai.Server
 		}
 
 		/// <summary>국경 띠에 선 사람의 말을 이웃 세계로 넘긴다 (TASK-WM-264).</summary>
+		/// <summary>
+		/// 이 사람이 여기 도착했다고 <b>이웃 모두에게</b> 알린다 (TASK-WM-377).
+		/// 어느 이웃이 보냈는지는 통행증에 안 적혀 있다 — 아닌 세계는 그 이름표를 모르니 조용히 흘린다.
+		/// </summary>
+		private async Task TellNeighboursLandedAsync(string mark)
+		{
+			if (string.IsNullOrEmpty(mark))
+				return;
+
+			foreach ((WitchMendokusai.Net.ZonePatch Patch, string Address) land in neighbours.Lands)
+				await SendToPeerAsync(land.Address, Protocol.Landed(World.Patch.Name, BorderSeal(World.Patch.Name), mark));
+		}
+
+		/// <summary>
+		/// 옆 세계가 그 사람을 받았다 — 여기서는 <b>놓는다</b> (TASK-WM-377).
+		///
+		/// ⚠ 여기 아직 붙어 있는 창이 있으면 <b>닫는다</b>. 안 닫으면 그 창은 이 세계의 몸으로 계속 살고,
+		///   저 세계에도 같은 사람이 있다 — 가방이 두 벌인 상태 그 자체다.
+		/// </summary>
+		private async Task LetGoOfLandedAsync(string mark)
+		{
+			int identityId = Identities.FindMark(mark);
+			if (identityId <= 0)
+				return;
+
+			foreach (WorldDoll one in World.Snapshot())
+			{
+				if (World.OwnerOf(one.Id) != identityId)
+					continue;
+
+				if (sockets.TryRemove(one.Id, out Connection here))
+					_ = EvictAsync(here);
+
+				World.Leave(one.Id);
+			}
+
+			// 들고 간 것을 이 세계도 기억하고 있으면, 돌아왔을 때 <b>두 벌</b>이 된다 (TASK-WM-259).
+			World.ForgetPerson(identityId);
+			Interlocked.Exchange(ref worldDirty, 1);
+			Console.WriteLine("[zone] 옆 세계가 그 사람을 받았다 — 여기서는 놓는다");
+			await Task.CompletedTask;
+		}
+
 		private async Task TellNeighboursHeardAsync(int dollId, string name, string line, Vector3 from)
 		{
 			foreach ((WitchMendokusai.Net.ZonePatch Patch, string Address) land in neighbours.Lands)

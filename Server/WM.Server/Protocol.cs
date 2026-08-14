@@ -68,6 +68,16 @@ namespace WitchMendokusai.Server
 		public const string HEARD = "heard";
 
 		/// <summary>
+		/// 세계 → <b>이웃 세계</b>: 이 사람이 <b>여기 도착했다</b> (TASK-WM-377).
+		///
+		/// ★ 왜 필요한가: 통행증은 「떠난다」는 <b>약속</b>일 뿐이고, 실제로 떠났는지는
+		///   보낸 세계가 창의 줄로만 짐작한다(줄이 안 닫히면 「안 갔다」로 보고 그대로 데리고 있다).
+		///   그 사이 다른 창이 같은 종이로 저쪽에 들어가면 <b>같은 사람이 두 세계에</b> 산다(가방이 두 벌).
+		///   도착은 <b>받은 세계만</b> 확실히 안다 — 그러니 받은 쪽이 말해 주고, 보낸 쪽이 그때 놓는다.
+		/// </summary>
+		public const string LANDED = "landed";
+
+		/// <summary>
 		/// 세계 → 그 창에게만: <b>네 걸음을 여기까지 봤다</b> (TASK-WM-271).
 		///
 		/// ⚠ 창의 앞질러 그리기를 <b>되감는</b> 데 쓴다 — 창은 세계가 아는 자리에서 다시 시작해
@@ -620,6 +630,15 @@ namespace WitchMendokusai.Server
 				+ ",\"text\":" + JsonSerializer.Serialize(line ?? string.Empty, textOptions)
 				+ ",\"x\":" + x.ToString("F2", System.Globalization.CultureInfo.InvariantCulture)
 				+ ",\"z\":" + z.ToString("F2", System.Globalization.CultureInfo.InvariantCulture) + "}";
+		}
+
+		/// <summary>이 사람이 여기 도착했다 (TASK-WM-377) — 이름표 하나면 된다.</summary>
+		public static string Landed(string zone, string seal, string mark)
+		{
+			return "{\"type\":\"" + LANDED
+				+ "\",\"zone\":" + JsonSerializer.Serialize(zone ?? string.Empty, textOptions)
+				+ ",\"seal\":" + JsonSerializer.Serialize(seal ?? string.Empty, textOptions)
+				+ ",\"mark\":" + JsonSerializer.Serialize(mark ?? string.Empty, textOptions) + "}";
 		}
 
 		/// <summary>네 걸음을 여기까지 봤다 (TASK-WM-271) — 스무 바이트짜리 한 마디.</summary>

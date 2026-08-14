@@ -321,6 +321,35 @@ namespace WitchMendokusai.Identity
 		}
 
 		/// <summary>
+		/// 그 이름표로 사는 사람이 <b>여기 있나</b> — 없으면 만들지 않는다 (TASK-WM-377).
+		///
+		/// ★ 왜 따로 두나: <see cref="RecognizeMark"/> 는 <b>맞이하는</b> 자리라 없으면 만든다.
+		///   「옆 세계에 도착했다니 여기서는 내보낸다」처럼 <b>내보내려고</b> 찾을 때 그걸 쓰면
+		///   없는 사람을 만들어 놓고 지우는 꼴이 된다(장부에 빈 신원이 쌓인다).
+		/// </summary>
+		public int FindMark(string mark)
+		{
+			if (string.IsNullOrEmpty(mark))
+				return 0;
+
+			bool account = mark.IndexOf(':') >= 0;
+
+			lock (gate)
+			{
+				if (account == false)
+					return bySecret.TryGetValue(mark, out WorldIdentityRecord known) ? known.id : 0;
+
+				foreach (KeyValuePair<int, WorldIdentityRecord> entry in byId)
+				{
+					if (string.Equals(entry.Value.externalId, mark, StringComparison.Ordinal))
+						return entry.Value.id;
+				}
+
+				return 0;
+			}
+		}
+
+		/// <summary>
 		/// 세계 공통 이름표로 사람을 잇는다 (TASK-WM-259) — 처음 보는 이름표면 <b>그 이름표 그대로</b> 만든다.
 		///
 		/// ★ 왜 그대로 만드나: 세계는 지문만 갖는다. 옆 세계가 도장 찍어 보낸 지문을 그대로 적어 두면,
