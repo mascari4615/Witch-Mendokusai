@@ -52,6 +52,24 @@ namespace WitchMendokusai.Net
 		}
 
 		/// <summary>
+		/// 이 땅과 저 땅이 <b>겹치나</b> (TASK-WM-368).
+		///
+		/// ★ 왜 봐야 하나: 겹친 자리는 <b>두 세계가 다 자기 땅이라고 우기는 자리</b>다.
+		///   그 자리에 선 사람은 넘겨주기가 오락가락하며 두 세계를 왕복하거나, 최악에는 <b>둘로 늘어난다</b>.
+		///   땅 설정은 손으로 적는 글자(WM_ZONE)라 오타 한 번이면 그렇게 된다.
+		///   ⚠ <b>맞닿은 것</b>은 겹친 것이 아니다 — 국경선은 서로 나눠 갖는다(경계값은 양쪽이 다 가진다).
+		/// </summary>
+		public bool Overlaps(ZonePatch other)
+		{
+			if (Bounded == false || other.Bounded == false)
+				return false;
+
+			bool apartInX = ToX <= other.FromX || other.ToX <= FromX;
+			bool apartInZ = ToZ <= other.FromZ || other.ToZ <= FromZ;
+			return apartInX == false && apartInZ == false;
+		}
+
+		/// <summary>
 		/// 내 땅 안으로 끌어당긴 자리 — 밖으로 나가려 하면 <b>경계에 세운다</b>.
 		/// (넘겨주기가 서기 전까지는 이것이 정직하다: 남의 땅을 내가 굴리면 두 세계가 갈라진다.)
 		/// </summary>

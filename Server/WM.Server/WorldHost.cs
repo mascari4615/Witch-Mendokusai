@@ -596,6 +596,22 @@ namespace WitchMendokusai.Server
 					Console.WriteLine($"[zone] ⚠ 세계 이름이 같은 번호로 뭉개진다: {clash} — 국경에서 사람이 서로를 지운다");
 			}
 
+			// ★ 내 땅이 이웃 땅과 <b>겹치나</b> (TASK-WM-368) — 겹친 자리는 두 세계가 다 자기 것이라 우기는 자리다.
+			//   그 자리에 선 사람은 넘겨주기가 오락가락하며 왕복하거나, 최악에는 <b>둘로 늘어난다</b>.
+			//   땅은 손으로 적는 글자(WM_ZONE)라 오타 한 번이면 그렇게 된다 —
+			//   <b>안 뜨는 것이 사람을 잃는 것보다 낫다</b>(기억이 깨졌을 때와 같은 규칙, WM-333).
+			foreach ((WitchMendokusai.Net.ZonePatch Patch, string Address) land in neighbours.Lands)
+			{
+				if (World.Patch.Overlaps(land.Patch) == false)
+					continue;
+
+				Console.WriteLine($"[zone] 내 땅({World.Patch.Name})이 이웃 땅({land.Patch.Name})과 겹친다 — 세계를 안 띄운다.");
+				Console.WriteLine($"[zone]   내 땅  {World.Patch.FromX},{World.Patch.FromZ} ~ {World.Patch.ToX},{World.Patch.ToZ}");
+				Console.WriteLine($"[zone]   이웃   {land.Patch.FromX},{land.Patch.FromZ} ~ {land.Patch.ToX},{land.Patch.ToZ}");
+				Console.WriteLine("[zone]   겹친 자리에 선 사람은 두 세계를 왕복하거나 둘로 늘어난다 — WM_ZONE 을 고쳐라.");
+				Environment.Exit(4);
+			}
+
 			// 두 세계만 아는 말 — 통행증 도장을 찍고 확인하는 데 쓴다.
 			zoneSecret = System.Environment.GetEnvironmentVariable("WM_ZONE_SECRET") ?? string.Empty;
 
