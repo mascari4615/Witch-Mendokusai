@@ -53,3 +53,4 @@ wm-save-failure-test.mjs
 wm-web-many-windows-test.mjs
 wm-border-stampede-test.mjs
 wm-stale-sky-test.mjs
+wm-ops-door-test.mjs
