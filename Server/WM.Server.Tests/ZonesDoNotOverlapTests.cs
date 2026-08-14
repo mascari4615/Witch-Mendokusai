@@ -52,6 +52,31 @@ namespace WitchMendokusai.ServerTests
 			Assert.That(Land("동", 0f, 100f).Overlaps(ZonePatch.Everywhere), Is.False);
 		}
 
+		[Test]
+		public void 맞닿은_땅은_닿은_것으로_본다()
+		{
+			Assert.That(Land("서", -100f, 0f).Touches(Land("동", 0f, 100f)), Is.True,
+				"국경선을 나눠 가진 두 땅은 걸어서 오간다");
+		}
+
+		/// <summary>★ 사이가 뜬 땅 — 그 사이는 아무의 땅도 아니라 사람이 보이지 않는 벽에 막힌다.</summary>
+		[Test]
+		public void 사이가_뜬_땅은_안_닿은_것으로_본다()
+		{
+			Assert.That(Land("서", -100f, -10f).Touches(Land("동", 10f, 100f)), Is.False,
+				"-10 ~ 10 은 아무의 땅도 아니다 — 그리로 간 사람은 막힌다");
+		}
+
+		/// <summary>모서리만 스치는 것은 닿은 것이 아니다 — 그 점으로는 못 걸어간다.</summary>
+		[Test]
+		public void 모서리만_스친_땅은_안_닿은_것이다()
+		{
+			ZonePatch southWest = new ZonePatch("남서", -100f, -100f, 0f, 0f);
+			ZonePatch northEast = new ZonePatch("북동", 0f, 0f, 100f, 100f);
+
+			Assert.That(southWest.Touches(northEast), Is.False, "점 하나로는 국경이 안 된다");
+		}
+
 		/// <summary>세로(z)로만 겹쳐도 겹친 것이다 — 한 축만 보면 놓친다.</summary>
 		[Test]
 		public void 세로로_겹쳐도_겹친_것이다()

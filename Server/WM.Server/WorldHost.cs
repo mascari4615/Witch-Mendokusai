@@ -612,6 +612,23 @@ namespace WitchMendokusai.Server
 				Environment.Exit(4);
 			}
 
+			// ★ 이웃이라 적었는데 땅이 <b>안 닿으면</b> 그 사이는 아무의 땅도 아니다 (TASK-WM-368).
+			//   거기로 걸어간 사람은 보이지 않는 벽에 막힌다 — 겹침과 달리 이건 <b>막히는</b> 쪽이라
+			//   세계는 뜨되 <b>시끄럽게</b> 알린다(세계 끝은 원래 비어 있을 수 있다).
+			foreach ((WitchMendokusai.Net.ZonePatch Patch, string Address) land in neighbours.Lands)
+			{
+				if (World.Patch.Bounded == false || land.Patch.Bounded == false)
+					continue;
+
+				if (World.Patch.Touches(land.Patch))
+					continue;
+
+				Console.WriteLine($"[zone] ⚠ 이웃({land.Patch.Name})과 땅이 안 닿는다 — 그 사이는 아무의 땅도 아니다.");
+				Console.WriteLine($"[zone]   내 땅  {World.Patch.FromX},{World.Patch.FromZ} ~ {World.Patch.ToX},{World.Patch.ToZ}");
+				Console.WriteLine($"[zone]   이웃   {land.Patch.FromX},{land.Patch.FromZ} ~ {land.Patch.ToX},{land.Patch.ToZ}");
+				Console.WriteLine("[zone]   그리로 걸어간 사람은 보이지 않는 벽에 막힌다 — WM_ZONE 을 맞춰라.");
+			}
+
 			// 두 세계만 아는 말 — 통행증 도장을 찍고 확인하는 데 쓴다.
 			zoneSecret = System.Environment.GetEnvironmentVariable("WM_ZONE_SECRET") ?? string.Empty;
 

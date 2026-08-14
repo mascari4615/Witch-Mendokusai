@@ -70,6 +70,26 @@ namespace WitchMendokusai.Net
 		}
 
 		/// <summary>
+		/// 이 땅과 저 땅이 <b>맞닿아 있나</b> (TASK-WM-368).
+		///
+		/// ★ 왜 봐야 하나: 이웃이라고 적어 놨는데 땅이 안 닿으면 <b>그 사이는 아무의 땅도 아니다</b>.
+		///   거기로 걸어간 사람은 보이지 않는 벽에 막힌다(넘겨줄 이웃이 없으니 세계가 자리를 도로 당긴다).
+		///   사람에게는 「여기서 더 못 간다」로만 보이고, 아무 데도 안 적힌다.
+		///   ⚠ 겹침(<see cref="Overlaps"/>)과 다르다 — 이건 <b>사이가 뜬 것</b>이다.
+		/// </summary>
+		public bool Touches(ZonePatch other)
+		{
+			if (Bounded == false || other.Bounded == false)
+				return true;
+
+			bool sharesXEdge = (ToX == other.FromX || other.ToX == FromX)
+				&& FromZ < other.ToZ && other.FromZ < ToZ;
+			bool sharesZEdge = (ToZ == other.FromZ || other.ToZ == FromZ)
+				&& FromX < other.ToX && other.FromX < ToX;
+			return sharesXEdge || sharesZEdge;
+		}
+
+		/// <summary>
 		/// 내 땅 안으로 끌어당긴 자리 — 밖으로 나가려 하면 <b>경계에 세운다</b>.
 		/// (넘겨주기가 서기 전까지는 이것이 정직하다: 남의 땅을 내가 굴리면 두 세계가 갈라진다.)
 		/// </summary>
