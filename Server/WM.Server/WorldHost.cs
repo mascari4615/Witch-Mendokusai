@@ -246,6 +246,43 @@ namespace WitchMendokusai.Server
 		///   (초당 4KB 회선에서는 그것만 2초다 — 그동안 세계는 안 흐른다).
 		///   창이 「나 이 도장 들고 있다」고 하면 안 보낸다.
 		/// </summary>
+		private string windowStampCache;
+
+		/// <summary>
+		/// <b>지금 서버가 내주는 창(웹 화면)의 도장</b> (TASK-WM-367).
+		///
+		/// ★ 왜: 배포가 나가면 서버는 새것인데 <b>이미 열려 있던 창</b>은 옛것이다. 그 사람만
+		///   고쳐 놓은 고장을 계속 겪고, 우리는 그 사실을 모른다(그 창은 아무 말도 안 한다).
+		///   창이 자기 도장과 세계가 말해 주는 도장을 견주면 「새 판이 나갔다」를 스스로 안다.
+		/// </summary>
+		private string WindowStamp
+		{
+			get
+			{
+				if (windowStampCache != null)
+					return windowStampCache;
+
+				string root = System.IO.Path.Combine(System.AppContext.BaseDirectory, "wwwroot");
+				System.Text.StringBuilder all = new System.Text.StringBuilder();
+				try
+				{
+					string[] files = System.IO.Directory.GetFiles(root, "*.*", System.IO.SearchOption.AllDirectories);
+					System.Array.Sort(files, System.StringComparer.Ordinal);
+					for (int i = 0; i < files.Length; i++)
+						all.Append(System.IO.Path.GetFileName(files[i])).Append(':').Append(new System.IO.FileInfo(files[i]).Length).Append(';');
+				}
+				catch (System.IO.IOException)
+				{
+					// 창 파일을 못 읽어도 세계는 돈다 — 도장만 빈다(그러면 창은 견주지 않는다).
+				}
+
+				using System.Security.Cryptography.SHA256 maker = System.Security.Cryptography.SHA256.Create();
+				byte[] print = maker.ComputeHash(Encoding.UTF8.GetBytes(all.ToString()));
+				windowStampCache = System.Convert.ToHexString(print).Substring(0, 12).ToLowerInvariant();
+				return windowStampCache;
+			}
+		}
+
 		private string CatalogStamp
 		{
 			get
@@ -936,7 +973,7 @@ namespace WitchMendokusai.Server
 			//   뒤늦게 도착한 첫 전체 그림이 창에게 「지난 판」으로 버려진다.
 			//   그러면 창은 붙었는데도 <b>텅 빈 세계</b>를 본다(실측: 지연 없는 회선에서 seq 10 → 9).
 			//   전체 그림을 보낸 <b>뒤에</b> 목록에 넣는다.
-			await SendAsync(connection, Protocol.Welcome(doll.Id, catalogStamp: CatalogStamp));
+			await SendAsync(connection, Protocol.Welcome(doll.Id, catalogStamp: CatalogStamp, windowStamp: WindowStamp));
 
 			// 이름표도 들어올 때 한 번 — 그 뒤로는 바뀔 때만 온다 (TASK-WM-220).
 			{
@@ -1173,7 +1210,7 @@ namespace WitchMendokusai.Server
 					_ = EvictAsync(evicted);
 				}
 
-				await SendAsync(socket, Protocol.Welcome(dollId, grantedSecret, person.id, CatalogStamp));
+				await SendAsync(socket, Protocol.Welcome(dollId, grantedSecret, person.id, CatalogStamp, WindowStamp));
 
 				// 인사 뒤에도 전체 그림을 한 번 — 이때 자리·가방이 그 사람 것으로 바뀌고,
 				// 방송은 「바뀐 것만」 실으므로 이 한 장이 없으면 집·들판을 영영 못 볼 수 있다.

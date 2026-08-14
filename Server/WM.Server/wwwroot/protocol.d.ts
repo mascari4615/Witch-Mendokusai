@@ -20,6 +20,8 @@ export interface Welcome {
 	secret: string;
 	/** 이 서버 판의 낱말표·제작표 도장 — hello 에 되돌려 주면 그것들을 안 보낸다. */
 	catalogStamp: string;
+	/** 창(웹 화면)의 판 도장 — 달라졌으면 새 판이 나간 것이다 (TASK-WM-367). */
+	windowStamp: string;
 }
 
 /** 세계에 있는 인형 하나. */
