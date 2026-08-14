@@ -128,8 +128,10 @@ const walking = setInterval(() => {
 	}
 }, 100);
 
+// ⚠ CI(2코어)에서는 걷는 것도 이웃에게 말하는 것도 느리다 — 넉넉히 기다린다.
+//   실측 2026-08-14: 이 기다림이 30초일 때 CI 에서 국경 너머가 0명이라 <b>거짓 빨강</b>이 났다.
 let shadowsBefore = 0;
-for (let step = 0; step < 60; step += 1) {
+for (let step = 0; step < 120; step += 1) {
 	await wait(500);
 	shadowsBefore = (await health(eastPort)).shadows ?? 0;
 	if (shadowsBefore > 0) break;
@@ -144,15 +146,24 @@ if (shadowsBefore === 0) {
 
 // ── 세계 사이의 줄을 얼린다 ────────────────────────────────────────────────
 badLine.freeze();
-await wait(45000);   // 서버 쪽 버퍼(수십 KB)까지 채워야 보내기가 진짜로 막힌다
+
+// 서버 쪽 버퍼(수십 KB)까지 채워야 보내기가 진짜로 막힌다 — 느린 기계에서는 그만큼 더 걸린다.
+// 그래서 「접었나」를 <b>보면서</b> 기다린다(다 찼으면 곧바로 다음으로 간다).
+let foldedWhileFrozen = 0;
+for (let step = 0; step < 120; step += 1) {
+	await wait(1000);
+	foldedWhileFrozen = (await health(westPort)).frozenNeighbourLines ?? 0;
+	if (foldedWhileFrozen > 0 && step >= 20) break;
+}
 const whileFrozen = await health(westPort);
+console.log(`  ⓘ 얼린 동안 접은 줄 ${whileFrozen.frozenNeighbourLines ?? 0}개 (기다린 뒤)`);
 const eastWhileFrozen = await health(eastPort);
 
 // ── 녹인다 — 사람 손 없이 다시 이어져야 한다 ───────────────────────────────
 badLine.thaw();
 
 let shadowsAfter = 0;
-for (let step = 0; step < 40; step += 1) {
+for (let step = 0; step < 120; step += 1) {
 	await wait(500);
 	shadowsAfter = (await health(eastPort)).shadows ?? 0;
 	if (shadowsAfter > 0) break;

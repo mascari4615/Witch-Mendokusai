@@ -177,7 +177,10 @@ const spent = (ROUNDS * COST_AMOUNT - leftA) + (ROUNDS * COST_AMOUNT - leftB);
 check('진 사람의 재료는 돌아온다', spent === built * COST_AMOUNT,
 	`쓴 재료 ${spent}개 · 선 집 ${built}채 × ${COST_AMOUNT} = ${built * COST_AMOUNT}개`);
 
-check('세계가 그 사이 안 멎는다', health.longestTickGapMs <= 1500, `가장 벌어진 판 ${health.longestTickGapMs}ms`);
+// [문턱-사유] (c) 사람이 느끼는 선 — 세계가 1.5초 넘게 멎으면 걷던 사람이 그 자리에서 튄다.
+//   (다른 관문들과 같은 값 — many-windows·crowd-windows 도 이 선을 쓴다.)
+const MOST_TICK_GAP_MS = 1500;
+check('세계가 그 사이 안 멎는다', health.longestTickGapMs <= MOST_TICK_GAP_MS, `가장 벌어진 판 ${health.longestTickGapMs}ms`);
 
 if (bad === 0) {
 	console.log('[짓기경합] ✅ 둘이 같은 자리를 노려도 한 채만 서고, 진 사람 재료는 돌아온다');
