@@ -9,10 +9,15 @@
 // 재는 것 (동·서 두 세계 · 그 사이 줄을 얼렸다 녹인다):
 //   ① 얼기 전에는 국경 너머가 보인다 ② 얼면 세계가 그 줄을 <b>접는다</b>(숫자로 남는다)
 //   ③ 녹이면 <b>사람 손 없이</b> 다시 이어져 국경 너머가 또 보인다
+//   ④ 얼었다 녹기를 되풀이해도 <b>죽은 줄이 안 쌓인다</b> (TASK-WM-358 — 받는 쪽도 언다)
 //
 // 실행: node .github/scripts/wm-frozen-neighbour-test.mjs
 // exit: 0 = 다시 잇는다 · 1 = 영영 막힌다 · 2 = 못 돌림
 //
+// [빨강-확인] ④ 줄을 놓을 때 장부에서 안 지우게 하니 「붙잡고 있는 이웃 줄 2개」로 빨강.
+//   ⚠ ④ 를 <b>받는 쪽 얼림</b>으로는 못 빨갛게 했다: 이 시험은 녹이므로 저쪽이 접힐 때 RST 가 가서
+//   이쪽도 곧 안다. 「받는 쪽이 조용하면 접는다」(30초)는 <b>안 녹는 경우</b>를 위한 것이고,
+//   그 판은 여기서 못 만든다 — 못 밟아 본 사실을 적어 둔다(관문 규율 ⑦).
 // [빨강-확인] 「못 나가면 포기한다」를 빼니(무한정 기다리게) 「접은 줄 0개」로 빨강 —
 //   세계가 <b>얼어붙은 줄을 알아차리지 못한다</b>. (녹기만 하면 고인 것이 흘러 저절로 살아나므로
 //   ②는 그때도 초록이었다 — 무서운 것은 <b>안 녹는 경우</b>다: 이웃 기계가 사라지면 그 줄은
@@ -153,6 +158,8 @@ for (let step = 0; step < 40; step += 1) {
 	if (shadowsAfter > 0) break;
 }
 
+const afterLines = await health(eastPort);
+
 clearInterval(walking);
 for (const one of walkers) { try { one.socket.close(); } catch { /* 이미 */ } }
 killWorlds();
@@ -172,6 +179,12 @@ check('얼면 세계가 그 줄을 접는다', whileFrozen.frozenNeighbourLines 
 
 check('녹이면 사람 손 없이 국경 너머가 다시 보인다', shadowsAfter > 0,
 	`${shadowsAfter}명`);
+
+// ★ 받는 쪽도 언다 (TASK-WM-358): 저쪽이 새로 이어 올 때마다 죽은 줄이 하나씩 남으면
+//   그 줄마다 64KB 를 물고 있다 — 며칠 도는 세계에서는 그게 새는 자리가 된다.
+// [문턱-사유] (c) 제품 구조 — 이웃이 하나면 살아 있는 줄도 <b>하나</b>다(오간 줄 수와 무관).
+check("얼었다 녹아도 죽은 줄이 안 쌓인다", (afterLines.neighbourLinesHeld ?? 0) <= 1,
+	`동쪽이 붙잡고 있는 이웃 줄 ${afterLines.neighbourLinesHeld ?? 0}개`);
 
 if (bad === 0) {
 	console.log('[언이웃] ✅ 세계 사이의 줄이 얼어도 스스로 다시 잇는다');

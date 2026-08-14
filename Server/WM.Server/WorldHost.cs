@@ -94,6 +94,12 @@ namespace WitchMendokusai.Server
 		/// </summary>
 		private const int PEER_SEND_PATIENCE_MS = 5000;
 
+		/// <summary>
+		/// 이웃 줄이 이만큼 조용하면 접는다 (TASK-WM-358).
+		/// [문턱-사유] (b) 이웃이 말하는 주기(0.1초)와의 견줌 — 그 삼백 배. 흔들림이 아니라 사라짐이다.
+		/// </summary>
+		private const int PEER_SILENCE_PATIENCE_MS = 30000;
+
 		private static readonly long LET_GO_AFTER_SILENT_MS =
 			long.TryParse(System.Environment.GetEnvironmentVariable("WM_LET_GO_SECONDS"), out long asked) && asked > 0
 				? asked * 1000
@@ -207,6 +213,9 @@ namespace WitchMendokusai.Server
 
 		/// <summary>이웃과의 줄이 얼어붙어 접은 횟수 (TASK-WM-357).</summary>
 		private long frozenNeighbourLines;
+
+		/// <summary>지금 붙잡고 있는 <b>이웃 줄</b> 수 (TASK-WM-358) — 죽은 줄이 쌓이는지 보는 자.</summary>
+		private long neighbourLinesHeld;
 
 		/// <summary>가득 찬데도 통행증을 들고 넘어온 사람 수 (TASK-WM-350) — 정원을 얼마나 넘겼나.</summary>
 		private long crossedIntoFullWorld;
@@ -688,6 +697,7 @@ namespace WitchMendokusai.Server
 				turnedAwayPeople = Interlocked.Read(ref turnedAwayPeople),
 				letGoOfFrozen = Interlocked.Read(ref letGoOfFrozen),
 				frozenNeighbourLines = Interlocked.Read(ref frozenNeighbourLines),
+				neighbourLinesHeld = Interlocked.Read(ref neighbourLinesHeld),
 				shadows = ShadowCount,   // 국경 너머에서 비쳐 오는 사람 수 (TASK-WM-357 — 이웃 줄이 살아 있나의 증거)
 				crossedIntoFullWorld = Interlocked.Read(ref crossedIntoFullWorld),
 				mostPeopleAtOnce = MOST_PEOPLE_AT_ONCE,
@@ -2680,11 +2690,34 @@ namespace WitchMendokusai.Server
 		private async Task ServePeerAsync(WebSocket socket, CancellationToken stopping)
 		{
 			byte[] buffer = new byte[65536];
+			Interlocked.Increment(ref neighbourLinesHeld);
 			try
 			{
 				while (socket.State == WebSocketState.Open && stopping.IsCancellationRequested == false)
 				{
-					string text = await ReceiveTextAsync(socket, buffer, stopping);
+					// ★ <b>이쪽 줄도 언다</b> (TASK-WM-358). 저쪽 세계가 얼면 이 기다림은 안 끝나고,
+					//   저쪽이 새로 이어 올 때마다 <b>죽은 줄이 하나씩 쌓인다</b>(각각 64KB 를 물고 있다).
+					//   이웃은 0.1초마다 말한다 — 이만큼 조용하면 그 줄은 살아 있는 것이 아니다.
+					using System.Threading.CancellationTokenSource quiet =
+						System.Threading.CancellationTokenSource.CreateLinkedTokenSource(stopping);
+					quiet.CancelAfter(PEER_SILENCE_PATIENCE_MS);
+
+					string text;
+					try
+					{
+						text = await ReceiveTextAsync(socket, buffer, quiet.Token);
+					}
+					catch (System.OperationCanceledException)
+					{
+						if (stopping.IsCancellationRequested)
+							break;
+
+						Interlocked.Increment(ref frozenNeighbourLines);
+						Console.WriteLine($"[zone] 이웃 줄이 {PEER_SILENCE_PATIENCE_MS / 1000}초 동안 조용하다 — 그 줄을 접는다");
+						socket.Abort();
+						break;
+					}
+
 					if (text == null)
 						break;
 
@@ -2715,6 +2748,10 @@ namespace WitchMendokusai.Server
 			catch (WebSocketException)
 			{
 				// 이웃이 꺼지는 건 사고가 아니다 — 그림자는 시간이 지나면 스스로 사라진다.
+			}
+			finally
+			{
+				Interlocked.Decrement(ref neighbourLinesHeld);
 			}
 		}
 
