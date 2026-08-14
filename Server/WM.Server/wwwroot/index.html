@@ -681,6 +681,21 @@ const frameClock = new THREE.Clock();
 const POSITION_IGNORE_DISTANCE = 0.35;
 const POSITION_TELEPORT_DISTANCE = 4;
 const POSITION_PULL_PER_SECOND = 3;
+
+/**
+ * 남의 걸음을 <b>앞질러 그린다</b> (TASK-WM-405) — 세계가 알려 준 자리는 이미 회선만큼 낡았다.
+ *
+ * ★ 왜: 달아나는 사람을 쫓을 때, 회선이 늦은 사람의 화면은 표적을 <b>늘 뒤에</b> 그린다.
+ *   그래서 실제로는 닿는 거리인데 「아직 멀다」로 보여 <b>휘두를 기회 자체가 없다</b>
+ *   (실측 2026-08-14: 곧은 회선 123번 휘두를 동안 나쁜 회선은 4번. 휘두르면 맞기는 다 맞았다).
+ * ★ 얼마나: 마지막 두 소식으로 <b>속도</b>를 재서 그만큼 앞으로 민다.
+ *   <b>0.25초</b>까지만(더 밀면 방향 바꿀 때 크게 헛나간다) · <b>2m</b>까지만(순간이동처럼 보이지 않게).
+ */
+const PREDICT_MOST_SECONDS = 0.25;
+const PREDICT_MOST_DISTANCE = 2;
+
+/** 이만큼 오래된 두 소식으로는 속도를 안 잰다 — 그 사이에 멈췄다 다시 갔을 수 있다. */
+const PREDICT_STALE_SECONDS = 0.5;
 let staticWorldDirty = true;
 let lastStaticAnchorX = NaN;
 let lastStaticAnchorZ = NaN;
@@ -1976,6 +1991,24 @@ function syncDolls() {
 		view.body.material = doll.id === myId ? myMaterial : (isBeyond(doll.id) ? beyondMaterial : otherMaterial);
 		view.isLocal = doll.id === myId;
 		view.beyond = isBeyond(doll.id);
+		// ★ 남의 <b>속도</b>를 잰다 (TASK-WM-405) — 앞질러 그리려면 그 사람이 어디로 가는지 알아야 한다.
+		if (doll.id !== myId) {
+			const nowMs = performance.now();
+			const sinceSeconds = view.serverAtMs === undefined ? 0 : (nowMs - view.serverAtMs) / 1000;
+			if (sinceSeconds > 0 && sinceSeconds < PREDICT_STALE_SECONDS) {
+				const wentX = (doll.x - view.serverX) / sinceSeconds;
+				const wentZ = (doll.z - view.serverZ) / sinceSeconds;
+				// 반씩 섞는다 — 한 소식만 보고 확 바꾸면 그림이 떨린다.
+				view.speedX = view.speedX === undefined ? wentX : (view.speedX + wentX) / 2;
+				view.speedZ = view.speedZ === undefined ? wentZ : (view.speedZ + wentZ) / 2;
+			} else if (sinceSeconds >= PREDICT_STALE_SECONDS) {
+				view.speedX = 0;
+				view.speedZ = 0;
+			}
+
+			view.serverAtMs = nowMs;
+		}
+
 		view.serverX = doll.x;
 		view.serverZ = doll.z;
 		if (doll.id !== myId) {
@@ -2012,10 +2045,31 @@ let worstLead = 0;
 /** 너무 벌어져 <b>도로 끌려간</b> 횟수 — 사람이 「튄다」고 느끼는 그 순간이다. */
 let snappedBack = 0;
 
+/**
+ * 그 사람이 <b>지금쯤</b> 있을 자리 (TASK-WM-405) — 마지막 소식 + 속도 × 지난 시간.
+ * 내 인형에는 안 쓴다(내 걸음은 내가 안다 — 앞질러 그리기는 이미 따로 한다).
+ */
+function whereTheyProbablyAre(view) {
+	if (view.isLocal || view.speedX === undefined || view.serverAtMs === undefined)
+		return { x: view.serverX, z: view.serverZ };
+
+	const aheadSeconds = Math.min(PREDICT_MOST_SECONDS, (performance.now() - view.serverAtMs) / 1000);
+	let aheadX = view.speedX * aheadSeconds;
+	let aheadZ = view.speedZ * aheadSeconds;
+	const far = Math.hypot(aheadX, aheadZ);
+	if (far > PREDICT_MOST_DISTANCE) {
+		aheadX = (aheadX / far) * PREDICT_MOST_DISTANCE;
+		aheadZ = (aheadZ / far) * PREDICT_MOST_DISTANCE;
+	}
+
+	return { x: view.serverX + aheadX, z: view.serverZ + aheadZ };
+}
+
 function updateDollVisuals(dt) {
 	for (const view of dollViews.values()) {
-		const gapX = view.targetX - view.serverX;
-		const gapZ = view.targetZ - view.serverZ;
+		const guess = whereTheyProbablyAre(view);
+		const gapX = view.targetX - guess.x;
+		const gapZ = view.targetZ - guess.z;
 		const distance = Math.hypot(gapX, gapZ);
 
 		if (view.isLocal) {
@@ -2032,12 +2086,12 @@ function updateDollVisuals(dt) {
 			if (distance > worstLead)
 				worstLead = distance;
 		} else if (distance >= POSITION_TELEPORT_DISTANCE) {
-			view.targetX = view.serverX;
-			view.targetZ = view.serverZ;
+			view.targetX = guess.x;
+			view.targetZ = guess.z;
 		} else if (distance > POSITION_IGNORE_DISTANCE) {
 			const pull = Math.min(1, POSITION_PULL_PER_SECOND * dt);
-			view.targetX += gapX * pull;
-			view.targetZ += gapZ * pull;
+			view.targetX -= gapX * pull;
+			view.targetZ -= gapZ * pull;
 		}
 
 		if (view.isLocal) {
