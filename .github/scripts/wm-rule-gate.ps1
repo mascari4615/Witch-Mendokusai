@@ -399,6 +399,8 @@ $enumBaselinePath  = Join-Path $scriptDir 'wm-enum-value-baseline.tsv'
 $assetBaselinePath = Join-Path $scriptDir 'wm-asset-name-baseline.tsv'
 $enumBaseline  = Read-Baseline $enumBaselinePath
 $assetBaseline = Read-Baseline $assetBaselinePath
+$tuneBaselinePath  = Join-Path $scriptDir 'wm-tuning-const-baseline.tsv'
+$tuneBaseline  = Read-Baseline $tuneBaselinePath
 
 $ratchetMisses = New-Object System.Collections.ArrayList
 
@@ -437,6 +439,31 @@ foreach ($key in $enumOffenders)
     if ($enumBaseline.Contains($key)) { continue }
     $parts = $key -split "`t"
     [void]$ratchetMisses.Add(("ENUM-VALUE  {0} -- enum '{1}' 의 항목에 명시적 값이 없다; fix: 각 항목에 = <정수> 를 적어라 (끝에 추가가 원칙)" -f $parts[0], $parts[1]))
+}
+
+# --- TUNING-CONST -------------------------------------------------------------
+# 조작감·연출을 정하는 수치가 `private const` 로 박히면 **인스펙터에서 못 만진다.**
+# 고치려면 코드를 열고 다시 빌드해야 하고, 그 순간 그 수치는 더 이상 조율되지 않는다.
+# WM 에서 이건 취향이 아니라 MDD 정합이다 — 욘(개발자)이 자기 게임을 놀이처럼 손볼 수 있어야 한다.
+# 정본: memo/rules/unity.md § 수치 노출 · memo/wm/dev/수치-노출.md
+#
+# 이름으로 고른다: 전부 막으면 epsilon·버퍼 크기 같은 정당한 상수까지 걸려 게이트가 꺼진다.
+# 실측(2026-08-14): `private const` 숫자 324개 중 **조작감 이름 75개**만 이 규칙에 걸린다.
+$tuneNamePattern = '(SPEED|FORCE|DURATION|HEIGHT|RADIUS|DELAY|COOLDOWN|THRESHOLD|ANGLE|DISTANCE|TIME|RATE|CHANCE|AMOUNT|OFFSET|DAMAGE|WEIGHT|SCALE|INTERVAL|MULTIPLIER)'
+foreach ($file in $subjects)
+{
+    $lines2 = $file.Lines
+    for ($k = 0; $k -lt $lines2.Length; $k++)
+    {
+        $code2 = Get-CodeText -Line $lines2[$k] -KeepStrings $false
+        if ([string]::IsNullOrWhiteSpace($code2)) { continue }
+        if ($code2 -notmatch 'private\s+const\s+(float|int|double)\s+([A-Za-z_][A-Za-z0-9_]*)\s*=') { continue }
+        $name = $Matches[2]
+        if ($name -notmatch $tuneNamePattern) { continue }
+        $key2 = "{0}`t{1}" -f $file.Relative, $name
+        if ($tuneBaseline.Contains($key2)) { continue }
+        [void]$ratchetMisses.Add(("TUNING-CONST  {0} -- `{1}` 이 private const 다; fix: [SerializeField] 또는 SO 로 빼서 인스펙터에서 만질 수 있게" -f $file.Relative, $name))
+    }
 }
 
 # --- ASSET-NAME ---------------------------------------------------------------
@@ -510,6 +537,29 @@ if ($WriteBaseline)
         '# 갚으면 줄을 지운다. 지운 줄이 다시 나타나면 그때부터 빨강이다.',
         '# 갱신: powershell -File .github/scripts/wm-rule-gate.ps1 -WriteBaseline'
     )
+    $tuneHeader = @(
+        '# wm-rule-gate TUNING-CONST 기준선 -- 이미 진 빚. 여기 없는 새 위반만 막는다.',
+        '# 갱신: powershell -File .github/scripts/wm-rule-gate.ps1 -WriteBaseline'
+    )
+    $tuneLines = @()
+    foreach ($file in $subjects)
+    {
+        $ls = $file.Lines
+        for ($k = 0; $k -lt $ls.Length; $k++)
+        {
+            $c = Get-CodeText -Line $ls[$k] -KeepStrings $false
+            if ([string]::IsNullOrWhiteSpace($c)) { continue }
+            if ($c -notmatch 'private\s+const\s+(float|int|double)\s+([A-Za-z_][A-Za-z0-9_]*)\s*=') { continue }
+            # ★ 이름을 **먼저 담는다**. 다음 -notmatch 가 $Matches 를 덮어써서, 안 담으면
+            #   기준선에 이름이 빈 줄이 들어간다(실측: 49줄 전부 이름 없이 저장됐다).
+            $tuneName = $Matches[2]
+            if ($tuneName -notmatch $tuneNamePattern) { continue }
+            $tuneLines += ("{0}`t{1}" -f $file.Relative, $tuneName)
+        }
+    }
+    $tuneLines = @($tuneLines | Sort-Object -Unique)
+    [System.IO.File]::WriteAllLines($tuneBaselinePath, ($tuneHeader + $tuneLines), (New-Object System.Text.UTF8Encoding($false)))
+
     $enumLines = @($enumOffenders | Sort-Object -Unique)
     $assetLines = @()
     foreach ($relative in $assetSubjects)
@@ -521,7 +571,7 @@ if ($WriteBaseline)
     $assetLines = @($assetLines | Sort-Object -Unique)
     [System.IO.File]::WriteAllLines($enumBaselinePath, ($enumHeader + $enumLines), (New-Object System.Text.UTF8Encoding($false)))
     [System.IO.File]::WriteAllLines($assetBaselinePath, ($assetHeader + $assetLines), (New-Object System.Text.UTF8Encoding($false)))
-    Write-Host ("wm-rule-gate -- 기준선을 새로 썼다: enum {0}건 / asset {1}건" -f $enumLines.Count, $assetLines.Count)
+    Write-Host ("wm-rule-gate -- 기준선을 새로 썼다: enum {0}건 / asset {1}건 / tuning {2}건" -f $enumLines.Count, $assetLines.Count, $tuneLines.Count)
     exit 0
 }
 
@@ -568,7 +618,7 @@ Write-Host ''
 if ($total -eq 0)
 {
     Write-Host '  PASS  [ANCHOR] required wiring lines are still present'
-    Write-Host ('  PASS  [RATCHET] 새 위반 없음 (기준선: enum {0}건 / asset {1}건 -- 이미 진 빚)' -f $enumBaseline.Count, $assetBaseline.Count)
+    Write-Host ('  PASS  [RATCHET] 새 위반 없음 (기준선: enum {0}건 / asset {1}건 / tuning {2}건 -- 이미 진 빚)' -f $enumBaseline.Count, $assetBaseline.Count, $tuneBaseline.Count)
     Write-Host 'RESULT: PASS -- 0 rule violations.'
     exit 0
 }
@@ -585,7 +635,7 @@ else
 
 if ($ratchetMisses.Count -eq 0)
 {
-    Write-Host ('  PASS  [RATCHET] 새 위반 없음 (기준선: enum {0}건 / asset {1}건 -- 이미 진 빚)' -f $enumBaseline.Count, $assetBaseline.Count)
+    Write-Host ('  PASS  [RATCHET] 새 위반 없음 (기준선: enum {0}건 / asset {1}건 / tuning {2}건 -- 이미 진 빚)' -f $enumBaseline.Count, $assetBaseline.Count, $tuneBaseline.Count)
 }
 else
 {
