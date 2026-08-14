@@ -772,7 +772,9 @@ namespace WitchMendokusai.Server
 			//   ⚠ 청소는 세계를 잠깐 멈춘다. 그래서 <b>물어볼 때만</b> 한다(재는 자만 쓴다).
 			app.MapGet("/health", (HttpContext healthContext) =>
 			{
-				if (healthContext.Request.Query.ContainsKey("collect"))
+				// ★ 큰 청소는 세계를 <b>잠깐 멈춘다</b> — 그래서 아무나 부르면 그게 곧 공격이다 (TASK-WM-371).
+				//   밖에서 초당 여러 번 부르면 모두의 화면이 그만큼 멎는다. 안에서만 부를 수 있게 한다.
+				if (healthContext.Request.Query.ContainsKey("collect") && OpsAllowed(healthContext))
 				{
 					GC.Collect(2, GCCollectionMode.Forced, blocking: true);
 					GC.WaitForPendingFinalizers();
