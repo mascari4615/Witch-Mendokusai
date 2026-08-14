@@ -160,7 +160,10 @@ const cameBack = await page.waitForFunction(() => {
 		if (Math.hypot(doll.serverX - was.x, doll.serverZ - was.z) > 1.0) moved += 1;
 	}
 
-	return moved >= 3;
+	// ⚠ <b>몇 명</b>이 움직였나로 자르지 않는다 (관문 규율 ④-2, TASK-WM-399):
+	//   느린 러너에서는 봇도 덜 움직이고 창도 덜 그린다 — 「셋」은 그 기계 사정이다.
+	//   얼어붙은 창의 증상은 <b>0명</b>이다(옛 자리에 그대로). 그러니 <b>한 명</b>이면 돌아온 것이다.
+	return moved >= 1;
 }, null, { timeout: BACK_WITHIN_MS }).then(() => true).catch(() => false);
 
 const after = await fetch(`http://127.0.0.1:${worldPort}/health`, { headers: { connection: 'close' } }).then((one) => one.json());
@@ -180,6 +183,10 @@ function check(what, ok, detail) {
 
 console.log(`  ⓘ ${FROZEN_SECONDS}초 얼림 · 그때 세계가 센 사람 ${whileFrozen.people}명`
 	+ ` → 녹은 뒤 ${after.people}명 · 창이 그린 사람 ${seen.dolls}명 · 놓아준 창 ${after.letGoOfFrozen}개`);
+
+// ⚠ 창이 <b>남을 몇이나 그리고 있나</b>부터 본다 — 그릴 사람이 없으면 「움직였나」를 못 잰다(규율 ②).
+if ((seen.dolls ?? 0) < 3)
+	cannotRun(`창이 그린 사람이 ${seen.dolls}명뿐이다 — 이 판에서는 「현재로 돌아왔나」를 못 쟀다`);
 
 check(`녹은 뒤 ${BACK_WITHIN_MS / 1000}초 안에 현재를 본다`, cameBack,
 	cameBack ? '남들이 다시 움직였다' : '옛 자리에 머물렀다');

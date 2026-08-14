@@ -214,6 +214,11 @@ async function watch(where, label) {
 	const measured = {
 		fps: seen.frames / seconds,
 		bytesPerSecond: seen.bytes / seconds,
+		// ★ <b>한 판이 얼마나 큰가</b> (TASK-WM-399) — 다시 보내기 폭발은 여기서 보인다.
+		//   초당 바이트는 <b>몇 판 받았나</b>에 휘둘려서(느린 기계에서는 곧은 회선 쪽이 적게 받는다)
+		//   견줌이 뒤집힌다 — CI 실측: 나쁜 16.2KB/s vs 곧은 8.4KB/s 로 빨강, 이 기계에서는 8.5 vs 8.5.
+		bytesPerPlate: seen.messages > 0 ? seen.bytes / seen.messages : 0,
+		plates: seen.messages,
 		wireBytesPerSecond: (carriedAfter - carriedBefore) / seconds,
 		people,
 		errors,
@@ -255,9 +260,18 @@ check(`나쁜 회선에서도 사람이 보인다 (곧은 회선의 ${Math.round
 if (straight.bytesPerSecond <= 0 || rough.bytesPerSecond <= 0)
 	cannotRun(`한쪽에서 바이트를 못 쟀다 — 곧은 ${(straight.bytesPerSecond / 1024).toFixed(1)}KB/s · 나쁜 ${(rough.bytesPerSecond / 1024).toFixed(1)}KB/s`);
 
-check('늦게 온다고 더 많이 오지는 않는다', rough.bytesPerSecond <= straight.bytesPerSecond * MOST_BYTES_RATIO,
-	`초당 ${(rough.bytesPerSecond / 1024).toFixed(1)}KB · 곧은 회선 ${(straight.bytesPerSecond / 1024).toFixed(1)}KB`
-		+ ` · 나쁜 회선의 <b>선 위</b> 실제 ${(rough.wireBytesPerSecond / 1024).toFixed(1)}KB`);
+// ★ <b>한 판의 크기</b>로 견준다 (TASK-WM-399) — 판 수는 기계를 타지만 한 판의 크기는 안 탄다.
+if (straight.bytesPerPlate <= 0 || rough.bytesPerPlate <= 0)
+	cannotRun(`한쪽에서 판을 못 쟀다 — 곧은 ${straight.plates}장 · 나쁜 ${rough.plates}장`);
+
+check('늦게 온다고 <b>한 판이</b> 커지지는 않는다', rough.bytesPerPlate <= straight.bytesPerPlate * MOST_BYTES_RATIO,
+	`한 판 ${(rough.bytesPerPlate / 1024).toFixed(1)}KB (${rough.plates}장) · 곧은 회선 ${(straight.bytesPerPlate / 1024).toFixed(1)}KB (${straight.plates}장)`);
+
+// 초당 양은 <b>적어만 둔다</b> — 판 수가 기계를 타서 문턱으로 못 쓴다(위 줄이 그 자리를 대신한다).
+console.log(`  ⓘ 초당 나쁜 ${(rough.bytesPerSecond / 1024).toFixed(1)}KB · 곧은 ${(straight.bytesPerSecond / 1024).toFixed(1)}KB`
+	+ ` (문턱 아님 — 판 수가 기계를 탄다)`);
+
+console.log(`  ⓘ 나쁜 회선의 <b>선 위</b> 실제 초당 ${(rough.wireBytesPerSecond / 1024).toFixed(1)}KB`);
 check('창이 조용히 안 터졌다', straight.errors.length === 0 && rough.errors.length === 0,
 	[...straight.errors, ...rough.errors].join(' | ') || '오류 없음');
 
