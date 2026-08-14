@@ -91,6 +91,35 @@ namespace WitchMendokusai.Net
 			}
 		}
 
+		/// <summary>
+		/// 「썼다」고 적힌 것들 — <b>세계가 껐다 켜져도</b> 이어지게 밖에 적어 두려고 꺼낸다 (TASK-WM-382).
+		/// 맡아 둔 것(<see cref="TryClaim"/>)은 안 준다: 그건 <b>지금 들어가는 중</b>이라는 짧은 표라
+		/// 재시작을 넘겨 살리면 그 사람이 자기 통행증에서 쫓겨난다.
+		/// </summary>
+		public List<(string Pass, long WhenMs)> Delivered()
+		{
+			lock (gate)
+			{
+				List<(string, long)> rows = new List<(string, long)>(delivered.Count);
+				foreach (KeyValuePair<string, long> one in delivered)
+					rows.Add((one.Key, one.Value));
+
+				return rows;
+			}
+		}
+
+		/// <summary>적어 둔 「썼다」를 되살린다 — 이미 지난 것은 어차피 통행증 자체가 죽어 있다.</summary>
+		public void RestoreDelivered(string pass, long whenMs)
+		{
+			if (string.IsNullOrEmpty(pass))
+				return;
+
+			lock (gate)
+			{
+				delivered[pass] = whenMs;
+			}
+		}
+
 		/// <summary>짐을 건넸다 — 이제부터 이 통행증으로는 <b>짐 없이</b>만 들어올 수 있다.</summary>
 		public void MarkDelivered(string pass, long nowMs)
 		{

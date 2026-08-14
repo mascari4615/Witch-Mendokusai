@@ -931,6 +931,7 @@ namespace WitchMendokusai.Server
 			_ = WindowStamp;
 
 			LoadLandedOutbox();
+			LoadUsedPasses();
 			Identities.Load(loaded?.identities);
 			int restored = World.Load(loaded, ItemsCatalog);
 			savedAtWorldMinute = World.Calendar.TotalMinutes();
@@ -1284,6 +1285,10 @@ namespace WitchMendokusai.Server
 						// ★ 「썼다」는 <b>짐을 건넨 뒤에</b> 적는다 (TASK-WM-309) — 내밀자마자 적으면
 						//   그 사이에 줄이 끊긴 사람은 짐도 못 받고 통행증만 태운다(실측: 가방 1 → 0).
 						passesUsed.MarkDelivered(travelPass, nowMs);
+
+						// ★ 「썼다」를 <b>적어 둔다</b> (TASK-WM-382) — 기억에만 두면 재시작 한 번이
+						//   그 자물쇠를 연다(통행증은 30초를 산다). 실측: 껐다 켜니 짐이 또 왔다.
+						SaveUsedPasses();
 
 						// ★ <b>보낸 세계에 알린다</b> (TASK-WM-377). 그쪽은 창의 줄이 닫히는 것으로만
 						//   떠남을 알아서, 안 닫고 버티면 그 사람을 계속 데리고 있다(그때 짐이 두 벌이다).
@@ -3243,6 +3248,69 @@ namespace WitchMendokusai.Server
 
 		/// <summary>도착 소식 장부가 적히는 자리 — 세계 기억 <b>옆</b>에 둔다(같이 옮겨 다니게).</summary>
 		private string LandedOutboxPath => store.Path + ".landed.json";
+
+		/// <summary>쓴 통행증 장부가 적히는 자리.</summary>
+		private string UsedPassesPath => store.Path + ".passes.json";
+
+		/// <summary>
+		/// 「이 통행증은 이미 썼다」를 적어 둔다 (TASK-WM-382).
+		/// 통행증은 30초를 살므로 이 파일도 늘 몇 줄이다 — 지난 것은 스스로 사라진다.
+		/// </summary>
+		private void SaveUsedPasses()
+		{
+			try
+			{
+				System.Collections.Generic.List<string> rows = new System.Collections.Generic.List<string>();
+				foreach ((string Pass, long WhenMs) one in passesUsed.Delivered())
+					rows.Add("{\"pass\":" + JsonSerializer.Serialize(one.Pass) + ",\"atMs\":" + one.WhenMs + "}");
+
+				string beside = UsedPassesPath + ".tmp";
+				System.IO.File.WriteAllText(beside, "{\"used\":[" + string.Join(",", rows) + "]}", Encoding.UTF8);
+				System.IO.File.Move(beside, UsedPassesPath, true);
+			}
+			catch (System.Exception error)
+			{
+				Console.WriteLine("[zone] 쓴 통행증 장부를 못 적었다 — " + error.Message);
+			}
+		}
+
+		/// <summary>적어 둔 「썼다」를 되살린다 — 뜨는 길에서 한 번.</summary>
+		private void LoadUsedPasses()
+		{
+			try
+			{
+				if (System.IO.File.Exists(UsedPassesPath) == false)
+					return;
+
+				using JsonDocument document = JsonDocument.Parse(System.IO.File.ReadAllText(UsedPassesPath, Encoding.UTF8));
+				if (document.RootElement.TryGetProperty("used", out JsonElement used) == false)
+					return;
+
+				long nowMs = System.DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+				int count = 0;
+				foreach (JsonElement one in used.EnumerateArray())
+				{
+					string pass = one.TryGetProperty("pass", out JsonElement paper) ? paper.GetString() : null;
+					long atMs = one.TryGetProperty("atMs", out JsonElement when) ? when.GetInt64() : 0;
+					if (string.IsNullOrEmpty(pass))
+						continue;
+
+					// 이미 죽은 통행증은 되살릴 것도 없다(도장 자체가 기한을 본다).
+					if (nowMs - atMs > WitchMendokusai.Net.TravelPass.GOOD_FOR_MS)
+						continue;
+
+					passesUsed.RestoreDelivered(pass, atMs);
+					count += 1;
+				}
+
+				if (count > 0)
+					Console.WriteLine($"[zone] 아직 살아 있는 쓴 통행증 {count}장을 되살렸다");
+			}
+			catch (System.Exception error)
+			{
+				Console.WriteLine("[zone] 쓴 통행증 장부를 못 읽었다 — " + error.Message);
+			}
+		}
 
 		/// <summary>
 		/// 아직 못 보낸 도착 소식을 <b>적어 둔다</b> (TASK-WM-381).
