@@ -308,8 +308,15 @@ check(`창마다 무리가 보인다 (적어도 ${LEAST_IN_A_CROWD}명)`,
 check(`창끼리 공평하다 (덜 받은 창 ≥ 가장 많이 받은 창의 ${Math.round(LEAST_SHARE * 100)}%)`,
 	share >= LEAST_SHARE, `${Math.round(share * 100)}% — 받은 판 ${plates.join('/')}`);
 
-check('창마다 무리가 실제로 움직인다',
-	seen.every((one) => one.watched > 0 && one.movedOthers >= LEAST_IN_A_CROWD),
+// ★ <b>몇 명이 움직였나</b>를 절대 수로 자르면 안 된다 (2026-08-14 CI 실측: 7/12 · 7/14 · 11/23 로 빨강).
+//   느린 기계에서는 보이는 사람 자체가 줄고(24 → 12) 봇도 덜 움직인다 — 그건 기계 이야기다.
+//   [문턱-사유] (a) 같은 판에서 <b>지켜본 사람 수와의 비율</b> — 기계가 느리면 분모도 같이 준다.
+//   + 붕괴 감지선 3명(거의 아무도 안 움직이는 판만 잡는다).
+const MOVED_SHARE = 0.4;
+const LEAST_MOVERS = 3;
+check(`창마다 무리가 실제로 움직인다 (지켜본 사람의 ${Math.round(MOVED_SHARE * 100)}% 위)`,
+	seen.every((one) => one.watched > 0
+		&& one.movedOthers >= Math.max(LEAST_MOVERS, Math.round(one.watched * MOVED_SHARE))),
 	seen.map((one) => `${one.movedOthers}/${one.watched}명 움직임`).join(' · '));
 
 // 세계가 세는 사람 수 아래로 창이 그린 인형이 내려와야 한다 — 나간 다섯이 지워졌다는 뜻이다.
