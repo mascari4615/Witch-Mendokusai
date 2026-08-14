@@ -48,6 +48,7 @@ wm-pass-after-sleep-test.mjs		90
 wm-slow-crossing-test.mjs		110
 wm-arrival-first-write-test.mjs		90
 wm-full-house-test.mjs		120
+wm-come-back-storm-test.mjs		120
 wm-two-tabs-test.mjs		40
 wm-chest-race-test.mjs		40
 wm-broken-memory-test.mjs		40
