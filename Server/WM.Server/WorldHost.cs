@@ -255,6 +255,28 @@ namespace WitchMendokusai.Server
 		///   고쳐 놓은 고장을 계속 겪고, 우리는 그 사실을 모른다(그 창은 아무 말도 안 한다).
 		///   창이 자기 도장과 세계가 말해 주는 도장을 견주면 「새 판이 나갔다」를 스스로 안다.
 		/// </summary>
+		/// <summary>
+		/// 살림살이 창구(<c>/lines</c>·기억 파일 자리)를 볼 수 있나 (TASK-WM-371).
+		///
+		/// ★ 왜: 세계가 밖으로 열리는 날 이 창구도 같이 열리면 아무나 남의 회선 사정과 파일 자리를 본다.
+		///   같은 기계에서 보거나, <c>WM_OPS_TOKEN</c> 을 들고 온 사람만 본다.
+		///   (열쇠가 안 걸려 있으면 같은 기계만 — 안 열어 주는 편이 나중에 여는 것보다 쉽다.)
+		/// </summary>
+		private static bool OpsAllowed(HttpContext context)
+		{
+			if (context == null)
+				return false;
+
+			if (ClientOrigin.IsSameMachine(ClientOrigin.Of(context)))
+				return true;
+
+			string key = System.Environment.GetEnvironmentVariable("WM_OPS_TOKEN");
+			if (string.IsNullOrEmpty(key))
+				return false;
+
+			return ClientOrigin.First(context.Request.Headers["X-WM-Ops"]) == key;
+		}
+
 		private string WindowStamp
 		{
 			get
@@ -710,8 +732,14 @@ namespace WitchMendokusai.Server
 			//   /health 는 세계 전체의 합이라, 한 창만 초당 1.8장을 받아도 합에서는 안 보인다.
 			//   나간 판 / 줄이 막혀 건너뛴 판 / 박자를 늦춰 건너뛴 판 — 이 셋이 갈라져야
 			//   「세계가 안 보낸 것」과 「줄이 안 빠진 것」을 가른다.
-			app.MapGet("/lines", () =>
+			app.MapGet("/lines", (HttpContext context) =>
 			{
+				// ★ 이 창구는 <b>안에서만</b> 연다 (TASK-WM-371). 줄마다의 왕복·막힘은 사람을 들여다보는 값이고,
+				//   세계가 밖으로 열리는 날(터널) 이 자리도 같이 열리면 아무나 남의 회선 사정을 본다.
+				//   같은 기계(또는 열쇠를 가진 사람)만 본다 — 안 열어 주는 편이 나중에 여는 것보다 쉽다.
+				if (OpsAllowed(context) == false)
+					return Results.StatusCode(403);
+
 				System.Collections.Generic.List<object> lines = new System.Collections.Generic.List<object>();
 				foreach (System.Collections.Generic.KeyValuePair<int, Connection> entry in sockets)
 				{
@@ -742,9 +770,9 @@ namespace WitchMendokusai.Server
 			//   그 뒤의 양을 답한다. 안 그러면 「자란다」와 「아직 안 치웠다」를 못 가른다 —
 			//   실측 2026-08-13: 3분 소크에서 gen2 가 <b>0번</b> 돌아 톱니 꼭대기만 보고 「11배 샌다」고 읽었다.
 			//   ⚠ 청소는 세계를 잠깐 멈춘다. 그래서 <b>물어볼 때만</b> 한다(재는 자만 쓴다).
-			app.MapGet("/health", (HttpContext context) =>
+			app.MapGet("/health", (HttpContext healthContext) =>
 			{
-				if (context.Request.Query.ContainsKey("collect"))
+				if (healthContext.Request.Query.ContainsKey("collect"))
 				{
 					GC.Collect(2, GCCollectionMode.Forced, blocking: true);
 					GC.WaitForPendingFinalizers();
@@ -812,7 +840,8 @@ namespace WitchMendokusai.Server
 				heldMegabytes = GC.GetTotalMemory(false) / 1048576,
 				broadcastSnapshotBytes = Interlocked.Read(ref broadcastSnapshotBytes),
 				largestBroadcastSnapshotBytes = Interlocked.Read(ref largestBroadcastSnapshotBytes),
-				worldFile = store.Path,
+				// 기억 파일이 어디 있나는 <b>안에서만</b> 말한다 (TASK-WM-371) — 밖에서는 그 사람이 알 일이 아니다.
+				worldFile = OpsAllowed(healthContext) ? store.Path : string.Empty,
 				});
 			});
 
