@@ -26,6 +26,20 @@
   </ItemGroup>
 
   <!--
+    유니티 없이 도는 EditMode 시험을 <b>여기서 같이 돌린다</b> (TASK-WM-364).
+
+    ★ 왜: EditMode 에 시험이 1572개 있는데 CI 에서는 <b>한 개도 안 돈다</b>(유니티 라이선스, WM-221).
+      그중 969개는 유니티를 아예 안 쓴다 — DomainSDK 만 본다. 즉 판정 규칙의 대부분이
+      「시험은 있는데 아무도 안 보는」 상태였다(WM-363 에서 실제로 그 틈으로 결함이 하나 나왔다).
+      복사하지 않고 <b>같은 파일을 링크</b>한다 — 두 벌이 되면 곧 갈라진다.
+  -->
+  <ItemGroup>
+    <Compile Include="../../Assets/_WitchMendokusai/Tests/EditMode/Net/**/*.cs">
+      <Link>EditMode/%(RecursiveDir)%(Filename)%(Extension)</Link>
+    </Compile>
+  </ItemGroup>
+
+  <!--
     창 파일들을 시험 자리에도 갖다 둔다 (TASK-WM-226).
 
     ★ 왜: 미리 눌러 보내는 길은 <b>진짜 파일이 있어야</b> 시험할 수 있다. 서버의 build 산출물에는
