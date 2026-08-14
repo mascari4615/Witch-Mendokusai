@@ -271,11 +271,12 @@ jobs:
     name: web window lives (real browser)
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    # ★ 갈래 셋이 <b>같이</b> 돈다 (TASK-WM-369) — 한 러너에서 차례로 돌 때 8~14분이었다.
+    # ★ 갈래가 <b>같이</b> 돈다 (TASK-WM-369) — 한 러너에서 차례로 돌 때 8~14분이었다.
+    #   실측 2026-08-14: 갈래 셋으로 550·428·474초(가장 긴 갈래가 벽시계다) — 다섯으로 늘린다.
     strategy:
       fail-fast: false
       matrix:
-        shard: [1, 2, 3]
+        shard: [1, 2, 3, 4, 5]
     steps:
       - uses: actions/checkout@v4
 
@@ -307,10 +308,10 @@ jobs:
 
       # ★ 관문을 <b>갈래로 나눠</b> 돌린다 (TASK-WM-369) — 목록은 wm-web-gates.tsv 한 곳이다.
       #   관문을 새로 만들면 그 목록에 한 줄만 더한다(워크플로는 안 고친다).
-      - name: Run web gates (shard ${{ matrix.shard }}/3)
+      - name: Run web gates (shard ${{ matrix.shard }}/5)
         env:
           WM_PLAYWRIGHT_ROOT: /tmp/wm-playwright
-        run: node ./.github/scripts/run-web-gates.mjs --shard ${{ matrix.shard }} --of 3
+        run: node ./.github/scripts/run-web-gates.mjs --shard ${{ matrix.shard }} --of 5
   unity:
     name: EditMode tests (laptop runner)
     runs-on: [self-hosted, unity, windows-build]
