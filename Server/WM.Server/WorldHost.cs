@@ -199,7 +199,24 @@ namespace WitchMendokusai.Server
 		private const int IDLE_SAVE_WORLD_MINUTES = 60;
 		private const int MAX_MESSAGE_BYTES = 1024 * 1024;
 		private const float PLAYER_INTEREST_RADIUS = 32f;
-		private const float INTEREST_CELL_SIZE = 16f;
+		/// <remarks>
+		/// 환경변수 <c>WM_INTEREST_CELL</c> 로 바꾼다 (TASK-WM-396) — 이 값은 <b>고르는 값</b>이다:
+		/// 칸이 크면 한 장을 여럿이 나눠 써서 <b>세계가 덜 일한다</b>(지은 그림 수 ↓),
+		/// 대신 그 한 장이 칸 언저리 사람까지 덮어야 해서 <b>넉넉히 보낸다</b>(바이트 ↑).
+		/// 수치 노출 룰(unity.md) 정합 — 재 보고 고를 수 있어야 한다.
+		/// </remarks>
+		private static readonly float INTEREST_CELL_SIZE =
+			float.TryParse(System.Environment.GetEnvironmentVariable("WM_INTEREST_CELL"), out float askedCell) && askedCell > 0
+				? askedCell
+				// ★ 24m 은 <b>재서</b> 고른 값이다 (TASK-WM-396). 봇 200명을 펼쳐 놓고 재니:
+				//   칸 8m — 지은 그림 52855 · 쓰레기 1070MB · 나간 바이트 187.9MB
+				//   칸 16m — 27707 · 711MB · 193.5MB      ← 옛 값
+				//   <b>칸 24m — 17417 · 563MB · 195.3MB</b> ← 쓰레기 21% 줄고 바이트는 1% 는다
+				//   칸 32m — 15187 · 536MB · 196.5MB (더 키워도 바이트는 제자리, 얻는 것은 준다)
+				// ⚠ 더 안 키우는 까닭: 한 장은 <b>칸 한복판</b> 기준으로 「가까운 24명」을 고른다.
+				//   칸이 커지면 한복판과 <b>칸 구석에 선 사람</b>의 차이가 커져(24m 이면 17m),
+				//   구석에 선 사람이 <b>제 옆 사람</b>을 못 받는 판이 생긴다. 24m 은 그 차이가 반경(32m) 안이다.
+				: 24f;
 
 		private int savedAtWorldMinute;
 		private long broadcastSnapshotMessages;
