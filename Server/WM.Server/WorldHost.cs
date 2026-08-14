@@ -86,6 +86,14 @@ namespace WitchMendokusai.Server
 		///   (사람이 「잠깐 끊겼다」로 겪는 폭보다 넉넉히 크고, 자리를 몇 시간씩 잡아먹지는 않는 선.)
 		/// </summary>
 		/// (시험은 <b>수만 작게</b> 낮춰 같은 규칙을 본다 — 90초를 기다리는 관문은 아무도 안 돌린다.)
+		/// <summary>
+		/// 이웃에게 한마디 밀어 넣는 데 이만큼 걸리면 그 줄은 <b>얼어붙은 것</b>이다 (TASK-WM-357).
+		///
+		/// [문턱-사유] (b) 세계의 박자와의 견줌 — 이웃에게 말하는 주기의 여러 배.
+		/// 한 번 늦는 것은 회선이 흔들린 것이고, 이만큼 안 나가는 것은 길이 사라진 것이다.
+		/// </summary>
+		private const int PEER_SEND_PATIENCE_MS = 5000;
+
 		private static readonly long LET_GO_AFTER_SILENT_MS =
 			long.TryParse(System.Environment.GetEnvironmentVariable("WM_LET_GO_SECONDS"), out long asked) && asked > 0
 				? asked * 1000
@@ -196,6 +204,9 @@ namespace WitchMendokusai.Server
 
 		/// <summary>얼어붙어 있어서 세계가 놓아준 창 수 (TASK-WM-355).</summary>
 		private long letGoOfFrozen;
+
+		/// <summary>이웃과의 줄이 얼어붙어 접은 횟수 (TASK-WM-357).</summary>
+		private long frozenNeighbourLines;
 
 		/// <summary>가득 찬데도 통행증을 들고 넘어온 사람 수 (TASK-WM-350) — 정원을 얼마나 넘겼나.</summary>
 		private long crossedIntoFullWorld;
@@ -676,6 +687,8 @@ namespace WitchMendokusai.Server
 				refusedSteps = Interlocked.Read(ref refusedSteps),
 				turnedAwayPeople = Interlocked.Read(ref turnedAwayPeople),
 				letGoOfFrozen = Interlocked.Read(ref letGoOfFrozen),
+				frozenNeighbourLines = Interlocked.Read(ref frozenNeighbourLines),
+				shadows = ShadowCount,   // 국경 너머에서 비쳐 오는 사람 수 (TASK-WM-357 — 이웃 줄이 살아 있나의 증거)
 				crossedIntoFullWorld = Interlocked.Read(ref crossedIntoFullWorld),
 				mostPeopleAtOnce = MOST_PEOPLE_AT_ONCE,
 
@@ -2802,8 +2815,24 @@ namespace WitchMendokusai.Server
 			try
 			{
 				byte[] payload = Encoding.UTF8.GetBytes(word);
-				await line.Socket.SendAsync(new System.ArraySegment<byte>(payload),
-					WebSocketMessageType.Text, true, CancellationToken.None);
+
+				// ★ 이웃과의 줄도 <b>얼어붙는다</b> (TASK-WM-357) — 끊기지 않은 채 아무것도 안 흐르는 상태다.
+				//   그때 이 보내기는 <b>영원히</b> 안 끝나고, 이웃에게 국경 소식을 다시는 못 보낸다
+				//   (다시 잇는 길도 이 자리에서 막힌다 — 잇기는 이 루프가 하기 때문이다).
+				//   그러니 못 나가면 <b>포기하고 줄을 접는다</b>. 접히면 저쪽 루프가 1초 뒤 다시 잇는다.
+				using System.Threading.CancellationTokenSource giveUp =
+					new System.Threading.CancellationTokenSource(PEER_SEND_PATIENCE_MS);
+				try
+				{
+					await line.Socket.SendAsync(new System.ArraySegment<byte>(payload),
+						WebSocketMessageType.Text, true, giveUp.Token);
+				}
+				catch (System.OperationCanceledException)
+				{
+					Interlocked.Increment(ref frozenNeighbourLines);
+					Console.WriteLine($"[zone] 이웃에게 {PEER_SEND_PATIENCE_MS / 1000}초 동안 말이 안 나간다 — 줄을 접고 다시 잇는다: {address}");
+					line.Socket.Abort();
+				}
 			}
 			catch (System.Exception)
 			{
