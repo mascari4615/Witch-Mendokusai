@@ -40,8 +40,13 @@ const linePort = worldPort + 1;
 const CROWD = 12;
 const FROZEN_SECONDS = 30;
 
-/** 녹은 뒤 이만큼 안에 현재로 돌아와야 한다. [문턱-사유] (c) 사람이 느끼는 선 — 지하철에서 나와 10초. */
-const BACK_WITHIN_MS = 10000;
+/**
+ * 녹은 뒤 이만큼 안에 현재로 돌아와야 한다.
+ * [문턱-사유] (c) 사람이 느끼는 선 — 지하철에서 나와 <b>반 분</b>.
+ * ⚠ 처음엔 10초로 뒀다가 CI(2코어)에서 거짓 빨강이 났다(2026-08-14: 「옛 자리에 머물렀다」) —
+ *   느린 기계에서는 봇들이 덜 움직이고 창도 늦게 그린다. 사람이 참는 선 안에서 넉넉히 둔다.
+ */
+const BACK_WITHIN_MS = 30000;
 
 function cannotRun(message) {
 	console.error(`[녹은창] CANNOT-RUN: ${message}`);
