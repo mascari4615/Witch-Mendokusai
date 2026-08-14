@@ -217,11 +217,32 @@ await page.evaluate(() => {
 });
 
 // 내 발밑 옆의 빈 땅 — 주울 것 위를 누르면 줍기가 된다(그건 다른 길이다).
+//
+// ⚠ <b>한 번 눌러 보고 마는 것</b>은 이 관문을 흔들리게 만든다 (2026-08-14 CI·이 기계 각 1회 빨강):
+//   그 자리가 마침 못 짓는 자리이거나 창이 아직 자리를 못 잡았으면 세계도 창도 <b>아무 말이 없다</b> —
+//   그러면 「곧바로 말한다」가 아니라 「말할 일이 없었다」가 빨강으로 적힌다.
+//   그래서 <b>말이 나올 때까지</b> 자리를 옮겨 가며 몇 번 눌러 본다(관문 규율 ④-2 ⓑ).
 {
-	const me = await page.evaluate(() => (window.__wmView.dolls() || []).find((one) => one.isLocal));
-	const spot = { x: Math.floor(me.drawnX) + 1.5, z: Math.floor(me.drawnZ) + 1.5 };
-	const where = await page.evaluate((one) => window.__wmView.screenOf(one.x, one.z), spot);
-	await page.mouse.click(Math.round(where.x), Math.round(where.y));
+	let pressed = 0;
+	for (let step = 0; step < 8; step += 1) {
+		const me = await page.evaluate(() => (window.__wmView.dolls() || []).find((one) => one.isLocal));
+		if (me === undefined || me === null) { await wait(300); continue; }
+
+		const away = 1.5 + step * 0.5;
+		const spot = { x: Math.floor(me.drawnX) + away, z: Math.floor(me.drawnZ) + (step % 2 === 0 ? away : -away) };
+		const where = await page.evaluate((one) => window.__wmView.screenOf(one.x, one.z), spot);
+
+		// 누른 때를 <b>다시</b> 적는다 — 앞서 헛누른 것까지 세면 「곧바로」가 길어 보인다.
+		await page.evaluate(() => { window.__wmPressedAt = Date.now(); });
+		await page.mouse.click(Math.round(where.x), Math.round(where.y));
+		pressed += 1;
+
+		await wait(400);
+		const heard = await page.evaluate(() => window.__wmSaid.at >= 0);
+		if (heard) break;
+	}
+
+	console.log(`  ⓘ 눌러 본 자리 ${pressed}곳 (말이 나올 때까지)`);
 }
 
 const said = await page.evaluate(() => ({ ...window.__wmSaid, pressedAt: window.__wmPressedAt }));
