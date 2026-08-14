@@ -70,6 +70,14 @@ namespace WitchMendokusai.ServerTests
 			// 둘 다 보이는 것부터 확인한다(여기서 못 보면 아래가 뜻이 없다).
 			await ReadUntilAsync(viewer, text => text.Contains("\"id\":" + travelerId), 15);
 
+			// ⚠ <b>등록될 때까지 기다린다</b> (TASK-WM-373): 창은 붙자마자 방송 목록에 드는 게 아니라
+			//   첫 전체 그림을 받은 뒤에 든다(WM-301). 그 전에 손잡이를 당기면 <b>아무 창에도 안 걸린다</b> —
+			//   실측: 손잡이가 도는 순간 줄이 <b>0개</b>였고, 그래서 좁힘이 한 판도 안 걸렸다.
+			for (int step = 0; step < 100 && host.WindowCount < 2; step++)
+				await Task.Delay(50);
+
+			Assert.AreEqual(2, host.WindowCount, "두 창이 방송 목록에 들어야 좁힘을 잴 수 있다");
+
 			// ① 회선이 못 따라오는 상태로 만든다 — 이제 이 창은 작은 한 장만 받는다.
 			host.MarkBehindForTest(InterestCrowd.MISSES_BEFORE_NARROWING + 2);
 			await Task.Delay(300);
@@ -93,8 +101,16 @@ namespace WitchMendokusai.ServerTests
 			string repair = await ReadUntilAsync(viewer,
 				text => text.Contains("\"type\":\"world\"") && SequenceOf(text) > lastBefore, 15);
 
-			Assert.IsFalse(repair.Contains("\"changed\""),
-				"좁힘에서 풀린 뒤 <b>바뀐 것만</b> 왔다 — 좁힘 동안 떠난 사람을 지울 말이 영영 안 온다: " + repair);
+			// ★ <b>무엇으로</b> 지우는지는 세계의 사정이다 (2026-08-14).
+			//   예전에는 「전체 한 장」만이 유령을 지울 수 있었다 — 작은 한 장에는 「나갔다」가 없었으니까.
+			//   지금은 밀린 창도 <b>「그 사람 나갔다」 목록</b>을 받는다(WM-343·345) — 그래서 「바뀐 것만」 판으로도 지워진다.
+			//   시험이 <b>지우는 방법</b>을 못 박으면, 더 나은 방법으로 고친 날 빨개진다.
+			//   그러니 <b>결과</b>로 본다: 그 판으로 떠난 사람이 지워지나.
+			bool wholePlate = repair.Contains("\"changed\"") == false;
+			bool toldGone = repair.Contains("\"gone\":[" + travelerId);
+
+			Assert.IsTrue(wholePlate || toldGone,
+				"좁힘에서 풀린 뒤 떠난 사람을 지울 말이 안 왔다(전체 한 장도, 「나갔다」 목록도): " + repair);
 			Assert.IsFalse(repair.Contains("\"id\":" + travelerId), "떠난 사람이 아직 실려 온다: " + repair);
 		}
 

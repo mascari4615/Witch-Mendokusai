@@ -544,6 +544,16 @@ namespace WitchMendokusai.Server
 		private readonly NeighbourShadows shadows = new NeighbourShadows();
 
 		/// <summary>지금 비쳐 보이는 국경 너머 사람 수 — 시험이 「유령이 남았나」를 묻는 자리다.</summary>
+		/// <summary>
+		/// 지금 <b>방송 목록에 든</b> 창 수 (TASK-WM-373).
+		///
+		/// ★ 왜 밖에서 볼 수 있어야 하나: 창은 붙자마자 목록에 드는 것이 아니라
+		///   <b>첫 전체 그림을 받은 뒤</b>에 든다(WM-301). 그 전에는 좁힘·건너뛰기 같은
+		///   「줄마다의 규칙」이 그 창에 아예 안 걸린다 — 그걸 재는 시험은 <b>등록을 기다려야</b> 한다.
+		///   (그 기다림이 없어서 시험이 「좁힘이 안 걸린다」로 빨갰다.)
+		/// </summary>
+		public int WindowCount => sockets.Count;
+
 		public int ShadowCount => shadows.Alive(System.Environment.TickCount64).Length;
 
 		/// <summary>이미 쓴 통행증 (TASK-WM-259) — 한 장으로 두 번 들어오면 가방이 두 벌 온다.</summary>
@@ -914,6 +924,12 @@ namespace WitchMendokusai.Server
 				Console.WriteLine("[world] 고친 뒤 다시 켜라. 빈 세계로 떠서 원본을 덮는 것보다 안 뜨는 것이 낫다 (TASK-WM-333).");
 				Environment.Exit(3);
 			}
+			// ★ 창 판 도장은 <b>띄울 때</b> 한 번 찍는다 (TASK-WM-373).
+			//   전에는 <b>첫 인사</b> 때 lazily 찍었다 — 그 첫 사람의 들어오는 길에 파일 읽기·해시가 얹혀
+			//   등록이 늦어졌다(시험이 그 틈에서 「좁힘이 안 걸린다」로 빨개졌다).
+			//   들어오는 길은 세계에서 가장 조급한 자리다 — 거기서 할 일이 아니다.
+			_ = WindowStamp;
+
 			Identities.Load(loaded?.identities);
 			int restored = World.Load(loaded, ItemsCatalog);
 			savedAtWorldMinute = World.Calendar.TotalMinutes();
