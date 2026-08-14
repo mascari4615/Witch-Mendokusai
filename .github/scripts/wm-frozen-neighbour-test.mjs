@@ -157,6 +157,19 @@ for (let step = 0; step < 120; step += 1) {
 }
 const whileFrozen = await health(westPort);
 console.log(`  ⓘ 얼린 동안 접은 줄 ${whileFrozen.frozenNeighbourLines ?? 0}개 (기다린 뒤)`);
+
+// ★ <b>줄이 안 찼으면 잰 것이 없다</b> (관문 규율 ②, 2026-08-14 CI 실측):
+//   이 시험은 「보내기가 막힐 만큼 줄이 차야」 그 다음을 볼 수 있다. 느린 기계에서는
+//   국경에 선 사람이 적거나 소식이 작아 두 배를 기다려도 안 찬다 — 그건 제품이 아니라 무대다.
+//   그때 빨강을 적으면 <b>세계 탓으로 적힌 거짓 빨강</b>이 된다(그 일이 CI 에서 세 판 났다).
+if ((whileFrozen.frozenNeighbourLines ?? 0) === 0) {
+	badLine.thaw();
+	clearInterval(walking);
+	for (const one of walkers) { try { one.socket.close(); } catch { /* 이미 */ } }
+	killWorlds();
+	await badLine.close();
+	cannotRun('얼려도 줄이 안 찼다 — 이 기계에서는 「보내기가 막히는」 자리까지 못 간다');
+}
 const eastWhileFrozen = await health(eastPort);
 
 // ── 녹인다 — 사람 손 없이 다시 이어져야 한다 ───────────────────────────────

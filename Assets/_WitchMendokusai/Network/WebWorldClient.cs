@@ -324,6 +324,18 @@ namespace WitchMendokusai
 				return;
 			}
 
+			if (type == NetMessageType.FULL)
+			{
+				// ★ 세계가 가득 찼다 (TASK-WM-349). 고장이 아니라 <b>상태</b>다 —
+				//   말없이 끊기면 사람은 자기 인터넷을 의심한다. 그리고 여기서 다시 붙으면
+				//   가득 찬 문을 계속 두드리는 꼴이라 <b>다시 붙기를 끈다</b>(밀려남과 같은 처리).
+				FullMessage full = JsonUtility.FromJson<FullMessage>(text);
+				Debug.LogWarning($"{nameof(WebWorldClient)}: 세계가 가득 찼다 — {full?.most ?? 0}명까지. 잠시 뒤 다시 오라.");
+				Kicked = true;
+				Disconnect();
+				return;
+			}
+
 			if (type == NetMessageType.DENIED)
 			{
 				// 거절도 대답이다 — 게임 창에서도 사람이 이유를 봐야 한다.
