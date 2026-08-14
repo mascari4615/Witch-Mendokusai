@@ -71,7 +71,14 @@ const MOST_ADDED_BY_LINE_MS = 3000;
 
 /** 3D 엔진(138KB)이 나쁜 회선으로 다 오기까지 — 세계에 들어간 시간과는 다른 값이다. */
 const MAX_ENGINE_MS = 20000;
-const MAX_RECOVER_MS = 15000;
+/**
+ * 끊긴 뒤 <b>사람 손 없이</b> 돌아오기까지.
+ * [문턱-사유] (c) 사람이 느끼는 선 — 「반 분 안에 알아서 돌아온다」.
+ * ⚠ 15초였는데 CI(2코어)에서 빨갰다(2026-08-14: 「15000ms 안에 못 돌아왔다」, 이 기계는 466ms).
+ *   다시 붙기는 0.5초에서 시작해 <b>10초까지</b> 늘어난다(link.mjs) — 느린 기계에서 한 번만 어긋나도
+ *   15초를 넘긴다. 그건 제품이 아니라 기계 몫이다(관문 규율 ④-2).
+ */
+const MAX_RECOVER_MS = 30000;
 
 function cannotRun(message) {
 	console.error(`[web-badline] CANNOT-RUN: ${message}`);
@@ -415,7 +422,7 @@ await page.evaluate(() => {
 badLine.cut();
 await page.waitForFunction(
 	() => (document.getElementById('status')?.textContent || '').includes('붙었다') === false,
-	null, { timeout: 15000 }).catch(() => { /* 아래 칸이 잡는다 */ });
+	null, { timeout: MAX_RECOVER_MS }).catch(() => { /* 아래 칸이 잡는다 */ });
 
 // ★ 끊긴 동안 눌러 보면 — 창이 터지지도, 조용히 무시하지도 않아야 한다 (TASK-WM-232).
 //   보내는 자리 열다섯 중 하나에 「줄이 열려 있나」 검사가 빠져 있었다: 끊긴 동안 그 줄을
