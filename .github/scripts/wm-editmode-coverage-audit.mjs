@@ -20,7 +20,13 @@ import { resolve, join } from 'node:path';
 const here = fileURLToPath(new URL('.', import.meta.url));
 const repo = resolve(here, '..', '..');
 const editMode = join(repo, 'Assets', '_WitchMendokusai', 'Tests', 'EditMode');
-const project = join(repo, 'Server', 'WM.Server.Tests', 'WM.Server.Tests.csproj');
+// ⚠ <b>도는 자리는 둘이다</b> (2026-08-14 실측): 서버 시험 묶음 말고 <b>엔진 밖 묶음</b>(Portable)도
+//   같은 EditMode 파일을 링크해서 CI 에서 돌린다(445개). 하나만 보고 세면 「자는 시험」이 부풀어
+//   빚을 실제보다 크게 적게 된다 — 자가 틀리면 래칫이 헛것을 지킨다(관문 규율 ⑧).
+const projects = [
+	join(repo, 'Server', 'WM.Server.Tests', 'WM.Server.Tests.csproj'),
+	join(repo, 'Portable', 'DomainSDK.Tests', 'DomainSDK.Tests.csproj'),
+];
 const baselinePath = join(here, 'wm-editmode-coverage-baseline.tsv');
 
 function cannotRun(message) {
@@ -29,7 +35,9 @@ function cannotRun(message) {
 }
 
 if (existsSync(editMode) === false) cannotRun(`시험 폴더를 못 찾았다 — ${editMode}`);
-if (existsSync(project) === false) cannotRun(`시험 묶음 파일을 못 찾았다 — ${project}`);
+for (const one of projects) {
+	if (existsSync(one) === false) cannotRun(`시험 묶음 파일을 못 찾았다 — ${one}`);
+}
 
 function everyFileUnder(folder) {
 	const found = [];
@@ -45,7 +53,7 @@ function everyFileUnder(folder) {
 const files = everyFileUnder(editMode);
 if (files.length === 0) cannotRun('시험 파일이 하나도 없다 — 이 자가 헛것을 보고 있다');
 
-const projectText = readFileSync(project, 'utf8');
+const projectText = projects.map((one) => readFileSync(one, 'utf8')).join(String.fromCharCode(10));
 
 /** csproj 가 그 파일을 걸었나 — 폴더째 건 것(<b>**</b>)과 한 파일씩 건 것 둘 다 본다. */
 function linkedIn(path) {
