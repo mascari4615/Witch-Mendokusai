@@ -319,6 +319,11 @@ jobs:
 
       # TASK-WM-364 -- EditMode 시험 1500여 개가 CI 에서 한 개도 안 돈다(유니티 라이선스).
       # 그중 유니티를 안 쓰는 것은 도는 자리로 데려올 수 있다 — 그 빚이 <b>늘지 않게</b> 잡는다.
+      # TASK-WM-366 -- 관문은 <b>돌아야</b> 관문이다. 파일만 있고 워크플로에 안 걸리면
+      # 그건 아무도 안 보는 글이고, 그 사실은 아무 데도 안 적힌다(초록으로 읽힌다).
+      - name: Run gate wiring audit
+        run: node ./.github/scripts/wm-gate-wiring-audit.mjs --strict
+
       - name: Run EditMode coverage audit
         run: node ./.github/scripts/wm-editmode-coverage-audit.mjs --strict
 
