@@ -268,8 +268,15 @@ namespace WitchMendokusai.Server
 				{
 					string[] files = System.IO.Directory.GetFiles(root, "*.*", System.IO.SearchOption.AllDirectories);
 					System.Array.Sort(files, System.StringComparer.Ordinal);
+					// ⚠ 크기만 보면 <b>같은 크기로 고친 판</b>을 못 알아본다(한 글자 바꿔치기).
+					//   파일은 몇 개뿐이고 다 작다 — 속을 통째로 넣고 도장을 찍는다.
 					for (int i = 0; i < files.Length; i++)
-						all.Append(System.IO.Path.GetFileName(files[i])).Append(':').Append(new System.IO.FileInfo(files[i]).Length).Append(';');
+					{
+						all.Append(System.IO.Path.GetFileName(files[i])).Append(':');
+						all.Append(System.Convert.ToHexString(
+							System.Security.Cryptography.SHA256.HashData(System.IO.File.ReadAllBytes(files[i]))));
+						all.Append(';');
+					}
 				}
 				catch (System.IO.IOException)
 				{
