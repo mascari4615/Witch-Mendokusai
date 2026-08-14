@@ -52,6 +52,7 @@ wm-come-back-storm-test.mjs		120
 wm-web-edge-flicker-test.mjs		150
 wm-buddy-next-to-me-test.mjs		120
 wm-see-each-other-test.mjs		110
+wm-cell-fits-radius-test.mjs		60
 wm-two-tabs-test.mjs		40
 wm-chest-race-test.mjs		40
 wm-broken-memory-test.mjs		40

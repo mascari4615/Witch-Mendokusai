@@ -659,6 +659,18 @@ namespace WitchMendokusai.Server
 					Console.WriteLine($"[zone] ⚠ 세계 이름이 같은 번호로 뭉개진다: {clash} — 국경에서 사람이 서로를 지운다");
 			}
 
+			// ★ <b>칸이 반경보다 크면 안 띄운다</b> (TASK-WM-402).
+			//   한 벌은 칸 한복판 기준으로 고르므로, 칸이 반경보다 크면 <b>둘 사이가 같아도 한쪽만 보는</b>
+			//   판이 생긴다(WM-401 이 그 대칭을 관문으로 박았다: 「나는 안 보이는데 상대는 나를 본다」).
+			//   칸 크기는 손으로 바꾸는 값(WM_INTEREST_CELL)이라 한 글자로 그 성질이 조용히 깨진다 —
+			//   <b>안 뜨는 것이 그 세계를 사는 것보다 낫다</b>(땅 겹침·기억 깨짐과 같은 규칙).
+			if (INTEREST_CELL_SIZE > PLAYER_INTEREST_RADIUS)
+			{
+				Console.WriteLine($"[world] 칸({INTEREST_CELL_SIZE}m)이 보이는 반경({PLAYER_INTEREST_RADIUS}m)보다 크다 — 세계를 안 띄운다.");
+				Console.WriteLine("[world]   그러면 같은 거리인데도 한쪽만 보는 사람이 생긴다(WM_INTEREST_CELL 을 줄여라).");
+				Environment.Exit(5);
+			}
+
 			// ★ 내 땅이 이웃 땅과 <b>겹치나</b> (TASK-WM-368) — 겹친 자리는 두 세계가 다 자기 것이라 우기는 자리다.
 			//   그 자리에 선 사람은 넘겨주기가 오락가락하며 왕복하거나, 최악에는 <b>둘로 늘어난다</b>.
 			//   땅은 손으로 적는 글자(WM_ZONE)라 오타 한 번이면 그렇게 된다 —
