@@ -1,0 +1,55 @@
+# 진짜 창(브라우저)으로 도는 관문 목록 — TASK-WM-369.
+#
+# 한 줄에 하나: <관문 파일>[	<그 관문만 필요한 env, 쉼표로>]
+# 워크플로가 이 목록을 <b>갈래로 나눠</b> 여러 러너에서 같이 돌린다(run-web-gates.mjs).
+# 관문을 새로 만들면 <b>여기 한 줄</b>만 더한다 — 워크플로는 안 고친다.
+wm-web-reconnect-smoke.mjs
+wm-web-crowd-smoke.mjs	WM_CROWD=40
+wm-honest-budget-test.mjs
+wm-gather-race-test.mjs
+wm-build-race-test.mjs
+wm-web-new-build-test.mjs
+wm-web-thaw-test.mjs
+wm-web-chest-test.mjs
+wm-web-frozen-door-test.mjs
+wm-frozen-neighbour-test.mjs
+wm-frozen-line-test.mjs
+wm-world-full-test.mjs
+wm-flood-budget-test.mjs
+wm-web-crowd-windows-test.mjs	WM_CROWD=40
+wm-web-smoothness-test.mjs
+wm-web-badline-test.mjs
+wm-web-narrow-line-test.mjs	WM_CROWD=40
+wm-web-herd-test.mjs	WM_HERD=40
+wm-web-map-only-test.mjs
+wm-web-border-test.mjs
+wm-web-strike-lag-test.mjs
+wm-web-beyond-test.mjs
+wm-web-say-test.mjs
+wm-web-crowd-badline-test.mjs
+wm-web-lead-test.mjs
+wm-web-contest-test.mjs
+wm-web-still-me-test.mjs
+wm-web-answer-test.mjs
+wm-web-build-test.mjs
+wm-server-soak-test.mjs	WM_SOAK_MS=90000
+wm-web-long-outage-test.mjs	WM_OUTAGE_MS=30000
+wm-web-alone-test.mjs
+wm-badline-strike-fairness-test.mjs
+wm-web-smooth-test.mjs
+wm-lost-action-test.mjs
+wm-red-walk-audit.mjs
+wm-pass-replay-test.mjs
+wm-two-tabs-test.mjs
+wm-chest-race-test.mjs
+wm-broken-memory-test.mjs
+wm-narrowed-news-test.mjs
+wm-ghost-trap-test.mjs
+wm-web-ghost-test.mjs
+wm-action-once-audit.mjs
+wm-border-cut-test.mjs
+wm-crash-durability-test.mjs
+wm-save-failure-test.mjs
+wm-web-many-windows-test.mjs
+wm-border-stampede-test.mjs
+wm-stale-sky-test.mjs

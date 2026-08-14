@@ -43,8 +43,20 @@ const yaml = readdirSync(workflows)
 
 if (yaml.length === 0) cannotRun('워크플로 글이 비었다');
 
+// ★ 진짜 창 관문은 <b>목록 파일</b>로 돈다 (TASK-WM-369) — 워크플로에는 갈래 한 줄만 있고,
+//   무엇을 도는지는 이 목록이 정한다. 그러니 목록에 있는 것도 「돌린다」로 친다.
+const webListPath = join(here, 'wm-web-gates.tsv');
+const webList = existsSync(webListPath) ? readFileSync(webListPath, 'utf8') : '';
+
 /** 그 관문을 <b>실제로 돌리는</b> 줄이 있나 — 이름만 적힌 트리거 목록은 안 친다. */
 function isRun(gate) {
+	// 목록에 <b>주석이 아닌 줄</b>로 적혀 있으면 갈래 러너가 돌린다.
+	for (const line of webList.split(String.fromCharCode(10))) {
+		const trimmed = line.trim();
+		if (trimmed.startsWith('#') || trimmed.length === 0) continue;
+		if (trimmed.split(String.fromCharCode(9))[0].trim() === gate) return true;
+	}
+
 	for (const line of yaml.split('\n')) {
 		if (line.includes(gate) === false) continue;
 
