@@ -33,7 +33,13 @@ namespace WitchMendokusai.Net
 		public const float SMOOTHING = 0.25f;
 
 		/// <summary>되감아 줄 수 있는 최대 (ms).</summary>
-		public const long MOST_REWIND_MS = 250;
+		/// <remarks>
+		/// 250 → <b>600</b> 으로 올렸다 (TASK-WM-405): 왕복 500ms 인 사람의 그림은 판정 순간
+		/// <b>500ms</b> 낡았는데 250 에서 잘리면 그 절반은 그대로 손해였다(달아나는 사람 쫓기 32%).
+		/// 발자국은 1초를 들고 있으므로(PastPlaces) 600 은 그 안이다.
+		/// ⚠ 더 올리지 않는 까닭: 되감을수록 <b>맞는 쪽</b>이 「이미 피했는데 맞았다」를 겪는다.
+		/// </remarks>
+		public const long MOST_REWIND_MS = 600;
 
 		/// <summary>이보다 긴 왕복은 안 믿는다 (ms) — 한참 전 도장을 얹어도 회선으로 안 쳐 준다.</summary>
 		public const long MOST_BELIEVABLE_MS = 5000;

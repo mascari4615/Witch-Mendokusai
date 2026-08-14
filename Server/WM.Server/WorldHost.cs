@@ -1539,6 +1539,30 @@ namespace WitchMendokusai.Server
 			return false;
 		}
 
+		/// <summary>
+		/// 이 손짓을 낸 사람이 보고 있던 그림은 <b>얼마나 낡았나</b> (TASK-WM-405).
+		///
+		/// ★ 창이 얹어 준 도장(ack)이 있으면 그걸로 <b>정확히</b> 잰다 — 어림(왕복의 절반)이 아니다.
+		///   도장이 없으면 옛길(회선으로 어림)로 돌아간다.
+		/// ⚠ 위로 <see cref="WitchMendokusai.Net.LineTime.MOST_REWIND_MS"/> 까지만 되감는다:
+		///   더 되감으면 「모퉁이에 숨었는데 맞았다」가 커진다 — 맞는 쪽의 억울함도 값이다.
+		/// </summary>
+		private long ViewAgeMs(JsonElement root, int dollId)
+		{
+			if (root.TryGetProperty("ack", out JsonElement stamp) && stamp.ValueKind == JsonValueKind.Number)
+			{
+				long age = System.Environment.TickCount64 - (long)stamp.GetDouble();
+				if (age < 0)
+					age = 0;
+
+				return age > WitchMendokusai.Net.LineTime.MOST_REWIND_MS
+					? WitchMendokusai.Net.LineTime.MOST_REWIND_MS
+					: age;
+			}
+
+			return lineTime.RewindMsFor(dollId);
+		}
+
 		/// <summary>창이 얹어 보낸 <b>세계의 도장</b>으로 그 사람의 회선을 잰다 (TASK-WM-303).</summary>
 		private void HearLine(int dollId, JsonElement root)
 		{
@@ -1620,7 +1644,13 @@ namespace WitchMendokusai.Server
 					// ★ 판정은 <b>때린 사람이 보고 있던 순간</b>으로 되감아 한다 (TASK-WM-303).
 					//   회선이 먼 사람은 옛 화면을 보고 휘두른다 — 지금 자리로만 재면 그 사람만 계속 헛친다
 					//   (실측: 같은 싸움에 곧은 회선 46번 · 지연 250ms 70번).
-					long rewindMs = lineTime.RewindMsFor(dollId);
+					// ★ 되감는 만큼은 <b>그 손짓에 얹힌 도장</b>으로 잰다 (TASK-WM-405).
+					//   전에는 왕복의 <b>절반</b>으로 어림했다 — 그런데 때리는 이가 보고 있던 그림은
+					//   ① 여기까지 오는 데 한 번, ② 그 손짓이 돌아오는 데 또 한 번 늦는다.
+					//   즉 판정하는 순간 그 그림은 <b>왕복만큼</b> 낡았다. 절반만 되감으면 나머지 절반은
+					//   그대로 손해다 — 달아나는 사람을 쫓을 때 나쁜 회선이 곧은 회선의 <b>32%</b> 밖에
+					//   못 맞혔다(WM-405 실측). 창이 「내가 본 마지막 도장」을 얹어 주므로 어림할 것도 없다.
+					long rewindMs = ViewAgeMs(root, dollId);
 					WitchMendokusai.Net.StrikeRule.Denial why = World.TryStrike(dollId, targetId,
 						System.Environment.TickCount64, pastPlaces, rewindMs, out int healthLeft, out bool wentDown);
 					if (why != WitchMendokusai.Net.StrikeRule.Denial.None)
