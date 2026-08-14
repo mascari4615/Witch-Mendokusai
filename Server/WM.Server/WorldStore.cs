@@ -170,6 +170,13 @@ namespace WitchMendokusai.Server
 			}
 		}
 
+		/// <summary>
+		/// 이 세계가 아는 기억의 판 (TASK-WM-360) — 적을 때 여기 것을 적고, 읽을 때 이보다 <b>새것이면</b> 안 읽는다.
+		/// 칸을 더하는 것은 판을 안 올려도 된다(옛 세계가 모르는 칸을 버려도 잃는 게 없다).
+		/// <b>칸의 뜻이 바뀌거나 사라질 때</b> 올린다 — 그때가 옛 세계가 읽으면 안 되는 때다.
+		/// </summary>
+		public const int KNOWN_SAVE_VERSION = 1;
+
 		private static WorldSaveData TryReadFile(string path)
 		{
 			try
@@ -178,7 +185,19 @@ namespace WitchMendokusai.Server
 					return null;
 
 				string json = File.ReadAllText(path);
-				return JsonSerializer.Deserialize<WorldSaveData>(json, options);
+				WorldSaveData read = JsonSerializer.Deserialize<WorldSaveData>(json, options);
+				if (read == null)
+					return null;
+
+				// ★ <b>새 세계가 적은 기억을 옛 세계가 읽지 않는다</b> (TASK-WM-360).
+				//   읽어 봐야 모르는 칸을 버릴 뿐이고, 그 반쪽짜리가 곧 원본을 덮는다.
+				if (read.saveVersion > KNOWN_SAVE_VERSION)
+				{
+					Console.WriteLine($"[world] 이 기억은 <더 새로운 세계>가 적었다(판 {read.saveVersion} > 내가 아는 {KNOWN_SAVE_VERSION}) — 안 읽는다: {path}");
+					return null;
+				}
+
+				return read;
 			}
 			catch (Exception error) when (error is IOException || error is JsonException || error is UnauthorizedAccessException)
 			{
@@ -195,6 +214,9 @@ namespace WitchMendokusai.Server
 		{
 			if (data == null)
 				return false;
+
+			// 적을 때는 늘 <b>내가 아는 판</b>을 적는다 — 그래야 다음에 누가 읽어도 어느 판인지 안다.
+			data.saveVersion = KNOWN_SAVE_VERSION;
 
 			lock (gate)
 			{

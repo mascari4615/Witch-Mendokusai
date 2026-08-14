@@ -49,6 +49,16 @@ namespace WitchMendokusai
 	[Serializable]
 	public class WorldSaveData
 	{
+		/// <summary>
+		/// 이 기억이 <b>어느 판의 세계</b>가 적은 것인가 (TASK-WM-360).
+		///
+		/// ★ 왜 필요한가: 지금은 판 번호가 없어서, <b>새 세계가 적은 기억</b>을 <b>옛 세계</b>가 읽으면
+		///   모르는 칸을 조용히 버리고 그대로 뜬다 — 그리고 5초 뒤 <b>그 반쪽짜리를 원본 위에 덮는다</b>.
+		///   되돌리기(배포 롤백) 한 번이 기억 파괴가 되는 길이다. 안 뜨는 것이 잃는 것보다 낫다(WM-333).
+		/// ⚠ 0 = 판 번호가 없던 시절의 기억이다(그건 읽는다 — 그때는 칸이 더 적었을 뿐이다).
+		/// </summary>
+		public int saveVersion;
+
 		public BuildingSaveData[] buildings = Array.Empty<BuildingSaveData>();
 
 		// 세계의 시각 — 껐다 켰더니 다시 아침이면 그건 이어진 세계가 아니다.
