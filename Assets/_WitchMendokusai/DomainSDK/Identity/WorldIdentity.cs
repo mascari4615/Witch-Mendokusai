@@ -669,6 +669,13 @@ namespace WitchMendokusai.Identity
 					if (ownsSomething != null && ownsSomething(person.id))
 						continue;
 
+					// ★ <b>이름을 지은 사람은 안 지운다</b> (TASK-WM-363).
+					//   이름은 「나 여기 산다」는 표시다 — 가방이 비었고 아직 한 걸음도 안 걸었어도,
+					//   그 이름으로 남들이 그를 부른다(말풍선·이름표에 남아 있다). 지우면 다음에 왔을 때
+					//   <b>남이 된다</b>(열쇠가 안 통하고 이름도 없다). 장부가 조금 커지는 것보다 그게 나쁘다.
+					if (string.IsNullOrEmpty(person.name) == false)
+						continue;
+
 					doomed.Add(person);
 				}
 
