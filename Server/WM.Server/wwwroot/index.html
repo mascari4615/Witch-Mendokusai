@@ -1689,6 +1689,70 @@ function drawCraftPicker() {
 }
 
 /** 가방 — 번호가 아니라 이름으로 보인다(낱말표를 못 받았으면 번호로 버틴다). */
+// ★ <b>한 번에 몇 개를 옮기나</b> (TASK-WM-359). 1 → 10 → 전부 로 돈다.
+//   상자질은 스무 번 누르는 일이 되기 쉽다 — 그 지루함이 곧 「안 쓰는 기능」이 된다.
+let chestBatch = 1;
+
+/** 가진 만큼 안에서, 지금 고른 묶음만큼. */
+function HowMany(have) {
+	if (chestBatch === 0) return have;   // 0 = 전부
+	return Math.min(chestBatch, have);
+}
+
+/**
+ * 열어 둔 상자를 그린다 (TASK-WM-359).
+ *
+ * ⚠ 이 함수는 <b>없었다</b>: 상자 소식이 오면 `drawChest is not defined` 로 창이 조용히 터졌고,
+ *   그래서 웹 창에서는 상자를 <b>아예 못 썼다</b>(칸도 안 열렸다). 봇 관문은 마디로만 겨뤄서
+ *   이 자리를 못 봤다 — 사람이 쓰는 길은 사람처럼 눌러 봐야 보인다.
+ */
+function drawChest() {
+	const box = document.getElementById('chestbox');
+	const host = document.getElementById('chest');
+	const where = document.getElementById('chestwhere');
+
+	if (openChest === null) {
+		box.style.display = 'none';
+		return;
+	}
+
+	box.style.display = '';
+	where.textContent = `${openChest.x}, ${openChest.z} 의 상자 — 눌러서 꺼내기`;
+	host.textContent = '';
+
+	if (chestItems.length === 0) {
+		const empty = document.createElement('div');
+		empty.className = 'empty';
+		empty.textContent = '비었다';
+		host.appendChild(empty);
+		return;
+	}
+
+	for (const entry of chestItems) {
+		const row = document.createElement('div');
+		row.className = 'row';
+
+		const name = document.createElement('span');
+		// textContent 로 넣는다 — 이름은 사람이 지은 글자라, 그림표로 읽히면 안 된다.
+		name.textContent = itemNames[entry.itemId] || `#${entry.itemId}`;
+
+		const amount = document.createElement('span');
+		amount.className = 'amount';
+		amount.textContent = entry.amount;
+
+		row.appendChild(name);
+		row.appendChild(amount);
+		row.style.cursor = 'pointer';
+		row.title = '눌러서 꺼내기';
+		row.addEventListener('click', () => {
+			if (openChest === null) return;
+			doAction({ type: 'chesttake', x: openChest.x, y: openChest.y, z: openChest.z, itemId: entry.itemId, amount: HowMany(entry.amount) });
+		});
+
+		host.appendChild(row);
+	}
+}
+
 function drawBag() {
 	const host = document.getElementById('bag');
 	host.textContent = '';
@@ -2289,6 +2353,21 @@ document.getElementById('make').addEventListener('click', () => {
 	// 되나 안 되나는 세계가 정한다 — 창은 「이 줄대로 만들겠다」만 말한다.
 	if (pickedRecipe === null) return;
 	doAction({ type: 'craft', recipeId: pickedRecipe });
+});
+
+// ── 상자 손잡이 (TASK-WM-359) ─────────────────────────────────────────
+//   ⚠ 이 둘도 <b>안 이어져 있었다</b> — 칸은 있는데 누르면 아무 일도 안 났다.
+document.getElementById('chestclose').addEventListener('click', () => {
+	openChest = null;
+	chestItems = [];
+	drawChest();
+	statusElement.textContent = '상자를 닫았다';
+});
+
+document.getElementById('chestamount').addEventListener('click', () => {
+	chestBatch = chestBatch === 1 ? 10 : (chestBatch === 10 ? 0 : 1);
+	document.getElementById('chestamount').textContent =
+		chestBatch === 0 ? '한 번에: 전부' : `한 번에: ${chestBatch}개`;
 });
 
 document.getElementById('stir').addEventListener('click', () => {
