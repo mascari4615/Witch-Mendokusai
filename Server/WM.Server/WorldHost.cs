@@ -930,6 +930,7 @@ namespace WitchMendokusai.Server
 			//   들어오는 길은 세계에서 가장 조급한 자리다 — 거기서 할 일이 아니다.
 			_ = WindowStamp;
 
+			LoadLandedOutbox();
 			Identities.Load(loaded?.identities);
 			int restored = World.Load(loaded, ItemsCatalog);
 			savedAtWorldMinute = World.Calendar.TotalMinutes();
@@ -3188,7 +3189,9 @@ namespace WitchMendokusai.Server
 			if (string.IsNullOrEmpty(mark))
 				return;
 
-			long nowMs = System.Environment.TickCount64;
+			// ⚠ 벽시계로 적는다 — 켜진 뒤 흐른 시간(TickCount64)은 <b>껐다 켜면 0으로 돌아간다</b>.
+			long nowMs = System.DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+			bool changed = false;
 			foreach ((WitchMendokusai.Net.ZonePatch Patch, string Address) land in neighbours.Lands)
 			{
 				if (await SendToPeerAsync(land.Address, Protocol.Landed(World.Patch.Name, BorderSeal(World.Patch.Name), mark)))
@@ -3198,7 +3201,11 @@ namespace WitchMendokusai.Server
 				//   그 사이 도착 소식을 흘리면 그 사람은 저쪽 세계에 <b>그대로 남는다</b>(가방 두 벌).
 				landedToTell.GetOrAdd(land.Address,
 					(string _) => new System.Collections.Concurrent.ConcurrentDictionary<string, long>())[mark] = nowMs;
+				changed = true;
 			}
+
+			if (changed)
+				SaveLandedOutbox();
 		}
 
 		/// <summary>
@@ -3210,19 +3217,101 @@ namespace WitchMendokusai.Server
 			if (landedToTell.TryGetValue(address, out System.Collections.Concurrent.ConcurrentDictionary<string, long> waiting) == false)
 				return;
 
-			long nowMs = System.Environment.TickCount64;
+			long nowMs = System.DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+			bool changed = false;
 			foreach (System.Collections.Generic.KeyValuePair<string, long> one in waiting)
 			{
 				// 너무 오래된 소식은 놓는다 — 안 그러면 안 이어지는 이웃 앞에서 끝없이 쌓인다.
 				if (nowMs - one.Value > LANDED_PATIENCE_MS)
 				{
 					waiting.TryRemove(one.Key, out long _);
+					changed = true;
 					Console.WriteLine("[zone] 도착 소식을 너무 오래 못 보냈다 — 놓는다");
 					continue;
 				}
 
 				if (await SendToPeerAsync(address, Protocol.Landed(World.Patch.Name, BorderSeal(World.Patch.Name), one.Key)))
+				{
 					waiting.TryRemove(one.Key, out long _);
+					changed = true;
+				}
+			}
+
+			if (changed)
+				SaveLandedOutbox();
+		}
+
+		/// <summary>도착 소식 장부가 적히는 자리 — 세계 기억 <b>옆</b>에 둔다(같이 옮겨 다니게).</summary>
+		private string LandedOutboxPath => store.Path + ".landed.json";
+
+		/// <summary>
+		/// 아직 못 보낸 도착 소식을 <b>적어 둔다</b> (TASK-WM-381).
+		///
+		/// ★ 왜 기억만으로는 안 되나: 이 소식은 「저 세계에서 그 사람을 놓아라」는 <b>한 번뿐인</b> 말이다.
+		///   못 보낸 채 이 세계가 껐다 켜지면 그 사람은 영영 두 세계에 남는다(가방 두 벌).
+		///   배포는 자주 있고 이웃 줄은 자주 끊긴다 — 그 둘이 겹치는 것은 드문 일이 아니다.
+		/// </summary>
+		private void SaveLandedOutbox()
+		{
+			try
+			{
+				System.Collections.Generic.List<string> rows = new System.Collections.Generic.List<string>();
+				foreach (System.Collections.Generic.KeyValuePair<string,
+					System.Collections.Concurrent.ConcurrentDictionary<string, long>> door in landedToTell)
+				{
+					foreach (System.Collections.Generic.KeyValuePair<string, long> one in door.Value)
+					{
+						rows.Add("{\"address\":" + JsonSerializer.Serialize(door.Key)
+							+ ",\"mark\":" + JsonSerializer.Serialize(one.Key)
+							+ ",\"atMs\":" + one.Value + "}");
+					}
+				}
+
+				string text = "{\"waiting\":[" + string.Join(",", rows) + "]}";
+
+				// 반쯤 쓰다 만 파일을 남기지 않는다 — 옆에 쓰고 갈아 끼운다.
+				string beside = LandedOutboxPath + ".tmp";
+				System.IO.File.WriteAllText(beside, text, Encoding.UTF8);
+				System.IO.File.Move(beside, LandedOutboxPath, true);
+			}
+			catch (System.Exception error)
+			{
+				Console.WriteLine("[zone] 도착 소식 장부를 못 적었다 — " + error.Message);
+			}
+		}
+
+		/// <summary>적어 둔 도착 소식을 되살린다 — 뜨자마자 이웃 루프가 보낸다.</summary>
+		private void LoadLandedOutbox()
+		{
+			try
+			{
+				if (System.IO.File.Exists(LandedOutboxPath) == false)
+					return;
+
+				using JsonDocument document = JsonDocument.Parse(System.IO.File.ReadAllText(LandedOutboxPath, Encoding.UTF8));
+				if (document.RootElement.TryGetProperty("waiting", out JsonElement waiting) == false)
+					return;
+
+				int count = 0;
+				foreach (JsonElement one in waiting.EnumerateArray())
+				{
+					string address = one.TryGetProperty("address", out JsonElement door) ? door.GetString() : null;
+					string mark = one.TryGetProperty("mark", out JsonElement who) ? who.GetString() : null;
+					long atMs = one.TryGetProperty("atMs", out JsonElement when) ? when.GetInt64() : 0;
+					if (string.IsNullOrEmpty(address) || string.IsNullOrEmpty(mark))
+						continue;
+
+					landedToTell.GetOrAdd(address,
+						(string _) => new System.Collections.Concurrent.ConcurrentDictionary<string, long>())[mark] = atMs;
+					count += 1;
+				}
+
+				if (count > 0)
+					Console.WriteLine($"[zone] 아직 못 보낸 도착 소식 {count}건을 되살렸다");
+			}
+			catch (System.Exception error)
+			{
+				Console.WriteLine("[zone] 도착 소식 장부를 못 읽었다 — " + error.Message);
 			}
 		}
 

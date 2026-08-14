@@ -43,6 +43,7 @@ wm-red-walk-audit.mjs		40
 wm-pass-replay-test.mjs		40
 wm-stay-and-go-test.mjs		60
 wm-late-neighbour-test.mjs		80
+wm-landed-outbox-test.mjs		100
 wm-two-tabs-test.mjs		40
 wm-chest-race-test.mjs		40
 wm-broken-memory-test.mjs		40
