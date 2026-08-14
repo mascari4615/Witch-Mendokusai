@@ -120,6 +120,10 @@ await wait(PLAY_MS);
 clearInterval(walking);
 
 const after = await health();
+// 쓰레기를 얼마나 만드나 — 기억이 얼마나 「들려 있나」보다 이쪽이 진짜 신호다(WM-388).
+console.log(`  ⓘ 만든 쓰레기 ${after.allocatedMegabytes}MB · gen0 ${after.gcGen0} · gen2 ${after.gcGen2}`
+	+ ` · GC 멈춤 ${after.gcPausePercent}% · 방송 바이트 ${after.broadcastSnapshotBytes}`
+	+ ` · 지은 그림 ${after.builtSnapshots} / 보낸 말 ${after.broadcastSnapshotMessages}`);
 const gone = bots.filter((one) => one.closed).length;
 const plates = bots.map((one) => one.plates).sort((a, b) => a - b);
 const fewest = plates[0];

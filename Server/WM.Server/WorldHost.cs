@@ -2997,8 +2997,15 @@ namespace WitchMendokusai.Server
 			public SemaphoreSlim Turn { get; } = new SemaphoreSlim(1, 1);
 		}
 
-		/// <summary>도착 소식을 들고 있는 시간 (TASK-WM-378) — 이만큼 지나도 못 보내면 놓는다.</summary>
-		private const int LANDED_PATIENCE_MS = 10 * 60 * 1000;
+		/// <summary>
+		/// 들고 있을 수 있는 도착 소식 수 (TASK-WM-388) — <b>시간으로 안 자른다</b>.
+		///
+		/// ★ 왜 시간을 버렸나: 처음엔 10분이었다(WM-378). 그런데 이 소식이 못 가면 그 사람은
+		///   <b>두 세계에 남는다</b>(가방 두 벌) — 10분은 「그 뒤로는 복제를 받아들인다」는 뜻이었다.
+		///   이웃이 하루를 꺼져 있어도 소식은 <b>여전히 옳다</b>(그 사람은 여기 도착했다).
+		///   한 줄은 백 바이트 남짓이라 들고 있는 값이 싸다 — 그러니 <b>수</b>로만 막는다(기억 폭주 방지).
+		/// </summary>
+		private const int MOST_LANDED_WAITING = 10000;
 
 		/// <summary>아직 못 보낸 도착 소식 — 이웃 주소마다 「이름표 → 언제 생겼나」.</summary>
 		private readonly System.Collections.Concurrent.ConcurrentDictionary<string,
@@ -3223,9 +3230,31 @@ namespace WitchMendokusai.Server
 
 				// ★ 못 나갔다 — <b>들고 있는다</b> (TASK-WM-378). 이웃은 껐다 켜지고 줄은 늦게 이어진다.
 				//   그 사이 도착 소식을 흘리면 그 사람은 저쪽 세계에 <b>그대로 남는다</b>(가방 두 벌).
-				landedToTell.GetOrAdd(land.Address,
-					(string _) => new System.Collections.Concurrent.ConcurrentDictionary<string, long>())[mark] = nowMs;
+				System.Collections.Concurrent.ConcurrentDictionary<string, long> waiting = landedToTell.GetOrAdd(land.Address,
+					(string _) => new System.Collections.Concurrent.ConcurrentDictionary<string, long>());
+				waiting[mark] = nowMs;
 				changed = true;
+
+				// 이웃이 아주 오래 죽어 있으면 여기 쌓인다 — <b>가장 오래된 것부터</b> 놓는다(기억 폭주 방지).
+				while (waiting.Count > MOST_LANDED_WAITING)
+				{
+					string oldest = null;
+					long oldestAtMs = long.MaxValue;
+					foreach (System.Collections.Generic.KeyValuePair<string, long> row in waiting)
+					{
+						if (row.Value >= oldestAtMs)
+							continue;
+
+						oldest = row.Key;
+						oldestAtMs = row.Value;
+					}
+
+					if (oldest == null)
+						break;
+
+					waiting.TryRemove(oldest, out long _);
+					Console.WriteLine($"[zone] 도착 소식이 {MOST_LANDED_WAITING}건을 넘었다 — 가장 오래된 것을 놓는다");
+				}
 			}
 
 			if (changed)
@@ -3241,19 +3270,9 @@ namespace WitchMendokusai.Server
 			if (landedToTell.TryGetValue(address, out System.Collections.Concurrent.ConcurrentDictionary<string, long> waiting) == false)
 				return;
 
-			long nowMs = System.DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
 			bool changed = false;
 			foreach (System.Collections.Generic.KeyValuePair<string, long> one in waiting)
 			{
-				// 너무 오래된 소식은 놓는다 — 안 그러면 안 이어지는 이웃 앞에서 끝없이 쌓인다.
-				if (nowMs - one.Value > LANDED_PATIENCE_MS)
-				{
-					waiting.TryRemove(one.Key, out long _);
-					changed = true;
-					Console.WriteLine("[zone] 도착 소식을 너무 오래 못 보냈다 — 놓는다");
-					continue;
-				}
-
 				if (await SendToPeerAsync(address, Protocol.Landed(World.Patch.Name, BorderSeal(World.Patch.Name), one.Key)))
 				{
 					waiting.TryRemove(one.Key, out long _);

@@ -13,7 +13,9 @@
 // exit: 0 = 초록 <b>또는</b> 못 쟀다(경고) · 1 = 빨강 · 2 = 부를 것을 못 찾음
 
 import { spawn } from 'node:child_process';
-import { existsSync } from 'node:fs';
+import { existsSync, readdirSync, statSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 
 const [target, ...rest] = process.argv.slice(2);
 
@@ -26,6 +28,29 @@ if (existsSync(target) === false) {
 	console.error(`[run-gate] 그런 관문이 없다: ${target}`);
 	process.exit(2);
 }
+
+// ★ <b>지난 판이 흘린 무대를 치운다</b> (TASK-WM-388).
+//   관문마다 무대(세계 한 벌 + 기억 파일)를 임시 폴더에 새로 짓는다 — 한 판이 백 MB 남짓이고
+//   <b>아무도 안 치웠다</b>. 실측 2026-08-14: 임시 폴더에 `wm-*` 가 <b>1882개</b> 쌓여 있었고
+//   그 자리에서 빌드가 「디스크 공간이 부족합니다」로 죽었다(관문이 개발을 멈춰 세운 것이다).
+//   두 시간 지난 것만 지운다 — 지금 도는 다른 판의 무대를 뺏지 않으려고.
+function sweepOldStages() {
+	try {
+		const bin = tmpdir();
+		const tooOld = Date.now() - 2 * 60 * 60 * 1000;
+		for (const name of readdirSync(bin)) {
+			if (name.startsWith('wm-') === false) continue;
+
+			const path = join(bin, name);
+			try {
+				if (statSync(path).mtimeMs > tooOld) continue;
+				rmSync(path, { recursive: true, force: true });
+			} catch { /* 남이 쓰는 중이거나 이미 없다 */ }
+		}
+	} catch { /* 못 치워도 관문은 돈다 */ }
+}
+
+sweepOldStages();
 
 const child = spawn(process.execPath, [target, ...rest], { stdio: 'inherit' });
 
