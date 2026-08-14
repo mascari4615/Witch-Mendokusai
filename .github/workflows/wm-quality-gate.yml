@@ -317,6 +317,11 @@ jobs:
       - name: Run gather race test
         run: node ./.github/scripts/run-gate.mjs ./.github/scripts/wm-gather-race-test.mjs
 
+      # TASK-WM-364 -- EditMode 시험 1500여 개가 CI 에서 한 개도 안 돈다(유니티 라이선스).
+      # 그중 유니티를 안 쓰는 것은 도는 자리로 데려올 수 있다 — 그 빚이 <b>늘지 않게</b> 잡는다.
+      - name: Run EditMode coverage audit
+        run: node ./.github/scripts/wm-editmode-coverage-audit.mjs --strict
+
       - name: Run build race test
         run: node ./.github/scripts/run-gate.mjs ./.github/scripts/wm-build-race-test.mjs
 
