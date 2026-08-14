@@ -13,6 +13,7 @@
 // exit: 0 = 초록 <b>또는</b> 못 쟀다(경고) · 1 = 빨강 · 2 = 부를 것을 못 찾음
 
 import { spawn } from 'node:child_process';
+import { createServer } from 'node:net';
 import { existsSync, readdirSync, statSync, rmSync } from 'node:fs';
 import { tmpdir, homedir } from 'node:os';
 import { join } from 'node:path';
@@ -51,6 +52,39 @@ function sweepOldStages() {
 }
 
 sweepOldStages();
+
+// ★ <b>빈 자리를 찾아 준다</b> (TASK-WM-403). 관문마다 기본 문 번호가 박혀 있어 두 가지가 났다:
+//   ① 관문과 서버 시험이 <b>같은 번호</b>를 써서 서로를 죽였다(실측 2026-08-14: 시험 하나가 빨갰다가
+//      다시 돌리니 초록 — 그때 관문이 같은 번호로 세계를 띄우고 있었다).
+//   ② 윈도우가 <b>막아 둔 번호 구간</b>에 걸리면 「세계가 안 떴다」로 CANNOT-RUN 이 났다(여러 번).
+//   그러니 여기서 <b>실제로 열어 보고</b> 비어 있는 자리를 골라 준다. 관문들이 옆 번호도 쓰므로(문+1, 문+2)
+//   여덟 자리가 연달아 비어 있는 곳을 고른다. 밖에서 정해 줬으면 그 값을 그대로 쓴다.
+async function freePort(howMany = 8) {
+	for (let turn = 0; turn < 40; turn += 1) {
+		const base = 5300 + Math.floor(Math.random() * 200) * 10;
+		let allFree = true;
+		for (let step = 0; step < howMany && allFree; step += 1) {
+			allFree = await new Promise((done) => {
+				const door = createServer();
+				door.once('error', () => done(false));
+				door.listen(base + step, '127.0.0.1', () => door.close(() => done(true)));
+			});
+		}
+
+		if (allFree)
+			return base;
+	}
+
+	return 0;
+}
+
+if (process.env.WM_SMOKE_PORT === undefined) {
+	const base = await freePort();
+	if (base > 0) {
+		process.env.WM_SMOKE_PORT = String(base);
+		console.log(`[run-gate] 빈 문 ${base}~${base + 7} 을 골랐다`);
+	}
+}
 
 // ★ <b>이 기계에도 브라우저가 있으면 쓴다</b> (TASK-WM-393).
 //   브라우저 관문은 여태 CI 에서만 돌았다(`WM_PLAYWRIGHT_ROOT` 가 없으면 CANNOT-RUN) —
