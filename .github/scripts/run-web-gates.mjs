@@ -41,16 +41,26 @@ const gates = readFileSync(listPath, 'utf8').split('\n')
 	.map((line) => line.trim())
 	.filter((line) => line.length > 0 && line.startsWith('#') === false)
 	.map((line) => {
-		const [file, env = ''] = line.split('\t');
-		return { file: file.trim(), env: env.trim() };
+		const [file, env = '', weight = ''] = line.split('\t');
+		return { file: file.trim(), env: env.trim(), weight: Number(weight.trim()) || 40 };
 	});
 
 if (gates.length === 0) cannotRun('목록에 관문이 하나도 없다 — 이 자가 헛것을 보고 있다');
 
-// 갈래 나누기는 <b>돌아가며</b>(1,4,7… / 2,5,8…) — 무거운 관문이 한 갈래에 몰리지 않게.
-const mine = gates.filter((one, at) => at % of === (shard - 1));
+// ★ <b>무게로</b> 나눈다 (TASK-WM-375). 돌아가며 나눴더니 갈래가 229~492초로 벌어졌다 —
+// 벽시계는 <b>가장 무거운 갈래</b>이므로 그 편차가 곧 기다리는 시간이다.
+// 무거운 것부터 <b>지금 제일 가벼운 갈래</b>에 얹는다(고전적인 LPT).
+const buckets = Array.from({ length: of }, () => ({ total: 0, gates: [] }));
+for (const one of [...gates].sort((left, right) => right.weight - left.weight)) {
+	const lightest = buckets.reduce((a, b) => (a.total <= b.total ? a : b));
+	lightest.gates.push(one);
+	lightest.total += one.weight;
+}
 
-console.log(`[갈래] ${shard}/${of} — 관문 ${mine.length}개 (전체 ${gates.length}개)`);
+const mine = buckets[shard - 1].gates;
+
+console.log(`[갈래] ${shard}/${of} — 관문 ${mine.length}개 · 어림 무게 ${buckets[shard - 1].total}초`
+	+ ` (전체 ${gates.length}개 · 갈래별 ${buckets.map((one) => one.total).join('/')}초)`);
 for (const one of mine) console.log(`  · ${one.file}${one.env ? ` (${one.env})` : ''}`);
 
 if (process.argv.includes('--list')) process.exit(0);

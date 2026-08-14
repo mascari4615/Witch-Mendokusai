@@ -3,54 +3,55 @@
 # 한 줄에 하나: <관문 파일>[	<그 관문만 필요한 env, 쉼표로>]
 # 워크플로가 이 목록을 <b>갈래로 나눠</b> 여러 러너에서 같이 돌린다(run-web-gates.mjs).
 # 관문을 새로 만들면 <b>여기 한 줄</b>만 더한다 — 워크플로는 안 고친다.
-wm-web-reconnect-smoke.mjs
-wm-web-crowd-smoke.mjs	WM_CROWD=40
-wm-honest-budget-test.mjs
-wm-gather-race-test.mjs
-wm-build-race-test.mjs
-wm-web-new-build-test.mjs
-wm-web-thaw-test.mjs
-wm-web-chest-test.mjs
-wm-web-frozen-door-test.mjs
-wm-frozen-neighbour-test.mjs
-wm-frozen-line-test.mjs
-wm-world-full-test.mjs
-wm-flood-budget-test.mjs
-wm-web-crowd-windows-test.mjs	WM_CROWD=40
-wm-web-smoothness-test.mjs
-wm-web-badline-test.mjs
-wm-web-narrow-line-test.mjs	WM_CROWD=40
-wm-web-herd-test.mjs	WM_HERD=40
-wm-web-map-only-test.mjs
-wm-web-border-test.mjs
-wm-web-strike-lag-test.mjs
-wm-web-beyond-test.mjs
-wm-web-say-test.mjs
-wm-web-crowd-badline-test.mjs
-wm-web-lead-test.mjs
-wm-web-contest-test.mjs
-wm-web-still-me-test.mjs
-wm-web-answer-test.mjs
-wm-web-build-test.mjs
-wm-server-soak-test.mjs	WM_SOAK_MS=90000
-wm-web-long-outage-test.mjs	WM_OUTAGE_MS=30000
-wm-web-alone-test.mjs
-wm-badline-strike-fairness-test.mjs
-wm-web-smooth-test.mjs
-wm-lost-action-test.mjs
-wm-red-walk-audit.mjs
-wm-pass-replay-test.mjs
-wm-two-tabs-test.mjs
-wm-chest-race-test.mjs
-wm-broken-memory-test.mjs
-wm-narrowed-news-test.mjs
-wm-ghost-trap-test.mjs
-wm-web-ghost-test.mjs
-wm-action-once-audit.mjs
-wm-border-cut-test.mjs
-wm-crash-durability-test.mjs
-wm-save-failure-test.mjs
-wm-web-many-windows-test.mjs
-wm-border-stampede-test.mjs
-wm-stale-sky-test.mjs
-wm-ops-door-test.mjs
+# 셋째 칸 = <b>얼마나 무거운가</b>(초, 어림). 갈래를 무게로 나누는 데 쓴다 (TASK-WM-375).
+wm-web-reconnect-smoke.mjs		40
+wm-web-crowd-smoke.mjs	WM_CROWD=40	90
+wm-honest-budget-test.mjs		70
+wm-gather-race-test.mjs		60
+wm-build-race-test.mjs		60
+wm-web-new-build-test.mjs		150
+wm-web-thaw-test.mjs		90
+wm-web-chest-test.mjs		40
+wm-web-frozen-door-test.mjs		70
+wm-frozen-neighbour-test.mjs		180
+wm-frozen-line-test.mjs		80
+wm-world-full-test.mjs		70
+wm-flood-budget-test.mjs		70
+wm-web-crowd-windows-test.mjs	WM_CROWD=40	110
+wm-web-smoothness-test.mjs		70
+wm-web-badline-test.mjs		60
+wm-web-narrow-line-test.mjs	WM_CROWD=40	90
+wm-web-herd-test.mjs	WM_HERD=40	90
+wm-web-map-only-test.mjs		40
+wm-web-border-test.mjs		40
+wm-web-strike-lag-test.mjs		40
+wm-web-beyond-test.mjs		40
+wm-web-say-test.mjs		40
+wm-web-crowd-badline-test.mjs		110
+wm-web-lead-test.mjs		70
+wm-web-contest-test.mjs		40
+wm-web-still-me-test.mjs		40
+wm-web-answer-test.mjs		40
+wm-web-build-test.mjs		40
+wm-server-soak-test.mjs	WM_SOAK_MS=90000	120
+wm-web-long-outage-test.mjs	WM_OUTAGE_MS=30000	120
+wm-web-alone-test.mjs		40
+wm-badline-strike-fairness-test.mjs		40
+wm-web-smooth-test.mjs		40
+wm-lost-action-test.mjs		40
+wm-red-walk-audit.mjs		40
+wm-pass-replay-test.mjs		40
+wm-two-tabs-test.mjs		40
+wm-chest-race-test.mjs		40
+wm-broken-memory-test.mjs		40
+wm-narrowed-news-test.mjs		40
+wm-ghost-trap-test.mjs		40
+wm-web-ghost-test.mjs		40
+wm-action-once-audit.mjs		40
+wm-border-cut-test.mjs		40
+wm-crash-durability-test.mjs		40
+wm-save-failure-test.mjs		40
+wm-web-many-windows-test.mjs		40
+wm-border-stampede-test.mjs		40
+wm-stale-sky-test.mjs		40
+wm-ops-door-test.mjs		40
