@@ -2972,17 +2972,30 @@ namespace WitchMendokusai.Server
 			public SemaphoreSlim Turn { get; } = new SemaphoreSlim(1, 1);
 		}
 
+		/// <summary>도착 소식을 들고 있는 시간 (TASK-WM-378) — 이만큼 지나도 못 보내면 놓는다.</summary>
+		private const int LANDED_PATIENCE_MS = 10 * 60 * 1000;
+
+		/// <summary>아직 못 보낸 도착 소식 — 이웃 주소마다 「이름표 → 언제 생겼나」.</summary>
+		private readonly System.Collections.Concurrent.ConcurrentDictionary<string,
+			System.Collections.Concurrent.ConcurrentDictionary<string, long>> landedToTell =
+			new System.Collections.Concurrent.ConcurrentDictionary<string,
+				System.Collections.Concurrent.ConcurrentDictionary<string, long>>();
+
 		private readonly System.Collections.Concurrent.ConcurrentDictionary<string, PeerLine> peerLines =
 			new System.Collections.Concurrent.ConcurrentDictionary<string, PeerLine>();
 
-		/// <summary>그 이웃에게 한 마디 — 줄이 아직 안 이어졌으면 조용히 흘린다(다음 판이 곧 온다).</summary>
-		private async Task SendToPeerAsync(string address, string word)
+		/// <summary>
+		/// 그 이웃에게 한 마디 — 줄이 아직 안 이어졌으면 조용히 흘린다(다음 판이 곧 온다).
+		/// <b>나갔나</b>를 돌려준다 (TASK-WM-378): 국경 소식은 흘려도 되지만
+		/// 도착 소식은 <b>한 번</b>뿐이라 못 나갔으면 들고 있다 다시 보내야 한다.
+		/// </summary>
+		private async Task<bool> SendToPeerAsync(string address, string word)
 		{
 			if (peerLines.TryGetValue(address, out PeerLine line) == false)
-				return;
+				return false;
 
 			if (line.Socket.State != WebSocketState.Open)
-				return;
+				return false;
 
 			await line.Turn.WaitAsync();
 			try
@@ -3005,11 +3018,15 @@ namespace WitchMendokusai.Server
 					Interlocked.Increment(ref frozenNeighbourLines);
 					Console.WriteLine($"[zone] 이웃에게 {PEER_SEND_PATIENCE_MS / 1000}초 동안 말이 안 나간다 — 줄을 접고 다시 잇는다: {address}");
 					line.Socket.Abort();
+					return false;
 				}
+
+				return true;
 			}
 			catch (System.Exception)
 			{
 				// 줄이 끊겼다 — 잇는 것은 저쪽 루프가 한다.
+				return false;
 			}
 			finally
 			{
@@ -3050,6 +3067,9 @@ namespace WitchMendokusai.Server
 					{
 						await SendToPeerAsync(address, Protocol.Nearby(World.Patch.Name,
 							BorderSeal(World.Patch.Name), AtTheBorderOf(land), Identities.NameOf));
+
+						// 줄이 이어진 지금이 <b>들고 있던 도착 소식</b>을 보낼 때다 (TASK-WM-378).
+						await FlushLandedAsync(address);
 
 						await Task.Delay(TELL_NEIGHBOURS_EVERY_MS, stopping);
 					}
@@ -3168,8 +3188,42 @@ namespace WitchMendokusai.Server
 			if (string.IsNullOrEmpty(mark))
 				return;
 
+			long nowMs = System.Environment.TickCount64;
 			foreach ((WitchMendokusai.Net.ZonePatch Patch, string Address) land in neighbours.Lands)
-				await SendToPeerAsync(land.Address, Protocol.Landed(World.Patch.Name, BorderSeal(World.Patch.Name), mark));
+			{
+				if (await SendToPeerAsync(land.Address, Protocol.Landed(World.Patch.Name, BorderSeal(World.Patch.Name), mark)))
+					continue;
+
+				// ★ 못 나갔다 — <b>들고 있는다</b> (TASK-WM-378). 이웃은 껐다 켜지고 줄은 늦게 이어진다.
+				//   그 사이 도착 소식을 흘리면 그 사람은 저쪽 세계에 <b>그대로 남는다</b>(가방 두 벌).
+				landedToTell.GetOrAdd(land.Address,
+					(string _) => new System.Collections.Concurrent.ConcurrentDictionary<string, long>())[mark] = nowMs;
+			}
+		}
+
+		/// <summary>
+		/// 들고 있던 도착 소식을 <b>줄이 이어진 뒤</b> 다시 보낸다 (TASK-WM-378).
+		/// 나간 것만 지운다 — 또 못 나가면 다음 판에 또 보낸다.
+		/// </summary>
+		private async Task FlushLandedAsync(string address)
+		{
+			if (landedToTell.TryGetValue(address, out System.Collections.Concurrent.ConcurrentDictionary<string, long> waiting) == false)
+				return;
+
+			long nowMs = System.Environment.TickCount64;
+			foreach (System.Collections.Generic.KeyValuePair<string, long> one in waiting)
+			{
+				// 너무 오래된 소식은 놓는다 — 안 그러면 안 이어지는 이웃 앞에서 끝없이 쌓인다.
+				if (nowMs - one.Value > LANDED_PATIENCE_MS)
+				{
+					waiting.TryRemove(one.Key, out long _);
+					Console.WriteLine("[zone] 도착 소식을 너무 오래 못 보냈다 — 놓는다");
+					continue;
+				}
+
+				if (await SendToPeerAsync(address, Protocol.Landed(World.Patch.Name, BorderSeal(World.Patch.Name), one.Key)))
+					waiting.TryRemove(one.Key, out long _);
+			}
 		}
 
 		/// <summary>
