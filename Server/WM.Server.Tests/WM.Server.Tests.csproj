@@ -37,6 +37,32 @@
     <Compile Include="../../Assets/_WitchMendokusai/Tests/EditMode/Net/**/*.cs">
       <Link>EditMode/%(RecursiveDir)%(Filename)%(Extension)</Link>
     </Compile>
+
+    <!-- 코어에 가까운 자리부터 한 파일씩 (TASK-WM-364 이어서) — 유니티를 안 쓰는 것만 -->
+    <Compile Include="../../Assets/_WitchMendokusai/Tests/EditMode/Item/InventoryCanReceiveTests.cs">
+      <Link>EditMode/Item/InventoryCanReceiveTests.cs</Link>
+    </Compile>
+    <Compile Include="../../Assets/_WitchMendokusai/Tests/EditMode/Item/InventoryCoreTests.cs">
+      <Link>EditMode/Item/InventoryCoreTests.cs</Link>
+    </Compile>
+    <Compile Include="../../Assets/_WitchMendokusai/Tests/EditMode/Item/RecipeKeyTests.cs">
+      <Link>EditMode/Item/RecipeKeyTests.cs</Link>
+    </Compile>
+    <Compile Include="../../Assets/_WitchMendokusai/Tests/EditMode/Combat/DamageCalculationTests.cs">
+      <Link>EditMode/Combat/DamageCalculationTests.cs</Link>
+    </Compile>
+    <Compile Include="../../Assets/_WitchMendokusai/Tests/EditMode/Combat/HealthResolutionTests.cs">
+      <Link>EditMode/Combat/HealthResolutionTests.cs</Link>
+    </Compile>
+    <Compile Include="../../Assets/_WitchMendokusai/Tests/EditMode/Combat/UnitStatEngineFreeTests.cs">
+      <Link>EditMode/Combat/UnitStatEngineFreeTests.cs</Link>
+    </Compile>
+    <Compile Include="../../Assets/_WitchMendokusai/Tests/EditMode/Building/BuildingCensusTests.cs">
+      <Link>EditMode/Building/BuildingCensusTests.cs</Link>
+    </Compile>
+    <Compile Include="../../Assets/_WitchMendokusai/Tests/EditMode/Building/BuildingFootprintTests.cs">
+      <Link>EditMode/Building/BuildingFootprintTests.cs</Link>
+    </Compile>
   </ItemGroup>
 
   <!--
