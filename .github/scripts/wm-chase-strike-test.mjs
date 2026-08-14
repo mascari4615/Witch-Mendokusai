@@ -242,6 +242,8 @@ await wait(1500);
 	const badGap = gap(badHitter, badTarget);
 	console.log(`  [DIAG] 곧은 — 화면 속 사이 ${straightGap.seen}m · 진짜 사이 ${straightGap.real}m`);
 	console.log(`  [DIAG] 나쁜 — 화면 속 사이 ${badGap.seen}m · 진짜 사이 ${badGap.real}m · 물린 걸음 ${ledger.refusedSteps}`);
+	console.log(`  [DIAG] 손짓 갈래 — 맞음 ${ledger.strikesLanded} · 너무 멂 ${ledger.strikesTooFar}`
+		+ ` · 팔이 안 돌아옴 ${ledger.strikesTooSoon} · 그 밖 ${ledger.strikesRefusedElse}`);
 }
 
 badLine.close();

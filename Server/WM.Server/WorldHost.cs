@@ -547,6 +547,12 @@ namespace WitchMendokusai.Server
 		private long savesFailed;
 
 		/// <summary>창이 <b>없는 사람을 그리고 있던</b> 횟수 (TASK-WM-329) — 유령의 유일한 흔적이다.</summary>
+		/// <summary>때린 손짓의 갈래 (TASK-WM-405) — 맞음 · 너무 멂 · 팔이 안 돌아옴 · 그 밖.</summary>
+		private long strikesLanded;
+		private long strikesTooFar;
+		private long strikesTooSoon;
+		private long strikesRefusedElse;
+
 		private long ghostsFound;
 
 		/// <summary>창이 <b>스스로 물어본</b> 횟수 (TASK-WM-329) — 이게 0 이면 덫이 안 걸린 것이다.</summary>
@@ -854,6 +860,10 @@ namespace WitchMendokusai.Server
 				broadcastSnapshotMessages = Interlocked.Read(ref broadcastSnapshotMessages),
 				builtSnapshots = Interlocked.Read(ref builtSnapshots),
 				refusedSteps = Interlocked.Read(ref refusedSteps),
+				strikesLanded = Interlocked.Read(ref strikesLanded),
+				strikesTooFar = Interlocked.Read(ref strikesTooFar),
+				strikesTooSoon = Interlocked.Read(ref strikesTooSoon),
+				strikesRefusedElse = Interlocked.Read(ref strikesRefusedElse),
 				turnedAwayPeople = Interlocked.Read(ref turnedAwayPeople),
 				letGoOfFrozen = Interlocked.Read(ref letGoOfFrozen),
 				frozenNeighbourLines = Interlocked.Read(ref frozenNeighbourLines),
@@ -1653,8 +1663,20 @@ namespace WitchMendokusai.Server
 					long rewindMs = ViewAgeMs(root, dollId);
 					WitchMendokusai.Net.StrikeRule.Denial why = World.TryStrike(dollId, targetId,
 						System.Environment.TickCount64, pastPlaces, rewindMs, out int healthLeft, out bool wentDown);
+					// ★ <b>왜 안 맞았나</b>를 센다 (TASK-WM-405) — 물린 손짓은 여태 조용히 사라졌다.
+					//   「나쁜 회선이 덜 맞힌다」를 볼 때, 그게 <b>너무 멀어서</b>인지 <b>팔이 안 돌아와서</b>인지
+					//   가르지 못하면 고칠 자리를 못 찾는다(무음 실패는 세는 자리부터 만든다 — WM-311).
+					if (why == WitchMendokusai.Net.StrikeRule.Denial.TooFar)
+						Interlocked.Increment(ref strikesTooFar);
+					else if (why == WitchMendokusai.Net.StrikeRule.Denial.TooSoon)
+						Interlocked.Increment(ref strikesTooSoon);
+					else if (why != WitchMendokusai.Net.StrikeRule.Denial.None)
+						Interlocked.Increment(ref strikesRefusedElse);
+
 					if (why != WitchMendokusai.Net.StrikeRule.Denial.None)
 						return;
+
+					Interlocked.Increment(ref strikesLanded);
 
 					_ = TellNearbyHurtAsync(targetId, dollId, healthLeft, wentDown);
 					Interlocked.Exchange(ref worldDirty, 1);
