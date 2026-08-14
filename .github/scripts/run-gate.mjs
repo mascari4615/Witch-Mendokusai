@@ -14,7 +14,7 @@
 
 import { spawn } from 'node:child_process';
 import { existsSync, readdirSync, statSync, rmSync } from 'node:fs';
-import { tmpdir } from 'node:os';
+import { tmpdir, homedir } from 'node:os';
 import { join } from 'node:path';
 
 const [target, ...rest] = process.argv.slice(2);
@@ -51,6 +51,18 @@ function sweepOldStages() {
 }
 
 sweepOldStages();
+
+// ★ <b>이 기계에도 브라우저가 있으면 쓴다</b> (TASK-WM-393).
+//   브라우저 관문은 여태 CI 에서만 돌았다(`WM_PLAYWRIGHT_ROOT` 가 없으면 CANNOT-RUN) —
+//   그래서 국경을 여섯 판 고치는 동안 <b>진짜 창으로는 한 번도 안 봤다</b>(WM-390 의 사고).
+//   집에 깔아 둔 자리를 기본값으로 삼는다: `~/.wm-playwright` (없으면 예전처럼 CANNOT-RUN).
+if (process.env.WM_PLAYWRIGHT_ROOT === undefined) {
+	const athome = join(homedir(), '.wm-playwright');
+	if (existsSync(join(athome, 'node_modules', 'playwright'))) {
+		process.env.WM_PLAYWRIGHT_ROOT = athome;
+		console.log(`[run-gate] 이 기계의 브라우저를 쓴다 — ${athome}`);
+	}
+}
 
 const child = spawn(process.execPath, [target, ...rest], { stdio: 'inherit' });
 
