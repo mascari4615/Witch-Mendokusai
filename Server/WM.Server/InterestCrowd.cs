@@ -196,6 +196,63 @@ namespace WitchMendokusai.Server
 			return chosen.ToArray();
 		}
 
+		/// <summary>
+		/// 사람이 <b>상한보다 많이</b> 모인 칸에서, 한 벌을 나눠 쓰되 <b>바로 옆 사람은 반드시</b> 넣는다
+		/// (TASK-WM-397).
+		///
+		/// ★ 왜 필요한가 (실측 2026-08-14): 한 벌은 <b>칸 한복판</b>에 가까운 순으로 48명을 고른다.
+		///   그런데 무리가 한복판에 몰리면 <b>칸 구석에 선 사람</b>의 몫이 없다 —
+		///   0.9m 옆에 선 친구가 48위 밖으로 밀려 <b>안 보였다</b>. 사람 눈에는 「옆에 있는데 없다」다.
+		///
+		/// ★ 그래서 고른 48명 위에, <b>이 칸 사람마다 제 옆 몇 명</b>을 더 얹는다.
+		///   광장에서는 옆 사람들이 서로 겹치므로 실제로 붙는 수는 적다(재 보고 골랐다).
+		/// </summary>
+		public static WorldDoll[] WithBuddies(IReadOnlyList<WorldDoll> candidates, IReadOnlyList<WorldDoll> cellMembers,
+			WorldDoll[] chosen, int buddiesEach)
+		{
+			if (chosen == null || candidates == null || cellMembers == null || buddiesEach <= 0)
+				return chosen;
+
+			HashSet<int> taken = new HashSet<int>();
+			for (int i = 0; i < chosen.Length; i++)
+				taken.Add(chosen[i].Id);
+
+			List<WorldDoll> all = new List<WorldDoll>(chosen);
+			List<(float Away, WorldDoll Who)> near = new List<(float, WorldDoll)>();
+
+			for (int i = 0; i < cellMembers.Count; i++)
+			{
+				WorldDoll viewer = cellMembers[i];
+				near.Clear();
+
+				for (int k = 0; k < candidates.Count; k++)
+				{
+					WorldDoll one = candidates[k];
+					if (one.Id == viewer.Id || taken.Contains(one.Id))
+						continue;
+
+					near.Add((DistanceSquared(one, viewer.Position), one));
+				}
+
+				near.Sort((left, right) =>
+				{
+					int byDistance = left.Away.CompareTo(right.Away);
+					return byDistance != 0 ? byDistance : left.Who.Id.CompareTo(right.Who.Id);
+				});
+
+				for (int k = 0; k < near.Count && k < buddiesEach; k++)
+				{
+					if (taken.Add(near[k].Who.Id))
+						all.Add(near[k].Who);
+				}
+			}
+
+			return all.ToArray();
+		}
+
+		/// <summary>몰린 칸에서 사람마다 반드시 챙기는 <b>옆 사람</b> 수 (TASK-WM-397).</summary>
+		public const int BUDDIES_EACH = 4;
+
 		private static float DistanceSquared(WorldDoll doll, Vector3 viewer)
 		{
 			float deltaX = doll.Position.x - viewer.x;
