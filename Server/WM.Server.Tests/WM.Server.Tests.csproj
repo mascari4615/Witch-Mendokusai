@@ -63,7 +63,41 @@
     <Compile Include="../../Assets/_WitchMendokusai/Tests/EditMode/Building/BuildingFootprintTests.cs">
       <Link>EditMode/Building/BuildingFootprintTests.cs</Link>
     </Compile>
+    <Compile Include="../../Assets/_WitchMendokusai/Tests/EditMode/BuildingProductionModelTest.cs">
+      <Link>EditMode/BuildingProductionModelTest.cs</Link>
+    </Compile>
+    <Compile Include="../../Assets/_WitchMendokusai/Tests/EditMode/CityEconomyTest.cs">
+      <Link>EditMode/CityEconomyTest.cs</Link>
+    </Compile>
+    <Compile Include="../../Assets/_WitchMendokusai/Tests/EditMode/CitySimulationSystemTest.cs">
+      <Link>EditMode/CitySimulationSystemTest.cs</Link>
+    </Compile>
+    <Compile Include="../../Assets/_WitchMendokusai/Tests/EditMode/FreshnessTest.cs">
+      <Link>EditMode/FreshnessTest.cs</Link>
+    </Compile>
+    <Compile Include="../../Assets/_WitchMendokusai/Tests/EditMode/LeylineGraphTest.cs">
+      <Link>EditMode/LeylineGraphTest.cs</Link>
+    </Compile>
+    <Compile Include="../../Assets/_WitchMendokusai/Tests/EditMode/ManaFlowTest.cs">
+      <Link>EditMode/ManaFlowTest.cs</Link>
+    </Compile>
+    <Compile Include="../../Assets/_WitchMendokusai/Tests/EditMode/ModeControllerEdgeTriggerTest.cs">
+      <Link>EditMode/ModeControllerEdgeTriggerTest.cs</Link>
+    </Compile>
+    <Compile Include="../../Assets/_WitchMendokusai/Tests/EditMode/RciDemandModelTest.cs">
+      <Link>EditMode/RciDemandModelTest.cs</Link>
+    </Compile>
+    <Compile Include="../../Assets/_WitchMendokusai/Tests/EditMode/SimulationTickSchedulerTest.cs">
+      <Link>EditMode/SimulationTickSchedulerTest.cs</Link>
+    </Compile>
   </ItemGroup>
+
+  <!--
+    ⚠ 여기 못 데려오는 것들 (TASK-WM-364):
+      · 대화(Dialogue*)·주입(CompositionRoot/SceneDi/VContainer)·로비/넷코드/UGC — DomainSDK 밖을 본다.
+      · `ConstructIdempotencyTests` — <b>소스 파일을 훑는</b> 시험이라 도는 자리(bin 폴더)에서는 길이 없다.
+        「유니티를 안 쓴다」와 「엔진 밖에서 돈다」는 다른 말이다.
+  -->
 
   <!--
     창 파일들을 시험 자리에도 갖다 둔다 (TASK-WM-226).
