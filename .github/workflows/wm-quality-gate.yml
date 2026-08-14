@@ -162,6 +162,14 @@ on:
     - cron: '0 */3 * * *'
   workflow_dispatch: {}
 
+# ★ <b>새 판이 오면 옛 판은 접는다</b> (TASK-WM-370).
+#   실측 2026-08-14: 밀어 넣기가 잦은 날 같은 가지의 옛 판 넷이 <b>같이</b> 돌고 있었다 —
+#   러너를 나눠 쓰니 새 판이 늦어지고, 이미 고친 자리의 빨강을 다시 읽게 된다(오늘 세 번 그랬다).
+#   가지마다 한 판만 둔다. 사람이 기다리는 것은 <b>가장 새 판</b>이다.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
