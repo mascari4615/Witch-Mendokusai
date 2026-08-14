@@ -46,6 +46,7 @@ wm-late-neighbour-test.mjs		80
 wm-landed-outbox-test.mjs		100
 wm-pass-after-sleep-test.mjs		90
 wm-slow-crossing-test.mjs		110
+wm-arrival-first-write-test.mjs		90
 wm-two-tabs-test.mjs		40
 wm-chest-race-test.mjs		40
 wm-broken-memory-test.mjs		40

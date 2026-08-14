@@ -41,7 +41,11 @@ namespace WitchMendokusai.Server
 			int.TryParse(System.Environment.GetEnvironmentVariable("WM_SNAPSHOT_HZ"), out int said) && said > 0 ? said : 20;
 
 		/// <summary>세계를 디스크로 내리는 간격 — 바뀐 게 있을 때만 쓴다.</summary>
-		private const int SAVE_INTERVAL_MILLISECONDS = 5000;
+		/// <remarks>환경변수 <c>WM_SAVE_INTERVAL_MS</c> 로 바꾼다 — 시험 무대가 「아직 안 적힌 세계」를 만들 때 쓴다.</remarks>
+		private static readonly int SAVE_INTERVAL_MILLISECONDS =
+			int.TryParse(System.Environment.GetEnvironmentVariable("WM_SAVE_INTERVAL_MS"), out int askedIntervalMs) && askedIntervalMs > 0
+				? askedIntervalMs
+				: 5000;
 
 		/// <summary>세계의 하루 (분) — 하늘이 이보다 더 앞서 있으면 「어긋났다」로 본다.</summary>
 		private const int MINUTES_PER_DAY = 24 * 60;
@@ -60,7 +64,11 @@ namespace WitchMendokusai.Server
 		/// ★ 왜 0 이 아닌가: 한 판에 여러 사람이 동시에 주우면 그때마다 세계를 통째로 적게 된다.
 		///   짧게 모아서 한 번에 적는다(디바운스).
 		/// </summary>
-		private const int SAVE_AFTER_DEED_MILLISECONDS = 300;
+		/// <remarks>환경변수 <c>WM_SAVE_AFTER_DEED_MS</c> 로 바꾼다 — 시험 무대가 「아직 안 적힌 세계」를 만들 때 쓴다.</remarks>
+		private static readonly int SAVE_AFTER_DEED_MILLISECONDS =
+			int.TryParse(System.Environment.GetEnvironmentVariable("WM_SAVE_AFTER_DEED_MS"), out int askedDeedMs) && askedDeedMs > 0
+				? askedDeedMs
+				: 300;
 
 		/// <summary>저장 루프가 깨어나는 간격 — 위 두 값 중 짧은 쪽을 지킬 수 있어야 한다.</summary>
 		private const int SAVE_TICK_MILLISECONDS = 100;
@@ -1289,6 +1297,12 @@ namespace WitchMendokusai.Server
 						// ★ 「썼다」를 <b>적어 둔다</b> (TASK-WM-382) — 기억에만 두면 재시작 한 번이
 						//   그 자물쇠를 연다(통행증은 30초를 산다). 실측: 껐다 켜니 짐이 또 왔다.
 						SaveUsedPasses();
+
+						// ★ <b>적은 뒤에 말한다</b> (TASK-WM-386). 「받았다」는 저쪽에게 <b>그 사람을 놓아라</b>는 말이다 —
+						//   말해 놓고 이 세계가 적기 전에 죽으면, 저쪽은 놓았고 여기는 안 적혔다 ⇒ 그 사람이 통째로 사라진다.
+						//   그래서 도착을 <b>먼저 기억에 박고</b> 그 다음에 말한다(먼저 쓰고 나중에 알린다).
+						//   ⚠ 국경 넘기는 드문 일이라 여기서 한 번 적는 값은 싸다 — 잃는 값이 비싸다.
+						SaveWorldNow();
 
 						// ★ <b>보낸 세계에 알린다</b> (TASK-WM-377). 그쪽은 창의 줄이 닫히는 것으로만
 						//   떠남을 알아서, 안 닫고 버티면 그 사람을 계속 데리고 있다(그때 짐이 두 벌이다).
