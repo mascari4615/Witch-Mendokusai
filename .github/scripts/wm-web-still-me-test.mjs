@@ -198,10 +198,30 @@ await page.waitForFunction(() => typeof window.__wmView === 'object', null, { ti
 	.catch(() => { /* 아래 칸이 잡는다 */ });
 await page.waitForFunction(
 	() => (window.__wmView.dolls() || []).some((one) => one.isLocal), null, { timeout: 30000 })
-	.catch(() => { /* 아래 칸이 잡는다 */ });
-await wait(1200);
+	.catch(() => { /* 아래에서 다시 본다 */ });
 
-const after = await whoAmI();
+// ★ <b>잴 것이 올 때까지 기다린다</b> (관문 규율 ②·④-2, TASK-WM-392).
+//   CI 에서 「(0.54, 4.76) → (null, null)」로 빨갰다 — 자리가 <b>틀린</b> 것이 아니라
+//   그 자리를 아직 <b>못 받은</b> 것이다(나쁜 회선 + 느린 러너 + 새로고침 직후).
+//   시간을 박지 말고 <b>왔나</b>를 보면서 기다린다. 그래도 안 오면 못 잰 것이다(0 을 빨강으로 안 적는다).
+let after = await whoAmI();
+{
+	const until = Date.now() + 60000;
+	while (Date.now() < until && after.x === null) {
+		await wait(500);
+		after = await whoAmI();
+	}
+}
+
+if (after.x === null) {
+	await browser.close();
+	await line.close();
+	killWorld();
+	cannotRun('새로고침 뒤 내 인형이 안 왔다 — 이 판에서는 자리를 못 쟀다');
+}
+
+await wait(600);
+after = await whoAmI();
 
 check('새로고침해도 같은 사람이다', after.identity === before.identity,
 	`${before.identity} → ${after.identity}`);
