@@ -513,6 +513,9 @@ namespace WitchMendokusai.Server
 
 			public int InterestCellX = int.MinValue;
 			public int InterestCellZ = int.MinValue;
+
+			/// <summary>이 창이 속한 칸의 <b>크기</b> — 몰린 자리는 칸을 쪼갠다 (TASK-WM-398).</summary>
+			public float InterestCellSize = 0f;
 		}
 
 		private readonly ConcurrentDictionary<int, Connection> sockets = new ConcurrentDictionary<int, Connection>();
@@ -2450,6 +2453,9 @@ namespace WitchMendokusai.Server
 					new System.Collections.Generic.Dictionary<string, (byte[], System.Collections.Generic.HashSet<int>)>();
 				WorldDoll[] everyone = EveryoneNow();
 
+				// ★ 몰린 자리는 칸을 쪼갠다 (TASK-WM-398) — 이 판의 지도를 먼저 만든다.
+				splitsNow = CellSplits.Of(everyone, INTEREST_CELL_SIZE, InterestCrowd.MAX_VISIBLE_DOLLS);
+
 				// ★ 지나간 자리를 적어 둔다 (TASK-WM-303) — 되감아 판정하려면 <b>조금 전</b> 자리를 알아야 한다.
 				//   그림을 만드는 이 자리가 곧 「세계가 정한 자리」라, 여기서 적으면 판정과 그림이 같은 것을 본다.
 				long placeStampMs = System.Environment.TickCount64;
@@ -2574,7 +2580,7 @@ namespace WitchMendokusai.Server
 					string key = (interestChanged ? "F" : string.Empty)
 						+ (fieldFromScratchForThisWindow ? "S" : string.Empty)
 						+ (sendField ? "v" + target.SentFieldVersion : string.Empty)
-						+ target.InterestCellX + ":" + target.InterestCellZ
+						+ target.InterestCellX + ":" + target.InterestCellZ + "@" + target.InterestCellSize
 						+ (sendBuildings ? "b" : string.Empty)
 						+ (sendField ? "f" : string.Empty)
 						+ (sendPots ? "p" : string.Empty);
@@ -2582,7 +2588,7 @@ namespace WitchMendokusai.Server
 					if (madeForCell.TryGetValue(key, out (byte[] Bytes, System.Collections.Generic.HashSet<int> Inside) ready) == false)
 					{
 						(string text, System.Collections.Generic.HashSet<int> inside) = SnapshotForCell(
-							everyone, target.InterestCellX, target.InterestCellZ,
+							everyone, target.InterestCellX, target.InterestCellZ, target.InterestCellSize,
 							sendBuildings, sendField, sendPots, sequence, interestChanged,
 							fieldFromScratchForThisWindow, fieldVersion,
 							fieldFromScratchForThisWindow ? 0 : target.SentFieldVersion);
@@ -2768,14 +2774,90 @@ namespace WitchMendokusai.Server
 			UpdateInterestCell(connection, viewerDollId);
 		}
 
+		/// <summary>
+		/// 칸을 <b>몇 번까지 쪼개나</b> (TASK-WM-398) — 24m → 12 → 6 → 3m.
+		/// 더 쪼개도 얻는 것이 없다: 3m 칸이면 한복판과 구석의 차이가 2m 라 옆 사람이 못 빠진다.
+		/// </summary>
+		private const int MOST_SPLITS = 3;
+
+		/// <summary>
+		/// 이 판의 <b>칸 쪼개기 지도</b> (TASK-WM-398).
+		///
+		/// ★ 왜: 한 벌은 <b>칸 한복판</b> 기준으로 가까운 48명을 고른다. 칸에 그보다 많이 모이면
+		///   칸 구석에 선 사람의 몫이 없다 — <b>0.9m 옆 친구가 얼어붙는다</b>(WM-397 실측: 8초에 0번).
+		///   「사람마다 옆 사람을 얹기」는 광장에서 바이트가 6.4배로 터졌다(되돌렸다).
+		///   근본은 <b>몰린 칸을 쪼개는 것</b>이다 — 칸이 작아지면 한복판이 곧 내 자리다.
+		///   한 사람이 받는 양은 그대로(48명)이고, 늘어나는 것은 <b>지은 그림 수</b>뿐이다(무리에 비례).
+		/// </summary>
+		private sealed class CellSplits
+		{
+			private readonly System.Collections.Generic.Dictionary<(int Depth, int X, int Z), int> howMany =
+				new System.Collections.Generic.Dictionary<(int, int, int), int>();
+
+			private readonly float baseSize;
+			private readonly int cap;
+
+			private CellSplits(float baseSize, int cap)
+			{
+				this.baseSize = baseSize;
+				this.cap = cap;
+			}
+
+			public static CellSplits Of(WorldDoll[] everyone, float baseSize, int cap)
+			{
+				CellSplits map = new CellSplits(baseSize, cap);
+				for (int depth = 0; depth <= MOST_SPLITS; depth++)
+				{
+					float size = baseSize / (1 << depth);
+					for (int i = 0; i < everyone.Length; i++)
+					{
+						(int X, int Z) at = At(everyone[i].Position, size);
+						(int, int, int) key = (depth, at.X, at.Z);
+						map.howMany[key] = map.howMany.TryGetValue(key, out int was) ? was + 1 : 1;
+					}
+				}
+
+				return map;
+			}
+
+			private static (int X, int Z) At(Vector3 spot, float size)
+			{
+				return ((int)MathF.Floor(spot.x / size), (int)MathF.Floor(spot.z / size));
+			}
+
+			/// <summary>이 자리가 쓸 칸 — 사람이 상한을 넘으면 반으로 줄여 가며 찾는다.</summary>
+			public (int X, int Z, float Size) CellFor(Vector3 spot)
+			{
+				for (int depth = 0; depth < MOST_SPLITS; depth++)
+				{
+					float size = baseSize / (1 << depth);
+					(int X, int Z) at = At(spot, size);
+					if (howMany.TryGetValue((depth, at.X, at.Z), out int crowd) == false || crowd <= cap)
+						return (at.X, at.Z, size);
+				}
+
+				float smallest = baseSize / (1 << MOST_SPLITS);
+				(int X, int Z) last = At(spot, smallest);
+				return (last.X, last.Z, smallest);
+			}
+		}
+
+		/// <summary>이 판의 칸 쪼개기 — 방송 루프가 판마다 새로 만든다.</summary>
+		private CellSplits splitsNow;
+
 		private bool UpdateInterestCell(Connection connection, int viewerDollId)
 		{
 			Vector3 viewer = World.PositionOf(viewerDollId);
-			int cellX = (int)MathF.Floor(viewer.x / INTEREST_CELL_SIZE);
-			int cellZ = (int)MathF.Floor(viewer.z / INTEREST_CELL_SIZE);
-			bool changed = connection.InterestCellX != cellX || connection.InterestCellZ != cellZ;
+			CellSplits map = splitsNow;
+			(int cellX, int cellZ, float size) = map != null
+				? map.CellFor(viewer)
+				: ((int)MathF.Floor(viewer.x / INTEREST_CELL_SIZE), (int)MathF.Floor(viewer.z / INTEREST_CELL_SIZE), INTEREST_CELL_SIZE);
+
+			bool changed = connection.InterestCellX != cellX || connection.InterestCellZ != cellZ
+				|| connection.InterestCellSize != size;
 			connection.InterestCellX = cellX;
 			connection.InterestCellZ = cellZ;
+			connection.InterestCellSize = size;
 			return changed;
 		}
 
@@ -3554,15 +3636,19 @@ namespace WitchMendokusai.Server
 		/// 칸 한복판을 기준으로 고르되, <b>그 칸에 선 사람은 다 들어간다</b>(자기 인형을 찾아야 하니까).
 		/// </summary>
 		private (string Text, System.Collections.Generic.HashSet<int> Inside) SnapshotForCell(
-			WorldDoll[] everyone, int cellX, int cellZ,
+			WorldDoll[] everyone, int cellX, int cellZ, float cellSize,
 			bool sendBuildings, bool sendField, bool sendPots, long sequence, bool forceFull = false,
 			bool fieldFromScratch = false, int fieldVersionNow = 0, int windowSawFieldVersion = 0)
 		{
+			// ⚠ 칸 크기는 <b>자리마다 다르다</b> (TASK-WM-398) — 몰린 자리는 쪼개져 있다.
+			if (cellSize <= 0f)
+				cellSize = INTEREST_CELL_SIZE;
+
 			Vector3 center = new Vector3(
-				(cellX + 0.5f) * INTEREST_CELL_SIZE, 0f, (cellZ + 0.5f) * INTEREST_CELL_SIZE);
+				(cellX + 0.5f) * cellSize, 0f, (cellZ + 0.5f) * cellSize);
 
 			// 칸 한복판에서 반경만큼 + 칸 반쪽만큼 — 칸 구석에 선 사람이 봐야 할 것을 안 놓치게.
-			float reach = PLAYER_INTEREST_RADIUS + INTEREST_CELL_SIZE;
+			float reach = PLAYER_INTEREST_RADIUS + cellSize;
 			float reachSquared = reach * reach;
 
 			System.Collections.Generic.List<WorldDoll> candidates = new System.Collections.Generic.List<WorldDoll>();
@@ -3571,8 +3657,8 @@ namespace WitchMendokusai.Server
 			for (int i = 0; i < everyone.Length; i++)
 			{
 				WorldDoll one = everyone[i];
-				int oneCellX = (int)MathF.Floor(one.Position.x / INTEREST_CELL_SIZE);
-				int oneCellZ = (int)MathF.Floor(one.Position.z / INTEREST_CELL_SIZE);
+				int oneCellX = (int)MathF.Floor(one.Position.x / cellSize);
+				int oneCellZ = (int)MathF.Floor(one.Position.z / cellSize);
 				if (oneCellX == cellX && oneCellZ == cellZ)
 					members.Add(one);
 
