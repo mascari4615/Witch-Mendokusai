@@ -30,9 +30,13 @@ const baselinePath = join(scriptDir, 'wm-red-walk-baseline.tsv');
 
 const TAG = '[빨강-확인]';
 
+// ★ <b>손으로 부르는 자</b>는 안 센다 (TASK-WM-390) — 첫머리에 `[손-호출]` 이라고 적힌 파일.
+//   prod 세계를 상대하는 자(`wm-prod-border-smoke.mjs`)는 <b>빨강을 걸을 수가 없다</b> —
+//   그러려면 돌아가는 prod 를 일부러 부러뜨려야 한다. 그건 관문 규율이 아니라 사고다.
 const gates = readdirSync(scriptDir)
 	.filter((one) => one.startsWith('wm-') && one.endsWith('.mjs'))
-	.filter((one) => one.includes('test') || one.includes('smoke'));
+	.filter((one) => one.includes('test') || one.includes('smoke'))
+	.filter((one) => readFileSync(join(scriptDir, one), 'utf8').slice(0, 2000).includes('[손-호출]') === false);
 
 if (gates.length < 10) {
 	console.error(`[빨강걷기] CANNOT-RUN: 관문을 ${gates.length}개밖에 못 찾았다 — 경로 확인.`);

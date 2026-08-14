@@ -272,11 +272,15 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     # ★ 갈래가 <b>같이</b> 돈다 (TASK-WM-369) — 한 러너에서 차례로 돌 때 8~14분이었다.
-    #   실측 2026-08-14: 갈래 셋으로 550·428·474초(가장 긴 갈래가 벽시계다) — 다섯으로 늘린다.
+    #   실측 2026-08-14: 갈래 셋으로 550·428·474초 → 다섯 → 관문이 늘어 갈래마다 780초가 됐다.
+    #   여덟으로 늘린다(어림 490초). 벽시계는 <b>가장 긴 갈래</b>다 (TASK-WM-390).
+    #
+    # ⚠ 갈래 수는 <b>여기 한 곳</b>에만 적는다 — 아래 `--of` 는 `strategy.job-total` 로 받는다.
+    #   전에는 세 곳(matrix·단 이름·--of)에 적혀 있었다: 하나만 고치면 <b>관문 일부가 조용히 안 돈다</b>.
     strategy:
       fail-fast: false
       matrix:
-        shard: [1, 2, 3, 4, 5]
+        shard: [1, 2, 3, 4, 5, 6, 7, 8]
     steps:
       - uses: actions/checkout@v4
 
@@ -308,10 +312,10 @@ jobs:
 
       # ★ 관문을 <b>갈래로 나눠</b> 돌린다 (TASK-WM-369) — 목록은 wm-web-gates.tsv 한 곳이다.
       #   관문을 새로 만들면 그 목록에 한 줄만 더한다(워크플로는 안 고친다).
-      - name: Run web gates (shard ${{ matrix.shard }}/5)
+      - name: Run web gates (shard ${{ matrix.shard }}/${{ strategy.job-total }})
         env:
           WM_PLAYWRIGHT_ROOT: /tmp/wm-playwright
-        run: node ./.github/scripts/run-web-gates.mjs --shard ${{ matrix.shard }} --of 5
+        run: node ./.github/scripts/run-web-gates.mjs --shard ${{ matrix.shard }} --of ${{ strategy.job-total }}
   unity:
     name: EditMode tests (laptop runner)
     runs-on: [self-hosted, unity, windows-build]

@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 // wm-prod-border-smoke.mjs — <b>prod 두 세계</b> 사이를 실제로 걸어서 넘어 본다 (TASK-WM-384).
 //
+// [손-호출] — CI 가 못 도는 자다(아래 이유). 배선 감사기는 이 표를 보고 안 센다.
+//
 // ★ 왜 관문 목록에 없나: prod 세계는 노트북 안(127.0.0.1:5199/5200)에만 있다 — CI 러너에서는 못 닿는다.
 //   그래서 이건 <b>손으로 부르는 자</b>다. 노트북에서 `node wm-prod-border-smoke.mjs` 로 돌린다
 //   (데스크톱에서는 laptop-ops `/exec` 로 이 파일을 보내 돌린다).

@@ -68,7 +68,17 @@ function isRun(gate) {
 	return false;
 }
 
-const sleeping = gates.filter((gate) => isRun(gate) === false);
+// ★ <b>손으로 부르는 자</b>는 안 센다 (TASK-WM-390) — 파일 첫머리에 그렇게 적혀 있어야 한다.
+//   왜 필요한가: prod 세계는 노트북 안에만 있어 CI 러너가 못 닿는다(`wm-prod-border-smoke.mjs`).
+//   그런 자를 목록에 넣으면 CI 는 <b>영영 못 도는 관문</b>을 들고 빨개진다.
+//   ⚠ 표를 <b>파일 안에</b> 두는 이유: 여기 이름을 적어 두면 나중에 파일만 지웠을 때 표가 남는다.
+const BY_HAND = '[손-호출]';
+const byHand = gates.filter((gate) => readFileSync(join(here, gate), 'utf8').slice(0, 2000).includes(BY_HAND));
+
+const sleeping = gates.filter((gate) => isRun(gate) === false && byHand.includes(gate) === false);
+
+if (byHand.length > 0)
+	console.log(`[관문배선] 손으로 부르는 자 ${byHand.length}개는 안 센다: ${byHand.join(', ')}`);
 
 console.log(`[관문배선] 관문 ${gates.length}개 · 돌리는 줄이 있는 관문 ${gates.length - sleeping.length}개`);
 
