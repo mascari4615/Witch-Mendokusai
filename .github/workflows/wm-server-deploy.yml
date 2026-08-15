@@ -7,6 +7,9 @@ on:
       - 'global.json'
       - 'Portable/**'
       - 'Server/WM.Server/**'
+      # ★ 이 워크플로가 <b>부르는 스크립트</b>도 트리거다 — 그 파일만 고친 커밋에서는
+      #   검사가 아예 안 돌아 「초록」으로 읽힌다(안 도는 것과 통과한 것은 다르다).
+      - '.github/scripts/wm-prod-smoke.mjs'
       - '.github/workflows/wm-server-deploy.yml'
   workflow_dispatch:
 
