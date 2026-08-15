@@ -69,6 +69,8 @@ crashlytics-build.properties
 
 # Packed Addressables
 /[Aa]ssets/[Aa]ddressable[Aa]ssets[Dd]ata/*/*.bin*
+# 빌드가 만드는 링커 보존 목록 — 원격에 없고 열 때마다 다시 생긴다 (TASK-KAR-215)
+/[Aa]ssets/[Aa]ddressable[Aa]ssets[Dd]ata/link.xml*
 
 # Temporary auto-generated Android Assets
 /[Aa]ssets/[Ss]treamingAssets/aa.meta
