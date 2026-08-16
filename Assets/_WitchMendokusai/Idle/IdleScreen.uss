@@ -1,94 +1,201 @@
 /*
- * 방치 화면의 생김새 (TASK-WM-406).
+ * 방치형 화면 (TASK-WM-406).
  *
+ * 사용자 방향: 세계관 정하기 전이라 <기하학적 모양>으로 간다.
  * 값이 아니라 뜻으로 이름 짓는다 — 팔레트가 한 자리에 산다.
- * 비주얼 톤(색·폰트)은 기능 가독성 우선의 v0 임시안. 정식 톤은 사용자 확정 후.
+ *
+ * ★ 해상도 대응 — 고정 픽셀 크기를 최소로 쓰고 flex 로 늘린다.
+ *   좁은 창에서는 두 칸이 한 칸으로 접힌다(.idle-body 의 wrap).
  */
 
-.idle-panel {
+.idle-root {
 	flex-grow: 1;
-	padding: 24px;
-	background-color: rgb(18, 18, 22);
+	background-color: rgb(14, 15, 20);
+	color: rgb(226, 228, 236);
 }
 
-.idle-stage {
-	font-size: 13px;
+/* ── 위 요약 띠 ─────────────────────────────────────────────── */
+
+.idle-topbar {
+	flex-direction: row;
+	align-items: center;
+	padding: 10px 16px;
+	background-color: rgb(20, 22, 29);
+	border-bottom-width: 1px;
+	border-bottom-color: rgb(38, 41, 52);
+	flex-wrap: wrap;
+}
+
+.idle-top-stage {
+	font-size: 15px;
 	-unity-font-style: bold;
 	color: rgb(150, 176, 208);
-	margin-bottom: 6px;
+	margin-right: 18px;
 }
 
-.idle-resource {
-	font-size: 34px;
+.idle-top-resource {
+	font-size: 20px;
 	-unity-font-style: bold;
-	color: rgb(238, 238, 244);
-	margin-bottom: 2px;
+	flex-grow: 1;
 }
 
-.idle-income,
-.idle-kills {
-	font-size: 14px;
-	color: rgb(150, 150, 162);
-}
-
-.idle-target {
-	margin-top: 14px;
-	margin-bottom: 6px;
-	height: 20px;
-}
-
-.idle-offline {
-	font-size: 14px;
-	color: rgb(196, 176, 120);
-	margin-top: 4px;
-	margin-bottom: 4px;
-}
-
-.idle-upgrade-title {
-	font-size: 14px;
-	color: rgb(206, 206, 216);
-	margin-top: 16px;
-	margin-bottom: 4px;
-}
-
-.idle-upgrade-button {
-	height: 40px;
-	font-size: 15px;
-}
-
-.idle-upgrade-button:disabled {
-	opacity: 0.45;
-}
-
-.idle-prestige-button {
-	height: 40px;
-	font-size: 14px;
-	margin-top: 20px;
-}
-
-.idle-prestige-button:disabled {
-	opacity: 0.35;
-}
-
-.idle-appraise-button {
-	height: 30px;
+.idle-top-note {
 	font-size: 12px;
-	margin-bottom: 3px;
+	color: rgb(128, 132, 146);
 }
 
-.idle-appraise-button:disabled {
+/* ── 아래 두 칸 ─────────────────────────────────────────────── */
+
+.idle-body {
+	flex-grow: 1;
+	flex-direction: row;
+	flex-wrap: wrap;
+}
+
+.idle-arena {
+	flex-grow: 1;
+	flex-basis: 320px;
+	min-height: 240px;
+	padding: 16px;
+	align-items: center;
+	justify-content: center;
+}
+
+.idle-panel {
+	flex-basis: 320px;
+	flex-grow: 1;
+	padding: 14px 16px;
+	background-color: rgb(18, 20, 26);
+	border-left-width: 1px;
+	border-left-color: rgb(38, 41, 52);
+}
+
+/* ── 판 ─────────────────────────────────────────────────────── */
+
+.idle-stage-box {
+	width: 200px;
+	height: 200px;
+	align-items: center;
+	justify-content: center;
+}
+
+.idle-shape {
+	position: absolute;
+	width: 100%;
+	height: 100%;
+}
+
+.idle-ally-row {
+	flex-direction: row;
+	margin-top: 14px;
+}
+
+.idle-ally {
+	width: 26px;
+	height: 26px;
+	margin: 0 5px;
+}
+
+.idle-arena-caption {
+	font-size: 12px;
+	color: rgb(128, 132, 146);
+	margin-top: 12px;
+}
+
+.idle-health {
+	width: 200px;
+	height: 8px;
+	margin-top: 14px;
+}
+
+.idle-kills-dots {
+	flex-direction: row;
+	margin-top: 8px;
+}
+
+.idle-dot {
+	width: 8px;
+	height: 8px;
+	margin: 0 2px;
+	border-radius: 4px;
+	background-color: rgb(48, 52, 64);
+}
+
+.idle-dot--done {
+	background-color: rgb(150, 176, 208);
+}
+
+/* ── 탭 ─────────────────────────────────────────────────────── */
+
+.idle-tabs {
+	flex-direction: row;
+	margin-bottom: 12px;
+}
+
+.idle-tab {
+	flex-grow: 1;
+	height: 30px;
+	font-size: 13px;
+	background-color: rgb(24, 26, 34);
+	border-width: 0;
+	color: rgb(140, 144, 158);
+}
+
+.idle-tab--on {
+	background-color: rgb(38, 44, 58);
+	color: rgb(226, 228, 236);
+	-unity-font-style: bold;
+}
+
+/* ── 올리기 ─────────────────────────────────────────────────── */
+
+.idle-row-title {
+	font-size: 13px;
+	color: rgb(196, 200, 212);
+	margin-top: 12px;
+}
+
+.idle-row-value {
+	font-size: 11px;
+	color: rgb(128, 132, 146);
+	margin-bottom: 4px;
+}
+
+.idle-button {
+	height: 34px;
+	font-size: 13px;
+	background-color: rgb(38, 44, 58);
+	border-width: 0;
+	color: rgb(226, 228, 236);
+	margin: 2px 0;
+}
+
+.idle-button:hover {
+	background-color: rgb(48, 56, 74);
+}
+
+.idle-button:disabled {
 	opacity: 0.35;
 }
 
-.idle-roll {
-	font-size: 13px;
-	color: rgb(214, 190, 130);
-	margin-top: 4px;
-	min-height: 18px;
+.idle-button--strong {
+	background-color: rgb(58, 78, 112);
 }
 
-.idle-hold-button {
-	height: 32px;
-	font-size: 13px;
-	margin-top: 8px;
+.idle-note {
+	font-size: 11px;
+	color: rgb(196, 176, 120);
+	margin-top: 6px;
+	min-height: 16px;
+	white-space: normal;
+}
+
+.idle-divider {
+	height: 1px;
+	background-color: rgb(38, 41, 52);
+	margin: 14px 0 6px 0;
+}
+
+.idle-hidden {
+	display: none;
 }

@@ -7,8 +7,23 @@ namespace WitchMendokusai
 {
 	public class RootLifetimeScope : LifetimeScope
 	{
+		/// <summary>본편이 아닌 씬 — 여기서는 본편 조립을 아예 안 세운다.</summary>
+		private const string SIDE_GAME_SCENE = "Idle";
+
 		protected override void Configure(IContainerBuilder builder)
 		{
+			// ★ 방치형(`Idle`)은 <b>따로 파는 게임</b>이다 — 본편 조립·데이터·로비가 필요 없다.
+			//   여기가 진짜 길목이다: 아래 `EagerResolve<DataLoader>` 가 곧바로
+			//   「로딩 시 강제로 로비로 이동」을 실행해 <b>다른 게임이 시작된다</b>(실제로 겪었다).
+			//   `Bootstrap` 에서 막아 봤자 소용없다 — 이 뿌리는 VContainer 가 스스로 세운다.
+			//   빌드에서는 이 어셈블리 자체가 안 실리지만(`WM_IDLE`), 에디터에는 그 표식이 없다.
+			//   스스로 뜨는 것이 스물세 곳이라 하나씩은 못 막는다 — <b>뿌리에서</b> 한 번에 막는다.
+			if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == SIDE_GAME_SCENE)
+			{
+				Debug.Log("[BOOT] 방치형 씬 — 본편 조립을 세우지 않는다");
+				return;
+			}
+
 			builder.RegisterMessagePipe();
 
 			// SOManager — ScriptableObject = RegisterInstance pattern (cross-scene global, TASK-WM-078 γ P2-2, 2026-05-13).

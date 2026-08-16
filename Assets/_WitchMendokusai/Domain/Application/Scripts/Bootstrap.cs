@@ -5,9 +5,22 @@ namespace WitchMendokusai
 {
 	public static class Bootstrap
 	{
+		/// <summary>본편이 아닌 씬 — 여기서는 본편 조립을 아예 안 세운다.</summary>
+		private const string SIDE_GAME_SCENE = "Idle";
+
 		[UnityEngine.RuntimeInitializeOnLoadMethod(UnityEngine.RuntimeInitializeLoadType.BeforeSceneLoad)]
 		public static void OnBooting()
 		{
+			// ★ 방치형(`Idle`)은 <b>따로 파는 게임</b>이다 — 본편 조립·데이터·로비가 필요 없다.
+			//   여기서 안 막으면 본편 뿌리가 서고, 그 안의 `DataLoader` 가
+			//   「로딩 시 강제로 로비로 이동」을 실행해 <b>다른 게임이 시작된다</b>(실제로 겪었다).
+			//   빌드에서는 이 어셈블리 자체가 안 실리지만(`WM_IDLE`), 에디터에는 표식이 없다.
+			//   하나씩 막지 않고 <b>뿌리에서</b> 막는다 — 스스로 뜨는 것이 스물세 곳이라 하나씩은 못 막는다.
+			if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == SIDE_GAME_SCENE)
+			{
+				return;
+			}
+
 			// TASK-WM-118 I5 — LoadInstanceFromPreloadAssets() 는 VContainer 가
 			// #if UNITY_EDITOR 로만 컴파일(UnityEditor.PlayerSettings = 에디터
 			// 전용). player 에선 preloaded asset OnEnable(if isPlaying →

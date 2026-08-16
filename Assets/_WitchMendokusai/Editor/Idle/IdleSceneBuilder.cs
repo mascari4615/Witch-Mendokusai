@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.IO;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -26,6 +27,41 @@ namespace WitchMendokusai.EditorTools
 		private const string STYLE_PATH = "Assets/_WitchMendokusai/Domain/Idle/IdleScreen.uss";
 		private const string THEME_PATH = "Assets/Settings/UnityDefaultRuntimeTheme.tss";
 		private const string TAG = "[IdleScene]";
+
+		/// <summary>
+		/// 방치형 씬을 열고 바로 <b>Play</b> — 한 번에 (TASK-WM-406).
+		///
+		/// ★ 왜 필요한가 — 본편 씬이 열린 채로 Play 를 누르면 당연히 본편이 뜬다(실제로 겪었다).
+		///   방치형은 따로 파는 게임이라 <b>들어가는 문이 따로</b> 있어야 헷갈리지 않는다.
+		/// </summary>
+		[MenuItem("WM/Idle/열고 플레이 %#i")]
+		public static void OpenAndPlay()
+		{
+			if (EditorApplication.isPlaying)
+			{
+				EditorApplication.isPlaying = false;
+				return;
+			}
+
+			if (File.Exists(SCENE_PATH) == false)
+			{
+				Debug.LogError(TAG + " 씬이 없다 — 먼저 WM/Idle/씬 짓기: " + SCENE_PATH);
+				return;
+			}
+
+			if (EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo() == false)
+			{
+				return;
+			}
+
+			EditorSceneManager.OpenScene(SCENE_PATH, OpenSceneMode.Single);
+
+			// ★ Play 시작 씬 가로채기를 끈다 — `EditorStartInit` 가 첫 씬(Intro)으로 고정해 둬서
+			//   방치형 씬을 열어도 계속 본편이 떴다(실측 2026-08-16: 활성 씬이 'Intro' 였다).
+			EditorSceneManager.playModeStartScene = null;
+
+			EditorApplication.isPlaying = true;
+		}
 
 		[MenuItem("WM/Idle/씬 짓기")]
 		public static void Build()

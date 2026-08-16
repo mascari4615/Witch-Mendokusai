@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
 using WitchMendokusai.DomainSDK.Contracts;
@@ -8,21 +9,31 @@ using BigNumberText = WitchMendokusai.Numerics.BigNumberText;
 namespace WitchMendokusai
 {
 	/// <summary>
-	/// 방치 게임을 <b>실제로 켜서 하는</b> 화면 (TASK-WM-406).
+	/// 방치 게임 화면 (TASK-WM-406).
 	///
-	/// ★ 에디터 창(<c>IdlePlaygroundWindow</c>)과 같은 코어를 쓰고, 같은 계약을 구현한다.
-	///   다른 것은 <b>그릇</b>뿐이다 — 저쪽은 에디터 창, 이쪽은 빌드에 실려 나가는 씬.
-	///   그래서 이 파일에 게임 규칙이 한 줄도 없다: 사진을 받아 그리고, 의도를 보낸다.
+	/// ★ 이 파일에 게임 규칙이 한 줄도 없다 — 사진을 받아 그리고, 의도를 보낸다.
+	///   에디터 창과 같은 코어·같은 계약이고 다른 것은 그릇뿐이다.
 	///
-	/// ★ 본편 <c>UIRoot</c> 에 붙지 않는다. 붙이면 방치형 하나 켜자고 본편 부팅이 통째로 따라온다.
-	///   따로 낼 수 있어야 하는 게임이라(2027-02 목표) 씬도 UI 도 자기 것만 쥔다.
+	/// ★ 짜임 (사용자 컨펌 2026-08-16): 위 요약 띠 · 아래 두 칸(판 · 조작).
+	///   조작은 <b>탭</b>으로 묶는다 — 세로로 늘어놓으면 버튼이 늘 때마다 화면이 길어지고
+	///   지금 무엇을 하는 중인지가 안 보인다.
 	///
-	/// ★ 색·여백·글자 크기는 여기 없다 — USS 에 있다(<c>WitchMendokusai/CLAUDE.md</c> § 코드로 짓는 UIToolkit).
-	///   이 클래스는 USS 클래스 이름만 안다.
+	/// ★ 보이는 것은 <b>기하학적 도형</b>이다(사용자 방향: 세계관 정하기 전).
+	///   규칙 하나로 읽힌다 — <b>변의 수 = 등급</b>. 1등급 삼각형 … 8등급 십각형.
+	///   숫자를 안 읽어도 변만 세면 등급을 안다.
+	///
+	/// ★ 해상도 — 고정 픽셀을 최소로 쓰고 flex 로 늘린다. 좁으면 두 칸이 한 칸으로 접힌다.
 	/// </summary>
 	[RequireComponent(typeof(UIDocument))]
 	public sealed class IdleScreen : MonoBehaviour, IGameView<IdleSnapshot>
 	{
+		private enum Tab
+		{
+			Upgrade = 0,
+			Gear = 1,
+			Fold = 2,
+		}
+
 		[Header("수치 — 비워 두면 코드 기본값")]
 		[SerializeField] private IdleTuningSO tuningAsset;
 
@@ -34,24 +45,40 @@ namespace WitchMendokusai
 
 		private IdleSession session;
 		private float sinceLastSave;
+		private long lastKills;
 
 		private Label stageLabel;
 		private Label resourceLabel;
-		private Label incomeLabel;
-		private Label killsLabel;
-		private ProgressBar targetBar;
-		private Label offlineLabel;
+		private Label topNoteLabel;
+
+		private IdleShapeElement targetShape;
+		private IdleBurstElement burst;
+		private readonly List<IdleShapeElement> allies = new List<IdleShapeElement>();
+		private ProgressBar healthBar;
+		private readonly List<VisualElement> killDots = new List<VisualElement>();
+		private Label arenaCaption;
+
+		private readonly List<Button> tabButtons = new List<Button>();
+		private VisualElement upgradePage;
+		private VisualElement gearPage;
+		private VisualElement foldPage;
+
+		private Label damageTitle;
+		private Label damageValue;
+		private Button damageButton;
+		private Label speedTitle;
+		private Label speedValue;
+		private Button speedButton;
 		private Button retreatButton;
 		private Button holdButton;
+
 		private Label potentialLabel;
-		private Label rollLabel;
-		private VisualElement dropsPanel;
-		private readonly System.Collections.Generic.List<Button> appraiseButtons = new System.Collections.Generic.List<Button>();
+		private VisualElement dropRows;
+		private readonly List<Button> appraiseButtons = new List<Button>();
+		private Label rollNote;
+
+		private Label foldSummary;
 		private Button prestigeButton;
-		private Button damageButton;
-		private Button speedButton;
-		private Label damageLevelLabel;
-		private Label speedLevelLabel;
 
 		public PresentationKind Kind => PresentationKind.UIOnly;
 
@@ -68,10 +95,11 @@ namespace WitchMendokusai
 
 			session = new IdleSession(tuning, state);
 
-			// ★ 화면을 짓기 <b>전에</b> 자리 비운 몫을 쳐준다 — 그래야 첫 그림이 이미 받은 뒤의 판이다.
+			// ★ 화면을 짓기 전에 자리 비운 몫을 쳐준다 — 첫 그림이 이미 받은 뒤의 판이라야 한다.
 			double away = session.CatchUp(IdleSaveStore.NowUnixSeconds());
 
 			BuildInterface(away);
+			lastKills = session.State.Kills;
 			Render(session.Capture());
 		}
 
@@ -82,7 +110,6 @@ namespace WitchMendokusai
 
 		private void OnApplicationPause(bool paused)
 		{
-			// 손전화는 여기서 끝난다 — OnDisable 이 안 올 수 있다.
 			if (paused)
 			{
 				WriteDown();
@@ -96,17 +123,35 @@ namespace WitchMendokusai
 
 		private void Update()
 		{
-			session.Advance(Time.unscaledDeltaTime);
-			Render(session.Capture());
+			float delta = Time.unscaledDeltaTime;
 
-			sinceLastSave += Time.unscaledDeltaTime;
+			session.Advance(delta);
+			IdleSnapshot snapshot = session.Capture();
+
+			// ★ 잡힌 순간을 눈으로 보여준다 — 자동 전투일수록 「일이 일어났다」는 신호가 필요하다.
+			if (snapshot.Kills > lastKills)
+			{
+				lastKills = snapshot.Kills;
+				burst.Fire(snapshot.MaxTierNow, TierColor(snapshot.MaxTierNow));
+				targetShape.Hit();
+			}
+
+			targetShape.Advance(delta, 0.08f);
+			burst.Advance(delta);
+			for (int index = 0; index < allies.Count; index++)
+			{
+				allies[index].Advance(delta, 0.35f + index * 0.1f);
+			}
+
+			Render(snapshot);
+
+			sinceLastSave += delta;
 			if (sinceLastSave >= saveIntervalSeconds)
 			{
 				WriteDown();
 			}
 		}
 
-		/// <summary>지금을 적어 둔다 — 「언제 봤나」까지 같이 찍어야 자리 비운 몫이 이어진다.</summary>
 		private void WriteDown()
 		{
 			if (session == null)
@@ -119,6 +164,8 @@ namespace WitchMendokusai
 			IdleSaveStore.Save(session.State.Save());
 		}
 
+		// ── 짓기 ────────────────────────────────────────────────────────────
+
 		private void BuildInterface(double awaySeconds)
 		{
 			VisualElement root = GetComponent<UIDocument>().rootVisualElement;
@@ -129,119 +176,267 @@ namespace WitchMendokusai
 				root.styleSheets.Add(styleSheet);
 			}
 
-			VisualElement panel = new VisualElement();
-			panel.AddToClassList("idle-panel");
-			root.Add(panel);
+			VisualElement shell = new VisualElement();
+			shell.AddToClassList("idle-root");
+			root.Add(shell);
 
-			stageLabel = AddLabel(panel, "idle-stage");
-			resourceLabel = AddLabel(panel, "idle-resource");
-			incomeLabel = AddLabel(panel, "idle-income");
-			killsLabel = AddLabel(panel, "idle-kills");
+			BuildTopBar(shell, awaySeconds);
 
-			targetBar = new ProgressBar();
-			targetBar.lowValue = 0f;
-			targetBar.highValue = 1f;
-			targetBar.AddToClassList("idle-target");
-			panel.Add(targetBar);
+			VisualElement body = new VisualElement();
+			body.AddToClassList("idle-body");
+			shell.Add(body);
 
-			// ★ 이 게임에서 사람이 하는 둘째 종류의 결정 — 여기 머물까, 더 내려갈까.
-			//   실측(6시간): 머물면 540개(1등급) · 내려가면 26개(2등급). 많이냐 좋은 것이냐.
-			// ★ 막혔을 때 <b>물러나 버는</b> 수단. 이게 없으면 게임이 벽에서 완전히 멎는다 —
-			//   실측 48시간: 앞으로만 가면 77단계, 물러날 줄 알면 186단계(2.4배).
-			retreatButton = new Button(Retreat);
-			retreatButton.AddToClassList("idle-hold-button");
-			panel.Add(retreatButton);
+			BuildArena(body);
+			BuildPanel(body);
 
-			holdButton = new Button(ToggleHold);
-			holdButton.AddToClassList("idle-hold-button");
-			panel.Add(holdButton);
+			ShowTab(Tab.Upgrade);
+		}
 
-			offlineLabel = AddLabel(panel, "idle-offline");
-			offlineLabel.style.display = awaySeconds > 0d ? DisplayStyle.Flex : DisplayStyle.None;
+		private void BuildTopBar(VisualElement parent, double awaySeconds)
+		{
+			VisualElement bar = new VisualElement();
+			bar.AddToClassList("idle-topbar");
+			parent.Add(bar);
+
+			stageLabel = AddLabel(bar, "idle-top-stage");
+			resourceLabel = AddLabel(bar, "idle-top-resource");
+			topNoteLabel = AddLabel(bar, "idle-top-note");
+
 			if (awaySeconds > 0d)
 			{
-				offlineLabel.text = string.Format("자리를 비운 {0} 동안도 잡아 뒀다", DescribeSpan(awaySeconds));
+				topNoteLabel.text = string.Format("자리 비운 {0} 동안도 잡아 뒀다", DescribeSpan(awaySeconds));
 			}
-
-			damageLevelLabel = AddLabel(panel, "idle-upgrade-title");
-			damageButton = AddButton(panel, IdleUpgradeKind.Damage);
-
-			speedLevelLabel = AddLabel(panel, "idle-upgrade-title");
-			speedButton = AddButton(panel, IdleUpgradeKind.AttackSpeed);
-
-			// ★ 감정 칸 — 이 게임에서 <b>사람이 주사위를 굴리는 유일한 자리</b>다.
-			//   코어에 있는데 화면에 없으면 빌드로는 그 고리를 못 돈다.
-			potentialLabel = AddLabel(panel, "idle-upgrade-title");
-			dropsPanel = new VisualElement();
-			panel.Add(dropsPanel);
-			rollLabel = AddLabel(panel, "idle-roll");
-
-			prestigeButton = new Button(Prestige);
-			prestigeButton.AddToClassList("idle-prestige-button");
-			panel.Add(prestigeButton);
 		}
 
-		/// <summary>
-		/// 등급마다 「몇 개 · 감정」 한 줄. 천장이 오르면 줄이 늘어나므로 <b>필요할 때만 다시 짓는다</b> —
-		/// 매 프레임 다시 지으면 누르는 도중에 버튼이 사라진다.
-		/// </summary>
-		private void RebuildDropRows(int tierCount)
+		private void BuildArena(VisualElement parent)
 		{
-			dropsPanel.Clear();
-			appraiseButtons.Clear();
+			VisualElement arena = new VisualElement();
+			arena.AddToClassList("idle-arena");
+			parent.Add(arena);
 
-			for (int tier = 1; tier <= tierCount; tier++)
+			VisualElement box = new VisualElement();
+			box.AddToClassList("idle-stage-box");
+			arena.Add(box);
+
+			targetShape = new IdleShapeElement();
+			targetShape.AddToClassList("idle-shape");
+			box.Add(targetShape);
+
+			burst = new IdleBurstElement();
+			burst.AddToClassList("idle-shape");
+			box.Add(burst);
+
+			healthBar = new ProgressBar();
+			healthBar.lowValue = 0f;
+			healthBar.highValue = 1f;
+			healthBar.AddToClassList("idle-health");
+			arena.Add(healthBar);
+
+			VisualElement dots = new VisualElement();
+			dots.AddToClassList("idle-kills-dots");
+			arena.Add(dots);
+			killDots.Clear();
+
+			VisualElement allyRow = new VisualElement();
+			allyRow.AddToClassList("idle-ally-row");
+			arena.Add(allyRow);
+			allies.Clear();
+
+			for (int one = 0; one < 3; one++)
 			{
-				int captured = tier;
-
-				Button button = new Button(() => Appraise(captured));
-				button.AddToClassList("idle-appraise-button");
-				dropsPanel.Add(button);
-				appraiseButtons.Add(button);
+				IdleShapeElement ally = new IdleShapeElement();
+				ally.AddToClassList("idle-ally");
+				ally.Tier = 1;
+				ally.Body = new Color(0.72f, 0.78f, 0.52f);
+				allyRow.Add(ally);
+				allies.Add(ally);
 			}
+
+			arenaCaption = AddLabel(arena, "idle-arena-caption");
 		}
 
-		private void Appraise(int tier)
+		private void BuildPanel(VisualElement parent)
 		{
-			if (session.TryAppraise(tier, out PotentialRoll roll))
+			VisualElement panel = new VisualElement();
+			panel.AddToClassList("idle-panel");
+			parent.Add(panel);
+
+			VisualElement tabs = new VisualElement();
+			tabs.AddToClassList("idle-tabs");
+			panel.Add(tabs);
+
+			tabButtons.Clear();
+			AddTab(tabs, "강화", Tab.Upgrade);
+			AddTab(tabs, "장비", Tab.Gear);
+			AddTab(tabs, "접기", Tab.Fold);
+
+			upgradePage = AddPage(panel);
+			gearPage = AddPage(panel);
+			foldPage = AddPage(panel);
+
+			BuildUpgradePage();
+			BuildGearPage();
+			BuildFoldPage();
+		}
+
+		private void BuildUpgradePage()
+		{
+			damageTitle = AddLabel(upgradePage, "idle-row-title");
+			damageValue = AddLabel(upgradePage, "idle-row-value");
+			damageButton = AddButton(upgradePage, "idle-button idle-button--strong",
+				() => Send(IdleUpgradeKind.Damage));
+
+			speedTitle = AddLabel(upgradePage, "idle-row-title");
+			speedValue = AddLabel(upgradePage, "idle-row-value");
+			speedButton = AddButton(upgradePage, "idle-button idle-button--strong",
+				() => Send(IdleUpgradeKind.AttackSpeed));
+
+			AddDivider(upgradePage);
+
+			retreatButton = AddButton(upgradePage, "idle-button", Retreat);
+			holdButton = AddButton(upgradePage, "idle-button", ToggleHold);
+		}
+
+		private void BuildGearPage()
+		{
+			potentialLabel = AddLabel(gearPage, "idle-row-title");
+
+			dropRows = new VisualElement();
+			gearPage.Add(dropRows);
+
+			rollNote = AddLabel(gearPage, "idle-note");
+		}
+
+		private void BuildFoldPage()
+		{
+			foldSummary = AddLabel(foldPage, "idle-row-title");
+			foldSummary.style.whiteSpace = WhiteSpace.Normal;
+
+			prestigeButton = AddButton(foldPage, "idle-button idle-button--strong", Prestige);
+		}
+
+		// ── 그리기 ──────────────────────────────────────────────────────────
+
+		public void Render(IdleSnapshot snapshot)
+		{
+			if (stageLabel == null)
 			{
-				rollLabel.text = string.Format("{0}등급 감정 → {1} {2:P1}{3}",
-					roll.Tier, NameOf(roll.Grade), roll.Value, roll.Replaced ? "  ★ 갈아 끼웠다" : "");
-				WriteDown();
+				return;
 			}
 
-			Render(session.Capture());
+			bool atCeiling = snapshot.MaxTierNow >= snapshot.TierCeiling;
+
+			stageLabel.text = string.Format("{0}단계 · 등급 {1}/{2}{3}",
+				snapshot.Stage, snapshot.MaxTierNow, snapshot.TierCeiling,
+				atCeiling ? " (천장)" : string.Empty);
+
+			resourceLabel.text = string.Format("{0}  ({1}/초)",
+				BigNumberText.Format(snapshot.Resource), BigNumberText.Format(snapshot.IncomePerSecond));
+
+			targetShape.Tier = snapshot.MaxTierNow;
+			targetShape.Body = TierColor(snapshot.MaxTierNow);
+			targetShape.Fill = (float)snapshot.TargetHealthRatio;
+
+			healthBar.value = (float)snapshot.TargetHealthRatio;
+			healthBar.title = string.Format("{0:P0}", snapshot.TargetHealthRatio);
+
+			DrawKillDots(snapshot);
+
+			arenaCaption.text = snapshot.HoldingStage
+				? string.Format("여기서 사냥 중 — 많이 떨군다 (변 {0}개 = {0} 등급까지)", snapshot.MaxTierNow + 2)
+				: string.Format("내려가는 중 — 좋은 게 떨어진다 (변 {0}개 = {1}등급)",
+					snapshot.MaxTierNow + 2, snapshot.MaxTierNow);
+
+			RenderUpgradePage(snapshot);
+			RenderGearPage(snapshot);
+			RenderFoldPage(snapshot);
 		}
 
-		private static string NameOf(PotentialGrade grade)
+		private void DrawKillDots(IdleSnapshot snapshot)
 		{
-			switch (grade)
+			VisualElement dots = killDots.Count > 0 ? killDots[0].parent : null;
+			if (dots == null)
 			{
-				case PotentialGrade.Rare: return "레어";
-				case PotentialGrade.Epic: return "에픽";
-				case PotentialGrade.Unique: return "유니크";
-				case PotentialGrade.Legendary: return "레전드리";
-				default: return "없음";
+				dots = arenaCaption.parent.Q(className: "idle-kills-dots");
+			}
+
+			if (dots == null)
+			{
+				return;
+			}
+
+			if (killDots.Count != snapshot.KillsPerStage)
+			{
+				dots.Clear();
+				killDots.Clear();
+
+				for (int one = 0; one < snapshot.KillsPerStage; one++)
+				{
+					VisualElement dot = new VisualElement();
+					dot.AddToClassList("idle-dot");
+					dots.Add(dot);
+					killDots.Add(dot);
+				}
+			}
+
+			for (int index = 0; index < killDots.Count; index++)
+			{
+				killDots[index].EnableInClassList("idle-dot--done", index < snapshot.KillsInStage);
 			}
 		}
 
-		private static Label AddLabel(VisualElement parent, string className)
+		private void RenderUpgradePage(IdleSnapshot snapshot)
 		{
-			Label label = new Label(string.Empty);
-			label.AddToClassList(className);
-			parent.Add(label);
-			return label;
+			DrawUpgrade(snapshot.Damage, damageTitle, damageValue, damageButton, "공격력", "한 방 {0}");
+			DrawUpgrade(snapshot.AttackSpeed, speedTitle, speedValue, speedButton, "공격속도", "초당 {0}회");
+
+			bool canRetreat = snapshot.Stage > snapshot.BestFarmingStage;
+			retreatButton.text = canRetreat
+				? string.Format("◀ {0}단계로 물러나 번다", snapshot.BestFarmingStage)
+				: string.Format("▶ 가장 깊은 {0}단계로", snapshot.BestStage);
+			retreatButton.SetEnabled(snapshot.Stage != (canRetreat ? snapshot.BestFarmingStage : snapshot.BestStage));
+
+			holdButton.text = snapshot.HoldingStage ? "⏸ 여기 머무는 중" : "▽ 계속 내려가는 중";
 		}
 
-		private Button AddButton(VisualElement parent, IdleUpgradeKind kind)
+		private void RenderGearPage(IdleSnapshot snapshot)
 		{
-			Button button = new Button(() => Send(kind));
-			button.AddToClassList("idle-upgrade-button");
-			parent.Add(button);
-			return button;
+			if (appraiseButtons.Count != snapshot.DroppedByTier.Length)
+			{
+				RebuildDropRows(snapshot.DroppedByTier.Length);
+			}
+
+			potentialLabel.text = snapshot.BestPotentialValue > 0d
+				? string.Format("잠재 {0} {1:P1}", NameOf(snapshot.BestPotentialGrade), snapshot.BestPotentialValue)
+				: "잠재 없음 — 2등급부터 감정할 수 있다";
+
+			for (int tier = 1; tier <= appraiseButtons.Count; tier++)
+			{
+				long count = snapshot.DroppedByTier[tier - 1];
+				appraiseButtons[tier - 1].text = tier < 2
+					? string.Format("◆{0}  {1}개 — 잠재 없음", tier, BigNumberText.Format(count))
+					: string.Format("◆{0}  {1}개 — 감정 ({2})", tier, BigNumberText.Format(count),
+						NameOf(IdlePotentials.GradeFor(tier)));
+				appraiseButtons[tier - 1].SetEnabled(tier >= 2 && count > 0L);
+			}
 		}
 
-		/// <summary>버튼이 하는 일은 이것뿐 — 의도를 보낸다. 받아들일지는 코어가 정한다.</summary>
+		private void RenderFoldPage(IdleSnapshot snapshot)
+		{
+			foldSummary.text = string.Format(
+				"모은 점수 {0} · 지금 배수 {1}\n자리 비워도 되는 시간 {2}\n\n접으면 셋이 오른다 — 공격 배수 · 등급 천장 · 비워도 되는 시간.\n이미 지나온 길은 다시 안 판다.",
+				snapshot.PrestigePoints,
+				BigNumberText.Format(snapshot.PrestigeMultiplier),
+				DescribeSpan(snapshot.MaxOfflineSeconds));
+
+			prestigeButton.text = snapshot.PrestigeAward > 0L
+				? string.Format("다시 시작 — {0}점 얻는다", snapshot.PrestigeAward)
+				: "다시 시작 — 더 내려가야 한다";
+			prestigeButton.SetEnabled(snapshot.PrestigeAward > 0L);
+		}
+
+		// ── 의도 ────────────────────────────────────────────────────────────
+
 		private void Send(IdleUpgradeKind kind)
 		{
 			session.Send(new IdleRaiseUpgradeIntent(kind));
@@ -265,97 +460,129 @@ namespace WitchMendokusai
 			Render(session.Capture());
 		}
 
-		private void Prestige()
+		private void Appraise(int tier)
 		{
-			if (session.Send(new IdlePrestigeIntent()))
+			if (session.TryAppraise(tier, out PotentialRoll roll))
 			{
-				// 판을 접었으면 바로 적어 둔다 — 여기서 죽으면 점수가 통째로 날아간다.
+				rollNote.text = string.Format("◆{0} 감정 → {1} {2:P1}{3}",
+					roll.Tier, NameOf(roll.Grade), roll.Value, roll.Replaced ? "   ★ 갈아 끼웠다" : string.Empty);
 				WriteDown();
 			}
 
 			Render(session.Capture());
 		}
 
-		public void Render(IdleSnapshot snapshot)
+		private void Prestige()
 		{
-			if (resourceLabel == null)
+			if (session.Send(new IdlePrestigeIntent()))
 			{
-				return;
+				lastKills = session.State.Kills;
+				WriteDown();
 			}
 
-			// ★ 문구를 고쳤다 (실측 2026-08-16). 「더 내려가도 안 열린다」는 <b>등급</b> 얘기인데
-			//   사람은 그걸 「접어라」로 읽는다. 그런데 재 보니 천장에서 바로 접는 습관은
-			//   판5에 102단계, 버티는 습관은 <b>363단계</b>였다 — 접기 남발이 훨씬 손해다.
-			//   화면이 나쁜 수를 권하고 있었던 셈이라, <b>점수는 계속 쌓인다</b>를 같이 적는다.
-			bool atCeiling = snapshot.MaxTierNow >= snapshot.TierCeiling;
-			stageLabel.text = atCeiling
-				? string.Format("{0}단계  ({1}/{2})   등급 {3} — 천장 (등급은 그만, 점수는 계속 쌓인다)",
-					snapshot.Stage, snapshot.KillsInStage, snapshot.KillsPerStage, snapshot.MaxTierNow)
-				: string.Format("{0}단계  ({1}/{2})   등급 {3} / 천장 {4}",
-					snapshot.Stage, snapshot.KillsInStage, snapshot.KillsPerStage,
-					snapshot.MaxTierNow, snapshot.TierCeiling);
-			resourceLabel.text = string.Format("자원 {0}", BigNumberText.Format(snapshot.Resource));
-			incomeLabel.text = string.Format("초당 {0}", BigNumberText.Format(snapshot.IncomePerSecond));
-			killsLabel.text = string.Format("처치 {0}", BigNumberText.Format(snapshot.Kills));
-
-			targetBar.value = (float)snapshot.TargetHealthRatio;
-			targetBar.title = string.Format("대상 체력 {0:P0}", snapshot.TargetHealthRatio);
-
-			if (appraiseButtons.Count != snapshot.DroppedByTier.Length)
-			{
-				RebuildDropRows(snapshot.DroppedByTier.Length);
-			}
-
-			retreatButton.text = snapshot.Stage > snapshot.BestFarmingStage
-				? string.Format("{0}단계로 물러나 번다 (한 방에 잡힌다)", snapshot.BestFarmingStage)
-				: string.Format("가장 깊은 {0}단계로 돌아간다", snapshot.BestStage);
-			retreatButton.SetEnabled(snapshot.Stage != (snapshot.Stage > snapshot.BestFarmingStage
-				? snapshot.BestFarmingStage : snapshot.BestStage));
-
-			holdButton.text = snapshot.HoldingStage
-				? string.Format("여기서 사냥 중 — {0}단계 (많이 떨군다)", snapshot.Stage)
-				: string.Format("계속 내려가는 중 (좋은 게 떨어진다 · 상한 {0}등급)", snapshot.TierCeiling);
-
-			potentialLabel.text = snapshot.BestPotentialValue > 0d
-				? string.Format("잠재 {0} {1:P1}", NameOf(snapshot.BestPotentialGrade), snapshot.BestPotentialValue)
-				: "잠재 없음 — 2등급부터 감정할 수 있다";
-
-			for (int tier = 1; tier <= appraiseButtons.Count; tier++)
-			{
-				long count = snapshot.DroppedByTier[tier - 1];
-				bool appraisable = tier >= 2 && count > 0L;
-
-				appraiseButtons[tier - 1].text = tier < 2
-					? string.Format("{0}등급 {1}개 — 잠재 없음", tier, count)
-					: string.Format("{0}등급 {1}개 — 감정 ({2})", tier, count, NameOf(IdlePotentials.GradeFor(tier)));
-				appraiseButtons[tier - 1].SetEnabled(appraisable);
-			}
-
-			// ★ 접으면 무엇이 오르는지 <b>세 가지를 다</b> 적는다 — 배수만 보이면 접을 이유가 얇다.
-			string standing = string.Format("{0}점 · {1}배 · 자리 비움 {2}",
-				snapshot.PrestigePoints,
-				BigNumberText.Format(snapshot.PrestigeMultiplier),
-				DescribeSpan(snapshot.MaxOfflineSeconds));
-
-			prestigeButton.text = snapshot.PrestigeAward > 0L
-				? string.Format("다시 시작 — {0}점 얻는다  ({1})", snapshot.PrestigeAward, standing)
-				: string.Format("다시 시작 — 더 내려가야 한다  ({0})", standing);
-			prestigeButton.SetEnabled(snapshot.PrestigeAward > 0L);
-
-			DrawUpgrade(snapshot.Damage, damageLevelLabel, damageButton, "공격력", "한 방 {0}");
-			DrawUpgrade(snapshot.AttackSpeed, speedLevelLabel, speedButton, "공격속도", "초당 {0}회");
+			Render(session.Capture());
 		}
 
-		private static void DrawUpgrade(IdleUpgradeView view, Label levelLabel, Button button, string title, string valueFormat)
+		// ── 잔손 ────────────────────────────────────────────────────────────
+
+		private void RebuildDropRows(int tierCount)
 		{
-			levelLabel.text = string.Format("{0} Lv.{1}  ({2})", title, view.Level, string.Format(valueFormat, BigNumberText.Format(view.CurrentValue)));
+			dropRows.Clear();
+			appraiseButtons.Clear();
+
+			for (int tier = 1; tier <= tierCount; tier++)
+			{
+				int captured = tier;
+				appraiseButtons.Add(AddButton(dropRows, "idle-button", () => Appraise(captured)));
+			}
+		}
+
+		private void AddTab(VisualElement parent, string text, Tab which)
+		{
+			Button button = new Button(() => ShowTab(which));
+			button.text = text;
+			button.AddToClassList("idle-tab");
+			parent.Add(button);
+			tabButtons.Add(button);
+		}
+
+		private void ShowTab(Tab which)
+		{
+			for (int index = 0; index < tabButtons.Count; index++)
+			{
+				tabButtons[index].EnableInClassList("idle-tab--on", index == (int)which);
+			}
+
+			upgradePage.EnableInClassList("idle-hidden", which != Tab.Upgrade);
+			gearPage.EnableInClassList("idle-hidden", which != Tab.Gear);
+			foldPage.EnableInClassList("idle-hidden", which != Tab.Fold);
+		}
+
+		private static VisualElement AddPage(VisualElement parent)
+		{
+			VisualElement page = new VisualElement();
+			parent.Add(page);
+			return page;
+		}
+
+		private static Label AddLabel(VisualElement parent, string className)
+		{
+			Label label = new Label(string.Empty);
+			label.AddToClassList(className);
+			parent.Add(label);
+			return label;
+		}
+
+		private static Button AddButton(VisualElement parent, string classNames, System.Action action)
+		{
+			Button button = new Button(action);
+			foreach (string one in classNames.Split(' '))
+			{
+				button.AddToClassList(one);
+			}
+
+			parent.Add(button);
+			return button;
+		}
+
+		private static void AddDivider(VisualElement parent)
+		{
+			VisualElement line = new VisualElement();
+			line.AddToClassList("idle-divider");
+			parent.Add(line);
+		}
+
+		private static void DrawUpgrade(IdleUpgradeView view, Label title, Label value, Button button,
+			string name, string valueFormat)
+		{
+			title.text = string.Format("{0}  Lv.{1}", name, view.Level);
+			value.text = string.Format(valueFormat, BigNumberText.Format(view.CurrentValue));
+
 			button.text = view.IsMaxed
-				? string.Format("{0} 올리기 — 최대", title)
-				: string.Format("{0} 올리기 — {1}", title, BigNumberText.Format(view.NextCost));
+				? "최대"
+				: string.Format("올리기 — {0}", BigNumberText.Format(view.NextCost));
 			button.SetEnabled(view.CanAfford);
 		}
 
-		/// <summary>「8시간」처럼 사람이 읽는 말로. 초를 그대로 보여 주면 아무도 안 읽는다.</summary>
+		/// <summary>등급마다 색이 달라진다 — 변을 세기 전에 색으로 먼저 눈치챈다.</summary>
+		private static Color TierColor(int tier)
+		{
+			float hue = Mathf.Repeat(0.58f + (tier - 1) * 0.085f, 1f);
+			return Color.HSVToRGB(hue, 0.45f, 0.92f);
+		}
+
+		private static string NameOf(PotentialGrade grade)
+		{
+			switch (grade)
+			{
+				case PotentialGrade.Rare: return "레어";
+				case PotentialGrade.Epic: return "에픽";
+				case PotentialGrade.Unique: return "유니크";
+				case PotentialGrade.Legendary: return "레전드리";
+				default: return "없음";
+			}
+		}
+
 		private static string DescribeSpan(double seconds)
 		{
 			if (seconds < 60d)
