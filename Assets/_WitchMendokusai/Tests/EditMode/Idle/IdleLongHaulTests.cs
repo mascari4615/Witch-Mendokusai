@@ -12,7 +12,7 @@ namespace WitchMendokusai.Tests
 	///   정체하면 켤 이유가 없어지고, 폭주하면 숫자가 뜻을 잃는다. 둘 다 사람이 손으로는 못 찾는다
 	///   (그러자면 진짜로 사흘을 켜 놔야 한다).
 	///
-	/// ★ 그래서 <b>사람 대신 정책이 논다</b> — 살 수 있으면 싼 쪽부터 사고, 천장에 닿으면 접는다.
+	/// ★ 그래서 <b>사람 대신 정책이 논다</b> — 살 수 있으면 싼 쪽부터 사고, 천장에 닿으면 환생한다.
 	///   그리고 판이 어떻게 흘렀는지를 표로 찍는다. 이 표가 이 게임의 「며칠치 곡선」이다.
 	///
 	/// ★ 코어가 스텝 불변이라 <b>10초씩 밟아도 1초씩 밟은 것과 같다</b> — 그래서 며칠을 몇 초에 잰다.
@@ -23,7 +23,7 @@ namespace WitchMendokusai.Tests
 		private const double TICK = 10d;
 		private const double DAY = 24d * 3600d;
 
-		/// <summary>이만큼 한 단계도 못 나가면 「막혔다」로 본다 — 사람이 접기로 마음먹는 지점.</summary>
+		/// <summary>이만큼 한 단계도 못 나가면 「막혔다」로 본다 — 사람이 환생로 마음먹는 지점.</summary>
 		private const double STALL_HOURS = 2d;
 
 		/// <summary>
@@ -40,7 +40,7 @@ namespace WitchMendokusai.Tests
 			IdleState state = new IdleState();
 
 			StringBuilder table = new StringBuilder();
-			table.AppendLine("[IdleLongHaul] 판 | 걸린시간 | 접은단계 | 얻은점수 | 누적점수 | 다음천장 | 최고잠재");
+			table.AppendLine("[IdleLongHaul] 판 | 걸린시간 | 환생단계 | 얻은점수 | 누적점수 | 다음천장 | 최고잠재");
 
 			double elapsed = 0d;
 			double runStarted = 0d;
@@ -63,9 +63,9 @@ namespace WitchMendokusai.Tests
 					lastProgressAt = elapsed;
 				}
 
-				// ★ <b>막혔을 때 접는다</b> — 사람이 하는 짓이 그렇다.
-				//   처음엔 「천장에 닿으면 접는다」로 쟀는데, 그건 사람과 다르다:
-				//   천장은 벽보다 훨씬 먼저 오고, 그때 접으면 판이 0.0h 로 찍혀
+				// ★ <b>막혔을 때 환생한다</b> — 사람이 하는 짓이 그렇다.
+				//   처음엔 「천장에 닿으면 환생한다」로 쟀는데, 그건 사람과 다르다:
+				//   천장은 벽보다 훨씬 먼저 오고, 그때 환생하면 판이 0.0h 로 찍혀
 				//   <b>자가 게임을 잘못 재고 있었다</b>(설계가 아니라 자가 틀린 것이었다).
 				bool stalled = elapsed - lastProgressAt >= STALL_HOURS * 3600d;
 
@@ -106,12 +106,12 @@ namespace WitchMendokusai.Tests
 
 			TestContext.WriteLine(table.ToString());
 
-			Assert.Greater(runs, 1, "이레 동안 판을 두 번도 못 접었다 — 접는 고리가 너무 멀다");
+			Assert.Greater(runs, 1, "이레 동안 판을 두 번도 못 환생했다 — 환생 고리가 너무 멀다");
 			Assert.Greater(state.PrestigePoints, 0L);
 		}
 
 		/// <summary>
-		/// 접을 때가 <b>실제로 온다</b> — 천장에 닿는 데 걸리는 시간이 사람이 기다릴 만한가.
+		/// 환생할 때가 <b>실제로 온다</b> — 천장에 닿는 데 걸리는 시간이 사람이 기다릴 만한가.
 		/// 첫 판은 특히 중요하다: 여기가 길면 아무도 두 번째 판을 못 본다.
 		/// </summary>
 		[Test]
@@ -162,7 +162,7 @@ namespace WitchMendokusai.Tests
 			// ★ <b>시간을 같이 찍는다</b> — 「판마다 몇 단계」만 보면 놓친다.
 			//   지금 값(1.55)은 판마다 +21 이지만 그 2시간이 대부분 <b>막힘 대기</b>이고
 			//   실제 진행은 몇 초다. 그건 게임이 아니다.
-			table.AppendLine("[IdleKnob] 점수배수 | 판1 | 판2 | 판3 | 판4 | 판5  (걸린시간→접은단계)");
+			table.AppendLine("[IdleKnob] 점수배수 | 판1 | 판2 | 판3 | 판4 | 판5  (걸린시간→환생단계)");
 
 			foreach (double knob in knobs)
 			{
@@ -217,7 +217,7 @@ namespace WitchMendokusai.Tests
 		}
 
 		/// <summary>
-		/// 후반 정체를 어느 손잡이가 메우나 — 여러 값으로 돌려 <b>판마다 접은 단계</b>를 찍는다.
+		/// 후반 정체를 어느 손잡이가 메우나 — 여러 값으로 돌려 <b>판마다 환생한 단계</b>를 찍는다.
 		/// 실패하지 않는다(자이지 관문이 아니다).
 		///
 		/// ★ 왜 이 손잡이들인가 — 계산이 먼저다.
@@ -230,7 +230,7 @@ namespace WitchMendokusai.Tests
 		public void PrintDepthPerRun_AcrossLateGameKnobs()
 		{
 			StringBuilder table = new StringBuilder();
-			table.AppendLine("[IdleLate] 손잡이 | 판1 | 판2 | 판3 | 판4 | 판5 | 판6  (숫자 = 접은 단계)");
+			table.AppendLine("[IdleLate] 손잡이 | 판1 | 판2 | 판3 | 판4 | 판5 | 판6  (숫자 = 환생한 단계)");
 
 			Report(table, "지금 그대로", tuning => { });
 			Report(table, "보상 1.35→1.9", tuning =>
@@ -293,22 +293,22 @@ namespace WitchMendokusai.Tests
 		}
 
 		/// <summary>
-		/// 사람이 <b>어떻게 접든</b> 게임이 서는가 — 두 습관을 나란히 돌린다. 실패하지 않는다(자).
+		/// 사람이 <b>어떻게 환생하든</b> 게임이 서는가 — 두 습관을 나란히 돌린다. 실패하지 않는다(자).
 		///
-		/// ★ 왜 — 지금 표는 「막힐 때까지 버틴다」 한 가지만 잰다. 그 판은 첫 접기까지 <b>24.5시간</b>이다.
+		/// ★ 왜 — 지금 표는 「막힐 때까지 버틴다」 한 가지만 잰다. 그 판은 첫 환생까지 <b>24.5시간</b>이다.
 		///   그런데 화면은 천장에 닿는 순간(0.7시간) 「더 내려가도 안 열린다」고 말한다.
-		///   사람은 그걸 보면 접는다 — <b>재는 습관이 사람과 다르면 게임을 잘못 재는 것이다</b>
-		///   (한 번 그렇게 틀렸다: 「천장에서 접기」로 쟀다가 판이 0.0h 로 찍혔고,
+		///   사람은 그걸 보면 환생한다 — <b>재는 습관이 사람과 다르면 게임을 잘못 재는 것이다</b>
+		///   (한 번 그렇게 틀렸다: 「천장에서 환생」로 쟀다가 판이 0.0h 로 찍혔고,
 		///   그때 원인은 정책이 아니라 모델의 고장이었다).
 		/// </summary>
 		[Test]
 		public void PrintTwoHabits_StallVersusCeiling()
 		{
 			StringBuilder table = new StringBuilder();
-			table.AppendLine("[IdleHabit] 습관 | 판1 | 판2 | 판3 | 판4 | 판5  (걸린시간 → 접은단계)");
+			table.AppendLine("[IdleHabit] 습관 | 판1 | 판2 | 판3 | 판4 | 판5  (걸린시간 → 환생단계)");
 
 			table.AppendLine(Habit("막힐 때까지 버틴다", false));
-			table.AppendLine(Habit("천장 보면 접는다", true));
+			table.AppendLine(Habit("천장 보면 환생한다", true));
 
 			TestContext.WriteLine(table.ToString());
 		}
@@ -377,7 +377,7 @@ namespace WitchMendokusai.Tests
 		public void PrintDepthPerRun_AcrossStageSteepness()
 		{
 			StringBuilder table = new StringBuilder();
-			table.AppendLine("[IdleSteep] 체력/보상 | 판1 | 판2 | 판3 | 판4 | 판5  (걸린시간→접은단계)");
+			table.AppendLine("[IdleSteep] 체력/보상 | 판1 | 판2 | 판3 | 판4 | 판5  (걸린시간→환생단계)");
 
 			Steepness(table, 1.55d, 1.35d);
 			Steepness(table, 1.30d, 1.20d);

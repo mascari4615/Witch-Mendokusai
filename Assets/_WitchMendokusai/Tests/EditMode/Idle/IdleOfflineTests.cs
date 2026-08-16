@@ -81,7 +81,7 @@ namespace WitchMendokusai.Tests
 		}
 
 		/// <summary>
-		/// ★ 접으면 <b>덜 매여도 된다</b> — 자리 비워도 되는 시간이 는다.
+		/// ★ 환생하면 <b>덜 매여도 된다</b> — 자리 비워도 되는 시간이 는다.
 		///
 		/// 근거는 울티마 스쿼드다(16시간 → 24시간으로 상한 자체를 늘려 준다).
 		/// 방치형에서 이 보상이 특히 제자리다 — 세지는 게 아니라 <b>덜 매이는 것</b>이 상이다.
@@ -96,12 +96,12 @@ namespace WitchMendokusai.Tests
 			double thrice = IdleModel.MaxOfflineFor(new IdleState { Ascensions = 3 }, tuning);
 
 			Assert.AreEqual(8d * 3600d, fresh, TOLERANCE);
-			Assert.AreEqual(10d * 3600d, once, TOLERANCE, "한 번 접었는데 시간이 안 늘었다");
+			Assert.AreEqual(10d * 3600d, once, TOLERANCE, "한 번 환생했는데 시간이 안 늘었다");
 			Assert.Greater(thrice, once);
 		}
 
 		/// <summary>
-		/// 아무리 접어도 하루까지 — 끝이 없으면 「하루에 한 번」이 「한 달에 한 번」이 되고,
+		/// 아무리 환생해도 하루까지 — 끝이 없으면 「하루에 한 번」이 「한 달에 한 번」이 되고,
 		/// 그 순간 게임이 아니라 알림이 된다.
 		/// </summary>
 		[Test]

@@ -684,7 +684,7 @@ namespace WitchMendokusai
 		/// <summary>
 		/// 조작 서랍 — <b>한 번에 한 묶음</b>.
 		///
-		/// ★ 전에는 강화·장비·접기 셋을 한 칸에 세로로 쌓았다. 그래서 스크롤 없이 겹쳤고
+		/// ★ 전에는 강화·장비·환생 셋을 한 칸에 세로로 쌓았다. 그래서 스크롤 없이 겹쳤고
 		///   「뭐가 뭔지 모르겠다」가 됐다. 탭은 화면을 아끼려는 게 아니라
 		///   <b>지금 무엇을 하는 중인지</b>를 하나로 만드는 장치다.
 		/// </summary>
@@ -713,7 +713,7 @@ namespace WitchMendokusai
 			pages.Add(gearPage);
 			pages.Add(foldPage);
 
-			string[] names = { "기지", "강화", "장비", "접기" };
+			string[] names = { "기지", "강화", "장비", "환생" };
 			tabButtons.Clear();
 
 			for (int index = 0; index < names.Length; index++)
@@ -1196,14 +1196,14 @@ namespace WitchMendokusai
 		private void RenderFoldPage(IdleSnapshot snapshot)
 		{
 			foldSummary.text = string.Format(
-				"모은 점수 {0} · 지금 배수 {1}\n자리 비워도 되는 시간 {2}\n\n접으면 셋이 오른다 — 공격 배수 · 등급 천장 · 비워도 되는 시간.\n이미 지나온 길은 다시 안 판다.",
+				"환생석 {0} · 지금 배수 {1}\n자리 비워도 되는 시간 {2}\n\n환생하면 셋이 오른다 — 공격 배수 · 등급 천장 · 비워도 되는 시간.\n이미 지나온 길은 다시 안 판다.",
 				snapshot.PrestigePoints,
 				BigNumberText.Format(snapshot.PrestigeMultiplier),
 				DescribeSpan(snapshot.MaxOfflineSeconds));
 
 			prestigeButton.text = snapshot.PrestigeAward > 0L
-				? string.Format("다시 시작 — {0}점 얻는다", snapshot.PrestigeAward)
-				: "다시 시작 — 더 내려가야 한다";
+				? string.Format("환생한다 — 환생석 {0}", snapshot.PrestigeAward)
+				: "환생한다 — 더 내려가야 한다";
 			prestigeButton.SetEnabled(snapshot.PrestigeAward > 0L);
 		}
 

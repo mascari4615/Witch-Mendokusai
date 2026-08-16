@@ -67,7 +67,7 @@ namespace WitchMendokusai.DomainSDK.Idle
                 return 0d;
             }
 
-            // 상한은 접은 횟수에 따라 는다 — 접으면 「덜 매여도 되는 것」도 보상이다.
+            // 상한은 환생 횟수에 따라 는다 — 환생하면 「덜 매여도 되는 것」도 보상이다.
             double allowed = IdleModel.MaxOfflineFor(state, tuning);
             if (away > allowed)
             {
@@ -144,7 +144,7 @@ namespace WitchMendokusai.DomainSDK.Idle
             return IdlePotentials.TryAppraise(state, tuning, tier, out roll);
         }
 
-        /// <summary>판을 접고 점수로 바꾼다. 아직 못 접으면 아무 일도 안 일어난다.</summary>
+        /// <summary>판을 환생하고 점수로 바꾼다. 아직 못 환생하면 아무 일도 안 일어난다.</summary>
         public bool Send(IdlePrestigeIntent intent)
         {
             return IdleModel.TryPrestige(state, tuning, out long _);

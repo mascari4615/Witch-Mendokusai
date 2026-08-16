@@ -43,8 +43,8 @@ namespace WitchMendokusai.DomainSDK.Idle
         }
 
         /// <summary>
-        /// 지금 자리를 비워도 되는 시간(초) — 접을수록 는다.
-        /// 접으면 세지는 것 말고 <b>덜 매여도 되는 것</b>도 같이 커진다.
+        /// 지금 자리를 비워도 되는 시간(초) — 환생할수록 는다.
+        /// 환생하면 세지는 것 말고 <b>덜 매여도 되는 것</b>도 같이 커진다.
         /// </summary>
         public static double MaxOfflineFor(IdleState state, IdleTuning tuning)
         {
@@ -75,7 +75,7 @@ namespace WitchMendokusai.DomainSDK.Idle
         }
 
         /// <summary>
-        /// 접었을 때 <b>점수가 얼마가 되나</b> — 합계가 아니라 <b>여태 가장 깊이 간 곳</b>이다.
+        /// 환생했을 때 <b>점수가 얼마가 되나</b> — 합계가 아니라 <b>여태 가장 깊이 간 곳</b>이다.
         ///
         /// ★ 처음엔 판마다 더했다. 이레짜리 시뮬레이션이 두 번 다 잡아냈다 (2026-08-16):
         ///   더하고 배수가 선형이면 <b>정체</b>했고(판 소요 1.8배씩 → 11판째 42시간),
@@ -83,7 +83,7 @@ namespace WitchMendokusai.DomainSDK.Idle
         ///   되먹임이 문제였다 — 쌓이는 값이 다시 쌓이는 속도를 키웠다.
         ///
         /// ★ 「가장 깊이 간 곳」으로 두면 그 고리가 끊긴다. 점수는 깊이를 <b>따라갈</b> 뿐 못 밀어낸다.
-        ///   뜻도 분명해진다 — <b>이미 지나온 길은 다시 안 판다.</b> 접으면 최고 깊이 언저리까지
+        ///   뜻도 분명해진다 — <b>이미 지나온 길은 다시 안 판다.</b> 환생하면 최고 깊이 언저리까지
         ///   단숨에 돌아오고, 거기서부터가 진짜 이번 판이다. 새로 버는 것은 <b>더 내려간 만큼</b>뿐이다.
         /// </summary>
         public static long PrestigeStandingFor(IdleState state, IdleTuning tuning)
@@ -97,21 +97,21 @@ namespace WitchMendokusai.DomainSDK.Idle
             return standing < 0d ? 0L : (long)standing;
         }
 
-        /// <summary>지금 접으면 <b>새로 버는</b> 점수. 이미 가진 것보다 못하면 0 — 접을 이유가 없다.</summary>
+        /// <summary>지금 환생하면 <b>새로 버는</b> 점수. 이미 가진 것보다 못하면 0 — 환생할 이유가 없다.</summary>
         public static long PrestigeAwardFor(IdleState state, IdleTuning tuning)
         {
             long standing = PrestigeStandingFor(state, tuning);
             return standing > state.PrestigePoints ? standing - state.PrestigePoints : 0L;
         }
 
-        /// <summary>지금 접을 수 있나.</summary>
+        /// <summary>지금 환생할 수 있나.</summary>
         public static bool CanPrestige(IdleState state, IdleTuning tuning)
         {
             return PrestigeAwardFor(state, tuning) > 0L;
         }
 
         /// <summary>
-        /// 판을 접고 점수로 바꾼다.
+        /// 판을 환생하고 점수로 바꾼다.
         ///
         /// ★ 무엇이 살아남나가 이 게임의 성격을 정한다. <b>점수·가장 깊이·총 처치·본 시각</b>은 남고,
         ///   <b>자원·단계·올린 것</b>은 지워진다. 남는 쪽이 「지난 판이 헛되지 않았다」의 증거이고,

@@ -102,7 +102,7 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// <summary>여태 모은 리셋 점수.</summary>
         public long PrestigePoints { get; }
 
-        /// <summary>지금 접으면 받는 점수 — 0 이면 아직 못 접는다.</summary>
+        /// <summary>지금 환생하면 받는 점수 — 0 이면 아직 아직 환생 못 한다.</summary>
         public long PrestigeAward { get; }
 
         /// <summary>리셋 점수가 지금 주고 있는 배수.</summary>
@@ -116,7 +116,7 @@ namespace WitchMendokusai.DomainSDK.Idle
 
         /// <summary>
         /// 이번 판의 천장 — 아무리 내려가도 여기까지다.
-        /// <see cref="MaxTierNow"/> 가 여기 닿았으면 <b>더 내려가도 등급은 안 열린다</b> = 접을 때다.
+        /// <see cref="MaxTierNow"/> 가 여기 닿았으면 <b>더 내려가도 등급은 안 열린다</b> = 환생할 때다.
         /// </summary>
         public int TierCeiling { get; }
 
@@ -126,7 +126,7 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// <summary>그 잠재의 등급.</summary>
         public PotentialGrade BestPotentialGrade { get; }
 
-        /// <summary>지금 자리를 비워도 되는 시간(초) — 접을수록 는다.</summary>
+        /// <summary>지금 자리를 비워도 되는 시간(초) — 환생할수록 는다.</summary>
         public double MaxOfflineSeconds { get; }
 
         /// <summary>여기 머무는 중인가 — 사람이 고른 것.</summary>

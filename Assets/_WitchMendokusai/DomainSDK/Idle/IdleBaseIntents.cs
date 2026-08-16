@@ -41,7 +41,7 @@ namespace WitchMendokusai.DomainSDK.Idle
     /// 「손으로 한 대 때린다」 — 사람이 판을 눌렀다 (TASK-WM-406).
     ///
     /// ★ 이 게임에서 사람이 <b>아무 때나</b> 할 수 있는 유일한 행동이다.
-    ///   나머지(사기·합치기·감정·접기)는 모을 것이 있어야 누를 수 있다.
+    ///   나머지(사기·합치기·감정·환생)는 모을 것이 있어야 누를 수 있다.
     /// </summary>
     public readonly struct IdleTapIntent : IGameIntent
     {

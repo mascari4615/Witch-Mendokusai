@@ -28,7 +28,7 @@ namespace WitchMendokusai.Tests
 			Assert.AreEqual(3, IdleDrops.MaxTierAt(11, 0, tuning));
 		}
 
-		/// <summary>이번 판의 천장에서 멈춘다 — 끝없이 열리면 접을 이유가 없다.</summary>
+		/// <summary>이번 판의 천장에서 멈춘다 — 끝없이 열리면 환생할 이유가 없다.</summary>
 		[Test]
 		public void TierCap_StopsAtThisRunCeiling()
 		{
@@ -70,9 +70,9 @@ namespace WitchMendokusai.Tests
 			int cap = IdleDrops.MaxTierAt(26, 0, tuning);
 			Assert.AreEqual(6, cap);
 			Assert.Greater(state.DroppedByTier[cap - 1], 0L, "열린 상한 등급이 하나도 안 나왔다 — 상한이 장식이다");
-			// 천장 위의 칸은 <b>아예 없다</b> — 안 접었으면 그 등급은 존재 자체를 안 한다.
+			// 천장 위의 칸은 <b>아예 없다</b> — 안 환생했으면 그 등급은 존재 자체를 안 한다.
 			Assert.AreEqual(IdleDrops.CeilingFor(0, tuning), state.DroppedByTier.Length,
-				"칸이 천장보다 크다 — 안 접고도 위 등급이 생길 자리가 있다");
+				"칸이 천장보다 크다 — 안 환생하고도 위 등급이 생길 자리가 있다");
 		}
 
 		/// <summary>위로 갈수록 귀하다 — 다 흔하면 상한이 열려도 감흥이 없다.</summary>
@@ -201,11 +201,11 @@ namespace WitchMendokusai.Tests
 		}
 
 		/// <summary>
-		/// ★ <b>접어야 천장이 열린다</b> — 울티마 스쿼드의 일반 6등급 → 카오스 8등급과 같은 자리.
+		/// ★ <b>환생해야 천장이 열린다</b> — 울티마 스쿼드의 일반 6등급 → 카오스 8등급과 같은 자리.
 		///
 		/// 실측(2026-08-16)이 이 층을 요구했다: 등급이 5단계마다 하나씩 열리니 천장 8 은 36단계면
 		/// 다 열리는데 2시간이면 40단계다. 그 뒤로는 내려가도 등급이 안 열려
-		/// <b>「깊이가 관문」이 후반에 그냥 꺼졌다.</b> 접을 때마다 천장이 오르면 그 고리가 다시 돈다.
+		/// <b>「깊이가 관문」이 후반에 그냥 꺼졌다.</b> 환생할 때마다 천장이 오르면 그 고리가 다시 돈다.
 		/// </summary>
 		[Test]
 		public void Ascending_RaisesTheCeiling()
@@ -213,12 +213,12 @@ namespace WitchMendokusai.Tests
 			IdleTuning tuning = new IdleTuning();
 
 			Assert.AreEqual(6, IdleDrops.CeilingFor(0, tuning), "첫 판 천장은 울티마 스쿼드 일반 모드와 같은 6");
-			Assert.AreEqual(8, IdleDrops.CeilingFor(1, tuning), "한 번 접으면 카오스와 같은 8");
+			Assert.AreEqual(8, IdleDrops.CeilingFor(1, tuning), "한 번 환생하면 카오스와 같은 8");
 			Assert.AreEqual(10, IdleDrops.CeilingFor(2, tuning));
 		}
 
 		/// <summary>
-		/// 천장에 닿은 뒤로는 <b>아무리 내려가도 헛수고</b>다 — 그게 「접을 때다」라는 신호다.
+		/// 천장에 닿은 뒤로는 <b>아무리 내려가도 헛수고</b>다 — 그게 「환생할 때다」라는 신호다.
 		/// </summary>
 		[Test]
 		public void AtCeiling_DescendingFurtherOpensNothing()
@@ -232,11 +232,11 @@ namespace WitchMendokusai.Tests
 			for (int tier = 7; tier <= 10; tier++)
 			{
 				Assert.IsTrue(grinding.DroppedByTier.Length < tier || grinding.DroppedByTier[tier - 1] == 0L,
-					tier + "등급이 안 접고도 나왔다 — 접을 이유가 사라진다");
+					tier + "등급이 안 환생하고도 나왔다 — 환생할 이유가 사라진다");
 			}
 		}
 
-		/// <summary>접고 나면 같은 깊이에서 <b>더 좋은 것</b>이 나온다 — 천장이 실제로 쓰인다.</summary>
+		/// <summary>환생하고 나면 같은 깊이에서 <b>더 좋은 것</b>이 나온다 — 천장이 실제로 쓰인다.</summary>
 		[Test]
 		public void AfterAscending_SameDepthYieldsBetterTier()
 		{
@@ -250,7 +250,7 @@ namespace WitchMendokusai.Tests
 			IdleDrops.Accrue(veteran, tuning, 1_000_000L, veteran.Stage);
 
 			Assert.AreEqual(8, IdleDrops.MaxTierAt(40, veteran.Ascensions, tuning));
-			Assert.Greater(veteran.DroppedByTier[7], 0L, "접었는데 8등급이 안 나온다 — 천장이 장식이다");
+			Assert.Greater(veteran.DroppedByTier[7], 0L, "환생했는데 8등급이 안 나온다 — 천장이 장식이다");
 		}
 
 		/// <summary>사진이 천장을 같이 말한다 — 「더 내려가도 소용없다」를 화면이 알 수 있어야 한다.</summary>
