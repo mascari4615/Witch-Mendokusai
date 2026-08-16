@@ -171,6 +171,54 @@ namespace WitchMendokusai.EditorTools
 			return sb.ToString();
 		}
 
+		/// <summary>
+		/// <b>어느 Resources 뿌리가 몇 MB를 끌고 오나</b> — 이관 순서를 정하는 숫자 (TASK-WM-409).
+		///
+		/// ★ 「Resources 때문 27MB」까지는 알아도, <b>어느 파일을 끊어야 하는지</b>는 그걸로 안 나온다.
+		///   그래서 `Resources/` 안의 자산을 하나씩 뿌리로 잡고, 그 의존 그래프가
+		///   <b>실제 빌드에서 차지한 바이트</b>를 더한다. 공유된 것은 여러 뿌리에 겹쳐 세어진다 —
+		///   「이 하나를 끊으면 최대 이만큼」의 상한으로 읽으면 된다.
+		/// </summary>
+		public static string RootsReport()
+		{
+			List<Item> items = Read();
+			if (items.Count == 0) { return TAG + " 인벤토리가 없다 — 한 번 굽고 부를 것"; }
+
+			Dictionary<string, ulong> byPath = new Dictionary<string, ulong>(StringComparer.Ordinal);
+			foreach (Item i in items) { byPath[i.Path] = i.Bytes; }
+
+			List<KeyValuePair<string, ulong>> roots = new List<KeyValuePair<string, ulong>>();
+			foreach (string path in AssetDatabase.GetAllAssetPaths())
+			{
+				if (path.Contains("/Resources/") == false) { continue; }
+				if (path.Contains("/Editor/")) { continue; }
+				if (Directory.Exists(path)) { continue; }
+
+				ulong sum = 0UL;
+				foreach (string dep in AssetDatabase.GetDependencies(path, true))
+				{
+					if (byPath.TryGetValue(dep, out ulong b)) { sum += b; }
+				}
+				if (sum > 0UL) { roots.Add(new KeyValuePair<string, ulong>(path, sum)); }
+			}
+
+			roots.Sort((a, b) => b.Value.CompareTo(a.Value));
+			StringBuilder sb = new StringBuilder();
+			sb.AppendLine(TAG + " Resources 뿌리별로 끌고 오는 무게 (겹침 포함 = 상한):");
+			foreach (KeyValuePair<string, ulong> r in roots.Take(15))
+			{
+				sb.AppendLine(string.Format("  {0,8:N1} MB  {1}", r.Value / 1024f / 1024f, r.Key));
+			}
+			return sb.ToString();
+		}
+
+		public static void PrintRootsCli()
+		{
+			string r = RootsReport();
+			Console.WriteLine(r);
+			Debug.Log(r);
+		}
+
 		[MenuItem("WM/진단/빌드 인벤토리 보기")]
 		public static void Print() { Debug.Log(Report()); }
 
