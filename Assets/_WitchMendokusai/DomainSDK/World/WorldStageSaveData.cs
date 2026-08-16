@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using WitchMendokusai.DomainSDK.Farming;
 using WitchMendokusai.Numerics;
 
 namespace WitchMendokusai
@@ -23,5 +24,8 @@ namespace WitchMendokusai
 
 		// SimCity Phase 3 (TASK-WM-176 INC-3): 발전소(전력원) 명부. 옛 세이브엔 부재(null) → Load null skip.
 		public List<KeyValuePair<Vector3Int, PowerSourceData>> PowerSourceSaveData;
+
+		// 밭 (TASK-WM-410) — 옛 세이브엔 없음(null) → 그때는 밭이 없던 세계다.
+		public FarmSaveData FarmSaveData;
 	}
 }

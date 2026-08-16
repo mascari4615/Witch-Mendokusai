@@ -47,6 +47,13 @@ namespace WitchMendokusai
 
 		public void Load(List<KeyValuePair<Vector3Int, BuildingInstanceData>> saveData)
 		{
+			// 건물이 없던 세이브(또는 밭만 있는 세이브)는 이 칸이 비어 있다 - 형제 레이어들처럼 그냥 지나간다
+			// (여기만 null 에 터지면 「옛 세이브를 못 여는」 이유가 이 한 줄이 된다). TASK-WM-410 에서 실측.
+			if (saveData == null)
+			{
+				return;
+			}
+
 			foreach ((Vector3Int key, BuildingInstanceData value) in saveData)
 			{
 				BuildingData[key] = value;

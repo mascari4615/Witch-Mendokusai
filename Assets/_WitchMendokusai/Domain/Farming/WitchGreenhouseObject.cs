@@ -344,15 +344,17 @@ namespace WitchMendokusai
 			IReadOnlyList<int> carers = carerProvider == null ? null : carerProvider();
 
 			// 전이 감지를 위해 틱 전 phase 스냅샷.
-			Dictionary<int, PlotPhase> before = new();
-			foreach (KeyValuePair<int, GreenhousePlot> entry in greenhouse.Plots)
+			// 칸의 키는 이제 자리(FarmCoord)다 — 이 온실은 아직 좌표 없는 옛 칸(Legacy)이라
+			// 이벤트는 옛 칸 번호로 내보낸다 (TASK-WM-410: 진짜 땅에 박힐 때 좌표로 바뀐다).
+			Dictionary<FarmCoord, PlotPhase> before = new();
+			foreach (KeyValuePair<FarmCoord, GreenhousePlot> entry in greenhouse.Plots)
 			{
 				before[entry.Key] = entry.Value.Phase;
 			}
 
 			greenhouse.TickWithCarers(carers, minutesPerDay);
 
-			foreach (KeyValuePair<int, GreenhousePlot> entry in greenhouse.Plots)
+			foreach (KeyValuePair<FarmCoord, GreenhousePlot> entry in greenhouse.Plots)
 			{
 				PlotPhase now = entry.Value.Phase;
 				if (before.TryGetValue(entry.Key, out PlotPhase was) == false || was == now)
@@ -362,11 +364,11 @@ namespace WitchMendokusai
 
 				if (now == PlotPhase.Bloomed)
 				{
-					OnPlotBloomed.Invoke(entry.Key);
+					OnPlotBloomed.Invoke(entry.Key.LegacyPlotId);
 				}
 				else if (now == PlotPhase.Withered)
 				{
-					OnPlotWithered.Invoke(entry.Key);
+					OnPlotWithered.Invoke(entry.Key.LegacyPlotId);
 				}
 			}
 

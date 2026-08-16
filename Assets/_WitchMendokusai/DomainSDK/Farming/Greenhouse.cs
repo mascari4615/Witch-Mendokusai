@@ -16,30 +16,36 @@ namespace WitchMendokusai.DomainSDK.Farming
     /// </summary>
     public sealed class Greenhouse
     {
-        private readonly Dictionary<int, GreenhousePlot> plotsById = new();
+        private readonly Dictionary<FarmCoord, GreenhousePlot> plotsByCoord = new();
 
-        public IReadOnlyDictionary<int, GreenhousePlot> Plots => plotsById;
+        public IReadOnlyDictionary<FarmCoord, GreenhousePlot> Plots => plotsByCoord;
 
-        public int PlotCount => plotsById.Count;
+        public int PlotCount => plotsByCoord.Count;
 
-        public GreenhousePlot GetPlot(int plotId)
+        public GreenhousePlot GetPlot(FarmCoord coord)
         {
-            return plotsById.TryGetValue(plotId, out GreenhousePlot plot) ? plot : null;
+            return plotsByCoord.TryGetValue(coord, out GreenhousePlot plot) ? plot : null;
         }
 
-        /// <summary>빈 칸을 추가(또는 기존 칸 교체). plotId = 안정 식별자(triage 타이브레이크 키).</summary>
-        public GreenhousePlot AddPlot(int plotId)
+        /// <summary>빈 칸을 추가(또는 기존 칸 교체). 자리(<see cref="FarmCoord"/>)가 곧 식별자다.</summary>
+        public GreenhousePlot AddPlot(FarmCoord coord)
         {
             GreenhousePlot plot = new();
-            plotsById[plotId] = plot;
+            plotsByCoord[coord] = plot;
             return plot;
         }
+
+        /// <summary>좌표 없던 옛 칸 번호로 찾기 (TASK-WM-410 마이그레이션 다리 — 새 코드는 좌표를 쓴다).</summary>
+        public GreenhousePlot GetPlot(int legacyPlotId) => GetPlot(FarmCoord.Legacy(legacyPlotId));
+
+        /// <summary>좌표 없던 옛 칸 번호로 추가 (TASK-WM-410 마이그레이션 다리).</summary>
+        public GreenhousePlot AddPlot(int legacyPlotId) => AddPlot(FarmCoord.Legacy(legacyPlotId));
 
         /// <summary>살아있고(시들지 않고) 심긴 칸 수.</summary>
         public int LivingCount()
         {
             int count = 0;
-            foreach (GreenhousePlot plot in plotsById.Values)
+            foreach (GreenhousePlot plot in plotsByCoord.Values)
             {
                 if (plot.IsPlanted && plot.Phase != PlotPhase.Withered)
                 {
@@ -54,7 +60,7 @@ namespace WitchMendokusai.DomainSDK.Farming
         public int SpecimenCount()
         {
             int count = 0;
-            foreach (GreenhousePlot plot in plotsById.Values)
+            foreach (GreenhousePlot plot in plotsByCoord.Values)
             {
                 if (plot.IsSpecimenNow)
                 {
@@ -72,48 +78,63 @@ namespace WitchMendokusai.DomainSDK.Farming
         /// </summary>
         public void TickWithCarers(IReadOnlyList<int> carerIds, int minutes)
         {
+            TickWithCarers(carerIds, minutes, PlantClock.World);
+        }
+
+        /// <summary>
+        /// 한 시계의 분만 흘린다 (TASK-WM-410) — 세계의 하늘이 흐를 땐 하늘을 탄 작물만,
+        /// 바깥 현실이 흐를 땐 현실을 탄 작물만 자란다. 돌봄(triage)도 그 시계의 칸들 사이에서만 나눈다
+        /// (자는 사이 인형이 「꺼 놔도 자라는 작물」까지 돌보면 시계가 섞인다).
+        /// </summary>
+        public void TickWithCarers(IReadOnlyList<int> carerIds, int minutes, PlantClock clock)
+        {
             int carerCount = carerIds == null ? 0 : carerIds.Count;
 
             if (carerCount > 0)
             {
-                List<int> triage = BuildTriageOrder();
+                List<FarmCoord> triage = BuildTriageOrder(clock);
                 int tendable = triage.Count < carerCount ? triage.Count : carerCount;
 
                 for (int index = 0; index < tendable; index++)
                 {
-                    plotsById[triage[index]].Tend(carerIds[index]);
+                    plotsByCoord[triage[index]].Tend(carerIds[index]);
                 }
             }
 
-            foreach (GreenhousePlot plot in plotsById.Values)
+            foreach (GreenhousePlot plot in plotsByCoord.Values)
             {
+                if (plot.IsPlanted && plot.Clock != clock)
+                {
+                    continue;
+                }
+
                 plot.Step(minutes);
             }
         }
 
-        // 살아있고 심긴 칸을 (Vitality 오름차순, plotId 오름차순)으로 — 죽기 직전 것부터 구하도록.
-        private List<int> BuildTriageOrder()
+        // 살아있고 심긴 칸을 (Vitality 오름차순, 자리 오름차순)으로 — 죽기 직전 것부터 구하도록.
+        private List<FarmCoord> BuildTriageOrder(PlantClock clock)
         {
-            List<int> living = new();
-            foreach (KeyValuePair<int, GreenhousePlot> entry in plotsById)
+            List<FarmCoord> living = new();
+            foreach (KeyValuePair<FarmCoord, GreenhousePlot> entry in plotsByCoord)
             {
-                if (entry.Value.IsPlanted && entry.Value.Phase != PlotPhase.Withered)
+                if (entry.Value.IsPlanted && entry.Value.Clock == clock && entry.Value.Phase != PlotPhase.Withered)
                 {
                     living.Add(entry.Key);
                 }
             }
 
-            living.Sort((leftId, rightId) =>
+            living.Sort((leftCoord, rightCoord) =>
             {
-                float leftVitality = plotsById[leftId].Vitality;
-                float rightVitality = plotsById[rightId].Vitality;
+                float leftVitality = plotsByCoord[leftCoord].Vitality;
+                float rightVitality = plotsByCoord[rightCoord].Vitality;
 
                 if (leftVitality != rightVitality)
                 {
                     return leftVitality.CompareTo(rightVitality);
                 }
 
-                return leftId.CompareTo(rightId);
+                return leftCoord.CompareTo(rightCoord);
             });
 
             return living;
