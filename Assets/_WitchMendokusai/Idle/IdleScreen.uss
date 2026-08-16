@@ -199,3 +199,24 @@
 .idle-hidden {
 	display: none;
 }
+
+/* 목록 줄 — 왼쪽 도형 + 오른쪽 버튼 */
+.idle-shape-row {
+	flex-direction: row;
+	align-items: center;
+	margin: 2px 0;
+}
+
+.idle-row-shape {
+	width: 22px;
+	height: 22px;
+	margin-right: 8px;
+	flex-shrink: 0;
+}
+
+.idle-row-button {
+	flex-grow: 1;
+	margin: 0;
+	height: 30px;
+	font-size: 12px;
+}

@@ -55,6 +55,9 @@ namespace WitchMendokusai
 		private IdleShapeElement targetShape;
 		private IdleBurstElement burst;
 		private readonly List<IdleShapeElement> allies = new List<IdleShapeElement>();
+
+		/// <summary>목록에 붙은 작은 도형들 — 같이 돌려야 화면이 살아 있다.</summary>
+		private readonly List<IdleShapeElement> decor = new List<IdleShapeElement>();
 		private ProgressBar healthBar;
 		private readonly List<VisualElement> killDots = new List<VisualElement>();
 		private Label arenaCaption;
@@ -62,6 +65,7 @@ namespace WitchMendokusai
 		private readonly List<Button> tabButtons = new List<Button>();
 		private VisualElement basePage;
 		private readonly List<Button> producerButtons = new List<Button>();
+		private readonly List<IdleShapeElement> producerShapes = new List<IdleShapeElement>();
 		private Label baseSummary;
 
 		private VisualElement upgradePage;
@@ -83,6 +87,7 @@ namespace WitchMendokusai
 		private readonly List<Button> mergeButtons = new List<Button>();
 		private VisualElement bagRows;
 		private readonly List<Button> bagButtons = new List<Button>();
+		private readonly List<IdleShapeElement> bagShapes = new List<IdleShapeElement>();
 		private VisualElement dropRows;
 		private readonly List<Button> appraiseButtons = new List<Button>();
 		private Label rollNote;
@@ -151,6 +156,11 @@ namespace WitchMendokusai
 			for (int index = 0; index < allies.Count; index++)
 			{
 				allies[index].Advance(delta, 0.35f + index * 0.1f);
+			}
+
+			for (int index = 0; index < decor.Count; index++)
+			{
+				decor[index].Advance(delta, 0.05f);
 			}
 
 			Render(snapshot);
@@ -300,10 +310,14 @@ namespace WitchMendokusai
 			baseSummary = AddLabel(basePage, "idle-row-value");
 
 			producerButtons.Clear();
+			producerShapes.Clear();
+
 			for (int kind = 0; kind < 8; kind++)
 			{
 				int captured = kind;
-				producerButtons.Add(AddButton(basePage, "idle-button", () => BuyProducer(captured)));
+				producerButtons.Add(AddShapeRow(basePage, kind + 1, () => BuyProducer(captured),
+					out IdleShapeElement shape));
+				producerShapes.Add(shape);
 			}
 		}
 
@@ -453,7 +467,8 @@ namespace WitchMendokusai
 				IdleProducerView view = snapshot.Producers[kind];
 
 				// 아직 이른 것은 숨긴다 — 처음부터 여덟 줄이면 뭘 할지가 안 보인다.
-				button.style.display = view.Hidden ? DisplayStyle.None : DisplayStyle.Flex;
+				// 줄 전체(도형 포함)를 숨긴다 — 버튼만 숨기면 도형이 혼자 남는다.
+				button.parent.style.display = view.Hidden ? DisplayStyle.None : DisplayStyle.Flex;
 
 				button.text = string.Format("{0} {1}   x{2}  ·  초당 {3}   —   {4}",
 					ShapeMark(kind + 1),
@@ -547,11 +562,14 @@ namespace WitchMendokusai
 			{
 				bagRows.Clear();
 				bagButtons.Clear();
+				bagShapes.Clear();
 
 				for (int index = 0; index < snapshot.Bag.Length; index++)
 				{
 					int captured = index;
-					bagButtons.Add(AddButton(bagRows, "idle-appraise-button", () => Equip(captured)));
+					bagButtons.Add(AddShapeRow(bagRows, snapshot.Bag[index].Tier, () => Equip(captured),
+						out IdleShapeElement shape));
+					bagShapes.Add(shape);
 				}
 			}
 
@@ -560,6 +578,12 @@ namespace WitchMendokusai
 			for (int index = 0; index < bagButtons.Count; index++)
 			{
 				IdleItem one = snapshot.Bag[index];
+				if (index < bagShapes.Count)
+				{
+					bagShapes[index].Tier = one.Tier;
+					bagShapes[index].Body = TierColor(one.Tier);
+				}
+
 				bagButtons[index].text = string.Format("{0}{1} {2}{3}",
 					ShapeMark(one.Tier), one.Tier,
 					slots[(int)one.Slot],
@@ -656,7 +680,12 @@ namespace WitchMendokusai
 
 		private void BuyProducer(int kind)
 		{
-			session.Send(new IdleBuyProducerIntent(kind));
+			if (session.Send(new IdleBuyProducerIntent(kind)) && kind < producerShapes.Count)
+			{
+				// 산 것이 <b>반응한다</b> — 눌렀는데 아무 일도 안 일어나면 눌린 줄 모른다.
+				producerShapes[kind].Hit();
+			}
+
 			Render(session.Capture());
 		}
 
@@ -690,6 +719,8 @@ namespace WitchMendokusai
 		{
 			if (session.Send(new IdleMergeIntent(tier, slot)))
 			{
+				burst.Fire(tier + 1, TierColor(tier + 1));
+
 				rollNote.text = string.Format("{0}{1} 셋을 합쳐 {2}{3} 하나 — 잠재는 사라졌다",
 					ShapeMark(tier), tier, ShapeMark(tier + 1), tier + 1);
 				WriteDown();
@@ -758,6 +789,34 @@ namespace WitchMendokusai
 			label.AddToClassList(className);
 			parent.Add(label);
 			return label;
+		}
+
+		/// <summary>
+		/// 도형이 붙은 줄 — 왼쪽에 <b>변의 수 = 등급</b>인 도형, 오른쪽에 누를 것.
+		///
+		/// ★ 글자로만 두면 판에 도는 도형과 목록이 <b>다른 언어</b>가 된다.
+		///   같은 규칙을 두 군데서 쓰면 한 번 배우고 계속 읽는다.
+		/// </summary>
+		private Button AddShapeRow(VisualElement parent, int tier, System.Action action,
+			out IdleShapeElement shape)
+		{
+			VisualElement row = new VisualElement();
+			row.AddToClassList("idle-shape-row");
+			parent.Add(row);
+
+			shape = new IdleShapeElement();
+			shape.AddToClassList("idle-row-shape");
+			shape.Tier = tier;
+			shape.Body = TierColor(tier);
+			row.Add(shape);
+			decor.Add(shape);
+
+			Button button = new Button(action);
+			button.AddToClassList("idle-button");
+			button.AddToClassList("idle-row-button");
+			row.Add(button);
+
+			return button;
 		}
 
 		private static Button AddButton(VisualElement parent, string classNames, System.Action action)
