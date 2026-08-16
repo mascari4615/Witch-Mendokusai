@@ -105,7 +105,8 @@ namespace WitchMendokusai.DomainSDK.Idle
                 IdleModel.PrestigeAwardFor(state, tuning),
                 IdleModel.PrestigeMultiplier(state, tuning),
                 state.DroppedByTier,
-                IdleDrops.MaxTierAt(state.Stage, tuning),
+                IdleDrops.MaxTierAt(state.Stage, state.Ascensions, tuning),
+                IdleDrops.CeilingFor(state.Ascensions, tuning),
                 ViewOf(IdleUpgradeKind.Damage, IdleModel.DamageOf(state, tuning)),
                 ViewOf(IdleUpgradeKind.AttackSpeed, IdleModel.AttackSpeedOf(state, tuning)));
         }

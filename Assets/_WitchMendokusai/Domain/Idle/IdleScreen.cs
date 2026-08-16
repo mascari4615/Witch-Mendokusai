@@ -195,7 +195,13 @@ namespace WitchMendokusai
 				return;
 			}
 
-			stageLabel.text = string.Format("{0}단계  ({1}/{2})", snapshot.Stage, snapshot.KillsInStage, snapshot.KillsPerStage);
+			bool atCeiling = snapshot.MaxTierNow >= snapshot.TierCeiling;
+			stageLabel.text = atCeiling
+				? string.Format("{0}단계  ({1}/{2})   등급 {3} — 천장. 더 내려가도 안 열린다",
+					snapshot.Stage, snapshot.KillsInStage, snapshot.KillsPerStage, snapshot.MaxTierNow)
+				: string.Format("{0}단계  ({1}/{2})   등급 {3} / 천장 {4}",
+					snapshot.Stage, snapshot.KillsInStage, snapshot.KillsPerStage,
+					snapshot.MaxTierNow, snapshot.TierCeiling);
 			resourceLabel.text = string.Format("자원 {0:N0}", snapshot.Resource);
 			incomeLabel.text = string.Format("초당 {0:N2}", snapshot.IncomePerSecond);
 			killsLabel.text = string.Format("처치 {0:N0}", snapshot.Kills);

@@ -79,6 +79,12 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// <summary>지금 단계에서 나올 수 있는 가장 높은 등급 — 「더 내려가야 하는 이유」를 그대로 보여주는 값.</summary>
         public int MaxTierNow { get; }
 
+        /// <summary>
+        /// 이번 판의 천장 — 아무리 내려가도 여기까지다.
+        /// <see cref="MaxTierNow"/> 가 여기 닿았으면 <b>더 내려가도 등급은 안 열린다</b> = 접을 때다.
+        /// </summary>
+        public int TierCeiling { get; }
+
         /// <summary>공격력 축.</summary>
         public IdleUpgradeView Damage { get; }
 
@@ -88,7 +94,7 @@ namespace WitchMendokusai.DomainSDK.Idle
         public IdleSnapshot(double resource, double incomePerSecond, long kills, double targetHealthRatio,
             int stage, int killsInStage, int killsPerStage,
             long prestigePoints, long prestigeAward, double prestigeMultiplier,
-            long[] droppedByTier, int maxTierNow,
+            long[] droppedByTier, int maxTierNow, int tierCeiling,
             IdleUpgradeView damage, IdleUpgradeView attackSpeed)
         {
             Resource = resource;
@@ -103,6 +109,7 @@ namespace WitchMendokusai.DomainSDK.Idle
             PrestigeMultiplier = prestigeMultiplier;
             DroppedByTier = droppedByTier;
             MaxTierNow = maxTierNow;
+            TierCeiling = tierCeiling;
             Damage = damage;
             AttackSpeed = attackSpeed;
         }

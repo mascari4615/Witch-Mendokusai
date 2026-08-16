@@ -43,7 +43,7 @@ namespace WitchMendokusai.DomainSDK.Idle
             buffer.AppendFormat(culture, " pp={0}/{1}/x{2:0.##}",
                 snapshot.PrestigePoints, snapshot.PrestigeAward, snapshot.PrestigeMultiplier);
 
-            buffer.AppendFormat(culture, " tier<={0} drops=", snapshot.MaxTierNow);
+            buffer.AppendFormat(culture, " tier<={0}/{1} drops=", snapshot.MaxTierNow, snapshot.TierCeiling);
             for (int i = 0; i < snapshot.DroppedByTier.Length; i++)
             {
                 if (i > 0)

@@ -22,20 +22,20 @@ namespace WitchMendokusai.Tests
 		{
 			IdleTuning tuning = new IdleTuning();
 
-			Assert.AreEqual(1, IdleDrops.MaxTierAt(1, tuning));
-			Assert.AreEqual(1, IdleDrops.MaxTierAt(5, tuning));
-			Assert.AreEqual(2, IdleDrops.MaxTierAt(6, tuning));
-			Assert.AreEqual(2, IdleDrops.MaxTierAt(10, tuning));
-			Assert.AreEqual(3, IdleDrops.MaxTierAt(11, tuning));
+			Assert.AreEqual(1, IdleDrops.MaxTierAt(1, 0, tuning));
+			Assert.AreEqual(1, IdleDrops.MaxTierAt(5, 0, tuning));
+			Assert.AreEqual(2, IdleDrops.MaxTierAt(6, 0, tuning));
+			Assert.AreEqual(2, IdleDrops.MaxTierAt(10, 0, tuning));
+			Assert.AreEqual(3, IdleDrops.MaxTierAt(11, 0, tuning));
 		}
 
-		/// <summary>상한이 있다 — 끝없이 열리면 목표가 사라진다.</summary>
+		/// <summary>이번 판의 천장에서 멈춘다 — 끝없이 열리면 접을 이유가 없다.</summary>
 		[Test]
-		public void TierCap_StopsAtMaxTier()
+		public void TierCap_StopsAtThisRunCeiling()
 		{
 			IdleTuning tuning = new IdleTuning();
 
-			Assert.AreEqual(tuning.MaxTier, IdleDrops.MaxTierAt(9999, tuning));
+			Assert.AreEqual(tuning.BaseMaxTier, IdleDrops.MaxTierAt(9999, 0, tuning));
 		}
 
 		/// <summary>
@@ -52,7 +52,7 @@ namespace WitchMendokusai.Tests
 
 			Assert.Greater(state.DroppedByTier[0], 0L, "1등급조차 안 나왔다 — 시험이 아무것도 안 쟀다");
 
-			for (int tier = 2; tier <= tuning.MaxTier; tier++)
+			for (int tier = 2; tier <= tuning.BaseMaxTier; tier++)
 			{
 				Assert.AreEqual(0L, state.DroppedByTier[tier - 1],
 					tier + "등급이 1단계에서 나왔다 — 깊이가 관문이 아니게 됐다");
@@ -68,10 +68,12 @@ namespace WitchMendokusai.Tests
 
 			IdleDrops.Accrue(state, tuning, 100_000L, state.Stage);
 
-			int cap = IdleDrops.MaxTierAt(26, tuning);
+			int cap = IdleDrops.MaxTierAt(26, 0, tuning);
 			Assert.AreEqual(6, cap);
 			Assert.Greater(state.DroppedByTier[cap - 1], 0L, "열린 상한 등급이 하나도 안 나왔다 — 상한이 장식이다");
-			Assert.AreEqual(0L, state.DroppedByTier[cap], "상한 위가 나왔다");
+			// 천장 위의 칸은 <b>아예 없다</b> — 안 접었으면 그 등급은 존재 자체를 안 한다.
+			Assert.AreEqual(IdleDrops.CeilingFor(0, tuning), state.DroppedByTier.Length,
+				"칸이 천장보다 크다 — 안 접고도 위 등급이 생길 자리가 있다");
 		}
 
 		/// <summary>위로 갈수록 귀하다 — 다 흔하면 상한이 열려도 감흥이 없다.</summary>
@@ -83,7 +85,7 @@ namespace WitchMendokusai.Tests
 
 			IdleDrops.Accrue(state, tuning, 1_000_000L, state.Stage);
 
-			for (int tier = 2; tier <= IdleDrops.MaxTierAt(26, tuning); tier++)
+			for (int tier = 2; tier <= IdleDrops.MaxTierAt(26, 0, tuning); tier++)
 			{
 				Assert.Less(state.DroppedByTier[tier - 1], state.DroppedByTier[tier - 2],
 					tier + "등급이 아래 등급보다 흔하다");
@@ -157,7 +159,7 @@ namespace WitchMendokusai.Tests
 
 			Assert.Greater(total, 0L, "10분을 돌렸는데 떨어진 게 0 개다");
 			Debug.Log("[IdleDrops] 10분 · " + atOnce.Stage + "단계 · 상한 "
-				+ IdleDrops.MaxTierAt(atOnce.Stage, tuning) + "등급 · 총 " + total + "개");
+				+ IdleDrops.MaxTierAt(atOnce.Stage, atOnce.Ascensions, tuning) + "등급 · 총 " + total + "개");
 		}
 
 		/// <summary>떨어진 것은 저장을 건너고, 리셋도 건넌다 — 「깊이 갔다 온 값어치」의 증거라서.</summary>
@@ -197,6 +199,72 @@ namespace WitchMendokusai.Tests
 			IdleTuning tuning = new IdleTuning();
 			IdleDrops.Accrue(fromOld, tuning, 100L, 1);
 			Assert.Greater(fromOld.DroppedByTier[0], 0L, "옛 저장에서 이어붙인 판이 안 떨군다");
+		}
+
+		/// <summary>
+		/// ★ <b>접어야 천장이 열린다</b> — 울티마 스쿼드의 일반 6등급 → 카오스 8등급과 같은 자리.
+		///
+		/// 실측(2026-08-16)이 이 층을 요구했다: 등급이 5단계마다 하나씩 열리니 천장 8 은 36단계면
+		/// 다 열리는데 2시간이면 40단계다. 그 뒤로는 내려가도 등급이 안 열려
+		/// <b>「깊이가 관문」이 후반에 그냥 꺼졌다.</b> 접을 때마다 천장이 오르면 그 고리가 다시 돈다.
+		/// </summary>
+		[Test]
+		public void Ascending_RaisesTheCeiling()
+		{
+			IdleTuning tuning = new IdleTuning();
+
+			Assert.AreEqual(6, IdleDrops.CeilingFor(0, tuning), "첫 판 천장은 울티마 스쿼드 일반 모드와 같은 6");
+			Assert.AreEqual(8, IdleDrops.CeilingFor(1, tuning), "한 번 접으면 카오스와 같은 8");
+			Assert.AreEqual(10, IdleDrops.CeilingFor(2, tuning));
+		}
+
+		/// <summary>
+		/// 천장에 닿은 뒤로는 <b>아무리 내려가도 헛수고</b>다 — 그게 「접을 때다」라는 신호다.
+		/// </summary>
+		[Test]
+		public void AtCeiling_DescendingFurtherOpensNothing()
+		{
+			IdleTuning tuning = new IdleTuning();
+
+			IdleState grinding = new IdleState { Stage = 999, Ascensions = 0 };
+			IdleDrops.Accrue(grinding, tuning, 1_000_000L, grinding.Stage);
+
+			Assert.Greater(grinding.DroppedByTier[5], 0L, "6등급(천장)이 안 나왔다");
+			for (int tier = 7; tier <= 10; tier++)
+			{
+				Assert.IsTrue(grinding.DroppedByTier.Length < tier || grinding.DroppedByTier[tier - 1] == 0L,
+					tier + "등급이 안 접고도 나왔다 — 접을 이유가 사라진다");
+			}
+		}
+
+		/// <summary>접고 나면 같은 깊이에서 <b>더 좋은 것</b>이 나온다 — 천장이 실제로 쓰인다.</summary>
+		[Test]
+		public void AfterAscending_SameDepthYieldsBetterTier()
+		{
+			IdleTuning tuning = new IdleTuning();
+
+			IdleState veteran = new IdleState { Stage = 40 };
+			Assert.IsTrue(IdleModel.TryPrestige(veteran, tuning, out long _));
+			Assert.AreEqual(1, veteran.Ascensions);
+
+			veteran.Stage = 40;
+			IdleDrops.Accrue(veteran, tuning, 1_000_000L, veteran.Stage);
+
+			Assert.AreEqual(8, IdleDrops.MaxTierAt(40, veteran.Ascensions, tuning));
+			Assert.Greater(veteran.DroppedByTier[7], 0L, "접었는데 8등급이 안 나온다 — 천장이 장식이다");
+		}
+
+		/// <summary>사진이 천장을 같이 말한다 — 「더 내려가도 소용없다」를 화면이 알 수 있어야 한다.</summary>
+		[Test]
+		public void Snapshot_CarriesCeiling_SoScreenCanSayWhenToFold()
+		{
+			IdleTuning tuning = new IdleTuning();
+			IdleSession deep = new IdleSession(tuning, new IdleState { Stage = 40, Ascensions = 0 });
+
+			IdleSnapshot snapshot = deep.Capture();
+
+			Assert.AreEqual(6, snapshot.TierCeiling);
+			Assert.AreEqual(snapshot.TierCeiling, snapshot.MaxTierNow, "천장에 닿았는데 사진이 그걸 말 못 한다");
 		}
 
 		/// <summary>사진에 상한이 실린다 — 「왜 더 내려가야 하나」를 화면이 직접 말할 수 있게.</summary>
