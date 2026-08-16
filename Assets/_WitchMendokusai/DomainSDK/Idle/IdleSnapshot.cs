@@ -69,6 +69,48 @@ namespace WitchMendokusai.DomainSDK.Idle
     }
 
     /// <summary>
+    /// 가진 영웅 하나가 화면에 보이는 모습 (TASK-WM-406).
+    /// </summary>
+    public readonly struct IdleHeroView
+    {
+        public IdleHeroView(int id, string name, IdleHeroGrade grade, IdleHeroAxis axis, int sides,
+            int stars, int copies, int copiesForNextStar, bool inParty, double ownedShare)
+        {
+            Id = id;
+            Name = name;
+            Grade = grade;
+            Axis = axis;
+            Sides = sides;
+            Stars = stars;
+            Copies = copies;
+            CopiesForNextStar = copiesForNextStar;
+            InParty = inParty;
+            OwnedShare = ownedShare;
+        }
+
+        public int Id { get; }
+        public string Name { get; }
+        public IdleHeroGrade Grade { get; }
+        public IdleHeroAxis Axis { get; }
+
+        /// <summary>몇 각형으로 그리나.</summary>
+        public int Sides { get; }
+
+        public int Stars { get; }
+
+        /// <summary>다음 ★ 까지 모은 중복.</summary>
+        public int Copies { get; }
+
+        public int CopiesForNextStar { get; }
+
+        /// <summary>지금 내보내고 있나.</summary>
+        public bool InParty { get; }
+
+        /// <summary>들고만 있어도 붙는 몫(비율) — 「이 얼굴이 지금 얼마나 보태나」.</summary>
+        public double OwnedShare { get; }
+    }
+
+    /// <summary>
     /// 지금 판의 <b>읽기 전용 사진</b> — 코어가 표현에게 건네는 것 (TASK-WM-406).
     ///
     /// ★ 상태 자체를 안 넘긴다 — 넘기면 표현이 코어를 고칠 수 있게 되고,
@@ -150,6 +192,26 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// <summary>가방 칸 수 — 「몇/몇」을 화면이 뺄셈으로 지어내지 않게.</summary>
         public int BagCapacity { get; }
 
+        /// <summary>가진 영웅들 (도감).</summary>
+        public IdleHeroView[] Heroes { get; }
+
+        /// <summary>내보낸 셋 — 영웅 id, 빈 자리는 -1.</summary>
+        public int[] Party { get; }
+
+        /// <summary>한 번 뽑는 값 (환생석).</summary>
+        public long PullCost { get; }
+
+        /// <summary>지금 뽑을 수 있나.</summary>
+        public bool CanPull { get; }
+
+        /// <summary>천장까지 남은 횟수 — 「언젠가는 온다」를 화면이 셀 수 있게.</summary>
+        public int PullsToPity { get; }
+
+        /// <summary>도감 점수(모은 종류 + 올린 ★)와 그것이 주는 전체 배수.</summary>
+        public int CodexScore { get; }
+
+        public double CodexMultiplier { get; }
+
         /// <summary>공격력 축.</summary>
         public IdleUpgradeView Damage { get; }
 
@@ -171,6 +233,8 @@ namespace WitchMendokusai.DomainSDK.Idle
             long[] droppedByTier, int maxTierNow, int tierCeiling,
             IdleProducerView[] producers, IdleItem[] bag, IdleItem[] worn, int bagCapacity,
             double bestPotentialValue, PotentialGrade bestPotentialGrade, double maxOfflineSeconds, bool holdingStage, int bestStage, int bestFarmingStage,
+            IdleHeroView[] heroes, int[] party, long pullCost, bool canPull, int pullsToPity,
+            int codexScore, double codexMultiplier,
             IdleUpgradeView damage, IdleUpgradeView attackSpeed, double attacksPerSecond)
         {
             Resource = resource;
@@ -196,6 +260,13 @@ namespace WitchMendokusai.DomainSDK.Idle
             HoldingStage = holdingStage;
             BestStage = bestStage;
             BestFarmingStage = bestFarmingStage;
+            Heroes = heroes;
+            Party = party;
+            PullCost = pullCost;
+            CanPull = canPull;
+            PullsToPity = pullsToPity;
+            CodexScore = codexScore;
+            CodexMultiplier = codexMultiplier;
             Damage = damage;
             AttackSpeed = attackSpeed;
             AttacksPerSecond = attacksPerSecond;

@@ -342,3 +342,32 @@
 	right: 0;
 	bottom: 0;
 }
+
+/* ── 영웅 탭 ────────────────────────────────────────────────── */
+
+/* 내보낸 셋 — 나란히. 빈 자리도 자리를 차지해야 「비었다」가 보인다 */
+.idle-party-row {
+	flex-direction: row;
+	margin: 4px 0 2px 0;
+}
+
+.idle-seat {
+	flex-grow: 1;
+	flex-basis: 0;
+	align-items: center;
+	margin: 0 3px;
+}
+
+.idle-seat-shape {
+	width: 34px;
+	height: 34px;
+	margin-bottom: 2px;
+}
+
+.idle-seat-button {
+	width: 100%;
+	height: 30px;
+	font-size: 11px;
+	margin: 0;
+	white-space: normal;
+}

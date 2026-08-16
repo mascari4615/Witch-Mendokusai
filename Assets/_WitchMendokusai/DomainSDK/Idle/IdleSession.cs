@@ -217,9 +217,52 @@ namespace WitchMendokusai.DomainSDK.Idle
                 state.HoldingStage,
                 state.BestStage,
                 IdleModel.BestFarmingStage(state, tuning),
+                CaptureHeroes(),
+                (int[])state.Party.Clone(),
+                IdleGacha.CostOf(tuning),
+                IdleGacha.CanPull(state, tuning),
+                tuning.PityPulls - state.PullsSincePity,
+                IdleHeroes.CodexScoreOf(state),
+                IdleHeroes.CodexMultiplierOf(state, tuning),
                 ViewOf(IdleUpgradeKind.Damage, IdleModel.DamageOf(state, tuning)),
                 ViewOf(IdleUpgradeKind.AttackSpeed, IdleModel.AttackSpeedOf(state, tuning)),
                 IdleModel.AttackSpeedOf(state, tuning));
+        }
+
+        /// <summary>도감을 사진에 담는다 — 화면이 등급표·별 셈을 다시 하지 않게.</summary>
+        private IdleHeroView[] CaptureHeroes()
+        {
+            IdleHeroView[] made = new IdleHeroView[state.Heroes.Count];
+
+            for (int index = 0; index < state.Heroes.Count; index++)
+            {
+                IdleHeroOwned owned = state.Heroes[index];
+                IdleHeroKind kind = IdleHeroes.KindOf(owned.Id);
+
+                bool inParty = false;
+                for (int slot = 0; slot < state.Party.Length; slot++)
+                {
+                    if (state.Party[slot] == owned.Id)
+                    {
+                        inParty = true;
+                        break;
+                    }
+                }
+
+                made[index] = new IdleHeroView(
+                    owned.Id,
+                    kind.Name,
+                    kind.Grade,
+                    kind.Axis,
+                    kind.Sides,
+                    owned.Stars,
+                    owned.Copies,
+                    IdleGacha.CopiesForNextStar(owned.Stars, tuning),
+                    inParty,
+                    IdleHeroes.OwnedShareOf(owned, tuning));
+            }
+
+            return made;
         }
 
         /// <summary>기지를 사진에 담는다 — 화면이 값·산출을 다시 계산하지 않게.</summary>

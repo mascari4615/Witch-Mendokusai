@@ -102,7 +102,21 @@ namespace WitchMendokusai
 
 		private VisualElement upgradePage;
 		private VisualElement gearPage;
+		private VisualElement heroPage;
 		private VisualElement foldPage;
+
+		private Button pullButton;
+		private Label codexLabel;
+		private Label pullNote;
+		private VisualElement partyRow;
+		private readonly List<Button> partyButtons = new List<Button>();
+		private readonly List<NgonElement> partyShapes = new List<NgonElement>();
+		private VisualElement heroRows;
+		private readonly List<Button> heroButtons = new List<Button>();
+		private readonly List<NgonElement> heroShapes = new List<NgonElement>();
+
+		/// <summary>지금 어느 자리를 바꾸는 중인가 — -1 이면 고르는 중이 아니다.</summary>
+		private int seatBeingFilled = -1;
 
 		/// <summary>목록에 붙은 작은 도형들 — 같이 돌려야 화면이 살아 있다.</summary>
 		private readonly List<NgonElement> decor = new List<NgonElement>();
@@ -705,15 +719,17 @@ namespace WitchMendokusai
 			basePage = AddPage(body);
 			upgradePage = AddPage(body);
 			gearPage = AddPage(body);
+			heroPage = AddPage(body);
 			foldPage = AddPage(body);
 
 			pages.Clear();
 			pages.Add(basePage);
 			pages.Add(upgradePage);
 			pages.Add(gearPage);
+			pages.Add(heroPage);
 			pages.Add(foldPage);
 
-			string[] names = { "기지", "강화", "장비", "환생" };
+			string[] names = { "기지", "강화", "장비", "영웅", "환생" };
 			tabButtons.Clear();
 
 			for (int index = 0; index < names.Length; index++)
@@ -727,6 +743,7 @@ namespace WitchMendokusai
 			BuildBasePage();
 			BuildUpgradePage();
 			BuildGearPage();
+			BuildHeroPage();
 			BuildFoldPage();
 
 			ShowTab(0);
@@ -807,6 +824,54 @@ namespace WitchMendokusai
 			rollNote = AddLabel(gearPage, "idle-note");
 		}
 
+		/// <summary>
+		/// 영웅 — <b>뽑고 · 모으고 · 셋을 고른다</b> (TASK-WM-406, 사용자 결정 2026-08-17).
+		///
+		/// ★ 한 화면에 셋을 같이 둔다: 뽑기(설렘) · 파티(결정) · 도감(모은 것).
+		///   나누면 「뽑았는데 뭐가 달라졌지」를 확인하러 탭을 옮겨 다녀야 한다.
+		/// </summary>
+		private void BuildHeroPage()
+		{
+			pullButton = AddButton(heroPage, "idle-button idle-button--strong", Pull);
+			pullNote = AddLabel(heroPage, "idle-note");
+
+			AddDivider(heroPage);
+			AddLabel(heroPage, "idle-row-value").text = "내보낸 셋 — 눌러서 바꾼다";
+
+			partyRow = new VisualElement();
+			partyRow.AddToClassList("idle-party-row");
+			heroPage.Add(partyRow);
+			partyButtons.Clear();
+			partyShapes.Clear();
+
+			for (int slot = 0; slot < 3; slot++)
+			{
+				int captured = slot;
+
+				VisualElement seat = new VisualElement();
+				seat.AddToClassList("idle-seat");
+				partyRow.Add(seat);
+
+				NgonElement shape = new NgonElement();
+				shape.AddToClassList("idle-seat-shape");
+				seat.Add(shape);
+				partyShapes.Add(shape);
+				decor.Add(shape);
+
+				Button button = new Button(() => BeginSeat(captured));
+				button.AddToClassList("idle-button");
+				button.AddToClassList("idle-seat-button");
+				seat.Add(button);
+				partyButtons.Add(button);
+			}
+
+			AddDivider(heroPage);
+			codexLabel = AddLabel(heroPage, "idle-row-title");
+
+			heroRows = new VisualElement();
+			heroPage.Add(heroRows);
+		}
+
 		private void BuildFoldPage()
 		{
 			foldSummary = AddLabel(foldPage, "idle-row-title");
@@ -840,11 +905,14 @@ namespace WitchMendokusai
 			RenderBasePage(snapshot);
 			RenderUpgradePage(snapshot);
 			RenderGearPage(snapshot);
+			RenderHeroPage(snapshot);
 			RenderFoldPage(snapshot);
 		}
 
 		private void RenderArena(IdleSnapshot snapshot)
 		{
+			RenderPartyOnField(snapshot);
+
 			targetShape.Sides = SidesFor(snapshot.MaxTierNow);
 			targetShape.Body = TierColor(snapshot.MaxTierNow);
 			targetShape.Fill = (float)snapshot.TargetHealthRatio;
@@ -858,6 +926,40 @@ namespace WitchMendokusai
 			arenaCaption.text = string.Format("눌러서 한 대 더 · 초당 {0}대 · {1}",
 				BigNumberText.Format(snapshot.AttacksPerSecond),
 				snapshot.HoldingStage ? "여기 머무는 중 — 많이 떨군다" : "계속 내려가는 중 — 좋은 게 떨어진다");
+		}
+
+		/// <summary>
+		/// 판에 선 셋이 <b>실제로 내보낸 셋</b>이 되게 한다 (TASK-WM-406).
+		///
+		/// ★ 이게 없으면 뽑기와 편성이 <b>목록 안에서만</b> 일어난다 — 판은 그대로다.
+		///   내가 고른 얼굴이 저기 서 있어야 「내 파티」가 된다.
+		/// ★ 빈 자리는 <b>흐리게 남긴다</b>. 지워 버리면 자리가 비었다는 게 안 보인다.
+		/// </summary>
+		private void RenderPartyOnField(IdleSnapshot snapshot)
+		{
+			for (int slot = 0; slot < heroes.Count; slot++)
+			{
+				int id = slot < snapshot.Party.Length ? snapshot.Party[slot] : -1;
+				IdleHeroView? found = FindHero(snapshot, id);
+
+				if (found.HasValue)
+				{
+					heroes[slot].Sides = found.Value.Sides;
+					heroes[slot].Body = GradeColor(found.Value.Grade);
+					heroes[slot].style.opacity = 1f;
+
+					// ★ 이 붙을수록 크게 선다 — 키운 것이 눈에 보여야 키울 맛이 난다.
+					float grown = 1f + Mathf.Min(0.6f, found.Value.Stars * 0.12f);
+					heroes[slot].style.scale = new StyleScale(new Scale(new Vector2(grown, grown)));
+				}
+				else
+				{
+					heroes[slot].Sides = HERO_SIDES[slot % HERO_SIDES.Length];
+					heroes[slot].Body = HERO_COLORS[slot % HERO_COLORS.Length];
+					heroes[slot].style.opacity = 0.22f;
+					heroes[slot].style.scale = new StyleScale(new Scale(Vector2.one));
+				}
+			}
 		}
 
 		private void RenderBaseLive(IdleSnapshot snapshot)
@@ -1193,6 +1295,127 @@ namespace WitchMendokusai
 			}
 		}
 
+		private void RenderHeroPage(IdleSnapshot snapshot)
+		{
+			pullButton.text = string.Format("영웅 뽑기 — 환생석 {0}", snapshot.PullCost);
+			pullButton.SetEnabled(snapshot.CanPull);
+			pullButton.EnableInClassList("idle-button--ready", snapshot.CanPull);
+			pullButton.EnableInClassList("idle-button--locked", snapshot.CanPull == false);
+
+			codexLabel.text = string.Format("도감 {0}점 · 판 전체 x{1:0.00}  ·  천장까지 {2}번",
+				snapshot.CodexScore, snapshot.CodexMultiplier, snapshot.PullsToPity);
+
+			RenderParty(snapshot);
+			RenderCodex(snapshot);
+		}
+
+		/// <summary>내보낸 셋 — 빈 자리는 「비었다」로 두어 채울 것이 있다는 게 보이게.</summary>
+		private void RenderParty(IdleSnapshot snapshot)
+		{
+			for (int slot = 0; slot < partyButtons.Count; slot++)
+			{
+				int id = slot < snapshot.Party.Length ? snapshot.Party[slot] : -1;
+				IdleHeroView? found = FindHero(snapshot, id);
+
+				if (found.HasValue)
+				{
+					IdleHeroView view = found.Value;
+					partyShapes[slot].Sides = view.Sides;
+					partyShapes[slot].Body = GradeColor(view.Grade);
+					partyShapes[slot].style.opacity = 1f;
+					partyButtons[slot].text = string.Format("{0}{1} · {2}",
+						view.Name, Stars(view.Stars), IdleHeroes.NameOfAxis(view.Axis));
+				}
+				else
+				{
+					partyShapes[slot].style.opacity = 0.15f;
+					partyButtons[slot].text = "비었다";
+				}
+
+				partyButtons[slot].EnableInClassList("idle-button--ready", seatBeingFilled == slot);
+			}
+		}
+
+		/// <summary>도감 — 가진 얼굴 전부. 내보낸 것은 표시하고, 안 내보낸 것도 몫을 적는다.</summary>
+		private void RenderCodex(IdleSnapshot snapshot)
+		{
+			if (heroButtons.Count != snapshot.Heroes.Length)
+			{
+				heroRows.Clear();
+				heroButtons.Clear();
+				heroShapes.Clear();
+
+				for (int index = 0; index < snapshot.Heroes.Length; index++)
+				{
+					int capturedId = snapshot.Heroes[index].Id;
+					heroButtons.Add(AddShapeRow(heroRows, 1, () => ChooseHero(capturedId),
+						out NgonElement shape));
+					heroShapes.Add(shape);
+				}
+			}
+
+			for (int index = 0; index < heroButtons.Count && index < snapshot.Heroes.Length; index++)
+			{
+				IdleHeroView view = snapshot.Heroes[index];
+
+				heroShapes[index].Sides = view.Sides;
+				heroShapes[index].Body = GradeColor(view.Grade);
+
+				heroButtons[index].text = string.Format("{0}{1}  {2}·{3}   보유 +{4:P0}   ({5}/{6}){7}",
+					view.Name,
+					Stars(view.Stars),
+					IdleHeroes.NameOfGrade(view.Grade),
+					IdleHeroes.NameOfAxis(view.Axis),
+					view.OwnedShare,
+					view.Copies,
+					view.CopiesForNextStar,
+					view.InParty ? "  ▶출전" : string.Empty);
+
+				heroButtons[index].EnableInClassList("idle-button--ready", seatBeingFilled >= 0);
+			}
+		}
+
+		private static IdleHeroView? FindHero(IdleSnapshot snapshot, int id)
+		{
+			if (id < 0)
+			{
+				return null;
+			}
+
+			for (int index = 0; index < snapshot.Heroes.Length; index++)
+			{
+				if (snapshot.Heroes[index].Id == id)
+				{
+					return snapshot.Heroes[index];
+				}
+			}
+
+			return null;
+		}
+
+		/// <summary>★ 을 글자로 — 숫자보다 눈이 먼저 센다.</summary>
+		private static string Stars(int stars)
+		{
+			if (stars <= 0)
+			{
+				return string.Empty;
+			}
+
+			return " " + new string('★', stars);
+		}
+
+		/// <summary>등급 색 — 위 등급일수록 따뜻하게. 변의 수(축)와 겹치지 않는 축이다.</summary>
+		private static Color GradeColor(IdleHeroGrade grade)
+		{
+			switch (grade)
+			{
+				case IdleHeroGrade.Rare: return new Color(0.46f, 0.80f, 0.72f);
+				case IdleHeroGrade.Epic: return new Color(0.72f, 0.58f, 0.92f);
+				case IdleHeroGrade.Legend: return new Color(0.95f, 0.72f, 0.36f);
+				default: return new Color(0.68f, 0.72f, 0.80f);
+			}
+		}
+
 		private void RenderFoldPage(IdleSnapshot snapshot)
 		{
 			foldSummary.text = string.Format(
@@ -1309,6 +1532,70 @@ namespace WitchMendokusai
 				WriteDown();
 			}
 
+			Render(session.Capture());
+		}
+
+		/// <summary>뽑는다 — 결과에 따라 소리와 흔들림을 다르게 준다.</summary>
+		private void Pull()
+		{
+			if (session.TryPull(out IdleHeroPull got) == false)
+			{
+				return;
+			}
+
+			IdleHeroKind kind = IdleHeroes.KindOf(got.Id);
+
+			burst.Fire(kind.Sides, GradeColor(got.Grade));
+
+			// 큰 것이 나왔을 때만 크게 — 매번 크게 울리면 큰 것이 안 커진다.
+			if (got.Grade >= IdleHeroGrade.Epic || got.IsNew)
+			{
+				sound.Good();
+				Shake(got.Grade == IdleHeroGrade.Legend ? 1f : 0.5f);
+			}
+			else
+			{
+				sound.Click();
+				Shake(0.2f);
+			}
+
+			pullNote.text = string.Format("{0} {1}{2}{3}{4}",
+				IdleHeroes.NameOfGrade(got.Grade),
+				kind.Name,
+				got.IsNew ? "  ★ 처음 본 얼굴" : string.Empty,
+				got.StarredUp ? string.Format("  ★ {0}성이 됐다", got.Stars) : string.Empty,
+				got.ByPity ? "  (천장)" : string.Empty);
+
+			floats.Pop(kind.Name, new Vector2(Random.Range(40f, 100f), 60f), GradeColor(got.Grade));
+
+			WriteDown();
+			Render(session.Capture());
+		}
+
+		/// <summary>자리를 눌렀다 — 이제 도감에서 누구를 앉힐지 고른다.</summary>
+		private void BeginSeat(int slot)
+		{
+			seatBeingFilled = seatBeingFilled == slot ? -1 : slot;
+			sound.Click();
+			Render(session.Capture());
+		}
+
+		/// <summary>도감에서 골랐다 — 고르는 중이 아니면 아무 일도 안 한다.</summary>
+		private void ChooseHero(int id)
+		{
+			if (seatBeingFilled < 0)
+			{
+				return;
+			}
+
+			if (session.Send(new IdleSetPartyIntent(seatBeingFilled, id)))
+			{
+				sound.Click();
+				Shake(0.2f);
+			}
+
+			seatBeingFilled = -1;
+			WriteDown();
 			Render(session.Capture());
 		}
 
