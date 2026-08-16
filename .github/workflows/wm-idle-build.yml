@@ -107,7 +107,14 @@ jobs:
           $process = Start-Process -FilePath '${{ steps.unity.outputs.exe }}' -ArgumentList $arguments -PassThru -Wait -WindowStyle Hidden
           Write-Host "Unity exit=$($process.ExitCode)"
 
-          if (Test-Path $log) { Get-Content $log -Tail 40 | Write-Host }
+          # ★ 증거를 버리지 않는다. 전에는 tail 40 만 찍었는데 그 창이 하필 <시간이 어디로
+          #   갔는지 적힌 줄>을 잘라먹어서, 「왜 13분인가」를 사후에 아무도 못 봤다.
+          #   빌더가 남긴 줄은 통째로 찍고, 로그 자체는 산출물 옆에 남긴다.
+          if (Test-Path $log) {
+            Select-String -Path $log -Pattern '\[IdleBuild\]' | ForEach-Object { Write-Host $_.Line }
+            Write-Host "---- last 40 ----"
+            Get-Content $log -Tail 40 | Write-Host
+          }
 
           if ($process.ExitCode -ne 0) { throw "Idle build failed (exit=$($process.ExitCode)). log: $log" }
 
@@ -115,6 +122,10 @@ jobs:
           $newest = Get-ChildItem $root -Directory | Sort-Object LastWriteTime -Descending | Select-Object -First 1
           $exe = Join-Path $newest.FullName 'Idle.exe'
           if (-not (Test-Path $exe)) { throw "build reported success but no exe: $exe" }
+
+          # 로그를 빌드 폴더 옆에 둔다 -- RUNNER_TEMP is wiped between runs, so keeping it
+          # only there means every post-mortem starts with "the evidence is gone".
+          if (Test-Path $log) { Copy-Item $log (Join-Path $newest.FullName 'unity-build.log') -Force }
 
           "out_dir=$($newest.FullName)" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
           "exe=$exe"                    | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
