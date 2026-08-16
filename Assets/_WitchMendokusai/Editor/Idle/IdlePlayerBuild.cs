@@ -71,10 +71,44 @@ namespace WitchMendokusai.EditorTools
 				return;
 			}
 
-			double megabytes = summary.totalSize / 1024d / 1024d;
+			// ★ `summary.totalSize` 는 <b>배포 안 하는 것까지</b> 센다 (실측 2026-08-16).
+			//   `Idle_BackUpThisFolder_ButDontShipItWithYourGame` 하나가 2.6GB 다 —
+			//   IL2CPP 중간 소스와 pdb 라 유니티가 폴더 이름으로 「배포하지 말라」고 적어 뒀다.
+			//   그걸 합쳐 「2.8GB」라고 보고하면 <b>도구가 거짓말을 하는 것</b>이고,
+			//   실제로 그 숫자를 보고 「군살이 많다」고 잘못 판단했다. 둘을 나눠 적는다.
+			double shipped = SizeOf(directory, true) / 1024d / 1024d;
+			double everything = SizeOf(directory, false) / 1024d / 1024d;
+
 			Debug.Log(TAG + " ✅ 됐다 — " + exePath
-				+ " (" + megabytes.ToString("N1") + " MB · "
+				+ " (배포분 " + shipped.ToString("N1") + " MB · 폴더 전체 " + everything.ToString("N1") + " MB · "
 				+ summary.totalTime.TotalSeconds.ToString("N0") + "초)");
+		}
+
+		/// <summary>
+		/// 폴더 크기. <paramref name="shippedOnly"/> 면 <b>배포 안 하는 폴더</b>를 뺀다 —
+		/// 유니티가 이름에 그렇게 적어 둔 것들이다.
+		/// </summary>
+		private static long SizeOf(string directory, bool shippedOnly)
+		{
+			long total = 0L;
+
+			foreach (string path in Directory.EnumerateFiles(directory, "*", SearchOption.AllDirectories))
+			{
+				if (shippedOnly && IsNotShipped(path))
+				{
+					continue;
+				}
+
+				total += new FileInfo(path).Length;
+			}
+
+			return total;
+		}
+
+		private static bool IsNotShipped(string path)
+		{
+			return path.Contains("BackUpThisFolder_ButDontShipItWithYourGame")
+				|| path.Contains("BurstDebugInformation_DoNotShip");
 		}
 
 		private static void Fail(string reason)
