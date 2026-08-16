@@ -209,25 +209,31 @@ namespace WitchMendokusai.DomainSDK.Idle
         ///   공격 속도 곡선은 공격력보다 훨씬 완만하므로 파밍이 유용하되 무한하지 않다.
         ///   현실에도 맞는다 — 한 대 때려 한 마리가 죽지, 열 마리가 죽지 않는다.
         /// </summary>
-        public static long HitsToFell(IdleState state, IdleTuning tuning)
+        /// ★ <b>`long` 으로 돌려주면 안 된다</b> (실측 2026-08-16).
+        ///   단계 298 의 체력은 3.4e57 이고 그때 공격력은 1e27 언저리다 — 필요 타격 수가 <b>3.4e30</b>,
+        ///   `long` 최대(9.2e18)를 훌쩍 넘는다. `(long)` 변환은 그 경우 <b>정의되지 않은 값</b>(보통 음수)을
+        ///   내고, 그 음수로 나눈 처치 수가 쓰레기가 된다.
+        ///   이레 시뮬이 판마다 「+1단계」로 멎던 것이 균형 문제인 줄 알았는데 <b>고장이었다.</b>
+        ///   `double` 이면 절벽이 없다 — 아주 큰 값은 그냥 「못 잡는다」로 이어진다.
+        public static double HitsToFell(IdleState state, IdleTuning tuning)
         {
             double damage = DamageOf(state, tuning);
             double durability = TargetHealthOf(state, tuning);
 
-            if (damage <= 0d || durability <= 0d)
+            if (damage <= 0d || durability <= 0d || double.IsNaN(damage) || double.IsNaN(durability))
             {
-                return long.MaxValue;
+                return double.PositiveInfinity;
             }
 
             double needed = Math.Ceiling(durability / damage - COUNT_EPSILON_RATIO);
-            return needed < 1d ? 1L : (long)needed;
+            return needed < 1d ? 1d : needed;
         }
 
         /// <summary>초당 처치 수 — <b>공격 속도를 절대 못 넘는다</b>.</summary>
         public static double KillsPerSecond(IdleState state, IdleTuning tuning)
         {
-            long hits = HitsToFell(state, tuning);
-            if (hits == long.MaxValue)
+            double hits = HitsToFell(state, tuning);
+            if (double.IsInfinity(hits) || hits <= 0d)
             {
                 return 0d;
             }
@@ -254,13 +260,14 @@ namespace WitchMendokusai.DomainSDK.Idle
 
             for (int guard = 0; guard < MAX_STAGES_PER_STEP && available > 0L; guard++)
             {
-                long hitsNeeded = HitsToFell(state, tuning);
-                if (hitsNeeded == long.MaxValue)
+                double hitsNeeded = HitsToFell(state, tuning);
+                if (double.IsInfinity(hitsNeeded))
                 {
                     break;
                 }
 
-                long felled = (state.HitsOnTarget + available) / hitsNeeded;
+                double reach = (state.HitsOnTarget + available) / hitsNeeded;
+                long felled = reach >= long.MaxValue ? long.MaxValue : (long)reach;
                 if (felled <= 0L)
                 {
                     state.HitsOnTarget += available;
@@ -273,7 +280,9 @@ namespace WitchMendokusai.DomainSDK.Idle
                     && state.HoldingStage == false;
                 long taking = clearsStage ? leftInStage : felled;
 
-                long spent = taking * hitsNeeded - state.HitsOnTarget;
+                // 큰 수에서도 안 넘치게 double 로 셈하고, 실제로 쓸 수 있는 만큼만 뺀다.
+                double wanted = taking * hitsNeeded - state.HitsOnTarget;
+                long spent = wanted >= available ? available : (long)wanted;
                 state.HitsOnTarget = 0L;
                 available -= spent;
 

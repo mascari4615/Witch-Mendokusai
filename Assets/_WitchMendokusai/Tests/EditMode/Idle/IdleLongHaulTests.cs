@@ -2,6 +2,7 @@ using System.Text;
 using NUnit.Framework;
 using UnityEngine;
 using WitchMendokusai.DomainSDK.Idle;
+using WitchMendokusai.DomainSDK.Upgrade;
 
 namespace WitchMendokusai.Tests
 {
@@ -75,6 +76,10 @@ namespace WitchMendokusai.Tests
 				}
 
 				int foldedAt = state.Stage;
+				double hitsAtFold = IdleModel.HitsToFell(state, tuning);
+				double damageAtFold = IdleModel.DamageOf(state, tuning);
+				double healthAtFold = IdleModel.TargetHealthOf(state, tuning);
+				double killsPerSecondAtFold = IdleModel.KillsPerSecond(state, tuning);
 				Assert.Greater(foldedAt, deepestLastRun,
 					"판 " + (runs + 1) + " 이 지난 판보다 얕은 데서 끝났다 — 앞으로 안 나간다");
 				deepestLastRun = foldedAt;
@@ -82,10 +87,12 @@ namespace WitchMendokusai.Tests
 				IdleModel.TryPrestige(state, tuning, out long awarded);
 				runs++;
 
+				// ★ 멈추는 순간의 속을 같이 찍는다 — 「왜 멎었나」를 표에서 바로 읽으려고.
 				table.AppendLine(string.Format(
-					"[IdleLongHaul] {0,2} | {1,7:N1}h | {2,6} | {3,7} | {4,7} | {5,6} | {6,6:P1}",
+					"[IdleLongHaul] {0,2} | {1,7:N1}h | {2,6} | {3,7} | {4,7} | {5,6} | {6,6:P1} | 타격/마리 {7:0.###e+0} | 공격력 {8:0.###e+0} | 체력 {9:0.###e+0} | 초당 {10:0.###e+0}",
 					runs, (elapsed - runStarted) / 3600d, foldedAt, awarded, state.PrestigePoints,
-					IdleDrops.CeilingFor(state.Ascensions, tuning), state.BestPotentialValue));
+					IdleDrops.CeilingFor(state.Ascensions, tuning), state.BestPotentialValue,
+					hitsAtFold, damageAtFold, healthAtFold, killsPerSecondAtFold));
 
 				runStarted = elapsed;
 				lastProgressAt = elapsed;
@@ -197,6 +204,82 @@ namespace WitchMendokusai.Tests
 			}
 
 			Debug.Log(table.ToString());
+		}
+
+		/// <summary>
+		/// 후반 정체를 어느 손잡이가 메우나 — 여러 값으로 돌려 <b>판마다 접은 단계</b>를 찍는다.
+		/// 실패하지 않는다(자이지 관문이 아니다).
+		///
+		/// ★ 왜 이 손잡이들인가 — 계산이 먼저다.
+		///   자원은 단계마다 `보상배수`, 업그레이드는 비용 1.22·효과 1.15 라
+		///   <b>공격력이 자원의 0.70 제곱</b>으로 큰다. 즉 공격력 ∝ 보상배수^0.7·단계.
+		///   체력은 1.55^단계다. 지금 값(보상 1.35)이면 1.235 &lt; 1.55 — <b>구조적으로 못 따라간다.</b>
+		///   그래서 후보는 셋뿐이다: 보상을 올리거나 · 체력을 낮추거나 · 업그레이드 효과를 키우거나.
+		/// </summary>
+		[Test]
+		public void PrintDepthPerRun_AcrossLateGameKnobs()
+		{
+			StringBuilder table = new StringBuilder();
+			table.AppendLine("[IdleLate] 손잡이 | 판1 | 판2 | 판3 | 판4 | 판5 | 판6  (숫자 = 접은 단계)");
+
+			Report(table, "지금 그대로", tuning => { });
+			Report(table, "보상 1.35→1.9", tuning =>
+				tuning.RewardByStage = new GeometricScale(1d, 1.9d));
+			Report(table, "체력 1.55→1.30", tuning =>
+				tuning.TargetHealthByStage = new GeometricScale(10d, 1.30d));
+			Report(table, "공격효과 1.15→1.30", tuning =>
+				tuning.DamageCurve = new GeometricUpgradeCurve
+				{
+					BaseCost = 10d, CostRatio = 1.22d, BaseValue = 1d, ValueRatio = 1.30d,
+				});
+
+			Debug.Log(table.ToString());
+		}
+
+		private static void Report(StringBuilder table, string name, System.Action<IdleTuning> tweak)
+		{
+			IdleTuning tuning = new IdleTuning();
+			tweak(tuning);
+
+			IdleState state = new IdleState();
+			StringBuilder row = new StringBuilder();
+			row.AppendFormat("[IdleLate] {0,-18} |", name);
+
+			double elapsed = 0d;
+			double lastProgressAt = 0d;
+			int lastStage = 1;
+			int runs = 0;
+
+			while (elapsed < 14d * DAY && runs < 6)
+			{
+				IdleModel.Step(state, tuning, TICK);
+				elapsed += TICK;
+				BuyWhatWeCan(state, tuning);
+
+				if (state.Stage > lastStage)
+				{
+					lastStage = state.Stage;
+					lastProgressAt = elapsed;
+				}
+
+				if (elapsed - lastProgressAt < STALL_HOURS * 3600d)
+				{
+					continue;
+				}
+
+				if (IdleModel.CanPrestige(state, tuning) == false)
+				{
+					break;
+				}
+
+				row.AppendFormat(" {0,5} |", state.Stage);
+				IdleModel.TryPrestige(state, tuning, out long _);
+				runs++;
+				lastProgressAt = elapsed;
+				lastStage = state.Stage;
+			}
+
+			table.AppendLine(row.ToString());
 		}
 
 		private static void BuyWhatWeCan(IdleState state, IdleTuning tuning)

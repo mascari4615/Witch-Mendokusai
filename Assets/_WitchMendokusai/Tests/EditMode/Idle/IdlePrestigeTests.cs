@@ -139,25 +139,23 @@ namespace WitchMendokusai.Tests
 		}
 
 		/// <summary>
-		/// ★ <b>점수는 난이도보다 한참 작게 곱해야 한다.</b>
+		/// ★ <b>점수 하나 = 단계 하나만큼의 어려움.</b>
 		///
-		/// 실측(2026-08-16): 점수 배수를 단계 난이도(1.55)와 같게 두면 <b>인플레</b>가 난다 —
-		/// 지나온 길을 공짜로 되찾고 그 위에 또 쌓여 판마다 깊이가 5배씩 뛴다(69 → 363).
-		/// 점수는 <b>되돌아가는 삯</b>이지 앞으로 미는 힘이 아니다. 미는 힘은 올리기가 낸다.
+		/// 점수는 대략 단계 수만큼 쌓이므로, 점수 하나가 단계 하나의 어려움을 갚으면
+		/// 접을 때마다 그 판이 늘린 어려움이 정확히 상쇄된다.
+		/// 실측(2026-08-16, 넘치는 피해를 버린 뒤): 1.55 는 판마다 +21 로 고르고,
+		/// 1.10 은 +64 → +68 → +28 로 감속하다 멎는다.
 		///
-		/// 이건 필요조건일 뿐이다 — 실제 모양은 <c>IdleLongHaulTests</c> 의 표가 본다.
+		/// ⚠ 한때 이 등식을 「틀렸다」며 물렀다. 그때 폭주한 진짜 원인은 이 값이 아니라
+		///   <b>모델의 고장</b>이었다(한 번 때려 여러 마리가 죽었다). 모델을 고치니 등식이 맞았다.
 		/// </summary>
 		[Test]
-		public void PointMultiplier_StaysWellBelowStageDifficulty()
+		public void PointValue_MatchesStageDifficulty()
 		{
 			IdleTuning tuning = new IdleTuning();
 
-			// 문턱은 <b>실측 경계</b>다 — 1.10 은 판마다 +70단계로 일정했고, 1.20 은 인플레였다.
-			// 난이도(1.55)와의 비율로 적으면 그럴싸하지만 그건 재 본 값이 아니다.
-			Assert.LessOrEqual(tuning.PrestigeMultiplierPerPoint, 1.15d,
-				"점수 배수가 실측 경계를 넘었다 — 며칠이면 숫자가 인플레로 뜻을 잃는다 (1.10 안정 · 1.20 인플레)");
-			Assert.Less(tuning.PrestigeMultiplierPerPoint, tuning.TargetHealthByStage.Ratio,
-				"점수 배수가 단계 난이도 이상이다 — 지나온 길을 공짜로 되찾는다");
+			Assert.AreEqual(tuning.TargetHealthByStage.Ratio, tuning.PrestigeMultiplierPerPoint, 1e-9d,
+				"점수 배수와 단계 난이도 배수가 어긋났다 — 며칠 뒤에 정체하거나 폭주한다");
 		}
 
 		/// <summary>점수가 공격력에 실제로 실린다 — 배수가 이름뿐이면 위 판이 우연히 통과할 수 있다.</summary>

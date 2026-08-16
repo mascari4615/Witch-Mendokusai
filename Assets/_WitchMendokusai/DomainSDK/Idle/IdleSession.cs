@@ -146,13 +146,13 @@ namespace WitchMendokusai.DomainSDK.Idle
                 return 0d;
             }
 
-            long hitsNeeded = IdleModel.HitsToFell(state, tuning);
-            if (hitsNeeded == long.MaxValue || hitsNeeded <= 0L)
+            double hitsNeeded = IdleModel.HitsToFell(state, tuning);
+            if (double.IsInfinity(hitsNeeded) || hitsNeeded <= 0d)
             {
                 return 1d;
             }
 
-            double remaining = 1d - (double)state.HitsOnTarget / hitsNeeded;
+            double remaining = 1d - state.HitsOnTarget / hitsNeeded;
             if (remaining < 0d)
             {
                 return 0d;
