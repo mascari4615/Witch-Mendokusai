@@ -614,9 +614,29 @@ foreach ($rule in $rules)
     }
 }
 
+# ── [META] 짝 잃은 .cs (2026-08-16) ───────────────────────────────────────────
+# 왜: 유니티는 파일마다 .meta 를 만들고 그 안의 guid 로 참조를 잇는다. .cs 만 올라가면
+#     받는 쪽 유니티가 <b>새 guid 를 다시 만들어</b> 프리팹·씬의 연결이 끊긴다.
+#     에디터가 안 켜진 채로 새 파일을 만들면 .meta 가 아직 없어서 그대로 빠지기 쉽다(실측).
+$metaMisses = @()
+foreach ($source in Get-ChildItem -Path $root -Filter *.cs -Recurse)
+{
+    if ($source.FullName -like '*\obj\*' -or $source.FullName -like '*in\*') { continue }
+    if (Test-Path ($source.FullName + '.meta')) { continue }
+    $metaMisses += $source.FullName.Substring($root.Length).TrimStart('')
+}
+
+if ($metaMisses.Count -gt 0)
+{
+    Write-Host ("  FAIL  [META] .meta 가 없는 .cs -- {0}건; fix: 에디터를 한 번 켜거나 .meta 를 같이 만들어 커밋" -f $metaMisses.Count)
+    foreach ($miss in $metaMisses) { Write-Host ("          " + $miss) }
+    $total = $total + $metaMisses.Count
+}
+
 Write-Host ''
 if ($total -eq 0)
 {
+    Write-Host '  PASS  [META] 모든 .cs 에 .meta 가 있다'
     Write-Host '  PASS  [ANCHOR] required wiring lines are still present'
     Write-Host ('  PASS  [RATCHET] 새 위반 없음 (기준선: enum {0}건 / asset {1}건 / tuning {2}건 -- 이미 진 빚)' -f $enumBaseline.Count, $assetBaseline.Count, $tuneBaseline.Count)
     Write-Host 'RESULT: PASS -- 0 rule violations.'
