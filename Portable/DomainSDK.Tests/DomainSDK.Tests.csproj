@@ -49,6 +49,11 @@
     <Compile Include="$(TestsRoot)Item/InventoryCanReceiveTests.cs" />
     <Compile Include="$(TestsRoot)Item/RecipeKeyTests.cs" />
     <Compile Include="$(TestsRoot)Building/BuildingCensusTests.cs" />
+    <!-- 방치 자동 감시(`wm-editmode-coverage-audit`)가 잡은 것 — 유니티를 안 쓰는데 아무 데도
+         안 걸려 있어 **한 번도 안 돌던** 시험 16개다(빚 513 → 529 로 늘어 게이트가 24판 빨갰다).
+         나머지 Idle 시험은 UnityEngine 을 쓰므로 여기 못 온다 — 이 둘만 순수하다. -->
+    <Compile Include="$(TestsRoot)Idle/IdleOfflineTests.cs" />
+    <Compile Include="$(TestsRoot)Idle/IdleStageTests.cs" />
     <Compile Include="$(TestsRoot)Combat/DamageCalculationTests.cs" />
     <Compile Include="$(TestsRoot)Building/BuildingFootprintTests.cs" />
     <Compile Include="$(TestsRoot)TowerDefense/TowerDefenseSignalFieldTests.cs" />
