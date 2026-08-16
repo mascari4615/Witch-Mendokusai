@@ -29,9 +29,10 @@ namespace WitchMendokusai
 	{
 		private enum Tab
 		{
-			Upgrade = 0,
-			Gear = 1,
-			Fold = 2,
+			Base = 0,
+			Upgrade = 1,
+			Gear = 2,
+			Fold = 3,
 		}
 
 		[Header("수치 — 비워 두면 코드 기본값")]
@@ -59,6 +60,10 @@ namespace WitchMendokusai
 		private Label arenaCaption;
 
 		private readonly List<Button> tabButtons = new List<Button>();
+		private VisualElement basePage;
+		private readonly List<Button> producerButtons = new List<Button>();
+		private Label baseSummary;
+
 		private VisualElement upgradePage;
 		private VisualElement gearPage;
 		private VisualElement foldPage;
@@ -73,6 +78,11 @@ namespace WitchMendokusai
 		private Button holdButton;
 
 		private Label potentialLabel;
+		private Label wornLabel;
+		private VisualElement mergeRows;
+		private readonly List<Button> mergeButtons = new List<Button>();
+		private VisualElement bagRows;
+		private readonly List<Button> bagButtons = new List<Button>();
 		private VisualElement dropRows;
 		private readonly List<Button> appraiseButtons = new List<Button>();
 		private Label rollNote;
@@ -189,7 +199,7 @@ namespace WitchMendokusai
 			BuildArena(body);
 			BuildPanel(body);
 
-			ShowTab(Tab.Upgrade);
+			ShowTab(Tab.Base);
 		}
 
 		private void BuildTopBar(VisualElement parent, double awaySeconds)
@@ -266,17 +276,35 @@ namespace WitchMendokusai
 			panel.Add(tabs);
 
 			tabButtons.Clear();
+			AddTab(tabs, "기지", Tab.Base);
 			AddTab(tabs, "강화", Tab.Upgrade);
 			AddTab(tabs, "장비", Tab.Gear);
 			AddTab(tabs, "접기", Tab.Fold);
 
+			basePage = AddPage(panel);
 			upgradePage = AddPage(panel);
 			gearPage = AddPage(panel);
 			foldPage = AddPage(panel);
 
+			BuildBasePage();
 			BuildUpgradePage();
 			BuildGearPage();
 			BuildFoldPage();
+		}
+
+		/// <summary>
+		/// 기지 — <b>시간이 자원을 낸다</b>. 이 층이 없으면 감정도 합치기도 강화도 못 한다.
+		/// </summary>
+		private void BuildBasePage()
+		{
+			baseSummary = AddLabel(basePage, "idle-row-value");
+
+			producerButtons.Clear();
+			for (int kind = 0; kind < 8; kind++)
+			{
+				int captured = kind;
+				producerButtons.Add(AddButton(basePage, "idle-button", () => BuyProducer(captured)));
+			}
 		}
 
 		private void BuildUpgradePage()
@@ -297,8 +325,29 @@ namespace WitchMendokusai
 			holdButton = AddButton(upgradePage, "idle-button", ToggleHold);
 		}
 
+		/// <summary>
+		/// 장비 — 모험이 가져온 것. 차고, 합치고, 감정한다.
+		///
+		/// ★ 셋 다 <b>자원</b>이 든다(감정·합치기). 그게 기지와 모험을 같은 저울에 올리는 자리다.
+		/// </summary>
 		private void BuildGearPage()
 		{
+			wornLabel = AddLabel(gearPage, "idle-row-title");
+			wornLabel.style.whiteSpace = WhiteSpace.Normal;
+
+			AddDivider(gearPage);
+			AddLabel(gearPage, "idle-row-value").text = "가방 — 눌러서 찬다";
+
+			bagRows = new VisualElement();
+			gearPage.Add(bagRows);
+
+			AddDivider(gearPage);
+			AddLabel(gearPage, "idle-row-value").text = "합치기 — 같은 부위·등급 셋이 한 단계 위로 (잠재는 사라진다)";
+
+			mergeRows = new VisualElement();
+			gearPage.Add(mergeRows);
+
+			AddDivider(gearPage);
 			potentialLabel = AddLabel(gearPage, "idle-row-title");
 
 			dropRows = new VisualElement();
@@ -347,6 +396,7 @@ namespace WitchMendokusai
 				: string.Format("내려가는 중 — 좋은 게 떨어진다 (변 {0}개 = {1}등급)",
 					snapshot.MaxTierNow + 2, snapshot.MaxTierNow);
 
+			RenderBasePage(snapshot);
 			RenderUpgradePage(snapshot);
 			RenderGearPage(snapshot);
 			RenderFoldPage(snapshot);
@@ -385,6 +435,37 @@ namespace WitchMendokusai
 			}
 		}
 
+		private void RenderBasePage(IdleSnapshot snapshot)
+		{
+			baseSummary.text = string.Format("기지가 초당 {0} 를 낸다 — 자원은 여기서만 나온다",
+				BigNumberText.Format(snapshot.IncomePerSecond));
+
+			for (int kind = 0; kind < producerButtons.Count; kind++)
+			{
+				Button button = producerButtons[kind];
+
+				if (kind >= snapshot.Producers.Length)
+				{
+					button.style.display = DisplayStyle.None;
+					continue;
+				}
+
+				IdleProducerView view = snapshot.Producers[kind];
+
+				// 아직 이른 것은 숨긴다 — 처음부터 여덟 줄이면 뭘 할지가 안 보인다.
+				button.style.display = view.Hidden ? DisplayStyle.None : DisplayStyle.Flex;
+
+				button.text = string.Format("{0} {1}   x{2}  ·  초당 {3}   —   {4}",
+					ShapeMark(kind + 1),
+					kind + 1,
+					view.Owned,
+					BigNumberText.Format(view.OutputTotal),
+					BigNumberText.Format(view.NextCost));
+
+				button.SetEnabled(view.CanAfford);
+			}
+		}
+
 		private void RenderUpgradePage(IdleSnapshot snapshot)
 		{
 			DrawUpgrade(snapshot.Damage, damageTitle, damageValue, damageButton, "공격력", "한 방 {0}");
@@ -401,6 +482,10 @@ namespace WitchMendokusai
 
 		private void RenderGearPage(IdleSnapshot snapshot)
 		{
+			RenderWorn(snapshot);
+			RenderBag(snapshot);
+			RenderMerge(snapshot);
+
 			if (appraiseButtons.Count != snapshot.DroppedByTier.Length)
 			{
 				RebuildDropRows(snapshot.DroppedByTier.Length);
@@ -413,11 +498,127 @@ namespace WitchMendokusai
 			for (int tier = 1; tier <= appraiseButtons.Count; tier++)
 			{
 				long count = snapshot.DroppedByTier[tier - 1];
+				// ★ 감정 값을 <b>버튼에 적는다</b> — 자원이 든다는 게 안 보이면 두 층이 물린 줄 모른다.
+				double cost = IdleGear.AppraiseCost(tier, session.Tuning);
+
 				appraiseButtons[tier - 1].text = tier < 2
-					? string.Format("◆{0}  {1}개 — 잠재 없음", tier, BigNumberText.Format(count))
-					: string.Format("◆{0}  {1}개 — 감정 ({2})", tier, BigNumberText.Format(count),
+					? string.Format("{0}{1}  {2}개 — 잠재 없음", ShapeMark(tier), tier, BigNumberText.Format(count))
+					: string.Format("{0}{1}  {2}개 — 감정 {3} ({4})", ShapeMark(tier), tier,
+						BigNumberText.Format(count), BigNumberText.Format(cost),
 						NameOf(IdlePotentials.GradeFor(tier)));
-				appraiseButtons[tier - 1].SetEnabled(tier >= 2 && count > 0L);
+
+				appraiseButtons[tier - 1].SetEnabled(tier >= 2 && count > 0L && snapshot.Resource >= cost);
+			}
+		}
+
+		/// <summary>차고 있는 넷 — 부위마다 올리는 축이 다르다.</summary>
+		private void RenderWorn(IdleSnapshot snapshot)
+		{
+			System.Text.StringBuilder text = new System.Text.StringBuilder();
+			string[] names = { "머리(공격력)", "몸(기지)", "손(속도)", "발(떨구기)" };
+
+			for (int slot = 0; slot < snapshot.Worn.Length && slot < names.Length; slot++)
+			{
+				IdleItem one = snapshot.Worn[slot];
+				text.Append(names[slot]).Append(" ");
+
+				if (one.IsEmpty)
+				{
+					text.AppendLine("— 비어 있음");
+					continue;
+				}
+
+				text.Append(ShapeMark(one.Tier)).Append(one.Tier);
+				if (one.PotentialValue > 0d)
+				{
+					text.AppendFormat("  {0} {1:P1}", NameOf(one.Grade), one.PotentialValue);
+				}
+
+				text.AppendLine();
+			}
+
+			wornLabel.text = text.ToString().TrimEnd();
+		}
+
+		/// <summary>가방 — 눌러서 찬다. 칸이 차면 더 안 들어온다(그게 정리하라는 신호다).</summary>
+		private void RenderBag(IdleSnapshot snapshot)
+		{
+			if (bagButtons.Count != snapshot.Bag.Length)
+			{
+				bagRows.Clear();
+				bagButtons.Clear();
+
+				for (int index = 0; index < snapshot.Bag.Length; index++)
+				{
+					int captured = index;
+					bagButtons.Add(AddButton(bagRows, "idle-appraise-button", () => Equip(captured)));
+				}
+			}
+
+			string[] slots = { "머리", "몸", "손", "발" };
+
+			for (int index = 0; index < bagButtons.Count; index++)
+			{
+				IdleItem one = snapshot.Bag[index];
+				bagButtons[index].text = string.Format("{0}{1} {2}{3}",
+					ShapeMark(one.Tier), one.Tier,
+					slots[(int)one.Slot],
+					one.PotentialValue > 0d ? string.Format("  {0:P1}", one.PotentialValue) : string.Empty);
+			}
+		}
+
+		/// <summary>합칠 수 있는 조합만 보여준다.</summary>
+		private void RenderMerge(IdleSnapshot snapshot)
+		{
+			int[] counts = new int[64];
+			string[] slots = { "머리", "몸", "손", "발" };
+
+			for (int index = 0; index < snapshot.Bag.Length; index++)
+			{
+				IdleItem one = snapshot.Bag[index];
+				int key = one.Tier * 4 + (int)one.Slot;
+				if (key >= 0 && key < counts.Length)
+				{
+					counts[key]++;
+				}
+			}
+
+			List<string> labels = new List<string>();
+			List<int> tiers = new List<int>();
+			List<ItemSlot> which = new List<ItemSlot>();
+
+			for (int key = 0; key < counts.Length; key++)
+			{
+				if (counts[key] < 3)
+				{
+					continue;
+				}
+
+				int tier = key / 4;
+				ItemSlot slot = (ItemSlot)(key % 4);
+
+				labels.Add(string.Format("{0}{1} {2} x{3} → {4}{5}",
+					ShapeMark(tier), tier, slots[(int)slot], counts[key], ShapeMark(tier + 1), tier + 1));
+				tiers.Add(tier);
+				which.Add(slot);
+			}
+
+			if (mergeButtons.Count != labels.Count)
+			{
+				mergeRows.Clear();
+				mergeButtons.Clear();
+
+				for (int index = 0; index < labels.Count; index++)
+				{
+					int tier = tiers[index];
+					ItemSlot slot = which[index];
+					mergeButtons.Add(AddButton(mergeRows, "idle-appraise-button", () => Merge(tier, slot)));
+				}
+			}
+
+			for (int index = 0; index < mergeButtons.Count && index < labels.Count; index++)
+			{
+				mergeButtons[index].text = labels[index];
 			}
 		}
 
@@ -453,6 +654,12 @@ namespace WitchMendokusai
 			Render(session.Capture());
 		}
 
+		private void BuyProducer(int kind)
+		{
+			session.Send(new IdleBuyProducerIntent(kind));
+			Render(session.Capture());
+		}
+
 		private void ToggleHold()
 		{
 			session.Send(new IdleHoldStageIntent(session.State.HoldingStage == false));
@@ -466,6 +673,25 @@ namespace WitchMendokusai
 			{
 				rollNote.text = string.Format("◆{0} 감정 → {1} {2:P1}{3}",
 					roll.Tier, NameOf(roll.Grade), roll.Value, roll.Replaced ? "   ★ 갈아 끼웠다" : string.Empty);
+				WriteDown();
+			}
+
+			Render(session.Capture());
+		}
+
+		private void Equip(int bagIndex)
+		{
+			session.Send(new IdleEquipIntent(bagIndex));
+			WriteDown();
+			Render(session.Capture());
+		}
+
+		private void Merge(int tier, ItemSlot slot)
+		{
+			if (session.Send(new IdleMergeIntent(tier, slot)))
+			{
+				rollNote.text = string.Format("{0}{1} 셋을 합쳐 {2}{3} 하나 — 잠재는 사라졌다",
+					ShapeMark(tier), tier, ShapeMark(tier + 1), tier + 1);
 				WriteDown();
 			}
 
@@ -513,6 +739,7 @@ namespace WitchMendokusai
 				tabButtons[index].EnableInClassList("idle-tab--on", index == (int)which);
 			}
 
+			basePage.EnableInClassList("idle-hidden", which != Tab.Base);
 			upgradePage.EnableInClassList("idle-hidden", which != Tab.Upgrade);
 			gearPage.EnableInClassList("idle-hidden", which != Tab.Gear);
 			foldPage.EnableInClassList("idle-hidden", which != Tab.Fold);
@@ -562,6 +789,19 @@ namespace WitchMendokusai
 				? "최대"
 				: string.Format("올리기 — {0}", BigNumberText.Format(view.NextCost));
 			button.SetEnabled(view.CanAfford);
+		}
+
+		/// <summary>변의 수로 등급을 적는다 — 도형과 같은 규칙을 글자에도.</summary>
+		private static string ShapeMark(int tier)
+		{
+			switch (tier)
+			{
+				case 1: return "△";
+				case 2: return "◇";
+				case 3: return "⬠";
+				case 4: return "⬡";
+				default: return "◍";
+			}
 		}
 
 		/// <summary>등급마다 색이 달라진다 — 변을 세기 전에 색으로 먼저 눈치챈다.</summary>

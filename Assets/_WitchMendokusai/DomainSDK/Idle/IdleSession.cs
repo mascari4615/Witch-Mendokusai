@@ -14,7 +14,8 @@ namespace WitchMendokusai.DomainSDK.Idle
     /// ★ 이 클래스도 Unity 를 모른다 — 시간은 <see cref="Advance"/> 로 <b>밖에서</b> 흘려 준다.
     ///   에디터 창이 흘리든, 런타임 Update 가 흘리든, 시험이 8시간을 한 번에 흘리든 같다.
     /// </summary>
-    public sealed class IdleSession : IIntentSink<IdleRaiseUpgradeIntent>, IIntentSink<IdlePrestigeIntent>, IIntentSink<IdleAppraiseIntent>, IIntentSink<IdleHoldStageIntent>, IIntentSink<IdleGoToStageIntent>
+    public sealed class IdleSession : IIntentSink<IdleRaiseUpgradeIntent>, IIntentSink<IdlePrestigeIntent>, IIntentSink<IdleAppraiseIntent>, IIntentSink<IdleHoldStageIntent>, IIntentSink<IdleGoToStageIntent>,
+        IIntentSink<IdleBuyProducerIntent>, IIntentSink<IdleMergeIntent>, IIntentSink<IdleEquipIntent>
     {
         private readonly IdleState state;
         private readonly IdleTuning tuning;
@@ -27,6 +28,9 @@ namespace WitchMendokusai.DomainSDK.Idle
 
         /// <summary>저장·불러오기용 — 호스트가 직렬화할 때만 만진다.</summary>
         public IdleState State => state;
+
+        /// <summary>화면이 값(감정·합치기 비용)을 물어볼 수 있게.</summary>
+        public IdleTuning Tuning => tuning;
 
         /// <summary>시간을 흘린다. 얼마를 흘릴지는 부르는 쪽이 정한다.</summary>
         public void Advance(double seconds)
@@ -86,6 +90,24 @@ namespace WitchMendokusai.DomainSDK.Idle
             return IdleModel.TryRaise(state, tuning, intent.Kind, out UpgradeRaiseFailure _);
         }
 
+        /// <summary>생산자를 하나 산다. 자원이 모자라면 아무 일도 안 일어난다.</summary>
+        public bool Send(IdleBuyProducerIntent intent)
+        {
+            return IdleBase.TryBuy(state, tuning, intent.Kind);
+        }
+
+        /// <summary>같은 부위·같은 등급 셋을 합친다.</summary>
+        public bool Send(IdleMergeIntent intent)
+        {
+            return IdleGear.TryMerge(state, tuning, intent.Tier, intent.Slot, out IdleItem _);
+        }
+
+        /// <summary>가방의 것을 찬다.</summary>
+        public bool Send(IdleEquipIntent intent)
+        {
+            return IdleGear.TryEquip(state, intent.BagIndex);
+        }
+
         /// <summary>지나온 자리로 옮긴다. 앞질러 가려 하면 아무 일도 안 일어난다.</summary>
         public bool Send(IdleGoToStageIntent intent)
         {
@@ -136,6 +158,10 @@ namespace WitchMendokusai.DomainSDK.Idle
                 state.DroppedByTier,
                 IdleDrops.MaxTierAt(state.Stage, state.Ascensions, tuning),
                 IdleDrops.CeilingFor(state.Ascensions, tuning),
+                CaptureProducers(),
+                state.Bag.ToArray(),
+                (IdleItem[])state.Worn.Clone(),
+                tuning.BagCapacity,
                 state.BestPotentialValue,
                 (PotentialGrade)state.BestPotentialGrade,
                 IdleModel.MaxOfflineFor(state, tuning),
@@ -144,6 +170,32 @@ namespace WitchMendokusai.DomainSDK.Idle
                 IdleModel.BestFarmingStage(state, tuning),
                 ViewOf(IdleUpgradeKind.Damage, IdleModel.DamageOf(state, tuning)),
                 ViewOf(IdleUpgradeKind.AttackSpeed, IdleModel.AttackSpeedOf(state, tuning)));
+        }
+
+        /// <summary>기지를 사진에 담는다 — 화면이 값·산출을 다시 계산하지 않게.</summary>
+        private IdleProducerView[] CaptureProducers()
+        {
+            state.EnsureProducerRoom(tuning.ProducerCount);
+
+            IdleProducerView[] made = new IdleProducerView[tuning.ProducerCount];
+
+            for (int kind = 0; kind < tuning.ProducerCount; kind++)
+            {
+                long owned = state.Owned[kind];
+                double cost = IdleBase.CostOf(kind, owned, tuning);
+                double each = IdleBase.OutputOf(kind, tuning);
+
+                made[kind] = new IdleProducerView(
+                    kind,
+                    owned,
+                    cost,
+                    each,
+                    owned * each,
+                    state.Resource >= cost,
+                    IdleBase.IsHidden(kind, state, tuning));
+            }
+
+            return made;
         }
 
         private double RemainingHealthRatio()

@@ -34,6 +34,41 @@ namespace WitchMendokusai.DomainSDK.Idle
     }
 
     /// <summary>
+    /// 생산자 하나가 화면에 보이는 모습 — 몇 개 · 값 · 초당 · 살 수 있나 · 아직 숨길까.
+    /// </summary>
+    public readonly struct IdleProducerView
+    {
+        public int Kind { get; }
+        public long Owned { get; }
+
+        /// <summary>한 개 더 살 때의 값.</summary>
+        public double NextCost { get; }
+
+        /// <summary>이 종류 하나가 내는 초당 자원.</summary>
+        public double OutputEach { get; }
+
+        /// <summary>이 종류가 지금 내고 있는 초당 자원.</summary>
+        public double OutputTotal { get; }
+
+        public bool CanAfford { get; }
+
+        /// <summary>아직 보여줄 때가 아니다 — 살 만해지기 직전에 나타난다.</summary>
+        public bool Hidden { get; }
+
+        public IdleProducerView(int kind, long owned, double nextCost, double outputEach,
+            double outputTotal, bool canAfford, bool hidden)
+        {
+            Kind = kind;
+            Owned = owned;
+            NextCost = nextCost;
+            OutputEach = outputEach;
+            OutputTotal = outputTotal;
+            CanAfford = canAfford;
+            Hidden = hidden;
+        }
+    }
+
+    /// <summary>
     /// 지금 판의 <b>읽기 전용 사진</b> — 코어가 표현에게 건네는 것 (TASK-WM-406).
     ///
     /// ★ 상태 자체를 안 넘긴다 — 넘기면 표현이 코어를 고칠 수 있게 되고,
@@ -103,6 +138,18 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// <summary>가장 잘 벌리는 자리 — 막혔을 때 물러날 곳.</summary>
         public int BestFarmingStage { get; }
 
+        /// <summary>기지 — 생산자 종류별로 화면이 그릴 것.</summary>
+        public IdleProducerView[] Producers { get; }
+
+        /// <summary>가방에 든 장비 (읽기만).</summary>
+        public IdleItem[] Bag { get; }
+
+        /// <summary>부위마다 차고 있는 것.</summary>
+        public IdleItem[] Worn { get; }
+
+        /// <summary>가방 칸 수 — 「몇/몇」을 화면이 뺄셈으로 지어내지 않게.</summary>
+        public int BagCapacity { get; }
+
         /// <summary>공격력 축.</summary>
         public IdleUpgradeView Damage { get; }
 
@@ -113,6 +160,7 @@ namespace WitchMendokusai.DomainSDK.Idle
             int stage, int killsInStage, int killsPerStage,
             long prestigePoints, long prestigeAward, double prestigeMultiplier,
             long[] droppedByTier, int maxTierNow, int tierCeiling,
+            IdleProducerView[] producers, IdleItem[] bag, IdleItem[] worn, int bagCapacity,
             double bestPotentialValue, PotentialGrade bestPotentialGrade, double maxOfflineSeconds, bool holdingStage, int bestStage, int bestFarmingStage,
             IdleUpgradeView damage, IdleUpgradeView attackSpeed)
         {
@@ -129,6 +177,10 @@ namespace WitchMendokusai.DomainSDK.Idle
             DroppedByTier = droppedByTier;
             MaxTierNow = maxTierNow;
             TierCeiling = tierCeiling;
+            Producers = producers;
+            Bag = bag;
+            Worn = worn;
+            BagCapacity = bagCapacity;
             BestPotentialValue = bestPotentialValue;
             BestPotentialGrade = bestPotentialGrade;
             MaxOfflineSeconds = maxOfflineSeconds;
