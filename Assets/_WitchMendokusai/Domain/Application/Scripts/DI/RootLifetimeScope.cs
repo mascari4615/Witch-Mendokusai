@@ -7,6 +7,14 @@ namespace WitchMendokusai
 {
 	public class RootLifetimeScope : LifetimeScope
 	{
+		/// <summary>
+		/// 조립이 세우는 것들의 목록 (TASK-WM-409 단계 A).
+		/// 예전엔 <c>Resources.Load&lt;T&gt;("Singletons/" + 타입이름)</c> 으로 <b>이름으로</b> 찾았다 —
+		/// 이름이 계약이라 클래스명을 바꾸면 런타임에 깨졌고, `Resources/` 에 있어야 해서
+		/// <b>모든 제품 빌드</b>에 그래프째로 실렸다.
+		/// </summary>
+		[SerializeField] private SingletonCatalog catalog;
+
 		/// <summary>본편이 아닌 씬 — 여기서는 본편 조립을 아예 안 세운다.</summary>
 		private const string SIDE_GAME_SCENE = "Idle";
 
@@ -28,7 +36,13 @@ namespace WitchMendokusai
 
 			// SOManager — ScriptableObject = RegisterInstance pattern (cross-scene global, TASK-WM-078 γ P2-2, 2026-05-13).
 			// Resources.Load 의 lazy singleton ↔ VContainer RegisterInstance 가 같은 SO 가리킴 (caller transitional 0 변경).
-			SOManager soManager = Resources.Load<SOManager>(nameof(SOManager));
+			if (catalog == null)
+			{
+				Debug.LogError("[BOOT] SingletonCatalog 이 안 꽂혔다 — 조립을 못 세운다 (TASK-WM-409)");
+				return;
+			}
+
+			SOManager soManager = catalog.SOManager;
 			builder.RegisterInstance(soManager);
 			SOManagerBridge.Register(soManager);
 
@@ -118,9 +132,9 @@ namespace WitchMendokusai
 			});
 		}
 
-		private static void RegisterLeaf<T>(IContainerBuilder builder) where T : MonoBehaviour
+		private void RegisterLeaf<T>(IContainerBuilder builder) where T : MonoBehaviour
 		{
-			T prefab = Resources.Load<T>($"Singletons/{typeof(T).Name}");
+			T prefab = catalog.Get<T>();
 			builder.RegisterComponentInNewPrefab(prefab, Lifetime.Singleton)
 				.DontDestroyOnLoad();
 		}

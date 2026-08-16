@@ -48,3 +48,4 @@ MonoBehaviour:
     TypeName: 
   autoRun: 1
   autoInjectGameObjects: []
+  catalog: {fileID: 11400000, guid: 643143e1fb3ca7047adcadd4c9819e9a, type: 2}

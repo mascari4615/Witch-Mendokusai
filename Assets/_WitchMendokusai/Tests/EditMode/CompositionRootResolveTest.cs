@@ -50,6 +50,19 @@ namespace WitchMendokusai.Tests
             RootLifetimeScope scope =
                 (RootLifetimeScope)FormatterServices.GetUninitializedObject(typeof(RootLifetimeScope));
 
+            // ★ 조립 목록은 이제 <b>참조</b>다 (TASK-WM-409 단계 A) — 예전엔 Configure 안에서
+            //   Resources.Load 로 이름을 찾았기에 시험이 아무 배선 없이도 돌았다.
+            //   지금은 프로덕션과 <b>같은 카탈로그</b>를 꽂아 준다. 폴백을 코드에 두는 것은
+            //   근본 후퇴라 하지 않는다 — 시험이 프로덕션 배선을 흉내내는 쪽이 옳다.
+            SingletonCatalog catalog = UnityEditor.AssetDatabase
+                .LoadAssetAtPath<SingletonCatalog>(
+                    "Assets/_WitchMendokusai/Domain/Application/Assets/SingletonCatalog.asset");
+            Assert.That(catalog, Is.Not.Null,
+                "SingletonCatalog 자산이 없다 — 조립 목록 배선을 확인할 것 (TASK-WM-409)");
+            typeof(RootLifetimeScope)
+                .GetField("catalog", BindingFlags.Instance | BindingFlags.NonPublic)
+                .SetValue(scope, catalog);
+
             MethodInfo configure = typeof(RootLifetimeScope).GetMethod(
                 "Configure", BindingFlags.Instance | BindingFlags.NonPublic);
             Assert.That(configure, Is.Not.Null,
