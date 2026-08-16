@@ -9,18 +9,25 @@ namespace WitchMendokusai
 	/// </summary>
 	public class ChunkPool : MonoBehaviour
 	{
-		public const string DEFAULT_MATERIAL_RESOURCE = "VoxelMaterial";
-
 		[SerializeField] private Material chunkMaterial;
 
 		private readonly Stack<GameObject> pool = new();
 
+		/// <summary>
+		/// 재질은 <b>건네받는다</b> — 예전엔 `Resources.Load` 로 이름을 찾아 왔고,
+		/// 그래서 복셀을 안 쓰는 제품 빌드에도 재질·텍스처가 실렸다 (TASK-WM-409).
+		/// </summary>
+		public void UseMaterial(Material material)
+		{
+			if (material != null) { chunkMaterial = material; }
+		}
+
 		private void Awake()
 		{
 			if (chunkMaterial == null)
-				chunkMaterial = Resources.Load<Material>(DEFAULT_MATERIAL_RESOURCE);
-			if (chunkMaterial == null)
-				Debug.LogError($"[ChunkPool] {DEFAULT_MATERIAL_RESOURCE} 머티리얼을 찾지 못했다. WitchMendokusai/Voxel/Generate Default Material 메뉴 호출.");
+			{
+				Debug.LogError("[ChunkPool] 청크 재질이 없다 — ChunkManager 의 BlockCatalog 배선을 확인할 것 (TASK-WM-409)");
+			}
 		}
 
 		public GameObject Get(ChunkPosition position)

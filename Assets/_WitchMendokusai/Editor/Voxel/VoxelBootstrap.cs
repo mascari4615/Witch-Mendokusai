@@ -33,7 +33,7 @@ namespace WitchMendokusai
 
 			AssetDatabase.SaveAssets();
 			AssetDatabase.Refresh();
-			BlockBootstrap.Reload();
+			BlockBootstrap.ReloadFromProject();
 			Debug.Log($"[VoxelBootstrap] Default blocks ready. Registry count: {BlockRegistry.Count}");
 		}
 
@@ -68,7 +68,7 @@ namespace WitchMendokusai
 		[MenuItem("WM/Voxel/Reload Block Registry")]
 		public static void ReloadRegistry()
 		{
-			BlockBootstrap.Reload();
+			BlockBootstrap.ReloadFromProject();
 			Debug.Log($"[BlockRegistry] {BlockRegistry.Count} blocks loaded.");
 		}
 

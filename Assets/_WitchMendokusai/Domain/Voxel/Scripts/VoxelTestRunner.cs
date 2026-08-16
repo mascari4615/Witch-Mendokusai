@@ -6,6 +6,8 @@ namespace WitchMendokusai
 	[ExecuteAlways]
 	public class VoxelTestRunner : MonoBehaviour
 	{
+		/// <summary>복셀이 쓰는 것들의 목록 — 이 참조가 「복셀을 쓴다」는 선언이다 (TASK-WM-409).</summary>
+		[SerializeField] private BlockCatalog catalog;
 		[SerializeField] private ChunkPosition chunkPosition = new(0, 0);
 
 		private void Start()
@@ -29,7 +31,13 @@ namespace WitchMendokusai
 
 			if (BlockRegistry.IsInitialized == false)
 			{
-				BlockBootstrap.Reload();
+				// 이름으로 긁어 오던 것을 <b>참조</b>로 바꿨다 (TASK-WM-409) — 카탈로그가 없으면 그렇다고 말한다.
+				if (catalog == null)
+				{
+					Debug.LogError("[VoxelTestRunner] BlockCatalog 이 안 꽂혔다 — 블록을 못 읽는다 (TASK-WM-409)");
+					return;
+				}
+				BlockBootstrap.Load(catalog.Blocks);
 			}
 
 			Chunk chunk = new(chunkPosition);

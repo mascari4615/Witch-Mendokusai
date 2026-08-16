@@ -24,7 +24,7 @@ namespace WitchMendokusai.Tests
         public void Measure_VoxelGenerationPipeline()
         {
             if (BlockRegistry.IsInitialized == false)
-                BlockBootstrap.Reload();
+                BlockBootstrap.ReloadFromProject();
 
             TerrainParameters tp = TerrainParametersService.Active;
             if (tp == null)
