@@ -1,0 +1,259 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>마녀여 영원히 — 대결</title>
+<style>
+	:root {
+		color-scheme: dark;
+		--ground: #14121a;
+		--floor: #23202c;
+		--wall: #3a3548;
+		--me: #5aa6ff;
+		--foe: #ff8f5a;
+		--ink: #d8d2e8;
+		--dim: #8d86a6;
+	}
+	* { box-sizing: border-box; }
+	html, body { height: 100%; }
+	body {
+		margin: 0;
+		background: var(--ground);
+		color: var(--ink);
+		font: 14px/1.5 system-ui, sans-serif;
+		overflow: hidden;
+	}
+	#board { position: fixed; inset: 0; display: block; cursor: crosshair; }
+	.panel {
+		position: fixed; z-index: 2;
+		background: #1d1a26cc;
+		border: 1px solid #322c42;
+		border-radius: 10px;
+		padding: 10px 14px;
+	}
+	#score { top: 14px; left: 14px; font-size: 18px; }
+	#hint { bottom: 14px; left: 14px; color: var(--dim); }
+	#offer { top: 14px; right: 14px; min-width: 260px; }
+	#offer button {
+		display: block; width: 100%; margin: 6px 0; padding: 8px 10px;
+		background: #2a2536; color: var(--ink);
+		border: 1px solid #3d3650; border-radius: 8px; cursor: pointer; text-align: left;
+	}
+	#offer button:hover { background: #342d44; }
+	#offer[hidden] { display: none; }
+	#status { top: 64px; left: 14px; }
+</style>
+</head>
+<body>
+<canvas id="board"></canvas>
+<div class="panel" id="score">— vs —</div>
+<div class="panel" id="status">붙는 중…</div>
+<div class="panel" id="offer" hidden><b>졌다 — 카드를 고른다</b><div id="cards"></div></div>
+<div class="panel" id="hint">WASD 이동 · 마우스 조준 · 좌클릭 발사 · Space 대시</div>
+
+<script type="module">
+// 브라우저로 하는 1대1 대결 (TASK-WM-411).
+//
+// ★ 이 창은 규칙을 하나도 모른다. 서버(또는 P2P 호스트)가 심판이고, 여기는
+//   ① 내 의도를 보내고 ② 받은 그림을 그린다. 유니티 창이 하는 일과 정확히 같다 —
+//   같은 말(DomainSDK/Net)을 쓰기 때문에 둘이 같은 방에서 붙을 수 있다.
+
+const board = document.getElementById('board');
+const context = board.getContext('2d');
+const scorePanel = document.getElementById('score');
+const statusPanel = document.getElementById('status');
+const offerPanel = document.getElementById('offer');
+const cardsPanel = document.getElementById('cards');
+
+const params = new URLSearchParams(location.search);
+const room = params.get('room') ?? '';
+const fillWithBot = params.get('bot') !== '0';
+
+// 판 크기는 서버가 알려 준다(vsstart). 그 전에는 그리지 않는다.
+let arena = null;
+let seat = -1;
+let state = null;
+let tick = 0;
+
+const held = new Set();
+const pointer = { x: 0, y: 0 };
+let firing = false;
+let dashQueued = false;
+
+addEventListener('keydown', (event) => {
+	held.add(event.code);
+	if (event.code === 'Space') { dashQueued = true; event.preventDefault(); }
+});
+addEventListener('keyup', (event) => held.delete(event.code));
+board.addEventListener('mousemove', (event) => { pointer.x = event.clientX; pointer.y = event.clientY; });
+board.addEventListener('mousedown', () => { firing = true; });
+addEventListener('mouseup', () => { firing = false; });
+
+const socket = new WebSocket(`${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/vs`);
+
+socket.addEventListener('open', () => {
+	statusPanel.textContent = '방을 찾는 중…';
+	socket.send(JSON.stringify({ type: 'vsjoin', room, fillWithBot }));
+});
+
+socket.addEventListener('close', () => { statusPanel.textContent = '줄이 끊겼다'; });
+socket.addEventListener('error', () => { statusPanel.textContent = '못 붙었다'; });
+
+socket.addEventListener('message', (event) => {
+	const message = JSON.parse(event.data);
+
+	if (message.type === 'vsstart') {
+		seat = message.seat;
+		arena = { halfWidth: message.halfWidth, halfDepth: message.halfDepth, roundsToWin: message.roundsToWin };
+		statusPanel.textContent = `내 자리 ${seat + 1}P — 상대를 기다린다`;
+		return;
+	}
+
+	if (message.type === 'vsstate') {
+		state = message;
+		statusPanel.hidden = true;
+		const mine = seat === 0 ? message.scoreA : message.scoreB;
+		const theirs = seat === 0 ? message.scoreB : message.scoreA;
+		scorePanel.textContent = `나 ${mine}  vs  ${theirs} 상대`;
+		return;
+	}
+
+	if (message.type === 'vsoffer') {
+		showOffer(message);
+		return;
+	}
+
+	if (message.type === 'vsroundend') {
+		statusPanel.hidden = false;
+		statusPanel.textContent = message.winner === seat ? '한 판 이겼다' : (message.winner < 0 ? '무승부' : '한 판 졌다');
+		setTimeout(() => { statusPanel.hidden = true; }, 900);
+		return;
+	}
+
+	if (message.type === 'vsmatchend') {
+		statusPanel.hidden = false;
+		statusPanel.textContent = message.winner === seat ? '내가 이겼다' : '상대가 이겼다';
+		return;
+	}
+
+	if (message.type === 'vsleft') {
+		statusPanel.hidden = false;
+		statusPanel.textContent = '상대가 나갔다';
+	}
+});
+
+function showOffer(message) {
+	offerPanel.hidden = false;
+	cardsPanel.replaceChildren();
+
+	message.texts.forEach((text, index) => {
+		const button = document.createElement('button');
+		button.textContent = text;
+		button.addEventListener('click', () => {
+			socket.send(JSON.stringify({ type: 'vspick', index }));
+			offerPanel.hidden = true;
+		});
+		cardsPanel.append(button);
+	});
+}
+
+// 화면 자리 ↔ 판 자리. 판이 화면에 꽉 차게 맞춘다(가로세로 비율 유지).
+function view() {
+	const scale = Math.min(board.width / (arena.halfWidth * 2.2), board.height / (arena.halfDepth * 2.2));
+	return {
+		scale,
+		toScreenX: (x) => board.width / 2 + x * scale,
+		toScreenY: (y) => board.height / 2 - y * scale,
+		toWorldX: (sx) => (sx - board.width / 2) / scale,
+		toWorldY: (sy) => (board.height / 2 - sy) / scale,
+	};
+}
+
+function sendInput() {
+	if (socket.readyState !== WebSocket.OPEN || arena === null) return;
+
+	let moveX = 0;
+	let moveY = 0;
+	if (held.has('KeyD')) moveX += 1;
+	if (held.has('KeyA')) moveX -= 1;
+	if (held.has('KeyW')) moveY += 1;
+	if (held.has('KeyS')) moveY -= 1;
+
+	let aimX = 1;
+	let aimY = 0;
+	const me = state?.fighters?.[seat];
+
+	if (me) {
+		const projection = view();
+		const dx = projection.toWorldX(pointer.x * devicePixelRatio) - me.x;
+		const dy = projection.toWorldY(pointer.y * devicePixelRatio) - me.y;
+		const length = Math.hypot(dx, dy) || 1;
+		aimX = dx / length;
+		aimY = dy / length;
+	}
+
+	tick += 1;
+	socket.send(JSON.stringify({
+		type: 'vsinput', tick,
+		moveX, moveY, aimX, aimY,
+		fire: firing,
+		dash: dashQueued,
+	}));
+	dashQueued = false;
+}
+
+function draw() {
+	board.width = innerWidth * devicePixelRatio;
+	board.height = innerHeight * devicePixelRatio;
+	context.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--ground');
+	context.fillRect(0, 0, board.width, board.height);
+
+	if (arena === null || state === null) return;
+
+	const projection = view();
+
+	// 바닥과 벽 — 서버가 주는 판 크기 그대로.
+	context.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--floor');
+	context.fillRect(
+		projection.toScreenX(-arena.halfWidth), projection.toScreenY(arena.halfDepth),
+		arena.halfWidth * 2 * projection.scale, arena.halfDepth * 2 * projection.scale);
+	context.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--wall');
+	context.lineWidth = 3 * devicePixelRatio;
+	context.strokeRect(
+		projection.toScreenX(-arena.halfWidth), projection.toScreenY(arena.halfDepth),
+		arena.halfWidth * 2 * projection.scale, arena.halfDepth * 2 * projection.scale);
+
+	const drawCircle = (body, color) => {
+		context.beginPath();
+		context.arc(projection.toScreenX(body.x), projection.toScreenY(body.y), body.r * projection.scale, 0, Math.PI * 2);
+		context.fillStyle = color;
+		context.fill();
+	};
+
+	for (const shot of state.shots ?? []) {
+		drawCircle(shot, shot.owner === seat
+			? getComputedStyle(document.documentElement).getPropertyValue('--me')
+			: getComputedStyle(document.documentElement).getPropertyValue('--foe'));
+	}
+
+	(state.fighters ?? []).forEach((fighter, index) => {
+		if (fighter.alive === false) return;
+		drawCircle(fighter, index === seat
+			? getComputedStyle(document.documentElement).getPropertyValue('--me')
+			: getComputedStyle(document.documentElement).getPropertyValue('--foe'));
+	});
+}
+
+// 의도는 60Hz 로 보내고, 그림은 화면 주사율에 맞춰 그린다.
+setInterval(sendInput, 1000 / 60);
+
+function frame() {
+	draw();
+	requestAnimationFrame(frame);
+}
+
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
