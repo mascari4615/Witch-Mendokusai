@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 063aa70561793dd43b2fe071f42f5278, type: 3}
+  m_Name: BlockCatalog
+  m_EditorClassIdentifier: WM.Domain::WitchMendokusai.BlockCatalog
+  blocks:
+  - {fileID: 11400000, guid: 1dd08c0f1a063e6468d7fccd385ce129, type: 2}
+  - {fileID: 11400000, guid: 5e27683b2f3f45740ba0211f7a7eff4f, type: 2}
+  - {fileID: 11400000, guid: c23b89c7031136749bfa09946bc97fec, type: 2}
+  - {fileID: 11400000, guid: 9512cc4b8273c7340867edc3fbe2794c, type: 2}
+  - {fileID: 11400000, guid: efa23202a11ff5f4aadce25f804c7259, type: 2}
+  - {fileID: 11400000, guid: 376ae8a8f6a5c7b4285e0f2365284d1b, type: 2}
+  - {fileID: 11400000, guid: d492ae48a6ee8764da81f11eb788b746, type: 2}
+  chunkMaterial: {fileID: 2100000, guid: 3fb6474f8d3447a4fb25b7ae2d6d6f1f, type: 2}

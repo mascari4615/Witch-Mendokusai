@@ -12,6 +12,8 @@ namespace WitchMendokusai
 	[RequireComponent(typeof(ChunkPool))]
 	public class ChunkManager : MonoBehaviour
 	{
+		/// <summary>복셀이 쓰는 것들의 명시적 목록 — 이 참조가 「복셀을 쓴다」는 유일한 선언이다 (TASK-WM-409).</summary>
+		[SerializeField] private BlockCatalog catalog;
 		[SerializeField] private Transform viewer;
 		[SerializeField, Range(1, 10)] private int renderDistance = 2;
 
@@ -37,6 +39,15 @@ namespace WitchMendokusai
 		private void Awake()
 		{
 			chunkPool = GetComponent<ChunkPool>();
+			if (catalog == null)
+			{
+				Debug.LogError("[ChunkManager] BlockCatalog 이 안 꽂혔다 — 복셀이 안 돈다 (TASK-WM-409)");
+			}
+			else
+			{
+				BlockBootstrap.Load(catalog.Blocks);
+				chunkPool.UseMaterial(catalog.ChunkMaterial);
+			}
 			ChunkStorage.Initialize(Application.persistentDataPath);
 			TerrainRegionStorage.Initialize(Application.persistentDataPath); // TASK-WM-119: erosion 영역 영속 (main thread 1회)
 
