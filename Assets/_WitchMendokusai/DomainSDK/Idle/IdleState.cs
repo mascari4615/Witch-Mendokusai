@@ -34,6 +34,12 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// </summary>
         public int BestStage { get; set; } = 1;
 
+        /// <summary>여태 모은 리셋 점수 — 리셋해도 안 사라진다. 이게 「다시 시작」을 보상으로 만드는 것.</summary>
+        public long PrestigePoints { get; set; }
+
+        /// <summary>몇 번 리셋했나.</summary>
+        public int Ascensions { get; set; }
+
         /// <summary>마지막으로 본 시각 (Unix 초, UTC). 오프라인 보상의 재료.</summary>
         public long LastSeenUnixSeconds { get; set; }
 
@@ -60,6 +66,8 @@ namespace WitchMendokusai.DomainSDK.Idle
                 Stage = Stage,
                 KillsInStage = KillsInStage,
                 BestStage = BestStage,
+                PrestigePoints = PrestigePoints,
+                Ascensions = Ascensions,
                 DamageLevel = Damage.Level,
                 AttackSpeedLevel = AttackSpeed.Level,
                 LastSeenUnixSeconds = LastSeenUnixSeconds,
@@ -77,6 +85,8 @@ namespace WitchMendokusai.DomainSDK.Idle
             Stage = saveData.Stage > 0 ? saveData.Stage : 1;
             KillsInStage = saveData.KillsInStage;
             BestStage = saveData.BestStage > 0 ? saveData.BestStage : Stage;
+            PrestigePoints = saveData.PrestigePoints;
+            Ascensions = saveData.Ascensions;
             Damage.Level = saveData.DamageLevel;
             AttackSpeed.Level = saveData.AttackSpeedLevel;
             LastSeenUnixSeconds = saveData.LastSeenUnixSeconds;

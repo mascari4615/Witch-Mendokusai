@@ -39,6 +39,7 @@ namespace WitchMendokusai
 		private Label killsLabel;
 		private ProgressBar targetBar;
 		private Label offlineLabel;
+		private Button prestigeButton;
 		private Button damageButton;
 		private Button speedButton;
 		private Label damageLevelLabel;
@@ -147,6 +148,10 @@ namespace WitchMendokusai
 
 			speedLevelLabel = AddLabel(panel, "idle-upgrade-title");
 			speedButton = AddButton(panel, IdleUpgradeKind.AttackSpeed);
+
+			prestigeButton = new Button(Prestige);
+			prestigeButton.AddToClassList("idle-prestige-button");
+			panel.Add(prestigeButton);
 		}
 
 		private static Label AddLabel(VisualElement parent, string className)
@@ -172,6 +177,17 @@ namespace WitchMendokusai
 			Render(session.Capture());
 		}
 
+		private void Prestige()
+		{
+			if (session.Send(new IdlePrestigeIntent()))
+			{
+				// 판을 접었으면 바로 적어 둔다 — 여기서 죽으면 점수가 통째로 날아간다.
+				WriteDown();
+			}
+
+			Render(session.Capture());
+		}
+
 		public void Render(IdleSnapshot snapshot)
 		{
 			if (resourceLabel == null)
@@ -186,6 +202,13 @@ namespace WitchMendokusai
 
 			targetBar.value = (float)snapshot.TargetHealthRatio;
 			targetBar.title = string.Format("대상 체력 {0:P0}", snapshot.TargetHealthRatio);
+
+			prestigeButton.text = snapshot.PrestigeAward > 0L
+				? string.Format("다시 시작 — {0}점 (지금 {1}점 · {2:N1}배)",
+					snapshot.PrestigeAward, snapshot.PrestigePoints, snapshot.PrestigeMultiplier)
+				: string.Format("다시 시작 — 더 내려가야 한다 (지금 {0}점 · {1:N1}배)",
+					snapshot.PrestigePoints, snapshot.PrestigeMultiplier);
+			prestigeButton.SetEnabled(snapshot.PrestigeAward > 0L);
 
 			DrawUpgrade(snapshot.Damage, damageLevelLabel, damageButton, "공격력", "한 방 {0:N2}");
 			DrawUpgrade(snapshot.AttackSpeed, speedLevelLabel, speedButton, "공격속도", "초당 {0:N2}회");

@@ -64,6 +64,15 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// <summary>이번 단계에 필요한 처치 수 — 「몇 남았나」는 표현이 뺄셈하지 말고 이걸 쓴다.</summary>
         public int KillsPerStage { get; }
 
+        /// <summary>여태 모은 리셋 점수.</summary>
+        public long PrestigePoints { get; }
+
+        /// <summary>지금 접으면 받는 점수 — 0 이면 아직 못 접는다.</summary>
+        public long PrestigeAward { get; }
+
+        /// <summary>리셋 점수가 지금 주고 있는 배수.</summary>
+        public double PrestigeMultiplier { get; }
+
         /// <summary>공격력 축.</summary>
         public IdleUpgradeView Damage { get; }
 
@@ -72,6 +81,7 @@ namespace WitchMendokusai.DomainSDK.Idle
 
         public IdleSnapshot(double resource, double incomePerSecond, long kills, double targetHealthRatio,
             int stage, int killsInStage, int killsPerStage,
+            long prestigePoints, long prestigeAward, double prestigeMultiplier,
             IdleUpgradeView damage, IdleUpgradeView attackSpeed)
         {
             Resource = resource;
@@ -81,6 +91,9 @@ namespace WitchMendokusai.DomainSDK.Idle
             Stage = stage;
             KillsInStage = killsInStage;
             KillsPerStage = killsPerStage;
+            PrestigePoints = prestigePoints;
+            PrestigeAward = prestigeAward;
+            PrestigeMultiplier = prestigeMultiplier;
             Damage = damage;
             AttackSpeed = attackSpeed;
         }

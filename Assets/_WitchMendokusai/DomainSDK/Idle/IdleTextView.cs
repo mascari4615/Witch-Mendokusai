@@ -19,7 +19,7 @@ namespace WitchMendokusai.DomainSDK.Idle
     ///   둘째 표현이 코어를 한 줄도 안 건드리고 붙었을 때 비로소 계약이 산 것이다.
     ///
     /// 형식(고정): <c>stage=4/3:10 res=1240 ips=8.30 kills=124 hp=0.60 dmg=L7/4.26/45/1 spd=L3/2.12/52/0</c>
-    ///   앞머리는 <c>단계/이번단계처치:필요처치</c>.
+    ///   앞머리는 <c>단계/이번단계처치:필요처치</c>, <c>pp</c> 는 <c>모은점수/지금접으면/배수</c>.
     ///   축은 <c>L레벨/현재값/다음비용/살수있나(1|0)</c>. 상한이면 비용 자리에 <c>max</c>.
     /// </summary>
     public sealed class IdleTextView : IGameView<IdleSnapshot>
@@ -39,6 +39,9 @@ namespace WitchMendokusai.DomainSDK.Idle
             buffer.AppendFormat(culture, "stage={0}/{1}:{2} res={3:0.##} ips={4:0.##} kills={5} hp={6:0.00}",
                 snapshot.Stage, snapshot.KillsInStage, snapshot.KillsPerStage,
                 snapshot.Resource, snapshot.IncomePerSecond, snapshot.Kills, snapshot.TargetHealthRatio);
+
+            buffer.AppendFormat(culture, " pp={0}/{1}/x{2:0.##}",
+                snapshot.PrestigePoints, snapshot.PrestigeAward, snapshot.PrestigeMultiplier);
 
             AppendAxis(culture, "dmg", snapshot.Damage);
             AppendAxis(culture, "spd", snapshot.AttackSpeed);

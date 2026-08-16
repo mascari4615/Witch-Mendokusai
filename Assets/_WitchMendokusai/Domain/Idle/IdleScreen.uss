@@ -59,3 +59,13 @@
 .idle-upgrade-button:disabled {
 	opacity: 0.45;
 }
+
+.idle-prestige-button {
+	height: 40px;
+	font-size: 14px;
+	margin-top: 20px;
+}
+
+.idle-prestige-button:disabled {
+	opacity: 0.35;
+}

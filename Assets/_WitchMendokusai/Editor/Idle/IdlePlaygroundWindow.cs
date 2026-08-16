@@ -35,6 +35,7 @@ namespace WitchMendokusai
 		private Label incomeLabel;
 		private Label killsLabel;
 		private ProgressBar targetBar;
+		private Button prestigeButton;
 		private Button damageButton;
 		private Button speedButton;
 		private Label damageLevelLabel;
@@ -112,6 +113,9 @@ namespace WitchMendokusai
 			speedButton = new Button(() => Send(IdleUpgradeKind.AttackSpeed));
 			root.Add(speedButton);
 
+			prestigeButton = new Button(Prestige);
+			root.Add(prestigeButton);
+
 			root.Add(MakeSpacer(12f));
 
 			SliderInt speed = new SliderInt("빨리감기", 1, 200);
@@ -149,6 +153,12 @@ namespace WitchMendokusai
 			Render(session.Capture());
 		}
 
+		private void Prestige()
+		{
+			session.Send(new IdlePrestigeIntent());
+			Render(session.Capture());
+		}
+
 		private void Tick()
 		{
 			double now = EditorApplication.timeSinceStartup;
@@ -178,6 +188,10 @@ namespace WitchMendokusai
 
 			targetBar.value = (float)snapshot.TargetHealthRatio;
 			targetBar.title = string.Format("대상 체력 {0:P0}", snapshot.TargetHealthRatio);
+
+			prestigeButton.text = string.Format("다시 시작 — {0}점 얻음 (보유 {1} · {2:N1}배)",
+				snapshot.PrestigeAward, snapshot.PrestigePoints, snapshot.PrestigeMultiplier);
+			prestigeButton.SetEnabled(snapshot.PrestigeAward > 0L);
 
 			DrawUpgrade(snapshot.Damage, damageLevelLabel, damageButton, "공격력", "한 방 {0:N2}");
 			DrawUpgrade(snapshot.AttackSpeed, speedLevelLabel, speedButton, "공격속도", "초당 {0:N2}회");

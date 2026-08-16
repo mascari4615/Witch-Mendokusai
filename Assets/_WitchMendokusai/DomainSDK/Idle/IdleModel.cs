@@ -24,10 +24,66 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// </summary>
         private const double COUNT_EPSILON_RATIO = 1e-9d;
 
-        /// <summary>지금 한 방의 공격력 — 기본값 + 공격력 축이 쌓은 총량.</summary>
+        /// <summary>
+        /// 리셋 점수가 주는 배수 — 점수를 <b>더해서</b> 한 번 곱한다.
+        /// 점수마다 곱하면 몇 판 만에 숫자가 터진다(클리커 히어로즈의 영혼도 더하는 쪽이다).
+        /// </summary>
+        public static double PrestigeMultiplier(IdleState state, IdleTuning tuning)
+        {
+            return 1d + state.PrestigePoints * tuning.PrestigeBonusPerPoint;
+        }
+
+        /// <summary>지금 한 방의 공격력 — 기본값 + 공격력 축이 쌓은 총량, 거기에 리셋 배수.</summary>
         public static double DamageOf(IdleState state, IdleTuning tuning)
         {
-            return tuning.BaseDamage + state.Damage.TotalValue(tuning.DamageCurve);
+            return (tuning.BaseDamage + state.Damage.TotalValue(tuning.DamageCurve))
+                * PrestigeMultiplier(state, tuning);
+        }
+
+        /// <summary>지금 접으면 몇 점인가. 아직 못 접으면 0.</summary>
+        public static long PrestigeAwardFor(IdleState state, IdleTuning tuning)
+        {
+            if (state.Stage < tuning.PrestigeMinStage)
+            {
+                return 0L;
+            }
+
+            double award = (state.Stage - tuning.PrestigeMinStage + 1) * tuning.PrestigePointsPerStage;
+            return award < 0d ? 0L : (long)award;
+        }
+
+        /// <summary>지금 접을 수 있나.</summary>
+        public static bool CanPrestige(IdleState state, IdleTuning tuning)
+        {
+            return PrestigeAwardFor(state, tuning) > 0L;
+        }
+
+        /// <summary>
+        /// 판을 접고 점수로 바꾼다.
+        ///
+        /// ★ 무엇이 살아남나가 이 게임의 성격을 정한다. <b>점수·가장 깊이·총 처치·본 시각</b>은 남고,
+        ///   <b>자원·단계·올린 것</b>은 지워진다. 남는 쪽이 「지난 판이 헛되지 않았다」의 증거이고,
+        ///   지워지는 쪽이 「다시 빠르게 내려가는 재미」의 재료다. 둘 중 하나만 있으면 리셋이 벌이 된다.
+        /// </summary>
+        public static bool TryPrestige(IdleState state, IdleTuning tuning, out long awarded)
+        {
+            awarded = PrestigeAwardFor(state, tuning);
+            if (awarded <= 0L)
+            {
+                return false;
+            }
+
+            state.PrestigePoints += awarded;
+            state.Ascensions += 1;
+
+            state.Resource = 0d;
+            state.Stage = 1;
+            state.KillsInStage = 0;
+            state.DamageDealtToTarget = 0d;
+            state.Damage.Level = 0;
+            state.AttackSpeed.Level = 0;
+
+            return true;
         }
 
         /// <summary>지금 초당 타격 횟수 — 기본값 + 공격속도 축이 쌓은 총량.</summary>

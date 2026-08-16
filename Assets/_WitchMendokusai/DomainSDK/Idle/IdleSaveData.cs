@@ -25,6 +25,10 @@ namespace WitchMendokusai.DomainSDK.Idle
         public int KillsInStage;
         public int BestStage;
 
+        /// <summary>리셋 점수 — 리셋을 건너 살아남는 유일한 값.</summary>
+        public long PrestigePoints;
+        public int Ascensions;
+
         /// <summary>마지막으로 본 시각 (Unix 초, UTC).</summary>
         public long LastSeenUnixSeconds;
     }

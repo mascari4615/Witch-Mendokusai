@@ -14,7 +14,7 @@ namespace WitchMendokusai.DomainSDK.Idle
     /// ★ 이 클래스도 Unity 를 모른다 — 시간은 <see cref="Advance"/> 로 <b>밖에서</b> 흘려 준다.
     ///   에디터 창이 흘리든, 런타임 Update 가 흘리든, 시험이 8시간을 한 번에 흘리든 같다.
     /// </summary>
-    public sealed class IdleSession : IIntentSink<IdleRaiseUpgradeIntent>
+    public sealed class IdleSession : IIntentSink<IdleRaiseUpgradeIntent>, IIntentSink<IdlePrestigeIntent>
     {
         private readonly IdleState state;
         private readonly IdleTuning tuning;
@@ -84,6 +84,12 @@ namespace WitchMendokusai.DomainSDK.Idle
             return IdleModel.TryRaise(state, tuning, intent.Kind, out UpgradeRaiseFailure _);
         }
 
+        /// <summary>판을 접고 점수로 바꾼다. 아직 못 접으면 아무 일도 안 일어난다.</summary>
+        public bool Send(IdlePrestigeIntent intent)
+        {
+            return IdleModel.TryPrestige(state, tuning, out long _);
+        }
+
         /// <summary>지금 상태의 사진을 찍는다.</summary>
         public IdleSnapshot Capture()
         {
@@ -95,6 +101,9 @@ namespace WitchMendokusai.DomainSDK.Idle
                 state.Stage,
                 state.KillsInStage,
                 tuning.KillsPerStage,
+                state.PrestigePoints,
+                IdleModel.PrestigeAwardFor(state, tuning),
+                IdleModel.PrestigeMultiplier(state, tuning),
                 ViewOf(IdleUpgradeKind.Damage, IdleModel.DamageOf(state, tuning)),
                 ViewOf(IdleUpgradeKind.AttackSpeed, IdleModel.AttackSpeedOf(state, tuning)));
         }
