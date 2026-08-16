@@ -30,6 +30,12 @@ namespace WitchMendokusai
 		private readonly List<VersusBodyView> shotBuffer = new List<VersusBodyView>();
 		private readonly List<string> incoming = new List<string>();
 		private readonly int[] pickedOffer = new int[MatchConstants.VERSUS_PLAYER_COUNT];
+		// 각자가 그 틱에 무엇을 했나 — 상대에게 보내 주려고 잠깐 들고 있는다(스냅샷 주기만큼).
+		private readonly List<VersusRemoteInput>[] inputLog =
+		{
+			new List<VersusRemoteInput>(),
+			new List<VersusRemoteInput>(),
+		};
 		private readonly bool[] wantsRematch = new bool[MatchConstants.VERSUS_PLAYER_COUNT];
 		private readonly VersusRules rulesForRematch;
 
@@ -39,6 +45,11 @@ namespace WitchMendokusai
 
 		private int matchSeed;
 		private float tickAccumulator;
+		// 라운드 안에서의 틱(스냅샷·되감기의 기준). 매치 전체 틱과 다르다 — 라운드가 서면 0 부터.
+		private int roundTick;
+		private int lastSnapshotTick;
+		private Vector2 roundSpawnA;
+		private Vector2 roundSpawnB;
 		private float intermission;
 		private int tick;
 
@@ -107,6 +118,11 @@ namespace WitchMendokusai
 		{
 			transports[seat] = transport;
 			isBot[seat] = false;
+
+			// 늦게 앉은 사람에게도 <b>지금 라운드 재료</b>를 준다 — 안 주면 그 창은 예측을 못 하고
+			// 서버가 그려 주는 그림만 보게 된다(2026-08-17 실측: 재료가 앉기 전에 방송돼 아무도 못 받았다).
+			SendRoundStartTo(seat);
+			SendSnapshots();
 		}
 
 		/// <summary> 그 자리를 봇으로 채운다. </summary>
@@ -172,10 +188,15 @@ namespace WitchMendokusai
 						frames[seat] = botPolicies[seat].Decide(Round, seat, VersusRoundState.TICK, jitter);
 					}
 
+					roundTick++;
+					RecordInputs();
 					Round.Step(frames, rules.RoundTimeLimitSeconds);
 
 					if (tick % snapshotEvery == 0 || Round.IsOver)
+					{
 						BroadcastState();
+						SendSnapshots();
+					}
 				}
 
 				if (Round.IsOver)
@@ -199,11 +220,46 @@ namespace WitchMendokusai
 
 		private void StartRound()
 		{
+			Vector2 firstSpawn = new Vector2(-halfWidth * 0.7f, 0f);
+			Vector2 secondSpawn = new Vector2(halfWidth * 0.7f, 0f);
+
 			Round = new VersusRoundState(Match.StatsOf(0), Match.StatsOf(1), tuning, halfWidth, halfDepth,
-				new Vector2(-halfWidth * 0.7f, 0f), new Vector2(halfWidth * 0.7f, 0f));
+				firstSpawn, secondSpawn);
 
 			tickAccumulator = 0f;
+			roundTick = 0;
+			lastSnapshotTick = 0;
+			inputLog[0].Clear();
+			inputLog[1].Clear();
+
+			roundSpawnA = firstSpawn;
+			roundSpawnB = secondSpawn;
+
+			// 창이 <b>같은 판을 스스로 지을</b> 재료를 먼저 준다 — 이게 있어야 예측이 첫 틱부터 맞는다.
+			for (int seat = 0; seat < transports.Length; seat++)
+				SendRoundStartTo(seat);
+
 			BroadcastState();
+		}
+
+		private void SendRoundStartTo(int seat)
+		{
+			if (Round == null || transports[seat] == null || transports[seat].IsOpen == false)
+				return;
+
+			SendTo(seat, new VersusRoundStartMessage
+			{
+				tick = roundTick,
+				statsA = Match.StatsOf(0),
+				statsB = Match.StatsOf(1),
+				spawnAX = roundSpawnA.x,
+				spawnAY = roundSpawnA.y,
+				spawnBX = roundSpawnB.x,
+				spawnBY = roundSpawnB.y,
+				halfWidth = halfWidth,
+				halfDepth = halfDepth,
+				roundTimeLimitSeconds = rules.RoundTimeLimitSeconds,
+			});
 		}
 
 		private void EndRound()
@@ -343,6 +399,59 @@ namespace WitchMendokusai
 			Match = new VersusMatchCore(rulesForRematch, matchSeed);
 			tick = 0;
 			StartRound();
+		}
+
+		// 두 사람이 이번 틱에 한 것을 적어 둔다 — 상대에게 보내 줘야 그쪽이 되감아 다시 굴릴 수 있다.
+		private void RecordInputs()
+		{
+			for (int seat = 0; seat < inputLog.Length; seat++)
+			{
+				inputLog[seat].Add(new VersusRemoteInput
+				{
+					tick = roundTick,
+					moveX = frames[seat].Move.x,
+					moveY = frames[seat].Move.y,
+					aimX = frames[seat].Aim.x,
+					aimY = frames[seat].Aim.y,
+					fire = frames[seat].Fire,
+					dash = frames[seat].Dash,
+				});
+			}
+		}
+
+		// 스냅샷은 <b>각자에게 따로</b> 간다 — 창마다 「상대」가 다르기 때문이다.
+		private void SendSnapshots()
+		{
+			VersusRoundSnapshot snapshot = Round.Capture(roundTick);
+
+			for (int seat = 0; seat < transports.Length; seat++)
+			{
+				if (transports[seat] == null || transports[seat].IsOpen == false)
+					continue;
+
+				int opponent = 1 - seat;
+				List<VersusRemoteInput> since = new List<VersusRemoteInput>();
+
+				for (int index = 0; index < inputLog[opponent].Count; index++)
+				{
+					if (inputLog[opponent][index].tick > lastSnapshotTick)
+						since.Add(inputLog[opponent][index]);
+				}
+
+				SendTo(seat, new VersusSnapshotMessage
+				{
+					snapshot = snapshot,
+					opponentInputs = since.ToArray(),
+					scoreA = Match.ScoreOf(0),
+					scoreB = Match.ScoreOf(1),
+				});
+			}
+
+			lastSnapshotTick = roundTick;
+
+			// 보낸 것은 버린다 — 한 판 내내 들고 있을 이유가 없다.
+			inputLog[0].Clear();
+			inputLog[1].Clear();
 		}
 
 		private void BroadcastState()

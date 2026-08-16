@@ -40,6 +40,12 @@ namespace WitchMendokusai.Net
 		/// <summary>서버 → 남은 창: 상대가 나갔다.</summary>
 		public const string OPPONENT_LEFT = "vsleft";
 
+		/// <summary>심판 → 두 창: 새 라운드가 선다. 두 사람의 스탯·시작 자리 — 창이 <b>같은 판을 스스로 지을</b> 재료.</summary>
+		public const string ROUND_START = "vsroundstart";
+
+		/// <summary>심판 → 각 창: 그 틱의 정본 스냅샷 + 그 사이 상대가 한 것. 되감기(롤백)의 재료.</summary>
+		public const string SNAPSHOT = "vssnap";
+
 		/// <summary>창 → 심판: 한 판 더 하자. 둘 다 말해야 새 판이 선다.</summary>
 		public const string REMATCH = "vsrematch";
 
@@ -152,6 +158,65 @@ namespace WitchMendokusai.Net
 	{
 		public string type = VersusMessageType.PICK;
 		public int index;
+	}
+
+	/// <summary>
+	/// 심판 → 두 창: 새 라운드 재료 (TASK-WM-411).
+	///
+	/// ★ 왜 스탯까지 보내나: 창이 <b>자기 판을 미리 굴리려면</b> 심판과 똑같은 판을 지을 수 있어야 한다.
+	///   카드로 두꺼워진 수치를 모르면 예측이 첫 틱부터 갈린다.
+	/// </summary>
+	[Serializable]
+	public class VersusRoundStartMessage
+	{
+		public string type = VersusMessageType.ROUND_START;
+
+		/// <summary>이 라운드의 시작 틱(보통 0).</summary>
+		public int tick;
+
+		public VersusFighterStats statsA;
+		public VersusFighterStats statsB;
+
+		public float spawnAX;
+		public float spawnAY;
+		public float spawnBX;
+		public float spawnBY;
+
+		public float halfWidth;
+		public float halfDepth;
+		public float roundTimeLimitSeconds;
+	}
+
+	/// <summary> 한 틱에 상대가 한 것 — 되감아 다시 굴릴 때 쓴다. </summary>
+	[Serializable]
+	public class VersusRemoteInput
+	{
+		public int tick;
+		public float moveX;
+		public float moveY;
+		public float aimX;
+		public float aimY;
+		public bool fire;
+		public bool dash;
+	}
+
+	/// <summary>
+	/// 심판 → 각 창: 「그 틱은 사실 이랬다」 + 그 사이 상대가 한 것 (TASK-WM-411).
+	///
+	/// 창마다 <b>상대가 다르므로</b> 이 말은 방송이 아니라 각자에게 따로 간다.
+	/// </summary>
+	[Serializable]
+	public class VersusSnapshotMessage
+	{
+		public string type = VersusMessageType.SNAPSHOT;
+
+		public VersusRoundSnapshot snapshot;
+
+		/// <summary>지난 스냅샷 이후 상대가 한 것들. 이게 있어야 되감기가 정확해진다.</summary>
+		public VersusRemoteInput[] opponentInputs = new VersusRemoteInput[0];
+
+		public int scoreA;
+		public int scoreB;
 	}
 
 	/// <summary> 창 → 심판: 한 판 더. </summary>

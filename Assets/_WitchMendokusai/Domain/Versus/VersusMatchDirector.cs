@@ -185,12 +185,14 @@ namespace WitchMendokusai
 				guest.SendRematch();
 			mySeat = guest.Seat;
 
-			if (mySeat < guest.Fighters.Length)
+			if (guest.Predicted != null)
+				localInput.SelfPosition = guest.Predicted.PositionOf(mySeat);
+			else if (mySeat < guest.Fighters.Length)
 				localInput.SelfPosition = new Numerics.Vector2(guest.Fighters[mySeat].x, guest.Fighters[mySeat].y);
 
 			if (guest.Offer != null)
 			{
-				VersusInputFrame draftFrame = localInput.Read(null, mySeat, Time.deltaTime);
+				VersusInputFrame draftFrame = localInput.Read(guest.Predicted, mySeat, Time.deltaTime);
 				MoveCursor(draftFrame, guest.Offer.cards.Length);
 
 				if (draftFrame.Fire)
@@ -198,11 +200,15 @@ namespace WitchMendokusai
 			}
 			else
 			{
-				sentTick++;
-				guest.SendInput(localInput.Read(null, mySeat, Time.deltaTime), sentTick);
+				// ★ 미리 굴린다 — 내 조작이 서버 왕복을 기다리지 않는다. 정정은 스냅샷이 올 때 되감기로.
+				guest.StepAndSend(localInput.Read(guest.Predicted, mySeat, Time.deltaTime));
 			}
 
-			DrawFromGuest();
+			// 그리는 것은 <b>내가 미리 굴린 판</b>이다(60Hz). 서버 그림은 정정으로만 들어온다.
+			if (guest.Predicted != null)
+				DrawFromRound(guest.Predicted);
+			else
+				DrawFromGuest();
 		}
 
 		private bool MoveCursor(VersusInputFrame frame, int count)
@@ -393,8 +399,9 @@ namespace WitchMendokusai
 				return;
 			}
 
-			GUI.Label(new Rect(20f, 40f, 500f, 26f),
-				"온라인 — 나 " + guest.ScoreMine + " vs " + guest.ScoreTheirs + " 상대");
+			GUI.Label(new Rect(20f, 40f, 700f, 26f),
+				"온라인 — 나 " + guest.ScoreMine + " vs " + guest.ScoreTheirs + " 상대" +
+				(guest.Predicted != null ? "   (미리 굴림 · 정정 " + guest.RollbackCount + "회)" : "   (정정 대기)"));
 
 			if (guest.OpponentLeft)
 				GUI.Label(new Rect(20f, 64f, 400f, 26f), "상대가 나갔다");

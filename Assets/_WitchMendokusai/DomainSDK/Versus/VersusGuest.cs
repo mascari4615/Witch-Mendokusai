@@ -8,12 +8,19 @@ namespace WitchMendokusai
 	///
 	/// 심판이 서버든 상대 컴퓨터(P2P 호스트)든 이 코드는 같다. 나르는 방법도 모른다
 	/// (<see cref="IVersusTransport"/> 가 밖에서 꽂힌다) — 그래서 유니티·웹이 이걸 그대로 쓴다.
+	///
+	/// ★ 규칙을 <b>돌리기는 한다</b>(예측). 다만 <b>정하지는 않는다</b> — 정본은 언제나 심판의 스냅샷이고,
+	///   오면 되감아 다시 굴린다(<see cref="VersusPredictor"/>). 이 둘의 차이가 「내 화면에선 맞혔는데」를 없앤다.
 	/// </summary>
 	public sealed class VersusGuest
 	{
 		private readonly IVersusTransport transport;
 		private readonly IVersusCodec codec;
 		private readonly List<string> incoming = new List<string>();
+		private VersusPredictor predictor;
+		private VersusTuning tuning = VersusTuning.Default();
+		private float roundTimeLimitSeconds;
+		private int localTick;
 
 		public VersusGuest(IVersusTransport transport, IVersusCodec codec, int seat)
 		{
@@ -43,6 +50,15 @@ namespace WitchMendokusai
 		/// <summary>상대가 나갔나.</summary>
 		public bool OpponentLeft { get; private set; }
 
+		/// <summary>
+		/// 내가 미리 굴리는 판 — 화면은 <b>이걸</b> 그린다(내 조작이 즉시 반응하는 이유).
+		/// 심판 스냅샷이 오면 이 판이 되감겨 정정된다. 라운드 재료가 오기 전에는 null.
+		/// </summary>
+		public VersusRoundState Predicted { get; private set; }
+
+		/// <summary>몇 번 되감았나 — 회선 상태를 화면에 보여 주거나 로그로 잴 때.</summary>
+		public int RollbackCount => predictor != null ? predictor.RollbackCount : 0;
+
 		/// <summary>「한 판 더」에 손 든 사람 수 / 필요한 수 — 기다리는 화면에 그대로 쓴다.</summary>
 		public int RematchReady { get; private set; }
 		public int RematchNeeded { get; private set; }
@@ -50,6 +66,19 @@ namespace WitchMendokusai
 		/// <summary>방금 라운드가 끝났다면 그 승자(한 번만 참). 화면 연출에 쓴다.</summary>
 		public int LastRoundWinner { get; private set; } = VersusMatchCore.NO_WINNER;
 		public bool RoundJustEnded { get; private set; }
+
+		/// <summary>
+		/// 한 틱을 <b>미리 굴리고</b> 그 의도를 심판에게 보낸다 — 온라인에서 손맛을 지키는 핵심 한 줄.
+		/// 라운드 재료가 아직 안 왔으면 보내기만 한다.
+		/// </summary>
+		public void StepAndSend(VersusInputFrame frame)
+		{
+			if (predictor != null)
+				predictor.Step(frame, roundTimeLimitSeconds);
+
+			localTick++;
+			SendInput(frame, predictor != null ? predictor.CurrentTick : localTick);
+		}
 
 		/// <summary> 이번 틱의 의도를 보낸다. 위치는 절대 안 보낸다 — 그건 심판이 정한다. </summary>
 		public void SendInput(VersusInputFrame frame, int tick)
@@ -109,6 +138,51 @@ namespace WitchMendokusai
 				if (start != null)
 					Seat = start.seat;
 
+				return;
+			}
+
+			if (type == VersusMessageType.ROUND_START)
+			{
+				VersusRoundStartMessage start = codec.Decode<VersusRoundStartMessage>(message);
+
+				if (start == null)
+					return;
+
+				// 심판과 <b>같은 판</b>을 스스로 짓는다 — 여기부터 내 조작이 즉시 반응한다.
+				Predicted = new VersusRoundState(start.statsA, start.statsB, tuning,
+					start.halfWidth, start.halfDepth,
+					new Numerics.Vector2(start.spawnAX, start.spawnAY),
+					new Numerics.Vector2(start.spawnBX, start.spawnBY));
+
+				predictor = new VersusPredictor(Predicted, Seat);
+				roundTimeLimitSeconds = start.roundTimeLimitSeconds;
+				MatchWinner = VersusMatchCore.NO_WINNER;
+				return;
+			}
+
+			if (type == VersusMessageType.SNAPSHOT)
+			{
+				VersusSnapshotMessage snapshot = codec.Decode<VersusSnapshotMessage>(message);
+
+				if (snapshot == null || predictor == null)
+					return;
+
+				// 상대가 그 사이 무엇을 했는지 먼저 알려 준 뒤 되감는다 — 순서가 바뀌면 다시 굴릴 때 추측이 남는다.
+				for (int index = 0; index < snapshot.opponentInputs.Length; index++)
+				{
+					VersusRemoteInput remote = snapshot.opponentInputs[index];
+					predictor.ObserveOpponent(remote.tick, new VersusInputFrame
+					{
+						Move = new Numerics.Vector2(remote.moveX, remote.moveY),
+						Aim = new Numerics.Vector2(remote.aimX, remote.aimY),
+						Fire = remote.fire,
+						Dash = remote.dash,
+					});
+				}
+
+				predictor.ApplyAuthoritative(snapshot.snapshot, roundTimeLimitSeconds);
+				ScoreMine = Seat == 0 ? snapshot.scoreA : snapshot.scoreB;
+				ScoreTheirs = Seat == 0 ? snapshot.scoreB : snapshot.scoreA;
 				return;
 			}
 
