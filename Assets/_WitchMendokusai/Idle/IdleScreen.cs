@@ -1297,7 +1297,8 @@ namespace WitchMendokusai
 
 		private void RenderHeroPage(IdleSnapshot snapshot)
 		{
-			pullButton.text = string.Format("영웅 뽑기 — 환생석 {0}", snapshot.PullCost);
+			pullButton.text = string.Format("영웅 뽑기 — 자원 {0} + 환생석 {1}   (가진 돌 {2})",
+				BigNumberText.Format(snapshot.PullCost), snapshot.PullStoneCost, snapshot.Stones);
 			pullButton.SetEnabled(snapshot.CanPull);
 			pullButton.EnableInClassList("idle-button--ready", snapshot.CanPull);
 			pullButton.EnableInClassList("idle-button--locked", snapshot.CanPull == false);

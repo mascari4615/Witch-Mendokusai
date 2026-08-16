@@ -99,7 +99,7 @@ namespace WitchMendokusai.DomainSDK.Idle
             return true;
         }
 
-        /// <summary>영웅을 한 번 뽑는다. 환생석이 모자라면 아무 일도 안 일어난다.</summary>
+        /// <summary>영웅을 한 번 뽑는다. 자원이 모자라면 아무 일도 안 일어난다.</summary>
         public bool TryPull(out IdleHeroPull pull)
         {
             return IdleGacha.TryPull(state, tuning, out pull);
@@ -219,7 +219,9 @@ namespace WitchMendokusai.DomainSDK.Idle
                 IdleModel.BestFarmingStage(state, tuning),
                 CaptureHeroes(),
                 (int[])state.Party.Clone(),
-                IdleGacha.CostOf(tuning),
+                IdleGacha.CostOf(state, tuning),
+                IdleGacha.StoneCostOf(tuning),
+                state.Stones,
                 IdleGacha.CanPull(state, tuning),
                 tuning.PityPulls - state.PullsSincePity,
                 IdleHeroes.CodexScoreOf(state),

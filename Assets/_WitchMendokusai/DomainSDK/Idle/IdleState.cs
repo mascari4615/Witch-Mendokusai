@@ -90,6 +90,24 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// <summary>천장까지 남은 셈 — 마지막 최고등급 이후 몇 번 뽑았나.</summary>
         public int PullsSincePity { get; set; }
 
+        /// <summary>
+        /// 쓸 수 있는 <b>환생석</b> — 뽑기에 낸다 (TASK-WM-406).
+        ///
+        /// ★ <b>배수와 갈라 둔다.</b> 배수는 <see cref="PrestigePoints"/>(여태 가장 깊이 간 자리)가
+        ///   정하고, 이건 <b>쓰면 준다</b>. 하나로 겸했더니 뽑을수록 손해였다 —
+        ///   실측 이레: 안 뽑음 1619단계 vs 다 뽑음 104단계.
+        ///   한 재화가 <b>지수 성장</b>과 <b>일회성 소비</b>를 겸하면 소비 쪽은 늘 진다.
+        ///   쿠키 클리커가 명성을 <b>누적</b> 쿠키로 매기는 것과 같은 수법이다.
+        /// </summary>
+        public long Stones { get; set; }
+
+        /// <summary>
+        /// 여태 뽑은 총 횟수 — <b>값이 여기를 따라 오른다</b>.
+        ///
+        /// ★ 환생해도 안 돌아간다. 뽑은 얼굴은 남으니 값도 남아야 앞뒤가 맞는다.
+        /// </summary>
+        public long PullsDone { get; set; }
+
         /// <summary>가진 영웅이 목록의 몇 번째인가. 없으면 -1.</summary>
         public int IndexOfHero(int id)
         {
@@ -199,6 +217,8 @@ namespace WitchMendokusai.DomainSDK.Idle
                 Heroes = Heroes.ToArray(),
                 Party = (int[])Party.Clone(),
                 PullsSincePity = PullsSincePity,
+                PullsDone = PullsDone,
+                Stones = Stones,
                 DroppedByTier = (long[])DroppedByTier.Clone(),
                 DropProgressByTier = (double[])DropProgressByTier.Clone(),
                 RandomState = RandomState,
@@ -244,6 +264,8 @@ namespace WitchMendokusai.DomainSDK.Idle
                 ? (int[])saveData.Party.Clone()
                 : new int[] { -1, -1, -1 };
             PullsSincePity = saveData.PullsSincePity;
+            PullsDone = saveData.PullsDone;
+            Stones = saveData.Stones;
             // 주사위 상태가 0 인 저장(= 옛 저장)은 굴러가지 않는다 — 기본 씨앗을 준다.
             RandomState = saveData.RandomState != 0L ? saveData.RandomState : 0x2545F4914F6CDD1DL;
             BestPotentialValue = saveData.BestPotentialValue;

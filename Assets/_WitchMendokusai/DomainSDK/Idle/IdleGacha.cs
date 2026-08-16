@@ -45,20 +45,32 @@ namespace WitchMendokusai.DomainSDK.Idle
     /// </summary>
     public static class IdleGacha
     {
-        /// <summary>지금 한 번 뽑는 값 (환생석).</summary>
-        public static long CostOf(IdleTuning tuning)
+        /// <summary>
+        /// 지금 한 번 뽑는 값 (<b>자원</b>) — 뽑을수록 오른다.
+        ///
+        /// ★ 값이 뽑은 횟수를 따라 오르면 자원이 아무리 많아도 뽑기 수는 로그로 눌린다.
+        ///   생산자와 같은 꼴이라 따로 배울 것이 없다.
+        /// </summary>
+        public static double CostOf(IdleState state, IdleTuning tuning)
         {
-            return tuning.PullCost;
+            return tuning.PullCostBase * System.Math.Pow(tuning.PullCostRatio, state.PullsDone);
         }
 
-        /// <summary>지금 뽑을 수 있나.</summary>
+        /// <summary>한 번 뽑는 데 드는 환생석 — 자원과 <b>둘 다</b> 낸다(사용자 결정 2026-08-17).</summary>
+        public static long StoneCostOf(IdleTuning tuning)
+        {
+            return tuning.PullStoneCost;
+        }
+
+        /// <summary>지금 뽑을 수 있나 — 둘 다 있어야 한다.</summary>
         public static bool CanPull(IdleState state, IdleTuning tuning)
         {
-            return state.PrestigePoints >= CostOf(tuning);
+            return state.Resource >= CostOf(state, tuning)
+                && state.Stones >= StoneCostOf(tuning);
         }
 
         /// <summary>
-        /// 한 번 뽑는다. 환생석이 모자라면 아무 일도 안 일어난다.
+        /// 한 번 뽑는다. 자원이나 환생석이 모자라면 아무 일도 안 일어난다.
         /// </summary>
         public static bool TryPull(IdleState state, IdleTuning tuning, out IdleHeroPull pull)
         {
@@ -69,7 +81,9 @@ namespace WitchMendokusai.DomainSDK.Idle
                 return false;
             }
 
-            state.PrestigePoints -= CostOf(tuning);
+            state.Resource -= CostOf(state, tuning);
+            state.Stones -= StoneCostOf(tuning);
+            state.PullsDone += 1L;
             state.PullsSincePity += 1;
 
             // 주사위는 판이 들고 다닌다 — 껐다 켜서 다시 굴리는 것을 막는다(감정과 같은 규칙).

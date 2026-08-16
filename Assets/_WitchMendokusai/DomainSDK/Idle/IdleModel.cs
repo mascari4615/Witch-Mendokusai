@@ -128,6 +128,9 @@ namespace WitchMendokusai.DomainSDK.Idle
             }
 
             state.PrestigePoints = PrestigeStandingFor(state, tuning);
+            // ★ 늘어난 만큼을 <b>쓸 수 있는 돌</b>로도 준다. 배수 쪽(PrestigePoints)은 안 줄어드니
+            //   돌을 다 써도 판이 약해지지 않는다 — 그래야 「뽑을까 아낄까」가 함정이 아니라 결정이다.
+            state.Stones += awarded;
             state.Ascensions += 1;
 
             state.Resource = 0d;

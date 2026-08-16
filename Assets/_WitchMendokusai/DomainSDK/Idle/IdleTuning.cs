@@ -58,8 +58,32 @@ namespace WitchMendokusai.DomainSDK.Idle
         //   아래 숫자는 그 결정을 인디 관측 범위 안에서 옮긴 것이다:
         //   최상위 1~2% · 천장 60~80회 (`refs/korean-idle-gacha.md` § 손잡이).
 
-        /// <summary>한 번 뽑는 값 (환생석).</summary>
-        public long PullCost { get; set; } = 1L;
+        /// <summary>
+        /// 첫 뽑기의 값 (<b>자원</b>).
+        ///
+        /// ★ 사용자 결정 2026-08-17 — 뽑기 값은 <b>환생석이 아니라 자원</b>이다.
+        ///   환생석은 배수의 재료(지수)라, 뽑기에 쓰면 뽑을수록 <b>손해</b>였다
+        ///   (실측 이레: 안 뽑음 1619단계 vs 다 뽑음 104단계).
+        ///   한 재화가 지수 성장과 일회성 소비를 겸하면 소비 쪽은 늘 진다.
+        /// </summary>
+        public double PullCostBase { get; set; } = 250d;
+
+        /// <summary>
+        /// 뽑을 때마다 값이 이만큼 오른다.
+        ///
+        /// ★ 사용자가 짚은 단점을 막는 자리다 — 「후반엔 자원이 남아돌아 뽑기가 무한이 된다」.
+        ///   값이 <b>뽑은 횟수</b>를 따라 오르면, 자원이 아무리 많아도 뽑기 수는 로그로 눌린다.
+        ///   생산자와 같은 꼴(쿠키 클리커 1.15)이라 배우기도 쉽다.
+        /// </summary>
+        public double PullCostRatio { get; set; } = 1.15d;
+
+        /// <summary>
+        /// 한 번 뽑는 데 드는 <b>환생석</b> — 자원과 둘 다 낸다.
+        ///
+        /// ★ 자원은 「지금 판에서 얼마나 벌었나」, 환생석은 「몇 판을 지나왔나」를 묻는다.
+        ///   둘을 같이 걸면 <b>한쪽만 몰아서는 못 뽑는다</b> — 방치도 환생도 건너뛸 수 없다.
+        /// </summary>
+        public long PullStoneCost { get; set; } = 1L;
 
         /// <summary>최고 등급이 나올 확률. 관대한 판이라 위쪽(2%)을 쓴다.</summary>
         public double LegendChance { get; set; } = 0.02d;
