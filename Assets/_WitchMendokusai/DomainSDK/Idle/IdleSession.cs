@@ -169,7 +169,8 @@ namespace WitchMendokusai.DomainSDK.Idle
                 state.BestStage,
                 IdleModel.BestFarmingStage(state, tuning),
                 ViewOf(IdleUpgradeKind.Damage, IdleModel.DamageOf(state, tuning)),
-                ViewOf(IdleUpgradeKind.AttackSpeed, IdleModel.AttackSpeedOf(state, tuning)));
+                ViewOf(IdleUpgradeKind.AttackSpeed, IdleModel.AttackSpeedOf(state, tuning)),
+                IdleModel.AttackSpeedOf(state, tuning));
         }
 
         /// <summary>기지를 사진에 담는다 — 화면이 값·산출을 다시 계산하지 않게.</summary>
@@ -192,7 +193,7 @@ namespace WitchMendokusai.DomainSDK.Idle
                     each,
                     owned * each,
                     state.Resource >= cost,
-                    IdleBase.IsHidden(kind, state, tuning));
+                    IdleBase.IsHidden(kind, state));
             }
 
             return made;

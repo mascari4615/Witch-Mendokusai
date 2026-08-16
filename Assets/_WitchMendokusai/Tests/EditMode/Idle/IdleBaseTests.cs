@@ -1,5 +1,4 @@
 using NUnit.Framework;
-using UnityEngine;
 using WitchMendokusai.DomainSDK.Idle;
 
 namespace WitchMendokusai.Tests
@@ -104,7 +103,7 @@ namespace WitchMendokusai.Tests
 				IdlePlay.BuyEverything(both, tuning);
 			}
 
-			Debug.Log("[IdleBase] 3시간 — 기지만: " + baseOnly.Stage + "단계 · 가방 " + baseOnly.Bag.Count
+			TestContext.WriteLine("[IdleBase] 3시간 — 기지만: " + baseOnly.Stage + "단계 · 가방 " + baseOnly.Bag.Count
 				+ "  ||  두 층: " + both.Stage + "단계 · 가방 " + both.Bag.Count);
 
 			// 기지만 굴리면 용병이 기본값 그대로라 얕은 데서 맴돈다 — 장비가 안 모인다.
@@ -131,6 +130,58 @@ namespace WitchMendokusai.Tests
 			Assert.IsTrue(IdlePotentials.TryAppraise(state, tuning, 4, out PotentialRoll roll));
 			Assert.AreEqual(0d, state.Resource, 1e-6d, "감정 값을 안 치렀다");
 			Assert.Greater(roll.Value, 0d);
+		}
+
+
+		/// <summary>
+		/// ★ <b>다음 것은 못 사도 보인다</b> (사용자 지적 2026-08-17).
+		///
+		/// 전에는 값의 절반을 모아야 다음 줄이 나타났다 — 돈이 모자란 동안 다음 단계가
+		/// <b>사라진 것처럼</b> 보였고, 그건 사람 눈에 버그다. 목표가 안 보이면 모을 이유도 없다.
+		/// </summary>
+		[Test]
+		public void NextProducer_StaysVisible_EvenWhenBroke()
+		{
+			IdleTuning tuning = new IdleTuning();
+			IdleState state = new IdleState();
+			state.EnsureProducerRoom(tuning.ProducerCount);
+			state.Owned[0] = 1L;
+			state.Resource = 0d;
+
+			Assert.IsFalse(IdleBase.IsHidden(1, state), "빈손이라고 다음 생산자를 숨겼다");
+			Assert.IsTrue(IdleBase.IsHidden(2, state), "그 다음 것까지 펴 놓으면 뭘 할지가 안 보인다");
+		}
+
+		/// <summary>산 다음에는 그 다음 것이 열린다 — 한 칸씩 앞이 보인다.</summary>
+		[Test]
+		public void BuyingReveals_TheOneAfter()
+		{
+			IdleTuning tuning = new IdleTuning();
+			IdleState state = new IdleState();
+			state.EnsureProducerRoom(tuning.ProducerCount);
+			state.Owned[0] = 1L;
+			state.Owned[1] = 1L;
+
+			Assert.IsFalse(IdleBase.IsHidden(2, state));
+		}
+
+		/// <summary>
+		/// ★ 화면이 <b>때리는 장단</b>을 코어에서 받는다 — 지어내면 올려도 빨라진 게 안 보인다.
+		/// </summary>
+		[Test]
+		public void Snapshot_CarriesAttackSpeed()
+		{
+			IdleTuning tuning = new IdleTuning();
+			IdleState state = new IdleState();
+			IdleSession session = new IdleSession(tuning, state);
+
+			double before = session.Capture().AttacksPerSecond;
+			Assert.Greater(before, 0d, "안 때리는 걸로 보인다");
+
+			state.Resource = 1e12d;
+			session.Send(new IdleRaiseUpgradeIntent(IdleUpgradeKind.AttackSpeed));
+
+			Assert.Greater(session.Capture().AttacksPerSecond, before, "속도를 올렸는데 장단이 그대로다");
 		}
 
 		/// <summary>기지가 저장을 건넌다 — 안 그러면 껐다 켤 때마다 처음부터 짓는다.</summary>

@@ -156,13 +156,22 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// <summary>공격속도 축.</summary>
         public IdleUpgradeView AttackSpeed { get; }
 
+        /// <summary>
+        /// 지금 초당 몇 번 치나 — 화면이 <b>때리는 장단</b>을 이 숫자에 맞춘다.
+        ///
+        /// ★ 사용자 지적 (2026-08-17): 「공격 하는지 안 하는지 알 수가 없다」.
+        ///   화면이 스스로 장단을 지어내면 코어의 실제 속도와 어긋나고, 그러면
+        ///   공격속도를 올려도 <b>빨라진 게 안 보인다</b> — 올린 이유가 사라진다.
+        /// </summary>
+        public double AttacksPerSecond { get; }
+
         public IdleSnapshot(double resource, double incomePerSecond, long kills, double targetHealthRatio,
             int stage, int killsInStage, int killsPerStage,
             long prestigePoints, long prestigeAward, double prestigeMultiplier,
             long[] droppedByTier, int maxTierNow, int tierCeiling,
             IdleProducerView[] producers, IdleItem[] bag, IdleItem[] worn, int bagCapacity,
             double bestPotentialValue, PotentialGrade bestPotentialGrade, double maxOfflineSeconds, bool holdingStage, int bestStage, int bestFarmingStage,
-            IdleUpgradeView damage, IdleUpgradeView attackSpeed)
+            IdleUpgradeView damage, IdleUpgradeView attackSpeed, double attacksPerSecond)
         {
             Resource = resource;
             IncomePerSecond = incomePerSecond;
@@ -189,6 +198,7 @@ namespace WitchMendokusai.DomainSDK.Idle
             BestFarmingStage = bestFarmingStage;
             Damage = damage;
             AttackSpeed = attackSpeed;
+            AttacksPerSecond = attacksPerSecond;
         }
 
         /// <summary>축 하나를 골라 본다 — 표현이 반복문으로 그릴 때 쓴다.</summary>

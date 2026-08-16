@@ -1,5 +1,4 @@
 using NUnit.Framework;
-using UnityEngine;
 using WitchMendokusai.DomainSDK.Idle;
 
 namespace WitchMendokusai.Tests
@@ -69,7 +68,7 @@ namespace WitchMendokusai.Tests
 			int stayingBest = BestTier(staying);
 			int goingBest = BestTier(going);
 
-			Debug.Log("[IdleHold] 6시간 — 머묾: " + staying.Stage + "단계 · 떨군 것 " + stayingDrops
+			TestContext.WriteLine("[IdleHold] 6시간 — 머묾: " + staying.Stage + "단계 · 떨군 것 " + stayingDrops
 				+ "개 · 최고 " + stayingBest + "등급  ||  내려감: " + going.Stage + "단계 · 떨군 것 "
 				+ goingDrops + "개 · 최고 " + goingBest + "등급");
 
@@ -103,7 +102,7 @@ namespace WitchMendokusai.Tests
 			long stayingUseful = Useful(staying);
 			long goingUseful = Useful(going);
 
-			Debug.Log("[IdleHold] 등급 문턱(6단계)에서 6시간 — 머묾: " + staying.Stage + "단계 · 쓸 수 있는 것 "
+			TestContext.WriteLine("[IdleHold] 등급 문턱(6단계)에서 6시간 — 머묾: " + staying.Stage + "단계 · 쓸 수 있는 것 "
 				+ stayingUseful + "개 · 최고 " + BestTier(staying) + "등급  ||  내려감: " + going.Stage
 				+ "단계 · 쓸 수 있는 것 " + goingUseful + "개 · 최고 " + BestTier(going) + "등급");
 

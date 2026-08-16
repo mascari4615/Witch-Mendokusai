@@ -4,19 +4,20 @@
  * 사용자 방향: 세계관 정하기 전이라 <기하학적 모양>으로 간다.
  * 값이 아니라 뜻으로 이름 짓는다 — 팔레트가 한 자리에 산다.
  *
- * ★ 해상도 대응 — 고정 픽셀 크기를 최소로 쓰고 flex 로 늘린다.
- *   좁은 창에서는 두 칸이 한 칸으로 접힌다(.idle-body 의 wrap).
+ * ★ 층이 둘이다 (사용자 컨펌 2026-08-17):
+ *     위 = 실황 셋 (기지 · 전투 · 창고) — 계속 움직인다. 만질 것 없음.
+ *     아래 = 조작 서랍 — 한 번에 한 묶음만. 넘치면 서랍이 스스로 스크롤한다.
+ *   전에는 조작 세 묶음이 한 칸에 세로로 쌓여 서로 겹쳤다. 겹침은 꾸밈 문제가 아니라
+ *   <자리가 모자란데 아무도 양보를 안 한> 짜임 문제였다.
+ *
+ * ★ 해상도 — 고정 픽셀 크기를 최소로 쓰고 flex 로 늘린다.
+ *   좁은 창에서는 실황 셋이 아래로 접힌다(.idle-stages 의 wrap).
  */
 
 .idle-root {
 	flex-grow: 1;
 	background-color: rgb(14, 15, 20);
 	color: rgb(226, 228, 236);
-}
-
-/* 판 뒤 은은한 바닥 — 밋밋한 검정은 「꺼진 화면」처럼 보인다 */
-.idle-arena {
-	background-color: rgb(17, 19, 25);
 }
 
 /* ── 위 요약 띠 ─────────────────────────────────────────────── */
@@ -49,37 +50,101 @@
 	color: rgb(128, 132, 146);
 }
 
-/* ── 아래 두 칸 ─────────────────────────────────────────────── */
+/* ── 실황 셋 ────────────────────────────────────────────────── */
 
-.idle-body {
+.idle-stages {
 	flex-grow: 1;
 	flex-direction: row;
 	flex-wrap: wrap;
-}
-
-.idle-arena {
-	flex-grow: 1.4;
-	flex-basis: 300px;
 	min-height: 240px;
-	padding: 16px;
-	align-items: center;
-	justify-content: center;
 }
 
-.idle-panel {
-	flex-basis: 260px;
+/* 실황 한 칸 — 아무것도 만질 것이 없고, 계속 움직인다 */
+.idle-live {
+	flex-basis: 220px;
 	flex-grow: 1;
-	padding: 14px 16px;
-	background-color: rgb(18, 20, 26);
+	min-height: 200px;
+	padding: 10px 12px;
+	background-color: rgb(17, 19, 25);
 	border-left-width: 1px;
-	border-left-color: rgb(38, 41, 52);
+	border-left-color: rgb(30, 33, 42);
+	overflow: hidden;
 }
 
-/* ── 판 ─────────────────────────────────────────────────────── */
+/* 전투가 가운데이자 주인공 — 가로를 더 먹는다(달려가 때리는 게 보이려면 폭이 필요하다) */
+.idle-arena {
+	flex-grow: 2;
+	flex-basis: 320px;
+	align-items: center;
+}
+
+.idle-live-title {
+	font-size: 11px;
+	color: rgb(120, 126, 142);
+	-unity-font-style: bold;
+	margin-bottom: 6px;
+}
+
+.idle-live-note {
+	font-size: 11px;
+	color: rgb(150, 176, 208);
+	margin-left: 8px;
+}
+
+.idle-spacer {
+	flex-grow: 1;
+}
+
+/* ── 기지 실황 ──────────────────────────────────────────────── */
+
+.idle-vault-head {
+	flex-direction: row;
+	align-items: center;
+}
+
+.idle-vault-mark {
+	width: 22px;
+	height: 22px;
+}
+
+/* 생산자 여덟이 바닥에 늘어선다 — 여기서 알갱이가 위로 오른다 */
+.idle-producer-strip {
+	flex-direction: row;
+	justify-content: space-between;
+	margin-top: 8px;
+}
+
+.idle-strip-shape {
+	flex-grow: 1;
+	height: 26px;
+	margin: 0 1px;
+}
+
+/* ── 전투 실황 ──────────────────────────────────────────────── */
+
+/* 영웅들 ← → 적. 가로로 마주 본다 */
+.idle-field {
+	flex-grow: 1;
+	flex-direction: row;
+	align-items: center;
+	justify-content: space-between;
+	width: 100%;
+}
+
+.idle-hero-row {
+	flex-direction: row;
+	align-items: center;
+}
+
+.idle-hero {
+	width: 30px;
+	height: 30px;
+	margin: 0 3px;
+}
 
 .idle-stage-box {
-	width: 200px;
-	height: 200px;
+	width: 140px;
+	height: 140px;
 	align-items: center;
 	justify-content: center;
 }
@@ -90,32 +155,21 @@
 	height: 100%;
 }
 
-.idle-ally-row {
-	flex-direction: row;
-	margin-top: 14px;
-}
-
-.idle-ally {
-	width: 26px;
-	height: 26px;
-	margin: 0 5px;
-}
-
 .idle-arena-caption {
-	font-size: 12px;
+	font-size: 11px;
 	color: rgb(128, 132, 146);
-	margin-top: 12px;
+	margin-top: 8px;
 }
 
 .idle-health {
-	width: 200px;
+	width: 90%;
 	height: 8px;
-	margin-top: 14px;
+	margin-top: 10px;
 }
 
 .idle-kills-dots {
 	flex-direction: row;
-	margin-top: 8px;
+	margin-top: 6px;
 }
 
 .idle-dot {
@@ -130,11 +184,41 @@
 	background-color: rgb(150, 176, 208);
 }
 
-/* ── 탭 ─────────────────────────────────────────────────────── */
+/* ── 창고 실황 ──────────────────────────────────────────────── */
+
+.idle-vault-grid {
+	flex-direction: row;
+	flex-wrap: wrap;
+	margin-top: 8px;
+}
+
+.idle-vault-cell {
+	width: 18px;
+	height: 18px;
+	margin: 2px;
+}
+
+/* ── 조작 서랍 ──────────────────────────────────────────────── */
+
+.idle-drawer {
+	max-height: 42%;
+	background-color: rgb(18, 20, 26);
+	border-top-width: 1px;
+	border-top-color: rgb(38, 41, 52);
+	padding: 8px 14px 12px 14px;
+}
+
+.idle-drawer-body {
+	flex-grow: 1;
+}
+
+.idle-page {
+	padding-bottom: 6px;
+}
 
 .idle-tabs {
 	flex-direction: row;
-	margin-bottom: 12px;
+	margin-bottom: 8px;
 }
 
 .idle-tab {
@@ -144,6 +228,7 @@
 	background-color: rgb(24, 26, 34);
 	border-width: 0;
 	color: rgb(140, 144, 158);
+	margin: 0 2px;
 }
 
 .idle-tab--on {
@@ -152,12 +237,12 @@
 	-unity-font-style: bold;
 }
 
-/* ── 올리기 ─────────────────────────────────────────────────── */
+/* ── 줄·버튼 ────────────────────────────────────────────────── */
 
 .idle-row-title {
 	font-size: 13px;
 	color: rgb(196, 200, 212);
-	margin-top: 12px;
+	margin-top: 10px;
 }
 
 .idle-row-value {
@@ -167,7 +252,7 @@
 }
 
 .idle-button {
-	height: 34px;
+	height: 32px;
 	font-size: 13px;
 	background-color: rgb(38, 44, 58);
 	border-width: 0;
@@ -186,11 +271,25 @@
 }
 
 .idle-button:disabled {
-	opacity: 0.35;
+	opacity: 0.45;
 }
 
 .idle-button--strong {
 	background-color: rgb(58, 78, 112);
+}
+
+/* 살 수 있게 된 것은 테두리로 알린다 — 「지금 이거」가 보인다 */
+.idle-button--ready {
+	border-left-width: 3px;
+	border-left-color: rgb(122, 168, 232);
+}
+
+/* 아직 못 사는 것 — 값은 보이되 잠긴 티가 난다. 안 보이면 그건 버그로 읽힌다 */
+.idle-button--locked {
+	background-color: rgb(26, 29, 38);
+	color: rgb(128, 132, 146);
+	border-left-width: 3px;
+	border-left-color: rgb(52, 57, 70);
 }
 
 .idle-note {
@@ -204,11 +303,7 @@
 .idle-divider {
 	height: 1px;
 	background-color: rgb(38, 41, 52);
-	margin: 14px 0 6px 0;
-}
-
-.idle-hidden {
-	display: none;
+	margin: 12px 0 6px 0;
 }
 
 /* 목록 줄 — 왼쪽 도형 + 오른쪽 버튼 */
@@ -232,23 +327,6 @@
 	font-size: 12px;
 }
 
-/* 세 칸 */
-.idle-column {
-	flex-basis: 240px;
-	flex-grow: 1;
-	padding: 12px 14px;
-	background-color: rgb(18, 20, 26);
-	border-left-width: 1px;
-	border-left-color: rgb(38, 41, 52);
-}
-
-.idle-column-title {
-	font-size: 11px;
-	color: rgb(120, 126, 142);
-	-unity-font-style: bold;
-	margin-bottom: 8px;
-}
-
 /* 튀는 숫자 */
 .float-text {
 	position: absolute;
@@ -256,13 +334,7 @@
 	-unity-font-style: bold;
 }
 
-/* 살 수 있게 된 것은 테두리로 알린다 — 「지금 이거」가 보인다 */
-.idle-button--ready {
-	border-left-width: 3px;
-	border-left-color: rgb(122, 168, 232);
-}
-
-/* 판 바닥 — 도형 뒤에 깔린다 */
+/* 판 바닥·알갱이 층 — 도형 뒤(또는 위)에 깔린다 */
 .idle-backdrop {
 	position: absolute;
 	left: 0;

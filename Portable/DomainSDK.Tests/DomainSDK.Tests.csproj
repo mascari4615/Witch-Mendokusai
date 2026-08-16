@@ -49,11 +49,26 @@
     <Compile Include="$(TestsRoot)Item/InventoryCanReceiveTests.cs" />
     <Compile Include="$(TestsRoot)Item/RecipeKeyTests.cs" />
     <Compile Include="$(TestsRoot)Building/BuildingCensusTests.cs" />
-    <!-- 방치 자동 감시(`wm-editmode-coverage-audit`)가 잡은 것 — 유니티를 안 쓰는데 아무 데도
-         안 걸려 있어 **한 번도 안 돌던** 시험 16개다(빚 513 → 529 로 늘어 게이트가 24판 빨갰다).
-         나머지 Idle 시험은 UnityEngine 을 쓰므로 여기 못 온다 — 이 둘만 순수하다. -->
+    <!-- 방치(Idle) 시험 **전부**. 전에는 둘만 왔다 — 나머지는 표를 찍으려고 `Debug.Log` 하나를
+         쓴다는 이유로 엔진에 묶여 있었다. 그 하나를 `TestContext.WriteLine` 으로 바꾸니
+         전부 순수해졌다(유니티 러너에서도 그대로 돈다 — NUnit 은 양쪽에 다 있다).
+
+         ★ 왜 굳이 (2026-08-17) — 에디터가 열려 있으면 유니티는 프로젝트 폴더를 잠근다.
+           그래서 「사용자가 게임을 켜 둔 동안에는 시험을 못 돌린다」가 됐고, 검증 없이
+           고쳐 나가는 상태가 됐다. 판정이 엔진 밖에 있는데 시험만 엔진에 매여 있던 것이다.
+           이제 이 게임의 되먹임 고리는 **5초**고 잠금과 무관하다. -->
+    <Compile Include="$(TestsRoot)Idle/IdlePlay.cs" />
     <Compile Include="$(TestsRoot)Idle/IdleOfflineTests.cs" />
     <Compile Include="$(TestsRoot)Idle/IdleStageTests.cs" />
+    <Compile Include="$(TestsRoot)Idle/IdleBaseTests.cs" />
+    <Compile Include="$(TestsRoot)Idle/IdleCurveTests.cs" />
+    <Compile Include="$(TestsRoot)Idle/IdleDropTests.cs" />
+    <Compile Include="$(TestsRoot)Idle/IdleHoldStageTests.cs" />
+    <Compile Include="$(TestsRoot)Idle/IdleLongHaulTests.cs" />
+    <Compile Include="$(TestsRoot)Idle/IdlePotentialTests.cs" />
+    <Compile Include="$(TestsRoot)Idle/IdlePrestigeTests.cs" />
+    <Compile Include="$(TestsRoot)Idle/IdleTextViewTests.cs" />
+    <Compile Include="$(TestsRoot)Idle/BigNumberTextTests.cs" />
     <Compile Include="$(TestsRoot)Combat/DamageCalculationTests.cs" />
     <Compile Include="$(TestsRoot)Building/BuildingFootprintTests.cs" />
     <Compile Include="$(TestsRoot)TowerDefense/TowerDefenseSignalFieldTests.cs" />

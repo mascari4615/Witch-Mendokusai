@@ -1,5 +1,4 @@
 using NUnit.Framework;
-using UnityEngine;
 using WitchMendokusai.DomainSDK.Idle;
 
 namespace WitchMendokusai.Tests
@@ -98,7 +97,7 @@ namespace WitchMendokusai.Tests
 
 			double after = SecondsToReach(first, tuning, goal);
 
-			Debug.Log("[IdlePrestige] 처음 " + before.ToString("N0") + "초 → 접은 뒤 " + after.ToString("N0")
+			TestContext.WriteLine("[IdlePrestige] 처음 " + before.ToString("N0") + "초 → 접은 뒤 " + after.ToString("N0")
 				+ "초 (점수 " + awarded + " · 배수 " + IdleModel.PrestigeMultiplier(first, tuning).ToString("N2") + "배)");
 
 			Assert.Less(after, before, "접고 다시 내려가는 게 더 느리다 — 리셋이 벌이 됐다");
@@ -129,7 +128,7 @@ namespace WitchMendokusai.Tests
 
 			double after = SecondsToReach(veteran, tuning, goal);
 
-			Debug.Log("[IdlePrestige-깊이] " + goal + "단계까지 처음 " + before.ToString("N0")
+			TestContext.WriteLine("[IdlePrestige-깊이] " + goal + "단계까지 처음 " + before.ToString("N0")
 				+ "초 → 40단계에서 접은 뒤 " + after.ToString("N0") + "초 (점수 " + deepAward
 				+ " · 배수 " + IdleModel.PrestigeMultiplier(veteran, tuning).ToString("N1") + "배)");
 

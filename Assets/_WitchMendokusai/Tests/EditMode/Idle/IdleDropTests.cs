@@ -1,5 +1,4 @@
 using NUnit.Framework;
-using UnityEngine;
 using WitchMendokusai.DomainSDK.Idle;
 
 namespace WitchMendokusai.Tests
@@ -158,7 +157,7 @@ namespace WitchMendokusai.Tests
 			}
 
 			Assert.Greater(total, 0L, "10분을 돌렸는데 떨어진 게 0 개다");
-			Debug.Log("[IdleDrops] 10분 · " + atOnce.Stage + "단계 · 상한 "
+			TestContext.WriteLine("[IdleDrops] 10분 · " + atOnce.Stage + "단계 · 상한 "
 				+ IdleDrops.MaxTierAt(atOnce.Stage, atOnce.Ascensions, tuning) + "등급 · 총 " + total + "개");
 		}
 

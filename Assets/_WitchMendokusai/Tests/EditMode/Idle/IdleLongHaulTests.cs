@@ -1,6 +1,5 @@
 using System.Text;
 using NUnit.Framework;
-using UnityEngine;
 using WitchMendokusai.DomainSDK.Idle;
 using WitchMendokusai.DomainSDK.Upgrade;
 
@@ -105,7 +104,7 @@ namespace WitchMendokusai.Tests
 					"공격력이 터졌다 (판 " + runs + ")");
 			}
 
-			Debug.Log(table.ToString());
+			TestContext.WriteLine(table.ToString());
 
 			Assert.Greater(runs, 1, "이레 동안 판을 두 번도 못 접었다 — 접는 고리가 너무 멀다");
 			Assert.Greater(state.PrestigePoints, 0L);
@@ -139,7 +138,7 @@ namespace WitchMendokusai.Tests
 				}
 			}
 
-			Debug.Log("[IdleLongHaul] 첫 천장까지 " + (elapsed / 3600d).ToString("N1") + "시간 · "
+			TestContext.WriteLine("[IdleLongHaul] 첫 천장까지 " + (elapsed / 3600d).ToString("N1") + "시간 · "
 				+ state.Stage + "단계");
 
 			Assert.Less(elapsed, DAY, "하루를 켜 둬도 첫 천장에 못 닿는다 — 두 번째 판을 아무도 못 본다");
@@ -214,7 +213,7 @@ namespace WitchMendokusai.Tests
 				table.AppendLine(row.ToString());
 			}
 
-			Debug.Log(table.ToString());
+			TestContext.WriteLine(table.ToString());
 		}
 
 		/// <summary>
@@ -244,7 +243,7 @@ namespace WitchMendokusai.Tests
 					BaseCost = 10d, CostRatio = 1.22d, BaseValue = 1d, ValueRatio = 1.30d,
 				});
 
-			Debug.Log(table.ToString());
+			TestContext.WriteLine(table.ToString());
 		}
 
 		private static void Report(StringBuilder table, string name, System.Action<IdleTuning> tweak)
@@ -311,7 +310,7 @@ namespace WitchMendokusai.Tests
 			table.AppendLine(Habit("막힐 때까지 버틴다", false));
 			table.AppendLine(Habit("천장 보면 접는다", true));
 
-			Debug.Log(table.ToString());
+			TestContext.WriteLine(table.ToString());
 		}
 
 		private static string Habit(string name, bool foldAtCeiling)
@@ -385,7 +384,7 @@ namespace WitchMendokusai.Tests
 			Steepness(table, 1.15d, 1.10d);
 			Steepness(table, 1.08d, 1.05d);
 
-			Debug.Log(table.ToString());
+			TestContext.WriteLine(table.ToString());
 		}
 
 		private static void Steepness(StringBuilder table, double health, double reward)
@@ -518,7 +517,7 @@ namespace WitchMendokusai.Tests
 				}
 			}
 
-			Debug.Log(table.ToString());
+			TestContext.WriteLine(table.ToString());
 
 			// ★ <b>층을 가른 뒤로 물러나기의 뜻이 바뀌었다</b> (실측 2026-08-16).
 			//   전에는 「물러나 <b>자원</b>을 번다」였다. 이제 자원은 기지가 내므로 그 이유가 없어졌다.
@@ -530,7 +529,7 @@ namespace WitchMendokusai.Tests
 			long forwardGot = TotalDropped(forward);
 			long cleverGot = TotalDropped(clever);
 
-			Debug.Log("[IdleRetreat] 48시간 — 앞으로만: " + forward.BestStage + "단계 · 얻은 장비 " + forwardGot
+			TestContext.WriteLine("[IdleRetreat] 48시간 — 앞으로만: " + forward.BestStage + "단계 · 얻은 장비 " + forwardGot
 				+ "  ||  물러남: " + clever.BestStage + "단계 · 얻은 장비 " + cleverGot);
 
 			Assert.Greater(cleverGot, forwardGot,

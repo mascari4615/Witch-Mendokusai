@@ -1,6 +1,5 @@
 using System.Text;
 using NUnit.Framework;
-using UnityEngine;
 using WitchMendokusai.DomainSDK.Idle;
 using WitchMendokusai.DomainSDK.Upgrade;
 
@@ -94,7 +93,7 @@ namespace WitchMendokusai.Tests
 			IdleTuning tuning = DefaultTuning();
 			string table = Simulate(tuning, 8d * 3600d, 1d, out IdleState final);
 
-			Debug.Log(table);
+			TestContext.WriteLine(table);
 			Assert.Greater(final.Kills, 0L, "8시간을 돌렸는데 하나도 못 잡았다 — 시작 손잡이가 잘못됐다");
 		}
 
