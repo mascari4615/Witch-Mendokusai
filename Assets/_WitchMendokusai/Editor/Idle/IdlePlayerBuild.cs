@@ -27,6 +27,9 @@ namespace WitchMendokusai.EditorTools
 		private const string EXE_NAME = "Idle.exe";
 		private const string TAG = "[IdleBuild]";
 
+		/// <summary>「이건 본편이 아니다」 — 본편 진단 장치가 이 빌드에서 안 뜨게 하는 표식.</summary>
+		private const string IDLE_DEFINE = "WM_IDLE";
+
 		[MenuItem("WM/Idle/빌드 (이 게임만)")]
 		public static void Build()
 		{
@@ -55,6 +58,17 @@ namespace WitchMendokusai.EditorTools
 			options.targetGroup = BuildTargetGroup.Standalone;
 			options.options = BuildOptions.None;
 
+			// ★ <b>이건 본편이 아니다</b>라고 코드에 알린다 — 이 빌드에만 붙는 표식이다.
+			//   본편 진단 장치는 어디서나 스스로 뜬다(씬에 아무것도 안 놔도). 실측 2026-08-16:
+			//   방치형 exe 를 켜니 `[DeviceLog] 전송 실패 (401)` 이 찍혔다 —
+			//   <b>팔 게임이 남의 서버를 부르고 있었다.</b> 빌드 도장 표시기도 같이 뜬다.
+			//   본편에는 그대로 필요하므로 지우지 않고 이 빌드에서만 안 뜨게 한다.
+			//
+			// ⚠ `PlayerSettings.SetScriptingDefineSymbols` 로 하면 <b>안 된다</b> (실측):
+			//   그 자리에서 재컴파일이 걸려 빌드가 「Unknown (에러 0개)」로 죽는다.
+			//   `extraScriptingDefines` 가 바로 이 용도이고, 프로젝트 설정을 아예 안 건드린다.
+			options.extraScriptingDefines = new string[] { IDLE_DEFINE };
+
 			// ★ 안 쓰는 코드를 <b>이 빌드에서만</b> 덜어낸다.
 			//   방치형은 씬 하나에 UI 뿐인데 FishNet·PlayFab·FMOD·복셀까지 통째로 구워진다
 			//   (실측 2026-08-16: GameAssembly.dll 98.8MB · 배포분 233.8MB).
@@ -74,7 +88,7 @@ namespace WitchMendokusai.EditorTools
 			finally
 			{
 				PlayerSettings.SetManagedStrippingLevel(named, before);
-				Debug.Log(TAG + " 덜어내기 설정을 " + before + " 로 되돌렸다");
+				Debug.Log(TAG + " 설정을 되돌렸다 (덜어내기 " + before + " · 표식 원복)");
 			}
 
 			BuildSummary summary = report.summary;

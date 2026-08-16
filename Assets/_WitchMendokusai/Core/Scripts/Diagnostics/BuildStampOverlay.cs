@@ -24,7 +24,14 @@ namespace WitchMendokusai
         private static bool _installed;
         private static BuildStampOverlay _instance;
 
+        // ★ 방치형 빌드에서는 <b>스스로 뜨지 않는다</b> (표식 `WM_IDLE`, TASK-WM-406).
+        //   본편 진단 장치는 씬에 아무것도 안 놔도 어디서나 뜬다. 그대로 팔면
+        //   산 사람의 기계에서 남의 서버를 부르고(실측 2026-08-16: `[DeviceLog] 401`)
+        //   화면에 개발용 표시가 뜬다. 본편에는 그대로 필요하므로 <b>지우지 않고</b>,
+        //   「스스로 뜨게 하는 표지」만 뗀다 — 몸통은 그대로라 부르면 여전히 돈다.
+#if !WM_IDLE
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterAssembliesLoaded)]
+#endif
         private static void Install()
         {
             if (_installed)
