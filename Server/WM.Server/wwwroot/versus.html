@@ -84,8 +84,42 @@ const fillWithBot = params.get('bot') !== '0';
 // 판 크기는 서버가 알려 준다(vsstart). 그 전에는 그리지 않는다.
 let arena = null;
 let seat = -1;
-let state = null;
 let tick = 0;
+
+// ★ 그림은 초당 20번 오고 화면은 60번 그린다. 온 것을 그대로 그리면 뚝뚝 끊긴다.
+//   그래서 <b>바로 전 그림과 방금 온 그림 사이를 채워</b> 그린다(보간).
+//   ⚠ 이건 예측이 아니다 — 내 조작도 서버 왕복만큼 늦다. 브라우저에서 같은 규칙을 돌리려면
+//     판정을 WASM 으로 굽는 길뿐인데(규칙 사본은 절대 만들지 않는다) 그건 아직 안 열렸다.
+let previousState = null;
+let currentState = null;
+let previousAt = 0;
+let currentAt = 0;
+
+// 그림이 오는 간격(초). 실제로 재서 쓴다 — 회선이 느리면 그만큼 천천히 채운다.
+let arrivalInterval = 1 / 20;
+
+function pushState(message) {
+	previousState = currentState ?? message;
+	previousAt = currentAt || performance.now();
+	currentState = message;
+	currentAt = performance.now();
+
+	const gap = (currentAt - previousAt) / 1000;
+	if (gap > 0.005 && gap < 0.5)
+		arrivalInterval = arrivalInterval * 0.8 + gap * 0.2;
+}
+
+// 두 그림 사이의 지금 자리. 같은 것끼리만 이어 준다(탄은 개수가 계속 변하므로 순서로 잇지 않는다).
+function blend(previousBody, currentBody, alpha) {
+	if (!previousBody) return currentBody;
+	return {
+		x: previousBody.x + (currentBody.x - previousBody.x) * alpha,
+		y: previousBody.y + (currentBody.y - previousBody.y) * alpha,
+		r: currentBody.r,
+		owner: currentBody.owner,
+		alive: currentBody.alive,
+	};
+}
 
 const held = new Set();
 const pointer = { x: 0, y: 0 };
@@ -127,7 +161,7 @@ socket.addEventListener('message', (event) => {
 	}
 
 	if (message.type === 'vsstate') {
-		state = message;
+		pushState(message);
 		statusPanel.hidden = true;
 		rematchPanel.hidden = true;
 		const mine = seat === 0 ? message.scoreA : message.scoreB;
@@ -206,7 +240,7 @@ function sendInput() {
 
 	let aimX = 1;
 	let aimY = 0;
-	const me = state?.fighters?.[seat];
+	const me = currentState?.fighters?.[seat];
 
 	if (me) {
 		const projection = view();
@@ -233,7 +267,10 @@ function draw() {
 	context.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--ground');
 	context.fillRect(0, 0, board.width, board.height);
 
-	if (arena === null || state === null) return;
+	if (arena === null || currentState === null) return;
+
+	// 지금이 두 그림 사이 어디쯤인가(0~1). 한 칸을 넘으면 최신 그림에 붙인다.
+	const alpha = Math.min(1, (performance.now() - currentAt) / 1000 / arrivalInterval);
 
 	const projection = view();
 
@@ -255,15 +292,19 @@ function draw() {
 		context.fill();
 	};
 
-	for (const shot of state.shots ?? []) {
+	// 탄은 매 그림마다 생기고 사라져서 짝을 지을 수 없다 — 온 자리 그대로 그린다.
+	for (const shot of currentState.shots ?? []) {
 		drawCircle(shot, shot.owner === seat
 			? getComputedStyle(document.documentElement).getPropertyValue('--me')
 			: getComputedStyle(document.documentElement).getPropertyValue('--foe'));
 	}
 
-	(state.fighters ?? []).forEach((fighter, index) => {
+	// 사람은 자리 번호로 짝이 지어진다 — 여기만 사이를 채워 주면 화면이 눈에 띄게 부드러워진다.
+	(currentState.fighters ?? []).forEach((fighter, index) => {
 		if (fighter.alive === false) return;
-		drawCircle(fighter, index === seat
+
+		const smooth = blend(previousState?.fighters?.[index], fighter, alpha);
+		drawCircle(smooth, index === seat
 			? getComputedStyle(document.documentElement).getPropertyValue('--me')
 			: getComputedStyle(document.documentElement).getPropertyValue('--foe'));
 	});
