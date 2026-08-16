@@ -24,7 +24,7 @@
         "WM.ViewModel",
         "WitchMendokusai.DomainSDK.Idle",
         "WitchMendokusai.DomainSDK.Upgrade",
-        "WitchMendokusai.DomainSDK.Presentation"
+        "WitchMendokusai.DomainSDK.Contracts"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

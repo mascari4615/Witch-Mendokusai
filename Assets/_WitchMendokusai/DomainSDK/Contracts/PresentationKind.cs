@@ -1,4 +1,4 @@
-namespace WitchMendokusai.DomainSDK.Presentation
+namespace WitchMendokusai.DomainSDK.Contracts
 {
     /// <summary>
     /// 같은 코어를 <b>어떤 몸으로</b> 보여주나 (TASK-WM-406).

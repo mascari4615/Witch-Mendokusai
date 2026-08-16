@@ -3,7 +3,8 @@
     "rootNamespace": "WitchMendokusai",
     "references": [
         "UniTask",
-        "MessagePipe"
+        "MessagePipe",
+        "WitchMendokusai.DomainSDK.Contracts"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

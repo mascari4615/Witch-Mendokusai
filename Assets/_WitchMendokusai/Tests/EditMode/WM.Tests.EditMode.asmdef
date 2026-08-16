@@ -11,7 +11,7 @@
         "UnityEditor.TestRunner",
         "WitchMendokusai.DomainSDK.Upgrade",
         "WitchMendokusai.DomainSDK.Idle",
-        "WitchMendokusai.DomainSDK.Presentation"
+        "WitchMendokusai.DomainSDK.Contracts"
     ],
     "includePlatforms": [
         "Editor"

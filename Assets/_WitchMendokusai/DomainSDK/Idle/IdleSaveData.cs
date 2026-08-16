@@ -1,0 +1,26 @@
+using System;
+
+namespace WitchMendokusai.DomainSDK.Idle
+{
+    /// <summary>
+    /// 껐다 켜도 이어지게 하는 저장 꼴 (TASK-WM-406).
+    ///
+    /// ★ <b>덜 깎은 피해까지</b> 담는다 — 이걸 빼면 저장할 때마다 진행 중이던 타격이 버려져
+    ///   자주 저장할수록 손해가 난다. 코어가 「스텝을 쪼개도 결과가 같다」를 보장하는 근거이기도 하다.
+    ///
+    /// ★ <b>마지막으로 본 시각</b>을 담는다 — 이게 오프라인 보상의 유일한 재료다.
+    ///   기기 시계라 사람이 앞으로 돌릴 수 있다. 그건 <see cref="IdleSession"/> 이 판정한다(음수 = 0).
+    /// </summary>
+    [Serializable]
+    public struct IdleSaveData
+    {
+        public double Resource;
+        public long Kills;
+        public double DamageDealtToTarget;
+        public int DamageLevel;
+        public int AttackSpeedLevel;
+
+        /// <summary>마지막으로 본 시각 (Unix 초, UTC).</summary>
+        public long LastSeenUnixSeconds;
+    }
+}

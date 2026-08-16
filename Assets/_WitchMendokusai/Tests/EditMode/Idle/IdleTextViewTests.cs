@@ -1,7 +1,7 @@
 using NUnit.Framework;
 using UnityEngine;
 using WitchMendokusai.DomainSDK.Idle;
-using WitchMendokusai.DomainSDK.Presentation;
+using WitchMendokusai.DomainSDK.Contracts;
 
 namespace WitchMendokusai.Tests
 {

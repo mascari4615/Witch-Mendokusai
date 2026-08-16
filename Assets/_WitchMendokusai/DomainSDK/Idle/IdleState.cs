@@ -9,7 +9,7 @@ namespace WitchMendokusai.DomainSDK.Idle
     /// ★ 잔여 피해까지 상태다 — 이걸 안 들고 있으면 짧은 스텝을 여러 번 밟을 때 피해가 매번 버려져
     ///   같은 시간을 재도 스텝 크기에 따라 결과가 달라진다. 저장·오프라인 보상이 그 위에 서므로 치명적이다.
     /// </summary>
-    public sealed class IdleState
+    public sealed class IdleState : ISavable<IdleSaveData>
     {
         /// <summary>모은 자원.</summary>
         public double Resource { get; set; }
@@ -19,6 +19,9 @@ namespace WitchMendokusai.DomainSDK.Idle
 
         /// <summary>지금 대상에게 이미 넣어 둔 피해.</summary>
         public double DamageDealtToTarget { get; set; }
+
+        /// <summary>마지막으로 본 시각 (Unix 초, UTC). 오프라인 보상의 재료.</summary>
+        public long LastSeenUnixSeconds { get; set; }
 
         /// <summary>공격력 레벨.</summary>
         public UpgradeLevel Damage { get; } = new UpgradeLevel();
@@ -30,6 +33,31 @@ namespace WitchMendokusai.DomainSDK.Idle
         public UpgradeLevel LevelOf(IdleUpgradeKind kind)
         {
             return kind == IdleUpgradeKind.Damage ? Damage : AttackSpeed;
+        }
+
+        /// <summary>저장 꼴로 담는다 — 잔여 피해와 마지막 시각까지 빠짐없이.</summary>
+        public IdleSaveData Save()
+        {
+            return new IdleSaveData
+            {
+                Resource = Resource,
+                Kills = Kills,
+                DamageDealtToTarget = DamageDealtToTarget,
+                DamageLevel = Damage.Level,
+                AttackSpeedLevel = AttackSpeed.Level,
+                LastSeenUnixSeconds = LastSeenUnixSeconds,
+            };
+        }
+
+        /// <summary>저장 꼴에서 되살린다.</summary>
+        public void Load(IdleSaveData saveData)
+        {
+            Resource = saveData.Resource;
+            Kills = saveData.Kills;
+            DamageDealtToTarget = saveData.DamageDealtToTarget;
+            Damage.Level = saveData.DamageLevel;
+            AttackSpeed.Level = saveData.AttackSpeedLevel;
+            LastSeenUnixSeconds = saveData.LastSeenUnixSeconds;
         }
     }
 }

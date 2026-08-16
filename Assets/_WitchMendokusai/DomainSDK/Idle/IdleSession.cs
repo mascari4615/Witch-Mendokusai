@@ -1,4 +1,4 @@
-using WitchMendokusai.DomainSDK.Presentation;
+using WitchMendokusai.DomainSDK.Contracts;
 using WitchMendokusai.DomainSDK.Upgrade;
 
 namespace WitchMendokusai.DomainSDK.Idle

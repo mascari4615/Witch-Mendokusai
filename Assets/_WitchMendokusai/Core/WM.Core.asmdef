@@ -12,7 +12,8 @@
         "FMODUnity",
         "DOTween.Modules",
         "WitchMendokusai.DomainSDK",
-        "VContainer"
+        "VContainer",
+        "WitchMendokusai.DomainSDK.Contracts"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

@@ -2,7 +2,8 @@
     "name": "WitchMendokusai.Mods.Sample",
     "rootNamespace": "WitchMendokusai.Mods.Sample",
     "references": [
-        "WitchMendokusai.DomainSDK"
+        "WitchMendokusai.DomainSDK",
+        "WitchMendokusai.DomainSDK.Contracts"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

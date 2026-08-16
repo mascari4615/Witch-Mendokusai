@@ -1,6 +1,6 @@
 using System.Globalization;
 using System.Text;
-using WitchMendokusai.DomainSDK.Presentation;
+using WitchMendokusai.DomainSDK.Contracts;
 
 namespace WitchMendokusai.DomainSDK.Idle
 {

@@ -1,4 +1,4 @@
-namespace WitchMendokusai.DomainSDK.Presentation
+namespace WitchMendokusai.DomainSDK.Contracts
 {
     /// <summary>
     /// 사람이 <b>하려는 것</b> — 표현이 코어에게 보내는 것. 마커 인터페이스다.

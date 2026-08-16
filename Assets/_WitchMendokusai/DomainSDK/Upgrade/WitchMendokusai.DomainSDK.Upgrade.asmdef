@@ -1,7 +1,9 @@
 {
     "name": "WitchMendokusai.DomainSDK.Upgrade",
     "rootNamespace": "WitchMendokusai.DomainSDK.Upgrade",
-    "references": [],
+    "references": [
+        "WitchMendokusai.DomainSDK.Contracts"
+    ],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,

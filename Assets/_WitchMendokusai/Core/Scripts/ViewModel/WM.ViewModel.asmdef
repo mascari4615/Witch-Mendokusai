@@ -4,7 +4,8 @@
     "references": [
         "WM.Core",
         "VContainer",
-        "R3.Unity"
+        "R3.Unity",
+        "WitchMendokusai.DomainSDK.Contracts"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

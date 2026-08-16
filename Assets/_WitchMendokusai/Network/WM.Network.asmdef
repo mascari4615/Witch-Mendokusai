@@ -4,7 +4,8 @@
     "references": [
         "WM.Core",
         "WitchMendokusai.DomainSDK",
-        "Unity.InputSystem"
+        "Unity.InputSystem",
+        "WitchMendokusai.DomainSDK.Contracts"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

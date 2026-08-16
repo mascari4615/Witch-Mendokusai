@@ -3,7 +3,7 @@ using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
 using WitchMendokusai.DomainSDK.Idle;
-using WitchMendokusai.DomainSDK.Presentation;
+using WitchMendokusai.DomainSDK.Contracts;
 
 namespace WitchMendokusai
 {

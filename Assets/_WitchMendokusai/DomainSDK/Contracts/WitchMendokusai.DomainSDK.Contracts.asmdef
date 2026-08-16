@@ -1,6 +1,6 @@
 {
-    "name": "WitchMendokusai.DomainSDK.Presentation",
-    "rootNamespace": "WitchMendokusai.DomainSDK.Presentation",
+    "name": "WitchMendokusai.DomainSDK.Contracts",
+    "rootNamespace": "WitchMendokusai",
     "references": [],
     "includePlatforms": [],
     "excludePlatforms": [],
