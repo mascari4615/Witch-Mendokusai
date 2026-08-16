@@ -101,7 +101,8 @@ namespace WitchMendokusai.DomainSDK.Idle
             int maxTier = MaxTierAt(stage, state.Ascensions, tuning);
             state.EnsureTierRoom(CeilingFor(state.Ascensions, tuning));
             // 발에 찬 것이 떨구기를 올린다 — 장비가 모험 층과도 물린다.
-            double expected = kills * tuning.DropsPerKill * IdleGear.DropMultiplier(state, tuning);
+            double expected = kills * tuning.DropsPerKill * IdleGear.DropMultiplier(state, tuning)
+                * IdleHeroes.AxisMultiplierOf(state, tuning, IdleHeroAxis.Drop);
 
             for (int tier = 1; tier <= maxTier; tier++)
             {

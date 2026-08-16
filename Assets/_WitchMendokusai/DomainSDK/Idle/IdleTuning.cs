@@ -52,6 +52,55 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// </summary>
         public double TapSecondsOfAttack { get; set; } = 0.2d;
 
+        // ── 영웅 뽑기 (TASK-WM-406) ─────────────────────────────────────────
+        //
+        // ★ 사용자가 정한 것은 <b>인심</b>이다 (2026-08-17: 「관대 — 많이 뽑는 맛」).
+        //   아래 숫자는 그 결정을 인디 관측 범위 안에서 옮긴 것이다:
+        //   최상위 1~2% · 천장 60~80회 (`refs/korean-idle-gacha.md` § 손잡이).
+
+        /// <summary>한 번 뽑는 값 (환생석).</summary>
+        public long PullCost { get; set; } = 1L;
+
+        /// <summary>최고 등급이 나올 확률. 관대한 판이라 위쪽(2%)을 쓴다.</summary>
+        public double LegendChance { get; set; } = 0.02d;
+
+        public double EpicChance { get; set; } = 0.10d;
+
+        public double RareChance { get; set; } = 0.28d;
+
+        /// <summary>
+        /// 이만큼 뽑는 동안 최고 등급이 없으면 <b>다음 판에 준다</b> (천장).
+        ///
+        /// ★ 없으면 불운 한 번이 곧 이탈이다. 확률이 옳아도 사람은 자기 표본만 본다.
+        /// </summary>
+        public int PityPulls { get; set; } = 60;
+
+        /// <summary>★ 상한. 여기 닿아도 중복은 조각으로 남는다(꽝이 되면 안 된다).</summary>
+        public int MaxStars { get; set; } = 5;
+
+        /// <summary>★ 한 단계에 필요한 중복 수의 기본값 — 위 ★ 일수록 배수로 는다.</summary>
+        public int CopiesPerStar { get; set; } = 2;
+
+        /// <summary>★ 한 단계가 더해 주는 몫 (업계 관측 약 10%).</summary>
+        public double HeroStarStep { get; set; } = 0.10d;
+
+        /// <summary>
+        /// <b>들고만 있어도</b> 붙는 몫 (일반 등급 기준, 등급 무게가 곱해진다).
+        ///
+        /// ★ 절대 크기는 어떤 상용작도 공개하지 않는다 — 우리 시뮬로 정한다.
+        ///   시작값은 「일반 하나 = 3%」. 같은 갈래끼리 더해지므로 열 마리면 +30%.
+        /// </summary>
+        public double HeroOwnedShareByGrade { get; set; } = 0.03d;
+
+        /// <summary>내보냈을 때 <b>더</b> 붙는 몫 — 보유보다 커야 「내보낸다」가 뜻을 가진다.</summary>
+        public double HeroPartyShareByGrade { get; set; } = 0.12d;
+
+        /// <summary>도감이 한 계단 오르는 데 필요한 점수(모은 종류 + 올린 ★).</summary>
+        public int CodexStepScore { get; set; } = 5;
+
+        /// <summary>도감 한 계단이 판 전체에 더해 주는 몫.</summary>
+        public double CodexStepBonus { get; set; } = 0.15d;
+
         /// <summary>
         /// 공격력 곡선.
         ///

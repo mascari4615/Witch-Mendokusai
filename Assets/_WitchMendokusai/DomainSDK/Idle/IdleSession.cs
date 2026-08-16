@@ -99,6 +99,46 @@ namespace WitchMendokusai.DomainSDK.Idle
             return true;
         }
 
+        /// <summary>영웅을 한 번 뽑는다. 환생석이 모자라면 아무 일도 안 일어난다.</summary>
+        public bool TryPull(out IdleHeroPull pull)
+        {
+            return IdleGacha.TryPull(state, tuning, out pull);
+        }
+
+        /// <summary>영웅을 한 번 뽑는다 (결과가 필요 없을 때).</summary>
+        public bool Send(IdlePullHeroIntent intent)
+        {
+            return IdleGacha.TryPull(state, tuning, out IdleHeroPull _);
+        }
+
+        /// <summary>
+        /// 자리에 영웅을 앉힌다. 그 영웅이 이미 <b>다른 자리</b>에 있으면 둘을 맞바꾼다 —
+        /// 같은 얼굴이 두 자리를 먹으면 셋을 고르는 뜻이 사라진다.
+        /// </summary>
+        public bool Send(IdleSetPartyIntent intent)
+        {
+            if (intent.Slot < 0 || intent.Slot >= state.Party.Length)
+            {
+                return false;
+            }
+
+            if (intent.HeroId >= 0 && state.IndexOfHero(intent.HeroId) < 0)
+            {
+                return false;
+            }
+
+            for (int slot = 0; slot < state.Party.Length; slot++)
+            {
+                if (slot != intent.Slot && state.Party[slot] == intent.HeroId)
+                {
+                    state.Party[slot] = state.Party[intent.Slot];
+                }
+            }
+
+            state.Party[intent.Slot] = intent.HeroId;
+            return true;
+        }
+
         /// <summary>생산자를 하나 산다. 자원이 모자라면 아무 일도 안 일어난다.</summary>
         public bool Send(IdleBuyProducerIntent intent)
         {

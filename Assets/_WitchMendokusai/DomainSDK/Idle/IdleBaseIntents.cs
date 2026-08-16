@@ -46,4 +46,22 @@ namespace WitchMendokusai.DomainSDK.Idle
     public readonly struct IdleTapIntent : IGameIntent
     {
     }
+
+    /// <summary>「영웅을 한 번 뽑는다」 — 환생석을 치른다 (TASK-WM-406).</summary>
+    public readonly struct IdlePullHeroIntent : IGameIntent
+    {
+    }
+
+    /// <summary>「이 자리에 이 영웅을 앉힌다」 — 같은 영웅이 다른 자리에 있으면 자리를 맞바꾼다.</summary>
+    public readonly struct IdleSetPartyIntent : IGameIntent
+    {
+        public int Slot { get; }
+        public int HeroId { get; }
+
+        public IdleSetPartyIntent(int slot, int heroId)
+        {
+            Slot = slot;
+            HeroId = heroId;
+        }
+    }
 }

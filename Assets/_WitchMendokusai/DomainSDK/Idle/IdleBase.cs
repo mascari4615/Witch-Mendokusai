@@ -59,7 +59,8 @@ namespace WitchMendokusai.DomainSDK.Idle
                 total += state.Owned[kind] * OutputOf(kind, tuning);
             }
 
-            return total * IdleGear.BaseMultiplier(state, tuning);
+            return total * IdleGear.BaseMultiplier(state, tuning)
+                * IdleHeroes.AxisMultiplierOf(state, tuning, IdleHeroAxis.Base);
         }
 
         /// <summary>

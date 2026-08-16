@@ -71,7 +71,9 @@ namespace WitchMendokusai.DomainSDK.Idle
             return (tuning.BaseDamage + state.Damage.TotalValue(tuning.DamageCurve))
                 * PrestigeMultiplier(state, tuning)
                 * PotentialMultiplier(state)
-                * IdleGear.DamageMultiplier(state, tuning);
+                * IdleGear.DamageMultiplier(state, tuning)
+                // 뽑은 영웅이 <b>실제로</b> 판을 민다 — 안 물리면 뽑기는 도감 놀이다.
+                * IdleHeroes.AxisMultiplierOf(state, tuning, IdleHeroAxis.Damage);
         }
 
         /// <summary>
@@ -146,7 +148,8 @@ namespace WitchMendokusai.DomainSDK.Idle
         public static double AttackSpeedOf(IdleState state, IdleTuning tuning)
         {
             return (tuning.BaseAttackSpeed + state.AttackSpeed.TotalValue(tuning.AttackSpeedCurve))
-                * IdleGear.SpeedMultiplier(state, tuning);
+                * IdleGear.SpeedMultiplier(state, tuning)
+                * IdleHeroes.AxisMultiplierOf(state, tuning, IdleHeroAxis.Speed);
         }
 
         /// <summary>초당 깎는 양.</summary>
