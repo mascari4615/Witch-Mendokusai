@@ -39,6 +39,10 @@ namespace WitchMendokusai
 		private Label killsLabel;
 		private ProgressBar targetBar;
 		private Label offlineLabel;
+		private Label potentialLabel;
+		private Label rollLabel;
+		private VisualElement dropsPanel;
+		private readonly System.Collections.Generic.List<Button> appraiseButtons = new System.Collections.Generic.List<Button>();
 		private Button prestigeButton;
 		private Button damageButton;
 		private Button speedButton;
@@ -149,9 +153,60 @@ namespace WitchMendokusai
 			speedLevelLabel = AddLabel(panel, "idle-upgrade-title");
 			speedButton = AddButton(panel, IdleUpgradeKind.AttackSpeed);
 
+			// ★ 감정 칸 — 이 게임에서 <b>사람이 주사위를 굴리는 유일한 자리</b>다.
+			//   코어에 있는데 화면에 없으면 빌드로는 그 고리를 못 돈다.
+			potentialLabel = AddLabel(panel, "idle-upgrade-title");
+			dropsPanel = new VisualElement();
+			panel.Add(dropsPanel);
+			rollLabel = AddLabel(panel, "idle-roll");
+
 			prestigeButton = new Button(Prestige);
 			prestigeButton.AddToClassList("idle-prestige-button");
 			panel.Add(prestigeButton);
+		}
+
+		/// <summary>
+		/// 등급마다 「몇 개 · 감정」 한 줄. 천장이 오르면 줄이 늘어나므로 <b>필요할 때만 다시 짓는다</b> —
+		/// 매 프레임 다시 지으면 누르는 도중에 버튼이 사라진다.
+		/// </summary>
+		private void RebuildDropRows(int tierCount)
+		{
+			dropsPanel.Clear();
+			appraiseButtons.Clear();
+
+			for (int tier = 1; tier <= tierCount; tier++)
+			{
+				int captured = tier;
+
+				Button button = new Button(() => Appraise(captured));
+				button.AddToClassList("idle-appraise-button");
+				dropsPanel.Add(button);
+				appraiseButtons.Add(button);
+			}
+		}
+
+		private void Appraise(int tier)
+		{
+			if (session.TryAppraise(tier, out PotentialRoll roll))
+			{
+				rollLabel.text = string.Format("{0}등급 감정 → {1} {2:P1}{3}",
+					roll.Tier, NameOf(roll.Grade), roll.Value, roll.Replaced ? "  ★ 갈아 끼웠다" : "");
+				WriteDown();
+			}
+
+			Render(session.Capture());
+		}
+
+		private static string NameOf(PotentialGrade grade)
+		{
+			switch (grade)
+			{
+				case PotentialGrade.Rare: return "레어";
+				case PotentialGrade.Epic: return "에픽";
+				case PotentialGrade.Unique: return "유니크";
+				case PotentialGrade.Legendary: return "레전드리";
+				default: return "없음";
+			}
 		}
 
 		private static Label AddLabel(VisualElement parent, string className)
@@ -208,6 +263,26 @@ namespace WitchMendokusai
 
 			targetBar.value = (float)snapshot.TargetHealthRatio;
 			targetBar.title = string.Format("대상 체력 {0:P0}", snapshot.TargetHealthRatio);
+
+			if (appraiseButtons.Count != snapshot.DroppedByTier.Length)
+			{
+				RebuildDropRows(snapshot.DroppedByTier.Length);
+			}
+
+			potentialLabel.text = snapshot.BestPotentialValue > 0d
+				? string.Format("잠재 {0} {1:P1}", NameOf(snapshot.BestPotentialGrade), snapshot.BestPotentialValue)
+				: "잠재 없음 — 2등급부터 감정할 수 있다";
+
+			for (int tier = 1; tier <= appraiseButtons.Count; tier++)
+			{
+				long count = snapshot.DroppedByTier[tier - 1];
+				bool appraisable = tier >= 2 && count > 0L;
+
+				appraiseButtons[tier - 1].text = tier < 2
+					? string.Format("{0}등급 {1}개 — 잠재 없음", tier, count)
+					: string.Format("{0}등급 {1}개 — 감정 ({2})", tier, count, NameOf(IdlePotentials.GradeFor(tier)));
+				appraiseButtons[tier - 1].SetEnabled(appraisable);
+			}
 
 			prestigeButton.text = snapshot.PrestigeAward > 0L
 				? string.Format("다시 시작 — {0}점 (지금 {1}점 · {2:N1}배)",

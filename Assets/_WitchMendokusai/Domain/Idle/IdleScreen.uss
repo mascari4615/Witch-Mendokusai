@@ -69,3 +69,20 @@
 .idle-prestige-button:disabled {
 	opacity: 0.35;
 }
+
+.idle-appraise-button {
+	height: 30px;
+	font-size: 12px;
+	margin-bottom: 3px;
+}
+
+.idle-appraise-button:disabled {
+	opacity: 0.35;
+}
+
+.idle-roll {
+	font-size: 13px;
+	color: rgb(214, 190, 130);
+	margin-top: 4px;
+	min-height: 18px;
+}

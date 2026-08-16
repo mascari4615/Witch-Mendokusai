@@ -35,6 +35,10 @@ namespace WitchMendokusai
 		private Label incomeLabel;
 		private Label killsLabel;
 		private ProgressBar targetBar;
+		private Label potentialLabel;
+		private Label rollLabel;
+		private VisualElement dropsPanel;
+		private readonly System.Collections.Generic.List<Button> appraiseButtons = new System.Collections.Generic.List<Button>();
 		private Button prestigeButton;
 		private Button damageButton;
 		private Button speedButton;
@@ -113,6 +117,11 @@ namespace WitchMendokusai
 			speedButton = new Button(() => Send(IdleUpgradeKind.AttackSpeed));
 			root.Add(speedButton);
 
+			potentialLabel = MakeLine(root, 12, FontStyle.Normal);
+			dropsPanel = new VisualElement();
+			root.Add(dropsPanel);
+			rollLabel = MakeLine(root, 11, FontStyle.Normal);
+
 			prestigeButton = new Button(Prestige);
 			root.Add(prestigeButton);
 
@@ -150,6 +159,31 @@ namespace WitchMendokusai
 		private void Send(IdleUpgradeKind kind)
 		{
 			session.Send(new IdleRaiseUpgradeIntent(kind));
+			Render(session.Capture());
+		}
+
+		private void RebuildDropRows(int tierCount)
+		{
+			dropsPanel.Clear();
+			appraiseButtons.Clear();
+
+			for (int tier = 1; tier <= tierCount; tier++)
+			{
+				int captured = tier;
+				Button button = new Button(() => Appraise(captured));
+				dropsPanel.Add(button);
+				appraiseButtons.Add(button);
+			}
+		}
+
+		private void Appraise(int tier)
+		{
+			if (session.TryAppraise(tier, out PotentialRoll roll))
+			{
+				rollLabel.text = string.Format("{0}등급 → {1} {2:P1}{3}",
+					roll.Tier, roll.Grade, roll.Value, roll.Replaced ? "  ★" : string.Empty);
+			}
+
 			Render(session.Capture());
 		}
 
@@ -191,6 +225,21 @@ namespace WitchMendokusai
 
 			targetBar.value = (float)snapshot.TargetHealthRatio;
 			targetBar.title = string.Format("대상 체력 {0:P0}", snapshot.TargetHealthRatio);
+
+			if (appraiseButtons.Count != snapshot.DroppedByTier.Length)
+			{
+				RebuildDropRows(snapshot.DroppedByTier.Length);
+			}
+
+			potentialLabel.text = string.Format("잠재 {0} {1:P1}", snapshot.BestPotentialGrade, snapshot.BestPotentialValue);
+
+			for (int tier = 1; tier <= appraiseButtons.Count; tier++)
+			{
+				long count = snapshot.DroppedByTier[tier - 1];
+				appraiseButtons[tier - 1].text = string.Format("{0}등급 {1}개 — 감정 ({2})",
+					tier, count, IdlePotentials.GradeFor(tier));
+				appraiseButtons[tier - 1].SetEnabled(tier >= 2 && count > 0L);
+			}
 
 			prestigeButton.text = string.Format("다시 시작 — {0}점 얻음 (보유 {1} · {2:N1}배)",
 				snapshot.PrestigeAward, snapshot.PrestigePoints, snapshot.PrestigeMultiplier);
