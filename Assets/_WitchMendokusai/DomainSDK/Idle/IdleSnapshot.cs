@@ -55,6 +55,15 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// <summary>지금 대상의 남은 체력 비율(0~1) — 진행 막대에 쓴다.</summary>
         public double TargetHealthRatio { get; }
 
+        /// <summary>지금 내려와 있는 단계.</summary>
+        public int Stage { get; }
+
+        /// <summary>이번 단계에서 처치한 수.</summary>
+        public int KillsInStage { get; }
+
+        /// <summary>이번 단계에 필요한 처치 수 — 「몇 남았나」는 표현이 뺄셈하지 말고 이걸 쓴다.</summary>
+        public int KillsPerStage { get; }
+
         /// <summary>공격력 축.</summary>
         public IdleUpgradeView Damage { get; }
 
@@ -62,12 +71,16 @@ namespace WitchMendokusai.DomainSDK.Idle
         public IdleUpgradeView AttackSpeed { get; }
 
         public IdleSnapshot(double resource, double incomePerSecond, long kills, double targetHealthRatio,
+            int stage, int killsInStage, int killsPerStage,
             IdleUpgradeView damage, IdleUpgradeView attackSpeed)
         {
             Resource = resource;
             IncomePerSecond = incomePerSecond;
             Kills = kills;
             TargetHealthRatio = targetHealthRatio;
+            Stage = stage;
+            KillsInStage = killsInStage;
+            KillsPerStage = killsPerStage;
             Damage = damage;
             AttackSpeed = attackSpeed;
         }

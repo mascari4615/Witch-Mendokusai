@@ -18,12 +18,21 @@ namespace WitchMendokusai
     [CreateAssetMenu(fileName = "IdleTuning", menuName = "WM/Idle/Tuning")]
     public sealed class IdleTuningSO : ScriptableObject
     {
-        [Header("대상")]
-        [Tooltip("대상 하나의 체력 — 이만큼 깎으면 처치.")]
+        [Header("대상 — 단계마다 커진다")]
+        [Tooltip("1단계 대상의 체력.")]
         [SerializeField] private double targetHealth = 10d;
 
-        [Tooltip("처치 하나당 들어오는 자원.")]
+        [Tooltip("단계마다 체력에 곱해지는 배수. 보상 배수보다 커야 «벽»이 생긴다.")]
+        [SerializeField] private double targetHealthRatio = 1.55d;
+
+        [Tooltip("1단계 처치 하나당 들어오는 자원.")]
         [SerializeField] private double rewardPerKill = 1d;
+
+        [Tooltip("단계마다 보상에 곱해지는 배수.")]
+        [SerializeField] private double rewardRatio = 1.35d;
+
+        [Tooltip("한 단계에서 몇을 처치해야 다음으로 내려가나.")]
+        [SerializeField] private int killsPerStage = 10;
 
         [Header("기본 능력치 (레벨 0)")]
         [SerializeField] private double baseDamage = 1d;
@@ -53,8 +62,9 @@ namespace WitchMendokusai
         {
             return new IdleTuning
             {
-                TargetHealth = targetHealth,
-                RewardPerKill = rewardPerKill,
+                TargetHealthByStage = new GeometricScale(targetHealth, targetHealthRatio),
+                RewardByStage = new GeometricScale(rewardPerKill, rewardRatio),
+                KillsPerStage = killsPerStage,
                 BaseDamage = baseDamage,
                 BaseAttackSpeed = baseAttackSpeed,
                 DamageCurve = new GeometricUpgradeCurve

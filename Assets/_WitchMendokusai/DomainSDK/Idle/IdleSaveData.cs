@@ -20,6 +20,11 @@ namespace WitchMendokusai.DomainSDK.Idle
         public int DamageLevel;
         public int AttackSpeedLevel;
 
+        /// <summary>단계 — 옛 저장에는 없어 0 으로 온다. <see cref="IdleState.Load"/> 가 메운다.</summary>
+        public int Stage;
+        public int KillsInStage;
+        public int BestStage;
+
         /// <summary>마지막으로 본 시각 (Unix 초, UTC).</summary>
         public long LastSeenUnixSeconds;
     }

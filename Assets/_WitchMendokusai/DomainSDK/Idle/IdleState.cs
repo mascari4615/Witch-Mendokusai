@@ -19,6 +19,20 @@ namespace WitchMendokusai.DomainSDK.Idle
 
         /// <summary>지금 대상에게 이미 넣어 둔 피해.</summary>
         public double DamageDealtToTarget { get; set; }
+        /// <summary>지금 내려와 있는 단계 (1부터).</summary>
+        public int Stage { get; set; } = 1;
+
+        /// <summary>이번 단계에서 처치한 수 — 이게 <see cref="IdleTuning.KillsPerStage"/> 에 닿으면 내려간다.</summary>
+        public int KillsInStage { get; set; }
+
+        /// <summary>
+        /// 여태 닿아 본 가장 깊은 단계.
+        ///
+        /// ★ 지금은 안 쓴다 — <b>나중에 쓸 자리를 지금 저장에 만들어 둔다.</b> 울티마 스쿼드에서
+        ///   「스테이지마다 나올 수 있는 장비 단계의 상한」이 이 값에 걸린다. 저장 형식은 나중에
+        ///   바꾸기가 가장 비싼 물건이라, 확실히 올 칸은 미리 판다.
+        /// </summary>
+        public int BestStage { get; set; } = 1;
 
         /// <summary>마지막으로 본 시각 (Unix 초, UTC). 오프라인 보상의 재료.</summary>
         public long LastSeenUnixSeconds { get; set; }
@@ -43,6 +57,9 @@ namespace WitchMendokusai.DomainSDK.Idle
                 Resource = Resource,
                 Kills = Kills,
                 DamageDealtToTarget = DamageDealtToTarget,
+                Stage = Stage,
+                KillsInStage = KillsInStage,
+                BestStage = BestStage,
                 DamageLevel = Damage.Level,
                 AttackSpeedLevel = AttackSpeed.Level,
                 LastSeenUnixSeconds = LastSeenUnixSeconds,
@@ -55,6 +72,11 @@ namespace WitchMendokusai.DomainSDK.Idle
             Resource = saveData.Resource;
             Kills = saveData.Kills;
             DamageDealtToTarget = saveData.DamageDealtToTarget;
+            // ★ 옛 저장에는 단계 칸이 없어 0 이 들어온다 — 그대로 두면 0단계가 되어 판이 어긋난다.
+            //   저장 형식이 늘어날 때마다 「없던 시절의 값」을 여기서 메운다.
+            Stage = saveData.Stage > 0 ? saveData.Stage : 1;
+            KillsInStage = saveData.KillsInStage;
+            BestStage = saveData.BestStage > 0 ? saveData.BestStage : Stage;
             Damage.Level = saveData.DamageLevel;
             AttackSpeed.Level = saveData.AttackSpeedLevel;
             LastSeenUnixSeconds = saveData.LastSeenUnixSeconds;

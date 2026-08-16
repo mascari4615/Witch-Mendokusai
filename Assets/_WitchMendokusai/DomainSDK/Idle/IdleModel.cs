@@ -42,20 +42,49 @@ namespace WitchMendokusai.DomainSDK.Idle
             return DamageOf(state, tuning) * AttackSpeedOf(state, tuning);
         }
 
-        /// <summary>초당 들어오는 자원 — 화면에 「초당 얼마」로 보여줄 값이자 곡선 판정의 축.</summary>
+        /// <summary>지금 단계의 대상 체력.</summary>
+        public static double TargetHealthOf(IdleState state, IdleTuning tuning)
+        {
+            return tuning.TargetHealthByStage.At(state.Stage - 1);
+        }
+
+        /// <summary>지금 단계의 처치 보상.</summary>
+        public static double RewardOf(IdleState state, IdleTuning tuning)
+        {
+            return tuning.RewardByStage.At(state.Stage - 1);
+        }
+
+        /// <summary>
+        /// 초당 들어오는 자원 — 화면에 「초당 얼마」로 보여줄 값이자 곡선 판정의 축.
+        /// <b>지금 단계 기준</b>이다. 내려가면 체력이 보상보다 빨리 올라 이 값이 도로 준다 — 그게 벽이다.
+        /// </summary>
         public static double IncomePerSecond(IdleState state, IdleTuning tuning)
         {
-            if (tuning.TargetHealth <= 0d)
+            double durability = TargetHealthOf(state, tuning);
+            if (durability <= 0d)
             {
                 return 0d;
             }
 
-            return DamagePerSecond(state, tuning) / tuning.TargetHealth * tuning.RewardPerKill;
+            return DamagePerSecond(state, tuning) / durability * RewardOf(state, tuning);
         }
 
         /// <summary>
-        /// 시간을 흘린다. 깎다가 체력를 넘긴 만큼 처치로 넘어가고, 남은 피해는 다음 대상에게 이어진다.
+        /// 한 스텝에서 넘어갈 수 있는 단계 수의 상한 — <b>멈추지 않는 판</b>을 막는 안전선.
+        ///
+        /// 체력 배수가 1 이하로 맞춰지면(손잡이는 사람이 돌린다) 아무리 내려가도 벽이 안 생겨
+        /// 이 반복이 끝나지 않는다. 게임이 그냥 멎어 버리는 것보다 여기서 잘리는 편이 낫다.
+        /// 정상 설정에서는 닿지 않는다 — 배수 1.55 면 8시간치 피해로도 수십 단계다.
+        /// </summary>
+        private const int MAX_STAGES_PER_STEP = 4096;
+
+        /// <summary>
+        /// 시간을 흘린다. 깎다가 체력을 넘긴 만큼 처치로 넘어가고, 남은 피해는 다음 대상에게 이어진다.
         /// 한 스텝에 여러 대상이 쓰러질 수 있어서 나눗셈으로 한 번에 처리한다(초당 수천 마리도 같은 비용).
+        ///
+        /// ★ <b>단계 경계에서 한 번 끊는다.</b> 단계가 바뀌면 체력도 보상도 바뀌므로, 경계를 무시하고
+        ///   한 번에 나누면 다음 단계 몫을 이전 단계 값으로 쳐준다 — 60초를 한 번에 밟을 때와
+        ///   0.1초씩 600번 밟을 때가 갈리는 자리이기도 하다(스텝 불변이 여기서 깨진다).
         /// </summary>
         public static void Step(IdleState state, IdleTuning tuning, double seconds)
         {
@@ -64,23 +93,47 @@ namespace WitchMendokusai.DomainSDK.Idle
                 return;
             }
 
-            double durability = tuning.TargetHealth;
-            if (durability <= 0d)
+            double budget = state.DamageDealtToTarget + DamagePerSecond(state, tuning) * seconds;
+
+            for (int guard = 0; guard < MAX_STAGES_PER_STEP; guard++)
             {
-                return;
+                double durability = TargetHealthOf(state, tuning);
+                if (durability <= 0d)
+                {
+                    break;
+                }
+
+                long felled = (long)((budget + durability * COUNT_EPSILON_RATIO) / durability);
+                if (felled <= 0L)
+                {
+                    break;
+                }
+
+                long leftInStage = tuning.KillsPerStage - state.KillsInStage;
+                bool clearsStage = tuning.KillsPerStage > 0 && felled >= leftInStage;
+                long taking = clearsStage ? leftInStage : felled;
+
+                budget -= taking * durability;
+                state.Kills += taking;
+                state.Resource += taking * RewardOf(state, tuning);
+
+                if (clearsStage == false)
+                {
+                    state.KillsInStage += (int)taking;
+                    break;
+                }
+
+                // 다음 단계로. 남은 피해는 그대로 이어지되, 이 아래부터는 새 체력으로 쳐진다.
+                state.Stage += 1;
+                state.KillsInStage = 0;
+
+                if (state.Stage > state.BestStage)
+                {
+                    state.BestStage = state.Stage;
+                }
             }
 
-            double dealt = state.DamageDealtToTarget + DamagePerSecond(state, tuning) * seconds;
-            long felled = (long)((dealt + durability * COUNT_EPSILON_RATIO) / durability);
-
-            if (felled > 0L)
-            {
-                state.Kills += felled;
-                state.Resource += felled * tuning.RewardPerKill;
-                dealt -= felled * durability;
-            }
-
-            state.DamageDealtToTarget = dealt;
+            state.DamageDealtToTarget = budget;
         }
 
         /// <summary>모은 자원으로 한 축을 올린다. 성공하면 자원이 줄어든다.</summary>

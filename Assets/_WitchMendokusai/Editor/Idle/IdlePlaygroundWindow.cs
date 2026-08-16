@@ -30,6 +30,7 @@ namespace WitchMendokusai
 		private double lastTickTime;
 		private double speedMultiplier = 1d;
 
+		private Label stageLabel;
 		private Label resourceLabel;
 		private Label incomeLabel;
 		private Label killsLabel;
@@ -89,6 +90,7 @@ namespace WitchMendokusai
 
 			root.Add(MakeSpacer(8f));
 
+			stageLabel = MakeLine(root, 13, FontStyle.Bold);
 			resourceLabel = MakeLine(root, 22, FontStyle.Bold);
 			incomeLabel = MakeLine(root, 12, FontStyle.Normal);
 			killsLabel = MakeLine(root, 12, FontStyle.Normal);
@@ -169,6 +171,7 @@ namespace WitchMendokusai
 				return;
 			}
 
+			stageLabel.text = string.Format("{0}단계  ({1}/{2})", snapshot.Stage, snapshot.KillsInStage, snapshot.KillsPerStage);
 			resourceLabel.text = string.Format("자원 {0:N0}", snapshot.Resource);
 			incomeLabel.text = string.Format("초당 {0:N2}", snapshot.IncomePerSecond);
 			killsLabel.text = string.Format("처치 {0:N0}", snapshot.Kills);

@@ -11,6 +11,13 @@
 	background-color: rgb(18, 18, 22);
 }
 
+.idle-stage {
+	font-size: 13px;
+	-unity-font-style: bold;
+	color: rgb(150, 176, 208);
+	margin-bottom: 6px;
+}
+
 .idle-resource {
 	font-size: 34px;
 	-unity-font-style: bold;

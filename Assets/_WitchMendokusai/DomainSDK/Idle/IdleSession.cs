@@ -92,18 +92,22 @@ namespace WitchMendokusai.DomainSDK.Idle
                 IdleModel.IncomePerSecond(state, tuning),
                 state.Kills,
                 RemainingHealthRatio(),
+                state.Stage,
+                state.KillsInStage,
+                tuning.KillsPerStage,
                 ViewOf(IdleUpgradeKind.Damage, IdleModel.DamageOf(state, tuning)),
                 ViewOf(IdleUpgradeKind.AttackSpeed, IdleModel.AttackSpeedOf(state, tuning)));
         }
 
         private double RemainingHealthRatio()
         {
-            if (tuning.TargetHealth <= 0d)
+            double durability = IdleModel.TargetHealthOf(state, tuning);
+            if (durability <= 0d)
             {
                 return 0d;
             }
 
-            double remaining = 1d - state.DamageDealtToTarget / tuning.TargetHealth;
+            double remaining = 1d - state.DamageDealtToTarget / durability;
             if (remaining < 0d)
             {
                 return 0d;

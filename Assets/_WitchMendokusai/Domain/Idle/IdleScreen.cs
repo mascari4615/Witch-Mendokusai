@@ -33,6 +33,7 @@ namespace WitchMendokusai
 		private IdleSession session;
 		private float sinceLastSave;
 
+		private Label stageLabel;
 		private Label resourceLabel;
 		private Label incomeLabel;
 		private Label killsLabel;
@@ -123,6 +124,7 @@ namespace WitchMendokusai
 			panel.AddToClassList("idle-panel");
 			root.Add(panel);
 
+			stageLabel = AddLabel(panel, "idle-stage");
 			resourceLabel = AddLabel(panel, "idle-resource");
 			incomeLabel = AddLabel(panel, "idle-income");
 			killsLabel = AddLabel(panel, "idle-kills");
@@ -177,6 +179,7 @@ namespace WitchMendokusai
 				return;
 			}
 
+			stageLabel.text = string.Format("{0}단계  ({1}/{2})", snapshot.Stage, snapshot.KillsInStage, snapshot.KillsPerStage);
 			resourceLabel.text = string.Format("자원 {0:N0}", snapshot.Resource);
 			incomeLabel.text = string.Format("초당 {0:N2}", snapshot.IncomePerSecond);
 			killsLabel.text = string.Format("처치 {0:N0}", snapshot.Kills);
