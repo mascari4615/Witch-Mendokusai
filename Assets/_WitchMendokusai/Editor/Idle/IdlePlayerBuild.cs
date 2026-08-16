@@ -91,6 +91,10 @@ namespace WitchMendokusai.EditorTools
 				Debug.Log(TAG + " 설정을 되돌렸다 (덜어내기 " + before + " · 표식 원복)");
 			}
 
+			// ★ 굽는 순간이 <b>유일한 기회</b>다 — 유니티 6 은 빌드 보고서를 파일로 안 남긴다(실측 2026-08-16).
+			//   무엇이 얼마나 실렸는지, 그 중 무엇이 `Resources/` 때문인지 여기서 적어 둔다 (TASK-WM-408).
+			BuildInventory.Write(report);
+
 			BuildSummary summary = report.summary;
 
 			if (summary.result != BuildResult.Succeeded)
