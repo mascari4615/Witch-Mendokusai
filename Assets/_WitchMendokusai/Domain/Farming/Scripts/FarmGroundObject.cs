@@ -140,8 +140,11 @@ namespace WitchMendokusai
 		//   그 관용을 여기서 받아 쓰면 세계 배선을 잊었을 때 <b>공짜로 밭이 갈린다</b>. 그래서 여기서 막는다.
 		private bool HasWorld => ground != null && World != null;
 
-		/// <summary>땅을 간다 — 되면 블록이 바뀐다. 대가는 원장이 문다.</summary>
-		public bool TryTill(FarmCoord soil, out ActOutcome outcome)
+		/// <summary>
+		/// 땅을 간다 — 되면 블록이 바뀐다. 대가는 원장이 문다.
+		/// <paramref name="costScale"/> = 손에 든 도구의 대가 배율(1 = 맨손). 좋은 마도 괭이일수록 작다.
+		/// </summary>
+		public bool TryTill(FarmCoord soil, out ActOutcome outcome, float costScale = 1f)
 		{
 			outcome = default;
 
@@ -150,7 +153,7 @@ namespace WitchMendokusai
 				return false;
 			}
 
-			ActSpec spec = new(tillMinutes, new[] { new ActNeedDelta(DomainSDK.Life.NeedKind.Energy, -tillEnergy) });
+			ActSpec spec = new ActSpec(tillMinutes, new[] { new ActNeedDelta(DomainSDK.Life.NeedKind.Energy, -tillEnergy) }).ScaledBy(costScale);
 			if (ActLedger.TryApply(spec, World, out outcome) == false)
 			{
 				return false;

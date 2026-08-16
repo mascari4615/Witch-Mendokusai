@@ -48,10 +48,31 @@ namespace WitchMendokusai
 			VContainerSettings settings = VContainerSettings.Instance;
 			if (settings != null && settings.RootLifetimeScope == null)
 			{
-				UnityEngine.GameObject rootScopePrefabObject =
-					UnityEngine.Resources.Load<UnityEngine.GameObject>("Singletons/RootLifetimeScope");
-				LifetimeScope rootScopePrefab =
-					rootScopePrefabObject != null ? rootScopePrefabObject.GetComponent<LifetimeScope>() : null;
+				// ★ 참조 우선 (TASK-WM-409 B) — preloaded `BootConfig` 가 조립 뿌리를 <b>참조로</b> 들고 있다.
+				//   이름 조회(Resources)는 그 다음이다. 이 순서가 뒤집히면 `Resources/Singletons` 가
+				//   <b>모든 제품 빌드</b>에 계속 실린다.
+				LifetimeScope rootScopePrefab = null;
+				BootConfig bootConfig = BootConfig.Live;
+				if (bootConfig != null && bootConfig.RootScopePrefab != null)
+				{
+					rootScopePrefab = bootConfig.RootScopePrefab;
+					UnityEngine.Debug.Log("[BootConfig] 참조로 조립 뿌리를 찾았다 (Resources 안 씀)");
+				}
+
+				if (rootScopePrefab == null)
+				{
+					// ⚠ 폴백 — WM-121 이 적어 둔 유니티 고질(preloaded SO→prefab 참조가 player 에서 null)
+					//   때문에 남긴다. 이 줄이 <b>실제로 필요한지</b>는 부팅 스모크가 답한다:
+					//   위 로그가 찍히면 필요 없고, 안 찍히면 아직 필요하다.
+					UnityEngine.GameObject rootScopePrefabObject =
+						UnityEngine.Resources.Load<UnityEngine.GameObject>("Singletons/RootLifetimeScope");
+					rootScopePrefab =
+						rootScopePrefabObject != null ? rootScopePrefabObject.GetComponent<LifetimeScope>() : null;
+					if (rootScopePrefab != null)
+					{
+						UnityEngine.Debug.LogWarning("[BootConfig] 참조가 죽어 Resources 로 되돌아갔다 (TASK-WM-409 측정 대상)");
+					}
+				}
 				if (rootScopePrefab != null)
 				{
 					settings.RootLifetimeScope = rootScopePrefab;

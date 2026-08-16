@@ -6,6 +6,13 @@ namespace WitchMendokusai
 {
 	public class SceneLifetimeScope : LifetimeScope
 	{
+		/// <summary>
+		/// 씬 조립이 세우는 것들의 목록 (TASK-WM-409 단계 B).
+		/// 예전엔 <c>Resources.Load&lt;T&gt;("Singletons/…")</c> 로 <b>이름으로</b> 찾았고,
+		/// 그래서 그 폴더가 <b>모든 제품 빌드</b>에 실렸다. 이제 뿌리 조립과 <b>같은 카탈로그</b>를 본다.
+		/// </summary>
+		[SerializeField] private SingletonCatalog catalog;
+
 		// ★ source 인증 (TASK-WM-109-A, VContainer 1.17.0): RegisterComponentInHierarchy<T>
 		// 는 빌드 콜백서 Resolve 강제 → FindComponentProvider 가 scene root 들을 순회하며
 		// GetComponentInChildren(type, true) — *첫 매치 1개만* (FindComponentProvider.cs:48-49,
@@ -95,15 +102,20 @@ namespace WitchMendokusai
 			RegisterInHierarchyIfPresent<ToolTipTrigger>(builder);
 
 			// prefab/code-spawn — FindObjectsByType 무관 (생성형), 존재 확인 불필요.
-			DevWindowController devWindowControllerPrefab = Resources.Load<DevWindowController>("Singletons/DevWindowController");
+			if (catalog == null)
+			{
+				Debug.LogError("[SceneLifetimeScope] SingletonCatalog 이 안 꽂혔다 — 씬 조립을 못 세운다 (TASK-WM-409)");
+				return;
+			}
+			DevWindowController devWindowControllerPrefab = catalog.Get<DevWindowController>();
 			builder.RegisterComponentInNewPrefab(devWindowControllerPrefab, Lifetime.Scoped);
 
-			CodexWindowController codexWindowControllerPrefab = Resources.Load<CodexWindowController>("Singletons/CodexWindowController");
+			CodexWindowController codexWindowControllerPrefab = catalog.Get<CodexWindowController>();
 			builder.RegisterComponentInNewPrefab(codexWindowControllerPrefab, Lifetime.Scoped);
 
 			// TASK-WM-174 Phase 5b-2 — 솥 지도 제조 UI 인게임 진입점 (Codex 와 같은 모양).
 			// prefab 미생성 윈도우(코드 먼저 push)에 World boot 안 깨지게 null-guard (cross-session build-red 회피).
-			CauldronMapController cauldronMapControllerPrefab = Resources.Load<CauldronMapController>("Singletons/CauldronMapController");
+			CauldronMapController cauldronMapControllerPrefab = catalog.Get<CauldronMapController>();
 			if (cauldronMapControllerPrefab != null)
 			{
 				builder.RegisterComponentInNewPrefab(cauldronMapControllerPrefab, Lifetime.Scoped);
@@ -113,7 +125,7 @@ namespace WitchMendokusai
 			// TASK-WM-165 item9 — 투기장 모드 컨트롤러 (Resources/Singletons prefab, CauldronMapController 미러).
 			// Lifetime.Scoped = GameModeManager 구독 라이프사이클 정합 + World.unity 미배치(다세션 씬 경합 면역).
 			// prefab 미생성(코드 먼저 push)에 World boot 안 깨지게 null-guard.
-			ArenaModeController arenaModeControllerPrefab = Resources.Load<ArenaModeController>("Singletons/ArenaModeController");
+			ArenaModeController arenaModeControllerPrefab = catalog.Get<ArenaModeController>();
 			if (arenaModeControllerPrefab != null)
 			{
 				builder.RegisterComponentInNewPrefab(arenaModeControllerPrefab, Lifetime.Scoped);
@@ -122,7 +134,7 @@ namespace WitchMendokusai
 
 			// TASK-WM-194 증분4 — 특수시공 개척(TD) 모드 컨트롤러 (Resources/Singletons prefab, ArenaModeController 미러).
 			// prefab 미생성(코드 먼저 push)에 World boot 안 깨지게 null-guard.
-			TowerDefenseModeController towerDefenseModeControllerPrefab = Resources.Load<TowerDefenseModeController>("Singletons/TowerDefenseModeController");
+			TowerDefenseModeController towerDefenseModeControllerPrefab = catalog.Get<TowerDefenseModeController>();
 			if (towerDefenseModeControllerPrefab != null)
 			{
 				builder.RegisterComponentInNewPrefab(towerDefenseModeControllerPrefab, Lifetime.Scoped);

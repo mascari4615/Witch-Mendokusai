@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEditor;
+using UnityEditor.SceneManagement;
 using UnityEngine;
 
 namespace WitchMendokusai.EditorTools
@@ -20,7 +21,9 @@ namespace WitchMendokusai.EditorTools
 	public static class SingletonCatalogMigration
 	{
 		private const string TAG = "[SingletonCatalog]";
-		private const string SINGLETONS = "Assets/_WitchMendokusai/Core/Resources/Singletons";
+		// ★ 단계 B 에서 `Resources/` 밖으로 옮겼다 (2026-08-17). 옛 경로를 보면 카탈로그가 비어
+		//   조립이 통째로 죽는다 — 실제로 27개가 5개로 줄어 한 판을 날렸다.
+		private const string SINGLETONS = "Assets/_WitchMendokusai/Core/Assets/Singletons";
 		private const string CATALOG_DIR = "Assets/_WitchMendokusai/Domain/Application/Assets";
 		private const string CATALOG = CATALOG_DIR + "/SingletonCatalog.asset";
 		private const string ROOT_PREFAB = SINGLETONS + "/RootLifetimeScope.prefab";
@@ -88,6 +91,44 @@ namespace WitchMendokusai.EditorTools
 			AssetDatabase.SaveAssets();
 			AssetDatabase.Refresh();
 			Debug.Log(TAG + " 배선 완료 — RootLifetimeScope 에 카탈로그를 꽂았다");
+
+			WireScenes(catalog);
+		}
+
+		/// <summary>
+		/// 씬 조립(`SceneLifetimeScope`)에도 같은 카탈로그를 꽂는다 (TASK-WM-409 B).
+		/// ★ 이게 빠져서 첫 시도가 <b>부팅 스모크에서 빨갛게 떴다</b> —
+		///   NRE 198,036건 · WorldReady 미도달(SceneLoading 에서 멈춤). 씬마다 배선이 필요하다.
+		/// </summary>
+		private static void WireScenes(SingletonCatalog catalog)
+		{
+			int wiredScenes = 0;
+			foreach (EditorBuildSettingsScene entry in EditorBuildSettings.scenes)
+			{
+				if (entry.enabled == false) { continue; }
+				UnityEngine.SceneManagement.Scene scene = EditorSceneManager.OpenScene(entry.path, OpenSceneMode.Single);
+				int wired = 0;
+				foreach (GameObject rootObject in scene.GetRootGameObjects())
+				{
+					foreach (SceneLifetimeScope scope in rootObject.GetComponentsInChildren<SceneLifetimeScope>(true))
+					{
+						SerializedObject so = new SerializedObject(scope);
+						SerializedProperty prop = so.FindProperty("catalog");
+						if (prop == null) { continue; }
+						prop.objectReferenceValue = catalog;
+						so.ApplyModifiedPropertiesWithoutUndo();
+						wired++;
+					}
+				}
+				if (wired > 0)
+				{
+					EditorSceneManager.MarkSceneDirty(scene);
+					EditorSceneManager.SaveScene(scene);
+					wiredScenes++;
+					Debug.Log(TAG + " 씬 배선 — " + entry.path + " (" + wired + "개)");
+				}
+			}
+			Debug.Log(TAG + " 씬 배선 완료 — " + wiredScenes + "개 씬");
 		}
 	}
 }

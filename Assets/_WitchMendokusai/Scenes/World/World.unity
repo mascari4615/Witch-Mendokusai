@@ -598,6 +598,13 @@ MonoBehaviour:
   initialHeight: 15
   zoomSpeed: 0.02
   initialFocus: {x: 0, y: 0, z: 0}
+  clampFocus: 0
+  edgePanBand: 24
+  edgePanStrength: 1
+  focusCenter: {x: 0, y: 0, z: 0}
+  focusLimit: 26
+  twoFingerPanStrength: 0.012
+  twoFingerTwistStrength: 1
 --- !u!114 &618557647
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -831,51 +838,6 @@ MonoBehaviour:
   m_PointerBehavior: 0
   m_CursorLockBehavior: 0
   m_ScrollDeltaPerTick: 6
---- !u!114 &949334922
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ec0b4dd729a12d046982652f834580a2, type: 3}
-  m_Name: Home_LMA2
-  m_EditorClassIdentifier: 
-  resolution: 256
-  bitmask: 1
-  id: 2
-  sortingID: 2
-  isImplicit: 1
-  area: 0
-  totalVertexCount: 0
-  vertexCounter: 0
-  sceneLodLevel: -1
-  autoResolution: 0
-  sceneName: 
-  tag: -1
-  containsTerrains: 0
-  probes: 0
-  mode: 1
-  renderMode: 1000
-  renderDirMode: 1000
-  atlasPacker: 1000
-  holeFilling: 0
-  vertexSamplingDensity: 0
-  computeSSS: 0
-  sssSamples: 16
-  sssDensity: 10
-  sssColor: {r: 1, g: 1, b: 1, a: 1}
-  sssScale: 1
-  fakeShadowBias: 0
-  transparentSelfShadow: 0
-  flipNormal: 0
-  parentName: 
-  overridePath: 
-  fixPos3D: 0
-  voxelSize: {x: 1, y: 1, z: 1}
-  passedFilter: 0
 --- !u!224 &954621431 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 2616992427032651575, guid: 7ecf7eabe4d4fe64db0095f2c21383e7, type: 3}
@@ -953,51 +915,6 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 1920654963287897132, guid: 30433fb496771b54392c4a8454a9fb59, type: 3}
   m_PrefabInstance: {fileID: 5212000987719173203}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &1022663532
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ec0b4dd729a12d046982652f834580a2, type: 3}
-  m_Name: Home_LMA1
-  m_EditorClassIdentifier: 
-  resolution: 512
-  bitmask: 1
-  id: 1
-  sortingID: 1
-  isImplicit: 1
-  area: 0
-  totalVertexCount: 0
-  vertexCounter: 0
-  sceneLodLevel: -1
-  autoResolution: 0
-  sceneName: 
-  tag: -1
-  containsTerrains: 0
-  probes: 0
-  mode: 1
-  renderMode: 1000
-  renderDirMode: 1000
-  atlasPacker: 1000
-  holeFilling: 0
-  vertexSamplingDensity: 0
-  computeSSS: 0
-  sssSamples: 16
-  sssDensity: 10
-  sssColor: {r: 1, g: 1, b: 1, a: 1}
-  sssScale: 1
-  fakeShadowBias: 0
-  transparentSelfShadow: 0
-  flipNormal: 0
-  parentName: 
-  overridePath: 
-  fixPos3D: 0
-  voxelSize: {x: 1, y: 1, z: 1}
-  passedFilter: 0
 --- !u!1 &1032405771
 GameObject:
   m_ObjectHideFlags: 0
@@ -1701,51 +1618,6 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 2616992427032651575, guid: 7ecf7eabe4d4fe64db0095f2c21383e7, type: 3}
   m_PrefabInstance: {fileID: 2823774666140838483}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &1742668847
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ec0b4dd729a12d046982652f834580a2, type: 3}
-  m_Name: Home_LM0
-  m_EditorClassIdentifier: 
-  resolution: 512
-  bitmask: 1
-  id: 0
-  sortingID: 0
-  isImplicit: 1
-  area: 33691.1
-  totalVertexCount: 0
-  vertexCounter: 0
-  sceneLodLevel: -1
-  autoResolution: 0
-  sceneName: 
-  tag: -1
-  containsTerrains: 0
-  probes: 0
-  mode: 1
-  renderMode: 1000
-  renderDirMode: 1000
-  atlasPacker: 1000
-  holeFilling: 0
-  vertexSamplingDensity: 0
-  computeSSS: 0
-  sssSamples: 16
-  sssDensity: 10
-  sssColor: {r: 1, g: 1, b: 1, a: 1}
-  sssScale: 1
-  fakeShadowBias: 0
-  transparentSelfShadow: 0
-  flipNormal: 0
-  parentName: 
-  overridePath: 
-  fixPos3D: 0
-  voxelSize: {x: 1, y: 1, z: 1}
-  passedFilter: 0
 --- !u!1 &1799675997
 GameObject:
   m_ObjectHideFlags: 0
@@ -2202,39 +2074,39 @@ MonoBehaviour:
   - {fileID: 0}
   - {fileID: 0}
   implicitGroups:
-  - {fileID: 1022663532}
-  - {fileID: 1022663532}
-  - {fileID: 1022663532}
-  - {fileID: 1022663532}
-  - {fileID: 1022663532}
-  - {fileID: 1022663532}
-  - {fileID: 1022663532}
-  - {fileID: 1022663532}
-  - {fileID: 1022663532}
-  - {fileID: 1022663532}
-  - {fileID: 1022663532}
-  - {fileID: 1022663532}
-  - {fileID: 1022663532}
-  - {fileID: 1022663532}
-  - {fileID: 1022663532}
-  - {fileID: 1022663532}
-  - {fileID: 1022663532}
-  - {fileID: 1022663532}
-  - {fileID: 1022663532}
-  - {fileID: 1022663532}
-  - {fileID: 1022663532}
-  - {fileID: 1022663532}
-  - {fileID: 1022663532}
-  - {fileID: 1022663532}
-  - {fileID: 1022663532}
-  - {fileID: 1022663532}
-  - {fileID: 1022663532}
-  - {fileID: 1022663532}
-  - {fileID: 1022663532}
-  - {fileID: 1022663532}
-  - {fileID: 1742668847}
-  - {fileID: 1022663532}
-  - {fileID: 949334922}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
   implicitGroupedObjects:
   - {fileID: 0}
   - {fileID: 0}
@@ -2660,6 +2532,7 @@ MonoBehaviour:
     TypeName: 
   autoRun: 1
   autoInjectGameObjects: []
+  catalog: {fileID: 11400000, guid: 643143e1fb3ca7047adcadd4c9819e9a, type: 2}
 --- !u!4 &1973609354
 Transform:
   m_ObjectHideFlags: 0
