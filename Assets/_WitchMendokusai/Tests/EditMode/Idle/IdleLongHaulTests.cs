@@ -282,6 +282,76 @@ namespace WitchMendokusai.Tests
 			table.AppendLine(row.ToString());
 		}
 
+		/// <summary>
+		/// 사람이 <b>어떻게 접든</b> 게임이 서는가 — 두 습관을 나란히 돌린다. 실패하지 않는다(자).
+		///
+		/// ★ 왜 — 지금 표는 「막힐 때까지 버틴다」 한 가지만 잰다. 그 판은 첫 접기까지 <b>24.5시간</b>이다.
+		///   그런데 화면은 천장에 닿는 순간(0.7시간) 「더 내려가도 안 열린다」고 말한다.
+		///   사람은 그걸 보면 접는다 — <b>재는 습관이 사람과 다르면 게임을 잘못 재는 것이다</b>
+		///   (한 번 그렇게 틀렸다: 「천장에서 접기」로 쟀다가 판이 0.0h 로 찍혔고,
+		///   그때 원인은 정책이 아니라 모델의 고장이었다).
+		/// </summary>
+		[Test]
+		public void PrintTwoHabits_StallVersusCeiling()
+		{
+			StringBuilder table = new StringBuilder();
+			table.AppendLine("[IdleHabit] 습관 | 판1 | 판2 | 판3 | 판4 | 판5  (걸린시간 → 접은단계)");
+
+			table.AppendLine(Habit("막힐 때까지 버틴다", false));
+			table.AppendLine(Habit("천장 보면 접는다", true));
+
+			Debug.Log(table.ToString());
+		}
+
+		private static string Habit(string name, bool foldAtCeiling)
+		{
+			IdleTuning tuning = new IdleTuning();
+			IdleState state = new IdleState();
+
+			StringBuilder row = new StringBuilder();
+			row.AppendFormat("[IdleHabit] {0,-18} |", name);
+
+			double elapsed = 0d;
+			double runStarted = 0d;
+			double lastProgressAt = 0d;
+			int lastStage = 1;
+			int runs = 0;
+
+			while (elapsed < 14d * DAY && runs < 5)
+			{
+				IdleModel.Step(state, tuning, TICK);
+				elapsed += TICK;
+				BuyWhatWeCan(state, tuning);
+				AppraiseWhatWeCan(state, tuning);
+
+				if (state.Stage > lastStage)
+				{
+					lastStage = state.Stage;
+					lastProgressAt = elapsed;
+				}
+
+				bool ready = foldAtCeiling
+					? IdleDrops.MaxTierAt(state.Stage, state.Ascensions, tuning)
+						>= IdleDrops.CeilingFor(state.Ascensions, tuning)
+					: elapsed - lastProgressAt >= STALL_HOURS * 3600d;
+
+				if (ready == false || IdleModel.CanPrestige(state, tuning) == false)
+				{
+					continue;
+				}
+
+				row.AppendFormat(" {0:N1}h→{1} |", (elapsed - runStarted) / 3600d, state.Stage);
+				IdleModel.TryPrestige(state, tuning, out long _);
+				runs++;
+
+				runStarted = elapsed;
+				lastProgressAt = elapsed;
+				lastStage = state.Stage;
+			}
+
+			return row.ToString();
+		}
+
 		private static void BuyWhatWeCan(IdleState state, IdleTuning tuning)
 		{
 			while (true)

@@ -266,9 +266,13 @@ namespace WitchMendokusai
 				return;
 			}
 
+			// ★ 문구를 고쳤다 (실측 2026-08-16). 「더 내려가도 안 열린다」는 <b>등급</b> 얘기인데
+			//   사람은 그걸 「접어라」로 읽는다. 그런데 재 보니 천장에서 바로 접는 습관은
+			//   판5에 102단계, 버티는 습관은 <b>363단계</b>였다 — 접기 남발이 훨씬 손해다.
+			//   화면이 나쁜 수를 권하고 있었던 셈이라, <b>점수는 계속 쌓인다</b>를 같이 적는다.
 			bool atCeiling = snapshot.MaxTierNow >= snapshot.TierCeiling;
 			stageLabel.text = atCeiling
-				? string.Format("{0}단계  ({1}/{2})   등급 {3} — 천장. 더 내려가도 안 열린다",
+				? string.Format("{0}단계  ({1}/{2})   등급 {3} — 천장 (등급은 그만, 점수는 계속 쌓인다)",
 					snapshot.Stage, snapshot.KillsInStage, snapshot.KillsPerStage, snapshot.MaxTierNow)
 				: string.Format("{0}단계  ({1}/{2})   등급 {3} / 천장 {4}",
 					snapshot.Stage, snapshot.KillsInStage, snapshot.KillsPerStage,

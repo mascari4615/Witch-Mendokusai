@@ -158,6 +158,29 @@ namespace WitchMendokusai.Tests
 				"점수 배수와 단계 난이도 배수가 어긋났다 — 며칠 뒤에 정체하거나 폭주한다");
 		}
 
+		/// <summary>
+		/// ★ <b>버티는 쪽이 낫다</b> — 천장에 닿자마자 접기를 되풀이하면 손해다.
+		///
+		/// 실측(2026-08-16, 이레): 「천장 보면 접는다」는 판5에 102단계,
+		/// 「막힐 때까지 버틴다」는 <b>363단계</b>. 3.5배 차이다.
+		/// 이 부등식이 뒤집히면 게임이 <b>접기 남발</b>로 무너진다 —
+		/// 그때는 접는 데 비용을 붙여야 한다.
+		/// </summary>
+		[Test]
+		public void GrindingDeeper_BeatsFoldingEarly()
+		{
+			IdleTuning tuning = new IdleTuning();
+
+			int shallowFold = 26;
+			int deepFold = 70;
+
+			long shallow = IdleModel.PrestigeStandingFor(new IdleState { Stage = shallowFold }, tuning);
+			long deep = IdleModel.PrestigeStandingFor(new IdleState { Stage = deepFold }, tuning);
+
+			Assert.Greater(deep, shallow * 2L,
+				"더 내려가도 점수가 별로 안 는다 — 그러면 천장에서 바로 접는 게 이득이 되어 게임이 무너진다");
+		}
+
 		/// <summary>점수가 공격력에 실제로 실린다 — 배수가 이름뿐이면 위 판이 우연히 통과할 수 있다.</summary>
 		[Test]
 		public void Points_MultiplyDamage()
