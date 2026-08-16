@@ -261,3 +261,12 @@
 	border-left-width: 3px;
 	border-left-color: rgb(122, 168, 232);
 }
+
+/* 판 바닥 — 도형 뒤에 깔린다 */
+.idle-backdrop {
+	position: absolute;
+	left: 0;
+	top: 0;
+	right: 0;
+	bottom: 0;
+}

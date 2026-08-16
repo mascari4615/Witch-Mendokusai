@@ -55,6 +55,7 @@ namespace WitchMendokusai
 		private readonly List<VisualElement> killDots = new List<VisualElement>();
 		private Label arenaCaption;
 		private VisualElement arenaBox;
+		private GridBackdropElement backdrop;
 		private FloatTextLayer floats;
 		private ProceduralSfx sound;
 
@@ -180,6 +181,7 @@ namespace WitchMendokusai
 			}
 
 			floats.Advance(delta);
+			backdrop.Advance(delta);
 			AdvanceShake(delta);
 
 			// ★ 자원이 <b>굴러 올라간다</b> — 뚝뚝 튀면 「많이 벌었다」가 안 느껴진다.
@@ -300,6 +302,11 @@ namespace WitchMendokusai
 			parent.Add(arena);
 
 			AddLabel(arena, "idle-column-title").text = "전투";
+
+			// 바닥 격자 — 밋밋한 검정은 「꺼진 화면」처럼 보인다.
+			backdrop = new GridBackdropElement();
+			backdrop.AddToClassList("idle-backdrop");
+			arena.Add(backdrop);
 
 			VisualElement box = new VisualElement();
 			box.AddToClassList("idle-stage-box");
@@ -549,6 +556,15 @@ namespace WitchMendokusai
 
 				button.SetEnabled(view.CanAfford);
 				button.EnableInClassList("idle-button--ready", view.CanAfford);
+
+				// ★ 일하고 있는 생산자는 <b>맥동한다</b> — 많이 낼수록 빨리 뛴다.
+				//   숫자만 보면 「돌고 있다」가 안 느껴진다.
+				if (kind < producerShapes.Count)
+				{
+					bool working = view.Owned > 0L;
+					producerShapes[kind].SetPulse(working ? 0.10f : 0f,
+						working ? 0.6f + Mathf.Min(2f, (float)view.Owned * 0.08f) : 0f);
+				}
 			}
 		}
 

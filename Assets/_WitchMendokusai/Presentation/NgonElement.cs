@@ -24,6 +24,10 @@ namespace WitchMendokusai.Presentation
 
 		/// <summary>등장 중 (0 → 1). 새 대상이 <b>커지며 나타난다</b> — 툭 바뀌면 바뀐 줄 모른다.</summary>
 		private float born = 1f;
+
+		/// <summary>맥동 세기 (0 = 없음). <b>일하고 있다</b>를 크기로 말한다.</summary>
+		private float pulseDepth;
+		private float pulsePhase;
 		private Color body = new Color(0.42f, 0.60f, 0.85f);
 
 		public NgonElement()
@@ -77,8 +81,25 @@ namespace WitchMendokusai.Presentation
 		}
 
 		/// <summary>돈다 — 살아 있다는 신호. 멈춘 화면은 죽은 화면이다.</summary>
+		/// <summary>
+		/// 맥동을 켠다 — 「이게 지금 뭔가를 내고 있다」.
+		/// <paramref name="depth"/> 0 이면 끈다. 도는 것과 달리 <b>일감이 있을 때만</b> 뛴다.
+		/// </summary>
+		public void SetPulse(float depth, float beatsPerSecond)
+		{
+			pulseDepth = depth < 0f ? 0f : depth;
+			pulseRate = beatsPerSecond;
+		}
+
+		private float pulseRate = 1f;
+
 		public void Advance(float deltaSeconds, float turnsPerSecond)
 		{
+			if (pulseDepth > 0f)
+			{
+				pulsePhase += deltaSeconds * pulseRate;
+			}
+
 			spin += deltaSeconds * turnsPerSecond * 360f;
 			if (spin > 360f)
 			{
@@ -122,6 +143,11 @@ namespace WitchMendokusai.Presentation
 
 			// 등장할 때 살짝 넘쳤다 제자리로 — 딱 맞게 커지면 밋밋하다.
 			float pop = born < 1f ? Mathf.Sin(born * Mathf.PI * 0.5f) * (1f + (1f - born) * 0.25f) : 1f;
+			if (pulseDepth > 0f)
+			{
+				pop *= 1f + Mathf.Sin(pulsePhase * Mathf.PI * 2f) * pulseDepth;
+			}
+
 			float radius = Mathf.Min(box.width, box.height) * 0.42f * pop;
 			Vector2 middle = box.center;
 
