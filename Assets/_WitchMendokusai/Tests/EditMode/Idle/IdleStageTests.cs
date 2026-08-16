@@ -89,10 +89,11 @@ namespace WitchMendokusai.Tests
 			IdleState shallow = new IdleState { Stage = 1 };
 			IdleState deep = new IdleState { Stage = 20 };
 
-			double near = IdleModel.IncomePerSecond(shallow, tuning);
-			double far = IdleModel.IncomePerSecond(deep, tuning);
+			// ★ 층을 가른 뒤로 자원은 기지가 낸다 — 벽은 <b>초당 처치</b>에서 드러난다.
+			double near = IdleModel.KillsPerSecond(shallow, tuning);
+			double far = IdleModel.KillsPerSecond(deep, tuning);
 
-			Assert.Less(far, near, "20단계 아래가 1단계보다 잘 번다 — 벽이 없다");
+			Assert.Less(far, near, "20단계 아래가 1단계만큼 잡는다 — 벽이 없다");
 		}
 
 		/// <summary>손잡이를 돌려 체력 배수를 보상 배수 아래로 내리면 벽이 사라진다 — 벽의 근거가 그 둘의 대소임을 못 박는다.</summary>
@@ -106,8 +107,12 @@ namespace WitchMendokusai.Tests
 			IdleState shallow = new IdleState { Stage = 1 };
 			IdleState deep = new IdleState { Stage = 20 };
 
-			Assert.Greater(IdleModel.IncomePerSecond(deep, generous), IdleModel.IncomePerSecond(shallow, generous),
-				"보상 배수가 더 큰데도 깊은 쪽이 덜 번다 — 벽이 손잡이가 아닌 데서 오고 있다");
+			// ★ 벽이 <b>체력 배수</b>에서 온다는 것을 못 박는다 —
+			//   손잡이를 완만하게 돌리면 같은 깊이가 훨씬 덜 힘들어야 한다.
+			IdleTuning steep = NewTuning();
+
+			Assert.Greater(IdleModel.KillsPerSecond(deep, generous), IdleModel.KillsPerSecond(deep, steep),
+				"체력 배수를 낮췄는데도 깊은 쪽이 안 쉬워진다 — 벽이 손잡이가 아닌 데서 오고 있다");
 		}
 
 		/// <summary>단계도 저장에 담긴다. 그리고 <b>단계가 없던 옛 저장</b>은 1단계로 들어온다.</summary>

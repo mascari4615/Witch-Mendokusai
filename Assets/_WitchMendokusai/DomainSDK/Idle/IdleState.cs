@@ -57,8 +57,13 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// <summary>등급별로 여태 떨어진 개수 (0번째 = 1등급).</summary>
         public long[] DroppedByTier { get; private set; } = new long[0];
 
-        /// <summary>생산자 종류별 보유 수 — 기지가 내는 자원의 근거.</summary>
-        public long[] Owned { get; private set; } = new long[0];
+        /// <summary>
+        /// 생산자 종류별 보유 수 — 기지가 내는 자원의 근거.
+        ///
+        /// ★ <b>첫 하나는 쥐여 준다</b>. 자원이 0 이면 아무것도 못 사고, 아무것도 못 사면
+        ///   자원이 안 늘어 <b>게임이 시작되지 않는다</b>. 쿠키 클리커가 첫 클릭을 주는 자리와 같다.
+        /// </summary>
+        public long[] Owned { get; private set; } = new long[] { 1L };
 
         /// <summary>가방 — 모험이 가져온 장비.</summary>
         public System.Collections.Generic.List<IdleItem> Bag { get; private set; }

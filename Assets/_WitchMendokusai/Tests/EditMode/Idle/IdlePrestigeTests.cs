@@ -243,5 +243,23 @@ namespace WitchMendokusai.Tests
 			Assert.Greater(ready.State.PrestigePoints, 0L);
 		}
 
+
+		/// <summary>목표 단계에 닿을 때까지 걸린 시간 — 두 층을 다 사면서 돌린다.</summary>
+		private static double SecondsToReach(IdleState state, IdleTuning tuning, int goalStage)
+		{
+			const double TICK = 10d;
+			const double LIMIT = 60d * 60d * 24d * 30d;
+
+			double elapsed = 0d;
+			while (state.Stage < goalStage && elapsed < LIMIT)
+			{
+				IdleModel.Step(state, tuning, TICK);
+				elapsed += TICK;
+				IdlePlay.BuyEverything(state, tuning);
+			}
+
+			Assert.Less(elapsed, LIMIT, "한 달을 돌려도 " + goalStage + "단계에 못 닿는다 — 곡선이 막혔다");
+			return elapsed;
+		}
 }
 }

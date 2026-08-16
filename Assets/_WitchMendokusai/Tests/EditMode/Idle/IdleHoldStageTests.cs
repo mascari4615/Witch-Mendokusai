@@ -40,7 +40,8 @@ namespace WitchMendokusai.Tests
 			IdleModel.Step(staying, tuning, 600d);
 
 			Assert.Greater(staying.Kills, 0L, "머무니까 아무것도 안 잡는다 — 그건 멈춘 것이다");
-			Assert.Greater(staying.Resource, 0d);
+			// 잡기는 자원이 아니라 <b>장비</b>를 낸다(자원은 기지 몫).
+			Assert.Greater(staying.Bag.Count, 0, "머물러 잡는데 가방에 아무것도 안 들어온다");
 			Assert.AreEqual(tuning.KillsPerStage, staying.KillsInStage, "막대가 꽉 찬 채로 멎어 있어야 한다");
 		}
 

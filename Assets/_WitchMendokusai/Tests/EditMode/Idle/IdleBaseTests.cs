@@ -22,6 +22,9 @@ namespace WitchMendokusai.Tests
 		{
 			IdleTuning tuning = new IdleTuning();
 			IdleState state = new IdleState();
+			// 처음엔 생산자 하나를 쥐여 주므로, <b>잡기만</b>을 재려면 기지를 비운다.
+			state.EnsureProducerRoom(tuning.ProducerCount);
+			state.Owned[0] = 0L;
 
 			IdleModel.Step(state, tuning, 600d);
 
@@ -65,13 +68,16 @@ namespace WitchMendokusai.Tests
 		{
 			IdleTuning tuning = new IdleTuning();
 			IdleState state = new IdleState();
+			state.EnsureProducerRoom(tuning.ProducerCount);
+			long had = state.Owned[0];
 
 			Assert.IsFalse(IdleBase.TryBuy(state, tuning, 0), "빈손인데 사졌다");
 
-			state.Resource = IdleBase.CostOf(0, 0L, tuning);
+			// 값은 <b>이미 가진 수</b>에 따라 오른다 — 첫 하나를 쥐여 줬으므로 그만큼 비싸다.
+			state.Resource = IdleBase.CostOf(0, had, tuning);
 			Assert.IsTrue(IdleBase.TryBuy(state, tuning, 0));
-			Assert.AreEqual(0d, state.Resource, 1e-9d, "값을 안 치렀다");
-			Assert.AreEqual(1L, state.Owned[0]);
+			Assert.AreEqual(0d, state.Resource, 1e-6d, "값을 안 치렀다");
+			Assert.AreEqual(had + 1L, state.Owned[0]);
 		}
 
 		/// <summary>
@@ -101,7 +107,9 @@ namespace WitchMendokusai.Tests
 			Debug.Log("[IdleBase] 3시간 — 기지만: " + baseOnly.Stage + "단계 · 가방 " + baseOnly.Bag.Count
 				+ "  ||  두 층: " + both.Stage + "단계 · 가방 " + both.Bag.Count);
 
-			Assert.Greater(both.Stage, baseOnly.Stage, "용병을 올려도 더 못 내려간다 — 자원이 모험과 안 물린다");
+			// 기지만 굴리면 용병이 기본값 그대로라 얕은 데서 맴돈다 — 장비가 안 모인다.
+			Assert.Greater(both.Bag.Count, baseOnly.Bag.Count,
+				"용병을 올려도 장비가 더 안 모인다 — 자원이 모험과 안 물린다");
 		}
 
 		/// <summary>

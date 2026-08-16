@@ -16,11 +16,17 @@ namespace WitchMendokusai.Tests
 	{
 		private const double TOLERANCE = 1e-12d;
 
+		/// <summary>
+		/// 그 등급짜리를 <paramref name="count"/> 개 가진 판.
+		/// ★ 자원도 넉넉히 쥐여 준다 — 이제 <b>감정에 자원이 든다</b>(기지와 모험을 같은 저울에 올린 자리).
+		///   여기서 재려는 것은 「굴리면 어떻게 되나」지 「자원이 있나」가 아니다.
+		/// </summary>
 		private static IdleState WithDrops(int tier, long count)
 		{
 			IdleState state = new IdleState();
 			state.EnsureTierRoom(tier);
 			state.DroppedByTier[tier - 1] = count;
+			state.Resource = IdleGear.AppraiseCost(tier, new IdleTuning()) * (count + 1L);
 			return state;
 		}
 

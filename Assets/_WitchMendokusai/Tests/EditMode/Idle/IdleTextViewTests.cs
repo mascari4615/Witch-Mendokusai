@@ -17,9 +17,14 @@ namespace WitchMendokusai.Tests
 	/// </summary>
 	public sealed class IdleTextViewTests
 	{
+		/// <summary>기지 하나로 시작한 판 — 자원이 아예 없으면 아무것도 못 사서 곡선을 못 잰다.</summary>
 		private static IdleSession NewSession()
 		{
-			return new IdleSession(new IdleTuning());
+			IdleTuning tuning = new IdleTuning();
+			IdleState state = new IdleState();
+			state.EnsureProducerRoom(tuning.ProducerCount);
+			state.Owned[0] = 1L;
+			return new IdleSession(tuning, state);
 		}
 
 		/// <summary>어떤 시점에도 숫자가 깨지지 않는다 — NaN·무한은 곡선이 터졌다는 뜻이다.</summary>
@@ -55,7 +60,9 @@ namespace WitchMendokusai.Tests
 			for (int minute = 0; minute < 30; minute++)
 			{
 				session.Advance(60d);
-				purchases += IdlePlay.BuyEverything(session.State, new IdleTuning());
+				int before = session.State.Damage.Level + session.State.AttackSpeed.Level;
+				IdlePlay.BuyEverything(session.State, new IdleTuning());
+				purchases += session.State.Damage.Level + session.State.AttackSpeed.Level - before;
 			}
 
 			Assert.Greater(purchases, 3, "30분 동안 산 게 3개 이하다 — 초반이 막혀 있다");

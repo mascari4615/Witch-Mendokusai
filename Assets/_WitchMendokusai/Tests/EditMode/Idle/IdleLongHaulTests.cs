@@ -121,6 +121,10 @@ namespace WitchMendokusai.Tests
 			IdleTuning tuning = new IdleTuning();
 			IdleState state = new IdleState();
 
+			// 기지가 없으면 자원이 0 이라 아무것도 못 산다 — 첫 생산자 하나로 시작한다(게임도 그렇게 준다).
+			state.EnsureProducerRoom(tuning.ProducerCount);
+			state.Owned[0] = 1L;
+
 			double elapsed = 0d;
 			while (elapsed < DAY)
 			{
@@ -453,6 +457,10 @@ namespace WitchMendokusai.Tests
 
 			IdleState forward = new IdleState();
 			IdleState clever = new IdleState();
+			forward.EnsureProducerRoom(tuning.ProducerCount);
+			clever.EnsureProducerRoom(tuning.ProducerCount);
+			forward.Owned[0] = 1L;
+			clever.Owned[0] = 1L;
 
 			double elapsed = 0d;
 			double lastProgressAt = 0d;
@@ -512,8 +520,21 @@ namespace WitchMendokusai.Tests
 
 			Debug.Log(table.ToString());
 
-			Assert.Greater(clever.BestStage, forward.BestStage,
-				"물러날 줄 알아도 더 못 간다 — 그러면 물러나기가 있을 이유가 없다");
+			// ★ <b>층을 가른 뒤로 물러나기의 뜻이 바뀌었다</b> (실측 2026-08-16).
+			//   전에는 「물러나 <b>자원</b>을 번다」였다. 이제 자원은 기지가 내므로 그 이유가 없어졌다.
+			//   지금 물러나기가 주는 것은 <b>많이 떨구는 것</b>이다 —
+			//   얕은 자리는 빨리 잡히고, 장비 수가 곧 합치기·감정의 재료다.
+			//   깊이는 오히려 앞으로만 가는 쪽이 낫다. 그 <b>맞바꿈</b>이 성립하는지를 본다.
+			// ⚠ 가방 칸 수로 재면 안 된다 — 둘 다 40칸이 꽉 차 차이가 가려진다(실측).
+			//   재야 할 것은 <b>여태 얻은 총량</b>이다. 그게 합치기·감정의 재료다.
+			long forwardGot = TotalDropped(forward);
+			long cleverGot = TotalDropped(clever);
+
+			Debug.Log("[IdleRetreat] 48시간 — 앞으로만: " + forward.BestStage + "단계 · 얻은 장비 " + forwardGot
+				+ "  ||  물러남: " + clever.BestStage + "단계 · 얻은 장비 " + cleverGot);
+
+			Assert.Greater(cleverGot, forwardGot,
+				"물러나도 장비가 더 안 모인다 — 그러면 물러나기가 있을 이유가 없다");
 		}
 
 /// <summary>가진 것 중 <b>가장 높은 등급부터</b> 감정한다 — 사람이 하는 짓과 가장 가깝다.</summary>
@@ -526,5 +547,23 @@ namespace WitchMendokusai.Tests
 				}
 			}
 		}
-	}
+	
+		/// <summary>여태 얻은 장비 총량 — 가방 상한에 안 가린다.</summary>
+		private static long TotalDropped(IdleState state)
+		{
+			long total = 0L;
+			for (int tier = 0; tier < state.DroppedByTier.Length; tier++)
+			{
+				total += state.DroppedByTier[tier];
+			}
+
+			return total;
+		}
+
+		/// <summary>한 방에 잡히는 가장 깊은 자리 — 코어가 아는 규칙을 그대로 쓴다.</summary>
+		private static int FarmableStage(IdleState state, IdleTuning tuning)
+		{
+			return IdleModel.BestFarmingStage(state, tuning);
+		}
+}
 }
