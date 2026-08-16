@@ -406,6 +406,9 @@ namespace WitchMendokusai.Server
 		/// <summary>이만큼(세계의 날) 안 오고 아무것도 안 남긴 사람은 장부에서 지운다.</summary>
 		private const int GUEST_FORGET_DAYS = 90;
 
+		/// <summary>1대1 대결 방들 (TASK-WM-411) — 세계와 완전히 따로 산다.</summary>
+		private readonly VersusHost versusHost = new VersusHost();
+
 		private readonly WorldStore store;
 		/// <summary>
 		/// 창 하나 — 소켓과 <b>차례 서는 자리</b> (TASK-WM-218).
@@ -946,6 +949,21 @@ namespace WitchMendokusai.Server
 					// 창이 닫히면 그 곳의 자리도 돌려준다 — 안 돌려주면 그 곳은 <b>영영</b> 못 들어온다.
 					LeavePlace(origin);
 				}
+			});
+
+			// ★ 대결 전용 문 (TASK-WM-411) — 세계(/ws)와 따로 둔다.
+			//   대결은 방 단위로 짧게 살았다 사라지고, 세계는 계속 사는 하나다.
+			//   같은 문으로 받으면 대결하러 온 사람이 <b>세계의 주민</b>으로 세어져 마을에 인형이 선다(/peer 와 같은 이유).
+			app.Map("/vs", async (HttpContext context) =>
+			{
+				if (context.WebSockets.IsWebSocketRequest == false)
+				{
+					context.Response.StatusCode = 400;
+					return;
+				}
+
+				WebSocket versusSocket = await context.WebSockets.AcceptWebSocketAsync();
+				await versusHost.ServeAsync(versusSocket, app.Lifetime.ApplicationStopping);
 			});
 
 			// ★ 이웃 세계 전용 문 (TASK-WM-263) — 사람이 쓰는 문(/ws)과 따로 둔다.

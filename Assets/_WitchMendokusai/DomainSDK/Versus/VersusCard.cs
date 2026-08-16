@@ -43,7 +43,8 @@ namespace WitchMendokusai
 			switch (card)
 			{
 				case VersusCardKind.Swift:
-					stats.MoveSpeed *= 1.25f;
+					// 1.25 배는 시뮬에서 52% — 뽑으나 마나였다(2026-08-16 측정). 발이 실제로 판을 바꾸는 크기로 올린다.
+					stats.MoveSpeed *= 1.45f;
 					break;
 
 				case VersusCardKind.RapidFire:
@@ -62,8 +63,8 @@ namespace WitchMendokusai
 
 				case VersusCardKind.Split:
 					stats.ProjectileCount += 1;
-					// 탄이 늘면 화면이 금방 메워지므로 한 발의 지속을 줄여 균형을 맞춘다.
-					stats.ProjectileSpeed *= 1.1f;
+					// 대가 없이 두 발이면 시뮬 승률 80% — 한 장으로 판이 끝난다. 쏘는 간격을 늘려 값을 치르게 한다.
+					stats.FireInterval *= 1.3f;
 					break;
 
 				case VersusCardKind.Dash:
@@ -71,7 +72,9 @@ namespace WitchMendokusai
 					break;
 
 				case VersusCardKind.Shield:
+					// 즉사 한 번을 없던 일로 만드는 카드라 원래 세다(시뮬 81%). 몸이 무거워지는 대가를 붙인다.
 					stats.ShieldCharges += 1;
+					stats.MoveSpeed *= 0.88f;
 					break;
 
 				case VersusCardKind.Heavy:
