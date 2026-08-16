@@ -171,6 +171,28 @@ jobs:
             Write-Host '[WM-BUILD] WM_DEVICE_LOG_TOKEN empty - phone logs will be rejected (401)'
           }
 
+      # 2026-08-16: 빌드가 간헐적으로 죽는데(exit -1073741819 = Access Violation) 크래시 스택이
+      #   MemoryManager::Allocate -> malloc_internal -> BeginPlayerBuilding 이었다. 메모리 고갈로
+      #   보이지만 크래시 시점의 커밋을 안 재고 있어서 단정할 수 없었다.
+      #   재지 않고 고치면 "고쳤다고 믿는데 또 죽는" 상태가 된다 - 그래서 먼저 잰다.
+      #   ASCII only in run: blocks (PS 5.1 cp949 - 위 주석 참조).
+      - name: Memory before build
+        if: steps.gate.outputs.skip != 'true'
+        shell: powershell
+        run: |
+          $os = Get-CimInstance Win32_OperatingSystem
+          $ramTotal = [Math]::Round($os.TotalVisibleMemorySize / 1MB, 1)
+          $ramFree  = [Math]::Round($os.FreePhysicalMemory / 1MB, 1)
+          $comTotal = [Math]::Round($os.TotalVirtualMemorySize / 1MB, 1)
+          $comFree  = [Math]::Round($os.FreeVirtualMemory / 1MB, 1)
+          Write-Host "[MEM-BEFORE] ram ${ramFree}/${ramTotal} GB free | commit ${comFree}/${comTotal} GB free"
+          Get-CimInstance Win32_PageFileUsage | ForEach-Object {
+            Write-Host "[MEM-BEFORE] pagefile allocated $($_.AllocatedBaseSize) MB peak $($_.PeakUsage) MB"
+          }
+          Get-Process | Sort-Object WorkingSet64 -Descending | Select-Object -First 5 | ForEach-Object {
+            Write-Host ("[MEM-BEFORE] {0,-24} {1,7:N0} MB" -f $_.ProcessName, ($_.WorkingSet64 / 1MB))
+          }
+
       - name: Build player (batchmode)
         id: build
         if: steps.gate.outputs.skip != 'true'
@@ -211,6 +233,37 @@ jobs:
             throw "Unity build failed (exit=$($result.ExitCode)). log: $($result.UnityLog)"
           }
           Save-BuiltMarker -BuildRoot $env:BUILD_ROOT -Platform $platform -Sha $env:GITHUB_SHA
+
+      # 실패했을 때가 진짜 증거다 - 성공 판에서는 안 보이는 값이 여기 남는다.
+      - name: Memory after build (evidence on failure)
+        if: always() && steps.gate.outputs.skip != 'true'
+        shell: powershell
+        run: |
+          $os = Get-CimInstance Win32_OperatingSystem
+          $ramTotal = [Math]::Round($os.TotalVisibleMemorySize / 1MB, 1)
+          $ramFree  = [Math]::Round($os.FreePhysicalMemory / 1MB, 1)
+          $comTotal = [Math]::Round($os.TotalVirtualMemorySize / 1MB, 1)
+          $comFree  = [Math]::Round($os.FreeVirtualMemory / 1MB, 1)
+          Write-Host "[MEM-AFTER] ram ${ramFree}/${ramTotal} GB free | commit ${comFree}/${comTotal} GB free"
+          Get-CimInstance Win32_PageFileUsage | ForEach-Object {
+            Write-Host "[MEM-AFTER] pagefile allocated $($_.AllocatedBaseSize) MB peak $($_.PeakUsage) MB"
+          }
+          $crashRoot = Join-Path $env:WINDIR 'TEMP\Unity\Editor\Crashes'
+          if (Test-Path $crashRoot) {
+            $newest = Get-ChildItem $crashRoot -Directory -ErrorAction SilentlyContinue |
+              Sort-Object LastWriteTime -Descending | Select-Object -First 1
+            if ($newest -and ((Get-Date) - $newest.LastWriteTime).TotalMinutes -lt 60) {
+              Write-Host "[MEM-AFTER] fresh crash report: $($newest.FullName)"
+              $log = Join-Path $newest.FullName 'unity-build.log'
+              if (Test-Path $log) {
+                $stack = Select-String -Path $log -Pattern 'OUTPUTTING STACK TRACE' | Select-Object -First 1
+                if ($stack) {
+                  Write-Host '[MEM-AFTER] crash stack:'
+                  Get-Content $log | Select-Object -Skip $stack.LineNumber -First 12 | ForEach-Object { Write-Host "  $_" }
+                }
+              }
+            }
+          }
 
       # Cancelling kills only the step shell; Unity started via Start-Process
       # survives holding the Library lock and blocks the next build.

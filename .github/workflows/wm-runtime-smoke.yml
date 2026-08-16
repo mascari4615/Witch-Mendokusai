@@ -53,9 +53,16 @@ jobs:
               exit 1
           }
 
-          $dir = Get-ChildItem $buildRoot -Directory -Filter '*-windows' -ErrorAction SilentlyContinue |
-              Sort-Object LastWriteTime -Descending | Select-Object -First 1
-          if ($null -eq $dir)
+          # ★ 실측 2026-08-16: 여기가 **가장 최신 폴더 하나만** 보고 있었다. 그런데 빌드가 죽으면
+          #   산출물 없는 빈 폴더가 그 자리에 남는다 — 바로 아래에 성공한 판이 있는데도
+          #   "no player .exe" 로 포기했다(8판 연속 빨강). 그래서 **exe 가 있는 폴더 중 최신**을 고른다.
+          #
+          # ★ 단, 건너뛴 사실은 반드시 남긴다. 「최신 빌드가 죽었다」가 조용히 사라지면
+          #   옛 판으로 초록을 받아 놓고 빌드가 며칠째 깨진 걸 아무도 모른다
+          #   (= 이 프로젝트가 석 달간 당한 그 함정의 다른 얼굴).
+          $dirs = Get-ChildItem $buildRoot -Directory -Filter '*-windows' -ErrorAction SilentlyContinue |
+              Sort-Object LastWriteTime -Descending
+          if ($null -eq $dirs -or $dirs.Count -eq 0)
           {
               Write-Host "ERROR: no windows build under $buildRoot -- runtime gates have no subject."
               exit 1
@@ -66,16 +73,39 @@ jobs:
           #   그걸 띄우면 즉시 종료(exit=0) 하므로 두 관문 모두 "결과 파일이 없다 / 서버가
           #   ready 전에 죽었다"로 실패했다 — 게임은 멀쩡한데 검사만 계속 빨갰다.
           #   진짜 플레이어는 옆에 `<이름>_Data` 폴더를 갖는다. 그것으로 고른다.
-          $exeCandidates = Get-ChildItem $dir.FullName -File -Filter '*.exe' -ErrorAction SilentlyContinue |
-              Where-Object { $_.Name -notlike 'UnityCrashHandler*' }
-          $exe = $exeCandidates |
-              Where-Object { Test-Path (Join-Path $dir.FullName ($_.BaseName + '_Data')) } |
-              Select-Object -First 1
-          if ($null -eq $exe) { $exe = $exeCandidates | Select-Object -First 1 }
+          $dir = $null
+          $exe = $null
+          $skipped = 0
+          foreach ($candidate in $dirs)
+          {
+              $exeCandidates = Get-ChildItem $candidate.FullName -File -Filter '*.exe' -ErrorAction SilentlyContinue |
+                  Where-Object { $_.Name -notlike 'UnityCrashHandler*' }
+              $player = $exeCandidates |
+                  Where-Object { Test-Path (Join-Path $candidate.FullName ($_.BaseName + '_Data')) } |
+                  Select-Object -First 1
+              if ($null -eq $player) { $player = $exeCandidates | Select-Object -First 1 }
+
+              if ($null -ne $player)
+              {
+                  $dir = $candidate
+                  $exe = $player
+                  break
+              }
+
+              $skipped++
+              Write-Host "WARN: skipping empty build dir (build likely crashed): $($candidate.Name)"
+          }
+
           if ($null -eq $exe)
           {
-              Write-Host "ERROR: build dir has no player .exe: $($dir.FullName)"
+              Write-Host "ERROR: no windows build dir under $buildRoot has a player .exe -- every recent build failed."
               exit 1
+          }
+
+          if ($skipped -gt 0)
+          {
+              Write-Host "WARN: $skipped newer build(s) produced no player. THE BUILD IS BROKEN even if these gates pass."
+              Write-Host "WARN: gates below run on an OLDER build -- they do not cover the newest commits."
           }
 
           # Stale build = lost coverage. Say so in red instead of passing on old evidence.
