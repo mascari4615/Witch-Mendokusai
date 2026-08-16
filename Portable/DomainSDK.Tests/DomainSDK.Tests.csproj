@@ -69,6 +69,7 @@
     <Compile Include="$(TestsRoot)Idle/IdlePrestigeTests.cs" />
     <Compile Include="$(TestsRoot)Idle/IdleTextViewTests.cs" />
     <Compile Include="$(TestsRoot)Idle/BigNumberTextTests.cs" />
+    <Compile Include="$(TestsRoot)Idle/IdleTapTests.cs" />
     <Compile Include="$(TestsRoot)Combat/DamageCalculationTests.cs" />
     <Compile Include="$(TestsRoot)Building/BuildingFootprintTests.cs" />
     <Compile Include="$(TestsRoot)TowerDefense/TowerDefenseSignalFieldTests.cs" />
@@ -121,6 +122,7 @@
     <Compile Include="$(TestsRoot)Versus/VersusMatchCoreTests.cs" />
     <Compile Include="$(TestsRoot)Versus/VersusCardTests.cs" />
     <Compile Include="$(TestsRoot)Versus/VersusFullMatchSimTests.cs" />
+    <Compile Include="$(TestsRoot)Versus/VersusBalanceSimTests.cs" />
   </ItemGroup>
 
 </Project>

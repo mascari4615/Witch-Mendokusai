@@ -299,6 +299,31 @@ namespace WitchMendokusai
 			}
 		}
 
+		/// <summary>
+		/// 사람이 판을 눌렀다 — <b>한 대 더</b>.
+		///
+		/// ★ 코어가 값을 정한다(지금 공격속도의 몇 초치). 화면은 「눌렸다」만 보여준다 —
+		///   여기서 숫자를 만들면 창마다 다른 게임이 된다.
+		/// </summary>
+		private void OnTapped(PointerDownEvent moment)
+		{
+			session.Send(new IdleTapIntent());
+
+			// 누른 것이 <b>손에 남게</b> — 차례 상관없이 셋 다 달려든다(사람이 시킨 것이니까).
+			for (int index = 0; index < heroes.Count; index++)
+			{
+				heroes[index].Lunge(Vector2.right);
+			}
+
+			targetShape.Hit();
+			sound.Tick(0f);
+			Shake(0.12f);
+
+			floats.Pop("!", new Vector2(Random.Range(50f, 90f), 40f), new Color(0.95f, 0.86f, 0.55f));
+
+			Render(session.Capture());
+		}
+
 		/// <summary>한 대 — 차례가 된 영웅이 나선다.</summary>
 		private void Strike(IdleSnapshot snapshot, float beatsPerSecond)
 		{
@@ -620,6 +645,11 @@ namespace WitchMendokusai
 			// 튀는 숫자는 판 위에 뜬다 — 담는 칸이 자리를 잡아 준다.
 			arenaBox = box;
 			floats = new FloatTextLayer(box);
+
+			// ★ <b>판 전체가 누르는 것</b>이다 (사용자 지적: 「전혀 클리커스럽지 않다」).
+			//   쿠키 클리커의 심장은 큰 버튼이다. 작은 버튼을 따로 두면 그건 <b>또 하나의 목록</b>이고,
+			//   손이 가는 곳(적이 있는 자리)과 누르는 곳이 갈라진다.
+			field.RegisterCallback<PointerDownEvent>(OnTapped);
 		}
 
 		/// <summary>창고 실황 — 가방이 격자로 보이고, 떨어진 것이 위에서 꽂힌다.</summary>
@@ -825,7 +855,7 @@ namespace WitchMendokusai
 			DrawKillDots(snapshot);
 
 			// ★ 「지금 얼마나 빨리 치나」를 글자로도 준다 — 올린 게 숫자로도 보여야 한다.
-			arenaCaption.text = string.Format("초당 {0}대 · {1}",
+			arenaCaption.text = string.Format("눌러서 한 대 더 · 초당 {0}대 · {1}",
 				BigNumberText.Format(snapshot.AttacksPerSecond),
 				snapshot.HoldingStage ? "여기 머무는 중 — 많이 떨군다" : "계속 내려가는 중 — 좋은 게 떨어진다");
 		}

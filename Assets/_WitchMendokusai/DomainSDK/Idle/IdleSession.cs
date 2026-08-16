@@ -90,6 +90,15 @@ namespace WitchMendokusai.DomainSDK.Idle
             return IdleModel.TryRaise(state, tuning, intent.Kind, out UpgradeRaiseFailure _);
         }
 
+        /// <summary>
+        /// 손으로 한 대. <b>늘 받아들여진다</b> — 모을 것이 필요 없는 유일한 행동이다.
+        /// </summary>
+        public bool Send(IdleTapIntent intent)
+        {
+            IdleModel.Tap(state, tuning);
+            return true;
+        }
+
         /// <summary>생산자를 하나 산다. 자원이 모자라면 아무 일도 안 일어난다.</summary>
         public bool Send(IdleBuyProducerIntent intent)
         {

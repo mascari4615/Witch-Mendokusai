@@ -44,6 +44,15 @@ namespace WitchMendokusai.DomainSDK.Idle
         public double BaseAttackSpeed { get; set; } = 3d;
 
         /// <summary>
+        /// 손으로 한 대가 <b>자동 공격 몇 초치</b>인가 (<see cref="IdleModel.Tap"/>).
+        ///
+        /// ★ 비율로 둔 이유 — 고정값이면 초반엔 과하고 후반엔 무의미해진다.
+        ///   비율이면 손은 늘 같은 몫을 한다: 초당 다섯 번 두드리면 대략 <b>공격속도 배</b>가 된다.
+        /// ★ 안 두드려도 손해는 없다 — 방치형이라 손은 <b>더 얹는 것</b>이지 <b>내야 하는 것</b>이 아니다.
+        /// </summary>
+        public double TapSecondsOfAttack { get; set; } = 0.2d;
+
+        /// <summary>
         /// 공격력 곡선.
         ///
         /// ★ <b>효과 배수 1.337 은 임의의 값이 아니다</b> — 관계식에서 나온다(실측·유도 2026-08-16).

@@ -250,9 +250,43 @@ namespace WitchMendokusai.DomainSDK.Idle
             // 기지가 시간만큼 자원을 낸다 — 잡든 안 잡든 돈다.
             state.Resource += IdleBase.OutputPerSecond(state, tuning) * seconds;
 
-            double swings = state.AttackProgress + AttackSpeedOf(state, tuning) * seconds;
-            long available = (long)(swings + COUNT_EPSILON_RATIO);
-            state.AttackProgress = swings - available;
+            state.AttackProgress += AttackSpeedOf(state, tuning) * seconds;
+            Resolve(state, tuning);
+        }
+
+        /// <summary>
+        /// <b>손으로 한 대</b> — 사람이 판을 눌렀다 (TASK-WM-406).
+        ///
+        /// ★ 왜 있나 (사용자 지적: 「전혀 클리커스럽지 않다」) — 이 판은 전부 자동이라
+        ///   <b>누를 것이 없었다</b>. 쿠키 클리커의 심장은 큰 버튼이고, 방치형이 방치로만
+        ///   이루어지면 시작한 첫 1분이 <b>구경</b>이 된다.
+        ///
+        /// ★ 한 대의 값을 <b>지금 공격속도의 몇 초치</b>로 준다 — 고정값으로 주면
+        ///   초반엔 과하고 후반엔 아무것도 아니게 된다. 비율로 주면 손은 <b>늘 같은 몫</b>을 하고,
+        ///   그래서 「눌러도 그만」이 안 된다. 안 눌러도 손해는 없다(방치형이니까).
+        ///
+        /// ★ 이건 사람이 부르는 것이라 <b>스텝 불변</b>의 대상이 아니다 — 감정(도박)과 같은 갈래다.
+        /// </summary>
+        public static void Tap(IdleState state, IdleTuning tuning)
+        {
+            state.AttackProgress += AttackSpeedOf(state, tuning) * tuning.TapSecondsOfAttack;
+            Resolve(state, tuning);
+        }
+
+        /// <summary>
+        /// 쌓인 공격을 <b>실제 처치로</b> 바꾼다 — 시간이 쌓았든 손이 쌓았든 같은 길을 탄다.
+        ///
+        /// ★ 한 길로 모아 둔다: 손으로 때리기가 다른 셈을 쓰면 그건 두 게임이 된다.
+        /// </summary>
+        private static void Resolve(IdleState state, IdleTuning tuning)
+        {
+            long available = (long)(state.AttackProgress + COUNT_EPSILON_RATIO);
+            if (available <= 0L)
+            {
+                return;
+            }
+
+            state.AttackProgress -= available;
 
             for (int guard = 0; guard < MAX_STAGES_PER_STEP && available > 0L; guard++)
             {
