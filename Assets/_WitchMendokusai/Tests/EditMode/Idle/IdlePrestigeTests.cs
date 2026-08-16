@@ -138,6 +138,28 @@ namespace WitchMendokusai.Tests
 				"깊이 갔다 접었는데 30%도 안 빨라진다 — 「한 번 더」를 팔 수 없다");
 		}
 
+		/// <summary>
+		/// ★ <b>점수는 난이도보다 한참 작게 곱해야 한다.</b>
+		///
+		/// 실측(2026-08-16): 점수 배수를 단계 난이도(1.55)와 같게 두면 <b>인플레</b>가 난다 —
+		/// 지나온 길을 공짜로 되찾고 그 위에 또 쌓여 판마다 깊이가 5배씩 뛴다(69 → 363).
+		/// 점수는 <b>되돌아가는 삯</b>이지 앞으로 미는 힘이 아니다. 미는 힘은 올리기가 낸다.
+		///
+		/// 이건 필요조건일 뿐이다 — 실제 모양은 <c>IdleLongHaulTests</c> 의 표가 본다.
+		/// </summary>
+		[Test]
+		public void PointMultiplier_StaysWellBelowStageDifficulty()
+		{
+			IdleTuning tuning = new IdleTuning();
+
+			// 문턱은 <b>실측 경계</b>다 — 1.10 은 판마다 +70단계로 일정했고, 1.20 은 인플레였다.
+			// 난이도(1.55)와의 비율로 적으면 그럴싸하지만 그건 재 본 값이 아니다.
+			Assert.LessOrEqual(tuning.PrestigeMultiplierPerPoint, 1.15d,
+				"점수 배수가 실측 경계를 넘었다 — 며칠이면 숫자가 인플레로 뜻을 잃는다 (1.10 안정 · 1.20 인플레)");
+			Assert.Less(tuning.PrestigeMultiplierPerPoint, tuning.TargetHealthByStage.Ratio,
+				"점수 배수가 단계 난이도 이상이다 — 지나온 길을 공짜로 되찾는다");
+		}
+
 		/// <summary>점수가 공격력에 실제로 실린다 — 배수가 이름뿐이면 위 판이 우연히 통과할 수 있다.</summary>
 		[Test]
 		public void Points_MultiplyDamage()
@@ -147,9 +169,11 @@ namespace WitchMendokusai.Tests
 			IdleState plain = new IdleState();
 			IdleState blessed = new IdleState { PrestigePoints = 10L };
 
+			double expected = System.Math.Pow(tuning.PrestigeMultiplierPerPoint, 10d);
+
 			Assert.AreEqual(1d, IdleModel.PrestigeMultiplier(plain, tuning), TOLERANCE);
-			Assert.AreEqual(2d, IdleModel.PrestigeMultiplier(blessed, tuning), TOLERANCE, "점수 10 = +100% 여야 한다");
-			Assert.AreEqual(IdleModel.DamageOf(plain, tuning) * 2d, IdleModel.DamageOf(blessed, tuning), TOLERANCE);
+			Assert.AreEqual(expected, IdleModel.PrestigeMultiplier(blessed, tuning), 1e-6d, "점수마다 곱해야 한다");
+			Assert.AreEqual(IdleModel.DamageOf(plain, tuning) * expected, IdleModel.DamageOf(blessed, tuning), 1e-3d);
 		}
 
 		/// <summary>점수는 저장을 건너 살아남는다. 옛 저장에는 없으므로 0 으로 온다.</summary>
@@ -181,7 +205,7 @@ namespace WitchMendokusai.Tests
 
 			Assert.AreEqual(5L, snapshot.PrestigePoints);
 			Assert.AreEqual(IdleModel.PrestigeAwardFor(state, tuning), snapshot.PrestigeAward);
-			Assert.AreEqual(1.5d, snapshot.PrestigeMultiplier, TOLERANCE);
+			Assert.AreEqual(System.Math.Pow(tuning.PrestigeMultiplierPerPoint, 5d), snapshot.PrestigeMultiplier, 1e-9d);
 		}
 
 		/// <summary>의도로도 접힌다 — 표현이 쓰는 길이 진짜 도는지.</summary>

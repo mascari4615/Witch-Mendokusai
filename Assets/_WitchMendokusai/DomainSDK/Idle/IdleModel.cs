@@ -25,12 +25,20 @@ namespace WitchMendokusai.DomainSDK.Idle
         private const double COUNT_EPSILON_RATIO = 1e-9d;
 
         /// <summary>
-        /// 리셋 점수가 주는 배수 — 점수를 <b>더해서</b> 한 번 곱한다.
-        /// 점수마다 곱하면 몇 판 만에 숫자가 터진다(클리커 히어로즈의 영혼도 더하는 쪽이다).
+        /// 리셋 점수가 주는 배수 — 점수마다 <b>곱한다</b>.
+        ///
+        /// ★ 처음엔 더했다(점수당 +10%). 이레짜리 시뮬레이션에서 판 소요가 매 판 1.8배씩 늘어
+        ///   11판째에 42시간이 됐다 — <b>요구는 지수인데 보상이 선형</b>이었기 때문이다.
+        ///   자세한 근거는 <see cref="IdleTuning.PrestigeMultiplierPerPoint"/> 에 적혀 있다.
         /// </summary>
         public static double PrestigeMultiplier(IdleState state, IdleTuning tuning)
         {
-            return 1d + state.PrestigePoints * tuning.PrestigeBonusPerPoint;
+            if (state.PrestigePoints <= 0L)
+            {
+                return 1d;
+            }
+
+            return System.Math.Pow(tuning.PrestigeMultiplierPerPoint, state.PrestigePoints);
         }
 
         /// <summary>가장 좋은 잠재가 주는 배수.</summary>
@@ -47,16 +55,34 @@ namespace WitchMendokusai.DomainSDK.Idle
                 * PotentialMultiplier(state);
         }
 
-        /// <summary>지금 접으면 몇 점인가. 아직 못 접으면 0.</summary>
-        public static long PrestigeAwardFor(IdleState state, IdleTuning tuning)
+        /// <summary>
+        /// 접었을 때 <b>점수가 얼마가 되나</b> — 합계가 아니라 <b>여태 가장 깊이 간 곳</b>이다.
+        ///
+        /// ★ 처음엔 판마다 더했다. 이레짜리 시뮬레이션이 두 번 다 잡아냈다 (2026-08-16):
+        ///   더하고 배수가 선형이면 <b>정체</b>했고(판 소요 1.8배씩 → 11판째 42시간),
+        ///   더하고 배수가 지수면 <b>폭주</b>했다(점수가 깊이를, 깊이가 점수를 밀어 3판 만에 77단계).
+        ///   되먹임이 문제였다 — 쌓이는 값이 다시 쌓이는 속도를 키웠다.
+        ///
+        /// ★ 「가장 깊이 간 곳」으로 두면 그 고리가 끊긴다. 점수는 깊이를 <b>따라갈</b> 뿐 못 밀어낸다.
+        ///   뜻도 분명해진다 — <b>이미 지나온 길은 다시 안 판다.</b> 접으면 최고 깊이 언저리까지
+        ///   단숨에 돌아오고, 거기서부터가 진짜 이번 판이다. 새로 버는 것은 <b>더 내려간 만큼</b>뿐이다.
+        /// </summary>
+        public static long PrestigeStandingFor(IdleState state, IdleTuning tuning)
         {
             if (state.Stage < tuning.PrestigeMinStage)
             {
                 return 0L;
             }
 
-            double award = (state.Stage - tuning.PrestigeMinStage + 1) * tuning.PrestigePointsPerStage;
-            return award < 0d ? 0L : (long)award;
+            double standing = (state.Stage - tuning.PrestigeMinStage + 1) * tuning.PrestigePointsPerStage;
+            return standing < 0d ? 0L : (long)standing;
+        }
+
+        /// <summary>지금 접으면 <b>새로 버는</b> 점수. 이미 가진 것보다 못하면 0 — 접을 이유가 없다.</summary>
+        public static long PrestigeAwardFor(IdleState state, IdleTuning tuning)
+        {
+            long standing = PrestigeStandingFor(state, tuning);
+            return standing > state.PrestigePoints ? standing - state.PrestigePoints : 0L;
         }
 
         /// <summary>지금 접을 수 있나.</summary>
@@ -80,7 +106,7 @@ namespace WitchMendokusai.DomainSDK.Idle
                 return false;
             }
 
-            state.PrestigePoints += awarded;
+            state.PrestigePoints = PrestigeStandingFor(state, tuning);
             state.Ascensions += 1;
 
             state.Resource = 0d;
