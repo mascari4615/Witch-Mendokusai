@@ -44,9 +44,18 @@ namespace WitchMendokusai.DomainSDK.Farming
 
         public bool IsPlanted => planted;
 
+        /// <summary>이 칸에 선 작물이 타는 시계 (TASK-WM-410). 빈 칸은 세계의 하늘로 본다.</summary>
+        public PlantClock Clock { get; private set; }
+
         public int PlantDataId => plantDataId;
 
         public float Vitality => planted ? state.Vitality : 0f;
+
+        /// <summary>지금까지 살아서 쌓은 분 — 기억(저장)에 적히는 값.</summary>
+        public int GrowthMinutes => planted ? state.GrowthMinutes : 0;
+
+        /// <summary>시들었나 — 기억에 적히는 값(<see cref="Phase"/> 는 빈 칸까지 뭉뚱그린다).</summary>
+        public bool IsWithered => planted && state.Withered;
 
         /// <summary>시들기 전 Fourth(플레이어)가 관찰했는가 — 「진짜화」 자격 + 시각(gold) 신호.</summary>
         public bool Observed => planted && state.Observed;
@@ -77,8 +86,8 @@ namespace WitchMendokusai.DomainSDK.Farming
             }
         }
 
-        /// <summary>빈 칸에 작물을 심는다. 이미 점유면 거부(false).</summary>
-        public bool Plant(int plantDataId, PlantGrowthParams parameters, float startVitality)
+        /// <summary>빈 칸에 작물을 심는다. 이미 점유면 거부(false). 시계는 작물이 고른다(기본 = 세계의 하늘).</summary>
+        public bool Plant(int plantDataId, PlantGrowthParams parameters, float startVitality, PlantClock clock = PlantClock.World)
         {
             if (planted)
             {
@@ -89,6 +98,26 @@ namespace WitchMendokusai.DomainSDK.Farming
             this.parameters = parameters;
             state = new PlantGrowthState(startVitality);
             planted = true;
+            Clock = clock;
+            return true;
+        }
+
+        /// <summary>
+        /// 기억에서 되살린다 (TASK-WM-410) — 심기와 달리 <b>이미 자란 상태</b>를 그대로 얹는다.
+        /// 빈 칸에만 얹는다(점유된 칸을 덮어쓰면 저장이 세계를 조용히 지운다).
+        /// </summary>
+        public bool Restore(int plantDataId, PlantGrowthParams parameters, PlantGrowthState state, PlantClock clock)
+        {
+            if (planted || state == null)
+            {
+                return false;
+            }
+
+            this.plantDataId = plantDataId;
+            this.parameters = parameters;
+            this.state = state;
+            planted = true;
+            Clock = clock;
             return true;
         }
 
@@ -159,6 +188,7 @@ namespace WitchMendokusai.DomainSDK.Farming
             planted = false;
             plantDataId = 0;
             state = null;
+            Clock = PlantClock.World;
         }
     }
 }

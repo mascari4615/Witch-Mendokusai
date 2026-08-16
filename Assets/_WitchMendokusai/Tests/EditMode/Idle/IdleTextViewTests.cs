@@ -1,5 +1,4 @@
 using NUnit.Framework;
-using UnityEngine;
 using WitchMendokusai.DomainSDK.Idle;
 using WitchMendokusai.DomainSDK.Contracts;
 
@@ -131,7 +130,7 @@ namespace WitchMendokusai.Tests
 				}
 
 				view.Render(session.Capture());
-				Debug.Log("[IdleText] " + names[index] + "  " + view.Line);
+				TestContext.WriteLine("[IdleText] " + names[index] + "  " + view.Line);
 			}
 		}
 

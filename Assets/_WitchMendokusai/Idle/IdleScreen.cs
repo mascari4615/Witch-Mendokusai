@@ -15,19 +15,27 @@ namespace WitchMendokusai
 	/// ★ 이 파일에 게임 규칙이 한 줄도 없다 — 사진을 받아 그리고, 의도를 보낸다.
 	///   에디터 창과 같은 코어·같은 계약이고 다른 것은 그릇뿐이다.
 	///
-	/// ★ 짜임 (사용자 컨펌 2026-08-16): 위 요약 띠 · 아래 두 칸(판 · 조작).
-	///   조작은 <b>탭</b>으로 묶는다 — 세로로 늘어놓으면 버튼이 늘 때마다 화면이 길어지고
-	///   지금 무엇을 하는 중인지가 안 보인다.
+	/// ★ 짜임 (사용자 컨펌 2026-08-16): 위 요약 띠 · 가운데 <b>실황 셋</b>(기지·전투·창고) ·
+	///   아래 <b>조작 서랍</b>(한 번에 한 묶음).
+	///   전에는 실황이 <b>전투 하나뿐</b>이었고 기지·창고는 버튼 더미였다. 그래서
+	///   ① 기지가 도는 게 안 보이고 ② 오른쪽 한 칸에 세 묶음이 쌓여 서로 겹쳤다.
+	///   실황과 조작을 <b>층으로 가른다</b> — 보는 것은 위, 만지는 것은 아래.
 	///
 	/// ★ 보이는 것은 <b>기하학적 도형</b>이다(사용자 방향: 세계관 정하기 전).
 	///   규칙 하나로 읽힌다 — <b>변의 수 = 등급</b>. 1등급 삼각형 … 8등급 십각형.
 	///   숫자를 안 읽어도 변만 세면 등급을 안다.
 	///
-	/// ★ 해상도 — 고정 픽셀을 최소로 쓰고 flex 로 늘린다. 좁으면 두 칸이 한 칸으로 접힌다.
+	/// ★ 해상도 — 고정 픽셀을 최소로 쓰고 flex 로 늘린다. 좁으면 실황 셋이 접힌다.
 	/// </summary>
 	[RequireComponent(typeof(UIDocument))]
 	public sealed class IdleScreen : MonoBehaviour, IGameView<IdleSnapshot>
 	{
+		/// <summary>눈으로 셀 수 있는 최대 장단 — 이보다 빠르면 사람 눈엔 그냥 「계속」이다.</summary>
+		private const float FASTEST_VISIBLE_BEATS = 8f;
+
+		/// <summary>창고 격자 한 줄에 몇 칸.</summary>
+		private const int VAULT_COLUMNS = 8;
+
 		[Header("수치 — 비워 두면 코드 기본값")]
 		[SerializeField] private IdleTuningSO tuningAsset;
 
@@ -37,35 +45,55 @@ namespace WitchMendokusai
 		[Header("얼마나 자주 적나 (초)")]
 		[SerializeField] private float saveIntervalSeconds = 10f;
 
+		[Header("실황 — 눈에 보이는 리듬")]
+		[Tooltip("기지가 알갱이를 몇 초에 하나 뱉나")]
+		[SerializeField] private float moteEverySeconds = 0.22f;
+
+		[Tooltip("때리는 소리를 이보다 자주 안 낸다 (초)")]
+		[SerializeField] private float tickGapSeconds = 0.14f;
+
 		private IdleSession session;
 		private float sinceLastSave;
 		private long lastKills;
+		private int lastBagCount;
 
+		// ── 위 띠 ───────────────────────────────────────────────────────────
 		private Label stageLabel;
 		private Label resourceLabel;
 		private Label topNoteLabel;
 
+		// ── 기지 실황 ───────────────────────────────────────────────────────
+		private MoteStreamElement baseMotes;
+		private readonly List<NgonElement> baseShapes = new List<NgonElement>();
+		private NgonElement vaultMark;
+		private Label baseLiveLabel;
+		private float sinceMote;
+		private int moteTurn;
+
+		// ── 전투 실황 ───────────────────────────────────────────────────────
 		private NgonElement targetShape;
 		private NgonBurstElement burst;
-		private readonly List<NgonElement> allies = new List<NgonElement>();
-
-		/// <summary>목록에 붙은 작은 도형들 — 같이 돌려야 화면이 살아 있다.</summary>
-		private readonly List<NgonElement> decor = new List<NgonElement>();
+		private readonly List<NgonElement> heroes = new List<NgonElement>();
+		private MoteStreamElement bolts;
 		private ProgressBar healthBar;
 		private readonly List<VisualElement> killDots = new List<VisualElement>();
 		private Label arenaCaption;
 		private VisualElement arenaBox;
 		private GridBackdropElement backdrop;
 		private FloatTextLayer floats;
-		private ProceduralSfx sound;
 
-		/// <summary>지금 화면이 얼마나 흔들리나 (0~1). 잡으면 조금, 합치면 많이.</summary>
-		private float shake;
+		/// <summary>때리는 장단이 얼마나 찼나 (1 이 되면 한 대).</summary>
+		private float beat;
+		private int heroTurn;
 
-		/// <summary>보여주는 자원 — 실제 값을 <b>따라 굴러간다</b>(뚝뚝 튀지 않게).</summary>
-		private double resourceRolling;
-		private double resourceShown;
-		private float sinceResourcePop;
+		// ── 창고 실황 ───────────────────────────────────────────────────────
+		private MoteStreamElement vaultMotes;
+		private readonly List<NgonElement> vaultCells = new List<NgonElement>();
+		private Label vaultLabel;
+
+		// ── 조작 서랍 ───────────────────────────────────────────────────────
+		private readonly List<Button> tabButtons = new List<Button>();
+		private readonly List<VisualElement> pages = new List<VisualElement>();
 
 		private VisualElement basePage;
 		private readonly List<Button> producerButtons = new List<Button>();
@@ -74,7 +102,24 @@ namespace WitchMendokusai
 
 		private VisualElement upgradePage;
 		private VisualElement gearPage;
+		private VisualElement heroPage;
 		private VisualElement foldPage;
+
+		private Button pullButton;
+		private Label codexLabel;
+		private Label pullNote;
+		private VisualElement partyRow;
+		private readonly List<Button> partyButtons = new List<Button>();
+		private readonly List<NgonElement> partyShapes = new List<NgonElement>();
+		private VisualElement heroRows;
+		private readonly List<Button> heroButtons = new List<Button>();
+		private readonly List<NgonElement> heroShapes = new List<NgonElement>();
+
+		/// <summary>지금 어느 자리를 바꾸는 중인가 — -1 이면 고르는 중이 아니다.</summary>
+		private int seatBeingFilled = -1;
+
+		/// <summary>목록에 붙은 작은 도형들 — 같이 돌려야 화면이 살아 있다.</summary>
+		private readonly List<NgonElement> decor = new List<NgonElement>();
 
 		private Label damageTitle;
 		private Label damageValue;
@@ -99,6 +144,33 @@ namespace WitchMendokusai
 		private Label foldSummary;
 		private Button prestigeButton;
 
+		private ProceduralSfx sound;
+
+		/// <summary>지금 화면이 얼마나 흔들리나 (0~1). 잡으면 조금, 합치면 많이.</summary>
+		private float shake;
+
+		/// <summary>보여주는 자원 — 실제 값을 <b>따라 굴러간다</b>(뚝뚝 튀지 않게).</summary>
+		private double resourceRolling;
+		private double resourceShown;
+		private float sinceResourcePop;
+
+		/// <summary>
+		/// 영웅 셋의 <b>생김새와 성격</b>.
+		///
+		/// ★ 사용자 지적 (2026-08-16): 「영웅들이 개성이 없다」. 셋이 똑같은 도형이면
+		///   그건 셋이 아니라 <b>하나가 세 번 그려진 것</b>이다.
+		///   세계관이 없으니 이름·직업 대신 <b>모양·색·움직임</b>으로 가른다 —
+		///   삼각(빠르게 자주 찌른다) · 사각(느리고 크게 친다) · 오각(안 다가가고 쏜다).
+		/// </summary>
+		private static readonly int[] HERO_SIDES = { 3, 4, 5 };
+		private static readonly float[] HERO_TURNS = { 0.55f, 0.18f, 0.34f };
+		private static readonly Color[] HERO_COLORS =
+		{
+			new Color(0.93f, 0.62f, 0.36f),
+			new Color(0.46f, 0.80f, 0.72f),
+			new Color(0.72f, 0.58f, 0.92f),
+		};
+
 		public PresentationKind Kind => PresentationKind.UIOnly;
 
 		private void OnEnable()
@@ -120,6 +192,7 @@ namespace WitchMendokusai
 
 			BuildInterface(away);
 			lastKills = session.State.Kills;
+			lastBagCount = session.State.Bag.Count;
 			resourceShown = session.State.Resource;
 			resourceRolling = session.State.Resource;
 			Render(session.Capture());
@@ -150,20 +223,9 @@ namespace WitchMendokusai
 			session.Advance(delta);
 			IdleSnapshot snapshot = session.Capture();
 
-			// ★ 잡힌 순간을 눈으로 보여준다 — 자동 전투일수록 「일이 일어났다」는 신호가 필요하다.
-			if (snapshot.Kills > lastKills)
-			{
-				long got = snapshot.Kills - lastKills;
-				lastKills = snapshot.Kills;
-				burst.Fire(SidesFor(snapshot.MaxTierNow), TierColor(snapshot.MaxTierNow));
-				targetShape.Hit();
-				sound.Blip(snapshot.MaxTierNow);
-				Shake(0.25f);
-
-				// ★ 잡힌 것이 <b>튀어나온다</b> — 칸 안에서 조용히 바뀌면 일이 안 일어난 것처럼 보인다.
-				floats.Pop("+" + BigNumberText.Format(got),
-					new Vector2(Random.Range(30f, 110f), 70f), TierColor(snapshot.MaxTierNow));
-			}
+			AdvanceBattle(snapshot, delta);
+			AdvanceBase(snapshot, delta);
+			AdvanceVault(snapshot, delta);
 
 			// 자원은 계속 들어오므로 <b>주기적으로</b> 띄운다 — 매 프레임이면 글자가 폭포가 된다.
 			sinceResourcePop += delta;
@@ -176,7 +238,7 @@ namespace WitchMendokusai
 				if (gained > 0d)
 				{
 					floats.Pop("+" + BigNumberText.Format(gained),
-						new Vector2(Random.Range(60f, 140f), 130f), new Color(0.72f, 0.82f, 0.55f));
+						new Vector2(Random.Range(40f, 110f), 120f), new Color(0.72f, 0.82f, 0.55f));
 				}
 			}
 
@@ -185,15 +247,7 @@ namespace WitchMendokusai
 			AdvanceShake(delta);
 
 			// ★ 자원이 <b>굴러 올라간다</b> — 뚝뚝 튀면 「많이 벌었다」가 안 느껴진다.
-			//   남은 차이의 일부씩 따라붙는 방식이라 크든 작든 같은 느낌으로 오른다.
 			resourceRolling += (snapshot.Resource - resourceRolling) * Mathf.Min(1f, delta * 6f);
-
-			targetShape.Advance(delta, 0.08f);
-			burst.Advance(delta);
-			for (int index = 0; index < allies.Count; index++)
-			{
-				allies[index].Advance(delta, 0.35f + index * 0.1f);
-			}
 
 			for (int index = 0; index < decor.Count; index++)
 			{
@@ -207,6 +261,203 @@ namespace WitchMendokusai
 			{
 				WriteDown();
 			}
+		}
+
+		// ── 실황 굴리기 ─────────────────────────────────────────────────────
+
+		/// <summary>
+		/// 전투 — <b>때리는 게 보이게</b> 한다.
+		///
+		/// ★ 장단은 코어의 실제 공격속도(<see cref="IdleSnapshot.AttacksPerSecond"/>)에서 온다.
+		///   화면이 제 장단을 지어내면 공격속도를 올려도 <b>빨라진 게 안 보인다</b>.
+		/// ★ 다만 눈이 셀 수 있는 데까지만 — 초당 수백 번은 그냥 「계속」이라 세지 못한다.
+		/// </summary>
+		private void AdvanceBattle(IdleSnapshot snapshot, float delta)
+		{
+			float beatsPerSecond = Mathf.Min(FASTEST_VISIBLE_BEATS, (float)snapshot.AttacksPerSecond);
+			beat += delta * beatsPerSecond;
+
+			// 한 프레임에 여러 대를 몰아 치지 않는다 — 같은 프레임의 두 대는 눈에 한 대다.
+			if (beat >= 1f)
+			{
+				beat -= 1f;
+				if (beat > 1f)
+				{
+					beat = 0f;
+				}
+
+				Strike(snapshot, beatsPerSecond);
+			}
+
+			if (snapshot.Kills > lastKills)
+			{
+				long got = snapshot.Kills - lastKills;
+				lastKills = snapshot.Kills;
+
+				burst.Fire(SidesFor(snapshot.MaxTierNow), TierColor(snapshot.MaxTierNow));
+				targetShape.Hit();
+				sound.Blip(snapshot.MaxTierNow);
+				Shake(0.25f);
+
+				floats.Pop("+" + BigNumberText.Format(got),
+					new Vector2(Random.Range(30f, 110f), 70f), TierColor(snapshot.MaxTierNow));
+			}
+
+			targetShape.Advance(delta, 0.08f);
+			burst.Advance(delta);
+			bolts.Advance(delta);
+
+			for (int index = 0; index < heroes.Count; index++)
+			{
+				heroes[index].Advance(delta, HERO_TURNS[index % HERO_TURNS.Length]);
+			}
+		}
+
+		/// <summary>
+		/// 사람이 판을 눌렀다 — <b>한 대 더</b>.
+		///
+		/// ★ 코어가 값을 정한다(지금 공격속도의 몇 초치). 화면은 「눌렸다」만 보여준다 —
+		///   여기서 숫자를 만들면 창마다 다른 게임이 된다.
+		/// </summary>
+		private void OnTapped(PointerDownEvent moment)
+		{
+			session.Send(new IdleTapIntent());
+
+			// 누른 것이 <b>손에 남게</b> — 차례 상관없이 셋 다 달려든다(사람이 시킨 것이니까).
+			for (int index = 0; index < heroes.Count; index++)
+			{
+				heroes[index].Lunge(Vector2.right);
+			}
+
+			targetShape.Hit();
+			sound.Tick(0f);
+			Shake(0.12f);
+
+			floats.Pop("!", new Vector2(Random.Range(50f, 90f), 40f), new Color(0.95f, 0.86f, 0.55f));
+
+			Render(session.Capture());
+		}
+
+		/// <summary>한 대 — 차례가 된 영웅이 나선다.</summary>
+		private void Strike(IdleSnapshot snapshot, float beatsPerSecond)
+		{
+			int who = heroTurn % heroes.Count;
+			heroTurn++;
+
+			// 오각(원거리)은 안 다가간다 — 대신 쏜다. 그게 이 셋을 다르게 만든다.
+			bool ranged = who == 2;
+
+			if (ranged)
+			{
+				heroes[who].Hit();
+				bolts.Send(new Vector2(0.30f, 0.52f), new Vector2(0.78f, 0.5f),
+					HERO_COLORS[who], HERO_SIDES[who], 0.22f);
+			}
+			else
+			{
+				heroes[who].Lunge(Vector2.right);
+				targetShape.Hit();
+			}
+
+			// 잦으면 소음이다 — 눈으로 셀 수 있는 빠르기일 때만 귀에도 낸다.
+			if (beatsPerSecond <= FASTEST_VISIBLE_BEATS * 0.6f)
+			{
+				sound.Tick(tickGapSeconds);
+			}
+		}
+
+		/// <summary>
+		/// 기지 — <b>자원이 어디서 오는지</b>를 보여준다.
+		///
+		/// ★ 사용자 지적: 「방치 강화도 실제로 아무 효과 없는 것 같다」.
+		///   숫자만 오르면 산 것이 일하는지 안 하는지 알 길이 없다.
+		///   산 생산자가 알갱이를 <b>위로 뱉고</b>, 그게 저장고로 들어가는 걸 눈으로 본다.
+		/// </summary>
+		private void AdvanceBase(IdleSnapshot snapshot, float delta)
+		{
+			baseMotes.Advance(delta);
+
+			if (snapshot.IncomePerSecond <= 0d)
+			{
+				return;
+			}
+
+			sinceMote += delta;
+			if (sinceMote < moteEverySeconds)
+			{
+				return;
+			}
+
+			sinceMote = 0f;
+
+			// 많이 내는 쪽이 자주 뱉는다 — 몫만큼 차례가 돌아온다.
+			int kind = PickProducerToEmit(snapshot);
+			if (kind < 0)
+			{
+				return;
+			}
+
+			float from = (kind + 0.5f) / Mathf.Max(1, snapshot.Producers.Length);
+			baseMotes.Send(new Vector2(from, 0.86f), new Vector2(0.5f, 0.20f),
+				TierColor(kind + 1), SidesFor(kind + 1), 0.7f);
+		}
+
+		/// <summary>몫에 따라 차례를 돌린다 — 무작위보다 눈에 고르게 보인다.</summary>
+		private int PickProducerToEmit(IdleSnapshot snapshot)
+		{
+			double total = snapshot.IncomePerSecond;
+			double walked = 0d;
+			double want = total * ((moteTurn % 16) / 16d);
+			moteTurn++;
+
+			for (int kind = 0; kind < snapshot.Producers.Length; kind++)
+			{
+				walked += snapshot.Producers[kind].OutputTotal;
+				if (walked >= want && snapshot.Producers[kind].Owned > 0L)
+				{
+					return kind;
+				}
+			}
+
+			for (int kind = snapshot.Producers.Length - 1; kind >= 0; kind--)
+			{
+				if (snapshot.Producers[kind].Owned > 0L)
+				{
+					return kind;
+				}
+			}
+
+			return -1;
+		}
+
+		/// <summary>창고 — 떨어진 장비가 <b>쌓이는 게</b> 보인다.</summary>
+		private void AdvanceVault(IdleSnapshot snapshot, float delta)
+		{
+			vaultMotes.Advance(delta);
+
+			if (snapshot.Bag.Length > lastBagCount)
+			{
+				for (int index = lastBagCount; index < snapshot.Bag.Length; index++)
+				{
+					Vector2 cell = VaultCellAt(index, snapshot.BagCapacity);
+					vaultMotes.Send(new Vector2(cell.x, 0.02f), cell,
+						TierColor(snapshot.Bag[index].Tier), SidesFor(snapshot.Bag[index].Tier), 0.45f);
+				}
+			}
+
+			lastBagCount = snapshot.Bag.Length;
+		}
+
+		/// <summary>격자 한 칸이 칸 안에서 차지하는 자리 (0~1) — 떨어지는 장비가 거기로 꽂힌다.</summary>
+		private static Vector2 VaultCellAt(int index, int capacity)
+		{
+			int rows = Mathf.Max(1, Mathf.CeilToInt((float)capacity / VAULT_COLUMNS));
+			int column = index % VAULT_COLUMNS;
+			int row = index / VAULT_COLUMNS;
+
+			return new Vector2(
+				(column + 0.5f) / VAULT_COLUMNS,
+				0.30f + (row + 0.5f) / rows * 0.62f);
 		}
 
 		/// <summary>화면을 흔든다 — 「일이 일어났다」를 몸으로 알려준다.</summary>
@@ -267,16 +518,17 @@ namespace WitchMendokusai
 
 			BuildTopBar(shell, awaySeconds);
 
-			VisualElement body = new VisualElement();
-			body.AddToClassList("idle-body");
-			shell.Add(body);
+			// ★ 위층 = <b>보는 것</b>. 셋이 동시에 돈다.
+			VisualElement stages = new VisualElement();
+			stages.AddToClassList("idle-stages");
+			shell.Add(stages);
 
-			// ★ <b>세 칸을 동시에</b> 보여준다 (사용자 방향 2026-08-16).
-			//   탭으로 숨기면 기지를 볼 때 전투가 안 보여 <b>아무 일도 안 일어나는 것처럼</b> 느껴진다.
-			//   두 층이 같이 도는 게임이라 같이 보여야 그게 보인다.
-			BuildBaseColumn(body);
-			BuildArena(body);
-			BuildPanel(body);
+			BuildBaseLive(stages);
+			BuildArena(stages);
+			BuildVaultLive(stages);
+
+			// ★ 아래층 = <b>만지는 것</b>. 한 번에 한 묶음만 편다.
+			BuildDrawer(shell);
 		}
 
 		private void BuildTopBar(VisualElement parent, double awaySeconds)
@@ -295,22 +547,88 @@ namespace WitchMendokusai
 			}
 		}
 
+		/// <summary>기지 실황 — 생산자가 알갱이를 뱉고 저장고가 받는다.</summary>
+		private void BuildBaseLive(VisualElement parent)
+		{
+			VisualElement live = new VisualElement();
+			live.AddToClassList("idle-live");
+			parent.Add(live);
+
+			AddLabel(live, "idle-live-title").text = "기지";
+
+			baseMotes = new MoteStreamElement();
+			baseMotes.AddToClassList("idle-backdrop");
+			live.Add(baseMotes);
+
+			VisualElement top = new VisualElement();
+			top.AddToClassList("idle-vault-head");
+			live.Add(top);
+
+			vaultMark = new NgonElement();
+			vaultMark.AddToClassList("idle-vault-mark");
+			vaultMark.Sides = 6;
+			vaultMark.Body = new Color(0.72f, 0.82f, 0.55f);
+			top.Add(vaultMark);
+
+			baseLiveLabel = AddLabel(top, "idle-live-note");
+
+			VisualElement spacer = new VisualElement();
+			spacer.AddToClassList("idle-spacer");
+			live.Add(spacer);
+
+			VisualElement strip = new VisualElement();
+			strip.AddToClassList("idle-producer-strip");
+			live.Add(strip);
+
+			baseShapes.Clear();
+
+			for (int kind = 0; kind < 8; kind++)
+			{
+				NgonElement shape = new NgonElement();
+				shape.AddToClassList("idle-strip-shape");
+				shape.Sides = SidesFor(kind + 1);
+				shape.Body = TierColor(kind + 1);
+				strip.Add(shape);
+				baseShapes.Add(shape);
+			}
+		}
+
 		private void BuildArena(VisualElement parent)
 		{
 			VisualElement arena = new VisualElement();
+			arena.AddToClassList("idle-live");
 			arena.AddToClassList("idle-arena");
 			parent.Add(arena);
 
-			AddLabel(arena, "idle-column-title").text = "전투";
+			AddLabel(arena, "idle-live-title").text = "전투";
 
 			// 바닥 격자 — 밋밋한 검정은 「꺼진 화면」처럼 보인다.
 			backdrop = new GridBackdropElement();
 			backdrop.AddToClassList("idle-backdrop");
 			arena.Add(backdrop);
 
+			VisualElement field = new VisualElement();
+			field.AddToClassList("idle-field");
+			arena.Add(field);
+
+			VisualElement heroRow = new VisualElement();
+			heroRow.AddToClassList("idle-hero-row");
+			field.Add(heroRow);
+			heroes.Clear();
+
+			for (int one = 0; one < HERO_SIDES.Length; one++)
+			{
+				NgonElement hero = new NgonElement();
+				hero.AddToClassList("idle-hero");
+				hero.Sides = HERO_SIDES[one];
+				hero.Body = HERO_COLORS[one];
+				heroRow.Add(hero);
+				heroes.Add(hero);
+			}
+
 			VisualElement box = new VisualElement();
 			box.AddToClassList("idle-stage-box");
-			arena.Add(box);
+			field.Add(box);
 
 			targetShape = new NgonElement();
 			targetShape.AddToClassList("idle-shape");
@@ -319,6 +637,11 @@ namespace WitchMendokusai
 			burst = new NgonBurstElement();
 			burst.AddToClassList("idle-shape");
 			box.Add(burst);
+
+			// 쏘는 것은 <b>판 전체</b>를 가로지른다 — 판 위에 깔아야 영웅에서 적까지 간다.
+			bolts = new MoteStreamElement();
+			bolts.AddToClassList("idle-backdrop");
+			field.Add(bolts);
 
 			healthBar = new ProgressBar();
 			healthBar.lowValue = 0f;
@@ -331,59 +654,113 @@ namespace WitchMendokusai
 			arena.Add(dots);
 			killDots.Clear();
 
-			VisualElement allyRow = new VisualElement();
-			allyRow.AddToClassList("idle-ally-row");
-			arena.Add(allyRow);
-			allies.Clear();
-
-			for (int one = 0; one < 3; one++)
-			{
-				NgonElement ally = new NgonElement();
-				ally.AddToClassList("idle-ally");
-				ally.Sides = SidesFor(1);
-				ally.Body = new Color(0.72f, 0.78f, 0.52f);
-				allyRow.Add(ally);
-				allies.Add(ally);
-			}
-
 			arenaCaption = AddLabel(arena, "idle-arena-caption");
 
 			// 튀는 숫자는 판 위에 뜬다 — 담는 칸이 자리를 잡아 준다.
 			arenaBox = box;
 			floats = new FloatTextLayer(box);
+
+			// ★ <b>판 전체가 누르는 것</b>이다 (사용자 지적: 「전혀 클리커스럽지 않다」).
+			//   쿠키 클리커의 심장은 큰 버튼이다. 작은 버튼을 따로 두면 그건 <b>또 하나의 목록</b>이고,
+			//   손이 가는 곳(적이 있는 자리)과 누르는 곳이 갈라진다.
+			field.RegisterCallback<PointerDownEvent>(OnTapped);
 		}
 
-		private void BuildPanel(VisualElement parent)
+		/// <summary>창고 실황 — 가방이 격자로 보이고, 떨어진 것이 위에서 꽂힌다.</summary>
+		private void BuildVaultLive(VisualElement parent)
 		{
-			VisualElement panel = new VisualElement();
-			panel.AddToClassList("idle-column");
-			panel.AddToClassList("idle-panel");
-			parent.Add(panel);
+			VisualElement live = new VisualElement();
+			live.AddToClassList("idle-live");
+			parent.Add(live);
 
-			AddLabel(panel, "idle-column-title").text = "강화 · 장비";
+			AddLabel(live, "idle-live-title").text = "창고";
 
-			upgradePage = AddPage(panel);
-			gearPage = AddPage(panel);
-			foldPage = AddPage(panel);
+			vaultMotes = new MoteStreamElement();
+			vaultMotes.AddToClassList("idle-backdrop");
+			live.Add(vaultMotes);
 
-			BuildUpgradePage();
-			AddDivider(panel);
-			BuildGearPage();
-			AddDivider(panel);
-			BuildFoldPage();
+			vaultLabel = AddLabel(live, "idle-live-note");
+
+			VisualElement grid = new VisualElement();
+			grid.AddToClassList("idle-vault-grid");
+			live.Add(grid);
+			vaultCells.Clear();
+
+			for (int index = 0; index < 40; index++)
+			{
+				NgonElement cell = new NgonElement();
+				cell.AddToClassList("idle-vault-cell");
+				grid.Add(cell);
+				vaultCells.Add(cell);
+			}
 		}
 
 		/// <summary>
-		/// 기지 — <b>시간이 자원을 낸다</b>. 이 층이 없으면 감정도 합치기도 강화도 못 한다.
+		/// 조작 서랍 — <b>한 번에 한 묶음</b>.
+		///
+		/// ★ 전에는 강화·장비·환생 셋을 한 칸에 세로로 쌓았다. 그래서 스크롤 없이 겹쳤고
+		///   「뭐가 뭔지 모르겠다」가 됐다. 탭은 화면을 아끼려는 게 아니라
+		///   <b>지금 무엇을 하는 중인지</b>를 하나로 만드는 장치다.
 		/// </summary>
-		/// <summary>왼쪽 칸 — 기지(클리커 층). 늘 보인다.</summary>
-		private void BuildBaseColumn(VisualElement parent)
+		private void BuildDrawer(VisualElement parent)
 		{
-			basePage = new VisualElement();
-			basePage.AddToClassList("idle-column");
-			parent.Add(basePage);
+			VisualElement drawer = new VisualElement();
+			drawer.AddToClassList("idle-drawer");
+			parent.Add(drawer);
 
-			AddLabel(basePage, "idle-column-title").text = "기지";
+			VisualElement tabs = new VisualElement();
+			tabs.AddToClassList("idle-tabs");
+			drawer.Add(tabs);
+
+			ScrollView body = new ScrollView();
+			body.AddToClassList("idle-drawer-body");
+			drawer.Add(body);
+
+			basePage = AddPage(body);
+			upgradePage = AddPage(body);
+			gearPage = AddPage(body);
+			heroPage = AddPage(body);
+			foldPage = AddPage(body);
+
+			pages.Clear();
+			pages.Add(basePage);
+			pages.Add(upgradePage);
+			pages.Add(gearPage);
+			pages.Add(heroPage);
+			pages.Add(foldPage);
+
+			string[] names = { "기지", "강화", "장비", "영웅", "환생" };
+			tabButtons.Clear();
+
+			for (int index = 0; index < names.Length; index++)
+			{
+				int captured = index;
+				Button tab = AddButton(tabs, "idle-tab", () => ShowTab(captured));
+				tab.text = names[index];
+				tabButtons.Add(tab);
+			}
+
+			BuildBasePage();
+			BuildUpgradePage();
+			BuildGearPage();
+			BuildHeroPage();
+			BuildFoldPage();
+
+			ShowTab(0);
+		}
+
+		private void ShowTab(int which)
+		{
+			for (int index = 0; index < pages.Count; index++)
+			{
+				pages[index].style.display = index == which ? DisplayStyle.Flex : DisplayStyle.None;
+				tabButtons[index].EnableInClassList("idle-tab--on", index == which);
+			}
+		}
+
+		/// <summary>기지 — <b>시간이 자원을 낸다</b>. 이 층이 없으면 감정도 합치기도 강화도 못 한다.</summary>
+		private void BuildBasePage()
+		{
 			baseSummary = AddLabel(basePage, "idle-row-value");
 
 			producerButtons.Clear();
@@ -447,6 +824,54 @@ namespace WitchMendokusai
 			rollNote = AddLabel(gearPage, "idle-note");
 		}
 
+		/// <summary>
+		/// 영웅 — <b>뽑고 · 모으고 · 셋을 고른다</b> (TASK-WM-406, 사용자 결정 2026-08-17).
+		///
+		/// ★ 한 화면에 셋을 같이 둔다: 뽑기(설렘) · 파티(결정) · 도감(모은 것).
+		///   나누면 「뽑았는데 뭐가 달라졌지」를 확인하러 탭을 옮겨 다녀야 한다.
+		/// </summary>
+		private void BuildHeroPage()
+		{
+			pullButton = AddButton(heroPage, "idle-button idle-button--strong", Pull);
+			pullNote = AddLabel(heroPage, "idle-note");
+
+			AddDivider(heroPage);
+			AddLabel(heroPage, "idle-row-value").text = "내보낸 셋 — 눌러서 바꾼다";
+
+			partyRow = new VisualElement();
+			partyRow.AddToClassList("idle-party-row");
+			heroPage.Add(partyRow);
+			partyButtons.Clear();
+			partyShapes.Clear();
+
+			for (int slot = 0; slot < 3; slot++)
+			{
+				int captured = slot;
+
+				VisualElement seat = new VisualElement();
+				seat.AddToClassList("idle-seat");
+				partyRow.Add(seat);
+
+				NgonElement shape = new NgonElement();
+				shape.AddToClassList("idle-seat-shape");
+				seat.Add(shape);
+				partyShapes.Add(shape);
+				decor.Add(shape);
+
+				Button button = new Button(() => BeginSeat(captured));
+				button.AddToClassList("idle-button");
+				button.AddToClassList("idle-seat-button");
+				seat.Add(button);
+				partyButtons.Add(button);
+			}
+
+			AddDivider(heroPage);
+			codexLabel = AddLabel(heroPage, "idle-row-title");
+
+			heroRows = new VisualElement();
+			heroPage.Add(heroRows);
+		}
+
 		private void BuildFoldPage()
 		{
 			foldSummary = AddLabel(foldPage, "idle-row-title");
@@ -473,6 +898,21 @@ namespace WitchMendokusai
 			resourceLabel.text = string.Format("{0}  ({1}/초)",
 				BigNumberText.Format(resourceRolling), BigNumberText.Format(snapshot.IncomePerSecond));
 
+			RenderArena(snapshot);
+			RenderBaseLive(snapshot);
+			RenderVaultLive(snapshot);
+
+			RenderBasePage(snapshot);
+			RenderUpgradePage(snapshot);
+			RenderGearPage(snapshot);
+			RenderHeroPage(snapshot);
+			RenderFoldPage(snapshot);
+		}
+
+		private void RenderArena(IdleSnapshot snapshot)
+		{
+			RenderPartyOnField(snapshot);
+
 			targetShape.Sides = SidesFor(snapshot.MaxTierNow);
 			targetShape.Body = TierColor(snapshot.MaxTierNow);
 			targetShape.Fill = (float)snapshot.TargetHealthRatio;
@@ -482,15 +922,136 @@ namespace WitchMendokusai
 
 			DrawKillDots(snapshot);
 
-			arenaCaption.text = snapshot.HoldingStage
-				? string.Format("여기서 사냥 중 — 많이 떨군다 (변 {0}개 = {0} 등급까지)", snapshot.MaxTierNow + 2)
-				: string.Format("내려가는 중 — 좋은 게 떨어진다 (변 {0}개 = {1}등급)",
-					snapshot.MaxTierNow + 2, snapshot.MaxTierNow);
+			// ★ 「지금 얼마나 빨리 치나」를 글자로도 준다 — 올린 게 숫자로도 보여야 한다.
+			arenaCaption.text = string.Format("눌러서 한 대 더 · 초당 {0}대 · {1}",
+				BigNumberText.Format(snapshot.AttacksPerSecond),
+				snapshot.HoldingStage ? "여기 머무는 중 — 많이 떨군다" : "계속 내려가는 중 — 좋은 게 떨어진다");
+		}
 
-			RenderBasePage(snapshot);
-			RenderUpgradePage(snapshot);
-			RenderGearPage(snapshot);
-			RenderFoldPage(snapshot);
+		/// <summary>
+		/// 판에 선 셋이 <b>실제로 내보낸 셋</b>이 되게 한다 (TASK-WM-406).
+		///
+		/// ★ 이게 없으면 뽑기와 편성이 <b>목록 안에서만</b> 일어난다 — 판은 그대로다.
+		///   내가 고른 얼굴이 저기 서 있어야 「내 파티」가 된다.
+		/// ★ 빈 자리는 <b>흐리게 남긴다</b>. 지워 버리면 자리가 비었다는 게 안 보인다.
+		/// </summary>
+		private void RenderPartyOnField(IdleSnapshot snapshot)
+		{
+			for (int slot = 0; slot < heroes.Count; slot++)
+			{
+				int id = slot < snapshot.Party.Length ? snapshot.Party[slot] : -1;
+				IdleHeroView? found = FindHero(snapshot, id);
+
+				if (found.HasValue)
+				{
+					heroes[slot].Sides = found.Value.Sides;
+					heroes[slot].Body = GradeColor(found.Value.Grade);
+					heroes[slot].style.opacity = 1f;
+
+					// ★ 이 붙을수록 크게 선다 — 키운 것이 눈에 보여야 키울 맛이 난다.
+					float grown = 1f + Mathf.Min(0.6f, found.Value.Stars * 0.12f);
+					heroes[slot].style.scale = new StyleScale(new Scale(new Vector2(grown, grown)));
+				}
+				else
+				{
+					heroes[slot].Sides = HERO_SIDES[slot % HERO_SIDES.Length];
+					heroes[slot].Body = HERO_COLORS[slot % HERO_COLORS.Length];
+					heroes[slot].style.opacity = 0.22f;
+					heroes[slot].style.scale = new StyleScale(new Scale(Vector2.one));
+				}
+			}
+		}
+
+		private void RenderBaseLive(IdleSnapshot snapshot)
+		{
+			baseLiveLabel.text = string.Format("저장고 — 초당 {0}",
+				BigNumberText.Format(snapshot.IncomePerSecond));
+
+			// 들어오는 게 있으면 저장고가 뛴다.
+			vaultMark.SetPulse(snapshot.IncomePerSecond > 0d ? 0.08f : 0f, 1.2f);
+			vaultMark.Advance(Time.unscaledDeltaTime, 0.03f);
+
+			for (int kind = 0; kind < baseShapes.Count; kind++)
+			{
+				if (kind >= snapshot.Producers.Length)
+				{
+					continue;
+				}
+
+				IdleProducerView view = snapshot.Producers[kind];
+				bool working = view.Owned > 0L;
+
+				// 안 산 것은 <b>있다는 것만</b> 보인다 — 없으면 다음 목표가 안 보이고,
+				// 진하면 산 것과 구별이 안 된다.
+				baseShapes[kind].style.opacity = working ? 1f : 0.16f;
+				baseShapes[kind].SetPulse(working ? 0.12f : 0f,
+					working ? 0.6f + Mathf.Min(2f, (float)view.Owned * 0.08f) : 0f);
+				baseShapes[kind].Advance(Time.unscaledDeltaTime, working ? 0.06f : 0f);
+			}
+		}
+
+		private void RenderVaultLive(IdleSnapshot snapshot)
+		{
+			int mergeable = CountMergeable(snapshot);
+
+			vaultLabel.text = string.Format("가방 {0}/{1}{2}",
+				snapshot.Bag.Length, snapshot.BagCapacity,
+				mergeable > 0 ? string.Format(" · 합칠 수 있는 묶음 {0}", mergeable) : string.Empty);
+
+			for (int index = 0; index < vaultCells.Count; index++)
+			{
+				NgonElement cell = vaultCells[index];
+
+				if (index >= snapshot.BagCapacity)
+				{
+					cell.style.display = DisplayStyle.None;
+					continue;
+				}
+
+				cell.style.display = DisplayStyle.Flex;
+
+				if (index >= snapshot.Bag.Length)
+				{
+					cell.style.opacity = 0.10f;
+					cell.SetPulse(0f, 0f);
+					continue;
+				}
+
+				IdleItem one = snapshot.Bag[index];
+				cell.style.opacity = 1f;
+				cell.Sides = SidesFor(one.Tier);
+				cell.Body = TierColor(one.Tier);
+
+				// 감정된 것은 <b>뛴다</b> — 가방에서 골라 낼 때 눈에 먼저 든다.
+				cell.SetPulse(one.PotentialValue > 0d ? 0.14f : 0f, 1.4f);
+				cell.Advance(Time.unscaledDeltaTime, 0.04f);
+			}
+		}
+
+		/// <summary>합칠 수 있는 묶음이 몇 개인가 — 창고가 「지금 정리할 때」를 스스로 말한다.</summary>
+		private static int CountMergeable(IdleSnapshot snapshot)
+		{
+			int[] counts = new int[64];
+			int found = 0;
+
+			for (int index = 0; index < snapshot.Bag.Length; index++)
+			{
+				IdleItem one = snapshot.Bag[index];
+				int key = one.Tier * 4 + (int)one.Slot;
+
+				if (key < 0 || key >= counts.Length)
+				{
+					continue;
+				}
+
+				counts[key]++;
+				if (counts[key] == 3)
+				{
+					found++;
+				}
+			}
+
+			return found;
 		}
 
 		private void DrawKillDots(IdleSnapshot snapshot)
@@ -537,7 +1098,7 @@ namespace WitchMendokusai
 
 				if (kind >= snapshot.Producers.Length)
 				{
-					button.style.display = DisplayStyle.None;
+					button.parent.style.display = DisplayStyle.None;
 					continue;
 				}
 
@@ -557,8 +1118,9 @@ namespace WitchMendokusai
 				button.SetEnabled(view.CanAfford);
 				button.EnableInClassList("idle-button--ready", view.CanAfford);
 
-				// ★ 일하고 있는 생산자는 <b>맥동한다</b> — 많이 낼수록 빨리 뛴다.
-				//   숫자만 보면 「돌고 있다」가 안 느껴진다.
+				// ★ 아직 못 사는 <b>다음</b> 것은 회색으로 남는다 — 목표가 안 보이면 모을 이유도 없다.
+				button.EnableInClassList("idle-button--locked", view.CanAfford == false && view.Owned <= 0L);
+
 				if (kind < producerShapes.Count)
 				{
 					bool working = view.Owned > 0L;
@@ -723,7 +1285,7 @@ namespace WitchMendokusai
 				{
 					int tier = tiers[index];
 					IdleItemSlot slot = which[index];
-					mergeButtons.Add(AddButton(mergeRows, "idle-appraise-button", () => Merge(tier, slot)));
+					mergeButtons.Add(AddButton(mergeRows, "idle-button", () => Merge(tier, slot)));
 				}
 			}
 
@@ -733,17 +1295,138 @@ namespace WitchMendokusai
 			}
 		}
 
+		private void RenderHeroPage(IdleSnapshot snapshot)
+		{
+			pullButton.text = string.Format("영웅 뽑기 — 환생석 {0}", snapshot.PullCost);
+			pullButton.SetEnabled(snapshot.CanPull);
+			pullButton.EnableInClassList("idle-button--ready", snapshot.CanPull);
+			pullButton.EnableInClassList("idle-button--locked", snapshot.CanPull == false);
+
+			codexLabel.text = string.Format("도감 {0}점 · 판 전체 x{1:0.00}  ·  천장까지 {2}번",
+				snapshot.CodexScore, snapshot.CodexMultiplier, snapshot.PullsToPity);
+
+			RenderParty(snapshot);
+			RenderCodex(snapshot);
+		}
+
+		/// <summary>내보낸 셋 — 빈 자리는 「비었다」로 두어 채울 것이 있다는 게 보이게.</summary>
+		private void RenderParty(IdleSnapshot snapshot)
+		{
+			for (int slot = 0; slot < partyButtons.Count; slot++)
+			{
+				int id = slot < snapshot.Party.Length ? snapshot.Party[slot] : -1;
+				IdleHeroView? found = FindHero(snapshot, id);
+
+				if (found.HasValue)
+				{
+					IdleHeroView view = found.Value;
+					partyShapes[slot].Sides = view.Sides;
+					partyShapes[slot].Body = GradeColor(view.Grade);
+					partyShapes[slot].style.opacity = 1f;
+					partyButtons[slot].text = string.Format("{0}{1} · {2}",
+						view.Name, Stars(view.Stars), IdleHeroes.NameOfAxis(view.Axis));
+				}
+				else
+				{
+					partyShapes[slot].style.opacity = 0.15f;
+					partyButtons[slot].text = "비었다";
+				}
+
+				partyButtons[slot].EnableInClassList("idle-button--ready", seatBeingFilled == slot);
+			}
+		}
+
+		/// <summary>도감 — 가진 얼굴 전부. 내보낸 것은 표시하고, 안 내보낸 것도 몫을 적는다.</summary>
+		private void RenderCodex(IdleSnapshot snapshot)
+		{
+			if (heroButtons.Count != snapshot.Heroes.Length)
+			{
+				heroRows.Clear();
+				heroButtons.Clear();
+				heroShapes.Clear();
+
+				for (int index = 0; index < snapshot.Heroes.Length; index++)
+				{
+					int capturedId = snapshot.Heroes[index].Id;
+					heroButtons.Add(AddShapeRow(heroRows, 1, () => ChooseHero(capturedId),
+						out NgonElement shape));
+					heroShapes.Add(shape);
+				}
+			}
+
+			for (int index = 0; index < heroButtons.Count && index < snapshot.Heroes.Length; index++)
+			{
+				IdleHeroView view = snapshot.Heroes[index];
+
+				heroShapes[index].Sides = view.Sides;
+				heroShapes[index].Body = GradeColor(view.Grade);
+
+				heroButtons[index].text = string.Format("{0}{1}  {2}·{3}   보유 +{4:P0}   ({5}/{6}){7}",
+					view.Name,
+					Stars(view.Stars),
+					IdleHeroes.NameOfGrade(view.Grade),
+					IdleHeroes.NameOfAxis(view.Axis),
+					view.OwnedShare,
+					view.Copies,
+					view.CopiesForNextStar,
+					view.InParty ? "  ▶출전" : string.Empty);
+
+				heroButtons[index].EnableInClassList("idle-button--ready", seatBeingFilled >= 0);
+			}
+		}
+
+		private static IdleHeroView? FindHero(IdleSnapshot snapshot, int id)
+		{
+			if (id < 0)
+			{
+				return null;
+			}
+
+			for (int index = 0; index < snapshot.Heroes.Length; index++)
+			{
+				if (snapshot.Heroes[index].Id == id)
+				{
+					return snapshot.Heroes[index];
+				}
+			}
+
+			return null;
+		}
+
+		/// <summary>★ 을 글자로 — 숫자보다 눈이 먼저 센다.</summary>
+		private static string Stars(int stars)
+		{
+			if (stars <= 0)
+			{
+				return string.Empty;
+			}
+
+			return " " + new string('★', stars);
+		}
+
+		/// <summary>등급 색 — 위 등급일수록 따뜻하게. 변의 수(축)와 겹치지 않는 축이다.</summary>
+		private static Color GradeColor(IdleHeroGrade grade)
+		{
+			switch (grade)
+			{
+				case IdleHeroGrade.Rare: return new Color(0.46f, 0.80f, 0.72f);
+				case IdleHeroGrade.Epic: return new Color(0.72f, 0.58f, 0.92f);
+				case IdleHeroGrade.Legend: return new Color(0.95f, 0.72f, 0.36f);
+				default: return new Color(0.68f, 0.72f, 0.80f);
+			}
+		}
+
 		private void RenderFoldPage(IdleSnapshot snapshot)
 		{
 			foldSummary.text = string.Format(
-				"모은 점수 {0} · 지금 배수 {1}\n자리 비워도 되는 시간 {2}\n\n접으면 셋이 오른다 — 공격 배수 · 등급 천장 · 비워도 되는 시간.\n이미 지나온 길은 다시 안 판다.",
+				"환생석 {0} · 지금 배수 {1}\n자리 비워도 되는 시간 {2}\n\n환생하면 셋이 오른다 — 공격 배수 · 등급 천장 · 비워도 되는 시간.\n이미 지나온 길은 다시 안 판다.",
 				snapshot.PrestigePoints,
 				BigNumberText.Format(snapshot.PrestigeMultiplier),
 				DescribeSpan(snapshot.MaxOfflineSeconds));
 
 			prestigeButton.text = snapshot.PrestigeAward > 0L
-				? string.Format("다시 시작 — {0}점 얻는다", snapshot.PrestigeAward)
-				: "다시 시작 — 더 내려가야 한다";
+				? string.Format("환생한다 — 환생석 {0}", snapshot.PrestigeAward)
+				: "환생한다 — 더 내려가야 한다";
 			prestigeButton.SetEnabled(snapshot.PrestigeAward > 0L);
 		}
 
@@ -755,6 +1438,12 @@ namespace WitchMendokusai
 			{
 				sound.Click();
 				Shake(0.3f);
+
+				// 올린 것이 <b>판에서</b> 반응한다 — 목록만 바뀌면 뭐가 세졌는지 안 보인다.
+				for (int index = 0; index < heroes.Count; index++)
+				{
+					heroes[index].Hit();
+				}
 			}
 
 			Render(session.Capture());
@@ -772,11 +1461,23 @@ namespace WitchMendokusai
 
 		private void BuyProducer(int kind)
 		{
-			if (session.Send(new IdleBuyProducerIntent(kind)) && kind < producerShapes.Count)
+			if (session.Send(new IdleBuyProducerIntent(kind)))
 			{
 				sound.Click();
+
 				// 산 것이 <b>반응한다</b> — 눌렀는데 아무 일도 안 일어나면 눌린 줄 모른다.
-				producerShapes[kind].Hit();
+				if (kind < producerShapes.Count)
+				{
+					producerShapes[kind].Hit();
+				}
+
+				// 실황에서도 같이 튄다 — 목록과 판이 같은 것을 가리켜야 이어진다.
+				if (kind < baseShapes.Count)
+				{
+					baseShapes[kind].Hit();
+					baseMotes.Send(new Vector2((kind + 0.5f) / 8f, 0.86f), new Vector2(0.5f, 0.20f),
+						TierColor(kind + 1), SidesFor(kind + 1), 0.5f);
+				}
 			}
 
 			Render(session.Capture());
@@ -834,6 +1535,70 @@ namespace WitchMendokusai
 			Render(session.Capture());
 		}
 
+		/// <summary>뽑는다 — 결과에 따라 소리와 흔들림을 다르게 준다.</summary>
+		private void Pull()
+		{
+			if (session.TryPull(out IdleHeroPull got) == false)
+			{
+				return;
+			}
+
+			IdleHeroKind kind = IdleHeroes.KindOf(got.Id);
+
+			burst.Fire(kind.Sides, GradeColor(got.Grade));
+
+			// 큰 것이 나왔을 때만 크게 — 매번 크게 울리면 큰 것이 안 커진다.
+			if (got.Grade >= IdleHeroGrade.Epic || got.IsNew)
+			{
+				sound.Good();
+				Shake(got.Grade == IdleHeroGrade.Legend ? 1f : 0.5f);
+			}
+			else
+			{
+				sound.Click();
+				Shake(0.2f);
+			}
+
+			pullNote.text = string.Format("{0} {1}{2}{3}{4}",
+				IdleHeroes.NameOfGrade(got.Grade),
+				kind.Name,
+				got.IsNew ? "  ★ 처음 본 얼굴" : string.Empty,
+				got.StarredUp ? string.Format("  ★ {0}성이 됐다", got.Stars) : string.Empty,
+				got.ByPity ? "  (천장)" : string.Empty);
+
+			floats.Pop(kind.Name, new Vector2(Random.Range(40f, 100f), 60f), GradeColor(got.Grade));
+
+			WriteDown();
+			Render(session.Capture());
+		}
+
+		/// <summary>자리를 눌렀다 — 이제 도감에서 누구를 앉힐지 고른다.</summary>
+		private void BeginSeat(int slot)
+		{
+			seatBeingFilled = seatBeingFilled == slot ? -1 : slot;
+			sound.Click();
+			Render(session.Capture());
+		}
+
+		/// <summary>도감에서 골랐다 — 고르는 중이 아니면 아무 일도 안 한다.</summary>
+		private void ChooseHero(int id)
+		{
+			if (seatBeingFilled < 0)
+			{
+				return;
+			}
+
+			if (session.Send(new IdleSetPartyIntent(seatBeingFilled, id)))
+			{
+				sound.Click();
+				Shake(0.2f);
+			}
+
+			seatBeingFilled = -1;
+			WriteDown();
+			Render(session.Capture());
+		}
+
 		private void Prestige()
 		{
 			if (session.Send(new IdlePrestigeIntent()))
@@ -842,6 +1607,7 @@ namespace WitchMendokusai
 				Shake(1f);
 
 				lastKills = session.State.Kills;
+				lastBagCount = session.State.Bag.Count;
 				WriteDown();
 			}
 
@@ -862,15 +1628,10 @@ namespace WitchMendokusai
 			}
 		}
 
-
-		private void ShowTab(Tab which)
-		{
-
-		}
-
 		private static VisualElement AddPage(VisualElement parent)
 		{
 			VisualElement page = new VisualElement();
+			page.AddToClassList("idle-page");
 			parent.Add(page);
 			return page;
 		}
@@ -941,6 +1702,7 @@ namespace WitchMendokusai
 				: string.Format("올리기 — {0}", BigNumberText.Format(view.NextCost));
 			button.SetEnabled(view.CanAfford);
 			button.EnableInClassList("idle-button--ready", view.CanAfford);
+			button.EnableInClassList("idle-button--locked", view.CanAfford == false && view.IsMaxed == false);
 		}
 
 		/// <summary>변의 수로 등급을 적는다 — 도형과 같은 규칙을 글자에도.</summary>

@@ -614,9 +614,77 @@ foreach ($rule in $rules)
     }
 }
 
+# ── [META] 짝 잃은 .cs (2026-08-16) ───────────────────────────────────────────
+# 왜: 유니티는 파일마다 .meta 를 만들고 그 안의 guid 로 참조를 잇는다. .cs 만 올라가면
+#     받는 쪽 유니티가 <b>새 guid 를 다시 만들어</b> 프리팹·씬의 연결이 끊긴다.
+#     에디터가 안 켜진 채로 새 파일을 만들면 .meta 가 아직 없어서 그대로 빠지기 쉽다(실측).
+#     ★ 폴더도 마찬가지다 — 폴더 .meta 가 빠지면 받는 쪽에서 폴더 guid 가 새로 생겨
+#       그 안의 것을 참조하던 자리가 통째로 흔들린다(2026-08-16 실측: Versus 폴더 4개가 빠져 있었다).
+# 이미 있던 빚 — 남의 에셋 폴더 하나가 예전부터 .meta 없이 있다. 새 위반만 막는다(RATCHET 과 같은 태도).
+$metaBaseline = @('Lab\Animation\Universal Animation Library[Standard]')
+
+# .meta 는 <b>Assets 아래에만</b> 필요하다. 검사 뿌리가 저장소 루트로 들어오면 UserSettings·Tools 까지 훑어
+# 수천 건이 거짓으로 잡힌다(2026-08-16 실측 6079건 — pre-push 가 이것 때문에 막혔다).
+# 그리고 push 검사(커밋 범위 모드)에서는 <b>이번에 올리는 파일만</b> 본다 — 남의 미완성 편집으로 내 push 가 막히면 안 된다.
+$metaBaseline = @('Lab\Animation\Universal Animation Library[Standard]')
+$metaMisses = @()
+
+$repoRootForMeta = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
+$metaScoped = ($PathsFrom -or ($Paths -and $Paths.Count -gt 0))
+
+if ($metaScoped)
+{
+    $scopedPaths = if ($PathsFrom) { Get-Content $PathsFrom } else { $Paths }
+
+    foreach ($relative in $scopedPaths)
+    {
+        if ($relative -notlike 'Assets/*' -and $relative -notlike 'Assets\*') { continue }
+        if ($relative -notlike '*.cs') { continue }
+
+        $full = Join-Path $repoRootForMeta $relative
+        if (-not (Test-Path $full)) { continue }
+        if (Test-Path ($full + '.meta')) { continue }
+
+        $metaMisses += $relative
+    }
+}
+else
+{
+    $metaRoot = if ($Root -and $Root -like '*Assets*') { $Root } else { Join-Path $repoRootForMeta 'Assets' }
+
+    if (Test-Path $metaRoot)
+    {
+        foreach ($source in Get-ChildItem -Path $metaRoot -Filter *.cs -Recurse)
+        {
+            if ($source.FullName -like '*\obj\*' -or $source.FullName -like '*\bin\*') { continue }
+            if (Test-Path ($source.FullName + '.meta')) { continue }
+            $metaMisses += $source.FullName.Substring($metaRoot.Length).Trim('\')
+        }
+
+        foreach ($folder in Get-ChildItem -Path $metaRoot -Directory -Recurse)
+        {
+            if ($folder.FullName -like '*\obj\*' -or $folder.FullName -like '*\bin\*') { continue }
+            if (Test-Path ($folder.FullName + '.meta')) { continue }
+
+            $relativeFolder = $folder.FullName.Substring($metaRoot.Length).Trim('\')
+            if ($metaBaseline -contains $relativeFolder) { continue }
+
+            $metaMisses += $relativeFolder + '  (폴더)'
+        }
+    }
+}
+
+if ($metaMisses.Count -gt 0)
+{
+    Write-Host ("  FAIL  [META] .meta 가 없는 .cs -- {0}건; fix: 에디터를 한 번 켜거나 .meta 를 같이 만들어 커밋" -f $metaMisses.Count)
+    foreach ($miss in $metaMisses) { Write-Host ("          " + $miss) }
+    $total = $total + $metaMisses.Count
+}
+
 Write-Host ''
 if ($total -eq 0)
 {
+    Write-Host '  PASS  [META] 모든 .cs 에 .meta 가 있다'
     Write-Host '  PASS  [ANCHOR] required wiring lines are still present'
     Write-Host ('  PASS  [RATCHET] 새 위반 없음 (기준선: enum {0}건 / asset {1}건 / tuning {2}건 -- 이미 진 빚)' -f $enumBaseline.Count, $assetBaseline.Count, $tuneBaseline.Count)
     Write-Host 'RESULT: PASS -- 0 rule violations.'

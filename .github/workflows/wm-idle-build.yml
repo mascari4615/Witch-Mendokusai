@@ -1,0 +1,194 @@
+name: Build (Idle / laptop)
+
+# TASK-WM-406 — 방치형만 노트북에서 굽는다.
+#
+# 왜 따로 있나: `build.yml` 은 **본편**을 굽는다(씬 다섯 · 수십 분 · 안드로이드 겸용).
+#   방치형은 씬 하나에 UI 뿐이라 7분이면 끝나고, 본편 빌드 파이프라인(진행 카드 · 리포트
+#   JSON · 야간 게이트 · 릴리스 첨부)에 끼워 넣으면 그 셈을 전부 갈아야 한다.
+#   그래서 같은 러너에 **별 워크플로**로 건다 — 본편 쪽을 한 줄도 안 건드린다.
+#
+# 왜 노트북인가 (TASK-WM-195 와 같은 이유): 데스크톱에서 구우면 사용자 작업이 막히고
+#   성능을 다 먹는다. 게다가 사용자가 유니티를 켜 두면 프로젝트 폴더가 **잠겨서** 아예
+#   못 굽는다 — 실측 2026-08-16: 데스크톱 워크트리로 우회해 굽다가
+#   `BeeDriver connection terminated` 로 죽었다. 빌드는 빌드 기계가 하는 일이다.
+#
+# 산출물은 노트북에 남는다 (C:\wm-builds\idle\<시각>\Idle.exe). 올리는 건 명시할 때만 —
+# 180MB 를 매번 가정용 회선으로 밀어 올릴 이유가 없다.
+
+on:
+  workflow_dispatch:
+    inputs:
+      backend:
+        description: '방식 (il2cpp = 파는 판 · mono = 빨리 보기 1~2분, 검사 아님)'
+        type: choice
+        options: [il2cpp, mono]
+        default: il2cpp
+      publish:
+        description: '산출물 처리 (none=노트북에만 / artifact=GitHub 아티팩트 업로드)'
+        type: choice
+        options: [none, artifact]
+        default: none
+  push:
+    branches: [main]
+    # 방치형이 실제로 쓰는 것만. 본편만 고친 push 로 굽지 않는다.
+    paths:
+      - 'Assets/_WitchMendokusai/Idle/**'
+      - 'Assets/_WitchMendokusai/Presentation/**'
+      - 'Assets/_WitchMendokusai/DomainSDK/Idle/**'
+      - 'Assets/_WitchMendokusai/DomainSDK/Numerics/**'
+      - 'Assets/_WitchMendokusai/Editor/Idle/**'
+      - 'Assets/_WitchMendokusai/Scenes/Idle/**'
+      - '.github/workflows/wm-idle-build.yml'
+      - '.github/scripts/wm-idle-smoke.ps1'
+
+permissions:
+  contents: read
+
+concurrency:
+  # ★ 본편 빌드와 **같은 그룹**이다. 노트북 한 대에서 유니티 두 판이 같은 프로젝트 폴더를
+  #   물면 Library 를 서로 뺏는다. 줄 서서 돈다.
+  group: wm-build
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Idle player (laptop runner)
+    runs-on: [self-hosted, unity, windows-build]
+    timeout-minutes: 60
+
+    env:
+      BUILD_ROOT: 'C:\wm-builds'
+
+    steps:
+      - name: Checkout (Library 캐시 보존 — clean:false)
+        uses: actions/checkout@v6
+        with:
+          # Library/ 를 지우면 매 빌드가 전체 임포트(수십 분)로 돌아간다. 반드시 false.
+          clean: false
+          fetch-depth: 1
+
+      - name: Resolve Unity editor (auto-install when missing)
+        id: unity
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $OutputEncoding = [Console]::OutputEncoding = [Text.UTF8Encoding]::new()
+          . "$env:GITHUB_WORKSPACE\.github\scripts\wm-unity-resolve.ps1"
+          $unity = Resolve-UnityEditor -Platform 'windows' -InstallLogDir $env:RUNNER_TEMP
+          "exe=$($unity.Exe)" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+
+      # ASCII only in run: blocks -- Actions writes them to a BOM-less temp .ps1 and
+      # PS 5.1 decodes as cp949, which corrupts Korean and can break parsing outright.
+      - name: Build Idle player
+        id: build
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $OutputEncoding = [Console]::OutputEncoding = [Text.UTF8Encoding]::new()
+
+          $root = Join-Path $env:BUILD_ROOT 'idle'
+          $env:WM_IDLE_BUILD_DIR = $root
+
+          # mono = quick look only. IL2CPP stays the default so push-triggered builds
+          # always bake the thing we actually ship.
+          $backend = '${{ inputs.backend }}'
+          if ($backend -eq 'mono') { $env:WM_IDLE_BACKEND = 'mono' }
+          Write-Host "backend=$(if ($backend) { $backend } else { 'il2cpp' })"
+          $log = Join-Path $env:RUNNER_TEMP 'idle-build.log'
+
+          $arguments = @(
+            '-quit', '-batchmode', '-nographics',
+            '-projectPath', $PWD.Path,
+            '-logFile', $log,
+            '-executeMethod', 'WitchMendokusai.EditorTools.IdlePlayerBuild.Build'
+          )
+
+          Write-Host "Unity args: $($arguments -join ' ')"
+          $process = Start-Process -FilePath '${{ steps.unity.outputs.exe }}' -ArgumentList $arguments -PassThru -Wait -WindowStyle Hidden
+          Write-Host "Unity exit=$($process.ExitCode)"
+
+          # ★ 증거를 버리지 않는다. 전에는 tail 40 만 찍었는데 그 창이 하필 <시간이 어디로
+          #   갔는지 적힌 줄>을 잘라먹어서, 「왜 13분인가」를 사후에 아무도 못 봤다.
+          #   빌더가 남긴 줄은 통째로 찍고, 로그 자체는 산출물 옆에 남긴다.
+          if (Test-Path $log) {
+            Select-String -Path $log -Pattern '\[IdleBuild\]' | ForEach-Object { Write-Host $_.Line }
+            Write-Host "---- last 40 ----"
+            Get-Content $log -Tail 40 | Write-Host
+          }
+
+          if ($process.ExitCode -ne 0) { throw "Idle build failed (exit=$($process.ExitCode)). log: $log" }
+
+          # "built" is not "the exe exists" -- look at the disk, not the exit code.
+          $newest = Get-ChildItem $root -Directory | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+          $exe = Join-Path $newest.FullName 'Idle.exe'
+          if (-not (Test-Path $exe)) { throw "build reported success but no exe: $exe" }
+
+          # 로그를 빌드 폴더 옆에 둔다 -- RUNNER_TEMP is wiped between runs, so keeping it
+          # only there means every post-mortem starts with "the evidence is gone".
+          if (Test-Path $log) { Copy-Item $log (Join-Path $newest.FullName 'unity-build.log') -Force }
+
+          "out_dir=$($newest.FullName)" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "exe=$exe"                    | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          Write-Host "built: $exe"
+
+      # ★ "구웠다" 는 "돈다" 가 아니다. 덜어내기(High)가 런타임을 조용히 깨뜨린 적이 있다.
+      #   이 검사는 켜서 판이 실제로 흐르는지(저장 파일에 처치 수가 오르는지) 본다.
+      #
+      #   exit 1 = 안 돈다 (빨강). exit 2 = 검사를 못 돌렸다 (경고 — 초록이되 침묵은 아님).
+      #   이 러너가 LocalSystem 서비스로 돌면 붙을 데스크톱이 없어 플레이어가 창을 못 띄운다.
+      #   그 경우까지 빨갛게 하면 <게임이 깨졌다>와 <검사를 못 했다>가 같은 색이 되어
+      #   빨간불이 뜻을 잃는다. 대신 경고로 남겨 "안 봤다"가 눈에 보이게 한다.
+      # ★ Mono 판은 <파는 물건이 아니다> — 여기에 초록을 주면 「검사했다」가 거짓이 된다.
+      #   그래서 검사 자체를 건너뛰고, 건너뛴 사실을 경고로 남긴다.
+      - name: Does it actually run (idle smoke)
+        id: smoke
+        if: inputs.backend != 'mono'
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Continue'
+          $OutputEncoding = [Console]::OutputEncoding = [Text.UTF8Encoding]::new()
+          & "$env:GITHUB_WORKSPACE\.github\scripts\wm-idle-smoke.ps1" -ExePath '${{ steps.build.outputs.exe }}'
+          $code = $LASTEXITCODE
+          "code=$code" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          if ($code -eq 2) {
+            Write-Host "::warning title=idle smoke not run::no interactive desktop on this runner - the build was NOT verified to actually run"
+            exit 0
+          }
+          if ($code -ne 0) { throw "idle smoke failed (exit=$code)" }
+
+      - name: Say out loud that nothing was verified (mono)
+        if: inputs.backend == 'mono'
+        shell: powershell
+        run: |
+          Write-Host "::warning title=quick look only::mono build - NOT the shipped backend and NOT verified to run"
+
+      - name: Upload artifact (only when asked)
+        if: inputs.publish == 'artifact'
+        uses: actions/upload-artifact@v4
+        with:
+          name: idle-windows
+          path: ${{ steps.build.outputs.out_dir }}
+          retention-days: 7
+
+      # 사용자는 채널만 본다 — 실패도 성공도 여기로 온다.
+      - name: Tell the channel
+        if: always()
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Continue'
+          . "$env:GITHUB_WORKSPACE\.github\scripts\wm-build-card.ps1"
+          $token = Get-LaptopOpsToken
+          if (-not $token) { Write-Host 'no laptop-ops token - skipping notify'; exit 0 }
+
+          $ok = '${{ job.status }}' -eq 'success'
+          $mark = if (-not $ok) { 'FAIL' }
+            elseif ('${{ inputs.backend }}' -eq 'mono') { 'OK (mono quick look - not verified)' }
+            elseif ('${{ steps.smoke.outputs.code }}' -eq '2') { 'OK (run-check skipped)' }
+            else { 'OK' }
+          $where = '${{ steps.build.outputs.exe }}'
+          $body = "[Idle $mark] $where`n${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          try {
+            Invoke-LaptopOpsJson -Path '/notify' -Token $token -Payload @{ channel = 'build'; content = $body } | Out-Null
+          } catch {
+            Write-Warning "notify failed: $($_.Exception.Message)"
+          }

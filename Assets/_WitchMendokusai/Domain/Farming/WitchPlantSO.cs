@@ -50,6 +50,10 @@ namespace WitchMendokusai
 		// 시작 생기 (심을 때 PlantGrowthState 초기값).
 		[field: SerializeField, Min(0f)] public float StartVitality { get; private set; } = DEFAULT_START_VITALITY;
 
+		[Header("시계 — 이 작물이 무엇을 타고 자라나 (TASK-WM-410)")]
+		[Tooltip("World = 세계의 하늘(자면 밤이 지나고 그만큼 자람 — 돌봄·시듦이 사는 쪽) / Real = 바깥 현실(꺼 둬도 자람, 방치 수확).")]
+		[field: SerializeField] public PlantClock Clock { get; private set; } = PlantClock.World;
+
 		[field: Header("_" + nameof(WitchPlantSO) + " 수확")]
 		// 기본 수확물 추첨표(확률) — SeedItemData.HarvestLoots 패턴 재사용. DataSO = ItemData. 비어 있으면 수확물 0.
 		[field: SerializeField] public List<DataSOWithPercentage> HarvestLoots { get; private set; } = new();
@@ -128,6 +132,17 @@ namespace WitchMendokusai
 
 #if UNITY_EDITOR
 		// 에디터 데이터 시드 전용(WitchPlantSeedTool). 정본 입력 = 디자이너 인스펙터 — 이건 샘플 종 자동 구성용.
+		/// <summary>검증·에디터 도구가 성장 수치를 물린다(코지 작물 = drain 0 = 절대 안 시듦).</summary>
+		/// <summary>검증·에디터 도구가 시계를 물린다.</summary>
+		public void EditorSetClock(PlantClock clock) => Clock = clock;
+
+		public void EditorSetGrowth(int minutesPerStage, int maxStage, float drainPerMinute)
+		{
+			MinutesPerStage = minutesPerStage;
+			MaxStage = maxStage;
+			DrainPerMinute = drainPerMinute;
+		}
+
 		public void EditorSetHarvestLoots(List<DataSOWithPercentage> loots) => HarvestLoots = loots;
 		public void EditorSetCarerLoots(List<CarerLoot> carerLoots) => CarerLoots = carerLoots;
 #endif

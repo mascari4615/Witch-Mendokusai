@@ -36,4 +36,32 @@ namespace WitchMendokusai.DomainSDK.Idle
             BagIndex = bagIndex;
         }
     }
+
+    /// <summary>
+    /// 「손으로 한 대 때린다」 — 사람이 판을 눌렀다 (TASK-WM-406).
+    ///
+    /// ★ 이 게임에서 사람이 <b>아무 때나</b> 할 수 있는 유일한 행동이다.
+    ///   나머지(사기·합치기·감정·환생)는 모을 것이 있어야 누를 수 있다.
+    /// </summary>
+    public readonly struct IdleTapIntent : IGameIntent
+    {
+    }
+
+    /// <summary>「영웅을 한 번 뽑는다」 — 환생석을 치른다 (TASK-WM-406).</summary>
+    public readonly struct IdlePullHeroIntent : IGameIntent
+    {
+    }
+
+    /// <summary>「이 자리에 이 영웅을 앉힌다」 — 같은 영웅이 다른 자리에 있으면 자리를 맞바꾼다.</summary>
+    public readonly struct IdleSetPartyIntent : IGameIntent
+    {
+        public int Slot { get; }
+        public int HeroId { get; }
+
+        public IdleSetPartyIntent(int slot, int heroId)
+        {
+            Slot = slot;
+            HeroId = heroId;
+        }
+    }
 }

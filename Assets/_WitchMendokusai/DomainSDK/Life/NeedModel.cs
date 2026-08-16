@@ -24,11 +24,28 @@ namespace WitchMendokusai.DomainSDK.Life
             }
         }
 
-        /// <summary>한 욕구를 채운다(활동·개입) — 상한 클램프. INC-4 가 의미(아이템·돌봄)를 입힌다.</summary>
+        /// <summary>
+        /// 한 욕구를 채운다(활동·개입) — 상한 클램프. INC-4 가 의미(아이템·돌봄)를 입힌다.
+        /// <paramref name="amount"/> 는 <b>음수도 받는다</b> = 소모(하한 0 클램프). 회복과 소모를
+        /// 한 함수로 두는 이유: 한 행동이 양쪽을 동시에 일으키기 때문이다(자면 기운은 차고 배는 고파진다).
+        /// 소모를 걸기 전에 감당 가능한지는 <see cref="CanSpend"/> 로 먼저 묻는다(TASK-WM-408).
+        /// </summary>
         public static void Satisfy(NeedState state, NeedProfile profile, NeedKind kind, float amount)
         {
             NeedSpec spec = profile.SpecOf(kind);
             state.Set(kind, Mathf.Clamp(state.Get(kind) + amount, NEED_FLOOR, spec.Max));
+        }
+
+        /// <summary>
+        /// 이만큼 쓸 수 있나 (TASK-WM-408) — 지금 충족도가 <paramref name="amount"/> 이상인가.
+        ///
+        /// ★ 왜 필요했나: 여기엔 <see cref="Satisfy"/>(채우기)만 있고 「쓸 수 있나」를 묻는 자리가 없었다.
+        ///   그래서 「유한한 하루를 태워 쓴다」는 감각(기운이 없으면 못 한다)이 구조적으로 표현 불가였다.
+        ///   클램프에 맡기면 기운 0 인 채로 모든 행동이 <b>성공</b>해 버린다 — 대가가 사라진다.
+        /// </summary>
+        public static bool CanSpend(NeedState state, NeedKind kind, float amount)
+        {
+            return amount <= 0f || state.Get(kind) >= amount;
         }
 
         /// <summary>이 욕구가 문제 상태인가 — 충족도가 임계 미만.</summary>

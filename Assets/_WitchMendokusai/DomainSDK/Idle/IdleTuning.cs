@@ -44,6 +44,64 @@ namespace WitchMendokusai.DomainSDK.Idle
         public double BaseAttackSpeed { get; set; } = 3d;
 
         /// <summary>
+        /// 손으로 한 대가 <b>자동 공격 몇 초치</b>인가 (<see cref="IdleModel.Tap"/>).
+        ///
+        /// ★ 비율로 둔 이유 — 고정값이면 초반엔 과하고 후반엔 무의미해진다.
+        ///   비율이면 손은 늘 같은 몫을 한다: 초당 다섯 번 두드리면 대략 <b>공격속도 배</b>가 된다.
+        /// ★ 안 두드려도 손해는 없다 — 방치형이라 손은 <b>더 얹는 것</b>이지 <b>내야 하는 것</b>이 아니다.
+        /// </summary>
+        public double TapSecondsOfAttack { get; set; } = 0.2d;
+
+        // ── 영웅 뽑기 (TASK-WM-406) ─────────────────────────────────────────
+        //
+        // ★ 사용자가 정한 것은 <b>인심</b>이다 (2026-08-17: 「관대 — 많이 뽑는 맛」).
+        //   아래 숫자는 그 결정을 인디 관측 범위 안에서 옮긴 것이다:
+        //   최상위 1~2% · 천장 60~80회 (`refs/korean-idle-gacha.md` § 손잡이).
+
+        /// <summary>한 번 뽑는 값 (환생석).</summary>
+        public long PullCost { get; set; } = 1L;
+
+        /// <summary>최고 등급이 나올 확률. 관대한 판이라 위쪽(2%)을 쓴다.</summary>
+        public double LegendChance { get; set; } = 0.02d;
+
+        public double EpicChance { get; set; } = 0.10d;
+
+        public double RareChance { get; set; } = 0.28d;
+
+        /// <summary>
+        /// 이만큼 뽑는 동안 최고 등급이 없으면 <b>다음 판에 준다</b> (천장).
+        ///
+        /// ★ 없으면 불운 한 번이 곧 이탈이다. 확률이 옳아도 사람은 자기 표본만 본다.
+        /// </summary>
+        public int PityPulls { get; set; } = 60;
+
+        /// <summary>★ 상한. 여기 닿아도 중복은 조각으로 남는다(꽝이 되면 안 된다).</summary>
+        public int MaxStars { get; set; } = 5;
+
+        /// <summary>★ 한 단계에 필요한 중복 수의 기본값 — 위 ★ 일수록 배수로 는다.</summary>
+        public int CopiesPerStar { get; set; } = 2;
+
+        /// <summary>★ 한 단계가 더해 주는 몫 (업계 관측 약 10%).</summary>
+        public double HeroStarStep { get; set; } = 0.10d;
+
+        /// <summary>
+        /// <b>들고만 있어도</b> 붙는 몫 (일반 등급 기준, 등급 무게가 곱해진다).
+        ///
+        /// ★ 절대 크기는 어떤 상용작도 공개하지 않는다 — 우리 시뮬로 정한다.
+        ///   시작값은 「일반 하나 = 3%」. 같은 갈래끼리 더해지므로 열 마리면 +30%.
+        /// </summary>
+        public double HeroOwnedShareByGrade { get; set; } = 0.03d;
+
+        /// <summary>내보냈을 때 <b>더</b> 붙는 몫 — 보유보다 커야 「내보낸다」가 뜻을 가진다.</summary>
+        public double HeroPartyShareByGrade { get; set; } = 0.12d;
+
+        /// <summary>도감이 한 계단 오르는 데 필요한 점수(모은 종류 + 올린 ★).</summary>
+        public int CodexStepScore { get; set; } = 5;
+
+        /// <summary>도감 한 계단이 판 전체에 더해 주는 몫.</summary>
+        public double CodexStepBonus { get; set; } = 0.15d;
+
+        /// <summary>
         /// 공격력 곡선.
         ///
         /// ★ <b>효과 배수 1.337 은 임의의 값이 아니다</b> — 관계식에서 나온다(실측·유도 2026-08-16).
@@ -128,21 +186,21 @@ namespace WitchMendokusai.DomainSDK.Idle
         public double MergeCostFactor { get; set; } = 0.5d;
 
         /// <summary>
-        /// 아직 한 번도 안 접었을 때의 등급 상한.
+        /// 아직 한 번도 안 환생했을 때의 등급 상한.
         ///
         /// ★ 울티마 스쿼드의 <b>일반 모드 상한이 6등급</b>이다. 그 위(7~8)는 카오스에서만 나온다.
         /// </summary>
         public int BaseMaxTier { get; set; } = 6;
 
         /// <summary>
-        /// 한 번 접을 때마다 열리는 등급 수.
+        /// 한 번 환생할 때마다 열리는 등급 수.
         ///
         /// ★ 울티마 스쿼드가 일반 6 → 카오스 8 로 <b>상한 자체를 연다</b>(+2). 여기가 그 자리다.
         ///
         /// ★ 왜 이게 있어야 하나 — 실측(2026-08-16)에서 드러난 구멍이다.
         ///   등급이 5단계마다 하나씩 열리니 상한 8 은 36단계면 다 열리는데, 2시간이면 40단계다.
         ///   그 뒤로는 아무리 내려가도 등급이 안 열려 <b>「깊이가 관문」이 후반에 그냥 꺼졌다.</b>
-        ///   접을 때마다 천장을 올리면 「내려간다 → 천장에 닿는다 → 접는다 → 천장이 오른다」가 돈다.
+        ///   환생할 때마다 천장을 올리면 「내려간다 → 천장에 닿는다 → 환생한다 → 천장이 오른다」가 돈다.
         ///
         /// ★ 절대 상한을 안 둔다. 대신 <b>매 판마다 천장이 보인다</b> —
         ///   「끝이 보이는 토막」을 한 층 위에 다시 만든 것이다(단계 10개가 한 토막인 것과 같은 이치).
@@ -213,7 +271,7 @@ namespace WitchMendokusai.DomainSDK.Idle
         ///
         /// ★ <b>기본값이 체력 배수와 같다(1.55)</b> — 우연이 아니다.
         ///   점수는 대략 단계 수만큼 쌓이므로, 점수 하나가 단계 하나만큼의 어려움을 갚으면
-        ///   <b>접을 때마다 그 판이 늘린 어려움을 정확히 상쇄</b>한다.
+        ///   <b>환생할 때마다 그 판이 늘린 어려움을 정확히 상쇄</b>한다.
         ///
         /// ⚠ 한때 이 값을 1.10 으로 내렸었다. 1.55 에서 폭주가 났기 때문인데,
         ///   진짜 원인은 이 손잡이가 아니라 <b>모델의 고장</b>이었다 —
@@ -224,7 +282,7 @@ namespace WitchMendokusai.DomainSDK.Idle
         public double PrestigeMultiplierPerPoint { get; set; } = 1.55d;
 
         /// <summary>
-        /// 아직 한 번도 안 접었을 때, 자리를 비운 동안 쳐주는 시간의 상한(초). 기본 8시간.
+        /// 아직 한 번도 안 환생했을 때, 자리를 비운 동안 쳐주는 시간의 상한(초). 기본 8시간.
         ///
         /// ★ 왜 상한이 있나 — 없으면 한 달 만에 돌아온 사람이 한 번에 다 받고 게임이 끝난다.
         ///   방치형에서 상한은 벌이 아니라 <b>돌아올 이유</b>다.
@@ -232,10 +290,10 @@ namespace WitchMendokusai.DomainSDK.Idle
         public double BaseMaxOfflineSeconds { get; set; } = 8d * 3600d;
 
         /// <summary>
-        /// 한 번 접을 때마다 늘어나는 상한(초). 기본 2시간.
+        /// 한 번 환생할 때마다 늘어나는 상한(초). 기본 2시간.
         ///
         /// ★ 울티마 스쿼드가 <b>16시간 → 24시간</b>으로 이 값 자체를 늘려 준다. 그 자리다.
-        ///   접으면 세 가지가 같이 오른다: 공격 배수 · 등급 천장 · <b>자리 비워도 되는 시간</b>.
+        ///   환생하면 세 가지가 같이 오른다: 공격 배수 · 등급 천장 · <b>자리 비워도 되는 시간</b>.
         ///   셋째가 특히 방치형답다 — 세지는 게 아니라 <b>덜 매여도 되는 것</b>이 보상이다.
         /// </summary>
         public double OfflineSecondsPerAscension { get; set; } = 2d * 3600d;

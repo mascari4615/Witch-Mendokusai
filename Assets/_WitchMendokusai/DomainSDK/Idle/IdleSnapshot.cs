@@ -69,6 +69,48 @@ namespace WitchMendokusai.DomainSDK.Idle
     }
 
     /// <summary>
+    /// 가진 영웅 하나가 화면에 보이는 모습 (TASK-WM-406).
+    /// </summary>
+    public readonly struct IdleHeroView
+    {
+        public IdleHeroView(int id, string name, IdleHeroGrade grade, IdleHeroAxis axis, int sides,
+            int stars, int copies, int copiesForNextStar, bool inParty, double ownedShare)
+        {
+            Id = id;
+            Name = name;
+            Grade = grade;
+            Axis = axis;
+            Sides = sides;
+            Stars = stars;
+            Copies = copies;
+            CopiesForNextStar = copiesForNextStar;
+            InParty = inParty;
+            OwnedShare = ownedShare;
+        }
+
+        public int Id { get; }
+        public string Name { get; }
+        public IdleHeroGrade Grade { get; }
+        public IdleHeroAxis Axis { get; }
+
+        /// <summary>몇 각형으로 그리나.</summary>
+        public int Sides { get; }
+
+        public int Stars { get; }
+
+        /// <summary>다음 ★ 까지 모은 중복.</summary>
+        public int Copies { get; }
+
+        public int CopiesForNextStar { get; }
+
+        /// <summary>지금 내보내고 있나.</summary>
+        public bool InParty { get; }
+
+        /// <summary>들고만 있어도 붙는 몫(비율) — 「이 얼굴이 지금 얼마나 보태나」.</summary>
+        public double OwnedShare { get; }
+    }
+
+    /// <summary>
     /// 지금 판의 <b>읽기 전용 사진</b> — 코어가 표현에게 건네는 것 (TASK-WM-406).
     ///
     /// ★ 상태 자체를 안 넘긴다 — 넘기면 표현이 코어를 고칠 수 있게 되고,
@@ -102,7 +144,7 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// <summary>여태 모은 리셋 점수.</summary>
         public long PrestigePoints { get; }
 
-        /// <summary>지금 접으면 받는 점수 — 0 이면 아직 못 접는다.</summary>
+        /// <summary>지금 환생하면 받는 점수 — 0 이면 아직 아직 환생 못 한다.</summary>
         public long PrestigeAward { get; }
 
         /// <summary>리셋 점수가 지금 주고 있는 배수.</summary>
@@ -116,7 +158,7 @@ namespace WitchMendokusai.DomainSDK.Idle
 
         /// <summary>
         /// 이번 판의 천장 — 아무리 내려가도 여기까지다.
-        /// <see cref="MaxTierNow"/> 가 여기 닿았으면 <b>더 내려가도 등급은 안 열린다</b> = 접을 때다.
+        /// <see cref="MaxTierNow"/> 가 여기 닿았으면 <b>더 내려가도 등급은 안 열린다</b> = 환생할 때다.
         /// </summary>
         public int TierCeiling { get; }
 
@@ -126,7 +168,7 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// <summary>그 잠재의 등급.</summary>
         public PotentialGrade BestPotentialGrade { get; }
 
-        /// <summary>지금 자리를 비워도 되는 시간(초) — 접을수록 는다.</summary>
+        /// <summary>지금 자리를 비워도 되는 시간(초) — 환생할수록 는다.</summary>
         public double MaxOfflineSeconds { get; }
 
         /// <summary>여기 머무는 중인가 — 사람이 고른 것.</summary>
@@ -150,11 +192,40 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// <summary>가방 칸 수 — 「몇/몇」을 화면이 뺄셈으로 지어내지 않게.</summary>
         public int BagCapacity { get; }
 
+        /// <summary>가진 영웅들 (도감).</summary>
+        public IdleHeroView[] Heroes { get; }
+
+        /// <summary>내보낸 셋 — 영웅 id, 빈 자리는 -1.</summary>
+        public int[] Party { get; }
+
+        /// <summary>한 번 뽑는 값 (환생석).</summary>
+        public long PullCost { get; }
+
+        /// <summary>지금 뽑을 수 있나.</summary>
+        public bool CanPull { get; }
+
+        /// <summary>천장까지 남은 횟수 — 「언젠가는 온다」를 화면이 셀 수 있게.</summary>
+        public int PullsToPity { get; }
+
+        /// <summary>도감 점수(모은 종류 + 올린 ★)와 그것이 주는 전체 배수.</summary>
+        public int CodexScore { get; }
+
+        public double CodexMultiplier { get; }
+
         /// <summary>공격력 축.</summary>
         public IdleUpgradeView Damage { get; }
 
         /// <summary>공격속도 축.</summary>
         public IdleUpgradeView AttackSpeed { get; }
+
+        /// <summary>
+        /// 지금 초당 몇 번 치나 — 화면이 <b>때리는 장단</b>을 이 숫자에 맞춘다.
+        ///
+        /// ★ 사용자 지적 (2026-08-16): 「공격 하는지 안 하는지 알 수가 없다」.
+        ///   화면이 스스로 장단을 지어내면 코어의 실제 속도와 어긋나고, 그러면
+        ///   공격속도를 올려도 <b>빨라진 게 안 보인다</b> — 올린 이유가 사라진다.
+        /// </summary>
+        public double AttacksPerSecond { get; }
 
         public IdleSnapshot(double resource, double incomePerSecond, long kills, double targetHealthRatio,
             int stage, int killsInStage, int killsPerStage,
@@ -162,7 +233,9 @@ namespace WitchMendokusai.DomainSDK.Idle
             long[] droppedByTier, int maxTierNow, int tierCeiling,
             IdleProducerView[] producers, IdleItem[] bag, IdleItem[] worn, int bagCapacity,
             double bestPotentialValue, PotentialGrade bestPotentialGrade, double maxOfflineSeconds, bool holdingStage, int bestStage, int bestFarmingStage,
-            IdleUpgradeView damage, IdleUpgradeView attackSpeed)
+            IdleHeroView[] heroes, int[] party, long pullCost, bool canPull, int pullsToPity,
+            int codexScore, double codexMultiplier,
+            IdleUpgradeView damage, IdleUpgradeView attackSpeed, double attacksPerSecond)
         {
             Resource = resource;
             IncomePerSecond = incomePerSecond;
@@ -187,8 +260,16 @@ namespace WitchMendokusai.DomainSDK.Idle
             HoldingStage = holdingStage;
             BestStage = bestStage;
             BestFarmingStage = bestFarmingStage;
+            Heroes = heroes;
+            Party = party;
+            PullCost = pullCost;
+            CanPull = canPull;
+            PullsToPity = pullsToPity;
+            CodexScore = codexScore;
+            CodexMultiplier = codexMultiplier;
             Damage = damage;
             AttackSpeed = attackSpeed;
+            AttacksPerSecond = attacksPerSecond;
         }
 
         /// <summary>축 하나를 골라 본다 — 표현이 반복문으로 그릴 때 쓴다.</summary>

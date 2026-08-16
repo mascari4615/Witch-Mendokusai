@@ -146,6 +146,26 @@ namespace WitchMendokusai
 			return true;
 		}
 
+		/// <summary>
+		/// 행동이 먹은 시간만큼 시계를 앞으로 민다 (TASK-WM-410) — 「밭을 갈면 한 시간이 간다」.
+		///
+		/// ★ 왜 세계가 시각을 줄 때는 거절하나: 그때 하늘의 주인은 세계(서버)다.
+		///   여기서 몰래 밀면 다음 틱에 세계 값으로 덮여 <b>시간이 되감긴 것처럼</b> 보인다.
+		///   그 경우 시간 소비는 세계에 요청해야 할 일이라 여기서는 false 만 돌려준다.
+		/// </summary>
+		public bool AdvanceMinutes(int minutes)
+		{
+			if (minutes <= 0)
+				return false;
+
+			if (WorldDoor.Current?.Time != null)
+				return false;
+
+			ApplyMinutes(minutes);
+			OnMinuteChanged.Invoke(Minute);
+			return true;
+		}
+
 		private void ApplyMinutes(int minutesToAdd)
 		{
 			int newMinute = Minute + minutesToAdd;

@@ -18,8 +18,8 @@ namespace WitchMendokusai.DomainSDK.Idle
     public static class IdleDrops
     {
         /// <summary>
-        /// 이번 판의 <b>천장</b> — 몇 번 접었느냐로 정해진다. 아무리 내려가도 이 위는 안 나온다.
-        /// 화면이 「이번 판은 여기까지」를 말할 수 있어야 접을 때가 보인다.
+        /// 이번 판의 <b>천장</b> — 몇 번 환생했느냐로 정해진다. 아무리 내려가도 이 위는 안 나온다.
+        /// 화면이 「이번 판은 여기까지」를 말할 수 있어야 환생할 때가 보인다.
         /// </summary>
         public static int CeilingFor(int ascensions, IdleTuning tuning)
         {
@@ -34,7 +34,7 @@ namespace WitchMendokusai.DomainSDK.Idle
 
         /// <summary>
         /// 이 단계에서 나올 수 있는 가장 높은 등급 (1부터).
-        /// 두 관문을 <b>둘 다</b> 통과해야 한다 — 깊이(단계)와 천장(접은 횟수).
+        /// 두 관문을 <b>둘 다</b> 통과해야 한다 — 깊이(단계)와 천장(환생 횟수).
         /// </summary>
         public static int MaxTierAt(int stage, int ascensions, IdleTuning tuning)
         {
@@ -101,7 +101,8 @@ namespace WitchMendokusai.DomainSDK.Idle
             int maxTier = MaxTierAt(stage, state.Ascensions, tuning);
             state.EnsureTierRoom(CeilingFor(state.Ascensions, tuning));
             // 발에 찬 것이 떨구기를 올린다 — 장비가 모험 층과도 물린다.
-            double expected = kills * tuning.DropsPerKill * IdleGear.DropMultiplier(state, tuning);
+            double expected = kills * tuning.DropsPerKill * IdleGear.DropMultiplier(state, tuning)
+                * IdleHeroes.AxisMultiplierOf(state, tuning, IdleHeroAxis.Drop);
 
             for (int tier = 1; tier <= maxTier; tier++)
             {

@@ -1,5 +1,4 @@
 using NUnit.Framework;
-using UnityEngine;
 using WitchMendokusai.DomainSDK.Idle;
 
 namespace WitchMendokusai.Tests
@@ -19,7 +18,7 @@ namespace WitchMendokusai.Tests
 	{
 		private const double TOLERANCE = 1e-9d;
 
-		/// <summary>벽을 느끼기 전에는 못 접는다 — 그 전의 리셋은 보상이 아니라 벌이다.</summary>
+		/// <summary>벽을 느끼기 전에는 아직 환생 못 한다 — 그 전의 리셋은 보상이 아니라 벌이다.</summary>
 		[Test]
 		public void CannotPrestige_BeforeFeelingTheWall()
 		{
@@ -28,11 +27,11 @@ namespace WitchMendokusai.Tests
 
 			Assert.IsFalse(IdleModel.CanPrestige(state, tuning));
 			Assert.AreEqual(0L, IdleModel.PrestigeAwardFor(state, tuning));
-			Assert.IsFalse(IdleModel.TryPrestige(state, tuning, out long _), "못 접어야 하는데 접혔다");
+			Assert.IsFalse(IdleModel.TryPrestige(state, tuning, out long _), "못 환생해야 하는데 환생됐다");
 			Assert.AreEqual(tuning.PrestigeMinStage - 1, state.Stage, "실패했는데 판이 건드려졌다");
 		}
 
-		/// <summary>깊이 갈수록 접었을 때 더 받는다.</summary>
+		/// <summary>깊이 갈수록 환생했을 때 더 받는다.</summary>
 		[Test]
 		public void DeeperRun_PaysMore()
 		{
@@ -41,7 +40,7 @@ namespace WitchMendokusai.Tests
 			long shallow = IdleModel.PrestigeAwardFor(new IdleState { Stage = tuning.PrestigeMinStage }, tuning);
 			long deep = IdleModel.PrestigeAwardFor(new IdleState { Stage = tuning.PrestigeMinStage + 20 }, tuning);
 
-			Assert.AreEqual(1L, shallow, "닿자마자 접으면 1점이어야 한다");
+			Assert.AreEqual(1L, shallow, "닿자마자 환생하면 1점이어야 한다");
 			Assert.Greater(deep, shallow);
 		}
 
@@ -93,22 +92,22 @@ namespace WitchMendokusai.Tests
 			IdleState first = new IdleState();
 			double before = SecondsToReach(first, tuning, goal);
 
-			Assert.IsTrue(IdleModel.TryPrestige(first, tuning, out long awarded), "10단계에 닿았는데 못 접는다");
+			Assert.IsTrue(IdleModel.TryPrestige(first, tuning, out long awarded), "10단계에 닿았는데 아직 환생 못 한다");
 			Assert.Greater(awarded, 0L);
 
 			double after = SecondsToReach(first, tuning, goal);
 
-			Debug.Log("[IdlePrestige] 처음 " + before.ToString("N0") + "초 → 접은 뒤 " + after.ToString("N0")
+			TestContext.WriteLine("[IdlePrestige] 처음 " + before.ToString("N0") + "초 → 환생한 뒤 " + after.ToString("N0")
 				+ "초 (점수 " + awarded + " · 배수 " + IdleModel.PrestigeMultiplier(first, tuning).ToString("N2") + "배)");
 
-			Assert.Less(after, before, "접고 다시 내려가는 게 더 느리다 — 리셋이 벌이 됐다");
+			Assert.Less(after, before, "환생하고 다시 내려가는 게 더 느리다 — 리셋이 벌이 됐다");
 		}
 
 		/// <summary>
-		/// ★ <b>깊이 갔다 접어야 값어치가 난다</b> — 이 게임이 「한 번 더」를 파는 방식.
+		/// ★ <b>깊이 갔다 환생해야 값어치가 난다</b> — 이 게임이 「한 번 더」를 파는 방식.
 		///
-		/// 실측(2026-08-16): 관문(10단계)에 닿자마자 접으면 1점 = +10% 라 710초 → 646초,
-		/// <b>9% 밖에 안 빨라진다.</b> 그건 사람이 「접을 이유」로 못 느낀다.
+		/// 실측(2026-08-16): 관문(10단계)에 닿자마자 환생하면 1점 = +10% 라 710초 → 646초,
+		/// <b>9% 밖에 안 빨라진다.</b> 그건 사람이 「환생할 이유」로 못 느낀다.
 		/// 반대로 8시간 방치하면 57단계까지 가고 그건 48점 = +480% 다.
 		///
 		/// 그래서 여기서 재는 것은 「빨라지나」가 아니라 <b>얼마나</b> 빨라지나다.
@@ -123,26 +122,26 @@ namespace WitchMendokusai.Tests
 			IdleState plain = new IdleState();
 			double before = SecondsToReach(plain, tuning, goal);
 
-			// 깊이 갔다 접은 사람 — 8시간 방치가 닿는 언저리(실측 57단계)보다 보수적으로 잡는다.
+			// 깊이 갔다 환생한 사람 — 8시간 방치가 닿는 언저리(실측 57단계)보다 보수적으로 잡는다.
 			IdleState veteran = new IdleState { Stage = 40 };
 			Assert.IsTrue(IdleModel.TryPrestige(veteran, tuning, out long deepAward));
 
 			double after = SecondsToReach(veteran, tuning, goal);
 
-			Debug.Log("[IdlePrestige-깊이] " + goal + "단계까지 처음 " + before.ToString("N0")
-				+ "초 → 40단계에서 접은 뒤 " + after.ToString("N0") + "초 (점수 " + deepAward
+			TestContext.WriteLine("[IdlePrestige-깊이] " + goal + "단계까지 처음 " + before.ToString("N0")
+				+ "초 → 40단계에서 환생한 뒤 " + after.ToString("N0") + "초 (점수 " + deepAward
 				+ " · 배수 " + IdleModel.PrestigeMultiplier(veteran, tuning).ToString("N1") + "배)");
 
-			Assert.Greater(deepAward, 20L, "40단계에서 접었는데 점수가 20 이하다");
+			Assert.Greater(deepAward, 20L, "40단계에서 환생했는데 점수가 20 이하다");
 			Assert.Less(after, before * 0.7d,
-				"깊이 갔다 접었는데 30%도 안 빨라진다 — 「한 번 더」를 팔 수 없다");
+				"깊이 갔다 환생했는데 30%도 안 빨라진다 — 「한 번 더」를 팔 수 없다");
 		}
 
 		/// <summary>
 		/// ★ <b>점수 하나 = 단계 하나만큼의 어려움.</b>
 		///
 		/// 점수는 대략 단계 수만큼 쌓이므로, 점수 하나가 단계 하나의 어려움을 갚으면
-		/// 접을 때마다 그 판이 늘린 어려움이 정확히 상쇄된다.
+		/// 환생할 때마다 그 판이 늘린 어려움이 정확히 상쇄된다.
 		/// 실측(2026-08-16, 넘치는 피해를 버린 뒤): 1.55 는 판마다 +21 로 고르고,
 		/// 1.10 은 +64 → +68 → +28 로 감속하다 멎는다.
 		///
@@ -159,12 +158,12 @@ namespace WitchMendokusai.Tests
 		}
 
 		/// <summary>
-		/// ★ <b>버티는 쪽이 낫다</b> — 천장에 닿자마자 접기를 되풀이하면 손해다.
+		/// ★ <b>버티는 쪽이 낫다</b> — 천장에 닿자마자 환생를 되풀이하면 손해다.
 		///
-		/// 실측(2026-08-16, 이레): 「천장 보면 접는다」는 판5에 102단계,
+		/// 실측(2026-08-16, 이레): 「천장 보면 환생한다」는 판5에 102단계,
 		/// 「막힐 때까지 버틴다」는 <b>363단계</b>. 3.5배 차이다.
-		/// 이 부등식이 뒤집히면 게임이 <b>접기 남발</b>로 무너진다 —
-		/// 그때는 접는 데 비용을 붙여야 한다.
+		/// 이 부등식이 뒤집히면 게임이 <b>환생 남발</b>로 무너진다 —
+		/// 그때는 환생에 비용을 붙여야 한다.
 		/// </summary>
 		[Test]
 		public void GrindingDeeper_BeatsFoldingEarly()
@@ -178,7 +177,7 @@ namespace WitchMendokusai.Tests
 			long deep = IdleModel.PrestigeStandingFor(new IdleState { Stage = deepFold }, tuning);
 
 			Assert.Greater(deep, shallow * 2L,
-				"더 내려가도 점수가 별로 안 는다 — 그러면 천장에서 바로 접는 게 이득이 되어 게임이 무너진다");
+				"더 내려가도 점수가 별로 안 는다 — 그러면 천장에서 바로 환생하는 게 이득이 되어 게임이 무너진다");
 		}
 
 		/// <summary>점수가 공격력에 실제로 실린다 — 배수가 이름뿐이면 위 판이 우연히 통과할 수 있다.</summary>
@@ -235,7 +234,7 @@ namespace WitchMendokusai.Tests
 		{
 			IdleTuning tuning = new IdleTuning();
 			IdleSession tooEarly = new IdleSession(tuning, new IdleState { Stage = 2 });
-			Assert.IsFalse(tooEarly.Send(new IdlePrestigeIntent()), "아직인데 접혔다");
+			Assert.IsFalse(tooEarly.Send(new IdlePrestigeIntent()), "아직인데 환생됐다");
 
 			IdleSession ready = new IdleSession(tuning, new IdleState { Stage = 14 });
 			Assert.IsTrue(ready.Send(new IdlePrestigeIntent()));

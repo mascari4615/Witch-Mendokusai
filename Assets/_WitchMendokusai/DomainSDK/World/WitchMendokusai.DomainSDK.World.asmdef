@@ -4,6 +4,7 @@
     "references": [
         "WitchMendokusai.DomainSDK.Building",
         "WitchMendokusai.DomainSDK.City",
+        "WitchMendokusai.DomainSDK.Farming",
         "WitchMendokusai.DomainSDK.Numerics"
     ],
     "includePlatforms": [],

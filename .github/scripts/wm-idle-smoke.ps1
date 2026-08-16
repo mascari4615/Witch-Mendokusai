@@ -19,6 +19,9 @@
 #   powershell -File .github/scripts/wm-idle-smoke.ps1 -BuildDir C:\wm-builds\idle -Seconds 25
 
 param(
+    # ★ 부르는 쪽이 <어느 exe 인지> 알면 그걸 준다 — 추측이 끼면 엉뚱한 판을 검사한다.
+    #   (빌드 워크플로는 방금 구운 경로를 안다. 사람이 손으로 부를 때만 아래 폴더 추측을 쓴다.)
+    [string]$ExePath,
     [string]$BuildDir = 'C:\wm-builds\idle',
     [int]$Seconds = 25,
     [string]$SavePath = "$env:USERPROFILE\AppData\LocalLow\KarmoDDrine\WitchMendokusai\idle.json"
@@ -40,19 +43,39 @@ function Fail($message)
     exit 1
 }
 
-if (-not (Test-Path $BuildDir)) { Fail2 "빌드 폴더가 없다: $BuildDir" }
-
-# ★ <플레이어 exe 가 든> 가장 새 폴더를 고른다. 그냥 「가장 새 폴더」로 고르면
-#   크래시로 텅 빈 폴더를 집어 「아무것도 안 나왔다」를 초록으로 읽는다(본편 스모크가 겪은 함정).
-$exe = $null
-foreach ($dir in (Get-ChildItem $BuildDir -Directory | Sort-Object LastWriteTime -Descending))
+# ★ 화면 없는 세션(세션 0)에서는 <b>이 검사가 성립하지 않는다</b>.
+#   플레이어는 창을 띄워야 판이 도는데 LocalSystem 서비스에는 붙을 데스크톱이 없다.
+#   그대로 두면 「저장 파일이 안 생겼다」로 <b>게임이 깨진 것처럼</b> 빨개진다 —
+#   실측 2026-08-16: 노트북 러너(actions.runner…karmo-laptop-wm)가 LocalSystem 서비스라
+#   저장 경로가 C:\WINDOWS\system32\config\systemprofile\... 로 잡혔다.
+#   「검사를 못 돌렸다」와 「안 돈다」는 다른 말이고, 섞으면 빨간불이 뜻을 잃는다.
+if ([Environment]::UserName -eq 'SYSTEM' -or $env:USERPROFILE -like '*systemprofile*')
 {
-    $candidate = Join-Path $dir.FullName 'Idle.exe'
-    if (Test-Path $candidate) { $exe = $candidate; break }
-    Write-Host "[idle-smoke] WARN: 플레이어가 없는 빌드 폴더를 건너뛴다 — $($dir.Name)" -ForegroundColor Yellow
+    Fail2 "화면 없는 세션이다 (계정 $([Environment]::UserName)) — 플레이어를 띄울 데스크톱이 없다. 사람 세션에서 돌릴 것"
 }
 
-if ($null -eq $exe) { Fail2 "플레이어가 든 빌드가 하나도 없다: $BuildDir" }
+$exe = $null
+
+if (-not [string]::IsNullOrWhiteSpace($ExePath))
+{
+    if (-not (Test-Path $ExePath)) { Fail2 "준 경로에 플레이어가 없다: $ExePath" }
+    $exe = $ExePath
+}
+else
+{
+    if (-not (Test-Path $BuildDir)) { Fail2 "빌드 폴더가 없다: $BuildDir" }
+
+    # ★ <플레이어 exe 가 든> 가장 새 폴더를 고른다. 그냥 「가장 새 폴더」로 고르면
+    #   크래시로 텅 빈 폴더를 집어 「아무것도 안 나왔다」를 초록으로 읽는다(본편 스모크가 겪은 함정).
+    foreach ($dir in (Get-ChildItem $BuildDir -Directory | Sort-Object LastWriteTime -Descending))
+    {
+        $candidate = Join-Path $dir.FullName 'Idle.exe'
+        if (Test-Path $candidate) { $exe = $candidate; break }
+        Write-Host "[idle-smoke] WARN: 플레이어가 없는 빌드 폴더를 건너뛴다 — $($dir.Name)" -ForegroundColor Yellow
+    }
+
+    if ($null -eq $exe) { Fail2 "플레이어가 든 빌드가 하나도 없다: $BuildDir" }
+}
 
 Write-Host "[idle-smoke] exe    : $exe"
 Write-Host "[idle-smoke] 굴린다 : $Seconds 초"

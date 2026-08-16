@@ -1,5 +1,4 @@
 using NUnit.Framework;
-using UnityEngine;
 using WitchMendokusai.DomainSDK.Idle;
 using WitchMendokusai.Numerics;
 
@@ -84,7 +83,7 @@ namespace WitchMendokusai.Tests
 				value *= 10d;
 			}
 
-			Debug.Log("[BigNumber] 10^300 까지 가장 긴 표기 = \"" + worst + "\" (" + longest + "자)");
+			TestContext.WriteLine("[BigNumber] 10^300 까지 가장 긴 표기 = \"" + worst + "\" (" + longest + "자)");
 			Assert.LessOrEqual(longest, 10, "표기가 10자를 넘는다 — 화면을 밀어낸다");
 		}
 
@@ -122,7 +121,7 @@ namespace WitchMendokusai.Tests
 			string resource = BigNumberText.Format(state.Resource);
 			string damage = BigNumberText.Format(IdleModel.DamageOf(state, tuning));
 
-			Debug.Log("[BigNumber] 사흘 방치 — 자원 " + resource + " · 한 방 " + damage
+			TestContext.WriteLine("[BigNumber] 사흘 방치 — 자원 " + resource + " · 한 방 " + damage
 				+ " (" + state.Stage + "단계)");
 
 			Assert.LessOrEqual(resource.Length, 10);

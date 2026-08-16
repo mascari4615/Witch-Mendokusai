@@ -59,16 +59,20 @@ namespace WitchMendokusai.DomainSDK.Idle
                 total += state.Owned[kind] * OutputOf(kind, tuning);
             }
 
-            return total * IdleGear.BaseMultiplier(state, tuning);
+            return total * IdleGear.BaseMultiplier(state, tuning)
+                * IdleHeroes.AxisMultiplierOf(state, tuning, IdleHeroAxis.Base);
         }
 
         /// <summary>
-        /// 아직 안 보여줄 생산자인가 — <b>살 수 있게 되기 직전</b>까지만 감춘다.
+        /// 아직 안 보여줄 생산자인가 — <b>바로 다음 것까지는 늘 보인다</b>.
         ///
-        /// ★ 처음부터 여덟 줄을 다 보여주면 「지금 뭘 해야 하나」가 안 보인다.
-        ///   쿠키 클리커도 다음 것을 슬쩍 보여주며 목표를 만든다.
+        /// ★ 고쳐 쓴 자리 (사용자 지적 2026-08-16): 전에는 <b>값의 절반을 모아야</b> 다음 줄이
+        ///   나타났다. 그래서 돈이 모자라는 동안 다음 단계가 <b>사라진 것처럼</b> 보였고,
+        ///   사람 눈에는 그게 버그다 — 목표가 안 보이면 모을 이유도 안 보인다.
+        ///   쿠키 클리커도 다음 건물을 <b>회색으로 값과 함께</b> 띄워 둔다. 감추는 건
+        ///   <b>그 다음</b>부터다 — 여덟 줄을 한 번에 펴 놓으면 뭘 할지가 안 보이니까.
         /// </summary>
-        public static bool IsHidden(int kind, IdleState state, IdleTuning tuning)
+        public static bool IsHidden(int kind, IdleState state)
         {
             if (kind <= 0)
             {
@@ -80,11 +84,8 @@ namespace WitchMendokusai.DomainSDK.Idle
                 return false;
             }
 
-            // 앞 번호를 하나라도 가졌고, 값의 절반은 모아 봤어야 보인다.
-            bool hasPrevious = state.Owned.Length > kind - 1 && state.Owned[kind - 1] > 0L;
-            bool nearlyAfford = state.Resource >= CostOf(kind, 0L, tuning) * 0.5d;
-
-            return hasPrevious == false || nearlyAfford == false;
+            // 앞 번호를 하나라도 가졌으면 보인다 — 자원은 안 따진다(못 사도 값은 보여야 한다).
+            return state.Owned.Length <= kind - 1 || state.Owned[kind - 1] <= 0L;
         }
 
         /// <summary>한 개 산다. 자원이 모자라면 아무 일도 안 일어난다.</summary>

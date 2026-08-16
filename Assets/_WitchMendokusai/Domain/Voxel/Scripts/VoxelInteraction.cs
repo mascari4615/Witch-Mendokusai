@@ -1,5 +1,7 @@
 using UnityEngine;
 using VContainer;
+using WitchMendokusai.DomainSDK.Act;
+using WitchMendokusai.DomainSDK.Farming;
 
 namespace WitchMendokusai
 {
@@ -20,12 +22,18 @@ namespace WitchMendokusai
 		// HotbarView 는 UI 도메인 (메인 scene) 이고 VoxelInteraction 은 stage pool-spawn prefab 자식 →
 		// InjectGameObject 가 HotbarView 못 찾아 VContainer throw. 사용 시점 lazy resolve 로 분리. init-order-ok.
 		private HotbarView hotbarView;
+		// 복셀 땅 위의 밭 (TASK-WM-410). 스테이지 스코프라 사용 시점 lazy resolve. init-order-ok.
+		private FarmGroundObject farmGround;
+		private GameLogic gameLogic;
+		private UIManager uiManager;
 
 		[Inject]
-		public void Construct(GameModeManager gameModeManager, InputManager inputManager)
+		public void Construct(GameModeManager gameModeManager, InputManager inputManager, GameLogic gameLogic, UIManager uiManager)
 		{
 			this.gameModeManager = gameModeManager;
 			this.inputManager = inputManager;
+			this.gameLogic = gameLogic;
+			this.uiManager = uiManager;
 		}
 
 		private HotbarView EnsureHotbarView()
@@ -34,6 +42,14 @@ namespace WitchMendokusai
 				return hotbarView;
 			hotbarView = FindAnyObjectByType<HotbarView>(FindObjectsInactive.Include);
 			return hotbarView;
+		}
+
+		private FarmGroundObject EnsureFarmGround()
+		{
+			if (farmGround != null)
+				return farmGround;
+			farmGround = FindAnyObjectByType<FarmGroundObject>(FindObjectsInactive.Include);
+			return farmGround;
 		}
 
 		private void Start()
@@ -94,7 +110,138 @@ namespace WitchMendokusai
 			if (Physics.Raycast(ray, out RaycastHit hit, reachDistance) == false)
 				return;
 
+			if (TryFarmAt(hit))
+				return;
+
 			TryPlantFromHotbar(hit);
+		}
+
+
+		/// <summary>
+		/// 밭 한 칸을 매만진다 (TASK-WM-410) — 개화했으면 거두고, 갈렸으면 심고, 굳었으면 간다.
+		/// true = 밭이 처리함(옛 경로 스킵).
+		///
+		/// ★ 도구가 아직 없어서 「씨앗을 든 손」이 갈기까지 한다. 갈기와 심기는 <b>따로 걸리는 두 행동</b>이라
+		///   대가(시간·기운)는 각각 정확히 문다 — 나중에 괭이가 생기면 갈기만 떼어 가면 된다.
+		/// </summary>
+		private bool TryFarmAt(RaycastHit hit)
+		{
+			FarmGroundObject farm = EnsureFarmGround();
+			if (farm == null)
+				return false;
+
+			// 맞은 면의 <b>안쪽</b> 블록이 그 땅이다(면 바깥은 허공).
+			Vector3 inside = hit.point - hit.normal * 0.5f;
+			FarmCoord soil = FarmCoord.FromWorld(inside.x, inside.y, inside.z);
+
+			if (farm.TryHarvest(soil, out HarvestResult harvest, out _))
+			{
+				OnFarmHarvested(harvest, hit.point);
+				return true;
+			}
+
+			// 손에 든 것이 할 수 있는 행동을 정한다 (기획 확정 2026-08-17: 마도구).
+			SeedItemData seed = SelectedSeed();
+			if (seed == null || seed.Plant == null)
+				return TryTillWithHoe(farm, soil);
+
+			if (farm.TryPlant(soil, seed, out ActOutcome planted))
+				return true;
+
+			if (planted.Rejection != ActRejection.None)
+			{
+				ShowRejection(planted);
+				return true;
+			}
+
+			// 씨앗을 들었는데 아직 굳은 땅이면 심을 수 없다 — 괭이를 들라고 말해 준다.
+			ShowNeedsHoe();
+			return true;
+		}
+
+		// 마도 괭이를 든 손만 땅을 간다. 도구 등급이 대가(시간·기운)를 낮춘다.
+		private bool TryTillWithHoe(FarmGroundObject farm, FarmCoord soil)
+		{
+			if (farm.CanTill(soil) == false)
+				return false;
+
+			EquipmentData tool = SelectedEquipment();
+			if (tool == null || tool.EquipmentType != EquipmentType.Hoe)
+			{
+				ShowNeedsHoe();
+				return true;
+			}
+
+			if (farm.TryTill(soil, out ActOutcome tilled, tool.ActCostScale))
+				return true;
+
+			if (tilled.Rejection != ActRejection.None)
+				ShowRejection(tilled);
+
+			return true;
+		}
+
+		private void ShowNeedsHoe()
+		{
+			if (uiManager != null)
+				uiManager.SpeechBubble.Show(transform, "괭이가 있어야 갈 수 있다...");
+		}
+
+		private EquipmentData SelectedEquipment()
+		{
+			HotbarView view = EnsureHotbarView();
+			if (view == null)
+				return null;
+
+			Item selectedItem = view.SelectedItem;
+			if (selectedItem == null || selectedItem.IsEmpty)
+				return null;
+
+			return selectedItem.Data as EquipmentData;
+		}
+
+		// 거둔 것 = 작물의 수확물 표에 따라 바닥에 떨어뜨린다(기존 밭과 같은 길 — GameLogic.SpawnLootItem).
+		// 누가 가장 돌봤나(변이)는 작물 SO 가 판정한다(WitchPlantSO.ResolveCarerVariant) — 여기서 흉내내지 않는다.
+		private void OnFarmHarvested(HarvestResult harvest, Vector3 position)
+		{
+			WitchPlantSO plant = SOHelper.Get<WitchPlantSO>(harvest.PlantDataId);
+			if (plant == null || gameLogic == null)
+				return;
+
+			ItemData variant = WitchPlantSO.ResolveCarerVariant(plant.CarerLoots, harvest.HasDominantCarer, harvest.DominantCarerId);
+			if (variant != null)
+			{
+				gameLogic.SpawnLootItem(new System.Collections.Generic.List<DataSOWithPercentage>
+				{
+					new() { DataSO = variant, Percentage = 100f },
+				}, position);
+				return;
+			}
+
+			gameLogic.SpawnLootItem(plant.HarvestLoots, position);
+		}
+
+		// 왜 안 됐는지는 그 자리에서 말해 준다 — 조용한 실패는 「고장」으로 읽힌다.
+		private void ShowRejection(ActOutcome outcome)
+		{
+			if (uiManager == null)
+				return;
+
+			string reason = outcome.Rejection == ActRejection.Resource ? "씨앗이 없다..." : "기운이 없다...";
+			uiManager.SpeechBubble.Show(transform, reason);
+		}
+
+		private SeedItemData SelectedSeed()
+		{
+			HotbarView view = EnsureHotbarView();
+			if (view == null)
+				return null;
+
+			Item selectedItem = view.SelectedItem;
+			if (selectedItem == null || selectedItem.IsEmpty)
+				return null;
+
+			return selectedItem.Data as SeedItemData;
 		}
 
 		/// <summary>
@@ -103,15 +250,7 @@ namespace WitchMendokusai
 		/// </summary>
 		private bool TryPlantFromHotbar(RaycastHit hit)
 		{
-			HotbarView view = EnsureHotbarView();
-			if (view == null)
-				return false;
-
-			Item selectedItem = view.SelectedItem;
-			if (selectedItem == null || selectedItem.IsEmpty)
-				return false;
-
-			SeedItemData seed = selectedItem.Data as SeedItemData;
+			SeedItemData seed = SelectedSeed();
 			if (seed == null || seed.PlantedEntity == null)
 				return false;
 

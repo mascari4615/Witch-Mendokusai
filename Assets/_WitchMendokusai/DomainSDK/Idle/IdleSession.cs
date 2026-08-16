@@ -67,7 +67,7 @@ namespace WitchMendokusai.DomainSDK.Idle
                 return 0d;
             }
 
-            // 상한은 접은 횟수에 따라 는다 — 접으면 「덜 매여도 되는 것」도 보상이다.
+            // 상한은 환생 횟수에 따라 는다 — 환생하면 「덜 매여도 되는 것」도 보상이다.
             double allowed = IdleModel.MaxOfflineFor(state, tuning);
             if (away > allowed)
             {
@@ -88,6 +88,55 @@ namespace WitchMendokusai.DomainSDK.Idle
         public bool Send(IdleRaiseUpgradeIntent intent)
         {
             return IdleModel.TryRaise(state, tuning, intent.Kind, out UpgradeRaiseFailure _);
+        }
+
+        /// <summary>
+        /// 손으로 한 대. <b>늘 받아들여진다</b> — 모을 것이 필요 없는 유일한 행동이다.
+        /// </summary>
+        public bool Send(IdleTapIntent intent)
+        {
+            IdleModel.Tap(state, tuning);
+            return true;
+        }
+
+        /// <summary>영웅을 한 번 뽑는다. 환생석이 모자라면 아무 일도 안 일어난다.</summary>
+        public bool TryPull(out IdleHeroPull pull)
+        {
+            return IdleGacha.TryPull(state, tuning, out pull);
+        }
+
+        /// <summary>영웅을 한 번 뽑는다 (결과가 필요 없을 때).</summary>
+        public bool Send(IdlePullHeroIntent intent)
+        {
+            return IdleGacha.TryPull(state, tuning, out IdleHeroPull _);
+        }
+
+        /// <summary>
+        /// 자리에 영웅을 앉힌다. 그 영웅이 이미 <b>다른 자리</b>에 있으면 둘을 맞바꾼다 —
+        /// 같은 얼굴이 두 자리를 먹으면 셋을 고르는 뜻이 사라진다.
+        /// </summary>
+        public bool Send(IdleSetPartyIntent intent)
+        {
+            if (intent.Slot < 0 || intent.Slot >= state.Party.Length)
+            {
+                return false;
+            }
+
+            if (intent.HeroId >= 0 && state.IndexOfHero(intent.HeroId) < 0)
+            {
+                return false;
+            }
+
+            for (int slot = 0; slot < state.Party.Length; slot++)
+            {
+                if (slot != intent.Slot && state.Party[slot] == intent.HeroId)
+                {
+                    state.Party[slot] = state.Party[intent.Slot];
+                }
+            }
+
+            state.Party[intent.Slot] = intent.HeroId;
+            return true;
         }
 
         /// <summary>생산자를 하나 산다. 자원이 모자라면 아무 일도 안 일어난다.</summary>
@@ -135,7 +184,7 @@ namespace WitchMendokusai.DomainSDK.Idle
             return IdlePotentials.TryAppraise(state, tuning, tier, out roll);
         }
 
-        /// <summary>판을 접고 점수로 바꾼다. 아직 못 접으면 아무 일도 안 일어난다.</summary>
+        /// <summary>판을 환생하고 점수로 바꾼다. 아직 못 환생하면 아무 일도 안 일어난다.</summary>
         public bool Send(IdlePrestigeIntent intent)
         {
             return IdleModel.TryPrestige(state, tuning, out long _);
@@ -168,8 +217,52 @@ namespace WitchMendokusai.DomainSDK.Idle
                 state.HoldingStage,
                 state.BestStage,
                 IdleModel.BestFarmingStage(state, tuning),
+                CaptureHeroes(),
+                (int[])state.Party.Clone(),
+                IdleGacha.CostOf(tuning),
+                IdleGacha.CanPull(state, tuning),
+                tuning.PityPulls - state.PullsSincePity,
+                IdleHeroes.CodexScoreOf(state),
+                IdleHeroes.CodexMultiplierOf(state, tuning),
                 ViewOf(IdleUpgradeKind.Damage, IdleModel.DamageOf(state, tuning)),
-                ViewOf(IdleUpgradeKind.AttackSpeed, IdleModel.AttackSpeedOf(state, tuning)));
+                ViewOf(IdleUpgradeKind.AttackSpeed, IdleModel.AttackSpeedOf(state, tuning)),
+                IdleModel.AttackSpeedOf(state, tuning));
+        }
+
+        /// <summary>도감을 사진에 담는다 — 화면이 등급표·별 셈을 다시 하지 않게.</summary>
+        private IdleHeroView[] CaptureHeroes()
+        {
+            IdleHeroView[] made = new IdleHeroView[state.Heroes.Count];
+
+            for (int index = 0; index < state.Heroes.Count; index++)
+            {
+                IdleHeroOwned owned = state.Heroes[index];
+                IdleHeroKind kind = IdleHeroes.KindOf(owned.Id);
+
+                bool inParty = false;
+                for (int slot = 0; slot < state.Party.Length; slot++)
+                {
+                    if (state.Party[slot] == owned.Id)
+                    {
+                        inParty = true;
+                        break;
+                    }
+                }
+
+                made[index] = new IdleHeroView(
+                    owned.Id,
+                    kind.Name,
+                    kind.Grade,
+                    kind.Axis,
+                    kind.Sides,
+                    owned.Stars,
+                    owned.Copies,
+                    IdleGacha.CopiesForNextStar(owned.Stars, tuning),
+                    inParty,
+                    IdleHeroes.OwnedShareOf(owned, tuning));
+            }
+
+            return made;
         }
 
         /// <summary>기지를 사진에 담는다 — 화면이 값·산출을 다시 계산하지 않게.</summary>
@@ -192,7 +285,7 @@ namespace WitchMendokusai.DomainSDK.Idle
                     each,
                     owned * each,
                     state.Resource >= cost,
-                    IdleBase.IsHidden(kind, state, tuning));
+                    IdleBase.IsHidden(kind, state));
             }
 
             return made;

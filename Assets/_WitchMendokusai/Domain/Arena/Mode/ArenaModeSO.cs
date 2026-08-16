@@ -10,7 +10,7 @@ namespace WitchMendokusai
 	public abstract class ArenaModeSO : DataSO
 	{
 		/// <summary> CheckVictory 가 승자 없음(진행 중 또는 무승부)을 표현하는 TeamId 센티넬. </summary>
-		public const int NO_WINNER = -1;
+		public const int NO_WINNER = MatchConstants.NO_WINNER;
 
 		/// <summary>
 		/// 현재 팀 상태로 매치 종료 여부 판정. 반환 true = 종료(winnerTeamId = 승리 팀, 무승부면 NO_WINNER),

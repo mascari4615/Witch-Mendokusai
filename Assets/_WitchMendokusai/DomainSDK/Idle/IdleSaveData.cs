@@ -44,6 +44,15 @@ namespace WitchMendokusai.DomainSDK.Idle
         public IdleItem[] WornItems;
         public long DropSequence;
 
+        /// <summary>뽑아서 가진 영웅들 (TASK-WM-406).</summary>
+        public IdleHeroOwned[] Heroes;
+
+        /// <summary>내보낸 셋 — 영웅 id, 빈 자리는 -1.</summary>
+        public int[] Party;
+
+        /// <summary>마지막 최고등급 이후 뽑은 횟수 — 천장.</summary>
+        public int PullsSincePity;
+
         /// <summary>등급별 떨어진 개수. 옛 저장에는 없어 null 로 온다.</summary>
         public long[] DroppedByTier;
         public double[] DropProgressByTier;

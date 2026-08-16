@@ -28,6 +28,10 @@ namespace WitchMendokusai.Presentation
 		/// <summary>맥동 세기 (0 = 없음). <b>일하고 있다</b>를 크기로 말한다.</summary>
 		private float pulseDepth;
 		private float pulsePhase;
+
+		/// <summary>달려나간 정도 (1 → 0). 어느 쪽으로 갔는지는 <see cref="lungeWay"/>.</summary>
+		private float lunge;
+		private Vector2 lungeWay = Vector2.right;
 		private Color body = new Color(0.42f, 0.60f, 0.85f);
 
 		public NgonElement()
@@ -115,6 +119,15 @@ namespace WitchMendokusai.Presentation
 				}
 			}
 
+			if (lunge > 0f)
+			{
+				lunge -= deltaSeconds * 6f;
+				if (lunge < 0f)
+				{
+					lunge = 0f;
+				}
+			}
+
 			if (born < 1f)
 			{
 				born += deltaSeconds * 4f;
@@ -131,6 +144,18 @@ namespace WitchMendokusai.Presentation
 		public void Hit()
 		{
 			shake = 1f;
+		}
+
+		/// <summary>
+		/// 저쪽으로 <b>달려나갔다 돌아온다</b> — 「이게 지금 때렸다」.
+		///
+		/// ★ 자동으로 도는 판에서 가장 모자란 신호가 이것이다. 막대가 줄어드는 것만으로는
+		///   <b>누가</b> 줄였는지가 안 보인다. 때린 쪽이 움직여야 때린 게 보인다.
+		/// </summary>
+		public void Lunge(Vector2 way)
+		{
+			lungeWay = way.sqrMagnitude > 0.0001f ? way.normalized : Vector2.right;
+			lunge = 1f;
 		}
 
 		private void Draw(MeshGenerationContext context)
@@ -155,6 +180,13 @@ namespace WitchMendokusai.Presentation
 			{
 				float wobble = shake * radius * 0.10f;
 				middle += new Vector2(Mathf.Sin(spin * 0.7f) * wobble, Mathf.Cos(spin * 1.1f) * wobble);
+			}
+
+			if (lunge > 0f)
+			{
+				// 나갈 때 빠르고 돌아올 때 느리다 — 등속으로 오가면 「밀린 것」처럼 보인다.
+				float reach = Mathf.Sin(lunge * Mathf.PI);
+				middle += lungeWay * (reach * radius * 0.9f);
 			}
 
 			Painter2D painter = context.painter2D;

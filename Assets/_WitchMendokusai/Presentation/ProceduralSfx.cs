@@ -29,7 +29,9 @@ namespace WitchMendokusai.Presentation
 		private AudioClip click;
 		private AudioClip chime;
 		private AudioClip whoosh;
+		private AudioClip tick;
 		private float lastBlipAt;
+		private float lastTickAt;
 
 		public ProceduralSfx(GameObject host, float volume = 0.35f, float minSecondsBetweenBlips = 0.06f)
 		{
@@ -50,6 +52,7 @@ namespace WitchMendokusai.Presentation
 			click = MakeTone("idle-click", 180f, 0.05f, 0.8f);
 			chime = MakeChord("idle-chime", 440f, 0.28f);
 			whoosh = MakeNoise("idle-whoosh", 0.35f);
+			tick = MakeTone("idle-tick", 620f, 0.03f, 0.2f);
 		}
 
 		public bool Muted
@@ -70,6 +73,23 @@ namespace WitchMendokusai.Presentation
 
 			int index = Mathf.Clamp(step - 1, 0, blips.Length - 1);
 			source.PlayOneShot(blips[index], 0.5f);
+		}
+
+		/// <summary>
+		/// 아주 짧고 옅게 — <b>장단</b>. 때리는 박자를 귀로 알려준다.
+		///
+		/// ★ 「띡」(<see cref="Blip"/>)과 나눠 둔다 — 잡은 것과 때린 것은 다른 일이고,
+		///   같은 소리로 내면 <b>둘 다 안 들린다</b>. 잦아서 크면 소음이라 아주 옅게 낸다.
+		/// </summary>
+		public void Tick(float minGapSeconds)
+		{
+			if (Time.unscaledTime - lastTickAt < minGapSeconds)
+			{
+				return;
+			}
+
+			lastTickAt = Time.unscaledTime;
+			source.PlayOneShot(tick, 0.16f);
 		}
 
 		/// <summary>낮고 짧게 — 손끝 느낌(누름).</summary>

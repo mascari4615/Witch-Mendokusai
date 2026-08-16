@@ -1,5 +1,4 @@
 using NUnit.Framework;
-using UnityEngine;
 using WitchMendokusai.DomainSDK.Idle;
 
 namespace WitchMendokusai.Tests
@@ -139,7 +138,7 @@ namespace WitchMendokusai.Tests
 				Assert.AreEqual(best, state.BestPotentialValue, TOLERANCE);
 			}
 
-			Debug.Log("[IdlePotential] 레전드리 200번 굴려 최고 " + (best * 100d).ToString("N2") + "%"
+			TestContext.WriteLine("[IdlePotential] 레전드리 200번 굴려 최고 " + (best * 100d).ToString("N2") + "%"
 				+ " (범위 " + (IdlePotentials.FloorOf(PotentialGrade.Legendary, tuning) * 100d).ToString("N1")
 				+ "~" + (IdlePotentials.CeilingOf(PotentialGrade.Legendary, tuning) * 100d).ToString("N1") + "%)");
 		}
