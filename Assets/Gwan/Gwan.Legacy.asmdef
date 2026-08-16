@@ -1,11 +1,11 @@
 {
-    "name": "WM.ViewModel",
-    "rootNamespace": "WitchMendokusai",
+    "name": "Gwan.Legacy",
+    "rootNamespace": "",
     "references": [
         "WM.Core",
-        "VContainer",
-        "R3.Unity",
-        "WitchMendokusai.DomainSDK.Contracts"
+        "WM.Domain",
+        "Unity.InputSystem",
+        "Unity.TextMeshPro"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
