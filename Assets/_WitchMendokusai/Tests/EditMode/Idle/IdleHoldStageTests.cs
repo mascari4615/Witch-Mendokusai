@@ -198,6 +198,74 @@ namespace WitchMendokusai.Tests
 			Assert.IsFalse(fromOld.HoldingStage);
 		}
 
+		/// <summary>지나온 자리로만 갈 수 있다 — 앞질러 가면 벽이 뜻을 잃는다.</summary>
+		[Test]
+		public void Retreat_CannotSkipAhead()
+		{
+			IdleState state = new IdleState { Stage = 5, BestStage = 5 };
+
+			Assert.IsFalse(IdleModel.TryGoToStage(state, 6), "안 가 본 곳으로 뛰어넘었다");
+			Assert.IsFalse(IdleModel.TryGoToStage(state, 0), "0단계로 갔다");
+			Assert.IsTrue(IdleModel.TryGoToStage(state, 2));
+			Assert.AreEqual(2, state.Stage);
+			Assert.AreEqual(5, state.BestStage, "물러났다고 기록이 지워지면 안 된다");
+		}
+
+		/// <summary>물러나는 데 벌이 없다 — 벌을 주면 아무도 안 물러나고 게임이 벽에서 멎는다.</summary>
+		[Test]
+		public void Retreat_CostsNothingButTheCurrentTarget()
+		{
+			IdleState state = new IdleState { Stage = 9, BestStage = 9, Resource = 500d, Kills = 77L };
+			state.Damage.Level = 4;
+
+			IdleModel.TryGoToStage(state, 3);
+
+			Assert.AreEqual(500d, state.Resource, "물러났다고 자원을 뺏겼다");
+			Assert.AreEqual(77L, state.Kills);
+			Assert.AreEqual(4, state.Damage.Level, "물러났다고 올린 것이 지워졌다");
+			Assert.AreEqual(0L, state.HitsOnTarget, "다른 대상인데 때린 횟수가 남았다");
+		}
+
+		/// <summary>
+		/// ★ 가장 잘 벌리는 자리는 <b>한 방에 잡히는 가장 깊은 곳</b>이다.
+		/// 더 깊으면 여러 번 때려야 해 느리고, 더 얕으면 보상이 작다.
+		/// </summary>
+		[Test]
+		public void BestFarmingStage_IsTheDeepestOneShot()
+		{
+			IdleTuning tuning = new IdleTuning();
+			IdleState state = new IdleState { Stage = 30, BestStage = 30 };
+			state.Damage.Level = 30;
+
+			int farm = IdleModel.BestFarmingStage(state, tuning);
+
+			int was = state.Stage;
+			state.Stage = farm;
+			Assert.LessOrEqual(IdleModel.HitsToFell(state, tuning), 1d, "고른 자리가 한 방에 안 잡힌다");
+
+			if (farm < state.BestStage)
+			{
+				state.Stage = farm + 1;
+				Assert.Greater(IdleModel.HitsToFell(state, tuning), 1d, "한 칸 더 깊어도 한 방이다 — 가장 깊은 곳이 아니다");
+			}
+
+			state.Stage = was;
+		}
+
+		/// <summary>사진이 물러날 곳을 알려준다 — 화면이 규칙을 다시 짜지 않게.</summary>
+		[Test]
+		public void Snapshot_CarriesWhereToRetreat()
+		{
+			IdleTuning tuning = new IdleTuning();
+			IdleState state = new IdleState { Stage = 20, BestStage = 20 };
+			IdleSession session = new IdleSession(tuning, state);
+
+			IdleSnapshot snapshot = session.Capture();
+
+			Assert.AreEqual(20, snapshot.BestStage);
+			Assert.AreEqual(IdleModel.BestFarmingStage(state, tuning), snapshot.BestFarmingStage);
+		}
+
 		private static long Total(IdleState state)
 		{
 			long total = 0L;

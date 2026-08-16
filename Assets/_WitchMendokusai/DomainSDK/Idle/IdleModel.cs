@@ -321,6 +321,66 @@ namespace WitchMendokusai.DomainSDK.Idle
             }
         }
 
+        /// <summary>
+        /// 한 방에 잡히는 <b>가장 깊은</b> 자리 — 거기가 가장 잘 벌린다.
+        ///
+        /// ★ 규칙이라 코어가 안다. 화면이 「어디로 물러날까」를 스스로 계산하면
+        ///   창마다 다른 답을 내고, 그건 같은 판이 다르게 보이는 것이다.
+        ///
+        /// ★ 이 자리가 왜 최선인가 — 한 방에 잡히면 처치 속도가 <b>공격 속도 그대로</b>다.
+        ///   더 깊이 가면 여러 번 때려야 해 느려지고, 더 얕으면 보상이 작다.
+        ///   이분 탐색이다(깊이가 천 단위여도 열 몇 번이면 찾는다).
+        /// </summary>
+        public static int BestFarmingStage(IdleState state, IdleTuning tuning)
+        {
+            int was = state.Stage;
+            int low = 1;
+            int high = state.BestStage < 1 ? 1 : state.BestStage;
+
+            while (low < high)
+            {
+                int mid = low + (high - low + 1) / 2;
+                state.Stage = mid;
+
+                if (HitsToFell(state, tuning) <= 1d)
+                {
+                    low = mid;
+                }
+                else
+                {
+                    high = mid - 1;
+                }
+            }
+
+            state.Stage = was;
+            return low;
+        }
+
+        /// <summary>
+        /// 이미 지나온 자리로 옮긴다 — <b>앞질러 갈 수는 없다</b>.
+        ///
+        /// ★ 옮기면 이번 대상 진행은 버린다(다른 대상이니까). 그 외에는 아무것도 안 잃는다 —
+        ///   물러나는 데 벌을 주면 아무도 안 물러나고, 그러면 벽에서 게임이 멎는다.
+        /// </summary>
+        public static bool TryGoToStage(IdleState state, int stage)
+        {
+            if (stage < 1 || stage > state.BestStage)
+            {
+                return false;
+            }
+
+            if (stage == state.Stage)
+            {
+                return false;
+            }
+
+            state.Stage = stage;
+            state.KillsInStage = 0;
+            state.HitsOnTarget = 0L;
+            state.AttackProgress = 0d;
+            return true;
+        }
+
         /// <summary>모은 자원으로 한 축을 올린다. 성공하면 자원이 줄어든다.</summary>
         public static bool TryRaise(IdleState state, IdleTuning tuning, IdleUpgradeKind kind, out UpgradeRaiseFailure failure)
         {

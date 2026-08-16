@@ -41,6 +41,7 @@ namespace WitchMendokusai
 		private Label killsLabel;
 		private ProgressBar targetBar;
 		private Label offlineLabel;
+		private Button retreatButton;
 		private Button holdButton;
 		private Label potentialLabel;
 		private Label rollLabel;
@@ -145,6 +146,12 @@ namespace WitchMendokusai
 
 			// ★ 이 게임에서 사람이 하는 둘째 종류의 결정 — 여기 머물까, 더 내려갈까.
 			//   실측(6시간): 머물면 540개(1등급) · 내려가면 26개(2등급). 많이냐 좋은 것이냐.
+			// ★ 막혔을 때 <b>물러나 버는</b> 수단. 이게 없으면 게임이 벽에서 완전히 멎는다 —
+			//   실측 48시간: 앞으로만 가면 77단계, 물러날 줄 알면 186단계(2.4배).
+			retreatButton = new Button(Retreat);
+			retreatButton.AddToClassList("idle-hold-button");
+			panel.Add(retreatButton);
+
 			holdButton = new Button(ToggleHold);
 			holdButton.AddToClassList("idle-hold-button");
 			panel.Add(holdButton);
@@ -241,6 +248,16 @@ namespace WitchMendokusai
 			Render(session.Capture());
 		}
 
+		private void Retreat()
+		{
+			IdleSnapshot now = session.Capture();
+			int target = now.Stage > now.BestFarmingStage ? now.BestFarmingStage : now.BestStage;
+
+			session.Send(new IdleGoToStageIntent(target));
+			WriteDown();
+			Render(session.Capture());
+		}
+
 		private void ToggleHold()
 		{
 			session.Send(new IdleHoldStageIntent(session.State.HoldingStage == false));
@@ -288,6 +305,12 @@ namespace WitchMendokusai
 			{
 				RebuildDropRows(snapshot.DroppedByTier.Length);
 			}
+
+			retreatButton.text = snapshot.Stage > snapshot.BestFarmingStage
+				? string.Format("{0}단계로 물러나 번다 (한 방에 잡힌다)", snapshot.BestFarmingStage)
+				: string.Format("가장 깊은 {0}단계로 돌아간다", snapshot.BestStage);
+			retreatButton.SetEnabled(snapshot.Stage != (snapshot.Stage > snapshot.BestFarmingStage
+				? snapshot.BestFarmingStage : snapshot.BestStage));
 
 			holdButton.text = snapshot.HoldingStage
 				? string.Format("여기서 사냥 중 — {0}단계 (많이 떨군다)", snapshot.Stage)

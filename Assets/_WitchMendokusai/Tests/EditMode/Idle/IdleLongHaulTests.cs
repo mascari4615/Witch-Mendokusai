@@ -151,10 +151,15 @@ namespace WitchMendokusai.Tests
 		[Test]
 		public void PrintDepthPerRun_AcrossMultiplierKnob()
 		{
-			double[] knobs = { 1.10d, 1.20d, 1.35d, 1.55d };
+			// ★ 후보는 계산에서 나온다. 배수 1.55^p × 업그레이드 1.235^d 가 체력 1.55^d 와 같아야 하므로
+			//   p = 0.518d — 즉 배수는 1.55^0.518 ≈ <b>1.246</b>. 그 언저리를 훑는다.
+			double[] knobs = { 1.20d, 1.246d, 1.30d, 1.55d };
 
 			StringBuilder table = new StringBuilder();
-			table.AppendLine("[IdleKnob] 점수배수 | 판1 | 판2 | 판3 | 판4 | 판5  (숫자 = 그 판을 접은 단계)");
+			// ★ <b>시간을 같이 찍는다</b> — 「판마다 몇 단계」만 보면 놓친다.
+			//   지금 값(1.55)은 판마다 +21 이지만 그 2시간이 대부분 <b>막힘 대기</b>이고
+			//   실제 진행은 몇 초다. 그건 게임이 아니다.
+			table.AppendLine("[IdleKnob] 점수배수 | 판1 | 판2 | 판3 | 판4 | 판5  (걸린시간→접은단계)");
 
 			foreach (double knob in knobs)
 			{
@@ -166,6 +171,7 @@ namespace WitchMendokusai.Tests
 				row.AppendFormat("[IdleKnob] {0,8:N2} |", knob);
 
 				double elapsed = 0d;
+				double runStarted = 0d;
 				double lastProgressAt = 0d;
 				int lastStage = 1;
 				int runs = 0;
@@ -192,10 +198,11 @@ namespace WitchMendokusai.Tests
 						break;
 					}
 
-					row.AppendFormat(" {0,5} |", state.Stage);
+					row.AppendFormat(" {0,5:N1}h→{1,4} |", (elapsed - runStarted) / 3600d, state.Stage);
 					IdleModel.TryPrestige(state, tuning, out long _);
 					runs++;
 
+					runStarted = elapsed;
 					lastProgressAt = elapsed;
 					lastStage = state.Stage;
 				}
@@ -350,6 +357,192 @@ namespace WitchMendokusai.Tests
 			}
 
 			return row.ToString();
+		}
+
+		/// <summary>
+		/// <b>단계 난이도 자체</b>를 훑는다 — 손잡이(점수 배수)로는 안 고쳐졌기 때문이다.
+		///
+		/// ★ 진단: 체력이 단계마다 1.55배면 「한 방에 죽임 → 못 죽임」 구간이 21단계뿐이고,
+		///   초당 처치가 크면 그건 <b>몇 초</b>다. 그래서 판마다 2.0시간이 통째로 <b>막힘 대기</b>가 된다.
+		///   실제 방치형(클리커 히어로즈)은 몬스터 체력을 <b>단계마다 1.15배</b> 로 두고 단계를 많이 둔다.
+		///   난이도를 완만하게 하면 놀 수 있는 띠가 넓어진다.
+		///
+		/// 벽은 <c>보상 &lt; 체력</c> 이라야 서므로 보상도 같이 낮춘다.
+		/// 점수 배수는 체력과 맞춘다(점수 하나 = 단계 하나만큼의 어려움).
+		/// </summary>
+		[Test]
+		public void PrintDepthPerRun_AcrossStageSteepness()
+		{
+			StringBuilder table = new StringBuilder();
+			table.AppendLine("[IdleSteep] 체력/보상 | 판1 | 판2 | 판3 | 판4 | 판5  (걸린시간→접은단계)");
+
+			Steepness(table, 1.55d, 1.35d);
+			Steepness(table, 1.30d, 1.20d);
+			Steepness(table, 1.15d, 1.10d);
+			Steepness(table, 1.08d, 1.05d);
+
+			Debug.Log(table.ToString());
+		}
+
+		private static void Steepness(StringBuilder table, double health, double reward)
+		{
+			IdleTuning tuning = new IdleTuning();
+			tuning.TargetHealthByStage = new GeometricScale(10d, health);
+			tuning.RewardByStage = new GeometricScale(1d, reward);
+			tuning.PrestigeMultiplierPerPoint = health;
+
+			IdleState state = new IdleState();
+			StringBuilder row = new StringBuilder();
+			row.AppendFormat("[IdleSteep] {0,4:N2}/{1,4:N2} |", health, reward);
+
+			double elapsed = 0d;
+			double runStarted = 0d;
+			double lastProgressAt = 0d;
+			int lastStage = 1;
+			int runs = 0;
+
+			while (elapsed < 14d * DAY && runs < 5)
+			{
+				IdleModel.Step(state, tuning, TICK);
+				elapsed += TICK;
+				BuyWhatWeCan(state, tuning);
+
+				if (state.Stage > lastStage)
+				{
+					lastStage = state.Stage;
+					lastProgressAt = elapsed;
+				}
+
+				if (elapsed - lastProgressAt < STALL_HOURS * 3600d)
+				{
+					continue;
+				}
+
+				if (IdleModel.CanPrestige(state, tuning) == false)
+				{
+					break;
+				}
+
+				row.AppendFormat(" {0,5:N1}h→{1,5} |", (elapsed - runStarted) / 3600d, state.Stage);
+				IdleModel.TryPrestige(state, tuning, out long _);
+				runs++;
+				runStarted = elapsed;
+				lastProgressAt = elapsed;
+				lastStage = state.Stage;
+			}
+
+			table.AppendLine(row.ToString());
+		}
+
+		/// <summary>
+		/// ★ <b>물러날 줄 아는 사람</b>으로 다시 잰다 — 이게 이 설계가 실제로 도는지의 증거다.
+		///
+		/// 앞선 표들은 전부 「앞으로만 가는 사람」이었다. 그 사람은 벽에서 <b>완전히 멎는다</b>:
+		/// 못 잡으니 자원이 0 이고, 자원이 0 이니 올릴 수도 없다. 난이도를 완만하게 해도 같았다.
+		/// 손잡이 문제가 아니라 <b>없는 기능</b>이었다(물러나기).
+		///
+		/// 습관: 막히면 <b>잘 잡히는 자리까지 물러나</b> 벌고, 세지면 다시 민다.
+		/// </summary>
+		[Test]
+		public void PrintCurve_ForSomeoneWhoRetreats()
+		{
+			IdleTuning tuning = new IdleTuning();
+
+			StringBuilder table = new StringBuilder();
+			table.AppendLine("[IdleRetreat] 시각 | 앞으로만 가는 사람 | 물러날 줄 아는 사람 (가장 깊이 간 단계)");
+
+			IdleState forward = new IdleState();
+			IdleState clever = new IdleState();
+
+			double elapsed = 0d;
+			double lastProgressAt = 0d;
+			int lastStage = 1;
+			int retreats = 0;
+
+			for (int hour = 1; hour <= 48; hour++)
+			{
+				double until = hour * 3600d;
+				while (elapsed < until)
+				{
+					IdleModel.Step(forward, tuning, TICK);
+					IdleModel.Step(clever, tuning, TICK);
+					elapsed += TICK;
+
+					BuyWhatWeCan(forward, tuning);
+					BuyWhatWeCan(clever, tuning);
+
+					if (clever.Stage > lastStage)
+					{
+						lastStage = clever.Stage;
+						lastProgressAt = elapsed;
+						continue;
+					}
+
+					if (elapsed - lastProgressAt < 900d)
+					{
+						continue;
+					}
+
+					// ★ 막혔다. 벌 수 있는 자리로 물러나거나, 벌었으면 다시 민다.
+					if (clever.HoldingStage)
+					{
+						clever.HoldingStage = false;
+						IdleModel.TryGoToStage(clever, clever.BestStage);
+					}
+					else
+					{
+						int farmable = FarmableStage(clever, tuning);
+						if (farmable < clever.Stage && IdleModel.TryGoToStage(clever, farmable))
+						{
+							clever.HoldingStage = true;
+							retreats++;
+						}
+					}
+
+					lastProgressAt = elapsed;
+					lastStage = clever.Stage;
+				}
+
+				if (hour == 1 || hour == 6 || hour == 12 || hour == 24 || hour == 48)
+				{
+					table.AppendLine(string.Format("[IdleRetreat] {0,3}시간 | {1,6} | {2,6}  (물러남 {3}회)",
+						hour, forward.BestStage, clever.BestStage, retreats));
+				}
+			}
+
+			Debug.Log(table.ToString());
+
+			Assert.Greater(clever.BestStage, forward.BestStage,
+				"물러날 줄 알아도 더 못 간다 — 그러면 물러나기가 있을 이유가 없다");
+		}
+
+		/// <summary>
+		/// 한 방에 잡히는 가장 깊은 자리 — 거기가 가장 잘 벌린다.
+		/// 이분 탐색이다(선형으로 훑으면 깊이가 천 단위일 때 시험이 몇 십 분씩 돈다 — 실제로 그랬다).
+		/// </summary>
+		private static int FarmableStage(IdleState state, IdleTuning tuning)
+		{
+			int was = state.Stage;
+			int low = 1;
+			int high = state.BestStage;
+
+			while (low < high)
+			{
+				int mid = low + (high - low + 1) / 2;
+				state.Stage = mid;
+
+				if (IdleModel.HitsToFell(state, tuning) <= 1d)
+				{
+					low = mid;
+				}
+				else
+				{
+					high = mid - 1;
+				}
+			}
+
+			state.Stage = was;
+			return low;
 		}
 
 		private static void BuyWhatWeCan(IdleState state, IdleTuning tuning)

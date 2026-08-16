@@ -17,4 +17,25 @@ namespace WitchMendokusai.DomainSDK.Idle
             Hold = hold;
         }
     }
+
+    /// <summary>
+    /// 「저 단계로 간다」 — 이미 지나온 자리로 <b>물러난다</b> (TASK-WM-406).
+    ///
+    /// ★ 이게 없으면 벽에서 게임이 <b>완전히 멎는다</b>. 못 잡으니 자원이 0 이고,
+    ///   자원이 0 이니 올릴 수도 없다 — 실측(이레 시뮬)에서 판마다 2시간이 통째로
+    ///   「아무 일도 안 일어남」이었던 이유가 이것이다.
+    ///   난이도를 완만하게 해도(1.55 → 1.08) 똑같았다. 손잡이 문제가 아니라 <b>없는 기능</b>이었다.
+    ///
+    /// ★ 클리커 히어로즈가 같은 자리에 같은 것을 둔다 — 막히면 지나온 구역으로 돌아가 벌고 다시 민다.
+    ///   「어디서 사냥할까」가 진짜 결정이 되려면 <b>앞뿐 아니라 뒤로도</b> 갈 수 있어야 한다.
+    /// </summary>
+    public readonly struct IdleGoToStageIntent : IGameIntent
+    {
+        public int Stage { get; }
+
+        public IdleGoToStageIntent(int stage)
+        {
+            Stage = stage;
+        }
+    }
 }
