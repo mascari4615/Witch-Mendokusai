@@ -1,0 +1,54 @@
+/*
+ * 방치 화면의 생김새 (TASK-WM-406).
+ *
+ * 값이 아니라 뜻으로 이름 짓는다 — 팔레트가 한 자리에 산다.
+ * 비주얼 톤(색·폰트)은 기능 가독성 우선의 v0 임시안. 정식 톤은 사용자 확정 후.
+ */
+
+.idle-panel {
+	flex-grow: 1;
+	padding: 24px;
+	background-color: rgb(18, 18, 22);
+}
+
+.idle-resource {
+	font-size: 34px;
+	-unity-font-style: bold;
+	color: rgb(238, 238, 244);
+	margin-bottom: 2px;
+}
+
+.idle-income,
+.idle-kills {
+	font-size: 14px;
+	color: rgb(150, 150, 162);
+}
+
+.idle-target {
+	margin-top: 14px;
+	margin-bottom: 6px;
+	height: 20px;
+}
+
+.idle-offline {
+	font-size: 14px;
+	color: rgb(196, 176, 120);
+	margin-top: 4px;
+	margin-bottom: 4px;
+}
+
+.idle-upgrade-title {
+	font-size: 14px;
+	color: rgb(206, 206, 216);
+	margin-top: 16px;
+	margin-bottom: 4px;
+}
+
+.idle-upgrade-button {
+	height: 40px;
+	font-size: 15px;
+}
+
+.idle-upgrade-button:disabled {
+	opacity: 0.45;
+}

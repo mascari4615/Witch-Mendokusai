@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d01e33e2c0e100a43bc33422eaef809b, type: 3}
+  m_Name: IdleTuning
+  m_EditorClassIdentifier: WM.Domain::WitchMendokusai.IdleTuningSO
+  targetHealth: 10
+  rewardPerKill: 1
+  baseDamage: 1
+  baseAttackSpeed: 1
+  damageBaseCost: 10
+  damageCostRatio: 1.22
+  damageBaseValue: 1
+  damageValueRatio: 1.15
+  speedBaseCost: 25
+  speedCostRatio: 1.28
+  speedBaseValue: 0.5
+  speedValueRatio: 1.12
