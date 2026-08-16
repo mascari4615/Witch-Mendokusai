@@ -42,6 +42,15 @@ namespace WitchMendokusai.DomainSDK.Idle
             ValueRatio = 1.12d,
         };
 
+        /// <summary>
+        /// 자리를 비운 동안 쳐주는 시간의 상한(초). 기본 8시간.
+        ///
+        /// ★ 왜 상한이 있나 — 없으면 한 달 만에 돌아온 사람이 한 번에 다 받고 게임이 끝난다.
+        ///   방치형에서 상한은 벌이 아니라 <b>돌아올 이유</b>다(울티마 스쿼드는 16시간, 확장하면 24시간).
+        ///   나중에 이 값을 올려 주는 것 자체가 성장 보상이 된다.
+        /// </summary>
+        public double MaxOfflineSeconds { get; set; } = 8d * 3600d;
+
         /// <summary>한 축의 곡선을 고른다.</summary>
         public IUpgradeCurve CurveOf(IdleUpgradeKind kind)
         {

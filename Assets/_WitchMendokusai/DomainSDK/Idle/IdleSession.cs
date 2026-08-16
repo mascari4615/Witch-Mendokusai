@@ -34,6 +34,50 @@ namespace WitchMendokusai.DomainSDK.Idle
             IdleModel.Step(state, tuning, seconds);
         }
 
+        /// <summary>
+        /// 자리를 비운 동안을 쳐준다 — 방치형이 방치형이 되는 지점.
+        ///
+        /// ★ 그냥 「지난 시간만큼 Advance」로 끝난다. 별도 계산식이 없다.
+        ///   코어가 「60초를 한 번에 흘리든 0.1초씩 600번 흘리든 결과가 같다」를 보장하기 때문이다.
+        ///   그 성질이 없었다면 여기서 온라인과 다른 수식을 따로 만들어야 했고,
+        ///   그 순간 「자는 동안 손해」 같은 버그가 영영 따라붙는다.
+        ///
+        /// ★ 시계는 사람이 앞뒤로 돌릴 수 있다 — 음수는 0으로 본다(되감아도 이득이 없다).
+        /// ★ 처음 시작(마지막 시각 0)은 안 쳐준다 — 1970년부터의 시간을 줄 수는 없다.
+        ///
+        /// <returns>실제로 쳐준 시간(초). 화면에 「자리를 비운 사이 …」로 보여줄 재료다.</returns>
+        /// </summary>
+        public double CatchUp(long nowUnixSeconds)
+        {
+            long lastSeen = state.LastSeenUnixSeconds;
+            state.LastSeenUnixSeconds = nowUnixSeconds;
+
+            if (lastSeen <= 0L)
+            {
+                return 0d;
+            }
+
+            double away = nowUnixSeconds - lastSeen;
+            if (away <= 0d)
+            {
+                return 0d;
+            }
+
+            if (away > tuning.MaxOfflineSeconds)
+            {
+                away = tuning.MaxOfflineSeconds;
+            }
+
+            IdleModel.Step(state, tuning, away);
+            return away;
+        }
+
+        /// <summary>지금 시각을 찍어 둔다 — 저장 직전에 부른다. 이게 다음 <see cref="CatchUp"/> 의 기준점이다.</summary>
+        public void MarkSeen(long nowUnixSeconds)
+        {
+            state.LastSeenUnixSeconds = nowUnixSeconds;
+        }
+
         /// <summary>의도를 받는다 — 받아들여졌으면 true. 자원이 모자라거나 상한이면 아무 일도 없다.</summary>
         public bool Send(IdleRaiseUpgradeIntent intent)
         {
