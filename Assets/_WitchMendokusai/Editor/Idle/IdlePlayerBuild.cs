@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using UnityEditor;
+using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
 using UnityEngine;
 
@@ -54,8 +55,28 @@ namespace WitchMendokusai.EditorTools
 			options.targetGroup = BuildTargetGroup.Standalone;
 			options.options = BuildOptions.None;
 
-			Debug.Log(TAG + " 굽는다 → " + exePath);
-			BuildReport report = BuildPipeline.BuildPlayer(options);
+			// ★ 안 쓰는 코드를 <b>이 빌드에서만</b> 덜어낸다.
+			//   방치형은 씬 하나에 UI 뿐인데 FishNet·PlayFab·FMOD·복셀까지 통째로 구워진다
+			//   (실측 2026-08-16: GameAssembly.dll 98.8MB · 배포분 233.8MB).
+			//   ⚠ 프로젝트 전역 설정이라 <b>본편 빌드에 같이 영향</b>한다 — 그래서 굽고 나서 되돌린다.
+			//   되돌리기를 빠뜨리면 본편이 조용히 다른 설정으로 구워진다.
+			NamedBuildTarget named = NamedBuildTarget.Standalone;
+			ManagedStrippingLevel before = PlayerSettings.GetManagedStrippingLevel(named);
+			PlayerSettings.SetManagedStrippingLevel(named, ManagedStrippingLevel.High);
+
+			Debug.Log(TAG + " 굽는다 (덜어내기 " + before + " → High) → " + exePath);
+
+			BuildReport report;
+			try
+			{
+				report = BuildPipeline.BuildPlayer(options);
+			}
+			finally
+			{
+				PlayerSettings.SetManagedStrippingLevel(named, before);
+				Debug.Log(TAG + " 덜어내기 설정을 " + before + " 로 되돌렸다");
+			}
+
 			BuildSummary summary = report.summary;
 
 			if (summary.result != BuildResult.Succeeded)

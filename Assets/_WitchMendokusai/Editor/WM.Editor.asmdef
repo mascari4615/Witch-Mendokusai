@@ -45,7 +45,8 @@
         "WitchMendokusai.DomainSDK.Reward",
         "WitchMendokusai.DomainSDK.Stat",
         "WitchMendokusai.DomainSDK.TowerDefense",
-        "WitchMendokusai.DomainSDK.World"
+        "WitchMendokusai.DomainSDK.World",
+        "WM.Idle"
     ],
     "includePlatforms": [
         "Editor"
