@@ -21,7 +21,11 @@ namespace WitchMendokusai.DomainSDK.Presentation
         /// <summary>화면 요소만으로 그린다 (UI Toolkit 등). 방치·경영물의 기본형.</summary>
         UIOnly = 2,
 
-        /// <summary>글자만으로 그린다. 로그·콘솔·접근성·자동 검증에 쓴다.</summary>
+        /// <summary>
+        /// 글자만으로 그린다 — <b>진단·자동검증 전용</b>. 플레이어에게는 안 보인다.
+        /// 예쁠 이유가 없고 기계가 읽기 좋아야 한다(한 줄, 고정 키, 불변 문화권 숫자).
+        /// 이게 있으면 시험이 「8시간 뒤 화면」을 문자열로 받아 판정한다 — 사람 없이 회귀를 잡는다.
+        /// </summary>
         Text = 3,
     }
 }
