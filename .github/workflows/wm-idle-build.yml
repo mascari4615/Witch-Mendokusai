@@ -1,0 +1,148 @@
+name: Build (Idle / laptop)
+
+# TASK-WM-406 — 방치형만 노트북에서 굽는다.
+#
+# 왜 따로 있나: `build.yml` 은 **본편**을 굽는다(씬 다섯 · 수십 분 · 안드로이드 겸용).
+#   방치형은 씬 하나에 UI 뿐이라 7분이면 끝나고, 본편 빌드 파이프라인(진행 카드 · 리포트
+#   JSON · 야간 게이트 · 릴리스 첨부)에 끼워 넣으면 그 셈을 전부 갈아야 한다.
+#   그래서 같은 러너에 **별 워크플로**로 건다 — 본편 쪽을 한 줄도 안 건드린다.
+#
+# 왜 노트북인가 (TASK-WM-195 와 같은 이유): 데스크톱에서 구우면 사용자 작업이 막히고
+#   성능을 다 먹는다. 게다가 사용자가 유니티를 켜 두면 프로젝트 폴더가 **잠겨서** 아예
+#   못 굽는다 — 실측 2026-08-16: 데스크톱 워크트리로 우회해 굽다가
+#   `BeeDriver connection terminated` 로 죽었다. 빌드는 빌드 기계가 하는 일이다.
+#
+# 산출물은 노트북에 남는다 (C:\wm-builds\idle\<시각>\Idle.exe). 올리는 건 명시할 때만 —
+# 180MB 를 매번 가정용 회선으로 밀어 올릴 이유가 없다.
+
+on:
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: '산출물 처리 (none=노트북에만 / artifact=GitHub 아티팩트 업로드)'
+        type: choice
+        options: [none, artifact]
+        default: none
+  push:
+    branches: [main]
+    # 방치형이 실제로 쓰는 것만. 본편만 고친 push 로 굽지 않는다.
+    paths:
+      - 'Assets/_WitchMendokusai/Idle/**'
+      - 'Assets/_WitchMendokusai/Presentation/**'
+      - 'Assets/_WitchMendokusai/DomainSDK/Idle/**'
+      - 'Assets/_WitchMendokusai/DomainSDK/Numerics/**'
+      - 'Assets/_WitchMendokusai/Editor/Idle/**'
+      - 'Assets/_WitchMendokusai/Scenes/Idle/**'
+      - '.github/workflows/wm-idle-build.yml'
+      - '.github/scripts/wm-idle-smoke.ps1'
+
+permissions:
+  contents: read
+
+concurrency:
+  # ★ 본편 빌드와 **같은 그룹**이다. 노트북 한 대에서 유니티 두 판이 같은 프로젝트 폴더를
+  #   물면 Library 를 서로 뺏는다. 줄 서서 돈다.
+  group: wm-build
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Idle player (laptop runner)
+    runs-on: [self-hosted, unity, windows-build]
+    timeout-minutes: 60
+
+    env:
+      BUILD_ROOT: 'C:\wm-builds'
+
+    steps:
+      - name: Checkout (Library 캐시 보존 — clean:false)
+        uses: actions/checkout@v6
+        with:
+          # Library/ 를 지우면 매 빌드가 전체 임포트(수십 분)로 돌아간다. 반드시 false.
+          clean: false
+          fetch-depth: 1
+
+      - name: Resolve Unity editor (auto-install when missing)
+        id: unity
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $OutputEncoding = [Console]::OutputEncoding = [Text.UTF8Encoding]::new()
+          . "$env:GITHUB_WORKSPACE\.github\scripts\wm-unity-resolve.ps1"
+          $unity = Resolve-UnityEditor -Platform 'windows' -InstallLogDir $env:RUNNER_TEMP
+          "exe=$($unity.Exe)" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+
+      # ASCII only in run: blocks -- Actions writes them to a BOM-less temp .ps1 and
+      # PS 5.1 decodes as cp949, which corrupts Korean and can break parsing outright.
+      - name: Build Idle player
+        id: build
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $OutputEncoding = [Console]::OutputEncoding = [Text.UTF8Encoding]::new()
+
+          $root = Join-Path $env:BUILD_ROOT 'idle'
+          $env:WM_IDLE_BUILD_DIR = $root
+          $log = Join-Path $env:RUNNER_TEMP 'idle-build.log'
+
+          $arguments = @(
+            '-quit', '-batchmode', '-nographics',
+            '-projectPath', $PWD.Path,
+            '-logFile', $log,
+            '-executeMethod', 'WitchMendokusai.EditorTools.IdlePlayerBuild.Build'
+          )
+
+          Write-Host "Unity args: $($arguments -join ' ')"
+          $process = Start-Process -FilePath '${{ steps.unity.outputs.exe }}' -ArgumentList $arguments -PassThru -Wait -WindowStyle Hidden
+          Write-Host "Unity exit=$($process.ExitCode)"
+
+          if (Test-Path $log) { Get-Content $log -Tail 40 | Write-Host }
+
+          if ($process.ExitCode -ne 0) { throw "Idle build failed (exit=$($process.ExitCode)). log: $log" }
+
+          # "built" is not "the exe exists" -- look at the disk, not the exit code.
+          $newest = Get-ChildItem $root -Directory | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+          $exe = Join-Path $newest.FullName 'Idle.exe'
+          if (-not (Test-Path $exe)) { throw "build reported success but no exe: $exe" }
+
+          "out_dir=$($newest.FullName)" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "exe=$exe"                    | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          Write-Host "built: $exe"
+
+      # ★ "구웠다" 는 "돈다" 가 아니다. 덜어내기(High)가 런타임을 조용히 깨뜨린 적이 있다.
+      #   이 검사는 켜서 판이 실제로 흐르는지(저장 파일에 처치 수가 오르는지) 본다.
+      - name: Does it actually run (idle smoke)
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $OutputEncoding = [Console]::OutputEncoding = [Text.UTF8Encoding]::new()
+          & "$env:GITHUB_WORKSPACE\.github\scripts\wm-idle-smoke.ps1" -ExePath '${{ steps.build.outputs.exe }}'
+          if ($LASTEXITCODE -ne 0) { throw "idle smoke failed (exit=$LASTEXITCODE)" }
+
+      - name: Upload artifact (only when asked)
+        if: inputs.publish == 'artifact'
+        uses: actions/upload-artifact@v4
+        with:
+          name: idle-windows
+          path: ${{ steps.build.outputs.out_dir }}
+          retention-days: 7
+
+      # 사용자는 채널만 본다 — 실패도 성공도 여기로 온다.
+      - name: Tell the channel
+        if: always()
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Continue'
+          . "$env:GITHUB_WORKSPACE\.github\scripts\wm-build-card.ps1"
+          $token = Get-LaptopOpsToken
+          if (-not $token) { Write-Host 'no laptop-ops token - skipping notify'; exit 0 }
+
+          $ok = '${{ job.status }}' -eq 'success'
+          $mark = if ($ok) { 'OK' } else { 'FAIL' }
+          $where = '${{ steps.build.outputs.exe }}'
+          $body = "[Idle $mark] $where`n${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          try {
+            Invoke-LaptopOpsJson -Path '/notify' -Token $token -Payload @{ channel = 'build'; content = $body } | Out-Null
+          } catch {
+            Write-Warning "notify failed: $($_.Exception.Message)"
+          }

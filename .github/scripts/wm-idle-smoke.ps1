@@ -19,6 +19,9 @@
 #   powershell -File .github/scripts/wm-idle-smoke.ps1 -BuildDir C:\wm-builds\idle -Seconds 25
 
 param(
+    # ★ 부르는 쪽이 <어느 exe 인지> 알면 그걸 준다 — 추측이 끼면 엉뚱한 판을 검사한다.
+    #   (빌드 워크플로는 방금 구운 경로를 안다. 사람이 손으로 부를 때만 아래 폴더 추측을 쓴다.)
+    [string]$ExePath,
     [string]$BuildDir = 'C:\wm-builds\idle',
     [int]$Seconds = 25,
     [string]$SavePath = "$env:USERPROFILE\AppData\LocalLow\KarmoDDrine\WitchMendokusai\idle.json"
@@ -40,19 +43,28 @@ function Fail($message)
     exit 1
 }
 
-if (-not (Test-Path $BuildDir)) { Fail2 "빌드 폴더가 없다: $BuildDir" }
-
-# ★ <플레이어 exe 가 든> 가장 새 폴더를 고른다. 그냥 「가장 새 폴더」로 고르면
-#   크래시로 텅 빈 폴더를 집어 「아무것도 안 나왔다」를 초록으로 읽는다(본편 스모크가 겪은 함정).
 $exe = $null
-foreach ($dir in (Get-ChildItem $BuildDir -Directory | Sort-Object LastWriteTime -Descending))
-{
-    $candidate = Join-Path $dir.FullName 'Idle.exe'
-    if (Test-Path $candidate) { $exe = $candidate; break }
-    Write-Host "[idle-smoke] WARN: 플레이어가 없는 빌드 폴더를 건너뛴다 — $($dir.Name)" -ForegroundColor Yellow
-}
 
-if ($null -eq $exe) { Fail2 "플레이어가 든 빌드가 하나도 없다: $BuildDir" }
+if (-not [string]::IsNullOrWhiteSpace($ExePath))
+{
+    if (-not (Test-Path $ExePath)) { Fail2 "준 경로에 플레이어가 없다: $ExePath" }
+    $exe = $ExePath
+}
+else
+{
+    if (-not (Test-Path $BuildDir)) { Fail2 "빌드 폴더가 없다: $BuildDir" }
+
+    # ★ <플레이어 exe 가 든> 가장 새 폴더를 고른다. 그냥 「가장 새 폴더」로 고르면
+    #   크래시로 텅 빈 폴더를 집어 「아무것도 안 나왔다」를 초록으로 읽는다(본편 스모크가 겪은 함정).
+    foreach ($dir in (Get-ChildItem $BuildDir -Directory | Sort-Object LastWriteTime -Descending))
+    {
+        $candidate = Join-Path $dir.FullName 'Idle.exe'
+        if (Test-Path $candidate) { $exe = $candidate; break }
+        Write-Host "[idle-smoke] WARN: 플레이어가 없는 빌드 폴더를 건너뛴다 — $($dir.Name)" -ForegroundColor Yellow
+    }
+
+    if ($null -eq $exe) { Fail2 "플레이어가 든 빌드가 하나도 없다: $BuildDir" }
+}
 
 Write-Host "[idle-smoke] exe    : $exe"
 Write-Host "[idle-smoke] 굴린다 : $Seconds 초"
