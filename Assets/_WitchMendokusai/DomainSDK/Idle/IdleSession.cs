@@ -14,7 +14,7 @@ namespace WitchMendokusai.DomainSDK.Idle
     /// ★ 이 클래스도 Unity 를 모른다 — 시간은 <see cref="Advance"/> 로 <b>밖에서</b> 흘려 준다.
     ///   에디터 창이 흘리든, 런타임 Update 가 흘리든, 시험이 8시간을 한 번에 흘리든 같다.
     /// </summary>
-    public sealed class IdleSession : IIntentSink<IdleRaiseUpgradeIntent>, IIntentSink<IdlePrestigeIntent>
+    public sealed class IdleSession : IIntentSink<IdleRaiseUpgradeIntent>, IIntentSink<IdlePrestigeIntent>, IIntentSink<IdleAppraiseIntent>
     {
         private readonly IdleState state;
         private readonly IdleTuning tuning;
@@ -84,6 +84,20 @@ namespace WitchMendokusai.DomainSDK.Idle
             return IdleModel.TryRaise(state, tuning, intent.Kind, out UpgradeRaiseFailure _);
         }
 
+        /// <summary>떨어진 것 하나를 감정한다. 그 등급이 없으면 아무 일도 안 일어난다.</summary>
+        public bool Send(IdleAppraiseIntent intent)
+        {
+            return IdlePotentials.TryAppraise(state, tuning, intent.Tier, out PotentialRoll _);
+        }
+
+        /// <summary>
+        /// 감정하고 <b>무엇이 나왔는지</b>까지 돌려준다 — 화면이 결과를 보여줘야 도박이 도박이 된다.
+        /// </summary>
+        public bool TryAppraise(int tier, out PotentialRoll roll)
+        {
+            return IdlePotentials.TryAppraise(state, tuning, tier, out roll);
+        }
+
         /// <summary>판을 접고 점수로 바꾼다. 아직 못 접으면 아무 일도 안 일어난다.</summary>
         public bool Send(IdlePrestigeIntent intent)
         {
@@ -107,6 +121,8 @@ namespace WitchMendokusai.DomainSDK.Idle
                 state.DroppedByTier,
                 IdleDrops.MaxTierAt(state.Stage, state.Ascensions, tuning),
                 IdleDrops.CeilingFor(state.Ascensions, tuning),
+                state.BestPotentialValue,
+                (PotentialGrade)state.BestPotentialGrade,
                 ViewOf(IdleUpgradeKind.Damage, IdleModel.DamageOf(state, tuning)),
                 ViewOf(IdleUpgradeKind.AttackSpeed, IdleModel.AttackSpeedOf(state, tuning)));
         }

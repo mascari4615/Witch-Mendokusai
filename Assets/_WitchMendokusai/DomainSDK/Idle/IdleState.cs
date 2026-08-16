@@ -43,6 +43,15 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// <summary>등급별로 여태 떨어진 개수 (0번째 = 1등급).</summary>
         public long[] DroppedByTier { get; private set; } = new long[0];
 
+        /// <summary>주사위의 지금 상태 — 저장에 실린다. 안 실으면 껐다 켜서 다시 굴리기가 공짜가 된다.</summary>
+        public long RandomState { get; set; } = 0x2545F4914F6CDD1DL;
+
+        /// <summary>여태 뽑은 가장 좋은 잠재 값(비율).</summary>
+        public double BestPotentialValue { get; set; }
+
+        /// <summary>그 잠재의 등급 (<see cref="PotentialGrade"/>).</summary>
+        public int BestPotentialGrade { get; set; }
+
         /// <summary>등급별 잔여분 — 아직 하나가 안 된 몫. 이걸 들고 가야 쪼개 밟아도 총합이 같다.</summary>
         public double[] DropProgressByTier { get; private set; } = new double[0];
 
@@ -105,6 +114,9 @@ namespace WitchMendokusai.DomainSDK.Idle
                 Ascensions = Ascensions,
                 DroppedByTier = (long[])DroppedByTier.Clone(),
                 DropProgressByTier = (double[])DropProgressByTier.Clone(),
+                RandomState = RandomState,
+                BestPotentialValue = BestPotentialValue,
+                BestPotentialGrade = BestPotentialGrade,
                 DamageLevel = Damage.Level,
                 AttackSpeedLevel = AttackSpeed.Level,
                 LastSeenUnixSeconds = LastSeenUnixSeconds,
@@ -124,6 +136,10 @@ namespace WitchMendokusai.DomainSDK.Idle
             BestStage = saveData.BestStage > 0 ? saveData.BestStage : Stage;
             PrestigePoints = saveData.PrestigePoints;
             Ascensions = saveData.Ascensions;
+            // 주사위 상태가 0 인 저장(= 옛 저장)은 굴러가지 않는다 — 기본 씨앗을 준다.
+            RandomState = saveData.RandomState != 0L ? saveData.RandomState : 0x2545F4914F6CDD1DL;
+            BestPotentialValue = saveData.BestPotentialValue;
+            BestPotentialGrade = saveData.BestPotentialGrade;
             // 옛 저장에는 등급 칸이 없어 null 로 온다 — 빈 칸으로 받는다.
             DroppedByTier = saveData.DroppedByTier ?? new long[0];
             DropProgressByTier = saveData.DropProgressByTier ?? new double[0];

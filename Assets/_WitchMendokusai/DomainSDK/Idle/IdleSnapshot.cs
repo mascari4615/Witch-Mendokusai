@@ -85,6 +85,12 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// </summary>
         public int TierCeiling { get; }
 
+        /// <summary>여태 뽑은 가장 좋은 잠재 값(비율).</summary>
+        public double BestPotentialValue { get; }
+
+        /// <summary>그 잠재의 등급.</summary>
+        public PotentialGrade BestPotentialGrade { get; }
+
         /// <summary>공격력 축.</summary>
         public IdleUpgradeView Damage { get; }
 
@@ -95,6 +101,7 @@ namespace WitchMendokusai.DomainSDK.Idle
             int stage, int killsInStage, int killsPerStage,
             long prestigePoints, long prestigeAward, double prestigeMultiplier,
             long[] droppedByTier, int maxTierNow, int tierCeiling,
+            double bestPotentialValue, PotentialGrade bestPotentialGrade,
             IdleUpgradeView damage, IdleUpgradeView attackSpeed)
         {
             Resource = resource;
@@ -110,6 +117,8 @@ namespace WitchMendokusai.DomainSDK.Idle
             DroppedByTier = droppedByTier;
             MaxTierNow = maxTierNow;
             TierCeiling = tierCeiling;
+            BestPotentialValue = bestPotentialValue;
+            BestPotentialGrade = bestPotentialGrade;
             Damage = damage;
             AttackSpeed = attackSpeed;
         }

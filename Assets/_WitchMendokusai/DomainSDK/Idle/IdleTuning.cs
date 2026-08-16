@@ -97,6 +97,19 @@ namespace WitchMendokusai.DomainSDK.Idle
         public double TierRarity { get; set; } = 0.4d;
 
         /// <summary>
+        /// 잠재 등급마다의 <b>가장 낮은 값</b>. 레어 = 2%, 한 등급 위마다 2.2배.
+        ///
+        /// ★ 등급 사이가 겹치지 않아야 <b>등급 자체가 뜻을 갖는다</b>.
+        ///   퍼짐이 2 인데 등급 간격이 2.2 라 「레어 최고값 &lt; 에픽 최저값」이 항상 성립한다 —
+        ///   즉 아무리 운이 좋아도 <b>아래 등급이 위 등급을 못 이긴다.</b>
+        ///   이게 「좋은 잠재를 원하면 내려가는 수밖에 없다」의 실제 근거다.
+        /// </summary>
+        public GeometricScale PotentialByGrade { get; set; } = new GeometricScale(0.02d, 2.2d);
+
+        /// <summary>한 등급 안에서 가장 높은 값 ÷ 가장 낮은 값. 이만큼이 <b>운</b>의 몫이다.</summary>
+        public double PotentialSpread { get; set; } = 2d;
+
+        /// <summary>
         /// 이 단계까지는 내려가 봐야 리셋할 수 있다.
         ///
         /// ★ <b>벽을 느껴 본 뒤에만</b> 리셋이 보상이 된다. 벽에 닿기 전에 리셋을 열어 주면

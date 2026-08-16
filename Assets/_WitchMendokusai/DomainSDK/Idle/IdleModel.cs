@@ -33,11 +33,18 @@ namespace WitchMendokusai.DomainSDK.Idle
             return 1d + state.PrestigePoints * tuning.PrestigeBonusPerPoint;
         }
 
-        /// <summary>지금 한 방의 공격력 — 기본값 + 공격력 축이 쌓은 총량, 거기에 리셋 배수.</summary>
+        /// <summary>가장 좋은 잠재가 주는 배수.</summary>
+        public static double PotentialMultiplier(IdleState state)
+        {
+            return 1d + state.BestPotentialValue;
+        }
+
+        /// <summary>지금 한 방의 공격력 — 쌓은 총량 × 리셋 배수 × 잠재 배수.</summary>
         public static double DamageOf(IdleState state, IdleTuning tuning)
         {
             return (tuning.BaseDamage + state.Damage.TotalValue(tuning.DamageCurve))
-                * PrestigeMultiplier(state, tuning);
+                * PrestigeMultiplier(state, tuning)
+                * PotentialMultiplier(state);
         }
 
         /// <summary>지금 접으면 몇 점인가. 아직 못 접으면 0.</summary>
@@ -82,6 +89,7 @@ namespace WitchMendokusai.DomainSDK.Idle
             state.DamageDealtToTarget = 0d;
             state.Damage.Level = 0;
             state.AttackSpeed.Level = 0;
+            // 잠재도 남긴다 — 장비가 판을 건너 남는 것과 같은 이치다.
             // 떨어진 것은 남긴다 — 울티마 스쿼드에서 장비가 판을 건너 남는 것과 같다.
             // 그게 「깊이 갔다 온 값어치」의 두 번째 증거다(첫째는 점수).
 

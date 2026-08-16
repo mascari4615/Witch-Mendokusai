@@ -54,6 +54,8 @@ namespace WitchMendokusai.DomainSDK.Idle
                 buffer.Append(snapshot.DroppedByTier[i]);
             }
 
+            buffer.AppendFormat(culture, " pot={0}/{1:0.###}", snapshot.BestPotentialGrade, snapshot.BestPotentialValue);
+
             AppendAxis(culture, "dmg", snapshot.Damage);
             AppendAxis(culture, "spd", snapshot.AttackSpeed);
 

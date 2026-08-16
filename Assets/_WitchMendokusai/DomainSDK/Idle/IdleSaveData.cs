@@ -33,6 +33,11 @@ namespace WitchMendokusai.DomainSDK.Idle
         public long[] DroppedByTier;
         public double[] DropProgressByTier;
 
+        /// <summary>주사위 상태 — 이게 없으면 껐다 켜서 다시 굴리기가 공짜가 된다.</summary>
+        public long RandomState;
+        public double BestPotentialValue;
+        public int BestPotentialGrade;
+
         /// <summary>마지막으로 본 시각 (Unix 초, UTC).</summary>
         public long LastSeenUnixSeconds;
     }
