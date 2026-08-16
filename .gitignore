@@ -159,3 +159,6 @@ bash.exe.stackdump*
 # Unity 강제 종료 뒤 남는 씬 복구본 — 남의 미저장 편집이 공개 레포로 새는 자리다.
 /Assets/_Recovery/
 /Assets/_Recovery.meta
+
+# 빌드 산출·인벤토리 (TASK-WM-408) — 기계가 매 빌드마다 다시 적는다
+/Builds/
