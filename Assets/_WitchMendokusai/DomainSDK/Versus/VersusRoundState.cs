@@ -108,6 +108,148 @@ namespace WitchMendokusai
 			}
 		}
 
+
+		// ── 되감기 (롤백 넷코드의 뼈대) ─────────────────────────────────────────
+
+		/// <summary>
+		/// 지금 판을 통째로 찍는다. 그리는 값이 아니라 <b>다시 굴리는 값</b> 전부 —
+		/// 이걸로 되돌리면 같은 입력에 같은 미래가 나온다.
+		/// </summary>
+		public VersusRoundSnapshot Capture(int tick)
+		{
+			VersusRoundSnapshot snapshot = new VersusRoundSnapshot
+			{
+				tick = tick,
+				elapsed = ElapsedSeconds,
+				isOver = IsOver,
+				winner = Winner,
+				fighters = new VersusFighterSnapshot[PLAYER_COUNT],
+				shots = new VersusShotSnapshot[shots.Count],
+			};
+
+			for (int index = 0; index < PLAYER_COUNT; index++)
+			{
+				Fighter fighter = fighters[index];
+				snapshot.fighters[index] = new VersusFighterSnapshot
+				{
+					x = fighter.Position.x,
+					y = fighter.Position.y,
+					facingX = fighter.Facing.x,
+					facingY = fighter.Facing.y,
+					fireCooldown = fighter.FireCooldown,
+					dashCooldown = fighter.DashCooldown,
+					dashLeft = fighter.DashLeft,
+					shieldLeft = fighter.ShieldLeft,
+					alive = fighter.Alive,
+				};
+			}
+
+			for (int index = 0; index < shots.Count; index++)
+			{
+				Shot shot = shots[index];
+				snapshot.shots[index] = new VersusShotSnapshot
+				{
+					x = shot.Position.x,
+					y = shot.Position.y,
+					velocityX = shot.Velocity.x,
+					velocityY = shot.Velocity.y,
+					lifeLeft = shot.LifeLeft,
+					radius = shot.Radius,
+					owner = shot.Owner,
+					bouncesLeft = shot.BouncesLeft,
+				};
+			}
+
+			return snapshot;
+		}
+
+		/// <summary>
+		/// 찍어 둔 자리로 되돌린다. 스탯(카드로 정해진 것)은 라운드 내내 안 바뀌므로 그대로 둔다 —
+		/// 되돌리는 것은 <b>움직이는 값</b>뿐이다.
+		/// </summary>
+		public void Restore(VersusRoundSnapshot snapshot)
+		{
+			if (snapshot == null)
+				return;
+
+			ElapsedSeconds = snapshot.elapsed;
+			IsOver = snapshot.isOver;
+			Winner = snapshot.winner;
+
+			for (int index = 0; index < PLAYER_COUNT && index < snapshot.fighters.Length; index++)
+			{
+				VersusFighterSnapshot saved = snapshot.fighters[index];
+				Fighter fighter = fighters[index];
+
+				fighter.Position = new Vector2(saved.x, saved.y);
+				fighter.Facing = new Vector2(saved.facingX, saved.facingY);
+				fighter.FireCooldown = saved.fireCooldown;
+				fighter.DashCooldown = saved.dashCooldown;
+				fighter.DashLeft = saved.dashLeft;
+				fighter.ShieldLeft = saved.shieldLeft;
+				fighter.Alive = saved.alive;
+
+				fighters[index] = fighter;
+			}
+
+			shots.Clear();
+
+			for (int index = 0; index < snapshot.shots.Length; index++)
+			{
+				VersusShotSnapshot saved = snapshot.shots[index];
+				shots.Add(new Shot
+				{
+					Position = new Vector2(saved.x, saved.y),
+					Velocity = new Vector2(saved.velocityX, saved.velocityY),
+					LifeLeft = saved.lifeLeft,
+					Radius = saved.radius,
+					Owner = saved.owner,
+					BouncesLeft = saved.bouncesLeft,
+				});
+			}
+		}
+
+		/// <summary>
+		/// 지금 판을 숫자 하나로 줄인다 — 두 기계가 <b>같은 판을 보고 있나</b>를 싸게 대조하는 용도.
+		/// 어긋나면(desync) 그 자리에서 알 수 있어야 「왜 저쪽에서만 맞았지」를 추측으로 쫓지 않는다.
+		/// </summary>
+		public int Fingerprint()
+		{
+			unchecked
+			{
+				int hash = 17;
+
+				for (int index = 0; index < PLAYER_COUNT; index++)
+				{
+					Fighter fighter = fighters[index];
+					hash = hash * 31 + Quantize(fighter.Position.x);
+					hash = hash * 31 + Quantize(fighter.Position.y);
+					hash = hash * 31 + Quantize(fighter.FireCooldown);
+					hash = hash * 31 + fighter.DashLeft;
+					hash = hash * 31 + fighter.ShieldLeft;
+					hash = hash * 31 + (fighter.Alive ? 1 : 0);
+				}
+
+				hash = hash * 31 + shots.Count;
+
+				for (int index = 0; index < shots.Count; index++)
+				{
+					Shot shot = shots[index];
+					hash = hash * 31 + Quantize(shot.Position.x);
+					hash = hash * 31 + Quantize(shot.Position.y);
+					hash = hash * 31 + shot.BouncesLeft;
+				}
+
+				return hash;
+			}
+		}
+
+		// 소수점 끝자리는 기계마다 다를 수 있다 — 1000분의 1 로 잘라 비교한다(0.001 = 눈에 안 보이는 차이).
+		private static int Quantize(float value)
+		{
+			return (int)(value * 1000f);
+		}
+
 		/// <summary> 이 자리 근처에 <b>남의 탄</b>이 있나 — 봇이 피할지 정할 때 쓴다(판이 답하고 봇은 묻기만 한다). </summary>
 		public bool HasIncomingShot(Vector2 position, int selfIndex, float radius)
 		{
