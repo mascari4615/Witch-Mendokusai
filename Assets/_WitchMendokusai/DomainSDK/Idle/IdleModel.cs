@@ -82,6 +82,8 @@ namespace WitchMendokusai.DomainSDK.Idle
             state.DamageDealtToTarget = 0d;
             state.Damage.Level = 0;
             state.AttackSpeed.Level = 0;
+            // 떨어진 것은 남긴다 — 울티마 스쿼드에서 장비가 판을 건너 남는 것과 같다.
+            // 그게 「깊이 갔다 온 값어치」의 두 번째 증거다(첫째는 점수).
 
             return true;
         }
@@ -172,6 +174,9 @@ namespace WitchMendokusai.DomainSDK.Idle
                 budget -= taking * durability;
                 state.Kills += taking;
                 state.Resource += taking * RewardOf(state, tuning);
+                // ★ 지금 단계에서 잡은 몫이다 — 단계 경계를 넘기 <b>전에</b> 쌓아야
+                //   그 처치들이 다음 단계의 높은 상한으로 잘못 쳐지지 않는다.
+                IdleDrops.Accrue(state, tuning, taking, state.Stage);
 
                 if (clearsStage == false)
                 {

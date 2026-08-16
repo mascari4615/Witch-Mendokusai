@@ -40,6 +40,41 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// <summary>몇 번 리셋했나.</summary>
         public int Ascensions { get; set; }
 
+        /// <summary>등급별로 여태 떨어진 개수 (0번째 = 1등급).</summary>
+        public long[] DroppedByTier { get; private set; } = new long[0];
+
+        /// <summary>등급별 잔여분 — 아직 하나가 안 된 몫. 이걸 들고 가야 쪼개 밟아도 총합이 같다.</summary>
+        public double[] DropProgressByTier { get; private set; } = new double[0];
+
+        /// <summary>
+        /// 등급 칸을 넉넉히 잡아 둔다. 손잡이(<see cref="IdleTuning.MaxTier"/>)가 커질 수 있어
+        /// <b>늘리기만</b> 한다 — 줄이면 이미 떨어진 것이 사라진다.
+        /// </summary>
+        public void EnsureTierRoom(int tierCount)
+        {
+            if (tierCount < 1)
+            {
+                tierCount = 1;
+            }
+
+            if (DroppedByTier.Length >= tierCount)
+            {
+                return;
+            }
+
+            long[] grownCounts = new long[tierCount];
+            double[] grownProgress = new double[tierCount];
+
+            for (int i = 0; i < DroppedByTier.Length; i++)
+            {
+                grownCounts[i] = DroppedByTier[i];
+                grownProgress[i] = DropProgressByTier[i];
+            }
+
+            DroppedByTier = grownCounts;
+            DropProgressByTier = grownProgress;
+        }
+
         /// <summary>마지막으로 본 시각 (Unix 초, UTC). 오프라인 보상의 재료.</summary>
         public long LastSeenUnixSeconds { get; set; }
 
@@ -68,6 +103,8 @@ namespace WitchMendokusai.DomainSDK.Idle
                 BestStage = BestStage,
                 PrestigePoints = PrestigePoints,
                 Ascensions = Ascensions,
+                DroppedByTier = (long[])DroppedByTier.Clone(),
+                DropProgressByTier = (double[])DropProgressByTier.Clone(),
                 DamageLevel = Damage.Level,
                 AttackSpeedLevel = AttackSpeed.Level,
                 LastSeenUnixSeconds = LastSeenUnixSeconds,
@@ -87,6 +124,18 @@ namespace WitchMendokusai.DomainSDK.Idle
             BestStage = saveData.BestStage > 0 ? saveData.BestStage : Stage;
             PrestigePoints = saveData.PrestigePoints;
             Ascensions = saveData.Ascensions;
+            // 옛 저장에는 등급 칸이 없어 null 로 온다 — 빈 칸으로 받는다.
+            DroppedByTier = saveData.DroppedByTier ?? new long[0];
+            DropProgressByTier = saveData.DropProgressByTier ?? new double[0];
+            if (DropProgressByTier.Length < DroppedByTier.Length)
+            {
+                double[] grown = new double[DroppedByTier.Length];
+                for (int i = 0; i < DropProgressByTier.Length; i++)
+                {
+                    grown[i] = DropProgressByTier[i];
+                }
+                DropProgressByTier = grown;
+            }
             Damage.Level = saveData.DamageLevel;
             AttackSpeed.Level = saveData.AttackSpeedLevel;
             LastSeenUnixSeconds = saveData.LastSeenUnixSeconds;

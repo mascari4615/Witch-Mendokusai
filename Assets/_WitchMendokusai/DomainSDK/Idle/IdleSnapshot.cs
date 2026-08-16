@@ -73,6 +73,12 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// <summary>리셋 점수가 지금 주고 있는 배수.</summary>
         public double PrestigeMultiplier { get; }
 
+        /// <summary>등급별로 여태 떨어진 개수 (0번째 = 1등급).</summary>
+        public long[] DroppedByTier { get; }
+
+        /// <summary>지금 단계에서 나올 수 있는 가장 높은 등급 — 「더 내려가야 하는 이유」를 그대로 보여주는 값.</summary>
+        public int MaxTierNow { get; }
+
         /// <summary>공격력 축.</summary>
         public IdleUpgradeView Damage { get; }
 
@@ -82,6 +88,7 @@ namespace WitchMendokusai.DomainSDK.Idle
         public IdleSnapshot(double resource, double incomePerSecond, long kills, double targetHealthRatio,
             int stage, int killsInStage, int killsPerStage,
             long prestigePoints, long prestigeAward, double prestigeMultiplier,
+            long[] droppedByTier, int maxTierNow,
             IdleUpgradeView damage, IdleUpgradeView attackSpeed)
         {
             Resource = resource;
@@ -94,6 +101,8 @@ namespace WitchMendokusai.DomainSDK.Idle
             PrestigePoints = prestigePoints;
             PrestigeAward = prestigeAward;
             PrestigeMultiplier = prestigeMultiplier;
+            DroppedByTier = droppedByTier;
+            MaxTierNow = maxTierNow;
             Damage = damage;
             AttackSpeed = attackSpeed;
         }

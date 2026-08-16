@@ -29,6 +29,10 @@ namespace WitchMendokusai.DomainSDK.Idle
         public long PrestigePoints;
         public int Ascensions;
 
+        /// <summary>등급별 떨어진 개수. 옛 저장에는 없어 null 로 온다.</summary>
+        public long[] DroppedByTier;
+        public double[] DropProgressByTier;
+
         /// <summary>마지막으로 본 시각 (Unix 초, UTC).</summary>
         public long LastSeenUnixSeconds;
     }
