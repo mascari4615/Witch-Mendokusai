@@ -623,23 +623,55 @@ foreach ($rule in $rules)
 # 이미 있던 빚 — 남의 에셋 폴더 하나가 예전부터 .meta 없이 있다. 새 위반만 막는다(RATCHET 과 같은 태도).
 $metaBaseline = @('Lab\Animation\Universal Animation Library[Standard]')
 
+# .meta 는 <b>Assets 아래에만</b> 필요하다. 검사 뿌리가 저장소 루트로 들어오면 UserSettings·Tools 까지 훑어
+# 수천 건이 거짓으로 잡힌다(2026-08-16 실측 6079건 — pre-push 가 이것 때문에 막혔다).
+# 그리고 push 검사(커밋 범위 모드)에서는 <b>이번에 올리는 파일만</b> 본다 — 남의 미완성 편집으로 내 push 가 막히면 안 된다.
+$metaBaseline = @('Lab\Animation\Universal Animation Library[Standard]')
 $metaMisses = @()
-foreach ($source in Get-ChildItem -Path $root -Filter *.cs -Recurse)
+
+$repoRootForMeta = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
+$metaScoped = ($PathsFrom -or ($Paths -and $Paths.Count -gt 0))
+
+if ($metaScoped)
 {
-    if ($source.FullName -like '*\obj\*' -or $source.FullName -like '*\bin\*') { continue }
-    if (Test-Path ($source.FullName + '.meta')) { continue }
-    $metaMisses += $source.FullName.Substring($root.Length).Trim('\')
+    $scopedPaths = if ($PathsFrom) { Get-Content $PathsFrom } else { $Paths }
+
+    foreach ($relative in $scopedPaths)
+    {
+        if ($relative -notlike 'Assets/*' -and $relative -notlike 'Assets\*') { continue }
+        if ($relative -notlike '*.cs') { continue }
+
+        $full = Join-Path $repoRootForMeta $relative
+        if (-not (Test-Path $full)) { continue }
+        if (Test-Path ($full + '.meta')) { continue }
+
+        $metaMisses += $relative
+    }
 }
-
-foreach ($folder in Get-ChildItem -Path $root -Directory -Recurse)
+else
 {
-    if ($folder.FullName -like '*\obj\*' -or $folder.FullName -like '*\bin\*') { continue }
-    if (Test-Path ($folder.FullName + '.meta')) { continue }
+    $metaRoot = if ($Root -and $Root -like '*Assets*') { $Root } else { Join-Path $repoRootForMeta 'Assets' }
 
-    $relativeFolder = $folder.FullName.Substring($root.Length).Trim('\')
-    if ($metaBaseline -contains $relativeFolder) { continue }
+    if (Test-Path $metaRoot)
+    {
+        foreach ($source in Get-ChildItem -Path $metaRoot -Filter *.cs -Recurse)
+        {
+            if ($source.FullName -like '*\obj\*' -or $source.FullName -like '*\bin\*') { continue }
+            if (Test-Path ($source.FullName + '.meta')) { continue }
+            $metaMisses += $source.FullName.Substring($metaRoot.Length).Trim('\')
+        }
 
-    $metaMisses += $relativeFolder + '  (폴더)'
+        foreach ($folder in Get-ChildItem -Path $metaRoot -Directory -Recurse)
+        {
+            if ($folder.FullName -like '*\obj\*' -or $folder.FullName -like '*\bin\*') { continue }
+            if (Test-Path ($folder.FullName + '.meta')) { continue }
+
+            $relativeFolder = $folder.FullName.Substring($metaRoot.Length).Trim('\')
+            if ($metaBaseline -contains $relativeFolder) { continue }
+
+            $metaMisses += $relativeFolder + '  (폴더)'
+        }
+    }
 }
 
 if ($metaMisses.Count -gt 0)

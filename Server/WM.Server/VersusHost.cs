@@ -157,27 +157,24 @@ namespace WitchMendokusai.Server
 		internal static int TickHz => TICK_HZ;
 		internal static int SnapshotHz => SNAPSHOT_HZ;
 		internal static double BotFillSeconds => BOT_FILL_SECONDS;
-		internal static JsonSerializerOptions JsonOptions => JSON;
 	}
 
 	/// <summary> 방에 앉은 한 사람(또는 빈 의자). </summary>
 	public sealed class VersusSeat
 	{
-		public VersusSeat(VersusRoom room, WebSocket socket, int index)
+		public VersusSeat(VersusRoom room, WebSocket socket, int index, WebSocketVersusTransport transport)
 		{
 			Room = room;
 			Socket = socket;
 			Index = index;
+			Transport = transport;
 		}
 
 		public VersusRoom Room { get; }
 		public WebSocket Socket { get; }
 		public int Index { get; }
 
-		/// <summary>가장 최근에 받은 의도. 창이 조용하면 마지막 것을 이어 쓴다(뚝뚝 끊기는 것보다 낫다).</summary>
-		public VersusInputFrame Frame;
-
-		/// <summary>이 사람이 고른 카드 번호. -1 = 아직 안 골랐다.</summary>
-		public int PickedOffer = -1;
+		/// <summary>이 사람에게 이어진 구멍 — 심판이 여기로만 말한다.</summary>
+		public WebSocketVersusTransport Transport { get; }
 	}
 }
