@@ -111,13 +111,25 @@ jobs:
 
       # ★ "구웠다" 는 "돈다" 가 아니다. 덜어내기(High)가 런타임을 조용히 깨뜨린 적이 있다.
       #   이 검사는 켜서 판이 실제로 흐르는지(저장 파일에 처치 수가 오르는지) 본다.
+      #
+      #   exit 1 = 안 돈다 (빨강). exit 2 = 검사를 못 돌렸다 (경고 — 초록이되 침묵은 아님).
+      #   이 러너가 LocalSystem 서비스로 돌면 붙을 데스크톱이 없어 플레이어가 창을 못 띄운다.
+      #   그 경우까지 빨갛게 하면 <게임이 깨졌다>와 <검사를 못 했다>가 같은 색이 되어
+      #   빨간불이 뜻을 잃는다. 대신 경고로 남겨 "안 봤다"가 눈에 보이게 한다.
       - name: Does it actually run (idle smoke)
+        id: smoke
         shell: powershell
         run: |
-          $ErrorActionPreference = 'Stop'
+          $ErrorActionPreference = 'Continue'
           $OutputEncoding = [Console]::OutputEncoding = [Text.UTF8Encoding]::new()
           & "$env:GITHUB_WORKSPACE\.github\scripts\wm-idle-smoke.ps1" -ExePath '${{ steps.build.outputs.exe }}'
-          if ($LASTEXITCODE -ne 0) { throw "idle smoke failed (exit=$LASTEXITCODE)" }
+          $code = $LASTEXITCODE
+          "code=$code" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          if ($code -eq 2) {
+            Write-Host "::warning title=idle smoke not run::no interactive desktop on this runner - the build was NOT verified to actually run"
+            exit 0
+          }
+          if ($code -ne 0) { throw "idle smoke failed (exit=$code)" }
 
       - name: Upload artifact (only when asked)
         if: inputs.publish == 'artifact'
@@ -138,7 +150,7 @@ jobs:
           if (-not $token) { Write-Host 'no laptop-ops token - skipping notify'; exit 0 }
 
           $ok = '${{ job.status }}' -eq 'success'
-          $mark = if ($ok) { 'OK' } else { 'FAIL' }
+          $mark = if (-not $ok) { 'FAIL' } elseif ('${{ steps.smoke.outputs.code }}' -eq '2') { 'OK (run-check skipped)' } else { 'OK' }
           $where = '${{ steps.build.outputs.exe }}'
           $body = "[Idle $mark] $where`n${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           try {

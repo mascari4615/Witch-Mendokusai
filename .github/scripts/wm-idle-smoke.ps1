@@ -43,6 +43,17 @@ function Fail($message)
     exit 1
 }
 
+# ★ 화면 없는 세션(세션 0)에서는 <b>이 검사가 성립하지 않는다</b>.
+#   플레이어는 창을 띄워야 판이 도는데 LocalSystem 서비스에는 붙을 데스크톱이 없다.
+#   그대로 두면 「저장 파일이 안 생겼다」로 <b>게임이 깨진 것처럼</b> 빨개진다 —
+#   실측 2026-08-16: 노트북 러너(actions.runner…karmo-laptop-wm)가 LocalSystem 서비스라
+#   저장 경로가 C:\WINDOWS\system32\config\systemprofile\... 로 잡혔다.
+#   「검사를 못 돌렸다」와 「안 돈다」는 다른 말이고, 섞으면 빨간불이 뜻을 잃는다.
+if ([Environment]::UserName -eq 'SYSTEM' -or $env:USERPROFILE -like '*systemprofile*')
+{
+    Fail2 "화면 없는 세션이다 (계정 $([Environment]::UserName)) — 플레이어를 띄울 데스크톱이 없다. 사람 세션에서 돌릴 것"
+}
+
 $exe = $null
 
 if (-not [string]::IsNullOrWhiteSpace($ExePath))
