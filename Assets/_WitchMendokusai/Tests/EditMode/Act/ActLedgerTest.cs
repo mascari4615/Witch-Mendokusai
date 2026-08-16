@@ -235,5 +235,30 @@ namespace WitchMendokusai.Tests
 				Assert.That(property.Name.Contains("Zone"), Is.False, "코어에 구역 개념이 새어 들어옴: " + property.Name);
 			}
 		}
+
+		// ── 도구 등급 = 대가가 줄어든다 ────────────────────────────────────────────
+
+		[Test]
+		public void BetterTool_CutsTimeAndEnergy_ButNotSeeds()
+		{
+			// 좋은 괭이는 덜 지치고 빨리 판다. 그러나 씨앗이 덜 들지는 않는다.
+			ActSpec bareHands = new(30, new[] { new ActNeedDelta(NeedKind.Energy, -8f) }, new[] { new ActResourceDelta(SEED, -1) });
+
+			ActSpec withTool = bareHands.ScaledBy(0.5f);
+
+			Assert.That(withTool.Minutes, Is.EqualTo(15));
+			Assert.That(withTool.NeedDeltas[0].Amount, Is.EqualTo(-4f));
+			Assert.That(withTool.ResourceDeltas[0].Amount, Is.EqualTo(-1), "도구가 좋아도 씨앗은 한 톨 그대로");
+		}
+
+		[Test]
+		public void ToolNeverMakesTimeFree()
+		{
+			// 0분이면 하루가 무한해진다 — 공짜 행동은 도구가 아니라 선언이 정한다.
+			ActSpec tiny = new(1, new[] { new ActNeedDelta(NeedKind.Energy, -1f) });
+
+			Assert.That(tiny.ScaledBy(0.01f).Minutes, Is.EqualTo(1));
+			Assert.That(ActSpec.Free.ScaledBy(0.5f).Minutes, Is.EqualTo(0), "원래 시간을 안 먹던 행동은 그대로 0");
+		}
 	}
 }

@@ -37,6 +37,37 @@ namespace WitchMendokusai.DomainSDK.Act
         /// <summary>자원 변화 목록 — 음수 소모 / 양수 생성.</summary>
         public IReadOnlyList<ActResourceDelta> ResourceDeltas { get; }
 
+        /// <summary>
+        /// 대가를 <paramref name="factor"/> 배로 줄인(또는 늘린) 같은 행동 (TASK-WM-410 — 도구 등급).
+        ///
+        /// ★ 왜 여기인가: 「좋은 괭이는 덜 지치고 빨리 판다」는 <b>행동의 대가</b>에 대한 이야기다.
+        ///   밭이 그 계산을 하면 도구마다 밭을 고쳐야 하고, 도구가 하면 행동마다 도구를 고쳐야 한다.
+        /// ★ 자원은 안 줄인다 — 좋은 괭이를 들었다고 씨앗이 덜 들지는 않는다.
+        /// ★ 시간은 0 으로 안 내려간다(원래 시간을 먹던 행동이면 최소 1분) — 공짜 행동은 도구가 아니라
+        ///   선언이 정하는 것이고, 0분이면 하루가 무한해진다.
+        /// </summary>
+        public ActSpec ScaledBy(float factor)
+        {
+            if (factor < 0f)
+            {
+                factor = 0f;
+            }
+
+            int minutes = (int)(Minutes * factor + 0.5f);
+            if (Minutes > 0 && minutes < 1)
+            {
+                minutes = 1;
+            }
+
+            ActNeedDelta[] needs = new ActNeedDelta[NeedDeltas.Count];
+            for (int i = 0; i < NeedDeltas.Count; i++)
+            {
+                needs[i] = new ActNeedDelta(NeedDeltas[i].Kind, NeedDeltas[i].Amount * factor);
+            }
+
+            return new ActSpec(minutes, needs, ResourceDeltas);
+        }
+
         /// <summary>세계에 아무 대가도 없는 행동. 시간도 안 흐르고 아무것도 안 변한다.</summary>
         public static ActSpec Free { get; } = new ActSpec(0);
 

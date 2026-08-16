@@ -140,9 +140,10 @@ namespace WitchMendokusai
 				return true;
 			}
 
+			// 손에 든 것이 할 수 있는 행동을 정한다 (기획 확정 2026-08-17: 마도구).
 			SeedItemData seed = SelectedSeed();
 			if (seed == null || seed.Plant == null)
-				return false;
+				return TryTillWithHoe(farm, soil);
 
 			if (farm.TryPlant(soil, seed, out ActOutcome planted))
 				return true;
@@ -153,17 +154,50 @@ namespace WitchMendokusai
 				return true;
 			}
 
-			// 아직 굳은 땅이면 먼저 간다 — 이 클릭은 여기까지, 심기는 다음 클릭.
-			if (farm.TryTill(soil, out ActOutcome tilled))
-				return true;
+			// 씨앗을 들었는데 아직 굳은 땅이면 심을 수 없다 — 괭이를 들라고 말해 준다.
+			ShowNeedsHoe();
+			return true;
+		}
 
-			if (tilled.Rejection != ActRejection.None)
+		// 마도 괭이를 든 손만 땅을 간다. 도구 등급이 대가(시간·기운)를 낮춘다.
+		private bool TryTillWithHoe(FarmGroundObject farm, FarmCoord soil)
+		{
+			if (farm.CanTill(soil) == false)
+				return false;
+
+			EquipmentData tool = SelectedEquipment();
+			if (tool == null || tool.EquipmentType != EquipmentType.Hoe)
 			{
-				ShowRejection(tilled);
+				ShowNeedsHoe();
 				return true;
 			}
 
-			return false;
+			if (farm.TryTill(soil, out ActOutcome tilled, tool.ActCostScale))
+				return true;
+
+			if (tilled.Rejection != ActRejection.None)
+				ShowRejection(tilled);
+
+			return true;
+		}
+
+		private void ShowNeedsHoe()
+		{
+			if (uiManager != null)
+				uiManager.SpeechBubble.Show(transform, "괭이가 있어야 갈 수 있다...");
+		}
+
+		private EquipmentData SelectedEquipment()
+		{
+			HotbarView view = EnsureHotbarView();
+			if (view == null)
+				return null;
+
+			Item selectedItem = view.SelectedItem;
+			if (selectedItem == null || selectedItem.IsEmpty)
+				return null;
+
+			return selectedItem.Data as EquipmentData;
 		}
 
 		// 거둔 것 = 작물의 수확물 표에 따라 바닥에 떨어뜨린다(기존 밭과 같은 길 — GameLogic.SpawnLootItem).
