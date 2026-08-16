@@ -1,4 +1,4 @@
-﻿# wm-rule-gate.ps1 -- deterministic WM code-rule gate (TASK-WM-203).
+# wm-rule-gate.ps1 -- deterministic WM code-rule gate (TASK-WM-203).
 #
 # Canonical rule text: WitchMendokusai/CLAUDE.md, section "coding style" / "Editor menu"
 # / "input system". This script is the *enforcement* of those rules. It is called from
@@ -621,7 +621,11 @@ foreach ($rule in $rules)
 $metaMisses = @()
 foreach ($source in Get-ChildItem -Path $root -Filter *.cs -Recurse)
 {
-    if ($source.FullName -like '*\obj\*' -or $source.FullName -like '*in\*') { continue }
+    # 빌드 캐시·패키지 캐시·검사용 표본은 유니티 자산이 아니다 - .meta 가 없는 게 정상이라
+    # 여기서 세면 「고칠 수 없는 빨강」이 되어 gate 자체를 우회하게 만든다 (실측 2026-08-17).
+    if ($source.FullName -like '*\obj\*' -or $source.FullName -like '*\bin\*') { continue }
+    if ($source.FullName -like '*\Library\*' -or $source.FullName -like '*\Temp\*') { continue }
+    if ($source.FullName -like '*\.github\*') { continue }
     if (Test-Path ($source.FullName + '.meta')) { continue }
     $metaMisses += $source.FullName.Substring($root.Length).TrimStart('')
 }
