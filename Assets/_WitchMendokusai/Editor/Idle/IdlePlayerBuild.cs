@@ -111,6 +111,13 @@ namespace WitchMendokusai.EditorTools
 			//   IL2CPP 중간 소스와 pdb 라 유니티가 폴더 이름으로 「배포하지 말라」고 적어 뒀다.
 			//   그걸 합쳐 「2.8GB」라고 보고하면 <b>도구가 거짓말을 하는 것</b>이고,
 			//   실제로 그 숫자를 보고 「군살이 많다」고 잘못 판단했다. 둘을 나눠 적는다.
+			// ★ 지난 판이 남긴 <b>배포 안 하는 폴더</b>를 치운다 (실측 2026-08-16).
+			//   한 판에 2GB 가 남고, 14판을 굽자 디스크 여유가 <b>486MB</b> 까지 떨어져
+			//   IL2CPP 링크가 실패했다("Building GameAssembly.pdb failed") —
+			//   에러 메시지는 디스크와 아무 상관 없어 보였다.
+			//   유니티가 폴더 이름에 「배포하지 말라」고 적어 둔 것들이니 굽고 나면 남길 이유가 없다.
+			SweepOldLeftovers(Path.GetDirectoryName(directory), directory);
+
 			double shipped = SizeOf(directory, true) / 1024d / 1024d;
 			double everything = SizeOf(directory, false) / 1024d / 1024d;
 
@@ -144,6 +151,50 @@ namespace WitchMendokusai.EditorTools
 			}
 
 			return total;
+		}
+
+		/// <summary>지난 판들의 「배포하지 말 것」 폴더를 치운다. 이번 판은 안 건드린다.</summary>
+		private static void SweepOldLeftovers(string root, string keeping)
+		{
+			if (Directory.Exists(root) == false)
+			{
+				return;
+			}
+
+			long freed = 0L;
+
+			foreach (string one in Directory.GetDirectories(root))
+			{
+				if (string.Equals(one, keeping, System.StringComparison.OrdinalIgnoreCase))
+				{
+					continue;
+				}
+
+				foreach (string junk in Directory.GetDirectories(one))
+				{
+					if (IsNotShipped(junk) == false)
+					{
+						continue;
+					}
+
+					try
+					{
+						freed += SizeOf(junk, false);
+						Directory.Delete(junk, true);
+					}
+					catch (System.Exception error)
+					{
+						// 못 치워도 빌드를 세우지는 않는다 — 치우기는 곁일이다.
+						Debug.LogWarning(TAG + " 지난 판 정리 실패(무시): " + error.Message);
+					}
+				}
+			}
+
+			if (freed > 0L)
+			{
+				Debug.Log(TAG + " 지난 판이 남긴 " + (freed / 1024d / 1024d / 1024d).ToString("N1")
+					+ " GB 를 치웠다 (배포 안 하는 폴더)");
+			}
 		}
 
 		private static bool IsNotShipped(string path)
