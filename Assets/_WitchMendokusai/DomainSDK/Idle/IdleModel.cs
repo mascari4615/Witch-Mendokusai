@@ -152,7 +152,9 @@ namespace WitchMendokusai.DomainSDK.Idle
         {
             return (tuning.BaseAttackSpeed + state.AttackSpeed.TotalValue(tuning.AttackSpeedCurve))
                 * IdleGear.SpeedMultiplier(state, tuning)
-                * IdleHeroes.AxisMultiplierOf(state, tuning, IdleHeroAxis.Speed);
+                * IdleHeroes.AxisMultiplierOf(state, tuning, IdleHeroAxis.Speed)
+                // 폭주는 <b>속도</b>에 건다 — 판이 통째로 빨라지는 게 눈에 가장 잘 보인다.
+                * IdleSurge.Multiplier(state, tuning);
         }
 
         /// <summary>초당 깎는 양.</summary>
@@ -275,7 +277,8 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// </summary>
         public static void Tap(IdleState state, IdleTuning tuning)
         {
-            state.AttackProgress += AttackSpeedOf(state, tuning) * tuning.TapSecondsOfAttack;
+            state.AttackProgress += AttackSpeedOf(state, tuning) * tuning.TapSecondsOfAttack
+                * IdleSurge.HandMultiplier(state, tuning);
             Resolve(state, tuning);
         }
 

@@ -82,6 +82,10 @@ namespace WitchMendokusai
 		private GridBackdropElement backdrop;
 		private FloatTextLayer floats;
 
+		/// <summary>지나가는 것 — 누르면 폭주한다.</summary>
+		private NgonElement visitor;
+		private Label surgeLabel;
+
 		/// <summary>때리는 장단이 얼마나 찼나 (1 이 되면 한 대).</summary>
 		private float beat;
 		private int heroTurn;
@@ -221,6 +225,8 @@ namespace WitchMendokusai
 			float delta = Time.unscaledDeltaTime;
 
 			session.Advance(delta);
+			// 지나가는 것은 <b>보고 있는 동안만</b> 돈다 — 판정(방치 진행)과 다른 층이다.
+			session.AdvanceSurge(delta);
 			IdleSnapshot snapshot = session.Capture();
 
 			AdvanceBattle(snapshot, delta);
@@ -244,6 +250,7 @@ namespace WitchMendokusai
 
 			floats.Advance(delta);
 			backdrop.Advance(delta);
+			visitor.Advance(delta, 0.6f);
 			AdvanceShake(delta);
 
 			// ★ 자원이 <b>굴러 올라간다</b> — 뚝뚝 튀면 「많이 벌었다」가 안 느껴진다.
@@ -654,6 +661,18 @@ namespace WitchMendokusai
 			arena.Add(dots);
 			killDots.Clear();
 
+			// ★ <b>지나가는 것</b> — 판 위를 가로지르고, 누르면 잠시 폭주한다.
+			//   조사 1순위(황금 쿠키 자리): 방치형은 기대값이 평탄해서 「지금 볼 이유」가 없다.
+			visitor = new NgonElement();
+			visitor.AddToClassList("idle-visitor");
+			visitor.Sides = 12;
+			visitor.Body = new Color(0.98f, 0.84f, 0.38f);
+			visitor.style.display = DisplayStyle.None;
+			visitor.RegisterCallback<PointerDownEvent>(OnVisitorClicked);
+			arena.Add(visitor);
+
+			surgeLabel = AddLabel(arena, "idle-surge");
+
 			arenaCaption = AddLabel(arena, "idle-arena-caption");
 
 			// 튀는 숫자는 판 위에 뜬다 — 담는 칸이 자리를 잡아 준다.
@@ -912,6 +931,7 @@ namespace WitchMendokusai
 		private void RenderArena(IdleSnapshot snapshot)
 		{
 			RenderPartyOnField(snapshot);
+			RenderVisitor(snapshot);
 
 			targetShape.Sides = SidesFor(snapshot.MaxTierNow);
 			targetShape.Body = TierColor(snapshot.MaxTierNow);
@@ -935,6 +955,59 @@ namespace WitchMendokusai
 		///   내가 고른 얼굴이 저기 서 있어야 「내 파티」가 된다.
 		/// ★ 빈 자리는 <b>흐리게 남긴다</b>. 지워 버리면 자리가 비었다는 게 안 보인다.
 		/// </summary>
+		/// <summary>
+		/// 지나가는 것과 폭주를 그린다.
+		///
+		/// ★ 떠 있는 동안 <b>판을 가로질러 흐른다</b> — 가만히 있으면 버튼이지 사건이 아니다.
+		/// ★ 사라지기 직전에는 <b>깜빡인다</b> — 「놓치겠다」가 보여야 손이 간다.
+		/// </summary>
+		private void RenderVisitor(IdleSnapshot snapshot)
+		{
+			bool here = snapshot.VisitorSecondsLeft > 0d;
+			visitor.style.display = here ? DisplayStyle.Flex : DisplayStyle.None;
+
+			if (here)
+			{
+				// 남은 시간이 줄수록 왼쪽에서 오른쪽으로 간다 — 가는 길이 곧 남은 시간이다.
+				float stayed = 1f - (float)(snapshot.VisitorSecondsLeft / 13d);
+				visitor.style.left = new StyleLength(new Length(6f + stayed * 82f, LengthUnit.Percent));
+
+				bool leaving = snapshot.VisitorSecondsLeft < 4d;
+				visitor.SetPulse(leaving ? 0.22f : 0.08f, leaving ? 4f : 1.2f);
+			}
+
+			if (snapshot.SurgeKind != IdleSurgeKind.None && snapshot.SurgeSecondsLeft > 0d)
+			{
+				surgeLabel.style.display = DisplayStyle.Flex;
+				surgeLabel.text = string.Format("{0}!  {1:0.0}초",
+					IdleSurge.NameOf(snapshot.SurgeKind), snapshot.SurgeSecondsLeft);
+			}
+			else
+			{
+				surgeLabel.style.display = DisplayStyle.None;
+			}
+		}
+
+		/// <summary>지나가는 것을 잡았다.</summary>
+		private void OnVisitorClicked(PointerDownEvent moment)
+		{
+			// 판을 누른 것으로도 세지 않게 막는다 — 잡기와 때리기는 다른 일이다.
+			moment.StopPropagation();
+
+			if (session.TryCatchVisitor(out IdleSurgeKind caught) == false)
+			{
+				return;
+			}
+
+			sound.Sweep();
+			Shake(0.8f);
+			burst.Fire(12, new Color(0.98f, 0.84f, 0.38f));
+			floats.Pop(IdleSurge.NameOf(caught) + "!", new Vector2(50f, 50f),
+				new Color(0.98f, 0.84f, 0.38f));
+
+			Render(session.Capture());
+		}
+
 		private void RenderPartyOnField(IdleSnapshot snapshot)
 		{
 			for (int slot = 0; slot < heroes.Count; slot++)

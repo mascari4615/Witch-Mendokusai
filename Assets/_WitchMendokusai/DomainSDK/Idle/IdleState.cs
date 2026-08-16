@@ -90,6 +90,18 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// <summary>천장까지 남은 셈 — 마지막 최고등급 이후 몇 번 뽑았나.</summary>
         public int PullsSincePity { get; set; }
 
+        /// <summary>지나가는 것이 떠 있는 남은 시간(초). 0 이면 지금은 없다.</summary>
+        public double VisitorSecondsLeft { get; set; }
+
+        /// <summary>마지막으로 뜬 뒤 흐른 시간(초) — 기다린 만큼 잘 뜬다.</summary>
+        public double SinceVisitorSeconds { get; set; }
+
+        /// <summary>지금 걸린 폭주 (<see cref="IdleSurgeKind"/>).</summary>
+        public int SurgeKind { get; set; }
+
+        /// <summary>그 폭주가 남은 시간(초).</summary>
+        public double SurgeSecondsLeft { get; set; }
+
         /// <summary>
         /// 쓸 수 있는 <b>환생석</b> — 뽑기에 낸다 (TASK-WM-406).
         ///

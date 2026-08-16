@@ -207,6 +207,14 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// <summary>쓸 수 있는 환생석 (배수와 별개).</summary>
         public long Stones { get; }
 
+        /// <summary>지금 지나가는 것이 떠 있나 (남은 시간, 0 이면 없다).</summary>
+        public double VisitorSecondsLeft { get; }
+
+        /// <summary>지금 걸린 폭주와 남은 시간.</summary>
+        public IdleSurgeKind SurgeKind { get; }
+
+        public double SurgeSecondsLeft { get; }
+
         /// <summary>지금 뽑을 수 있나.</summary>
         public bool CanPull { get; }
 
@@ -240,6 +248,7 @@ namespace WitchMendokusai.DomainSDK.Idle
             IdleProducerView[] producers, IdleItem[] bag, IdleItem[] worn, int bagCapacity,
             double bestPotentialValue, PotentialGrade bestPotentialGrade, double maxOfflineSeconds, bool holdingStage, int bestStage, int bestFarmingStage,
             IdleHeroView[] heroes, int[] party, double pullCost, long pullStoneCost, long stones,
+            double visitorSecondsLeft, IdleSurgeKind surgeKind, double surgeSecondsLeft,
             bool canPull, int pullsToPity,
             int codexScore, double codexMultiplier,
             IdleUpgradeView damage, IdleUpgradeView attackSpeed, double attacksPerSecond)
@@ -272,6 +281,9 @@ namespace WitchMendokusai.DomainSDK.Idle
             PullCost = pullCost;
             PullStoneCost = pullStoneCost;
             Stones = stones;
+            VisitorSecondsLeft = visitorSecondsLeft;
+            SurgeKind = surgeKind;
+            SurgeSecondsLeft = surgeSecondsLeft;
             CanPull = canPull;
             PullsToPity = pullsToPity;
             CodexScore = codexScore;

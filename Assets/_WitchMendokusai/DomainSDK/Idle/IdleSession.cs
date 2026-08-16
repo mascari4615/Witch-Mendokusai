@@ -53,6 +53,13 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// </summary>
         public double CatchUp(long nowUnixSeconds)
         {
+            // ★ 폭주는 <b>보고 있는 동안만</b>의 것이다. 안 지우면 자리 비운 내내 7배가 걸린다 —
+            //   그러면 「켜 두고 나가기」가 최적 전략이 되어 봉우리의 뜻이 뒤집힌다.
+            state.SurgeKind = (int)IdleSurgeKind.None;
+            state.SurgeSecondsLeft = 0d;
+            state.VisitorSecondsLeft = 0d;
+            state.SinceVisitorSeconds = 0d;
+
             long lastSeen = state.LastSeenUnixSeconds;
             state.LastSeenUnixSeconds = nowUnixSeconds;
 
@@ -222,6 +229,9 @@ namespace WitchMendokusai.DomainSDK.Idle
                 IdleGacha.CostOf(state, tuning),
                 IdleGacha.StoneCostOf(tuning),
                 state.Stones,
+                state.VisitorSecondsLeft,
+                (IdleSurgeKind)state.SurgeKind,
+                state.SurgeSecondsLeft,
                 IdleGacha.CanPull(state, tuning),
                 tuning.PityPulls - state.PullsSincePity,
                 IdleHeroes.CodexScoreOf(state),
@@ -229,6 +239,18 @@ namespace WitchMendokusai.DomainSDK.Idle
                 ViewOf(IdleUpgradeKind.Damage, IdleModel.DamageOf(state, tuning)),
                 ViewOf(IdleUpgradeKind.AttackSpeed, IdleModel.AttackSpeedOf(state, tuning)),
                 IdleModel.AttackSpeedOf(state, tuning));
+        }
+
+        /// <summary>시간을 흘린다 — <b>보고 있는 동안만</b> 도는 층(지나가는 것·폭주).</summary>
+        public void AdvanceSurge(double seconds)
+        {
+            IdleSurge.Advance(state, tuning, seconds);
+        }
+
+        /// <summary>지나가는 것을 잡는다.</summary>
+        public bool TryCatchVisitor(out IdleSurgeKind caught)
+        {
+            return IdleSurge.TryCatch(state, tuning, out caught);
         }
 
         /// <summary>도감을 사진에 담는다 — 화면이 등급표·별 셈을 다시 하지 않게.</summary>

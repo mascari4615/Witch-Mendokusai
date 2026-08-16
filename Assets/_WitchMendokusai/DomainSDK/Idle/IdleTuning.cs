@@ -85,6 +85,32 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// </summary>
         public long PullStoneCost { get; set; } = 1L;
 
+        // ── 지나가는 것 (변동성) ────────────────────────────────────────────
+        //
+        // ★ 조사 1순위 (`refs/cookie-clicker.md`) — 방치형은 기대값이 평탄해서
+        //   「지금 이 화면을 볼 이유」가 없다. 봉우리를 만드는 자리다.
+
+        /// <summary>이 시간 전에는 절대 안 뜬다(초).</summary>
+        public double VisitorEarliestSeconds { get; set; } = 90d;
+
+        /// <summary>이 시간이 지나면 반드시 뜬다(초).</summary>
+        public double VisitorLatestSeconds { get; set; } = 300d;
+
+        /// <summary>떠 있는 동안(초) — 기다려 주지 않아야 누르는 것이 사건이 된다.</summary>
+        public double VisitorStaySeconds { get; set; } = 13d;
+
+        /// <summary>잡으면 폭주가 이만큼 간다(초).</summary>
+        public double SurgeSeconds { get; set; } = 30d;
+
+        /// <summary>판 전체가 빨라지는 배수.</summary>
+        public double FrenzyMultiplier { get; set; } = 7d;
+
+        /// <summary>손 폭주가 걸릴 확률 — 드물어야 「대박」이 된다.</summary>
+        public double HandFrenzyChance { get; set; } = 0.2d;
+
+        /// <summary>손 때리기가 폭증하는 배수 (쿠키 클리커 777 자리, 우리 규모에 맞춰 낮춘다).</summary>
+        public double HandFrenzyMultiplier { get; set; } = 50d;
+
         /// <summary>최고 등급이 나올 확률. 관대한 판이라 위쪽(2%)을 쓴다.</summary>
         public double LegendChance { get; set; } = 0.02d;
 
