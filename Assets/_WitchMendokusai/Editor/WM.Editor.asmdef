@@ -22,7 +22,13 @@
         "VContainer",
         "WitchMendokusai.DomainSDK.Upgrade",
         "WitchMendokusai.DomainSDK.Idle",
-        "WitchMendokusai.DomainSDK.Contracts"
+        "WitchMendokusai.DomainSDK.Contracts",
+        "WitchMendokusai.DomainSDK.Numerics",
+        "WitchMendokusai.DomainSDK.Identity",
+        "WitchMendokusai.DomainSDK.Farming",
+        "WitchMendokusai.DomainSDK.Workshop",
+        "WitchMendokusai.DomainSDK.Network",
+        "WitchMendokusai.DomainSDK.Compat"
     ],
     "includePlatforms": [
         "Editor"

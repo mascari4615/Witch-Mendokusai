@@ -1,0 +1,16 @@
+{
+    "name": "WitchMendokusai.DomainSDK.Farming",
+    "rootNamespace": "",
+    "references": [
+        "WitchMendokusai.DomainSDK.Compat"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": true
+}

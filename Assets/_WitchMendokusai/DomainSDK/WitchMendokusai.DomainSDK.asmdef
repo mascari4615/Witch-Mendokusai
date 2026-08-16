@@ -4,7 +4,13 @@
     "references": [
         "UniTask",
         "MessagePipe",
-        "WitchMendokusai.DomainSDK.Contracts"
+        "WitchMendokusai.DomainSDK.Contracts",
+        "WitchMendokusai.DomainSDK.Numerics",
+        "WitchMendokusai.DomainSDK.Identity",
+        "WitchMendokusai.DomainSDK.Farming",
+        "WitchMendokusai.DomainSDK.Workshop",
+        "WitchMendokusai.DomainSDK.Network",
+        "WitchMendokusai.DomainSDK.Compat"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
