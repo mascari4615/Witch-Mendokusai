@@ -1,0 +1,17 @@
+{
+    "name": "WitchMendokusai.DomainSDK.Versus",
+    "rootNamespace": "",
+    "references": [
+        "WitchMendokusai.DomainSDK.Numerics",
+        "WitchMendokusai.DomainSDK.Common"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
