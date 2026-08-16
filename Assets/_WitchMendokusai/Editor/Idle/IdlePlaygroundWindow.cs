@@ -3,6 +3,8 @@ using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
 using WitchMendokusai.DomainSDK.Idle;
+// 네임스페이스를 통째로 들이면 Vector2 가 UnityEngine 것과 겹친다 — 쓸 것만 별칭으로 들인다.
+using BigNumberText = WitchMendokusai.Numerics.BigNumberText;
 using WitchMendokusai.DomainSDK.Contracts;
 
 namespace WitchMendokusai
@@ -219,9 +221,9 @@ namespace WitchMendokusai
 				snapshot.Stage, snapshot.KillsInStage, snapshot.KillsPerStage,
 				snapshot.MaxTierNow, snapshot.TierCeiling,
 				snapshot.MaxTierNow >= snapshot.TierCeiling ? " — 천장" : string.Empty);
-			resourceLabel.text = string.Format("자원 {0:N0}", snapshot.Resource);
-			incomeLabel.text = string.Format("초당 {0:N2}", snapshot.IncomePerSecond);
-			killsLabel.text = string.Format("처치 {0:N0}", snapshot.Kills);
+			resourceLabel.text = string.Format("자원 {0}", BigNumberText.Format(snapshot.Resource));
+			incomeLabel.text = string.Format("초당 {0}", BigNumberText.Format(snapshot.IncomePerSecond));
+			killsLabel.text = string.Format("처치 {0}", BigNumberText.Format(snapshot.Kills));
 
 			targetBar.value = (float)snapshot.TargetHealthRatio;
 			targetBar.title = string.Format("대상 체력 {0:P0}", snapshot.TargetHealthRatio);
@@ -245,18 +247,18 @@ namespace WitchMendokusai
 				snapshot.PrestigeAward, snapshot.PrestigePoints, snapshot.PrestigeMultiplier);
 			prestigeButton.SetEnabled(snapshot.PrestigeAward > 0L);
 
-			DrawUpgrade(snapshot.Damage, damageLevelLabel, damageButton, "공격력", "한 방 {0:N2}");
-			DrawUpgrade(snapshot.AttackSpeed, speedLevelLabel, speedButton, "공격속도", "초당 {0:N2}회");
+			DrawUpgrade(snapshot.Damage, damageLevelLabel, damageButton, "공격력", "한 방 {0}");
+			DrawUpgrade(snapshot.AttackSpeed, speedLevelLabel, speedButton, "공격속도", "초당 {0}회");
 
 			Repaint();
 		}
 
 		private static void DrawUpgrade(IdleUpgradeView view, Label levelLabel, Button button, string title, string valueFormat)
 		{
-			levelLabel.text = string.Format("{0} Lv.{1}  ({2})", title, view.Level, string.Format(valueFormat, view.CurrentValue));
+			levelLabel.text = string.Format("{0} Lv.{1}  ({2})", title, view.Level, string.Format(valueFormat, BigNumberText.Format(view.CurrentValue)));
 			button.text = view.IsMaxed
 				? string.Format("{0} 올리기 — 최대", title)
-				: string.Format("{0} 올리기 — {1:N0}", title, view.NextCost);
+				: string.Format("{0} 올리기 — {1}", title, BigNumberText.Format(view.NextCost));
 			button.SetEnabled(view.CanAfford);
 		}
 	}

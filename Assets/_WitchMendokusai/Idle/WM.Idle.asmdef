@@ -3,8 +3,9 @@
     "rootNamespace": "WitchMendokusai",
     "references": [
         "WitchMendokusai.DomainSDK.Contracts",
-        "WitchMendokusai.DomainSDK.Upgrade",
-        "WitchMendokusai.DomainSDK.Idle"
+        "WitchMendokusai.DomainSDK.Idle",
+        "WitchMendokusai.DomainSDK.Numerics",
+        "WitchMendokusai.DomainSDK.Upgrade"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
