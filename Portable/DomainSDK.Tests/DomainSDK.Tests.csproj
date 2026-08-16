@@ -125,6 +125,7 @@
     <Compile Include="$(TestsRoot)Versus/VersusFullMatchSimTests.cs" />
     <Compile Include="$(TestsRoot)Versus/VersusBalanceSimTests.cs" />
     <Compile Include="$(TestsRoot)Versus/VersusNetPlayTests.cs" />
+    <Compile Include="$(TestsRoot)Versus/VersusP2PTests.cs" />
   </ItemGroup>
 
 </Project>

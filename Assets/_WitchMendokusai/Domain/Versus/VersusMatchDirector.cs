@@ -20,11 +20,17 @@ namespace WitchMendokusai
 
 			/// <summary>온라인 대결 — 심판은 서버(또는 P2P 호스트).</summary>
 			Online = 1,
+
+			/// <summary>내가 방을 연다(P2P 호스트) — 서버 없이 친구가 내 주소로 직접 붙는다. 심판은 나.</summary>
+			Host = 2,
 		}
 
 		[SerializeField] private VersusMode mode = VersusMode.Practice;
 		[SerializeField] private string serverUrl = "ws://127.0.0.1:5199/vs";
 		[SerializeField] private string roomName = string.Empty;
+		[SerializeField] private int hostPort = 57411;
+		// 집 밖에서도 받으려면 켠다. 윈도우에서는 관리자 권한이나 urlacl 등록이 필요하다(안 되면 화면에 이유가 뜬다).
+		[SerializeField] private bool hostOpenToNetwork = false;
 		[SerializeField] private bool fillWithBotIfAlone = true;
 		[SerializeField] private float arenaHalfWidth = VersusDuelSim.ARENA_HALF_WIDTH;
 		[SerializeField] private float arenaHalfDepth = VersusDuelSim.ARENA_HALF_DEPTH;
@@ -40,12 +46,15 @@ namespace WitchMendokusai
 		private VersusAuthority authority;   // 연습 모드에서만.
 		private VersusGuest guest;           // 온라인 모드에서만.
 		private VersusClientLink link;
+		private VersusHostListener hostListener;
+		private float waitingForGuestSeconds;
 		private VersusLocalInput localInput;
 		private Camera viewCamera;
 		private int mySeat;
 		private int offerCursor;
 		private bool cursorLatched;
 		private int sentTick;
+		private bool guestSeated;
 
 		private void Awake()
 		{
@@ -59,13 +68,22 @@ namespace WitchMendokusai
 
 			localInput = new VersusLocalInput(viewCamera);
 
-			if (mode == VersusMode.Practice)
+			if (mode == VersusMode.Practice || mode == VersusMode.Host)
 			{
 				authority = new VersusAuthority(VersusRules.Default(), tuning, botTuning, codec,
 					randomSeed != 0 ? randomSeed : Random.Range(1, int.MaxValue),
 					arenaHalfWidth, arenaHalfDepth);
-				authority.FillWithBot(1, Random.Range(1, int.MaxValue));
 				mySeat = 0;
+
+				if (mode == VersusMode.Practice)
+				{
+					authority.FillWithBot(1, Random.Range(1, int.MaxValue));
+					return;
+				}
+
+				// 내가 방장 — 문을 열어 두고 친구를 기다린다. 안 오면 봇으로 채운다.
+				hostListener = new VersusHostListener(hostPort, "/vs/", hostOpenToNetwork);
+				hostListener.Start();
 				return;
 			}
 
@@ -77,14 +95,48 @@ namespace WitchMendokusai
 		private void OnDestroy()
 		{
 			link?.Dispose();
+			hostListener?.Dispose();
 		}
 
 		private void Update()
 		{
-			if (mode == VersusMode.Practice)
-				TickPractice();
-			else
+			if (mode == VersusMode.Online)
+			{
 				TickOnline();
+				return;
+			}
+
+			if (mode == VersusMode.Host)
+				TickHostDoor();
+
+			TickPractice();
+		}
+
+		// 문 앞을 살핀다 — 친구가 왔으면 그 자리에 앉히고, 오래 안 오면 봇으로 채운다.
+		private void TickHostDoor()
+		{
+			if (guestSeated)
+				return;
+
+			IVersusTransport arrived = hostListener != null ? hostListener.TryAccept() : null;
+
+			if (arrived != null)
+			{
+				authority.Attach(1, arrived);
+				guestSeated = true;
+				return;
+			}
+
+			if (fillWithBotIfAlone == false)
+				return;
+
+			waitingForGuestSeconds += Time.deltaTime;
+
+			if (waitingForGuestSeconds < 8f)
+				return;
+
+			authority.FillWithBot(1, Random.Range(1, int.MaxValue));
+			guestSeated = true;
 		}
 
 		// ── 연습 (심판이 여기 있다) ─────────────────────────────────────────────
@@ -306,10 +358,19 @@ namespace WitchMendokusai
 		{
 			GUI.Label(new Rect(20f, 16f, 700f, 26f), "WASD 이동 · 마우스 조준 · 좌클릭 발사 · Space 대시");
 
-			if (mode == VersusMode.Practice)
+			if (mode != VersusMode.Online)
 			{
-				GUI.Label(new Rect(20f, 40f, 500f, 26f),
-					"연습 — 나 " + authority.Match.ScoreOf(0) + " vs " + authority.Match.ScoreOf(1) + " 봇");
+				string who = mode == VersusMode.Host ? (guestSeated ? "친구" : "기다리는 중") : "봇";
+				GUI.Label(new Rect(20f, 40f, 700f, 26f),
+					(mode == VersusMode.Host ? "방장 — " : "연습 — ") +
+					"나 " + authority.Match.ScoreOf(0) + " vs " + authority.Match.ScoreOf(1) + " " + who);
+
+				if (mode == VersusMode.Host && hostListener != null)
+				{
+					GUI.Label(new Rect(20f, 64f, 900f, 26f), hostListener.IsListening
+						? "친구가 붙을 주소: " + hostListener.Url.Replace("http://", "ws://")
+						: "문을 못 열었다 — " + hostListener.LastError);
+				}
 				DrawOffer(authority.Match.DraftingPlayerIndex == mySeat ? OfferTexts(authority) : null);
 				return;
 			}
