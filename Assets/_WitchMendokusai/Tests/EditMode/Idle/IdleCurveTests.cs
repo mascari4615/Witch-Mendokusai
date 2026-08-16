@@ -118,7 +118,7 @@ namespace WitchMendokusai.Tests
 				IdleModel.Step(state, tuning, stepSeconds);
 				elapsed += stepSeconds;
 
-				BuyWhatWeCan(state, tuning);
+				IdlePlay.BuyEverything(state, tuning);
 
 				if (nextMarkIndex < marks.Length && elapsed >= marks[nextMarkIndex])
 				{
@@ -128,38 +128,6 @@ namespace WitchMendokusai.Tests
 			}
 
 			return report.ToString();
-		}
-
-		private static void BuyWhatWeCan(IdleState state, IdleTuning tuning)
-		{
-			bool bought = true;
-			while (bought)
-			{
-				bought = false;
-
-				bool hasDamage = IdleModel.TryGetNextCost(state, tuning, IdleUpgradeKind.Damage, out double damageCost);
-				bool hasSpeed = IdleModel.TryGetNextCost(state, tuning, IdleUpgradeKind.AttackSpeed, out double speedCost);
-
-				IdleUpgradeKind cheaper = IdleUpgradeKind.Damage;
-				double cheapest = double.MaxValue;
-
-				if (hasDamage && damageCost < cheapest)
-				{
-					cheaper = IdleUpgradeKind.Damage;
-					cheapest = damageCost;
-				}
-
-				if (hasSpeed && speedCost < cheapest)
-				{
-					cheaper = IdleUpgradeKind.AttackSpeed;
-					cheapest = speedCost;
-				}
-
-				if (cheapest <= state.Resource)
-				{
-					bought = IdleModel.TryRaise(state, tuning, cheaper, out _);
-				}
-			}
 		}
 
 		private static string Row(IdleState state, IdleTuning tuning, double atSeconds)

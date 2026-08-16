@@ -70,7 +70,8 @@ namespace WitchMendokusai.DomainSDK.Idle
         {
             return (tuning.BaseDamage + state.Damage.TotalValue(tuning.DamageCurve))
                 * PrestigeMultiplier(state, tuning)
-                * PotentialMultiplier(state);
+                * PotentialMultiplier(state)
+                * IdleGear.DamageMultiplier(state, tuning);
         }
 
         /// <summary>
@@ -144,7 +145,8 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// <summary>지금 초당 타격 횟수 — 기본값 + 공격속도 축이 쌓은 총량.</summary>
         public static double AttackSpeedOf(IdleState state, IdleTuning tuning)
         {
-            return tuning.BaseAttackSpeed + state.AttackSpeed.TotalValue(tuning.AttackSpeedCurve);
+            return (tuning.BaseAttackSpeed + state.AttackSpeed.TotalValue(tuning.AttackSpeedCurve))
+                * IdleGear.SpeedMultiplier(state, tuning);
         }
 
         /// <summary>초당 깎는 양.</summary>
@@ -165,19 +167,10 @@ namespace WitchMendokusai.DomainSDK.Idle
             return tuning.RewardByStage.At(state.Stage - 1);
         }
 
-        /// <summary>
-        /// 초당 들어오는 자원 — 화면에 「초당 얼마」로 보여줄 값이자 곡선 판정의 축.
-        /// <b>지금 단계 기준</b>이다. 내려가면 체력이 보상보다 빨리 올라 이 값이 도로 준다 — 그게 벽이다.
-        /// </summary>
+        /// <summary>초당 들어오는 자원 — <b>기지가 내는 것</b>이다(잡기는 장비를 낸다).</summary>
         public static double IncomePerSecond(IdleState state, IdleTuning tuning)
         {
-            double durability = TargetHealthOf(state, tuning);
-            if (durability <= 0d)
-            {
-                return 0d;
-            }
-
-            return KillsPerSecond(state, tuning) * RewardOf(state, tuning);
+            return IdleBase.OutputPerSecond(state, tuning);
         }
 
         /// <summary>
@@ -254,6 +247,9 @@ namespace WitchMendokusai.DomainSDK.Idle
                 return;
             }
 
+            // 기지가 시간만큼 자원을 낸다 — 잡든 안 잡든 돈다.
+            state.Resource += IdleBase.OutputPerSecond(state, tuning) * seconds;
+
             double swings = state.AttackProgress + AttackSpeedOf(state, tuning) * seconds;
             long available = (long)(swings + COUNT_EPSILON_RATIO);
             state.AttackProgress = swings - available;
@@ -287,7 +283,8 @@ namespace WitchMendokusai.DomainSDK.Idle
                 available -= spent;
 
                 state.Kills += taking;
-                state.Resource += taking * RewardOf(state, tuning);
+                // ★ 잡기는 <b>자원을 안 낸다</b> — 자원은 기지가 낸다(사용자 방향: 클리커 + 모험).
+                //   갈라 놓아야 두 층이 서로를 부른다. 합쳐 두면 기지가 있을 이유가 없다.
                 // ★ 지금 단계에서 잡은 몫이다 — 단계 경계를 넘기 <b>전에</b> 쌓아야
                 //   그 처치들이 다음 단계의 높은 상한으로 잘못 쳐지지 않는다.
                 IdleDrops.Accrue(state, tuning, taking, state.Stage);

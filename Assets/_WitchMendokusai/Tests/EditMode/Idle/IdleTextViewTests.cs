@@ -32,7 +32,7 @@ namespace WitchMendokusai.Tests
 			for (int minute = 0; minute < 60 * 8; minute++)
 			{
 				session.Advance(60d);
-				BuyWhatWeCan(session);
+				IdlePlay.BuyEverything(session.State, new IdleTuning());
 
 				view.Render(session.Capture());
 
@@ -55,7 +55,7 @@ namespace WitchMendokusai.Tests
 			for (int minute = 0; minute < 30; minute++)
 			{
 				session.Advance(60d);
-				purchases += BuyWhatWeCan(session);
+				purchases += IdlePlay.BuyEverything(session.State, new IdleTuning());
 			}
 
 			Assert.Greater(purchases, 3, "30분 동안 산 게 3개 이하다 — 초반이 막혀 있다");
@@ -74,7 +74,7 @@ namespace WitchMendokusai.Tests
 			for (int minute = 0; minute < 60 * 4; minute++)
 			{
 				session.Advance(60d);
-				BuyWhatWeCan(session);
+				IdlePlay.BuyEverything(session.State, new IdleTuning());
 			}
 
 			IdleSnapshot snapshot = session.Capture();
@@ -119,7 +119,7 @@ namespace WitchMendokusai.Tests
 				while (elapsed < marks[index])
 				{
 					session.Advance(10d);
-					BuyWhatWeCan(session);
+					IdlePlay.BuyEverything(session.State, new IdleTuning());
 					elapsed += 10d;
 				}
 
@@ -128,42 +128,5 @@ namespace WitchMendokusai.Tests
 			}
 		}
 
-		/// <summary>살 수 있으면 싼 쪽부터 산다 — 사람의 기본 습관에 가장 가까운 정책.</summary>
-		private static int BuyWhatWeCan(IdleSession session)
-		{
-			int bought = 0;
-
-			while (true)
-			{
-				IdleSnapshot snapshot = session.Capture();
-
-				IdleUpgradeKind pick;
-				if (snapshot.Damage.CanAfford && snapshot.AttackSpeed.CanAfford)
-				{
-					pick = snapshot.Damage.NextCost <= snapshot.AttackSpeed.NextCost
-						? IdleUpgradeKind.Damage
-						: IdleUpgradeKind.AttackSpeed;
-				}
-				else if (snapshot.Damage.CanAfford)
-				{
-					pick = IdleUpgradeKind.Damage;
-				}
-				else if (snapshot.AttackSpeed.CanAfford)
-				{
-					pick = IdleUpgradeKind.AttackSpeed;
-				}
-				else
-				{
-					return bought;
-				}
-
-				if (session.Send(new IdleRaiseUpgradeIntent(pick)) == false)
-				{
-					return bought;
-				}
-
-				bought++;
-			}
-		}
-	}
+}
 }

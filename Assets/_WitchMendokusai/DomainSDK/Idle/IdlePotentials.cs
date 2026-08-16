@@ -102,6 +102,15 @@ namespace WitchMendokusai.DomainSDK.Idle
                 return false;
             }
 
+            // ★ 자원이 든다 — 공짜면 「올릴까 감정할까」가 결정이 아니다.
+            //   기지가 낸 자원과 모험이 가져온 장비가 <b>같은 저울</b>에 올라가는 자리가 여기다.
+            double cost = IdleGear.AppraiseCost(tier, tuning);
+            if (state.Resource < cost)
+            {
+                return false;
+            }
+
+            state.Resource -= cost;
             state.DroppedByTier[slot] -= 1L;
 
             IdleRandom dice = new IdleRandom(state.RandomState);

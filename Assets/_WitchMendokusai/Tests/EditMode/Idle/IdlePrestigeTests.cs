@@ -243,48 +243,5 @@ namespace WitchMendokusai.Tests
 			Assert.Greater(ready.State.PrestigePoints, 0L);
 		}
 
-		/// <summary>목표 단계에 닿을 때까지 걸린 시간 — 살 수 있으면 싼 쪽부터 사는 정책으로.</summary>
-		private static double SecondsToReach(IdleState state, IdleTuning tuning, int goalStage)
-		{
-			const double TICK = 1d;
-			const double LIMIT = 60d * 60d * 24d * 30d;
-
-			double elapsed = 0d;
-			while (state.Stage < goalStage && elapsed < LIMIT)
-			{
-				IdleModel.Step(state, tuning, TICK);
-				elapsed += TICK;
-				BuyWhatWeCan(state, tuning);
-			}
-
-			Assert.Less(elapsed, LIMIT, "한 달을 돌려도 " + goalStage + "단계에 못 닿는다 — 곡선이 막혔다");
-			return elapsed;
-		}
-
-		private static void BuyWhatWeCan(IdleState state, IdleTuning tuning)
-		{
-			while (true)
-			{
-				bool hasDamage = IdleModel.TryGetNextCost(state, tuning, IdleUpgradeKind.Damage, out double damageCost);
-				bool hasSpeed = IdleModel.TryGetNextCost(state, tuning, IdleUpgradeKind.AttackSpeed, out double speedCost);
-
-				bool canDamage = hasDamage && damageCost <= state.Resource;
-				bool canSpeed = hasSpeed && speedCost <= state.Resource;
-
-				if (canDamage == false && canSpeed == false)
-				{
-					return;
-				}
-
-				IdleUpgradeKind pick = canDamage && (canSpeed == false || damageCost <= speedCost)
-					? IdleUpgradeKind.Damage
-					: IdleUpgradeKind.AttackSpeed;
-
-				if (IdleModel.TryRaise(state, tuning, pick, out _) == false)
-				{
-					return;
-				}
-			}
-		}
-	}
+}
 }

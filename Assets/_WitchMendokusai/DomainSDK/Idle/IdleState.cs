@@ -57,6 +57,36 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// <summary>등급별로 여태 떨어진 개수 (0번째 = 1등급).</summary>
         public long[] DroppedByTier { get; private set; } = new long[0];
 
+        /// <summary>생산자 종류별 보유 수 — 기지가 내는 자원의 근거.</summary>
+        public long[] Owned { get; private set; } = new long[0];
+
+        /// <summary>가방 — 모험이 가져온 장비.</summary>
+        public System.Collections.Generic.List<IdleItem> Bag { get; private set; }
+            = new System.Collections.Generic.List<IdleItem>();
+
+        /// <summary>부위마다 차고 있는 것 (빈 자리는 등급 0).</summary>
+        public IdleItem[] Worn { get; private set; } = new IdleItem[IdleGear.SLOT_COUNT];
+
+        /// <summary>떨어진 순번 — 부위를 돌려 주는 데 쓴다(무작위 X, 결정적).</summary>
+        public long DropSequence { get; set; }
+
+        /// <summary>생산자 칸을 넉넉히 잡아 둔다 — 늘리기만 한다.</summary>
+        public void EnsureProducerRoom(int count)
+        {
+            if (Owned.Length >= count)
+            {
+                return;
+            }
+
+            long[] grown = new long[count];
+            for (int i = 0; i < Owned.Length; i++)
+            {
+                grown[i] = Owned[i];
+            }
+
+            Owned = grown;
+        }
+
         /// <summary>주사위의 지금 상태 — 저장에 실린다. 안 실으면 껐다 켜서 다시 굴리기가 공짜가 된다.</summary>
         public long RandomState { get; set; } = 0x2545F4914F6CDD1DL;
 
@@ -128,6 +158,10 @@ namespace WitchMendokusai.DomainSDK.Idle
                 HoldingStage = HoldingStage,
                 PrestigePoints = PrestigePoints,
                 Ascensions = Ascensions,
+                Owned = (long[])Owned.Clone(),
+                BagItems = Bag.ToArray(),
+                WornItems = (IdleItem[])Worn.Clone(),
+                DropSequence = DropSequence,
                 DroppedByTier = (long[])DroppedByTier.Clone(),
                 DropProgressByTier = (double[])DropProgressByTier.Clone(),
                 RandomState = RandomState,
@@ -156,6 +190,15 @@ namespace WitchMendokusai.DomainSDK.Idle
             HoldingStage = saveData.HoldingStage;
             PrestigePoints = saveData.PrestigePoints;
             Ascensions = saveData.Ascensions;
+            // 옛 저장에는 기지·가방이 없어 null 로 온다 — 빈 것으로 받는다.
+            Owned = saveData.Owned ?? new long[0];
+            Bag = saveData.BagItems != null
+                ? new System.Collections.Generic.List<IdleItem>(saveData.BagItems)
+                : new System.Collections.Generic.List<IdleItem>();
+            Worn = saveData.WornItems != null && saveData.WornItems.Length == IdleGear.SLOT_COUNT
+                ? (IdleItem[])saveData.WornItems.Clone()
+                : new IdleItem[IdleGear.SLOT_COUNT];
+            DropSequence = saveData.DropSequence;
             // 주사위 상태가 0 인 저장(= 옛 저장)은 굴러가지 않는다 — 기본 씨앗을 준다.
             RandomState = saveData.RandomState != 0L ? saveData.RandomState : 0x2545F4914F6CDD1DL;
             BestPotentialValue = saveData.BestPotentialValue;

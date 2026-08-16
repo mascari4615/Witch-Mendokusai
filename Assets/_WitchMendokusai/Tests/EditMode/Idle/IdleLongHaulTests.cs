@@ -55,7 +55,7 @@ namespace WitchMendokusai.Tests
 				IdleModel.Step(state, tuning, TICK);
 				elapsed += TICK;
 
-				BuyWhatWeCan(state, tuning);
+				IdlePlay.BuyEverything(state, tuning);
 				AppraiseWhatWeCan(state, tuning);
 
 				if (state.Stage > lastStage)
@@ -126,7 +126,7 @@ namespace WitchMendokusai.Tests
 			{
 				IdleModel.Step(state, tuning, TICK);
 				elapsed += TICK;
-				BuyWhatWeCan(state, tuning);
+				IdlePlay.BuyEverything(state, tuning);
 
 				if (IdleDrops.MaxTierAt(state.Stage, state.Ascensions, tuning)
 					>= IdleDrops.CeilingFor(state.Ascensions, tuning))
@@ -180,7 +180,7 @@ namespace WitchMendokusai.Tests
 				{
 					IdleModel.Step(state, tuning, TICK);
 					elapsed += TICK;
-					BuyWhatWeCan(state, tuning);
+					IdlePlay.BuyEverything(state, tuning);
 
 					if (state.Stage > lastStage)
 					{
@@ -261,7 +261,7 @@ namespace WitchMendokusai.Tests
 			{
 				IdleModel.Step(state, tuning, TICK);
 				elapsed += TICK;
-				BuyWhatWeCan(state, tuning);
+				IdlePlay.BuyEverything(state, tuning);
 
 				if (state.Stage > lastStage)
 				{
@@ -328,7 +328,7 @@ namespace WitchMendokusai.Tests
 			{
 				IdleModel.Step(state, tuning, TICK);
 				elapsed += TICK;
-				BuyWhatWeCan(state, tuning);
+				IdlePlay.BuyEverything(state, tuning);
 				AppraiseWhatWeCan(state, tuning);
 
 				if (state.Stage > lastStage)
@@ -405,7 +405,7 @@ namespace WitchMendokusai.Tests
 			{
 				IdleModel.Step(state, tuning, TICK);
 				elapsed += TICK;
-				BuyWhatWeCan(state, tuning);
+				IdlePlay.BuyEverything(state, tuning);
 
 				if (state.Stage > lastStage)
 				{
@@ -468,8 +468,8 @@ namespace WitchMendokusai.Tests
 					IdleModel.Step(clever, tuning, TICK);
 					elapsed += TICK;
 
-					BuyWhatWeCan(forward, tuning);
-					BuyWhatWeCan(clever, tuning);
+					IdlePlay.BuyEverything(forward, tuning);
+					IdlePlay.BuyEverything(clever, tuning);
 
 					if (clever.Stage > lastStage)
 					{
@@ -516,62 +516,7 @@ namespace WitchMendokusai.Tests
 				"물러날 줄 알아도 더 못 간다 — 그러면 물러나기가 있을 이유가 없다");
 		}
 
-		/// <summary>
-		/// 한 방에 잡히는 가장 깊은 자리 — 거기가 가장 잘 벌린다.
-		/// 이분 탐색이다(선형으로 훑으면 깊이가 천 단위일 때 시험이 몇 십 분씩 돈다 — 실제로 그랬다).
-		/// </summary>
-		private static int FarmableStage(IdleState state, IdleTuning tuning)
-		{
-			int was = state.Stage;
-			int low = 1;
-			int high = state.BestStage;
-
-			while (low < high)
-			{
-				int mid = low + (high - low + 1) / 2;
-				state.Stage = mid;
-
-				if (IdleModel.HitsToFell(state, tuning) <= 1d)
-				{
-					low = mid;
-				}
-				else
-				{
-					high = mid - 1;
-				}
-			}
-
-			state.Stage = was;
-			return low;
-		}
-
-		private static void BuyWhatWeCan(IdleState state, IdleTuning tuning)
-		{
-			while (true)
-			{
-				bool hasDamage = IdleModel.TryGetNextCost(state, tuning, IdleUpgradeKind.Damage, out double damageCost);
-				bool hasSpeed = IdleModel.TryGetNextCost(state, tuning, IdleUpgradeKind.AttackSpeed, out double speedCost);
-
-				bool canDamage = hasDamage && damageCost <= state.Resource;
-				bool canSpeed = hasSpeed && speedCost <= state.Resource;
-
-				if (canDamage == false && canSpeed == false)
-				{
-					return;
-				}
-
-				IdleUpgradeKind pick = canDamage && (canSpeed == false || damageCost <= speedCost)
-					? IdleUpgradeKind.Damage
-					: IdleUpgradeKind.AttackSpeed;
-
-				if (IdleModel.TryRaise(state, tuning, pick, out _) == false)
-				{
-					return;
-				}
-			}
-		}
-
-		/// <summary>가진 것 중 <b>가장 높은 등급부터</b> 감정한다 — 사람이 하는 짓과 가장 가깝다.</summary>
+/// <summary>가진 것 중 <b>가장 높은 등급부터</b> 감정한다 — 사람이 하는 짓과 가장 가깝다.</summary>
 		private static void AppraiseWhatWeCan(IdleState state, IdleTuning tuning)
 		{
 			for (int tier = state.DroppedByTier.Length; tier >= 2; tier--)

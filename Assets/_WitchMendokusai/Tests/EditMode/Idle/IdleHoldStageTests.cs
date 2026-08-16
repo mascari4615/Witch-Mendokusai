@@ -94,10 +94,10 @@ namespace WitchMendokusai.Tests
 			// 2등급이 열리는 첫 자리(6단계)에 머문다.
 			int edge = tuning.StagesPerTier + 1;
 			IdleState staying = new IdleState { Stage = edge, HoldingStage = true };
-			Run(staying, tuning, HOURS);
+			IdlePlay.Prime(staying, tuning, HOURS);
 
 			IdleState going = new IdleState { Stage = edge };
-			Run(going, tuning, HOURS);
+			IdlePlay.Prime(going, tuning, HOURS);
 
 			long stayingUseful = Useful(staying);
 			long goingUseful = Useful(going);
@@ -112,40 +112,7 @@ namespace WitchMendokusai.Tests
 				"내려가도 더 좋은 등급이 안 나온다 — 내려갈 이유가 없다");
 		}
 
-		/// <summary>같은 정책으로 판을 굴린다 — 살 수 있으면 싼 쪽부터.</summary>
-		private static void Run(IdleState state, IdleTuning tuning, double seconds)
-		{
-			const double TICK = 10d;
-			for (double elapsed = 0d; elapsed < seconds; elapsed += TICK)
-			{
-				IdleModel.Step(state, tuning, TICK);
-
-				while (true)
-				{
-					bool hasDamage = IdleModel.TryGetNextCost(state, tuning, IdleUpgradeKind.Damage, out double damageCost);
-					bool hasSpeed = IdleModel.TryGetNextCost(state, tuning, IdleUpgradeKind.AttackSpeed, out double speedCost);
-
-					bool canDamage = hasDamage && damageCost <= state.Resource;
-					bool canSpeed = hasSpeed && speedCost <= state.Resource;
-
-					if (canDamage == false && canSpeed == false)
-					{
-						break;
-					}
-
-					IdleUpgradeKind pick = canDamage && (canSpeed == false || damageCost <= speedCost)
-						? IdleUpgradeKind.Damage
-						: IdleUpgradeKind.AttackSpeed;
-
-					if (IdleModel.TryRaise(state, tuning, pick, out _) == false)
-					{
-						break;
-					}
-				}
-			}
-		}
-
-		/// <summary>잠재가 붙는 것만 센다 — 1등급은 아무리 많아도 쓸 데가 없다.</summary>
+/// <summary>잠재가 붙는 것만 센다 — 1등급은 아무리 많아도 쓸 데가 없다.</summary>
 		private static long Useful(IdleState state)
 		{
 			long total = 0L;

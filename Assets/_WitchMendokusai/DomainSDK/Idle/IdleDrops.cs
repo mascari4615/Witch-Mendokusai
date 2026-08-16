@@ -100,7 +100,8 @@ namespace WitchMendokusai.DomainSDK.Idle
 
             int maxTier = MaxTierAt(stage, state.Ascensions, tuning);
             state.EnsureTierRoom(CeilingFor(state.Ascensions, tuning));
-            double expected = kills * tuning.DropsPerKill;
+            // 발에 찬 것이 떨구기를 올린다 — 장비가 모험 층과도 물린다.
+            double expected = kills * tuning.DropsPerKill * IdleGear.DropMultiplier(state, tuning);
 
             for (int tier = 1; tier <= maxTier; tier++)
             {
@@ -117,6 +118,8 @@ namespace WitchMendokusai.DomainSDK.Idle
                 if (whole > 0L)
                 {
                     state.DroppedByTier[slot] += whole;
+                    // ★ 실제 장비로 가방에 넣는다 — 가방이 차면 안 들어온다(그게 정리하라는 신호다).
+                    IdleGear.Stow(state, tuning, tier, whole);
                     carried -= whole;
                 }
 

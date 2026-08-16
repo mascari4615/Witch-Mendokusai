@@ -36,6 +36,14 @@ namespace WitchMendokusai.DomainSDK.Idle
         public long PrestigePoints;
         public int Ascensions;
 
+        /// <summary>기지 — 생산자 종류별 보유 수.</summary>
+        public long[] Owned;
+
+        /// <summary>가방과 착용 — 모험이 가져온 것.</summary>
+        public IdleItem[] BagItems;
+        public IdleItem[] WornItems;
+        public long DropSequence;
+
         /// <summary>등급별 떨어진 개수. 옛 저장에는 없어 null 로 온다.</summary>
         public long[] DroppedByTier;
         public double[] DropProgressByTier;

@@ -72,6 +72,55 @@ namespace WitchMendokusai.DomainSDK.Idle
             ValueRatio = 1.12d,
         };
 
+        // ── 기지 (클리커 층) ───────────────────────────────────────────────
+
+        /// <summary>생산자 종류 수.</summary>
+        public int ProducerCount { get; set; } = 8;
+
+        /// <summary>
+        /// 같은 생산자를 살수록 값이 이만큼씩 오른다.
+        ///
+        /// ★ <b>쿠키 클리커의 실제 값(1.15)</b>이다. 이 하나가
+        ///   「싼 것을 여럿 살까, 비싼 것을 하나 살까」를 매번 묻는다.
+        /// </summary>
+        public double ProducerCostRatio { get; set; } = 1.15d;
+
+        /// <summary>생산자 종류마다의 첫 값 — 위 번호일수록 비싸다.</summary>
+        public GeometricScale ProducerCostByKind { get; set; } = new GeometricScale(15d, 10d);
+
+        /// <summary>생산자 하나가 내는 초당 자원 — 위 번호일수록 많이 낸다.</summary>
+        public GeometricScale ProducerOutputByKind { get; set; } = new GeometricScale(0.1d, 8d);
+
+        // ── 장비 (모험이 가져오는 것) ──────────────────────────────────────
+
+        /// <summary>
+        /// 가방 칸 수.
+        ///
+        /// ★ 차는 것 자체가 결정이다 — 「무엇을 합치고 무엇을 버릴까」.
+        ///   울티마 스쿼드에도 「장비 꽉참」 알림이 있다.
+        /// </summary>
+        public int BagCapacity { get; set; } = 40;
+
+        /// <summary>몇 개를 합쳐야 한 단계 위가 되나.</summary>
+        public int MergeCount { get; set; } = 3;
+
+        /// <summary>찬 장비의 등급 하나가 주는 배수 — 잠재가 없어도 차는 뜻이 있게.</summary>
+        public double GearTierBonus { get; set; } = 0.15d;
+
+        /// <summary>
+        /// 감정 한 번에 드는 자원 (등급 1 기준). 등급마다 <see cref="AppraiseCostRatio"/> 배.
+        ///
+        /// ★ 공짜면 「올릴까 감정할까」가 결정이 아니다 — 두 축이 <b>같은 저울</b>에 올라가야
+        ///   기지와 모험이 서로 물린다. 사용자 지적(「안 녹아든다」)의 핵심이 이것이었다.
+        /// </summary>
+        public double AppraiseBaseCost { get; set; } = 50d;
+
+        /// <summary>등급 하나 위마다 감정 값이 이만큼 곱해진다.</summary>
+        public double AppraiseCostRatio { get; set; } = 4d;
+
+        /// <summary>합치기 한 번에 드는 자원 — 감정의 절반으로 둔다(합치기가 더 흔한 행동이라).</summary>
+        public double MergeCostFactor { get; set; } = 0.5d;
+
         /// <summary>
         /// 아직 한 번도 안 접었을 때의 등급 상한.
         ///
