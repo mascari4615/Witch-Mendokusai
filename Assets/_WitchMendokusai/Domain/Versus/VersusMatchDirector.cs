@@ -26,7 +26,8 @@ namespace WitchMendokusai
 		}
 
 		[SerializeField] private VersusMode mode = VersusMode.Practice;
-		[SerializeField] private string serverUrl = "ws://127.0.0.1:5199/vs";
+		// 기본은 살아 있는 서버 — 친구가 브라우저로도 같은 방에 들어올 수 있다(https://wm.mascari4615.com/versus.html).
+		[SerializeField] private string serverUrl = "wss://wm.mascari4615.com/vs";
 		[SerializeField] private string roomName = string.Empty;
 		[SerializeField] private int hostPort = 57411;
 		// 집 밖에서도 받으려면 켠다. 윈도우에서는 관리자 권한이나 urlacl 등록이 필요하다(안 되면 화면에 이유가 뜬다).
