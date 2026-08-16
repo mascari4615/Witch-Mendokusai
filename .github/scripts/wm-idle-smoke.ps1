@@ -11,7 +11,7 @@
 #
 # exit:
 #   0 = 돈다
-#   1 = 안 돈다 (예외 / 판이 안 흐름)
+#   1 = 안 돈다 (예외 / 판이 안 흐름 / 밖으로 부른다)
 #   2 = 검사를 못 돌렸음 (빌드 없음 등) — 「에러 0건」과 구분한다
 #
 # Usage:
@@ -90,6 +90,19 @@ if ($bad)
     Write-Host "[idle-smoke] 로그에 예외가 있다:" -ForegroundColor Red
     $bad | Select-Object -First 5 | ForEach-Object { Write-Host "  $($_.Line.Trim())" -ForegroundColor DarkGray }
     Fail "덜어내기가 무언가를 깨뜨렸을 수 있다 (ManagedStrippingLevel=High)"
+}
+
+# ★ 팔 게임이 <남의 서버>를 부르면 실패다 (TASK-WM-406).
+#   2026-08-16 실측: 방치형 exe 가 본편 텔레메트리를 스스로 띄워 `[DeviceLog] 전송 실패 (401)`.
+#   `#if !WM_IDLE` 로 막았지만, 그 한 줄이 지워지거나 표식이 안 붙으면 조용히 되돌아온다 —
+#   예외가 아니라서 위 검사는 초록으로 통과한다. 그래서 <b>여기서 따로 본다</b>.
+$phone = Select-String -Path $log -Pattern '\[DeviceLog\]|\[BuildStamp\]|X-Yawnbot-Secret|yawnbot\.mascari4615\.com|UnityWebRequest|Curl error' -ErrorAction SilentlyContinue
+
+if ($phone)
+{
+    Write-Host "[idle-smoke] 이 빌드가 밖으로 무언가를 부른다:" -ForegroundColor Red
+    $phone | Select-Object -First 5 | ForEach-Object { Write-Host "  $($_.Line.Trim())" -ForegroundColor DarkGray }
+    Fail "팔 게임에 본편 진단 장치가 실렸다 — WM_IDLE 표식과 `#if !WM_IDLE` 가드를 확인할 것"
 }
 
 # ★ 여기가 핵심 — 창만 뜨고 판이 안 도는 것도 실패다.
