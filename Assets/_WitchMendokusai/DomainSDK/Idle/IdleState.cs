@@ -18,7 +18,11 @@ namespace WitchMendokusai.DomainSDK.Idle
         public long Kills { get; set; }
 
         /// <summary>지금 대상에게 이미 넣어 둔 피해.</summary>
-        public double DamageDealtToTarget { get; set; }
+        /// <summary>이번 대상을 이미 때린 횟수 — 스텝 불변의 근거다.</summary>
+        public long HitsOnTarget { get; set; }
+
+        /// <summary>아직 한 번을 못 채운 공격 — 이걸 들고 가야 쪼개 밟아도 결과가 같다.</summary>
+        public double AttackProgress { get; set; }
         /// <summary>지금 내려와 있는 단계 (1부터).</summary>
         public int Stage { get; set; } = 1;
 
@@ -116,7 +120,8 @@ namespace WitchMendokusai.DomainSDK.Idle
             {
                 Resource = Resource,
                 Kills = Kills,
-                DamageDealtToTarget = DamageDealtToTarget,
+                HitsOnTarget = HitsOnTarget,
+                AttackProgress = AttackProgress,
                 Stage = Stage,
                 KillsInStage = KillsInStage,
                 BestStage = BestStage,
@@ -139,7 +144,10 @@ namespace WitchMendokusai.DomainSDK.Idle
         {
             Resource = saveData.Resource;
             Kills = saveData.Kills;
-            DamageDealtToTarget = saveData.DamageDealtToTarget;
+            // 옛 저장에는 「넣은 피해」가 있었다. 지금은 「때린 횟수」로 센다 — 옛 값은 버린다
+            // (대상 하나만큼의 진행이라 잃어도 체감이 없다).
+            HitsOnTarget = saveData.HitsOnTarget;
+            AttackProgress = saveData.AttackProgress;
             // ★ 옛 저장에는 단계 칸이 없어 0 이 들어온다 — 그대로 두면 0단계가 되어 판이 어긋난다.
             //   저장 형식이 늘어날 때마다 「없던 시절의 값」을 여기서 메운다.
             Stage = saveData.Stage > 0 ? saveData.Stage : 1;

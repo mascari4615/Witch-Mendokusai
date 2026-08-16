@@ -1,3 +1,4 @@
+using System;
 using WitchMendokusai.DomainSDK.Upgrade;
 
 namespace WitchMendokusai.DomainSDK.Idle
@@ -129,7 +130,8 @@ namespace WitchMendokusai.DomainSDK.Idle
             state.Resource = 0d;
             state.Stage = 1;
             state.KillsInStage = 0;
-            state.DamageDealtToTarget = 0d;
+            state.HitsOnTarget = 0L;
+            state.AttackProgress = 0d;
             state.Damage.Level = 0;
             state.AttackSpeed.Level = 0;
             // 잠재도 남긴다 — 장비가 판을 건너 남는 것과 같은 이치다.
@@ -175,7 +177,7 @@ namespace WitchMendokusai.DomainSDK.Idle
                 return 0d;
             }
 
-            return DamagePerSecond(state, tuning) / durability * RewardOf(state, tuning);
+            return KillsPerSecond(state, tuning) * RewardOf(state, tuning);
         }
 
         /// <summary>
@@ -195,6 +197,50 @@ namespace WitchMendokusai.DomainSDK.Idle
         ///   한 번에 나누면 다음 단계 몫을 이전 단계 값으로 쳐준다 — 60초를 한 번에 밟을 때와
         ///   0.1초씩 600번 밟을 때가 갈리는 자리이기도 하다(스텝 불변이 여기서 깨진다).
         /// </summary>
+        /// <summary>
+        /// 한 방에 필요한 <b>때리는 횟수</b> — 넘치는 피해는 버린다.
+        ///
+        /// ★ 이게 없으면 <b>한 번 때려 여러 마리가 죽는다.</b> 실측(2026-08-16):
+        ///   머무르기를 넣자 6단계에서 6시간에 떨어진 것이 <b>1.1e17개</b>가 됐다 —
+        ///   체력은 고정인데 공격력이 계속 올라 처치 속도가 발산했고, 그게 자원 발산으로,
+        ///   다시 업그레이드 발산으로 돌았다. <b>머무르기가 벽을 통째로 없앤 것이다.</b>
+        ///
+        /// ★ 넘치는 피해를 버리면 처치 속도가 <b>공격 속도 위로 못 간다</b>.
+        ///   공격 속도 곡선은 공격력보다 훨씬 완만하므로 파밍이 유용하되 무한하지 않다.
+        ///   현실에도 맞는다 — 한 대 때려 한 마리가 죽지, 열 마리가 죽지 않는다.
+        /// </summary>
+        public static long HitsToFell(IdleState state, IdleTuning tuning)
+        {
+            double damage = DamageOf(state, tuning);
+            double durability = TargetHealthOf(state, tuning);
+
+            if (damage <= 0d || durability <= 0d)
+            {
+                return long.MaxValue;
+            }
+
+            double needed = Math.Ceiling(durability / damage - COUNT_EPSILON_RATIO);
+            return needed < 1d ? 1L : (long)needed;
+        }
+
+        /// <summary>초당 처치 수 — <b>공격 속도를 절대 못 넘는다</b>.</summary>
+        public static double KillsPerSecond(IdleState state, IdleTuning tuning)
+        {
+            long hits = HitsToFell(state, tuning);
+            if (hits == long.MaxValue)
+            {
+                return 0d;
+            }
+
+            return AttackSpeedOf(state, tuning) / hits;
+        }
+
+        /// <summary>
+        /// 시간을 흘린다. 때린 횟수를 세고, 정해진 횟수를 채운 만큼 처치로 넘어간다.
+        /// 덜 때운 횟수는 다음으로 이어지므로 <b>스텝을 어떻게 쪼개도 결과가 같다.</b>
+        ///
+        /// ★ 단계 경계에서 한 번 끊는다 — 단계가 바뀌면 체력도 보상도 바뀐다.
+        /// </summary>
         public static void Step(IdleState state, IdleTuning tuning, double seconds)
         {
             if (seconds <= 0d)
@@ -202,30 +248,35 @@ namespace WitchMendokusai.DomainSDK.Idle
                 return;
             }
 
-            double budget = state.DamageDealtToTarget + DamagePerSecond(state, tuning) * seconds;
+            double swings = state.AttackProgress + AttackSpeedOf(state, tuning) * seconds;
+            long available = (long)(swings + COUNT_EPSILON_RATIO);
+            state.AttackProgress = swings - available;
 
-            for (int guard = 0; guard < MAX_STAGES_PER_STEP; guard++)
+            for (int guard = 0; guard < MAX_STAGES_PER_STEP && available > 0L; guard++)
             {
-                double durability = TargetHealthOf(state, tuning);
-                if (durability <= 0d)
+                long hitsNeeded = HitsToFell(state, tuning);
+                if (hitsNeeded == long.MaxValue)
                 {
                     break;
                 }
 
-                long felled = (long)((budget + durability * COUNT_EPSILON_RATIO) / durability);
+                long felled = (state.HitsOnTarget + available) / hitsNeeded;
                 if (felled <= 0L)
                 {
+                    state.HitsOnTarget += available;
+                    available = 0L;
                     break;
                 }
 
                 long leftInStage = tuning.KillsPerStage - state.KillsInStage;
-                // ★ 머무르기로 했으면 다 밀어도 안 내려간다 — 대신 같은 단계에서 계속 잡는다.
-                //   그게 「빨리 많이」를 고른 대가이자 이득이다.
                 bool clearsStage = tuning.KillsPerStage > 0 && felled >= leftInStage
                     && state.HoldingStage == false;
                 long taking = clearsStage ? leftInStage : felled;
 
-                budget -= taking * durability;
+                long spent = taking * hitsNeeded - state.HitsOnTarget;
+                state.HitsOnTarget = 0L;
+                available -= spent;
+
                 state.Kills += taking;
                 state.Resource += taking * RewardOf(state, tuning);
                 // ★ 지금 단계에서 잡은 몫이다 — 단계 경계를 넘기 <b>전에</b> 쌓아야
@@ -241,10 +292,11 @@ namespace WitchMendokusai.DomainSDK.Idle
                         state.KillsInStage = tuning.KillsPerStage;
                     }
 
+                    state.HitsOnTarget += available;
+                    available = 0L;
                     break;
                 }
 
-                // 다음 단계로. 남은 피해는 그대로 이어지되, 이 아래부터는 새 체력으로 쳐진다.
                 state.Stage += 1;
                 state.KillsInStage = 0;
 
@@ -254,7 +306,10 @@ namespace WitchMendokusai.DomainSDK.Idle
                 }
             }
 
-            state.DamageDealtToTarget = budget;
+            if (available > 0L)
+            {
+                state.HitsOnTarget += available;
+            }
         }
 
         /// <summary>모은 자원으로 한 축을 올린다. 성공하면 자원이 줄어든다.</summary>

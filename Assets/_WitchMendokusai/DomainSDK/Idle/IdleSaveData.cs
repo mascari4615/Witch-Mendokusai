@@ -16,7 +16,11 @@ namespace WitchMendokusai.DomainSDK.Idle
     {
         public double Resource;
         public long Kills;
+        /// <summary>옛 저장 호환으로 남긴다 — 지금은 안 읽는다.</summary>
         public double DamageDealtToTarget;
+
+        public long HitsOnTarget;
+        public double AttackProgress;
         public int DamageLevel;
         public int AttackSpeedLevel;
 

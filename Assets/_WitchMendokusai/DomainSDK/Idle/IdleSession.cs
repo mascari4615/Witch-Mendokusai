@@ -146,7 +146,13 @@ namespace WitchMendokusai.DomainSDK.Idle
                 return 0d;
             }
 
-            double remaining = 1d - state.DamageDealtToTarget / durability;
+            long hitsNeeded = IdleModel.HitsToFell(state, tuning);
+            if (hitsNeeded == long.MaxValue || hitsNeeded <= 0L)
+            {
+                return 1d;
+            }
+
+            double remaining = 1d - (double)state.HitsOnTarget / hitsNeeded;
             if (remaining < 0d)
             {
                 return 0d;

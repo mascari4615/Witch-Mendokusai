@@ -37,8 +37,10 @@ namespace WitchMendokusai.Tests
 
 			Assert.AreEqual(first.State.Resource, restored.Resource, TOLERANCE);
 			Assert.AreEqual(first.State.Kills, restored.Kills);
-			Assert.AreEqual(first.State.DamageDealtToTarget, restored.DamageDealtToTarget, TOLERANCE,
-				"덜 깎은 피해가 사라졌다 — 자주 저장할수록 손해가 난다");
+			Assert.AreEqual(first.State.HitsOnTarget, restored.HitsOnTarget,
+				"때린 횟수가 사라졌다 — 자주 저장할수록 손해가 난다");
+			Assert.AreEqual(first.State.AttackProgress, restored.AttackProgress, TOLERANCE,
+				"덜 채운 공격이 사라졌다");
 			Assert.AreEqual(first.State.Damage.Level, restored.Damage.Level);
 			Assert.AreEqual(first.State.AttackSpeed.Level, restored.AttackSpeed.Level);
 			Assert.AreEqual(NOON, restored.LastSeenUnixSeconds);

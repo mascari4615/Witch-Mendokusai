@@ -57,7 +57,7 @@ namespace WitchMendokusai.Tests
 				KillsInStage = 4,
 				Kills = 500L,
 				Resource = 9999d,
-				DamageDealtToTarget = 3d,
+				HitsOnTarget = 3L,
 			};
 			state.Damage.Level = 20;
 			state.AttackSpeed.Level = 12;
@@ -74,7 +74,7 @@ namespace WitchMendokusai.Tests
 			Assert.AreEqual(0d, state.Resource, TOLERANCE);
 			Assert.AreEqual(1, state.Stage);
 			Assert.AreEqual(0, state.KillsInStage);
-			Assert.AreEqual(0d, state.DamageDealtToTarget, TOLERANCE);
+			Assert.AreEqual(0L, state.HitsOnTarget);
 			Assert.AreEqual(0, state.Damage.Level);
 			Assert.AreEqual(0, state.AttackSpeed.Level);
 		}

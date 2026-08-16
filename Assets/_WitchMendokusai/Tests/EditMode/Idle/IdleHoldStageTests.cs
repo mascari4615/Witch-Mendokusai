@@ -76,6 +76,87 @@ namespace WitchMendokusai.Tests
 			Assert.Greater(goingBest, stayingBest, "내려가도 더 좋은 게 안 나온다 — 내려갈 이유가 없다");
 		}
 
+		/// <summary>
+		/// ★ <b>선택이 진짜인지 다시 잰다</b> — 앞의 판에는 구멍이 있었다.
+		///
+		/// 「머물면 540개」는 맞지만 그게 전부 <b>1등급</b>이었고, 1등급에는 잠재가 안 붙는다(2등급부터).
+		/// 쓸모없는 것을 20배 얻는 건 이득이 아니다 — 그러면 내려가는 쪽이 언제나 옳고 선택은 가짜다.
+		///
+		/// 진짜 비교는 <b>등급이 열리는 자리에 머무는 것</b> vs 계속 내려가는 것이다.
+		/// 여기서 「많이」가 실제로 값어치를 가지려면, 머문 쪽이 <b>쓸 수 있는 것</b>을 더 얻어야 한다.
+		/// </summary>
+		[Test]
+		public void HoldingAtATierEdge_IsActuallyWorthIt()
+		{
+			IdleTuning tuning = new IdleTuning();
+			const double HOURS = 6d * 3600d;
+
+			// 2등급이 열리는 첫 자리(6단계)에 머문다.
+			int edge = tuning.StagesPerTier + 1;
+			IdleState staying = new IdleState { Stage = edge, HoldingStage = true };
+			Run(staying, tuning, HOURS);
+
+			IdleState going = new IdleState { Stage = edge };
+			Run(going, tuning, HOURS);
+
+			long stayingUseful = Useful(staying);
+			long goingUseful = Useful(going);
+
+			Debug.Log("[IdleHold] 등급 문턱(6단계)에서 6시간 — 머묾: " + staying.Stage + "단계 · 쓸 수 있는 것 "
+				+ stayingUseful + "개 · 최고 " + BestTier(staying) + "등급  ||  내려감: " + going.Stage
+				+ "단계 · 쓸 수 있는 것 " + goingUseful + "개 · 최고 " + BestTier(going) + "등급");
+
+			Assert.Greater(stayingUseful, goingUseful,
+				"등급 문턱에 머물러도 <쓸 수 있는 것>이 더 안 모인다 — 머물 이유가 없고 선택이 가짜다");
+			Assert.Greater(BestTier(going), BestTier(staying),
+				"내려가도 더 좋은 등급이 안 나온다 — 내려갈 이유가 없다");
+		}
+
+		/// <summary>같은 정책으로 판을 굴린다 — 살 수 있으면 싼 쪽부터.</summary>
+		private static void Run(IdleState state, IdleTuning tuning, double seconds)
+		{
+			const double TICK = 10d;
+			for (double elapsed = 0d; elapsed < seconds; elapsed += TICK)
+			{
+				IdleModel.Step(state, tuning, TICK);
+
+				while (true)
+				{
+					bool hasDamage = IdleModel.TryGetNextCost(state, tuning, IdleUpgradeKind.Damage, out double damageCost);
+					bool hasSpeed = IdleModel.TryGetNextCost(state, tuning, IdleUpgradeKind.AttackSpeed, out double speedCost);
+
+					bool canDamage = hasDamage && damageCost <= state.Resource;
+					bool canSpeed = hasSpeed && speedCost <= state.Resource;
+
+					if (canDamage == false && canSpeed == false)
+					{
+						break;
+					}
+
+					IdleUpgradeKind pick = canDamage && (canSpeed == false || damageCost <= speedCost)
+						? IdleUpgradeKind.Damage
+						: IdleUpgradeKind.AttackSpeed;
+
+					if (IdleModel.TryRaise(state, tuning, pick, out _) == false)
+					{
+						break;
+					}
+				}
+			}
+		}
+
+		/// <summary>잠재가 붙는 것만 센다 — 1등급은 아무리 많아도 쓸 데가 없다.</summary>
+		private static long Useful(IdleState state)
+		{
+			long total = 0L;
+			for (int tier = 2; tier <= state.DroppedByTier.Length; tier++)
+			{
+				total += state.DroppedByTier[tier - 1];
+			}
+
+			return total;
+		}
+
 		/// <summary>고른 것은 저장을 건넌다 — 껐다 켜니 도로 내려가면 고른 뜻이 없다.</summary>
 		[Test]
 		public void Choice_SurvivesSaveLoad()
