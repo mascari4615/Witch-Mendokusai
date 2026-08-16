@@ -27,14 +27,6 @@ namespace WitchMendokusai
 	[RequireComponent(typeof(UIDocument))]
 	public sealed class IdleScreen : MonoBehaviour, IGameView<IdleSnapshot>
 	{
-		private enum Tab
-		{
-			Base = 0,
-			Upgrade = 1,
-			Gear = 2,
-			Fold = 3,
-		}
-
 		[Header("수치 — 비워 두면 코드 기본값")]
 		[SerializeField] private IdleTuningSO tuningAsset;
 
@@ -61,8 +53,11 @@ namespace WitchMendokusai
 		private ProgressBar healthBar;
 		private readonly List<VisualElement> killDots = new List<VisualElement>();
 		private Label arenaCaption;
+		private VisualElement arenaBox;
+		private IdleFloatText floats;
+		private double resourceShown;
+		private float sinceResourcePop;
 
-		private readonly List<Button> tabButtons = new List<Button>();
 		private VisualElement basePage;
 		private readonly List<Button> producerButtons = new List<Button>();
 		private readonly List<IdleShapeElement> producerShapes = new List<IdleShapeElement>();
@@ -115,6 +110,7 @@ namespace WitchMendokusai
 
 			BuildInterface(away);
 			lastKills = session.State.Kills;
+			resourceShown = session.State.Resource;
 			Render(session.Capture());
 		}
 
@@ -146,10 +142,32 @@ namespace WitchMendokusai
 			// ★ 잡힌 순간을 눈으로 보여준다 — 자동 전투일수록 「일이 일어났다」는 신호가 필요하다.
 			if (snapshot.Kills > lastKills)
 			{
+				long got = snapshot.Kills - lastKills;
 				lastKills = snapshot.Kills;
 				burst.Fire(snapshot.MaxTierNow, TierColor(snapshot.MaxTierNow));
 				targetShape.Hit();
+
+				// ★ 잡힌 것이 <b>튀어나온다</b> — 칸 안에서 조용히 바뀌면 일이 안 일어난 것처럼 보인다.
+				floats.Pop("+" + BigNumberText.Format(got),
+					new Vector2(Random.Range(30f, 110f), 70f), TierColor(snapshot.MaxTierNow));
 			}
+
+			// 자원은 계속 들어오므로 <b>주기적으로</b> 띄운다 — 매 프레임이면 글자가 폭포가 된다.
+			sinceResourcePop += delta;
+			if (sinceResourcePop >= 1f)
+			{
+				double gained = snapshot.Resource - resourceShown;
+				resourceShown = snapshot.Resource;
+				sinceResourcePop = 0f;
+
+				if (gained > 0d)
+				{
+					floats.Pop("+" + BigNumberText.Format(gained),
+						new Vector2(Random.Range(60f, 140f), 130f), new Color(0.72f, 0.82f, 0.55f));
+				}
+			}
+
+			floats.Advance(delta);
 
 			targetShape.Advance(delta, 0.08f);
 			burst.Advance(delta);
@@ -206,10 +224,12 @@ namespace WitchMendokusai
 			body.AddToClassList("idle-body");
 			shell.Add(body);
 
+			// ★ <b>세 칸을 동시에</b> 보여준다 (사용자 방향 2026-08-16).
+			//   탭으로 숨기면 기지를 볼 때 전투가 안 보여 <b>아무 일도 안 일어나는 것처럼</b> 느껴진다.
+			//   두 층이 같이 도는 게임이라 같이 보여야 그게 보인다.
+			BuildBaseColumn(body);
 			BuildArena(body);
 			BuildPanel(body);
-
-			ShowTab(Tab.Base);
 		}
 
 		private void BuildTopBar(VisualElement parent, double awaySeconds)
@@ -233,6 +253,8 @@ namespace WitchMendokusai
 			VisualElement arena = new VisualElement();
 			arena.AddToClassList("idle-arena");
 			parent.Add(arena);
+
+			AddLabel(arena, "idle-column-title").text = "전투";
 
 			VisualElement box = new VisualElement();
 			box.AddToClassList("idle-stage-box");
@@ -273,40 +295,43 @@ namespace WitchMendokusai
 			}
 
 			arenaCaption = AddLabel(arena, "idle-arena-caption");
+
+			// 튀는 숫자는 판 위에 뜬다 — 담는 칸이 자리를 잡아 준다.
+			arenaBox = box;
+			floats = new IdleFloatText(box);
 		}
 
 		private void BuildPanel(VisualElement parent)
 		{
 			VisualElement panel = new VisualElement();
+			panel.AddToClassList("idle-column");
 			panel.AddToClassList("idle-panel");
 			parent.Add(panel);
 
-			VisualElement tabs = new VisualElement();
-			tabs.AddToClassList("idle-tabs");
-			panel.Add(tabs);
+			AddLabel(panel, "idle-column-title").text = "강화 · 장비";
 
-			tabButtons.Clear();
-			AddTab(tabs, "기지", Tab.Base);
-			AddTab(tabs, "강화", Tab.Upgrade);
-			AddTab(tabs, "장비", Tab.Gear);
-			AddTab(tabs, "접기", Tab.Fold);
-
-			basePage = AddPage(panel);
 			upgradePage = AddPage(panel);
 			gearPage = AddPage(panel);
 			foldPage = AddPage(panel);
 
-			BuildBasePage();
 			BuildUpgradePage();
+			AddDivider(panel);
 			BuildGearPage();
+			AddDivider(panel);
 			BuildFoldPage();
 		}
 
 		/// <summary>
 		/// 기지 — <b>시간이 자원을 낸다</b>. 이 층이 없으면 감정도 합치기도 강화도 못 한다.
 		/// </summary>
-		private void BuildBasePage()
+		/// <summary>왼쪽 칸 — 기지(클리커 층). 늘 보인다.</summary>
+		private void BuildBaseColumn(VisualElement parent)
 		{
+			basePage = new VisualElement();
+			basePage.AddToClassList("idle-column");
+			parent.Add(basePage);
+
+			AddLabel(basePage, "idle-column-title").text = "기지";
 			baseSummary = AddLabel(basePage, "idle-row-value");
 
 			producerButtons.Clear();
@@ -754,26 +779,10 @@ namespace WitchMendokusai
 			}
 		}
 
-		private void AddTab(VisualElement parent, string text, Tab which)
-		{
-			Button button = new Button(() => ShowTab(which));
-			button.text = text;
-			button.AddToClassList("idle-tab");
-			parent.Add(button);
-			tabButtons.Add(button);
-		}
 
 		private void ShowTab(Tab which)
 		{
-			for (int index = 0; index < tabButtons.Count; index++)
-			{
-				tabButtons[index].EnableInClassList("idle-tab--on", index == (int)which);
-			}
 
-			basePage.EnableInClassList("idle-hidden", which != Tab.Base);
-			upgradePage.EnableInClassList("idle-hidden", which != Tab.Upgrade);
-			gearPage.EnableInClassList("idle-hidden", which != Tab.Gear);
-			foldPage.EnableInClassList("idle-hidden", which != Tab.Fold);
 		}
 
 		private static VisualElement AddPage(VisualElement parent)

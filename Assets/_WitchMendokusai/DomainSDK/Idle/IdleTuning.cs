@@ -18,7 +18,7 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// ★ 배수가 보상 배수보다 <b>커야</b> 벽이 생긴다. 그 벽이 「더 못 내려간다 → 올려야 한다」를
         ///   만드는 유일한 장치다. 두 배수가 같으면 아무 데서나 무한히 내려가고 올릴 이유가 사라진다.
         /// </summary>
-        public GeometricScale TargetHealthByStage { get; set; } = new GeometricScale(10d, 1.55d);
+        public GeometricScale TargetHealthByStage { get; set; } = new GeometricScale(3d, 1.55d);
 
         /// <summary>단계마다 대상 하나를 처치했을 때 들어오는 자원.</summary>
         public GeometricScale RewardByStage { get; set; } = new GeometricScale(1d, 1.35d);
@@ -34,8 +34,14 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// <summary>공격력 0 레벨의 한 방.</summary>
         public double BaseDamage { get; set; } = 1d;
 
-        /// <summary>공격속도 0 레벨의 초당 타격 횟수.</summary>
-        public double BaseAttackSpeed { get; set; } = 1d;
+        /// <summary>
+        /// 공격속도 0 레벨의 초당 타격 횟수.
+        ///
+        /// ★ <b>초반에 매초 뭔가 일어나야 한다</b> (사용자 실측 2026-08-16: 「전혀 클리커 같지 않다」).
+        ///   그때 4단계에서 한 마리에 19초였다 — 화면이 멎은 것처럼 보인다.
+        ///   쿠키 클리커는 클릭 한 번에 즉시 하나가 는다. 방치형이라도 <b>보이는 빈도</b>는 그만큼 필요하다.
+        /// </summary>
+        public double BaseAttackSpeed { get; set; } = 3d;
 
         /// <summary>
         /// 공격력 곡선.
@@ -89,7 +95,7 @@ namespace WitchMendokusai.DomainSDK.Idle
         public GeometricScale ProducerCostByKind { get; set; } = new GeometricScale(15d, 10d);
 
         /// <summary>생산자 하나가 내는 초당 자원 — 위 번호일수록 많이 낸다.</summary>
-        public GeometricScale ProducerOutputByKind { get; set; } = new GeometricScale(0.1d, 8d);
+        public GeometricScale ProducerOutputByKind { get; set; } = new GeometricScale(0.5d, 8d);
 
         // ── 장비 (모험이 가져오는 것) ──────────────────────────────────────
 
