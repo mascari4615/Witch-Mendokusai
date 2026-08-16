@@ -9,5 +9,8 @@ namespace WitchMendokusai
 	{
 		/// <summary> 승자 없음(진행 중 또는 무승부). TeamId·PlayerIndex 어느 쪽으로도 쓴다. </summary>
 		public const int NO_WINNER = -1;
+
+		/// <summary> 대결은 둘이 붙는다. 두 곳(코어·라운드 상태)이 각자 2 를 들고 있었다(2026-08-17). </summary>
+		public const int VERSUS_PLAYER_COUNT = 2;
 	}
 }

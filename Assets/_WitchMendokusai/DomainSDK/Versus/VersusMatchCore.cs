@@ -10,7 +10,7 @@ namespace WitchMendokusai
 	public class VersusMatchCore
 	{
 		public const int NO_WINNER = MatchConstants.NO_WINNER;
-		public const int PLAYER_COUNT = 2;
+		public const int PLAYER_COUNT = MatchConstants.VERSUS_PLAYER_COUNT;
 
 		private readonly VersusRules rules;
 		private readonly VersusFighterStats[] stats = new VersusFighterStats[PLAYER_COUNT];
