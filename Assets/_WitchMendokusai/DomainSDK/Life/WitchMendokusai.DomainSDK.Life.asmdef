@@ -1,0 +1,17 @@
+{
+    "name": "WitchMendokusai.DomainSDK.Life",
+    "rootNamespace": "",
+    "references": [
+        "WitchMendokusai.DomainSDK.City",
+        "WitchMendokusai.DomainSDK.Numerics"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

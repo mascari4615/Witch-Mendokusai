@@ -17,7 +17,24 @@
         "WitchMendokusai.DomainSDK.Farming",
         "WitchMendokusai.DomainSDK.Workshop",
         "WitchMendokusai.DomainSDK.Network",
-        "WitchMendokusai.DomainSDK.Compat"
+        "WitchMendokusai.DomainSDK.Compat",
+        "WitchMendokusai.DomainSDK.Building",
+        "WitchMendokusai.DomainSDK.Care",
+        "WitchMendokusai.DomainSDK.City",
+        "WitchMendokusai.DomainSDK.Common",
+        "WitchMendokusai.DomainSDK.Criteria",
+        "WitchMendokusai.DomainSDK.Diagnostics",
+        "WitchMendokusai.DomainSDK.Effect",
+        "WitchMendokusai.DomainSDK.EventBus",
+        "WitchMendokusai.DomainSDK.GameEvent",
+        "WitchMendokusai.DomainSDK.Input",
+        "WitchMendokusai.DomainSDK.Life",
+        "WitchMendokusai.DomainSDK.Logistics",
+        "WitchMendokusai.DomainSDK.Refining",
+        "WitchMendokusai.DomainSDK.Reward",
+        "WitchMendokusai.DomainSDK.Stat",
+        "WitchMendokusai.DomainSDK.TowerDefense",
+        "WitchMendokusai.DomainSDK.World"
     ],
     "includePlatforms": [
         "Editor"

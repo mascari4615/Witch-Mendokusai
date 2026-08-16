@@ -1,0 +1,17 @@
+{
+    "name": "WitchMendokusai.DomainSDK.EventBus",
+    "rootNamespace": "",
+    "references": [
+        "MessagePipe",
+        "UniTask"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
