@@ -100,6 +100,12 @@ namespace WitchMendokusai.EditorTools
 			double shipped = SizeOf(directory, true) / 1024d / 1024d;
 			double everything = SizeOf(directory, false) / 1024d / 1024d;
 
+			// ★ 「구웠다」는 「돈다」가 아니다 — 특히 덜어내기를 High 로 올렸으니 더 그렇다.
+			//   켜서 판이 흐르는지는 `.github/scripts/wm-idle-smoke.ps1` 이 본다(실패 경로 셋 다 밟아 봤다).
+			//   여기서 자동으로 부르지 않는 이유: 배치 유니티 안에서 플레이어를 또 띄우면
+			//   같은 기계에서 창·그래픽 자원을 두 벌 잡는다. 굽고 나서 따로 부른다.
+			Debug.Log(TAG + " 다음 — 실제로 도는지: powershell -File .github/scripts/wm-idle-smoke.ps1");
+
 			Debug.Log(TAG + " ✅ 됐다 — " + exePath
 				+ " (배포분 " + shipped.ToString("N1") + " MB · 폴더 전체 " + everything.ToString("N1") + " MB · "
 				+ summary.totalTime.TotalSeconds.ToString("N0") + "초)");
