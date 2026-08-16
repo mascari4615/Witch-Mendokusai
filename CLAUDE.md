@@ -104,10 +104,21 @@ WMInput.inputactions → InputManager.BindEvents() → On{Start/Performed/Cancel
 
 **`Singleton<T>` dontDestroyOnLoad** = prefab SerializeField 정본(코드 `DontDestroyOnLoad()` 강제 호출 X).
 
-## 컴파일 검증 — MCP `read_console` 정본
+## 컴파일 검증 — 1순위 = `wm-compile-check.ps1` (에디터·MCP 무관)
 
-- **정본 = `read_console(types=["error","warning"], count=30)`** — Mono runtime 현재 Console 직접. error + warning 둘 다 0 = 클린.
-- **`dotnet build` 폐기** — Unity Mono ≠ .NET 8, false confidence. wrapper(`dotnet-build-wm.ps1`) 경유 시만 허용.
+**정본 = `powershell -File memo/dotfiles/scripts/wm-compile-check.ps1`** — 진짜 Unity 어셈블리
+(`Editor/Data/Managed/UnityEngine/*.dll` + `UnityEditor.dll` + `Library/ScriptAssemblies` + PackageCache/Assets 의
+미리 컴파일된 DLL, 총 ~500 참조)를 걸고 우리 `.cs` 1400여 개를 한 번에 굽는다. **5초. 에디터가 프로젝트를
+잠그고 있어도, MCP 가 안 붙어도 돈다.** exit 0/1/2(2 = 못 돌렸음 ≠ 에러 0).
+
+- **왜 바뀌었나 (2026-08-16)**: 정본이 MCP `read_console` 하나였는데, 에디터 잠금 + MCP 트랜스포트 변경이
+  겹치자 검증 경로가 통째로 사라져 사람에게 「유니티 창 눌러 주세요」로 떠넘겨야 했다. 검증이 남의 도구
+  하나에 묶여 있던 것 = 단일 실패점. 「`dotnet build` 폐기」의 근거는 *Mono ≠ .NET8 로 API 표면이 다르다*
+  였는데, **엔진 DLL 자체를 참조하면 API 표면은 진짜다** — 그래서 이 경로만 예외로 승격한다.
+- **못 잡는 것 (그래서 아래가 여전히 필요)**: asmdef 경계 위반(한 덩어리로 구움), 플랫폼/IL2CPP,
+  에셋·직렬화·PlayMode 동작. 맨 소스만 참조하는 검사라 **에디터 실컴파일이 최종 확인**이다.
+- **2순위 = MCP `read_console(types=["error","warning"], count=30)`** — 붙어 있을 때. warning 0 까지 본다.
+- **`dotnet build` 직접 호출은 여전히 폐기** — 위 스크립트/wrapper 경유만.
 - **Editor.log = fallback only** — append-only 누적으로 옛 컴파일 결과 섞임. MCP 가용 시 절대 사용 X.
 - Warning = 미래 error 시그널. error 0 만 보고 통과 X. 보존 의도 warning은 `#pragma warning disable` + 사유 주석.
 
@@ -124,7 +135,16 @@ WMInput.inputactions → InputManager.BindEvents() → On{Start/Performed/Cancel
 
 ## Unity-MCP layer
 
-**정본 = CoplayDev `com.coplaydev.unity-mcp`** (MIT, Unity Cloud cap 무관). 포트 **12345** (`.mcp.json` = `http://127.0.0.1:12345/mcp`), type=`"http"` 필수.
+**정본 = CoplayDev `com.coplaydev.unity-mcp`** (MIT, Unity Cloud cap 무관).
+
+⚠ **버전 핀 필수 (2026-08-16)** — `manifest.json` 이 `#main` 이었다. 업스트림이 relay 구조(bun `relay_win.exe`,
+9001/9002)로 바뀌면서 우리 배선(`.mcp.json` = 12345 + `McpAutoBinder` 폴링)이 조용히 깨졌고, 새 세션마다
+MCP 도구가 안 붙었다. 지금은 `#78ee5418415953b79c358bfe6355fcc3fde7912b` 로 핀. 올릴 때는 의도적으로 올린다.
+
+포트·트랜스포트는 이제 **패키지가 정하는 값**을 따른다(`HttpEndpointUtility` 기본 `http://127.0.0.1:8080`,
+브리지 포트는 `PortManager` 가 에디터마다 6400+ 로 잡고 `unity-mcp-port-{hash}.json` 에 적는다).
+우리 쪽 12345 고정값·자작 폴링은 **폐기 대상**(TASK 미발행). MCP 가 안 붙어도 컴파일 검증은
+`wm-compile-check.ps1` 로 계속 돈다 — MCP 는 필수 경로가 아니다.
 
 **Editor 꺼져있으면 자동 기동** — WM 작업(특히 behavior-verify/Play) 요청 시 Editor 가 죽어있어도 사용자에게 "켜주세요" 푸시백 X. `memo/dotfiles/scripts/ensure-unity-editor.ps1` 호출 = heavy-op preflight → `Unity.exe -projectPath`(버전 자동 감지) → MCP 포트 12345 listen 대기 → ready. 정본 = TASK-KAR-159 + 메모리 `[[wm-request-auto-launch-unity-mcp]]`.
 

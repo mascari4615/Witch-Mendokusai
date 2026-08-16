@@ -117,6 +117,10 @@
     <Compile Include="$(TestsRoot)Net/WorldPeopleMemoryTests.cs" />
     <Compile Include="$(TestsRoot)Net/BagReconcileTests.cs" />
     <Compile Include="$(TestsRoot)Net/MessageBudgetTests.cs" />
+    <!-- 대결 축 v0 (TASK-WM-411) — 매치 규칙·카드가 엔진 밖에서 5초 만에 돈다. -->
+    <Compile Include="$(TestsRoot)Versus/VersusMatchCoreTests.cs" />
+    <Compile Include="$(TestsRoot)Versus/VersusCardTests.cs" />
+    <Compile Include="$(TestsRoot)Versus/VersusFullMatchSimTests.cs" />
   </ItemGroup>
 
 </Project>

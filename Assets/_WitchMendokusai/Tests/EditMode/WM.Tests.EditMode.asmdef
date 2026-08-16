@@ -34,6 +34,7 @@
         "WitchMendokusai.DomainSDK.Reward",
         "WitchMendokusai.DomainSDK.Stat",
         "WitchMendokusai.DomainSDK.TowerDefense",
+        "WitchMendokusai.DomainSDK.Versus",
         "WitchMendokusai.DomainSDK.World"
     ],
     "includePlatforms": [
