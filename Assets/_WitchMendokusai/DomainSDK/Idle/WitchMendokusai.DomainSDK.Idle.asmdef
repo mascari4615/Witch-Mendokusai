@@ -2,7 +2,8 @@
     "name": "WitchMendokusai.DomainSDK.Idle",
     "rootNamespace": "WitchMendokusai.DomainSDK.Idle",
     "references": [
-        "WitchMendokusai.DomainSDK.Upgrade"
+        "WitchMendokusai.DomainSDK.Upgrade",
+        "WitchMendokusai.DomainSDK.Presentation"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

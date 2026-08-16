@@ -17,44 +17,44 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// 몫을 셀 때 눈감아 주는 폭 — <b>부동소수점이 만든 가짜 한 마리</b>를 막는다.
         ///
         /// 실측(2026-08-16): 60초를 한 번에 밟으면 6마리, 0.1초씩 600번 밟으면 5마리가 나왔다.
-        /// 0.1 을 100번 더해도 10 이 아니라 9.999999999999998 이라, 딱 내구에 닿는 순간 한 번을 못 넘고
+        /// 0.1 을 100번 더해도 10 이 아니라 9.999999999999998 이라, 딱 체력에 닿는 순간 한 번을 못 넘고
         /// 스텝 하나가 밀린 것이다. 절단(long 캐스팅)이라 그 1e-15 짜리 오차가 그대로 <b>한 마리 차이</b>로 커진다.
         ///
-        /// 내구에 비례한 폭을 준다 — 내구가 1e9 여도, 1e-3 이어도 같은 비율로 눈감는다.
+        /// 체력에 비례한 폭을 준다 — 체력가 1e9 여도, 1e-3 이어도 같은 비율로 눈감는다.
         /// </summary>
         private const double COUNT_EPSILON_RATIO = 1e-9d;
 
-        /// <summary>지금 한 방의 세기 — 기본값 + 세기 축이 쌓은 총량.</summary>
-        public static double PowerOf(IdleState state, IdleTuning tuning)
+        /// <summary>지금 한 방의 공격력 — 기본값 + 공격력 축이 쌓은 총량.</summary>
+        public static double DamageOf(IdleState state, IdleTuning tuning)
         {
-            return tuning.BasePower + state.Power.TotalValue(tuning.PowerCurve);
+            return tuning.BaseDamage + state.Damage.TotalValue(tuning.DamageCurve);
         }
 
-        /// <summary>지금 초당 타격 횟수 — 기본값 + 빠르기 축이 쌓은 총량.</summary>
-        public static double RateOf(IdleState state, IdleTuning tuning)
+        /// <summary>지금 초당 타격 횟수 — 기본값 + 공격속도 축이 쌓은 총량.</summary>
+        public static double AttackSpeedOf(IdleState state, IdleTuning tuning)
         {
-            return tuning.BaseRate + state.Rate.TotalValue(tuning.RateCurve);
+            return tuning.BaseAttackSpeed + state.AttackSpeed.TotalValue(tuning.AttackSpeedCurve);
         }
 
         /// <summary>초당 깎는 양.</summary>
         public static double DamagePerSecond(IdleState state, IdleTuning tuning)
         {
-            return PowerOf(state, tuning) * RateOf(state, tuning);
+            return DamageOf(state, tuning) * AttackSpeedOf(state, tuning);
         }
 
         /// <summary>초당 들어오는 자원 — 화면에 「초당 얼마」로 보여줄 값이자 곡선 판정의 축.</summary>
-        public static double ResourcePerSecond(IdleState state, IdleTuning tuning)
+        public static double IncomePerSecond(IdleState state, IdleTuning tuning)
         {
-            if (tuning.TargetDurability <= 0d)
+            if (tuning.TargetHealth <= 0d)
             {
                 return 0d;
             }
 
-            return DamagePerSecond(state, tuning) / tuning.TargetDurability * tuning.YieldPerTarget;
+            return DamagePerSecond(state, tuning) / tuning.TargetHealth * tuning.RewardPerKill;
         }
 
         /// <summary>
-        /// 시간을 흘린다. 깎다가 내구를 넘긴 만큼 처치로 넘어가고, 남은 피해는 다음 대상에게 이어진다.
+        /// 시간을 흘린다. 깎다가 체력를 넘긴 만큼 처치로 넘어가고, 남은 피해는 다음 대상에게 이어진다.
         /// 한 스텝에 여러 대상이 쓰러질 수 있어서 나눗셈으로 한 번에 처리한다(초당 수천 마리도 같은 비용).
         /// </summary>
         public static void Step(IdleState state, IdleTuning tuning, double seconds)
@@ -64,23 +64,23 @@ namespace WitchMendokusai.DomainSDK.Idle
                 return;
             }
 
-            double durability = tuning.TargetDurability;
+            double durability = tuning.TargetHealth;
             if (durability <= 0d)
             {
                 return;
             }
 
-            double dealt = state.DamageOnTarget + DamagePerSecond(state, tuning) * seconds;
+            double dealt = state.DamageDealtToTarget + DamagePerSecond(state, tuning) * seconds;
             long felled = (long)((dealt + durability * COUNT_EPSILON_RATIO) / durability);
 
             if (felled > 0L)
             {
-                state.TargetsFelled += felled;
-                state.Resource += felled * tuning.YieldPerTarget;
+                state.Kills += felled;
+                state.Resource += felled * tuning.RewardPerKill;
                 dealt -= felled * durability;
             }
 
-            state.DamageOnTarget = dealt;
+            state.DamageDealtToTarget = dealt;
         }
 
         /// <summary>모은 자원으로 한 축을 올린다. 성공하면 자원이 줄어든다.</summary>

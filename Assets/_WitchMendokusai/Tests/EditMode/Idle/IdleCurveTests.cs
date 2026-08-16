@@ -41,7 +41,7 @@ namespace WitchMendokusai.Tests
 				IdleModel.Step(fine, tuning, 0.1d);
 			}
 
-			Assert.AreEqual(coarse.TargetsFelled, fine.TargetsFelled, "쪼갠 스텝이 처치 수를 흘렸다");
+			Assert.AreEqual(coarse.Kills, fine.Kills, "쪼갠 스텝이 처치 수를 흘렸다");
 			Assert.AreEqual(coarse.Resource, fine.Resource, TOLERANCE, "쪼갠 스텝이 자원을 흘렸다");
 		}
 
@@ -62,12 +62,12 @@ namespace WitchMendokusai.Tests
 			IdleTuning tuning = DefaultTuning();
 			IdleState state = new IdleState();
 
-			Assert.IsTrue(IdleModel.TryGetNextCost(state, tuning, IdleUpgradeKind.Power, out double cost));
+			Assert.IsTrue(IdleModel.TryGetNextCost(state, tuning, IdleUpgradeKind.Damage, out double cost));
 
 			state.Resource = cost;
-			Assert.IsTrue(IdleModel.TryRaise(state, tuning, IdleUpgradeKind.Power, out UpgradeRaiseFailure failure), failure.ToString());
+			Assert.IsTrue(IdleModel.TryRaise(state, tuning, IdleUpgradeKind.Damage, out UpgradeRaiseFailure failure), failure.ToString());
 			Assert.AreEqual(0d, state.Resource, TOLERANCE, "값을 더 쓰거나 덜 썼다");
-			Assert.AreEqual(1, state.Power.Level);
+			Assert.AreEqual(1, state.Damage.Level);
 		}
 
 		/// <summary>④ 자원이 모자라면 레벨도 자원도 그대로다.</summary>
@@ -78,9 +78,9 @@ namespace WitchMendokusai.Tests
 			IdleState state = new IdleState();
 			state.Resource = 0d;
 
-			Assert.IsFalse(IdleModel.TryRaise(state, tuning, IdleUpgradeKind.Power, out UpgradeRaiseFailure failure));
+			Assert.IsFalse(IdleModel.TryRaise(state, tuning, IdleUpgradeKind.Damage, out UpgradeRaiseFailure failure));
 			Assert.AreEqual(UpgradeRaiseFailure.NotEnoughFunds, failure);
-			Assert.AreEqual(0, state.Power.Level);
+			Assert.AreEqual(0, state.Damage.Level);
 			Assert.AreEqual(0d, state.Resource, TOLERANCE);
 		}
 
@@ -95,7 +95,7 @@ namespace WitchMendokusai.Tests
 			string table = Simulate(tuning, 8d * 3600d, 1d, out IdleState final);
 
 			Debug.Log(table);
-			Assert.Greater(final.TargetsFelled, 0L, "8시간을 돌렸는데 하나도 못 잡았다 — 시작 손잡이가 잘못됐다");
+			Assert.Greater(final.Kills, 0L, "8시간을 돌렸는데 하나도 못 잡았다 — 시작 손잡이가 잘못됐다");
 		}
 
 		/// <summary>
@@ -107,7 +107,7 @@ namespace WitchMendokusai.Tests
 			state = new IdleState();
 
 			StringBuilder report = new StringBuilder();
-			report.AppendLine("[IdleCurve] 경과 | 세기 | 빠르기 | 자원 | 초당산출 | 처치");
+			report.AppendLine("[IdleCurve] 경과 | 공격력 | 공격속도 | 자원 | 초당산출 | 처치");
 
 			double elapsed = 0d;
 			int nextMarkIndex = 0;
@@ -137,22 +137,22 @@ namespace WitchMendokusai.Tests
 			{
 				bought = false;
 
-				bool hasPower = IdleModel.TryGetNextCost(state, tuning, IdleUpgradeKind.Power, out double powerCost);
-				bool hasRate = IdleModel.TryGetNextCost(state, tuning, IdleUpgradeKind.Rate, out double rateCost);
+				bool hasDamage = IdleModel.TryGetNextCost(state, tuning, IdleUpgradeKind.Damage, out double damageCost);
+				bool hasSpeed = IdleModel.TryGetNextCost(state, tuning, IdleUpgradeKind.AttackSpeed, out double speedCost);
 
-				IdleUpgradeKind cheaper = IdleUpgradeKind.Power;
+				IdleUpgradeKind cheaper = IdleUpgradeKind.Damage;
 				double cheapest = double.MaxValue;
 
-				if (hasPower && powerCost < cheapest)
+				if (hasDamage && damageCost < cheapest)
 				{
-					cheaper = IdleUpgradeKind.Power;
-					cheapest = powerCost;
+					cheaper = IdleUpgradeKind.Damage;
+					cheapest = damageCost;
 				}
 
-				if (hasRate && rateCost < cheapest)
+				if (hasSpeed && speedCost < cheapest)
 				{
-					cheaper = IdleUpgradeKind.Rate;
-					cheapest = rateCost;
+					cheaper = IdleUpgradeKind.AttackSpeed;
+					cheapest = speedCost;
 				}
 
 				if (cheapest <= state.Resource)
@@ -167,11 +167,11 @@ namespace WitchMendokusai.Tests
 			return string.Format(
 				"[IdleCurve] {0,6} | {1,4} | {2,6} | {3,12:N0} | {4,10:N2} | {5,12:N0}",
 				Elapsed(atSeconds),
-				state.Power.Level,
-				state.Rate.Level,
+				state.Damage.Level,
+				state.AttackSpeed.Level,
 				state.Resource,
-				IdleModel.ResourcePerSecond(state, tuning),
-				state.TargetsFelled);
+				IdleModel.IncomePerSecond(state, tuning),
+				state.Kills);
 		}
 
 		private static string Elapsed(double seconds)

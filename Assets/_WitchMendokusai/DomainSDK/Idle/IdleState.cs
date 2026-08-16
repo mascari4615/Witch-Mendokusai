@@ -15,21 +15,21 @@ namespace WitchMendokusai.DomainSDK.Idle
         public double Resource { get; set; }
 
         /// <summary>지금까지 처치한 대상 수 — 진행감·통계용.</summary>
-        public long TargetsFelled { get; set; }
+        public long Kills { get; set; }
 
         /// <summary>지금 대상에게 이미 넣어 둔 피해.</summary>
-        public double DamageOnTarget { get; set; }
+        public double DamageDealtToTarget { get; set; }
 
-        /// <summary>세기 레벨.</summary>
-        public UpgradeLevel Power { get; } = new UpgradeLevel();
+        /// <summary>공격력 레벨.</summary>
+        public UpgradeLevel Damage { get; } = new UpgradeLevel();
 
-        /// <summary>빠르기 레벨.</summary>
-        public UpgradeLevel Rate { get; } = new UpgradeLevel();
+        /// <summary>공격속도 레벨.</summary>
+        public UpgradeLevel AttackSpeed { get; } = new UpgradeLevel();
 
         /// <summary>한 축의 레벨 상태를 고른다.</summary>
         public UpgradeLevel LevelOf(IdleUpgradeKind kind)
         {
-            return kind == IdleUpgradeKind.Power ? Power : Rate;
+            return kind == IdleUpgradeKind.Damage ? Damage : AttackSpeed;
         }
     }
 }

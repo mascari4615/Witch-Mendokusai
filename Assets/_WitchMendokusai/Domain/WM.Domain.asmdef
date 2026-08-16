@@ -21,7 +21,10 @@
         "MessagePipe",
         "MessagePipe.VContainer",
         "R3.Unity",
-        "WM.ViewModel"
+        "WM.ViewModel",
+        "WitchMendokusai.DomainSDK.Idle",
+        "WitchMendokusai.DomainSDK.Upgrade",
+        "WitchMendokusai.DomainSDK.Presentation"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

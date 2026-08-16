@@ -12,20 +12,20 @@ namespace WitchMendokusai.DomainSDK.Idle
     /// </summary>
     public sealed class IdleTuning
     {
-        /// <summary>대상 하나의 내구 — 이만큼 깎으면 자원이 나온다.</summary>
-        public double TargetDurability { get; set; } = 10d;
+        /// <summary>대상 하나의 체력 — 이만큼 깎으면 자원이 나온다.</summary>
+        public double TargetHealth { get; set; } = 10d;
 
         /// <summary>대상 하나를 처치했을 때 들어오는 자원.</summary>
-        public double YieldPerTarget { get; set; } = 1d;
+        public double RewardPerKill { get; set; } = 1d;
 
-        /// <summary>세기 0 레벨의 한 방.</summary>
-        public double BasePower { get; set; } = 1d;
+        /// <summary>공격력 0 레벨의 한 방.</summary>
+        public double BaseDamage { get; set; } = 1d;
 
-        /// <summary>빠르기 0 레벨의 초당 타격 횟수.</summary>
-        public double BaseRate { get; set; } = 1d;
+        /// <summary>공격속도 0 레벨의 초당 타격 횟수.</summary>
+        public double BaseAttackSpeed { get; set; } = 1d;
 
-        /// <summary>세기 곡선.</summary>
-        public IUpgradeCurve PowerCurve { get; set; } = new GeometricUpgradeCurve
+        /// <summary>공격력 곡선.</summary>
+        public IUpgradeCurve DamageCurve { get; set; } = new GeometricUpgradeCurve
         {
             BaseCost = 10d,
             CostRatio = 1.22d,
@@ -33,8 +33,8 @@ namespace WitchMendokusai.DomainSDK.Idle
             ValueRatio = 1.15d,
         };
 
-        /// <summary>빠르기 곡선.</summary>
-        public IUpgradeCurve RateCurve { get; set; } = new GeometricUpgradeCurve
+        /// <summary>공격속도 곡선.</summary>
+        public IUpgradeCurve AttackSpeedCurve { get; set; } = new GeometricUpgradeCurve
         {
             BaseCost = 25d,
             CostRatio = 1.28d,
@@ -45,7 +45,7 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// <summary>한 축의 곡선을 고른다.</summary>
         public IUpgradeCurve CurveOf(IdleUpgradeKind kind)
         {
-            return kind == IdleUpgradeKind.Power ? PowerCurve : RateCurve;
+            return kind == IdleUpgradeKind.Damage ? DamageCurve : AttackSpeedCurve;
         }
     }
 }
