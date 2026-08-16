@@ -4,167 +4,218 @@ using UnityEngine;
 namespace WitchMendokusai
 {
 	/// <summary>
-	/// 대결 판을 <b>보여 주는</b> 쪽 (TASK-WM-411). 규칙은 하나도 없다 —
-	/// 판정은 전부 <see cref="VersusRoundState"/>·<see cref="VersusMatchCore"/>(엔진 0, 서버·웹과 같은 한 벌)에 있고
-	/// 여기는 ① 입력을 모아 넘기고 ② 결과를 캡슐·구슬로 그린다.
+	/// 대결 판을 <b>보여 주고 조작을 넘기는</b> 쪽 (TASK-WM-411). 규칙은 하나도 없다.
 	///
-	/// ★ 2컴 온라인이 목표라 이 분리가 필수다: 심판이 서버로 올라가도 이 스크립트는
-	///   「상태를 받아 그린다」로 그대로 남는다(지금은 심판이 여기 얹혀 있을 뿐이다).
+	/// 두 가지로 산다:
+	///   · <b>연습</b> — 이 컴퓨터가 심판(<see cref="VersusAuthority"/>)을 돌리고 상대는 봇.
+	///   · <b>온라인</b> — 심판은 저쪽(서버 또는 P2P 호스트). 나는 의도를 보내고 그림을 받는다(<see cref="VersusGuest"/>).
+	/// 둘의 차이는 「심판이 어디 있나」뿐이고, 규칙 코드는 같은 한 벌이다.
 	/// </summary>
 	public sealed class VersusMatchDirector : MonoBehaviour
 	{
+		public enum VersusMode
+		{
+			/// <summary>혼자 연습 — 내 컴퓨터가 심판, 상대는 봇.</summary>
+			Practice = 0,
+
+			/// <summary>온라인 대결 — 심판은 서버(또는 P2P 호스트).</summary>
+			Online = 1,
+		}
+
+		[SerializeField] private VersusMode mode = VersusMode.Practice;
+		[SerializeField] private string serverUrl = "ws://127.0.0.1:5199/vs";
+		[SerializeField] private string roomName = string.Empty;
+		[SerializeField] private bool fillWithBotIfAlone = true;
 		[SerializeField] private float arenaHalfWidth = VersusDuelSim.ARENA_HALF_WIDTH;
 		[SerializeField] private float arenaHalfDepth = VersusDuelSim.ARENA_HALF_DEPTH;
 		[SerializeField] private int randomSeed = 0;
 		[SerializeField] private VersusTuning tuning = VersusTuning.Default();
 		[SerializeField] private VersusBotTuning botTuning = VersusBotTuning.Default();
-		// 친구가 없을 때 혼자 굴려 보려고 상대를 봇으로 둔다. 온라인이 붙으면 이 자리에 「네트워크 손」이 온다.
-		[SerializeField] private bool opponentIsBot = true;
 
-		private VersusMatchCore match;
-		private VersusRoundState round;
-		private VersusRules rules;
-		private Camera viewCamera;
-		private readonly IVersusInput[] hands = new IVersusInput[VersusRoundState.PLAYER_COUNT];
-		private readonly VersusInputFrame[] frames = new VersusInputFrame[VersusRoundState.PLAYER_COUNT];
-		private readonly Transform[] bodies = new Transform[VersusRoundState.PLAYER_COUNT];
 		private readonly List<Transform> shotViews = new List<Transform>();
 		private readonly List<VersusBodyView> shotBuffer = new List<VersusBodyView>();
-		private float intermissionClock;
+		private readonly Transform[] bodies = new Transform[MatchConstants.VERSUS_PLAYER_COUNT];
+
+		private UnityVersusCodec codec;
+		private VersusAuthority authority;   // 연습 모드에서만.
+		private VersusGuest guest;           // 온라인 모드에서만.
+		private VersusClientLink link;
+		private VersusLocalInput localInput;
+		private Camera viewCamera;
+		private int mySeat;
 		private int offerCursor;
 		private bool cursorLatched;
-		private float tickAccumulator;
+		private int sentTick;
 
 		private void Awake()
 		{
-			rules = VersusRules.Default();
-			match = new VersusMatchCore(rules, randomSeed != 0 ? randomSeed : Random.Range(1, int.MaxValue));
+			codec = new UnityVersusCodec();
 
 			BuildArena();
 			viewCamera = BuildCamera();
 
-			for (int index = 0; index < VersusRoundState.PLAYER_COUNT; index++)
+			for (int index = 0; index < bodies.Length; index++)
 				bodies[index] = BuildBody(index);
 
-			hands[0] = new VersusLocalInput(viewCamera);
-			hands[1] = opponentIsBot
-				? (IVersusInput)new VersusBotHand(botTuning, arenaHalfWidth, arenaHalfDepth, Random.Range(1, int.MaxValue))
-				: new VersusLocalInput(viewCamera);
+			localInput = new VersusLocalInput(viewCamera);
 
-			StartRound();
+			if (mode == VersusMode.Practice)
+			{
+				authority = new VersusAuthority(VersusRules.Default(), tuning, botTuning, codec,
+					randomSeed != 0 ? randomSeed : Random.Range(1, int.MaxValue),
+					arenaHalfWidth, arenaHalfDepth);
+				authority.FillWithBot(1, Random.Range(1, int.MaxValue));
+				mySeat = 0;
+				return;
+			}
+
+			link = new VersusClientLink();
+			guest = new VersusGuest(link, codec, 0);
+			link.Connect(serverUrl, roomName, fillWithBotIfAlone, codec);
+		}
+
+		private void OnDestroy()
+		{
+			link?.Dispose();
 		}
 
 		private void Update()
 		{
-			if (round != null && round.IsOver == false)
+			if (mode == VersusMode.Practice)
+				TickPractice();
+			else
+				TickOnline();
+		}
+
+		// ── 연습 (심판이 여기 있다) ─────────────────────────────────────────────
+
+		private void TickPractice()
+		{
+			if (authority.Match.DraftingPlayerIndex == mySeat)
 			{
-				// 판정은 60Hz 고정 틱이다 — 화면이 몇 프레임이든 같은 답이 나와야 서버와 갈리지 않는다.
-				tickAccumulator += Time.deltaTime;
-
-				while (tickAccumulator >= VersusRoundState.TICK && round.IsOver == false)
-				{
-					tickAccumulator -= VersusRoundState.TICK;
-
-					for (int index = 0; index < VersusRoundState.PLAYER_COUNT; index++)
-						frames[index] = hands[index].Read(round, index, VersusRoundState.TICK);
-
-					round.Step(frames, rules.RoundTimeLimitSeconds);
-				}
-
-				DrawRound();
-
-				if (round.IsOver)
-					EndRound();
-
+				TickDraftLocal();
+				authority.Tick(Time.deltaTime);
 				return;
 			}
 
-			if (match.DraftingPlayerIndex != VersusMatchCore.NO_WINNER)
-			{
-				TickDraft();
+			if (authority.Round != null)
+				localInput.SelfPosition = authority.Round.PositionOf(mySeat);
+
+			authority.SubmitLocalInput(mySeat, localInput.Read(authority.Round, mySeat, Time.deltaTime));
+			authority.Tick(Time.deltaTime);
+			DrawFromRound(authority.Round);
+		}
+
+		private void TickDraftLocal()
+		{
+			VersusInputFrame frame = localInput.Read(authority.Round, mySeat, Time.deltaTime);
+			int count = authority.Match.PendingOffer.Count;
+
+			if (MoveCursor(frame, count) && frame.Fire)
 				return;
+
+			if (frame.Fire)
+				authority.SubmitLocalPick(mySeat, offerCursor);
+		}
+
+		// ── 온라인 (심판은 저쪽) ───────────────────────────────────────────────
+
+		private void TickOnline()
+		{
+			guest.Pump();
+			mySeat = guest.Seat;
+
+			if (mySeat < guest.Fighters.Length)
+				localInput.SelfPosition = new Numerics.Vector2(guest.Fighters[mySeat].x, guest.Fighters[mySeat].y);
+
+			if (guest.Offer != null)
+			{
+				VersusInputFrame draftFrame = localInput.Read(null, mySeat, Time.deltaTime);
+				MoveCursor(draftFrame, guest.Offer.cards.Length);
+
+				if (draftFrame.Fire)
+					guest.SendPick(offerCursor);
+			}
+			else
+			{
+				sentTick++;
+				guest.SendInput(localInput.Read(null, mySeat, Time.deltaTime), sentTick);
 			}
 
-			if (match.IsConcluded)
-				return;
-
-			intermissionClock -= Time.deltaTime;
-			if (intermissionClock <= 0f)
-				StartRound();
+			DrawFromGuest();
 		}
 
-		// ── 라운드 ──────────────────────────────────────────────────────────────
-
-		private void StartRound()
+		private bool MoveCursor(VersusInputFrame frame, int count)
 		{
-			round = new VersusRoundState(match.StatsOf(0), match.StatsOf(1), tuning, arenaHalfWidth, arenaHalfDepth,
-				new Numerics.Vector2(-arenaHalfWidth * 0.7f, 0f),
-				new Numerics.Vector2(arenaHalfWidth * 0.7f, 0f));
-
-			tickAccumulator = 0f;
-			offerCursor = 0;
-
-			for (int index = 0; index < VersusRoundState.PLAYER_COUNT; index++)
-				bodies[index].gameObject.SetActive(true);
-
-			DrawRound();
-		}
-
-		private void EndRound()
-		{
-			intermissionClock = tuning.IntermissionSeconds;
-			match.ResolveRound(round.Winner);
-			ClearShotViews();
-		}
-
-		private void TickDraft()
-		{
-			IVersusInput hand = hands[match.DraftingPlayerIndex];
-
-			// 봇은 고민하지 않는다 — 아무거나 집고 다음 판으로. 사람을 기다리게 두면 판이 멈춘다.
-			if (hand is VersusBotHand)
-			{
-				match.TakeOffered(Random.Range(0, match.PendingOffer.Count));
-				intermissionClock = tuning.IntermissionSeconds;
-				return;
-			}
-
-			VersusInputFrame frame = hand.Read(round, match.DraftingPlayerIndex, Time.deltaTime);
+			if (count <= 0)
+				return false;
 
 			if (Mathf.Abs(frame.Move.x) > 0.6f)
 			{
 				if (cursorLatched == false)
 				{
-					offerCursor = Mathf.Clamp(offerCursor + (frame.Move.x > 0f ? 1 : -1), 0, match.PendingOffer.Count - 1);
+					offerCursor = Mathf.Clamp(offerCursor + (frame.Move.x > 0f ? 1 : -1), 0, count - 1);
 					cursorLatched = true;
+					return true;
 				}
-			}
-			else
-			{
-				cursorLatched = false;
+
+				return false;
 			}
 
-			if (frame.Fire)
-			{
-				match.TakeOffered(offerCursor);
-				intermissionClock = tuning.IntermissionSeconds;
-			}
+			cursorLatched = false;
+			return false;
 		}
 
 		// ── 그리기 ─────────────────────────────────────────────────────────────
 
-		private void DrawRound()
+		private void DrawFromRound(VersusRoundState round)
 		{
-			for (int index = 0; index < VersusRoundState.PLAYER_COUNT; index++)
+			if (round == null)
+				return;
+
+			for (int index = 0; index < bodies.Length; index++)
 			{
 				Numerics.Vector2 position = round.PositionOf(index);
-				bodies[index].position = new Vector3(position.x, 0.5f, position.y);
-				bodies[index].localScale = Vector3.one * (round.RadiusOf(index) * 2f);
-				bodies[index].gameObject.SetActive(round.IsAlive(index));
+				PlaceBody(bodies[index], position.x, position.y, round.RadiusOf(index), round.IsAlive(index));
 			}
 
 			round.CollectShots(shotBuffer);
+			DrawShots();
+		}
 
+		private void DrawFromGuest()
+		{
+			for (int index = 0; index < bodies.Length && index < guest.Fighters.Length; index++)
+			{
+				Net.VersusBodyMessage fighter = guest.Fighters[index];
+				PlaceBody(bodies[index], fighter.x, fighter.y, fighter.r, fighter.alive);
+			}
+
+			shotBuffer.Clear();
+			for (int index = 0; index < guest.Shots.Length; index++)
+			{
+				Net.VersusBodyMessage shot = guest.Shots[index];
+				shotBuffer.Add(new VersusBodyView
+				{
+					Position = new Numerics.Vector2(shot.x, shot.y),
+					Radius = shot.r,
+					Owner = shot.owner,
+					Alive = true,
+				});
+			}
+
+			DrawShots();
+		}
+
+		private void PlaceBody(Transform body, float x, float y, float radius, bool alive)
+		{
+			body.position = new Vector3(x, 0.5f, y);
+			body.localScale = Vector3.one * (radius * 2f);
+			body.gameObject.SetActive(alive);
+		}
+
+		private void DrawShots()
+		{
 			while (shotViews.Count < shotBuffer.Count)
 				shotViews.Add(BuildShotView());
 
@@ -179,14 +230,8 @@ namespace WitchMendokusai
 				shotViews[index].position = new Vector3(shotBuffer[index].Position.x, 0.6f, shotBuffer[index].Position.y);
 				shotViews[index].localScale = Vector3.one * (shotBuffer[index].Radius * 2f);
 				shotViews[index].GetComponent<Renderer>().material.color =
-					shotBuffer[index].Owner == 0 ? new Color(0.45f, 0.8f, 1f) : new Color(1f, 0.6f, 0.4f);
+					shotBuffer[index].Owner == mySeat ? new Color(0.45f, 0.8f, 1f) : new Color(1f, 0.6f, 0.4f);
 			}
-		}
-
-		private void ClearShotViews()
-		{
-			for (int index = 0; index < shotViews.Count; index++)
-				shotViews[index].gameObject.SetActive(false);
 		}
 
 		private Transform BuildShotView()
@@ -259,26 +304,56 @@ namespace WitchMendokusai
 		// v0 전용 표시. 재미가 확인되면 UI Toolkit + USS 로 승격한다(WitchMendokusai/CLAUDE.md).
 		private void OnGUI()
 		{
-			GUI.Label(new Rect(20f, 16f, 500f, 26f),
-				"나 " + match.ScoreOf(0) + "  vs  " + match.ScoreOf(1) + " 상대     (" + rules.RoundsToWin + "선승)");
-			GUI.Label(new Rect(20f, 40f, 700f, 26f), "WASD 이동 · 마우스 조준 · 좌클릭 발사 · Space 대시");
+			GUI.Label(new Rect(20f, 16f, 700f, 26f), "WASD 이동 · 마우스 조준 · 좌클릭 발사 · Space 대시");
 
-			if (match.IsConcluded)
+			if (mode == VersusMode.Practice)
 			{
-				GUI.Label(new Rect(20f, 80f, 400f, 30f), match.WinnerIndex == 0 ? "내가 이겼다" : "상대가 이겼다");
+				GUI.Label(new Rect(20f, 40f, 500f, 26f),
+					"연습 — 나 " + authority.Match.ScoreOf(0) + " vs " + authority.Match.ScoreOf(1) + " 봇");
+				DrawOffer(authority.Match.DraftingPlayerIndex == mySeat ? OfferTexts(authority) : null);
 				return;
 			}
 
-			if (match.DraftingPlayerIndex == VersusMatchCore.NO_WINNER)
+			if (link.IsOpen == false)
+			{
+				GUI.Label(new Rect(20f, 40f, 700f, 26f),
+					link.IsConnecting ? "붙는 중… " + serverUrl : "못 붙었다 — " + link.LastError);
+				return;
+			}
+
+			GUI.Label(new Rect(20f, 40f, 500f, 26f),
+				"온라인 — 나 " + guest.ScoreMine + " vs " + guest.ScoreTheirs + " 상대");
+
+			if (guest.OpponentLeft)
+				GUI.Label(new Rect(20f, 64f, 400f, 26f), "상대가 나갔다");
+
+			if (guest.MatchWinner != VersusMatchCore.NO_WINNER)
+				GUI.Label(new Rect(20f, 88f, 400f, 26f), guest.MatchWinner == mySeat ? "내가 이겼다" : "상대가 이겼다");
+
+			DrawOffer(guest.Offer != null ? guest.Offer.texts : null);
+		}
+
+		private static string[] OfferTexts(VersusAuthority authority)
+		{
+			string[] texts = new string[authority.Match.PendingOffer.Count];
+
+			for (int index = 0; index < texts.Length; index++)
+				texts[index] = VersusCards.Describe(authority.Match.PendingOffer[index]);
+
+			return texts;
+		}
+
+		private void DrawOffer(string[] texts)
+		{
+			if (texts == null || texts.Length == 0)
 				return;
 
-			GUI.Label(new Rect(20f, 80f, 700f, 26f), "졌다 - 카드를 고른다 (A/D 커서, 좌클릭 확정)");
+			GUI.Label(new Rect(20f, 112f, 700f, 26f), "졌다 - 카드를 고른다 (A/D 커서, 좌클릭 확정)");
 
-			for (int index = 0; index < match.PendingOffer.Count; index++)
+			for (int index = 0; index < texts.Length; index++)
 			{
-				VersusCardKind card = match.PendingOffer[index];
-				GUI.Label(new Rect(20f, 108f + index * 24f, 700f, 24f),
-					(index == offerCursor ? "> " : "   ") + card + " - " + VersusCards.Describe(card));
+				GUI.Label(new Rect(20f, 140f + index * 24f, 700f, 24f),
+					(index == offerCursor ? "> " : "   ") + texts[index]);
 			}
 		}
 	}

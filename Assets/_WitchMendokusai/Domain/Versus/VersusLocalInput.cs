@@ -19,6 +19,12 @@ namespace WitchMendokusai
 		private readonly InputAction stickAimAction;
 		private readonly Camera viewCamera;
 
+		/// <summary>
+		/// 내 인형이 지금 어디 있나 — 마우스 자리를 「내가 저기를 겨눈다」로 바꾸려면 내 자리가 필요하다.
+		/// 온라인에서는 판을 내가 안 갖고 있으므로(심판이 저쪽) 화면을 그리는 쪽이 매 프레임 넣어 준다.
+		/// </summary>
+		public Numerics.Vector2 SelfPosition;
+
 		public VersusLocalInput(Camera viewCamera)
 		{
 			this.viewCamera = viewCamera;
@@ -86,7 +92,7 @@ namespace WitchMendokusai
 			float distance = -ray.origin.y / ray.direction.y;
 			Vector3 ground = ray.origin + ray.direction * distance;
 
-			Numerics.Vector2 self = state.PositionOf(selfIndex);
+			Numerics.Vector2 self = state != null ? state.PositionOf(selfIndex) : SelfPosition;
 			Vector2 toPointer = new Vector2(ground.x - self.x, ground.z - self.y);
 			return toPointer.sqrMagnitude > 0.0001f ? toPointer.normalized : Vector2.right;
 		}
