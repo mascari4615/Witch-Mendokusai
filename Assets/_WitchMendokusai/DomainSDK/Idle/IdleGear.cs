@@ -15,7 +15,7 @@ namespace WitchMendokusai.DomainSDK.Idle
     /// </summary>
     public static class IdleGear
     {
-        /// <summary>부위 수 — <see cref="ItemSlot"/> 와 맞춘다.</summary>
+        /// <summary>부위 수 — <see cref="IdleItemSlot"/> 와 맞춘다.</summary>
         public const int SLOT_COUNT = 4;
 
         /// <summary>
@@ -45,7 +45,7 @@ namespace WitchMendokusai.DomainSDK.Idle
 
             for (int one = 0; one < taking; one++)
             {
-                ItemSlot slot = (ItemSlot)(state.DropSequence % SLOT_COUNT);
+                IdleItemSlot slot = (IdleItemSlot)(state.DropSequence % SLOT_COUNT);
                 state.DropSequence++;
                 state.Bag.Add(new IdleItem(tier, slot));
             }
@@ -66,7 +66,7 @@ namespace WitchMendokusai.DomainSDK.Idle
         ///   등급만 올릴 수 있어 감정이 한 번으로 끝난다 — 도박이 한 번짜리가 되면 도박이 아니다.
         ///   그래서 「좋은 잠재를 지킬까, 등급을 올릴까」가 매번 결정이 된다.
         /// </summary>
-        public static bool TryMerge(IdleState state, IdleTuning tuning, int tier, ItemSlot slot, out IdleItem made)
+        public static bool TryMerge(IdleState state, IdleTuning tuning, int tier, IdleItemSlot slot, out IdleItem made)
         {
             made = default;
 
@@ -112,7 +112,7 @@ namespace WitchMendokusai.DomainSDK.Idle
         }
 
         /// <summary>몇 벌이나 합칠 수 있나 — 화면이 「합치기」 버튼을 켤지 정하는 값.</summary>
-        public static int CountMergeable(IdleState state, IdleTuning tuning, int tier, ItemSlot slot)
+        public static int CountMergeable(IdleState state, IdleTuning tuning, int tier, IdleItemSlot slot)
         {
             if (tuning.MergeCount < 2)
             {
@@ -173,7 +173,7 @@ namespace WitchMendokusai.DomainSDK.Idle
         ///   머리 = 공격력 · 손 = 공격속도 · 발 = 떨구기 · 몸 = 기지 생산.
         ///   그래야 장비가 <b>두 층 모두와</b> 물린다 — 모험이 가져온 것이 기지도 키운다.
         /// </summary>
-        public static double MultiplierOf(IdleState state, IdleTuning tuning, ItemSlot slot)
+        public static double MultiplierOf(IdleState state, IdleTuning tuning, IdleItemSlot slot)
         {
             IdleItem one = state.Worn.Length > (int)slot ? state.Worn[(int)slot] : default;
             if (one.IsEmpty)
@@ -187,25 +187,25 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// <summary>머리 — 공격력.</summary>
         public static double DamageMultiplier(IdleState state, IdleTuning tuning)
         {
-            return MultiplierOf(state, tuning, ItemSlot.Head);
+            return MultiplierOf(state, tuning, IdleItemSlot.Head);
         }
 
         /// <summary>손 — 공격속도.</summary>
         public static double SpeedMultiplier(IdleState state, IdleTuning tuning)
         {
-            return MultiplierOf(state, tuning, ItemSlot.Hands);
+            return MultiplierOf(state, tuning, IdleItemSlot.Hands);
         }
 
         /// <summary>발 — 떨구기.</summary>
         public static double DropMultiplier(IdleState state, IdleTuning tuning)
         {
-            return MultiplierOf(state, tuning, ItemSlot.Feet);
+            return MultiplierOf(state, tuning, IdleItemSlot.Feet);
         }
 
         /// <summary>몸 — 기지 생산.</summary>
         public static double BaseMultiplier(IdleState state, IdleTuning tuning)
         {
-            return MultiplierOf(state, tuning, ItemSlot.Body);
+            return MultiplierOf(state, tuning, IdleItemSlot.Body);
         }
 
         /// <summary>감정에 드는 자원 — 등급이 높을수록 비싸다.</summary>

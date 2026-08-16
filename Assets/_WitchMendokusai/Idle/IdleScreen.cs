@@ -609,7 +609,7 @@ namespace WitchMendokusai
 
 			List<string> labels = new List<string>();
 			List<int> tiers = new List<int>();
-			List<ItemSlot> which = new List<ItemSlot>();
+			List<IdleItemSlot> which = new List<IdleItemSlot>();
 
 			for (int key = 0; key < counts.Length; key++)
 			{
@@ -619,7 +619,7 @@ namespace WitchMendokusai
 				}
 
 				int tier = key / 4;
-				ItemSlot slot = (ItemSlot)(key % 4);
+				IdleItemSlot slot = (IdleItemSlot)(key % 4);
 
 				labels.Add(string.Format("{0}{1} {2} x{3} → {4}{5}",
 					ShapeMark(tier), tier, slots[(int)slot], counts[key], ShapeMark(tier + 1), tier + 1));
@@ -635,7 +635,7 @@ namespace WitchMendokusai
 				for (int index = 0; index < labels.Count; index++)
 				{
 					int tier = tiers[index];
-					ItemSlot slot = which[index];
+					IdleItemSlot slot = which[index];
 					mergeButtons.Add(AddButton(mergeRows, "idle-appraise-button", () => Merge(tier, slot)));
 				}
 			}
@@ -715,7 +715,7 @@ namespace WitchMendokusai
 			Render(session.Capture());
 		}
 
-		private void Merge(int tier, ItemSlot slot)
+		private void Merge(int tier, IdleItemSlot slot)
 		{
 			if (session.Send(new IdleMergeIntent(tier, slot)))
 			{

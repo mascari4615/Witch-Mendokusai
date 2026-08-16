@@ -17,9 +17,9 @@ namespace WitchMendokusai.DomainSDK.Idle
     public readonly struct IdleMergeIntent : IGameIntent
     {
         public int Tier { get; }
-        public ItemSlot Slot { get; }
+        public IdleItemSlot Slot { get; }
 
-        public IdleMergeIntent(int tier, ItemSlot slot)
+        public IdleMergeIntent(int tier, IdleItemSlot slot)
         {
             Tier = tier;
             Slot = slot;

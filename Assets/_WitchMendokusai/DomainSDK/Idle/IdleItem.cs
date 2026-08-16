@@ -9,7 +9,12 @@ namespace WitchMendokusai.DomainSDK.Idle
     ///   그건 고르는 게 아니라 정답을 아는 것이다.
     ///   울티마 스쿼드도 부위마다 나올 수 있는 잠재가 달라서 부위별로 다른 것을 노린다.
     /// </summary>
-    public enum ItemSlot
+    /* ★ **판정 층이 이름을 양보한다** (2026-08-16). 게임 층에도 `ItemSlot` 이 있다
+       (`Domain/Item/UI/Toolkit/ItemSlot.cs` — 화면의 칸). 이름이 겹치면 **유니티에서만**
+       CS0436/CS0246 으로 터지고 엔진 밖 빌드는 못 본다. 그래서 `WM asmdef boundary gate` 가
+       **25판 연속 빨강**이었다 — 늘 빨간 검사는 아무도 안 보게 되고, 그러면 진짜 회귀도 묻힌다.
+       규칙대로 판정 층이 물러난다. 열거형은 값으로 저장되므로 저장된 자료는 그대로다. */
+    public enum IdleItemSlot
     {
         Head = 0,
         Body = 1,
@@ -31,7 +36,7 @@ namespace WitchMendokusai.DomainSDK.Idle
         public int Tier;
 
         /// <summary>차는 자리.</summary>
-        public ItemSlot Slot;
+        public IdleItemSlot Slot;
 
         /// <summary>감정해서 나온 값(비율). 0 이면 아직 감정 안 했다.</summary>
         public double PotentialValue;
@@ -39,7 +44,7 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// <summary>그 값의 등급 (<see cref="PotentialGrade"/>).</summary>
         public int PotentialGradeValue;
 
-        public IdleItem(int tier, ItemSlot slot)
+        public IdleItem(int tier, IdleItemSlot slot)
         {
             Tier = tier;
             Slot = slot;
