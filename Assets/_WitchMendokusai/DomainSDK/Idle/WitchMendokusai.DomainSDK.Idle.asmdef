@@ -1,0 +1,16 @@
+{
+    "name": "WitchMendokusai.DomainSDK.Idle",
+    "rootNamespace": "WitchMendokusai.DomainSDK.Idle",
+    "references": [
+        "WitchMendokusai.DomainSDK.Upgrade"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": true
+}

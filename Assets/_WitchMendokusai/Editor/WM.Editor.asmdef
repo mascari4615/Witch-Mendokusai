@@ -19,7 +19,10 @@
         "PlayFab",
         "UniRx",
         "WitchMendokusai.DomainSDK",
-        "VContainer"
+        "VContainer",
+        "WitchMendokusai.DomainSDK.Upgrade",
+        "WitchMendokusai.DomainSDK.Idle",
+        "WitchMendokusai.DomainSDK.Presentation"
     ],
     "includePlatforms": [
         "Editor"
