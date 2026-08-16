@@ -119,6 +119,11 @@ namespace WitchMendokusai.EditorTools
 				Debug.Log(TAG + " 설정을 되돌렸다 (덜어내기 " + before + " · 방식 " + backendBefore + " · 표식 원복)");
 			}
 
+			// ★ 굽는 순간이 유일한 기회다 — 유니티 6 은 빌드 보고서를 파일로 안 남긴다 (TASK-WM-409).
+			//   ⚠ 이 줄은 한 번 <b>병합에서 유실됐다</b>(`71cdaa6c`) — 사라지면 예산 시험이
+			//     조용히 Ignore 로 넘어가고, 크기가 늘어도 아무도 모른다.
+			BuildInventory.Write(report);
+
 			BuildSummary summary = report.summary;
 
 			if (summary.result != BuildResult.Succeeded)
