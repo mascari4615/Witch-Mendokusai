@@ -219,7 +219,10 @@ namespace WitchMendokusai.DomainSDK.Idle
                 }
 
                 long leftInStage = tuning.KillsPerStage - state.KillsInStage;
-                bool clearsStage = tuning.KillsPerStage > 0 && felled >= leftInStage;
+                // ★ 머무르기로 했으면 다 밀어도 안 내려간다 — 대신 같은 단계에서 계속 잡는다.
+                //   그게 「빨리 많이」를 고른 대가이자 이득이다.
+                bool clearsStage = tuning.KillsPerStage > 0 && felled >= leftInStage
+                    && state.HoldingStage == false;
                 long taking = clearsStage ? leftInStage : felled;
 
                 budget -= taking * durability;
@@ -231,7 +234,13 @@ namespace WitchMendokusai.DomainSDK.Idle
 
                 if (clearsStage == false)
                 {
+                    // 머무는 동안에는 「이번 단계 처치 수」가 상한에서 멎는다 — 막대가 꽉 찬 채로 계속 잡는다.
                     state.KillsInStage += (int)taking;
+                    if (tuning.KillsPerStage > 0 && state.KillsInStage > tuning.KillsPerStage)
+                    {
+                        state.KillsInStage = tuning.KillsPerStage;
+                    }
+
                     break;
                 }
 

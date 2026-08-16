@@ -14,7 +14,7 @@ namespace WitchMendokusai.DomainSDK.Idle
     /// ★ 이 클래스도 Unity 를 모른다 — 시간은 <see cref="Advance"/> 로 <b>밖에서</b> 흘려 준다.
     ///   에디터 창이 흘리든, 런타임 Update 가 흘리든, 시험이 8시간을 한 번에 흘리든 같다.
     /// </summary>
-    public sealed class IdleSession : IIntentSink<IdleRaiseUpgradeIntent>, IIntentSink<IdlePrestigeIntent>, IIntentSink<IdleAppraiseIntent>
+    public sealed class IdleSession : IIntentSink<IdleRaiseUpgradeIntent>, IIntentSink<IdlePrestigeIntent>, IIntentSink<IdleAppraiseIntent>, IIntentSink<IdleHoldStageIntent>
     {
         private readonly IdleState state;
         private readonly IdleTuning tuning;
@@ -86,6 +86,13 @@ namespace WitchMendokusai.DomainSDK.Idle
             return IdleModel.TryRaise(state, tuning, intent.Kind, out UpgradeRaiseFailure _);
         }
 
+        /// <summary>여기 머물지 정한다. 언제든 뒤집을 수 있다 — 되돌릴 수 없는 선택이면 아무도 안 누른다.</summary>
+        public bool Send(IdleHoldStageIntent intent)
+        {
+            state.HoldingStage = intent.Hold;
+            return true;
+        }
+
         /// <summary>떨어진 것 하나를 감정한다. 그 등급이 없으면 아무 일도 안 일어난다.</summary>
         public bool Send(IdleAppraiseIntent intent)
         {
@@ -126,6 +133,7 @@ namespace WitchMendokusai.DomainSDK.Idle
                 state.BestPotentialValue,
                 (PotentialGrade)state.BestPotentialGrade,
                 IdleModel.MaxOfflineFor(state, tuning),
+                state.HoldingStage,
                 ViewOf(IdleUpgradeKind.Damage, IdleModel.DamageOf(state, tuning)),
                 ViewOf(IdleUpgradeKind.AttackSpeed, IdleModel.AttackSpeedOf(state, tuning)));
         }

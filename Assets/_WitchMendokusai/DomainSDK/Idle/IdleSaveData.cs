@@ -25,6 +25,9 @@ namespace WitchMendokusai.DomainSDK.Idle
         public int KillsInStage;
         public int BestStage;
 
+        /// <summary>여기 머무를지 — 사람이 정한 것이라 저장을 건너야 한다.</summary>
+        public bool HoldingStage;
+
         /// <summary>리셋 점수 — 리셋을 건너 살아남는 유일한 값.</summary>
         public long PrestigePoints;
         public int Ascensions;

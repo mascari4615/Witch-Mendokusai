@@ -41,6 +41,7 @@ namespace WitchMendokusai
 		private Label killsLabel;
 		private ProgressBar targetBar;
 		private Label offlineLabel;
+		private Button holdButton;
 		private Label potentialLabel;
 		private Label rollLabel;
 		private VisualElement dropsPanel;
@@ -142,6 +143,12 @@ namespace WitchMendokusai
 			targetBar.AddToClassList("idle-target");
 			panel.Add(targetBar);
 
+			// ★ 이 게임에서 사람이 하는 둘째 종류의 결정 — 여기 머물까, 더 내려갈까.
+			//   실측(6시간): 머물면 540개(1등급) · 내려가면 26개(2등급). 많이냐 좋은 것이냐.
+			holdButton = new Button(ToggleHold);
+			holdButton.AddToClassList("idle-hold-button");
+			panel.Add(holdButton);
+
 			offlineLabel = AddLabel(panel, "idle-offline");
 			offlineLabel.style.display = awaySeconds > 0d ? DisplayStyle.Flex : DisplayStyle.None;
 			if (awaySeconds > 0d)
@@ -234,6 +241,13 @@ namespace WitchMendokusai
 			Render(session.Capture());
 		}
 
+		private void ToggleHold()
+		{
+			session.Send(new IdleHoldStageIntent(session.State.HoldingStage == false));
+			WriteDown();
+			Render(session.Capture());
+		}
+
 		private void Prestige()
 		{
 			if (session.Send(new IdlePrestigeIntent()))
@@ -270,6 +284,10 @@ namespace WitchMendokusai
 			{
 				RebuildDropRows(snapshot.DroppedByTier.Length);
 			}
+
+			holdButton.text = snapshot.HoldingStage
+				? string.Format("여기서 사냥 중 — {0}단계 (많이 떨군다)", snapshot.Stage)
+				: string.Format("계속 내려가는 중 (좋은 게 떨어진다 · 상한 {0}등급)", snapshot.TierCeiling);
 
 			potentialLabel.text = snapshot.BestPotentialValue > 0d
 				? string.Format("잠재 {0} {1:P1}", NameOf(snapshot.BestPotentialGrade), snapshot.BestPotentialValue)

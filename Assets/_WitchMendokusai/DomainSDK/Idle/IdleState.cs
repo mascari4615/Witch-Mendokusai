@@ -34,6 +34,16 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// </summary>
         public int BestStage { get; set; } = 1;
 
+        /// <summary>
+        /// 여기 <b>머문다</b> — 단계를 다 밀어도 안 내려간다.
+        ///
+        /// ★ 이 게임의 <b>첫 번째 진짜 선택</b>이다(TASK 의 「반복 결정 셋」 중 ① 어디서 사냥할까).
+        ///   수치상 갈등은 이미 있었다 — 얕으면 빨리 잡아 <b>많이</b> 떨구고,
+        ///   깊으면 느리지만 <b>좋은 것</b>이 떨어진다(등급 상한이 깊이에 걸려 있으니까).
+        ///   여태는 그 갈등을 코어가 혼자 결정했다. 이제 사람이 정한다.
+        /// </summary>
+        public bool HoldingStage { get; set; }
+
         /// <summary>여태 모은 리셋 점수 — 리셋해도 안 사라진다. 이게 「다시 시작」을 보상으로 만드는 것.</summary>
         public long PrestigePoints { get; set; }
 
@@ -110,6 +120,7 @@ namespace WitchMendokusai.DomainSDK.Idle
                 Stage = Stage,
                 KillsInStage = KillsInStage,
                 BestStage = BestStage,
+                HoldingStage = HoldingStage,
                 PrestigePoints = PrestigePoints,
                 Ascensions = Ascensions,
                 DroppedByTier = (long[])DroppedByTier.Clone(),
@@ -134,6 +145,7 @@ namespace WitchMendokusai.DomainSDK.Idle
             Stage = saveData.Stage > 0 ? saveData.Stage : 1;
             KillsInStage = saveData.KillsInStage;
             BestStage = saveData.BestStage > 0 ? saveData.BestStage : Stage;
+            HoldingStage = saveData.HoldingStage;
             PrestigePoints = saveData.PrestigePoints;
             Ascensions = saveData.Ascensions;
             // 주사위 상태가 0 인 저장(= 옛 저장)은 굴러가지 않는다 — 기본 씨앗을 준다.

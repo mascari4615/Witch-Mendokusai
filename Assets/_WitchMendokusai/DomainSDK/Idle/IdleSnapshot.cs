@@ -94,6 +94,9 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// <summary>지금 자리를 비워도 되는 시간(초) — 접을수록 는다.</summary>
         public double MaxOfflineSeconds { get; }
 
+        /// <summary>여기 머무는 중인가 — 사람이 고른 것.</summary>
+        public bool HoldingStage { get; }
+
         /// <summary>공격력 축.</summary>
         public IdleUpgradeView Damage { get; }
 
@@ -104,7 +107,7 @@ namespace WitchMendokusai.DomainSDK.Idle
             int stage, int killsInStage, int killsPerStage,
             long prestigePoints, long prestigeAward, double prestigeMultiplier,
             long[] droppedByTier, int maxTierNow, int tierCeiling,
-            double bestPotentialValue, PotentialGrade bestPotentialGrade, double maxOfflineSeconds,
+            double bestPotentialValue, PotentialGrade bestPotentialGrade, double maxOfflineSeconds, bool holdingStage,
             IdleUpgradeView damage, IdleUpgradeView attackSpeed)
         {
             Resource = resource;
@@ -123,6 +126,7 @@ namespace WitchMendokusai.DomainSDK.Idle
             BestPotentialValue = bestPotentialValue;
             BestPotentialGrade = bestPotentialGrade;
             MaxOfflineSeconds = maxOfflineSeconds;
+            HoldingStage = holdingStage;
             Damage = damage;
             AttackSpeed = attackSpeed;
         }

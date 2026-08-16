@@ -37,6 +37,7 @@ namespace WitchMendokusai
 		private Label incomeLabel;
 		private Label killsLabel;
 		private ProgressBar targetBar;
+		private Button holdButton;
 		private Label potentialLabel;
 		private Label rollLabel;
 		private VisualElement dropsPanel;
@@ -119,6 +120,9 @@ namespace WitchMendokusai
 			speedButton = new Button(() => Send(IdleUpgradeKind.AttackSpeed));
 			root.Add(speedButton);
 
+			holdButton = new Button(ToggleHold);
+			root.Add(holdButton);
+
 			potentialLabel = MakeLine(root, 12, FontStyle.Normal);
 			dropsPanel = new VisualElement();
 			root.Add(dropsPanel);
@@ -189,6 +193,12 @@ namespace WitchMendokusai
 			Render(session.Capture());
 		}
 
+		private void ToggleHold()
+		{
+			session.Send(new IdleHoldStageIntent(session.State.HoldingStage == false));
+			Render(session.Capture());
+		}
+
 		private void Prestige()
 		{
 			session.Send(new IdlePrestigeIntent());
@@ -232,6 +242,10 @@ namespace WitchMendokusai
 			{
 				RebuildDropRows(snapshot.DroppedByTier.Length);
 			}
+
+			holdButton.text = snapshot.HoldingStage
+				? string.Format("머무는 중 — {0}단계", snapshot.Stage)
+				: "내려가는 중";
 
 			potentialLabel.text = string.Format("잠재 {0} {1:P1}", snapshot.BestPotentialGrade, snapshot.BestPotentialValue);
 
