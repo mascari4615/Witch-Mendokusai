@@ -286,11 +286,15 @@ namespace WitchMendokusai
 				appraiseButtons[tier - 1].SetEnabled(appraisable);
 			}
 
+			// ★ 접으면 무엇이 오르는지 <b>세 가지를 다</b> 적는다 — 배수만 보이면 접을 이유가 얇다.
+			string standing = string.Format("{0}점 · {1}배 · 자리 비움 {2}",
+				snapshot.PrestigePoints,
+				BigNumberText.Format(snapshot.PrestigeMultiplier),
+				DescribeSpan(snapshot.MaxOfflineSeconds));
+
 			prestigeButton.text = snapshot.PrestigeAward > 0L
-				? string.Format("다시 시작 — {0}점 (지금 {1}점 · {2:N1}배)",
-					snapshot.PrestigeAward, snapshot.PrestigePoints, snapshot.PrestigeMultiplier)
-				: string.Format("다시 시작 — 더 내려가야 한다 (지금 {0}점 · {1:N1}배)",
-					snapshot.PrestigePoints, snapshot.PrestigeMultiplier);
+				? string.Format("다시 시작 — {0}점 얻는다  ({1})", snapshot.PrestigeAward, standing)
+				: string.Format("다시 시작 — 더 내려가야 한다  ({0})", standing);
 			prestigeButton.SetEnabled(snapshot.PrestigeAward > 0L);
 
 			DrawUpgrade(snapshot.Damage, damageLevelLabel, damageButton, "공격력", "한 방 {0}");

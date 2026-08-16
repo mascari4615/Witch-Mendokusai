@@ -68,13 +68,63 @@ namespace WitchMendokusai.Tests
 		[Test]
 		public void Offline_IsCappedByTuning()
 		{
+			IdleTuning tuning = new IdleTuning();
 			IdleState state = new IdleState();
 			state.LastSeenUnixSeconds = NOON;
 			IdleSession session = NewSession(state);
 
 			double credited = session.CatchUp(NOON + 30L * 24L * 3600L);
 
-			Assert.AreEqual(new IdleTuning().MaxOfflineSeconds, credited, TOLERANCE, "상한이 안 걸렸다");
+			Assert.AreEqual(IdleModel.MaxOfflineFor(state, tuning), credited, TOLERANCE, "상한이 안 걸렸다");
+		}
+
+		/// <summary>
+		/// ★ 접으면 <b>덜 매여도 된다</b> — 자리 비워도 되는 시간이 는다.
+		///
+		/// 근거는 울티마 스쿼드다(16시간 → 24시간으로 상한 자체를 늘려 준다).
+		/// 방치형에서 이 보상이 특히 제자리다 — 세지는 게 아니라 <b>덜 매이는 것</b>이 상이다.
+		/// </summary>
+		[Test]
+		public void Folding_BuysYouMoreTimeAway()
+		{
+			IdleTuning tuning = new IdleTuning();
+
+			double fresh = IdleModel.MaxOfflineFor(new IdleState(), tuning);
+			double once = IdleModel.MaxOfflineFor(new IdleState { Ascensions = 1 }, tuning);
+			double thrice = IdleModel.MaxOfflineFor(new IdleState { Ascensions = 3 }, tuning);
+
+			Assert.AreEqual(8d * 3600d, fresh, TOLERANCE);
+			Assert.AreEqual(10d * 3600d, once, TOLERANCE, "한 번 접었는데 시간이 안 늘었다");
+			Assert.Greater(thrice, once);
+		}
+
+		/// <summary>
+		/// 아무리 접어도 하루까지 — 끝이 없으면 「하루에 한 번」이 「한 달에 한 번」이 되고,
+		/// 그 순간 게임이 아니라 알림이 된다.
+		/// </summary>
+		[Test]
+		public void TimeAway_StopsAtOneDay()
+		{
+			IdleTuning tuning = new IdleTuning();
+
+			Assert.AreEqual(24d * 3600d, IdleModel.MaxOfflineFor(new IdleState { Ascensions = 999 }, tuning),
+				TOLERANCE, "상한의 상한이 없다");
+		}
+
+		/// <summary>늘어난 상한이 <b>실제로 쳐진다</b> — 숫자만 늘고 보상이 안 늘면 거짓말이다.</summary>
+		[Test]
+		public void GrownCap_ActuallyPaysOut()
+		{
+			IdleTuning tuning = new IdleTuning();
+
+			IdleState fresh = new IdleState { LastSeenUnixSeconds = NOON };
+			double freshCredited = new IdleSession(tuning, fresh).CatchUp(NOON + 30L * 3600L);
+
+			IdleState veteran = new IdleState { LastSeenUnixSeconds = NOON, Ascensions = 3 };
+			double veteranCredited = new IdleSession(tuning, veteran).CatchUp(NOON + 30L * 3600L);
+
+			Assert.AreEqual(8d * 3600d, freshCredited, TOLERANCE);
+			Assert.AreEqual(14d * 3600d, veteranCredited, TOLERANCE, "늘어난 상한이 안 쳐졌다");
 		}
 
 		/// <summary>시계를 되감아도 이득이 없다 — 음수는 0으로 본다.</summary>

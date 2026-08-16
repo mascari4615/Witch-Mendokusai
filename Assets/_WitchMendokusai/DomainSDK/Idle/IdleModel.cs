@@ -41,6 +41,23 @@ namespace WitchMendokusai.DomainSDK.Idle
             return System.Math.Pow(tuning.PrestigeMultiplierPerPoint, state.PrestigePoints);
         }
 
+        /// <summary>
+        /// 지금 자리를 비워도 되는 시간(초) — 접을수록 는다.
+        /// 접으면 세지는 것 말고 <b>덜 매여도 되는 것</b>도 같이 커진다.
+        /// </summary>
+        public static double MaxOfflineFor(IdleState state, IdleTuning tuning)
+        {
+            double allowed = tuning.BaseMaxOfflineSeconds
+                + state.Ascensions * tuning.OfflineSecondsPerAscension;
+
+            if (allowed > tuning.MaxOfflineCapSeconds)
+            {
+                return tuning.MaxOfflineCapSeconds;
+            }
+
+            return allowed < 0d ? 0d : allowed;
+        }
+
         /// <summary>가장 좋은 잠재가 주는 배수.</summary>
         public static double PotentialMultiplier(IdleState state)
         {

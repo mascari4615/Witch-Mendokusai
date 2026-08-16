@@ -63,9 +63,11 @@ namespace WitchMendokusai.DomainSDK.Idle
                 return 0d;
             }
 
-            if (away > tuning.MaxOfflineSeconds)
+            // 상한은 접은 횟수에 따라 는다 — 접으면 「덜 매여도 되는 것」도 보상이다.
+            double allowed = IdleModel.MaxOfflineFor(state, tuning);
+            if (away > allowed)
             {
-                away = tuning.MaxOfflineSeconds;
+                away = allowed;
             }
 
             IdleModel.Step(state, tuning, away);
@@ -123,6 +125,7 @@ namespace WitchMendokusai.DomainSDK.Idle
                 IdleDrops.CeilingFor(state.Ascensions, tuning),
                 state.BestPotentialValue,
                 (PotentialGrade)state.BestPotentialGrade,
+                IdleModel.MaxOfflineFor(state, tuning),
                 ViewOf(IdleUpgradeKind.Damage, IdleModel.DamageOf(state, tuning)),
                 ViewOf(IdleUpgradeKind.AttackSpeed, IdleModel.AttackSpeedOf(state, tuning)));
         }

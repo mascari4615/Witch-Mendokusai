@@ -147,13 +147,29 @@ namespace WitchMendokusai.DomainSDK.Idle
         public double PrestigeMultiplierPerPoint { get; set; } = 1.10d;
 
         /// <summary>
-        /// 자리를 비운 동안 쳐주는 시간의 상한(초). 기본 8시간.
+        /// 아직 한 번도 안 접었을 때, 자리를 비운 동안 쳐주는 시간의 상한(초). 기본 8시간.
         ///
         /// ★ 왜 상한이 있나 — 없으면 한 달 만에 돌아온 사람이 한 번에 다 받고 게임이 끝난다.
-        ///   방치형에서 상한은 벌이 아니라 <b>돌아올 이유</b>다(울티마 스쿼드는 16시간, 확장하면 24시간).
-        ///   나중에 이 값을 올려 주는 것 자체가 성장 보상이 된다.
+        ///   방치형에서 상한은 벌이 아니라 <b>돌아올 이유</b>다.
         /// </summary>
-        public double MaxOfflineSeconds { get; set; } = 8d * 3600d;
+        public double BaseMaxOfflineSeconds { get; set; } = 8d * 3600d;
+
+        /// <summary>
+        /// 한 번 접을 때마다 늘어나는 상한(초). 기본 2시간.
+        ///
+        /// ★ 울티마 스쿼드가 <b>16시간 → 24시간</b>으로 이 값 자체를 늘려 준다. 그 자리다.
+        ///   접으면 세 가지가 같이 오른다: 공격 배수 · 등급 천장 · <b>자리 비워도 되는 시간</b>.
+        ///   셋째가 특히 방치형답다 — 세지는 게 아니라 <b>덜 매여도 되는 것</b>이 보상이다.
+        /// </summary>
+        public double OfflineSecondsPerAscension { get; set; } = 2d * 3600d;
+
+        /// <summary>
+        /// 아무리 늘어도 여기까지(초). 기본 24시간.
+        ///
+        /// ★ 끝이 있어야 한다 — 무한히 늘면 「하루에 한 번 켠다」가 「한 달에 한 번 켠다」가 되고,
+        ///   그 순간 게임이 아니라 알림이 된다. 울티마 스쿼드의 확장 상한도 24시간이다.
+        /// </summary>
+        public double MaxOfflineCapSeconds { get; set; } = 24d * 3600d;
 
         /// <summary>한 축의 곡선을 고른다.</summary>
         public IUpgradeCurve CurveOf(IdleUpgradeKind kind)
