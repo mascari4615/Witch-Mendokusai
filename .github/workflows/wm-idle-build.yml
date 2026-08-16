@@ -18,6 +18,11 @@ name: Build (Idle / laptop)
 on:
   workflow_dispatch:
     inputs:
+      backend:
+        description: '방식 (il2cpp = 파는 판 · mono = 빨리 보기 1~2분, 검사 아님)'
+        type: choice
+        options: [il2cpp, mono]
+        default: il2cpp
       publish:
         description: '산출물 처리 (none=노트북에만 / artifact=GitHub 아티팩트 업로드)'
         type: choice
@@ -83,6 +88,12 @@ jobs:
 
           $root = Join-Path $env:BUILD_ROOT 'idle'
           $env:WM_IDLE_BUILD_DIR = $root
+
+          # mono = quick look only. IL2CPP stays the default so push-triggered builds
+          # always bake the thing we actually ship.
+          $backend = '${{ inputs.backend }}'
+          if ($backend -eq 'mono') { $env:WM_IDLE_BACKEND = 'mono' }
+          Write-Host "backend=$(if ($backend) { $backend } else { 'il2cpp' })"
           $log = Join-Path $env:RUNNER_TEMP 'idle-build.log'
 
           $arguments = @(
@@ -116,8 +127,11 @@ jobs:
       #   이 러너가 LocalSystem 서비스로 돌면 붙을 데스크톱이 없어 플레이어가 창을 못 띄운다.
       #   그 경우까지 빨갛게 하면 <게임이 깨졌다>와 <검사를 못 했다>가 같은 색이 되어
       #   빨간불이 뜻을 잃는다. 대신 경고로 남겨 "안 봤다"가 눈에 보이게 한다.
+      # ★ Mono 판은 <파는 물건이 아니다> — 여기에 초록을 주면 「검사했다」가 거짓이 된다.
+      #   그래서 검사 자체를 건너뛰고, 건너뛴 사실을 경고로 남긴다.
       - name: Does it actually run (idle smoke)
         id: smoke
+        if: inputs.backend != 'mono'
         shell: powershell
         run: |
           $ErrorActionPreference = 'Continue'
@@ -130,6 +144,12 @@ jobs:
             exit 0
           }
           if ($code -ne 0) { throw "idle smoke failed (exit=$code)" }
+
+      - name: Say out loud that nothing was verified (mono)
+        if: inputs.backend == 'mono'
+        shell: powershell
+        run: |
+          Write-Host "::warning title=quick look only::mono build - NOT the shipped backend and NOT verified to run"
 
       - name: Upload artifact (only when asked)
         if: inputs.publish == 'artifact'
@@ -150,7 +170,10 @@ jobs:
           if (-not $token) { Write-Host 'no laptop-ops token - skipping notify'; exit 0 }
 
           $ok = '${{ job.status }}' -eq 'success'
-          $mark = if (-not $ok) { 'FAIL' } elseif ('${{ steps.smoke.outputs.code }}' -eq '2') { 'OK (run-check skipped)' } else { 'OK' }
+          $mark = if (-not $ok) { 'FAIL' }
+            elseif ('${{ inputs.backend }}' -eq 'mono') { 'OK (mono quick look - not verified)' }
+            elseif ('${{ steps.smoke.outputs.code }}' -eq '2') { 'OK (run-check skipped)' }
+            else { 'OK' }
           $where = '${{ steps.build.outputs.exe }}'
           $body = "[Idle $mark] $where`n${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           try {

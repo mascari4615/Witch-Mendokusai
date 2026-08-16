@@ -30,6 +30,20 @@ namespace WitchMendokusai.EditorTools
 		/// <summary>「이건 본편이 아니다」 — 본편 진단 장치가 이 빌드에서 안 뜨게 하는 표식.</summary>
 		private const string IDLE_DEFINE = "WM_IDLE";
 
+		/// <summary>
+		/// <b>빨리 보기</b> 판을 고르는 환경변수 (`mono`). 비우면 파는 판(IL2CPP)이다.
+		///
+		/// ★ 왜 두 갈래인가 (사용자 컨펌 2026-08-17) — 노트북 한 판이 <b>12.7분</b>이고
+		///   그 대부분이 IL2CPP(C# → C++ 재컴파일)다. 눈으로 한 번 보려고 매번 그걸 기다릴 이유가 없다.
+		///
+		/// ⚠ 그런데 <b>이 판은 검사가 아니다</b>. 여태 런타임을 깨뜨린 것은 IL2CPP + 덜어내기(High)
+		///   조합이었다. Mono 판만 굽고 초록을 받으면 <b>파는 물건은 안 본 채</b> 초록이 된다.
+		///   그래서 ① 폴더 이름에 `-mono` 를 박아 섞이지 않게 하고 ② 부르는 쪽(워크플로)이
+		///   이 판에서는 「켜서 도나」 검사를 <b>건너뛰되 그 사실을 경고로 남긴다</b>.
+		///   또 Mono 는 C# 그대로라 <b>디컴파일이 한 방</b>이다 — 파는 판으로 쓰면 안 된다.
+		/// </summary>
+		private const string BACKEND_ENV = "WM_IDLE_BACKEND";
+
 		[MenuItem("WM/Idle/빌드 (이 게임만)")]
 		public static void Build()
 		{
@@ -46,7 +60,11 @@ namespace WitchMendokusai.EditorTools
 				directory = DEFAULT_DIR;
 			}
 
-			directory = Path.Combine(directory, DateTime.Now.ToString("yyyyMMdd-HHmmss"));
+			bool quickLook = string.Equals(
+				Environment.GetEnvironmentVariable(BACKEND_ENV), "mono", StringComparison.OrdinalIgnoreCase);
+
+			directory = Path.Combine(directory,
+				DateTime.Now.ToString("yyyyMMdd-HHmmss") + (quickLook ? "-mono" : string.Empty));
 			Directory.CreateDirectory(directory);
 
 			string exePath = Path.Combine(directory, EXE_NAME);
@@ -78,7 +96,16 @@ namespace WitchMendokusai.EditorTools
 			ManagedStrippingLevel before = PlayerSettings.GetManagedStrippingLevel(named);
 			PlayerSettings.SetManagedStrippingLevel(named, ManagedStrippingLevel.High);
 
-			Debug.Log(TAG + " 굽는다 (덜어내기 " + before + " → High) → " + exePath);
+			// ★ 빨리 보기 판만 Mono 로 내린다. 이것도 전역 설정이라 <b>반드시 되돌린다</b> —
+			//   빠뜨리면 다음 본편 빌드가 조용히 Mono 로 구워져 팔 물건이 뜯기는 채로 나간다.
+			ScriptingImplementation backendBefore = PlayerSettings.GetScriptingBackend(named);
+			if (quickLook)
+			{
+				PlayerSettings.SetScriptingBackend(named, ScriptingImplementation.Mono2x);
+			}
+
+			Debug.Log(TAG + " 굽는다 (덜어내기 " + before + " → High · 방식 "
+				+ (quickLook ? "Mono <빨리 보기 — 파는 판 아님>" : backendBefore.ToString()) + ") → " + exePath);
 
 			BuildReport report;
 			try
@@ -88,12 +115,9 @@ namespace WitchMendokusai.EditorTools
 			finally
 			{
 				PlayerSettings.SetManagedStrippingLevel(named, before);
-				Debug.Log(TAG + " 설정을 되돌렸다 (덜어내기 " + before + " · 표식 원복)");
+				PlayerSettings.SetScriptingBackend(named, backendBefore);
+				Debug.Log(TAG + " 설정을 되돌렸다 (덜어내기 " + before + " · 방식 " + backendBefore + " · 표식 원복)");
 			}
-
-			// ★ 굽는 순간이 <b>유일한 기회</b>다 — 유니티 6 은 빌드 보고서를 파일로 안 남긴다(실측 2026-08-16).
-			//   무엇이 얼마나 실렸는지, 그 중 무엇이 `Resources/` 때문인지 여기서 적어 둔다 (TASK-WM-408).
-			BuildInventory.Write(report);
 
 			BuildSummary summary = report.summary;
 
@@ -130,6 +154,11 @@ namespace WitchMendokusai.EditorTools
 			//   여기서 자동으로 부르지 않는 이유: 배치 유니티 안에서 플레이어를 또 띄우면
 			//   같은 기계에서 창·그래픽 자원을 두 벌 잡는다. 굽고 나서 따로 부른다.
 			Debug.Log(TAG + " 다음 — 실제로 도는지: powershell -File .github/scripts/wm-idle-smoke.ps1");
+
+			if (quickLook)
+			{
+				Debug.LogWarning(TAG + " ⚠ 이 판은 <빨리 보기(Mono)>다 — 파는 판(IL2CPP)이 아니고 검사로도 못 쓴다");
+			}
 
 			Debug.Log(TAG + " ✅ 됐다 — " + exePath
 				+ " (배포분 " + shipped.ToString("N1") + " MB · 폴더 전체 " + everything.ToString("N1") + " MB · "
