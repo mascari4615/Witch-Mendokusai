@@ -14,6 +14,11 @@
 	color: rgb(226, 228, 236);
 }
 
+/* 판 뒤 은은한 바닥 — 밋밋한 검정은 「꺼진 화면」처럼 보인다 */
+.idle-arena {
+	background-color: rgb(17, 19, 25);
+}
+
 /* ── 위 요약 띠 ─────────────────────────────────────────────── */
 
 .idle-topbar {
@@ -174,6 +179,12 @@
 	background-color: rgb(48, 56, 74);
 }
 
+/* 누르면 살짝 들어간다 — 눌린 게 손에 남는다 */
+.idle-button:active {
+	background-color: rgb(70, 84, 110);
+	scale: 0.97 0.97;
+}
+
 .idle-button:disabled {
 	opacity: 0.35;
 }
@@ -239,8 +250,14 @@
 }
 
 /* 튀는 숫자 */
-.idle-float {
+.float-text {
 	position: absolute;
 	font-size: 15px;
 	-unity-font-style: bold;
+}
+
+/* 살 수 있게 된 것은 테두리로 알린다 — 「지금 이거」가 보인다 */
+.idle-button--ready {
+	border-left-width: 3px;
+	border-left-color: rgb(122, 168, 232);
 }

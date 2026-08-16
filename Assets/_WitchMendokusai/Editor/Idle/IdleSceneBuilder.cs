@@ -22,8 +22,8 @@ namespace WitchMendokusai.EditorTools
 	public static class IdleSceneBuilder
 	{
 		private const string SCENE_PATH = "Assets/_WitchMendokusai/Scenes/Idle/Idle.unity";
-		private const string PANEL_PATH = "Assets/_WitchMendokusai/Scenes/Idle/IdlePanelSettings.asset";
-		private const string TUNING_PATH = "Assets/_WitchMendokusai/Scenes/Idle/IdleTuning.asset";
+		private const string PANEL_PATH = "Assets/_WitchMendokusai/Scenes/Idle/PS_0001_Idle.asset";
+		private const string TUNING_PATH = "Assets/_WitchMendokusai/Scenes/Idle/TU_0001_Idle.asset";
 		private const string STYLE_PATH = "Assets/_WitchMendokusai/Domain/Idle/IdleScreen.uss";
 		private const string THEME_PATH = "Assets/Settings/UnityDefaultRuntimeTheme.tss";
 		private const string TAG = "[IdleScene]";

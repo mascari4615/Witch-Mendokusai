@@ -2,6 +2,7 @@
     "name": "WM.Idle",
     "rootNamespace": "WitchMendokusai",
     "references": [
+        "WM.Presentation",
         "WitchMendokusai.DomainSDK.Contracts",
         "WitchMendokusai.DomainSDK.Idle",
         "WitchMendokusai.DomainSDK.Numerics",

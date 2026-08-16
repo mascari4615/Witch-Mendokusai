@@ -1,0 +1,14 @@
+{
+    "name": "WM.Presentation",
+    "rootNamespace": "WitchMendokusai.Presentation",
+    "references": [],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

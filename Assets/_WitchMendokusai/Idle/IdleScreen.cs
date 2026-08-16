@@ -4,6 +4,7 @@ using UnityEngine.UIElements;
 using WitchMendokusai.DomainSDK.Contracts;
 using WitchMendokusai.DomainSDK.Idle;
 // 네임스페이스를 통째로 들이면 Vector2 가 UnityEngine 것과 겹친다 — 쓸 것만 별칭으로 들인다.
+using WitchMendokusai.Presentation;
 using BigNumberText = WitchMendokusai.Numerics.BigNumberText;
 
 namespace WitchMendokusai
@@ -44,23 +45,30 @@ namespace WitchMendokusai
 		private Label resourceLabel;
 		private Label topNoteLabel;
 
-		private IdleShapeElement targetShape;
-		private IdleBurstElement burst;
-		private readonly List<IdleShapeElement> allies = new List<IdleShapeElement>();
+		private NgonElement targetShape;
+		private NgonBurstElement burst;
+		private readonly List<NgonElement> allies = new List<NgonElement>();
 
 		/// <summary>목록에 붙은 작은 도형들 — 같이 돌려야 화면이 살아 있다.</summary>
-		private readonly List<IdleShapeElement> decor = new List<IdleShapeElement>();
+		private readonly List<NgonElement> decor = new List<NgonElement>();
 		private ProgressBar healthBar;
 		private readonly List<VisualElement> killDots = new List<VisualElement>();
 		private Label arenaCaption;
 		private VisualElement arenaBox;
-		private IdleFloatText floats;
+		private FloatTextLayer floats;
+		private ProceduralSfx sound;
+
+		/// <summary>지금 화면이 얼마나 흔들리나 (0~1). 잡으면 조금, 합치면 많이.</summary>
+		private float shake;
+
+		/// <summary>보여주는 자원 — 실제 값을 <b>따라 굴러간다</b>(뚝뚝 튀지 않게).</summary>
+		private double resourceRolling;
 		private double resourceShown;
 		private float sinceResourcePop;
 
 		private VisualElement basePage;
 		private readonly List<Button> producerButtons = new List<Button>();
-		private readonly List<IdleShapeElement> producerShapes = new List<IdleShapeElement>();
+		private readonly List<NgonElement> producerShapes = new List<NgonElement>();
 		private Label baseSummary;
 
 		private VisualElement upgradePage;
@@ -82,7 +90,7 @@ namespace WitchMendokusai
 		private readonly List<Button> mergeButtons = new List<Button>();
 		private VisualElement bagRows;
 		private readonly List<Button> bagButtons = new List<Button>();
-		private readonly List<IdleShapeElement> bagShapes = new List<IdleShapeElement>();
+		private readonly List<NgonElement> bagShapes = new List<NgonElement>();
 		private VisualElement dropRows;
 		private readonly List<Button> appraiseButtons = new List<Button>();
 		private Label rollNote;
@@ -104,6 +112,7 @@ namespace WitchMendokusai
 			}
 
 			session = new IdleSession(tuning, state);
+			sound = new ProceduralSfx(gameObject);
 
 			// ★ 화면을 짓기 전에 자리 비운 몫을 쳐준다 — 첫 그림이 이미 받은 뒤의 판이라야 한다.
 			double away = session.CatchUp(IdleSaveStore.NowUnixSeconds());
@@ -111,6 +120,7 @@ namespace WitchMendokusai
 			BuildInterface(away);
 			lastKills = session.State.Kills;
 			resourceShown = session.State.Resource;
+			resourceRolling = session.State.Resource;
 			Render(session.Capture());
 		}
 
@@ -144,8 +154,10 @@ namespace WitchMendokusai
 			{
 				long got = snapshot.Kills - lastKills;
 				lastKills = snapshot.Kills;
-				burst.Fire(snapshot.MaxTierNow, TierColor(snapshot.MaxTierNow));
+				burst.Fire(SidesFor(snapshot.MaxTierNow), TierColor(snapshot.MaxTierNow));
 				targetShape.Hit();
+				sound.Blip(snapshot.MaxTierNow);
+				Shake(0.25f);
 
 				// ★ 잡힌 것이 <b>튀어나온다</b> — 칸 안에서 조용히 바뀌면 일이 안 일어난 것처럼 보인다.
 				floats.Pop("+" + BigNumberText.Format(got),
@@ -168,6 +180,11 @@ namespace WitchMendokusai
 			}
 
 			floats.Advance(delta);
+			AdvanceShake(delta);
+
+			// ★ 자원이 <b>굴러 올라간다</b> — 뚝뚝 튀면 「많이 벌었다」가 안 느껴진다.
+			//   남은 차이의 일부씩 따라붙는 방식이라 크든 작든 같은 느낌으로 오른다.
+			resourceRolling += (snapshot.Resource - resourceRolling) * Mathf.Min(1f, delta * 6f);
 
 			targetShape.Advance(delta, 0.08f);
 			burst.Advance(delta);
@@ -188,6 +205,34 @@ namespace WitchMendokusai
 			{
 				WriteDown();
 			}
+		}
+
+		/// <summary>화면을 흔든다 — 「일이 일어났다」를 몸으로 알려준다.</summary>
+		private void Shake(float amount)
+		{
+			if (amount > shake)
+			{
+				shake = amount > 1f ? 1f : amount;
+			}
+		}
+
+		private void AdvanceShake(float deltaSeconds)
+		{
+			if (shake <= 0f)
+			{
+				return;
+			}
+
+			shake -= deltaSeconds * 3f;
+			if (shake < 0f)
+			{
+				shake = 0f;
+			}
+
+			// 판만 흔든다 — 화면 전체를 흔들면 글자가 읽히지 않는다.
+			float power = shake * shake * 10f;
+			arenaBox.style.translate = new StyleTranslate(new Translate(
+				Random.Range(-power, power), Random.Range(-power, power)));
 		}
 
 		private void WriteDown()
@@ -260,11 +305,11 @@ namespace WitchMendokusai
 			box.AddToClassList("idle-stage-box");
 			arena.Add(box);
 
-			targetShape = new IdleShapeElement();
+			targetShape = new NgonElement();
 			targetShape.AddToClassList("idle-shape");
 			box.Add(targetShape);
 
-			burst = new IdleBurstElement();
+			burst = new NgonBurstElement();
 			burst.AddToClassList("idle-shape");
 			box.Add(burst);
 
@@ -286,9 +331,9 @@ namespace WitchMendokusai
 
 			for (int one = 0; one < 3; one++)
 			{
-				IdleShapeElement ally = new IdleShapeElement();
+				NgonElement ally = new NgonElement();
 				ally.AddToClassList("idle-ally");
-				ally.Tier = 1;
+				ally.Sides = SidesFor(1);
 				ally.Body = new Color(0.72f, 0.78f, 0.52f);
 				allyRow.Add(ally);
 				allies.Add(ally);
@@ -298,7 +343,7 @@ namespace WitchMendokusai
 
 			// 튀는 숫자는 판 위에 뜬다 — 담는 칸이 자리를 잡아 준다.
 			arenaBox = box;
-			floats = new IdleFloatText(box);
+			floats = new FloatTextLayer(box);
 		}
 
 		private void BuildPanel(VisualElement parent)
@@ -341,7 +386,7 @@ namespace WitchMendokusai
 			{
 				int captured = kind;
 				producerButtons.Add(AddShapeRow(basePage, kind + 1, () => BuyProducer(captured),
-					out IdleShapeElement shape));
+					out NgonElement shape));
 				producerShapes.Add(shape);
 			}
 		}
@@ -419,9 +464,9 @@ namespace WitchMendokusai
 				atCeiling ? " (천장)" : string.Empty);
 
 			resourceLabel.text = string.Format("{0}  ({1}/초)",
-				BigNumberText.Format(snapshot.Resource), BigNumberText.Format(snapshot.IncomePerSecond));
+				BigNumberText.Format(resourceRolling), BigNumberText.Format(snapshot.IncomePerSecond));
 
-			targetShape.Tier = snapshot.MaxTierNow;
+			targetShape.Sides = SidesFor(snapshot.MaxTierNow);
 			targetShape.Body = TierColor(snapshot.MaxTierNow);
 			targetShape.Fill = (float)snapshot.TargetHealthRatio;
 
@@ -503,6 +548,7 @@ namespace WitchMendokusai
 					BigNumberText.Format(view.NextCost));
 
 				button.SetEnabled(view.CanAfford);
+				button.EnableInClassList("idle-button--ready", view.CanAfford);
 			}
 		}
 
@@ -593,7 +639,7 @@ namespace WitchMendokusai
 				{
 					int captured = index;
 					bagButtons.Add(AddShapeRow(bagRows, snapshot.Bag[index].Tier, () => Equip(captured),
-						out IdleShapeElement shape));
+						out NgonElement shape));
 					bagShapes.Add(shape);
 				}
 			}
@@ -605,7 +651,7 @@ namespace WitchMendokusai
 				IdleItem one = snapshot.Bag[index];
 				if (index < bagShapes.Count)
 				{
-					bagShapes[index].Tier = one.Tier;
+					bagShapes[index].Sides = SidesFor(one.Tier);
 					bagShapes[index].Body = TierColor(one.Tier);
 				}
 
@@ -689,7 +735,12 @@ namespace WitchMendokusai
 
 		private void Send(IdleUpgradeKind kind)
 		{
-			session.Send(new IdleRaiseUpgradeIntent(kind));
+			if (session.Send(new IdleRaiseUpgradeIntent(kind)))
+			{
+				sound.Click();
+				Shake(0.3f);
+			}
+
 			Render(session.Capture());
 		}
 
@@ -707,6 +758,7 @@ namespace WitchMendokusai
 		{
 			if (session.Send(new IdleBuyProducerIntent(kind)) && kind < producerShapes.Count)
 			{
+				sound.Click();
 				// 산 것이 <b>반응한다</b> — 눌렀는데 아무 일도 안 일어나면 눌린 줄 모른다.
 				producerShapes[kind].Hit();
 			}
@@ -725,6 +777,16 @@ namespace WitchMendokusai
 		{
 			if (session.TryAppraise(tier, out PotentialRoll roll))
 			{
+				if (roll.Replaced)
+				{
+					sound.Good();
+					Shake(0.5f);
+				}
+				else
+				{
+					sound.Click();
+				}
+
 				rollNote.text = string.Format("◆{0} 감정 → {1} {2:P1}{3}",
 					roll.Tier, NameOf(roll.Grade), roll.Value, roll.Replaced ? "   ★ 갈아 끼웠다" : string.Empty);
 				WriteDown();
@@ -744,7 +806,9 @@ namespace WitchMendokusai
 		{
 			if (session.Send(new IdleMergeIntent(tier, slot)))
 			{
-				burst.Fire(tier + 1, TierColor(tier + 1));
+				burst.Fire(SidesFor(tier + 1), TierColor(tier + 1));
+				sound.Good();
+				Shake(0.7f);
 
 				rollNote.text = string.Format("{0}{1} 셋을 합쳐 {2}{3} 하나 — 잠재는 사라졌다",
 					ShapeMark(tier), tier, ShapeMark(tier + 1), tier + 1);
@@ -758,6 +822,9 @@ namespace WitchMendokusai
 		{
 			if (session.Send(new IdlePrestigeIntent()))
 			{
+				sound.Sweep();
+				Shake(1f);
+
 				lastKills = session.State.Kills;
 				WriteDown();
 			}
@@ -807,15 +874,15 @@ namespace WitchMendokusai
 		///   같은 규칙을 두 군데서 쓰면 한 번 배우고 계속 읽는다.
 		/// </summary>
 		private Button AddShapeRow(VisualElement parent, int tier, System.Action action,
-			out IdleShapeElement shape)
+			out NgonElement shape)
 		{
 			VisualElement row = new VisualElement();
 			row.AddToClassList("idle-shape-row");
 			parent.Add(row);
 
-			shape = new IdleShapeElement();
+			shape = new NgonElement();
 			shape.AddToClassList("idle-row-shape");
-			shape.Tier = tier;
+			shape.Sides = SidesFor(tier);
 			shape.Body = TierColor(tier);
 			row.Add(shape);
 			decor.Add(shape);
@@ -857,6 +924,7 @@ namespace WitchMendokusai
 				? "최대"
 				: string.Format("올리기 — {0}", BigNumberText.Format(view.NextCost));
 			button.SetEnabled(view.CanAfford);
+			button.EnableInClassList("idle-button--ready", view.CanAfford);
 		}
 
 		/// <summary>변의 수로 등급을 적는다 — 도형과 같은 규칙을 글자에도.</summary>
@@ -870,6 +938,18 @@ namespace WitchMendokusai
 				case 4: return "⬡";
 				default: return "◍";
 			}
+		}
+
+		/// <summary>
+		/// 등급을 <b>변의 수</b>로 옮긴다 — 1등급 삼각형 … 8등급 십각형.
+		///
+		/// ★ 이 뜻은 <b>게임 층 것</b>이다. 그리는 부품(<see cref="NgonElement"/>)은 변의 수만 안다.
+		///   같은 부품을 다른 게임이 다른 뜻으로 쓸 수 있어야 한 저장소에 여럿이 산다.
+		/// </summary>
+		private static int SidesFor(int tier)
+		{
+			int sides = tier + 2;
+			return sides < 3 ? 3 : sides;
 		}
 
 		/// <summary>등급마다 색이 달라진다 — 변을 세기 전에 색으로 먼저 눈치챈다.</summary>

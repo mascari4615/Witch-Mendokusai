@@ -2,47 +2,49 @@ using System;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace WitchMendokusai
+namespace WitchMendokusai.Presentation
 {
 	/// <summary>
-	/// 도형 하나를 그린다 — <b>변의 수가 곧 등급</b> (TASK-WM-406).
+	/// 정다각형 하나를 그린다 — <b>변의 수</b>로 말한다.
 	///
-	/// ★ 사용자 방향: 세계관을 정하기 전이라 <b>기하학적 모양</b>으로 간다.
-	///   그래서 「예쁜 그림」이 아니라 <b>읽히는 규칙</b>을 고른다 —
-	///   1등급 삼각형 · 2등급 사각형 · … · 8등급 십각형.
-	///   숫자를 안 읽어도 <b>변만 세면</b> 등급이 보인다. 아트가 0 이고 톤과도 맞는다.
+	/// ★ 아트 없이 <b>읽히는 규칙</b>을 만드는 가장 싼 방법이다.
+	///   부르는 쪽이 「무엇을 변의 수에 태울지」 정한다(방치형은 장비 등급을 태운다).
+	///   숫자를 안 읽어도 <b>변만 세면</b> 안다.
 	///
-	/// ★ 코어를 모른다 — 등급·비율만 받아 그린다. 판정은 저쪽에 있다.
+	/// ★ 게임을 모른다 — 변의 수·채움·색만 받는다. 뜻은 부르는 쪽에 있다.
 	/// </summary>
-	public sealed class IdleShapeElement : VisualElement
+	public sealed class NgonElement : VisualElement
 	{
-		/// <summary>1등급이 삼각형이 되게 — 변 = 등급 + 2.</summary>
-		private const int SIDES_AT_TIER_ONE = 3;
+		private const int FEWEST_SIDES = 3;
 
-		private int tier = 1;
+		private int sides = FEWEST_SIDES;
 		private float spin;
 		private float shake;
 		private float fill = 1f;
+
+		/// <summary>등장 중 (0 → 1). 새 대상이 <b>커지며 나타난다</b> — 툭 바뀌면 바뀐 줄 모른다.</summary>
+		private float born = 1f;
 		private Color body = new Color(0.42f, 0.60f, 0.85f);
 
-		public IdleShapeElement()
+		public NgonElement()
 		{
 			generateVisualContent += Draw;
 		}
 
-		/// <summary>등급 — 변의 수가 이걸로 정해진다.</summary>
-		public int Tier
+		/// <summary>변의 수. 셋 미만은 도형이 아니고, 열둘을 넘으면 눈에는 그냥 원이다.</summary>
+		public int Sides
 		{
-			get => tier;
+			get => sides;
 			set
 			{
-				int clamped = value < 1 ? 1 : value;
-				if (clamped == tier)
+				int clamped = value < FEWEST_SIDES ? FEWEST_SIDES : (value > 12 ? 12 : value);
+				if (clamped == sides)
 				{
 					return;
 				}
 
-				tier = clamped;
+				sides = clamped;
+				born = 0f;
 				MarkDirtyRepaint();
 			}
 		}
@@ -92,6 +94,15 @@ namespace WitchMendokusai
 				}
 			}
 
+			if (born < 1f)
+			{
+				born += deltaSeconds * 4f;
+				if (born > 1f)
+				{
+					born = 1f;
+				}
+			}
+
 			MarkDirtyRepaint();
 		}
 
@@ -109,14 +120,9 @@ namespace WitchMendokusai
 				return;
 			}
 
-			int sides = tier + SIDES_AT_TIER_ONE - 1;
-			if (sides > 12)
-			{
-				// 열두 변을 넘으면 사람 눈에는 그냥 원이다 — 거기서 멈춘다.
-				sides = 12;
-			}
-
-			float radius = Mathf.Min(box.width, box.height) * 0.42f;
+			// 등장할 때 살짝 넘쳤다 제자리로 — 딱 맞게 커지면 밋밋하다.
+			float pop = born < 1f ? Mathf.Sin(born * Mathf.PI * 0.5f) * (1f + (1f - born) * 0.25f) : 1f;
+			float radius = Mathf.Min(box.width, box.height) * 0.42f * pop;
 			Vector2 middle = box.center;
 
 			if (shake > 0f)
@@ -164,12 +170,11 @@ namespace WitchMendokusai
 	}
 
 	/// <summary>
-	/// 처치 순간 흩어지는 파편 (TASK-WM-406).
+	/// 흩어지는 파편 — <b>무언가 끝났다</b>는 신호.
 	///
-	/// ★ 왜 있어야 하나 — 지금 화면은 숫자만 바뀐다. 「잡았다」가 눈에 안 보이면
-	///   사람은 판이 도는지도 모른다. 자동 전투일수록 <b>일이 일어났다는 신호</b>가 필요하다.
+	/// ★ 숫자만 바뀌면 사람은 일이 일어난 줄 모른다. 자동으로 도는 화면일수록 더 그렇다.
 	/// </summary>
-	public sealed class IdleBurstElement : VisualElement
+	public sealed class NgonBurstElement : VisualElement
 	{
 		private const int SHARD_COUNT = 7;
 
@@ -178,7 +183,7 @@ namespace WitchMendokusai
 		private int sides = 3;
 		private Color tint = Color.white;
 
-		public IdleBurstElement()
+		public NgonBurstElement()
 		{
 			pickingMode = PickingMode.Ignore;
 			generateVisualContent += Draw;
@@ -191,9 +196,9 @@ namespace WitchMendokusai
 
 		public bool IsAlive => life > 0f;
 
-		public void Fire(int tier, Color color)
+		public void Fire(int sideCount, Color color)
 		{
-			sides = Mathf.Clamp(tier + 2, 3, 12);
+			sides = Mathf.Clamp(sideCount, 3, 12);
 			tint = color;
 			life = 1f;
 			MarkDirtyRepaint();
