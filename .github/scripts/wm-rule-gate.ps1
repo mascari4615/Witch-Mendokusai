@@ -1,4 +1,4 @@
-# wm-rule-gate.ps1 -- deterministic WM code-rule gate (TASK-WM-203).
+﻿# wm-rule-gate.ps1 -- deterministic WM code-rule gate (TASK-WM-203).
 #
 # Canonical rule text: WitchMendokusai/CLAUDE.md, section "coding style" / "Editor menu"
 # / "input system". This script is the *enforcement* of those rules. It is called from
@@ -618,16 +618,28 @@ foreach ($rule in $rules)
 # 왜: 유니티는 파일마다 .meta 를 만들고 그 안의 guid 로 참조를 잇는다. .cs 만 올라가면
 #     받는 쪽 유니티가 <b>새 guid 를 다시 만들어</b> 프리팹·씬의 연결이 끊긴다.
 #     에디터가 안 켜진 채로 새 파일을 만들면 .meta 가 아직 없어서 그대로 빠지기 쉽다(실측).
+#     ★ 폴더도 마찬가지다 — 폴더 .meta 가 빠지면 받는 쪽에서 폴더 guid 가 새로 생겨
+#       그 안의 것을 참조하던 자리가 통째로 흔들린다(2026-08-16 실측: Versus 폴더 4개가 빠져 있었다).
+# 이미 있던 빚 — 남의 에셋 폴더 하나가 예전부터 .meta 없이 있다. 새 위반만 막는다(RATCHET 과 같은 태도).
+$metaBaseline = @('Lab\Animation\Universal Animation Library[Standard]')
+
 $metaMisses = @()
 foreach ($source in Get-ChildItem -Path $root -Filter *.cs -Recurse)
 {
-    # 빌드 캐시·패키지 캐시·검사용 표본은 유니티 자산이 아니다 - .meta 가 없는 게 정상이라
-    # 여기서 세면 「고칠 수 없는 빨강」이 되어 gate 자체를 우회하게 만든다 (실측 2026-08-17).
     if ($source.FullName -like '*\obj\*' -or $source.FullName -like '*\bin\*') { continue }
-    if ($source.FullName -like '*\Library\*' -or $source.FullName -like '*\Temp\*') { continue }
-    if ($source.FullName -like '*\.github\*') { continue }
     if (Test-Path ($source.FullName + '.meta')) { continue }
-    $metaMisses += $source.FullName.Substring($root.Length).TrimStart('')
+    $metaMisses += $source.FullName.Substring($root.Length).Trim('\')
+}
+
+foreach ($folder in Get-ChildItem -Path $root -Directory -Recurse)
+{
+    if ($folder.FullName -like '*\obj\*' -or $folder.FullName -like '*\bin\*') { continue }
+    if (Test-Path ($folder.FullName + '.meta')) { continue }
+
+    $relativeFolder = $folder.FullName.Substring($root.Length).Trim('\')
+    if ($metaBaseline -contains $relativeFolder) { continue }
+
+    $metaMisses += $relativeFolder + '  (폴더)'
 }
 
 if ($metaMisses.Count -gt 0)
