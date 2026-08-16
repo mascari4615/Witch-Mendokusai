@@ -55,7 +55,7 @@ $ErrorActionPreference = 'Stop'
 
 if (-not [string]::IsNullOrWhiteSpace($PathsFrom))
 {
-    if (-not (Test-Path $PathsFrom))
+    if (-not (Test-Path -LiteralPath $PathsFrom))
     {
         Write-Host "wm-rule-gate -- CANNOT-RUN: -PathsFrom file not found: $PathsFrom"
         exit 1
@@ -82,7 +82,7 @@ if (-not $commitScoped)
         $Root = Join-Path $repoRoot 'Assets/_WitchMendokusai'
     }
 
-    if (-not (Test-Path $Root))
+    if (-not (Test-Path -LiteralPath $Root))
     {
         Write-Host "wm-rule-gate: scan root not found: $Root"
         exit 1
@@ -384,7 +384,7 @@ function Read-Baseline
     # ★ 반드시 `,` 로 감싸 돌려준다. PowerShell 은 함수가 내보내는 컬렉션을 **풀어헤친다** —
     #   빈 집합을 그냥 return 하면 받는 쪽은 $null 이 되고, 그 뒤 .Contains() 가 터진다.
     #   (기준선이 비어 있을 때만 터지므로 「빚을 다 갚은 날」에만 고장 나는 함정이었다.)
-    if (-not (Test-Path $Path)) { return ,$set }
+    if (-not (Test-Path -LiteralPath $Path)) { return ,$set }
     foreach ($line in [System.IO.File]::ReadAllLines($Path))
     {
         $t = $line.Trim()
@@ -502,7 +502,7 @@ $anchorMisses = New-Object System.Collections.ArrayList
 foreach ($anchor in $anchors)
 {
     $full = Join-Path $anchorRoot $anchor.File
-    if (-not (Test-Path $full))
+    if (-not (Test-Path -LiteralPath $full))
     {
         [void]$anchorMisses.Add(("{0} -- file missing (moved? update this gate too)" -f $anchor.File))
         continue
@@ -517,7 +517,7 @@ foreach ($anchor in $anchors)
 foreach ($ban in $forbidden)
 {
     $full = Join-Path $anchorRoot $ban.File
-    if (-not (Test-Path $full)) { continue }
+    if (-not (Test-Path -LiteralPath $full)) { continue }
     $text = Get-Content -Raw -LiteralPath $full
     if ($text -like ("*" + $ban.Needle + "*"))
     {
@@ -642,8 +642,8 @@ if ($metaScoped)
         if ($relative -notlike '*.cs') { continue }
 
         $full = Join-Path $repoRootForMeta $relative
-        if (-not (Test-Path $full)) { continue }
-        if (Test-Path ($full + '.meta')) { continue }
+        if (-not (Test-Path -LiteralPath $full)) { continue }
+        if (Test-Path -LiteralPath ($full + '.meta')) { continue }
 
         $metaMisses += $relative
     }
@@ -652,19 +652,21 @@ else
 {
     $metaRoot = if ($Root -and $Root -like '*Assets*') { $Root } else { Join-Path $repoRootForMeta 'Assets' }
 
-    if (Test-Path $metaRoot)
+    if (Test-Path -LiteralPath $metaRoot)
     {
         foreach ($source in Get-ChildItem -Path $metaRoot -Filter *.cs -Recurse)
         {
             if ($source.FullName -like '*\obj\*' -or $source.FullName -like '*\bin\*') { continue }
-            if (Test-Path ($source.FullName + '.meta')) { continue }
+            if (Test-Path -LiteralPath ($source.FullName + '.meta')) { continue }
             $metaMisses += $source.FullName.Substring($metaRoot.Length).Trim('\')
         }
 
         foreach ($folder in Get-ChildItem -Path $metaRoot -Directory -Recurse)
         {
             if ($folder.FullName -like '*\obj\*' -or $folder.FullName -like '*\bin\*') { continue }
-            if (Test-Path ($folder.FullName + '.meta')) { continue }
+            # ★ -LiteralPath 필수: 폴더 이름에 대괄호가 있으면(Universal Animation Library[Standard])
+            #   Test-Path 가 그걸 **와일드카드**로 읽어 「.meta 가 없다」는 거짓 빨강을 낸다 (2026-08-17 실측).
+            if (Test-Path -LiteralPath ($folder.FullName + '.meta')) { continue }
 
             $relativeFolder = $folder.FullName.Substring($metaRoot.Length).Trim('\')
             if ($metaBaseline -contains $relativeFolder) { continue }
