@@ -160,9 +160,30 @@ namespace WitchMendokusai.EditorTools
 				Debug.LogWarning(TAG + " ⚠ 이 판은 <빨리 보기(Mono)>다 — 파는 판(IL2CPP)이 아니고 검사로도 못 쓴다");
 			}
 
+			// ★ <b>어느 판을 구웠는지 글로 남긴다</b> (실측 2026-08-17).
+			//   부르는 쪽(워크플로)이 「가장 최근에 고쳐진 폴더」로 고르면 <b>틀린 판</b>을 집는다 —
+			//   바로 위 <see cref="SweepOldLeftovers"/> 가 <b>지난 판 폴더를 건드려</b> 그 시각을
+			//   갱신하기 때문이다. 실제로 방금 구운 042844 대신 직전 030659 가 검사됐다.
+			//   폴더 시각은 믿을 게 못 되고, 구운 쪽이 아는 사실을 그대로 적어 주는 게 맞다.
+			WriteLastBuildMark(Path.GetDirectoryName(directory), exePath);
+
 			Debug.Log(TAG + " ✅ 됐다 — " + exePath
 				+ " (배포분 " + shipped.ToString("N1") + " MB · 폴더 전체 " + everything.ToString("N1") + " MB · "
 				+ summary.totalTime.TotalSeconds.ToString("N0") + "초)");
+		}
+
+		/// <summary>방금 구운 판의 경로를 남긴다 — 부르는 쪽이 추측하지 않게.</summary>
+		private static void WriteLastBuildMark(string root, string exePath)
+		{
+			try
+			{
+				File.WriteAllText(Path.Combine(root, "last-build.txt"), exePath);
+			}
+			catch (System.Exception error)
+			{
+				// 표시를 못 남겨도 빌드를 세우지는 않는다 — 부르는 쪽이 옛 방식으로 되돌아갈 뿐이다.
+				Debug.LogWarning(TAG + " 표시 남기기 실패(무시): " + error.Message);
+			}
 		}
 
 		/// <summary>
