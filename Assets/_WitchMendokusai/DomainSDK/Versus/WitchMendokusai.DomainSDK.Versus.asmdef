@@ -3,7 +3,8 @@
     "rootNamespace": "",
     "references": [
         "WitchMendokusai.DomainSDK.Numerics",
-        "WitchMendokusai.DomainSDK.Common"
+        "WitchMendokusai.DomainSDK.Common",
+        "WitchMendokusai.DomainSDK"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
