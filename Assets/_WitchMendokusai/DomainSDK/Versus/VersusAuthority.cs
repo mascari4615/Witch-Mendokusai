@@ -30,11 +30,14 @@ namespace WitchMendokusai
 		private readonly List<VersusBodyView> shotBuffer = new List<VersusBodyView>();
 		private readonly List<string> incoming = new List<string>();
 		private readonly int[] pickedOffer = new int[MatchConstants.VERSUS_PLAYER_COUNT];
+		private readonly bool[] wantsRematch = new bool[MatchConstants.VERSUS_PLAYER_COUNT];
+		private readonly VersusRules rulesForRematch;
 
 		private readonly float halfWidth;
 		private readonly float halfDepth;
 		private readonly int snapshotEvery;
 
+		private int matchSeed;
 		private float tickAccumulator;
 		private float intermission;
 		private int tick;
@@ -52,13 +55,49 @@ namespace WitchMendokusai
 			// 판정은 60Hz, 보내기는 그보다 성기게 — 사람 눈에는 충분하고 줄은 가볍다.
 			snapshotEvery = snapshotHz > 0 ? Mathf.Max(1, (int)(1f / VersusRoundState.TICK) / snapshotHz) : 3;
 
+			rulesForRematch = rules;
+			matchSeed = seed;
 			Match = new VersusMatchCore(rules, seed);
 			pickedOffer[0] = -1;
 			pickedOffer[1] = -1;
 			StartRound();
 		}
 
-		public VersusMatchCore Match { get; }
+		public VersusMatchCore Match { get; private set; }
+
+		/// <summary>「한 판 더」에 손 든 사람 수 — 화면이 「1/2 기다리는 중」을 띄우는 데 쓴다.</summary>
+		public int RematchReady
+		{
+			get
+			{
+				int ready = 0;
+
+				for (int seat = 0; seat < wantsRematch.Length; seat++)
+				{
+					if (wantsRematch[seat])
+						ready++;
+				}
+
+				return ready;
+			}
+		}
+
+		/// <summary>몇 명이 손을 들어야 새 판이 서나 — 봇 자리는 항상 준비된 것으로 친다.</summary>
+		public int RematchNeeded
+		{
+			get
+			{
+				int needed = 0;
+
+				for (int seat = 0; seat < isBot.Length; seat++)
+				{
+					if (isBot[seat] == false)
+						needed++;
+				}
+
+				return needed < 1 ? 1 : needed;
+			}
+		}
 
 		/// <summary>지금 도는 라운드. 심판 자신도 이걸 보고 그린다(호스트가 곧 플레이어인 경우).</summary>
 		public VersusRoundState Round { get; private set; }
@@ -93,6 +132,12 @@ namespace WitchMendokusai
 			pickedOffer[seat] = offerIndex;
 		}
 
+		/// <summary> 이 컴퓨터 앞 사람이 「한 판 더」를 눌렀다. </summary>
+		public void SubmitLocalRematch(int seat)
+		{
+			RequestRematch(seat);
+		}
+
 		/// <summary>
 		/// 흘러간 시간만큼 판을 굴린다. 60Hz 고정 틱이라 프레임이 들쭉날쭉해도 결과가 같다.
 		/// </summary>
@@ -101,7 +146,11 @@ namespace WitchMendokusai
 			ReceiveAll();
 
 			if (Match.IsConcluded)
+			{
+				// 끝났다고 방을 접지 않는다 — v0 가 재려는 것이 바로 「한 판 더가 나오나」다.
+				TickRematch();
 				return;
+			}
 
 			if (Round != null && Round.IsOver == false)
 			{
@@ -258,7 +307,42 @@ namespace WitchMendokusai
 
 				if (pick != null)
 					pickedOffer[seat] = pick.index;
+
+				return;
 			}
+
+			if (type == VersusMessageType.REMATCH)
+				RequestRematch(seat);
+		}
+
+		// ── 한 판 더 ──────────────────────────────────────────────────────────
+
+		private void RequestRematch(int seat)
+		{
+			if (Match.IsConcluded == false)
+				return;
+
+			wantsRematch[seat] = true;
+			Broadcast(new VersusRematchStateMessage { ready = RematchReady, needed = RematchNeeded });
+		}
+
+		// 손 든 사람이 다 차면 <b>완전히 새 판</b>을 연다 — 카드도 점수도 처음부터.
+		// 씨앗을 바꾸는 이유: 같은 씨앗이면 카드 후보 순서가 똑같아 「또 그 카드」가 된다.
+		private void TickRematch()
+		{
+			if (RematchReady < RematchNeeded)
+				return;
+
+			for (int seat = 0; seat < wantsRematch.Length; seat++)
+			{
+				wantsRematch[seat] = false;
+				pickedOffer[seat] = -1;
+			}
+
+			matchSeed = matchSeed * 31 + 17;
+			Match = new VersusMatchCore(rulesForRematch, matchSeed);
+			tick = 0;
+			StartRound();
 		}
 
 		private void BroadcastState()

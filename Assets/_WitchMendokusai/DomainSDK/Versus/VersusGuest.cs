@@ -43,6 +43,10 @@ namespace WitchMendokusai
 		/// <summary>상대가 나갔나.</summary>
 		public bool OpponentLeft { get; private set; }
 
+		/// <summary>「한 판 더」에 손 든 사람 수 / 필요한 수 — 기다리는 화면에 그대로 쓴다.</summary>
+		public int RematchReady { get; private set; }
+		public int RematchNeeded { get; private set; }
+
 		/// <summary>방금 라운드가 끝났다면 그 승자(한 번만 참). 화면 연출에 쓴다.</summary>
 		public int LastRoundWinner { get; private set; } = VersusMatchCore.NO_WINNER;
 		public bool RoundJustEnded { get; private set; }
@@ -75,6 +79,15 @@ namespace WitchMendokusai
 			Offer = null;
 		}
 
+		/// <summary> 「한 판 더」 하자고 말한다. 둘 다 말하면 심판이 새 판을 연다. </summary>
+		public void SendRematch()
+		{
+			if (transport.IsOpen == false)
+				return;
+
+			transport.Send(codec.Encode(new VersusRematchMessage()));
+		}
+
 		/// <summary> 도착한 것을 모두 반영한다. 매 프레임 한 번 부르면 된다. </summary>
 		public void Pump()
 		{
@@ -105,6 +118,13 @@ namespace WitchMendokusai
 
 				if (state == null)
 					return;
+
+				// 새 판이 서면 「이긴 사람」 표시가 남아 있으면 안 된다 — 그림이 다시 오는 것이 곧 새 판이다.
+				if (MatchWinner != VersusMatchCore.NO_WINNER)
+				{
+					MatchWinner = VersusMatchCore.NO_WINNER;
+					RematchReady = 0;
+				}
 
 				Fighters = state.fighters ?? new VersusBodyMessage[0];
 				Shots = state.shots ?? new VersusBodyMessage[0];
@@ -139,6 +159,19 @@ namespace WitchMendokusai
 
 				if (end != null)
 					MatchWinner = end.winner;
+
+				return;
+			}
+
+			if (type == VersusMessageType.REMATCH_STATE)
+			{
+				VersusRematchStateMessage rematch = codec.Decode<VersusRematchStateMessage>(message);
+
+				if (rematch != null)
+				{
+					RematchReady = rematch.ready;
+					RematchNeeded = rematch.needed;
+				}
 
 				return;
 			}

@@ -17,6 +17,7 @@ namespace WitchMendokusai
 		private readonly InputAction dashAction;
 		private readonly InputAction pointAction;
 		private readonly InputAction stickAimAction;
+		private readonly InputAction rematchAction;
 		private readonly Camera viewCamera;
 
 		/// <summary>
@@ -43,6 +44,10 @@ namespace WitchMendokusai
 			dashAction = new InputAction("VersusDash", InputActionType.Button, "<Keyboard>/space");
 			dashAction.AddBinding("<Gamepad>/buttonSouth");
 
+			// 「한 판 더」 — 손이 마우스를 떠나지 않게 키로도 받는다.
+			rematchAction = new InputAction("VersusRematch", InputActionType.Button, "<Keyboard>/r");
+			rematchAction.AddBinding("<Gamepad>/start");
+
 			pointAction = new InputAction("VersusPoint", InputActionType.Value, "<Mouse>/position");
 			stickAimAction = new InputAction("VersusStickAim", InputActionType.Value, "<Gamepad>/rightStick");
 
@@ -51,6 +56,7 @@ namespace WitchMendokusai
 			dashAction.Enable();
 			pointAction.Enable();
 			stickAimAction.Enable();
+			rematchAction.Enable();
 		}
 
 		public VersusInputFrame Read(VersusRoundState state, int selfIndex, float deltaTime)
@@ -68,6 +74,9 @@ namespace WitchMendokusai
 			};
 		}
 
+		/// <summary> 이번 프레임에 「한 판 더」를 눌렀나. </summary>
+		public bool WasRematchPressedThisFrame => rematchAction.WasPressedThisFrame();
+
 		public void Dispose()
 		{
 			moveAction.Dispose();
@@ -75,6 +84,7 @@ namespace WitchMendokusai
 			dashAction.Dispose();
 			pointAction.Dispose();
 			stickAimAction.Dispose();
+			rematchAction.Dispose();
 		}
 
 		// 화면의 마우스 자리를 판 바닥(y=0)으로 내려 「내가 저기를 겨눈다」로 바꾼다.

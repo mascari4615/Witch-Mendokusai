@@ -144,6 +144,9 @@ namespace WitchMendokusai
 
 		private void TickPractice()
 		{
+			if (authority.Match.IsConcluded && localInput.WasRematchPressedThisFrame)
+				authority.SubmitLocalRematch(mySeat);
+
 			if (authority.Match.DraftingPlayerIndex == mySeat)
 			{
 				TickDraftLocal();
@@ -176,6 +179,10 @@ namespace WitchMendokusai
 		private void TickOnline()
 		{
 			guest.Pump();
+
+			// 손이 마우스를 떠나지 않게 키로도 받는다 — 「한 판 더」는 빠를수록 좋다.
+			if (guest.MatchWinner != VersusMatchCore.NO_WINNER && localInput.WasRematchPressedThisFrame)
+				guest.SendRematch();
 			mySeat = guest.Seat;
 
 			if (mySeat < guest.Fighters.Length)
@@ -366,6 +373,9 @@ namespace WitchMendokusai
 					(mode == VersusMode.Host ? "방장 — " : "연습 — ") +
 					"나 " + authority.Match.ScoreOf(0) + " vs " + authority.Match.ScoreOf(1) + " " + who);
 
+				if (authority.Match.IsConcluded && GUI.Button(new Rect(20f, 116f, 160f, 30f), "한 판 더 (R)"))
+					authority.SubmitLocalRematch(mySeat);
+
 				if (mode == VersusMode.Host && hostListener != null)
 				{
 					GUI.Label(new Rect(20f, 64f, 900f, 26f), hostListener.IsListening
@@ -390,7 +400,14 @@ namespace WitchMendokusai
 				GUI.Label(new Rect(20f, 64f, 400f, 26f), "상대가 나갔다");
 
 			if (guest.MatchWinner != VersusMatchCore.NO_WINNER)
-				GUI.Label(new Rect(20f, 88f, 400f, 26f), guest.MatchWinner == mySeat ? "내가 이겼다" : "상대가 이겼다");
+			{
+				GUI.Label(new Rect(20f, 88f, 500f, 26f),
+					(guest.MatchWinner == mySeat ? "내가 이겼다" : "상대가 이겼다") +
+					(guest.RematchNeeded > 0 ? "   (한 판 더 " + guest.RematchReady + "/" + guest.RematchNeeded + ")" : string.Empty));
+
+				if (GUI.Button(new Rect(20f, 116f, 140f, 30f), "한 판 더 (R)"))
+					guest.SendRematch();
+			}
 
 			DrawOffer(guest.Offer != null ? guest.Offer.texts : null);
 		}

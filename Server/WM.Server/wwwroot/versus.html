@@ -43,6 +43,14 @@
 	#offer button:hover { background: #342d44; }
 	#offer[hidden] { display: none; }
 	#status { top: 64px; left: 14px; }
+	#rematch { top: 112px; left: 14px; }
+	#rematch[hidden] { display: none; }
+	#rematch button {
+		padding: 10px 18px; font-size: 16px;
+		background: #2a2536; color: var(--ink);
+		border: 1px solid #3d3650; border-radius: 8px; cursor: pointer;
+	}
+	#rematchNote { color: var(--dim); margin-top: 6px; }
 </style>
 </head>
 <body>
@@ -50,6 +58,7 @@
 <div class="panel" id="score">— vs —</div>
 <div class="panel" id="status">붙는 중…</div>
 <div class="panel" id="offer" hidden><b>졌다 — 카드를 고른다</b><div id="cards"></div></div>
+<div class="panel" id="rematch" hidden><button id="rematchButton">한 판 더</button><div id="rematchNote"></div></div>
 <div class="panel" id="hint">WASD 이동 · 마우스 조준 · 좌클릭 발사 · Space 대시</div>
 
 <script type="module">
@@ -64,6 +73,8 @@ const context = board.getContext('2d');
 const scorePanel = document.getElementById('score');
 const statusPanel = document.getElementById('status');
 const offerPanel = document.getElementById('offer');
+const rematchPanel = document.getElementById('rematch');
+const rematchNote = document.getElementById('rematchNote');
 const cardsPanel = document.getElementById('cards');
 
 const params = new URLSearchParams(location.search);
@@ -90,6 +101,11 @@ board.addEventListener('mousemove', (event) => { pointer.x = event.clientX; poin
 board.addEventListener('mousedown', () => { firing = true; });
 addEventListener('mouseup', () => { firing = false; });
 
+document.getElementById('rematchButton').addEventListener('click', () => {
+	socket.send(JSON.stringify({ type: 'vsrematch' }));
+	rematchNote.textContent = '상대를 기다린다…';
+});
+
 const socket = new WebSocket(`${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/vs`);
 
 socket.addEventListener('open', () => {
@@ -113,6 +129,7 @@ socket.addEventListener('message', (event) => {
 	if (message.type === 'vsstate') {
 		state = message;
 		statusPanel.hidden = true;
+		rematchPanel.hidden = true;
 		const mine = seat === 0 ? message.scoreA : message.scoreB;
 		const theirs = seat === 0 ? message.scoreB : message.scoreA;
 		scorePanel.textContent = `나 ${mine}  vs  ${theirs} 상대`;
@@ -134,6 +151,13 @@ socket.addEventListener('message', (event) => {
 	if (message.type === 'vsmatchend') {
 		statusPanel.hidden = false;
 		statusPanel.textContent = message.winner === seat ? '내가 이겼다' : '상대가 이겼다';
+		rematchPanel.hidden = false;
+		rematchNote.textContent = '';
+		return;
+	}
+
+	if (message.type === 'vsrematchstate') {
+		rematchNote.textContent = `한 판 더 — ${message.ready}/${message.needed} 준비`;
 		return;
 	}
 

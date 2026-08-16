@@ -39,6 +39,12 @@ namespace WitchMendokusai.Net
 
 		/// <summary>서버 → 남은 창: 상대가 나갔다.</summary>
 		public const string OPPONENT_LEFT = "vsleft";
+
+		/// <summary>창 → 심판: 한 판 더 하자. 둘 다 말해야 새 판이 선다.</summary>
+		public const string REMATCH = "vsrematch";
+
+		/// <summary>심판 → 두 창: 지금 몇 명이 「한 판 더」라고 했나(1/2). 기다리는 화면에 그대로 쓴다.</summary>
+		public const string REMATCH_STATE = "vsrematchstate";
 	}
 
 	/// <summary> 창 → 서버: 대결 방에 끼워 달라. </summary>
@@ -146,6 +152,32 @@ namespace WitchMendokusai.Net
 	{
 		public string type = VersusMessageType.PICK;
 		public int index;
+	}
+
+	/// <summary> 창 → 심판: 한 판 더. </summary>
+	[Serializable]
+	public class VersusRematchMessage
+	{
+		public string type = VersusMessageType.REMATCH;
+	}
+
+	/// <summary>
+	/// 심판 → 두 창: 「한 판 더」에 몇 명이 손을 들었나.
+	///
+	/// ★ 왜 이 말이 따로 있나: v0 가 답하려는 질문이 <b>「한 판 더가 나오나」</b>인데,
+	///   다시 붙을 길이 없으면 그 질문을 잴 수가 없다. 그리고 혼자 눌러 놓고 기다리는 동안
+	///   아무 표시가 없으면 사람은 「고장 났나」로 읽는다.
+	/// </summary>
+	[Serializable]
+	public class VersusRematchStateMessage
+	{
+		public string type = VersusMessageType.REMATCH_STATE;
+
+		/// <summary>손 든 사람 수(0~2).</summary>
+		public int ready;
+
+		/// <summary>몇 명이 필요한가(보통 2, 상대가 봇이면 1).</summary>
+		public int needed;
 	}
 
 	/// <summary> 서버 → 두 창: 매치 끝. </summary>
