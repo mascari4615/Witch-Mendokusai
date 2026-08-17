@@ -126,6 +126,7 @@ namespace WitchMendokusai
 
 		private Button pullButton;
 		private Label codexLabel;
+		private Label pullOddsLabel;
 		private Label pullNote;
 		private VisualElement partyRow;
 		private readonly List<Button> partyButtons = new List<Button>();
@@ -966,6 +967,7 @@ namespace WitchMendokusai
 		private void BuildHeroPage()
 		{
 			pullButton = AddButton(heroPage, "idle-button idle-button--strong", Pull);
+			pullOddsLabel = AddLabel(heroPage, "idle-row-value");
 			pullNote = AddLabel(heroPage, "idle-note");
 
 			AddDivider(heroPage);
@@ -1569,6 +1571,13 @@ namespace WitchMendokusai
 					snapshot.CodexScore, snapshot.CodexMultiplier, snapshot.PullsToPity, Waiting())
 				: string.Format("도감 — 뽑은 영웅은 여기 쌓인다. 들고만 있어도 판이 세지고,"
 					+ " 셋만 내보낸다 (천장까지 {0}번)", snapshot.PullsToPity);
+
+			// ★ 확률을 <b>적어 둔다</b>. 감추면 「관대한 판」이라는 약속을 사용자가 확인할 길이 없고,
+			//   확인 못 하는 약속은 약속이 아니다. 천장도 같이 — 그게 이 판의 안전장치다.
+			pullOddsLabel.text = string.Format(
+				"레전드 {0:P1} · 에픽 {1:P0} · 레어 {2:P0} · 나머지 일반   ·   {3}번 안에 레전드 보장",
+				snapshot.LegendChance, snapshot.EpicChance, snapshot.RareChance,
+				snapshot.PullsToPity);
 
 			RenderParty(snapshot);
 			RenderCodex(snapshot);

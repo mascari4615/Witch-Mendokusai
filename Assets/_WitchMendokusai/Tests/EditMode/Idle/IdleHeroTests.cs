@@ -285,5 +285,52 @@ namespace WitchMendokusai.Tests
 
 			state.Heroes[at] = owned;
 		}
+
+		/// <summary>
+		/// ★ 화면에 적는 확률이 <b>실제 굴림과 같아야</b> 한다 (TASK-WM-406).
+		///
+		/// 적어만 두고 다르면 그건 침묵보다 나쁘다 — 거짓말이 된다.
+		/// 사진(IdleSnapshot)이 내주는 값이 손잡이 그대로인지 못 박고,
+		/// 많이 굴려서 실제 비율이 그 언저리인지도 본다.
+		/// </summary>
+		[Test]
+		public void PublishedOdds_MatchTheRealRoll()
+		{
+			IdleTuning tuning = new IdleTuning();
+			IdleState state = new IdleState();
+			IdleSession session = new IdleSession(tuning, state);
+
+			IdleSnapshot shown = session.Capture();
+			Assert.AreEqual(tuning.LegendChance, shown.LegendChance, 1e-9d, "적는 값과 손잡이가 다르다");
+			Assert.AreEqual(tuning.EpicChance, shown.EpicChance, 1e-9d);
+			Assert.AreEqual(tuning.RareChance, shown.RareChance, 1e-9d);
+
+			// 천장을 아주 멀리 밀어 두고 굴려야 <순수한 확률>이 보인다.
+			tuning.PityPulls = 100000;
+
+			int legend = 0;
+			int rolls = 40000;
+
+			for (int one = 0; one < rolls; one++)
+			{
+				state.Resource = 1e30d;
+				state.Stones = 1L;
+				state.PullsDone = 0L;
+
+				if (IdleGacha.TryPull(state, tuning, out IdleHeroPull got) && got.Grade == IdleHeroGrade.Legend)
+				{
+					legend++;
+				}
+			}
+
+			double seen = (double)legend / rolls;
+			TestContext.WriteLine("[확률] 레전드 적은 값 " + tuning.LegendChance.ToString("P2")
+				+ " · 4만번 굴린 실제 " + seen.ToString("P2"));
+
+			// 4만 판이면 2% 의 표준오차는 0.07%p — 네 배(0.28%p) 안이면 같은 확률로 본다.
+			// (4천 판으로는 오차가 0.22%p 라 <어긋남>과 <운>을 못 가른다. 그래서 늘렸다.)
+			Assert.Less(System.Math.Abs(seen - tuning.LegendChance), 0.0028d,
+				"적은 확률과 실제 굴림이 어긋난다");
+		}
 	}
 }

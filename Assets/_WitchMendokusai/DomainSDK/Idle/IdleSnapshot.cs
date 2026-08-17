@@ -253,6 +253,18 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// <summary>천장까지 남은 횟수 — 「언젠가는 온다」를 화면이 셀 수 있게.</summary>
         public int PullsToPity { get; }
 
+        /// <summary>
+        /// 등급이 나올 확률 — 위에서부터 레전드·에픽·레어(나머지는 일반).
+        ///
+        /// ★ 화면이 손잡이를 직접 읽지 않게 사진에 싣는다. 그리고 <b>사람에게 보여주기 위한</b>
+        ///   값이다 — 확률을 감추면 「관대한 판」이라는 약속을 사용자가 확인할 길이 없다.
+        /// </summary>
+        public double LegendChance { get; }
+
+        public double EpicChance { get; }
+
+        public double RareChance { get; }
+
         /// <summary>도감 점수(모은 종류 + 올린 ★)와 그것이 주는 전체 배수.</summary>
         public int CodexScore { get; }
 
@@ -281,7 +293,7 @@ namespace WitchMendokusai.DomainSDK.Idle
             double bestPotentialValue, PotentialGrade bestPotentialGrade, double maxOfflineSeconds, bool holdingStage, int bestStage, int bestFarmingStage,
             IdleHeroView[] heroes, int[] party, double pullCost, long pullStoneCost, long stones,
             double visitorSecondsLeft, IdleSurgeKind surgeKind, double surgeSecondsLeft,
-            bool canPull, int pullsToPity,
+            bool canPull, int pullsToPity, double legendChance, double epicChance, double rareChance,
             int codexScore, double codexMultiplier,
             IdleUpgradeView damage, IdleUpgradeView attackSpeed, double attacksPerSecond)
         {
@@ -318,6 +330,9 @@ namespace WitchMendokusai.DomainSDK.Idle
             SurgeSecondsLeft = surgeSecondsLeft;
             CanPull = canPull;
             PullsToPity = pullsToPity;
+            LegendChance = legendChance;
+            EpicChance = epicChance;
+            RareChance = rareChance;
             CodexScore = codexScore;
             CodexMultiplier = codexMultiplier;
             Damage = damage;
