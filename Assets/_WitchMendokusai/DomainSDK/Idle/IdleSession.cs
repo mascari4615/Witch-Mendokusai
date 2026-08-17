@@ -267,6 +267,7 @@ namespace WitchMendokusai.DomainSDK.Idle
                 tuning.KillsPerStage,
                 state.PrestigePoints,
                 IdleModel.PrestigeAwardFor(state, tuning),
+                IdleModel.PrestigeNextPayingStage(state, tuning),
                 IdleModel.PrestigeMultiplier(state, tuning),
                 state.DroppedByTier,
                 IdleDrops.MaxTierAt(state.Stage, state.Ascensions, tuning),

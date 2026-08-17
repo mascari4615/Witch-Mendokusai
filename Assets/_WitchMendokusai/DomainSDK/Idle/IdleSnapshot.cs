@@ -179,6 +179,9 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// <summary>지금 환생하면 받는 점수 — 0 이면 아직 아직 환생 못 한다.</summary>
         public long PrestigeAward { get; }
 
+        /// <summary>환생이 값어치를 갖기 시작하는 깊이 — 이미 값어치가 있으면 0.</summary>
+        public int PrestigeNextStage { get; }
+
         /// <summary>리셋 점수가 지금 주고 있는 배수.</summary>
         public double PrestigeMultiplier { get; }
 
@@ -304,7 +307,7 @@ namespace WitchMendokusai.DomainSDK.Idle
 
         public IdleSnapshot(double resource, double incomePerSecond, long kills, double targetHealthRatio,
             int stage, int killsInStage, int killsPerStage,
-            long prestigePoints, long prestigeAward, double prestigeMultiplier,
+            long prestigePoints, long prestigeAward, int prestigeNextStage, double prestigeMultiplier,
             long[] droppedByTier, int maxTierNow, int tierCeiling,
             IdleProducerView[] producers, IdleItem[] bag, IdleItem[] worn, int bagCapacity, int mergeCount,
             double bestPotentialValue, PotentialGrade bestPotentialGrade, double maxOfflineSeconds, bool holdingStage, int bestStage, int bestFarmingStage,
@@ -323,6 +326,7 @@ namespace WitchMendokusai.DomainSDK.Idle
             KillsPerStage = killsPerStage;
             PrestigePoints = prestigePoints;
             PrestigeAward = prestigeAward;
+            PrestigeNextStage = prestigeNextStage;
             PrestigeMultiplier = prestigeMultiplier;
             DroppedByTier = droppedByTier;
             MaxTierNow = maxTierNow;

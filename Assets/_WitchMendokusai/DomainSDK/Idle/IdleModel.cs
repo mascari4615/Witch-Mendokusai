@@ -116,6 +116,49 @@ namespace WitchMendokusai.DomainSDK.Idle
             return standing > state.PrestigePoints ? standing - state.PrestigePoints : 0L;
         }
 
+        /// <summary>
+        /// 환생이 <b>값어치를 갖기 시작하는 깊이</b> — 이미 값어치가 있으면 0.
+        ///
+        /// ★ 화면이 「더 내려가야 한다」로 끝나면 그건 안내가 아니다. <b>얼마나</b>가 있어야
+        ///   사람이 「그럼 거기까지 가 보자」를 정한다. 이 게임이 다른 자리에서 이미 지키는 규칙이다
+        ///   (기다림도 「N초 뒤」라고 말한다).
+        ///
+        /// ★ 셈은 <b>거꾸로</b> 푼다 — 점수는 (깊이 - 최소깊이 + 1) x 단계당점수 이므로,
+        ///   지금 점수를 넘기려면 깊이가 얼마여야 하는지 바로 나온다. 한 칸씩 세어 보지 않는다
+        ///   (천 단위 깊이에서 그건 못 쓸 셈이다).
+        /// </summary>
+        public static int PrestigeNextPayingStage(IdleState state, IdleTuning tuning)
+        {
+            if (PrestigeAwardFor(state, tuning) > 0L)
+            {
+                return 0;
+            }
+
+            if (tuning.PrestigePointsPerStage <= 0d)
+            {
+                return 0;
+            }
+
+            // 점수가 <b>넘어야</b> 하므로 딱 같아지는 깊이의 한 칸 아래까지 구하고 +1.
+            double needed = state.PrestigePoints / tuning.PrestigePointsPerStage;
+            int stage = tuning.PrestigeMinStage - 1 + (int)System.Math.Floor(needed) + 1;
+
+            if (stage < tuning.PrestigeMinStage)
+            {
+                stage = tuning.PrestigeMinStage;
+            }
+
+            int deepest = state.BestStage > state.Stage ? state.BestStage : state.Stage;
+
+            // 이미 그만큼 갔는데도 안 나온다면 한 칸 더 (반올림이 딱 맞아떨어진 자리).
+            while (stage <= deepest)
+            {
+                stage++;
+            }
+
+            return stage;
+        }
+
         /// <summary>지금 환생할 수 있나.</summary>
         public static bool CanPrestige(IdleState state, IdleTuning tuning)
         {

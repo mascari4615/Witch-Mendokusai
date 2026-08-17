@@ -1874,7 +1874,10 @@ namespace WitchMendokusai
 
 			prestigeButton.text = snapshot.PrestigeAward > 0L
 				? string.Format("환생한다 — 환생석 {0} 을 받는다", snapshot.PrestigeAward)
-				: "환생한다 — 더 내려가야 한다";
+				// ★ 「더 내려가야 한다」로 끝내면 안내가 아니다 — <b>얼마나</b>가 있어야
+				//   「그럼 거기까지 가 보자」가 정해진다 (기다림도 「N초 뒤」라고 말한다).
+				: string.Format("환생한다 — {0}단계까지 내려가야 값어치가 생긴다 (지금 가장 깊이 {1})",
+					snapshot.PrestigeNextStage, snapshot.BestStage);
 			prestigeButton.SetEnabled(snapshot.PrestigeAward > 0L);
 		}
 

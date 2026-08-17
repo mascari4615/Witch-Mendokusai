@@ -311,5 +311,56 @@ namespace WitchMendokusai.Tests
 			Assert.Greater(IdleModel.PrestigeAwardFor(state, tuning), 0L,
 				"더 깊이 갔는데도 새 점수가 없다");
 		}
+
+		/// <summary>
+		/// ★ 환생이 <b>어느 깊이부터</b> 값어치가 생기는지 말한다 — 「더 내려가야 한다」로 끝내면
+		///   그건 안내가 아니다.
+		///
+		/// 첫 판에서는 최소 깊이가 답이고, 환생한 뒤로는 「여태 가장 깊이 간 곳 + 1」이 답이다.
+		/// </summary>
+		[Test]
+		public void ItSaysHowDeepYouMustGo()
+		{
+			IdleTuning tuning = new IdleTuning();
+			IdleState fresh = new IdleState();
+			fresh.EnsureProducerRoom(tuning.ProducerCount);
+
+			Assert.AreEqual(tuning.PrestigeMinStage, IdleModel.PrestigeNextPayingStage(fresh, tuning),
+				"첫 판인데 최소 깊이를 안 짚는다");
+
+			// 거기까지 가면 값어치가 생기고, 그때는 0 (더 갈 필요 없다).
+			fresh.Stage = tuning.PrestigeMinStage;
+			fresh.BestStage = fresh.Stage;
+			Assert.Greater(IdleModel.PrestigeAwardFor(fresh, tuning), 0L);
+			Assert.AreEqual(0, IdleModel.PrestigeNextPayingStage(fresh, tuning),
+				"이미 값어치가 있는데도 더 가라고 한다");
+		}
+
+		/// <summary>★ 환생한 뒤에는 <b>여태보다 깊이</b> 가야 한다고 말한다 — 그리고 그 말이 맞다.</summary>
+		[Test]
+		public void AfterPrestige_ThePointedStageActuallyPays()
+		{
+			IdleTuning tuning = new IdleTuning();
+			IdleState state = new IdleState();
+			state.EnsureProducerRoom(tuning.ProducerCount);
+			state.Stage = tuning.PrestigeMinStage + 37;
+			state.BestStage = state.Stage;
+
+			Assert.IsTrue(IdleModel.TryPrestige(state, tuning, out long _));
+
+			int pointed = IdleModel.PrestigeNextPayingStage(state, tuning);
+			Assert.Greater(pointed, state.BestStage, "여태 간 곳보다 얕은 곳을 가리킨다");
+
+			// 한 칸 앞에서는 아직 0 이어야 하고, 짚은 자리에서는 값어치가 생겨야 한다.
+			state.Stage = pointed - 1;
+			state.BestStage = state.Stage > state.BestStage ? state.Stage : state.BestStage;
+			Assert.AreEqual(0L, IdleModel.PrestigeAwardFor(state, tuning),
+				"짚은 자리보다 얕은데도 값어치가 있다 — 너무 깊이 가라고 한 것이다");
+
+			state.Stage = pointed;
+			state.BestStage = pointed;
+			Assert.Greater(IdleModel.PrestigeAwardFor(state, tuning), 0L,
+				"짚은 자리까지 갔는데 값어치가 없다 — 거짓말을 한 것이다");
+		}
 }
 }
