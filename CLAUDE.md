@@ -1,6 +1,6 @@
 # WitchMendokusai — AI 에이전트 작업 지침
 
-> Claude Code 자동 로드용 호환 문서다. 세계관 = `memo/CLAUDE.md`. 상세 워크플로 = `memo/wm/` 및 `WitchMendokusai/docs/`.
+> Claude Code 자동 로드용 호환 문서다. 세계관 = `memo/CLAUDE.md`. 상세 워크플로 = `memo/wm/`.
 
 ## 입력 처리
 
