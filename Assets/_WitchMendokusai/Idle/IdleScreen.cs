@@ -1515,9 +1515,14 @@ namespace WitchMendokusai
 				double cost = IdleGear.AppraiseCost(tier, session.Tuning);
 
 				// 못 누르는 이유를 버튼이 직접 말한다 — 회색만 되면 「고장인가」로 읽힌다.
-				bool tooLow = tier < 2;
-				bool nothingToAppraise = count <= 0L;
-				bool tooPoor = snapshot.Resource < cost;
+				// ★ <b>판정은 코어가 한다</b>. 전에는 화면이 이 셋을 자기가 베껴 봤는데,
+				//   그러면 코어가 규칙을 바꿀 때 버튼은 켜져 있고 눌러도 아무 일이 안 난다.
+				AppraiseBlock why =
+					IdlePotentials.WhyNot(session.State, session.Tuning, tier);
+
+				bool tooLow = why == AppraiseBlock.TierTooLow;
+				bool nothingToAppraise = why == AppraiseBlock.NothingDropped;
+				bool tooPoor = why == AppraiseBlock.TooPoor;
 
 				appraiseButtons[tier - 1].text = tooLow
 					? string.Format("{0}{1}  {2}개 — 잠재 없음 (2등급부터)",
@@ -1537,7 +1542,7 @@ namespace WitchMendokusai
 								IdlePotentials.FloorOf(IdlePotentials.GradeFor(tier), session.Tuning),
 								IdlePotentials.CeilingOf(IdlePotentials.GradeFor(tier), session.Tuning));
 
-				appraiseButtons[tier - 1].SetEnabled(tooLow == false && nothingToAppraise == false && tooPoor == false);
+				appraiseButtons[tier - 1].SetEnabled(why == AppraiseBlock.None);
 			}
 		}
 

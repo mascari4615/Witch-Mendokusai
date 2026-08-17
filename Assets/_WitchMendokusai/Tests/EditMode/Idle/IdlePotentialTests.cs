@@ -281,5 +281,48 @@ namespace WitchMendokusai.Tests
 			Assert.IsTrue(state.Bag[0].IsRaw,
 				"가방의 것이 감정됐다 — U7 이 ⓐ 로 정해졌다면 이 시험을 고쳐라(반대면 회귀다)");
 		}
+
+		/// <summary>
+		/// ★ 「왜 감정을 못 하나」는 <b>한 자리에서만</b> 판정한다 — 화면이 베끼면 거짓말이 된다.
+		///
+		/// 전에는 화면이 세 조건(1등급 · 안 떨어짐 · 자원 부족)을 자기가 베껴 봤다.
+		/// 코어가 규칙을 바꾸면 버튼은 켜져 있는데 눌러도 아무 일이 안 나는 상태가 된다.
+		/// </summary>
+		[Test]
+		public void TheReasonYouCantAppraise_ComesFromOnePlace()
+		{
+			IdleTuning tuning = new IdleTuning();
+			IdleState state = new IdleState();
+			state.EnsureTierRoom(6);
+
+			Assert.AreEqual(AppraiseBlock.TierTooLow, IdlePotentials.WhyNot(state, tuning, 1),
+				"1등급엔 잠재가 안 붙는데 다른 이유를 댄다");
+
+			Assert.AreEqual(AppraiseBlock.NothingDropped, IdlePotentials.WhyNot(state, tuning, 3),
+				"아직 안 떨어졌는데 다른 이유를 댄다");
+
+			state.DroppedByTier[2] = 2L;
+			Assert.AreEqual(AppraiseBlock.TooPoor, IdlePotentials.WhyNot(state, tuning, 3),
+				"자원이 0 인데 할 수 있다고 한다");
+
+			state.Resource = 1e12d;
+			Assert.AreEqual(AppraiseBlock.None, IdlePotentials.WhyNot(state, tuning, 3));
+		}
+
+		/// <summary>★ <b>막힌 이유가 있으면</b> 감정도 안 된다 — 둘이 같은 답을 쓴다.</summary>
+		[Test]
+		public void WhenBlocked_AppraisingDoesNothing()
+		{
+			IdleTuning tuning = new IdleTuning();
+			IdleState state = new IdleState();
+			state.EnsureTierRoom(6);
+			state.DroppedByTier[2] = 1L;
+			state.Resource = 0d;
+
+			Assert.AreNotEqual(AppraiseBlock.None, IdlePotentials.WhyNot(state, tuning, 3));
+			Assert.IsFalse(IdlePotentials.TryAppraise(state, tuning, 3, out PotentialRoll _),
+				"막혔다고 해 놓고 감정은 된다 — 둘이 다른 규칙을 쓰고 있다");
+			Assert.AreEqual(1L, state.DroppedByTier[2], "안 됐는데 개수가 줄었다");
+		}
 	}
 }

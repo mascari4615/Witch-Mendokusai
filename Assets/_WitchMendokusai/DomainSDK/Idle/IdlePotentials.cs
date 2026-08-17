@@ -55,6 +55,36 @@ namespace WitchMendokusai.DomainSDK.Idle
             return PotentialGrade.Legendary;
         }
 
+        /// <summary>
+        /// 지금 이 등급을 감정할 수 있나 — 못 하면 <b>왜</b>.
+        ///
+        /// ★ 거절 조건이 두 벌이 되면 화면만 거짓말을 한다. 전에는 화면이 이 셋을
+        ///   자기가 베껴 판정했다 — 코어가 규칙을 바꾸면 버튼은 켜져 있는데 눌러도
+        ///   아무 일이 안 일어나는 상태가 된다. <see cref="TryAppraise"/> 도 이 답을 쓴다.
+        /// </summary>
+        public static AppraiseBlock WhyNot(IdleState state, IdleTuning tuning, int tier)
+        {
+            if (GradeFor(tier) == PotentialGrade.None)
+            {
+                return AppraiseBlock.TierTooLow;
+            }
+
+            int slot = tier - 1;
+            if (slot < 0 || slot >= state.DroppedByTier.Length || state.DroppedByTier[slot] <= 0L)
+            {
+                return AppraiseBlock.NothingDropped;
+            }
+
+            // ★ 자원이 든다 — 공짜면 「올릴까 감정할까」가 결정이 아니다.
+            //   기지가 낸 자원과 모험이 가져온 장비가 <b>같은 저울</b>에 올라가는 자리가 여기다.
+            if (state.Resource < IdleGear.AppraiseCost(tier, tuning))
+            {
+                return AppraiseBlock.TooPoor;
+            }
+
+            return AppraiseBlock.None;
+        }
+
         /// <summary>이 등급이 낼 수 있는 가장 낮은 값.</summary>
         public static double FloorOf(PotentialGrade grade, IdleTuning tuning)
         {
@@ -90,28 +120,16 @@ namespace WitchMendokusai.DomainSDK.Idle
         {
             roll = default;
 
+            if (WhyNot(state, tuning, tier) != AppraiseBlock.None)
+            {
+                return false;
+            }
+
             PotentialGrade grade = GradeFor(tier);
-            if (grade == PotentialGrade.None)
-            {
-                return false;
-            }
-
-            int slot = tier - 1;
-            if (slot < 0 || slot >= state.DroppedByTier.Length || state.DroppedByTier[slot] <= 0L)
-            {
-                return false;
-            }
-
-            // ★ 자원이 든다 — 공짜면 「올릴까 감정할까」가 결정이 아니다.
-            //   기지가 낸 자원과 모험이 가져온 장비가 <b>같은 저울</b>에 올라가는 자리가 여기다.
             double cost = IdleGear.AppraiseCost(tier, tuning);
-            if (state.Resource < cost)
-            {
-                return false;
-            }
 
             state.Resource -= cost;
-            state.DroppedByTier[slot] -= 1L;
+            state.DroppedByTier[tier - 1] -= 1L;
 
             IdleRandom dice = new IdleRandom(state.RandomState);
             double value = dice.NextRange(FloorOf(grade, tuning), CeilingOf(grade, tuning));
@@ -127,6 +145,22 @@ namespace WitchMendokusai.DomainSDK.Idle
             roll = new PotentialRoll(tier, grade, value, better);
             return true;
         }
+    }
+
+    /// <summary>왜 감정을 못 하나 — 화면이 <b>이유를 말할</b> 재료.</summary>
+    public enum AppraiseBlock
+    {
+        /// <summary>할 수 있다.</summary>
+        None = 0,
+
+        /// <summary>1등급엔 잠재가 안 붙는다.</summary>
+        TierTooLow = 1,
+
+        /// <summary>그 등급이 아직 안 떨어졌다.</summary>
+        NothingDropped = 2,
+
+        /// <summary>자원이 모자란다.</summary>
+        TooPoor = 3,
     }
 
     /// <summary>한 번 감정한 결과 — 화면이 「무엇이 나왔나」를 보여줄 재료.</summary>
