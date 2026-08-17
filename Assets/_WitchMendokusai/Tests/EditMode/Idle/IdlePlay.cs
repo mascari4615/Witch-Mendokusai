@@ -55,31 +55,16 @@ namespace WitchMendokusai.Tests
 			}
 		}
 
-		/// <summary>용병 — 살 수 있으면 싼 축부터.</summary>
+		/// <summary>
+		/// 용병 — 살 수 있으면 싼 축부터.
+		///
+		/// ★ 규칙은 <b>코어에 있다</b>(<see cref="IdleModel.RaiseAsManyAsAfforded"/>).
+		///   전에는 이 규칙이 시험에만 있고 게임에는 없었다 — 그러면 사람은 시험보다 못한 판을 논다.
+		///   게임에 올린 뒤로는 여기서 그걸 부른다. 두 벌로 두면 언젠가 갈린다.
+		/// </summary>
 		public static void BuyUpgrades(IdleState state, IdleTuning tuning)
 		{
-			while (true)
-			{
-				bool hasDamage = IdleModel.TryGetNextCost(state, tuning, IdleUpgradeKind.Damage, out double damageCost);
-				bool hasSpeed = IdleModel.TryGetNextCost(state, tuning, IdleUpgradeKind.AttackSpeed, out double speedCost);
-
-				bool canDamage = hasDamage && damageCost <= state.Resource;
-				bool canSpeed = hasSpeed && speedCost <= state.Resource;
-
-				if (canDamage == false && canSpeed == false)
-				{
-					return;
-				}
-
-				IdleUpgradeKind pick = canDamage && (canSpeed == false || damageCost <= speedCost)
-					? IdleUpgradeKind.Damage
-					: IdleUpgradeKind.AttackSpeed;
-
-				if (IdleModel.TryRaise(state, tuning, pick, out _) == false)
-				{
-					return;
-				}
-			}
+			IdleModel.RaiseAsManyAsAfforded(state, tuning, int.MaxValue);
 		}
 
 		/// <summary>

@@ -421,6 +421,46 @@ namespace WitchMendokusai.DomainSDK.Idle
             return true;
         }
 
+        /// <summary>
+        /// 살 수 있는 만큼 <b>싼 축부터</b> 올린다 — 몇 번 올렸는지 돌려준다 (TASK-WM-406).
+        ///
+        /// ★ 생산자에만 몰아 사기를 두면 절반짜리다 — 강화도 중반부터 같은 노동이 된다.
+        ///   판단(무엇을 올릴까)은 그대로 두고 손가락 일만 덜어낸다.
+        /// ★ 싼 축부터 = 같은 자원으로 가장 많이 올리는 순서. 시험(IdlePlay)이 쓰던 규칙 그대로다 —
+        ///   규칙이 시험에만 있고 게임에는 없으면, 사람은 시험보다 못한 판을 논다.
+        /// </summary>
+        public static int RaiseAsManyAsAfforded(IdleState state, IdleTuning tuning, int most)
+        {
+            int raised = 0;
+
+            while (raised < most)
+            {
+                bool hasDamage = TryGetNextCost(state, tuning, IdleUpgradeKind.Damage, out double damageCost);
+                bool hasSpeed = TryGetNextCost(state, tuning, IdleUpgradeKind.AttackSpeed, out double speedCost);
+
+                bool canDamage = hasDamage && damageCost <= state.Resource;
+                bool canSpeed = hasSpeed && speedCost <= state.Resource;
+
+                if (canDamage == false && canSpeed == false)
+                {
+                    break;
+                }
+
+                IdleUpgradeKind pick = canDamage && (canSpeed == false || damageCost <= speedCost)
+                    ? IdleUpgradeKind.Damage
+                    : IdleUpgradeKind.AttackSpeed;
+
+                if (TryRaise(state, tuning, pick, out UpgradeRaiseFailure _) == false)
+                {
+                    break;
+                }
+
+                raised++;
+            }
+
+            return raised;
+        }
+
         /// <summary>모은 자원으로 한 축을 올린다. 성공하면 자원이 줄어든다.</summary>
         public static bool TryRaise(IdleState state, IdleTuning tuning, IdleUpgradeKind kind, out UpgradeRaiseFailure failure)
         {

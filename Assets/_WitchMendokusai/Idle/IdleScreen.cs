@@ -156,6 +156,7 @@ namespace WitchMendokusai
 		private Label speedTitle;
 		private Label speedValue;
 		private Button speedButton;
+		private Button bulkRaiseButton;
 		private Button retreatButton;
 		private Button holdButton;
 
@@ -927,6 +928,10 @@ namespace WitchMendokusai
 
 			AddDivider(upgradePage);
 
+			bulkRaiseButton = AddButton(upgradePage, "idle-button", RaiseMany);
+
+			AddDivider(upgradePage);
+
 			retreatButton = AddButton(upgradePage, "idle-button", Retreat);
 			holdButton = AddButton(upgradePage, "idle-button", ToggleHold);
 		}
@@ -1386,6 +1391,11 @@ namespace WitchMendokusai
 			DrawUpgrade(snapshot.Damage, damageTitle, damageValue, damageButton, "공격력", "한 방 {0}");
 			DrawUpgrade(snapshot.AttackSpeed, speedTitle, speedValue, speedButton, "공격속도", "초당 {0}회");
 
+			bool canRaise = snapshot.Damage.CanAfford || snapshot.AttackSpeed.CanAfford;
+			bulkRaiseButton.text = canRaise ? "싼 축부터 올릴 수 있는 만큼 올린다" : "올릴 수 있는 게 없다";
+			bulkRaiseButton.SetEnabled(canRaise);
+			bulkRaiseButton.EnableInClassList("idle-button--ready", canRaise);
+
 			bool canRetreat = snapshot.Stage > snapshot.BestFarmingStage;
 			retreatButton.text = canRetreat
 				? string.Format("◀ {0}단계로 물러나 번다", snapshot.BestFarmingStage)
@@ -1802,6 +1812,29 @@ namespace WitchMendokusai
 				}
 			}
 
+			Render(session.Capture());
+		}
+
+		/// <summary>올릴 수 있는 만큼 몰아 올린다.</summary>
+		private void RaiseMany()
+		{
+			int raised = session.RaiseAsManyAsAfforded();
+			if (raised <= 0)
+			{
+				return;
+			}
+
+			sound.Click();
+			Shake(0.3f);
+
+			for (int index = 0; index < heroes.Count; index++)
+			{
+				heroes[index].Hit();
+			}
+
+			SayOnce(damageValue, string.Format("{0}번을 한 번에 올렸다", raised));
+
+			WriteDown();
 			Render(session.Capture());
 		}
 

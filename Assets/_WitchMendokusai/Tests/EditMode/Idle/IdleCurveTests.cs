@@ -150,5 +150,63 @@ namespace WitchMendokusai.Tests
 
 			return string.Format("{0}시간", (int)(seconds / 3600d));
 		}
+
+		/// <summary>
+		/// ★ 몰아 올리기가 <b>하나씩 올린 것과 같은 결과</b>를 낸다 (TASK-WM-406).
+		///
+		/// 다르면 편의가 아니라 다른 게임이다. 그리고 상한을 지켜야 한다 —
+		/// 한 번 누르는 데 몇 초가 걸리면 그건 편해진 게 아니라 멈춘 것이다.
+		/// </summary>
+		[Test]
+		public void RaisingInBulk_MatchesOneByOne()
+		{
+			IdleTuning tuning = new IdleTuning();
+
+			IdleState oneByOne = new IdleState();
+			oneByOne.Resource = 20000d;
+
+			IdleState bulk = new IdleState();
+			bulk.Resource = 20000d;
+
+			// 하나씩 — 싼 축부터, 더 못 올릴 때까지.
+			while (true)
+			{
+				bool hasDamage = IdleModel.TryGetNextCost(oneByOne, tuning, IdleUpgradeKind.Damage, out double damageCost);
+				bool hasSpeed = IdleModel.TryGetNextCost(oneByOne, tuning, IdleUpgradeKind.AttackSpeed, out double speedCost);
+
+				bool canDamage = hasDamage && damageCost <= oneByOne.Resource;
+				bool canSpeed = hasSpeed && speedCost <= oneByOne.Resource;
+
+				if (canDamage == false && canSpeed == false)
+				{
+					break;
+				}
+
+				IdleUpgradeKind pick = canDamage && (canSpeed == false || damageCost <= speedCost)
+					? IdleUpgradeKind.Damage
+					: IdleUpgradeKind.AttackSpeed;
+
+				IdleModel.TryRaise(oneByOne, tuning, pick, out UpgradeRaiseFailure _);
+			}
+
+			IdleModel.RaiseAsManyAsAfforded(bulk, tuning, int.MaxValue);
+
+			Assert.AreEqual(oneByOne.Damage.Level, bulk.Damage.Level, "공격력 레벨이 다르다");
+			Assert.AreEqual(oneByOne.AttackSpeed.Level, bulk.AttackSpeed.Level, "속도 레벨이 다르다");
+			Assert.AreEqual(oneByOne.Resource, bulk.Resource, 1e-6d, "쓴 자원이 다르다");
+		}
+
+		/// <summary>★ 몰아 올리기도 상한을 지킨다.</summary>
+		[Test]
+		public void RaisingInBulk_StopsAtTheCap()
+		{
+			IdleTuning tuning = new IdleTuning();
+			IdleState state = new IdleState();
+			state.Resource = 1e12d;
+
+			int raised = IdleModel.RaiseAsManyAsAfforded(state, tuning, 4);
+
+			Assert.AreEqual(4, raised, "상한을 안 지켰다");
+		}
 	}
 }
