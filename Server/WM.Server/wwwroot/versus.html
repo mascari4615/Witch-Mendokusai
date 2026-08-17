@@ -154,6 +154,10 @@ async function bootJudgment() {
 		bridge = exports.WitchMendokusai.Wasm.VersusBridge;
 		bridge.Open(0);
 		hintPanel.textContent += ' · 판정이 이 창에서 돈다(즉시 반응)';
+
+		// 밖에서도 상태를 볼 수 있게 열어 둔다 — 「돈다」와 「그린다」가 갈릴 때 여기부터 본다.
+		globalThis.wmVersus = bridge;
+		console.log('[wm-versus] 판정이 브라우저에 올라왔다');
 	} catch (error) {
 		// 못 구웠거나 아직 배포 안 됐을 때 — 조용히 예전 길로 간다.
 		console.warn('[versus] 판정을 브라우저에 못 올렸다 — 서버 그림만 그린다', error);
@@ -297,26 +301,40 @@ function sendInput() {
 // 브라우저 판정이 있으면 매 프레임 그쪽 판을 읽어 그린다(60Hz · 즉시 반응).
 let predictedView = null;
 
+let diagnosedAt = 0;
+
 function pullPredicted() {
 	if (!bridge) return;
 
 	bridge.Pump();
 	const text = bridge.DrawState();
 	predictedView = text ? JSON.parse(text) : null;
+
+	// 1초에 한 번만 — 「판정은 도는데 판이 안 뜬다」를 추측이 아니라 값으로 가른다.
+	const now = performance.now();
+	if (now - diagnosedAt > 1000) {
+		diagnosedAt = now;
+		console.log('[wm-versus] 그릴 것 =', text ? text.length : 0, '글자 · 알림 =', bridge.HudState().slice(0, 120));
+	}
 }
 
 function draw() {
 	pullPredicted();
 
-	if (bridge && predictedView) {
-		drawFrom(predictedView, 1, null);
-		return;
-	}
-
+	// 캔버스 준비는 <b>어느 길로 가든</b> 먼저 한다 — 안 그러면 화면이 통째로 안 지워지거나
+	// 크기가 0 이라 아무것도 안 보인다(2026-08-17 실측: 판정은 도는데 판이 까맣게만 떴다).
 	board.width = innerWidth * devicePixelRatio;
 	board.height = innerHeight * devicePixelRatio;
 	context.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--ground');
 	context.fillRect(0, 0, board.width, board.height);
+
+	// 판정이 이 창에 있으면 미리 굴린 판을 그대로 그린다(보간 불요 — 이미 60Hz 다).
+	if (bridge && predictedView) {
+		arena = arena ?? { halfWidth: predictedView.halfWidth, halfDepth: predictedView.halfDepth, roundsToWin: 5 };
+		seat = predictedView.seat;
+		drawFrom(predictedView, 1, null);
+		return;
+	}
 
 	if (arena === null || currentState === null) return;
 

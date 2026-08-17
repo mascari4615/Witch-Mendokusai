@@ -46,12 +46,14 @@ namespace WitchMendokusai.Wasm
 		}
 	}
 
-	/// <summary> 브라우저가 쓰는 글자 변환기 — 서버와 같은 도구(System.Text.Json). </summary>
+	/// <summary>
+	/// 브라우저가 쓰는 글자 변환기 — <b>소스 생성</b> 표(<see cref="VersusJsonContext"/>)를 쓴다.
+	/// 리플렉션이 필요 없어 웹어셈블리에서 그대로 돈다(설정으로 되살리는 우회 없이).
+	/// </summary>
 	public sealed class JsonVersusCodec : IVersusCodec
 	{
-		private static readonly JsonSerializerOptions Options = new JsonSerializerOptions { IncludeFields = true };
-
-		public string Encode(object message) => JsonSerializer.Serialize(message, message.GetType(), Options);
+		public string Encode(object message) =>
+			JsonSerializer.Serialize(message, message.GetType(), VersusJsonContext.Default);
 
 		public string TypeOf(string message)
 		{
@@ -70,7 +72,7 @@ namespace WitchMendokusai.Wasm
 		{
 			try
 			{
-				return JsonSerializer.Deserialize<T>(message, Options);
+				return JsonSerializer.Deserialize(message, typeof(T), VersusJsonContext.Default) as T;
 			}
 			catch (JsonException)
 			{
