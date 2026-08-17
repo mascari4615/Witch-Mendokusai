@@ -15,11 +15,9 @@ namespace WitchMendokusai
 	/// ★ 이 파일에 게임 규칙이 한 줄도 없다 — 사진을 받아 그리고, 의도를 보낸다.
 	///   에디터 창과 같은 코어·같은 계약이고 다른 것은 그릇뿐이다.
 	///
-	/// ★ 짜임 (사용자 컨펌 2026-08-16): 위 요약 띠 · 가운데 <b>실황 셋</b>(기지·전투·창고) ·
-	///   아래 <b>조작 서랍</b>(한 번에 한 묶음).
-	///   전에는 실황이 <b>전투 하나뿐</b>이었고 기지·창고는 버튼 더미였다. 그래서
-	///   ① 기지가 도는 게 안 보이고 ② 오른쪽 한 칸에 세 묶음이 쌓여 서로 겹쳤다.
-	///   실황과 조작을 <b>층으로 가른다</b> — 보는 것은 위, 만지는 것은 아래.
+	/// ★ 짜임 (사용자 2026-08-17): 위 요약 띠 · 가운데 <b>실황 셋</b>.
+	///   사는 곳은 그 칸 위. 하단 5탭 서랍은 버렸다 — 눈이랑 손이 갈렸다.
+	///   영웅 장은 파티를 누르면 연다. 환생은 윗줄.
 	///
 	/// ★ 보이는 것은 <b>기하학적 도형</b>이다(사용자 방향: 세계관 정하기 전).
 	///   규칙 하나로 읽힌다 — <b>변의 수 = 등급</b>. 1등급 삼각형 … 8등급 십각형.
@@ -110,23 +108,9 @@ namespace WitchMendokusai
 		private readonly List<NgonElement> vaultCells = new List<NgonElement>();
 		private Label vaultLabel;
 
-		// ── 조작 서랍 ───────────────────────────────────────────────────────
-		private readonly List<Button> tabButtons = new List<Button>();
-
-		/// <summary>서랍 칸 이름 — <see cref="IdleTab"/> 과 <b>순서가 같아야 한다</b>.</summary>
-		private static readonly string[] TAB_NAMES = { "기지", "강화", "장비", "영웅", "환생" };
-
-		/// <summary>
-		/// 점이 찍힌 이름 — <b>미리 지어 둔다</b>.
-		///
-		/// 점은 매 프레임 다시 그리는데, 그때마다 이름 + " ●" 를 <b>새로 이어 붙이면</b>
-		/// 프레임마다 글자 다섯 개가 새로 생긴다. 밤새 켜 두는 게임에서 그건 그대로 쌓인다.
-		/// (안내·서랍 점의 <b>판정</b> 쪽은 이미 0 바이트다 — 재서 확인했다.)
-		/// </summary>
-		private static readonly string[] TAB_NAMES_DOT = { "기지 ●", "강화 ●", "장비 ●", "영웅 ●", "환생 ●" };
-
-		/// <summary>지금 열려 있는 칸 — 열린 칸에는 점을 안 찍는다.</summary>
-		private int shownTab;
+		// ── 칸에 붙은 조작 · 영웅 장 ────────────────────────────────────────
+		private VisualElement heroSheet;
+		private bool heroSheetOpen;
 
 		/// <summary>합칠 것을 세는 판 — 매 프레임 새로 만들지 않는다.</summary>
 		private int[] mergeCounts;
@@ -141,7 +125,6 @@ namespace WitchMendokusai
 
 		/// <summary>부위가 <b>무엇을 올리나</b> — 차림 줄에만 쓴다.</summary>
 		private static readonly string[] SLOT_ROLES = { "머리(공격력)", "몸(기지)", "손(속도)", "발(떨구기)" };
-		private readonly List<VisualElement> pages = new List<VisualElement>();
 
 		private VisualElement basePage;
 		private readonly List<Button> producerButtons = new List<Button>();
@@ -777,9 +760,7 @@ namespace WitchMendokusai
 			BuildBaseLive(stages);
 			BuildArena(stages);
 			BuildVaultLive(stages);
-
-			// ★ 아래층 = <b>만지는 것</b>. 한 번에 한 묶음만 편다.
-			BuildDrawer(shell);
+			BuildHeroSheet(shell);
 		}
 
 		private void BuildTopBar(VisualElement parent, IdleAwayReport away)
@@ -791,6 +772,9 @@ namespace WitchMendokusai
 			stageLabel = AddLabel(bar, "idle-top-stage");
 			resourceLabel = AddLabel(bar, "idle-top-resource");
 			topNoteLabel = AddLabel(bar, "idle-top-note");
+			prestigeButton = AddButton(bar, "idle-prestige", Prestige);
+			foldSummary = AddLabel(bar, "idle-top-note");
+			foldSummary.style.display = DisplayStyle.None;
 			guideLabel = AddLabel(parent, "idle-guide");
 
 			// ★ 돌아온 순간이 방치형의 보상이다 — <b>얼마나</b> 벌었는지 말한다.
@@ -823,7 +807,7 @@ namespace WitchMendokusai
 			live.AddToClassList("idle-live");
 			parent.Add(live);
 
-			AddLabel(live, "idle-live-title").text = "기지";
+			AddLabel(live, "idle-live-title").text = "기지 · 시간이 돈을 냄";
 
 			baseMotes = new MoteStreamElement();
 			baseMotes.AddToClassList("idle-backdrop");
@@ -841,25 +825,12 @@ namespace WitchMendokusai
 
 			baseLiveLabel = AddLabel(top, "idle-live-note");
 
-			VisualElement spacer = new VisualElement();
-			spacer.AddToClassList("idle-spacer");
-			live.Add(spacer);
+			ScrollView shop = new ScrollView();
+			shop.AddToClassList("idle-shop");
+			live.Add(shop);
 
-			VisualElement strip = new VisualElement();
-			strip.AddToClassList("idle-producer-strip");
-			live.Add(strip);
-
-			baseShapes.Clear();
-
-			for (int kind = 0; kind < 8; kind++)
-			{
-				NgonElement shape = new NgonElement();
-				shape.AddToClassList("idle-strip-shape");
-				shape.Sides = SidesFor(kind + 1);
-				shape.Body = TierColor(kind + 1);
-				strip.Add(shape);
-				baseShapes.Add(shape);
-			}
+			basePage = AddPage(shop);
+			BuildBasePage();
 		}
 
 		private void BuildArena(VisualElement parent)
@@ -941,6 +912,10 @@ namespace WitchMendokusai
 			arenaBox = box;
 			floats = new FloatTextLayer(box);
 
+			upgradePage = AddPage(arena);
+			BuildUpgradePage();
+			BuildPartyRow(arena);
+
 			// ★ <b>판 전체가 누르는 것</b>이다 (사용자 지적: 「전혀 클리커스럽지 않다」).
 			//   쿠키 클리커의 심장은 큰 버튼이다. 작은 버튼을 따로 두면 그건 <b>또 하나의 목록</b>이고,
 			//   손이 가는 곳(적이 있는 자리)과 누르는 곳이 갈라진다.
@@ -954,7 +929,7 @@ namespace WitchMendokusai
 			live.AddToClassList("idle-live");
 			parent.Add(live);
 
-			AddLabel(live, "idle-live-title").text = "창고";
+			AddLabel(live, "idle-live-title").text = "창고 · 칸을 눌러 찬다";
 
 			vaultMotes = new MoteStreamElement();
 			vaultMotes.AddToClassList("idle-backdrop");
@@ -969,74 +944,98 @@ namespace WitchMendokusai
 
 			for (int index = 0; index < 40; index++)
 			{
+				int captured = index;
 				NgonElement cell = new NgonElement();
 				cell.AddToClassList("idle-vault-cell");
+				cell.RegisterCallback<PointerDownEvent>(_ => Equip(captured));
 				grid.Add(cell);
 				vaultCells.Add(cell);
 			}
+
+			ScrollView shop = new ScrollView();
+			shop.AddToClassList("idle-shop");
+			live.Add(shop);
+			gearPage = AddPage(shop);
+			BuildGearPage();
 		}
 
-		/// <summary>
-		/// 조작 서랍 — <b>한 번에 한 묶음</b>.
-		///
-		/// ★ 전에는 강화·장비·환생 셋을 한 칸에 세로로 쌓았다. 그래서 스크롤 없이 겹쳤고
-		///   「뭐가 뭔지 모르겠다」가 됐다. 탭은 화면을 아끼려는 게 아니라
-		///   <b>지금 무엇을 하는 중인지</b>를 하나로 만드는 장치다.
-		/// </summary>
-		private void BuildDrawer(VisualElement parent)
+		/// <summary>영웅 장 — 파티를 누르면 연다. 상주 탭이 아니다.</summary>
+		private void BuildHeroSheet(VisualElement parent)
 		{
-			VisualElement drawer = new VisualElement();
-			drawer.AddToClassList("idle-drawer");
-			parent.Add(drawer);
+			heroSheet = new VisualElement();
+			heroSheet.AddToClassList("idle-hero-sheet");
+			heroSheet.style.display = DisplayStyle.None;
+			parent.Add(heroSheet);
 
-			VisualElement tabs = new VisualElement();
-			tabs.AddToClassList("idle-tabs");
-			drawer.Add(tabs);
+			VisualElement head = new VisualElement();
+			head.AddToClassList("idle-hero-sheet-head");
+			heroSheet.Add(head);
+			AddLabel(head, "idle-live-title").text = "영웅";
+			AddButton(head, "idle-button", CloseHeroSheet).text = "닫기";
 
 			ScrollView body = new ScrollView();
-			body.AddToClassList("idle-drawer-body");
-			drawer.Add(body);
-
-			basePage = AddPage(body);
-			upgradePage = AddPage(body);
-			gearPage = AddPage(body);
+			body.AddToClassList("idle-shop");
+			heroSheet.Add(body);
 			heroPage = AddPage(body);
-			foldPage = AddPage(body);
-
-			pages.Clear();
-			pages.Add(basePage);
-			pages.Add(upgradePage);
-			pages.Add(gearPage);
-			pages.Add(heroPage);
-			pages.Add(foldPage);
-
-			tabButtons.Clear();
-
-			for (int index = 0; index < TAB_NAMES.Length; index++)
-			{
-				int captured = index;
-				Button tab = AddButton(tabs, "idle-tab", () => ShowTab(captured));
-				tab.text = TAB_NAMES[index];
-				tabButtons.Add(tab);
-			}
-
-			BuildBasePage();
-			BuildUpgradePage();
-			BuildGearPage();
 			BuildHeroPage();
-			BuildFoldPage();
-
-			ShowTab(0);
 		}
 
-		private void ShowTab(int which)
+		private void OpenHeroSheet()
 		{
-			shownTab = which;
-
-			for (int index = 0; index < pages.Count; index++)
+			if (heroSheet == null)
 			{
-				pages[index].style.display = index == which ? DisplayStyle.Flex : DisplayStyle.None;
-				tabButtons[index].EnableInClassList("idle-tab--on", index == which);
+				return;
+			}
+
+			heroSheetOpen = true;
+			heroSheet.style.display = DisplayStyle.Flex;
+		}
+
+		private void CloseHeroSheet()
+		{
+			if (heroSheet == null)
+			{
+				return;
+			}
+
+			heroSheetOpen = false;
+			heroSheet.style.display = DisplayStyle.None;
+			seatBeingFilled = -1;
+			pendingHeroId = -1;
+		}
+
+		/// <summary>전투 칸의 셋 — 누르면 영웅 장을 연다.</summary>
+		private void BuildPartyRow(VisualElement parent)
+		{
+			partyRow = new VisualElement();
+			partyRow.AddToClassList("idle-party-row");
+			parent.Add(partyRow);
+			partyButtons.Clear();
+			partyShapes.Clear();
+
+			for (int slot = 0; slot < 3; slot++)
+			{
+				int captured = slot;
+
+				VisualElement seat = new VisualElement();
+				seat.AddToClassList("idle-seat");
+				partyRow.Add(seat);
+
+				NgonElement shape = new NgonElement();
+				shape.AddToClassList("idle-seat-shape");
+				seat.Add(shape);
+				partyShapes.Add(shape);
+				decor.Add(shape);
+
+				Button button = new Button(() =>
+				{
+					OpenHeroSheet();
+					BeginSeat(captured);
+				});
+				button.AddToClassList("idle-button");
+				button.AddToClassList("idle-seat-button");
+				seat.Add(button);
+				partyButtons.Add(button);
 			}
 		}
 
@@ -1126,34 +1125,7 @@ namespace WitchMendokusai
 			pullNote = AddLabel(heroPage, "idle-note");
 
 			AddDivider(heroPage);
-			AddLabel(heroPage, "idle-row-value").text = "내보낸 셋 — 눌러서 바꾼다";
-
-			partyRow = new VisualElement();
-			partyRow.AddToClassList("idle-party-row");
-			heroPage.Add(partyRow);
-			partyButtons.Clear();
-			partyShapes.Clear();
-
-			for (int slot = 0; slot < 3; slot++)
-			{
-				int captured = slot;
-
-				VisualElement seat = new VisualElement();
-				seat.AddToClassList("idle-seat");
-				partyRow.Add(seat);
-
-				NgonElement shape = new NgonElement();
-				shape.AddToClassList("idle-seat-shape");
-				seat.Add(shape);
-				partyShapes.Add(shape);
-				decor.Add(shape);
-
-				Button button = new Button(() => BeginSeat(captured));
-				button.AddToClassList("idle-button");
-				button.AddToClassList("idle-seat-button");
-				seat.Add(button);
-				partyButtons.Add(button);
-			}
+			AddLabel(heroPage, "idle-row-value").text = "파티는 전투 칸에서 고른다";
 
 			// ★ 세운 것을 <b>내리는 길</b>이 없었다. 코어는 진작에 할 수 있었는데 화면에 손잡이가
 			//   없어서 한 번 세우면 셋 중 하나를 비워 볼 수가 없었다 — 축을 바꿔 시험할 길이 막힌 것이다.
@@ -1198,52 +1170,14 @@ namespace WitchMendokusai
 			RenderArena(snapshot);
 			RenderBaseLive(snapshot);
 			RenderVaultLive(snapshot);
+			RenderBasePage(snapshot);
+			RenderUpgradePage(snapshot);
+			RenderGearPage(snapshot);
+			RenderFoldPage(snapshot);
 
-			// ★ 서랍은 <b>한 칸만 보인다</b>. 그런데 다섯 칸을 매 프레임 다 그리고 있었다 —
-			//   넷은 안 보이는 채로. 글자를 짓는 일이라 초당 수백 개의 쓰레기가 났고,
-			//   방치형은 <b>오래 켜 두는 것</b>이 기본값이라 그게 그대로 쌓인다.
-			//   칸을 옮기면 다음 프레임에 그려진다(매 프레임 도는 자리라 눈에 안 띈다).
-			switch ((IdleTab)shownTab)
+			if (heroSheetOpen)
 			{
-				case IdleTab.Base:
-					RenderBasePage(snapshot);
-					break;
-
-				case IdleTab.Upgrade:
-					RenderUpgradePage(snapshot);
-					break;
-
-				case IdleTab.Gear:
-					RenderGearPage(snapshot);
-					break;
-
-				case IdleTab.Hero:
-					RenderHeroPage(snapshot);
-					break;
-
-				case IdleTab.Prestige:
-					RenderFoldPage(snapshot);
-					break;
-			}
-
-			RenderTabDots(snapshot);
-		}
-
-		/// <summary>
-		/// 닫힌 칸에 <b>점을 찍는다</b> — 서랍이 만든 빚을 갚는다.
-		///
-		/// 서랍을 들이면서 다섯 칸 중 넷이 늘 안 보이게 됐다. 안 보이는 곳에서 할 수 있는 일이
-		/// 생기면 사람은 그걸 영영 모른다. 판단은 코어가 한다(<see cref="IdleAdvice.HasSomethingToDo"/>) —
-		/// 여기서는 점만 찍는다. 열려 있는 칸에는 안 찍는다(눈앞의 것을 또 가리키는 건 소음이다).
-		/// </summary>
-		private void RenderTabDots(IdleSnapshot snapshot)
-		{
-			for (int index = 0; index < tabButtons.Count; index++)
-			{
-				bool has = index != shownTab
-					&& IdleAdvice.HasSomethingToDo(snapshot, (IdleTab)index);
-
-				tabButtons[index].text = has ? TAB_NAMES_DOT[index] : TAB_NAMES[index];
+				RenderHeroPage(snapshot);
 			}
 		}
 
@@ -1271,27 +1205,25 @@ namespace WitchMendokusai
 						(long)advice.Amount);
 
 				case IdleStep.Wear:
-					return "▶ 장비 탭 — 가방에 더 좋은 것이 있다 (차는 데는 아무것도 안 든다)";
+					return "▶ 오른쪽 창고 — 가방에 더 좋은 것이 있다 (칸을 눌러 찬다)";
 
 				case IdleStep.Seat:
-					return "▶ 영웅 탭 — 자리가 비었다 (앉히는 데는 아무것도 안 든다)";
+					return "▶ 전투 아래 파티 — 자리가 비었다 (누르면 영웅 장)";
 
 				case IdleStep.Pull:
-					return "▶ 영웅 탭 — 뽑을 수 있다 (안 내보내도 들고만 있으면 세진다)";
+					return "▶ 파티를 눌러 영웅 장 — 뽑을 수 있다";
 
 				case IdleStep.Merge:
-					// 몇 벌인지 말한다 — 「합칠 수 있다」만으로는 한 번 누르고 끝낼지
-					// 서랍을 열어 볼지가 안 정해진다.
 					return advice.Amount > 1d
-						? string.Format("▶ 장비 탭 — {0}벌을 한 단계 위로 합칠 수 있다", (int)advice.Amount)
-						: "▶ 장비 탭 — 같은 것 셋을 한 단계 위로 합칠 수 있다";
+						? string.Format("▶ 오른쪽 창고 — {0}벌을 한 단계 위로 합칠 수 있다", (int)advice.Amount)
+						: "▶ 오른쪽 창고 — 같은 것 셋을 한 단계 위로 합칠 수 있다";
 
 				case IdleStep.BuyProducer:
-					return string.Format("▶ 기지 탭 — {0}번 생산자를 살 수 있다 (수입 +{1:P0})",
+					return string.Format("▶ 왼쪽 기지 — {0}번 생산자를 살 수 있다 (수입 +{1:P0})",
 						advice.Subject + 1, advice.Amount - 1d);
 
 				case IdleStep.Raise:
-					return "▶ 강화 탭 — 올릴 수 있다";
+					return "▶ 전투 아래 — 세기나 빠르기를 올릴 수 있다";
 
 				case IdleStep.Tap:
 					return "▶ 판을 눌러 때린다 — 지금은 손이 제일 빠르다";
@@ -2049,6 +1981,8 @@ namespace WitchMendokusai
 				: string.Format("환생한다 — {0}단계까지 내려가야 값어치가 생긴다 (지금 가장 깊이 {1})",
 					snapshot.PrestigeNextStage, snapshot.BestStage);
 			prestigeButton.SetEnabled(snapshot.PrestigeAward > 0L);
+			prestigeButton.tooltip = foldSummary.text;
+			prestigeButton.EnableInClassList("idle-button--ready", snapshot.PrestigeAward > 0L);
 		}
 
 		// ── 의도 ────────────────────────────────────────────────────────────

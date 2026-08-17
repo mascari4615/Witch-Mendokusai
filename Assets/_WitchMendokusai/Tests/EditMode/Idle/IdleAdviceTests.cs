@@ -442,7 +442,7 @@ namespace WitchMendokusai.Tests
 		public void TheDrawerHasFiveTabs()
 		{
 			Assert.AreEqual(5, System.Enum.GetValues(typeof(IdleTab)).Length,
-				"서랍 칸 수가 바뀌었다 — IdleScreen 의 이름표(TAB_NAMES · TAB_NAMES_DOT)도 같이 고칠 것");
+				"안내 칸 수가 바뀌었다 — IdleAdvice.HasSomethingToDo 의 갈래도 같이 볼 것");
 
 			Assert.AreEqual((int)IdleTab.Prestige, 4, "환생 칸이 마지막이 아니다");
 		}

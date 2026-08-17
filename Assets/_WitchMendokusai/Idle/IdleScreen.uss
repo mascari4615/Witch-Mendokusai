@@ -4,11 +4,7 @@
  * 사용자 방향: 세계관 정하기 전이라 <기하학적 모양>으로 간다.
  * 값이 아니라 뜻으로 이름 짓는다 — 팔레트가 한 자리에 산다.
  *
- * ★ 층이 둘이다 (사용자 컨펌 2026-08-16):
- *     위 = 실황 셋 (기지 · 전투 · 창고) — 계속 움직인다. 만질 것 없음.
- *     아래 = 조작 서랍 — 한 번에 한 묶음만. 넘치면 서랍이 스스로 스크롤한다.
- *   전에는 조작 세 묶음이 한 칸에 세로로 쌓여 서로 겹쳤다. 겹침은 꾸밈 문제가 아니라
- *   <자리가 모자란데 아무도 양보를 안 한> 짜임 문제였다.
+ * ★ 사는 곳은 실황 칸 위 (사용자 2026-08-17). 하단 5탭 서랍은 버렸다.
  *
  * ★ 해상도 — 고정 픽셀 크기를 최소로 쓰고 flex 로 늘린다.
  *   좁은 창에서는 실황 셋이 아래로 접힌다(.idle-stages 의 wrap).
@@ -16,6 +12,7 @@
 
 .idle-root {
 	flex-grow: 1;
+	position: relative;
 	background-color: rgb(14, 15, 20);
 	color: rgb(226, 228, 236);
 }
@@ -69,6 +66,39 @@
 	border-left-width: 1px;
 	border-left-color: rgb(30, 33, 42);
 	overflow: hidden;
+}
+
+.idle-shop {
+	flex-grow: 1;
+	min-height: 72px;
+	margin-top: 8px;
+}
+
+.idle-prestige {
+	margin-left: 12px;
+	height: 28px;
+	padding: 0 10px;
+	font-size: 12px;
+	background-color: rgb(58, 46, 20);
+	color: rgb(240, 193, 75);
+	border-width: 0;
+}
+
+.idle-hero-sheet {
+	position: absolute;
+	left: 0;
+	right: 0;
+	top: 0;
+	bottom: 0;
+	background-color: rgb(11, 12, 16);
+	padding: 14px 18px;
+}
+
+.idle-hero-sheet-head {
+	flex-direction: row;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: 8px;
 }
 
 /* 전투가 가운데이자 주인공 — 가로를 더 먹는다(달려가 때리는 게 보이려면 폭이 필요하다) */
