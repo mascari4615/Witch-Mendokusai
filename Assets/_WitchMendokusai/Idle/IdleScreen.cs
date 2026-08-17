@@ -62,6 +62,15 @@ namespace WitchMendokusai
 		private Label resourceLabel;
 		private Label topNoteLabel;
 
+		/// <summary>
+		/// 지금 할 <b>한 걸음</b> — 판 상태에서 뽑아낸다 (TASK-WM-406).
+		///
+		/// ★ 기존 지적: 「첫 30분에 뭘 눌러야 하는지가 안 보인다」.
+		///   튜토리얼 팝업 대신 <b>지금 상태에서 파생된 한 줄</b>을 띄운다 —
+		///   낡지 않고, 조작을 막지 않고, 후반에도 쓸모가 남는다(다음 목표를 계속 가리킨다).
+		/// </summary>
+		private Label guideLabel;
+
 		// ── 기지 실황 ───────────────────────────────────────────────────────
 		private MoteStreamElement baseMotes;
 		private readonly List<NgonElement> baseShapes = new List<NgonElement>();
@@ -555,6 +564,7 @@ namespace WitchMendokusai
 			stageLabel = AddLabel(bar, "idle-top-stage");
 			resourceLabel = AddLabel(bar, "idle-top-resource");
 			topNoteLabel = AddLabel(bar, "idle-top-note");
+			guideLabel = AddLabel(parent, "idle-guide");
 
 			if (awaySeconds > 0d)
 			{
@@ -925,6 +935,8 @@ namespace WitchMendokusai
 			resourceLabel.text = string.Format("{0}  ({1}/초)",
 				BigNumberText.Format(resourceRolling), BigNumberText.Format(snapshot.IncomePerSecond));
 
+			guideLabel.text = NextStep(snapshot);
+
 			RenderArena(snapshot);
 			RenderBaseLive(snapshot);
 			RenderVaultLive(snapshot);
@@ -934,6 +946,101 @@ namespace WitchMendokusai
 			RenderGearPage(snapshot);
 			RenderHeroPage(snapshot);
 			RenderFoldPage(snapshot);
+		}
+
+		/// <summary>
+		/// 지금 <b>가장 값어치 있는 한 걸음</b>을 고른다 — 위에서부터 처음 맞는 것.
+		///
+		/// ★ 순서가 곧 규칙이다: 사라지는 것 → 판을 가르는 것 → 모은 것을 쓰는 것 → 사는 것 → 기다림.
+		///   여러 개를 한꺼번에 말하면 그건 안내가 아니라 <b>목록</b>이고, 목록은 이미 서랍에 있다.
+		/// </summary>
+		private string NextStep(IdleSnapshot snapshot)
+		{
+			// 사라지는 것이 먼저다 — 지금 안 누르면 없어진다.
+			if (snapshot.VisitorSecondsLeft > 0d)
+			{
+				return "▶ 판 위에 뭔가 지나간다 — 누르면 잠시 폭주한다";
+			}
+
+			if (snapshot.PrestigeAward > 0L
+				&& snapshot.MaxTierNow >= snapshot.TierCeiling)
+			{
+				return string.Format("▶ 환생할 때다 — 지금 환생하면 환생석 {0} (등급 천장도 오른다)",
+					snapshot.PrestigeAward);
+			}
+
+			if (snapshot.CanPull)
+			{
+				return "▶ 영웅 탭 — 뽑을 수 있다 (안 내보내도 들고만 있으면 세진다)";
+			}
+
+			if (CountMergeable(snapshot) > 0)
+			{
+				return "▶ 장비 탭 — 같은 것 셋을 한 단계 위로 합칠 수 있다";
+			}
+
+			int cheapest = CheapestAffordableProducer(snapshot);
+			if (cheapest >= 0)
+			{
+				return string.Format("▶ 기지 탭 — {0}번 생산자를 살 수 있다 (수입 +{1:P0})",
+					cheapest + 1, snapshot.Producers[cheapest].IncomeGain - 1d);
+			}
+
+			if (snapshot.Damage.CanAfford || snapshot.AttackSpeed.CanAfford)
+			{
+				return "▶ 강화 탭 — 올릴 수 있다";
+			}
+
+			// 살 게 없으면 손이 가장 빠르다 — 첫 1분이 여기다.
+			if (snapshot.IncomePerSecond <= 0d)
+			{
+				return "▶ 판을 눌러 때린다 — 지금은 손이 제일 빠르다";
+			}
+
+			double wait = snapshot.Damage.SecondsToAfford;
+			if (cheapest < 0 && snapshot.Producers.Length > 0)
+			{
+				double soonest = double.PositiveInfinity;
+				for (int kind = 0; kind < snapshot.Producers.Length; kind++)
+				{
+					if (snapshot.Producers[kind].Hidden == false
+						&& snapshot.Producers[kind].SecondsToAfford < soonest)
+					{
+						soonest = snapshot.Producers[kind].SecondsToAfford;
+					}
+				}
+
+				if (soonest < wait)
+				{
+					wait = soonest;
+				}
+			}
+
+			return wait > 0d && double.IsInfinity(wait) == false
+				? string.Format("· 모으는 중 — {0} 뒤에 살 것이 생긴다 (눌러서 앞당길 수 있다)",
+					DescribeSpan(wait))
+				: "· 모으는 중 — 눌러서 앞당길 수 있다";
+		}
+
+		/// <summary>지금 살 수 있는 것 중 가장 싼 생산자 — 없으면 -1.</summary>
+		private static int CheapestAffordableProducer(IdleSnapshot snapshot)
+		{
+			int found = -1;
+			double best = double.PositiveInfinity;
+
+			for (int kind = 0; kind < snapshot.Producers.Length; kind++)
+			{
+				IdleProducerView view = snapshot.Producers[kind];
+				if (view.Hidden || view.CanAfford == false || view.NextCost >= best)
+				{
+					continue;
+				}
+
+				best = view.NextCost;
+				found = kind;
+			}
+
+			return found;
 		}
 
 		private void RenderArena(IdleSnapshot snapshot)

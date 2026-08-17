@@ -387,3 +387,14 @@
 	color: rgb(250, 214, 97);
 	margin-top: 4px;
 }
+
+/* 다음 한 걸음 — 띠 바로 아래 한 줄. 눈에 들되 판을 가리지 않는다 */
+.idle-guide {
+	font-size: 12px;
+	color: rgb(196, 176, 120);
+	padding: 4px 16px 6px 16px;
+	background-color: rgb(20, 22, 29);
+	border-bottom-width: 1px;
+	border-bottom-color: rgb(38, 41, 52);
+	white-space: normal;
+}
