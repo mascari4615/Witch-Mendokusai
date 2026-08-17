@@ -128,5 +128,40 @@ namespace WitchMendokusai.Tests
 			string trimmed = text.Trim();
 			return trimmed.Length > 2 && trimmed[0] == '{' && trimmed[trimmed.Length - 1] == '}';
 		}
+
+		/// <summary>
+		/// ★ <b>저장처럼 생겼나</b>를 읽기 전에 본다 — 이게 틀리면 되살릴 기회를 놓친다.
+		///
+		/// 부서진 글자를 그냥 읽으면 「멀쩡히 읽었는데 판이 처음으로 돌아간 것」이 된다
+		/// (그릇이 예외 대신 빈 값을 주기도 한다). 그러면 직전 판이 멀쩡해도 안 쓴다.
+		/// </summary>
+		[Test]
+		public void HalfWrittenText_IsNotMistakenForASave()
+		{
+			Assert.IsTrue(IdleSaveFiles.LooksLikeSave("{\"stage\":1}"));
+			Assert.IsTrue(IdleSaveFiles.LooksLikeSave("  \n{\"stage\":1}\n  "), "앞뒤 공백에 속는다");
+
+			Assert.IsFalse(IdleSaveFiles.LooksLikeSave(null), "빈 것을 저장으로 본다");
+			Assert.IsFalse(IdleSaveFiles.LooksLikeSave(string.Empty));
+			Assert.IsFalse(IdleSaveFiles.LooksLikeSave("   "));
+			Assert.IsFalse(IdleSaveFiles.LooksLikeSave("{}"), "속이 빈 껍데기를 저장으로 본다");
+			Assert.IsFalse(IdleSaveFiles.LooksLikeSave("{\"stage\":1"), "적다가 끊긴 것을 저장으로 본다");
+			Assert.IsFalse(IdleSaveFiles.LooksLikeSave("쓰레기"), "아무 글자나 저장으로 본다");
+		}
+
+		/// <summary>★ 그 판정을 <b>읽기가 실제로 쓴다</b> — 규칙만 맞고 안 쓰이면 뜻이 없다.</summary>
+		[Test]
+		public void TheGatekeeper_IsActuallyUsedWhenReading()
+		{
+			IdleSaveFiles.Write(path, "{\"stage\":1}");
+			IdleSaveFiles.Write(path, "{\"stage\":2}");
+
+			// 적다가 끊긴 꼴 — 판정이 걸러야 직전 판으로 물러선다.
+			File.WriteAllText(path, "{\"stage\":2");
+
+			Assert.AreEqual(IdleSaveFiles.ReadOutcome.FellBackToBackup,
+				IdleSaveFiles.Read(path, IdleSaveFiles.LooksLikeSave, out string got));
+			Assert.AreEqual("{\"stage\":1}", got);
+		}
 	}
 }

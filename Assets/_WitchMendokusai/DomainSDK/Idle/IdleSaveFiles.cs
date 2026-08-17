@@ -40,6 +40,29 @@ namespace WitchMendokusai.DomainSDK.Idle
             Lost = 3,
         }
 
+        /// <summary>
+        /// 이 글자가 <b>저장처럼 생겼나</b> — 반쯤 적히다 만 것을 읽기 전에 거른다.
+        ///
+        /// ★ 왜 여기 있나 — 이건 <b>규칙</b>이라 시험이 닿아야 한다. 처음엔 엔진 편에 뒀는데
+        ///   거기서는 아무도 못 세었다. 판정이 틀리면 <b>되살릴 기회를 놓친다</b>:
+        ///   JsonUtility 는 부서진 글자에 예외 대신 <b>빈 값</b>을 주기도 해서,
+        ///   그냥 읽으면 「멀쩡히 읽었는데 판이 처음으로 돌아간 것」이 된다.
+        ///
+        /// ★ 일부러 <b>느슨하다</b> — 여는·닫는 괄호만 본다. 여기서 JSON 을 제대로 파싱하면
+        ///   그릇(JsonUtility·Newtonsoft…)마다 다른 판정이 되고, 이 층은 그릇을 몰라야 한다.
+        /// </summary>
+        public static bool LooksLikeSave(string text)
+        {
+            if (string.IsNullOrEmpty(text))
+            {
+                return false;
+            }
+
+            string trimmed = text.Trim();
+
+            return trimmed.Length > 2 && trimmed[0] == '{' && trimmed[trimmed.Length - 1] == '}';
+        }
+
         public static string BackupPathFor(string path)
         {
             return path + ".bak";

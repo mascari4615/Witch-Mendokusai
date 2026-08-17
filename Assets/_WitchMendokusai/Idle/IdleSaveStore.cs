@@ -66,20 +66,13 @@ namespace WitchMendokusai
 		}
 
 		/// <summary>
-		/// 반쯤 적히다 만 것을 <b>읽기 전에</b> 걸러낸다 — 그래야 직전 판으로 물러설 수 있다.
+		/// 반쯤 적히다 만 것을 <b>읽기 전에</b> 걸러낸다 — 판정은 코어가 한다.
 		///
-		/// JsonUtility 는 부서진 글자에 예외 대신 <b>빈 값</b>을 주기도 한다. 그러면
-		/// 「멀쩡히 읽었는데 판이 처음으로 돌아간 것」이 되어 되살릴 기회를 놓친다.
+		/// 규칙을 여기 두면 시험이 안 닿는다(실제로 안 닿고 있었다).
 		/// </summary>
 		private static bool LooksLikeJson(string text)
 		{
-			if (string.IsNullOrEmpty(text))
-			{
-				return false;
-			}
-
-			string trimmed = text.Trim();
-			return trimmed.Length > 2 && trimmed[0] == '{' && trimmed[trimmed.Length - 1] == '}';
+			return IdleSaveFiles.LooksLikeSave(text);
 		}
 
 		/// <summary>지금을 초 단위로. 코어가 「자리를 비운 동안」을 재는 기준이다.</summary>
