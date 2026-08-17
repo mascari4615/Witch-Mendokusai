@@ -27,8 +27,16 @@ namespace WitchMendokusai
 		[Header("창고 (행동이 씨앗·재료를 꺼내 쓰는 가방)")]
 		[SerializeField] private Inventory satchel;
 
-		[Tooltip("지갑(냥). 물리면 팔기·사기가 원장 한 행동으로 걸린다 — 물건과 돈이 함께 움직인다.")]
-		[SerializeField] private GameStat wallet;
+		/// <summary>
+		/// 지갑(냥) — 물리면 팔기·사기가 원장 한 행동으로 걸린다(물건과 돈이 함께 움직인다).
+		///
+		/// ★ 인스펙터에 안 낸다 (2026-08-17 고침). <c>GameStat</c> 은 유니티가 직렬화하는 형이
+		///   아니라, <c>[SerializeField]</c> 를 붙여도 <b>늘 null</b> 이었다 —
+		///   즉 지갑이 한 번도 안 물렸고 팔기 경로가 조용히 죽어 있었다.
+		///   유니티 6 의 직렬화 분석기가 그걸 잡아 빌드를 세웠고(UAC1010), 그래서 드러났다.
+		///   정본은 <see cref="DataManager"/> 하나뿐이므로 거기서 받는다.
+		/// </summary>
+		private GameStat wallet;
 
 		[Header("몸 (수치노출 룰 — 분당 감소·문제 임계·상한)")]
 		[SerializeField, Min(0f)] private float needMax = DEFAULT_NEED_MAX;
@@ -183,6 +191,12 @@ namespace WitchMendokusai
 		// 창고가 갈라져 있으면 「물건만 사라진」 세계가 생긴다.
 		private IActResourcePool BuildStorage()
 		{
+			// 지갑은 세계가 뜬 뒤에야 있다 — 쓸 때 받는다(없으면 물건만 도는 세계로 굴러간다).
+			if (wallet == null && DataManager.TryGetExistingInstance(out DataManager data))
+			{
+				wallet = data.GameStat;
+			}
+
 			if (satchel == null && wallet == null)
 			{
 				return null;

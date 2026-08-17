@@ -6,7 +6,7 @@ namespace WitchMendokusai.Net
 	/// <summary>
 	/// <b>걸어서 갈 수 있는 만큼만</b> — 세계가 시계를 보고 걸음을 심판한다 (TASK-WM-222).
 	///
-	/// ★ 무엇이 빠져 있었나: 세계는 한 <b>번</b>의 걸음을 <see cref="WorldSim.MAX_STEP"/>(1.5m)로 잘랐다.
+	/// ★ 무엇이 빠져 있었나: 세계는 한 <b>번</b>의 걸음을 <see cref="StepLimit.MOST_PER_STEP"/>(1.5m)로 잘랐다.
 	///   자르는 것은 「한 번에 얼마나」뿐이고 「1초에 몇 번」은 아무도 안 봤다.
 	///   그래서 창이 1초에 1000번 보내면 1초에 1500m 를 간다 — 자르는 문이 열려 있는 것과 같다.
 	///   정상 창은 50ms 마다 0.15m 씩 보내므로, 이 구멍은 <b>속인 창에게만</b> 쓸모가 있었다.
@@ -36,7 +36,7 @@ namespace WitchMendokusai.Net
 		public const float ALLOWED_SPEED = WALK_SPEED * SPEED_TOLERANCE;
 
 		/// <summary>지갑에 모아 둘 수 있는 최대 거리 (m) — 밀렸다 몰려온 걸음을 받아 주는 폭.</summary>
-		public const float BURST_DISTANCE = WorldSim.MAX_STEP;
+		public const float BURST_DISTANCE = StepLimit.MOST_PER_STEP;
 
 		private readonly object gate = new object();
 		private readonly Dictionary<int, Purse> purses = new Dictionary<int, Purse>();

@@ -94,7 +94,7 @@ namespace WitchMendokusai.Net
 	/// <summary>
 	/// 「가고 싶다」를 <b>세계가 받아 줄 크기의 걸음</b>으로 자르는 자리 (TASK-WM-217 단계 3).
 	///
-	/// 세계는 한 번에 <see cref="WorldSim.MAX_STEP"/> 이상 못 가게 잘라낸다(순간이동 방지).
+	/// 세계는 한 번에 <see cref="StepLimit.MOST_PER_STEP"/> 이상 못 가게 잘라낸다(순간이동 방지).
 	/// 그보다 큰 걸음을 보내면 <b>조용히 잘려서</b> 캐릭터가 화면보다 뒤처진다 —
 	/// 그래서 보내는 쪽이 먼저 같은 규칙으로 자르고, 남은 거리는 다음 걸음에 마저 보낸다.
 	/// </summary>

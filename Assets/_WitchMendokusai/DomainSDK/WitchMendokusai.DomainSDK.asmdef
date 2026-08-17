@@ -21,6 +21,7 @@
         "WitchMendokusai.DomainSDK.Input",
         "WitchMendokusai.DomainSDK.Life",
         "WitchMendokusai.DomainSDK.Logistics",
+        "WitchMendokusai.DomainSDK.Net",
         "WitchMendokusai.DomainSDK.Network",
         "WitchMendokusai.DomainSDK.Numerics",
         "WitchMendokusai.DomainSDK.Refining",

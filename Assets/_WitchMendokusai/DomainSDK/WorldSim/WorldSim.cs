@@ -99,8 +99,14 @@ namespace WitchMendokusai
 	/// </summary>
 	public sealed class WorldSim
 	{
-		/// <summary>한 번 움직임에 갈 수 있는 거리 상한 — 순간이동 방지(서버 권위의 최소선).</summary>
-		public const float MAX_STEP = 1.5f;
+		/// <summary>
+		/// 한 번 움직임에 갈 수 있는 거리 상한 — 순간이동 방지(서버 권위의 최소선).
+		///
+		/// ★ 값의 정본은 <see cref="Net.StepLimit.MOST_PER_STEP"/> 이다. 여기 이름을 남겨 두는 건
+		///   부르던 자리를 안 흔들기 위해서다 — 회선 층이 이 값을 읽고 세계가 회선 층을 읽어서,
+		///   값을 세계에 두면 어셈블리가 <b>순환</b>한다(유니티는 순환을 거부한다).
+		/// </summary>
+		public const float MAX_STEP = Net.StepLimit.MOST_PER_STEP;
 
 		/// <summary>솥 건물의 번호 — 이걸 지으면 그 자리에 솥이 하나 생긴다 (TASK-WM-217).</summary>
 		public const int CAULDRON_BUILDING_ID = 4000;
