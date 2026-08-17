@@ -1003,104 +1003,50 @@ namespace WitchMendokusai
 		}
 
 		/// <summary>
-		/// 지금 <b>가장 값어치 있는 한 걸음</b>을 고른다 — 위에서부터 처음 맞는 것.
+		/// 코어가 고른 <b>한 걸음</b>을 사람 말로 옮긴다.
 		///
-		/// ★ 순서가 곧 규칙이다: 사라지는 것 → 판을 가르는 것 → 모은 것을 쓰는 것 → 사는 것 → 기다림.
-		///   여러 개를 한꺼번에 말하면 그건 안내가 아니라 <b>목록</b>이고, 목록은 이미 서랍에 있다.
+		/// ★ 고르는 것은 규칙이라 코어(<see cref="IdleAdvice"/>)가 한다 — 화면이 고르면
+		///   창마다 다른 답을 내고, 그건 같은 판이 다르게 보이는 것이다.
+		///   여기서는 <b>말로 옮기는 일</b>만 한다.
 		/// </summary>
 		private string NextStep(IdleSnapshot snapshot)
 		{
-			// 사라지는 것이 먼저다 — 지금 안 누르면 없어진다.
-			if (snapshot.VisitorSecondsLeft > 0d)
+			IdleAdviceResult advice = IdleAdvice.NextStep(snapshot);
+
+			switch (advice.Step)
 			{
-				return "▶ 판 위에 뭔가 지나간다 — 누르면 잠시 폭주한다";
+				case IdleStep.CatchVisitor:
+					return "▶ 판 위에 뭔가 지나간다 — 누르면 잠시 폭주한다";
+
+				case IdleStep.BagFull:
+					return "▶ 가방이 꽉 찼다 — 장비 탭에서 합치거나 차야 한다 (지금 떨구는 건 버려진다)";
+
+				case IdleStep.Prestige:
+					return string.Format("▶ 환생할 때다 — 지금 환생하면 환생석 {0} (등급 천장도 오른다)",
+						(long)advice.Amount);
+
+				case IdleStep.Pull:
+					return "▶ 영웅 탭 — 뽑을 수 있다 (안 내보내도 들고만 있으면 세진다)";
+
+				case IdleStep.Merge:
+					return "▶ 장비 탭 — 같은 것 셋을 한 단계 위로 합칠 수 있다";
+
+				case IdleStep.BuyProducer:
+					return string.Format("▶ 기지 탭 — {0}번 생산자를 살 수 있다 (수입 +{1:P0})",
+						advice.Subject + 1, advice.Amount - 1d);
+
+				case IdleStep.Raise:
+					return "▶ 강화 탭 — 올릴 수 있다";
+
+				case IdleStep.Tap:
+					return "▶ 판을 눌러 때린다 — 지금은 손이 제일 빠르다";
+
+				default:
+					return advice.Amount > 0d && double.IsInfinity(advice.Amount) == false
+						? string.Format("· 모으는 중 — {0} 뒤에 살 것이 생긴다 (눌러서 앞당길 수 있다)",
+							DescribeSpan(advice.Amount))
+						: "· 모으는 중 — 눌러서 앞당길 수 있다";
 			}
-
-			// 가방이 찬 동안에는 <b>잡을수록 손해</b>다 — 사라지는 것 다음으로 급하다.
-			if (snapshot.Bag.Length >= snapshot.BagCapacity)
-			{
-				return "▶ 가방이 꽉 찼다 — 장비 탭에서 합치거나 차야 한다 (지금 떨구는 건 버려진다)";
-			}
-
-			if (snapshot.PrestigeAward > 0L
-				&& snapshot.MaxTierNow >= snapshot.TierCeiling)
-			{
-				return string.Format("▶ 환생할 때다 — 지금 환생하면 환생석 {0} (등급 천장도 오른다)",
-					snapshot.PrestigeAward);
-			}
-
-			if (snapshot.CanPull)
-			{
-				return "▶ 영웅 탭 — 뽑을 수 있다 (안 내보내도 들고만 있으면 세진다)";
-			}
-
-			if (CountMergeable(snapshot) > 0)
-			{
-				return "▶ 장비 탭 — 같은 것 셋을 한 단계 위로 합칠 수 있다";
-			}
-
-			int cheapest = CheapestAffordableProducer(snapshot);
-			if (cheapest >= 0)
-			{
-				return string.Format("▶ 기지 탭 — {0}번 생산자를 살 수 있다 (수입 +{1:P0})",
-					cheapest + 1, snapshot.Producers[cheapest].IncomeGain - 1d);
-			}
-
-			if (snapshot.Damage.CanAfford || snapshot.AttackSpeed.CanAfford)
-			{
-				return "▶ 강화 탭 — 올릴 수 있다";
-			}
-
-			// 살 게 없으면 손이 가장 빠르다 — 첫 1분이 여기다.
-			if (snapshot.IncomePerSecond <= 0d)
-			{
-				return "▶ 판을 눌러 때린다 — 지금은 손이 제일 빠르다";
-			}
-
-			double wait = snapshot.Damage.SecondsToAfford;
-			if (cheapest < 0 && snapshot.Producers.Length > 0)
-			{
-				double soonest = double.PositiveInfinity;
-				for (int kind = 0; kind < snapshot.Producers.Length; kind++)
-				{
-					if (snapshot.Producers[kind].Hidden == false
-						&& snapshot.Producers[kind].SecondsToAfford < soonest)
-					{
-						soonest = snapshot.Producers[kind].SecondsToAfford;
-					}
-				}
-
-				if (soonest < wait)
-				{
-					wait = soonest;
-				}
-			}
-
-			return wait > 0d && double.IsInfinity(wait) == false
-				? string.Format("· 모으는 중 — {0} 뒤에 살 것이 생긴다 (눌러서 앞당길 수 있다)",
-					DescribeSpan(wait))
-				: "· 모으는 중 — 눌러서 앞당길 수 있다";
-		}
-
-		/// <summary>지금 살 수 있는 것 중 가장 싼 생산자 — 없으면 -1.</summary>
-		private static int CheapestAffordableProducer(IdleSnapshot snapshot)
-		{
-			int found = -1;
-			double best = double.PositiveInfinity;
-
-			for (int kind = 0; kind < snapshot.Producers.Length; kind++)
-			{
-				IdleProducerView view = snapshot.Producers[kind];
-				if (view.Hidden || view.CanAfford == false || view.NextCost >= best)
-				{
-					continue;
-				}
-
-				best = view.NextCost;
-				found = kind;
-			}
-
-			return found;
 		}
 
 		private void RenderArena(IdleSnapshot snapshot)
@@ -1253,7 +1199,7 @@ namespace WitchMendokusai
 
 		private void RenderVaultLive(IdleSnapshot snapshot)
 		{
-			int mergeable = CountMergeable(snapshot);
+			int mergeable = IdleAdvice.MergeableCount(snapshot);
 
 			// ★ 가방이 차면 떨어지는 것이 <b>조용히 버려진다</b>(코어 규칙). 조용하면 안 된다 —
 			//   사람은 잃고 있다는 걸 모른 채 계속 잡는다.
@@ -1296,32 +1242,6 @@ namespace WitchMendokusai
 				cell.SetPulse(one.PotentialValue > 0d ? 0.14f : 0f, 1.4f);
 				cell.Advance(Time.unscaledDeltaTime, 0.04f);
 			}
-		}
-
-		/// <summary>합칠 수 있는 묶음이 몇 개인가 — 창고가 「지금 정리할 때」를 스스로 말한다.</summary>
-		private static int CountMergeable(IdleSnapshot snapshot)
-		{
-			int[] counts = new int[64];
-			int found = 0;
-
-			for (int index = 0; index < snapshot.Bag.Length; index++)
-			{
-				IdleItem one = snapshot.Bag[index];
-				int key = one.Tier * 4 + (int)one.Slot;
-
-				if (key < 0 || key >= counts.Length)
-				{
-					continue;
-				}
-
-				counts[key]++;
-				if (counts[key] == 3)
-				{
-					found++;
-				}
-			}
-
-			return found;
 		}
 
 		private void DrawKillDots(IdleSnapshot snapshot)
