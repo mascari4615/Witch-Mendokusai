@@ -81,7 +81,12 @@ Write-Host "[idle-smoke] exe    : $exe"
 Write-Host "[idle-smoke] 굴린다 : $Seconds 초"
 
 # 판이 <새로> 흘렀는지 보려면 지난 저장이 없어야 한다.
-if (Test-Path $SavePath) { Remove-Item $SavePath -Force }
+#
+# ⚠ 본 파일만 지우면 <b>모자란다</b> (2026-08-17): 이제 저장이 직전 판(.bak)을 남기고,
+#   본 파일이 없으면 게임이 그 직전 판으로 되살아난다. 그러면 이 검사는 <b>지난 판</b>을
+#   물려받은 채로 「처치 수가 늘었다」를 통과한다 — 눈뜬장님이 된다.
+$saveKin = @($SavePath, "$SavePath.bak", "$SavePath.broken", "$SavePath.tmp")
+foreach ($one in $saveKin) { if (Test-Path $one) { Remove-Item $one -Force } }
 
 $log = Join-Path ([System.IO.Path]::GetTempPath()) 'wm-idle-smoke.log'
 if (Test-Path $log) { Remove-Item $log -Force }
@@ -138,5 +143,68 @@ if ($save.Kills -le 0)
     Fail "$Seconds 초를 굴렸는데 처치 수가 0 이다 — 시간이 안 흐른다"
 }
 
-Write-Host "[idle-smoke] ✅ 돈다 — 처치 $($save.Kills) · 자원 $($save.Resource) · $($save.Stage)단계 (예외 0건)" -ForegroundColor Green
+Write-Host "[idle-smoke] 돈다 — 처치 $($save.Kills) · 자원 $($save.Resource) · $($save.Stage)단계 (예외 0건)"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# ★ 두 번째 판 — <b>저장을 되읽나</b> (TASK-WM-406, 2026-08-17).
+#
+#   여기까지는 「새 판이 돈다」만 봤다. 그런데 방치형에서 제일 비싼 고장은
+#   <b>저장을 못 읽는 것</b>이다 — 몇 주치가 조용히 사라지고, 그때 게임은 멀쩡히 돈다.
+#   덜어내기(High)는 직렬화 코드를 특히 잘 깨뜨리는데, 위 검사는 그걸 <b>초록으로</b> 통과한다.
+#
+#   그래서 눈에 띄는 표를 하나 박아 넣고 다시 켠다. 그 표가 살아 있으면 되읽은 것이다.
+$mark = 123456
+$save.Kills = $mark
+$save | ConvertTo-Json -Depth 12 | Set-Content -Path $SavePath -Encoding UTF8
+
+# ⚠ 그냥 「다시 켜고 잠깐 뒤에 본다」로는 <b>아무것도 안 본다</b> (2026-08-17에 하마터면):
+#   게임이 그 사이에 한 번도 안 적으면 파일은 내가 쓴 그대로라 검사가 무조건 통과한다.
+#   그래서 <b>게임이 다시 적을 때까지 기다린다</b> — 시간을 박지 말고 「적었나」를 본다.
+$stamp = (Get-Item $SavePath).LastWriteTimeUtc
+
+Write-Host "[idle-smoke] 다시 켠다 — 저장을 되읽는지 본다 (처치 $mark 를 박아 뒀다)"
+
+$log2 = Join-Path ([System.IO.Path]::GetTempPath()) 'wm-idle-smoke-2.log'
+if (Test-Path $log2) { Remove-Item $log2 -Force }
+
+$second = Start-Process -FilePath $exe -PassThru `
+    -ArgumentList @('-logFile', $log2, '-screen-width', '800', '-screen-height', '600', '-screen-fullscreen', '0')
+
+$wroteAgain = $false
+
+for ($waited = 0; $waited -lt 60; $waited++)
+{
+    Start-Sleep -Milliseconds 500
+
+    if ((Get-Item $SavePath).LastWriteTimeUtc -gt $stamp)
+    {
+        $wroteAgain = $true
+        break
+    }
+
+    if ($second.HasExited) { break }
+}
+
+if (-not $second.HasExited)
+{
+    $second.Kill()
+    $second.WaitForExit(10000) | Out-Null
+}
+
+Start-Sleep -Seconds 1
+
+if (-not $wroteAgain)
+{
+    Fail2 "다시 켠 판이 30초 안에 한 번도 안 적었다 — 되읽었는지 <잴 수가 없다> (로그: $log2)"
+}
+
+$after = Get-Content $SavePath -Raw | ConvertFrom-Json
+
+if ($after.Kills -lt $mark)
+{
+    Write-Host "[idle-smoke]   박아 둔 처치 $mark · 다시 적힌 뒤 $($after.Kills)" -ForegroundColor DarkGray
+    Fail "저장을 안 읽고 처음부터 시작했다 — 사람이 몇 주치를 잃는 고장이다 (로그: $log2)"
+}
+
+Write-Host "[idle-smoke] ✅ 돈다 + 저장을 되읽는다 — 처치 $($after.Kills) · $($after.Stage)단계 (예외 0건)" -ForegroundColor Green
 exit 0
