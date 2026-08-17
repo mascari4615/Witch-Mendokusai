@@ -358,6 +358,9 @@ namespace WitchMendokusai
 		/// </summary>
 		private void OnTapped(PointerDownEvent moment)
 		{
+			IdleSnapshot before = session.Capture();
+			bool handSurging = before.SurgeKind == IdleSurgeKind.HandFrenzy && before.SurgeSecondsLeft > 0d;
+
 			session.Send(new IdleTapIntent());
 
 			// 누른 것이 <b>손에 남게</b> — 차례 상관없이 셋 다 달려든다(사람이 시킨 것이니까).
@@ -368,9 +371,22 @@ namespace WitchMendokusai
 
 			targetShape.Hit();
 			sound.Tick(0f);
-			Shake(0.12f);
 
-			floats.Pop("!", new Vector2(Random.Range(50f, 90f), 40f), new Color(0.95f, 0.86f, 0.55f));
+			// ★ 손 폭주는 한 대가 <b>50배</b>다. 그런데 손끝 느낌이 평소와 같으면
+			//   그 50배는 숫자로만 존재한다 — 판이 더 크게 흔들리고 파편이 터져야 한다.
+			if (handSurging)
+			{
+				Shake(0.55f);
+				burst.Fire(SidesFor(before.MaxTierNow), new Color(0.98f, 0.84f, 0.38f));
+				floats.Pop("×50", new Vector2(Random.Range(40f, 100f), 40f),
+					new Color(0.98f, 0.84f, 0.38f));
+			}
+			else
+			{
+				Shake(0.12f);
+				floats.Pop("!", new Vector2(Random.Range(50f, 90f), 40f),
+					new Color(0.95f, 0.86f, 0.55f));
+			}
 
 			Render(session.Capture());
 		}
