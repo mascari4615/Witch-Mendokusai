@@ -251,6 +251,12 @@ namespace WitchMendokusai.DomainSDK.Idle
         ///   화면은 「-」만 띄우며 멀쩡히 돈다. 사람은 왜인지 영영 모른다.
         ///   저장은 바깥에서 온 글자다 — 문 앞에서 본다.
         /// </summary>
+        /// <summary>셀 수 있는 것은 음수가 될 수 없다 — 저장에서 온 값이면 특히.</summary>
+        private static int NotBelowZero(int value)
+        {
+            return value < 0 ? 0 : value;
+        }
+
         private static double Sane(double value)
         {
             if (double.IsNaN(value) || double.IsInfinity(value) || value < 0d)
@@ -264,7 +270,7 @@ namespace WitchMendokusai.DomainSDK.Idle
         public void Load(IdleSaveData saveData)
         {
             Resource = Sane(saveData.Resource);
-            Kills = saveData.Kills;
+            Kills = saveData.Kills > 0L ? saveData.Kills : 0L;
             // 옛 저장에는 「넣은 피해」가 있었다. 지금은 「때린 횟수」로 센다 — 옛 값은 버린다
             // (대상 하나만큼의 진행이라 잃어도 체감이 없다).
             HitsOnTarget = saveData.HitsOnTarget;
@@ -272,7 +278,7 @@ namespace WitchMendokusai.DomainSDK.Idle
             // ★ 옛 저장에는 단계 칸이 없어 0 이 들어온다 — 그대로 두면 0단계가 되어 판이 어긋난다.
             //   저장 형식이 늘어날 때마다 「없던 시절의 값」을 여기서 메운다.
             Stage = saveData.Stage > 0 ? saveData.Stage : 1;
-            KillsInStage = saveData.KillsInStage;
+            KillsInStage = NotBelowZero(saveData.KillsInStage);
             BestStage = saveData.BestStage > 0 ? saveData.BestStage : Stage;
             HoldingStage = saveData.HoldingStage;
             PrestigePoints = saveData.PrestigePoints;
@@ -375,8 +381,10 @@ namespace WitchMendokusai.DomainSDK.Idle
                 }
                 DropProgressByTier = grown;
             }
-            Damage.Level = saveData.DamageLevel;
-            AttackSpeed.Level = saveData.AttackSpeedLevel;
+            // 레벨·처치 수도 음수가 될 수 없는 값이다. 음수 레벨은 값을 거꾸로 만들고
+            // 값을 거꾸로 만들면 <b>올릴수록 약해지는</b> 판이 된다 — 안 터지고 조용히 틀린다.
+            Damage.Level = NotBelowZero(saveData.DamageLevel);
+            AttackSpeed.Level = NotBelowZero(saveData.AttackSpeedLevel);
             LastSeenUnixSeconds = saveData.LastSeenUnixSeconds;
         }
     }

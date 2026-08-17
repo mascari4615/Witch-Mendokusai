@@ -216,5 +216,38 @@ namespace WitchMendokusai.Tests
 			Assert.IsFalse(double.IsNaN(IdleBase.OutputPerSecond(state, tuning)));
 			Assert.Greater(IdleModel.DamageOf(state, tuning), 0d);
 		}
+
+		/// <summary>
+		/// ★ <b>셀 수 있는 것</b>이 음수로 적혀 있어도 판이 산다 — 레벨·처치·이번 단계 처치.
+		///
+		/// 음수 레벨은 값을 거꾸로 만들고, 값이 거꾸로면 <b>올릴수록 약해지는</b> 판이 된다.
+		/// 이것도 안 터지고 조용히 틀리는 쪽이라 문 앞에서 본다.
+		/// </summary>
+		[Test]
+		public void NegativeCountsInTheSave_ComeBackAtZero()
+		{
+			IdleSaveData saved = new IdleState().Save();
+			saved.DamageLevel = -4;
+			saved.AttackSpeedLevel = -1;
+			saved.Kills = -100L;
+			saved.KillsInStage = -3;
+
+			IdleState state = new IdleState();
+			state.Load(saved);
+
+			Assert.AreEqual(0, state.Damage.Level);
+			Assert.AreEqual(0, state.AttackSpeed.Level);
+			Assert.AreEqual(0L, state.Kills);
+			Assert.AreEqual(0, state.KillsInStage);
+
+			// 그리고 <b>올릴수록 세지는지</b>까지 본다 — 거꾸로 가면 여기서 걸린다.
+			IdleTuning tuning = new IdleTuning();
+			double before = IdleModel.DamageOf(state, tuning);
+
+			state.Resource = 1e9d;
+			Assert.IsTrue(IdleModel.TryRaise(state, tuning, IdleUpgradeKind.Damage, out WitchMendokusai.DomainSDK.Upgrade.UpgradeRaiseFailure _));
+
+			Assert.Greater(IdleModel.DamageOf(state, tuning), before, "올렸는데 약해졌다");
+		}
 	}
 }
