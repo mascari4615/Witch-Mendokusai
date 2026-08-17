@@ -195,6 +195,12 @@ MonoBehaviour:
     m_SerializedLabels:
     - ItemData
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 2cabeeeafbb741aa9bb2a5c630c79552
+    m_Address: ItemData/20000900
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - ItemData
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 328881ee0a76d344aa6f2dea62f12f4c
     m_Address: ItemData/61
     m_ReadOnly: 0
@@ -695,6 +701,12 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: c604d24f1b0fdce43ad182d1f60eb6fa
     m_Address: ItemData/19
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - ItemData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: c8573368c7eb43d5ba4267a67376b239
+    m_Address: ItemData/30000900
     m_ReadOnly: 0
     m_SerializedLabels:
     - ItemData

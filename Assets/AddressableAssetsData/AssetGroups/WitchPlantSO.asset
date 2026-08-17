@@ -15,6 +15,12 @@ MonoBehaviour:
   m_GroupName: WitchPlantSO
   m_GUID: c8f993de03650e64f97ef275ad1e61e2
   m_SerializeEntries:
+  - m_GUID: 9adc418760e74c038655be84ea03008d
+    m_Address: WitchPlantSO/1
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - WitchPlantSO
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: ef82faa13eab91f43a6c487520da427e
     m_Address: WitchPlantSO/0
     m_ReadOnly: 0
