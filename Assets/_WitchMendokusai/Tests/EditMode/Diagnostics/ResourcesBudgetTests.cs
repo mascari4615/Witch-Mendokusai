@@ -23,9 +23,11 @@ namespace WitchMendokusai.Tests
 		/// 상한(MB). 2026-08-16 기준 실측값 + 여유 10%.
 		/// ⚠ 올릴 때는 <b>왜 늘어야 하는지</b>를 커밋 메시지에 적을 것. 그냥 올리면 이 시험이 의미를 잃는다.
 		/// </summary>
-		/// <b>2026-08-16 실측 27.0MB</b> + 여유 5% (그날 방치형 빌드: 사용자 에셋 34.9MB 중 77%가 Resources 때문).
-		/// 이관으로 줄면 <b>내려서</b> 새 바닥을 박는다 — 그래야 되돌아가는 것도 잡힌다.
-		private const float BUDGET_MB = 28.5f;
+		/// <b>2026-08-17 실측 9.0MB</b> + 여유 10%.
+		/// 아침엔 27.0MB(상한 28.5) 였다 — A/B/C 이관으로 <b>9.0MB</b> 까지 내려왔고,
+		/// 규칙대로 상한도 같이 내린다. 안 내리면 되돌아가는 것을 못 잡는다.
+		/// 남은 9.0MB 는 필요 비용이다 — 갈무리 폰트 5.2MB(Dynamic 모드라 빼면 한글이 □) · TMP 폴백 ~2MB.
+		private const float BUDGET_MB = 10.0f;
 
 		[Test]
 		public void Resources_StaysWithinBudget()
