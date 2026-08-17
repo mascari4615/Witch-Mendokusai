@@ -1151,7 +1151,9 @@ namespace WitchMendokusai
 				visitor.SetPulse(leaving ? 0.22f : 0.08f, leaving ? 4f : 1.2f);
 			}
 
-			if (snapshot.SurgeKind != IdleSurgeKind.None && snapshot.SurgeSecondsLeft > 0d)
+			bool surging = snapshot.SurgeKind != IdleSurgeKind.None && snapshot.SurgeSecondsLeft > 0d;
+
+			if (surging)
 			{
 				surgeLabel.style.display = DisplayStyle.Flex;
 				surgeLabel.text = string.Format("{0}!  {1:0.0}초",
@@ -1161,6 +1163,17 @@ namespace WitchMendokusai
 			{
 				surgeLabel.style.display = DisplayStyle.None;
 			}
+
+			// ★ <b>판 전체가 달라져야</b> 폭주다 — 글자만 바뀌면 그건 알림이지 사건이 아니다.
+			//   바닥 격자가 금빛으로 달아오르고 빨리 흐른다. 끝나면 원래대로 돌아온다.
+			backdrop.Line = surging
+				? new Color(0.98f, 0.84f, 0.38f, 0.16f)
+				: new Color(1f, 1f, 1f, 0.035f);
+			backdrop.DriftPerSecond = surging ? 26f : 3f;
+
+			// 남은 시간이 짧아질수록 빨리 뛴다 — 끝나 가는 게 몸으로 느껴져야 한다.
+			targetShape.SetPulse(surging ? 0.10f : 0f,
+				surging ? 1.5f + (float)(1d / (snapshot.SurgeSecondsLeft + 0.5d)) * 6f : 0f);
 		}
 
 		/// <summary>지나가는 것을 잡았다.</summary>
