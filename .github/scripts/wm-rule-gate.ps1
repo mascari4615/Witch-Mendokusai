@@ -175,6 +175,20 @@ $rules = @(
 
 # Comments are not code. An earlier hand-grep flagged commented-out `var` lines as
 # violations -- a gate that cries wolf gets switched off, so strip them first.
+function Write-BaselineFile
+{
+    # 기준선은 <b>LF</b> 로 적는다.
+    #
+    # ⚠ .NET 의 WriteAllLines 는 Environment.NewLine(윈도우에서 CRLF)을 쓴다. 저장소에는
+    #   LF 로 담기므로, 한 번 새로 쓰면 그 뒤로 `git status` 가 <b>내용이 같은데도</b>
+    #   「고쳐짐」으로 띄운다. 그러면 다음 세션이 그걸 <b>남이 안 담은 줄</b>로 읽는다 —
+    #   이 저장소가 공유 작업면에서 제일 조심하는 그 오해다(실측 2026-08-17).
+    param([string]$Path, [string[]]$Lines)
+
+    [System.IO.File]::WriteAllText($Path, (($Lines -join "`n") + "`n"),
+        (New-Object System.Text.UTF8Encoding($false)))
+}
+
 function Get-CodeText
 {
     param([string]$Line, [bool]$KeepStrings)
@@ -558,7 +572,7 @@ if ($WriteBaseline)
         }
     }
     $tuneLines = @($tuneLines | Sort-Object -Unique)
-    [System.IO.File]::WriteAllLines($tuneBaselinePath, ($tuneHeader + $tuneLines), (New-Object System.Text.UTF8Encoding($false)))
+    Write-BaselineFile -Path $tuneBaselinePath -Lines ($tuneHeader + $tuneLines)
 
     $enumLines = @($enumOffenders | Sort-Object -Unique)
     $assetLines = @()
@@ -569,8 +583,8 @@ if ($WriteBaseline)
         $assetLines += $relative
     }
     $assetLines = @($assetLines | Sort-Object -Unique)
-    [System.IO.File]::WriteAllLines($enumBaselinePath, ($enumHeader + $enumLines), (New-Object System.Text.UTF8Encoding($false)))
-    [System.IO.File]::WriteAllLines($assetBaselinePath, ($assetHeader + $assetLines), (New-Object System.Text.UTF8Encoding($false)))
+    Write-BaselineFile -Path $enumBaselinePath -Lines ($enumHeader + $enumLines)
+    Write-BaselineFile -Path $assetBaselinePath -Lines ($assetHeader + $assetLines)
     Write-Host ("wm-rule-gate -- 기준선을 새로 썼다: enum {0}건 / asset {1}건 / tuning {2}건" -f $enumLines.Count, $assetLines.Count, $tuneLines.Count)
     exit 0
 }
