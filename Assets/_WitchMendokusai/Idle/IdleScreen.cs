@@ -1668,14 +1668,21 @@ namespace WitchMendokusai
 
 		private void RenderFoldPage(IdleSnapshot snapshot)
 		{
+			// ★ 두 가지를 <b>갈라 부른다</b>. 재화를 가른 뒤에도 화면이 둘 다 「환생석」이라
+			//   불러서, 배수 재료와 쓰는 돌이 같은 것처럼 보였다(내가 만든 혼동).
+			//     환생 점수 = 여태 가장 깊이 간 자리 → 배수·천장·자리비움. <b>안 줄어든다</b>
+			//     환생석    = 쓰는 것 → 영웅 뽑기
 			foldSummary.text = string.Format(
-				"환생석 {0} · 지금 배수 {1}\n자리 비워도 되는 시간 {2}\n\n환생하면 셋이 오른다 — 공격 배수 · 등급 천장 · 비워도 되는 시간.\n이미 지나온 길은 다시 안 판다.",
+				"환생 점수 {0} (배수 {1}) · 가진 환생석 {2}\n자리 비워도 되는 시간 {3}\n\n"
+					+ "환생하면 — 단계·자원·강화는 잃고, 점수·환생석·장비·영웅·도감은 남는다.\n"
+					+ "점수는 여태 가장 깊이 간 자리라 줄지 않는다 — 돌을 다 써도 판은 안 약해진다.",
 				snapshot.PrestigePoints,
 				BigNumberText.Format(snapshot.PrestigeMultiplier),
+				snapshot.Stones,
 				DescribeSpan(snapshot.MaxOfflineSeconds));
 
 			prestigeButton.text = snapshot.PrestigeAward > 0L
-				? string.Format("환생한다 — 환생석 {0}", snapshot.PrestigeAward)
+				? string.Format("환생한다 — 환생석 {0} 을 받는다", snapshot.PrestigeAward)
 				: "환생한다 — 더 내려가야 한다";
 			prestigeButton.SetEnabled(snapshot.PrestigeAward > 0L);
 		}
