@@ -134,5 +134,56 @@ namespace WitchMendokusai.Tests
 			}
 		}
 
+
+		/// <summary>
+		/// ★ 한 줄이 <b>판의 절반을 빠뜨리지 않는다</b> — 영웅·환생석·가방·차림·폭주까지.
+		///
+		/// 이 줄은 「기계가 화면을 읽는다」고 적어 두고도 <b>가챠 이전 상태로 멈춰 있었다</b>
+		/// (2026-08-17 발견). 시스템을 넣을 때 이 줄을 안 늘리면, 시험은 판의 절반을 못 보면서
+		/// 「다 봤다」고 말하게 된다.
+		/// </summary>
+		[Test]
+		public void TheLineShowsTheWholeBoard()
+		{
+			IdleTuning tuning = new IdleTuning();
+			IdleState state = new IdleState();
+			state.EnsureProducerRoom(tuning.ProducerCount);
+			state.EnsureTierRoom(6);
+
+			state.Stones = 4L;
+			state.Heroes.Add(new IdleHeroOwned(0));
+			state.Heroes.Add(new IdleHeroOwned(1));
+			state.Bag.Add(new IdleItem(3, IdleItemSlot.Head));
+			state.Worn[(int)IdleItemSlot.Body] = new IdleItem(5, IdleItemSlot.Body);
+			state.SurgeKind = (int)IdleSurgeKind.Frenzy;
+			state.SurgeSecondsLeft = 12d;
+
+			IdleTextView view = new IdleTextView();
+			view.Render(new IdleSession(tuning, state).Capture());
+
+			StringAssert.Contains("heroes=2/0", view.Line, "영웅이 안 보인다");
+			StringAssert.Contains("stones=4", view.Line, "환생석이 안 보인다");
+			StringAssert.Contains("bag=1/", view.Line, "가방이 안 보인다");
+			StringAssert.Contains("worn=0,5,0,0", view.Line, "차림이 안 보인다");
+			StringAssert.Contains("surge=1:12", view.Line, "폭주가 안 보인다");
+		}
+
+		/// <summary>★ ★ 을 올리면 한 줄에도 그게 보인다 — 「얼마나 깊은지」가 한 수로 읽힌다.</summary>
+		[Test]
+		public void RaisingStars_ShowsUpInTheLine()
+		{
+			IdleTuning tuning = new IdleTuning();
+			IdleState state = new IdleState();
+			state.EnsureProducerRoom(tuning.ProducerCount);
+
+			IdleHeroOwned owned = new IdleHeroOwned(2);
+			owned.Stars = 3;
+			state.Heroes.Add(owned);
+
+			IdleTextView view = new IdleTextView();
+			view.Render(new IdleSession(tuning, state).Capture());
+
+			StringAssert.Contains("heroes=1/3", view.Line, "★ 합이 안 보인다");
+		}
 }
 }
