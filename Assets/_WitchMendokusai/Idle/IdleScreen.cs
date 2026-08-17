@@ -1374,13 +1374,24 @@ namespace WitchMendokusai
 				// ★ 감정 값을 <b>버튼에 적는다</b> — 자원이 든다는 게 안 보이면 두 층이 물린 줄 모른다.
 				double cost = IdleGear.AppraiseCost(tier, session.Tuning);
 
-				appraiseButtons[tier - 1].text = tier < 2
-					? string.Format("{0}{1}  {2}개 — 잠재 없음", ShapeMark(tier), tier, BigNumberText.Format(count))
-					: string.Format("{0}{1}  {2}개 — 감정 {3} ({4})", ShapeMark(tier), tier,
-						BigNumberText.Format(count), BigNumberText.Format(cost),
-						NameOf(IdlePotentials.GradeFor(tier)));
+				// 못 누르는 이유를 버튼이 직접 말한다 — 회색만 되면 「고장인가」로 읽힌다.
+				bool tooLow = tier < 2;
+				bool nothingToAppraise = count <= 0L;
+				bool tooPoor = snapshot.Resource < cost;
 
-				appraiseButtons[tier - 1].SetEnabled(tier >= 2 && count > 0L && snapshot.Resource >= cost);
+				appraiseButtons[tier - 1].text = tooLow
+					? string.Format("{0}{1}  {2}개 — 잠재 없음 (2등급부터)",
+						ShapeMark(tier), tier, BigNumberText.Format(count))
+					: nothingToAppraise
+						? string.Format("{0}{1}  아직 안 떨어졌다", ShapeMark(tier), tier)
+						: tooPoor
+							? string.Format("{0}{1}  {2}개 — 자원 {3} 이 모자란다", ShapeMark(tier), tier,
+								BigNumberText.Format(count), BigNumberText.Format(cost))
+							: string.Format("{0}{1}  {2}개 — 감정 {3} ({4})", ShapeMark(tier), tier,
+								BigNumberText.Format(count), BigNumberText.Format(cost),
+								NameOf(IdlePotentials.GradeFor(tier)));
+
+				appraiseButtons[tier - 1].SetEnabled(tooLow == false && nothingToAppraise == false && tooPoor == false);
 			}
 		}
 
@@ -1506,8 +1517,19 @@ namespace WitchMendokusai
 
 		private void RenderHeroPage(IdleSnapshot snapshot)
 		{
-			pullButton.text = string.Format("영웅 뽑기 — 자원 {0} + 환생석 {1}   (가진 돌 {2})",
-				BigNumberText.Format(snapshot.PullCost), snapshot.PullStoneCost, snapshot.Stones);
+			// ★ 못 누르는 버튼은 <b>왜</b> 못 누르는지 말해야 한다. 값 둘을 같이 내는 자리라
+			//   그냥 회색이면 사람은 「고장인가」로 읽는다 — 어느 쪽이 모자란지 짚는다.
+			bool noStones = snapshot.Stones < snapshot.PullStoneCost;
+
+			pullButton.text = snapshot.CanPull
+				? string.Format("영웅 뽑기 — 자원 {0} + 환생석 {1}   (가진 돌 {2})",
+					BigNumberText.Format(snapshot.PullCost), snapshot.PullStoneCost, snapshot.Stones)
+				: noStones
+					? string.Format("영웅 뽑기 — 환생석이 없다 (환생하면 생긴다 · 가진 돌 {0})",
+						snapshot.Stones)
+					: string.Format("영웅 뽑기 — 자원 {0} 이 모자란다 (돌 {1} 개 있음)",
+						BigNumberText.Format(snapshot.PullCost), snapshot.Stones);
+
 			pullButton.SetEnabled(snapshot.CanPull);
 			pullButton.EnableInClassList("idle-button--ready", snapshot.CanPull);
 			pullButton.EnableInClassList("idle-button--locked", snapshot.CanPull == false);
