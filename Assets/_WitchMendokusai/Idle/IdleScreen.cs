@@ -222,6 +222,15 @@ namespace WitchMendokusai
 
 		private void OnEnable()
 		{
+			// ★ 안 꽂혀 있으면 <b>말한다</b>. 조용히 코드 기본값으로 돌면 인스펙터에서 아무리
+			//   숫자를 고쳐도 판이 안 바뀌고, 그때 사람이 의심하는 것은 <b>자기 수치</b>지 배선이 아니다.
+			//   (밸런싱 한나절을 통째로 버리는 종류의 침묵이다.)
+			if (tuningAsset == null)
+			{
+				Debug.LogWarning("[Idle] 수치 에셋(IdleTuningSO)이 안 꽂혀 있다 — 코드 기본값으로 돈다."
+					+ " 인스펙터에서 고친 숫자는 하나도 안 먹는다.");
+			}
+
 			IdleTuning tuning = tuningAsset != null ? tuningAsset.ToTuning() : new IdleTuning();
 
 			IdleState state = new IdleState();
@@ -621,9 +630,16 @@ namespace WitchMendokusai
 			VisualElement root = GetComponent<UIDocument>().rootVisualElement;
 			root.Clear();
 
+			// ★ 이것도 조용히 지나가면 안 된다 — 없으면 화면이 <b>그냥 못생기게</b> 뜬다.
+			//   「고장」이 아니라 「덜 만든 것」처럼 보여서 진짜 원인을 한참 못 찾는다.
 			if (styleSheet != null)
 			{
 				root.styleSheets.Add(styleSheet);
+			}
+			else
+			{
+				Debug.LogWarning("[Idle] 스타일시트가 안 꽂혀 있다 — 화면이 꾸밈 없이 뜬다."
+					+ " 고장이 아니라 배선이다.");
 			}
 
 			VisualElement shell = new VisualElement();
