@@ -1605,10 +1605,9 @@ namespace WitchMendokusai
 				// ★ <b>차면 어떻게 되나</b>를 그 줄에서 바로 보여준다. 전에는 등급만 적혀 있어서
 				//   「지금 찬 것보다 나은가」를 사람이 부위별로 외우고 있어야 했다 —
 				//   외우게 만드는 것은 결정이 아니라 숙제다.
-				double now = index < snapshot.Worn.Length
-					? IdleGear.MultiplierOfItem(snapshot.Worn[(int)one.Slot], session.Tuning)
-					: 1d;
-				double after = IdleGear.MultiplierOfItem(one, session.Tuning);
+				// 판단은 코어가 한다 — 화면에 두었다가 곧바로 틀렸다(가방 자리 번호로 부위를 찾았다).
+				IdleGear.CompareToWorn(snapshot.Worn, one, session.Tuning,
+					out double now, out double after);
 
 				bagButtons[index].text = string.Format("{0}{1} {2}{3}   {4}",
 					ShapeMark(one.Tier), one.Tier,

@@ -211,6 +211,28 @@ namespace WitchMendokusai.DomainSDK.Idle
             return 1d + one.Tier * tuning.GearTierBonus + one.PotentialValue;
         }
 
+        /// <summary>
+        /// 이 한 벌을 <b>차면 그 부위가 어떻게 되나</b> — 지금 값과 찬 뒤 값.
+        ///
+        /// ★ 화면이 「x1.45 → x1.60」을 적으려면 필요한 셈인데, 화면에 두면 시험을 못 한다.
+        ///   실제로 화면에 뒀다가 곧바로 틀렸다 (2026-08-17): 가방 <b>자리 번호</b>로 착용
+        ///   배열의 경계를 봐서, 가방 다섯 번째 칸부터는 늘 「아무것도 안 찬 것」으로 쳤다
+        ///   (가방은 40칸, 부위는 4개다). 부위로 찾는 셈은 부위를 아는 쪽에 있어야 한다.
+        /// </summary>
+        public static void CompareToWorn(IdleItem[] worn, IdleItem one, IdleTuning tuning,
+            out double now, out double after)
+        {
+            now = 1d;
+            after = MultiplierOfItem(one, tuning);
+
+            int at = (int)one.Slot;
+
+            if (worn != null && at >= 0 && at < worn.Length)
+            {
+                now = MultiplierOfItem(worn[at], tuning);
+            }
+        }
+
         /// <summary>머리 — 공격력.</summary>
         public static double DamageMultiplier(IdleState state, IdleTuning tuning)
         {

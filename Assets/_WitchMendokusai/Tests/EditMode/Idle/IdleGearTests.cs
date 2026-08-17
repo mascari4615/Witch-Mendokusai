@@ -104,5 +104,52 @@ namespace WitchMendokusai.Tests
 			IdleTuning tuning = new IdleTuning();
 			Assert.AreEqual(1d, IdleGear.MultiplierOfItem(default(IdleItem), tuning), 1e-9d);
 		}
+
+		/// <summary>
+		/// ★ 「차면 어떻게 되나」는 <b>부위</b>로 찾는다 — 가방 자리 번호가 아니라 (회귀).
+		///
+		/// 처음엔 이 셈이 화면에 있었고, 가방 자리 번호로 착용 배열의 경계를 봤다.
+		/// 가방은 40칸이고 부위는 4개라, 가방 다섯 번째 칸부터는 늘 「아무것도 안 찬 것」으로
+		/// 쳐서 「x1.00 → …」라는 거짓 예고를 했다.
+		/// </summary>
+		[Test]
+		public void WearGain_LooksUpBySlot_NotByBagIndex()
+		{
+			IdleTuning tuning = new IdleTuning();
+			IdleState state = new IdleState();
+
+			// 머리에 좋은 것을 차 둔다.
+			state.Worn[(int)IdleItemSlot.Head] = new IdleItem(6, IdleItemSlot.Head);
+
+			// 가방을 여러 칸 채운 <b>뒤쪽</b>에 머리 장비를 둔다 — 옛 실수가 드러나는 자리.
+			for (int filler = 0; filler < 7; filler++)
+			{
+				state.Bag.Add(new IdleItem(1, IdleItemSlot.Feet));
+			}
+
+			IdleItem candidate = new IdleItem(2, IdleItemSlot.Head);
+			state.Bag.Add(candidate);
+
+			IdleGear.CompareToWorn(state.Worn, state.Bag[state.Bag.Count - 1], tuning,
+				out double now, out double after);
+
+			Assert.AreEqual(IdleGear.MultiplierOfItem(state.Worn[(int)IdleItemSlot.Head], tuning), now, 1e-9d,
+				"찬 것을 못 찾았다 — 가방 자리 번호로 뒤진 것이다");
+			Assert.Less(after, now, "더 못한 것인데 낫다고 한다");
+		}
+
+		/// <summary>★ 빈 부위면 <b>1 에서</b> 시작한다 — 그게 기준점이다.</summary>
+		[Test]
+		public void WearGain_FromAnEmptySlot_StartsAtOne()
+		{
+			IdleTuning tuning = new IdleTuning();
+			IdleState state = new IdleState();
+
+			IdleGear.CompareToWorn(state.Worn, new IdleItem(3, IdleItemSlot.Body), tuning,
+				out double now, out double after);
+
+			Assert.AreEqual(1d, now, 1e-9d);
+			Assert.Greater(after, 1d);
+		}
 	}
 }
