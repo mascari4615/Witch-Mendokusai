@@ -38,7 +38,10 @@ namespace WitchMendokusai.Tests
 				"Assets/_WitchMendokusai/Idle/IdleTuningSO.cs"));
 
 			MatchCollection knobs = Regex.Matches(core,
-				@"public\s+(?:double|int|long|float|bool)\s+(\w+)\s*(?:\{|=|;)");
+				// ⚠ 스칼라만 보면 <b>경제의 뼈대</b>를 놓친다 (실측 2026-08-17): 이 시험을 세운
+				//   바로 그날, 생산자 값·산출·잠재 범위(GeometricScale) 셋이 인스펙터 밖에
+				//   남아 있는 걸 못 잡았다. 감시가 반만 보면 「초록」이 「안 봤음」이 된다.
+				@"public\s+(?:double|int|long|float|bool|GeometricScale|IUpgradeCurve)\s+(\w+)\s*(?:\{|=|;)");
 			Assert.Greater(knobs.Count, 20, "손잡이를 하나도 못 찾았다 — 이 시험이 아무것도 안 보고 있다");
 
 			string missing = string.Empty;

@@ -185,6 +185,26 @@ namespace WitchMendokusai
         [Tooltip("점수 하나가 곱하는 배수 — 이 게임에서 가장 센 손잡이다.")]
         [SerializeField] private double prestigeMultiplierPerPoint = 1.55d;
 
+        [Header("기지 곡선 — 경제의 뼈대")]
+        [Tooltip("첫 생산자의 값.")]
+        [SerializeField] private double producerCost = 15d;
+
+        [Tooltip("다음 종류로 갈 때 값에 곱해지는 배수 (종류 사이의 간격).")]
+        [SerializeField] private double producerCostStep = 10d;
+
+        [Tooltip("첫 생산자가 내는 초당 자원.")]
+        [SerializeField] private double producerOutput = 0.5d;
+
+        [Tooltip("다음 종류로 갈 때 산출에 곱해지는 배수. 값 배수보다 «작아야» 뒤 종류가 사치가 된다.")]
+        [SerializeField] private double producerOutputStep = 8d;
+
+        [Header("잠재 — 등급별 범위")]
+        [Tooltip("가장 낮은 등급(레어)의 최저값.")]
+        [SerializeField] private double potentialFloor = 0.02d;
+
+        [Tooltip("등급이 하나 오를 때 최저값에 곱해지는 배수.")]
+        [SerializeField] private double potentialStep = 2.2d;
+
         [Header("자리 비움")]
         [Tooltip("기본 오프라인 상한 (초).")]
         [SerializeField] private double baseMaxOfflineSeconds = 8d * 3600d;
@@ -262,6 +282,9 @@ namespace WitchMendokusai
                 BaseMaxOfflineSeconds = baseMaxOfflineSeconds,
                 OfflineSecondsPerAscension = offlineSecondsPerAscension,
                 MaxOfflineCapSeconds = maxOfflineCapSeconds,
+                ProducerCostByKind = new GeometricScale(producerCost, producerCostStep),
+                ProducerOutputByKind = new GeometricScale(producerOutput, producerOutputStep),
+                PotentialByGrade = new GeometricScale(potentialFloor, potentialStep),
             };
         }
     }
