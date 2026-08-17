@@ -1181,12 +1181,15 @@ namespace WitchMendokusai
 				// 줄 전체(도형 포함)를 숨긴다 — 버튼만 숨기면 도형이 혼자 남는다.
 				button.parent.style.display = view.Hidden ? DisplayStyle.None : DisplayStyle.Flex;
 
-				button.text = string.Format("{0} {1}   x{2}  ·  초당 {3}   —   {4}",
+				// 「지금 얼마 내나」 옆에 <b>사면 얼마나 좋아지나</b>와 <b>언제 살 수 있나</b>를 같이.
+				button.text = string.Format("{0} {1}   x{2}  ·  초당 {3}   —   {4}{5}{6}",
 					ShapeMark(kind + 1),
 					kind + 1,
 					view.Owned,
 					BigNumberText.Format(view.OutputTotal),
-					BigNumberText.Format(view.NextCost));
+					BigNumberText.Format(view.NextCost),
+					GainMark(view.IncomeGain),
+					WaitMark(view.SecondsToAfford));
 
 				button.SetEnabled(view.CanAfford);
 				button.EnableInClassList("idle-button--ready", view.CanAfford);
@@ -1765,18 +1768,69 @@ namespace WitchMendokusai
 			parent.Add(line);
 		}
 
+		/// <summary>
+		/// 올리기 한 줄 — <b>사면 얼마나 좋아지나</b>와 <b>언제 살 수 있나</b>를 같이 적는다.
+		///
+		/// ★ 조사에서 「이해 지원」으로 꼽힌 자리다: 값만 보이면 누르는 게 도박이 되고,
+		///   그러면 다른 시스템(영웅·장비·폭주)의 재미도 <b>체감이 안 된다</b>.
+		/// </summary>
 		private static void DrawUpgrade(IdleUpgradeView view, Label title, Label value, Button button,
 			string name, string valueFormat)
 		{
 			title.text = string.Format("{0}  Lv.{1}", name, view.Level);
-			value.text = string.Format(valueFormat, BigNumberText.Format(view.CurrentValue));
+
+			value.text = view.IsMaxed
+				? string.Format(valueFormat, BigNumberText.Format(view.CurrentValue))
+				: string.Format(valueFormat + "  →  {1}  (+{2:P0})",
+					BigNumberText.Format(view.CurrentValue),
+					BigNumberText.Format(view.NextValue),
+					view.CurrentValue > 0d ? view.NextValue / view.CurrentValue - 1d : 0d);
 
 			button.text = view.IsMaxed
 				? "최대"
-				: string.Format("올리기 — {0}", BigNumberText.Format(view.NextCost));
+				: string.Format("올리기 — {0}{1}",
+					BigNumberText.Format(view.NextCost),
+					WaitMark(view.SecondsToAfford));
 			button.SetEnabled(view.CanAfford);
 			button.EnableInClassList("idle-button--ready", view.CanAfford);
 			button.EnableInClassList("idle-button--locked", view.CanAfford == false && view.IsMaxed == false);
+		}
+
+		/// <summary>사면 판 전체가 몇 배가 되나 — 안 변하면 아무 말도 안 한다.</summary>
+		private static string GainMark(double gain)
+		{
+			if (double.IsInfinity(gain))
+			{
+				return "   (첫 수입)";
+			}
+
+			if (gain <= 1.0001d)
+			{
+				return string.Empty;
+			}
+
+			return string.Format("   (수입 +{0:P0})", gain - 1d);
+		}
+
+		/// <summary>
+		/// 얼마나 기다려야 하나 — 이미 살 수 있으면 아무 말도 안 한다.
+		///
+		/// ★ 「언제 살 수 있나」가 보여야 <b>기다릴지 다른 걸 할지</b>가 결정이 된다.
+		///   아주 멀면 숫자 대신 「한참」이라고 적는다 — 87,231초는 정보가 아니다.
+		/// </summary>
+		private static string WaitMark(double seconds)
+		{
+			if (seconds <= 0d)
+			{
+				return string.Empty;
+			}
+
+			if (double.IsInfinity(seconds) || seconds > 86400d)
+			{
+				return "   (한참 걸린다)";
+			}
+
+			return "   (" + DescribeSpan(seconds) + " 뒤)";
 		}
 
 		/// <summary>변의 수로 등급을 적는다 — 도형과 같은 규칙을 글자에도.</summary>

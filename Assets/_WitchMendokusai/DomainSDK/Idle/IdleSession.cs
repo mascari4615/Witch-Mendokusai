@@ -309,7 +309,9 @@ namespace WitchMendokusai.DomainSDK.Idle
                     each,
                     owned * each,
                     state.Resource >= cost,
-                    IdleBase.IsHidden(kind, state));
+                    IdleBase.IsHidden(kind, state),
+                    IncomeGainOf(kind),
+                    SecondsToAfford(cost, true));
             }
 
             return made;
@@ -349,7 +351,63 @@ namespace WitchMendokusai.DomainSDK.Idle
                 currentValue,
                 nextCost,
                 hasNext == false,
-                hasNext && state.Resource >= nextCost);
+                hasNext && state.Resource >= nextCost,
+                ValueAfterRaising(kind),
+                SecondsToAfford(nextCost, hasNext));
+        }
+
+        /// <summary>
+        /// 한 단계 올린 <b>뒤의</b> 값 — 실제로 올려 보고 되돌린다.
+        ///
+        /// ★ 공식을 화면이나 여기서 다시 쓰지 않는다. 두 번 쓰면 언젠가 갈리고,
+        ///   그러면 <b>버튼이 거짓말</b>을 한다(사면 다른 값이 나온다).
+        /// </summary>
+        private double ValueAfterRaising(IdleUpgradeKind kind)
+        {
+            UpgradeLevel level = state.LevelOf(kind);
+            int before = level.Level;
+
+            level.Level = before + 1;
+            double after = kind == IdleUpgradeKind.Damage
+                ? IdleModel.DamageOf(state, tuning)
+                : IdleModel.AttackSpeedOf(state, tuning);
+            level.Level = before;
+
+            return after;
+        }
+
+        /// <summary>
+        /// 이 생산자를 하나 더 사면 <b>초당 수입이 몇 배</b>가 되나 — 실제로 하나 얹어 보고 되돌린다.
+        ///
+        /// ★ 공식을 화면이 다시 쓰지 않게. 두 번 쓰면 언젠가 갈리고 버튼이 거짓말을 한다.
+        ///   장비·영웅 배수가 다 곱해진 <b>진짜</b> 값이라야 고를 때 쓸모가 있다.
+        /// </summary>
+        private double IncomeGainOf(int kind)
+        {
+            double before = IdleBase.OutputPerSecond(state, tuning);
+
+            state.Owned[kind] += 1L;
+            double after = IdleBase.OutputPerSecond(state, tuning);
+            state.Owned[kind] -= 1L;
+
+            return before > 0d ? after / before : double.PositiveInfinity;
+        }
+
+        /// <summary>지금 벌이로 이 값을 모으는 데 걸리는 시간(초).</summary>
+        private double SecondsToAfford(double cost, bool hasNext)
+        {
+            if (hasNext == false || state.Resource >= cost)
+            {
+                return 0d;
+            }
+
+            double perSecond = IdleModel.IncomePerSecond(state, tuning);
+            if (perSecond <= 0d)
+            {
+                return double.PositiveInfinity;
+            }
+
+            return (cost - state.Resource) / perSecond;
         }
     }
 }

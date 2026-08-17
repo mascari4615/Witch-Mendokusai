@@ -22,7 +22,24 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// <summary>지금 가진 자원으로 살 수 있다.</summary>
         public bool CanAfford { get; }
 
-        public IdleUpgradeView(IdleUpgradeKind kind, int level, double currentValue, double nextCost, bool isMaxed, bool canAfford)
+        /// <summary>
+        /// <b>사고 나면</b> 이 축이 주는 값 — 「사면 얼마나 좋아지나」를 화면이 지어내지 않게.
+        ///
+        /// ★ 조사에서 「이해 지원(legibility)」으로 꼽힌 자리다
+        ///   (<c>refs/pattern-catalogue.md</c>): 방치형에서 이게 없으면 <b>다른 시스템의 재미가
+        ///   체감 자체가 안 된다</b>. 값만 보이면 누르는 게 도박이 된다.
+        /// </summary>
+        public double NextValue { get; }
+
+        /// <summary>
+        /// 지금 벌이로 <b>몇 초 뒤에</b> 살 수 있나. 이미 살 수 있으면 0, 영영 못 벌면 무한.
+        ///
+        /// ★ 「언제 살 수 있나」를 알아야 <b>기다릴지 다른 걸 할지</b>가 결정이 된다.
+        /// </summary>
+        public double SecondsToAfford { get; }
+
+        public IdleUpgradeView(IdleUpgradeKind kind, int level, double currentValue, double nextCost,
+            bool isMaxed, bool canAfford, double nextValue, double secondsToAfford)
         {
             Kind = kind;
             Level = level;
@@ -30,6 +47,8 @@ namespace WitchMendokusai.DomainSDK.Idle
             NextCost = nextCost;
             IsMaxed = isMaxed;
             CanAfford = canAfford;
+            NextValue = nextValue;
+            SecondsToAfford = secondsToAfford;
         }
     }
 
@@ -55,8 +74,19 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// <summary>아직 보여줄 때가 아니다 — 살 만해지기 직전에 나타난다.</summary>
         public bool Hidden { get; }
 
+        /// <summary>
+        /// 하나 더 사면 <b>판 전체 초당 수입</b>이 몇 배가 되나 (1.0 = 그대로).
+        ///
+        /// ★ 「이 줄이 지금 얼마를 내나」는 이미 보이지만, 정작 고를 때 필요한 건
+        ///   <b>사고 나면 얼마나 좋아지나</b>다. 그게 없으면 값싼 것부터 누르는 것 말고 할 게 없다.
+        /// </summary>
+        public double IncomeGain { get; }
+
+        /// <summary>지금 벌이로 몇 초 뒤에 살 수 있나 (0 = 지금).</summary>
+        public double SecondsToAfford { get; }
+
         public IdleProducerView(int kind, long owned, double nextCost, double outputEach,
-            double outputTotal, bool canAfford, bool hidden)
+            double outputTotal, bool canAfford, bool hidden, double incomeGain, double secondsToAfford)
         {
             Kind = kind;
             Owned = owned;
@@ -65,6 +95,8 @@ namespace WitchMendokusai.DomainSDK.Idle
             OutputTotal = outputTotal;
             CanAfford = canAfford;
             Hidden = hidden;
+            IncomeGain = incomeGain;
+            SecondsToAfford = secondsToAfford;
         }
     }
 
