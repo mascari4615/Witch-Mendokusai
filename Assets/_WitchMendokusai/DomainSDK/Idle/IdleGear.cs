@@ -82,21 +82,36 @@ namespace WitchMendokusai.DomainSDK.Idle
                 return false;
             }
 
+            // ★ <b>나쁜 것부터</b> 재료로 쓴다. 전에는 가방 앞에서부터 셋을 집었다 —
+            //   그래서 잘 나온 잠재를 들고 있으면 합치기 한 번에 <b>그게 먼저 먹혔다</b>.
+            //   사람이 고른 적도 없는데 제일 좋은 것이 사라지는 것은 결정이 아니라 사고다.
+            //   (「좋은 잠재를 지킬까, 등급을 올릴까」는 남는다 — 재료가 그것밖에 없으면 여전히 먹힌다.)
             List<int> picked = new List<int>();
 
-            for (int index = 0; index < state.Bag.Count && picked.Count < tuning.MergeCount; index++)
+            for (int index = 0; index < state.Bag.Count; index++)
             {
                 IdleItem one = state.Bag[index];
-                if (one.Tier == tier && one.Slot == slot)
+                if (one.Tier != tier || one.Slot != slot)
                 {
-                    picked.Add(index);
+                    continue;
                 }
+
+                int at = picked.Count;
+                while (at > 0 && state.Bag[picked[at - 1]].PotentialValue > one.PotentialValue)
+                {
+                    at--;
+                }
+
+                picked.Insert(at, index);
             }
 
             if (picked.Count < tuning.MergeCount)
             {
                 return false;
             }
+
+            picked.RemoveRange(tuning.MergeCount, picked.Count - tuning.MergeCount);
+            picked.Sort();
 
             // 뒤에서부터 지운다 — 앞에서 지우면 뒤 자리가 밀린다.
             for (int index = picked.Count - 1; index >= 0; index--)
