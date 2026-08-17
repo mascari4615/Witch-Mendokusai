@@ -251,5 +251,35 @@ namespace WitchMendokusai.Tests
 			Assert.AreEqual((int)PotentialGrade.Epic, session.State.BestPotentialGrade);
 			Assert.Greater(session.Capture().BestPotentialValue, 0d);
 		}
+
+		/// <summary>
+		/// ⚠ <b>지금 감정은 아이템에 안 붙는다</b> — 판 전체 값 하나만 올린다 (성질 고정, U7).
+		///
+		/// 이 시험은 「이게 옳다」가 아니라 <b>「지금 이렇다」</b>를 못 박는 것이다.
+		/// 코드에 두 체계가 겹쳐 있다(2026-08-17 발견):
+		///   · 감정은 등급별 <b>개수</b> 하나를 쓰고 <see cref="IdleState.BestPotentialValue"/> 만 올린다
+		///   · 그런데 아이템에는 <c>PotentialValue</c> 칸이 있고 착용 배수·합치기·「차라」 안내가 그걸 본다
+		///   · <b>그 칸에 값을 쓰는 코드가 어디에도 없다</b> = 모든 장비가 영원히 미감정
+		/// 그래서 「좋은 잠재를 지킬까, 등급을 올릴까」는 글에만 있고 판에는 없다.
+		/// 어느 쪽으로 갈지는 사용자 결정(decision-sheet U7) — 그때 이 시험이 <b>먼저 빨개진다</b>.
+		/// </summary>
+		[Test]
+		public void Appraising_MovesTheBoardValue_NotTheItem()
+		{
+			IdleTuning tuning = new IdleTuning();
+			IdleState state = new IdleState();
+			state.EnsureTierRoom(6);
+			state.Resource = 1e12d;
+			state.DroppedByTier[2] = 5L;
+
+			state.Bag.Add(new IdleItem(3, IdleItemSlot.Head));
+
+			Assert.IsTrue(IdlePotentials.TryAppraise(state, tuning, 3, out PotentialRoll roll));
+			Assert.Greater(roll.Value, 0d, "감정했는데 아무 값도 안 나왔다");
+			Assert.Greater(state.BestPotentialValue, 0d, "판 전체 값이 안 올랐다");
+
+			Assert.IsTrue(state.Bag[0].IsRaw,
+				"가방의 것이 감정됐다 — U7 이 ⓐ 로 정해졌다면 이 시험을 고쳐라(반대면 회귀다)");
+		}
 	}
 }
