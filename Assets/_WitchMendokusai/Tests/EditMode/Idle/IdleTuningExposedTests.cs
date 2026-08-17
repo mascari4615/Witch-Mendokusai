@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
 using NUnit.Framework;
@@ -70,6 +71,96 @@ namespace WitchMendokusai.Tests
 
 			Assert.AreEqual(string.Empty, missing,
 				"IdleTuningSO 에 안 실린 손잡이가 있다 (밸런싱이 코드 작업이 된다): " + missing);
+		}
+
+
+		/// <summary>
+		/// ★ 인스펙터의 <b>기본값이 코어와 같은가</b> — 다르면 <b>시험이 재는 판과 사람이 노는 판이 다르다</b>.
+		///
+		/// ⚠ 이게 없던 동안 실제로 둘이 갈려 있었다 (실측 2026-08-17). 시험·시뮬·곡선 표는 전부
+		///   코어 기본값으로 돌고, 사람이 켜는 게임은 SO(그리고 .asset)의 값으로 돈다.
+		///   그 둘이 다르면 「일곱 날 시뮬」도 「깊이 표」도 <b>아무도 안 노는 판</b>을 잰 것이 된다.
+		///   조용하기까지 하다 — 어느 쪽도 틀린 값이 아니라 그냥 <b>다른 값</b>이라서.
+		///
+		/// ★ 지금 갈린 둘은 <see cref="KnownDrift"/> 에 적어 뒀다(어느 쪽이 맞는지는 밸런스라
+		///   사용자 결정 — decision-sheet U8). 새로 갈리는 것은 여기서 곧바로 빨개진다.
+		/// </summary>
+		[Test]
+		public void TheInspectorDefaults_MatchTheCore()
+		{
+			string root = FindProjectRoot();
+			string core = File.ReadAllText(Path.Combine(root,
+				"Assets/_WitchMendokusai/DomainSDK/Idle/IdleTuning.cs"));
+			string exposed = File.ReadAllText(Path.Combine(root,
+				"Assets/_WitchMendokusai/Idle/IdleTuningSO.cs"));
+
+			Dictionary<string, string> coreDefaults = new Dictionary<string, string>();
+
+			foreach (Match one in Regex.Matches(core,
+				@"public\s+(?:double|int|long|float|bool)\s+(\w+)\s*\{\s*get;\s*set;\s*\}\s*=\s*([^;]+);"))
+			{
+				coreDefaults[one.Groups[1].Value] = Tidy(one.Groups[2].Value);
+			}
+
+			Assert.Greater(coreDefaults.Count, 20, "코어 기본값을 못 읽었다 — 시험이 아무것도 안 보고 있다");
+
+			Dictionary<string, string> exposedDefaults = new Dictionary<string, string>();
+
+			foreach (Match one in Regex.Matches(exposed,
+				@"\[SerializeField\]\s+private\s+(?:double|int|long|float|bool)\s+(\w+)\s*=\s*([^;]+);"))
+			{
+				exposedDefaults[one.Groups[1].Value] = Tidy(one.Groups[2].Value);
+			}
+
+			string drifted = string.Empty;
+			int compared = 0;
+
+			foreach (Match one in Regex.Matches(exposed, @"^\s+(\w+)\s*=\s*(\w+),\s*$", RegexOptions.Multiline))
+			{
+				string knob = one.Groups[1].Value;
+				string field = one.Groups[2].Value;
+
+				if (coreDefaults.ContainsKey(knob) == false || exposedDefaults.ContainsKey(field) == false)
+				{
+					continue;
+				}
+
+				compared++;
+
+				if (coreDefaults[knob] == exposedDefaults[field])
+				{
+					continue;
+				}
+
+				if (Array.IndexOf(KnownDrift, knob) >= 0)
+				{
+					continue;
+				}
+
+				drifted += (drifted.Length > 0 ? ", " : string.Empty)
+					+ knob + "(코어 " + coreDefaults[knob] + " ≠ 인스펙터 " + exposedDefaults[field] + ")";
+			}
+
+			TestContext.WriteLine("[기본값] 견준 손잡이 " + compared + "개 · 알려진 어긋남 " + KnownDrift.Length + "개");
+
+			Assert.AreEqual(string.Empty, drifted,
+				"인스펙터 기본값이 코어와 다르다 — 시험이 재는 판과 사람이 노는 판이 갈린다: " + drifted);
+		}
+
+		/// <summary>
+		/// <b>이미 갈려 있는</b> 것 — 어느 쪽이 맞는지는 밸런스라 사용자가 정한다 (decision-sheet U8).
+		///
+		/// 둘 다 「초반이 얼마나 빠른가」를 정하는 값이라, 고르는 순간 첫 10분의 감이 바뀐다.
+		///   · TargetHealthByStage — 코어 3 · 인스펙터 10 (1단계 대상 체력)
+		///   · BaseAttackSpeed     — 코어 3 · 인스펙터 1  (레벨 0 의 초당 타격)
+		/// 합치면 사람이 노는 판의 초반 전투가 시뮬보다 <b>열 배 가까이</b> 느리다.
+		/// </summary>
+		private static readonly string[] KnownDrift = { "TargetHealthByStage", "BaseAttackSpeed" };
+
+		/// <summary>견주기 좋게 다듬는다 — 공백만 지운다(꼴은 그대로 봐야 진짜 차이가 보인다).</summary>
+		private static string Tidy(string text)
+		{
+			return text.Replace(" ", string.Empty).Trim();
 		}
 
 		/// <summary>시험이 어디서 돌든 저장소 뿌리를 찾는다 — 엔진 안팎 둘 다.</summary>
