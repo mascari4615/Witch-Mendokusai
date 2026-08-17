@@ -177,5 +177,44 @@ namespace WitchMendokusai.Tests
 
 			return state;
 		}
+
+		/// <summary>
+		/// ★ 저장의 수가 <b>망가져 있어도</b> 판이 산다 — NaN·무한·음수는 0 으로 받는다.
+		///
+		/// 이게 없으면 가장 고약한 고장이 난다: <b>안 터지는데 판이 죽는다</b>.
+		/// 자원이 한 번 NaN 이 되면 모든 견줌이 거짓이라 아무것도 살 수 없고, 화면은
+		/// 「-」만 띄우며 멀쩡히 돈다. 사람은 왜인지 영영 모른다.
+		/// </summary>
+		[Test]
+		public void BrokenNumbersInTheSave_ComeBackSane()
+		{
+			IdleSaveData saved = new IdleState().Save();
+			saved.Resource = double.NaN;
+			saved.AttackProgress = double.PositiveInfinity;
+			saved.BestPotentialValue = -5d;
+			saved.Owned = new long[] { 3L, -7L, 1L };
+			saved.DropProgressByTier = new double[] { double.NaN, 0.5d };
+
+			IdleState state = new IdleState();
+			state.Load(saved);
+
+			Assert.AreEqual(0d, state.Resource, "자원이 NaN 인 채로 들어왔다");
+			Assert.AreEqual(0d, state.AttackProgress, "타격 진행이 무한인 채로 들어왔다");
+			Assert.AreEqual(0d, state.BestPotentialValue, "잠재가 음수인 채로 들어왔다");
+			Assert.AreEqual(0L, state.Owned[1], "생산자를 음수로 가지고 있다 — 수입이 깎인다");
+			Assert.AreEqual(3L, state.Owned[0], "멀쩡한 값까지 지웠다");
+			Assert.AreEqual(0d, state.DropProgressByTier[0]);
+			Assert.AreEqual(0.5d, state.DropProgressByTier[1], 1e-9d, "멀쩡한 값까지 지웠다");
+
+			// 그리고 <b>판이 실제로 돈다</b> — 수가 다시 NaN 으로 번지지 않는다.
+			IdleTuning tuning = new IdleTuning();
+			state.EnsureProducerRoom(tuning.ProducerCount);
+			IdleSession session = new IdleSession(tuning, state);
+			session.Advance(5d);
+
+			Assert.IsFalse(double.IsNaN(state.Resource), "굴렸더니 자원이 다시 NaN 이 됐다");
+			Assert.IsFalse(double.IsNaN(IdleBase.OutputPerSecond(state, tuning)));
+			Assert.Greater(IdleModel.DamageOf(state, tuning), 0d);
+		}
 	}
 }

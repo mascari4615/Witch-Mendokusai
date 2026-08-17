@@ -243,14 +243,32 @@ namespace WitchMendokusai.DomainSDK.Idle
         }
 
         /// <summary>저장 꼴에서 되살린다.</summary>
+        /// <summary>
+        /// 저장에서 온 <b>수</b>를 걸러낸다 — NaN·무한·음수는 0 으로.
+        ///
+        /// ★ 이게 없으면 가장 고약한 고장이 난다: <b>안 터지는데 판이 죽는다</b>.
+        ///   자원이 한 번 NaN 이 되면 모든 견줌이 거짓이 되어 아무것도 살 수 없고,
+        ///   화면은 「-」만 띄우며 멀쩡히 돈다. 사람은 왜인지 영영 모른다.
+        ///   저장은 바깥에서 온 글자다 — 문 앞에서 본다.
+        /// </summary>
+        private static double Sane(double value)
+        {
+            if (double.IsNaN(value) || double.IsInfinity(value) || value < 0d)
+            {
+                return 0d;
+            }
+
+            return value;
+        }
+
         public void Load(IdleSaveData saveData)
         {
-            Resource = saveData.Resource;
+            Resource = Sane(saveData.Resource);
             Kills = saveData.Kills;
             // 옛 저장에는 「넣은 피해」가 있었다. 지금은 「때린 횟수」로 센다 — 옛 값은 버린다
             // (대상 하나만큼의 진행이라 잃어도 체감이 없다).
             HitsOnTarget = saveData.HitsOnTarget;
-            AttackProgress = saveData.AttackProgress;
+            AttackProgress = Sane(saveData.AttackProgress);
             // ★ 옛 저장에는 단계 칸이 없어 0 이 들어온다 — 그대로 두면 0단계가 되어 판이 어긋난다.
             //   저장 형식이 늘어날 때마다 「없던 시절의 값」을 여기서 메운다.
             Stage = saveData.Stage > 0 ? saveData.Stage : 1;
@@ -260,7 +278,17 @@ namespace WitchMendokusai.DomainSDK.Idle
             PrestigePoints = saveData.PrestigePoints;
             Ascensions = saveData.Ascensions;
             // 옛 저장에는 기지·가방이 없어 null 로 온다 — 빈 것으로 받는다.
-            Owned = saveData.Owned ?? new long[0];
+            Owned = saveData.Owned != null ? (long[])saveData.Owned.Clone() : new long[0];
+
+            // 음수로 가진 생산자는 <b>수입을 깎는다</b> — 자원이 줄어드는 판이 되고, 사람은
+            //   「고장」이라고만 느낀다. 개수는 음수가 될 수 없는 값이다.
+            for (int kind = 0; kind < Owned.Length; kind++)
+            {
+                if (Owned[kind] < 0L)
+                {
+                    Owned[kind] = 0L;
+                }
+            }
             // ⚠ 장비의 <b>부위 번호</b>도 저장에서 그대로 온다. 범위를 벗어난 값이 섞이면
             //   차는 순간 Worn[그 번호] 가 배열 밖을 짚어 터지고, 화면도 이름표를 짚다 터진다.
             //   영웅 번호와 같은 자리의 같은 병이라 같은 곳에서 거른다 — <b>문 앞</b>.
@@ -326,11 +354,18 @@ namespace WitchMendokusai.DomainSDK.Idle
             Stones = saveData.Stones;
             // 주사위 상태가 0 인 저장(= 옛 저장)은 굴러가지 않는다 — 기본 씨앗을 준다.
             RandomState = saveData.RandomState != 0L ? saveData.RandomState : 0x2545F4914F6CDD1DL;
-            BestPotentialValue = saveData.BestPotentialValue;
+            BestPotentialValue = Sane(saveData.BestPotentialValue);
             BestPotentialGrade = saveData.BestPotentialGrade;
             // 옛 저장에는 등급 칸이 없어 null 로 온다 — 빈 칸으로 받는다.
             DroppedByTier = saveData.DroppedByTier ?? new long[0];
-            DropProgressByTier = saveData.DropProgressByTier ?? new double[0];
+            DropProgressByTier = saveData.DropProgressByTier != null
+                ? (double[])saveData.DropProgressByTier.Clone()
+                : new double[0];
+
+            for (int slot = 0; slot < DropProgressByTier.Length; slot++)
+            {
+                DropProgressByTier[slot] = Sane(DropProgressByTier[slot]);
+            }
             if (DropProgressByTier.Length < DroppedByTier.Length)
             {
                 double[] grown = new double[DroppedByTier.Length];
