@@ -57,6 +57,144 @@ namespace WitchMendokusai
         [SerializeField] private double speedBaseValue = 0.5d;
         [SerializeField] private double speedValueRatio = 1.12d;
 
+        [Header("손 때리기")]
+        [Tooltip("한 번 두드리면 <공격 몇 초치>가 즉시 들어가나.")]
+        [SerializeField] private double tapSecondsOfAttack = 0.2d;
+
+        [Header("지나가는 것 · 폭주")]
+        [Tooltip("이 시간 전에는 안 뜬다.")]
+        [SerializeField] private double visitorEarliestSeconds = 90d;
+
+        [Tooltip("이쯤이면 거의 확실히 뜬다 (5제곱 램프의 끝).")]
+        [SerializeField] private double visitorLatestSeconds = 300d;
+
+        [Tooltip("떠 있는 시간 — 짧을수록 잡는 것이 사건이 된다.")]
+        [SerializeField] private double visitorStaySeconds = 13d;
+
+        [Tooltip("잡았을 때 폭주가 지속되는 시간.")]
+        [SerializeField] private double surgeSeconds = 30d;
+
+        [Tooltip("폭주 — 판 전체(공격속도·기지 생산)에 걸리는 배수.")]
+        [SerializeField] private double frenzyMultiplier = 7d;
+
+        [Tooltip("잡았을 때 손폭주가 걸릴 확률.")]
+        [SerializeField] private double handFrenzyChance = 0.2d;
+
+        [Tooltip("손폭주 — 손으로 때리는 값에만 걸리는 배수.")]
+        [SerializeField] private double handFrenzyMultiplier = 50d;
+
+        [Header("뽑기")]
+        [Tooltip("첫 뽑기의 자원 값.")]
+        [SerializeField] private double pullCostBase = 250d;
+
+        [Tooltip("뽑을수록 값에 곱해지는 배수.")]
+        [SerializeField] private double pullCostRatio = 1.15d;
+
+        [Tooltip("한 번 뽑는 데 드는 환생석 (자원과 «둘 다» 낸다).")]
+        [SerializeField] private long pullStoneCost = 1L;
+
+        [Tooltip("레전드 확률. 화면에 그대로 적히므로 여기와 표시가 갈리면 안 된다.")]
+        [SerializeField] private double legendChance = 0.02d;
+
+        [Tooltip("에픽 확률.")]
+        [SerializeField] private double epicChance = 0.10d;
+
+        [Tooltip("레어 확률. 나머지가 일반.")]
+        [SerializeField] private double rareChance = 0.28d;
+
+        [Tooltip("천장 — 이 횟수 안에 레전드를 보장한다.")]
+        [SerializeField] private int pityPulls = 60;
+
+        [Header("영웅 — 중복·보유·도감")]
+        [Tooltip("★ 상한. 넘겨도 중복은 안 버린다.")]
+        [SerializeField] private int maxStars = 5;
+
+        [Tooltip("다음 ★ 까지 필요한 중복의 기본 개수 (★ 마다 늘어난다).")]
+        [SerializeField] private int copiesPerStar = 2;
+
+        [Tooltip("★ 하나가 더하는 몫.")]
+        [SerializeField] private double heroStarStep = 0.10d;
+
+        [Tooltip("«가지고만 있어도» 붙는 몫 (등급 무게에 곱해진다).")]
+        [SerializeField] private double heroOwnedShareByGrade = 0.03d;
+
+        [Tooltip("«내보내야» 붙는 몫 — 보유보다 커야 누구를 낼지가 결정이 된다.")]
+        [SerializeField] private double heroPartyShareByGrade = 0.12d;
+
+        [Tooltip("도감 점수 몇마다 한 계단 오르나.")]
+        [SerializeField] private int codexStepScore = 5;
+
+        [Tooltip("한 계단이 주는 판 전체 배수 (뿌리 둘에서 «한 번»만 걸린다).")]
+        [SerializeField] private double codexStepBonus = 0.15d;
+
+        [Header("기지")]
+        [Tooltip("생산자 종류 수.")]
+        [SerializeField] private int producerCount = 8;
+
+        [Tooltip("하나 살 때마다 값에 곱해지는 배수 (쿠키 클리커와 같은 자리).")]
+        [SerializeField] private double producerCostRatio = 1.15d;
+
+        [Tooltip("«몰아 사기/올리기» 한 번에 처리하는 최대 개수 — 크면 한 번 누르는 데 판이 멎는다.")]
+        [SerializeField] private int bulkBuyMost = 50;
+
+        [Header("장비 — 가방·합치기·감정")]
+        [Tooltip("가방 칸 수. 차면 새 장비가 안 들어온다(감정용 개수는 계속 쌓인다).")]
+        [SerializeField] private int bagCapacity = 40;
+
+        [Tooltip("합치는 데 필요한 같은 부위·같은 등급 개수.")]
+        [SerializeField] private int mergeCount = 3;
+
+        [Tooltip("장비 등급 하나가 그 부위에 더하는 몫.")]
+        [SerializeField] private double gearTierBonus = 0.15d;
+
+        [Tooltip("1등급 감정 값.")]
+        [SerializeField] private double appraiseBaseCost = 50d;
+
+        [Tooltip("등급마다 감정 값에 곱해지는 배수.")]
+        [SerializeField] private double appraiseCostRatio = 4d;
+
+        [Tooltip("합치기 값 = 그 등급 감정 값 x 이 값.")]
+        [SerializeField] private double mergeCostFactor = 0.5d;
+
+        [Tooltip("잠재 등급의 최고값 = 최저값 x 이 값.")]
+        [SerializeField] private double potentialSpread = 2d;
+
+        [Header("떨구기 — 깊이가 등급의 관문")]
+        [Tooltip("첫 판의 등급 천장.")]
+        [SerializeField] private int baseMaxTier = 6;
+
+        [Tooltip("환생 한 번마다 천장이 몇 오르나.")]
+        [SerializeField] private int tiersPerAscension = 2;
+
+        [Tooltip("몇 단계마다 등급이 하나씩 열리나.")]
+        [SerializeField] private int stagesPerTier = 5;
+
+        [Tooltip("처치 하나가 떨구는 기대 개수.")]
+        [SerializeField] private double dropsPerKill = 0.25d;
+
+        [Tooltip("한 등급 위로 갈 때 나올 몫에 곱해지는 비율 (합은 늘 1).")]
+        [SerializeField] private double tierRarity = 0.4d;
+
+        [Header("환생")]
+        [Tooltip("여기부터 환생 점수가 붙는다.")]
+        [SerializeField] private int prestigeMinStage = 10;
+
+        [Tooltip("«가장 깊이 간» 단계 하나당 점수.")]
+        [SerializeField] private double prestigePointsPerStage = 1d;
+
+        [Tooltip("점수 하나가 곱하는 배수 — 이 게임에서 가장 센 손잡이다.")]
+        [SerializeField] private double prestigeMultiplierPerPoint = 1.55d;
+
+        [Header("자리 비움")]
+        [Tooltip("기본 오프라인 상한 (초).")]
+        [SerializeField] private double baseMaxOfflineSeconds = 8d * 3600d;
+
+        [Tooltip("환생 한 번이 늘려 주는 상한 (초).")]
+        [SerializeField] private double offlineSecondsPerAscension = 2d * 3600d;
+
+        [Tooltip("아무리 늘려도 여기까지 (초).")]
+        [SerializeField] private double maxOfflineCapSeconds = 24d * 3600d;
+
         /// <summary>코어가 쓰는 형태로 넘긴다.</summary>
         public IdleTuning ToTuning()
         {
@@ -81,6 +219,49 @@ namespace WitchMendokusai
                     BaseValue = speedBaseValue,
                     ValueRatio = speedValueRatio,
                 },
+                TapSecondsOfAttack = tapSecondsOfAttack,
+                VisitorEarliestSeconds = visitorEarliestSeconds,
+                VisitorLatestSeconds = visitorLatestSeconds,
+                VisitorStaySeconds = visitorStaySeconds,
+                SurgeSeconds = surgeSeconds,
+                FrenzyMultiplier = frenzyMultiplier,
+                HandFrenzyChance = handFrenzyChance,
+                HandFrenzyMultiplier = handFrenzyMultiplier,
+                PullCostBase = pullCostBase,
+                PullCostRatio = pullCostRatio,
+                PullStoneCost = pullStoneCost,
+                LegendChance = legendChance,
+                EpicChance = epicChance,
+                RareChance = rareChance,
+                PityPulls = pityPulls,
+                MaxStars = maxStars,
+                CopiesPerStar = copiesPerStar,
+                HeroStarStep = heroStarStep,
+                HeroOwnedShareByGrade = heroOwnedShareByGrade,
+                HeroPartyShareByGrade = heroPartyShareByGrade,
+                CodexStepScore = codexStepScore,
+                CodexStepBonus = codexStepBonus,
+                ProducerCount = producerCount,
+                ProducerCostRatio = producerCostRatio,
+                BulkBuyMost = bulkBuyMost,
+                BagCapacity = bagCapacity,
+                MergeCount = mergeCount,
+                GearTierBonus = gearTierBonus,
+                AppraiseBaseCost = appraiseBaseCost,
+                AppraiseCostRatio = appraiseCostRatio,
+                MergeCostFactor = mergeCostFactor,
+                PotentialSpread = potentialSpread,
+                BaseMaxTier = baseMaxTier,
+                TiersPerAscension = tiersPerAscension,
+                StagesPerTier = stagesPerTier,
+                DropsPerKill = dropsPerKill,
+                TierRarity = tierRarity,
+                PrestigeMinStage = prestigeMinStage,
+                PrestigePointsPerStage = prestigePointsPerStage,
+                PrestigeMultiplierPerPoint = prestigeMultiplierPerPoint,
+                BaseMaxOfflineSeconds = baseMaxOfflineSeconds,
+                OfflineSecondsPerAscension = offlineSecondsPerAscension,
+                MaxOfflineCapSeconds = maxOfflineCapSeconds,
             };
         }
     }
