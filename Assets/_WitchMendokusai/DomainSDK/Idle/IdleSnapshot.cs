@@ -224,6 +224,14 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// <summary>가방 칸 수 — 「몇/몇」을 화면이 뺄셈으로 지어내지 않게.</summary>
         public int BagCapacity { get; }
 
+        /// <summary>
+        /// 몇 개를 모아야 한 단계 위로 합치나.
+        ///
+        /// ★ 화면·안내가 이걸 <b>물어봐야</b> 한다. 전에는 안내 쪽에 3 이 박혀 있어서,
+        ///   인스펙터에서 이 손잡이를 4 로 바꾸면 안내만 조용히 거짓말을 했다.
+        /// </summary>
+        public int MergeCount { get; }
+
         /// <summary>가진 영웅들 (도감).</summary>
         public IdleHeroView[] Heroes { get; }
 
@@ -298,7 +306,7 @@ namespace WitchMendokusai.DomainSDK.Idle
             int stage, int killsInStage, int killsPerStage,
             long prestigePoints, long prestigeAward, double prestigeMultiplier,
             long[] droppedByTier, int maxTierNow, int tierCeiling,
-            IdleProducerView[] producers, IdleItem[] bag, IdleItem[] worn, int bagCapacity,
+            IdleProducerView[] producers, IdleItem[] bag, IdleItem[] worn, int bagCapacity, int mergeCount,
             double bestPotentialValue, PotentialGrade bestPotentialGrade, double maxOfflineSeconds, bool holdingStage, int bestStage, int bestFarmingStage,
             IdleHeroView[] heroes, int[] party, double pullCost, long pullStoneCost, long stones,
             double visitorSecondsLeft, IdleSurgeKind surgeKind, double surgeSecondsLeft, double surgeMultiplier,
@@ -323,6 +331,7 @@ namespace WitchMendokusai.DomainSDK.Idle
             Bag = bag;
             Worn = worn;
             BagCapacity = bagCapacity;
+            MergeCount = mergeCount;
             BestPotentialValue = bestPotentialValue;
             BestPotentialGrade = bestPotentialGrade;
             MaxOfflineSeconds = maxOfflineSeconds;

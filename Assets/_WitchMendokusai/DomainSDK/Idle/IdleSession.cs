@@ -275,6 +275,7 @@ namespace WitchMendokusai.DomainSDK.Idle
                 state.Bag.ToArray(),
                 (IdleItem[])state.Worn.Clone(),
                 tuning.BagCapacity,
+                tuning.MergeCount,
                 state.BestPotentialValue,
                 (PotentialGrade)state.BestPotentialGrade,
                 IdleModel.MaxOfflineFor(state, tuning),

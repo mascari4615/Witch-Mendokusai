@@ -80,6 +80,11 @@ namespace WitchMendokusai.DomainSDK.Idle
     /// </summary>
     public static class IdleAdvice
     {
+        /// <summary>합칠 것을 세는 데 쓰는 <b>한 장짜리 판</b> — 매번 새로 만들지 않는다.</summary>
+        [System.ThreadStatic]
+        private static int[] scratch;
+
+
         public static IdleAdviceResult NextStep(IdleSnapshot snapshot)
         {
             // ① 사라지는 것이 먼저다 — 지금 안 누르면 없어진다.
@@ -238,7 +243,24 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// <summary>합칠 수 있는 묶음 수 — 같은 부위·같은 등급 셋.</summary>
         public static int MergeableCount(IdleSnapshot snapshot)
         {
-            int[] counts = new int[64];
+            // ⚠ 전에는 부를 때마다 <b>새 판</b>을 하나 만들었다(new int[64]).
+            //   화면이 매 프레임 이걸 예닐곱 번 부른다(서랍 점 다섯 + 다음 한 걸음) —
+            //   8시간 켜 두는 게임에서 그건 초당 수백 개의 쓰레기다.
+            //   방치형은 <b>오래 켜 두는 것</b>이 기본값이라 프레임당 할당이 곧 끊김이 된다.
+            //   판은 한 번만 만들고 씻어 쓴다. [ThreadStatic] 인 이유는 시험이 여러 판에서
+            //   동시에 돌기 때문이다(한 판을 나눠 쓰면 서로의 셈을 밟는다).
+            int[] counts = scratch;
+
+            if (counts == null)
+            {
+                counts = new int[64];
+                scratch = counts;
+            }
+            else
+            {
+                System.Array.Clear(counts, 0, counts.Length);
+            }
+
             int found = 0;
 
             for (int index = 0; index < snapshot.Bag.Length; index++)
@@ -252,7 +274,12 @@ namespace WitchMendokusai.DomainSDK.Idle
                 }
 
                 counts[key]++;
-                if (counts[key] == 3)
+
+                // ⚠ 전에는 「3 에 닿을 때 한 번」만 셌다 — 여섯 개를 들고 있어도 <b>한 벌</b>이라고
+                //   말했다(실제로는 두 벌을 합칠 수 있다). 그리고 그 3 이 <b>여기 박혀</b> 있어서,
+                //   인스펙터에서 손잡이를 4 로 바꾸면 안내만 조용히 거짓말을 했다.
+                //   이제 판이 말해 주는 수로 세고, 벌이 찰 때마다 센다.
+                if (snapshot.MergeCount > 1 && counts[key] % snapshot.MergeCount == 0)
                 {
                     found++;
                 }

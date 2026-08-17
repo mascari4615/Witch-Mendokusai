@@ -321,5 +321,83 @@ namespace WitchMendokusai.Tests
 			return seconds < soonest ? seconds : soonest;
 		}
 
+
+		/// <summary>
+		/// ★ 여러 번 불러도 <b>같은 답</b>이다 — 씻어 쓰는 판이 지난 셈을 물고 있지 않다.
+		///
+		/// 매 프레임 예닐곱 번 부르는 자리라 판을 새로 안 만들고 씻어 쓴다(쓰레기 줄이기).
+		/// 씻는 걸 빠뜨리면 두 번째 부름부터 <b>수가 불어난다</b> — 그 순간을 잡는 시험이다.
+		/// </summary>
+		[Test]
+		public void CountingTwice_GivesTheSameAnswer()
+		{
+			IdleState state = Fresh(out IdleTuning tuning);
+
+			for (int one = 0; one < tuning.MergeCount; one++)
+			{
+				state.Bag.Add(new IdleItem(2, IdleItemSlot.Head));
+			}
+
+			IdleSnapshot now = Look(state);
+
+			int first = IdleAdvice.MergeableCount(now);
+			Assert.AreEqual(1, first, "합칠 한 벌을 못 셌다 — 시험이 아무것도 안 보고 있다");
+
+			for (int again = 0; again < 5; again++)
+			{
+				Assert.AreEqual(first, IdleAdvice.MergeableCount(now),
+					"부를 때마다 답이 달라진다 — 판을 안 씻고 있다");
+			}
+		}
+
+		/// <summary>
+		/// ★ 다른 판을 물고 오지 않는다 — 앞 판의 가방이 다음 셈에 안 섞인다.
+		///
+		/// ⚠ 판을 <b>일부러</b> 이렇게 짠다 (실측 2026-08-17): 처음엔 「6개 → 그다음 빈 가방」으로
+		///   썼는데, 씻기를 꺼도 <b>둘 다 그대로</b> 통과했다 — 빈 가방은 아무것도 안 더하니까.
+		///   「같은 수를 두 번」도 마찬가지로 안 걸린다(같은 양을 더하면 배수를 또 넘는다).
+		///   그래서 <b>둘 다 한 벌이 안 되지만 합치면 한 벌이 되는</b> 수(2 + 1)를 쓴다.
+		///   씻기를 빠뜨리면 두 번째가 0 이 아니라 1 이 된다.
+		/// </summary>
+		[Test]
+		public void OneBoardDoesNotLeakIntoTheNext()
+		{
+			IdleTuning tuning = new IdleTuning();
+			Assert.AreEqual(3, tuning.MergeCount, "합치는 개수가 3 이 아니면 아래 수를 다시 골라야 한다");
+
+			IdleState few = Fresh(out IdleTuning _);
+			few.Bag.Add(new IdleItem(2, IdleItemSlot.Head));
+			few.Bag.Add(new IdleItem(2, IdleItemSlot.Head));
+
+			IdleState fewer = Fresh(out IdleTuning _);
+			fewer.Bag.Add(new IdleItem(2, IdleItemSlot.Head));
+
+			Assert.AreEqual(0, IdleAdvice.MergeableCount(Look(few)), "둘로는 못 합친다");
+			Assert.AreEqual(0, IdleAdvice.MergeableCount(Look(fewer)),
+				"앞 판의 둘이 남아서 하나뿐인 판이 합칠 수 있다고 나온다");
+		}
+
+		/// <summary>★ 손잡이를 바꾸면 <b>안내도 따라온다</b> — 3 이 코드에 박혀 있으면 안 된다.</summary>
+		[Test]
+		public void TheAdviceFollowsTheMergeKnob()
+		{
+			IdleTuning wider = new IdleTuning();
+			wider.MergeCount = 4;
+
+			IdleState state = new IdleState();
+			state.EnsureProducerRoom(wider.ProducerCount);
+
+			for (int one = 0; one < 3; one++)
+			{
+				state.Bag.Add(new IdleItem(2, IdleItemSlot.Head));
+			}
+
+			Assert.AreEqual(0, IdleAdvice.MergeableCount(new IdleSession(wider, state).Capture()),
+				"넷을 모아야 하는 판인데 셋으로 합칠 수 있다고 한다");
+
+			state.Bag.Add(new IdleItem(2, IdleItemSlot.Head));
+
+			Assert.AreEqual(1, IdleAdvice.MergeableCount(new IdleSession(wider, state).Capture()));
+		}
 	}
 }
