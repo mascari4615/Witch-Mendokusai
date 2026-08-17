@@ -432,5 +432,52 @@ namespace WitchMendokusai.Tests
 			state.Owned[0] = 10L;
 			return state;
 		}
+
+		/// <summary>
+		/// ★ 저장에 <b>모르는 영웅 번호</b>가 있어도 판이 선다 — 그 얼굴만 버린다.
+		///
+		/// 저장은 바깥에서 온 글자다. 사람이 고칠 수도 있고, 명단이 바뀌면 옛 저장에
+		/// 없는 얼굴이 남는다. 그대로 받으면 KindOf 가 배열 밖을 짚어 <b>매 프레임</b> 터진다 —
+		/// 화면이 통째로 죽고, 사람은 「내 판이 깨졌다」만 본다.
+		/// </summary>
+		[Test]
+		public void AnUnknownHeroInTheSave_IsDropped()
+		{
+			IdleSaveData saved = new IdleState().Save();
+			saved.Heroes = new IdleHeroOwned[] { new IdleHeroOwned(0), new IdleHeroOwned(9999) };
+			saved.Party = new int[] { 9999, 0, -1 };
+
+			IdleState state = new IdleState();
+			state.Load(saved);
+
+			Assert.AreEqual(1, state.Heroes.Count, "모르는 얼굴을 그대로 받았다");
+			Assert.AreEqual(0, state.Heroes[0].Id);
+
+			Assert.AreEqual(-1, state.Party[0], "모르는 얼굴이 자리에 서 있다");
+			Assert.AreEqual(0, state.Party[1], "멀쩡한 얼굴까지 내렸다");
+
+			// 그리고 <b>판이 실제로 돈다</b> — 여기서 터지면 위 검사는 아무 뜻이 없다.
+			IdleTuning tuning = new IdleTuning();
+			state.EnsureProducerRoom(tuning.ProducerCount);
+			IdleSession session = new IdleSession(tuning, state);
+			session.Advance(1d);
+
+			Assert.Greater(IdleModel.DamageOf(state, tuning), 0d);
+			Assert.IsNotNull(session.Capture().Heroes);
+		}
+
+		/// <summary>★ 가지지도 않은 얼굴이 자리에 적혀 있으면 그 자리는 빈다.</summary>
+		[Test]
+		public void APartySeatWithoutTheHero_ComesBackEmpty()
+		{
+			IdleSaveData saved = new IdleState().Save();
+			saved.Heroes = new IdleHeroOwned[0];
+			saved.Party = new int[] { 3, -1, -1 };
+
+			IdleState state = new IdleState();
+			state.Load(saved);
+
+			Assert.AreEqual(-1, state.Party[0], "안 가진 영웅이 서 있다");
+		}
 	}
 }

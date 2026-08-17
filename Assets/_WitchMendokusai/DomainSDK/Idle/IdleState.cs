@@ -269,12 +269,36 @@ namespace WitchMendokusai.DomainSDK.Idle
                 : new IdleItem[IdleGear.SLOT_COUNT];
             DropSequence = saveData.DropSequence;
             // 옛 저장에는 영웅이 없다 — 빈 도감·빈 파티로 받는다(터지지 않는다).
-            Heroes = saveData.Heroes != null
-                ? new System.Collections.Generic.List<IdleHeroOwned>(saveData.Heroes)
-                : new System.Collections.Generic.List<IdleHeroOwned>();
-            Party = saveData.Party != null && saveData.Party.Length == 3
-                ? (int[])saveData.Party.Clone()
-                : new int[] { -1, -1, -1 };
+            //
+            // ⚠ <b>모르는 번호는 버린다</b>. 저장은 <b>바깥에서 온 글자</b>다 — 사람이 고칠 수도
+            //   있고, 명단이 바뀌면 옛 저장에 없는 얼굴이 남는다. 그대로 받으면
+            //   IdleHeroes.KindOf 가 배열 밖을 짚어 <b>매 프레임</b> 터진다(화면이 통째로 죽는다).
+            //   경계에서 거르는 것은 증상 덮기가 아니라 바깥 입력을 다루는 자리의 일이다.
+            Heroes = new System.Collections.Generic.List<IdleHeroOwned>();
+
+            if (saveData.Heroes != null)
+            {
+                for (int index = 0; index < saveData.Heroes.Length; index++)
+                {
+                    if (IdleHeroes.Knows(saveData.Heroes[index].Id))
+                    {
+                        Heroes.Add(saveData.Heroes[index]);
+                    }
+                }
+            }
+
+            Party = new int[] { -1, -1, -1 };
+
+            if (saveData.Party != null && saveData.Party.Length == Party.Length)
+            {
+                for (int seat = 0; seat < Party.Length; seat++)
+                {
+                    int id = saveData.Party[seat];
+
+                    // 자리에 앉은 얼굴도 <b>가진 얼굴</b>이어야 한다 — 버린 영웅이 서 있으면 안 된다.
+                    Party[seat] = IdleHeroes.Knows(id) && IndexOfHero(id) >= 0 ? id : -1;
+                }
+            }
             PullsSincePity = saveData.PullsSincePity;
             PullsDone = saveData.PullsDone;
             Stones = saveData.Stones;

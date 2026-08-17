@@ -55,6 +55,12 @@ namespace WitchMendokusai.DomainSDK.Idle
             return ALL[id];
         }
 
+        /// <summary>이 번호가 <b>이 명단에 있는</b> 얼굴인가 — 저장에서 온 값을 걸러낼 때 쓴다.</summary>
+        public static bool Knows(int id)
+        {
+            return id >= 0 && id < ALL.Length;
+        }
+
         /// <summary>이 등급의 영웅들 — 뽑기가 등급을 먼저 고르고 그 안에서 하나를 집는다.</summary>
         public static void IdsOfGrade(IdleHeroGrade grade, List<int> into)
         {
