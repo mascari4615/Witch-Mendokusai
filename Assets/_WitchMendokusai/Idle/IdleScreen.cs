@@ -1111,6 +1111,9 @@ namespace WitchMendokusai
 					return string.Format("▶ 환생할 때다 — 지금 환생하면 환생석 {0} (등급 천장도 오른다)",
 						(long)advice.Amount);
 
+				case IdleStep.Wear:
+					return "▶ 장비 탭 — 가방에 더 좋은 것이 있다 (차는 데는 아무것도 안 든다)";
+
 				case IdleStep.Pull:
 					return "▶ 영웅 탭 — 뽑을 수 있다 (안 내보내도 들고만 있으면 세진다)";
 

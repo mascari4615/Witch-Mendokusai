@@ -21,6 +21,9 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// <summary>같은 것 셋을 합칠 수 있다.</summary>
         Merge = 5,
 
+        /// <summary>가방에 더 좋은 것이 있는데 안 차고 있다 — <b>공짜로</b> 세진다.</summary>
+        Wear = 9,
+
         /// <summary>생산자를 살 수 있다.</summary>
         BuyProducer = 6,
 
@@ -95,6 +98,14 @@ namespace WitchMendokusai.DomainSDK.Idle
             if (snapshot.PrestigeAward > 0L && snapshot.MaxTierNow >= snapshot.TierCeiling)
             {
                 return new IdleAdviceResult(IdleStep.Prestige, -1, snapshot.PrestigeAward);
+            }
+
+            // ④ <b>공짜로 세지는 것</b>이 먼저다. 차는 데는 아무것도 안 든다 —
+            //    그걸 두고 「돈을 써라」라고 말하는 안내는 틀린 안내다.
+            //    (전에는 아예 말하지 않아서, 좋은 장비가 가방에서 잠자도 화면이 조용했다.)
+            if (HasBetterUnworn(snapshot))
+            {
+                return new IdleAdviceResult(IdleStep.Wear, -1, 0d);
             }
 
             if (snapshot.CanPull)

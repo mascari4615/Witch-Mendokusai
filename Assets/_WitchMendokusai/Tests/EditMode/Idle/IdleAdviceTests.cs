@@ -236,5 +236,37 @@ namespace WitchMendokusai.Tests
 		{
 			return new IdleSession(new IdleTuning(), state).Capture();
 		}
+
+		/// <summary>
+		/// ★ <b>공짜로 세지는 것</b>을 먼저 말한다 — 가방에 더 좋은 것이 있으면 「차라」.
+		///
+		/// 차는 데는 아무것도 안 든다. 그걸 두고 「뽑아라 / 사라」라고 말하는 안내는 틀린 안내다.
+		/// 전에는 아예 말하지 않아서, 좋은 장비가 가방에서 잠자도 화면이 조용했다.
+		/// </summary>
+		[Test]
+		public void ABetterItemInTheBag_IsToldBeforeSpending()
+		{
+			IdleState state = Fresh(out IdleTuning tuning);
+
+			// 살 수도 있고 찰 수도 있는 판 — 공짜인 쪽을 먼저 말해야 한다.
+			state.Resource = IdleBase.CostOf(0, state.Owned[0], tuning);
+			state.Bag.Add(new IdleItem(3, IdleItemSlot.Head));
+
+			Assert.AreEqual(IdleStep.Wear, IdleAdvice.NextStep(Look(state)).Step);
+		}
+
+		/// <summary>★ 다 차고 나면 <b>다음 걸음</b>으로 넘어간다 — 같은 말을 영영 반복하지 않는다.</summary>
+		[Test]
+		public void OnceWorn_TheAdviceMovesOn()
+		{
+			IdleState state = Fresh(out IdleTuning tuning);
+			state.Resource = IdleBase.CostOf(0, state.Owned[0], tuning);
+			state.Bag.Add(new IdleItem(3, IdleItemSlot.Head));
+
+			Assert.IsTrue(IdleGear.TryEquip(state, 0));
+
+			Assert.AreEqual(IdleStep.BuyProducer, IdleAdvice.NextStep(Look(state)).Step,
+				"찼는데도 계속 차라고 한다");
+		}
 	}
 }
