@@ -289,6 +289,7 @@ namespace WitchMendokusai.DomainSDK.Idle
                 state.VisitorSecondsLeft,
                 (IdleSurgeKind)state.SurgeKind,
                 state.SurgeSecondsLeft,
+                IdleSurge.MultiplierOfKind(state, tuning),
                 IdleGacha.CanPull(state, tuning),
                 tuning.PityPulls - state.PullsSincePity,
                 tuning.LegendChance,

@@ -247,6 +247,15 @@ namespace WitchMendokusai.DomainSDK.Idle
 
         public double SurgeSecondsLeft { get; }
 
+        /// <summary>
+        /// 지금 걸린 폭주가 <b>몇 배</b>인가 (없으면 1).
+        ///
+        /// ★ 화면이 「폭주!」만 말하면 사람은 <b>얼마나</b> 좋아졌는지 모른다 — 봉우리를
+        ///   느끼라고 넣은 장치인데 느낄 재료를 안 준 셈이다. 배수는 튜닝이 정하므로
+        ///   화면이 못 짓는다. 그래서 판정 쪽이 실어 보낸다.
+        /// </summary>
+        public double SurgeMultiplier { get; }
+
         /// <summary>지금 뽑을 수 있나.</summary>
         public bool CanPull { get; }
 
@@ -292,7 +301,7 @@ namespace WitchMendokusai.DomainSDK.Idle
             IdleProducerView[] producers, IdleItem[] bag, IdleItem[] worn, int bagCapacity,
             double bestPotentialValue, PotentialGrade bestPotentialGrade, double maxOfflineSeconds, bool holdingStage, int bestStage, int bestFarmingStage,
             IdleHeroView[] heroes, int[] party, double pullCost, long pullStoneCost, long stones,
-            double visitorSecondsLeft, IdleSurgeKind surgeKind, double surgeSecondsLeft,
+            double visitorSecondsLeft, IdleSurgeKind surgeKind, double surgeSecondsLeft, double surgeMultiplier,
             bool canPull, int pullsToPity, double legendChance, double epicChance, double rareChance,
             int codexScore, double codexMultiplier,
             IdleUpgradeView damage, IdleUpgradeView attackSpeed, double attacksPerSecond)
@@ -328,6 +337,7 @@ namespace WitchMendokusai.DomainSDK.Idle
             VisitorSecondsLeft = visitorSecondsLeft;
             SurgeKind = surgeKind;
             SurgeSecondsLeft = surgeSecondsLeft;
+            SurgeMultiplier = surgeMultiplier;
             CanPull = canPull;
             PullsToPity = pullsToPity;
             LegendChance = legendChance;

@@ -1184,8 +1184,13 @@ namespace WitchMendokusai
 			if (surging)
 			{
 				surgeLabel.style.display = DisplayStyle.Flex;
-				surgeLabel.text = string.Format("{0}!  {1:0.0}초",
-					IdleSurge.NameOf(snapshot.SurgeKind), snapshot.SurgeSecondsLeft);
+				// ★ <b>몇 배인지</b>를 같이 적는다 — 「폭주!」만 뜨면 얼마나 좋아졌는지 알 수가 없고,
+				//   그러면 봉우리를 만들어 놓고 봉우리를 안 보여 주는 셈이다.
+				//   손폭주는 <b>손</b>에만 걸리므로 그렇게 말한다(판 전체로 읽히면 거짓말이다).
+				surgeLabel.text = string.Format("{0}!  {1} x{2:0.#}  ·  {3:0.0}초",
+					IdleSurge.NameOf(snapshot.SurgeKind),
+					snapshot.SurgeKind == IdleSurgeKind.HandFrenzy ? "손" : "판 전체",
+					snapshot.SurgeMultiplier, snapshot.SurgeSecondsLeft);
 			}
 			else
 			{

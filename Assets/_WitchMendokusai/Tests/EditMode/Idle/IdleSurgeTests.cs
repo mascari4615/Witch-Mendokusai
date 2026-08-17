@@ -198,5 +198,34 @@ namespace WitchMendokusai.Tests
 			Assert.AreEqual((int)IdleSurgeKind.None, state.SurgeKind, "폭주가 방치 구간을 건넜다");
 			Assert.AreEqual(0d, state.SurgeSecondsLeft, 1e-9d);
 		}
+
+		/// <summary>
+		/// ★ 화면이 <b>몇 배인지</b> 알 수 있다 — 「폭주!」만으로는 봉우리가 안 느껴진다.
+		///
+		/// 배수는 튜닝이 정하므로 화면이 못 짓는다. 판정 쪽이 실어 보내야 한다.
+		/// </summary>
+		[Test]
+		public void TheScreenCanTell_HowBigTheSurgeIs()
+		{
+			IdleTuning tuning = new IdleTuning();
+			IdleState state = new IdleState();
+			state.EnsureProducerRoom(tuning.ProducerCount);
+			IdleSession session = new IdleSession(tuning, state);
+
+			Assert.AreEqual(1d, session.Capture().SurgeMultiplier, 1e-9d,
+				"아무 일도 없는데 배수가 1 이 아니다");
+
+			state.SurgeKind = (int)IdleSurgeKind.Frenzy;
+			state.SurgeSecondsLeft = 10d;
+			Assert.AreEqual(tuning.FrenzyMultiplier, session.Capture().SurgeMultiplier, 1e-9d);
+
+			state.SurgeKind = (int)IdleSurgeKind.HandFrenzy;
+			Assert.AreEqual(tuning.HandFrenzyMultiplier, session.Capture().SurgeMultiplier, 1e-9d,
+				"손폭주의 배수를 판 전체 배수로 말한다");
+
+			// 끝나면 다시 1 — 남은 시간이 0 인데 배수만 남으면 화면이 거짓말을 한다.
+			state.SurgeSecondsLeft = 0d;
+			Assert.AreEqual(1d, session.Capture().SurgeMultiplier, 1e-9d);
+		}
 	}
 }

@@ -155,6 +155,27 @@ namespace WitchMendokusai.DomainSDK.Idle
                 : 1d;
         }
 
+        /// <summary>
+        /// 지금 걸린 것이 <b>몇 배</b>인가 — 종류를 가리지 않고 하나로 답한다 (없으면 1).
+        ///
+        /// 화면에 「폭주!」만 띄우고 배수를 안 적으면 봉우리가 안 느껴진다.
+        /// 배수는 튜닝이 정하므로 화면이 못 짓는다 — 그래서 여기서 답한다.
+        /// </summary>
+        public static double MultiplierOfKind(IdleState state, IdleTuning tuning)
+        {
+            if (state.SurgeSecondsLeft <= 0d)
+            {
+                return 1d;
+            }
+
+            switch ((IdleSurgeKind)state.SurgeKind)
+            {
+                case IdleSurgeKind.Frenzy: return tuning.FrenzyMultiplier;
+                case IdleSurgeKind.HandFrenzy: return tuning.HandFrenzyMultiplier;
+                default: return 1d;
+            }
+        }
+
         public static string NameOf(IdleSurgeKind kind)
         {
             switch (kind)
