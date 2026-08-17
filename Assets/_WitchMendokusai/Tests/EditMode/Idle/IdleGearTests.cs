@@ -151,5 +151,23 @@ namespace WitchMendokusai.Tests
 			Assert.AreEqual(1d, now, 1e-9d);
 			Assert.Greater(after, 1d);
 		}
+
+		/// <summary>
+		/// ★ 부위 수가 <b>세 군데의 약속</b>이다 — enum · 상수 · 착용 칸.
+		///
+		/// 화면은 이 수에 맞춘 이름표를 들고 있고(머리·몸·손·발), 합칠 것을 세는 판도
+		/// 「등급 x 부위수」로 자리를 잡는다. 여기가 어긋나면 화면이 엉뚱한 이름을 붙이거나
+		/// 맨 위 등급이 조용히 빠진다(오늘 뒤엣것을 실제로 겪었다).
+		/// </summary>
+		[Test]
+		public void TheSlotCount_IsOnePromise()
+		{
+			Assert.AreEqual(IdleGear.SLOT_COUNT, System.Enum.GetValues(typeof(IdleItemSlot)).Length,
+				"부위 상수와 enum 이 어긋났다");
+
+			IdleState state = new IdleState();
+			Assert.AreEqual(IdleGear.SLOT_COUNT, state.Worn.Length,
+				"착용 칸 수가 부위 수와 다르다");
+		}
 	}
 }

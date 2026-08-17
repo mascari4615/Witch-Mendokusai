@@ -121,6 +121,17 @@ namespace WitchMendokusai
 
 		/// <summary>합칠 것을 세는 판 — 매 프레임 새로 만들지 않는다.</summary>
 		private int[] mergeCounts;
+
+		/// <summary>
+		/// 부위 이름 — <see cref="IdleItemSlot"/> 과 <b>순서가 같아야 한다</b>.
+		///
+		/// ★ 전에는 이 목록이 <b>세 군데</b>에 따로 있었고(차림·가방·합치기) 매 프레임 새로
+		///   만들어졌다. 이름을 하나 고치면 두 곳만 바뀌는 종류의 자리다.
+		/// </summary>
+		private static readonly string[] SLOT_NAMES = { "머리", "몸", "손", "발" };
+
+		/// <summary>부위가 <b>무엇을 올리나</b> — 차림 줄에만 쓴다.</summary>
+		private static readonly string[] SLOT_ROLES = { "머리(공격력)", "몸(기지)", "손(속도)", "발(떨구기)" };
 		private readonly List<VisualElement> pages = new List<VisualElement>();
 
 		private VisualElement basePage;
@@ -1552,12 +1563,11 @@ namespace WitchMendokusai
 		private void RenderWorn(IdleSnapshot snapshot)
 		{
 			System.Text.StringBuilder text = new System.Text.StringBuilder();
-			string[] names = { "머리(공격력)", "몸(기지)", "손(속도)", "발(떨구기)" };
 
-			for (int slot = 0; slot < snapshot.Worn.Length && slot < names.Length; slot++)
+			for (int slot = 0; slot < snapshot.Worn.Length && slot < SLOT_ROLES.Length; slot++)
 			{
 				IdleItem one = snapshot.Worn[slot];
-				text.Append(names[slot]).Append(" ");
+				text.Append(SLOT_ROLES[slot]).Append(" ");
 
 				if (one.IsEmpty)
 				{
@@ -1598,7 +1608,6 @@ namespace WitchMendokusai
 				}
 			}
 
-			string[] slots = { "머리", "몸", "손", "발" };
 
 			for (int index = 0; index < bagButtons.Count; index++)
 			{
@@ -1618,7 +1627,7 @@ namespace WitchMendokusai
 
 				bagButtons[index].text = string.Format("{0}{1} {2}{3}   {4}",
 					ShapeMark(one.Tier), one.Tier,
-					slots[(int)one.Slot],
+					SLOT_NAMES[(int)one.Slot],
 					one.PotentialValue > 0d ? string.Format("  {0:P1}", one.PotentialValue) : string.Empty,
 					after > now
 						? string.Format("x{0:0.00} → x{1:0.00}", now, after)
@@ -1644,7 +1653,6 @@ namespace WitchMendokusai
 			}
 
 			int[] counts = mergeCounts;
-			string[] slots = { "머리", "몸", "손", "발" };
 
 			for (int index = 0; index < snapshot.Bag.Length; index++)
 			{
@@ -1679,7 +1687,7 @@ namespace WitchMendokusai
 				bool tooPoor = snapshot.Resource < cost;
 
 				labels.Add(string.Format("{0}{1} {2} x{3} → {4}{5}   ({6}{7})",
-					ShapeMark(tier), tier, slots[(int)slot], counts[key], ShapeMark(tier + 1), tier + 1,
+					ShapeMark(tier), tier, SLOT_NAMES[(int)slot], counts[key], ShapeMark(tier + 1), tier + 1,
 					BigNumberText.Format(cost), tooPoor ? " 모자란다" : string.Empty));
 				afford.Add(tooPoor == false);
 				tiers.Add(tier);
