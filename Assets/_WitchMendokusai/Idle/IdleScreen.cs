@@ -1035,7 +1035,7 @@ namespace WitchMendokusai
 					return "▶ 판 위에 뭔가 지나간다 — 누르면 잠시 폭주한다";
 
 				case IdleStep.BagFull:
-					return "▶ 가방이 꽉 찼다 — 장비 탭에서 합치거나 차야 한다 (지금 떨구는 건 버려진다)";
+					return "▶ 가방이 꽉 찼다 — 합치거나 차야 새 장비가 들어온다 (감정용 개수는 계속 쌓인다)";
 
 				case IdleStep.Prestige:
 					return string.Format("▶ 환생할 때다 — 지금 환생하면 환생석 {0} (등급 천장도 오른다)",
@@ -1217,12 +1217,14 @@ namespace WitchMendokusai
 		{
 			int mergeable = IdleAdvice.MergeableCount(snapshot);
 
-			// ★ 가방이 차면 떨어지는 것이 <b>조용히 버려진다</b>(코어 규칙). 조용하면 안 된다 —
-			//   사람은 잃고 있다는 걸 모른 채 계속 잡는다.
+			// ★ 가방이 차면 <b>새 장비가 안 들어온다</b>(IdleGear.Stow 가 자리 없으면 0 을 돌려준다).
+			//   조용하면 안 된다 — 사람은 잃고 있다는 걸 모른 채 계속 잡는다.
+			// ⚠ 다만 <b>감정용 개수</b>(DroppedByTier)는 계속 쌓인다. 처음엔 「버려진다」고 적었는데
+			//   그건 과장이었다 — 급하게 보이려고 사실을 부풀리면 그 다음 경고까지 안 믿게 된다.
 			bool full = snapshot.Bag.Length >= snapshot.BagCapacity;
 
 			vaultLabel.text = full
-				? string.Format("가방 {0}/{1}  ⚠ 꽉 찼다 — 지금 떨구는 것은 버려진다",
+				? string.Format("가방 {0}/{1}  ⚠ 꽉 찼다 — 새 장비가 안 들어온다 (감정용 개수는 계속 쌓인다)",
 					snapshot.Bag.Length, snapshot.BagCapacity)
 				: string.Format("가방 {0}/{1}{2}",
 					snapshot.Bag.Length, snapshot.BagCapacity,

@@ -278,5 +278,45 @@ namespace WitchMendokusai.Tests
 			Assert.AreEqual(3, snapshot.MaxTierNow);
 			Assert.IsNotNull(snapshot.DroppedByTier);
 		}
+
+		/// <summary>
+		/// ★ 가방이 차면 <b>장비만</b> 안 들어오고 <b>감정용 개수는 계속 쌓인다</b> (TASK-WM-406).
+		///
+		/// 화면이 이 사실을 그대로 말한다("새 장비가 안 들어온다 · 감정용 개수는 계속 쌓인다").
+		/// 규칙이 바뀌면 그 말이 거짓이 되므로 여기서 못 박는다 —
+		/// 급하게 보이려고 「전부 버려진다」로 부풀렸다가 되돌린 자리다.
+		/// </summary>
+		[Test]
+		public void FullBag_StopsItems_ButKeepsAppraisalCount()
+		{
+			IdleTuning tuning = new IdleTuning();
+			IdleState state = new IdleState();
+			state.EnsureProducerRoom(tuning.ProducerCount);
+			state.EnsureTierRoom(tuning.BaseMaxTier);
+
+			// 가방을 꽉 채운다.
+			for (int one = 0; one < tuning.BagCapacity; one++)
+			{
+				state.Bag.Add(new IdleItem(1, IdleItemSlot.Head));
+			}
+
+			long countBefore = 0L;
+			for (int tier = 0; tier < state.DroppedByTier.Length; tier++)
+			{
+				countBefore += state.DroppedByTier[tier];
+			}
+
+			IdleModel.Step(state, tuning, 600d);
+
+			long countAfter = 0L;
+			for (int tier = 0; tier < state.DroppedByTier.Length; tier++)
+			{
+				countAfter += state.DroppedByTier[tier];
+			}
+
+			Assert.AreEqual(tuning.BagCapacity, state.Bag.Count, "가방이 상한을 넘었다");
+			Assert.Greater(countAfter, countBefore,
+				"가방이 찼다고 감정용 개수까지 멈췄다 — 화면이 하는 말과 어긋난다");
+		}
 	}
 }
