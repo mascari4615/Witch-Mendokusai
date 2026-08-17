@@ -1385,9 +1385,11 @@ namespace WitchMendokusai
 				RebuildDropRows(snapshot.DroppedByTier.Length);
 			}
 
+			// 지금 최고를 같이 보여줘야 「이번 것이 나은가」를 잴 수 있다.
 			potentialLabel.text = snapshot.BestPotentialValue > 0d
-				? string.Format("잠재 {0} {1:P1}", NameOf(snapshot.BestPotentialGrade), snapshot.BestPotentialValue)
-				: "잠재 없음 — 2등급부터 감정할 수 있다";
+				? string.Format("지금 최고 잠재 — {0} {1:P1}  (더 좋은 게 나와야 갈아 끼운다)",
+					NameOf(snapshot.BestPotentialGrade), snapshot.BestPotentialValue)
+				: "잠재 없음 — 2등급부터 감정할 수 있다 (더 좋은 값이 나오면 자동으로 갈아 끼운다)";
 
 			for (int tier = 1; tier <= appraiseButtons.Count; tier++)
 			{
@@ -1408,9 +1410,15 @@ namespace WitchMendokusai
 						: tooPoor
 							? string.Format("{0}{1}  {2}개 — 자원 {3} 이 모자란다", ShapeMark(tier), tier,
 								BigNumberText.Format(count), BigNumberText.Format(cost))
-							: string.Format("{0}{1}  {2}개 — 감정 {3} ({4})", ShapeMark(tier), tier,
+							// ★ <b>어느 범위에서 굴리는지</b> 적는다. 등급 이름만으로는 3.2% 가
+							//   좋은 건지 나쁜 건지 알 수 없고, 그러면 감정이 <b>깜깜이 도박</b>이 된다.
+							//   규칙을 화면이 말해 주는 쪽으로 간다(외부 계산기가 필요해지는 것을 막는다).
+							: string.Format("{0}{1}  {2}개 — 감정 {3} · {4} {5:P1}~{6:P1}",
+								ShapeMark(tier), tier,
 								BigNumberText.Format(count), BigNumberText.Format(cost),
-								NameOf(IdlePotentials.GradeFor(tier)));
+								NameOf(IdlePotentials.GradeFor(tier)),
+								IdlePotentials.FloorOf(IdlePotentials.GradeFor(tier), session.Tuning),
+								IdlePotentials.CeilingOf(IdlePotentials.GradeFor(tier), session.Tuning));
 
 				appraiseButtons[tier - 1].SetEnabled(tooLow == false && nothingToAppraise == false && tooPoor == false);
 			}
