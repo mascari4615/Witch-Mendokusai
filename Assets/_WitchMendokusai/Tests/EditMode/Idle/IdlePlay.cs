@@ -28,31 +28,12 @@ namespace WitchMendokusai.Tests
 		{
 			state.EnsureProducerRoom(tuning.ProducerCount);
 
-			while (true)
-			{
-				int cheapest = -1;
-				double best = double.PositiveInfinity;
-
-				for (int kind = 0; kind < tuning.ProducerCount; kind++)
-				{
-					double cost = IdleBase.CostOf(kind, state.Owned[kind], tuning);
-					if (cost <= state.Resource && cost < best)
-					{
-						best = cost;
-						cheapest = kind;
-					}
-				}
-
-				if (cheapest < 0)
-				{
-					return;
-				}
-
-				if (IdleBase.TryBuy(state, tuning, cheapest) == false)
-				{
-					return;
-				}
-			}
+			// ⚠ 여기도 <b>규칙이 두 벌</b>이었다 (실측 2026-08-17). 이 고리가 고르는 셈을
+			//   따로 쓰고 있었고, 그래서 <b>아직 화면에 안 보이는 생산자까지</b> 샀다
+			//   (게임은 앞 단계를 안 사면 다음 줄을 안 보여 준다 — IdleBase.IsHidden).
+			//   사람이 못 하는 짓을 시뮬이 하면, 그 시뮬로 뽑은 곡선 표는 <b>아무도 안 노는 판</b>의 것이다.
+			//   이제 게임의 몰아 사기와 <b>같은 한 걸음</b>을 부른다.
+			IdleBase.BuyAsManyAsAfforded(state, tuning, int.MaxValue);
 		}
 
 		/// <summary>
