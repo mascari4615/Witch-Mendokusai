@@ -217,5 +217,67 @@ namespace WitchMendokusai.Tests
 				"엉뚱한 부위가 그 자리에 앉아 있다 — 배수를 엉뚱한 축에 준다");
 			Assert.AreEqual(2, state.Worn[(int)IdleItemSlot.Body].Tier, "멀쩡한 것까지 버렸다");
 		}
+
+
+		/// <summary>
+		/// ★ 부위가 <b>화면에 적힌 그 축</b>을 올린다 — 「머리(공격력) 몸(기지) 손(속도) 발(떨구기)」.
+		///
+		/// ⚠ 그 넷은 화면이 사람에게 <b>글자로</b> 하는 약속인데, 시험이 하나도 없었다
+		///   (실측 2026-08-17). 코어에서 한 줄만 바꿔 머리를 속도에 걸어도 아무도 안 죽고,
+		///   화면은 그대로 「머리(공격력)」이라 적는다 — 사람은 값을 못 믿게 되고, 그때는
+		///   무엇이 거짓말인지 찾을 방법이 없다.
+		///
+		/// ★ <b>올랐나</b>만 보지 않는다 — 나머지 셋이 <b>안 움직였나</b>까지 본다.
+		///   한 부위가 여러 축을 밀면 그것도 적힌 말과 다른 것이다.
+		/// </summary>
+		[Test]
+		public void EachSlot_LiftsTheAxisTheScreenNames()
+		{
+			IdleItemSlot[] slots =
+			{
+				IdleItemSlot.Head, IdleItemSlot.Body, IdleItemSlot.Hands, IdleItemSlot.Feet
+			};
+
+			// 화면의 SLOT_ROLES 와 <b>같은 순서</b>다 — 머리·몸·손·발.
+			string[] names = { "머리(공격력)", "몸(기지)", "손(속도)", "발(떨구기)" };
+
+			for (int which = 0; which < slots.Length; which++)
+			{
+				IdleTuning tuning = new IdleTuning();
+				IdleState state = new IdleState();
+
+				double[] before = Axes(state, tuning);
+
+				state.Bag.Add(new IdleItem(3, slots[which]));
+				Assert.IsTrue(IdleGear.TryEquip(state, 0), names[which] + " 를 못 찼다");
+
+				double[] after = Axes(state, tuning);
+
+				for (int axis = 0; axis < after.Length; axis++)
+				{
+					if (axis == which)
+					{
+						Assert.Greater(after[axis], before[axis],
+							names[which] + " 를 찼는데 그 축이 안 올랐다");
+						continue;
+					}
+
+					Assert.AreEqual(before[axis], after[axis], 1e-12d,
+						names[which] + " 를 찼는데 " + names[axis] + " 까지 움직였다");
+				}
+			}
+		}
+
+		/// <summary>네 축을 화면이 적은 순서대로 — 공격력·기지·속도·떨구기.</summary>
+		private static double[] Axes(IdleState state, IdleTuning tuning)
+		{
+			return new double[]
+			{
+				IdleGear.DamageMultiplier(state, tuning),
+				IdleGear.BaseMultiplier(state, tuning),
+				IdleGear.SpeedMultiplier(state, tuning),
+				IdleGear.DropMultiplier(state, tuning)
+			};
+		}
 	}
 }
