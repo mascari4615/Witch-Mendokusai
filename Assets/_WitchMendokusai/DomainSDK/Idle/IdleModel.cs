@@ -488,26 +488,43 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// ★ 싼 축부터 = 같은 자원으로 가장 많이 올리는 순서. 시험(IdlePlay)이 쓰던 규칙 그대로다 —
         ///   규칙이 시험에만 있고 게임에는 없으면, 사람은 시험보다 못한 판을 논다.
         /// </summary>
+        /// <summary>
+        /// 지금 <b>올릴 수 있는 축 중 싼 쪽</b> — 하나도 없으면 false.
+        ///
+        /// ★ 몰아 올리기의 한 걸음이자, 화면이 <b>버튼을 켤지</b> 정하는 답이다.
+        ///   규칙이 두 벌이면 버튼은 켜져 있고 눌러도 아무 일이 안 나는 상태가 생긴다.
+        /// </summary>
+        public static bool CheapestRaisableAxis(IdleState state, IdleTuning tuning, out IdleUpgradeKind pick)
+        {
+            bool hasDamage = TryGetNextCost(state, tuning, IdleUpgradeKind.Damage, out double damageCost);
+            bool hasSpeed = TryGetNextCost(state, tuning, IdleUpgradeKind.AttackSpeed, out double speedCost);
+
+            bool canDamage = hasDamage && damageCost <= state.Resource;
+            bool canSpeed = hasSpeed && speedCost <= state.Resource;
+
+            if (canDamage == false && canSpeed == false)
+            {
+                pick = IdleUpgradeKind.Damage;
+                return false;
+            }
+
+            pick = canDamage && (canSpeed == false || damageCost <= speedCost)
+                ? IdleUpgradeKind.Damage
+                : IdleUpgradeKind.AttackSpeed;
+
+            return true;
+        }
+
         public static int RaiseAsManyAsAfforded(IdleState state, IdleTuning tuning, int most)
         {
             int raised = 0;
 
             while (raised < most)
             {
-                bool hasDamage = TryGetNextCost(state, tuning, IdleUpgradeKind.Damage, out double damageCost);
-                bool hasSpeed = TryGetNextCost(state, tuning, IdleUpgradeKind.AttackSpeed, out double speedCost);
-
-                bool canDamage = hasDamage && damageCost <= state.Resource;
-                bool canSpeed = hasSpeed && speedCost <= state.Resource;
-
-                if (canDamage == false && canSpeed == false)
+                if (CheapestRaisableAxis(state, tuning, out IdleUpgradeKind pick) == false)
                 {
                     break;
                 }
-
-                IdleUpgradeKind pick = canDamage && (canSpeed == false || damageCost <= speedCost)
-                    ? IdleUpgradeKind.Damage
-                    : IdleUpgradeKind.AttackSpeed;
 
                 if (TryRaise(state, tuning, pick, out UpgradeRaiseFailure _) == false)
                 {

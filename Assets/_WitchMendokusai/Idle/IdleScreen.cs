@@ -1416,20 +1416,15 @@ namespace WitchMendokusai
 			baseSummary.text = string.Format("기지가 초당 {0} 를 낸다 — 자원은 여기서만 나온다",
 				BigNumberText.Format(snapshot.IncomePerSecond));
 
-			int affordable = 0;
-			for (int kind = 0; kind < snapshot.Producers.Length; kind++)
-			{
-				if (snapshot.Producers[kind].Hidden == false && snapshot.Producers[kind].CanAfford)
-				{
-					affordable++;
-				}
-			}
+			// ★ 「살 게 있나」는 코어가 답한다 — 몰아 사기가 쓰는 바로 그 한 걸음이다.
+			//   전에는 화면이 자기 눈으로 세어, 규칙이 갈리면 버튼만 켜져 있을 수 있었다.
+			bool canBuy = IdleBase.CheapestAffordable(session.State, session.Tuning) >= 0;
 
-			bulkBuyButton.text = affordable > 0
+			bulkBuyButton.text = canBuy
 				? "싼 것부터 살 수 있는 만큼 산다"
 				: "살 수 있는 게 없다";
-			bulkBuyButton.SetEnabled(affordable > 0);
-			bulkBuyButton.EnableInClassList("idle-button--ready", affordable > 0);
+			bulkBuyButton.SetEnabled(canBuy);
+			bulkBuyButton.EnableInClassList("idle-button--ready", canBuy);
 
 			for (int kind = 0; kind < producerButtons.Count; kind++)
 			{
@@ -1477,7 +1472,9 @@ namespace WitchMendokusai
 			DrawUpgrade(snapshot.Damage, damageTitle, damageValue, damageButton, "공격력", "한 방 {0}");
 			DrawUpgrade(snapshot.AttackSpeed, speedTitle, speedValue, speedButton, "공격속도", "초당 {0}회");
 
-			bool canRaise = snapshot.Damage.CanAfford || snapshot.AttackSpeed.CanAfford;
+			// ★ 「올릴 게 있나」는 코어가 답한다 — 몰아 올리기가 쓰는 바로 그 한 걸음이다.
+			bool canRaise = IdleModel.CheapestRaisableAxis(session.State, session.Tuning,
+				out IdleUpgradeKind _);
 			bulkRaiseButton.text = canRaise ? "싼 축부터 올릴 수 있는 만큼 올린다" : "올릴 수 있는 게 없다";
 			bulkRaiseButton.SetEnabled(canRaise);
 			bulkRaiseButton.EnableInClassList("idle-button--ready", canRaise);

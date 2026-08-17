@@ -129,29 +129,43 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// ★ 상한을 둔다. 없으면 자원이 아주 많을 때 한 번 누르는 데 몇 초가 걸린다 —
         ///   그건 「편해진 것」이 아니라 「멈춘 것」으로 느껴진다.
         /// </summary>
+        /// <summary>
+        /// 지금 <b>살 수 있는 것 중 가장 싼</b> 생산자 — 없으면 -1.
+        ///
+        /// ★ 몰아 사기의 한 걸음이자, 화면이 <b>버튼을 켤지</b> 정하는 답이다.
+        ///   전에는 화면이 자기 눈으로 「하나라도 살 수 있나」를 셌다 — 규칙이 두 벌이면
+        ///   버튼은 켜져 있는데 눌러도 아무 일이 안 나는 상태가 언젠가 생긴다.
+        /// </summary>
+        public static int CheapestAffordable(IdleState state, IdleTuning tuning)
+        {
+            int cheapest = -1;
+            double best = double.PositiveInfinity;
+
+            for (int kind = 0; kind < tuning.ProducerCount && kind < state.Owned.Length; kind++)
+            {
+                if (IsHidden(kind, state))
+                {
+                    continue;
+                }
+
+                double cost = CostOf(kind, state.Owned[kind], tuning);
+                if (cost <= state.Resource && cost < best)
+                {
+                    best = cost;
+                    cheapest = kind;
+                }
+            }
+
+            return cheapest;
+        }
+
         public static int BuyAsManyAsAfforded(IdleState state, IdleTuning tuning, int most)
         {
             int bought = 0;
 
             while (bought < most)
             {
-                int cheapest = -1;
-                double best = double.PositiveInfinity;
-
-                for (int kind = 0; kind < tuning.ProducerCount; kind++)
-                {
-                    if (IsHidden(kind, state))
-                    {
-                        continue;
-                    }
-
-                    double cost = CostOf(kind, state.Owned[kind], tuning);
-                    if (cost <= state.Resource && cost < best)
-                    {
-                        best = cost;
-                        cheapest = kind;
-                    }
-                }
+                int cheapest = CheapestAffordable(state, tuning);
 
                 if (cheapest < 0 || TryBuy(state, tuning, cheapest) == false)
                 {

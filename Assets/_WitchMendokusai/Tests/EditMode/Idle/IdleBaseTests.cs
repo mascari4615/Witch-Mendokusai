@@ -271,5 +271,52 @@ namespace WitchMendokusai.Tests
 
 			Assert.AreEqual(0, IdleBase.BuyAsManyAsAfforded(state, tuning, tuning.BulkBuyMost));
 		}
+
+		/// <summary>
+		/// ★ 「살 게 있다」고 말하면 <b>실제로 하나는 사진다</b> — 버튼이 거짓말하지 않는다.
+		///
+		/// 화면은 이 답으로 버튼을 켠다. 두 벌로 두면 버튼은 켜져 있고 눌러도
+		/// 아무 일이 안 나는 상태가 언젠가 생긴다.
+		/// </summary>
+		[Test]
+		public void SayingYouCanBuy_MeansYouActuallyCan()
+		{
+			IdleTuning tuning = new IdleTuning();
+
+			// 자원을 조금씩 올려 가며 <말과 실제>가 매번 맞는지 본다.
+			double[] purses = { 0d, 1d, 14d, 15d, 16d, 150d, 1e6d };
+
+			foreach (double purse in purses)
+			{
+				IdleState state = new IdleState();
+				state.EnsureProducerRoom(tuning.ProducerCount);
+				state.Resource = purse;
+
+				bool said = IdleBase.CheapestAffordable(state, tuning) >= 0;
+				int bought = IdleBase.BuyAsManyAsAfforded(state, tuning, 1);
+
+				Assert.AreEqual(said, bought > 0, "자원 " + purse + " — 말과 실제가 다르다");
+			}
+		}
+
+		/// <summary>★ 「올릴 게 있다」도 마찬가지 — 말과 실제가 같아야 한다.</summary>
+		[Test]
+		public void SayingYouCanRaise_MeansYouActuallyCan()
+		{
+			IdleTuning tuning = new IdleTuning();
+			double[] purses = { 0d, 9d, 10d, 24d, 25d, 1e6d };
+
+			foreach (double purse in purses)
+			{
+				IdleState state = new IdleState();
+				state.EnsureProducerRoom(tuning.ProducerCount);
+				state.Resource = purse;
+
+				bool said = IdleModel.CheapestRaisableAxis(state, tuning, out IdleUpgradeKind _);
+				int raised = IdleModel.RaiseAsManyAsAfforded(state, tuning, 1);
+
+				Assert.AreEqual(said, raised > 0, "자원 " + purse + " — 말과 실제가 다르다");
+			}
+		}
 	}
 }
