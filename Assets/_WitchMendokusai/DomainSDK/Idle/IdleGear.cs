@@ -53,6 +53,23 @@ namespace WitchMendokusai.DomainSDK.Idle
             return taking;
         }
 
+        /// <summary>
+        /// 이 한 벌의 <b>부위 번호가 실재하나</b> — 저장에서 온 값을 문 앞에서 거를 때 쓴다.
+        ///
+        /// 빈 것은 참으로 본다(빈 자리는 정상이다). 범위를 벗어난 부위가 섞이면
+        /// 차는 순간 <c>Worn[그 번호]</c> 가 배열 밖을 짚어 터진다.
+        /// </summary>
+        public static bool IsRealSlot(IdleItem one)
+        {
+            if (one.IsEmpty)
+            {
+                return true;
+            }
+
+            int at = (int)one.Slot;
+            return at >= 0 && at < SLOT_COUNT;
+        }
+
         /// <summary>가방이 찼나 — 화면이 「정리해라」를 말할 수 있게.</summary>
         public static bool IsBagFull(IdleState state, IdleTuning tuning)
         {

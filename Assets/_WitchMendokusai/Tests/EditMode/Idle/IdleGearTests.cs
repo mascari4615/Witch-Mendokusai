@@ -169,5 +169,53 @@ namespace WitchMendokusai.Tests
 			Assert.AreEqual(IdleGear.SLOT_COUNT, state.Worn.Length,
 				"착용 칸 수가 부위 수와 다르다");
 		}
+
+		/// <summary>
+		/// ★ 저장에 <b>범위 밖 부위 번호</b>가 있어도 판이 선다 — 그 장비만 버린다.
+		///
+		/// 부위 번호도 저장에서 그대로 온다. 범위를 벗어난 값이 섞이면 차는 순간
+		/// Worn[그 번호] 가 배열 밖을 짚어 터지고, 화면도 이름표를 짚다 터진다.
+		/// 영웅 번호와 같은 자리의 같은 병이라 같은 곳(문 앞)에서 거른다.
+		/// </summary>
+		[Test]
+		public void AnImpossibleSlotInTheSave_IsDropped()
+		{
+			IdleSaveData saved = new IdleState().Save();
+
+			IdleItem good = new IdleItem(2, IdleItemSlot.Hands);
+			IdleItem bad = new IdleItem(3, IdleItemSlot.Head);
+			bad.Slot = (IdleItemSlot)77;
+
+			saved.BagItems = new IdleItem[] { good, bad };
+
+			IdleState state = new IdleState();
+			state.Load(saved);
+
+			Assert.AreEqual(1, state.Bag.Count, "있을 수 없는 부위를 그대로 받았다");
+			Assert.AreEqual(IdleItemSlot.Hands, state.Bag[0].Slot);
+
+			// 그리고 <b>차 봐도</b> 안 터진다 — 여기서 터지면 위 검사는 아무 뜻이 없다.
+			Assert.IsTrue(IdleGear.TryEquip(state, 0));
+		}
+
+		/// <summary>★ 차고 있던 것이 <b>그 자리의 부위</b>가 아니면 빈 자리로 받는다.</summary>
+		[Test]
+		public void AWornItemInTheWrongSlot_ComesBackEmpty()
+		{
+			IdleSaveData saved = new IdleState().Save();
+
+			IdleItem[] worn = new IdleItem[IdleGear.SLOT_COUNT];
+			// 머리 자리에 <b>손</b> 장비가 적혀 있다.
+			worn[(int)IdleItemSlot.Head] = new IdleItem(4, IdleItemSlot.Hands);
+			worn[(int)IdleItemSlot.Body] = new IdleItem(2, IdleItemSlot.Body);
+			saved.WornItems = worn;
+
+			IdleState state = new IdleState();
+			state.Load(saved);
+
+			Assert.IsTrue(state.Worn[(int)IdleItemSlot.Head].IsEmpty,
+				"엉뚱한 부위가 그 자리에 앉아 있다 — 배수를 엉뚱한 축에 준다");
+			Assert.AreEqual(2, state.Worn[(int)IdleItemSlot.Body].Tier, "멀쩡한 것까지 버렸다");
+		}
 	}
 }

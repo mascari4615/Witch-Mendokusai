@@ -261,12 +261,34 @@ namespace WitchMendokusai.DomainSDK.Idle
             Ascensions = saveData.Ascensions;
             // 옛 저장에는 기지·가방이 없어 null 로 온다 — 빈 것으로 받는다.
             Owned = saveData.Owned ?? new long[0];
-            Bag = saveData.BagItems != null
-                ? new System.Collections.Generic.List<IdleItem>(saveData.BagItems)
-                : new System.Collections.Generic.List<IdleItem>();
-            Worn = saveData.WornItems != null && saveData.WornItems.Length == IdleGear.SLOT_COUNT
-                ? (IdleItem[])saveData.WornItems.Clone()
-                : new IdleItem[IdleGear.SLOT_COUNT];
+            // ⚠ 장비의 <b>부위 번호</b>도 저장에서 그대로 온다. 범위를 벗어난 값이 섞이면
+            //   차는 순간 Worn[그 번호] 가 배열 밖을 짚어 터지고, 화면도 이름표를 짚다 터진다.
+            //   영웅 번호와 같은 자리의 같은 병이라 같은 곳에서 거른다 — <b>문 앞</b>.
+            Bag = new System.Collections.Generic.List<IdleItem>();
+
+            if (saveData.BagItems != null)
+            {
+                for (int index = 0; index < saveData.BagItems.Length; index++)
+                {
+                    if (IdleGear.IsRealSlot(saveData.BagItems[index]))
+                    {
+                        Bag.Add(saveData.BagItems[index]);
+                    }
+                }
+            }
+
+            Worn = new IdleItem[IdleGear.SLOT_COUNT];
+
+            if (saveData.WornItems != null && saveData.WornItems.Length == IdleGear.SLOT_COUNT)
+            {
+                for (int slot = 0; slot < Worn.Length; slot++)
+                {
+                    IdleItem one = saveData.WornItems[slot];
+
+                    // 차고 있던 것은 <b>그 자리의 부위</b>여야 한다 — 아니면 빈 자리로 받는다.
+                    Worn[slot] = IdleGear.IsRealSlot(one) && (int)one.Slot == slot ? one : default;
+                }
+            }
             DropSequence = saveData.DropSequence;
             // 옛 저장에는 영웅이 없다 — 빈 도감·빈 파티로 받는다(터지지 않는다).
             //
