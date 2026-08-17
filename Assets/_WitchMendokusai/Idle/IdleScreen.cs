@@ -1016,6 +1016,12 @@ namespace WitchMendokusai
 				return "▶ 판 위에 뭔가 지나간다 — 누르면 잠시 폭주한다";
 			}
 
+			// 가방이 찬 동안에는 <b>잡을수록 손해</b>다 — 사라지는 것 다음으로 급하다.
+			if (snapshot.Bag.Length >= snapshot.BagCapacity)
+			{
+				return "▶ 가방이 꽉 찼다 — 장비 탭에서 합치거나 차야 한다 (지금 떨구는 건 버려진다)";
+			}
+
 			if (snapshot.PrestigeAward > 0L
 				&& snapshot.MaxTierNow >= snapshot.TierCeiling)
 			{
@@ -1236,9 +1242,18 @@ namespace WitchMendokusai
 		{
 			int mergeable = CountMergeable(snapshot);
 
-			vaultLabel.text = string.Format("가방 {0}/{1}{2}",
-				snapshot.Bag.Length, snapshot.BagCapacity,
-				mergeable > 0 ? string.Format(" · 합칠 수 있는 묶음 {0}", mergeable) : string.Empty);
+			// ★ 가방이 차면 떨어지는 것이 <b>조용히 버려진다</b>(코어 규칙). 조용하면 안 된다 —
+			//   사람은 잃고 있다는 걸 모른 채 계속 잡는다.
+			bool full = snapshot.Bag.Length >= snapshot.BagCapacity;
+
+			vaultLabel.text = full
+				? string.Format("가방 {0}/{1}  ⚠ 꽉 찼다 — 지금 떨구는 것은 버려진다",
+					snapshot.Bag.Length, snapshot.BagCapacity)
+				: string.Format("가방 {0}/{1}{2}",
+					snapshot.Bag.Length, snapshot.BagCapacity,
+					mergeable > 0 ? string.Format(" · 합칠 수 있는 묶음 {0}", mergeable) : string.Empty);
+
+			vaultLabel.EnableInClassList("idle-warn", full);
 
 			for (int index = 0; index < vaultCells.Count; index++)
 			{

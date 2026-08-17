@@ -398,3 +398,9 @@
 	border-bottom-color: rgb(38, 41, 52);
 	white-space: normal;
 }
+
+/* 손해 보고 있다 — 눈에 띄어야 한다 */
+.idle-warn {
+	color: rgb(232, 148, 108);
+	-unity-font-style: bold;
+}
