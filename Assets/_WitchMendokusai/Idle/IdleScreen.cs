@@ -233,6 +233,13 @@ namespace WitchMendokusai
 		///   삼각(빠르게 자주 찌른다) · 사각(느리고 크게 친다) · 오각(안 다가가고 쏜다).
 		/// </summary>
 		private static readonly int[] HERO_SIDES = { 3, 4, 5 };
+
+		/// <summary>
+		/// 모서리가 이만큼이면 <b>쏜다</b> — 다가가지 않는다.
+		///
+		/// 명단 16 중 다섯이 여기 걸린다(대략 셋 중 하나) — 자리로 고르던 옛 비율과 같다.
+		/// </summary>
+		private const int RANGED_SIDES = 8;
 		private static readonly float[] HERO_TURNS = { 0.55f, 0.18f, 0.34f };
 		private static readonly Color[] HERO_COLORS =
 		{
@@ -443,8 +450,17 @@ namespace WitchMendokusai
 			int who = heroTurn % heroes.Count;
 			heroTurn++;
 
-			// 오각(원거리)은 안 다가간다 — 대신 쏜다. 그게 이 셋을 다르게 만든다.
-			bool ranged = who == 2;
+			// 모서리가 많은 쪽은 안 다가간다 — 대신 쏜다. 그게 셋을 다르게 만든다.
+			//
+			// ⚠ 이 규칙이 <b>자리</b>에 걸려 있었다(who == 2). 영웅을 뽑아 앉히기 시작하면서
+			//   같은 얼굴이 <b>1번 자리에선 달려들고 3번 자리에선 쏘는</b> 판이 됐다 —
+			//   주석은 「오각은 쏜다」인데 코드는 「세 번째 자리가 쏜다」였다.
+			//   이제 <b>그 자리에 앉은 얼굴</b>을 본다.
+			//
+			// ★ 선을 8 로 잡은 이유 = <b>지금 느낌을 지키려고</b>. 명단 16 중 8각 이상이 다섯이라
+			//   대략 세 자리 중 하나(옛 규칙과 같은 비율)가 쏜다. 5 로 잡으면 열하나가 쏘게 돼
+			//   싸움의 그림이 통째로 바뀐다 — 그건 취향이라 사용자 몫이다.
+			bool ranged = heroes[who].Sides >= RANGED_SIDES;
 
 			if (ranged)
 			{
