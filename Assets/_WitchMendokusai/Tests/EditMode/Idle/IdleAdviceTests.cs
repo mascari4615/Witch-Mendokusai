@@ -399,5 +399,36 @@ namespace WitchMendokusai.Tests
 
 			Assert.AreEqual(1, IdleAdvice.MergeableCount(new IdleSession(wider, state).Capture()));
 		}
+
+		/// <summary>
+		/// ★ <b>높은 등급도</b> 합칠 것으로 세어진다 — 후반에 조용히 빠지지 않는다 (회귀).
+		///
+		/// 세는 판이 64칸으로 못 박혀 있었고 자리는 「등급 x 부위수」로 잡는다.
+		/// 등급 천장은 환생할수록 오르므로(기본 6 + 환생마다 2) 다섯 번 환생하면 16 —
+		/// 16 x 4 = 64 로 딱 넘어가 <b>맨 위 등급이 안 세어졌다</b>.
+		/// 합칠 게 있는데 화면이 아무 말도 안 하는 상태가 후반에 생긴다.
+		/// </summary>
+		[Test]
+		public void HighTiers_AreStillCounted()
+		{
+			IdleTuning tuning = new IdleTuning();
+			IdleState state = new IdleState();
+			state.EnsureProducerRoom(tuning.ProducerCount);
+
+			// 환생을 다섯 번 한 판 — 등급 천장이 16 이 된다.
+			state.Ascensions = 5;
+			int ceiling = IdleDrops.CeilingFor(state.Ascensions, tuning);
+			Assert.GreaterOrEqual(ceiling, 16, "이 튜닝에서는 천장이 안 올라간다 — 시험을 다시 골라야 한다");
+
+			state.EnsureTierRoom(ceiling);
+
+			for (int one = 0; one < tuning.MergeCount; one++)
+			{
+				state.Bag.Add(new IdleItem(ceiling, IdleItemSlot.Feet));
+			}
+
+			Assert.AreEqual(1, IdleAdvice.MergeableCount(Look(state)),
+				"천장 등급 한 벌을 안 셌다 — 후반에 합칠 것이 조용히 사라진다");
+		}
 	}
 }

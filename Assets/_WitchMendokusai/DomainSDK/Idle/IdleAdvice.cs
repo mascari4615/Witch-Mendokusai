@@ -250,11 +250,16 @@ namespace WitchMendokusai.DomainSDK.Idle
             //   방치형은 <b>오래 켜 두는 것</b>이 기본값이라 프레임당 할당이 곧 끊김이 된다.
             //   판은 한 번만 만들고 씻어 쓴다. [ThreadStatic] 인 이유는 시험이 여러 판에서
             //   동시에 돌기 때문이다(한 판을 나눠 쓰면 서로의 셈을 밟는다).
+            // ⚠ 판의 크기를 <b>천장에서</b> 잡는다. 전에는 64 로 못 박아 뒀는데,
+            //   등급 천장은 환생할수록 오른다(기본 6 + 환생마다 2). 다섯 번 환생하면 16 이라
+            //   16 x 4 = 64 로 <b>딱 넘어가고</b>, 그 위 등급은 조용히 안 세어졌다 —
+            //   후반에 합칠 것이 있는데도 화면이 아무 말도 안 하게 된다.
+            int room = (snapshot.TierCeiling + 2) * IdleGear.SLOT_COUNT;
             int[] counts = scratch;
 
-            if (counts == null)
+            if (counts == null || counts.Length < room)
             {
-                counts = new int[64];
+                counts = new int[room];
                 scratch = counts;
             }
             else
@@ -267,7 +272,7 @@ namespace WitchMendokusai.DomainSDK.Idle
             for (int index = 0; index < snapshot.Bag.Length; index++)
             {
                 IdleItem one = snapshot.Bag[index];
-                int key = one.Tier * 4 + (int)one.Slot;
+                int key = one.Tier * IdleGear.SLOT_COUNT + (int)one.Slot;
 
                 if (key < 0 || key >= counts.Length)
                 {

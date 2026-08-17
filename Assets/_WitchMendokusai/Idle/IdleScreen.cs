@@ -1610,9 +1610,13 @@ namespace WitchMendokusai
 		private void RenderMerge(IdleSnapshot snapshot)
 		{
 			// ★ 프레임마다 판을 새로 만들지 않는다 — 서랍이 열려 있는 동안 계속 도는 자리다.
-			if (mergeCounts == null)
+			// ⚠ 크기는 <b>천장에서</b> 잡는다 — 64 로 못 박으면 환생 다섯 번(등급 천장 16)에서
+			//   맨 위 등급이 조용히 빠진다. 후반에 합칠 것이 있는데 줄이 안 뜬다.
+			int room = (snapshot.TierCeiling + 2) * IdleGear.SLOT_COUNT;
+
+			if (mergeCounts == null || mergeCounts.Length < room)
 			{
-				mergeCounts = new int[64];
+				mergeCounts = new int[room];
 			}
 			else
 			{
@@ -1625,7 +1629,7 @@ namespace WitchMendokusai
 			for (int index = 0; index < snapshot.Bag.Length; index++)
 			{
 				IdleItem one = snapshot.Bag[index];
-				int key = one.Tier * 4 + (int)one.Slot;
+				int key = one.Tier * IdleGear.SLOT_COUNT + (int)one.Slot;
 				if (key >= 0 && key < counts.Length)
 				{
 					counts[key]++;
@@ -1646,8 +1650,8 @@ namespace WitchMendokusai
 					continue;
 				}
 
-				int tier = key / 4;
-				IdleItemSlot slot = (IdleItemSlot)(key % 4);
+				int tier = key / IdleGear.SLOT_COUNT;
+				IdleItemSlot slot = (IdleItemSlot)(key % IdleGear.SLOT_COUNT);
 
 				// ★ <b>드는 자원</b>을 적는다. 안 적으면 못 누를 때 「고장인가」가 되고,
 				//   기지와 모험이 같은 저울에 올라간다는 것도 안 보인다.
