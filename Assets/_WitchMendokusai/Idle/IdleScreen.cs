@@ -1482,11 +1482,16 @@ namespace WitchMendokusai
 			bulkRaiseButton.SetEnabled(canRaise);
 			bulkRaiseButton.EnableInClassList("idle-button--ready", canRaise);
 
+			// ★ <b>어디로 갈지</b>만 화면이 고르고, <b>갈 수 있는지</b>는 코어가 답한다.
+			//   전에는 「같은 자리면 못 간다」를 화면이 자기가 봤다 — 규칙이 두 벌이면
+			//   버튼은 켜져 있고 눌러도 아무 일이 안 나는 상태가 언젠가 생긴다.
 			bool canRetreat = snapshot.Stage > snapshot.BestFarmingStage;
+			int going = canRetreat ? snapshot.BestFarmingStage : snapshot.BestStage;
+
 			retreatButton.text = canRetreat
 				? string.Format("◀ {0}단계로 물러나 번다", snapshot.BestFarmingStage)
 				: string.Format("▶ 가장 깊은 {0}단계로", snapshot.BestStage);
-			retreatButton.SetEnabled(snapshot.Stage != (canRetreat ? snapshot.BestFarmingStage : snapshot.BestStage));
+			retreatButton.SetEnabled(IdleModel.CanGoToStage(session.State, going));
 
 			holdButton.text = snapshot.HoldingStage ? "⏸ 여기 머무는 중" : "▽ 계속 내려가는 중";
 		}

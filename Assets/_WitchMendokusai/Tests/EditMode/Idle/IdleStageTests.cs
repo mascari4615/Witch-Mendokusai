@@ -156,5 +156,43 @@ namespace WitchMendokusai.Tests
 		{
 			return damage / IdleModel.DamagePerSecond(state, tuning);
 		}
+
+		/// <summary>
+		/// ★ 「갈 수 있나」와 「가면 되나」가 <b>같은 답</b>을 쓴다 — 두 벌이면 버튼이 거짓말한다.
+		/// </summary>
+		[Test]
+		public void CanGoAndGoing_AgreeAlways()
+		{
+			IdleState state = new IdleState();
+			state.Stage = 10;
+			state.BestStage = 30;
+
+			int[] tries = { -5, 0, 1, 9, 10, 11, 30, 31, 999 };
+
+			foreach (int stage in tries)
+			{
+				IdleState copy = new IdleState();
+				copy.Stage = 10;
+				copy.BestStage = 30;
+
+				bool said = IdleModel.CanGoToStage(copy, stage);
+				bool did = IdleModel.TryGoToStage(copy, stage);
+
+				Assert.AreEqual(said, did, stage + "단계 — 「갈 수 있다」와 실제가 다르다");
+			}
+		}
+
+		/// <summary>★ 앞질러는 못 간다 — 가장 깊이 간 곳까지만.</summary>
+		[Test]
+		public void YouCannotGoDeeperThanYouHaveBeen()
+		{
+			IdleState state = new IdleState();
+			state.Stage = 5;
+			state.BestStage = 12;
+
+			Assert.IsTrue(IdleModel.CanGoToStage(state, 12));
+			Assert.IsFalse(IdleModel.CanGoToStage(state, 13), "가 본 적 없는 데로 보낸다");
+			Assert.IsFalse(IdleModel.CanGoToStage(state, 5), "이미 서 있는 자리로 가라고 한다");
+		}
 	}
 }

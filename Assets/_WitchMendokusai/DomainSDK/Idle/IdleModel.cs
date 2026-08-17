@@ -450,6 +450,17 @@ namespace WitchMendokusai.DomainSDK.Idle
         }
 
         /// <summary>
+        /// 그 자리로 옮길 수 있나 — 화면이 <b>버튼을 켤지</b> 정하는 답.
+        ///
+        /// ★ 이 판정이 화면에도 한 벌 있으면 언젠가 갈린다. 버튼은 켜져 있는데 눌러도
+        ///   아무 일이 안 나는 상태가 그렇게 생긴다 — 오늘 감정·합치기에서 같은 꼴을 두 번 고쳤다.
+        /// </summary>
+        public static bool CanGoToStage(IdleState state, int stage)
+        {
+            return stage >= 1 && stage <= state.BestStage && stage != state.Stage;
+        }
+
+        /// <summary>
         /// 이미 지나온 자리로 옮긴다 — <b>앞질러 갈 수는 없다</b>.
         ///
         /// ★ 옮기면 이번 대상 진행은 버린다(다른 대상이니까). 그 외에는 아무것도 안 잃는다 —
@@ -457,12 +468,7 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// </summary>
         public static bool TryGoToStage(IdleState state, int stage)
         {
-            if (stage < 1 || stage > state.BestStage)
-            {
-                return false;
-            }
-
-            if (stage == state.Stage)
+            if (CanGoToStage(state, stage) == false)
             {
                 return false;
             }
