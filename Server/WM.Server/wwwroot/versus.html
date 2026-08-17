@@ -64,12 +64,16 @@
 <script type="module">
 // 브라우저로 하는 1대1 대결 (TASK-WM-411).
 //
+// ★ 3D 로 그린다 — WM Web(세계 창)이 쓰는 것과 <b>같은 three.js</b>(서버 옆 vendor).
+//   처음엔 2D 캔버스로 따로 팠는데, 그러면 같은 게임이 창마다 다른 그림이 된다.
+//   대결은 쿼터뷰 고정(유니티 창과 같은 각) — 둘 다 한 화면에 담는 각도다.
+import * as THREE from './vendor/three.module.min.js';
+//
 // ★ 이 창은 규칙을 하나도 모른다. 서버(또는 P2P 호스트)가 심판이고, 여기는
 //   ① 내 의도를 보내고 ② 받은 그림을 그린다. 유니티 창이 하는 일과 정확히 같다 —
 //   같은 말(DomainSDK/Net)을 쓰기 때문에 둘이 같은 방에서 붙을 수 있다.
 
 const board = document.getElementById('board');
-const context = board.getContext('2d');
 const scorePanel = document.getElementById('score');
 const statusPanel = document.getElementById('status');
 const offerPanel = document.getElementById('offer');
@@ -153,7 +157,10 @@ async function bootJudgment() {
 		const exports = await getAssemblyExports(getConfig().mainAssemblyName);
 		bridge = exports.WitchMendokusai.Wasm.VersusBridge;
 		bridge.Open(0);
-		hintPanel.textContent += ' · 판정이 이 창에서 돈다(즉시 반응)';
+		if (hintPanel.dataset.judged !== '1') {
+			hintPanel.textContent += ' · 판정이 이 창에서 돈다(즉시 반응)';
+			hintPanel.dataset.judged = '1';
+		}
 
 		// 밖에서도 상태를 볼 수 있게 열어 둔다 — 「돈다」와 「그린다」가 갈릴 때 여기부터 본다.
 		globalThis.wmVersus = bridge;
@@ -243,16 +250,103 @@ function showOffer(message) {
 	});
 }
 
-// 화면 자리 ↔ 판 자리. 판이 화면에 꽉 차게 맞춘다(가로세로 비율 유지).
-function view() {
-	const scale = Math.min(board.width / (arena.halfWidth * 2.2), board.height / (arena.halfDepth * 2.2));
-	return {
-		scale,
-		toScreenX: (x) => board.width / 2 + x * scale,
-		toScreenY: (y) => board.height / 2 - y * scale,
-		toWorldX: (sx) => (sx - board.width / 2) / scale,
-		toWorldY: (sy) => (board.height / 2 - sy) / scale,
-	};
+// ── 3D 판 (WM Web 과 같은 three.js) ───────────────────────────────────────
+// 카메라는 쿼터뷰 고정 — 유니티 창과 같은 각이다. 둘 다 한 화면에 담기고, 조준이 헷갈리지 않는다.
+const renderer = new THREE.WebGLRenderer({ canvas: board, antialias: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color('#14121a');
+
+const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 200);
+camera.position.set(0, 26, 20);
+camera.lookAt(0, 0, 0);
+
+scene.add(new THREE.HemisphereLight('#8f7fd8', '#241f30', 0.8));
+const sun = new THREE.DirectionalLight('#ffe9c0', 1.0);
+sun.position.set(10, 22, 8);
+scene.add(sun);
+
+// 판 바닥·벽은 서버가 알려 준 크기로 한 번만 짓는다.
+let arenaGroup = null;
+
+function buildArena(halfWidth, halfDepth) {
+	if (arenaGroup) scene.remove(arenaGroup);
+
+	arenaGroup = new THREE.Group();
+
+	const floor = new THREE.Mesh(
+		new THREE.BoxGeometry(halfWidth * 2, 0.4, halfDepth * 2),
+		new THREE.MeshLambertMaterial({ color: '#23202c' })
+	);
+	floor.position.y = -0.2;
+	arenaGroup.add(floor);
+
+	const wallMaterial = new THREE.MeshLambertMaterial({ color: '#3a3548' });
+	const walls = [
+		[0, halfDepth, halfWidth * 2, 0.4],
+		[0, -halfDepth, halfWidth * 2, 0.4],
+		[halfWidth, 0, 0.4, halfDepth * 2],
+		[-halfWidth, 0, 0.4, halfDepth * 2],
+	];
+
+	for (const [x, z, sizeX, sizeZ] of walls) {
+		const wall = new THREE.Mesh(new THREE.BoxGeometry(sizeX, 1.2, sizeZ), wallMaterial);
+		wall.position.set(x, 0.6, z);
+		arenaGroup.add(wall);
+	}
+
+	scene.add(arenaGroup);
+
+	// 판이 화면에 다 들어오도록 물러난다 — 「둘 다 한 화면」이 이 카메라의 존재 이유다.
+	const span = Math.max(halfWidth, halfDepth * 1.4);
+	camera.position.set(0, span * 1.9, span * 1.5);
+	camera.lookAt(0, 0, 0);
+}
+
+// 사람 둘은 계속 살아 있고, 탄은 늘었다 줄었다 한다 — 늘어난 만큼만 새로 짓고 나머지는 숨긴다.
+const fighterMeshes = [];
+const shotMeshes = [];
+
+function fighterMesh(index) {
+	while (fighterMeshes.length <= index) {
+		const mesh = new THREE.Mesh(
+			new THREE.CapsuleGeometry(0.5, 0.7, 6, 12),
+			new THREE.MeshLambertMaterial({ color: '#5aa6ff' })
+		);
+		scene.add(mesh);
+		fighterMeshes.push(mesh);
+	}
+
+	return fighterMeshes[index];
+}
+
+function shotMesh(index) {
+	while (shotMeshes.length <= index) {
+		const mesh = new THREE.Mesh(
+			new THREE.SphereGeometry(0.25, 12, 8),
+			new THREE.MeshBasicMaterial({ color: '#5aa6ff' })
+		);
+		scene.add(mesh);
+		shotMeshes.push(mesh);
+	}
+
+	return shotMeshes[index];
+}
+
+// 판 평면(y=0) 위에서 마우스가 가리키는 자리 — 조준은 이걸로 정한다.
+const pointerRay = new THREE.Raycaster();
+const groundPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+const pointerHit = new THREE.Vector3();
+
+function pointerOnGround() {
+	const ndc = new THREE.Vector2(
+		(pointer.x / innerWidth) * 2 - 1,
+		-(pointer.y / innerHeight) * 2 + 1
+	);
+
+	pointerRay.setFromCamera(ndc, camera);
+	return pointerRay.ray.intersectPlane(groundPlane, pointerHit) ? pointerHit : null;
 }
 
 function sendInput() {
@@ -268,11 +362,12 @@ function sendInput() {
 	let aimX = 1;
 	let aimY = 0;
 	const me = bridge ? predictedView?.fighters?.[seat] : currentState?.fighters?.[seat];
+	const ground = pointerOnGround();
 
-	if (me) {
-		const projection = view();
-		const dx = projection.toWorldX(pointer.x * devicePixelRatio) - me.x;
-		const dy = projection.toWorldY(pointer.y * devicePixelRatio) - me.y;
+	if (me && ground) {
+		// 판의 y 는 three 의 z 다(카메라가 그쪽을 본다).
+		const dx = ground.x - me.x;
+		const dy = ground.z - me.y;
 		const length = Math.hypot(dx, dy) || 1;
 		aimX = dx / length;
 		aimY = dy / length;
@@ -321,67 +416,63 @@ function pullPredicted() {
 function draw() {
 	pullPredicted();
 
-	// 캔버스 준비는 <b>어느 길로 가든</b> 먼저 한다 — 안 그러면 화면이 통째로 안 지워지거나
-	// 크기가 0 이라 아무것도 안 보인다(2026-08-17 실측: 판정은 도는데 판이 까맣게만 떴다).
-	board.width = innerWidth * devicePixelRatio;
-	board.height = innerHeight * devicePixelRatio;
-	context.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--ground');
-	context.fillRect(0, 0, board.width, board.height);
+	// 창 크기는 어느 길로 가든 먼저 맞춘다.
+	if (board.width !== innerWidth * renderer.getPixelRatio() || board.height !== innerHeight * renderer.getPixelRatio()) {
+		renderer.setSize(innerWidth, innerHeight, false);
+		camera.aspect = innerWidth / innerHeight;
+		camera.updateProjectionMatrix();
+	}
 
 	// 판정이 이 창에 있으면 미리 굴린 판을 그대로 그린다(보간 불요 — 이미 60Hz 다).
-	if (bridge && predictedView) {
-		arena = arena ?? { halfWidth: predictedView.halfWidth, halfDepth: predictedView.halfDepth, roundsToWin: 5 };
-		seat = predictedView.seat;
-		drawFrom(predictedView, 1, null);
-		return;
+	const source = (bridge && predictedView) ? predictedView : currentState;
+	const previous = (bridge && predictedView) ? null : previousState;
+	const alpha = (bridge && predictedView)
+		? 1
+		: Math.min(1, (performance.now() - currentAt) / 1000 / arrivalInterval);
+
+	if (source) {
+		if (bridge && predictedView) {
+			arena = arena ?? { halfWidth: predictedView.halfWidth, halfDepth: predictedView.halfDepth, roundsToWin: 5 };
+			seat = predictedView.seat;
+		}
+
+		if (arena && arenaGroup === null) buildArena(arena.halfWidth, arena.halfDepth);
+		if (arena) placeBodies(source, alpha, previous);
 	}
 
-	if (arena === null || currentState === null) return;
-
-	// 지금이 두 그림 사이 어디쯤인가(0~1). 한 칸을 넘으면 최신 그림에 붙인다.
-	const alpha = Math.min(1, (performance.now() - currentAt) / 1000 / arrivalInterval);
-	drawFrom(currentState, alpha, previousState);
+	renderer.render(scene, camera);
 }
 
-// 한 판을 그린다. 판정이 여기 있으면 보간이 필요 없고(alpha=1), 없으면 그림 사이를 채운다.
-function drawFrom(source, alpha, previous) {
+// 판의 (x, y) 를 three 의 (x, z) 로 옮겨 놓는다. 사람만 사이를 채운다(탄은 짝을 못 짓는다).
+function placeBodies(source, alpha, previous) {
+	const mine = '#5aa6ff';
+	const theirs = '#ff8f5a';
 
-	const projection = view();
-
-	// 바닥과 벽 — 서버가 주는 판 크기 그대로.
-	context.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--floor');
-	context.fillRect(
-		projection.toScreenX(-arena.halfWidth), projection.toScreenY(arena.halfDepth),
-		arena.halfWidth * 2 * projection.scale, arena.halfDepth * 2 * projection.scale);
-	context.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--wall');
-	context.lineWidth = 3 * devicePixelRatio;
-	context.strokeRect(
-		projection.toScreenX(-arena.halfWidth), projection.toScreenY(arena.halfDepth),
-		arena.halfWidth * 2 * projection.scale, arena.halfDepth * 2 * projection.scale);
-
-	const drawCircle = (body, color) => {
-		context.beginPath();
-		context.arc(projection.toScreenX(body.x), projection.toScreenY(body.y), body.r * projection.scale, 0, Math.PI * 2);
-		context.fillStyle = color;
-		context.fill();
-	};
-
-	// 탄은 매 그림마다 생기고 사라져서 짝을 지을 수 없다 — 온 자리 그대로 그린다.
-	for (const shot of source.shots ?? []) {
-		drawCircle(shot, shot.owner === seat
-			? getComputedStyle(document.documentElement).getPropertyValue('--me')
-			: getComputedStyle(document.documentElement).getPropertyValue('--foe'));
-	}
-
-	// 사람은 자리 번호로 짝이 지어진다 — 여기만 사이를 채워 주면 화면이 눈에 띄게 부드러워진다.
 	(source.fighters ?? []).forEach((fighter, index) => {
-		if (fighter.alive === false) return;
+		const mesh = fighterMesh(index);
+		mesh.visible = fighter.alive !== false;
+
+		if (mesh.visible === false) return;
 
 		const smooth = blend(previous?.fighters?.[index], fighter, alpha);
-		drawCircle(smooth, index === seat
-			? getComputedStyle(document.documentElement).getPropertyValue('--me')
-			: getComputedStyle(document.documentElement).getPropertyValue('--foe'));
+		mesh.position.set(smooth.x, fighter.r, smooth.y);
+		mesh.scale.setScalar(fighter.r / 0.5);
+		mesh.material.color.set(seat >= 0 && index === seat ? mine : theirs);
 	});
+
+	const shots = source.shots ?? [];
+
+	for (let index = 0; index < Math.max(shots.length, shotMeshes.length); index++) {
+		const mesh = shotMesh(index);
+		const shot = shots[index];
+		mesh.visible = shot !== undefined;
+
+		if (mesh.visible === false) continue;
+
+		mesh.position.set(shot.x, 0.6, shot.y);
+		mesh.scale.setScalar(shot.r / 0.25);
+		mesh.material.color.set(shot.owner === seat ? mine : theirs);
+	}
 }
 
 // 의도는 60Hz 로 보내고, 그림은 화면 주사율에 맞춰 그린다.
@@ -390,10 +481,11 @@ setInterval(sendInput, 1000 / 60);
 function frame() {
 	draw();
 	requestAnimationFrame(frame);
-bootJudgment();
 }
 
 requestAnimationFrame(frame);
+
+// 판정 올리기는 <b>한 번만</b>. 프레임 안에 들어가 있어 매 프레임 다시 부르고 있었다(2026-08-17 실측).
 bootJudgment();
 </script>
 </body>
