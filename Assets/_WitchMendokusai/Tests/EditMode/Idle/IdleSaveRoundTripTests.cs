@@ -51,9 +51,35 @@ namespace WitchMendokusai.Tests
 
 				if (before is System.Array first)
 				{
+					// ⚠ 전에는 <b>길이만</b> 봤다 (실측 2026-08-17). 그러면 안이 통째로 뒤바뀌어도
+					//   통과한다 — 가방·착용·파티·영웅·생산자가 <b>전부 배열</b>인데.
+					//   「빠뜨린 칸을 잡겠다」고 세운 감시가 정작 제일 큰 칸들을 안 보고 있었다.
 					System.Array second = (System.Array)after;
 					Assert.IsNotNull(second, field.Name + " 가 왕복하며 사라졌다");
 					Assert.AreEqual(first.Length, second.Length, field.Name + " 의 길이가 달라졌다");
+
+					bool anythingInside = false;
+
+					for (int at = 0; at < first.Length; at++)
+					{
+						object one = first.GetValue(at);
+						object other = second.GetValue(at);
+
+						Assert.AreEqual(one, other, field.Name + " 의 " + at + "번째가 왕복하며 달라졌다");
+
+						if (one != null && one.Equals(EmptyLike(one)) == false)
+						{
+							anythingInside = true;
+						}
+					}
+
+					// 채운 배열이 <b>전부 기본값</b>이면 그 칸을 안 적고 있다는 뜻이다.
+					if (first.Length > 0)
+					{
+						Assert.IsTrue(anythingInside,
+							field.Name + " 이 값을 채웠는데도 전부 비어 있다 — Save() 에서 빠졌다");
+					}
+
 					continue;
 				}
 
@@ -101,6 +127,13 @@ namespace WitchMendokusai.Tests
 			Assert.IsNotNull(fromNothing.Owned);
 		}
 
+		/// <summary>그 자리의 「아무것도 없음」 — 값 꼴이면 기본값.</summary>
+		private static object EmptyLike(object one)
+		{
+			System.Type kind = one.GetType();
+			return kind.IsValueType ? System.Activator.CreateInstance(kind) : null;
+		}
+
 		/// <summary>값이 <b>다 들어찬</b> 판 — 기본값과 겹치면 빠뜨려도 시험이 못 잡는다.</summary>
 		private static IdleState Filled()
 		{
@@ -123,6 +156,10 @@ namespace WitchMendokusai.Tests
 			state.Owned[0] = 9L;
 			state.Owned[2] = 2L;
 			state.DropSequence = 13L;
+			// 배열 안까지 채운다 — 「길이만 맞고 속은 빈」 판으로는 새 감시가 아무것도 못 본다.
+			state.DroppedByTier[2] = 7L;
+			state.DroppedByTier[4] = 1L;
+			state.DropProgressByTier[1] = 0.42d;
 			state.RandomState = 987654321L;
 			state.BestPotentialValue = 0.33d;
 			state.BestPotentialGrade = 2;
