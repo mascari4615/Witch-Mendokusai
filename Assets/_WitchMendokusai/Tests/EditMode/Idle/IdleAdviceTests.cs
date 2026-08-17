@@ -446,5 +446,31 @@ namespace WitchMendokusai.Tests
 
 			Assert.AreEqual((int)IdleTab.Prestige, 4, "환생 칸이 마지막이 아니다");
 		}
+
+
+		/// <summary>
+		/// ★ <b>앉히는 것</b>도 공짜다 — 가진 영웅이 자리에 안 앉아 있으면 그걸 먼저 말한다.
+		///
+		/// ⚠ 여기가 비어 있었다 (실측 2026-08-17): 영웅 칸의 <b>점</b>은 빈 자리에도 찍히는데
+		///   「지금 할 한 걸음」은 그 말을 안 했다. 점을 보고 칸을 연 사람이 <b>왜 찍혔는지</b>를
+		///   스스로 알아내야 했다 — 규칙이 두 벌이면 안내가 안내를 배신한다.
+		/// </summary>
+		[Test]
+		public void AnUnseatedHero_IsToldBeforeSpending()
+		{
+			IdleState state = Fresh(out IdleTuning tuning);
+
+			// 살 수도 있는 판 — 그래도 공짜인 쪽(앉히기)을 먼저 말해야 한다.
+			state.Resource = IdleBase.CostOf(0, state.Owned[0], tuning);
+			state.Heroes.Add(new IdleHeroOwned(4));
+
+			Assert.AreEqual(IdleStep.Seat, IdleAdvice.NextStep(Look(state)).Step);
+
+			// 그리고 앉히고 나면 <b>다음 걸음</b>으로 넘어간다 — 같은 말을 영영 반복하지 않는다.
+			state.Party[0] = 4;
+
+			Assert.AreEqual(IdleStep.BuyProducer, IdleAdvice.NextStep(Look(state)).Step,
+				"앉혔는데도 계속 앉히라고 한다");
+		}
 	}
 }

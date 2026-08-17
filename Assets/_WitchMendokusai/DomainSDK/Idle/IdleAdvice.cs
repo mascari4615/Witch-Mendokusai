@@ -32,6 +32,9 @@ namespace WitchMendokusai.DomainSDK.Idle
 
         /// <summary>손으로 때려라 — 아직 아무것도 안 도는 첫 1분.</summary>
         Tap = 8,
+
+        /// <summary>가진 영웅이 자리에 안 앉아 있다 — 앉히는 데는 아무것도 안 든다.</summary>
+        Seat = 10,
     }
 
     /// <summary>서랍의 칸 — 화면의 순서와 같다.</summary>
@@ -111,6 +114,16 @@ namespace WitchMendokusai.DomainSDK.Idle
             if (HasBetterUnworn(snapshot))
             {
                 return new IdleAdviceResult(IdleStep.Wear, -1, 0d);
+            }
+
+            // ⑤ 앉히는 것도 <b>공짜로 세지는 것</b>이다 — 파티 자리의 배수는 자리에 앉아야 붙는다.
+            //    ⚠ 여기가 비어 있었다 (실측 2026-08-17): 영웅 칸의 <b>점</b>은 빈 자리에도 찍히는데
+            //      「지금 할 한 걸음」은 그 말을 영영 안 했다. 규칙이 두 벌이면 사람은 점을 보고
+            //      칸을 열었다가 <b>왜 점이 찍혔는지</b>를 스스로 알아내야 한다 — 안내가 아니다.
+            //      차는 것(Wear)을 말하면서 앉히는 것을 안 말한 것은 같은 빚을 반만 갚은 셈이다.
+            if (HasEmptyPartySeat(snapshot))
+            {
+                return new IdleAdviceResult(IdleStep.Seat, -1, 0d);
             }
 
             if (snapshot.CanPull)

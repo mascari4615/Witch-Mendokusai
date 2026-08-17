@@ -1273,6 +1273,9 @@ namespace WitchMendokusai
 				case IdleStep.Wear:
 					return "▶ 장비 탭 — 가방에 더 좋은 것이 있다 (차는 데는 아무것도 안 든다)";
 
+				case IdleStep.Seat:
+					return "▶ 영웅 탭 — 자리가 비었다 (앉히는 데는 아무것도 안 든다)";
+
 				case IdleStep.Pull:
 					return "▶ 영웅 탭 — 뽑을 수 있다 (안 내보내도 들고만 있으면 세진다)";
 
