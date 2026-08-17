@@ -560,6 +560,14 @@ namespace WitchMendokusai
 		{
 			baseMotes.Advance(delta);
 
+			// ★ 장식이 나아가는 자리는 <b>여기 하나뿐</b>이다 (프레임당 한 번).
+			vaultMark.Advance(delta, 0.03f);
+
+			for (int shape = 0; shape < baseShapes.Count && shape < snapshot.Producers.Length; shape++)
+			{
+				baseShapes[shape].Advance(delta, snapshot.Producers[shape].Owned > 0L ? 0.06f : 0f);
+			}
+
 			if (snapshot.IncomePerSecond <= 0d)
 			{
 				return;
@@ -617,6 +625,12 @@ namespace WitchMendokusai
 		private void AdvanceVault(IdleSnapshot snapshot, float delta)
 		{
 			vaultMotes.Advance(delta);
+
+			// ★ 칸이 나아가는 자리도 여기 하나뿐이다.
+			for (int index = 0; index < vaultCells.Count; index++)
+			{
+				vaultCells[index].Advance(delta, 0.04f);
+			}
 
 			if (snapshot.Bag.Length > lastBagCount)
 			{
@@ -1411,8 +1425,11 @@ namespace WitchMendokusai
 				BigNumberText.Format(snapshot.IncomePerSecond));
 
 			// 들어오는 게 있으면 저장고가 뛴다.
+			//
+			// ⚠ <b>여기서 시간을 흘리지 않는다.</b> 그리기는 <b>누를 때마다</b> 다시 도는데
+			//   (버튼 처리가 끝나며 Render 를 부른다), 그때마다 같은 delta 로 한 번 더 나아가면
+			//   많이 누를수록 장식이 빨라진다. 시간 흘리기는 Advance* 한 곳에서만 한다.
 			vaultMark.SetPulse(snapshot.IncomePerSecond > 0d ? 0.08f : 0f, 1.2f);
-			vaultMark.Advance(Time.unscaledDeltaTime, 0.03f);
 
 			for (int kind = 0; kind < baseShapes.Count; kind++)
 			{
@@ -1429,7 +1446,6 @@ namespace WitchMendokusai
 				baseShapes[kind].style.opacity = working ? 1f : 0.16f;
 				baseShapes[kind].SetPulse(working ? 0.12f : 0f,
 					working ? 0.6f + Mathf.Min(2f, (float)view.Owned * 0.08f) : 0f);
-				baseShapes[kind].Advance(Time.unscaledDeltaTime, working ? 0.06f : 0f);
 			}
 		}
 
@@ -1477,8 +1493,8 @@ namespace WitchMendokusai
 				cell.Body = TierColor(one.Tier);
 
 				// 감정된 것은 <b>뛴다</b> — 가방에서 골라 낼 때 눈에 먼저 든다.
+				// (시간 흘리기는 AdvanceVault 한 곳에서 — 여기서 하면 누를 때마다 더 나아간다.)
 				cell.SetPulse(one.PotentialValue > 0d ? 0.14f : 0f, 1.4f);
-				cell.Advance(Time.unscaledDeltaTime, 0.04f);
 			}
 		}
 
