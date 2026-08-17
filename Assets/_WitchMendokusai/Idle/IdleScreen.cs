@@ -484,6 +484,26 @@ namespace WitchMendokusai
 			return 0;
 		}
 
+		/// <summary>
+		/// 그 자리가 판 위 <b>어디</b>인가 (0~1). 자리가 아직 안 잡혔으면 옛 고정값.
+		///
+		/// 좌표를 손으로 박으면 칸 크기가 바뀔 때마다 어긋난다 — 실제로 놓인 자리에서 잰다.
+		/// </summary>
+		private Vector2 OriginOf(int who)
+		{
+			Rect field = bolts.worldBound;
+			Rect one = heroes[who].worldBound;
+
+			if (field.width <= 1f || field.height <= 1f || one.width <= 0f)
+			{
+				return new Vector2(0.30f, 0.52f);
+			}
+
+			return new Vector2(
+				Mathf.Clamp01((one.center.x - field.xMin) / field.width),
+				Mathf.Clamp01((one.center.y - field.yMin) / field.height));
+		}
+
 		private void Strike(IdleSnapshot snapshot, float beatsPerSecond)
 		{
 			// ⚠ <b>빈 자리도 때리고 있었다</b>. 자리 셋을 그냥 돌려서, 아직 한 명뿐인 판에서는
@@ -507,7 +527,11 @@ namespace WitchMendokusai
 			if (ranged)
 			{
 				heroes[who].Hit();
-				bolts.Send(new Vector2(0.30f, 0.52f), new Vector2(0.78f, 0.5f),
+
+				// ★ 쏘는 <b>그 자리에서</b> 나간다. 전에는 늘 세 번째 자리가 쏘던 시절의
+				//   고정 좌표(0.30)라, 이제 아무 자리나 쏠 수 있게 된 뒤로는 <b>엉뚱한 데서</b>
+				//   화살이 나갔다. 자리의 실제 위치에서 낸다(아직 자리가 안 잡혔으면 옛 값).
+				bolts.Send(OriginOf(who), new Vector2(0.78f, 0.5f),
 					HERO_COLORS[who], HERO_SIDES[who], 0.22f);
 			}
 			else
