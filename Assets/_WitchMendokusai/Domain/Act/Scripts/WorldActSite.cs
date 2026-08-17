@@ -27,6 +27,9 @@ namespace WitchMendokusai
 		[Header("창고 (행동이 씨앗·재료를 꺼내 쓰는 가방)")]
 		[SerializeField] private Inventory satchel;
 
+		[Tooltip("지갑(냥). 물리면 팔기·사기가 원장 한 행동으로 걸린다 — 물건과 돈이 함께 움직인다.")]
+		[SerializeField] private GameStat wallet;
+
 		[Header("몸 (수치노출 룰 — 분당 감소·문제 임계·상한)")]
 		[SerializeField, Min(0f)] private float needMax = DEFAULT_NEED_MAX;
 		[SerializeField, Min(0f)] private float lowThreshold = DEFAULT_LOW;
@@ -173,7 +176,31 @@ namespace WitchMendokusai
 			riders.Add(new NeedDecayTimeRider(body, profile));
 			riders.Add(new WorldClockTimeRider(() => clock));
 
-			World = new ActContext(body, profile, satchel == null ? null : new InventoryActPool(satchel), calendar, riders);
+			World = new ActContext(body, profile, BuildStorage(), calendar, riders);
+		}
+
+		// 가방과 지갑을 창고 하나로 묶는다 — 팔기는 둘을 동시에 건드리는 한 행동이라
+		// 창고가 갈라져 있으면 「물건만 사라진」 세계가 생긴다.
+		private IActResourcePool BuildStorage()
+		{
+			if (satchel == null && wallet == null)
+			{
+				return null;
+			}
+
+			ActResourcePools pools = new();
+
+			if (wallet != null)
+			{
+				pools.Route(WalletActPool.Handles, new WalletActPool(wallet));
+			}
+
+			if (satchel != null)
+			{
+				pools.Route(resource => true, new InventoryActPool(satchel));
+			}
+
+			return pools;
 		}
 
 		// 자릿수(하루 몇 시간·한 계절 며칠)는 WorldClockSO 가 정본 — 같은 수를 두 곳에 안 적는다.
