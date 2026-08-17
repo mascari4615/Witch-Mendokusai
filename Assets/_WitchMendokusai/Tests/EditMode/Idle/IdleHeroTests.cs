@@ -383,5 +383,54 @@ namespace WitchMendokusai.Tests
 			Assert.AreEqual(9, state.Party[0]);
 			Assert.AreEqual(5, state.Party[1], "맞바꾸지 않고 밀어냈다");
 		}
+
+		/// <summary>
+		/// ★ 도감 배수는 <b>정확히 한 번</b> 걸린다 — 축마다 걸면 숨은 제곱이 된다 (회귀).
+		///
+		/// 전에는 축 배수 안에 도감이 들어 있어서 네 군데(공격력·속도·기지·떨구기)에서
+		/// 곱해졌다. 처치 속도는 공격력 × 속도라 도감이 제곱으로 들어갔고
+		/// (「판 전체 x1.10」이 실제로는 x1.21) 떨구기는 그 위에 또 한 겹이었다.
+		/// 숨은 지수는 곡선을 통째로 거짓말로 만든다.
+		/// </summary>
+		[Test]
+		public void TheCodexBonus_LandsExactlyOnce()
+		{
+			IdleTuning tuning = new IdleTuning();
+
+			IdleState bare = Board(tuning);
+			IdleState read = Board(tuning);
+
+			// 도감 점수만 채운다 — 축 배수(보유·파티)는 양쪽 다 똑같이 없다.
+			for (int id = 0; id < tuning.CodexStepScore; id++)
+			{
+				read.Heroes.Add(new IdleHeroOwned(id));
+			}
+
+			double codex = IdleHeroes.CodexMultiplierOf(read, tuning);
+			Assert.Greater(codex, 1d, "잴 것이 없다 — 도감이 아무 배수도 안 준다");
+
+			// ⚠ 견주는 쪽에 AxisMultiplierOf 를 쓰면 <b>눈뜬장님</b>이 된다 (실측 2026-08-17):
+			//   도감이 그 안에 도로 들어가면 양쪽이 같이 움직여 빨강-확인이 통과해 버렸다.
+			//   그래서 축 몫은 <b>보유 × 파티</b>로 직접 짓는다 — 고치려는 그 함수를 안 쓴다.
+			double owned = IdleHeroes.OwnedMultiplierOf(read, tuning, IdleHeroAxis.Speed)
+				* IdleHeroes.PartyMultiplierOf(read, tuning, IdleHeroAxis.Speed);
+			Assert.AreEqual(IdleModel.AttackSpeedOf(bare, tuning) * owned,
+				IdleModel.AttackSpeedOf(read, tuning), 1e-6d,
+				"속도에까지 도감이 또 걸렸다 — 처치 속도가 도감의 제곱이 된다");
+
+			double ownedBase = IdleHeroes.OwnedMultiplierOf(read, tuning, IdleHeroAxis.Base)
+				* IdleHeroes.PartyMultiplierOf(read, tuning, IdleHeroAxis.Base);
+			Assert.AreEqual(IdleBase.OutputPerSecond(bare, tuning) * ownedBase * codex,
+				IdleBase.OutputPerSecond(read, tuning), 1e-6d,
+				"기지가 도감을 한 번 못 받거나 두 번 받는다");
+		}
+
+		private static IdleState Board(IdleTuning tuning)
+		{
+			IdleState state = new IdleState();
+			state.EnsureProducerRoom(tuning.ProducerCount);
+			state.Owned[0] = 10L;
+			return state;
+		}
 	}
 }

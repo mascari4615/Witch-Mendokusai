@@ -65,6 +65,8 @@ namespace WitchMendokusai.DomainSDK.Idle
             //   (자리를 비운 동안에는 폭주가 안 걸린다 — CatchUp 이 지우므로 방치 판정은 그대로 결정적이다.)
             return total * IdleGear.BaseMultiplier(state, tuning)
                 * IdleHeroes.AxisMultiplierOf(state, tuning, IdleHeroAxis.Base)
+                // 도감은 <b>여기서 한 번</b> — 기지 쪽의 뿌리가 여기다 (싸움 쪽은 DamageOf).
+                * IdleHeroes.CodexMultiplierOf(state, tuning)
                 * IdleSurge.Multiplier(state, tuning);
         }
 

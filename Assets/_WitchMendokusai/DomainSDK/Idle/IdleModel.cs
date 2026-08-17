@@ -73,7 +73,10 @@ namespace WitchMendokusai.DomainSDK.Idle
                 * PotentialMultiplier(state)
                 * IdleGear.DamageMultiplier(state, tuning)
                 // 뽑은 영웅이 <b>실제로</b> 판을 민다 — 안 물리면 뽑기는 도감 놀이다.
-                * IdleHeroes.AxisMultiplierOf(state, tuning, IdleHeroAxis.Damage);
+                * IdleHeroes.AxisMultiplierOf(state, tuning, IdleHeroAxis.Damage)
+                // 도감은 <b>여기서 한 번</b>. 싸움 쪽의 뿌리가 여기다 — 속도·떨구기는
+                // 이 값에서 흘러오므로 따로 곱하면 그게 곧 숨은 제곱이 된다.
+                * IdleHeroes.CodexMultiplierOf(state, tuning);
         }
 
         /// <summary>

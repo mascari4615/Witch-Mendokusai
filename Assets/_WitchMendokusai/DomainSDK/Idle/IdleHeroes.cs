@@ -180,12 +180,21 @@ namespace WitchMendokusai.DomainSDK.Idle
             return 1d + sum;
         }
 
-        /// <summary>한 축이 지금 받는 <b>전체</b> 배수 — 보유 × 파티 × 도감.</summary>
+        /// <summary>
+        /// 한 축이 지금 받는 배수 — <b>보유 × 파티</b>.
+        ///
+        /// ⚠ 도감은 여기 <b>안 들어간다</b>. 도감은 「축과 무관하게 판 전체에 한 번」인데
+        ///   여기 넣어 두니 축마다 한 번씩, 즉 <b>네 군데</b>에서 곱해지고 있었다.
+        ///   처치 속도는 공격력 × 공격속도라 도감이 <b>제곱</b>으로 들어갔고
+        ///   (「판 전체 x1.10」이 실제로는 x1.21), 떨구기는 그 위에 또 한 겹이었다.
+        ///   숨은 지수는 곡선을 통째로 거짓말로 만든다 — 그래서 <b>뿌리 둘</b>에서만 곱한다
+        ///   (<see cref="IdleModel.DamageOf"/> · <see cref="IdleBase.OutputPerSecond"/>).
+        ///   나머지는 그 둘에서 흘러오므로 저절로 정확히 한 번 받는다.
+        /// </summary>
         public static double AxisMultiplierOf(IdleState state, IdleTuning tuning, IdleHeroAxis axis)
         {
             return OwnedMultiplierOf(state, tuning, axis)
-                * PartyMultiplierOf(state, tuning, axis)
-                * CodexMultiplierOf(state, tuning);
+                * PartyMultiplierOf(state, tuning, axis);
         }
 
         /// <summary>등급이 몫에 곱해지는 무게 — 위 등급일수록 크게.</summary>
