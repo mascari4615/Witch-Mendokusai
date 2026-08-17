@@ -430,5 +430,21 @@ namespace WitchMendokusai.Tests
 			Assert.AreEqual(1, IdleAdvice.MergeableCount(Look(state)),
 				"천장 등급 한 벌을 안 셌다 — 후반에 합칠 것이 조용히 사라진다");
 		}
+
+
+		/// <summary>
+		/// ★ 서랍 칸 이름은 <b>다섯 개</b>다 — <see cref="IdleTab"/> 과 수가 같아야 한다.
+		///
+		/// 화면은 이 수만큼 이름표를 들고 있고(점 찍힌 것까지 두 벌), 칸을 그릴 때 그 번호로
+		/// 짚는다. 칸이 하나 늘면 화면이 배열 밖을 짚어 터진다 — 늘릴 때 같이 늘리라는 표시다.
+		/// </summary>
+		[Test]
+		public void TheDrawerHasFiveTabs()
+		{
+			Assert.AreEqual(5, System.Enum.GetValues(typeof(IdleTab)).Length,
+				"서랍 칸 수가 바뀌었다 — IdleScreen 의 이름표(TAB_NAMES · TAB_NAMES_DOT)도 같이 고칠 것");
+
+			Assert.AreEqual((int)IdleTab.Prestige, 4, "환생 칸이 마지막이 아니다");
+		}
 	}
 }

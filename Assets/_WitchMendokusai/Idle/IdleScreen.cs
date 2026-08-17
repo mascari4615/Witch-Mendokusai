@@ -116,6 +116,15 @@ namespace WitchMendokusai
 		/// <summary>서랍 칸 이름 — <see cref="IdleTab"/> 과 <b>순서가 같아야 한다</b>.</summary>
 		private static readonly string[] TAB_NAMES = { "기지", "강화", "장비", "영웅", "환생" };
 
+		/// <summary>
+		/// 점이 찍힌 이름 — <b>미리 지어 둔다</b>.
+		///
+		/// 점은 매 프레임 다시 그리는데, 그때마다 이름 + " ●" 를 <b>새로 이어 붙이면</b>
+		/// 프레임마다 글자 다섯 개가 새로 생긴다. 밤새 켜 두는 게임에서 그건 그대로 쌓인다.
+		/// (안내·서랍 점의 <b>판정</b> 쪽은 이미 0 바이트다 — 재서 확인했다.)
+		/// </summary>
+		private static readonly string[] TAB_NAMES_DOT = { "기지 ●", "강화 ●", "장비 ●", "영웅 ●", "환생 ●" };
+
 		/// <summary>지금 열려 있는 칸 — 열린 칸에는 점을 안 찍는다.</summary>
 		private int shownTab;
 
@@ -1136,7 +1145,7 @@ namespace WitchMendokusai
 				bool has = index != shownTab
 					&& IdleAdvice.HasSomethingToDo(snapshot, (IdleTab)index);
 
-				tabButtons[index].text = has ? TAB_NAMES[index] + " ●" : TAB_NAMES[index];
+				tabButtons[index].text = has ? TAB_NAMES_DOT[index] : TAB_NAMES[index];
 			}
 		}
 
