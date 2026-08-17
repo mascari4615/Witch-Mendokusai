@@ -122,6 +122,14 @@ namespace WitchMendokusai
 		/// <summary>지금 어느 자리를 바꾸는 중인가 — -1 이면 고르는 중이 아니다.</summary>
 		private int seatBeingFilled = -1;
 
+		/// <summary>
+		/// 자리보다 <b>영웅을 먼저</b> 고른 경우 — -1 이면 고른 것이 없다.
+		///
+		/// ★ 둘 중 아무 쪽을 먼저 눌러도 되게 한다. 한쪽 순서만 되면
+		///   다른 순서로 누른 사람에게는 <b>아무 일도 안 일어난다</b> — 그건 고장으로 읽힌다.
+		/// </summary>
+		private int pendingHeroId = -1;
+
 		/// <summary>목록에 붙은 작은 도형들 — 같이 돌려야 화면이 살아 있다.</summary>
 		private readonly List<NgonElement> decor = new List<NgonElement>();
 
@@ -1379,11 +1387,28 @@ namespace WitchMendokusai
 			pullButton.EnableInClassList("idle-button--ready", snapshot.CanPull);
 			pullButton.EnableInClassList("idle-button--locked", snapshot.CanPull == false);
 
-			codexLabel.text = string.Format("도감 {0}점 · 판 전체 x{1:0.00}  ·  천장까지 {2}번",
-				snapshot.CodexScore, snapshot.CodexMultiplier, snapshot.PullsToPity);
+			codexLabel.text = string.Format("도감 {0}점 · 판 전체 x{1:0.00}  ·  천장까지 {2}번{3}",
+				snapshot.CodexScore, snapshot.CodexMultiplier, snapshot.PullsToPity,
+				Waiting());
 
 			RenderParty(snapshot);
 			RenderCodex(snapshot);
+		}
+
+		/// <summary>지금 무엇을 기다리는가 — 반쯤 고른 상태를 화면이 말해 준다.</summary>
+		private string Waiting()
+		{
+			if (seatBeingFilled >= 0)
+			{
+				return "   ▶ 아래에서 누구를 앉힐지 고른다";
+			}
+
+			if (pendingHeroId >= 0)
+			{
+				return "   ▶ 위에서 어느 자리와 바꿀지 고른다";
+			}
+
+			return string.Empty;
 		}
 
 		/// <summary>내보낸 셋 — 빈 자리는 「비었다」로 두어 채울 것이 있다는 게 보이게.</summary>
@@ -1448,7 +1473,8 @@ namespace WitchMendokusai
 					view.CopiesForNextStar,
 					view.InParty ? "  ▶출전" : string.Empty);
 
-				heroButtons[index].EnableInClassList("idle-button--ready", seatBeingFilled >= 0);
+				heroButtons[index].EnableInClassList("idle-button--ready",
+					seatBeingFilled >= 0 || view.Id == pendingHeroId);
 			}
 		}
 
@@ -1649,31 +1675,80 @@ namespace WitchMendokusai
 			Render(session.Capture());
 		}
 
-		/// <summary>자리를 눌렀다 — 이제 도감에서 누구를 앉힐지 고른다.</summary>
+		/// <summary>
+		/// 자리를 눌렀다 — 영웅을 <b>이미 골라 뒀으면</b> 바로 앉히고, 아니면 고를 차례로 넘어간다.
+		/// </summary>
 		private void BeginSeat(int slot)
 		{
-			seatBeingFilled = seatBeingFilled == slot ? -1 : slot;
 			sound.Click();
-			Render(session.Capture());
-		}
 
-		/// <summary>도감에서 골랐다 — 고르는 중이 아니면 아무 일도 안 한다.</summary>
-		private void ChooseHero(int id)
-		{
-			if (seatBeingFilled < 0)
+			if (pendingHeroId >= 0)
 			{
+				Seat(slot, pendingHeroId);
 				return;
 			}
 
-			if (session.Send(new IdleSetPartyIntent(seatBeingFilled, id)))
+			// 같은 자리를 다시 누르면 무른다 — 잘못 눌렀을 때 빠져나갈 길이 있어야 한다.
+			seatBeingFilled = seatBeingFilled == slot ? -1 : slot;
+			Render(session.Capture());
+		}
+
+		/// <summary>
+		/// 도감에서 영웅을 눌렀다.
+		///
+		/// ★ 세 갈래 다 <b>무언가는 일어난다</b>: 자리를 고르는 중이면 거기 앉히고,
+		///   아니면 빈 자리에 앉히고, 자리가 다 찼으면 「어느 자리와 바꿀까」로 넘어간다.
+		///   「아무 일도 안 일어남」이 없어야 고장으로 안 읽힌다.
+		/// </summary>
+		private void ChooseHero(int id)
+		{
+			sound.Click();
+
+			if (seatBeingFilled >= 0)
 			{
-				sound.Click();
+				Seat(seatBeingFilled, id);
+				return;
+			}
+
+			int empty = FirstEmptySeat();
+			if (empty >= 0)
+			{
+				Seat(empty, id);
+				return;
+			}
+
+			// 자리가 다 찼다 — 이제 <b>어느 자리를 내보낼지</b>가 결정이다.
+			pendingHeroId = pendingHeroId == id ? -1 : id;
+			Render(session.Capture());
+		}
+
+		private void Seat(int slot, int id)
+		{
+			if (session.Send(new IdleSetPartyIntent(slot, id)))
+			{
 				Shake(0.2f);
 			}
 
 			seatBeingFilled = -1;
+			pendingHeroId = -1;
 			WriteDown();
 			Render(session.Capture());
+		}
+
+		/// <summary>빈 자리 하나 — 없으면 -1.</summary>
+		private int FirstEmptySeat()
+		{
+			IdleSnapshot now = session.Capture();
+
+			for (int slot = 0; slot < now.Party.Length; slot++)
+			{
+				if (now.Party[slot] < 0)
+				{
+					return slot;
+				}
+			}
+
+			return -1;
 		}
 
 		private void Prestige()
