@@ -268,5 +268,58 @@ namespace WitchMendokusai.Tests
 			Assert.AreEqual(IdleStep.BuyProducer, IdleAdvice.NextStep(Look(state)).Step,
 				"찼는데도 계속 차라고 한다");
 		}
+
+		/// <summary>
+		/// ★ 「얼마나 기다리나」는 <b>두 축을 다</b> 본다 — 전에는 공격속도를 빼먹었다 (회귀).
+		///
+		/// 속도가 곧 살 수 있는데도 화면이 훨씬 뒤를 말할 수 있었다.
+		/// 기다리라는 말은 「얼마나」가 맞아야 안내가 된다 — 틀린 시각은 침묵보다 나쁘다.
+		/// </summary>
+		[Test]
+		public void HowLongToWait_LooksAtBothAxes()
+		{
+			IdleState state = Fresh(out IdleTuning tuning);
+
+			// ⚠ 판을 <b>일부러</b> 고른다 (실측 2026-08-17): 첫 판에서는 공격력이 어차피 가장
+			//   이르러서(20초 vs 50초) 속도를 빼먹어도 답이 안 바뀌었다 — 처음 쓴 시험이
+			//   눈뜬장님이었다. 여기서는 공격력을 12까지 올려 <b>속도가 가장 이른</b> 판을 만든다
+			//   (공격력 36초 · 속도 8.3초 · 기지 11.6초).
+			state.Damage.Level = 12;
+			state.Owned[0] = 6L;
+
+			IdleSnapshot now = Look(state);
+			IdleAdviceResult advice = IdleAdvice.NextStep(now);
+
+			Assert.Less(now.AttackSpeed.SecondsToAfford, now.Damage.SecondsToAfford,
+				"이 판에서는 속도가 가장 이르지 않다 — 시험이 아무것도 안 본다");
+
+			Assert.AreEqual(IdleStep.Wait, advice.Step, "잴 판이 아니다 — 지금 할 것이 있다");
+
+			double soonest = double.PositiveInfinity;
+			soonest = Nearer(soonest, now.Damage.SecondsToAfford);
+			soonest = Nearer(soonest, now.AttackSpeed.SecondsToAfford);
+
+			for (int kind = 0; kind < now.Producers.Length; kind++)
+			{
+				if (now.Producers[kind].Hidden == false)
+				{
+					soonest = Nearer(soonest, now.Producers[kind].SecondsToAfford);
+				}
+			}
+
+			Assert.AreEqual(soonest, advice.Amount, 1e-6d,
+				"가장 이른 것을 안 짚는다 — 어느 축을 빼먹었다");
+		}
+
+		private static double Nearer(double soonest, double seconds)
+		{
+			if (seconds <= 0d)
+			{
+				return soonest;
+			}
+
+			return seconds < soonest ? seconds : soonest;
+		}
+
 	}
 }

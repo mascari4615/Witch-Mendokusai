@@ -285,12 +285,11 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// <summary>가장 빨리 살 수 있게 되는 것까지 남은 초 — 없으면 무한.</summary>
         private static double SoonestWait(IdleSnapshot snapshot)
         {
-            double soonest = snapshot.Damage.SecondsToAfford;
-
-            if (soonest <= 0d)
-            {
-                soonest = double.PositiveInfinity;
-            }
+            // ⚠ 두 축을 <b>다</b> 본다. 전에는 공격력만 보고 공격속도를 빼먹었다 —
+            //   속도가 20초 뒤에 살 수 있는데도 화면이 「3분 뒤」라고 말할 수 있었다.
+            //   기다리라는 말은 <b>얼마나</b>가 맞아야 안내가 된다. 틀린 시각은 침묵보다 나쁘다.
+            double soonest = Sooner(double.PositiveInfinity, snapshot.Damage.SecondsToAfford);
+            soonest = Sooner(soonest, snapshot.AttackSpeed.SecondsToAfford);
 
             for (int kind = 0; kind < snapshot.Producers.Length; kind++)
             {
@@ -300,13 +299,21 @@ namespace WitchMendokusai.DomainSDK.Idle
                     continue;
                 }
 
-                if (view.SecondsToAfford < soonest)
-                {
-                    soonest = view.SecondsToAfford;
-                }
+                soonest = Sooner(soonest, view.SecondsToAfford);
             }
 
             return soonest;
+        }
+
+        /// <summary>둘 중 이른 쪽 — 0 이하는 「모른다」라서 안 센다.</summary>
+        private static double Sooner(double soonest, double seconds)
+        {
+            if (seconds <= 0d)
+            {
+                return soonest;
+            }
+
+            return seconds < soonest ? seconds : soonest;
         }
     }
 }
