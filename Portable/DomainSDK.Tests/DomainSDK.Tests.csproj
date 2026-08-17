@@ -75,6 +75,7 @@
     <Compile Include="$(TestsRoot)Idle/IdleSurgeTests.cs" />
     <Compile Include="$(TestsRoot)Idle/IdleAdviceTests.cs" />
     <Compile Include="$(TestsRoot)Idle/IdleSaveRoundTripTests.cs" />
+    <Compile Include="$(TestsRoot)Idle/IdleFirstMinuteTests.cs" />
     <Compile Include="$(TestsRoot)Combat/DamageCalculationTests.cs" />
     <Compile Include="$(TestsRoot)Building/BuildingFootprintTests.cs" />
     <Compile Include="$(TestsRoot)TowerDefense/TowerDefenseSignalFieldTests.cs" />
