@@ -28,6 +28,8 @@ Domain/Alchemy/Data/BI_17403.asset
 Domain/Alchemy/Data/BI_17404.asset
 Domain/Alchemy/Data/BR_17400.asset
 Domain/Alchemy/Data/I_17450.asset
+Domain/Application/Assets/BootConfig.asset
+Domain/Application/Assets/SingletonCatalog.asset
 Domain/Arena/Map/RectangleArenaMap.asset
 Domain/Arena/Match/ArenaMatchConfig.asset
 Domain/Arena/Match/ArenaMatchConfig_Dolls.asset
@@ -83,14 +85,16 @@ Domain/Terrain/Scripts/TerrainParameters_Default.asset
 Domain/Terrain/Scripts/TerrainParameters_New.asset
 Domain/Terrain/Scripts/TerrainParameters_New_Copy.asset
 Domain/Terrain/Scripts/ThresholdLerpDemoGraph.asset
-Domain/Voxel/Scripts/Resources/Blocks/wm_air.asset
-Domain/Voxel/Scripts/Resources/Blocks/wm_dirt.asset
-Domain/Voxel/Scripts/Resources/Blocks/wm_grass.asset
-Domain/Voxel/Scripts/Resources/Blocks/wm_leaves.asset
-Domain/Voxel/Scripts/Resources/Blocks/wm_sand.asset
-Domain/Voxel/Scripts/Resources/Blocks/wm_stone.asset
-Domain/Voxel/Scripts/Resources/Blocks/wm_wood.asset
-Domain/Voxel/Scripts/Resources/VoxelTextureArray.asset
+Domain/Voxel/Assets/BlockCatalog.asset
+Domain/Voxel/Assets/Blocks/wm_air.asset
+Domain/Voxel/Assets/Blocks/wm_dirt.asset
+Domain/Voxel/Assets/Blocks/wm_grass.asset
+Domain/Voxel/Assets/Blocks/wm_leaves.asset
+Domain/Voxel/Assets/Blocks/wm_sand.asset
+Domain/Voxel/Assets/Blocks/wm_stone.asset
+Domain/Voxel/Assets/Blocks/wm_tilled_soil.asset
+Domain/Voxel/Assets/Blocks/wm_wood.asset
+Domain/Voxel/Assets/VoxelTextureArray.asset
 Editor/Resources/EditorSettings.asset
 Editor/Voxel/VoxelTextureConfig.asset
 Fonts/갈무리/GalMuri11 Bold FloatingText.asset
