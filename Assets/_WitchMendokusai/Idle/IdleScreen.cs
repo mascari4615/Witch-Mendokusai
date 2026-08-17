@@ -36,6 +36,9 @@ namespace WitchMendokusai
 		/// <summary>창고 격자 한 줄에 몇 칸.</summary>
 		private const int VAULT_COLUMNS = 8;
 
+		/// <summary>방금 일어난 일을 몇 초나 적어 두나.</summary>
+		private const float NOTE_SECONDS = 6f;
+
 		[Header("수치 — 비워 두면 코드 기본값")]
 		[SerializeField] private IdleTuningSO tuningAsset;
 
@@ -162,6 +165,15 @@ namespace WitchMendokusai
 		private readonly List<Button> appraiseButtons = new List<Button>();
 		private Label rollNote;
 
+		/// <summary>
+		/// 방금 일어난 일을 적는 줄들 — <b>잠시 뒤 사라진다</b>.
+		///
+		/// ★ 안 사라지면 지난 일이 <b>지금 상태</b>처럼 읽힌다. 다섯 판 전에 뽑은 결과가
+		///   아직 붙어 있으면 사람은 그게 방금 일이라고 믿는다.
+		/// </summary>
+		private readonly List<Label> fadingNotes = new List<Label>();
+		private readonly List<float> fadingLeft = new List<float>();
+
 		private Label foldSummary;
 		private Button prestigeButton;
 
@@ -265,6 +277,7 @@ namespace WitchMendokusai
 				}
 			}
 
+			FadeNotes(delta);
 			floats.Advance(delta);
 			backdrop.Advance(delta);
 			visitor.Advance(delta, 0.6f);
@@ -482,6 +495,47 @@ namespace WitchMendokusai
 			return new Vector2(
 				(column + 0.5f) / VAULT_COLUMNS,
 				0.30f + (row + 0.5f) / rows * 0.62f);
+		}
+
+		/// <summary>방금 일어난 일을 적는다 — 시계를 다시 감는다.</summary>
+		private void SayOnce(Label where, string what)
+		{
+			where.text = what;
+			where.style.opacity = 1f;
+
+			int at = fadingNotes.IndexOf(where);
+			if (at < 0)
+			{
+				fadingNotes.Add(where);
+				fadingLeft.Add(NOTE_SECONDS);
+				return;
+			}
+
+			fadingLeft[at] = NOTE_SECONDS;
+		}
+
+		/// <summary>적어 둔 것을 <b>흐리게 지운다</b> — 끝에서 툭 사라지면 놀란다.</summary>
+		private void FadeNotes(float deltaSeconds)
+		{
+			for (int index = 0; index < fadingNotes.Count; index++)
+			{
+				if (fadingLeft[index] <= 0f)
+				{
+					continue;
+				}
+
+				fadingLeft[index] -= deltaSeconds;
+
+				if (fadingLeft[index] <= 0f)
+				{
+					fadingLeft[index] = 0f;
+					fadingNotes[index].text = string.Empty;
+					continue;
+				}
+
+				// 마지막 1초 동안만 흐려진다 — 그 전에는 또렷하게 읽혀야 한다.
+				fadingNotes[index].style.opacity = fadingLeft[index] < 1f ? fadingLeft[index] : 1f;
+			}
 		}
 
 		/// <summary>화면을 흔든다 — 「일이 일어났다」를 몸으로 알려준다.</summary>
@@ -1714,8 +1768,8 @@ namespace WitchMendokusai
 					sound.Click();
 				}
 
-				rollNote.text = string.Format("◆{0} 감정 → {1} {2:P1}{3}",
-					roll.Tier, NameOf(roll.Grade), roll.Value, roll.Replaced ? "   ★ 갈아 끼웠다" : string.Empty);
+				SayOnce(rollNote, string.Format("◆{0} 감정 → {1} {2:P1}{3}",
+					roll.Tier, NameOf(roll.Grade), roll.Value, roll.Replaced ? "   ★ 갈아 끼웠다" : string.Empty));
 				WriteDown();
 			}
 
@@ -1737,8 +1791,8 @@ namespace WitchMendokusai
 				sound.Good();
 				Shake(0.7f);
 
-				rollNote.text = string.Format("{0}{1} 셋을 합쳐 {2}{3} 하나 — 잠재는 사라졌다",
-					ShapeMark(tier), tier, ShapeMark(tier + 1), tier + 1);
+				SayOnce(rollNote, string.Format("{0}{1} 셋을 합쳐 {2}{3} 하나 — 잠재는 사라졌다",
+					ShapeMark(tier), tier, ShapeMark(tier + 1), tier + 1));
 				WriteDown();
 			}
 
@@ -1769,12 +1823,12 @@ namespace WitchMendokusai
 				Shake(0.2f);
 			}
 
-			pullNote.text = string.Format("{0} {1}{2}{3}{4}",
+			SayOnce(pullNote, string.Format("{0} {1}{2}{3}{4}",
 				IdleHeroes.NameOfGrade(got.Grade),
 				kind.Name,
 				got.IsNew ? "  ★ 처음 본 얼굴" : string.Empty,
 				got.StarredUp ? string.Format("  ★ {0}성이 됐다", got.Stars) : string.Empty,
-				got.ByPity ? "  (천장)" : string.Empty);
+				got.ByPity ? "  (천장)" : string.Empty));
 
 			floats.Pop(kind.Name, new Vector2(Random.Range(40f, 100f), 60f), GradeColor(got.Grade));
 
