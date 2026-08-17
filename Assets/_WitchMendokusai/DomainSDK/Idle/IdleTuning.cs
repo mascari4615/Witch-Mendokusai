@@ -85,6 +85,14 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// </summary>
         public long PullStoneCost { get; set; } = 1L;
 
+        /// <summary>
+        /// 한 번에 몰아 사는 최대 개수.
+        ///
+        /// ★ 상한이 없으면 자원이 아주 많을 때 한 번 누르는 데 몇 초가 걸린다 —
+        ///   그건 편해진 게 아니라 <b>멈춘 것</b>으로 느껴진다.
+        /// </summary>
+        public int BulkBuyMost { get; set; } = 50;
+
         // ── 지나가는 것 (변동성) ────────────────────────────────────────────
         //
         // ★ 조사 1순위 (`refs/cookie-clicker.md`) — 방치형은 기대값이 평탄해서

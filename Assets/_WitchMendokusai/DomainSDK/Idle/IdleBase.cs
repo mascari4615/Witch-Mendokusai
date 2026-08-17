@@ -109,6 +109,54 @@ namespace WitchMendokusai.DomainSDK.Idle
             return true;
         }
 
+        /// <summary>
+        /// 살 수 있는 만큼 <b>싼 것부터</b> 산다 — 몇 개 샀는지 돌려준다 (TASK-WM-406).
+        ///
+        /// ★ 왜 필요한가 — 중반부터는 한 번에 수십 개를 살 수 있는데 그걸 <b>하나씩</b> 누르는 건
+        ///   결정이 아니라 <b>노동</b>이다. 사람이 하는 판단(무엇을 살까)은 그대로 두고
+        ///   손가락 일만 덜어낸다.
+        ///
+        /// ★ <b>싼 것부터</b>인 이유 — 같은 자원으로 가장 많이 사는 순서이고,
+        ///   쿠키 클리커에서 사람이 실제로 하는 짓이다. 시험(IdlePlay)도 같은 규칙을 쓴다.
+        ///
+        /// ★ 상한을 둔다. 없으면 자원이 아주 많을 때 한 번 누르는 데 몇 초가 걸린다 —
+        ///   그건 「편해진 것」이 아니라 「멈춘 것」으로 느껴진다.
+        /// </summary>
+        public static int BuyAsManyAsAfforded(IdleState state, IdleTuning tuning, int most)
+        {
+            int bought = 0;
+
+            while (bought < most)
+            {
+                int cheapest = -1;
+                double best = double.PositiveInfinity;
+
+                for (int kind = 0; kind < tuning.ProducerCount; kind++)
+                {
+                    if (IsHidden(kind, state))
+                    {
+                        continue;
+                    }
+
+                    double cost = CostOf(kind, state.Owned[kind], tuning);
+                    if (cost <= state.Resource && cost < best)
+                    {
+                        best = cost;
+                        cheapest = kind;
+                    }
+                }
+
+                if (cheapest < 0 || TryBuy(state, tuning, cheapest) == false)
+                {
+                    break;
+                }
+
+                bought++;
+            }
+
+            return bought;
+        }
+
         /// <summary>기지에 쏟은 것이 다 합쳐 얼마나 되나 — 「얼마나 지었나」를 한 수로.</summary>
         public static long TotalOwned(IdleState state)
         {

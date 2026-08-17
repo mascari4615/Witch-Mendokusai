@@ -118,6 +118,7 @@ namespace WitchMendokusai
 		private readonly List<Button> producerButtons = new List<Button>();
 		private readonly List<NgonElement> producerShapes = new List<NgonElement>();
 		private Label baseSummary;
+		private Button bulkBuyButton;
 
 		private VisualElement upgradePage;
 		private VisualElement gearPage;
@@ -897,6 +898,9 @@ namespace WitchMendokusai
 		{
 			baseSummary = AddLabel(basePage, "idle-row-value");
 
+			// ★ 중반부터는 한 번에 수십 개를 살 수 있다 — 하나씩 누르는 건 결정이 아니라 노동이다.
+			bulkBuyButton = AddButton(basePage, "idle-button", BuyMany);
+
 			producerButtons.Clear();
 			producerShapes.Clear();
 
@@ -1320,6 +1324,21 @@ namespace WitchMendokusai
 		{
 			baseSummary.text = string.Format("기지가 초당 {0} 를 낸다 — 자원은 여기서만 나온다",
 				BigNumberText.Format(snapshot.IncomePerSecond));
+
+			int affordable = 0;
+			for (int kind = 0; kind < snapshot.Producers.Length; kind++)
+			{
+				if (snapshot.Producers[kind].Hidden == false && snapshot.Producers[kind].CanAfford)
+				{
+					affordable++;
+				}
+			}
+
+			bulkBuyButton.text = affordable > 0
+				? "싼 것부터 살 수 있는 만큼 산다"
+				: "살 수 있는 게 없다";
+			bulkBuyButton.SetEnabled(affordable > 0);
+			bulkBuyButton.EnableInClassList("idle-button--ready", affordable > 0);
 
 			for (int kind = 0; kind < producerButtons.Count; kind++)
 			{
@@ -1783,6 +1802,23 @@ namespace WitchMendokusai
 				}
 			}
 
+			Render(session.Capture());
+		}
+
+		/// <summary>살 수 있는 만큼 몰아 산다 — 몇 개 샀는지 말해 준다.</summary>
+		private void BuyMany()
+		{
+			int bought = session.BuyAsManyProducersAsAfforded();
+			if (bought <= 0)
+			{
+				return;
+			}
+
+			sound.Click();
+			Shake(0.25f);
+			SayOnce(baseSummary, string.Format("{0}개를 한 번에 샀다", bought));
+
+			WriteDown();
 			Render(session.Capture());
 		}
 

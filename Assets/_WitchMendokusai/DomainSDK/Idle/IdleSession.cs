@@ -185,6 +185,12 @@ namespace WitchMendokusai.DomainSDK.Idle
             return true;
         }
 
+        /// <summary>살 수 있는 만큼 싼 것부터 산다 — 몇 개 샀나.</summary>
+        public int BuyAsManyProducersAsAfforded()
+        {
+            return IdleBase.BuyAsManyAsAfforded(state, tuning, tuning.BulkBuyMost);
+        }
+
         /// <summary>생산자를 하나 산다. 자원이 모자라면 아무 일도 안 일어난다.</summary>
         public bool Send(IdleBuyProducerIntent intent)
         {

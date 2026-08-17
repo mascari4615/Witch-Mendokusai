@@ -211,5 +211,65 @@ namespace WitchMendokusai.Tests
 			Assert.IsNotNull(fromOld.Owned);
 			Assert.AreEqual(0d, IdleBase.OutputPerSecond(fromOld, new IdleTuning()), TOLERANCE);
 		}
+
+		/// <summary>
+		/// ★ 몰아 사기가 <b>하나씩 사기와 같은 결과</b>를 낸다 (TASK-WM-406).
+		///
+		/// 다르면 그건 편의가 아니라 <b>다른 게임</b>이다. 손가락 일만 덜어내야 한다.
+		/// </summary>
+		[Test]
+		public void BuyingInBulk_MatchesBuyingOneByOne()
+		{
+			IdleTuning tuning = new IdleTuning();
+
+			IdleState oneByOne = new IdleState();
+			oneByOne.EnsureProducerRoom(tuning.ProducerCount);
+			oneByOne.Resource = 5000d;
+
+			IdleState bulk = new IdleState();
+			bulk.EnsureProducerRoom(tuning.ProducerCount);
+			bulk.Resource = 5000d;
+
+			// 사람이 하는 짓 — 싼 것부터 하나씩.
+			IdlePlay.BuyProducers(oneByOne, tuning);
+
+			IdleBase.BuyAsManyAsAfforded(bulk, tuning, tuning.BulkBuyMost);
+
+			Assert.AreEqual(oneByOne.Resource, bulk.Resource, 1e-6d, "쓴 자원이 다르다");
+
+			for (int kind = 0; kind < tuning.ProducerCount; kind++)
+			{
+				Assert.AreEqual(oneByOne.Owned[kind], bulk.Owned[kind],
+					kind + "번 생산자 수가 다르다");
+			}
+		}
+
+		/// <summary>★ 상한을 넘지 않는다 — 한 번 누르는 데 몇 초가 걸리면 그건 멈춘 것이다.</summary>
+		[Test]
+		public void BulkBuying_StopsAtTheCap()
+		{
+			IdleTuning tuning = new IdleTuning();
+			tuning.BulkBuyMost = 5;
+
+			IdleState state = new IdleState();
+			state.EnsureProducerRoom(tuning.ProducerCount);
+			state.Resource = 1e12d;
+
+			int bought = IdleBase.BuyAsManyAsAfforded(state, tuning, tuning.BulkBuyMost);
+
+			Assert.AreEqual(5, bought, "상한을 안 지켰다");
+		}
+
+		/// <summary>★ 살 게 없으면 아무 일도 안 한다 — 0 을 돌려줘야 화면이 「샀다」고 안 말한다.</summary>
+		[Test]
+		public void BulkBuying_WithNoMoney_DoesNothing()
+		{
+			IdleTuning tuning = new IdleTuning();
+			IdleState state = new IdleState();
+			state.EnsureProducerRoom(tuning.ProducerCount);
+			state.Resource = 0d;
+
+			Assert.AreEqual(0, IdleBase.BuyAsManyAsAfforded(state, tuning, tuning.BulkBuyMost));
+		}
 	}
 }
