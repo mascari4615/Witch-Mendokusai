@@ -160,5 +160,6 @@ bash.exe.stackdump*
 /Assets/_Recovery/
 /Assets/_Recovery.meta
 
-# 빌드 산출·인벤토리 (TASK-WM-408) — 기계가 매 빌드마다 다시 적는다
-/Builds/
+# 웹어셈블리 판정 산출물 (TASK-WM-411) — 소스는 DomainSDK 하나뿐이고 이건 구워 낸 것이다.
+# 배포 때 워크플로가 다시 굽는다(저장소에 5MB 짜리 바이너리를 넣지 않는다).
+Server/WM.Server/wwwroot/versus/_framework/

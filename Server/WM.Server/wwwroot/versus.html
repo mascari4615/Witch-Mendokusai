@@ -76,6 +76,7 @@ const offerPanel = document.getElementById('offer');
 const rematchPanel = document.getElementById('rematch');
 const rematchNote = document.getElementById('rematchNote');
 const cardsPanel = document.getElementById('cards');
+const hintPanel = document.getElementById('hint');
 
 const params = new URLSearchParams(location.search);
 const room = params.get('room') ?? '';
@@ -140,6 +141,25 @@ document.getElementById('rematchButton').addEventListener('click', () => {
 	rematchNote.textContent = '상대를 기다린다…';
 });
 
+// ★ 판정을 브라우저에 올린다 (TASK-WM-411).
+//   같은 C# 소스를 웹어셈블리로 구운 것이라 <b>규칙 사본이 없다</b>. 올라오면 내 조작이 즉시 반응하고
+//   (미리 굴리기 + 되감기), 못 올라오면 예전처럼 서버 그림을 보간해 그린다 — 판이 멈추지는 않는다.
+let bridge = null;
+
+async function bootJudgment() {
+	try {
+		const runtime = await import('./versus/_framework/dotnet.js');
+		const { getAssemblyExports, getConfig } = await runtime.dotnet.create();
+		const exports = await getAssemblyExports(getConfig().mainAssemblyName);
+		bridge = exports.WitchMendokusai.Wasm.VersusBridge;
+		bridge.Open(0);
+		hintPanel.textContent += ' · 판정이 이 창에서 돈다(즉시 반응)';
+	} catch (error) {
+		// 못 구웠거나 아직 배포 안 됐을 때 — 조용히 예전 길로 간다.
+		console.warn('[versus] 판정을 브라우저에 못 올렸다 — 서버 그림만 그린다', error);
+	}
+}
+
 const socket = new WebSocket(`${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/vs`);
 
 socket.addEventListener('open', () => {
@@ -151,6 +171,9 @@ socket.addEventListener('close', () => { statusPanel.textContent = '줄이 끊�
 socket.addEventListener('error', () => { statusPanel.textContent = '못 붙었다'; });
 
 socket.addEventListener('message', (event) => {
+	// 판정이 브라우저에 있으면 <b>그쪽이 먼저</b> 본다(되감기·예측은 그 안에서 일어난다).
+	if (bridge) bridge.Receive(event.data);
+
 	const message = JSON.parse(event.data);
 
 	if (message.type === 'vsstart') {
@@ -240,7 +263,7 @@ function sendInput() {
 
 	let aimX = 1;
 	let aimY = 0;
-	const me = currentState?.fighters?.[seat];
+	const me = bridge ? predictedView?.fighters?.[seat] : currentState?.fighters?.[seat];
 
 	if (me) {
 		const projection = view();
@@ -252,16 +275,44 @@ function sendInput() {
 	}
 
 	tick += 1;
-	socket.send(JSON.stringify({
-		type: 'vsinput', tick,
-		moveX, moveY, aimX, aimY,
-		fire: firing,
-		dash: dashQueued,
-	}));
+
+	if (bridge) {
+		// 판정이 여기 있으면 한 틱 미리 굴리고, 보낼 말을 받아 흘린다.
+		const outgoing = bridge.StepAndSend(moveX, moveY, aimX, aimY, firing, dashQueued);
+		for (const line of outgoing.split(String.fromCharCode(10))) {
+			if (line) socket.send(line);
+		}
+	} else {
+		socket.send(JSON.stringify({
+			type: 'vsinput', tick,
+			moveX, moveY, aimX, aimY,
+			fire: firing,
+			dash: dashQueued,
+		}));
+	}
+
 	dashQueued = false;
 }
 
+// 브라우저 판정이 있으면 매 프레임 그쪽 판을 읽어 그린다(60Hz · 즉시 반응).
+let predictedView = null;
+
+function pullPredicted() {
+	if (!bridge) return;
+
+	bridge.Pump();
+	const text = bridge.DrawState();
+	predictedView = text ? JSON.parse(text) : null;
+}
+
 function draw() {
+	pullPredicted();
+
+	if (bridge && predictedView) {
+		drawFrom(predictedView, 1, null);
+		return;
+	}
+
 	board.width = innerWidth * devicePixelRatio;
 	board.height = innerHeight * devicePixelRatio;
 	context.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--ground');
@@ -271,6 +322,11 @@ function draw() {
 
 	// 지금이 두 그림 사이 어디쯤인가(0~1). 한 칸을 넘으면 최신 그림에 붙인다.
 	const alpha = Math.min(1, (performance.now() - currentAt) / 1000 / arrivalInterval);
+	drawFrom(currentState, alpha, previousState);
+}
+
+// 한 판을 그린다. 판정이 여기 있으면 보간이 필요 없고(alpha=1), 없으면 그림 사이를 채운다.
+function drawFrom(source, alpha, previous) {
 
 	const projection = view();
 
@@ -293,17 +349,17 @@ function draw() {
 	};
 
 	// 탄은 매 그림마다 생기고 사라져서 짝을 지을 수 없다 — 온 자리 그대로 그린다.
-	for (const shot of currentState.shots ?? []) {
+	for (const shot of source.shots ?? []) {
 		drawCircle(shot, shot.owner === seat
 			? getComputedStyle(document.documentElement).getPropertyValue('--me')
 			: getComputedStyle(document.documentElement).getPropertyValue('--foe'));
 	}
 
 	// 사람은 자리 번호로 짝이 지어진다 — 여기만 사이를 채워 주면 화면이 눈에 띄게 부드러워진다.
-	(currentState.fighters ?? []).forEach((fighter, index) => {
+	(source.fighters ?? []).forEach((fighter, index) => {
 		if (fighter.alive === false) return;
 
-		const smooth = blend(previousState?.fighters?.[index], fighter, alpha);
+		const smooth = blend(previous?.fighters?.[index], fighter, alpha);
 		drawCircle(smooth, index === seat
 			? getComputedStyle(document.documentElement).getPropertyValue('--me')
 			: getComputedStyle(document.documentElement).getPropertyValue('--foe'));
@@ -316,9 +372,11 @@ setInterval(sendInput, 1000 / 60);
 function frame() {
 	draw();
 	requestAnimationFrame(frame);
+bootJudgment();
 }
 
 requestAnimationFrame(frame);
+bootJudgment();
 </script>
 </body>
 </html>

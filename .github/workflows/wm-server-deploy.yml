@@ -68,6 +68,20 @@ jobs:
           try {
             dotnet publish Server\WM.Server\WM.Server.csproj -c Release -o $publishDir --nologo
             if ($LASTEXITCODE -ne 0) { throw "dotnet publish failed: $LASTEXITCODE" }
+
+            # ★ 대결 판정을 <b>브라우저용으로</b> 한 번 더 굽는다 (TASK-WM-411).
+            #   같은 DomainSDK 소스를 웹어셈블리로 굽는 것이라 규칙 사본이 없다 —
+            #   이게 있어야 브라우저 창도 내 조작에 즉시 반응한다(없으면 서버 그림만 보간해 그린다).
+            $wasmOut = Join-Path $env:RUNNER_TEMP 'wm-versus-wasm'
+            dotnet publish Portable\DomainSDK.Wasm\DomainSDK.Wasm.csproj -c Release -o $wasmOut --nologo
+            if ($LASTEXITCODE -ne 0) { throw "versus wasm publish failed: $LASTEXITCODE" }
+
+            $wasmSource = Join-Path $wasmOut 'wwwroot\_framework'
+            if (-not (Test-Path $wasmSource)) { throw "versus wasm output missing: $wasmSource" }
+
+            $wasmTarget = Join-Path $publishDir 'wwwrootersus\_framework'
+            New-Item -ItemType Directory -Force -Path (Split-Path $wasmTarget) | Out-Null
+            Copy-Item -Recurse -Force $wasmSource (Split-Path $wasmTarget)
           }
           finally {
             foreach ($w in $worlds) {
