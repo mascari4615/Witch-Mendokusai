@@ -26,7 +26,8 @@ namespace WitchMendokusai
 		}
 
 		[SerializeField] private VersusMode mode = VersusMode.Practice;
-		[SerializeField] private string serverUrl = "ws://127.0.0.1:5199/vs";
+		// 기본은 살아 있는 서버 — 친구가 브라우저로도 같은 방에 들어올 수 있다(https://wm.mascari4615.com/versus.html).
+		[SerializeField] private string serverUrl = "wss://wm.mascari4615.com/vs";
 		[SerializeField] private string roomName = string.Empty;
 		[SerializeField] private int hostPort = 57411;
 		// 집 밖에서도 받으려면 켠다. 윈도우에서는 관리자 권한이나 urlacl 등록이 필요하다(안 되면 화면에 이유가 뜬다).
@@ -143,6 +144,9 @@ namespace WitchMendokusai
 
 		private void TickPractice()
 		{
+			if (authority.Match.IsConcluded && localInput.WasRematchPressedThisFrame)
+				authority.SubmitLocalRematch(mySeat);
+
 			if (authority.Match.DraftingPlayerIndex == mySeat)
 			{
 				TickDraftLocal();
@@ -175,14 +179,20 @@ namespace WitchMendokusai
 		private void TickOnline()
 		{
 			guest.Pump();
+
+			// 손이 마우스를 떠나지 않게 키로도 받는다 — 「한 판 더」는 빠를수록 좋다.
+			if (guest.MatchWinner != VersusMatchCore.NO_WINNER && localInput.WasRematchPressedThisFrame)
+				guest.SendRematch();
 			mySeat = guest.Seat;
 
-			if (mySeat < guest.Fighters.Length)
+			if (guest.Predicted != null)
+				localInput.SelfPosition = guest.Predicted.PositionOf(mySeat);
+			else if (mySeat < guest.Fighters.Length)
 				localInput.SelfPosition = new Numerics.Vector2(guest.Fighters[mySeat].x, guest.Fighters[mySeat].y);
 
 			if (guest.Offer != null)
 			{
-				VersusInputFrame draftFrame = localInput.Read(null, mySeat, Time.deltaTime);
+				VersusInputFrame draftFrame = localInput.Read(guest.Predicted, mySeat, Time.deltaTime);
 				MoveCursor(draftFrame, guest.Offer.cards.Length);
 
 				if (draftFrame.Fire)
@@ -190,11 +200,15 @@ namespace WitchMendokusai
 			}
 			else
 			{
-				sentTick++;
-				guest.SendInput(localInput.Read(null, mySeat, Time.deltaTime), sentTick);
+				// ★ 미리 굴린다 — 내 조작이 서버 왕복을 기다리지 않는다. 정정은 스냅샷이 올 때 되감기로.
+				guest.StepAndSend(localInput.Read(guest.Predicted, mySeat, Time.deltaTime));
 			}
 
-			DrawFromGuest();
+			// 그리는 것은 <b>내가 미리 굴린 판</b>이다(60Hz). 서버 그림은 정정으로만 들어온다.
+			if (guest.Predicted != null)
+				DrawFromRound(guest.Predicted);
+			else
+				DrawFromGuest();
 		}
 
 		private bool MoveCursor(VersusInputFrame frame, int count)
@@ -365,6 +379,9 @@ namespace WitchMendokusai
 					(mode == VersusMode.Host ? "방장 — " : "연습 — ") +
 					"나 " + authority.Match.ScoreOf(0) + " vs " + authority.Match.ScoreOf(1) + " " + who);
 
+				if (authority.Match.IsConcluded && GUI.Button(new Rect(20f, 116f, 160f, 30f), "한 판 더 (R)"))
+					authority.SubmitLocalRematch(mySeat);
+
 				if (mode == VersusMode.Host && hostListener != null)
 				{
 					GUI.Label(new Rect(20f, 64f, 900f, 26f), hostListener.IsListening
@@ -382,14 +399,22 @@ namespace WitchMendokusai
 				return;
 			}
 
-			GUI.Label(new Rect(20f, 40f, 500f, 26f),
-				"온라인 — 나 " + guest.ScoreMine + " vs " + guest.ScoreTheirs + " 상대");
+			GUI.Label(new Rect(20f, 40f, 700f, 26f),
+				"온라인 — 나 " + guest.ScoreMine + " vs " + guest.ScoreTheirs + " 상대" +
+				(guest.Predicted != null ? "   (미리 굴림 · 정정 " + guest.RollbackCount + "회)" : "   (정정 대기)"));
 
 			if (guest.OpponentLeft)
 				GUI.Label(new Rect(20f, 64f, 400f, 26f), "상대가 나갔다");
 
 			if (guest.MatchWinner != VersusMatchCore.NO_WINNER)
-				GUI.Label(new Rect(20f, 88f, 400f, 26f), guest.MatchWinner == mySeat ? "내가 이겼다" : "상대가 이겼다");
+			{
+				GUI.Label(new Rect(20f, 88f, 500f, 26f),
+					(guest.MatchWinner == mySeat ? "내가 이겼다" : "상대가 이겼다") +
+					(guest.RematchNeeded > 0 ? "   (한 판 더 " + guest.RematchReady + "/" + guest.RematchNeeded + ")" : string.Empty));
+
+				if (GUI.Button(new Rect(20f, 116f, 140f, 30f), "한 판 더 (R)"))
+					guest.SendRematch();
+			}
 
 			DrawOffer(guest.Offer != null ? guest.Offer.texts : null);
 		}

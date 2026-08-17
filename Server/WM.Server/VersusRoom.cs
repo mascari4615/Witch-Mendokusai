@@ -176,10 +176,9 @@ namespace WitchMendokusai.Server
 				float elapsed = (float)(now - previous).TotalSeconds;
 				previous = now;
 
+				// 매치가 끝나도 방을 접지 않는다 — 둘이 「한 판 더」를 누르면 심판이 새 판을 연다.
+				// 접는 것은 사람이 나갈 때뿐(Leave).
 				authority.Tick(elapsed);
-
-				if (authority.Match.IsConcluded)
-					return;
 			}
 		}
 	}

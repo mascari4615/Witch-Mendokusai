@@ -23,9 +23,14 @@ namespace WitchMendokusai.Tests
 
 			Assert.IsFalse(IdleGacha.TryPull(state, tuning, out IdleHeroPull _), "빈손인데 뽑혔다");
 
-			state.PrestigePoints = tuning.PullCost;
+			// 자원만 있어도 안 되고, 환생석만 있어도 안 된다 — 둘 다 낸다.
+			state.Resource = IdleGacha.CostOf(state, tuning);
+			Assert.IsFalse(IdleGacha.TryPull(state, tuning, out IdleHeroPull _), "환생석 없이 뽑혔다");
+
+			state.Stones = IdleGacha.StoneCostOf(tuning);
 			Assert.IsTrue(IdleGacha.TryPull(state, tuning, out IdleHeroPull got));
-			Assert.AreEqual(0L, state.PrestigePoints, "값을 안 치렀다");
+			Assert.AreEqual(0d, state.Resource, 1e-6d, "자원 값을 안 치렀다");
+			Assert.AreEqual(0L, state.Stones, "환생석 값을 안 치렀다");
 			Assert.AreEqual(1, state.Heroes.Count, "뽑았는데 도감에 안 들어왔다");
 			Assert.IsTrue(got.IsNew);
 		}
@@ -48,7 +53,6 @@ namespace WitchMendokusai.Tests
 			// 같은 얼굴을 필요한 만큼 먹인다.
 			for (int one = 0; one < IdleGacha.CopiesForNextStar(before, tuning); one++)
 			{
-				state.PrestigePoints = tuning.PullCost;
 				GiveSpecific(state, tuning, 0);
 			}
 
@@ -61,7 +65,7 @@ namespace WitchMendokusai.Tests
 		{
 			IdleTuning tuning = new IdleTuning();
 			IdleState state = new IdleState();
-			state.PrestigePoints = 3L * tuning.PullCost;
+			Afford(state, tuning, 3);
 
 			for (int one = 0; one < 3; one++)
 			{
@@ -186,7 +190,7 @@ namespace WitchMendokusai.Tests
 		{
 			IdleTuning tuning = new IdleTuning();
 			IdleState state = new IdleState();
-			state.PrestigePoints = (tuning.PityPulls + 1) * tuning.PullCost;
+			Afford(state, tuning, tuning.PityPulls + 1);
 
 			bool sawLegend = false;
 
@@ -230,7 +234,7 @@ namespace WitchMendokusai.Tests
 		{
 			IdleTuning tuning = new IdleTuning();
 			IdleState state = new IdleState();
-			state.PrestigePoints = 5L * tuning.PullCost;
+			Afford(state, tuning, 5);
 
 			for (int one = 0; one < 5; one++)
 			{
@@ -255,6 +259,14 @@ namespace WitchMendokusai.Tests
 			Assert.IsNotNull(fromOld.Heroes);
 			Assert.AreEqual(0, fromOld.Heroes.Count);
 			Assert.AreEqual(3, fromOld.Party.Length);
+		}
+
+		/// <summary>시험용 — 이만큼 뽑을 수 있게 재화를 얹는다(값이 뽑을수록 오르므로 넉넉히).</summary>
+		private static void Afford(IdleState state, IdleTuning tuning, int pulls)
+		{
+			state.Stones += pulls;
+			state.Resource += tuning.PullCostBase
+				* System.Math.Pow(tuning.PullCostRatio, state.PullsDone + pulls) * pulls;
 		}
 
 		/// <summary>시험용 — 원하는 영웅이 나올 때까지 뽑는다(주사위를 건드리지 않는다).</summary>

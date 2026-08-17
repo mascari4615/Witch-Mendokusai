@@ -371,3 +371,19 @@
 	margin: 0;
 	white-space: normal;
 }
+
+/* 지나가는 것 — 판 위를 가로지른다. 놓치면 사라진다 */
+.idle-visitor {
+	position: absolute;
+	top: 22%;
+	width: 40px;
+	height: 40px;
+}
+
+/* 폭주 중임을 판 위에 크게 — 짧은 동안이라 놓치면 안 된다 */
+.idle-surge {
+	font-size: 15px;
+	-unity-font-style: bold;
+	color: rgb(250, 214, 97);
+	margin-top: 4px;
+}

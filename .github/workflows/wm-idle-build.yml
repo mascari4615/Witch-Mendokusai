@@ -119,9 +119,20 @@ jobs:
           if ($process.ExitCode -ne 0) { throw "Idle build failed (exit=$($process.ExitCode)). log: $log" }
 
           # "built" is not "the exe exists" -- look at the disk, not the exit code.
-          $newest = Get-ChildItem $root -Directory | Sort-Object LastWriteTime -Descending | Select-Object -First 1
-          $exe = Join-Path $newest.FullName 'Idle.exe'
+          #
+          # The builder writes the exact path it produced. Picking "newest folder" instead
+          # smoked the WRONG build on 2026-08-17: the builder sweeps last run's leftover
+          # folders, which bumps THEIR mtime, so an older folder looks newest.
+          $mark = Join-Path $root 'last-build.txt'
+          if (Test-Path $mark) {
+            $exe = (Get-Content $mark -Raw).Trim()
+          } else {
+            Write-Host "::warning title=no build mark::falling back to newest folder (this can pick the wrong build)"
+            $newest = Get-ChildItem $root -Directory | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+            $exe = Join-Path $newest.FullName 'Idle.exe'
+          }
           if (-not (Test-Path $exe)) { throw "build reported success but no exe: $exe" }
+          $newest = Get-Item (Split-Path $exe -Parent)
 
           # 로그를 빌드 폴더 옆에 둔다 -- RUNNER_TEMP is wiped between runs, so keeping it
           # only there means every post-mortem starts with "the evidence is gone".

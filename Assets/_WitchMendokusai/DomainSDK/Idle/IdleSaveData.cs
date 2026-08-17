@@ -53,6 +53,12 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// <summary>마지막 최고등급 이후 뽑은 횟수 — 천장.</summary>
         public int PullsSincePity;
 
+        /// <summary>여태 뽑은 총 횟수 — 값이 이걸 따라 오른다.</summary>
+        public long PullsDone;
+
+        /// <summary>쓸 수 있는 환생석 — 배수(PrestigePoints)와 갈라 둔다.</summary>
+        public long Stones;
+
         /// <summary>등급별 떨어진 개수. 옛 저장에는 없어 null 로 온다.</summary>
         public long[] DroppedByTier;
         public double[] DropProgressByTier;

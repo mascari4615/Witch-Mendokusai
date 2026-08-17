@@ -71,6 +71,8 @@
     <Compile Include="$(TestsRoot)Idle/BigNumberTextTests.cs" />
     <Compile Include="$(TestsRoot)Idle/IdleTapTests.cs" />
     <Compile Include="$(TestsRoot)Idle/IdleHeroTests.cs" />
+    <Compile Include="$(TestsRoot)Idle/IdleGachaCurveTests.cs" />
+    <Compile Include="$(TestsRoot)Idle/IdleSurgeTests.cs" />
     <Compile Include="$(TestsRoot)Combat/DamageCalculationTests.cs" />
     <Compile Include="$(TestsRoot)Building/BuildingFootprintTests.cs" />
     <Compile Include="$(TestsRoot)TowerDefense/TowerDefenseSignalFieldTests.cs" />
@@ -126,6 +128,9 @@
     <Compile Include="$(TestsRoot)Versus/VersusBalanceSimTests.cs" />
     <Compile Include="$(TestsRoot)Versus/VersusNetPlayTests.cs" />
     <Compile Include="$(TestsRoot)Versus/VersusP2PTests.cs" />
+    <Compile Include="$(TestsRoot)Versus/VersusRollbackTests.cs" />
+    <Compile Include="$(TestsRoot)Versus/VersusPredictionTests.cs" />
+    <Compile Include="$(TestsRoot)Versus/VersusPredictedPlayTests.cs" />
   </ItemGroup>
 
 </Project>

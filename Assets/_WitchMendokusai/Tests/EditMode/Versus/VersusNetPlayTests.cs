@@ -125,5 +125,65 @@ namespace WitchMendokusai.Tests
 
 			Assert.IsTrue(authority.Match.IsConcluded, "봇끼리 붙였는데 판이 안 끝났다");
 		}
+
+		[Test]
+		public void 매치가_끝나도_방은_살아_있고_한_판_더가_된다()
+		{
+			// v0 가 재려는 질문이 「한 판 더가 나오나」다 — 그러려면 <b>다시 붙을 길</b>이 실제로 있어야 한다.
+			TestCodec codec = new TestCodec();
+			(VersusLoopbackTransport authoritySide, VersusLoopbackTransport guestSide) = VersusLoopbackTransport.Pair();
+
+			VersusAuthority authority = new VersusAuthority(VersusRules.Default(), VersusTuning.Default(),
+				VersusBotTuning.Default(), codec, 909,
+				VersusDuelSim.ARENA_HALF_WIDTH, VersusDuelSim.ARENA_HALF_DEPTH);
+
+			authority.Attach(0, authoritySide);
+			authority.FillWithBot(1, 33);
+
+			VersusGuest guest = new VersusGuest(guestSide, codec, 0);
+			VersusBotPolicy brain = new VersusBotPolicy(VersusBotTuning.Default(),
+				VersusDuelSim.ARENA_HALF_WIDTH, VersusDuelSim.ARENA_HALF_DEPTH, 1f, 0f);
+
+			// 1) 한 매치를 끝까지 돌린다.
+			for (int step = 0; step < 60 * 120 && guest.MatchWinner == VersusMatchCore.NO_WINNER; step++)
+			{
+				guest.SendInput(brain.Decide(authority.Round, 0, VersusRoundState.TICK, 0f), step);
+
+				if (guest.Offer != null)
+					guest.SendPick(0);
+
+				authority.Tick(VersusRoundState.TICK);
+				guest.Pump();
+			}
+
+			Assert.AreNotEqual(VersusMatchCore.NO_WINNER, guest.MatchWinner, "첫 매치가 안 끝났다");
+
+			// 2) 「한 판 더」를 누른다. 상대가 봇이라 나 하나면 충분하다.
+			guest.SendRematch();
+			authority.Tick(VersusRoundState.TICK);
+			guest.Pump();
+
+			Assert.AreEqual(0, authority.Match.ScoreOf(0), "새 판인데 점수가 남아 있다");
+			Assert.AreEqual(0, authority.Match.ScoreOf(1), "새 판인데 점수가 남아 있다");
+			Assert.AreEqual(0, authority.Match.CardsOf(0).Count, "새 판인데 카드가 남아 있다");
+			Assert.AreEqual(0, authority.Match.CardsOf(1).Count, "새 판인데 카드가 남아 있다");
+			Assert.IsFalse(authority.Match.IsConcluded, "새 판이 시작부터 끝나 있다");
+
+			// 3) 새 판이 실제로 굴러간다(그림이 다시 온다).
+			int statesAfter = 0;
+
+			for (int step = 0; step < 300 && statesAfter < 5; step++)
+			{
+				guest.SendInput(brain.Decide(authority.Round, 0, VersusRoundState.TICK, 0f), step);
+				authority.Tick(VersusRoundState.TICK);
+				guest.Pump();
+
+				if (guest.Fighters.Length > 0)
+					statesAfter++;
+			}
+
+			Assert.GreaterOrEqual(statesAfter, 5, "새 판이 안 굴러간다");
+			Assert.AreEqual(VersusMatchCore.NO_WINNER, guest.MatchWinner, "새 판인데 창에 아직 「끝」이 남아 있다");
+		}
 	}
 }
