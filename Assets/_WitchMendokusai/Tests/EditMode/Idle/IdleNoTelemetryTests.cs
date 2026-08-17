@@ -1,6 +1,6 @@
+using System;
 using System.IO;
 using NUnit.Framework;
-using UnityEngine;
 
 namespace WitchMendokusai.Tests
 {
@@ -85,11 +85,39 @@ namespace WitchMendokusai.Tests
 				label + " 의 `#if !WM_IDLE` 가 자동 설치 표지를 감싸지 않는다 (사이에서 닫혔다)");
 		}
 
+		/// <summary>
+		/// 소스를 읽는다 — <b>엔진 없이</b>.
+		///
+		/// ⚠ 전에는 <c>Application.dataPath</c> 를 썼다. 그래서 이 판은 <b>유니티 러너에서만</b>
+		///   돌았고, 이 저장소의 1분짜리 되먹임 고리(엔진 밖 시험)에서는 <b>한 번도 안 돌았다</b>
+		///   (실측 2026-08-17 — 목록에 아예 없었다). 지키는 것이 「팔 게임이 남의 서버를
+		///   안 부른다」인데, 정작 그걸 지키는 감시가 잠들어 있었다.
+		///   저장소 뿌리는 폴더를 거슬러 올라가 찾으면 되고, 그러면 양쪽에서 다 돈다.
+		/// </summary>
 		private static string ReadSource(string relativePath)
 		{
-			string full = Path.Combine(Application.dataPath, relativePath);
+			string full = Path.Combine(FindAssetsRoot(), relativePath);
 			Assert.That(File.Exists(full), Is.True, "소스를 못 찾았다: " + full);
 			return File.ReadAllText(full);
+		}
+
+		private static string FindAssetsRoot()
+		{
+			DirectoryInfo at = new DirectoryInfo(AppContext.BaseDirectory);
+
+			while (at != null)
+			{
+				string assets = Path.Combine(at.FullName, "Assets");
+
+				if (Directory.Exists(Path.Combine(assets, "_WitchMendokusai")))
+				{
+					return assets;
+				}
+
+				at = at.Parent;
+			}
+
+			throw new DirectoryNotFoundException("저장소 뿌리를 못 찾았다 — Assets/_WitchMendokusai 가 없다");
 		}
 	}
 }
