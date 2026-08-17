@@ -332,5 +332,56 @@ namespace WitchMendokusai.Tests
 			Assert.Less(System.Math.Abs(seen - tuning.LegendChance), 0.0028d,
 				"적은 확률과 실제 굴림이 어긋난다");
 		}
+
+		/// <summary>
+		/// ★ 자리를 <b>비우면</b> 그 영웅이 사라진다 — 다른 빈 자리로 복제되지 않는다 (회귀).
+		///
+		/// 빈 자리는 -1 로 적힌다. 맞바꿈 규칙(같은 영웅이 두 자리를 못 먹는다)을 빼는 요청에도
+		/// 그대로 태우면 -1 끼리 「같은 영웅」으로 잡혀 [5,-1,-1] 이 [-1,5,5] 가 됐다.
+		/// 그러면 한 명이 세 자리 중 두 자리를 먹으면서 배수도 두 번 세어진다 —
+		/// 셋을 고르는 결정이 통째로 무너진다.
+		/// </summary>
+		[Test]
+		public void EmptyingASeat_DoesNotCloneTheHero()
+		{
+			IdleTuning tuning = new IdleTuning();
+			IdleState state = new IdleState();
+			state.EnsureProducerRoom(tuning.ProducerCount);
+			state.Heroes.Add(new IdleHeroOwned(5));
+			state.Party[0] = 5;
+
+			IdleSession session = new IdleSession(tuning, state);
+			Assert.IsTrue(session.Send(new IdleSetPartyIntent(0, -1)));
+
+			int standing = 0;
+			for (int slot = 0; slot < state.Party.Length; slot++)
+			{
+				if (state.Party[slot] >= 0)
+				{
+					standing++;
+				}
+			}
+
+			Assert.AreEqual(0, standing, "비웠는데 누군가 서 있다 — 빈 자리로 복제됐다");
+		}
+
+		/// <summary>★ 이미 선 영웅을 다른 자리에 앉히면 <b>맞바꾼다</b> — 같은 얼굴이 두 자리를 못 먹는다.</summary>
+		[Test]
+		public void SeatingAHeroAlreadyStanding_SwapsInstead()
+		{
+			IdleTuning tuning = new IdleTuning();
+			IdleState state = new IdleState();
+			state.EnsureProducerRoom(tuning.ProducerCount);
+			state.Heroes.Add(new IdleHeroOwned(5));
+			state.Heroes.Add(new IdleHeroOwned(9));
+			state.Party[0] = 5;
+			state.Party[1] = 9;
+
+			IdleSession session = new IdleSession(tuning, state);
+			Assert.IsTrue(session.Send(new IdleSetPartyIntent(0, 9)));
+
+			Assert.AreEqual(9, state.Party[0]);
+			Assert.AreEqual(5, state.Party[1], "맞바꾸지 않고 밀어냈다");
+		}
 	}
 }

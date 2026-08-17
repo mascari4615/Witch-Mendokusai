@@ -173,11 +173,17 @@ namespace WitchMendokusai.DomainSDK.Idle
                 return false;
             }
 
-            for (int slot = 0; slot < state.Party.Length; slot++)
+            // ⚠ 빈 자리는 -1 로 적힌다. 그래서 <b>빼는</b> 요청(-1)에 이 맞바꿈을 그대로 태우면
+            //   다른 빈 자리들이 전부 「같은 영웅」으로 잡혀 <b>빼려던 영웅이 두 자리에 복제</b>된다
+            //   ([5,-1,-1] 에서 0번을 비우면 [-1,5,5]). 맞바꿈은 <b>진짜 영웅일 때만</b>이다.
+            if (intent.HeroId >= 0)
             {
-                if (slot != intent.Slot && state.Party[slot] == intent.HeroId)
+                for (int slot = 0; slot < state.Party.Length; slot++)
                 {
-                    state.Party[slot] = state.Party[intent.Slot];
+                    if (slot != intent.Slot && state.Party[slot] == intent.HeroId)
+                    {
+                        state.Party[slot] = state.Party[intent.Slot];
+                    }
                 }
             }
 

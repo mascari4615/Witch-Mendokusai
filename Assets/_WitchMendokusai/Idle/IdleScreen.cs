@@ -145,6 +145,8 @@ namespace WitchMendokusai
 		/// <summary>지금 어느 자리를 바꾸는 중인가 — -1 이면 고르는 중이 아니다.</summary>
 		private int seatBeingFilled = -1;
 
+		private Button benchButton;
+
 		/// <summary>
 		/// 자리보다 <b>영웅을 먼저</b> 고른 경우 — -1 이면 고른 것이 없다.
 		///
@@ -1016,6 +1018,11 @@ namespace WitchMendokusai
 				partyButtons.Add(button);
 			}
 
+			// ★ 세운 것을 <b>내리는 길</b>이 없었다. 코어는 진작에 할 수 있었는데 화면에 손잡이가
+			//   없어서 한 번 세우면 셋 중 하나를 비워 볼 수가 없었다 — 축을 바꿔 시험할 길이 막힌 것이다.
+			//   자리를 고른 뒤에만 켜진다(무엇을 내리는지 모르고 누르는 일이 없게).
+			benchButton = AddButton(heroPage, "idle-button", Bench);
+
 			AddDivider(heroPage);
 			codexLabel = AddLabel(heroPage, "idle-row-title");
 
@@ -1635,6 +1642,7 @@ namespace WitchMendokusai
 				snapshot.PullsToPity);
 
 			RenderParty(snapshot);
+			RenderBench(snapshot);
 			RenderCodex(snapshot);
 		}
 
@@ -1687,6 +1695,38 @@ namespace WitchMendokusai
 		}
 
 		/// <summary>도감 — 가진 얼굴 전부. 내보낸 것은 표시하고, 안 내보낸 것도 몫을 적는다.</summary>
+		/// <summary>내리기 손잡이 — 고른 자리에 <b>누가 서 있을 때만</b> 켜진다.</summary>
+		private void RenderBench(IdleSnapshot snapshot)
+		{
+			bool standing = seatBeingFilled >= 0
+				&& seatBeingFilled < snapshot.Party.Length
+				&& snapshot.Party[seatBeingFilled] >= 0;
+
+			benchButton.text = standing
+				? string.Format("{0}번 자리를 비운다", seatBeingFilled + 1)
+				: "비울 자리를 먼저 고른다";
+
+			benchButton.SetEnabled(standing);
+			benchButton.EnableInClassList("idle-button--locked", standing == false);
+		}
+
+		/// <summary>고른 자리를 비운다 — 코어가 그 자리만 지운다(다른 자리는 안 건드린다).</summary>
+		private void Bench()
+		{
+			if (seatBeingFilled < 0)
+			{
+				return;
+			}
+
+			sound.Click();
+			session.Send(new IdleSetPartyIntent(seatBeingFilled, -1));
+
+			seatBeingFilled = -1;
+			pendingHeroId = -1;
+			WriteDown();
+			Render(session.Capture());
+		}
+
 		private void RenderCodex(IdleSnapshot snapshot)
 		{
 			if (heroButtons.Count != snapshot.Heroes.Length)
