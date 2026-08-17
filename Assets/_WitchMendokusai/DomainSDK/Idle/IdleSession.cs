@@ -53,6 +53,44 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// </summary>
         public double CatchUp(long nowUnixSeconds)
         {
+            return CatchUp(nowUnixSeconds, out IdleAwayReport _);
+        }
+
+        /// <summary>
+        /// 자리 비운 몫을 쳐준다 — <b>무엇을 벌었고 얼마를 흘렸는지</b>까지 돌려준다.
+        ///
+        /// ★ 돌아온 순간이 방치형의 보상이다. 「N 동안 잡아 뒀다」만으로는 <b>얼마나</b>가 없어
+        ///   보상이 안 느껴진다. 그리고 상한에 걸렸으면 그 사실을 말해야 한다 —
+        ///   말 안 하면 사용자는 몇 시간을 흘린 줄도 모르고, 상한을 올릴 이유(환생)도 안 보인다.
+        /// </summary>
+        public double CatchUp(long nowUnixSeconds, out IdleAwayReport report)
+        {
+            report = default;
+
+            double resourceBefore = state.Resource;
+            long killsBefore = state.Kills;
+            int stageBefore = state.Stage;
+            int bagBefore = state.Bag.Count;
+            double credited = CatchUpCore(nowUnixSeconds, out double asked, out double allowed);
+
+            report = new IdleAwayReport(
+                asked,
+                credited,
+                asked > credited,
+                allowed,
+                state.Resource - resourceBefore,
+                state.Kills - killsBefore,
+                state.Stage - stageBefore,
+                state.Bag.Count - bagBefore);
+
+            return credited;
+        }
+
+        private double CatchUpCore(long nowUnixSeconds, out double asked, out double allowed)
+        {
+            asked = 0d;
+            allowed = IdleModel.MaxOfflineFor(state, tuning);
+
             // ★ 폭주는 <b>보고 있는 동안만</b>의 것이다. 안 지우면 자리 비운 내내 7배가 걸린다 —
             //   그러면 「켜 두고 나가기」가 최적 전략이 되어 봉우리의 뜻이 뒤집힌다.
             state.SurgeKind = (int)IdleSurgeKind.None;
@@ -69,13 +107,14 @@ namespace WitchMendokusai.DomainSDK.Idle
             }
 
             double away = nowUnixSeconds - lastSeen;
+            asked = away;
+
             if (away <= 0d)
             {
                 return 0d;
             }
 
             // 상한은 환생 횟수에 따라 는다 — 환생하면 「덜 매여도 되는 것」도 보상이다.
-            double allowed = IdleModel.MaxOfflineFor(state, tuning);
             if (away > allowed)
             {
                 away = allowed;

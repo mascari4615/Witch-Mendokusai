@@ -221,7 +221,7 @@ namespace WitchMendokusai
 			sound = new ProceduralSfx(gameObject);
 
 			// ★ 화면을 짓기 전에 자리 비운 몫을 쳐준다 — 첫 그림이 이미 받은 뒤의 판이라야 한다.
-			double away = session.CatchUp(IdleSaveStore.NowUnixSeconds());
+			session.CatchUp(IdleSaveStore.NowUnixSeconds(), out IdleAwayReport away);
 
 			BuildInterface(away);
 			lastKills = session.State.Kills;
@@ -596,7 +596,7 @@ namespace WitchMendokusai
 
 		// ── 짓기 ────────────────────────────────────────────────────────────
 
-		private void BuildInterface(double awaySeconds)
+		private void BuildInterface(IdleAwayReport away)
 		{
 			VisualElement root = GetComponent<UIDocument>().rootVisualElement;
 			root.Clear();
@@ -610,7 +610,7 @@ namespace WitchMendokusai
 			shell.AddToClassList("idle-root");
 			root.Add(shell);
 
-			BuildTopBar(shell, awaySeconds);
+			BuildTopBar(shell, away);
 
 			// ★ 위층 = <b>보는 것</b>. 셋이 동시에 돈다.
 			VisualElement stages = new VisualElement();
@@ -625,7 +625,7 @@ namespace WitchMendokusai
 			BuildDrawer(shell);
 		}
 
-		private void BuildTopBar(VisualElement parent, double awaySeconds)
+		private void BuildTopBar(VisualElement parent, IdleAwayReport away)
 		{
 			VisualElement bar = new VisualElement();
 			bar.AddToClassList("idle-topbar");
@@ -636,9 +636,22 @@ namespace WitchMendokusai
 			topNoteLabel = AddLabel(bar, "idle-top-note");
 			guideLabel = AddLabel(parent, "idle-guide");
 
-			if (awaySeconds > 0d)
+			// ★ 돌아온 순간이 방치형의 보상이다 — <b>얼마나</b> 벌었는지 말한다.
+			//   그리고 상한에 걸려 흘린 시간이 있으면 그것도 말한다(손해는 조용하면 안 된다).
+			if (away.HasAnything)
 			{
-				topNoteLabel.text = string.Format("자리 비운 {0} 동안도 잡아 뒀다", DescribeSpan(awaySeconds));
+				topNoteLabel.text = string.Format("자리 비운 {0} — 자원 +{1} · {2}마리{3}{4}{5}",
+					DescribeSpan(away.CreditedSeconds),
+					BigNumberText.Format(away.ResourceGained),
+					BigNumberText.Format(away.KillsGained),
+					away.StagesGained > 0 ? string.Format(" · {0}단계 나아감", away.StagesGained) : string.Empty,
+					away.ItemsGained > 0 ? string.Format(" · 장비 {0}", away.ItemsGained) : string.Empty,
+					away.HitCap
+						? string.Format("   ⚠ 상한 {0} 을 넘겨 {1} 을 흘렸다 (환생하면 상한이 는다)",
+							DescribeSpan(away.CapSeconds), DescribeSpan(away.LostSeconds))
+						: string.Empty);
+
+				topNoteLabel.EnableInClassList("idle-warn", away.HitCap);
 			}
 		}
 

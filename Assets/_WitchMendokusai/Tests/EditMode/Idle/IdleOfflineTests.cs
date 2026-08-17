@@ -182,5 +182,51 @@ namespace WitchMendokusai.Tests
 			Assert.AreEqual(once.State.Kills, many.State.Kills, "껐다 켤 때마다 조금씩 샜다");
 			Assert.AreEqual(once.State.Resource, many.State.Resource, TOLERANCE, "껐다 켤 때마다 조금씩 샜다");
 		}
+
+		/// <summary>
+		/// ★ 돌아왔을 때 <b>무엇을 벌었는지</b> 알려준다 (TASK-WM-406).
+		///
+		/// 「N 동안 잡아 뒀다」만으로는 보상이 안 느껴진다 — 방치형의 심장이 여기다.
+		/// </summary>
+		[Test]
+		public void ComingBack_TellsWhatYouEarned()
+		{
+			IdleTuning tuning = new IdleTuning();
+			IdleState state = new IdleState();
+			state.EnsureProducerRoom(tuning.ProducerCount);
+			state.LastSeenUnixSeconds = 1000L;
+
+			IdleSession session = new IdleSession(tuning, state);
+			session.CatchUp(1000L + 600L, out IdleAwayReport away);
+
+			Assert.IsTrue(away.HasAnything, "쳐준 시간이 0 이다");
+			Assert.Greater(away.ResourceGained, 0d, "10분을 비웠는데 번 자원이 0 이다");
+			Assert.Greater(away.KillsGained, 0L, "10분을 비웠는데 잡은 게 0 이다");
+			Assert.IsFalse(away.HitCap, "10분인데 상한에 걸렸다");
+		}
+
+		/// <summary>
+		/// ★ 상한에 걸리면 <b>흘린 시간</b>을 말한다.
+		///
+		/// 안 말하면 사용자는 몇 시간을 흘린 줄도 모르고, 상한을 올릴 이유(환생)도 안 보인다.
+		/// 손해는 조용하면 안 된다.
+		/// </summary>
+		[Test]
+		public void HittingTheCap_SaysHowMuchWasLost()
+		{
+			IdleTuning tuning = new IdleTuning();
+			IdleState state = new IdleState();
+			state.EnsureProducerRoom(tuning.ProducerCount);
+			state.LastSeenUnixSeconds = 1000L;
+
+			IdleSession session = new IdleSession(tuning, state);
+			double cap = IdleModel.MaxOfflineFor(state, tuning);
+
+			session.CatchUp(1000L + (long)cap + 7200L, out IdleAwayReport away);
+
+			Assert.IsTrue(away.HitCap, "상한을 한참 넘겼는데 안 걸렸다고 한다");
+			Assert.Greater(away.LostSeconds, 0d, "흘린 시간이 0 이라고 한다");
+			Assert.AreEqual(cap, away.CreditedSeconds, 1d, "상한만큼만 쳐줘야 한다");
+		}
 	}
 }
