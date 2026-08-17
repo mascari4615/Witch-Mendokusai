@@ -1078,11 +1078,33 @@ namespace WitchMendokusai
 			RenderBaseLive(snapshot);
 			RenderVaultLive(snapshot);
 
-			RenderBasePage(snapshot);
-			RenderUpgradePage(snapshot);
-			RenderGearPage(snapshot);
-			RenderHeroPage(snapshot);
-			RenderFoldPage(snapshot);
+			// ★ 서랍은 <b>한 칸만 보인다</b>. 그런데 다섯 칸을 매 프레임 다 그리고 있었다 —
+			//   넷은 안 보이는 채로. 글자를 짓는 일이라 초당 수백 개의 쓰레기가 났고,
+			//   방치형은 <b>오래 켜 두는 것</b>이 기본값이라 그게 그대로 쌓인다.
+			//   칸을 옮기면 다음 프레임에 그려진다(매 프레임 도는 자리라 눈에 안 띈다).
+			switch ((IdleTab)shownTab)
+			{
+				case IdleTab.Base:
+					RenderBasePage(snapshot);
+					break;
+
+				case IdleTab.Upgrade:
+					RenderUpgradePage(snapshot);
+					break;
+
+				case IdleTab.Gear:
+					RenderGearPage(snapshot);
+					break;
+
+				case IdleTab.Hero:
+					RenderHeroPage(snapshot);
+					break;
+
+				case IdleTab.Prestige:
+					RenderFoldPage(snapshot);
+					break;
+			}
+
 			RenderTabDots(snapshot);
 		}
 
