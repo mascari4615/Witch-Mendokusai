@@ -118,9 +118,10 @@ namespace WitchMendokusai.DomainSDK.Idle
                 return new IdleAdviceResult(IdleStep.Pull, -1, snapshot.PullCost);
             }
 
-            if (MergeableCount(snapshot) > 0)
+            int mergeable = MergeableCount(snapshot);
+            if (mergeable > 0)
             {
-                return new IdleAdviceResult(IdleStep.Merge, -1, MergeableCount(snapshot));
+                return new IdleAdviceResult(IdleStep.Merge, -1, mergeable);
             }
 
             int cheapest = CheapestAffordableProducer(snapshot);

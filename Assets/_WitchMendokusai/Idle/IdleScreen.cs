@@ -1156,7 +1156,11 @@ namespace WitchMendokusai
 					return "▶ 영웅 탭 — 뽑을 수 있다 (안 내보내도 들고만 있으면 세진다)";
 
 				case IdleStep.Merge:
-					return "▶ 장비 탭 — 같은 것 셋을 한 단계 위로 합칠 수 있다";
+					// 몇 벌인지 말한다 — 「합칠 수 있다」만으로는 한 번 누르고 끝낼지
+					// 서랍을 열어 볼지가 안 정해진다.
+					return advice.Amount > 1d
+						? string.Format("▶ 장비 탭 — {0}벌을 한 단계 위로 합칠 수 있다", (int)advice.Amount)
+						: "▶ 장비 탭 — 같은 것 셋을 한 단계 위로 합칠 수 있다";
 
 				case IdleStep.BuyProducer:
 					return string.Format("▶ 기지 탭 — {0}번 생산자를 살 수 있다 (수입 +{1:P0})",
