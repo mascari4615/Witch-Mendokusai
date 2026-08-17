@@ -39,6 +39,9 @@ namespace WitchMendokusai
 		/// <summary>방금 일어난 일을 몇 초나 적어 두나.</summary>
 		private const float NOTE_SECONDS = 6f;
 
+		/// <summary>돌아온 인사는 더 오래 — 읽고 나서도 「얼마 벌었지」를 다시 볼 틈이 있어야 한다.</summary>
+		private const float RETURN_NOTE_SECONDS = 20f;
+
 		[Header("수치 — 비워 두면 코드 기본값")]
 		[SerializeField] private IdleTuningSO tuningAsset;
 
@@ -516,6 +519,12 @@ namespace WitchMendokusai
 		/// <summary>방금 일어난 일을 적는다 — 시계를 다시 감는다.</summary>
 		private void SayOnce(Label where, string what)
 		{
+			SayOnce(where, what, NOTE_SECONDS);
+		}
+
+		/// <summary>얼마나 오래 남길지 정해서 적는다 — 돌아온 인사는 더 오래 둔다.</summary>
+		private void SayOnce(Label where, string what, float seconds)
+		{
 			where.text = what;
 			where.style.opacity = 1f;
 
@@ -523,11 +532,11 @@ namespace WitchMendokusai
 			if (at < 0)
 			{
 				fadingNotes.Add(where);
-				fadingLeft.Add(NOTE_SECONDS);
+				fadingLeft.Add(seconds);
 				return;
 			}
 
-			fadingLeft[at] = NOTE_SECONDS;
+			fadingLeft[at] = seconds;
 		}
 
 		/// <summary>적어 둔 것을 <b>흐리게 지운다</b> — 끝에서 툭 사라지면 놀란다.</summary>
@@ -652,6 +661,10 @@ namespace WitchMendokusai
 						: string.Empty);
 
 				topNoteLabel.EnableInClassList("idle-warn", away.HitCap);
+
+				// ★ 이것도 <b>지난 일</b>이다 — 한참 뒤에도 「자리 비운 3시간」이 붙어 있으면
+				//   지금 상태로 읽힌다. 다만 돌아온 순간의 보상이라 다른 안내보다 오래 남긴다.
+				SayOnce(topNoteLabel, topNoteLabel.text, RETURN_NOTE_SECONDS);
 			}
 		}
 
