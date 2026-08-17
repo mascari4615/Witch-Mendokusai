@@ -90,12 +90,19 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// </summary>
         public static long PrestigeStandingFor(IdleState state, IdleTuning tuning)
         {
-            if (state.Stage < tuning.PrestigeMinStage)
+            // ★ <b>가장 깊이 간 곳</b>으로 센다 — 「지금 서 있는 곳」이 아니다.
+            //   전에는 state.Stage 를 봤는데, 이 게임은 <b>물러나서 파는 것</b>을 권한다
+            //   (TryGoToStage: 「물러나는 데 벌을 주면 아무도 안 물러나고, 그러면 벽에서 게임이 멎는다」).
+            //   그래서 500까지 내려갔다가 300으로 물러나 파는 순간 환생 점수가 <b>0</b>이 됐다 —
+            //   권장한 행동이 조용히 벌을 받고 있었다. 두 규칙이 서로 반대를 가리키고 있던 것이다.
+            int deepest = state.BestStage > state.Stage ? state.BestStage : state.Stage;
+
+            if (deepest < tuning.PrestigeMinStage)
             {
                 return 0L;
             }
 
-            double standing = (state.Stage - tuning.PrestigeMinStage + 1) * tuning.PrestigePointsPerStage;
+            double standing = (deepest - tuning.PrestigeMinStage + 1) * tuning.PrestigePointsPerStage;
             return standing < 0d ? 0L : (long)standing;
         }
 

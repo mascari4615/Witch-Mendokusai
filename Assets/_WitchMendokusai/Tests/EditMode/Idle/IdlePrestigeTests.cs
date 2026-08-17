@@ -260,5 +260,56 @@ namespace WitchMendokusai.Tests
 			Assert.Less(elapsed, LIMIT, "한 달을 돌려도 " + goalStage + "단계에 못 닿는다 — 곡선이 막혔다");
 			return elapsed;
 		}
+
+		/// <summary>
+		/// ★ 환생 점수는 <b>가장 깊이 간 곳</b>으로 센다 — 물러나 판다고 벌 받지 않는다 (회귀).
+		///
+		/// 이 게임은 물러나서 파는 것을 <b>권한다</b>(TryGoToStage 주석: 물러나는 데 벌을 주면
+		/// 아무도 안 물러나고 그러면 벽에서 게임이 멎는다). 그런데 환생 점수는 「지금 서 있는
+		/// 곳」으로 세고 있었다 — 500까지 갔다가 300으로 물러나 파는 순간 점수가 0이 됐다.
+		/// 권장한 행동이 조용히 벌을 받고 있었다.
+		/// </summary>
+		[Test]
+		public void RetreatingToFarm_DoesNotEatThePrestigeAward()
+		{
+			IdleTuning tuning = new IdleTuning();
+
+			IdleState deep = new IdleState();
+			deep.EnsureProducerRoom(tuning.ProducerCount);
+			deep.Stage = tuning.PrestigeMinStage + 200;
+			deep.BestStage = deep.Stage;
+
+			long standing = IdleModel.PrestigeAwardFor(deep, tuning);
+			Assert.Greater(standing, 0L, "잴 것이 없다 — 깊이 갔는데도 점수가 0 이다");
+
+			// 그 자리에서 <b>물러나 판다</b>. 가장 깊이 간 곳은 그대로다.
+			Assert.IsTrue(IdleModel.TryGoToStage(deep, tuning.PrestigeMinStage + 50));
+
+			Assert.AreEqual(standing, IdleModel.PrestigeAwardFor(deep, tuning),
+				"물러났다고 환생 점수가 깎였다");
+		}
+
+		/// <summary>★ 환생한 뒤에는 <b>더 깊이 가야</b> 새 점수가 붙는다 — 같은 길을 다시 팔 수는 없다.</summary>
+		[Test]
+		public void AfterPrestige_OnlyNewDepthPays()
+		{
+			IdleTuning tuning = new IdleTuning();
+			IdleState state = new IdleState();
+			state.EnsureProducerRoom(tuning.ProducerCount);
+			state.Stage = tuning.PrestigeMinStage + 100;
+			state.BestStage = state.Stage;
+
+			Assert.IsTrue(IdleModel.TryPrestige(state, tuning, out long awarded));
+			Assert.Greater(awarded, 0L);
+
+			Assert.AreEqual(0L, IdleModel.PrestigeAwardFor(state, tuning),
+				"같은 깊이인데 또 점수를 준다 — 환생만 반복하는 것이 최적이 된다");
+
+			state.Stage = state.BestStage + 10;
+			state.BestStage = state.Stage;
+
+			Assert.Greater(IdleModel.PrestigeAwardFor(state, tuning), 0L,
+				"더 깊이 갔는데도 새 점수가 없다");
+		}
 }
 }
