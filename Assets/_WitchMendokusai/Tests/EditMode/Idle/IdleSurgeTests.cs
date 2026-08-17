@@ -132,5 +132,71 @@ namespace WitchMendokusai.Tests
 
 			Assert.Fail("시험 준비 실패 — 아무것도 안 왔다");
 		}
+
+		/// <summary>
+		/// ★ 폭주는 <b>기지 생산에도</b> 걸린다 — 「판 전체가 빨라진다」가 말뿐이면 안 된다.
+		///
+		/// 전에는 때리는 속도에만 걸려 있었다. 기지가 수입의 거의 전부가 되는 중반 이후에는
+		/// 「폭주!」가 떠도 실제로 달라지는 게 거의 없었다 — 봉우리를 만들려고 넣은 것이
+		/// 평지였던 셈이다.
+		/// </summary>
+		[Test]
+		public void Frenzy_AlsoSpeedsUpTheBase()
+		{
+			IdleTuning tuning = new IdleTuning();
+			IdleState state = new IdleState();
+			state.EnsureProducerRoom(tuning.ProducerCount);
+			state.Owned[0] = 10L;
+
+			double calm = IdleBase.OutputPerSecond(state, tuning);
+
+			state.SurgeKind = (int)IdleSurgeKind.Frenzy;
+			state.SurgeSecondsLeft = 10d;
+
+			double surging = IdleBase.OutputPerSecond(state, tuning);
+
+			Assert.Greater(calm, 0d, "잴 것이 없다 — 기지가 아무것도 안 낸다");
+			Assert.AreEqual(calm * tuning.FrenzyMultiplier, surging, calm * 1e-9d,
+				"폭주가 기지에 안 걸린다 — 「판 전체」가 말뿐이다");
+		}
+
+		/// <summary>★ 손폭주는 기지를 안 건드린다 — 그건 <b>손</b>에 걸리는 것이다(둘이 섞이면 안 된다).</summary>
+		[Test]
+		public void HandFrenzy_LeavesTheBaseAlone()
+		{
+			IdleTuning tuning = new IdleTuning();
+			IdleState state = new IdleState();
+			state.EnsureProducerRoom(tuning.ProducerCount);
+			state.Owned[0] = 10L;
+
+			double calm = IdleBase.OutputPerSecond(state, tuning);
+
+			state.SurgeKind = (int)IdleSurgeKind.HandFrenzy;
+			state.SurgeSecondsLeft = 10d;
+
+			Assert.AreEqual(calm, IdleBase.OutputPerSecond(state, tuning), calm * 1e-9d);
+		}
+
+		/// <summary>
+		/// ★ 자리를 비운 몫은 <b>폭주와 무관</b>하다 — 방치 판정은 결정적이어야 한다.
+		///   (CatchUp 이 폭주를 지운다. 안 지우면 「폭주 걸어 놓고 끄기」가 최적이 된다.)
+		/// </summary>
+		[Test]
+		public void GoingAway_DoesNotCarryTheFrenzy()
+		{
+			IdleTuning tuning = new IdleTuning();
+			IdleState state = new IdleState();
+			state.EnsureProducerRoom(tuning.ProducerCount);
+			state.Owned[0] = 10L;
+			state.SurgeKind = (int)IdleSurgeKind.Frenzy;
+			state.SurgeSecondsLeft = 30d;
+			state.LastSeenUnixSeconds = 1000L;
+
+			IdleSession session = new IdleSession(tuning, state);
+			session.CatchUp(1600L, out IdleAwayReport _);
+
+			Assert.AreEqual((int)IdleSurgeKind.None, state.SurgeKind, "폭주가 방치 구간을 건넜다");
+			Assert.AreEqual(0d, state.SurgeSecondsLeft, 1e-9d);
+		}
 	}
 }

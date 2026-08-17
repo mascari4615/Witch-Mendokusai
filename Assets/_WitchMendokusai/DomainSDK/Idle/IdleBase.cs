@@ -59,8 +59,13 @@ namespace WitchMendokusai.DomainSDK.Idle
                 total += state.Owned[kind] * OutputOf(kind, tuning);
             }
 
+            // ★ 폭주는 <b>판 전체</b>다 — 전에는 때리는 속도에만 걸려 있어서, 기지가 수입의 거의
+            //   전부가 되는 중반 이후에는 「폭주!」가 떠도 실제로는 거의 아무 일도 안 일어났다.
+            //   변동성이 봉우리를 만들라고 넣은 것인데 봉우리가 평지였던 셈이다.
+            //   (자리를 비운 동안에는 폭주가 안 걸린다 — CatchUp 이 지우므로 방치 판정은 그대로 결정적이다.)
             return total * IdleGear.BaseMultiplier(state, tuning)
-                * IdleHeroes.AxisMultiplierOf(state, tuning, IdleHeroAxis.Base);
+                * IdleHeroes.AxisMultiplierOf(state, tuning, IdleHeroAxis.Base)
+                * IdleSurge.Multiplier(state, tuning);
         }
 
         /// <summary>
