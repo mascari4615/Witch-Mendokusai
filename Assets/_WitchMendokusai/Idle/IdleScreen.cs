@@ -1086,13 +1086,6 @@ namespace WitchMendokusai
 		}
 
 		/// <summary>
-		/// 판에 선 셋이 <b>실제로 내보낸 셋</b>이 되게 한다 (TASK-WM-406).
-		///
-		/// ★ 이게 없으면 뽑기와 편성이 <b>목록 안에서만</b> 일어난다 — 판은 그대로다.
-		///   내가 고른 얼굴이 저기 서 있어야 「내 파티」가 된다.
-		/// ★ 빈 자리는 <b>흐리게 남긴다</b>. 지워 버리면 자리가 비었다는 게 안 보인다.
-		/// </summary>
-		/// <summary>
 		/// 지나가는 것과 폭주를 그린다.
 		///
 		/// ★ 떠 있는 동안 <b>판을 가로질러 흐른다</b> — 가만히 있으면 버튼이지 사건이 아니다.
@@ -1536,9 +1529,12 @@ namespace WitchMendokusai
 			pullButton.EnableInClassList("idle-button--ready", snapshot.CanPull);
 			pullButton.EnableInClassList("idle-button--locked", snapshot.CanPull == false);
 
-			codexLabel.text = string.Format("도감 {0}점 · 판 전체 x{1:0.00}  ·  천장까지 {2}번{3}",
-				snapshot.CodexScore, snapshot.CodexMultiplier, snapshot.PullsToPity,
-				Waiting());
+			// 아직 한 명도 없으면 숫자만 늘어놓는 게 아니라 <무엇을 하는 곳인지>를 말한다.
+			codexLabel.text = snapshot.Heroes.Length > 0
+				? string.Format("도감 {0}점 · 판 전체 x{1:0.00}  ·  천장까지 {2}번{3}",
+					snapshot.CodexScore, snapshot.CodexMultiplier, snapshot.PullsToPity, Waiting())
+				: string.Format("도감 — 뽑은 영웅은 여기 쌓인다. 들고만 있어도 판이 세지고,"
+					+ " 셋만 내보낸다 (천장까지 {0}번)", snapshot.PullsToPity);
 
 			RenderParty(snapshot);
 			RenderCodex(snapshot);
@@ -1580,7 +1576,12 @@ namespace WitchMendokusai
 				else
 				{
 					partyShapes[slot].style.opacity = 0.15f;
-					partyButtons[slot].text = "비었다";
+
+					// ★ 아직 한 명도 없으면 「비었다」는 <막다른 길>이다 — 채우는 길을 알려준다.
+					//   영웅은 환생석으로 뽑고, 환생석은 환생에서 나온다.
+					partyButtons[slot].text = snapshot.Heroes.Length > 0
+						? "비었다"
+						: "뽑으면 여기 선다";
 				}
 
 				partyButtons[slot].EnableInClassList("idle-button--ready", seatBeingFilled == slot);
