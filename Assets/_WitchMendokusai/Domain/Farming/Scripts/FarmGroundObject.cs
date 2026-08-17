@@ -53,6 +53,14 @@ namespace WitchMendokusai
 		// 아직 1분이 안 된 현실 초 — 버리면 짧은 프레임이 영원히 안 쌓인다(WorldCalendar 의 minuteRemainder 선례).
 		private float realSecondsCarry;
 
+		// 밭에서 일어난 일을 알린다 — 연출은 구독자 몫이다(온실 OnPlotBloomed 선례).
+		// ★ 밭이 소리·이펙트를 직접 내면, 연출을 바꾸려고 밭 규칙을 건드리게 된다.
+		public System.Action<FarmCoord> OnTilled = delegate { };
+		public System.Action<FarmCoord, int> OnPlanted = delegate { };
+		public System.Action<FarmCoord, HarvestResult> OnHarvested = delegate { };
+		// 못 한 이유(기운/씨앗) — 화면이 「왜 안 되지」를 안 묻게 한다.
+		public System.Action<FarmCoord, ActRejection> OnRefused = delegate { };
+
 		// 몸·창고·하늘. 상위(세계)가 준다 — 없으면 밭은 아무 대가도 못 물리므로 아무 것도 안 한다.
 		public ActContext World { get; set; }
 
@@ -156,10 +164,12 @@ namespace WitchMendokusai
 			ActSpec spec = new ActSpec(tillMinutes, new[] { new ActNeedDelta(DomainSDK.Life.NeedKind.Energy, -tillEnergy) }).ScaledBy(costScale);
 			if (ActLedger.TryApply(spec, World, out outcome) == false)
 			{
+				OnRefused.Invoke(soil, outcome.Rejection);
 				return false;
 			}
 
 			SetBlockName(soil, tilledBlock);
+			OnTilled.Invoke(soil);
 			return true;
 		}
 
@@ -189,12 +199,14 @@ namespace WitchMendokusai
 				new[] { new ActResourceDelta(new ResourceId(seed.ID), -1) });
 			if (ActLedger.TryApply(spec, World, out outcome) == false)
 			{
+				OnRefused.Invoke(soil, outcome.Rejection);
 				return false;
 			}
 
 			plot ??= greenhouse.AddPlot(soil);
 			plot.Plant(plant.ID, plant.ToGrowthParams(), plant.StartVitality, plant.Clock);
 			SpawnCropView(soil);
+			OnPlanted.Invoke(soil, plant.ID);
 			return true;
 		}
 
@@ -213,10 +225,17 @@ namespace WitchMendokusai
 			ActSpec spec = new(harvestMinutes, new[] { new ActNeedDelta(DomainSDK.Life.NeedKind.Energy, -harvestEnergy) });
 			if (ActLedger.TryApply(spec, World, out outcome) == false)
 			{
+				OnRefused.Invoke(soil, outcome.Rejection);
 				return false;
 			}
 
-			return plot.TryHarvest(out harvest);
+			if (plot.TryHarvest(out harvest) == false)
+			{
+				return false;
+			}
+
+			OnHarvested.Invoke(soil, harvest);
+			return true;
 		}
 
 		private void Update()

@@ -268,5 +268,80 @@ namespace WitchMendokusai.Tests
 				Object.DestroyImmediate(owner);
 			}
 		}
+
+		[Test]
+		public void FarmTellsWhatHappened_SoTheViewCanReact()
+		{
+			// 밭은 소리를 직접 내지 않는다 — 무슨 일이 있었는지 알리기만 한다(연출은 구독자 몫).
+			FarmGroundObject farm = NewFarm(out GameObject owner, out WorldActSite site, out _);
+			try
+			{
+				int tilled = 0;
+				int planted = 0;
+				int harvested = 0;
+				farm.OnTilled += _ => tilled++;
+				farm.OnPlanted += (_, __) => planted++;
+				farm.OnHarvested += (_, __) => harvested++;
+
+				SeedItemData seed = NewSeed();
+				farm.TryTill(SOIL, out _);
+				farm.TryPlant(SOIL, seed, out _);
+				site.Do(new ActSpec(MINUTES_PER_STAGE * MAX_STAGE), out _);
+				farm.TryHarvest(SOIL, out _, out _);
+
+				Assert.That(tilled, Is.EqualTo(1));
+				Assert.That(planted, Is.EqualTo(1));
+				Assert.That(harvested, Is.EqualTo(1));
+			}
+			finally
+			{
+				Object.DestroyImmediate(owner);
+			}
+		}
+
+		[Test]
+		public void RefusedAct_SaysWhy()
+		{
+			// 조용한 실패는 「고장」으로 읽힌다 — 못 한 이유가 화면까지 간다.
+			FarmGroundObject farm = NewFarm(out GameObject owner, out _, out _, seedCount: 0);
+			try
+			{
+				ActRejection reason = ActRejection.None;
+				farm.OnRefused += (_, r) => reason = r;
+
+				farm.TryTill(SOIL, out _);
+				farm.TryPlant(SOIL, NewSeed(), out _);
+
+				Assert.That(reason, Is.EqualTo(ActRejection.Resource), "씨앗이 없어서 못 심었다고 알린다");
+			}
+			finally
+			{
+				Object.DestroyImmediate(owner);
+			}
+		}
+
+		[Test]
+		public void BetterHoe_MakesTheSameFieldCheaper()
+		{
+			// 순환의 고리: 팔아서 번 돈 → 더 좋은 괭이 → 같은 밭을 덜 지치고 판다.
+			FarmGroundObject bare = NewFarm(out GameObject bareOwner, out WorldActSite bareSite, out _);
+			FarmGroundObject tooled = NewFarm(out GameObject tooledOwner, out WorldActSite tooledSite, out _);
+			try
+			{
+				bare.TryTill(SOIL, out _);
+				tooled.TryTill(SOIL, out _, costScale: 0.6f);
+
+				float bareSpent = 100f - bareSite.Body.Get(NeedKind.Energy);
+				float tooledSpent = 100f - tooledSite.Body.Get(NeedKind.Energy);
+
+				Assert.That(tooledSpent < bareSpent, Is.True, "좋은 괭이는 기운을 덜 먹는다");
+				Assert.That(tooledSite.Calendar.TotalMinutes() < bareSite.Calendar.TotalMinutes(), Is.True, "시간도 덜 먹는다");
+			}
+			finally
+			{
+				Object.DestroyImmediate(bareOwner);
+				Object.DestroyImmediate(tooledOwner);
+			}
+		}
 	}
 }
