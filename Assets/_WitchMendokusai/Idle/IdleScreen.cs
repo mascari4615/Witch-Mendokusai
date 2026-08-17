@@ -445,10 +445,52 @@ namespace WitchMendokusai
 		}
 
 		/// <summary>한 대 — 차례가 된 영웅이 나선다.</summary>
+		/// <summary>
+		/// 다음에 칠 자리 — <b>서 있는 얼굴이 있으면 그중에서만</b> 돌린다.
+		///
+		/// ★ 아무도 안 세웠으면 <b>셋 다</b> 돈다. 첫 판은 환생 전이라 뽑을 수가 없어
+		///   파티가 내내 비어 있다 — 거기서 아무도 안 움직이면 「공격하는지 알 수가 없다」는
+		///   맨 처음 지적이 그대로 돌아온다. 흐릿한 셋은 그때 <b>「나」의 자리</b>다.
+		/// </summary>
+		private int NextFighter(IdleSnapshot snapshot)
+		{
+			bool anyoneStanding = false;
+
+			for (int slot = 0; slot < snapshot.Party.Length; slot++)
+			{
+				if (snapshot.Party[slot] >= 0)
+				{
+					anyoneStanding = true;
+					break;
+				}
+			}
+
+			for (int tried = 0; tried < heroes.Count; tried++)
+			{
+				int slot = heroTurn % heroes.Count;
+				heroTurn++;
+
+				if (anyoneStanding == false)
+				{
+					return slot;
+				}
+
+				if (slot < snapshot.Party.Length && snapshot.Party[slot] >= 0)
+				{
+					return slot;
+				}
+			}
+
+			return 0;
+		}
+
 		private void Strike(IdleSnapshot snapshot, float beatsPerSecond)
 		{
-			int who = heroTurn % heroes.Count;
-			heroTurn++;
+			// ⚠ <b>빈 자리도 때리고 있었다</b>. 자리 셋을 그냥 돌려서, 아직 한 명뿐인 판에서는
+			//   흐릿한 유령 둘이 같이 달려들었다 — 「누가 싸우는지 보이게」 하려고 만든 자리인데
+			//   <b>없는 것이 싸우는</b> 그림이 됐다.
+			int who = NextFighter(snapshot);
+
 
 			// 모서리가 많은 쪽은 안 다가간다 — 대신 쏜다. 그게 셋을 다르게 만든다.
 			//
