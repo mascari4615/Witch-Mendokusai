@@ -452,14 +452,44 @@ namespace WitchMendokusai.Tests
 			state.Owned[1] = 1L;
 			state.Resource = 500d;
 
+			state.Stage = 6;
+			state.BestStage = 25;
+			state.Heroes.Add(new IdleHeroOwned(1));
+			state.Bag.Add(new IdleItem(2, IdleItemSlot.Feet));
+
 			IdleSaveData before = state.Save();
 			new IdleSession(tuning, state).Capture();
 			IdleSaveData after = state.Save();
 
-			Assert.AreEqual(before.Owned[0], after.Owned[0], "사진을 찍었더니 생산자 수가 달라졌다");
-			Assert.AreEqual(before.Owned[1], after.Owned[1]);
-			Assert.AreEqual(before.Resource, after.Resource, 1e-9d);
-			Assert.AreEqual(before.RandomState, after.RandomState, "사진이 주사위를 굴렸다");
+			// ⚠ 네 칸만 보면 <b>반만 보는 감시</b>다 — 사진이 어느 칸을 건드려도 잡히게 전부 본다.
+			//   (오늘 이 자리에서만 둘을 잡았다: 「사면 몇 배」와 「어디서 파는 게 빠른가」.
+			//    둘 다 판을 잠깐 바꿔 놓고 되돌리는 방식이었다.)
+			System.Reflection.FieldInfo[] fields = typeof(IdleSaveData)
+				.GetFields(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+
+			Assert.Greater(fields.Length, 10, "저장 꼴이 비었다 — 시험이 아무것도 안 보고 있다");
+
+			foreach (System.Reflection.FieldInfo field in fields)
+			{
+				object one = field.GetValue(before);
+				object other = field.GetValue(after);
+
+				if (one is System.Array first)
+				{
+					System.Array second = (System.Array)other;
+					Assert.AreEqual(first.Length, second.Length, field.Name + " 의 길이가 달라졌다");
+
+					for (int at = 0; at < first.Length; at++)
+					{
+						Assert.AreEqual(first.GetValue(at), second.GetValue(at),
+							"사진을 찍었더니 " + field.Name + " 의 " + at + "번째가 달라졌다");
+					}
+
+					continue;
+				}
+
+				Assert.AreEqual(one, other, "사진을 찍었더니 " + field.Name + " 가 달라졌다");
+			}
 		}
 	}
 }
