@@ -531,8 +531,10 @@ namespace WitchMendokusai
 				// ★ 쏘는 <b>그 자리에서</b> 나간다. 전에는 늘 세 번째 자리가 쏘던 시절의
 				//   고정 좌표(0.30)라, 이제 아무 자리나 쏠 수 있게 된 뒤로는 <b>엉뚱한 데서</b>
 				//   화살이 나갔다. 자리의 실제 위치에서 낸다(아직 자리가 안 잡혔으면 옛 값).
+				// 색·모양도 <b>앉은 얼굴</b>의 것이다. 자리 기본값을 쓰면 레전드가 쏴도
+				// 화살은 늘 같은 색이라, 누가 쏘는지가 화살에서 안 읽힌다.
 				bolts.Send(OriginOf(who), new Vector2(0.78f, 0.5f),
-					HERO_COLORS[who], HERO_SIDES[who], 0.22f);
+					heroes[who].Body, heroes[who].Sides, 0.22f);
 			}
 			else
 			{
