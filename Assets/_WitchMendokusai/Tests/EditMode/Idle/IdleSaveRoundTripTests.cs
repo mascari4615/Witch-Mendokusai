@@ -1,0 +1,144 @@
+using System.Reflection;
+using NUnit.Framework;
+using WitchMendokusai.DomainSDK.Idle;
+
+namespace WitchMendokusai.Tests
+{
+	/// <summary>
+	/// 저장이 <b>빠뜨린 것 없이</b> 왕복하나 (TASK-WM-406).
+	///
+	/// ★ 왜 이 시험이 필요한가 — 기능을 얹을 때마다 상태가 늘어나는데, <see cref="IdleState.Save"/> 에
+	///   한 줄 빼먹어도 <b>아무도 안 죽는다</b>. 게임은 멀쩡히 돌고, 껐다 켠 다음에야
+	///   「내 영웅 어디 갔지」가 된다. 그때는 이미 사용자 저장이 상한 뒤다.
+	///
+	/// ★ 그래서 <b>기계가 센다</b>: 저장 꼴에 있는 칸이 실제로 왕복하는지 하나씩.
+	///   새 칸을 더하면 이 시험이 저절로 그 칸도 본다 — 사람이 목록을 갱신할 필요가 없다.
+	///
+	/// ★ <b>일부러 안 담는 것</b>은 여기 적어 둔다. 적어 두지 않으면 다음 사람이
+	///   「빠뜨린 것」인지 「일부러 뺀 것」인지 알 수 없다.
+	/// </summary>
+	public sealed class IdleSaveRoundTripTests
+	{
+		/// <summary>
+		/// ★ 저장 꼴의 <b>모든 칸</b>이 실제로 적히고 다시 읽힌다.
+		///
+		/// ⚠ 처음엔 <b>저장→불러오기→저장</b>을 견줬는데 그건 눈뜬장님이었다 (실측 2026-08-17):
+		///   어떤 칸을 아예 안 적으면 양쪽 다 기본값이라 <b>똑같아서 통과</b>한다.
+		///   그래서 두 가지를 따로 본다 —
+		///   ① 값을 채운 판의 저장은 <b>빈 판의 저장과 달라야</b> 한다(= 적히긴 하나)
+		///   ② 불러온 뒤 다시 적은 것이 처음과 같아야 한다(= 읽히긴 하나)
+		///   ①이 없으면 「안 적는 칸」이 영영 안 잡힌다.
+		/// </summary>
+		[Test]
+		public void EverySavedFieldSurvives()
+		{
+			IdleSaveData empty = new IdleState().Save();
+			IdleState state = Filled();
+			IdleSaveData wrote = state.Save();
+
+			IdleState restored = new IdleState();
+			restored.Load(wrote);
+			IdleSaveData again = restored.Save();
+
+			FieldInfo[] fields = typeof(IdleSaveData).GetFields(BindingFlags.Public | BindingFlags.Instance);
+			Assert.Greater(fields.Length, 10, "저장 꼴이 비었다 — 시험이 아무것도 안 보고 있다");
+
+			foreach (FieldInfo field in fields)
+			{
+				object blank = field.GetValue(empty);
+				object before = field.GetValue(wrote);
+				object after = field.GetValue(again);
+
+				if (before is System.Array first)
+				{
+					System.Array second = (System.Array)after;
+					Assert.IsNotNull(second, field.Name + " 가 왕복하며 사라졌다");
+					Assert.AreEqual(first.Length, second.Length, field.Name + " 의 길이가 달라졌다");
+					continue;
+				}
+
+				// ① 채운 판이 빈 판과 같다 = 그 칸을 안 적고 있다.
+				Assert.AreNotEqual(blank, before,
+					field.Name + " 이 값을 채웠는데도 빈 판과 같다 — Save() 에서 빠졌다");
+
+				// ② 왕복해도 같아야 한다.
+				Assert.AreEqual(before, after,
+					field.Name + " 가 왕복하며 달라졌다 — Load() 에서 빠졌다");
+			}
+		}
+
+		/// <summary>
+		/// ★ <b>일부러 안 담는 것</b> — 지나가는 것과 폭주.
+		///
+		/// 담으면 「폭주 걸어 놓고 끄기」가 최적이 되고, 그 순간 봉우리의 뜻이 뒤집힌다.
+		/// (자리 비운 몫은 <see cref="IdleSession.CatchUp"/> 이 따로 지운다.)
+		/// </summary>
+		[Test]
+		public void LiveOnlyThingsAreNotSaved()
+		{
+			IdleState state = Filled();
+			state.SurgeKind = (int)IdleSurgeKind.Frenzy;
+			state.SurgeSecondsLeft = 25d;
+			state.VisitorSecondsLeft = 9d;
+
+			IdleState restored = new IdleState();
+			restored.Load(state.Save());
+
+			Assert.AreEqual(0d, restored.SurgeSecondsLeft, 1e-9d, "폭주가 저장을 건넜다");
+			Assert.AreEqual(0d, restored.VisitorSecondsLeft, 1e-9d, "지나가는 것이 저장을 건넜다");
+		}
+
+		/// <summary>★ 빈 저장(옛 판)도 터지지 않고 열린다 — 새 칸은 기본값으로 채운다.</summary>
+		[Test]
+		public void AnEmptySaveOpensCleanly()
+		{
+			IdleState fromNothing = new IdleState();
+			fromNothing.Load(new IdleSaveData());
+
+			Assert.AreEqual(1, fromNothing.Stage, "단계가 0 이 됐다 — 판이 어긋난다");
+			Assert.IsNotNull(fromNothing.Heroes);
+			Assert.AreEqual(3, fromNothing.Party.Length);
+			Assert.IsNotNull(fromNothing.Owned);
+		}
+
+		/// <summary>값이 <b>다 들어찬</b> 판 — 기본값과 겹치면 빠뜨려도 시험이 못 잡는다.</summary>
+		private static IdleState Filled()
+		{
+			IdleTuning tuning = new IdleTuning();
+			IdleState state = new IdleState();
+			state.EnsureProducerRoom(tuning.ProducerCount);
+			state.EnsureTierRoom(6);
+
+			state.Resource = 12345.5d;
+			state.Kills = 777L;
+			state.HitsOnTarget = 5L;
+			state.AttackProgress = 0.4d;
+			state.Stage = 42;
+			state.KillsInStage = 3;
+			state.BestStage = 91;
+			state.HoldingStage = true;
+			state.PrestigePoints = 11L;
+			state.Stones = 5L;
+			state.Ascensions = 4;
+			state.Owned[0] = 9L;
+			state.Owned[2] = 2L;
+			state.DropSequence = 13L;
+			state.RandomState = 987654321L;
+			state.BestPotentialValue = 0.33d;
+			state.BestPotentialGrade = 2;
+			state.PullsDone = 17L;
+			state.PullsSincePity = 8;
+			state.LastSeenUnixSeconds = 1700000000L;
+			state.Damage.Level = 6;
+			state.AttackSpeed.Level = 4;
+
+			state.Bag.Add(new IdleItem(3, IdleItemSlot.Hands));
+			state.Worn[0] = new IdleItem(2, IdleItemSlot.Head);
+
+			state.Heroes.Add(new IdleHeroOwned(4));
+			state.Party[0] = 4;
+
+			return state;
+		}
+	}
+}
