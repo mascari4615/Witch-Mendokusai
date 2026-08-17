@@ -227,5 +227,81 @@ namespace WitchMendokusai.Tests
 			state.SurgeSecondsLeft = 0d;
 			Assert.AreEqual(1d, session.Capture().SurgeMultiplier, 1e-9d);
 		}
+
+		/// <summary>
+		/// ★ <b>손폭주가 손에 실제로 걸린다</b> — 화면이 「손 x50」이라 적는 그 값.
+		///
+		/// 폭주 배수를 <b>화면에 실어 보내는지</b>는 이미 보고 있었지만, 그 배수가
+		/// <b>때리기에 실제로 곱해지는지</b>는 아무도 안 봤다. 적힌 값과 맞는 값이
+		/// 갈리면 그건 거짓 광고다.
+		/// </summary>
+		[Test]
+		public void HandFrenzy_ActuallyHitsHarder()
+		{
+			IdleTuning tuning = new IdleTuning();
+
+			// ⚠ <b>안 죽는 깊이</b>에서 잰다 (실측 2026-08-17): 1단계에서는 50배로 들어간 타격이
+			//   곧바로 <b>처치로 소모돼</b> 사라져서, 두 판 다 「남은 것 0」으로 보인다.
+			//   깊이 들어가면 한 대에 안 죽으므로 들어간 타격이 그대로 쌓여 눈에 보인다.
+			IdleState calm = Board(tuning);
+			IdleState raging = Board(tuning);
+
+			calm.Stage = 300;
+			raging.Stage = 300;
+
+			raging.SurgeKind = (int)IdleSurgeKind.HandFrenzy;
+			raging.SurgeSecondsLeft = 10d;
+
+			IdleModel.Tap(calm, tuning);
+			IdleModel.Tap(raging, tuning);
+
+			double calmProgress = calm.AttackProgress + calm.HitsOnTarget;
+			double ragingProgress = raging.AttackProgress + raging.HitsOnTarget;
+
+			Assert.Greater(calmProgress, 0d, "잴 것이 없다 — 그냥 두드려도 아무 일이 없다");
+			Assert.AreEqual(calmProgress * tuning.HandFrenzyMultiplier, ragingProgress, calmProgress * 1e-6d,
+				"화면은 손 x" + tuning.HandFrenzyMultiplier + " 이라 적는데 실제로는 안 그렇다");
+		}
+
+		/// <summary>
+		/// ★ <b>가방이 차면 새 장비가 안 들어온다</b> — 화면이 「꽉 찼다」라고 경고하는 그 규칙.
+		///
+		/// 그리고 그때도 <b>감정용 개수는 쌓인다</b>(화면이 그렇게 적어 뒀다).
+		/// 둘 중 하나만 맞으면 경고가 거짓말이 된다.
+		/// </summary>
+		[Test]
+		public void AFullBag_TakesNoMoreGear_ButStillCounts()
+		{
+			IdleTuning tuning = new IdleTuning();
+			IdleState state = new IdleState();
+			state.EnsureProducerRoom(tuning.ProducerCount);
+			state.EnsureTierRoom(6);
+
+			for (int one = 0; one < tuning.BagCapacity; one++)
+			{
+				state.Bag.Add(new IdleItem(1, IdleItemSlot.Head));
+			}
+
+			Assert.IsTrue(IdleGear.IsBagFull(state, tuning), "꽉 찼는데 아니라고 한다");
+
+			int took = IdleGear.Stow(state, tuning, 2, 5L);
+
+			Assert.AreEqual(0, took, "꽉 찼는데 새 장비가 들어왔다");
+			Assert.AreEqual(tuning.BagCapacity, state.Bag.Count, "가방이 넘쳤다");
+
+			// 감정용 개수는 <b>따로</b> 쌓인다 — 떨구기 쪽이 센다.
+			long before = state.DroppedByTier[1];
+			IdleDrops.Accrue(state, tuning, 400L, 12);
+
+			Assert.Greater(state.DroppedByTier[1], before,
+				"가방이 찼다고 감정용 개수까지 멈췄다 — 화면 경고가 거짓말이 된다");
+		}
+
+		private static IdleState Board(IdleTuning tuning)
+		{
+			IdleState state = new IdleState();
+			state.EnsureProducerRoom(tuning.ProducerCount);
+			return state;
+		}
 	}
 }
