@@ -1564,6 +1564,9 @@ namespace WitchMendokusai
 					text.AppendFormat("  {0} {1:P1}", NameOf(one.Grade), one.PotentialValue);
 				}
 
+				// ★ <b>얼마나 좋아지나</b>를 적는다 — 이 저장소가 다른 자리에서 다 지키는 규칙인데
+				//   정작 차고 있는 것에는 없었다. 등급 숫자만으로는 세진 정도가 안 읽힌다.
+				text.AppendFormat("  x{0:0.00}", IdleGear.MultiplierOfItem(one, session.Tuning));
 				text.AppendLine();
 			}
 
@@ -1599,10 +1602,21 @@ namespace WitchMendokusai
 					bagShapes[index].Body = TierColor(one.Tier);
 				}
 
-				bagButtons[index].text = string.Format("{0}{1} {2}{3}",
+				// ★ <b>차면 어떻게 되나</b>를 그 줄에서 바로 보여준다. 전에는 등급만 적혀 있어서
+				//   「지금 찬 것보다 나은가」를 사람이 부위별로 외우고 있어야 했다 —
+				//   외우게 만드는 것은 결정이 아니라 숙제다.
+				double now = index < snapshot.Worn.Length
+					? IdleGear.MultiplierOfItem(snapshot.Worn[(int)one.Slot], session.Tuning)
+					: 1d;
+				double after = IdleGear.MultiplierOfItem(one, session.Tuning);
+
+				bagButtons[index].text = string.Format("{0}{1} {2}{3}   {4}",
 					ShapeMark(one.Tier), one.Tier,
 					slots[(int)one.Slot],
-					one.PotentialValue > 0d ? string.Format("  {0:P1}", one.PotentialValue) : string.Empty);
+					one.PotentialValue > 0d ? string.Format("  {0:P1}", one.PotentialValue) : string.Empty,
+					after > now
+						? string.Format("x{0:0.00} → x{1:0.00}", now, after)
+						: string.Format("x{0:0.00} (지금 것이 낫다)", after));
 			}
 		}
 

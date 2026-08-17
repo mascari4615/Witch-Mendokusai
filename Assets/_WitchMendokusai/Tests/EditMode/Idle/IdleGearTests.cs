@@ -71,5 +71,38 @@ namespace WitchMendokusai.Tests
 			Assert.IsTrue(made.IsRaw, "합쳤는데 잠재가 따라왔다 — 감정이 한 번짜리가 된다");
 			Assert.AreEqual(1, state.Bag.Count, "재료가 안 없어졌다");
 		}
+
+		/// <summary>
+		/// ★ <b>한 벌이 주는 배수</b>는 차고 있든 가방에 있든 같은 셈이다.
+		///
+		/// 화면이 「차면 얼마나 좋아지나」를 말하려면 가방에 있는 것의 값도 필요한데,
+		/// 그 셈을 화면이 따로 쓰면 언젠가 갈린다. 그래서 한 자리에서만 센다.
+		/// </summary>
+		[Test]
+		public void AnItemIsWorthTheSame_InTheBagOrOn()
+		{
+			IdleTuning tuning = new IdleTuning();
+			IdleState state = new IdleState();
+
+			IdleItem one = new IdleItem(4, IdleItemSlot.Head);
+			one.PotentialValue = 0.3d;
+
+			double inTheBag = IdleGear.MultiplierOfItem(one, tuning);
+
+			state.Bag.Add(one);
+			Assert.IsTrue(IdleGear.TryEquip(state, 0));
+
+			Assert.AreEqual(inTheBag, IdleGear.MultiplierOf(state, tuning, IdleItemSlot.Head), 1e-9d,
+				"가방에서 잰 값과 차고 나서 잰 값이 다르다 — 화면이 거짓 예고를 하게 된다");
+			Assert.Greater(inTheBag, 1d, "잴 것이 없다 — 배수가 1 이다");
+		}
+
+		/// <summary>★ 빈 자리는 배수 1 — 「없음」이 곧 손해가 아니라 <b>기준점</b>이다.</summary>
+		[Test]
+		public void AnEmptySlotIsJustOne()
+		{
+			IdleTuning tuning = new IdleTuning();
+			Assert.AreEqual(1d, IdleGear.MultiplierOfItem(default(IdleItem), tuning), 1e-9d);
+		}
 	}
 }

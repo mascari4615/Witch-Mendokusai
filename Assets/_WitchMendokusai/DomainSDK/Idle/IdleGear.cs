@@ -191,6 +191,18 @@ namespace WitchMendokusai.DomainSDK.Idle
         public static double MultiplierOf(IdleState state, IdleTuning tuning, IdleItemSlot slot)
         {
             IdleItem one = state.Worn.Length > (int)slot ? state.Worn[(int)slot] : default;
+            return MultiplierOfItem(one, tuning);
+        }
+
+        /// <summary>
+        /// 이 한 벌이 <b>주는 배수</b> — 차고 있든 가방에 있든 같은 셈이다.
+        ///
+        /// ★ 화면이 「차면 얼마나 좋아지나」를 말하려면 <b>가방에 있는 것</b>의 값도 필요하다.
+        ///   그 셈을 화면이 따로 쓰면 언젠가 갈린다 — 이 저장소가 오늘 하루에만
+        ///   같은 이유로 세 번 데었다(합치기 개수·도감 배수·기본값 드리프트).
+        /// </summary>
+        public static double MultiplierOfItem(IdleItem one, IdleTuning tuning)
+        {
             if (one.IsEmpty)
             {
                 return 1d;
