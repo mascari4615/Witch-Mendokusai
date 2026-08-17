@@ -49,8 +49,14 @@ namespace WitchMendokusai.DomainSDK.Idle
             return tuning.ProducerOutputByKind.At(kind);
         }
 
-        /// <summary>기지 전체가 내는 초당 자원.</summary>
-        public static double OutputPerSecond(IdleState state, IdleTuning tuning)
+        /// <summary>
+        /// 배수를 <b>안 곱한</b> 기지 산출 — 「하나 더 사면 몇 배가 되나」를 재는 바닥.
+        ///
+        /// ★ 배수(장비·영웅·도감·폭주)는 사도 안 사도 똑같이 곱해지므로 <b>비율에서 지워진다</b>.
+        ///   그래서 그 비율은 이 바닥만으로 잰다 — 전에는 그걸 재려고 <b>생산자를 넣었다 뺐다</b> 했다.
+        ///   조회하는 자리가 판을 건드리면, 그 사이에 무슨 일이 나는 순간 공짜 생산자가 남는다.
+        /// </summary>
+        public static double RawOutputPerSecond(IdleState state, IdleTuning tuning)
         {
             double total = 0d;
 
@@ -58,6 +64,14 @@ namespace WitchMendokusai.DomainSDK.Idle
             {
                 total += state.Owned[kind] * OutputOf(kind, tuning);
             }
+
+            return total;
+        }
+
+        /// <summary>기지 전체가 내는 초당 자원.</summary>
+        public static double OutputPerSecond(IdleState state, IdleTuning tuning)
+        {
+            double total = RawOutputPerSecond(state, tuning);
 
             // ★ 폭주는 <b>판 전체</b>다 — 전에는 때리는 속도에만 걸려 있어서, 기지가 수입의 거의
             //   전부가 되는 중반 이후에는 「폭주!」가 떠도 실제로는 거의 아무 일도 안 일어났다.

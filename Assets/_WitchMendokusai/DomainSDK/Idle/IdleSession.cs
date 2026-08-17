@@ -493,20 +493,27 @@ namespace WitchMendokusai.DomainSDK.Idle
         }
 
         /// <summary>
-        /// 이 생산자를 하나 더 사면 <b>초당 수입이 몇 배</b>가 되나 — 실제로 하나 얹어 보고 되돌린다.
+        /// 이 생산자를 하나 더 사면 <b>초당 수입이 몇 배</b>가 되나.
         ///
         /// ★ 공식을 화면이 다시 쓰지 않게. 두 번 쓰면 언젠가 갈리고 버튼이 거짓말을 한다.
-        ///   장비·영웅 배수가 다 곱해진 <b>진짜</b> 값이라야 고를 때 쓸모가 있다.
+        ///
+        /// ★ 배수(장비·영웅·도감·폭주)는 사도 안 사도 <b>똑같이</b> 곱해져 비율에서 지워진다 —
+        ///   그래서 바닥(<see cref="IdleBase.RawOutputPerSecond"/>)만으로 잰다. 값은 전과 같다.
+        ///
+        /// ⚠ 전에는 <b>생산자를 하나 얹었다 되돌리며</b> 쟀다. 조회하는 자리가 판을 건드리면,
+        ///   그 사이에 무슨 일이 나는 순간 공짜 생산자가 남는다 — 그런 자리는 안 만드는 게 낫다.
+        ///   덤으로 훑기가 두 번에서 한 번이 된다(화면이 매 프레임 생산자마다 부른다).
         /// </summary>
         private double IncomeGainOf(int kind)
         {
-            double before = IdleBase.OutputPerSecond(state, tuning);
+            double before = IdleBase.RawOutputPerSecond(state, tuning);
 
-            state.Owned[kind] += 1L;
-            double after = IdleBase.OutputPerSecond(state, tuning);
-            state.Owned[kind] -= 1L;
+            if (before <= 0d)
+            {
+                return double.PositiveInfinity;
+            }
 
-            return before > 0d ? after / before : double.PositiveInfinity;
+            return (before + IdleBase.OutputOf(kind, tuning)) / before;
         }
 
         /// <summary>지금 벌이로 이 값을 모으는 데 걸리는 시간(초).</summary>

@@ -392,5 +392,74 @@ namespace WitchMendokusai.Tests
 
 			return new IdleSession(tuning, state);
 		}
+
+		/// <summary>
+		/// ★ 「사면 몇 배가 되나」가 <b>맞는 값</b>이다 — 화면의 간판 숫자인데 시험이 없었다.
+		/// </summary>
+		[Test]
+		public void TheIncomeGain_IsTheRealRatio()
+		{
+			IdleTuning tuning = new IdleTuning();
+			IdleState state = new IdleState();
+			state.EnsureProducerRoom(tuning.ProducerCount);
+			state.Owned[0] = 4L;
+
+			IdleSession session = new IdleSession(tuning, state);
+			IdleSnapshot now = session.Capture();
+
+			double before = IdleBase.OutputPerSecond(state, tuning);
+			state.Owned[0] += 1L;
+			double after = IdleBase.OutputPerSecond(state, tuning);
+			state.Owned[0] -= 1L;
+
+			Assert.AreEqual(after / before, now.Producers[0].IncomeGain, 1e-9d,
+				"사면 몇 배가 되는지를 틀리게 말한다");
+			Assert.Greater(now.Producers[0].IncomeGain, 1d);
+		}
+
+		/// <summary>★ 첫 수입일 때는 <b>무한</b> — 0 에서 뭔가로 가는 건 「몇 배」로 못 적는다.</summary>
+		[Test]
+		public void TheFirstIncome_IsInfinite()
+		{
+			IdleTuning tuning = new IdleTuning();
+			IdleState state = new IdleState();
+			state.EnsureProducerRoom(tuning.ProducerCount);
+
+			for (int kind = 0; kind < state.Owned.Length; kind++)
+			{
+				state.Owned[kind] = 0L;
+			}
+
+			IdleSnapshot now = new IdleSession(tuning, state).Capture();
+
+			Assert.IsTrue(double.IsInfinity(now.Producers[0].IncomeGain),
+				"아무것도 안 벌 때 「몇 배」를 유한한 수로 말한다");
+		}
+
+		/// <summary>
+		/// ★ <b>사진을 찍는다고 판이 바뀌면 안 된다</b> — 조회가 판을 건드리던 자리가 있었다 (회귀).
+		///
+		/// 「사면 몇 배」를 재려고 생산자를 하나 얹었다 되돌렸다. 그 사이에 무슨 일이 나면
+		/// 공짜 생산자가 남는다. 지금은 안 건드린다 — 그걸 못 박는다.
+		/// </summary>
+		[Test]
+		public void TakingThePicture_DoesNotTouchTheBoard()
+		{
+			IdleTuning tuning = new IdleTuning();
+			IdleState state = new IdleState();
+			state.EnsureProducerRoom(tuning.ProducerCount);
+			state.Owned[0] = 3L;
+			state.Owned[1] = 1L;
+			state.Resource = 500d;
+
+			IdleSaveData before = state.Save();
+			new IdleSession(tuning, state).Capture();
+			IdleSaveData after = state.Save();
+
+			Assert.AreEqual(before.Owned[0], after.Owned[0], "사진을 찍었더니 생산자 수가 달라졌다");
+			Assert.AreEqual(before.Owned[1], after.Owned[1]);
+			Assert.AreEqual(before.Resource, after.Resource, 1e-9d);
+			Assert.AreEqual(before.RandomState, after.RandomState, "사진이 주사위를 굴렸다");
+		}
 	}
 }
