@@ -273,8 +273,8 @@ namespace WitchMendokusai.DomainSDK.Idle
                 IdleDrops.MaxTierAt(state.Stage, state.Ascensions, tuning),
                 IdleDrops.CeilingFor(state.Ascensions, tuning),
                 CaptureProducers(),
-                state.Bag.ToArray(),
-                (IdleItem[])state.Worn.Clone(),
+                CaptureBag(),
+                CaptureWorn(),
                 tuning.BagCapacity,
                 tuning.MergeCount,
                 state.BestPotentialValue,
@@ -284,7 +284,7 @@ namespace WitchMendokusai.DomainSDK.Idle
                 state.BestStage,
                 IdleModel.BestFarmingStage(state, tuning),
                 CaptureHeroes(),
-                (int[])state.Party.Clone(),
+                CaptureParty(),
                 IdleGacha.CostOf(state, tuning),
                 IdleGacha.StoneCostOf(tuning),
                 state.Stones,
@@ -319,7 +319,7 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// <summary>도감을 사진에 담는다 — 화면이 등급표·별 셈을 다시 하지 않게.</summary>
         private IdleHeroView[] CaptureHeroes()
         {
-            IdleHeroView[] made = new IdleHeroView[state.Heroes.Count];
+            IdleHeroView[] made = Room(ref heroBuffer, state.Heroes.Count);
 
             for (int index = 0; index < state.Heroes.Count; index++)
             {
@@ -352,12 +352,66 @@ namespace WitchMendokusai.DomainSDK.Idle
             return made;
         }
 
+        // ── 사진에 쓰는 판들 ─────────────────────────────────────────────────
+        //
+        // ★ <b>왜 돌려 쓰나</b> — 사진은 <b>매 프레임</b> 찍힌다. 전에는 찍을 때마다 배열 다섯을
+        //   새로 만들었고, 실측 <b>한 번에 2472 바이트</b>였다(가방 40칸·영웅 16 기준).
+        //   60프레임 x 8시간이면 <b>4 GB</b>어치 쓰레기다 — 방치형은 밤새 켜 두는 게 기본값이라
+        //   그게 그대로 쌓인다. 추측이 아니라 재고 고쳤다
+        //   (GC.GetAllocatedBytesForCurrentThread 로 엔진 밖에서 잰 값).
+        //
+        // ⚠ 그래서 <b>이 사진은 다음 사진을 찍을 때까지만 살아 있다</b>. 들고 있다가 나중에
+        //   보면 그때는 다른 판이다. 지금 쓰는 자리는 전부 <b>찍자마자 쓴다</b>(화면 한 프레임,
+        //   시험 한 줄). 들고 있어야 하면 그때는 <b>복사해서</b> 들어라.
+        private IdleProducerView[] producerBuffer;
+        private IdleHeroView[] heroBuffer;
+        private IdleItem[] bagBuffer;
+        private IdleItem[] wornBuffer;
+        private int[] partyBuffer;
+
+        /// <summary>자리를 맞춰 준다 — 수가 그대로면 쓰던 판을 그대로 쓴다.</summary>
+        private static T[] Room<T>(ref T[] buffer, int count)
+        {
+            if (buffer == null || buffer.Length != count)
+            {
+                buffer = new T[count];
+            }
+
+            return buffer;
+        }
+
+        private IdleItem[] CaptureBag()
+        {
+            IdleItem[] made = Room(ref bagBuffer, state.Bag.Count);
+
+            for (int index = 0; index < made.Length; index++)
+            {
+                made[index] = state.Bag[index];
+            }
+
+            return made;
+        }
+
+        private IdleItem[] CaptureWorn()
+        {
+            IdleItem[] made = Room(ref wornBuffer, state.Worn.Length);
+            System.Array.Copy(state.Worn, made, made.Length);
+            return made;
+        }
+
+        private int[] CaptureParty()
+        {
+            int[] made = Room(ref partyBuffer, state.Party.Length);
+            System.Array.Copy(state.Party, made, made.Length);
+            return made;
+        }
+
         /// <summary>기지를 사진에 담는다 — 화면이 값·산출을 다시 계산하지 않게.</summary>
         private IdleProducerView[] CaptureProducers()
         {
             state.EnsureProducerRoom(tuning.ProducerCount);
 
-            IdleProducerView[] made = new IdleProducerView[tuning.ProducerCount];
+            IdleProducerView[] made = Room(ref producerBuffer, tuning.ProducerCount);
 
             for (int kind = 0; kind < tuning.ProducerCount; kind++)
             {

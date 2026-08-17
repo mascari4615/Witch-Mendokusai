@@ -318,5 +318,79 @@ namespace WitchMendokusai.Tests
 				Assert.AreEqual(said, raised > 0, "자원 " + purse + " — 말과 실제가 다르다");
 			}
 		}
+
+		/// <summary>
+		/// ★ 사진 찍기가 <b>쓰레기를 안 만든다</b> — 방치형은 밤새 켜 두는 게 기본값이다.
+		///
+		/// 실측(2026-08-17): 고치기 전엔 <b>한 번에 2472 바이트</b>였다(가방 40칸·영웅 16).
+		/// 60프레임 x 8시간이면 <b>4 GB</b>어치다. 지금은 판을 돌려 써서 0 이다.
+		///
+		/// ⚠ 그 대가로 <b>사진은 다음 사진을 찍을 때까지만 살아 있다</b>. 들고 있다가 나중에
+		///   보면 그때는 다른 판이다 — 들고 있어야 하면 복사해서 들어라.
+		///   그 성질을 아래 시험이 같이 못 박는다.
+		/// </summary>
+		[Test]
+		public void TakingThePicture_MakesNoGarbage()
+		{
+			IdleSession session = Loaded(out IdleTuning _);
+
+			session.Capture();
+
+			long before = System.GC.GetAllocatedBytesForCurrentThread();
+
+			for (int again = 0; again < 100; again++)
+			{
+				session.Capture();
+			}
+
+			long each = (System.GC.GetAllocatedBytesForCurrentThread() - before) / 100L;
+
+			TestContext.WriteLine("[할당] 사진 한 번 = " + each + " 바이트");
+
+			Assert.LessOrEqual(each, 64L,
+				"사진 한 번에 " + each + " 바이트를 만든다 — 밤새 켜 두면 그게 그대로 쌓인다");
+		}
+
+		/// <summary>
+		/// ★ 그 대신 <b>사진은 다음 사진까지만</b> 유효하다 — 성질을 못 박아 둔다.
+		///
+		/// 이걸 안 적어 두면 다음 사람이 사진을 들고 있다가 <b>조용히 다른 판</b>을 보게 된다.
+		/// </summary>
+		[Test]
+		public void AnOldPicture_ShowsTheNewBoard()
+		{
+			IdleSession session = Loaded(out IdleTuning tuning);
+
+			IdleSnapshot old = session.Capture();
+			int wasBag = old.Bag.Length;
+
+			session.State.Bag[0] = new IdleItem(9, IdleItemSlot.Feet);
+			session.Capture();
+
+			Assert.AreEqual(wasBag, old.Bag.Length, "길이는 그대로여야 한다(판을 돌려 쓴다)");
+			Assert.AreEqual(9, old.Bag[0].Tier,
+				"들고 있던 사진이 옛 판을 보여준다 — 판을 돌려 쓰는 성질이 사라졌다면 이 시험을 지워라");
+		}
+
+		/// <summary>가방·영웅이 들어찬 판 — 사진이 제일 커지는 자리.</summary>
+		private static IdleSession Loaded(out IdleTuning tuning)
+		{
+			tuning = new IdleTuning();
+			IdleState state = new IdleState();
+			state.EnsureProducerRoom(tuning.ProducerCount);
+			state.EnsureTierRoom(12);
+
+			for (int one = 0; one < tuning.BagCapacity; one++)
+			{
+				state.Bag.Add(new IdleItem(3, IdleItemSlot.Head));
+			}
+
+			for (int id = 0; id < 16; id++)
+			{
+				state.Heroes.Add(new IdleHeroOwned(id));
+			}
+
+			return new IdleSession(tuning, state);
+		}
 	}
 }
