@@ -31,6 +31,16 @@ namespace WitchMendokusai.DomainSDK.Idle
         Tap = 8,
     }
 
+    /// <summary>서랍의 칸 — 화면의 순서와 같다.</summary>
+    public enum IdleTab
+    {
+        Base = 0,
+        Upgrade = 1,
+        Gear = 2,
+        Hero = 3,
+        Prestige = 4,
+    }
+
     /// <summary>한 걸음과 그에 딸린 숫자 (없으면 0).</summary>
     public readonly struct IdleAdviceResult
     {
@@ -116,6 +126,102 @@ namespace WitchMendokusai.DomainSDK.Idle
             }
 
             return new IdleAdviceResult(IdleStep.Wait, -1, SoonestWait(snapshot));
+        }
+
+        /// <summary>
+        /// 그 칸에 <b>지금 할 것이 있나</b> — 닫힌 칸에 점을 찍기 위한 것 (TASK-WM-406).
+        ///
+        /// ★ 서랍을 들이면서 다섯 칸 중 넷이 늘 <b>안 보이게</b> 됐다. 안 보이는 곳에서
+        ///   할 수 있는 일이 생기면 사람은 그걸 영영 모른다 — 서랍이 만든 빚이다.
+        ///   <see cref="NextStep"/> 는 <b>하나</b>만 가리키므로 이 빚을 못 갚는다.
+        ///   그래서 칸마다 따로 묻는다.
+        ///
+        /// ★ 장비의 「더 좋은 것을 안 찼다」는 <b>좁게</b> 본다 — 칸이 비었거나, 등급이
+        ///   더 높거나, 등급이 같고 잠재가 더 높을 때만. 실제 값어치는 튜닝(등급 보너스)에
+        ///   걸리는데 화면 꼴은 튜닝을 안 들고 있다. 넓게 어림잡아 <b>틀린 점</b>을 찍느니
+        ///   확실한 것만 찍는다 — 거짓 점은 점을 못 믿게 만들고, 못 믿는 점은 없는 것만 못하다.
+        /// </summary>
+        public static bool HasSomethingToDo(IdleSnapshot snapshot, IdleTab tab)
+        {
+            switch (tab)
+            {
+                case IdleTab.Base:
+                    return CheapestAffordableProducer(snapshot) >= 0;
+
+                case IdleTab.Upgrade:
+                    return snapshot.Damage.CanAfford || snapshot.AttackSpeed.CanAfford;
+
+                case IdleTab.Gear:
+                    return snapshot.Bag.Length >= snapshot.BagCapacity
+                        || MergeableCount(snapshot) > 0
+                        || HasBetterUnworn(snapshot);
+
+                case IdleTab.Hero:
+                    return snapshot.CanPull || HasEmptyPartySeat(snapshot);
+
+                case IdleTab.Prestige:
+                    return snapshot.PrestigeAward > 0L && snapshot.MaxTierNow >= snapshot.TierCeiling;
+
+                default:
+                    return false;
+            }
+        }
+
+        /// <summary>가방에 <b>확실히</b> 더 나은 것이 있나 — 위 주석의 좁은 뜻.</summary>
+        public static bool HasBetterUnworn(IdleSnapshot snapshot)
+        {
+            for (int index = 0; index < snapshot.Bag.Length; index++)
+            {
+                IdleItem one = snapshot.Bag[index];
+                if (one.IsEmpty)
+                {
+                    continue;
+                }
+
+                int slot = (int)one.Slot;
+                if (slot < 0 || slot >= snapshot.Worn.Length)
+                {
+                    continue;
+                }
+
+                IdleItem wearing = snapshot.Worn[slot];
+                if (wearing.IsEmpty)
+                {
+                    return true;
+                }
+
+                if (one.Tier > wearing.Tier)
+                {
+                    return true;
+                }
+
+                if (one.Tier == wearing.Tier && one.PotentialValue > wearing.PotentialValue)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>영웅이 있는데 파티 자리가 비었나 — 안 세우면 배수가 그냥 놀고 있다.</summary>
+        public static bool HasEmptyPartySeat(IdleSnapshot snapshot)
+        {
+            if (snapshot.Heroes.Length <= 0)
+            {
+                return false;
+            }
+
+            int seated = 0;
+            for (int seat = 0; seat < snapshot.Party.Length; seat++)
+            {
+                if (snapshot.Party[seat] >= 0)
+                {
+                    seated++;
+                }
+            }
+
+            return seated < snapshot.Party.Length && seated < snapshot.Heroes.Length;
         }
 
         /// <summary>합칠 수 있는 묶음 수 — 같은 부위·같은 등급 셋.</summary>

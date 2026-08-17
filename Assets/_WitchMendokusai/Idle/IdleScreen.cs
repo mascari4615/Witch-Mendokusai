@@ -112,6 +112,12 @@ namespace WitchMendokusai
 
 		// ── 조작 서랍 ───────────────────────────────────────────────────────
 		private readonly List<Button> tabButtons = new List<Button>();
+
+		/// <summary>서랍 칸 이름 — <see cref="IdleTab"/> 과 <b>순서가 같아야 한다</b>.</summary>
+		private static readonly string[] TAB_NAMES = { "기지", "강화", "장비", "영웅", "환생" };
+
+		/// <summary>지금 열려 있는 칸 — 열린 칸에는 점을 안 찍는다.</summary>
+		private int shownTab;
 		private readonly List<VisualElement> pages = new List<VisualElement>();
 
 		private VisualElement basePage;
@@ -865,14 +871,13 @@ namespace WitchMendokusai
 			pages.Add(heroPage);
 			pages.Add(foldPage);
 
-			string[] names = { "기지", "강화", "장비", "영웅", "환생" };
 			tabButtons.Clear();
 
-			for (int index = 0; index < names.Length; index++)
+			for (int index = 0; index < TAB_NAMES.Length; index++)
 			{
 				int captured = index;
 				Button tab = AddButton(tabs, "idle-tab", () => ShowTab(captured));
-				tab.text = names[index];
+				tab.text = TAB_NAMES[index];
 				tabButtons.Add(tab);
 			}
 
@@ -887,6 +892,8 @@ namespace WitchMendokusai
 
 		private void ShowTab(int which)
 		{
+			shownTab = which;
+
 			for (int index = 0; index < pages.Count; index++)
 			{
 				pages[index].style.display = index == which ? DisplayStyle.Flex : DisplayStyle.None;
@@ -1053,6 +1060,25 @@ namespace WitchMendokusai
 			RenderGearPage(snapshot);
 			RenderHeroPage(snapshot);
 			RenderFoldPage(snapshot);
+			RenderTabDots(snapshot);
+		}
+
+		/// <summary>
+		/// 닫힌 칸에 <b>점을 찍는다</b> — 서랍이 만든 빚을 갚는다.
+		///
+		/// 서랍을 들이면서 다섯 칸 중 넷이 늘 안 보이게 됐다. 안 보이는 곳에서 할 수 있는 일이
+		/// 생기면 사람은 그걸 영영 모른다. 판단은 코어가 한다(<see cref="IdleAdvice.HasSomethingToDo"/>) —
+		/// 여기서는 점만 찍는다. 열려 있는 칸에는 안 찍는다(눈앞의 것을 또 가리키는 건 소음이다).
+		/// </summary>
+		private void RenderTabDots(IdleSnapshot snapshot)
+		{
+			for (int index = 0; index < tabButtons.Count; index++)
+			{
+				bool has = index != shownTab
+					&& IdleAdvice.HasSomethingToDo(snapshot, (IdleTab)index);
+
+				tabButtons[index].text = has ? TAB_NAMES[index] + " ●" : TAB_NAMES[index];
+			}
 		}
 
 		/// <summary>
