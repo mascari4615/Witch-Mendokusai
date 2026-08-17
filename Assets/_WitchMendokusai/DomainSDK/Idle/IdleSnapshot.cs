@@ -63,9 +63,6 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// <summary>한 개 더 살 때의 값.</summary>
         public double NextCost { get; }
 
-        /// <summary>이 종류 하나가 내는 초당 자원.</summary>
-        public double OutputEach { get; }
-
         /// <summary>이 종류가 지금 내고 있는 초당 자원.</summary>
         public double OutputTotal { get; }
 
@@ -85,13 +82,12 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// <summary>지금 벌이로 몇 초 뒤에 살 수 있나 (0 = 지금).</summary>
         public double SecondsToAfford { get; }
 
-        public IdleProducerView(int kind, long owned, double nextCost, double outputEach,
+        public IdleProducerView(int kind, long owned, double nextCost,
             double outputTotal, bool canAfford, bool hidden, double incomeGain, double secondsToAfford)
         {
             Kind = kind;
             Owned = owned;
             NextCost = nextCost;
-            OutputEach = outputEach;
             OutputTotal = outputTotal;
             CanAfford = canAfford;
             Hidden = hidden;

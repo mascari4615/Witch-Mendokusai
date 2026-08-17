@@ -423,7 +423,6 @@ namespace WitchMendokusai.DomainSDK.Idle
                     kind,
                     owned,
                     cost,
-                    each,
                     owned * each,
                     state.Resource >= cost,
                     IdleBase.IsHidden(kind, state),
