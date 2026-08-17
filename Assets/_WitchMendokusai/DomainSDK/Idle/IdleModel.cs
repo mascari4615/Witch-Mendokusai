@@ -219,7 +219,13 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// <summary>지금 단계의 대상 체력.</summary>
         public static double TargetHealthOf(IdleState state, IdleTuning tuning)
         {
-            return tuning.TargetHealthByStage.At(state.Stage - 1);
+            return TargetHealthAt(state.Stage, tuning);
+        }
+
+        /// <summary>그 단계 대상의 체력 — <b>지금 서 있는 자리와 무관하게</b> 묻는다.</summary>
+        public static double TargetHealthAt(int stage, IdleTuning tuning)
+        {
+            return tuning.TargetHealthByStage.At(stage - 1);
         }
 
         /// <summary>지금 단계의 처치 보상.</summary>
@@ -271,8 +277,14 @@ namespace WitchMendokusai.DomainSDK.Idle
         ///   `double` 이면 절벽이 없다 — 아주 큰 값은 그냥 「못 잡는다」로 이어진다.
         public static double HitsToFell(IdleState state, IdleTuning tuning)
         {
+            return HitsToFellAt(state, tuning, state.Stage);
+        }
+
+        /// <summary>그 단계라면 몇 대에 잡히나 — <b>판을 안 건드리고</b> 묻는다.</summary>
+        public static double HitsToFellAt(IdleState state, IdleTuning tuning, int stage)
+        {
             double damage = DamageOf(state, tuning);
-            double durability = TargetHealthOf(state, tuning);
+            double durability = TargetHealthAt(stage, tuning);
 
             if (damage <= 0d || durability <= 0d || double.IsNaN(damage) || double.IsNaN(durability))
             {
@@ -426,16 +438,18 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// </summary>
         public static int BestFarmingStage(IdleState state, IdleTuning tuning)
         {
-            int was = state.Stage;
+            // ⚠ 전에는 <b>판의 단계를 바꿔 가며</b> 찾고 마지막에 되돌렸다. 이 자리는 화면이
+            //   <b>매 프레임</b> 부르는 곳이라, 그 사이에 무슨 일이 나면 사람이 엉뚱한 깊이에
+            //   서 있게 된다. 「사면 몇 배」에서 고친 것과 같은 병이라 같이 고친다 —
+            //   <b>묻기만 하는 자리는 판을 안 건드린다.</b>
             int low = 1;
             int high = state.BestStage < 1 ? 1 : state.BestStage;
 
             while (low < high)
             {
                 int mid = low + (high - low + 1) / 2;
-                state.Stage = mid;
 
-                if (HitsToFell(state, tuning) <= 1d)
+                if (HitsToFellAt(state, tuning, mid) <= 1d)
                 {
                     low = mid;
                 }
@@ -445,7 +459,6 @@ namespace WitchMendokusai.DomainSDK.Idle
                 }
             }
 
-            state.Stage = was;
             return low;
         }
 

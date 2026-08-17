@@ -194,5 +194,50 @@ namespace WitchMendokusai.Tests
 			Assert.IsFalse(IdleModel.CanGoToStage(state, 13), "가 본 적 없는 데로 보낸다");
 			Assert.IsFalse(IdleModel.CanGoToStage(state, 5), "이미 서 있는 자리로 가라고 한다");
 		}
+
+		/// <summary>
+		/// ★ 「어디서 파는 게 제일 빠른가」를 <b>물어도 판이 안 바뀐다</b> (회귀).
+		///
+		/// 전에는 판의 단계를 바꿔 가며 이분 탐색하고 마지막에 되돌렸다. 화면이 <b>매 프레임</b>
+		/// 부르는 자리라, 그 사이에 무슨 일이 나면 사람이 엉뚱한 깊이에 서 있게 된다.
+		/// </summary>
+		[Test]
+		public void AskingWhereToFarm_DoesNotMoveYou()
+		{
+			IdleTuning tuning = new IdleTuning();
+			IdleState state = new IdleState();
+			state.EnsureProducerRoom(tuning.ProducerCount);
+			state.Stage = 7;
+			state.BestStage = 40;
+			state.KillsInStage = 4;
+			state.HitsOnTarget = 2L;
+
+			int best = IdleModel.BestFarmingStage(state, tuning);
+
+			Assert.AreEqual(7, state.Stage, "물었더니 자리가 옮겨졌다");
+			Assert.AreEqual(4, state.KillsInStage, "물었더니 이번 단계 처치가 달라졌다");
+			Assert.AreEqual(2L, state.HitsOnTarget);
+
+			Assert.GreaterOrEqual(best, 1);
+			Assert.LessOrEqual(best, state.BestStage, "가 본 적 없는 데를 파라고 한다");
+		}
+
+		/// <summary>★ 「그 단계면 몇 대에 잡히나」도 판을 안 건드리고 답한다.</summary>
+		[Test]
+		public void AskingAboutAnotherStage_LeavesYouWhereYouAre()
+		{
+			IdleTuning tuning = new IdleTuning();
+			IdleState state = new IdleState();
+			state.EnsureProducerRoom(tuning.ProducerCount);
+			state.Stage = 3;
+
+			double here = IdleModel.HitsToFell(state, tuning);
+			double deeper = IdleModel.HitsToFellAt(state, tuning, 30);
+
+			Assert.AreEqual(3, state.Stage, "물었더니 자리가 옮겨졌다");
+			Assert.AreEqual(here, IdleModel.HitsToFellAt(state, tuning, 3), 1e-9d,
+				"같은 단계를 물었는데 답이 다르다");
+			Assert.Greater(deeper, here, "깊은 데가 더 쉽다고 한다");
+		}
 	}
 }
