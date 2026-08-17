@@ -118,6 +118,9 @@ namespace WitchMendokusai
 
 		/// <summary>지금 열려 있는 칸 — 열린 칸에는 점을 안 찍는다.</summary>
 		private int shownTab;
+
+		/// <summary>합칠 것을 세는 판 — 매 프레임 새로 만들지 않는다.</summary>
+		private int[] mergeCounts;
 		private readonly List<VisualElement> pages = new List<VisualElement>();
 
 		private VisualElement basePage;
@@ -1606,7 +1609,17 @@ namespace WitchMendokusai
 		/// <summary>합칠 수 있는 조합만 보여준다.</summary>
 		private void RenderMerge(IdleSnapshot snapshot)
 		{
-			int[] counts = new int[64];
+			// ★ 프레임마다 판을 새로 만들지 않는다 — 서랍이 열려 있는 동안 계속 도는 자리다.
+			if (mergeCounts == null)
+			{
+				mergeCounts = new int[64];
+			}
+			else
+			{
+				System.Array.Clear(mergeCounts, 0, mergeCounts.Length);
+			}
+
+			int[] counts = mergeCounts;
 			string[] slots = { "머리", "몸", "손", "발" };
 
 			for (int index = 0; index < snapshot.Bag.Length; index++)
@@ -1620,12 +1633,15 @@ namespace WitchMendokusai
 			}
 
 			List<string> labels = new List<string>();
+			List<bool> afford = new List<bool>();
 			List<int> tiers = new List<int>();
 			List<IdleItemSlot> which = new List<IdleItemSlot>();
 
 			for (int key = 0; key < counts.Length; key++)
 			{
-				if (counts[key] < 3)
+				// ★ 「3」을 여기 박아 두면 안 된다 — 인스펙터에서 손잡이를 4 로 바꾸는 순간
+				//   화면은 합칠 수 있다고 하고 코어는 거절한다(눌러도 아무 일이 안 일어난다).
+				if (counts[key] < snapshot.MergeCount)
 				{
 					continue;
 				}
@@ -1633,8 +1649,15 @@ namespace WitchMendokusai
 				int tier = key / 4;
 				IdleItemSlot slot = (IdleItemSlot)(key % 4);
 
-				labels.Add(string.Format("{0}{1} {2} x{3} → {4}{5}",
-					ShapeMark(tier), tier, slots[(int)slot], counts[key], ShapeMark(tier + 1), tier + 1));
+				// ★ <b>드는 자원</b>을 적는다. 안 적으면 못 누를 때 「고장인가」가 되고,
+				//   기지와 모험이 같은 저울에 올라간다는 것도 안 보인다.
+				double cost = IdleGear.MergeCost(tier, session.Tuning);
+				bool tooPoor = snapshot.Resource < cost;
+
+				labels.Add(string.Format("{0}{1} {2} x{3} → {4}{5}   ({6}{7})",
+					ShapeMark(tier), tier, slots[(int)slot], counts[key], ShapeMark(tier + 1), tier + 1,
+					BigNumberText.Format(cost), tooPoor ? " 모자란다" : string.Empty));
+				afford.Add(tooPoor == false);
 				tiers.Add(tier);
 				which.Add(slot);
 			}
@@ -1655,6 +1678,9 @@ namespace WitchMendokusai
 			for (int index = 0; index < mergeButtons.Count && index < labels.Count; index++)
 			{
 				mergeButtons[index].text = labels[index];
+				mergeButtons[index].SetEnabled(afford[index]);
+				mergeButtons[index].EnableInClassList("idle-button--ready", afford[index]);
+				mergeButtons[index].EnableInClassList("idle-button--locked", afford[index] == false);
 			}
 		}
 
