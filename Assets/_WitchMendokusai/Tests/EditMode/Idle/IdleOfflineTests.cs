@@ -228,5 +228,22 @@ namespace WitchMendokusai.Tests
 			Assert.Greater(away.LostSeconds, 0d, "흘린 시간이 0 이라고 한다");
 			Assert.AreEqual(cap, away.CreditedSeconds, 1d, "상한만큼만 쳐줘야 한다");
 		}
+
+		/// <summary>
+		/// ★ 자리를 안 비웠으면 <b>아무 말도 안 한다</b> — 0 을 보고하는 것도 소음이다.
+		/// </summary>
+		[Test]
+		public void NoTimeAway_SaysNothing()
+		{
+			IdleTuning tuning = new IdleTuning();
+			IdleState state = new IdleState();
+			state.EnsureProducerRoom(tuning.ProducerCount);
+			state.LastSeenUnixSeconds = 5000L;
+
+			IdleSession session = new IdleSession(tuning, state);
+			session.CatchUp(5000L, out IdleAwayReport away);
+
+			Assert.IsFalse(away.HasAnything, "안 비웠는데 보고할 게 있다고 한다");
+		}
 	}
 }
