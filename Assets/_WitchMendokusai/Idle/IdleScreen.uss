@@ -4,7 +4,7 @@
  * 사용자 방향: 세계관 정하기 전이라 <기하학적 모양>으로 간다.
  * 값이 아니라 뜻으로 이름 짓는다 — 팔레트가 한 자리에 산다.
  *
- * ★ 사는 곳은 실황 칸 위 (사용자 2026-08-17). 하단 5탭 서랍은 버렸다.
+ * ★ 큰 짜임 = 3칸 (기지 · 전투 · 창고). 전투 칸에는 때리기만.
  *
  * ★ 해상도 — 고정 픽셀 크기를 최소로 쓰고 flex 로 늘린다.
  *   좁은 창에서는 실황 셋이 아래로 접힌다(.idle-stages 의 wrap).
@@ -16,8 +16,6 @@
 	background-color: rgb(14, 15, 20);
 	color: rgb(226, 228, 236);
 }
-
-/* ── 위 요약 띠 ─────────────────────────────────────────────── */
 
 .idle-topbar {
 	flex-direction: row;
@@ -47,8 +45,6 @@
 	color: rgb(128, 132, 146);
 }
 
-/* ── 실황 셋 ────────────────────────────────────────────────── */
-
 .idle-stages {
 	flex-grow: 1;
 	flex-direction: row;
@@ -56,7 +52,6 @@
 	min-height: 240px;
 }
 
-/* 실황 한 칸 — 아무것도 만질 것이 없고, 계속 움직인다 */
 .idle-live {
 	flex-basis: 220px;
 	flex-grow: 1;
@@ -101,11 +96,45 @@
 	margin-bottom: 8px;
 }
 
-/* 전투가 가운데이자 주인공 — 가로를 더 먹는다(달려가 때리는 게 보이려면 폭이 필요하다) */
+.idle-hover-tip {
+	position: absolute;
+	background-color: rgb(18, 20, 28);
+	border-width: 1px;
+	border-color: rgb(90, 110, 140);
+	padding: 6px 8px;
+	font-size: 12px;
+	color: rgb(226, 228, 236);
+	white-space: normal;
+	max-width: 220px;
+}
+
 .idle-arena {
+	position: relative;
 	flex-grow: 2;
 	flex-basis: 320px;
+	align-items: stretch;
+}
+
+.idle-worn-strip {
+	flex-direction: row;
+	margin: 6px 0 4px 0;
+}
+
+.idle-worn-cell {
+	flex-grow: 1;
 	align-items: center;
+	margin: 0 3px;
+}
+
+.idle-worn-pip {
+	width: 22px;
+	height: 22px;
+}
+
+.idle-worn-name {
+	font-size: 10px;
+	color: rgb(150, 176, 208);
+	margin-top: 2px;
 }
 
 .idle-live-title {
@@ -125,8 +154,6 @@
 	flex-grow: 1;
 }
 
-/* ── 기지 실황 ──────────────────────────────────────────────── */
-
 .idle-vault-head {
 	flex-direction: row;
 	align-items: center;
@@ -137,7 +164,6 @@
 	height: 22px;
 }
 
-/* 생산자 여덟이 바닥에 늘어선다 — 여기서 알갱이가 위로 오른다 */
 .idle-producer-strip {
 	flex-direction: row;
 	justify-content: space-between;
@@ -150,11 +176,9 @@
 	margin: 0 1px;
 }
 
-/* ── 전투 실황 ──────────────────────────────────────────────── */
-
-/* 영웅들 ← → 적. 가로로 마주 본다 */
 .idle-field {
 	flex-grow: 1;
+	min-height: 120px;
 	flex-direction: row;
 	align-items: center;
 	justify-content: space-between;
@@ -214,8 +238,6 @@
 	background-color: rgb(150, 176, 208);
 }
 
-/* ── 창고 실황 ──────────────────────────────────────────────── */
-
 .idle-vault-grid {
 	flex-direction: row;
 	flex-wrap: wrap;
@@ -228,46 +250,9 @@
 	margin: 2px;
 }
 
-/* ── 조작 서랍 ──────────────────────────────────────────────── */
-
-.idle-drawer {
-	max-height: 42%;
-	background-color: rgb(18, 20, 26);
-	border-top-width: 1px;
-	border-top-color: rgb(38, 41, 52);
-	padding: 8px 14px 12px 14px;
-}
-
-.idle-drawer-body {
-	flex-grow: 1;
-}
-
 .idle-page {
 	padding-bottom: 6px;
 }
-
-.idle-tabs {
-	flex-direction: row;
-	margin-bottom: 8px;
-}
-
-.idle-tab {
-	flex-grow: 1;
-	height: 30px;
-	font-size: 13px;
-	background-color: rgb(24, 26, 34);
-	border-width: 0;
-	color: rgb(140, 144, 158);
-	margin: 0 2px;
-}
-
-.idle-tab--on {
-	background-color: rgb(38, 44, 58);
-	color: rgb(226, 228, 236);
-	-unity-font-style: bold;
-}
-
-/* ── 줄·버튼 ────────────────────────────────────────────────── */
 
 .idle-row-title {
 	font-size: 13px;
@@ -294,7 +279,6 @@
 	background-color: rgb(48, 56, 74);
 }
 
-/* 누르면 살짝 들어간다 — 눌린 게 손에 남는다 */
 .idle-button:active {
 	background-color: rgb(70, 84, 110);
 	scale: 0.97 0.97;
@@ -308,13 +292,11 @@
 	background-color: rgb(58, 78, 112);
 }
 
-/* 살 수 있게 된 것은 테두리로 알린다 — 「지금 이거」가 보인다 */
 .idle-button--ready {
 	border-left-width: 3px;
 	border-left-color: rgb(122, 168, 232);
 }
 
-/* 아직 못 사는 것 — 값은 보이되 잠긴 티가 난다. 안 보이면 그건 버그로 읽힌다 */
 .idle-button--locked {
 	background-color: rgb(26, 29, 38);
 	color: rgb(128, 132, 146);
@@ -336,7 +318,6 @@
 	margin: 12px 0 6px 0;
 }
 
-/* 목록 줄 — 왼쪽 도형 + 오른쪽 버튼 */
 .idle-shape-row {
 	flex-direction: row;
 	align-items: center;
@@ -357,14 +338,12 @@
 	font-size: 12px;
 }
 
-/* 튀는 숫자 */
 .float-text {
 	position: absolute;
 	font-size: 15px;
 	-unity-font-style: bold;
 }
 
-/* 판 바닥·알갱이 층 — 도형 뒤(또는 위)에 깔린다 */
 .idle-backdrop {
 	position: absolute;
 	left: 0;
@@ -373,12 +352,10 @@
 	bottom: 0;
 }
 
-/* ── 영웅 탭 ────────────────────────────────────────────────── */
-
-/* 내보낸 셋 — 나란히. 빈 자리도 자리를 차지해야 「비었다」가 보인다 */
 .idle-party-row {
 	flex-direction: row;
 	margin: 4px 0 2px 0;
+	flex-shrink: 0;
 }
 
 .idle-seat {
@@ -402,7 +379,6 @@
 	white-space: normal;
 }
 
-/* 지나가는 것 — 판 위를 가로지른다. 놓치면 사라진다 */
 .idle-visitor {
 	position: absolute;
 	top: 22%;
@@ -410,7 +386,6 @@
 	height: 40px;
 }
 
-/* 폭주 중임을 판 위에 크게 — 짧은 동안이라 놓치면 안 된다 */
 .idle-surge {
 	font-size: 15px;
 	-unity-font-style: bold;
@@ -418,7 +393,6 @@
 	margin-top: 4px;
 }
 
-/* 다음 한 걸음 — 띠 바로 아래 한 줄. 눈에 들되 판을 가리지 않는다 */
 .idle-guide {
 	font-size: 12px;
 	color: rgb(196, 176, 120);
@@ -429,7 +403,6 @@
 	white-space: normal;
 }
 
-/* 손해 보고 있다 — 눈에 띄어야 한다 */
 .idle-warn {
 	color: rgb(232, 148, 108);
 	-unity-font-style: bold;

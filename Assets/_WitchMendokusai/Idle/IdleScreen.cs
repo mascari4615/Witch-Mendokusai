@@ -15,9 +15,8 @@ namespace WitchMendokusai
 	/// ★ 이 파일에 게임 규칙이 한 줄도 없다 — 사진을 받아 그리고, 의도를 보낸다.
 	///   에디터 창과 같은 코어·같은 계약이고 다른 것은 그릇뿐이다.
 	///
-	/// ★ 짜임 (사용자 2026-08-17): 위 요약 띠 · 가운데 <b>실황 셋</b>.
-	///   사는 곳은 그 칸 위. 하단 5탭 서랍은 버렸다 — 눈이랑 손이 갈렸다.
-	///   영웅 장은 파티를 누르면 연다. 환생은 윗줄.
+	/// ★ 짜임: 울티마 스쿼드. 왼쪽=자동사냥(작음). 오른쪽=용병 관리(장착·합성·골드강화).
+	///   클릭 놀이는 관리판. 영웅 뽑기·환생만 레일.
 	///
 	/// ★ 보이는 것은 <b>기하학적 도형</b>이다(사용자 방향: 세계관 정하기 전).
 	///   규칙 하나로 읽힌다 — <b>변의 수 = 등급</b>. 1등급 삼각형 … 8등급 십각형.
@@ -76,6 +75,7 @@ namespace WitchMendokusai
 		private Label guideLabel;
 
 		// ── 기지 실황 ───────────────────────────────────────────────────────
+		private VisualElement baseLiveRoot;
 		private MoteStreamElement baseMotes;
 		private readonly List<NgonElement> baseShapes = new List<NgonElement>();
 		private NgonElement vaultMark;
@@ -111,6 +111,13 @@ namespace WitchMendokusai
 		// ── 칸에 붙은 조작 · 영웅 장 ────────────────────────────────────────
 		private VisualElement heroSheet;
 		private bool heroSheetOpen;
+		private VisualElement hoverHost;
+		private Label hoverTip;
+		private VisualElement sheetHost;
+		private int openSheet = -1;
+		private readonly List<Button> railButtons = new List<Button>();
+		private static readonly string[] RAIL_NAMES = { "영웅", "환생" };
+		private static readonly IdleTab[] RAIL_TABS = { IdleTab.Hero, IdleTab.Prestige };
 
 		/// <summary>합칠 것을 세는 판 — 매 프레임 새로 만들지 않는다.</summary>
 		private int[] mergeCounts;
@@ -152,6 +159,9 @@ namespace WitchMendokusai
 		private int seatBeingFilled = -1;
 
 		private Button benchButton;
+		private Label heroFocusLabel;
+		private readonly List<NgonElement> wornPips = new List<NgonElement>();
+		private readonly List<Label> wornPipLabels = new List<Label>();
 
 		/// <summary>
 		/// 자리보다 <b>영웅을 먼저</b> 고른 경우 — -1 이면 고른 것이 없다.
@@ -315,7 +325,11 @@ namespace WitchMendokusai
 
 			FadeNotes(delta);
 			floats.Advance(delta);
-			backdrop.Advance(delta);
+			if (backdrop != null)
+			{
+				backdrop.Advance(delta);
+			}
+
 			visitor.Advance(delta, 0.6f);
 			AdvanceShake(delta);
 
@@ -571,9 +585,11 @@ namespace WitchMendokusai
 				return;
 			}
 
-			float from = (kind + 0.5f) / Mathf.Max(1, snapshot.Producers.Length);
-			baseMotes.Send(new Vector2(from, 0.86f), new Vector2(0.5f, 0.20f),
-				TierColor(kind + 1), SidesFor(kind + 1), 0.7f);
+			// 줄의 도형 → 저장고. 바닥 허공에서 뜨면 「시작·도착이 뭔지」가 안 읽힌다.
+			VisualElement fromPiece = kind < producerShapes.Count ? producerShapes[kind] : null;
+			Vector2 from = NormIn(baseMotes, fromPiece);
+			Vector2 into = NormIn(baseMotes, vaultMark);
+			baseMotes.Send(from, into, TierColor(kind + 1), SidesFor(kind + 1), 0.7f);
 		}
 
 		/// <summary>몫에 따라 차례를 돌린다 — 무작위보다 눈에 고르게 보인다.</summary>
@@ -752,7 +768,6 @@ namespace WitchMendokusai
 
 			BuildTopBar(shell, away);
 
-			// ★ 위층 = <b>보는 것</b>. 셋이 동시에 돈다.
 			VisualElement stages = new VisualElement();
 			stages.AddToClassList("idle-stages");
 			shell.Add(stages);
@@ -761,6 +776,7 @@ namespace WitchMendokusai
 			BuildArena(stages);
 			BuildVaultLive(stages);
 			BuildHeroSheet(shell);
+			BuildHoverTip(shell);
 		}
 
 		private void BuildTopBar(VisualElement parent, IdleAwayReport away)
@@ -800,7 +816,7 @@ namespace WitchMendokusai
 			}
 		}
 
-		/// <summary>기지 실황 — 생산자가 알갱이를 뱉고 저장고가 받는다.</summary>
+		/// <summary>기지 실황 — 생산자가 뱉고 저장고가 받는다. 사기·강화는 여기.</summary>
 		private void BuildBaseLive(VisualElement parent)
 		{
 			VisualElement live = new VisualElement();
@@ -811,7 +827,9 @@ namespace WitchMendokusai
 
 			baseMotes = new MoteStreamElement();
 			baseMotes.AddToClassList("idle-backdrop");
+			baseMotes.pickingMode = PickingMode.Ignore;
 			live.Add(baseMotes);
+			baseLiveRoot = live;
 
 			VisualElement top = new VisualElement();
 			top.AddToClassList("idle-vault-head");
@@ -831,6 +849,9 @@ namespace WitchMendokusai
 
 			basePage = AddPage(shop);
 			BuildBasePage();
+			AddDivider(shop);
+			upgradePage = AddPage(shop);
+			BuildUpgradePage();
 		}
 
 		private void BuildArena(VisualElement parent)
@@ -842,9 +863,9 @@ namespace WitchMendokusai
 
 			AddLabel(arena, "idle-live-title").text = "전투";
 
-			// 바닥 격자 — 밋밋한 검정은 「꺼진 화면」처럼 보인다.
 			backdrop = new GridBackdropElement();
 			backdrop.AddToClassList("idle-backdrop");
+			backdrop.pickingMode = PickingMode.Ignore;
 			arena.Add(backdrop);
 
 			VisualElement field = new VisualElement();
@@ -912,8 +933,6 @@ namespace WitchMendokusai
 			arenaBox = box;
 			floats = new FloatTextLayer(box);
 
-			upgradePage = AddPage(arena);
-			BuildUpgradePage();
 			BuildPartyRow(arena);
 
 			// ★ <b>판 전체가 누르는 것</b>이다 (사용자 지적: 「전혀 클리커스럽지 않다」).
@@ -933,9 +952,11 @@ namespace WitchMendokusai
 
 			vaultMotes = new MoteStreamElement();
 			vaultMotes.AddToClassList("idle-backdrop");
+			vaultMotes.pickingMode = PickingMode.Ignore;
 			live.Add(vaultMotes);
 
 			vaultLabel = AddLabel(live, "idle-live-note");
+			BuildWornStrip(live);
 
 			VisualElement grid = new VisualElement();
 			grid.AddToClassList("idle-vault-grid");
@@ -948,6 +969,9 @@ namespace WitchMendokusai
 				NgonElement cell = new NgonElement();
 				cell.AddToClassList("idle-vault-cell");
 				cell.RegisterCallback<PointerDownEvent>(_ => Equip(captured));
+				cell.RegisterCallback<PointerEnterEvent>(OnVaultHover);
+				cell.RegisterCallback<PointerMoveEvent>(OnVaultHoverMove);
+				cell.RegisterCallback<PointerLeaveEvent>(_ => HideHoverTip());
 				grid.Add(cell);
 				vaultCells.Add(cell);
 			}
@@ -959,7 +983,97 @@ namespace WitchMendokusai
 			BuildGearPage();
 		}
 
-		/// <summary>영웅 장 — 파티를 누르면 연다. 상주 탭이 아니다.</summary>
+		private void ShowSheet(int which)
+		{
+			openSheet = which;
+			heroSheetOpen = which == 0;
+			if (heroSheet != null)
+			{
+				heroSheet.style.display = which == 0 ? DisplayStyle.Flex : DisplayStyle.None;
+			}
+		}
+
+		/// <summary>
+		/// 런타임 UITK 는 <see cref="VisualElement.tooltip"/> 을 안 띄운다.
+		/// 에디터 inspector 용 속성이라 게임 화면에선 글만 박히고 안 보인다.
+		/// </summary>
+		private void BuildHoverTip(VisualElement parent)
+		{
+			hoverHost = parent;
+			hoverTip = new Label();
+			hoverTip.AddToClassList("idle-hover-tip");
+			hoverTip.pickingMode = PickingMode.Ignore;
+			hoverTip.style.display = DisplayStyle.None;
+			parent.Add(hoverTip);
+		}
+
+		private void OnVaultHover(PointerEnterEvent moment)
+		{
+			VisualElement cell = moment.currentTarget as VisualElement;
+			if (cell == null || hoverTip == null)
+			{
+				return;
+			}
+
+			string text = cell.tooltip;
+			if (string.IsNullOrEmpty(text))
+			{
+				return;
+			}
+
+			hoverTip.text = text;
+			hoverTip.style.display = DisplayStyle.Flex;
+			PlaceHoverTip(cell);
+		}
+
+		private void OnVaultHoverMove(PointerMoveEvent moment)
+		{
+			if (hoverTip == null || hoverTip.style.display == DisplayStyle.None)
+			{
+				return;
+			}
+
+			VisualElement cell = moment.currentTarget as VisualElement;
+			if (cell != null)
+			{
+				PlaceHoverTip(cell);
+			}
+		}
+
+		private void HideHoverTip()
+		{
+			if (hoverTip != null)
+			{
+				hoverTip.style.display = DisplayStyle.None;
+			}
+		}
+
+		private void PlaceHoverTip(VisualElement cell)
+		{
+			if (hoverHost == null || hoverTip == null)
+			{
+				return;
+			}
+
+			Rect room = hoverHost.worldBound;
+			Rect at = cell.worldBound;
+			if (room.width < 2f)
+			{
+				return;
+			}
+
+			float left = at.xMax - room.x + 8f;
+			float top = at.yMin - room.y;
+			if (left + 180f > room.width)
+			{
+				left = at.xMin - room.x - 188f;
+			}
+
+			hoverTip.style.left = left;
+			hoverTip.style.top = top;
+		}
+
+		/// <summary>영웅 장 — 파티를 누르면 연다. 상주 탭 아님.</summary>
 		private void BuildHeroSheet(VisualElement parent)
 		{
 			heroSheet = new VisualElement();
@@ -982,24 +1096,12 @@ namespace WitchMendokusai
 
 		private void OpenHeroSheet()
 		{
-			if (heroSheet == null)
-			{
-				return;
-			}
-
-			heroSheetOpen = true;
-			heroSheet.style.display = DisplayStyle.Flex;
+			ShowSheet(0);
 		}
 
 		private void CloseHeroSheet()
 		{
-			if (heroSheet == null)
-			{
-				return;
-			}
-
-			heroSheetOpen = false;
-			heroSheet.style.display = DisplayStyle.None;
+			ShowSheet(-1);
 			seatBeingFilled = -1;
 			pendingHeroId = -1;
 		}
@@ -1088,28 +1190,44 @@ namespace WitchMendokusai
 		/// </summary>
 		private void BuildGearPage()
 		{
-			wornLabel = AddLabel(gearPage, "idle-row-title");
-			wornLabel.style.whiteSpace = WhiteSpace.Normal;
-
-			AddDivider(gearPage);
-			AddLabel(gearPage, "idle-row-value").text = "가방 — 눌러서 찬다";
-
-			bagRows = new VisualElement();
-			gearPage.Add(bagRows);
-
-			AddDivider(gearPage);
-			AddLabel(gearPage, "idle-row-value").text = "합치기 — 같은 부위·등급 셋이 한 단계 위로 (잠재는 사라진다)";
+			AddLabel(gearPage, "idle-row-value").text = "합치기 · 감정 — 창고 칸은 올려 보면 된다";
 
 			mergeRows = new VisualElement();
 			gearPage.Add(mergeRows);
 
-			AddDivider(gearPage);
 			potentialLabel = AddLabel(gearPage, "idle-row-title");
 
 			dropRows = new VisualElement();
 			gearPage.Add(dropRows);
 
 			rollNote = AddLabel(gearPage, "idle-note");
+		}
+
+		/// <summary>지금 찬 네 칸 — 창고가 아니라 영웅 옆에 둔다. 안 보이면 「뭘 꼈지」가 된다.</summary>
+		private void BuildWornStrip(VisualElement parent)
+		{
+			VisualElement strip = new VisualElement();
+			strip.AddToClassList("idle-worn-strip");
+			parent.Add(strip);
+			wornPips.Clear();
+			wornPipLabels.Clear();
+
+			for (int slot = 0; slot < SLOT_NAMES.Length; slot++)
+			{
+				VisualElement cell = new VisualElement();
+				cell.AddToClassList("idle-worn-cell");
+				strip.Add(cell);
+
+				NgonElement pip = new NgonElement();
+				pip.AddToClassList("idle-worn-pip");
+				cell.Add(pip);
+				wornPips.Add(pip);
+				decor.Add(pip);
+
+				Label name = AddLabel(cell, "idle-worn-name");
+				name.text = SLOT_NAMES[slot];
+				wornPipLabels.Add(name);
+			}
 		}
 
 		/// <summary>
@@ -1120,6 +1238,9 @@ namespace WitchMendokusai
 		/// </summary>
 		private void BuildHeroPage()
 		{
+			heroFocusLabel = AddLabel(heroPage, "idle-row-title");
+			heroFocusLabel.style.whiteSpace = WhiteSpace.Normal;
+
 			pullButton = AddButton(heroPage, "idle-button idle-button--strong", Pull);
 			pullOddsLabel = AddLabel(heroPage, "idle-row-value");
 			pullNote = AddLabel(heroPage, "idle-note");
@@ -1178,6 +1299,15 @@ namespace WitchMendokusai
 			if (heroSheetOpen)
 			{
 				RenderHeroPage(snapshot);
+			}
+		}
+
+		private void RenderRail(IdleSnapshot snapshot)
+		{
+			for (int index = 0; index < railButtons.Count; index++)
+			{
+				bool has = IdleAdvice.HasSomethingToDo(snapshot, RAIL_TABS[index]);
+				railButtons[index].EnableInClassList("idle-button--ready", has && index != openSheet);
 			}
 		}
 
@@ -1295,12 +1425,13 @@ namespace WitchMendokusai
 				surgeLabel.style.display = DisplayStyle.None;
 			}
 
-			// ★ <b>판 전체가 달라져야</b> 폭주다 — 글자만 바뀌면 그건 알림이지 사건이 아니다.
-			//   바닥 격자가 금빛으로 달아오르고 빨리 흐른다. 끝나면 원래대로 돌아온다.
-			backdrop.Line = surging
-				? new Color(0.98f, 0.84f, 0.38f, 0.16f)
-				: new Color(1f, 1f, 1f, 0.035f);
-			backdrop.DriftPerSecond = surging ? 26f : 3f;
+			if (backdrop != null)
+			{
+				backdrop.Line = surging
+					? new Color(0.98f, 0.84f, 0.38f, 0.16f)
+					: new Color(1f, 1f, 1f, 0.035f);
+				backdrop.DriftPerSecond = surging ? 26f : 3f;
+			}
 
 			// 남은 시간이 짧아질수록 빨리 뛴다 — 끝나 가는 게 몸으로 느껴져야 한다.
 			targetShape.SetPulse(surging ? 0.10f : 0f,
@@ -1419,6 +1550,7 @@ namespace WitchMendokusai
 				{
 					cell.style.opacity = 0.10f;
 					cell.SetPulse(0f, 0f);
+					cell.tooltip = "빈 칸";
 					continue;
 				}
 
@@ -1426,6 +1558,14 @@ namespace WitchMendokusai
 				cell.style.opacity = 1f;
 				cell.Sides = SidesFor(one.Tier);
 				cell.Body = TierColor(one.Tier);
+				IdleGear.CompareToWorn(snapshot.Worn, one, session.Tuning,
+					out double now, out double after);
+				cell.tooltip = string.Format("{0} {1}등급{2}  {3}",
+					SLOT_NAMES[(int)one.Slot], one.Tier,
+					one.PotentialValue > 0d ? string.Format(" {0:P1}", one.PotentialValue) : string.Empty,
+					after > now
+						? string.Format("차면 x{0:0.00} → x{1:0.00}", now, after)
+						: string.Format("x{0:0.00} · 지금 찬 것이 낫다", after));
 
 				// 감정된 것은 <b>뛴다</b> — 가방에서 골라 낼 때 눈에 먼저 든다.
 				// (시간 흘리기는 AdvanceVault 한 곳에서 — 여기서 하면 누를 때마다 더 나아간다.)
@@ -1603,80 +1743,40 @@ namespace WitchMendokusai
 			}
 		}
 
-		/// <summary>차고 있는 넷 — 부위마다 올리는 축이 다르다.</summary>
+		/// <summary>차고 있는 넷 — 전투 칸 영웅 옆에 그린다.</summary>
 		private void RenderWorn(IdleSnapshot snapshot)
 		{
-			System.Text.StringBuilder text = new System.Text.StringBuilder();
-
-			for (int slot = 0; slot < snapshot.Worn.Length && slot < SLOT_ROLES.Length; slot++)
+			for (int slot = 0; slot < wornPips.Count && slot < snapshot.Worn.Length; slot++)
 			{
 				IdleItem one = snapshot.Worn[slot];
-				text.Append(SLOT_ROLES[slot]).Append(" ");
+				NgonElement pip = wornPips[slot];
+				Label name = wornPipLabels[slot];
 
 				if (one.IsEmpty)
 				{
-					text.AppendLine("— 비어 있음");
+					pip.style.opacity = 0.12f;
+					name.text = SLOT_NAMES[slot] + " 빔";
+					pip.tooltip = SLOT_ROLES[slot] + " — 비어 있음";
 					continue;
 				}
 
-				text.Append(ShapeMark(one.Tier)).Append(one.Tier);
-				if (one.PotentialValue > 0d)
-				{
-					text.AppendFormat("  {0} {1:P1}", NameOf(one.Grade), one.PotentialValue);
-				}
-
-				// ★ <b>얼마나 좋아지나</b>를 적는다 — 이 저장소가 다른 자리에서 다 지키는 규칙인데
-				//   정작 차고 있는 것에는 없었다. 등급 숫자만으로는 세진 정도가 안 읽힌다.
-				text.AppendFormat("  x{0:0.00}", IdleGear.MultiplierOfItem(one, session.Tuning));
-				text.AppendLine();
+				pip.style.opacity = 1f;
+				pip.Sides = SidesFor(one.Tier);
+				pip.Body = TierColor(one.Tier);
+				name.text = string.Format("{0} {1} x{2:0.00}",
+					SLOT_NAMES[slot], one.Tier, IdleGear.MultiplierOfItem(one, session.Tuning));
+				pip.tooltip = string.Format("{0}  {1}등급{2}  x{3:0.00}",
+					SLOT_ROLES[slot], one.Tier,
+					one.PotentialValue > 0d
+						? string.Format(" {0} {1:P1}", NameOf(one.Grade), one.PotentialValue)
+						: string.Empty,
+					IdleGear.MultiplierOfItem(one, session.Tuning));
 			}
-
-			wornLabel.text = text.ToString().TrimEnd();
 		}
 
-		/// <summary>가방 — 눌러서 찬다. 칸이 차면 더 안 들어온다(그게 정리하라는 신호다).</summary>
+		/// <summary>가방 목록은 없다. 창고 칸이 가방이다.</summary>
 		private void RenderBag(IdleSnapshot snapshot)
 		{
-			if (bagButtons.Count != snapshot.Bag.Length)
-			{
-				bagRows.Clear();
-				bagButtons.Clear();
-				bagShapes.Clear();
-
-				for (int index = 0; index < snapshot.Bag.Length; index++)
-				{
-					int captured = index;
-					bagButtons.Add(AddShapeRow(bagRows, snapshot.Bag[index].Tier, () => Equip(captured),
-						out NgonElement shape));
-					bagShapes.Add(shape);
-				}
-			}
-
-
-			for (int index = 0; index < bagButtons.Count; index++)
-			{
-				IdleItem one = snapshot.Bag[index];
-				if (index < bagShapes.Count)
-				{
-					bagShapes[index].Sides = SidesFor(one.Tier);
-					bagShapes[index].Body = TierColor(one.Tier);
-				}
-
-				// ★ <b>차면 어떻게 되나</b>를 그 줄에서 바로 보여준다. 전에는 등급만 적혀 있어서
-				//   「지금 찬 것보다 나은가」를 사람이 부위별로 외우고 있어야 했다 —
-				//   외우게 만드는 것은 결정이 아니라 숙제다.
-				// 판단은 코어가 한다 — 화면에 두었다가 곧바로 틀렸다(가방 자리 번호로 부위를 찾았다).
-				IdleGear.CompareToWorn(snapshot.Worn, one, session.Tuning,
-					out double now, out double after);
-
-				bagButtons[index].text = string.Format("{0}{1} {2}{3}   {4}",
-					ShapeMark(one.Tier), one.Tier,
-					SLOT_NAMES[(int)one.Slot],
-					one.PotentialValue > 0d ? string.Format("  {0:P1}", one.PotentialValue) : string.Empty,
-					after > now
-						? string.Format("x{0:0.00} → x{1:0.00}", now, after)
-						: string.Format("x{0:0.00} (지금 것이 낫다)", after));
-			}
 		}
 
 		/// <summary>합칠 수 있는 조합만 보여준다.</summary>
@@ -1793,9 +1893,44 @@ namespace WitchMendokusai
 				snapshot.LegendChance, snapshot.EpicChance, snapshot.RareChance,
 				snapshot.PullsToPity);
 
+			RenderHeroFocus(snapshot);
 			RenderParty(snapshot);
 			RenderBench(snapshot);
 			RenderCodex(snapshot);
+		}
+
+		/// <summary>장에서 지금 보는 한 명 — 없으면 자리가 비었다고 말한다.</summary>
+		private void RenderHeroFocus(IdleSnapshot snapshot)
+		{
+			if (heroFocusLabel == null)
+			{
+				return;
+			}
+
+			if (seatBeingFilled < 0 || seatBeingFilled >= snapshot.Party.Length)
+			{
+				heroFocusLabel.text = "전투 칸에서 자리를 누르면 그 얼굴이 여기 열린다.";
+				return;
+			}
+
+			int id = snapshot.Party[seatBeingFilled];
+			IdleHeroView? found = FindHero(snapshot, id);
+			if (found.HasValue == false)
+			{
+				heroFocusLabel.text = string.Format("{0}번 자리 비었다. 아래에서 앉힐 얼굴을 고른다.",
+					seatBeingFilled + 1);
+				return;
+			}
+
+			IdleHeroView view = found.Value;
+			heroFocusLabel.text = string.Format(
+				"{0}번  {1}{2}  {3} · {4}\n보유 +{5:P0}  ({6}/{7})  {8}\n장비 네 칸은 파티 공통 — 전투 칸 영웅 밑에 있다.",
+				seatBeingFilled + 1,
+				view.Name, Stars(view.Stars),
+				IdleHeroes.NameOfGrade(view.Grade),
+				IdleHeroes.NameOfAxis(view.Axis),
+				view.OwnedShare, view.Copies, view.CopiesForNextStar,
+				view.InParty ? "출전 중" : "대기");
 		}
 
 		/// <summary>지금 무엇을 기다리는가 — 반쯤 고른 상태를 화면이 말해 준다.</summary>
@@ -2024,13 +2159,9 @@ namespace WitchMendokusai
 				if (kind < producerShapes.Count)
 				{
 					producerShapes[kind].Hit();
-				}
-
-				// 실황에서도 같이 튄다 — 목록과 판이 같은 것을 가리켜야 이어진다.
-				if (kind < baseShapes.Count)
-				{
-					baseShapes[kind].Hit();
-					baseMotes.Send(new Vector2((kind + 0.5f) / 8f, 0.86f), new Vector2(0.5f, 0.20f),
+					baseMotes.Send(
+						NormIn(baseMotes, producerShapes[kind]),
+						NormIn(baseMotes, vaultMark),
 						TierColor(kind + 1), SidesFor(kind + 1), 0.5f);
 				}
 			}
@@ -2270,6 +2401,26 @@ namespace WitchMendokusai
 				int captured = tier;
 				appraiseButtons.Add(AddButton(dropRows, "idle-button", () => Appraise(captured)));
 			}
+		}
+
+		/// <summary>칸 안 0~1. 레이아웃이 아직 없으면 가운데.</summary>
+		private static Vector2 NormIn(VisualElement space, VisualElement piece)
+		{
+			if (space == null || piece == null)
+			{
+				return new Vector2(0.5f, 0.5f);
+			}
+
+			Rect room = space.worldBound;
+			if (room.width < 2f || room.height < 2f)
+			{
+				return new Vector2(0.5f, 0.5f);
+			}
+
+			Vector2 at = piece.worldBound.center;
+			return new Vector2(
+				Mathf.Clamp01((at.x - room.x) / room.width),
+				Mathf.Clamp01((at.y - room.y) / room.height));
 		}
 
 		private static VisualElement AddPage(VisualElement parent)
