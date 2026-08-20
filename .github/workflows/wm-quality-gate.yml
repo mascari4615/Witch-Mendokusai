@@ -33,6 +33,13 @@ on:
       #   표본까지 넣는 이유 = 표본을 흔들면 검사기가 눈먼 것과 같은 결과가 나기 때문.
       - '.github/scripts/wm-init-order-audit.ps1'
       - '.github/scripts/fixtures/**'
+      # ★ 2026-08-20 실측: 자는-시험 래칫도 같은 구멍이었다 — <b>판정을 정하는 세 파일이
+      #   전부 필터 밖</b>이라, 빚을 고치거나 기준선을 내려도 판이 안 떴다. 25판 연속 빨강을
+      #   고친 커밋조차 이 게이트를 못 띄운다. 검사기·기준선·「도는 자리」 셋 다 넣는다.
+      - '.github/scripts/wm-editmode-coverage-audit.mjs'
+      - '.github/scripts/wm-editmode-coverage-baseline.tsv'
+      - 'Server/WM.Server.Tests/WM.Server.Tests.csproj'
+      - 'Portable/DomainSDK.Tests/DomainSDK.Tests.csproj'
       # 웹 창·계약과 그 검사기 — 창에는 시험이 없어 이 게이트가 유일한 눈이다.
       - '.github/scripts/wm-web-client-gate.mjs'
       - '.github/scripts/wm-web-picker-test.mjs'
@@ -98,6 +105,13 @@ on:
       #   표본까지 넣는 이유 = 표본을 흔들면 검사기가 눈먼 것과 같은 결과가 나기 때문.
       - '.github/scripts/wm-init-order-audit.ps1'
       - '.github/scripts/fixtures/**'
+      # ★ 2026-08-20 실측: 자는-시험 래칫도 같은 구멍이었다 — <b>판정을 정하는 세 파일이
+      #   전부 필터 밖</b>이라, 빚을 고치거나 기준선을 내려도 판이 안 떴다. 25판 연속 빨강을
+      #   고친 커밋조차 이 게이트를 못 띄운다. 검사기·기준선·「도는 자리」 셋 다 넣는다.
+      - '.github/scripts/wm-editmode-coverage-audit.mjs'
+      - '.github/scripts/wm-editmode-coverage-baseline.tsv'
+      - 'Server/WM.Server.Tests/WM.Server.Tests.csproj'
+      - 'Portable/DomainSDK.Tests/DomainSDK.Tests.csproj'
       # 웹 창·계약과 그 검사기 — 창에는 시험이 없어 이 게이트가 유일한 눈이다.
       - '.github/scripts/wm-web-client-gate.mjs'
       - '.github/scripts/wm-web-picker-test.mjs'
