@@ -79,7 +79,7 @@ jobs:
             $wasmSource = Join-Path $wasmOut 'wwwroot\_framework'
             if (-not (Test-Path $wasmSource)) { throw "versus wasm output missing: $wasmSource" }
 
-            $wasmTarget = Join-Path $publishDir 'wwwrootersus\_framework'
+            $wasmTarget = Join-Path $publishDir 'wwwroot\versus\_framework'
             New-Item -ItemType Directory -Force -Path (Split-Path $wasmTarget) | Out-Null
             Copy-Item -Recurse -Force $wasmSource (Split-Path $wasmTarget)
           }
