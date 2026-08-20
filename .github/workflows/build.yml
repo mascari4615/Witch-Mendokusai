@@ -176,6 +176,17 @@ jobs:
       #   보이지만 크래시 시점의 커밋을 안 재고 있어서 단정할 수 없었다.
       #   재지 않고 고치면 "고쳤다고 믿는데 또 죽는" 상태가 된다 - 그래서 먼저 잰다.
       #   ASCII only in run: blocks (PS 5.1 cp949 - 위 주석 참조).
+      # 2026-08-20: 러너 체크아웃의 Library\Search 가 24.8GB 였다(파일 하나).
+      #   UserSettings\Search.index 가 roots=[Assets,Packages]+properties+dependencies 라
+      #   유니티가 뜰 때마다 그걸 다시 굽는다. 배치 러너는 Quick Search 를 안 쓴다.
+      #   빌드 전에 치운다 - 자세한 근거는 스크립트 헤더에.
+      - name: Runner hygiene (drop unused search index)
+        if: steps.gate.outputs.skip != 'true'
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          & "$env:GITHUB_WORKSPACE\.github\scripts\wm-runner-hygiene.ps1" -ProjectPath $PWD.Path
+
       - name: Memory before build
         if: steps.gate.outputs.skip != 'true'
         shell: powershell
