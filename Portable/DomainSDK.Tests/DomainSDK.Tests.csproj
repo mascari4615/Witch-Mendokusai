@@ -138,6 +138,18 @@
     <Compile Include="$(TestsRoot)Versus/VersusRollbackTests.cs" />
     <Compile Include="$(TestsRoot)Versus/VersusPredictionTests.cs" />
     <Compile Include="$(TestsRoot)Versus/VersusPredictedPlayTests.cs" />
+
+    <!-- 농사·막 (TASK-WM-406 계열, 2026-08-17 에 생긴 뒤 여기 안 걸려 CI 에서 한 번도 안 돌았다).
+         `WM quality gate` 가 25판 연속 빨갰던 이유 = 이 6개 38개 시험이 기준선(513) 위로 빚을 밀어 올린 것.
+         전부 `UnityEngine`/`UnityEditor` 를 안 쓴다(전수 확인).
+         ⚠ `Diagnostics/ResourcesBudgetTests.cs` 는 못 데려온다 — `WitchMendokusai.EditorTools` 를 본다.
+            「유니티를 안 쓴다」와 「엔진 밖에서 돈다」는 다른 말이다(WM-364 주석과 같은 함정). -->
+    <Compile Include="$(TestsRoot)Act/ActLedgerTest.cs" />
+    <Compile Include="$(TestsRoot)Act/FarmLoopTest.cs" />
+    <Compile Include="$(TestsRoot)Farming/FarmPersistenceTest.cs" />
+    <Compile Include="$(TestsRoot)Farming/FarmCoordTest.cs" />
+    <Compile Include="$(TestsRoot)Farming/FarmGroundTest.cs" />
+    <Compile Include="$(TestsRoot)Farming/LegacyGrowthTest.cs" />
   </ItemGroup>
 
 </Project>
