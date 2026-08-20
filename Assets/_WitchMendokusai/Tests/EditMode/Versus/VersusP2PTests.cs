@@ -60,6 +60,7 @@ namespace WitchMendokusai.Tests
 
 			try
 			{
+				// main-thread-ok: 위 connectDeadline 이 10초 마감시한을 건다 — 끝없이 기다리지 않는다.
 				client.ConnectAsync(new Uri($"ws://localhost:{PORT}/vs/"), connectDeadline.Token)
 					.GetAwaiter().GetResult();
 			}
