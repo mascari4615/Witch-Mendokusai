@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk.WebAssembly">
+
+  <!--
+    브라우저에서 도는 판정 (TASK-WM-411).
+
+    ★ 규칙 사본 0 — DomainSDK.Portable 을 <b>그대로 물고</b> 웹어셈블리로 굽는다.
+      서버·유니티·브라우저가 같은 소스를 본다.
+
+    ⚠ 2026-08-20: 이 파일이 <b>git 에 한 번도 안 올라간 적이 있다</b>. 뿌리 `.gitignore` 의
+      `*.csproj`(유니티가 만드는 것들을 막는 규칙)에 조용히 삼켜져, 소스 4개만 커밋되고
+      프로젝트 파일만 빠졌다. 그 결과 `WM server deploy` 가 30판 내리
+      `MSB1009: 프로젝트 파일이 없습니다` 로 죽었다 — 만든 사람 기계에서만 있는 파일이었다.
+      이제 `.gitignore` 에 예외를 박아 뒀다.
+  -->
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <RuntimeIdentifier>browser-wasm</RuntimeIdentifier>
+    <OutputType>Exe</OutputType>
+    <LangVersion>latest</LangVersion>
+    <Nullable>disable</Nullable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <WasmMainJSPath>main.js</WasmMainJSPath>
+    <!-- 창이 `_framework/dotnet.js` 를 직접 부른다(versus.html) — 그래서 진입 JS 는 얇다. -->
+    <InvariantGlobalization>true</InvariantGlobalization>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../DomainSDK.Portable.csproj" />
+  </ItemGroup>
+
+</Project>

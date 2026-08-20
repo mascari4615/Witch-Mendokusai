@@ -35,6 +35,14 @@
 ExportedObj/
 .consulo/
 *.csproj
+
+# ⚠ 위 `*.csproj` 는 <b>유니티가 만드는</b> 것들을 막는 규칙이다. 그런데 손으로 쓴 프로젝트도
+#   같이 삼킨다 — 2026-08-20 에 `Portable/DomainSDK.Wasm/DomainSDK.Wasm.csproj` 가 그렇게
+#   사라져, 소스 4개만 커밋되고 프로젝트 파일만 빠졌다. 그 결과 `WM server deploy` 가
+#   30판 내리 `MSB1009: 프로젝트 파일이 없습니다` 로 죽었다(만든 사람 기계에만 있던 파일).
+#   손으로 쓰는 프로젝트가 사는 두 곳은 <b>예외로 박는다</b> — 다시 조용히 사라지지 않게.
+!Portable/**/*.csproj
+!Server/**/*.csproj
 *.unityproj
 *.sln
 *.slnx
