@@ -133,35 +133,36 @@ WMInput.inputactions → InputManager.BindEvents() → On{Start/Performed/Cancel
 
 **컴파일 트리거**: `refresh_unity(mode="force", scope="all", compile="request", wait_for_ready=true)` 또는 fallback `unity-refresh.ps1`.
 
-## Unity-MCP layer
+## Unity 통로 — 공식 Unity CLI (Pipeline)
 
-**정본 = CoplayDev `com.coplaydev.unity-mcp`** (MIT, Unity Cloud cap 무관).
+**룰 정본 = `memo/rules/unity.md § Unity 통로`.** 본 § = WM 레포 포인터.
 
-⚠ **버전 핀 필수 (2026-08-16)** — `manifest.json` 이 `#main` 이었다. 업스트림이 relay 구조(bun `relay_win.exe`,
-9001/9002)로 바뀌면서 우리 배선(`.mcp.json` = 12345 + `McpAutoBinder` 폴링)이 조용히 깨졌고, 새 세션마다
-MCP 도구가 안 붙었다. 지금은 `#78ee5418415953b79c358bfe6355fcc3fde7912b` 로 핀. 올릴 때는 의도적으로 올린다.
+`com.coplaydev.unity-mcp` 는 **제거됐다** (TASK-WM-412, 2026-08-20). 대신 공식 `unity` CLI +
+`com.unity.pipeline` 을 쓴다. 실측 근거 = `memo/notes/2026-08-20-unity-cli.md`.
 
-포트·트랜스포트는 이제 **패키지가 정하는 값**을 따른다(`HttpEndpointUtility` 기본 `http://127.0.0.1:8080`,
-브리지 포트는 `PortManager` 가 에디터마다 6400+ 로 잡고 `unity-mcp-port-{hash}.json` 에 적는다).
-우리 쪽 12345 고정값·자작 폴링은 **폐기 대상**(TASK 미발행). MCP 가 안 붙어도 컴파일 검증은
-`wm-compile-check.ps1` 로 계속 돈다 — MCP 는 필수 경로가 아니다.
+```bash
+unity status                          # 붙은 에디터 — 단, ready 를 믿지 마라(아래)
+unity command eval "return 1;" --project-path <WM>    # ← 서비스 가능 판정은 이것으로만
+unity command console --project-path <WM>             # 콘솔 읽기
+unity command recompile / recompile_status
+unity command editor_play / editor_stop / capture_game_view
+unity command run_tests -- --mode editor --async_tests true --filter <이름조각>
+```
 
-**Editor 꺼져있으면 자동 기동** — WM 작업(특히 behavior-verify/Play) 요청 시 Editor 가 죽어있어도 사용자에게 "켜주세요" 푸시백 X. `memo/dotfiles/scripts/ensure-unity-editor.ps1` 호출 = heavy-op preflight → `Unity.exe -projectPath`(버전 자동 감지) → MCP 포트 12345 listen 대기 → ready. 정본 = TASK-KAR-159 + 메모리 `[[wm-request-auto-launch-unity-mcp]]`.
+**꼭 지킬 것 넷** (자세한 근거는 룰 정본):
 
-**Read (자율)**: `read_console` / `mcpforunity://editor/state` / `find_gameobjects` / `manage_camera(screenshot)` / `run_tests(EditMode)` / `unity_reflect` / `unity_docs`.
+1. `unity status` 의 `ready` ≠ 명령 받을 수 있음. WM 은 ready 뒤 **+20초** 503 을 냈다.
+2. 무거운 순간(Play 부팅·도메인 리로드) 400/503 은 정상 — 재시도 5–10초, 최대 60초.
+3. **메인 스레드 하드캡 5000ms** — 무거운 `eval` 금지, 쪼개거나 `--detach`.
+4. **`run_tests` 는 반드시 `--async_tests true`.** 안 켜면 동기 모드가 메인 스레드를 잡고
+   대기하다 타임아웃 취소와 데드락 → **에디터 강제 종료 + 재임포트**가 유일한 복구다.
+   **WM 전체 스위트(1898개)는 살아있는 에디터에서 완주 못 한다** — 일상은 `--filter`.
 
-**Write (신중)**: `create_script` / `script_apply_edits` / `manage_gameobject` / `manage_components.set_property`(수치 노출 룰 위반 위험) / `manage_assets` / `manage_prefabs`.
+**컴파일 검증 1순위는 그대로 `wm-compile-check.ps1`** (5초, 에디터 잠금·통로 무관). 통로는
+필수 경로가 아니다 — 그게 2026-08-16 에 배운 것이고 통로가 바뀌어도 유지된다.
 
-**PlayMode 테스트**: MCP `run_tests(PlayMode)` = WM heavy-boot 비정본(15s init-cap + HTTP 브릿지 정지 = wedge). 부팅 회귀 = `wm-boot-smoke.ps1`, DI-graph = `wm-editmode-smoke.ps1`.
-
-**작업 완료 흐름**:
-1. 코드 변경 → `refresh_unity` or `create_script`(자동 reimport)
-2. `mcpforunity://editor/state` is_compiling 끝까지 polling
-3. `read_console(types=["error","warning"])` — 0 entries 검증
-4. fail → 즉시 fix → 2. 반복
-5. 통과 → 사용자에게 비전/비주얼/동작 컨펌
-
-**Multi-worktree**: `mcpforunity://instances` 목록 → `set_active_instance` 로 자기 worktree Editor 선택. `McpAutoBinder.cs`(`[InitializeOnLoad]`) 가 `.mcp.json` 자동 갱신.
+**Editor 꺼져있으면 자동 기동** — 사용자에게 "켜주세요" 푸시백 X. `unity open <WM> --args "-automated"`
+후 위 1번 방식으로 서비스 가능해질 때까지 폴링.
 
 ## Git Workflow
 
