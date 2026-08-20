@@ -163,22 +163,12 @@ namespace WitchMendokusai
 					return;
 				}
 
-				// ★ 이 양보는 <b>솥에 넣어 본 뒤에만</b> 한다 (2026-08-20, TASK-WM-413).
-				//   원래 전제 = 「솥은 하나고 완성은 선착순이라, 남이 먼저 가져가면 내 것이 아니다」.
-				//   그 전제는 <b>낡았다</b> — 전역 솥은 폐기됐고 지금은 각자 자기 솥을 짓는다(아래 걸음).
-				//   그런데 이 양보가 `brewed` 를 안 보고 12초에 먼저 터져서, 파수꾼은 <b>솥을 짓기도 전에</b>
-				//   「남이 가져갔다」며 pass 로 끝냈다. 나무 11개 줍는 데 그 12초를 다 쓴다.
-				//   그래서 관문은 늘 potion=0 · pots=0 이었고 이유는 엉뚱하게 적혔다.
-				//   자기 솥에 넣어 보고도 못 얻었을 때만 양보한다 — 그전엔 마감(180초)까지 계속 논다.
-				if (completed == false && chestSeenAmount != 0 && brewed && waited >= LINGER_SECONDS)
-				{
-					// 「남이 가져갔다」는 <b>남이 있을 때만</b> 할 수 있는 말이다. 솥이 안 보이면 그건 다른 이야기다.
-					string conceded = potsSeen == 0 ? "brewed but no pot was ever shown"
-						: link.Dolls.Length > 1 ? "played but potion went to someone else"
-						: "played but never completed";
-					Write("pass", link.Dolls.Length, link, conceded);
-					return;
-				}
+				// ★ 「남이 가져갔다」며 12초에 끝내던 양보를 <b>없앴다</b> (2026-08-20, TASK-WM-413).
+				//   전제 = 「솥은 하나고 완성은 선착순」. 그건 <b>전역 솥</b> 시절 이야기다 —
+				//   지금은 각자 자기 솥을 짓는다. 남이 내 솥의 완성을 가져갈 길이 없다.
+				//   그 양보가 나무 줍는 12초 뒤 곧바로 터져서, 파수꾼은 한 바퀴를 <b>끝내 본 적이 없다</b>.
+				//   못 끝내면 마감(180초)까지 논다 — 그리고 이유를 재서 적는다(짐작 X).
+				//   관문은 300초를 기다리므로 자리는 넉넉하다.
 
 				// ★ 다 놀았어도 <b>잠깐 머문다</b> (실측 2026-08-10): 3초 만에 끝내고 나갔더니
 				//   나중에 들어온 판과 한 번도 겹치지 않아 「둘이 만났나」를 잴 수가 없었다.
@@ -290,6 +280,13 @@ namespace WitchMendokusai
 
 			if (brewed == false)
 			{
+				// ⚠ 솥이 <b>서기도 전에</b> 젓겠다고 한 번 쏘고 끝냈다 (2026-08-20). 짓기는 줄을 타고 가는데
+				//   바로 다음 걸음(0.1초)에 저었으니, 그 말은 받을 솥이 없어 버려진다. 그리고 다시 안 쏜다.
+				//   서 있는 것을 <b>보고</b> 젓는다 — 안 보이면 다음 걸음에 또 본다.
+				CauldronView[] standing = link?.Cauldrons;
+				if (standing == null || standing.Length == 0)
+					return;
+
 				DomainSDK.Alchemy.SharedBrewChannelBridge.Channel.TryUseNearbyCauldron(gatheredItemId);
 				brewed = true;
 				return;
