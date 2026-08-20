@@ -420,6 +420,23 @@ namespace WitchMendokusai
 			link.RequestChest(cellX, 0, cellZ);
 		}
 
+		/// <summary>세계가 그 번호의 건물을 몇 채 알고 있나 — 「청했다」와 「섰다」를 가르는 자리.</summary>
+		private static int CountBuildings(IWorldLink link, int buildingId)
+		{
+			BuildingView[] all = link?.Buildings;
+			if (all == null)
+				return 0;
+
+			int found = 0;
+			for (int i = 0; i < all.Length; i++)
+			{
+				if (all[i] != null && all[i].buildingId == buildingId)
+					found += 1;
+			}
+
+			return found;
+		}
+
 		private static int ReadNumber(string name)
 		{
 			string raw = Environment.GetEnvironmentVariable(name);
@@ -556,6 +573,11 @@ namespace WitchMendokusai
 				"crafted=", crafted ? "1" : "0", "\n",
 				"crafteditem=", craftedItemId.ToString(CultureInfo.InvariantCulture), "\n",
 				"pots=", potsSeen.ToString(CultureInfo.InvariantCulture), "\n",
+				// ★ TASK-WM-413: pots=0 이 왜 0 인지를 못 갈랐다 — 「청하지도 않았나」
+				//   / 「청했는데 안 섰나」 / 「섰는데 솥이 안 놓였나」 는 서로 다른 결함이다.
+				"potrequested=", potPlaced ? "1" : "0", "\n",
+				"potbuilt=", CountBuildings(link, WorldSim.CAULDRON_BUILDING_ID).ToString(CultureInfo.InvariantCulture), "\n",
+				"buildings=", (link?.Buildings == null ? 0 : link.Buildings.Length).ToString(CultureInfo.InvariantCulture), "\n",
 				"potsteps=", myPotSteps.ToString(CultureInfo.InvariantCulture), "\n",
 				// 세계의 시각이 <b>흐르고 있나</b> — 혼자 켠 판은 아무도 시계를 안 굴려 멈춰 있었다.
 				// 멈추면 들판이 영영 안 자라고 밤낮도 안 바뀐다(실측 2026-08-10).
