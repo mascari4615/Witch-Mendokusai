@@ -76,6 +76,14 @@ function joinOne() {
 		let said;
 		try { said = JSON.parse(String(event.data)); } catch { return; }
 		if (said.type === 'welcome') one.id = said.id;
+		// ★ 자리는 `world` 에서만 읽는다 (2026-08-20). `names` 도 `dolls` 배열을 갖는데
+		//   거기엔 x/z 가 없다 — 이름은 따로 나른다(TASK-WM-220). 종류를 안 가리고 읽으면
+		//   `names` 한 통에 one.x 가 undefined 로 덮여, 시험이 `toFixed` 에서 터진다.
+		//   자가 틀리면 관문은 헛것을 지킨다.
+		if (said.type !== 'world') {
+			if (said.beat !== undefined && one.socket.readyState === 1) one.socket.send(JSON.stringify({ type: 'beat', beat: said.beat }));
+			return;
+		}
 		for (const d of (said.dolls || [])) {
 			if (d.id === one.id) { one.x = d.x; one.z = d.z; }
 			one.sees.add(d.id);

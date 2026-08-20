@@ -2374,7 +2374,9 @@ window.__wmView = {
 	// 지금 열려 있는 줄 — 「소식이 도착한 그 자리」에서 재려면 이게 있어야 한다(다시 붙으면 바뀐다).
 	socket: () => socket,
 	// 창이 지금 알고 있는 세계의 크기 — 끊겼다 돌아온 뒤 <b>통째로</b> 돌아왔는지 보는 자리.
-	world: () => ({ dolls: dolls.length, buildings: buildings.length, gatherables: gatherables.length }),
+	// `sequence` 도 같이 낸다 — 관문이 「창이 새 소식을 받고도 못 그렸나」를 벽시계 없이 가른다
+	// (2026-08-20: 15초로 자르던 자가 2코어 CI 에서만 빨개졌다 = 환경 주장이었다).
+	world: () => ({ dolls: dolls.length, buildings: buildings.length, gatherables: gatherables.length, sequence: lastWorldSequence }),
 };
 
 // ── 서랍 안의 손잡이들 ─────────────────────────────────────────────────
