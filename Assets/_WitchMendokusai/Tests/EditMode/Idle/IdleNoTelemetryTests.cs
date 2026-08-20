@@ -103,7 +103,20 @@ namespace WitchMendokusai.Tests
 
 		private static string FindAssetsRoot()
 		{
-			DirectoryInfo at = new DirectoryInfo(AppContext.BaseDirectory);
+			// ★ 유니티 안에서는 dataPath 가 곧 <프로젝트>/Assets 다 — 이걸 먼저 본다 (TASK-WM-416).
+			//   예전엔 AppContext.BaseDirectory 에서 위로 훑었는데, 테스트 러너에서 그 값은
+			//   *에디터 설치 폴더*(…/Unity/Hub/Editor/…/Unity.exe)라 프로젝트를 영영 못 만났다.
+			//   그래서 이 파일의 검사들이 「저장소 뿌리를 못 찾았다」로 늘 빨갰다(실측 2026-08-21).
+			string dataPath = UnityEngine.Application.dataPath;
+
+			if (string.IsNullOrEmpty(dataPath) == false
+				&& Directory.Exists(Path.Combine(dataPath, "_WitchMendokusai")))
+			{
+				return dataPath;
+			}
+
+			// 유니티 밖(순수 dotnet)에서도 돌 수 있게 — 일하는 자리에서 위로 훑는다.
+			DirectoryInfo at = new DirectoryInfo(Directory.GetCurrentDirectory());
 
 			while (at != null)
 			{
@@ -117,7 +130,9 @@ namespace WitchMendokusai.Tests
 				at = at.Parent;
 			}
 
-			throw new DirectoryNotFoundException("저장소 뿌리를 못 찾았다 — Assets/_WitchMendokusai 가 없다");
+			throw new DirectoryNotFoundException(
+				"저장소 뿌리를 못 찾았다 — Assets/_WitchMendokusai 가 없다 "
+				+ $"(dataPath={dataPath}, cwd={Directory.GetCurrentDirectory()})");
 		}
 	}
 }
