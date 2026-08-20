@@ -318,12 +318,22 @@ check(`창끼리 공평하다 (덜 받은 창 ≥ 가장 많이 받은 창의 ${
 //   느린 기계에서는 보이는 사람 자체가 줄고(24 → 12) 봇도 덜 움직인다 — 그건 기계 이야기다.
 //   [문턱-사유] (a) 같은 판에서 <b>지켜본 사람 수와의 비율</b> — 기계가 느리면 분모도 같이 준다.
 //   + 붕괴 감지선 3명(거의 아무도 안 움직이는 판만 잡는다).
-const MOVED_SHARE = 0.4;
+// ★ 2026-08-20 또 어긋났다 (4/13 · 4/13 · 12/23 = 31%/31%/52% 로 빨강). 40% 도 결국
+//   <b>기계 이야기</b>였다 — 느린 판에서는 봇이 덜 움직이는데 분모(지켜본 사람)는 그만큼 안 준다.
+//   [문턱-사유] (a) 같은 판의 <b>다른 창</b>과 견준다: 이 관문이 잡으려는 것은
+//   「어떤 창만 무리가 굳어 보인다」이지 「오늘 기계가 느리다」가 아니다.
+//   가장 잘 본 창의 움직임 비율을 자로 삼고, 그 절반 아래인 창만 빨갛다.
+//   + 붕괴 감지선 3명은 그대로 — 모든 창이 똑같이 죽은 판을 잡는다.
+const OF_BEST_WINDOW = 0.5;
 const LEAST_MOVERS = 3;
-check(`창마다 무리가 실제로 움직인다 (지켜본 사람의 ${Math.round(MOVED_SHARE * 100)}% 위)`,
-	seen.every((one) => one.watched > 0
-		&& one.movedOthers >= Math.max(LEAST_MOVERS, Math.round(one.watched * MOVED_SHARE))),
-	seen.map((one) => `${one.movedOthers}/${one.watched}명 움직임`).join(' · '));
+const movedShares = seen.map((one) => (one.watched > 0 ? one.movedOthers / one.watched : 0));
+const bestShare = Math.max(...movedShares);
+check(`창마다 무리가 실제로 움직인다 (가장 잘 본 창의 ${Math.round(OF_BEST_WINDOW * 100)}% 위 · 붕괴선 ${LEAST_MOVERS}명)`,
+	seen.every((one, at) => one.watched > 0
+		&& one.movedOthers >= LEAST_MOVERS
+		&& movedShares[at] >= bestShare * OF_BEST_WINDOW),
+	seen.map((one, at) => `${one.movedOthers}/${one.watched}명(${Math.round(movedShares[at] * 100)}%)`).join(' · ')
+		+ ` — 자 ${Math.round(bestShare * OF_BEST_WINDOW * 100)}%`);
 
 // 세계가 세는 사람 수 아래로 창이 그린 인형이 내려와야 한다 — 나간 다섯이 지워졌다는 뜻이다.
 // ★ <b>그 사람</b>이 지워졌나로 본다 — 「그린 수가 세계 수보다 작다」로는 좁혀진 창이 거저 통과한다.

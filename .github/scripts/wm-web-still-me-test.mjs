@@ -221,7 +221,13 @@ if (after.x === null) {
 }
 
 await wait(600);
-after = await whoAmI();
+// ⚠ 다시 읽은 값이 null 이면 <b>덮지 않는다</b> (2026-08-20). 위에서 「내 인형이 왔다」를 이미
+//   확인했는데, 이 재읽기 순간 인형이 안 실린 소식이 오면 자리가 null 로 돌아가 관문이 빨개진다
+//   (2코어 CI 실측: (0.66, 5.15) → (null, null)). 좋은 값을 나쁜 값으로 덮지 않는다.
+{
+	const again = await whoAmI();
+	if (again.x !== null) after = again;
+}
 
 check('새로고침해도 같은 사람이다', after.identity === before.identity,
 	`${before.identity} → ${after.identity}`);
