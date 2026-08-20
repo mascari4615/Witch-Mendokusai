@@ -172,8 +172,11 @@ namespace WitchMendokusai
 				//   자기 솥에 넣어 보고도 못 얻었을 때만 양보한다 — 그전엔 마감(180초)까지 계속 논다.
 				if (completed == false && chestSeenAmount != 0 && brewed && waited >= LINGER_SECONDS)
 				{
-					Write("pass", link.Dolls.Length, link,
-						link.Dolls.Length > 1 ? "played but potion went to someone else" : "played but never completed");
+					// 「남이 가져갔다」는 <b>남이 있을 때만</b> 할 수 있는 말이다. 솥이 안 보이면 그건 다른 이야기다.
+					string conceded = potsSeen == 0 ? "brewed but no pot was ever shown"
+						: link.Dolls.Length > 1 ? "played but potion went to someone else"
+						: "played but never completed";
+					Write("pass", link.Dolls.Length, link, conceded);
 					return;
 				}
 
@@ -191,9 +194,15 @@ namespace WitchMendokusai
 				return;
 
 			int seen = link?.Dolls?.Length ?? 0;
+			// ★ 사다리에 「솥」 칸이 없어서 엉뚱한 이유가 적혔다 (2026-08-20, TASK-WM-413).
+			//   pots=0 인데 「남이 가져갔다」로 적히면, 읽는 사람은 <b>세계 탓</b>을 하며
+			//   엉뚱한 데를 판다. 이유는 재는 것이지 짐작하는 게 아니다.
 			string why = link == null ? "no link"
 				: gathered == false ? "could not gather"
 				: chestSeenAmount == 0 ? "chest did not take it"
+				: potPlaced == false ? "never asked for a cauldron"
+				: CountBuildings(link, WorldSim.CAULDRON_BUILDING_ID) == 0 ? "asked for a cauldron but the world never built one"
+				: potsSeen == 0 ? "a cauldron stands but the world shows no pot"
 				: brewed == false ? "could not brew"
 				: "no potion";
 
