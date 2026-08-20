@@ -13,3 +13,4 @@ BrewMapDebugView	연금 지도 디버그 뷰. 필요할 때 손으로 붙이는 
 CauldronMapDebugHost	위와 같은 부류 — 미확인.
 InteractiveObject_UI	상호작용 UI. 옛 UI 계열로 보임 — 미확인.
 DialogueSpeakerTag	대화 레인 슬롯이 방금 만든 부품. 아직 붙일 자리가 없는 것으로 보여 임시로 넣어 둔다 — 그쪽에 확인 요청함(session-bus).
+FarmGroundFeedback	밭 손맛 소리(TASK-WM-410, 08-17). 붙일 자리가 밭 프리팹인데 아직 안 붙었다 — 그쪽에서 붙이면 이 줄을 지워라.
