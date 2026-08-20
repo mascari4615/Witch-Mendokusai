@@ -157,7 +157,11 @@ jobs:
   portable:
     name: DomainSDK 엔진 밖 빌드
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    # 2026-08-20: 5분이었는데 <b>취소</b>로 죽기 시작했다. 이날 자던 시험 38개를
+    #   DomainSDK.Tests 에 걸어(WM-364 이어서) 이 잡이 실제로 하는 일이 늘었다 —
+    #   745개가 2코어 러너에서 3분 넘게 돈다. 예산이 일보다 작으면 초록도 빨강도 아닌
+    #   <b>취소</b>가 나오고, 그건 아무 말도 안 해 준다. 일에 맞춰 올린다.
+    timeout-minutes: 15
     steps:
       - name: Checkout
         uses: actions/checkout@v4
