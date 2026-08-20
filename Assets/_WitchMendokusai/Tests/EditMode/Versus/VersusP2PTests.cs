@@ -52,7 +52,22 @@ namespace WitchMendokusai.Tests
 			}
 
 			ClientWebSocket client = new ClientWebSocket();
-			client.ConnectAsync(new Uri($"ws://localhost:{PORT}/vs/"), CancellationToken.None).GetAwaiter().GetResult();
+
+			// ★ 마감시한 없이 기다리지 마라 (TASK-WM-414). EditMode 테스트는 *에디터 메인 스레드*에서
+			//   돈다 — 여기서 무한 대기하면 에디터가 통째로 멎고 강제 종료로만 복구된다(실측 2026-08-20).
+			//   붙는 쪽이 못 붙으면 몇 초 만에 빨갛게 죽는 것이 맞다.
+			using CancellationTokenSource connectDeadline = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+
+			try
+			{
+				client.ConnectAsync(new Uri($"ws://localhost:{PORT}/vs/"), connectDeadline.Token)
+					.GetAwaiter().GetResult();
+			}
+			catch (OperationCanceledException)
+			{
+				Assert.Fail("10초 안에 못 붙었다 — 문은 열렸는데 손님이 못 들어간다 " +
+					"(수락 루프가 메인 스레드를 기다리고 있지 않은지 확인: ConfigureAwait(false))");
+			}
 
 			IVersusTransport guestSide = WaitForGuest(host);
 			Assert.IsNotNull(guestSide, "손님이 붙었는데 호스트가 못 받았다");

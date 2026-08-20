@@ -75,6 +75,11 @@ namespace WitchMendokusai
 			listener.Close();
 		}
 
+		// ★ 모든 await 에 ConfigureAwait(false) — 지우지 마라 (TASK-WM-414).
+		// 유니티의 SynchronizationContext 는 이어달리기를 *메인 스레드*로 돌려보낸다. 이 루프가
+		// 그러면 「메인 스레드가 붙기를 기다리는 동안 수락이 못 돈다」가 되어 서로를 막는다.
+		// 실측(2026-08-20): EditMode 테스트 1개가 에디터를 영구 정지시켰다 — 강제 종료로만 복구.
+		// 런타임에도 같은 이유로 위험하다(한 프레임이 길어지면 접속 수락이 밀린다).
 		private async void AcceptLoop()
 		{
 			while (listener.IsListening && cancellation.IsCancellationRequested == false)
@@ -83,7 +88,7 @@ namespace WitchMendokusai
 
 				try
 				{
-					context = await listener.GetContextAsync();
+					context = await listener.GetContextAsync().ConfigureAwait(false);
 				}
 				catch (Exception exception)
 				{
@@ -98,7 +103,7 @@ namespace WitchMendokusai
 					continue;
 				}
 
-				HttpListenerWebSocketContext socketContext = await context.AcceptWebSocketAsync(null);
+				HttpListenerWebSocketContext socketContext = await context.AcceptWebSocketAsync(null).ConfigureAwait(false);
 				VersusSocketTransport transport = new VersusSocketTransport(socketContext.WebSocket, cancellation.Token);
 				arrivals.Enqueue(transport);
 			}
@@ -156,7 +161,7 @@ namespace WitchMendokusai
 			{
 				while (IsOpen && cancellation.IsCancellationRequested == false)
 				{
-					WebSocketReceiveResult result = await socket.ReceiveAsync(new ArraySegment<byte>(buffer), cancellation);
+					WebSocketReceiveResult result = await socket.ReceiveAsync(new ArraySegment<byte>(buffer), cancellation).ConfigureAwait(false);
 
 					if (result.MessageType == WebSocketMessageType.Close)
 						return;
