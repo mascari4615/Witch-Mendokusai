@@ -163,10 +163,14 @@ namespace WitchMendokusai
 					return;
 				}
 
-				// ★ 솥은 <b>하나</b>고 완성은 선착순이다 (실측 2026-08-10) — 남이 먼저 가져가면
-				//   내 재료로 만든 것도 내 것이 아니다. 그건 규칙대로이지 고장이 아니므로,
-				//   「줍고·상자까지 됐다」면 물약 없이도 논 것으로 센다.
-				if (completed == false && chestSeenAmount != 0 && waited >= LINGER_SECONDS)
+				// ★ 이 양보는 <b>솥에 넣어 본 뒤에만</b> 한다 (2026-08-20, TASK-WM-413).
+				//   원래 전제 = 「솥은 하나고 완성은 선착순이라, 남이 먼저 가져가면 내 것이 아니다」.
+				//   그 전제는 <b>낡았다</b> — 전역 솥은 폐기됐고 지금은 각자 자기 솥을 짓는다(아래 걸음).
+				//   그런데 이 양보가 `brewed` 를 안 보고 12초에 먼저 터져서, 파수꾼은 <b>솥을 짓기도 전에</b>
+				//   「남이 가져갔다」며 pass 로 끝냈다. 나무 11개 줍는 데 그 12초를 다 쓴다.
+				//   그래서 관문은 늘 potion=0 · pots=0 이었고 이유는 엉뚱하게 적혔다.
+				//   자기 솥에 넣어 보고도 못 얻었을 때만 양보한다 — 그전엔 마감(180초)까지 계속 논다.
+				if (completed == false && chestSeenAmount != 0 && brewed && waited >= LINGER_SECONDS)
 				{
 					Write("pass", link.Dolls.Length, link,
 						link.Dolls.Length > 1 ? "played but potion went to someone else" : "played but never completed");
