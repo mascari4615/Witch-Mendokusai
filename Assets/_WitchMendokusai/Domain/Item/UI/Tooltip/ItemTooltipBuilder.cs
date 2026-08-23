@@ -5,7 +5,7 @@ namespace WitchMendokusai
 	/// <summary>
 	/// ItemData (및 하위 타입 — EquipmentData 등) 툴팁 빌더.
 	/// Simple: 아이콘 + 이름 + 설명.
-	/// Detailed: stub. 추후 메이플식 상세 정보 (등급, 가격, 효과, 재료 등) 확장 예정.
+	/// Detailed: stub. 추후 대열 방치 전투 계열식 상세 정보 (등급, 가격, 효과, 재료 등) 확장 예정.
 	/// </summary>
 	public class ItemTooltipBuilder : ITooltipBuilder
 	{
@@ -67,7 +67,7 @@ namespace WitchMendokusai
 
 		private void BuildDetailedSections(TooltipView view, ItemData itemData)
 		{
-			// TODO: 메이플식 상세 (등급/가격/효과/레시피). 현재는 최소만.
+			// TODO: 대열 방치 전투 계열식 상세 (등급/가격/효과/레시피). 현재는 최소만.
 			Label gradeLabel = new(itemData.Grade.ToString());
 			gradeLabel.AddToClassList(GRADE_CLASS);
 			gradeLabel.pickingMode = PickingMode.Ignore;

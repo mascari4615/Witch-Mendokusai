@@ -76,7 +76,7 @@ namespace WitchMendokusai.EditorTools
 			Camera camera = cameraObject.AddComponent<Camera>();
 			camera.clearFlags = CameraClearFlags.SolidColor;
 			camera.backgroundColor = new Color(0.75f, 0.88f, 0.96f);
-			// ★ 쿼터뷰 (사용자 방향 1, 블아) — 45° 로 내려다보고 45° 로 비껴 본다.
+			// ★ 쿼터뷰 (사용자 방향 1, 자동전투+카드 개입 계열) — 45° 로 내려다보고 45° 로 비껴 본다.
 			//   정면(요 0)이면 옆뷰가 되고, 90° 면 탑뷰가 된다. 그 사이가 「쿼터」다.
 			// 내려다보는 각은 45°, 비껴 보는 각은 30° — 정면(0°)이면 옆뷰, 45°면 땅 모서리가 든다.
 			camera.fieldOfView = 32f;

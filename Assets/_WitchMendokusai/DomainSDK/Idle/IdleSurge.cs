@@ -5,7 +5,7 @@ namespace WitchMendokusai.DomainSDK.Idle
     {
         None = 0,
 
-        /// <summary>판 전체가 잠시 빨라진다 (쿠키 클리커 Frenzy 자리).</summary>
+        /// <summary>판 전체가 잠시 빨라진다 (생산자 클리커 계열 Frenzy 자리).</summary>
         Frenzy = 1,
 
         /// <summary>손으로 때리는 값이 잠시 폭증한다 (Click Frenzy 자리).</summary>
@@ -19,7 +19,7 @@ namespace WitchMendokusai.DomainSDK.Idle
     ///   언제 꺼도 손해가 같다. 그러면 「지금 이 화면을 볼 이유」가 없다.
     ///   변동성은 그 평탄함에 <b>봉우리</b>를 만든다 — 놓치면 아깝고, 잡으면 판이 한참 앞서간다.
     ///
-    /// ★ 뜨는 시각을 <b>다항 램프</b>로 만든다 — 쿠키 클리커의 <c>((t-Tmin)/T)^5</c>.
+    /// ★ 뜨는 시각을 <b>다항 램프</b>로 만든다 — 생산자 클리커 계열의 <c>((t-Tmin)/T)^5</c>.
     ///   지수분포(무기억)면 「슬슬 뜰 때가 됐다」는 감각이 <b>거짓</b>이 되고, 그러면
     ///   다시 볼 이유도 사라진다. 5제곱 램프는 사람의 그 감각과 실제 확률을 <b>일치</b>시킨다.
     ///

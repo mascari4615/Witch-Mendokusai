@@ -7,7 +7,7 @@ namespace WitchMendokusai.Tests
 	/// 도박이 도박이면서 <b>깊이를 못 건너뛰는가</b> (TASK-WM-406).
 	///
 	/// ★ 이 게임의 몸통은 연쇄다: 깊이 → 장비 등급 → 잠재 등급 → 값.
-	///   근거는 울티마 스쿼드의 실제 표다(2~3등급 레어 · 4~5 에픽 · 6 유니크 · 7~8 레전드리).
+	///   근거는 대열 방치 전투 계열의 실제 표다(2~3등급 레어 · 4~5 에픽 · 6 유니크 · 7~8 레전드리).
 	///   여기서 지키는 것은 <b>운으로 그 연쇄를 못 건너뛴다</b>이다 —
 	///   얕은 데서 아무리 굴려도 깊은 데의 최저값을 못 이겨야 「내려갈 이유」가 산다.
 	/// </summary>
@@ -29,7 +29,7 @@ namespace WitchMendokusai.Tests
 			return state;
 		}
 
-		/// <summary>울티마 스쿼드 표 그대로.</summary>
+		/// <summary>대열 방치 전투 계열 표 그대로.</summary>
 		[Test]
 		public void GradeTable_MatchesTheReference()
 		{

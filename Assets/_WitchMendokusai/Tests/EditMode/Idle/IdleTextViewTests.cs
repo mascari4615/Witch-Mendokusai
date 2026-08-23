@@ -48,7 +48,7 @@ namespace WitchMendokusai.Tests
 
 		/// <summary>
 		/// 초반 30분이 <b>막히지 않는다</b> — 아무것도 못 사는 채로 오래 서 있으면 그건 지루함이다.
-		/// 방치형은 초반에 보상을 쏟아붓는 게 관례다(쿠키 클리커).
+		/// 방치형은 초반에 보상을 쏟아붓는 게 관례다(생산자 클리커 계열).
 		/// </summary>
 		[Test]
 		public void EarlyGame_IsNotStuck()

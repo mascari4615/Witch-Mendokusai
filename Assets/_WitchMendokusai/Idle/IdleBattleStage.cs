@@ -10,7 +10,7 @@ namespace WitchMendokusai
 	/// ★ 이 파일에 게임 규칙이 한 줄도 없다 — 사진(<see cref="IdleSnapshot"/>)을 받아 3D 로 그린다.
 	///
 	/// ★ <b>웨이브는 무리다</b> (실조사 `refs/blue-archive.md` · `refs/ultima-squad.md`):
-	///   블아는 한 웨이브에 잡몹 여럿이 <b>동시에</b> 오고 마지막에 보스, 울티마도 「몬스터들이 무리지어
+	///   자동전투+카드 개입 계열은 한 웨이브에 잡몹 여럿이 <b>동시에</b> 오고 마지막에 보스, 대열 방치 전투 계열도 「몬스터들이 무리지어
 	///   등장하고 마지막에 보스」다. 전에는 한 마리씩 줄을 세웠는데 그건 두 원작 어느 쪽도 아니었다.
 	///   판정(코어)은 여전히 한 번에 하나씩 — <b>보이는 것만</b> 무리다. 맨 앞이 지금 맞는 놈이고,
 	///   뒤의 것들은 「아직 안 온 차례」다.
@@ -224,7 +224,7 @@ namespace WitchMendokusai
 					dollSkins[seat].color = gradeColors[Mathf.Clamp(grade, 0, gradeColors.Length - 1)];
 				}
 
-				// 쓰러진 자리는 <b>부활 게이지</b>가 그 자리에 뜬다 (울티마: 머리 위 부활 대기 게이지).
+				// 쓰러진 자리는 <b>부활 게이지</b>가 그 자리에 뜬다 (대열 방치 전투 계열: 머리 위 부활 대기 게이지).
 				if (view.Standing)
 				{
 					dollBars[seat].SetFillColor(allyBarColor);
@@ -287,7 +287,7 @@ namespace WitchMendokusai
 		/// 적 <b>무리</b>를 사진에 맞춘다 — 한 웨이브가 통째로 서 있고, 앞에서부터 쓰러진다.
 		///
 		/// ★ 웨이브 번호·무리 안 자리는 처치 수(<see cref="IdleSnapshot.KillsInStage"/>)에서 나온다.
-		///   구역의 <b>마지막 하나</b>는 보스라 혼자 선다 (블아·울티마 공통).
+		///   구역의 <b>마지막 하나</b>는 보스라 혼자 선다 (자동전투+카드 개입 계열·대열 방치 전투 계열 공통).
 		/// </summary>
 		private void DressFoes(IdleSnapshot snapshot)
 		{

@@ -10,7 +10,7 @@ namespace WitchMendokusai.DomainSDK.Idle
     ///   짜는 맛은 <b>자리가 나뉘어 있고 재료가 모자랄 때</b> 난다 —
     ///   부위 넷, 가방 한정, 합치면 사라지는 잠재. 셋 다 「무엇을 포기할까」를 만든다.
     ///
-    /// ★ 울티마 스쿼드 심화 그대로 — 깊이가 등급 상한을 정하고, 같은 등급을 합쳐 올리고,
+    /// ★ 대열 방치 전투 계열 심화 그대로 — 깊이가 등급 상한을 정하고, 같은 등급을 합쳐 올리고,
     ///   잠재는 감정으로 굴린다. 이미 있던 떨구기·잠재 규칙을 그대로 쓴다.
     /// </summary>
     public static class IdleGear
@@ -25,7 +25,7 @@ namespace WitchMendokusai.DomainSDK.Idle
         ///   이 게임의 떨구기는 결정적이어야 한다(오프라인 보상이 그 위에 서 있다).
         ///   대신 한 부위만 계속 나와 못 쓰는 일도 없다.
         ///
-        /// ★ 가방이 차면 <b>안 들어온다</b>. 울티마 스쿼드에도 「장비 꽉참」이 있다 —
+        /// ★ 가방이 차면 <b>안 들어온다</b>. 대열 방치 전투 계열에도 「장비 꽉참」이 있다 —
         ///   차는 것 자체가 「무엇을 합치고 무엇을 버릴까」라는 결정을 만든다.
         /// </summary>
         public static int Stow(IdleState state, IdleTuning tuning, int tier, long count)

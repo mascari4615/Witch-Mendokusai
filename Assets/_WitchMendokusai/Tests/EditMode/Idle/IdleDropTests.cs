@@ -6,7 +6,7 @@ namespace WitchMendokusai.Tests
 	/// <summary>
 	/// 깊이가 등급의 관문인가 (TASK-WM-406).
 	///
-	/// ★ 울티마 스쿼드에서 이 규칙 하나가 「같은 자리 반복은 성장이 아니다」를 만든다.
+	/// ★ 대열 방치 전투 계열에서 이 규칙 하나가 「같은 자리 반복은 성장이 아니다」를 만든다.
 	///   아무리 오래 서 있어도 상한 위는 안 나오므로, 더 좋은 것을 원하면 내려가는 수밖에 없다.
 	///   그래서 여기서 가장 중요한 판은 <b>상한 위가 절대 안 나온다</b>이다.
 	///
@@ -201,7 +201,7 @@ namespace WitchMendokusai.Tests
 		}
 
 		/// <summary>
-		/// ★ <b>환생해야 천장이 열린다</b> — 울티마 스쿼드의 일반 6등급 → 카오스 8등급과 같은 자리.
+		/// ★ <b>환생해야 천장이 열린다</b> — 대열 방치 전투 계열의 일반 6등급 → 카오스 8등급과 같은 자리.
 		///
 		/// 실측(2026-08-16)이 이 층을 요구했다: 등급이 5단계마다 하나씩 열리니 천장 8 은 36단계면
 		/// 다 열리는데 2시간이면 40단계다. 그 뒤로는 내려가도 등급이 안 열려
@@ -212,7 +212,7 @@ namespace WitchMendokusai.Tests
 		{
 			IdleTuning tuning = new IdleTuning();
 
-			Assert.AreEqual(6, IdleDrops.CeilingFor(0, tuning), "첫 판 천장은 울티마 스쿼드 일반 모드와 같은 6");
+			Assert.AreEqual(6, IdleDrops.CeilingFor(0, tuning), "첫 판 천장은 대열 방치 전투 계열 일반 모드와 같은 6");
 			Assert.AreEqual(8, IdleDrops.CeilingFor(1, tuning), "한 번 환생하면 카오스와 같은 8");
 			Assert.AreEqual(10, IdleDrops.CeilingFor(2, tuning));
 		}

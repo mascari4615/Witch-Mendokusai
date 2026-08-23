@@ -6,7 +6,7 @@ namespace WitchMendokusai.Tests
 	/// <summary>
 	/// 기지(클리커 층)와 모험(스쿼드 층)이 <b>서로를 부르는가</b> (TASK-WM-406).
 	///
-	/// ★ 사용자 지적에서 나온 판이다 — 「쿠키 클리커 같은데 아직 잘 안 녹아든다」.
+	/// ★ 사용자 지적에서 나온 판이다 — 「생산자 클리커 계열 같은데 아직 잘 안 녹아든다」.
 	///   원인은 잡기 하나가 자원도 장비도 다 냈다는 것. 그러면 기지가 있을 이유가 없다.
 	///   그래서 갈랐다: <b>자원은 기지가, 장비는 모험이</b>.
 	///   여기서 지키는 것은 그 <b>갈라짐</b>과 <b>맞물림</b>이다.
@@ -47,7 +47,7 @@ namespace WitchMendokusai.Tests
 			Assert.AreEqual(expected, state.Resource, 1e-6d, "기지가 시간만큼 안 냈다");
 		}
 
-		/// <summary>살수록 값이 오른다 — 쿠키 클리커의 1.15배 그대로.</summary>
+		/// <summary>살수록 값이 오른다 — 생산자 클리커 계열의 1.15배 그대로.</summary>
 		[Test]
 		public void Producers_GetPricierAsYouBuy()
 		{

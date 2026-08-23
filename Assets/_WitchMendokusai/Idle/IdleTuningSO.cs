@@ -131,7 +131,7 @@ namespace WitchMendokusai
         [Tooltip("생산자 종류 수.")]
         [SerializeField] private int producerCount = 8;
 
-        [Tooltip("하나 살 때마다 값에 곱해지는 배수 (쿠키 클리커와 같은 자리).")]
+        [Tooltip("하나 살 때마다 값에 곱해지는 배수 (생산자 클리커 계열와 같은 자리).")]
         [SerializeField] private double producerCostRatio = 1.15d;
 
         [Tooltip("«몰아 사기/올리기» 한 번에 처리하는 최대 개수 — 크면 한 번 누르는 데 판이 멎는다.")]
@@ -206,10 +206,10 @@ namespace WitchMendokusai
         [SerializeField] private double potentialStep = 2.2d;
 
         [Header("카드 · 코스트 (V2)")]
-        [Tooltip("코스트 게이지 상한 (블아 = 10칸).")]
+        [Tooltip("코스트 게이지 상한 (자동전투+카드 개입 계열 = 10칸).")]
         [SerializeField] private double costMax = 10d;
 
-        [Tooltip("초당 차는 코스트 — 블아 실측 기준 0.4 (1칸 ≈ 2.4초).")]
+        [Tooltip("초당 차는 코스트 — 자동전투+카드 개입 계열 실측 기준 0.4 (1칸 ≈ 2.4초).")]
         [SerializeField] private double costPerSecond = 0.4d;
 
         [Tooltip("일제 사격의 코스트.")]

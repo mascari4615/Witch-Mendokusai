@@ -6,7 +6,7 @@ namespace WitchMendokusai.DomainSDK.Idle
     /// 영웅이 밀어 주는 <b>축</b> (TASK-WM-406).
     ///
     /// ★ 갈래를 나눠 두는 이유는 <b>보유 효과의 곱셈 규칙</b> 때문이다 (사용자 컨펌 2026-08-17,
-    ///   근거 = <c>refs/korean-idle-gacha.md</c> 레전드 오브 슬라임).
+    ///   근거 = <c>refs/korean-idle-gacha.md</c> 수집형 키우기 계열).
     ///   <b>같은 갈래끼리는 더하고, 다른 갈래끼리는 곱한다.</b> 그러면
     ///   ① 한 갈래에 몰아줄수록 수확이 저절로 체감하고
     ///   ② 새 갈래를 처음 여는 순간이 <b>계단</b>이 된다.

@@ -37,7 +37,7 @@ namespace WitchMendokusai.Tests
 		}
 
 		/// <summary>
-		/// 기지 — <b>싼 것부터</b> 산다. 쿠키 클리커에서 사람이 실제로 하는 짓이고,
+		/// 기지 — <b>싼 것부터</b> 산다. 생산자 클리커 계열에서 사람이 실제로 하는 짓이고,
 		/// 「비싼 것 하나 vs 싼 것 여럿」의 기본 답이기도 하다.
 		/// </summary>
 		public static void BuyProducers(IdleState state, IdleTuning tuning)
