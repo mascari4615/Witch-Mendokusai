@@ -15,8 +15,9 @@ namespace WitchMendokusai
 	/// ★ 이 파일에 게임 규칙이 한 줄도 없다 — 사진을 받아 그리고, 의도를 보낸다.
 	///   에디터 창과 같은 코어·같은 계약이고 다른 것은 그릇뿐이다.
 	///
-	/// ★ 짜임: 울티마 스쿼드. 왼쪽=자동사냥(작음). 오른쪽=용병 관리(장착·합성·골드강화).
-	///   클릭 놀이는 관리판. 영웅 뽑기·환생만 레일.
+	/// ★ 짜임(사용자 결정 2026-08-18, 울티마 스쿼드): 사냥은 위 <b>HUD 칩</b> 하나 —
+	///   자동전투는 구경거리지 무대가 아니다. 클릭이 몰리는 곳은 아래 <b>관리판 두 칸</b>
+	///   (기지·강화 / 창고·장비)이고, 영웅 뽑기·환생만 상단 <b>레일</b>에서 장을 연다.
 	///
 	/// ★ 보이는 것은 <b>기하학적 도형</b>이다(사용자 방향: 세계관 정하기 전).
 	///   규칙 하나로 읽힌다 — <b>변의 수 = 등급</b>. 1등급 삼각형 … 8등급 십각형.
@@ -110,6 +111,7 @@ namespace WitchMendokusai
 
 		// ── 칸에 붙은 조작 · 영웅 장 ────────────────────────────────────────
 		private VisualElement heroSheet;
+		private VisualElement foldSheet;
 		private bool heroSheetOpen;
 		private VisualElement hoverHost;
 		private Label hoverTip;
@@ -318,8 +320,9 @@ namespace WitchMendokusai
 
 				if (gained > 0d)
 				{
+					// 칩 높이 안에서 뜬다 — 밖에서 뜨면 안 보이는 채로 사라진다.
 					floats.Pop("+" + BigNumberText.Format(gained),
-						new Vector2(Random.Range(40f, 110f), 120f), new Color(0.72f, 0.82f, 0.55f));
+						new Vector2(Random.Range(40f, 110f), 44f), new Color(0.72f, 0.82f, 0.55f));
 				}
 			}
 
@@ -387,7 +390,7 @@ namespace WitchMendokusai
 				Shake(0.25f);
 
 				floats.Pop("+" + BigNumberText.Format(got),
-					new Vector2(Random.Range(30f, 110f), 70f), TierColor(snapshot.MaxTierNow));
+					new Vector2(Random.Range(30f, 110f), 40f), TierColor(snapshot.MaxTierNow));
 			}
 
 			targetShape.Advance(delta, 0.08f);
@@ -767,15 +770,16 @@ namespace WitchMendokusai
 			root.Add(shell);
 
 			BuildTopBar(shell, away);
+			BuildHuntChip(shell);
 
-			VisualElement stages = new VisualElement();
-			stages.AddToClassList("idle-stages");
-			shell.Add(stages);
+			VisualElement manage = new VisualElement();
+			manage.AddToClassList("idle-manage");
+			shell.Add(manage);
 
-			BuildBaseLive(stages);
-			BuildArena(stages);
-			BuildVaultLive(stages);
+			BuildBaseLive(manage);
+			BuildVaultLive(manage);
 			BuildHeroSheet(shell);
+			BuildFoldSheet(shell);
 			BuildHoverTip(shell);
 		}
 
@@ -788,9 +792,18 @@ namespace WitchMendokusai
 			stageLabel = AddLabel(bar, "idle-top-stage");
 			resourceLabel = AddLabel(bar, "idle-top-resource");
 			topNoteLabel = AddLabel(bar, "idle-top-note");
-			prestigeButton = AddButton(bar, "idle-prestige", Prestige);
-			foldSummary = AddLabel(bar, "idle-top-note");
-			foldSummary.style.display = DisplayStyle.None;
+
+			// ★ 레일 — 상주하지 않는 장(영웅·환생)은 여기서만 연다 (사용자 결정 2026-08-18).
+			//   할 일이 생기면 불이 들어온다(RenderRail) — 닫힌 장 안의 일을 사람이 영영 모르지 않게.
+			railButtons.Clear();
+			for (int which = 0; which < RAIL_NAMES.Length; which++)
+			{
+				int captured = which;
+				Button opener = AddButton(bar, "idle-button idle-rail-button", () => ToggleSheet(captured));
+				opener.text = RAIL_NAMES[which];
+				railButtons.Add(opener);
+			}
+
 			guideLabel = AddLabel(parent, "idle-guide");
 
 			// ★ 돌아온 순간이 방치형의 보상이다 — <b>얼마나</b> 벌었는지 말한다.
@@ -854,27 +867,33 @@ namespace WitchMendokusai
 			BuildUpgradePage();
 		}
 
-		private void BuildArena(VisualElement parent)
+		/// <summary>
+		/// 사냥 칩 — 자동전투의 HUD 한 줄 (사용자 결정 2026-08-18: 「전투 화면이 여전히 큼」).
+		///
+		/// ★ 전투는 <b>구경거리</b>라 한 줄이면 된다 — 큰 무대는 빈 공간만 만들었다.
+		///   칩 전체가 손때리기 대상이고, 조작 버튼은 0개다(클릭 놀이는 아래 관리판).
+		///   파티 얼굴 셋도 여기서는 그림일 뿐이다 — 바꾸는 것은 레일의 영웅 장.
+		/// </summary>
+		private void BuildHuntChip(VisualElement parent)
 		{
-			VisualElement arena = new VisualElement();
-			arena.AddToClassList("idle-live");
-			arena.AddToClassList("idle-arena");
-			parent.Add(arena);
-
-			AddLabel(arena, "idle-live-title").text = "전투";
+			VisualElement chip = new VisualElement();
+			chip.AddToClassList("idle-chip");
+			parent.Add(chip);
 
 			backdrop = new GridBackdropElement();
 			backdrop.AddToClassList("idle-backdrop");
 			backdrop.pickingMode = PickingMode.Ignore;
-			arena.Add(backdrop);
+			chip.Add(backdrop);
 
-			VisualElement field = new VisualElement();
-			field.AddToClassList("idle-field");
-			arena.Add(field);
+			// 쏘는 것은 칩 전체를 가로지른다 — 영웅에서 적까지.
+			bolts = new MoteStreamElement();
+			bolts.AddToClassList("idle-backdrop");
+			bolts.pickingMode = PickingMode.Ignore;
+			chip.Add(bolts);
 
 			VisualElement heroRow = new VisualElement();
 			heroRow.AddToClassList("idle-hero-row");
-			field.Add(heroRow);
+			chip.Add(heroRow);
 			heroes.Clear();
 
 			for (int one = 0; one < HERO_SIDES.Length; one++)
@@ -883,39 +902,45 @@ namespace WitchMendokusai
 				hero.AddToClassList("idle-hero");
 				hero.Sides = HERO_SIDES[one];
 				hero.Body = HERO_COLORS[one];
+				hero.pickingMode = PickingMode.Ignore;
 				heroRow.Add(hero);
 				heroes.Add(hero);
 			}
 
 			VisualElement box = new VisualElement();
 			box.AddToClassList("idle-stage-box");
-			field.Add(box);
+			chip.Add(box);
 
 			targetShape = new NgonElement();
 			targetShape.AddToClassList("idle-shape");
+			targetShape.pickingMode = PickingMode.Ignore;
 			box.Add(targetShape);
 
 			burst = new NgonBurstElement();
 			burst.AddToClassList("idle-shape");
+			burst.pickingMode = PickingMode.Ignore;
 			box.Add(burst);
 
-			// 쏘는 것은 <b>판 전체</b>를 가로지른다 — 판 위에 깔아야 영웅에서 적까지 간다.
-			bolts = new MoteStreamElement();
-			bolts.AddToClassList("idle-backdrop");
-			field.Add(bolts);
+			VisualElement info = new VisualElement();
+			info.AddToClassList("idle-chip-info");
+			chip.Add(info);
 
 			healthBar = new ProgressBar();
 			healthBar.lowValue = 0f;
 			healthBar.highValue = 1f;
 			healthBar.AddToClassList("idle-health");
-			arena.Add(healthBar);
+			info.Add(healthBar);
 
 			VisualElement dots = new VisualElement();
 			dots.AddToClassList("idle-kills-dots");
-			arena.Add(dots);
+			info.Add(dots);
 			killDots.Clear();
 
-			// ★ <b>지나가는 것</b> — 판 위를 가로지르고, 누르면 잠시 폭주한다.
+			arenaCaption = AddLabel(info, "idle-arena-caption");
+
+			surgeLabel = AddLabel(chip, "idle-surge");
+
+			// ★ <b>지나가는 것</b> — 칩 위를 가로지르고, 누르면 잠시 폭주한다.
 			//   조사 1순위(황금 쿠키 자리): 방치형은 기대값이 평탄해서 「지금 볼 이유」가 없다.
 			visitor = new NgonElement();
 			visitor.AddToClassList("idle-visitor");
@@ -923,22 +948,16 @@ namespace WitchMendokusai
 			visitor.Body = new Color(0.98f, 0.84f, 0.38f);
 			visitor.style.display = DisplayStyle.None;
 			visitor.RegisterCallback<PointerDownEvent>(OnVisitorClicked);
-			arena.Add(visitor);
+			chip.Add(visitor);
 
-			surgeLabel = AddLabel(arena, "idle-surge");
+			// 튀는 숫자·흔들림은 칩에 얹는다 — 담는 칸이 자리를 잡아 준다.
+			arenaBox = chip;
+			floats = new FloatTextLayer(chip);
 
-			arenaCaption = AddLabel(arena, "idle-arena-caption");
-
-			// 튀는 숫자는 판 위에 뜬다 — 담는 칸이 자리를 잡아 준다.
-			arenaBox = box;
-			floats = new FloatTextLayer(box);
-
-			BuildPartyRow(arena);
-
-			// ★ <b>판 전체가 누르는 것</b>이다 (사용자 지적: 「전혀 클리커스럽지 않다」).
+			// ★ <b>칩 전체가 누르는 것</b>이다 (사용자 지적: 「전혀 클리커스럽지 않다」).
 			//   쿠키 클리커의 심장은 큰 버튼이다. 작은 버튼을 따로 두면 그건 <b>또 하나의 목록</b>이고,
 			//   손이 가는 곳(적이 있는 자리)과 누르는 곳이 갈라진다.
-			field.RegisterCallback<PointerDownEvent>(OnTapped);
+			chip.RegisterCallback<PointerDownEvent>(OnTapped);
 		}
 
 		/// <summary>창고 실황 — 가방이 격자로 보이고, 떨어진 것이 위에서 꽂힌다.</summary>
@@ -991,6 +1010,26 @@ namespace WitchMendokusai
 			{
 				heroSheet.style.display = which == 0 ? DisplayStyle.Flex : DisplayStyle.None;
 			}
+
+			if (foldSheet != null)
+			{
+				foldSheet.style.display = which == 1 ? DisplayStyle.Flex : DisplayStyle.None;
+			}
+
+			// 영웅 장을 떠나면 반쯤 고른 상태도 버린다 — 남겨 두면 다음에 열었을 때 유령 선택이 된다.
+			if (which != 0)
+			{
+				seatBeingFilled = -1;
+				pendingHeroId = -1;
+			}
+		}
+
+		/// <summary>레일을 눌렀다 — 그 장을 열고, 다시 누르면 닫는다.</summary>
+		private void ToggleSheet(int which)
+		{
+			sound.Click();
+			ShowSheet(openSheet == which ? -1 : which);
+			Render(session.Capture());
 		}
 
 		/// <summary>
@@ -1102,11 +1141,30 @@ namespace WitchMendokusai
 		private void CloseHeroSheet()
 		{
 			ShowSheet(-1);
-			seatBeingFilled = -1;
-			pendingHeroId = -1;
 		}
 
-		/// <summary>전투 칸의 셋 — 누르면 영웅 장을 연다.</summary>
+		/// <summary>환생 장 — 레일에서 연다. 잃는 것·남는 것을 읽고 누르는 자리다.</summary>
+		private void BuildFoldSheet(VisualElement parent)
+		{
+			foldSheet = new VisualElement();
+			foldSheet.AddToClassList("idle-hero-sheet");
+			foldSheet.style.display = DisplayStyle.None;
+			parent.Add(foldSheet);
+
+			VisualElement head = new VisualElement();
+			head.AddToClassList("idle-hero-sheet-head");
+			foldSheet.Add(head);
+			AddLabel(head, "idle-live-title").text = "환생";
+			AddButton(head, "idle-button", () => ShowSheet(-1)).text = "닫기";
+
+			ScrollView body = new ScrollView();
+			body.AddToClassList("idle-shop");
+			foldSheet.Add(body);
+			foldPage = AddPage(body);
+			BuildFoldPage();
+		}
+
+		/// <summary>파티 자리 셋 — 영웅 장 안에 산다. 자리를 누르고 아래 도감에서 얼굴을 고른다.</summary>
 		private void BuildPartyRow(VisualElement parent)
 		{
 			partyRow = new VisualElement();
@@ -1129,11 +1187,7 @@ namespace WitchMendokusai
 				partyShapes.Add(shape);
 				decor.Add(shape);
 
-				Button button = new Button(() =>
-				{
-					OpenHeroSheet();
-					BeginSeat(captured);
-				});
+				Button button = new Button(() => BeginSeat(captured));
 				button.AddToClassList("idle-button");
 				button.AddToClassList("idle-seat-button");
 				seat.Add(button);
@@ -1246,7 +1300,8 @@ namespace WitchMendokusai
 			pullNote = AddLabel(heroPage, "idle-note");
 
 			AddDivider(heroPage);
-			AddLabel(heroPage, "idle-row-value").text = "파티는 전투 칸에서 고른다";
+			AddLabel(heroPage, "idle-row-value").text = "파티 — 셋만 내보낸다. 자리를 누르고 아래 도감에서 얼굴을 고른다";
+			BuildPartyRow(heroPage);
 
 			// ★ 세운 것을 <b>내리는 길</b>이 없었다. 코어는 진작에 할 수 있었는데 화면에 손잡이가
 			//   없어서 한 번 세우면 셋 중 하나를 비워 볼 수가 없었다 — 축을 바꿔 시험할 길이 막힌 것이다.
@@ -1289,6 +1344,7 @@ namespace WitchMendokusai
 			guideLabel.text = NextStep(snapshot);
 
 			RenderArena(snapshot);
+			RenderRail(snapshot);
 			RenderBaseLive(snapshot);
 			RenderVaultLive(snapshot);
 			RenderBasePage(snapshot);
@@ -1325,23 +1381,23 @@ namespace WitchMendokusai
 			switch (advice.Step)
 			{
 				case IdleStep.CatchVisitor:
-					return "▶ 판 위에 뭔가 지나간다 — 누르면 잠시 폭주한다";
+					return "▶ 사냥 칩 위에 뭔가 지나간다 — 누르면 잠시 폭주한다";
 
 				case IdleStep.BagFull:
 					return "▶ 가방이 꽉 찼다 — 합치거나 차야 새 장비가 들어온다 (감정용 개수는 계속 쌓인다)";
 
 				case IdleStep.Prestige:
-					return string.Format("▶ 환생할 때다 — 지금 환생하면 환생석 {0} (등급 천장도 오른다)",
+					return string.Format("▶ 위 「환생」 — 지금 환생하면 환생석 {0} (등급 천장도 오른다)",
 						(long)advice.Amount);
 
 				case IdleStep.Wear:
 					return "▶ 오른쪽 창고 — 가방에 더 좋은 것이 있다 (칸을 눌러 찬다)";
 
 				case IdleStep.Seat:
-					return "▶ 전투 아래 파티 — 자리가 비었다 (누르면 영웅 장)";
+					return "▶ 위 「영웅」 장 — 파티 자리가 비었다 (앉히는 데는 아무것도 안 든다)";
 
 				case IdleStep.Pull:
-					return "▶ 파티를 눌러 영웅 장 — 뽑을 수 있다";
+					return "▶ 위 「영웅」 장 — 뽑을 수 있다";
 
 				case IdleStep.Merge:
 					return advice.Amount > 1d
@@ -1353,10 +1409,10 @@ namespace WitchMendokusai
 						advice.Subject + 1, advice.Amount - 1d);
 
 				case IdleStep.Raise:
-					return "▶ 전투 아래 — 세기나 빠르기를 올릴 수 있다";
+					return "▶ 왼쪽 기지 — 세기나 빠르기를 올릴 수 있다";
 
 				case IdleStep.Tap:
-					return "▶ 판을 눌러 때린다 — 지금은 손이 제일 빠르다";
+					return "▶ 위 사냥 칩을 누른다 — 지금은 손이 제일 빠르다";
 
 				default:
 					return advice.Amount > 0d && double.IsInfinity(advice.Amount) == false
@@ -1381,9 +1437,9 @@ namespace WitchMendokusai
 			DrawKillDots(snapshot);
 
 			// ★ 「지금 얼마나 빨리 치나」를 글자로도 준다 — 올린 게 숫자로도 보여야 한다.
-			arenaCaption.text = string.Format("눌러서 한 대 더 · 초당 {0}대 · {1}",
+			arenaCaption.text = string.Format("눌러 한 대 · 초당 {0}대 · {1}",
 				BigNumberText.Format(snapshot.AttacksPerSecond),
-				snapshot.HoldingStage ? "여기 머무는 중 — 많이 떨군다" : "계속 내려가는 중 — 좋은 게 떨어진다");
+				snapshot.HoldingStage ? "여기 머무는 중" : "내려가는 중");
 		}
 
 		/// <summary>
@@ -1909,7 +1965,7 @@ namespace WitchMendokusai
 
 			if (seatBeingFilled < 0 || seatBeingFilled >= snapshot.Party.Length)
 			{
-				heroFocusLabel.text = "전투 칸에서 자리를 누르면 그 얼굴이 여기 열린다.";
+				heroFocusLabel.text = "아래 파티 자리를 누르면 그 얼굴이 여기 열린다.";
 				return;
 			}
 
@@ -1924,7 +1980,7 @@ namespace WitchMendokusai
 
 			IdleHeroView view = found.Value;
 			heroFocusLabel.text = string.Format(
-				"{0}번  {1}{2}  {3} · {4}\n보유 +{5:P0}  ({6}/{7})  {8}\n장비 네 칸은 파티 공통 — 전투 칸 영웅 밑에 있다.",
+				"{0}번  {1}{2}  {3} · {4}\n보유 +{5:P0}  ({6}/{7})  {8}\n장비 네 칸은 파티 공통 — 오른쪽 창고 위에 있다.",
 				seatBeingFilled + 1,
 				view.Name, Stars(view.Stars),
 				IdleHeroes.NameOfGrade(view.Grade),
@@ -2292,7 +2348,7 @@ namespace WitchMendokusai
 				got.StarredUp ? string.Format("  ★ {0}성이 됐다", got.Stars) : string.Empty,
 				got.ByPity ? "  (천장)" : string.Empty));
 
-			floats.Pop(kind.Name, new Vector2(Random.Range(40f, 100f), 60f), GradeColor(got.Grade));
+			floats.Pop(kind.Name, new Vector2(Random.Range(40f, 100f), 40f), GradeColor(got.Grade));
 
 			WriteDown();
 			Render(session.Capture());
@@ -2383,6 +2439,9 @@ namespace WitchMendokusai
 
 				lastKills = session.State.Kills;
 				lastBagCount = session.State.Bag.Count;
+
+				// 환생은 장을 접고 새 판을 보여준다 — 장이 남아 있으면 무슨 일이 났는지가 가려진다.
+				ShowSheet(-1);
 				WriteDown();
 			}
 
