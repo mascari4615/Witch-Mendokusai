@@ -195,6 +195,17 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// <summary>마지막으로 본 시각 (Unix 초, UTC). 오프라인 보상의 재료.</summary>
         public long LastSeenUnixSeconds { get; set; }
 
+        /// <summary>
+        /// 카드 코스트 — 시간이 채우고 카드가 쓴다 (V2, concept-v2).
+        ///
+        /// ★ 환생해도 <b>안 지운다</b> — 코스트는 판의 세기가 아니라 개입의 리듬이라,
+        ///   지우면 환생 직후의 「바로 한 장」이 없어진다.
+        /// </summary>
+        public double Cost { get; set; }
+
+        /// <summary>긴급 보급이 남은 시간(초) — 걸려 있는 동안 기지 수입이 몇 배가 된다.</summary>
+        public double SupplySecondsLeft { get; set; }
+
         /// <summary>공격력 레벨.</summary>
         public UpgradeLevel Damage { get; } = new UpgradeLevel();
 
@@ -239,6 +250,8 @@ namespace WitchMendokusai.DomainSDK.Idle
                 DamageLevel = Damage.Level,
                 AttackSpeedLevel = AttackSpeed.Level,
                 LastSeenUnixSeconds = LastSeenUnixSeconds,
+                Cost = Cost,
+                SupplySecondsLeft = SupplySecondsLeft,
             };
         }
 
@@ -386,6 +399,9 @@ namespace WitchMendokusai.DomainSDK.Idle
             Damage.Level = NotBelowZero(saveData.DamageLevel);
             AttackSpeed.Level = NotBelowZero(saveData.AttackSpeedLevel);
             LastSeenUnixSeconds = saveData.LastSeenUnixSeconds;
+            // 코스트·보급도 저장에서 온 수다 — NaN·음수는 0. 넘친 코스트는 다음 스텝이 상한으로 누른다.
+            Cost = Sane(saveData.Cost);
+            SupplySecondsLeft = Sane(saveData.SupplySecondsLeft);
         }
     }
 }

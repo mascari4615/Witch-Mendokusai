@@ -52,6 +52,17 @@ namespace WitchMendokusai.DomainSDK.Idle
     {
     }
 
+    /// <summary>「카드 한 장을 낸다」 — 코스트를 치른다 (V2, concept-v2).</summary>
+    public readonly struct IdleCastCardIntent : IGameIntent
+    {
+        public IdleCardKind Kind { get; }
+
+        public IdleCastCardIntent(IdleCardKind kind)
+        {
+            Kind = kind;
+        }
+    }
+
     /// <summary>「이 자리에 이 영웅을 앉힌다」 — 같은 영웅이 다른 자리에 있으면 자리를 맞바꾼다.</summary>
     public readonly struct IdleSetPartyIntent : IGameIntent
     {

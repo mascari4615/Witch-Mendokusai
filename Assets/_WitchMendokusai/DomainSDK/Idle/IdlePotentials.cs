@@ -125,10 +125,36 @@ namespace WitchMendokusai.DomainSDK.Idle
                 return false;
             }
 
-            PotentialGrade grade = GradeFor(tier);
-            double cost = IdleGear.AppraiseCost(tier, tuning);
+            state.Resource -= IdleGear.AppraiseCost(tier, tuning);
+            Roll(state, tuning, tier, out roll);
+            return true;
+        }
 
-            state.Resource -= cost;
+        /// <summary>
+        /// 자원 없이 한 번 굴린다 — <b>감정 카드</b>의 길 (V2). 개수는 똑같이 쓴다.
+        ///
+        /// ★ 개수마저 공짜면 얕은 데서 무한히 굴릴 수 있어 「깊이」가 뜻을 잃는다 —
+        ///   카드가 면제하는 것은 <b>자원 하나</b>다.
+        /// </summary>
+        public static bool RollFree(IdleState state, IdleTuning tuning, int tier, out PotentialRoll roll)
+        {
+            roll = default;
+
+            AppraiseBlock why = WhyNot(state, tuning, tier);
+            if (why != AppraiseBlock.None && why != AppraiseBlock.TooPoor)
+            {
+                return false;
+            }
+
+            Roll(state, tuning, tier, out roll);
+            return true;
+        }
+
+        /// <summary>실제 굴림 — 값을 치른 뒤의 한 길. 두 벌이 되면 언젠가 갈린다.</summary>
+        private static void Roll(IdleState state, IdleTuning tuning, int tier, out PotentialRoll roll)
+        {
+            PotentialGrade grade = GradeFor(tier);
+
             state.DroppedByTier[tier - 1] -= 1L;
 
             IdleRandom dice = new IdleRandom(state.RandomState);
@@ -143,7 +169,6 @@ namespace WitchMendokusai.DomainSDK.Idle
             }
 
             roll = new PotentialRoll(tier, grade, value, better);
-            return true;
         }
     }
 

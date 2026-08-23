@@ -15,7 +15,7 @@ namespace WitchMendokusai.DomainSDK.Idle
     ///   에디터 창이 흘리든, 런타임 Update 가 흘리든, 시험이 8시간을 한 번에 흘리든 같다.
     /// </summary>
     public sealed class IdleSession : IIntentSink<IdleRaiseUpgradeIntent>, IIntentSink<IdlePrestigeIntent>, IIntentSink<IdleAppraiseIntent>, IIntentSink<IdleHoldStageIntent>, IIntentSink<IdleGoToStageIntent>,
-        IIntentSink<IdleBuyProducerIntent>, IIntentSink<IdleMergeIntent>, IIntentSink<IdleEquipIntent>
+        IIntentSink<IdleBuyProducerIntent>, IIntentSink<IdleMergeIntent>, IIntentSink<IdleEquipIntent>, IIntentSink<IdleCastCardIntent>
     {
         private readonly IdleState state;
         private readonly IdleTuning tuning;
@@ -234,6 +234,18 @@ namespace WitchMendokusai.DomainSDK.Idle
             return true;
         }
 
+        /// <summary>카드 한 장을 낸다. 코스트가 모자라면 아무 일도 안 일어난다 (V2).</summary>
+        public bool Send(IdleCastCardIntent intent)
+        {
+            return IdleCards.TryCast(state, tuning, intent.Kind, out IdleCardResult _);
+        }
+
+        /// <summary>카드를 내고 <b>무슨 일이 났는지</b>까지 돌려준다 — 감정 카드의 굴림을 화면이 보여주게.</summary>
+        public bool TryCastCard(IdleCardKind kind, out IdleCardResult result)
+        {
+            return IdleCards.TryCast(state, tuning, kind, out result);
+        }
+
         /// <summary>떨어진 것 하나를 감정한다. 그 등급이 없으면 아무 일도 안 일어난다.</summary>
         public bool Send(IdleAppraiseIntent intent)
         {
@@ -301,7 +313,27 @@ namespace WitchMendokusai.DomainSDK.Idle
                 IdleHeroes.CodexMultiplierOf(state, tuning),
                 ViewOf(IdleUpgradeKind.Damage, IdleModel.DamageOf(state, tuning)),
                 ViewOf(IdleUpgradeKind.AttackSpeed, IdleModel.AttackSpeedOf(state, tuning)),
-                IdleModel.AttackSpeedOf(state, tuning));
+                IdleModel.AttackSpeedOf(state, tuning),
+                state.Cost,
+                tuning.CostMax,
+                state.SupplySecondsLeft,
+                CaptureCards());
+        }
+
+        /// <summary>손패를 사진에 담는다 — 값·가능 여부를 화면이 다시 계산하지 않게.</summary>
+        private IdleCardView[] CaptureCards()
+        {
+            IdleCardView[] made = Room(ref cardBuffer, IdleCards.CARD_COUNT);
+
+            for (int index = 0; index < made.Length; index++)
+            {
+                IdleCardKind kind = (IdleCardKind)index;
+                made[index] = new IdleCardView(kind,
+                    IdleCards.CostOf(kind, tuning),
+                    IdleCards.CanCast(state, tuning, kind));
+            }
+
+            return made;
         }
 
         /// <summary>시간을 흘린다 — <b>보고 있는 동안만</b> 도는 층(지나가는 것·폭주).</summary>
@@ -368,6 +400,7 @@ namespace WitchMendokusai.DomainSDK.Idle
         private IdleItem[] bagBuffer;
         private IdleItem[] wornBuffer;
         private int[] partyBuffer;
+        private IdleCardView[] cardBuffer;
 
         /// <summary>자리를 맞춰 준다 — 수가 그대로면 쓰던 판을 그대로 쓴다.</summary>
         private static T[] Room<T>(ref T[] buffer, int count)

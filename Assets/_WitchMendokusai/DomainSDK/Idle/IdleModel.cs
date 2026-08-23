@@ -320,8 +320,56 @@ namespace WitchMendokusai.DomainSDK.Idle
                 return;
             }
 
+            // ★ 보급(카드)이 스텝 <b>중간에</b> 끝나면 경계에서 한 번 끊는다 — 수입 배수가
+            //   스텝 안에서 상수여야 「60초 한 번 == 0.1초 600번」이 선다. 단계 경계와 같은 이치다.
+            if (state.SupplySecondsLeft > 0d && seconds > state.SupplySecondsLeft)
+            {
+                double boosted = state.SupplySecondsLeft;
+                StepFlat(state, tuning, boosted);
+                StepFlat(state, tuning, seconds - boosted);
+                return;
+            }
+
+            StepFlat(state, tuning, seconds);
+        }
+
+        private static void StepFlat(IdleState state, IdleTuning tuning, double seconds)
+        {
+            // 코스트는 시간이 채운다 — 상한에서 멎는다 (V2 카드층).
+            state.Cost += tuning.CostPerSecond * seconds;
+            if (state.Cost > tuning.CostMax)
+            {
+                state.Cost = tuning.CostMax;
+            }
+
             // 기지가 시간만큼 자원을 낸다 — 잡든 안 잡든 돈다.
             state.Resource += IdleBase.OutputPerSecond(state, tuning) * seconds;
+
+            if (state.SupplySecondsLeft > 0d)
+            {
+                state.SupplySecondsLeft -= seconds;
+                if (state.SupplySecondsLeft < 1e-12d)
+                {
+                    state.SupplySecondsLeft = 0d;
+                }
+            }
+
+            state.AttackProgress += AttackSpeedOf(state, tuning) * seconds;
+            Resolve(state, tuning);
+        }
+
+        /// <summary>
+        /// 자동 공격 <paramref name="seconds"/>초치를 <b>즉시</b> 몰아친다 — 손 때리기와
+        /// 일제 사격 카드가 같은 길을 탄다 (두 벌이면 언젠가 갈린다).
+        ///
+        /// ★ 사람이 부르는 것이라 스텝 불변의 대상이 아니다 — 시간은 안 흐른다.
+        /// </summary>
+        public static void StrikeFor(IdleState state, IdleTuning tuning, double seconds)
+        {
+            if (seconds <= 0d)
+            {
+                return;
+            }
 
             state.AttackProgress += AttackSpeedOf(state, tuning) * seconds;
             Resolve(state, tuning);
@@ -342,9 +390,7 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// </summary>
         public static void Tap(IdleState state, IdleTuning tuning)
         {
-            state.AttackProgress += AttackSpeedOf(state, tuning) * tuning.TapSecondsOfAttack
-                * IdleSurge.HandMultiplier(state, tuning);
-            Resolve(state, tuning);
+            StrikeFor(state, tuning, tuning.TapSecondsOfAttack * IdleSurge.HandMultiplier(state, tuning));
         }
 
         /// <summary>

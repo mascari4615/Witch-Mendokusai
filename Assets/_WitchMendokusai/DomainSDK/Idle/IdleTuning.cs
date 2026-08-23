@@ -364,6 +364,40 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// </summary>
         public double MaxOfflineCapSeconds { get; set; } = 24d * 3600d;
 
+        // ── 카드 · 코스트 (V2, concept-v2 — 블아 문법) ──────────────────────
+        //
+        // ★ 개입의 전부를 이 층으로 모은다. 코스트는 시간이 채우고(방치 정합),
+        //   자리를 비우면 가득 찬 채로 맞이한다 — 카드 시전이 곧 복귀 보상.
+
+        /// <summary>코스트 게이지의 상한 (블아 = 10칸).</summary>
+        public double CostMax { get; set; } = 10d;
+
+        /// <summary>초당 차는 코스트 — 0.1 이면 빈 게이지가 100초에 가득.</summary>
+        public double CostPerSecond { get; set; } = 0.1d;
+
+        /// <summary>일제 사격 값 — 코스트.</summary>
+        public double VolleyCost { get; set; } = 3d;
+
+        /// <summary>
+        /// 일제 사격이 즉시 몰아치는 <b>자동 공격 몇 초치</b>인가.
+        ///
+        /// ★ 손 때리기(<see cref="TapSecondsOfAttack"/>)와 같은 비율 문법 —
+        ///   고정 피해면 초반엔 과하고 후반엔 아무것도 아니게 된다.
+        /// </summary>
+        public double VolleySecondsOfAttack { get; set; } = 20d;
+
+        /// <summary>긴급 보급 값 — 코스트.</summary>
+        public double SupplyCost { get; set; } = 2d;
+
+        /// <summary>긴급 보급이 걸려 있는 시간(초). 겹치지 않고 새로 채운다.</summary>
+        public double SupplySeconds { get; set; } = 30d;
+
+        /// <summary>걸려 있는 동안 기지 수입에 곱하는 배수.</summary>
+        public double SupplyMultiplier { get; set; } = 3d;
+
+        /// <summary>비밀 감정 값 — 코스트. 자원 대신 코스트로 한 번 굴린다.</summary>
+        public double AppraiseCardCost { get; set; } = 5d;
+
         /// <summary>한 축의 곡선을 고른다.</summary>
         public IUpgradeCurve CurveOf(IdleUpgradeKind kind)
         {

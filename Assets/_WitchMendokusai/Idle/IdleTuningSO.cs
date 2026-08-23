@@ -205,6 +205,31 @@ namespace WitchMendokusai
         [Tooltip("등급이 하나 오를 때 최저값에 곱해지는 배수.")]
         [SerializeField] private double potentialStep = 2.2d;
 
+        [Header("카드 · 코스트 (V2)")]
+        [Tooltip("코스트 게이지 상한 (블아 = 10칸).")]
+        [SerializeField] private double costMax = 10d;
+
+        [Tooltip("초당 차는 코스트 — 0.1 이면 100초에 가득.")]
+        [SerializeField] private double costPerSecond = 0.1d;
+
+        [Tooltip("일제 사격의 코스트.")]
+        [SerializeField] private double volleyCost = 3d;
+
+        [Tooltip("일제 사격이 즉시 몰아치는 «자동 공격 몇 초치»인가.")]
+        [SerializeField] private double volleySecondsOfAttack = 20d;
+
+        [Tooltip("긴급 보급의 코스트.")]
+        [SerializeField] private double supplyCost = 2d;
+
+        [Tooltip("긴급 보급이 걸려 있는 시간 (초).")]
+        [SerializeField] private double supplySeconds = 30d;
+
+        [Tooltip("걸려 있는 동안 기지 수입에 곱하는 배수.")]
+        [SerializeField] private double supplyMultiplier = 3d;
+
+        [Tooltip("비밀 감정의 코스트 — 자원 대신 코스트로 한 번 굴린다.")]
+        [SerializeField] private double appraiseCardCost = 5d;
+
         [Header("자리 비움")]
         [Tooltip("기본 오프라인 상한 (초).")]
         [SerializeField] private double baseMaxOfflineSeconds = 8d * 3600d;
@@ -282,6 +307,14 @@ namespace WitchMendokusai
                 BaseMaxOfflineSeconds = baseMaxOfflineSeconds,
                 OfflineSecondsPerAscension = offlineSecondsPerAscension,
                 MaxOfflineCapSeconds = maxOfflineCapSeconds,
+                CostMax = costMax,
+                CostPerSecond = costPerSecond,
+                VolleyCost = volleyCost,
+                VolleySecondsOfAttack = volleySecondsOfAttack,
+                SupplyCost = supplyCost,
+                SupplySeconds = supplySeconds,
+                SupplyMultiplier = supplyMultiplier,
+                AppraiseCardCost = appraiseCardCost,
                 ProducerCostByKind = new GeometricScale(producerCost, producerCostStep),
                 ProducerOutputByKind = new GeometricScale(producerOutput, producerOutputStep),
                 PotentialByGrade = new GeometricScale(potentialFloor, potentialStep),

@@ -67,5 +67,11 @@ namespace WitchMendokusai.DomainSDK.Idle
 
         /// <summary>마지막으로 본 시각 (Unix 초, UTC).</summary>
         public long LastSeenUnixSeconds;
+
+        /// <summary>카드 코스트 — 옛 저장에는 없어 0 으로 온다 (V2).</summary>
+        public double Cost;
+
+        /// <summary>긴급 보급이 남은 시간(초).</summary>
+        public double SupplySecondsLeft;
     }
 }

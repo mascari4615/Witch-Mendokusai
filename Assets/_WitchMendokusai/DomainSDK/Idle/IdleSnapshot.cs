@@ -301,6 +301,18 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// </summary>
         public double AttacksPerSecond { get; }
 
+        /// <summary>카드 코스트 — 지금 찬 양.</summary>
+        public double Cost { get; }
+
+        /// <summary>코스트 상한 — 「몇/몇」을 화면이 지어내지 않게.</summary>
+        public double CostMax { get; }
+
+        /// <summary>긴급 보급이 남은 시간(초) — 0 이면 안 걸려 있다.</summary>
+        public double SupplySecondsLeft { get; }
+
+        /// <summary>손패 — 카드마다 값과 「지금 낼 수 있나」.</summary>
+        public IdleCardView[] Cards { get; }
+
         public IdleSnapshot(double resource, double incomePerSecond, long kills, double targetHealthRatio,
             int stage, int killsInStage, int killsPerStage,
             long prestigePoints, long prestigeAward, int prestigeNextStage, double prestigeMultiplier,
@@ -311,8 +323,13 @@ namespace WitchMendokusai.DomainSDK.Idle
             double visitorSecondsLeft, IdleSurgeKind surgeKind, double surgeSecondsLeft, double surgeMultiplier,
             bool canPull, int pullsToPity, double legendChance, double epicChance, double rareChance,
             int codexScore, double codexMultiplier,
-            IdleUpgradeView damage, IdleUpgradeView attackSpeed, double attacksPerSecond)
+            IdleUpgradeView damage, IdleUpgradeView attackSpeed, double attacksPerSecond,
+            double cost, double costMax, double supplySecondsLeft, IdleCardView[] cards)
         {
+            Cost = cost;
+            CostMax = costMax;
+            SupplySecondsLeft = supplySecondsLeft;
+            Cards = cards;
             Resource = resource;
             IncomePerSecond = incomePerSecond;
             Kills = kills;

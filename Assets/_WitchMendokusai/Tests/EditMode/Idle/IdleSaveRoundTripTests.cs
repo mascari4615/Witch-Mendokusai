@@ -168,6 +168,8 @@ namespace WitchMendokusai.Tests
 			state.LastSeenUnixSeconds = 1700000000L;
 			state.Damage.Level = 6;
 			state.AttackSpeed.Level = 4;
+			state.Cost = 4.5d;
+			state.SupplySecondsLeft = 12d;
 
 			state.Bag.Add(new IdleItem(3, IdleItemSlot.Hands));
 			state.Worn[0] = new IdleItem(2, IdleItemSlot.Head);
