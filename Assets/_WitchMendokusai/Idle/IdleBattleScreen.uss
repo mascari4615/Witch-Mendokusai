@@ -1,0 +1,161 @@
+/*
+ * V2 작전 화면 HUD (concept-v2).
+ *
+ * ★ 바탕은 투명 — 3D 무대가 화면의 주인이고 HUD 는 그 위의 얇은 층이다.
+ *   칩은 반투명 흰색(블아 문법의 밝은 HUD), 글자는 진한 남색.
+ */
+
+.v2-root {
+	flex-grow: 1;
+	justify-content: space-between;
+}
+
+.v2-topbar {
+	flex-direction: row;
+	align-items: center;
+	padding: 12px 16px 4px 16px;
+}
+
+.v2-chip {
+	background-color: rgba(255, 255, 255, 0.9);
+	color: rgb(43, 58, 74);
+	font-size: 14px;
+	padding: 5px 14px;
+	margin-right: 8px;
+	border-radius: 7px;
+}
+
+.v2-chip--strong {
+	font-size: 16px;
+	-unity-font-style: bold;
+}
+
+.v2-guide {
+	font-size: 13px;
+	color: rgb(43, 58, 74);
+	background-color: rgba(255, 255, 255, 0.75);
+	border-radius: 6px;
+	margin: 4px 16px;
+	padding: 3px 12px;
+	align-self: flex-start;
+}
+
+.v2-note {
+	font-size: 14px;
+	-unity-font-style: bold;
+	color: rgb(232, 135, 31);
+	background-color: rgba(255, 255, 255, 0.85);
+	border-radius: 6px;
+	margin: 2px 16px;
+	padding: 3px 12px;
+	align-self: flex-start;
+	min-height: 16px;
+}
+
+.v2-bottom {
+	flex-direction: row;
+	justify-content: space-between;
+	align-items: flex-end;
+	padding: 0 16px 14px 16px;
+}
+
+.v2-verbs {
+	flex-direction: column;
+	align-items: flex-start;
+}
+
+.v2-button {
+	height: 32px;
+	font-size: 13px;
+	background-color: rgba(255, 255, 255, 0.9);
+	color: rgb(43, 58, 74);
+	border-width: 0;
+	border-radius: 8px;
+	margin: 3px 0;
+	padding: 0 14px;
+}
+
+.v2-button:hover {
+	background-color: rgb(255, 255, 255);
+}
+
+.v2-button:active {
+	scale: 0.97 0.97;
+}
+
+.v2-button:disabled {
+	opacity: 0.45;
+}
+
+.v2-button--ready {
+	border-left-width: 4px;
+	border-left-color: rgb(74, 157, 232);
+}
+
+.v2-button--fold {
+	color: rgb(181, 131, 18);
+}
+
+.v2-hand {
+	align-items: flex-end;
+}
+
+.v2-card-row {
+	flex-direction: row;
+}
+
+.v2-card {
+	width: 92px;
+	height: 96px;
+	margin-left: 10px;
+	font-size: 13px;
+	-unity-font-style: bold;
+	white-space: normal;
+	background-color: rgba(255, 255, 255, 0.94);
+	color: rgb(43, 58, 74);
+	border-width: 0;
+	border-radius: 12px;
+	border-bottom-width: 5px;
+	border-bottom-color: rgb(180, 190, 200);
+}
+
+.v2-card:active {
+	scale: 0.95 0.95;
+}
+
+.v2-card:disabled {
+	opacity: 0.45;
+}
+
+.v2-card--ready {
+	border-bottom-color: rgb(232, 165, 31);
+}
+
+.v2-cost-row {
+	flex-direction: row;
+	align-items: center;
+	margin-top: 8px;
+	background-color: rgba(255, 255, 255, 0.9);
+	border-radius: 7px;
+	padding: 5px 12px;
+}
+
+.v2-cost-label {
+	font-size: 13px;
+	-unity-font-style: bold;
+	color: rgb(43, 58, 74);
+	margin-right: 8px;
+}
+
+.v2-cost-gauge {
+	width: 220px;
+	height: 12px;
+	background-color: rgb(216, 228, 236);
+	border-radius: 6px;
+	overflow: hidden;
+}
+
+.v2-cost-fill {
+	height: 100%;
+	background-color: rgb(74, 157, 232);
+}
