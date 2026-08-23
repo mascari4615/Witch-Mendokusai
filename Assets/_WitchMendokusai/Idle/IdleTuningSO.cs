@@ -209,8 +209,8 @@ namespace WitchMendokusai
         [Tooltip("코스트 게이지 상한 (블아 = 10칸).")]
         [SerializeField] private double costMax = 10d;
 
-        [Tooltip("초당 차는 코스트 — 0.1 이면 100초에 가득.")]
-        [SerializeField] private double costPerSecond = 0.1d;
+        [Tooltip("초당 차는 코스트 — 블아 실측 기준 0.4 (1칸 ≈ 2.4초).")]
+        [SerializeField] private double costPerSecond = 0.4d;
 
         [Tooltip("일제 사격의 코스트.")]
         [SerializeField] private double volleyCost = 3d;

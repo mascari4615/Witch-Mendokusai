@@ -372,8 +372,14 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// <summary>코스트 게이지의 상한 (블아 = 10칸).</summary>
         public double CostMax { get; set; } = 10d;
 
-        /// <summary>초당 차는 코스트 — 0.1 이면 빈 게이지가 100초에 가득.</summary>
-        public double CostPerSecond { get; set; } = 0.1d;
+        /// <summary>
+        /// 초당 차는 코스트.
+        ///
+        /// ★ 실조사로 고친 값 (2026-08-23, `refs/blue-archive.md`): 블아는 <b>1칸 ≈ 2.4초</b>다
+        ///   (6인 파티 회복력 합 4,200 ÷ 1칸 10,000). 우리는 0.1(1칸 10초)로 뒀었는데 <b>네 배 느렸다</b> —
+        ///   그러면 카드가 「가끔 오는 사건」이 아니라 「하루에 몇 번」이 되어 개입의 리듬이 죽는다.
+        /// </summary>
+        public double CostPerSecond { get; set; } = 0.4d;
 
         /// <summary>일제 사격 값 — 코스트.</summary>
         public double VolleyCost { get; set; } = 3d;

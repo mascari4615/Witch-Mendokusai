@@ -514,16 +514,20 @@ namespace WitchMendokusai
 
 		private void RenderEnemy(IdleSnapshot snapshot)
 		{
+			// ★ 상단 대형 바는 <b>보스 전용</b> (실조사 `refs/blue-archive.md` § 2·6).
+			//   잡몹 체력은 <b>머리 위</b>에 뜬다 — 화면 위에 또 그리면 같은 값이 두 벌이 된다.
 			bool boss = snapshot.KillsInStage >= snapshot.KillsPerStage - 1;
 
 			enemyLabel.text = boss
-				? string.Format("★ 보스 — {0}구역", snapshot.Stage)
-				: string.Format("적 {0}/{1} · 초당 피해 {2}",
-					snapshot.KillsInStage + 1, snapshot.KillsPerStage,
+				? string.Format("BATTLE BOSS — {0}구역   {1:P0}", snapshot.Stage, snapshot.TargetHealthRatio)
+				: string.Format("{0}구역 · 남은 적 {1} · 적 초당 피해 {2}",
+					snapshot.Stage,
+					snapshot.KillsPerStage - snapshot.KillsInStage,
 					BigNumberText.Format(snapshot.EnemyDamagePerSecond));
 
 			enemyLabel.EnableInClassList("v2-enemy-label--boss", boss);
 
+			enemyFill.parent.style.display = boss ? DisplayStyle.Flex : DisplayStyle.None;
 			enemyFill.style.width = new StyleLength(new Length(
 				(float)(snapshot.TargetHealthRatio * 100d), LengthUnit.Percent));
 
@@ -561,22 +565,17 @@ namespace WitchMendokusai
 					continue;
 				}
 
+				// ★ 체력 막대는 <b>머리 위</b>가 정본이다 (실조사). 여기 카드는 <b>이름표</b>만 —
+				//   누가 나와 있고 누가 누웠는지, 쓰러졌으면 언제 일어나는지.
 				string who = seat == 0 ? "나" : IdleHeroes.KindOf(view.HeroId).Name;
 
-				if (view.Standing)
-				{
-					seatLabels[seat].text = string.Format("{0} {1:P0}", who, view.HealthRatio);
-					seatFills[seat].style.width = new StyleLength(new Length(
-						(float)(view.HealthRatio * 100d), LengthUnit.Percent));
-					seatFills[seat].EnableInClassList("v2-seat-fill--down", false);
-				}
-				else
-				{
-					seatLabels[seat].text = string.Format("{0} — 부활 {1:P0}", who, view.ReviveRatio);
-					seatFills[seat].style.width = new StyleLength(new Length(
-						(float)(view.ReviveRatio * 100d), LengthUnit.Percent));
-					seatFills[seat].EnableInClassList("v2-seat-fill--down", true);
-				}
+				seatLabels[seat].text = view.Standing
+					? who
+					: string.Format("{0} — 부활 {1:P0}", who, view.ReviveRatio);
+
+				seatFills[seat].style.width = new StyleLength(new Length(
+					(float)((view.Standing ? view.HealthRatio : view.ReviveRatio) * 100d), LengthUnit.Percent));
+				seatFills[seat].EnableInClassList("v2-seat-fill--down", view.Standing == false);
 			}
 		}
 

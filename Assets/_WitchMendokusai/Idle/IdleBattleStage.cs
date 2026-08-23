@@ -5,24 +5,23 @@ using WitchMendokusai.DomainSDK.Idle;
 namespace WitchMendokusai
 {
 	/// <summary>
-	/// 쿼터뷰 자동전투 무대 (V2, concept-v2 — 블아 문법).
+	/// 쿼터뷰 자동전투 무대 (V2, concept-v2 — 실조사 반영 2026-08-23).
 	///
-	/// ★ 이 파일에 게임 규칙이 한 줄도 없다 — 사진(<see cref="IdleSnapshot"/>)을 받아
-	///   3D 로 그리고, 방금 일어난 일(처치·카드)을 몸짓으로 옮길 뿐이다.
+	/// ★ 이 파일에 게임 규칙이 한 줄도 없다 — 사진(<see cref="IdleSnapshot"/>)을 받아 3D 로 그린다.
 	///
-	/// ★ <b>나아가는 판</b>이다 (사용자 방향 2026-08-23: 「맵이 길어서 나아가는 식」).
-	///   부대·카메라는 그대로 두고 <b>세계(worldRoot)가 왼쪽으로 흐른다</b> — 잡을 때마다
-	///   한 걸음, 다음 적이 앞자리로 온다. 길가의 바위·풀은 지나가면 앞으로 재활용된다.
+	/// ★ <b>웨이브는 무리다</b> (실조사 `refs/blue-archive.md` · `refs/ultima-squad.md`):
+	///   블아는 한 웨이브에 잡몹 여럿이 <b>동시에</b> 오고 마지막에 보스, 울티마도 「몬스터들이 무리지어
+	///   등장하고 마지막에 보스」다. 전에는 한 마리씩 줄을 세웠는데 그건 두 원작 어느 쪽도 아니었다.
+	///   판정(코어)은 여전히 한 번에 하나씩 — <b>보이는 것만</b> 무리다. 맨 앞이 지금 맞는 놈이고,
+	///   뒤의 것들은 「아직 안 온 차례」다.
 	///
-	/// ★ <b>웨이브 문법</b> (사용자 방향, 블아·울티마) — 한 구역 = 잡몹 줄 + <b>마지막 하나는 보스</b>.
-	///   코어의 「구역당 처치 수」가 그대로 웨이브다: 앞으로 올 적들이 줄 서 보이고,
-	///   구역의 막내(<see cref="IdleTuning.KillsPerStage"/>번째)가 크고 어둡게 선다.
+	/// ★ <b>체력바는 머리 위</b> — 아군·잡몹 모두. 상단 대형 바는 <b>보스에게만</b> (화면 쪽에서 그린다).
 	///
-	/// ★ 배우는 전부 <b>절차 생성 도형</b>이다 — 인형 = 캡슐+큰 머리(치비), 적 = 변 수=등급 N각기둥.
+	/// ★ 배우는 전부 절차 생성 도형 — 인형 = 캡슐+큰 머리(치비), 적 = 변 수=등급 N각기둥.
 	/// </summary>
 	public sealed class IdleBattleStage : MonoBehaviour
 	{
-		[Header("자리 — 쿼터뷰 배치. 0번 = 나(항상), 1~3번 = 가챠로 뽑아 앉힌 자리")]
+		[Header("자리 — 0번 = 나(항상), 1~3번 = 가챠로 뽑아 앉힌 자리")]
 		[SerializeField] private Vector3[] dollSpots =
 		{
 			new Vector3(-2.1f, 0f, 0.1f),
@@ -31,18 +30,21 @@ namespace WitchMendokusai
 			new Vector3(-2.9f, 0f, 1.5f),
 		};
 
-		[Tooltip("맨 앞 적이 서는 자리.")]
+		[Header("적 무리 — 한 웨이브가 이만큼 몰려 온다")]
+		[Tooltip("한 웨이브의 잡몹 수 (마지막 웨이브는 보스 혼자).")]
+		[SerializeField] private int waveSize = 3;
+
+		[Tooltip("무리의 맨 앞이 서는 자리.")]
 		[SerializeField] private Vector3 frontSpot = new Vector3(2.4f, 0.62f, 0f);
 
-		[Header("행군 — 잡을 때마다 한 걸음")]
-		[Tooltip("적과 적 사이 거리 (m) — 한 처치가 이만큼 나아간다.")]
-		[SerializeField] private float enemySpacing = 3.2f;
+		[Tooltip("무리 안에서 뒤로 밀리는 간격 (m).")]
+		[SerializeField] private float packSpacing = 1.5f;
 
-		[Tooltip("한 걸음을 따라잡는 속도 — 클수록 휙휙 나아간다.")]
-		[SerializeField] private float marchCatchUp = 4.5f;
+		[Header("행군 — 한 웨이브를 끝내면 나아간다")]
+		[Tooltip("웨이브와 웨이브 사이 거리 (m).")]
+		[SerializeField] private float waveSpacing = 7f;
 
-		[Tooltip("한 번에 줄 서 보이는 적 수 (맨 앞 포함).")]
-		[SerializeField] private int enemiesVisible = 4;
+		[SerializeField] private float marchCatchUp = 3.5f;
 
 		[Header("장단 — 눈으로 셀 수 있는 데까지만")]
 		[SerializeField] private float fastestVisibleBeats = 8f;
@@ -50,20 +52,23 @@ namespace WitchMendokusai
 		[SerializeField] private float boltSeconds = 0.18f;
 		[SerializeField] private float popSeconds = 0.3f;
 
-		[Header("보스 — 구역의 막내")]
-		[Tooltip("보스의 덩치 배수.")]
-		[SerializeField] private float bossScale = 1.7f;
+		[Header("보스")]
+		[SerializeField] private float bossScale = 1.9f;
 
-		[Header("색 — 세계관 전이라 도형 팔레트")]
+		[Header("색")]
 		[SerializeField] private Color groundColor = new Color(0.62f, 0.73f, 0.55f);
 		[SerializeField] private Color coverColor = new Color(0.52f, 0.58f, 0.64f);
 		[SerializeField] private Color enemyColor = new Color(0.55f, 0.50f, 0.63f);
 		[SerializeField] private Color bossColor = new Color(0.30f, 0.26f, 0.38f);
 		[SerializeField] private Color sceneryColor = new Color(0.50f, 0.60f, 0.46f);
 		[SerializeField] private Color boltColor = new Color(1f, 0.83f, 0.29f);
-
-		[Tooltip("0번 = 나의 색. 영웅 자리는 등급색으로 덧입는다.")]
 		[SerializeField] private Color myColor = new Color(0.93f, 0.89f, 0.82f);
+
+		[Header("체력바 — 머리 위")]
+		[SerializeField] private Color barBackColor = new Color(0.12f, 0.13f, 0.16f, 1f);
+		[SerializeField] private Color allyBarColor = new Color(0.36f, 0.78f, 0.44f);
+		[SerializeField] private Color reviveBarColor = new Color(0.62f, 0.66f, 0.74f);
+		[SerializeField] private Color enemyBarColor = new Color(0.91f, 0.36f, 0.36f);
 
 		[Header("영웅 등급색 — 일반·레어·에픽·레전드")]
 		[SerializeField] private Color[] gradeColors =
@@ -79,6 +84,7 @@ namespace WitchMendokusai
 			public Transform Piece;
 			public MeshFilter Mesh;
 			public Material Skin;
+			public IdleHealthBar Bar;
 			public long Index;
 			public int Sides;
 			public bool Boss;
@@ -93,6 +99,7 @@ namespace WitchMendokusai
 		private Transform worldRoot;
 		private Transform[] dolls;
 		private Material[] dollSkins;
+		private IdleHealthBar[] dollBars;
 		private float[] lungeLeft;
 		private Material groundMaterial;
 		private Color groundRest;
@@ -106,7 +113,7 @@ namespace WitchMendokusai
 
 		private bool built;
 
-		/// <summary>무대를 세운다 — 멱등. 화면이 깨어날 때 한 번 부른다.</summary>
+		/// <summary>무대를 세운다 — 멱등.</summary>
 		public void Build()
 		{
 			if (built)
@@ -119,26 +126,22 @@ namespace WitchMendokusai
 			GameObject ground = GameObject.CreatePrimitive(PrimitiveType.Plane);
 			ground.name = "Ground";
 			ground.transform.SetParent(transform, false);
-			// 땅은 넉넉히 — 모서리가 화면에 들면 「세계」가 아니라 「판때기」로 보인다.
 			ground.transform.localScale = new Vector3(6f, 1f, 4f);
 			groundMaterial = Paint(ground, groundColor);
 			groundRest = groundColor;
 
-			// 흐르는 세계 — 적 줄과 길가 소품이 여기 담긴다.
 			GameObject world = new GameObject("World");
 			world.transform.SetParent(transform, false);
 			worldRoot = world.transform;
 
 			dolls = new Transform[dollSpots.Length];
 			dollSkins = new Material[dollSpots.Length];
+			dollBars = new IdleHealthBar[dollSpots.Length];
 			lungeLeft = new float[dollSpots.Length];
 
 			for (int slot = 0; slot < dollSpots.Length; slot++)
 			{
 				dolls[slot] = BuildDoll(slot);
-
-				// ★ 처음부터 서 있는 것은 <b>나 하나</b>다 (사용자 방향 2026-08-23) —
-				//   영웅은 가챠로 뽑아 자리에 앉혀야 무대에 선다.
 				dolls[slot].gameObject.SetActive(slot == 0);
 
 				GameObject cover = GameObject.CreatePrimitive(PrimitiveType.Cube);
@@ -149,7 +152,6 @@ namespace WitchMendokusai
 				Paint(cover, coverColor);
 			}
 
-			// 길가 소품 — 지나가면 앞으로 돌려 쓴다 (나아가는 게 땅으로 보이는 장치).
 			for (int at = 0; at < 14; at++)
 			{
 				GameObject prop = GameObject.CreatePrimitive(at % 3 == 0
@@ -157,7 +159,6 @@ namespace WitchMendokusai
 				prop.name = "Scenery" + at;
 				prop.transform.SetParent(worldRoot, false);
 
-				// 무작위 없이 흩는다 — 결정적이어야 같은 판이 같은 길로 보인다.
 				float side = at % 2 == 0 ? 1f : -1f;
 				float size = 0.2f + 0.12f * (at % 4);
 				prop.transform.localPosition = new Vector3(
@@ -178,7 +179,6 @@ namespace WitchMendokusai
 			doll.transform.localPosition = dollSpots[slot];
 			doll.transform.localRotation = Quaternion.LookRotation(Vector3.right);
 
-			// 몸과 머리가 한 껍질을 나눠 입는다 — 등급색을 갈아입힐 때 한 번에.
 			Material skin = MakeMaterial(slot == 0 ? myColor : gradeColors[0]);
 			dollSkins[slot] = skin;
 
@@ -194,38 +194,51 @@ namespace WitchMendokusai
 			head.transform.localScale = new Vector3(0.55f, 0.55f, 0.55f);
 			head.GetComponent<MeshRenderer>().sharedMaterial = skin;
 
+			// ★ 머리 위 체력바 — 아군도 잡몹도 여기 단다 (실조사).
+			dollBars[slot] = IdleHealthBar.Attach(doll.transform, 1.45f, 0.9f, 0.11f,
+				barBackColor, allyBarColor);
+
 			return doll.transform;
 		}
 
-		/// <summary>
-		/// 파티를 무대에 맞춘다 — 앉힌 영웅만 서고, 등급색을 입는다.
-		/// 판정은 사진(<see cref="IdleSnapshot.Party"/>)이 전부다.
-		/// </summary>
+		/// <summary>파티를 무대에 맞춘다 — 앉힌 영웅만 서고, 등급색을 입고, 체력바가 붙는다.</summary>
 		private void DressDolls(IdleSnapshot snapshot)
 		{
-			for (int seat = 0; seat < snapshot.Party.Length && seat + 1 < dolls.Length; seat++)
+			for (int seat = 0; seat < dolls.Length && seat < snapshot.Seats.Length; seat++)
 			{
-				int id = snapshot.Party[seat];
-				bool seated = id >= 0;
+				IdleSeatView view = snapshot.Seats[seat];
 
-				if (dolls[seat + 1].gameObject.activeSelf != seated)
+				if (dolls[seat].gameObject.activeSelf != view.Taken)
 				{
-					dolls[seat + 1].gameObject.SetActive(seated);
+					dolls[seat].gameObject.SetActive(view.Taken);
 				}
 
-				if (seated == false)
+				if (view.Taken == false)
 				{
 					continue;
 				}
 
-				foreach (IdleHeroView hero in snapshot.Heroes)
+				if (seat > 0 && view.HeroId >= 0)
 				{
-					if (hero.Id == id)
-					{
-						int grade = (int)hero.Grade;
-						dollSkins[seat + 1].color = gradeColors[Mathf.Clamp(grade, 0, gradeColors.Length - 1)];
-						break;
-					}
+					int grade = (int)view.Grade;
+					dollSkins[seat].color = gradeColors[Mathf.Clamp(grade, 0, gradeColors.Length - 1)];
+				}
+
+				// 쓰러진 자리는 <b>부활 게이지</b>가 그 자리에 뜬다 (울티마: 머리 위 부활 대기 게이지).
+				if (view.Standing)
+				{
+					dollBars[seat].SetFillColor(allyBarColor);
+					dollBars[seat].SetRatio((float)view.HealthRatio);
+					dolls[seat].localRotation = Quaternion.LookRotation(Vector3.right);
+					dolls[seat].localScale = Vector3.one;
+				}
+				else
+				{
+					dollBars[seat].SetFillColor(reviveBarColor);
+					dollBars[seat].SetRatio((float)view.ReviveRatio);
+					// 쓰러진 것이 보이게 — 옆으로 눕고 납작해진다.
+					dolls[seat].localRotation = Quaternion.Euler(0f, 0f, -78f);
+					dolls[seat].localScale = new Vector3(1f, 0.75f, 1f);
 				}
 			}
 		}
@@ -271,25 +284,42 @@ namespace WitchMendokusai
 		}
 
 		/// <summary>
-		/// 적 줄을 사진에 맞춘다 — 처치 번호(<see cref="IdleSnapshot.Kills"/>)가 곧 줄 번호다.
-		/// 잡힌 적은 창을 벗어나고, 새 적이 줄 끝에 선다.
+		/// 적 <b>무리</b>를 사진에 맞춘다 — 한 웨이브가 통째로 서 있고, 앞에서부터 쓰러진다.
+		///
+		/// ★ 웨이브 번호·무리 안 자리는 처치 수(<see cref="IdleSnapshot.KillsInStage"/>)에서 나온다.
+		///   구역의 <b>마지막 하나</b>는 보스라 혼자 선다 (블아·울티마 공통).
 		/// </summary>
 		private void DressFoes(IdleSnapshot snapshot)
 		{
 			long first = snapshot.Kills;
+			int inStage = snapshot.KillsInStage;
+			int perStage = Mathf.Max(1, snapshot.KillsPerStage);
+			int mobs = perStage - 1; // 마지막 하나는 보스.
+			int pack = Mathf.Max(1, waveSize);
 
-			// 잡힌 것(줄 앞을 벗어난 것)을 거둔다.
+			// 지금 무리에 몇이 남았나 — 보스 차례면 하나.
+			int standingNow;
+			if (inStage >= mobs)
+			{
+				standingNow = 1;
+			}
+			else
+			{
+				int intoWave = inStage % pack;
+				int leftInStage = mobs - inStage;
+				standingNow = Mathf.Min(pack - intoWave, leftInStage);
+			}
+
 			for (int at = foes.Count - 1; at >= 0; at--)
 			{
-				if (foes[at].Index < first)
+				if (foes[at].Index < first || foes[at].Index >= first + standingNow)
 				{
 					Destroy(foes[at].Piece.gameObject);
 					foes.RemoveAt(at);
 				}
 			}
 
-			// 줄을 채운다 — 맨 앞부터 enemiesVisible 마리.
-			for (long index = first; index < first + enemiesVisible; index++)
+			for (long index = first; index < first + standingNow; index++)
 			{
 				if (Has(index) == false)
 				{
@@ -299,17 +329,14 @@ namespace WitchMendokusai
 
 			foreach (Foe foe in foes)
 			{
-				// 이 적이 구역의 몇째인가 — 막내면 보스.
-				long aheadOfNow = foe.Index - first;
-				int placeInStage = (int)((snapshot.KillsInStage + aheadOfNow) % snapshot.KillsPerStage);
-				bool boss = snapshot.KillsPerStage > 0 && placeInStage == snapshot.KillsPerStage - 1;
-
+				int aheadOfNow = (int)(foe.Index - first);
+				bool boss = inStage + aheadOfNow >= mobs;
 				int sides = Mathf.Max(3, snapshot.MaxTierNow + 2);
 
 				if (foe.Sides != sides)
 				{
 					foe.Sides = sides;
-					foe.Mesh.sharedMesh = NgonPrism(sides, 0.75f, 1.05f);
+					foe.Mesh.sharedMesh = NgonPrism(sides, 0.62f, 0.95f);
 				}
 
 				if (foe.Boss != boss)
@@ -318,16 +345,58 @@ namespace WitchMendokusai
 					foe.Skin.color = boss ? bossColor : enemyColor;
 				}
 
-				// 세계 좌표: 처치 순번대로 한 칸씩 뒤에 — 세계가 흐르면 앞자리로 온다.
-				foe.Piece.localPosition = new Vector3(foe.Index * enemySpacing, frontSpot.y, frontSpot.z);
+				// 무리 배치 — 맨 앞이 지금 맞는 놈, 뒤는 지그재그로 몰려 있다.
+				//
+				// ⚠ 좌표는 <b>누적 웨이브</b>로 잡는다 (실측 2026-08-23): 구역 안 번호로만 잡았더니
+				//   세계(worldRoot)는 누적으로 흐르는데 적은 구역 안 자리에 서서 <b>화면 밖</b>에 있었다.
+				//   흐르는 쪽과 세우는 쪽이 같은 자를 써야 한다.
+				float back = aheadOfNow * packSpacing;
+				float side = aheadOfNow % 2 == 0 ? 0.9f : -1.0f;
+				float wave = WavesDone(snapshot) * waveSpacing;
+
+				foe.Piece.localPosition = new Vector3(
+					wave + frontSpot.x + back,
+					frontSpot.y,
+					frontSpot.z + (aheadOfNow == 0 ? 0f : side * (0.7f + 0.35f * aheadOfNow)));
 
 				bool atFront = foe.Index == first;
 				float health = atFront ? 0.82f + 0.18f * (float)snapshot.TargetHealthRatio : 1f;
 				float pop = atFront && popLeft > 0f ? 1f + 0.35f * (popLeft / popSeconds) : 1f;
 				float bulk = boss ? bossScale : 1f;
-				float waiting = atFront ? 1f : 0.82f;
-				foe.Piece.localScale = new Vector3(health * pop * bulk * waiting, pop * bulk * waiting, health * pop * bulk * waiting);
+				foe.Piece.localScale = new Vector3(health * pop * bulk, pop * bulk, health * pop * bulk);
+
+				// ★ 잡몹도 머리 위 체력바 — 보스는 화면 상단 대형 바가 따로 있어 여기선 안 단다.
+				foe.Bar.SetVisible(boss == false);
+				if (boss == false)
+				{
+					foe.Bar.SetRatio(atFront ? (float)snapshot.TargetHealthRatio : 1f);
+				}
 			}
+		}
+
+		/// <summary>이 구역에서 지금 몇 번째 웨이브인가 — 보스는 마지막 웨이브다.</summary>
+		private static int WaveOf(int inStage, int mobs, int pack)
+		{
+			if (inStage >= mobs)
+			{
+				return Mathf.CeilToInt((float)mobs / pack);
+			}
+
+			return inStage / pack;
+		}
+
+		/// <summary>
+		/// 여태 지나온 웨이브 총수 — <b>흐르는 쪽과 세우는 쪽이 같이 쓰는 자</b>.
+		///
+		/// ★ 아주 깊은 구역에서 좌표가 커지지 않게 <b>구역 안에서만</b> 센다.
+		///   지나온 구역까지 더하면 61구역쯤에서 1,600m 밖이 되어 부동소수점도 흔들린다.
+		/// </summary>
+		private float WavesDone(IdleSnapshot snapshot)
+		{
+			int perStage = Mathf.Max(1, snapshot.KillsPerStage);
+			int mobs = perStage - 1;
+			int pack = Mathf.Max(1, waveSize);
+			return WaveOf(snapshot.KillsInStage, mobs, pack);
 		}
 
 		private bool Has(long index)
@@ -356,22 +425,31 @@ namespace WitchMendokusai
 			renderer.sharedMaterial = foe.Skin;
 			foe.Index = index;
 			foe.Sides = -1;
+			foe.Bar = IdleHealthBar.Attach(piece.transform, 0.95f, 0.8f, 0.1f,
+				barBackColor, enemyBarColor);
 			return foe;
 		}
 
 		/// <summary>
-		/// 세계가 흐른다 — 맨 앞 적이 앞자리에 오도록 따라잡는다. 소품은 지나가면 재활용.
+		/// 세계가 흐른다 — <b>웨이브 단위</b>로 나아간다. 한 무리를 다 잡으면 다음 무리 앞까지 전진.
 		/// </summary>
 		private void March(IdleSnapshot snapshot, float delta)
 		{
-			float wanted = frontSpot.x - snapshot.Kills * enemySpacing;
+			float wanted = -WavesDone(snapshot) * waveSpacing;
+
+			// 구역이 바뀌면 웨이브 번호가 0 으로 돌아온다 — 그때는 <b>끌지 않고 붙인다</b>.
+			//   끌면 판이 통째로 뒤로 미끄러져 「되돌아간다」로 보인다. 소품이 절차라 티가 안 난다.
+			if (wanted > marchOffset + waveSpacing * 0.5f)
+			{
+				marchOffset = wanted;
+			}
+
 			marchOffset = Mathf.Lerp(marchOffset, wanted, Mathf.Min(1f, delta * marchCatchUp));
 			worldRoot.localPosition = new Vector3(marchOffset, 0f, 0f);
 
 			float span = scenery.Count * 3.1f;
 			foreach (Transform prop in scenery)
 			{
-				// 카메라 뒤로 멀어진 소품은 길 앞으로 — 끝없는 길.
 				while (prop.localPosition.x + marchOffset < -12f)
 				{
 					prop.localPosition += new Vector3(span, 0f, 0f);
@@ -386,7 +464,7 @@ namespace WitchMendokusai
 			SpawnBolt(dolls[who].position + new Vector3(0.3f, 0.9f, 0f));
 		}
 
-		/// <summary>서 있는 인형 중에서 차례를 돌린다 — 나(0번)는 늘 서 있다.</summary>
+		/// <summary>서 있는 인형 중에서 차례를 돌린다 — 쓰러진 자리는 안 때린다.</summary>
 		private int NextFighter(IdleSnapshot snapshot)
 		{
 			for (int tried = 0; tried < dolls.Length; tried++)
@@ -394,7 +472,7 @@ namespace WitchMendokusai
 				int slot = turn % dolls.Length;
 				turn++;
 
-				if (slot == 0 || (slot - 1 < snapshot.Party.Length && snapshot.Party[slot - 1] >= 0))
+				if (slot < snapshot.Seats.Length && snapshot.Seats[slot].Standing)
 				{
 					return slot;
 				}
@@ -419,9 +497,8 @@ namespace WitchMendokusai
 
 		private void AdvanceBodies(float delta)
 		{
-			// 행군 중인가 — 따라잡을 거리가 남아 있으면 걷는 몸짓.
-			bool marching = Mathf.Abs(worldRoot.localPosition.x
-				- (frontSpot.x - lastKills * enemySpacing)) > 0.05f;
+			bool marching = Mathf.Abs(worldRoot.localPosition.x - marchOffset) > 0.02f
+				|| Mathf.Abs(marchOffset - Mathf.Round(marchOffset / waveSpacing) * waveSpacing) > 0.15f;
 
 			for (int slot = 0; slot < dolls.Length; slot++)
 			{
@@ -434,10 +511,7 @@ namespace WitchMendokusai
 					? Mathf.Sin(Mathf.Clamp01(1f - lungeLeft[slot] / lungeSeconds) * Mathf.PI)
 					: 0f;
 
-				// 걷기 — 위아래로 총총. 자리는 그대로, 세계가 흐른다.
-				float bob = marching
-					? Mathf.Abs(Mathf.Sin(Time.time * 7f + slot * 1.3f)) * 0.12f
-					: 0f;
+				float bob = marching ? Mathf.Abs(Mathf.Sin(Time.time * 7f + slot * 1.3f)) * 0.1f : 0f;
 
 				dolls[slot].localPosition = dollSpots[slot] + new Vector3(swing * 0.5f, bob, 0f);
 			}
@@ -446,7 +520,9 @@ namespace WitchMendokusai
 			{
 				boltAges[at] += delta;
 				float gone = Mathf.Clamp01(boltAges[at] / boltSeconds);
-				Vector3 target = transform.TransformPoint(new Vector3(frontSpot.x, frontSpot.y + 0.1f, frontSpot.z));
+				Vector3 target = foes.Count > 0
+					? foes[0].Piece.position + new Vector3(0f, 0.1f, 0f)
+					: transform.TransformPoint(frontSpot);
 				bolts[at].position = Vector3.Lerp(boltFrom[at], target, gone);
 
 				if (gone >= 1f)
@@ -471,7 +547,7 @@ namespace WitchMendokusai
 			}
 		}
 
-		/// <summary>일제 사격 — 셋이 다 달려들고 알갱이가 쏟아진다.</summary>
+		/// <summary>일제 사격 — 서 있는 모두가 달려들고 알갱이가 쏟아진다.</summary>
 		public void OnVolley()
 		{
 			if (built == false)
@@ -523,6 +599,12 @@ namespace WitchMendokusai
 
 			Material made = new Material(shader);
 			made.color = color;
+
+			if (made.HasProperty("_BaseColor"))
+			{
+				made.SetColor("_BaseColor", color);
+			}
+
 			return made;
 		}
 
