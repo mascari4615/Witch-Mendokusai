@@ -398,6 +398,43 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// <summary>비밀 감정 값 — 코스트. 자원 대신 코스트로 한 번 굴린다.</summary>
         public double AppraiseCardCost { get; set; } = 5d;
 
+        // ── 부대 — 맞고 쓰러지고 일어난다 (V2, 사용자 방향 2026-08-23) ────────
+
+        /// <summary>
+        /// 한 자리의 <b>기본</b> 체력 — 장비·환생·영웅 등급이 여기에 곱해진다.
+        ///
+        /// ★ 적 피해(단계 지수)와 맞물려 「몇 구역까지 버티나」를 정하는 자리다.
+        /// </summary>
+        /// ★ 초반은 <b>안 죽어야 한다</b> (실측 2026-08-23): 60 으로 뒀더니 1구역에서 50초 만에
+        ///   전멸했다 — 사람이 아무것도 배우기 전에 실패부터 만난다. 벽은 <b>깊이</b>가 만들지
+        ///   시계가 만들면 안 된다.
+        public double SeatBaseHealth { get; set; } = 400d;
+
+        /// <summary>
+        /// 단계별 적이 <b>초당</b> 넣는 피해 — 깊이의 지수.
+        ///
+        /// ★ 체력 곡선(1.55)보다 <b>완만하게</b> 둔다. 같으면 아무리 키워도 같은 구역에서 죽고,
+        ///   더 가파르면 성장이 무의미해진다. 1.35 는 보상 배수와 같은 결이라 배우기도 쉽다.
+        /// </summary>
+        /// ★ 배수는 <b>완만해야 한다</b> (실측 2026-08-23): 1.35(보상 배수와 같은 결)로 뒀더니
+        ///   깊이 20 언저리에서 진행이 통째로 멎었다 — 하루를 켜 둬도 첫 천장에 못 닿는다.
+        ///   적 피해는 <b>벽을 늦추는</b> 것이지 벽을 만드는 것이 아니다. 벽은 체력 곡선이 만든다.
+        public GeometricScale EnemyDamageByStage { get; set; } = new GeometricScale(0.35d, 1.18d);
+
+        /// <summary>쓰러진 자리가 다시 일어나는 데 걸리는 시간(초). 하나라도 서 있어야 돈다.</summary>
+        public double ReviveSeconds { get; set; } = 12d;
+
+        /// <summary>
+        /// 하나 잡을 때마다 <b>최대 체력의 몇 할</b>을 회복하나.
+        ///
+        /// ★ 이 값이 <b>벽의 위치</b>를 정한다 — 잘 잡으면 안 죽고, 못 잡으면 죽는다.
+        ///   0 으로 두면 시간이 곧 죽음이 되어 「머물러 파밍」이 불가능해진다.
+        /// </summary>
+        public double HealPerKillShare { get; set; } = 0.08d;
+
+        /// <summary>영웅 등급 한 계단이 체력에 더해 주는 몫 — 뽑기의 값어치가 생존으로도 보이게.</summary>
+        public double HeroGradeHealthStep { get; set; } = 0.35d;
+
         /// <summary>한 축의 곡선을 고른다.</summary>
         public IUpgradeCurve CurveOf(IdleUpgradeKind kind)
         {

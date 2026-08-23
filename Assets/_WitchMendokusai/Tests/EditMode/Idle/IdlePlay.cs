@@ -13,11 +13,27 @@ namespace WitchMendokusai.Tests
 	/// </summary>
 	public static class IdlePlay
 	{
-		/// <summary>살 수 있는 것을 다 산다 — 기지 먼저, 그다음 용병.</summary>
+		/// <summary>살 수 있는 것을 다 산다 — 기지 먼저, 그다음 용병. 막혀 있으면 다시 도전한다.</summary>
 		public static void BuyEverything(IdleState state, IdleTuning tuning)
 		{
 			BuyProducers(state, tuning);
 			BuyUpgrades(state, tuning);
+			PushOnAfterFailure(state, tuning);
+		}
+
+		/// <summary>
+		/// 실패해서 <b>반복</b> 중이면 「다음 구역」을 누른다 (V2 방향 6).
+		///
+		/// ★ V2 부터 전멸은 <b>자동으로 안 풀린다</b> — 다시 갈지는 사람이 정한다.
+		///   시뮬은 사람 흉내라 그 손도 대신해야 한다. 안 그러면 시뮬이 첫 벽에서 영영 멎고,
+		///   그렇게 뽑은 곡선 표는 <b>아무도 안 노는 판</b>의 것이 된다.
+		/// </summary>
+		public static void PushOnAfterFailure(IdleState state, IdleTuning tuning)
+		{
+			if (state.Repeating)
+			{
+				IdleSquad.TryAdvanceStage(state, tuning);
+			}
 		}
 
 		/// <summary>

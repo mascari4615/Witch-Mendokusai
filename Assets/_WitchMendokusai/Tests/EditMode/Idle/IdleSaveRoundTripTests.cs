@@ -170,6 +170,11 @@ namespace WitchMendokusai.Tests
 			state.AttackSpeed.Level = 4;
 			state.Cost = 4.5d;
 			state.SupplySecondsLeft = 12d;
+			state.EnsureSeatRoom(tuning);
+			state.SeatHealth[0] = 33d;
+			state.SeatReviveSeconds[1] = 2.5d;
+			state.Repeating = true;
+			state.ClearedStage = 41;
 
 			state.Bag.Add(new IdleItem(3, IdleItemSlot.Hands));
 			state.Worn[0] = new IdleItem(2, IdleItemSlot.Head);

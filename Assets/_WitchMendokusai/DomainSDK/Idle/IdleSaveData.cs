@@ -73,5 +73,16 @@ namespace WitchMendokusai.DomainSDK.Idle
 
         /// <summary>긴급 보급이 남은 시간(초).</summary>
         public double SupplySecondsLeft;
+
+        /// <summary>자리별 남은 체력·부활 게이지 — 옛 저장에는 없어 null 로 온다 (V2 부대층).</summary>
+        public double[] SeatHealth;
+        public double[] SeatReviveSeconds;
+
+        /// <summary>실패 뒤 반복 중인가 · 마지막으로 깨고 내려간 구역.</summary>
+        public bool Repeating;
+        public int ClearedStage;
+
+        /// <summary>자리 체력을 한 번이라도 세웠나 — 「안 세운 판」과 「전멸한 판」을 가른다.</summary>
+        public bool SeatsReady;
     }
 }

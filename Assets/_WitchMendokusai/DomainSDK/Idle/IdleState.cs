@@ -206,6 +206,61 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// <summary>긴급 보급이 남은 시간(초) — 걸려 있는 동안 기지 수입이 몇 배가 된다.</summary>
         public double SupplySecondsLeft { get; set; }
 
+        /// <summary>자리별 남은 체력 (0 = 쓰러짐). 0번 = 나, 1~3 = 파티 자리 (V2 부대층).</summary>
+        public double[] SeatHealth { get; private set; } = new double[IdleSquad.SEAT_COUNT];
+
+        /// <summary>쓰러진 자리의 부활 게이지(초).</summary>
+        public double[] SeatReviveSeconds { get; private set; } = new double[IdleSquad.SEAT_COUNT];
+
+        /// <summary>실패해서 <b>반복</b> 중인가 — 클리어해도 안 내려간다. 사람이 「다음 구역」을 눌러야 푼다.</summary>
+        public bool Repeating { get; set; }
+
+        /// <summary>마지막으로 <b>깨고 내려간</b> 구역 — 실패하면 여기로 물러난다.</summary>
+        public int ClearedStage { get; set; }
+
+        /// <summary>
+        /// 자리 체력을 <b>한 번이라도 세웠나</b>.
+        ///
+        /// ★ 이게 없으면 「아직 안 세운 판」과 「전멸한 판」이 <b>똑같이 체력 0</b> 이라 구별이 안 된다.
+        ///   그래서 사진을 찍기만 해도(조회) 판을 세워야 했고, 그건 「묻는 자리는 판을 안 건드린다」를 깬다.
+        /// </summary>
+        public bool SeatsReady { get; set; }
+
+        /// <summary>
+        /// 자리 칸을 갖추고, <b>새로 온 자리는 만렙 체력</b>으로 세운다.
+        ///
+        /// ★ 옛 저장·새 판은 체력이 0 이라 그대로 두면 <b>시작하자마자 전멸</b>이다.
+        /// ★ 쓰러진 자리(부활 게이지가 돌고 있다)와 <b>새로 앉은 자리</b>를 갈라 본다 —
+        ///   안 가르면 부활 대기 중인 영웅이 매 프레임 공짜로 일어난다.
+        /// </summary>
+        public void EnsureSeatRoom(IdleTuning tuning)
+        {
+            if (SeatHealth.Length < IdleSquad.SEAT_COUNT)
+            {
+                SeatHealth = new double[IdleSquad.SEAT_COUNT];
+                SeatReviveSeconds = new double[IdleSquad.SEAT_COUNT];
+            }
+
+            bool first = SeatsReady == false;
+            SeatsReady = true;
+
+            for (int seat = 0; seat < IdleSquad.SEAT_COUNT; seat++)
+            {
+                if (IdleSquad.SeatTaken(this, seat) == false)
+                {
+                    SeatHealth[seat] = 0d;
+                    SeatReviveSeconds[seat] = 0d;
+                    continue;
+                }
+
+                // 처음 세우는 판, 또는 <b>새로 앉힌 자리</b>(체력도 게이지도 0)는 만렙으로.
+                if (first || (SeatHealth[seat] <= 0d && SeatReviveSeconds[seat] <= 0d))
+                {
+                    SeatHealth[seat] = IdleSquad.MaxHealthOf(this, tuning, seat);
+                }
+            }
+        }
+
         /// <summary>공격력 레벨.</summary>
         public UpgradeLevel Damage { get; } = new UpgradeLevel();
 
@@ -252,6 +307,11 @@ namespace WitchMendokusai.DomainSDK.Idle
                 LastSeenUnixSeconds = LastSeenUnixSeconds,
                 Cost = Cost,
                 SupplySecondsLeft = SupplySecondsLeft,
+                SeatHealth = (double[])SeatHealth.Clone(),
+                SeatReviveSeconds = (double[])SeatReviveSeconds.Clone(),
+                Repeating = Repeating,
+                ClearedStage = ClearedStage,
+                SeatsReady = SeatsReady,
             };
         }
 
@@ -268,6 +328,24 @@ namespace WitchMendokusai.DomainSDK.Idle
         private static int NotBelowZero(int value)
         {
             return value < 0 ? 0 : value;
+        }
+
+        /// <summary>자리 배열을 제 길이로 받아 낸다 — 없거나 짧으면 새로, 값은 <see cref="Sane"/>.</summary>
+        private static double[] SizedSane(double[] saved)
+        {
+            double[] made = new double[IdleSquad.SEAT_COUNT];
+
+            if (saved == null)
+            {
+                return made;
+            }
+
+            for (int seat = 0; seat < made.Length && seat < saved.Length; seat++)
+            {
+                made[seat] = Sane(saved[seat]);
+            }
+
+            return made;
         }
 
         private static double Sane(double value)
@@ -402,6 +480,12 @@ namespace WitchMendokusai.DomainSDK.Idle
             // 코스트·보급도 저장에서 온 수다 — NaN·음수는 0. 넘친 코스트는 다음 스텝이 상한으로 누른다.
             Cost = Sane(saveData.Cost);
             SupplySecondsLeft = Sane(saveData.SupplySecondsLeft);
+            // 옛 저장에는 자리 칸이 없어 null 로 온다 — 빈 칸으로 받고, EnsureSeatRoom 이 세운다.
+            SeatHealth = SizedSane(saveData.SeatHealth);
+            SeatReviveSeconds = SizedSane(saveData.SeatReviveSeconds);
+            Repeating = saveData.Repeating;
+            ClearedStage = NotBelowZero(saveData.ClearedStage);
+            SeatsReady = saveData.SeatsReady;
         }
     }
 }

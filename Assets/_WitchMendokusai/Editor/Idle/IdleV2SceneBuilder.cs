@@ -76,9 +76,13 @@ namespace WitchMendokusai.EditorTools
 			Camera camera = cameraObject.AddComponent<Camera>();
 			camera.clearFlags = CameraClearFlags.SolidColor;
 			camera.backgroundColor = new Color(0.75f, 0.88f, 0.96f);
-			camera.fieldOfView = 42f;
-			cameraObject.transform.position = new Vector3(0f, 7.4f, -6.8f);
-			cameraObject.transform.rotation = Quaternion.Euler(50f, 4f, 0f);
+			// ★ 쿼터뷰 (사용자 방향 1, 블아) — 45° 로 내려다보고 45° 로 비껴 본다.
+			//   정면(요 0)이면 옆뷰가 되고, 90° 면 탑뷰가 된다. 그 사이가 「쿼터」다.
+			// 내려다보는 각은 45°, 비껴 보는 각은 30° — 정면(0°)이면 옆뷰, 45°면 땅 모서리가 든다.
+			camera.fieldOfView = 32f;
+			Quaternion look = Quaternion.Euler(42f, 30f, 0f);
+			camera.transform.rotation = look;
+			cameraObject.transform.position = look * new Vector3(0f, 0f, -17f) + new Vector3(1.2f, 0.4f, 0f);
 
 			GameObject lightObject = new GameObject("Directional Light");
 			Light light = lightObject.AddComponent<Light>();

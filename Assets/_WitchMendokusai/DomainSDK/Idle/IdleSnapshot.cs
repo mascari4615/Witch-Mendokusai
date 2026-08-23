@@ -139,6 +139,44 @@ namespace WitchMendokusai.DomainSDK.Idle
     }
 
     /// <summary>
+    /// 한 자리가 화면에 보이는 모습 (V2 부대층) — 0번 = 나, 1~3 = 파티 자리.
+    /// </summary>
+    public readonly struct IdleSeatView
+    {
+        public IdleSeatView(int seat, bool taken, bool standing, double healthRatio, double reviveRatio,
+            int heroId, IdleHeroGrade grade)
+        {
+            Seat = seat;
+            Taken = taken;
+            Standing = standing;
+            HealthRatio = healthRatio;
+            ReviveRatio = reviveRatio;
+            HeroId = heroId;
+            Grade = grade;
+        }
+
+        public int Seat { get; }
+
+        /// <summary>누가 있나 — 빈 파티 자리는 거짓.</summary>
+        public bool Taken { get; }
+
+        /// <summary>서 있나 — 거짓이면 쓰러져 부활을 기다린다.</summary>
+        public bool Standing { get; }
+
+        /// <summary>남은 체력 비율(0~1).</summary>
+        public double HealthRatio { get; }
+
+        /// <summary>부활까지 찬 비율(0~1) — 쓰러졌을 때만 뜻이 있다.</summary>
+        public double ReviveRatio { get; }
+
+        /// <summary>앉은 영웅 번호 — 나(0번)이거나 빈 자리면 -1.</summary>
+        public int HeroId { get; }
+
+        /// <summary>그 영웅의 등급 — 화면이 색으로 옮긴다.</summary>
+        public IdleHeroGrade Grade { get; }
+    }
+
+    /// <summary>
     /// 지금 판의 <b>읽기 전용 사진</b> — 코어가 표현에게 건네는 것 (TASK-WM-406).
     ///
     /// ★ 상태 자체를 안 넘긴다 — 넘기면 표현이 코어를 고칠 수 있게 되고,
@@ -313,6 +351,18 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// <summary>손패 — 카드마다 값과 「지금 낼 수 있나」.</summary>
         public IdleCardView[] Cards { get; }
 
+        /// <summary>자리 넷 — 체력·부활·누가 앉았나 (V2 부대층).</summary>
+        public IdleSeatView[] Seats { get; }
+
+        /// <summary>실패해서 반복 중인가 — 화면이 「다음 구역」을 내밀 자리.</summary>
+        public bool Repeating { get; }
+
+        /// <summary>마지막으로 깨고 내려간 구역.</summary>
+        public int ClearedStage { get; }
+
+        /// <summary>지금 구역 적들이 초당 넣는 피해 — 「얼마나 위험한가」를 화면이 지어내지 않게.</summary>
+        public double EnemyDamagePerSecond { get; }
+
         public IdleSnapshot(double resource, double incomePerSecond, long kills, double targetHealthRatio,
             int stage, int killsInStage, int killsPerStage,
             long prestigePoints, long prestigeAward, int prestigeNextStage, double prestigeMultiplier,
@@ -324,12 +374,17 @@ namespace WitchMendokusai.DomainSDK.Idle
             bool canPull, int pullsToPity, double legendChance, double epicChance, double rareChance,
             int codexScore, double codexMultiplier,
             IdleUpgradeView damage, IdleUpgradeView attackSpeed, double attacksPerSecond,
-            double cost, double costMax, double supplySecondsLeft, IdleCardView[] cards)
+            double cost, double costMax, double supplySecondsLeft, IdleCardView[] cards,
+            IdleSeatView[] seats, bool repeating, int clearedStage, double enemyDamagePerSecond)
         {
             Cost = cost;
             CostMax = costMax;
             SupplySecondsLeft = supplySecondsLeft;
             Cards = cards;
+            Seats = seats;
+            Repeating = repeating;
+            ClearedStage = clearedStage;
+            EnemyDamagePerSecond = enemyDamagePerSecond;
             Resource = resource;
             IncomePerSecond = incomePerSecond;
             Kills = kills;

@@ -15,7 +15,8 @@ namespace WitchMendokusai.DomainSDK.Idle
     ///   에디터 창이 흘리든, 런타임 Update 가 흘리든, 시험이 8시간을 한 번에 흘리든 같다.
     /// </summary>
     public sealed class IdleSession : IIntentSink<IdleRaiseUpgradeIntent>, IIntentSink<IdlePrestigeIntent>, IIntentSink<IdleAppraiseIntent>, IIntentSink<IdleHoldStageIntent>, IIntentSink<IdleGoToStageIntent>,
-        IIntentSink<IdleBuyProducerIntent>, IIntentSink<IdleMergeIntent>, IIntentSink<IdleEquipIntent>, IIntentSink<IdleCastCardIntent>
+        IIntentSink<IdleBuyProducerIntent>, IIntentSink<IdleMergeIntent>, IIntentSink<IdleEquipIntent>,
+        IIntentSink<IdleCastCardIntent>, IIntentSink<IdleNextStageIntent>
     {
         private readonly IdleState state;
         private readonly IdleTuning tuning;
@@ -32,10 +33,20 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// <summary>화면이 값(감정·합치기 비용)을 물어볼 수 있게.</summary>
         public IdleTuning Tuning => tuning;
 
-        /// <summary>시간을 흘린다. 얼마를 흘릴지는 부르는 쪽이 정한다.</summary>
+        /// <summary>시간을 흘린다 — <b>위험 없이</b>. 자리 비운 몫·시뮬이 쓰는 길이다.</summary>
         public void Advance(double seconds)
         {
             IdleModel.Step(state, tuning, seconds);
+        }
+
+        /// <summary>
+        /// 보고 있는 동안의 한 프레임 — 적이 때리고 쓰러지고 일어난다 (V2 부대층).
+        ///
+        /// ★ 화면만 이걸 부른다. 자는 동안은 <see cref="Advance"/> — 전멸이 없다.
+        /// </summary>
+        public void AdvanceLive(double seconds)
+        {
+            IdleModel.StepLive(state, tuning, seconds);
         }
 
         /// <summary>
@@ -221,10 +232,26 @@ namespace WitchMendokusai.DomainSDK.Idle
             return IdleGear.TryEquip(state, intent.BagIndex);
         }
 
-        /// <summary>지나온 자리로 옮긴다. 앞질러 가려 하면 아무 일도 안 일어난다.</summary>
+        /// <summary>
+        /// 지나온 자리로 옮긴다. 앞질러 가려 하면 아무 일도 안 일어난다.
+        ///
+        /// ★ 옮기면 <b>부대가 회복한다</b> — 물러나는 것이 재정비가 아니면 물러날 이유가 없다.
+        /// </summary>
         public bool Send(IdleGoToStageIntent intent)
         {
-            return IdleModel.TryGoToStage(state, intent.Stage);
+            if (IdleModel.TryGoToStage(state, intent.Stage) == false)
+            {
+                return false;
+            }
+
+            IdleSquad.HealAll(state, tuning);
+            return true;
+        }
+
+        /// <summary>반복을 끝내고 다음 구역에 다시 도전한다 (V2 방향 6).</summary>
+        public bool Send(IdleNextStageIntent intent)
+        {
+            return IdleSquad.TryAdvanceStage(state, tuning);
         }
 
         /// <summary>여기 머물지 정한다. 언제든 뒤집을 수 있다 — 되돌릴 수 없는 선택이면 아무도 안 누른다.</summary>
@@ -317,7 +344,42 @@ namespace WitchMendokusai.DomainSDK.Idle
                 state.Cost,
                 tuning.CostMax,
                 state.SupplySecondsLeft,
-                CaptureCards());
+                CaptureCards(),
+                CaptureSeats(),
+                state.Repeating,
+                state.ClearedStage,
+                IdleSquad.EnemyDamagePerSecond(state, tuning));
+        }
+
+        /// <summary>
+        /// 자리 넷을 사진에 담는다 — 체력·부활을 화면이 다시 계산하지 않게.
+        ///
+        /// ★ <b>판을 안 건드린다</b> — 세우는 일은 <see cref="IdleModel.Step"/> 만 한다.
+        ///   묻기만 하는 자리가 판을 고치면 사진 한 장에 게임이 달라진다.
+        /// </summary>
+        private IdleSeatView[] CaptureSeats()
+        {
+            IdleSeatView[] made = Room(ref seatBuffer, IdleSquad.SEAT_COUNT);
+
+            for (int seat = 0; seat < made.Length; seat++)
+            {
+                bool taken = IdleSquad.SeatTaken(state, seat);
+                int id = seat == 0 || taken == false ? -1 : state.Party[seat - 1];
+                IdleHeroGrade grade = id >= 0 && IdleHeroes.Knows(id)
+                    ? IdleHeroes.KindOf(id).Grade
+                    : IdleHeroGrade.Common;
+
+                made[seat] = new IdleSeatView(
+                    seat,
+                    taken,
+                    IdleSquad.Standing(state, seat),
+                    IdleSquad.HealthRatioOf(state, tuning, seat),
+                    IdleSquad.ReviveRatioOf(state, tuning, seat),
+                    id,
+                    grade);
+            }
+
+            return made;
         }
 
         /// <summary>손패를 사진에 담는다 — 값·가능 여부를 화면이 다시 계산하지 않게.</summary>
@@ -401,6 +463,7 @@ namespace WitchMendokusai.DomainSDK.Idle
         private IdleItem[] wornBuffer;
         private int[] partyBuffer;
         private IdleCardView[] cardBuffer;
+        private IdleSeatView[] seatBuffer;
 
         /// <summary>자리를 맞춰 준다 — 수가 그대로면 쓰던 판을 그대로 쓴다.</summary>
         private static T[] Room<T>(ref T[] buffer, int count)

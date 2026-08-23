@@ -119,7 +119,8 @@ namespace WitchMendokusai
 			GameObject ground = GameObject.CreatePrimitive(PrimitiveType.Plane);
 			ground.name = "Ground";
 			ground.transform.SetParent(transform, false);
-			ground.transform.localScale = new Vector3(2.2f, 1f, 1.3f);
+			// 땅은 넉넉히 — 모서리가 화면에 들면 「세계」가 아니라 「판때기」로 보인다.
+			ground.transform.localScale = new Vector3(6f, 1f, 4f);
 			groundMaterial = Paint(ground, groundColor);
 			groundRest = groundColor;
 

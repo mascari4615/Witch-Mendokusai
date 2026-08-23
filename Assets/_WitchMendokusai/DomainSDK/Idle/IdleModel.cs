@@ -207,7 +207,10 @@ namespace WitchMendokusai.DomainSDK.Idle
                 * IdleGear.SpeedMultiplier(state, tuning)
                 * IdleHeroes.AxisMultiplierOf(state, tuning, IdleHeroAxis.Speed)
                 // 폭주는 <b>속도</b>에 건다 — 판이 통째로 빨라지는 게 눈에 가장 잘 보인다.
-                * IdleSurge.Multiplier(state, tuning);
+                * IdleSurge.Multiplier(state, tuning)
+                // ★ 쓰러진 자리는 <b>안 때린다</b> (V2 부대층). 전원 서 있으면 1 이라
+                //   이 층을 얹기 전의 곡선·시험이 그대로 산다.
+                * IdleSquad.FightingShare(state);
         }
 
         /// <summary>초당 깎는 양.</summary>
@@ -321,7 +324,7 @@ namespace WitchMendokusai.DomainSDK.Idle
             }
 
             // ★ 보급(카드)이 스텝 <b>중간에</b> 끝나면 경계에서 한 번 끊는다 — 수입 배수가
-            //   스텝 안에서 상수여야 「60초 한 번 == 0.1초 600번」이 선다. 단계 경계와 같은 이치다.
+            //   스텝 안에서 상수여야 「60초 한 번 == 0.1초 600번」이 선다.
             if (state.SupplySecondsLeft > 0d && seconds > state.SupplySecondsLeft)
             {
                 double boosted = state.SupplySecondsLeft;
@@ -332,6 +335,82 @@ namespace WitchMendokusai.DomainSDK.Idle
 
             StepFlat(state, tuning, seconds);
         }
+
+        /// <summary>
+        /// <b>보고 있는 동안</b>의 한 스텝 — 적이 때리고, 쓰러지고, 일어난다 (V2 부대층).
+        ///
+        /// ★ 왜 <see cref="Step"/> 과 갈랐나 — <b>자는 동안 전멸</b>은 방치형에서 최악이다.
+        ///   8시간을 비웠는데 첫 20분에 전멸해 나머지가 통째로 헛돈다면, 그건 도전이 아니라 벌이다.
+        ///   그래서 위험은 <b>화면 앞에 있을 때</b>만 흐른다 — 폭주(<see cref="IdleSurge"/>)를
+        ///   자리 비운 동안 지우는 것과 같은 이치다.
+        ///
+        /// ★ 자리 비운 몫(<see cref="IdleSession.CatchUp"/>)과 곡선 시뮬은 <see cref="Step"/> 을 쓴다.
+        ///   그래서 오프라인 정산은 여전히 <b>결정적·스텝 불변</b>이다.
+        /// </summary>
+        public static void StepLive(IdleState state, IdleTuning tuning, double seconds)
+        {
+            if (seconds <= 0d)
+            {
+                return;
+            }
+
+            state.EnsureSeatRoom(tuning);
+
+            // 사건(쓰러짐·부활·보급 만료) 경계에서 끊는다 — 그래야 프레임 길이가 판을 안 바꾼다.
+            for (int guard = 0; seconds > 0d; guard++)
+            {
+                if (guard >= MAX_EVENT_SLICES)
+                {
+                    StepFlat(state, tuning, seconds);
+                    break;
+                }
+
+                double slice = seconds;
+
+                if (state.SupplySecondsLeft > 0d && state.SupplySecondsLeft < slice)
+                {
+                    slice = state.SupplySecondsLeft;
+                }
+
+                double squadEvent = IdleSquad.SecondsToNextEvent(state, tuning);
+                if (squadEvent > 0d && squadEvent < slice)
+                {
+                    slice = squadEvent;
+                }
+
+                if (slice <= 0d)
+                {
+                    slice = seconds;
+                }
+
+                IdleSquad.Advance(state, tuning, slice, out bool wiped);
+
+                // 전멸한 뒤에는 안 때린다 — 쓰러진 부대가 계속 잡는 그림이 안 되게.
+                if (wiped == false)
+                {
+                    StepFlat(state, tuning, slice);
+                }
+
+                seconds -= slice;
+
+                if (IdleSquad.FrontSeat(state) < 0)
+                {
+                    IdleSquad.FallBack(state, tuning);
+                }
+            }
+        }
+
+        /// <summary>
+        /// 한 스텝에서 끊을 수 있는 사건 수의 상한 — <b>멈추지 않는 판</b>을 막는 안전선.
+        ///
+        /// ★ 넉넉해야 한다 (실측 2026-08-23): 512 로 뒀더니 <b>자리 비운 8시간</b>을 한 번에 밟을 때
+        ///   부활(12초마다)이 2400번이라 <b>시간이 남은 채 잘렸다</b> — 그러면 쪼개 밟은 판과 갈린다.
+        ///
+        /// ★ 그렇다고 무한도 안 된다 — 이레짜리 시뮬을 한 번에 밟으면 조각이 수만 개라
+        ///   에디터가 멎는다. 실제 게임의 한 번(오프라인 상한 24시간)은 여기 안 닿는다.
+        ///   넘치면 남은 시간을 <b>통째로</b> 밟는다(사건 경계를 못 지키므로 그때만 근사).
+        /// </summary>
+        private const int MAX_EVENT_SLICES = 8192;
 
         private static void StepFlat(IdleState state, IdleTuning tuning, double seconds)
         {
@@ -426,8 +505,10 @@ namespace WitchMendokusai.DomainSDK.Idle
                 }
 
                 long leftInStage = tuning.KillsPerStage - state.KillsInStage;
+                // ★ 반복 중이면 <b>안 내려간다</b> (V2 방향 6) — 실패한 판에 자동으로 다시
+                //   밀어 넣지 않는다. 다시 갈지는 사람이 「다음 구역」으로 정한다.
                 bool clearsStage = tuning.KillsPerStage > 0 && felled >= leftInStage
-                    && state.HoldingStage == false;
+                    && state.HoldingStage == false && state.Repeating == false;
                 long taking = clearsStage ? leftInStage : felled;
 
                 // 큰 수에서도 안 넘치게 double 로 셈하고, 실제로 쓸 수 있는 만큼만 뺀다.
@@ -437,6 +518,8 @@ namespace WitchMendokusai.DomainSDK.Idle
                 available -= spent;
 
                 state.Kills += taking;
+                // 잡은 만큼 숨을 돌린다 — 잡힌 적은 더 이상 안 때린다 (V2 부대층).
+                IdleSquad.HealOnKills(state, tuning, taking);
                 // ★ 잡기는 <b>자원을 안 낸다</b> — 자원은 기지가 낸다(사용자 방향: 클리커 + 모험).
                 //   갈라 놓아야 두 층이 서로를 부른다. 합쳐 두면 기지가 있을 이유가 없다.
                 // ★ 지금 단계에서 잡은 몫이다 — 단계 경계를 넘기 <b>전에</b> 쌓아야
@@ -456,6 +539,14 @@ namespace WitchMendokusai.DomainSDK.Idle
                     available = 0L;
                     break;
                 }
+
+                // 방금 이 구역을 깼다 — 실패하면 여기까지 물러난다 (V2 방향 6).
+                state.ClearedStage = state.Stage;
+
+                // ★ 구역을 깨면 <b>재정비</b>한다 — 회복이 없으면 시간이 지나는 것만으로 반드시 죽는다.
+                //   그러면 벽이 「내 세기」가 아니라 「시계」가 되어 성장이 뜻을 잃는다.
+                //   웨이브를 다 밀었으니 숨을 돌린다 — 블아·울티마의 구역 사이 그 자리다.
+                IdleSquad.HealAll(state, tuning);
 
                 state.Stage += 1;
                 state.KillsInStage = 0;

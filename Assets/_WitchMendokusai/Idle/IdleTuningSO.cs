@@ -230,6 +230,25 @@ namespace WitchMendokusai
         [Tooltip("비밀 감정의 코스트 — 자원 대신 코스트로 한 번 굴린다.")]
         [SerializeField] private double appraiseCardCost = 5d;
 
+        [Header("부대 — 맞고 쓰러지고 일어난다 (V2)")]
+        [Tooltip("한 자리의 기본 체력 (장비·환생·영웅 등급이 곱해진다).")]
+        [SerializeField] private double seatBaseHealth = 400d;
+
+        [Tooltip("1구역 적이 초당 넣는 피해.")]
+        [SerializeField] private double enemyDamage = 0.35d;
+
+        [Tooltip("구역마다 적 피해에 곱해지는 배수 — 체력 곡선보다 완만해야 성장이 산다.")]
+        [SerializeField] private double enemyDamageRatio = 1.18d;
+
+        [Tooltip("쓰러진 자리가 다시 일어나는 시간 (초). 하나라도 서 있어야 돈다.")]
+        [SerializeField] private double reviveSeconds = 12d;
+
+        [Tooltip("하나 잡을 때마다 최대 체력의 몇 할을 회복하나 — 벽의 위치를 정한다.")]
+        [SerializeField] private double healPerKillShare = 0.08d;
+
+        [Tooltip("영웅 등급 한 계단이 체력에 더하는 몫.")]
+        [SerializeField] private double heroGradeHealthStep = 0.35d;
+
         [Header("자리 비움")]
         [Tooltip("기본 오프라인 상한 (초).")]
         [SerializeField] private double baseMaxOfflineSeconds = 8d * 3600d;
@@ -315,6 +334,11 @@ namespace WitchMendokusai
                 SupplySeconds = supplySeconds,
                 SupplyMultiplier = supplyMultiplier,
                 AppraiseCardCost = appraiseCardCost,
+                SeatBaseHealth = seatBaseHealth,
+                EnemyDamageByStage = new GeometricScale(enemyDamage, enemyDamageRatio),
+                ReviveSeconds = reviveSeconds,
+                HealPerKillShare = healPerKillShare,
+                HeroGradeHealthStep = heroGradeHealthStep,
                 ProducerCostByKind = new GeometricScale(producerCost, producerCostStep),
                 ProducerOutputByKind = new GeometricScale(producerOutput, producerOutputStep),
                 PotentialByGrade = new GeometricScale(potentialFloor, potentialStep),
