@@ -309,12 +309,23 @@ jobs:
           node-version: '22'
 
       # WM 저장소에는 node 의존성이 없다 — 브라우저는 임시 폴더에 깔고 자리만 알려 준다.
+      # ★ 캐시 (change.dev-loop-speedup, 2026-08-23): 샤드 8개가 **각자** playwright 꾸러미와
+      #   chromium 을 처음부터 받고 있었다 — 샤드당 1~2분 × 8, 내용은 판마다 같다.
+      #   키 = playwright 판 번호. 아래 `npm i playwright@…` 판을 올리면 키도 같이 올려라
+      #   (안 올리면 옛 판이 계속 나온다). `--with-deps` 의 apt 몫은 캐시 밖 — 그건 원래 싸다.
+      - name: Cache playwright (package + chromium)
+        uses: actions/cache@v4
+        with:
+          path: |
+            /tmp/wm-playwright/node_modules
+            ~/.cache/ms-playwright
+          key: wm-playwright-1.62.1-${{ runner.os }}
       - name: Install playwright chromium
         run: |
           mkdir -p /tmp/wm-playwright
           cd /tmp/wm-playwright
           npm init -y >/dev/null
-          npm i playwright@1.62.1 >/dev/null
+          if [ ! -d node_modules/playwright ]; then npm i playwright@1.62.1 >/dev/null; fi
           npx playwright install --with-deps chromium
 
       # TASK-WM-217 -- 웹 창은 문법·계약만 봤다. 여기서는 진짜 세계를 띄우고 진짜 창을 열어
