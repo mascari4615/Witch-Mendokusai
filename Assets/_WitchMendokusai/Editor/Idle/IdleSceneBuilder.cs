@@ -34,7 +34,7 @@ namespace WitchMendokusai.EditorTools
 		/// ★ 왜 필요한가 — 본편 씬이 열린 채로 Play 를 누르면 당연히 본편이 뜬다(실제로 겪었다).
 		///   방치형은 따로 파는 게임이라 <b>들어가는 문이 따로</b> 있어야 헷갈리지 않는다.
 		/// </summary>
-		[MenuItem("WM/Idle/열고 플레이 %#i")]
+		[MenuItem("WM/Idle/Open and Play %#i")]
 		public static void OpenAndPlay()
 		{
 			if (EditorApplication.isPlaying)
@@ -63,7 +63,7 @@ namespace WitchMendokusai.EditorTools
 			EditorApplication.isPlaying = true;
 		}
 
-		[MenuItem("WM/Idle/씬 짓기")]
+		[MenuItem("WM/Idle/Build Scene")]
 		public static void Build()
 		{
 			// ★ 순서가 중요하다 (실측 2026-08-16). 처음엔 에셋을 만들어 쥔 채로 `NewScene` 을 불렀는데,
@@ -125,7 +125,7 @@ namespace WitchMendokusai.EditorTools
 		///   디스크에 적힌 것이 멀쩡한 것은 다른 말이고, 여기서 갈렸던 게 실제 결함이었다.
 		///   빈 참조는 화면이 그냥 안 그려지는 것으로 나타나 눈으로는 원인을 못 짚는다.
 		/// </summary>
-		[MenuItem("WM/Idle/씬 검사")]
+		[MenuItem("WM/Idle/Verify Scene")]
 		public static bool Verify()
 		{
 			Scene scene = EditorSceneManager.OpenScene(SCENE_PATH, OpenSceneMode.Single);

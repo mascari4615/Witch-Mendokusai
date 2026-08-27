@@ -25,7 +25,7 @@ namespace WitchMendokusai
 
 		private enum BlockFace { Side, Top, Bottom }
 
-		[MenuItem("WM/Voxel/Voxel Texture 설정 열기")]
+		[MenuItem("WM/Voxel/Open Voxel Texture Settings")]
 		public static void OpenTextureConfig()
 		{
 			VoxelTextureConfig config = LoadOrCreateConfig();

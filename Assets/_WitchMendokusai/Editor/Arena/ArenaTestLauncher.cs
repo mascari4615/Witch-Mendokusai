@@ -122,7 +122,7 @@ namespace WitchMendokusai
 			Debug.Log("[Arena-Verify] ARMED (x2 rematch) — 다음 Play 진입 시 자동 매치 2연속+Play 종료(재매치 검증). 이제 Play(▶) 를 누르세요.");
 		}
 
-		[MenuItem("WM/Arena/Arm Mode-Verify (마도서→투기장, next Play)")]
+		[MenuItem("WM/Arena/Arm Mode-Verify (Grimoire to Arena, next Play)")]
 		public static void ArmModeVerify()
 		{
 			EditorPrefs.SetBool(MODEVERIFY_KEY, true);

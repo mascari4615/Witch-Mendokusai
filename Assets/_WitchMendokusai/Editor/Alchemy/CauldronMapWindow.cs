@@ -14,7 +14,7 @@ namespace WitchMendokusai
     /// </summary>
     public sealed class CauldronMapWindow : EditorWindow
     {
-        [MenuItem("WM/Alchemy/솥 지도 미리보기")]
+        [MenuItem("WM/Alchemy/Cauldron Map Preview")]
         public static void Open()
         {
             CauldronMapWindow window = GetWindow<CauldronMapWindow>();

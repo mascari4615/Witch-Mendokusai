@@ -32,7 +32,7 @@ namespace WitchMendokusai.EditorTools
 			EditorApplication.playModeStateChanged += OnPlayModeChanged;
 		}
 
-		[MenuItem("WM/Verify/마도온실 Play 자율검증")]
+		[MenuItem("WM/Verify/Greenhouse Play Verify")]
 		public static void Arm()
 		{
 			EditorPrefs.SetBool(ARM_PREF, true);

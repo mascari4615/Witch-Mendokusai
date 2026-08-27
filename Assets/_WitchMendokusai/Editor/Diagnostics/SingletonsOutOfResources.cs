@@ -27,7 +27,7 @@ namespace WitchMendokusai.EditorTools
 		private const string DST_PARENT = "Assets/_WitchMendokusai/Core/Assets";
 		private const string DST = DST_PARENT + "/Singletons";
 
-		[MenuItem("WM/이사/싱글톤을 Resources 밖으로 (TASK-WM-409 B)")]
+		[MenuItem("WM/Migrate/Singletons out of Resources (TASK-WM-409 B)")]
 		public static void Run()
 		{
 			if (Directory.Exists(SRC) == false)

@@ -26,7 +26,7 @@ namespace WitchMendokusai.EditorTools
 		private static readonly WMHuntPlayVerify Instance = new();
 		static WMHuntPlayVerify() { }
 
-		[MenuItem("WM/Verify/마계 야수 사냥 Play 자율검증")]
+		[MenuItem("WM/Verify/Demon Beast Hunt Play Verify")]
 		private static void ArmFromMenu() => Instance.Arm();
 
 		protected override string ArmPref => "WM_HUNT_PLAYVERIFY_ARMED";

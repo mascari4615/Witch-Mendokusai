@@ -28,7 +28,7 @@ namespace WitchMendokusai.EditorTools
 		private const string CATALOG = CATALOG_DIR + "/SingletonCatalog.asset";
 		private const string ROOT_PREFAB = SINGLETONS + "/RootLifetimeScope.prefab";
 
-		[MenuItem("WM/이사/조립 목록을 참조로 (TASK-WM-409 A)")]
+		[MenuItem("WM/Migrate/Singleton Catalog to Reference (TASK-WM-409 A)")]
 		public static void Run()
 		{
 			if (AssetDatabase.IsValidFolder(CATALOG_DIR) == false)

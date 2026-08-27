@@ -26,7 +26,7 @@ namespace WitchMendokusai.EditorTools
 		private const string CATALOG = DST + "/BlockCatalog.asset";
 		private const string LAB_PREFAB = "Assets/_WitchMendokusai/Domain/World/Stage/0004_Lab/[Stage] [4] Lab.prefab";
 
-		[MenuItem("WM/이사/복셀을 Resources 밖으로 (TASK-WM-409)")]
+		[MenuItem("WM/Migrate/Voxels out of Resources (TASK-WM-409)")]
 		public static void Run()
 		{
 			if (Directory.Exists(SRC))

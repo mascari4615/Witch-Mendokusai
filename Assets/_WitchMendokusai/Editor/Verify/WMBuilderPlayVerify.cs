@@ -32,7 +32,7 @@ namespace WitchMendokusai.EditorTools
 		private static readonly WMBuilderPlayVerify Instance = new();
 		static WMBuilderPlayVerify() { }
 
-		[MenuItem("WM/Verify/빌더 배치파괴 Play 자율검증")]
+		[MenuItem("WM/Verify/Builder Place-Destroy Play Verify")]
 		private static void ArmFromMenu() => Instance.Arm();
 
 		protected override string ArmPref => "WM_BUILDER_PLAYVERIFY_ARMED";

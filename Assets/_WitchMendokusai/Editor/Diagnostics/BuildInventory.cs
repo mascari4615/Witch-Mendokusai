@@ -219,7 +219,7 @@ namespace WitchMendokusai.EditorTools
 			Debug.Log(r);
 		}
 
-		[MenuItem("WM/진단/빌드 인벤토리 보기")]
+		[MenuItem("WM/Diagnose/Build Inventory")]
 		public static void Print() { Debug.Log(Report()); }
 
 		public static void PrintCli()

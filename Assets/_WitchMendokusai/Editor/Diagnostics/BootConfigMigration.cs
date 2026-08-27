@@ -21,7 +21,7 @@ namespace WitchMendokusai.EditorTools
 		private const string CONFIG = DIR + "/BootConfig.asset";
 		private const string ROOT_PREFAB = "Assets/_WitchMendokusai/Core/Resources/Singletons/RootLifetimeScope.prefab";
 
-		[MenuItem("WM/이사/조립 뿌리를 참조로 (TASK-WM-409 B)")]
+		[MenuItem("WM/Migrate/Boot Root to Reference (TASK-WM-409 B)")]
 		public static void Run()
 		{
 			BootConfig config = AssetDatabase.LoadAssetAtPath<BootConfig>(CONFIG);

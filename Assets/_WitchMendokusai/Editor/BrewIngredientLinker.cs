@@ -16,7 +16,7 @@ namespace WitchMendokusai.EditorTools
 	/// </summary>
 	public static class BrewIngredientLinker
 	{
-		[MenuItem("WM/솥 재료를 아이템에 잇기")]
+		[MenuItem("WM/Link Cauldron Ingredients to Items")]
 		public static void Link()
 		{
 			Debug.Log("[brew-link] " + LinkAndReport());

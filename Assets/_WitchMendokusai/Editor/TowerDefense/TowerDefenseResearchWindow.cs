@@ -22,7 +22,7 @@ namespace WitchMendokusai.EditorTools
 		private const int PREVIEW_ESSENCE_FROM_RING = 2; // 미리보기도 「안쪽은 자원, 바깥은 정수」를 그대로 보여준다.
 		private const int PREVIEW_RESOURCE_COST = 45;
 
-		[MenuItem("WM/TowerDefense/연구 성좌 미리보기")]
+		[MenuItem("WM/TowerDefense/Research Constellation Preview")]
 		public static void Open()
 		{
 			TowerDefenseResearchWindow window = GetWindow<TowerDefenseResearchWindow>();

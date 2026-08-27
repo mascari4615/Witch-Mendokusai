@@ -30,7 +30,7 @@ namespace WitchMendokusai.EditorTools
 
 		private static readonly StringBuilder report = new StringBuilder();
 
-		[MenuItem("WM/세계 뒷정리 (아이템 목록 + 멀티 버튼 + 빠진 스크립트)")]
+		[MenuItem("WM/World Cleanup (Item Catalog + Multi Buttons + Missing Scripts)")]
 		public static void Run()
 		{
 			report.Clear();

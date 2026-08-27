@@ -24,7 +24,7 @@ namespace WitchMendokusai.EditorTools
 		private const string CRAFTS_SERVER_RELATIVE = "Server/WM.Server/crafts.json";
 		private const string CRAFTS_RESOURCES_PATH = "Assets/_WitchMendokusai/Resources/crafts.json";
 
-		[MenuItem("WM/아이템 목록 뽑기 (세계용)")]
+		[MenuItem("WM/Export Item Catalog (for World)")]
 		public static void Export()
 		{
 			List<ItemCatalogEntry> entries = new List<ItemCatalogEntry>();

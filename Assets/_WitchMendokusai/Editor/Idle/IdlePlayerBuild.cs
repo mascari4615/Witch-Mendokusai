@@ -44,7 +44,7 @@ namespace WitchMendokusai.EditorTools
 		/// </summary>
 		private const string BACKEND_ENV = "WM_IDLE_BACKEND";
 
-		[MenuItem("WM/Idle/빌드 (이 게임만)")]
+		[MenuItem("WM/Idle/Build (This Game Only)")]
 		public static void Build()
 		{
 			// ★ 지어 놓고 빈 씬을 굽는 일이 실제로 있었다 — 굽기 전에 붙을 것이 붙었는지 본다.

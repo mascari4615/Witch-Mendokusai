@@ -29,7 +29,7 @@ namespace WitchMendokusai.EditorTools
 			"Assets/_WitchMendokusai/Core/Scripts/UI/Common/Sprites/UI_FadeCircle.png",
 		};
 
-		[MenuItem("WM/이사/압축 꺼진 텍스처 켜기 (TASK-WM-409 C)")]
+		[MenuItem("WM/Migrate/Enable Texture Compression (TASK-WM-409 C)")]
 		public static void Run()
 		{
 			List<string> fixedOnes = new List<string>();

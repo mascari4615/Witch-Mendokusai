@@ -124,7 +124,7 @@ namespace WitchMendokusai.EditorTools
 		}
 
 		/// <summary> 결말만 — 무방비 판으로 곧장 들어가 패배 → 배너 → 다시 도전 한 사이클만 본다. </summary>
-		[MenuItem("WM/TowerDefense/Arm Play-Verify (결말만)")]
+		[MenuItem("WM/TowerDefense/Arm Play-Verify (Ending Only)")]
 		public static void ArmConclusionOnly()
 		{
 			EditorPrefs.SetBool(PLACE_ONLY_PREF, false);
@@ -136,7 +136,7 @@ namespace WitchMendokusai.EditorTools
 		}
 
 		/// <summary> 배치만 — 세우는 순간 결판나는 것(비용·배수·슬롯 매핑)을 90초 안에 본다. </summary>
-		[MenuItem("WM/TowerDefense/Arm Play-Verify (배치만)")]
+		[MenuItem("WM/TowerDefense/Arm Play-Verify (Placement Only)")]
 		public static void ArmPlaceOnly()
 		{
 			EditorPrefs.SetBool(CONCLUSION_ONLY_PREF, false);
@@ -154,7 +154,7 @@ namespace WitchMendokusai.EditorTools
 		///   배치→파도→결말→재시작 전 과정 5분을 매번 태웠다. 확인 하나에 5분은 너무 비싸서
 		///   「한 사이클에 한 번」밖에 못 본다 — 진단이 느려지는 진짜 이유가 이것이었다.
 		/// </summary>
-		[MenuItem("WM/TowerDefense/Arm Play-Verify (파도만)")]
+		[MenuItem("WM/TowerDefense/Arm Play-Verify (Waves Only)")]
 		public static void ArmWavesOnly()
 		{
 			EditorPrefs.SetBool(CONCLUSION_ONLY_PREF, false);

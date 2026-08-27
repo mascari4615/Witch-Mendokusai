@@ -30,7 +30,7 @@ namespace WitchMendokusai.EditorTools
 	{
 		private const string LOG_PREFIX = "[addr-diag]";
 
-		[MenuItem("WM/Diagnose/Addressables 콘텐츠 빌드 단독 실행")]
+		[MenuItem("WM/Diagnose/Build Addressables Content Only")]
 		private static void RunFromMenu()
 		{
 			Run();

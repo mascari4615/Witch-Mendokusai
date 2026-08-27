@@ -14,7 +14,7 @@ namespace WitchMendokusai
 	{
 		private const string SCENE_NAME = "VersusPrototype";
 
-		[MenuItem("WM/Versus/한 판 열기 (v0)")]
+		[MenuItem("WM/Versus/Open a Match (v0)")]
 		public static void OpenAndPlay()
 		{
 			if (EditorApplication.isPlaying)
@@ -37,7 +37,7 @@ namespace WitchMendokusai
 		}
 
 		/// <summary> 지금 열려 있는 씬에 감독만 얹는다 — 다른 씬에서 대결 판만 띄워 보고 싶을 때. </summary>
-		[MenuItem("WM/Versus/이 씬에 감독 얹기")]
+		[MenuItem("WM/Versus/Add Director to Scene")]
 		public static void AddDirectorToCurrentScene()
 		{
 			GameObject director = new GameObject("VersusMatch");

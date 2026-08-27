@@ -24,7 +24,7 @@ namespace WitchMendokusai.EditorTools
 		private const string STYLE_PATH = "Assets/_WitchMendokusai/Idle/IdleBattleScreen.uss";
 		private const string TAG = "[IdleV2Scene]";
 
-		[MenuItem("WM/Idle/V2 열고 플레이 %#u")]
+		[MenuItem("WM/Idle/V2 Open and Play %#u")]
 		public static void OpenAndPlay()
 		{
 			if (EditorApplication.isPlaying)
@@ -49,7 +49,7 @@ namespace WitchMendokusai.EditorTools
 			EditorApplication.isPlaying = true;
 		}
 
-		[MenuItem("WM/Idle/V2 씬 짓기")]
+		[MenuItem("WM/Idle/V2 Build Scene")]
 		public static void Build()
 		{
 			// 에셋 먼저 디스크에 확정 — 씬을 연 뒤 경로로 다시 읽는다 (IdleSceneBuilder 의 실측 규칙).
@@ -123,7 +123,7 @@ namespace WitchMendokusai.EditorTools
 		}
 
 		/// <summary>저장된 씬을 다시 열어 빈 참조를 본다 — 메모리와 디스크는 다른 말이다.</summary>
-		[MenuItem("WM/Idle/V2 씬 검사")]
+		[MenuItem("WM/Idle/V2 Verify Scene")]
 		public static bool Verify()
 		{
 			Scene scene = EditorSceneManager.OpenScene(SCENE_PATH, OpenSceneMode.Single);
