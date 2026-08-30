@@ -87,6 +87,12 @@ namespace WitchMendokusai.EditorTools
 				EditorApplication.isPlaying = false;
 			}
 
+			if (EditorApplication.isPlaying == false)
+			{
+				IdleBattleScreen.PreviewRunning = EditorGUILayout.ToggleLeft(
+					"미리보기 시뮬 진행 (끄면 첫 틱 뒤 정지. UI 와 정적 3D 확인용)", IdleBattleScreen.PreviewRunning);
+			}
+
 			EditorGUILayout.Space(8f);
 		}
 

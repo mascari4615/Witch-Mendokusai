@@ -22,6 +22,7 @@ namespace WitchMendokusai.EditorTools
 		private const string PANEL_PATH = "Assets/_WitchMendokusai/Scenes/Idle/PS_0001_Idle.asset";
 		private const string TUNING_PATH = "Assets/_WitchMendokusai/Scenes/Idle/TU_0001_Idle.asset";
 		private const string STYLE_PATH = "Assets/_WitchMendokusai/Idle/IdleBattleScreen.uss";
+		private const string DOLL_PAGE_PATH = "Assets/_WitchMendokusai/Idle/IdleDollPage.uxml";
 		private const string TAG = "[IdleV2Scene]";
 
 		[MenuItem("WM/Idle/V2 Open and Play %#u")]
@@ -61,6 +62,7 @@ namespace WitchMendokusai.EditorTools
 			PanelSettings panel = AssetDatabase.LoadAssetAtPath<PanelSettings>(PANEL_PATH);
 			IdleTuningSO tuning = AssetDatabase.LoadAssetAtPath<IdleTuningSO>(TUNING_PATH);
 			StyleSheet style = AssetDatabase.LoadAssetAtPath<StyleSheet>(STYLE_PATH);
+			VisualTreeAsset dollPage = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(DOLL_PAGE_PATH);
 
 			if (panel == null || tuning == null || style == null)
 			{
@@ -101,6 +103,7 @@ namespace WitchMendokusai.EditorTools
 			IdleBattleScreen screen = screenObject.AddComponent<IdleBattleScreen>();
 			AssignPrivateField(screen, "tuningAsset", tuning);
 			AssignPrivateField(screen, "styleSheet", style);
+			AssignPrivateField(screen, "dollPageAsset", dollPage);
 			AssignPrivateField(screen, "stage", stage);
 
 			// 이게 없으면 버튼이 안 눌린다 — 화면은 멀쩡해 눈으로 못 잡는다.
@@ -156,6 +159,11 @@ namespace WitchMendokusai.EditorTools
 				if (serialized.FindProperty("styleSheet").objectReferenceValue == null)
 				{
 					missing.Add("IdleBattleScreen.styleSheet");
+				}
+
+				if (serialized.FindProperty("dollPageAsset").objectReferenceValue == null)
+				{
+					missing.Add("IdleBattleScreen.dollPageAsset");
 				}
 				if (serialized.FindProperty("tuningAsset").objectReferenceValue == null)
 				{

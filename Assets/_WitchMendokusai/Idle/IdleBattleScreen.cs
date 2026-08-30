@@ -28,6 +28,9 @@ namespace WitchMendokusai
 		[Header("생김새")]
 		[SerializeField] private StyleSheet styleSheet;
 
+		[Header("손으로 고치는 UXML. 비우면 코드가 짓는다 (사용자 2026-08-30: 고퀄리티는 사람 손길)")]
+		[SerializeField] private VisualTreeAsset dollPageAsset;
+
 		[Header("무대. 씬이 꽂아 준다")]
 		[SerializeField] private IdleBattleStage stage;
 
@@ -44,6 +47,10 @@ namespace WitchMendokusai
 		// 에디트 모드 미리보기 (사용자 2026-08-30: UI 수정은 Play 없이). 저장 읽기와 쓰기 없음. 임시 판 위 시뮬만
 		private bool preview;
 		private double previewClock;
+		private bool previewTicked;
+
+		/// <summary>미리보기 시뮬 진행 여부. 기본은 첫 틱 뒤 정지 (정적 장면). Dev Panel 이 켠다</summary>
+		public static bool PreviewRunning { get; set; }
 
 		// 짓기가 끝나야 그린다. 짓는 도중 Render 가 돌면 아직 없는 조각(맵 팝업)에서 죽는다 (실측 2026-08-30)
 		private bool built;
@@ -195,6 +202,7 @@ namespace WitchMendokusai
 
 			if (preview)
 			{
+				previewTicked = false;
 				state = PreviewState(tuning);
 				session = new IdleSession(tuning, state);
 #if UNITY_EDITOR
@@ -268,6 +276,14 @@ namespace WitchMendokusai
 			double now = UnityEditor.EditorApplication.timeSinceStartup;
 			float delta = Mathf.Min(0.25f, (float)(now - previewClock));
 			previewClock = now;
+
+			// 정적 장면이 기본. 첫 틱만 밟아 전장을 세우고 멈춘다 (사용자: UI 와 정적 3D 확인용)
+			if (previewTicked && PreviewRunning == false)
+			{
+				return;
+			}
+
+			previewTicked = true;
 			Tick(delta);
 			UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
 		}
@@ -617,6 +633,12 @@ namespace WitchMendokusai
 		{
 			VisualElement page = AddPage(Tab.Doll);
 
+			if (dollPageAsset != null)
+			{
+				BindDollPage(page);
+				return;
+			}
+
 			AddLabel(page, "v2-cap").text = "편성";
 			VisualElement party = new VisualElement();
 			party.AddToClassList("v2-party");
@@ -654,6 +676,40 @@ namespace WitchMendokusai
 			AddLabel(page, "v2-cap").text = "가진 인형";
 			heroRows = new VisualElement();
 			page.Add(heroRows);
+		}
+
+		/// <summary>인형 탭을 UXML 에서. 모양은 에셋, 코드는 이름으로 찾아 값과 클릭만</summary>
+		private void BindDollPage(VisualElement page)
+		{
+			dollPageAsset.CloneTree(page);
+
+			for (int slot = 0; slot < IdleHeroes.PARTY_SLOTS; slot++)
+			{
+				int captured = slot;
+				Button seat = page.Q<Button>("seat-" + slot);
+				seat.clicked += () => BeginSeat(captured);
+				partyButtons.Add(seat);
+			}
+
+			dollName = page.Q<Label>("doll-name");
+			damageLabel = page.Q<Label>("damage-label");
+			damageButton = page.Q<Button>("damage-button");
+			damageButton.clicked += () => Raise(IdleUpgradeKind.Damage);
+			speedLabel = page.Q<Label>("speed-label");
+			speedButton = page.Q<Button>("speed-button");
+			speedButton.clicked += () => Raise(IdleUpgradeKind.AttackSpeed);
+			bulkRaiseButton = page.Q<Button>("bulk-button");
+			bulkRaiseButton.clicked += RaiseMany;
+
+			for (int slot = 0; slot < SLOT_NAMES.Length; slot++)
+			{
+				int captured = slot;
+				Label cell = page.Q<Label>("worn-" + slot);
+				HookTooltip(cell, () => WornTip(captured));
+				wornCells.Add(cell);
+			}
+
+			heroRows = page.Q<VisualElement>("hero-rows");
 		}
 
 		private void BuildItemPage()
