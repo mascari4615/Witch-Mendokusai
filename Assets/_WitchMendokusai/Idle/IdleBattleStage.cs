@@ -733,18 +733,8 @@ namespace WitchMendokusai
 		/// <summary>일제 사격. 서 있는 모두가 달려든다. 볼트와 숫자는 사진의 타격이 따로 낸다</summary>
 		public void OnVolley()
 		{
-			if (built == false)
-			{
-				return;
-			}
-
-			for (int seat = 0; seat < dolls.Length; seat++)
-			{
-				if (dolls[seat].gameObject.activeSelf)
-				{
-					lungeLeft[seat] = lungeSeconds;
-				}
-			}
+			// 카드 선택은 타격 이벤트가 아니다. 실제 공격 모션, 볼트, 피격 FX는
+			// 다음 IdleHit에서만 재생해 시뮬레이션 타이밍과 화면을 일치시킨다.
 		}
 
 		public bool TryPickFoe(Vector2 panelPosition, out long foeIndex)
