@@ -23,7 +23,7 @@ namespace WitchMendokusai
 		[SerializeField] private float foeBobHeight = 0.025f;
 		[SerializeField] private float shakeSeconds = 0.08f;
 		[SerializeField] private float shakeDistance = 0.025f;
-		[SerializeField] private float bossScale = 1.9f;
+		[SerializeField] private float bossScale = 1.35f;
 		[SerializeField] private float foeHeight = 0.62f;
 
 		[Header("적 도형 (visual.md 2). 구역이 깊을수록 면이 는다")]
@@ -41,10 +41,10 @@ namespace WitchMendokusai
 		[SerializeField] private int bossShardCount = 6;
 
 		[Tooltip("껍질이 코어에서 떨어진 거리. 반지름 배수")]
-		[SerializeField] private float bossShellRadius = 1.35f;
+		[SerializeField] private float bossShellRadius = 1.15f;
 
 		[Tooltip("체력이 빌수록 이만큼 더 벌어진다")]
-		[SerializeField] private float bossShellSpread = 0.9f;
+		[SerializeField] private float bossShellSpread = 0.6f;
 
 		[Tooltip("껍질 회전 속도. 코어와 반대라 음수")]
 		[SerializeField] private float bossShellSpinDegrees = -26f;
