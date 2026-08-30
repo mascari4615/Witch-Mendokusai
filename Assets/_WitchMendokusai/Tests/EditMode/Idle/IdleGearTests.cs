@@ -86,7 +86,7 @@ namespace WitchMendokusai.Tests
 
 			Assert.IsTrue(IdleGear.TryMerge(state, tuning, 1, IdleItemSlot.Head, out IdleItem made));
 			Assert.AreEqual(2, made.Tier);
-			Assert.AreEqual(0, state.Bag.Count);
+			Assert.AreEqual(1, state.Bag.Count, "재료 9 이 사라지고 결과 하나만 남아야 한다");
 			Assert.GreaterOrEqual((int)made.Slot, 0);
 			Assert.Less((int)made.Slot, IdleGear.SLOT_COUNT);
 		}

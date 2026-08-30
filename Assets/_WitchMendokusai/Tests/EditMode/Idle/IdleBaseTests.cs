@@ -570,7 +570,9 @@ namespace WitchMendokusai.Tests
 			Assert.IsTrue(session.Send(new IdleMergeIntent(2, IdleItemSlot.Head)));
 			Assert.AreEqual(1, state.Bag.Count, "재료가 안 없어졌다");
 			Assert.AreEqual(3, state.Bag[0].Tier, "한 단계 위로 안 갔다");
-			Assert.AreEqual(IdleItemSlot.Head, state.Bag[0].Slot, "부위가 바뀌었다");
+			// 결과 부위는 굴림 (2026-08-31). 재료 부위와 무관
+			Assert.GreaterOrEqual((int)state.Bag[0].Slot, 0);
+			Assert.Less((int)state.Bag[0].Slot, IdleGear.SLOT_COUNT);
 		}
 
 		/// <summary>★ 뽑기 의도가 <b>실제로 뽑는다</b> — 값도 치른다.</summary>

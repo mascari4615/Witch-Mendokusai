@@ -209,6 +209,12 @@ namespace WitchMendokusai.DomainSDK.Idle
 
         public int[] CardDeck { get; private set; } = new int[0];
 
+        /// <summary>새 판은 기본 덱으로 선다. 빈 덱을 적고 불러오며 채우면 저장 왕복이 갈린다</summary>
+        public IdleState()
+        {
+            IdleCards.EnsureDeck(this);
+        }
+
         public void SetCardDeck(IdleCardKind[] deck)
         {
             CardDeck = new int[deck.Length];
@@ -522,6 +528,7 @@ namespace WitchMendokusai.DomainSDK.Idle
             Cost = Sane(saveData.Cost);
             SupplySecondsLeft = Sane(saveData.SupplySecondsLeft);
             LoadCardDeck(saveData.CardDeck);
+            IdleCards.EnsureDeck(this);
             // 옛 저장에는 자리 칸이 없어 null 로 온다 — 빈 칸으로 받고, EnsureSeatRoom 이 세운다.
             SeatHealth = SizedSane(saveData.SeatHealth);
             SeatReviveSeconds = SizedSane(saveData.SeatReviveSeconds);
