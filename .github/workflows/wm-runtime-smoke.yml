@@ -114,10 +114,10 @@ jobs:
           if ($ageHours -gt 26)
           {
               Write-Host "ERROR: freshest windows build is ${ageHours}h old (> 26h)."
-              # Nightly crons are off since 2026-08-30 (batch build crashes daily, see
-              # memo/changes/wm-build-crash.md). A windows player only appears when someone
-              # runs build.yml (platform=windows) by hand.
-              Write-Host "  no fresh windows player. run build.yml (platform=windows) by hand, or fix the crash first."
+              # Name the RIGHT cron. The 03:23 one builds Android; the windows player that
+              # these gates actually run comes from the 05:23 one (added 2026-08-06 after
+              # this message blamed a nightly that never produced a windows build).
+              Write-Host "  the windows nightly (05:23 KST) is not producing -- fix that first."
               exit 1
           }
 
