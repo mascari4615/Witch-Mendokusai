@@ -46,6 +46,8 @@ namespace WitchMendokusai
 		[SerializeField] private float positionCatchUp = 14f;
 		[SerializeField] private float foeSpinDegrees = 42f;
 		[SerializeField] private float foeBobHeight = 0.08f;
+		[SerializeField] private float shakeSeconds = 0.12f;
+		[SerializeField] private float shakeDistance = 0.08f;
 
 		[Header("적")]
 		[SerializeField] private float bossScale = 1.9f;
@@ -126,6 +128,7 @@ namespace WitchMendokusai
 		private bool scrollReady;
 		private float supplyGlowLeft;
 		private bool built;
+		private float shakeLeft;
 
 		/// <summary>무대 세우기. 멱등</summary>
 		public void Build()
@@ -531,6 +534,11 @@ namespace WitchMendokusai
 				}
 
 				SpawnNumber(head, Numerics.BigNumberText.Format(pair.Value), numberColor);
+				if (foe != null)
+				{
+					shakeLeft = Mathf.Max(shakeLeft, shakeSeconds);
+					SpawnImpact(foe.Piece.position, foe.Boss ? bossColor : boltColor);
+				}
 			}
 
 			foreach (KeyValuePair<int, double> pair in takenBySeat)
@@ -558,6 +566,29 @@ namespace WitchMendokusai
 			boltAges.Add(0f);
 			boltFrom.Add(from);
 			boltTarget.Add(target);
+		}
+
+		private void SpawnImpact(Vector3 position, Color color)
+		{
+			GameObject effectObject = new GameObject("Impact");
+			effectObject.transform.SetParent(holder, false);
+			effectObject.transform.position = position;
+			ParticleSystem particles = effectObject.AddComponent<ParticleSystem>();
+			ParticleSystem.MainModule main = particles.main;
+			main.duration = 0.22f;
+			main.startLifetime = 0.22f;
+			main.startSpeed = 2.4f;
+			main.startSize = 0.06f;
+			main.startColor = color;
+			main.maxParticles = 10;
+			ParticleSystem.EmissionModule emission = particles.emission;
+			emission.rateOverTime = 0f;
+			emission.SetBursts(new ParticleSystem.Burst[] { new ParticleSystem.Burst(0f, 8) });
+			ParticleSystem.ShapeModule shape = particles.shape;
+			shape.shapeType = ParticleSystemShapeType.Sphere;
+			shape.radius = 0.08f;
+			particles.Play();
+			Destroy(effectObject, 0.45f);
 		}
 
 		/// <summary>피해 숫자 하나. 내장 글꼴 TextMesh. 카메라를 본다</summary>
@@ -641,6 +672,16 @@ namespace WitchMendokusai
 				Vector3 position = foe.Piece.localPosition;
 				position.y += Mathf.Sin(clock * 2.4f + index * 1.7f) * foeBobHeight;
 				foe.Piece.localPosition = position;
+			}
+
+			if (shakeLeft > 0f)
+			{
+				shakeLeft -= delta;
+				float envelope = shakeSeconds > 0f ? Mathf.Clamp01(shakeLeft / shakeSeconds) : 0f;
+				worldRoot.localPosition += new Vector3(
+					Mathf.Sin(clock * 83f) * shakeDistance * envelope,
+					Mathf.Sin(clock * 117f) * shakeDistance * 0.35f * envelope,
+					0f);
 			}
 
 			for (int at = bolts.Count - 1; at >= 0; at--)

@@ -619,6 +619,32 @@
 	-unity-font-style: bold;
 }
 
+.idle-button,
+.idle-row-button,
+.idle-icon-button,
+.idle-tab,
+.idle-subtab {
+	transition-property: background-color, scale, color;
+	transition-duration: 0.12s;
+}
+
+.idle-button:hover,
+.idle-row-button:hover,
+.idle-icon-button:hover,
+.idle-tab:hover,
+.idle-subtab:hover {
+	background-color: rgba(245, 175, 16, 0.18);
+	color: rgb(255, 236, 174);
+}
+
+.idle-button:active,
+.idle-row-button:active,
+.idle-icon-button:active,
+.idle-tab:active,
+.idle-subtab:active {
+	scale: 0.97 0.97;
+}
+
 /* 단계 고유색. 울티마식 (1 회색, 2 초록, 3 파랑, 4 보라, 5 주황, 6 빨강, 7 금, 8 하늘) */
 .idle-tier-1 { border-color: rgb(150, 150, 150); border-width: 2px; }
 .idle-tier-2 { border-color: rgb(96, 190, 96); border-width: 2px; }
