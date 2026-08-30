@@ -363,6 +363,9 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// <summary>지금 구역 적들이 초당 넣는 피해 — 「얼마나 위험한가」를 화면이 지어내지 않게.</summary>
         public double EnemyDamagePerSecond { get; }
 
+        /// <summary>지금 적에게 넣은 타격 수. 화면이 피해 숫자를 코어 박자에 맞추는 근거 (죽으면 0 부터)</summary>
+        public long HitsOnTarget { get; }
+
         public IdleSnapshot(double resource, double incomePerSecond, long kills, double targetHealthRatio,
             int stage, int killsInStage, int killsPerStage,
             long prestigePoints, long prestigeAward, int prestigeNextStage, double prestigeMultiplier,
@@ -375,7 +378,8 @@ namespace WitchMendokusai.DomainSDK.Idle
             int codexScore, double codexMultiplier,
             IdleUpgradeView damage, IdleUpgradeView attackSpeed, double attacksPerSecond,
             double cost, double costMax, double supplySecondsLeft, IdleCardView[] cards,
-            IdleSeatView[] seats, bool repeating, int clearedStage, double enemyDamagePerSecond)
+            IdleSeatView[] seats, bool repeating, int clearedStage, double enemyDamagePerSecond,
+            long hitsOnTarget)
         {
             Cost = cost;
             CostMax = costMax;
@@ -385,6 +389,7 @@ namespace WitchMendokusai.DomainSDK.Idle
             Repeating = repeating;
             ClearedStage = clearedStage;
             EnemyDamagePerSecond = enemyDamagePerSecond;
+            HitsOnTarget = hitsOnTarget;
             Resource = resource;
             IncomePerSecond = incomePerSecond;
             Kills = kills;

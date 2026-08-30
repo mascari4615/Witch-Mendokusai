@@ -221,7 +221,7 @@
 .v2-enemy {
 	position: absolute;
 	left: 50%;
-	top: 18px;
+	top: 112px;
 	translate: -50% 0;
 	align-items: center;
 	padding: 8px 16px;
@@ -609,4 +609,143 @@
 	background-color: rgb(245, 175, 16);
 	color: rgb(17, 17, 17);
 	-unity-font-style: bold;
+}
+
+/* 단계 고유색. 울티마식 (1 회색, 2 초록, 3 파랑, 4 보라, 5 주황, 6 빨강, 7 금, 8 하늘) */
+.v2-tier-1 { border-color: rgb(150, 150, 150); border-width: 2px; }
+.v2-tier-2 { border-color: rgb(96, 190, 96); border-width: 2px; }
+.v2-tier-3 { border-color: rgb(80, 150, 240); border-width: 2px; }
+.v2-tier-4 { border-color: rgb(170, 100, 230); border-width: 2px; }
+.v2-tier-5 { border-color: rgb(240, 150, 40); border-width: 2px; }
+.v2-tier-6 { border-color: rgb(230, 70, 70); border-width: 2px; }
+.v2-tier-7 { border-color: rgb(245, 200, 40); border-width: 2px; }
+.v2-tier-8 { border-color: rgb(120, 230, 240); border-width: 2px; }
+
+.v2-merge-row {
+	flex-direction: row;
+	align-items: center;
+	margin: 3px 0;
+}
+
+.v2-merge-label {
+	flex-grow: 1;
+	font-size: 15px;
+	color: rgb(240, 240, 236);
+	border-left-width: 4px;
+	padding-left: 10px;
+	margin-right: 8px;
+}
+
+.v2-merge-button {
+	width: 190px;
+	margin: 0;
+}
+
+/* 툴팁. 마우스 옆 */
+.v2-tooltip {
+	position: absolute;
+	width: 300px;
+	padding: 10px 12px;
+	background-color: rgb(17, 17, 17);
+	border-width: 1px;
+	border-color: rgb(90, 90, 90);
+	color: rgb(255, 255, 255);
+	font-size: 14px;
+	white-space: normal;
+}
+
+/* 아이템 서브탭 */
+.v2-subtabs {
+	flex-direction: row;
+	margin-bottom: 10px;
+}
+
+.v2-subtab {
+	height: 40px;
+	padding: 0 22px;
+	margin-right: 4px;
+	background-color: rgb(30, 30, 30);
+	color: rgb(180, 180, 172);
+	border-width: 1px;
+	border-color: rgb(58, 58, 58);
+	border-radius: 0;
+	font-size: 16px;
+}
+
+.v2-subtab--on {
+	background-color: rgb(236, 236, 232);
+	color: rgb(17, 17, 17);
+	-unity-font-style: bold;
+}
+
+/* 공방 */
+.v2-forge-kinds {
+	flex-direction: row;
+	flex-wrap: wrap;
+	margin-bottom: 12px;
+}
+
+.v2-forge-kind {
+	height: 36px;
+	padding: 0 12px;
+	margin: 0 6px 6px 0;
+	background-color: rgb(40, 40, 40);
+	color: rgb(240, 240, 236);
+	border-width: 2px;
+	border-color: rgb(58, 58, 58);
+	border-radius: 0;
+	font-size: 14px;
+}
+
+.v2-forge-kind--on {
+	background-color: rgb(236, 236, 232);
+	color: rgb(17, 17, 17);
+	-unity-font-style: bold;
+}
+
+.v2-forge-bench {
+	flex-direction: row;
+	align-items: center;
+	margin: 6px 0 10px 0;
+}
+
+.v2-forge-grid {
+	flex-direction: row;
+	flex-wrap: wrap;
+	width: 306px;
+}
+
+.v2-forge-cell {
+	width: 96px;
+	height: 96px;
+	margin: 3px;
+	background-color: rgb(40, 40, 40);
+	border-width: 2px;
+	border-color: rgb(58, 58, 58);
+	color: rgb(240, 240, 236);
+	font-size: 14px;
+	-unity-text-align: middle-center;
+	white-space: normal;
+}
+
+.v2-forge-outcome {
+	flex-direction: row;
+	align-items: center;
+	margin-left: 20px;
+}
+
+.v2-forge-arrow {
+	font-size: 40px;
+	color: rgb(138, 138, 130);
+	margin-right: 16px;
+}
+
+.v2-forge-cell--result {
+	width: 120px;
+	height: 120px;
+	font-size: 16px;
+}
+
+.v2-forge-cell--ready {
+	background-color: rgb(60, 50, 20);
 }

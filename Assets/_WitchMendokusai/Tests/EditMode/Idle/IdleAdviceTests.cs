@@ -365,16 +365,19 @@ namespace WitchMendokusai.Tests
 		public void OneBoardDoesNotLeakIntoTheNext()
 		{
 			IdleTuning tuning = new IdleTuning();
-			Assert.AreEqual(3, tuning.MergeCount, "합치는 개수가 3 이 아니면 아래 수를 다시 골라야 한다");
+			// 9개 합성 (울티마 그대로. 사용자 2026-08-30). 8 과 1 을 합치면 한 벌, 각각은 아님
+			Assert.AreEqual(9, tuning.MergeCount, "합치는 개수가 9 가 아니면 아래 수를 다시 골라야 한다");
 
 			IdleState few = Fresh(out IdleTuning _);
-			few.Bag.Add(new IdleItem(2, IdleItemSlot.Head));
-			few.Bag.Add(new IdleItem(2, IdleItemSlot.Head));
+			for (int one = 0; one < 8; one++)
+			{
+				few.Bag.Add(new IdleItem(2, IdleItemSlot.Head));
+			}
 
 			IdleState fewer = Fresh(out IdleTuning _);
 			fewer.Bag.Add(new IdleItem(2, IdleItemSlot.Head));
 
-			Assert.AreEqual(0, IdleAdvice.MergeableCount(Look(few)), "둘로는 못 합친다");
+			Assert.AreEqual(0, IdleAdvice.MergeableCount(Look(few)), "여덟으로는 못 합친다");
 			Assert.AreEqual(0, IdleAdvice.MergeableCount(Look(fewer)),
 				"앞 판의 둘이 남아서 하나뿐인 판이 합칠 수 있다고 나온다");
 		}

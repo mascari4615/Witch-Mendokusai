@@ -232,7 +232,7 @@ namespace WitchMendokusai.DomainSDK.Idle
         public int BagCapacity { get; set; } = 40;
 
         /// <summary>몇 개를 합쳐야 한 단계 위가 되나.</summary>
-        public int MergeCount { get; set; } = 3;
+        public int MergeCount { get; set; } = 9;
 
         /// <summary>찬 장비의 등급 하나가 주는 배수 — 잠재가 없어도 차는 뜻이 있게.</summary>
         public double GearTierBonus { get; set; } = 0.15d;
@@ -249,7 +249,7 @@ namespace WitchMendokusai.DomainSDK.Idle
         public double AppraiseCostRatio { get; set; } = 4d;
 
         /// <summary>합치기 한 번에 드는 자원 — 감정의 절반으로 둔다(합치기가 더 흔한 행동이라).</summary>
-        public double MergeCostFactor { get; set; } = 0.5d;
+        public double MergeCostFactor { get; set; } = 0d;
 
         /// <summary>
         /// 아직 한 번도 안 환생했을 때의 등급 상한.

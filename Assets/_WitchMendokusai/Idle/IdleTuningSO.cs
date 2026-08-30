@@ -145,7 +145,7 @@ namespace WitchMendokusai
         [SerializeField] private int bagCapacity = 40;
 
         [Tooltip("합치는 데 필요한 같은 부위·같은 등급 개수.")]
-        [SerializeField] private int mergeCount = 3;
+        [SerializeField] private int mergeCount = 9;
 
         [Tooltip("장비 등급 하나가 그 부위에 더하는 몫.")]
         [SerializeField] private double gearTierBonus = 0.15d;
@@ -157,7 +157,7 @@ namespace WitchMendokusai
         [SerializeField] private double appraiseCostRatio = 4d;
 
         [Tooltip("합치기 값 = 그 등급 감정 값 x 이 값.")]
-        [SerializeField] private double mergeCostFactor = 0.5d;
+        [SerializeField] private double mergeCostFactor = 0d;
 
         [Tooltip("잠재 등급의 최고값 = 최저값 x 이 값.")]
         [SerializeField] private double potentialSpread = 2d;

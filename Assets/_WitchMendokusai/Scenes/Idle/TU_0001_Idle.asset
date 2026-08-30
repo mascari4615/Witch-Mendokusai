@@ -13,7 +13,10 @@ MonoBehaviour:
   m_Name: IdleTuning
   m_EditorClassIdentifier: WM.Domain::WitchMendokusai.IdleTuningSO
   targetHealth: 10
+  targetHealthRatio: 1.55
   rewardPerKill: 1
+  rewardRatio: 1.35
+  killsPerStage: 10
   baseDamage: 1
   baseAttackSpeed: 1
   damageBaseCost: 10
@@ -24,3 +27,67 @@ MonoBehaviour:
   speedCostRatio: 1.28
   speedBaseValue: 0.5
   speedValueRatio: 1.12
+  tapSecondsOfAttack: 0.2
+  visitorEarliestSeconds: 90
+  visitorLatestSeconds: 300
+  visitorStaySeconds: 13
+  surgeSeconds: 30
+  frenzyMultiplier: 7
+  handFrenzyChance: 0.2
+  handFrenzyMultiplier: 50
+  pullCostBase: 250
+  pullCostRatio: 1.15
+  pullStoneCost: 1
+  legendChance: 0.02
+  epicChance: 0.1
+  rareChance: 0.28
+  pityPulls: 60
+  maxStars: 5
+  copiesPerStar: 2
+  heroStarStep: 0.1
+  heroOwnedShareByGrade: 0.03
+  heroPartyShareByGrade: 0.12
+  heroSupportShareByGrade: 0.06
+  codexStepScore: 5
+  codexStepBonus: 0.15
+  producerCount: 8
+  producerCostRatio: 1.15
+  bulkBuyMost: 50
+  bagCapacity: 40
+  mergeCount: 9
+  gearTierBonus: 0.15
+  appraiseBaseCost: 50
+  appraiseCostRatio: 4
+  mergeCostFactor: 0
+  potentialSpread: 2
+  baseMaxTier: 6
+  tiersPerAscension: 2
+  stagesPerTier: 5
+  dropsPerKill: 0.25
+  tierRarity: 0.4
+  prestigeMinStage: 10
+  prestigePointsPerStage: 1
+  prestigeMultiplierPerPoint: 1.55
+  producerCost: 15
+  producerCostStep: 10
+  producerOutput: 0.5
+  producerOutputStep: 8
+  potentialFloor: 0.02
+  potentialStep: 2.2
+  costMax: 10
+  costPerSecond: 0.4
+  volleyCost: 3
+  volleySecondsOfAttack: 20
+  supplyCost: 2
+  supplySeconds: 30
+  supplyMultiplier: 3
+  appraiseCardCost: 5
+  seatBaseHealth: 400
+  enemyDamage: 0.35
+  enemyDamageRatio: 1.18
+  reviveSeconds: 12
+  healPerKillShare: 0.08
+  heroGradeHealthStep: 0.35
+  baseMaxOfflineSeconds: 28800
+  offlineSecondsPerAscension: 7200
+  maxOfflineCapSeconds: 86400

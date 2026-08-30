@@ -40,12 +40,21 @@ namespace WitchMendokusai
 		private float sinceLastSave;
 		private bool skipSaveOnce;
 
+		// 짓기가 끝나야 그린다. 짓는 도중 Render 가 돌면 아직 없는 조각(맵 팝업)에서 죽는다 (실측 2026-08-30)
+		private bool built;
+
 		// ── 탭 ────────────────────────────────────────────────────────────
 		private enum Tab { Doll = 0, Item = 1, Codex = 2, Shop = 3, Lab = 4, Dungeon = 5, Invest = 6 }
 
 		private static readonly string[] TAB_NAMES = { "인형", "아이템", "도감", "상점", "연구소", "던전", "투자" };
 		private static readonly string[] TAB_CAPTIONS = { "DOLLS", "ITEMS", "CODEX", "SHOP", "LAB", "DUNGEON", "INVEST" };
 		private static readonly string[] SLOT_NAMES = { "머리", "몸", "손", "발" };
+
+		/// <summary>전투 창이 차지하는 폭. 1200 / 1920 (layout.md §1)</summary>
+		private const float BATTLE_SHARE = 1200f / 1920f;
+
+		/// <summary>지금 보이는 탭. 나머지는 임시로 숨김 (사용자 2026-08-30, 개발 편의. 코드는 유지)</summary>
+		private static readonly bool[] TAB_SHOWN = { true, true, false, false, false, false, false };
 
 		// ── 전투 창 ───────────────────────────────────────────────────────
 		private VisualElement battle;
@@ -112,12 +121,29 @@ namespace WitchMendokusai
 		private VisualElement heroRows;
 		private readonly List<Button> heroButtons = new List<Button>();
 
-		// 아이템
+		// 아이템. 서브탭 가방 / 공방 (layout.md §3)
+		private int itemSub;
+		private readonly Button[] itemSubButtons = new Button[2];
+		private VisualElement bagView;
+		private VisualElement forgeView;
 		private Label gearSummary;
 		private VisualElement bagGrid;
 		private readonly List<Button> bagCells = new List<Button>();
-		private VisualElement mergeRows;
-		private readonly List<Button> mergeButtons = new List<Button>();
+		private Button bulkMergeButton;
+
+		// 공방. 울티마식 3×3, 같은 부위 같은 단계 9개 → 한 단계 위 (비용 없음. 사용자 2026-08-30)
+		private IdleItemSlot forgeSlot;
+		private int forgeTier;
+		private readonly List<Label> forgeCells = new List<Label>();
+		private Label forgeResult;
+		private Label forgeTitle;
+		private Button forgeButton;
+		private VisualElement forgeKinds;
+		private readonly List<Button> forgeKindButtons = new List<Button>();
+		private readonly List<int> forgeKindKeys = new List<int>();
+
+		// 감정(잠재)은 알파 뒤. 자리만, 숨김
+		private Label appraiseCap;
 		private VisualElement appraiseRows;
 		private readonly List<Button> appraiseButtons = new List<Button>();
 
@@ -138,6 +164,9 @@ namespace WitchMendokusai
 		private Label baseSummary;
 		private Button bulkBuyButton;
 		private readonly List<Button> producerButtons = new List<Button>();
+
+		// 툴팁
+		private Label tooltip;
 
 		// 팝업
 		private VisualElement mapPopup;
@@ -261,6 +290,7 @@ namespace WitchMendokusai
 		{
 			VisualElement root = GetComponent<UIDocument>().rootVisualElement;
 			root.Clear();
+			built = false;
 
 			if (styleSheet != null)
 			{
@@ -278,6 +308,12 @@ namespace WitchMendokusai
 			BuildBattle(shell);
 			BuildSide(shell);
 			BuildMapPopup();
+
+			tooltip = AddLabel(root, "v2-tooltip");
+			tooltip.style.display = DisplayStyle.None;
+			tooltip.pickingMode = PickingMode.Ignore;
+
+			built = true;
 			ApplySplit();
 
 			if (away.HasAnything)
@@ -424,6 +460,7 @@ namespace WitchMendokusai
 				Tab tab = (Tab)index;
 				Button button = AddButton(floatingTabs, "v2-box v2-icon-button", () => OpenTab(tab));
 				button.text = TAB_NAMES[index];
+				button.style.display = TAB_SHOWN[index] ? DisplayStyle.Flex : DisplayStyle.None;
 				floatingTabButtons.Add(button);
 			}
 
@@ -450,6 +487,7 @@ namespace WitchMendokusai
 				Tab tab = (Tab)index;
 				Button button = AddButton(tabs, "v2-tab", () => OpenTab(tab));
 				button.text = TAB_NAMES[index] + "\n" + TAB_CAPTIONS[index];
+				button.style.display = TAB_SHOWN[index] ? DisplayStyle.Flex : DisplayStyle.None;
 				tabButtons.Add(button);
 			}
 
@@ -520,7 +558,9 @@ namespace WitchMendokusai
 			page.Add(worn);
 			for (int slot = 0; slot < SLOT_NAMES.Length; slot++)
 			{
+				int captured = slot;
 				Label cell = AddLabel(worn, "v2-worn-cell");
+				HookTooltip(cell, () => WornTip(captured));
 				wornCells.Add(cell);
 			}
 
@@ -533,26 +573,90 @@ namespace WitchMendokusai
 		{
 			VisualElement page = AddPage(Tab.Item);
 
-			gearSummary = AddLabel(page, "v2-row-title");
+			VisualElement subs = new VisualElement();
+			AddClasses(subs, "v2-subtabs");
+			page.Add(subs);
+			itemSubButtons[0] = AddButton(subs, "v2-subtab", () => OpenItemSub(0));
+			itemSubButtons[0].text = "가방";
+			itemSubButtons[1] = AddButton(subs, "v2-subtab", () => OpenItemSub(1));
+			itemSubButtons[1].text = "공방";
+
+			// 가방
+			bagView = new VisualElement();
+			page.Add(bagView);
+
+			gearSummary = AddLabel(bagView, "v2-row-title");
 
 			bagGrid = new VisualElement();
 			bagGrid.AddToClassList("v2-bag");
-			page.Add(bagGrid);
+			bagView.Add(bagGrid);
 
 			for (int index = 0; index < 40; index++)
 			{
 				int captured = index;
 				Button cell = AddButton(bagGrid, "v2-bag-cell", () => Equip(captured));
+				HookTooltip(cell, () => BagTip(captured));
 				bagCells.Add(cell);
 			}
 
-			AddLabel(page, "v2-cap").text = "공방. 같은 것을 모으면 한 단계 위로";
-			mergeRows = new VisualElement();
-			page.Add(mergeRows);
+			bulkMergeButton = AddButton(bagView, "v2-row-button v2-row-button--strong", MergeAll);
 
-			AddLabel(page, "v2-cap").text = "감정. 잠재를 굴린다 (알파 뒤)";
+			// 공방
+			forgeView = new VisualElement();
+			page.Add(forgeView);
+
+			AddLabel(forgeView, "v2-cap").text = "합칠 것을 고른다";
+			forgeKinds = new VisualElement();
+			AddClasses(forgeKinds, "v2-forge-kinds");
+			forgeView.Add(forgeKinds);
+
+			VisualElement bench = new VisualElement();
+			AddClasses(bench, "v2-forge-bench");
+			forgeView.Add(bench);
+
+			VisualElement grid = new VisualElement();
+			AddClasses(grid, "v2-forge-grid");
+			bench.Add(grid);
+			for (int index = 0; index < 9; index++)
+			{
+				forgeCells.Add(AddLabel(grid, "v2-forge-cell"));
+			}
+
+			VisualElement outcome = new VisualElement();
+			AddClasses(outcome, "v2-forge-outcome");
+			bench.Add(outcome);
+			AddLabel(outcome, "v2-forge-arrow").text = "→";
+			forgeResult = AddLabel(outcome, "v2-forge-cell v2-forge-cell--result");
+
+			forgeTitle = AddLabel(forgeView, "v2-row-title");
+			forgeButton = AddButton(forgeView, "v2-row-button v2-row-button--strong v2-row-button--tall", MergeForge);
+
+			// 감정(잠재)은 알파 뒤. 자리만, 숨김
+			appraiseCap = AddLabel(page, "v2-cap");
+			appraiseCap.text = "감정";
+			appraiseCap.style.display = DisplayStyle.None;
 			appraiseRows = new VisualElement();
+			appraiseRows.style.display = DisplayStyle.None;
 			page.Add(appraiseRows);
+
+			OpenItemSub(0);
+		}
+
+		private void OpenItemSub(int which)
+		{
+			itemSub = which;
+			bagView.style.display = which == 0 ? DisplayStyle.Flex : DisplayStyle.None;
+			forgeView.style.display = which == 1 ? DisplayStyle.Flex : DisplayStyle.None;
+
+			for (int index = 0; index < itemSubButtons.Length; index++)
+			{
+				itemSubButtons[index].EnableInClassList("v2-subtab--on", index == which);
+			}
+
+			if (built)
+			{
+				Render(session.Capture());
+			}
 		}
 
 		private void BuildCodexPage()
@@ -571,19 +675,18 @@ namespace WitchMendokusai
 			banner.AddToClassList("v2-banner");
 			page.Add(banner);
 			AddLabel(banner, "v2-banner-title").text = "인형 뽑기";
-			AddLabel(banner, "v2-cap").text = "PICK UP. 배너와 연출은 다음 조각";
+			AddLabel(banner, "v2-cap").text = "PICK UP";
 
 			pullButton = AddButton(page, "v2-row-button v2-row-button--strong v2-row-button--tall", Pull);
 			pullOdds = AddLabel(page, "v2-row-note");
 			AddLabel(page, "v2-row-note").text = "현금 결제 없음. 뽑기 재화는 첫 클리어, 환생, 낮은 확률 드롭에서만.";
-			AddLabel(page, "v2-cap").text = "하루 1회 무료 상자 (알파. 자리만)";
+			AddLabel(page, "v2-cap").text = "무료 상자";
 		}
 
 		private void BuildLabPage()
 		{
 			VisualElement page = AddPage(Tab.Lab);
 			prestigeSummary = AddLabel(page, "v2-row-title");
-			AddLabel(page, "v2-row-note").text = "연구 트리와 골드 유틸은 다음 조각. 지금은 환생만.";
 			prestigeButton = AddButton(page, "v2-row-button v2-row-button--strong v2-row-button--tall", Prestige);
 		}
 
@@ -634,7 +737,7 @@ namespace WitchMendokusai
 
 		public void Render(IdleSnapshot snapshot)
 		{
-			if (opCode == null)
+			if (built == false)
 			{
 				return;
 			}
@@ -803,6 +906,7 @@ namespace WitchMendokusai
 				IdleItem one = snapshot.Worn[slot];
 				wornCells[slot].text = SLOT_NAMES[slot] + "\n" + (one.IsEmpty ? "없음" : one.Tier + "단계");
 				wornCells[slot].EnableInClassList("v2-worn-cell--empty", one.IsEmpty);
+				SetTierClass(wornCells[slot], one.IsEmpty ? 0 : one.Tier);
 			}
 
 			if (heroButtons.Count != snapshot.Heroes.Length)
@@ -848,19 +952,25 @@ namespace WitchMendokusai
 				{
 					bagCells[index].text = string.Empty;
 					bagCells[index].SetEnabled(false);
+					SetTierClass(bagCells[index], 0);
 					continue;
 				}
 
 				IdleItem one = snapshot.Bag[index];
-				bagCells[index].text = string.Format("{0}\nT{1}", SLOT_NAMES[(int)one.Slot], one.Tier);
+				bagCells[index].text = string.Format("{0}\n{1}단계", SLOT_NAMES[(int)one.Slot], one.Tier);
 				bagCells[index].SetEnabled(true);
+				SetTierClass(bagCells[index], one.Tier);
 			}
 
-			RenderMerge(snapshot);
+			bulkMergeButton.text = string.Format("{0}개씩 전부 합치기", snapshot.MergeCount);
+			bulkMergeButton.SetEnabled(IdleAdvice.MergeableCount(snapshot) > 0);
+
+			RenderForge(snapshot);
 			RenderAppraise(snapshot);
 		}
 
-		private void RenderMerge(IdleSnapshot snapshot)
+		/// <summary>공방. 가방에 있는 종류(부위, 단계)를 칩으로 늘어놓고, 고른 종류를 3×3 에 채운다</summary>
+		private void RenderForge(IdleSnapshot snapshot)
 		{
 			int room = (snapshot.TierCeiling + 2) * IdleGear.SLOT_COUNT;
 			int[] counts = new int[room];
@@ -875,47 +985,80 @@ namespace WitchMendokusai
 				}
 			}
 
-			List<string> labels = new List<string>();
-			List<int> tiers = new List<int>();
-			List<IdleItemSlot> slots = new List<IdleItemSlot>();
-			List<bool> afford = new List<bool>();
-
+			List<int> keys = new List<int>();
 			for (int key = 0; key < counts.Length; key++)
 			{
-				if (counts[key] < snapshot.MergeCount)
+				if (counts[key] > 0)
 				{
-					continue;
+					keys.Add(key);
 				}
+			}
 
+			if (forgeKindKeys.Count != keys.Count || KeysDiffer(keys))
+			{
+				forgeKinds.Clear();
+				forgeKindButtons.Clear();
+				forgeKindKeys.Clear();
+
+				for (int index = 0; index < keys.Count; index++)
+				{
+					int key = keys[index];
+					forgeKindKeys.Add(key);
+					forgeKindButtons.Add(AddButton(forgeKinds, "v2-forge-kind", () => PickForge(key)));
+				}
+			}
+
+			for (int index = 0; index < forgeKindButtons.Count; index++)
+			{
+				int key = forgeKindKeys[index];
 				int tier = key / IdleGear.SLOT_COUNT;
 				IdleItemSlot slot = (IdleItemSlot)(key % IdleGear.SLOT_COUNT);
-				double cost = IdleGear.MergeCost(tier, session.Tuning);
-
-				labels.Add(string.Format("{0} T{1} ×{2} → T{3}  ({4})",
-					SLOT_NAMES[(int)slot], tier, counts[key], tier + 1, BigNumberText.Format(cost)));
-				tiers.Add(tier);
-				slots.Add(slot);
-				afford.Add(snapshot.Resource >= cost);
+				forgeKindButtons[index].text = string.Format("{0} {1}단계 ×{2}", SLOT_NAMES[(int)slot], tier, counts[key]);
+				SetTierClass(forgeKindButtons[index], tier);
+				forgeKindButtons[index].EnableInClassList("v2-forge-kind--on", forgeTier == tier && forgeSlot == slot);
 			}
 
-			if (mergeButtons.Count != labels.Count)
-			{
-				mergeRows.Clear();
-				mergeButtons.Clear();
+			int forgeKey = forgeTier * IdleGear.SLOT_COUNT + (int)forgeSlot;
+			int have = forgeTier > 0 && forgeKey < counts.Length ? counts[forgeKey] : 0;
+			int shown = have > snapshot.MergeCount ? snapshot.MergeCount : have;
 
-				for (int index = 0; index < labels.Count; index++)
+			for (int index = 0; index < forgeCells.Count; index++)
+			{
+				bool filled = index < shown;
+				forgeCells[index].text = filled ? SLOT_NAMES[(int)forgeSlot] + "\n" + forgeTier + "단계" : string.Empty;
+				SetTierClass(forgeCells[index], filled ? forgeTier : 0);
+			}
+
+			bool ready = forgeTier > 0 && have >= snapshot.MergeCount;
+			forgeResult.text = forgeTier > 0 ? SLOT_NAMES[(int)forgeSlot] + "\n" + (forgeTier + 1) + "단계" : string.Empty;
+			SetTierClass(forgeResult, forgeTier > 0 ? forgeTier + 1 : 0);
+			forgeResult.EnableInClassList("v2-forge-cell--ready", ready);
+
+			forgeTitle.text = forgeTier > 0
+				? string.Format("{0} {1}단계  {2}/{3}", SLOT_NAMES[(int)forgeSlot], forgeTier, have, snapshot.MergeCount)
+				: string.Format("같은 부위, 같은 단계 {0}개가 한 단계 위로", snapshot.MergeCount);
+			forgeButton.text = "합치기";
+			forgeButton.SetEnabled(ready);
+		}
+
+		private bool KeysDiffer(List<int> keys)
+		{
+			for (int index = 0; index < keys.Count && index < forgeKindKeys.Count; index++)
+			{
+				if (keys[index] != forgeKindKeys[index])
 				{
-					int tier = tiers[index];
-					IdleItemSlot slot = slots[index];
-					mergeButtons.Add(AddButton(mergeRows, "v2-row-button", () => Merge(tier, slot)));
+					return true;
 				}
 			}
 
-			for (int index = 0; index < mergeButtons.Count && index < labels.Count; index++)
-			{
-				mergeButtons[index].text = labels[index];
-				mergeButtons[index].SetEnabled(afford[index]);
-			}
+			return false;
+		}
+
+		private void PickForge(int key)
+		{
+			forgeTier = key / IdleGear.SLOT_COUNT;
+			forgeSlot = (IdleItemSlot)(key % IdleGear.SLOT_COUNT);
+			Render(session.Capture());
 		}
 
 		private void RenderAppraise(IdleSnapshot snapshot)
@@ -1140,6 +1283,13 @@ namespace WitchMendokusai
 			battle.EnableInClassList("v2-battle--full", split == false);
 			splitButton.text = split ? "풀화면" : "분할";
 
+			// 무대 카메라는 전투 창 폭만. 아니면 부대가 화면 전체 가운데(관리 열 밑)에 위치
+			Camera main = Camera.main;
+			if (main != null)
+			{
+				main.rect = split ? new Rect(0f, 0f, BATTLE_SHARE, 1f) : new Rect(0f, 0f, 1f, 1f);
+			}
+
 			if (showSide)
 			{
 				for (int index = 0; index < pages.Length; index++)
@@ -1316,7 +1466,43 @@ namespace WitchMendokusai
 		{
 			if (session.Send(new IdleMergeIntent(tier, slot)))
 			{
-				SayOnce(string.Format("T{0} 을 합쳤다", tier), noteSeconds);
+				SayOnce(string.Format("{0} {1}단계 → {2}단계", SLOT_NAMES[(int)slot], tier, tier + 1), noteSeconds);
+				WriteDown();
+			}
+
+			Render(session.Capture());
+		}
+
+		private void MergeForge()
+		{
+			if (forgeTier <= 0)
+			{
+				return;
+			}
+
+			Merge(forgeTier, forgeSlot);
+		}
+
+		/// <summary>가방에서 합칠 수 있는 묶음을 전부 합친다. 낮은 단계부터</summary>
+		private void MergeAll()
+		{
+			int merged = 0;
+			IdleSnapshot now = session.Capture();
+
+			for (int tier = 1; tier <= now.TierCeiling + 1; tier++)
+			{
+				for (int slot = 0; slot < IdleGear.SLOT_COUNT; slot++)
+				{
+					while (session.Send(new IdleMergeIntent(tier, (IdleItemSlot)slot)))
+					{
+						merged++;
+					}
+				}
+			}
+
+			if (merged > 0)
+			{
+				SayOnce(string.Format("{0}번 합쳤다", merged), noteSeconds);
 				WriteDown();
 			}
 
@@ -1404,6 +1590,82 @@ namespace WitchMendokusai
 			}
 
 			Render(session.Capture());
+		}
+
+		// ── 툴팁 ───────────────────────────────────────────────────────────
+
+		/// <summary>마우스를 올리면 뜨는 설명. PC 우선 (layout.md §1). 글은 부르는 쪽이 만든다</summary>
+		private void HookTooltip(VisualElement target, System.Func<string> text)
+		{
+			target.RegisterCallback<PointerEnterEvent>(_ => ShowTooltip(text()));
+			target.RegisterCallback<PointerMoveEvent>(moment => MoveTooltip(moment.position));
+			target.RegisterCallback<PointerLeaveEvent>(_ => tooltip.style.display = DisplayStyle.None);
+		}
+
+		private void ShowTooltip(string text)
+		{
+			if (string.IsNullOrEmpty(text))
+			{
+				tooltip.style.display = DisplayStyle.None;
+				return;
+			}
+
+			tooltip.text = text;
+			tooltip.style.display = DisplayStyle.Flex;
+		}
+
+		private void MoveTooltip(Vector2 at)
+		{
+			VisualElement root = tooltip.parent;
+			float x = at.x + 18f;
+			float y = at.y + 18f;
+
+			if (root != null && x + 320f > root.resolvedStyle.width)
+			{
+				x = at.x - 330f;
+			}
+
+			if (root != null && y + 120f > root.resolvedStyle.height)
+			{
+				y = at.y - 130f;
+			}
+
+			tooltip.style.left = x;
+			tooltip.style.top = y;
+		}
+
+		private string BagTip(int index)
+		{
+			IdleSnapshot now = session.Capture();
+			if (index >= now.Bag.Length)
+			{
+				return string.Empty;
+			}
+
+			IdleItem one = now.Bag[index];
+			IdleItem wearing = now.Worn[(int)one.Slot];
+			return string.Format("{0} {1}단계\n효과 ×{2:0.00}\n차고 있는 것 {3}\n누르면 찬다",
+				SLOT_NAMES[(int)one.Slot], one.Tier,
+				IdleGear.MultiplierOfItem(one, session.Tuning),
+				wearing.IsEmpty ? "없음" : wearing.Tier + "단계 ×" + IdleGear.MultiplierOfItem(wearing, session.Tuning).ToString("0.00"));
+		}
+
+		private string WornTip(int slot)
+		{
+			IdleSnapshot now = session.Capture();
+			IdleItem one = now.Worn[slot];
+			return one.IsEmpty
+				? SLOT_NAMES[slot] + "\n비었다. 아이템 탭에서 찬다"
+				: string.Format("{0} {1}단계\n효과 ×{2:0.00}", SLOT_NAMES[slot], one.Tier, IdleGear.MultiplierOfItem(one, session.Tuning));
+		}
+
+		/// <summary>단계 색. 클래스 v2-tier-N, 색은 USS (울티마식 단계 고유색. 사용자 2026-08-30)</summary>
+		private static void SetTierClass(VisualElement element, int tier)
+		{
+			for (int at = 1; at <= 8; at++)
+			{
+				element.EnableInClassList("v2-tier-" + at, at == tier);
+			}
 		}
 
 		// ── 잔손 ──────────────────────────────────────────────────────────

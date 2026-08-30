@@ -351,7 +351,8 @@ namespace WitchMendokusai.DomainSDK.Idle
                 CaptureSeats(),
                 state.Repeating,
                 state.ClearedStage,
-                IdleSquad.EnemyDamagePerSecond(state, tuning));
+                IdleSquad.EnemyDamagePerSecond(state, tuning),
+                state.HitsOnTarget);
         }
 
         /// <summary>

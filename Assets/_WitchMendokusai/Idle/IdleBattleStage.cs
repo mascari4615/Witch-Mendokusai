@@ -47,7 +47,6 @@ namespace WitchMendokusai
 		[SerializeField] private float marchCatchUp = 3.5f;
 
 		[Header("장단 — 눈으로 셀 수 있는 데까지만")]
-		[SerializeField] private float fastestVisibleBeats = 8f;
 		[SerializeField] private float lungeSeconds = 0.22f;
 		[SerializeField] private float boltSeconds = 0.18f;
 		[SerializeField] private float popSeconds = 0.3f;
@@ -96,6 +95,19 @@ namespace WitchMendokusai
 		private readonly List<float> boltAges = new List<float>();
 		private readonly List<Vector3> boltFrom = new List<Vector3>();
 
+		// 피해 숫자. 코어 타격마다 적 머리 위, 오르며 소멸. 적 피해는 붉게 아군 머리 위
+		private readonly List<TextMesh> numbers = new List<TextMesh>();
+		private readonly List<float> numberAges = new List<float>();
+		private double hitDamage;
+		[SerializeField] private float numberSeconds = 0.8f;
+		[SerializeField] private float numberRise = 1.2f;
+		[SerializeField] private float numberSize = 0.12f;
+		[SerializeField] private Color numberColor = new Color(1f, 1f, 1f);
+		[SerializeField] private Color hurtColor = new Color(1f, 0.45f, 0.4f);
+		[SerializeField] private float hurtNumberSeconds = 0.5f;
+		private long lastHits = -1L;
+		private float hurtClock;
+
 		private Transform worldRoot;
 		private Transform[] dolls;
 		private Material[] dollSkins;
@@ -104,7 +116,6 @@ namespace WitchMendokusai
 		private Material groundMaterial;
 		private Color groundRest;
 
-		private float beat;
 		private int turn;
 		private long lastKills = -1L;
 		private float popLeft;
@@ -144,12 +155,7 @@ namespace WitchMendokusai
 				dolls[slot] = BuildDoll(slot);
 				dolls[slot].gameObject.SetActive(slot == 0);
 
-				GameObject cover = GameObject.CreatePrimitive(PrimitiveType.Cube);
-				cover.name = "Cover" + slot;
-				cover.transform.SetParent(transform, false);
-				cover.transform.localPosition = dollSpots[slot] + new Vector3(1.4f, 0.22f, 0f);
-				cover.transform.localScale = new Vector3(0.3f, 0.44f, 0.7f);
-				Paint(cover, coverColor);
+				// 엄폐물은 없다 (사용자 2026-08-30. 부대와 같이 움직여 어색)
 			}
 
 			for (int at = 0; at < 14; at++)
@@ -256,22 +262,27 @@ namespace WitchMendokusai
 				lastKills = snapshot.Kills;
 			}
 
+			hitDamage = snapshot.Damage.CurrentValue;
 			DressDolls(snapshot);
 			DressFoes(snapshot);
 
-			float beatsPerSecond = Mathf.Min(fastestVisibleBeats, (float)snapshot.AttacksPerSecond);
-			beat += delta * beatsPerSecond;
-
-			if (beat >= 1f)
+			// 타격은 코어가 센 만큼만. 연출 박자가 따로 돌면 숫자와 체력이 어긋난다 (사용자 2026-08-30)
+			if (lastHits < 0L)
 			{
-				beat -= 1f;
-				if (beat > 1f)
-				{
-					beat = 0f;
-				}
-
-				Strike(snapshot);
+				lastHits = snapshot.HitsOnTarget;
 			}
+
+			long hitsNow = snapshot.HitsOnTarget;
+			long landed = hitsNow >= lastHits ? hitsNow - lastHits : hitsNow;
+			lastHits = hitsNow;
+
+			if (landed > 0L)
+			{
+				Strike(snapshot);
+				SpawnNumber(FoeHead(), Numerics.BigNumberText.Format(hitDamage * landed), numberColor);
+			}
+
+			Hurt(snapshot, delta);
 
 			if (snapshot.Kills > lastKills)
 			{
@@ -495,6 +506,102 @@ namespace WitchMendokusai
 			boltFrom.Add(from);
 		}
 
+		/// <summary>맨 앞 적의 머리 위 자리</summary>
+		private Vector3 FoeHead()
+		{
+			return foes.Count > 0
+				? foes[0].Piece.position + new Vector3(0f, 0.7f, 0f)
+				: transform.TransformPoint(frontSpot) + new Vector3(0f, 0.7f, 0f);
+		}
+
+		/// <summary>
+		/// 적의 공격 표시. 코어는 초당 피해를 맨 앞 자리에 연속 투입
+		/// (<see cref="IdleSquad.Advance"/>). 숫자는 일정 간격, 값은 그 간격 몫
+		/// </summary>
+		private void Hurt(IdleSnapshot snapshot, float delta)
+		{
+			if (foes.Count == 0 || snapshot.EnemyDamagePerSecond <= 0d)
+			{
+				return;
+			}
+
+			int front = -1;
+			for (int seat = 0; seat < snapshot.Seats.Length && seat < dolls.Length; seat++)
+			{
+				if (snapshot.Seats[seat].Taken && snapshot.Seats[seat].Standing)
+				{
+					front = seat;
+					break;
+				}
+			}
+
+			if (front < 0)
+			{
+				return;
+			}
+
+			hurtClock += delta;
+			if (hurtClock < hurtNumberSeconds)
+			{
+				return;
+			}
+
+			hurtClock -= hurtNumberSeconds;
+			double chunk = snapshot.EnemyDamagePerSecond * hurtNumberSeconds;
+			SpawnNumber(dolls[front].position + new Vector3(0f, 1.3f, 0f), "-" + Numerics.BigNumberText.Format(chunk), hurtColor);
+		}
+
+		/// <summary>피해 숫자 하나. 내장 글꼴 TextMesh. 카메라를 본다</summary>
+		private void SpawnNumber(Vector3 at, string what, Color color)
+		{
+			GameObject holder = new GameObject("Damage");
+			holder.transform.SetParent(transform, false);
+			holder.transform.position = at;
+
+			TextMesh text = holder.AddComponent<TextMesh>();
+			text.text = what;
+			text.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+			text.fontSize = 64;
+			text.characterSize = numberSize;
+			text.fontStyle = FontStyle.Bold;
+			text.anchor = TextAnchor.MiddleCenter;
+			text.alignment = TextAlignment.Center;
+			text.color = color;
+			holder.GetComponent<MeshRenderer>().material = text.font.material;
+
+			numbers.Add(text);
+			numberAges.Add(0f);
+		}
+
+		private void AdvanceNumbers(float delta)
+		{
+			Camera eye = Camera.main;
+
+			for (int at = numbers.Count - 1; at >= 0; at--)
+			{
+				numberAges[at] += delta;
+				float life = Mathf.Clamp01(numberAges[at] / numberSeconds);
+				TextMesh text = numbers[at];
+
+				if (life >= 1f)
+				{
+					Destroy(text.gameObject);
+					numbers.RemoveAt(at);
+					numberAges.RemoveAt(at);
+					continue;
+				}
+
+				text.transform.position += new Vector3(0f, numberRise * delta, 0f);
+				Color tone = text.color;
+				text.color = new Color(tone.r, tone.g, tone.b, 1f - life * life);
+
+				if (eye != null)
+				{
+					text.transform.rotation = eye.transform.rotation;
+				}
+			}
+		}
+
 		private void AdvanceBodies(float delta)
 		{
 			bool marching = Mathf.Abs(worldRoot.localPosition.x - marchOffset) > 0.02f
@@ -533,6 +640,8 @@ namespace WitchMendokusai
 					boltFrom.RemoveAt(at);
 				}
 			}
+
+			AdvanceNumbers(delta);
 
 			if (popLeft > 0f)
 			{
@@ -579,7 +688,6 @@ namespace WitchMendokusai
 		/// <summary>손 응원 — 다음 대가 바로 나가게 장단을 당긴다.</summary>
 		public void OnTap()
 		{
-			beat = 1f;
 		}
 
 		private static Material Paint(GameObject piece, Color color)
