@@ -70,17 +70,10 @@ namespace WitchMendokusai.EditorTools
 			}
 			EditorGUILayout.EndHorizontal();
 
-			EditorGUILayout.BeginHorizontal();
-			if (GUILayout.Button("V1 열고 플레이"))
-			{
-				IdleSceneBuilder.OpenAndPlay();
-			}
-
 			if (GUILayout.Button("Playground 창"))
 			{
 				IdlePlaygroundWindow.Open();
 			}
-			EditorGUILayout.EndHorizontal();
 
 			if (EditorApplication.isPlaying && GUILayout.Button("플레이 멈춤"))
 			{

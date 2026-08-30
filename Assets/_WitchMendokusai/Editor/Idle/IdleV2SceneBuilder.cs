@@ -14,7 +14,7 @@ namespace WitchMendokusai.EditorTools
 	/// V2 작전 씬을 코드로 짓는다 (concept-v2 — 쿼터뷰 무대 + HUD).
 	///
 	/// ★ 손으로 안 만드는 이유·순서(에셋 먼저, 씬은 뒤)·다시 열어 검사하는 이유는
-	///   <see cref="IdleSceneBuilder"/> 와 같다 — 실측으로 얻은 규칙 그대로.
+	///   V1 빌더(2026-08-30 삭제)에서 실측으로 얻은 규칙 그대로.
 	/// </summary>
 	public static class IdleV2SceneBuilder
 	{
@@ -53,7 +53,7 @@ namespace WitchMendokusai.EditorTools
 		[MenuItem("WM/Idle/V2 Build Scene")]
 		public static void Build()
 		{
-			// 에셋 먼저 디스크에 확정 — 씬을 연 뒤 경로로 다시 읽는다 (IdleSceneBuilder 의 실측 규칙).
+			// 에셋 먼저 디스크에 확정. 씬을 연 뒤 경로로 다시 읽기 (V1 빌더의 실측 규칙)
 			AssetDatabase.SaveAssets();
 			AssetDatabase.Refresh();
 

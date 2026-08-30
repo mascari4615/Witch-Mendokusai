@@ -6,7 +6,7 @@ namespace WitchMendokusai
 	public static class Bootstrap
 	{
 		/// <summary>본편이 아닌 씬 — 여기서는 본편 조립을 아예 안 세운다.</summary>
-		private const string SIDE_GAME_SCENE = "Idle";
+		private const string SIDE_GAME_SCENE = "IdleV2";
 
 		[UnityEngine.RuntimeInitializeOnLoadMethod(UnityEngine.RuntimeInitializeLoadType.BeforeSceneLoad)]
 		public static void OnBooting()
