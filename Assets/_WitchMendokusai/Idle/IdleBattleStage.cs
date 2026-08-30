@@ -559,7 +559,7 @@ namespace WitchMendokusai
 				if (foe != null)
 				{
 					shakeLeft = Mathf.Max(shakeLeft, shakeSeconds);
-					SpawnImpact(foe.Piece.position, foe.Boss ? bossColor : boltColor);
+					IdleBattleFx.SpawnImpact(holder, foe.Piece.position, foe.Boss ? bossColor : boltColor);
 				}
 			}
 
@@ -588,33 +588,6 @@ namespace WitchMendokusai
 			boltAges.Add(0f);
 			boltFrom.Add(from);
 			boltTarget.Add(target);
-		}
-
-		private void SpawnImpact(Vector3 position, Color color)
-		{
-			GameObject effectObject = new GameObject("Impact");
-			effectObject.transform.SetParent(holder, false);
-			effectObject.transform.position = position;
-			ParticleSystem particles = effectObject.AddComponent<ParticleSystem>();
-			ParticleSystem.MainModule main = particles.main;
-			main.duration = 0.22f;
-			main.startLifetime = 0.22f;
-			main.startSpeed = 2.4f;
-			main.startSize = 0.06f;
-			main.startColor = color;
-			main.maxParticles = 10;
-			ParticleSystem.EmissionModule emission = particles.emission;
-			emission.rateOverTime = 0f;
-			emission.SetBursts(new ParticleSystem.Burst[] { new ParticleSystem.Burst(0f, 8) });
-			ParticleSystem.ShapeModule shape = particles.shape;
-			shape.shapeType = ParticleSystemShapeType.Sphere;
-			shape.radius = 0.08f;
-			ParticleSystemRenderer particleRenderer = effectObject.GetComponent<ParticleSystemRenderer>();
-			particleRenderer.renderMode = ParticleSystemRenderMode.Mesh;
-			particleRenderer.mesh = IdleBattleVisualFactory.BuildImpactMesh();
-			particleRenderer.sharedMaterial = IdleBattleVisualFactory.MakeMaterial(color);
-			particles.Play();
-			Destroy(effectObject, 0.45f);
 		}
 
 		private static Mesh BuildImpactMesh()
