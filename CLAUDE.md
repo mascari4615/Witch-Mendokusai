@@ -65,6 +65,8 @@ WMInput.inputactions → InputManager.BindEvents() → On{Start/Performed/Cancel
 
 `MenuItem` top-level root = **`WM/`** 단일화. `WitchMendokusai/...` 사용 X. grep 게이트: `MenuItem.*"WitchMendokusai/` 결과 0.
 
+**메뉴 경로는 영문만. 한글 절대 금지** (사용자 2026-08-30 재지시. 정본 `memo/rules/unity.md § editor 메뉴`). 창 내용, 로그, 툴팁은 한국어 가능. 게이트 `MENU-ASCII` (wm-rule-gate) 가 push 를 막는다. 한글 표기가 필요하면 언어 설정을 따르는 로컬라이즈 기능으로 (메뉴에 직접 X).
+
 ## 수치 노출 / 런타임 tweak
 
 모든 수치·시간·길이·가중치·확률 하드코딩 금지. SO / `[SerializeField]` / `Variable<T>` 노출, 매니저는 SO 값 캐싱 X(매 사용 시 read). 같은 수치 두 곳 박기 X. MCP `manage_components.set_property` 로 수치 변경 시 SO 정본 우회 위험 — 디버그 외 사용 X.

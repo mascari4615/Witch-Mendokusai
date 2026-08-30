@@ -44,8 +44,8 @@ namespace WitchMendokusai.EditorTools
 		/// </summary>
 		private const string BACKEND_ENV = "WM_IDLE_BACKEND";
 
-		/// <summary>저장 삭제. 디버그. 플레이 중이 아닐 때용 (플레이 중엔 화면 버튼)</summary>
-		[MenuItem("WM/Idle/데이터 초기화 (저장 삭제)")]
+		/// <summary>저장 삭제. 디버그. 플레이 중이 아닐 때용 (플레이 중엔 화면 버튼). 메뉴 경로는 영문만 (rules/unity.md)</summary>
+		[MenuItem("WM/Idle/Wipe Save Data")]
 		public static void WipeSave()
 		{
 			if (EditorUtility.DisplayDialog("Idle 데이터 초기화",

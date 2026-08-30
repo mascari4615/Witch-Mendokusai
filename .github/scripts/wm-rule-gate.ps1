@@ -170,6 +170,18 @@ $rules = @(
             $rootSegment = ($path -split '/')[0]
             return ($menuRootAllow -notcontains $rootSegment)
         }
+    },
+    @{
+        Id      = 'MENU-ASCII'
+        Title   = 'Editor menu path must be ASCII only (no Korean). Rule: memo/rules/unity.md'
+        Fix     = 'write the MenuItem path in English; window text, logs and tooltips may stay Korean'
+        Strings = $true
+        Match   = {
+            param($line)
+            if ($line -notmatch 'MenuItem\s*\(\s*"([^"]+)"') { return $false }
+            $path = $Matches[1]
+            return ($path -match '[^ -~]')
+        }
     }
 )
 
