@@ -457,8 +457,10 @@ namespace WitchMendokusai.Tests
 			state.Heroes.Add(new IdleHeroOwned(1));
 			state.Bag.Add(new IdleItem(2, IdleItemSlot.Feet));
 
+			// 세션 생성은 사진이 아님 (시작 인형 착석). 사진은 Capture
+			IdleSession session = new IdleSession(tuning, state);
 			IdleSaveData before = state.Save();
-			new IdleSession(tuning, state).Capture();
+			session.Capture();
 			IdleSaveData after = state.Save();
 
 			// ⚠ 네 칸만 보면 <b>반만 보는 감시</b>다 — 사진이 어느 칸을 건드려도 잡히게 전부 본다.
@@ -584,7 +586,15 @@ namespace WitchMendokusai.Tests
 			IdleSession session = new IdleSession(tuning, state);
 
 			Assert.IsTrue(session.Send(new IdlePullHeroIntent()), "뽑았다는 답이 안 온다");
-			Assert.AreEqual(1, state.Heroes.Count, "뽑았는데 아무도 안 왔다");
+
+			// 시작 인형 하나 있음. 뽑은 것이 새 얼굴이면 둘, 시작 인형과 겹치면 하나 + 중복 1
+			int faces = 0;
+			for (int index = 0; index < state.Heroes.Count; index++)
+			{
+				faces += 1 + state.Heroes[index].Copies;
+			}
+
+			Assert.AreEqual(2, faces, "뽑았는데 아무도 안 왔다 (시작 인형 1 + 뽑은 것 1)");
 			Assert.AreEqual(4L, state.Stones, "환생석을 안 썼다");
 			Assert.Less(state.Resource, 1e9d, "자원을 안 썼다");
 		}

@@ -47,13 +47,14 @@ namespace WitchMendokusai.Tests
 			IdleState state = Owning(0, 1);
 
 			state.Party[IdleHeroes.MAIN_SLOTS] = 0;
-			Assert.AreEqual(1, IdleSquad.TakenCount(state), "보조 칸 영웅이 전장 자리를 먹었다 (나 하나만 서 있어야 한다)");
+			Assert.AreEqual(0, IdleSquad.TakenCount(state), "보조 칸 영웅이 전장 자리를 먹었다 (자리 0 나는 없다)");
 
 			state.Party[0] = 1;
-			Assert.AreEqual(2, IdleSquad.TakenCount(state), "메인 칸 영웅이 자리를 안 받는다");
+			Assert.AreEqual(1, IdleSquad.TakenCount(state), "메인 칸 영웅이 자리를 안 받는다");
 
 			state.EnsureSeatRoom(tuning);
 			Assert.AreEqual(IdleSquad.SEAT_COUNT, state.SeatHealth.Length, "자리 수가 편성 칸 수를 따라갔다. 보조는 자리가 없어야 한다");
+			Assert.AreEqual(IdleHeroes.MAIN_SLOTS, IdleSquad.SEAT_COUNT, "자리 수가 메인 칸 수와 다르다. 자리 0(나)이 남아 있나");
 		}
 
 		/// <summary>★ 보조 칸도 <b>몫이 있다</b>. 다만 메인보다 작다. 같으면 늘 보조가 정답이 된다.</summary>
@@ -123,7 +124,7 @@ namespace WitchMendokusai.Tests
 			Assert.AreEqual(4, state.Party[1]);
 			Assert.AreEqual(5, state.Party[2]);
 			Assert.AreEqual(-1, state.Party[3], "옛 저장을 읽었는데 보조 칸에 무언가 앉아 있다");
-			Assert.AreEqual(3, IdleSquad.TakenCount(state) - 1, "옛 파티 셋이 메인 자리로 안 왔다");
+			Assert.AreEqual(3, IdleSquad.TakenCount(state), "옛 파티 셋이 메인 자리로 안 왔다");
 
 			IdleSaveData tooLong = new IdleSaveData
 			{
@@ -159,11 +160,41 @@ namespace WitchMendokusai.Tests
 			}
 
 			Assert.AreEqual(IdleSquad.TakenCount(state), IdleSquad.TakenCount(restored));
-			Assert.AreEqual(1 + IdleHeroes.MAIN_SLOTS, IdleSquad.TakenCount(restored),
-				"여섯 다 앉혔는데 출전 수가 나 + 메인 셋이 아니다");
+			Assert.AreEqual(IdleHeroes.MAIN_SLOTS, IdleSquad.TakenCount(restored),
+				"여섯 다 앉혔는데 출전 수가 메인 셋이 아니다");
 			Assert.AreEqual(
 				IdleHeroes.PartyMultiplierOf(state, tuning, IdleHeroAxis.Damage),
 				IdleHeroes.PartyMultiplierOf(restored, tuning, IdleHeroAxis.Damage), 1e-9d);
+		}
+
+		/// <summary>
+		/// ★ 자리 0(나)을 뺀 자리는 시작 인형이 채움 (C10). 새 판, 옛 저장, 빈 편성 어디서 와도
+		///   전장에 하나. 아니면 처치 0, 골드 0, 게임 정지
+		/// </summary>
+		[Test]
+		public void Starter_FillsTheEmptyField()
+		{
+			IdleTuning tuning = new IdleTuning();
+
+			IdleSession fresh = new IdleSession(tuning);
+			Assert.AreEqual(1, fresh.State.Heroes.Count, "새 판인데 시작 인형이 없다");
+			Assert.AreEqual(IdleHeroes.STARTER_ID, fresh.State.Party[0], "시작 인형이 첫 메인 칸에 없다");
+			Assert.AreEqual(1, IdleSquad.TakenCount(fresh.State));
+
+			// 자리 0 시절 저장: 인형 0, 자리 넷
+			IdleSaveData old = new IdleSaveData { SeatHealth = new[] { 5d, 0d, 0d, 0d }, SeatsReady = true };
+			IdleState loaded = new IdleState();
+			loaded.Load(old);
+			Assert.AreEqual(1, loaded.Heroes.Count, "옛 저장에 시작 인형을 안 줬다");
+			Assert.AreEqual(IdleSquad.SEAT_COUNT, loaded.SeatHealth.Length, "옛 자리 넷이 셋으로 안 줄었다");
+			Assert.AreEqual(0d, loaded.SeatHealth[0], 1e-12d, "옛 자리 0(나)의 체력이 새 자리 0 으로 새어 들어왔다");
+
+			// 사람이 메인 칸을 다 비워도 하나는 착석
+			IdleState emptied = Owning(0, 1);
+			emptied.Party[IdleHeroes.MAIN_SLOTS] = 1;
+			Assert.IsTrue(IdleHeroes.EnsureStarter(emptied));
+			Assert.AreEqual(0, emptied.Party[0], "빈 전장을 그대로 뒀다");
+			Assert.IsFalse(IdleHeroes.EnsureStarter(emptied), "이미 선 판을 또 바꿨다");
 		}
 	}
 }

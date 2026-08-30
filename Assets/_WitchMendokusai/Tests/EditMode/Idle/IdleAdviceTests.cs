@@ -193,12 +193,14 @@ namespace WitchMendokusai.Tests
 		public void AnEmptyPartySeat_LightsTheHeroTab()
 		{
 			IdleState state = Fresh(out IdleTuning tuning);
-			state.Heroes.Add(new IdleHeroOwned(0));
+			// 빈 전장은 첫 영웅이 자동 착석 (C10). 둘째 영웅이 안 세운 채로 남음
+			state.Heroes.Add(new IdleHeroOwned(4));
+			state.Heroes.Add(new IdleHeroOwned(5));
 
 			Assert.IsTrue(IdleAdvice.HasSomethingToDo(Look(state), IdleTab.Hero),
 				"영웅이 있는데 자리가 비었는데도 조용하다");
 
-			state.Party[0] = 0;
+			state.Party[1] = 5;
 
 			Assert.IsFalse(IdleAdvice.HasSomethingToDo(Look(state), IdleTab.Hero),
 				"세울 영웅이 더 없는데도 점이 남는다");
@@ -462,12 +464,15 @@ namespace WitchMendokusai.Tests
 
 			// 살 수도 있는 판 — 그래도 공짜인 쪽(앉히기)을 먼저 말해야 한다.
 			state.Resource = IdleBase.CostOf(0, state.Owned[0], tuning);
+			// 첫 영웅은 자동 착석 (C10). 둘째가 안 세운 채로 남음
 			state.Heroes.Add(new IdleHeroOwned(4));
+			state.Heroes.Add(new IdleHeroOwned(5));
 
 			Assert.AreEqual(IdleStep.Seat, IdleAdvice.NextStep(Look(state)).Step);
 
 			// 그리고 앉히고 나면 <b>다음 걸음</b>으로 넘어간다 — 같은 말을 영영 반복하지 않는다.
-			state.Party[0] = 4;
+			// (자리 0 은 첫 영웅 자동. 둘째 칸에 착석)
+			state.Party[1] = 5;
 
 			Assert.AreEqual(IdleStep.BuyProducer, IdleAdvice.NextStep(Look(state)).Step,
 				"앉혔는데도 계속 앉히라고 한다");

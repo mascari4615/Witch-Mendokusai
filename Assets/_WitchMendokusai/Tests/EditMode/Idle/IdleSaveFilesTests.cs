@@ -34,6 +34,27 @@ namespace WitchMendokusai.Tests
 			}
 		}
 
+		/// <summary>
+		/// ★ 지우면 셋 다 삭제. 본 저장만 지우면 .bak 이 되살려 초기화가 안 된 것처럼 보임
+		/// </summary>
+		[Test]
+		public void Delete_RemovesMainBackupAndBroken()
+		{
+			IdleSaveFiles.Write(path, "{\"stage\":1}");
+			IdleSaveFiles.Write(path, "{\"stage\":2}");
+			File.WriteAllText(IdleSaveFiles.BrokenPathFor(path), "garbage");
+
+			int deleted = IdleSaveFiles.Delete(path);
+
+			Assert.AreEqual(3, deleted, "셋을 지웠다고 해야 한다");
+			Assert.IsFalse(File.Exists(path));
+			Assert.IsFalse(File.Exists(IdleSaveFiles.BackupPathFor(path)), ".bak 이 남았다. 다음 읽기가 되살린다");
+			Assert.IsFalse(File.Exists(IdleSaveFiles.BrokenPathFor(path)));
+			Assert.AreEqual(IdleSaveFiles.ReadOutcome.Nothing, IdleSaveFiles.Read(path, Usable, out _),
+				"지웠는데 읽힌다");
+			Assert.AreEqual(0, IdleSaveFiles.Delete(path), "없는 것을 또 지웠다고 한다");
+		}
+
 		/// <summary>★ 적고 다시 읽으면 그대로 나온다.</summary>
 		[Test]
 		public void WhatYouWrote_ComesBack()

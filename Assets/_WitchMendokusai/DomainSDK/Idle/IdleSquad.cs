@@ -9,8 +9,9 @@ namespace WitchMendokusai.DomainSDK.Idle
 	///   유일한 벽이 시간(처치 속도)뿐이었고, 그래서 구역은 위험이 아니라 <b>기다림</b>이었다.
 	///   이제 적이 때린다 — 벽이 시간에서 <b>생존</b>으로 옮겨 온다.
 	///
-	/// ★ 자리(seat)는 넷이다: 0 = 나(늘 있다) · 1~3 = 편성의 <b>메인 칸</b>(뽑아 앉힌 영웅).
-	///   빈 자리: 싸우지도 맞지도 않음.
+	/// ★ 자리(seat) 셋. 편성의 <b>메인 칸</b> 그대로 (seat == 메인 칸 번호).
+	///   플레이어 인형(자리 0, 늘 있던 나)은 2026-08-30 삭제 (C10). 대신 시작 인형 하나 지급
+	///   (<see cref="IdleHeroes.EnsureStarter"/>). 빈 자리: 싸우지도 맞지도 않음.
 	///   편성의 <b>보조 칸</b>(<see cref="IdleHeroes.SUPPORT_SLOTS"/>)은 여기 자리가 <b>없다</b> -
 	///   전장에 안 서니 맞지도, 쓰러지지도, 일어나지도 않는다 (사용자 결정 2026-08-30).
 	///
@@ -26,19 +27,13 @@ namespace WitchMendokusai.DomainSDK.Idle
 	/// </summary>
 	public static class IdleSquad
 	{
-		/// <summary>자리 수 — 나 하나 + 파티 셋.</summary>
-		public const int SEAT_COUNT = 4;
+		/// <summary>자리 수. 메인 칸 수와 동일</summary>
+		public const int SEAT_COUNT = IdleHeroes.MAIN_SLOTS;
 
-		/// <summary>이 자리에 누군가 있나 — 0번(나)은 늘 있다.</summary>
+		/// <summary>이 자리에 누군가 있나. 자리는 메인 칸, 앉힌 인형 필수</summary>
 		public static bool SeatTaken(IdleState state, int seat)
 		{
-			if (seat == 0)
-			{
-				return true;
-			}
-
-			int slot = seat - 1;
-			return IdleHeroes.IsMainSlot(slot) && slot < state.Party.Length && state.Party[slot] >= 0;
+			return IdleHeroes.IsMainSlot(seat) && seat < state.Party.Length && state.Party[seat] >= 0;
 		}
 
 		/// <summary>
@@ -59,12 +54,7 @@ namespace WitchMendokusai.DomainSDK.Idle
 				* IdleGear.BaseMultiplier(state, tuning)
 				* IdleModel.PrestigeMultiplier(state, tuning);
 
-			if (seat == 0)
-			{
-				return health;
-			}
-
-			int id = state.Party[seat - 1];
+			int id = state.Party[seat];
 			int index = state.IndexOfHero(id);
 
 			if (index < 0)
@@ -147,6 +137,13 @@ namespace WitchMendokusai.DomainSDK.Idle
 		/// </summary>
 		public static double FightingShare(IdleState state)
 		{
+			// 아직 안 세운 판은 전원 서 있는 것으로 (Standing 과 같은 규칙)
+			// 시작 인형은 첫 스텝에서 지급. 그 전에 묻는 공격 속도가 0 이면 시뮬 셈 전부 무한대
+			if (state.SeatsReady == false)
+			{
+				return 1d;
+			}
+
 			int taken = TakenCount(state);
 			if (taken <= 0)
 			{

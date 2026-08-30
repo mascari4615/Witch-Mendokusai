@@ -242,6 +242,9 @@ namespace WitchMendokusai.DomainSDK.Idle
                 SeatReviveSeconds = new double[IdleSquad.SEAT_COUNT];
             }
 
+            // 전장에 하나 필수. 자리 0(나) 삭제 뒤로는 시작 인형이 그 몫
+            IdleHeroes.EnsureStarter(this);
+
             bool first = SeatsReady == false;
             SeatsReady = true;
 
@@ -341,9 +344,12 @@ namespace WitchMendokusai.DomainSDK.Idle
                 return made;
             }
 
-            for (int seat = 0; seat < made.Length && seat < saved.Length; seat++)
+            // 옛 저장은 자리 넷 (0 은 나). 2026-08-30 나 삭제. 한 칸 당겨 받음
+            int skip = saved.Length == IdleSquad.SEAT_COUNT + 1 ? 1 : 0;
+
+            for (int seat = 0; seat < made.Length && seat + skip < saved.Length; seat++)
             {
-                made[seat] = Sane(saved[seat]);
+                made[seat] = Sane(saved[seat + skip]);
             }
 
             return made;
@@ -492,6 +498,9 @@ namespace WitchMendokusai.DomainSDK.Idle
             Repeating = saveData.Repeating;
             ClearedStage = NotBelowZero(saveData.ClearedStage);
             SeatsReady = saveData.SeatsReady;
+
+            // 자리 0 시절 저장은 인형 0명 가능. 시작 인형 지급
+            IdleHeroes.EnsureStarter(this);
         }
     }
 }

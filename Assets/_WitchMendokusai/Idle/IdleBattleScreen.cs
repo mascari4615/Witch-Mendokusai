@@ -141,6 +141,13 @@ namespace WitchMendokusai
 
 		private void OnDisable()
 		{
+			if (skipSaveOnce)
+			{
+				skipSaveOnce = false;
+				session = null;
+				return;
+			}
+
 			WriteDown();
 		}
 
@@ -296,7 +303,7 @@ namespace WitchMendokusai
 			left.AddToClassList("v2-left");
 			bottom.Add(left);
 
-			// 우리 자리 넷 — 체력·부활이 여기 상주한다 (방향 3·7).
+			// 우리 자리 셋(메인 칸). 체력, 부활 상주 (방향 3, 7)
 			VisualElement seats = new VisualElement();
 			seats.AddToClassList("v2-seats");
 			left.Add(seats);
@@ -333,7 +340,28 @@ namespace WitchMendokusai
 
 			retreatButton = AddButton(verbs, "v2-button", Retreat);
 			prestigeButton = AddButton(verbs, "v2-button v2-button--fold", Prestige);
+
+			// 디버그. 에디터와 개발 빌드에서만 (사용자 요청 2026-08-30)
+			if (Application.isEditor || Debug.isDebugBuild)
+			{
+				AddButton(verbs, "v2-button v2-button--fold", WipeAndRestart).text = "데이터 초기화";
+			}
 		}
+
+		/// <summary>
+		/// 저장 삭제 뒤 처음부터 재시작. 디버그 전용
+		///
+		/// ★ 끄면서 저장하는 길(<see cref="OnDisable"/>)이 지운 것을 되살리지 않게 차단 뒤 끔
+		/// </summary>
+		private void WipeAndRestart()
+		{
+			skipSaveOnce = true;
+			IdleSaveStore.Wipe();
+			enabled = false;
+			enabled = true;
+		}
+
+		private bool skipSaveOnce;
 
 		private void BuildHand(VisualElement bottom)
 		{
@@ -567,7 +595,7 @@ namespace WitchMendokusai
 
 				// ★ 체력 막대는 <b>머리 위</b>가 정본이다 (실조사). 여기 카드는 <b>이름표</b>만 —
 				//   누가 나와 있고 누가 누웠는지, 쓰러졌으면 언제 일어나는지.
-				string who = seat == 0 ? "나" : IdleHeroes.KindOf(view.HeroId).Name;
+				string who = IdleHeroes.KindOf(view.HeroId).Name;
 
 				seatLabels[seat].text = view.Standing
 					? who

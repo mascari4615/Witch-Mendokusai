@@ -75,6 +75,25 @@ namespace WitchMendokusai
 			return IdleSaveFiles.LooksLikeSave(text);
 		}
 
+		/// <summary>
+		/// 저장 삭제 (디버그. 데이터 초기화). 본 저장, .bak, .broken 전부.
+		/// 지운 뒤 판 재구성 필요. 메모리의 세션은 이 함수 밖
+		/// </summary>
+		public static int Wipe()
+		{
+			try
+			{
+				int deleted = IdleSaveFiles.Delete(FilePath);
+				Debug.Log("[Idle] 저장을 지웠다: " + deleted + "개 파일. " + FilePath);
+				return deleted;
+			}
+			catch (Exception error)
+			{
+				Debug.LogError("[Idle] 저장을 못 지웠다: " + error.Message);
+				return 0;
+			}
+		}
+
 		/// <summary>지금을 초 단위로. 코어가 「자리를 비운 동안」을 재는 기준이다.</summary>
 		public static long NowUnixSeconds()
 		{

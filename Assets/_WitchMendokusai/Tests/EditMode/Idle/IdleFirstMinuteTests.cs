@@ -90,14 +90,14 @@ namespace WitchMendokusai.Tests
 			Assert.Fail("5분을 기다려도 살 수 있는 것이 하나도 없다");
 		}
 
-		/// <summary>★ 첫 판에 <b>영웅이 없어도</b> 판정이 선다 — 곱하는 자리가 0 이나 NaN 이 되지 않는다.</summary>
+		/// <summary>★ 첫 판은 <b>시작 인형 하나</b>뿐 (C10). 그래도 판정 성립. 곱하는 자리가 0 이나 NaN 아님</summary>
 		[Test]
 		public void WithNoHeroes_TheNumbersStayReal()
 		{
 			IdleSession session = New(out IdleTuning tuning);
 			IdleSnapshot now = session.Capture();
 
-			Assert.AreEqual(0, now.Heroes.Length, "첫 판에 영웅이 있다");
+			Assert.AreEqual(1, now.Heroes.Length, "첫 판은 시작 인형 하나여야 한다");
 			Assert.Greater(IdleModel.DamageOf(session.State, tuning), 0d, "때리는 힘이 0 이다");
 			Assert.Greater(IdleModel.AttackSpeedOf(session.State, tuning), 0d, "때리는 속도가 0 이다");
 			Assert.IsFalse(double.IsNaN(now.IncomePerSecond), "수입이 NaN 이다");

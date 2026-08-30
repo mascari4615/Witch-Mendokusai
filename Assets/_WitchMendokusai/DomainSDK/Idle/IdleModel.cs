@@ -323,6 +323,9 @@ namespace WitchMendokusai.DomainSDK.Idle
                 return;
             }
 
+            // 전장에 하나 있어야 판이 돎. 자리 0(나) 삭제 뒤로는 시작 인형이 그 몫 (C10)
+            IdleHeroes.EnsureStarter(state);
+
             // ★ 보급(카드)이 스텝 <b>중간에</b> 끝나면 경계에서 한 번 끊는다 — 수입 배수가
             //   스텝 안에서 상수여야 「60초 한 번 == 0.1초 600번」이 선다.
             if (state.SupplySecondsLeft > 0d && seconds > state.SupplySecondsLeft)
@@ -353,6 +356,8 @@ namespace WitchMendokusai.DomainSDK.Idle
             {
                 return;
             }
+
+            IdleHeroes.EnsureStarter(state);
 
             state.EnsureSeatRoom(tuning);
 

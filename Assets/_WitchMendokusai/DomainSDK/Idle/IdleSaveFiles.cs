@@ -74,6 +74,32 @@ namespace WitchMendokusai.DomainSDK.Idle
         }
 
         /// <summary>
+        /// 저장 통째로 삭제. 본 저장, 직전 판(.bak), 깨진 것(.broken) 전부.
+        /// 디버그용 데이터 초기화 (사용자 요청 2026-08-30). 반환은 지운 파일 수
+        ///
+        /// ★ 셋 다 삭제 필수. 본 저장만 지우면 <see cref="Read"/> 가 .bak 으로 되살려
+        ///   초기화가 안 된 것처럼 보임
+        /// </summary>
+        public static int Delete(string path)
+        {
+            int deleted = 0;
+            string[] targets = { path, BackupPathFor(path), BrokenPathFor(path) };
+
+            for (int index = 0; index < targets.Length; index++)
+            {
+                if (File.Exists(targets[index]) == false)
+                {
+                    continue;
+                }
+
+                File.Delete(targets[index]);
+                deleted++;
+            }
+
+            return deleted;
+        }
+
+        /// <summary>
         /// 글자를 적는다. 적는 도중에 죽어도 <b>옛 판이 남는다</b>.
         /// </summary>
         public static void Write(string path, string payload)

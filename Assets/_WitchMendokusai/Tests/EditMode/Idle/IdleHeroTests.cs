@@ -249,7 +249,7 @@ namespace WitchMendokusai.Tests
 			Assert.AreEqual(state.PullsSincePity, restored.PullsSincePity);
 		}
 
-		/// <summary>옛 저장에는 영웅이 없다 — 빈 도감으로 들어온다(터지지 않는다).</summary>
+		/// <summary>옛 저장에는 영웅 없음. 예외 없이 시작 인형 하나를 받아 들어옴 (C10)</summary>
 		[Test]
 		public void OldSaves_LoadWithNoHeroes()
 		{
@@ -257,7 +257,8 @@ namespace WitchMendokusai.Tests
 			fromOld.Load(new IdleSaveData { Resource = 5d });
 
 			Assert.IsNotNull(fromOld.Heroes);
-			Assert.AreEqual(0, fromOld.Heroes.Count);
+			Assert.AreEqual(1, fromOld.Heroes.Count, "옛 저장에 시작 인형을 안 줬다");
+			Assert.AreEqual(IdleHeroes.STARTER_ID, fromOld.Party[0]);
 			Assert.AreEqual(IdleHeroes.PARTY_SLOTS, fromOld.Party.Length);
 		}
 
@@ -477,7 +478,13 @@ namespace WitchMendokusai.Tests
 			IdleState state = new IdleState();
 			state.Load(saved);
 
-			Assert.AreEqual(-1, state.Party[0], "안 가진 영웅이 서 있다");
+			// 안 가진 3 은 내려가고, 빈 전장은 시작 인형이 채움
+			Assert.AreEqual(IdleHeroes.STARTER_ID, state.Party[0], "빈 자리를 시작 인형이 안 채웠다");
+			Assert.Less(state.IndexOfHero(3), 0, "안 가진 영웅이 도감에 생겼다");
+			for (int slot = 0; slot < state.Party.Length; slot++)
+			{
+				Assert.AreNotEqual(3, state.Party[slot], "안 가진 영웅이 서 있다");
+			}
 		}
 	}
 }

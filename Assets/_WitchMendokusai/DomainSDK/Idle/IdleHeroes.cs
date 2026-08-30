@@ -62,6 +62,52 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// <summary>편성 칸 수. 메인 + 보조.</summary>
         public const int PARTY_SLOTS = MAIN_SLOTS + SUPPORT_SLOTS;
 
+        /// <summary>
+        /// 시작 인형. 플레이어 인형(자리 0, 늘 있던 나)을 뺀 자리의 대체
+        /// (사용자 결정 C10, 2026-08-30. 정본 <c>memo/wm/design/idle/decisions-2026-08-30.md</c>)
+        ///
+        /// ★ 뽑기 전에도 전장에 하나 필수. 아무도 없으면 처치 0 → 골드 0 → 뽑기 재화 0. 첫 인형은 게임 지급
+        /// </summary>
+        public const int STARTER_ID = 0;
+
+        /// <summary>
+        /// 시작 인형 보장. 인형 0명이면 <see cref="STARTER_ID"/> 지급,
+        /// 메인 칸 전부 비면 첫 메인 칸에 착석. 바뀐 것이 있으면 참
+        ///
+        /// ★ 새 판, 옛 저장(자리 0 시절), 환생 뒤 어디서 와도 전장에 최소 하나
+        /// ★ 사람이 메인 칸을 다 비워도 하나는 착석. 빈 전장은 놀 수 없는 판
+        /// </summary>
+        public static bool EnsureStarter(IdleState state)
+        {
+            bool changed = false;
+
+            if (state.Heroes.Count == 0)
+            {
+                state.Heroes.Add(new IdleHeroOwned(STARTER_ID));
+                changed = true;
+            }
+
+            for (int slot = 0; slot < MAIN_SLOTS; slot++)
+            {
+                if (state.Party[slot] >= 0 && state.IndexOfHero(state.Party[slot]) >= 0)
+                {
+                    return changed;
+                }
+            }
+
+            int first = state.Heroes[0].Id;
+            for (int slot = 0; slot < state.Party.Length; slot++)
+            {
+                if (state.Party[slot] == first)
+                {
+                    state.Party[slot] = -1;
+                }
+            }
+
+            state.Party[0] = first;
+            return true;
+        }
+
         /// <summary>이 칸이 메인(전장에 서는) 칸인가.</summary>
         public static bool IsMainSlot(int slot)
         {

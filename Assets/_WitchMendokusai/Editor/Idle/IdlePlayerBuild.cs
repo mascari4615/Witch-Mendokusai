@@ -44,6 +44,20 @@ namespace WitchMendokusai.EditorTools
 		/// </summary>
 		private const string BACKEND_ENV = "WM_IDLE_BACKEND";
 
+		/// <summary>저장 삭제. 디버그. 플레이 중이 아닐 때용 (플레이 중엔 화면 버튼)</summary>
+		[MenuItem("WM/Idle/데이터 초기화 (저장 삭제)")]
+		public static void WipeSave()
+		{
+			if (EditorUtility.DisplayDialog("Idle 데이터 초기화",
+				"저장 파일(본 저장, .bak, .broken)을 지운다. 되돌릴 수 없다.", "지운다", "취소") == false)
+			{
+				return;
+			}
+
+			int deleted = WitchMendokusai.IdleSaveStore.Wipe();
+			Debug.Log("[Idle] 데이터 초기화: " + deleted + "개 파일 삭제");
+		}
+
 		[MenuItem("WM/Idle/Build (This Game Only)")]
 		public static void Build()
 		{

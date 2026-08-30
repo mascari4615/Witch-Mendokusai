@@ -77,7 +77,7 @@ namespace WitchMendokusai.Tests
 			state.ClearedStage = 11;
 			state.BestStage = 12;
 
-			// 혼자(나) 있는 판이라 쓰러지는 순간 전멸이다.
+			// 혼자(시작 인형) 있는 판. 쓰러지는 순간 전멸
 			IdleModel.StepLive(state, tuning, 600d);
 
 			Assert.IsTrue(state.Repeating, "전멸했는데 반복 모드가 안 켜졌다");
@@ -88,14 +88,14 @@ namespace WitchMendokusai.Tests
 		/// <summary>
 		/// ★ 하나라도 서 있으면 쓰러진 자리가 <b>일어난다</b> (방향 7).
 		///
-		/// 영웅 하나를 앉히고, 앞자리(나)를 일부러 눕힌 뒤 게이지만큼 흘린다.
+		/// 영웅 하나 추가 착석, 앞자리(시작 인형)를 일부러 눕힌 뒤 게이지만큼 진행
 		/// </summary>
 		[Test]
 		public void OneStanding_RevivesTheFallen()
 		{
 			IdleTuning tuning = new IdleTuning();
 			IdleState state = Fresh(tuning);
-			Seat(state, tuning, 0, 4);
+			Seat(state, tuning, 1, 4);
 
 			// 앞자리를 눕힌다 — 뒷자리(영웅)는 서 있다.
 			state.SeatHealth[0] = 0d;
@@ -150,7 +150,7 @@ namespace WitchMendokusai.Tests
 		{
 			IdleTuning tuning = new IdleTuning();
 			IdleState state = Fresh(tuning);
-			Seat(state, tuning, 0, 4);
+			Seat(state, tuning, 1, 4);
 
 			double whole = IdleModel.AttackSpeedOf(state, tuning);
 
@@ -173,8 +173,8 @@ namespace WitchMendokusai.Tests
 
 			IdleState once = Fresh(tuning);
 			IdleState split = Fresh(tuning);
-			Seat(once, tuning, 0, 4);
-			Seat(split, tuning, 0, 4);
+			Seat(once, tuning, 1, 4);
+			Seat(split, tuning, 1, 4);
 			once.Stage = 8;
 			split.Stage = 8;
 
@@ -239,8 +239,9 @@ namespace WitchMendokusai.Tests
 			IdleSnapshot snapshot = session.Capture();
 
 			Assert.AreEqual(IdleSquad.SEAT_COUNT, snapshot.Seats.Length, "자리가 사진에 안 실렸다");
-			Assert.IsTrue(snapshot.Seats[0].Taken, "나(0번)가 사진에서 빠졌다");
-			Assert.IsTrue(snapshot.Seats[0].Standing, "새 판인데 내가 쓰러져 있다");
+			Assert.IsTrue(snapshot.Seats[0].Taken, "시작 인형(0번)이 사진에서 빠졌다");
+			Assert.AreEqual(IdleHeroes.STARTER_ID, snapshot.Seats[0].HeroId, "0번 자리가 시작 인형이 아니다");
+			Assert.IsTrue(snapshot.Seats[0].Standing, "새 판인데 시작 인형이 쓰러져 있다");
 			Assert.IsFalse(snapshot.Seats[1].Taken, "안 앉힌 자리가 «있다»로 실렸다");
 			Assert.Greater(snapshot.EnemyDamagePerSecond, 0d, "적 피해가 사진에 안 실렸다");
 		}

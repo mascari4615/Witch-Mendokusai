@@ -25,6 +25,9 @@ namespace WitchMendokusai.DomainSDK.Idle
         {
             this.tuning = tuning ?? new IdleTuning();
             this.state = state ?? new IdleState();
+
+            // 새 판이든 불러온 판이든 전장에 하나 (C10 시작 인형)
+            IdleHeroes.EnsureStarter(this.state);
         }
 
         /// <summary>저장·불러오기용 — 호스트가 직렬화할 때만 만진다.</summary>
@@ -352,7 +355,7 @@ namespace WitchMendokusai.DomainSDK.Idle
         }
 
         /// <summary>
-        /// 자리 넷을 사진에 담는다 — 체력·부활을 화면이 다시 계산하지 않게.
+        /// 자리 셋을 사진에. 체력, 부활을 화면이 다시 계산하지 않게
         ///
         /// ★ <b>판을 안 건드린다</b> — 세우는 일은 <see cref="IdleModel.Step"/> 만 한다.
         ///   묻기만 하는 자리가 판을 고치면 사진 한 장에 게임이 달라진다.
@@ -364,7 +367,7 @@ namespace WitchMendokusai.DomainSDK.Idle
             for (int seat = 0; seat < made.Length; seat++)
             {
                 bool taken = IdleSquad.SeatTaken(state, seat);
-                int id = seat == 0 || taken == false ? -1 : state.Party[seat - 1];
+                int id = taken ? state.Party[seat] : -1;
                 IdleHeroGrade grade = id >= 0 && IdleHeroes.Knows(id)
                     ? IdleHeroes.KindOf(id).Grade
                     : IdleHeroGrade.Common;
