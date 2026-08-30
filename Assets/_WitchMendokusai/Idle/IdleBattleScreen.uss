@@ -1,246 +1,480 @@
 /*
- * V2 작전 화면 HUD (concept-v2).
+ * V2 작전 화면. 정본 memo/wm/design/idle/layout.md (2026-08-30).
  *
- * ★ 바탕은 투명 — 3D 무대가 화면의 주인이고 HUD 는 그 위의 얇은 층이다.
- *   칩은 반투명 흰색(블아 문법의 밝은 HUD), 글자는 진한 남색.
+ * 전투 창 1200 + 관리 열 720. 1920×1080 캔버스, PanelSettings 가 화면에 맞춰 스케일.
+ * 전투 창 위의 HUD 는 어두운 상자(전술 단말기 문법). 관리 열도 어둡게 (축 74. 실물 보고 확정).
+ * 이름과 문구는 임시.
  */
 
 .v2-root {
 	flex-grow: 1;
-	justify-content: space-between;
+	flex-direction: row;
 }
 
-.v2-topbar {
+/* ── 전투 창 ── */
+.v2-battle {
+	width: 1200px;
+	flex-shrink: 0;
+	position: relative;
+}
+
+.v2-battle--full {
+	width: 100%;
+}
+
+.v2-scene-cover {
+	position: absolute;
+	left: 0;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	background-color: rgb(24, 20, 14);
+	align-items: center;
+	justify-content: center;
+}
+
+.v2-scene-cover-label {
+	font-size: 28px;
+	color: rgb(160, 138, 106);
+	letter-spacing: 6px;
+	margin-bottom: 20px;
+}
+
+.v2-box {
+	background-color: rgba(16, 16, 16, 0.84);
+	border-width: 1px;
+	border-color: rgba(255, 255, 255, 0.14);
+	border-radius: 0;
+	color: rgb(255, 255, 255);
+}
+
+.v2-cap {
+	font-size: 11px;
+	color: rgb(138, 138, 130);
+	letter-spacing: 2px;
+}
+
+/* 좌상. 작전 코드 */
+.v2-op {
+	position: absolute;
+	left: 20px;
+	top: 18px;
+	min-width: 330px;
+	padding: 10px 14px;
+}
+
+.v2-op-row {
 	flex-direction: row;
 	align-items: center;
-	padding: 12px 16px 4px 16px;
 }
 
-.v2-chip {
-	background-color: rgba(255, 255, 255, 0.9);
-	color: rgb(43, 58, 74);
-	font-size: 14px;
-	padding: 5px 14px;
-	margin-right: 8px;
-	border-radius: 7px;
-}
-
-.v2-chip--strong {
-	font-size: 16px;
+.v2-op-code {
+	font-size: 34px;
 	-unity-font-style: bold;
-}
-
-.v2-guide {
-	font-size: 13px;
-	color: rgb(43, 58, 74);
-	background-color: rgba(255, 255, 255, 0.75);
-	border-radius: 6px;
-	margin: 4px 16px;
-	padding: 3px 12px;
-	align-self: flex-start;
-}
-
-.v2-note {
-	font-size: 14px;
-	-unity-font-style: bold;
-	color: rgb(232, 135, 31);
-	background-color: rgba(255, 255, 255, 0.85);
-	border-radius: 6px;
-	margin: 2px 16px;
-	padding: 3px 12px;
-	align-self: flex-start;
-	min-height: 16px;
-}
-
-/* 적 — 화면 위 가운데. 판의 주인공이라 여기 있다. */
-.v2-enemy {
-	align-self: center;
-	align-items: center;
-	margin-top: 2px;
-}
-
-.v2-enemy-label {
-	font-size: 14px;
-	-unity-font-style: bold;
-	color: rgb(43, 58, 74);
-	background-color: rgba(255, 255, 255, 0.88);
-	border-radius: 6px;
-	padding: 2px 12px;
-}
-
-.v2-enemy-label--boss {
 	color: rgb(255, 255, 255);
-	background-color: rgba(92, 84, 112, 0.94);
+	margin-right: 12px;
 }
 
-.v2-enemy-gauge {
-	width: 420px;
-	height: 14px;
-	margin-top: 4px;
-	background-color: rgba(255, 255, 255, 0.8);
-	border-radius: 7px;
-	overflow: hidden;
-}
-
-.v2-enemy-fill {
-	height: 100%;
-	background-color: rgb(232, 92, 92);
+.v2-op-name {
+	font-size: 16px;
+	color: rgb(180, 180, 172);
 }
 
 .v2-wave {
 	flex-direction: row;
-	margin-top: 5px;
+	align-items: center;
+	margin-right: 8px;
 }
 
 .v2-wave-dot {
-	width: 10px;
-	height: 10px;
-	border-radius: 5px;
-	margin: 0 3px;
-	background-color: rgba(255, 255, 255, 0.85);
+	width: 34px;
+	height: 8px;
+	margin-right: 4px;
+	background-color: rgb(58, 58, 58);
+	border-width: 1px;
+	border-color: rgb(0, 0, 0);
+}
+
+.v2-wave-dot--done {
+	background-color: rgb(255, 255, 255);
 }
 
 .v2-wave-dot--boss {
 	width: 14px;
 	height: 14px;
-	border-radius: 7px;
-	margin-top: -2px;
-	background-color: rgba(92, 84, 112, 0.9);
+	background-color: rgb(196, 82, 106);
+	rotate: 45deg;
+	margin-left: 4px;
 }
 
-.v2-wave-dot--done {
-	background-color: rgba(43, 58, 74, 0.45);
+/* 좌상 둘째 줄. 스테퍼 + 반복 */
+.v2-step-row {
+	position: absolute;
+	left: 20px;
+	top: 112px;
+	flex-direction: row;
 }
 
-/* 실패 배너 — 반복 중일 때만 */
-.v2-fail {
-	align-self: center;
+.v2-stepper {
+	flex-direction: row;
 	align-items: center;
-	margin-top: 14px;
-	padding: 12px 26px;
-	background-color: rgba(43, 58, 74, 0.92);
-	border-radius: 12px;
+	height: 46px;
+	margin-right: 8px;
+}
+
+.v2-step-button {
+	width: 46px;
+	height: 44px;
+	background-color: rgba(0, 0, 0, 0);
+	border-width: 0;
+	color: rgb(255, 255, 255);
+	font-size: 18px;
+	margin: 0;
+}
+
+.v2-step-button:disabled {
+	opacity: 0.3;
+}
+
+.v2-step-label {
+	font-size: 22px;
+	-unity-font-style: bold;
+	color: rgb(255, 255, 255);
+	padding: 0 12px;
+}
+
+.v2-toggle {
+	height: 46px;
+	padding: 0 16px;
+	font-size: 18px;
+	-unity-font-style: bold;
+	margin: 0;
+}
+
+.v2-toggle--on {
+	color: rgb(245, 175, 16);
+}
+
+/* 우상. 재화 + 분할 */
+.v2-chips {
+	position: absolute;
+	right: 20px;
+	top: 18px;
+	flex-direction: row;
+}
+
+.v2-chip {
+	height: 42px;
+	padding: 0 12px;
+	margin-left: 8px;
+	font-size: 20px;
+	-unity-font-style: bold;
+	-unity-text-align: middle-left;
+}
+
+.v2-icon-button {
+	height: 42px;
+	padding: 0 12px;
+	margin-left: 8px;
+	font-size: 14px;
+	color: rgb(220, 220, 214);
+}
+
+.v2-icon-button:hover {
+	background-color: rgba(255, 255, 255, 0.12);
+}
+
+.v2-icon-button:disabled {
+	opacity: 0.45;
+}
+
+.v2-speed-row {
+	position: absolute;
+	right: 20px;
+	top: 74px;
+	flex-direction: row;
+}
+
+/* 우측. 로그 */
+.v2-log {
+	position: absolute;
+	right: 20px;
+	top: 136px;
+	width: 320px;
+	padding: 8px 12px;
+	background-color: rgba(16, 16, 16, 0.55);
+}
+
+.v2-log-line {
+	font-size: 14px;
+	color: rgb(200, 200, 192);
+	white-space: normal;
+	margin-top: 3px;
+}
+
+.v2-log-line--note {
+	color: rgb(245, 175, 16);
+	-unity-font-style: bold;
+}
+
+/* 상단 중앙. 보스 바 */
+.v2-enemy {
+	position: absolute;
+	left: 50%;
+	top: 18px;
+	translate: -50% 0;
+	align-items: center;
+	padding: 8px 16px;
+}
+
+.v2-enemy-label {
+	font-size: 16px;
+	-unity-font-style: bold;
+	color: rgb(255, 255, 255);
+}
+
+.v2-enemy-gauge {
+	width: 420px;
+	height: 12px;
+	margin-top: 6px;
+	background-color: rgb(24, 24, 24);
+	border-width: 1px;
+	border-color: rgb(0, 0, 0);
+}
+
+.v2-enemy-fill {
+	height: 100%;
+	background-color: rgb(196, 82, 106);
+}
+
+/* 중앙. 실패 배너 */
+.v2-fail {
+	position: absolute;
+	left: 50%;
+	top: 40%;
+	translate: -50% 0;
+	align-items: center;
+	padding: 16px 28px;
 }
 
 .v2-fail-label {
-	font-size: 15px;
+	font-size: 16px;
 	-unity-font-style: bold;
 	color: rgb(255, 220, 190);
 	white-space: normal;
+	margin-bottom: 10px;
 }
 
-.v2-button--next {
-	margin-top: 8px;
-	background-color: rgb(232, 135, 31);
-	color: rgb(255, 255, 255);
+/* 하단 중앙. 손패 + 코스트 */
+.v2-hand {
+	position: absolute;
+	left: 50%;
+	bottom: 30px;
+	translate: -50% 0;
+	flex-direction: row;
+	align-items: flex-end;
+}
+
+.v2-card {
+	width: 124px;
+	height: 166px;
+	margin-right: 10px;
+	font-size: 15px;
 	-unity-font-style: bold;
+	white-space: normal;
+	background-color: rgb(20, 20, 20);
+	color: rgb(255, 255, 255);
+	border-width: 2px;
+	border-color: rgb(255, 255, 255);
+	border-radius: 0;
+	-unity-text-align: lower-left;
+	padding: 8px;
 }
 
-/* 우리 자리 — 체력·부활 */
-.v2-left {
-	align-items: flex-start;
+.v2-card:active {
+	scale: 0.96 0.96;
 }
 
-.v2-seats {
-	margin-bottom: 6px;
+.v2-card:disabled {
+	opacity: 0.5;
 }
 
-.v2-seat {
+.v2-card--ready {
+	border-color: rgb(245, 175, 16);
+}
+
+.v2-cost {
 	width: 150px;
-	margin: 2px 0;
-	background-color: rgba(255, 255, 255, 0.88);
-	border-radius: 7px;
-	padding: 3px 8px;
+	margin-left: 8px;
+	margin-right: 18px;
 }
 
-.v2-seat-name {
-	font-size: 11px;
-	color: rgb(43, 58, 74);
+.v2-cost-label {
+	font-size: 46px;
+	-unity-font-style: bold;
+	color: rgb(255, 255, 255);
 }
 
-.v2-seat-gauge {
-	height: 7px;
-	margin-top: 2px;
-	background-color: rgb(216, 228, 236);
-	border-radius: 4px;
-	overflow: hidden;
+.v2-cost-gauge {
+	height: 10px;
+	background-color: rgb(20, 20, 20);
+	border-width: 1px;
+	border-color: rgb(0, 0, 0);
+	margin: 4px 0;
 }
 
-.v2-seat-fill {
+.v2-cost-fill {
 	height: 100%;
-	background-color: rgb(92, 168, 108);
+	background-color: rgb(245, 175, 16);
 }
 
-.v2-seat-fill--down {
-	background-color: rgb(150, 150, 160);
+/* 우하. 풀화면일 때 탭 */
+.v2-floating-tabs {
+	position: absolute;
+	right: 20px;
+	bottom: 14px;
+	flex-direction: row;
 }
 
-/* 장 — 열고 닫는다 */
-.v2-sheet {
+.v2-debug {
+	position: absolute;
+	left: 20px;
+	bottom: 14px;
+	color: rgb(181, 131, 18);
+}
+
+/* 맵 팝업 */
+.v2-map {
+	position: absolute;
+	left: 150px;
+	top: 140px;
+	width: 700px;
+	padding: 12px 18px;
+	background-color: rgba(26, 26, 26, 0.98);
+}
+
+/* ── 관리 열 ── */
+.v2-side {
+	width: 720px;
+	flex-shrink: 0;
+	background-color: rgb(26, 26, 26);
+	border-left-width: 2px;
+	border-left-color: rgb(0, 0, 0);
+}
+
+.v2-side--drawer {
 	position: absolute;
 	right: 0;
 	top: 0;
 	bottom: 0;
-	width: 46%;
-	background-color: rgba(247, 250, 252, 0.97);
-	padding: 14px 18px;
 }
 
-.v2-sheet-head {
+.v2-tabs {
 	flex-direction: row;
-	justify-content: space-between;
-	align-items: center;
-	margin-bottom: 8px;
+	padding: 8px 8px 0 8px;
+	background-color: rgb(21, 21, 21);
+	border-bottom-width: 1px;
+	border-bottom-color: rgb(58, 58, 58);
 }
 
-.v2-sheet-title {
-	font-size: 19px;
+.v2-tab {
+	flex-grow: 1;
+	height: 72px;
+	margin: 0 1px;
+	background-color: rgb(30, 30, 30);
+	color: rgb(200, 200, 192);
+	border-width: 0;
+	border-radius: 0;
+	font-size: 14px;
+	white-space: normal;
+}
+
+.v2-tab:hover {
+	background-color: rgb(42, 42, 42);
+}
+
+.v2-tab--on {
+	background-color: rgb(236, 236, 232);
+	color: rgb(17, 17, 17);
 	-unity-font-style: bold;
-	color: rgb(43, 58, 74);
 }
 
-.v2-sheet-body {
+.v2-tab--badge {
+	border-top-width: 4px;
+	border-top-color: rgb(181, 20, 14);
+}
+
+.v2-tab--close {
+	flex-grow: 0;
+	width: 52px;
+	font-size: 26px;
+	-unity-font-style: bold;
+}
+
+.v2-panel-head {
+	flex-direction: row;
+	align-items: center;
+	padding: 12px 18px;
+	border-bottom-width: 2px;
+	border-bottom-color: rgb(58, 58, 58);
+}
+
+.v2-panel-title {
+	font-size: 28px;
+	-unity-font-style: bold;
+	color: rgb(255, 255, 255);
+	margin-right: 12px;
+}
+
+.v2-panel-body {
 	flex-grow: 1;
 }
 
 .v2-page {
-	padding-bottom: 10px;
+	padding: 16px 18px;
 }
 
 .v2-row-head {
-	font-size: 13px;
-	-unity-font-style: bold;
-	color: rgb(122, 138, 154);
-	margin-top: 12px;
-	margin-bottom: 2px;
+	font-size: 15px;
+	color: rgb(200, 200, 192);
+	margin: 8px 0 4px 0;
+	white-space: normal;
 }
 
 .v2-row-title {
-	font-size: 14px;
-	color: rgb(43, 58, 74);
+	font-size: 15px;
+	color: rgb(240, 240, 236);
 	margin-top: 6px;
 	white-space: normal;
 }
 
+.v2-row-title--dim {
+	color: rgb(110, 110, 104);
+}
+
 .v2-row-note {
-	font-size: 12px;
-	color: rgb(122, 138, 154);
-	margin: 2px 0;
+	font-size: 13px;
+	color: rgb(138, 138, 130);
+	margin: 4px 0;
 	white-space: normal;
 }
 
 .v2-row-button {
-	height: 30px;
-	font-size: 13px;
-	margin: 2px 0;
-	background-color: rgb(232, 238, 244);
-	color: rgb(43, 58, 74);
-	border-width: 0;
-	border-radius: 6px;
+	height: 36px;
+	font-size: 15px;
+	margin: 3px 0;
+	background-color: rgb(40, 40, 40);
+	color: rgb(240, 240, 236);
+	border-width: 1px;
+	border-color: rgb(58, 58, 58);
+	border-radius: 0;
+	-unity-text-align: middle-left;
+	padding: 0 12px;
+	white-space: normal;
 }
 
 .v2-row-button:hover {
-	background-color: rgb(216, 228, 236);
+	background-color: rgb(56, 56, 56);
 }
 
 .v2-row-button:disabled {
@@ -248,162 +482,127 @@
 }
 
 .v2-row-button--strong {
-	background-color: rgb(74, 157, 232);
-	color: rgb(255, 255, 255);
+	background-color: rgb(245, 196, 0);
+	color: rgb(17, 17, 17);
 	-unity-font-style: bold;
+	-unity-text-align: middle-center;
+}
+
+.v2-row-button--tall {
+	height: 56px;
+	font-size: 18px;
+}
+
+.v2-party {
+	flex-direction: row;
+	margin: 6px 0 4px 0;
+}
+
+.v2-party-seat {
+	flex-grow: 1;
+	height: 96px;
+	margin: 0 3px;
+	font-size: 13px;
+	white-space: normal;
+	background-color: rgb(40, 40, 40);
+	color: rgb(240, 240, 236);
+	border-width: 2px;
+	border-color: rgb(58, 58, 58);
+	border-radius: 0;
+}
+
+.v2-party-seat--sub {
+	border-color: rgb(79, 179, 166);
+}
+
+.v2-party-seat--picking {
+	background-color: rgb(245, 175, 16);
+	color: rgb(17, 17, 17);
+}
+
+.v2-worn {
+	flex-direction: row;
+	margin: 6px 0 10px 0;
+}
+
+.v2-worn-cell {
+	width: 110px;
+	height: 110px;
+	margin-right: 10px;
+	background-color: rgb(40, 40, 40);
+	border-width: 1px;
+	border-color: rgb(58, 58, 58);
+	color: rgb(240, 240, 236);
+	font-size: 15px;
+	-unity-text-align: middle-center;
+	white-space: normal;
+}
+
+.v2-worn-cell--empty {
+	color: rgb(110, 110, 104);
 }
 
 .v2-bag {
 	flex-direction: row;
 	flex-wrap: wrap;
-	margin: 4px 0;
+	margin: 6px 0;
 }
 
 .v2-bag-cell {
-	width: 34px;
-	height: 34px;
-	margin: 2px;
-	font-size: 10px;
+	width: 76px;
+	height: 76px;
+	margin: 3px;
+	font-size: 13px;
 	white-space: normal;
-	background-color: rgb(232, 238, 244);
-	color: rgb(43, 58, 74);
-	border-width: 0;
-	border-radius: 5px;
+	background-color: rgb(40, 40, 40);
+	color: rgb(240, 240, 236);
+	border-width: 1px;
+	border-color: rgb(58, 58, 58);
+	border-radius: 0;
 }
 
 .v2-bag-cell:disabled {
 	opacity: 0.3;
 }
 
-.v2-party {
-	flex-direction: row;
+.v2-warn {
+	color: rgb(220, 100, 100);
+	-unity-font-style: bold;
 }
 
-.v2-party-seat {
-	flex-grow: 1;
-	height: 42px;
-	margin: 0 3px;
-	font-size: 12px;
-	background-color: rgb(232, 238, 244);
-	color: rgb(43, 58, 74);
-	border-width: 0;
-	border-radius: 7px;
+.v2-banner {
+	height: 220px;
+	background-color: rgb(38, 30, 16);
+	border-width: 2px;
+	border-color: rgb(17, 17, 17);
+	padding: 18px;
+	margin-bottom: 12px;
 }
 
-.v2-party-seat--picking {
-	background-color: rgb(74, 157, 232);
+.v2-banner-title {
+	font-size: 40px;
+	-unity-font-style: bold;
 	color: rgb(255, 255, 255);
 }
 
-.v2-warn {
-	color: rgb(200, 72, 72);
-	-unity-font-style: bold;
-}
-
-.v2-bottom {
-	flex-direction: row;
-	justify-content: space-between;
-	align-items: flex-end;
-	padding: 0 16px 14px 16px;
-}
-
-.v2-verbs {
-	flex-direction: column;
-	align-items: flex-start;
-}
-
 .v2-button {
-	height: 32px;
-	font-size: 13px;
-	background-color: rgba(255, 255, 255, 0.9);
-	color: rgb(43, 58, 74);
-	border-width: 0;
-	border-radius: 8px;
+	height: 44px;
+	font-size: 15px;
+	background-color: rgb(40, 40, 40);
+	color: rgb(240, 240, 236);
+	border-width: 1px;
+	border-color: rgb(90, 90, 90);
+	border-radius: 0;
 	margin: 3px 0;
-	padding: 0 14px;
+	padding: 0 16px;
 }
 
 .v2-button:hover {
-	background-color: rgb(255, 255, 255);
+	background-color: rgb(56, 56, 56);
 }
 
-.v2-button:active {
-	scale: 0.97 0.97;
-}
-
-.v2-button:disabled {
-	opacity: 0.45;
-}
-
-.v2-button--ready {
-	border-left-width: 4px;
-	border-left-color: rgb(74, 157, 232);
-}
-
-.v2-button--fold {
-	color: rgb(181, 131, 18);
-}
-
-.v2-hand {
-	align-items: flex-end;
-}
-
-.v2-card-row {
-	flex-direction: row;
-}
-
-.v2-card {
-	width: 92px;
-	height: 96px;
-	margin-left: 10px;
-	font-size: 13px;
+.v2-button--strong {
+	background-color: rgb(245, 175, 16);
+	color: rgb(17, 17, 17);
 	-unity-font-style: bold;
-	white-space: normal;
-	background-color: rgba(255, 255, 255, 0.94);
-	color: rgb(43, 58, 74);
-	border-width: 0;
-	border-radius: 12px;
-	border-bottom-width: 5px;
-	border-bottom-color: rgb(180, 190, 200);
-}
-
-.v2-card:active {
-	scale: 0.95 0.95;
-}
-
-.v2-card:disabled {
-	opacity: 0.45;
-}
-
-.v2-card--ready {
-	border-bottom-color: rgb(232, 165, 31);
-}
-
-.v2-cost-row {
-	flex-direction: row;
-	align-items: center;
-	margin-top: 8px;
-	background-color: rgba(255, 255, 255, 0.9);
-	border-radius: 7px;
-	padding: 5px 12px;
-}
-
-.v2-cost-label {
-	font-size: 13px;
-	-unity-font-style: bold;
-	color: rgb(43, 58, 74);
-	margin-right: 8px;
-}
-
-.v2-cost-gauge {
-	width: 220px;
-	height: 12px;
-	background-color: rgb(216, 228, 236);
-	border-radius: 6px;
-	overflow: hidden;
-}
-
-.v2-cost-fill {
-	height: 100%;
-	background-color: rgb(74, 157, 232);
 }
