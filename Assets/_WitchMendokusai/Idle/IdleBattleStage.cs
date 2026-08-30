@@ -124,6 +124,7 @@ namespace WitchMendokusai
 		private Material[] dollSkins;
 		private IdleHealthBar[] dollBars;
 		private float[] lungeLeft;
+		private float[] hurtLeft;
 		private Material groundMaterial;
 		private Color groundRest;
 
@@ -186,6 +187,7 @@ namespace WitchMendokusai
 			dollSkins = new Material[seats];
 			dollBars = new IdleHealthBar[seats];
 			lungeLeft = new float[seats];
+			hurtLeft = new float[seats];
 
 			for (int seat = 0; seat < seats; seat++)
 			{
@@ -515,10 +517,9 @@ namespace WitchMendokusai
 				{
 					takenBySeat.TryGetValue(hit.Seat, out double taken);
 					takenBySeat[hit.Seat] = taken + hit.Damage;
-					Foe shooter = Find(hit.FoeIndex);
-					if (shooter != null)
+					if (hit.Seat >= 0 && hit.Seat < hurtLeft.Length)
 					{
-						shooter.PopLeft = popSeconds * 0.5f;
+						hurtLeft[hit.Seat] = Mathf.Max(hurtLeft[hit.Seat], popSeconds * 0.5f);
 					}
 					continue;
 				}
@@ -681,6 +682,10 @@ namespace WitchMendokusai
 				{
 					lungeLeft[seat] -= delta;
 				}
+				if (hurtLeft[seat] > 0f)
+				{
+					hurtLeft[seat] -= delta;
+				}
 
 				float swing = lungeLeft[seat] > 0f
 					? Mathf.Sin(Mathf.Clamp01(1f - lungeLeft[seat] / lungeSeconds) * Mathf.PI)
@@ -691,7 +696,9 @@ namespace WitchMendokusai
 
 				float x = seat < snapshot.Fighters.Length ? (float)snapshot.Fighters[seat].X : 0f;
 				float y = seat < snapshot.Fighters.Length ? (float)snapshot.Fighters[seat].Y : 0f;
-				Vector3 wanted = new Vector3(x + swing * 0.3f, bob, y);
+				float hurt = hurtLeft[seat] > 0f
+					? Mathf.Sin(Mathf.Clamp01(1f - hurtLeft[seat] / (popSeconds * 0.5f)) * Mathf.PI) : 0f;
+				Vector3 wanted = new Vector3(x + swing * 0.3f - hurt * 0.08f, bob, y);
 				dolls[seat].localPosition = Vector3.Lerp(dolls[seat].localPosition,
 					wanted, IdleBattleMotion.CatchUp(positionCatchUp, delta));
 			}
