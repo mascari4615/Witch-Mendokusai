@@ -33,6 +33,9 @@ namespace WitchMendokusai
 		[Tooltip("몇 구역마다 도형이 한 계단 오르나. 정사면체, 정육면체, 정팔면체, 정12면체, 정20면체, 세분 구, 잔 세분 구")]
 		[SerializeField] private int shapeStagesPerStep = 5;
 
+		[Tooltip("배경 소품 수")]
+		[SerializeField] private int sceneryCount = 14;
+
 		[Header("보스 (visual.md 4). 코어와 껍질 조각")]
 		[Tooltip("껍질 조각 수")]
 		[SerializeField] private int bossShardCount = 6;
@@ -86,6 +89,8 @@ namespace WitchMendokusai
 		[SerializeField] private Color hurtColor = new Color(1f, 0.45f, 0.4f);
 
 		private readonly List<Transform> scenery = new List<Transform>();
+		private readonly List<MeshFilter> sceneryMeshes = new List<MeshFilter>();
+		private IdleGeometry.Shape sceneryShape = (IdleGeometry.Shape)(-1);
 		private Transform holder;
 		private Transform worldRoot;
 		private Material groundMaterial;
@@ -129,6 +134,7 @@ namespace WitchMendokusai
 		public void Render(IdleSnapshot snapshot, float delta)
 		{
 			if (built == false) { return; }
+			ReshapeScenery(IdleGeometry.ShapeOfStage(snapshot.Stage, shapeStagesPerStep));
 			Follow(snapshot, delta);
 			entities.Render(snapshot, delta);
 			fx.Consume(snapshot.Hits, entities);
@@ -210,21 +216,54 @@ namespace WitchMendokusai
 			groundRest = groundColor;
 		}
 
+		/// <summary>
+		/// 배경 소품. 적과 같은 기하 언어를 쓰되 저채도 (visual.md 6)
+		///
+		/// ★ 구역이 바뀌면 소품 도형도 따라감. 세계가 달라진 것이 배경에서 먼저 읽힘
+		/// </summary>
 		private void BuildScenery()
 		{
-			if (groundPrefab != null) { return; }
-			for (int at = 0; at < 14; at++)
+			if (groundPrefab != null)
 			{
-				GameObject prop = GameObject.CreatePrimitive(at % 3 == 0 ? PrimitiveType.Cylinder : PrimitiveType.Cube);
-				prop.name = "Scenery" + at;
+				return;
+			}
+
+			for (int at = 0; at < sceneryCount; at++)
+			{
+				GameObject prop = new GameObject("Scenery" + at);
 				prop.transform.SetParent(worldRoot, false);
+
+				MeshFilter mesh = prop.AddComponent<MeshFilter>();
+				MeshRenderer renderer = prop.AddComponent<MeshRenderer>();
+				renderer.sharedMaterial = IdleBattleVisualFactory.MakeMaterial(sceneryColor);
+
 				float side = at % 2 == 0 ? 1f : -1f;
 				float size = 0.2f + 0.12f * (at % 4);
 				prop.transform.localPosition = new Vector3(at * 3.1f - 6f, size * 0.5f, side * (3.4f + 0.9f * (at % 3)));
 				prop.transform.localScale = new Vector3(size, size, size);
-				prop.transform.localRotation = Quaternion.Euler(0f, at * 37f, 0f);
-				IdleBattleVisualFactory.Paint(prop, sceneryColor);
+				prop.transform.localRotation = Quaternion.Euler(at * 23f, at * 37f, at * 13f);
+
+				sceneryMeshes.Add(mesh);
 				scenery.Add(prop.transform);
+			}
+
+			ReshapeScenery(IdleGeometry.Shape.Tetrahedron);
+		}
+
+		/// <summary>소품 도형을 구역에 맞춤. 같은 도형이면 그대로</summary>
+		private void ReshapeScenery(IdleGeometry.Shape shape)
+		{
+			if (sceneryShape == shape && sceneryMeshes.Count > 0 && sceneryMeshes[0].sharedMesh != null)
+			{
+				return;
+			}
+
+			sceneryShape = shape;
+			Mesh made = IdleGeometry.Build(shape, 1f);
+
+			foreach (MeshFilter mesh in sceneryMeshes)
+			{
+				mesh.sharedMesh = made;
 			}
 		}
 
@@ -280,6 +319,8 @@ namespace WitchMendokusai
 			entities = null;
 			fx = null;
 			scenery.Clear();
+			sceneryMeshes.Clear();
+			sceneryShape = (IdleGeometry.Shape)(-1);
 			scrollReady = false;
 			built = false;
 		}

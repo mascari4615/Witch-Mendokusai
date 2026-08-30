@@ -256,17 +256,22 @@ namespace WitchMendokusai
 			}
 			else
 			{
-				GameObject body = GameObject.CreatePrimitive(PrimitiveType.Capsule);
-				body.transform.SetParent(doll.transform, false);
-				body.transform.localPosition = new Vector3(0f, 0.35f, 0f);
-				body.transform.localScale = new Vector3(0.42f, 0.35f, 0.42f);
-				body.GetComponent<MeshRenderer>().sharedMaterial = skin;
+				// 아군도 기하 언어. 둥근 쪽이라 각진 적과 대비 (visual.md 5)
+				Mesh round = IdleGeometry.Build(IdleGeometry.Shape.SphereOnce, 0.5f);
 
-				GameObject head = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+				GameObject body = new GameObject("Body");
+				body.transform.SetParent(doll.transform, false);
+				body.transform.localPosition = new Vector3(0f, 0.42f, 0f);
+				body.transform.localScale = new Vector3(0.44f, 0.9f, 0.44f);
+				body.AddComponent<MeshFilter>().sharedMesh = round;
+				body.AddComponent<MeshRenderer>().sharedMaterial = skin;
+
+				GameObject head = new GameObject("Head");
 				head.transform.SetParent(doll.transform, false);
-				head.transform.localPosition = new Vector3(0f, 0.95f, 0f);
-				head.transform.localScale = new Vector3(0.55f, 0.55f, 0.55f);
-				head.GetComponent<MeshRenderer>().sharedMaterial = skin;
+				head.transform.localPosition = new Vector3(0f, 1f, 0f);
+				head.transform.localScale = new Vector3(0.5f, 0.5f, 0.5f);
+				head.AddComponent<MeshFilter>().sharedMesh = round;
+				head.AddComponent<MeshRenderer>().sharedMaterial = skin;
 			}
 
 			dollBars[seat] = IdleHealthBar.Attach(barAnchor.transform, 1.45f, 0.9f, 0.11f,
