@@ -26,6 +26,9 @@ namespace WitchMendokusai.EditorTools
 		private const string ITEM_PAGE_PATH = "Assets/_WitchMendokusai/Idle/IdleItemPage.uxml";
 		private const string BAG_CELL_PATH = "Assets/_WitchMendokusai/Idle/IdleBagCell.uxml";
 		private const string FORGE_KIND_PATH = "Assets/_WitchMendokusai/Idle/IdleForgeKind.uxml";
+		private const string BATTLE_HUD_PATH = "Assets/_WitchMendokusai/Idle/IdleBattleHud.uxml";
+		private const string CARD_PATH = "Assets/_WitchMendokusai/Idle/IdleCard.uxml";
+		private const string WAVE_DOT_PATH = "Assets/_WitchMendokusai/Idle/IdleWaveDot.uxml";
 		private const string TAG = "[IdleScene]";
 
 		[MenuItem("WM/Idle/Open and Play %#u")]
@@ -69,6 +72,9 @@ namespace WitchMendokusai.EditorTools
 			VisualTreeAsset itemPage = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(ITEM_PAGE_PATH);
 			VisualTreeAsset bagCell = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(BAG_CELL_PATH);
 			VisualTreeAsset forgeKind = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(FORGE_KIND_PATH);
+			VisualTreeAsset battleHud = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(BATTLE_HUD_PATH);
+			VisualTreeAsset card = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(CARD_PATH);
+			VisualTreeAsset waveDot = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(WAVE_DOT_PATH);
 
 			if (panel == null || tuning == null || style == null)
 			{
@@ -113,6 +119,9 @@ namespace WitchMendokusai.EditorTools
 			AssignPrivateField(screen, "itemPageAsset", itemPage);
 			AssignPrivateField(screen, "bagCellAsset", bagCell);
 			AssignPrivateField(screen, "forgeKindAsset", forgeKind);
+			AssignPrivateField(screen, "battleHudAsset", battleHud);
+			AssignPrivateField(screen, "cardAsset", card);
+			AssignPrivateField(screen, "waveDotAsset", waveDot);
 			AssignPrivateField(screen, "stage", stage);
 
 			// 이게 없으면 버튼이 안 눌린다 — 화면은 멀쩡해 눈으로 못 잡는다.
@@ -185,6 +194,18 @@ namespace WitchMendokusai.EditorTools
 				if (serialized.FindProperty("forgeKindAsset").objectReferenceValue == null)
 				{
 					missing.Add("IdleBattleScreen.forgeKindAsset");
+				}
+				if (serialized.FindProperty("battleHudAsset").objectReferenceValue == null)
+				{
+					missing.Add("IdleBattleScreen.battleHudAsset");
+				}
+				if (serialized.FindProperty("cardAsset").objectReferenceValue == null)
+				{
+					missing.Add("IdleBattleScreen.cardAsset");
+				}
+				if (serialized.FindProperty("waveDotAsset").objectReferenceValue == null)
+				{
+					missing.Add("IdleBattleScreen.waveDotAsset");
 				}
 				if (serialized.FindProperty("tuningAsset").objectReferenceValue == null)
 				{

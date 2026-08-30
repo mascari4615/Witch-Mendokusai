@@ -207,6 +207,23 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// <summary>긴급 보급이 남은 시간(초) — 걸려 있는 동안 기지 수입이 몇 배가 된다.</summary>
         public double SupplySecondsLeft { get; set; }
 
+        public int[] CardDeck { get; private set; } = new int[0];
+
+        public void SetCardDeck(IdleCardKind[] deck)
+        {
+            CardDeck = new int[deck.Length];
+            for (int index = 0; index < deck.Length; index++)
+            {
+                CardDeck[index] = (int)deck[index];
+            }
+        }
+
+        private void LoadCardDeck(int[] deck)
+        {
+            CardDeck = deck != null ? (int[])deck.Clone() : new int[0];
+            IdleCards.EnsureDeck(this);
+        }
+
         /// <summary>자리별 남은 체력 (0 = 쓰러짐). 0번 = 나, 1~3 = 파티 자리 (V2 부대층).</summary>
         public double[] SeatHealth { get; private set; } = new double[IdleSquad.SEAT_COUNT];
 
@@ -320,6 +337,7 @@ namespace WitchMendokusai.DomainSDK.Idle
                 LastSeenUnixSeconds = LastSeenUnixSeconds,
                 Cost = Cost,
                 SupplySecondsLeft = SupplySecondsLeft,
+                CardDeck = (int[])CardDeck.Clone(),
                 SeatHealth = (double[])SeatHealth.Clone(),
                 SeatReviveSeconds = (double[])SeatReviveSeconds.Clone(),
                 Repeating = Repeating,
@@ -503,6 +521,7 @@ namespace WitchMendokusai.DomainSDK.Idle
             // 코스트·보급도 저장에서 온 수다 — NaN·음수는 0. 넘친 코스트는 다음 스텝이 상한으로 누른다.
             Cost = Sane(saveData.Cost);
             SupplySecondsLeft = Sane(saveData.SupplySecondsLeft);
+            LoadCardDeck(saveData.CardDeck);
             // 옛 저장에는 자리 칸이 없어 null 로 온다 — 빈 칸으로 받고, EnsureSeatRoom 이 세운다.
             SeatHealth = SizedSane(saveData.SeatHealth);
             SeatReviveSeconds = SizedSane(saveData.SeatReviveSeconds);

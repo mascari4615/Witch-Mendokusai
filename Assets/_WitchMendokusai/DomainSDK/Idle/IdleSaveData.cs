@@ -74,6 +74,8 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// <summary>긴급 보급이 남은 시간(초).</summary>
         public double SupplySecondsLeft;
 
+        public int[] CardDeck;
+
         /// <summary>자리별 남은 체력·부활 게이지 — 옛 저장에는 없어 null 로 온다 (V2 부대층).</summary>
         public double[] SeatHealth;
         public double[] SeatReviveSeconds;

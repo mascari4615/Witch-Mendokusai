@@ -62,11 +62,11 @@ namespace WitchMendokusai.DomainSDK.Idle
     /// <summary>「카드 한 장을 낸다」 — 코스트를 치른다 (V2, concept-v2).</summary>
     public readonly struct IdleCastCardIntent : IGameIntent
     {
-        public IdleCardKind Kind { get; }
+        public int HandIndex { get; }
 
-        public IdleCastCardIntent(IdleCardKind kind)
+        public IdleCastCardIntent(int handIndex)
         {
-            Kind = kind;
+            HandIndex = handIndex;
         }
     }
 

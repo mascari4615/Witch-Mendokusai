@@ -28,6 +28,7 @@ namespace WitchMendokusai.DomainSDK.Idle
 
             // 새 판이든 불러온 판이든 전장에 하나 (C10 시작 인형)
             IdleHeroes.EnsureStarter(this.state);
+            IdleCards.EnsureDeck(this.state);
         }
 
         /// <summary>저장·불러오기용 — 호스트가 직렬화할 때만 만진다.</summary>
@@ -267,13 +268,13 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// <summary>카드 한 장을 낸다. 코스트가 모자라면 아무 일도 안 일어난다 (V2).</summary>
         public bool Send(IdleCastCardIntent intent)
         {
-            return IdleCards.TryCast(state, tuning, intent.Kind, out IdleCardResult _);
+            return IdleCards.TryCastHand(state, tuning, intent.HandIndex, out IdleCardResult _);
         }
 
         /// <summary>카드를 내고 <b>무슨 일이 났는지</b>까지 돌려준다 — 감정 카드의 굴림을 화면이 보여주게.</summary>
-        public bool TryCastCard(IdleCardKind kind, out IdleCardResult result)
+        public bool TryCastCard(int handIndex, out IdleCardResult result)
         {
-            return IdleCards.TryCast(state, tuning, kind, out result);
+            return IdleCards.TryCastHand(state, tuning, handIndex, out result);
         }
 
         /// <summary>떨어진 것 하나를 감정한다. 그 등급이 없으면 아무 일도 안 일어난다.</summary>
@@ -442,7 +443,7 @@ namespace WitchMendokusai.DomainSDK.Idle
 
             for (int index = 0; index < made.Length; index++)
             {
-                IdleCardKind kind = (IdleCardKind)index;
+                IdleCardKind kind = IdleCards.HandAt(state, index);
                 made[index] = new IdleCardView(kind,
                     IdleCards.CostOf(kind, tuning),
                     IdleCards.CanCast(state, tuning, kind));

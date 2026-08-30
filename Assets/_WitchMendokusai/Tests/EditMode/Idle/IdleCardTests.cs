@@ -182,6 +182,39 @@ namespace WitchMendokusai.Tests
 
 		/// <summary>★ 사진에 실린다 — 화면이 손패를 자기 눈으로 세지 않게.</summary>
 		[Test]
+		public void CastingFromTheHand_MovesOnlyTheUsedCardToTheBack()
+		{
+			IdleTuning tuning = new IdleTuning();
+			IdleState state = new IdleState();
+			IdleCards.EnsureDeck(state);
+			state.Cost = tuning.VolleyCost;
+
+			Assert.IsTrue(IdleCards.TryCastHand(state, tuning, 0, out IdleCardResult result));
+			Assert.AreEqual(IdleCardKind.Volley, result.Kind);
+			Assert.AreEqual(IdleCardKind.Supply, IdleCards.HandAt(state, 0));
+			Assert.AreEqual(IdleCardKind.Appraise, IdleCards.HandAt(state, 1));
+			Assert.AreEqual(IdleCardKind.Volley, (IdleCardKind)state.CardDeck[IdleCards.DECK_SIZE - 1]);
+		}
+
+		[Test]
+		public void DeckOrder_SurvivesTheSave()
+		{
+			IdleTuning tuning = new IdleTuning();
+			IdleState state = new IdleState();
+			state.Cost = tuning.VolleyCost;
+			Assert.IsTrue(IdleCards.TryCastHand(state, tuning, 0, out IdleCardResult _));
+
+			IdleState back = new IdleState();
+			back.Load(state.Save());
+
+			Assert.AreEqual(IdleCards.DECK_SIZE, back.CardDeck.Length);
+			for (int index = 0; index < IdleCards.DECK_SIZE; index++)
+			{
+				Assert.AreEqual(state.CardDeck[index], back.CardDeck[index]);
+			}
+		}
+
+		[Test]
 		public void TheSnapshot_CarriesTheHand()
 		{
 			IdleSession session = new IdleSession(new IdleTuning());

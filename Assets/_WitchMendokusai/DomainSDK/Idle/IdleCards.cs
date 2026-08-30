@@ -65,7 +65,73 @@ namespace WitchMendokusai.DomainSDK.Idle
 	public static class IdleCards
 	{
 		/// <summary>손패의 카드 수 — 화면·시험이 이 수로 돈다.</summary>
-		public const int CARD_COUNT = 3;
+		public const int HAND_SIZE = 3;
+		public const int DECK_SIZE = 6;
+		public const int CARD_COUNT = HAND_SIZE;
+
+		private static readonly IdleCardKind[] DEFAULT_DECK =
+		{
+			IdleCardKind.Volley,
+			IdleCardKind.Supply,
+			IdleCardKind.Appraise,
+			IdleCardKind.Volley,
+			IdleCardKind.Supply,
+			IdleCardKind.Volley,
+		};
+
+		public static void EnsureDeck(IdleState state)
+		{
+			if (state.CardDeck.Length == DECK_SIZE && HasKnownKinds(state.CardDeck))
+			{
+				return;
+			}
+
+			state.SetCardDeck(DEFAULT_DECK);
+		}
+
+		public static IdleCardKind HandAt(IdleState state, int handIndex)
+		{
+			EnsureDeck(state);
+			return handIndex >= 0 && handIndex < HAND_SIZE ? (IdleCardKind)state.CardDeck[handIndex] : IdleCardKind.Volley;
+		}
+
+		public static bool TryCastHand(IdleState state, IdleTuning tuning, int handIndex,
+			out IdleCardResult result)
+		{
+			result = default;
+			if (handIndex < 0 || handIndex >= HAND_SIZE)
+			{
+				return false;
+			}
+
+			IdleCardKind kind = HandAt(state, handIndex);
+			if (TryCast(state, tuning, kind, out result) == false)
+			{
+				return false;
+			}
+
+			int used = state.CardDeck[handIndex];
+			for (int index = handIndex; index < state.CardDeck.Length - 1; index++)
+			{
+				state.CardDeck[index] = state.CardDeck[index + 1];
+			}
+
+			state.CardDeck[state.CardDeck.Length - 1] = used;
+			return true;
+		}
+
+		private static bool HasKnownKinds(int[] deck)
+		{
+			for (int index = 0; index < deck.Length; index++)
+			{
+				if (deck[index] < (int)IdleCardKind.Volley || deck[index] > (int)IdleCardKind.Appraise)
+				{
+					return false;
+				}
+			}
+
+			return true;
+		}
 
 		/// <summary>이 카드를 내는 데 드는 코스트.</summary>
 		public static double CostOf(IdleCardKind kind, IdleTuning tuning)

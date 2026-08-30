@@ -33,6 +33,9 @@ namespace WitchMendokusai
 		[SerializeField] private VisualTreeAsset itemPageAsset;
 		[SerializeField] private VisualTreeAsset bagCellAsset;
 		[SerializeField] private VisualTreeAsset forgeKindAsset;
+		[SerializeField] private VisualTreeAsset battleHudAsset;
+		[SerializeField] private VisualTreeAsset cardAsset;
+		[SerializeField] private VisualTreeAsset waveDotAsset;
 
 		[Header("무대. 씬이 꽂아 준다")]
 		[SerializeField] private IdleBattleStage stage;
@@ -440,6 +443,24 @@ namespace WitchMendokusai
 			// 빈 곳 누르기는 응원 한 대. 무대 그 자체가 큰 버튼
 			battle.RegisterCallback<PointerDownEvent>(OnTapped);
 
+			if (battleHudAsset != null)
+			{
+				BindBattleHud();
+			}
+			else
+			{
+				BuildBattleHud();
+			}
+
+			if (battleHudAsset != null)
+			{
+				BuildBattleExtras();
+			}
+		}
+
+		private void BuildBattleHud()
+		{
+
 			// 상점, 연구소 씬 자리. 지금은 덮개 + 글자
 			sceneCover = new VisualElement();
 			sceneCover.AddToClassList("idle-scene-cover");
@@ -538,12 +559,10 @@ namespace WitchMendokusai
 			hand.AddToClassList("idle-hand");
 			battle.Add(hand);
 
-			cardButtons = new Button[IdleCards.CARD_COUNT];
-			for (int index = 0; index < cardButtons.Length; index++)
-			{
-				IdleCardKind kind = (IdleCardKind)index;
-				cardButtons[index] = AddButton(hand, "idle-card", () => Cast(kind));
-			}
+			VisualElement cards = new VisualElement();
+			cards.name = "cards";
+			hand.Add(cards);
+			BindCardButtons(cards);
 
 			VisualElement cost = new VisualElement();
 			cost.AddToClassList("idle-cost");
@@ -576,6 +595,98 @@ namespace WitchMendokusai
 				Button wipe = AddButton(battle, "idle-box idle-icon-button idle-debug", WipeAndRestart);
 				wipe.text = "데이터 초기화";
 			}
+		}
+
+		private void BuildBattleExtras()
+		{
+			floatingTabs = new VisualElement();
+			floatingTabs.AddToClassList("idle-floating-tabs");
+			battle.Add(floatingTabs);
+			for (int index = 0; index < TAB_NAMES.Length; index++)
+			{
+				Tab tab = (Tab)index;
+				Button button = AddButton(floatingTabs, "idle-box idle-icon-button", () => OpenTab(tab));
+				button.text = TAB_NAMES[index];
+				button.style.display = TAB_SHOWN[index] ? DisplayStyle.Flex : DisplayStyle.None;
+				floatingTabButtons.Add(button);
+			}
+
+			if (Application.isEditor || Debug.isDebugBuild)
+			{
+				Button wipe = AddButton(battle, "idle-box idle-icon-button idle-debug", WipeAndRestart);
+				wipe.text = "데이터 초기화";
+			}
+		}
+
+		private void BindBattleHud()
+		{
+			TemplateContainer tree = battleHudAsset.Instantiate();
+			VisualElement frame = tree.Q<VisualElement>("hud");
+			while (frame.childCount > 0)
+			{
+				battle.Add(frame[0]);
+			}
+
+			sceneCover = battle.Q<VisualElement>("scene-cover");
+			sceneCover.style.display = DisplayStyle.None;
+			sceneCoverLabel = battle.Q<Label>("scene-cover-label");
+			battle.Q<Button>("scene-cover-button").clicked += () => OpenTab(Tab.Doll);
+			VisualElement op = battle.Q<VisualElement>("op");
+			op.RegisterCallback<ClickEvent>(_ => ToggleMap());
+			opCode = battle.Q<Label>("op-code");
+			opName = battle.Q<Label>("op-name");
+			waveDots = battle.Q<VisualElement>("wave-dots");
+			waveLabel = battle.Q<Label>("wave-label");
+			stepBack = battle.Q<Button>("step-back");
+			stepBack.clicked += () => StepStage(-1);
+			stepLabel = battle.Q<Label>("step-label");
+			stepForward = battle.Q<Button>("step-forward");
+			stepForward.clicked += () => StepStage(1);
+			repeatButton = battle.Q<Button>("repeat-button");
+			repeatButton.clicked += ToggleHold;
+			goldChip = battle.Q<Label>("gold-chip");
+			pullChip = battle.Q<Label>("pull-chip");
+			prestigeChip = battle.Q<Label>("prestige-chip");
+			splitButton = battle.Q<Button>("split-button");
+			splitButton.clicked += ToggleSplit;
+			logLabel = battle.Q<Label>("log-label");
+			noteLabel = battle.Q<Label>("note-label");
+			enemyBar = battle.Q<VisualElement>("enemy-bar");
+			enemyFill = battle.Q<VisualElement>("enemy-fill");
+			enemyLabel = battle.Q<Label>("enemy-label");
+			failBanner = battle.Q<VisualElement>("fail-banner");
+			failBanner.style.display = DisplayStyle.None;
+			failLabel = battle.Q<Label>("fail-label");
+			nextStageButton = battle.Q<Button>("next-stage-button");
+			nextStageButton.clicked += NextStage;
+			BindCardButtons(battle.Q<VisualElement>("cards"));
+			costLabel = battle.Q<Label>("cost-label");
+			costFill = battle.Q<VisualElement>("cost-fill");
+		}
+
+		private void BindCardButtons(VisualElement cards)
+		{
+			cardButtons = new Button[IdleCards.HAND_SIZE];
+			for (int index = 0; index < cardButtons.Length; index++)
+			{
+				int captured = index;
+				cardButtons[index] = AddCardButton(cards, () => Cast(captured));
+			}
+		}
+
+		private Button AddCardButton(VisualElement parent, System.Action clicked)
+		{
+			if (cardAsset == null)
+			{
+				return AddButton(parent, "idle-card", clicked);
+			}
+
+			TemplateContainer tree = cardAsset.Instantiate();
+			Button button = tree.Q<Button>("card");
+			button.RemoveFromHierarchy();
+			button.clicked += clicked;
+			parent.Add(button);
+			return button;
 		}
 
 		private void BuildSide(VisualElement shell)
@@ -1031,8 +1142,7 @@ namespace WitchMendokusai
 
 				for (int at = 0; at < snapshot.KillsPerStage; at++)
 				{
-					VisualElement dot = new VisualElement();
-					dot.AddToClassList("idle-wave-dot");
+					VisualElement dot = AddWaveDot();
 					dot.EnableInClassList("idle-wave-dot--boss", at == snapshot.KillsPerStage - 1);
 					waveDots.Add(dot);
 					waveDotList.Add(dot);
@@ -1045,6 +1155,21 @@ namespace WitchMendokusai
 			}
 
 			waveLabel.text = string.Format("WAVE {0}/{1}", snapshot.KillsInStage, snapshot.KillsPerStage);
+		}
+
+		private VisualElement AddWaveDot()
+		{
+			if (waveDotAsset == null)
+			{
+				VisualElement dot = new VisualElement();
+				dot.AddToClassList("idle-wave-dot");
+				return dot;
+			}
+
+			TemplateContainer tree = waveDotAsset.Instantiate();
+			VisualElement made = tree.Q<VisualElement>("wave-dot");
+			made.RemoveFromHierarchy();
+			return made;
 		}
 
 		private void RenderHand(IdleSnapshot snapshot)
@@ -1597,12 +1722,14 @@ namespace WitchMendokusai
 			return false;
 		}
 
-		private void Cast(IdleCardKind kind)
+		private void Cast(int handIndex)
 		{
-			if (session.TryCastCard(kind, out IdleCardResult result) == false)
+			if (session.TryCastCard(handIndex, out IdleCardResult result) == false)
 			{
 				return;
 			}
+
+			IdleCardKind kind = result.Kind;
 
 			switch (kind)
 			{

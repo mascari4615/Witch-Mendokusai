@@ -1,0 +1,4 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <Style src="IdleBattleScreen.uss" />
+    <ui:Button name="card" class="idle-card" />
+</ui:UXML>
