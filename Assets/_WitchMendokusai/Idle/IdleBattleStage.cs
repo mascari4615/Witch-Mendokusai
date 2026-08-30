@@ -25,6 +25,29 @@ namespace WitchMendokusai
 		[SerializeField] private float shakeDistance = 0.025f;
 		[SerializeField] private float bossScale = 1.9f;
 		[SerializeField] private float foeHeight = 0.62f;
+
+		[Header("적 도형 (visual.md 2). 구역이 깊을수록 면이 는다")]
+		[Tooltip("적 반지름 (m)")]
+		[SerializeField] private float foeRadius = 0.62f;
+
+		[Tooltip("몇 구역마다 도형이 한 계단 오르나. 정사면체, 정육면체, 정팔면체, 정12면체, 정20면체, 세분 구, 잔 세분 구")]
+		[SerializeField] private int shapeStagesPerStep = 5;
+
+		[Header("보스 (visual.md 4). 코어와 껍질 조각")]
+		[Tooltip("껍질 조각 수")]
+		[SerializeField] private int bossShardCount = 6;
+
+		[Tooltip("껍질이 코어에서 떨어진 거리. 반지름 배수")]
+		[SerializeField] private float bossShellRadius = 1.35f;
+
+		[Tooltip("체력이 빌수록 이만큼 더 벌어진다")]
+		[SerializeField] private float bossShellSpread = 0.9f;
+
+		[Tooltip("껍질 회전 속도. 코어와 반대라 음수")]
+		[SerializeField] private float bossShellSpinDegrees = -26f;
+
+		[Tooltip("이 구역부터 보스 코어에 뿔을 세운다 (별 만들기)")]
+		[SerializeField] private int bossSpikeFromStage = 21;
 		[SerializeField] private Color groundColor = new Color(0.62f, 0.73f, 0.55f);
 		[SerializeField] private Color enemyColor = new Color(0.55f, 0.50f, 0.63f);
 		[SerializeField] private Color rangedEnemyColor = new Color(0.66f, 0.54f, 0.50f);
@@ -96,7 +119,35 @@ namespace WitchMendokusai
 
 		private IdleBattleEntityPresenter.Settings CreateEntitySettings()
 		{
-			return new IdleBattleEntityPresenter.Settings(dollPrefab, foePrefab, bossPrefab, lungeSeconds, popSeconds, positionCatchUp, foeSpinDegrees, foeBobHeight, bossScale, foeHeight, myColor, enemyColor, rangedEnemyColor, bossColor, barBackColor, allyBarColor, reviveBarColor, enemyBarColor, gradeColors);
+			return new IdleBattleEntityPresenter.Settings
+			{
+				DollPrefab = dollPrefab,
+				FoePrefab = foePrefab,
+				BossPrefab = bossPrefab,
+				LungeSeconds = lungeSeconds,
+				PopSeconds = popSeconds,
+				PositionCatchUp = positionCatchUp,
+				FoeSpinDegrees = foeSpinDegrees,
+				FoeBobHeight = foeBobHeight,
+				BossScale = bossScale,
+				FoeHeight = foeHeight,
+				FoeRadius = foeRadius,
+				ShapeStagesPerStep = shapeStagesPerStep,
+				BossShardCount = bossShardCount,
+				BossShellRadius = bossShellRadius,
+				BossShellSpread = bossShellSpread,
+				BossShellSpinDegrees = bossShellSpinDegrees,
+				BossSpikeFromStage = bossSpikeFromStage,
+				MyColor = myColor,
+				EnemyColor = enemyColor,
+				RangedEnemyColor = rangedEnemyColor,
+				BossColor = bossColor,
+				BarBackColor = barBackColor,
+				AllyBarColor = allyBarColor,
+				ReviveBarColor = reviveBarColor,
+				EnemyBarColor = enemyBarColor,
+				GradeColors = gradeColors,
+			};
 		}
 
 		private void BuildGround()
