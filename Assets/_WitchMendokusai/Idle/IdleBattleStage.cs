@@ -92,7 +92,18 @@ namespace WitchMendokusai
 			world.transform.SetParent(holder, false);
 			worldRoot = world.transform;
 			entities = new IdleBattleEntityPresenter(worldRoot, CreateEntitySettings());
-			fx = new IdleBattleFx(holder, new IdleBattleFx.Settings(boltSeconds, shakeSeconds, shakeDistance, numberSeconds, numberRise, numberSize, boltColor, numberColor, hurtColor));
+			fx = new IdleBattleFx(holder, new IdleBattleFx.Settings
+			{
+				BoltSeconds = boltSeconds,
+				ShakeSeconds = shakeSeconds,
+				ShakeDistance = shakeDistance,
+				NumberSeconds = numberSeconds,
+				NumberRise = numberRise,
+				NumberSize = numberSize,
+				BoltColor = boltColor,
+				NumberColor = numberColor,
+				HurtColor = hurtColor,
+			});
 			BuildScenery();
 		}
 
@@ -110,7 +121,12 @@ namespace WitchMendokusai
 
 		public bool TryPickFoe(Vector2 panelPosition, out long foeIndex)
 		{
-			if (entities == null) { foeIndex = -1L; return false; }
+			if (entities == null)
+			{
+				foeIndex = -1L;
+				return false;
+			}
+
 			return entities.TryPickFoe(panelPosition, out foeIndex);
 		}
 
@@ -193,10 +209,18 @@ namespace WitchMendokusai
 			int count = 0;
 			for (int seat = 0; seat < snapshot.Fighters.Length && seat < snapshot.Seats.Length; seat++)
 			{
-				if (snapshot.Seats[seat].Taken) { sum += (float)snapshot.Fighters[seat].X; count++; }
+				if (snapshot.Seats[seat].Taken)
+				{
+					sum += (float)snapshot.Fighters[seat].X;
+					count++;
+				}
 			}
 			float wanted = partyAnchorX - (count > 0 ? sum / count : 0f);
-			if (scrollReady == false || Mathf.Abs(wanted - scroll) > snapJump) { scroll = wanted; scrollReady = true; }
+			if (scrollReady == false || Mathf.Abs(wanted - scroll) > snapJump)
+			{
+				scroll = wanted;
+				scrollReady = true;
+			}
 			else { scroll = Mathf.Lerp(scroll, wanted, IdleBattleMotion.CatchUp(followCatchUp, delta)); }
 			worldRoot.localPosition = new Vector3(scroll, 0f, 0f);
 			float span = scenery.Count * 3.1f;
@@ -226,8 +250,13 @@ namespace WitchMendokusai
 		private void OnDisable()
 		{
 			if (holder != null) { Kill(holder.gameObject); }
-			holder = null; worldRoot = null; entities = null; fx = null;
-			scenery.Clear(); scrollReady = false; built = false;
+			holder = null;
+			worldRoot = null;
+			entities = null;
+			fx = null;
+			scenery.Clear();
+			scrollReady = false;
+			built = false;
 		}
 
 		private static void Kill(GameObject piece)
