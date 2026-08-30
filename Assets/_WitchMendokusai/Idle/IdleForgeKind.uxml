@@ -1,0 +1,4 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
+    <!-- 공방 종류 칩도 가진 장비 조합에 따라 생기고 사라진다. -->
+    <ui:Button name="forge-kind" class="idle-forge-kind" />
+</ui:UXML>

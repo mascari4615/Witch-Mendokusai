@@ -23,6 +23,9 @@ namespace WitchMendokusai.EditorTools
 		private const string TUNING_PATH = "Assets/_WitchMendokusai/Scenes/Idle/TU_0001_Idle.asset";
 		private const string STYLE_PATH = "Assets/_WitchMendokusai/Idle/IdleBattleScreen.uss";
 		private const string DOLL_PAGE_PATH = "Assets/_WitchMendokusai/Idle/IdleDollPage.uxml";
+		private const string ITEM_PAGE_PATH = "Assets/_WitchMendokusai/Idle/IdleItemPage.uxml";
+		private const string BAG_CELL_PATH = "Assets/_WitchMendokusai/Idle/IdleBagCell.uxml";
+		private const string FORGE_KIND_PATH = "Assets/_WitchMendokusai/Idle/IdleForgeKind.uxml";
 		private const string TAG = "[IdleScene]";
 
 		[MenuItem("WM/Idle/Open and Play %#u")]
@@ -63,6 +66,9 @@ namespace WitchMendokusai.EditorTools
 			IdleTuningSO tuning = AssetDatabase.LoadAssetAtPath<IdleTuningSO>(TUNING_PATH);
 			StyleSheet style = AssetDatabase.LoadAssetAtPath<StyleSheet>(STYLE_PATH);
 			VisualTreeAsset dollPage = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(DOLL_PAGE_PATH);
+			VisualTreeAsset itemPage = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(ITEM_PAGE_PATH);
+			VisualTreeAsset bagCell = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(BAG_CELL_PATH);
+			VisualTreeAsset forgeKind = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(FORGE_KIND_PATH);
 
 			if (panel == null || tuning == null || style == null)
 			{
@@ -104,6 +110,9 @@ namespace WitchMendokusai.EditorTools
 			AssignPrivateField(screen, "tuningAsset", tuning);
 			AssignPrivateField(screen, "styleSheet", style);
 			AssignPrivateField(screen, "dollPageAsset", dollPage);
+			AssignPrivateField(screen, "itemPageAsset", itemPage);
+			AssignPrivateField(screen, "bagCellAsset", bagCell);
+			AssignPrivateField(screen, "forgeKindAsset", forgeKind);
 			AssignPrivateField(screen, "stage", stage);
 
 			// 이게 없으면 버튼이 안 눌린다 — 화면은 멀쩡해 눈으로 못 잡는다.
@@ -164,6 +173,18 @@ namespace WitchMendokusai.EditorTools
 				if (serialized.FindProperty("dollPageAsset").objectReferenceValue == null)
 				{
 					missing.Add("IdleBattleScreen.dollPageAsset");
+				}
+				if (serialized.FindProperty("itemPageAsset").objectReferenceValue == null)
+				{
+					missing.Add("IdleBattleScreen.itemPageAsset");
+				}
+				if (serialized.FindProperty("bagCellAsset").objectReferenceValue == null)
+				{
+					missing.Add("IdleBattleScreen.bagCellAsset");
+				}
+				if (serialized.FindProperty("forgeKindAsset").objectReferenceValue == null)
+				{
+					missing.Add("IdleBattleScreen.forgeKindAsset");
 				}
 				if (serialized.FindProperty("tuningAsset").objectReferenceValue == null)
 				{

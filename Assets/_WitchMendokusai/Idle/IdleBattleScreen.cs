@@ -30,6 +30,9 @@ namespace WitchMendokusai
 
 		[Header("손으로 고치는 UXML. 비우면 코드가 짓는다 (사용자 2026-08-30: 고퀄리티는 사람 손길)")]
 		[SerializeField] private VisualTreeAsset dollPageAsset;
+		[SerializeField] private VisualTreeAsset itemPageAsset;
+		[SerializeField] private VisualTreeAsset bagCellAsset;
+		[SerializeField] private VisualTreeAsset forgeKindAsset;
 
 		[Header("무대. 씬이 꽂아 준다")]
 		[SerializeField] private IdleBattleStage stage;
@@ -721,6 +724,11 @@ namespace WitchMendokusai
 		private void BuildItemPage()
 		{
 			VisualElement page = AddPage(Tab.Item);
+			if (itemPageAsset != null)
+			{
+				BindItemPage(page);
+				return;
+			}
 
 			VisualElement subs = new VisualElement();
 			AddClasses(subs, "idle-subtabs");
@@ -789,6 +797,84 @@ namespace WitchMendokusai
 			page.Add(appraiseRows);
 
 			OpenItemSub(0);
+		}
+
+		/// <summary>아이템 탭을 UXML 에서. 가방과 공방의 수량만 코어 사진으로 채운다</summary>
+		private void BindItemPage(VisualElement page)
+		{
+			// 에셋의 바깥 틀(idle-side)은 UI Builder 미리보기용. 화면에는 안쪽만
+			TemplateContainer tree = itemPageAsset.Instantiate();
+			VisualElement frame = tree.Q<VisualElement>("page");
+			while (frame.childCount > 0)
+			{
+				page.Add(frame[0]);
+			}
+
+			itemSubButtons[0] = page.Q<Button>("bag-subtab");
+			itemSubButtons[0].clicked += () => OpenItemSub(0);
+			itemSubButtons[1] = page.Q<Button>("forge-subtab");
+			itemSubButtons[1].clicked += () => OpenItemSub(1);
+
+			bagView = page.Q<VisualElement>("bag-view");
+			gearSummary = page.Q<Label>("gear-summary");
+			bagGrid = page.Q<VisualElement>("bag-grid");
+			for (int index = 0; index < 40; index++)
+			{
+				int captured = index;
+				Button cell = AddBagCell(bagGrid, () => Equip(captured));
+				HookTooltip(cell, () => BagTip(captured));
+				bagCells.Add(cell);
+			}
+			bulkMergeButton = page.Q<Button>("bulk-merge-button");
+			bulkMergeButton.clicked += MergeAll;
+
+			forgeView = page.Q<VisualElement>("forge-view");
+			forgeKinds = page.Q<VisualElement>("forge-kinds");
+			for (int index = 0; index < 9; index++)
+			{
+				forgeCells.Add(page.Q<Label>("forge-cell-" + index));
+			}
+			forgeResult = page.Q<Label>("forge-result");
+			forgeTitle = page.Q<Label>("forge-title");
+			forgeButton = page.Q<Button>("forge-button");
+			forgeButton.clicked += MergeForge;
+
+			appraiseCap = page.Q<Label>("appraise-cap");
+			appraiseCap.style.display = DisplayStyle.None;
+			appraiseRows = page.Q<VisualElement>("appraise-rows");
+			appraiseRows.style.display = DisplayStyle.None;
+
+			OpenItemSub(0);
+		}
+
+		private Button AddBagCell(VisualElement parent, System.Action clicked)
+		{
+			if (bagCellAsset == null)
+			{
+				return AddButton(parent, "idle-bag-cell", clicked);
+			}
+
+			TemplateContainer tree = bagCellAsset.Instantiate();
+			Button cell = tree.Q<Button>("bag-cell");
+			cell.RemoveFromHierarchy();
+			cell.clicked += clicked;
+			parent.Add(cell);
+			return cell;
+		}
+
+		private Button AddForgeKind(VisualElement parent, System.Action clicked)
+		{
+			if (forgeKindAsset == null)
+			{
+				return AddButton(parent, "idle-forge-kind", clicked);
+			}
+
+			TemplateContainer tree = forgeKindAsset.Instantiate();
+			Button kind = tree.Q<Button>("forge-kind");
+			kind.RemoveFromHierarchy();
+			kind.clicked += clicked;
+			parent.Add(kind);
+			return kind;
 		}
 
 		private void OpenItemSub(int which)
@@ -1153,7 +1239,7 @@ namespace WitchMendokusai
 				{
 					int key = keys[index];
 					forgeKindKeys.Add(key);
-					forgeKindButtons.Add(AddButton(forgeKinds, "idle-forge-kind", () => PickForge(key)));
+					forgeKindButtons.Add(AddForgeKind(forgeKinds, () => PickForge(key)));
 				}
 			}
 
