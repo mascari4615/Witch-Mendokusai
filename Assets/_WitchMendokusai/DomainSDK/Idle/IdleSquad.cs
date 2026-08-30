@@ -9,8 +9,10 @@ namespace WitchMendokusai.DomainSDK.Idle
 	///   유일한 벽이 시간(처치 속도)뿐이었고, 그래서 구역은 위험이 아니라 <b>기다림</b>이었다.
 	///   이제 적이 때린다 — 벽이 시간에서 <b>생존</b>으로 옮겨 온다.
 	///
-	/// ★ 자리(seat)는 넷이다: 0 = 나(늘 있다) · 1~3 = 파티 자리(뽑아 앉힌 영웅).
-	///   비어 있는 파티 자리는 애초에 싸우지도 맞지도 않는다.
+	/// ★ 자리(seat)는 넷이다: 0 = 나(늘 있다) · 1~3 = 편성의 <b>메인 칸</b>(뽑아 앉힌 영웅).
+	///   빈 자리: 싸우지도 맞지도 않음.
+	///   편성의 <b>보조 칸</b>(<see cref="IdleHeroes.SUPPORT_SLOTS"/>)은 여기 자리가 <b>없다</b> -
+	///   전장에 안 서니 맞지도, 쓰러지지도, 일어나지도 않는다 (사용자 결정 2026-08-30).
 	///
 	/// ★ <b>맨 앞이 맞는다</b> — 서 있는 자리 중 가장 앞이 피해를 받는다. 흩뿌리면
 	///   전멸이 한꺼번에 오고, 그러면 「하나 쓰러졌다」는 신호가 영영 안 뜬다.
@@ -35,8 +37,8 @@ namespace WitchMendokusai.DomainSDK.Idle
 				return true;
 			}
 
-			int party = seat - 1;
-			return party >= 0 && party < state.Party.Length && state.Party[party] >= 0;
+			int slot = seat - 1;
+			return IdleHeroes.IsMainSlot(slot) && slot < state.Party.Length && state.Party[slot] >= 0;
 		}
 
 		/// <summary>

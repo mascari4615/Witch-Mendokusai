@@ -170,13 +170,18 @@ namespace WitchMendokusai.Tests
 			//   예전엔 AppContext.BaseDirectory 에서 위로 훑었는데, 테스트 러너에서 그 값은
 			//   *에디터 설치 폴더*(…/Unity/Hub/Editor/…/Unity.exe)라 프로젝트를 영영 못 만났다.
 			//   그래서 이 파일의 검사들이 「저장소 뿌리를 못 찾았다」로 늘 빨갰다(실측 2026-08-21).
-			string dataPath = UnityEngine.Application.dataPath;
+			// ⚠ 엔진 밖(Portable/DomainSDK.Tests)에는 UnityEngine 이 없다. 이 줄이 그대로 있으면
+			//   포터블 시험 전체가 컴파일에서 죽는다(실측 2026-08-30, ad58d6a7 이후 계속 빨강이었다).
+			string dataPath = string.Empty;
+#if UNITY_5_3_OR_NEWER
+			dataPath = UnityEngine.Application.dataPath;
 
 			if (string.IsNullOrEmpty(dataPath) == false
 				&& Directory.Exists(Path.Combine(dataPath, "_WitchMendokusai")))
 			{
 				return Directory.GetParent(dataPath).FullName;
 			}
+#endif
 
 			// 유니티 밖(순수 dotnet)에서도 돌 수 있게 — 일하는 자리에서 위로 훑는다.
 			DirectoryInfo at = new DirectoryInfo(Directory.GetCurrentDirectory());

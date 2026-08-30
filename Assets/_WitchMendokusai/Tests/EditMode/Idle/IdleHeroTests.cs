@@ -6,7 +6,7 @@ namespace WitchMendokusai.Tests
 	/// <summary>
 	/// 영웅 가챠 · 보유 효과 · 파티 (TASK-WM-406).
 	///
-	/// ★ 사용자 결정 2026-08-17 — 가챠 수집형 / 관대한 인심 / 파티 3자리 / 중복은 ★ 승급 /
+	/// ★ 사용자 결정 2026-08-17. 가챠 수집형 / 관대한 인심 / 중복은 ★ 승급 /
 	///   보유 효과 두 겹(개별 보유 + 도감).
 	///
 	/// 여기서 지키는 것은 <b>그 결정들이 실제로 판을 움직이나</b>이다.
@@ -258,7 +258,7 @@ namespace WitchMendokusai.Tests
 
 			Assert.IsNotNull(fromOld.Heroes);
 			Assert.AreEqual(0, fromOld.Heroes.Count);
-			Assert.AreEqual(3, fromOld.Party.Length);
+			Assert.AreEqual(IdleHeroes.PARTY_SLOTS, fromOld.Party.Length);
 		}
 
 		/// <summary>시험용 — 이만큼 뽑을 수 있게 재화를 얹는다(값이 뽑을수록 오르므로 넉넉히).</summary>

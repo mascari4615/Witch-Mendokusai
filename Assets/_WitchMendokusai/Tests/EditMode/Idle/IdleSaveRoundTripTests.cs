@@ -123,7 +123,7 @@ namespace WitchMendokusai.Tests
 
 			Assert.AreEqual(1, fromNothing.Stage, "단계가 0 이 됐다 — 판이 어긋난다");
 			Assert.IsNotNull(fromNothing.Heroes);
-			Assert.AreEqual(3, fromNothing.Party.Length);
+			Assert.AreEqual(IdleHeroes.PARTY_SLOTS, fromNothing.Party.Length);
 			Assert.IsNotNull(fromNothing.Owned);
 		}
 

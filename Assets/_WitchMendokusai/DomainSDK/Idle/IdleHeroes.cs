@@ -5,8 +5,14 @@ namespace WitchMendokusai.DomainSDK.Idle
     /// <summary>
     /// 영웅 <b>도감</b>과 그 셈 (TASK-WM-406).
     ///
-    /// ★ 사용자 결정 2026-08-17: 영웅은 <b>가챠로 뽑는 수집형</b>, 파티는 <b>세 자리</b>,
+    /// ★ 사용자 결정 2026-08-17: 영웅은 <b>가챠로 뽑는 수집형</b>,
     ///   중복은 <b>★ 승급</b>, 보유 효과는 <b>두 겹</b>(개별 보유 + 도감 단계).
+    ///
+    /// ★ 편성은 <b>여섯 자리</b> (사용자 결정 2026-08-30, 자동전투+카드 개입 계열 문법 그대로):
+    ///   앞 <see cref="MAIN_SLOTS"/> 는 <b>메인</b>: 전장에 서서 맞고 때리고 스킬 사용.
+    ///   뒤 <see cref="SUPPORT_SLOTS"/> 는 <b>보조</b>: 전장 불참(자리도 체력도 없음).
+    ///   보조 스킬만 얹는다. 지금은 그 몫이 축 배수(메인보다 작게)로 들어가고,
+    ///   능동 보조 스킬(카드층)은 다음 조각이다. 정본 <c>memo/wm/design/idle/decisions-2026-08-30.md</c>.
     ///
     /// ★ 두 겹인 이유 — 한 겹(개별 보유)만 두면 「다 모으면 뭐가 좋은가」가 없어서
     ///   도감을 채울 이유가 사라진다. 세 겹(세트까지)은 영웅 종류가 스무 종을 넘어야
@@ -46,6 +52,34 @@ namespace WitchMendokusai.DomainSDK.Idle
             new IdleHeroKind(14, "여울", IdleHeroAxis.Drop, IdleHeroGrade.Legend, 11),
             new IdleHeroKind(15, "번개", IdleHeroAxis.Speed, IdleHeroGrade.Legend, 12),
         };
+
+        /// <summary>전장에 서는 자리 수. 이 앞쪽 칸이 <see cref="IdleSquad"/> 의 파티 자리가 된다.</summary>
+        public const int MAIN_SLOTS = 3;
+
+        /// <summary>전장에 안 서고 보조 스킬만 얹는 자리 수.</summary>
+        public const int SUPPORT_SLOTS = 3;
+
+        /// <summary>편성 칸 수. 메인 + 보조.</summary>
+        public const int PARTY_SLOTS = MAIN_SLOTS + SUPPORT_SLOTS;
+
+        /// <summary>이 칸이 메인(전장에 서는) 칸인가.</summary>
+        public static bool IsMainSlot(int slot)
+        {
+            return slot >= 0 && slot < MAIN_SLOTS;
+        }
+
+        /// <summary>빈 편성. 모든 칸이 -1.</summary>
+        public static int[] EmptyParty()
+        {
+            int[] party = new int[PARTY_SLOTS];
+
+            for (int slot = 0; slot < party.Length; slot++)
+            {
+                party[slot] = -1;
+            }
+
+            return party;
+        }
 
         /// <summary>뽑을 수 있는 영웅 수.</summary>
         public static int Count => ALL.Length;
@@ -150,10 +184,12 @@ namespace WitchMendokusai.DomainSDK.Idle
         // ── 파티 ────────────────────────────────────────────────────────────
 
         /// <summary>
-        /// 내보낸 셋이 주는 몫 — <b>내보낸 영웅만</b> 이 배수를 준다(보유 효과와 별개).
+        /// 편성한 얼굴이 주는 몫. <b>편성한 영웅만</b> 이 배수를 준다(보유 효과와 별개).
         ///
-        /// ★ 보유는 「가지고만 있어도」, 파티는 「내보내야」. 둘을 갈라야
+        /// ★ 보유는 가지고만 있어도, 편성은 내보내야. 둘을 갈라야
         ///   <b>누구를 내보낼까</b>가 결정이 된다 — 안 그러면 전원 참전이 늘 정답이다.
+        /// ★ 메인 칸과 보조 칸의 몫이 다르다. 보조는 전장에 안 서서 맞지도 않으니
+        ///   같은 몫이면 늘 보조가 정답이 된다. 보조 몫은 <see cref="IdleTuning.HeroSupportShareByGrade"/>.
         /// </summary>
         public static double PartyMultiplierOf(IdleState state, IdleTuning tuning, IdleHeroAxis axis)
         {
@@ -179,7 +215,11 @@ namespace WitchMendokusai.DomainSDK.Idle
                     continue;
                 }
 
-                sum += tuning.HeroPartyShareByGrade * GradeWeight(KindOf(id).Grade)
+                double share = IsMainSlot(slot)
+                    ? tuning.HeroPartyShareByGrade
+                    : tuning.HeroSupportShareByGrade;
+
+                sum += share * GradeWeight(KindOf(id).Grade)
                     * (1d + owned.Stars * tuning.HeroStarStep);
             }
 

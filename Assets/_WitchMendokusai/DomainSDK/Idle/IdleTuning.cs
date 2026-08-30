@@ -150,8 +150,16 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// </summary>
         public double HeroOwnedShareByGrade { get; set; } = 0.03d;
 
-        /// <summary>내보냈을 때 <b>더</b> 붙는 몫 — 보유보다 커야 「내보낸다」가 뜻을 가진다.</summary>
+        /// <summary>메인 칸에 내보냈을 때 <b>더</b> 붙는 몫. 보유보다 커야 내보낸다가 뜻을 가진다.</summary>
         public double HeroPartyShareByGrade { get; set; } = 0.12d;
+
+        /// <summary>
+        /// 보조 칸에 넣었을 때 붙는 몫. 시작값은 메인의 절반.
+        ///
+        /// ★ 메인보다 작게: 보조는 전장에 안 서서 안 맞으므로, 몫이 같으면 늘 보조가 정답.
+        ///   보유(<see cref="HeroOwnedShareByGrade"/>)보다는 크게: 그래야 보조 칸에 넣는다가 결정.
+        /// </summary>
+        public double HeroSupportShareByGrade { get; set; } = 0.06d;
 
         /// <summary>도감이 한 계단 오르는 데 필요한 점수(모은 종류 + 올린 ★).</summary>
         public int CodexStepScore { get; set; } = 5;

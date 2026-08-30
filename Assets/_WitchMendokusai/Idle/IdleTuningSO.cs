@@ -118,8 +118,11 @@ namespace WitchMendokusai
         [Tooltip("«가지고만 있어도» 붙는 몫 (등급 무게에 곱해진다).")]
         [SerializeField] private double heroOwnedShareByGrade = 0.03d;
 
-        [Tooltip("«내보내야» 붙는 몫 — 보유보다 커야 누구를 낼지가 결정이 된다.")]
+        [Tooltip("메인 칸에 «내보내야» 붙는 몫. 보유보다 커야 누구를 낼지가 결정이 된다.")]
         [SerializeField] private double heroPartyShareByGrade = 0.12d;
+
+        [Tooltip("보조 칸(전장 불참)에 넣었을 때 붙는 몫. 메인보다 작고 보유보다 커야 한다.")]
+        [SerializeField] private double heroSupportShareByGrade = 0.06d;
 
         [Tooltip("도감 점수 몇마다 한 계단 오르나.")]
         [SerializeField] private int codexStepScore = 5;
@@ -303,6 +306,7 @@ namespace WitchMendokusai
                 HeroStarStep = heroStarStep,
                 HeroOwnedShareByGrade = heroOwnedShareByGrade,
                 HeroPartyShareByGrade = heroPartyShareByGrade,
+                HeroSupportShareByGrade = heroSupportShareByGrade,
                 CodexStepScore = codexStepScore,
                 CodexStepBonus = codexStepBonus,
                 ProducerCount = producerCount,

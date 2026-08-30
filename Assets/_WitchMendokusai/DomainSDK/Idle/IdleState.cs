@@ -80,12 +80,13 @@ namespace WitchMendokusai.DomainSDK.Idle
             = new System.Collections.Generic.List<IdleHeroOwned>();
 
         /// <summary>
-        /// 내보낸 셋 — 각 자리에 영웅 <see cref="IdleHeroKind.Id"/>, 빈 자리는 -1.
+        /// 편성. 각 칸에 영웅 <see cref="IdleHeroKind.Id"/>, 빈 칸은 -1.
+        /// 앞 <see cref="IdleHeroes.MAIN_SLOTS"/> 칸이 메인(출전), 뒤가 보조(전장 불참).
         ///
         /// ★ <b>보유</b>와 <b>출전</b>을 나눈 자리다. 안 나눴으면 전원 참전이 늘 정답이라
         ///   「누구를 내보낼까」가 결정이 아니게 된다.
         /// </summary>
-        public int[] Party { get; private set; } = new int[] { -1, -1, -1 };
+        public int[] Party { get; private set; } = IdleHeroes.EmptyParty();
 
         /// <summary>천장까지 남은 셈 — 마지막 최고등급 이후 몇 번 뽑았나.</summary>
         public int PullsSincePity { get; set; }
@@ -434,16 +435,21 @@ namespace WitchMendokusai.DomainSDK.Idle
                 }
             }
 
-            Party = new int[] { -1, -1, -1 };
+            Party = IdleHeroes.EmptyParty();
 
-            if (saveData.Party != null && saveData.Party.Length == Party.Length)
+            if (saveData.Party != null)
             {
-                for (int seat = 0; seat < Party.Length; seat++)
+                // ★ 옛 저장은 세 칸이다(편성이 여섯 칸이 되기 전, 2026-08-30). 앞부터 이어받으면
+                //   그 셋이 그대로 메인 칸 (사람이 앉혀 둔 순서 보존).
+                //   더 긴 저장(바깥에서 온 글자): 넘치는 칸 버림.
+                int carry = saveData.Party.Length < Party.Length ? saveData.Party.Length : Party.Length;
+
+                for (int slot = 0; slot < carry; slot++)
                 {
-                    int id = saveData.Party[seat];
+                    int id = saveData.Party[slot];
 
                     // 자리에 앉은 얼굴도 <b>가진 얼굴</b>이어야 한다 — 버린 영웅이 서 있으면 안 된다.
-                    Party[seat] = IdleHeroes.Knows(id) && IndexOfHero(id) >= 0 ? id : -1;
+                    Party[slot] = IdleHeroes.Knows(id) && IndexOfHero(id) >= 0 ? id : -1;
                 }
             }
             PullsSincePity = saveData.PullsSincePity;
