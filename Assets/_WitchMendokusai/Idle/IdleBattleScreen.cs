@@ -1348,13 +1348,13 @@ namespace WitchMendokusai
 		/// <summary>공방. 가방에 있는 종류(부위, 단계)를 칩으로 늘어놓고, 고른 종류를 3×3 에 채운다</summary>
 		private void RenderForge(IdleSnapshot snapshot)
 		{
-			int room = (snapshot.TierCeiling + 2) * IdleGear.SLOT_COUNT;
+			int room = snapshot.TierCeiling + 2;
 			int[] counts = new int[room];
 
 			for (int index = 0; index < snapshot.Bag.Length; index++)
 			{
 				IdleItem one = snapshot.Bag[index];
-				int key = one.Tier * IdleGear.SLOT_COUNT + (int)one.Slot;
+				int key = one.Tier;
 				if (key >= 0 && key < counts.Length)
 				{
 					counts[key]++;
@@ -1387,32 +1387,31 @@ namespace WitchMendokusai
 			for (int index = 0; index < forgeKindButtons.Count; index++)
 			{
 				int key = forgeKindKeys[index];
-				int tier = key / IdleGear.SLOT_COUNT;
-				IdleItemSlot slot = (IdleItemSlot)(key % IdleGear.SLOT_COUNT);
-				forgeKindButtons[index].text = string.Format("{0} {1}단계 ×{2}", SLOT_NAMES[(int)slot], tier, counts[key]);
+				int tier = key;
+				forgeKindButtons[index].text = string.Format("{0}단계 ×{1}", tier, counts[key]);
 				SetTierClass(forgeKindButtons[index], tier);
-				forgeKindButtons[index].EnableInClassList("idle-forge-kind--on", forgeTier == tier && forgeSlot == slot);
+				forgeKindButtons[index].EnableInClassList("idle-forge-kind--on", forgeTier == tier);
 			}
 
-			int forgeKey = forgeTier * IdleGear.SLOT_COUNT + (int)forgeSlot;
+			int forgeKey = forgeTier;
 			int have = forgeTier > 0 && forgeKey < counts.Length ? counts[forgeKey] : 0;
 			int shown = have > snapshot.MergeCount ? snapshot.MergeCount : have;
 
 			for (int index = 0; index < forgeCells.Count; index++)
 			{
 				bool filled = index < shown;
-				forgeCells[index].text = filled ? SLOT_NAMES[(int)forgeSlot] + "\n" + forgeTier + "단계" : string.Empty;
+				forgeCells[index].text = filled ? forgeTier + "단계" : string.Empty;
 				SetTierClass(forgeCells[index], filled ? forgeTier : 0);
 			}
 
 			bool ready = forgeTier > 0 && have >= snapshot.MergeCount;
-			forgeResult.text = forgeTier > 0 ? SLOT_NAMES[(int)forgeSlot] + "\n" + (forgeTier + 1) + "단계" : string.Empty;
+			forgeResult.text = forgeTier > 0 ? "랜덤\n" + (forgeTier + 1) + "단계" : string.Empty;
 			SetTierClass(forgeResult, forgeTier > 0 ? forgeTier + 1 : 0);
 			forgeResult.EnableInClassList("idle-forge-cell--ready", ready);
 
 			forgeTitle.text = forgeTier > 0
-				? string.Format("{0} {1}단계  {2}/{3}", SLOT_NAMES[(int)forgeSlot], forgeTier, have, snapshot.MergeCount)
-				: string.Format("같은 부위, 같은 단계 {0}개가 한 단계 위로", snapshot.MergeCount);
+				? string.Format("{0}단계  {1}/{2}", forgeTier, have, snapshot.MergeCount)
+				: string.Format("같은 단계 {0}개가 랜덤 장비 한 단계 위로", snapshot.MergeCount);
 			forgeButton.text = "합치기";
 			forgeButton.SetEnabled(ready);
 		}
@@ -1432,8 +1431,8 @@ namespace WitchMendokusai
 
 		private void PickForge(int key)
 		{
-			forgeTier = key / IdleGear.SLOT_COUNT;
-			forgeSlot = (IdleItemSlot)(key % IdleGear.SLOT_COUNT);
+			forgeTier = key;
+			forgeSlot = IdleItemSlot.Head;
 			Render(session.Capture());
 		}
 
@@ -1900,12 +1899,9 @@ namespace WitchMendokusai
 
 			for (int tier = 1; tier <= now.TierCeiling + 1; tier++)
 			{
-				for (int slot = 0; slot < IdleGear.SLOT_COUNT; slot++)
+				while (session.Send(new IdleMergeIntent(tier, IdleItemSlot.Head)))
 				{
-					while (session.Send(new IdleMergeIntent(tier, (IdleItemSlot)slot)))
-					{
-						merged++;
-					}
+					merged++;
 				}
 			}
 

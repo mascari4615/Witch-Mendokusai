@@ -72,6 +72,25 @@ namespace WitchMendokusai.Tests
 			Assert.AreEqual(1, state.Bag.Count, "재료가 안 없어졌다");
 		}
 
+		[Test]
+		public void Merging_UsesTheTierOnly_AndRollsTheOutputSlot()
+		{
+			IdleTuning tuning = new IdleTuning();
+			IdleState state = new IdleState();
+			state.Resource = 1e9d;
+
+			for (int index = 0; index < tuning.MergeCount; index++)
+			{
+				state.Bag.Add(new IdleItem(1, (IdleItemSlot)(index % IdleGear.SLOT_COUNT)));
+			}
+
+			Assert.IsTrue(IdleGear.TryMerge(state, tuning, 1, IdleItemSlot.Head, out IdleItem made));
+			Assert.AreEqual(2, made.Tier);
+			Assert.AreEqual(0, state.Bag.Count);
+			Assert.GreaterOrEqual((int)made.Slot, 0);
+			Assert.Less((int)made.Slot, IdleGear.SLOT_COUNT);
+		}
+
 		/// <summary>
 		/// ★ <b>한 벌이 주는 배수</b>는 차고 있든 가방에 있든 같은 셈이다.
 		///

@@ -108,7 +108,7 @@ namespace WitchMendokusai.DomainSDK.Idle
             for (int index = 0; index < state.Bag.Count; index++)
             {
                 IdleItem one = state.Bag[index];
-                if (one.Tier != tier || one.Slot != slot)
+                if (one.Tier != tier)
                 {
                     continue;
                 }
@@ -138,7 +138,10 @@ namespace WitchMendokusai.DomainSDK.Idle
 
             state.Resource -= cost;
 
-            made = new IdleItem(tier + 1, slot);
+            IdleRandom random = new IdleRandom(state.RandomState);
+            IdleItemSlot madeSlot = (IdleItemSlot)(int)(random.NextDouble() * SLOT_COUNT);
+            state.RandomState = random.State;
+            made = new IdleItem(tier + 1, madeSlot);
             state.Bag.Add(made);
             return true;
         }
@@ -155,7 +158,7 @@ namespace WitchMendokusai.DomainSDK.Idle
             for (int index = 0; index < state.Bag.Count; index++)
             {
                 IdleItem one = state.Bag[index];
-                if (one.Tier == tier && one.Slot == slot)
+                if (one.Tier == tier)
                 {
                     have++;
                 }

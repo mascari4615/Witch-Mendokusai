@@ -267,7 +267,7 @@ namespace WitchMendokusai.DomainSDK.Idle
             //   등급 천장은 환생할수록 오른다(기본 6 + 환생마다 2). 다섯 번 환생하면 16 이라
             //   16 x 4 = 64 로 <b>딱 넘어가고</b>, 그 위 등급은 조용히 안 세어졌다 —
             //   후반에 합칠 것이 있는데도 화면이 아무 말도 안 하게 된다.
-            int room = (snapshot.TierCeiling + 2) * IdleGear.SLOT_COUNT;
+            int room = snapshot.TierCeiling + 2;
             int[] counts = scratch;
 
             if (counts == null || counts.Length < room)
@@ -285,7 +285,7 @@ namespace WitchMendokusai.DomainSDK.Idle
             for (int index = 0; index < snapshot.Bag.Length; index++)
             {
                 IdleItem one = snapshot.Bag[index];
-                int key = one.Tier * IdleGear.SLOT_COUNT + (int)one.Slot;
+                int key = one.Tier;
 
                 if (key < 0 || key >= counts.Length)
                 {
