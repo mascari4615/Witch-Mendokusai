@@ -338,6 +338,15 @@ namespace WitchMendokusai
 				return;
 			}
 
+			if (built == false)
+			{
+				BuildAll(default);
+				if (built == false)
+				{
+					return;
+				}
+			}
+
 			Tick(Time.unscaledDeltaTime);
 		}
 
@@ -398,7 +407,13 @@ namespace WitchMendokusai
 
 		private void BuildAll(IdleAwayReport away)
 		{
-			VisualElement root = GetComponent<UIDocument>().rootVisualElement;
+			UIDocument document = GetComponent<UIDocument>();
+			if (document == null || document.rootVisualElement == null)
+			{
+				return;
+			}
+
+			VisualElement root = document.rootVisualElement;
 			root.Clear();
 			built = false;
 
