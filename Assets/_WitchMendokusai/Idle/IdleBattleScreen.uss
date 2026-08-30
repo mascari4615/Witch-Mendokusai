@@ -379,14 +379,18 @@
 
 .v2-tab {
 	flex-grow: 1;
+	flex-basis: 0;
+	min-width: 0;
 	height: 72px;
 	margin: 0 1px;
+	padding: 0 2px;
 	background-color: rgb(30, 30, 30);
 	color: rgb(200, 200, 192);
 	border-width: 0;
 	border-radius: 0;
-	font-size: 14px;
+	font-size: 13px;
 	white-space: normal;
+	overflow: hidden;
 }
 
 .v2-tab:hover {

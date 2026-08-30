@@ -308,7 +308,7 @@ namespace WitchMendokusai
 
 			// 좌상. 작전 코드 + 웨이브. 누르면 맵 팝업
 			VisualElement op = new VisualElement();
-			op.AddToClassList("v2-box v2-op");
+			AddClasses(op, "v2-box v2-op");
 			battle.Add(op);
 			op.RegisterCallback<ClickEvent>(_ => ToggleMap());
 
@@ -332,7 +332,7 @@ namespace WitchMendokusai
 			battle.Add(stepRow);
 
 			VisualElement stepper = new VisualElement();
-			stepper.AddToClassList("v2-box v2-stepper");
+			AddClasses(stepper, "v2-box v2-stepper");
 			stepRow.Add(stepper);
 			stepBack = AddButton(stepper, "v2-step-button", () => StepStage(-1));
 			stepBack.text = "◀";
@@ -365,7 +365,7 @@ namespace WitchMendokusai
 
 			// 우측. 로그 (지금은 안내 한 줄 + 알림 한 줄)
 			VisualElement log = new VisualElement();
-			log.AddToClassList("v2-box v2-log");
+			AddClasses(log, "v2-box v2-log");
 			battle.Add(log);
 			AddLabel(log, "v2-cap").text = "LOG";
 			logLabel = AddLabel(log, "v2-log-line");
@@ -373,7 +373,7 @@ namespace WitchMendokusai
 
 			// 상단 중앙. 보스 바 (보스 때만)
 			enemyBar = new VisualElement();
-			enemyBar.AddToClassList("v2-box v2-enemy");
+			AddClasses(enemyBar, "v2-box v2-enemy");
 			battle.Add(enemyBar);
 			enemyLabel = AddLabel(enemyBar, "v2-enemy-label");
 			VisualElement gauge = new VisualElement();
@@ -385,7 +385,7 @@ namespace WitchMendokusai
 
 			// 중앙. 실패 배너 (반복 중일 때만)
 			failBanner = new VisualElement();
-			failBanner.AddToClassList("v2-box v2-fail");
+			AddClasses(failBanner, "v2-box v2-fail");
 			failBanner.style.display = DisplayStyle.None;
 			battle.Add(failBanner);
 			failLabel = AddLabel(failBanner, "v2-fail-label");
@@ -615,7 +615,7 @@ namespace WitchMendokusai
 		private void BuildMapPopup()
 		{
 			mapPopup = new VisualElement();
-			mapPopup.AddToClassList("v2-box v2-map");
+			AddClasses(mapPopup, "v2-box v2-map");
 			mapPopup.style.display = DisplayStyle.None;
 			battle.Add(mapPopup);
 
@@ -1441,6 +1441,14 @@ namespace WitchMendokusai
 				case IdleCardKind.Volley: return "일제 사격";
 				case IdleCardKind.Supply: return "긴급 보급";
 				default: return "비밀 감정";
+			}
+		}
+
+		private static void AddClasses(VisualElement element, string classNames)
+		{
+			foreach (string one in classNames.Split(' '))
+			{
+				element.AddToClassList(one);
 			}
 		}
 
