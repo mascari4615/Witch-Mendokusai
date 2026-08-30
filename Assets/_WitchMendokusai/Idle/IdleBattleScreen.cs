@@ -41,7 +41,7 @@ namespace WitchMendokusai
 		private bool skipSaveOnce;
 
 		// ── 탭 ────────────────────────────────────────────────────────────
-		private enum Tab { Doll, Item, Codex, Shop, Lab, Dungeon, Invest }
+		private enum Tab { Doll = 0, Item = 1, Codex = 2, Shop = 3, Lab = 4, Dungeon = 5, Invest = 6 }
 
 		private static readonly string[] TAB_NAMES = { "인형", "아이템", "도감", "상점", "연구소", "던전", "투자" };
 		private static readonly string[] TAB_CAPTIONS = { "DOLLS", "ITEMS", "CODEX", "SHOP", "LAB", "DUNGEON", "INVEST" };
