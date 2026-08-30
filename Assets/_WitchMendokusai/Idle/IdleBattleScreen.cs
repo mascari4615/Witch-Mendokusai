@@ -108,6 +108,7 @@ namespace WitchMendokusai
 		private Button nextStageButton;
 
 		private Button[] cardButtons;
+		private int volleyHandIndex = -1;
 		private VisualElement costFill;
 		private Label costLabel;
 
@@ -1694,6 +1695,21 @@ namespace WitchMendokusai
 
 		private void OnTapped(PointerDownEvent moment)
 		{
+			if (volleyHandIndex >= 0)
+			{
+				if (stage != null && stage.TryPickFoe(moment.position, out long foeIndex)
+					&& session.TryCastCardAt(volleyHandIndex, foeIndex, out IdleCardResult result))
+				{
+					stage.OnVolley();
+					volleyHandIndex = -1;
+					SayOnce("일제 사격. 목표를 집중 타격했다", noteSeconds);
+					WriteDown();
+					Render(session.Capture());
+				}
+
+				return;
+			}
+
 			if (moment.target is Button || (moment.target is VisualElement element && IsInsideBox(element)))
 			{
 				return;
@@ -1724,6 +1740,14 @@ namespace WitchMendokusai
 
 		private void Cast(int handIndex)
 		{
+			IdleCardKind selected = IdleCards.HandAt(session.State, handIndex);
+			if (selected == IdleCardKind.Volley)
+			{
+				volleyHandIndex = handIndex;
+				SayOnce("일제 사격. 적 하나를 선택하세요", noteSeconds);
+				return;
+			}
+
 			if (session.TryCastCard(handIndex, out IdleCardResult result) == false)
 			{
 				return;

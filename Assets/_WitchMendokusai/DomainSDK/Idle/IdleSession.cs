@@ -277,6 +277,11 @@ namespace WitchMendokusai.DomainSDK.Idle
             return IdleCards.TryCastHand(state, tuning, handIndex, out result);
         }
 
+        public bool TryCastCardAt(int handIndex, long foeIndex, out IdleCardResult result)
+        {
+            return IdleCards.TryCastHandAt(state, tuning, handIndex, foeIndex, out result);
+        }
+
         /// <summary>떨어진 것 하나를 감정한다. 그 등급이 없으면 아무 일도 안 일어난다.</summary>
         public bool Send(IdleAppraiseIntent intent)
         {

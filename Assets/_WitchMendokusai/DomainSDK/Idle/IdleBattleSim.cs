@@ -603,5 +603,42 @@ namespace WitchMendokusai.DomainSDK.Idle
                 Reset(state, tuning);
             }
         }
+
+        public static bool StrikeForTarget(IdleState state, IdleTuning tuning, double seconds, long foeIndex)
+        {
+            IdleBattle battle = state.Battle;
+            IdleFoe target = battle.FoeOf(foeIndex);
+            if (seconds <= 0d || battle.Ready == false || target == null || target.Health <= 0d)
+            {
+                return false;
+            }
+
+            double damage = IdleModel.DamageOf(state, tuning);
+            long hits = (long)(IdleModel.AttackSpeedOf(state, tuning) * seconds + EPSILON);
+            int seat = FrontSeat(state);
+            if (seat < 0 || hits <= 0L)
+            {
+                return false;
+            }
+
+            for (long at = 0; at < hits && target.Health > 0d; at++)
+            {
+                target.Health -= damage;
+                state.HitsOnTarget += 1L;
+                battle.Hits.Add(new IdleHit(seat, target.Index, damage, false));
+            }
+
+            if (target.Health <= 0d)
+            {
+                ClearDead(state, tuning);
+            }
+
+            if (battle.StageSeen != state.Stage)
+            {
+                Reset(state, tuning);
+            }
+
+            return true;
+        }
     }
 }

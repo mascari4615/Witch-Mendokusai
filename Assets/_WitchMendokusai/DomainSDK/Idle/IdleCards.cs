@@ -120,6 +120,33 @@ namespace WitchMendokusai.DomainSDK.Idle
 			return true;
 		}
 
+		public static bool TryCastHandAt(IdleState state, IdleTuning tuning, int handIndex, long foeIndex,
+			out IdleCardResult result)
+		{
+			result = default;
+			if (handIndex < 0 || handIndex >= HAND_SIZE || HandAt(state, handIndex) != IdleCardKind.Volley)
+			{
+				return false;
+			}
+
+			if (CanCast(state, tuning, IdleCardKind.Volley) == false
+				|| IdleBattleSim.StrikeForTarget(state, tuning, tuning.VolleySecondsOfAttack, foeIndex) == false)
+			{
+				return false;
+			}
+
+			state.Cost -= CostOf(IdleCardKind.Volley, tuning);
+			int used = state.CardDeck[handIndex];
+			for (int index = handIndex; index < state.CardDeck.Length - 1; index++)
+			{
+				state.CardDeck[index] = state.CardDeck[index + 1];
+			}
+
+			state.CardDeck[state.CardDeck.Length - 1] = used;
+			result = new IdleCardResult(IdleCardKind.Volley, default, false);
+			return true;
+		}
+
 		private static bool HasKnownKinds(int[] deck)
 		{
 			for (int index = 0; index < deck.Length; index++)

@@ -684,6 +684,36 @@ namespace WitchMendokusai
 			}
 		}
 
+		public bool TryPickFoe(Vector2 panelPosition, out long foeIndex)
+		{
+			foeIndex = -1L;
+			Camera eye = Camera.main;
+			if (eye == null)
+			{
+				return false;
+			}
+
+			Vector2 screen = new Vector2(panelPosition.x, Screen.height - panelPosition.y);
+			float best = 54f;
+			foreach (Foe foe in foes)
+			{
+				Vector3 point = eye.WorldToScreenPoint(foe.Piece.position);
+				if (point.z <= 0f)
+				{
+					continue;
+				}
+
+				float distance = Vector2.Distance(screen, new Vector2(point.x, point.y));
+				if (distance < best)
+				{
+					best = distance;
+					foeIndex = foe.Index;
+				}
+			}
+
+			return foeIndex >= 0L;
+		}
+
 		/// <summary>긴급 보급. 땅이 잠시 금빛</summary>
 		public void OnSupply(float seconds)
 		{
