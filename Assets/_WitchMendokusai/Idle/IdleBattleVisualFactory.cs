@@ -12,6 +12,21 @@ namespace WitchMendokusai
 			return made;
 		}
 
+		/// <summary>발광하는 머티리얼. 보스만 쓴다 (visual.md 6)</summary>
+		public static Material MakeGlowing(Color color, float strength)
+		{
+			Material made = MakeMaterial(color);
+			made.EnableKeyword("_EMISSION");
+			made.globalIlluminationFlags = MaterialGlobalIlluminationFlags.RealtimeEmissive;
+
+			if (made.HasProperty("_EmissionColor"))
+			{
+				made.SetColor("_EmissionColor", color * strength);
+			}
+
+			return made;
+		}
+
 		public static Material MakeMaterial(Color color)
 		{
 			Shader shader = Shader.Find("Universal Render Pipeline/Lit");

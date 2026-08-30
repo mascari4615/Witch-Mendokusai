@@ -48,6 +48,25 @@ namespace WitchMendokusai
 
 		[Tooltip("이 구역부터 보스 코어에 뿔을 세운다 (별 만들기)")]
 		[SerializeField] private int bossSpikeFromStage = 21;
+
+		[Header("색 (visual.md 6). 구역이 깊을수록 짙어진다")]
+		[Tooltip("이 구역에서 채도가 최대")]
+		[SerializeField] private int colorDepthStage = 40;
+
+		[Tooltip("깊이가 채도에 더하는 몫")]
+		[SerializeField] private float depthSaturation = 0.35f;
+
+		[Tooltip("깊이가 밝기에서 빼는 몫")]
+		[SerializeField] private float depthDarken = 0.18f;
+
+		[Tooltip("보스 발광 세기. 0 이면 안 빛난다")]
+		[SerializeField] private float bossGlow = 0.55f;
+
+		[Tooltip("근접이 뜨는 높이 배수. 낮게")]
+		[SerializeField] private float meleeHeightShare = 0.85f;
+
+		[Tooltip("원거리가 뜨는 높이 배수. 높게")]
+		[SerializeField] private float rangedHeightShare = 1.3f;
 		[SerializeField] private Color groundColor = new Color(0.62f, 0.73f, 0.55f);
 		[SerializeField] private Color enemyColor = new Color(0.55f, 0.50f, 0.63f);
 		[SerializeField] private Color rangedEnemyColor = new Color(0.66f, 0.54f, 0.50f);
@@ -154,6 +173,12 @@ namespace WitchMendokusai
 				BossShellSpread = bossShellSpread,
 				BossShellSpinDegrees = bossShellSpinDegrees,
 				BossSpikeFromStage = bossSpikeFromStage,
+				ColorDepthStage = colorDepthStage,
+				DepthSaturation = depthSaturation,
+				DepthDarken = depthDarken,
+				BossGlow = bossGlow,
+				MeleeHeightShare = meleeHeightShare,
+				RangedHeightShare = rangedHeightShare,
 				MyColor = myColor,
 				EnemyColor = enemyColor,
 				RangedEnemyColor = rangedEnemyColor,

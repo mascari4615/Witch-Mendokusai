@@ -45,6 +45,22 @@ namespace WitchMendokusai
 			/// <summary>이 구역부터 보스 코어에 뿔을 세운다 (별 만들기)</summary>
 			public int BossSpikeFromStage { get; set; } = 21;
 
+			/// <summary>이 구역에서 채도가 최대. 그 너머는 더 안 짙어진다 (visual.md 6)</summary>
+			public int ColorDepthStage { get; set; } = 40;
+
+			/// <summary>깊이가 채도에 더하는 몫</summary>
+			public float DepthSaturation { get; set; } = 0.35f;
+
+			/// <summary>깊이가 밝기에서 빼는 몫</summary>
+			public float DepthDarken { get; set; } = 0.18f;
+
+			/// <summary>보스 발광 세기. 0 이면 안 빛난다</summary>
+			public float BossGlow { get; set; } = 0.55f;
+
+			/// <summary>근접은 낮게, 원거리는 높게 뜬다 (visual.md 3). 높이 배수</summary>
+			public float MeleeHeightShare { get; set; } = 0.85f;
+			public float RangedHeightShare { get; set; } = 1.3f;
+
 			public Color MyColor { get; set; }
 			public Color EnemyColor { get; set; }
 			public Color RangedEnemyColor { get; set; }
@@ -70,6 +86,9 @@ namespace WitchMendokusai
 
 			/// <summary>지금 쓰고 있는 도형. 바뀔 때만 메시를 다시 만든다</summary>
 			public int ShapeUsed = -1;
+
+			/// <summary>색을 칠한 구역. 깊이가 바뀌면 다시 칠한다</summary>
+			public int StageUsed = -1;
 
 			/// <summary>보스 껍질. 코어를 감싸고 역방향으로 돈다</summary>
 			public Transform Shell;
@@ -313,6 +332,7 @@ namespace WitchMendokusai
 			}
 
 			IdleGeometry.Shape shape = IdleGeometry.ShapeOfStage(snapshot.Stage, settings.ShapeStagesPerStep);
+			int stage = snapshot.Stage;
 
 			for (int at = 0; at < snapshot.Foes.Length; at++)
 			{
@@ -329,18 +349,22 @@ namespace WitchMendokusai
 				IdleGeometry.Shape mine = view.Boss ? NextShape(shape) : shape;
 				Reshape(foe, mine, view.Boss, snapshot.Stage);
 
-				if (foe.Boss != view.Boss || foe.Kind != view.Kind)
+				if (foe.Boss != view.Boss || foe.Kind != view.Kind || foe.StageUsed != stage)
 				{
 					foe.Boss = view.Boss;
 					foe.Kind = view.Kind;
-					foe.Skin.color = view.Boss
-						? settings.BossColor
-						: (view.Kind == IdleFoeKind.Ranged ? settings.RangedEnemyColor : settings.EnemyColor);
+					foe.StageUsed = stage;
+					Repaint(foe, stage);
 				}
+
+				// 근접은 낮게, 원거리는 높게. 도형이 같아도 종류가 읽힌다 (visual.md 3)
+				float lift = settings.FoeHeight * (view.Boss
+					? 1f
+					: (view.Kind == IdleFoeKind.Ranged ? settings.RangedHeightShare : settings.MeleeHeightShare));
 
 				foe.Piece.localPosition = Vector3.Lerp(
 					foe.Piece.localPosition,
-					new Vector3((float)view.X, settings.FoeHeight, (float)view.Y),
+					new Vector3((float)view.X, lift, (float)view.Y),
 					IdleBattleMotion.CatchUp(settings.PositionCatchUp, delta));
 
 				float health = 0.82f + 0.18f * (float)view.HealthRatio;
@@ -356,6 +380,56 @@ namespace WitchMendokusai
 
 				SpreadShell(foe, view, delta);
 			}
+		}
+
+		/// <summary>
+		/// 색을 다시. 종류색을 바탕으로 구역이 깊을수록 짙어진다 (visual.md 6)
+		///
+		/// ★ 보스만 발광. 잡몹까지 빛나면 위험 판독 불가
+		/// </summary>
+		private void Repaint(Foe foe, int stage)
+		{
+			Color basis = foe.Boss
+				? settings.BossColor
+				: (foe.Kind == IdleFoeKind.Ranged ? settings.RangedEnemyColor : settings.EnemyColor);
+
+			Color made = Deepen(basis, stage);
+
+			if (foe.Boss && settings.BossGlow > 0f)
+			{
+				foe.Skin.color = made;
+				if (foe.Skin.HasProperty("_BaseColor"))
+				{
+					foe.Skin.SetColor("_BaseColor", made);
+				}
+
+				foe.Skin.EnableKeyword("_EMISSION");
+				foe.Skin.globalIlluminationFlags = MaterialGlobalIlluminationFlags.RealtimeEmissive;
+				if (foe.Skin.HasProperty("_EmissionColor"))
+				{
+					foe.Skin.SetColor("_EmissionColor", made * settings.BossGlow);
+				}
+
+				return;
+			}
+
+			foe.Skin.color = made;
+			if (foe.Skin.HasProperty("_BaseColor"))
+			{
+				foe.Skin.SetColor("_BaseColor", made);
+			}
+		}
+
+		/// <summary>구역이 깊을수록 채도는 오르고 밝기는 내린다. 상한에서 멎는다</summary>
+		private Color Deepen(Color basis, int stage)
+		{
+			int span = settings.ColorDepthStage > 1 ? settings.ColorDepthStage - 1 : 1;
+			float depth = Mathf.Clamp01((stage - 1) / (float)span);
+
+			Color.RGBToHSV(basis, out float hue, out float saturation, out float value);
+			saturation = Mathf.Clamp01(saturation + depth * settings.DepthSaturation);
+			value = Mathf.Clamp01(value - depth * settings.DepthDarken);
+			return Color.HSVToRGB(hue, saturation, value);
 		}
 
 		/// <summary>한 계단 위 도형. 끝에 닿으면 그대로</summary>
