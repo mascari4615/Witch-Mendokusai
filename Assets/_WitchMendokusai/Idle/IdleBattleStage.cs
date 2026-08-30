@@ -44,10 +44,10 @@ namespace WitchMendokusai
 		[SerializeField] private float boltSeconds = 0.18f;
 		[SerializeField] private float popSeconds = 0.3f;
 		[SerializeField] private float positionCatchUp = 14f;
-		[SerializeField] private float foeSpinDegrees = 42f;
-		[SerializeField] private float foeBobHeight = 0.08f;
-		[SerializeField] private float shakeSeconds = 0.12f;
-		[SerializeField] private float shakeDistance = 0.08f;
+		[SerializeField] private float foeSpinDegrees = 12f;
+		[SerializeField] private float foeBobHeight = 0.025f;
+		[SerializeField] private float shakeSeconds = 0.08f;
+		[SerializeField] private float shakeDistance = 0.025f;
 
 		[Header("적")]
 		[SerializeField] private float bossScale = 1.9f;
@@ -87,6 +87,8 @@ namespace WitchMendokusai
 		private sealed class Foe
 		{
 			public Transform Piece;
+			public Transform Model;
+			public Transform BarAnchor;
 			public MeshFilter Mesh;
 			public Material Skin;
 			public IdleHealthBar Bar;
@@ -118,6 +120,7 @@ namespace WitchMendokusai
 		private Transform worldRoot;
 		private float clock;
 		private Transform[] dolls;
+		private Transform[] dollBarAnchors;
 		private Material[] dollSkins;
 		private IdleHealthBar[] dollBars;
 		private float[] lungeLeft;
@@ -160,7 +163,7 @@ namespace WitchMendokusai
 				GameObject made = Instantiate(groundPrefab, holder, false);
 				made.name = "Ground";
 				MeshRenderer floor = made.GetComponentInChildren<MeshRenderer>();
-				groundMaterial = floor != null ? floor.sharedMaterial : MakeMaterial(groundColor);
+				groundMaterial = floor != null ? floor.sharedMaterial : IdleBattleVisualFactory.MakeMaterial(groundColor);
 				groundRest = groundMaterial.color;
 			}
 			else
@@ -169,7 +172,7 @@ namespace WitchMendokusai
 				ground.name = "Ground";
 				ground.transform.SetParent(holder, false);
 				ground.transform.localScale = new Vector3(6f, 1f, 4f);
-				groundMaterial = Paint(ground, groundColor);
+				groundMaterial = IdleBattleVisualFactory.Paint(ground, groundColor);
 				groundRest = groundColor;
 			}
 
@@ -179,6 +182,7 @@ namespace WitchMendokusai
 
 			int seats = IdleSquad.SEAT_COUNT;
 			dolls = new Transform[seats];
+			dollBarAnchors = new Transform[seats];
 			dollSkins = new Material[seats];
 			dollBars = new IdleHealthBar[seats];
 			lungeLeft = new float[seats];
@@ -204,7 +208,7 @@ namespace WitchMendokusai
 					side * (3.4f + 0.9f * (at % 3)));
 				prop.transform.localScale = new Vector3(size, size, size);
 				prop.transform.localRotation = Quaternion.Euler(0f, at * 37f, 0f);
-				Paint(prop, sceneryColor);
+				IdleBattleVisualFactory.Paint(prop, sceneryColor);
 				scenery.Add(prop.transform);
 			}
 		}
@@ -214,8 +218,11 @@ namespace WitchMendokusai
 			GameObject doll = new GameObject("Doll" + seat);
 			doll.transform.SetParent(worldRoot, false);
 			doll.transform.localRotation = Quaternion.LookRotation(Vector3.right);
+			GameObject barAnchor = new GameObject("DollHealthBarAnchor" + seat);
+			barAnchor.transform.SetParent(worldRoot, false);
+			dollBarAnchors[seat] = barAnchor.transform;
 
-			Material skin = MakeMaterial(seat == 0 ? myColor : gradeColors[0]);
+			Material skin = IdleBattleVisualFactory.MakeMaterial(seat == 0 ? myColor : gradeColors[0]);
 			dollSkins[seat] = skin;
 
 			if (dollPrefab != null)
@@ -230,7 +237,7 @@ namespace WitchMendokusai
 					}
 				}
 
-				dollBars[seat] = IdleHealthBar.Attach(doll.transform, 1.45f, 0.9f, 0.11f,
+				dollBars[seat] = IdleHealthBar.Attach(barAnchor.transform, 1.45f, 0.9f, 0.11f,
 					barBackColor, allyBarColor);
 				return doll.transform;
 			}
@@ -247,7 +254,7 @@ namespace WitchMendokusai
 			head.transform.localScale = new Vector3(0.55f, 0.55f, 0.55f);
 			head.GetComponent<MeshRenderer>().sharedMaterial = skin;
 
-			dollBars[seat] = IdleHealthBar.Attach(doll.transform, 1.45f, 0.9f, 0.11f,
+			dollBars[seat] = IdleHealthBar.Attach(barAnchor.transform, 1.45f, 0.9f, 0.11f,
 				barBackColor, allyBarColor);
 
 			return doll.transform;
@@ -326,8 +333,12 @@ namespace WitchMendokusai
 
 				if (view.Taken == false)
 				{
+					dollBarAnchors[seat].gameObject.SetActive(false);
 					continue;
 				}
+
+				dollBarAnchors[seat].gameObject.SetActive(true);
+				dollBarAnchors[seat].position = dolls[seat].position;
 
 				if (view.HeroId >= 0)
 				{
@@ -364,6 +375,7 @@ namespace WitchMendokusai
 				if (IndexOfView(views, foes[at].Index) < 0)
 				{
 					goneHeads[foes[at].Index] = foes[at].Piece.position + new Vector3(0f, 0.7f, 0f);
+					Kill(foes[at].BarAnchor.gameObject);
 					Kill(foes[at].Piece.gameObject);
 					foes.RemoveAt(at);
 				}
@@ -383,7 +395,7 @@ namespace WitchMendokusai
 				if (foe.Mesh != null && foe.Sides != sides)
 				{
 					foe.Sides = sides;
-					foe.Mesh.sharedMesh = NgonPrism(sides, 0.62f, 0.95f);
+					foe.Mesh.sharedMesh = IdleBattleVisualFactory.NgonPrism(sides, 0.62f, 0.95f);
 				}
 
 				if (foe.Boss != view.Boss || foe.Kind != view.Kind)
@@ -400,7 +412,9 @@ namespace WitchMendokusai
 				float health = 0.82f + 0.18f * (float)view.HealthRatio;
 				float pop = foe.PopLeft > 0f ? 1f + 0.35f * (foe.PopLeft / popSeconds) : 1f;
 				float bulk = view.Boss ? bossScale : 1f;
-				foe.Piece.localScale = new Vector3(health * pop * bulk, pop * bulk, health * pop * bulk);
+				foe.Piece.localScale = Vector3.one;
+				foe.Model.localScale = new Vector3(health * pop * bulk, pop * bulk, health * pop * bulk);
+				foe.BarAnchor.position = foe.Piece.position;
 
 				// 보스는 화면 상단 큰 바가 따로 있어 머리 위 바는 잡몹만
 				foe.Bar.SetVisible(view.Boss == false);
@@ -441,17 +455,23 @@ namespace WitchMendokusai
 		{
 			GameObject piece = new GameObject("Foe" + index);
 			piece.transform.SetParent(worldRoot, false);
+			GameObject model = new GameObject("ModelPivot");
+			model.transform.SetParent(piece.transform, false);
+			GameObject barAnchor = new GameObject("HealthBarAnchor");
+			barAnchor.transform.SetParent(worldRoot, false);
 
 			Foe foe = new Foe();
 			foe.Piece = piece.transform;
-			foe.Skin = MakeMaterial(enemyColor);
+			foe.Model = model.transform;
+			foe.BarAnchor = barAnchor.transform;
+			foe.Skin = IdleBattleVisualFactory.MakeMaterial(enemyColor);
 			foe.Index = index;
 			foe.Sides = -1;
 
 			GameObject source = boss && bossPrefab != null ? bossPrefab : foePrefab;
 			if (source != null)
 			{
-				GameObject made = Instantiate(source, piece.transform, false);
+				GameObject made = Instantiate(source, model.transform, false);
 				made.name = "Model";
 				MeshRenderer part = made.GetComponentInChildren<MeshRenderer>();
 				if (part != null)
@@ -463,13 +483,13 @@ namespace WitchMendokusai
 			}
 			else
 			{
-				foe.Mesh = piece.AddComponent<MeshFilter>();
-				MeshRenderer renderer = piece.AddComponent<MeshRenderer>();
+				foe.Mesh = model.AddComponent<MeshFilter>();
+				MeshRenderer renderer = model.AddComponent<MeshRenderer>();
 				renderer.sharedMaterial = foe.Skin;
 			}
 
 			foe.Kind = IdleFoeKind.Melee;
-			foe.Bar = IdleHealthBar.Attach(piece.transform, 0.95f, 0.8f, 0.1f,
+			foe.Bar = IdleHealthBar.Attach(barAnchor.transform, 0.95f, 0.8f, 0.1f,
 				barBackColor, enemyBarColor);
 			return foe;
 		}
@@ -560,7 +580,7 @@ namespace WitchMendokusai
 			bolt.transform.SetParent(holder, false);
 			bolt.transform.position = from;
 			bolt.transform.localScale = new Vector3(0.16f, 0.16f, 0.16f);
-			Paint(bolt, boltColor);
+			IdleBattleVisualFactory.Paint(bolt, boltColor);
 
 			bolts.Add(bolt.transform);
 			boltAges.Add(0f);
@@ -587,8 +607,17 @@ namespace WitchMendokusai
 			ParticleSystem.ShapeModule shape = particles.shape;
 			shape.shapeType = ParticleSystemShapeType.Sphere;
 			shape.radius = 0.08f;
+			ParticleSystemRenderer particleRenderer = effectObject.GetComponent<ParticleSystemRenderer>();
+			particleRenderer.renderMode = ParticleSystemRenderMode.Mesh;
+			particleRenderer.mesh = IdleBattleVisualFactory.BuildImpactMesh();
+			particleRenderer.sharedMaterial = IdleBattleVisualFactory.MakeMaterial(color);
 			particles.Play();
 			Destroy(effectObject, 0.45f);
+		}
+
+		private static Mesh BuildImpactMesh()
+		{
+			return NgonPrism(4, 0.5f, 0.5f);
 		}
 
 		/// <summary>피해 숫자 하나. 내장 글꼴 TextMesh. 카메라를 본다</summary>
@@ -668,10 +697,10 @@ namespace WitchMendokusai
 			for (int index = 0; index < foes.Count; index++)
 			{
 				Foe foe = foes[index];
-				foe.Piece.Rotate(Vector3.up, foeSpinDegrees * delta, Space.Self);
-				Vector3 position = foe.Piece.localPosition;
-				position.y += Mathf.Sin(clock * 2.4f + index * 1.7f) * foeBobHeight;
-				foe.Piece.localPosition = position;
+				foe.Model.Rotate(Vector3.up, foeSpinDegrees * delta, Space.Self);
+				Vector3 position = foe.Model.localPosition;
+				position.y = Mathf.Sin(clock * 2.4f + index * 1.7f) * foeBobHeight;
+				foe.Model.localPosition = position;
 			}
 
 			if (shakeLeft > 0f)
@@ -820,33 +849,6 @@ namespace WitchMendokusai
 			built = false;
 		}
 
-		private static Material Paint(GameObject piece, Color color)
-		{
-			Material made = MakeMaterial(color);
-			piece.GetComponent<MeshRenderer>().sharedMaterial = made;
-			return made;
-		}
-
-		private static Material MakeMaterial(Color color)
-		{
-			Shader shader = Shader.Find("Universal Render Pipeline/Lit");
-			if (shader == null)
-			{
-				shader = Shader.Find("Standard");
-			}
-
-			Material made = new Material(shader);
-			made.hideFlags = HideFlags.DontSave;
-			made.color = color;
-
-			if (made.HasProperty("_BaseColor"))
-			{
-				made.SetColor("_BaseColor", color);
-			}
-
-			return made;
-		}
-
 		/// <summary>N각기둥. 변의 수는 등급 규칙의 3D 형태</summary>
 		private static Mesh NgonPrism(int sides, float radius, float height)
 		{
@@ -855,19 +857,22 @@ namespace WitchMendokusai
 			sides = Mathf.Clamp(sides, 4, 12);
 			List<Vector3> vertices = new List<Vector3>();
 			List<int> triangles = new List<int>();
-			vertices.Add(new Vector3(0f, height * 0.5f, 0f));
-			vertices.Add(new Vector3(0f, -height * 0.5f, 0f));
+			Vector3 top = new Vector3(0f, height * 0.5f, 0f);
+			Vector3 bottom = new Vector3(0f, -height * 0.5f, 0f);
+			// 면마다 정점을 복제해 노멀을 공유하지 않는다. 이 임시 도형은
+			// 매끈한 덩어리가 아니라 빛이 꺾이는 면체로 보여야 한다.
 			for (int at = 0; at < sides; at++)
 			{
 				float angle = at * Mathf.PI * 2f / sides;
-				vertices.Add(new Vector3(Mathf.Cos(angle) * radius, 0f, Mathf.Sin(angle) * radius));
-			}
-			for (int at = 0; at < sides; at++)
-			{
-				int next = 2 + (at + 1) % sides;
-				int current = 2 + at;
-				triangles.Add(0); triangles.Add(current); triangles.Add(next);
-				triangles.Add(1); triangles.Add(next); triangles.Add(current);
+				float nextAngle = (at + 1) * Mathf.PI * 2f / sides;
+				Vector3 current = new Vector3(Mathf.Cos(angle) * radius, 0f, Mathf.Sin(angle) * radius);
+				Vector3 next = new Vector3(Mathf.Cos(nextAngle) * radius, 0f, Mathf.Sin(nextAngle) * radius);
+				int start = vertices.Count;
+				vertices.Add(top); vertices.Add(current); vertices.Add(next);
+				triangles.Add(start); triangles.Add(start + 1); triangles.Add(start + 2);
+				start = vertices.Count;
+				vertices.Add(bottom); vertices.Add(next); vertices.Add(current);
+				triangles.Add(start); triangles.Add(start + 1); triangles.Add(start + 2);
 			}
 
 			mesh.SetVertices(vertices);
