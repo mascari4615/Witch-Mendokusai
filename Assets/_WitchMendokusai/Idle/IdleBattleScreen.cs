@@ -492,7 +492,7 @@ namespace WitchMendokusai
 		{
 			VisualElement page = AddPage(Tab.Doll);
 
-			AddLabel(page, "v2-cap").text = "편성. MAIN 3 전장 / SUB 3 보조";
+			AddLabel(page, "v2-cap").text = "편성";
 			VisualElement party = new VisualElement();
 			party.AddToClassList("v2-party");
 			page.Add(party);
@@ -507,14 +507,14 @@ namespace WitchMendokusai
 
 			dollName = AddLabel(page, "v2-row-head");
 
-			AddLabel(page, "v2-cap").text = "성장 (지금은 판 전체 강화. 인형별 레벨은 다음 조각)";
+			AddLabel(page, "v2-cap").text = "강화";
 			damageLabel = AddLabel(page, "v2-row-title");
 			damageButton = AddButton(page, "v2-row-button", () => Raise(IdleUpgradeKind.Damage));
 			speedLabel = AddLabel(page, "v2-row-title");
 			speedButton = AddButton(page, "v2-row-button", () => Raise(IdleUpgradeKind.AttackSpeed));
 			bulkRaiseButton = AddButton(page, "v2-row-button v2-row-button--strong", RaiseMany);
 
-			AddLabel(page, "v2-cap").text = "장비 4. 칸을 누르면 가방에서 고른다 (지금은 아이템 탭에서 장착)";
+			AddLabel(page, "v2-cap").text = "장비";
 			VisualElement worn = new VisualElement();
 			worn.AddToClassList("v2-worn");
 			page.Add(worn);
@@ -524,7 +524,7 @@ namespace WitchMendokusai
 				wornCells.Add(cell);
 			}
 
-			AddLabel(page, "v2-cap").text = "보유. 누르면 고른 칸에 앉힌다";
+			AddLabel(page, "v2-cap").text = "가진 인형";
 			heroRows = new VisualElement();
 			page.Add(heroRows);
 		}
@@ -782,28 +782,26 @@ namespace WitchMendokusai
 			for (int slot = 0; slot < partyButtons.Count; slot++)
 			{
 				int id = slot < snapshot.Party.Length ? snapshot.Party[slot] : -1;
-				string tag = IdleHeroes.IsMainSlot(slot) ? "MAIN" : "SUB";
+				string tag = IdleHeroes.IsMainSlot(slot) ? "전투" : "지원";
 				partyButtons[slot].text = id >= 0
 					? tag + "\n" + IdleHeroes.KindOf(id).Name
-					: tag + "\n비었다";
+					: tag + "\n+";
 				partyButtons[slot].EnableInClassList("v2-party-seat--picking", seatBeingFilled == slot);
 			}
 
-			dollName.text = seatBeingFilled >= 0
-				? string.Format("{0}번 칸에 앉힐 인형을 아래에서 고른다", seatBeingFilled + 1)
-				: "칸을 누르면 그 자리에 앉힐 인형을 고른다";
+			dollName.text = seatBeingFilled >= 0 ? "아래에서 인형을 고른다" : string.Empty;
 
-			DrawUpgrade(snapshot.Damage, damageLabel, damageButton, "공격력", "한 방 {0}");
-			DrawUpgrade(snapshot.AttackSpeed, speedLabel, speedButton, "공격속도", "초당 {0}회");
+			DrawUpgrade(snapshot.Damage, damageLabel, damageButton, "공격력");
+			DrawUpgrade(snapshot.AttackSpeed, speedLabel, speedButton, "공격 속도");
 
 			bool canRaise = IdleModel.CheapestRaisableAxis(session.State, session.Tuning, out IdleUpgradeKind _);
-			bulkRaiseButton.text = canRaise ? "싼 축부터 몰아 올린다" : "올릴 수 있는 게 없다";
+			bulkRaiseButton.text = "전부 올리기";
 			bulkRaiseButton.SetEnabled(canRaise);
 
 			for (int slot = 0; slot < wornCells.Count && slot < snapshot.Worn.Length; slot++)
 			{
 				IdleItem one = snapshot.Worn[slot];
-				wornCells[slot].text = SLOT_NAMES[slot] + "\n" + (one.IsEmpty ? "빔" : "T" + one.Tier);
+				wornCells[slot].text = SLOT_NAMES[slot] + "\n" + (one.IsEmpty ? "없음" : one.Tier + "단계");
 				wornCells[slot].EnableInClassList("v2-worn-cell--empty", one.IsEmpty);
 			}
 
@@ -822,9 +820,9 @@ namespace WitchMendokusai
 			for (int index = 0; index < heroButtons.Count && index < snapshot.Heroes.Length; index++)
 			{
 				IdleHeroView hero = snapshot.Heroes[index];
-				heroButtons[index].text = string.Format("{0}{1}  {2}  보유 +{3:P0}{4}",
-					hero.Name, Stars(hero.Stars), IdleHeroes.NameOfGrade(hero.Grade), hero.OwnedShare,
-					hero.InParty ? "  ▶ 편성" : string.Empty);
+				heroButtons[index].text = string.Format("{0}{1}{2}",
+					hero.Name, Stars(hero.Stars),
+					hero.InParty ? "   편성 중" : string.Empty);
 			}
 		}
 
@@ -1417,15 +1415,13 @@ namespace WitchMendokusai
 			noteLeft = seconds;
 		}
 
-		private static void DrawUpgrade(IdleUpgradeView view, Label label, Button button,
-			string name, string valueFormat)
+		private static void DrawUpgrade(IdleUpgradeView view, Label label, Button button, string name)
 		{
-			label.text = string.Format("{0} Lv.{1}. " + valueFormat, name, view.Level,
-				BigNumberText.Format(view.CurrentValue));
+			label.text = string.Format("{0} {1}  Lv.{2}", name, BigNumberText.Format(view.CurrentValue), view.Level);
 
 			button.text = view.IsMaxed
 				? "최대"
-				: string.Format("올리기. {0}", BigNumberText.Format(view.NextCost));
+				: string.Format("올리기  {0} 골드", BigNumberText.Format(view.NextCost));
 			button.SetEnabled(view.CanAfford);
 		}
 

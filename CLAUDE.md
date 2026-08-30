@@ -108,7 +108,7 @@ WMInput.inputactions → InputManager.BindEvents() → On{Start/Performed/Cancel
 
 ## 컴파일 검증 — 1순위 = `wm-compile-check.ps1` (에디터·MCP 무관)
 
-**정본 = `powershell -File memo/dotfiles/scripts/wm-compile-check.ps1`** — 진짜 Unity 어셈블리
+**정본은 `powershell -File memo/dotfiles/scripts/wm-compile-check.ps1 -ProjectPath <검사할 checkout>`** (lane 이면 lane 경로 필수. 인자 이름이 틀리면 조용히 기본값인 공유 checkout 을 검사한다. 2026-08-30 실측: `-Repo` 로 여섯 번 초록을 받았는데 전부 다른 폴더였다). 진짜 Unity 어셈블리
 (`Editor/Data/Managed/UnityEngine/*.dll` + `UnityEditor.dll` + `Library/ScriptAssemblies` + PackageCache/Assets 의
 미리 컴파일된 DLL, 총 ~500 참조)를 걸고 우리 `.cs` 1400여 개를 한 번에 굽는다. **5초. 에디터가 프로젝트를
 잠그고 있어도, MCP 가 안 붙어도 돈다.** exit 0/1/2(2 = 못 돌렸음 ≠ 에러 0).

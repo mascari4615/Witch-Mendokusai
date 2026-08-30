@@ -182,6 +182,19 @@ $rules = @(
             $path = $Matches[1]
             return ($path -match '[^ -~]')
         }
+    },
+    @{
+        Id      = 'UI-TEXT'
+        Title   = 'Idle screen text must be a plain verb or value. Rule: memo/wm/design/idle/ui-system.md (UI text)'
+        Fix     = 'button = one verb, no parenthesis explanation, no internal words (grade/zone/fragment/share/axis/core)'
+        Strings = $true
+        Match   = {
+            param($line)
+            if ($line -notmatch '\.text\s*=\s*"([^"]*)"') { return $false }
+            $text = $Matches[1]
+            if ($text -match '\(') { return $true }
+            return ($text -match '(등급|구역|조각|보유 \+|축|코어|다음 조각|지금은|판 전체)')
+        }
     }
 )
 
