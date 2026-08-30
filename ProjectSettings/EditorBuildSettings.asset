@@ -18,7 +18,7 @@ EditorBuildSettings:
     path: Assets/_WitchMendokusai/Scenes/World/World.unity
     guid: 2cda990e2423bbf4892e6590ba056729
   - enabled: 1
-    path: Assets/_WitchMendokusai/Scenes/Idle/IdleV2.unity
+    path: Assets/_WitchMendokusai/Scenes/Idle/Idle.unity
     guid: ca2816d7950258445a5443868f15012a
   m_configObjects:
     com.unity.addressableassets: {fileID: 11400000, guid: 58cd2970b1c6dbf42bccad18575e7241, type: 2}

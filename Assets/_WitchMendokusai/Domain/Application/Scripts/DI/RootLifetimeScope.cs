@@ -16,7 +16,7 @@ namespace WitchMendokusai
 		[SerializeField] private SingletonCatalog catalog;
 
 		/// <summary>본편이 아닌 씬 — 여기서는 본편 조립을 아예 안 세운다.</summary>
-		private const string SIDE_GAME_SCENE = "IdleV2";
+		private const string SIDE_GAME_SCENE = "Idle";
 
 		protected override void Configure(IContainerBuilder builder)
 		{

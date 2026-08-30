@@ -22,7 +22,7 @@ namespace WitchMendokusai.EditorTools
 	/// </summary>
 	public static class IdlePlayerBuild
 	{
-		private const string SCENE_PATH = "Assets/_WitchMendokusai/Scenes/Idle/IdleV2.unity";
+		private const string SCENE_PATH = "Assets/_WitchMendokusai/Scenes/Idle/Idle.unity";
 		private const string DEFAULT_DIR = "C:/wm-builds/idle";
 		private const string EXE_NAME = "Idle.exe";
 		private const string TAG = "[IdleBuild]";
@@ -62,7 +62,7 @@ namespace WitchMendokusai.EditorTools
 		public static void Build()
 		{
 			// ★ 지어 놓고 빈 씬을 굽는 일이 실제로 있었다 — 굽기 전에 붙을 것이 붙었는지 본다.
-			if (IdleV2SceneBuilder.Verify() == false)
+			if (IdleSceneBuilder.Verify() == false)
 			{
 				Fail("씬 검사가 빨갛다 — 이대로 구우면 빈 화면이 나온다");
 				return;

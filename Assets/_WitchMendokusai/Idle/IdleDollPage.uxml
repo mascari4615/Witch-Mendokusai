@@ -1,28 +1,28 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
     <!-- 인형 탭 (layout.md §3). 모양은 여기와 IdleBattleScreen.uss, 값은 IdleBattleScreen 이 이름으로 찾아 채운다 -->
-    <ui:Label text="편성" class="v2-cap" />
-    <ui:VisualElement name="party" class="v2-party">
-        <ui:Button name="seat-0" class="v2-party-seat" />
-        <ui:Button name="seat-1" class="v2-party-seat" />
-        <ui:Button name="seat-2" class="v2-party-seat" />
-        <ui:Button name="seat-3" class="v2-party-seat v2-party-seat--sub" />
-        <ui:Button name="seat-4" class="v2-party-seat v2-party-seat--sub" />
-        <ui:Button name="seat-5" class="v2-party-seat v2-party-seat--sub" />
+    <ui:Label text="편성" class="idle-cap" />
+    <ui:VisualElement name="party" class="idle-party">
+        <ui:Button name="seat-0" class="idle-party-seat" />
+        <ui:Button name="seat-1" class="idle-party-seat" />
+        <ui:Button name="seat-2" class="idle-party-seat" />
+        <ui:Button name="seat-3" class="idle-party-seat idle-party-seat--sub" />
+        <ui:Button name="seat-4" class="idle-party-seat idle-party-seat--sub" />
+        <ui:Button name="seat-5" class="idle-party-seat idle-party-seat--sub" />
     </ui:VisualElement>
-    <ui:Label name="doll-name" class="v2-row-head" />
-    <ui:Label text="강화" class="v2-cap" />
-    <ui:Label name="damage-label" class="v2-row-title" />
-    <ui:Button name="damage-button" class="v2-row-button" />
-    <ui:Label name="speed-label" class="v2-row-title" />
-    <ui:Button name="speed-button" class="v2-row-button" />
-    <ui:Button name="bulk-button" class="v2-row-button v2-row-button--strong" />
-    <ui:Label text="장비" class="v2-cap" />
-    <ui:VisualElement name="worn" class="v2-worn">
-        <ui:Label name="worn-0" class="v2-worn-cell" />
-        <ui:Label name="worn-1" class="v2-worn-cell" />
-        <ui:Label name="worn-2" class="v2-worn-cell" />
-        <ui:Label name="worn-3" class="v2-worn-cell" />
+    <ui:Label name="doll-name" class="idle-row-head" />
+    <ui:Label text="강화" class="idle-cap" />
+    <ui:Label name="damage-label" class="idle-row-title" />
+    <ui:Button name="damage-button" class="idle-row-button" />
+    <ui:Label name="speed-label" class="idle-row-title" />
+    <ui:Button name="speed-button" class="idle-row-button" />
+    <ui:Button name="bulk-button" class="idle-row-button idle-row-button--strong" />
+    <ui:Label text="장비" class="idle-cap" />
+    <ui:VisualElement name="worn" class="idle-worn">
+        <ui:Label name="worn-0" class="idle-worn-cell" />
+        <ui:Label name="worn-1" class="idle-worn-cell" />
+        <ui:Label name="worn-2" class="idle-worn-cell" />
+        <ui:Label name="worn-3" class="idle-worn-cell" />
     </ui:VisualElement>
-    <ui:Label text="가진 인형" class="v2-cap" />
+    <ui:Label text="가진 인형" class="idle-cap" />
     <ui:VisualElement name="hero-rows" />
 </ui:UXML>

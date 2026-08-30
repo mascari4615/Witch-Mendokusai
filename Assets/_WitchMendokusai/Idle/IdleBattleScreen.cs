@@ -191,7 +191,7 @@ namespace WitchMendokusai
 		{
 			if (tuningAsset == null)
 			{
-				Debug.LogWarning("[IdleV2] 수치 에셋이 안 꽂혀 있다. 코드 기본값으로 돈다.");
+				Debug.LogWarning("[Idle] 수치 에셋이 안 꽂혀 있다. 코드 기본값으로 돈다.");
 			}
 
 			IdleTuning tuning = tuningAsset != null ? tuningAsset.ToTuning() : new IdleTuning();
@@ -229,7 +229,7 @@ namespace WitchMendokusai
 			}
 			else
 			{
-				Debug.LogWarning("[IdleV2] 무대가 안 꽂혀 있다. HUD 만 뜬다. 씬 빌더로 다시 지어라.");
+				Debug.LogWarning("[Idle] 무대가 안 꽂혀 있다. HUD 만 뜬다. 씬 빌더로 다시 지어라.");
 			}
 
 			split = PlayerPrefs.GetInt("idle.split", 1) == 1;
@@ -401,18 +401,18 @@ namespace WitchMendokusai
 			}
 			else
 			{
-				Debug.LogWarning("[IdleV2] 스타일시트가 안 꽂혀 있다. 화면이 꾸밈 없이 뜬다.");
+				Debug.LogWarning("[Idle] 스타일시트가 안 꽂혀 있다. 화면이 꾸밈 없이 뜬다.");
 			}
 
 			VisualElement shell = new VisualElement();
-			shell.AddToClassList("v2-root");
+			shell.AddToClassList("idle-root");
 			root.Add(shell);
 
 			BuildBattle(shell);
 			BuildSide(shell);
 			BuildMapPopup();
 
-			tooltip = AddLabel(root, "v2-tooltip");
+			tooltip = AddLabel(root, "idle-tooltip");
 			tooltip.style.display = DisplayStyle.None;
 			tooltip.pickingMode = PickingMode.Ignore;
 
@@ -431,7 +431,7 @@ namespace WitchMendokusai
 		private void BuildBattle(VisualElement shell)
 		{
 			battle = new VisualElement();
-			battle.AddToClassList("v2-battle");
+			battle.AddToClassList("idle-battle");
 			shell.Add(battle);
 
 			// 빈 곳 누르기는 응원 한 대. 무대 그 자체가 큰 버튼
@@ -439,129 +439,129 @@ namespace WitchMendokusai
 
 			// 상점, 연구소 씬 자리. 지금은 덮개 + 글자
 			sceneCover = new VisualElement();
-			sceneCover.AddToClassList("v2-scene-cover");
+			sceneCover.AddToClassList("idle-scene-cover");
 			sceneCover.style.display = DisplayStyle.None;
 			battle.Add(sceneCover);
-			sceneCoverLabel = AddLabel(sceneCover, "v2-scene-cover-label");
-			AddButton(sceneCover, "v2-button", () => OpenTab(Tab.Doll)).text = "전투로";
+			sceneCoverLabel = AddLabel(sceneCover, "idle-scene-cover-label");
+			AddButton(sceneCover, "idle-button", () => OpenTab(Tab.Doll)).text = "전투로";
 
 			// 좌상. 작전 코드 + 웨이브. 누르면 맵 팝업
 			VisualElement op = new VisualElement();
-			AddClasses(op, "v2-box v2-op");
+			AddClasses(op, "idle-box idle-op");
 			battle.Add(op);
 			op.RegisterCallback<ClickEvent>(_ => ToggleMap());
 
 			VisualElement opRow = new VisualElement();
-			opRow.AddToClassList("v2-op-row");
+			opRow.AddToClassList("idle-op-row");
 			op.Add(opRow);
-			opCode = AddLabel(opRow, "v2-op-code");
-			opName = AddLabel(opRow, "v2-op-name");
+			opCode = AddLabel(opRow, "idle-op-code");
+			opName = AddLabel(opRow, "idle-op-name");
 
 			VisualElement waveRow = new VisualElement();
-			waveRow.AddToClassList("v2-op-row");
+			waveRow.AddToClassList("idle-op-row");
 			op.Add(waveRow);
 			waveDots = new VisualElement();
-			waveDots.AddToClassList("v2-wave");
+			waveDots.AddToClassList("idle-wave");
 			waveRow.Add(waveDots);
-			waveLabel = AddLabel(waveRow, "v2-cap");
+			waveLabel = AddLabel(waveRow, "idle-cap");
 
 			// 좌상 둘째 줄. 스테퍼 + 반복
 			VisualElement stepRow = new VisualElement();
-			stepRow.AddToClassList("v2-step-row");
+			stepRow.AddToClassList("idle-step-row");
 			battle.Add(stepRow);
 
 			VisualElement stepper = new VisualElement();
-			AddClasses(stepper, "v2-box v2-stepper");
+			AddClasses(stepper, "idle-box idle-stepper");
 			stepRow.Add(stepper);
-			stepBack = AddButton(stepper, "v2-step-button", () => StepStage(-1));
+			stepBack = AddButton(stepper, "idle-step-button", () => StepStage(-1));
 			stepBack.text = "◀";
-			stepLabel = AddLabel(stepper, "v2-step-label");
-			stepForward = AddButton(stepper, "v2-step-button", () => StepStage(1));
+			stepLabel = AddLabel(stepper, "idle-step-label");
+			stepForward = AddButton(stepper, "idle-step-button", () => StepStage(1));
 			stepForward.text = "▶";
 
-			repeatButton = AddButton(stepRow, "v2-box v2-toggle", ToggleHold);
+			repeatButton = AddButton(stepRow, "idle-box idle-toggle", ToggleHold);
 
 			// 우상. 재화 3 + 분할
 			VisualElement chips = new VisualElement();
-			chips.AddToClassList("v2-chips");
+			chips.AddToClassList("idle-chips");
 			battle.Add(chips);
-			goldChip = AddLabel(chips, "v2-box v2-chip");
-			pullChip = AddLabel(chips, "v2-box v2-chip");
-			prestigeChip = AddLabel(chips, "v2-box v2-chip");
-			splitButton = AddButton(chips, "v2-box v2-icon-button", ToggleSplit);
+			goldChip = AddLabel(chips, "idle-box idle-chip");
+			pullChip = AddLabel(chips, "idle-box idle-chip");
+			prestigeChip = AddLabel(chips, "idle-box idle-chip");
+			splitButton = AddButton(chips, "idle-box idle-icon-button", ToggleSplit);
 			splitButton.text = "분할";
 
 			// 우상 둘째 줄. 배속, AUTO 자리 (코어 미구현. 자리만)
 			VisualElement speedRow = new VisualElement();
-			speedRow.AddToClassList("v2-speed-row");
+			speedRow.AddToClassList("idle-speed-row");
 			battle.Add(speedRow);
-			Button speed = AddButton(speedRow, "v2-box v2-icon-button", null);
+			Button speed = AddButton(speedRow, "idle-box idle-icon-button", null);
 			speed.text = "1×";
 			speed.SetEnabled(false);
-			Button auto = AddButton(speedRow, "v2-box v2-icon-button", null);
+			Button auto = AddButton(speedRow, "idle-box idle-icon-button", null);
 			auto.text = "AUTO";
 			auto.SetEnabled(false);
 
 			// 우측. 로그 (지금은 안내 한 줄 + 알림 한 줄)
 			VisualElement log = new VisualElement();
-			AddClasses(log, "v2-box v2-log");
+			AddClasses(log, "idle-box idle-log");
 			battle.Add(log);
-			AddLabel(log, "v2-cap").text = "LOG";
-			logLabel = AddLabel(log, "v2-log-line");
-			noteLabel = AddLabel(log, "v2-log-line v2-log-line--note");
+			AddLabel(log, "idle-cap").text = "LOG";
+			logLabel = AddLabel(log, "idle-log-line");
+			noteLabel = AddLabel(log, "idle-log-line idle-log-line--note");
 
 			// 상단 중앙. 보스 바 (보스 때만)
 			enemyBar = new VisualElement();
-			AddClasses(enemyBar, "v2-box v2-enemy");
+			AddClasses(enemyBar, "idle-box idle-enemy");
 			battle.Add(enemyBar);
-			enemyLabel = AddLabel(enemyBar, "v2-enemy-label");
+			enemyLabel = AddLabel(enemyBar, "idle-enemy-label");
 			VisualElement gauge = new VisualElement();
-			gauge.AddToClassList("v2-enemy-gauge");
+			gauge.AddToClassList("idle-enemy-gauge");
 			enemyBar.Add(gauge);
 			enemyFill = new VisualElement();
-			enemyFill.AddToClassList("v2-enemy-fill");
+			enemyFill.AddToClassList("idle-enemy-fill");
 			gauge.Add(enemyFill);
 
 			// 중앙. 실패 배너 (반복 중일 때만)
 			failBanner = new VisualElement();
-			AddClasses(failBanner, "v2-box v2-fail");
+			AddClasses(failBanner, "idle-box idle-fail");
 			failBanner.style.display = DisplayStyle.None;
 			battle.Add(failBanner);
-			failLabel = AddLabel(failBanner, "v2-fail-label");
-			nextStageButton = AddButton(failBanner, "v2-button v2-button--strong", NextStage);
+			failLabel = AddLabel(failBanner, "idle-fail-label");
+			nextStageButton = AddButton(failBanner, "idle-button idle-button--strong", NextStage);
 
 			// 하단 중앙. 손패 + 코스트
 			VisualElement hand = new VisualElement();
-			hand.AddToClassList("v2-hand");
+			hand.AddToClassList("idle-hand");
 			battle.Add(hand);
 
 			cardButtons = new Button[IdleCards.CARD_COUNT];
 			for (int index = 0; index < cardButtons.Length; index++)
 			{
 				IdleCardKind kind = (IdleCardKind)index;
-				cardButtons[index] = AddButton(hand, "v2-card", () => Cast(kind));
+				cardButtons[index] = AddButton(hand, "idle-card", () => Cast(kind));
 			}
 
 			VisualElement cost = new VisualElement();
-			cost.AddToClassList("v2-cost");
+			cost.AddToClassList("idle-cost");
 			hand.Add(cost);
-			costLabel = AddLabel(cost, "v2-cost-label");
+			costLabel = AddLabel(cost, "idle-cost-label");
 			VisualElement costGauge = new VisualElement();
-			costGauge.AddToClassList("v2-cost-gauge");
+			costGauge.AddToClassList("idle-cost-gauge");
 			cost.Add(costGauge);
 			costFill = new VisualElement();
-			costFill.AddToClassList("v2-cost-fill");
+			costFill.AddToClassList("idle-cost-fill");
 			costGauge.Add(costFill);
-			AddLabel(cost, "v2-cap").text = "COST";
+			AddLabel(cost, "idle-cap").text = "COST";
 
 			// 우하. 풀화면일 때만 보이는 탭 7
 			floatingTabs = new VisualElement();
-			floatingTabs.AddToClassList("v2-floating-tabs");
+			floatingTabs.AddToClassList("idle-floating-tabs");
 			battle.Add(floatingTabs);
 			for (int index = 0; index < TAB_NAMES.Length; index++)
 			{
 				Tab tab = (Tab)index;
-				Button button = AddButton(floatingTabs, "v2-box v2-icon-button", () => OpenTab(tab));
+				Button button = AddButton(floatingTabs, "idle-box idle-icon-button", () => OpenTab(tab));
 				button.text = TAB_NAMES[index];
 				button.style.display = TAB_SHOWN[index] ? DisplayStyle.Flex : DisplayStyle.None;
 				floatingTabButtons.Add(button);
@@ -570,7 +570,7 @@ namespace WitchMendokusai
 			// 좌하. 디버그. 에디터와 개발 빌드에서만 (사용자 요청 2026-08-30)
 			if (Application.isEditor || Debug.isDebugBuild)
 			{
-				Button wipe = AddButton(battle, "v2-box v2-icon-button v2-debug", WipeAndRestart);
+				Button wipe = AddButton(battle, "idle-box idle-icon-button idle-debug", WipeAndRestart);
 				wipe.text = "데이터 초기화";
 			}
 		}
@@ -578,33 +578,33 @@ namespace WitchMendokusai
 		private void BuildSide(VisualElement shell)
 		{
 			side = new VisualElement();
-			side.AddToClassList("v2-side");
+			side.AddToClassList("idle-side");
 			shell.Add(side);
 
 			VisualElement tabs = new VisualElement();
-			tabs.AddToClassList("v2-tabs");
+			tabs.AddToClassList("idle-tabs");
 			side.Add(tabs);
 
 			for (int index = 0; index < TAB_NAMES.Length; index++)
 			{
 				Tab tab = (Tab)index;
-				Button button = AddButton(tabs, "v2-tab", () => OpenTab(tab));
+				Button button = AddButton(tabs, "idle-tab", () => OpenTab(tab));
 				button.text = TAB_NAMES[index] + "\n" + TAB_CAPTIONS[index];
 				button.style.display = TAB_SHOWN[index] ? DisplayStyle.Flex : DisplayStyle.None;
 				tabButtons.Add(button);
 			}
 
-			closeSideButton = AddButton(tabs, "v2-tab v2-tab--close", CloseSide);
+			closeSideButton = AddButton(tabs, "idle-tab idle-tab--close", CloseSide);
 			closeSideButton.text = "×";
 
 			VisualElement head = new VisualElement();
-			head.AddToClassList("v2-panel-head");
+			head.AddToClassList("idle-panel-head");
 			side.Add(head);
-			panelTitle = AddLabel(head, "v2-panel-title");
-			panelCaption = AddLabel(head, "v2-cap");
+			panelTitle = AddLabel(head, "idle-panel-title");
+			panelCaption = AddLabel(head, "idle-cap");
 
 			ScrollView body = new ScrollView();
-			body.AddToClassList("v2-panel-body");
+			body.AddToClassList("idle-panel-body");
 			side.Add(body);
 			panelHost = body.contentContainer;
 
@@ -621,7 +621,7 @@ namespace WitchMendokusai
 		private VisualElement AddPage(Tab tab)
 		{
 			VisualElement page = new VisualElement();
-			page.AddToClassList("v2-page");
+			page.AddToClassList("idle-page");
 			page.style.display = DisplayStyle.None;
 			panelHost.Add(page);
 			pages[(int)tab] = page;
@@ -639,41 +639,41 @@ namespace WitchMendokusai
 				return;
 			}
 
-			AddLabel(page, "v2-cap").text = "편성";
+			AddLabel(page, "idle-cap").text = "편성";
 			VisualElement party = new VisualElement();
-			party.AddToClassList("v2-party");
+			party.AddToClassList("idle-party");
 			page.Add(party);
 
 			for (int slot = 0; slot < IdleHeroes.PARTY_SLOTS; slot++)
 			{
 				int captured = slot;
-				Button seat = AddButton(party, "v2-party-seat", () => BeginSeat(captured));
-				seat.EnableInClassList("v2-party-seat--sub", IdleHeroes.IsMainSlot(slot) == false);
+				Button seat = AddButton(party, "idle-party-seat", () => BeginSeat(captured));
+				seat.EnableInClassList("idle-party-seat--sub", IdleHeroes.IsMainSlot(slot) == false);
 				partyButtons.Add(seat);
 			}
 
-			dollName = AddLabel(page, "v2-row-head");
+			dollName = AddLabel(page, "idle-row-head");
 
-			AddLabel(page, "v2-cap").text = "강화";
-			damageLabel = AddLabel(page, "v2-row-title");
-			damageButton = AddButton(page, "v2-row-button", () => Raise(IdleUpgradeKind.Damage));
-			speedLabel = AddLabel(page, "v2-row-title");
-			speedButton = AddButton(page, "v2-row-button", () => Raise(IdleUpgradeKind.AttackSpeed));
-			bulkRaiseButton = AddButton(page, "v2-row-button v2-row-button--strong", RaiseMany);
+			AddLabel(page, "idle-cap").text = "강화";
+			damageLabel = AddLabel(page, "idle-row-title");
+			damageButton = AddButton(page, "idle-row-button", () => Raise(IdleUpgradeKind.Damage));
+			speedLabel = AddLabel(page, "idle-row-title");
+			speedButton = AddButton(page, "idle-row-button", () => Raise(IdleUpgradeKind.AttackSpeed));
+			bulkRaiseButton = AddButton(page, "idle-row-button idle-row-button--strong", RaiseMany);
 
-			AddLabel(page, "v2-cap").text = "장비";
+			AddLabel(page, "idle-cap").text = "장비";
 			VisualElement worn = new VisualElement();
-			worn.AddToClassList("v2-worn");
+			worn.AddToClassList("idle-worn");
 			page.Add(worn);
 			for (int slot = 0; slot < SLOT_NAMES.Length; slot++)
 			{
 				int captured = slot;
-				Label cell = AddLabel(worn, "v2-worn-cell");
+				Label cell = AddLabel(worn, "idle-worn-cell");
 				HookTooltip(cell, () => WornTip(captured));
 				wornCells.Add(cell);
 			}
 
-			AddLabel(page, "v2-cap").text = "가진 인형";
+			AddLabel(page, "idle-cap").text = "가진 인형";
 			heroRows = new VisualElement();
 			page.Add(heroRows);
 		}
@@ -717,65 +717,65 @@ namespace WitchMendokusai
 			VisualElement page = AddPage(Tab.Item);
 
 			VisualElement subs = new VisualElement();
-			AddClasses(subs, "v2-subtabs");
+			AddClasses(subs, "idle-subtabs");
 			page.Add(subs);
-			itemSubButtons[0] = AddButton(subs, "v2-subtab", () => OpenItemSub(0));
+			itemSubButtons[0] = AddButton(subs, "idle-subtab", () => OpenItemSub(0));
 			itemSubButtons[0].text = "가방";
-			itemSubButtons[1] = AddButton(subs, "v2-subtab", () => OpenItemSub(1));
+			itemSubButtons[1] = AddButton(subs, "idle-subtab", () => OpenItemSub(1));
 			itemSubButtons[1].text = "공방";
 
 			// 가방
 			bagView = new VisualElement();
 			page.Add(bagView);
 
-			gearSummary = AddLabel(bagView, "v2-row-title");
+			gearSummary = AddLabel(bagView, "idle-row-title");
 
 			bagGrid = new VisualElement();
-			bagGrid.AddToClassList("v2-bag");
+			bagGrid.AddToClassList("idle-bag");
 			bagView.Add(bagGrid);
 
 			for (int index = 0; index < 40; index++)
 			{
 				int captured = index;
-				Button cell = AddButton(bagGrid, "v2-bag-cell", () => Equip(captured));
+				Button cell = AddButton(bagGrid, "idle-bag-cell", () => Equip(captured));
 				HookTooltip(cell, () => BagTip(captured));
 				bagCells.Add(cell);
 			}
 
-			bulkMergeButton = AddButton(bagView, "v2-row-button v2-row-button--strong", MergeAll);
+			bulkMergeButton = AddButton(bagView, "idle-row-button idle-row-button--strong", MergeAll);
 
 			// 공방
 			forgeView = new VisualElement();
 			page.Add(forgeView);
 
-			AddLabel(forgeView, "v2-cap").text = "합칠 것을 고른다";
+			AddLabel(forgeView, "idle-cap").text = "합칠 것을 고른다";
 			forgeKinds = new VisualElement();
-			AddClasses(forgeKinds, "v2-forge-kinds");
+			AddClasses(forgeKinds, "idle-forge-kinds");
 			forgeView.Add(forgeKinds);
 
 			VisualElement bench = new VisualElement();
-			AddClasses(bench, "v2-forge-bench");
+			AddClasses(bench, "idle-forge-bench");
 			forgeView.Add(bench);
 
 			VisualElement grid = new VisualElement();
-			AddClasses(grid, "v2-forge-grid");
+			AddClasses(grid, "idle-forge-grid");
 			bench.Add(grid);
 			for (int index = 0; index < 9; index++)
 			{
-				forgeCells.Add(AddLabel(grid, "v2-forge-cell"));
+				forgeCells.Add(AddLabel(grid, "idle-forge-cell"));
 			}
 
 			VisualElement outcome = new VisualElement();
-			AddClasses(outcome, "v2-forge-outcome");
+			AddClasses(outcome, "idle-forge-outcome");
 			bench.Add(outcome);
-			AddLabel(outcome, "v2-forge-arrow").text = "→";
-			forgeResult = AddLabel(outcome, "v2-forge-cell v2-forge-cell--result");
+			AddLabel(outcome, "idle-forge-arrow").text = "→";
+			forgeResult = AddLabel(outcome, "idle-forge-cell idle-forge-cell--result");
 
-			forgeTitle = AddLabel(forgeView, "v2-row-title");
-			forgeButton = AddButton(forgeView, "v2-row-button v2-row-button--strong v2-row-button--tall", MergeForge);
+			forgeTitle = AddLabel(forgeView, "idle-row-title");
+			forgeButton = AddButton(forgeView, "idle-row-button idle-row-button--strong idle-row-button--tall", MergeForge);
 
 			// 감정(잠재)은 알파 뒤. 자리만, 숨김
-			appraiseCap = AddLabel(page, "v2-cap");
+			appraiseCap = AddLabel(page, "idle-cap");
 			appraiseCap.text = "감정";
 			appraiseCap.style.display = DisplayStyle.None;
 			appraiseRows = new VisualElement();
@@ -793,7 +793,7 @@ namespace WitchMendokusai
 
 			for (int index = 0; index < itemSubButtons.Length; index++)
 			{
-				itemSubButtons[index].EnableInClassList("v2-subtab--on", index == which);
+				itemSubButtons[index].EnableInClassList("idle-subtab--on", index == which);
 			}
 
 			if (built)
@@ -805,7 +805,7 @@ namespace WitchMendokusai
 		private void BuildCodexPage()
 		{
 			VisualElement page = AddPage(Tab.Codex);
-			codexLabel = AddLabel(page, "v2-row-title");
+			codexLabel = AddLabel(page, "idle-row-title");
 			codexRows = new VisualElement();
 			page.Add(codexRows);
 		}
@@ -815,22 +815,22 @@ namespace WitchMendokusai
 			VisualElement page = AddPage(Tab.Shop);
 
 			VisualElement banner = new VisualElement();
-			banner.AddToClassList("v2-banner");
+			banner.AddToClassList("idle-banner");
 			page.Add(banner);
-			AddLabel(banner, "v2-banner-title").text = "인형 뽑기";
-			AddLabel(banner, "v2-cap").text = "PICK UP";
+			AddLabel(banner, "idle-banner-title").text = "인형 뽑기";
+			AddLabel(banner, "idle-cap").text = "PICK UP";
 
-			pullButton = AddButton(page, "v2-row-button v2-row-button--strong v2-row-button--tall", Pull);
-			pullOdds = AddLabel(page, "v2-row-note");
-			AddLabel(page, "v2-row-note").text = "현금 결제 없음. 뽑기 재화는 첫 클리어, 환생, 낮은 확률 드롭에서만.";
-			AddLabel(page, "v2-cap").text = "무료 상자";
+			pullButton = AddButton(page, "idle-row-button idle-row-button--strong idle-row-button--tall", Pull);
+			pullOdds = AddLabel(page, "idle-row-note");
+			AddLabel(page, "idle-row-note").text = "현금 결제 없음. 뽑기 재화는 첫 클리어, 환생, 낮은 확률 드롭에서만.";
+			AddLabel(page, "idle-cap").text = "무료 상자";
 		}
 
 		private void BuildLabPage()
 		{
 			VisualElement page = AddPage(Tab.Lab);
-			prestigeSummary = AddLabel(page, "v2-row-title");
-			prestigeButton = AddButton(page, "v2-row-button v2-row-button--strong v2-row-button--tall", Prestige);
+			prestigeSummary = AddLabel(page, "idle-row-title");
+			prestigeButton = AddButton(page, "idle-row-button idle-row-button--strong idle-row-button--tall", Prestige);
 		}
 
 		private void BuildDungeonPage()
@@ -839,7 +839,7 @@ namespace WitchMendokusai
 			string[] names = { "재화 던전", "보스 던전", "장비 던전", "스킬 던전" };
 			for (int index = 0; index < names.Length; index++)
 			{
-				Button row = AddButton(page, "v2-row-button", null);
+				Button row = AddButton(page, "idle-row-button", null);
 				row.text = names[index] + ". 입장권 0/0 (알파 9번. 자리만)";
 				row.SetEnabled(false);
 			}
@@ -848,29 +848,29 @@ namespace WitchMendokusai
 		private void BuildInvestPage()
 		{
 			VisualElement page = AddPage(Tab.Invest);
-			baseSummary = AddLabel(page, "v2-row-title");
-			bulkBuyButton = AddButton(page, "v2-row-button v2-row-button--strong", BuyMany);
+			baseSummary = AddLabel(page, "idle-row-title");
+			bulkBuyButton = AddButton(page, "idle-row-button idle-row-button--strong", BuyMany);
 
 			for (int kind = 0; kind < 8; kind++)
 			{
 				int captured = kind;
-				producerButtons.Add(AddButton(page, "v2-row-button", () => BuyProducer(captured)));
+				producerButtons.Add(AddButton(page, "idle-row-button", () => BuyProducer(captured)));
 			}
 		}
 
 		private void BuildMapPopup()
 		{
 			mapPopup = new VisualElement();
-			AddClasses(mapPopup, "v2-box v2-map");
+			AddClasses(mapPopup, "idle-box idle-map");
 			mapPopup.style.display = DisplayStyle.None;
 			battle.Add(mapPopup);
 
 			VisualElement head = new VisualElement();
-			head.AddToClassList("v2-panel-head");
+			head.AddToClassList("idle-panel-head");
 			mapPopup.Add(head);
-			AddLabel(head, "v2-panel-title").text = "맵";
-			AddLabel(head, "v2-cap").text = "MAP";
-			AddButton(head, "v2-tab v2-tab--close", ToggleMap).text = "×";
+			AddLabel(head, "idle-panel-title").text = "맵";
+			AddLabel(head, "idle-cap").text = "MAP";
+			AddButton(head, "idle-tab idle-tab--close", ToggleMap).text = "×";
 
 			mapRows = new VisualElement();
 			mapPopup.Add(mapRows);
@@ -894,7 +894,7 @@ namespace WitchMendokusai
 				&& IdleModel.CanGoToStage(session.State, snapshot.Stage + 1));
 
 			repeatButton.text = snapshot.HoldingStage ? "반복 ●" : "반복 ○";
-			repeatButton.EnableInClassList("v2-toggle--on", snapshot.HoldingStage);
+			repeatButton.EnableInClassList("idle-toggle--on", snapshot.HoldingStage);
 
 			goldChip.text = string.Format("골드 {0}  +{1}/s",
 				BigNumberText.Format(snapshot.Resource), BigNumberText.Format(snapshot.IncomePerSecond));
@@ -940,8 +940,8 @@ namespace WitchMendokusai
 				for (int at = 0; at < snapshot.KillsPerStage; at++)
 				{
 					VisualElement dot = new VisualElement();
-					dot.AddToClassList("v2-wave-dot");
-					dot.EnableInClassList("v2-wave-dot--boss", at == snapshot.KillsPerStage - 1);
+					dot.AddToClassList("idle-wave-dot");
+					dot.EnableInClassList("idle-wave-dot--boss", at == snapshot.KillsPerStage - 1);
 					waveDots.Add(dot);
 					waveDotList.Add(dot);
 				}
@@ -949,7 +949,7 @@ namespace WitchMendokusai
 
 			for (int at = 0; at < waveDotList.Count; at++)
 			{
-				waveDotList[at].EnableInClassList("v2-wave-dot--done", at < snapshot.KillsInStage);
+				waveDotList[at].EnableInClassList("idle-wave-dot--done", at < snapshot.KillsInStage);
 			}
 
 			waveLabel.text = string.Format("WAVE {0}/{1}", snapshot.KillsInStage, snapshot.KillsPerStage);
@@ -962,7 +962,7 @@ namespace WitchMendokusai
 				IdleCardView card = snapshot.Cards[index];
 				cardButtons[index].text = string.Format("{0}\n{1}", card.Cost, NameOf(card.Kind));
 				cardButtons[index].SetEnabled(card.CanCast);
-				cardButtons[index].EnableInClassList("v2-card--ready", card.CanCast);
+				cardButtons[index].EnableInClassList("idle-card--ready", card.CanCast);
 			}
 
 			costLabel.text = string.Format("{0:0}/{1:0}", snapshot.Cost, snapshot.CostMax);
@@ -999,14 +999,14 @@ namespace WitchMendokusai
 
 			for (int index = 0; index < tabButtons.Count; index++)
 			{
-				tabButtons[index].EnableInClassList("v2-tab--on", index == (int)openTab && (split || sideOpen));
+				tabButtons[index].EnableInClassList("idle-tab--on", index == (int)openTab && (split || sideOpen));
 			}
 		}
 
 		private void SetBadge(Tab tab, bool on)
 		{
-			tabButtons[(int)tab].EnableInClassList("v2-tab--badge", on);
-			floatingTabButtons[(int)tab].EnableInClassList("v2-tab--badge", on);
+			tabButtons[(int)tab].EnableInClassList("idle-tab--badge", on);
+			floatingTabButtons[(int)tab].EnableInClassList("idle-tab--badge", on);
 		}
 
 		private void RenderPage(IdleSnapshot snapshot)
@@ -1032,7 +1032,7 @@ namespace WitchMendokusai
 				partyButtons[slot].text = id >= 0
 					? tag + "\n" + IdleHeroes.KindOf(id).Name
 					: tag + "\n+";
-				partyButtons[slot].EnableInClassList("v2-party-seat--picking", seatBeingFilled == slot);
+				partyButtons[slot].EnableInClassList("idle-party-seat--picking", seatBeingFilled == slot);
 			}
 
 			dollName.text = seatBeingFilled >= 0 ? "아래에서 인형을 고른다" : string.Empty;
@@ -1048,7 +1048,7 @@ namespace WitchMendokusai
 			{
 				IdleItem one = snapshot.Worn[slot];
 				wornCells[slot].text = SLOT_NAMES[slot] + "\n" + (one.IsEmpty ? "없음" : one.Tier + "단계");
-				wornCells[slot].EnableInClassList("v2-worn-cell--empty", one.IsEmpty);
+				wornCells[slot].EnableInClassList("idle-worn-cell--empty", one.IsEmpty);
 				SetTierClass(wornCells[slot], one.IsEmpty ? 0 : one.Tier);
 			}
 
@@ -1060,7 +1060,7 @@ namespace WitchMendokusai
 				for (int index = 0; index < snapshot.Heroes.Length; index++)
 				{
 					int id = snapshot.Heroes[index].Id;
-					heroButtons.Add(AddButton(heroRows, "v2-row-button", () => ChooseHero(id)));
+					heroButtons.Add(AddButton(heroRows, "idle-row-button", () => ChooseHero(id)));
 				}
 			}
 
@@ -1079,7 +1079,7 @@ namespace WitchMendokusai
 			gearSummary.text = string.Format("가방 {0}/{1}{2}",
 				snapshot.Bag.Length, snapshot.BagCapacity,
 				full ? "  꽉 찼다. 합치거나 차야 새 장비가 들어온다" : string.Empty);
-			gearSummary.EnableInClassList("v2-warn", full);
+			gearSummary.EnableInClassList("idle-warn", full);
 
 			for (int index = 0; index < bagCells.Count; index++)
 			{
@@ -1147,7 +1147,7 @@ namespace WitchMendokusai
 				{
 					int key = keys[index];
 					forgeKindKeys.Add(key);
-					forgeKindButtons.Add(AddButton(forgeKinds, "v2-forge-kind", () => PickForge(key)));
+					forgeKindButtons.Add(AddButton(forgeKinds, "idle-forge-kind", () => PickForge(key)));
 				}
 			}
 
@@ -1158,7 +1158,7 @@ namespace WitchMendokusai
 				IdleItemSlot slot = (IdleItemSlot)(key % IdleGear.SLOT_COUNT);
 				forgeKindButtons[index].text = string.Format("{0} {1}단계 ×{2}", SLOT_NAMES[(int)slot], tier, counts[key]);
 				SetTierClass(forgeKindButtons[index], tier);
-				forgeKindButtons[index].EnableInClassList("v2-forge-kind--on", forgeTier == tier && forgeSlot == slot);
+				forgeKindButtons[index].EnableInClassList("idle-forge-kind--on", forgeTier == tier && forgeSlot == slot);
 			}
 
 			int forgeKey = forgeTier * IdleGear.SLOT_COUNT + (int)forgeSlot;
@@ -1175,7 +1175,7 @@ namespace WitchMendokusai
 			bool ready = forgeTier > 0 && have >= snapshot.MergeCount;
 			forgeResult.text = forgeTier > 0 ? SLOT_NAMES[(int)forgeSlot] + "\n" + (forgeTier + 1) + "단계" : string.Empty;
 			SetTierClass(forgeResult, forgeTier > 0 ? forgeTier + 1 : 0);
-			forgeResult.EnableInClassList("v2-forge-cell--ready", ready);
+			forgeResult.EnableInClassList("idle-forge-cell--ready", ready);
 
 			forgeTitle.text = forgeTier > 0
 				? string.Format("{0} {1}단계  {2}/{3}", SLOT_NAMES[(int)forgeSlot], forgeTier, have, snapshot.MergeCount)
@@ -1214,7 +1214,7 @@ namespace WitchMendokusai
 				for (int tier = 1; tier <= snapshot.DroppedByTier.Length; tier++)
 				{
 					int captured = tier;
-					appraiseButtons.Add(AddButton(appraiseRows, "v2-row-button", () => Appraise(captured)));
+					appraiseButtons.Add(AddButton(appraiseRows, "idle-row-button", () => Appraise(captured)));
 				}
 			}
 
@@ -1244,7 +1244,7 @@ namespace WitchMendokusai
 
 				for (int id = 0; id < IdleHeroes.Count; id++)
 				{
-					codexLabels.Add(AddLabel(codexRows, "v2-row-title"));
+					codexLabels.Add(AddLabel(codexRows, "idle-row-title"));
 				}
 			}
 
@@ -1259,7 +1259,7 @@ namespace WitchMendokusai
 					? string.Format("{0}{1}  {2} / {3}", kind.Name, Stars(stars),
 						IdleHeroes.NameOfGrade(kind.Grade), IdleHeroes.NameOfAxis(kind.Axis))
 					: string.Format("???  {0}", IdleHeroes.NameOfGrade(kind.Grade));
-				codexLabels[id].EnableInClassList("v2-row-title--dim", owned == false);
+				codexLabels[id].EnableInClassList("idle-row-title--dim", owned == false);
 			}
 		}
 
@@ -1329,7 +1329,7 @@ namespace WitchMendokusai
 				for (int index = 0; index < count; index++)
 				{
 					int target = top - index;
-					mapButtons.Add(AddButton(mapRows, "v2-row-button", () => GoToStage(target)));
+					mapButtons.Add(AddButton(mapRows, "idle-row-button", () => GoToStage(target)));
 				}
 			}
 
@@ -1341,7 +1341,7 @@ namespace WitchMendokusai
 					here ? "  지금 여기" : string.Empty,
 					target == snapshot.BestFarmingStage ? "  (가장 잘 벌리는 곳)" : string.Empty);
 				mapButtons[index].SetEnabled(here == false && IdleModel.CanGoToStage(session.State, target));
-				mapButtons[index].EnableInClassList("v2-row-button--strong", here);
+				mapButtons[index].EnableInClassList("idle-row-button--strong", here);
 			}
 		}
 
@@ -1393,7 +1393,7 @@ namespace WitchMendokusai
 			bool altScene = tab == Tab.Shop || tab == Tab.Lab;
 			sceneCover.style.display = altScene ? DisplayStyle.Flex : DisplayStyle.None;
 			sceneCoverLabel.text = tab == Tab.Shop ? "SHOP 3D SCENE 자리" : "LAB 3D SCENE 자리";
-			battle.EnableInClassList("v2-battle--alt", altScene);
+			battle.EnableInClassList("idle-battle--alt", altScene);
 
 			ApplySplit();
 			Render(session.Capture());
@@ -1403,7 +1403,7 @@ namespace WitchMendokusai
 		{
 			sideOpen = false;
 			sceneCover.style.display = DisplayStyle.None;
-			battle.EnableInClassList("v2-battle--alt", false);
+			battle.EnableInClassList("idle-battle--alt", false);
 			ApplySplit();
 		}
 
@@ -1420,10 +1420,10 @@ namespace WitchMendokusai
 		{
 			bool showSide = split || sideOpen;
 			side.style.display = showSide ? DisplayStyle.Flex : DisplayStyle.None;
-			side.EnableInClassList("v2-side--drawer", split == false);
+			side.EnableInClassList("idle-side--drawer", split == false);
 			closeSideButton.style.display = split ? DisplayStyle.None : DisplayStyle.Flex;
 			floatingTabs.style.display = split ? DisplayStyle.None : DisplayStyle.Flex;
-			battle.EnableInClassList("v2-battle--full", split == false);
+			battle.EnableInClassList("idle-battle--full", split == false);
 			splitButton.text = split ? "풀화면" : "분할";
 
 			// 무대 카메라는 전투 창 폭만. 아니면 부대가 화면 전체 가운데(관리 열 밑)에 위치
@@ -1496,7 +1496,7 @@ namespace WitchMendokusai
 		{
 			for (VisualElement at = element; at != null; at = at.parent)
 			{
-				if (at.ClassListContains("v2-box"))
+				if (at.ClassListContains("idle-box"))
 				{
 					return true;
 				}
@@ -1810,12 +1810,12 @@ namespace WitchMendokusai
 				: string.Format("{0} {1}단계\n효과 ×{2:0.00}", SLOT_NAMES[slot], one.Tier, IdleGear.MultiplierOfItem(one, session.Tuning));
 		}
 
-		/// <summary>단계 색. 클래스 v2-tier-N, 색은 USS (울티마식 단계 고유색. 사용자 2026-08-30)</summary>
+		/// <summary>단계 색. 클래스 idle-tier-N, 색은 USS (울티마식 단계 고유색. 사용자 2026-08-30)</summary>
 		private static void SetTierClass(VisualElement element, int tier)
 		{
 			for (int at = 1; at <= 8; at++)
 			{
-				element.EnableInClassList("v2-tier-" + at, at == tier);
+				element.EnableInClassList("idle-tier-" + at, at == tier);
 			}
 		}
 

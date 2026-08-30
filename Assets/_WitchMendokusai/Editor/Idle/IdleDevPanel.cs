@@ -52,21 +52,21 @@ namespace WitchMendokusai.EditorTools
 		{
 			EditorGUILayout.LabelField("씬", EditorStyles.boldLabel);
 
-			if (GUILayout.Button("V2 열고 플레이 (Ctrl+Shift+U)", GUILayout.Height(32f)))
+			if (GUILayout.Button("열고 플레이 (Ctrl+Shift+U)", GUILayout.Height(32f)))
 			{
-				IdleV2SceneBuilder.OpenAndPlay();
+				IdleSceneBuilder.OpenAndPlay();
 			}
 
 			EditorGUILayout.BeginHorizontal();
-			if (GUILayout.Button("V2 씬 짓기"))
+			if (GUILayout.Button("씬 짓기"))
 			{
-				IdleV2SceneBuilder.Build();
+				IdleSceneBuilder.Build();
 			}
 
-			if (GUILayout.Button("V2 씬 검사"))
+			if (GUILayout.Button("씬 검사"))
 			{
-				bool fine = IdleV2SceneBuilder.Verify();
-				Debug.Log("[IdleDev] V2 씬 검사: " + (fine ? "초록" : "빨강"));
+				bool fine = IdleSceneBuilder.Verify();
+				Debug.Log("[IdleDev] 씬 검사: " + (fine ? "초록" : "빨강"));
 			}
 			EditorGUILayout.EndHorizontal();
 

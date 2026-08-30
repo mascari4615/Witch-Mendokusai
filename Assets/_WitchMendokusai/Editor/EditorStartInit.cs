@@ -19,7 +19,7 @@ namespace WitchMendokusai
 	public class EditorStartInit
 	{
 		/// <summary>본편이 아닌 씬 — 여기서는 Play 를 가로채지 않는다.</summary>
-		private const string SIDE_GAME_SCENE = "IdleV2";
+		private const string SIDE_GAME_SCENE = "Idle";
 
 		static EditorStartInit()
 		{

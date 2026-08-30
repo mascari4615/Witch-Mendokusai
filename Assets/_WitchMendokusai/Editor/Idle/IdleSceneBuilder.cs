@@ -16,16 +16,16 @@ namespace WitchMendokusai.EditorTools
 	/// ★ 손으로 안 만드는 이유·순서(에셋 먼저, 씬은 뒤)·다시 열어 검사하는 이유는
 	///   V1 빌더(2026-08-30 삭제)에서 실측으로 얻은 규칙 그대로.
 	/// </summary>
-	public static class IdleV2SceneBuilder
+	public static class IdleSceneBuilder
 	{
-		private const string SCENE_PATH = "Assets/_WitchMendokusai/Scenes/Idle/IdleV2.unity";
+		private const string SCENE_PATH = "Assets/_WitchMendokusai/Scenes/Idle/Idle.unity";
 		private const string PANEL_PATH = "Assets/_WitchMendokusai/Scenes/Idle/PS_0001_Idle.asset";
 		private const string TUNING_PATH = "Assets/_WitchMendokusai/Scenes/Idle/TU_0001_Idle.asset";
 		private const string STYLE_PATH = "Assets/_WitchMendokusai/Idle/IdleBattleScreen.uss";
 		private const string DOLL_PAGE_PATH = "Assets/_WitchMendokusai/Idle/IdleDollPage.uxml";
-		private const string TAG = "[IdleV2Scene]";
+		private const string TAG = "[IdleScene]";
 
-		[MenuItem("WM/Idle/V2 Open and Play %#u")]
+		[MenuItem("WM/Idle/Open and Play %#u")]
 		public static void OpenAndPlay()
 		{
 			if (EditorApplication.isPlaying)
@@ -36,7 +36,7 @@ namespace WitchMendokusai.EditorTools
 
 			if (File.Exists(SCENE_PATH) == false)
 			{
-				Debug.LogError(TAG + " 씬이 없다 — 먼저 WM/Idle/V2 씬 짓기: " + SCENE_PATH);
+				Debug.LogError(TAG + " 씬이 없다. 먼저 Dev Panel 씬 짓기: " + SCENE_PATH);
 				return;
 			}
 
