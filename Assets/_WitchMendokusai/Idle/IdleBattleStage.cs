@@ -13,8 +13,22 @@ namespace WitchMendokusai
 	///   그래서 숫자와 체력이 일치
 	/// ★ 시뮬 x 는 오른쪽이 적, y 는 옆. Unity 로는 (x, 0, y). 세계 스크롤은 부대 가운데 기준
 	/// </summary>
+	[ExecuteAlways]
 	public sealed class IdleBattleStage : MonoBehaviour
 	{
+		[Header("손으로 만든 조각. 비우면 코드 도형 (사용자 2026-08-30: 고퀄리티는 사람 손길)")]
+		[Tooltip("인형 prefab. 자식 이름 Body/Head 의 MeshRenderer 에 등급색. 없으면 캡슐 + 구")]
+		[SerializeField] private GameObject dollPrefab;
+
+		[Tooltip("잡몹 prefab. 없으면 N각기둥")]
+		[SerializeField] private GameObject foePrefab;
+
+		[Tooltip("보스 prefab. 없으면 잡몹 prefab 또는 N각기둥 (bossScale 배)")]
+		[SerializeField] private GameObject bossPrefab;
+
+		[Tooltip("바닥과 소품 prefab. 없으면 Plane + 상자, 기둥")]
+		[SerializeField] private GameObject groundPrefab;
+
 		[Header("시야. 부대 가운데가 화면 어디에 서나")]
 		[Tooltip("부대 가운데의 무대 x. 왼쪽에 둬야 오른쪽에서 오는 적이 보인다")]
 		[SerializeField] private float partyAnchorX = -2.5f;
@@ -95,7 +109,9 @@ namespace WitchMendokusai
 		// 이번 프레임에 사라진 적의 마지막 머리 위치. 막타 숫자가 설 자리
 		private readonly Dictionary<long, Vector3> goneHeads = new Dictionary<long, Vector3>();
 
+		private Transform holder;
 		private Transform worldRoot;
+		private float clock;
 		private Transform[] dolls;
 		private Material[] dollSkins;
 		private IdleHealthBar[] dollBars;
@@ -118,15 +134,41 @@ namespace WitchMendokusai
 
 			built = true;
 
-			GameObject ground = GameObject.CreatePrimitive(PrimitiveType.Plane);
-			ground.name = "Ground";
-			ground.transform.SetParent(transform, false);
-			ground.transform.localScale = new Vector3(6f, 1f, 4f);
-			groundMaterial = Paint(ground, groundColor);
-			groundRest = groundColor;
+			// 도메인 리로드 뒤 남은 미리보기 잔재부터 정리 (씬에는 안 저장되지만 메모리에는 잔존)
+			for (int at = transform.childCount - 1; at >= 0; at--)
+			{
+				Transform child = transform.GetChild(at);
+				if (child.name == "Preview")
+				{
+					Kill(child.gameObject);
+				}
+			}
+
+			GameObject root = new GameObject("Preview");
+			root.hideFlags = HideFlags.DontSave;
+			root.transform.SetParent(transform, false);
+			holder = root.transform;
+
+			if (groundPrefab != null)
+			{
+				GameObject made = Instantiate(groundPrefab, holder, false);
+				made.name = "Ground";
+				MeshRenderer floor = made.GetComponentInChildren<MeshRenderer>();
+				groundMaterial = floor != null ? floor.sharedMaterial : MakeMaterial(groundColor);
+				groundRest = groundMaterial.color;
+			}
+			else
+			{
+				GameObject ground = GameObject.CreatePrimitive(PrimitiveType.Plane);
+				ground.name = "Ground";
+				ground.transform.SetParent(holder, false);
+				ground.transform.localScale = new Vector3(6f, 1f, 4f);
+				groundMaterial = Paint(ground, groundColor);
+				groundRest = groundColor;
+			}
 
 			GameObject world = new GameObject("World");
-			world.transform.SetParent(transform, false);
+			world.transform.SetParent(holder, false);
 			worldRoot = world.transform;
 
 			int seats = IdleSquad.SEAT_COUNT;
@@ -141,7 +183,7 @@ namespace WitchMendokusai
 				dolls[seat].gameObject.SetActive(false);
 			}
 
-			for (int at = 0; at < 14; at++)
+			for (int at = 0; at < (groundPrefab != null ? 0 : 14); at++)
 			{
 				GameObject prop = GameObject.CreatePrimitive(at % 3 == 0
 					? PrimitiveType.Cylinder : PrimitiveType.Cube);
@@ -169,6 +211,23 @@ namespace WitchMendokusai
 
 			Material skin = MakeMaterial(seat == 0 ? myColor : gradeColors[0]);
 			dollSkins[seat] = skin;
+
+			if (dollPrefab != null)
+			{
+				GameObject made = Instantiate(dollPrefab, doll.transform, false);
+				made.name = "Model";
+				foreach (MeshRenderer part in made.GetComponentsInChildren<MeshRenderer>())
+				{
+					if (part.name == "Body" || part.name == "Head")
+					{
+						part.sharedMaterial = skin;
+					}
+				}
+
+				dollBars[seat] = IdleHealthBar.Attach(doll.transform, 1.45f, 0.9f, 0.11f,
+					barBackColor, allyBarColor);
+				return doll.transform;
+			}
 
 			GameObject body = GameObject.CreatePrimitive(PrimitiveType.Capsule);
 			body.transform.SetParent(doll.transform, false);
@@ -299,7 +358,7 @@ namespace WitchMendokusai
 				if (IndexOfView(views, foes[at].Index) < 0)
 				{
 					goneHeads[foes[at].Index] = foes[at].Piece.position + new Vector3(0f, 0.7f, 0f);
-					Destroy(foes[at].Piece.gameObject);
+					Kill(foes[at].Piece.gameObject);
 					foes.RemoveAt(at);
 				}
 			}
@@ -310,12 +369,12 @@ namespace WitchMendokusai
 				Foe foe = Find(view.Index);
 				if (foe == null)
 				{
-					foe = MakeFoe(view.Index);
+					foe = MakeFoe(view.Index, view.Boss);
 					foes.Add(foe);
 				}
 
 				int sides = Mathf.Max(3, snapshot.MaxTierNow + 2);
-				if (foe.Sides != sides)
+				if (foe.Mesh != null && foe.Sides != sides)
 				{
 					foe.Sides = sides;
 					foe.Mesh.sharedMesh = NgonPrism(sides, 0.62f, 0.95f);
@@ -371,19 +430,37 @@ namespace WitchMendokusai
 			return null;
 		}
 
-		private Foe MakeFoe(long index)
+		private Foe MakeFoe(long index, bool boss)
 		{
 			GameObject piece = new GameObject("Foe" + index);
 			piece.transform.SetParent(worldRoot, false);
 
 			Foe foe = new Foe();
 			foe.Piece = piece.transform;
-			foe.Mesh = piece.AddComponent<MeshFilter>();
-			MeshRenderer renderer = piece.AddComponent<MeshRenderer>();
 			foe.Skin = MakeMaterial(enemyColor);
-			renderer.sharedMaterial = foe.Skin;
 			foe.Index = index;
 			foe.Sides = -1;
+
+			GameObject source = boss && bossPrefab != null ? bossPrefab : foePrefab;
+			if (source != null)
+			{
+				GameObject made = Instantiate(source, piece.transform, false);
+				made.name = "Model";
+				MeshRenderer part = made.GetComponentInChildren<MeshRenderer>();
+				if (part != null)
+				{
+					part.sharedMaterial = foe.Skin;
+				}
+
+				foe.Sides = int.MaxValue;
+			}
+			else
+			{
+				foe.Mesh = piece.AddComponent<MeshFilter>();
+				MeshRenderer renderer = piece.AddComponent<MeshRenderer>();
+				renderer.sharedMaterial = foe.Skin;
+			}
+
 			foe.Kind = IdleFoeKind.Melee;
 			foe.Bar = IdleHealthBar.Attach(piece.transform, 0.95f, 0.8f, 0.1f,
 				barBackColor, enemyBarColor);
@@ -468,7 +545,7 @@ namespace WitchMendokusai
 		{
 			GameObject bolt = GameObject.CreatePrimitive(PrimitiveType.Sphere);
 			bolt.name = "Bolt";
-			bolt.transform.SetParent(transform, false);
+			bolt.transform.SetParent(holder, false);
 			bolt.transform.position = from;
 			bolt.transform.localScale = new Vector3(0.16f, 0.16f, 0.16f);
 			Paint(bolt, boltColor);
@@ -482,11 +559,11 @@ namespace WitchMendokusai
 		/// <summary>피해 숫자 하나. 내장 글꼴 TextMesh. 카메라를 본다</summary>
 		private void SpawnNumber(Vector3 at, string what, Color color)
 		{
-			GameObject holder = new GameObject("Damage");
-			holder.transform.SetParent(transform, false);
-			holder.transform.position = at;
+			GameObject sign = new GameObject("Damage");
+			sign.transform.SetParent(holder, false);
+			sign.transform.position = at;
 
-			TextMesh text = holder.AddComponent<TextMesh>();
+			TextMesh text = sign.AddComponent<TextMesh>();
 			text.text = what;
 			text.fontSize = 48;
 			text.characterSize = numberSize;
@@ -494,7 +571,7 @@ namespace WitchMendokusai
 			text.alignment = TextAlignment.Center;
 			text.color = color;
 			text.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-			holder.GetComponent<MeshRenderer>().material = text.font.material;
+			sign.GetComponent<MeshRenderer>().sharedMaterial = text.font.material;
 
 			numbers.Add(text);
 			numberAges.Add(0f);
@@ -512,7 +589,7 @@ namespace WitchMendokusai
 
 				if (life >= 1f)
 				{
-					Destroy(text.gameObject);
+					Kill(text.gameObject);
 					numbers.RemoveAt(at);
 					numberAges.RemoveAt(at);
 					continue;
@@ -531,6 +608,8 @@ namespace WitchMendokusai
 
 		private void AdvanceBodies(IdleSnapshot snapshot, float delta)
 		{
+			clock += delta;
+
 			for (int seat = 0; seat < dolls.Length; seat++)
 			{
 				if (lungeLeft[seat] > 0f)
@@ -543,7 +622,7 @@ namespace WitchMendokusai
 					: 0f;
 
 				bool walking = seat < snapshot.Fighters.Length && snapshot.Fighters[seat].Moving;
-				float bob = walking ? Mathf.Abs(Mathf.Sin(Time.time * 7f + seat * 1.3f)) * 0.1f : 0f;
+				float bob = walking ? Mathf.Abs(Mathf.Sin(clock * 7f + seat * 1.3f)) * 0.1f : 0f;
 
 				float x = seat < snapshot.Fighters.Length ? (float)snapshot.Fighters[seat].X : 0f;
 				float y = seat < snapshot.Fighters.Length ? (float)snapshot.Fighters[seat].Y : 0f;
@@ -562,7 +641,7 @@ namespace WitchMendokusai
 
 				if (gone >= 1f)
 				{
-					Destroy(bolts[at].gameObject);
+					Kill(bolts[at].gameObject);
 					bolts.RemoveAt(at);
 					boltAges.RemoveAt(at);
 					boltFrom.RemoveAt(at);
@@ -616,6 +695,41 @@ namespace WitchMendokusai
 		{
 		}
 
+		/// <summary>지우기. 에디트 모드는 즉시, 플레이는 프레임 끝</summary>
+		private static void Kill(GameObject piece)
+		{
+			if (Application.isPlaying)
+			{
+				Destroy(piece);
+			}
+			else
+			{
+				DestroyImmediate(piece);
+			}
+		}
+
+		/// <summary>끄면 미리보기 잔재를 지운다. 다시 켜면 새로 짓는다</summary>
+		private void OnDisable()
+		{
+			if (holder != null)
+			{
+				Kill(holder.gameObject);
+			}
+
+			holder = null;
+			worldRoot = null;
+			foes.Clear();
+			scenery.Clear();
+			bolts.Clear();
+			boltAges.Clear();
+			boltFrom.Clear();
+			boltTarget.Clear();
+			numbers.Clear();
+			numberAges.Clear();
+			scrollReady = false;
+			built = false;
+		}
+
 		private static Material Paint(GameObject piece, Color color)
 		{
 			Material made = MakeMaterial(color);
@@ -632,6 +746,7 @@ namespace WitchMendokusai
 			}
 
 			Material made = new Material(shader);
+			made.hideFlags = HideFlags.DontSave;
 			made.color = color;
 
 			if (made.HasProperty("_BaseColor"))

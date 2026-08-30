@@ -18,6 +18,7 @@ namespace WitchMendokusai
 	/// ★ 규칙은 한 줄도 없다. 사진을 그리고 의도를 보낸다. 판정은 전부 코어.
 	/// ★ 이름(골드, 뽑기, 환생 조각, 탭 이름)은 전부 임시 (layout.md §6).
 	/// </summary>
+	[ExecuteAlways]
 	[RequireComponent(typeof(UIDocument))]
 	public sealed class IdleBattleScreen : MonoBehaviour, IGameView<IdleSnapshot>
 	{
@@ -39,6 +40,10 @@ namespace WitchMendokusai
 		private IdleSession session;
 		private float sinceLastSave;
 		private bool skipSaveOnce;
+
+		// 에디트 모드 미리보기 (사용자 2026-08-30: UI 수정은 Play 없이). 저장 읽기와 쓰기 없음. 임시 판 위 시뮬만
+		private bool preview;
+		private double previewClock;
 
 		// 짓기가 끝나야 그린다. 짓는 도중 Render 가 돌면 아직 없는 조각(맵 팝업)에서 죽는다 (실측 2026-08-30)
 		private bool built;
@@ -183,16 +188,32 @@ namespace WitchMendokusai
 			}
 
 			IdleTuning tuning = tuningAsset != null ? tuningAsset.ToTuning() : new IdleTuning();
+			preview = Application.isPlaying == false;
 
 			IdleState state = new IdleState();
-			IdleSaveData? saved = IdleSaveStore.Load();
-			if (saved.HasValue)
-			{
-				state.Load(saved.Value);
-			}
+			IdleAwayReport away = default;
 
-			session = new IdleSession(tuning, state);
-			session.CatchUp(IdleSaveStore.NowUnixSeconds(), out IdleAwayReport away);
+			if (preview)
+			{
+				state = PreviewState(tuning);
+				session = new IdleSession(tuning, state);
+#if UNITY_EDITOR
+				UnityEditor.EditorApplication.update -= PreviewTick;
+				UnityEditor.EditorApplication.update += PreviewTick;
+				previewClock = UnityEditor.EditorApplication.timeSinceStartup;
+#endif
+			}
+			else
+			{
+				IdleSaveData? saved = IdleSaveStore.Load();
+				if (saved.HasValue)
+				{
+					state.Load(saved.Value);
+				}
+
+				session = new IdleSession(tuning, state);
+				session.CatchUp(IdleSaveStore.NowUnixSeconds(), out away);
+			}
 
 			if (stage != null)
 			{
@@ -209,8 +230,60 @@ namespace WitchMendokusai
 			Render(session.Capture());
 		}
 
+		/// <summary>미리보기 판. 인형 셋(근, 중, 원), 4구역(원거리 적 등장), 골드 약간. 저장과 무관</summary>
+		private static IdleState PreviewState(IdleTuning tuning)
+		{
+			IdleState state = new IdleState();
+			IdleHeroes.EnsureStarter(state);
+
+			int[] party = { 0, 3, 1 };
+			for (int seat = 0; seat < party.Length && seat < state.Party.Length; seat++)
+			{
+				if (state.IndexOfHero(party[seat]) < 0)
+				{
+					state.Heroes.Add(new IdleHeroOwned(party[seat]));
+				}
+
+				state.Party[seat] = party[seat];
+			}
+
+			state.Stage = 4;
+			state.BestStage = 4;
+			state.ClearedStage = 3;
+			state.Resource = 500d;
+			state.EnsureSeatRoom(tuning);
+			return state;
+		}
+
+#if UNITY_EDITOR
+		/// <summary>에디트 모드의 한 틱. 시뮬을 밟고 모든 뷰를 다시 그린다</summary>
+		private void PreviewTick()
+		{
+			if (this == null || preview == false)
+			{
+				UnityEditor.EditorApplication.update -= PreviewTick;
+				return;
+			}
+
+			double now = UnityEditor.EditorApplication.timeSinceStartup;
+			float delta = Mathf.Min(0.25f, (float)(now - previewClock));
+			previewClock = now;
+			Tick(delta);
+			UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
+		}
+#endif
+
 		private void OnDisable()
 		{
+#if UNITY_EDITOR
+			UnityEditor.EditorApplication.update -= PreviewTick;
+#endif
+			if (preview)
+			{
+				session = null;
+				return;
+			}
+
 			if (skipSaveOnce)
 			{
 				skipSaveOnce = false;
@@ -236,12 +309,21 @@ namespace WitchMendokusai
 
 		private void Update()
 		{
-			if (session == null)
+			// 미리보기는 에디터 틱(PreviewTick) 담당. 에디트 모드의 플레이어 루프는 Update 를 안 부름 (실측 2026-08-30)
+			if (preview)
 			{
 				return;
 			}
 
-			float delta = Time.unscaledDeltaTime;
+			Tick(Time.unscaledDeltaTime);
+		}
+
+		private void Tick(float delta)
+		{
+			if (session == null)
+			{
+				return;
+			}
 
 			// 보고 있는 동안은 위험 진행. 적의 공격, 쓰러짐, 부활
 			session.AdvanceLive(delta);
@@ -264,6 +346,11 @@ namespace WitchMendokusai
 			}
 
 			Render(snapshot);
+
+			if (preview)
+			{
+				return;
+			}
 
 			sinceLastSave += delta;
 			if (sinceLastSave >= saveIntervalSeconds)
@@ -1316,6 +1403,14 @@ namespace WitchMendokusai
 		/// </summary>
 		private void WipeAndRestart()
 		{
+			// 미리보기는 저장과 무관. 임시 판만 새로
+			if (preview)
+			{
+				enabled = false;
+				enabled = true;
+				return;
+			}
+
 			skipSaveOnce = true;
 			IdleSaveStore.Wipe();
 			enabled = false;

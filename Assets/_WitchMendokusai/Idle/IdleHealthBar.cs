@@ -102,6 +102,7 @@ namespace WitchMendokusai
 			}
 
 			Material made = new Material(shader);
+			made.hideFlags = HideFlags.DontSave;
 			made.color = color;
 
 			// URP Unlit 은 색을 _BaseColor 로 받는다 — color 만 넣으면 흰 판으로 뜬다.
@@ -117,7 +118,15 @@ namespace WitchMendokusai
 			renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
 			renderer.receiveShadows = false;
 
-			Object.Destroy(piece.GetComponent<Collider>());
+			Collider hull = piece.GetComponent<Collider>();
+			if (Application.isPlaying)
+			{
+				Object.Destroy(hull);
+			}
+			else
+			{
+				Object.DestroyImmediate(hull);
+			}
 			return made;
 		}
 	}
