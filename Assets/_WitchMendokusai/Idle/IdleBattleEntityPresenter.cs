@@ -515,7 +515,7 @@ namespace WitchMendokusai
 			}
 		}
 
-		/// <summary>체력이 빌수록 껍질이 벌어진다. 다 벌어지면 코어가 드러난다</summary>
+		/// <summary>체력이 빌수록 껍질이 벌어지고 조각이 떨어져 나간다 (visual.md 4)</summary>
 		private void SpreadShell(Foe foe, IdleFoeView view, float delta)
 		{
 			if (foe.Shell == null || foe.Shards.Count == 0)
@@ -523,13 +523,29 @@ namespace WitchMendokusai
 				return;
 			}
 
-			float hurt = 1f - Mathf.Clamp01((float)view.HealthRatio);
+			float health = Mathf.Clamp01((float)view.HealthRatio);
+			float hurt = 1f - health;
 			float radius = settings.BossShellRadius + settings.BossShellSpread * hurt;
+
+			// 깎일수록 조각이 떨어져 나감. 마지막 하나는 남아 코어가 완전히 벗겨지지 않게
+			int alive = Mathf.Clamp(Mathf.CeilToInt(foe.Shards.Count * health), 1, foe.Shards.Count);
 
 			for (int at = 0; at < foe.Shards.Count; at++)
 			{
 				Transform shard = foe.Shards[at];
-				float angle = at * Mathf.PI * 2f / foe.Shards.Count;
+				bool onShell = at < alive;
+
+				if (shard.gameObject.activeSelf != onShell)
+				{
+					shard.gameObject.SetActive(onShell);
+				}
+
+				if (onShell == false)
+				{
+					continue;
+				}
+
+				float angle = at * Mathf.PI * 2f / alive;
 				float lift = ((at % 3) - 1) * 0.3f;
 				Vector3 want = new Vector3(Mathf.Cos(angle), lift, Mathf.Sin(angle)) * radius;
 				shard.localPosition = Vector3.Lerp(shard.localPosition, want,
