@@ -407,7 +407,8 @@ namespace WitchMendokusai
 				}
 
 				Vector3 wanted = new Vector3((float)view.X, foeHeight, (float)view.Y);
-				foe.Piece.localPosition = Vector3.Lerp(foe.Piece.localPosition, wanted, CatchUp(delta));
+				foe.Piece.localPosition = Vector3.Lerp(foe.Piece.localPosition,
+					wanted, IdleBattleMotion.CatchUp(positionCatchUp, delta));
 
 				float health = 0.82f + 0.18f * (float)view.HealthRatio;
 				float pop = foe.PopLeft > 0f ? 1f + 0.35f * (foe.PopLeft / popSeconds) : 1f;
@@ -686,12 +687,13 @@ namespace WitchMendokusai
 					: 0f;
 
 				bool walking = seat < snapshot.Fighters.Length && snapshot.Fighters[seat].Moving;
-				float bob = walking ? Mathf.Abs(Mathf.Sin(clock * 7f + seat * 1.3f)) * 0.1f : 0f;
+				float bob = walking ? IdleBattleMotion.WalkBob(clock, seat, 0.1f) : 0f;
 
 				float x = seat < snapshot.Fighters.Length ? (float)snapshot.Fighters[seat].X : 0f;
 				float y = seat < snapshot.Fighters.Length ? (float)snapshot.Fighters[seat].Y : 0f;
 				Vector3 wanted = new Vector3(x + swing * 0.3f, bob, y);
-				dolls[seat].localPosition = Vector3.Lerp(dolls[seat].localPosition, wanted, CatchUp(delta));
+				dolls[seat].localPosition = Vector3.Lerp(dolls[seat].localPosition,
+					wanted, IdleBattleMotion.CatchUp(positionCatchUp, delta));
 			}
 
 			for (int index = 0; index < foes.Count; index++)
@@ -699,7 +701,7 @@ namespace WitchMendokusai
 				Foe foe = foes[index];
 				foe.Model.Rotate(Vector3.up, foeSpinDegrees * delta, Space.Self);
 				Vector3 position = foe.Model.localPosition;
-				position.y = Mathf.Sin(clock * 2.4f + index * 1.7f) * foeBobHeight;
+				position.y = IdleBattleMotion.FoeBob(clock, index, foeBobHeight);
 				foe.Model.localPosition = position;
 			}
 
@@ -707,10 +709,7 @@ namespace WitchMendokusai
 			{
 				shakeLeft -= delta;
 				float envelope = shakeSeconds > 0f ? Mathf.Clamp01(shakeLeft / shakeSeconds) : 0f;
-				worldRoot.localPosition += new Vector3(
-					Mathf.Sin(clock * 83f) * shakeDistance * envelope,
-					Mathf.Sin(clock * 117f) * shakeDistance * 0.35f * envelope,
-					0f);
+				worldRoot.localPosition += IdleBattleMotion.Shake(clock, shakeDistance, envelope);
 			}
 
 			for (int at = bolts.Count - 1; at >= 0; at--)
@@ -749,11 +748,6 @@ namespace WitchMendokusai
 				float glow = Mathf.Clamp01(supplyGlowLeft);
 				groundMaterial.color = Color.Lerp(groundRest, boltColor, glow * 0.35f);
 			}
-		}
-
-		private float CatchUp(float delta)
-		{
-			return 1f - Mathf.Exp(-positionCatchUp * delta);
 		}
 
 		/// <summary>일제 사격. 서 있는 모두가 달려든다. 볼트와 숫자는 사진의 타격이 따로 낸다</summary>
