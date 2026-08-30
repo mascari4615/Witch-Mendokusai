@@ -119,7 +119,7 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
---- !u!1 &150758121
+--- !u!1 &189669838
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -127,8 +127,190 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 150758123}
-  - component: {fileID: 150758122}
+  - component: {fileID: 189669841}
+  - component: {fileID: 189669840}
+  - component: {fileID: 189669839}
+  m_Layer: 0
+  m_Name: IdleBattleScreen
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &189669839
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 189669838}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b93ed313817eefd49bbe0ef193612b47, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: WM.Idle::WitchMendokusai.IdleBattleScreen
+  tuningAsset: {fileID: 11400000, guid: 946381831e6beaa4f94c9952cca3a3b6, type: 2}
+  styleSheet: {fileID: 7433441132597879392, guid: 72013b29b1b36154b93df6c278d52c37, type: 3}
+  dollPageAsset: {fileID: 9197481963319205126, guid: 9c82c0532a11918448f4bd19016a12ac, type: 3}
+  itemPageAsset: {fileID: 9197481963319205126, guid: ce07c192237564d47828fb180f4ebf1f, type: 3}
+  bagCellAsset: {fileID: 9197481963319205126, guid: 472740834cd8cc54386f16ec4bfc76c6, type: 3}
+  forgeKindAsset: {fileID: 9197481963319205126, guid: 04d02e2ef56d0ab4ba49501a26e05e03, type: 3}
+  battleHudAsset: {fileID: 9197481963319205126, guid: 6a8de5c0f8e744e9b88b3bbf1d8ee0c2, type: 3}
+  cardAsset: {fileID: 9197481963319205126, guid: 8cdad0f4be344e05bb8e9a8498c2df9d, type: 3}
+  waveDotAsset: {fileID: 9197481963319205126, guid: 249c5c72e0b94ac59d6f0facf39dc6ca, type: 3}
+  codexPageAsset: {fileID: 9197481963319205126, guid: 634e8cf84b1b50147895a60533e5900f, type: 3}
+  shopPageAsset: {fileID: 9197481963319205126, guid: 8a562d6bd76f1074ab0f1c23eca7d817, type: 3}
+  labPageAsset: {fileID: 9197481963319205126, guid: 400b8b0544807484eb60c36a42c91121, type: 3}
+  dungeonPageAsset: {fileID: 9197481963319205126, guid: 283dcf5f880375f4cb3cc5a228db506b, type: 3}
+  investPageAsset: {fileID: 9197481963319205126, guid: ad855fcefc42f4f4d8a4c9f65338d0e5, type: 3}
+  producerRowAsset: {fileID: 9197481963319205126, guid: 062a6ed90d16dea4d9f880e8f16cbcbf, type: 3}
+  stage: {fileID: 990725942}
+  saveIntervalSeconds: 10
+  noteSeconds: 5
+--- !u!114 &189669840
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 189669838}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 19102, guid: 0000000000000000e000000000000000, type: 0}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.dll::UnityEngine.UIElements.UIDocument
+  m_PanelSettings: {fileID: 11400000, guid: 90e5adb93ee86804688656942a1bdaf1, type: 2}
+  m_ParentUI: {fileID: 0}
+  sourceAsset: {fileID: 0}
+  m_SortingOrder: 0
+  m_Position: 0
+  m_WorldSpaceSizeMode: 1
+  m_WorldSpaceWidth: 1920
+  m_WorldSpaceHeight: 1080
+  m_PivotReferenceSize: 0
+  m_Pivot: 0
+  m_WorldSpaceCollider: {fileID: 0}
+--- !u!4 &189669841
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 189669838}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &990725941
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 990725943}
+  - component: {fileID: 990725942}
+  m_Layer: 0
+  m_Name: BattleStage
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &990725942
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 990725941}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a36f565b0d6167444ac8af31e9c0f05d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: WM.Idle::WitchMendokusai.IdleBattleStage
+  dollPrefab: {fileID: 0}
+  foePrefab: {fileID: 0}
+  bossPrefab: {fileID: 0}
+  groundPrefab: {fileID: 0}
+  partyAnchorX: -2.5
+  followCatchUp: 4
+  snapJump: 3
+  lungeSeconds: 0.22
+  boltSeconds: 0.18
+  popSeconds: 0.3
+  positionCatchUp: 14
+  foeSpinDegrees: 12
+  foeBobHeight: 0.025
+  shakeSeconds: 0.08
+  shakeDistance: 0.025
+  bossScale: 1.9
+  foeHeight: 0.62
+  foeRadius: 0.62
+  shapeStagesPerStep: 5
+  sceneryCount: 14
+  bossShardCount: 6
+  bossShellRadius: 1.35
+  bossShellSpread: 0.9
+  bossShellSpinDegrees: -26
+  bossSpikeFromStage: 21
+  colorDepthStage: 40
+  depthSaturation: 0.35
+  depthDarken: 0.18
+  bossGlow: 0.55
+  meleeHeightShare: 0.85
+  rangedHeightShare: 1.3
+  groundColor: {r: 0.62, g: 0.73, b: 0.55, a: 1}
+  enemyColor: {r: 0.55, g: 0.5, b: 0.63, a: 1}
+  rangedEnemyColor: {r: 0.66, g: 0.54, b: 0.5, a: 1}
+  bossColor: {r: 0.3, g: 0.26, b: 0.38, a: 1}
+  sceneryColor: {r: 0.5, g: 0.6, b: 0.46, a: 1}
+  boltColor: {r: 1, g: 0.83, b: 0.29, a: 1}
+  myColor: {r: 0.93, g: 0.89, b: 0.82, a: 1}
+  barBackColor: {r: 0.12, g: 0.13, b: 0.16, a: 1}
+  allyBarColor: {r: 0.36, g: 0.78, b: 0.44, a: 1}
+  reviveBarColor: {r: 0.62, g: 0.66, b: 0.74, a: 1}
+  enemyBarColor: {r: 0.91, g: 0.36, b: 0.36, a: 1}
+  gradeColors:
+  - {r: 0.68, g: 0.72, b: 0.8, a: 1}
+  - {r: 0.46, g: 0.8, b: 0.72, a: 1}
+  - {r: 0.72, g: 0.58, b: 0.92, a: 1}
+  - {r: 0.95, g: 0.72, b: 0.36, a: 1}
+  numberSeconds: 0.8
+  numberRise: 1.2
+  numberSize: 0.12
+  numberColor: {r: 1, g: 1, b: 1, a: 1}
+  hurtColor: {r: 1, g: 0.45, b: 0.4, a: 1}
+--- !u!4 &990725943
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 990725941}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1011191761
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1011191763}
+  - component: {fileID: 1011191762}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -136,13 +318,13 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!20 &150758122
+--- !u!20 &1011191762
 Camera:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 150758121}
+  m_GameObject: {fileID: 1011191761}
   m_Enabled: 1
   serializedVersion: 2
   m_ClearFlags: 2
@@ -187,13 +369,13 @@ Camera:
   m_OcclusionCulling: 1
   m_StereoConvergence: 10
   m_StereoSeparation: 0.022
---- !u!4 &150758123
+--- !u!4 &1011191763
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 150758121}
+  m_GameObject: {fileID: 1011191761}
   serializedVersion: 2
   m_LocalRotation: {x: 0.3461569, y: 0.2416284, z: -0.09275246, w: 0.90176946}
   m_LocalPosition: {x: -5.1167297, y: 11.77522, z: -10.940899}
@@ -202,7 +384,7 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &633127127
+--- !u!1 &1429299698
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -210,9 +392,9 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 633127130}
-  - component: {fileID: 633127129}
-  - component: {fileID: 633127128}
+  - component: {fileID: 1429299701}
+  - component: {fileID: 1429299700}
+  - component: {fileID: 1429299699}
   m_Layer: 0
   m_Name: EventSystem
   m_TagString: Untagged
@@ -220,13 +402,13 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &633127128
+--- !u!114 &1429299699
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 633127127}
+  m_GameObject: {fileID: 1429299698}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 01614664b831546d2ae94a42149d80ac, type: 3}
@@ -251,13 +433,13 @@ MonoBehaviour:
   m_PointerBehavior: 0
   m_CursorLockBehavior: 0
   m_ScrollDeltaPerTick: 6
---- !u!114 &633127129
+--- !u!114 &1429299700
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 633127127}
+  m_GameObject: {fileID: 1429299698}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 76c392e42b5098c458856cdf6ecaaaa1, type: 3}
@@ -266,13 +448,13 @@ MonoBehaviour:
   m_FirstSelected: {fileID: 0}
   m_sendNavigationEvents: 1
   m_DragThreshold: 10
---- !u!4 &633127130
+--- !u!4 &1429299701
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 633127127}
+  m_GameObject: {fileID: 1429299698}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
@@ -281,7 +463,7 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &1267054902
+--- !u!1 &1655004294
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -289,8 +471,8 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 1267054904}
-  - component: {fileID: 1267054903}
+  - component: {fileID: 1655004296}
+  - component: {fileID: 1655004295}
   m_Layer: 0
   m_Name: Directional Light
   m_TagString: Untagged
@@ -298,13 +480,13 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!108 &1267054903
+--- !u!108 &1655004295
 Light:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1267054902}
+  m_GameObject: {fileID: 1655004294}
   m_Enabled: 1
   serializedVersion: 13
   m_Type: 1
@@ -363,172 +545,15 @@ Light:
   m_LightUnit: 1
   m_LuxAtDistance: 1
   m_EnableSpotReflector: 1
---- !u!4 &1267054904
+--- !u!4 &1655004296
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1267054902}
+  m_GameObject: {fileID: 1655004294}
   serializedVersion: 2
   m_LocalRotation: {x: 0.42534965, y: -0.21743797, z: 0.10605158, w: 0.872096}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &1868054330
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1868054332}
-  - component: {fileID: 1868054331}
-  m_Layer: 0
-  m_Name: BattleStage
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &1868054331
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1868054330}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a36f565b0d6167444ac8af31e9c0f05d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: WM.Idle::WitchMendokusai.IdleBattleStage
-  dollPrefab: {fileID: 0}
-  foePrefab: {fileID: 0}
-  bossPrefab: {fileID: 0}
-  groundPrefab: {fileID: 0}
-  partyAnchorX: -2.5
-  followCatchUp: 4
-  snapJump: 3
-  lungeSeconds: 0.22
-  boltSeconds: 0.18
-  popSeconds: 0.3
-  bossScale: 1.9
-  foeHeight: 0.62
-  groundColor: {r: 0.62, g: 0.73, b: 0.55, a: 1}
-  enemyColor: {r: 0.55, g: 0.5, b: 0.63, a: 1}
-  rangedEnemyColor: {r: 0.66, g: 0.54, b: 0.5, a: 1}
-  bossColor: {r: 0.3, g: 0.26, b: 0.38, a: 1}
-  sceneryColor: {r: 0.5, g: 0.6, b: 0.46, a: 1}
-  boltColor: {r: 1, g: 0.83, b: 0.29, a: 1}
-  myColor: {r: 0.93, g: 0.89, b: 0.82, a: 1}
-  barBackColor: {r: 0.12, g: 0.13, b: 0.16, a: 1}
-  allyBarColor: {r: 0.36, g: 0.78, b: 0.44, a: 1}
-  reviveBarColor: {r: 0.62, g: 0.66, b: 0.74, a: 1}
-  enemyBarColor: {r: 0.91, g: 0.36, b: 0.36, a: 1}
-  gradeColors:
-  - {r: 0.68, g: 0.72, b: 0.8, a: 1}
-  - {r: 0.46, g: 0.8, b: 0.72, a: 1}
-  - {r: 0.72, g: 0.58, b: 0.92, a: 1}
-  - {r: 0.95, g: 0.72, b: 0.36, a: 1}
-  numberSeconds: 0.8
-  numberRise: 1.2
-  numberSize: 0.12
-  numberColor: {r: 1, g: 1, b: 1, a: 1}
-  hurtColor: {r: 1, g: 0.45, b: 0.4, a: 1}
---- !u!4 &1868054332
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1868054330}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &1922304662
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1922304665}
-  - component: {fileID: 1922304664}
-  - component: {fileID: 1922304663}
-  m_Layer: 0
-  m_Name: IdleBattleScreen
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &1922304663
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1922304662}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b93ed313817eefd49bbe0ef193612b47, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: WM.Idle::WitchMendokusai.IdleBattleScreen
-  tuningAsset: {fileID: 11400000, guid: 946381831e6beaa4f94c9952cca3a3b6, type: 2}
-  styleSheet: {fileID: 7433441132597879392, guid: 72013b29b1b36154b93df6c278d52c37, type: 3}
-  dollPageAsset: {fileID: 9197481963319205126, guid: 9c82c0532a11918448f4bd19016a12ac, type: 3}
-  itemPageAsset: {fileID: 9197481963319205126, guid: ce07c192237564d47828fb180f4ebf1f, type: 3}
-  bagCellAsset: {fileID: 9197481963319205126, guid: 472740834cd8cc54386f16ec4bfc76c6, type: 3}
-  forgeKindAsset: {fileID: 9197481963319205126, guid: 04d02e2ef56d0ab4ba49501a26e05e03, type: 3}
-  battleHudAsset: {fileID: 9197481963319205126, guid: 6a8de5c0f8e744e9b88b3bbf1d8ee0c2, type: 3}
-  cardAsset: {fileID: 9197481963319205126, guid: 8cdad0f4be344e05bb8e9a8498c2df9d, type: 3}
-  waveDotAsset: {fileID: 9197481963319205126, guid: 249c5c72e0b94ac59d6f0facf39dc6ca, type: 3}
-  stage: {fileID: 1868054331}
-  saveIntervalSeconds: 10
-  noteSeconds: 5
---- !u!114 &1922304664
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1922304662}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 19102, guid: 0000000000000000e000000000000000, type: 0}
-  m_Name: 
-  m_EditorClassIdentifier: UnityEngine.dll::UnityEngine.UIElements.UIDocument
-  m_PanelSettings: {fileID: 11400000, guid: 90e5adb93ee86804688656942a1bdaf1, type: 2}
-  m_ParentUI: {fileID: 0}
-  sourceAsset: {fileID: 0}
-  m_SortingOrder: 0
-  m_Position: 0
-  m_WorldSpaceSizeMode: 1
-  m_WorldSpaceWidth: 1920
-  m_WorldSpaceHeight: 1080
-  m_PivotReferenceSize: 0
-  m_Pivot: 0
-  m_WorldSpaceCollider: {fileID: 0}
---- !u!4 &1922304665
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1922304662}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -539,8 +564,8 @@ Transform:
 SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
-  - {fileID: 150758123}
-  - {fileID: 1267054904}
-  - {fileID: 1868054332}
-  - {fileID: 1922304665}
-  - {fileID: 633127130}
+  - {fileID: 1011191763}
+  - {fileID: 1655004296}
+  - {fileID: 990725943}
+  - {fileID: 189669841}
+  - {fileID: 1429299701}

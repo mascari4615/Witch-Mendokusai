@@ -1,0 +1,4 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <!-- 생산자 한 줄. 투자 탭이 8개 복제한다 -->
+    <ui:Button name="row" class="idle-row-button" />
+</ui:UXML>

@@ -28,6 +28,12 @@ namespace WitchMendokusai.EditorTools
 		private const string FORGE_KIND_PATH = "Assets/_WitchMendokusai/Idle/IdleForgeKind.uxml";
 		private const string BATTLE_HUD_PATH = "Assets/_WitchMendokusai/Idle/IdleBattleHud.uxml";
 		private const string CARD_PATH = "Assets/_WitchMendokusai/Idle/IdleCard.uxml";
+		private const string CODEX_PAGE_PATH = "Assets/_WitchMendokusai/Idle/IdleCodexPage.uxml";
+		private const string SHOP_PAGE_PATH = "Assets/_WitchMendokusai/Idle/IdleShopPage.uxml";
+		private const string LAB_PAGE_PATH = "Assets/_WitchMendokusai/Idle/IdleLabPage.uxml";
+		private const string DUNGEON_PAGE_PATH = "Assets/_WitchMendokusai/Idle/IdleDungeonPage.uxml";
+		private const string INVEST_PAGE_PATH = "Assets/_WitchMendokusai/Idle/IdleInvestPage.uxml";
+		private const string PRODUCER_ROW_PATH = "Assets/_WitchMendokusai/Idle/IdleProducerRow.uxml";
 		private const string WAVE_DOT_PATH = "Assets/_WitchMendokusai/Idle/IdleWaveDot.uxml";
 		private const string TAG = "[IdleScene]";
 
@@ -74,6 +80,12 @@ namespace WitchMendokusai.EditorTools
 			VisualTreeAsset forgeKind = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(FORGE_KIND_PATH);
 			VisualTreeAsset battleHud = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(BATTLE_HUD_PATH);
 			VisualTreeAsset card = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(CARD_PATH);
+			VisualTreeAsset codexpage = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(CODEX_PAGE_PATH);
+			VisualTreeAsset shoppage = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(SHOP_PAGE_PATH);
+			VisualTreeAsset labpage = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(LAB_PAGE_PATH);
+			VisualTreeAsset dungeonpage = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(DUNGEON_PAGE_PATH);
+			VisualTreeAsset investpage = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(INVEST_PAGE_PATH);
+			VisualTreeAsset producerrow = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(PRODUCER_ROW_PATH);
 			VisualTreeAsset waveDot = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(WAVE_DOT_PATH);
 
 			if (panel == null || tuning == null || style == null)
@@ -121,6 +133,12 @@ namespace WitchMendokusai.EditorTools
 			AssignPrivateField(screen, "forgeKindAsset", forgeKind);
 			AssignPrivateField(screen, "battleHudAsset", battleHud);
 			AssignPrivateField(screen, "cardAsset", card);
+			AssignPrivateField(screen, "codexPageAsset", codexpage);
+			AssignPrivateField(screen, "shopPageAsset", shoppage);
+			AssignPrivateField(screen, "labPageAsset", labpage);
+			AssignPrivateField(screen, "dungeonPageAsset", dungeonpage);
+			AssignPrivateField(screen, "investPageAsset", investpage);
+			AssignPrivateField(screen, "producerRowAsset", producerrow);
 			AssignPrivateField(screen, "waveDotAsset", waveDot);
 			AssignPrivateField(screen, "stage", stage);
 
@@ -206,6 +224,36 @@ namespace WitchMendokusai.EditorTools
 				if (serialized.FindProperty("waveDotAsset").objectReferenceValue == null)
 				{
 					missing.Add("IdleBattleScreen.waveDotAsset");
+				}
+
+				if (serialized.FindProperty("codexPageAsset").objectReferenceValue == null)
+				{
+					missing.Add("IdleBattleScreen.codexPageAsset");
+				}
+
+				if (serialized.FindProperty("shopPageAsset").objectReferenceValue == null)
+				{
+					missing.Add("IdleBattleScreen.shopPageAsset");
+				}
+
+				if (serialized.FindProperty("labPageAsset").objectReferenceValue == null)
+				{
+					missing.Add("IdleBattleScreen.labPageAsset");
+				}
+
+				if (serialized.FindProperty("dungeonPageAsset").objectReferenceValue == null)
+				{
+					missing.Add("IdleBattleScreen.dungeonPageAsset");
+				}
+
+				if (serialized.FindProperty("investPageAsset").objectReferenceValue == null)
+				{
+					missing.Add("IdleBattleScreen.investPageAsset");
+				}
+
+				if (serialized.FindProperty("producerRowAsset").objectReferenceValue == null)
+				{
+					missing.Add("IdleBattleScreen.producerRowAsset");
 				}
 				if (serialized.FindProperty("tuningAsset").objectReferenceValue == null)
 				{

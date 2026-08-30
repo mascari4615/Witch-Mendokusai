@@ -36,6 +36,12 @@ namespace WitchMendokusai
 		[SerializeField] private VisualTreeAsset battleHudAsset;
 		[SerializeField] private VisualTreeAsset cardAsset;
 		[SerializeField] private VisualTreeAsset waveDotAsset;
+		[SerializeField] private VisualTreeAsset codexPageAsset;
+		[SerializeField] private VisualTreeAsset shopPageAsset;
+		[SerializeField] private VisualTreeAsset labPageAsset;
+		[SerializeField] private VisualTreeAsset dungeonPageAsset;
+		[SerializeField] private VisualTreeAsset investPageAsset;
+		[SerializeField] private VisualTreeAsset producerRowAsset;
 
 		[Header("무대. 씬이 꽂아 준다")]
 		[SerializeField] private IdleBattleStage stage;
@@ -51,6 +57,9 @@ namespace WitchMendokusai
 		private bool skipSaveOnce;
 
 		// 에디트 모드 미리보기 (사용자 2026-08-30: UI 수정은 Play 없이). 저장 읽기와 쓰기 없음. 임시 판 위 시뮬만
+		/// <summary>화면 에셋이 없어 못 짓는 판. 켜 두되 아무것도 안 그린다</summary>
+		private bool broken;
+
 		private bool preview;
 		private double previewClock;
 		private bool previewTicked;
@@ -202,12 +211,17 @@ namespace WitchMendokusai
 			}
 
 			// UXML 이 정본 (사용자 2026-08-30). 없으면 조용한 빈 화면 대신 여기서 정지
+			//
+			// ⚠ enabled 를 끄면 그 상태가 씬에 저장됨 (실측 2026-08-31). 에셋을 채워도 복구 불가
+			//   플래그만 세우고 컴포넌트는 켠 채로
 			if (MissingAsset(out string what))
 			{
 				Debug.LogError("[Idle] 화면 에셋이 없다: " + what + ". Dev Panel 의 씬 짓기로 다시 꽂아라");
-				enabled = false;
+				broken = true;
 				return;
 			}
+
+			broken = false;
 
 			IdleTuning tuning = tuningAsset != null ? tuningAsset.ToTuning() : new IdleTuning();
 			preview = Application.isPlaying == false;
@@ -316,6 +330,12 @@ namespace WitchMendokusai
 			else if (itemPageAsset == null) { what = "itemPageAsset"; }
 			else if (bagCellAsset == null) { what = "bagCellAsset"; }
 			else if (forgeKindAsset == null) { what = "forgeKindAsset"; }
+			else if (codexPageAsset == null) { what = "codexPageAsset"; }
+			else if (shopPageAsset == null) { what = "shopPageAsset"; }
+			else if (labPageAsset == null) { what = "labPageAsset"; }
+			else if (dungeonPageAsset == null) { what = "dungeonPageAsset"; }
+			else if (investPageAsset == null) { what = "investPageAsset"; }
+			else if (producerRowAsset == null) { what = "producerRowAsset"; }
 
 			return what.Length > 0;
 		}
@@ -376,7 +396,7 @@ namespace WitchMendokusai
 
 		private void Tick(float delta)
 		{
-			if (session == null)
+			if (session == null || broken)
 			{
 				return;
 			}
@@ -764,59 +784,77 @@ namespace WitchMendokusai
 			}
 		}
 
+		/// <summary>UXML 한 장을 페이지에 옮긴다. 바깥 틀(idle-side)은 UI Builder 미리보기용</summary>
+		private VisualElement OpenPage(Tab tab, VisualTreeAsset asset)
+		{
+			VisualElement page = AddPage(tab);
+			TemplateContainer tree = asset.Instantiate();
+			VisualElement frame = tree.Q<VisualElement>("page");
+
+			while (frame.childCount > 0)
+			{
+				page.Add(frame[0]);
+			}
+
+			return page;
+		}
+
 		private void BuildCodexPage()
 		{
-			VisualElement page = AddPage(Tab.Codex);
-			codexLabel = AddLabel(page, "idle-row-title");
-			codexRows = new VisualElement();
-			page.Add(codexRows);
+			VisualElement page = OpenPage(Tab.Codex, codexPageAsset);
+			codexLabel = page.Q<Label>("codex-label");
+			codexRows = page.Q<VisualElement>("codex-rows");
 		}
 
 		private void BuildShopPage()
 		{
-			VisualElement page = AddPage(Tab.Shop);
-
-			VisualElement banner = new VisualElement();
-			banner.AddToClassList("idle-banner");
-			page.Add(banner);
-			AddLabel(banner, "idle-banner-title").text = "인형 뽑기";
-			AddLabel(banner, "idle-cap").text = "PICK UP";
-
-			pullButton = AddButton(page, "idle-row-button idle-row-button--strong idle-row-button--tall", Pull);
-			pullOdds = AddLabel(page, "idle-row-note");
-			AddLabel(page, "idle-row-note").text = "현금 결제 없음. 뽑기 재화는 첫 클리어, 환생, 낮은 확률 드롭에서만.";
-			AddLabel(page, "idle-cap").text = "무료 상자";
+			VisualElement page = OpenPage(Tab.Shop, shopPageAsset);
+			pullButton = page.Q<Button>("pull-button");
+			pullButton.clicked += Pull;
+			pullOdds = page.Q<Label>("pull-odds");
 		}
 
 		private void BuildLabPage()
 		{
-			VisualElement page = AddPage(Tab.Lab);
-			prestigeSummary = AddLabel(page, "idle-row-title");
-			prestigeButton = AddButton(page, "idle-row-button idle-row-button--strong idle-row-button--tall", Prestige);
+			VisualElement page = OpenPage(Tab.Lab, labPageAsset);
+			prestigeSummary = page.Q<Label>("prestige-summary");
+			prestigeButton = page.Q<Button>("prestige-button");
+			prestigeButton.clicked += Prestige;
 		}
 
+		/// <summary>던전 넷 (economy.md). 알파 9번이라 지금은 눌리지 않는다</summary>
 		private void BuildDungeonPage()
 		{
-			VisualElement page = AddPage(Tab.Dungeon);
-			string[] names = { "재화 던전", "보스 던전", "장비 던전", "스킬 던전" };
-			for (int index = 0; index < names.Length; index++)
+			VisualElement page = OpenPage(Tab.Dungeon, dungeonPageAsset);
+
+			for (int index = 0; index < 4; index++)
 			{
-				Button row = AddButton(page, "idle-row-button", null);
-				row.text = names[index] + ". 입장권 0/0 (알파 9번. 자리만)";
-				row.SetEnabled(false);
+				Button row = page.Q<Button>("dungeon-" + index);
+				if (row != null)
+				{
+					row.SetEnabled(false);
+				}
 			}
 		}
 
 		private void BuildInvestPage()
 		{
-			VisualElement page = AddPage(Tab.Invest);
-			baseSummary = AddLabel(page, "idle-row-title");
-			bulkBuyButton = AddButton(page, "idle-row-button idle-row-button--strong", BuyMany);
+			VisualElement page = OpenPage(Tab.Invest, investPageAsset);
+			baseSummary = page.Q<Label>("base-summary");
+			bulkBuyButton = page.Q<Button>("bulk-buy");
+			bulkBuyButton.clicked += BuyMany;
+
+			VisualElement host = page.Q<VisualElement>("producers");
 
 			for (int kind = 0; kind < 8; kind++)
 			{
 				int captured = kind;
-				producerButtons.Add(AddButton(page, "idle-row-button", () => BuyProducer(captured)));
+				TemplateContainer tree = producerRowAsset.Instantiate();
+				Button row = tree.Q<Button>("row");
+				row.RemoveFromHierarchy();
+				row.clicked += () => BuyProducer(captured);
+				host.Add(row);
+				producerButtons.Add(row);
 			}
 		}
 

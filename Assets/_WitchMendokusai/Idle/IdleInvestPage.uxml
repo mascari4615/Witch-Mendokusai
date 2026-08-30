@@ -1,0 +1,9 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <!-- 투자 탭 (layout.md §3). 기지 생산자 8 -->
+    <Style src="IdleBattleScreen.uss" />
+    <ui:VisualElement name="page" class="idle-side idle-page">
+        <ui:Label name="base-summary" class="idle-row-title" />
+        <ui:Button name="bulk-buy" class="idle-row-button idle-row-button--strong" />
+        <ui:VisualElement name="producers" />
+    </ui:VisualElement>
+</ui:UXML>
