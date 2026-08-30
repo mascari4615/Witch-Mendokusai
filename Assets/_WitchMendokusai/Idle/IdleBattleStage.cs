@@ -43,6 +43,7 @@ namespace WitchMendokusai
 		[SerializeField] private float lungeSeconds = 0.22f;
 		[SerializeField] private float boltSeconds = 0.18f;
 		[SerializeField] private float popSeconds = 0.3f;
+		[SerializeField] private float positionCatchUp = 14f;
 
 		[Header("적")]
 		[SerializeField] private float bossScale = 1.9f;
@@ -257,7 +258,7 @@ namespace WitchMendokusai
 
 			Follow(snapshot, delta);
 			DressDolls(snapshot);
-			DressFoes(snapshot);
+			DressFoes(snapshot, delta);
 			ShowHits(snapshot);
 			AdvanceBodies(snapshot, delta);
 		}
@@ -347,7 +348,7 @@ namespace WitchMendokusai
 		}
 
 		/// <summary>적을 사진에. 번호로 잇고, 없어진 번호는 지운다</summary>
-		private void DressFoes(IdleSnapshot snapshot)
+		private void DressFoes(IdleSnapshot snapshot, float delta)
 		{
 			IdleFoeView[] views = snapshot.Foes;
 
@@ -388,7 +389,8 @@ namespace WitchMendokusai
 						: (view.Kind == IdleFoeKind.Ranged ? rangedEnemyColor : enemyColor);
 				}
 
-				foe.Piece.localPosition = new Vector3((float)view.X, foeHeight, (float)view.Y);
+				Vector3 wanted = new Vector3((float)view.X, foeHeight, (float)view.Y);
+				foe.Piece.localPosition = Vector3.Lerp(foe.Piece.localPosition, wanted, CatchUp(delta));
 
 				float health = 0.82f + 0.18f * (float)view.HealthRatio;
 				float pop = foe.PopLeft > 0f ? 1f + 0.35f * (foe.PopLeft / popSeconds) : 1f;
@@ -626,7 +628,8 @@ namespace WitchMendokusai
 
 				float x = seat < snapshot.Fighters.Length ? (float)snapshot.Fighters[seat].X : 0f;
 				float y = seat < snapshot.Fighters.Length ? (float)snapshot.Fighters[seat].Y : 0f;
-				dolls[seat].localPosition = new Vector3(x + swing * 0.3f, bob, y);
+				Vector3 wanted = new Vector3(x + swing * 0.3f, bob, y);
+				dolls[seat].localPosition = Vector3.Lerp(dolls[seat].localPosition, wanted, CatchUp(delta));
 			}
 
 			for (int at = bolts.Count - 1; at >= 0; at--)
@@ -665,6 +668,11 @@ namespace WitchMendokusai
 				float glow = Mathf.Clamp01(supplyGlowLeft);
 				groundMaterial.color = Color.Lerp(groundRest, boltColor, glow * 0.35f);
 			}
+		}
+
+		private float CatchUp(float delta)
+		{
+			return 1f - Mathf.Exp(-positionCatchUp * delta);
 		}
 
 		/// <summary>일제 사격. 서 있는 모두가 달려든다. 볼트와 숫자는 사진의 타격이 따로 낸다</summary>
