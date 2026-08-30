@@ -290,6 +290,30 @@ namespace WitchMendokusai.DomainSDK.Idle
         }
 
         /// <summary>등급이 몫에 곱해지는 무게 — 위 등급일수록 크게.</summary>
+        /// <summary>이 자리 인형의 사거리 (m). 축 기준 (combat.md 3). 빈 자리는 0</summary>
+        public static double RangeOf(IdleState state, IdleTuning tuning, int seat)
+        {
+            if (IdleSquad.SeatTaken(state, seat) == false)
+            {
+                return 0d;
+            }
+
+            int id = state.Party[seat];
+            if (Knows(id) == false)
+            {
+                return 0d;
+            }
+
+            int axis = (int)KindOf(id).Axis;
+            double[] table = tuning.HeroRangeByAxis;
+            if (table == null || table.Length == 0)
+            {
+                return 0d;
+            }
+
+            return axis < table.Length ? table[axis] : table[table.Length - 1];
+        }
+
         public static double GradeWeight(IdleHeroGrade grade)
         {
             switch (grade)

@@ -175,6 +175,8 @@ namespace WitchMendokusai.Tests
 			state.SeatReviveSeconds[1] = 2.5d;
 			state.Repeating = true;
 			state.ClearedStage = 41;
+			state.MeasuredStage = 40;
+			state.MeasuredKillsPerSecond = 1.25d;
 
 			state.Bag.Add(new IdleItem(3, IdleItemSlot.Hands));
 			state.Worn[0] = new IdleItem(2, IdleItemSlot.Head);

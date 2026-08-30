@@ -358,51 +358,62 @@ namespace WitchMendokusai.DomainSDK.Idle
             }
 
             IdleHeroes.EnsureStarter(state);
-
             state.EnsureSeatRoom(tuning);
 
-            // 사건(쓰러짐·부활·보급 만료) 경계에서 끊는다 — 그래야 프레임 길이가 판을 안 바꾼다.
-            for (int guard = 0; seconds > 0d; guard++)
+            // 골드, 코스트, 보급은 수식 그대로. 보급 만료가 중간이면 경계에서 분할
+            if (state.SupplySecondsLeft > 0d && seconds > state.SupplySecondsLeft)
             {
-                if (guard >= MAX_EVENT_SLICES)
-                {
-                    StepFlat(state, tuning, seconds);
-                    break;
-                }
-
-                double slice = seconds;
-
-                if (state.SupplySecondsLeft > 0d && state.SupplySecondsLeft < slice)
-                {
-                    slice = state.SupplySecondsLeft;
-                }
-
-                double squadEvent = IdleSquad.SecondsToNextEvent(state, tuning);
-                if (squadEvent > 0d && squadEvent < slice)
-                {
-                    slice = squadEvent;
-                }
-
-                if (slice <= 0d)
-                {
-                    slice = seconds;
-                }
-
-                IdleSquad.Advance(state, tuning, slice, out bool wiped);
-
-                // 전멸한 뒤에는 안 때린다 — 쓰러진 부대가 계속 잡는 그림이 안 되게.
-                if (wiped == false)
-                {
-                    StepFlat(state, tuning, slice);
-                }
-
-                seconds -= slice;
-
-                if (IdleSquad.FrontSeat(state) < 0)
-                {
-                    IdleSquad.FallBack(state, tuning);
-                }
+                double boosted = state.SupplySecondsLeft;
+                StepEconomy(state, tuning, boosted);
+                StepEconomy(state, tuning, seconds - boosted);
             }
+            else
+            {
+                StepEconomy(state, tuning, seconds);
+            }
+
+            // 싸움은 시뮬 (combat.md). 사거리, 이동, 타격, 처치, 전멸, 부활 전부 그 안
+            IdleBattleSim.Advance(state, tuning, seconds);
+        }
+
+        /// <summary>
+        /// 자리 비운 몫 (combat.md 6). 실측이 있으면 초당 처치 x 시간 x 오프라인 몫.
+        /// 구역 진행 없음 (자는 동안 전멸도 전진도 없음). 실측이 없으면 옛 수식 <see cref="Step"/>
+        /// </summary>
+        public static void StepAway(IdleState state, IdleTuning tuning, double seconds)
+        {
+            if (seconds <= 0d)
+            {
+                return;
+            }
+
+            if (state.MeasuredKillsPerSecond <= 0d || state.MeasuredStage <= 0)
+            {
+                Step(state, tuning, seconds);
+                return;
+            }
+
+            IdleHeroes.EnsureStarter(state);
+
+            if (state.SupplySecondsLeft > 0d && seconds > state.SupplySecondsLeft)
+            {
+                double boosted = state.SupplySecondsLeft;
+                StepEconomy(state, tuning, boosted);
+                StepEconomy(state, tuning, seconds - boosted);
+            }
+            else
+            {
+                StepEconomy(state, tuning, seconds);
+            }
+
+            long kills = (long)(state.MeasuredKillsPerSecond * seconds * tuning.OfflineKillShare + COUNT_EPSILON_RATIO);
+            if (kills <= 0L)
+            {
+                return;
+            }
+
+            state.Kills += kills;
+            IdleDrops.Accrue(state, tuning, kills, state.Stage);
         }
 
         /// <summary>
@@ -418,6 +429,14 @@ namespace WitchMendokusai.DomainSDK.Idle
         private const int MAX_EVENT_SLICES = 8192;
 
         private static void StepFlat(IdleState state, IdleTuning tuning, double seconds)
+        {
+            StepEconomy(state, tuning, seconds);
+            state.AttackProgress += AttackSpeedOf(state, tuning) * seconds;
+            Resolve(state, tuning);
+        }
+
+        /// <summary>싸움을 뺀 시간의 몫. 코스트, 기지 산출, 보급 만료</summary>
+        private static void StepEconomy(IdleState state, IdleTuning tuning, double seconds)
         {
             // 코스트는 시간이 채운다 — 상한에서 멎는다 (V2 카드층).
             state.Cost += tuning.CostPerSecond * seconds;
@@ -437,9 +456,6 @@ namespace WitchMendokusai.DomainSDK.Idle
                     state.SupplySecondsLeft = 0d;
                 }
             }
-
-            state.AttackProgress += AttackSpeedOf(state, tuning) * seconds;
-            Resolve(state, tuning);
         }
 
         /// <summary>
@@ -452,6 +468,13 @@ namespace WitchMendokusai.DomainSDK.Idle
         {
             if (seconds <= 0d)
             {
+                return;
+            }
+
+            // 라이브 전장이 있으면 시뮬 위에서 (combat.md 5)
+            if (state.Battle.Ready)
+            {
+                IdleBattleSim.StrikeFor(state, tuning, seconds);
                 return;
             }
 

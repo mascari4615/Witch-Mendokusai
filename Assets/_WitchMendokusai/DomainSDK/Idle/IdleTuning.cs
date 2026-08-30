@@ -449,6 +449,63 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// <summary>영웅 등급 한 계단이 체력에 더해 주는 몫 — 뽑기의 값어치가 생존으로도 보이게.</summary>
         public double HeroGradeHealthStep { get; set; } = 0.35d;
 
+        // 사거리 전투 (combat.md). 단위 m, s
+
+        /// <summary>인형 사거리. 축 번호(<see cref="IdleHeroAxis"/>) 순. Damage 근, Speed 중, Base/Drop 원</summary>
+        public double[] HeroRangeByAxis { get; set; } = new double[] { 2d, 5d, 8d, 8d };
+
+        /// <summary>인형 걷는 속도 (m/s)</summary>
+        public double DollMoveSpeed { get; set; } = 2.5d;
+
+        /// <summary>자리별 줄 (y)</summary>
+        public double[] LaneY { get; set; } = new double[] { 0d, -1.2d, 1.2d };
+
+        /// <summary>처음 설 때 자리 사이 x 간격</summary>
+        public double SeatBackStep { get; set; } = 0.6d;
+
+        /// <summary>몸이 겹치지 않는 최소 거리</summary>
+        public double BodyGap { get; set; } = 0.5d;
+
+        public double FoeMeleeRange { get; set; } = 1.5d;
+
+        public double FoeRangedRange { get; set; } = 6d;
+
+        public double FoeMoveSpeed { get; set; } = 2d;
+
+        public double BossMoveSpeed { get; set; } = 1.5d;
+
+        public double FoeAttackSeconds { get; set; } = 1d;
+
+        public double BossAttackSeconds { get; set; } = 1.5d;
+
+        public double BossHealthMultiplier { get; set; } = 3d;
+
+        /// <summary>한 웨이브 잡몹 수</summary>
+        public int WaveSize { get; set; } = 3;
+
+        /// <summary>웨이브가 서는 곳. 부대 맨 앞에서 이만큼 앞</summary>
+        public double WaveSpawnDistance { get; set; } = 10d;
+
+        public double WaveGapX { get; set; } = 1.5d;
+
+        public double WaveGapY { get; set; } = 1d;
+
+        /// <summary>원거리 적이 섞이기 시작하는 구역. 그 전은 근접만</summary>
+        public int RangedFoeFromStage { get; set; } = 4;
+
+        public double RangedFoeChance { get; set; } = 0.4d;
+
+        public double BattleTickSeconds { get; set; } = 0.1d;
+
+        /// <summary>한 번 부름에 도는 틱 상한. 넘친 시간은 폐기</summary>
+        public int BattleTicksPerCall { get; set; } = 600;
+
+        /// <summary>실측 창 (s). 같은 구역에서 이만큼 싸우면 초당 처치를 확정</summary>
+        public double MeasureSeconds { get; set; } = 60d;
+
+        /// <summary>오프라인 처치는 실측의 이 몫 (라이브의 50% 계약)</summary>
+        public double OfflineKillShare { get; set; } = 0.5d;
+
         /// <summary>한 축의 곡선을 고른다.</summary>
         public IUpgradeCurve CurveOf(IdleUpgradeKind kind)
         {

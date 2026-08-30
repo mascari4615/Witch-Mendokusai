@@ -134,7 +134,7 @@ namespace WitchMendokusai.DomainSDK.Idle
                 away = allowed;
             }
 
-            IdleModel.Step(state, tuning, away);
+            IdleModel.StepAway(state, tuning, away);
             return away;
         }
 
@@ -352,7 +352,10 @@ namespace WitchMendokusai.DomainSDK.Idle
                 state.Repeating,
                 state.ClearedStage,
                 IdleSquad.EnemyDamagePerSecond(state, tuning),
-                state.HitsOnTarget);
+                state.HitsOnTarget,
+                CaptureFighters(),
+                CaptureFoes(),
+                CaptureHits());
         }
 
         /// <summary>
@@ -381,6 +384,52 @@ namespace WitchMendokusai.DomainSDK.Idle
                     IdleSquad.ReviveRatioOf(state, tuning, seat),
                     id,
                     grade);
+            }
+
+            return made;
+        }
+
+        private IdleFighterView[] CaptureFighters()
+        {
+            IdleBattle battle = state.Battle;
+            IdleFighterView[] made = Room(ref fighterBuffer, IdleSquad.SEAT_COUNT);
+
+            for (int seat = 0; seat < made.Length; seat++)
+            {
+                made[seat] = new IdleFighterView(
+                    seat,
+                    battle.Ready ? battle.X[seat] : 0d,
+                    battle.Ready ? battle.Y[seat] : IdleBattleSim.LaneOf(tuning, seat),
+                    IdleHeroes.RangeOf(state, tuning, seat),
+                    battle.Ready && battle.Moving[seat],
+                    battle.Ready ? battle.Target[seat] : -1L);
+            }
+
+            return made;
+        }
+
+        private IdleFoeView[] CaptureFoes()
+        {
+            IdleBattle battle = state.Battle;
+            IdleFoeView[] made = Room(ref foeBuffer, battle.Ready ? battle.Foes.Count : 0);
+
+            for (int at = 0; at < made.Length; at++)
+            {
+                IdleFoe foe = battle.Foes[at];
+                made[at] = new IdleFoeView(foe.Index, foe.Kind, foe.Boss, foe.X, foe.Y, foe.HealthRatio, foe.Range);
+            }
+
+            return made;
+        }
+
+        private IdleHit[] CaptureHits()
+        {
+            IdleBattle battle = state.Battle;
+            IdleHit[] made = Room(ref hitBuffer, battle.Hits.Count);
+
+            for (int at = 0; at < made.Length; at++)
+            {
+                made[at] = battle.Hits[at];
             }
 
             return made;
@@ -468,6 +517,9 @@ namespace WitchMendokusai.DomainSDK.Idle
         private int[] partyBuffer;
         private IdleCardView[] cardBuffer;
         private IdleSeatView[] seatBuffer;
+        private IdleFighterView[] fighterBuffer;
+        private IdleFoeView[] foeBuffer;
+        private IdleHit[] hitBuffer;
 
         /// <summary>자리를 맞춰 준다 — 수가 그대로면 쓰던 판을 그대로 쓴다.</summary>
         private static T[] Room<T>(ref T[] buffer, int count)
@@ -535,6 +587,22 @@ namespace WitchMendokusai.DomainSDK.Idle
 
         private double RemainingHealthRatio()
         {
+            // 라이브 전장이 있으면 맨 앞 적 (x 최소) 의 남은 체력
+            IdleBattle battle = state.Battle;
+            if (battle.Ready && battle.Foes.Count > 0)
+            {
+                IdleFoe nearest = null;
+                for (int at = 0; at < battle.Foes.Count; at++)
+                {
+                    if (nearest == null || battle.Foes[at].X < nearest.X)
+                    {
+                        nearest = battle.Foes[at];
+                    }
+                }
+
+                return nearest.HealthRatio;
+            }
+
             double durability = IdleModel.TargetHealthOf(state, tuning);
             if (durability <= 0d)
             {

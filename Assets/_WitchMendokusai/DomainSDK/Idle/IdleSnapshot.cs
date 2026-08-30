@@ -176,6 +176,64 @@ namespace WitchMendokusai.DomainSDK.Idle
         public IdleHeroGrade Grade { get; }
     }
 
+    /// <summary>인형 하나의 전장 위치</summary>
+    public readonly struct IdleFighterView
+    {
+        public IdleFighterView(int seat, double x, double y, double range, bool moving, long target)
+        {
+            Seat = seat;
+            X = x;
+            Y = y;
+            Range = range;
+            Moving = moving;
+            Target = target;
+        }
+
+        public int Seat { get; }
+
+        public double X { get; }
+
+        public double Y { get; }
+
+        /// <summary>사거리 (m)</summary>
+        public double Range { get; }
+
+        /// <summary>이번 틱에 걸었나</summary>
+        public bool Moving { get; }
+
+        /// <summary>노리는 적 번호. 없으면 -1</summary>
+        public long Target { get; }
+    }
+
+    /// <summary>적 하나의 전장 위치</summary>
+    public readonly struct IdleFoeView
+    {
+        public IdleFoeView(long index, IdleFoeKind kind, bool boss, double x, double y, double healthRatio, double range)
+        {
+            Index = index;
+            Kind = kind;
+            Boss = boss;
+            X = x;
+            Y = y;
+            HealthRatio = healthRatio;
+            Range = range;
+        }
+
+        public long Index { get; }
+
+        public IdleFoeKind Kind { get; }
+
+        public bool Boss { get; }
+
+        public double X { get; }
+
+        public double Y { get; }
+
+        public double HealthRatio { get; }
+
+        public double Range { get; }
+    }
+
     /// <summary>
     /// 지금 판의 <b>읽기 전용 사진</b> — 코어가 표현에게 건네는 것 (TASK-WM-406).
     ///
@@ -366,6 +424,15 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// <summary>지금 적에게 넣은 타격 수. 화면이 피해 숫자를 코어 박자에 맞추는 근거 (죽으면 0 부터)</summary>
         public long HitsOnTarget { get; }
 
+        /// <summary>인형 자리별 전장 위치 (combat.md 5). 무대의 유일한 근거</summary>
+        public IdleFighterView[] Fighters { get; }
+
+        /// <summary>전장에 서 있는 적</summary>
+        public IdleFoeView[] Foes { get; }
+
+        /// <summary>이번 진행에서 난 타격. 피해 숫자와 볼트의 근거</summary>
+        public IdleHit[] Hits { get; }
+
         public IdleSnapshot(double resource, double incomePerSecond, long kills, double targetHealthRatio,
             int stage, int killsInStage, int killsPerStage,
             long prestigePoints, long prestigeAward, int prestigeNextStage, double prestigeMultiplier,
@@ -379,8 +446,11 @@ namespace WitchMendokusai.DomainSDK.Idle
             IdleUpgradeView damage, IdleUpgradeView attackSpeed, double attacksPerSecond,
             double cost, double costMax, double supplySecondsLeft, IdleCardView[] cards,
             IdleSeatView[] seats, bool repeating, int clearedStage, double enemyDamagePerSecond,
-            long hitsOnTarget)
+            long hitsOnTarget, IdleFighterView[] fighters, IdleFoeView[] foes, IdleHit[] hits)
         {
+            Fighters = fighters;
+            Foes = foes;
+            Hits = hits;
             Cost = cost;
             CostMax = costMax;
             SupplySecondsLeft = supplySecondsLeft;

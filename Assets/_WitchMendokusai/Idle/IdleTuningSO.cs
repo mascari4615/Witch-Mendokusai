@@ -252,6 +252,54 @@ namespace WitchMendokusai
         [Tooltip("영웅 등급 한 계단이 체력에 더하는 몫.")]
         [SerializeField] private double heroGradeHealthStep = 0.35d;
 
+        [Header("사거리 전투 (combat.md). 단위 m, s")]
+        [Tooltip("인형 사거리. 축 순서 Damage, Speed, Base, Drop")]
+        [SerializeField] private double[] heroRangeByAxis = { 2d, 5d, 8d, 8d };
+
+        [Tooltip("인형 걷는 속도 (m/s)")]
+        [SerializeField] private double dollMoveSpeed = 2.5d;
+
+        [Tooltip("자리별 줄 (y)")]
+        [SerializeField] private double[] laneY = { 0d, -1.2d, 1.2d };
+
+        [Tooltip("처음 설 때 자리 사이 x 간격")]
+        [SerializeField] private double seatBackStep = 0.6d;
+
+        [Tooltip("몸이 겹치지 않는 최소 거리")]
+        [SerializeField] private double bodyGap = 0.5d;
+
+        [SerializeField] private double foeMeleeRange = 1.5d;
+        [SerializeField] private double foeRangedRange = 6d;
+        [SerializeField] private double foeMoveSpeed = 2d;
+        [SerializeField] private double bossMoveSpeed = 1.5d;
+        [SerializeField] private double foeAttackSeconds = 1d;
+        [SerializeField] private double bossAttackSeconds = 1.5d;
+        [SerializeField] private double bossHealthMultiplier = 3d;
+
+        [Tooltip("한 웨이브 잡몹 수")]
+        [SerializeField] private int waveSize = 3;
+
+        [Tooltip("웨이브가 서는 곳. 부대 맨 앞에서 이만큼 앞")]
+        [SerializeField] private double waveSpawnDistance = 10d;
+        [SerializeField] private double waveGapX = 1.5d;
+        [SerializeField] private double waveGapY = 1d;
+
+        [Tooltip("원거리 적이 섞이기 시작하는 구역")]
+        [SerializeField] private int rangedFoeFromStage = 4;
+        [SerializeField] private double rangedFoeChance = 0.4d;
+
+        [Tooltip("시뮬 틱 (s)")]
+        [SerializeField] private double battleTickSeconds = 0.1d;
+
+        [Tooltip("한 번 부름에 도는 틱 상한")]
+        [SerializeField] private int battleTicksPerCall = 600;
+
+        [Tooltip("실측 창 (s). 같은 구역에서 이만큼 싸우면 초당 처치를 확정")]
+        [SerializeField] private double measureSeconds = 60d;
+
+        [Tooltip("오프라인 처치는 실측의 이 몫")]
+        [SerializeField] private double offlineKillShare = 0.5d;
+
         [Header("자리 비움")]
         [Tooltip("기본 오프라인 상한 (초).")]
         [SerializeField] private double baseMaxOfflineSeconds = 8d * 3600d;
@@ -343,6 +391,28 @@ namespace WitchMendokusai
                 ReviveSeconds = reviveSeconds,
                 HealPerKillShare = healPerKillShare,
                 HeroGradeHealthStep = heroGradeHealthStep,
+                HeroRangeByAxis = (double[])heroRangeByAxis.Clone(),
+                DollMoveSpeed = dollMoveSpeed,
+                LaneY = (double[])laneY.Clone(),
+                SeatBackStep = seatBackStep,
+                BodyGap = bodyGap,
+                FoeMeleeRange = foeMeleeRange,
+                FoeRangedRange = foeRangedRange,
+                FoeMoveSpeed = foeMoveSpeed,
+                BossMoveSpeed = bossMoveSpeed,
+                FoeAttackSeconds = foeAttackSeconds,
+                BossAttackSeconds = bossAttackSeconds,
+                BossHealthMultiplier = bossHealthMultiplier,
+                WaveSize = waveSize,
+                WaveSpawnDistance = waveSpawnDistance,
+                WaveGapX = waveGapX,
+                WaveGapY = waveGapY,
+                RangedFoeFromStage = rangedFoeFromStage,
+                RangedFoeChance = rangedFoeChance,
+                BattleTickSeconds = battleTickSeconds,
+                BattleTicksPerCall = battleTicksPerCall,
+                MeasureSeconds = measureSeconds,
+                OfflineKillShare = offlineKillShare,
                 ProducerCostByKind = new GeometricScale(producerCost, producerCostStep),
                 ProducerOutputByKind = new GeometricScale(producerOutput, producerOutputStep),
                 PotentialByGrade = new GeometricScale(potentialFloor, potentialStep),

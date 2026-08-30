@@ -84,5 +84,9 @@ namespace WitchMendokusai.DomainSDK.Idle
 
         /// <summary>자리 체력을 한 번이라도 세웠나 — 「안 세운 판」과 「전멸한 판」을 가른다.</summary>
         public bool SeatsReady;
+
+        /// <summary>오프라인 실측 근사 (combat.md 6)</summary>
+        public int MeasuredStage;
+        public double MeasuredKillsPerSecond;
     }
 }

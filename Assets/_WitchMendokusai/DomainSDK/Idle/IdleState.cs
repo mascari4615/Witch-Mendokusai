@@ -227,6 +227,15 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// </summary>
         public bool SeatsReady { get; set; }
 
+        /// <summary>라이브 전투의 위치 층 (combat.md). 저장 안 함</summary>
+        public IdleBattle Battle { get; } = new IdleBattle();
+
+        /// <summary>실측이 있는 가장 깊은 구역. 0 이면 실측 없음</summary>
+        public int MeasuredStage { get; set; }
+
+        /// <summary>그 구역에서 라이브로 잰 초당 처치. 오프라인 정산의 근거</summary>
+        public double MeasuredKillsPerSecond { get; set; }
+
         /// <summary>
         /// 자리 칸을 갖추고, <b>새로 온 자리는 만렙 체력</b>으로 세운다.
         ///
@@ -316,6 +325,8 @@ namespace WitchMendokusai.DomainSDK.Idle
                 Repeating = Repeating,
                 ClearedStage = ClearedStage,
                 SeatsReady = SeatsReady,
+                MeasuredStage = MeasuredStage,
+                MeasuredKillsPerSecond = MeasuredKillsPerSecond,
             };
         }
 
@@ -498,6 +509,8 @@ namespace WitchMendokusai.DomainSDK.Idle
             Repeating = saveData.Repeating;
             ClearedStage = NotBelowZero(saveData.ClearedStage);
             SeatsReady = saveData.SeatsReady;
+            MeasuredStage = NotBelowZero(saveData.MeasuredStage);
+            MeasuredKillsPerSecond = Sane(saveData.MeasuredKillsPerSecond);
 
             // 자리 0 시절 저장은 인형 0명 가능. 시작 인형 지급
             IdleHeroes.EnsureStarter(this);
