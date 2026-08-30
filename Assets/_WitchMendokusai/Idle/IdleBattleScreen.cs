@@ -681,7 +681,13 @@ namespace WitchMendokusai
 		/// <summary>인형 탭을 UXML 에서. 모양은 에셋, 코드는 이름으로 찾아 값과 클릭만</summary>
 		private void BindDollPage(VisualElement page)
 		{
-			dollPageAsset.CloneTree(page);
+			// 에셋의 바깥 틀(idle-side)은 UI Builder 미리보기용. 화면에는 안쪽만
+			TemplateContainer tree = dollPageAsset.Instantiate();
+			VisualElement frame = tree.Q<VisualElement>("page");
+			while (frame.childCount > 0)
+			{
+				page.Add(frame[0]);
+			}
 
 			for (int slot = 0; slot < IdleHeroes.PARTY_SLOTS; slot++)
 			{
