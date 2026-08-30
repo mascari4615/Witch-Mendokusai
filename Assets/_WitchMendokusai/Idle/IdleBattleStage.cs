@@ -44,6 +44,8 @@ namespace WitchMendokusai
 		[SerializeField] private float boltSeconds = 0.18f;
 		[SerializeField] private float popSeconds = 0.3f;
 		[SerializeField] private float positionCatchUp = 14f;
+		[SerializeField] private float foeSpinDegrees = 42f;
+		[SerializeField] private float foeBobHeight = 0.08f;
 
 		[Header("적")]
 		[SerializeField] private float bossScale = 1.9f;
@@ -632,6 +634,15 @@ namespace WitchMendokusai
 				dolls[seat].localPosition = Vector3.Lerp(dolls[seat].localPosition, wanted, CatchUp(delta));
 			}
 
+			for (int index = 0; index < foes.Count; index++)
+			{
+				Foe foe = foes[index];
+				foe.Piece.Rotate(Vector3.up, foeSpinDegrees * delta, Space.Self);
+				Vector3 position = foe.Piece.localPosition;
+				position.y += Mathf.Sin(clock * 2.4f + index * 1.7f) * foeBobHeight;
+				foe.Piece.localPosition = position;
+			}
+
 			for (int at = bolts.Count - 1; at >= 0; at--)
 			{
 				boltAges[at] += delta;
@@ -799,56 +810,23 @@ namespace WitchMendokusai
 		private static Mesh NgonPrism(int sides, float radius, float height)
 		{
 			Mesh mesh = new Mesh();
-			mesh.name = "Ngon" + sides;
-
-			Vector3[] ring = new Vector3[sides];
+			mesh.name = "Polyhedron" + sides;
+			sides = Mathf.Clamp(sides, 4, 12);
+			List<Vector3> vertices = new List<Vector3>();
+			List<int> triangles = new List<int>();
+			vertices.Add(new Vector3(0f, height * 0.5f, 0f));
+			vertices.Add(new Vector3(0f, -height * 0.5f, 0f));
 			for (int at = 0; at < sides; at++)
 			{
 				float angle = at * Mathf.PI * 2f / sides;
-				ring[at] = new Vector3(Mathf.Cos(angle) * radius, 0f, Mathf.Sin(angle) * radius);
+				vertices.Add(new Vector3(Mathf.Cos(angle) * radius, 0f, Mathf.Sin(angle) * radius));
 			}
-
-			List<Vector3> vertices = new List<Vector3>();
-			List<int> triangles = new List<int>();
-			float half = height * 0.5f;
-
-			for (int lid = 0; lid < 2; lid++)
-			{
-				float y = lid == 0 ? half : -half;
-				int center = vertices.Count;
-				vertices.Add(new Vector3(0f, y, 0f));
-
-				int start = vertices.Count;
-				for (int at = 0; at < sides; at++)
-				{
-					vertices.Add(ring[at] + new Vector3(0f, y, 0f));
-				}
-
-				for (int at = 0; at < sides; at++)
-				{
-					int next = (at + 1) % sides;
-					if (lid == 0)
-					{
-						triangles.Add(center); triangles.Add(start + next); triangles.Add(start + at);
-					}
-					else
-					{
-						triangles.Add(center); triangles.Add(start + at); triangles.Add(start + next);
-					}
-				}
-			}
-
 			for (int at = 0; at < sides; at++)
 			{
-				int next = (at + 1) % sides;
-				int start = vertices.Count;
-				vertices.Add(ring[at] + new Vector3(0f, half, 0f));
-				vertices.Add(ring[next] + new Vector3(0f, half, 0f));
-				vertices.Add(ring[next] + new Vector3(0f, -half, 0f));
-				vertices.Add(ring[at] + new Vector3(0f, -half, 0f));
-
-				triangles.Add(start); triangles.Add(start + 1); triangles.Add(start + 2);
-				triangles.Add(start); triangles.Add(start + 2); triangles.Add(start + 3);
+				int next = 2 + (at + 1) % sides;
+				int current = 2 + at;
+				triangles.Add(0); triangles.Add(current); triangles.Add(next);
+				triangles.Add(1); triangles.Add(next); triangles.Add(current);
 			}
 
 			mesh.SetVertices(vertices);
