@@ -1,6 +1,7 @@
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using WitchMendokusai.DomainSDK.Idle;
 
 namespace WitchMendokusai.EditorTools
 {
@@ -29,6 +30,7 @@ namespace WitchMendokusai.EditorTools
 
 			DrawStatus();
 			DrawScene();
+			DrawSaveData();
 			DrawSave();
 			DrawBuild();
 
@@ -83,6 +85,75 @@ namespace WitchMendokusai.EditorTools
 			if (EditorApplication.isPlaying && GUILayout.Button("플레이 멈춤"))
 			{
 				EditorApplication.isPlaying = false;
+			}
+
+			EditorGUILayout.Space(8f);
+		}
+
+		private bool showRaw;
+		private double loadedAt;
+		private IdleSaveData? loaded;
+		private string loadedRaw = string.Empty;
+		private string loadedInfo = string.Empty;
+
+		/// <summary>저장 파일을 읽어 둔다. 2초마다 다시 (매 프레임 디스크 읽기 X)</summary>
+		private void RefreshSave()
+		{
+			if (EditorApplication.timeSinceStartup - loadedAt < 2d)
+			{
+				return;
+			}
+
+			loadedAt = EditorApplication.timeSinceStartup;
+			string path = System.IO.Path.Combine(Application.persistentDataPath, "idle.json");
+
+			if (System.IO.File.Exists(path) == false)
+			{
+				loaded = null;
+				loadedRaw = string.Empty;
+				loadedInfo = "저장 없음 (처음 켠 사람)";
+				return;
+			}
+
+			System.IO.FileInfo file = new System.IO.FileInfo(path);
+			loadedInfo = string.Format("{0:yyyy-MM-dd HH:mm:ss}  {1:N0} B", file.LastWriteTime, file.Length);
+			loadedRaw = System.IO.File.ReadAllText(path);
+			loaded = IdleSaveStore.Load();
+		}
+
+		private void DrawSaveData()
+		{
+			RefreshSave();
+
+			EditorGUILayout.LabelField("저장된 데이터", EditorStyles.boldLabel);
+			EditorGUILayout.LabelField(loadedInfo, EditorStyles.miniLabel);
+
+			if (loaded.HasValue == false)
+			{
+				EditorGUILayout.Space(8f);
+				return;
+			}
+
+			IdleSaveData data = loaded.Value;
+			int heroes = data.Heroes != null ? data.Heroes.Length : 0;
+			int bag = data.BagItems != null ? data.BagItems.Length : 0;
+			string party = data.Party != null ? string.Join(",", data.Party) : "-";
+			System.DateTimeOffset seen = System.DateTimeOffset.FromUnixTimeSeconds(data.LastSeenUnixSeconds).ToLocalTime();
+
+			EditorGUILayout.LabelField("구역", string.Format("{0} (최고 {1}, 클리어 {2}){3}", data.Stage, data.BestStage, data.ClearedStage, data.Repeating ? " 반복 중" : string.Empty));
+			EditorGUILayout.LabelField("골드", string.Format("{0:N0}", data.Resource));
+			EditorGUILayout.LabelField("처치", string.Format("{0:N0}", data.Kills));
+			EditorGUILayout.LabelField("강화", string.Format("공격 Lv{0} / 속도 Lv{1}", data.DamageLevel, data.AttackSpeedLevel));
+			EditorGUILayout.LabelField("환생", string.Format("{0}회, 조각 {1}", data.Ascensions, data.PrestigePoints));
+			EditorGUILayout.LabelField("뽑기", string.Format("재화 {0}, 누적 {1}회, 천장까지 {2}", data.Stones, data.PullsDone, data.PullsSincePity));
+			EditorGUILayout.LabelField("인형", string.Format("{0}종, 편성 [{1}]", heroes, party));
+			EditorGUILayout.LabelField("가방", string.Format("{0}개", bag));
+			EditorGUILayout.LabelField("마지막 접속", seen.ToString("yyyy-MM-dd HH:mm:ss"));
+
+			showRaw = EditorGUILayout.Foldout(showRaw, "원문 JSON");
+			if (showRaw)
+			{
+				EditorGUILayout.TextArea(loadedRaw, GUILayout.MinHeight(120f));
 			}
 
 			EditorGUILayout.Space(8f);
