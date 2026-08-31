@@ -58,6 +58,76 @@ namespace WitchMendokusai.EditorTools
 			Debug.Log("[Idle] 데이터 초기화: " + deleted + "개 파일 삭제");
 		}
 
+		/// <summary>
+		/// 안드로이드 빌드 (사용자 2026-09-01: 스팀이 메인이지만 모바일도 지원)
+		///
+		/// ★ Unity Hub 의 Android Build Support 가 먼저. 없으면 여기서 정지
+		/// ★ 배치: Unity -batchmode -quit -executeMethod WitchMendokusai.EditorTools.IdlePlayerBuild.BuildAndroid
+		/// ★ 가로 고정. 세로는 레이아웃이 통째로 달라야 해서 안 연다 (layout.md)
+		/// </summary>
+		[MenuItem("WM/Idle/Build Android (APK)")]
+		public static void BuildAndroid()
+		{
+			if (BuildPipeline.IsBuildTargetSupported(BuildTargetGroup.Android, BuildTarget.Android) == false)
+			{
+				Fail("안드로이드 모듈이 없다. Unity Hub > 설치 > 6000.5.9f1 > 모듈 추가 > Android Build Support");
+				return;
+			}
+
+			if (IdleSceneBuilder.Verify() == false)
+			{
+				Fail("씬 검사가 빨갛다. 이대로 구우면 빈 화면");
+				return;
+			}
+
+			string directory = Environment.GetEnvironmentVariable("WM_IDLE_BUILD_DIR");
+			if (string.IsNullOrWhiteSpace(directory))
+			{
+				directory = DEFAULT_DIR;
+			}
+
+			directory = Path.Combine(directory, DateTime.Now.ToString("yyyyMMdd-HHmmss") + "-android");
+			Directory.CreateDirectory(directory);
+
+			string apkPath = Path.Combine(directory, "Idle.apk");
+
+			BuildPlayerOptions options = new BuildPlayerOptions();
+			options.scenes = new string[] { SCENE_PATH };
+			options.locationPathName = apkPath;
+			options.target = BuildTarget.Android;
+			options.targetGroup = BuildTargetGroup.Android;
+			options.options = BuildOptions.None;
+			options.extraScriptingDefines = new string[] { IDLE_DEFINE };
+
+			// 가로 고정. 서브컬쳐 게임 관례이고 우리 레이아웃(전투 창 + 관리 열)이 가로 전용
+			UIOrientation orientationBefore = PlayerSettings.defaultInterfaceOrientation;
+			bool portraitBefore = PlayerSettings.allowedAutorotateToPortrait;
+			PlayerSettings.defaultInterfaceOrientation = UIOrientation.AutoRotation;
+			PlayerSettings.allowedAutorotateToPortrait = false;
+			PlayerSettings.allowedAutorotateToPortraitUpsideDown = false;
+			PlayerSettings.allowedAutorotateToLandscapeLeft = true;
+			PlayerSettings.allowedAutorotateToLandscapeRight = true;
+
+			Debug.Log(TAG + " 안드로이드 굽는 중: " + apkPath);
+			BuildReport report = BuildPipeline.BuildPlayer(options);
+
+			PlayerSettings.defaultInterfaceOrientation = orientationBefore;
+			PlayerSettings.allowedAutorotateToPortrait = portraitBefore;
+
+			if (report.summary.result == BuildResult.Succeeded)
+			{
+				// 워크플로가 경로를 추측하지 않게 (윈도우 판과 같은 표식)
+				WriteLastBuildMark(Path.GetDirectoryName(directory), apkPath);
+
+				Debug.Log(TAG + " 안드로이드 끝: " + apkPath
+					+ " (" + (report.summary.totalSize / 1024 / 1024) + " MB, "
+					+ report.summary.totalTime.TotalSeconds.ToString("N0") + "초)");
+				return;
+			}
+
+			Fail("안드로이드 빌드 실패: " + report.summary.result);
+		}
+
 		[MenuItem("WM/Idle/Build (This Game Only)")]
 		public static void Build()
 		{

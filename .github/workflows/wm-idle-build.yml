@@ -14,10 +14,20 @@ name: Build (Idle / laptop)
 #
 # 산출물은 노트북에 남는다 (C:\wm-builds\idle\<시각>\Idle.exe). 올리는 건 명시할 때만 —
 # 180MB 를 매번 가정용 회선으로 밀어 올릴 이유가 없다.
+#
+# 안드로이드 (2026-09-01, 사용자: 스팀이 메인이지만 서브컬쳐 게임처럼 모바일도 지원):
+#   같은 러너, 같은 씬, `IdlePlayerBuild.BuildAndroid` 만 다르다. 산출물은 .apk 하나.
+#   push 로는 안 굽는다. 폰 판은 사람이 확인할 때만 필요하다.
+#   켜서 도는지 검사(smoke)는 안 돈다: 노트북은 폰이 아니라 APK 를 켤 수 없다.
 
 on:
   workflow_dispatch:
     inputs:
+      platform:
+        description: '대상 (windows 는 스팀 판, android 는 폰 APK. 유니티 디버그 키 서명)'
+        type: choice
+        options: [windows, android]
+        default: windows
       backend:
         description: '방식 (il2cpp = 파는 판 · mono = 빨리 보기 1~2분, 검사 아님)'
         type: choice
@@ -74,7 +84,10 @@ jobs:
           $ErrorActionPreference = 'Stop'
           $OutputEncoding = [Console]::OutputEncoding = [Text.UTF8Encoding]::new()
           . "$env:GITHUB_WORKSPACE\.github\scripts\wm-unity-resolve.ps1"
-          $unity = Resolve-UnityEditor -Platform 'windows' -InstallLogDir $env:RUNNER_TEMP
+          $platform = '${{ inputs.platform }}'
+          if (-not $platform) { $platform = 'windows' }
+          $unity = Resolve-UnityEditor -Platform $platform -InstallLogDir $env:RUNNER_TEMP
+          "platform=$platform" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
           "exe=$($unity.Exe)" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
 
       # ASCII only in run: blocks -- Actions writes them to a BOM-less temp .ps1 and
@@ -93,14 +106,22 @@ jobs:
           # always bake the thing we actually ship.
           $backend = '${{ inputs.backend }}'
           if ($backend -eq 'mono') { $env:WM_IDLE_BACKEND = 'mono' }
-          Write-Host "backend=$(if ($backend) { $backend } else { 'il2cpp' })"
+          $platform = '${{ steps.unity.outputs.platform }}'
+          Write-Host "platform=$platform backend=$(if ($backend) { $backend } else { 'il2cpp' })"
           $log = Join-Path $env:RUNNER_TEMP 'idle-build.log'
+
+          # 안드로이드는 IL2CPP 고정(구글이 요구)이라 backend 입력이 무의미하다
+          $method = if ($platform -eq 'android') {
+            'WitchMendokusai.EditorTools.IdlePlayerBuild.BuildAndroid'
+          } else {
+            'WitchMendokusai.EditorTools.IdlePlayerBuild.Build'
+          }
 
           $arguments = @(
             '-quit', '-batchmode', '-nographics',
             '-projectPath', $PWD.Path,
             '-logFile', $log,
-            '-executeMethod', 'WitchMendokusai.EditorTools.IdlePlayerBuild.Build'
+            '-executeMethod', $method
           )
 
           Write-Host "Unity args: $($arguments -join ' ')"
@@ -124,14 +145,15 @@ jobs:
           # smoked the WRONG build on 2026-08-17: the builder sweeps last run's leftover
           # folders, which bumps THEIR mtime, so an older folder looks newest.
           $mark = Join-Path $root 'last-build.txt'
+          $leaf = if ($platform -eq 'android') { 'Idle.apk' } else { 'Idle.exe' }
           if (Test-Path $mark) {
             $exe = (Get-Content $mark -Raw).Trim()
           } else {
             Write-Host "::warning title=no build mark::falling back to newest folder (this can pick the wrong build)"
             $newest = Get-ChildItem $root -Directory | Sort-Object LastWriteTime -Descending | Select-Object -First 1
-            $exe = Join-Path $newest.FullName 'Idle.exe'
+            $exe = Join-Path $newest.FullName $leaf
           }
-          if (-not (Test-Path $exe)) { throw "build reported success but no exe: $exe" }
+          if (-not (Test-Path $exe)) { throw "build reported success but no output: $exe" }
           $newest = Get-Item (Split-Path $exe -Parent)
 
           # 로그를 빌드 폴더 옆에 둔다 -- RUNNER_TEMP is wiped between runs, so keeping it
@@ -153,7 +175,7 @@ jobs:
       #   그래서 검사 자체를 건너뛰고, 건너뛴 사실을 경고로 남긴다.
       - name: Does it actually run (idle smoke)
         id: smoke
-        if: inputs.backend != 'mono'
+        if: inputs.backend != 'mono' && steps.unity.outputs.platform != 'android'
         shell: powershell
         run: |
           $ErrorActionPreference = 'Continue'
@@ -167,6 +189,12 @@ jobs:
           }
           if ($code -ne 0) { throw "idle smoke failed (exit=$code)" }
 
+      - name: Say out loud that nothing was verified (android)
+        if: steps.unity.outputs.platform == 'android'
+        shell: powershell
+        run: |
+          Write-Host "::warning title=apk not run-checked::a laptop cannot launch an APK - install it on a phone to verify"
+
       - name: Say out loud that nothing was verified (mono)
         if: inputs.backend == 'mono'
         shell: powershell
@@ -177,7 +205,7 @@ jobs:
         if: inputs.publish == 'artifact'
         uses: actions/upload-artifact@v4
         with:
-          name: idle-windows
+          name: idle-${{ steps.unity.outputs.platform }}
           path: ${{ steps.build.outputs.out_dir }}
           retention-days: 7
 
@@ -193,11 +221,14 @@ jobs:
 
           $ok = '${{ job.status }}' -eq 'success'
           $mark = if (-not $ok) { 'FAIL' }
+            elseif ('${{ steps.unity.outputs.platform }}' -eq 'android') { 'OK (apk - not run-checked)' }
             elseif ('${{ inputs.backend }}' -eq 'mono') { 'OK (mono quick look - not verified)' }
             elseif ('${{ steps.smoke.outputs.code }}' -eq '2') { 'OK (run-check skipped)' }
             else { 'OK' }
+          $platform = '${{ steps.unity.outputs.platform }}'
+          if (-not $platform) { $platform = 'windows' }
           $where = '${{ steps.build.outputs.exe }}'
-          $body = "[Idle $mark] $where`n${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          $body = "[Idle $platform $mark] $where`n${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           try {
             Invoke-LaptopOpsJson -Path '/notify' -Token $token -Payload @{ channel = 'build'; content = $body } | Out-Null
           } catch {

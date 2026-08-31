@@ -126,6 +126,9 @@ namespace WitchMendokusai
 		private readonly List<Button> floatingTabButtons = new List<Button>();
 
 		// ── 관리 열 ───────────────────────────────────────────────────────
+		/// <summary>UI 뿌리. 폭을 재서 무대 카메라를 맞춘다</summary>
+		private VisualElement root;
+
 		private VisualElement side;
 		private readonly List<Button> tabButtons = new List<Button>();
 		private Button closeSideButton;
@@ -478,8 +481,16 @@ namespace WitchMendokusai
 				return;
 			}
 
-			VisualElement root = document.rootVisualElement;
+			this.root = document.rootVisualElement;
+			VisualElement root = this.root;
 			root.Clear();
+
+			// 창 크기가 바뀌면 무대 폭도 다시 (모바일 회전, PC 창 조절)
+			root.RegisterCallback<GeometryChangedEvent>(_ =>
+			{
+				AimCamera();
+				ApplySafeArea();
+			});
 			built = false;
 
 			if (styleSheet != null)
@@ -1571,6 +1582,75 @@ namespace WitchMendokusai
 			ApplySplit();
 		}
 
+		/// <summary>
+		/// 무대 카메라를 전투 창 폭에
+		///
+		/// ★ 옛 값은 1200/1920 <b>고정</b>이었다. 모바일은 20:9 도 흔해서 그 비율에서는
+		///   무대와 관리 열 경계가 어긋난다 (실측 2026-09-01: 2400x1080 에서 95px 차이)
+		/// ★ 그래서 관리 열의 <b>실제 폭</b> 기준. 비율이 무엇이든 경계가 붙음
+		/// </summary>
+		private void AimCamera()
+		{
+			Camera main = Camera.main;
+			if (main == null)
+			{
+				return;
+			}
+
+			if (split == false)
+			{
+				main.rect = new Rect(0f, 0f, 1f, 1f);
+				return;
+			}
+
+			float share = BATTLE_SHARE;
+			float sideWidth = side != null ? side.resolvedStyle.width : float.NaN;
+
+			if (float.IsNaN(sideWidth) == false && sideWidth > 0f && root != null)
+			{
+				float whole = root.resolvedStyle.width;
+				if (float.IsNaN(whole) == false && whole > sideWidth)
+				{
+					share = 1f - sideWidth / whole;
+				}
+			}
+
+			main.rect = new Rect(0f, 0f, share, 1f);
+		}
+
+		/// <summary>
+		/// 노치와 둥근 모서리를 피해 UI 를 안쪽으로 (모바일)
+		///
+		/// ★ <see cref="Screen.safeArea"/> 는 PC 에서 화면 전체. 아무 효과 없음
+		/// ★ 무대(3D)는 제외. 잘려도 되는 배경이고, 밀면 분할 경계가 또 어긋남
+		/// </summary>
+		private void ApplySafeArea()
+		{
+			if (root == null)
+			{
+				return;
+			}
+
+			Rect safe = Screen.safeArea;
+			float wide = Screen.width;
+			float high = Screen.height;
+
+			if (wide <= 0f || high <= 0f)
+			{
+				return;
+			}
+
+			// 화면 픽셀을 UI 논리 크기로. 패널이 스케일하므로 비율 환산
+			float scale = root.resolvedStyle.width > 0f && float.IsNaN(root.resolvedStyle.width) == false
+				? root.resolvedStyle.width / wide
+				: 1f;
+
+			root.style.paddingLeft = safe.xMin * scale;
+			root.style.paddingRight = (wide - safe.xMax) * scale;
+			root.style.paddingBottom = safe.yMin * scale;
+			root.style.paddingTop = (high - safe.yMax) * scale;
+		}
+
 		private void ToggleSplit()
 		{
 			split = split == false;
@@ -1590,12 +1670,8 @@ namespace WitchMendokusai
 			battle.EnableInClassList("idle-battle--full", split == false);
 			splitButton.text = split ? "풀화면" : "분할";
 
-			// 무대 카메라는 전투 창 폭만. 아니면 부대가 화면 전체 가운데(관리 열 밑)에 위치
-			Camera main = Camera.main;
-			if (main != null)
-			{
-				main.rect = split ? new Rect(0f, 0f, BATTLE_SHARE, 1f) : new Rect(0f, 0f, 1f, 1f);
-			}
+			AimCamera();
+			ApplySafeArea();
 
 			if (showSide)
 			{
@@ -1947,8 +2023,23 @@ namespace WitchMendokusai
 		// ── 툴팁 ───────────────────────────────────────────────────────────
 
 		/// <summary>마우스를 올리면 뜨는 설명. PC 우선 (layout.md §1). 글은 부르는 쪽이 만든다</summary>
+		/// <summary>
+		/// 설명 붙이기. 마우스는 올리면, 손가락은 누르면
+		///
+		/// ★ 모바일에 호버 없음 (2026-09-01). 호버만 걸면 장비 정보 조회 불가
+		/// </summary>
 		private void HookTooltip(VisualElement target, System.Func<string> text)
 		{
+			target.RegisterCallback<PointerDownEvent>(moment =>
+			{
+				// 손가락이나 펜만. 마우스는 호버 담당
+				if (moment.pointerType != UnityEngine.UIElements.PointerType.mouse)
+				{
+					ShowTooltip(text());
+					MoveTooltip(moment.position);
+				}
+			});
+
 			target.RegisterCallback<PointerEnterEvent>(_ => ShowTooltip(text()));
 			target.RegisterCallback<PointerMoveEvent>(moment => MoveTooltip(moment.position));
 			target.RegisterCallback<PointerLeaveEvent>(_ => tooltip.style.display = DisplayStyle.None);
