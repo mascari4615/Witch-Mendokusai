@@ -103,13 +103,16 @@ namespace WitchMendokusai.Tests
 			IdleTuning tuning = new IdleTuning();
 			IdleState state = new IdleState();
 
+			// 장비 배수는 전장에 선 인형 것만 (2026-08-31 인형별). 시작 인형 착석
+			IdleHeroes.EnsureStarter(state);
+
 			IdleItem one = new IdleItem(4, IdleItemSlot.Head);
 			one.PotentialValue = 0.3d;
 
 			double inTheBag = IdleGear.MultiplierOfItem(one, tuning);
 
 			state.Bag.Add(one);
-			Assert.IsTrue(IdleGear.TryEquip(state, 0));
+			Assert.IsTrue(IdleGear.TryEquip(state, IdleHeroes.STARTER_ID, 0));
 
 			Assert.AreEqual(inTheBag, IdleGear.MultiplierOf(state, tuning, IdleItemSlot.Head), 1e-9d,
 				"가방에서 잰 값과 차고 나서 잰 값이 다르다 — 화면이 거짓 예고를 하게 된다");
@@ -138,7 +141,7 @@ namespace WitchMendokusai.Tests
 			IdleState state = new IdleState();
 
 			// 머리에 좋은 것을 차 둔다.
-			state.Worn[(int)IdleItemSlot.Head] = new IdleItem(6, IdleItemSlot.Head);
+			state.Worn[IdleGear.WornAt(IdleHeroes.STARTER_ID, (int)IdleItemSlot.Head)] = new IdleItem(6, IdleItemSlot.Head);
 
 			// 가방을 여러 칸 채운 <b>뒤쪽</b>에 머리 장비를 둔다 — 옛 실수가 드러나는 자리.
 			for (int filler = 0; filler < 7; filler++)
@@ -149,10 +152,12 @@ namespace WitchMendokusai.Tests
 			IdleItem candidate = new IdleItem(2, IdleItemSlot.Head);
 			state.Bag.Add(candidate);
 
-			IdleGear.CompareToWorn(state.Worn, state.Bag[state.Bag.Count - 1], tuning,
+			IdleItem[] mine = new IdleItem[IdleGear.SLOT_COUNT];
+			IdleGear.CopyWornOf(state, IdleHeroes.STARTER_ID, mine);
+			IdleGear.CompareToWorn(mine, state.Bag[state.Bag.Count - 1], tuning,
 				out double now, out double after);
 
-			Assert.AreEqual(IdleGear.MultiplierOfItem(state.Worn[(int)IdleItemSlot.Head], tuning), now, 1e-9d,
+			Assert.AreEqual(IdleGear.MultiplierOfItem(mine[(int)IdleItemSlot.Head], tuning), now, 1e-9d,
 				"찬 것을 못 찾았다 — 가방 자리 번호로 뒤진 것이다");
 			Assert.Less(after, now, "더 못한 것인데 낫다고 한다");
 		}
@@ -185,8 +190,8 @@ namespace WitchMendokusai.Tests
 				"부위 상수와 enum 이 어긋났다");
 
 			IdleState state = new IdleState();
-			Assert.AreEqual(IdleGear.SLOT_COUNT, state.Worn.Length,
-				"착용 칸 수가 부위 수와 다르다");
+			Assert.AreEqual(IdleHeroes.Count * IdleGear.SLOT_COUNT, state.Worn.Length,
+				"착용 칸이 인형 수 x 부위 수가 아니다 (2026-08-31 인형별 장비)");
 		}
 
 		/// <summary>
@@ -214,7 +219,7 @@ namespace WitchMendokusai.Tests
 			Assert.AreEqual(IdleItemSlot.Hands, state.Bag[0].Slot);
 
 			// 그리고 <b>차 봐도</b> 안 터진다 — 여기서 터지면 위 검사는 아무 뜻이 없다.
-			Assert.IsTrue(IdleGear.TryEquip(state, 0));
+			Assert.IsTrue(IdleGear.TryEquip(state, IdleHeroes.STARTER_ID, 0));
 		}
 
 		/// <summary>★ 차고 있던 것이 <b>그 자리의 부위</b>가 아니면 빈 자리로 받는다.</summary>
@@ -232,9 +237,11 @@ namespace WitchMendokusai.Tests
 			IdleState state = new IdleState();
 			state.Load(saved);
 
-			Assert.IsTrue(state.Worn[(int)IdleItemSlot.Head].IsEmpty,
+			// 옛 저장(판 공용 4칸)은 시작 인형 것으로 이관
+			Assert.IsTrue(IdleGear.WornOf(state, IdleHeroes.STARTER_ID, (int)IdleItemSlot.Head).IsEmpty,
 				"엉뚱한 부위가 그 자리에 앉아 있다 — 배수를 엉뚱한 축에 준다");
-			Assert.AreEqual(2, state.Worn[(int)IdleItemSlot.Body].Tier, "멀쩡한 것까지 버렸다");
+			Assert.AreEqual(2, IdleGear.WornOf(state, IdleHeroes.STARTER_ID, (int)IdleItemSlot.Body).Tier,
+				"멀쩡한 것까지 버렸다");
 		}
 
 
@@ -264,11 +271,12 @@ namespace WitchMendokusai.Tests
 			{
 				IdleTuning tuning = new IdleTuning();
 				IdleState state = new IdleState();
+				IdleHeroes.EnsureStarter(state);
 
 				double[] before = Axes(state, tuning);
 
 				state.Bag.Add(new IdleItem(3, slots[which]));
-				Assert.IsTrue(IdleGear.TryEquip(state, 0), names[which] + " 를 못 찼다");
+				Assert.IsTrue(IdleGear.TryEquip(state, IdleHeroes.STARTER_ID, 0), names[which] + " 를 못 찼다");
 
 				double[] after = Axes(state, tuning);
 

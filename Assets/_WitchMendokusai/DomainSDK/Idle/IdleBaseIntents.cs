@@ -29,10 +29,14 @@ namespace WitchMendokusai.DomainSDK.Idle
     /// <summary>「가방의 이것을 찬다」 — 차고 있던 것은 가방으로 돌아온다.</summary>
     public readonly struct IdleEquipIntent : IGameIntent
     {
+        /// <summary>끼울 인형 번호 (사용자 2026-08-31: 장비는 인형별)</summary>
+        public int HeroId { get; }
+
         public int BagIndex { get; }
 
-        public IdleEquipIntent(int bagIndex)
+        public IdleEquipIntent(int heroId, int bagIndex)
         {
+            HeroId = heroId;
             BagIndex = bagIndex;
         }
     }

@@ -547,7 +547,7 @@ namespace WitchMendokusai.Tests
 
 			IdleSession session = new IdleSession(tuning, state);
 
-			Assert.IsTrue(session.Send(new IdleEquipIntent(0)));
+			Assert.IsTrue(session.Send(new IdleEquipIntent(IdleHeroes.STARTER_ID, 0)));
 			Assert.AreEqual(0, state.Bag.Count, "가방에서 안 빠졌다");
 			Assert.AreEqual(5, state.Worn[(int)IdleItemSlot.Feet].Tier, "엉뚱한 부위에 찼다");
 		}

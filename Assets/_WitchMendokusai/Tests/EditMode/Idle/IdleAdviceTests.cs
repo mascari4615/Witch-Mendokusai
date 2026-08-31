@@ -265,7 +265,7 @@ namespace WitchMendokusai.Tests
 			state.Resource = IdleBase.CostOf(0, state.Owned[0], tuning);
 			state.Bag.Add(new IdleItem(3, IdleItemSlot.Head));
 
-			Assert.IsTrue(IdleGear.TryEquip(state, 0));
+			Assert.IsTrue(IdleGear.TryEquip(state, IdleHeroes.STARTER_ID, 0));
 
 			Assert.AreEqual(IdleStep.BuyProducer, IdleAdvice.NextStep(Look(state)).Step,
 				"찼는데도 계속 차라고 한다");

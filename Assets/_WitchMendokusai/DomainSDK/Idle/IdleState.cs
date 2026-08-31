@@ -70,7 +70,11 @@ namespace WitchMendokusai.DomainSDK.Idle
             = new System.Collections.Generic.List<IdleItem>();
 
         /// <summary>부위마다 차고 있는 것 (빈 자리는 등급 0).</summary>
-        public IdleItem[] Worn { get; private set; } = new IdleItem[IdleGear.SLOT_COUNT];
+        /// <summary>
+        /// 인형별 장비 (사용자 2026-08-31: 유닛이 여럿인데 가방에서 바로 끼우는 건 기획 오류).
+        /// 자리는 <c>인형 번호 * SLOT_COUNT + 부위</c>. 옛 판 공용 4칸은 시작 인형 것으로 이관
+        /// </summary>
+        public IdleItem[] Worn { get; private set; } = new IdleItem[IdleHeroes.Count * IdleGear.SLOT_COUNT];
 
         /// <summary>떨어진 순번 — 부위를 돌려 주는 데 쓴다(무작위 X, 결정적).</summary>
         public long DropSequence { get; set; }
@@ -444,18 +448,25 @@ namespace WitchMendokusai.DomainSDK.Idle
                 }
             }
 
-            Worn = new IdleItem[IdleGear.SLOT_COUNT];
+            Worn = new IdleItem[IdleHeroes.Count * IdleGear.SLOT_COUNT];
 
-            if (saveData.WornItems != null && saveData.WornItems.Length == IdleGear.SLOT_COUNT)
+            if (saveData.WornItems != null)
             {
-                for (int slot = 0; slot < Worn.Length; slot++)
-                {
-                    IdleItem one = saveData.WornItems[slot];
+                // 옛 저장은 4칸(판 공용). 그 시절 장비는 시작 인형 것으로 (2026-08-31 인형별 장비)
+                int startAt = saveData.WornItems.Length == IdleGear.SLOT_COUNT
+                    ? IdleGear.WornAt(IdleHeroes.STARTER_ID, 0)
+                    : 0;
 
-                    // 차고 있던 것은 <b>그 자리의 부위</b>여야 한다 — 아니면 빈 자리로 받는다.
-                    Worn[slot] = IdleGear.IsRealSlot(one) && (int)one.Slot == slot ? one : default;
+                for (int at = 0; at < saveData.WornItems.Length && startAt + at < Worn.Length; at++)
+                {
+                    IdleItem one = saveData.WornItems[at];
+                    int slot = (startAt + at) % IdleGear.SLOT_COUNT;
+
+                    // 차고 있던 것은 그 자리의 부위여야 함. 아니면 빈 자리로
+                    Worn[startAt + at] = IdleGear.IsRealSlot(one) && (int)one.Slot == slot ? one : default;
                 }
             }
+
             DropSequence = saveData.DropSequence;
             // 옛 저장에는 영웅이 없다 — 빈 도감·빈 파티로 받는다(터지지 않는다).
             //

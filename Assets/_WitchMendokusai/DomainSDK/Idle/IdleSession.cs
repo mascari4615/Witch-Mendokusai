@@ -233,7 +233,7 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// <summary>가방의 것을 찬다.</summary>
         public bool Send(IdleEquipIntent intent)
         {
-            return IdleGear.TryEquip(state, intent.BagIndex);
+            return IdleGear.TryEquip(state, intent.HeroId, intent.BagIndex);
         }
 
         /// <summary>
@@ -552,8 +552,30 @@ namespace WitchMendokusai.DomainSDK.Idle
 
         private IdleItem[] CaptureWorn()
         {
-            IdleItem[] made = Room(ref wornBuffer, state.Worn.Length);
-            System.Array.Copy(state.Worn, made, made.Length);
+            // 사진은 <b>전장에 선 인형들</b>의 장비를 부위마다 하나로 요약.
+            // 화면이 한 인형 것을 보려면 IdleGear.CopyWornOf 를 쓴다 (인형별, 2026-08-31)
+            IdleItem[] made = Room(ref wornBuffer, IdleGear.SLOT_COUNT);
+
+            for (int slot = 0; slot < made.Length; slot++)
+            {
+                made[slot] = default;
+
+                for (int seat = 0; seat < IdleHeroes.MAIN_SLOTS && seat < state.Party.Length; seat++)
+                {
+                    int heroId = state.Party[seat];
+                    if (heroId < 0)
+                    {
+                        continue;
+                    }
+
+                    IdleItem one = IdleGear.WornOf(state, heroId, slot);
+                    if (one.IsEmpty == false)
+                    {
+                        made[slot] = one;
+                        break;
+                    }
+                }
+            }
             return made;
         }
 

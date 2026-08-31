@@ -140,6 +140,17 @@ namespace WitchMendokusai
 		// 인형
 		private readonly List<Button> partyButtons = new List<Button>();
 		private int seatBeingFilled = -1;
+
+		/// <summary>장비를 볼 인형의 편성 자리 (2026-08-31 인형별 장비). 찬 편성 칸을 누르면 바뀐다</summary>
+		private int gearSeat;
+
+		/// <summary>그 자리의 인형 번호. 빈 자리면 -1</summary>
+		private int gearHeroId => session != null && gearSeat >= 0 && gearSeat < session.State.Party.Length
+			? session.State.Party[gearSeat]
+			: -1;
+
+		/// <summary>한 인형의 장비 넷. 매 프레임 새 배열을 안 만들려고 들고 있는다</summary>
+		private readonly IdleItem[] gearOfHero = new IdleItem[IdleGear.SLOT_COUNT];
 		private Label dollName;
 		private Label damageLabel;
 		private Button damageButton;
@@ -907,6 +918,12 @@ namespace WitchMendokusai
 		/// <summary>이 부위에 낄 수 있는 가방 아이템만 보여준다</summary>
 		private void OpenGear(int slot)
 		{
+			if (gearHeroId < 0)
+			{
+				SayOnce("먼저 편성 칸에서 인형을 고른다", noteSeconds);
+				return;
+			}
+
 			gearSlot = slot;
 			gearPopup.style.display = DisplayStyle.Flex;
 			Render(session.Capture());
@@ -925,9 +942,12 @@ namespace WitchMendokusai
 				return;
 			}
 
-			gearTitle.text = SLOT_NAMES[gearSlot];
+			int wearer = gearHeroId;
+			gearTitle.text = wearer >= 0
+				? IdleHeroes.KindOf(wearer).Name + " " + SLOT_NAMES[gearSlot]
+				: SLOT_NAMES[gearSlot];
 
-			IdleItem worn = gearSlot < snapshot.Worn.Length ? snapshot.Worn[gearSlot] : default;
+			IdleItem worn = wearer >= 0 ? IdleGear.WornOf(session.State, wearer, gearSlot) : default;
 			gearWorn.text = worn.IsEmpty
 				? "지금 낀 것 없음"
 				: string.Format("지금 {0}단계{1}", worn.Tier, worn.IsRaw ? string.Empty : " 감정됨");
@@ -1160,9 +1180,13 @@ namespace WitchMendokusai
 					? tag + "\n" + IdleHeroes.KindOf(id).Name
 					: tag + "\n+";
 				partyButtons[slot].EnableInClassList("idle-party-seat--picking", seatBeingFilled == slot);
+				partyButtons[slot].EnableInClassList("idle-party-seat--geared", seatBeingFilled < 0 && gearSeat == slot);
 			}
 
-			dollName.text = seatBeingFilled >= 0 ? "아래에서 인형을 고른다" : string.Empty;
+			int wearer = gearHeroId;
+			dollName.text = seatBeingFilled >= 0
+				? "아래에서 인형을 고른다"
+				: (wearer >= 0 ? IdleHeroes.KindOf(wearer).Name + "의 장비" : "빈 자리");
 
 			DrawUpgrade(snapshot.Damage, damageLabel, damageButton, "공격력");
 			DrawUpgrade(snapshot.AttackSpeed, speedLabel, speedButton, "공격 속도");
@@ -1171,11 +1195,25 @@ namespace WitchMendokusai
 			bulkRaiseButton.text = "전부 올리기";
 			bulkRaiseButton.SetEnabled(canRaise);
 
-			for (int slot = 0; slot < wornCells.Count && slot < snapshot.Worn.Length; slot++)
+			// 장비는 인형별 (2026-08-31). 사진의 Worn 은 전장 전체 요약이라 코어에 직접 조회
+			if (wearer >= 0)
 			{
-				IdleItem one = snapshot.Worn[slot];
+				IdleGear.CopyWornOf(session.State, wearer, gearOfHero);
+			}
+			else
+			{
+				for (int slot = 0; slot < gearOfHero.Length; slot++)
+				{
+					gearOfHero[slot] = default;
+				}
+			}
+
+			for (int slot = 0; slot < wornCells.Count && slot < gearOfHero.Length; slot++)
+			{
+				IdleItem one = gearOfHero[slot];
 				wornCells[slot].text = SLOT_NAMES[slot] + "\n" + (one.IsEmpty ? "없음" : one.Tier + "단계");
 				wornCells[slot].EnableInClassList("idle-worn-cell--empty", one.IsEmpty);
+				wornCells[slot].SetEnabled(wearer >= 0);
 				SetTierClass(wornCells[slot], one.IsEmpty ? 0 : one.Tier);
 			}
 
@@ -1759,7 +1797,7 @@ namespace WitchMendokusai
 
 		private void Equip(int bagIndex)
 		{
-			session.Send(new IdleEquipIntent(bagIndex));
+			session.Send(new IdleEquipIntent(gearHeroId, bagIndex));
 			WriteDown();
 			Render(session.Capture());
 		}
@@ -1837,8 +1875,23 @@ namespace WitchMendokusai
 			Render(session.Capture());
 		}
 
+		/// <summary>
+		/// 편성 칸을 눌렀다. 빈 칸이면 채우기, 찬 칸이면 <b>장비 대상</b>을 그 인형으로
+		///
+		/// ★ 인형이 여럿이라 장비를 누구 것으로 볼지 정해야 한다 (사용자 2026-08-31)
+		/// </summary>
 		private void BeginSeat(int slot)
 		{
+			bool taken = slot < session.State.Party.Length && session.State.Party[slot] >= 0;
+
+			if (taken && seatBeingFilled < 0)
+			{
+				gearSeat = slot;
+				CloseGear();
+				Render(session.Capture());
+				return;
+			}
+
 			seatBeingFilled = seatBeingFilled == slot ? -1 : slot;
 			Render(session.Capture());
 		}

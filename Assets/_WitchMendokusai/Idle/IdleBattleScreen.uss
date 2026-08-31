@@ -800,3 +800,7 @@
 	margin-bottom: 6px;
 	-unity-text-align: middle-left;
 }
+
+.idle-party-seat--geared {
+	border-color: rgb(226, 186, 96);
+}
