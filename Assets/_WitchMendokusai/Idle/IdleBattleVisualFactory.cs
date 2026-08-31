@@ -49,7 +49,7 @@ namespace WitchMendokusai
 		/// <summary>충격 알갱이 하나. 작은 정팔면체</summary>
 		public static Mesh BuildImpactMesh()
 		{
-			return IdleGeometry.Build(IdleGeometry.Shape.Octahedron, 0.25f);
+			return IdleGeometry.Build(IdleGeometry.Shape.Octahedron, 0.5f);
 		}
 	}
 }

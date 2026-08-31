@@ -57,6 +57,12 @@ namespace WitchMendokusai
 			/// <summary>보스 발광 세기. 0 이면 안 빛난다</summary>
 			public float BossGlow { get; set; } = 0.55f;
 
+			/// <summary>맞은 적이 하얗게 번쩍이는 시간 (s)</summary>
+			public float FoeFlashSeconds { get; set; } = 0.12f;
+
+			/// <summary>번쩍일 때 흰색을 섞는 몫</summary>
+			public float FoeFlashWhiten { get; set; } = 0.7f;
+
 			/// <summary>근접은 낮게, 원거리는 높게 뜬다 (visual.md 3). 높이 배수</summary>
 			public float MeleeHeightShare { get; set; } = 0.85f;
 			public float RangedHeightShare { get; set; } = 1.3f;
@@ -89,6 +95,12 @@ namespace WitchMendokusai
 
 			/// <summary>색을 칠한 구역. 깊이가 바뀌면 다시 칠한다</summary>
 			public int StageUsed = -1;
+
+			/// <summary>맞아서 번쩍이는 동안 남은 초</summary>
+			public float FlashLeft;
+
+			/// <summary>번쩍이기 전 색. 돌려놓을 때 쓴다</summary>
+			public Color RestColor = Color.white;
 
 			/// <summary>보스 껍질. 코어를 감싸고 역방향으로 돈다</summary>
 			public Transform Shell;
@@ -140,6 +152,17 @@ namespace WitchMendokusai
 			if (seat >= 0 && seat < attackLeft.Length)
 			{
 				attackLeft[seat] = settings.LungeSeconds;
+			}
+		}
+
+		/// <summary>적이 맞았다. 몸이 잠깐 하얗게 번쩍인다 (알갱이만으로는 약하다)</summary>
+		public void PlayFoeHit(long index)
+		{
+			Foe foe = Find(index);
+
+			if (foe != null)
+			{
+				foe.FlashLeft = settings.FoeFlashSeconds;
 			}
 		}
 
@@ -399,6 +422,7 @@ namespace WitchMendokusai
 				: (foe.Kind == IdleFoeKind.Ranged ? settings.RangedEnemyColor : settings.EnemyColor);
 
 			Color made = Deepen(basis, stage);
+			foe.RestColor = made;
 
 			if (foe.Boss && settings.BossGlow > 0f)
 			{
@@ -632,10 +656,30 @@ namespace WitchMendokusai
 			{
 				Foe foe = foes[index];
 				foe.Model.Rotate(Vector3.up, settings.FoeSpinDegrees * delta, Space.Self);
+				AdvanceFlash(foe, delta);
 
 				Vector3 position = foe.Model.localPosition;
 				position.y = IdleBattleMotion.FoeBob(clock, index, settings.FoeBobHeight);
 				foe.Model.localPosition = position;
+			}
+		}
+
+		/// <summary>번쩍임을 되돌린다. 색은 Repaint 가 정한 것으로</summary>
+		private void AdvanceFlash(Foe foe, float delta)
+		{
+			if (foe.FlashLeft <= 0f)
+			{
+				return;
+			}
+
+			foe.FlashLeft -= delta;
+			float share = Mathf.Clamp01(foe.FlashLeft / Mathf.Max(0.001f, settings.FoeFlashSeconds));
+			Color made = Color.Lerp(foe.RestColor, Color.white, share * settings.FoeFlashWhiten);
+
+			foe.Skin.color = made;
+			if (foe.Skin.HasProperty("_BaseColor"))
+			{
+				foe.Skin.SetColor("_BaseColor", made);
 			}
 		}
 

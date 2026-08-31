@@ -20,6 +20,16 @@ namespace WitchMendokusai
 			public float NumberSeconds { get; set; } = 0.8f;
 			public float NumberRise { get; set; } = 1.2f;
 			public float NumberSize { get; set; } = 0.12f;
+			/// <summary>충격 알갱이 크기 (m). 인형 몸통이 0.44 라 그 절반쯤이 읽힌다</summary>
+			public float ImpactSize { get; set; } = 0.36f;
+
+			public float ImpactSeconds { get; set; } = 0.34f;
+			public float ImpactSpeed { get; set; } = 3.4f;
+			public int ImpactCount { get; set; } = 7;
+
+			/// <summary>적 색에 흰색을 섞는 몫. 안 섞으면 적 몸에 묻힌다</summary>
+			public float ImpactWhiten { get; set; } = 0.55f;
+
 			public Color BoltColor { get; set; }
 			public Color NumberColor { get; set; }
 			public Color HurtColor { get; set; }
@@ -39,10 +49,19 @@ namespace WitchMendokusai
 			public float Age;
 		}
 
+		private sealed class Impact
+		{
+			public Transform Piece;
+			public Vector3 Way;
+			public float Size;
+			public float Age;
+		}
+
 		private readonly Transform holder;
 		private readonly Settings settings;
 		private readonly List<Bolt> bolts = new List<Bolt>();
 		private readonly List<Number> numbers = new List<Number>();
+		private readonly List<Impact> impacts = new List<Impact>();
 		private readonly Dictionary<long, double> dealtByFoe = new Dictionary<long, double>();
 		private readonly Dictionary<int, double> takenBySeat = new Dictionary<int, double>();
 		private float shakeLeft;
@@ -99,6 +118,7 @@ namespace WitchMendokusai
 				{
 					shakeLeft = Mathf.Max(shakeLeft, settings.ShakeSeconds);
 					SpawnImpact(impact, color);
+					entities.PlayFoeHit(pair.Key);
 				}
 			}
 
@@ -128,6 +148,7 @@ namespace WitchMendokusai
 
 			AdvanceBolts(delta, entities);
 			AdvanceNumbers(delta);
+			AdvanceImpacts(delta);
 		}
 
 		private void SpawnBolt(Vector3 from, long target)
@@ -161,37 +182,71 @@ namespace WitchMendokusai
 			numbers.Add(new Number { Text = text });
 		}
 
-		/// <summary>맞은 자리에 알갱이 넷. 도형과 같은 색이라 누가 맞았는지 읽힌다</summary>
+		/// <summary>
+		/// 맞은 자리에서 튀는 조각. 볼트와 같은 방식으로 직접 이동
+		///
+		/// ★ ParticleSystem 을 안 쓴다 (실측 2026-08-31): 에디트 모드에서 자동 재생이 안 돼
+		///   미리보기에서 타격이 통째로 안 보였다. 직접 움직이면 두 모드가 동일
+		/// ★ 적 색에 흰색을 섞음. 안 섞으면 적 몸에 묻힘
+		/// </summary>
 		private void SpawnImpact(Vector3 position, Color color)
 		{
-			GameObject piece = new GameObject("Impact");
-			piece.transform.SetParent(holder, false);
-			piece.transform.position = position;
+			Color bright = Color.Lerp(color, Color.white, settings.ImpactWhiten);
+			Material skin = IdleBattleVisualFactory.MakeGlowing(bright, 0.8f);
+			Mesh mesh = IdleBattleVisualFactory.BuildImpactMesh();
 
-			ParticleSystem particles = piece.AddComponent<ParticleSystem>();
-			ParticleSystem.MainModule main = particles.main;
-			main.duration = 0.16f;
-			main.startLifetime = 0.16f;
-			main.startSpeed = 1.2f;
-			main.startSize = 0.045f;
-			main.startColor = color;
-			main.maxParticles = 6;
+			for (int at = 0; at < settings.ImpactCount; at++)
+			{
+				GameObject piece = new GameObject("Chip");
+				piece.transform.SetParent(holder, false);
+				piece.transform.position = position;
+				piece.transform.localScale = new Vector3(settings.ImpactSize, settings.ImpactSize, settings.ImpactSize);
+				piece.transform.localRotation = Quaternion.Euler(at * 47f, at * 73f, at * 29f);
 
-			ParticleSystem.EmissionModule emission = particles.emission;
-			emission.rateOverTime = 0f;
-			emission.SetBursts(new ParticleSystem.Burst[] { new ParticleSystem.Burst(0f, 4) });
+				piece.AddComponent<MeshFilter>().sharedMesh = mesh;
+				piece.AddComponent<MeshRenderer>().sharedMaterial = skin;
 
-			ParticleSystem.ShapeModule shape = particles.shape;
-			shape.shapeType = ParticleSystemShapeType.Sphere;
-			shape.radius = 0.05f;
+				// 부채꼴로 흩어짐. 위로 살짝 들려야 바닥에 안 묻힘
+				float angle = (at + 0.5f) * Mathf.PI * 2f / settings.ImpactCount;
+				Vector3 way = new Vector3(Mathf.Cos(angle), 0.55f, Mathf.Sin(angle)).normalized;
 
-			ParticleSystemRenderer renderer = piece.GetComponent<ParticleSystemRenderer>();
-			renderer.renderMode = ParticleSystemRenderMode.Mesh;
-			renderer.mesh = IdleBattleVisualFactory.BuildImpactMesh();
-			renderer.sharedMaterial = IdleBattleVisualFactory.MakeMaterial(color);
+				impacts.Add(new Impact
+				{
+					Piece = piece.transform,
+					Way = way * settings.ImpactSpeed,
+					Size = settings.ImpactSize,
+				});
+			}
+		}
 
-			particles.Play();
-			Object.Destroy(piece, 0.35f);
+		/// <summary>조각을 날리고 줄인다. 다 줄면 치운다</summary>
+		private void AdvanceImpacts(float delta)
+		{
+			for (int at = impacts.Count - 1; at >= 0; at--)
+			{
+				Impact one = impacts[at];
+				one.Age += delta;
+
+				float life = settings.ImpactSeconds > 0f ? Mathf.Clamp01(one.Age / settings.ImpactSeconds) : 1f;
+
+				if (life >= 1f || one.Piece == null)
+				{
+					if (one.Piece != null)
+					{
+						Kill(one.Piece.gameObject);
+					}
+
+					impacts.RemoveAt(at);
+					continue;
+				}
+
+				// 처음이 빠르고 끝이 느림. 튀는 느낌은 감속에서
+				one.Piece.position += one.Way * (1f - life) * delta;
+				one.Piece.Rotate(Vector3.one, 420f * delta, Space.Self);
+
+				float size = one.Size * (1f - life * life);
+				one.Piece.localScale = new Vector3(size, size, size);
+			}
 		}
 
 		private void AdvanceBolts(float delta, IdleBattleEntityPresenter entities)
