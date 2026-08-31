@@ -21,10 +21,10 @@
     <ui:Button name="bulk-button" class="idle-row-button idle-row-button--strong" />
     <ui:Label text="장비" class="idle-cap" />
     <ui:VisualElement name="worn" class="idle-worn">
-        <ui:Label name="worn-0" class="idle-worn-cell" />
-        <ui:Label name="worn-1" class="idle-worn-cell" />
-        <ui:Label name="worn-2" class="idle-worn-cell" />
-        <ui:Label name="worn-3" class="idle-worn-cell" />
+        <ui:Button name="worn-0" class="idle-worn-cell" />
+        <ui:Button name="worn-1" class="idle-worn-cell" />
+        <ui:Button name="worn-2" class="idle-worn-cell" />
+        <ui:Button name="worn-3" class="idle-worn-cell" />
     </ui:VisualElement>
     <ui:Label text="가진 인형" class="idle-cap" />
     <ui:VisualElement name="hero-rows" />

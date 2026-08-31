@@ -34,6 +34,7 @@ namespace WitchMendokusai.EditorTools
 		private const string DUNGEON_PAGE_PATH = "Assets/_WitchMendokusai/Idle/IdleDungeonPage.uxml";
 		private const string INVEST_PAGE_PATH = "Assets/_WitchMendokusai/Idle/IdleInvestPage.uxml";
 		private const string PRODUCER_ROW_PATH = "Assets/_WitchMendokusai/Idle/IdleProducerRow.uxml";
+		private const string GEAR_POPUP_PATH = "Assets/_WitchMendokusai/Idle/IdleGearPopup.uxml";
 		private const string WAVE_DOT_PATH = "Assets/_WitchMendokusai/Idle/IdleWaveDot.uxml";
 		private const string TAG = "[IdleScene]";
 
@@ -86,6 +87,7 @@ namespace WitchMendokusai.EditorTools
 			VisualTreeAsset dungeonpage = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(DUNGEON_PAGE_PATH);
 			VisualTreeAsset investpage = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(INVEST_PAGE_PATH);
 			VisualTreeAsset producerrow = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(PRODUCER_ROW_PATH);
+			VisualTreeAsset gearpopup = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(GEAR_POPUP_PATH);
 			VisualTreeAsset waveDot = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(WAVE_DOT_PATH);
 
 			if (panel == null || tuning == null || style == null)
@@ -139,6 +141,7 @@ namespace WitchMendokusai.EditorTools
 			AssignPrivateField(screen, "dungeonPageAsset", dungeonpage);
 			AssignPrivateField(screen, "investPageAsset", investpage);
 			AssignPrivateField(screen, "producerRowAsset", producerrow);
+			AssignPrivateField(screen, "gearPopupAsset", gearpopup);
 			AssignPrivateField(screen, "waveDotAsset", waveDot);
 			AssignPrivateField(screen, "stage", stage);
 
@@ -254,6 +257,11 @@ namespace WitchMendokusai.EditorTools
 				if (serialized.FindProperty("producerRowAsset").objectReferenceValue == null)
 				{
 					missing.Add("IdleBattleScreen.producerRowAsset");
+				}
+
+				if (serialized.FindProperty("gearPopupAsset").objectReferenceValue == null)
+				{
+					missing.Add("IdleBattleScreen.gearPopupAsset");
 				}
 				if (serialized.FindProperty("tuningAsset").objectReferenceValue == null)
 				{

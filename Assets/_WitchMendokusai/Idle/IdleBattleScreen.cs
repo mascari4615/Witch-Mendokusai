@@ -42,6 +42,7 @@ namespace WitchMendokusai
 		[SerializeField] private VisualTreeAsset dungeonPageAsset;
 		[SerializeField] private VisualTreeAsset investPageAsset;
 		[SerializeField] private VisualTreeAsset producerRowAsset;
+		[SerializeField] private VisualTreeAsset gearPopupAsset;
 
 		[Header("무대. 씬이 꽂아 준다")]
 		[SerializeField] private IdleBattleStage stage;
@@ -145,7 +146,15 @@ namespace WitchMendokusai
 		private Label speedLabel;
 		private Button speedButton;
 		private Button bulkRaiseButton;
-		private readonly List<Label> wornCells = new List<Label>();
+		private readonly List<Button> wornCells = new List<Button>();
+
+		// 장비 고르기 팝업 (사용자 2026-08-31). 인형이 여럿이라 가방에서 바로 장착하면 대상이 불명
+		private VisualElement gearPopup;
+		private Label gearTitle;
+		private Label gearWorn;
+		private VisualElement gearRows;
+		private readonly List<Button> gearRowButtons = new List<Button>();
+		private int gearSlot = -1;
 		private VisualElement heroRows;
 		private readonly List<Button> heroButtons = new List<Button>();
 
@@ -336,6 +345,7 @@ namespace WitchMendokusai
 			else if (dungeonPageAsset == null) { what = "dungeonPageAsset"; }
 			else if (investPageAsset == null) { what = "investPageAsset"; }
 			else if (producerRowAsset == null) { what = "producerRowAsset"; }
+			else if (gearPopupAsset == null) { what = "gearPopupAsset"; }
 
 			return what.Length > 0;
 		}
@@ -477,6 +487,7 @@ namespace WitchMendokusai
 			BuildBattle(shell);
 			BuildSide(shell);
 			BuildMapPopup();
+			BuildGearPopup();
 
 			tooltip = AddLabel(root, "idle-tooltip");
 			tooltip.style.display = DisplayStyle.None;
@@ -685,7 +696,8 @@ namespace WitchMendokusai
 			for (int slot = 0; slot < SLOT_NAMES.Length; slot++)
 			{
 				int captured = slot;
-				Label cell = page.Q<Label>("worn-" + slot);
+				Button cell = page.Q<Button>("worn-" + slot);
+				cell.clicked += () => OpenGear(captured);
 				HookTooltip(cell, () => WornTip(captured));
 				wornCells.Add(cell);
 			}
@@ -721,7 +733,8 @@ namespace WitchMendokusai
 			for (int index = 0; index < 40; index++)
 			{
 				int captured = index;
-				Button cell = AddBagCell(bagGrid, () => Equip(captured));
+				// 가방에서 바로 장착하지 않는다. 장비는 인형 탭의 칸에서 고른다 (사용자 2026-08-31)
+				Button cell = AddBagCell(bagGrid, null);
 				HookTooltip(cell, () => BagTip(captured));
 				bagCells.Add(cell);
 			}
@@ -876,6 +889,112 @@ namespace WitchMendokusai
 			mapPopup.Add(mapRows);
 		}
 
+		/// <summary>장비 고르기 팝업. 관리 열 위에 뜬다</summary>
+		private void BuildGearPopup()
+		{
+			TemplateContainer tree = gearPopupAsset.Instantiate();
+			gearPopup = tree.Q<VisualElement>("popup");
+			gearPopup.RemoveFromHierarchy();
+			gearPopup.style.display = DisplayStyle.None;
+			side.Add(gearPopup);
+
+			gearTitle = gearPopup.Q<Label>("gear-title");
+			gearWorn = gearPopup.Q<Label>("gear-worn");
+			gearPopup.Q<Button>("gear-close").clicked += CloseGear;
+			gearRows = gearPopup.Q<VisualElement>("gear-rows");
+		}
+
+		/// <summary>이 부위에 낄 수 있는 가방 아이템만 보여준다</summary>
+		private void OpenGear(int slot)
+		{
+			gearSlot = slot;
+			gearPopup.style.display = DisplayStyle.Flex;
+			Render(session.Capture());
+		}
+
+		private void CloseGear()
+		{
+			gearSlot = -1;
+			gearPopup.style.display = DisplayStyle.None;
+		}
+
+		private void RenderGear(IdleSnapshot snapshot)
+		{
+			if (gearSlot < 0)
+			{
+				return;
+			}
+
+			gearTitle.text = SLOT_NAMES[gearSlot];
+
+			IdleItem worn = gearSlot < snapshot.Worn.Length ? snapshot.Worn[gearSlot] : default;
+			gearWorn.text = worn.IsEmpty
+				? "지금 낀 것 없음"
+				: string.Format("지금 {0}단계{1}", worn.Tier, worn.IsRaw ? string.Empty : " 감정됨");
+
+			int shown = 0;
+
+			for (int index = 0; index < snapshot.Bag.Length; index++)
+			{
+				IdleItem one = snapshot.Bag[index];
+				if ((int)one.Slot != gearSlot)
+				{
+					continue;
+				}
+
+				Button row = RowAt(shown);
+				int captured = index;
+				row.userData = captured;
+				row.text = string.Format("{0}단계{1}", one.Tier,
+					one.IsRaw ? string.Empty : string.Format("  잠재 {0:P0}", one.PotentialValue));
+				SetTierClass(row, one.Tier);
+				row.style.display = DisplayStyle.Flex;
+				shown++;
+			}
+
+			for (int at = shown; at < gearRowButtons.Count; at++)
+			{
+				gearRowButtons[at].style.display = DisplayStyle.None;
+			}
+
+			if (shown == 0)
+			{
+				Button row = RowAt(0);
+				row.userData = -1;
+				row.text = "가방에 이 부위 장비가 없다";
+				row.style.display = DisplayStyle.Flex;
+			}
+		}
+
+		/// <summary>팝업 줄 하나. 모자라면 새로 만든다</summary>
+		private Button RowAt(int at)
+		{
+			while (gearRowButtons.Count <= at)
+			{
+				Button made = AddButton(gearRows, "idle-row-button idle-gear-row", null);
+				int captured = gearRowButtons.Count;
+				made.clicked += () => PickGear(captured);
+				gearRowButtons.Add(made);
+			}
+
+			return gearRowButtons[at];
+		}
+
+		private void PickGear(int rowIndex)
+		{
+			if (rowIndex < 0 || rowIndex >= gearRowButtons.Count)
+			{
+				return;
+			}
+
+			object held = gearRowButtons[rowIndex].userData;
+			if (held is int bagIndex && bagIndex >= 0)
+			{
+				Equip(bagIndex);
+				CloseGear();
+			}
+		}
+
 		// ── 그리기 ────────────────────────────────────────────────────────
 
 		public void Render(IdleSnapshot snapshot)
@@ -916,6 +1035,7 @@ namespace WitchMendokusai
 			if (split || sideOpen)
 			{
 				RenderPage(snapshot);
+			RenderGear(snapshot);
 			}
 		}
 
