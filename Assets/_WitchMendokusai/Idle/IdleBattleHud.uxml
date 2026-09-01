@@ -30,8 +30,8 @@
             <ui:Button name="split-button" class="idle-box idle-icon-button" text="분할" />
         </ui:VisualElement>
         <ui:VisualElement class="idle-speed-row">
-            <ui:Button class="idle-box idle-icon-button" text="1×" enabled="false" />
-            <ui:Button class="idle-box idle-icon-button" text="AUTO" enabled="false" />
+            <ui:Button name="speed-cycle-button" class="idle-box idle-icon-button" />
+            <ui:Button name="auto-cast-button" class="idle-box idle-icon-button" text="AUTO" />
         </ui:VisualElement>
         <ui:VisualElement class="idle-box idle-log">
             <ui:Label class="idle-cap" text="LOG" />

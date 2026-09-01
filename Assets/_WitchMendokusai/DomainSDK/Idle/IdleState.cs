@@ -65,6 +65,12 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// <summary>입장권을 마지막으로 채운 날 번호. 날이 바뀌었나를 이걸로 안다</summary>
         public long TicketDay { get; set; }
 
+        /// <summary>고른 배속의 자리 (gap-2026-08-23 P1-6). 0 이 1배</summary>
+        public int SpeedStep { get; set; }
+
+        /// <summary>코스트가 차면 알아서 카드를 내나 (P1-6)</summary>
+        public bool AutoCast { get; set; }
+
         /// <summary>옛 저장에는 입장권 칸이 없어 null 이나 짧은 배열로 온다</summary>
         public void EnsureTicketRoom()
         {
@@ -394,6 +400,8 @@ namespace WitchMendokusai.DomainSDK.Idle
                 PrestigeShards = PrestigeShards,
                 Tickets = (long[])Tickets.Clone(),
                 TicketDay = TicketDay,
+                SpeedStep = SpeedStep,
+                AutoCast = AutoCast,
 
                 MeasuredStage = MeasuredStage,
                 MeasuredKillsPerSecond = MeasuredKillsPerSecond,
@@ -591,6 +599,8 @@ namespace WitchMendokusai.DomainSDK.Idle
             PrestigeShards = saveData.PrestigeShards > 0L ? saveData.PrestigeShards : 0L;
             Tickets = saveData.Tickets;
             TicketDay = saveData.TicketDay;
+            SpeedStep = NotBelowZero(saveData.SpeedStep);
+            AutoCast = saveData.AutoCast;
             EnsureTicketRoom();
 
             for (int index = 0; index < Tickets.Length; index++)

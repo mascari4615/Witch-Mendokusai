@@ -99,6 +99,14 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// </summary>
         public long ShardsPerBoss { get; set; }
 
+        /// <summary>
+        /// 고를 수 있는 배속 (gap-2026-08-23 P1-6).
+        ///
+        /// ★ <b>보고 있는 동안만</b>. 폭주와 같은 결이고, 자리를 비운 몫은 실측 초당 값으로
+        ///   계산하므로 배속이 오프라인 보상을 안 부풀림
+        /// </summary>
+        public double[] SpeedSteps { get; set; } = { 1d, 2d, 3d };
+
         /// <summary>던전 하나에 하루 몇 번 들어가나 (economy.md 4). 수치는 판정 대기</summary>
         public long TicketsPerDay { get; set; } = 3L;
 

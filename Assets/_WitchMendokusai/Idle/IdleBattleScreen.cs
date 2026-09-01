@@ -166,6 +166,8 @@ namespace WitchMendokusai
 		private Button damageButton;
 		private Label speedLabel;
 		private Button speedButton;
+		private Button speedCycleButton;
+		private Button autoCastButton;
 		private Button bulkRaiseButton;
 		private readonly List<Button> wornCells = new List<Button>();
 
@@ -752,6 +754,10 @@ namespace WitchMendokusai
 			damageButton = page.Q<Button>("damage-button");
 			damageButton.clicked += () => Raise(IdleUpgradeKind.Damage);
 			speedLabel = page.Q<Label>("speed-label");
+			speedCycleButton = page.Q<Button>("speed-cycle-button");
+			speedCycleButton.clicked += CycleSpeed;
+			autoCastButton = page.Q<Button>("auto-cast-button");
+			autoCastButton.clicked += ToggleAutoCast;
 			speedButton = page.Q<Button>("speed-button");
 			speedButton.clicked += () => Raise(IdleUpgradeKind.AttackSpeed);
 			bulkRaiseButton = page.Q<Button>("bulk-button");
@@ -1210,6 +1216,10 @@ namespace WitchMendokusai
 				queueChips[index].text = NameOf(snapshot.Queued[index]);
 			}
 
+			speedCycleButton.text = string.Format("{0:0}x", snapshot.Speed);
+			speedCycleButton.EnableInClassList("idle-icon-button--on", snapshot.Speed > 1d);
+			autoCastButton.EnableInClassList("idle-icon-button--on", snapshot.AutoCast);
+
 			costLabel.text = string.Format("{0:0}/{1:0}", snapshot.Cost, snapshot.CostMax);
 			costFill.style.width = new StyleLength(new Length(
 				snapshot.CostMax > 0d ? (float)(snapshot.Cost / snapshot.CostMax * 100d) : 0f,
@@ -1347,6 +1357,30 @@ namespace WitchMendokusai
 				heroLevelButtons[index].text = "Lv+ " + BigNumberText.Format(hero.LevelCost);
 				heroLevelButtons[index].SetEnabled(hero.CanRaiseLevel);
 			}
+		}
+
+		/// <summary>배속을 다음 자리로 (gap-2026-08-23 P1-6). 보고 있는 동안만</summary>
+		private void CycleSpeed()
+		{
+			if (session == null)
+			{
+				return;
+			}
+
+			session.CycleSpeed();
+			Render(session.Capture());
+		}
+
+		/// <summary>자동 시전 켜고 끄기 (P1-6)</summary>
+		private void ToggleAutoCast()
+		{
+			if (session == null)
+			{
+				return;
+			}
+
+			session.ToggleAutoCast();
+			Render(session.Capture());
 		}
 
 		/// <summary>인형 레벨 한 칸 (economy.md 표 3). 판정은 코어가 한다</summary>

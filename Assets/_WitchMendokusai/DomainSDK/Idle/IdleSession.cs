@@ -50,7 +50,11 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// </summary>
         public void AdvanceLive(double seconds)
         {
-            IdleModel.StepLive(state, tuning, seconds);
+            // 배속은 보고 있는 동안만 (P1-6). 자리 비운 몫은 실측 초당 값이라 안 부풀려짐
+            IdleModel.StepLive(state, tuning, seconds * SpeedNow);
+
+            // 코스트가 찼으면 자동으로 한 장. 켜져 있을 때만
+            IdleCards.AutoCastOne(state, tuning, out IdleCardResult _);
         }
 
         /// <summary>
@@ -152,6 +156,39 @@ namespace WitchMendokusai.DomainSDK.Idle
         public bool Send(IdleRaiseUpgradeIntent intent)
         {
             return IdleModel.TryRaise(state, tuning, intent.Kind, out UpgradeRaiseFailure _);
+        }
+
+        /// <summary>
+        /// 지금 고른 배속 (gap-2026-08-23 P1-6). 화면이 흐른 시간에 곱하는 값
+        /// </summary>
+        public double SpeedNow
+        {
+            get
+            {
+                double[] steps = tuning.SpeedSteps;
+
+                if (steps == null || steps.Length == 0)
+                {
+                    return 1d;
+                }
+
+                int at = state.SpeedStep;
+                return at >= 0 && at < steps.Length ? steps[at] : steps[0];
+            }
+        }
+
+        /// <summary>배속을 다음 자리로. 끝에서 처음으로</summary>
+        public void CycleSpeed()
+        {
+            double[] steps = tuning.SpeedSteps;
+            int count = steps == null || steps.Length == 0 ? 1 : steps.Length;
+            state.SpeedStep = (state.SpeedStep + 1) % count;
+        }
+
+        /// <summary>자동 시전 켜고 끄기</summary>
+        public void ToggleAutoCast()
+        {
+            state.AutoCast = state.AutoCast == false;
         }
 
         /// <summary>인형 레벨을 한 칸 올린다 (economy.md 표 3). 골드가 모자라면 아무 일도 없다</summary>
@@ -373,7 +410,9 @@ namespace WitchMendokusai.DomainSDK.Idle
                 CaptureHits(),
                 CaptureQueued(),
                 CaptureTickets(),
-                IdleDungeons.SecondsUntilRefill(state, tuning, state.LastSeenUnixSeconds));
+                IdleDungeons.SecondsUntilRefill(state, tuning, state.LastSeenUnixSeconds),
+                SpeedNow,
+                state.AutoCast);
         }
 
         /// <summary>

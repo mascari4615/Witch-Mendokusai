@@ -181,6 +181,8 @@ namespace WitchMendokusai.Tests
 			state.EnsureTicketRoom();
 			state.Tickets[0] = 2L;
 			state.TicketDay = 20123L;
+			state.SpeedStep = 2;
+			state.AutoCast = true;
 
 			state.Bag.Add(new IdleItem(3, IdleItemSlot.Hands));
 			state.Worn[0] = new IdleItem(2, IdleItemSlot.Head);

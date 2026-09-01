@@ -308,6 +308,11 @@
 	border-color: rgb(245, 175, 16);
 }
 
+.idle-icon-button--on {
+	border-color: rgb(245, 175, 16);
+	color: rgb(245, 175, 16);
+}
+
 .idle-hero-row {
 	flex-direction: row;
 	align-items: center;

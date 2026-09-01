@@ -96,6 +96,12 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// <summary>입장권을 마지막으로 채운 날 번호</summary>
         public long TicketDay;
 
+        /// <summary>고른 배속의 자리 (gap-2026-08-23 P1-6)</summary>
+        public int SpeedStep;
+
+        /// <summary>코스트가 차면 알아서 카드를 내나</summary>
+        public bool AutoCast;
+
         /// <summary>보스와 던전에서 주운 환생 조각 (economy.md 표 2)</summary>
 
 

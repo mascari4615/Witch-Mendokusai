@@ -182,6 +182,33 @@ namespace WitchMendokusai.DomainSDK.Idle
 			return true;
 		}
 
+		/// <summary>
+		/// 코스트가 찼으면 낼 수 있는 카드를 <b>앞에서부터</b> 한 장 (gap-2026-08-23 P1-6 AUTO).
+		///
+		/// ★ 한 번에 한 장만. 다 쏟아 내면 자동이 사람보다 늘 잘하게 되어 손패가 장식.
+		///   앞에서부터 고르는 이유는 순환이 곧 순서인 것. 자동도 그 순서를 따라야 예고가 뜻을 가짐
+		/// </summary>
+		public static bool AutoCastOne(IdleState state, IdleTuning tuning, out IdleCardResult result)
+		{
+			result = default;
+
+			if (state.AutoCast == false)
+			{
+				return false;
+			}
+
+			for (int handIndex = 0; handIndex < HAND_SIZE; handIndex++)
+			{
+				if (CanCast(state, tuning, HandAt(state, handIndex))
+					&& TryCastHand(state, tuning, handIndex, out result))
+				{
+					return true;
+				}
+			}
+
+			return false;
+		}
+
 		/// <summary>이 카드를 내는 데 드는 코스트.</summary>
 		public static double CostOf(IdleCardKind kind, IdleTuning tuning)
 		{

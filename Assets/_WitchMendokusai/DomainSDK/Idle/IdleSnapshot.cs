@@ -422,6 +422,12 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// <summary>손패 — 카드마다 값과 「지금 낼 수 있나」.</summary>
         public IdleCardView[] Cards { get; }
 
+        /// <summary>지금 걸린 배속 (gap-2026-08-23 P1-6). 화면이 이 값을 그대로 적는다</summary>
+        public double Speed { get; }
+
+        /// <summary>자동 시전이 켜졌나</summary>
+        public bool AutoCast { get; }
+
         /// <summary>던전마다 남은 입장권 (economy.md 4). 화면이 날짜 계산을 다시 하지 않게</summary>
         public long[] Tickets { get; }
 
@@ -469,8 +475,11 @@ namespace WitchMendokusai.DomainSDK.Idle
             double cost, double costMax, double supplySecondsLeft, IdleCardView[] cards,
             IdleSeatView[] seats, bool repeating, int clearedStage, double enemyDamagePerSecond,
             long hitsOnTarget, IdleFighterView[] fighters, IdleFoeView[] foes, IdleHit[] hits,
-            IdleCardKind[] queued, long[] tickets, double ticketRefillSeconds)
+            IdleCardKind[] queued, long[] tickets, double ticketRefillSeconds,
+            double speed, bool autoCast)
         {
+            Speed = speed;
+            AutoCast = autoCast;
             Queued = queued;
             Tickets = tickets;
             TicketRefillSeconds = ticketRefillSeconds;
