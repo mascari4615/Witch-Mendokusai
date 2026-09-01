@@ -450,7 +450,9 @@
 	color: rgb(200, 200, 192);
 	border-width: 0;
 	border-radius: 0;
-	font-size: 24px;
+	/* 탭 일곱이 720 을 나눠 칸당 102px. 28px 글자로는 3자가 한계라 여기만 낮춘다.
+	   XAG 28px 은 <본문> 기준이고 탭은 이름표 (실측 2026-09-01) */
+	font-size: 20px;
 	white-space: normal;
 	overflow: hidden;
 }
@@ -592,7 +594,7 @@
 }
 
 .idle-worn-cell {
-	width: 150px;
+	width: 128px;
 	height: 110px;
 	margin-right: 10px;
 	background-color: rgb(40, 40, 40);
