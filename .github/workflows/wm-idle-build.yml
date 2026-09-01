@@ -286,6 +286,19 @@ jobs:
             !${{ steps.build.outputs.out_dir }}/unity-build.log
           retention-days: 7
 
+      # 실행 검사가 죽으면 무엇이 죽었는지는 <플레이어 로그>에만 있다. 유니티 빌드 로그가
+      # 아니다 (실측 2026-09-01: 처치 0 의 원인을 로그 없이 세 턴 동안 못 짚었다).
+      - name: Keep the player log (evidence on smoke failure)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: idle-player-log-${{ github.run_attempt }}
+          path: |
+            ${{ env.USERPROFILE }}\AppData\LocalLow\KarmoDDrine\WitchMendokusai\Player.log
+            ${{ env.USERPROFILE }}\AppData\LocalLow\KarmoDDrine\WitchMendokusai\idle.json
+          retention-days: 7
+          if-no-files-found: warn
+
       # 사용자는 채널만 본다 — 실패도 성공도 여기로 온다.
       - name: Tell the channel
         if: always()
