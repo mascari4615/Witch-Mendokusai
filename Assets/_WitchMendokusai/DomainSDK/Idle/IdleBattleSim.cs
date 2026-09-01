@@ -263,9 +263,6 @@ namespace WitchMendokusai.DomainSDK.Idle
         private static void StrikeByDolls(IdleState state, IdleTuning tuning, double delta)
         {
             IdleBattle battle = state.Battle;
-            double damage = IdleModel.DamageOf(state, tuning);
-            double perSecond = IdleModel.AttackSpeedOf(state, tuning);
-            double interval = perSecond > 0d ? 1d / perSecond : double.PositiveInfinity;
 
             for (int seat = 0; seat < IdleSquad.SEAT_COUNT; seat++)
             {
@@ -285,6 +282,11 @@ namespace WitchMendokusai.DomainSDK.Idle
                 {
                     continue;
                 }
+
+                int heroId = state.Party[seat];
+                double damage = IdleModel.DamageOfHero(state, tuning, heroId);
+                double perSecond = IdleModel.AttackSpeedOfHero(state, tuning, heroId);
+                double interval = perSecond > 0d ? 1d / perSecond : double.PositiveInfinity;
 
                 battle.Cooldown[seat] -= delta;
 
@@ -341,8 +343,9 @@ namespace WitchMendokusai.DomainSDK.Idle
                     }
 
                     foe.Cooldown += foe.AttackSeconds;
-                    state.SeatHealth[front] -= foe.Damage;
-                    battle.Hits.Add(new IdleHit(front, foe.Index, foe.Damage, true));
+                    double received = IdleSquad.DamageTakenBySeat(state, tuning, front, foe.Damage);
+                    state.SeatHealth[front] -= received;
+                    battle.Hits.Add(new IdleHit(front, foe.Index, received, true));
 
                     if (state.SeatHealth[front] <= EPSILON)
                     {

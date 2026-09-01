@@ -1,5 +1,4 @@
 using WitchMendokusai.DomainSDK.Contracts;
-using WitchMendokusai.DomainSDK.Upgrade;
 
 namespace WitchMendokusai.DomainSDK.Idle
 {
@@ -164,7 +163,7 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// <summary>의도를 받는다 — 받아들여졌으면 true. 자원이 모자라거나 상한이면 아무 일도 없다.</summary>
         public bool Send(IdleRaiseUpgradeIntent intent)
         {
-            return IdleModel.TryRaise(state, tuning, intent.Kind, out UpgradeRaiseFailure _);
+            return IdleModel.TryRaise(state, tuning, intent.HeroId, intent.Kind, intent.Amount);
         }
 
         /// <summary>
@@ -265,18 +264,6 @@ namespace WitchMendokusai.DomainSDK.Idle
 
             state.Party[intent.Slot] = intent.HeroId;
             return true;
-        }
-
-        /// <summary>살 수 있는 만큼 싼 축부터 올린다 — 몇 번 올렸나.</summary>
-        public int RaiseAsManyAsAfforded()
-        {
-            return IdleModel.RaiseAsManyAsAfforded(state, tuning, tuning.BulkBuyMost);
-        }
-
-        /// <summary>살 수 있는 만큼 싼 것부터 산다 — 몇 개 샀나.</summary>
-        public int BuyAsManyProducersAsAfforded()
-        {
-            return IdleBase.BuyAsManyAsAfforded(state, tuning, tuning.BulkBuyMost);
         }
 
         /// <summary>생산자를 하나 산다. 자원이 모자라면 아무 일도 안 일어난다.</summary>
@@ -408,8 +395,8 @@ namespace WitchMendokusai.DomainSDK.Idle
                 tuning.RareChance,
                 IdleHeroes.CodexScoreOf(state),
                 IdleHeroes.CodexMultiplierOf(state, tuning),
-                ViewOf(IdleUpgradeKind.Damage, IdleModel.DamageOf(state, tuning)),
-                ViewOf(IdleUpgradeKind.AttackSpeed, IdleModel.AttackSpeedOf(state, tuning)),
+                ViewHeroStat(IdleHeroes.STARTER_ID, IdleUpgradeKind.Damage, 1),
+                ViewHeroStat(IdleHeroes.STARTER_ID, IdleUpgradeKind.AttackSpeed, 1),
                 IdleModel.AttackSpeedOf(state, tuning),
                 state.Cost,
                 tuning.CostMax,
@@ -593,10 +580,25 @@ namespace WitchMendokusai.DomainSDK.Idle
                     IdleHeroes.OwnedShareOf(owned, tuning),
                     owned.Level,
                     IdleHeroes.LevelCostOf(owned, tuning),
-                    state.Resource >= IdleHeroes.LevelCostOf(owned, tuning));
+                    state.Resource >= IdleHeroes.LevelCostOf(owned, tuning),
+                    CanRaiseAnyStat(owned.Id));
             }
 
             return made;
+        }
+
+        private bool CanRaiseAnyStat(int heroId)
+        {
+            for (int stat = 0; stat <= (int)IdleUpgradeKind.CriticalDamage; stat++)
+            {
+                if (IdleModel.TryGetCost(state, tuning, heroId, (IdleUpgradeKind)stat, 1, out double cost)
+                    && state.Resource >= cost)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         // ── 사진에 쓰는 판들 ─────────────────────────────────────────────────
@@ -767,19 +769,26 @@ namespace WitchMendokusai.DomainSDK.Idle
             return remaining > 1d ? 1d : remaining;
         }
 
-        private IdleUpgradeView ViewOf(IdleUpgradeKind kind, double currentValue)
+        public IdleUpgradeView ViewHeroStat(int heroId, IdleUpgradeKind kind, int amount)
         {
-            UpgradeLevel level = state.LevelOf(kind);
-            bool hasNext = IdleModel.TryGetNextCost(state, tuning, kind, out double nextCost);
+            int index = state.IndexOfHero(heroId);
+            if (index < 0)
+            {
+                return new IdleUpgradeView(kind, 0, 0d, 0d, true, false, 0d, 0d);
+            }
+
+            IdleHeroOwned owned = state.Heroes[index];
+            int level = owned.StatLevel(kind);
+            bool hasNext = IdleModel.TryGetCost(state, tuning, heroId, kind, amount, out double nextCost);
 
             return new IdleUpgradeView(
                 kind,
-                level.Level,
-                currentValue,
+                level,
+                HeroStatValue(heroId, kind),
                 nextCost,
                 hasNext == false,
                 hasNext && state.Resource >= nextCost,
-                ValueAfterRaising(kind),
+                ValueAfterRaising(heroId, kind, amount),
                 SecondsToAfford(nextCost, hasNext));
         }
 
@@ -789,18 +798,42 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// ★ 공식을 화면이나 여기서 다시 쓰지 않는다. 두 번 쓰면 언젠가 갈리고,
         ///   그러면 <b>버튼이 거짓말</b>을 한다(사면 다른 값이 나온다).
         /// </summary>
-        private double ValueAfterRaising(IdleUpgradeKind kind)
+        private double ValueAfterRaising(int heroId, IdleUpgradeKind kind, int amount)
         {
-            UpgradeLevel level = state.LevelOf(kind);
-            int before = level.Level;
+            int index = state.IndexOfHero(heroId);
+            if (index < 0)
+            {
+                return 0d;
+            }
 
-            level.Level = before + 1;
-            double after = kind == IdleUpgradeKind.Damage
-                ? IdleModel.DamageOf(state, tuning)
-                : IdleModel.AttackSpeedOf(state, tuning);
-            level.Level = before;
+            IdleHeroOwned before = state.Heroes[index];
+            IdleHeroOwned afterOwned = before;
+            afterOwned.SetStatLevel(kind, before.StatLevel(kind) + amount);
+            state.Heroes[index] = afterOwned;
+            double after = HeroStatValue(heroId, kind);
+            state.Heroes[index] = before;
 
             return after;
+        }
+
+        private double HeroStatValue(int heroId, IdleUpgradeKind kind)
+        {
+            switch (kind)
+            {
+                case IdleUpgradeKind.Damage:
+                    return IdleModel.DamageOfHero(state, tuning, heroId);
+                case IdleUpgradeKind.AttackSpeed:
+                    return IdleModel.AttackSpeedOfHero(state, tuning, heroId);
+                case IdleUpgradeKind.MaxHealth:
+                    return IdleSquad.MaxHealthOfHero(state, tuning, heroId);
+                case IdleUpgradeKind.Defense:
+                    double defense = IdleHeroes.DefenseOf(state, tuning, heroId);
+                    return 1d - 1d / (1d + defense);
+                case IdleUpgradeKind.CriticalChance:
+                    return IdleHeroes.CriticalChanceOf(state, tuning, heroId);
+                default:
+                    return IdleHeroes.CriticalDamageOf(state, tuning, heroId);
+            }
         }
 
         /// <summary>

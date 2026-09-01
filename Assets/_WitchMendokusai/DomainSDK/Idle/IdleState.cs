@@ -536,7 +536,15 @@ namespace WitchMendokusai.DomainSDK.Idle
                 {
                     if (IdleHeroes.Knows(saveData.Heroes[index].Id))
                     {
-                        Heroes.Add(saveData.Heroes[index]);
+                        IdleHeroOwned owned = saveData.Heroes[index];
+                        owned.Level = NotBelowZero(owned.Level);
+                        owned.DamageLevel = NotBelowZero(owned.DamageLevel);
+                        owned.AttackSpeedLevel = NotBelowZero(owned.AttackSpeedLevel);
+                        owned.MaxHealthLevel = NotBelowZero(owned.MaxHealthLevel);
+                        owned.DefenseLevel = NotBelowZero(owned.DefenseLevel);
+                        owned.CriticalChanceLevel = NotBelowZero(owned.CriticalChanceLevel);
+                        owned.CriticalDamageLevel = NotBelowZero(owned.CriticalDamageLevel);
+                        Heroes.Add(owned);
                     }
                 }
             }
@@ -586,8 +594,8 @@ namespace WitchMendokusai.DomainSDK.Idle
             }
             // 레벨·처치 수도 음수가 될 수 없는 값이다. 음수 레벨은 값을 거꾸로 만들고
             // 값을 거꾸로 만들면 <b>올릴수록 약해지는</b> 판이 된다 — 안 터지고 조용히 틀린다.
-            Damage.Level = NotBelowZero(saveData.DamageLevel);
-            AttackSpeed.Level = NotBelowZero(saveData.AttackSpeedLevel);
+            Damage.Level = 0;
+            AttackSpeed.Level = 0;
             LastSeenUnixSeconds = saveData.LastSeenUnixSeconds;
             // 코스트·보급도 저장에서 온 수다 — NaN·음수는 0. 넘친 코스트는 다음 스텝이 상한으로 누른다.
             Cost = Sane(saveData.Cost);
@@ -621,6 +629,16 @@ namespace WitchMendokusai.DomainSDK.Idle
 
             // 자리 0 시절 저장은 인형 0명 가능. 시작 인형 지급
             IdleHeroes.EnsureStarter(this);
+
+            // 옛 판의 공용 공격력과 공격속도는 시작 인형에게 한 번 이관
+            int starter = IndexOfHero(IdleHeroes.STARTER_ID);
+            if (starter >= 0 && (saveData.DamageLevel > 0 || saveData.AttackSpeedLevel > 0))
+            {
+                IdleHeroOwned owned = Heroes[starter];
+                owned.DamageLevel += NotBelowZero(saveData.DamageLevel);
+                owned.AttackSpeedLevel += NotBelowZero(saveData.AttackSpeedLevel);
+                Heroes[starter] = owned;
+            }
         }
     }
 }

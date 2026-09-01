@@ -179,7 +179,7 @@ namespace WitchMendokusai.Tests
 			Assert.Greater(before, 0d, "안 때리는 걸로 보인다");
 
 			state.Resource = 1e12d;
-			session.Send(new IdleRaiseUpgradeIntent(IdleUpgradeKind.AttackSpeed));
+			session.Send(new IdleRaiseUpgradeIntent(IdleHeroes.STARTER_ID, IdleUpgradeKind.AttackSpeed, 1));
 
 			Assert.Greater(session.Capture().AttacksPerSecond, before, "속도를 올렸는데 장단이 그대로다");
 		}
@@ -213,66 +213,6 @@ namespace WitchMendokusai.Tests
 		}
 
 		/// <summary>
-		/// ★ 몰아 사기가 <b>하나씩 사기와 같은 결과</b>를 낸다 (TASK-WM-406).
-		///
-		/// 다르면 그건 편의가 아니라 <b>다른 게임</b>이다. 손가락 일만 덜어내야 한다.
-		/// </summary>
-		[Test]
-		public void BuyingInBulk_MatchesBuyingOneByOne()
-		{
-			IdleTuning tuning = new IdleTuning();
-
-			IdleState oneByOne = new IdleState();
-			oneByOne.EnsureProducerRoom(tuning.ProducerCount);
-			oneByOne.Resource = 5000d;
-
-			IdleState bulk = new IdleState();
-			bulk.EnsureProducerRoom(tuning.ProducerCount);
-			bulk.Resource = 5000d;
-
-			// 사람이 하는 짓 — 싼 것부터 하나씩.
-			IdlePlay.BuyProducers(oneByOne, tuning);
-
-			IdleBase.BuyAsManyAsAfforded(bulk, tuning, tuning.BulkBuyMost);
-
-			Assert.AreEqual(oneByOne.Resource, bulk.Resource, 1e-6d, "쓴 자원이 다르다");
-
-			for (int kind = 0; kind < tuning.ProducerCount; kind++)
-			{
-				Assert.AreEqual(oneByOne.Owned[kind], bulk.Owned[kind],
-					kind + "번 생산자 수가 다르다");
-			}
-		}
-
-		/// <summary>★ 상한을 넘지 않는다 — 한 번 누르는 데 몇 초가 걸리면 그건 멈춘 것이다.</summary>
-		[Test]
-		public void BulkBuying_StopsAtTheCap()
-		{
-			IdleTuning tuning = new IdleTuning();
-			tuning.BulkBuyMost = 5;
-
-			IdleState state = new IdleState();
-			state.EnsureProducerRoom(tuning.ProducerCount);
-			state.Resource = 1e12d;
-
-			int bought = IdleBase.BuyAsManyAsAfforded(state, tuning, tuning.BulkBuyMost);
-
-			Assert.AreEqual(5, bought, "상한을 안 지켰다");
-		}
-
-		/// <summary>★ 살 게 없으면 아무 일도 안 한다 — 0 을 돌려줘야 화면이 「샀다」고 안 말한다.</summary>
-		[Test]
-		public void BulkBuying_WithNoMoney_DoesNothing()
-		{
-			IdleTuning tuning = new IdleTuning();
-			IdleState state = new IdleState();
-			state.EnsureProducerRoom(tuning.ProducerCount);
-			state.Resource = 0d;
-
-			Assert.AreEqual(0, IdleBase.BuyAsManyAsAfforded(state, tuning, tuning.BulkBuyMost));
-		}
-
-		/// <summary>
 		/// ★ 「살 게 있다」고 말하면 <b>실제로 하나는 사진다</b> — 버튼이 거짓말하지 않는다.
 		///
 		/// 화면은 이 답으로 버튼을 켠다. 두 벌로 두면 버튼은 켜져 있고 눌러도
@@ -293,9 +233,10 @@ namespace WitchMendokusai.Tests
 				state.Resource = purse;
 
 				bool said = IdleBase.CheapestAffordable(state, tuning) >= 0;
-				int bought = IdleBase.BuyAsManyAsAfforded(state, tuning, 1);
+				int cheapest = IdleBase.CheapestAffordable(state, tuning);
+				bool bought = cheapest >= 0 && IdleBase.TryBuy(state, tuning, cheapest);
 
-				Assert.AreEqual(said, bought > 0, "자원 " + purse + " — 말과 실제가 다르다");
+				Assert.AreEqual(said, bought, "자원 " + purse + ", 말과 실제가 다르다");
 			}
 		}
 
@@ -309,13 +250,16 @@ namespace WitchMendokusai.Tests
 			foreach (double purse in purses)
 			{
 				IdleState state = new IdleState();
+				IdleHeroes.EnsureStarter(state);
 				state.EnsureProducerRoom(tuning.ProducerCount);
 				state.Resource = purse;
 
-				bool said = IdleModel.CheapestRaisableAxis(state, tuning, out IdleUpgradeKind _);
-				int raised = IdleModel.RaiseAsManyAsAfforded(state, tuning, 1);
+				bool said = IdleModel.TryGetCost(state, tuning, IdleHeroes.STARTER_ID,
+					IdleUpgradeKind.Damage, 1, out double cost) && state.Resource >= cost;
+				bool raised = IdleModel.TryRaise(state, tuning, IdleHeroes.STARTER_ID,
+					IdleUpgradeKind.Damage, 1);
 
-				Assert.AreEqual(said, raised > 0, "자원 " + purse + " — 말과 실제가 다르다");
+				Assert.AreEqual(said, raised, "자원 " + purse + ", 말과 실제가 다르다");
 			}
 		}
 

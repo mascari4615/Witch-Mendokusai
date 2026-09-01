@@ -164,7 +164,7 @@ namespace WitchMendokusai
 		/// <summary>버튼이 하는 일은 이것뿐 — 의도를 보낸다. 받아들일지는 코어가 정한다.</summary>
 		private void Send(IdleUpgradeKind kind)
 		{
-			session.Send(new IdleRaiseUpgradeIntent(kind));
+			session.Send(new IdleRaiseUpgradeIntent(IdleHeroes.STARTER_ID, kind, 1));
 			Render(session.Capture());
 		}
 

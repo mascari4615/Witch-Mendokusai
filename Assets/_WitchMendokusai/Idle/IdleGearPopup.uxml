@@ -7,6 +7,6 @@
             <ui:Button name="gear-close" text="X" class="idle-tab idle-tab--close" />
         </ui:VisualElement>
         <ui:Label name="gear-worn" class="idle-row-note" />
-        <ui:VisualElement name="gear-rows" />
+        <ui:VisualElement name="gear-rows" class="idle-choice-grid" />
     </ui:VisualElement>
 </ui:UXML>

@@ -334,6 +334,39 @@
 	opacity: 0.4;
 }
 
+.idle-stat-rows {
+	margin-bottom: 10px;
+}
+
+.idle-stat-row {
+	flex-direction: row;
+	align-items: center;
+	min-height: 52px;
+	margin-bottom: 5px;
+}
+
+.idle-stat-label {
+	flex-grow: 1;
+	font-size: 22px;
+	color: rgb(224, 224, 224);
+}
+
+.idle-stat-buy {
+	width: 92px;
+	min-height: 48px;
+	margin-left: 6px;
+	font-size: 18px;
+	background-color: rgb(28, 28, 28);
+	color: rgb(255, 255, 255);
+	border-width: 1px;
+	border-color: rgb(120, 120, 120);
+	border-radius: 0;
+}
+
+.idle-stat-buy:disabled {
+	opacity: 0.38;
+}
+
 .idle-queue {
 	flex-direction: row;
 	align-items: center;
@@ -848,6 +881,46 @@
 	max-height: 640px;
 	padding: 12px 18px;
 	background-color: rgba(26, 26, 26, 0.98);
+}
+
+.idle-choice-popup {
+	position: absolute;
+	left: 24px;
+	right: 24px;
+	top: 120px;
+	max-height: 700px;
+	padding: 12px 18px;
+	background-color: rgba(26, 26, 26, 0.98);
+}
+
+.idle-choice-grid {
+	flex-direction: row;
+	flex-wrap: wrap;
+	align-content: flex-start;
+}
+
+.idle-choice-card {
+	width: 31%;
+	min-height: 96px;
+	margin: 6px 1%;
+	padding: 10px;
+	font-size: 20px;
+	white-space: normal;
+	-unity-text-align: middle-center;
+	background-color: rgb(32, 32, 32);
+	color: rgb(238, 238, 238);
+	border-width: 1px;
+	border-color: rgb(84, 84, 84);
+	border-radius: 0;
+}
+
+.idle-choice-card:hover,
+.idle-choice-card--selected {
+	border-color: rgb(245, 175, 16);
+}
+
+.idle-gear-card {
+	min-height: 76px;
 }
 
 .idle-gear-row {

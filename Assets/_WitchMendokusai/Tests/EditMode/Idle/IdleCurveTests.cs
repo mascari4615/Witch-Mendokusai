@@ -60,13 +60,16 @@ namespace WitchMendokusai.Tests
 		{
 			IdleTuning tuning = DefaultTuning();
 			IdleState state = new IdleState();
+			IdleHeroes.EnsureStarter(state);
 
-			Assert.IsTrue(IdleModel.TryGetNextCost(state, tuning, IdleUpgradeKind.Damage, out double cost));
+			Assert.IsTrue(IdleModel.TryGetCost(state, tuning, IdleHeroes.STARTER_ID,
+				IdleUpgradeKind.Damage, 1, out double cost));
 
 			state.Resource = cost;
-			Assert.IsTrue(IdleModel.TryRaise(state, tuning, IdleUpgradeKind.Damage, out UpgradeRaiseFailure failure), failure.ToString());
+			Assert.IsTrue(IdleModel.TryRaise(state, tuning, IdleHeroes.STARTER_ID,
+				IdleUpgradeKind.Damage, 1));
 			Assert.AreEqual(0d, state.Resource, TOLERANCE, "값을 더 쓰거나 덜 썼다");
-			Assert.AreEqual(1, state.Damage.Level);
+			Assert.AreEqual(1, state.Heroes[0].DamageLevel);
 		}
 
 		/// <summary>④ 자원이 모자라면 레벨도 자원도 그대로다.</summary>
@@ -75,11 +78,12 @@ namespace WitchMendokusai.Tests
 		{
 			IdleTuning tuning = DefaultTuning();
 			IdleState state = new IdleState();
+			IdleHeroes.EnsureStarter(state);
 			state.Resource = 0d;
 
-			Assert.IsFalse(IdleModel.TryRaise(state, tuning, IdleUpgradeKind.Damage, out UpgradeRaiseFailure failure));
-			Assert.AreEqual(UpgradeRaiseFailure.NotEnoughFunds, failure);
-			Assert.AreEqual(0, state.Damage.Level);
+			Assert.IsFalse(IdleModel.TryRaise(state, tuning, IdleHeroes.STARTER_ID,
+				IdleUpgradeKind.Damage, 1));
+			Assert.AreEqual(0, state.Heroes[0].DamageLevel);
 			Assert.AreEqual(0d, state.Resource, TOLERANCE);
 		}
 
@@ -134,8 +138,8 @@ namespace WitchMendokusai.Tests
 			return string.Format(
 				"[IdleCurve] {0,6} | {1,4} | {2,6} | {3,12:N0} | {4,10:N2} | {5,12:N0}",
 				Elapsed(atSeconds),
-				state.Damage.Level,
-				state.AttackSpeed.Level,
+				state.Heroes[0].DamageLevel,
+				state.Heroes[0].AttackSpeedLevel,
 				state.Resource,
 				IdleModel.IncomePerSecond(state, tuning),
 				state.Kills);
@@ -152,61 +156,49 @@ namespace WitchMendokusai.Tests
 		}
 
 		/// <summary>
-		/// ★ 몰아 올리기가 <b>하나씩 올린 것과 같은 결과</b>를 낸다 (TASK-WM-406).
-		///
-		/// 다르면 편의가 아니라 다른 게임이다. 그리고 상한을 지켜야 한다 —
-		/// 한 번 누르는 데 몇 초가 걸리면 그건 편해진 게 아니라 멈춘 것이다.
+		/// ×10과 ×100은 같은 영웅, 같은 수치를 그 횟수만큼 누른 것과 같은 비용
 		/// </summary>
-		[Test]
-		public void RaisingInBulk_MatchesOneByOne()
+		[TestCase(10)]
+		[TestCase(100)]
+		public void RaisingMany_MatchesSingles(int amount)
 		{
 			IdleTuning tuning = new IdleTuning();
+			const double purse = 1e12d;
 
 			IdleState oneByOne = new IdleState();
-			oneByOne.Resource = 20000d;
+			IdleHeroes.EnsureStarter(oneByOne);
+			oneByOne.Resource = purse;
 
-			IdleState bulk = new IdleState();
-			bulk.Resource = 20000d;
+			IdleState manyAtOnce = new IdleState();
+			IdleHeroes.EnsureStarter(manyAtOnce);
+			manyAtOnce.Resource = purse;
 
-			// 하나씩 — 싼 축부터, 더 못 올릴 때까지.
-			while (true)
+			for (int step = 0; step < amount; step++)
 			{
-				bool hasDamage = IdleModel.TryGetNextCost(oneByOne, tuning, IdleUpgradeKind.Damage, out double damageCost);
-				bool hasSpeed = IdleModel.TryGetNextCost(oneByOne, tuning, IdleUpgradeKind.AttackSpeed, out double speedCost);
-
-				bool canDamage = hasDamage && damageCost <= oneByOne.Resource;
-				bool canSpeed = hasSpeed && speedCost <= oneByOne.Resource;
-
-				if (canDamage == false && canSpeed == false)
-				{
-					break;
-				}
-
-				IdleUpgradeKind pick = canDamage && (canSpeed == false || damageCost <= speedCost)
-					? IdleUpgradeKind.Damage
-					: IdleUpgradeKind.AttackSpeed;
-
-				IdleModel.TryRaise(oneByOne, tuning, pick, out UpgradeRaiseFailure _);
+				Assert.IsTrue(IdleModel.TryRaise(oneByOne, tuning, IdleHeroes.STARTER_ID,
+					IdleUpgradeKind.Damage, 1));
 			}
 
-			IdleModel.RaiseAsManyAsAfforded(bulk, tuning, int.MaxValue);
+			Assert.IsTrue(IdleModel.TryRaise(manyAtOnce, tuning, IdleHeroes.STARTER_ID,
+				IdleUpgradeKind.Damage, amount));
 
-			Assert.AreEqual(oneByOne.Damage.Level, bulk.Damage.Level, "공격력 레벨이 다르다");
-			Assert.AreEqual(oneByOne.AttackSpeed.Level, bulk.AttackSpeed.Level, "속도 레벨이 다르다");
-			Assert.AreEqual(oneByOne.Resource, bulk.Resource, 1e-6d, "쓴 자원이 다르다");
+			Assert.AreEqual(oneByOne.Heroes[0].DamageLevel, manyAtOnce.Heroes[0].DamageLevel);
+			Assert.AreEqual(oneByOne.Resource, manyAtOnce.Resource, 0.01d,
+				"쓴 자원이 부동소수점 한 칸보다 크게 다르다");
 		}
 
-		/// <summary>★ 몰아 올리기도 상한을 지킨다.</summary>
+		/// <summary>UI 계약 밖의 임의 묶음은 받지 않음</summary>
 		[Test]
-		public void RaisingInBulk_StopsAtTheCap()
+		public void Raising_RejectsUnlistedAmount()
 		{
 			IdleTuning tuning = new IdleTuning();
 			IdleState state = new IdleState();
+			IdleHeroes.EnsureStarter(state);
 			state.Resource = 1e12d;
 
-			int raised = IdleModel.RaiseAsManyAsAfforded(state, tuning, 4);
-
-			Assert.AreEqual(4, raised, "상한을 안 지켰다");
+			Assert.IsFalse(IdleModel.TryRaise(state, tuning, IdleHeroes.STARTER_ID,
+				IdleUpgradeKind.Damage, 4));
+			Assert.AreEqual(0, state.Heroes[0].DamageLevel);
 		}
 	}
 }

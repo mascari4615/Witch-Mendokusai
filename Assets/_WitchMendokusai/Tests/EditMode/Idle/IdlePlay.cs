@@ -48,20 +48,43 @@ namespace WitchMendokusai.Tests
 			//   따로 쓰고 있었고, 그래서 <b>아직 화면에 안 보이는 생산자까지</b> 샀다
 			//   (게임은 앞 단계를 안 사면 다음 줄을 안 보여 준다 — IdleBase.IsHidden).
 			//   사람이 못 하는 짓을 시뮬이 하면, 그 시뮬로 뽑은 곡선 표는 <b>아무도 안 노는 판</b>의 것이다.
-			//   이제 게임의 몰아 사기와 <b>같은 한 걸음</b>을 부른다.
-			IdleBase.BuyAsManyAsAfforded(state, tuning, int.MaxValue);
+			//   제품과 같은 개별 구매 반복. 일괄 구매 경로 없음
+			while (true)
+			{
+				int cheapest = IdleBase.CheapestAffordable(state, tuning);
+				if (cheapest < 0 || IdleBase.TryBuy(state, tuning, cheapest) == false)
+				{
+					return;
+				}
+			}
 		}
 
 		/// <summary>
-		/// 용병 — 살 수 있으면 싼 축부터.
-		///
-		/// ★ 규칙은 <b>코어에 있다</b>(<see cref="IdleModel.RaiseAsManyAsAfforded"/>).
-		///   전에는 이 규칙이 시험에만 있고 게임에는 없었다 — 그러면 사람은 시험보다 못한 판을 논다.
-		///   게임에 올린 뒤로는 여기서 그걸 부른다. 두 벌로 두면 언젠가 갈린다.
+		/// 곡선 시뮬 전용. 실제 화면에는 전체 강화가 없음
 		/// </summary>
 		public static void BuyUpgrades(IdleState state, IdleTuning tuning)
 		{
-			IdleModel.RaiseAsManyAsAfforded(state, tuning, int.MaxValue);
+			IdleHeroes.EnsureStarter(state);
+
+			while (true)
+			{
+				bool hasDamage = IdleModel.TryGetCost(state, tuning, IdleHeroes.STARTER_ID,
+					IdleUpgradeKind.Damage, 1, out double damageCost);
+				bool hasSpeed = IdleModel.TryGetCost(state, tuning, IdleHeroes.STARTER_ID,
+					IdleUpgradeKind.AttackSpeed, 1, out double speedCost);
+				bool canDamage = hasDamage && state.Resource >= damageCost;
+				bool canSpeed = hasSpeed && state.Resource >= speedCost;
+
+				if (canDamage == false && canSpeed == false)
+				{
+					return;
+				}
+
+				IdleUpgradeKind kind = canDamage && (canSpeed == false || damageCost <= speedCost)
+					? IdleUpgradeKind.Damage
+					: IdleUpgradeKind.AttackSpeed;
+				IdleModel.TryRaise(state, tuning, IdleHeroes.STARTER_ID, kind, 1);
+			}
 		}
 
 		/// <summary>

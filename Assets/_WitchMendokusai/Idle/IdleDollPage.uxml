@@ -13,12 +13,15 @@
         <ui:Button name="seat-5" class="idle-party-seat idle-party-seat--sub" />
     </ui:VisualElement>
     <ui:Label name="doll-name" class="idle-row-head" />
-    <ui:Label text="강화" class="idle-cap" />
-    <ui:Label name="damage-label" class="idle-row-title" />
-    <ui:Button name="damage-button" class="idle-row-button" />
-    <ui:Label name="speed-label" class="idle-row-title" />
-    <ui:Button name="speed-button" class="idle-row-button" />
-    <ui:Button name="bulk-button" class="idle-row-button idle-row-button--strong" />
+    <ui:Label text="개별 성장" class="idle-cap" />
+    <ui:VisualElement name="stat-rows" class="idle-stat-rows">
+        <ui:VisualElement class="idle-stat-row"><ui:Label name="stat-label-0" class="idle-stat-label" /><ui:Button name="stat-0-x1" text="×1" class="idle-stat-buy" /><ui:Button name="stat-0-x10" text="×10" class="idle-stat-buy" /><ui:Button name="stat-0-x100" text="×100" class="idle-stat-buy" /></ui:VisualElement>
+        <ui:VisualElement class="idle-stat-row"><ui:Label name="stat-label-1" class="idle-stat-label" /><ui:Button name="stat-1-x1" text="×1" class="idle-stat-buy" /><ui:Button name="stat-1-x10" text="×10" class="idle-stat-buy" /><ui:Button name="stat-1-x100" text="×100" class="idle-stat-buy" /></ui:VisualElement>
+        <ui:VisualElement class="idle-stat-row"><ui:Label name="stat-label-2" class="idle-stat-label" /><ui:Button name="stat-2-x1" text="×1" class="idle-stat-buy" /><ui:Button name="stat-2-x10" text="×10" class="idle-stat-buy" /><ui:Button name="stat-2-x100" text="×100" class="idle-stat-buy" /></ui:VisualElement>
+        <ui:VisualElement class="idle-stat-row"><ui:Label name="stat-label-3" class="idle-stat-label" /><ui:Button name="stat-3-x1" text="×1" class="idle-stat-buy" /><ui:Button name="stat-3-x10" text="×10" class="idle-stat-buy" /><ui:Button name="stat-3-x100" text="×100" class="idle-stat-buy" /></ui:VisualElement>
+        <ui:VisualElement class="idle-stat-row"><ui:Label name="stat-label-4" class="idle-stat-label" /><ui:Button name="stat-4-x1" text="×1" class="idle-stat-buy" /><ui:Button name="stat-4-x10" text="×10" class="idle-stat-buy" /><ui:Button name="stat-4-x100" text="×100" class="idle-stat-buy" /></ui:VisualElement>
+        <ui:VisualElement class="idle-stat-row"><ui:Label name="stat-label-5" class="idle-stat-label" /><ui:Button name="stat-5-x1" text="×1" class="idle-stat-buy" /><ui:Button name="stat-5-x10" text="×10" class="idle-stat-buy" /><ui:Button name="stat-5-x100" text="×100" class="idle-stat-buy" /></ui:VisualElement>
+    </ui:VisualElement>
     <ui:Label text="장비" class="idle-cap" />
     <ui:VisualElement name="worn" class="idle-worn">
         <ui:Button name="worn-0" class="idle-worn-cell" />
@@ -26,7 +29,6 @@
         <ui:Button name="worn-2" class="idle-worn-cell" />
         <ui:Button name="worn-3" class="idle-worn-cell" />
     </ui:VisualElement>
-    <ui:Label text="가진 인형" class="idle-cap" />
-    <ui:VisualElement name="hero-rows" />
+    <ui:Button name="open-hero-popup" text="인형 선택" class="idle-row-button" />
     </ui:VisualElement>
 </ui:UXML>

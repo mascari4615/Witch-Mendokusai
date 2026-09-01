@@ -100,12 +100,56 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// </summary>
         public int Level;
 
+        public int DamageLevel;
+
+        public int AttackSpeedLevel;
+
+        public int MaxHealthLevel;
+
+        public int DefenseLevel;
+
+        public int CriticalChanceLevel;
+
+        public int CriticalDamageLevel;
+
         public IdleHeroOwned(int id)
         {
             Id = id;
             Stars = 0;
             Copies = 0;
             Level = 0;
+            DamageLevel = 0;
+            AttackSpeedLevel = 0;
+            MaxHealthLevel = 0;
+            DefenseLevel = 0;
+            CriticalChanceLevel = 0;
+            CriticalDamageLevel = 0;
+        }
+
+        public int StatLevel(IdleUpgradeKind kind)
+        {
+            switch (kind)
+            {
+                case IdleUpgradeKind.Damage: return DamageLevel;
+                case IdleUpgradeKind.AttackSpeed: return AttackSpeedLevel;
+                case IdleUpgradeKind.MaxHealth: return MaxHealthLevel;
+                case IdleUpgradeKind.Defense: return DefenseLevel;
+                case IdleUpgradeKind.CriticalChance: return CriticalChanceLevel;
+                default: return CriticalDamageLevel;
+            }
+        }
+
+        public void SetStatLevel(IdleUpgradeKind kind, int level)
+        {
+            switch (kind)
+            {
+                case IdleUpgradeKind.Damage: DamageLevel = level; break;
+                case IdleUpgradeKind.AttackSpeed: AttackSpeedLevel = level; break;
+                case IdleUpgradeKind.MaxHealth: MaxHealthLevel = level; break;
+                case IdleUpgradeKind.Defense: DefenseLevel = level; break;
+                case IdleUpgradeKind.CriticalChance: CriticalChanceLevel = level; break;
+                default: CriticalDamageLevel = level; break;
+            }
         }
     }
 }

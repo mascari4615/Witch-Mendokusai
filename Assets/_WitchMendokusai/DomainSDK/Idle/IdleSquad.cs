@@ -50,12 +50,18 @@ namespace WitchMendokusai.DomainSDK.Idle
 				return 0d;
 			}
 
+			int id = state.Party[seat];
+			return MaxHealthOfHero(state, tuning, id);
+		}
+
+		public static double MaxHealthOfHero(IdleState state, IdleTuning tuning, int heroId)
+		{
 			double health = tuning.SeatBaseHealth
 				* IdleGear.BaseMultiplier(state, tuning)
-				* IdleModel.PrestigeMultiplier(state, tuning);
+				* IdleModel.PrestigeMultiplier(state, tuning)
+				* (1d + IdleHeroes.StatValueOf(state, tuning, heroId, IdleUpgradeKind.MaxHealth));
 
-			int id = state.Party[seat];
-			int index = state.IndexOfHero(id);
+			int index = state.IndexOfHero(heroId);
 
 			if (index < 0)
 			{
@@ -63,12 +69,24 @@ namespace WitchMendokusai.DomainSDK.Idle
 			}
 
 			IdleHeroOwned owned = state.Heroes[index];
-			IdleHeroKind kind = IdleHeroes.KindOf(id);
+			IdleHeroKind kind = IdleHeroes.KindOf(heroId);
 
 			// 등급 무게 × ★ 계단 — 도감 쪽 규칙과 같은 꼴이라 새로 배울 것이 없다.
 			double grade = 1d + (int)kind.Grade * tuning.HeroGradeHealthStep;
 			double stars = 1d + owned.Stars * tuning.HeroStarStep;
 			return health * grade * stars;
+		}
+
+		public static double DamageTakenBySeat(IdleState state, IdleTuning tuning, int seat, double rawDamage)
+		{
+			if (SeatTaken(state, seat) == false)
+			{
+				return rawDamage;
+			}
+
+			int heroId = state.Party[seat];
+			double defense = IdleHeroes.DefenseOf(state, tuning, heroId);
+			return rawDamage / (1d + defense);
 		}
 
 		/// <summary>
@@ -180,7 +198,8 @@ namespace WitchMendokusai.DomainSDK.Idle
 			int front = FrontSeat(state);
 			if (front >= 0)
 			{
-				double perSecond = EnemyDamagePerSecond(state, tuning);
+					double perSecond = DamageTakenBySeat(state, tuning, front,
+						EnemyDamagePerSecond(state, tuning));
 				if (perSecond > 0d)
 				{
 					soonest = state.SeatHealth[front] / perSecond;
@@ -234,7 +253,8 @@ namespace WitchMendokusai.DomainSDK.Idle
 			}
 
 			// ① 맞는다 — 맨 앞이 받는다.
-			double damage = EnemyDamagePerSecond(state, tuning) * seconds;
+			double damage = DamageTakenBySeat(state, tuning, front,
+				EnemyDamagePerSecond(state, tuning) * seconds);
 			if (damage > 0d)
 			{
 				state.SeatHealth[front] -= damage;

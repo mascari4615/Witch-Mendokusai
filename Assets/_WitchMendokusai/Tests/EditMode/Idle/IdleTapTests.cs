@@ -1,6 +1,5 @@
 using NUnit.Framework;
 using WitchMendokusai.DomainSDK.Idle;
-using WitchMendokusai.DomainSDK.Upgrade;
 
 namespace WitchMendokusai.Tests
 {
@@ -46,11 +45,13 @@ namespace WitchMendokusai.Tests
 
 			IdleState weak = new IdleState();
 			IdleState strong = new IdleState();
+			IdleHeroes.EnsureStarter(strong);
 			strong.Resource = 1e9d;
 
 			for (int level = 0; level < 12; level++)
 			{
-				IdleModel.TryRaise(strong, tuning, IdleUpgradeKind.AttackSpeed, out UpgradeRaiseFailure _);
+				IdleModel.TryRaise(strong, tuning, IdleHeroes.STARTER_ID,
+					IdleUpgradeKind.AttackSpeed, 1);
 			}
 
 			Assert.Greater(IdleModel.AttackSpeedOf(strong, tuning), IdleModel.AttackSpeedOf(weak, tuning),

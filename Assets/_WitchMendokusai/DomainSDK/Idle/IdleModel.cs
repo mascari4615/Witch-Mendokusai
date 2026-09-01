@@ -65,18 +65,42 @@ namespace WitchMendokusai.DomainSDK.Idle
             return 1d + state.BestPotentialValue;
         }
 
-        /// <summary>지금 한 방의 공격력 — 쌓은 총량 × 리셋 배수 × 잠재 배수.</summary>
-        public static double DamageOf(IdleState state, IdleTuning tuning)
+        private static double DamageRoot(IdleState state, IdleTuning tuning)
         {
-            return (tuning.BaseDamage + state.Damage.TotalValue(tuning.DamageCurve))
+            return tuning.BaseDamage
                 * PrestigeMultiplier(state, tuning)
                 * PotentialMultiplier(state)
                 * IdleGear.DamageMultiplier(state, tuning)
-                // 뽑은 영웅이 <b>실제로</b> 판을 민다 — 안 물리면 뽑기는 도감 놀이다.
                 * IdleHeroes.AxisMultiplierOf(state, tuning, IdleHeroAxis.Damage)
-                // 도감은 <b>여기서 한 번</b>. 싸움 쪽의 뿌리가 여기다 — 속도·떨구기는
-                // 이 값에서 흘러오므로 따로 곱하면 그게 곧 숨은 제곱이 된다.
                 * IdleHeroes.CodexMultiplierOf(state, tuning);
+        }
+
+        /// <summary>영웅 한 명의 한 방. 공격력과 치명타 기대값이 그 영웅의 성장에서 나옴</summary>
+        public static double DamageOfHero(IdleState state, IdleTuning tuning, int heroId)
+        {
+            double stat = IdleHeroes.StatValueOf(state, tuning, heroId, IdleUpgradeKind.Damage);
+            return (DamageRoot(state, tuning) + stat)
+                * IdleHeroes.ExpectedCriticalMultiplierOf(state, tuning, heroId);
+        }
+
+        /// <summary>부대 평균 한 방. 오프라인과 요약 화면용</summary>
+        public static double DamageOf(IdleState state, IdleTuning tuning)
+        {
+            double total = 0d;
+            int count = 0;
+
+            for (int seat = 0; seat < state.Party.Length && seat < IdleHeroes.MAIN_SLOTS; seat++)
+            {
+                if (state.Party[seat] < 0)
+                {
+                    continue;
+                }
+
+                total += DamageOfHero(state, tuning, state.Party[seat]);
+                count++;
+            }
+
+            return count > 0 ? total / count : DamageOfHero(state, tuning, IdleHeroes.STARTER_ID);
         }
 
         /// <summary>
@@ -219,17 +243,37 @@ namespace WitchMendokusai.DomainSDK.Idle
             return true;
         }
 
-        /// <summary>지금 초당 타격 횟수 — 기본값 + 공격속도 축이 쌓은 총량.</summary>
-        public static double AttackSpeedOf(IdleState state, IdleTuning tuning)
+        /// <summary>영웅 한 명의 초당 타격 횟수</summary>
+        public static double AttackSpeedOfHero(IdleState state, IdleTuning tuning, int heroId)
         {
-            return (tuning.BaseAttackSpeed + state.AttackSpeed.TotalValue(tuning.AttackSpeedCurve))
+            return (tuning.BaseAttackSpeed
+                + IdleHeroes.StatValueOf(state, tuning, heroId, IdleUpgradeKind.AttackSpeed))
                 * IdleGear.SpeedMultiplier(state, tuning)
                 * IdleHeroes.AxisMultiplierOf(state, tuning, IdleHeroAxis.Speed)
-                // 폭주는 <b>속도</b>에 건다 — 판이 통째로 빨라지는 게 눈에 가장 잘 보인다.
-                * IdleSurge.Multiplier(state, tuning)
-                // ★ 쓰러진 자리는 <b>안 때린다</b> (V2 부대층). 전원 서 있으면 1 이라
-                //   이 층을 얹기 전의 곡선·시험이 그대로 산다.
-                * IdleSquad.FightingShare(state);
+                * IdleSurge.Multiplier(state, tuning);
+        }
+
+        /// <summary>부대 평균 초당 타격 횟수. 오프라인과 요약 화면용</summary>
+        public static double AttackSpeedOf(IdleState state, IdleTuning tuning)
+        {
+            double total = 0d;
+            int count = 0;
+
+            for (int seat = 0; seat < state.Party.Length && seat < IdleHeroes.MAIN_SLOTS; seat++)
+            {
+                if (state.Party[seat] < 0)
+                {
+                    continue;
+                }
+
+                total += AttackSpeedOfHero(state, tuning, state.Party[seat]);
+                count++;
+            }
+
+            double average = count > 0
+                ? total / count
+                : AttackSpeedOfHero(state, tuning, IdleHeroes.STARTER_ID);
+            return average * IdleSquad.FightingShare(state);
         }
 
         /// <summary>초당 깎는 양.</summary>
@@ -737,82 +781,17 @@ namespace WitchMendokusai.DomainSDK.Idle
             return true;
         }
 
-        /// <summary>
-        /// 살 수 있는 만큼 <b>싼 축부터</b> 올린다 — 몇 번 올렸는지 돌려준다 (TASK-WM-406).
-        ///
-        /// ★ 생산자에만 몰아 사기를 두면 절반짜리다 — 강화도 중반부터 같은 노동이 된다.
-        ///   판단(무엇을 올릴까)은 그대로 두고 손가락 일만 덜어낸다.
-        /// ★ 싼 축부터 = 같은 자원으로 가장 많이 올리는 순서. 시험(IdlePlay)이 쓰던 규칙 그대로다 —
-        ///   규칙이 시험에만 있고 게임에는 없으면, 사람은 시험보다 못한 판을 논다.
-        /// </summary>
-        /// <summary>
-        /// 지금 <b>올릴 수 있는 축 중 싼 쪽</b> — 하나도 없으면 false.
-        ///
-        /// ★ 몰아 올리기의 한 걸음이자, 화면이 <b>버튼을 켤지</b> 정하는 답이다.
-        ///   규칙이 두 벌이면 버튼은 켜져 있고 눌러도 아무 일이 안 나는 상태가 생긴다.
-        /// </summary>
-        public static bool CheapestRaisableAxis(IdleState state, IdleTuning tuning, out IdleUpgradeKind pick)
+        /// <summary>한 영웅의 한 수치를 정해진 클릭 묶음만큼 올림</summary>
+        public static bool TryRaise(IdleState state, IdleTuning tuning, int heroId,
+            IdleUpgradeKind kind, int amount)
         {
-            bool hasDamage = TryGetNextCost(state, tuning, IdleUpgradeKind.Damage, out double damageCost);
-            bool hasSpeed = TryGetNextCost(state, tuning, IdleUpgradeKind.AttackSpeed, out double speedCost);
-
-            bool canDamage = hasDamage && damageCost <= state.Resource;
-            bool canSpeed = hasSpeed && speedCost <= state.Resource;
-
-            if (canDamage == false && canSpeed == false)
-            {
-                pick = IdleUpgradeKind.Damage;
-                return false;
-            }
-
-            pick = canDamage && (canSpeed == false || damageCost <= speedCost)
-                ? IdleUpgradeKind.Damage
-                : IdleUpgradeKind.AttackSpeed;
-
-            return true;
+            return IdleHeroes.TryRaiseStat(state, tuning, heroId, kind, amount);
         }
 
-        public static int RaiseAsManyAsAfforded(IdleState state, IdleTuning tuning, int most)
+        public static bool TryGetCost(IdleState state, IdleTuning tuning, int heroId,
+            IdleUpgradeKind kind, int amount, out double cost)
         {
-            int raised = 0;
-
-            while (raised < most)
-            {
-                if (CheapestRaisableAxis(state, tuning, out IdleUpgradeKind pick) == false)
-                {
-                    break;
-                }
-
-                if (TryRaise(state, tuning, pick, out UpgradeRaiseFailure _) == false)
-                {
-                    break;
-                }
-
-                raised++;
-            }
-
-            return raised;
-        }
-
-        /// <summary>모은 자원으로 한 축을 올린다. 성공하면 자원이 줄어든다.</summary>
-        public static bool TryRaise(IdleState state, IdleTuning tuning, IdleUpgradeKind kind, out UpgradeRaiseFailure failure)
-        {
-            UpgradeLevel level = state.LevelOf(kind);
-            IUpgradeCurve curve = tuning.CurveOf(kind);
-
-            if (level.TryRaise(curve, state.Resource, out failure, out double spent) == false)
-            {
-                return false;
-            }
-
-            state.Resource -= spent;
-            return true;
-        }
-
-        /// <summary>다음 레벨 값 — 버튼에 적을 숫자. 상한이면 false.</summary>
-        public static bool TryGetNextCost(IdleState state, IdleTuning tuning, IdleUpgradeKind kind, out double cost)
-        {
-            return state.LevelOf(kind).TryGetNextCost(tuning.CurveOf(kind), out cost);
+            return IdleHeroes.TryGetStatCost(state, tuning, heroId, kind, amount, out cost);
         }
     }
 }

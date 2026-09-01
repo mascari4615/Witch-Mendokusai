@@ -1,9 +1,8 @@
 namespace WitchMendokusai.DomainSDK.Idle
 {
     /// <summary>
-    /// 업그레이드 축 — MVP-0 은 둘뿐이다(공격력 / 공격속도).
-    /// ★ 이름을 일부러 추상으로 둔다: 컨셉(슬라임·사냥꾼·목장)이 바뀌어도 이 축은 그대로 산다.
-    ///   구체 이름은 표시 계층(UI 문자열)에서만 붙인다.
+    /// 영웅별로 올리는 전투 수치.
+    /// 전투 판정 이름. 표시 이름은 표현 계층 소유.
     /// </summary>
     public enum IdleUpgradeKind
     {
@@ -12,5 +11,17 @@ namespace WitchMendokusai.DomainSDK.Idle
 
         /// <summary>때리는 공격속도 — 초당 타격 횟수.</summary>
         AttackSpeed = 1,
+
+        /// <summary>맞고 버티는 최대 체력.</summary>
+        MaxHealth = 2,
+
+        /// <summary>받는 피해를 줄이는 방어력.</summary>
+        Defense = 3,
+
+        /// <summary>치명타가 날 확률.</summary>
+        CriticalChance = 4,
+
+        /// <summary>치명타 한 번의 피해 배수.</summary>
+        CriticalDamage = 5,
     }
 }

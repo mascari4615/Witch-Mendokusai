@@ -57,6 +57,33 @@ namespace WitchMendokusai
         [SerializeField] private double speedBaseValue = 0.5d;
         [SerializeField] private double speedValueRatio = 1.12d;
 
+        [Header("최대 체력 곡선")]
+        [SerializeField] private double healthBaseCost = 20d;
+        [SerializeField] private double healthCostRatio = 1.22d;
+        [SerializeField] private double healthBaseValue = 0.08d;
+        [SerializeField] private double healthValueRatio = 1.06d;
+
+        [Header("방어력 곡선")]
+        [SerializeField] private double defenseBaseCost = 20d;
+        [SerializeField] private double defenseCostRatio = 1.24d;
+        [SerializeField] private double defenseBaseValue = 0.05d;
+        [SerializeField] private double defenseValueRatio = 1.05d;
+
+        [Header("치명타 확률 곡선")]
+        [SerializeField] private double criticalChanceBaseCost = 40d;
+        [SerializeField] private double criticalChanceCostRatio = 1.3d;
+        [SerializeField] private double criticalChanceBaseValue = 0.01d;
+        [SerializeField] private double criticalChanceValueRatio = 1.03d;
+        [SerializeField] private double baseCriticalChance = 0.05d;
+        [SerializeField] private double maxCriticalChance = 0.75d;
+
+        [Header("치명타 피해 곡선")]
+        [SerializeField] private double criticalDamageBaseCost = 50d;
+        [SerializeField] private double criticalDamageCostRatio = 1.3d;
+        [SerializeField] private double criticalDamageBaseValue = 0.05d;
+        [SerializeField] private double criticalDamageValueRatio = 1.04d;
+        [SerializeField] private double baseCriticalDamage = 1.5d;
+
         [Header("손 때리기")]
         [Tooltip("한 번 두드리면 <공격 몇 초치>가 즉시 들어가나.")]
         [SerializeField] private double tapSecondsOfAttack = 0.2d;
@@ -172,9 +199,6 @@ namespace WitchMendokusai
 
         [Tooltip("하나 살 때마다 값에 곱해지는 배수 (생산자 클리커 계열와 같은 자리).")]
         [SerializeField] private double producerCostRatio = 1.15d;
-
-        [Tooltip("«몰아 사기/올리기» 한 번에 처리하는 최대 개수 — 크면 한 번 누르는 데 판이 멎는다.")]
-        [SerializeField] private int bulkBuyMost = 50;
 
         [Header("장비 — 가방·합치기·감정")]
         [Tooltip("가방 칸 수. 차면 새 장비가 안 들어온다(감정용 개수는 계속 쌓인다).")]
@@ -370,6 +394,37 @@ namespace WitchMendokusai
                     BaseValue = speedBaseValue,
                     ValueRatio = speedValueRatio,
                 },
+                MaxHealthCurve = new GeometricUpgradeCurve
+                {
+                    BaseCost = healthBaseCost,
+                    CostRatio = healthCostRatio,
+                    BaseValue = healthBaseValue,
+                    ValueRatio = healthValueRatio,
+                },
+                DefenseCurve = new GeometricUpgradeCurve
+                {
+                    BaseCost = defenseBaseCost,
+                    CostRatio = defenseCostRatio,
+                    BaseValue = defenseBaseValue,
+                    ValueRatio = defenseValueRatio,
+                },
+                CriticalChanceCurve = new GeometricUpgradeCurve
+                {
+                    BaseCost = criticalChanceBaseCost,
+                    CostRatio = criticalChanceCostRatio,
+                    BaseValue = criticalChanceBaseValue,
+                    ValueRatio = criticalChanceValueRatio,
+                },
+                CriticalDamageCurve = new GeometricUpgradeCurve
+                {
+                    BaseCost = criticalDamageBaseCost,
+                    CostRatio = criticalDamageCostRatio,
+                    BaseValue = criticalDamageBaseValue,
+                    ValueRatio = criticalDamageValueRatio,
+                },
+                BaseCriticalChance = baseCriticalChance,
+                BaseCriticalDamage = baseCriticalDamage,
+                MaxCriticalChance = maxCriticalChance,
                 TapSecondsOfAttack = tapSecondsOfAttack,
                 VisitorEarliestSeconds = visitorEarliestSeconds,
                 VisitorLatestSeconds = visitorLatestSeconds,
@@ -407,7 +462,6 @@ namespace WitchMendokusai
                 CodexStepBonus = codexStepBonus,
                 ProducerCount = producerCount,
                 ProducerCostRatio = producerCostRatio,
-                BulkBuyMost = bulkBuyMost,
                 BagCapacity = bagCapacity,
                 MergeCount = mergeCount,
                 GearTierBonus = gearTierBonus,

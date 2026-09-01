@@ -14,11 +14,17 @@ namespace WitchMendokusai.DomainSDK.Idle
     /// </summary>
     public readonly struct IdleRaiseUpgradeIntent : IGameIntent
     {
+        public int HeroId { get; }
+
         public IdleUpgradeKind Kind { get; }
 
-        public IdleRaiseUpgradeIntent(IdleUpgradeKind kind)
+        public int Amount { get; }
+
+        public IdleRaiseUpgradeIntent(int heroId, IdleUpgradeKind kind, int amount)
         {
+            HeroId = heroId;
             Kind = kind;
+            Amount = amount;
         }
     }
 }

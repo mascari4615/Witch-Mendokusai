@@ -144,7 +144,7 @@ namespace WitchMendokusai.DomainSDK.Idle
                     snapshot.Producers[cheapest].IncomeGain);
             }
 
-            if (snapshot.Damage.CanAfford || snapshot.AttackSpeed.CanAfford)
+            if (HasAffordableHeroStat(snapshot))
             {
                 return new IdleAdviceResult(IdleStep.Raise, -1, 0d);
             }
@@ -179,7 +179,7 @@ namespace WitchMendokusai.DomainSDK.Idle
                     return CheapestAffordableProducer(snapshot) >= 0;
 
                 case IdleTab.Upgrade:
-                    return snapshot.Damage.CanAfford || snapshot.AttackSpeed.CanAfford;
+                    return HasAffordableHeroStat(snapshot);
 
                 case IdleTab.Gear:
                     return snapshot.Bag.Length >= snapshot.BagCapacity
@@ -252,6 +252,19 @@ namespace WitchMendokusai.DomainSDK.Idle
             }
 
             return seated < snapshot.Party.Length && seated < snapshot.Heroes.Length;
+        }
+
+        private static bool HasAffordableHeroStat(IdleSnapshot snapshot)
+        {
+            for (int index = 0; index < snapshot.Heroes.Length; index++)
+            {
+                if (snapshot.Heroes[index].CanRaiseStat)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         /// <summary>합칠 수 있는 묶음 수 — 같은 부위·같은 등급 셋.</summary>

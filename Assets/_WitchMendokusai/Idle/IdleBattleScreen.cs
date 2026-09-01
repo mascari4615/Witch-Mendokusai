@@ -82,6 +82,8 @@ namespace WitchMendokusai
 		private static readonly string[] TAB_NAMES = { "인형", "아이템", "도감", "상점", "연구소", "던전", "투자" };
 		private static readonly string[] TAB_CAPTIONS = { "DOLLS", "ITEMS", "CODEX", "SHOP", "LAB", "DUNGEON", "INVEST" };
 		private static readonly string[] SLOT_NAMES = { "머리", "몸", "손", "발" };
+		private static readonly string[] STAT_NAMES = { "공격력", "공격 속도", "최대 체력", "방어력", "치명타 확률", "치명타 피해" };
+		private static readonly int[] STAT_AMOUNTS = { 1, 10, 100 };
 
 		/// <summary>전투 창이 차지하는 폭. 1200 / 1920 (layout.md §1)</summary>
 		private const float BATTLE_SHARE = 1200f / 1920f;
@@ -162,14 +164,15 @@ namespace WitchMendokusai
 		/// <summary>한 인형의 장비 넷. 매 프레임 새 배열을 안 만들려고 들고 있는다</summary>
 		private readonly IdleItem[] gearOfHero = new IdleItem[IdleGear.SLOT_COUNT];
 		private Label dollName;
-		private Label damageLabel;
-		private Button damageButton;
-		private Label speedLabel;
-		private Button speedButton;
+		private readonly Label[] statLabels = new Label[6];
+		private readonly Button[,] statButtons = new Button[6, 3];
 		private Button speedCycleButton;
 		private Button autoCastButton;
-		private Button bulkRaiseButton;
 		private readonly List<Button> wornCells = new List<Button>();
+		private Button openHeroPopupButton;
+		private VisualElement heroPopup;
+		private VisualElement heroGrid;
+		private readonly List<Button> heroChoiceButtons = new List<Button>();
 
 		// 장비 고르기 팝업 (사용자 2026-08-31). 인형이 여럿이라 가방에서 바로 장착하면 대상이 불명
 		private VisualElement gearPopup;
@@ -178,9 +181,6 @@ namespace WitchMendokusai
 		private VisualElement gearRows;
 		private readonly List<Button> gearRowButtons = new List<Button>();
 		private int gearSlot = -1;
-		private VisualElement heroRows;
-		private readonly List<Button> heroButtons = new List<Button>();
-		private readonly List<Button> heroLevelButtons = new List<Button>();
 
 		// 아이템. 서브탭 가방 / 공방 (layout.md §3)
 		private int itemSub;
@@ -225,7 +225,6 @@ namespace WitchMendokusai
 
 		// 투자
 		private Label baseSummary;
-		private Button bulkBuyButton;
 		private readonly List<Button> producerButtons = new List<Button>();
 
 		// 툴팁
@@ -497,6 +496,8 @@ namespace WitchMendokusai
 
 		private void BuildAll(IdleAwayReport away)
 		{
+			// UIDocument OnEnable 전 호출 방어. 이전 판 완료 상태로 빈 라벨에 닿지 않게
+			built = false;
 			UIDocument document = GetComponent<UIDocument>();
 			if (document == null || document.rootVisualElement == null)
 			{
@@ -513,8 +514,6 @@ namespace WitchMendokusai
 				AimCamera();
 				ApplySafeArea();
 			});
-			built = false;
-
 			if (styleSheet != null)
 			{
 				root.styleSheets.Add(styleSheet);
@@ -532,6 +531,7 @@ namespace WitchMendokusai
 			BuildSide(shell);
 			BuildMapPopup();
 			BuildGearPopup();
+			BuildHeroPopup();
 
 			tooltip = AddLabel(root, "idle-tooltip");
 			tooltip.style.display = DisplayStyle.None;
@@ -759,14 +759,19 @@ namespace WitchMendokusai
 			}
 
 			dollName = page.Q<Label>("doll-name");
-			damageLabel = page.Q<Label>("damage-label");
-			damageButton = page.Q<Button>("damage-button");
-			damageButton.clicked += () => Raise(IdleUpgradeKind.Damage);
-			speedLabel = page.Q<Label>("speed-label");
-			speedButton = page.Q<Button>("speed-button");
-			speedButton.clicked += () => Raise(IdleUpgradeKind.AttackSpeed);
-			bulkRaiseButton = page.Q<Button>("bulk-button");
-			bulkRaiseButton.clicked += RaiseMany;
+			for (int stat = 0; stat < STAT_NAMES.Length; stat++)
+			{
+				int capturedStat = stat;
+				statLabels[stat] = page.Q<Label>("stat-label-" + stat);
+
+				for (int amount = 0; amount < STAT_AMOUNTS.Length; amount++)
+				{
+					int capturedAmount = STAT_AMOUNTS[amount];
+					Button button = page.Q<Button>("stat-" + stat + "-x" + capturedAmount);
+					button.clicked += () => Raise((IdleUpgradeKind)capturedStat, capturedAmount);
+					statButtons[stat, amount] = button;
+				}
+			}
 
 			for (int slot = 0; slot < SLOT_NAMES.Length; slot++)
 			{
@@ -777,7 +782,8 @@ namespace WitchMendokusai
 				wornCells.Add(cell);
 			}
 
-			heroRows = page.Q<VisualElement>("hero-rows");
+			openHeroPopupButton = page.Q<Button>("open-hero-popup");
+			openHeroPopupButton.clicked += () => OpenHeroPopup(gearSeat);
 		}
 
 		/// <summary>아이템 탭 (layout.md §3). 가방과 공방. 모양은 UXML</summary>
@@ -972,9 +978,6 @@ namespace WitchMendokusai
 		{
 			VisualElement page = OpenPage(Tab.Invest, investPageAsset);
 			baseSummary = page.Q<Label>("base-summary");
-			bulkBuyButton = page.Q<Button>("bulk-buy");
-			bulkBuyButton.clicked += BuyMany;
-
 			VisualElement host = page.Q<VisualElement>("producers");
 
 			for (int kind = 0; kind < 8; kind++)
@@ -1020,6 +1023,82 @@ namespace WitchMendokusai
 			gearWorn = gearPopup.Q<Label>("gear-worn");
 			gearPopup.Q<Button>("gear-close").clicked += CloseGear;
 			gearRows = gearPopup.Q<VisualElement>("gear-rows");
+		}
+
+		private void BuildHeroPopup()
+		{
+			heroPopup = new VisualElement();
+			AddClasses(heroPopup, "idle-box idle-choice-popup");
+			heroPopup.style.display = DisplayStyle.None;
+			side.Add(heroPopup);
+
+			VisualElement head = new VisualElement();
+			head.AddToClassList("idle-panel-head");
+			heroPopup.Add(head);
+			Label title = AddLabel(head, "idle-panel-title");
+			title.text = "인형 선택";
+			Button close = AddButton(head, "idle-tab idle-tab--close", CloseHeroPopup);
+			close.text = "X";
+
+			heroGrid = new VisualElement();
+			heroGrid.AddToClassList("idle-choice-grid");
+			heroPopup.Add(heroGrid);
+		}
+
+		private void OpenHeroPopup(int slot)
+		{
+			if (slot < 0 || slot >= session.State.Party.Length)
+			{
+				slot = 0;
+			}
+
+			seatBeingFilled = slot;
+			gearSeat = slot;
+			CloseGear();
+			heroPopup.style.display = DisplayStyle.Flex;
+			Render(session.Capture());
+		}
+
+		private void CloseHeroPopup()
+		{
+			seatBeingFilled = -1;
+			heroPopup.style.display = DisplayStyle.None;
+		}
+
+		private void RenderHeroPopup(IdleSnapshot snapshot)
+		{
+			if (heroPopup.style.display != DisplayStyle.Flex)
+			{
+				return;
+			}
+
+			while (heroChoiceButtons.Count < snapshot.Heroes.Length)
+			{
+				int captured = heroChoiceButtons.Count;
+				int heroId = snapshot.Heroes[captured].Id;
+				Button choice = AddButton(heroGrid, "idle-choice-card", () => ChooseHero(heroId));
+				heroChoiceButtons.Add(choice);
+			}
+
+			for (int index = 0; index < heroChoiceButtons.Count; index++)
+			{
+				Button choice = heroChoiceButtons[index];
+				bool shown = index < snapshot.Heroes.Length;
+				choice.style.display = shown ? DisplayStyle.Flex : DisplayStyle.None;
+
+				if (shown == false)
+				{
+					continue;
+				}
+
+				IdleHeroView hero = snapshot.Heroes[index];
+				choice.text = string.Format("{0}{1}\nLv.{2}  {3}", hero.Name, Stars(hero.Stars), hero.Level,
+					IdleHeroes.NameOfAxis(hero.Axis));
+				int current = seatBeingFilled >= 0 && seatBeingFilled < snapshot.Party.Length
+					? snapshot.Party[seatBeingFilled]
+					: -1;
+				choice.EnableInClassList("idle-choice-card--selected", current == hero.Id);
+			}
 		}
 
 		/// <summary>이 부위에 낄 수 있는 가방 아이템만 보여준다</summary>
@@ -1098,7 +1177,7 @@ namespace WitchMendokusai
 		{
 			while (gearRowButtons.Count <= at)
 			{
-				Button made = AddButton(gearRows, "idle-row-button idle-gear-row", null);
+				Button made = AddButton(gearRows, "idle-choice-card idle-gear-card", null);
 				int captured = gearRowButtons.Count;
 				made.clicked += () => PickGear(captured);
 				gearRowButtons.Add(made);
@@ -1162,7 +1241,8 @@ namespace WitchMendokusai
 			if (split || sideOpen)
 			{
 				RenderPage(snapshot);
-			RenderGear(snapshot);
+				RenderGear(snapshot);
+				RenderHeroPopup(snapshot);
 			}
 		}
 
@@ -1301,16 +1381,27 @@ namespace WitchMendokusai
 			}
 
 			int wearer = gearHeroId;
-			dollName.text = seatBeingFilled >= 0
-				? "아래에서 인형을 고른다"
-				: (wearer >= 0 ? IdleHeroes.KindOf(wearer).Name + "의 장비" : "빈 자리");
+			dollName.text = wearer >= 0 ? IdleHeroes.KindOf(wearer).Name + " 성장" : "빈 자리";
+			openHeroPopupButton.text = wearer >= 0 ? "인형 바꾸기" : "인형 선택";
 
-			DrawUpgrade(snapshot.Damage, damageLabel, damageButton, "공격력");
-			DrawUpgrade(snapshot.AttackSpeed, speedLabel, speedButton, "공격 속도");
+			for (int stat = 0; stat < STAT_NAMES.Length; stat++)
+			{
+				IdleUpgradeKind kind = (IdleUpgradeKind)stat;
+				IdleUpgradeView one = session.ViewHeroStat(wearer, kind, 1);
+				statLabels[stat].text = string.Format("{0}  {1}  Lv.{2}",
+					STAT_NAMES[stat], StatValueText(kind, one.CurrentValue), one.Level);
 
-			bool canRaise = IdleModel.CheapestRaisableAxis(session.State, session.Tuning, out IdleUpgradeKind _);
-			bulkRaiseButton.text = "전부 올리기";
-			bulkRaiseButton.SetEnabled(canRaise);
+				for (int amount = 0; amount < STAT_AMOUNTS.Length; amount++)
+				{
+					int count = STAT_AMOUNTS[amount];
+					IdleUpgradeView purchase = session.ViewHeroStat(wearer, kind, count);
+					Button button = statButtons[stat, amount];
+					button.text = purchase.IsMaxed
+						? "최대"
+						: string.Format("×{0}\n{1}", count, BigNumberText.Format(purchase.NextCost));
+					button.SetEnabled(wearer >= 0 && purchase.CanAfford);
+				}
+			}
 
 			// 장비는 인형별 (2026-08-31). 사진의 Worn 은 전장 전체 요약이라 코어에 직접 조회
 			if (wearer >= 0)
@@ -1334,37 +1425,6 @@ namespace WitchMendokusai
 				SetTierClass(wornCells[slot], one.IsEmpty ? 0 : one.Tier);
 			}
 
-			if (heroButtons.Count != snapshot.Heroes.Length)
-			{
-				heroRows.Clear();
-				heroButtons.Clear();
-
-				heroLevelButtons.Clear();
-
-				for (int index = 0; index < snapshot.Heroes.Length; index++)
-				{
-					int id = snapshot.Heroes[index].Id;
-
-					// 한 줄에 둘. 왼쪽은 편성, 오른쪽은 레벨 올리기 (economy.md 표 3)
-					VisualElement row = new VisualElement();
-					row.AddToClassList("idle-hero-row");
-					heroRows.Add(row);
-
-					heroButtons.Add(AddButton(row, "idle-row-button", () => ChooseHero(id)));
-					heroLevelButtons.Add(AddButton(row, "idle-hero-level", () => RaiseHeroLevel(id)));
-				}
-			}
-
-			for (int index = 0; index < heroButtons.Count && index < snapshot.Heroes.Length; index++)
-			{
-				IdleHeroView hero = snapshot.Heroes[index];
-				heroButtons[index].text = string.Format("{0}{1}  Lv.{2}{3}",
-					hero.Name, Stars(hero.Stars), hero.Level,
-					hero.InParty ? "   편성 중" : string.Empty);
-
-				heroLevelButtons[index].text = "Lv+ " + BigNumberText.Format(hero.LevelCost);
-				heroLevelButtons[index].SetEnabled(hero.CanRaiseLevel);
-			}
 		}
 
 		/// <summary>배속을 다음 자리로 (gap-2026-08-23 P1-6). 보고 있는 동안만</summary>
@@ -1641,10 +1701,6 @@ namespace WitchMendokusai
 		{
 			baseSummary.text = string.Format("생산자가 초당 {0} 를 낸다",
 				BigNumberText.Format(snapshot.IncomePerSecond));
-
-			bool canBuy = IdleBase.CheapestAffordable(session.State, session.Tuning) >= 0;
-			bulkBuyButton.text = canBuy ? "싼 것부터 몰아 산다" : "살 수 있는 게 없다";
-			bulkBuyButton.SetEnabled(canBuy);
 
 			for (int kind = 0; kind < producerButtons.Count; kind++)
 			{
@@ -2009,39 +2065,23 @@ namespace WitchMendokusai
 			Render(session.Capture());
 		}
 
-		private void Raise(IdleUpgradeKind kind)
+		private void Raise(IdleUpgradeKind kind, int amount)
 		{
-			session.Send(new IdleRaiseUpgradeIntent(kind));
-			Render(session.Capture());
-		}
-
-		private void RaiseMany()
-		{
-			int raised = session.RaiseAsManyAsAfforded();
-			if (raised > 0)
+			if (gearHeroId < 0)
 			{
-				SayOnce(string.Format("강화. {0}번 올렸다", raised), noteSeconds);
-				WriteDown();
+				return;
 			}
 
+			if (session.Send(new IdleRaiseUpgradeIntent(gearHeroId, kind, amount)))
+			{
+				WriteDown();
+			}
 			Render(session.Capture());
 		}
 
 		private void BuyProducer(int kind)
 		{
 			session.Send(new IdleBuyProducerIntent(kind));
-			Render(session.Capture());
-		}
-
-		private void BuyMany()
-		{
-			int bought = session.BuyAsManyProducersAsAfforded();
-			if (bought > 0)
-			{
-				SayOnce(string.Format("투자. {0}개 샀다", bought), noteSeconds);
-				WriteDown();
-			}
-
 			Render(session.Capture());
 		}
 
@@ -2132,18 +2172,7 @@ namespace WitchMendokusai
 		/// </summary>
 		private void BeginSeat(int slot)
 		{
-			bool taken = slot < session.State.Party.Length && session.State.Party[slot] >= 0;
-
-			if (taken && seatBeingFilled < 0)
-			{
-				gearSeat = slot;
-				CloseGear();
-				Render(session.Capture());
-				return;
-			}
-
-			seatBeingFilled = seatBeingFilled == slot ? -1 : slot;
-			Render(session.Capture());
+			OpenHeroPopup(slot);
 		}
 
 		private void ChooseHero(int id)
@@ -2163,7 +2192,8 @@ namespace WitchMendokusai
 			}
 
 			session.Send(new IdleSetPartyIntent(slot, id));
-			seatBeingFilled = -1;
+			gearSeat = slot;
+			CloseHeroPopup();
 			WriteDown();
 			Render(session.Capture());
 		}
@@ -2294,14 +2324,20 @@ namespace WitchMendokusai
 			noteLeft = seconds;
 		}
 
-		private static void DrawUpgrade(IdleUpgradeView view, Label label, Button button, string name)
+		private static string StatValueText(IdleUpgradeKind kind, double value)
 		{
-			label.text = string.Format("{0} {1}  Lv.{2}", name, BigNumberText.Format(view.CurrentValue), view.Level);
-
-			button.text = view.IsMaxed
-				? "최대"
-				: string.Format("올리기  {0} 골드", BigNumberText.Format(view.NextCost));
-			button.SetEnabled(view.CanAfford);
+			switch (kind)
+			{
+				case IdleUpgradeKind.AttackSpeed:
+					return string.Format("{0:0.##}/초", value);
+				case IdleUpgradeKind.Defense:
+				case IdleUpgradeKind.CriticalChance:
+					return string.Format("{0:P1}", value);
+				case IdleUpgradeKind.CriticalDamage:
+					return string.Format("×{0:0.00}", value);
+				default:
+					return BigNumberText.Format(value);
+			}
 		}
 
 		private static string Stars(int stars)

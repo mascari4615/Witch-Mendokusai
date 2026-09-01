@@ -45,6 +45,13 @@ namespace WitchMendokusai.Tests
 
 			foreach (FieldInfo field in fields)
 			{
+				// 옛 전역 강화 두 칸은 읽기 전용 이관 포맷. 새 저장은 영웅 배열만 사용
+				if (field.Name == nameof(IdleSaveData.DamageLevel)
+					|| field.Name == nameof(IdleSaveData.AttackSpeedLevel))
+				{
+					continue;
+				}
+
 				object blank = field.GetValue(empty);
 				object before = field.GetValue(wrote);
 				object after = field.GetValue(again);
@@ -166,8 +173,6 @@ namespace WitchMendokusai.Tests
 			state.PullsDone = 17L;
 			state.PullsSincePity = 8;
 			state.LastSeenUnixSeconds = 1700000000L;
-			state.Damage.Level = 6;
-			state.AttackSpeed.Level = 4;
 			state.Cost = 4.5d;
 			state.SupplySecondsLeft = 12d;
 			state.EnsureSeatRoom(tuning);
@@ -188,7 +193,14 @@ namespace WitchMendokusai.Tests
 			state.Bag.Add(new IdleItem(3, IdleItemSlot.Hands));
 			state.Worn[0] = new IdleItem(2, IdleItemSlot.Head);
 
-			state.Heroes.Add(new IdleHeroOwned(4));
+			IdleHeroOwned hero = new IdleHeroOwned(4);
+			hero.DamageLevel = 6;
+			hero.AttackSpeedLevel = 4;
+			hero.MaxHealthLevel = 3;
+			hero.DefenseLevel = 2;
+			hero.CriticalChanceLevel = 1;
+			hero.CriticalDamageLevel = 5;
+			state.Heroes.Add(hero);
 			state.Party[0] = 4;
 
 			return state;
@@ -261,9 +273,27 @@ namespace WitchMendokusai.Tests
 			double before = IdleModel.DamageOf(state, tuning);
 
 			state.Resource = 1e9d;
-			Assert.IsTrue(IdleModel.TryRaise(state, tuning, IdleUpgradeKind.Damage, out WitchMendokusai.DomainSDK.Upgrade.UpgradeRaiseFailure _));
+			IdleHeroes.EnsureStarter(state);
+			Assert.IsTrue(IdleModel.TryRaise(state, tuning, IdleHeroes.STARTER_ID, IdleUpgradeKind.Damage, 1));
 
 			Assert.Greater(IdleModel.DamageOf(state, tuning), before, "올렸는데 약해졌다");
+		}
+
+		[Test]
+		public void LegacyGlobalStats_MoveToTheStarterHero()
+		{
+			IdleSaveData saved = new IdleState().Save();
+			saved.DamageLevel = 6;
+			saved.AttackSpeedLevel = 4;
+
+			IdleState state = new IdleState();
+			state.Load(saved);
+			IdleHeroOwned starter = state.Heroes[state.IndexOfHero(IdleHeroes.STARTER_ID)];
+
+			Assert.AreEqual(6, starter.DamageLevel);
+			Assert.AreEqual(4, starter.AttackSpeedLevel);
+			Assert.AreEqual(0, state.Save().DamageLevel, "이관한 전역 수치를 새 저장에 다시 쓰면 다음 로드에서 중복된다");
+			Assert.AreEqual(0, state.Save().AttackSpeedLevel);
 		}
 	}
 }

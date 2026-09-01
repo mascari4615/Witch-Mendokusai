@@ -103,11 +103,12 @@ namespace WitchMendokusai.DomainSDK.Idle
     {
         public IdleHeroView(int id, string name, IdleHeroGrade grade, IdleHeroAxis axis, int sides,
             int stars, int copies, int copiesForNextStar, bool inParty, double ownedShare,
-            int level, double levelCost, bool canRaiseLevel)
+            int level, double levelCost, bool canRaiseLevel, bool canRaiseStat)
         {
             Level = level;
             LevelCost = levelCost;
             CanRaiseLevel = canRaiseLevel;
+            CanRaiseStat = canRaiseStat;
             Id = id;
             Name = name;
             Grade = grade;
@@ -138,6 +139,8 @@ namespace WitchMendokusai.DomainSDK.Idle
 
         /// <summary>지금 올릴 수 있나. 판정은 코어가 한다</summary>
         public bool CanRaiseLevel { get; }
+
+        public bool CanRaiseStat { get; }
 
         /// <summary>다음 ★ 까지 모은 중복.</summary>
         public int Copies { get; }

@@ -124,5 +124,61 @@ namespace WitchMendokusai.Tests
 
 			Assert.AreEqual(7, back.Heroes[back.IndexOfHero(0)].Level);
 		}
+
+		/// <summary>영웅별 독립 성장과 지정 수량</summary>
+		[Test]
+		public void Stats_BelongToOneHeroAndOneAxis()
+		{
+			IdleTuning tuning = new IdleTuning();
+			IdleState state = WithHero(tuning, 1);
+			state.Resource = 1e9d;
+
+			Assert.IsTrue(IdleModel.TryRaise(state, tuning, 1, IdleUpgradeKind.Defense, 10));
+
+			Assert.AreEqual(10, state.Heroes[state.IndexOfHero(1)].DefenseLevel);
+			Assert.AreEqual(0, state.Heroes[state.IndexOfHero(1)].DamageLevel);
+			Assert.AreEqual(0, state.Heroes[state.IndexOfHero(0)].DefenseLevel);
+		}
+
+		/// <summary>여섯 수치의 실제 전투 효과</summary>
+		[Test]
+		public void EveryStat_ChangesItsCombatNumber()
+		{
+			IdleTuning tuning = new IdleTuning();
+			IdleState state = WithHero(tuning, 0);
+			state.Resource = 1e30d;
+
+			double damage = IdleModel.DamageOfHero(state, tuning, 0);
+			double speed = IdleModel.AttackSpeedOfHero(state, tuning, 0);
+			double health = IdleSquad.MaxHealthOfHero(state, tuning, 0);
+			double received = IdleSquad.DamageTakenBySeat(state, tuning, 0, 100d);
+
+			Assert.IsTrue(IdleModel.TryRaise(state, tuning, 0, IdleUpgradeKind.Damage, 1));
+			Assert.IsTrue(IdleModel.TryRaise(state, tuning, 0, IdleUpgradeKind.AttackSpeed, 1));
+			Assert.IsTrue(IdleModel.TryRaise(state, tuning, 0, IdleUpgradeKind.MaxHealth, 1));
+			Assert.IsTrue(IdleModel.TryRaise(state, tuning, 0, IdleUpgradeKind.Defense, 1));
+			Assert.IsTrue(IdleModel.TryRaise(state, tuning, 0, IdleUpgradeKind.CriticalChance, 1));
+			Assert.IsTrue(IdleModel.TryRaise(state, tuning, 0, IdleUpgradeKind.CriticalDamage, 1));
+
+			Assert.Greater(IdleModel.DamageOfHero(state, tuning, 0), damage);
+			Assert.Greater(IdleModel.AttackSpeedOfHero(state, tuning, 0), speed);
+			Assert.Greater(IdleSquad.MaxHealthOfHero(state, tuning, 0), health);
+			Assert.Less(IdleSquad.DamageTakenBySeat(state, tuning, 0, 100d), received);
+		}
+
+		/// <summary>영웅 수치 저장 왕복</summary>
+		[Test]
+		public void Stats_SurviveTheSave()
+		{
+			IdleTuning tuning = new IdleTuning();
+			IdleState state = WithHero(tuning, 0);
+			state.Resource = 1e30d;
+			Assert.IsTrue(IdleModel.TryRaise(state, tuning, 0, IdleUpgradeKind.CriticalDamage, 100));
+
+			IdleState loaded = new IdleState();
+			loaded.Load(state.Save());
+
+			Assert.AreEqual(100, loaded.Heroes[loaded.IndexOfHero(0)].CriticalDamageLevel);
+		}
 	}
 }

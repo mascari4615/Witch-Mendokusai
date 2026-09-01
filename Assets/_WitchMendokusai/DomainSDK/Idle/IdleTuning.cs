@@ -134,14 +134,6 @@ namespace WitchMendokusai.DomainSDK.Idle
 
         public long PullStoneCost { get; set; } = 1L;
 
-        /// <summary>
-        /// 한 번에 몰아 사는 최대 개수.
-        ///
-        /// ★ 상한이 없으면 자원이 아주 많을 때 한 번 누르는 데 몇 초가 걸린다 —
-        ///   그건 편해진 게 아니라 <b>멈춘 것</b>으로 느껴진다.
-        /// </summary>
-        public int BulkBuyMost { get; set; } = 50;
-
         // ── 지나가는 것 (변동성) ────────────────────────────────────────────
         //
         // ★ 조사 1순위 (`refs/cookie-clicker.md`) — 방치형은 기대값이 평탄해서
@@ -268,6 +260,44 @@ namespace WitchMendokusai.DomainSDK.Idle
             BaseValue = 0.5d,
             ValueRatio = 1.12d,
         };
+
+        public IUpgradeCurve MaxHealthCurve { get; set; } = new GeometricUpgradeCurve
+        {
+            BaseCost = 20d,
+            CostRatio = 1.22d,
+            BaseValue = 0.08d,
+            ValueRatio = 1.06d,
+        };
+
+        public IUpgradeCurve DefenseCurve { get; set; } = new GeometricUpgradeCurve
+        {
+            BaseCost = 20d,
+            CostRatio = 1.24d,
+            BaseValue = 0.05d,
+            ValueRatio = 1.05d,
+        };
+
+        public IUpgradeCurve CriticalChanceCurve { get; set; } = new GeometricUpgradeCurve
+        {
+            BaseCost = 40d,
+            CostRatio = 1.3d,
+            BaseValue = 0.01d,
+            ValueRatio = 1.03d,
+        };
+
+        public IUpgradeCurve CriticalDamageCurve { get; set; } = new GeometricUpgradeCurve
+        {
+            BaseCost = 50d,
+            CostRatio = 1.3d,
+            BaseValue = 0.05d,
+            ValueRatio = 1.04d,
+        };
+
+        public double BaseCriticalChance { get; set; } = 0.05d;
+
+        public double BaseCriticalDamage { get; set; } = 1.5d;
+
+        public double MaxCriticalChance { get; set; } = 0.75d;
 
         // ── 기지 (클리커 층) ───────────────────────────────────────────────
 
@@ -576,7 +606,15 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// <summary>한 축의 곡선을 고른다.</summary>
         public IUpgradeCurve CurveOf(IdleUpgradeKind kind)
         {
-            return kind == IdleUpgradeKind.Damage ? DamageCurve : AttackSpeedCurve;
+            switch (kind)
+            {
+                case IdleUpgradeKind.Damage: return DamageCurve;
+                case IdleUpgradeKind.AttackSpeed: return AttackSpeedCurve;
+                case IdleUpgradeKind.MaxHealth: return MaxHealthCurve;
+                case IdleUpgradeKind.Defense: return DefenseCurve;
+                case IdleUpgradeKind.CriticalChance: return CriticalChanceCurve;
+                default: return CriticalDamageCurve;
+            }
         }
     }
 }

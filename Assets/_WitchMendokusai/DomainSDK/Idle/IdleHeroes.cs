@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using WitchMendokusai.DomainSDK.Upgrade;
 
 namespace WitchMendokusai.DomainSDK.Idle
 {
@@ -236,8 +237,118 @@ namespace WitchMendokusai.DomainSDK.Idle
             {
                 IdleHeroOwned owned = state.Heroes[index];
                 owned.Level = 0;
+                owned.DamageLevel = 0;
+                owned.AttackSpeedLevel = 0;
+                owned.MaxHealthLevel = 0;
+                owned.DefenseLevel = 0;
+                owned.CriticalChanceLevel = 0;
+                owned.CriticalDamageLevel = 0;
                 state.Heroes[index] = owned;
             }
+        }
+
+        public static double StatValueOf(IdleState state, IdleTuning tuning, int heroId, IdleUpgradeKind kind)
+        {
+            int index = state.IndexOfHero(heroId);
+            if (index < 0)
+            {
+                return 0d;
+            }
+
+            IdleHeroOwned owned = state.Heroes[index];
+            return tuning.CurveOf(kind).TotalValueAt(owned.StatLevel(kind));
+        }
+
+        public static double CriticalChanceOf(IdleState state, IdleTuning tuning, int heroId)
+        {
+            double chance = tuning.BaseCriticalChance
+                + StatValueOf(state, tuning, heroId, IdleUpgradeKind.CriticalChance);
+            return chance > tuning.MaxCriticalChance ? tuning.MaxCriticalChance : chance;
+        }
+
+        public static double CriticalDamageOf(IdleState state, IdleTuning tuning, int heroId)
+        {
+            return tuning.BaseCriticalDamage
+                + StatValueOf(state, tuning, heroId, IdleUpgradeKind.CriticalDamage);
+        }
+
+        public static double ExpectedCriticalMultiplierOf(IdleState state, IdleTuning tuning, int heroId)
+        {
+            double chance = CriticalChanceOf(state, tuning, heroId);
+            double criticalDamage = CriticalDamageOf(state, tuning, heroId);
+            return 1d + chance * (criticalDamage - 1d);
+        }
+
+        public static double DefenseOf(IdleState state, IdleTuning tuning, int heroId)
+        {
+            return StatValueOf(state, tuning, heroId, IdleUpgradeKind.Defense);
+        }
+
+        public static bool TryGetStatCost(IdleState state, IdleTuning tuning, int heroId,
+            IdleUpgradeKind kind, int amount, out double cost)
+        {
+            cost = 0d;
+            if (amount != 1 && amount != 10 && amount != 100)
+            {
+                return false;
+            }
+
+            int index = state.IndexOfHero(heroId);
+            if (index < 0)
+            {
+                return false;
+            }
+
+            IdleHeroOwned owned = state.Heroes[index];
+            int level = owned.StatLevel(kind);
+            IUpgradeCurve curve = tuning.CurveOf(kind);
+
+            if (level > curve.MaxLevel - amount)
+            {
+                return false;
+            }
+
+            for (int step = 0; step < amount; step++)
+            {
+                cost += curve.CostToRaiseFrom(level + step);
+            }
+
+            return double.IsNaN(cost) == false && double.IsInfinity(cost) == false;
+        }
+
+        public static bool TryRaiseStat(IdleState state, IdleTuning tuning, int heroId,
+            IdleUpgradeKind kind, int amount)
+        {
+            if (TryGetStatCost(state, tuning, heroId, kind, amount, out double cost) == false
+                || state.Resource < cost)
+            {
+                return false;
+            }
+
+            int index = state.IndexOfHero(heroId);
+            IdleHeroOwned owned = state.Heroes[index];
+            owned.SetStatLevel(kind, owned.StatLevel(kind) + amount);
+            state.Heroes[index] = owned;
+            state.Resource -= cost;
+            return true;
+        }
+
+        public static bool HasAffordableStat(IdleState state, IdleTuning tuning)
+        {
+            for (int hero = 0; hero < state.Heroes.Count; hero++)
+            {
+                int heroId = state.Heroes[hero].Id;
+                for (int stat = 0; stat <= (int)IdleUpgradeKind.CriticalDamage; stat++)
+                {
+                    if (TryGetStatCost(state, tuning, heroId, (IdleUpgradeKind)stat, 1, out double cost)
+                        && state.Resource >= cost)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
         }
 
         /// <summary>
