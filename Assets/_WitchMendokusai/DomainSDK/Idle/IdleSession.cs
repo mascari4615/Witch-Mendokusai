@@ -113,6 +113,9 @@ namespace WitchMendokusai.DomainSDK.Idle
             state.VisitorSecondsLeft = 0d;
             state.SinceVisitorSeconds = 0d;
 
+            // 던전 입장권은 흐른 초가 아니라 날 경계로 찬다 (economy.md 4). 실시각을 아는 유일한 자리
+            IdleDungeons.Refill(state, tuning, nowUnixSeconds);
+
             long lastSeen = state.LastSeenUnixSeconds;
             state.LastSeenUnixSeconds = nowUnixSeconds;
 
@@ -362,7 +365,9 @@ namespace WitchMendokusai.DomainSDK.Idle
                 CaptureFighters(),
                 CaptureFoes(),
                 CaptureHits(),
-                CaptureQueued());
+                CaptureQueued(),
+                CaptureTickets(),
+                IdleDungeons.SecondsUntilRefill(state, tuning, state.LastSeenUnixSeconds));
         }
 
         /// <summary>
@@ -456,6 +461,13 @@ namespace WitchMendokusai.DomainSDK.Idle
             }
 
             return made;
+        }
+
+        /// <summary>입장권을 사진에 담는다 (economy.md 4)</summary>
+        private long[] CaptureTickets()
+        {
+            state.EnsureTicketRoom();
+            return state.Tickets;
         }
 
         /// <summary>줄 선 카드를 사진에 담는다 — 순환이 눈에 보이게 (gap-2026-08-23 P1)</summary>

@@ -99,6 +99,12 @@ namespace WitchMendokusai
         [Tooltip("보스 하나가 떨구는 환생 조각 (economy.md 표 2)")]
         [SerializeField] private long shardsPerBoss;
 
+        [Tooltip("던전 하나에 하루 몇 번 들어가나 (economy.md 4)")]
+        [SerializeField] private long ticketsPerDay = 3L;
+
+        [Tooltip("날 경계를 UTC 자정에서 미는 초. 20시간은 KST 05:00")]
+        [SerializeField] private long dayResetOffsetSeconds = 20L * 3600L;
+
         [Tooltip("처치 하나가 뽑기 재화를 떨굴 확률")]
         [SerializeField] private double stoneDropChance = 0.002d;
 
@@ -356,6 +362,8 @@ namespace WitchMendokusai
                 PullStoneCost = pullStoneCost,
                 StonesPerFirstClear = stonesPerFirstClear,
                 ShardsPerBoss = shardsPerBoss,
+                TicketsPerDay = ticketsPerDay,
+                DayResetOffsetSeconds = dayResetOffsetSeconds,
                 StoneDropChance = stoneDropChance,
                 LegendChance = legendChance,
                 EpicChance = epicChance,

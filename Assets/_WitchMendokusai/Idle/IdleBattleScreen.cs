@@ -123,6 +123,7 @@ namespace WitchMendokusai
 		private Button nextStageButton;
 
 		private Button[] cardButtons;
+		private Button[] dungeonRows;
 		private Label[] queueChips;
 		private int volleyHandIndex = -1;
 		private VisualElement costFill;
@@ -902,13 +903,53 @@ namespace WitchMendokusai
 		{
 			VisualElement page = OpenPage(Tab.Dungeon, dungeonPageAsset);
 
-			for (int index = 0; index < 4; index++)
+			dungeonRows = new Button[IdleDungeons.COUNT];
+
+			for (int index = 0; index < dungeonRows.Length; index++)
 			{
 				Button row = page.Q<Button>("dungeon-" + index);
+				dungeonRows[index] = row;
+
 				if (row != null)
 				{
+					// 입장권은 세지만 들어가지는 못한다. 던전 안 판이 아직 없다 (알파 9번)
 					row.SetEnabled(false);
 				}
+			}
+		}
+
+		/// <summary>던전 이름. 순서는 <c>IdleDungeonKind</c> 그대로</summary>
+		private static string NameOf(IdleDungeonKind kind)
+		{
+			switch (kind)
+			{
+				case IdleDungeonKind.Gold: return "재화 던전";
+				case IdleDungeonKind.Boss: return "보스 던전";
+				case IdleDungeonKind.Gear: return "장비 던전";
+				default: return "스킬 던전";
+			}
+		}
+
+		/// <summary>남은 입장권과 다시 찰 때까지 (economy.md 4)</summary>
+		private void RenderDungeons(IdleSnapshot snapshot)
+		{
+			if (dungeonRows == null)
+			{
+				return;
+			}
+
+			long hours = (long)(snapshot.TicketRefillSeconds / 3600d);
+			long minutes = (long)(snapshot.TicketRefillSeconds / 60d) % 60L;
+
+			for (int index = 0; index < dungeonRows.Length; index++)
+			{
+				if (dungeonRows[index] == null)
+				{
+					continue;
+				}
+
+				dungeonRows[index].text = string.Format("{0}. 입장권 {1}, 다시 참까지 {2}시간 {3}분 (준비 중)",
+					NameOf((IdleDungeonKind)index), snapshot.Tickets[index], hours, minutes);
 			}
 		}
 
@@ -1222,6 +1263,7 @@ namespace WitchMendokusai
 				case Tab.Shop: RenderShopPage(snapshot); break;
 				case Tab.Lab: RenderLabPage(snapshot); break;
 				case Tab.Invest: RenderInvestPage(snapshot); break;
+				case Tab.Dungeon: RenderDungeons(snapshot); break;
 				default: break;
 			}
 		}

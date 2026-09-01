@@ -90,6 +90,12 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// <summary>보스와 던전에서 주운 환생 조각 (economy.md 표 2)</summary>
         public long PrestigeShards;
 
+        /// <summary>던전 입장권 (economy.md 4)</summary>
+        public long[] Tickets;
+
+        /// <summary>입장권을 마지막으로 채운 날 번호</summary>
+        public long TicketDay;
+
         /// <summary>보스와 던전에서 주운 환생 조각 (economy.md 표 2)</summary>
 
 

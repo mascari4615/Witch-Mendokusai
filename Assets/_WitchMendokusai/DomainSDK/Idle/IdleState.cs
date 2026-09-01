@@ -59,6 +59,35 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// </summary>
         public long PrestigeShards { get; set; }
 
+        /// <summary>던전 입장권, 던전마다 하나 (economy.md 4). 정본은 <see cref="IdleDungeons"/></summary>
+        public long[] Tickets { get; private set; } = new long[IdleDungeons.COUNT];
+
+        /// <summary>입장권을 마지막으로 채운 날 번호. 날이 바뀌었나를 이걸로 안다</summary>
+        public long TicketDay { get; set; }
+
+        /// <summary>옛 저장에는 입장권 칸이 없어 null 이나 짧은 배열로 온다</summary>
+        public void EnsureTicketRoom()
+        {
+            if (Tickets != null && Tickets.Length == IdleDungeons.COUNT)
+            {
+                return;
+            }
+
+            long[] made = new long[IdleDungeons.COUNT];
+
+            if (Tickets != null)
+            {
+                int carry = Tickets.Length < made.Length ? Tickets.Length : made.Length;
+
+                for (int index = 0; index < carry; index++)
+                {
+                    made[index] = Tickets[index];
+                }
+            }
+
+            Tickets = made;
+        }
+
 
         /// <summary>몇 번 리셋했나.</summary>
         public int Ascensions { get; set; }
@@ -363,6 +392,8 @@ namespace WitchMendokusai.DomainSDK.Idle
                 ClearedStage = ClearedStage,
                 SeatsReady = SeatsReady,
                 PrestigeShards = PrestigeShards,
+                Tickets = (long[])Tickets.Clone(),
+                TicketDay = TicketDay,
 
                 MeasuredStage = MeasuredStage,
                 MeasuredKillsPerSecond = MeasuredKillsPerSecond,
@@ -558,6 +589,17 @@ namespace WitchMendokusai.DomainSDK.Idle
             ClearedStage = NotBelowZero(saveData.ClearedStage);
             SeatsReady = saveData.SeatsReady;
             PrestigeShards = saveData.PrestigeShards > 0L ? saveData.PrestigeShards : 0L;
+            Tickets = saveData.Tickets;
+            TicketDay = saveData.TicketDay;
+            EnsureTicketRoom();
+
+            for (int index = 0; index < Tickets.Length; index++)
+            {
+                if (Tickets[index] < 0L)
+                {
+                    Tickets[index] = 0L;
+                }
+            }
 
             MeasuredStage = NotBelowZero(saveData.MeasuredStage);
             MeasuredKillsPerSecond = Sane(saveData.MeasuredKillsPerSecond);

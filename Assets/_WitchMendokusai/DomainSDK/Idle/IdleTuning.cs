@@ -99,6 +99,16 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// </summary>
         public long ShardsPerBoss { get; set; }
 
+        /// <summary>던전 하나에 하루 몇 번 들어가나 (economy.md 4). 수치는 판정 대기</summary>
+        public long TicketsPerDay { get; set; } = 3L;
+
+        /// <summary>
+        /// 날 경계를 UTC 자정에서 얼마나 미나 (초).
+        ///
+        /// ★ 기본값 20시간은 KST 05:00. 자정에 끊으면 아직 노는 사람이 하루를 두 번 겪는 꼴
+        /// </summary>
+        public long DayResetOffsetSeconds { get; set; } = 20L * 3600L;
+
         /// <summary>처치 하나가 뽑기 재화를 떨굴 확률 (economy.md 표 2, 낮은 확률)</summary>
         public double StoneDropChance { get; set; } = 0.002d;
 

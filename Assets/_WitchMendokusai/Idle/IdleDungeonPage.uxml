@@ -1,10 +1,10 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
-    <!-- 던전 탭 (economy.md 던전 4종). 알파 9번, 지금은 자리만 -->
+    <!-- 던전 탭 (economy.md 4). 입장권은 실제 값, 던전 안 판은 알파 9번 -->
     <Style src="IdleBattleScreen.uss" />
     <ui:VisualElement name="page" class="idle-side idle-page">
-        <ui:Button name="dungeon-0" text="재화 던전. 입장권 0/0 (자리만)" class="idle-row-button" />
-        <ui:Button name="dungeon-1" text="보스 던전. 입장권 0/0 (자리만)" class="idle-row-button" />
-        <ui:Button name="dungeon-2" text="장비 던전. 입장권 0/0 (자리만)" class="idle-row-button" />
-        <ui:Button name="dungeon-3" text="스킬 던전. 입장권 0/0 (자리만)" class="idle-row-button" />
+        <ui:Button name="dungeon-0" text="재화 던전" class="idle-row-button" />
+        <ui:Button name="dungeon-1" text="보스 던전" class="idle-row-button" />
+        <ui:Button name="dungeon-2" text="장비 던전" class="idle-row-button" />
+        <ui:Button name="dungeon-3" text="스킬 던전" class="idle-row-button" />
     </ui:VisualElement>
 </ui:UXML>

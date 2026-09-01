@@ -409,6 +409,12 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// <summary>손패 — 카드마다 값과 「지금 낼 수 있나」.</summary>
         public IdleCardView[] Cards { get; }
 
+        /// <summary>던전마다 남은 입장권 (economy.md 4). 화면이 날짜 계산을 다시 하지 않게</summary>
+        public long[] Tickets { get; }
+
+        /// <summary>입장권이 다시 찰 때까지 남은 초</summary>
+        public double TicketRefillSeconds { get; }
+
         /// <summary>줄 선 카드 — 다음에 손패로 올라올 순서 (gap-2026-08-23 P1 순환 손패)</summary>
         public IdleCardKind[] Queued { get; }
 
@@ -450,9 +456,11 @@ namespace WitchMendokusai.DomainSDK.Idle
             double cost, double costMax, double supplySecondsLeft, IdleCardView[] cards,
             IdleSeatView[] seats, bool repeating, int clearedStage, double enemyDamagePerSecond,
             long hitsOnTarget, IdleFighterView[] fighters, IdleFoeView[] foes, IdleHit[] hits,
-            IdleCardKind[] queued)
+            IdleCardKind[] queued, long[] tickets, double ticketRefillSeconds)
         {
             Queued = queued;
+            Tickets = tickets;
+            TicketRefillSeconds = ticketRefillSeconds;
             Fighters = fighters;
             Foes = foes;
             Hits = hits;

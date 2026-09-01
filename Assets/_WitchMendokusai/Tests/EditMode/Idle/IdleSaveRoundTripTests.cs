@@ -178,6 +178,9 @@ namespace WitchMendokusai.Tests
 			state.MeasuredStage = 40;
 			state.MeasuredKillsPerSecond = 1.25d;
 			state.PrestigeShards = 6L;
+			state.EnsureTicketRoom();
+			state.Tickets[0] = 2L;
+			state.TicketDay = 20123L;
 
 			state.Bag.Add(new IdleItem(3, IdleItemSlot.Hands));
 			state.Worn[0] = new IdleItem(2, IdleItemSlot.Head);
