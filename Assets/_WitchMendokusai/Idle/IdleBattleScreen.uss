@@ -615,7 +615,7 @@
 }
 
 .idle-bag-cell {
-	width: 104px;
+	width: 90px;
 	height: 76px;
 	margin: 3px;
 	font-size: 24px;
@@ -804,7 +804,7 @@
 }
 
 .idle-forge-cell {
-	width: 130px;
+	width: 112px;
 	height: 96px;
 	margin: 3px;
 	background-color: rgb(40, 40, 40);
