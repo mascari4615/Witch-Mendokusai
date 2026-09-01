@@ -173,6 +173,17 @@ jobs:
       #   빨간불이 뜻을 잃는다. 대신 경고로 남겨 "안 봤다"가 눈에 보이게 한다.
       # ★ Mono 판은 <파는 물건이 아니다> — 여기에 초록을 주면 「검사했다」가 거짓이 된다.
       #   그래서 검사 자체를 건너뛰고, 건너뛴 사실을 경고로 남긴다.
+      # 실패했을 때가 진짜 증거다. tail 40 은 종료 로그만 보여 준다 (실측 2026-09-01:
+      # 20회 연속 실패인데 워크플로 로그만으로는 원인을 못 짚었다).
+      - name: Keep the Unity log (evidence on failure)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: idle-unity-log-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/idle-build.log
+          retention-days: 7
+          if-no-files-found: warn
+
       - name: Does it actually run (idle smoke)
         id: smoke
         if: inputs.backend != 'mono' && steps.unity.outputs.platform != 'android'
