@@ -104,6 +104,13 @@ namespace WitchMendokusai
 
 		public void Build()
 		{
+
+			// 배치 빌드에서는 안 세운다 (실측 2026-09-01). 씬 검사가 씬을 여는 것만으로
+			// [ExecuteAlways] 가 무대를 짓기 시작하면 -nographics 배치에서 빌드 사망
+			if (Application.isBatchMode)
+			{
+				return;
+			}
 			if (built) { return; }
 			built = true;
 			ClearPreview();

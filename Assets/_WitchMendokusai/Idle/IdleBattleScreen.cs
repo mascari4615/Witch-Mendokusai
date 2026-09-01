@@ -246,6 +246,14 @@ namespace WitchMendokusai
 
 			broken = false;
 
+			// 배치 빌드에서는 아무것도 안 세운다 (실측 2026-09-01: 20회 연속 빌드 실패).
+			// 씬 검사(IdleSceneBuilder.Verify)가 씬을 열면 [ExecuteAlways] 때문에 여기가 돌고,
+			// -nographics 배치에는 카메라도 패널도 없음. 빌드가 Unknown 으로 사망
+			if (Application.isBatchMode)
+			{
+				return;
+			}
+
 			IdleTuning tuning = tuningAsset != null ? tuningAsset.ToTuning() : new IdleTuning();
 			preview = Application.isPlaying == false;
 
