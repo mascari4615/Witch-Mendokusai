@@ -81,6 +81,8 @@
     <Compile Include="$(TestsRoot)Idle/IdleSaveFilesTests.cs" />
     <Compile Include="$(TestsRoot)Idle/IdleNoTelemetryTests.cs" />
     <Compile Include="$(TestsRoot)Idle/IdleBattleSimTests.cs" />
+    <Compile Include="$(TestsRoot)Idle/IdleCardTests.cs" />
+    <Compile Include="$(TestsRoot)Idle/IdleSquadTests.cs" />
     <Compile Include="$(TestsRoot)Combat/DamageCalculationTests.cs" />
     <Compile Include="$(TestsRoot)Building/BuildingFootprintTests.cs" />
     <Compile Include="$(TestsRoot)TowerDefense/TowerDefenseSignalFieldTests.cs" />

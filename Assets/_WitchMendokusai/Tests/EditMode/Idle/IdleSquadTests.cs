@@ -78,7 +78,15 @@ namespace WitchMendokusai.Tests
 			state.BestStage = 12;
 
 			// 혼자(시작 인형) 있는 판. 쓰러지는 순간 전멸
-			IdleModel.StepLive(state, tuning, 600d);
+			//
+			// ★ 나눠 부른다. 라이브는 한 번 부름에 BattleTicksPerCall(600틱, 60초) 만 돌고
+			//   넘친 시간을 버린다 (프레임 드랍 보호). 600 을 한 번에 주면 60초만 도는 셈이라
+			//   전멸 전에 시험이 끝남 (실측 2026-09-01. 이 시험은 Portable 에 안 실려 있어
+			//   사거리 전투 도입 뒤로 아무도 안 돌린 것)
+			for (int minute = 0; minute < 10; minute++)
+			{
+				IdleModel.StepLive(state, tuning, 60d);
+			}
 
 			Assert.IsTrue(state.Repeating, "전멸했는데 반복 모드가 안 켜졌다");
 			Assert.AreEqual(11, state.Stage, "실패했는데 클리어한 구역으로 안 물러났다");
@@ -162,12 +170,16 @@ namespace WitchMendokusai.Tests
 		}
 
 		/// <summary>
-		/// ★ <b>스텝 불변</b> — 부대층을 얹어도 60초 한 번 == 0.1초 600번.
+		/// ★ <b>틱 불변</b> - 60초 한 번과 0.1초 600번이 같은 결과.
 		///
-		/// 쓰러짐·부활이 스텝 중간에 나도 같아야 한다. 이게 깨지면 오프라인 정산이 거짓말을 한다.
+		/// 쓰러짐과 부활이 중간에 나도 같아야 함. 프레임 길이가 결과를 바꾸면 같은 판이 기계마다 갈림
+		///
+		/// ★ 60초를 넘겨 재지 말 것. 라이브는 한 번 부름에 <c>BattleTicksPerCall</c>(600틱) 상한이고
+		///   넘친 시간은 폐기. 그래서 <b>큰 값 한 번</b>과 <b>쪼갠 여러 번</b>은 원래 다른 값
+		///   (combat.md 가 D9 스텝 불변 계약을 폐기한 자리. 옛 계약으로 120초를 재면 7 대 11 로 갈림)
 		/// </summary>
 		[Test]
-		public void SquadEvents_AreStepInvariant()
+		public void SquadEvents_AreTickInvariant()
 		{
 			IdleTuning tuning = new IdleTuning();
 
@@ -178,8 +190,8 @@ namespace WitchMendokusai.Tests
 			once.Stage = 8;
 			split.Stage = 8;
 
-			IdleModel.StepLive(once, tuning, 120d);
-			for (int beat = 0; beat < 1200; beat++)
+			IdleModel.StepLive(once, tuning, 60d);
+			for (int beat = 0; beat < 600; beat++)
 			{
 				IdleModel.StepLive(split, tuning, 0.1d);
 			}

@@ -361,7 +361,8 @@ namespace WitchMendokusai.DomainSDK.Idle
                 state.HitsOnTarget,
                 CaptureFighters(),
                 CaptureFoes(),
-                CaptureHits());
+                CaptureHits(),
+                CaptureQueued());
         }
 
         /// <summary>
@@ -457,6 +458,22 @@ namespace WitchMendokusai.DomainSDK.Idle
             return made;
         }
 
+        /// <summary>줄 선 카드를 사진에 담는다 — 순환이 눈에 보이게 (gap-2026-08-23 P1)</summary>
+        private IdleCardKind[] CaptureQueued()
+        {
+            if (queuedBuffer == null || queuedBuffer.Length != IdleCards.QUEUE_SIZE)
+            {
+                queuedBuffer = new IdleCardKind[IdleCards.QUEUE_SIZE];
+            }
+
+            for (int index = 0; index < queuedBuffer.Length; index++)
+            {
+                queuedBuffer[index] = IdleCards.QueuedAt(state, index);
+            }
+
+            return queuedBuffer;
+        }
+
         /// <summary>시간을 흘린다 — <b>보고 있는 동안만</b> 도는 층(지나가는 것·폭주).</summary>
         public void AdvanceSurge(double seconds)
         {
@@ -522,6 +539,7 @@ namespace WitchMendokusai.DomainSDK.Idle
         private IdleItem[] wornBuffer;
         private int[] partyBuffer;
         private IdleCardView[] cardBuffer;
+        private IdleCardKind[] queuedBuffer;
         private IdleSeatView[] seatBuffer;
         private IdleFighterView[] fighterBuffer;
         private IdleFoeView[] foeBuffer;

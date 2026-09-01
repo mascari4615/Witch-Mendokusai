@@ -196,6 +196,36 @@ namespace WitchMendokusai.Tests
 			Assert.AreEqual(IdleCardKind.Volley, (IdleCardKind)state.CardDeck[IdleCards.DECK_SIZE - 1]);
 		}
 
+		/// <summary>★ 예고가 순환을 따라온다 - 안 그러면 화면이 거짓말을 한다 (gap-2026-08-23 P1)</summary>
+		[Test]
+		public void TheQueue_ShowsWhatComesNext()
+		{
+			IdleTuning tuning = new IdleTuning();
+			IdleState state = new IdleState();
+			IdleCards.EnsureDeck(state);
+
+			IdleCardKind wasFirstInLine = IdleCards.QueuedAt(state, 0);
+			Assert.AreEqual((IdleCardKind)state.CardDeck[IdleCards.HAND_SIZE], wasFirstInLine);
+
+			state.Cost = tuning.VolleyCost;
+			Assert.IsTrue(IdleCards.TryCastHand(state, tuning, 0, out IdleCardResult _));
+
+			Assert.AreEqual(wasFirstInLine, IdleCards.HandAt(state, IdleCards.HAND_SIZE - 1),
+				"줄 서 있던 첫 카드가 손패 맨 뒤로 안 올라왔다");
+			Assert.AreEqual(IdleCardKind.Volley, IdleCards.QueuedAt(state, IdleCards.QUEUE_SIZE - 1),
+				"낸 카드가 줄 맨 뒤에 안 붙었다");
+		}
+
+		/// <summary>★ 사진이 줄을 싣는다 - 화면이 덱을 직접 뒤지지 않게</summary>
+		[Test]
+		public void TheSnapshot_CarriesTheQueue()
+		{
+			IdleSession session = new IdleSession(new IdleTuning());
+			IdleSnapshot snapshot = session.Capture();
+
+			Assert.AreEqual(IdleCards.QUEUE_SIZE, snapshot.Queued.Length, "줄이 사진에 안 실렸다");
+		}
+
 		[Test]
 		public void DeckOrder_SurvivesTheSave()
 		{

@@ -123,6 +123,7 @@ namespace WitchMendokusai
 		private Button nextStageButton;
 
 		private Button[] cardButtons;
+		private Label[] queueChips;
 		private int volleyHandIndex = -1;
 		private VisualElement costFill;
 		private Label costLabel;
@@ -618,6 +619,7 @@ namespace WitchMendokusai
 			nextStageButton = battle.Q<Button>("next-stage-button");
 			nextStageButton.clicked += NextStage;
 			BindCardButtons(battle.Q<VisualElement>("cards"));
+			BindCardQueue(battle.Q<VisualElement>("card-queue"));
 			costLabel = battle.Q<Label>("cost-label");
 			costFill = battle.Q<VisualElement>("cost-fill");
 		}
@@ -629,6 +631,29 @@ namespace WitchMendokusai
 			{
 				int captured = index;
 				cardButtons[index] = AddCardButton(cards, () => Cast(captured));
+			}
+		}
+
+		/// <summary>
+		/// 줄 선 카드 칩. 다음에 올라올 순서 (gap-2026-08-23 P1)
+		///
+		/// ★ 이게 없으면 순환이 무작위와 구별이 안 된다. 맨 앞 하나는 색을 달리 해 <c>바로 다음</c> 표시
+		/// </summary>
+		private void BindCardQueue(VisualElement queue)
+		{
+			Label cap = new Label("다음");
+			cap.AddToClassList("idle-queue-cap");
+			queue.Add(cap);
+
+			queueChips = new Label[IdleCards.QUEUE_SIZE];
+
+			for (int index = 0; index < queueChips.Length; index++)
+			{
+				Label chip = new Label();
+				chip.AddToClassList("idle-queue-chip");
+				chip.EnableInClassList("idle-queue-chip--next", index == 0);
+				queue.Add(chip);
+				queueChips[index] = chip;
 			}
 		}
 
@@ -1136,6 +1161,11 @@ namespace WitchMendokusai
 				cardButtons[index].text = string.Format("{0}\n{1}", card.Cost, NameOf(card.Kind));
 				cardButtons[index].SetEnabled(card.CanCast);
 				cardButtons[index].EnableInClassList("idle-card--ready", card.CanCast);
+			}
+
+			for (int index = 0; index < queueChips.Length; index++)
+			{
+				queueChips[index].text = NameOf(snapshot.Queued[index]);
 			}
 
 			costLabel.text = string.Format("{0:0}/{1:0}", snapshot.Cost, snapshot.CostMax);

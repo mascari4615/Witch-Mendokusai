@@ -48,6 +48,7 @@
         </ui:VisualElement>
         <ui:VisualElement class="idle-hand">
             <ui:VisualElement name="cards" />
+            <ui:VisualElement name="card-queue" class="idle-queue" />
             <ui:VisualElement class="idle-cost">
                 <ui:Label name="cost-label" class="idle-cost-label" />
                 <ui:VisualElement class="idle-cost-gauge"><ui:VisualElement name="cost-fill" class="idle-cost-fill" /></ui:VisualElement>

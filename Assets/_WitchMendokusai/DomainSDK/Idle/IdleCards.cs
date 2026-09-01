@@ -69,6 +69,9 @@ namespace WitchMendokusai.DomainSDK.Idle
 		public const int DECK_SIZE = 6;
 		public const int CARD_COUNT = HAND_SIZE;
 
+		/// <summary>손패 뒤에 <b>줄 서 있는</b> 카드 수 (gap-2026-08-23 P1 순환 손패)</summary>
+		public const int QUEUE_SIZE = DECK_SIZE - HAND_SIZE;
+
 		private static readonly IdleCardKind[] DEFAULT_DECK =
 		{
 			IdleCardKind.Volley,
@@ -95,6 +98,37 @@ namespace WitchMendokusai.DomainSDK.Idle
 			return handIndex >= 0 && handIndex < HAND_SIZE ? (IdleCardKind)state.CardDeck[handIndex] : IdleCardKind.Volley;
 		}
 
+		/// <summary>
+		/// 줄 선 카드. 다음에 손패로 올라올 순서대로
+		///
+		/// ★ 이게 안 보이면 순환이 무작위와 구별이 안 된다. "지금 볼리를 쓰면 다음이 보급" 을
+		///   알아야 <c>어느 것을 먼저 쓰나</c> 가 결정이 된다 (gap-2026-08-23 P1)
+		/// </summary>
+		public static IdleCardKind QueuedAt(IdleState state, int queueIndex)
+		{
+			EnsureDeck(state);
+
+			if (queueIndex < 0 || queueIndex >= QUEUE_SIZE)
+			{
+				return IdleCardKind.Volley;
+			}
+
+			return (IdleCardKind)state.CardDeck[HAND_SIZE + queueIndex];
+		}
+
+		/// <summary>낸 카드를 맨 뒤로 보낸다 (순환). 앞의 것들이 한 칸씩 당겨진다</summary>
+		private static void SendToTheBack(IdleState state, int handIndex)
+		{
+			int used = state.CardDeck[handIndex];
+
+			for (int index = handIndex; index < state.CardDeck.Length - 1; index++)
+			{
+				state.CardDeck[index] = state.CardDeck[index + 1];
+			}
+
+			state.CardDeck[state.CardDeck.Length - 1] = used;
+		}
+
 		public static bool TryCastHand(IdleState state, IdleTuning tuning, int handIndex,
 			out IdleCardResult result)
 		{
@@ -110,13 +144,7 @@ namespace WitchMendokusai.DomainSDK.Idle
 				return false;
 			}
 
-			int used = state.CardDeck[handIndex];
-			for (int index = handIndex; index < state.CardDeck.Length - 1; index++)
-			{
-				state.CardDeck[index] = state.CardDeck[index + 1];
-			}
-
-			state.CardDeck[state.CardDeck.Length - 1] = used;
+			SendToTheBack(state, handIndex);
 			return true;
 		}
 
@@ -136,13 +164,7 @@ namespace WitchMendokusai.DomainSDK.Idle
 			}
 
 			state.Cost -= CostOf(IdleCardKind.Volley, tuning);
-			int used = state.CardDeck[handIndex];
-			for (int index = handIndex; index < state.CardDeck.Length - 1; index++)
-			{
-				state.CardDeck[index] = state.CardDeck[index + 1];
-			}
-
-			state.CardDeck[state.CardDeck.Length - 1] = used;
+			SendToTheBack(state, handIndex);
 			result = new IdleCardResult(IdleCardKind.Volley, default, false);
 			return true;
 		}
