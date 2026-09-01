@@ -422,6 +422,12 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// <summary>손패 — 카드마다 값과 「지금 낼 수 있나」.</summary>
         public IdleCardView[] Cards { get; }
 
+        /// <summary>가방을 한 묶음 더 넓히는 값 (상점). 상한이면 0</summary>
+        public double BagUpgradeCost { get; }
+
+        /// <summary>지금 살 수 있나. 판정은 코어가 한다</summary>
+        public bool CanBuyBag { get; }
+
         /// <summary>지금 걸린 배속 (gap-2026-08-23 P1-6). 화면이 이 값을 그대로 적는다</summary>
         public double Speed { get; }
 
@@ -476,10 +482,12 @@ namespace WitchMendokusai.DomainSDK.Idle
             IdleSeatView[] seats, bool repeating, int clearedStage, double enemyDamagePerSecond,
             long hitsOnTarget, IdleFighterView[] fighters, IdleFoeView[] foes, IdleHit[] hits,
             IdleCardKind[] queued, long[] tickets, double ticketRefillSeconds,
-            double speed, bool autoCast)
+            double speed, bool autoCast, double bagUpgradeCost, bool canBuyBag)
         {
             Speed = speed;
             AutoCast = autoCast;
+            BagUpgradeCost = bagUpgradeCost;
+            CanBuyBag = canBuyBag;
             Queued = queued;
             Tickets = tickets;
             TicketRefillSeconds = ticketRefillSeconds;

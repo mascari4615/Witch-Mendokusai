@@ -25,13 +25,14 @@ namespace WitchMendokusai.Tests
 		}
 
 		[Test]
-		public void Party_HasSixSlots_ThreeMainThreeSupport()
+		public void Party_HasThreeSlots_AllMain()
 		{
 			IdleState state = new IdleState();
 
-			Assert.AreEqual(6, state.Party.Length);
+			// 보조 칸은 0 (사용자 판정 2026-09-01: 셋만. 보조 능동 스킬이 생기면 그때)
+			Assert.AreEqual(3, state.Party.Length);
 			Assert.AreEqual(3, IdleHeroes.MAIN_SLOTS);
-			Assert.AreEqual(3, IdleHeroes.SUPPORT_SLOTS);
+			Assert.AreEqual(0, IdleHeroes.SUPPORT_SLOTS);
 
 			for (int slot = 0; slot < state.Party.Length; slot++)
 			{
@@ -39,69 +40,8 @@ namespace WitchMendokusai.Tests
 			}
 		}
 
-		/// <summary>★ 보조 칸의 영웅은 전장에 <b>불참</b>. 자리를 안 먹고, 맞지도 않는다.</summary>
-		[Test]
-		public void SupportSlot_TakesNoSeat()
-		{
-			IdleTuning tuning = new IdleTuning();
-			IdleState state = Owning(0, 1);
 
-			state.Party[IdleHeroes.MAIN_SLOTS] = 0;
-			Assert.AreEqual(0, IdleSquad.TakenCount(state), "보조 칸 영웅이 전장 자리를 먹었다 (자리 0 나는 없다)");
 
-			state.Party[0] = 1;
-			Assert.AreEqual(1, IdleSquad.TakenCount(state), "메인 칸 영웅이 자리를 안 받는다");
-
-			state.EnsureSeatRoom(tuning);
-			Assert.AreEqual(IdleSquad.SEAT_COUNT, state.SeatHealth.Length, "자리 수가 편성 칸 수를 따라갔다. 보조는 자리가 없어야 한다");
-			Assert.AreEqual(IdleHeroes.MAIN_SLOTS, IdleSquad.SEAT_COUNT, "자리 수가 메인 칸 수와 다르다. 자리 0(나)이 남아 있나");
-		}
-
-		/// <summary>★ 보조 칸도 <b>몫이 있다</b>. 다만 메인보다 작다. 같으면 늘 보조가 정답이 된다.</summary>
-		[Test]
-		public void SupportSlot_GivesLessThanMain_ButMoreThanOwning()
-		{
-			IdleTuning tuning = new IdleTuning();
-
-			IdleState owning = Owning(0);
-
-			IdleState support = Owning(0);
-			support.Party[IdleHeroes.MAIN_SLOTS] = 0;
-
-			IdleState main = Owning(0);
-			main.Party[0] = 0;
-
-			double ownedOnly = IdleHeroes.PartyMultiplierOf(owning, tuning, IdleHeroAxis.Damage);
-			double asSupport = IdleHeroes.PartyMultiplierOf(support, tuning, IdleHeroAxis.Damage);
-			double asMain = IdleHeroes.PartyMultiplierOf(main, tuning, IdleHeroAxis.Damage);
-
-			Assert.AreEqual(1d, ownedOnly, 1e-9d);
-			Assert.Greater(asSupport, ownedOnly, "보조 칸에 넣어도 아무 몫이 없다. 칸이 장식이다");
-			Assert.Greater(asMain, asSupport, "보조가 메인과 같거나 더 세다. 맞지도 않는 보조가 늘 정답이 된다");
-		}
-
-		/// <summary>같은 얼굴이 메인과 보조에 동시에 못 선다. 앉히면 맞바꾼다.</summary>
-		[Test]
-		public void SameHero_CannotSitInMainAndSupport()
-		{
-			IdleTuning tuning = new IdleTuning();
-			IdleState state = Owning(0, 1);
-			IdleSession session = new IdleSession(tuning, state);
-
-			Assert.IsTrue(session.Send(new IdleSetPartyIntent(0, 0)));
-			Assert.IsTrue(session.Send(new IdleSetPartyIntent(IdleHeroes.MAIN_SLOTS, 0)));
-
-			int seen = 0;
-			for (int slot = 0; slot < state.Party.Length; slot++)
-			{
-				if (state.Party[slot] == 0)
-				{
-					seen++;
-				}
-			}
-
-			Assert.AreEqual(1, seen, "같은 영웅이 두 칸에 앉았다");
-		}
 
 		/// <summary>
 		/// ★ 옛 저장(세 칸)은 <b>메인 칸으로</b> (사람이 앉혀 둔 셋이 그대로 출전).
@@ -123,7 +63,6 @@ namespace WitchMendokusai.Tests
 			Assert.AreEqual(6, state.Party[0]);
 			Assert.AreEqual(4, state.Party[1]);
 			Assert.AreEqual(5, state.Party[2]);
-			Assert.AreEqual(-1, state.Party[3], "옛 저장을 읽었는데 보조 칸에 무언가 앉아 있다");
 			Assert.AreEqual(3, IdleSquad.TakenCount(state), "옛 파티 셋이 메인 자리로 안 왔다");
 
 			IdleSaveData tooLong = new IdleSaveData
@@ -189,9 +128,14 @@ namespace WitchMendokusai.Tests
 			Assert.AreEqual(IdleSquad.SEAT_COUNT, loaded.SeatHealth.Length, "옛 자리 넷이 셋으로 안 줄었다");
 			Assert.AreEqual(0d, loaded.SeatHealth[0], 1e-12d, "옛 자리 0(나)의 체력이 새 자리 0 으로 새어 들어왔다");
 
-			// 사람이 메인 칸을 다 비워도 하나는 착석
+			// 사람이 메인 칸을 다 비워도 하나는 착석 (보조 칸은 없어졌다. 2026-09-01)
 			IdleState emptied = Owning(0, 1);
-			emptied.Party[IdleHeroes.MAIN_SLOTS] = 1;
+
+			for (int slot = 0; slot < emptied.Party.Length; slot++)
+			{
+				emptied.Party[slot] = -1;
+			}
+
 			Assert.IsTrue(IdleHeroes.EnsureStarter(emptied));
 			Assert.AreEqual(0, emptied.Party[0], "빈 전장을 그대로 뒀다");
 			Assert.IsFalse(IdleHeroes.EnsureStarter(emptied), "이미 선 판을 또 바꿨다");

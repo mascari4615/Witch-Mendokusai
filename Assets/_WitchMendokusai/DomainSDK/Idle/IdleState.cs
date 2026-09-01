@@ -68,6 +68,9 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// <summary>고른 배속의 자리 (gap-2026-08-23 P1-6). 0 이 1배</summary>
         public int SpeedStep { get; set; }
 
+        /// <summary>상점에서 산 가방 확장 묶음 수 (사용자 판정 2026-09-01). 환생 때 0 으로</summary>
+        public int BagUpgrades { get; set; }
+
         /// <summary>코스트가 차면 알아서 카드를 내나 (P1-6)</summary>
         public bool AutoCast { get; set; }
 
@@ -402,6 +405,7 @@ namespace WitchMendokusai.DomainSDK.Idle
                 TicketDay = TicketDay,
                 SpeedStep = SpeedStep,
                 AutoCast = AutoCast,
+                BagUpgrades = BagUpgrades,
 
                 MeasuredStage = MeasuredStage,
                 MeasuredKillsPerSecond = MeasuredKillsPerSecond,
@@ -601,6 +605,7 @@ namespace WitchMendokusai.DomainSDK.Idle
             TicketDay = saveData.TicketDay;
             SpeedStep = NotBelowZero(saveData.SpeedStep);
             AutoCast = saveData.AutoCast;
+            BagUpgrades = NotBelowZero(saveData.BagUpgrades);
             EnsureTicketRoom();
 
             for (int index = 0; index < Tickets.Length; index++)

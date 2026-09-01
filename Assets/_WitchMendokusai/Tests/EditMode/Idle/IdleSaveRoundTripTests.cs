@@ -182,6 +182,7 @@ namespace WitchMendokusai.Tests
 			state.Tickets[0] = 2L;
 			state.TicketDay = 20123L;
 			state.SpeedStep = 2;
+			state.BagUpgrades = 3;
 			state.AutoCast = true;
 
 			state.Bag.Add(new IdleItem(3, IdleItemSlot.Hands));

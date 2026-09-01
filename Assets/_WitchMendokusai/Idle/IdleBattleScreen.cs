@@ -87,7 +87,7 @@ namespace WitchMendokusai
 		private const float BATTLE_SHARE = 1200f / 1920f;
 
 		/// <summary>지금 보이는 탭. 나머지는 임시로 숨김 (사용자 2026-08-30, 개발 편의. 코드는 유지)</summary>
-		private static readonly bool[] TAB_SHOWN = { true, true, false, false, false, false, false };
+		private static readonly bool[] TAB_SHOWN = { true, true, false, true, false, false, false };
 
 		// ── 전투 창 ───────────────────────────────────────────────────────
 		private VisualElement battle;
@@ -216,6 +216,8 @@ namespace WitchMendokusai
 		// 상점
 		private Button pullButton;
 		private Label pullOdds;
+		private Button bagButton;
+		private Label bagNote;
 
 		// 연구소
 		private Label prestigeSummary;
@@ -898,6 +900,9 @@ namespace WitchMendokusai
 			pullButton = page.Q<Button>("pull-button");
 			pullButton.clicked += Pull;
 			pullOdds = page.Q<Label>("pull-odds");
+			bagButton = page.Q<Button>("bag-button");
+			bagButton.clicked += BuyBag;
+			bagNote = page.Q<Label>("bag-note");
 		}
 
 		private void BuildLabPage()
@@ -1386,6 +1391,18 @@ namespace WitchMendokusai
 			Render(session.Capture());
 		}
 
+		/// <summary>가방 한 묶음 넓히기 (상점). 판정은 코어가 한다</summary>
+		private void BuyBag()
+		{
+			if (session == null)
+			{
+				return;
+			}
+
+			session.BuyBagUpgrade();
+			Render(session.Capture());
+		}
+
 		/// <summary>인형 레벨 한 칸 (economy.md 표 3). 판정은 코어가 한다</summary>
 		private void RaiseHeroLevel(int heroId)
 		{
@@ -1589,6 +1606,14 @@ namespace WitchMendokusai
 
 		private void RenderShopPage(IdleSnapshot snapshot)
 		{
+			// 가방 넓히기. 골드로 사고 환생 때 사라진다 (사용자 판정 2026-09-01, 울티마 스쿼드)
+			bagButton.text = snapshot.BagUpgradeCost > 0d
+				? string.Format("가방 +{0}칸. 골드 {1}", IdleShop.BAG_STEP_HINT, BigNumberText.Format(snapshot.BagUpgradeCost))
+				: "더 못 넓힌다";
+			bagButton.SetEnabled(snapshot.CanBuyBag);
+			bagNote.text = string.Format("지금 {0}칸. 환생하면 처음으로 돌아간다",
+				snapshot.BagCapacity);
+
 			pullButton.text = snapshot.CanPull
 				? string.Format("1회 뽑기. 골드 {0} + 뽑기 재화 {1} (가진 것 {2})",
 					BigNumberText.Format(snapshot.PullCost), snapshot.PullStoneCost, snapshot.Stones)

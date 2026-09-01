@@ -102,6 +102,9 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// <summary>코스트가 차면 알아서 카드를 내나</summary>
         public bool AutoCast;
 
+        /// <summary>상점에서 산 가방 확장 묶음 수</summary>
+        public int BagUpgrades;
+
         /// <summary>보스와 던전에서 주운 환생 조각 (economy.md 표 2)</summary>
 
 

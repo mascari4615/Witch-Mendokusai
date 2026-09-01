@@ -107,6 +107,18 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// </summary>
         public double[] SpeedSteps { get; set; } = { 1d, 2d, 3d };
 
+        /// <summary>가방 확장 한 묶음이 늘려 주는 칸 수 (상점, 2026-09-01)</summary>
+        public int BagUpgradeStep { get; set; } = 10;
+
+        /// <summary>가방 확장을 몇 묶음까지 사나. 무한이면 합성을 안 하게 된다</summary>
+        public int BagUpgradeMost { get; set; } = 8;
+
+        /// <summary>첫 가방 확장에 드는 골드</summary>
+        public double BagUpgradeCostBase { get; set; } = 200d;
+
+        /// <summary>살수록 값이 오르는 비율</summary>
+        public double BagUpgradeCostRatio { get; set; } = 1.6d;
+
         /// <summary>던전 하나에 하루 몇 번 들어가나 (economy.md 4). 수치는 판정 대기</summary>
         public long TicketsPerDay { get; set; } = 3L;
 

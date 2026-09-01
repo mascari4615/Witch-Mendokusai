@@ -198,6 +198,9 @@ namespace WitchMendokusai.DomainSDK.Idle
             // 인형 레벨도 지움 (U4). 보유와 ★ 과 도감은 그대로
             IdleHeroes.ForgetLevels(state);
 
+            // 상점에서 산 것도 지움 (사용자 판정 2026-09-01. 골드로 산 것은 그 판의 것)
+            IdleShop.ForgetPurchases(state);
+
             // 장비도 지움 (economy.md 표 3, 사용자 판정 2026-09-01 "장비도 리셋").
             //
             // ★ 남기던 때는 장비가 판을 건너는 것이 <b>깊이 갔다 온 값어치</b>라고 봤는데,

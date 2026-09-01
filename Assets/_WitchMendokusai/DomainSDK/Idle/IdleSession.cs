@@ -200,6 +200,12 @@ namespace WitchMendokusai.DomainSDK.Idle
             state.AutoCast = state.AutoCast == false;
         }
 
+        /// <summary>가방을 한 묶음 넓힌다 (상점). 골드가 모자라거나 상한이면 아무 일도 없다</summary>
+        public bool BuyBagUpgrade()
+        {
+            return IdleShop.TryBuyBag(state, tuning);
+        }
+
         /// <summary>인형 레벨을 한 칸 올린다 (economy.md 표 3). 골드가 모자라면 아무 일도 없다</summary>
         public bool RaiseHeroLevel(int heroId)
         {
@@ -378,7 +384,7 @@ namespace WitchMendokusai.DomainSDK.Idle
                 CaptureProducers(),
                 CaptureBag(),
                 CaptureWorn(),
-                tuning.BagCapacity,
+                IdleShop.BagCapacityOf(state, tuning),
                 tuning.MergeCount,
                 state.BestPotentialValue,
                 (PotentialGrade)state.BestPotentialGrade,
@@ -421,7 +427,9 @@ namespace WitchMendokusai.DomainSDK.Idle
                 CaptureTickets(),
                 IdleDungeons.SecondsUntilRefill(state, tuning, Now()),
                 SpeedNow,
-                state.AutoCast);
+                state.AutoCast,
+                IdleShop.BagUpgradeCost(state, tuning),
+                IdleShop.CanBuyBag(state, tuning));
         }
 
         /// <summary>

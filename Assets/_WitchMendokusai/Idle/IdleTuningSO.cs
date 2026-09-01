@@ -99,6 +99,18 @@ namespace WitchMendokusai
         [Tooltip("보스 하나가 떨구는 환생 조각 (economy.md 표 2)")]
         [SerializeField] private long shardsPerBoss;
 
+        [Tooltip("가방 확장 한 묶음이 늘려 주는 칸 수 (상점)")]
+        [SerializeField] private int bagUpgradeStep = 10;
+
+        [Tooltip("가방 확장을 몇 묶음까지 사나. 무한이면 합성을 안 하게 된다")]
+        [SerializeField] private int bagUpgradeMost = 8;
+
+        [Tooltip("첫 가방 확장에 드는 골드")]
+        [SerializeField] private double bagUpgradeCostBase = 200d;
+
+        [Tooltip("살수록 값이 오르는 비율")]
+        [SerializeField] private double bagUpgradeCostRatio = 1.6d;
+
         [Tooltip("던전 하나에 하루 몇 번 들어가나 (economy.md 4)")]
         [SerializeField] private long ticketsPerDay = 3L;
 
@@ -371,6 +383,10 @@ namespace WitchMendokusai
                 PullStoneCost = pullStoneCost,
                 StonesPerFirstClear = stonesPerFirstClear,
                 ShardsPerBoss = shardsPerBoss,
+                BagUpgradeStep = bagUpgradeStep,
+                BagUpgradeMost = bagUpgradeMost,
+                BagUpgradeCostBase = bagUpgradeCostBase,
+                BagUpgradeCostRatio = bagUpgradeCostRatio,
                 TicketsPerDay = ticketsPerDay,
                 DayResetOffsetSeconds = dayResetOffsetSeconds,
                 StoneDropChance = stoneDropChance,

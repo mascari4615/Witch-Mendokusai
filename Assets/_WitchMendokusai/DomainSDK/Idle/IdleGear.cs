@@ -35,7 +35,7 @@ namespace WitchMendokusai.DomainSDK.Idle
                 return 0;
             }
 
-            int room = tuning.BagCapacity - state.Bag.Count;
+            int room = IdleShop.BagCapacityOf(state, tuning) - state.Bag.Count;
             if (room <= 0)
             {
                 return 0;
@@ -73,7 +73,7 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// <summary>가방이 찼나 — 화면이 「정리해라」를 말할 수 있게.</summary>
         public static bool IsBagFull(IdleState state, IdleTuning tuning)
         {
-            return state.Bag.Count >= tuning.BagCapacity;
+            return state.Bag.Count >= IdleShop.BagCapacityOf(state, tuning);
         }
 
         /// <summary>

@@ -56,8 +56,14 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// <summary>전장에 서는 자리 수. 이 앞쪽 칸이 <see cref="IdleSquad"/> 의 파티 자리가 된다.</summary>
         public const int MAIN_SLOTS = 3;
 
-        /// <summary>전장에 안 서고 보조 스킬만 얹는 자리 수.</summary>
-        public const int SUPPORT_SLOTS = 3;
+        /// <summary>
+        /// 전장에 안 서고 보조 스킬만 얹는 자리 수.
+        ///
+        /// ★ 지금은 0 (사용자 판정 2026-09-01: "영웅도 당장은 3명만, 6명은 추후 기획").
+        ///   보조 칸의 값어치는 보조 능동 스킬인데 그게 아직 없어, 칸만 있으면
+        ///   <b>배수만 얹는 빈 칸</b> 이 된다. 코드는 남기고 수만 0 으로
+        /// </summary>
+        public const int SUPPORT_SLOTS = 0;
 
         /// <summary>편성 칸 수. 메인 + 보조.</summary>
         public const int PARTY_SLOTS = MAIN_SLOTS + SUPPORT_SLOTS;
