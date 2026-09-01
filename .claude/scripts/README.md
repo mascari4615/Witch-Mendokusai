@@ -14,17 +14,15 @@ the worktree (where Claude Code's cwd lands), so they live here too.
 
 ### Why
 
-`CLAUDE.md § Unity-MCP layer` is explicit that the canonical compile-verify
-channel is Unity-MCP `read_console`, because Editor.log is append-only:
+`CLAUDE.md § Unity 통로`의 정본 콘솔 경로는 공식 `unity command console`이다.
+Editor.log는 append-only라 이전 컴파일 오류가 섞인다:
 errors from past compile attempts pile up in the same file, and a naive
 `grep "error CS"` returns *every* error since the Editor was launched.
 TASK-WM-056-A (2026-05-10) is the canonical incident — Editor.log grep
 reported 259 unique CS errors while the actual current state was 6.
 
-But MCP isn't always available — a worktree Editor may be open *without*
-the MCP HTTP server running, the package may be temporarily broken, or a
-Claude session may need a quick sanity check before MCP is bound. In those
-moments we need an Editor.log fallback that *doesn't* leak history.
+CLI가 도메인 리로드나 메인 스레드 점유로 응답하지 않는 순간에는 현재 세션만 자르는
+Editor.log fallback이 필요하다.
 
 ### What this script does
 
@@ -71,10 +69,7 @@ session-isolation behaviour against a synthetic two-session log, plus the
 JSON shape, max-lines cap, pattern override, marker inclusion, no-marker
 exit code, and missing-file exit code.
 
-### Relationship to MCP
+### Unity CLI와의 관계
 
-This is a **fallback**, not a replacement. The canonical channel remains
-Unity-MCP `read_console` (and `McpAutoBinder.cs` now auto-routes the
-worktree's `.mcp.json` to keep MCP usable across Editor restarts). Use the
-log-tail only when MCP genuinely isn't an option for the current
-worktree-session pair.
+이 스크립트는 fallback이다. 정본은 공식 `unity command console`이며, CLI가 60초 안에
+서비스 가능 상태로 돌아오지 않을 때만 현재 Editor.log 세션을 확인한다.

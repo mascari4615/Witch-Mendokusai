@@ -9,7 +9,7 @@ TASK-WM-109 이슈 6 — 한 세션 35+ commits 누적 → 사용자 Play 진입
 → 어느 commit 이 원인인지 식별 비용 폭발 (5+ 회귀 사이클).
 
 원인은 매 commit 후 *컴파일+부팅 검증 없이* 다음 commit 으로 진행한 것. CLAUDE.md
-가 정한 검증 흐름 (`refresh_unity` → `read_console`) 을 매 commit 단위로 실행하지
+가 정한 검증 흐름 (`wm-compile-check.ps1` → `unity command console`) 을 매 commit 단위로 실행하지
 않으면 `git bisect` 가 사실상 무력화된다 (모든 commit 이 NRE 면 갈라낼 게 없다).
 
 ## 무엇이 들어있나
@@ -17,7 +17,7 @@ TASK-WM-109 이슈 6 — 한 세션 35+ commits 누적 → 사용자 Play 진입
 | 파일 | 역할 |
 |---|---|
 | `post-commit` | bash POSIX hook. 매 commit 후 자동. PS verify 스크립트에 위임 (없으면 silent skip). 항상 exit 0 — *commit 차단 X*. |
-| `wm-commit-verify.ps1` | 실제 검증 로직 (PowerShell). ledger append + `.cs` / `.meta` / `.asset` / `.prefab` / `.unity` 카운트 + `.cs` ↔ `.cs.meta` 짝 검사 + **은퇴한 식별자 canary** + Unity-MCP TCP probe(포트는 `.mcp.json` 에서 읽는다) + big-commit hint. *Unity 호출 X* (hook 은 빨라야). |
+| `wm-commit-verify.ps1` | 실제 검증 로직 (PowerShell). ledger append + `.cs` / `.meta` / `.asset` / `.prefab` / `.unity` 카운트 + `.cs` ↔ `.cs.meta` 짝 검사 + **은퇴한 식별자 canary** + big-commit hint. *Unity 호출 X* (hook 은 빨라야). |
 | `retired-identifiers.tsv` | 은퇴한 이름 표(`옛이름 <TAB> 새이름 <TAB> 사유`). 커밋의 *추가된 줄*에 옛 이름이 나오면 「옛 사본을 들고 있다」고 알린다 — 2026-08-06 하루에 네 번, 서로 다른 파일이 개명 전 내용으로 통째 되돌아와 main 이 `CS0246` 로 죽었다. **이름을 바꿀 때마다 한 줄 추가할 것**(로직 수정 불요). 막지는 않는다. |
 | `pre-push` | bash POSIX hook. **푸시 전** 그 푸시에 「다른 커밋의 일을 되돌린」 커밋이 있는지 본다(`wm-revert-audit.sh` 호출). **항상 exit 0 — 막지 않는다**(의도적 `git revert` 도 같은 모양이라 거짓 차단이 게이트를 죽인다). 최대 20 커밋만 훑어 훅이 안 늘어지게. |
 | `install.ps1` | `.git/hooks/` 로 hook 복사(**post-commit + pre-push 둘 다**). git common dir 사용 → 메인 + 모든 worktree 한 번에 적용. idempotent (이미 설치돼 있으면 no-op). `-Force` / `-Uninstall` 지원. |
@@ -34,18 +34,17 @@ powershell -File Tools/git-hooks/install.ps1
 옵트인 — 자동 활성화 X. 팀에서 적용 합의되면 각 환경에서 한 번씩 실행. (`.git/hooks/`
 는 git 추적 외 — 레포 clone 직후엔 비어있어, 매 머신·worktree 셋업의 일부.)
 
-## 산출 — `<git-common-dir>/wm-commit-log.tsv`
+## 산출: `<git-common-dir>/wm-commit-log-v2.tsv`
 
 매 commit 마다 한 행 append. 컬럼:
 
 ```
-ts  sha  author  cs  meta  asset  prefab  scene  mcp  parents  subject
+ts  sha  author  cs  meta  asset  prefab  scene  parents  subject
 ```
 
 - `ts` — ISO-8601 (timezone 포함)
 - `sha` — short (12자)
 - `cs`, `meta`, `asset`, `prefab`, `scene` — commit 내 touched 파일 수
-- `mcp` — 0/1, *commit 시점* Unity-MCP `:8080` TCP probe 응답 여부
 - `parents` — 부모 commit 수 (2+ = merge, diff stat 미계산)
 - `subject` — commit subject line (tab → space 정리)
 
@@ -53,17 +52,11 @@ ts  sha  author  cs  meta  asset  prefab  scene  mcp  parents  subject
 
 ```powershell
 # 최근 30개 commit 한 눈에
-Get-Content (git rev-parse --git-common-dir | %{ Join-Path $_ wm-commit-log.tsv }) -Tail 30
+Get-Content (git rev-parse --git-common-dir | %{ Join-Path $_ wm-commit-log-v2.tsv }) -Tail 30
 
 # big commit 만
 Import-Csv -Delimiter "`t" -Path (...) | Where-Object { [int]$_.cs -gt 10 }
-
-# MCP 응답 없었던 commit (검증 누락 의심 구간)
-Import-Csv -Delimiter "`t" -Path (...) | Where-Object { $_.mcp -eq '0' }
 ```
-
-`mcp=0` 구간이 NRE 후보 zone — 그 시점 Editor 가 응답을 안 했으므로 컴파일 검증이
-누락됐을 가능성 ↑. bisect 시 좁히는 단서.
 
 ## 커밋 규율 (1차 안전망)
 
@@ -88,7 +81,7 @@ post-commit hook 은 *정보만* — 차단 X. **근본은 commit 규율** (TASK
 
 ```powershell
 # 1) ledger 에서 마지막 known-good SHA 찾기
-$ledger = Join-Path (git rev-parse --git-common-dir) 'wm-commit-log.tsv'
+$ledger = Join-Path (git rev-parse --git-common-dir) 'wm-commit-log-v2.tsv'
 Get-Content $ledger -Tail 30
 
 # 2) bisect 시작
@@ -103,27 +96,21 @@ git bisect good   # 또는 bad
 git bisect reset
 ```
 
-ledger 의 `cs` / `mcp` 컬럼이 bisect 시작 범위를 좁히는 단서:
+ledger 의 `cs` 컬럼이 bisect 시작 범위를 좁히는 단서:
 
-- `mcp=1` 연속 구간 = 그 시점 Editor 응답 OK = 검증 가능했던 구간
 - `cs=0` commit = .cs 변경 0 = NRE 발생 가능성 ↓ (스킵 후보)
 
-## Unity-MCP 와의 관계
+## Unity CLI와의 관계
 
-CLAUDE.md § Unity-MCP layer 의 `read_console` 이 컴파일 검증 정본 (Mono runtime
-직속). hook 자체는 MCP 를 *호출* 하지 않는다:
+CLAUDE.md의 `wm-compile-check.ps1` + 공식 Unity CLI console이 컴파일 검증 정본.
+hook 자체는 Unity를 호출하지 않는다:
 
-- JSON-RPC handshake 가 1회성 PS 호출에 무겁고, hook 은 빨라야 한다 (수 ms).
-- MCP 호출 결과로 commit 을 *차단* 할 수도 없다 (post-commit). 정보 가치만 있는데
-  비용이 크다.
-
-대신 *MCP 응답 여부만* TCP probe (~300ms timeout) 로 ledger 에 기록 — 추후 분석
-시 "그 시점 Editor 가 살아있었는지" 단서.
+- CLI 호출은 도메인 리로드나 메인 스레드 점유 때 최대 60초 재시도 대상. post-commit hook에 부적합.
+- hook 결과로 commit 차단 불가. 정보 가치보다 지연 비용이 큼.
 
 진짜 컴파일 검증은:
 
-- 자동: 에이전트가 `refresh_unity(...)` + `read_console(types=["error","warning"])`
-  실행 (CLAUDE.md 정본).
+- 자동: 에이전트가 `wm-compile-check.ps1` + `unity command console` 실행 (CLAUDE.md 정본).
 - fallback: Editor.log grep (append-only 한계 — § 컴파일 에러 확인 참고).
 - 부팅 검증: `wm-boot-smoke.ps1` (memo dotfiles, batchmode standalone superset).
 
@@ -144,8 +131,7 @@ hook 의 책임은 *유도* + *기록* 뿐, *증명* 이 아니다.
 |---|---|
 | commit 직후 console 출력 없음 | hook 미설치 — `install.ps1` 재실행. `.git/hooks/post-commit` 존재 확인. |
 | `no pwsh/powershell on PATH` | PowerShell 미설치. Windows 면 정상 X. Git Bash 환경변수에서 `powershell` 찾을 수 있는지 확인. |
-| `wm-verify` 라인 보이는데 ledger 안 생김 | `.git/wm-commit-log.tsv` 권한 / 경로 — 메시지의 ledger 경로 확인. |
-| `mcp=0` 으로 계속 찍힘 | Unity Editor 미실행 / `Window > MCP for Unity > Start Server` 미시작. CLAUDE.md § Unity-MCP layer 참고. |
+| `wm-verify` 라인 보이는데 ledger 안 생김 | `.git/wm-commit-log-v2.tsv` 권한 / 경로, 메시지의 ledger 경로 확인. |
 | 대량 .cs commit 후 [big] 경고 | 의도된 경고 — § 커밋 규율 5원칙 #1 위반 가능 신호. 다음 commit 부터 분할 검토. |
 
 ## TASK-WM-109-F 적용 외 사용처
@@ -153,7 +139,7 @@ hook 의 책임은 *유도* + *기록* 뿐, *증명* 이 아니다.
 이 ledger 는 회귀 추적 외에도:
 
 - **자가증강 baseline 측정** (agent-mission §2.8-C) — 어떤 시기에 commit 빈도 / .cs
-  density / MCP 가용성이 어땠는지 객관 기록. retro 가 진화 적합도 평가에 사용 가능.
+  density 를 객관 기록. retro 가 진화 적합도 평가에 사용 가능.
 - **세션 후처리** — Claude 세션 끝나고 "이 세션 commit 들 .cs 총량 / big commit 수"
   를 ledger 한 번 grep 으로 확인.
 - **자동 단위 분할 가이드** — `cs > N` commit 자동 detect → 다음 작업에서 같은

@@ -9,7 +9,7 @@ using WitchMendokusai.DomainSDK.Farming;
 namespace WitchMendokusai.EditorTools
 {
 	// 마도 온실(TASK-WM-167) PlayMode 자율 behavior-verify — 사용자 0클릭.
-	// WM Play 는 MCP 브리지를 wedge 시키므로(canon: run_tests(PlayMode) wedge) MCP 로 Play 중 구동 불가 →
+	// WM Play 부팅 중 외부 명령 400/503 가능 →
 	// 이 하네스가 *에디터 안에서* 스스로: Play 진입 → World 씬 준비 대기 → WitchGreenhouseObject 스폰(Start 자립
 	// 구축) → demoTick 몇 초 → 칸 상태 로그(유니크 prefix) → 스크린샷 → 자동 ExitPlaymode. Editor.log 가 ground-truth.
 	// [[wm-playmode-autoverify-bootready-gate]] 패턴. 하드 타임아웃 = 절대 Play 에 안 물리게(공유 에디터 보호).

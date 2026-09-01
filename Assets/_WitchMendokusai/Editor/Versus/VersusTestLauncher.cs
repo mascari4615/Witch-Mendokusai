@@ -7,7 +7,7 @@ namespace WitchMendokusai
 {
 	/// <summary>
 	/// 대결 축 v0 런처 (TASK-WM-411) — 빈 씬을 열고 감독 하나만 얹은 뒤 Play 로 들어간다.
-	/// 본편(World) 부팅을 타지 않으므로 heavy-boot 대기·MCP 브릿지 wedge 와 무관하고, 켜는 데 몇 초면 된다.
+	/// 본편(World) 부팅을 타지 않아 heavy-boot 대기와 CLI 일시 불능에 무관. 기동 수 초.
 	/// 판·카메라·조명·싸우는 둘은 전부 <see cref="VersusMatchDirector"/> 가 런타임에 짓는다(씬 에셋 0).
 	/// </summary>
 	public static class VersusTestLauncher

@@ -18,7 +18,7 @@ namespace WitchMendokusai.EditorTools
 	/// 직접 예고한 예외 케이스). 그래서 동일 lifecycle 규약(arm → EnteredPlayMode → ready 게이트 →
 	/// settle → HARD TIMEOUT 안전망 → 자동 ExitPlaymode)만 계승하고 본문은 관찰 루프로 구현.
 	///
-	/// MCP 는 Play 중 wedge 되므로 하네스가 *에디터 안에서* 스스로 구동하고 Editor.log/Console 이 ground-truth.
+	/// Play 부팅 중 외부 명령 400/503 가능. 하네스의 에디터 내부 자율 구동과 Editor.log/Console 정본.
 	/// 유니크 prefix [TD-Verify] 로 단일 grep.
 	///
 	/// ⚠ 검증 범위 — 배치는 match API 직접 호출(게임 루프 검증). 마우스 입력 경로
@@ -2132,7 +2132,7 @@ namespace WitchMendokusai.EditorTools
 		private static void DumpCameras(string phase)
 		{
 			// ⚠ Unity 콘솔 리더는 멀티라인 로그의 *첫 줄만* 준다 → 카메라마다 별도 Debug.Log 로 찍어야
-			//   원격(MCP)에서 전부 읽힌다. 한 줄로 몰면 진단이 통째 유실됨(실측).
+			//   원격 콘솔에서 전부 읽힘. 한 줄로 몰면 진단 통째 유실(실측)
 			Camera[] cameras = Object.FindObjectsByType<Camera>(FindObjectsInactive.Exclude);
 			Debug.Log(TAG + " CAMERAS(" + phase + ") count=" + cameras.Length
 				+ " main=" + (Camera.main != null ? Camera.main.name : "NULL"));

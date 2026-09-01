@@ -9,7 +9,7 @@ namespace WitchMendokusai.EditorTools
 	/// WM PlayMode 자율검증 하네스 공통 lifecycle (TASK-WM — 하네스 DRY 추출).
 	///
 	/// 패턴 [[wm-playmode-autoverify-bootready-gate]]: arm(메뉴) → EnterPlaymode → ready 게이트 → settle →
-	/// RunVerify 1회 → 자동 ExitPlaymode. MCP 가 Play 중 wedge 되므로 하네스가 *에디터 안에서* 스스로 구동하고
+	/// RunVerify 1회 → 자동 ExitPlaymode. 외부 명령 상태와 무관하게 하네스가 *에디터 안에서* 스스로 구동하고
 	/// Editor.log 가 ground-truth. HARD_TIMEOUT 안전망으로 공유 에디터 보호(절대 Play 에 안 물림).
 	///
 	/// 파생 = 변하는 3축만 구현: <see cref="Tag"/>(유니크 prefix) / <see cref="ArmPref"/>(EditorPrefs 키) /

@@ -7,11 +7,10 @@
 #   2. Count touched .cs / .meta / .asset / .prefab / .unity files in the commit.
 #   3. Pair-check .cs (added/modified) ↔ .cs.meta — Unity GUID-loss canary.
 #   4. Heuristic "big commit" advisory when .cs count exceeds a small threshold.
-#   5. TCP probe of Unity-MCP (port from .mcp.json; informational only — no MCP RPC).
 #
 # Non-responsibilities:
 #   - Calling Unity (compile / Play). Hooks must be fast; canonical compile
-#     verification stays MCP `read_console` (CLAUDE.md § Unity-MCP layer).
+#     verification stays wm-compile-check + official Unity CLI console.
 #   - Blocking commits — this is post-commit; runs always with exit 0.
 #
 # Invoked by .git/hooks/post-commit after install.ps1 sets it up.
@@ -253,65 +252,20 @@ if ($parentCount -le 1 -and $csCount -gt 0 -and (Test-Path -LiteralPath $retired
     }
 }
 
-# Unity-MCP TCP probe — fast (~300ms timeout each). Informational only.
-#
-# 포트가 한 곳에 안 산다(실측 2026-08-06): `.mcp.json` 이 있으면 그게 정본이지만 그 파일은
-# gitignore 라 새 클론엔 없고, 그때 에디터는 **패키지 기본값 8080** 으로 뜬다. CLAUDE.md 는
-# 12345 라고 적어두는데 그건 `.mcp.json` 이 있을 때 이야기다. 하나만 박으면 나머지 경우에
-# 영영 거짓 "미응답"을 찍는다 — 거짓말하는 신호는 없는 신호보다 나쁘다. 그래서 후보를 다 본다.
-$mcpPorts = @()
-$mcpJson = Join-Path $paths.Root '.mcp.json'
-if (Test-Path -LiteralPath $mcpJson)
-{
-    $portMatch = [regex]::Match((Get-Content -LiteralPath $mcpJson -Raw), ':(\d+)/mcp')
-    if ($portMatch.Success) { $mcpPorts += [int]$portMatch.Groups[1].Value }
-}
-foreach ($fallback in @(8080, 12345)) { if ($mcpPorts -notcontains $fallback) { $mcpPorts += $fallback } }
-
-$mcpUp = $false
-$mcpPort = $mcpPorts[0]
-foreach ($candidate in $mcpPorts)
-{
-    try
-    {
-        $tcp = New-Object System.Net.Sockets.TcpClient
-        $iar = $tcp.BeginConnect('127.0.0.1', $candidate, $null, $null)
-        if ($iar.AsyncWaitHandle.WaitOne(300, $false))
-        {
-            try
-            {
-                $tcp.EndConnect($iar)
-                $mcpUp = $tcp.Connected
-            }
-            catch
-            {
-                $mcpUp = $false
-            }
-        }
-        $tcp.Close()
-    }
-    catch
-    {
-        $mcpUp = $false
-    }
-    if ($mcpUp) { $mcpPort = $candidate; break }
-}
-if (-not $mcpUp) { $mcpPort = ($mcpPorts -join '/') }
-
 # Ledger — TSV, header on first write.
-$ledger = Join-Path $paths.CommonDir 'wm-commit-log.tsv'
-$header = "ts`tsha`tauthor`tcs`tmeta`tasset`tprefab`tscene`tmcp`tparents`tsubject"
+$ledger = Join-Path $paths.CommonDir 'wm-commit-log-v2.tsv'
+$header = "ts`tsha`tauthor`tcs`tmeta`tasset`tprefab`tscene`tparents`tsubject"
 if (-not (Test-Path -LiteralPath $ledger))
 {
     Set-Content -LiteralPath $ledger -Value $header -Encoding UTF8
 }
 $cleanSubject = ($subject -replace "`t", ' ').Trim()
-$row = "$tsIso`t$shortSha`t$author`t$csCount`t$metaCount`t$assetCount`t$prefabCount`t$sceneCount`t$([int]$mcpUp)`t$parentCount`t$cleanSubject"
+$row = "$tsIso`t$shortSha`t$author`t$csCount`t$metaCount`t$assetCount`t$prefabCount`t$sceneCount`t$parentCount`t$cleanSubject"
 Add-Content -LiteralPath $ledger -Value $row -Encoding UTF8
 
 # Console summary — single line headline + optional advisories.
 $tag = if ($parentCount -gt 1) { '[merge]' } elseif ($bigCommit) { '[big]' } else { '[ok]' }
-Write-Host "[wm-verify] $tag $shortSha  cs=$csCount meta=$metaCount asset=$assetCount prefab=$prefabCount scene=$sceneCount  mcp=$([int]$mcpUp)"
+Write-Host "[wm-verify] $tag $shortSha  cs=$csCount meta=$metaCount asset=$assetCount prefab=$prefabCount scene=$sceneCount"
 
 if ($bigCommit)
 {
@@ -351,11 +305,6 @@ if ($csMissingMeta.Count -gt 0 -or $dirMissingMeta.Count -gt 0)
     Write-Host "[wm-verify]     고침: git add <위 경로들> && git commit --amend --no-edit"
     Write-Host "[wm-verify]     왜: GUID 가 머신마다 달라진다 → 나중에 프리팹이 참조하는 순간"
     Write-Host "[wm-verify]         **다른 머신에서만** MissingScript. 작업트리도 영영 더럽다."
-}
-
-if (-not $mcpUp)
-{
-    Write-Host "[wm-verify]   info: Unity-MCP :$mcpPort 미응답 — 다음 commit 전 Editor Console / read_console 으로 컴파일 검증 권장."
 }
 
 exit 0

@@ -1,17 +1,15 @@
 <#
 .SYNOPSIS
-  Editor.log fallback for compile-error inspection when Unity-MCP `read_console`
-  is unavailable — returns only the *latest compile session* lines.
+  Editor.log fallback for compile-error inspection when official Unity CLI console
+  is temporarily unavailable, and returns only the *latest compile session* lines.
 
 .DESCRIPTION
-  CLAUDE.md § Unity-MCP layer states the canonical channel is MCP `read_console`
-  because Editor.log is append-only — accumulated past sessions contaminate
-  every grep result. The TASK-WM-056-A "259 vs 6" mismatch (2026-05-10) is the
-  canonical incident motivating MCP adoption.
+  CLAUDE.md § Unity 통로의 정본 채널은 `unity command console`이다. Editor.log는
+  append-only라 과거 세션이 grep 결과를 오염시킨다. TASK-WM-056-A의
+  "259 vs 6" 불일치(2026-05-10)가 정본 사고 기록.
 
-  This script makes the *fallback* (when MCP is genuinely unavailable, e.g.
-  Editor is launched but no MCP server is running yet, or the user is reading
-  a previous session's errors after `unity-refresh.ps1`) accurate by:
+  이 스크립트는 CLI가 도메인 리로드나 메인 스레드 점유로 잠시 응답하지 않을 때 쓸
+  fallback을 다음 방식으로 현재 컴파일 세션에 제한:
 
     1. Reading the entire Editor.log
     2. Finding the LAST occurrence of the canonical reload marker
@@ -20,9 +18,7 @@
     4. Reporting the marker timestamp (when available) so callers can sanity
        check that they're looking at a recent compile, not a stale one
 
-  This does NOT replace MCP `read_console`. It is a strictly-scoped fallback
-  that avoids the "old errors leaking into current grep" failure mode by
-  honouring the same session boundary Unity itself logs.
+  공식 CLI console을 대체하지 않음. Unity의 세션 경계를 따라 오래된 오류 혼입 차단.
 
 .PARAMETER LogPath
   Path to Editor.log. Defaults to
@@ -93,7 +89,7 @@ if (-not (Test-Path -LiteralPath $LogPath)) {
     exit 2
 }
 
-# Canonical Unity reload marker. CLAUDE.md § Unity-MCP layer cites this exact
+# Canonical Unity reload marker. CLAUDE.md § Unity 통로 cites this exact
 # substring as the session boundary signal.
 $ReloadMarker = 'Reloading assemblies after forced synchronous recompile'
 

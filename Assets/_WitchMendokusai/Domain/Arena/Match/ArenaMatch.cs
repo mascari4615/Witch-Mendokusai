@@ -37,7 +37,7 @@ namespace WitchMendokusai
 		private bool started;
 		private bool ticking;
 
-		// behavior-verify 계측([Arena-Verify]) — 패트롤 vs 전진·교전 결착을 Editor.log 단독 판별(MCP wedge 직교).
+		// behavior-verify 계측([Arena-Verify]), 패트롤 vs 전진, 교전 결착의 Editor.log 단독 판별
 		// 관측 누적치(수치 설정값 X) → 수치노출 룰 무관. 종결 1줄 + 첫교전 시각으로 완결.
 		private readonly List<UnitHealth> hookedHealths = new();
 		private int hitCount;

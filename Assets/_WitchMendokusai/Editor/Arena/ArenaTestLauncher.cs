@@ -13,7 +13,7 @@ namespace WitchMendokusai
 	/// - (v1) = 전술 에디터 UI 거쳐 시작.
 	/// - (Headless) = UI 게이트 우회 즉시 시작(behavior-verify 자동화).
 	/// - (Arm Auto-Verify) = 다음 Play 진입 시 World 부팅 감지→자동 매치→종결 로그→Play 자동 종료.
-	///   WM heavy-boot 중 MCP HTTP 브릿지 wedge 라 Play 중 메뉴/MCP 호출 불가 → edit 모드(브릿지 생존)서
+	///   WM heavy-boot 중 외부 명령 400/503 가능 → edit 모드에서
 	///   플래그만 박고 Play 누르면 에디터 내부 핸들러가 전부 자동 = Claude 가 사용자 클릭 없이 Editor.log 만으로
 	///   패트롤/전진 behavior-verify(`[Arena-Verify]` 라인). 플래그 = 진입 즉시 1회성 소거(정상 play 비파괴).
 	/// </summary>
@@ -206,7 +206,7 @@ namespace WitchMendokusai
 			return true;
 		}
 
-		// --- Auto-Verify: edit 모드서 ARM → 다음 Play 진입 시 자동 구동 (MCP wedge 무관, 에디터 내부 핸들러) ---
+		// --- Auto-Verify: edit 모드서 ARM → 다음 Play 진입 시 자동 구동 (외부 명령 상태와 무관한 에디터 내부 핸들러) ---
 
 		private static void OnPlayModeStateChanged(PlayModeStateChange change)
 		{
@@ -297,7 +297,7 @@ namespace WitchMendokusai
 					return;
 				}
 
-				// 마지막 매치 종결 → Play 자동 종료 → 도메인 리로드 → MCP 브릿지 회복.
+				// 마지막 매치 종결 → Play 자동 종료 → 도메인 리로드 → CLI 서비스 복귀
 				EditorApplication.delayCall += () =>
 				{
 					if (Application.isPlaying)

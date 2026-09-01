@@ -10,7 +10,7 @@ namespace WitchMendokusai.EditorTools
     /// <summary>
     /// TASK-WM-118 I5b — 결정 부팅 standalone smoke 의 *빌드* phase.
     ///
-    /// 진짜 "테스트불가 최종해소" = 에디터·MCP 무관 헤드리스 회귀 게이트. 그 게이트는
+    /// 진짜 "테스트불가 최종해소"는 에디터 서비스 상태와 무관한 헤드리스 회귀 게이트. 그 게이트는
     /// 2-phase: ① 빌드(에디터-bound, 느림, lock 필요) ② 실행(순수 헤드리스, 에디터
     /// 0 의존 = CI-able). 본 클래스 = ①. 산출 exe 를 wm-boot-smoke.ps1 이 env
     /// WM_BOOT_DETERMINISTIC=1 로 -batchmode 실행 → BootSmokeSentinel 결과파일 판정.

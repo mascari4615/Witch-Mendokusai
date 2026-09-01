@@ -69,7 +69,7 @@ WMInput.inputactions → InputManager.BindEvents() → On{Start/Performed/Cancel
 
 ## 수치 노출 / 런타임 tweak
 
-모든 수치·시간·길이·가중치·확률 하드코딩 금지. SO / `[SerializeField]` / `Variable<T>` 노출, 매니저는 SO 값 캐싱 X(매 사용 시 read). 같은 수치 두 곳 박기 X. MCP `manage_components.set_property` 로 수치 변경 시 SO 정본 우회 위험 — 디버그 외 사용 X.
+모든 수치, 시간, 길이, 가중치, 확률 하드코딩 금지. SO / `[SerializeField]` / `Variable<T>` 노출, 매니저는 SO 값 캐싱 X(매 사용 시 read). 같은 수치 두 곳 박기 X. 자동화로 컴포넌트 값을 직접 바꿔 SO 정본을 우회하는 것은 디버그 외 사용 X.
 
 ### 코드로 짓는 UIToolkit 은 USS 로 (TASK-WM-206)
 
@@ -106,22 +106,22 @@ WMInput.inputactions → InputManager.BindEvents() → On{Start/Performed/Cancel
 
 **`Singleton<T>` dontDestroyOnLoad** = prefab SerializeField 정본(코드 `DontDestroyOnLoad()` 강제 호출 X).
 
-## 컴파일 검증 — 1순위 = `wm-compile-check.ps1` (에디터·MCP 무관)
+## 컴파일 검증 1순위: `wm-compile-check.ps1` (에디터와 통로 무관)
 
 **정본은 `powershell -File memo/dotfiles/scripts/wm-compile-check.ps1 -ProjectPath <검사할 checkout>`** (lane 이면 lane 경로 필수. 인자 이름이 틀리면 조용히 기본값인 공유 checkout 을 검사한다. 2026-08-30 실측: `-Repo` 로 여섯 번 초록을 받았는데 전부 다른 폴더였다). 진짜 Unity 어셈블리
 (`Editor/Data/Managed/UnityEngine/*.dll` + `UnityEditor.dll` + `Library/ScriptAssemblies` + PackageCache/Assets 의
 미리 컴파일된 DLL, 총 ~500 참조)를 걸고 우리 `.cs` 1400여 개를 한 번에 굽는다. **5초. 에디터가 프로젝트를
-잠그고 있어도, MCP 가 안 붙어도 돈다.** exit 0/1/2(2 = 못 돌렸음 ≠ 에러 0).
+잠그고 있어도 돈다.** exit 0/1/2(2는 못 돌렸음, 에러 0과 다름).
 
-- **왜 바뀌었나 (2026-08-16)**: 정본이 MCP `read_console` 하나였는데, 에디터 잠금 + MCP 트랜스포트 변경이
-  겹치자 검증 경로가 통째로 사라져 사람에게 「유니티 창 눌러 주세요」로 떠넘겨야 했다. 검증이 남의 도구
+- **왜 바뀌었나 (2026-08-16)**: 정본이 라이브 콘솔 하나였는데, 에디터 잠금 + 통로 변경이
+  겹치자 검증 경로가 통째로 사라져 사람에게 "유니티 창 눌러 주세요"로 떠넘겨야 했다. 검증이 외부 통로
   하나에 묶여 있던 것 = 단일 실패점. 「`dotnet build` 폐기」의 근거는 *Mono ≠ .NET8 로 API 표면이 다르다*
   였는데, **엔진 DLL 자체를 참조하면 API 표면은 진짜다** — 그래서 이 경로만 예외로 승격한다.
 - **못 잡는 것 (그래서 아래가 여전히 필요)**: asmdef 경계 위반(한 덩어리로 구움), 플랫폼/IL2CPP,
   에셋·직렬화·PlayMode 동작. 맨 소스만 참조하는 검사라 **에디터 실컴파일이 최종 확인**이다.
-- **2순위 = MCP `read_console(types=["error","warning"], count=30)`** — 붙어 있을 때. warning 0 까지 본다.
+- **2순위: `unity command console --project-path <WM>`**, 서비스 가능할 때 warning 0까지 확인.
 - **`dotnet build` 직접 호출은 여전히 폐기** — 위 스크립트/wrapper 경유만.
-- **Editor.log = fallback only** — append-only 누적으로 옛 컴파일 결과 섞임. MCP 가용 시 절대 사용 X.
+- **Editor.log는 fallback only.** append-only 누적으로 옛 컴파일 결과 섞임. CLI 가용 시 절대 사용 X.
 - Warning = 미래 error 시그널. error 0 만 보고 통과 X. 보존 의도 warning은 `#pragma warning disable` + 사유 주석.
 
 **warning 0 은 이제 기계가 강제한다 (TASK-WM-204).** WM 자기 asmdef 8개 폴더마다 `csc.rsp` =
@@ -139,8 +139,7 @@ WMInput.inputactions → InputManager.BindEvents() → On{Start/Performed/Cancel
 
 **룰 정본 = `memo/rules/unity.md § Unity 통로`.** 본 § = WM 레포 포인터.
 
-`com.coplaydev.unity-mcp` 는 **제거됐다** (TASK-WM-412, 2026-08-20). 대신 공식 `unity` CLI +
-`com.unity.pipeline` 을 쓴다. 실측 근거 = `memo/notes/2026-08-20-unity-cli.md`.
+공식 `unity` CLI + `com.unity.pipeline` 을 쓴다. 실측 근거는 `memo/notes/2026-08-20-unity-cli.md`에 있다.
 
 ```bash
 unity status                          # 붙은 에디터 — 단, ready 를 믿지 마라(아래)
@@ -160,7 +159,7 @@ unity command run_tests -- --mode editor --async_tests true --filter <이름조�
    대기하다 타임아웃 취소와 데드락 → **에디터 강제 종료 + 재임포트**가 유일한 복구다.
    **WM 전체 스위트(1898개)는 살아있는 에디터에서 완주 못 한다** — 일상은 `--filter`.
 
-**컴파일 검증 1순위는 그대로 `wm-compile-check.ps1`** (5초, 에디터 잠금·통로 무관). 통로는
+**컴파일 검증 1순위는 그대로 `wm-compile-check.ps1`** (5초, 에디터 잠금과 CLI 상태 무관). CLI는
 필수 경로가 아니다 — 그게 2026-08-16 에 배운 것이고 통로가 바뀌어도 유지된다.
 
 **Editor 꺼져있으면 자동 기동** — 사용자에게 "켜주세요" 푸시백 X. `unity open <WM> --args "-automated"`

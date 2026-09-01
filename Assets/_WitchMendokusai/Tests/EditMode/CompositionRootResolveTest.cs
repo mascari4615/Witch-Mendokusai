@@ -33,7 +33,7 @@ namespace WitchMendokusai.Tests
     /// ([Inject] 추가)도 dep 미등록이면 여기서 즉시 FAIL.
     ///
     /// 실행: `unity -runTests -batchmode -testPlatform EditMode
-    ///        -assemblyNames WM.Tests.EditMode` (격리 worktree = MCP·에디터락
+    ///        -assemblyNames WM.Tests.EditMode` (격리 worktree라 CLI 서비스 상태와 에디터 락에
     ///        무관, ~1-2분). wm-playmode-smoke.ps1 의 EditMode 변형.
     /// </summary>
     public sealed class CompositionRootResolveTest

@@ -52,7 +52,7 @@ namespace WitchMendokusai
             Rebuild();
         }
 
-        /// <summary>패널 재구성(런타임·에디트모드 공용, MCP/인스펙터서 호출 가능). PanelSettings 세팅 후 1회.</summary>
+        /// <summary>패널 재구성(런타임, 에디트모드 공용, 자동화/인스펙터 호출 가능). PanelSettings 세팅 후 1회.</summary>
         public void Rebuild()
         {
             UIDocument document = GetComponent<UIDocument>();
