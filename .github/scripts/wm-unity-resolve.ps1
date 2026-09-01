@@ -51,11 +51,39 @@ function Resolve-UnityEditor {
     # ★ 안드로이드 모듈 확인은 **에디터를 확보한 뒤**에 한다. 앞에 두면, 에디터가 아예 없는
     #   기계에서 「Android 모듈이 없다」고 말한다 — 진짜 문제(에디터 없음)를 가리고 사람을
     #   엉뚱한 곳으로 보낸다. 없을 때 정확히 말하는 것이 이 검사의 존재 이유다.
-    #   (모듈은 SDK/NDK/JDK 포함 약 10GB 라 자동 설치 대상에서 빼 둔다 — Hub 로 한 번.)
+    #
+    # ★ 2026-09-01 사용자 결정: **없으면 스스로 받는다.** 전에는 "10GB 라 사람이 Hub 로 한 번"
+    #   이었는데, 그러면 에디터 버전을 올릴 때마다 사람이 노트북에 붙어야 한다. 이 파일 머리말이
+    #   에디터에 대해 말한 것과 같은 이유로 모듈도 자동.
+    #   첫 회는 20~40분 추가, 그 뒤로는 있는 것 사용.
     if ($Platform -eq 'android') {
         $androidPlayer = "$root\Editor\Data\PlaybackEngines\AndroidPlayer"
         if ((Test-Path $androidPlayer) -eq $false) {
-            throw "Unity $version 에 Android 모듈이 없다 ($androidPlayer). Unity Hub 로 android + SDK/NDK/JDK 설치 필요."
+            if ([string]::IsNullOrEmpty($changeset)) {
+                throw "Unity $version 에 Android 모듈이 없다 ($androidPlayer). ProjectVersion.txt 에 changeset 이 없어 자동 설치 불가."
+            }
+
+            $hub = 'C:\Program Files\Unity Hub\Unity Hub.exe'
+            if ((Test-Path $hub) -eq $false) { throw "Unity Hub 없음: $hub" }
+
+            Write-Host "Android 모듈 없음 - Hub headless 설치 시작 (SDK/NDK/JDK 포함 약 10GB, 첫 회 20~40분)."
+            $moduleLog = Join-Path $InstallLogDir "unity-android-$version.log"
+
+            # --childModules 가 SDK/NDK/JDK 를 딸려 온다. 셋을 따로 적으면 Hub 판에 따라
+            # 이름이 갈려 조용히 하나가 빠진다 (그러면 빌드가 SDK 없음으로 죽는다).
+            $moduleArgs = @('--', '--headless', 'install-modules',
+                '--version', $version, '--module', 'android', '--childModules')
+            $moduleRun = Start-Process -FilePath $hub -ArgumentList $moduleArgs `
+                -RedirectStandardOutput $moduleLog -RedirectStandardError "$moduleLog.err" -PassThru -Wait -WindowStyle Hidden
+            Write-Host "Hub install-modules exit=$($moduleRun.ExitCode) (log: $moduleLog)"
+
+            if ((Test-Path $androidPlayer) -eq $false) {
+                if (Test-Path $moduleLog) { Get-Content $moduleLog -Tail 40 | Write-Host }
+                if (Test-Path "$moduleLog.err") { Get-Content "$moduleLog.err" -Tail 20 | Write-Host }
+                throw "Android 모듈 자동 설치 실패 ($androidPlayer 가 안 생겼다)."
+            }
+
+            Write-Host "Android 모듈 자동 설치 완료."
         }
         Write-Host "Android 모듈 확인됨."
     }
