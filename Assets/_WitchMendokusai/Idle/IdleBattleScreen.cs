@@ -62,8 +62,13 @@ namespace WitchMendokusai
 		private bool broken;
 
 		private bool preview;
+
+#if UNITY_EDITOR
+		// 미리보기 시계와 첫 틱 표식. 에디터 전용 경로에서만 읽으므로 여기 밖에 두면
+		// 플레이어 빌드에서 CS0414(쓰기만 하고 안 읽음)로 죽는다 (실측 2026-09-01, csc.rsp 가 -warnaserror+)
 		private double previewClock;
 		private bool previewTicked;
+#endif
 
 		/// <summary>미리보기 시뮬 진행 여부. 기본은 첫 틱 뒤 정지 (정적 장면). Dev Panel 이 켠다</summary>
 		public static bool PreviewRunning { get; set; }
@@ -262,7 +267,9 @@ namespace WitchMendokusai
 
 			if (preview)
 			{
+#if UNITY_EDITOR
 				previewTicked = false;
+#endif
 				state = PreviewState(tuning);
 				session = new IdleSession(tuning, state);
 #if UNITY_EDITOR
