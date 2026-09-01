@@ -265,12 +265,21 @@ jobs:
         run: |
           Write-Host "::warning title=quick look only::mono build - NOT the shipped backend and NOT verified to run"
 
+      # 배포 안 하는 것은 빼고 올린다.
+      #
+      # 실측 2026-09-01: 폴더를 통째로 올려 아티팩트가 283MB 였는데, 실제 APK 는 83MB 고
+      # 나머지는 IL2CPP 중간 산출물(Idle_BackUpThisFolder..., 1.4GB) 과 버스트 심볼이었다.
+      # 폰에 깔 사람은 APK 하나만 있으면 된다.
       - name: Upload artifact (only when asked)
         if: inputs.publish == 'artifact'
         uses: actions/upload-artifact@v4
         with:
           name: idle-${{ steps.unity.outputs.platform }}
-          path: ${{ steps.build.outputs.out_dir }}
+          path: |
+            ${{ steps.build.outputs.out_dir }}
+            !${{ steps.build.outputs.out_dir }}/*_BackUpThisFolder_ButDontShipItWithYourGame
+            !${{ steps.build.outputs.out_dir }}/*_BurstDebugInformation_DoNotShip
+            !${{ steps.build.outputs.out_dir }}/unity-build.log
           retention-days: 7
 
       # 사용자는 채널만 본다 — 실패도 성공도 여기로 온다.

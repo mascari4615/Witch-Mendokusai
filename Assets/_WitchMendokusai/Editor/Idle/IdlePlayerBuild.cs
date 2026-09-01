@@ -119,8 +119,13 @@ namespace WitchMendokusai.EditorTools
 				// 워크플로가 경로를 추측하지 않게 (윈도우 판과 같은 표식)
 				WriteLastBuildMark(Path.GetDirectoryName(directory), apkPath);
 
+				// ★ 크기는 <b>APK 파일 자체</b>로. <c>summary.totalSize</c> 는 배포 안 하는
+				//   IL2CPP 중간 산출물까지 세는 탓 (실측 2026-09-01. 로그 1860 MB, 실제 83 MB)
+				//   윈도우 판은 이 함정을 이미 아는데 (아래 Build 참고) 안드로이드 판이 안 받은 것
+				long apkBytes = new FileInfo(apkPath).Length;
+
 				Debug.Log(TAG + " 안드로이드 끝: " + apkPath
-					+ " (" + (report.summary.totalSize / 1024 / 1024) + " MB, "
+					+ " (" + (apkBytes / 1024 / 1024) + " MB, "
 					+ report.summary.totalTime.TotalSeconds.ToString("N0") + "초)");
 				return;
 			}
