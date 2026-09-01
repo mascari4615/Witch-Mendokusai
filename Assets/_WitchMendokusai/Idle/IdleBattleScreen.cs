@@ -624,6 +624,13 @@ namespace WitchMendokusai
 			nextStageButton.clicked += NextStage;
 			BindCardButtons(battle.Q<VisualElement>("cards"));
 			BindCardQueue(battle.Q<VisualElement>("card-queue"));
+
+			// 배속과 자동은 전투 HUD 것. 인형 탭에서 찾다가 플레이어 판이 NullReference 로
+			// 죽는 자리 (실측 2026-09-01. 에디터는 예외를 콘솔에만 적어 초록으로 보임)
+			speedCycleButton = battle.Q<Button>("speed-cycle-button");
+			speedCycleButton.clicked += CycleSpeed;
+			autoCastButton = battle.Q<Button>("auto-cast-button");
+			autoCastButton.clicked += ToggleAutoCast;
 			costLabel = battle.Q<Label>("cost-label");
 			costFill = battle.Q<VisualElement>("cost-fill");
 		}
@@ -754,10 +761,6 @@ namespace WitchMendokusai
 			damageButton = page.Q<Button>("damage-button");
 			damageButton.clicked += () => Raise(IdleUpgradeKind.Damage);
 			speedLabel = page.Q<Label>("speed-label");
-			speedCycleButton = page.Q<Button>("speed-cycle-button");
-			speedCycleButton.clicked += CycleSpeed;
-			autoCastButton = page.Q<Button>("auto-cast-button");
-			autoCastButton.clicked += ToggleAutoCast;
 			speedButton = page.Q<Button>("speed-button");
 			speedButton.clicked += () => Raise(IdleUpgradeKind.AttackSpeed);
 			bulkRaiseButton = page.Q<Button>("bulk-button");
