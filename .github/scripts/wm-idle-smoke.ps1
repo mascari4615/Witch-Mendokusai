@@ -149,12 +149,16 @@ if (-not (Test-Path $SavePath)) { Fail "저장 파일이 안 생겼다 — 화�
 
 $save = Get-Content $SavePath -Raw | ConvertFrom-Json
 
-if ($save.Kills -le 0)
+# ★ <b>자원</b>으로 잰다. 처치가 아니다 (실측 2026-09-01).
+#   첫 판은 25초에 한 마리 잡을까 말까라, 처치로 재면 검사가 경계에 걸터앉음.
+#   같은 코드가 어떤 날은 1, 어떤 날은 0 이 되어 <b>있지도 않은 회귀</b>를 세 턴 동안 쫓은 것.
+#   자원은 기지 수입이 매 틱 넣으므로 시간이 흐르면 반드시 늚. 그게 재려던 것 자체.
+if ($save.Resource -le 0)
 {
-    Fail "$Seconds 초를 굴렸는데 처치 수가 0 이다 — 시간이 안 흐른다"
+    Fail "$Seconds 초를 굴렸는데 자원이 0 이다 - 시간이 안 흐른다"
 }
 
-Write-Host "[idle-smoke] 돈다 — 처치 $($save.Kills) · 자원 $($save.Resource) · $($save.Stage)단계 (예외 0건)"
+Write-Host "[idle-smoke] 돈다 - 처치 $($save.Kills), 자원 $($save.Resource), $($save.Stage)단계 (예외 0건)"
 
 # ─────────────────────────────────────────────────────────────────────────────
 # ★ 두 번째 판 — <b>저장을 되읽나</b> (TASK-WM-406, 2026-08-17).
