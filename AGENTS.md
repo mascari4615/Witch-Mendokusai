@@ -5,9 +5,14 @@
 ## 먼저 볼 문서
 
 - 상세 작업 규칙: `CLAUDE.md`
-- 루트/공통 룰: `../memo/UMBRELLA.md`, `../memo/rules/*.md`
+- 모든 작업 필독: `../memo/UMBRELLA.md`, `../memo/rules/process.md`, `../memo/rules/git.md`, `../memo/rules/quality.md`, `../memo/rules/persona.md`
+- 코드 수정 추가: `../memo/rules/code-style.md`, `../memo/rules/unity.md`
+- 문서 수정 추가: `../memo/rules/docs.md`
+- commit과 push 추가: `../memo/rules/commit.md`
 - TASK 사양: `../memo/wm/tasks/`
 - 설계 비전: `../memo/wm/design/vision/architecture.md`
+
+위 경로는 자동 로드가 아니다. 작업 전에 에이전트가 직접 읽는다. 모든 수정은 repo lane에서 시작한다. lifecycle hook이 없는 클라이언트도 공통 룰과 Git hook 게이트를 따른다.
 
 ## 핵심
 
