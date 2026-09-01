@@ -169,7 +169,69 @@ namespace WitchMendokusai.DomainSDK.Idle
             IdleHeroKind kind = KindOf(owned.Id);
             double baseShare = tuning.HeroOwnedShareByGrade * GradeWeight(kind.Grade);
 
-            return baseShare * (1d + owned.Stars * tuning.HeroStarStep);
+            return baseShare * GrowthOf(owned, tuning);
+        }
+
+        /// <summary>
+        /// ★ 과 레벨이 같이 밀어 올리는 몫 (economy.md 표 3).
+        ///
+        /// ★ 한 자리에 모음. 두 곳에서 따로 곱하면 한쪽만 고쳤을 때 화면과 판이 갈림
+        /// </summary>
+        public static double GrowthOf(IdleHeroOwned owned, IdleTuning tuning)
+        {
+            return 1d + owned.Stars * tuning.HeroStarStep + owned.Level * tuning.HeroLevelStep;
+        }
+
+        /// <summary>
+        /// 이 인형을 한 레벨 올리는 데 드는 골드.
+        ///
+        /// ★ 지금 레벨을 따라 오른다. 그래야 골드가 아무리 많아도 레벨은 로그로 눌리고,
+        ///   뽑기와 생산자와 강화가 골드를 두고 겨루는 판이 유지됨
+        /// </summary>
+        public static double LevelCostOf(IdleHeroOwned owned, IdleTuning tuning)
+        {
+            return tuning.HeroLevelCostBase * System.Math.Pow(tuning.HeroLevelCostRatio, owned.Level);
+        }
+
+        /// <summary>
+        /// 골드를 내고 한 레벨. 모자라거나 모르는 인형이면 아무 일도 안 일어남
+        /// </summary>
+        public static bool TryRaiseLevel(IdleState state, IdleTuning tuning, int heroId)
+        {
+            int at = state.IndexOfHero(heroId);
+
+            if (at < 0)
+            {
+                return false;
+            }
+
+            IdleHeroOwned owned = state.Heroes[at];
+            double cost = LevelCostOf(owned, tuning);
+
+            if (state.Resource < cost)
+            {
+                return false;
+            }
+
+            state.Resource -= cost;
+            owned.Level += 1;
+            state.Heroes[at] = owned;
+            return true;
+        }
+
+        /// <summary>
+        /// 환생이 인형 레벨을 지운다 (U4, decisions-2026-08-30).
+        ///
+        /// ★ 보유와 ★ 과 도감은 그대로. 골드로 산 것만 사라짐
+        /// </summary>
+        public static void ForgetLevels(IdleState state)
+        {
+            for (int index = 0; index < state.Heroes.Count; index++)
+            {
+                IdleHeroOwned owned = state.Heroes[index];
+                owned.Level = 0;
+                state.Heroes[index] = owned;
+            }
         }
 
         /// <summary>
@@ -265,8 +327,7 @@ namespace WitchMendokusai.DomainSDK.Idle
                     ? tuning.HeroPartyShareByGrade
                     : tuning.HeroSupportShareByGrade;
 
-                sum += share * GradeWeight(KindOf(id).Grade)
-                    * (1d + owned.Stars * tuning.HeroStarStep);
+                sum += share * GradeWeight(KindOf(id).Grade) * GrowthOf(owned, tuning);
             }
 
             return 1d + sum;

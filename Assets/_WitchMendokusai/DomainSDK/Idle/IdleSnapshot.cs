@@ -102,8 +102,12 @@ namespace WitchMendokusai.DomainSDK.Idle
     public readonly struct IdleHeroView
     {
         public IdleHeroView(int id, string name, IdleHeroGrade grade, IdleHeroAxis axis, int sides,
-            int stars, int copies, int copiesForNextStar, bool inParty, double ownedShare)
+            int stars, int copies, int copiesForNextStar, bool inParty, double ownedShare,
+            int level, double levelCost, bool canRaiseLevel)
         {
+            Level = level;
+            LevelCost = levelCost;
+            CanRaiseLevel = canRaiseLevel;
             Id = id;
             Name = name;
             Grade = grade;
@@ -125,6 +129,15 @@ namespace WitchMendokusai.DomainSDK.Idle
         public int Sides { get; }
 
         public int Stars { get; }
+
+        /// <summary>골드로 올린 레벨 (economy.md 표 3). 환생 때 0 으로</summary>
+        public int Level { get; }
+
+        /// <summary>다음 한 칸에 드는 골드</summary>
+        public double LevelCost { get; }
+
+        /// <summary>지금 올릴 수 있나. 판정은 코어가 한다</summary>
+        public bool CanRaiseLevel { get; }
 
         /// <summary>다음 ★ 까지 모은 중복.</summary>
         public int Copies { get; }

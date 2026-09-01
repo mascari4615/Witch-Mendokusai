@@ -308,6 +308,27 @@
 	border-color: rgb(245, 175, 16);
 }
 
+.idle-hero-row {
+	flex-direction: row;
+	align-items: center;
+}
+
+.idle-hero-level {
+	width: 132px;
+	margin-left: 8px;
+	font-size: 14px;
+	background-color: rgb(28, 28, 28);
+	color: rgb(255, 255, 255);
+	border-width: 1px;
+	border-color: rgb(120, 120, 120);
+	border-radius: 0;
+	padding: 6px;
+}
+
+.idle-hero-level:disabled {
+	opacity: 0.4;
+}
+
 .idle-queue {
 	flex-direction: row;
 	align-items: center;

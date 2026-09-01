@@ -154,6 +154,12 @@ namespace WitchMendokusai.DomainSDK.Idle
             return IdleModel.TryRaise(state, tuning, intent.Kind, out UpgradeRaiseFailure _);
         }
 
+        /// <summary>인형 레벨을 한 칸 올린다 (economy.md 표 3). 골드가 모자라면 아무 일도 없다</summary>
+        public bool RaiseHeroLevel(int heroId)
+        {
+            return IdleHeroes.TryRaiseLevel(state, tuning, heroId);
+        }
+
         /// <summary>
         /// 손으로 한 대. <b>늘 받아들여진다</b> — 모을 것이 필요 없는 유일한 행동이다.
         /// </summary>
@@ -528,7 +534,10 @@ namespace WitchMendokusai.DomainSDK.Idle
                     owned.Copies,
                     IdleGacha.CopiesForNextStar(owned.Stars, tuning),
                     inParty,
-                    IdleHeroes.OwnedShareOf(owned, tuning));
+                    IdleHeroes.OwnedShareOf(owned, tuning),
+                    owned.Level,
+                    IdleHeroes.LevelCostOf(owned, tuning),
+                    state.Resource >= IdleHeroes.LevelCostOf(owned, tuning));
             }
 
             return made;

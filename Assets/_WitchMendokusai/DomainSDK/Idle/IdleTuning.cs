@@ -172,6 +172,24 @@ namespace WitchMendokusai.DomainSDK.Idle
         public double HeroStarStep { get; set; } = 0.10d;
 
         /// <summary>
+        /// 인형 레벨 한 칸이 더해 주는 몫 (economy.md 표 3).
+        ///
+        /// ★ ★ 의 1/10. 레벨은 수백까지 올리는 것이고 ★ 은 다섯이 끝이라, 레벨 열 칸이
+        ///   ★ 하나와 맞먹게. 그래야 둘 다 올릴 이유가 남음
+        /// </summary>
+        public double HeroLevelStep { get; set; } = 0.01d;
+
+        /// <summary>인형 레벨 0 에서 1 로 올리는 골드</summary>
+        public double HeroLevelCostBase { get; set; } = 20d;
+
+        /// <summary>
+        /// 레벨마다 값이 오르는 비율.
+        ///
+        /// ★ 뽑기(1.15)보다 완만하게. 레벨은 자주 누르는 것이라 같은 비율이면 금세 벽
+        /// </summary>
+        public double HeroLevelCostRatio { get; set; } = 1.09d;
+
+        /// <summary>
         /// <b>들고만 있어도</b> 붙는 몫 (일반 등급 기준, 등급 무게가 곱해진다).
         ///
         /// ★ 절대 크기는 어떤 상용작도 공개하지 않는다 — 우리 시뮬로 정한다.

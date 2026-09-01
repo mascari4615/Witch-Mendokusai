@@ -178,6 +178,7 @@ namespace WitchMendokusai
 		private int gearSlot = -1;
 		private VisualElement heroRows;
 		private readonly List<Button> heroButtons = new List<Button>();
+		private readonly List<Button> heroLevelButtons = new List<Button>();
 
 		// 아이템. 서브탭 가방 / 공방 (layout.md §3)
 		private int itemSub;
@@ -1320,20 +1321,44 @@ namespace WitchMendokusai
 				heroRows.Clear();
 				heroButtons.Clear();
 
+				heroLevelButtons.Clear();
+
 				for (int index = 0; index < snapshot.Heroes.Length; index++)
 				{
 					int id = snapshot.Heroes[index].Id;
-					heroButtons.Add(AddButton(heroRows, "idle-row-button", () => ChooseHero(id)));
+
+					// 한 줄에 둘. 왼쪽은 편성, 오른쪽은 레벨 올리기 (economy.md 표 3)
+					VisualElement row = new VisualElement();
+					row.AddToClassList("idle-hero-row");
+					heroRows.Add(row);
+
+					heroButtons.Add(AddButton(row, "idle-row-button", () => ChooseHero(id)));
+					heroLevelButtons.Add(AddButton(row, "idle-hero-level", () => RaiseHeroLevel(id)));
 				}
 			}
 
 			for (int index = 0; index < heroButtons.Count && index < snapshot.Heroes.Length; index++)
 			{
 				IdleHeroView hero = snapshot.Heroes[index];
-				heroButtons[index].text = string.Format("{0}{1}{2}",
-					hero.Name, Stars(hero.Stars),
+				heroButtons[index].text = string.Format("{0}{1}  Lv.{2}{3}",
+					hero.Name, Stars(hero.Stars), hero.Level,
 					hero.InParty ? "   편성 중" : string.Empty);
+
+				heroLevelButtons[index].text = "Lv+ " + BigNumberText.Format(hero.LevelCost);
+				heroLevelButtons[index].SetEnabled(hero.CanRaiseLevel);
 			}
+		}
+
+		/// <summary>인형 레벨 한 칸 (economy.md 표 3). 판정은 코어가 한다</summary>
+		private void RaiseHeroLevel(int heroId)
+		{
+			if (session == null)
+			{
+				return;
+			}
+
+			session.RaiseHeroLevel(heroId);
+			Render(session.Capture());
 		}
 
 		private void RenderItemPage(IdleSnapshot snapshot)

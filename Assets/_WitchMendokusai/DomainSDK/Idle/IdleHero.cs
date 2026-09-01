@@ -92,11 +92,20 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// <summary>★ 을 올리려고 모으는 중인 중복 수.</summary>
         public int Copies;
 
+        /// <summary>
+        /// 골드로 올리는 레벨 (economy.md 표 3 첫 줄, U4).
+        ///
+        /// ★ ★ 과 나눈 이유. ★ 은 중복으로 올리고 환생을 넘어가지만, 레벨은 골드로 올리고
+        ///   환생 때 사라진다. 매 판 다시 키우는 것이 있어야 환생이 되감기가 아니라 다시 시작
+        /// </summary>
+        public int Level;
+
         public IdleHeroOwned(int id)
         {
             Id = id;
             Stars = 0;
             Copies = 0;
+            Level = 0;
         }
     }
 }

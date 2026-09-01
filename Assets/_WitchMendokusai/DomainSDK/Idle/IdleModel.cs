@@ -195,6 +195,8 @@ namespace WitchMendokusai.DomainSDK.Idle
             state.AttackProgress = 0d;
             state.Damage.Level = 0;
             state.AttackSpeed.Level = 0;
+            // 인형 레벨도 지운다 (U4). 보유와 ★ 과 도감은 그대로
+            IdleHeroes.ForgetLevels(state);
             // 잠재도 남긴다 — 장비가 판을 건너 남는 것과 같은 이치다.
             // 떨어진 것은 남긴다 — 대열 방치 전투 계열에서 장비가 판을 건너 남는 것과 같다.
             // 그게 「깊이 갔다 온 값어치」의 두 번째 증거다(첫째는 점수).

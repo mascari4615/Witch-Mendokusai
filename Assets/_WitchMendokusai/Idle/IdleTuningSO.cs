@@ -130,6 +130,15 @@ namespace WitchMendokusai
         [Tooltip("★ 하나가 더하는 몫.")]
         [SerializeField] private double heroStarStep = 0.10d;
 
+        [Tooltip("인형 레벨 한 칸이 더해 주는 몫 (economy.md 표 3). ★ 의 1/10")]
+        [SerializeField] private double heroLevelStep = 0.01d;
+
+        [Tooltip("인형 레벨 0 에서 1 로 올리는 골드")]
+        [SerializeField] private double heroLevelCostBase = 20d;
+
+        [Tooltip("레벨마다 값이 오르는 비율. 뽑기(1.15)보다 완만하게")]
+        [SerializeField] private double heroLevelCostRatio = 1.09d;
+
         [Tooltip("«가지고만 있어도» 붙는 몫 (등급 무게에 곱해진다).")]
         [SerializeField] private double heroOwnedShareByGrade = 0.03d;
 
@@ -372,6 +381,9 @@ namespace WitchMendokusai
                 MaxStars = maxStars,
                 CopiesPerStar = copiesPerStar,
                 HeroStarStep = heroStarStep,
+                HeroLevelStep = heroLevelStep,
+                HeroLevelCostBase = heroLevelCostBase,
+                HeroLevelCostRatio = heroLevelCostRatio,
                 HeroOwnedShareByGrade = heroOwnedShareByGrade,
                 HeroPartyShareByGrade = heroPartyShareByGrade,
                 HeroSupportShareByGrade = heroSupportShareByGrade,
