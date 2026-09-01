@@ -91,6 +91,14 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// </summary>
         public long StonesPerFirstClear { get; set; } = 1L;
 
+        /// <summary>
+        /// 보스 하나가 떨구는 환생 조각 (economy.md 표 2). 0 이면 드롭 없음
+        ///
+        /// ★ 기본 0 (2026-09-01). 1 로 두고 재 보니 성장이 과하게 밀려 두 시간 만에 1619 상한에 닿고
+        ///   뽑는 판과 안 뽑는 판이 같아졌다 (PullingGetsYouDeeper 실패). 구조만 두고 수치는 사용자 판정
+        /// </summary>
+        public long ShardsPerBoss { get; set; }
+
         /// <summary>처치 하나가 뽑기 재화를 떨굴 확률 (economy.md 표 2, 낮은 확률)</summary>
         public double StoneDropChance { get; set; } = 0.002d;
 

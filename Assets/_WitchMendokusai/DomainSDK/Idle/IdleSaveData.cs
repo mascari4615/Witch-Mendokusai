@@ -87,6 +87,12 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// <summary>자리 체력을 한 번이라도 세웠나 — 「안 세운 판」과 「전멸한 판」을 가른다.</summary>
         public bool SeatsReady;
 
+        /// <summary>보스와 던전에서 주운 환생 조각 (economy.md 표 2)</summary>
+        public long PrestigeShards;
+
+        /// <summary>보스와 던전에서 주운 환생 조각 (economy.md 표 2)</summary>
+
+
         /// <summary>오프라인 실측 근사 (combat.md 6)</summary>
         public int MeasuredStage;
         public double MeasuredKillsPerSecond;

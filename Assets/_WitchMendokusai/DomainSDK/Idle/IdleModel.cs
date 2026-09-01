@@ -180,7 +180,9 @@ namespace WitchMendokusai.DomainSDK.Idle
                 return false;
             }
 
-            state.PrestigePoints = PrestigeStandingFor(state, tuning);
+            // 계산분 + 주운 조각 (economy.md E3 둘 다). 주운 것은 환생에 실려 점수로
+            state.PrestigePoints = PrestigeStandingFor(state, tuning) + state.PrestigeShards;
+            state.PrestigeShards = 0L;
             // ★ 늘어난 만큼을 <b>쓸 수 있는 돌</b>로도 준다. 배수 쪽(PrestigePoints)은 안 줄어드니
             //   돌을 다 써도 판이 약해지지 않는다 — 그래야 「뽑을까 아낄까」가 함정이 아니라 결정이다.
             state.Stones += awarded;
@@ -571,6 +573,8 @@ namespace WitchMendokusai.DomainSDK.Idle
                 }
 
                 // 방금 이 구역을 깼다 — 실패하면 여기까지 물러난다 (V2 방향 6).
+                //   마지막 하나는 보스라 환생 조각이 떨어진다 (economy.md 표 2)
+                DropPrestigeShard(state, tuning);
                 state.ClearedStage = state.Stage;
 
                 // ★ 구역을 깨면 <b>재정비</b>한다 — 회복이 없으면 시간이 지나는 것만으로 반드시 죽는다.
@@ -587,6 +591,19 @@ namespace WitchMendokusai.DomainSDK.Idle
             if (available > 0L)
             {
                 state.HitsOnTarget += available;
+            }
+        }
+
+        /// <summary>
+        /// 보스를 잡아 환생 조각을 줍는다 (economy.md 표 2, E3)
+        ///
+        /// ★ 계산분과 그릇이 다름. 그래야 환생이 대입할 때 주운 것이 안 사라짐
+        /// </summary>
+        public static void DropPrestigeShard(IdleState state, IdleTuning tuning)
+        {
+            if (tuning.ShardsPerBoss > 0L)
+            {
+                state.PrestigeShards += tuning.ShardsPerBoss;
             }
         }
 

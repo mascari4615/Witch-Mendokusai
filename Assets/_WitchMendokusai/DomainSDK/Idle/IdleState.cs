@@ -51,6 +51,15 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// <summary>여태 모은 리셋 점수 — 리셋해도 안 사라진다. 이게 「다시 시작」을 보상으로 만드는 것.</summary>
         public long PrestigePoints { get; set; }
 
+        /// <summary>
+        /// 보스와 던전에서 <b>주운</b> 환생 조각 (economy.md 표 2, E3).
+        ///
+        /// ★ 계산분(<c>PrestigeStandingFor</c>)과 그릇을 분리. 한 그릇에 담으면
+        ///   환생이 계산값을 <b>대입</b>하면서 주운 것을 통째로 삭제
+        /// </summary>
+        public long PrestigeShards { get; set; }
+
+
         /// <summary>몇 번 리셋했나.</summary>
         public int Ascensions { get; set; }
 
@@ -353,6 +362,8 @@ namespace WitchMendokusai.DomainSDK.Idle
                 Repeating = Repeating,
                 ClearedStage = ClearedStage,
                 SeatsReady = SeatsReady,
+                PrestigeShards = PrestigeShards,
+
                 MeasuredStage = MeasuredStage,
                 MeasuredKillsPerSecond = MeasuredKillsPerSecond,
             };
@@ -546,6 +557,8 @@ namespace WitchMendokusai.DomainSDK.Idle
             Repeating = saveData.Repeating;
             ClearedStage = NotBelowZero(saveData.ClearedStage);
             SeatsReady = saveData.SeatsReady;
+            PrestigeShards = saveData.PrestigeShards > 0L ? saveData.PrestigeShards : 0L;
+
             MeasuredStage = NotBelowZero(saveData.MeasuredStage);
             MeasuredKillsPerSecond = Sane(saveData.MeasuredKillsPerSecond);
 

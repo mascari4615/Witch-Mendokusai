@@ -393,6 +393,9 @@ namespace WitchMendokusai.DomainSDK.Idle
 
             if (canClear && state.KillsInStage + 1 >= tuning.KillsPerStage)
             {
+                // 구역의 마지막 하나가 보스 (combat.md 4.3). 잡으면 환생 조각 드롭
+                IdleModel.DropPrestigeShard(state, tuning);
+
                 state.ClearedStage = state.Stage;
                 IdleSquad.HealAll(state, tuning);
                 state.Stage += 1;

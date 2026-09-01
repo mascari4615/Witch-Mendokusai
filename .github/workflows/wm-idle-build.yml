@@ -138,12 +138,21 @@ jobs:
             'WitchMendokusai.EditorTools.IdlePlayerBuild.Build'
           }
 
+          # -buildTarget 으로 <에디터가 뜰 때> 플랫폼을 바꾼다.
+          #
+          # 없으면 BuildPlayer(Android) 를 부르는 순간 유니티가 그 자리에서 플랫폼을 전환하며
+          # 텍스처를 통째로 다시 임포트하고, 그 와중에 BuildReport::BeginBuildStep 에서
+          # Access Violation 으로 죽는다 (실측 2026-09-01: android 2연속. 같은 노트북에서
+          # windows 는 메모리 24GB 여유로 성공했으므로 메모리 문제가 아니다).
           $arguments = @(
             '-quit', '-batchmode', '-nographics',
             '-projectPath', $PWD.Path,
-            '-logFile', $log,
-            '-executeMethod', $method
+            '-logFile', $log
           )
+
+          if ($platform -eq 'android') { $arguments += @('-buildTarget', 'Android') }
+
+          $arguments += @('-executeMethod', $method)
 
           Write-Host "Unity args: $($arguments -join ' ')"
           $process = Start-Process -FilePath '${{ steps.unity.outputs.exe }}' -ArgumentList $arguments -PassThru -Wait -WindowStyle Hidden
