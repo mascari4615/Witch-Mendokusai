@@ -39,7 +39,16 @@ function Fail2($message)
 
 function Fail($message)
 {
-    Write-Host "[idle-smoke] ❌ $message" -ForegroundColor Red
+    Write-Host "[idle-smoke] $([char]0x274C) $message" -ForegroundColor Red
+
+    # 로그를 여기서 뿌린다. 실패 원인이 로그에만 있는데 아무도 안 열어 보면
+    # 추측만 쌓임 (실측 2026-09-01. 처치 0 원인을 세 턴 동안 못 짚음)
+    if ($script:LogTail -and (Test-Path $script:LogTail))
+    {
+        Write-Host "[idle-smoke] --- 플레이어 로그 마지막 40줄 ---" -ForegroundColor DarkGray
+        Get-Content $script:LogTail -Tail 40 | ForEach-Object { Write-Host "  $_" -ForegroundColor DarkGray }
+    }
+
     exit 1
 }
 
@@ -89,6 +98,8 @@ $saveKin = @($SavePath, "$SavePath.bak", "$SavePath.broken", "$SavePath.tmp")
 foreach ($one in $saveKin) { if (Test-Path $one) { Remove-Item $one -Force } }
 
 $log = Join-Path ([System.IO.Path]::GetTempPath()) 'wm-idle-smoke.log'
+# Fail 이 마지막 줄들을 뿌릴 수 있게 (원인이 로그에만 있는 실패가 잦음)
+$script:LogTail = $log
 if (Test-Path $log) { Remove-Item $log -Force }
 
 $process = Start-Process -FilePath $exe -PassThru `
