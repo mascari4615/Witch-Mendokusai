@@ -133,7 +133,7 @@ namespace WitchMendokusai
 			else
 			{
 				signatureIcon.style.backgroundImage = StyleKeyword.None;
-				signatureName.text = "(없음)";
+				signatureName.text = "없음";
 			}
 
 			bool isDummy = doll.ID == Doll.DUMMY_ID;

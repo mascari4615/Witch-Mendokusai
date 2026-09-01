@@ -20,7 +20,7 @@ namespace WitchMendokusai.EditorTools
             BootMode.EditorAutoSkipTitle = SessionState.GetBool(KEY, false);
         }
 
-        [MenuItem("WM/Boot/Auto-Skip Title (Editor) — Toggle")]
+        [MenuItem("WM/Boot/Auto-Skip Title (Editor) - Toggle")]
         private static void Toggle()
         {
             bool next = SessionState.GetBool(KEY, false) == false;
@@ -29,7 +29,7 @@ namespace WitchMendokusai.EditorTools
             Debug.Log($"[BOOT] Editor Auto-Skip Title = {next} (다음 Play 부팅부터 — AutoStart 강제, .asset 불변)");
         }
 
-        [MenuItem("WM/Boot/Auto-Skip Title (Editor) — Status")]
+        [MenuItem("WM/Boot/Auto-Skip Title (Editor) - Status")]
         private static void Status()
         {
             Debug.Log($"[BOOT] Editor Auto-Skip Title (SessionState) = {SessionState.GetBool(KEY, false)}");

@@ -30,7 +30,7 @@ namespace WitchMendokusai.EditorTools
             }
         }
 
-        [MenuItem("WM/Boot/Deterministic Override (Editor) — Toggle")]
+        [MenuItem("WM/Boot/Deterministic Override (Editor) - Toggle")]
         private static void Toggle()
         {
             bool next = SessionState.GetBool(KEY, false) == false;
@@ -40,7 +40,7 @@ namespace WitchMendokusai.EditorTools
                 + "(다음 Play 부팅부터 적용 — UseIntro=false/AutoStart=true/UseLocalData=true)");
         }
 
-        [MenuItem("WM/Boot/Deterministic Override (Editor) — Status")]
+        [MenuItem("WM/Boot/Deterministic Override (Editor) - Status")]
         private static void Status()
         {
             Debug.Log($"[BOOT] Editor deterministic override (SessionState) = "

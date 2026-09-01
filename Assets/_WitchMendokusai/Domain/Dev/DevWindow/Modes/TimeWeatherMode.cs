@@ -160,7 +160,7 @@ namespace WitchMendokusai
 		{
 			if (WorldClock.TryGetExistingInstance(out WorldClock worldClock) == false || worldClock.Config == null)
 			{
-				timeStatusLabel.text = "(WorldClock 미존재)";
+				timeStatusLabel.text = "WorldClock 없음";
 				timeMetaLabel.text = string.Empty;
 				speedLabel.text = string.Empty;
 				return;
@@ -180,7 +180,7 @@ namespace WitchMendokusai
 		{
 			if (WeatherSystem.TryGetExistingInstance(out WeatherSystem weatherSystem) == false)
 			{
-				weatherCurrentLabel.text = "(WeatherSystem 미존재)";
+				weatherCurrentLabel.text = "WeatherSystem 없음";
 				weatherPreviewLabel.text = string.Empty;
 				weatherLastLabel.text = string.Empty;
 				bucketHeaderLabel.text = string.Empty;
