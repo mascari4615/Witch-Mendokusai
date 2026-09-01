@@ -386,6 +386,7 @@ namespace WitchMendokusai.DomainSDK.Idle
         {
             state.Kills += 1L;
             IdleDrops.Accrue(state, tuning, 1L, state.Stage);
+            IdleModel.RollStoneDrop(state, tuning, 1L);
             IdleSquad.HealOnKills(state, tuning, 1L);
 
             bool canClear = tuning.KillsPerStage > 0 && state.HoldingStage == false && state.Repeating == false;
@@ -398,10 +399,7 @@ namespace WitchMendokusai.DomainSDK.Idle
                 state.KillsInStage = 0;
                 state.HitsOnTarget = 0L;
 
-                if (state.Stage > state.BestStage)
-                {
-                    state.BestStage = state.Stage;
-                }
+                IdleModel.RewardNewDepth(state, tuning);
 
                 return;
             }

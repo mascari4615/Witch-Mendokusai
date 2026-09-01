@@ -93,6 +93,12 @@ namespace WitchMendokusai
         [Tooltip("한 번 뽑는 데 드는 환생석 (자원과 «둘 다» 낸다).")]
         [SerializeField] private long pullStoneCost = 1L;
 
+        [Tooltip("구역을 처음 깰 때 주는 뽑기 재화 (economy.md 표 2)")]
+        [SerializeField] private long stonesPerFirstClear = 1L;
+
+        [Tooltip("처치 하나가 뽑기 재화를 떨굴 확률")]
+        [SerializeField] private double stoneDropChance = 0.002d;
+
         [Tooltip("레전드 확률. 화면에 그대로 적히므로 여기와 표시가 갈리면 안 된다.")]
         [SerializeField] private double legendChance = 0.02d;
 
@@ -345,6 +351,8 @@ namespace WitchMendokusai
                 PullCostBase = pullCostBase,
                 PullCostRatio = pullCostRatio,
                 PullStoneCost = pullStoneCost,
+                StonesPerFirstClear = stonesPerFirstClear,
+                StoneDropChance = stoneDropChance,
                 LegendChance = legendChance,
                 EpicChance = epicChance,
                 RareChance = rareChance,

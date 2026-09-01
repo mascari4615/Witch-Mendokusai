@@ -83,6 +83,17 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// ★ 자원은 「지금 판에서 얼마나 벌었나」, 환생석은 「몇 판을 지나왔나」를 묻는다.
         ///   둘을 같이 걸면 <b>한쪽만 몰아서는 못 뽑는다</b> — 방치도 환생도 건너뛸 수 없다.
         /// </summary>
+        /// <summary>
+        /// 구역을 <b>처음</b> 깰 때 주는 뽑기 재화 (economy.md 표 2).
+        ///
+        /// ★ 없으면 뽑기를 얻는 길이 환생뿐. 첫 환생 전까지 상점이 잠김.
+        ///   수집형에서 초반 몇 시간 동안 아무도 못 뽑는 것은 그 자체로 이탈 지점
+        /// </summary>
+        public long StonesPerFirstClear { get; set; } = 1L;
+
+        /// <summary>처치 하나가 뽑기 재화를 떨굴 확률 (economy.md 표 2, 낮은 확률)</summary>
+        public double StoneDropChance { get; set; } = 0.002d;
+
         public long PullStoneCost { get; set; } = 1L;
 
         /// <summary>

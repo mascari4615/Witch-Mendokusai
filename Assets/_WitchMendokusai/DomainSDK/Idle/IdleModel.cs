@@ -414,6 +414,7 @@ namespace WitchMendokusai.DomainSDK.Idle
 
             state.Kills += kills;
             IdleDrops.Accrue(state, tuning, kills, state.Stage);
+            RollStoneDrop(state, tuning, kills);
         }
 
         /// <summary>
@@ -553,6 +554,7 @@ namespace WitchMendokusai.DomainSDK.Idle
                 // ★ 지금 단계에서 잡은 몫이다 — 단계 경계를 넘기 <b>전에</b> 쌓아야
                 //   그 처치들이 다음 단계의 높은 상한으로 잘못 쳐지지 않는다.
                 IdleDrops.Accrue(state, tuning, taking, state.Stage);
+                RollStoneDrop(state, tuning, taking);
 
                 if (clearsStage == false)
                 {
@@ -579,16 +581,59 @@ namespace WitchMendokusai.DomainSDK.Idle
                 state.Stage += 1;
                 state.KillsInStage = 0;
 
-                if (state.Stage > state.BestStage)
-                {
-                    state.BestStage = state.Stage;
-                }
+                RewardNewDepth(state, tuning);
             }
 
             if (available > 0L)
             {
                 state.HitsOnTarget += available;
             }
+        }
+
+        /// <summary>
+        /// 새 깊이에 닿았으면 최고 기록을 올리고 뽑기 재화를 준다 (economy.md 표 2)
+        ///
+        /// ★ 라이브(<c>IdleBattleSim</c>)와 오프라인(<c>Resolve</c>) 공용
+        ///   두 벌이면 어느 한쪽에서만 재화가 나옴. 자는 동안 손해의 새 얼굴
+        /// </summary>
+        public static void RewardNewDepth(IdleState state, IdleTuning tuning)
+        {
+            if (state.Stage <= state.BestStage)
+            {
+                return;
+            }
+
+            state.BestStage = state.Stage;
+
+            if (tuning.StonesPerFirstClear > 0L)
+            {
+                state.Stones += tuning.StonesPerFirstClear;
+            }
+        }
+
+        /// <summary>
+        /// 처치가 뽑기 재화를 떨구나 (economy.md 표 2, 낮은 확률)
+        ///
+        /// ★ 판이 든 주사위. 저장에 실리므로 껐다 켜서 다시 굴리기 불가
+        /// </summary>
+        public static void RollStoneDrop(IdleState state, IdleTuning tuning, long kills)
+        {
+            if (kills <= 0L || tuning.StoneDropChance <= 0d)
+            {
+                return;
+            }
+
+            IdleRandom dice = new IdleRandom(state.RandomState);
+
+            for (long at = 0; at < kills; at++)
+            {
+                if (dice.NextDouble() < tuning.StoneDropChance)
+                {
+                    state.Stones += 1L;
+                }
+            }
+
+            state.RandomState = dice.State;
         }
 
         /// <summary>

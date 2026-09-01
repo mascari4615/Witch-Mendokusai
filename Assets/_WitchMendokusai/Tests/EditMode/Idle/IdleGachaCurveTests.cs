@@ -21,6 +21,40 @@ namespace WitchMendokusai.Tests
 		private const double SEVEN_DAYS = 7d * 24d * 3600d;
 
 		/// <summary>
+		/// ★ 뽑기 재화를 <b>환생 전에도</b> 얻는다 (economy.md 표 2).
+		///
+		/// 전에는 출처가 환생 하나뿐이라 첫 환생까지 상점이 잠겨 있었다 (실측 2026-09-01).
+		/// 수집형에서 초반 몇 시간을 아무도 못 뽑는 것은 그 자체로 이탈 지점.
+		/// </summary>
+		[Test]
+		public void StonesArrive_BeforeAnyPrestige()
+		{
+			IdleTuning tuning = new IdleTuning();
+			IdleState state = new IdleState();
+			IdleHeroes.EnsureStarter(state);
+
+			IdleModel.Step(state, tuning, 600d);
+
+			Assert.AreEqual(0, state.Ascensions, "환생이 끼면 이 시험이 뜻을 잃는다");
+			Assert.Greater(state.BestStage, 1, "10분에 한 구역도 못 깼다");
+			Assert.Greater(state.Stones, 0L, "환생 전에는 뽑기 재화가 안 들어온다 - 상점이 잠긴다");
+		}
+
+		/// <summary>★ 첫 클리어만 준다 - 같은 구역을 되풀이해도 재화가 안 는다</summary>
+		[Test]
+		public void OnlyTheFirstClear_Pays()
+		{
+			IdleTuning tuning = new IdleTuning();
+			IdleState state = new IdleState { Stage = 5, BestStage = 9 };
+
+			long before = state.Stones;
+			IdleModel.RewardNewDepth(state, tuning);
+
+			Assert.AreEqual(before, state.Stones, "이미 지나온 깊이인데 재화를 또 줬다");
+			Assert.AreEqual(9, state.BestStage, "최고 기록이 뒤로 갔다");
+		}
+
+		/// <summary>
 		/// ★ 뽑는 판이 <b>같은 시각에 더 깊이</b> 가 있다 — 아니면 가챠는 장식이다.
 		///
 		/// ★ <b>두 시간</b>에서 잰다. 이레 끝값으로는 못 잰다 — 지금 판은 반나절이면
