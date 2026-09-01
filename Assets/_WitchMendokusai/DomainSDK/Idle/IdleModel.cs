@@ -195,11 +195,23 @@ namespace WitchMendokusai.DomainSDK.Idle
             state.AttackProgress = 0d;
             state.Damage.Level = 0;
             state.AttackSpeed.Level = 0;
-            // 인형 레벨도 지운다 (U4). 보유와 ★ 과 도감은 그대로
+            // 인형 레벨도 지움 (U4). 보유와 ★ 과 도감은 그대로
             IdleHeroes.ForgetLevels(state);
-            // 잠재도 남긴다 — 장비가 판을 건너 남는 것과 같은 이치다.
-            // 떨어진 것은 남긴다 — 대열 방치 전투 계열에서 장비가 판을 건너 남는 것과 같다.
-            // 그게 「깊이 갔다 온 값어치」의 두 번째 증거다(첫째는 점수).
+
+            // 장비도 지움 (economy.md 표 3, 사용자 판정 2026-09-01 "장비도 리셋").
+            //
+            // ★ 남기던 때는 장비가 판을 건너는 것이 <b>깊이 갔다 온 값어치</b>라고 봤는데,
+            //   그러면 환생이 되감기가 아니라 <b>덧칠</b>이 된다. 매 판 다시 모으는 것이
+            //   있어야 새 판이 새 판이 됨
+            //
+            // ★ 감정 개수(<c>DroppedByTier</c>)와 잠재 기록은 남긴다. 그건 장비가 아니라
+            //   <b>판을 얼마나 깊이 갔나</b> 의 기록. 지우면 감정 카드가 매 판 잠김
+            state.Bag.Clear();
+
+            for (int index = 0; index < state.Worn.Length; index++)
+            {
+                state.Worn[index] = default;
+            }
 
             return true;
         }
