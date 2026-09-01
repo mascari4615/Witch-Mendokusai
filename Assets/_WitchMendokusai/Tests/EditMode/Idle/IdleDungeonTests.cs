@@ -113,6 +113,58 @@ namespace WitchMendokusai.Tests
 			Assert.AreEqual(DAY - 60L, left, 1e-9d, "경계를 60초 지났으면 남은 것도 그만큼 짧아야 한다");
 		}
 
+		/// <summary>
+		/// ★ 사진의 카운트다운이 <b>실시각</b>을 따라감.
+		///
+		/// 전에는 저장 직전에만 찍히는 <c>LastSeenUnixSeconds</c> 로 재서 늘 0 시간
+		/// (실측 2026-09-01)
+		/// </summary>
+		[Test]
+		public void TheSnapshotCountdown_FollowsTheRealClock()
+		{
+			IdleTuning tuning = new IdleTuning();
+			IdleSession session = new IdleSession(tuning);
+			long start = JustAfterBoundary(tuning);
+			session.CatchUp(start);
+
+			double first = session.Capture().TicketRefillSeconds;
+			Assert.Greater(first, 0d, "카운트다운이 0 으로 떴다");
+
+			for (int beat = 0; beat < 600; beat++)
+			{
+				session.AdvanceLive(0.1d);
+			}
+
+			double later = session.Capture().TicketRefillSeconds;
+
+			Assert.AreEqual(first - 60d, later, 1e-6d, "60초를 흘렸는데 카운트다운이 그만큼 안 줄었다");
+		}
+
+		/// <summary>
+		/// ★ <b>배속이 날을 앞당기지 않음</b>. 안 그러면 3배속으로 켜 두는 것이 입장권 3배
+		/// </summary>
+		[Test]
+		public void Speed_DoesNotBringTheNextDayCloser()
+		{
+			IdleTuning tuning = new IdleTuning();
+			long start = JustAfterBoundary(tuning);
+
+			IdleSession slow = new IdleSession(tuning);
+			IdleSession fast = new IdleSession(tuning);
+			slow.CatchUp(start);
+			fast.CatchUp(start);
+			fast.CycleSpeed();
+
+			for (int beat = 0; beat < 600; beat++)
+			{
+				slow.AdvanceLive(0.1d);
+				fast.AdvanceLive(0.1d);
+			}
+
+			Assert.AreEqual(slow.Capture().TicketRefillSeconds, fast.Capture().TicketRefillSeconds, 1e-6d,
+				"배속 판의 다음 날이 더 가까워졌다");
+		}
+
 		/// <summary>★ 저장을 건넌다. 안 그러면 껐다 켜서 다시 채우는 길이 생긴다</summary>
 		[Test]
 		public void Tickets_SurviveTheSave()

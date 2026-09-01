@@ -50,6 +50,13 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// </summary>
         public void AdvanceLive(double seconds)
         {
+            // 시계는 실시각. 배속이 날을 앞당기면 입장권이 빨리 차는 구멍
+            if (clockSeconds > 0d)
+            {
+                clockSeconds += seconds;
+                IdleDungeons.Refill(state, tuning, Now());
+            }
+
             // 배속은 보고 있는 동안만 (P1-6). 자리 비운 몫은 실측 초당 값이라 안 부풀려짐
             IdleModel.StepLive(state, tuning, seconds * SpeedNow);
 
@@ -118,6 +125,7 @@ namespace WitchMendokusai.DomainSDK.Idle
             state.SinceVisitorSeconds = 0d;
 
             // 던전 입장권은 흐른 초가 아니라 날 경계로 찬다 (economy.md 4). 실시각을 아는 유일한 자리
+            clockSeconds = nowUnixSeconds;
             IdleDungeons.Refill(state, tuning, nowUnixSeconds);
 
             long lastSeen = state.LastSeenUnixSeconds;
@@ -150,6 +158,7 @@ namespace WitchMendokusai.DomainSDK.Idle
         public void MarkSeen(long nowUnixSeconds)
         {
             state.LastSeenUnixSeconds = nowUnixSeconds;
+            clockSeconds = nowUnixSeconds;
         }
 
         /// <summary>의도를 받는다 — 받아들여졌으면 true. 자원이 모자라거나 상한이면 아무 일도 없다.</summary>
@@ -410,7 +419,7 @@ namespace WitchMendokusai.DomainSDK.Idle
                 CaptureHits(),
                 CaptureQueued(),
                 CaptureTickets(),
-                IdleDungeons.SecondsUntilRefill(state, tuning, state.LastSeenUnixSeconds),
+                IdleDungeons.SecondsUntilRefill(state, tuning, Now()),
                 SpeedNow,
                 state.AutoCast);
         }
@@ -600,6 +609,26 @@ namespace WitchMendokusai.DomainSDK.Idle
         private int[] partyBuffer;
         private IdleCardView[] cardBuffer;
         private IdleCardKind[] queuedBuffer;
+
+        /// <summary>
+        /// 지금 몇 시인가 (Unix 초). 복귀 때 맞추고 흐른 만큼 더하는 값
+        ///
+        /// ★ <c>LastSeenUnixSeconds</c> 는 저장 직전에만 찍히는 값이라 실시각이 아님.
+        ///   그것으로 입장권 카운트다운을 재던 동안 화면이 늘 0 시간을 적었다 (실측 2026-09-01)
+        ///
+        /// ★ 배속은 안 곱함. 판이 빨라져도 <b>날은 그대로</b>
+        /// </summary>
+        private double clockSeconds;
+
+        /// <summary>
+        /// 시계를 초로. <b>반올림</b>.
+        ///
+        /// ★ 자르면 0.1 초를 600번 더한 자리에서 부동소수 오차로 1초가 샌다 (실측 2026-09-01)
+        /// </summary>
+        private long Now()
+        {
+            return (long)System.Math.Round(clockSeconds);
+        }
         private IdleSeatView[] seatBuffer;
         private IdleFighterView[] fighterBuffer;
         private IdleFoeView[] foeBuffer;
