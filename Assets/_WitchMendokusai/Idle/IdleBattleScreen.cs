@@ -958,7 +958,7 @@ namespace WitchMendokusai
 					continue;
 				}
 
-				dungeonRows[index].text = string.Format("{0}. 입장권 {1}, 다시 참까지 {2}시간 {3}분 (준비 중)",
+				dungeonRows[index].text = string.Format("{0}  입장권 {1}  다시 참까지 {2}시간 {3}분",
 					NameOf((IdleDungeonKind)index), snapshot.Tickets[index], hours, minutes);
 			}
 		}
