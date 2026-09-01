@@ -120,7 +120,10 @@ jobs:
           $ErrorActionPreference = 'Stop'
           $OutputEncoding = [Console]::OutputEncoding = [Text.UTF8Encoding]::new()
 
-          $root = Join-Path $env:BUILD_ROOT 'idle'
+          # 본편과 같은 칸에 놓는다. 노트북 현황판과 폰 설치 링크 발급이 둘 다
+          # wm-builds 바로 아래만 보기 때문 (실측 2026-09-01: 안드로이드 APK 를 구워도
+          # 현황판에 안 뜨고 링크도 못 만들었다).
+          $root = $env:BUILD_ROOT
           $env:WM_IDLE_BUILD_DIR = $root
 
           # mono = quick look only. IL2CPP stays the default so push-triggered builds
@@ -183,7 +186,8 @@ jobs:
             $exe = (Get-Content $mark -Raw).Trim()
           } else {
             Write-Host "::warning title=no build mark::falling back to newest folder (this can pick the wrong build)"
-            $newest = Get-ChildItem $root -Directory | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+            # 이제 본편 빌드와 같은 칸이라 아무거나 집으면 남의 빌드를 배달한다
+            $newest = Get-ChildItem $root -Directory -Filter '*-idle-*' | Sort-Object LastWriteTime -Descending | Select-Object -First 1
             $exe = Join-Path $newest.FullName $leaf
           }
           if (-not (Test-Path $exe)) { throw "build reported success but no output: $exe" }
@@ -303,7 +307,23 @@ jobs:
           $where = '${{ steps.build.outputs.exe }}'
           $body = "[Idle $platform $mark] $where`n${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           try {
-            Invoke-LaptopOpsJson -Path '/notify' -Token $token -Payload @{ channel = 'build'; content = $body } | Out-Null
+            # 게이트웨이는 body.text 를 요구한다. content 로 보내던 동안 알림이 400 으로
+            # 조용히 죽었고, 그래서 폰 설치 링크도 카드도 안 갔다 (실측 2026-09-01)
+            $payload = @{ channel = 'build'; text = $body }
+
+            # 안드로이드는 파일 하나라 그대로 배달할 수 있다. 링크는 게이트웨이가 서명한다
+            if ($platform -eq 'android' -and $ok) {
+              try {
+                $folder = Split-Path $where -Parent | Split-Path -Leaf
+                $signed = Invoke-LaptopOpsJson -Path '/dl/sign' -Token $token `
+                  -Payload @{ build = $folder; file = 'Idle.apk' }
+                if ($signed.url) { $payload.text = "$body`n폰에 깔기: $($signed.url)" }
+              } catch {
+                Write-Warning "sign failed: $($_.Exception.Message)"
+              }
+            }
+
+            Invoke-LaptopOpsJson -Path '/notify' -Token $token -Payload $payload | Out-Null
           } catch {
             Write-Warning "notify failed: $($_.Exception.Message)"
           }

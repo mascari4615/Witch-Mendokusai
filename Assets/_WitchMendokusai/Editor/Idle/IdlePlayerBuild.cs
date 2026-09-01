@@ -23,7 +23,16 @@ namespace WitchMendokusai.EditorTools
 	public static class IdlePlayerBuild
 	{
 		private const string SCENE_PATH = "Assets/_WitchMendokusai/Scenes/Idle/Idle.unity";
-		private const string DEFAULT_DIR = "C:/wm-builds/idle";
+		/// <summary>
+		/// 구운 것을 놓는 자리.
+		///
+		/// ★ <b>본편과 같은 칸</b>에 놓는다 (실측 2026-09-01). 전에는 한 칸 더 들어간
+		///   <c>wm-builds/idle</c> 이었는데, 노트북 현황판(<c>laptop.mascari4615.com/builds</c>)과
+		///   폰 설치 링크 발급이 둘 다 <c>wm-builds</c> <b>바로 아래</b>만 보는 탓.
+		///   그래서 안드로이드 APK 를 구워도 현황판에 안 뜨고 링크도 못 만드는 상태였음.
+		///   서명 이름 규칙(<c>[A-Za-z0-9._-]+</c>)이 슬래시를 안 받으므로 깊이를 못 늘림
+		/// </summary>
+		private const string DEFAULT_DIR = "C:/wm-builds";
 		private const string EXE_NAME = "Idle.exe";
 		private const string TAG = "[IdleBuild]";
 
@@ -86,7 +95,8 @@ namespace WitchMendokusai.EditorTools
 				directory = DEFAULT_DIR;
 			}
 
-			directory = Path.Combine(directory, DateTime.Now.ToString("yyyyMMdd-HHmmss") + "-android");
+			// 이름 끝에 무엇인지 적기. 현황판이 폴더 이름만 보고 플랫폼을 앎
+			directory = Path.Combine(directory, DateTime.Now.ToString("yyyyMMdd-HHmmss") + "-idle-android");
 			Directory.CreateDirectory(directory);
 
 			string apkPath = Path.Combine(directory, "Idle.apk");
@@ -153,7 +163,7 @@ namespace WitchMendokusai.EditorTools
 				Environment.GetEnvironmentVariable(BACKEND_ENV), "mono", StringComparison.OrdinalIgnoreCase);
 
 			directory = Path.Combine(directory,
-				DateTime.Now.ToString("yyyyMMdd-HHmmss") + (quickLook ? "-mono" : string.Empty));
+				DateTime.Now.ToString("yyyyMMdd-HHmmss") + (quickLook ? "-idle-mono" : "-idle-windows"));
 			Directory.CreateDirectory(directory);
 
 			string exePath = Path.Combine(directory, EXE_NAME);
