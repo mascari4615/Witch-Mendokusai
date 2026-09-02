@@ -14,6 +14,7 @@
     </ui:VisualElement>
     <ui:Label name="doll-name" class="idle-row-head" />
     <ui:Label text="개별 성장" class="idle-cap" />
+    <ui:Label name="stat-feedback" class="idle-stat-feedback" />
     <ui:VisualElement name="stat-rows" class="idle-stat-rows">
         <ui:VisualElement class="idle-stat-row"><ui:Label name="stat-label-0" class="idle-stat-label" /><ui:Button name="stat-0-x1" text="×1" class="idle-stat-buy" /><ui:Button name="stat-0-x10" text="×10" class="idle-stat-buy" /><ui:Button name="stat-0-x100" text="×100" class="idle-stat-buy" /></ui:VisualElement>
         <ui:VisualElement class="idle-stat-row"><ui:Label name="stat-label-1" class="idle-stat-label" /><ui:Button name="stat-1-x1" text="×1" class="idle-stat-buy" /><ui:Button name="stat-1-x10" text="×10" class="idle-stat-buy" /><ui:Button name="stat-1-x100" text="×100" class="idle-stat-buy" /></ui:VisualElement>
@@ -21,6 +22,7 @@
         <ui:VisualElement class="idle-stat-row"><ui:Label name="stat-label-3" class="idle-stat-label" /><ui:Button name="stat-3-x1" text="×1" class="idle-stat-buy" /><ui:Button name="stat-3-x10" text="×10" class="idle-stat-buy" /><ui:Button name="stat-3-x100" text="×100" class="idle-stat-buy" /></ui:VisualElement>
         <ui:VisualElement class="idle-stat-row"><ui:Label name="stat-label-4" class="idle-stat-label" /><ui:Button name="stat-4-x1" text="×1" class="idle-stat-buy" /><ui:Button name="stat-4-x10" text="×10" class="idle-stat-buy" /><ui:Button name="stat-4-x100" text="×100" class="idle-stat-buy" /></ui:VisualElement>
         <ui:VisualElement class="idle-stat-row"><ui:Label name="stat-label-5" class="idle-stat-label" /><ui:Button name="stat-5-x1" text="×1" class="idle-stat-buy" /><ui:Button name="stat-5-x10" text="×10" class="idle-stat-buy" /><ui:Button name="stat-5-x100" text="×100" class="idle-stat-buy" /></ui:VisualElement>
+        <ui:VisualElement class="idle-stat-row"><ui:Label name="stat-label-6" class="idle-stat-label" /><ui:Button name="stat-6-x1" text="×1" class="idle-stat-buy" /><ui:Button name="stat-6-x10" text="×10" class="idle-stat-buy" /><ui:Button name="stat-6-x100" text="×100" class="idle-stat-buy" /></ui:VisualElement>
     </ui:VisualElement>
     <ui:Label text="장비" class="idle-cap" />
     <ui:VisualElement name="worn" class="idle-worn">

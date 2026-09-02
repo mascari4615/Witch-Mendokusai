@@ -202,7 +202,11 @@ namespace WitchMendokusai.Tests
 		{
 			IdleTuning tuning = new IdleTuning();
 			IdleState state = new IdleState { Stage = 30, BestStage = 30 };
-			state.Damage.Level = 30;
+			IdleHeroes.EnsureStarter(state);
+			int starter = state.IndexOfHero(IdleHeroes.STARTER_ID);
+			IdleHeroOwned owned = state.Heroes[starter];
+			owned.DamageLevel = 30;
+			state.Heroes[starter] = owned;
 
 			int farm = IdleModel.BestFarmingStage(state, tuning);
 

@@ -589,7 +589,7 @@ namespace WitchMendokusai.DomainSDK.Idle
 
         private bool CanRaiseAnyStat(int heroId)
         {
-            for (int stat = 0; stat <= (int)IdleUpgradeKind.CriticalDamage; stat++)
+            for (int stat = 0; stat <= (int)IdleUpgradeKind.Recovery; stat++)
             {
                 if (IdleModel.TryGetCost(state, tuning, heroId, (IdleUpgradeKind)stat, 1, out double cost)
                     && state.Resource >= cost)
@@ -831,8 +831,10 @@ namespace WitchMendokusai.DomainSDK.Idle
                     return 1d - 1d / (1d + defense);
                 case IdleUpgradeKind.CriticalChance:
                     return IdleHeroes.CriticalChanceOf(state, tuning, heroId);
-                default:
+                case IdleUpgradeKind.CriticalDamage:
                     return IdleHeroes.CriticalDamageOf(state, tuning, heroId);
+                default:
+                    return IdleHeroes.HealPerKillShareOf(state, tuning, heroId);
             }
         }
 

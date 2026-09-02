@@ -243,6 +243,7 @@ namespace WitchMendokusai.DomainSDK.Idle
                 owned.DefenseLevel = 0;
                 owned.CriticalChanceLevel = 0;
                 owned.CriticalDamageLevel = 0;
+                owned.RecoveryLevel = 0;
                 state.Heroes[index] = owned;
             }
         }
@@ -282,6 +283,12 @@ namespace WitchMendokusai.DomainSDK.Idle
         public static double DefenseOf(IdleState state, IdleTuning tuning, int heroId)
         {
             return StatValueOf(state, tuning, heroId, IdleUpgradeKind.Defense);
+        }
+
+        public static double HealPerKillShareOf(IdleState state, IdleTuning tuning, int heroId)
+        {
+            return tuning.HealPerKillShare
+                + StatValueOf(state, tuning, heroId, IdleUpgradeKind.Recovery);
         }
 
         public static bool TryGetStatCost(IdleState state, IdleTuning tuning, int heroId,
@@ -338,7 +345,7 @@ namespace WitchMendokusai.DomainSDK.Idle
             for (int hero = 0; hero < state.Heroes.Count; hero++)
             {
                 int heroId = state.Heroes[hero].Id;
-                for (int stat = 0; stat <= (int)IdleUpgradeKind.CriticalDamage; stat++)
+                for (int stat = 0; stat <= (int)IdleUpgradeKind.Recovery; stat++)
                 {
                     if (TryGetStatCost(state, tuning, heroId, (IdleUpgradeKind)stat, 1, out double cost)
                         && state.Resource >= cost)

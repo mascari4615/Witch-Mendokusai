@@ -29,8 +29,8 @@ namespace WitchMendokusai.Tests
 
 			Assert.AreEqual(1, state.Stage);
 
-			double perTarget = tuning.TargetHealthByStage.At(0);
-			IdleModel.Step(state, tuning, DamageTimeFor(state, tuning, perTarget * tuning.KillsPerStage));
+			double attacks = IdleModel.HitsToFell(state, tuning) * tuning.KillsPerStage;
+			IdleModel.Step(state, tuning, attacks / IdleModel.AttackSpeedOf(state, tuning));
 
 			Assert.AreEqual(2, state.Stage, "정해진 수를 다 처치했는데 안 내려갔다");
 			Assert.AreEqual(0, state.KillsInStage, "내려갔는데 이번 단계 처치 수가 안 비었다");
@@ -149,12 +149,6 @@ namespace WitchMendokusai.Tests
 			Assert.AreEqual(session.State.Stage, snapshot.Stage);
 			Assert.AreEqual(session.State.KillsInStage, snapshot.KillsInStage);
 			Assert.AreEqual(tuning.KillsPerStage, snapshot.KillsPerStage);
-		}
-
-		/// <summary>주어진 피해량을 넣는 데 걸리는 시간 — 시험이 「몇 초」가 아니라 「얼마만큼」으로 말하게.</summary>
-		private static double DamageTimeFor(IdleState state, IdleTuning tuning, double damage)
-		{
-			return damage / IdleModel.DamagePerSecond(state, tuning);
 		}
 
 		/// <summary>

@@ -338,6 +338,21 @@
 	margin-bottom: 10px;
 }
 
+.idle-stat-feedback {
+	min-height: 30px;
+	margin-top: 3px;
+	margin-bottom: 4px;
+	font-size: 19px;
+	color: rgb(255, 222, 128);
+	opacity: 0;
+	transition-property: opacity;
+	transition-duration: 0.12s;
+}
+
+.idle-stat-feedback--shown {
+	opacity: 1;
+}
+
 .idle-stat-row {
 	flex-direction: row;
 	align-items: center;
@@ -349,6 +364,13 @@
 	flex-grow: 1;
 	font-size: 22px;
 	color: rgb(224, 224, 224);
+	transition-property: color, scale;
+	transition-duration: 0.12s;
+}
+
+.idle-stat-label--raised {
+	color: rgb(255, 222, 128);
+	scale: 1.03 1.03;
 }
 
 .idle-stat-buy {
@@ -361,10 +383,39 @@
 	border-width: 1px;
 	border-color: rgb(120, 120, 120);
 	border-radius: 0;
+	transition-property: background-color, border-color, color, scale;
+	transition-duration: 0.12s;
+}
+
+.idle-stat-buy--ready {
+	background-color: rgba(245, 175, 16, 0.22);
+	border-width: 2px;
+	border-color: rgb(245, 175, 16);
+	color: rgb(255, 236, 174);
+}
+
+.idle-stat-buy--ready:active {
+	scale: 0.95 0.95;
 }
 
 .idle-stat-buy:disabled {
-	opacity: 0.38;
+	opacity: 1;
+	background-color: rgb(18, 18, 18);
+	border-color: rgb(52, 52, 52);
+	color: rgb(104, 104, 100);
+}
+
+.idle-stat-buy--maxed:disabled {
+	background-color: rgb(24, 24, 24);
+	color: rgb(128, 128, 122);
+}
+
+.idle-stat-buy--raised,
+.idle-stat-buy--raised:disabled {
+	background-color: rgb(245, 175, 16);
+	border-color: rgb(255, 235, 170);
+	color: rgb(17, 17, 17);
+	scale: 1.04 1.04;
 }
 
 .idle-queue {

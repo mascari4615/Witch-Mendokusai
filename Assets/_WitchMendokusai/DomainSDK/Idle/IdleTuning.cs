@@ -293,6 +293,14 @@ namespace WitchMendokusai.DomainSDK.Idle
             ValueRatio = 1.04d,
         };
 
+        public IUpgradeCurve RecoveryCurve { get; set; } = new GeometricUpgradeCurve
+        {
+            BaseCost = 30d,
+            CostRatio = 1.25d,
+            BaseValue = 0.02d,
+            ValueRatio = 1.04d,
+        };
+
         public double BaseCriticalChance { get; set; } = 0.05d;
 
         public double BaseCriticalDamage { get; set; } = 1.5d;
@@ -613,7 +621,8 @@ namespace WitchMendokusai.DomainSDK.Idle
                 case IdleUpgradeKind.MaxHealth: return MaxHealthCurve;
                 case IdleUpgradeKind.Defense: return DefenseCurve;
                 case IdleUpgradeKind.CriticalChance: return CriticalChanceCurve;
-                default: return CriticalDamageCurve;
+                case IdleUpgradeKind.CriticalDamage: return CriticalDamageCurve;
+                default: return RecoveryCurve;
             }
         }
     }

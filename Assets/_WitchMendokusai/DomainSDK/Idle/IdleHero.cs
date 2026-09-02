@@ -112,6 +112,8 @@ namespace WitchMendokusai.DomainSDK.Idle
 
         public int CriticalDamageLevel;
 
+        public int RecoveryLevel;
+
         public IdleHeroOwned(int id)
         {
             Id = id;
@@ -124,6 +126,7 @@ namespace WitchMendokusai.DomainSDK.Idle
             DefenseLevel = 0;
             CriticalChanceLevel = 0;
             CriticalDamageLevel = 0;
+            RecoveryLevel = 0;
         }
 
         public int StatLevel(IdleUpgradeKind kind)
@@ -135,7 +138,8 @@ namespace WitchMendokusai.DomainSDK.Idle
                 case IdleUpgradeKind.MaxHealth: return MaxHealthLevel;
                 case IdleUpgradeKind.Defense: return DefenseLevel;
                 case IdleUpgradeKind.CriticalChance: return CriticalChanceLevel;
-                default: return CriticalDamageLevel;
+                case IdleUpgradeKind.CriticalDamage: return CriticalDamageLevel;
+                default: return RecoveryLevel;
             }
         }
 
@@ -148,7 +152,8 @@ namespace WitchMendokusai.DomainSDK.Idle
                 case IdleUpgradeKind.MaxHealth: MaxHealthLevel = level; break;
                 case IdleUpgradeKind.Defense: DefenseLevel = level; break;
                 case IdleUpgradeKind.CriticalChance: CriticalChanceLevel = level; break;
-                default: CriticalDamageLevel = level; break;
+                case IdleUpgradeKind.CriticalDamage: CriticalDamageLevel = level; break;
+                default: RecoveryLevel = level; break;
             }
         }
     }

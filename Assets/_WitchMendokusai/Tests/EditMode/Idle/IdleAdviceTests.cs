@@ -286,7 +286,11 @@ namespace WitchMendokusai.Tests
 			//   이르러서(20초 vs 50초) 속도를 빼먹어도 답이 안 바뀌었다 — 처음 쓴 시험이
 			//   눈뜬장님이었다. 여기서는 공격력을 12까지 올려 <b>속도가 가장 이른</b> 판을 만든다
 			//   (공격력 36초 · 속도 8.3초 · 기지 11.6초).
-			state.Damage.Level = 12;
+			IdleHeroes.EnsureStarter(state);
+			int starter = state.IndexOfHero(IdleHeroes.STARTER_ID);
+			IdleHeroOwned owned = state.Heroes[starter];
+			owned.DamageLevel = 12;
+			state.Heroes[starter] = owned;
 			state.Owned[0] = 6L;
 
 			IdleSnapshot now = Look(state);

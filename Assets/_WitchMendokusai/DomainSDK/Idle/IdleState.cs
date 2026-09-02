@@ -544,6 +544,7 @@ namespace WitchMendokusai.DomainSDK.Idle
                         owned.DefenseLevel = NotBelowZero(owned.DefenseLevel);
                         owned.CriticalChanceLevel = NotBelowZero(owned.CriticalChanceLevel);
                         owned.CriticalDamageLevel = NotBelowZero(owned.CriticalDamageLevel);
+                        owned.RecoveryLevel = NotBelowZero(owned.RecoveryLevel);
                         Heroes.Add(owned);
                     }
                 }

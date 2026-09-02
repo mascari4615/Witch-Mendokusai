@@ -23,5 +23,8 @@ namespace WitchMendokusai.DomainSDK.Idle
 
         /// <summary>치명타 한 번의 피해 배수.</summary>
         CriticalDamage = 5,
+
+        /// <summary>처치할 때 되찾는 최대 체력의 몫.</summary>
+        Recovery = 6,
     }
 }

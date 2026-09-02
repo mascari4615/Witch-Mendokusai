@@ -140,7 +140,7 @@ namespace WitchMendokusai.Tests
 			Assert.AreEqual(0, state.Heroes[state.IndexOfHero(0)].DefenseLevel);
 		}
 
-		/// <summary>여섯 수치의 실제 전투 효과</summary>
+		/// <summary>일곱 수치의 실제 전투 효과</summary>
 		[Test]
 		public void EveryStat_ChangesItsCombatNumber()
 		{
@@ -152,6 +152,7 @@ namespace WitchMendokusai.Tests
 			double speed = IdleModel.AttackSpeedOfHero(state, tuning, 0);
 			double health = IdleSquad.MaxHealthOfHero(state, tuning, 0);
 			double received = IdleSquad.DamageTakenBySeat(state, tuning, 0, 100d);
+			double recovery = IdleHeroes.HealPerKillShareOf(state, tuning, 0);
 
 			Assert.IsTrue(IdleModel.TryRaise(state, tuning, 0, IdleUpgradeKind.Damage, 1));
 			Assert.IsTrue(IdleModel.TryRaise(state, tuning, 0, IdleUpgradeKind.AttackSpeed, 1));
@@ -159,11 +160,33 @@ namespace WitchMendokusai.Tests
 			Assert.IsTrue(IdleModel.TryRaise(state, tuning, 0, IdleUpgradeKind.Defense, 1));
 			Assert.IsTrue(IdleModel.TryRaise(state, tuning, 0, IdleUpgradeKind.CriticalChance, 1));
 			Assert.IsTrue(IdleModel.TryRaise(state, tuning, 0, IdleUpgradeKind.CriticalDamage, 1));
+			Assert.IsTrue(IdleModel.TryRaise(state, tuning, 0, IdleUpgradeKind.Recovery, 1));
 
 			Assert.Greater(IdleModel.DamageOfHero(state, tuning, 0), damage);
 			Assert.Greater(IdleModel.AttackSpeedOfHero(state, tuning, 0), speed);
 			Assert.Greater(IdleSquad.MaxHealthOfHero(state, tuning, 0), health);
 			Assert.Less(IdleSquad.DamageTakenBySeat(state, tuning, 0, 100d), received);
+			Assert.Greater(IdleHeroes.HealPerKillShareOf(state, tuning, 0), recovery);
+		}
+
+		[Test]
+		public void Recovery_RestoresMoreHealthOnEachKill()
+		{
+			IdleTuning tuning = new IdleTuning();
+			IdleState state = WithHero(tuning, 0);
+			state.Party[0] = 0;
+			state.EnsureSeatRoom(tuning);
+			double max = IdleSquad.MaxHealthOf(state, tuning, 0);
+			state.SeatHealth[0] = max * 0.1d;
+			IdleSquad.HealOnKills(state, tuning, 1L);
+			double before = state.SeatHealth[0];
+
+			state.Resource = 1e30d;
+			Assert.IsTrue(IdleModel.TryRaise(state, tuning, 0, IdleUpgradeKind.Recovery, 1));
+			state.SeatHealth[0] = max * 0.1d;
+			IdleSquad.HealOnKills(state, tuning, 1L);
+
+			Assert.Greater(state.SeatHealth[0], before);
 		}
 
 		/// <summary>영웅 수치 저장 왕복</summary>
@@ -174,11 +197,13 @@ namespace WitchMendokusai.Tests
 			IdleState state = WithHero(tuning, 0);
 			state.Resource = 1e30d;
 			Assert.IsTrue(IdleModel.TryRaise(state, tuning, 0, IdleUpgradeKind.CriticalDamage, 100));
+			Assert.IsTrue(IdleModel.TryRaise(state, tuning, 0, IdleUpgradeKind.Recovery, 10));
 
 			IdleState loaded = new IdleState();
 			loaded.Load(state.Save());
 
 			Assert.AreEqual(100, loaded.Heroes[loaded.IndexOfHero(0)].CriticalDamageLevel);
+			Assert.AreEqual(10, loaded.Heroes[loaded.IndexOfHero(0)].RecoveryLevel);
 		}
 	}
 }

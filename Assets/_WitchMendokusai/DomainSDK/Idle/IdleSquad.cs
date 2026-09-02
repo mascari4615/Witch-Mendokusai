@@ -362,7 +362,7 @@ namespace WitchMendokusai.DomainSDK.Idle
 		public static void HealOnKills(IdleState state, IdleTuning tuning, long kills)
 		{
 			// 자리를 아직 안 세운 판(시뮬·오프라인 정산)은 부대층이 안 도는 자리다 — 건드리지 않는다.
-			if (state.SeatsReady == false || kills <= 0L || tuning.HealPerKillShare <= 0d)
+			if (state.SeatsReady == false || kills <= 0L)
 			{
 				return;
 			}
@@ -376,7 +376,9 @@ namespace WitchMendokusai.DomainSDK.Idle
 				}
 
 				double max = MaxHealthOf(state, tuning, seat);
-				double healed = state.SeatHealth[seat] + max * tuning.HealPerKillShare * kills;
+				int heroId = state.Party[seat];
+				double share = IdleHeroes.HealPerKillShareOf(state, tuning, heroId);
+				double healed = state.SeatHealth[seat] + max * share * kills;
 				state.SeatHealth[seat] = healed > max ? max : healed;
 			}
 		}

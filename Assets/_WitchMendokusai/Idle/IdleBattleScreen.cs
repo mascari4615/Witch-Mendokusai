@@ -82,7 +82,7 @@ namespace WitchMendokusai
 		private static readonly string[] TAB_NAMES = { "인형", "아이템", "도감", "상점", "연구소", "던전", "투자" };
 		private static readonly string[] TAB_CAPTIONS = { "DOLLS", "ITEMS", "CODEX", "SHOP", "LAB", "DUNGEON", "INVEST" };
 		private static readonly string[] SLOT_NAMES = { "머리", "몸", "손", "발" };
-		private static readonly string[] STAT_NAMES = { "공격력", "공격 속도", "최대 체력", "방어력", "치명타 확률", "치명타 피해" };
+		private static readonly string[] STAT_NAMES = { "공격력", "공격 속도", "최대 체력", "방어력", "치명타 확률", "치명타 피해", "회복" };
 		private static readonly int[] STAT_AMOUNTS = { 1, 10, 100 };
 
 		/// <summary>전투 창이 차지하는 폭. 1200 / 1920 (layout.md §1)</summary>
@@ -164,8 +164,10 @@ namespace WitchMendokusai
 		/// <summary>한 인형의 장비 넷. 매 프레임 새 배열을 안 만들려고 들고 있는다</summary>
 		private readonly IdleItem[] gearOfHero = new IdleItem[IdleGear.SLOT_COUNT];
 		private Label dollName;
-		private readonly Label[] statLabels = new Label[6];
-		private readonly Button[,] statButtons = new Button[6, 3];
+		private readonly Label[] statLabels = new Label[7];
+		private readonly Button[,] statButtons = new Button[7, 3];
+		private Label statFeedback;
+		private int statFeedbackVersion;
 		private Button speedCycleButton;
 		private Button autoCastButton;
 		private readonly List<Button> wornCells = new List<Button>();
@@ -753,6 +755,8 @@ namespace WitchMendokusai
 			}
 
 			dollName = page.Q<Label>("doll-name");
+			statFeedback = page.Q<Label>("stat-feedback");
+			statFeedback.style.visibility = Visibility.Hidden;
 			for (int stat = 0; stat < STAT_NAMES.Length; stat++)
 			{
 				int capturedStat = stat;
@@ -1445,7 +1449,10 @@ namespace WitchMendokusai
 					button.text = purchase.IsMaxed
 						? "최대"
 						: string.Format("×{0}\n{1}", count, BigNumberText.Format(purchase.NextCost));
-					button.SetEnabled(wearer >= 0 && purchase.CanAfford);
+					bool canAfford = wearer >= 0 && purchase.CanAfford;
+					button.EnableInClassList("idle-stat-buy--ready", canAfford);
+					button.EnableInClassList("idle-stat-buy--maxed", purchase.IsMaxed);
+					button.SetEnabled(canAfford);
 				}
 			}
 
@@ -2118,11 +2125,58 @@ namespace WitchMendokusai
 				return;
 			}
 
-			if (session.Send(new IdleRaiseUpgradeIntent(gearHeroId, kind, amount)))
+			IdleUpgradeView before = session.ViewHeroStat(gearHeroId, kind, amount);
+			double resourceBefore = session.State.Resource;
+			bool raised = session.Send(new IdleRaiseUpgradeIntent(gearHeroId, kind, amount));
+			if (raised)
 			{
 				WriteDown();
 			}
 			Render(session.Capture());
+
+			if (raised)
+			{
+				IdleUpgradeView after = session.ViewHeroStat(gearHeroId, kind, 1);
+				ShowStatRaised(kind, amount, before.CurrentValue, after.CurrentValue,
+					resourceBefore - session.State.Resource);
+			}
+		}
+
+		private void ShowStatRaised(IdleUpgradeKind kind, int amount, double before, double after, double spent)
+		{
+			int stat = (int)kind;
+			int amountIndex = System.Array.IndexOf(STAT_AMOUNTS, amount);
+			if (stat < 0 || stat >= statLabels.Length || amountIndex < 0)
+			{
+				return;
+			}
+
+			statFeedbackVersion++;
+			int version = statFeedbackVersion;
+			statFeedback.text = string.Format("{0}  {1} → {2}   골드 -{3}",
+				STAT_NAMES[stat], StatValueText(kind, before), StatValueText(kind, after), BigNumberText.Format(spent));
+			statFeedback.style.visibility = Visibility.Visible;
+			statFeedback.AddToClassList("idle-stat-feedback--shown");
+			statLabels[stat].AddToClassList("idle-stat-label--raised");
+			statButtons[stat, amountIndex].AddToClassList("idle-stat-buy--raised");
+
+			statFeedback.schedule.Execute(() =>
+			{
+				if (version == statFeedbackVersion)
+				{
+					statLabels[stat].RemoveFromClassList("idle-stat-label--raised");
+					statButtons[stat, amountIndex].RemoveFromClassList("idle-stat-buy--raised");
+				}
+			}).StartingIn(350L);
+
+			statFeedback.schedule.Execute(() =>
+			{
+				if (version == statFeedbackVersion)
+				{
+					statFeedback.RemoveFromClassList("idle-stat-feedback--shown");
+					statFeedback.style.visibility = Visibility.Hidden;
+				}
+			}).StartingIn(1200L);
 		}
 
 		private void BuyProducer(int kind)
@@ -2378,6 +2432,7 @@ namespace WitchMendokusai
 					return string.Format("{0:0.##}/초", value);
 				case IdleUpgradeKind.Defense:
 				case IdleUpgradeKind.CriticalChance:
+				case IdleUpgradeKind.Recovery:
 					return string.Format("{0:P1}", value);
 				case IdleUpgradeKind.CriticalDamage:
 					return string.Format("×{0:0.00}", value);

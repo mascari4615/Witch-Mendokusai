@@ -27,6 +27,29 @@ MonoBehaviour:
   speedCostRatio: 1.28
   speedBaseValue: 0.5
   speedValueRatio: 1.12
+  healthBaseCost: 20
+  healthCostRatio: 1.22
+  healthBaseValue: 0.08
+  healthValueRatio: 1.06
+  defenseBaseCost: 20
+  defenseCostRatio: 1.24
+  defenseBaseValue: 0.05
+  defenseValueRatio: 1.05
+  criticalChanceBaseCost: 40
+  criticalChanceCostRatio: 1.3
+  criticalChanceBaseValue: 0.01
+  criticalChanceValueRatio: 1.03
+  baseCriticalChance: 0.05
+  maxCriticalChance: 0.75
+  criticalDamageBaseCost: 50
+  criticalDamageCostRatio: 1.3
+  criticalDamageBaseValue: 0.05
+  criticalDamageValueRatio: 1.04
+  baseCriticalDamage: 1.5
+  recoveryBaseCost: 30
+  recoveryCostRatio: 1.25
+  recoveryBaseValue: 0.02
+  recoveryValueRatio: 1.04
   tapSecondsOfAttack: 0.2
   visitorEarliestSeconds: 90
   visitorLatestSeconds: 300

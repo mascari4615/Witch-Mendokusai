@@ -84,6 +84,12 @@ namespace WitchMendokusai
         [SerializeField] private double criticalDamageValueRatio = 1.04d;
         [SerializeField] private double baseCriticalDamage = 1.5d;
 
+        [Header("회복 곡선")]
+        [SerializeField] private double recoveryBaseCost = 30d;
+        [SerializeField] private double recoveryCostRatio = 1.25d;
+        [SerializeField] private double recoveryBaseValue = 0.02d;
+        [SerializeField] private double recoveryValueRatio = 1.04d;
+
         [Header("손 때리기")]
         [Tooltip("한 번 두드리면 <공격 몇 초치>가 즉시 들어가나.")]
         [SerializeField] private double tapSecondsOfAttack = 0.2d;
@@ -421,6 +427,13 @@ namespace WitchMendokusai
                     CostRatio = criticalDamageCostRatio,
                     BaseValue = criticalDamageBaseValue,
                     ValueRatio = criticalDamageValueRatio,
+                },
+                RecoveryCurve = new GeometricUpgradeCurve
+                {
+                    BaseCost = recoveryBaseCost,
+                    CostRatio = recoveryCostRatio,
+                    BaseValue = recoveryBaseValue,
+                    ValueRatio = recoveryValueRatio,
                 },
                 BaseCriticalChance = baseCriticalChance,
                 BaseCriticalDamage = baseCriticalDamage,
