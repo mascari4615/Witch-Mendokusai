@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.UIElements;
 using WitchMendokusai.DomainSDK.Contracts;
 using WitchMendokusai.DomainSDK.Idle;
+using WitchMendokusai.Presentation;
 using BigNumberText = WitchMendokusai.Numerics.BigNumberText;
 
 namespace WitchMendokusai
@@ -53,9 +54,19 @@ namespace WitchMendokusai
 		[Header("알림이 남는 시간 (초)")]
 		[SerializeField] private float noteSeconds = 5f;
 
+		[Header("화면 수치 갱신 간격 (초). 무대 연출은 매 프레임")]
+		[SerializeField, Min(0.05f)] private float uiRefreshSeconds = 0.1f;
+
+		[Header("임시 절차음")]
+		[SerializeField, Range(0f, 1f)] private float soundVolume = 0.32f;
+		[SerializeField, Min(0f)] private float soundMinGapSeconds = 0.06f;
+
 		private IdleSession session;
 		private float sinceLastSave;
+		private float untilUiRefresh;
 		private bool skipSaveOnce;
+		private ProceduralSfx sound;
+		private bool clickSoundHooked;
 
 		// 에디트 모드 미리보기 (사용자 2026-08-30: UI 수정은 Play 없이). 저장 읽기와 쓰기 없음. 임시 판 위 시뮬만
 		/// <summary>화면 에셋이 없어 못 짓는 판. 켜 두되 아무것도 안 그린다</summary>
@@ -231,6 +242,7 @@ namespace WitchMendokusai
 
 		// 툴팁
 		private Label tooltip;
+		private int tooltipVersion;
 
 		// 팝업
 		private VisualElement mapPopup;
@@ -296,6 +308,7 @@ namespace WitchMendokusai
 
 				session = new IdleSession(tuning, state);
 				session.CatchUp(IdleSaveStore.NowUnixSeconds(), out away);
+				EnsureSound();
 			}
 
 			if (stage != null)
@@ -468,7 +481,12 @@ namespace WitchMendokusai
 				}
 			}
 
-			Render(snapshot);
+			untilUiRefresh -= delta;
+			if (untilUiRefresh <= 0f)
+			{
+				untilUiRefresh = Mathf.Max(0.05f, uiRefreshSeconds);
+				Render(snapshot);
+			}
 
 			if (preview)
 			{
@@ -509,6 +527,11 @@ namespace WitchMendokusai
 			this.root = document.rootVisualElement;
 			VisualElement root = this.root;
 			root.Clear();
+			if (clickSoundHooked == false)
+			{
+				root.RegisterCallback<ClickEvent>(OnButtonClicked);
+				clickSoundHooked = true;
+			}
 
 			// 창 크기가 바뀌면 무대 폭도 다시 (모바일 회전, PC 창 조절)
 			root.RegisterCallback<GeometryChangedEvent>(_ =>
@@ -767,6 +790,7 @@ namespace WitchMendokusai
 					int capturedAmount = STAT_AMOUNTS[amount];
 					Button button = page.Q<Button>("stat-" + stat + "-x" + capturedAmount);
 					button.clicked += () => Raise((IdleUpgradeKind)capturedStat, capturedAmount);
+					HookTooltip(button, () => StatTip((IdleUpgradeKind)capturedStat, capturedAmount));
 					statButtons[stat, amount] = button;
 				}
 			}
@@ -2152,6 +2176,7 @@ namespace WitchMendokusai
 			}
 
 			statFeedbackVersion++;
+			sound?.Good();
 			int version = statFeedbackVersion;
 			statFeedback.text = string.Format("{0}  {1} → {2}   골드 -{3}",
 				STAT_NAMES[stat], StatValueText(kind, before), StatValueText(kind, after), BigNumberText.Format(spent));
@@ -2336,17 +2361,38 @@ namespace WitchMendokusai
 		{
 			target.RegisterCallback<PointerDownEvent>(moment =>
 			{
-				// 손가락이나 펜만. 마우스는 호버 담당
+				// 손가락 입력은 누른 자리에서 떼어 위쪽에 고정
 				if (moment.pointerType != UnityEngine.UIElements.PointerType.mouse)
 				{
 					ShowTooltip(text());
-					MoveTooltip(moment.position);
+					MoveTooltip(moment.position, true);
+					int version = ++tooltipVersion;
+					tooltip.schedule.Execute(() =>
+					{
+						if (version == tooltipVersion)
+						{
+							tooltip.style.display = DisplayStyle.None;
+						}
+					}).StartingIn(1800L);
 				}
 			});
 
 			target.RegisterCallback<PointerEnterEvent>(_ => ShowTooltip(text()));
-			target.RegisterCallback<PointerMoveEvent>(moment => MoveTooltip(moment.position));
-			target.RegisterCallback<PointerLeaveEvent>(_ => tooltip.style.display = DisplayStyle.None);
+			target.RegisterCallback<PointerMoveEvent>(moment =>
+			{
+				if (moment.pointerType == UnityEngine.UIElements.PointerType.mouse)
+				{
+					MoveTooltip(moment.position, false);
+				}
+			});
+			target.RegisterCallback<PointerLeaveEvent>(moment =>
+			{
+				if (moment.pointerType == UnityEngine.UIElements.PointerType.mouse)
+				{
+					tooltipVersion++;
+					tooltip.style.display = DisplayStyle.None;
+				}
+			});
 		}
 
 		private void ShowTooltip(string text)
@@ -2361,24 +2407,64 @@ namespace WitchMendokusai
 			tooltip.style.display = DisplayStyle.Flex;
 		}
 
-		private void MoveTooltip(Vector2 at)
+		private void MoveTooltip(Vector2 at, bool touch)
 		{
 			VisualElement root = tooltip.parent;
-			float x = at.x + 18f;
-			float y = at.y + 18f;
+			float rootWidth = root != null ? root.resolvedStyle.width : 1920f;
+			float rootHeight = root != null ? root.resolvedStyle.height : 1080f;
+			float x = touch ? at.x - 150f : at.x + 18f;
+			float y = touch && at.y >= 160f ? at.y - 148f : at.y + (touch ? 72f : 18f);
 
-			if (root != null && x + 320f > root.resolvedStyle.width)
+			if (touch == false && x + 320f > rootWidth)
 			{
 				x = at.x - 330f;
 			}
 
-			if (root != null && y + 120f > root.resolvedStyle.height)
+			if (touch == false && y + 120f > rootHeight)
 			{
 				y = at.y - 130f;
 			}
 
-			tooltip.style.left = x;
-			tooltip.style.top = y;
+			tooltip.style.left = Mathf.Clamp(x, 12f, Mathf.Max(12f, rootWidth - 312f));
+			tooltip.style.top = Mathf.Clamp(y, 12f, Mathf.Max(12f, rootHeight - 132f));
+		}
+
+		private string StatTip(IdleUpgradeKind kind, int amount)
+		{
+			if (session == null || gearHeroId < 0)
+			{
+				return "인형을 먼저 선택";
+			}
+
+			IdleUpgradeView view = session.ViewHeroStat(gearHeroId, kind, amount);
+			if (view.IsMaxed)
+			{
+				return STAT_NAMES[(int)kind] + "\n최대 성장";
+			}
+
+			string wait = view.CanAfford || double.IsInfinity(view.SecondsToAfford)
+				? string.Empty
+				: string.Format("\n약 {0:0}초 뒤 구매", view.SecondsToAfford);
+			return string.Format("{0} ×{1}\n{2} → {3}\n골드 {4}{5}",
+				STAT_NAMES[(int)kind], amount,
+				StatValueText(kind, view.CurrentValue), StatValueText(kind, view.NextValue),
+				BigNumberText.Format(view.NextCost), wait);
+		}
+
+		private void EnsureSound()
+		{
+			if (sound == null && Application.isPlaying && Application.isBatchMode == false)
+			{
+				sound = new ProceduralSfx(gameObject, soundVolume, soundMinGapSeconds);
+			}
+		}
+
+		private void OnButtonClicked(ClickEvent moment)
+		{
+			if (moment.target is Button button && button.ClassListContains("idle-stat-buy") == false)
+			{
+				sound?.Click();
+			}
 		}
 
 		private string BagTip(int index)
