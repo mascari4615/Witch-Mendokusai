@@ -1,17 +1,24 @@
+using System.IO;
+using System.Reflection;
 using NUnit.Framework;
+using UnityEditor;
+using UnityEngine;
+using UnityEngine.UIElements;
 using WitchMendokusai.DomainSDK.Idle;
+using WitchMendokusai.Presentation;
 
 namespace WitchMendokusai.Tests
 {
 	/// <summary>
-	/// 편성 여섯 칸. 메인 셋은 출전하고, 보조 셋은 불참 (사용자 결정 2026-08-30).
+	/// 현재 편성 세 칸. 셋 모두 출전 (사용자 결정 2026-09-01).
 	///
-	/// ★ 지키는 것: <b>보조가 정말 불참인가</b>, <b>그래도 몫이 있나</b>.
-	///   보조가 출전하면 여섯 명 파티, 몫이 없으면 보조 칸은 장식.
-	///   그리고 옛 저장(세 칸)이 <b>메인 칸으로 이어지나</b> (사람이 앉혀 둔 순서 보존).
+	/// ★ 지키는 것: <b>폐기한 보조 칸이 저장과 화면에 남지 않음</b>.
+	///   옛 저장(세 칸)은 메인 칸으로 이어짐 (사람이 앉혀 둔 순서 보존).
 	/// </summary>
 	public sealed class IdlePartyTests
 	{
+		private const string DOLL_PAGE_PATH = "Assets/_WitchMendokusai/Idle/IdleDollPage.uxml";
+
 		private static IdleState Owning(params int[] ids)
 		{
 			IdleState state = new IdleState();
@@ -40,9 +47,69 @@ namespace WitchMendokusai.Tests
 			}
 		}
 
+		[Test]
+		public void DollPage_HasOnlyCurrentPartyAndSeparateStatButtons()
+		{
+			VisualTreeAsset asset = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(DOLL_PAGE_PATH);
+			Assert.IsNotNull(asset, "인형 화면 UXML 없음");
+			TemplateContainer tree = asset.Instantiate();
 
+			for (int slot = 0; slot < IdleHeroes.PARTY_SLOTS; slot++)
+			{
+				Assert.IsNotNull(tree.Q<Button>("seat-" + slot), "현재 편성 칸 없음: " + slot);
+			}
 
+			Assert.AreEqual(IdleHeroes.PARTY_SLOTS, tree.Query<Button>(className: "idle-party-seat").ToList().Count,
+				"폐기한 보조 편성 칸이 화면에 남음");
+			Assert.AreEqual(21, tree.Query<Button>(className: "idle-stat-buy").ToList().Count,
+				"7수치마다 x1, x10, x100 버튼 필요");
 
+			for (int stat = 0; stat < 7; stat++)
+			{
+				Assert.IsNotNull(tree.Q<Label>("stat-label-" + stat), "수치 표시 없음: " + stat);
+				Assert.IsNotNull(tree.Q<Button>("stat-" + stat + "-x1"), "x1 버튼 없음: " + stat);
+				Assert.IsNotNull(tree.Q<Button>("stat-" + stat + "-x10"), "x10 버튼 없음: " + stat);
+				Assert.IsNotNull(tree.Q<Button>("stat-" + stat + "-x100"), "x100 버튼 없음: " + stat);
+			}
+		}
+
+		[Test]
+		public void IdleSfx_UsesExistingFmodEventsWithoutNativeAudioClips()
+		{
+			const string cachePath = "Assets/Plugins/FMOD/Cache/Editor/FMODStudioCache.asset";
+			string cache = File.ReadAllText(cachePath);
+			FieldInfo[] fields = typeof(ProceduralSfx).GetFields(BindingFlags.NonPublic | BindingFlags.Static);
+			int eventCount = 0;
+
+			for (int index = 0; index < fields.Length; index++)
+			{
+				FieldInfo field = fields[index];
+				if (field.IsLiteral == false || field.FieldType != typeof(string))
+				{
+					continue;
+				}
+
+				string path = (string)field.GetRawConstantValue();
+				Assert.IsTrue(cache.Contains("Path: " + path), "FMOD 뱅크에 없는 Idle 효과음: " + path);
+				eventCount++;
+			}
+
+			Assert.AreEqual(5, eventCount, "Idle 효과음 역할 수가 달라짐");
+
+			GameObject host = new GameObject("idle-sfx-test");
+			try
+			{
+				ProceduralSfx sound = new ProceduralSfx(host);
+				sound.Muted = true;
+				sound.Click();
+				sound.Good();
+				Assert.IsNull(host.GetComponent<AudioSource>(), "Unity 오디오가 꺼진 프로젝트에서 AudioSource 사용 금지");
+			}
+			finally
+			{
+				Object.DestroyImmediate(host);
+			}
+		}
 		/// <summary>
 		/// ★ 옛 저장(세 칸)은 <b>메인 칸으로</b> (사람이 앉혀 둔 셋이 그대로 출전).
 		/// 더 긴 저장: 넘치는 칸 버림, 예외 없음.

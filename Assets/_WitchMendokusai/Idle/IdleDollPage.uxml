@@ -8,9 +8,6 @@
         <ui:Button name="seat-0" class="idle-party-seat" />
         <ui:Button name="seat-1" class="idle-party-seat" />
         <ui:Button name="seat-2" class="idle-party-seat" />
-        <ui:Button name="seat-3" class="idle-party-seat idle-party-seat--sub" />
-        <ui:Button name="seat-4" class="idle-party-seat idle-party-seat--sub" />
-        <ui:Button name="seat-5" class="idle-party-seat idle-party-seat--sub" />
     </ui:VisualElement>
     <ui:Label name="doll-name" class="idle-row-head" />
     <ui:Label text="개별 성장" class="idle-cap" />

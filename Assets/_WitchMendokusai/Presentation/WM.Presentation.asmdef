@@ -1,7 +1,9 @@
 {
     "name": "WM.Presentation",
     "rootNamespace": "WitchMendokusai.Presentation",
-    "references": [],
+    "references": [
+        "FMODUnity"
+    ],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,

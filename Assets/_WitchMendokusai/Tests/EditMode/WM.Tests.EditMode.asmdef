@@ -36,7 +36,8 @@
         "VContainer",
         "WM.Core",
         "WM.Domain",
-        "WM.Editor"
+        "WM.Editor",
+        "WM.Presentation"
     ],
     "includePlatforms": [
         "Editor"
