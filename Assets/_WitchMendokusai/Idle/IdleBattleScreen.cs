@@ -532,6 +532,7 @@ namespace WitchMendokusai
 			BuildMapPopup();
 			BuildGearPopup();
 			BuildHeroPopup();
+			BuildAwayPopup(away);
 
 			tooltip = AddLabel(root, "idle-tooltip");
 			tooltip.style.display = DisplayStyle.None;
@@ -540,13 +541,6 @@ namespace WitchMendokusai
 			built = true;
 			ApplySplit();
 
-			if (away.HasAnything)
-			{
-				SayOnce(string.Format("자리 비운 {0}. 골드 +{1}, {2}마리, 코스트 가득",
-					DescribeSpan(away.CreditedSeconds),
-					BigNumberText.Format(away.ResourceGained),
-					BigNumberText.Format(away.KillsGained)), noteSeconds * 3f);
-			}
 		}
 
 		private void BuildBattle(VisualElement shell)
@@ -1043,6 +1037,58 @@ namespace WitchMendokusai
 			heroGrid = new VisualElement();
 			heroGrid.AddToClassList("idle-choice-grid");
 			heroPopup.Add(heroGrid);
+		}
+
+		private void BuildAwayPopup(IdleAwayReport away)
+		{
+			if (away.HasAnything == false)
+			{
+				return;
+			}
+
+			VisualElement shade = new VisualElement { name = "away-popup" };
+			shade.AddToClassList("idle-away-shade");
+			shade.RegisterCallback<PointerDownEvent>(evt => evt.StopPropagation());
+			root.Add(shade);
+
+			VisualElement card = new VisualElement();
+			AddClasses(card, "idle-box idle-away-card");
+			shade.Add(card);
+
+			Label caption = AddLabel(card, "idle-cap idle-away-cap");
+			caption.text = "WELCOME BACK";
+			Label title = AddLabel(card, "idle-away-title");
+			title.text = "돌아온 보상";
+			Label span = AddLabel(card, "idle-away-span");
+			span.text = string.Format("{0} 동안 작전이 계속됐습니다", DescribeSpan(away.CreditedSeconds));
+
+			VisualElement rewards = new VisualElement();
+			rewards.AddToClassList("idle-away-rewards");
+			card.Add(rewards);
+			AddAwayReward(rewards, "골드", BigNumberText.Format(away.ResourceGained));
+			AddAwayReward(rewards, "처치", BigNumberText.Format(away.KillsGained));
+			AddAwayReward(rewards, "스테이지", BigNumberText.Format(away.StagesGained));
+			AddAwayReward(rewards, "장비", BigNumberText.Format(away.ItemsGained));
+
+			if (away.HitCap)
+			{
+				Label cap = AddLabel(card, "idle-away-warning");
+				cap.text = string.Format("오프라인 상한 {0}. 넘긴 {1}은 보상에 포함되지 않았습니다.",
+					DescribeSpan(away.CapSeconds), DescribeSpan(away.LostSeconds));
+			}
+
+			Button close = AddButton(card, "idle-away-close", () => shade.RemoveFromHierarchy());
+			close.name = "away-close";
+			close.text = "확인하고 계속";
+		}
+
+		private static void AddAwayReward(VisualElement parent, string name, string amount)
+		{
+			VisualElement row = new VisualElement();
+			row.AddToClassList("idle-away-reward");
+			parent.Add(row);
+			AddLabel(row, "idle-away-reward-name").text = name;
+			AddLabel(row, "idle-away-reward-value").text = "+" + amount;
 		}
 
 		private void OpenHeroPopup(int slot)

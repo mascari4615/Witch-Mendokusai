@@ -893,6 +893,86 @@
 	background-color: rgba(26, 26, 26, 0.98);
 }
 
+.idle-away-shade {
+	position: absolute;
+	left: 0;
+	right: 0;
+	top: 0;
+	bottom: 0;
+	align-items: center;
+	justify-content: center;
+	background-color: rgba(0, 0, 0, 0.72);
+}
+
+.idle-away-card {
+	width: 620px;
+	padding: 32px 38px 28px 38px;
+	background-color: rgba(20, 20, 20, 0.98);
+	border-width: 2px;
+	border-color: rgb(245, 175, 16);
+}
+
+.idle-away-cap {
+	-unity-text-align: middle-center;
+}
+
+.idle-away-title {
+	margin-top: 8px;
+	font-size: 42px;
+	-unity-font-style: bold;
+	-unity-text-align: middle-center;
+}
+
+.idle-away-span {
+	margin-top: 8px;
+	font-size: 22px;
+	color: rgb(190, 190, 182);
+	-unity-text-align: middle-center;
+}
+
+.idle-away-rewards {
+	margin-top: 24px;
+	margin-bottom: 18px;
+}
+
+.idle-away-reward {
+	min-height: 48px;
+	flex-direction: row;
+	align-items: center;
+	border-bottom-width: 1px;
+	border-bottom-color: rgba(255, 255, 255, 0.12);
+}
+
+.idle-away-reward-name {
+	flex-grow: 1;
+	font-size: 23px;
+	color: rgb(190, 190, 182);
+}
+
+.idle-away-reward-value {
+	font-size: 27px;
+	-unity-font-style: bold;
+	color: rgb(245, 175, 16);
+}
+
+.idle-away-warning {
+	margin-bottom: 18px;
+	padding: 10px 12px;
+	font-size: 19px;
+	white-space: normal;
+	color: rgb(242, 170, 130);
+	background-color: rgba(110, 38, 20, 0.32);
+}
+
+.idle-away-close {
+	height: 58px;
+	font-size: 24px;
+	-unity-font-style: bold;
+	color: rgb(20, 20, 20);
+	background-color: rgb(245, 175, 16);
+	border-width: 0;
+}
+
 .idle-choice-grid {
 	flex-direction: row;
 	flex-wrap: wrap;
