@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
 using VContainer;
+using WitchMendokusai.Presentation;
 using Random = UnityEngine.Random;
 
 namespace WitchMendokusai
@@ -16,7 +17,7 @@ namespace WitchMendokusai
 		private const int INITIAL_POOL_SIZE = 10;
 		private const float LIFETIME_SECONDS = 1.0f;
 
-		private readonly Stack<FloatingTextItem> pool = new();
+		private readonly Stack<FloatingTextElement> pool = new();
 
 		private UIRoot uiRoot;
 		private InputManager inputManager;
@@ -34,15 +35,15 @@ namespace WitchMendokusai
 				pool.Push(CreateItem());
 		}
 
-		private FloatingTextItem CreateItem()
+		private FloatingTextElement CreateItem()
 		{
-			FloatingTextItem item = new();
+			FloatingTextElement item = new();
 			item.style.display = DisplayStyle.None;
 			uiRoot.OverlayLayer.Add(item);
 			return item;
 		}
 
-		private FloatingTextItem Pop()
+		private FloatingTextElement Pop()
 		{
 			if (pool.Count == 0)
 				return CreateItem();
@@ -51,9 +52,9 @@ namespace WitchMendokusai
 
 		public IEnumerator AniTextUI(TextType textType, string msg, Vector3 worldPos = default)
 		{
-			FloatingTextItem item = Pop();
+			FloatingTextElement item = Pop();
 			item.style.display = DisplayStyle.Flex;
-			item.Show(textType, msg);
+			item.Show(KindOf(textType), msg);
 
 			// 월드 좌표를 준 호출인지 여부는 인자 유무로 판단해야 한다 — 좌표가 원점(0,0,0)인 대상
 			// (개척의 코어가 정확히 원점에 선다)을 "좌표 없음"으로 오인해 마우스 위치에 띄우면
@@ -88,9 +89,20 @@ namespace WitchMendokusai
 				yield return new WaitForEndOfFrame();
 			}
 
-			item.Deactivate();
-			item.style.display = DisplayStyle.None;
+			item.Hide();
 			pool.Push(item);
+		}
+
+		private static FloatingTextKind KindOf(TextType textType)
+		{
+			switch (textType)
+			{
+				case TextType.Critical: return FloatingTextKind.Critical;
+				case TextType.Heal: return FloatingTextKind.Heal;
+				case TextType.Exp: return FloatingTextKind.Experience;
+				case TextType.Warning: return FloatingTextKind.Warning;
+				default: return FloatingTextKind.Normal;
+			}
 		}
 	}
 }

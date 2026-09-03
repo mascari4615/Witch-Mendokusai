@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UIElements;
 using WitchMendokusai.DomainSDK.Idle;
+using WitchMendokusai.Presentation;
 
 namespace WitchMendokusai
 {
@@ -45,7 +47,8 @@ namespace WitchMendokusai
 
 		private sealed class Number
 		{
-			public TextMesh Text;
+			public FloatingTextElement Text;
+			public Vector3 WorldPosition;
 			public float Age;
 		}
 
@@ -61,16 +64,30 @@ namespace WitchMendokusai
 		private readonly Settings settings;
 		private readonly List<Bolt> bolts = new List<Bolt>();
 		private readonly List<Number> numbers = new List<Number>();
+		private readonly Stack<FloatingTextElement> numberPool = new Stack<FloatingTextElement>();
 		private readonly List<Impact> impacts = new List<Impact>();
 		private readonly Dictionary<long, double> dealtByFoe = new Dictionary<long, double>();
 		private readonly Dictionary<int, double> takenBySeat = new Dictionary<int, double>();
 		private float shakeLeft;
 		private float clock;
+		private VisualElement floatingTextRoot;
 
 		public IdleBattleFx(Transform holder, Settings settings)
 		{
 			this.holder = holder;
 			this.settings = settings;
+		}
+
+		public void SetFloatingTextRoot(VisualElement root)
+		{
+			for (int index = numbers.Count - 1; index >= 0; index--)
+			{
+				numbers[index].Text.RemoveFromHierarchy();
+			}
+
+			numbers.Clear();
+			numberPool.Clear();
+			floatingTextRoot = root;
 		}
 
 		/// <summary>이번 프레임의 타격을 연출로. 대상별 합산 숫자 하나, 자리당 볼트 하나</summary>
@@ -111,7 +128,7 @@ namespace WitchMendokusai
 			{
 				if (entities.TryGetFoeHead(pair.Key, out Vector3 head))
 				{
-					SpawnNumber(head, Numerics.BigNumberText.Format(pair.Value), settings.NumberColor);
+					SpawnNumber(head, Numerics.BigNumberText.Format(pair.Value), FloatingTextKind.Normal);
 				}
 
 				if (entities.TryGetFoeImpact(pair.Key, out Vector3 impact, out Color color))
@@ -126,7 +143,52 @@ namespace WitchMendokusai
 			{
 				if (entities.TryGetAllyHead(pair.Key, out Vector3 head))
 				{
-					SpawnNumber(head, "-" + Numerics.BigNumberText.Format(pair.Value), settings.HurtColor);
+					SpawnNumber(head, "-" + Numerics.BigNumberText.Format(pair.Value), FloatingTextKind.Hurt);
+				}
+			}
+		}
+
+		public void PlayVolley(long target, IdleBattleEntityPresenter entities)
+		{
+			if (entities.TryGetFoeImpact(target, out Vector3 impact, out Color color) == false)
+			{
+				return;
+			}
+
+			for (int seat = 0; seat < IdleHeroes.PARTY_SLOTS; seat++)
+			{
+				if (entities.TryGetAllyHead(seat, out Vector3 from))
+				{
+					SpawnBolt(from, target);
+				}
+			}
+
+			shakeLeft = Mathf.Max(shakeLeft, settings.ShakeSeconds * 2f);
+			SpawnImpact(impact, color);
+			SpawnImpact(impact + new Vector3(0.25f, 0.1f, 0.25f), settings.BoltColor);
+			SpawnNumber(impact + Vector3.up, "일제 사격", FloatingTextKind.Critical);
+		}
+
+		public void PlaySupply(IdleBattleEntityPresenter entities)
+		{
+			for (int seat = 0; seat < IdleHeroes.PARTY_SLOTS; seat++)
+			{
+				if (entities.TryGetAllyHead(seat, out Vector3 head))
+				{
+					SpawnNumber(head, "보급", FloatingTextKind.Buff);
+					SpawnImpact(head + new Vector3(0f, -0.5f, 0f), settings.BoltColor);
+				}
+			}
+		}
+
+		public void PlayAppraise(IdleBattleEntityPresenter entities)
+		{
+			for (int seat = 0; seat < IdleHeroes.PARTY_SLOTS; seat++)
+			{
+				if (entities.TryGetAllyHead(seat, out Vector3 head))
+				{
+					SpawnNumber(head, "감정", FloatingTextKind.Experience);
+					SpawnImpact(head + new Vector3(0f, -0.35f, 0f), Color.Lerp(settings.BoltColor, Color.magenta, 0.45f));
 				}
 			}
 		}
@@ -163,23 +225,22 @@ namespace WitchMendokusai
 			bolts.Add(new Bolt { Piece = piece.transform, From = from, Target = target });
 		}
 
-		private void SpawnNumber(Vector3 position, string value, Color color)
+		private void SpawnNumber(Vector3 position, string value, FloatingTextKind kind)
 		{
-			GameObject piece = new GameObject("Damage");
-			piece.transform.SetParent(holder, false);
-			piece.transform.position = position;
+			if (floatingTextRoot == null)
+			{
+				return;
+			}
 
-			TextMesh text = piece.AddComponent<TextMesh>();
-			text.text = value;
-			text.fontSize = 48;
-			text.characterSize = settings.NumberSize;
-			text.anchor = TextAnchor.MiddleCenter;
-			text.alignment = TextAlignment.Center;
-			text.color = color;
-			text.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-			piece.GetComponent<MeshRenderer>().sharedMaterial = text.font.material;
+			FloatingTextElement text = numberPool.Count > 0 ? numberPool.Pop() : new FloatingTextElement();
+			if (text.parent == null)
+			{
+				floatingTextRoot.Add(text);
+			}
 
-			numbers.Add(new Number { Text = text });
+			text.style.display = DisplayStyle.Flex;
+			text.Show(kind, value);
+			numbers.Add(new Number { Text = text, WorldPosition = position });
 		}
 
 		/// <summary>
@@ -283,20 +344,20 @@ namespace WitchMendokusai
 
 				if (life >= 1f)
 				{
-					Kill(number.Text.gameObject);
+					number.Text.Hide();
+					numberPool.Push(number.Text);
 					numbers.RemoveAt(at);
 					continue;
 				}
 
-				number.Text.transform.position += new Vector3(0f, settings.NumberRise * delta, 0f);
-
-				Color color = number.Text.color;
-				number.Text.color = new Color(color.r, color.g, color.b, 1f - life * life);
-
 				if (eye != null)
 				{
-					number.Text.transform.rotation =
-						Quaternion.LookRotation(number.Text.transform.position - eye.transform.position);
+					number.WorldPosition += new Vector3(0f, settings.NumberRise * delta, 0f);
+					Vector3 screen = eye.WorldToScreenPoint(number.WorldPosition);
+					if (screen.z > 0f)
+					{
+						number.Text.SetScreenPosition(screen);
+					}
 				}
 			}
 		}

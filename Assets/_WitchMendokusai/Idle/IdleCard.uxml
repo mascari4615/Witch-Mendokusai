@@ -1,4 +1,8 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
     <Style src="IdleBattleScreen.uss" />
-    <ui:Button name="card" class="idle-card" />
+    <ui:Button name="card" class="idle-card">
+        <ui:VisualElement name="card-icon" class="idle-card-icon" />
+        <ui:Label name="card-cost" class="idle-card-cost" />
+        <ui:Label name="card-name" class="idle-card-name" />
+    </ui:Button>
 </ui:UXML>

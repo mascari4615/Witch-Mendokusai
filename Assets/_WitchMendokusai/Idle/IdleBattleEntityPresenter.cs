@@ -21,6 +21,8 @@ namespace WitchMendokusai
 			public float LungeSeconds { get; set; } = 0.22f;
 			public float PopSeconds { get; set; } = 0.3f;
 			public float PositionCatchUp { get; set; } = 14f;
+			public float FoeEntranceDistance { get; set; } = 6f;
+			public float FoeEntranceSpeed { get; set; } = 5f;
 			public float FoeSpinDegrees { get; set; } = 12f;
 			public float FoeBobHeight { get; set; } = 0.025f;
 			public float BossScale { get; set; } = 1.9f;
@@ -98,6 +100,7 @@ namespace WitchMendokusai
 
 			/// <summary>맞아서 번쩍이는 동안 남은 초</summary>
 			public float FlashLeft;
+			public bool Entering;
 
 			/// <summary>번쩍이기 전 색. 돌려놓을 때 쓴다</summary>
 			public Color RestColor = Color.white;
@@ -366,10 +369,12 @@ namespace WitchMendokusai
 			{
 				IdleFoeView view = snapshot.Foes[at];
 				Foe foe = Find(view.Index);
+				bool entering = foe == null;
 
-				if (foe == null)
+				if (entering)
 				{
 					foe = BuildFoe(view.Index, view.Boss);
+					foe.Entering = true;
 					foes.Add(foe);
 				}
 
@@ -390,10 +395,24 @@ namespace WitchMendokusai
 					? 1f
 					: (view.Kind == IdleFoeKind.Ranged ? settings.RangedHeightShare : settings.MeleeHeightShare));
 
-				foe.Piece.localPosition = Vector3.Lerp(
-					foe.Piece.localPosition,
-					new Vector3((float)view.X, lift, (float)view.Y),
-					IdleBattleMotion.CatchUp(settings.PositionCatchUp, delta));
+				Vector3 wanted = new Vector3((float)view.X, lift, (float)view.Y);
+				if (entering)
+				{
+					foe.Piece.localPosition = wanted + Vector3.right * settings.FoeEntranceDistance;
+				}
+
+				if (foe.Entering)
+				{
+					foe.Piece.localPosition = Vector3.MoveTowards(
+						foe.Piece.localPosition, wanted, settings.FoeEntranceSpeed * delta);
+					foe.Entering = Vector3.Distance(foe.Piece.localPosition, wanted) > 0.05f;
+				}
+				else
+				{
+					foe.Piece.localPosition = Vector3.Lerp(
+						foe.Piece.localPosition, wanted,
+						IdleBattleMotion.CatchUp(settings.PositionCatchUp, delta));
+				}
 
 				float health = 0.82f + 0.18f * (float)view.HealthRatio;
 				float bulk = view.Boss ? settings.BossScale : 1f;

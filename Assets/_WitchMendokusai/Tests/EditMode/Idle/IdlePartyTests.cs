@@ -18,6 +18,8 @@ namespace WitchMendokusai.Tests
 	public sealed class IdlePartyTests
 	{
 		private const string DOLL_PAGE_PATH = "Assets/_WitchMendokusai/Idle/IdleDollPage.uxml";
+		private const string CARD_PATH = "Assets/_WitchMendokusai/Idle/IdleCard.uxml";
+		private const string IDLE_STYLE_PATH = "Assets/_WitchMendokusai/Idle/IdleBattleScreen.uss";
 
 		private static IdleState Owning(params int[] ids)
 		{
@@ -109,6 +111,35 @@ namespace WitchMendokusai.Tests
 			{
 				Object.DestroyImmediate(host);
 			}
+		}
+
+		[Test]
+		public void BattleCard_SeparatesIconCostAndName()
+		{
+			VisualTreeAsset asset = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(CARD_PATH);
+			Assert.IsNotNull(asset);
+			TemplateContainer tree = asset.Instantiate();
+			Assert.IsNotNull(tree.Q<VisualElement>("card-icon"));
+			Assert.IsNotNull(tree.Q<Label>("card-cost"));
+			Assert.IsNotNull(tree.Q<Label>("card-name"));
+
+			string style = File.ReadAllText(IDLE_STYLE_PATH);
+			StringAssert.Contains("idle-skill-aim-range", style);
+			StringAssert.Contains("arrow-cluster.png", style);
+			StringAssert.Contains("Map/Map.png", style);
+		}
+
+		[Test]
+		public void FloatingText_CommonElementOwnsAllCombatVariants()
+		{
+			FloatingTextElement element = new FloatingTextElement();
+			element.Show(FloatingTextKind.Critical, "42");
+			Assert.IsTrue(element.ClassListContains("wm-floating-text--critical"));
+			StringAssert.Contains("42", element.Q<Label>().text);
+
+			element.Show(FloatingTextKind.Hurt, "-7");
+			Assert.IsFalse(element.ClassListContains("wm-floating-text--critical"));
+			Assert.IsTrue(element.ClassListContains("wm-floating-text--hurt"));
 		}
 		/// <summary>
 		/// ★ 옛 저장(세 칸)은 <b>메인 칸으로</b> (사람이 앉혀 둔 셋이 그대로 출전).

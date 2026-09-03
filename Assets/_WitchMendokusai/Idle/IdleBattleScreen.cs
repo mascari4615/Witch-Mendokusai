@@ -136,9 +136,20 @@ namespace WitchMendokusai
 		private Button nextStageButton;
 
 		private Button[] cardButtons;
+		private VisualElement[] cardIcons;
+		private Label[] cardCosts;
+		private Label[] cardNames;
 		private Button[] dungeonRows;
 		private Label[] queueChips;
 		private int volleyHandIndex = -1;
+		private int skillDragPointer = -1;
+		private int suppressCardClick = -1;
+		private Vector2 skillDragOrigin;
+		private VisualElement skillAim;
+		private VisualElement skillAimOrigin;
+		private VisualElement skillAimLine;
+		private VisualElement skillAimRange;
+		private Label skillAimCaption;
 		private VisualElement costFill;
 		private Label costLabel;
 
@@ -186,6 +197,8 @@ namespace WitchMendokusai
 		private VisualElement heroPopup;
 		private VisualElement heroGrid;
 		private readonly List<Button> heroChoiceButtons = new List<Button>();
+		private readonly List<VisualElement> heroChoiceIcons = new List<VisualElement>();
+		private readonly List<Label> heroChoiceLabels = new List<Label>();
 
 		// 장비 고르기 팝업 (사용자 2026-08-31). 인형이 여럿이라 가방에서 바로 장착하면 대상이 불명
 		private VisualElement gearPopup;
@@ -193,6 +206,8 @@ namespace WitchMendokusai
 		private Label gearWorn;
 		private VisualElement gearRows;
 		private readonly List<Button> gearRowButtons = new List<Button>();
+		private readonly List<VisualElement> gearRowIcons = new List<VisualElement>();
+		private readonly List<Label> gearRowLabels = new List<Label>();
 		private int gearSlot = -1;
 
 		// 아이템. 서브탭 가방 / 공방 (layout.md §3)
@@ -243,6 +258,7 @@ namespace WitchMendokusai
 		// 툴팁
 		private Label tooltip;
 		private int tooltipVersion;
+		private int tooltipPointer = -1;
 
 		// 팝업
 		private VisualElement mapPopup;
@@ -562,6 +578,10 @@ namespace WitchMendokusai
 			tooltip = AddLabel(root, "idle-tooltip");
 			tooltip.style.display = DisplayStyle.None;
 			tooltip.pickingMode = PickingMode.Ignore;
+			if (stage != null)
+			{
+				stage.SetFloatingTextRoot(battle);
+			}
 
 			built = true;
 			ApplySplit();
@@ -583,6 +603,8 @@ namespace WitchMendokusai
 
 		private void BuildBattleExtras()
 		{
+			BuildSkillAim();
+
 			floatingTabs = new VisualElement();
 			floatingTabs.AddToClassList("idle-floating-tabs");
 			battle.Add(floatingTabs);
@@ -600,6 +622,31 @@ namespace WitchMendokusai
 				Button wipe = AddButton(battle, "idle-box idle-icon-button idle-debug", WipeAndRestart);
 				wipe.text = "데이터 초기화";
 			}
+		}
+
+		private void BuildSkillAim()
+		{
+			skillAim = new VisualElement { name = "skill-aim" };
+			skillAim.AddToClassList("idle-skill-aim");
+			skillAim.style.display = DisplayStyle.None;
+			skillAim.pickingMode = PickingMode.Ignore;
+			battle.Add(skillAim);
+
+			skillAimOrigin = new VisualElement();
+			skillAimOrigin.AddToClassList("idle-skill-aim-origin");
+			skillAim.Add(skillAimOrigin);
+
+			skillAimLine = new VisualElement();
+			skillAimLine.AddToClassList("idle-skill-aim-line");
+			skillAim.Add(skillAimLine);
+
+			skillAimRange = new VisualElement();
+			skillAimRange.AddToClassList("idle-skill-aim-range");
+			skillAim.Add(skillAimRange);
+
+			skillAimCaption = new Label("일제 사격 범위");
+			skillAimCaption.AddToClassList("idle-skill-aim-caption");
+			skillAim.Add(skillAimCaption);
 		}
 
 		private void BindBattleHud()
@@ -659,11 +706,113 @@ namespace WitchMendokusai
 		private void BindCardButtons(VisualElement cards)
 		{
 			cardButtons = new Button[IdleCards.HAND_SIZE];
+			cardIcons = new VisualElement[IdleCards.HAND_SIZE];
+			cardCosts = new Label[IdleCards.HAND_SIZE];
+			cardNames = new Label[IdleCards.HAND_SIZE];
 			for (int index = 0; index < cardButtons.Length; index++)
 			{
 				int captured = index;
-				cardButtons[index] = AddCardButton(cards, () => Cast(captured));
+				cardButtons[index] = AddCardButton(cards, out cardIcons[index], out cardCosts[index], out cardNames[index]);
+				cardButtons[index].clicked += () => OnCardClicked(captured);
+				cardButtons[index].RegisterCallback<PointerDownEvent>(moment => BeginSkillDrag(captured, moment));
+				cardButtons[index].RegisterCallback<PointerMoveEvent>(MoveSkillDrag);
+				cardButtons[index].RegisterCallback<PointerUpEvent>(moment =>
+				{
+					EndSkillDrag(captured, moment.pointerId, moment.position, true);
+					moment.StopImmediatePropagation();
+				});
+				cardButtons[index].RegisterCallback<PointerCancelEvent>(moment =>
+				{
+					EndSkillDrag(captured, moment.pointerId, moment.position, false);
+					moment.StopImmediatePropagation();
+				});
 			}
+		}
+
+		private void OnCardClicked(int handIndex)
+		{
+			if (suppressCardClick == handIndex)
+			{
+				suppressCardClick = -1;
+				return;
+			}
+
+			Cast(handIndex);
+		}
+
+		private void BeginSkillDrag(int handIndex, PointerDownEvent moment)
+		{
+			if (session == null || handIndex < 0 || handIndex >= cardButtons.Length
+				|| IdleCards.HandAt(session.State, handIndex) != IdleCardKind.Volley
+				|| IdleCards.CanCast(session.State, session.Tuning, IdleCardKind.Volley) == false)
+			{
+				return;
+			}
+
+			volleyHandIndex = handIndex;
+			skillDragPointer = moment.pointerId;
+			skillDragOrigin = moment.position;
+			skillAim.style.display = DisplayStyle.Flex;
+			cardButtons[handIndex].CapturePointer(moment.pointerId);
+			UpdateSkillAim(moment.position);
+			moment.StopImmediatePropagation();
+		}
+
+		private void MoveSkillDrag(PointerMoveEvent moment)
+		{
+			if (moment.pointerId != skillDragPointer)
+			{
+				return;
+			}
+
+			UpdateSkillAim(moment.position);
+			moment.StopImmediatePropagation();
+		}
+
+		private void EndSkillDrag(int handIndex, int pointerId, Vector2 position, bool commit)
+		{
+			if (pointerId != skillDragPointer || handIndex != volleyHandIndex)
+			{
+				return;
+			}
+
+			if (cardButtons[handIndex].HasPointerCapture(pointerId))
+			{
+				cardButtons[handIndex].ReleasePointer(pointerId);
+			}
+
+			suppressCardClick = commit ? handIndex : -1;
+			skillDragPointer = -1;
+			skillAim.style.display = DisplayStyle.None;
+
+			if (commit && stage != null && stage.TryPickFoe(position, out long foeIndex)
+				&& session.TryCastCardAt(handIndex, foeIndex, out IdleCardResult result))
+			{
+				stage.OnVolley(foeIndex);
+				SayOnce("일제 사격. 표시한 범위에 집중 포화.", noteSeconds);
+				WriteDown();
+				Render(session.Capture());
+			}
+
+			volleyHandIndex = -1;
+		}
+
+		private void UpdateSkillAim(Vector2 panelPosition)
+		{
+			Vector2 origin = battle.WorldToLocal(skillDragOrigin);
+			Vector2 target = battle.WorldToLocal(panelPosition);
+			Vector2 delta = target - origin;
+
+			skillAimOrigin.style.left = origin.x - 24f;
+			skillAimOrigin.style.top = origin.y - 24f;
+			skillAimRange.style.left = target.x - 92f;
+			skillAimRange.style.top = target.y - 92f;
+			skillAimLine.style.left = Mathf.Min(origin.x, target.x);
+			skillAimLine.style.top = Mathf.Min(origin.y, target.y);
+			skillAimLine.style.width = Mathf.Max(6f, Mathf.Abs(delta.x));
+			skillAimLine.style.height = Mathf.Max(6f, Mathf.Abs(delta.y));
+			skillAimCaption.style.left = target.x - 100f;
+			skillAimCaption.style.top = target.y - 132f;
 		}
 
 		/// <summary>
@@ -689,12 +838,14 @@ namespace WitchMendokusai
 			}
 		}
 
-		private Button AddCardButton(VisualElement parent, System.Action clicked)
+		private Button AddCardButton(VisualElement parent, out VisualElement icon, out Label cost, out Label name)
 		{
 			TemplateContainer tree = cardAsset.Instantiate();
 			Button button = tree.Q<Button>("card");
+			icon = button.Q<VisualElement>("card-icon");
+			cost = button.Q<Label>("card-cost");
+			name = button.Q<Label>("card-name");
 			button.RemoveFromHierarchy();
-			button.clicked += clicked;
 			parent.Add(button);
 			return button;
 		}
@@ -1017,19 +1168,34 @@ namespace WitchMendokusai
 		private void BuildMapPopup()
 		{
 			mapPopup = new VisualElement();
-			AddClasses(mapPopup, "idle-box idle-map");
+			mapPopup.name = "map-popup";
+			mapPopup.AddToClassList("idle-map");
 			mapPopup.style.display = DisplayStyle.None;
-			battle.Add(mapPopup);
+			mapPopup.RegisterCallback<PointerDownEvent>(moment => moment.StopPropagation());
+			root.Add(mapPopup);
+
+			VisualElement art = new VisualElement();
+			art.AddToClassList("idle-map-art");
+			art.pickingMode = PickingMode.Ignore;
+			mapPopup.Add(art);
+
+			VisualElement panel = new VisualElement();
+			AddClasses(panel, "idle-box idle-map-panel");
+			mapPopup.Add(panel);
 
 			VisualElement head = new VisualElement();
 			head.AddToClassList("idle-panel-head");
-			mapPopup.Add(head);
+			panel.Add(head);
 			AddLabel(head, "idle-panel-title").text = "맵";
 			AddLabel(head, "idle-cap").text = "MAP";
 			AddButton(head, "idle-tab idle-tab--close", ToggleMap).text = "×";
 
+			ScrollView scroll = new ScrollView();
+			scroll.AddToClassList("idle-map-scroll");
+			panel.Add(scroll);
 			mapRows = new VisualElement();
-			mapPopup.Add(mapRows);
+			mapRows.AddToClassList("idle-map-rows");
+			scroll.Add(mapRows);
 		}
 
 		/// <summary>장비 고르기 팝업. 관리 열 위에 뜬다</summary>
@@ -1151,7 +1317,14 @@ namespace WitchMendokusai
 				int captured = heroChoiceButtons.Count;
 				int heroId = snapshot.Heroes[captured].Id;
 				Button choice = AddButton(heroGrid, "idle-choice-card", () => ChooseHero(heroId));
+				choice.text = string.Empty;
+				VisualElement icon = new VisualElement();
+				icon.AddToClassList("idle-choice-icon");
+				choice.Add(icon);
+				Label label = AddLabel(choice, "idle-choice-label");
 				heroChoiceButtons.Add(choice);
+				heroChoiceIcons.Add(icon);
+				heroChoiceLabels.Add(label);
 			}
 
 			for (int index = 0; index < heroChoiceButtons.Count; index++)
@@ -1166,8 +1339,10 @@ namespace WitchMendokusai
 				}
 
 				IdleHeroView hero = snapshot.Heroes[index];
-				choice.text = string.Format("{0}{1}\nLv.{2}  {3}", hero.Name, Stars(hero.Stars), hero.Level,
+				heroChoiceLabels[index].text = string.Format("{0}{1}\nLv.{2}  {3}", hero.Name, Stars(hero.Stars), hero.Level,
 					IdleHeroes.NameOfAxis(hero.Axis));
+				SetHeroIconClass(heroChoiceIcons[index], hero.Axis);
+				SetHeroGradeClass(choice, hero.Stars);
 				int current = seatBeingFilled >= 0 && seatBeingFilled < snapshot.Party.Length
 					? snapshot.Party[seatBeingFilled]
 					: -1;
@@ -1225,9 +1400,12 @@ namespace WitchMendokusai
 				Button row = RowAt(shown);
 				int captured = index;
 				row.userData = captured;
-				row.text = string.Format("{0}단계{1}", one.Tier,
-					one.IsRaw ? string.Empty : string.Format("  잠재 {0:P0}", one.PotentialValue));
 				SetTierClass(row, one.Tier);
+				row.text = string.Empty;
+				gearRowLabels[shown].text = string.Format("T{0}{1}", one.Tier,
+					one.IsRaw ? string.Empty : string.Format("  잠재 {0:P0}", one.PotentialValue));
+				gearRowIcons[shown].style.display = DisplayStyle.Flex;
+				SetGearIconClass(gearRowIcons[shown], gearSlot);
 				row.style.display = DisplayStyle.Flex;
 				shown++;
 			}
@@ -1241,7 +1419,9 @@ namespace WitchMendokusai
 			{
 				Button row = RowAt(0);
 				row.userData = -1;
-				row.text = "가방에 이 부위 장비가 없다";
+				row.text = string.Empty;
+				gearRowLabels[0].text = "가방에 이 부위 장비가 없습니다";
+				gearRowIcons[0].style.display = DisplayStyle.None;
 				row.style.display = DisplayStyle.Flex;
 			}
 		}
@@ -1252,9 +1432,16 @@ namespace WitchMendokusai
 			while (gearRowButtons.Count <= at)
 			{
 				Button made = AddButton(gearRows, "idle-choice-card idle-gear-card", null);
+				made.text = string.Empty;
+				VisualElement icon = new VisualElement();
+				icon.AddToClassList("idle-choice-icon");
+				made.Add(icon);
+				Label label = AddLabel(made, "idle-choice-label");
 				int captured = gearRowButtons.Count;
 				made.clicked += () => PickGear(captured);
 				gearRowButtons.Add(made);
+				gearRowIcons.Add(icon);
+				gearRowLabels.Add(label);
 			}
 
 			return gearRowButtons[at];
@@ -1368,7 +1555,9 @@ namespace WitchMendokusai
 			for (int index = 0; index < cardButtons.Length; index++)
 			{
 				IdleCardView card = snapshot.Cards[index];
-				cardButtons[index].text = string.Format("{0}\n{1}", card.Cost, NameOf(card.Kind));
+				cardCosts[index].text = card.Cost.ToString();
+				cardNames[index].text = NameOf(card.Kind);
+				SetCardIconClass(cardIcons[index], card.Kind);
 				cardButtons[index].SetEnabled(card.CanCast);
 				cardButtons[index].EnableInClassList("idle-card--ready", card.CanCast);
 			}
@@ -2024,21 +2213,6 @@ namespace WitchMendokusai
 
 		private void OnTapped(PointerDownEvent moment)
 		{
-			if (volleyHandIndex >= 0)
-			{
-				if (stage != null && stage.TryPickFoe(moment.position, out long foeIndex)
-					&& session.TryCastCardAt(volleyHandIndex, foeIndex, out IdleCardResult result))
-				{
-					stage.OnVolley();
-					volleyHandIndex = -1;
-					SayOnce("일제 사격. 목표를 집중 타격했다", noteSeconds);
-					WriteDown();
-					Render(session.Capture());
-				}
-
-				return;
-			}
-
 			if (moment.target is Button || (moment.target is VisualElement element && IsInsideBox(element)))
 			{
 				return;
@@ -2072,8 +2246,8 @@ namespace WitchMendokusai
 			IdleCardKind selected = IdleCards.HandAt(session.State, handIndex);
 			if (selected == IdleCardKind.Volley)
 			{
-				volleyHandIndex = handIndex;
-				SayOnce("일제 사격. 적 하나를 선택하세요", noteSeconds);
+				volleyHandIndex = -1;
+				SayOnce("일제 사격 카드를 끌어 적에게 놓으세요", noteSeconds);
 				return;
 			}
 
@@ -2087,7 +2261,7 @@ namespace WitchMendokusai
 			switch (kind)
 			{
 				case IdleCardKind.Volley:
-					if (stage != null) { stage.OnVolley(); }
+					// Volley is target-only and is resolved by EndSkillDrag.
 					SayOnce("일제 사격. 모두 달려들었다", noteSeconds);
 					break;
 
@@ -2098,6 +2272,7 @@ namespace WitchMendokusai
 					break;
 
 				default:
+					if (stage != null) { stage.OnAppraise(); }
 					SayOnce(result.HasRoll
 						? string.Format("비밀 감정. T{0} → {1:P1}{2}",
 							result.Roll.Tier, result.Roll.Value, result.Roll.Replaced ? " 갈아 끼움" : string.Empty)
@@ -2364,33 +2539,59 @@ namespace WitchMendokusai
 				// 손가락 입력은 누른 자리에서 떼어 위쪽에 고정
 				if (moment.pointerType != UnityEngine.UIElements.PointerType.mouse)
 				{
+					tooltipPointer = moment.pointerId;
 					ShowTooltip(text());
 					MoveTooltip(moment.position, true);
+					target.CapturePointer(moment.pointerId);
 					int version = ++tooltipVersion;
 					tooltip.schedule.Execute(() =>
 					{
 						if (version == tooltipVersion)
 						{
-							tooltip.style.display = DisplayStyle.None;
+							HideTooltip();
 						}
 					}).StartingIn(1800L);
 				}
 			});
 
-			target.RegisterCallback<PointerEnterEvent>(_ => ShowTooltip(text()));
-			target.RegisterCallback<PointerMoveEvent>(moment =>
+			target.RegisterCallback<PointerEnterEvent>(moment =>
 			{
 				if (moment.pointerType == UnityEngine.UIElements.PointerType.mouse)
 				{
+					ShowTooltip(text());
 					MoveTooltip(moment.position, false);
+				}
+			});
+			target.RegisterCallback<PointerMoveEvent>(moment =>
+			{
+				if (moment.pointerType == UnityEngine.UIElements.PointerType.mouse || moment.pointerId == tooltipPointer)
+				{
+					MoveTooltip(moment.position, moment.pointerType != UnityEngine.UIElements.PointerType.mouse);
+				}
+			});
+			target.RegisterCallback<PointerUpEvent>(moment =>
+			{
+				if (moment.pointerId == tooltipPointer)
+				{
+					if (target.HasPointerCapture(moment.pointerId))
+					{
+						target.ReleasePointer(moment.pointerId);
+					}
+					HideTooltip();
+				}
+			});
+			target.RegisterCallback<PointerCancelEvent>(moment =>
+			{
+				if (moment.pointerId == tooltipPointer)
+				{
+					HideTooltip();
 				}
 			});
 			target.RegisterCallback<PointerLeaveEvent>(moment =>
 			{
 				if (moment.pointerType == UnityEngine.UIElements.PointerType.mouse)
 				{
-					tooltipVersion++;
-					tooltip.style.display = DisplayStyle.None;
+					HideTooltip();
 				}
 			});
 		}
@@ -2407,26 +2608,36 @@ namespace WitchMendokusai
 			tooltip.style.display = DisplayStyle.Flex;
 		}
 
+		private void HideTooltip()
+		{
+			tooltipVersion++;
+			tooltipPointer = -1;
+			tooltip.style.display = DisplayStyle.None;
+		}
+
 		private void MoveTooltip(Vector2 at, bool touch)
 		{
-			VisualElement root = tooltip.parent;
-			float rootWidth = root != null ? root.resolvedStyle.width : 1920f;
-			float rootHeight = root != null ? root.resolvedStyle.height : 1080f;
-			float x = touch ? at.x - 150f : at.x + 18f;
-			float y = touch && at.y >= 160f ? at.y - 148f : at.y + (touch ? 72f : 18f);
+			VisualElement owner = tooltip.parent;
+			Vector2 local = owner != null ? owner.WorldToLocal(at) : at;
+			float rootWidth = owner != null ? owner.resolvedStyle.width : 1920f;
+			float rootHeight = owner != null ? owner.resolvedStyle.height : 1080f;
+			float tipWidth = tooltip.resolvedStyle.width > 0f ? tooltip.resolvedStyle.width : 300f;
+			float tipHeight = tooltip.resolvedStyle.height > 0f ? tooltip.resolvedStyle.height : 120f;
+			float x = touch ? local.x - tipWidth * 0.5f : local.x + 18f;
+			float y = touch && local.y >= tipHeight + 84f ? local.y - tipHeight - 72f : local.y + (touch ? 72f : 18f);
 
-			if (touch == false && x + 320f > rootWidth)
+			if (touch == false && x + tipWidth > rootWidth)
 			{
-				x = at.x - 330f;
+				x = local.x - tipWidth - 18f;
 			}
 
-			if (touch == false && y + 120f > rootHeight)
+			if (touch == false && y + tipHeight > rootHeight)
 			{
-				y = at.y - 130f;
+				y = local.y - tipHeight - 18f;
 			}
 
-			tooltip.style.left = Mathf.Clamp(x, 12f, Mathf.Max(12f, rootWidth - 312f));
-			tooltip.style.top = Mathf.Clamp(y, 12f, Mathf.Max(12f, rootHeight - 132f));
+			tooltip.style.left = Mathf.Clamp(x, 12f, Mathf.Max(12f, rootWidth - tipWidth - 12f));
+			tooltip.style.top = Mathf.Clamp(y, 12f, Mathf.Max(12f, rootHeight - tipHeight - 12f));
 		}
 
 		private string StatTip(IdleUpgradeKind kind, int amount)
@@ -2498,6 +2709,39 @@ namespace WitchMendokusai
 			for (int at = 1; at <= 8; at++)
 			{
 				element.EnableInClassList("idle-tier-" + at, at == tier);
+			}
+		}
+
+		private static void SetCardIconClass(VisualElement element, IdleCardKind kind)
+		{
+			string[] names = { "volley", "supply", "appraise" };
+			for (int index = 0; index < names.Length; index++)
+			{
+				element.EnableInClassList("idle-card-icon--" + names[index], index == (int)kind);
+			}
+		}
+
+		private static void SetHeroIconClass(VisualElement element, IdleHeroAxis axis)
+		{
+			for (int index = 0; index < 4; index++)
+			{
+				element.EnableInClassList("idle-hero-icon--" + index, index == (int)axis);
+			}
+		}
+
+		private static void SetHeroGradeClass(VisualElement element, int stars)
+		{
+			for (int index = 1; index <= 4; index++)
+			{
+				element.EnableInClassList("idle-hero-grade-" + index, index == Mathf.Clamp(stars, 1, 4));
+			}
+		}
+
+		private static void SetGearIconClass(VisualElement element, int slot)
+		{
+			for (int index = 0; index < IdleGear.SLOT_COUNT; index++)
+			{
+				element.EnableInClassList("idle-gear-icon--" + index, index == slot);
 			}
 		}
 

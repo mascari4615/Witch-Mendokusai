@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UIElements;
 using WitchMendokusai.DomainSDK.Idle;
 
 namespace WitchMendokusai
@@ -19,6 +20,8 @@ namespace WitchMendokusai
 		[SerializeField] private float boltSeconds = 0.18f;
 		[SerializeField] private float popSeconds = 0.3f;
 		[SerializeField] private float positionCatchUp = 14f;
+		[SerializeField] private float foeEntranceDistance = 6f;
+		[SerializeField] private float foeEntranceSpeed = 5f;
 		[SerializeField] private float foeSpinDegrees = 12f;
 		[SerializeField] private float foeBobHeight = 0.025f;
 		[SerializeField] private float shakeSeconds = 0.08f;
@@ -149,7 +152,21 @@ namespace WitchMendokusai
 			AdvanceSupply(delta);
 		}
 
-		public void OnVolley() { }
+		public void SetFloatingTextRoot(VisualElement root)
+		{
+			if (fx != null)
+			{
+				fx.SetFloatingTextRoot(root);
+			}
+		}
+
+		public void OnVolley(long target)
+		{
+			if (fx != null && entities != null)
+			{
+				fx.PlayVolley(target, entities);
+			}
+		}
 
 		public bool TryPickFoe(Vector2 panelPosition, out long foeIndex)
 		{
@@ -162,7 +179,22 @@ namespace WitchMendokusai
 			return entities.TryPickFoe(panelPosition, out foeIndex);
 		}
 
-		public void OnSupply(float seconds) { supplyGlowLeft = seconds; }
+		public void OnSupply(float seconds)
+		{
+			supplyGlowLeft = seconds;
+			if (fx != null && entities != null)
+			{
+				fx.PlaySupply(entities);
+			}
+		}
+
+		public void OnAppraise()
+		{
+			if (fx != null && entities != null)
+			{
+				fx.PlayAppraise(entities);
+			}
+		}
 		public void OnTap() { }
 
 		private IdleBattleEntityPresenter.Settings CreateEntitySettings()
@@ -175,6 +207,8 @@ namespace WitchMendokusai
 				LungeSeconds = lungeSeconds,
 				PopSeconds = popSeconds,
 				PositionCatchUp = positionCatchUp,
+				FoeEntranceDistance = foeEntranceDistance,
+				FoeEntranceSpeed = foeEntranceSpeed,
 				FoeSpinDegrees = foeSpinDegrees,
 				FoeBobHeight = foeBobHeight,
 				BossScale = bossScale,

@@ -1,3 +1,5 @@
+@import url("../../Presentation/FloatingText.uss");
+
 .wm-item-grid {
     flex-direction: row;
     flex-wrap: wrap;
@@ -992,51 +994,6 @@
     width: 32px;
     height: 32px;
     -unity-background-scale-mode: scale-to-fit;
-}
-
-/* === Floating Text === */
-.wm-floating-text {
-    position: absolute;
-    translate: -50% -50%;
-    opacity: 0;
-    scale: 0.6 0.6;
-    transition-property: opacity, scale, translate;
-    transition-duration: 0.18s;
-    transition-timing-function: ease-out-cubic;
-}
-
-.wm-floating-text--active {
-    opacity: 1;
-    scale: 1 1;
-    translate: -50% -120%;
-}
-
-.wm-floating-text Label {
-    -unity-text-align: middle-center;
-    -unity-font-style: bold;
-    font-size: 22px;
-}
-
-.wm-floating-text--normal Label {
-    color: rgba(255, 255, 255, 1);
-}
-
-.wm-floating-text--critical Label {
-    color: rgba(255, 110, 86, 1);
-    font-size: 26px;
-}
-
-.wm-floating-text--heal Label {
-    color: rgba(120, 220, 130, 1);
-}
-
-.wm-floating-text--exp Label {
-    color: rgba(180, 200, 230, 1);
-    font-size: 16px;
-}
-
-.wm-floating-text--warning Label {
-    color: rgba(255, 230, 80, 1);
 }
 
 /* === Transition === */

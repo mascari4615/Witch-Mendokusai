@@ -1,0 +1,32 @@
+.wm-floating-text {
+	position: absolute;
+	translate: -50% -45%;
+	opacity: 0;
+	scale: 0.72 0.72;
+	transition-property: opacity, scale, translate;
+	transition-duration: 0.16s;
+	transition-timing-function: ease-out-cubic;
+}
+
+.wm-floating-text--active {
+	opacity: 1;
+	scale: 1 1;
+	translate: -50% -125%;
+}
+
+.wm-floating-text Label {
+	-unity-text-align: middle-center;
+	-unity-font-style: bold;
+	-unity-text-outline-width: 2px;
+	-unity-text-outline-color: rgba(12, 10, 18, 0.92);
+	font-size: 30px;
+	letter-spacing: 1px;
+}
+
+.wm-floating-text--normal Label { color: rgb(255, 248, 222); }
+.wm-floating-text--critical Label { color: rgb(255, 106, 78); font-size: 38px; }
+.wm-floating-text--heal Label { color: rgb(112, 232, 132); }
+.wm-floating-text--exp Label { color: rgb(174, 204, 255); font-size: 24px; }
+.wm-floating-text--warning Label { color: rgb(255, 226, 72); }
+.wm-floating-text--hurt Label { color: rgb(255, 112, 104); font-size: 28px; }
+.wm-floating-text--buff Label { color: rgb(96, 224, 255); font-size: 27px; }
