@@ -93,6 +93,11 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// <summary>자리별 이번 틱 이동 여부. 무대의 걷기 연출용</summary>
         public bool[] Moving = new bool[IdleSquad.SEAT_COUNT];
 
+        // 자리별 영웅 스탯 캐시. 저장 안 함 (internal). 채우기는 IdleBattleSim.CacheSeatStats
+        internal readonly double[] StatDamage = new double[IdleSquad.SEAT_COUNT];
+        internal readonly double[] StatInterval = new double[IdleSquad.SEAT_COUNT];
+        internal readonly double[] StatRange = new double[IdleSquad.SEAT_COUNT];
+
         public readonly List<IdleFoe> Foes = new List<IdleFoe>();
 
         /// <summary>이번 <see cref="IdleBattleSim.Advance"/> 에서 난 타격. 부를 때마다 초기화</summary>

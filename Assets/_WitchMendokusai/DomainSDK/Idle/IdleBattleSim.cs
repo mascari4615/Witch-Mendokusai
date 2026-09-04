@@ -56,9 +56,43 @@ namespace WitchMendokusai.DomainSDK.Idle
                 }
             }
 
+            CacheSeatStats(state, tuning);
+
             for (long at = 0; at < ticks; at++)
             {
-                Tick(state, tuning, tick);
+                if (Tick(state, tuning, tick) > 0L)
+                {
+                    // 처치는 드롭, 회복, 구역 이동을 부른다. 스탯이 바뀔 수 있는 유일한 자리
+                    CacheSeatStats(state, tuning);
+                }
+            }
+        }
+
+        /// <summary>
+        /// 자리별 피해, 공격 간격, 사거리를 한 번에 셈
+        ///
+        /// ★ 틱마다 셈하면 한 시간 시뮬 116ms 중 113ms 가 여기 (실측 2026-09-05, 108k 호출).
+        ///   Advance 안에서 스탯이 바뀌는 길은 처치뿐. 그 뒤에만 다시 셈
+        /// </summary>
+        private static void CacheSeatStats(IdleState state, IdleTuning tuning)
+        {
+            IdleBattle battle = state.Battle;
+
+            for (int seat = 0; seat < IdleSquad.SEAT_COUNT; seat++)
+            {
+                if (IdleSquad.SeatTaken(state, seat) == false)
+                {
+                    battle.StatDamage[seat] = 0d;
+                    battle.StatInterval[seat] = double.PositiveInfinity;
+                    battle.StatRange[seat] = 0d;
+                    continue;
+                }
+
+                int heroId = state.Party[seat];
+                double perSecond = IdleModel.AttackSpeedOfHero(state, tuning, heroId);
+                battle.StatDamage[seat] = IdleModel.DamageOfHero(state, tuning, heroId);
+                battle.StatInterval[seat] = perSecond > 0d ? 1d / perSecond : double.PositiveInfinity;
+                battle.StatRange[seat] = IdleHeroes.RangeOf(state, tuning, seat);
             }
         }
 
@@ -91,7 +125,8 @@ namespace WitchMendokusai.DomainSDK.Idle
             return lanes != null && seat < lanes.Length ? lanes[seat] : 0d;
         }
 
-        private static void Tick(IdleState state, IdleTuning tuning, double delta)
+        /// <summary>틱 하나. 반환은 처치 수</summary>
+        private static long Tick(IdleState state, IdleTuning tuning, double delta)
         {
             IdleBattle battle = state.Battle;
 
@@ -118,7 +153,7 @@ namespace WitchMendokusai.DomainSDK.Idle
                 // 전멸. 지금 코어의 실패 규칙 그대로 물러나 반복
                 IdleSquad.FallBack(state, tuning);
                 Reset(state, tuning);
-                return;
+                return kills;
             }
 
             Revive(state, tuning, delta);
@@ -128,6 +163,8 @@ namespace WitchMendokusai.DomainSDK.Idle
             {
                 Reset(state, tuning);
             }
+
+            return kills;
         }
 
         /// <summary>서 있는 자리 중 x 최대. 적이 노리는 자리. 없으면 -1</summary>
@@ -205,7 +242,7 @@ namespace WitchMendokusai.DomainSDK.Idle
                 }
 
                 battle.Target[seat] = target.Index;
-                double range = IdleHeroes.RangeOf(state, tuning, seat);
+                double range = battle.StatRange[seat];
                 double distance = Distance(battle.X[seat], battle.Y[seat], target.X, target.Y);
 
                 if (distance <= range + EPSILON)
@@ -277,16 +314,14 @@ namespace WitchMendokusai.DomainSDK.Idle
                     continue;
                 }
 
-                double range = IdleHeroes.RangeOf(state, tuning, seat);
+                double range = battle.StatRange[seat];
                 if (Distance(battle.X[seat], battle.Y[seat], target.X, target.Y) > range + EPSILON)
                 {
                     continue;
                 }
 
-                int heroId = state.Party[seat];
-                double damage = IdleModel.DamageOfHero(state, tuning, heroId);
-                double perSecond = IdleModel.AttackSpeedOfHero(state, tuning, heroId);
-                double interval = perSecond > 0d ? 1d / perSecond : double.PositiveInfinity;
+                double damage = battle.StatDamage[seat];
+                double interval = battle.StatInterval[seat];
 
                 battle.Cooldown[seat] -= delta;
 
