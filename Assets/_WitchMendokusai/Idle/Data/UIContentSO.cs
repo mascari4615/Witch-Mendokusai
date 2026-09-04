@@ -132,6 +132,8 @@ namespace WitchMendokusai.Idle
 		[SerializeField] private string criticalDamageValueFormat;
 		[SerializeField] private int[] statUpgradeAmounts = Array.Empty<int>();
 		[SerializeField, Min(1)] private int gearPopupSlotCount = 24;
+		[SerializeField, Min(1)] private int bagSlotCount = 40;
+		[SerializeField, Min(1)] private int forgeInputSlotCount = 9;
 		[SerializeField, Range(0.1f, 0.9f)] private float battleWidthShare = 0.625f;
 
 		public int TabCount => tabs.Length;
@@ -139,6 +141,8 @@ namespace WitchMendokusai.Idle
 		public int GearSlotCount => gearSlotNames.Length;
 		public int StatUpgradeAmountCount => statUpgradeAmounts.Length;
 		public int GearPopupSlotCount => gearPopupSlotCount;
+		public int BagSlotCount => bagSlotCount;
+		public int ForgeInputSlotCount => forgeInputSlotCount;
 		public float BattleWidthShare => battleWidthShare;
 
 		public string TabName(int index) => tabs[index].Name;
@@ -393,7 +397,8 @@ namespace WitchMendokusai.Idle
 				return false;
 			}
 
-			if (gearPopupSlotCount <= 0 || battleWidthShare <= 0f || battleWidthShare >= 1f)
+			if (gearPopupSlotCount <= 0 || bagSlotCount <= 0 || forgeInputSlotCount <= 0
+				|| battleWidthShare <= 0f || battleWidthShare >= 1f)
 			{
 				error = "popup count and battle width share must be in range";
 				return false;

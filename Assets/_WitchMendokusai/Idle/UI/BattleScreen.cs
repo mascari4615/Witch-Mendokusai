@@ -122,31 +122,7 @@ namespace WitchMendokusai.Idle
 		// 장비 고르기 팝업 (사용자 2026-08-31). 인형이 여럿이라 가방에서 바로 장착하면 대상이 불명
 		private GearSelectionController gearSelectionController;
 
-		// 아이템. 서브탭 가방 / 공방 (layout.md §3)
-		private int itemSub;
-		private readonly Button[] itemSubButtons = new Button[2];
-		private VisualElement bagView;
-		private VisualElement forgeView;
-		private Label gearSummary;
-		private VisualElement bagGrid;
-		private readonly List<Button> bagCells = new List<Button>();
-		private Button bulkMergeButton;
-
-		// 공방. 울티마식 3×3, 같은 부위 같은 단계 9개 → 한 단계 위 (비용 없음. 사용자 2026-08-30)
-		private IdleItemSlot forgeSlot;
-		private int forgeTier;
-		private readonly List<Label> forgeCells = new List<Label>();
-		private Label forgeResult;
-		private Label forgeTitle;
-		private Button forgeButton;
-		private VisualElement forgeKinds;
-		private readonly List<Button> forgeKindButtons = new List<Button>();
-		private readonly List<int> forgeKindKeys = new List<int>();
-
-		// 감정(잠재)은 알파 뒤. 자리만, 숨김
-		private Label appraiseCap;
-		private VisualElement appraiseRows;
-		private readonly List<Button> appraiseButtons = new List<Button>();
+		private ItemPageController itemPageController;
 
 		// 도감
 		private Label codexLabel;
@@ -498,11 +474,7 @@ namespace WitchMendokusai.Idle
 			wornCells.Clear();
 			heroSelectionController = null;
 			gearSelectionController = null;
-			bagCells.Clear();
-			forgeCells.Clear();
-			forgeKindButtons.Clear();
-			forgeKindKeys.Clear();
-			appraiseButtons.Clear();
+			itemPageController = null;
 			codexLabels.Clear();
 			producerButtons.Clear();
 			mapSelectionController = null;
@@ -668,86 +640,20 @@ namespace WitchMendokusai.Idle
 		/// <summary>아이템 탭 (layout.md §3). 가방과 공방. 모양은 UXML</summary>
 		private void BuildItemPage()
 		{
-			BindItemPage(UsePage(Tab.Item, "item-page-host"));
-		}
-
-		/// <summary>아이템 탭을 UXML 에서. 가방과 공방의 수량만 코어 사진으로 채운다</summary>
-		private void BindItemPage(VisualElement page)
-		{
-			itemSubButtons[0] = page.Q<Button>("bag-subtab");
-			itemSubButtons[0].clicked += () => OpenItemSub(0);
-			itemSubButtons[1] = page.Q<Button>("forge-subtab");
-			itemSubButtons[1].clicked += () => OpenItemSub(1);
-
-			bagView = page.Q<VisualElement>("bag-view");
-			gearSummary = page.Q<Label>("gear-summary");
-			bagGrid = page.Q<VisualElement>("bag-grid");
-			for (int index = 0; index < 40; index++)
-			{
-				int captured = index;
-				// 가방에서 바로 장착하지 않는다. 장비는 인형 탭의 칸에서 고른다 (사용자 2026-08-31)
-				Button cell = AddBagCell(bagGrid, null);
-				HookTooltip(cell, () => BagTip(captured));
-				bagCells.Add(cell);
-			}
-			bulkMergeButton = page.Q<Button>("bulk-merge-button");
-			bulkMergeButton.clicked += MergeAll;
-
-			forgeView = page.Q<VisualElement>("forge-view");
-			forgeKinds = page.Q<VisualElement>("forge-kinds");
-			for (int index = 0; index < 9; index++)
-			{
-				forgeCells.Add(page.Q<Label>("forge-cell-" + index));
-			}
-			forgeResult = page.Q<Label>("forge-result");
-			forgeTitle = page.Q<Label>("forge-title");
-			forgeButton = page.Q<Button>("forge-button");
-			forgeButton.clicked += MergeForge;
-
-			appraiseCap = page.Q<Label>("appraise-cap");
-			appraiseCap.style.display = DisplayStyle.None;
-			appraiseRows = page.Q<VisualElement>("appraise-rows");
-			appraiseRows.style.display = DisplayStyle.None;
-
-			OpenItemSub(0);
-		}
-
-		private Button AddBagCell(VisualElement parent, System.Action clicked)
-		{
-			TemplateContainer tree = bagCellAsset.Instantiate();
-			Button cell = tree.Q<Button>("bag-cell");
-			cell.RemoveFromHierarchy();
-			cell.text = string.Empty;
-			cell.clicked += clicked;
-			parent.Add(cell);
-			return cell;
-		}
-
-		private Button AddForgeKind(VisualElement parent, System.Action clicked)
-		{
-			TemplateContainer tree = forgeKindAsset.Instantiate();
-			Button kind = tree.Q<Button>("forge-kind");
-			kind.RemoveFromHierarchy();
-			kind.clicked += clicked;
-			parent.Add(kind);
-			return kind;
-		}
-
-		private void OpenItemSub(int which)
-		{
-			itemSub = which;
-			bagView.style.display = which == 0 ? DisplayStyle.Flex : DisplayStyle.None;
-			forgeView.style.display = which == 1 ? DisplayStyle.Flex : DisplayStyle.None;
-
-			for (int index = 0; index < itemSubButtons.Length; index++)
-			{
-				itemSubButtons[index].EnableInClassList("idle-subtab--on", index == which);
-			}
-
-			if (built)
-			{
-				Render(session.Capture());
-			}
+			itemPageController = new ItemPageController(
+				UsePage(Tab.Item, "item-page-host"),
+				session,
+				uiContentAsset,
+				gearVisualPresenter,
+				bagCellAsset,
+				forgeKindAsset,
+				rowButtonAsset,
+				() => gearHeroId,
+				WriteDown,
+				() => Render(session.Capture()),
+				SayOnce,
+				HookTooltip,
+				runtimeSettingsAsset.NoteSeconds);
 		}
 
 		private void BuildCodexPage()
@@ -1070,7 +976,7 @@ namespace WitchMendokusai.Idle
 			switch (openTab)
 			{
 				case Tab.Doll: RenderDollPage(snapshot); break;
-				case Tab.Item: RenderItemPage(snapshot); break;
+				case Tab.Item: itemPageController.Render(snapshot); break;
 				case Tab.Codex: RenderCodexPage(snapshot); break;
 				case Tab.Shop: RenderShopPage(snapshot); break;
 				case Tab.Lab: RenderLabPage(snapshot); break;
@@ -1201,166 +1107,6 @@ namespace WitchMendokusai.Idle
 
 			session.RaiseHeroLevel(heroId);
 			Render(session.Capture());
-		}
-
-		private void RenderItemPage(IdleSnapshot snapshot)
-		{
-			bool full = snapshot.Bag.Length >= snapshot.BagCapacity;
-			gearSummary.text = uiContentAsset.BagSummaryText(snapshot.Bag.Length, snapshot.BagCapacity, full);
-			gearSummary.EnableInClassList("idle-warn", full);
-
-			for (int index = 0; index < bagCells.Count; index++)
-			{
-				if (index >= snapshot.BagCapacity)
-				{
-					bagCells[index].style.display = DisplayStyle.None;
-					continue;
-				}
-
-				bagCells[index].style.display = DisplayStyle.Flex;
-
-				if (index >= snapshot.Bag.Length)
-				{
-					bagCells[index].text = string.Empty;
-					bagCells[index].Q<VisualElement>("bag-icon").style.display = DisplayStyle.None;
-					bagCells[index].Q<Label>("bag-potential").text = string.Empty;
-					bagCells[index].SetEnabled(false);
-					gearVisualPresenter.SetTierOutline(bagCells[index], 0);
-					continue;
-				}
-
-				IdleItem one = snapshot.Bag[index];
-				bagCells[index].text = string.Empty;
-				VisualElement icon = bagCells[index].Q<VisualElement>("bag-icon");
-				icon.style.display = DisplayStyle.Flex;
-				gearVisualPresenter.SetSprite(icon, (int)one.Slot, one.Tier);
-				bagCells[index].Q<Label>("bag-potential").text =
-					uiContentAsset.ItemPotentialText(one.IsRaw, one.PotentialValue);
-				bagCells[index].SetEnabled(true);
-				gearVisualPresenter.SetTierOutline(bagCells[index], one.Tier);
-			}
-
-			bulkMergeButton.text = uiContentAsset.BulkMergeText(snapshot.MergeCount);
-			bulkMergeButton.SetEnabled(IdleAdvice.MergeableCount(snapshot) > 0);
-
-			RenderForge(snapshot);
-			RenderAppraise(snapshot);
-		}
-
-		/// <summary>공방. 가방에 있는 종류(부위, 단계)를 칩으로 늘어놓고, 고른 종류를 3×3 에 채운다</summary>
-		private void RenderForge(IdleSnapshot snapshot)
-		{
-			int room = snapshot.TierCeiling + 2;
-			int[] counts = new int[room];
-
-			for (int index = 0; index < snapshot.Bag.Length; index++)
-			{
-				IdleItem one = snapshot.Bag[index];
-				int key = one.Tier;
-				if (key >= 0 && key < counts.Length)
-				{
-					counts[key]++;
-				}
-			}
-
-			List<int> keys = new List<int>();
-			for (int key = 0; key < counts.Length; key++)
-			{
-				if (counts[key] > 0)
-				{
-					keys.Add(key);
-				}
-			}
-
-			if (forgeKindKeys.Count != keys.Count || KeysDiffer(keys))
-			{
-				forgeKinds.Clear();
-				forgeKindButtons.Clear();
-				forgeKindKeys.Clear();
-
-				for (int index = 0; index < keys.Count; index++)
-				{
-					int key = keys[index];
-					forgeKindKeys.Add(key);
-					forgeKindButtons.Add(AddForgeKind(forgeKinds, () => PickForge(key)));
-				}
-			}
-
-			for (int index = 0; index < forgeKindButtons.Count; index++)
-			{
-				int key = forgeKindKeys[index];
-				int tier = key;
-				forgeKindButtons[index].text = uiContentAsset.ForgeKindText(tier, counts[key]);
-				gearVisualPresenter.SetTierOutline(forgeKindButtons[index], tier);
-				forgeKindButtons[index].EnableInClassList("idle-forge-kind--on", forgeTier == tier);
-			}
-
-			int forgeKey = forgeTier;
-			int have = forgeTier > 0 && forgeKey < counts.Length ? counts[forgeKey] : 0;
-			int shown = have > snapshot.MergeCount ? snapshot.MergeCount : have;
-
-			for (int index = 0; index < forgeCells.Count; index++)
-			{
-				bool filled = index < shown;
-				forgeCells[index].text = filled ? uiContentAsset.ForgeCellText(forgeTier) : string.Empty;
-				gearVisualPresenter.SetTierOutline(forgeCells[index], filled ? forgeTier : 0);
-			}
-
-			bool ready = forgeTier > 0 && have >= snapshot.MergeCount;
-			forgeResult.text = forgeTier > 0 ? uiContentAsset.ForgeResultText(forgeTier + 1) : string.Empty;
-			gearVisualPresenter.SetTierOutline(forgeResult, forgeTier > 0 ? forgeTier + 1 : 0);
-			forgeResult.EnableInClassList("idle-forge-cell--ready", ready);
-
-			forgeTitle.text = forgeTier > 0
-				? uiContentAsset.ForgeSelectionText(forgeTier, have, snapshot.MergeCount)
-				: uiContentAsset.ForgeEmptyHintText(snapshot.MergeCount);
-			forgeButton.SetEnabled(ready);
-		}
-
-		private bool KeysDiffer(List<int> keys)
-		{
-			for (int index = 0; index < keys.Count && index < forgeKindKeys.Count; index++)
-			{
-				if (keys[index] != forgeKindKeys[index])
-				{
-					return true;
-				}
-			}
-
-			return false;
-		}
-
-		private void PickForge(int key)
-		{
-			forgeTier = key;
-			forgeSlot = IdleItemSlot.Head;
-			Render(session.Capture());
-		}
-
-		private void RenderAppraise(IdleSnapshot snapshot)
-		{
-			if (appraiseButtons.Count != snapshot.DroppedByTier.Length)
-			{
-				appraiseRows.Clear();
-				appraiseButtons.Clear();
-
-				for (int tier = 1; tier <= snapshot.DroppedByTier.Length; tier++)
-				{
-					int captured = tier;
-					appraiseButtons.Add(AddRowButton(appraiseRows, () => Appraise(captured)));
-				}
-			}
-
-			for (int tier = 1; tier <= appraiseButtons.Count; tier++)
-			{
-				long count = snapshot.DroppedByTier[tier - 1];
-				IdleAppraiseView appraisal = session.ViewAppraisal(tier);
-
-				appraiseButtons[tier - 1].text = uiContentAsset.AppraiseRowText(tier,
-					BigNumberText.Format(count), BigNumberText.Format(appraisal.Cost),
-					(appraisal.Block == AppraiseBlock.TierTooLow) == false);
-				appraiseButtons[tier - 1].SetEnabled(appraisal.Block == AppraiseBlock.None);
-			}
 		}
 
 		private void RenderCodexPage(IdleSnapshot snapshot)
@@ -1790,64 +1536,7 @@ namespace WitchMendokusai.Idle
 
 		private void Equip(int bagIndex)
 		{
-			session.Send(new IdleEquipIntent(gearHeroId, bagIndex));
-			WriteDown();
-			Render(session.Capture());
-		}
-
-		private void Merge(int tier, IdleItemSlot slot)
-		{
-			if (session.Send(new IdleMergeIntent(tier, slot)))
-			{
-				SayOnce(uiContentAsset.MergeFeedbackText(uiContentAsset.GearSlotName((int)slot), tier), runtimeSettingsAsset.NoteSeconds);
-				WriteDown();
-			}
-
-			Render(session.Capture());
-		}
-
-		private void MergeForge()
-		{
-			if (forgeTier <= 0)
-			{
-				return;
-			}
-
-			Merge(forgeTier, forgeSlot);
-		}
-
-		/// <summary>가방에서 합칠 수 있는 묶음을 전부 합친다. 낮은 단계부터</summary>
-		private void MergeAll()
-		{
-			int merged = 0;
-			IdleSnapshot now = session.Capture();
-
-			for (int tier = 1; tier <= now.TierCeiling + 1; tier++)
-			{
-				while (session.Send(new IdleMergeIntent(tier, IdleItemSlot.Head)))
-				{
-					merged++;
-				}
-			}
-
-			if (merged > 0)
-			{
-				SayOnce(uiContentAsset.MergeAllFeedbackText(merged), runtimeSettingsAsset.NoteSeconds);
-				WriteDown();
-			}
-
-			Render(session.Capture());
-		}
-
-		private void Appraise(int tier)
-		{
-			if (session.TryAppraise(tier, out PotentialRoll roll))
-			{
-				SayOnce(uiContentAsset.AppraiseFeedbackText(roll.Tier, roll.Value, roll.Replaced), runtimeSettingsAsset.NoteSeconds);
-				WriteDown();
-			}
-
-			Render(session.Capture());
+			itemPageController.Equip(bagIndex);
 		}
 
 		private void Pull()
@@ -1990,32 +1679,9 @@ namespace WitchMendokusai.Idle
 			}
 		}
 
-		private string BagTip(int index)
-		{
-			IdleSnapshot now = session.Capture();
-			if (index >= now.Bag.Length)
-			{
-				return string.Empty;
-			}
-
-			IdleItem one = now.Bag[index];
-			IdleItem wearing = gearHeroId >= 0 ? session.WornOf(gearHeroId, (int)one.Slot) : default;
-			string worn = wearing.IsEmpty
-				? uiContentAsset.NoWornGearText
-				: uiContentAsset.WornGearSummaryText(wearing.Tier, session.GearMultiplierOf(wearing));
-			return uiContentAsset.BagTipText(
-				uiContentAsset.GearSlotName((int)one.Slot), one.Tier,
-				session.GearMultiplierOf(one),
-				worn);
-		}
-
 		private string WornTip(int slot)
 		{
-			IdleItem one = gearHeroId >= 0 ? session.WornOf(gearHeroId, slot) : default;
-			return one.IsEmpty
-				? uiContentAsset.WornEmptyTipText(uiContentAsset.GearSlotName(slot))
-				: uiContentAsset.WornTipText(uiContentAsset.GearSlotName(slot), one.Tier,
-					session.GearMultiplierOf(one));
+			return itemPageController.WornTip(slot);
 		}
 
 		// ── 잔손 ──────────────────────────────────────────────────────────
@@ -2030,16 +1696,6 @@ namespace WitchMendokusai.Idle
 		private string StatValueText(IdleUpgradeKind kind, double value)
 		{
 			return uiContentAsset.StatValueText(kind, value);
-		}
-
-		private Button AddRowButton(VisualElement parent, System.Action action)
-		{
-			TemplateContainer tree = rowButtonAsset.Instantiate();
-			Button button = tree.Q<Button>("row");
-			button.RemoveFromHierarchy();
-			button.clicked += action;
-			parent.Add(button);
-			return button;
 		}
 
 	}
