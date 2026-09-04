@@ -23,6 +23,13 @@ namespace WitchMendokusai.Idle
 		[SerializeField] private float foeBobHeight = 0.025f;
 		[SerializeField] private float shakeSeconds = 0.08f;
 		[SerializeField] private float shakeDistance = 0.025f;
+		[SerializeField] private float impactSize = 0.36f;
+		[SerializeField] private float impactSeconds = 0.34f;
+		[SerializeField] private float impactSpeed = 3.4f;
+		[SerializeField] private int impactCount = 7;
+		[SerializeField, Range(0f, 1f)] private float impactWhiten = 0.55f;
+		[SerializeField] private float foeFlashSeconds = 0.12f;
+		[SerializeField, Range(0f, 1f)] private float foeFlashWhiten = 0.7f;
 		[SerializeField] private float bossScale = 1.35f;
 		[SerializeField] private float foeHeight = 0.62f;
 		[SerializeField] private float foeRadius = 0.62f;
@@ -62,6 +69,9 @@ namespace WitchMendokusai.Idle
 		[SerializeField] private float numberSize = 0.12f;
 		[SerializeField] private Color numberColor = Color.white;
 		[SerializeField] private Color hurtColor = new Color(1f, 0.45f, 0.4f);
+		[SerializeField] private string volleyText = "일제 사격";
+		[SerializeField] private string supplyText = "보급";
+		[SerializeField] private string appraiseText = "감정";
 		[SerializeField] private Color cameraBackgroundColor = new Color(0.75f, 0.88f, 0.96f);
 		[SerializeField] private float cameraFieldOfView = 32f;
 		[SerializeField] private Vector3 cameraEuler = new Vector3(42f, 30f, 0f);
@@ -98,9 +108,17 @@ namespace WitchMendokusai.Idle
 				NumberSeconds = numberSeconds,
 				NumberRise = numberRise,
 				NumberSize = numberSize,
+				ImpactSize = impactSize,
+				ImpactSeconds = impactSeconds,
+				ImpactSpeed = impactSpeed,
+				ImpactCount = impactCount,
+				ImpactWhiten = impactWhiten,
 				BoltColor = boltColor,
 				NumberColor = numberColor,
 				HurtColor = hurtColor,
+				VolleyText = volleyText,
+				SupplyText = supplyText,
+				AppraiseText = appraiseText,
 			};
 		}
 
@@ -131,6 +149,8 @@ namespace WitchMendokusai.Idle
 				DepthSaturation = depthSaturation,
 				DepthDarken = depthDarken,
 				BossGlow = bossGlow,
+				FoeFlashSeconds = foeFlashSeconds,
+				FoeFlashWhiten = foeFlashWhiten,
 				MeleeHeightShare = meleeHeightShare,
 				RangedHeightShare = rangedHeightShare,
 				MyColor = myColor,
@@ -148,9 +168,18 @@ namespace WitchMendokusai.Idle
 		public bool TryValidate(out string error)
 		{
 			if (shapeStagesPerStep <= 0 || sceneryCount < 0 || bossShardCount < 0 || colorDepthStage <= 0
-				|| cameraFieldOfView <= 0f || cameraDistance <= 0f || lightIntensity < 0f)
+				|| cameraFieldOfView <= 0f || cameraDistance <= 0f || lightIntensity < 0f
+				|| boltSeconds <= 0f || shakeSeconds < 0f || numberSeconds <= 0f || impactSize <= 0f
+				|| impactSeconds <= 0f || impactSpeed < 0f || impactCount <= 0 || foeFlashSeconds <= 0f)
 			{
 				error = "counts and stage thresholds must be valid";
+				return false;
+			}
+
+			if (string.IsNullOrWhiteSpace(volleyText) || string.IsNullOrWhiteSpace(supplyText)
+				|| string.IsNullOrWhiteSpace(appraiseText))
+			{
+				error = "battle effect texts must not be empty";
 				return false;
 			}
 

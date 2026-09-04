@@ -16,25 +16,28 @@ namespace WitchMendokusai.Idle
 	{
 		internal sealed class Settings
 		{
-			public float BoltSeconds { get; set; } = 0.18f;
-			public float ShakeSeconds { get; set; } = 0.08f;
-			public float ShakeDistance { get; set; } = 0.025f;
-			public float NumberSeconds { get; set; } = 0.8f;
-			public float NumberRise { get; set; } = 1.2f;
-			public float NumberSize { get; set; } = 0.12f;
+			public float BoltSeconds { get; set; }
+			public float ShakeSeconds { get; set; }
+			public float ShakeDistance { get; set; }
+			public float NumberSeconds { get; set; }
+			public float NumberRise { get; set; }
+			public float NumberSize { get; set; }
 			/// <summary>충격 알갱이 크기 (m). 인형 몸통이 0.44 라 그 절반쯤이 읽힌다</summary>
-			public float ImpactSize { get; set; } = 0.36f;
+			public float ImpactSize { get; set; }
 
-			public float ImpactSeconds { get; set; } = 0.34f;
-			public float ImpactSpeed { get; set; } = 3.4f;
-			public int ImpactCount { get; set; } = 7;
+			public float ImpactSeconds { get; set; }
+			public float ImpactSpeed { get; set; }
+			public int ImpactCount { get; set; }
 
 			/// <summary>적 색에 흰색을 섞는 몫. 안 섞으면 적 몸에 묻힌다</summary>
-			public float ImpactWhiten { get; set; } = 0.55f;
+			public float ImpactWhiten { get; set; }
 
 			public Color BoltColor { get; set; }
 			public Color NumberColor { get; set; }
 			public Color HurtColor { get; set; }
+			public string VolleyText { get; set; }
+			public string SupplyText { get; set; }
+			public string AppraiseText { get; set; }
 		}
 
 		private sealed class Bolt
@@ -166,7 +169,7 @@ namespace WitchMendokusai.Idle
 			shakeLeft = Mathf.Max(shakeLeft, settings.ShakeSeconds * 2f);
 			SpawnImpact(impact, color);
 			SpawnImpact(impact + new Vector3(0.25f, 0.1f, 0.25f), settings.BoltColor);
-			SpawnNumber(impact + Vector3.up, "일제 사격", FloatingTextKind.Critical);
+			SpawnNumber(impact + Vector3.up, settings.VolleyText, FloatingTextKind.Critical);
 		}
 
 		public void PlaySupply(BattleEntityPresenter entities)
@@ -175,7 +178,7 @@ namespace WitchMendokusai.Idle
 			{
 				if (entities.TryGetAllyHead(seat, out Vector3 head))
 				{
-					SpawnNumber(head, "보급", FloatingTextKind.Buff);
+					SpawnNumber(head, settings.SupplyText, FloatingTextKind.Buff);
 					SpawnImpact(head + new Vector3(0f, -0.5f, 0f), settings.BoltColor);
 				}
 			}
@@ -187,7 +190,7 @@ namespace WitchMendokusai.Idle
 			{
 				if (entities.TryGetAllyHead(seat, out Vector3 head))
 				{
-					SpawnNumber(head, "감정", FloatingTextKind.Experience);
+					SpawnNumber(head, settings.AppraiseText, FloatingTextKind.Experience);
 					SpawnImpact(head + new Vector3(0f, -0.35f, 0f), Color.Lerp(settings.BoltColor, Color.magenta, 0.45f));
 				}
 			}

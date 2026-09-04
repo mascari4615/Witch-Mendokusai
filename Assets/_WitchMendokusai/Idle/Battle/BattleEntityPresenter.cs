@@ -18,56 +18,56 @@ namespace WitchMendokusai.Idle
 			public GameObject DollPrefab { get; set; }
 			public GameObject FoePrefab { get; set; }
 			public GameObject BossPrefab { get; set; }
-			public float LungeSeconds { get; set; } = 0.22f;
-			public float PopSeconds { get; set; } = 0.3f;
-			public float PositionCatchUp { get; set; } = 14f;
-			public float FoeEntranceDistance { get; set; } = 6f;
-			public float FoeEntranceSpeed { get; set; } = 5f;
-			public float FoeSpinDegrees { get; set; } = 12f;
-			public float FoeBobHeight { get; set; } = 0.025f;
-			public float BossScale { get; set; } = 1.9f;
-			public float FoeHeight { get; set; } = 0.62f;
-			public float FoeRadius { get; set; } = 0.62f;
+			public float LungeSeconds { get; set; }
+			public float PopSeconds { get; set; }
+			public float PositionCatchUp { get; set; }
+			public float FoeEntranceDistance { get; set; }
+			public float FoeEntranceSpeed { get; set; }
+			public float FoeSpinDegrees { get; set; }
+			public float FoeBobHeight { get; set; }
+			public float BossScale { get; set; }
+			public float FoeHeight { get; set; }
+			public float FoeRadius { get; set; }
 
 			/// <summary>몇 구역마다 도형이 한 계단 오르나 (visual.md 2)</summary>
-			public int ShapeStagesPerStep { get; set; } = 5;
+			public int ShapeStagesPerStep { get; set; }
 
 			/// <summary>보스가 띄우는 껍질 조각 수</summary>
-			public int BossShardCount { get; set; } = 6;
+			public int BossShardCount { get; set; }
 
 			/// <summary>껍질이 코어에서 떨어진 거리. 반지름 배수</summary>
-			public float BossShellRadius { get; set; } = 1.35f;
+			public float BossShellRadius { get; set; }
 
 			/// <summary>체력이 빌수록 껍질이 이만큼 더 벌어진다</summary>
-			public float BossShellSpread { get; set; } = 0.9f;
+			public float BossShellSpread { get; set; }
 
 			/// <summary>껍질이 도는 속도. 코어와 반대</summary>
-			public float BossShellSpinDegrees { get; set; } = -26f;
+			public float BossShellSpinDegrees { get; set; }
 
 			/// <summary>이 구역부터 보스 코어에 뿔을 세운다 (별 만들기)</summary>
-			public int BossSpikeFromStage { get; set; } = 21;
+			public int BossSpikeFromStage { get; set; }
 
 			/// <summary>이 구역에서 채도가 최대. 그 너머는 더 안 짙어진다 (visual.md 6)</summary>
-			public int ColorDepthStage { get; set; } = 40;
+			public int ColorDepthStage { get; set; }
 
 			/// <summary>깊이가 채도에 더하는 몫</summary>
-			public float DepthSaturation { get; set; } = 0.35f;
+			public float DepthSaturation { get; set; }
 
 			/// <summary>깊이가 밝기에서 빼는 몫</summary>
-			public float DepthDarken { get; set; } = 0.18f;
+			public float DepthDarken { get; set; }
 
 			/// <summary>보스 발광 세기. 0 이면 안 빛난다</summary>
-			public float BossGlow { get; set; } = 0.55f;
+			public float BossGlow { get; set; }
 
 			/// <summary>맞은 적이 하얗게 번쩍이는 시간 (s)</summary>
-			public float FoeFlashSeconds { get; set; } = 0.12f;
+			public float FoeFlashSeconds { get; set; }
 
 			/// <summary>번쩍일 때 흰색을 섞는 몫</summary>
-			public float FoeFlashWhiten { get; set; } = 0.7f;
+			public float FoeFlashWhiten { get; set; }
 
 			/// <summary>근접은 낮게, 원거리는 높게 뜬다 (visual.md 3). 높이 배수</summary>
-			public float MeleeHeightShare { get; set; } = 0.85f;
-			public float RangedHeightShare { get; set; } = 1.3f;
+			public float MeleeHeightShare { get; set; }
+			public float RangedHeightShare { get; set; }
 
 			public Color MyColor { get; set; }
 			public Color EnemyColor { get; set; }
