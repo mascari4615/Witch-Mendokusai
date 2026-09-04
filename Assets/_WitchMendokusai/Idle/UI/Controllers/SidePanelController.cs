@@ -35,7 +35,7 @@ namespace WitchMendokusai.Idle.UI
 				int captured = index;
 				Button tab = tabs.Q<Button>("tab-" + index);
 				tab.clicked += () => openTab(captured);
-				tab.text = content.TabName(index) + "\n" + content.TabCaption(index);
+				tab.text = content.TabButtonText(index);
 				tab.style.display = content.IsTabVisible(index) ? DisplayStyle.Flex : DisplayStyle.None;
 				tabButtons.Add(tab);
 

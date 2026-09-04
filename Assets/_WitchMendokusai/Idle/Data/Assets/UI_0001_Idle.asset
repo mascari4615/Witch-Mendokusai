@@ -113,3 +113,74 @@ MonoBehaviour:
   appraisedEquippedGearText: 지금 낀 장비, 감정됨
   potentialFormat: '{0:P0}'
   gearPotentialFormat: '잠재 {0:P0}'
+  dungeonRowFormat: '{0}  입장권 {1}  다시 참까지 {2}시간 {3}분'
+  awaySpanFormat: '{0} 동안 작전이 계속됐습니다'
+  awayWarningFormat: 오프라인 상한 {0}. 넘긴 {1}은 보상에 포함되지 않았습니다.
+  selectHeroBeforeGearText: 먼저 편성 칸에서 인형을 고른다
+  appraiseUnavailableFormat: 'T{0} {1}개. 잠재 없음'
+  appraiseAvailableFormat: 'T{0} {1}개. 감정 {2}'
+  codexSummaryFormat: '도감 {0}점. 판 전체 ×{1:0.00}. 보유 {2}/{3}'
+  codexOwnedHeroFormat: '{0}{1}  {2} / {3}'
+  codexHiddenHeroFormat: '???  {0}'
+  bagUpgradeFormat: '가방 +{0}칸. 골드 {1}'
+  bagUpgradeMaxText: 더 못 넓힌다
+  bagResetNoteFormat: '지금 {0}칸. 환생하면 처음으로 돌아간다'
+  pullAvailableFormat: '1회 뽑기. 골드 {0} + 뽑기 재화 {1} (가진 것 {2})'
+  pullNoStoneFormat: '뽑기 재화가 없다 (가진 것 {0})'
+  pullNoGoldFormat: '골드 {0} 이 모자란다'
+  pullOddsFormat: '레전드 {0:P1} / 에픽 {1:P0} / 레어 {2:P0}. {3}번 안에 레전드 보장'
+  prestigeSummaryFormat: '환생 조각 {0}. 지금 환생하면 +{1}. 배수 ×{2:0.00}'
+  prestigeAvailableFormat: '페이지를 넘긴다. +{0}'
+  prestigeLockedFormat: '{0}구역부터 환생할 수 있다'
+  producerSummaryFormat: 생산자가 초당 {0} 를 낸다
+  producerRowFormat: '{0}번 ×{1}. 초당 {2}. 다음 {3}'
+  mapStageFormat: 'S-{0}{1}{2}'
+  mapCurrentSuffix: '  지금 여기'
+  mapBestSuffix: '  (가장 잘 벌리는 곳)'
+  shopScenePlaceholder: SHOP 3D SCENE 자리
+  labScenePlaceholder: LAB 3D SCENE 자리
+  volleyTargetFeedback: 일제 사격. 표시한 범위에 집중 포화.
+  volleyDragHint: 일제 사격 카드를 끌어 적에게 놓으세요
+  volleyResolvedFeedback: 일제 사격. 모두 달려들었다
+  supplyFeedbackFormat: '긴급 보급. {0:0}초 동안 수입 ×{1:0.#}'
+  appraiseCardFeedbackFormat: '비밀 감정. T{0} → {1:P1}{2}'
+  appraiseReplacedSuffix: ' 갈아 끼움'
+  appraiseCardEmptyFeedback: 비밀 감정. 굴릴 것이 없다
+  nextStageFeedback: 다시 내려간다. 부대는 만전이다
+  statRaisedFeedbackFormat: '{0}  {1} → {2}   골드 -{3}'
+  mergeFeedbackFormat: '{0} {1}단계 → {2}단계'
+  mergeAllFeedbackFormat: '{0}번 합쳤다'
+  appraiseFeedbackFormat: 'T{0} 감정 → {1:P1}{2}'
+  pullFeedbackFormat: '{0} {1}{2}{3}'
+  newHeroSuffix: '. 처음 본 얼굴'
+  pitySuffix: ' (천장)'
+  partyFullFeedback: 자리가 다 찼다. 바꿀 칸을 먼저 누른다
+  prestigeFeedback: 환생. 새 종이. 코스트는 그대로다
+  statSelectHeroTip: 인형을 먼저 선택
+  statMaxTipFormat: "{0}\n최대 성장"
+  statWaitTipFormat: "\n약 {0:0}초 뒤 구매"
+  statTipFormat: "{0} ×{1}\n{2} → {3}\n골드 {4}{5}"
+  bagTipFormat: "{0} {1}단계\n효과 ×{2:0.00}\n차고 있는 것 {3}\n누르면 찬다"
+  noWornGearText: 없음
+  wornGearSummaryFormat: '{0}단계 ×{1:0.00}'
+  wornEmptyTipFormat: "{0}\n비었다. 아이템 탭에서 찬다"
+  wornTipFormat: "{0} {1}단계\n효과 ×{2:0.00}"
+  secondsSpanFormat: '{0:N0}초'
+  minutesSpanFormat: '{0:N0}분'
+  hoursSpanFormat: '{0:N1}시간'
+  operationCodeFormat: 'S-{0}'
+  costFormat: '{0:0}/{1:0}'
+  bossHealthFormat: 'BOSS S-{0}  {1:P0}'
+  waveFormat: 'WAVE {0}/{1}'
+  partySeatFormat: '{0}  {1}'
+  emptyPartySeatFormat: '{0}  +'
+  levelFormat: 'Lv.{0}'
+  upgradeButtonFormat: "×{0}\n{1}"
+  gainFormat: '+{0}'
+  heroChoiceFormat: "{0}{1}\nLv.{2}  {3}"
+  starPrefix: ' '
+  starCharacter: 9733
+  tabButtonFormat: "{0}\n{1}"
+  attackSpeedValueFormat: '{0:0.##}/초'
+  percentValueFormat: '{0:P1}'
+  criticalDamageValueFormat: '×{0:0.00}'

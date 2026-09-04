@@ -59,6 +59,77 @@ namespace WitchMendokusai.Idle
 		[SerializeField] private string appraisedEquippedGearText;
 		[SerializeField] private string potentialFormat;
 		[SerializeField] private string gearPotentialFormat;
+		[SerializeField] private string dungeonRowFormat;
+		[SerializeField] private string awaySpanFormat;
+		[SerializeField] private string awayWarningFormat;
+		[SerializeField] private string selectHeroBeforeGearText;
+		[SerializeField] private string appraiseUnavailableFormat;
+		[SerializeField] private string appraiseAvailableFormat;
+		[SerializeField] private string codexSummaryFormat;
+		[SerializeField] private string codexOwnedHeroFormat;
+		[SerializeField] private string codexHiddenHeroFormat;
+		[SerializeField] private string bagUpgradeFormat;
+		[SerializeField] private string bagUpgradeMaxText;
+		[SerializeField] private string bagResetNoteFormat;
+		[SerializeField] private string pullAvailableFormat;
+		[SerializeField] private string pullNoStoneFormat;
+		[SerializeField] private string pullNoGoldFormat;
+		[SerializeField] private string pullOddsFormat;
+		[SerializeField] private string prestigeSummaryFormat;
+		[SerializeField] private string prestigeAvailableFormat;
+		[SerializeField] private string prestigeLockedFormat;
+		[SerializeField] private string producerSummaryFormat;
+		[SerializeField] private string producerRowFormat;
+		[SerializeField] private string mapStageFormat;
+		[SerializeField] private string mapCurrentSuffix;
+		[SerializeField] private string mapBestSuffix;
+		[SerializeField] private string shopScenePlaceholder;
+		[SerializeField] private string labScenePlaceholder;
+		[SerializeField] private string volleyTargetFeedback;
+		[SerializeField] private string volleyDragHint;
+		[SerializeField] private string volleyResolvedFeedback;
+		[SerializeField] private string supplyFeedbackFormat;
+		[SerializeField] private string appraiseCardFeedbackFormat;
+		[SerializeField] private string appraiseReplacedSuffix;
+		[SerializeField] private string appraiseCardEmptyFeedback;
+		[SerializeField] private string nextStageFeedback;
+		[SerializeField] private string statRaisedFeedbackFormat;
+		[SerializeField] private string mergeFeedbackFormat;
+		[SerializeField] private string mergeAllFeedbackFormat;
+		[SerializeField] private string appraiseFeedbackFormat;
+		[SerializeField] private string pullFeedbackFormat;
+		[SerializeField] private string newHeroSuffix;
+		[SerializeField] private string pitySuffix;
+		[SerializeField] private string partyFullFeedback;
+		[SerializeField] private string prestigeFeedback;
+		[SerializeField] private string statSelectHeroTip;
+		[SerializeField] private string statMaxTipFormat;
+		[SerializeField] private string statWaitTipFormat;
+		[SerializeField] private string statTipFormat;
+		[SerializeField] private string bagTipFormat;
+		[SerializeField] private string noWornGearText;
+		[SerializeField] private string wornGearSummaryFormat;
+		[SerializeField] private string wornEmptyTipFormat;
+		[SerializeField] private string wornTipFormat;
+		[SerializeField] private string secondsSpanFormat;
+		[SerializeField] private string minutesSpanFormat;
+		[SerializeField] private string hoursSpanFormat;
+		[SerializeField] private string operationCodeFormat;
+		[SerializeField] private string costFormat;
+		[SerializeField] private string bossHealthFormat;
+		[SerializeField] private string waveFormat;
+		[SerializeField] private string partySeatFormat;
+		[SerializeField] private string emptyPartySeatFormat;
+		[SerializeField] private string levelFormat;
+		[SerializeField] private string upgradeButtonFormat;
+		[SerializeField] private string gainFormat;
+		[SerializeField] private string heroChoiceFormat;
+		[SerializeField] private string starPrefix;
+		[SerializeField] private char starCharacter;
+		[SerializeField] private string tabButtonFormat;
+		[SerializeField] private string attackSpeedValueFormat;
+		[SerializeField] private string percentValueFormat;
+		[SerializeField] private string criticalDamageValueFormat;
 		[SerializeField] private int[] statUpgradeAmounts = Array.Empty<int>();
 		[SerializeField, Min(1)] private int gearPopupSlotCount = 24;
 		[SerializeField, Range(0.1f, 0.9f)] private float battleWidthShare = 0.625f;
@@ -108,6 +179,99 @@ namespace WitchMendokusai.Idle
 		public string EquippedGearText(IdleItem item) => item.IsEmpty
 			? noEquippedGearText
 			: item.IsRaw ? rawEquippedGearText : appraisedEquippedGearText;
+		public string DungeonRowText(string name, long tickets, long hours, long minutes) =>
+			string.Format(dungeonRowFormat, name, tickets, hours, minutes);
+		public string AwaySpanText(double seconds) => string.Format(awaySpanFormat, DescribeSpan(seconds));
+		public string AwayWarningText(double capSeconds, double lostSeconds) =>
+			string.Format(awayWarningFormat, DescribeSpan(capSeconds), DescribeSpan(lostSeconds));
+		public string SelectHeroBeforeGearText => selectHeroBeforeGearText;
+		public string AppraiseRowText(int tier, string count, string cost, bool available) => available
+			? string.Format(appraiseAvailableFormat, tier, count, cost)
+			: string.Format(appraiseUnavailableFormat, tier, count);
+		public string CodexSummaryText(int score, double multiplier, int owned, int total) =>
+			string.Format(codexSummaryFormat, score, multiplier, owned, total);
+		public string CodexHeroText(string name, string stars, string grade, string axis) =>
+			string.Format(codexOwnedHeroFormat, name, stars, grade, axis);
+		public string CodexHiddenHeroText(string grade) => string.Format(codexHiddenHeroFormat, grade);
+		public string BagUpgradeText(int slots, string cost) => string.Format(bagUpgradeFormat, slots, cost);
+		public string BagUpgradeMaxText => bagUpgradeMaxText;
+		public string BagResetNoteText(int capacity) => string.Format(bagResetNoteFormat, capacity);
+		public string PullAvailableText(string cost, long stoneCost, long stones) =>
+			string.Format(pullAvailableFormat, cost, stoneCost, stones);
+		public string PullNoStoneText(long stones) => string.Format(pullNoStoneFormat, stones);
+		public string PullNoGoldText(string cost) => string.Format(pullNoGoldFormat, cost);
+		public string PullOddsText(double legend, double epic, double rare, int pity) =>
+			string.Format(pullOddsFormat, legend, epic, rare, pity);
+		public string PrestigeSummaryText(long points, long award, double multiplier) =>
+			string.Format(prestigeSummaryFormat, points, award, multiplier);
+		public string PrestigeButtonText(long award, int nextStage) => award > 0L
+			? string.Format(prestigeAvailableFormat, award)
+			: string.Format(prestigeLockedFormat, nextStage);
+		public string ProducerSummaryText(string income) => string.Format(producerSummaryFormat, income);
+		public string ProducerRowText(int kind, long owned, string output, string nextCost) =>
+			string.Format(producerRowFormat, kind, owned, output, nextCost);
+		public string MapStageText(int stage, bool current, bool best) => string.Format(mapStageFormat, stage,
+			current ? mapCurrentSuffix : string.Empty, best ? mapBestSuffix : string.Empty);
+		public string ScenePlaceholderText(bool shop) => shop ? shopScenePlaceholder : labScenePlaceholder;
+		public string VolleyTargetFeedback => volleyTargetFeedback;
+		public string VolleyDragHint => volleyDragHint;
+		public string VolleyResolvedFeedback => volleyResolvedFeedback;
+		public string SupplyFeedbackText(double seconds, double multiplier) =>
+			string.Format(supplyFeedbackFormat, seconds, multiplier);
+		public string AppraiseCardFeedbackText(int tier, double value, bool replaced) =>
+			string.Format(appraiseCardFeedbackFormat, tier, value, replaced ? appraiseReplacedSuffix : string.Empty);
+		public string AppraiseCardEmptyFeedback => appraiseCardEmptyFeedback;
+		public string NextStageFeedback => nextStageFeedback;
+		public string StatRaisedFeedbackText(string name, string before, string after, string spent) =>
+			string.Format(statRaisedFeedbackFormat, name, before, after, spent);
+		public string MergeFeedbackText(string slot, int tier) => string.Format(mergeFeedbackFormat, slot, tier, tier + 1);
+		public string MergeAllFeedbackText(int count) => string.Format(mergeAllFeedbackFormat, count);
+		public string AppraiseFeedbackText(int tier, double value, bool replaced) =>
+			string.Format(appraiseFeedbackFormat, tier, value, replaced ? appraiseReplacedSuffix : string.Empty);
+		public string PullFeedbackText(string grade, string name, bool isNew, bool byPity) =>
+			string.Format(pullFeedbackFormat, grade, name, isNew ? newHeroSuffix : string.Empty, byPity ? pitySuffix : string.Empty);
+		public string PartyFullFeedback => partyFullFeedback;
+		public string PrestigeFeedback => prestigeFeedback;
+		public string StatSelectHeroTip => statSelectHeroTip;
+		public string StatMaxTipText(string name) => string.Format(statMaxTipFormat, name);
+		public string StatWaitTipText(double seconds) => string.Format(statWaitTipFormat, seconds);
+		public string StatTipText(string name, int amount, string current, string next, string cost, string wait) =>
+			string.Format(statTipFormat, name, amount, current, next, cost, wait);
+		public string BagTipText(string slot, int tier, double multiplier, string worn) =>
+			string.Format(bagTipFormat, slot, tier, multiplier, worn);
+		public string WornGearSummaryText(int tier, double multiplier) =>
+			string.Format(wornGearSummaryFormat, tier, multiplier);
+		public string NoWornGearText => noWornGearText;
+		public string WornEmptyTipText(string slot) => string.Format(wornEmptyTipFormat, slot);
+		public string WornTipText(string slot, int tier, double multiplier) =>
+			string.Format(wornTipFormat, slot, tier, multiplier);
+		public string OperationCodeText(int stage) => string.Format(operationCodeFormat, stage);
+		public string CostText(double cost, double maximum) => string.Format(costFormat, cost, maximum);
+		public string BossHealthText(int stage, double ratio) => string.Format(bossHealthFormat, stage, ratio);
+		public string WaveText(int current, int total) => string.Format(waveFormat, current, total);
+		public string PartySeatText(string seat, string heroName) => string.Format(partySeatFormat, seat, heroName);
+		public string EmptyPartySeatText(string seat) => string.Format(emptyPartySeatFormat, seat);
+		public string LevelText(int level) => string.Format(levelFormat, level);
+		public string UpgradeButtonText(int amount, string cost) => string.Format(upgradeButtonFormat, amount, cost);
+		public string GainText(string amount) => string.Format(gainFormat, amount);
+		public string HeroChoiceText(string name, int stars, int level, string axis) =>
+			string.Format(heroChoiceFormat, name, StarsText(stars), level, axis);
+		public string TabButtonText(int index) => string.Format(tabButtonFormat, TabName(index), TabCaption(index));
+		public string StarsText(int count) => count <= 0 ? string.Empty : starPrefix + new string(starCharacter, count);
+		public string DescribeSpan(double seconds)
+		{
+			if (seconds < 60d)
+			{
+				return string.Format(secondsSpanFormat, seconds);
+			}
+
+			if (seconds < 3600d)
+			{
+				return string.Format(minutesSpanFormat, seconds / 60d);
+			}
+
+			return string.Format(hoursSpanFormat, seconds / 3600d);
+		}
 
 		public string AdviceText(IdleStep step, double amount, string span)
 		{
@@ -132,11 +296,11 @@ namespace WitchMendokusai.Idle
 		{
 			switch (kind)
 			{
-				case IdleUpgradeKind.AttackSpeed: return string.Format("{0:0.##}/초", value);
+				case IdleUpgradeKind.AttackSpeed: return string.Format(attackSpeedValueFormat, value);
 				case IdleUpgradeKind.Defense:
 				case IdleUpgradeKind.CriticalChance:
-				case IdleUpgradeKind.Recovery: return string.Format("{0:P1}", value);
-				case IdleUpgradeKind.CriticalDamage: return string.Format("×{0:0.00}", value);
+				case IdleUpgradeKind.Recovery: return string.Format(percentValueFormat, value);
+				case IdleUpgradeKind.CriticalDamage: return string.Format(criticalDamageValueFormat, value);
 				default: return BigNumberText.Format(value);
 			}
 		}
@@ -194,11 +358,32 @@ namespace WitchMendokusai.Idle
 				supportSeatText, growthSuffix, emptySeatText, maxedText, bagSummaryFormat, bagFullSuffix,
 				unidentifiedText, bulkMergeFormat, forgeKindFormat, forgeCellFormat, forgeResultFormat,
 				forgeSelectionFormat, forgeEmptyHintFormat, noEquippedGearText, rawEquippedGearText,
-				appraisedEquippedGearText, potentialFormat, gearPotentialFormat,
+				appraisedEquippedGearText, potentialFormat, gearPotentialFormat, dungeonRowFormat, awaySpanFormat,
+				awayWarningFormat, selectHeroBeforeGearText, appraiseUnavailableFormat, appraiseAvailableFormat,
+				codexSummaryFormat, codexOwnedHeroFormat, codexHiddenHeroFormat, bagUpgradeFormat, bagUpgradeMaxText,
+				bagResetNoteFormat, pullAvailableFormat, pullNoStoneFormat, pullNoGoldFormat, pullOddsFormat,
+				prestigeSummaryFormat, prestigeAvailableFormat, prestigeLockedFormat, producerSummaryFormat,
+				producerRowFormat, mapStageFormat, mapCurrentSuffix, mapBestSuffix, shopScenePlaceholder,
+				labScenePlaceholder, volleyTargetFeedback, volleyDragHint, volleyResolvedFeedback,
+				supplyFeedbackFormat, appraiseCardFeedbackFormat, appraiseReplacedSuffix,
+				appraiseCardEmptyFeedback, nextStageFeedback, statRaisedFeedbackFormat, mergeFeedbackFormat,
+				mergeAllFeedbackFormat, appraiseFeedbackFormat, pullFeedbackFormat, newHeroSuffix, pitySuffix,
+				partyFullFeedback, prestigeFeedback, statSelectHeroTip, statMaxTipFormat, statWaitTipFormat,
+				statTipFormat, bagTipFormat, noWornGearText, wornGearSummaryFormat, wornEmptyTipFormat,
+				wornTipFormat, secondsSpanFormat, minutesSpanFormat, hoursSpanFormat, operationCodeFormat,
+				costFormat, bossHealthFormat, waveFormat, partySeatFormat, emptyPartySeatFormat, levelFormat,
+				upgradeButtonFormat, gainFormat, heroChoiceFormat, starPrefix, tabButtonFormat,
+				attackSpeedValueFormat, percentValueFormat, criticalDamageValueFormat,
 			};
 			if (Array.Exists(requiredText, string.IsNullOrEmpty))
 			{
 				error = "UI text entries must not be empty";
+				return false;
+			}
+
+			if (starCharacter == '\0')
+			{
+				error = "starCharacter must not be empty";
 				return false;
 			}
 

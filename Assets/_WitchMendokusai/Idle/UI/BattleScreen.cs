@@ -577,7 +577,7 @@ namespace WitchMendokusai.Idle
 				return false;
 			}
 			stage.OnVolley(foeIndex);
-			SayOnce("일제 사격. 표시한 범위에 집중 포화.", runtimeSettingsAsset.NoteSeconds);
+			SayOnce(uiContentAsset.VolleyTargetFeedback, runtimeSettingsAsset.NoteSeconds);
 			WriteDown();
 			Render(session.Capture());
 			return true;
@@ -817,7 +817,7 @@ namespace WitchMendokusai.Idle
 					continue;
 				}
 
-				dungeonRows[index].text = string.Format("{0}  입장권 {1}  다시 참까지 {2}시간 {3}분",
+				dungeonRows[index].text = uiContentAsset.DungeonRowText(
 					NameOf((IdleDungeonKind)index), snapshot.Tickets[index], hours, minutes);
 			}
 		}
@@ -940,17 +940,16 @@ namespace WitchMendokusai.Idle
 			shade.style.display = DisplayStyle.Flex;
 			shade.RegisterCallback<PointerDownEvent>(evt => evt.StopPropagation());
 
-			shade.Q<Label>("away-span").text = string.Format("{0} 동안 작전이 계속됐습니다", DescribeSpan(away.CreditedSeconds));
-			shade.Q<Label>("gold-value").text = "+" + BigNumberText.Format(away.ResourceGained);
-			shade.Q<Label>("kills-value").text = "+" + BigNumberText.Format(away.KillsGained);
-			shade.Q<Label>("stages-value").text = "+" + BigNumberText.Format(away.StagesGained);
-			shade.Q<Label>("items-value").text = "+" + BigNumberText.Format(away.ItemsGained);
+			shade.Q<Label>("away-span").text = uiContentAsset.AwaySpanText(away.CreditedSeconds);
+			shade.Q<Label>("gold-value").text = uiContentAsset.GainText(BigNumberText.Format(away.ResourceGained));
+			shade.Q<Label>("kills-value").text = uiContentAsset.GainText(BigNumberText.Format(away.KillsGained));
+			shade.Q<Label>("stages-value").text = uiContentAsset.GainText(BigNumberText.Format(away.StagesGained));
+			shade.Q<Label>("items-value").text = uiContentAsset.GainText(BigNumberText.Format(away.ItemsGained));
 
 			Label warning = shade.Q<Label>("away-warning");
 			if (away.HitCap)
 			{
-				warning.text = string.Format("오프라인 상한 {0}. 넘긴 {1}은 보상에 포함되지 않았습니다.",
-					DescribeSpan(away.CapSeconds), DescribeSpan(away.LostSeconds));
+				warning.text = uiContentAsset.AwayWarningText(away.CapSeconds, away.LostSeconds);
 				warning.style.display = DisplayStyle.Flex;
 			}
 
@@ -987,7 +986,7 @@ namespace WitchMendokusai.Idle
 		{
 			if (gearHeroId < 0)
 			{
-				SayOnce("먼저 편성 칸에서 인형을 고른다", runtimeSettingsAsset.NoteSeconds);
+				SayOnce(uiContentAsset.SelectHeroBeforeGearText, runtimeSettingsAsset.NoteSeconds);
 				return;
 			}
 
@@ -1081,7 +1080,9 @@ namespace WitchMendokusai.Idle
 				VisualElement portrait = seat.Q<VisualElement>("seat-icon-" + slot);
 				Label label = seat.Q<Label>("seat-label-" + slot);
 				portrait.style.display = id >= 0 ? DisplayStyle.Flex : DisplayStyle.None;
-				label.text = id >= 0 ? tag + "  " + IdleHeroes.KindOf(id).Name : tag + "  +";
+				label.text = id >= 0
+					? uiContentAsset.PartySeatText(tag, IdleHeroes.KindOf(id).Name)
+					: uiContentAsset.EmptyPartySeatText(tag);
 				if (id >= 0) { heroVisualPresenter.SetPortrait(portrait, id); }
 				int selectedSeat = heroSelectionController != null ? heroSelectionController.SelectedSeat : -1;
 				partyButtons[slot].EnableInClassList("idle-party-seat--picking", selectedSeat == slot);
@@ -1097,7 +1098,7 @@ namespace WitchMendokusai.Idle
 				IdleUpgradeKind kind = (IdleUpgradeKind)stat;
 				IdleUpgradeView one = session.ViewHeroStat(wearer, kind, 1);
 				statValues[stat].text = StatValueText(kind, one.CurrentValue);
-				statLevels[stat].text = "Lv." + one.Level;
+				statLevels[stat].text = uiContentAsset.LevelText(one.Level);
 
 				for (int amount = 0; amount < uiContentAsset.StatUpgradeAmountCount; amount++)
 				{
@@ -1106,7 +1107,7 @@ namespace WitchMendokusai.Idle
 					Button button = statButtons[stat, amount];
 					button.text = purchase.IsMaxed
 						? uiContentAsset.MaxedText
-						: string.Format("×{0}\n{1}", count, BigNumberText.Format(purchase.NextCost));
+						: uiContentAsset.UpgradeButtonText(count, BigNumberText.Format(purchase.NextCost));
 					bool canAfford = wearer >= 0 && purchase.CanAfford;
 					button.EnableInClassList("idle-stat-buy--ready", canAfford);
 					button.EnableInClassList("idle-stat-buy--maxed", purchase.IsMaxed);
@@ -1345,17 +1346,15 @@ namespace WitchMendokusai.Idle
 				double cost = IdleGear.AppraiseCost(tier, session.Tuning);
 				AppraiseBlock why = IdlePotentials.WhyNot(session.State, session.Tuning, tier);
 
-				appraiseButtons[tier - 1].text = why == AppraiseBlock.TierTooLow
-					? string.Format("T{0} {1}개. 잠재 없음", tier, BigNumberText.Format(count))
-					: string.Format("T{0} {1}개. 감정 {2}", tier, BigNumberText.Format(count),
-						BigNumberText.Format(cost));
+				appraiseButtons[tier - 1].text = uiContentAsset.AppraiseRowText(tier,
+					BigNumberText.Format(count), BigNumberText.Format(cost), (why == AppraiseBlock.TierTooLow) == false);
 				appraiseButtons[tier - 1].SetEnabled(why == AppraiseBlock.None);
 			}
 		}
 
 		private void RenderCodexPage(IdleSnapshot snapshot)
 		{
-			codexLabel.text = string.Format("도감 {0}점. 판 전체 ×{1:0.00}. 보유 {2}/{3}",
+			codexLabel.text = uiContentAsset.CodexSummaryText(
 				snapshot.CodexScore, snapshot.CodexMultiplier, snapshot.Heroes.Length, IdleHeroes.Count);
 
 			if (codexLabels.Count != IdleHeroes.Count)
@@ -1381,9 +1380,9 @@ namespace WitchMendokusai.Idle
 				int stars = owned ? session.State.Heroes[at].Stars : 0;
 
 				codexLabels[id].text = owned
-					? string.Format("{0}{1}  {2} / {3}", kind.Name, Stars(stars),
+					? uiContentAsset.CodexHeroText(kind.Name, uiContentAsset.StarsText(stars),
 						uiContentAsset.GradeName(kind.Grade), uiContentAsset.AxisName(kind.Axis))
-					: string.Format("???  {0}", uiContentAsset.GradeName(kind.Grade));
+					: uiContentAsset.CodexHiddenHeroText(uiContentAsset.GradeName(kind.Grade));
 				codexLabels[id].EnableInClassList("idle-row-title--dim", owned == false);
 			}
 		}
@@ -1392,39 +1391,34 @@ namespace WitchMendokusai.Idle
 		{
 			// 가방 넓히기. 골드로 사고 환생 때 사라진다 (사용자 판정 2026-09-01, 울티마 스쿼드)
 			bagButton.text = snapshot.BagUpgradeCost > 0d
-				? string.Format("가방 +{0}칸. 골드 {1}", IdleShop.BAG_STEP_HINT, BigNumberText.Format(snapshot.BagUpgradeCost))
-				: "더 못 넓힌다";
+				? uiContentAsset.BagUpgradeText(IdleShop.BAG_STEP_HINT, BigNumberText.Format(snapshot.BagUpgradeCost))
+				: uiContentAsset.BagUpgradeMaxText;
 			bagButton.SetEnabled(snapshot.CanBuyBag);
-			bagNote.text = string.Format("지금 {0}칸. 환생하면 처음으로 돌아간다",
-				snapshot.BagCapacity);
+			bagNote.text = uiContentAsset.BagResetNoteText(snapshot.BagCapacity);
 
 			pullButton.text = snapshot.CanPull
-				? string.Format("1회 뽑기. 골드 {0} + 뽑기 재화 {1} (가진 것 {2})",
-					BigNumberText.Format(snapshot.PullCost), snapshot.PullStoneCost, snapshot.Stones)
+				? uiContentAsset.PullAvailableText(BigNumberText.Format(snapshot.PullCost), snapshot.PullStoneCost, snapshot.Stones)
 				: snapshot.Stones < snapshot.PullStoneCost
-					? string.Format("뽑기 재화가 없다 (가진 것 {0})", snapshot.Stones)
-					: string.Format("골드 {0} 이 모자란다", BigNumberText.Format(snapshot.PullCost));
+					? uiContentAsset.PullNoStoneText(snapshot.Stones)
+					: uiContentAsset.PullNoGoldText(BigNumberText.Format(snapshot.PullCost));
 			pullButton.SetEnabled(snapshot.CanPull);
 
-			pullOdds.text = string.Format("레전드 {0:P1} / 에픽 {1:P0} / 레어 {2:P0}. {3}번 안에 레전드 보장",
+			pullOdds.text = uiContentAsset.PullOddsText(
 				snapshot.LegendChance, snapshot.EpicChance, snapshot.RareChance, snapshot.PullsToPity);
 		}
 
 		private void RenderLabPage(IdleSnapshot snapshot)
 		{
-			prestigeSummary.text = string.Format("환생 조각 {0}. 지금 환생하면 +{1}. 배수 ×{2:0.00}",
+			prestigeSummary.text = uiContentAsset.PrestigeSummaryText(
 				snapshot.PrestigePoints, snapshot.PrestigeAward, snapshot.PrestigeMultiplier);
 
-			prestigeButton.text = snapshot.PrestigeAward > 0L
-				? string.Format("페이지를 넘긴다. +{0}", snapshot.PrestigeAward)
-				: string.Format("{0}구역부터 환생할 수 있다", snapshot.PrestigeNextStage);
+			prestigeButton.text = uiContentAsset.PrestigeButtonText(snapshot.PrestigeAward, snapshot.PrestigeNextStage);
 			prestigeButton.SetEnabled(snapshot.PrestigeAward > 0L);
 		}
 
 		private void RenderInvestPage(IdleSnapshot snapshot)
 		{
-			baseSummary.text = string.Format("생산자가 초당 {0} 를 낸다",
-				BigNumberText.Format(snapshot.IncomePerSecond));
+			baseSummary.text = uiContentAsset.ProducerSummaryText(BigNumberText.Format(snapshot.IncomePerSecond));
 
 			for (int kind = 0; kind < producerButtons.Count; kind++)
 			{
@@ -1436,7 +1430,7 @@ namespace WitchMendokusai.Idle
 
 				IdleProducerView view = snapshot.Producers[kind];
 				producerButtons[kind].style.display = view.Hidden ? DisplayStyle.None : DisplayStyle.Flex;
-				producerButtons[kind].text = string.Format("{0}번 ×{1}. 초당 {2}. 다음 {3}",
+				producerButtons[kind].text = uiContentAsset.ProducerRowText(
 					kind + 1, view.Owned,
 					BigNumberText.Format(view.OutputTotal),
 					BigNumberText.Format(view.NextCost));
@@ -1466,9 +1460,8 @@ namespace WitchMendokusai.Idle
 			{
 				int target = top - index;
 				bool here = target == snapshot.Stage;
-				mapButtons[index].text = string.Format("S-{0}{1}{2}", target,
-					here ? "  지금 여기" : string.Empty,
-					target == snapshot.BestFarmingStage ? "  (가장 잘 벌리는 곳)" : string.Empty);
+				mapButtons[index].text = uiContentAsset.MapStageText(
+					target, here, target == snapshot.BestFarmingStage);
 				mapButtons[index].SetEnabled(here == false && IdleModel.CanGoToStage(session.State, target));
 				mapButtons[index].EnableInClassList("idle-row-button--strong", here);
 			}
@@ -1477,13 +1470,8 @@ namespace WitchMendokusai.Idle
 		/// <summary>코어가 고른 한 걸음을 사람 말로.</summary>
 		private string NextStep(IdleSnapshot snapshot)
 		{
-			if (false && snapshot.Repeating)
-			{
-				return "전멸. 인형과 아이템을 손보고 다시 도전한다";
-			}
-
 			IdleAdviceResult advice = IdleAdvice.NextStep(snapshot);
-			return uiContentAsset.AdviceText(advice.Step, advice.Amount, DescribeSpan(advice.Amount));
+			return uiContentAsset.AdviceText(advice.Step, advice.Amount, uiContentAsset.DescribeSpan(advice.Amount));
 		}
 
 		// ── 화면 상태 ─────────────────────────────────────────────────────
@@ -1499,7 +1487,7 @@ namespace WitchMendokusai.Idle
 			// 상점, 연구소는 왼쪽 씬이 바뀐다 (layout.md §2). 지금은 덮개
 			bool altScene = tab == Tab.Shop || tab == Tab.Lab;
 			battleHudController.SetAlternateScene(altScene,
-				tab == Tab.Shop ? "SHOP 3D SCENE 자리" : "LAB 3D SCENE 자리");
+				uiContentAsset.ScenePlaceholderText(tab == Tab.Shop));
 
 			ApplySplit();
 			Render(session.Capture());
@@ -1684,7 +1672,7 @@ namespace WitchMendokusai.Idle
 			if (selected == IdleCardKind.Volley)
 			{
 				cardHandController.CancelAim();
-				SayOnce("일제 사격 카드를 끌어 적에게 놓으세요", runtimeSettingsAsset.NoteSeconds);
+				SayOnce(uiContentAsset.VolleyDragHint, runtimeSettingsAsset.NoteSeconds);
 				return;
 			}
 
@@ -1699,21 +1687,20 @@ namespace WitchMendokusai.Idle
 			{
 				case IdleCardKind.Volley:
 					// Volley is target-only and is resolved by EndSkillDrag.
-					SayOnce("일제 사격. 모두 달려들었다", runtimeSettingsAsset.NoteSeconds);
+					SayOnce(uiContentAsset.VolleyResolvedFeedback, runtimeSettingsAsset.NoteSeconds);
 					break;
 
 				case IdleCardKind.Supply:
 					if (stage != null) { stage.OnSupply((float)session.Tuning.SupplySeconds); }
-					SayOnce(string.Format("긴급 보급. {0:0}초 동안 수입 ×{1:0.#}",
+					SayOnce(uiContentAsset.SupplyFeedbackText(
 						session.Tuning.SupplySeconds, session.Tuning.SupplyMultiplier), runtimeSettingsAsset.NoteSeconds);
 					break;
 
 				default:
 					if (stage != null) { stage.OnAppraise(); }
 					SayOnce(result.HasRoll
-						? string.Format("비밀 감정. T{0} → {1:P1}{2}",
-							result.Roll.Tier, result.Roll.Value, result.Roll.Replaced ? " 갈아 끼움" : string.Empty)
-						: "비밀 감정. 굴릴 것이 없다", runtimeSettingsAsset.NoteSeconds);
+						? uiContentAsset.AppraiseCardFeedbackText(result.Roll.Tier, result.Roll.Value, result.Roll.Replaced)
+						: uiContentAsset.AppraiseCardEmptyFeedback, runtimeSettingsAsset.NoteSeconds);
 					break;
 			}
 
@@ -1725,7 +1712,7 @@ namespace WitchMendokusai.Idle
 		{
 			if (session.Send(new IdleNextStageIntent()))
 			{
-				SayOnce("다시 내려간다. 부대는 만전이다", runtimeSettingsAsset.NoteSeconds);
+				SayOnce(uiContentAsset.NextStageFeedback, runtimeSettingsAsset.NoteSeconds);
 				WriteDown();
 			}
 
@@ -1791,7 +1778,7 @@ namespace WitchMendokusai.Idle
 			statFeedbackVersion++;
 			sound?.Good();
 			int version = statFeedbackVersion;
-			statFeedback.text = string.Format("{0}  {1} → {2}   골드 -{3}",
+			statFeedback.text = uiContentAsset.StatRaisedFeedbackText(
 				uiContentAsset.StatName(stat), StatValueText(kind, before), StatValueText(kind, after), BigNumberText.Format(spent));
 			statFeedback.style.visibility = Visibility.Visible;
 			statFeedback.AddToClassList("idle-stat-feedback--shown");
@@ -1834,7 +1821,7 @@ namespace WitchMendokusai.Idle
 		{
 			if (session.Send(new IdleMergeIntent(tier, slot)))
 			{
-				SayOnce(string.Format("{0} {1}단계 → {2}단계", uiContentAsset.GearSlotName((int)slot), tier, tier + 1), runtimeSettingsAsset.NoteSeconds);
+				SayOnce(uiContentAsset.MergeFeedbackText(uiContentAsset.GearSlotName((int)slot), tier), runtimeSettingsAsset.NoteSeconds);
 				WriteDown();
 			}
 
@@ -1867,7 +1854,7 @@ namespace WitchMendokusai.Idle
 
 			if (merged > 0)
 			{
-				SayOnce(string.Format("{0}번 합쳤다", merged), runtimeSettingsAsset.NoteSeconds);
+				SayOnce(uiContentAsset.MergeAllFeedbackText(merged), runtimeSettingsAsset.NoteSeconds);
 				WriteDown();
 			}
 
@@ -1878,8 +1865,7 @@ namespace WitchMendokusai.Idle
 		{
 			if (session.TryAppraise(tier, out PotentialRoll roll))
 			{
-				SayOnce(string.Format("T{0} 감정 → {1:P1}{2}",
-					roll.Tier, roll.Value, roll.Replaced ? " 갈아 끼움" : string.Empty), runtimeSettingsAsset.NoteSeconds);
+				SayOnce(uiContentAsset.AppraiseFeedbackText(roll.Tier, roll.Value, roll.Replaced), runtimeSettingsAsset.NoteSeconds);
 				WriteDown();
 			}
 
@@ -1894,10 +1880,8 @@ namespace WitchMendokusai.Idle
 			}
 
 			IdleHeroKind kind = IdleHeroes.KindOf(got.Id);
-			SayOnce(string.Format("{0} {1}{2}{3}",
-				uiContentAsset.GradeName(got.Grade), kind.Name,
-				got.IsNew ? ". 처음 본 얼굴" : string.Empty,
-				got.ByPity ? " (천장)" : string.Empty), runtimeSettingsAsset.NoteSeconds * 2f);
+			SayOnce(uiContentAsset.PullFeedbackText(
+				uiContentAsset.GradeName(got.Grade), kind.Name, got.IsNew, got.ByPity), runtimeSettingsAsset.NoteSeconds * 2f);
 
 			WriteDown();
 			Render(session.Capture());
@@ -1924,7 +1908,7 @@ namespace WitchMendokusai.Idle
 
 			if (slot < 0)
 			{
-				SayOnce("자리가 다 찼다. 바꿀 칸을 먼저 누른다", runtimeSettingsAsset.NoteSeconds);
+				SayOnce(uiContentAsset.PartyFullFeedback, runtimeSettingsAsset.NoteSeconds);
 				Render(session.Capture());
 				return;
 			}
@@ -1955,7 +1939,7 @@ namespace WitchMendokusai.Idle
 		{
 			if (session.Send(new IdlePrestigeIntent()))
 			{
-				SayOnce("환생. 새 종이. 코스트는 그대로다", runtimeSettingsAsset.NoteSeconds * 2f);
+				SayOnce(uiContentAsset.PrestigeFeedback, runtimeSettingsAsset.NoteSeconds * 2f);
 				WriteDown();
 			}
 
@@ -1979,19 +1963,19 @@ namespace WitchMendokusai.Idle
 		{
 			if (session == null || gearHeroId < 0)
 			{
-				return "인형을 먼저 선택";
+				return uiContentAsset.StatSelectHeroTip;
 			}
 
 			IdleUpgradeView view = session.ViewHeroStat(gearHeroId, kind, amount);
 			if (view.IsMaxed)
 			{
-				return uiContentAsset.StatName((int)kind) + "\n최대 성장";
+				return uiContentAsset.StatMaxTipText(uiContentAsset.StatName((int)kind));
 			}
 
 			string wait = view.CanAfford || double.IsInfinity(view.SecondsToAfford)
 				? string.Empty
-				: string.Format("\n약 {0:0}초 뒤 구매", view.SecondsToAfford);
-			return string.Format("{0} ×{1}\n{2} → {3}\n골드 {4}{5}",
+				: uiContentAsset.StatWaitTipText(view.SecondsToAfford);
+			return uiContentAsset.StatTipText(
 				uiContentAsset.StatName((int)kind), amount,
 				StatValueText(kind, view.CurrentValue), StatValueText(kind, view.NextValue),
 				BigNumberText.Format(view.NextCost), wait);
@@ -2023,10 +2007,13 @@ namespace WitchMendokusai.Idle
 
 			IdleItem one = now.Bag[index];
 			IdleItem wearing = now.Worn[(int)one.Slot];
-			return string.Format("{0} {1}단계\n효과 ×{2:0.00}\n차고 있는 것 {3}\n누르면 찬다",
+			string worn = wearing.IsEmpty
+				? uiContentAsset.NoWornGearText
+				: uiContentAsset.WornGearSummaryText(wearing.Tier, IdleGear.MultiplierOfItem(wearing, session.Tuning));
+			return uiContentAsset.BagTipText(
 				uiContentAsset.GearSlotName((int)one.Slot), one.Tier,
 				IdleGear.MultiplierOfItem(one, session.Tuning),
-				wearing.IsEmpty ? "없음" : wearing.Tier + "단계 ×" + IdleGear.MultiplierOfItem(wearing, session.Tuning).ToString("0.00"));
+				worn);
 		}
 
 		private string WornTip(int slot)
@@ -2034,8 +2021,9 @@ namespace WitchMendokusai.Idle
 			IdleSnapshot now = session.Capture();
 			IdleItem one = now.Worn[slot];
 			return one.IsEmpty
-				? uiContentAsset.GearSlotName(slot) + "\n비었다. 아이템 탭에서 찬다"
-				: string.Format("{0} {1}단계\n효과 ×{2:0.00}", uiContentAsset.GearSlotName(slot), one.Tier, IdleGear.MultiplierOfItem(one, session.Tuning));
+				? uiContentAsset.WornEmptyTipText(uiContentAsset.GearSlotName(slot))
+				: uiContentAsset.WornTipText(uiContentAsset.GearSlotName(slot), one.Tier,
+					IdleGear.MultiplierOfItem(one, session.Tuning));
 		}
 
 		// ── 잔손 ──────────────────────────────────────────────────────────
@@ -2052,11 +2040,6 @@ namespace WitchMendokusai.Idle
 			return uiContentAsset.StatValueText(kind, value);
 		}
 
-		private static string Stars(int stars)
-		{
-			return stars <= 0 ? string.Empty : " " + new string('★', stars);
-		}
-
 		private Button AddRowButton(VisualElement parent, System.Action action)
 		{
 			TemplateContainer tree = rowButtonAsset.Instantiate();
@@ -2067,19 +2050,5 @@ namespace WitchMendokusai.Idle
 			return button;
 		}
 
-		private static string DescribeSpan(double seconds)
-		{
-			if (seconds < 60d)
-			{
-				return string.Format("{0:N0}초", seconds);
-			}
-
-			if (seconds < 3600d)
-			{
-				return string.Format("{0:N0}분", seconds / 60d);
-			}
-
-			return string.Format("{0:N1}시간", seconds / 3600d);
-		}
 	}
 }

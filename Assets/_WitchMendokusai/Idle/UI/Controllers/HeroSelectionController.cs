@@ -96,8 +96,7 @@ namespace WitchMendokusai.Idle.UI
 				}
 
 				IdleHeroView hero = current.Heroes[index];
-				labels[index].text = string.Format("{0}{1}\nLv.{2}  {3}", hero.Name, Stars(hero.Stars), hero.Level,
-					content.AxisName(hero.Axis));
+				labels[index].text = content.HeroChoiceText(hero.Name, hero.Stars, hero.Level, content.AxisName(hero.Axis));
 				visualPresenter.SetAxis(icons[index], hero.Axis);
 				visualPresenter.SetPortrait(icons[index], hero.Id);
 				icons[index].style.display = DisplayStyle.Flex;
@@ -117,9 +116,5 @@ namespace WitchMendokusai.Idle.UI
 			}
 		}
 
-		private static string Stars(int count)
-		{
-			return count <= 0 ? string.Empty : " " + new string('★', count);
-		}
 	}
 }

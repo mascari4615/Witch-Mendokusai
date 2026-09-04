@@ -82,7 +82,7 @@ namespace WitchMendokusai.Idle.UI
 
 		public void Render(IdleSnapshot snapshot, IdleState state)
 		{
-			opCode.text = "S-" + snapshot.Stage;
+			opCode.text = content.OperationCodeText(snapshot.Stage);
 			opName.text = content.BattleGradeText(snapshot.MaxTierNow, snapshot.TierCeiling);
 			stepLabel.text = content.StageText(snapshot.Stage);
 			stepBack.SetEnabled(IdleModel.CanGoToStage(state, snapshot.Stage - 1));
@@ -94,7 +94,7 @@ namespace WitchMendokusai.Idle.UI
 			repeatButton.EnableInClassList("idle-toggle--on", repeating);
 			goldValue.text = BigNumberText.Format(snapshot.Resource);
 			autoCastButton.EnableInClassList("idle-icon-button--on", snapshot.AutoCast);
-			costLabel.text = string.Format("{0:0}/{1:0}", snapshot.Cost, snapshot.CostMax);
+			costLabel.text = content.CostText(snapshot.Cost, snapshot.CostMax);
 			costFill.style.width = new StyleLength(new Length(
 				snapshot.CostMax > 0d ? (float)(snapshot.Cost / snapshot.CostMax * 100d) : 0f,
 				LengthUnit.Percent));
@@ -120,7 +120,7 @@ namespace WitchMendokusai.Idle.UI
 			enemyBar.style.display = boss ? DisplayStyle.Flex : DisplayStyle.None;
 			if (boss)
 			{
-				enemyLabel.text = string.Format("BOSS S-{0}  {1:P0}", snapshot.Stage, snapshot.TargetHealthRatio);
+				enemyLabel.text = content.BossHealthText(snapshot.Stage, snapshot.TargetHealthRatio);
 				enemyFill.style.width = new StyleLength(new Length(
 					(float)(snapshot.TargetHealthRatio * 100d), LengthUnit.Percent));
 			}
@@ -144,7 +144,7 @@ namespace WitchMendokusai.Idle.UI
 			{
 				waveDotList[index].EnableInClassList("idle-wave-dot--done", index < snapshot.KillsInStage);
 			}
-			waveLabel.text = string.Format("WAVE {0}/{1}", snapshot.KillsInStage, snapshot.KillsPerStage);
+			waveLabel.text = content.WaveText(snapshot.KillsInStage, snapshot.KillsPerStage);
 		}
 	}
 }
