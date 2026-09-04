@@ -1,7 +1,9 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using UnityEngine;
+using UnityEngine.Assemblies;
 
 namespace WitchMendokusai
 {
@@ -21,7 +23,7 @@ namespace WitchMendokusai
 			ModContentRegistry registry = new ModContentRegistry();
 			Content = registry;
 
-			Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
+			IReadOnlyList<Assembly> assemblies = CurrentAssemblies.GetLoadedAssemblies();
 			Type[] modTypes = assemblies
 				.Where(a => a.GetName().Name.StartsWith("WitchMendokusai.Mods."))
 				.SelectMany(a => SafeGetTypes(a))

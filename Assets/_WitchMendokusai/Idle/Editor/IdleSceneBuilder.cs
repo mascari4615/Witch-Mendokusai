@@ -153,8 +153,9 @@ namespace WitchMendokusai.Idle.Editor
 			AssignPrivateField(stage, "presentationAsset", battlePresentation);
 
 			GameObject screenObject = new GameObject("BattleScreen");
-			UIDocument document = screenObject.AddComponent<UIDocument>();
-			document.panelSettings = panel;
+			PanelRenderer panelRenderer = screenObject.AddComponent<PanelRenderer>();
+			panelRenderer.panelSettings = panel;
+			panelRenderer.visualTreeAsset = screenAsset;
 
 			BattleScreen screen = screenObject.AddComponent<BattleScreen>();
 			AssignPrivateField(screen, "tuningAsset", tuning);
@@ -214,7 +215,7 @@ namespace WitchMendokusai.Idle.Editor
 
 			BattleScreen screen = Object.FindAnyObjectByType<BattleScreen>();
 			BattleStage stage = Object.FindAnyObjectByType<BattleStage>();
-			UIDocument document = Object.FindAnyObjectByType<UIDocument>();
+			PanelRenderer panelRenderer = Object.FindAnyObjectByType<PanelRenderer>();
 			EventSystem events = Object.FindAnyObjectByType<EventSystem>();
 			Camera camera = Object.FindAnyObjectByType<Camera>();
 
@@ -225,13 +226,13 @@ namespace WitchMendokusai.Idle.Editor
 			if (camera == null) { missing.Add("Main Camera (없으면 무대가 안 보인다)"); }
 			if (events == null) { missing.Add("EventSystem (없으면 버튼이 안 눌린다)"); }
 
-			if (document == null)
+			if (panelRenderer == null)
 			{
-				missing.Add("UIDocument");
+				missing.Add("PanelRenderer");
 			}
-			else if (document.panelSettings == null)
+			else if (panelRenderer.panelSettings == null)
 			{
-				missing.Add("UIDocument.panelSettings");
+				missing.Add("PanelRenderer.panelSettings");
 			}
 
 			if (screen != null)

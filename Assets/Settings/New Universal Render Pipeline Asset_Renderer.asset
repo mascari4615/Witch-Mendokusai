@@ -27,8 +27,7 @@ MonoBehaviour:
   m_RendererFeatures:
   - {fileID: 8116458559962093481}
   - {fileID: 7771435283215533630}
-  m_RendererFeatureMap: a917b8b40e74a3703ec6ff1a37afd96b
-  m_UseNativeRenderPass: 0
+  m_RendererFeatureMap: a917b8b40e74a3703ec6ff1a37afd96bl
   postProcessData: {fileID: 11400000, guid: 41439944d30ece34e96484bdb6645b55, type: 2}
   m_AssetVersion: 3
   m_PrepassLayerMask:
@@ -55,9 +54,10 @@ MonoBehaviour:
   m_DepthTextureFormat: 0
   m_AccurateGbufferNormals: 0
   m_IntermediateTextureMode: 0
+  m_TileOnlyMode: 0
 --- !u!114 &7771435283215533630
 MonoBehaviour:
-  m_ObjectHideFlags: 0
+  m_ObjectHideFlags: 1
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
@@ -78,7 +78,7 @@ MonoBehaviour:
   targetRT: {fileID: 8400000, guid: 4f1f5a32ebefe5041a43447ad1711148, type: 2}
 --- !u!114 &8116458559962093481
 MonoBehaviour:
-  m_ObjectHideFlags: 0
+  m_ObjectHideFlags: 1
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}

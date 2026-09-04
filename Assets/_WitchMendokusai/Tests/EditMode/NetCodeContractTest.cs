@@ -1,7 +1,9 @@
 using System;
+using System.Collections.Generic;
 using System.Reflection;
 using System.Runtime.Serialization;
 using NUnit.Framework;
+using UnityEngine.Assemblies;
 
 namespace WitchMendokusai.Tests
 {
@@ -84,7 +86,7 @@ namespace WitchMendokusai.Tests
         // Type.GetType 의 어셈블리 해석 nuance 회피 — 로드된 전 어셈블리 스캔.
         private static Type FindLoadedType(string fullName)
         {
-            Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
+            IReadOnlyList<Assembly> assemblies = CurrentAssemblies.GetLoadedAssemblies();
             foreach (Assembly assembly in assemblies)
             {
                 Type found = assembly.GetType(fullName, false);

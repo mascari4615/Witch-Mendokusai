@@ -7,6 +7,7 @@ using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.Assemblies;
 using UnityEngine.SceneManagement;
 using VContainer;
 
@@ -41,7 +42,7 @@ namespace WitchMendokusai.Editor.DI
 		public static HashSet<Type> CollectInjectConsumingTypes()
 		{
 			HashSet<Type> types = new HashSet<Type>();
-			foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
+			foreach (Assembly assembly in CurrentAssemblies.GetLoadedAssemblies())
 			{
 				Type[] assemblyTypes;
 				try

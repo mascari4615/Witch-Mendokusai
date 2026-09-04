@@ -21,7 +21,7 @@ namespace WitchMendokusai.Idle
 	/// ★ 이름(골드, 뽑기, 환생 조각, 탭 이름)은 전부 임시 (layout.md §6).
 	/// </summary>
 	[ExecuteAlways]
-	[RequireComponent(typeof(UIDocument))]
+	[RequireComponent(typeof(PanelRenderer))]
 	public sealed class BattleScreen : MonoBehaviour, IGameView<IdleSnapshot>
 	{
 		[Header("수치. 비워 두면 코드 기본값")]
@@ -66,6 +66,9 @@ namespace WitchMendokusai.Idle
 		private SessionPersistence persistence;
 		private ProceduralSfx sound;
 		private bool clickSoundHooked;
+		private PanelRenderer panelRenderer;
+		private VisualElement panelRoot;
+		private int panelVersion = -1;
 
 		// 에디트 모드 미리보기 (사용자 2026-08-30: UI 수정은 Play 없이). 저장 읽기와 쓰기 없음. 임시 판 위 시뮬만
 		/// <summary>화면 에셋이 없어 못 짓는 판. 켜 두되 아무것도 안 그린다</summary>
@@ -288,6 +291,10 @@ namespace WitchMendokusai.Idle
 				return;
 			}
 
+			panelRenderer = GetComponent<PanelRenderer>();
+			panelRenderer.RegisterUIReloadCallback(OnPanelReloaded);
+			panelRenderer.visualTreeAsset = screenAsset;
+
 			IdleTuning tuning = tuningAsset != null ? tuningAsset.ToTuning() : new IdleTuning();
 			preview = Application.isPlaying == false;
 			persistence = null;
@@ -410,6 +417,15 @@ namespace WitchMendokusai.Idle
 #if UNITY_EDITOR
 			UnityEditor.EditorApplication.update -= PreviewTick;
 #endif
+			if (panelRenderer != null)
+			{
+				panelRenderer.UnregisterUIReloadCallback(OnPanelReloaded);
+			}
+
+			panelRoot = null;
+			panelRenderer = null;
+			panelVersion = -1;
+			clickSoundHooked = false;
 			modalController?.Dispose();
 			if (preview)
 			{
@@ -505,17 +521,16 @@ namespace WitchMendokusai.Idle
 
 		private void BuildAll(IdleAwayReport away)
 		{
-			// UIDocument OnEnable 전 호출 방어. 이전 판 완료 상태로 빈 라벨에 닿지 않게
+			// PanelRenderer OnEnable 전 호출 방어. 이전 판 완료 상태로 빈 라벨에 닿지 않게
 			built = false;
 			modalController?.Dispose();
 			ResetViewCollections();
-			UIDocument document = GetComponent<UIDocument>();
-			if (document == null || document.rootVisualElement == null)
+			if (panelRoot == null)
 			{
 				return;
 			}
 
-			this.root = document.rootVisualElement;
+			this.root = panelRoot;
 			VisualElement root = this.root;
 			root.Clear();
 			modalController = new ModalController(root, runtimeSettingsAsset.ModalRepaintMilliseconds);
@@ -566,6 +581,29 @@ namespace WitchMendokusai.Idle
 			built = true;
 			ApplySplit();
 
+		}
+
+		private void OnPanelReloaded(PanelRenderer renderer, VisualElement rootElement, int version)
+		{
+			if (renderer != panelRenderer || version == panelVersion)
+			{
+				return;
+			}
+
+			panelVersion = version;
+			if (panelRoot != rootElement)
+			{
+				clickSoundHooked = false;
+			}
+
+			panelRoot = rootElement;
+			if (session == null || broken)
+			{
+				return;
+			}
+
+			BuildAll(default);
+			Render(session.Capture());
 		}
 
 		private void ResetViewCollections()

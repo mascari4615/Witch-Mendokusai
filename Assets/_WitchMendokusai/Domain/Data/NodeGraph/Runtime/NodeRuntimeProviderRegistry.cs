@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
+using UnityEngine.Assemblies;
 
 namespace WitchMendokusai.NodeGraph.Runtime
 {
@@ -45,7 +46,7 @@ namespace WitchMendokusai.NodeGraph.Runtime
 
 			providersByNodeType = new Dictionary<Type, INodeRuntimeViewProvider>();
 
-			foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
+			foreach (Assembly assembly in CurrentAssemblies.GetLoadedAssemblies())
 			{
 				Type[] types;
 				try
