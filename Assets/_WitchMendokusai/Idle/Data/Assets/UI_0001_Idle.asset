@@ -157,11 +157,11 @@ MonoBehaviour:
   statMaxTipFormat: "{0}\n최대 성장"
   statWaitTipFormat: "\n약 {0:0}초 뒤 구매"
   statTipFormat: "{0} ×{1}\n{2} → {3}\n골드 {4}{5}"
-  bagTipFormat: "{0} {1}단계\n효과 ×{2:0.00}\n차고 있는 것 {3}\n누르면 찬다"
+  bagTipFormat: "{0}\n효과 ×{1:0.00}\n차고 있는 것 {2}\n누르면 찬다"
   noWornGearText: 없음
-  wornGearSummaryFormat: '{0}단계 ×{1:0.00}'
+  wornGearSummaryFormat: '×{0:0.00}'
   wornEmptyTipFormat: "{0}\n비었다. 아이템 탭에서 찬다"
-  wornTipFormat: "{0} {1}단계\n효과 ×{2:0.00}"
+  wornTipFormat: "{0}\n효과 ×{1:0.00}"
   secondsSpanFormat: '{0:N0}초'
   minutesSpanFormat: '{0:N0}분'
   hoursSpanFormat: '{0:N1}시간'

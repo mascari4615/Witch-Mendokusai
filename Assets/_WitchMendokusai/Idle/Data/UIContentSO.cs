@@ -239,14 +239,14 @@ namespace WitchMendokusai.Idle
 		public string StatWaitTipText(double seconds) => string.Format(statWaitTipFormat, seconds);
 		public string StatTipText(string name, int amount, string current, string next, string cost, string wait) =>
 			string.Format(statTipFormat, name, amount, current, next, cost, wait);
-		public string BagTipText(string slot, int tier, double multiplier, string worn) =>
-			string.Format(bagTipFormat, slot, tier, multiplier, worn);
-		public string WornGearSummaryText(int tier, double multiplier) =>
-			string.Format(wornGearSummaryFormat, tier, multiplier);
+		public string BagTipText(string slot, double multiplier, string worn) =>
+			string.Format(bagTipFormat, slot, multiplier, worn);
+		public string WornGearSummaryText(double multiplier) =>
+			string.Format(wornGearSummaryFormat, multiplier);
 		public string NoWornGearText => noWornGearText;
 		public string WornEmptyTipText(string slot) => string.Format(wornEmptyTipFormat, slot);
-		public string WornTipText(string slot, int tier, double multiplier) =>
-			string.Format(wornTipFormat, slot, tier, multiplier);
+		public string WornTipText(string slot, double multiplier) =>
+			string.Format(wornTipFormat, slot, multiplier);
 		public string OperationCodeText(int stage) => string.Format(operationCodeFormat, stage);
 		public string CostText(double cost, double maximum) => string.Format(costFormat, cost, maximum);
 		public string BossHealthText(int stage, double ratio) => string.Format(bossHealthFormat, stage, ratio);

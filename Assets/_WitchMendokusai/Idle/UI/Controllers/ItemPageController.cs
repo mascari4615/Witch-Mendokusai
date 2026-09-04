@@ -140,9 +140,9 @@ namespace WitchMendokusai.Idle.UI
 			IdleItem worn = heroId >= 0 ? session.WornOf(heroId, (int)item.Slot) : default;
 			string wornText = worn.IsEmpty
 				? content.NoWornGearText
-				: content.WornGearSummaryText(worn.Tier, session.GearMultiplierOf(worn));
+				: content.WornGearSummaryText(session.GearMultiplierOf(worn));
 			return content.BagTipText(
-				content.GearSlotName((int)item.Slot), item.Tier,
+				content.GearSlotName((int)item.Slot),
 				session.GearMultiplierOf(item), wornText);
 		}
 
@@ -152,7 +152,7 @@ namespace WitchMendokusai.Idle.UI
 			IdleItem item = heroId >= 0 ? session.WornOf(heroId, slot) : default;
 			return item.IsEmpty
 				? content.WornEmptyTipText(content.GearSlotName(slot))
-				: content.WornTipText(content.GearSlotName(slot), item.Tier,
+				: content.WornTipText(content.GearSlotName(slot),
 					session.GearMultiplierOf(item));
 		}
 

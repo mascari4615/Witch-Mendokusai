@@ -23,6 +23,9 @@ namespace WitchMendokusai.Tests.Idle
             UIContentSO content = AssetDatabase.LoadAssetAtPath<UIContentSO>(UI_CONTENT_PATH);
             Assert.NotNull(content);
             Assert.IsTrue(content.TryValidate(7, out string error), error);
+            StringAssert.DoesNotContain("단계", content.BagTipText("머리", 1.5d, "없음"));
+            StringAssert.DoesNotContain("단계", content.WornGearSummaryText(1.5d));
+            StringAssert.DoesNotContain("단계", content.WornTipText("머리", 1.5d));
         }
 
         [Test]
