@@ -63,17 +63,15 @@ namespace WitchMendokusai.Tests
 
 			Assert.AreEqual(IdleHeroes.PARTY_SLOTS, tree.Query<Button>(className: "idle-party-seat").ToList().Count,
 				"폐기한 보조 편성 칸이 화면에 남음");
-			Assert.AreEqual(21, tree.Query<Button>(className: "idle-stat-buy").ToList().Count,
-				"7수치마다 x1, x10, x100 버튼 필요");
+			Assert.AreEqual(7, tree.Query<Button>(className: "idle-stat-buy").ToList().Count,
+				"스탯마다 단일 업그레이드 버튼만 필요");
 
 			for (int stat = 0; stat < 7; stat++)
 			{
 				Assert.IsNotNull(tree.Q<Label>("stat-name-" + stat), "수치 이름 없음: " + stat);
 				Assert.IsNotNull(tree.Q<Label>("stat-value-" + stat), "수치 값 없음: " + stat);
 				Assert.IsNotNull(tree.Q<Label>("stat-level-" + stat), "수치 레벨 없음: " + stat);
-				Assert.IsNotNull(tree.Q<Button>("stat-" + stat + "-x1"), "x1 버튼 없음: " + stat);
-				Assert.IsNotNull(tree.Q<Button>("stat-" + stat + "-x10"), "x10 버튼 없음: " + stat);
-				Assert.IsNotNull(tree.Q<Button>("stat-" + stat + "-x100"), "x100 버튼 없음: " + stat);
+				Assert.IsNotNull(tree.Q<Button>("stat-" + stat + "-upgrade"), "업그레이드 버튼 없음: " + stat);
 			}
 		}
 

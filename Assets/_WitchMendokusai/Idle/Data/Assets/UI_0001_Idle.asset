@@ -17,10 +17,7 @@ MonoBehaviour:
   <Description>k__BackingField: Idle product UI labels and visible tabs
   <Sprite>k__BackingField: {fileID: 0}
   <Sprites>k__BackingField: []
-  statUpgradeAmounts:
-  - 1
-  - 10
-  - 100
+  statUpgradeAmount: 1
   gearPopupSlotCount: 24
   battleWidthShare: 0.625
   tabs:
@@ -175,7 +172,7 @@ MonoBehaviour:
   partySeatFormat: '{0}  {1}'
   emptyPartySeatFormat: '{0}  +'
   levelFormat: 'Lv.{0}'
-  upgradeButtonFormat: "×{0}\n{1}"
+  upgradeButtonFormat: "+\n{0}"
   gainFormat: '+{0}'
   heroChoiceFormat: "{0}{1}\nLv.{2}  {3}"
   starPrefix: ' '
