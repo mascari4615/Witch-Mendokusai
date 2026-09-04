@@ -22,7 +22,7 @@ namespace WitchMendokusai.Idle.Editor
 	{
 		private const string SCENE_PATH = "Assets/_WitchMendokusai/Scenes/Idle/Idle.unity";
 		private const string PANEL_PATH = "Assets/_WitchMendokusai/Scenes/Idle/PS_0001_Idle.asset";
-		private const string TUNING_PATH = "Assets/_WitchMendokusai/Scenes/Idle/TU_0001_Idle.asset";
+		private const string TUNING_PATH = "Assets/_WitchMendokusai/Idle/Data/Assets/TU_0001_Idle.asset";
 		private const string HERO_CATALOG_PATH = "Assets/_WitchMendokusai/Idle/Data/Assets/HC_0001_Idle.asset";
 		private const string UI_CONTENT_PATH = "Assets/_WitchMendokusai/Idle/Data/Assets/UI_0001_Idle.asset";
 		private const string GEAR_PRESENTATION_PATH = "Assets/_WitchMendokusai/Idle/Data/Assets/GP_0001_Idle.asset";

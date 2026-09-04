@@ -31,7 +31,7 @@ namespace WitchMendokusai.Idle.Editor
 		private const string DROP_ROW_PATH =
 			"Assets/_WitchMendokusai/Idle/Editor/IdlePlaygroundDropRow.uxml";
 		private const string TUNING_PATH =
-			"Assets/_WitchMendokusai/Scenes/Idle/TU_0001_Idle.asset";
+			"Assets/_WitchMendokusai/Idle/Data/Assets/TU_0001_Idle.asset";
 		private const string HERO_CATALOG_PATH =
 			"Assets/_WitchMendokusai/Idle/Data/Assets/HC_0001_Idle.asset";
 
