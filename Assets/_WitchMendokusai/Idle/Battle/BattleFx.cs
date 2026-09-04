@@ -17,7 +17,20 @@ namespace WitchMendokusai.Idle
 		internal sealed class Settings
 		{
 			public float BoltSeconds { get; set; }
+			public float BoltSize { get; set; }
+			/// <summary>볼트 출발점. 아군 머리 기준. 손에서 나가는 느낌</summary>
+			public Vector3 BoltMuzzleOffset { get; set; }
+			/// <summary>볼트 도착점. 적 머리 기준. 몸통 가운데</summary>
+			public Vector3 BoltTargetOffset { get; set; }
+			/// <summary>대상이 사라졌을 때 볼트가 앞으로 날아가는 거리</summary>
+			public float BoltMissDistance { get; set; }
 			public float ShakeSeconds { get; set; }
+			public float VolleyShakeScale { get; set; }
+			public Vector3 VolleySecondImpactOffset { get; set; }
+			public float VolleyTextLift { get; set; }
+			public Vector3 SupplyImpactOffset { get; set; }
+			public Vector3 AppraiseImpactOffset { get; set; }
+			public Color AppraiseImpactColor { get; set; }
 			public float ShakeDistance { get; set; }
 			public float NumberSeconds { get; set; }
 			public float NumberRise { get; set; }
@@ -31,6 +44,13 @@ namespace WitchMendokusai.Idle
 
 			/// <summary>적 색에 흰색을 섞는 몫. 안 섞으면 적 몸에 묻힌다</summary>
 			public float ImpactWhiten { get; set; }
+
+			public float ImpactGlow { get; set; }
+			/// <summary>조각 초기 회전 걸음. 조각 번호에 곱함</summary>
+			public Vector3 ImpactEulerStep { get; set; }
+			/// <summary>부채꼴 방향의 위 성분. 0 이면 바닥에 묻힘</summary>
+			public float ImpactLift { get; set; }
+			public float ImpactSpinDegrees { get; set; }
 
 			public Color BoltColor { get; set; }
 			public Color NumberColor { get; set; }
@@ -123,7 +143,7 @@ namespace WitchMendokusai.Idle
 				bool firstOfSeat = at == 0 || hits[at - 1].Seat != hit.Seat || hits[at - 1].ByFoe;
 				if (firstOfSeat && entities.TryGetAllyHead(hit.Seat, out Vector3 from))
 				{
-					SpawnBolt(from + new Vector3(0.3f, -0.4f, 0f), hit.FoeIndex);
+					SpawnBolt(from + settings.BoltMuzzleOffset, hit.FoeIndex);
 				}
 			}
 
@@ -166,10 +186,10 @@ namespace WitchMendokusai.Idle
 				}
 			}
 
-			shakeLeft = Mathf.Max(shakeLeft, settings.ShakeSeconds * 2f);
+			shakeLeft = Mathf.Max(shakeLeft, settings.ShakeSeconds * settings.VolleyShakeScale);
 			SpawnImpact(impact, color);
-			SpawnImpact(impact + new Vector3(0.25f, 0.1f, 0.25f), settings.BoltColor);
-			SpawnNumber(impact + Vector3.up, settings.VolleyText, FloatingTextKind.Critical);
+			SpawnImpact(impact + settings.VolleySecondImpactOffset, settings.BoltColor);
+			SpawnNumber(impact + Vector3.up * settings.VolleyTextLift, settings.VolleyText, FloatingTextKind.Critical);
 		}
 
 		public void PlaySupply(BattleEntityPresenter entities)
@@ -179,7 +199,7 @@ namespace WitchMendokusai.Idle
 				if (entities.TryGetAllyHead(seat, out Vector3 head))
 				{
 					SpawnNumber(head, settings.SupplyText, FloatingTextKind.Buff);
-					SpawnImpact(head + new Vector3(0f, -0.5f, 0f), settings.BoltColor);
+					SpawnImpact(head + settings.SupplyImpactOffset, settings.BoltColor);
 				}
 			}
 		}
@@ -191,7 +211,7 @@ namespace WitchMendokusai.Idle
 				if (entities.TryGetAllyHead(seat, out Vector3 head))
 				{
 					SpawnNumber(head, settings.AppraiseText, FloatingTextKind.Experience);
-					SpawnImpact(head + new Vector3(0f, -0.35f, 0f), Color.Lerp(settings.BoltColor, Color.magenta, 0.45f));
+					SpawnImpact(head + settings.AppraiseImpactOffset, settings.AppraiseImpactColor);
 				}
 			}
 		}
@@ -222,7 +242,7 @@ namespace WitchMendokusai.Idle
 			piece.name = "Bolt";
 			piece.transform.SetParent(holder, false);
 			piece.transform.position = from;
-			piece.transform.localScale = new Vector3(0.16f, 0.16f, 0.16f);
+			piece.transform.localScale = Vector3.one * settings.BoltSize;
 			BattleVisualFactory.Paint(piece, settings.BoltColor);
 
 			bolts.Add(new Bolt { Piece = piece.transform, From = from, Target = target });
@@ -256,7 +276,7 @@ namespace WitchMendokusai.Idle
 		private void SpawnImpact(Vector3 position, Color color)
 		{
 			Color bright = Color.Lerp(color, Color.white, settings.ImpactWhiten);
-			Material skin = BattleVisualFactory.MakeGlowing(bright, 0.8f);
+			Material skin = BattleVisualFactory.MakeGlowing(bright, settings.ImpactGlow);
 			Mesh mesh = BattleVisualFactory.BuildImpactMesh();
 
 			for (int at = 0; at < settings.ImpactCount; at++)
@@ -265,14 +285,14 @@ namespace WitchMendokusai.Idle
 				piece.transform.SetParent(holder, false);
 				piece.transform.position = position;
 				piece.transform.localScale = new Vector3(settings.ImpactSize, settings.ImpactSize, settings.ImpactSize);
-				piece.transform.localRotation = Quaternion.Euler(at * 47f, at * 73f, at * 29f);
+				piece.transform.localRotation = Quaternion.Euler(settings.ImpactEulerStep * at);
 
 				piece.AddComponent<MeshFilter>().sharedMesh = mesh;
 				piece.AddComponent<MeshRenderer>().sharedMaterial = skin;
 
 				// 부채꼴로 흩어짐. 위로 살짝 들려야 바닥에 안 묻힘
 				float angle = (at + 0.5f) * Mathf.PI * 2f / settings.ImpactCount;
-				Vector3 way = new Vector3(Mathf.Cos(angle), 0.55f, Mathf.Sin(angle)).normalized;
+				Vector3 way = new Vector3(Mathf.Cos(angle), settings.ImpactLift, Mathf.Sin(angle)).normalized;
 
 				impacts.Add(new Impact
 				{
@@ -306,7 +326,7 @@ namespace WitchMendokusai.Idle
 
 				// 처음이 빠르고 끝이 느림. 튀는 느낌은 감속에서
 				one.Piece.position += one.Way * (1f - life) * delta;
-				one.Piece.Rotate(Vector3.one, 420f * delta, Space.Self);
+				one.Piece.Rotate(Vector3.one, settings.ImpactSpinDegrees * delta, Space.Self);
 
 				float size = one.Size * (1f - life * life);
 				one.Piece.localScale = new Vector3(size, size, size);
@@ -322,8 +342,8 @@ namespace WitchMendokusai.Idle
 
 				float progress = settings.BoltSeconds > 0f ? Mathf.Clamp01(bolt.Age / settings.BoltSeconds) : 1f;
 				Vector3 target = entities.TryGetFoeHead(bolt.Target, out Vector3 head)
-					? head + new Vector3(0f, -0.6f, 0f)
-					: bolt.From + new Vector3(3f, 0f, 0f);
+					? head + settings.BoltTargetOffset
+					: bolt.From + Vector3.right * settings.BoltMissDistance;
 
 				bolt.Piece.position = Vector3.Lerp(bolt.From, target, progress);
 

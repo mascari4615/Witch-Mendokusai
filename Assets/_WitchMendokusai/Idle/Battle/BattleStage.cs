@@ -156,10 +156,13 @@ namespace WitchMendokusai.Idle
 				renderer.sharedMaterial = BattleVisualFactory.MakeMaterial(presentationAsset.SceneryColor);
 
 				float side = at % 2 == 0 ? 1f : -1f;
-				float size = 0.2f + 0.12f * (at % 4);
-				prop.transform.localPosition = new Vector3(at * 3.1f - 6f, size * 0.5f, side * (3.4f + 0.9f * (at % 3)));
+				float size = presentationAsset.SceneryBaseSize + presentationAsset.SceneryStepSize * (at % 4);
+				prop.transform.localPosition = new Vector3(
+					at * presentationAsset.ScenerySpacing + presentationAsset.SceneryStartX,
+					size * 0.5f,
+					side * (presentationAsset.SceneryLaneOffset + presentationAsset.SceneryLaneStep * (at % 3)));
 				prop.transform.localScale = new Vector3(size, size, size);
-				prop.transform.localRotation = Quaternion.Euler(at * 23f, at * 37f, at * 13f);
+				prop.transform.localRotation = Quaternion.Euler(presentationAsset.SceneryEulerStep * at);
 
 				sceneryMeshes.Add(mesh);
 				scenery.Add(prop.transform);
@@ -205,11 +208,12 @@ namespace WitchMendokusai.Idle
 			}
 			else { scroll = Mathf.Lerp(scroll, wanted, BattleMotion.CatchUp(presentationAsset.FollowCatchUp, delta)); }
 			worldRoot.localPosition = new Vector3(scroll, 0f, 0f);
-			float span = scenery.Count * 3.1f;
+			float span = scenery.Count * presentationAsset.ScenerySpacing;
+			float margin = presentationAsset.SceneryWrapMargin;
 			foreach (Transform prop in scenery)
 			{
-				while (prop.localPosition.x + scroll < -12f) { prop.localPosition += new Vector3(span, 0f, 0f); }
-				while (prop.localPosition.x + scroll > span - 12f) { prop.localPosition -= new Vector3(span, 0f, 0f); }
+				while (prop.localPosition.x + scroll < -margin) { prop.localPosition += new Vector3(span, 0f, 0f); }
+				while (prop.localPosition.x + scroll > span - margin) { prop.localPosition -= new Vector3(span, 0f, 0f); }
 			}
 		}
 
@@ -217,7 +221,7 @@ namespace WitchMendokusai.Idle
 		{
 			if (supplyGlowLeft <= 0f) { return; }
 			supplyGlowLeft -= delta;
-			groundMaterial.color = Color.Lerp(groundRest, presentationAsset.BoltColor, Mathf.Clamp01(supplyGlowLeft) * 0.35f);
+			groundMaterial.color = Color.Lerp(groundRest, presentationAsset.BoltColor, Mathf.Clamp01(supplyGlowLeft) * presentationAsset.SupplyGlowShare);
 		}
 
 		private void ClearPreview()

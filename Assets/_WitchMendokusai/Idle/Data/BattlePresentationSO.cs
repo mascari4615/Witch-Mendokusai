@@ -17,6 +17,33 @@ namespace WitchMendokusai.Idle
 		[SerializeField] private float boltSeconds = 0.18f;
 		[SerializeField] private float positionCatchUp = 14f;
 
+		[Header("Effect presentation")]
+		[SerializeField] private float boltSize = 0.16f;
+		[SerializeField] private Vector3 boltMuzzleOffset = new Vector3(0.3f, -0.4f, 0f);
+		[SerializeField] private Vector3 boltTargetOffset = new Vector3(0f, -0.6f, 0f);
+		[SerializeField] private float boltMissDistance = 3f;
+		[SerializeField] private float volleyShakeScale = 2f;
+		[SerializeField] private Vector3 volleySecondImpactOffset = new Vector3(0.25f, 0.1f, 0.25f);
+		[SerializeField] private float volleyTextLift = 1f;
+		[SerializeField] private Vector3 supplyImpactOffset = new Vector3(0f, -0.5f, 0f);
+		[SerializeField] private Vector3 appraiseImpactOffset = new Vector3(0f, -0.35f, 0f);
+		[SerializeField] private Color appraiseImpactColor = new Color(1f, 0.46f, 0.61f);
+		[SerializeField] private float impactGlow = 0.8f;
+		[SerializeField] private Vector3 impactEulerStep = new Vector3(47f, 73f, 29f);
+		[SerializeField] private float impactLift = 0.55f;
+		[SerializeField] private float impactSpinDegrees = 420f;
+
+		[Header("Scenery presentation")]
+		[SerializeField] private float sceneryBaseSize = 0.2f;
+		[SerializeField] private float sceneryStepSize = 0.12f;
+		[SerializeField] private float scenerySpacing = 3.1f;
+		[SerializeField] private float sceneryStartX = -6f;
+		[SerializeField] private float sceneryLaneOffset = 3.4f;
+		[SerializeField] private float sceneryLaneStep = 0.9f;
+		[SerializeField] private Vector3 sceneryEulerStep = new Vector3(23f, 37f, 13f);
+		[SerializeField] private float sceneryWrapMargin = 12f;
+		[SerializeField, Range(0f, 1f)] private float supplyGlowShare = 0.35f;
+
 		[Header("Ally presentation")]
 		[SerializeField] private float allyHurtSeconds = 0.15f;
 		[SerializeField] private float allyHeadHeight = 1.3f;
@@ -117,6 +144,15 @@ namespace WitchMendokusai.Idle
 		public float SnapJump => snapJump;
 		public int ShapeStagesPerStep => shapeStagesPerStep;
 		public int SceneryCount => sceneryCount;
+		public float SceneryBaseSize => sceneryBaseSize;
+		public float SceneryStepSize => sceneryStepSize;
+		public float ScenerySpacing => scenerySpacing;
+		public float SceneryStartX => sceneryStartX;
+		public float SceneryLaneOffset => sceneryLaneOffset;
+		public float SceneryLaneStep => sceneryLaneStep;
+		public Vector3 SceneryEulerStep => sceneryEulerStep;
+		public float SceneryWrapMargin => sceneryWrapMargin;
+		public float SupplyGlowShare => supplyGlowShare;
 		public Color GroundColor => groundColor;
 		public Color SceneryColor => sceneryColor;
 		public Color BoltColor => boltColor;
@@ -135,7 +171,17 @@ namespace WitchMendokusai.Idle
 			return new BattleFx.Settings
 			{
 				BoltSeconds = boltSeconds,
+				BoltSize = boltSize,
+				BoltMuzzleOffset = boltMuzzleOffset,
+				BoltTargetOffset = boltTargetOffset,
+				BoltMissDistance = boltMissDistance,
 				ShakeSeconds = shakeSeconds,
+				VolleyShakeScale = volleyShakeScale,
+				VolleySecondImpactOffset = volleySecondImpactOffset,
+				VolleyTextLift = volleyTextLift,
+				SupplyImpactOffset = supplyImpactOffset,
+				AppraiseImpactOffset = appraiseImpactOffset,
+				AppraiseImpactColor = appraiseImpactColor,
 				ShakeDistance = shakeDistance,
 				NumberSeconds = numberSeconds,
 				NumberRise = numberRise,
@@ -145,6 +191,10 @@ namespace WitchMendokusai.Idle
 				ImpactSpeed = impactSpeed,
 				ImpactCount = impactCount,
 				ImpactWhiten = impactWhiten,
+				ImpactGlow = impactGlow,
+				ImpactEulerStep = impactEulerStep,
+				ImpactLift = impactLift,
+				ImpactSpinDegrees = impactSpinDegrees,
 				BoltColor = boltColor,
 				NumberColor = numberColor,
 				HurtColor = hurtColor,
@@ -242,7 +292,11 @@ namespace WitchMendokusai.Idle
 				|| foeMinHealthScale > 1f || foeBarHeight <= 0f || foeBarWidth <= 0f
 				|| foeBarThickness <= 0f
 				|| bossSpikeInset <= 0f || bossShardRadiusScale <= 0f || bossShardThickness <= 0f
-				|| bossShardLift < 0f || bossShellCatchUpShare < 0f || bossShardSpinShare < 0f)
+				|| bossShardLift < 0f || bossShellCatchUpShare < 0f || bossShardSpinShare < 0f
+				|| boltSize <= 0f || boltMissDistance < 0f || volleyShakeScale < 0f || volleyTextLift < 0f
+				|| impactGlow < 0f || impactLift < 0f
+				|| sceneryBaseSize <= 0f || sceneryStepSize < 0f || scenerySpacing <= 0f
+				|| sceneryLaneOffset < 0f || sceneryLaneStep < 0f || sceneryWrapMargin < 0f)
 			{
 				error = "counts and stage thresholds must be valid";
 				return false;
