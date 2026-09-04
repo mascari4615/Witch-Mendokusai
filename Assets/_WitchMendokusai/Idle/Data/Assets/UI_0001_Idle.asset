@@ -18,7 +18,10 @@ MonoBehaviour:
   <Sprite>k__BackingField: {fileID: 0}
   <Sprites>k__BackingField: []
   statUpgradeAmount: 1
+  heroPopupSlotCount: 24
   gearPopupSlotCount: 24
+  bagSlotCount: 40
+  forgeInputSlotCount: 9
   battleWidthShare: 0.625
   tabs:
   - Name: 인형
@@ -181,3 +184,4 @@ MonoBehaviour:
   attackSpeedValueFormat: '{0:0.##}/초'
   percentValueFormat: '{0:P1}'
   criticalDamageValueFormat: '×{0:0.00}'
+  popupPageFormat: '{0}/{1}'

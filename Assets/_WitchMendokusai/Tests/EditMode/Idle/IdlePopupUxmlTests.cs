@@ -87,7 +87,8 @@ namespace WitchMendokusai.Tests.Idle
 		[Test]
 		public void HeroPopupExposesBindingPoints()
 		{
-			AssertElements("IdleHeroPopup.uxml", "popup", "hero-close", "hero-grid");
+			AssertElements("IdleHeroPopup.uxml", "popup", "hero-close", "hero-grid",
+				"hero-page-back", "hero-page-label", "hero-page-forward");
 		}
 
 		[Test]
@@ -101,6 +102,13 @@ namespace WitchMendokusai.Tests.Idle
 		{
 			AssertElements("IdleSettingsPopup.uxml", "popup", "settings-close", "speed-0", "speed-1", "speed-2",
 				"log-label", "note-label");
+		}
+
+		[Test]
+		public void GearPopupExposesFixedGridPager()
+		{
+			AssertElements("IdleGearPopup.uxml", "popup", "gear-close", "gear-rows",
+				"gear-page-back", "gear-page-label", "gear-page-forward");
 		}
 
 		[Test]

@@ -16,9 +16,17 @@ namespace WitchMendokusai.Idle.UI
 		private readonly GearVisualPresenter visualPresenter;
 		private readonly UIContentSO content;
 		private readonly Action<int> selected;
+		private readonly Label pageLabel;
+		private readonly Button pageBack;
+		private readonly Button pageForward;
 		private readonly List<Button> buttons = new List<Button>();
 		private readonly List<VisualElement> icons = new List<VisualElement>();
 		private readonly List<Label> labels = new List<Label>();
+		private readonly List<int> matchingBagIndices = new List<int>();
+		private IdleSnapshot snapshot;
+		private IdleItem equipped;
+		private int wearer;
+		private int page;
 
 		public GearSelectionController(
 			VisualElement popup,
@@ -38,8 +46,13 @@ namespace WitchMendokusai.Idle.UI
 			title = popup.Q<Label>("gear-title");
 			worn = popup.Q<Label>("gear-worn");
 			rows = popup.Q<VisualElement>("gear-rows");
+			pageLabel = popup.Q<Label>("gear-page-label");
+			pageBack = popup.Q<Button>("gear-page-back");
+			pageForward = popup.Q<Button>("gear-page-forward");
 			modalController.Register(popup, Close);
 			popup.Q<Button>("gear-close").clicked += Close;
+			pageBack.clicked += () => ChangePage(-1);
+			pageForward.clicked += () => ChangePage(1);
 		}
 
 		public int SelectedSlot { get; private set; } = -1;
@@ -47,6 +60,7 @@ namespace WitchMendokusai.Idle.UI
 		public void Open(int slot)
 		{
 			SelectedSlot = slot;
+			page = 0;
 			modalController.Show(popup);
 		}
 
@@ -63,6 +77,9 @@ namespace WitchMendokusai.Idle.UI
 				return;
 			}
 
+			this.snapshot = snapshot;
+			this.equipped = equipped;
+			this.wearer = wearer;
 			title.text = wearer >= 0
 				? IdleHeroes.KindOf(wearer).Name + " " + content.GearSlotName(SelectedSlot)
 				: content.GearSlotName(SelectedSlot);
@@ -70,31 +87,42 @@ namespace WitchMendokusai.Idle.UI
 			worn.text = content.EquippedGearText(equipped);
 
 			EnsureRows(content.GearPopupSlotCount);
-			int shown = 0;
+			matchingBagIndices.Clear();
 			for (int index = 0; index < snapshot.Bag.Length; index++)
 			{
 				IdleItem item = snapshot.Bag[index];
-				if ((int)item.Slot != SelectedSlot)
+				if ((int)item.Slot == SelectedSlot)
 				{
+					matchingBagIndices.Add(index);
+				}
+			}
+
+			int pageCount = FixedGridPager.PageCount(matchingBagIndices.Count, content.GearPopupSlotCount);
+			page = FixedGridPager.ClampPage(page, matchingBagIndices.Count, content.GearPopupSlotCount);
+			pageLabel.text = content.PopupPageText(page + 1, pageCount);
+			pageBack.SetEnabled(page > 0);
+			pageForward.SetEnabled(page + 1 < pageCount);
+
+			for (int index = 0; index < buttons.Count; index++)
+			{
+				Button row = buttons[index];
+				int matchingIndex = FixedGridPager.ItemIndex(page, index, content.GearPopupSlotCount);
+				if (matchingIndex < matchingBagIndices.Count)
+				{
+					int bagIndex = matchingBagIndices[matchingIndex];
+					IdleItem item = snapshot.Bag[bagIndex];
+					row.userData = bagIndex;
+					row.SetEnabled(true);
+					row.EnableInClassList("idle-choice-card--empty", false);
+					visualPresenter.SetTierOutline(row, item.Tier);
+					row.text = string.Empty;
+					labels[index].text = content.GearPotentialText(item.IsRaw, item.PotentialValue);
+					icons[index].style.display = DisplayStyle.Flex;
+					visualPresenter.SetSprite(icons[index], SelectedSlot, item.Tier);
+					row.style.display = DisplayStyle.Flex;
 					continue;
 				}
 
-				Button row = RowAt(shown);
-				row.userData = index;
-				row.SetEnabled(true);
-				row.EnableInClassList("idle-choice-card--empty", false);
-				visualPresenter.SetTierOutline(row, item.Tier);
-				row.text = string.Empty;
-				labels[shown].text = content.GearPotentialText(item.IsRaw, item.PotentialValue);
-				icons[shown].style.display = DisplayStyle.Flex;
-				visualPresenter.SetSprite(icons[shown], SelectedSlot, item.Tier);
-				row.style.display = DisplayStyle.Flex;
-				shown++;
-			}
-
-			for (int index = shown; index < buttons.Count; index++)
-			{
-				Button row = buttons[index];
 				row.userData = -1;
 				row.text = string.Empty;
 				row.SetEnabled(false);
@@ -104,6 +132,12 @@ namespace WitchMendokusai.Idle.UI
 				icons[index].style.display = DisplayStyle.None;
 				row.style.display = DisplayStyle.Flex;
 			}
+		}
+
+		private void ChangePage(int delta)
+		{
+			page += delta;
+			Render(snapshot, equipped, wearer);
 		}
 
 		private void EnsureRows(int count)

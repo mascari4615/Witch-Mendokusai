@@ -12,10 +12,14 @@ namespace WitchMendokusai.Idle.UI
 		private readonly HeroVisualPresenter visualPresenter;
 		private readonly UIContentSO content;
 		private readonly Action<int> selected;
+		private readonly Label pageLabel;
+		private readonly Button pageBack;
+		private readonly Button pageForward;
 		private readonly List<Button> buttons = new List<Button>();
 		private readonly List<VisualElement> icons = new List<VisualElement>();
 		private readonly List<Label> labels = new List<Label>();
 		private IdleSnapshot snapshot;
+		private int page;
 
 		public HeroSelectionController(
 			VisualElement popup,
@@ -34,8 +38,13 @@ namespace WitchMendokusai.Idle.UI
 			modalController.Register(popup, Close);
 			popup.Q<Button>("hero-close").clicked += Close;
 			VisualElement grid = popup.Q<VisualElement>("hero-grid");
+			pageLabel = popup.Q<Label>("hero-page-label");
+			pageBack = popup.Q<Button>("hero-page-back");
+			pageForward = popup.Q<Button>("hero-page-forward");
+			pageBack.clicked += () => ChangePage(-1);
+			pageForward.clicked += () => ChangePage(1);
 
-			for (int index = 0; index < IdleHeroes.Count; index++)
+			for (int index = 0; index < content.HeroPopupSlotCount; index++)
 			{
 				int captured = index;
 				TemplateContainer choiceTree = choiceCardAsset.Instantiate();
@@ -56,6 +65,7 @@ namespace WitchMendokusai.Idle.UI
 		public void Open(int seat)
 		{
 			SelectedSeat = seat;
+			page = 0;
 			modalController.Show(popup);
 		}
 
@@ -78,10 +88,17 @@ namespace WitchMendokusai.Idle.UI
 				return;
 			}
 
+			int pageCount = FixedGridPager.PageCount(current.Heroes.Length, content.HeroPopupSlotCount);
+			page = FixedGridPager.ClampPage(page, current.Heroes.Length, content.HeroPopupSlotCount);
+			pageLabel.text = content.PopupPageText(page + 1, pageCount);
+			pageBack.SetEnabled(page > 0);
+			pageForward.SetEnabled(page + 1 < pageCount);
+
 			for (int index = 0; index < buttons.Count; index++)
 			{
 				Button choice = buttons[index];
-				bool shown = index < current.Heroes.Length;
+				int heroIndex = FixedGridPager.ItemIndex(page, index, content.HeroPopupSlotCount);
+				bool shown = heroIndex < current.Heroes.Length;
 				choice.style.display = DisplayStyle.Flex;
 				choice.SetEnabled(shown);
 				choice.EnableInClassList("idle-choice-card--empty", shown == false);
@@ -95,7 +112,7 @@ namespace WitchMendokusai.Idle.UI
 					continue;
 				}
 
-				IdleHeroView hero = current.Heroes[index];
+				IdleHeroView hero = current.Heroes[heroIndex];
 				labels[index].text = content.HeroChoiceText(hero.Name, hero.Stars, hero.Level, content.AxisName(hero.Axis));
 				visualPresenter.SetAxis(icons[index], hero.Axis);
 				visualPresenter.SetPortrait(icons[index], hero.Id);
@@ -110,10 +127,17 @@ namespace WitchMendokusai.Idle.UI
 
 		private void SelectAt(int index)
 		{
-			if (index >= 0 && index < snapshot.Heroes.Length)
+			int heroIndex = FixedGridPager.ItemIndex(page, index, content.HeroPopupSlotCount);
+			if (heroIndex >= 0 && heroIndex < snapshot.Heroes.Length)
 			{
-				selected(snapshot.Heroes[index].Id);
+				selected(snapshot.Heroes[heroIndex].Id);
 			}
+		}
+
+		private void ChangePage(int delta)
+		{
+			page += delta;
+			Render(snapshot);
 		}
 
 	}

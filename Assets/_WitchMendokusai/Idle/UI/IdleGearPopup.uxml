@@ -11,6 +11,11 @@
             <ui:ScrollView class="idle-modal-scroll">
                 <ui:VisualElement name="gear-rows" class="idle-choice-grid" />
             </ui:ScrollView>
+            <ui:VisualElement class="idle-modal-pager">
+                <ui:Button name="gear-page-back" text="◀" class="idle-modal-page-button" />
+                <ui:Label name="gear-page-label" class="idle-modal-page-label" />
+                <ui:Button name="gear-page-forward" text="▶" class="idle-modal-page-button" />
+            </ui:VisualElement>
         </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>

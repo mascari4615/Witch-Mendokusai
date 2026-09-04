@@ -9,6 +9,11 @@
             <ui:ScrollView class="idle-modal-scroll">
                 <ui:VisualElement name="hero-grid" class="idle-choice-grid" />
             </ui:ScrollView>
+            <ui:VisualElement class="idle-modal-pager">
+                <ui:Button name="hero-page-back" text="◀" class="idle-modal-page-button" />
+                <ui:Label name="hero-page-label" class="idle-modal-page-label" />
+                <ui:Button name="hero-page-forward" text="▶" class="idle-modal-page-button" />
+            </ui:VisualElement>
         </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>

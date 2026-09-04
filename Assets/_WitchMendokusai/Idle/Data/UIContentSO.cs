@@ -130,7 +130,9 @@ namespace WitchMendokusai.Idle
 		[SerializeField] private string attackSpeedValueFormat;
 		[SerializeField] private string percentValueFormat;
 		[SerializeField] private string criticalDamageValueFormat;
+		[SerializeField] private string popupPageFormat;
 		[SerializeField, Min(1)] private int statUpgradeAmount = 1;
+		[SerializeField, Min(1)] private int heroPopupSlotCount = 24;
 		[SerializeField, Min(1)] private int gearPopupSlotCount = 24;
 		[SerializeField, Min(1)] private int bagSlotCount = 40;
 		[SerializeField, Min(1)] private int forgeInputSlotCount = 9;
@@ -140,6 +142,7 @@ namespace WitchMendokusai.Idle
 		public int StatCount => statNames.Length;
 		public int GearSlotCount => gearSlotNames.Length;
 		public int StatUpgradeAmount => statUpgradeAmount;
+		public int HeroPopupSlotCount => heroPopupSlotCount;
 		public int GearPopupSlotCount => gearPopupSlotCount;
 		public int BagSlotCount => bagSlotCount;
 		public int ForgeInputSlotCount => forgeInputSlotCount;
@@ -258,6 +261,7 @@ namespace WitchMendokusai.Idle
 		public string GainText(string amount) => string.Format(gainFormat, amount);
 		public string HeroChoiceText(string name, int stars, int level, string axis) =>
 			string.Format(heroChoiceFormat, name, StarsText(stars), level, axis);
+		public string PopupPageText(int page, int pageCount) => string.Format(popupPageFormat, page, pageCount);
 		public string TabButtonText(int index) => string.Format(tabButtonFormat, TabName(index), TabCaption(index));
 		public string StarsText(int count) => count <= 0 ? string.Empty : starPrefix + new string(starCharacter, count);
 		public string DescribeSpan(double seconds)
@@ -375,7 +379,7 @@ namespace WitchMendokusai.Idle
 				wornTipFormat, secondsSpanFormat, minutesSpanFormat, hoursSpanFormat, operationCodeFormat,
 				costFormat, bossHealthFormat, waveFormat, partySeatFormat, emptyPartySeatFormat, levelFormat,
 				upgradeButtonFormat, gainFormat, heroChoiceFormat, starPrefix, tabButtonFormat,
-				attackSpeedValueFormat, percentValueFormat, criticalDamageValueFormat,
+				attackSpeedValueFormat, percentValueFormat, criticalDamageValueFormat, popupPageFormat,
 			};
 			if (Array.Exists(requiredText, string.IsNullOrEmpty))
 			{
@@ -395,7 +399,7 @@ namespace WitchMendokusai.Idle
 				return false;
 			}
 
-			if (gearPopupSlotCount <= 0 || bagSlotCount <= 0 || forgeInputSlotCount <= 0
+			if (heroPopupSlotCount <= 0 || gearPopupSlotCount <= 0 || bagSlotCount <= 0 || forgeInputSlotCount <= 0
 				|| battleWidthShare <= 0f || battleWidthShare >= 1f)
 			{
 				error = "popup count and battle width share must be in range";
