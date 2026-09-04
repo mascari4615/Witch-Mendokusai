@@ -1,11 +1,9 @@
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
 using WitchMendokusai.DomainSDK.Contracts;
 using WitchMendokusai.DomainSDK.Idle;
 using WitchMendokusai.Idle.UI;
 using WitchMendokusai.Presentation;
-using BigNumberText = WitchMendokusai.Numerics.BigNumberText;
 
 namespace WitchMendokusai.Idle
 {
@@ -82,10 +80,6 @@ namespace WitchMendokusai.Idle
 		private VisualElement battle;
 		private BattleHudController battleHudController;
 
-		private Label logLabel;
-		private Label noteLabel;
-		private float noteLeft;
-
 		private CardHandController cardHandController;
 		private DungeonPageController dungeonPageController;
 
@@ -123,11 +117,8 @@ namespace WitchMendokusai.Idle
 
 		// 팝업
 		private MapSelectionController mapSelectionController;
-		private VisualElement goldPopup;
-		private Label goldAmount;
-		private Label goldIncome;
-		private VisualElement settingsPopup;
-		private readonly List<Button> speedButtons = new List<Button>();
+		private GoldDetailsController goldDetailsController;
+		private SettingsPopupController settingsPopupController;
 		private ModalController modalController;
 		private HeroVisualPresenter heroVisualPresenter;
 		private GearVisualPresenter gearVisualPresenter;
@@ -341,15 +332,7 @@ namespace WitchMendokusai.Idle
 				stage.Render(snapshot, delta);
 			}
 
-			if (noteLeft > 0f)
-			{
-				noteLeft -= delta;
-				noteLabel.style.opacity = noteLeft < 1f ? noteLeft : 1f;
-				if (noteLeft <= 0f)
-				{
-					noteLabel.text = string.Empty;
-				}
-			}
+			settingsPopupController?.Tick(delta);
 
 			untilUiRefresh -= delta;
 			if (untilUiRefresh <= 0f)
@@ -454,7 +437,8 @@ namespace WitchMendokusai.Idle
 			dungeonPageController = null;
 			investPageController = null;
 			mapSelectionController = null;
-			speedButtons.Clear();
+			goldDetailsController = null;
+			settingsPopupController = null;
 		}
 
 		private void BuildBattle(VisualElement shell)
@@ -670,60 +654,49 @@ namespace WitchMendokusai.Idle
 
 		private void BuildGoldPopup()
 		{
-			goldPopup = UsePopup("gold-popup-host");
-			modalController.Register(goldPopup, CloseGoldPopup);
-			goldAmount = goldPopup.Q<Label>("gold-amount");
-			goldIncome = goldPopup.Q<Label>("gold-income");
-			goldPopup.Q<Button>("gold-close").clicked += CloseGoldPopup;
+			goldDetailsController = new GoldDetailsController(
+				UsePopup("gold-popup-host"), modalController, uiContentAsset);
 		}
 
 		private void BuildSettingsPopup()
 		{
-			settingsPopup = UsePopup("settings-popup-host");
-			modalController.Register(settingsPopup, CloseSettingsPopup);
-			settingsPopup.Q<Button>("settings-close").clicked += CloseSettingsPopup;
-			for (int index = 0; index < 3; index++)
-			{
-				int captured = index;
-				Button button = settingsPopup.Q<Button>("speed-" + index);
-				button.clicked += () => SetSpeed(captured);
-				speedButtons.Add(button);
-			}
-
-			logLabel = settingsPopup.Q<Label>("log-label");
-			noteLabel = settingsPopup.Q<Label>("note-label");
+			settingsPopupController = new SettingsPopupController(
+				UsePopup("settings-popup-host"), modalController,
+				session, uiContentAsset, () => Render(session.Capture()));
 		}
 
 		private void OpenGoldPopup()
 		{
-			CloseMap();
-			CloseHeroPopup();
-			CloseGear();
-			CloseSettingsPopup();
-			modalController.Show(goldPopup);
+			goldDetailsController.Open(() =>
+			{
+				CloseMap();
+				CloseHeroPopup();
+				CloseGear();
+				CloseSettingsPopup();
+			});
 			Render(session.Capture());
 		}
 
 		private void CloseGoldPopup()
 		{
-			if (goldPopup == null) { return; }
-			modalController.Hide(goldPopup);
+			goldDetailsController?.Close();
 		}
 
 		private void OpenSettingsPopup()
 		{
-			CloseMap();
-			CloseHeroPopup();
-			CloseGear();
-			CloseGoldPopup();
-			modalController.Show(settingsPopup);
+			settingsPopupController.Open(() =>
+			{
+				CloseMap();
+				CloseHeroPopup();
+				CloseGear();
+				CloseGoldPopup();
+			});
 			Render(session.Capture());
 		}
 
 		private void CloseSettingsPopup()
 		{
-			if (settingsPopup == null) { return; }
-			modalController.Hide(settingsPopup);
+			settingsPopupController?.Close();
 		}
 
 		private void BuildAwayPopup(IdleAwayReport away)
@@ -733,24 +706,7 @@ namespace WitchMendokusai.Idle
 				return;
 			}
 
-			VisualElement shade = UsePopup("away-popup-host");
-			shade.style.display = DisplayStyle.Flex;
-			shade.RegisterCallback<PointerDownEvent>(evt => evt.StopPropagation());
-
-			shade.Q<Label>("away-span").text = uiContentAsset.AwaySpanText(away.CreditedSeconds);
-			shade.Q<Label>("gold-value").text = uiContentAsset.GainText(BigNumberText.Format(away.ResourceGained));
-			shade.Q<Label>("kills-value").text = uiContentAsset.GainText(BigNumberText.Format(away.KillsGained));
-			shade.Q<Label>("stages-value").text = uiContentAsset.GainText(BigNumberText.Format(away.StagesGained));
-			shade.Q<Label>("items-value").text = uiContentAsset.GainText(BigNumberText.Format(away.ItemsGained));
-
-			Label warning = shade.Q<Label>("away-warning");
-			if (away.HitCap)
-			{
-				warning.text = uiContentAsset.AwayWarningText(away.CapSeconds, away.LostSeconds);
-				warning.style.display = DisplayStyle.Flex;
-			}
-
-			shade.Q<Button>("away-close").clicked += () => shade.style.display = DisplayStyle.None;
+			AwayReportPresenter.Bind(UsePopup("away-popup-host"), away, uiContentAsset);
 		}
 
 		private void OpenHeroPopup(int slot)
@@ -819,10 +775,8 @@ namespace WitchMendokusai.Idle
 			}
 
 			battleHudController.Render(snapshot);
-			goldAmount.text = uiContentAsset.GoldAmountText(BigNumberText.Format(snapshot.Resource));
-			goldIncome.text = uiContentAsset.GoldIncomeText(BigNumberText.Format(snapshot.IncomePerSecond));
-
-			logLabel.text = NextStep(snapshot);
+			goldDetailsController.Render(snapshot);
+			settingsPopupController.Render(snapshot);
 
 			RenderHand(snapshot);
 			RenderTabBadges(snapshot);
@@ -839,11 +793,6 @@ namespace WitchMendokusai.Idle
 				RenderHeroPopup(snapshot);
 			}
 
-			for (int index = 0; index < speedButtons.Count; index++)
-			{
-				speedButtons[index].EnableInClassList("idle-settings-speed--selected",
-					System.Math.Abs(snapshot.Speed - (index + 1d)) < 0.001d);
-			}
 		}
 
 		private void RenderHand(IdleSnapshot snapshot)
@@ -871,18 +820,6 @@ namespace WitchMendokusai.Idle
 			}
 		}
 
-		/// <summary>배속을 다음 자리로 (gap-2026-08-23 P1-6). 보고 있는 동안만</summary>
-		private void SetSpeed(int step)
-		{
-			if (session == null)
-			{
-				return;
-			}
-
-			session.SetSpeedStep(step);
-			Render(session.Capture());
-		}
-
 		/// <summary>자동 시전 켜고 끄기 (P1-6)</summary>
 		private void ToggleAutoCast()
 		{
@@ -893,13 +830,6 @@ namespace WitchMendokusai.Idle
 
 			session.ToggleAutoCast();
 			Render(session.Capture());
-		}
-
-		/// <summary>코어가 고른 한 걸음을 사람 말로.</summary>
-		private string NextStep(IdleSnapshot snapshot)
-		{
-			IdleAdviceResult advice = IdleAdvice.NextStep(snapshot);
-			return uiContentAsset.AdviceText(advice.Step, advice.Amount, uiContentAsset.DescribeSpan(advice.Amount));
 		}
 
 		// ── 화면 상태 ─────────────────────────────────────────────────────
@@ -1248,9 +1178,7 @@ namespace WitchMendokusai.Idle
 
 		private void SayOnce(string what, float seconds)
 		{
-			noteLabel.text = what;
-			noteLabel.style.opacity = 1f;
-			noteLeft = seconds;
+			settingsPopupController.ShowNote(what, seconds);
 		}
 
 	}
