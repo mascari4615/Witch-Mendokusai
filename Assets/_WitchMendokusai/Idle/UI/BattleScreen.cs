@@ -92,16 +92,7 @@ namespace WitchMendokusai.Idle
 		private Tab openTab = Tab.Doll;
 
 		private DollPageController dollPageController;
-		private HeroSelectionController heroSelectionController;
-
-		/// <summary>장비를 볼 인형의 편성 자리 (2026-08-31 인형별 장비). 찬 편성 칸을 누르면 바뀐다</summary>
-		private int gearSeat;
-
-		/// <summary>그 자리의 인형 번호. 빈 자리면 -1</summary>
-		private int gearHeroId => session != null ? session.HeroAtPartySlot(gearSeat) : -1;
-
-		// 장비 고르기 팝업 (사용자 2026-08-31). 인형이 여럿이라 가방에서 바로 장착하면 대상이 불명
-		private GearSelectionController gearSelectionController;
+		private SelectionPopupCoordinator selectionPopupCoordinator;
 
 		private ItemPageController itemPageController;
 
@@ -383,8 +374,7 @@ namespace WitchMendokusai.Idle
 			screenLayoutController = new ScreenLayoutController(
 				root, sidePanelController, battleHudController, uiContentAsset);
 			BuildMapPopup();
-			BuildGearPopup();
-			BuildHeroPopup();
+			BuildSelectionPopups();
 			BuildGoldPopup();
 			BuildSettingsPopup();
 			BuildAwayPopup(away);
@@ -424,8 +414,7 @@ namespace WitchMendokusai.Idle
 			sidePanelController = null;
 			screenLayoutController = null;
 			dollPageController = null;
-			heroSelectionController = null;
-			gearSelectionController = null;
+			selectionPopupCoordinator = null;
 			itemPageController = null;
 			codexPageController = null;
 			shopPageController = null;
@@ -549,11 +538,11 @@ namespace WitchMendokusai.Idle
 				uiContentAsset,
 				heroVisualPresenter,
 				gearVisualPresenter,
-				() => gearHeroId,
-				() => gearSeat,
-				() => heroSelectionController != null ? heroSelectionController.SelectedSeat : -1,
-				OpenHeroPopup,
-				OpenGear,
+				() => selectionPopupCoordinator.HeroId,
+				() => selectionPopupCoordinator.GearSeat,
+				() => selectionPopupCoordinator.SelectingPartySeat,
+				slot => selectionPopupCoordinator.OpenHero(slot),
+				slot => selectionPopupCoordinator.OpenGear(slot),
 				WornTip,
 				HookTooltip,
 				WriteDown,
@@ -572,7 +561,7 @@ namespace WitchMendokusai.Idle
 				bagCellAsset,
 				forgeKindAsset,
 				rowButtonAsset,
-				() => gearHeroId,
+				() => selectionPopupCoordinator.HeroId,
 				WriteDown,
 				() => Render(session.Capture()),
 				SayOnce,
@@ -626,26 +615,23 @@ namespace WitchMendokusai.Idle
 		}
 
 		/// <summary>장비 고르기 팝업. 관리 열 위에 뜬다</summary>
-		private void BuildGearPopup()
+		private void BuildSelectionPopups()
 		{
-			gearSelectionController = new GearSelectionController(
+			selectionPopupCoordinator = new SelectionPopupCoordinator(
+				UsePopup("hero-popup-host"),
 				UsePopup("gear-popup-host"),
 				choiceCardAsset,
 				modalController,
-				gearVisualPresenter,
-				uiContentAsset,
-				Equip);
-		}
-
-		private void BuildHeroPopup()
-		{
-			heroSelectionController = new HeroSelectionController(
-				UsePopup("hero-popup-host"),
-				choiceCardAsset,
-				modalController,
 				heroVisualPresenter,
+				gearVisualPresenter,
+				session,
 				uiContentAsset,
-				ChooseHero);
+				itemPageController,
+				CloseAuxiliaryPopups,
+				WriteDown,
+				() => Render(session.Capture()),
+				SayOnce,
+				runtimeSettingsAsset.NoteSeconds);
 		}
 
 		private void BuildGoldPopup()
@@ -666,8 +652,7 @@ namespace WitchMendokusai.Idle
 			goldDetailsController.Open(() =>
 			{
 				CloseMap();
-				CloseHeroPopup();
-				CloseGear();
+				selectionPopupCoordinator.CloseAll();
 				CloseSettingsPopup();
 			});
 			Render(session.Capture());
@@ -683,8 +668,7 @@ namespace WitchMendokusai.Idle
 			settingsPopupController.Open(() =>
 			{
 				CloseMap();
-				CloseHeroPopup();
-				CloseGear();
+				selectionPopupCoordinator.CloseAll();
 				CloseGoldPopup();
 			});
 			Render(session.Capture());
@@ -695,6 +679,12 @@ namespace WitchMendokusai.Idle
 			settingsPopupController?.Close();
 		}
 
+		private void CloseAuxiliaryPopups()
+		{
+			CloseGoldPopup();
+			CloseSettingsPopup();
+		}
+
 		private void BuildAwayPopup(IdleAwayReport away)
 		{
 			if (away.HasAnything == false)
@@ -703,62 +693,6 @@ namespace WitchMendokusai.Idle
 			}
 
 			AwayReportPresenter.Bind(UsePopup("away-popup-host"), away, uiContentAsset);
-		}
-
-		private void OpenHeroPopup(int slot)
-		{
-			if (slot < 0 || slot >= session.Capture().Party.Length)
-			{
-				slot = 0;
-			}
-
-			gearSeat = slot;
-			CloseGear();
-			CloseGoldPopup();
-			CloseSettingsPopup();
-			heroSelectionController.Open(slot);
-			Render(session.Capture());
-		}
-
-		private void CloseHeroPopup()
-		{
-			heroSelectionController?.Close();
-		}
-
-		private void RenderHeroPopup(IdleSnapshot snapshot)
-		{
-			heroSelectionController?.Render(snapshot);
-		}
-
-		/// <summary>이 부위에 낄 수 있는 가방 아이템만 보여준다</summary>
-		private void OpenGear(int slot)
-		{
-			if (gearHeroId < 0)
-			{
-				SayOnce(uiContentAsset.SelectHeroBeforeGearText, runtimeSettingsAsset.NoteSeconds);
-				return;
-			}
-
-			CloseHeroPopup();
-			CloseGoldPopup();
-			CloseSettingsPopup();
-			gearSelectionController.Open(slot);
-			Render(session.Capture());
-		}
-
-		private void CloseGear()
-		{
-			gearSelectionController?.Close();
-		}
-
-		private void RenderGear(IdleSnapshot snapshot)
-		{
-			int heroId = gearHeroId;
-			IdleItem equipped = heroId >= 0 && gearSelectionController != null
-				&& gearSelectionController.SelectedSlot >= 0
-				? session.WornOf(heroId, gearSelectionController.SelectedSlot)
-				: default;
-			gearSelectionController?.Render(snapshot, equipped, heroId);
 		}
 
 		// ── 그리기 ────────────────────────────────────────────────────────
@@ -785,8 +719,7 @@ namespace WitchMendokusai.Idle
 			if (screenLayoutController.ContentVisible)
 			{
 				RenderPage(snapshot);
-				RenderGear(snapshot);
-				RenderHeroPopup(snapshot);
+				selectionPopupCoordinator.Render(snapshot);
 			}
 
 		}
@@ -834,7 +767,7 @@ namespace WitchMendokusai.Idle
 		private void OpenTab(Tab tab)
 		{
 			openTab = tab;
-			heroSelectionController?.ClearSelection();
+			selectionPopupCoordinator.ClearHeroSelection();
 
 			// 상점, 연구소는 왼쪽 씬이 바뀐다 (layout.md §2). 지금은 덮개
 			bool altScene = tab == Tab.Shop || tab == Tab.Lab;
@@ -861,8 +794,7 @@ namespace WitchMendokusai.Idle
 		{
 			mapSelectionController.Toggle(() =>
 			{
-				CloseHeroPopup();
-				CloseGear();
+				selectionPopupCoordinator.CloseAll();
 				CloseGoldPopup();
 				CloseSettingsPopup();
 			});
@@ -1006,49 +938,6 @@ namespace WitchMendokusai.Idle
 			session.Send(new IdleHoldStageIntent(session.Capture().HoldingStage == false));
 			WriteDown();
 			Render(session.Capture());
-		}
-
-		private void Equip(int bagIndex)
-		{
-			itemPageController.Equip(bagIndex);
-		}
-
-		private void ChooseHero(int id)
-		{
-			int slot = heroSelectionController != null ? heroSelectionController.SelectedSeat : -1;
-
-			if (slot < 0)
-			{
-				slot = FirstEmptySeat();
-			}
-
-			if (slot < 0)
-			{
-				SayOnce(uiContentAsset.PartyFullFeedback, runtimeSettingsAsset.NoteSeconds);
-				Render(session.Capture());
-				return;
-			}
-
-			session.Send(new IdleSetPartyIntent(slot, id));
-			gearSeat = slot;
-			CloseHeroPopup();
-			WriteDown();
-			Render(session.Capture());
-		}
-
-		private int FirstEmptySeat()
-		{
-			IdleSnapshot now = session.Capture();
-
-			for (int slot = 0; slot < now.Party.Length; slot++)
-			{
-				if (now.Party[slot] < 0)
-				{
-					return slot;
-				}
-			}
-
-			return -1;
 		}
 
 		// ── 툴팁 ───────────────────────────────────────────────────────────
