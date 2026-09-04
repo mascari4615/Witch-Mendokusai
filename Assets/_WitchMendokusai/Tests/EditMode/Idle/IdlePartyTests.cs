@@ -68,7 +68,9 @@ namespace WitchMendokusai.Tests
 
 			for (int stat = 0; stat < 7; stat++)
 			{
-				Assert.IsNotNull(tree.Q<Label>("stat-label-" + stat), "수치 표시 없음: " + stat);
+				Assert.IsNotNull(tree.Q<Label>("stat-name-" + stat), "수치 이름 없음: " + stat);
+				Assert.IsNotNull(tree.Q<Label>("stat-value-" + stat), "수치 값 없음: " + stat);
+				Assert.IsNotNull(tree.Q<Label>("stat-level-" + stat), "수치 레벨 없음: " + stat);
 				Assert.IsNotNull(tree.Q<Button>("stat-" + stat + "-x1"), "x1 버튼 없음: " + stat);
 				Assert.IsNotNull(tree.Q<Button>("stat-" + stat + "-x10"), "x10 버튼 없음: " + stat);
 				Assert.IsNotNull(tree.Q<Button>("stat-" + stat + "-x100"), "x100 버튼 없음: " + stat);
