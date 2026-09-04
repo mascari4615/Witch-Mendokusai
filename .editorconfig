@@ -45,7 +45,7 @@ csharp_new_line_before_members_in_anonymous_types = true
 csharp_new_line_between_query_expression_clauses = true
 
 # 포맷 통합 룰 (formatting analyzer)
-dotnet_diagnostic.IDE0055.severity = warning
+dotnet_diagnostic.IDE0055.severity = none
 
 # ── 후속 단계 자리 (E5+에서 enable) ────────────────────────────────────
 # dotnet_diagnostic.WM0001.severity = warning   # ! 부정 연산자 금지 (custom analyzer 후보)
