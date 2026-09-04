@@ -8,6 +8,8 @@ namespace WitchMendokusai.Tests.Idle
     {
         private const string UI_CONTENT_PATH =
             "Assets/_WitchMendokusai/Idle/Data/Assets/UI_0001_Idle.asset";
+        private const string HERO_CATALOG_PATH =
+            "Assets/_WitchMendokusai/Idle/Data/Assets/HC_0001_Idle.asset";
         private const string GEAR_PRESENTATION_PATH =
             "Assets/_WitchMendokusai/Idle/Data/Assets/GP_0001_Idle.asset";
         private const string BATTLE_PRESENTATION_PATH =
@@ -30,6 +32,14 @@ namespace WitchMendokusai.Tests.Idle
                 AssetDatabase.LoadAssetAtPath<GearPresentationSO>(GEAR_PRESENTATION_PATH);
             Assert.NotNull(presentation);
             Assert.IsTrue(presentation.TryValidate(out string error), error);
+        }
+
+        [Test]
+        public void HeroCatalogHasEveryPortrait()
+        {
+            HeroCatalogSO catalog = AssetDatabase.LoadAssetAtPath<HeroCatalogSO>(HERO_CATALOG_PATH);
+            Assert.NotNull(catalog);
+            Assert.IsTrue(catalog.TryValidate(out string error), error);
         }
 
         [Test]

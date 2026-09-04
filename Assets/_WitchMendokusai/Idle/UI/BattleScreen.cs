@@ -211,6 +211,10 @@ namespace WitchMendokusai.Idle
 			what = string.Empty;
 
 			if (heroCatalogAsset == null) { what = "heroCatalogAsset"; }
+			else if (heroCatalogAsset.TryValidate(out string heroError) == false)
+			{
+				what = "heroCatalogAsset: " + heroError;
+			}
 			else if (uiContentAsset == null) { what = "uiContentAsset"; }
 			else if (gearPresentationAsset == null) { what = "gearPresentationAsset"; }
 			else if (runtimeSettingsAsset == null) { what = "runtimeSettingsAsset"; }

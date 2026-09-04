@@ -33,5 +33,45 @@ namespace WitchMendokusai.Idle
 		{
 			return id >= 0 && id < heroes.Count && heroes[id] != null ? heroes[id].Sprite : null;
 		}
+
+		public bool TryValidate(out string error)
+		{
+			if (heroes.Count == 0)
+			{
+				error = "heroes must not be empty";
+				return false;
+			}
+
+			for (int index = 0; index < heroes.Count; index++)
+			{
+				HeroDefinitionSO hero = heroes[index];
+				if (hero == null)
+				{
+					error = "heroes contains an empty entry at " + index;
+					return false;
+				}
+
+				if (hero.ID != index)
+				{
+					error = "hero ID must match its catalog index at " + index;
+					return false;
+				}
+
+				if (string.IsNullOrWhiteSpace(hero.Name))
+				{
+					error = "hero name must not be empty at " + index;
+					return false;
+				}
+
+				if (hero.Sprite == null)
+				{
+					error = "hero portrait must not be empty at " + index;
+					return false;
+				}
+			}
+
+			error = string.Empty;
+			return true;
+		}
 	}
 }
