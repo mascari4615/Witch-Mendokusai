@@ -87,7 +87,7 @@ namespace WitchMendokusai.Idle
 		private float noteLeft;
 
 		private CardHandController cardHandController;
-		private Button[] dungeonRows;
+		private DungeonPageController dungeonPageController;
 
 		// ── 관리 열 ───────────────────────────────────────────────────────
 		/// <summary>UI 뿌리. 폭을 재서 무대 카메라를 맞춘다</summary>
@@ -112,24 +112,10 @@ namespace WitchMendokusai.Idle
 
 		private ItemPageController itemPageController;
 
-		// 도감
-		private Label codexLabel;
-		private VisualElement codexRows;
-		private readonly List<Label> codexLabels = new List<Label>();
-
-		// 상점
-		private Button pullButton;
-		private Label pullOdds;
-		private Button bagButton;
-		private Label bagNote;
-
-		// 연구소
-		private Label prestigeSummary;
-		private Button prestigeButton;
-
-		// 투자
-		private Label baseSummary;
-		private readonly List<Button> producerButtons = new List<Button>();
+		private CodexPageController codexPageController;
+		private ShopPageController shopPageController;
+		private LabPageController labPageController;
+		private InvestPageController investPageController;
 
 		// 툴팁
 		private Label tooltip;
@@ -462,8 +448,11 @@ namespace WitchMendokusai.Idle
 			heroSelectionController = null;
 			gearSelectionController = null;
 			itemPageController = null;
-			codexLabels.Clear();
-			producerButtons.Clear();
+			codexPageController = null;
+			shopPageController = null;
+			labPageController = null;
+			dungeonPageController = null;
+			investPageController = null;
 			mapSelectionController = null;
 			speedButtons.Clear();
 		}
@@ -613,95 +602,36 @@ namespace WitchMendokusai.Idle
 
 		private void BuildCodexPage()
 		{
-			VisualElement page = UsePage(Tab.Codex, "codex-page-host");
-			codexLabel = page.Q<Label>("codex-label");
-			codexRows = page.Q<VisualElement>("codex-rows");
+			codexPageController = new CodexPageController(
+				UsePage(Tab.Codex, "codex-page-host"), rowLabelAsset, uiContentAsset);
 		}
 
 		private void BuildShopPage()
 		{
-			VisualElement page = UsePage(Tab.Shop, "shop-page-host");
-			pullButton = page.Q<Button>("pull-button");
-			pullButton.clicked += Pull;
-			pullOdds = page.Q<Label>("pull-odds");
-			bagButton = page.Q<Button>("bag-button");
-			bagButton.clicked += BuyBag;
-			bagNote = page.Q<Label>("bag-note");
+			shopPageController = new ShopPageController(
+				UsePage(Tab.Shop, "shop-page-host"), session, uiContentAsset,
+				WriteDown, () => Render(session.Capture()), SayOnce, runtimeSettingsAsset.NoteSeconds);
 		}
 
 		private void BuildLabPage()
 		{
-			VisualElement page = UsePage(Tab.Lab, "lab-page-host");
-			prestigeSummary = page.Q<Label>("prestige-summary");
-			prestigeButton = page.Q<Button>("prestige-button");
-			prestigeButton.clicked += Prestige;
+			labPageController = new LabPageController(
+				UsePage(Tab.Lab, "lab-page-host"), session, uiContentAsset,
+				WriteDown, () => Render(session.Capture()), SayOnce, runtimeSettingsAsset.NoteSeconds);
 		}
 
 		/// <summary>던전 넷 (economy.md). 알파 9번이라 지금은 눌리지 않는다</summary>
 		private void BuildDungeonPage()
 		{
-			VisualElement page = UsePage(Tab.Dungeon, "dungeon-page-host");
-
-			dungeonRows = new Button[IdleDungeons.COUNT];
-
-			for (int index = 0; index < dungeonRows.Length; index++)
-			{
-				Button row = page.Q<Button>("dungeon-" + index);
-				dungeonRows[index] = row;
-
-				if (row != null)
-				{
-					// 입장권은 세지만 들어가지는 못한다. 던전 안 판이 아직 없다 (알파 9번)
-					row.SetEnabled(false);
-				}
-			}
-		}
-
-		/// <summary>던전 이름. 순서는 <c>IdleDungeonKind</c> 그대로</summary>
-		private string NameOf(IdleDungeonKind kind)
-		{
-			return uiContentAsset.DungeonName(kind);
-		}
-
-		/// <summary>남은 입장권과 다시 찰 때까지 (economy.md 4)</summary>
-		private void RenderDungeons(IdleSnapshot snapshot)
-		{
-			if (dungeonRows == null)
-			{
-				return;
-			}
-
-			long hours = (long)(snapshot.TicketRefillSeconds / 3600d);
-			long minutes = (long)(snapshot.TicketRefillSeconds / 60d) % 60L;
-
-			for (int index = 0; index < dungeonRows.Length; index++)
-			{
-				if (dungeonRows[index] == null)
-				{
-					continue;
-				}
-
-				dungeonRows[index].text = uiContentAsset.DungeonRowText(
-					NameOf((IdleDungeonKind)index), snapshot.Tickets[index], hours, minutes);
-			}
+			dungeonPageController = new DungeonPageController(
+				UsePage(Tab.Dungeon, "dungeon-page-host"), uiContentAsset);
 		}
 
 		private void BuildInvestPage()
 		{
-			VisualElement page = UsePage(Tab.Invest, "invest-page-host");
-			baseSummary = page.Q<Label>("base-summary");
-			VisualElement host = page.Q<VisualElement>("producers");
-
-			for (int kind = 0; kind < 8; kind++)
-			{
-				int captured = kind;
-				TemplateContainer tree = producerRowAsset.Instantiate();
-				Button row = tree.Q<Button>("row");
-				row.RemoveFromHierarchy();
-				row.clicked += () => BuyProducer(captured);
-				host.Add(row);
-				producerButtons.Add(row);
-			}
+			investPageController = new InvestPageController(
+				UsePage(Tab.Invest, "invest-page-host"), producerRowAsset,
+				session, uiContentAsset, () => Render(session.Capture()));
 		}
 
 		private void BuildMapPopup()
@@ -932,11 +862,11 @@ namespace WitchMendokusai.Idle
 			{
 				case Tab.Doll: dollPageController.Render(snapshot); break;
 				case Tab.Item: itemPageController.Render(snapshot); break;
-				case Tab.Codex: RenderCodexPage(snapshot); break;
-				case Tab.Shop: RenderShopPage(snapshot); break;
-				case Tab.Lab: RenderLabPage(snapshot); break;
-				case Tab.Invest: RenderInvestPage(snapshot); break;
-				case Tab.Dungeon: RenderDungeons(snapshot); break;
+				case Tab.Codex: codexPageController.Render(snapshot); break;
+				case Tab.Shop: shopPageController.Render(snapshot); break;
+				case Tab.Lab: labPageController.Render(snapshot); break;
+				case Tab.Invest: investPageController.Render(snapshot); break;
+				case Tab.Dungeon: dungeonPageController.Render(snapshot); break;
 				default: break;
 			}
 		}
@@ -963,115 +893,6 @@ namespace WitchMendokusai.Idle
 
 			session.ToggleAutoCast();
 			Render(session.Capture());
-		}
-
-		/// <summary>가방 한 묶음 넓히기 (상점). 판정은 코어가 한다</summary>
-		private void BuyBag()
-		{
-			if (session == null)
-			{
-				return;
-			}
-
-			session.BuyBagUpgrade();
-			Render(session.Capture());
-		}
-
-		/// <summary>인형 레벨 한 칸 (economy.md 표 3). 판정은 코어가 한다</summary>
-		private void RaiseHeroLevel(int heroId)
-		{
-			if (session == null)
-			{
-				return;
-			}
-
-			session.RaiseHeroLevel(heroId);
-			Render(session.Capture());
-		}
-
-		private void RenderCodexPage(IdleSnapshot snapshot)
-		{
-			codexLabel.text = uiContentAsset.CodexSummaryText(
-				snapshot.CodexScore, snapshot.CodexMultiplier, snapshot.Heroes.Length, IdleHeroes.Count);
-
-			if (codexLabels.Count != IdleHeroes.Count)
-			{
-				codexRows.Clear();
-				codexLabels.Clear();
-
-				for (int id = 0; id < IdleHeroes.Count; id++)
-				{
-					TemplateContainer tree = rowLabelAsset.Instantiate();
-					Label row = tree.Q<Label>("row");
-					row.RemoveFromHierarchy();
-					codexRows.Add(row);
-					codexLabels.Add(row);
-				}
-			}
-
-			for (int id = 0; id < codexLabels.Count; id++)
-			{
-				IdleHeroKind kind = IdleHeroes.KindOf(id);
-				bool owned = TryFindHero(snapshot, id, out IdleHeroView hero);
-				int stars = owned ? hero.Stars : 0;
-
-				codexLabels[id].text = owned
-					? uiContentAsset.CodexHeroText(kind.Name, uiContentAsset.StarsText(stars),
-						uiContentAsset.GradeName(kind.Grade), uiContentAsset.AxisName(kind.Axis))
-					: uiContentAsset.CodexHiddenHeroText(uiContentAsset.GradeName(kind.Grade));
-				codexLabels[id].EnableInClassList("idle-row-title--dim", owned == false);
-			}
-		}
-
-		private void RenderShopPage(IdleSnapshot snapshot)
-		{
-			// 가방 넓히기. 골드로 사고 환생 때 사라진다 (사용자 판정 2026-09-01, 울티마 스쿼드)
-			bagButton.text = snapshot.BagUpgradeCost > 0d
-				? uiContentAsset.BagUpgradeText(IdleShop.BAG_STEP_HINT, BigNumberText.Format(snapshot.BagUpgradeCost))
-				: uiContentAsset.BagUpgradeMaxText;
-			bagButton.SetEnabled(snapshot.CanBuyBag);
-			bagNote.text = uiContentAsset.BagResetNoteText(snapshot.BagCapacity);
-
-			pullButton.text = snapshot.CanPull
-				? uiContentAsset.PullAvailableText(BigNumberText.Format(snapshot.PullCost), snapshot.PullStoneCost, snapshot.Stones)
-				: snapshot.Stones < snapshot.PullStoneCost
-					? uiContentAsset.PullNoStoneText(snapshot.Stones)
-					: uiContentAsset.PullNoGoldText(BigNumberText.Format(snapshot.PullCost));
-			pullButton.SetEnabled(snapshot.CanPull);
-
-			pullOdds.text = uiContentAsset.PullOddsText(
-				snapshot.LegendChance, snapshot.EpicChance, snapshot.RareChance, snapshot.PullsToPity);
-		}
-
-		private void RenderLabPage(IdleSnapshot snapshot)
-		{
-			prestigeSummary.text = uiContentAsset.PrestigeSummaryText(
-				snapshot.PrestigePoints, snapshot.PrestigeAward, snapshot.PrestigeMultiplier);
-
-			prestigeButton.text = uiContentAsset.PrestigeButtonText(snapshot.PrestigeAward, snapshot.PrestigeNextStage);
-			prestigeButton.SetEnabled(snapshot.PrestigeAward > 0L);
-		}
-
-		private void RenderInvestPage(IdleSnapshot snapshot)
-		{
-			baseSummary.text = uiContentAsset.ProducerSummaryText(BigNumberText.Format(snapshot.IncomePerSecond));
-
-			for (int kind = 0; kind < producerButtons.Count; kind++)
-			{
-				if (kind >= snapshot.Producers.Length)
-				{
-					producerButtons[kind].style.display = DisplayStyle.None;
-					continue;
-				}
-
-				IdleProducerView view = snapshot.Producers[kind];
-				producerButtons[kind].style.display = view.Hidden ? DisplayStyle.None : DisplayStyle.Flex;
-				producerButtons[kind].text = uiContentAsset.ProducerRowText(
-					kind + 1, view.Owned,
-					BigNumberText.Format(view.OutputTotal),
-					BigNumberText.Format(view.NextCost));
-				producerButtons[kind].SetEnabled(view.CanAfford);
-			}
 		}
 
 		/// <summary>코어가 고른 한 걸음을 사람 말로.</summary>
@@ -1346,30 +1167,9 @@ namespace WitchMendokusai.Idle
 			Render(session.Capture());
 		}
 
-		private void BuyProducer(int kind)
-		{
-			session.Send(new IdleBuyProducerIntent(kind));
-			Render(session.Capture());
-		}
-
 		private void Equip(int bagIndex)
 		{
 			itemPageController.Equip(bagIndex);
-		}
-
-		private void Pull()
-		{
-			if (session.TryPull(out IdleHeroPull got) == false)
-			{
-				return;
-			}
-
-			IdleHeroKind kind = IdleHeroes.KindOf(got.Id);
-			SayOnce(uiContentAsset.PullFeedbackText(
-				uiContentAsset.GradeName(got.Grade), kind.Name, got.IsNew, got.ByPity), runtimeSettingsAsset.NoteSeconds * 2f);
-
-			WriteDown();
-			Render(session.Capture());
 		}
 
 		private void ChooseHero(int id)
@@ -1408,32 +1208,6 @@ namespace WitchMendokusai.Idle
 			}
 
 			return -1;
-		}
-
-		private static bool TryFindHero(IdleSnapshot snapshot, int heroId, out IdleHeroView hero)
-		{
-			for (int index = 0; index < snapshot.Heroes.Length; index++)
-			{
-				if (snapshot.Heroes[index].Id == heroId)
-				{
-					hero = snapshot.Heroes[index];
-					return true;
-				}
-			}
-
-			hero = default;
-			return false;
-		}
-
-		private void Prestige()
-		{
-			if (session.Send(new IdlePrestigeIntent()))
-			{
-				SayOnce(uiContentAsset.PrestigeFeedback, runtimeSettingsAsset.NoteSeconds * 2f);
-				WriteDown();
-			}
-
-			Render(session.Capture());
 		}
 
 		// ── 툴팁 ───────────────────────────────────────────────────────────
