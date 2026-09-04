@@ -79,6 +79,7 @@ namespace WitchMendokusai.Idle
 		// ── 전투 창 ───────────────────────────────────────────────────────
 		private VisualElement battle;
 		private BattleHudController battleHudController;
+		private BattleActionController battleActionController;
 
 		private CardHandController cardHandController;
 		private DungeonPageController dungeonPageController;
@@ -368,6 +369,16 @@ namespace WitchMendokusai.Idle
 			VisualElement shell = root.Q<VisualElement>("shell");
 			tooltip = root.Q<Label>("tooltip");
 			tooltipController = new PointerTooltipController(tooltip, runtimeSettingsAsset.TooltipTouchMilliseconds);
+			battleActionController = new BattleActionController(
+				session,
+				stage,
+				uiContentAsset,
+				runtimeSettingsAsset,
+				() => cardHandController.CancelAim(),
+				CloseMap,
+				WriteDown,
+				() => Render(session.Capture()),
+				SayOnce);
 
 			BuildBattle(shell);
 			BuildSide(shell);
@@ -410,6 +421,7 @@ namespace WitchMendokusai.Idle
 		{
 			screenLayoutController?.Dispose();
 			battleHudController = null;
+			battleActionController = null;
 			cardHandController = null;
 			sidePanelController = null;
 			screenLayoutController = null;
@@ -431,7 +443,7 @@ namespace WitchMendokusai.Idle
 			battle = shell.Q<VisualElement>("battle");
 
 			// 빈 곳 누르기는 응원 한 대. 무대 그 자체가 큰 버튼
-			battle.RegisterCallback<PointerDownEvent>(OnTapped);
+			battle.RegisterCallback<PointerDownEvent>(battleActionController.OnBattleTapped);
 
 			BindBattleHud();
 			BuildBattleExtras();
@@ -455,52 +467,21 @@ namespace WitchMendokusai.Idle
 				session.CanGoToStage,
 				() => OpenTab(Tab.Doll),
 				ToggleMap,
-				StepStage,
-				ToggleHold,
+				battleActionController.StepStage,
+				battleActionController.ToggleHold,
 				OpenGoldPopup,
 				ToggleSplit,
 				OpenSettingsPopup,
-				ToggleAutoCast);
+				battleActionController.ToggleAutoCast);
 			cardHandController = new CardHandController(
 				battle,
 				cardAsset,
 				queueChipAsset,
 				uiContentAsset,
-				CanAimCard,
-				Cast,
-				PickFoe,
-				CastVolleyAt);
-		}
-
-		private bool CanAimCard(int handIndex)
-		{
-			if (session == null || handIndex < 0)
-			{
-				return false;
-			}
-
-			IdleSnapshot snapshot = session.Capture();
-			return handIndex < snapshot.Cards.Length
-				&& snapshot.Cards[handIndex].Kind == IdleCardKind.Volley
-				&& snapshot.Cards[handIndex].CanCast;
-		}
-
-		private long? PickFoe(Vector2 position)
-		{
-			return stage != null && stage.TryPickFoe(position, out long foeIndex) ? foeIndex : (long?)null;
-		}
-
-		private bool CastVolleyAt(int handIndex, long foeIndex)
-		{
-			if (session.TryCastCardAt(handIndex, foeIndex, out IdleCardResult result) == false)
-			{
-				return false;
-			}
-			stage.OnVolley(foeIndex);
-			SayOnce(uiContentAsset.VolleyTargetFeedback, runtimeSettingsAsset.NoteSeconds);
-			WriteDown();
-			Render(session.Capture());
-			return true;
+				battleActionController.CanAimCard,
+				battleActionController.Cast,
+				battleActionController.PickFoe,
+				battleActionController.CastVolleyAt);
 		}
 
 		private void BuildSide(VisualElement shell)
@@ -611,7 +592,7 @@ namespace WitchMendokusai.Idle
 				modalController,
 				uiContentAsset,
 				session.CanGoToStage,
-				GoToStage);
+				battleActionController.GoToStage);
 		}
 
 		/// <summary>장비 고르기 팝업. 관리 열 위에 뜬다</summary>
@@ -750,18 +731,6 @@ namespace WitchMendokusai.Idle
 			}
 		}
 
-		/// <summary>자동 시전 켜고 끄기 (P1-6)</summary>
-		private void ToggleAutoCast()
-		{
-			if (session == null)
-			{
-				return;
-			}
-
-			session.ToggleAutoCast();
-			Render(session.Capture());
-		}
-
 		// ── 화면 상태 ─────────────────────────────────────────────────────
 
 		private void OpenTab(Tab tab)
@@ -824,120 +793,6 @@ namespace WitchMendokusai.Idle
 			persistence.WipeAndSkipClose();
 			enabled = false;
 			enabled = true;
-		}
-
-		// ── 의도 ──────────────────────────────────────────────────────────
-
-		private void OnTapped(PointerDownEvent moment)
-		{
-			if (moment.target is Button || (moment.target is VisualElement element && IsInsideBox(element)))
-			{
-				return;
-			}
-
-			session.Send(new IdleTapIntent());
-
-			if (stage != null)
-			{
-				stage.OnTap();
-			}
-
-			Render(session.Capture());
-		}
-
-		private static bool IsInsideBox(VisualElement element)
-		{
-			for (VisualElement at = element; at != null; at = at.parent)
-			{
-				if (at.ClassListContains("idle-box"))
-				{
-					return true;
-				}
-			}
-
-			return false;
-		}
-
-		private void Cast(int handIndex)
-		{
-			IdleSnapshot beforeCast = session.Capture();
-			if (handIndex < 0 || handIndex >= beforeCast.Cards.Length)
-			{
-				return;
-			}
-
-			IdleCardKind selected = beforeCast.Cards[handIndex].Kind;
-			if (selected == IdleCardKind.Volley)
-			{
-				cardHandController.CancelAim();
-				SayOnce(uiContentAsset.VolleyDragHint, runtimeSettingsAsset.NoteSeconds);
-				return;
-			}
-
-			if (session.TryCastCard(handIndex, out IdleCardResult result) == false)
-			{
-				return;
-			}
-
-			IdleCardKind kind = result.Kind;
-
-			switch (kind)
-			{
-				case IdleCardKind.Volley:
-					// Volley is target-only and is resolved by EndSkillDrag.
-					SayOnce(uiContentAsset.VolleyResolvedFeedback, runtimeSettingsAsset.NoteSeconds);
-					break;
-
-				case IdleCardKind.Supply:
-					if (stage != null) { stage.OnSupply((float)result.EffectSeconds); }
-					SayOnce(uiContentAsset.SupplyFeedbackText(
-						result.EffectSeconds, result.EffectMultiplier), runtimeSettingsAsset.NoteSeconds);
-					break;
-
-				default:
-					if (stage != null) { stage.OnAppraise(); }
-					SayOnce(result.HasRoll
-						? uiContentAsset.AppraiseCardFeedbackText(result.Roll.Tier, result.Roll.Value, result.Roll.Replaced)
-						: uiContentAsset.AppraiseCardEmptyFeedback, runtimeSettingsAsset.NoteSeconds);
-					break;
-			}
-
-			WriteDown();
-			Render(session.Capture());
-		}
-
-		private void NextStage()
-		{
-			if (session.Send(new IdleNextStageIntent()))
-			{
-				SayOnce(uiContentAsset.NextStageFeedback, runtimeSettingsAsset.NoteSeconds);
-				WriteDown();
-			}
-
-			Render(session.Capture());
-		}
-
-		private void StepStage(int delta)
-		{
-			GoToStage(session.Capture().Stage + delta);
-		}
-
-		private void GoToStage(int target)
-		{
-			CloseMap();
-			if (session.Send(new IdleGoToStageIntent(target)))
-			{
-				WriteDown();
-			}
-
-			Render(session.Capture());
-		}
-
-		private void ToggleHold()
-		{
-			session.Send(new IdleHoldStageIntent(session.Capture().HoldingStage == false));
-			WriteDown();
-			Render(session.Capture());
 		}
 
 		// ── 툴팁 ───────────────────────────────────────────────────────────
