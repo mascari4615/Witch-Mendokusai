@@ -1,0 +1,28 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="True">
+    <Style src="IdlePlaygroundWindow.uss" />
+    <ui:ScrollView class="idle-playground">
+        <uie:ObjectField name="tuning-field" label="수치 에셋" />
+        <ui:VisualElement class="idle-playground-summary">
+            <ui:Label name="stage-label" class="idle-playground-line idle-playground-line--strong" />
+            <ui:Label name="resource-label" class="idle-playground-resource" />
+            <ui:Label name="income-label" class="idle-playground-line" />
+            <ui:Label name="kills-label" class="idle-playground-line" />
+            <ui:ProgressBar name="target-bar" low-value="0" high-value="1" />
+        </ui:VisualElement>
+        <ui:VisualElement class="idle-playground-section">
+            <ui:Label name="damage-level" class="idle-playground-line" />
+            <ui:Button name="damage-button" />
+            <ui:Label name="speed-level" class="idle-playground-line idle-playground-gap" />
+            <ui:Button name="speed-button" />
+            <ui:Button name="hold-button" class="idle-playground-gap" />
+        </ui:VisualElement>
+        <ui:VisualElement class="idle-playground-section">
+            <ui:Label name="potential-label" class="idle-playground-line" />
+            <ui:VisualElement name="drops-panel" />
+            <ui:Label name="roll-label" class="idle-playground-note" />
+            <ui:Button name="prestige-button" />
+        </ui:VisualElement>
+        <ui:SliderInt name="speed-slider" label="빨리감기" low-value="1" high-value="200" value="1" class="idle-playground-gap" />
+        <ui:Button name="reset-button" text="처음부터" />
+    </ui:ScrollView>
+</ui:UXML>

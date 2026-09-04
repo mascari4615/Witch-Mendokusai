@@ -21,11 +21,19 @@ namespace WitchMendokusai.Idle.Editor
 	/// ★ 씬도 Play 도 없다 — 코어가 Unity 를 모르니 에디터 창만으로 게임이 돈다.
 	///   그게 「코어만으로도 게임은 돌아간다」의 증거이기도 하다.
 	///
-	/// ★ <see cref="TuningSO"/> 수치 사용, 미지정 시 코드 기본값
+	/// ★ <see cref="TuningSO"/> 수치와 UXML 정본 사용
 	/// </summary>
 	public sealed class IdlePlaygroundWindow : EditorWindow, IGameView<IdleSnapshot>
 	{
 		private const double TICK_SECONDS = 0.1d;
+		private const string VIEW_PATH =
+			"Assets/_WitchMendokusai/Idle/Editor/IdlePlaygroundWindow.uxml";
+		private const string DROP_ROW_PATH =
+			"Assets/_WitchMendokusai/Idle/Editor/IdlePlaygroundDropRow.uxml";
+		private const string TUNING_PATH =
+			"Assets/_WitchMendokusai/Scenes/Idle/TU_0001_Idle.asset";
+		private const string HERO_CATALOG_PATH =
+			"Assets/_WitchMendokusai/Idle/Data/Assets/HC_0001_Idle.asset";
 
 		[SerializeField] private TuningSO tuningAsset;
 		[SerializeField] private HeroCatalogSO heroCatalogAsset;
@@ -49,6 +57,7 @@ namespace WitchMendokusai.Idle.Editor
 		private Button speedButton;
 		private Label damageLevelLabel;
 		private Label speedLevelLabel;
+		private VisualTreeAsset dropRowAsset;
 
 		/// <summary>이 창은 화면 요소만으로 그린다.</summary>
 		public PresentationKind Kind => PresentationKind.UIOnly;
@@ -76,28 +85,35 @@ namespace WitchMendokusai.Idle.Editor
 
 		private void RebuildSession()
 		{
-			heroCatalogAsset ??= AssetDatabase.LoadAssetAtPath<HeroCatalogSO>(
-				"Assets/_WitchMendokusai/Idle/Data/Assets/HC_0001_Idle.asset");
-			if (heroCatalogAsset == null)
+			tuningAsset ??= AssetDatabase.LoadAssetAtPath<TuningSO>(TUNING_PATH);
+			heroCatalogAsset ??= AssetDatabase.LoadAssetAtPath<HeroCatalogSO>(HERO_CATALOG_PATH);
+			if (tuningAsset == null || heroCatalogAsset == null)
 			{
-				Debug.LogError("[Idle] 영웅 카탈로그 에셋이 없다.");
+				Debug.LogError("[Idle] Playground 데이터 에셋이 없다.");
+				session = null;
 				return;
 			}
 
 			IdleHeroes.Configure(heroCatalogAsset.ToDomain());
-			IdleTuning tuning = tuningAsset != null ? tuningAsset.ToTuning() : new IdleTuning();
+			IdleTuning tuning = tuningAsset.ToTuning();
 			session = new IdleSession(tuning);
 		}
 
 		public void CreateGUI()
 		{
 			VisualElement root = rootVisualElement;
-			root.style.paddingLeft = 12f;
-			root.style.paddingRight = 12f;
-			root.style.paddingTop = 12f;
-			root.style.paddingBottom = 12f;
+			VisualTreeAsset viewAsset = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(VIEW_PATH);
+			dropRowAsset = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(DROP_ROW_PATH);
+			if (viewAsset == null || dropRowAsset == null)
+			{
+				Debug.LogError("[Idle] Playground UXML 에셋이 없다.");
+				return;
+			}
 
-			ObjectField tuningField = new ObjectField("수치 에셋");
+			root.Clear();
+			viewAsset.CloneTree(root);
+
+			ObjectField tuningField = root.Q<ObjectField>("tuning-field");
 			tuningField.objectType = typeof(TuningSO);
 			tuningField.value = tuningAsset;
 			tuningField.RegisterValueChangedCallback(changed =>
@@ -105,71 +121,34 @@ namespace WitchMendokusai.Idle.Editor
 				tuningAsset = changed.newValue as TuningSO;
 				RebuildSession();
 			});
-			root.Add(tuningField);
 
-			root.Add(MakeSpacer(8f));
+			stageLabel = root.Q<Label>("stage-label");
+			resourceLabel = root.Q<Label>("resource-label");
+			incomeLabel = root.Q<Label>("income-label");
+			killsLabel = root.Q<Label>("kills-label");
+			targetBar = root.Q<ProgressBar>("target-bar");
+			damageLevelLabel = root.Q<Label>("damage-level");
+			damageButton = root.Q<Button>("damage-button");
+			damageButton.clicked += () => Send(IdleUpgradeKind.Damage);
+			speedLevelLabel = root.Q<Label>("speed-level");
+			speedButton = root.Q<Button>("speed-button");
+			speedButton.clicked += () => Send(IdleUpgradeKind.AttackSpeed);
+			holdButton = root.Q<Button>("hold-button");
+			holdButton.clicked += ToggleHold;
+			potentialLabel = root.Q<Label>("potential-label");
+			dropsPanel = root.Q<VisualElement>("drops-panel");
+			rollLabel = root.Q<Label>("roll-label");
+			prestigeButton = root.Q<Button>("prestige-button");
+			prestigeButton.clicked += Prestige;
 
-			stageLabel = MakeLine(root, 13, FontStyle.Bold);
-			resourceLabel = MakeLine(root, 22, FontStyle.Bold);
-			incomeLabel = MakeLine(root, 12, FontStyle.Normal);
-			killsLabel = MakeLine(root, 12, FontStyle.Normal);
-
-			targetBar = new ProgressBar();
-			targetBar.lowValue = 0f;
-			targetBar.highValue = 1f;
-			root.Add(targetBar);
-
-			root.Add(MakeSpacer(10f));
-
-			damageLevelLabel = MakeLine(root, 12, FontStyle.Normal);
-			damageButton = new Button(() => Send(IdleUpgradeKind.Damage));
-			root.Add(damageButton);
-
-			root.Add(MakeSpacer(6f));
-
-			speedLevelLabel = MakeLine(root, 12, FontStyle.Normal);
-			speedButton = new Button(() => Send(IdleUpgradeKind.AttackSpeed));
-			root.Add(speedButton);
-
-			holdButton = new Button(ToggleHold);
-			root.Add(holdButton);
-
-			potentialLabel = MakeLine(root, 12, FontStyle.Normal);
-			dropsPanel = new VisualElement();
-			root.Add(dropsPanel);
-			rollLabel = MakeLine(root, 11, FontStyle.Normal);
-
-			prestigeButton = new Button(Prestige);
-			root.Add(prestigeButton);
-
-			root.Add(MakeSpacer(12f));
-
-			SliderInt speed = new SliderInt("빨리감기", 1, 200);
-			speed.value = 1;
+			SliderInt speed = root.Q<SliderInt>("speed-slider");
 			speed.RegisterValueChangedCallback(changed => speedMultiplier = changed.newValue);
-			root.Add(speed);
+			root.Q<Button>("reset-button").clicked += RebuildSession;
 
-			Button reset = new Button(RebuildSession);
-			reset.text = "처음부터";
-			root.Add(reset);
-
-			Render(session.Capture());
-		}
-
-		private static Label MakeLine(VisualElement parent, int fontSize, FontStyle fontStyle)
-		{
-			Label label = new Label(string.Empty);
-			label.style.fontSize = fontSize;
-			label.style.unityFontStyleAndWeight = fontStyle;
-			parent.Add(label);
-			return label;
-		}
-
-		private static VisualElement MakeSpacer(float height)
-		{
-			VisualElement spacer = new VisualElement();
-			spacer.style.height = height;
-			return spacer;
+			if (session != null)
+			{
+				Render(session.Capture());
+			}
 		}
 
 		/// <summary>버튼이 하는 일은 이것뿐 — 의도를 보낸다. 받아들일지는 코어가 정한다.</summary>
@@ -187,7 +166,10 @@ namespace WitchMendokusai.Idle.Editor
 			for (int tier = 1; tier <= tierCount; tier++)
 			{
 				int captured = tier;
-				Button button = new Button(() => Appraise(captured));
+				TemplateContainer tree = dropRowAsset.Instantiate();
+				Button button = tree.Q<Button>("drop-button");
+				button.RemoveFromHierarchy();
+				button.clicked += () => Appraise(captured);
 				dropsPanel.Add(button);
 				appraiseButtons.Add(button);
 			}
@@ -218,6 +200,11 @@ namespace WitchMendokusai.Idle.Editor
 
 		private void Tick()
 		{
+			if (session == null)
+			{
+				return;
+			}
+
 			double now = EditorApplication.timeSinceStartup;
 			double elapsed = now - lastTickTime;
 			if (elapsed < TICK_SECONDS)

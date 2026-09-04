@@ -1,0 +1,33 @@
+.idle-playground {
+    padding: 12px;
+}
+
+.idle-playground-summary {
+    margin-top: 8px;
+}
+
+.idle-playground-section {
+    margin-top: 10px;
+}
+
+.idle-playground-line {
+    font-size: 12px;
+}
+
+.idle-playground-line--strong {
+    font-size: 13px;
+    -unity-font-style: bold;
+}
+
+.idle-playground-resource {
+    font-size: 22px;
+    -unity-font-style: bold;
+}
+
+.idle-playground-note {
+    font-size: 11px;
+}
+
+.idle-playground-gap {
+    margin-top: 6px;
+}

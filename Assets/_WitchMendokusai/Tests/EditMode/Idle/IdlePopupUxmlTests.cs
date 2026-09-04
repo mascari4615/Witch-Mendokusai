@@ -59,6 +59,26 @@ namespace WitchMendokusai.Tests.Idle
 		}
 
 		[Test]
+		public void PlaygroundExposesStaticBindingPoints()
+		{
+			const string path = "Assets/_WitchMendokusai/Idle/Editor/IdlePlaygroundWindow.uxml";
+			VisualTreeAsset asset = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(path);
+			Assert.NotNull(asset);
+			TemplateContainer tree = asset.Instantiate();
+			string[] names =
+			{
+				"tuning-field", "stage-label", "resource-label", "income-label", "kills-label",
+				"target-bar", "damage-level", "damage-button", "speed-level", "speed-button",
+				"hold-button", "potential-label", "drops-panel", "roll-label", "prestige-button",
+				"speed-slider", "reset-button",
+			};
+			foreach (string name in names)
+			{
+				Assert.NotNull(tree.Q(name), path + " is missing #" + name);
+			}
+		}
+
+		[Test]
 		public void MapPopupExposesBindingPoints()
 		{
 			AssertElements("IdleMapPopup.uxml", "popup", "map-close", "map-rows");

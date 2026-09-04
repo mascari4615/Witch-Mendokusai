@@ -23,6 +23,7 @@ namespace WitchMendokusai.Idle.UI
 		public void Register(VisualElement overlay, Action close)
 		{
 			overlays.Add(overlay);
+			// TODO: UI Toolkit 패널까지 흐림 처리. 현재 출력은 카메라 장면만 포함.
 			RenderTexture blurOutput = Resources.Load<RenderTexture>("Rendering/CustomBlurOutput");
 			if (blurOutput != null)
 			{
