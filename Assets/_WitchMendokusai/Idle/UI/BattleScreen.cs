@@ -98,8 +98,7 @@ namespace WitchMendokusai.Idle
 		private bool split = true;
 		private bool sideOpen;
 
-		// 인형
-		private readonly List<Button> partyButtons = new List<Button>();
+		private DollPageController dollPageController;
 		private HeroSelectionController heroSelectionController;
 
 		/// <summary>장비를 볼 인형의 편성 자리 (2026-08-31 인형별 장비). 찬 편성 칸을 누르면 바뀐다</summary>
@@ -107,17 +106,6 @@ namespace WitchMendokusai.Idle
 
 		/// <summary>그 자리의 인형 번호. 빈 자리면 -1</summary>
 		private int gearHeroId => session != null ? session.HeroAtPartySlot(gearSeat) : -1;
-
-		/// <summary>한 인형의 장비 넷. 매 프레임 새 배열을 안 만들려고 들고 있는다</summary>
-		private readonly IdleItem[] gearOfHero = new IdleItem[IdleGear.SLOT_COUNT];
-		private Label dollName;
-		private Label[] statNames;
-		private Label[] statValues;
-		private Label[] statLevels;
-		private Button[,] statButtons;
-		private Label statFeedback;
-		private int statFeedbackVersion;
-		private readonly List<Button> wornCells = new List<Button>();
 
 		// 장비 고르기 팝업 (사용자 2026-08-31). 인형이 여럿이라 가방에서 바로 장착하면 대상이 불명
 		private GearSelectionController gearSelectionController;
@@ -470,8 +458,7 @@ namespace WitchMendokusai.Idle
 			battleHudController = null;
 			cardHandController = null;
 			sidePanelController = null;
-			partyButtons.Clear();
-			wornCells.Clear();
+			dollPageController = null;
 			heroSelectionController = null;
 			gearSelectionController = null;
 			itemPageController = null;
@@ -587,54 +574,22 @@ namespace WitchMendokusai.Idle
 		/// <summary>인형 탭 (layout.md §3). 모양은 UXML, 여기는 값과 클릭만</summary>
 		private void BuildDollPage()
 		{
-			BindDollPage(UsePage(Tab.Doll, "doll-page-host"));
-		}
-
-		/// <summary>인형 탭을 UXML 에서. 모양은 에셋, 코드는 이름으로 찾아 값과 클릭만</summary>
-		private void BindDollPage(VisualElement page)
-		{
-			statNames = new Label[uiContentAsset.StatCount];
-			statValues = new Label[uiContentAsset.StatCount];
-			statLevels = new Label[uiContentAsset.StatCount];
-			statButtons = new Button[uiContentAsset.StatCount, uiContentAsset.StatUpgradeAmountCount];
-			for (int slot = 0; slot < IdleHeroes.PARTY_SLOTS; slot++)
-			{
-				int captured = slot;
-				Button seat = page.Q<Button>("seat-" + slot);
-				seat.clicked += () => BeginSeat(captured);
-				partyButtons.Add(seat);
-			}
-
-			dollName = page.Q<Label>("doll-name");
-			statFeedback = page.Q<Label>("stat-feedback");
-			statFeedback.style.visibility = Visibility.Hidden;
-			for (int stat = 0; stat < uiContentAsset.StatCount; stat++)
-			{
-				int capturedStat = stat;
-				statNames[stat] = page.Q<Label>("stat-name-" + stat);
-				statValues[stat] = page.Q<Label>("stat-value-" + stat);
-				statLevels[stat] = page.Q<Label>("stat-level-" + stat);
-				statNames[stat].text = uiContentAsset.StatName(stat);
-
-				for (int amount = 0; amount < uiContentAsset.StatUpgradeAmountCount; amount++)
-				{
-					int capturedAmount = uiContentAsset.StatUpgradeAmount(amount);
-					Button button = page.Q<Button>("stat-" + stat + "-x" + capturedAmount);
-					button.clicked += () => Raise((IdleUpgradeKind)capturedStat, capturedAmount);
-					HookTooltip(button, () => StatTip((IdleUpgradeKind)capturedStat, capturedAmount));
-					statButtons[stat, amount] = button;
-				}
-			}
-
-			for (int slot = 0; slot < uiContentAsset.GearSlotCount; slot++)
-			{
-				int captured = slot;
-				Button cell = page.Q<Button>("worn-" + slot);
-				cell.clicked += () => OpenGear(captured);
-				HookTooltip(cell, () => WornTip(captured));
-				wornCells.Add(cell);
-			}
-
+			dollPageController = new DollPageController(
+				UsePage(Tab.Doll, "doll-page-host"),
+				session,
+				uiContentAsset,
+				heroVisualPresenter,
+				gearVisualPresenter,
+				() => gearHeroId,
+				() => gearSeat,
+				() => heroSelectionController != null ? heroSelectionController.SelectedSeat : -1,
+				OpenHeroPopup,
+				OpenGear,
+				WornTip,
+				HookTooltip,
+				WriteDown,
+				() => Render(session.Capture()),
+				() => sound?.Good());
 		}
 
 		/// <summary>아이템 탭 (layout.md §3). 가방과 공방. 모양은 UXML</summary>
@@ -975,7 +930,7 @@ namespace WitchMendokusai.Idle
 		{
 			switch (openTab)
 			{
-				case Tab.Doll: RenderDollPage(snapshot); break;
+				case Tab.Doll: dollPageController.Render(snapshot); break;
 				case Tab.Item: itemPageController.Render(snapshot); break;
 				case Tab.Codex: RenderCodexPage(snapshot); break;
 				case Tab.Shop: RenderShopPage(snapshot); break;
@@ -984,81 +939,6 @@ namespace WitchMendokusai.Idle
 				case Tab.Dungeon: RenderDungeons(snapshot); break;
 				default: break;
 			}
-		}
-
-		private void RenderDollPage(IdleSnapshot snapshot)
-		{
-			for (int slot = 0; slot < partyButtons.Count; slot++)
-			{
-				int id = slot < snapshot.Party.Length ? snapshot.Party[slot] : -1;
-				string tag = uiContentAsset.SeatText(IdleHeroes.IsMainSlot(slot));
-				Button seat = partyButtons[slot];
-				seat.text = string.Empty;
-				VisualElement portrait = seat.Q<VisualElement>("seat-icon-" + slot);
-				Label label = seat.Q<Label>("seat-label-" + slot);
-				portrait.style.display = id >= 0 ? DisplayStyle.Flex : DisplayStyle.None;
-				label.text = id >= 0
-					? uiContentAsset.PartySeatText(tag, IdleHeroes.KindOf(id).Name)
-					: uiContentAsset.EmptyPartySeatText(tag);
-				if (id >= 0) { heroVisualPresenter.SetPortrait(portrait, id); }
-				int selectedSeat = heroSelectionController != null ? heroSelectionController.SelectedSeat : -1;
-				partyButtons[slot].EnableInClassList("idle-party-seat--picking", selectedSeat == slot);
-				partyButtons[slot].EnableInClassList("idle-party-seat--geared", selectedSeat < 0 && gearSeat == slot);
-			}
-
-			int wearer = gearHeroId;
-			dollName.text = wearer >= 0
-				? uiContentAsset.GrowthTitle(IdleHeroes.KindOf(wearer).Name)
-				: uiContentAsset.EmptySeatText;
-			for (int stat = 0; stat < uiContentAsset.StatCount; stat++)
-			{
-				IdleUpgradeKind kind = (IdleUpgradeKind)stat;
-				IdleUpgradeView one = session.ViewHeroStat(wearer, kind, 1);
-				statValues[stat].text = StatValueText(kind, one.CurrentValue);
-				statLevels[stat].text = uiContentAsset.LevelText(one.Level);
-
-				for (int amount = 0; amount < uiContentAsset.StatUpgradeAmountCount; amount++)
-				{
-					int count = uiContentAsset.StatUpgradeAmount(amount);
-					IdleUpgradeView purchase = session.ViewHeroStat(wearer, kind, count);
-					Button button = statButtons[stat, amount];
-					button.text = purchase.IsMaxed
-						? uiContentAsset.MaxedText
-						: uiContentAsset.UpgradeButtonText(count, BigNumberText.Format(purchase.NextCost));
-					bool canAfford = wearer >= 0 && purchase.CanAfford;
-					button.EnableInClassList("idle-stat-buy--ready", canAfford);
-					button.EnableInClassList("idle-stat-buy--maxed", purchase.IsMaxed);
-					button.SetEnabled(canAfford);
-				}
-			}
-
-			// 장비는 인형별 (2026-08-31). 사진의 Worn 은 전장 전체 요약이라 코어에 직접 조회
-			if (wearer >= 0)
-			{
-				session.CopyWornOf(wearer, gearOfHero);
-			}
-			else
-			{
-				for (int slot = 0; slot < gearOfHero.Length; slot++)
-				{
-					gearOfHero[slot] = default;
-				}
-			}
-
-			for (int slot = 0; slot < wornCells.Count && slot < gearOfHero.Length; slot++)
-			{
-				IdleItem one = gearOfHero[slot];
-				wornCells[slot].text = string.Empty;
-				VisualElement icon = wornCells[slot].Q<VisualElement>("worn-icon-" + slot);
-				Label badge = wornCells[slot].Q<Label>("worn-label-" + slot);
-				icon.style.display = one.IsEmpty ? DisplayStyle.None : DisplayStyle.Flex;
-				badge.text = one.IsEmpty ? uiContentAsset.GearSlotName(slot) : string.Empty;
-				if (one.IsEmpty == false) { gearVisualPresenter.SetSprite(icon, slot, one.Tier); }
-				wornCells[slot].EnableInClassList("idle-worn-cell--empty", one.IsEmpty);
-				wornCells[slot].SetEnabled(wearer >= 0);
-				gearVisualPresenter.SetTierOutline(wornCells[slot], one.IsEmpty ? 0 : one.Tier);
-			}
-
 		}
 
 		/// <summary>배속을 다음 자리로 (gap-2026-08-23 P1-6). 보고 있는 동안만</summary>
@@ -1466,68 +1346,6 @@ namespace WitchMendokusai.Idle
 			Render(session.Capture());
 		}
 
-		private void Raise(IdleUpgradeKind kind, int amount)
-		{
-			if (gearHeroId < 0)
-			{
-				return;
-			}
-
-			IdleUpgradeView before = session.ViewHeroStat(gearHeroId, kind, amount);
-			double resourceBefore = session.Capture().Resource;
-			bool raised = session.Send(new IdleRaiseUpgradeIntent(gearHeroId, kind, amount));
-			if (raised)
-			{
-				WriteDown();
-			}
-			Render(session.Capture());
-
-			if (raised)
-			{
-				IdleUpgradeView after = session.ViewHeroStat(gearHeroId, kind, 1);
-				ShowStatRaised(kind, amount, before.CurrentValue, after.CurrentValue,
-					resourceBefore - session.Capture().Resource);
-			}
-		}
-
-		private void ShowStatRaised(IdleUpgradeKind kind, int amount, double before, double after, double spent)
-		{
-			int stat = (int)kind;
-			int amountIndex = uiContentAsset.IndexOfStatUpgradeAmount(amount);
-			if (stat < 0 || stat >= statValues.Length || amountIndex < 0)
-			{
-				return;
-			}
-
-			statFeedbackVersion++;
-			sound?.Good();
-			int version = statFeedbackVersion;
-			statFeedback.text = uiContentAsset.StatRaisedFeedbackText(
-				uiContentAsset.StatName(stat), StatValueText(kind, before), StatValueText(kind, after), BigNumberText.Format(spent));
-			statFeedback.style.visibility = Visibility.Visible;
-			statFeedback.AddToClassList("idle-stat-feedback--shown");
-			statValues[stat].AddToClassList("idle-stat-label--raised");
-			statButtons[stat, amountIndex].AddToClassList("idle-stat-buy--raised");
-
-			statFeedback.schedule.Execute(() =>
-			{
-				if (version == statFeedbackVersion)
-				{
-					statValues[stat].RemoveFromClassList("idle-stat-label--raised");
-					statButtons[stat, amountIndex].RemoveFromClassList("idle-stat-buy--raised");
-				}
-			}).StartingIn(350L);
-
-			statFeedback.schedule.Execute(() =>
-			{
-				if (version == statFeedbackVersion)
-				{
-					statFeedback.RemoveFromClassList("idle-stat-feedback--shown");
-					statFeedback.style.visibility = Visibility.Hidden;
-				}
-			}).StartingIn(1200L);
-		}
-
 		private void BuyProducer(int kind)
 		{
 			session.Send(new IdleBuyProducerIntent(kind));
@@ -1552,16 +1370,6 @@ namespace WitchMendokusai.Idle
 
 			WriteDown();
 			Render(session.Capture());
-		}
-
-		/// <summary>
-		/// 편성 칸을 눌렀다. 빈 칸이면 채우기, 찬 칸이면 <b>장비 대상</b>을 그 인형으로
-		///
-		/// ★ 인형이 여럿이라 장비를 누구 것으로 볼지 정해야 한다 (사용자 2026-08-31)
-		/// </summary>
-		private void BeginSeat(int slot)
-		{
-			OpenHeroPopup(slot);
 		}
 
 		private void ChooseHero(int id)
@@ -1641,28 +1449,6 @@ namespace WitchMendokusai.Idle
 			tooltipController.Bind(target, text);
 		}
 
-		private string StatTip(IdleUpgradeKind kind, int amount)
-		{
-			if (session == null || gearHeroId < 0)
-			{
-				return uiContentAsset.StatSelectHeroTip;
-			}
-
-			IdleUpgradeView view = session.ViewHeroStat(gearHeroId, kind, amount);
-			if (view.IsMaxed)
-			{
-				return uiContentAsset.StatMaxTipText(uiContentAsset.StatName((int)kind));
-			}
-
-			string wait = view.CanAfford || double.IsInfinity(view.SecondsToAfford)
-				? string.Empty
-				: uiContentAsset.StatWaitTipText(view.SecondsToAfford);
-			return uiContentAsset.StatTipText(
-				uiContentAsset.StatName((int)kind), amount,
-				StatValueText(kind, view.CurrentValue), StatValueText(kind, view.NextValue),
-				BigNumberText.Format(view.NextCost), wait);
-		}
-
 		private void EnsureSound()
 		{
 			if (sound == null && Application.isPlaying && Application.isBatchMode == false)
@@ -1691,11 +1477,6 @@ namespace WitchMendokusai.Idle
 			noteLabel.text = what;
 			noteLabel.style.opacity = 1f;
 			noteLeft = seconds;
-		}
-
-		private string StatValueText(IdleUpgradeKind kind, double value)
-		{
-			return uiContentAsset.StatValueText(kind, value);
 		}
 
 	}
