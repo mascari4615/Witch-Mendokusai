@@ -25,7 +25,7 @@ namespace WitchMendokusai.Tests
 
 		private const string RELAY_PATH = "_WitchMendokusai/Core/Scripts/Diagnostics/DeviceLogRelay.cs";
 		private const string STAMP_PATH = "_WitchMendokusai/Core/Scripts/Diagnostics/BuildStampOverlay.cs";
-		private const string BUILD_PATH = "_WitchMendokusai/Editor/Idle/IdlePlayerBuild.cs";
+		private const string BUILD_PATH = "_WitchMendokusai/Idle/Editor/IdlePlayerBuild.cs";
 
 		/// <summary>★ 로그 릴레이는 방치형 빌드에서 스스로 뜨지 않는다.</summary>
 		[Test]

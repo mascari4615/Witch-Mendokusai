@@ -11,7 +11,7 @@ namespace WitchMendokusai.Tests
 	///
 	/// ★ 왜 필요한가 — 「수치 하드코딩 금지」는 룰인데, 지키는지 <b>아무도 안 세고 있었다</b>.
 	///   그래서 이 루프가 넣은 것들(폭주·뽑기·도감·가방·환생·오프라인)이 전부 코어에만 있고
-	///   `IdleTuningSO` 에는 <b>43개가 빠져 있었다</b>(실측 2026-08-17).
+	///   `TuningSO` 에는 <b>43개가 빠져 있었다</b>(실측 2026-08-17).
 	///   「이 게임의 재미는 전부 이 숫자들에 들어 있다」고 적어 놓고 그 숫자를 못 만지는 상태였다.
 	///
 	/// ★ 이 시험은 <b>글자를 읽는다</b>(리플렉션이 아니라). 코어는 엔진을 모르고 SO 는 엔진이라
@@ -36,7 +36,7 @@ namespace WitchMendokusai.Tests
 			string core = File.ReadAllText(Path.Combine(root,
 				"Assets/_WitchMendokusai/DomainSDK/Idle/IdleTuning.cs"));
 			string exposed = File.ReadAllText(Path.Combine(root,
-				"Assets/_WitchMendokusai/Idle/IdleTuningSO.cs"));
+				"Assets/_WitchMendokusai/Idle/Data/TuningSO.cs"));
 
 			MatchCollection knobs = Regex.Matches(core,
 				// ⚠ 스칼라만 보면 <b>경제의 뼈대</b>를 놓친다 (실측 2026-08-17): 이 시험을 세운
@@ -70,7 +70,7 @@ namespace WitchMendokusai.Tests
 				+ (counted - (missing.Length > 0 ? missing.Split(',').Length : 0)) + "개");
 
 			Assert.AreEqual(string.Empty, missing,
-				"IdleTuningSO 에 안 실린 손잡이가 있다 (밸런싱이 코드 작업이 된다): " + missing);
+			"TuningSO 에 안 실린 조정값이 있다 (밸런싱이 코드 작업이 된다): " + missing);
 		}
 
 
@@ -92,7 +92,7 @@ namespace WitchMendokusai.Tests
 			string core = File.ReadAllText(Path.Combine(root,
 				"Assets/_WitchMendokusai/DomainSDK/Idle/IdleTuning.cs"));
 			string exposed = File.ReadAllText(Path.Combine(root,
-				"Assets/_WitchMendokusai/Idle/IdleTuningSO.cs"));
+				"Assets/_WitchMendokusai/Idle/Data/TuningSO.cs"));
 
 			Dictionary<string, string> coreDefaults = new Dictionary<string, string>();
 

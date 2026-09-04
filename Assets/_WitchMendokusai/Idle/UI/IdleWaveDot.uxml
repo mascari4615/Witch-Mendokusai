@@ -1,0 +1,4 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <Style src="BattleScreen.uss" />
+    <ui:VisualElement name="wave-dot" class="idle-wave-dot" />
+</ui:UXML>

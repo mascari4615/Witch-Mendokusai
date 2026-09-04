@@ -1,0 +1,8 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <!-- 도감 탭 (layout.md §3). 값은 IdleBattleScreen 이 채운다 -->
+    <Style src="BattleScreen.uss" />
+    <ui:VisualElement name="page" class="idle-side idle-page">
+        <ui:Label name="codex-label" class="idle-row-title" />
+        <ui:VisualElement name="codex-rows" />
+    </ui:VisualElement>
+</ui:UXML>

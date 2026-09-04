@@ -1,0 +1,24 @@
+{
+    "name": "WM.Idle.Editor",
+    "rootNamespace": "WitchMendokusai.Idle.Editor",
+    "references": [
+        "WM.Editor",
+        "WM.Idle",
+        "WitchMendokusai.DomainSDK",
+        "WitchMendokusai.DomainSDK.Contracts",
+        "WitchMendokusai.DomainSDK.Idle",
+        "WitchMendokusai.DomainSDK.Numerics",
+        "Unity.InputSystem"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

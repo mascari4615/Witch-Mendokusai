@@ -2,6 +2,7 @@
     "name": "WM.Domain",
     "rootNamespace": "WitchMendokusai",
     "references": [
+        "WM.Foundation",
         "WitchMendokusai.DomainSDK",
         "WitchMendokusai.DomainSDK.Building",
         "WitchMendokusai.DomainSDK.Care",

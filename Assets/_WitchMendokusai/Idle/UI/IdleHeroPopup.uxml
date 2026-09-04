@@ -1,0 +1,14 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <Style src="BattleScreen.uss" />
+    <ui:VisualElement name="popup" class="idle-modal-shade">
+        <ui:VisualElement class="idle-box idle-modal-panel idle-choice-popup">
+            <ui:VisualElement class="idle-panel-head">
+                <ui:Label text="인형 선택" class="idle-panel-title" />
+                <ui:Button name="hero-close" text="X" class="idle-tab idle-tab--close" />
+            </ui:VisualElement>
+            <ui:ScrollView class="idle-modal-scroll">
+                <ui:VisualElement name="hero-grid" class="idle-choice-grid" />
+            </ui:ScrollView>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

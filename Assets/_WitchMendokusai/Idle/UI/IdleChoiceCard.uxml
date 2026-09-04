@@ -1,0 +1,7 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <Style src="BattleScreen.uss" />
+    <ui:Button name="choice" class="idle-choice-card">
+        <ui:VisualElement name="choice-icon" class="idle-choice-icon" />
+        <ui:Label name="choice-label" class="idle-choice-label" />
+    </ui:Button>
+</ui:UXML>

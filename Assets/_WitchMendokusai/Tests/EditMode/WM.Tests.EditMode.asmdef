@@ -2,6 +2,7 @@
     "name": "WM.Tests.EditMode",
     "rootNamespace": "WitchMendokusai.Tests",
     "references": [
+        "WM.Foundation",
         "WitchMendokusai.DomainSDK",
         "WitchMendokusai.DomainSDK.Building",
         "WitchMendokusai.DomainSDK.Care",
@@ -37,7 +38,8 @@
         "WM.Core",
         "WM.Domain",
         "WM.Editor",
-        "WM.Presentation"
+        "WM.Presentation",
+        "WM.Idle"
     ],
     "includePlatforms": [
         "Editor"

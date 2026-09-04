@@ -2,6 +2,7 @@
     "name": "WM.Core",
     "rootNamespace": "WitchMendokusai",
     "references": [
+        "WM.Foundation",
         "WitchMendokusai.DomainSDK",
         "WitchMendokusai.DomainSDK.Building",
         "WitchMendokusai.DomainSDK.Care",
@@ -30,6 +31,7 @@
         "WitchMendokusai.DomainSDK.Upgrade",
         "WitchMendokusai.DomainSDK.Workshop",
         "WitchMendokusai.DomainSDK.World",
+		"WM.Presentation",
         "DOTween.Modules",
         "FMODUnity",
         "UniTask",

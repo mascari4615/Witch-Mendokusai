@@ -2,6 +2,7 @@
     "name": "WM.Editor",
     "rootNamespace": "WitchMendokusai",
     "references": [
+        "WM.Foundation",
         "WM.Core",
         "WM.Domain",
         "Unity.Addressables",
@@ -21,8 +22,6 @@
         "WitchMendokusai.DomainSDK",
         "VContainer",
         "WitchMendokusai.DomainSDK.Upgrade",
-        "WitchMendokusai.DomainSDK.Idle",
-        "WitchMendokusai.DomainSDK.Contracts",
         "WitchMendokusai.DomainSDK.Numerics",
         "WitchMendokusai.DomainSDK.Identity",
         "WitchMendokusai.DomainSDK.Farming",
@@ -45,8 +44,7 @@
         "WitchMendokusai.DomainSDK.Reward",
         "WitchMendokusai.DomainSDK.Stat",
         "WitchMendokusai.DomainSDK.TowerDefense",
-        "WitchMendokusai.DomainSDK.World",
-        "WM.Idle"
+        "WitchMendokusai.DomainSDK.World"
     ],
     "includePlatforms": [
         "Editor"

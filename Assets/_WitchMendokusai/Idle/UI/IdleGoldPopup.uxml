@@ -1,0 +1,12 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <Style src="BattleScreen.uss" />
+    <ui:VisualElement name="popup" class="idle-modal-shade idle-gold-popup">
+        <ui:VisualElement class="idle-box idle-gold-panel">
+            <ui:VisualElement class="idle-gold-icon" />
+            <ui:Label text="GOLD" class="idle-cap" />
+            <ui:Label name="gold-amount" class="idle-gold-amount" />
+            <ui:Label name="gold-income" class="idle-gold-income" />
+            <ui:Button name="gold-close" text="닫기" class="idle-gold-close" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

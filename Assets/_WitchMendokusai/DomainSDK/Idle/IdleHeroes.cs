@@ -29,28 +29,15 @@ namespace WitchMendokusai.DomainSDK.Idle
         ///   컨셉 이름을 지금 박으면 세계관이 정해질 때 전부 거짓말이 된다.
         /// ★ 변의 수가 곧 그림이다 — 화면은 이 수만 알면 그린다.
         /// </summary>
-        private static readonly IdleHeroKind[] ALL =
+        private static IdleHeroCatalog catalog;
+
+        public static void Configure(IdleHeroCatalog definitions)
         {
-            new IdleHeroKind(0, "세모", IdleHeroAxis.Damage, IdleHeroGrade.Common, 3),
-            new IdleHeroKind(1, "네모", IdleHeroAxis.Base, IdleHeroGrade.Common, 4),
-            new IdleHeroKind(2, "다섯모", IdleHeroAxis.Drop, IdleHeroGrade.Common, 5),
-            new IdleHeroKind(3, "여섯모", IdleHeroAxis.Speed, IdleHeroGrade.Common, 6),
+            catalog = definitions ?? throw new System.ArgumentNullException(nameof(definitions));
+        }
 
-            new IdleHeroKind(4, "쐐기", IdleHeroAxis.Damage, IdleHeroGrade.Rare, 3),
-            new IdleHeroKind(5, "벽돌", IdleHeroAxis.Base, IdleHeroGrade.Rare, 4),
-            new IdleHeroKind(6, "별모", IdleHeroAxis.Drop, IdleHeroGrade.Rare, 5),
-            new IdleHeroKind(7, "톱니", IdleHeroAxis.Speed, IdleHeroGrade.Rare, 7),
-
-            new IdleHeroKind(8, "칼날", IdleHeroAxis.Damage, IdleHeroGrade.Epic, 3),
-            new IdleHeroKind(9, "성채", IdleHeroAxis.Base, IdleHeroGrade.Epic, 6),
-            new IdleHeroKind(10, "그물", IdleHeroAxis.Drop, IdleHeroGrade.Epic, 8),
-            new IdleHeroKind(11, "회오리", IdleHeroAxis.Speed, IdleHeroGrade.Epic, 9),
-
-            new IdleHeroKind(12, "송곳", IdleHeroAxis.Damage, IdleHeroGrade.Legend, 3),
-            new IdleHeroKind(13, "고리", IdleHeroAxis.Base, IdleHeroGrade.Legend, 10),
-            new IdleHeroKind(14, "여울", IdleHeroAxis.Drop, IdleHeroGrade.Legend, 11),
-            new IdleHeroKind(15, "번개", IdleHeroAxis.Speed, IdleHeroGrade.Legend, 12),
-        };
+        private static IdleHeroCatalog Catalog => catalog
+            ?? throw new System.InvalidOperationException("Idle 영웅 카탈로그가 조립되지 않았다.");
 
         /// <summary>전장에 서는 자리 수. 이 앞쪽 칸이 <see cref="IdleSquad"/> 의 파티 자리가 된다.</summary>
         public const int MAIN_SLOTS = 3;
@@ -133,31 +120,23 @@ namespace WitchMendokusai.DomainSDK.Idle
         }
 
         /// <summary>뽑을 수 있는 영웅 수.</summary>
-        public static int Count => ALL.Length;
+        public static int Count => Catalog.Count;
 
         public static IdleHeroKind KindOf(int id)
         {
-            return ALL[id];
+            return Catalog.KindOf(id);
         }
 
         /// <summary>이 번호가 <b>이 명단에 있는</b> 얼굴인가 — 저장에서 온 값을 걸러낼 때 쓴다.</summary>
         public static bool Knows(int id)
         {
-            return id >= 0 && id < ALL.Length;
+            return Catalog.Knows(id);
         }
 
         /// <summary>이 등급의 영웅들 — 뽑기가 등급을 먼저 고르고 그 안에서 하나를 집는다.</summary>
         public static void IdsOfGrade(IdleHeroGrade grade, List<int> into)
         {
-            into.Clear();
-
-            for (int index = 0; index < ALL.Length; index++)
-            {
-                if (ALL[index].Grade == grade)
-                {
-                    into.Add(ALL[index].Id);
-                }
-            }
+            Catalog.IdsOfGrade(grade, into);
         }
 
         // ── 보유 효과 ①: 개별 보유 ──────────────────────────────────────────

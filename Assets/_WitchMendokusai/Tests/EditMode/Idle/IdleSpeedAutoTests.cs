@@ -29,6 +29,19 @@ namespace WitchMendokusai.Tests
 
 		/// <summary>★ 배속이 걸리면 같은 시간에 더 나아간다</summary>
 		[Test]
+		public void Speed_CanBeSelectedDirectlyAndClampsToAvailableSteps()
+		{
+			IdleSession session = new IdleSession(new IdleTuning());
+
+			session.SetSpeedStep(2);
+			Assert.AreEqual(3d, session.SpeedNow, 1e-9d);
+			session.SetSpeedStep(99);
+			Assert.AreEqual(3d, session.SpeedNow, 1e-9d);
+			session.SetSpeedStep(-1);
+			Assert.AreEqual(1d, session.SpeedNow, 1e-9d);
+		}
+
+		[Test]
 		public void Speed_MakesTheRunGoFurther()
 		{
 			IdleTuning tuning = new IdleTuning();

@@ -1,0 +1,30 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <Style src="BattleScreen.uss" />
+    <ui:VisualElement name="popup" class="idle-away-shade">
+        <ui:VisualElement class="idle-box idle-away-card">
+            <ui:Label text="WELCOME BACK" class="idle-cap idle-away-cap" />
+            <ui:Label text="돌아온 보상" class="idle-away-title" />
+            <ui:Label name="away-span" class="idle-away-span" />
+            <ui:VisualElement class="idle-away-rewards">
+                <ui:VisualElement class="idle-away-reward">
+                    <ui:Label text="골드" class="idle-away-reward-name" />
+                    <ui:Label name="gold-value" class="idle-away-reward-value" />
+                </ui:VisualElement>
+                <ui:VisualElement class="idle-away-reward">
+                    <ui:Label text="처치" class="idle-away-reward-name" />
+                    <ui:Label name="kills-value" class="idle-away-reward-value" />
+                </ui:VisualElement>
+                <ui:VisualElement class="idle-away-reward">
+                    <ui:Label text="스테이지" class="idle-away-reward-name" />
+                    <ui:Label name="stages-value" class="idle-away-reward-value" />
+                </ui:VisualElement>
+                <ui:VisualElement class="idle-away-reward">
+                    <ui:Label text="장비" class="idle-away-reward-name" />
+                    <ui:Label name="items-value" class="idle-away-reward-value" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+            <ui:Label name="away-warning" class="idle-away-warning" style="display: none;" />
+            <ui:Button name="away-close" text="확인하고 계속" class="idle-away-close" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

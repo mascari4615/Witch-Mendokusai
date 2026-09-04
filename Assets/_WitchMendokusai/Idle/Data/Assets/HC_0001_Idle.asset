@@ -1,0 +1,36 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 31ea8129b4b14b01bd2f2b405549f7da, type: 3}
+  m_Name: HC_0001_Idle
+  m_EditorClassIdentifier: WM.Idle::WitchMendokusai.Idle.HeroCatalogSO
+  <ID>k__BackingField: 1000
+  <Name>k__BackingField: Idle Heroes
+  <Description>k__BackingField: Idle product hero definitions
+  <Sprite>k__BackingField: {fileID: 0}
+  <Sprites>k__BackingField: []
+  heroes:
+  - {fileID: 11400000, guid: a3ed4ab871b94cb6947f980db4d02daf, type: 2}
+  - {fileID: 11400000, guid: 18cab9232b1e408691f3f61648a01e2e, type: 2}
+  - {fileID: 11400000, guid: 058536825d394bb9be002aed0bd01581, type: 2}
+  - {fileID: 11400000, guid: 86a08aeed033456fbe614755016585c1, type: 2}
+  - {fileID: 11400000, guid: bb410866d90c4b9698b4c2b0fe8f8c9c, type: 2}
+  - {fileID: 11400000, guid: 07ef152219964731b07266af77155cd0, type: 2}
+  - {fileID: 11400000, guid: 039a0d1b1b074bcbaea412b18fa1e4a0, type: 2}
+  - {fileID: 11400000, guid: 4e611f1b29cd49cc81329aa290c3f6d4, type: 2}
+  - {fileID: 11400000, guid: 585c1abcdc92478e9742aac6b3b5f357, type: 2}
+  - {fileID: 11400000, guid: ee60713adf1841adaf08ec6eb6cf468d, type: 2}
+  - {fileID: 11400000, guid: acf17ff5d1bb4ff182b2b7d51d78bf5d, type: 2}
+  - {fileID: 11400000, guid: 7684d8187363477fbe8fe2176c89dcba, type: 2}
+  - {fileID: 11400000, guid: a28acfa8081641f39421801ac3539f2e, type: 2}
+  - {fileID: 11400000, guid: 0efd13447dac43a5816bfe302e594670, type: 2}
+  - {fileID: 11400000, guid: e8387536e7c241549da87c01b87a33d2, type: 2}
+  - {fileID: 11400000, guid: 583a88b68ea145a89efc544f6df4ed0b, type: 2}

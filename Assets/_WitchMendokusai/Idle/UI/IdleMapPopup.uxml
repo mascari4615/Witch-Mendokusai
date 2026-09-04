@@ -1,0 +1,16 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <Style src="BattleScreen.uss" />
+    <ui:VisualElement name="popup" class="idle-modal-shade idle-map">
+        <ui:VisualElement class="idle-map-art" picking-mode="Ignore" />
+        <ui:VisualElement class="idle-box idle-map-panel">
+            <ui:VisualElement class="idle-panel-head">
+                <ui:Label text="맵" class="idle-panel-title" />
+                <ui:Label text="MAP" class="idle-cap" />
+                <ui:Button name="map-close" text="×" class="idle-tab idle-tab--close" />
+            </ui:VisualElement>
+            <ui:ScrollView class="idle-map-scroll">
+                <ui:VisualElement name="map-rows" class="idle-map-rows" />
+            </ui:ScrollView>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

@@ -17,9 +17,9 @@ namespace WitchMendokusai.Tests
 	/// </summary>
 	public sealed class IdlePartyTests
 	{
-		private const string DOLL_PAGE_PATH = "Assets/_WitchMendokusai/Idle/IdleDollPage.uxml";
-		private const string CARD_PATH = "Assets/_WitchMendokusai/Idle/IdleCard.uxml";
-		private const string IDLE_STYLE_PATH = "Assets/_WitchMendokusai/Idle/IdleBattleScreen.uss";
+		private const string DOLL_PAGE_PATH = "Assets/_WitchMendokusai/Idle/UI/IdleDollPage.uxml";
+		private const string CARD_PATH = "Assets/_WitchMendokusai/Idle/UI/IdleCard.uxml";
+		private const string IDLE_STYLE_PATH = "Assets/_WitchMendokusai/Idle/UI/BattleScreen.uss";
 
 		private static IdleState Owning(params int[] ids)
 		{

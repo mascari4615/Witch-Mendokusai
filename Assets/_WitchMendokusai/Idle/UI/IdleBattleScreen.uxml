@@ -1,0 +1,26 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <Style src="BattleScreen.uss" />
+    <ui:VisualElement name="shell" class="idle-root">
+        <ui:VisualElement name="battle" class="idle-battle">
+            <ui:VisualElement name="skill-aim" class="idle-skill-aim" picking-mode="Ignore" style="display: none;">
+                <ui:VisualElement name="skill-aim-origin" class="idle-skill-aim-origin" />
+                <ui:VisualElement name="skill-aim-line" class="idle-skill-aim-line" />
+                <ui:VisualElement name="skill-aim-range" class="idle-skill-aim-range" />
+                <ui:Label name="skill-aim-caption" text="일제 사격 범위" class="idle-skill-aim-caption" />
+            </ui:VisualElement>
+            <ui:VisualElement name="floating-tabs" class="idle-floating-tabs" />
+            <ui:Button name="wipe-button" text="데이터 초기화" class="idle-box idle-icon-button idle-debug" />
+        </ui:VisualElement>
+        <ui:VisualElement name="side" class="idle-side">
+            <ui:VisualElement name="tabs" class="idle-tabs">
+                <ui:Button name="side-close" text="×" class="idle-tab idle-tab--close" />
+            </ui:VisualElement>
+            <ui:VisualElement class="idle-panel-head">
+                <ui:Label name="panel-title" class="idle-panel-title" />
+                <ui:Label name="panel-caption" class="idle-cap" />
+            </ui:VisualElement>
+            <ui:ScrollView name="panel-body" class="idle-panel-body" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+    <ui:Label name="tooltip" class="idle-tooltip" picking-mode="Ignore" style="display: none;" />
+</ui:UXML>

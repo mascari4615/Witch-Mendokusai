@@ -1,0 +1,8 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <!-- 연구소 탭 (layout.md §3). 환생과 골드 유틸 -->
+    <Style src="BattleScreen.uss" />
+    <ui:VisualElement name="page" class="idle-side idle-page">
+        <ui:Label name="prestige-summary" class="idle-row-title" />
+        <ui:Button name="prestige-button" class="idle-row-button idle-row-button--strong idle-row-button--tall" />
+    </ui:VisualElement>
+</ui:UXML>

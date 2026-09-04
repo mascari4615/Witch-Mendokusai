@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using WitchMendokusai.Presentation;
 
 namespace WitchMendokusai
 {
@@ -8,22 +9,20 @@ namespace WitchMendokusai
 	// TASK-WM-077.
 	public static class BlurRequest
 	{
-		private static int count;
-
-		public static int Count => count;
+		public static int Count => BlurDemand.Count;
 
 		public static event Action<int> CountChanged = delegate { };
 
 		public static void Add()
 		{
-			count++;
-			CountChanged.Invoke(count);
+			BlurDemand.Add();
+			CountChanged.Invoke(BlurDemand.Count);
 		}
 
 		public static void Remove()
 		{
-			count = Mathf.Max(0, count - 1);
-			CountChanged.Invoke(count);
+			BlurDemand.Remove();
+			CountChanged.Invoke(BlurDemand.Count);
 		}
 	}
 }

@@ -1,0 +1,75 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7d4f817831bf4a07839f7f56981d7c97, type: 3}
+  m_Name: BP_0001_Idle
+  m_EditorClassIdentifier: WM.Idle::WitchMendokusai.Idle.BattlePresentationSO
+  dollPrefab: {fileID: 0}
+  foePrefab: {fileID: 0}
+  bossPrefab: {fileID: 0}
+  groundPrefab: {fileID: 0}
+  partyAnchorX: -2.5
+  followCatchUp: 4
+  snapJump: 3
+  lungeSeconds: 0.22
+  boltSeconds: 0.18
+  popSeconds: 0.3
+  positionCatchUp: 14
+  foeEntranceDistance: 6
+  foeEntranceSpeed: 5
+  foeSpinDegrees: 12
+  foeBobHeight: 0.025
+  shakeSeconds: 0.08
+  shakeDistance: 0.025
+  bossScale: 1.35
+  foeHeight: 0.62
+  foeRadius: 0.62
+  shapeStagesPerStep: 5
+  sceneryCount: 14
+  bossShardCount: 6
+  bossShellRadius: 1.15
+  bossShellSpread: 0.6
+  bossShellSpinDegrees: -26
+  bossSpikeFromStage: 21
+  colorDepthStage: 40
+  depthSaturation: 0.35
+  depthDarken: 0.18
+  bossGlow: 0.55
+  meleeHeightShare: 0.85
+  rangedHeightShare: 1.3
+  groundColor: {r: 0.62, g: 0.73, b: 0.55, a: 1}
+  enemyColor: {r: 0.55, g: 0.5, b: 0.63, a: 1}
+  rangedEnemyColor: {r: 0.66, g: 0.54, b: 0.5, a: 1}
+  bossColor: {r: 0.3, g: 0.26, b: 0.38, a: 1}
+  sceneryColor: {r: 0.5, g: 0.6, b: 0.46, a: 1}
+  boltColor: {r: 1, g: 0.83, b: 0.29, a: 1}
+  myColor: {r: 0.93, g: 0.89, b: 0.82, a: 1}
+  barBackColor: {r: 0.12, g: 0.13, b: 0.16, a: 1}
+  allyBarColor: {r: 0.36, g: 0.78, b: 0.44, a: 1}
+  reviveBarColor: {r: 0.62, g: 0.66, b: 0.74, a: 1}
+  enemyBarColor: {r: 0.91, g: 0.36, b: 0.36, a: 1}
+  gradeColors:
+  - {r: 0.68, g: 0.72, b: 0.8, a: 1}
+  - {r: 0.46, g: 0.8, b: 0.72, a: 1}
+  - {r: 0.72, g: 0.58, b: 0.92, a: 1}
+  - {r: 0.95, g: 0.72, b: 0.36, a: 1}
+  numberSeconds: 0.8
+  numberRise: 1.2
+  numberSize: 0.12
+  numberColor: {r: 1, g: 1, b: 1, a: 1}
+  hurtColor: {r: 1, g: 0.45, b: 0.4, a: 1}
+  cameraBackgroundColor: {r: 0.75, g: 0.88, b: 0.96, a: 1}
+  cameraFieldOfView: 32
+  cameraEuler: {x: 42, y: 30, z: 0}
+  cameraDistance: 17
+  cameraTargetOffset: {x: 1.2, y: 0.4, z: 0}
+  lightIntensity: 1.15
+  lightEuler: {x: 52, y: -28, z: 0}

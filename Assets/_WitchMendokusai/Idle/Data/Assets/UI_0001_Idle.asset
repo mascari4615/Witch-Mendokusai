@@ -1,0 +1,70 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e04df56b41ee46d8bc727858db026ea3, type: 3}
+  m_Name: UI_0001_Idle
+  m_EditorClassIdentifier: WM.Idle::WitchMendokusai.Idle.UIContentSO
+  <ID>k__BackingField: 1001
+  <Name>k__BackingField: Idle UI Content
+  <Description>k__BackingField: Idle product UI labels and visible tabs
+  <Sprite>k__BackingField: {fileID: 0}
+  <Sprites>k__BackingField: []
+  statUpgradeAmounts:
+  - 1
+  - 10
+  - 100
+  gearPopupSlotCount: 24
+  battleWidthShare: 0.625
+  tabs:
+  - Name: 인형
+    Caption: DOLLS
+    Visible: 1
+  - Name: 아이템
+    Caption: ITEMS
+    Visible: 1
+  - Name: 도감
+    Caption: CODEX
+    Visible: 0
+  - Name: 상점
+    Caption: SHOP
+    Visible: 1
+  - Name: 연구소
+    Caption: LAB
+    Visible: 0
+  - Name: 던전
+    Caption: DUNGEON
+    Visible: 0
+  - Name: 투자
+    Caption: INVEST
+    Visible: 0
+  gearSlotNames:
+  - 머리
+  - 몸
+  - 손
+  - 발
+  statNames:
+  - 공격력
+  - 공격 속도
+  - 최대 체력
+  - 방어력
+  - 치명타 확률
+  - 치명타 피해
+  - 회복
+  heroAxisNames:
+  - 공격
+  - 속도
+  - 기지
+  - 장비 획득
+  heroGradeNames:
+  - 일반
+  - 레어
+  - 에픽
+  - 레전드

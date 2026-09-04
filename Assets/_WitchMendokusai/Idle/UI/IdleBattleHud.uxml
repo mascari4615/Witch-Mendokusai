@@ -1,0 +1,58 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <Style src="BattleScreen.uss" />
+    <ui:VisualElement name="hud">
+        <ui:VisualElement name="scene-cover" class="idle-scene-cover">
+            <ui:Label name="scene-cover-label" class="idle-scene-cover-label" />
+            <ui:Button name="scene-cover-button" class="idle-button" text="전투로" />
+        </ui:VisualElement>
+        <ui:VisualElement name="op" class="idle-box idle-op">
+            <ui:VisualElement class="idle-op-row">
+                <ui:Label name="op-code" class="idle-op-code" />
+                <ui:Label name="op-name" class="idle-op-name" />
+            </ui:VisualElement>
+            <ui:VisualElement class="idle-op-row">
+                <ui:VisualElement name="wave-dots" class="idle-wave" />
+                <ui:Label name="wave-label" class="idle-cap" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:VisualElement class="idle-step-row">
+            <ui:VisualElement class="idle-box idle-stepper">
+                <ui:Button name="step-back" class="idle-step-button" text="◀" />
+                <ui:Label name="step-label" class="idle-step-label" />
+                <ui:Button name="step-forward" class="idle-step-button" text="▶" />
+            </ui:VisualElement>
+            <ui:Button name="repeat-button" class="idle-box idle-toggle" />
+        </ui:VisualElement>
+        <ui:VisualElement class="idle-chips">
+            <ui:Button name="gold-chip" class="idle-box idle-chip idle-gold-chip">
+                <ui:VisualElement class="idle-gold-icon" />
+                <ui:Label name="gold-value" class="idle-gold-value" />
+            </ui:Button>
+            <ui:Button name="split-button" class="idle-box idle-icon-button idle-split-button">
+                <ui:VisualElement class="idle-split-chevron">
+                    <ui:VisualElement class="idle-split-chevron-line idle-split-chevron-line--top" />
+                    <ui:VisualElement class="idle-split-chevron-line idle-split-chevron-line--bottom" />
+                </ui:VisualElement>
+            </ui:Button>
+            <ui:Button name="settings-button" class="idle-box idle-icon-button idle-settings-button">
+                <ui:VisualElement class="idle-settings-icon" />
+            </ui:Button>
+        </ui:VisualElement>
+        <ui:VisualElement name="enemy-bar" class="idle-box idle-enemy">
+            <ui:Label name="enemy-label" class="idle-enemy-label" />
+            <ui:VisualElement class="idle-enemy-gauge"><ui:VisualElement name="enemy-fill" class="idle-enemy-fill" /></ui:VisualElement>
+        </ui:VisualElement>
+        <ui:VisualElement class="idle-hand">
+            <ui:VisualElement name="cards" />
+            <ui:VisualElement name="card-queue" class="idle-queue">
+                <ui:Label text="다음" class="idle-queue-cap" />
+            </ui:VisualElement>
+            <ui:VisualElement class="idle-cost">
+                <ui:Label name="cost-label" class="idle-cost-label" />
+                <ui:VisualElement class="idle-cost-gauge"><ui:VisualElement name="cost-fill" class="idle-cost-fill" /></ui:VisualElement>
+                <ui:Label class="idle-cap" text="COST" />
+            </ui:VisualElement>
+            <ui:Button name="auto-cast-button" class="idle-box idle-skill-auto" text="AUTO" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

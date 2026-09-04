@@ -53,7 +53,7 @@ namespace WitchMendokusai.Presentation
 
 			int variant = Mathf.Clamp((int)kind, 0, VARIANT_CLASSES.Length - 1);
 			AddToClassList(VARIANT_CLASSES[variant]);
-			label.text = kind == FloatingTextKind.Critical ? "치명타!\n" + message : message;
+			label.text = kind == FloatingTextKind.Critical ? "크리티컬!\n" + message : message;
 
 			RemoveFromClassList(USS_ACTIVE);
 			schedule.Execute(() => AddToClassList(USS_ACTIVE)).StartingIn(0);

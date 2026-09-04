@@ -1,7 +1,8 @@
 {
     "name": "WM.Idle",
-    "rootNamespace": "WitchMendokusai",
+    "rootNamespace": "WitchMendokusai.Idle",
     "references": [
+        "WM.Foundation",
         "WM.Presentation",
         "WitchMendokusai.DomainSDK.Contracts",
         "WitchMendokusai.DomainSDK.Idle",

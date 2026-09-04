@@ -1,4 +1,0 @@
-<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
-    <!-- 가방은 수량이 저장 데이터에 따라 달라져 이 틀을 런타임에 반복한다. -->
-    <ui:Button name="bag-cell" class="idle-bag-cell" />
-</ui:UXML>

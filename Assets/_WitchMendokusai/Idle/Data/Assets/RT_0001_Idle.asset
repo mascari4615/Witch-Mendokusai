@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8301b38c4f5e4e66b7af45c83014368e, type: 3}
+  m_Name: RT_0001_Idle
+  m_EditorClassIdentifier: WM.Idle::WitchMendokusai.Idle.RuntimeSettingsSO
+  saveIntervalSeconds: 10
+  noteSeconds: 5
+  uiRefreshSeconds: 0.1
+  soundVolume: 0.32
+  soundMinGapSeconds: 0.06
+  tooltipTouchSeconds: 1.8
+  modalRepaintMilliseconds: 16
+  previewStage: 4
+  previewResource: 500
+  previewPartyHeroIds:
+  - 0
+  - 3
+  - 1

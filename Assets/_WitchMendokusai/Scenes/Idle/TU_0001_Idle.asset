@@ -11,7 +11,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d01e33e2c0e100a43bc33422eaef809b, type: 3}
   m_Name: IdleTuning
-  m_EditorClassIdentifier: WM.Domain::WitchMendokusai.IdleTuningSO
+  m_EditorClassIdentifier: WM.Idle::WitchMendokusai.Idle.TuningSO
   targetHealth: 10
   targetHealthRatio: 1.55
   rewardPerKill: 1

@@ -193,6 +193,14 @@ namespace WitchMendokusai.DomainSDK.Idle
             state.SpeedStep = (state.SpeedStep + 1) % count;
         }
 
+        /// <summary>설정 화면에서 배속 단계를 직접 고른다.</summary>
+        public void SetSpeedStep(int step)
+        {
+            double[] steps = tuning.SpeedSteps;
+            int count = steps == null || steps.Length == 0 ? 1 : steps.Length;
+            state.SpeedStep = step < 0 ? 0 : step >= count ? count - 1 : step;
+        }
+
         /// <summary>자동 시전 켜고 끄기</summary>
         public void ToggleAutoCast()
         {
