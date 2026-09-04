@@ -229,13 +229,13 @@ namespace WitchMendokusai.Idle
 			for (int at = transform.childCount - 1; at >= 0; at--)
 			{
 				Transform child = transform.GetChild(at);
-				if (child.name == "Preview") { Kill(child.gameObject); }
+				if (child.name == "Preview") { BattleVisualFactory.Kill(child.gameObject); }
 			}
 		}
 
 		private void OnDisable()
 		{
-			if (holder != null) { Kill(holder.gameObject); }
+			if (holder != null) { BattleVisualFactory.Kill(holder.gameObject); }
 			holder = null;
 			worldRoot = null;
 			entities = null;
@@ -245,12 +245,6 @@ namespace WitchMendokusai.Idle
 			sceneryShape = (Geometry.Shape)(-1);
 			scrollReady = false;
 			built = false;
-		}
-
-		private static void Kill(GameObject piece)
-		{
-			if (Application.isPlaying) { Destroy(piece); }
-			else { DestroyImmediate(piece); }
 		}
 	}
 }

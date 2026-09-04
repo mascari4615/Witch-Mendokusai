@@ -26,8 +26,7 @@ namespace WitchMendokusai.Idle
 			public float FlashLeft;
 			public bool Entering;
 			public Color RestColor = Color.white;
-			public Transform Shell;
-			public readonly List<Transform> Shards = new List<Transform>();
+			public BossShell Shell;
 		}
 
 		private readonly Transform worldRoot;
@@ -131,8 +130,8 @@ namespace WitchMendokusai.Idle
 
 				removedHeads[foes[at].Index] =
 					foes[at].Piece.position + Vector3.up * settings.FoeHeadHeight;
-				Kill(foes[at].BarAnchor.gameObject);
-				Kill(foes[at].Piece.gameObject);
+				BattleVisualFactory.Kill(foes[at].BarAnchor.gameObject);
+				BattleVisualFactory.Kill(foes[at].Piece.gameObject);
 				foes.RemoveAt(at);
 			}
 
@@ -201,7 +200,7 @@ namespace WitchMendokusai.Idle
 					foe.Bar.SetRatio((float)view.HealthRatio);
 				}
 
-				SpreadShell(foe, view, delta);
+				foe.Shell?.Spread((float)view.HealthRatio, delta);
 			}
 		}
 
@@ -279,92 +278,9 @@ namespace WitchMendokusai.Idle
 
 			if (boss)
 			{
-				BuildShell(foe, shape);
+				foe.Shell ??= new BossShell(foe.Model, foe.Skin, settings);
+				foe.Shell.Rebuild(shape);
 			}
-		}
-
-		private void BuildShell(Foe foe, Geometry.Shape shape)
-		{
-			if (foe.Shell == null)
-			{
-				GameObject shell = new GameObject("Shell");
-				shell.transform.SetParent(foe.Model, false);
-				foe.Shell = shell.transform;
-			}
-
-			foreach (Transform shard in foe.Shards)
-			{
-				if (shard != null)
-				{
-					Kill(shard.gameObject);
-				}
-			}
-
-			foe.Shards.Clear();
-			int faces = Geometry.FaceCountOf(shape);
-			int count = Mathf.Clamp(settings.BossShardCount, 1, faces);
-
-			for (int at = 0; at < count; at++)
-			{
-				GameObject shard = new GameObject("Shard" + at);
-				shard.transform.SetParent(foe.Shell, false);
-
-				MeshFilter mesh = shard.AddComponent<MeshFilter>();
-				mesh.sharedMesh = Geometry.FaceShard(
-					shape,
-					settings.FoeRadius * settings.BossShardRadiusScale,
-					at * Mathf.Max(1, faces / count),
-					settings.BossShardThickness);
-				MeshRenderer renderer = shard.AddComponent<MeshRenderer>();
-				renderer.sharedMaterial = foe.Skin;
-
-				float angle = at * Mathf.PI * 2f / count;
-				float lift = ((at % 3) - 1) * settings.BossShardLift;
-				shard.transform.localPosition = new Vector3(Mathf.Cos(angle), lift, Mathf.Sin(angle));
-				shard.transform.localRotation = Quaternion.Euler(settings.BossShardEulerStep * at);
-				foe.Shards.Add(shard.transform);
-			}
-		}
-
-		private void SpreadShell(Foe foe, IdleFoeView view, float delta)
-		{
-			if (foe.Shell == null || foe.Shards.Count == 0)
-			{
-				return;
-			}
-
-			float health = Mathf.Clamp01((float)view.HealthRatio);
-			float hurt = 1f - health;
-			float radius = settings.BossShellRadius + settings.BossShellSpread * hurt;
-			int alive = Mathf.Clamp(Mathf.CeilToInt(foe.Shards.Count * health), 1, foe.Shards.Count);
-
-			for (int at = 0; at < foe.Shards.Count; at++)
-			{
-				Transform shard = foe.Shards[at];
-				bool onShell = at < alive;
-
-				if (shard.gameObject.activeSelf != onShell)
-				{
-					shard.gameObject.SetActive(onShell);
-				}
-
-				if (onShell == false)
-				{
-					continue;
-				}
-
-				float angle = at * Mathf.PI * 2f / alive;
-				float lift = ((at % 3) - 1) * settings.BossShardLift;
-				Vector3 want = new Vector3(Mathf.Cos(angle), lift, Mathf.Sin(angle)) * radius;
-				shard.localPosition = Vector3.Lerp(shard.localPosition, want,
-					BattleMotion.CatchUp(settings.PositionCatchUp * settings.BossShellCatchUpShare, delta));
-				shard.Rotate(
-					Vector3.up,
-					settings.BossShellSpinDegrees * settings.BossShardSpinShare * delta,
-					Space.Self);
-			}
-
-			foe.Shell.Rotate(Vector3.up, settings.BossShellSpinDegrees * delta, Space.Self);
 		}
 
 		private Foe Build(long index, bool boss)
@@ -470,18 +386,6 @@ namespace WitchMendokusai.Idle
 			}
 
 			return null;
-		}
-
-		private static void Kill(GameObject piece)
-		{
-			if (Application.isPlaying)
-			{
-				Object.Destroy(piece);
-			}
-			else
-			{
-				Object.DestroyImmediate(piece);
-			}
 		}
 	}
 }

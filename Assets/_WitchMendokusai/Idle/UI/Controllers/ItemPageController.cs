@@ -6,14 +6,13 @@ using BigNumberText = WitchMendokusai.Numerics.BigNumberText;
 
 namespace WitchMendokusai.Idle.UI
 {
-	/// <summary>아이템 화면의 가방, 공방, 감정 표시와 명령을 맡는다.</summary>
+	/// <summary>아이템 화면의 가방과 감정 표시와 명령. 공방은 <see cref="ForgePanelController"/></summary>
 	public sealed class ItemPageController
 	{
 		private readonly IdleSession session;
 		private readonly UIContentSO content;
 		private readonly GearVisualPresenter gearVisualPresenter;
 		private readonly VisualTreeAsset bagCellAsset;
-		private readonly VisualTreeAsset forgeKindAsset;
 		private readonly VisualTreeAsset rowButtonAsset;
 		private readonly Func<int> selectedHeroId;
 		private readonly Action writeDown;
@@ -23,20 +22,13 @@ namespace WitchMendokusai.Idle.UI
 		private readonly float feedbackSeconds;
 		private readonly Button[] subButtons = new Button[2];
 		private readonly List<Button> bagCells = new List<Button>();
-		private readonly List<Label> forgeCells = new List<Label>();
-		private readonly List<Button> forgeKindButtons = new List<Button>();
-		private readonly List<int> forgeKindKeys = new List<int>();
 		private readonly List<Button> appraiseButtons = new List<Button>();
 		private readonly VisualElement bagView;
 		private readonly VisualElement forgeView;
 		private readonly Label gearSummary;
-		private readonly VisualElement forgeKinds;
-		private readonly Label forgeResult;
-		private readonly Label forgeTitle;
-		private readonly Button forgeButton;
+		private readonly ForgePanelController forge;
 		private readonly VisualElement appraiseRows;
 		private readonly Button bulkMergeButton;
-		private int forgeTier;
 
 		public ItemPageController(
 			VisualElement page,
@@ -57,7 +49,6 @@ namespace WitchMendokusai.Idle.UI
 			this.content = content;
 			this.gearVisualPresenter = gearVisualPresenter;
 			this.bagCellAsset = bagCellAsset;
-			this.forgeKindAsset = forgeKindAsset;
 			this.rowButtonAsset = rowButtonAsset;
 			this.selectedHeroId = selectedHeroId;
 			this.writeDown = writeDown;
@@ -85,16 +76,9 @@ namespace WitchMendokusai.Idle.UI
 			bulkMergeButton = page.Q<Button>("bulk-merge-button");
 			bulkMergeButton.clicked += MergeAll;
 			forgeView = page.Q<VisualElement>("forge-view");
-			forgeKinds = page.Q<VisualElement>("forge-kinds");
-			for (int index = 0; index < content.ForgeInputSlotCount; index++)
-			{
-				forgeCells.Add(page.Q<Label>("forge-cell-" + index));
-			}
-
-			forgeResult = page.Q<Label>("forge-result");
-			forgeTitle = page.Q<Label>("forge-title");
-			forgeButton = page.Q<Button>("forge-button");
-			forgeButton.clicked += MergeForge;
+			forge = new ForgePanelController(
+				page, session, content, gearVisualPresenter, forgeKindAsset,
+				writeDown, requestRender, showFeedback, feedbackSeconds);
 
 			Label appraiseCap = page.Q<Label>("appraise-cap");
 			appraiseCap.style.display = DisplayStyle.None;
@@ -116,7 +100,7 @@ namespace WitchMendokusai.Idle.UI
 
 			bulkMergeButton.text = content.BulkMergeText(snapshot.MergeCount);
 			bulkMergeButton.SetEnabled(IdleAdvice.MergeableCount(snapshot) > 0);
-			RenderForge(snapshot);
+			forge.Render(snapshot);
 			RenderAppraise(snapshot);
 		}
 
@@ -202,105 +186,6 @@ namespace WitchMendokusai.Idle.UI
 			gearVisualPresenter.SetTierOutline(cell, item.Tier);
 		}
 
-		private void RenderForge(IdleSnapshot snapshot)
-		{
-			int[] counts = CountTiers(snapshot);
-			List<int> keys = PresentTiers(counts);
-			EnsureForgeKinds(keys);
-
-			for (int index = 0; index < forgeKindButtons.Count; index++)
-			{
-				int tier = forgeKindKeys[index];
-				forgeKindButtons[index].text = content.ForgeKindText(tier, counts[tier]);
-				gearVisualPresenter.SetTierOutline(forgeKindButtons[index], tier);
-				forgeKindButtons[index].EnableInClassList("idle-forge-kind--on", forgeTier == tier);
-			}
-
-			int have = forgeTier > 0 && forgeTier < counts.Length ? counts[forgeTier] : 0;
-			int shown = have > snapshot.MergeCount ? snapshot.MergeCount : have;
-			for (int index = 0; index < forgeCells.Count; index++)
-			{
-				bool filled = index < shown;
-				forgeCells[index].text = filled ? content.ForgeCellText(forgeTier) : string.Empty;
-				gearVisualPresenter.SetTierOutline(forgeCells[index], filled ? forgeTier : 0);
-			}
-
-			bool ready = forgeTier > 0 && have >= snapshot.MergeCount;
-			forgeResult.text = forgeTier > 0 ? content.ForgeResultText(forgeTier + 1) : string.Empty;
-			gearVisualPresenter.SetTierOutline(forgeResult, forgeTier > 0 ? forgeTier + 1 : 0);
-			forgeResult.EnableInClassList("idle-forge-cell--ready", ready);
-			forgeTitle.text = forgeTier > 0
-				? content.ForgeSelectionText(forgeTier, have, snapshot.MergeCount)
-				: content.ForgeEmptyHintText(snapshot.MergeCount);
-			forgeButton.SetEnabled(ready);
-		}
-
-		private static int[] CountTiers(IdleSnapshot snapshot)
-		{
-			int[] counts = new int[snapshot.TierCeiling + 2];
-			for (int index = 0; index < snapshot.Bag.Length; index++)
-			{
-				int tier = snapshot.Bag[index].Tier;
-				if (tier >= 0 && tier < counts.Length)
-				{
-					counts[tier]++;
-				}
-			}
-
-			return counts;
-		}
-
-		private static List<int> PresentTiers(int[] counts)
-		{
-			List<int> keys = new List<int>();
-			for (int tier = 0; tier < counts.Length; tier++)
-			{
-				if (counts[tier] > 0)
-				{
-					keys.Add(tier);
-				}
-			}
-
-			return keys;
-		}
-
-		private void EnsureForgeKinds(List<int> keys)
-		{
-			if (forgeKindKeys.Count == keys.Count && KeysDiffer(keys) == false)
-			{
-				return;
-			}
-
-			forgeKinds.Clear();
-			forgeKindButtons.Clear();
-			forgeKindKeys.Clear();
-			for (int index = 0; index < keys.Count; index++)
-			{
-				int tier = keys[index];
-				forgeKindKeys.Add(tier);
-				forgeKindButtons.Add(AddForgeKind(() => PickForge(tier)));
-			}
-		}
-
-		private bool KeysDiffer(List<int> keys)
-		{
-			for (int index = 0; index < keys.Count; index++)
-			{
-				if (keys[index] != forgeKindKeys[index])
-				{
-					return true;
-				}
-			}
-
-			return false;
-		}
-
-		private void PickForge(int tier)
-		{
-			forgeTier = tier;
-			requestRender();
-		}
-
 		private void RenderAppraise(IdleSnapshot snapshot)
 		{
 			if (appraiseButtons.Count != snapshot.DroppedByTier.Length)
@@ -323,23 +208,6 @@ namespace WitchMendokusai.Idle.UI
 					(appraisal.Block == AppraiseBlock.TierTooLow) == false);
 				appraiseButtons[tier - 1].SetEnabled(appraisal.Block == AppraiseBlock.None);
 			}
-		}
-
-		private void MergeForge()
-		{
-			if (forgeTier <= 0)
-			{
-				return;
-			}
-
-			if (session.Send(new IdleMergeIntent(forgeTier, IdleItemSlot.Head)))
-			{
-				showFeedback(content.MergeFeedbackText(
-					content.GearSlotName((int)IdleItemSlot.Head), forgeTier), feedbackSeconds);
-				writeDown();
-			}
-
-			requestRender();
 		}
 
 		private void MergeAll()
@@ -383,16 +251,6 @@ namespace WitchMendokusai.Idle.UI
 			cell.text = string.Empty;
 			parent.Add(cell);
 			return cell;
-		}
-
-		private Button AddForgeKind(Action clicked)
-		{
-			TemplateContainer tree = forgeKindAsset.Instantiate();
-			Button kind = tree.Q<Button>("forge-kind");
-			kind.RemoveFromHierarchy();
-			kind.clicked += clicked;
-			forgeKinds.Add(kind);
-			return kind;
 		}
 
 		private Button AddRowButton(Action clicked)

@@ -5,6 +5,19 @@ namespace WitchMendokusai.Idle
 	/// <summary>런타임 머티리얼과 작은 메시만. 적 도형은 <see cref="Geometry"/> 소관</summary>
 	internal static class BattleVisualFactory
 	{
+		/// <summary>런타임 조각 치우기. 에디트 모드 미리보기는 즉시 파괴만 됨</summary>
+		public static void Kill(GameObject piece)
+		{
+			if (Application.isPlaying)
+			{
+				Object.Destroy(piece);
+			}
+			else
+			{
+				Object.DestroyImmediate(piece);
+			}
+		}
+
 		public static Material Paint(GameObject piece, Color color)
 		{
 			Material made = MakeMaterial(color);

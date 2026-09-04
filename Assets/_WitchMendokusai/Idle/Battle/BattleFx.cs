@@ -317,7 +317,7 @@ namespace WitchMendokusai.Idle
 				{
 					if (one.Piece != null)
 					{
-						Kill(one.Piece.gameObject);
+						BattleVisualFactory.Kill(one.Piece.gameObject);
 					}
 
 					impacts.RemoveAt(at);
@@ -349,7 +349,7 @@ namespace WitchMendokusai.Idle
 
 				if (progress >= 1f)
 				{
-					Kill(bolt.Piece.gameObject);
+					BattleVisualFactory.Kill(bolt.Piece.gameObject);
 					bolts.RemoveAt(at);
 				}
 			}
@@ -382,18 +382,6 @@ namespace WitchMendokusai.Idle
 						number.Text.SetScreenPosition(screen);
 					}
 				}
-			}
-		}
-
-		private static void Kill(GameObject piece)
-		{
-			if (Application.isPlaying)
-			{
-				Object.Destroy(piece);
-			}
-			else
-			{
-				Object.DestroyImmediate(piece);
 			}
 		}
 	}
