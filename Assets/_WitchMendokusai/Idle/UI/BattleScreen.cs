@@ -36,15 +36,11 @@ namespace WitchMendokusai.Idle
 		[SerializeField] private BattleStage stage;
 
 		private VisualTreeAsset screenAsset => viewAssets.Screen;
-		private VisualTreeAsset bagCellAsset => viewAssets.BagCell;
-		private VisualTreeAsset forgeKindAsset => viewAssets.ForgeKind;
 		private VisualTreeAsset cardAsset => viewAssets.Card;
 		private VisualTreeAsset queueChipAsset => viewAssets.QueueChip;
 		private VisualTreeAsset choiceCardAsset => viewAssets.ChoiceCard;
 		private VisualTreeAsset waveDotAsset => viewAssets.WaveDot;
-		private VisualTreeAsset producerRowAsset => viewAssets.ProducerRow;
 		private VisualTreeAsset rowButtonAsset => viewAssets.RowButton;
-		private VisualTreeAsset rowLabelAsset => viewAssets.RowLabel;
 
 		private IdleSession session;
 		private float untilUiRefresh;
@@ -74,15 +70,12 @@ namespace WitchMendokusai.Idle
 		private bool built;
 
 		// ── 탭 ────────────────────────────────────────────────────────────
-		private enum Tab { Doll = 0, Item = 1, Codex = 2, Shop = 3, Lab = 4, Dungeon = 5, Invest = 6 }
-
 		// ── 전투 창 ───────────────────────────────────────────────────────
 		private VisualElement battle;
 		private BattleHudController battleHudController;
 		private BattleActionController battleActionController;
 
 		private CardHandController cardHandController;
-		private DungeonPageController dungeonPageController;
 
 		// ── 관리 열 ───────────────────────────────────────────────────────
 		/// <summary>UI 뿌리. 폭을 재서 무대 카메라를 맞춘다</summary>
@@ -90,17 +83,10 @@ namespace WitchMendokusai.Idle
 
 		private SidePanelController sidePanelController;
 		private ScreenLayoutController screenLayoutController;
-		private Tab openTab = Tab.Doll;
+		private SidePagesController sidePagesController;
+		private ManagementPage openPage = ManagementPage.Doll;
 
-		private DollPageController dollPageController;
 		private SelectionPopupCoordinator selectionPopupCoordinator;
-
-		private ItemPageController itemPageController;
-
-		private CodexPageController codexPageController;
-		private ShopPageController shopPageController;
-		private LabPageController labPageController;
-		private InvestPageController investPageController;
 
 		// 툴팁
 		private Label tooltip;
@@ -235,7 +221,8 @@ namespace WitchMendokusai.Idle
 			{
 				what = "viewAssets: " + viewError;
 			}
-			else if (uiContentAsset.TryValidate(System.Enum.GetValues(typeof(Tab)).Length, out string uiError) == false)
+			else if (uiContentAsset.TryValidate(
+				System.Enum.GetValues(typeof(ManagementPage)).Length, out string uiError) == false)
 			{
 				what = "uiContentAsset: " + uiError;
 			}
@@ -396,7 +383,7 @@ namespace WitchMendokusai.Idle
 			}
 
 			built = true;
-			screenLayoutController.Apply((int)openTab);
+			screenLayoutController.Apply((int)openPage);
 
 		}
 
@@ -425,14 +412,8 @@ namespace WitchMendokusai.Idle
 			cardHandController = null;
 			sidePanelController = null;
 			screenLayoutController = null;
-			dollPageController = null;
+			sidePagesController = null;
 			selectionPopupCoordinator = null;
-			itemPageController = null;
-			codexPageController = null;
-			shopPageController = null;
-			labPageController = null;
-			dungeonPageController = null;
-			investPageController = null;
 			mapSelectionController = null;
 			goldDetailsController = null;
 			settingsPopupController = null;
@@ -465,7 +446,7 @@ namespace WitchMendokusai.Idle
 				waveDotAsset,
 				uiContentAsset,
 				session.CanGoToStage,
-				() => OpenTab(Tab.Doll),
+				() => OpenPage(ManagementPage.Doll),
 				ToggleMap,
 				battleActionController.StepStage,
 				battleActionController.ToggleHold,
@@ -487,19 +468,27 @@ namespace WitchMendokusai.Idle
 		private void BuildSide(VisualElement shell)
 		{
 			sidePanelController = new SidePanelController(
-				shell, battle, uiContentAsset, index => OpenTab((Tab)index), CloseSide);
-			BuildDollPage();
-			BuildItemPage();
-			BuildCodexPage();
-			BuildShopPage();
-			BuildLabPage();
-			BuildDungeonPage();
-			BuildInvestPage();
-		}
-
-		private VisualElement UsePage(Tab tab, string hostName)
-		{
-			return sidePanelController.BindPage((int)tab, hostName, root);
+				shell, battle, uiContentAsset,
+				index => OpenPage((ManagementPage)index), CloseSide);
+			sidePagesController = new SidePagesController(
+				sidePanelController,
+				root,
+				session,
+				uiContentAsset,
+				viewAssets,
+				heroVisualPresenter,
+				gearVisualPresenter,
+				() => selectionPopupCoordinator.HeroId,
+				() => selectionPopupCoordinator.GearSeat,
+				() => selectionPopupCoordinator.SelectingPartySeat,
+				slot => selectionPopupCoordinator.OpenHero(slot),
+				slot => selectionPopupCoordinator.OpenGear(slot),
+				HookTooltip,
+				WriteDown,
+				() => Render(session.Capture()),
+				SayOnce,
+				() => sound?.Good(),
+				runtimeSettingsAsset.NoteSeconds);
 		}
 
 		private VisualElement UsePopup(string hostName)
@@ -508,80 +497,6 @@ namespace WitchMendokusai.Idle
 			VisualElement popup = host.Q<VisualElement>("popup");
 			popup.style.display = DisplayStyle.None;
 			return popup;
-		}
-
-		/// <summary>인형 탭 (layout.md §3). 모양은 UXML, 여기는 값과 클릭만</summary>
-		private void BuildDollPage()
-		{
-			dollPageController = new DollPageController(
-				UsePage(Tab.Doll, "doll-page-host"),
-				session,
-				uiContentAsset,
-				heroVisualPresenter,
-				gearVisualPresenter,
-				() => selectionPopupCoordinator.HeroId,
-				() => selectionPopupCoordinator.GearSeat,
-				() => selectionPopupCoordinator.SelectingPartySeat,
-				slot => selectionPopupCoordinator.OpenHero(slot),
-				slot => selectionPopupCoordinator.OpenGear(slot),
-				WornTip,
-				HookTooltip,
-				WriteDown,
-				() => Render(session.Capture()),
-				() => sound?.Good());
-		}
-
-		/// <summary>아이템 탭 (layout.md §3). 가방과 공방. 모양은 UXML</summary>
-		private void BuildItemPage()
-		{
-			itemPageController = new ItemPageController(
-				UsePage(Tab.Item, "item-page-host"),
-				session,
-				uiContentAsset,
-				gearVisualPresenter,
-				bagCellAsset,
-				forgeKindAsset,
-				rowButtonAsset,
-				() => selectionPopupCoordinator.HeroId,
-				WriteDown,
-				() => Render(session.Capture()),
-				SayOnce,
-				HookTooltip,
-				runtimeSettingsAsset.NoteSeconds);
-		}
-
-		private void BuildCodexPage()
-		{
-			codexPageController = new CodexPageController(
-				UsePage(Tab.Codex, "codex-page-host"), rowLabelAsset, uiContentAsset);
-		}
-
-		private void BuildShopPage()
-		{
-			shopPageController = new ShopPageController(
-				UsePage(Tab.Shop, "shop-page-host"), session, uiContentAsset,
-				WriteDown, () => Render(session.Capture()), SayOnce, runtimeSettingsAsset.NoteSeconds);
-		}
-
-		private void BuildLabPage()
-		{
-			labPageController = new LabPageController(
-				UsePage(Tab.Lab, "lab-page-host"), session, uiContentAsset,
-				WriteDown, () => Render(session.Capture()), SayOnce, runtimeSettingsAsset.NoteSeconds);
-		}
-
-		/// <summary>던전 넷 (economy.md). 알파 9번이라 지금은 눌리지 않는다</summary>
-		private void BuildDungeonPage()
-		{
-			dungeonPageController = new DungeonPageController(
-				UsePage(Tab.Dungeon, "dungeon-page-host"), uiContentAsset);
-		}
-
-		private void BuildInvestPage()
-		{
-			investPageController = new InvestPageController(
-				UsePage(Tab.Invest, "invest-page-host"), producerRowAsset,
-				session, uiContentAsset, () => Render(session.Capture()));
 		}
 
 		private void BuildMapPopup()
@@ -607,7 +522,7 @@ namespace WitchMendokusai.Idle
 				gearVisualPresenter,
 				session,
 				uiContentAsset,
-				itemPageController,
+				sidePagesController.ItemPage,
 				CloseAuxiliaryPopups,
 				WriteDown,
 				() => Render(session.Capture()),
@@ -699,7 +614,7 @@ namespace WitchMendokusai.Idle
 
 			if (screenLayoutController.ContentVisible)
 			{
-				RenderPage(snapshot);
+				sidePagesController.Render(openPage, snapshot);
 				selectionPopupCoordinator.Render(snapshot);
 			}
 
@@ -713,49 +628,34 @@ namespace WitchMendokusai.Idle
 		private void RenderTabBadges(IdleSnapshot snapshot)
 		{
 			sidePanelController.RenderBadges(
-				snapshot, (int)openTab, screenLayoutController.ContentVisible);
-		}
-
-		private void RenderPage(IdleSnapshot snapshot)
-		{
-			switch (openTab)
-			{
-				case Tab.Doll: dollPageController.Render(snapshot); break;
-				case Tab.Item: itemPageController.Render(snapshot); break;
-				case Tab.Codex: codexPageController.Render(snapshot); break;
-				case Tab.Shop: shopPageController.Render(snapshot); break;
-				case Tab.Lab: labPageController.Render(snapshot); break;
-				case Tab.Invest: investPageController.Render(snapshot); break;
-				case Tab.Dungeon: dungeonPageController.Render(snapshot); break;
-				default: break;
-			}
+				snapshot, (int)openPage, screenLayoutController.ContentVisible);
 		}
 
 		// ── 화면 상태 ─────────────────────────────────────────────────────
 
-		private void OpenTab(Tab tab)
+		private void OpenPage(ManagementPage page)
 		{
-			openTab = tab;
+			openPage = page;
 			selectionPopupCoordinator.ClearHeroSelection();
 
 			// 상점, 연구소는 왼쪽 씬이 바뀐다 (layout.md §2). 지금은 덮개
-			bool altScene = tab == Tab.Shop || tab == Tab.Lab;
+			bool altScene = page == ManagementPage.Shop || page == ManagementPage.Lab;
 			battleHudController.SetAlternateScene(altScene,
-				uiContentAsset.ScenePlaceholderText(tab == Tab.Shop));
+				uiContentAsset.ScenePlaceholderText(page == ManagementPage.Shop));
 
-			screenLayoutController.OpenSide((int)openTab);
+			screenLayoutController.OpenSide((int)openPage);
 			Render(session.Capture());
 		}
 
 		private void CloseSide()
 		{
 			battleHudController.SetAlternateScene(false, string.Empty);
-			screenLayoutController.CloseSide((int)openTab);
+			screenLayoutController.CloseSide((int)openPage);
 		}
 
 		private void ToggleSplit()
 		{
-			screenLayoutController.ToggleSplit((int)openTab);
+			screenLayoutController.ToggleSplit((int)openPage);
 			Render(session.Capture());
 		}
 
@@ -822,11 +722,6 @@ namespace WitchMendokusai.Idle
 			{
 				sound?.Click();
 			}
-		}
-
-		private string WornTip(int slot)
-		{
-			return itemPageController.WornTip(slot);
 		}
 
 		// ── 잔손 ──────────────────────────────────────────────────────────
