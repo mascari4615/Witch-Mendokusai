@@ -58,6 +58,8 @@ namespace WitchMendokusai.Idle
 		[SerializeField] private Vector3 downedEuler = new Vector3(0f, 0f, -78f);
 		[SerializeField] private Vector3 downedScale = new Vector3(1f, 0.75f, 1f);
 		[SerializeField] private float allyWalkBobHeight = 0.1f;
+		[SerializeField] private float allyWalkBobFrequency = 7f;
+		[SerializeField] private float allyWalkBobPhaseStep = 1.3f;
 		[SerializeField] private float allyLungeDistance = 0.3f;
 		[SerializeField] private float allyHurtDistance = 0.08f;
 
@@ -67,6 +69,8 @@ namespace WitchMendokusai.Idle
 		[SerializeField] private float foeEntranceThreshold = 0.05f;
 		[SerializeField] private float foeSpinDegrees = 12f;
 		[SerializeField] private float foeBobHeight = 0.025f;
+		[SerializeField] private float foeBobFrequency = 2.4f;
+		[SerializeField] private float foeBobPhaseStep = 1.7f;
 		[SerializeField] private float foeHeadHeight = 0.7f;
 		[SerializeField] private float foePickRadius = 54f;
 		[SerializeField] private float foeMinHealthScale = 0.82f;
@@ -75,6 +79,9 @@ namespace WitchMendokusai.Idle
 		[SerializeField] private float foeBarThickness = 0.1f;
 		[SerializeField] private float shakeSeconds = 0.08f;
 		[SerializeField] private float shakeDistance = 0.025f;
+		[SerializeField] private float shakeFrequencyX = 83f;
+		[SerializeField] private float shakeFrequencyY = 117f;
+		[SerializeField, Range(0f, 1f)] private float shakeShareY = 0.35f;
 		[SerializeField] private float impactSize = 0.36f;
 		[SerializeField] private float impactSeconds = 0.34f;
 		[SerializeField] private float impactSpeed = 3.4f;
@@ -183,6 +190,9 @@ namespace WitchMendokusai.Idle
 				AppraiseImpactOffset = appraiseImpactOffset,
 				AppraiseImpactColor = appraiseImpactColor,
 				ShakeDistance = shakeDistance,
+				ShakeFrequencyX = shakeFrequencyX,
+				ShakeFrequencyY = shakeFrequencyY,
+				ShakeShareY = shakeShareY,
 				NumberSeconds = numberSeconds,
 				NumberRise = numberRise,
 				NumberSize = numberSize,
@@ -226,6 +236,8 @@ namespace WitchMendokusai.Idle
 				DownedEuler = downedEuler,
 				DownedScale = downedScale,
 				AllyWalkBobHeight = allyWalkBobHeight,
+				AllyWalkBobFrequency = allyWalkBobFrequency,
+				AllyWalkBobPhaseStep = allyWalkBobPhaseStep,
 				AllyLungeDistance = allyLungeDistance,
 				AllyHurtDistance = allyHurtDistance,
 				FoeEntranceDistance = foeEntranceDistance,
@@ -233,6 +245,8 @@ namespace WitchMendokusai.Idle
 				FoeEntranceThreshold = foeEntranceThreshold,
 				FoeSpinDegrees = foeSpinDegrees,
 				FoeBobHeight = foeBobHeight,
+				FoeBobFrequency = foeBobFrequency,
+				FoeBobPhaseStep = foeBobPhaseStep,
 				BossScale = bossScale,
 				FoeHeight = foeHeight,
 				FoeRadius = foeRadius,
@@ -296,7 +310,9 @@ namespace WitchMendokusai.Idle
 				|| boltSize <= 0f || boltMissDistance < 0f || volleyShakeScale < 0f || volleyTextLift < 0f
 				|| impactGlow < 0f || impactLift < 0f
 				|| sceneryBaseSize <= 0f || sceneryStepSize < 0f || scenerySpacing <= 0f
-				|| sceneryLaneOffset < 0f || sceneryLaneStep < 0f || sceneryWrapMargin < 0f)
+				|| sceneryLaneOffset < 0f || sceneryLaneStep < 0f || sceneryWrapMargin < 0f
+				|| allyWalkBobFrequency < 0f || foeBobFrequency < 0f
+				|| shakeFrequencyX < 0f || shakeFrequencyY < 0f)
 			{
 				error = "counts and stage thresholds must be valid";
 				return false;

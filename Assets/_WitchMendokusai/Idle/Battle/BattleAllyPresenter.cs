@@ -183,7 +183,9 @@ namespace WitchMendokusai.Idle
 				bool walking = seat < snapshot.Fighters.Length && snapshot.Fighters[seat].Moving;
 				float x = seat < snapshot.Fighters.Length ? (float)snapshot.Fighters[seat].X : 0f;
 				float y = seat < snapshot.Fighters.Length ? (float)snapshot.Fighters[seat].Y : 0f;
-				float bob = walking ? BattleMotion.WalkBob(clock, seat, settings.AllyWalkBobHeight) : 0f;
+				float bob = walking ? BattleMotion.WalkBob(
+						clock, seat, settings.AllyWalkBobHeight,
+						settings.AllyWalkBobFrequency, settings.AllyWalkBobPhaseStep) : 0f;
 
 				dolls[seat].localPosition = Vector3.Lerp(
 					dolls[seat].localPosition,

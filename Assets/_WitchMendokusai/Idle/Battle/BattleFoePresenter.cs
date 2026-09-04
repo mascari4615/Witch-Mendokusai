@@ -339,7 +339,8 @@ namespace WitchMendokusai.Idle
 				AdvanceFlash(foe, delta);
 
 				Vector3 position = foe.Model.localPosition;
-				position.y = BattleMotion.FoeBob(clock, index, settings.FoeBobHeight);
+				position.y = BattleMotion.FoeBob(
+					clock, index, settings.FoeBobHeight, settings.FoeBobFrequency, settings.FoeBobPhaseStep);
 				foe.Model.localPosition = position;
 			}
 		}

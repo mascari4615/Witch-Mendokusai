@@ -27,6 +27,8 @@ namespace WitchMendokusai.Idle
 			public Vector3 DownedEuler { get; set; }
 			public Vector3 DownedScale { get; set; }
 			public float AllyWalkBobHeight { get; set; }
+			public float AllyWalkBobFrequency { get; set; }
+			public float AllyWalkBobPhaseStep { get; set; }
 			public float AllyLungeDistance { get; set; }
 			public float AllyHurtDistance { get; set; }
 			public float FoeEntranceDistance { get; set; }
@@ -34,6 +36,8 @@ namespace WitchMendokusai.Idle
 			public float FoeEntranceThreshold { get; set; }
 			public float FoeSpinDegrees { get; set; }
 			public float FoeBobHeight { get; set; }
+			public float FoeBobFrequency { get; set; }
+			public float FoeBobPhaseStep { get; set; }
 			public float BossScale { get; set; }
 			public float FoeHeight { get; set; }
 			public float FoeRadius { get; set; }

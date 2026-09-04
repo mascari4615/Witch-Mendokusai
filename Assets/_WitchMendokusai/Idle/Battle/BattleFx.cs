@@ -32,6 +32,10 @@ namespace WitchMendokusai.Idle
 			public Vector3 AppraiseImpactOffset { get; set; }
 			public Color AppraiseImpactColor { get; set; }
 			public float ShakeDistance { get; set; }
+			public float ShakeFrequencyX { get; set; }
+			public float ShakeFrequencyY { get; set; }
+			/// <summary>세로 흔들림 몫. 가로 대비</summary>
+			public float ShakeShareY { get; set; }
 			public float NumberSeconds { get; set; }
 			public float NumberRise { get; set; }
 			public float NumberSize { get; set; }
@@ -224,7 +228,9 @@ namespace WitchMendokusai.Idle
 			{
 				shakeLeft -= delta;
 				float left = settings.ShakeSeconds > 0f ? Mathf.Clamp01(shakeLeft / settings.ShakeSeconds) : 0f;
-				holder.localPosition = BattleMotion.Shake(clock, settings.ShakeDistance, left);
+				holder.localPosition = BattleMotion.Shake(
+					clock, settings.ShakeDistance, left,
+					settings.ShakeFrequencyX, settings.ShakeFrequencyY, settings.ShakeShareY);
 			}
 			else
 			{
