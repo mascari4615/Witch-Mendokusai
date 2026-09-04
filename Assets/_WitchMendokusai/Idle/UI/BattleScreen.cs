@@ -93,9 +93,7 @@ namespace WitchMendokusai.Idle
 		private PointerTooltipController tooltipController;
 
 		// 팝업
-		private MapSelectionController mapSelectionController;
-		private GoldDetailsController goldDetailsController;
-		private SettingsPopupController settingsPopupController;
+		private AuxiliaryPopupCoordinator auxiliaryPopupCoordinator;
 		private ModalController modalController;
 		private HeroVisualPresenter heroVisualPresenter;
 		private GearVisualPresenter gearVisualPresenter;
@@ -308,7 +306,7 @@ namespace WitchMendokusai.Idle
 				stage.Render(snapshot, delta);
 			}
 
-			settingsPopupController?.Tick(delta);
+			auxiliaryPopupCoordinator?.Tick(delta);
 
 			untilUiRefresh -= delta;
 			if (untilUiRefresh <= 0f)
@@ -362,7 +360,7 @@ namespace WitchMendokusai.Idle
 				uiContentAsset,
 				runtimeSettingsAsset,
 				() => cardHandController.CancelAim(),
-				CloseMap,
+				() => auxiliaryPopupCoordinator.CloseMap(),
 				WriteDown,
 				() => Render(session.Capture()),
 				SayOnce);
@@ -371,11 +369,9 @@ namespace WitchMendokusai.Idle
 			BuildSide(shell);
 			screenLayoutController = new ScreenLayoutController(
 				root, sidePanelController, battleHudController, uiContentAsset);
-			BuildMapPopup();
+			BuildAuxiliaryPopups();
 			BuildSelectionPopups();
-			BuildGoldPopup();
-			BuildSettingsPopup();
-			BuildAwayPopup(away);
+			auxiliaryPopupCoordinator.ShowAway(UsePopup("away-popup-host"), away);
 
 			if (stage != null)
 			{
@@ -414,9 +410,7 @@ namespace WitchMendokusai.Idle
 			screenLayoutController = null;
 			sidePagesController = null;
 			selectionPopupCoordinator = null;
-			mapSelectionController = null;
-			goldDetailsController = null;
-			settingsPopupController = null;
+			auxiliaryPopupCoordinator = null;
 		}
 
 		private void BuildBattle(VisualElement shell)
@@ -447,12 +441,12 @@ namespace WitchMendokusai.Idle
 				uiContentAsset,
 				session.CanGoToStage,
 				() => OpenPage(ManagementPage.Doll),
-				ToggleMap,
+				() => auxiliaryPopupCoordinator.ToggleMap(),
 				battleActionController.StepStage,
 				battleActionController.ToggleHold,
-				OpenGoldPopup,
+				() => auxiliaryPopupCoordinator.OpenGold(),
 				ToggleSplit,
-				OpenSettingsPopup,
+				() => auxiliaryPopupCoordinator.OpenSettings(),
 				battleActionController.ToggleAutoCast);
 			cardHandController = new CardHandController(
 				battle,
@@ -499,15 +493,19 @@ namespace WitchMendokusai.Idle
 			return popup;
 		}
 
-		private void BuildMapPopup()
+		private void BuildAuxiliaryPopups()
 		{
-			mapSelectionController = new MapSelectionController(
+			auxiliaryPopupCoordinator = new AuxiliaryPopupCoordinator(
 				UsePopup("map-popup-host"),
+				UsePopup("gold-popup-host"),
+				UsePopup("settings-popup-host"),
 				rowButtonAsset,
 				modalController,
+				session,
 				uiContentAsset,
-				session.CanGoToStage,
-				battleActionController.GoToStage);
+				() => selectionPopupCoordinator.CloseAll(),
+				battleActionController.GoToStage,
+				() => Render(session.Capture()));
 		}
 
 		/// <summary>장비 고르기 팝업. 관리 열 위에 뜬다</summary>
@@ -523,72 +521,11 @@ namespace WitchMendokusai.Idle
 				session,
 				uiContentAsset,
 				sidePagesController.ItemPage,
-				CloseAuxiliaryPopups,
+				auxiliaryPopupCoordinator.CloseGoldAndSettings,
 				WriteDown,
 				() => Render(session.Capture()),
 				SayOnce,
 				runtimeSettingsAsset.NoteSeconds);
-		}
-
-		private void BuildGoldPopup()
-		{
-			goldDetailsController = new GoldDetailsController(
-				UsePopup("gold-popup-host"), modalController, uiContentAsset);
-		}
-
-		private void BuildSettingsPopup()
-		{
-			settingsPopupController = new SettingsPopupController(
-				UsePopup("settings-popup-host"), modalController,
-				session, uiContentAsset, () => Render(session.Capture()));
-		}
-
-		private void OpenGoldPopup()
-		{
-			goldDetailsController.Open(() =>
-			{
-				CloseMap();
-				selectionPopupCoordinator.CloseAll();
-				CloseSettingsPopup();
-			});
-			Render(session.Capture());
-		}
-
-		private void CloseGoldPopup()
-		{
-			goldDetailsController?.Close();
-		}
-
-		private void OpenSettingsPopup()
-		{
-			settingsPopupController.Open(() =>
-			{
-				CloseMap();
-				selectionPopupCoordinator.CloseAll();
-				CloseGoldPopup();
-			});
-			Render(session.Capture());
-		}
-
-		private void CloseSettingsPopup()
-		{
-			settingsPopupController?.Close();
-		}
-
-		private void CloseAuxiliaryPopups()
-		{
-			CloseGoldPopup();
-			CloseSettingsPopup();
-		}
-
-		private void BuildAwayPopup(IdleAwayReport away)
-		{
-			if (away.HasAnything == false)
-			{
-				return;
-			}
-
-			AwayReportPresenter.Bind(UsePopup("away-popup-host"), away, uiContentAsset);
 		}
 
 		// ── 그리기 ────────────────────────────────────────────────────────
@@ -601,16 +538,10 @@ namespace WitchMendokusai.Idle
 			}
 
 			battleHudController.Render(snapshot);
-			goldDetailsController.Render(snapshot);
-			settingsPopupController.Render(snapshot);
+			auxiliaryPopupCoordinator.Render(snapshot);
 
 			RenderHand(snapshot);
 			RenderTabBadges(snapshot);
-
-			if (mapSelectionController.IsOpen)
-			{
-				mapSelectionController.Render(snapshot);
-			}
 
 			if (screenLayoutController.ContentVisible)
 			{
@@ -657,22 +588,6 @@ namespace WitchMendokusai.Idle
 		{
 			screenLayoutController.ToggleSplit((int)openPage);
 			Render(session.Capture());
-		}
-
-		private void ToggleMap()
-		{
-			mapSelectionController.Toggle(() =>
-			{
-				selectionPopupCoordinator.CloseAll();
-				CloseGoldPopup();
-				CloseSettingsPopup();
-			});
-			Render(session.Capture());
-		}
-
-		private void CloseMap()
-		{
-			mapSelectionController?.Close();
 		}
 
 		/// <summary>
@@ -728,7 +643,7 @@ namespace WitchMendokusai.Idle
 
 		private void SayOnce(string what, float seconds)
 		{
-			settingsPopupController.ShowNote(what, seconds);
+			auxiliaryPopupCoordinator.ShowNote(what, seconds);
 		}
 
 	}
