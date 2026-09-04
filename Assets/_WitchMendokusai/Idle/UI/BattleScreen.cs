@@ -42,9 +42,10 @@ namespace WitchMendokusai.Idle
 		private VisualTreeAsset waveDotAsset => viewAssets.WaveDot;
 		private VisualTreeAsset rowButtonAsset => viewAssets.RowButton;
 
-		private IdleSession session;
+		private BattleSessionLifecycle sessionLifecycle;
+		private IdleSession session => sessionLifecycle?.Session;
+		private bool preview => sessionLifecycle?.IsPreview ?? false;
 		private float untilUiRefresh;
-		private SessionPersistence persistence;
 		private ProceduralSfx sound;
 		private bool clickSoundHooked;
 		private ScreenRootController screenRootController;
@@ -54,13 +55,8 @@ namespace WitchMendokusai.Idle
 		/// <summary>화면 에셋이 없어 못 짓는 판. 켜 두되 아무것도 안 그린다</summary>
 		private bool broken;
 
-		private bool preview;
-
 #if UNITY_EDITOR
-		// 미리보기 시계와 첫 틱 표식. 에디터 전용 경로에서만 읽으므로 여기 밖에 두면
-		// 플레이어 빌드에서 CS0414(쓰기만 하고 안 읽음)로 죽는다 (실측 2026-09-01, csc.rsp 가 -warnaserror+)
-		private double previewClock;
-		private bool previewTicked;
+		private BattlePreviewDriver previewDriver;
 #endif
 
 		/// <summary>미리보기 시뮬 진행 여부. 기본은 첫 틱 뒤 정지 (정적 장면). Dev Panel 이 켠다</summary>
@@ -133,31 +129,19 @@ namespace WitchMendokusai.Idle
 			screenRootController.Enable();
 
 			IdleTuning tuning = tuningAsset.ToTuning();
-			preview = Application.isPlaying == false;
-			persistence = null;
+			sessionLifecycle = new BattleSessionLifecycle(
+				tuning,
+				runtimeSettingsAsset,
+				Application.isPlaying == false);
 
-			IdleState state;
-			IdleAwayReport away = default;
-
-			if (preview)
+			if (sessionLifecycle.IsPreview)
 			{
 #if UNITY_EDITOR
-				previewTicked = false;
-#endif
-				state = runtimeSettingsAsset.CreatePreviewState(tuning);
-				session = new IdleSession(tuning, state);
-#if UNITY_EDITOR
-				UnityEditor.EditorApplication.update -= PreviewTick;
-				UnityEditor.EditorApplication.update += PreviewTick;
-				previewClock = UnityEditor.EditorApplication.timeSinceStartup;
+				previewDriver = new BattlePreviewDriver(Tick, () => PreviewRunning);
 #endif
 			}
 			else
 			{
-				persistence = new SessionPersistence(runtimeSettingsAsset.SaveIntervalSeconds);
-				state = persistence.LoadState();
-				session = new IdleSession(tuning, state);
-				away = persistence.CatchUp(session);
 				EnsureSound();
 			}
 
@@ -170,35 +154,9 @@ namespace WitchMendokusai.Idle
 				Debug.LogWarning("[Idle] 무대가 안 꽂혀 있다. HUD 만 뜬다. 씬 빌더로 다시 지어라.");
 			}
 
-			BuildAll(away);
+			BuildAll(sessionLifecycle.Away);
 			Render(session.Capture());
 		}
-
-#if UNITY_EDITOR
-		/// <summary>에디트 모드의 한 틱. 시뮬을 밟고 모든 뷰를 다시 그린다</summary>
-		private void PreviewTick()
-		{
-			if (this == null || preview == false)
-			{
-				UnityEditor.EditorApplication.update -= PreviewTick;
-				return;
-			}
-
-			double now = UnityEditor.EditorApplication.timeSinceStartup;
-			float delta = Mathf.Min(0.25f, (float)(now - previewClock));
-			previewClock = now;
-
-			// 정적 장면이 기본. 첫 틱만 밟아 전장을 세우고 멈춘다 (사용자: UI 와 정적 3D 확인용)
-			if (previewTicked && PreviewRunning == false)
-			{
-				return;
-			}
-
-			previewTicked = true;
-			Tick(delta);
-			UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
-		}
-#endif
 
 		/// <summary>안 꽂힌 화면 에셋 이름. 전부 있으면 거짓</summary>
 		private bool MissingAsset(out string what)
@@ -239,21 +197,16 @@ namespace WitchMendokusai.Idle
 		private void OnDisable()
 		{
 #if UNITY_EDITOR
-			UnityEditor.EditorApplication.update -= PreviewTick;
+			previewDriver?.Dispose();
+			previewDriver = null;
 #endif
 			screenRootController?.Dispose();
 			screenRootController = null;
 			panelRoot = null;
 			clickSoundHooked = false;
 			modalController?.Dispose();
-			if (preview)
-			{
-				session = null;
-				return;
-			}
-
-			persistence?.Close(session);
-			session = null;
+			sessionLifecycle?.Close();
+			sessionLifecycle = null;
 		}
 
 		private void OnApplicationPause(bool paused)
@@ -271,7 +224,6 @@ namespace WitchMendokusai.Idle
 
 		private void Update()
 		{
-			// 미리보기는 에디터 틱(PreviewTick) 담당. 에디트 모드의 플레이어 루프는 Update 를 안 부름 (실측 2026-08-30)
 			if (preview)
 			{
 				return;
@@ -320,12 +272,12 @@ namespace WitchMendokusai.Idle
 				return;
 			}
 
-			persistence?.Tick(delta, session);
+			sessionLifecycle.TickPersistence(delta);
 		}
 
 		private void WriteDown()
 		{
-			persistence?.Save(session);
+			sessionLifecycle?.Save();
 		}
 
 		// ── 짓기 ──────────────────────────────────────────────────────────
@@ -599,7 +551,7 @@ namespace WitchMendokusai.Idle
 				return;
 			}
 
-			persistence.WipeAndSkipClose();
+			sessionLifecycle.WipeAndSkipClose();
 			enabled = false;
 			enabled = true;
 		}
