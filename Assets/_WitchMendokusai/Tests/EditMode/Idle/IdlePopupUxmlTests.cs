@@ -12,13 +12,24 @@ namespace WitchMendokusai.Tests.Idle
 		public void BattleScreenExposesStaticBindingPoints()
 		{
 			AssertElements("IdleBattleScreen.uxml", "shell", "battle", "skill-aim", "skill-aim-origin",
-				"skill-aim-line", "skill-aim-range", "skill-aim-caption", "floating-tabs", "wipe-button",
-				"floating-tab-0", "floating-tab-1", "floating-tab-2", "floating-tab-3", "floating-tab-4",
-				"floating-tab-5", "floating-tab-6", "side", "tabs", "tab-0", "tab-1", "tab-2", "tab-3",
-				"tab-4", "tab-5", "tab-6", "side-close", "panel-title", "panel-caption", "panel-body",
+				"skill-aim-line", "skill-aim-range", "skill-aim-caption", "wipe-button",
+				"side", "tabs", "tab-0", "tab-1", "tab-2", "tab-3",
+				"tab-4", "tab-5", "tab-6", "panel-title", "panel-caption", "panel-body",
 				"doll-page-host", "item-page-host", "codex-page-host", "shop-page-host", "lab-page-host",
 				"dungeon-page-host", "invest-page-host", "map-popup-host", "gear-popup-host", "hero-popup-host",
 				"gold-popup-host", "settings-popup-host", "away-popup-host", "tooltip");
+		}
+
+		[Test]
+		public void FullScreenUsesOneImageCollapseControl()
+		{
+			VisualTreeAsset asset = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(ROOT + "IdleBattleHud.uxml");
+			Assert.NotNull(asset);
+			TemplateContainer tree = asset.Instantiate();
+			Button split = tree.Q<Button>("split-button");
+			Assert.NotNull(split);
+			Assert.IsEmpty(split.text);
+			Assert.NotNull(split.Q<VisualElement>(className: "idle-split-chevron"));
 		}
 
 		[Test]

@@ -632,14 +632,6 @@
 	background-color: rgb(245, 175, 16);
 }
 
-/* 우하. 풀화면일 때 탭 */
-.idle-floating-tabs {
-	position: absolute;
-	right: 20px;
-	bottom: 14px;
-	flex-direction: row;
-}
-
 .idle-debug {
 	position: absolute;
 	left: 20px;
@@ -719,13 +711,6 @@
 	background-color: rgb(26, 26, 26);
 	border-left-width: 2px;
 	border-left-color: rgb(0, 0, 0);
-}
-
-.idle-side--drawer {
-	position: absolute;
-	right: 0;
-	top: 0;
-	bottom: 0;
 }
 
 .idle-tabs {

@@ -12,7 +12,6 @@ namespace WitchMendokusai.Idle.UI
 		private readonly BattleHudController battleHud;
 		private readonly UIContentSO content;
 		private bool split;
-		private bool sideOpen;
 
 		public ScreenLayoutController(
 			VisualElement root,
@@ -28,17 +27,12 @@ namespace WitchMendokusai.Idle.UI
 			root.RegisterCallback<GeometryChangedEvent>(OnGeometryChanged);
 		}
 
-		public bool ContentVisible => split || sideOpen;
+		public bool ContentVisible => split;
 
 		public void OpenSide(int openTab)
 		{
-			sideOpen = true;
-			Apply(openTab);
-		}
-
-		public void CloseSide(int openTab)
-		{
-			sideOpen = false;
+			split = true;
+			PlayerPrefs.SetInt(SPLIT_PREFERENCE, 1);
 			Apply(openTab);
 		}
 
@@ -46,13 +40,12 @@ namespace WitchMendokusai.Idle.UI
 		{
 			split = split == false;
 			PlayerPrefs.SetInt(SPLIT_PREFERENCE, split ? 1 : 0);
-			sideOpen = false;
 			Apply(openTab);
 		}
 
 		public void Apply(int openTab)
 		{
-			sidePanel.Apply(openTab, split, sideOpen);
+			sidePanel.Apply(openTab, split);
 			battleHud.SetSplit(split);
 			AimCamera();
 			ApplySafeArea();

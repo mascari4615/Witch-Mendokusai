@@ -11,12 +11,12 @@ namespace WitchMendokusai.Idle
 	/// V2 작전 화면. 정본 <c>memo/wm/design/idle/layout.md</c> (사용자 확정 2026-08-30).
 	///
 	/// ★ 화면은 둘. 왼쪽 <b>전투 창</b>(1200)과 오른쪽 <b>관리 열</b>(720).
-	///   HUD 는 전부 전투 창 안: 작전 코드, 웨이브, 스테퍼, 반복, 재화 3, 배속, 로그, 손패, 코스트, AUTO.
+	///   HUD 는 전부 전투 창 안: 작전 코드, 웨이브, 스테퍼, 반복, 골드, 손패, 코스트, AUTO.
 	///   관리 열은 탭 7 + 판 하나. 한 번에 한 판.
 	/// ★ 분할 토글: 전투 풀화면이면 관리 열이 오른쪽에서 덮는 서랍, 탭은 우하.
 	/// ★ 상점, 연구소 탭은 전투 창의 3D 씬 자리를 그 탭의 씬으로 바꾼다 (지금은 자리 표시만).
 	/// ★ 규칙은 한 줄도 없다. 사진을 그리고 의도를 보낸다. 판정은 전부 코어.
-	/// ★ 이름(골드, 뽑기, 환생 조각, 탭 이름)은 전부 임시 (layout.md §6).
+	/// ★ 설정: 배속과 전투 기록. 골드 상세: HUD 골드 아이콘.
 	/// </summary>
 	[ExecuteAlways]
 	[RequireComponent(typeof(PanelRenderer))]
@@ -466,8 +466,8 @@ namespace WitchMendokusai.Idle
 		private void BuildSide(VisualElement shell)
 		{
 			sidePanelController = new SidePanelController(
-				shell, battle, uiContentAsset,
-				index => OpenPage((ManagementPage)index), CloseSide);
+				shell, uiContentAsset,
+				index => OpenPage((ManagementPage)index));
 			sidePagesController = new SidePagesController(
 				sidePanelController,
 				root,
@@ -580,12 +580,6 @@ namespace WitchMendokusai.Idle
 
 			screenLayoutController.OpenSide((int)openPage);
 			Render(session.Capture());
-		}
-
-		private void CloseSide()
-		{
-			battleHudController.SetAlternateScene(false, string.Empty);
-			screenLayoutController.CloseSide((int)openPage);
 		}
 
 		private void ToggleSplit()

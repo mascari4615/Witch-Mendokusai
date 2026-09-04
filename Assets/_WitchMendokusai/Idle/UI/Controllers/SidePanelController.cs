@@ -9,24 +9,18 @@ namespace WitchMendokusai.Idle.UI
 	{
 		private readonly UIContentSO content;
 		private readonly VisualElement side;
-		private readonly VisualElement floatingTabs;
-		private readonly Button closeButton;
 		private readonly Label title;
 		private readonly Label caption;
 		private readonly List<Button> tabButtons = new List<Button>();
-		private readonly List<Button> floatingButtons = new List<Button>();
 		private readonly VisualElement[] pages;
 
 		public SidePanelController(
 			VisualElement shell,
-			VisualElement battle,
 			UIContentSO content,
-			Action<int> openTab,
-			Action close)
+			Action<int> openTab)
 		{
 			this.content = content;
 			side = shell.Q<VisualElement>("side");
-			floatingTabs = battle.Q<VisualElement>("floating-tabs");
 			VisualElement tabs = side.Q<VisualElement>("tabs");
 			pages = new VisualElement[content.TabCount];
 
@@ -38,20 +32,10 @@ namespace WitchMendokusai.Idle.UI
 				tab.text = content.TabButtonText(index);
 				tab.style.display = content.IsTabVisible(index) ? DisplayStyle.Flex : DisplayStyle.None;
 				tabButtons.Add(tab);
-
-				Button floating = floatingTabs.Q<Button>("floating-tab-" + index);
-				floating.clicked += () => openTab(captured);
-				floating.text = content.TabName(index);
-				floating.style.display = content.IsTabVisible(index) ? DisplayStyle.Flex : DisplayStyle.None;
-				floatingButtons.Add(floating);
 			}
 
-			closeButton = tabs.Q<Button>("side-close");
-			closeButton.clicked += close;
-			closeButton.BringToFront();
 			title = side.Q<Label>("panel-title");
 			caption = side.Q<Label>("panel-caption");
-			floatingTabs.BringToFront();
 		}
 
 		public float ResolvedWidth => side.resolvedStyle.width;
@@ -65,14 +49,10 @@ namespace WitchMendokusai.Idle.UI
 			return page;
 		}
 
-		public void Apply(int openIndex, bool split, bool sideOpen)
+		public void Apply(int openIndex, bool split)
 		{
-			bool shown = split || sideOpen;
-			side.style.display = shown ? DisplayStyle.Flex : DisplayStyle.None;
-			side.EnableInClassList("idle-side--drawer", split == false);
-			closeButton.style.display = split ? DisplayStyle.None : DisplayStyle.Flex;
-			floatingTabs.style.display = split ? DisplayStyle.None : DisplayStyle.Flex;
-			if (shown)
+			side.style.display = split ? DisplayStyle.Flex : DisplayStyle.None;
+			if (split)
 			{
 				ShowPage(openIndex);
 			}
@@ -105,7 +85,6 @@ namespace WitchMendokusai.Idle.UI
 		private void SetBadge(int index, bool shown)
 		{
 			tabButtons[index].EnableInClassList("idle-tab--badge", shown);
-			floatingButtons[index].EnableInClassList("idle-tab--badge", shown);
 		}
 	}
 }
