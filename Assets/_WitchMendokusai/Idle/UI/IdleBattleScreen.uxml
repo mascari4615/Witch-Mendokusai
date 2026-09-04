@@ -16,7 +16,7 @@
     <Style src="BattleScreen.uss" />
     <ui:VisualElement name="shell" class="idle-root">
         <ui:VisualElement name="battle" class="idle-battle">
-            <ui:Instance template="BattleHud" name="battle-hud" />
+            <ui:Instance template="BattleHud" name="battle-hud" class="idle-layer" picking-mode="Ignore" />
             <ui:VisualElement name="skill-aim" class="idle-skill-aim idle-hidden" picking-mode="Ignore">
                 <ui:VisualElement name="skill-aim-origin" class="idle-skill-aim-origin" />
                 <ui:VisualElement name="skill-aim-line" class="idle-skill-aim-line" />
@@ -50,11 +50,11 @@
             </ui:ScrollView>
         </ui:VisualElement>
     </ui:VisualElement>
-    <ui:Instance template="MapPopup" name="map-popup-host" />
-    <ui:Instance template="GearPopup" name="gear-popup-host" />
-    <ui:Instance template="HeroPopup" name="hero-popup-host" />
-    <ui:Instance template="GoldPopup" name="gold-popup-host" />
-    <ui:Instance template="SettingsPopup" name="settings-popup-host" />
-    <ui:Instance template="AwayPopup" name="away-popup-host" />
+    <ui:Instance template="MapPopup" name="map-popup-host" class="idle-layer" picking-mode="Ignore" />
+    <ui:Instance template="GearPopup" name="gear-popup-host" class="idle-layer" picking-mode="Ignore" />
+    <ui:Instance template="HeroPopup" name="hero-popup-host" class="idle-layer" picking-mode="Ignore" />
+    <ui:Instance template="GoldPopup" name="gold-popup-host" class="idle-layer" picking-mode="Ignore" />
+    <ui:Instance template="SettingsPopup" name="settings-popup-host" class="idle-layer" picking-mode="Ignore" />
+    <ui:Instance template="AwayPopup" name="away-popup-host" class="idle-layer" picking-mode="Ignore" />
     <ui:Label name="tooltip" class="idle-tooltip idle-hidden" picking-mode="Ignore" />
 </ui:UXML>

@@ -646,6 +646,15 @@
 }
 
 /* 맵 팝업 */
+/* 템플릿 호스트(ui:Instance)는 기본이 흐름 배치라 높이 0. 층으로 깔아야 안의 absolute 가 화면 기준 (실측 2026-09-05: 팝업 y 1080, 손패 y -305) */
+.idle-layer {
+	position: absolute;
+	left: 0;
+	right: 0;
+	top: 0;
+	bottom: 0;
+}
+
 .idle-modal-shade {
 	position: absolute;
 	left: 0;

@@ -1,6 +1,6 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
     <Style src="BattleScreen.uss" />
-    <ui:VisualElement name="hud">
+    <ui:VisualElement name="hud" class="idle-layer" picking-mode="Ignore">
         <ui:VisualElement name="scene-cover" class="idle-scene-cover">
             <ui:Label name="scene-cover-label" class="idle-scene-cover-label" />
             <ui:Button name="scene-cover-button" class="idle-button" text="전투로" />
