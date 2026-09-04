@@ -23,7 +23,7 @@ namespace WitchMendokusai.Idle.UI
 		public void Register(VisualElement overlay, Action close)
 		{
 			overlays.Add(overlay);
-			// TODO: UI Toolkit 패널까지 흐림 처리. 현재 출력은 카메라 장면만 포함.
+			// 흐림에 3D 장면만 담김. 판이 ScreenSpaceOverlay 라 카메라 색 버퍼 밖 (근원과 길은 memo ui-system.md 아직 안 정한 것)
 			RenderTexture blurOutput = Resources.Load<RenderTexture>("Rendering/CustomBlurOutput");
 			if (blurOutput != null)
 			{
