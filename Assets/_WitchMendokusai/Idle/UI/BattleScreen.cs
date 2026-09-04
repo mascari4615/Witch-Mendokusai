@@ -22,7 +22,7 @@ namespace WitchMendokusai.Idle
 	[RequireComponent(typeof(PanelRenderer))]
 	public sealed class BattleScreen : MonoBehaviour, IGameView<IdleSnapshot>
 	{
-		[Header("수치. 비워 두면 코드 기본값")]
+		[Header("수치 자산")]
 		[SerializeField] private TuningSO tuningAsset;
 		[SerializeField] private HeroCatalogSO heroCatalogAsset;
 		[SerializeField] private UIContentSO uiContentAsset;
@@ -102,11 +102,6 @@ namespace WitchMendokusai.Idle
 
 		private void OnEnable()
 		{
-			if (tuningAsset == null)
-			{
-				Debug.LogWarning("[Idle] 수치 에셋이 안 꽂혀 있다. 코드 기본값으로 돈다.");
-			}
-
 			// UXML 이 정본 (사용자 2026-08-30). 없으면 조용한 빈 화면 대신 여기서 정지
 			//
 			// ⚠ enabled 를 끄면 그 상태가 씬에 저장됨 (실측 2026-08-31). 에셋을 채워도 복구 불가
@@ -137,7 +132,7 @@ namespace WitchMendokusai.Idle
 				OnPanelReloaded);
 			screenRootController.Enable();
 
-			IdleTuning tuning = tuningAsset != null ? tuningAsset.ToTuning() : new IdleTuning();
+			IdleTuning tuning = tuningAsset.ToTuning();
 			preview = Application.isPlaying == false;
 			persistence = null;
 
@@ -210,7 +205,8 @@ namespace WitchMendokusai.Idle
 		{
 			what = string.Empty;
 
-			if (heroCatalogAsset == null) { what = "heroCatalogAsset"; }
+			if (tuningAsset == null) { what = "tuningAsset"; }
+			else if (heroCatalogAsset == null) { what = "heroCatalogAsset"; }
 			else if (heroCatalogAsset.TryValidate(out string heroError) == false)
 			{
 				what = "heroCatalogAsset: " + heroError;

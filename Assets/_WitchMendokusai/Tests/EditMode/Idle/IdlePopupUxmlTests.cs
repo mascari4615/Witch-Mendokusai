@@ -33,6 +33,23 @@ namespace WitchMendokusai.Tests.Idle
 		}
 
 		[Test]
+		public void HudKeepsOnlyGoldSummaryAndSkillAuto()
+		{
+			VisualTreeAsset asset = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(ROOT + "IdleBattleHud.uxml");
+			Assert.NotNull(asset);
+			TemplateContainer tree = asset.Instantiate();
+			Button gold = tree.Q<Button>("gold-chip");
+			Assert.NotNull(gold);
+			Assert.NotNull(gold.Q<VisualElement>(className: "idle-gold-icon"));
+			Assert.NotNull(gold.Q<Label>("gold-value"));
+			Assert.Null(tree.Q("gold-income"));
+			Assert.Null(tree.Q("speed-2"));
+			Button autoCast = tree.Q<Button>("auto-cast-button");
+			Assert.NotNull(autoCast);
+			Assert.IsTrue(autoCast.parent.ClassListContains("idle-hand"));
+		}
+
+		[Test]
 		public void RepeatedTemplatesExposeBindingPoints()
 		{
 			AssertElements("IdleChoiceCard.uxml", "choice", "choice-icon", "choice-label");
