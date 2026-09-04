@@ -88,9 +88,8 @@ namespace WitchMendokusai.Idle
 		private VisualElement root;
 
 		private SidePanelController sidePanelController;
+		private ScreenLayoutController screenLayoutController;
 		private Tab openTab = Tab.Doll;
-		private bool split = true;
-		private bool sideOpen;
 
 		private DollPageController dollPageController;
 		private HeroSelectionController heroSelectionController;
@@ -199,8 +198,6 @@ namespace WitchMendokusai.Idle
 			{
 				Debug.LogWarning("[Idle] 무대가 안 꽂혀 있다. HUD 만 뜬다. 씬 빌더로 다시 지어라.");
 			}
-
-			split = PlayerPrefs.GetInt("idle.split", 1) == 1;
 
 			BuildAll(away);
 			Render(session.Capture());
@@ -377,17 +374,14 @@ namespace WitchMendokusai.Idle
 			}
 
 			// 창 크기가 바뀌면 무대 폭도 다시 (모바일 회전, PC 창 조절)
-			root.RegisterCallback<GeometryChangedEvent>(_ =>
-			{
-				AimCamera();
-				ApplySafeArea();
-			});
 			VisualElement shell = root.Q<VisualElement>("shell");
 			tooltip = root.Q<Label>("tooltip");
 			tooltipController = new PointerTooltipController(tooltip, runtimeSettingsAsset.TooltipTouchMilliseconds);
 
 			BuildBattle(shell);
 			BuildSide(shell);
+			screenLayoutController = new ScreenLayoutController(
+				root, sidePanelController, battleHudController, uiContentAsset);
 			BuildMapPopup();
 			BuildGearPopup();
 			BuildHeroPopup();
@@ -401,7 +395,7 @@ namespace WitchMendokusai.Idle
 			}
 
 			built = true;
-			ApplySplit();
+			screenLayoutController.Apply((int)openTab);
 
 		}
 
@@ -424,9 +418,11 @@ namespace WitchMendokusai.Idle
 
 		private void ResetViewCollections()
 		{
+			screenLayoutController?.Dispose();
 			battleHudController = null;
 			cardHandController = null;
 			sidePanelController = null;
+			screenLayoutController = null;
 			dollPageController = null;
 			heroSelectionController = null;
 			gearSelectionController = null;
@@ -786,7 +782,7 @@ namespace WitchMendokusai.Idle
 				mapSelectionController.Render(snapshot);
 			}
 
-			if (split || sideOpen)
+			if (screenLayoutController.ContentVisible)
 			{
 				RenderPage(snapshot);
 				RenderGear(snapshot);
@@ -802,7 +798,8 @@ namespace WitchMendokusai.Idle
 
 		private void RenderTabBadges(IdleSnapshot snapshot)
 		{
-			sidePanelController.RenderBadges(snapshot, (int)openTab, split || sideOpen);
+			sidePanelController.RenderBadges(
+				snapshot, (int)openTab, screenLayoutController.ContentVisible);
 		}
 
 		private void RenderPage(IdleSnapshot snapshot)
@@ -838,112 +835,26 @@ namespace WitchMendokusai.Idle
 		{
 			openTab = tab;
 			heroSelectionController?.ClearSelection();
-			sideOpen = true;
-
-			sidePanelController.ShowPage((int)tab);
 
 			// 상점, 연구소는 왼쪽 씬이 바뀐다 (layout.md §2). 지금은 덮개
 			bool altScene = tab == Tab.Shop || tab == Tab.Lab;
 			battleHudController.SetAlternateScene(altScene,
 				uiContentAsset.ScenePlaceholderText(tab == Tab.Shop));
 
-			ApplySplit();
+			screenLayoutController.OpenSide((int)openTab);
 			Render(session.Capture());
 		}
 
 		private void CloseSide()
 		{
-			sideOpen = false;
 			battleHudController.SetAlternateScene(false, string.Empty);
-			ApplySplit();
-		}
-
-		/// <summary>
-		/// 무대 카메라를 전투 창 폭에
-		///
-		/// ★ 옛 값은 1200/1920 <b>고정</b>이었다. 모바일은 20:9 도 흔해서 그 비율에서는
-		///   무대와 관리 열 경계가 어긋난다 (실측 2026-09-01: 2400x1080 에서 95px 차이)
-		/// ★ 그래서 관리 열의 <b>실제 폭</b> 기준. 비율이 무엇이든 경계가 붙음
-		/// </summary>
-		private void AimCamera()
-		{
-			Camera main = Camera.main;
-			if (main == null)
-			{
-				return;
-			}
-
-			if (split == false)
-			{
-				main.rect = new Rect(0f, 0f, 1f, 1f);
-				return;
-			}
-
-			float share = uiContentAsset.BattleWidthShare;
-			float sideWidth = sidePanelController != null ? sidePanelController.ResolvedWidth : float.NaN;
-
-			if (float.IsNaN(sideWidth) == false && sideWidth > 0f && root != null)
-			{
-				float whole = root.resolvedStyle.width;
-				if (float.IsNaN(whole) == false && whole > sideWidth)
-				{
-					share = 1f - sideWidth / whole;
-				}
-			}
-
-			main.rect = new Rect(0f, 0f, share, 1f);
-		}
-
-		/// <summary>
-		/// 노치와 둥근 모서리를 피해 UI 를 안쪽으로 (모바일)
-		///
-		/// ★ <see cref="Screen.safeArea"/> 는 PC 에서 화면 전체. 아무 효과 없음
-		/// ★ 무대(3D)는 제외. 잘려도 되는 배경이고, 밀면 분할 경계가 또 어긋남
-		/// </summary>
-		private void ApplySafeArea()
-		{
-			if (root == null)
-			{
-				return;
-			}
-
-			Rect safe = Screen.safeArea;
-			float wide = Screen.width;
-			float high = Screen.height;
-
-			if (wide <= 0f || high <= 0f)
-			{
-				return;
-			}
-
-			// 화면 픽셀을 UI 논리 크기로. 패널이 스케일하므로 비율 환산
-			float scale = root.resolvedStyle.width > 0f && float.IsNaN(root.resolvedStyle.width) == false
-				? root.resolvedStyle.width / wide
-				: 1f;
-
-			root.style.paddingLeft = safe.xMin * scale;
-			root.style.paddingRight = (wide - safe.xMax) * scale;
-			root.style.paddingBottom = safe.yMin * scale;
-			root.style.paddingTop = (high - safe.yMax) * scale;
+			screenLayoutController.CloseSide((int)openTab);
 		}
 
 		private void ToggleSplit()
 		{
-			split = split == false;
-			PlayerPrefs.SetInt("idle.split", split ? 1 : 0);
-			sideOpen = false;
-			ApplySplit();
+			screenLayoutController.ToggleSplit((int)openTab);
 			Render(session.Capture());
-		}
-
-		private void ApplySplit()
-		{
-			sidePanelController.Apply((int)openTab, split, sideOpen);
-			battleHudController.SetSplit(split);
-
-			AimCamera();
-			ApplySafeArea();
-
 		}
 
 		private void ToggleMap()
