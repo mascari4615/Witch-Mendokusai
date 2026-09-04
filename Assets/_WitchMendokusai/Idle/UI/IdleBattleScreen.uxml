@@ -1,26 +1,70 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <ui:Template name="BattleHud" src="project://database/Assets/_WitchMendokusai/Idle/UI/IdleBattleHud.uxml?fileID=9197481963319205126&amp;guid=6a8de5c0f8e744e9b88b3bbf1d8ee0c2&amp;type=3#IdleBattleHud" />
+    <ui:Template name="DollPage" src="project://database/Assets/_WitchMendokusai/Idle/UI/IdleDollPage.uxml?fileID=9197481963319205126&amp;guid=9c82c0532a11918448f4bd19016a12ac&amp;type=3#IdleDollPage" />
+    <ui:Template name="ItemPage" src="project://database/Assets/_WitchMendokusai/Idle/UI/IdleItemPage.uxml?fileID=9197481963319205126&amp;guid=ce07c192237564d47828fb180f4ebf1f&amp;type=3#IdleItemPage" />
+    <ui:Template name="CodexPage" src="project://database/Assets/_WitchMendokusai/Idle/UI/IdleCodexPage.uxml?fileID=9197481963319205126&amp;guid=634e8cf84b1b50147895a60533e5900f&amp;type=3#IdleCodexPage" />
+    <ui:Template name="ShopPage" src="project://database/Assets/_WitchMendokusai/Idle/UI/IdleShopPage.uxml?fileID=9197481963319205126&amp;guid=8a562d6bd76f1074ab0f1c23eca7d817&amp;type=3#IdleShopPage" />
+    <ui:Template name="LabPage" src="project://database/Assets/_WitchMendokusai/Idle/UI/IdleLabPage.uxml?fileID=9197481963319205126&amp;guid=400b8b0544807484eb60c36a42c91121&amp;type=3#IdleLabPage" />
+    <ui:Template name="DungeonPage" src="project://database/Assets/_WitchMendokusai/Idle/UI/IdleDungeonPage.uxml?fileID=9197481963319205126&amp;guid=283dcf5f880375f4cb3cc5a228db506b&amp;type=3#IdleDungeonPage" />
+    <ui:Template name="InvestPage" src="project://database/Assets/_WitchMendokusai/Idle/UI/IdleInvestPage.uxml?fileID=9197481963319205126&amp;guid=ad855fcefc42f4f4d8a4c9f65338d0e5&amp;type=3#IdleInvestPage" />
+    <ui:Template name="MapPopup" src="project://database/Assets/_WitchMendokusai/Idle/UI/IdleMapPopup.uxml?fileID=9197481963319205126&amp;guid=70c246d1dde54d85af618947868da47e&amp;type=3#IdleMapPopup" />
+    <ui:Template name="GearPopup" src="project://database/Assets/_WitchMendokusai/Idle/UI/IdleGearPopup.uxml?fileID=9197481963319205126&amp;guid=94e0467bc9b89d6419a8cb2c774208fc&amp;type=3#IdleGearPopup" />
+    <ui:Template name="HeroPopup" src="project://database/Assets/_WitchMendokusai/Idle/UI/IdleHeroPopup.uxml?fileID=9197481963319205126&amp;guid=8c8e48cb63bf40ae959ec129ce3ba8e8&amp;type=3#IdleHeroPopup" />
+    <ui:Template name="GoldPopup" src="project://database/Assets/_WitchMendokusai/Idle/UI/IdleGoldPopup.uxml?fileID=9197481963319205126&amp;guid=370d95d8ed4243b29c6d37c2e1c0f921&amp;type=3#IdleGoldPopup" />
+    <ui:Template name="SettingsPopup" src="project://database/Assets/_WitchMendokusai/Idle/UI/IdleSettingsPopup.uxml?fileID=9197481963319205126&amp;guid=9760d6ea896f4970a80d4ca42ef0de89&amp;type=3#IdleSettingsPopup" />
+    <ui:Template name="AwayPopup" src="project://database/Assets/_WitchMendokusai/Idle/UI/IdleAwayPopup.uxml?fileID=9197481963319205126&amp;guid=d07ad25fc4f843bab114d287fb838410&amp;type=3#IdleAwayPopup" />
     <Style src="BattleScreen.uss" />
     <ui:VisualElement name="shell" class="idle-root">
         <ui:VisualElement name="battle" class="idle-battle">
-            <ui:VisualElement name="skill-aim" class="idle-skill-aim" picking-mode="Ignore" style="display: none;">
+            <ui:Instance template="BattleHud" name="battle-hud" />
+            <ui:VisualElement name="skill-aim" class="idle-skill-aim idle-hidden" picking-mode="Ignore">
                 <ui:VisualElement name="skill-aim-origin" class="idle-skill-aim-origin" />
                 <ui:VisualElement name="skill-aim-line" class="idle-skill-aim-line" />
                 <ui:VisualElement name="skill-aim-range" class="idle-skill-aim-range" />
                 <ui:Label name="skill-aim-caption" text="일제 사격 범위" class="idle-skill-aim-caption" />
             </ui:VisualElement>
-            <ui:VisualElement name="floating-tabs" class="idle-floating-tabs" />
+            <ui:VisualElement name="floating-tabs" class="idle-floating-tabs">
+                <ui:Button name="floating-tab-0" class="idle-box idle-icon-button" />
+                <ui:Button name="floating-tab-1" class="idle-box idle-icon-button" />
+                <ui:Button name="floating-tab-2" class="idle-box idle-icon-button" />
+                <ui:Button name="floating-tab-3" class="idle-box idle-icon-button" />
+                <ui:Button name="floating-tab-4" class="idle-box idle-icon-button" />
+                <ui:Button name="floating-tab-5" class="idle-box idle-icon-button" />
+                <ui:Button name="floating-tab-6" class="idle-box idle-icon-button" />
+            </ui:VisualElement>
             <ui:Button name="wipe-button" text="데이터 초기화" class="idle-box idle-icon-button idle-debug" />
         </ui:VisualElement>
         <ui:VisualElement name="side" class="idle-side">
             <ui:VisualElement name="tabs" class="idle-tabs">
+                <ui:Button name="tab-0" class="idle-tab" />
+                <ui:Button name="tab-1" class="idle-tab" />
+                <ui:Button name="tab-2" class="idle-tab" />
+                <ui:Button name="tab-3" class="idle-tab" />
+                <ui:Button name="tab-4" class="idle-tab" />
+                <ui:Button name="tab-5" class="idle-tab" />
+                <ui:Button name="tab-6" class="idle-tab" />
                 <ui:Button name="side-close" text="×" class="idle-tab idle-tab--close" />
             </ui:VisualElement>
             <ui:VisualElement class="idle-panel-head">
                 <ui:Label name="panel-title" class="idle-panel-title" />
                 <ui:Label name="panel-caption" class="idle-cap" />
             </ui:VisualElement>
-            <ui:ScrollView name="panel-body" class="idle-panel-body" />
+            <ui:ScrollView name="panel-body" class="idle-panel-body">
+                <ui:Instance template="DollPage" name="doll-page-host" />
+                <ui:Instance template="ItemPage" name="item-page-host" />
+                <ui:Instance template="CodexPage" name="codex-page-host" />
+                <ui:Instance template="ShopPage" name="shop-page-host" />
+                <ui:Instance template="LabPage" name="lab-page-host" />
+                <ui:Instance template="DungeonPage" name="dungeon-page-host" />
+                <ui:Instance template="InvestPage" name="invest-page-host" />
+            </ui:ScrollView>
         </ui:VisualElement>
     </ui:VisualElement>
-    <ui:Label name="tooltip" class="idle-tooltip" picking-mode="Ignore" style="display: none;" />
+    <ui:Instance template="MapPopup" name="map-popup-host" />
+    <ui:Instance template="GearPopup" name="gear-popup-host" />
+    <ui:Instance template="HeroPopup" name="hero-popup-host" />
+    <ui:Instance template="GoldPopup" name="gold-popup-host" />
+    <ui:Instance template="SettingsPopup" name="settings-popup-host" />
+    <ui:Instance template="AwayPopup" name="away-popup-host" />
+    <ui:Label name="tooltip" class="idle-tooltip idle-hidden" picking-mode="Ignore" />
 </ui:UXML>

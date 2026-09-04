@@ -2,7 +2,7 @@
     <!-- 인형 탭 (layout.md §3). 모양은 여기와 BattleScreen.uss, 값은 IdleBattleScreen 이 이름으로 찾아 채운다 -->
     <!-- Style 과 바깥 틀(idle-side idle-page)은 UI Builder 에서 실물과 같은 폭, 색으로 보이게 하는 것. 코드는 틀 안쪽만 화면에 옮긴다 -->
     <Style src="BattleScreen.uss" />
-    <ui:VisualElement name="page" class="idle-side idle-page">
+    <ui:VisualElement name="page" class="idle-page">
     <ui:Label text="편성" class="idle-cap" />
     <ui:VisualElement name="party" class="idle-party">
         <ui:Button name="seat-0" class="idle-party-seat"><ui:VisualElement name="seat-icon-0" class="idle-party-portrait" /><ui:Label name="seat-label-0" class="idle-party-label" /></ui:Button>

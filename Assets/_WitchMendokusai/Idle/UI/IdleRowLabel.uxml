@@ -1,0 +1,4 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <!-- 도감처럼 값만 표시하는 가변 목록 한 줄 -->
+    <ui:Label name="row" class="idle-row-title" />
+</ui:UXML>

@@ -1,7 +1,7 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
     <!-- 아이템 탭. 값과 동적 칸은 IdleBattleScreen 이 이름으로 채운다. -->
     <Style src="BattleScreen.uss" />
-    <ui:VisualElement name="page" class="idle-side idle-page">
+    <ui:VisualElement name="page" class="idle-page">
         <ui:VisualElement class="idle-subtabs">
             <ui:Button name="bag-subtab" text="가방" class="idle-subtab" />
             <ui:Button name="forge-subtab" text="공방" class="idle-subtab" />

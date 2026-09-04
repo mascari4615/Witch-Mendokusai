@@ -31,44 +31,30 @@ namespace WitchMendokusai.Idle
 		[SerializeField] private GearPresentationSO gearPresentationAsset;
 		[SerializeField] private RuntimeSettingsSO runtimeSettingsAsset;
 
-		[Header("생김새")]
-		[SerializeField] private StyleSheet styleSheet;
-
-		[Header("손으로 고치는 UXML. 비우면 코드가 짓는다 (사용자 2026-08-30: 고퀄리티는 사람 손길)")]
-		[SerializeField] private VisualTreeAsset screenAsset;
-		[SerializeField] private VisualTreeAsset dollPageAsset;
-		[SerializeField] private VisualTreeAsset itemPageAsset;
-		[SerializeField] private VisualTreeAsset bagCellAsset;
-		[SerializeField] private VisualTreeAsset forgeKindAsset;
-		[SerializeField] private VisualTreeAsset battleHudAsset;
-		[SerializeField] private VisualTreeAsset cardAsset;
-		[SerializeField] private VisualTreeAsset queueChipAsset;
-		[SerializeField] private VisualTreeAsset choiceCardAsset;
-		[SerializeField] private VisualTreeAsset waveDotAsset;
-		[SerializeField] private VisualTreeAsset codexPageAsset;
-		[SerializeField] private VisualTreeAsset shopPageAsset;
-		[SerializeField] private VisualTreeAsset labPageAsset;
-		[SerializeField] private VisualTreeAsset dungeonPageAsset;
-		[SerializeField] private VisualTreeAsset investPageAsset;
-		[SerializeField] private VisualTreeAsset producerRowAsset;
-		[SerializeField] private VisualTreeAsset gearPopupAsset;
-		[SerializeField] private VisualTreeAsset mapPopupAsset;
-		[SerializeField] private VisualTreeAsset heroPopupAsset;
-		[SerializeField] private VisualTreeAsset goldPopupAsset;
-		[SerializeField] private VisualTreeAsset settingsPopupAsset;
-		[SerializeField] private VisualTreeAsset awayPopupAsset;
+		[Header("UI Builder 정본과 반복 템플릿")]
+		[SerializeField] private IdleViewAssetsSO viewAssets;
 
 		[Header("무대. 씬이 꽂아 준다")]
 		[SerializeField] private BattleStage stage;
+
+		private VisualTreeAsset screenAsset => viewAssets.Screen;
+		private VisualTreeAsset bagCellAsset => viewAssets.BagCell;
+		private VisualTreeAsset forgeKindAsset => viewAssets.ForgeKind;
+		private VisualTreeAsset cardAsset => viewAssets.Card;
+		private VisualTreeAsset queueChipAsset => viewAssets.QueueChip;
+		private VisualTreeAsset choiceCardAsset => viewAssets.ChoiceCard;
+		private VisualTreeAsset waveDotAsset => viewAssets.WaveDot;
+		private VisualTreeAsset producerRowAsset => viewAssets.ProducerRow;
+		private VisualTreeAsset rowButtonAsset => viewAssets.RowButton;
+		private VisualTreeAsset rowLabelAsset => viewAssets.RowLabel;
 
 		private IdleSession session;
 		private float untilUiRefresh;
 		private SessionPersistence persistence;
 		private ProceduralSfx sound;
 		private bool clickSoundHooked;
-		private PanelRenderer panelRenderer;
+		private ScreenRootController screenRootController;
 		private VisualElement panelRoot;
-		private int panelVersion = -1;
 
 		// 에디트 모드 미리보기 (사용자 2026-08-30: UI 수정은 Play 없이). 저장 읽기와 쓰기 없음. 임시 판 위 시뮬만
 		/// <summary>화면 에셋이 없어 못 짓는 판. 켜 두되 아무것도 안 그린다</summary>
@@ -149,7 +135,6 @@ namespace WitchMendokusai.Idle
 		private VisualElement side;
 		private readonly List<Button> tabButtons = new List<Button>();
 		private Button closeSideButton;
-		private VisualElement panelHost;
 		private Label panelTitle;
 		private Label panelCaption;
 		private VisualElement[] pages;
@@ -159,7 +144,7 @@ namespace WitchMendokusai.Idle
 
 		// 인형
 		private readonly List<Button> partyButtons = new List<Button>();
-		private int seatBeingFilled = -1;
+		private HeroSelectionController heroSelectionController;
 
 		/// <summary>장비를 볼 인형의 편성 자리 (2026-08-31 인형별 장비). 찬 편성 칸을 누르면 바뀐다</summary>
 		private int gearSeat;
@@ -180,21 +165,9 @@ namespace WitchMendokusai.Idle
 		private int statFeedbackVersion;
 		private Button autoCastButton;
 		private readonly List<Button> wornCells = new List<Button>();
-		private VisualElement heroPopup;
-		private VisualElement heroGrid;
-		private readonly List<Button> heroChoiceButtons = new List<Button>();
-		private readonly List<VisualElement> heroChoiceIcons = new List<VisualElement>();
-		private readonly List<Label> heroChoiceLabels = new List<Label>();
 
 		// 장비 고르기 팝업 (사용자 2026-08-31). 인형이 여럿이라 가방에서 바로 장착하면 대상이 불명
-		private VisualElement gearPopup;
-		private Label gearTitle;
-		private Label gearWorn;
-		private VisualElement gearRows;
-		private readonly List<Button> gearRowButtons = new List<Button>();
-		private readonly List<VisualElement> gearRowIcons = new List<VisualElement>();
-		private readonly List<Label> gearRowLabels = new List<Label>();
-		private int gearSlot = -1;
+		private GearSelectionController gearSelectionController;
 
 		// 아이템. 서브탭 가방 / 공방 (layout.md §3)
 		private int itemSub;
@@ -291,9 +264,11 @@ namespace WitchMendokusai.Idle
 				return;
 			}
 
-			panelRenderer = GetComponent<PanelRenderer>();
-			panelRenderer.RegisterUIReloadCallback(OnPanelReloaded);
-			panelRenderer.visualTreeAsset = screenAsset;
+			screenRootController = new ScreenRootController(
+				GetComponent<PanelRenderer>(),
+				screenAsset,
+				OnPanelReloaded);
+			screenRootController.Enable();
 
 			IdleTuning tuning = tuningAsset != null ? tuningAsset.ToTuning() : new IdleTuning();
 			preview = Application.isPlaying == false;
@@ -374,28 +349,11 @@ namespace WitchMendokusai.Idle
 			else if (uiContentAsset == null) { what = "uiContentAsset"; }
 			else if (gearPresentationAsset == null) { what = "gearPresentationAsset"; }
 			else if (runtimeSettingsAsset == null) { what = "runtimeSettingsAsset"; }
-			else if (screenAsset == null) { what = "screenAsset"; }
-			else if (battleHudAsset == null) { what = "battleHudAsset"; }
-			else if (cardAsset == null) { what = "cardAsset"; }
-			else if (queueChipAsset == null) { what = "queueChipAsset"; }
-			else if (choiceCardAsset == null) { what = "choiceCardAsset"; }
-			else if (waveDotAsset == null) { what = "waveDotAsset"; }
-			else if (dollPageAsset == null) { what = "dollPageAsset"; }
-			else if (itemPageAsset == null) { what = "itemPageAsset"; }
-			else if (bagCellAsset == null) { what = "bagCellAsset"; }
-			else if (forgeKindAsset == null) { what = "forgeKindAsset"; }
-			else if (codexPageAsset == null) { what = "codexPageAsset"; }
-			else if (shopPageAsset == null) { what = "shopPageAsset"; }
-			else if (labPageAsset == null) { what = "labPageAsset"; }
-			else if (dungeonPageAsset == null) { what = "dungeonPageAsset"; }
-			else if (investPageAsset == null) { what = "investPageAsset"; }
-			else if (producerRowAsset == null) { what = "producerRowAsset"; }
-			else if (gearPopupAsset == null) { what = "gearPopupAsset"; }
-			else if (mapPopupAsset == null) { what = "mapPopupAsset"; }
-			else if (heroPopupAsset == null) { what = "heroPopupAsset"; }
-			else if (goldPopupAsset == null) { what = "goldPopupAsset"; }
-			else if (settingsPopupAsset == null) { what = "settingsPopupAsset"; }
-			else if (awayPopupAsset == null) { what = "awayPopupAsset"; }
+			else if (viewAssets == null) { what = "viewAssets"; }
+			else if (viewAssets.TryValidate(out string viewError) == false)
+			{
+				what = "viewAssets: " + viewError;
+			}
 			else if (uiContentAsset.TryValidate(System.Enum.GetValues(typeof(Tab)).Length, out string uiError) == false)
 			{
 				what = "uiContentAsset: " + uiError;
@@ -417,14 +375,9 @@ namespace WitchMendokusai.Idle
 #if UNITY_EDITOR
 			UnityEditor.EditorApplication.update -= PreviewTick;
 #endif
-			if (panelRenderer != null)
-			{
-				panelRenderer.UnregisterUIReloadCallback(OnPanelReloaded);
-			}
-
+			screenRootController?.Dispose();
+			screenRootController = null;
 			panelRoot = null;
-			panelRenderer = null;
-			panelVersion = -1;
 			clickSoundHooked = false;
 			modalController?.Dispose();
 			if (preview)
@@ -532,7 +485,6 @@ namespace WitchMendokusai.Idle
 
 			this.root = panelRoot;
 			VisualElement root = this.root;
-			root.Clear();
 			modalController = new ModalController(root, runtimeSettingsAsset.ModalRepaintMilliseconds);
 			if (clickSoundHooked == false)
 			{
@@ -546,22 +498,8 @@ namespace WitchMendokusai.Idle
 				AimCamera();
 				ApplySafeArea();
 			});
-			if (styleSheet != null)
-			{
-				root.styleSheets.Add(styleSheet);
-			}
-			else
-			{
-				Debug.LogWarning("[Idle] 스타일시트가 안 꽂혀 있다. 화면이 꾸밈 없이 뜬다.");
-			}
-
-			TemplateContainer screenTree = screenAsset.Instantiate();
-			VisualElement shell = screenTree.Q<VisualElement>("shell");
-			tooltip = screenTree.Q<Label>("tooltip");
-			shell.RemoveFromHierarchy();
-			tooltip.RemoveFromHierarchy();
-			root.Add(shell);
-			root.Add(tooltip);
+			VisualElement shell = root.Q<VisualElement>("shell");
+			tooltip = root.Q<Label>("tooltip");
 			tooltipController = new PointerTooltipController(tooltip, runtimeSettingsAsset.TooltipTouchMilliseconds);
 
 			BuildBattle(shell);
@@ -583,14 +521,8 @@ namespace WitchMendokusai.Idle
 
 		}
 
-		private void OnPanelReloaded(PanelRenderer renderer, VisualElement rootElement, int version)
+		private void OnPanelReloaded(VisualElement rootElement)
 		{
-			if (renderer != panelRenderer || version == panelVersion)
-			{
-				return;
-			}
-
-			panelVersion = version;
 			if (panelRoot != rootElement)
 			{
 				clickSoundHooked = false;
@@ -613,12 +545,8 @@ namespace WitchMendokusai.Idle
 			tabButtons.Clear();
 			partyButtons.Clear();
 			wornCells.Clear();
-			heroChoiceButtons.Clear();
-			heroChoiceIcons.Clear();
-			heroChoiceLabels.Clear();
-			gearRowButtons.Clear();
-			gearRowIcons.Clear();
-			gearRowLabels.Clear();
+			heroSelectionController = null;
+			gearSelectionController = null;
 			bagCells.Clear();
 			forgeCells.Clear();
 			forgeKindButtons.Clear();
@@ -649,7 +577,8 @@ namespace WitchMendokusai.Idle
 			for (int index = 0; index < uiContentAsset.TabCount; index++)
 			{
 				Tab tab = (Tab)index;
-				Button button = AddButton(floatingTabs, "idle-box idle-icon-button", () => OpenTab(tab));
+				Button button = floatingTabs.Q<Button>("floating-tab-" + index);
+				button.clicked += () => OpenTab(tab);
 				button.text = uiContentAsset.TabName(index);
 				button.style.display = uiContentAsset.IsTabVisible(index) ? DisplayStyle.Flex : DisplayStyle.None;
 				floatingTabButtons.Add(button);
@@ -674,13 +603,6 @@ namespace WitchMendokusai.Idle
 
 		private void BindBattleHud()
 		{
-			TemplateContainer tree = battleHudAsset.Instantiate();
-			VisualElement frame = tree.Q<VisualElement>("hud");
-			while (frame.childCount > 0)
-			{
-				battle.Add(frame[0]);
-			}
-
 			sceneCover = battle.Q<VisualElement>("scene-cover");
 			sceneCover.style.display = DisplayStyle.None;
 			sceneCoverLabel = battle.Q<Label>("scene-cover-label");
@@ -871,7 +793,8 @@ namespace WitchMendokusai.Idle
 			for (int index = 0; index < uiContentAsset.TabCount; index++)
 			{
 				Tab tab = (Tab)index;
-				Button button = AddButton(tabs, "idle-tab", () => OpenTab(tab));
+				Button button = tabs.Q<Button>("tab-" + index);
+				button.clicked += () => OpenTab(tab);
 				button.text = uiContentAsset.TabName(index) + "\n" + uiContentAsset.TabCaption(index);
 				button.style.display = uiContentAsset.IsTabVisible(index) ? DisplayStyle.Flex : DisplayStyle.None;
 				tabButtons.Add(button);
@@ -884,9 +807,6 @@ namespace WitchMendokusai.Idle
 			panelTitle = side.Q<Label>("panel-title");
 			panelCaption = side.Q<Label>("panel-caption");
 
-			ScrollView body = side.Q<ScrollView>("panel-body");
-			panelHost = body.contentContainer;
-
 			pages = new VisualElement[uiContentAsset.TabCount];
 			BuildDollPage();
 			BuildItemPage();
@@ -897,20 +817,27 @@ namespace WitchMendokusai.Idle
 			BuildInvestPage();
 		}
 
-		private VisualElement AddPage(Tab tab)
+		private VisualElement UsePage(Tab tab, string hostName)
 		{
-			VisualElement page = new VisualElement();
-			page.AddToClassList("idle-page");
+			VisualElement host = root.Q<VisualElement>(hostName);
+			VisualElement page = host.Q<VisualElement>("page");
 			page.style.display = DisplayStyle.None;
-			panelHost.Add(page);
 			pages[(int)tab] = page;
 			return page;
+		}
+
+		private VisualElement UsePopup(string hostName)
+		{
+			VisualElement host = root.Q<VisualElement>(hostName);
+			VisualElement popup = host.Q<VisualElement>("popup");
+			popup.style.display = DisplayStyle.None;
+			return popup;
 		}
 
 		/// <summary>인형 탭 (layout.md §3). 모양은 UXML, 여기는 값과 클릭만</summary>
 		private void BuildDollPage()
 		{
-			BindDollPage(AddPage(Tab.Doll));
+			BindDollPage(UsePage(Tab.Doll, "doll-page-host"));
 		}
 
 		/// <summary>인형 탭을 UXML 에서. 모양은 에셋, 코드는 이름으로 찾아 값과 클릭만</summary>
@@ -920,14 +847,6 @@ namespace WitchMendokusai.Idle
 			statValues = new Label[uiContentAsset.StatCount];
 			statLevels = new Label[uiContentAsset.StatCount];
 			statButtons = new Button[uiContentAsset.StatCount, uiContentAsset.StatUpgradeAmountCount];
-			// 에셋의 바깥 틀(idle-side)은 UI Builder 미리보기용. 화면에는 안쪽만
-			TemplateContainer tree = dollPageAsset.Instantiate();
-			VisualElement frame = tree.Q<VisualElement>("page");
-			while (frame.childCount > 0)
-			{
-				page.Add(frame[0]);
-			}
-
 			for (int slot = 0; slot < IdleHeroes.PARTY_SLOTS; slot++)
 			{
 				int captured = slot;
@@ -971,20 +890,12 @@ namespace WitchMendokusai.Idle
 		/// <summary>아이템 탭 (layout.md §3). 가방과 공방. 모양은 UXML</summary>
 		private void BuildItemPage()
 		{
-			BindItemPage(AddPage(Tab.Item));
+			BindItemPage(UsePage(Tab.Item, "item-page-host"));
 		}
 
 		/// <summary>아이템 탭을 UXML 에서. 가방과 공방의 수량만 코어 사진으로 채운다</summary>
 		private void BindItemPage(VisualElement page)
 		{
-			// 에셋의 바깥 틀(idle-side)은 UI Builder 미리보기용. 화면에는 안쪽만
-			TemplateContainer tree = itemPageAsset.Instantiate();
-			VisualElement frame = tree.Q<VisualElement>("page");
-			while (frame.childCount > 0)
-			{
-				page.Add(frame[0]);
-			}
-
 			itemSubButtons[0] = page.Q<Button>("bag-subtab");
 			itemSubButtons[0].clicked += () => OpenItemSub(0);
 			itemSubButtons[1] = page.Q<Button>("forge-subtab");
@@ -1061,31 +972,16 @@ namespace WitchMendokusai.Idle
 			}
 		}
 
-		/// <summary>UXML 한 장을 페이지에 옮긴다. 바깥 틀(idle-side)은 UI Builder 미리보기용</summary>
-		private VisualElement OpenPage(Tab tab, VisualTreeAsset asset)
-		{
-			VisualElement page = AddPage(tab);
-			TemplateContainer tree = asset.Instantiate();
-			VisualElement frame = tree.Q<VisualElement>("page");
-
-			while (frame.childCount > 0)
-			{
-				page.Add(frame[0]);
-			}
-
-			return page;
-		}
-
 		private void BuildCodexPage()
 		{
-			VisualElement page = OpenPage(Tab.Codex, codexPageAsset);
+			VisualElement page = UsePage(Tab.Codex, "codex-page-host");
 			codexLabel = page.Q<Label>("codex-label");
 			codexRows = page.Q<VisualElement>("codex-rows");
 		}
 
 		private void BuildShopPage()
 		{
-			VisualElement page = OpenPage(Tab.Shop, shopPageAsset);
+			VisualElement page = UsePage(Tab.Shop, "shop-page-host");
 			pullButton = page.Q<Button>("pull-button");
 			pullButton.clicked += Pull;
 			pullOdds = page.Q<Label>("pull-odds");
@@ -1096,7 +992,7 @@ namespace WitchMendokusai.Idle
 
 		private void BuildLabPage()
 		{
-			VisualElement page = OpenPage(Tab.Lab, labPageAsset);
+			VisualElement page = UsePage(Tab.Lab, "lab-page-host");
 			prestigeSummary = page.Q<Label>("prestige-summary");
 			prestigeButton = page.Q<Button>("prestige-button");
 			prestigeButton.clicked += Prestige;
@@ -1105,7 +1001,7 @@ namespace WitchMendokusai.Idle
 		/// <summary>던전 넷 (economy.md). 알파 9번이라 지금은 눌리지 않는다</summary>
 		private void BuildDungeonPage()
 		{
-			VisualElement page = OpenPage(Tab.Dungeon, dungeonPageAsset);
+			VisualElement page = UsePage(Tab.Dungeon, "dungeon-page-host");
 
 			dungeonRows = new Button[IdleDungeons.COUNT];
 
@@ -1123,15 +1019,9 @@ namespace WitchMendokusai.Idle
 		}
 
 		/// <summary>던전 이름. 순서는 <c>IdleDungeonKind</c> 그대로</summary>
-		private static string NameOf(IdleDungeonKind kind)
+		private string NameOf(IdleDungeonKind kind)
 		{
-			switch (kind)
-			{
-				case IdleDungeonKind.Gold: return "재화 던전";
-				case IdleDungeonKind.Boss: return "보스 던전";
-				case IdleDungeonKind.Gear: return "장비 던전";
-				default: return "스킬 던전";
-			}
+			return uiContentAsset.DungeonName(kind);
 		}
 
 		/// <summary>남은 입장권과 다시 찰 때까지 (economy.md 4)</summary>
@@ -1159,7 +1049,7 @@ namespace WitchMendokusai.Idle
 
 		private void BuildInvestPage()
 		{
-			VisualElement page = OpenPage(Tab.Invest, investPageAsset);
+			VisualElement page = UsePage(Tab.Invest, "invest-page-host");
 			baseSummary = page.Q<Label>("base-summary");
 			VisualElement host = page.Q<VisualElement>("producers");
 
@@ -1177,12 +1067,8 @@ namespace WitchMendokusai.Idle
 
 		private void BuildMapPopup()
 		{
-			TemplateContainer tree = mapPopupAsset.Instantiate();
-			mapPopup = tree.Q<VisualElement>("popup");
-			mapPopup.RemoveFromHierarchy();
-			mapPopup.style.display = DisplayStyle.None;
+			mapPopup = UsePopup("map-popup-host");
 			modalController.Register(mapPopup, CloseMap);
-			root.Add(mapPopup);
 			mapPopup.Q<Button>("map-close").clicked += ToggleMap;
 			mapRows = mapPopup.Q<VisualElement>("map-rows");
 		}
@@ -1190,54 +1076,30 @@ namespace WitchMendokusai.Idle
 		/// <summary>장비 고르기 팝업. 관리 열 위에 뜬다</summary>
 		private void BuildGearPopup()
 		{
-			TemplateContainer tree = gearPopupAsset.Instantiate();
-			gearPopup = tree.Q<VisualElement>("popup");
-			gearPopup.RemoveFromHierarchy();
-			gearPopup.style.display = DisplayStyle.None;
-			modalController.Register(gearPopup, CloseGear);
-			root.Add(gearPopup);
-
-			gearTitle = gearPopup.Q<Label>("gear-title");
-			gearWorn = gearPopup.Q<Label>("gear-worn");
-			gearPopup.Q<Button>("gear-close").clicked += CloseGear;
-			gearRows = gearPopup.Q<VisualElement>("gear-rows");
+			gearSelectionController = new GearSelectionController(
+				UsePopup("gear-popup-host"),
+				choiceCardAsset,
+				modalController,
+				gearVisualPresenter,
+				uiContentAsset,
+				Equip);
 		}
 
 		private void BuildHeroPopup()
 		{
-			TemplateContainer tree = heroPopupAsset.Instantiate();
-			heroPopup = tree.Q<VisualElement>("popup");
-			heroPopup.RemoveFromHierarchy();
-			heroPopup.style.display = DisplayStyle.None;
-			modalController.Register(heroPopup, CloseHeroPopup);
-			root.Add(heroPopup);
-			heroPopup.Q<Button>("hero-close").clicked += CloseHeroPopup;
-			heroGrid = heroPopup.Q<VisualElement>("hero-grid");
-
-			for (int index = 0; index < IdleHeroes.Count; index++)
-			{
-				int captured = index;
-				TemplateContainer choiceTree = choiceCardAsset.Instantiate();
-				Button choice = choiceTree.Q<Button>("choice");
-				VisualElement icon = choice.Q<VisualElement>("choice-icon");
-				Label label = choice.Q<Label>("choice-label");
-				choice.RemoveFromHierarchy();
-				choice.clicked += () => ChooseHeroFromSlot(captured);
-				heroGrid.Add(choice);
-				heroChoiceButtons.Add(choice);
-				heroChoiceIcons.Add(icon);
-				heroChoiceLabels.Add(label);
-			}
+			heroSelectionController = new HeroSelectionController(
+				UsePopup("hero-popup-host"),
+				choiceCardAsset,
+				modalController,
+				heroVisualPresenter,
+				uiContentAsset,
+				ChooseHero);
 		}
 
 		private void BuildGoldPopup()
 		{
-			TemplateContainer tree = goldPopupAsset.Instantiate();
-			goldPopup = tree.Q<VisualElement>("popup");
-			goldPopup.RemoveFromHierarchy();
-			goldPopup.style.display = DisplayStyle.None;
+			goldPopup = UsePopup("gold-popup-host");
 			modalController.Register(goldPopup, CloseGoldPopup);
-			root.Add(goldPopup);
 			goldAmount = goldPopup.Q<Label>("gold-amount");
 			goldIncome = goldPopup.Q<Label>("gold-income");
 			goldPopup.Q<Button>("gold-close").clicked += CloseGoldPopup;
@@ -1245,12 +1107,8 @@ namespace WitchMendokusai.Idle
 
 		private void BuildSettingsPopup()
 		{
-			TemplateContainer tree = settingsPopupAsset.Instantiate();
-			settingsPopup = tree.Q<VisualElement>("popup");
-			settingsPopup.RemoveFromHierarchy();
-			settingsPopup.style.display = DisplayStyle.None;
+			settingsPopup = UsePopup("settings-popup-host");
 			modalController.Register(settingsPopup, CloseSettingsPopup);
-			root.Add(settingsPopup);
 			settingsPopup.Q<Button>("settings-close").clicked += CloseSettingsPopup;
 			for (int index = 0; index < 3; index++)
 			{
@@ -1303,11 +1161,9 @@ namespace WitchMendokusai.Idle
 				return;
 			}
 
-			TemplateContainer tree = awayPopupAsset.Instantiate();
-			VisualElement shade = tree.Q<VisualElement>("popup");
-			shade.RemoveFromHierarchy();
+			VisualElement shade = UsePopup("away-popup-host");
+			shade.style.display = DisplayStyle.Flex;
 			shade.RegisterCallback<PointerDownEvent>(evt => evt.StopPropagation());
-			root.Add(shade);
 
 			shade.Q<Label>("away-span").text = string.Format("{0} 동안 작전이 계속됐습니다", DescribeSpan(away.CreditedSeconds));
 			shade.Q<Label>("gold-value").text = "+" + BigNumberText.Format(away.ResourceGained);
@@ -1323,7 +1179,7 @@ namespace WitchMendokusai.Idle
 				warning.style.display = DisplayStyle.Flex;
 			}
 
-			shade.Q<Button>("away-close").clicked += () => shade.RemoveFromHierarchy();
+			shade.Q<Button>("away-close").clicked += () => shade.style.display = DisplayStyle.None;
 		}
 
 		private void OpenHeroPopup(int slot)
@@ -1333,66 +1189,22 @@ namespace WitchMendokusai.Idle
 				slot = 0;
 			}
 
-			seatBeingFilled = slot;
 			gearSeat = slot;
 			CloseGear();
 			CloseGoldPopup();
 			CloseSettingsPopup();
-			modalController.Show(heroPopup);
+			heroSelectionController.Open(slot);
 			Render(session.Capture());
 		}
 
 		private void CloseHeroPopup()
 		{
-			seatBeingFilled = -1;
-			modalController.Hide(heroPopup);
-		}
-
-		private void ChooseHeroFromSlot(int index)
-		{
-			IdleSnapshot snapshot = session.Capture();
-			if (index >= 0 && index < snapshot.Heroes.Length)
-			{
-				ChooseHero(snapshot.Heroes[index].Id);
-			}
+			heroSelectionController?.Close();
 		}
 
 		private void RenderHeroPopup(IdleSnapshot snapshot)
 		{
-			if (heroPopup.style.display != DisplayStyle.Flex)
-			{
-				return;
-			}
-
-			for (int index = 0; index < heroChoiceButtons.Count; index++)
-			{
-				Button choice = heroChoiceButtons[index];
-				bool shown = index < snapshot.Heroes.Length;
-				choice.style.display = DisplayStyle.Flex;
-				choice.SetEnabled(shown);
-				choice.EnableInClassList("idle-choice-card--empty", shown == false);
-
-				if (shown == false)
-				{
-					heroChoiceLabels[index].text = string.Empty;
-					heroChoiceIcons[index].style.display = DisplayStyle.None;
-					heroVisualPresenter.SetStars(choice, 0);
-					choice.EnableInClassList("idle-choice-card--selected", false);
-					continue;
-				}
-
-				IdleHeroView hero = snapshot.Heroes[index];
-				heroChoiceLabels[index].text = string.Format("{0}{1}\nLv.{2}  {3}", hero.Name, Stars(hero.Stars), hero.Level,
-					uiContentAsset.AxisName(hero.Axis));
-				heroVisualPresenter.SetAxis(heroChoiceIcons[index], hero.Axis);
-				heroVisualPresenter.SetPortrait(heroChoiceIcons[index], hero.Id);
-				heroChoiceIcons[index].style.display = DisplayStyle.Flex;
-				heroVisualPresenter.SetStars(choice, hero.Stars);
-				int current = seatBeingFilled >= 0 && seatBeingFilled < snapshot.Party.Length
-					? snapshot.Party[seatBeingFilled]
-					: -1;
-				choice.EnableInClassList("idle-choice-card--selected", current == hero.Id);
-			}
+			heroSelectionController?.Render(snapshot);
 		}
 
 		/// <summary>이 부위에 낄 수 있는 가방 아이템만 보여준다</summary>
@@ -1404,121 +1216,21 @@ namespace WitchMendokusai.Idle
 				return;
 			}
 
-			gearSlot = slot;
 			CloseHeroPopup();
 			CloseGoldPopup();
 			CloseSettingsPopup();
-			modalController.Show(gearPopup);
+			gearSelectionController.Open(slot);
 			Render(session.Capture());
 		}
 
 		private void CloseGear()
 		{
-			gearSlot = -1;
-			modalController.Hide(gearPopup);
+			gearSelectionController?.Close();
 		}
 
 		private void RenderGear(IdleSnapshot snapshot)
 		{
-			if (gearSlot < 0)
-			{
-				return;
-			}
-
-			int wearer = gearHeroId;
-			gearTitle.text = wearer >= 0
-				? IdleHeroes.KindOf(wearer).Name + " " + uiContentAsset.GearSlotName(gearSlot)
-				: uiContentAsset.GearSlotName(gearSlot);
-
-			IdleItem worn = wearer >= 0 ? IdleGear.WornOf(session.State, wearer, gearSlot) : default;
-			gearWorn.text = worn.IsEmpty
-				? "지금 낀 것 없음"
-				: worn.IsRaw ? "지금 낀 장비, 미감정" : "지금 낀 장비, 감정됨";
-
-			EnsureGearSlots(uiContentAsset.GearPopupSlotCount);
-			int shown = 0;
-
-			for (int index = 0; index < snapshot.Bag.Length; index++)
-			{
-				IdleItem one = snapshot.Bag[index];
-				if ((int)one.Slot != gearSlot)
-				{
-					continue;
-				}
-
-				Button row = RowAt(shown);
-				int captured = index;
-				row.userData = captured;
-				row.SetEnabled(true);
-				row.EnableInClassList("idle-choice-card--empty", false);
-				gearVisualPresenter.SetTierOutline(row, one.Tier);
-				row.text = string.Empty;
-				gearRowLabels[shown].text = one.IsRaw
-					? "미감정"
-					: string.Format("잠재 {0:P0}", one.PotentialValue);
-				gearRowIcons[shown].style.display = DisplayStyle.Flex;
-				gearVisualPresenter.SetSprite(gearRowIcons[shown], gearSlot, one.Tier);
-				row.style.display = DisplayStyle.Flex;
-				shown++;
-			}
-
-			for (int at = shown; at < gearRowButtons.Count; at++)
-			{
-				Button row = gearRowButtons[at];
-				row.userData = -1;
-				row.text = string.Empty;
-				row.SetEnabled(false);
-				row.EnableInClassList("idle-choice-card--empty", true);
-				gearVisualPresenter.SetTierOutline(row, 0);
-				gearRowLabels[at].text = string.Empty;
-				gearRowIcons[at].style.display = DisplayStyle.None;
-				row.style.display = DisplayStyle.Flex;
-			}
-		}
-
-		private void EnsureGearSlots(int count)
-		{
-			for (int index = 0; index < count; index++)
-			{
-				RowAt(index);
-			}
-		}
-
-		/// <summary>팝업 줄 하나. 모자라면 새로 만든다</summary>
-		private Button RowAt(int at)
-		{
-			while (gearRowButtons.Count <= at)
-			{
-				TemplateContainer tree = choiceCardAsset.Instantiate();
-				Button made = tree.Q<Button>("choice");
-				VisualElement icon = made.Q<VisualElement>("choice-icon");
-				Label label = made.Q<Label>("choice-label");
-				made.RemoveFromHierarchy();
-				made.AddToClassList("idle-gear-card");
-				gearRows.Add(made);
-				int captured = gearRowButtons.Count;
-				made.clicked += () => PickGear(captured);
-				gearRowButtons.Add(made);
-				gearRowIcons.Add(icon);
-				gearRowLabels.Add(label);
-			}
-
-			return gearRowButtons[at];
-		}
-
-		private void PickGear(int rowIndex)
-		{
-			if (rowIndex < 0 || rowIndex >= gearRowButtons.Count)
-			{
-				return;
-			}
-
-			object held = gearRowButtons[rowIndex].userData;
-			if (held is int bagIndex && bagIndex >= 0)
-			{
-				Equip(bagIndex);
-				CloseGear();
-			}
+			gearSelectionController?.Render(snapshot, session.State, gearHeroId);
 		}
 
 		// ── 그리기 ────────────────────────────────────────────────────────
@@ -1694,8 +1406,9 @@ namespace WitchMendokusai.Idle
 				portrait.style.display = id >= 0 ? DisplayStyle.Flex : DisplayStyle.None;
 				label.text = id >= 0 ? tag + "  " + IdleHeroes.KindOf(id).Name : tag + "  +";
 				if (id >= 0) { heroVisualPresenter.SetPortrait(portrait, id); }
-				partyButtons[slot].EnableInClassList("idle-party-seat--picking", seatBeingFilled == slot);
-				partyButtons[slot].EnableInClassList("idle-party-seat--geared", seatBeingFilled < 0 && gearSeat == slot);
+				int selectedSeat = heroSelectionController != null ? heroSelectionController.SelectedSeat : -1;
+				partyButtons[slot].EnableInClassList("idle-party-seat--picking", selectedSeat == slot);
+				partyButtons[slot].EnableInClassList("idle-party-seat--geared", selectedSeat < 0 && gearSeat == slot);
 			}
 
 			int wearer = gearHeroId;
@@ -1945,7 +1658,7 @@ namespace WitchMendokusai.Idle
 				for (int tier = 1; tier <= snapshot.DroppedByTier.Length; tier++)
 				{
 					int captured = tier;
-					appraiseButtons.Add(AddButton(appraiseRows, "idle-row-button", () => Appraise(captured)));
+					appraiseButtons.Add(AddRowButton(appraiseRows, () => Appraise(captured)));
 				}
 			}
 
@@ -1975,7 +1688,11 @@ namespace WitchMendokusai.Idle
 
 				for (int id = 0; id < IdleHeroes.Count; id++)
 				{
-					codexLabels.Add(AddLabel(codexRows, "idle-row-title"));
+					TemplateContainer tree = rowLabelAsset.Instantiate();
+					Label row = tree.Q<Label>("row");
+					row.RemoveFromHierarchy();
+					codexRows.Add(row);
+					codexLabels.Add(row);
 				}
 			}
 
@@ -2064,7 +1781,7 @@ namespace WitchMendokusai.Idle
 				for (int index = 0; index < count; index++)
 				{
 					int target = top - index;
-					mapButtons.Add(AddButton(mapRows, "idle-row-button", () => GoToStage(target)));
+					mapButtons.Add(AddRowButton(mapRows, () => GoToStage(target)));
 				}
 			}
 
@@ -2089,23 +1806,7 @@ namespace WitchMendokusai.Idle
 			}
 
 			IdleAdviceResult advice = IdleAdvice.NextStep(snapshot);
-
-			switch (advice.Step)
-			{
-				case IdleStep.Prestige: return string.Format("연구소. 환생할 때다 (+{0})", (long)advice.Amount);
-				case IdleStep.BuyProducer: return "투자. 살 것이 있다";
-				case IdleStep.Raise: return "인형. 올릴 것이 있다";
-				case IdleStep.Merge: return "아이템. 합칠 수 있다";
-				case IdleStep.Wear: return "아이템. 가방에 더 좋은 것이 있다";
-				case IdleStep.Pull: return "상점. 뽑을 수 있다";
-				case IdleStep.Seat: return "인형. 편성 칸이 비었다";
-				case IdleStep.BagFull: return "아이템. 가방이 꽉 찼다";
-				case IdleStep.Tap: return "무대를 눌러 응원한다";
-				default:
-					return advice.Amount > 0d && double.IsInfinity(advice.Amount) == false
-						? string.Format("모으는 중. {0} 뒤에 살 것이 생긴다", DescribeSpan(advice.Amount))
-						: "모으는 중. 코스트가 차면 카드를 낸다";
-			}
+			return uiContentAsset.AdviceText(advice.Step, advice.Amount, DescribeSpan(advice.Amount));
 		}
 
 		// ── 화면 상태 ─────────────────────────────────────────────────────
@@ -2113,7 +1814,7 @@ namespace WitchMendokusai.Idle
 		private void OpenTab(Tab tab)
 		{
 			openTab = tab;
-			seatBeingFilled = -1;
+			heroSelectionController?.ClearSelection();
 			sideOpen = true;
 
 			for (int index = 0; index < pages.Length; index++)
@@ -2560,7 +2261,7 @@ namespace WitchMendokusai.Idle
 
 		private void ChooseHero(int id)
 		{
-			int slot = seatBeingFilled;
+			int slot = heroSelectionController != null ? heroSelectionController.SelectedSeat : -1;
 
 			if (slot < 0)
 			{
@@ -2702,21 +2403,9 @@ namespace WitchMendokusai.Idle
 			noteLeft = seconds;
 		}
 
-		private static string StatValueText(IdleUpgradeKind kind, double value)
+		private string StatValueText(IdleUpgradeKind kind, double value)
 		{
-			switch (kind)
-			{
-				case IdleUpgradeKind.AttackSpeed:
-					return string.Format("{0:0.##}/초", value);
-				case IdleUpgradeKind.Defense:
-				case IdleUpgradeKind.CriticalChance:
-				case IdleUpgradeKind.Recovery:
-					return string.Format("{0:P1}", value);
-				case IdleUpgradeKind.CriticalDamage:
-					return string.Format("×{0:0.00}", value);
-				default:
-					return BigNumberText.Format(value);
-			}
+			return uiContentAsset.StatValueText(kind, value);
 		}
 
 		private static string Stars(int stars)
@@ -2724,44 +2413,17 @@ namespace WitchMendokusai.Idle
 			return stars <= 0 ? string.Empty : " " + new string('★', stars);
 		}
 
-		private static string NameOf(IdleCardKind kind)
+		private string NameOf(IdleCardKind kind)
 		{
-			switch (kind)
-			{
-				case IdleCardKind.Volley: return "일제 사격";
-				case IdleCardKind.Supply: return "긴급 보급";
-				default: return "비밀 감정";
-			}
+			return uiContentAsset.CardName(kind);
 		}
 
-		private static void AddClasses(VisualElement element, string classNames)
+		private Button AddRowButton(VisualElement parent, System.Action action)
 		{
-			foreach (string one in classNames.Split(' '))
-			{
-				element.AddToClassList(one);
-			}
-		}
-
-		private static Label AddLabel(VisualElement parent, string classNames)
-		{
-			Label label = new Label(string.Empty);
-			foreach (string one in classNames.Split(' '))
-			{
-				label.AddToClassList(one);
-			}
-
-			parent.Add(label);
-			return label;
-		}
-
-		private static Button AddButton(VisualElement parent, string classNames, System.Action action)
-		{
-			Button button = action != null ? new Button(action) : new Button();
-			foreach (string one in classNames.Split(' '))
-			{
-				button.AddToClassList(one);
-			}
-
+			TemplateContainer tree = rowButtonAsset.Instantiate();
+			Button button = tree.Q<Button>("row");
+			button.RemoveFromHierarchy();
+			button.clicked += action;
 			parent.Add(button);
 			return button;
 		}

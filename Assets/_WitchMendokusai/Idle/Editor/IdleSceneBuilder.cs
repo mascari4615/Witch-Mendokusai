@@ -28,29 +28,7 @@ namespace WitchMendokusai.Idle.Editor
 		private const string GEAR_PRESENTATION_PATH = "Assets/_WitchMendokusai/Idle/Data/Assets/GP_0001_Idle.asset";
 		private const string BATTLE_PRESENTATION_PATH = "Assets/_WitchMendokusai/Idle/Data/Assets/BP_0001_Idle.asset";
 		private const string RUNTIME_SETTINGS_PATH = "Assets/_WitchMendokusai/Idle/Data/Assets/RT_0001_Idle.asset";
-		private const string STYLE_PATH = "Assets/_WitchMendokusai/Idle/UI/BattleScreen.uss";
-		private const string SCREEN_PATH = "Assets/_WitchMendokusai/Idle/UI/IdleBattleScreen.uxml";
-		private const string DOLL_PAGE_PATH = "Assets/_WitchMendokusai/Idle/UI/IdleDollPage.uxml";
-		private const string ITEM_PAGE_PATH = "Assets/_WitchMendokusai/Idle/UI/IdleItemPage.uxml";
-		private const string BAG_CELL_PATH = "Assets/_WitchMendokusai/Idle/UI/IdleBagCell.uxml";
-		private const string FORGE_KIND_PATH = "Assets/_WitchMendokusai/Idle/UI/IdleForgeKind.uxml";
-		private const string BATTLE_HUD_PATH = "Assets/_WitchMendokusai/Idle/UI/IdleBattleHud.uxml";
-		private const string CARD_PATH = "Assets/_WitchMendokusai/Idle/UI/IdleCard.uxml";
-		private const string QUEUE_CHIP_PATH = "Assets/_WitchMendokusai/Idle/UI/IdleQueueChip.uxml";
-		private const string CHOICE_CARD_PATH = "Assets/_WitchMendokusai/Idle/UI/IdleChoiceCard.uxml";
-		private const string CODEX_PAGE_PATH = "Assets/_WitchMendokusai/Idle/UI/IdleCodexPage.uxml";
-		private const string SHOP_PAGE_PATH = "Assets/_WitchMendokusai/Idle/UI/IdleShopPage.uxml";
-		private const string LAB_PAGE_PATH = "Assets/_WitchMendokusai/Idle/UI/IdleLabPage.uxml";
-		private const string DUNGEON_PAGE_PATH = "Assets/_WitchMendokusai/Idle/UI/IdleDungeonPage.uxml";
-		private const string INVEST_PAGE_PATH = "Assets/_WitchMendokusai/Idle/UI/IdleInvestPage.uxml";
-		private const string PRODUCER_ROW_PATH = "Assets/_WitchMendokusai/Idle/UI/IdleProducerRow.uxml";
-		private const string GEAR_POPUP_PATH = "Assets/_WitchMendokusai/Idle/UI/IdleGearPopup.uxml";
-		private const string MAP_POPUP_PATH = "Assets/_WitchMendokusai/Idle/UI/IdleMapPopup.uxml";
-		private const string HERO_POPUP_PATH = "Assets/_WitchMendokusai/Idle/UI/IdleHeroPopup.uxml";
-		private const string GOLD_POPUP_PATH = "Assets/_WitchMendokusai/Idle/UI/IdleGoldPopup.uxml";
-		private const string SETTINGS_POPUP_PATH = "Assets/_WitchMendokusai/Idle/UI/IdleSettingsPopup.uxml";
-		private const string AWAY_POPUP_PATH = "Assets/_WitchMendokusai/Idle/UI/IdleAwayPopup.uxml";
-		private const string WAVE_DOT_PATH = "Assets/_WitchMendokusai/Idle/UI/IdleWaveDot.uxml";
+		private const string VIEW_ASSETS_PATH = "Assets/_WitchMendokusai/Idle/Data/Assets/VA_0001_Idle.asset";
 		private const string TAG = "[IdleScene]";
 
 		[MenuItem("WM/Idle/Open and Play %#u")]
@@ -94,34 +72,12 @@ namespace WitchMendokusai.Idle.Editor
 			GearPresentationSO gearPresentation = AssetDatabase.LoadAssetAtPath<GearPresentationSO>(GEAR_PRESENTATION_PATH);
 			BattlePresentationSO battlePresentation = AssetDatabase.LoadAssetAtPath<BattlePresentationSO>(BATTLE_PRESENTATION_PATH);
 			RuntimeSettingsSO runtimeSettings = AssetDatabase.LoadAssetAtPath<RuntimeSettingsSO>(RUNTIME_SETTINGS_PATH);
-			StyleSheet style = AssetDatabase.LoadAssetAtPath<StyleSheet>(STYLE_PATH);
-			VisualTreeAsset screenAsset = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(SCREEN_PATH);
-			VisualTreeAsset dollPage = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(DOLL_PAGE_PATH);
-			VisualTreeAsset itemPage = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(ITEM_PAGE_PATH);
-			VisualTreeAsset bagCell = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(BAG_CELL_PATH);
-			VisualTreeAsset forgeKind = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(FORGE_KIND_PATH);
-			VisualTreeAsset battleHud = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(BATTLE_HUD_PATH);
-			VisualTreeAsset card = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(CARD_PATH);
-			VisualTreeAsset queueChip = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(QUEUE_CHIP_PATH);
-			VisualTreeAsset choiceCard = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(CHOICE_CARD_PATH);
-			VisualTreeAsset codexpage = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(CODEX_PAGE_PATH);
-			VisualTreeAsset shoppage = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(SHOP_PAGE_PATH);
-			VisualTreeAsset labpage = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(LAB_PAGE_PATH);
-			VisualTreeAsset dungeonpage = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(DUNGEON_PAGE_PATH);
-			VisualTreeAsset investpage = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(INVEST_PAGE_PATH);
-			VisualTreeAsset producerrow = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(PRODUCER_ROW_PATH);
-			VisualTreeAsset gearpopup = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(GEAR_POPUP_PATH);
-			VisualTreeAsset mappopup = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(MAP_POPUP_PATH);
-			VisualTreeAsset heropopup = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(HERO_POPUP_PATH);
-			VisualTreeAsset goldpopup = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(GOLD_POPUP_PATH);
-			VisualTreeAsset settingspopup = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(SETTINGS_POPUP_PATH);
-			VisualTreeAsset awaypopup = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(AWAY_POPUP_PATH);
-			VisualTreeAsset waveDot = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(WAVE_DOT_PATH);
+			IdleViewAssetsSO viewAssets = AssetDatabase.LoadAssetAtPath<IdleViewAssetsSO>(VIEW_ASSETS_PATH);
 			if (panel == null || tuning == null || heroCatalog == null || uiContent == null || gearPresentation == null
-				|| battlePresentation == null || runtimeSettings == null || style == null)
+				|| battlePresentation == null || runtimeSettings == null || viewAssets == null)
 			{
-				Debug.LogError(TAG + " 붙일 것을 못 읽었다. panel/tuning/heroes/style = "
-					+ (panel != null) + "/" + (tuning != null) + "/" + (heroCatalog != null) + "/" + (style != null)
+				Debug.LogError(TAG + " 붙일 것을 못 읽었다. panel/tuning/heroes/views = "
+					+ (panel != null) + "/" + (tuning != null) + "/" + (heroCatalog != null) + "/" + (viewAssets != null)
 					+ " (panel·tuning 은 WM/Idle/씬 짓기가 만든다)");
 				return;
 			}
@@ -155,7 +111,7 @@ namespace WitchMendokusai.Idle.Editor
 			GameObject screenObject = new GameObject("BattleScreen");
 			PanelRenderer panelRenderer = screenObject.AddComponent<PanelRenderer>();
 			panelRenderer.panelSettings = panel;
-			panelRenderer.visualTreeAsset = screenAsset;
+			panelRenderer.visualTreeAsset = viewAssets.Screen;
 
 			BattleScreen screen = screenObject.AddComponent<BattleScreen>();
 			AssignPrivateField(screen, "tuningAsset", tuning);
@@ -163,29 +119,7 @@ namespace WitchMendokusai.Idle.Editor
 			AssignPrivateField(screen, "uiContentAsset", uiContent);
 			AssignPrivateField(screen, "gearPresentationAsset", gearPresentation);
 			AssignPrivateField(screen, "runtimeSettingsAsset", runtimeSettings);
-			AssignPrivateField(screen, "styleSheet", style);
-			AssignPrivateField(screen, "screenAsset", screenAsset);
-			AssignPrivateField(screen, "dollPageAsset", dollPage);
-			AssignPrivateField(screen, "itemPageAsset", itemPage);
-			AssignPrivateField(screen, "bagCellAsset", bagCell);
-			AssignPrivateField(screen, "forgeKindAsset", forgeKind);
-			AssignPrivateField(screen, "battleHudAsset", battleHud);
-			AssignPrivateField(screen, "cardAsset", card);
-			AssignPrivateField(screen, "queueChipAsset", queueChip);
-			AssignPrivateField(screen, "choiceCardAsset", choiceCard);
-			AssignPrivateField(screen, "codexPageAsset", codexpage);
-			AssignPrivateField(screen, "shopPageAsset", shoppage);
-			AssignPrivateField(screen, "labPageAsset", labpage);
-			AssignPrivateField(screen, "dungeonPageAsset", dungeonpage);
-			AssignPrivateField(screen, "investPageAsset", investpage);
-			AssignPrivateField(screen, "producerRowAsset", producerrow);
-			AssignPrivateField(screen, "gearPopupAsset", gearpopup);
-			AssignPrivateField(screen, "mapPopupAsset", mappopup);
-			AssignPrivateField(screen, "heroPopupAsset", heropopup);
-			AssignPrivateField(screen, "goldPopupAsset", goldpopup);
-			AssignPrivateField(screen, "settingsPopupAsset", settingspopup);
-			AssignPrivateField(screen, "awayPopupAsset", awaypopup);
-			AssignPrivateField(screen, "waveDotAsset", waveDot);
+			AssignPrivateField(screen, "viewAssets", viewAssets);
 			AssignPrivateField(screen, "stage", stage);
 
 			// 이게 없으면 버튼이 안 눌린다 — 화면은 멀쩡해 눈으로 못 잡는다.
@@ -238,105 +172,9 @@ namespace WitchMendokusai.Idle.Editor
 			if (screen != null)
 			{
 				SerializedObject serialized = new SerializedObject(screen);
-				if (serialized.FindProperty("styleSheet").objectReferenceValue == null)
+				if (serialized.FindProperty("viewAssets").objectReferenceValue == null)
 				{
-					missing.Add("BattleScreen.styleSheet");
-				}
-				if (serialized.FindProperty("screenAsset").objectReferenceValue == null)
-				{
-					missing.Add("BattleScreen.screenAsset");
-				}
-
-				if (serialized.FindProperty("dollPageAsset").objectReferenceValue == null)
-				{
-					missing.Add("BattleScreen.dollPageAsset");
-				}
-				if (serialized.FindProperty("itemPageAsset").objectReferenceValue == null)
-				{
-					missing.Add("BattleScreen.itemPageAsset");
-				}
-				if (serialized.FindProperty("bagCellAsset").objectReferenceValue == null)
-				{
-					missing.Add("BattleScreen.bagCellAsset");
-				}
-				if (serialized.FindProperty("forgeKindAsset").objectReferenceValue == null)
-				{
-					missing.Add("BattleScreen.forgeKindAsset");
-				}
-				if (serialized.FindProperty("battleHudAsset").objectReferenceValue == null)
-				{
-					missing.Add("BattleScreen.battleHudAsset");
-				}
-				if (serialized.FindProperty("cardAsset").objectReferenceValue == null)
-				{
-					missing.Add("BattleScreen.cardAsset");
-				}
-				if (serialized.FindProperty("queueChipAsset").objectReferenceValue == null)
-				{
-					missing.Add("BattleScreen.queueChipAsset");
-				}
-				if (serialized.FindProperty("choiceCardAsset").objectReferenceValue == null)
-				{
-					missing.Add("BattleScreen.choiceCardAsset");
-				}
-				if (serialized.FindProperty("waveDotAsset").objectReferenceValue == null)
-				{
-					missing.Add("BattleScreen.waveDotAsset");
-				}
-
-				if (serialized.FindProperty("codexPageAsset").objectReferenceValue == null)
-				{
-					missing.Add("BattleScreen.codexPageAsset");
-				}
-
-				if (serialized.FindProperty("shopPageAsset").objectReferenceValue == null)
-				{
-					missing.Add("BattleScreen.shopPageAsset");
-				}
-
-				if (serialized.FindProperty("labPageAsset").objectReferenceValue == null)
-				{
-					missing.Add("BattleScreen.labPageAsset");
-				}
-
-				if (serialized.FindProperty("dungeonPageAsset").objectReferenceValue == null)
-				{
-					missing.Add("BattleScreen.dungeonPageAsset");
-				}
-
-				if (serialized.FindProperty("investPageAsset").objectReferenceValue == null)
-				{
-					missing.Add("BattleScreen.investPageAsset");
-				}
-
-				if (serialized.FindProperty("producerRowAsset").objectReferenceValue == null)
-				{
-					missing.Add("BattleScreen.producerRowAsset");
-				}
-
-				if (serialized.FindProperty("gearPopupAsset").objectReferenceValue == null)
-				{
-					missing.Add("BattleScreen.gearPopupAsset");
-				}
-				if (serialized.FindProperty("mapPopupAsset").objectReferenceValue == null)
-				{
-					missing.Add("BattleScreen.mapPopupAsset");
-				}
-				if (serialized.FindProperty("heroPopupAsset").objectReferenceValue == null)
-				{
-					missing.Add("BattleScreen.heroPopupAsset");
-				}
-				if (serialized.FindProperty("goldPopupAsset").objectReferenceValue == null)
-				{
-					missing.Add("BattleScreen.goldPopupAsset");
-				}
-				if (serialized.FindProperty("settingsPopupAsset").objectReferenceValue == null)
-				{
-					missing.Add("BattleScreen.settingsPopupAsset");
-				}
-				if (serialized.FindProperty("awayPopupAsset").objectReferenceValue == null)
-				{
-					missing.Add("BattleScreen.awayPopupAsset");
+					missing.Add("BattleScreen.viewAssets");
 				}
 				if (serialized.FindProperty("tuningAsset").objectReferenceValue == null)
 				{

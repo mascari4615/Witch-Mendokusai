@@ -68,3 +68,23 @@ MonoBehaviour:
   - 레어
   - 에픽
   - 레전드
+  cardNames:
+  - 일제 사격
+  - 긴급 보급
+  - 비밀 감정
+  dungeonNames:
+  - 재화 던전
+  - 보스 던전
+  - 장비 던전
+  - 스킬 던전
+  prestigeAdviceFormat: 연구소. 환생할 때다 (+{0})
+  buyProducerAdvice: 투자. 살 것이 있다
+  raiseAdvice: 인형. 올릴 것이 있다
+  mergeAdvice: 아이템. 합칠 수 있다
+  wearAdvice: 아이템. 가방에 더 좋은 것이 있다
+  pullAdvice: 상점. 뽑을 수 있다
+  seatAdvice: 인형. 편성 칸이 비었다
+  bagFullAdvice: 아이템. 가방이 꽉 찼다
+  tapAdvice: 무대를 눌러 응원한다
+  waitAdviceFormat: 모으는 중. {0} 뒤에 살 것이 생긴다
+  waitForCostAdvice: 모으는 중. 코스트가 차면 카드를 낸다

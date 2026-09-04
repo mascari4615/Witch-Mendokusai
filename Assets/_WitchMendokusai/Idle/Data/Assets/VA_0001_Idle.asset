@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5ddc27f3e004fa2ac052363f0aae332, type: 3}
+  m_Name: VA_0001_Idle
+  m_EditorClassIdentifier: WitchMendokusai.Idle::WitchMendokusai.Idle.IdleViewAssetsSO
+  screen: {fileID: 9197481963319205126, guid: 37a1d59bb94c4bfbbcc8247d187b64f9, type: 3}
+  bagCell: {fileID: 9197481963319205126, guid: 472740834cd8cc54386f16ec4bfc76c6, type: 3}
+  forgeKind: {fileID: 9197481963319205126, guid: 04d02e2ef56d0ab4ba49501a26e05e03, type: 3}
+  card: {fileID: 9197481963319205126, guid: 8cdad0f4be344e05bb8e9a8498c2df9d, type: 3}
+  queueChip: {fileID: 9197481963319205126, guid: b287e883d00a4924a6d4faf38d23c9b5, type: 3}
+  choiceCard: {fileID: 9197481963319205126, guid: 14c57797dcbd4fd59097c9a958c3592c, type: 3}
+  waveDot: {fileID: 9197481963319205126, guid: 249c5c72e0b94ac59d6f0facf39dc6ca, type: 3}
+  producerRow: {fileID: 9197481963319205126, guid: 062a6ed90d16dea4d9f880e8f16cbcbf, type: 3}
+  rowButton: {fileID: 9197481963319205126, guid: 53ca940fb97747ac85e031734f6b8cf6, type: 3}
+  rowLabel: {fileID: 9197481963319205126, guid: e48a18b2844e4499bcda6955aeaa9c65, type: 3}

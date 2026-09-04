@@ -1,6 +1,6 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
     <Style src="BattleScreen.uss" />
-    <ui:VisualElement name="popup" class="idle-modal-shade idle-map">
+    <ui:VisualElement name="popup" class="idle-modal-shade idle-map idle-hidden">
         <ui:VisualElement class="idle-map-art" picking-mode="Ignore" />
         <ui:VisualElement class="idle-box idle-map-panel">
             <ui:VisualElement class="idle-panel-head">

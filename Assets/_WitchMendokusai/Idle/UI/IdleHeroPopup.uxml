@@ -1,6 +1,6 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
     <Style src="BattleScreen.uss" />
-    <ui:VisualElement name="popup" class="idle-modal-shade">
+    <ui:VisualElement name="popup" class="idle-modal-shade idle-hidden">
         <ui:VisualElement class="idle-box idle-modal-panel idle-choice-popup">
             <ui:VisualElement class="idle-panel-head">
                 <ui:Label text="인형 선택" class="idle-panel-title" />

@@ -1,0 +1,4 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <!-- 가변 목록 한 줄. 지도와 감정 목록이 데이터 수만큼 복제한다 -->
+    <ui:Button name="row" class="idle-row-button" />
+</ui:UXML>

@@ -1,7 +1,7 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
     <!-- 투자 탭 (layout.md §3). 기지 생산자 8 -->
     <Style src="BattleScreen.uss" />
-    <ui:VisualElement name="page" class="idle-side idle-page">
+    <ui:VisualElement name="page" class="idle-page">
         <ui:Label name="base-summary" class="idle-row-title" />
         <ui:VisualElement name="producers" />
     </ui:VisualElement>

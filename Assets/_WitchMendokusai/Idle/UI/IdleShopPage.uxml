@@ -1,7 +1,7 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
     <!-- 상점 탭 (layout.md §3). 인형 뽑기와 무료 상자 -->
     <Style src="BattleScreen.uss" />
-    <ui:VisualElement name="page" class="idle-side idle-page">
+    <ui:VisualElement name="page" class="idle-page">
         <ui:VisualElement class="idle-banner">
             <ui:Label text="인형 뽑기" class="idle-banner-title" />
             <ui:Label text="PICK UP" class="idle-cap" />

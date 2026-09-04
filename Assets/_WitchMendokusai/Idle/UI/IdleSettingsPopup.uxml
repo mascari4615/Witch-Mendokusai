@@ -1,6 +1,6 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
     <Style src="BattleScreen.uss" />
-    <ui:VisualElement name="popup" class="idle-modal-shade idle-settings-popup">
+    <ui:VisualElement name="popup" class="idle-modal-shade idle-settings-popup idle-hidden">
         <ui:VisualElement class="idle-box idle-settings-panel">
             <ui:VisualElement class="idle-panel-head">
                 <ui:Label text="설정" class="idle-panel-title" />

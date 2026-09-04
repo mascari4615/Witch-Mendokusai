@@ -1,6 +1,6 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
     <Style src="BattleScreen.uss" />
-    <ui:VisualElement name="popup" class="idle-modal-shade idle-gold-popup">
+    <ui:VisualElement name="popup" class="idle-modal-shade idle-gold-popup idle-hidden">
         <ui:VisualElement class="idle-box idle-gold-panel">
             <ui:VisualElement class="idle-gold-icon" />
             <ui:Label text="GOLD" class="idle-cap" />
