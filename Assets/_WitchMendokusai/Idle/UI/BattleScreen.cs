@@ -172,9 +172,7 @@ namespace WitchMendokusai.Idle
 		private PointerTooltipController tooltipController;
 
 		// 팝업
-		private VisualElement mapPopup;
-		private VisualElement mapRows;
-		private readonly List<Button> mapButtons = new List<Button>();
+		private MapSelectionController mapSelectionController;
 		private VisualElement goldPopup;
 		private Label goldAmount;
 		private Label goldIncome;
@@ -507,7 +505,7 @@ namespace WitchMendokusai.Idle
 			appraiseButtons.Clear();
 			codexLabels.Clear();
 			producerButtons.Clear();
-			mapButtons.Clear();
+			mapSelectionController = null;
 			speedButtons.Clear();
 		}
 
@@ -847,10 +845,13 @@ namespace WitchMendokusai.Idle
 
 		private void BuildMapPopup()
 		{
-			mapPopup = UsePopup("map-popup-host");
-			modalController.Register(mapPopup, CloseMap);
-			mapPopup.Q<Button>("map-close").clicked += ToggleMap;
-			mapRows = mapPopup.Q<VisualElement>("map-rows");
+			mapSelectionController = new MapSelectionController(
+				UsePopup("map-popup-host"),
+				rowButtonAsset,
+				modalController,
+				uiContentAsset,
+				session.CanGoToStage,
+				GoToStage);
 		}
 
 		/// <summary>장비 고르기 팝업. 관리 열 위에 뜬다</summary>
@@ -1035,9 +1036,9 @@ namespace WitchMendokusai.Idle
 			RenderHand(snapshot);
 			RenderTabBadges(snapshot);
 
-			if (mapPopup.style.display == DisplayStyle.Flex)
+			if (mapSelectionController.IsOpen)
 			{
-				RenderMap(snapshot);
+				mapSelectionController.Render(snapshot);
 			}
 
 			if (split || sideOpen)
@@ -1447,35 +1448,6 @@ namespace WitchMendokusai.Idle
 			}
 		}
 
-		private void RenderMap(IdleSnapshot snapshot)
-		{
-			int top = snapshot.BestStage;
-			int bottom = top - 7 < 1 ? 1 : top - 7;
-			int count = top - bottom + 1;
-
-			if (mapButtons.Count != count)
-			{
-				mapRows.Clear();
-				mapButtons.Clear();
-
-				for (int index = 0; index < count; index++)
-				{
-					int target = top - index;
-					mapButtons.Add(AddRowButton(mapRows, () => GoToStage(target)));
-				}
-			}
-
-			for (int index = 0; index < mapButtons.Count; index++)
-			{
-				int target = top - index;
-				bool here = target == snapshot.Stage;
-				mapButtons[index].text = uiContentAsset.MapStageText(
-					target, here, target == snapshot.BestFarmingStage);
-				mapButtons[index].SetEnabled(here == false && session.CanGoToStage(target));
-				mapButtons[index].EnableInClassList("idle-row-button--strong", here);
-			}
-		}
-
 		/// <summary>코어가 고른 한 걸음을 사람 말로.</summary>
 		private string NextStep(IdleSnapshot snapshot)
 		{
@@ -1599,28 +1571,19 @@ namespace WitchMendokusai.Idle
 
 		private void ToggleMap()
 		{
-			bool open = mapPopup.style.display != DisplayStyle.Flex;
-			if (open)
+			mapSelectionController.Toggle(() =>
 			{
 				CloseHeroPopup();
 				CloseGear();
 				CloseGoldPopup();
 				CloseSettingsPopup();
-			}
-			if (open)
-			{
-				modalController.Show(mapPopup);
-			}
-			else
-			{
-				modalController.Hide(mapPopup);
-			}
+			});
 			Render(session.Capture());
 		}
 
 		private void CloseMap()
 		{
-			modalController.Hide(mapPopup);
+			mapSelectionController?.Close();
 		}
 
 		/// <summary>
