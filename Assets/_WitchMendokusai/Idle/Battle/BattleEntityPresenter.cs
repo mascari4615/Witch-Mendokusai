@@ -13,20 +13,48 @@ namespace WitchMendokusai.Idle
 			public GameObject FoePrefab { get; set; }
 			public GameObject BossPrefab { get; set; }
 			public float LungeSeconds { get; set; }
-			public float PopSeconds { get; set; }
+			public float HurtSeconds { get; set; }
 			public float PositionCatchUp { get; set; }
+			public float AllyHeadHeight { get; set; }
+			public float DollFallbackRadius { get; set; }
+			public Vector3 DollBodyPosition { get; set; }
+			public Vector3 DollBodyScale { get; set; }
+			public Vector3 DollHeadPosition { get; set; }
+			public Vector3 DollHeadScale { get; set; }
+			public float AllyBarHeight { get; set; }
+			public float AllyBarWidth { get; set; }
+			public float AllyBarThickness { get; set; }
+			public Vector3 DownedEuler { get; set; }
+			public Vector3 DownedScale { get; set; }
+			public float AllyWalkBobHeight { get; set; }
+			public float AllyLungeDistance { get; set; }
+			public float AllyHurtDistance { get; set; }
 			public float FoeEntranceDistance { get; set; }
 			public float FoeEntranceSpeed { get; set; }
+			public float FoeEntranceThreshold { get; set; }
 			public float FoeSpinDegrees { get; set; }
 			public float FoeBobHeight { get; set; }
 			public float BossScale { get; set; }
 			public float FoeHeight { get; set; }
 			public float FoeRadius { get; set; }
+			public float FoeHeadHeight { get; set; }
+			public float FoePickRadius { get; set; }
+			public float FoeMinHealthScale { get; set; }
+			public float FoeBarHeight { get; set; }
+			public float FoeBarWidth { get; set; }
+			public float FoeBarThickness { get; set; }
 			public int ShapeStagesPerStep { get; set; }
 			public int BossShardCount { get; set; }
 			public float BossShellRadius { get; set; }
 			public float BossShellSpread { get; set; }
 			public float BossShellSpinDegrees { get; set; }
+			public float BossSpikeInset { get; set; }
+			public float BossShardRadiusScale { get; set; }
+			public float BossShardThickness { get; set; }
+			public float BossShardLift { get; set; }
+			public Vector3 BossShardEulerStep { get; set; }
+			public float BossShellCatchUpShare { get; set; }
+			public float BossShardSpinShare { get; set; }
 			public int BossSpikeFromStage { get; set; }
 			public int ColorDepthStage { get; set; }
 			public float DepthSaturation { get; set; }

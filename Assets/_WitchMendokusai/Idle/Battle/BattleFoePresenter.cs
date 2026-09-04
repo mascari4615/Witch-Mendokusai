@@ -18,7 +18,10 @@ namespace WitchMendokusai.Idle
 			public long Index;
 			public bool Boss;
 			public IdleFoeKind Kind;
-			public int ShapeUsed = -1;
+			public Geometry.Shape ShapeUsed;
+			public bool HasShape;
+			public bool BossShapeUsed;
+			public bool SpikedShapeUsed;
 			public int StageUsed = -1;
 			public float FlashLeft;
 			public bool Entering;
@@ -62,7 +65,7 @@ namespace WitchMendokusai.Idle
 
 			if (foe != null)
 			{
-				position = foe.Piece.position + new Vector3(0f, 0.7f, 0f);
+				position = foe.Piece.position + Vector3.up * settings.FoeHeadHeight;
 				return true;
 			}
 
@@ -96,7 +99,7 @@ namespace WitchMendokusai.Idle
 			}
 
 			Vector2 screen = new Vector2(panelPosition.x, Screen.height - panelPosition.y);
-			float best = 54f;
+			float best = settings.FoePickRadius;
 
 			foreach (Foe foe in foes)
 			{
@@ -126,7 +129,8 @@ namespace WitchMendokusai.Idle
 					continue;
 				}
 
-				removedHeads[foes[at].Index] = foes[at].Piece.position + new Vector3(0f, 0.7f, 0f);
+				removedHeads[foes[at].Index] =
+					foes[at].Piece.position + Vector3.up * settings.FoeHeadHeight;
 				Kill(foes[at].BarAnchor.gameObject);
 				Kill(foes[at].Piece.gameObject);
 				foes.RemoveAt(at);
@@ -173,7 +177,8 @@ namespace WitchMendokusai.Idle
 				{
 					foe.Piece.localPosition = Vector3.MoveTowards(
 						foe.Piece.localPosition, wanted, settings.FoeEntranceSpeed * delta);
-					foe.Entering = Vector3.Distance(foe.Piece.localPosition, wanted) > 0.05f;
+					foe.Entering = Vector3.Distance(foe.Piece.localPosition, wanted) >
+						settings.FoeEntranceThreshold;
 				}
 				else
 				{
@@ -182,7 +187,10 @@ namespace WitchMendokusai.Idle
 						BattleMotion.CatchUp(settings.PositionCatchUp, delta));
 				}
 
-				float health = 0.82f + 0.18f * (float)view.HealthRatio;
+				float health = Mathf.Lerp(
+					settings.FoeMinHealthScale,
+					1f,
+					(float)view.HealthRatio);
 				float bulk = view.Boss ? settings.BossScale : 1f;
 				foe.Model.localScale = new Vector3(health * bulk, bulk, health * bulk);
 				foe.BarAnchor.position = foe.Piece.position;
@@ -254,15 +262,19 @@ namespace WitchMendokusai.Idle
 				return;
 			}
 
-			int want = (int)shape + (boss ? 100 : 0) + (boss && stage >= settings.BossSpikeFromStage ? 1000 : 0);
-			if (foe.ShapeUsed == want)
+			bool spiked = boss && stage >= settings.BossSpikeFromStage;
+			if (foe.HasShape && foe.ShapeUsed == shape && foe.BossShapeUsed == boss &&
+				foe.SpikedShapeUsed == spiked)
 			{
 				return;
 			}
 
-			foe.ShapeUsed = want;
-			foe.Mesh.sharedMesh = boss && stage >= settings.BossSpikeFromStage
-				? Geometry.Stellate(shape, settings.FoeRadius, 0.45f)
+			foe.HasShape = true;
+			foe.ShapeUsed = shape;
+			foe.BossShapeUsed = boss;
+			foe.SpikedShapeUsed = spiked;
+			foe.Mesh.sharedMesh = spiked
+				? Geometry.Stellate(shape, settings.FoeRadius, settings.BossSpikeInset)
 				: Geometry.Build(shape, settings.FoeRadius);
 
 			if (boss)
@@ -298,15 +310,18 @@ namespace WitchMendokusai.Idle
 				shard.transform.SetParent(foe.Shell, false);
 
 				MeshFilter mesh = shard.AddComponent<MeshFilter>();
-				mesh.sharedMesh = Geometry.FaceShard(shape, settings.FoeRadius * 0.5f,
-					at * Mathf.Max(1, faces / count), 0.06f);
+				mesh.sharedMesh = Geometry.FaceShard(
+					shape,
+					settings.FoeRadius * settings.BossShardRadiusScale,
+					at * Mathf.Max(1, faces / count),
+					settings.BossShardThickness);
 				MeshRenderer renderer = shard.AddComponent<MeshRenderer>();
 				renderer.sharedMaterial = foe.Skin;
 
 				float angle = at * Mathf.PI * 2f / count;
-				float lift = ((at % 3) - 1) * 0.3f;
+				float lift = ((at % 3) - 1) * settings.BossShardLift;
 				shard.transform.localPosition = new Vector3(Mathf.Cos(angle), lift, Mathf.Sin(angle));
-				shard.transform.localRotation = Quaternion.Euler(at * 37f, at * 61f, at * 23f);
+				shard.transform.localRotation = Quaternion.Euler(settings.BossShardEulerStep * at);
 				foe.Shards.Add(shard.transform);
 			}
 		}
@@ -339,11 +354,14 @@ namespace WitchMendokusai.Idle
 				}
 
 				float angle = at * Mathf.PI * 2f / alive;
-				float lift = ((at % 3) - 1) * 0.3f;
+				float lift = ((at % 3) - 1) * settings.BossShardLift;
 				Vector3 want = new Vector3(Mathf.Cos(angle), lift, Mathf.Sin(angle)) * radius;
 				shard.localPosition = Vector3.Lerp(shard.localPosition, want,
-					BattleMotion.CatchUp(settings.PositionCatchUp * 0.4f, delta));
-				shard.Rotate(Vector3.up, settings.BossShellSpinDegrees * 0.5f * delta, Space.Self);
+					BattleMotion.CatchUp(settings.PositionCatchUp * settings.BossShellCatchUpShare, delta));
+				shard.Rotate(
+					Vector3.up,
+					settings.BossShellSpinDegrees * settings.BossShardSpinShare * delta,
+					Space.Self);
 			}
 
 			foe.Shell.Rotate(Vector3.up, settings.BossShellSpinDegrees * delta, Space.Self);
@@ -388,7 +406,8 @@ namespace WitchMendokusai.Idle
 				renderer.sharedMaterial = foe.Skin;
 			}
 
-			foe.Bar = HealthBar.Attach(barAnchor.transform, 0.95f, 0.8f, 0.1f,
+			foe.Bar = HealthBar.Attach(barAnchor.transform,
+				settings.FoeBarHeight, settings.FoeBarWidth, settings.FoeBarThickness,
 				settings.BarBackColor, settings.EnemyBarColor);
 			return foe;
 		}
@@ -417,7 +436,7 @@ namespace WitchMendokusai.Idle
 			}
 
 			foe.FlashLeft -= delta;
-			float share = Mathf.Clamp01(foe.FlashLeft / Mathf.Max(0.001f, settings.FoeFlashSeconds));
+			float share = Mathf.Clamp01(foe.FlashLeft / settings.FoeFlashSeconds);
 			Color made = Color.Lerp(foe.RestColor, Color.white, share * settings.FoeFlashWhiten);
 
 			foe.Skin.color = made;

@@ -15,12 +15,37 @@ namespace WitchMendokusai.Idle
 		[SerializeField] private float snapJump = 3f;
 		[SerializeField] private float lungeSeconds = 0.22f;
 		[SerializeField] private float boltSeconds = 0.18f;
-		[SerializeField] private float popSeconds = 0.3f;
 		[SerializeField] private float positionCatchUp = 14f;
+
+		[Header("Ally presentation")]
+		[SerializeField] private float allyHurtSeconds = 0.15f;
+		[SerializeField] private float allyHeadHeight = 1.3f;
+		[SerializeField] private float dollFallbackRadius = 0.5f;
+		[SerializeField] private Vector3 dollBodyPosition = new Vector3(0f, 0.42f, 0f);
+		[SerializeField] private Vector3 dollBodyScale = new Vector3(0.44f, 0.9f, 0.44f);
+		[SerializeField] private Vector3 dollHeadPosition = new Vector3(0f, 1f, 0f);
+		[SerializeField] private Vector3 dollHeadScale = new Vector3(0.5f, 0.5f, 0.5f);
+		[SerializeField] private float allyBarHeight = 1.45f;
+		[SerializeField] private float allyBarWidth = 0.9f;
+		[SerializeField] private float allyBarThickness = 0.11f;
+		[SerializeField] private Vector3 downedEuler = new Vector3(0f, 0f, -78f);
+		[SerializeField] private Vector3 downedScale = new Vector3(1f, 0.75f, 1f);
+		[SerializeField] private float allyWalkBobHeight = 0.1f;
+		[SerializeField] private float allyLungeDistance = 0.3f;
+		[SerializeField] private float allyHurtDistance = 0.08f;
+
+		[Header("Foe presentation")]
 		[SerializeField] private float foeEntranceDistance = 6f;
 		[SerializeField] private float foeEntranceSpeed = 5f;
+		[SerializeField] private float foeEntranceThreshold = 0.05f;
 		[SerializeField] private float foeSpinDegrees = 12f;
 		[SerializeField] private float foeBobHeight = 0.025f;
+		[SerializeField] private float foeHeadHeight = 0.7f;
+		[SerializeField] private float foePickRadius = 54f;
+		[SerializeField] private float foeMinHealthScale = 0.82f;
+		[SerializeField] private float foeBarHeight = 0.95f;
+		[SerializeField] private float foeBarWidth = 0.8f;
+		[SerializeField] private float foeBarThickness = 0.1f;
 		[SerializeField] private float shakeSeconds = 0.08f;
 		[SerializeField] private float shakeDistance = 0.025f;
 		[SerializeField] private float impactSize = 0.36f;
@@ -39,6 +64,13 @@ namespace WitchMendokusai.Idle
 		[SerializeField] private float bossShellRadius = 1.15f;
 		[SerializeField] private float bossShellSpread = 0.6f;
 		[SerializeField] private float bossShellSpinDegrees = -26f;
+		[SerializeField] private float bossSpikeInset = 0.45f;
+		[SerializeField] private float bossShardRadiusScale = 0.5f;
+		[SerializeField] private float bossShardThickness = 0.06f;
+		[SerializeField] private float bossShardLift = 0.3f;
+		[SerializeField] private Vector3 bossShardEulerStep = new Vector3(37f, 61f, 23f);
+		[SerializeField] private float bossShellCatchUpShare = 0.4f;
+		[SerializeField] private float bossShardSpinShare = 0.5f;
 		[SerializeField] private int bossSpikeFromStage = 21;
 		[SerializeField] private int colorDepthStage = 40;
 		[SerializeField] private float depthSaturation = 0.35f;
@@ -130,20 +162,48 @@ namespace WitchMendokusai.Idle
 				FoePrefab = foePrefab,
 				BossPrefab = bossPrefab,
 				LungeSeconds = lungeSeconds,
-				PopSeconds = popSeconds,
+				HurtSeconds = allyHurtSeconds,
 				PositionCatchUp = positionCatchUp,
+				AllyHeadHeight = allyHeadHeight,
+				DollFallbackRadius = dollFallbackRadius,
+				DollBodyPosition = dollBodyPosition,
+				DollBodyScale = dollBodyScale,
+				DollHeadPosition = dollHeadPosition,
+				DollHeadScale = dollHeadScale,
+				AllyBarHeight = allyBarHeight,
+				AllyBarWidth = allyBarWidth,
+				AllyBarThickness = allyBarThickness,
+				DownedEuler = downedEuler,
+				DownedScale = downedScale,
+				AllyWalkBobHeight = allyWalkBobHeight,
+				AllyLungeDistance = allyLungeDistance,
+				AllyHurtDistance = allyHurtDistance,
 				FoeEntranceDistance = foeEntranceDistance,
 				FoeEntranceSpeed = foeEntranceSpeed,
+				FoeEntranceThreshold = foeEntranceThreshold,
 				FoeSpinDegrees = foeSpinDegrees,
 				FoeBobHeight = foeBobHeight,
 				BossScale = bossScale,
 				FoeHeight = foeHeight,
 				FoeRadius = foeRadius,
+				FoeHeadHeight = foeHeadHeight,
+				FoePickRadius = foePickRadius,
+				FoeMinHealthScale = foeMinHealthScale,
+				FoeBarHeight = foeBarHeight,
+				FoeBarWidth = foeBarWidth,
+				FoeBarThickness = foeBarThickness,
 				ShapeStagesPerStep = shapeStagesPerStep,
 				BossShardCount = bossShardCount,
 				BossShellRadius = bossShellRadius,
 				BossShellSpread = bossShellSpread,
 				BossShellSpinDegrees = bossShellSpinDegrees,
+				BossSpikeInset = bossSpikeInset,
+				BossShardRadiusScale = bossShardRadiusScale,
+				BossShardThickness = bossShardThickness,
+				BossShardLift = bossShardLift,
+				BossShardEulerStep = bossShardEulerStep,
+				BossShellCatchUpShare = bossShellCatchUpShare,
+				BossShardSpinShare = bossShardSpinShare,
 				BossSpikeFromStage = bossSpikeFromStage,
 				ColorDepthStage = colorDepthStage,
 				DepthSaturation = depthSaturation,
@@ -170,7 +230,19 @@ namespace WitchMendokusai.Idle
 			if (shapeStagesPerStep <= 0 || sceneryCount < 0 || bossShardCount < 0 || colorDepthStage <= 0
 				|| cameraFieldOfView <= 0f || cameraDistance <= 0f || lightIntensity < 0f
 				|| boltSeconds <= 0f || shakeSeconds < 0f || numberSeconds <= 0f || impactSize <= 0f
-				|| impactSeconds <= 0f || impactSpeed < 0f || impactCount <= 0 || foeFlashSeconds <= 0f)
+				|| impactSeconds <= 0f || impactSpeed < 0f || impactCount <= 0 || foeFlashSeconds <= 0f
+				|| allyHurtSeconds <= 0f || allyHeadHeight <= 0f || dollFallbackRadius <= 0f
+				|| dollBodyScale.x <= 0f || dollBodyScale.y <= 0f || dollBodyScale.z <= 0f
+				|| dollHeadScale.x <= 0f || dollHeadScale.y <= 0f || dollHeadScale.z <= 0f
+				|| downedScale.x <= 0f || downedScale.y <= 0f || downedScale.z <= 0f
+				|| allyBarHeight <= 0f || allyBarWidth <= 0f || allyBarThickness <= 0f
+				|| allyWalkBobHeight < 0f
+				|| allyLungeDistance < 0f || allyHurtDistance < 0f || foeEntranceThreshold < 0f
+				|| foeHeadHeight <= 0f || foePickRadius <= 0f || foeMinHealthScale <= 0f
+				|| foeMinHealthScale > 1f || foeBarHeight <= 0f || foeBarWidth <= 0f
+				|| foeBarThickness <= 0f
+				|| bossSpikeInset <= 0f || bossShardRadiusScale <= 0f || bossShardThickness <= 0f
+				|| bossShardLift < 0f || bossShellCatchUpShare < 0f || bossShardSpinShare < 0f)
 			{
 				error = "counts and stage thresholds must be valid";
 				return false;

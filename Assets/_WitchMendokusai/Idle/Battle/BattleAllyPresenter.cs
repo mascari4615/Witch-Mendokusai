@@ -54,7 +54,7 @@ namespace WitchMendokusai.Idle
 		{
 			if (seat >= 0 && seat < hurtLeft.Length)
 			{
-				hurtLeft[seat] = settings.PopSeconds * 0.5f;
+				hurtLeft[seat] = settings.HurtSeconds;
 			}
 		}
 
@@ -67,7 +67,7 @@ namespace WitchMendokusai.Idle
 				return false;
 			}
 
-			position = dolls[seat].position + new Vector3(0f, 1.3f, 0f);
+			position = dolls[seat].position + Vector3.up * settings.AllyHeadHeight;
 			return true;
 		}
 
@@ -99,24 +99,25 @@ namespace WitchMendokusai.Idle
 			}
 			else
 			{
-				Mesh round = Geometry.Build(Geometry.Shape.SphereOnce, 0.5f);
+				Mesh round = Geometry.Build(Geometry.Shape.SphereOnce, settings.DollFallbackRadius);
 
 				GameObject body = new GameObject("Body");
 				body.transform.SetParent(doll.transform, false);
-				body.transform.localPosition = new Vector3(0f, 0.42f, 0f);
-				body.transform.localScale = new Vector3(0.44f, 0.9f, 0.44f);
+				body.transform.localPosition = settings.DollBodyPosition;
+				body.transform.localScale = settings.DollBodyScale;
 				body.AddComponent<MeshFilter>().sharedMesh = round;
 				body.AddComponent<MeshRenderer>().sharedMaterial = skin;
 
 				GameObject head = new GameObject("Head");
 				head.transform.SetParent(doll.transform, false);
-				head.transform.localPosition = new Vector3(0f, 1f, 0f);
-				head.transform.localScale = new Vector3(0.5f, 0.5f, 0.5f);
+				head.transform.localPosition = settings.DollHeadPosition;
+				head.transform.localScale = settings.DollHeadScale;
 				head.AddComponent<MeshFilter>().sharedMesh = round;
 				head.AddComponent<MeshRenderer>().sharedMaterial = skin;
 			}
 
-			bars[seat] = HealthBar.Attach(barAnchor.transform, 1.45f, 0.9f, 0.11f,
+			bars[seat] = HealthBar.Attach(barAnchor.transform,
+				settings.AllyBarHeight, settings.AllyBarWidth, settings.AllyBarThickness,
 				settings.BarBackColor, settings.AllyBarColor);
 			return doll.transform;
 		}
@@ -155,8 +156,8 @@ namespace WitchMendokusai.Idle
 				{
 					bars[seat].SetFillColor(settings.ReviveBarColor);
 					bars[seat].SetRatio((float)view.ReviveRatio);
-					dolls[seat].localRotation = Quaternion.Euler(0f, 0f, -78f);
-					dolls[seat].localScale = new Vector3(1f, 0.75f, 1f);
+					dolls[seat].localRotation = Quaternion.Euler(settings.DownedEuler);
+					dolls[seat].localScale = settings.DownedScale;
 				}
 
 				barAnchors[seat].position = dolls[seat].position;
@@ -175,18 +176,21 @@ namespace WitchMendokusai.Idle
 				float attack = settings.LungeSeconds > 0f
 					? Mathf.Sin(Mathf.Clamp01(1f - attackLeft[seat] / settings.LungeSeconds) * Mathf.PI)
 					: 0f;
-				float hurt = settings.PopSeconds > 0f
-					? Mathf.Sin(Mathf.Clamp01(1f - hurtLeft[seat] / (settings.PopSeconds * 0.5f)) * Mathf.PI)
+				float hurt = settings.HurtSeconds > 0f
+					? Mathf.Sin(Mathf.Clamp01(1f - hurtLeft[seat] / settings.HurtSeconds) * Mathf.PI)
 					: 0f;
 
 				bool walking = seat < snapshot.Fighters.Length && snapshot.Fighters[seat].Moving;
 				float x = seat < snapshot.Fighters.Length ? (float)snapshot.Fighters[seat].X : 0f;
 				float y = seat < snapshot.Fighters.Length ? (float)snapshot.Fighters[seat].Y : 0f;
-				float bob = walking ? BattleMotion.WalkBob(clock, seat, 0.1f) : 0f;
+				float bob = walking ? BattleMotion.WalkBob(clock, seat, settings.AllyWalkBobHeight) : 0f;
 
 				dolls[seat].localPosition = Vector3.Lerp(
 					dolls[seat].localPosition,
-					new Vector3(x + attack * 0.3f - hurt * 0.08f, bob, y),
+					new Vector3(
+						x + attack * settings.AllyLungeDistance - hurt * settings.AllyHurtDistance,
+						bob,
+						y),
 					BattleMotion.CatchUp(settings.PositionCatchUp, delta));
 			}
 		}
