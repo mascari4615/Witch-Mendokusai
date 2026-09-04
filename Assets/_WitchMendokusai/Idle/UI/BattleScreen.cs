@@ -17,6 +17,8 @@ namespace WitchMendokusai.Idle
 	/// ★ 상점, 연구소 탭은 전투 창의 3D 씬 자리를 그 탭의 씬으로 바꾼다 (지금은 자리 표시만).
 	/// ★ 규칙은 한 줄도 없다. 사진을 그리고 의도를 보낸다. 판정은 전부 코어.
 	/// ★ 설정: 배속과 전투 기록. 골드 상세: HUD 골드 아이콘.
+	///
+	/// 여기는 MonoBehaviour 수명주기, 에셋 검사, 세션과 저장, 소리, 무대. 화면 조립은 <see cref="BattleScreenView"/>
 	/// </summary>
 	[ExecuteAlways]
 	[RequireComponent(typeof(PanelRenderer))]
@@ -35,13 +37,6 @@ namespace WitchMendokusai.Idle
 		[Header("무대. 씬이 꽂아 준다")]
 		[SerializeField] private BattleStage stage;
 
-		private VisualTreeAsset screenAsset => viewAssets.Screen;
-		private VisualTreeAsset cardAsset => viewAssets.Card;
-		private VisualTreeAsset queueChipAsset => viewAssets.QueueChip;
-		private VisualTreeAsset choiceCardAsset => viewAssets.ChoiceCard;
-		private VisualTreeAsset waveDotAsset => viewAssets.WaveDot;
-		private VisualTreeAsset rowButtonAsset => viewAssets.RowButton;
-
 		private BattleSessionLifecycle sessionLifecycle;
 		private IdleSession session => sessionLifecycle?.Session;
 		private bool preview => sessionLifecycle?.IsPreview ?? false;
@@ -50,6 +45,9 @@ namespace WitchMendokusai.Idle
 		private bool clickSoundHooked;
 		private ScreenRootController screenRootController;
 		private VisualElement panelRoot;
+		private BattleScreenView view;
+		private HeroVisualPresenter heroVisualPresenter;
+		private GearVisualPresenter gearVisualPresenter;
 
 		// 에디트 모드 미리보기 (사용자 2026-08-30: UI 수정은 Play 없이). 저장 읽기와 쓰기 없음. 임시 판 위 시뮬만
 		/// <summary>화면 에셋이 없어 못 짓는 판. 켜 두되 아무것도 안 그린다</summary>
@@ -61,38 +59,6 @@ namespace WitchMendokusai.Idle
 
 		/// <summary>미리보기 시뮬 진행 여부. 기본은 첫 틱 뒤 정지 (정적 장면). Dev Panel 이 켠다</summary>
 		public static bool PreviewRunning { get; set; }
-
-		// 짓기가 끝나야 그린다. 짓는 도중 Render 가 돌면 아직 없는 조각(맵 팝업)에서 죽는다 (실측 2026-08-30)
-		private bool built;
-
-		// ── 탭 ────────────────────────────────────────────────────────────
-		// ── 전투 창 ───────────────────────────────────────────────────────
-		private VisualElement battle;
-		private BattleHudController battleHudController;
-		private BattleActionController battleActionController;
-
-		private CardHandController cardHandController;
-
-		// ── 관리 열 ───────────────────────────────────────────────────────
-		/// <summary>UI 뿌리. 폭을 재서 무대 카메라를 맞춘다</summary>
-		private VisualElement root;
-
-		private SidePanelController sidePanelController;
-		private ScreenLayoutController screenLayoutController;
-		private SidePagesController sidePagesController;
-		private ManagementPage openPage = ManagementPage.Doll;
-
-		private SelectionPopupCoordinator selectionPopupCoordinator;
-
-		// 툴팁
-		private Label tooltip;
-		private PointerTooltipController tooltipController;
-
-		// 팝업
-		private AuxiliaryPopupCoordinator auxiliaryPopupCoordinator;
-		private ModalController modalController;
-		private HeroVisualPresenter heroVisualPresenter;
-		private GearVisualPresenter gearVisualPresenter;
 
 		public PresentationKind Kind => PresentationKind.UIOnly;
 
@@ -124,7 +90,7 @@ namespace WitchMendokusai.Idle
 
 			screenRootController = new ScreenRootController(
 				GetComponent<PanelRenderer>(),
-				screenAsset,
+				viewAssets.Screen,
 				OnPanelReloaded);
 			screenRootController.Enable();
 
@@ -154,7 +120,7 @@ namespace WitchMendokusai.Idle
 				Debug.LogWarning("[Idle] 무대가 안 꽂혀 있다. HUD 만 뜬다. 씬 빌더로 다시 지어라.");
 			}
 
-			BuildAll(sessionLifecycle.Away);
+			BuildView(sessionLifecycle.Away);
 			Render(session.Capture());
 		}
 
@@ -204,7 +170,8 @@ namespace WitchMendokusai.Idle
 			screenRootController = null;
 			panelRoot = null;
 			clickSoundHooked = false;
-			modalController?.Dispose();
+			view?.Dispose();
+			view = null;
 			sessionLifecycle?.Close();
 			sessionLifecycle = null;
 		}
@@ -229,10 +196,10 @@ namespace WitchMendokusai.Idle
 				return;
 			}
 
-			if (built == false)
+			if (view == null)
 			{
-				BuildAll(default);
-				if (built == false)
+				BuildView(default);
+				if (view == null)
 				{
 					return;
 				}
@@ -258,7 +225,7 @@ namespace WitchMendokusai.Idle
 				stage.Render(snapshot, delta);
 			}
 
-			auxiliaryPopupCoordinator?.Tick(delta);
+			view?.Tick(delta);
 
 			untilUiRefresh -= delta;
 			if (untilUiRefresh <= 0f)
@@ -282,57 +249,38 @@ namespace WitchMendokusai.Idle
 
 		// ── 짓기 ──────────────────────────────────────────────────────────
 
-		private void BuildAll(IdleAwayReport away)
+		/// <summary>판 위에 화면을 새로 짓는다. 판이 아직 없으면(PanelRenderer OnEnable 전) 다음 Update 에 다시</summary>
+		private void BuildView(IdleAwayReport away)
 		{
-			// PanelRenderer OnEnable 전 호출 방어. 이전 판 완료 상태로 빈 라벨에 닿지 않게
-			built = false;
-			modalController?.Dispose();
-			ResetViewCollections();
+			ManagementPage openPage = view?.OpenedPage ?? ManagementPage.Doll;
+			view?.Dispose();
+			view = null;
 			if (panelRoot == null)
 			{
 				return;
 			}
 
-			this.root = panelRoot;
-			VisualElement root = this.root;
-			modalController = new ModalController(root, runtimeSettingsAsset.ModalRepaintMilliseconds);
 			if (clickSoundHooked == false)
 			{
-				root.RegisterCallback<ClickEvent>(OnButtonClicked);
+				panelRoot.RegisterCallback<ClickEvent>(OnButtonClicked);
 				clickSoundHooked = true;
 			}
 
-			// 창 크기가 바뀌면 무대 폭도 다시 (모바일 회전, PC 창 조절)
-			VisualElement shell = root.Q<VisualElement>("shell");
-			tooltip = root.Q<Label>("tooltip");
-			tooltipController = new PointerTooltipController(tooltip, runtimeSettingsAsset.TooltipTouchMilliseconds);
-			battleActionController = new BattleActionController(
+			BattleScreenView made = new BattleScreenView(
+				panelRoot,
 				session,
 				stage,
 				uiContentAsset,
 				runtimeSettingsAsset,
-				() => cardHandController.CancelAim(),
-				() => auxiliaryPopupCoordinator.CloseMap(),
+				viewAssets,
+				heroVisualPresenter,
+				gearVisualPresenter,
+				openPage,
 				WriteDown,
-				() => Render(session.Capture()),
-				SayOnce);
-
-			BuildBattle(shell);
-			BuildSide(shell);
-			screenLayoutController = new ScreenLayoutController(
-				root, sidePanelController, battleHudController, uiContentAsset);
-			BuildAuxiliaryPopups();
-			BuildSelectionPopups();
-			auxiliaryPopupCoordinator.ShowAway(UsePopup("away-popup-host"), away);
-
-			if (stage != null)
-			{
-				stage.SetFloatingTextRoot(battle);
-			}
-
-			built = true;
-			screenLayoutController.Apply((int)openPage);
-
+				WipeAndRestart,
+				() => sound?.Good());
+			made.Build(away);
+			view = made;
 		}
 
 		private void OnPanelReloaded(VisualElement rootElement)
@@ -348,192 +296,15 @@ namespace WitchMendokusai.Idle
 				return;
 			}
 
-			BuildAll(default);
+			BuildView(default);
 			Render(session.Capture());
-		}
-
-		private void ResetViewCollections()
-		{
-			screenLayoutController?.Dispose();
-			battleHudController = null;
-			battleActionController = null;
-			cardHandController = null;
-			sidePanelController = null;
-			screenLayoutController = null;
-			sidePagesController = null;
-			selectionPopupCoordinator = null;
-			auxiliaryPopupCoordinator = null;
-		}
-
-		private void BuildBattle(VisualElement shell)
-		{
-			battle = shell.Q<VisualElement>("battle");
-
-			// 빈 곳 누르기는 응원 한 대. 무대 그 자체가 큰 버튼
-			battle.RegisterCallback<PointerDownEvent>(battleActionController.OnBattleTapped);
-
-			BindBattleHud();
-			BuildBattleExtras();
-		}
-
-		private void BuildBattleExtras()
-		{
-			Button wipe = battle.Q<Button>("wipe-button");
-			wipe.style.display = Application.isEditor || Debug.isDebugBuild ? DisplayStyle.Flex : DisplayStyle.None;
-			wipe.clicked += WipeAndRestart;
-			cardHandController.BringAimToFront();
-			wipe.BringToFront();
-		}
-
-		private void BindBattleHud()
-		{
-			battleHudController = new BattleHudController(
-				battle,
-				waveDotAsset,
-				uiContentAsset,
-				session.CanGoToStage,
-				() => OpenPage(ManagementPage.Doll),
-				() => auxiliaryPopupCoordinator.ToggleMap(),
-				battleActionController.StepStage,
-				battleActionController.ToggleHold,
-				() => auxiliaryPopupCoordinator.OpenGold(),
-				ToggleSplit,
-				() => auxiliaryPopupCoordinator.OpenSettings(),
-				battleActionController.ToggleAutoCast);
-			cardHandController = new CardHandController(
-				battle,
-				cardAsset,
-				queueChipAsset,
-				uiContentAsset,
-				battleActionController.CanAimCard,
-				battleActionController.Cast,
-				battleActionController.PickFoe,
-				battleActionController.CastVolleyAt);
-		}
-
-		private void BuildSide(VisualElement shell)
-		{
-			sidePanelController = new SidePanelController(
-				shell, uiContentAsset,
-				index => OpenPage((ManagementPage)index));
-			sidePagesController = new SidePagesController(
-				sidePanelController,
-				root,
-				session,
-				uiContentAsset,
-				viewAssets,
-				heroVisualPresenter,
-				gearVisualPresenter,
-				() => selectionPopupCoordinator.HeroId,
-				() => selectionPopupCoordinator.GearSeat,
-				() => selectionPopupCoordinator.SelectingPartySeat,
-				slot => selectionPopupCoordinator.OpenHero(slot),
-				slot => selectionPopupCoordinator.OpenGear(slot),
-				HookTooltip,
-				WriteDown,
-				() => Render(session.Capture()),
-				SayOnce,
-				() => sound?.Good(),
-				runtimeSettingsAsset.NoteSeconds);
-		}
-
-		private VisualElement UsePopup(string hostName)
-		{
-			VisualElement host = root.Q<VisualElement>(hostName);
-			VisualElement popup = host.Q<VisualElement>("popup");
-			popup.style.display = DisplayStyle.None;
-			return popup;
-		}
-
-		private void BuildAuxiliaryPopups()
-		{
-			auxiliaryPopupCoordinator = new AuxiliaryPopupCoordinator(
-				UsePopup("map-popup-host"),
-				UsePopup("gold-popup-host"),
-				UsePopup("settings-popup-host"),
-				rowButtonAsset,
-				modalController,
-				session,
-				uiContentAsset,
-				() => selectionPopupCoordinator.CloseAll(),
-				battleActionController.GoToStage,
-				() => Render(session.Capture()));
-		}
-
-		/// <summary>장비 고르기 팝업. 관리 열 위에 뜬다</summary>
-		private void BuildSelectionPopups()
-		{
-			selectionPopupCoordinator = new SelectionPopupCoordinator(
-				UsePopup("hero-popup-host"),
-				UsePopup("gear-popup-host"),
-				choiceCardAsset,
-				modalController,
-				heroVisualPresenter,
-				gearVisualPresenter,
-				session,
-				uiContentAsset,
-				sidePagesController.ItemPage,
-				auxiliaryPopupCoordinator.CloseGoldAndSettings,
-				WriteDown,
-				() => Render(session.Capture()),
-				SayOnce,
-				runtimeSettingsAsset.NoteSeconds);
 		}
 
 		// ── 그리기 ────────────────────────────────────────────────────────
 
 		public void Render(IdleSnapshot snapshot)
 		{
-			if (built == false)
-			{
-				return;
-			}
-
-			battleHudController.Render(snapshot);
-			auxiliaryPopupCoordinator.Render(snapshot);
-
-			RenderHand(snapshot);
-			RenderTabBadges(snapshot);
-
-			if (screenLayoutController.ContentVisible)
-			{
-				sidePagesController.Render(openPage, snapshot);
-				selectionPopupCoordinator.Render(snapshot);
-			}
-
-		}
-
-		private void RenderHand(IdleSnapshot snapshot)
-		{
-			cardHandController.Render(snapshot);
-		}
-
-		private void RenderTabBadges(IdleSnapshot snapshot)
-		{
-			sidePanelController.RenderBadges(
-				snapshot, (int)openPage, screenLayoutController.ContentVisible);
-		}
-
-		// ── 화면 상태 ─────────────────────────────────────────────────────
-
-		private void OpenPage(ManagementPage page)
-		{
-			openPage = page;
-			selectionPopupCoordinator.ClearHeroSelection();
-
-			// 상점, 연구소는 왼쪽 씬이 바뀐다 (layout.md §2). 지금은 덮개
-			bool altScene = page == ManagementPage.Shop || page == ManagementPage.Lab;
-			battleHudController.SetAlternateScene(altScene,
-				uiContentAsset.ScenePlaceholderText(page == ManagementPage.Shop));
-
-			screenLayoutController.OpenSide((int)openPage);
-			Render(session.Capture());
-		}
-
-		private void ToggleSplit()
-		{
-			screenLayoutController.ToggleSplit((int)openPage);
-			Render(session.Capture());
+			view?.Render(snapshot);
 		}
 
 		/// <summary>
@@ -556,18 +327,7 @@ namespace WitchMendokusai.Idle
 			enabled = true;
 		}
 
-		// ── 툴팁 ───────────────────────────────────────────────────────────
-
-		/// <summary>마우스를 올리면 뜨는 설명. PC 우선 (layout.md §1). 글은 부르는 쪽이 만든다</summary>
-		/// <summary>
-		/// 설명 붙이기. 마우스는 올리면, 손가락은 누르면
-		///
-		/// ★ 모바일에 호버 없음 (2026-09-01). 호버만 걸면 장비 정보 조회 불가
-		/// </summary>
-		private void HookTooltip(VisualElement target, System.Func<string> text)
-		{
-			tooltipController.Bind(target, text);
-		}
+		// ── 소리 ──────────────────────────────────────────────────────────
 
 		private void EnsureSound()
 		{
@@ -584,13 +344,5 @@ namespace WitchMendokusai.Idle
 				sound?.Click();
 			}
 		}
-
-		// ── 잔손 ──────────────────────────────────────────────────────────
-
-		private void SayOnce(string what, float seconds)
-		{
-			auxiliaryPopupCoordinator.ShowNote(what, seconds);
-		}
-
 	}
 }
