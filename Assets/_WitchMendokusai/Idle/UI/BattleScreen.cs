@@ -106,9 +106,7 @@ namespace WitchMendokusai.Idle
 		private int gearSeat;
 
 		/// <summary>그 자리의 인형 번호. 빈 자리면 -1</summary>
-		private int gearHeroId => session != null && gearSeat >= 0 && gearSeat < session.State.Party.Length
-			? session.State.Party[gearSeat]
-			: -1;
+		private int gearHeroId => session != null ? session.HeroAtPartySlot(gearSeat) : -1;
 
 		/// <summary>한 인형의 장비 넷. 매 프레임 새 배열을 안 만들려고 들고 있는다</summary>
 		private readonly IdleItem[] gearOfHero = new IdleItem[IdleGear.SLOT_COUNT];
@@ -539,6 +537,7 @@ namespace WitchMendokusai.Idle
 				battle,
 				waveDotAsset,
 				uiContentAsset,
+				session.CanGoToStage,
 				() => OpenTab(Tab.Doll),
 				ToggleMap,
 				StepStage,
@@ -560,9 +559,15 @@ namespace WitchMendokusai.Idle
 
 		private bool CanAimCard(int handIndex)
 		{
-			return session != null && handIndex >= 0 && handIndex < IdleCards.HAND_SIZE
-				&& IdleCards.HandAt(session.State, handIndex) == IdleCardKind.Volley
-				&& IdleCards.CanCast(session.State, session.Tuning, IdleCardKind.Volley);
+			if (session == null || handIndex < 0)
+			{
+				return false;
+			}
+
+			IdleSnapshot snapshot = session.Capture();
+			return handIndex < snapshot.Cards.Length
+				&& snapshot.Cards[handIndex].Kind == IdleCardKind.Volley
+				&& snapshot.Cards[handIndex].CanCast;
 		}
 
 		private long? PickFoe(Vector2 position)
@@ -958,7 +963,7 @@ namespace WitchMendokusai.Idle
 
 		private void OpenHeroPopup(int slot)
 		{
-			if (slot < 0 || slot >= session.State.Party.Length)
+			if (slot < 0 || slot >= session.Capture().Party.Length)
 			{
 				slot = 0;
 			}
@@ -1004,7 +1009,12 @@ namespace WitchMendokusai.Idle
 
 		private void RenderGear(IdleSnapshot snapshot)
 		{
-			gearSelectionController?.Render(snapshot, session.State, gearHeroId);
+			int heroId = gearHeroId;
+			IdleItem equipped = heroId >= 0 && gearSelectionController != null
+				&& gearSelectionController.SelectedSlot >= 0
+				? session.WornOf(heroId, gearSelectionController.SelectedSlot)
+				: default;
+			gearSelectionController?.Render(snapshot, equipped, heroId);
 		}
 
 		// ── 그리기 ────────────────────────────────────────────────────────
@@ -1016,7 +1026,7 @@ namespace WitchMendokusai.Idle
 				return;
 			}
 
-			battleHudController.Render(snapshot, session.State);
+			battleHudController.Render(snapshot);
 			goldAmount.text = uiContentAsset.GoldAmountText(BigNumberText.Format(snapshot.Resource));
 			goldIncome.text = uiContentAsset.GoldIncomeText(BigNumberText.Format(snapshot.IncomePerSecond));
 
@@ -1118,7 +1128,7 @@ namespace WitchMendokusai.Idle
 			// 장비는 인형별 (2026-08-31). 사진의 Worn 은 전장 전체 요약이라 코어에 직접 조회
 			if (wearer >= 0)
 			{
-				IdleGear.CopyWornOf(session.State, wearer, gearOfHero);
+				session.CopyWornOf(wearer, gearOfHero);
 			}
 			else
 			{
@@ -1343,12 +1353,12 @@ namespace WitchMendokusai.Idle
 			for (int tier = 1; tier <= appraiseButtons.Count; tier++)
 			{
 				long count = snapshot.DroppedByTier[tier - 1];
-				double cost = IdleGear.AppraiseCost(tier, session.Tuning);
-				AppraiseBlock why = IdlePotentials.WhyNot(session.State, session.Tuning, tier);
+				IdleAppraiseView appraisal = session.ViewAppraisal(tier);
 
 				appraiseButtons[tier - 1].text = uiContentAsset.AppraiseRowText(tier,
-					BigNumberText.Format(count), BigNumberText.Format(cost), (why == AppraiseBlock.TierTooLow) == false);
-				appraiseButtons[tier - 1].SetEnabled(why == AppraiseBlock.None);
+					BigNumberText.Format(count), BigNumberText.Format(appraisal.Cost),
+					(appraisal.Block == AppraiseBlock.TierTooLow) == false);
+				appraiseButtons[tier - 1].SetEnabled(appraisal.Block == AppraiseBlock.None);
 			}
 		}
 
@@ -1375,9 +1385,8 @@ namespace WitchMendokusai.Idle
 			for (int id = 0; id < codexLabels.Count; id++)
 			{
 				IdleHeroKind kind = IdleHeroes.KindOf(id);
-				int at = session.State.IndexOfHero(id);
-				bool owned = at >= 0;
-				int stars = owned ? session.State.Heroes[at].Stars : 0;
+				bool owned = TryFindHero(snapshot, id, out IdleHeroView hero);
+				int stars = owned ? hero.Stars : 0;
 
 				codexLabels[id].text = owned
 					? uiContentAsset.CodexHeroText(kind.Name, uiContentAsset.StarsText(stars),
@@ -1462,7 +1471,7 @@ namespace WitchMendokusai.Idle
 				bool here = target == snapshot.Stage;
 				mapButtons[index].text = uiContentAsset.MapStageText(
 					target, here, target == snapshot.BestFarmingStage);
-				mapButtons[index].SetEnabled(here == false && IdleModel.CanGoToStage(session.State, target));
+				mapButtons[index].SetEnabled(here == false && session.CanGoToStage(target));
 				mapButtons[index].EnableInClassList("idle-row-button--strong", here);
 			}
 		}
@@ -1668,7 +1677,13 @@ namespace WitchMendokusai.Idle
 
 		private void Cast(int handIndex)
 		{
-			IdleCardKind selected = IdleCards.HandAt(session.State, handIndex);
+			IdleSnapshot beforeCast = session.Capture();
+			if (handIndex < 0 || handIndex >= beforeCast.Cards.Length)
+			{
+				return;
+			}
+
+			IdleCardKind selected = beforeCast.Cards[handIndex].Kind;
 			if (selected == IdleCardKind.Volley)
 			{
 				cardHandController.CancelAim();
@@ -1691,9 +1706,9 @@ namespace WitchMendokusai.Idle
 					break;
 
 				case IdleCardKind.Supply:
-					if (stage != null) { stage.OnSupply((float)session.Tuning.SupplySeconds); }
+					if (stage != null) { stage.OnSupply((float)result.EffectSeconds); }
 					SayOnce(uiContentAsset.SupplyFeedbackText(
-						session.Tuning.SupplySeconds, session.Tuning.SupplyMultiplier), runtimeSettingsAsset.NoteSeconds);
+						result.EffectSeconds, result.EffectMultiplier), runtimeSettingsAsset.NoteSeconds);
 					break;
 
 				default:
@@ -1750,7 +1765,7 @@ namespace WitchMendokusai.Idle
 			}
 
 			IdleUpgradeView before = session.ViewHeroStat(gearHeroId, kind, amount);
-			double resourceBefore = session.State.Resource;
+			double resourceBefore = session.Capture().Resource;
 			bool raised = session.Send(new IdleRaiseUpgradeIntent(gearHeroId, kind, amount));
 			if (raised)
 			{
@@ -1762,7 +1777,7 @@ namespace WitchMendokusai.Idle
 			{
 				IdleUpgradeView after = session.ViewHeroStat(gearHeroId, kind, 1);
 				ShowStatRaised(kind, amount, before.CurrentValue, after.CurrentValue,
-					resourceBefore - session.State.Resource);
+					resourceBefore - session.Capture().Resource);
 			}
 		}
 
@@ -1935,6 +1950,21 @@ namespace WitchMendokusai.Idle
 			return -1;
 		}
 
+		private static bool TryFindHero(IdleSnapshot snapshot, int heroId, out IdleHeroView hero)
+		{
+			for (int index = 0; index < snapshot.Heroes.Length; index++)
+			{
+				if (snapshot.Heroes[index].Id == heroId)
+				{
+					hero = snapshot.Heroes[index];
+					return true;
+				}
+			}
+
+			hero = default;
+			return false;
+		}
+
 		private void Prestige()
 		{
 			if (session.Send(new IdlePrestigeIntent()))
@@ -2006,24 +2036,23 @@ namespace WitchMendokusai.Idle
 			}
 
 			IdleItem one = now.Bag[index];
-			IdleItem wearing = now.Worn[(int)one.Slot];
+			IdleItem wearing = gearHeroId >= 0 ? session.WornOf(gearHeroId, (int)one.Slot) : default;
 			string worn = wearing.IsEmpty
 				? uiContentAsset.NoWornGearText
-				: uiContentAsset.WornGearSummaryText(wearing.Tier, IdleGear.MultiplierOfItem(wearing, session.Tuning));
+				: uiContentAsset.WornGearSummaryText(wearing.Tier, session.GearMultiplierOf(wearing));
 			return uiContentAsset.BagTipText(
 				uiContentAsset.GearSlotName((int)one.Slot), one.Tier,
-				IdleGear.MultiplierOfItem(one, session.Tuning),
+				session.GearMultiplierOf(one),
 				worn);
 		}
 
 		private string WornTip(int slot)
 		{
-			IdleSnapshot now = session.Capture();
-			IdleItem one = now.Worn[slot];
+			IdleItem one = gearHeroId >= 0 ? session.WornOf(gearHeroId, slot) : default;
 			return one.IsEmpty
 				? uiContentAsset.WornEmptyTipText(uiContentAsset.GearSlotName(slot))
 				: uiContentAsset.WornTipText(uiContentAsset.GearSlotName(slot), one.Tier,
-					IdleGear.MultiplierOfItem(one, session.Tuning));
+					session.GearMultiplierOf(one));
 		}
 
 		// ── 잔손 ──────────────────────────────────────────────────────────

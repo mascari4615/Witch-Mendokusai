@@ -33,8 +33,46 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// <summary>저장·불러오기용 — 호스트가 직렬화할 때만 만진다.</summary>
         public IdleState State => state;
 
-        /// <summary>화면이 값(감정·합치기 비용)을 물어볼 수 있게.</summary>
+        /// <summary>테스트와 호스트 구성에서 현재 튜닝을 확인할 때.</summary>
         public IdleTuning Tuning => tuning;
+
+        /// <summary>편성 칸의 인형. 범위 밖이거나 빈 칸이면 -1.</summary>
+        public int HeroAtPartySlot(int slot)
+        {
+            return slot >= 0 && slot < state.Party.Length ? state.Party[slot] : -1;
+        }
+
+        /// <summary>현재 판에서 해당 구역으로 옮길 수 있나.</summary>
+        public bool CanGoToStage(int stage)
+        {
+            return IdleModel.CanGoToStage(state, stage);
+        }
+
+        /// <summary>한 인형이 해당 부위에 낀 장비.</summary>
+        public IdleItem WornOf(int heroId, int slot)
+        {
+            return IdleGear.WornOf(state, heroId, slot);
+        }
+
+        /// <summary>한 인형이 낀 장비를 호출자가 준 배열에 복사.</summary>
+        public void CopyWornOf(int heroId, IdleItem[] destination)
+        {
+            IdleGear.CopyWornOf(state, heroId, destination);
+        }
+
+        /// <summary>장비 하나의 최종 효과 배수.</summary>
+        public double GearMultiplierOf(IdleItem item)
+        {
+            return IdleGear.MultiplierOfItem(item, tuning);
+        }
+
+        /// <summary>감정 버튼 한 줄에 필요한 값과 차단 사유.</summary>
+        public IdleAppraiseView ViewAppraisal(int tier)
+        {
+            return new IdleAppraiseView(
+                IdleGear.AppraiseCost(tier, tuning),
+                IdlePotentials.WhyNot(state, tuning, tier));
+        }
 
         /// <summary>시간을 흘린다 — <b>위험 없이</b>. 자리 비운 몫·시뮬이 쓰는 길이다.</summary>
         public void Advance(double seconds)

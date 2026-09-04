@@ -41,12 +41,22 @@ namespace WitchMendokusai.DomainSDK.Idle
 		public PotentialRoll Roll { get; }
 
 		public bool HasRoll { get; }
+		public double EffectSeconds { get; }
+		public double EffectMultiplier { get; }
 
 		public IdleCardResult(IdleCardKind kind, PotentialRoll roll, bool hasRoll)
+			: this(kind, roll, hasRoll, 0d, 1d)
+		{
+		}
+
+		public IdleCardResult(IdleCardKind kind, PotentialRoll roll, bool hasRoll,
+			double effectSeconds, double effectMultiplier)
 		{
 			Kind = kind;
 			Roll = roll;
 			HasRoll = hasRoll;
+			EffectSeconds = effectSeconds;
+			EffectMultiplier = effectMultiplier;
 		}
 	}
 
@@ -293,7 +303,8 @@ namespace WitchMendokusai.DomainSDK.Idle
 
 				case IdleCardKind.Supply:
 					state.SupplySecondsLeft = tuning.SupplySeconds;
-					result = new IdleCardResult(kind, default, false);
+					result = new IdleCardResult(kind, default, false,
+						tuning.SupplySeconds, tuning.SupplyMultiplier);
 					return true;
 
 				default:

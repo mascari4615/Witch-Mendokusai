@@ -294,6 +294,7 @@ namespace WitchMendokusai.Tests
 			IdleTuning tuning = new IdleTuning();
 			IdleState state = new IdleState();
 			state.EnsureTierRoom(6);
+			IdleSession session = new IdleSession(tuning, state);
 
 			Assert.AreEqual(AppraiseBlock.TierTooLow, IdlePotentials.WhyNot(state, tuning, 1),
 				"1등급엔 잠재가 안 붙는데 다른 이유를 댄다");
@@ -307,6 +308,9 @@ namespace WitchMendokusai.Tests
 
 			state.Resource = 1e12d;
 			Assert.AreEqual(AppraiseBlock.None, IdlePotentials.WhyNot(state, tuning, 3));
+			IdleAppraiseView view = session.ViewAppraisal(3);
+			Assert.AreEqual(AppraiseBlock.None, view.Block);
+			Assert.AreEqual(IdleGear.AppraiseCost(3, tuning), view.Cost, 1e-12d);
 		}
 
 		/// <summary>★ <b>막힌 이유가 있으면</b> 감정도 안 된다 — 둘이 같은 답을 쓴다.</summary>

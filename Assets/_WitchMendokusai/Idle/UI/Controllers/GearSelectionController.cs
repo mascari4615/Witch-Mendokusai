@@ -56,7 +56,7 @@ namespace WitchMendokusai.Idle.UI
 			modalController.Hide(popup);
 		}
 
-		public void Render(IdleSnapshot snapshot, IdleState state, int wearer)
+		public void Render(IdleSnapshot snapshot, IdleItem equipped, int wearer)
 		{
 			if (SelectedSlot < 0)
 			{
@@ -67,7 +67,6 @@ namespace WitchMendokusai.Idle.UI
 				? IdleHeroes.KindOf(wearer).Name + " " + content.GearSlotName(SelectedSlot)
 				: content.GearSlotName(SelectedSlot);
 
-			IdleItem equipped = wearer >= 0 ? IdleGear.WornOf(state, wearer, SelectedSlot) : default;
 			worn.text = content.EquippedGearText(equipped);
 
 			EnsureRows(content.GearPopupSlotCount);

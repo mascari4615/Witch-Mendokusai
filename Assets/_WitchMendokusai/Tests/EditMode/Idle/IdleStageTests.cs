@@ -160,6 +160,7 @@ namespace WitchMendokusai.Tests
 			IdleState state = new IdleState();
 			state.Stage = 10;
 			state.BestStage = 30;
+			IdleSession session = new IdleSession(new IdleTuning(), state);
 
 			int[] tries = { -5, 0, 1, 9, 10, 11, 30, 31, 999 };
 
@@ -173,6 +174,7 @@ namespace WitchMendokusai.Tests
 				bool did = IdleModel.TryGoToStage(copy, stage);
 
 				Assert.AreEqual(said, did, stage + "단계 — 「갈 수 있다」와 실제가 다르다");
+				Assert.AreEqual(said, session.CanGoToStage(stage), stage + "단계 화면 답이 코어와 다르다");
 			}
 		}
 

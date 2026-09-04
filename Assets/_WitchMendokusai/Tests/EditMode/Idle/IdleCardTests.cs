@@ -90,7 +90,9 @@ namespace WitchMendokusai.Tests
 			IdleState boosted = new IdleState();
 			boosted.Cost = tuning.SupplyCost;
 
-			Assert.IsTrue(IdleCards.TryCast(boosted, tuning, IdleCardKind.Supply, out IdleCardResult _));
+			Assert.IsTrue(IdleCards.TryCast(boosted, tuning, IdleCardKind.Supply, out IdleCardResult result));
+			Assert.AreEqual(tuning.SupplySeconds, result.EffectSeconds, 1e-12d);
+			Assert.AreEqual(tuning.SupplyMultiplier, result.EffectMultiplier, 1e-12d);
 
 			// 보급 시간 안쪽만 밟는다 — 이 구간에서는 정확히 배수여야 한다.
 			double seconds = tuning.SupplySeconds * 0.5d;
