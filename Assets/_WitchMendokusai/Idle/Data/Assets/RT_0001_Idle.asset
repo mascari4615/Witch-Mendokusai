@@ -18,6 +18,11 @@ MonoBehaviour:
   soundVolume: 0.32
   soundMinGapSeconds: 0.06
   tooltipTouchSeconds: 1.8
+  tooltipMouseGap: 18
+  tooltipTouchGap: 72
+  tooltipEdgeMargin: 12
+  tooltipRootFallbackSize: {x: 1920, y: 1080}
+  tooltipTipFallbackSize: {x: 300, y: 120}
   modalRepaintMilliseconds: 16
   previewStage: 4
   previewResource: 500

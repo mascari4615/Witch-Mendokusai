@@ -75,7 +75,7 @@ namespace WitchMendokusai.Idle.UI
 		{
 			modalController = new ModalController(root, settings.ModalRepaintMilliseconds);
 			tooltipController = new PointerTooltipController(
-				root.Q<Label>("tooltip"), settings.TooltipTouchMilliseconds);
+				root.Q<Label>("tooltip"), settings.CreateTooltipLayout());
 			battleActionController = new BattleActionController(
 				session,
 				stage,

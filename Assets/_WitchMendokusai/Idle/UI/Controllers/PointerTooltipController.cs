@@ -7,15 +7,27 @@ namespace WitchMendokusai.Idle.UI
 {
 	public sealed class PointerTooltipController
 	{
+		/// <summary>툴팁 배치 (px). 마우스는 옆에 바짝, 손가락은 위로 멀리 (손가락에 안 가리게)</summary>
+		public sealed class Layout
+		{
+			public long TouchDisplayMilliseconds { get; set; }
+			public float MouseGap { get; set; }
+			public float TouchGap { get; set; }
+			public float EdgeMargin { get; set; }
+			/// <summary>아직 안 잰 판과 툴팁의 대체 크기. 첫 표시 프레임에만 쓰임</summary>
+			public Vector2 RootFallbackSize { get; set; }
+			public Vector2 TipFallbackSize { get; set; }
+		}
+
 		private readonly Label tooltip;
-		private readonly long touchDisplayMilliseconds;
+		private readonly Layout layout;
 		private int version;
 		private int touchPointer = -1;
 
-		public PointerTooltipController(Label tooltip, long touchDisplayMilliseconds)
+		public PointerTooltipController(Label tooltip, Layout layout)
 		{
 			this.tooltip = tooltip;
-			this.touchDisplayMilliseconds = touchDisplayMilliseconds;
+			this.layout = layout;
 		}
 
 		public void Bind(VisualElement target, Func<string> text)
@@ -37,7 +49,7 @@ namespace WitchMendokusai.Idle.UI
 					{
 						Hide();
 					}
-				}).StartingIn(touchDisplayMilliseconds);
+				}).StartingIn(layout.TouchDisplayMilliseconds);
 			});
 
 			target.RegisterCallback<PointerEnterEvent>(moment =>
@@ -90,27 +102,29 @@ namespace WitchMendokusai.Idle.UI
 		{
 			VisualElement owner = tooltip.parent;
 			Vector2 local = owner != null ? owner.WorldToLocal(at) : at;
-			float rootWidth = owner != null ? owner.resolvedStyle.width : 1920f;
-			float rootHeight = owner != null ? owner.resolvedStyle.height : 1080f;
-			float tipWidth = tooltip.resolvedStyle.width > 0f ? tooltip.resolvedStyle.width : 300f;
-			float tipHeight = tooltip.resolvedStyle.height > 0f ? tooltip.resolvedStyle.height : 120f;
-			float x = touch ? local.x - tipWidth * 0.5f : local.x + 18f;
-			float y = touch && local.y >= tipHeight + 84f
-				? local.y - tipHeight - 72f
-				: local.y + (touch ? 72f : 18f);
+			float rootWidth = owner != null ? owner.resolvedStyle.width : layout.RootFallbackSize.x;
+			float rootHeight = owner != null ? owner.resolvedStyle.height : layout.RootFallbackSize.y;
+			float tipWidth = tooltip.resolvedStyle.width > 0f ? tooltip.resolvedStyle.width : layout.TipFallbackSize.x;
+			float tipHeight = tooltip.resolvedStyle.height > 0f ? tooltip.resolvedStyle.height : layout.TipFallbackSize.y;
+			float gap = touch ? layout.TouchGap : layout.MouseGap;
+			float edge = layout.EdgeMargin;
+			float x = touch ? local.x - tipWidth * 0.5f : local.x + gap;
+			float y = touch && local.y >= tipHeight + gap + edge
+				? local.y - tipHeight - gap
+				: local.y + gap;
 
 			if (touch == false && x + tipWidth > rootWidth)
 			{
-				x = local.x - tipWidth - 18f;
+				x = local.x - tipWidth - gap;
 			}
 
 			if (touch == false && y + tipHeight > rootHeight)
 			{
-				y = local.y - tipHeight - 18f;
+				y = local.y - tipHeight - gap;
 			}
 
-			tooltip.style.left = Mathf.Clamp(x, 12f, Mathf.Max(12f, rootWidth - tipWidth - 12f));
-			tooltip.style.top = Mathf.Clamp(y, 12f, Mathf.Max(12f, rootHeight - tipHeight - 12f));
+			tooltip.style.left = Mathf.Clamp(x, edge, Mathf.Max(edge, rootWidth - tipWidth - edge));
+			tooltip.style.top = Mathf.Clamp(y, edge, Mathf.Max(edge, rootHeight - tipHeight - edge));
 		}
 	}
 }

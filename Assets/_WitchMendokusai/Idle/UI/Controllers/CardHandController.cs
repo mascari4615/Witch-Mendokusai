@@ -183,16 +183,17 @@ namespace WitchMendokusai.Idle.UI
 			Vector2 origin = battle.WorldToLocal(dragOrigin);
 			Vector2 target = battle.WorldToLocal(panelPosition);
 			Vector2 delta = target - origin;
-			aimOrigin.style.left = origin.x - 24f;
-			aimOrigin.style.top = origin.y - 24f;
-			aimRange.style.left = target.x - 92f;
-			aimRange.style.top = target.y - 92f;
+			// 중심 맞춤과 설명 띄우기는 USS (translate, margin). 코드는 점 찍기만
+			aimOrigin.style.left = origin.x;
+			aimOrigin.style.top = origin.y;
+			aimRange.style.left = target.x;
+			aimRange.style.top = target.y;
 			aimLine.style.left = Mathf.Min(origin.x, target.x);
 			aimLine.style.top = Mathf.Min(origin.y, target.y);
-			aimLine.style.width = Mathf.Max(6f, Mathf.Abs(delta.x));
-			aimLine.style.height = Mathf.Max(6f, Mathf.Abs(delta.y));
-			aimCaption.style.left = target.x - 100f;
-			aimCaption.style.top = target.y - 132f;
+			aimLine.style.width = Mathf.Abs(delta.x);
+			aimLine.style.height = Mathf.Abs(delta.y);
+			aimCaption.style.left = target.x;
+			aimCaption.style.top = target.y;
 		}
 
 		private static void SetIconClass(VisualElement element, IdleCardKind kind)

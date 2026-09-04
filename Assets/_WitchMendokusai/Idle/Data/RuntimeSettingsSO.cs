@@ -1,5 +1,6 @@
 using UnityEngine;
 using WitchMendokusai.DomainSDK.Idle;
+using WitchMendokusai.Idle.UI;
 
 namespace WitchMendokusai.Idle
 {
@@ -12,6 +13,11 @@ namespace WitchMendokusai.Idle
 		[SerializeField, Range(0f, 1f)] private float soundVolume = 0.32f;
 		[SerializeField, Min(0f)] private float soundMinGapSeconds = 0.06f;
 		[SerializeField, Min(0.1f)] private float tooltipTouchSeconds = 1.8f;
+		[SerializeField, Min(0f)] private float tooltipMouseGap = 18f;
+		[SerializeField, Min(0f)] private float tooltipTouchGap = 72f;
+		[SerializeField, Min(0f)] private float tooltipEdgeMargin = 12f;
+		[SerializeField] private Vector2 tooltipRootFallbackSize = new Vector2(1920f, 1080f);
+		[SerializeField] private Vector2 tooltipTipFallbackSize = new Vector2(300f, 120f);
 		[SerializeField, Min(1)] private int modalRepaintMilliseconds = 16;
 		[SerializeField, Min(1)] private int previewStage = 4;
 		[SerializeField, Min(0f)] private double previewResource = 500d;
@@ -22,8 +28,20 @@ namespace WitchMendokusai.Idle
 		public float UIRefreshSeconds => uiRefreshSeconds;
 		public float SoundVolume => soundVolume;
 		public float SoundMinGapSeconds => soundMinGapSeconds;
-		public long TooltipTouchMilliseconds => (long)(tooltipTouchSeconds * 1000f);
 		public long ModalRepaintMilliseconds => modalRepaintMilliseconds;
+
+		public PointerTooltipController.Layout CreateTooltipLayout()
+		{
+			return new PointerTooltipController.Layout
+			{
+				TouchDisplayMilliseconds = (long)(tooltipTouchSeconds * 1000f),
+				MouseGap = tooltipMouseGap,
+				TouchGap = tooltipTouchGap,
+				EdgeMargin = tooltipEdgeMargin,
+				RootFallbackSize = tooltipRootFallbackSize,
+				TipFallbackSize = tooltipTipFallbackSize,
+			};
+		}
 
 		public IdleState CreatePreviewState(IdleTuning tuning)
 		{
@@ -51,7 +69,10 @@ namespace WitchMendokusai.Idle
 		{
 			if (saveIntervalSeconds <= 0f || noteSeconds <= 0f || uiRefreshSeconds < 0.05f
 				|| soundVolume < 0f || soundVolume > 1f || soundMinGapSeconds < 0f
-				|| tooltipTouchSeconds <= 0f || modalRepaintMilliseconds <= 0 || previewStage <= 0
+				|| tooltipTouchSeconds <= 0f || tooltipMouseGap < 0f || tooltipTouchGap < 0f
+				|| tooltipEdgeMargin < 0f || tooltipRootFallbackSize.x <= 0f || tooltipRootFallbackSize.y <= 0f
+				|| tooltipTipFallbackSize.x <= 0f || tooltipTipFallbackSize.y <= 0f
+				|| modalRepaintMilliseconds <= 0 || previewStage <= 0
 				|| previewResource < 0d || previewPartyHeroIds == null || previewPartyHeroIds.Length == 0)
 			{
 				error = "runtime timings and sound values must be in range";

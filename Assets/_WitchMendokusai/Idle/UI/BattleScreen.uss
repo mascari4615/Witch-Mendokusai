@@ -412,6 +412,7 @@
 
 .idle-skill-aim-origin {
 	position: absolute;
+	translate: -50% -50%;
 	width: 48px;
 	height: 48px;
 	border-width: 3px;
@@ -422,6 +423,8 @@
 
 .idle-skill-aim-line {
 	position: absolute;
+	min-width: 6px;
+	min-height: 6px;
 	border-left-width: 3px;
 	border-bottom-width: 3px;
 	border-left-color: rgba(128, 228, 255, 0.84);
@@ -431,6 +434,7 @@
 
 .idle-skill-aim-range {
 	position: absolute;
+	translate: -50% -50%;
 	width: 184px;
 	height: 184px;
 	border-width: 5px;
@@ -441,6 +445,8 @@
 
 .idle-skill-aim-caption {
 	position: absolute;
+	translate: -50% -100%;
+	margin-top: -94px;
 	width: 200px;
 	font-size: 22px;
 	-unity-font-style: bold;
