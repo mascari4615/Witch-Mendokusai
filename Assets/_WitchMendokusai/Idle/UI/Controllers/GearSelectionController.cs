@@ -68,9 +68,7 @@ namespace WitchMendokusai.Idle.UI
 				: content.GearSlotName(SelectedSlot);
 
 			IdleItem equipped = wearer >= 0 ? IdleGear.WornOf(state, wearer, SelectedSlot) : default;
-			worn.text = equipped.IsEmpty
-				? "지금 낀 것 없음"
-				: equipped.IsRaw ? "지금 낀 장비, 미감정" : "지금 낀 장비, 감정됨";
+			worn.text = content.EquippedGearText(equipped);
 
 			EnsureRows(content.GearPopupSlotCount);
 			int shown = 0;
@@ -88,7 +86,7 @@ namespace WitchMendokusai.Idle.UI
 				row.EnableInClassList("idle-choice-card--empty", false);
 				visualPresenter.SetTierOutline(row, item.Tier);
 				row.text = string.Empty;
-				labels[shown].text = item.IsRaw ? "미감정" : string.Format("잠재 {0:P0}", item.PotentialValue);
+				labels[shown].text = content.GearPotentialText(item.IsRaw, item.PotentialValue);
 				icons[shown].style.display = DisplayStyle.Flex;
 				visualPresenter.SetSprite(icons[shown], SelectedSlot, item.Tier);
 				row.style.display = DisplayStyle.Flex;

@@ -32,7 +32,7 @@
                 </ui:VisualElement>
             </ui:VisualElement>
             <ui:Label name="forge-title" class="idle-row-title" />
-            <ui:Button name="forge-button" class="idle-row-button idle-row-button--strong idle-row-button--tall" />
+            <ui:Button name="forge-button" text="합치기" class="idle-row-button idle-row-button--strong idle-row-button--tall" />
         </ui:VisualElement>
         <ui:Label name="appraise-cap" text="감정" class="idle-cap" />
         <ui:VisualElement name="appraise-rows" />

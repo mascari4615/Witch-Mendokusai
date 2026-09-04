@@ -34,6 +34,31 @@ namespace WitchMendokusai.Idle
 		[SerializeField] private string tapAdvice;
 		[SerializeField] private string waitAdviceFormat;
 		[SerializeField] private string waitForCostAdvice;
+		[SerializeField] private string battleGradeFormat;
+		[SerializeField] private string stageFormat;
+		[SerializeField] private string repeatOnText;
+		[SerializeField] private string repeatOffText;
+		[SerializeField] private string goldAmountFormat;
+		[SerializeField] private string goldIncomeFormat;
+		[SerializeField] private string mainSeatText;
+		[SerializeField] private string supportSeatText;
+		[SerializeField] private string growthSuffix;
+		[SerializeField] private string emptySeatText;
+		[SerializeField] private string maxedText;
+		[SerializeField] private string bagSummaryFormat;
+		[SerializeField] private string bagFullSuffix;
+		[SerializeField] private string unidentifiedText;
+		[SerializeField] private string bulkMergeFormat;
+		[SerializeField] private string forgeKindFormat;
+		[SerializeField] private string forgeCellFormat;
+		[SerializeField] private string forgeResultFormat;
+		[SerializeField] private string forgeSelectionFormat;
+		[SerializeField] private string forgeEmptyHintFormat;
+		[SerializeField] private string noEquippedGearText;
+		[SerializeField] private string rawEquippedGearText;
+		[SerializeField] private string appraisedEquippedGearText;
+		[SerializeField] private string potentialFormat;
+		[SerializeField] private string gearPotentialFormat;
 		[SerializeField] private int[] statUpgradeAmounts = Array.Empty<int>();
 		[SerializeField, Min(1)] private int gearPopupSlotCount = 24;
 		[SerializeField, Range(0.1f, 0.9f)] private float battleWidthShare = 0.625f;
@@ -56,6 +81,33 @@ namespace WitchMendokusai.Idle
 		public string DungeonName(IdleDungeonKind kind) => dungeonNames[(int)kind];
 		public int StatUpgradeAmount(int index) => statUpgradeAmounts[index];
 		public int IndexOfStatUpgradeAmount(int amount) => Array.IndexOf(statUpgradeAmounts, amount);
+		public string BattleGradeText(int tier, int ceiling) => string.Format(battleGradeFormat, tier, ceiling);
+		public string StageText(int stage) => string.Format(stageFormat, stage);
+		public string RepeatText(bool enabled) => enabled ? repeatOnText : repeatOffText;
+		public string GoldAmountText(string amount) => string.Format(goldAmountFormat, amount);
+		public string GoldIncomeText(string income) => string.Format(goldIncomeFormat, income);
+		public string SeatText(bool main) => main ? mainSeatText : supportSeatText;
+		public string GrowthTitle(string heroName) => heroName + growthSuffix;
+		public string EmptySeatText => emptySeatText;
+		public string MaxedText => maxedText;
+		public string BagSummaryText(int count, int capacity, bool full) =>
+			string.Format(bagSummaryFormat, count, capacity, full ? bagFullSuffix : string.Empty);
+		public string ItemPotentialText(bool raw, double potential) => raw
+			? unidentifiedText
+			: string.Format(potentialFormat, potential);
+		public string GearPotentialText(bool raw, double potential) => raw
+			? unidentifiedText
+			: string.Format(gearPotentialFormat, potential);
+		public string BulkMergeText(int count) => string.Format(bulkMergeFormat, count);
+		public string ForgeKindText(int tier, int count) => string.Format(forgeKindFormat, tier, count);
+		public string ForgeCellText(int tier) => string.Format(forgeCellFormat, tier);
+		public string ForgeResultText(int tier) => string.Format(forgeResultFormat, tier);
+		public string ForgeSelectionText(int tier, int count, int needed) =>
+			string.Format(forgeSelectionFormat, tier, count, needed);
+		public string ForgeEmptyHintText(int needed) => string.Format(forgeEmptyHintFormat, needed);
+		public string EquippedGearText(IdleItem item) => item.IsEmpty
+			? noEquippedGearText
+			: item.IsRaw ? rawEquippedGearText : appraisedEquippedGearText;
 
 		public string AdviceText(IdleStep step, double amount, string span)
 		{
@@ -131,6 +183,22 @@ namespace WitchMendokusai.Idle
 			if (dungeonNames.Length != Enum.GetValues(typeof(IdleDungeonKind)).Length)
 			{
 				error = "dungeonNames does not match IdleDungeonKind";
+				return false;
+			}
+
+			string[] requiredText =
+			{
+				prestigeAdviceFormat, buyProducerAdvice, raiseAdvice, mergeAdvice, wearAdvice, pullAdvice,
+				seatAdvice, bagFullAdvice, tapAdvice, waitAdviceFormat, waitForCostAdvice, battleGradeFormat,
+				stageFormat, repeatOnText, repeatOffText, goldAmountFormat, goldIncomeFormat, mainSeatText,
+				supportSeatText, growthSuffix, emptySeatText, maxedText, bagSummaryFormat, bagFullSuffix,
+				unidentifiedText, bulkMergeFormat, forgeKindFormat, forgeCellFormat, forgeResultFormat,
+				forgeSelectionFormat, forgeEmptyHintFormat, noEquippedGearText, rawEquippedGearText,
+				appraisedEquippedGearText, potentialFormat, gearPotentialFormat,
+			};
+			if (Array.Exists(requiredText, string.IsNullOrEmpty))
+			{
+				error = "UI text entries must not be empty";
 				return false;
 			}
 

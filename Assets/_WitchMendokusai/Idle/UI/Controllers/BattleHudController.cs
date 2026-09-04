@@ -10,6 +10,7 @@ namespace WitchMendokusai.Idle.UI
 	{
 		private readonly VisualElement battle;
 		private readonly VisualTreeAsset waveDotAsset;
+		private readonly UIContentSO content;
 		private readonly VisualElement sceneCover;
 		private readonly Label sceneCoverLabel;
 		private readonly Label opCode;
@@ -33,6 +34,7 @@ namespace WitchMendokusai.Idle.UI
 		public BattleHudController(
 			VisualElement battle,
 			VisualTreeAsset waveDotAsset,
+			UIContentSO content,
 			Action openDoll,
 			Action toggleMap,
 			Action<int> stepStage,
@@ -44,6 +46,7 @@ namespace WitchMendokusai.Idle.UI
 		{
 			this.battle = battle;
 			this.waveDotAsset = waveDotAsset;
+			this.content = content;
 			sceneCover = battle.Q<VisualElement>("scene-cover");
 			sceneCoverLabel = battle.Q<Label>("scene-cover-label");
 			opCode = battle.Q<Label>("op-code");
@@ -80,14 +83,14 @@ namespace WitchMendokusai.Idle.UI
 		public void Render(IdleSnapshot snapshot, IdleState state)
 		{
 			opCode.text = "S-" + snapshot.Stage;
-			opName.text = string.Format("등급 {0}/{1}", snapshot.MaxTierNow, snapshot.TierCeiling);
-			stepLabel.text = string.Format("{0}구역", snapshot.Stage);
+			opName.text = content.BattleGradeText(snapshot.MaxTierNow, snapshot.TierCeiling);
+			stepLabel.text = content.StageText(snapshot.Stage);
 			stepBack.SetEnabled(IdleModel.CanGoToStage(state, snapshot.Stage - 1));
 			stepForward.SetEnabled(snapshot.Stage < snapshot.BestStage
 				&& IdleModel.CanGoToStage(state, snapshot.Stage + 1));
 
 			bool repeating = snapshot.HoldingStage || snapshot.Repeating;
-			repeatButton.text = repeating ? "반복 ●" : "반복 ○";
+			repeatButton.text = content.RepeatText(repeating);
 			repeatButton.EnableInClassList("idle-toggle--on", repeating);
 			goldValue.text = BigNumberText.Format(snapshot.Resource);
 			autoCastButton.EnableInClassList("idle-icon-button--on", snapshot.AutoCast);

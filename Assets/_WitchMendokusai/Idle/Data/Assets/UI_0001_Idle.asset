@@ -88,3 +88,28 @@ MonoBehaviour:
   tapAdvice: 무대를 눌러 응원한다
   waitAdviceFormat: 모으는 중. {0} 뒤에 살 것이 생긴다
   waitForCostAdvice: 모으는 중. 코스트가 차면 카드를 낸다
+  battleGradeFormat: 등급 {0}/{1}
+  stageFormat: '{0}구역'
+  repeatOnText: 반복 ●
+  repeatOffText: 반복 ○
+  goldAmountFormat: 보유  {0}
+  goldIncomeFormat: 초당  +{0}
+  mainSeatText: 전투
+  supportSeatText: 지원
+  growthSuffix: ' 성장'
+  emptySeatText: 빈 자리
+  maxedText: 최대
+  bagSummaryFormat: 가방 {0}/{1}{2}
+  bagFullSuffix: '  꽉 찼다. 합치거나 차야 새 장비가 들어온다'
+  unidentifiedText: 미감정
+  bulkMergeFormat: '{0}개씩 전부 합치기'
+  forgeKindFormat: '{0}단계 ×{1}'
+  forgeCellFormat: '{0}단계'
+  forgeResultFormat: "랜덤\n{0}단계"
+  forgeSelectionFormat: '{0}단계  {1}/{2}'
+  forgeEmptyHintFormat: 같은 단계 {0}개가 랜덤 장비 한 단계 위로
+  noEquippedGearText: 지금 낀 것 없음
+  rawEquippedGearText: 지금 낀 장비, 미감정
+  appraisedEquippedGearText: 지금 낀 장비, 감정됨
+  potentialFormat: '{0:P0}'
+  gearPotentialFormat: '잠재 {0:P0}'

@@ -538,6 +538,7 @@ namespace WitchMendokusai.Idle
 			battleHudController = new BattleHudController(
 				battle,
 				waveDotAsset,
+				uiContentAsset,
 				() => OpenTab(Tab.Doll),
 				ToggleMap,
 				StepStage,
@@ -1017,8 +1018,8 @@ namespace WitchMendokusai.Idle
 			}
 
 			battleHudController.Render(snapshot, session.State);
-			goldAmount.text = "보유  " + BigNumberText.Format(snapshot.Resource);
-			goldIncome.text = "초당  +" + BigNumberText.Format(snapshot.IncomePerSecond);
+			goldAmount.text = uiContentAsset.GoldAmountText(BigNumberText.Format(snapshot.Resource));
+			goldIncome.text = uiContentAsset.GoldIncomeText(BigNumberText.Format(snapshot.IncomePerSecond));
 
 			logLabel.text = NextStep(snapshot);
 
@@ -1074,7 +1075,7 @@ namespace WitchMendokusai.Idle
 			for (int slot = 0; slot < partyButtons.Count; slot++)
 			{
 				int id = slot < snapshot.Party.Length ? snapshot.Party[slot] : -1;
-				string tag = IdleHeroes.IsMainSlot(slot) ? "전투" : "지원";
+				string tag = uiContentAsset.SeatText(IdleHeroes.IsMainSlot(slot));
 				Button seat = partyButtons[slot];
 				seat.text = string.Empty;
 				VisualElement portrait = seat.Q<VisualElement>("seat-icon-" + slot);
@@ -1088,7 +1089,9 @@ namespace WitchMendokusai.Idle
 			}
 
 			int wearer = gearHeroId;
-			dollName.text = wearer >= 0 ? IdleHeroes.KindOf(wearer).Name + " 성장" : "빈 자리";
+			dollName.text = wearer >= 0
+				? uiContentAsset.GrowthTitle(IdleHeroes.KindOf(wearer).Name)
+				: uiContentAsset.EmptySeatText;
 			for (int stat = 0; stat < uiContentAsset.StatCount; stat++)
 			{
 				IdleUpgradeKind kind = (IdleUpgradeKind)stat;
@@ -1102,7 +1105,7 @@ namespace WitchMendokusai.Idle
 					IdleUpgradeView purchase = session.ViewHeroStat(wearer, kind, count);
 					Button button = statButtons[stat, amount];
 					button.text = purchase.IsMaxed
-						? "최대"
+						? uiContentAsset.MaxedText
 						: string.Format("×{0}\n{1}", count, BigNumberText.Format(purchase.NextCost));
 					bool canAfford = wearer >= 0 && purchase.CanAfford;
 					button.EnableInClassList("idle-stat-buy--ready", canAfford);
@@ -1191,9 +1194,7 @@ namespace WitchMendokusai.Idle
 		private void RenderItemPage(IdleSnapshot snapshot)
 		{
 			bool full = snapshot.Bag.Length >= snapshot.BagCapacity;
-			gearSummary.text = string.Format("가방 {0}/{1}{2}",
-				snapshot.Bag.Length, snapshot.BagCapacity,
-				full ? "  꽉 찼다. 합치거나 차야 새 장비가 들어온다" : string.Empty);
+			gearSummary.text = uiContentAsset.BagSummaryText(snapshot.Bag.Length, snapshot.BagCapacity, full);
 			gearSummary.EnableInClassList("idle-warn", full);
 
 			for (int index = 0; index < bagCells.Count; index++)
@@ -1221,12 +1222,13 @@ namespace WitchMendokusai.Idle
 				VisualElement icon = bagCells[index].Q<VisualElement>("bag-icon");
 				icon.style.display = DisplayStyle.Flex;
 				gearVisualPresenter.SetSprite(icon, (int)one.Slot, one.Tier);
-				bagCells[index].Q<Label>("bag-potential").text = one.IsRaw ? "미감정" : string.Format("{0:P0}", one.PotentialValue);
+				bagCells[index].Q<Label>("bag-potential").text =
+					uiContentAsset.ItemPotentialText(one.IsRaw, one.PotentialValue);
 				bagCells[index].SetEnabled(true);
 				gearVisualPresenter.SetTierOutline(bagCells[index], one.Tier);
 			}
 
-			bulkMergeButton.text = string.Format("{0}개씩 전부 합치기", snapshot.MergeCount);
+			bulkMergeButton.text = uiContentAsset.BulkMergeText(snapshot.MergeCount);
 			bulkMergeButton.SetEnabled(IdleAdvice.MergeableCount(snapshot) > 0);
 
 			RenderForge(snapshot);
@@ -1276,7 +1278,7 @@ namespace WitchMendokusai.Idle
 			{
 				int key = forgeKindKeys[index];
 				int tier = key;
-				forgeKindButtons[index].text = string.Format("{0}단계 ×{1}", tier, counts[key]);
+				forgeKindButtons[index].text = uiContentAsset.ForgeKindText(tier, counts[key]);
 				gearVisualPresenter.SetTierOutline(forgeKindButtons[index], tier);
 				forgeKindButtons[index].EnableInClassList("idle-forge-kind--on", forgeTier == tier);
 			}
@@ -1288,19 +1290,18 @@ namespace WitchMendokusai.Idle
 			for (int index = 0; index < forgeCells.Count; index++)
 			{
 				bool filled = index < shown;
-				forgeCells[index].text = filled ? forgeTier + "단계" : string.Empty;
+				forgeCells[index].text = filled ? uiContentAsset.ForgeCellText(forgeTier) : string.Empty;
 				gearVisualPresenter.SetTierOutline(forgeCells[index], filled ? forgeTier : 0);
 			}
 
 			bool ready = forgeTier > 0 && have >= snapshot.MergeCount;
-			forgeResult.text = forgeTier > 0 ? "랜덤\n" + (forgeTier + 1) + "단계" : string.Empty;
+			forgeResult.text = forgeTier > 0 ? uiContentAsset.ForgeResultText(forgeTier + 1) : string.Empty;
 			gearVisualPresenter.SetTierOutline(forgeResult, forgeTier > 0 ? forgeTier + 1 : 0);
 			forgeResult.EnableInClassList("idle-forge-cell--ready", ready);
 
 			forgeTitle.text = forgeTier > 0
-				? string.Format("{0}단계  {1}/{2}", forgeTier, have, snapshot.MergeCount)
-				: string.Format("같은 단계 {0}개가 랜덤 장비 한 단계 위로", snapshot.MergeCount);
-			forgeButton.text = "합치기";
+				? uiContentAsset.ForgeSelectionText(forgeTier, have, snapshot.MergeCount)
+				: uiContentAsset.ForgeEmptyHintText(snapshot.MergeCount);
 			forgeButton.SetEnabled(ready);
 		}
 
