@@ -80,64 +80,20 @@ namespace WitchMendokusai.Idle
 
 		// ── 전투 창 ───────────────────────────────────────────────────────
 		private VisualElement battle;
-		private VisualElement sceneCover;
-		private Label sceneCoverLabel;
-
-		private Label opCode;
-		private Label opName;
-		private VisualElement waveDots;
-		private readonly List<VisualElement> waveDotList = new List<VisualElement>();
-		private Label waveLabel;
-
-		private Button stepBack;
-		private Button stepForward;
-		private Label stepLabel;
-		private Button repeatButton;
-
-		private Button goldChip;
-		private Label goldValue;
-		private Button splitButton;
-		private Button settingsButton;
+		private BattleHudController battleHudController;
 
 		private Label logLabel;
 		private Label noteLabel;
 		private float noteLeft;
 
-		private VisualElement enemyBar;
-		private VisualElement enemyFill;
-		private Label enemyLabel;
-
-		private Button[] cardButtons;
-		private VisualElement[] cardIcons;
-		private Label[] cardCosts;
-		private Label[] cardNames;
+		private CardHandController cardHandController;
 		private Button[] dungeonRows;
-		private Label[] queueChips;
-		private int volleyHandIndex = -1;
-		private int skillDragPointer = -1;
-		private int suppressCardClick = -1;
-		private Vector2 skillDragOrigin;
-		private VisualElement skillAim;
-		private VisualElement skillAimOrigin;
-		private VisualElement skillAimLine;
-		private VisualElement skillAimRange;
-		private Label skillAimCaption;
-		private VisualElement costFill;
-		private Label costLabel;
-
-		private VisualElement floatingTabs;
-		private readonly List<Button> floatingTabButtons = new List<Button>();
 
 		// ── 관리 열 ───────────────────────────────────────────────────────
 		/// <summary>UI 뿌리. 폭을 재서 무대 카메라를 맞춘다</summary>
 		private VisualElement root;
 
-		private VisualElement side;
-		private readonly List<Button> tabButtons = new List<Button>();
-		private Button closeSideButton;
-		private Label panelTitle;
-		private Label panelCaption;
-		private VisualElement[] pages;
+		private SidePanelController sidePanelController;
 		private Tab openTab = Tab.Doll;
 		private bool split = true;
 		private bool sideOpen;
@@ -163,7 +119,6 @@ namespace WitchMendokusai.Idle
 		private Button[,] statButtons;
 		private Label statFeedback;
 		private int statFeedbackVersion;
-		private Button autoCastButton;
 		private readonly List<Button> wornCells = new List<Button>();
 
 		// 장비 고르기 팝업 (사용자 2026-08-31). 인형이 여럿이라 가방에서 바로 장착하면 대상이 불명
@@ -540,9 +495,9 @@ namespace WitchMendokusai.Idle
 
 		private void ResetViewCollections()
 		{
-			waveDotList.Clear();
-			floatingTabButtons.Clear();
-			tabButtons.Clear();
+			battleHudController = null;
+			cardHandController = null;
+			sidePanelController = null;
 			partyButtons.Clear();
 			wornCells.Clear();
 			heroSelectionController = null;
@@ -571,243 +526,66 @@ namespace WitchMendokusai.Idle
 
 		private void BuildBattleExtras()
 		{
-			BuildSkillAim();
-
-			floatingTabs = battle.Q<VisualElement>("floating-tabs");
-			for (int index = 0; index < uiContentAsset.TabCount; index++)
-			{
-				Tab tab = (Tab)index;
-				Button button = floatingTabs.Q<Button>("floating-tab-" + index);
-				button.clicked += () => OpenTab(tab);
-				button.text = uiContentAsset.TabName(index);
-				button.style.display = uiContentAsset.IsTabVisible(index) ? DisplayStyle.Flex : DisplayStyle.None;
-				floatingTabButtons.Add(button);
-			}
-
 			Button wipe = battle.Q<Button>("wipe-button");
 			wipe.style.display = Application.isEditor || Debug.isDebugBuild ? DisplayStyle.Flex : DisplayStyle.None;
 			wipe.clicked += WipeAndRestart;
-			skillAim.BringToFront();
-			floatingTabs.BringToFront();
+			cardHandController.BringAimToFront();
 			wipe.BringToFront();
-		}
-
-		private void BuildSkillAim()
-		{
-			skillAim = battle.Q<VisualElement>("skill-aim");
-			skillAimOrigin = skillAim.Q<VisualElement>("skill-aim-origin");
-			skillAimLine = skillAim.Q<VisualElement>("skill-aim-line");
-			skillAimRange = skillAim.Q<VisualElement>("skill-aim-range");
-			skillAimCaption = skillAim.Q<Label>("skill-aim-caption");
 		}
 
 		private void BindBattleHud()
 		{
-			sceneCover = battle.Q<VisualElement>("scene-cover");
-			sceneCover.style.display = DisplayStyle.None;
-			sceneCoverLabel = battle.Q<Label>("scene-cover-label");
-			battle.Q<Button>("scene-cover-button").clicked += () => OpenTab(Tab.Doll);
-			VisualElement op = battle.Q<VisualElement>("op");
-			op.RegisterCallback<ClickEvent>(_ => ToggleMap());
-			opCode = battle.Q<Label>("op-code");
-			opName = battle.Q<Label>("op-name");
-			waveDots = battle.Q<VisualElement>("wave-dots");
-			waveLabel = battle.Q<Label>("wave-label");
-			stepBack = battle.Q<Button>("step-back");
-			stepBack.clicked += () => StepStage(-1);
-			stepLabel = battle.Q<Label>("step-label");
-			stepForward = battle.Q<Button>("step-forward");
-			stepForward.clicked += () => StepStage(1);
-			repeatButton = battle.Q<Button>("repeat-button");
-			repeatButton.clicked += ToggleHold;
-			goldChip = battle.Q<Button>("gold-chip");
-			goldValue = goldChip.Q<Label>("gold-value");
-			goldChip.clicked += OpenGoldPopup;
-			splitButton = battle.Q<Button>("split-button");
-			splitButton.clicked += ToggleSplit;
-			settingsButton = battle.Q<Button>("settings-button");
-			settingsButton.clicked += OpenSettingsPopup;
-			enemyBar = battle.Q<VisualElement>("enemy-bar");
-			enemyFill = battle.Q<VisualElement>("enemy-fill");
-			enemyLabel = battle.Q<Label>("enemy-label");
-			BindCardButtons(battle.Q<VisualElement>("cards"));
-			BindCardQueue(battle.Q<VisualElement>("card-queue"));
-
-			// 배속과 자동은 전투 HUD 것. 인형 탭에서 찾다가 플레이어 판이 NullReference 로
-			// 죽는 자리 (실측 2026-09-01. 에디터는 예외를 콘솔에만 적어 초록으로 보임)
-			autoCastButton = battle.Q<Button>("auto-cast-button");
-			autoCastButton.clicked += ToggleAutoCast;
-			costLabel = battle.Q<Label>("cost-label");
-			costFill = battle.Q<VisualElement>("cost-fill");
+			battleHudController = new BattleHudController(
+				battle,
+				waveDotAsset,
+				() => OpenTab(Tab.Doll),
+				ToggleMap,
+				StepStage,
+				ToggleHold,
+				OpenGoldPopup,
+				ToggleSplit,
+				OpenSettingsPopup,
+				ToggleAutoCast);
+			cardHandController = new CardHandController(
+				battle,
+				cardAsset,
+				queueChipAsset,
+				uiContentAsset,
+				CanAimCard,
+				Cast,
+				PickFoe,
+				CastVolleyAt);
 		}
 
-		private void BindCardButtons(VisualElement cards)
+		private bool CanAimCard(int handIndex)
 		{
-			cardButtons = new Button[IdleCards.HAND_SIZE];
-			cardIcons = new VisualElement[IdleCards.HAND_SIZE];
-			cardCosts = new Label[IdleCards.HAND_SIZE];
-			cardNames = new Label[IdleCards.HAND_SIZE];
-			for (int index = 0; index < cardButtons.Length; index++)
-			{
-				int captured = index;
-				cardButtons[index] = AddCardButton(cards, out cardIcons[index], out cardCosts[index], out cardNames[index]);
-				cardButtons[index].clicked += () => OnCardClicked(captured);
-				cardButtons[index].RegisterCallback<PointerDownEvent>(moment => BeginSkillDrag(captured, moment));
-				cardButtons[index].RegisterCallback<PointerMoveEvent>(MoveSkillDrag);
-				cardButtons[index].RegisterCallback<PointerUpEvent>(moment =>
-				{
-					EndSkillDrag(captured, moment.pointerId, moment.position, true);
-					moment.StopImmediatePropagation();
-				});
-				cardButtons[index].RegisterCallback<PointerCancelEvent>(moment =>
-				{
-					EndSkillDrag(captured, moment.pointerId, moment.position, false);
-					moment.StopImmediatePropagation();
-				});
-			}
+			return session != null && handIndex >= 0 && handIndex < IdleCards.HAND_SIZE
+				&& IdleCards.HandAt(session.State, handIndex) == IdleCardKind.Volley
+				&& IdleCards.CanCast(session.State, session.Tuning, IdleCardKind.Volley);
 		}
 
-		private void OnCardClicked(int handIndex)
+		private long? PickFoe(Vector2 position)
 		{
-			if (suppressCardClick == handIndex)
-			{
-				suppressCardClick = -1;
-				return;
-			}
-
-			Cast(handIndex);
+			return stage != null && stage.TryPickFoe(position, out long foeIndex) ? foeIndex : (long?)null;
 		}
 
-		private void BeginSkillDrag(int handIndex, PointerDownEvent moment)
+		private bool CastVolleyAt(int handIndex, long foeIndex)
 		{
-			if (session == null || handIndex < 0 || handIndex >= cardButtons.Length
-				|| IdleCards.HandAt(session.State, handIndex) != IdleCardKind.Volley
-				|| IdleCards.CanCast(session.State, session.Tuning, IdleCardKind.Volley) == false)
+			if (session.TryCastCardAt(handIndex, foeIndex, out IdleCardResult result) == false)
 			{
-				return;
+				return false;
 			}
-
-			volleyHandIndex = handIndex;
-			skillDragPointer = moment.pointerId;
-			skillDragOrigin = moment.position;
-			skillAim.style.display = DisplayStyle.Flex;
-			cardButtons[handIndex].CapturePointer(moment.pointerId);
-			UpdateSkillAim(moment.position);
-			moment.StopImmediatePropagation();
-		}
-
-		private void MoveSkillDrag(PointerMoveEvent moment)
-		{
-			if (moment.pointerId != skillDragPointer)
-			{
-				return;
-			}
-
-			UpdateSkillAim(moment.position);
-			moment.StopImmediatePropagation();
-		}
-
-		private void EndSkillDrag(int handIndex, int pointerId, Vector2 position, bool commit)
-		{
-			if (pointerId != skillDragPointer || handIndex != volleyHandIndex)
-			{
-				return;
-			}
-
-			if (cardButtons[handIndex].HasPointerCapture(pointerId))
-			{
-				cardButtons[handIndex].ReleasePointer(pointerId);
-			}
-
-			suppressCardClick = commit ? handIndex : -1;
-			skillDragPointer = -1;
-			skillAim.style.display = DisplayStyle.None;
-
-			if (commit && stage != null && stage.TryPickFoe(position, out long foeIndex)
-				&& session.TryCastCardAt(handIndex, foeIndex, out IdleCardResult result))
-			{
-				stage.OnVolley(foeIndex);
-				SayOnce("일제 사격. 표시한 범위에 집중 포화.", runtimeSettingsAsset.NoteSeconds);
-				WriteDown();
-				Render(session.Capture());
-			}
-
-			volleyHandIndex = -1;
-		}
-
-		private void UpdateSkillAim(Vector2 panelPosition)
-		{
-			Vector2 origin = battle.WorldToLocal(skillDragOrigin);
-			Vector2 target = battle.WorldToLocal(panelPosition);
-			Vector2 delta = target - origin;
-
-			skillAimOrigin.style.left = origin.x - 24f;
-			skillAimOrigin.style.top = origin.y - 24f;
-			skillAimRange.style.left = target.x - 92f;
-			skillAimRange.style.top = target.y - 92f;
-			skillAimLine.style.left = Mathf.Min(origin.x, target.x);
-			skillAimLine.style.top = Mathf.Min(origin.y, target.y);
-			skillAimLine.style.width = Mathf.Max(6f, Mathf.Abs(delta.x));
-			skillAimLine.style.height = Mathf.Max(6f, Mathf.Abs(delta.y));
-			skillAimCaption.style.left = target.x - 100f;
-			skillAimCaption.style.top = target.y - 132f;
-		}
-
-		/// <summary>
-		/// 줄 선 카드 칩. 다음에 올라올 순서 (gap-2026-08-23 P1)
-		///
-		/// ★ 이게 없으면 순환이 무작위와 구별이 안 된다. 맨 앞 하나는 색을 달리 해 <c>바로 다음</c> 표시
-		/// </summary>
-		private void BindCardQueue(VisualElement queue)
-		{
-			queueChips = new Label[IdleCards.QUEUE_SIZE];
-
-			for (int index = 0; index < queueChips.Length; index++)
-			{
-				TemplateContainer tree = queueChipAsset.Instantiate();
-				Label chip = tree.Q<Label>("chip");
-				chip.RemoveFromHierarchy();
-				chip.EnableInClassList("idle-queue-chip--next", index == 0);
-				queue.Add(chip);
-				queueChips[index] = chip;
-			}
-		}
-
-		private Button AddCardButton(VisualElement parent, out VisualElement icon, out Label cost, out Label name)
-		{
-			TemplateContainer tree = cardAsset.Instantiate();
-			Button button = tree.Q<Button>("card");
-			icon = button.Q<VisualElement>("card-icon");
-			cost = button.Q<Label>("card-cost");
-			name = button.Q<Label>("card-name");
-			button.RemoveFromHierarchy();
-			parent.Add(button);
-			return button;
+			stage.OnVolley(foeIndex);
+			SayOnce("일제 사격. 표시한 범위에 집중 포화.", runtimeSettingsAsset.NoteSeconds);
+			WriteDown();
+			Render(session.Capture());
+			return true;
 		}
 
 		private void BuildSide(VisualElement shell)
 		{
-			side = shell.Q<VisualElement>("side");
-			VisualElement tabs = side.Q<VisualElement>("tabs");
-
-			for (int index = 0; index < uiContentAsset.TabCount; index++)
-			{
-				Tab tab = (Tab)index;
-				Button button = tabs.Q<Button>("tab-" + index);
-				button.clicked += () => OpenTab(tab);
-				button.text = uiContentAsset.TabName(index) + "\n" + uiContentAsset.TabCaption(index);
-				button.style.display = uiContentAsset.IsTabVisible(index) ? DisplayStyle.Flex : DisplayStyle.None;
-				tabButtons.Add(button);
-			}
-
-			closeSideButton = tabs.Q<Button>("side-close");
-			closeSideButton.clicked += CloseSide;
-			closeSideButton.BringToFront();
-
-			panelTitle = side.Q<Label>("panel-title");
-			panelCaption = side.Q<Label>("panel-caption");
-
-			pages = new VisualElement[uiContentAsset.TabCount];
+			sidePanelController = new SidePanelController(
+				shell, battle, uiContentAsset, index => OpenTab((Tab)index), CloseSide);
 			BuildDollPage();
 			BuildItemPage();
 			BuildCodexPage();
@@ -819,11 +597,7 @@ namespace WitchMendokusai.Idle
 
 		private VisualElement UsePage(Tab tab, string hostName)
 		{
-			VisualElement host = root.Q<VisualElement>(hostName);
-			VisualElement page = host.Q<VisualElement>("page");
-			page.style.display = DisplayStyle.None;
-			pages[(int)tab] = page;
-			return page;
+			return sidePanelController.BindPage((int)tab, hostName, root);
 		}
 
 		private VisualElement UsePopup(string hostName)
@@ -1242,25 +1016,12 @@ namespace WitchMendokusai.Idle
 				return;
 			}
 
-			opCode.text = "S-" + snapshot.Stage;
-			opName.text = string.Format("등급 {0}/{1}", snapshot.MaxTierNow, snapshot.TierCeiling);
-
-			stepLabel.text = string.Format("{0}구역", snapshot.Stage);
-			stepBack.SetEnabled(IdleModel.CanGoToStage(session.State, snapshot.Stage - 1));
-			stepForward.SetEnabled(snapshot.Stage < snapshot.BestStage
-				&& IdleModel.CanGoToStage(session.State, snapshot.Stage + 1));
-
-			bool repeating = snapshot.HoldingStage || snapshot.Repeating;
-			repeatButton.text = repeating ? "반복 ●" : "반복 ○";
-			repeatButton.EnableInClassList("idle-toggle--on", repeating);
-
-			goldValue.text = BigNumberText.Format(snapshot.Resource);
+			battleHudController.Render(snapshot, session.State);
 			goldAmount.text = "보유  " + BigNumberText.Format(snapshot.Resource);
 			goldIncome.text = "초당  +" + BigNumberText.Format(snapshot.IncomePerSecond);
 
 			logLabel.text = NextStep(snapshot);
 
-			RenderEnemy(snapshot);
 			RenderHand(snapshot);
 			RenderTabBadges(snapshot);
 
@@ -1283,99 +1044,14 @@ namespace WitchMendokusai.Idle
 			}
 		}
 
-		private void RenderEnemy(IdleSnapshot snapshot)
-		{
-			// 상단 대형 바는 보스 전용 (실조사 refs/blue-archive.md § 2, 6). 잡몹 체력은 머리 위
-			bool boss = snapshot.KillsInStage >= snapshot.KillsPerStage - 1;
-			enemyBar.style.display = boss ? DisplayStyle.Flex : DisplayStyle.None;
-
-			if (boss)
-			{
-				enemyLabel.text = string.Format("BOSS S-{0}  {1:P0}", snapshot.Stage, snapshot.TargetHealthRatio);
-				enemyFill.style.width = new StyleLength(new Length(
-					(float)(snapshot.TargetHealthRatio * 100d), LengthUnit.Percent));
-			}
-
-			if (waveDotList.Count != snapshot.KillsPerStage)
-			{
-				waveDots.Clear();
-				waveDotList.Clear();
-
-				for (int at = 0; at < snapshot.KillsPerStage; at++)
-				{
-					VisualElement dot = AddWaveDot();
-					dot.EnableInClassList("idle-wave-dot--boss", at == snapshot.KillsPerStage - 1);
-					waveDots.Add(dot);
-					waveDotList.Add(dot);
-				}
-			}
-
-			for (int at = 0; at < waveDotList.Count; at++)
-			{
-				waveDotList[at].EnableInClassList("idle-wave-dot--done", at < snapshot.KillsInStage);
-			}
-
-			waveLabel.text = string.Format("WAVE {0}/{1}", snapshot.KillsInStage, snapshot.KillsPerStage);
-		}
-
-		private VisualElement AddWaveDot()
-		{
-			TemplateContainer tree = waveDotAsset.Instantiate();
-			VisualElement made = tree.Q<VisualElement>("wave-dot");
-			made.RemoveFromHierarchy();
-			return made;
-		}
-
 		private void RenderHand(IdleSnapshot snapshot)
 		{
-			for (int index = 0; index < cardButtons.Length; index++)
-			{
-				IdleCardView card = snapshot.Cards[index];
-				cardCosts[index].text = card.Cost.ToString();
-				cardNames[index].text = NameOf(card.Kind);
-				SetCardIconClass(cardIcons[index], card.Kind);
-				cardButtons[index].SetEnabled(card.CanCast);
-				cardButtons[index].EnableInClassList("idle-card--ready", card.CanCast);
-			}
-
-			for (int index = 0; index < queueChips.Length; index++)
-			{
-				queueChips[index].text = NameOf(snapshot.Queued[index]);
-			}
-
-			autoCastButton.EnableInClassList("idle-icon-button--on", snapshot.AutoCast);
-
-			costLabel.text = string.Format("{0:0}/{1:0}", snapshot.Cost, snapshot.CostMax);
-			costFill.style.width = new StyleLength(new Length(
-				snapshot.CostMax > 0d ? (float)(snapshot.Cost / snapshot.CostMax * 100d) : 0f,
-				LengthUnit.Percent));
+			cardHandController.Render(snapshot);
 		}
 
 		private void RenderTabBadges(IdleSnapshot snapshot)
 		{
-			bool doll = IdleAdvice.HasSomethingToDo(snapshot, IdleTab.Hero)
-				|| IdleAdvice.HasSomethingToDo(snapshot, IdleTab.Upgrade);
-			bool item = IdleAdvice.HasSomethingToDo(snapshot, IdleTab.Gear);
-			bool shop = snapshot.CanPull;
-			bool lab = snapshot.PrestigeAward > 0L;
-			bool invest = IdleAdvice.HasSomethingToDo(snapshot, IdleTab.Base);
-
-			SetBadge(Tab.Doll, doll);
-			SetBadge(Tab.Item, item);
-			SetBadge(Tab.Shop, shop);
-			SetBadge(Tab.Lab, lab);
-			SetBadge(Tab.Invest, invest);
-
-			for (int index = 0; index < tabButtons.Count; index++)
-			{
-				tabButtons[index].EnableInClassList("idle-tab--on", index == (int)openTab && (split || sideOpen));
-			}
-		}
-
-		private void SetBadge(Tab tab, bool on)
-		{
-			tabButtons[(int)tab].EnableInClassList("idle-tab--badge", on);
-			floatingTabButtons[(int)tab].EnableInClassList("idle-tab--badge", on);
+			sidePanelController.RenderBadges(snapshot, (int)openTab, split || sideOpen);
 		}
 
 		private void RenderPage(IdleSnapshot snapshot)
@@ -1817,19 +1493,12 @@ namespace WitchMendokusai.Idle
 			heroSelectionController?.ClearSelection();
 			sideOpen = true;
 
-			for (int index = 0; index < pages.Length; index++)
-			{
-				pages[index].style.display = index == (int)tab ? DisplayStyle.Flex : DisplayStyle.None;
-			}
-
-			panelTitle.text = uiContentAsset.TabName((int)tab);
-			panelCaption.text = uiContentAsset.TabCaption((int)tab);
+			sidePanelController.ShowPage((int)tab);
 
 			// 상점, 연구소는 왼쪽 씬이 바뀐다 (layout.md §2). 지금은 덮개
 			bool altScene = tab == Tab.Shop || tab == Tab.Lab;
-			sceneCover.style.display = altScene ? DisplayStyle.Flex : DisplayStyle.None;
-			sceneCoverLabel.text = tab == Tab.Shop ? "SHOP 3D SCENE 자리" : "LAB 3D SCENE 자리";
-			battle.EnableInClassList("idle-battle--alt", altScene);
+			battleHudController.SetAlternateScene(altScene,
+				tab == Tab.Shop ? "SHOP 3D SCENE 자리" : "LAB 3D SCENE 자리");
 
 			ApplySplit();
 			Render(session.Capture());
@@ -1838,8 +1507,7 @@ namespace WitchMendokusai.Idle
 		private void CloseSide()
 		{
 			sideOpen = false;
-			sceneCover.style.display = DisplayStyle.None;
-			battle.EnableInClassList("idle-battle--alt", false);
+			battleHudController.SetAlternateScene(false, string.Empty);
 			ApplySplit();
 		}
 
@@ -1865,7 +1533,7 @@ namespace WitchMendokusai.Idle
 			}
 
 			float share = uiContentAsset.BattleWidthShare;
-			float sideWidth = side != null ? side.resolvedStyle.width : float.NaN;
+			float sideWidth = sidePanelController != null ? sidePanelController.ResolvedWidth : float.NaN;
 
 			if (float.IsNaN(sideWidth) == false && sideWidth > 0f && root != null)
 			{
@@ -1923,27 +1591,12 @@ namespace WitchMendokusai.Idle
 
 		private void ApplySplit()
 		{
-			bool showSide = split || sideOpen;
-			side.style.display = showSide ? DisplayStyle.Flex : DisplayStyle.None;
-			side.EnableInClassList("idle-side--drawer", split == false);
-			closeSideButton.style.display = split ? DisplayStyle.None : DisplayStyle.Flex;
-			floatingTabs.style.display = split ? DisplayStyle.None : DisplayStyle.Flex;
-			battle.EnableInClassList("idle-battle--full", split == false);
-			splitButton.EnableInClassList("idle-split-button--collapsed", split == false);
+			sidePanelController.Apply((int)openTab, split, sideOpen);
+			battleHudController.SetSplit(split);
 
 			AimCamera();
 			ApplySafeArea();
 
-			if (showSide)
-			{
-				for (int index = 0; index < pages.Length; index++)
-				{
-					pages[index].style.display = index == (int)openTab ? DisplayStyle.Flex : DisplayStyle.None;
-				}
-
-				panelTitle.text = uiContentAsset.TabName((int)openTab);
-				panelCaption.text = uiContentAsset.TabCaption((int)openTab);
-			}
 		}
 
 		private void ToggleMap()
@@ -2029,7 +1682,7 @@ namespace WitchMendokusai.Idle
 			IdleCardKind selected = IdleCards.HandAt(session.State, handIndex);
 			if (selected == IdleCardKind.Volley)
 			{
-				volleyHandIndex = -1;
+				cardHandController.CancelAim();
 				SayOnce("일제 사격 카드를 끌어 적에게 놓으세요", runtimeSettingsAsset.NoteSeconds);
 				return;
 			}
@@ -2384,16 +2037,6 @@ namespace WitchMendokusai.Idle
 				: string.Format("{0} {1}단계\n효과 ×{2:0.00}", uiContentAsset.GearSlotName(slot), one.Tier, IdleGear.MultiplierOfItem(one, session.Tuning));
 		}
 
-		/// <summary>단계 색. 클래스 idle-tier-N, 색은 USS (울티마식 단계 고유색. 사용자 2026-08-30)</summary>
-		private static void SetCardIconClass(VisualElement element, IdleCardKind kind)
-		{
-			string[] names = { "volley", "supply", "appraise" };
-			for (int index = 0; index < names.Length; index++)
-			{
-				element.EnableInClassList("idle-card-icon--" + names[index], index == (int)kind);
-			}
-		}
-
 		// ── 잔손 ──────────────────────────────────────────────────────────
 
 		private void SayOnce(string what, float seconds)
@@ -2411,11 +2054,6 @@ namespace WitchMendokusai.Idle
 		private static string Stars(int stars)
 		{
 			return stars <= 0 ? string.Empty : " " + new string('★', stars);
-		}
-
-		private string NameOf(IdleCardKind kind)
-		{
-			return uiContentAsset.CardName(kind);
 		}
 
 		private Button AddRowButton(VisualElement parent, System.Action action)
