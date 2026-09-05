@@ -21,9 +21,9 @@ Domain/Terrain/Nodes/FractalPerlinNode.cs	COORD_OFFSET
 Domain/Terrain/Nodes/RidgedPerlinNode.cs	COORD_OFFSET
 Domain/Terrain/TerrainGenerator.cs	COORD_OFFSET
 Domain/TowerDefense/TowerDefenseHudView.Selection.cs	TOOLTIP_MIN_HEIGHT
-Domain/TowerDefense/TowerDefenseMatch.Spawn.cs	FRONT_PULL_DISTANCE
+Domain/TowerDefense/TowerDefenseMatch.Wave.cs	FRONT_PULL_DISTANCE
 Domain/TowerDefense/TowerDefenseMatch.cs	MIN_VERIFY_LOSS_DISTANCE
-Domain/TowerDefense/TowerDefenseMatch.Spawn.cs	STUCK_CROWD_RADIUS
+Domain/TowerDefense/TowerDefenseMatch.Stuck.cs	STUCK_CROWD_RADIUS
 Domain/UI/FloatingText/FloatingTextView.cs	LIFETIME_SECONDS
 Domain/UI/Mobile/MobileControlsView.cs	PANEL_REFERENCE_HEIGHT
 Domain/UI/SpeechBubble/SpeechBubbleItem.cs	WORLD_OFFSET_Y

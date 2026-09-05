@@ -363,7 +363,7 @@ $anchors = @(
     @{ File = 'Domain/TowerDefense/TowerDefenseMatch.cs'
        Needle = 'boons.NestDamageMultiplier'
        Why = 'the nest-damage card does nothing again' },
-    @{ File = 'Domain/TowerDefense/TowerDefenseMatch.Economy.cs'
+    @{ File = 'Domain/TowerDefense/TowerDefenseMatch.Research.cs'
        Needle = 'cost * boons.ResearchCostMultiplier'
        Why = 'the research-discount card does nothing again' },
     # NOTE: a needle must match the CALL SITE, not a bare name -- a bare name also appears in the
