@@ -45,6 +45,9 @@ namespace WitchMendokusai.Idle
 			public float FoeRadius { get; set; }
 			public float FoeHeadHeight { get; set; }
 			public float FoePickRadius { get; set; }
+			public float AimTargetScale { get; set; }
+			public Color AimTargetColor { get; set; }
+			public float AimTargetTint { get; set; }
 			public float FoeMinHealthScale { get; set; }
 			public float FoeBarHeight { get; set; }
 			public float FoeBarWidth { get; set; }
@@ -113,7 +116,9 @@ namespace WitchMendokusai.Idle
 		public bool TryGetFoeImpact(long index, out Vector3 position, out Color color) =>
 			foes.TryGetImpact(index, out position, out color);
 
-		public bool TryPickFoe(Vector2 panelPosition, out long foeIndex) =>
-			foes.TryPick(panelPosition, out foeIndex);
+		public bool TryPickFoe(UnityEngine.UIElements.IPanel panel, Vector2 panelPosition, out long foeIndex) =>
+			foes.TryPick(panel, panelPosition, out foeIndex);
+
+		public void SetAimTarget(long foeIndex) => foes.SetAimTarget(foeIndex);
 	}
 }

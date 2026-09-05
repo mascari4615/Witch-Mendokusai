@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UIElements;
 using WitchMendokusai.DomainSDK.Idle;
 
 namespace WitchMendokusai.Idle
@@ -24,6 +25,7 @@ namespace WitchMendokusai.Idle
 			public bool SpikedShapeUsed;
 			public int StageUsed = -1;
 			public float FlashLeft;
+			public bool Aimed;
 			public bool Entering;
 			public Color RestColor = Color.white;
 			public BossShell Shell;
@@ -34,6 +36,8 @@ namespace WitchMendokusai.Idle
 		private readonly List<Foe> foes = new List<Foe>();
 		private readonly Dictionary<long, Vector3> removedHeads = new Dictionary<long, Vector3>();
 		private float clock;
+		/// <summary>지금 조준선이 걸린 적. 없으면 -1</summary>
+		private long aimTarget = -1L;
 
 		public BattleFoePresenter(Transform worldRoot, BattleEntityPresenter.Settings settings)
 		{
@@ -87,28 +91,35 @@ namespace WitchMendokusai.Idle
 			return true;
 		}
 
-		public bool TryPick(Vector2 panelPosition, out long foeIndex)
+		/// <summary>
+		/// 그 자리에 있는 적. 거리는 <b>판 좌표</b>로 잰다 (반지름도 판 단위, USS 와 같은 눈금)
+		///
+		/// ★ 전에는 판 좌표를 화면 픽셀로 그대로 썼다 (<c>Screen.height - y</c>). 판은
+		///   1920x1080 기준으로 늘고 줄어서 게임 창이 그 크기가 아니면 조준점이 어긋났고,
+		///   반지름 안에 아무도 안 들어와 일제 사격이 조용히 안 나갔다 (사용자 2026-09-05)
+		/// </summary>
+		public bool TryPick(IPanel panel, Vector2 panelPosition, out long foeIndex)
 		{
 			foeIndex = -1L;
 			Camera eye = Camera.main;
 
-			if (eye == null)
+			if (eye == null || panel == null)
 			{
 				return false;
 			}
 
-			Vector2 screen = new Vector2(panelPosition.x, Screen.height - panelPosition.y);
 			float best = settings.FoePickRadius;
 
 			foreach (Foe foe in foes)
 			{
-				Vector3 point = eye.WorldToScreenPoint(foe.Piece.position);
-				if (point.z <= 0f)
+				if (eye.WorldToScreenPoint(foe.Piece.position).z <= 0f)
 				{
 					continue;
 				}
 
-				float distance = Vector2.Distance(screen, new Vector2(point.x, point.y));
+				Vector2 point = RuntimePanelUtils.CameraTransformWorldToPanel(
+					panel, foe.Piece.position, eye);
+				float distance = Vector2.Distance(panelPosition, point);
 				if (distance < best)
 				{
 					best = distance;
@@ -117,6 +128,12 @@ namespace WitchMendokusai.Idle
 			}
 
 			return foeIndex >= 0L;
+		}
+
+		/// <summary>조준선이 걸린 적을 표시한다. -1 이면 아무도 안 걸림</summary>
+		public void SetAimTarget(long index)
+		{
+			aimTarget = index;
 		}
 
 		private void Dress(IdleSnapshot snapshot, float delta)
@@ -191,6 +208,18 @@ namespace WitchMendokusai.Idle
 					1f,
 					(float)view.HealthRatio);
 				float bulk = view.Boss ? settings.BossScale : 1f;
+				bool aimed = foe.Index == aimTarget;
+				if (aimed)
+				{
+					bulk *= settings.AimTargetScale;
+				}
+
+				if (foe.Aimed != aimed)
+				{
+					foe.Aimed = aimed;
+					Repaint(foe, stage);
+				}
+
 				foe.Model.localScale = new Vector3(health * bulk, bulk, health * bulk);
 				foe.BarAnchor.position = foe.Piece.position;
 				foe.Bar.SetVisible(view.Boss == false);
@@ -210,6 +239,13 @@ namespace WitchMendokusai.Idle
 				? settings.BossColor
 				: (foe.Kind == IdleFoeKind.Ranged ? settings.RangedEnemyColor : settings.EnemyColor);
 			Color made = Deepen(basis, stage);
+
+			// 조준선이 걸린 적은 색으로도 말한다. 커서만 보면 누가 맞는지 모름
+			if (foe.Aimed)
+			{
+				made = Color.Lerp(made, settings.AimTargetColor, settings.AimTargetTint);
+			}
+
 			foe.RestColor = made;
 
 			if (foe.Boss && settings.BossGlow > 0f)

@@ -163,6 +163,7 @@ MonoBehaviour:
   volleyTargetFeedback: 일제 사격. 표시한 범위에 집중 포화.
   volleyDragHint: 일제 사격 카드를 끌어 적에게 놓으세요
   volleyResolvedFeedback: 일제 사격. 모두 달려들었다
+  volleyMissFeedback: '적 위에 놓아야 나간다. 손가락을 적까지 끌어라'
   supplyFeedbackFormat: '긴급 보급. {0:0}초 동안 수입 ×{1:0.#}'
   appraiseCardFeedbackFormat: '비밀 감정. T{0} → {1:P1}{2}'
   appraiseReplacedSuffix: ' 갈아 끼움'

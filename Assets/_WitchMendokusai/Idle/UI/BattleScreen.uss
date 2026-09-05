@@ -475,12 +475,24 @@
 	position: absolute;
 	translate: -50% -100%;
 	margin-top: -94px;
-	width: 200px;
+	width: 260px;
 	font-size: 22px;
 	-unity-font-style: bold;
 	-unity-text-align: middle-center;
+	white-space: normal;
 	color: rgb(220, 248, 255);
 	background-color: rgba(10, 25, 38, 0.9);
+}
+
+/* 적을 짚었을 때. 지금 놓으면 나간다 */
+.idle-skill-aim-range--on {
+	border-color: rgb(255, 196, 64);
+	background-color: rgba(255, 184, 40, 0.28);
+}
+
+.idle-skill-aim-caption--on {
+	color: rgb(24, 18, 6);
+	background-color: rgba(255, 196, 64, 0.95);
 }
 
 .idle-card:active {

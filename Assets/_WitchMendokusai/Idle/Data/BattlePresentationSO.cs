@@ -73,7 +73,18 @@ namespace WitchMendokusai.Idle
 		[SerializeField] private float foeBobFrequency = 2.4f;
 		[SerializeField] private float foeBobPhaseStep = 1.7f;
 		[SerializeField] private float foeHeadHeight = 0.7f;
-		[SerializeField] private float foePickRadius = 54f;
+		[Tooltip("놓은 자리에서 이만큼 안에 있는 적이 맞는다. 판 단위. 조준 고리 반지름과 같게 (BattleScreen.uss 의 idle-skill-aim-range 184px)")]
+		[SerializeField] private float foePickRadius = 92f;
+
+		[Tooltip("조준선이 걸린 적이 이만큼 커진다.")]
+		[SerializeField] private float aimTargetScale = 1.18f;
+
+		[Tooltip("조준선이 걸린 적의 색.")]
+		[SerializeField] private Color aimTargetColor = new Color(1f, 0.72f, 0.16f);
+
+		[Tooltip("그 색을 얼마나 섞나. 0 이면 색 변화 없음.")]
+		[Range(0f, 1f)]
+		[SerializeField] private float aimTargetTint = 0.65f;
 		[SerializeField] private float foeMinHealthScale = 0.82f;
 		[SerializeField] private float foeBarHeight = 0.95f;
 		[SerializeField] private float foeBarWidth = 0.8f;
@@ -301,6 +312,9 @@ namespace WitchMendokusai.Idle
 				FoeRadius = foeRadius,
 				FoeHeadHeight = foeHeadHeight,
 				FoePickRadius = foePickRadius,
+				AimTargetScale = aimTargetScale,
+				AimTargetColor = aimTargetColor,
+				AimTargetTint = aimTargetTint,
 				FoeMinHealthScale = foeMinHealthScale,
 				FoeBarHeight = foeBarHeight,
 				FoeBarWidth = foeBarWidth,

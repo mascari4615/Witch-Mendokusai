@@ -11,8 +11,10 @@ namespace WitchMendokusai.Idle.UI
 		private readonly UIContentSO content;
 		private readonly Func<int, bool> canAim;
 		private readonly Action<int> clicked;
-		private readonly Func<Vector2, long?> pickFoe;
+		private readonly Func<IPanel, Vector2, long?> pickFoe;
 		private readonly Func<int, long, bool> castAt;
+		private readonly Action<long?> aimAt;
+		private readonly Action aimMissed;
 		private readonly Button[] buttons;
 		private readonly VisualElement[] icons;
 		private readonly Label[] costs;
@@ -35,8 +37,10 @@ namespace WitchMendokusai.Idle.UI
 			UIContentSO content,
 			Func<int, bool> canAim,
 			Action<int> clicked,
-			Func<Vector2, long?> pickFoe,
-			Func<int, long, bool> castAt)
+			Func<IPanel, Vector2, long?> pickFoe,
+			Func<int, long, bool> castAt,
+			Action<long?> aimAt,
+			Action aimMissed)
 		{
 			this.battle = battle;
 			this.content = content;
@@ -44,6 +48,8 @@ namespace WitchMendokusai.Idle.UI
 			this.clicked = clicked;
 			this.pickFoe = pickFoe;
 			this.castAt = castAt;
+			this.aimAt = aimAt;
+			this.aimMissed = aimMissed;
 			aim = battle.Q<VisualElement>("skill-aim");
 			aimOrigin = aim.Q<VisualElement>("skill-aim-origin");
 			aimLine = aim.Q<VisualElement>("skill-aim-line");
@@ -99,6 +105,8 @@ namespace WitchMendokusai.Idle.UI
 			aimedHand = -1;
 			pointer = -1;
 			aim.style.display = DisplayStyle.None;
+			aimAt(null);
+			MarkAimReady(false);
 		}
 
 		public void Render(IdleSnapshot snapshot)
@@ -141,6 +149,7 @@ namespace WitchMendokusai.Idle.UI
 			aim.style.display = DisplayStyle.Flex;
 			buttons[handIndex].CapturePointer(moment.pointerId);
 			UpdateAim(moment.position);
+			TrackTarget(moment.position);
 			moment.StopImmediatePropagation();
 		}
 
@@ -148,6 +157,7 @@ namespace WitchMendokusai.Idle.UI
 		{
 			if (moment.pointerId != pointer) { return; }
 			UpdateAim(moment.position);
+			TrackTarget(moment.position);
 			moment.StopImmediatePropagation();
 		}
 
@@ -173,12 +183,35 @@ namespace WitchMendokusai.Idle.UI
 			suppressedClick = commit ? handIndex : -1;
 			pointer = -1;
 			aim.style.display = DisplayStyle.None;
-			long? foe = commit ? pickFoe(position) : null;
+			long? foe = commit ? pickFoe(battle.panel, position) : null;
 			if (foe.HasValue)
 			{
 				castAt(handIndex, foe.Value);
 			}
+			else if (commit)
+			{
+				aimMissed();
+			}
+
+			aimAt(null);
+			MarkAimReady(false);
 			aimedHand = -1;
+		}
+
+		/// <summary>커서 아래 적을 무대와 조준선에 알린다</summary>
+		private void TrackTarget(Vector2 panelPosition)
+		{
+			long? foe = pickFoe(battle.panel, panelPosition);
+			aimAt(foe);
+			MarkAimReady(foe.HasValue);
+		}
+
+		/// <summary>지금 놓으면 나가나. 조준 고리와 설명이 색으로 답한다</summary>
+		private void MarkAimReady(bool ready)
+		{
+			aimRange.EnableInClassList("idle-skill-aim-range--on", ready);
+			aimCaption.EnableInClassList("idle-skill-aim-caption--on", ready);
+			aimCaption.text = ready ? content.VolleyTargetFeedback : content.VolleyDragHint;
 		}
 
 		private void UpdateAim(Vector2 panelPosition)

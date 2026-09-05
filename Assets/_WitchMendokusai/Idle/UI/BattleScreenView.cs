@@ -188,7 +188,9 @@ namespace WitchMendokusai.Idle.UI
 				battleActionController.CanAimCard,
 				battleActionController.Cast,
 				battleActionController.PickFoe,
-				battleActionController.CastVolleyAt);
+				battleActionController.CastVolleyAt,
+				battleActionController.AimAt,
+				battleActionController.VolleyMissed);
 
 			Button wipe = battle.Q<Button>("wipe-button");
 			wipe.style.display = Application.isEditor || Debug.isDebugBuild ? DisplayStyle.Flex : DisplayStyle.None;

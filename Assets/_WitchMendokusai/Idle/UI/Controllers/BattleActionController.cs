@@ -52,11 +52,23 @@ namespace WitchMendokusai.Idle.UI
 				&& snapshot.Cards[handIndex].CanCast;
 		}
 
-		public long? PickFoe(Vector2 position)
+		public long? PickFoe(IPanel panel, Vector2 position)
 		{
-			return stage != null && stage.TryPickFoe(position, out long foeIndex)
+			return stage != null && stage.TryPickFoe(panel, position, out long foeIndex)
 				? foeIndex
 				: (long?)null;
+		}
+
+		/// <summary>조준 중 커서 아래 적을 무대에 알린다. 사람이 누가 맞는지 보게</summary>
+		public void AimAt(long? foeIndex)
+		{
+			stage?.SetAimTarget(foeIndex ?? -1L);
+		}
+
+		/// <summary>적을 못 짚고 놓았다. 조용히 사라지면 고장으로 보임 (사용자 2026-09-05)</summary>
+		public void VolleyMissed()
+		{
+			showNote(content.VolleyMissFeedback, settings.NoteSeconds);
 		}
 
 		public bool CastVolleyAt(int handIndex, long foeIndex)

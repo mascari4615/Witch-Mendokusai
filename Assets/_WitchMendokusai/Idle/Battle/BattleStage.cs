@@ -116,7 +116,7 @@ namespace WitchMendokusai.Idle
 			}
 		}
 
-		public bool TryPickFoe(Vector2 panelPosition, out long foeIndex)
+		public bool TryPickFoe(IPanel panel, Vector2 panelPosition, out long foeIndex)
 		{
 			if (entities == null)
 			{
@@ -124,7 +124,13 @@ namespace WitchMendokusai.Idle
 				return false;
 			}
 
-			return entities.TryPickFoe(panelPosition, out foeIndex);
+			return entities.TryPickFoe(panel, panelPosition, out foeIndex);
+		}
+
+		/// <summary>조준 중인 적을 무대에 알린다. -1 이면 아무도 안 걸림</summary>
+		public void SetAimTarget(long foeIndex)
+		{
+			entities?.SetAimTarget(foeIndex);
 		}
 
 		public void OnSupply(float seconds)

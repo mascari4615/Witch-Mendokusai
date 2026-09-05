@@ -71,7 +71,10 @@ MonoBehaviour:
   foeBobFrequency: 2.4
   foeBobPhaseStep: 1.7
   foeHeadHeight: 0.7
-  foePickRadius: 54
+  foePickRadius: 92
+  aimTargetScale: 1.18
+  aimTargetColor: {r: 1, g: 0.72, b: 0.16, a: 1}
+  aimTargetTint: 0.65
   foeMinHealthScale: 0.82
   foeBarHeight: 0.95
   foeBarWidth: 0.8
