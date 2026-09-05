@@ -224,6 +224,11 @@ namespace WitchMendokusai
 			container.Inject(Transition);
 
 			RegisterOverlayUI(NPC);
+
+			// 조립 끝 표식 (2026-09-05)
+			// 없으면 Start 가 중간에서 끊긴 것 -> 뒤쪽 View (floatingText 등) null -> 한참 뒤 엉뚱한 자리에서 NRE
+			// 실측: PopText 와 PopDamage 의 NRE 가 floatingText null. 끊긴 지점을 못 짚어 이 표식을 박음
+			Debug.Log($"{nameof(UIManager)}: 씬 View 조립 끝");
 		}
 
 		public void RegisterOverlayUI(IUIPanelGroup ui)
