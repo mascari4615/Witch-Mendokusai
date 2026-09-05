@@ -190,7 +190,9 @@ namespace WitchMendokusai.Tests
 			state.BagUpgrades = 3;
 			state.AutoCast = true;
 
-			state.Bag.Add(new IdleItem(3, IdleItemSlot.Hands));
+			IdleItem locked = new IdleItem(3, IdleItemSlot.Hands);
+			locked.Locked = true;
+			state.Bag.Add(locked);
 			state.Worn[0] = new IdleItem(2, IdleItemSlot.Head);
 
 			IdleHeroOwned hero = new IdleHeroOwned(4);

@@ -108,7 +108,7 @@ namespace WitchMendokusai.DomainSDK.Idle
             for (int index = 0; index < state.Bag.Count; index++)
             {
                 IdleItem one = state.Bag[index];
-                if (one.Tier != tier)
+                if (one.Tier != tier || one.Locked)
                 {
                     continue;
                 }
@@ -158,13 +158,143 @@ namespace WitchMendokusai.DomainSDK.Idle
             for (int index = 0; index < state.Bag.Count; index++)
             {
                 IdleItem one = state.Bag[index];
-                if (one.Tier == tier)
+                if (one.Tier == tier && one.Locked == false)
                 {
                     have++;
                 }
             }
 
             return have / tuning.MergeCount;
+        }
+
+        /// <summary>그 등급에서 분해할 수 있는 것 (잠금 제외).</summary>
+        public static int CountSalvageable(IdleState state, int tier)
+        {
+            int have = 0;
+            for (int index = 0; index < state.Bag.Count; index++)
+            {
+                IdleItem one = state.Bag[index];
+                if (one.Tier == tier && one.Locked == false)
+                {
+                    have++;
+                }
+            }
+
+            return have;
+        }
+
+        /// <summary>분해 한 개가 주는 골드.</summary>
+        public static double SalvageGold(int tier, IdleTuning tuning)
+        {
+            if (tier < 1)
+            {
+                return 0d;
+            }
+
+            return tuning.SalvageGoldBase * System.Math.Pow(tuning.SalvageGoldRatio, tier - 1);
+        }
+
+        /// <summary>
+        /// 그 등급을 <paramref name="count"/>개 분해해 골드로 (사용자 2026-09-05). 0 이하면 전부.
+        ///
+        /// ★ 합치기와 같은 규칙: <b>나쁜 것부터</b>, 잠근 것은 제외.
+        /// </summary>
+        public static bool TrySalvage(IdleState state, IdleTuning tuning, int tier, int count, out int salvaged, out double gold)
+        {
+            salvaged = 0;
+            gold = 0d;
+
+            if (tier < 1)
+            {
+                return false;
+            }
+
+            List<int> picked = new List<int>();
+            for (int index = 0; index < state.Bag.Count; index++)
+            {
+                IdleItem one = state.Bag[index];
+                if (one.Tier != tier || one.Locked)
+                {
+                    continue;
+                }
+
+                int at = picked.Count;
+                while (at > 0 && state.Bag[picked[at - 1]].PotentialValue > one.PotentialValue)
+                {
+                    at--;
+                }
+
+                picked.Insert(at, index);
+            }
+
+            if (picked.Count == 0)
+            {
+                return false;
+            }
+
+            if (count > 0 && picked.Count > count)
+            {
+                picked.RemoveRange(count, picked.Count - count);
+            }
+
+            picked.Sort();
+            for (int index = picked.Count - 1; index >= 0; index--)
+            {
+                state.Bag.RemoveAt(picked[index]);
+            }
+
+            salvaged = picked.Count;
+            gold = SalvageGold(tier, tuning) * salvaged;
+            state.Resource += gold;
+            return true;
+        }
+
+        /// <summary>가방 칸 하나 잠금. 잠근 것은 합치기와 분해에서 빠진다.</summary>
+        public static bool TrySetLocked(IdleState state, int bagIndex, bool locked)
+        {
+            if (bagIndex < 0 || bagIndex >= state.Bag.Count)
+            {
+                return false;
+            }
+
+            IdleItem one = state.Bag[bagIndex];
+            one.Locked = locked;
+            state.Bag[bagIndex] = one;
+            return true;
+        }
+
+        /// <summary>
+        /// 등급 내림차순, 같으면 부위 순 (사용자 2026-09-05). 순서가 같은 것끼리는 원래 자리.
+        ///
+        /// ★ 결정적이어야 저장 뒤에도 같은 순서. 안정 정렬 직접 구현 (List.Sort 는 불안정)
+        /// </summary>
+        public static void SortBag(IdleState state)
+        {
+            List<IdleItem> sorted = new List<IdleItem>(state.Bag.Count);
+            for (int index = 0; index < state.Bag.Count; index++)
+            {
+                IdleItem one = state.Bag[index];
+                int at = sorted.Count;
+                while (at > 0 && Before(one, sorted[at - 1]))
+                {
+                    at--;
+                }
+
+                sorted.Insert(at, one);
+            }
+
+            state.Bag.Clear();
+            state.Bag.AddRange(sorted);
+        }
+
+        private static bool Before(IdleItem one, IdleItem other)
+        {
+            if (one.Tier != other.Tier)
+            {
+                return one.Tier > other.Tier;
+            }
+
+            return (int)one.Slot < (int)other.Slot;
         }
 
         /// <summary>

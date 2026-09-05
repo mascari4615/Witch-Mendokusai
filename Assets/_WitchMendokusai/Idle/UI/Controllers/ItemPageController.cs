@@ -43,7 +43,8 @@ namespace WitchMendokusai.Idle.UI
 			Action requestRender,
 			Action<string, float> showFeedback,
 			Action<VisualElement, Func<string>> hookTooltip,
-			float feedbackSeconds)
+			float feedbackSeconds,
+			long lockHoldMilliseconds)
 		{
 			this.session = session;
 			this.content = content;
@@ -70,9 +71,11 @@ namespace WitchMendokusai.Idle.UI
 				int captured = index;
 				Button cell = AddBagCell(bagGrid);
 				hookTooltip(cell, () => BagTip(captured));
+				HookLongPress(cell, lockHoldMilliseconds, () => ToggleLock(captured));
 				bagCells.Add(cell);
 			}
 
+			page.Q<Button>("sort-button").clicked += SortBag;
 			bulkMergeButton = page.Q<Button>("bulk-merge-button");
 			bulkMergeButton.clicked += MergeAll;
 			forgeView = page.Q<VisualElement>("forge-view");
@@ -125,9 +128,10 @@ namespace WitchMendokusai.Idle.UI
 			string wornText = worn.IsEmpty
 				? content.NoWornGearText
 				: content.WornGearSummaryText(session.GearMultiplierOf(worn));
-			return content.BagTipText(
+			string tip = content.BagTipText(
 				content.GearSlotName((int)item.Slot),
 				session.GearMultiplierOf(item), wornText);
+			return item.Locked ? tip + content.LockedTipSuffix : tip;
 		}
 
 		public string WornTip(int slot)
@@ -183,6 +187,7 @@ namespace WitchMendokusai.Idle.UI
 			gearVisualPresenter.SetSprite(icon, (int)item.Slot, item.Tier);
 			potential.text = content.ItemPotentialText(item.IsRaw, item.PotentialValue);
 			cell.SetEnabled(true);
+			cell.EnableInClassList("idle-bag-cell--locked", item.Locked);
 			gearVisualPresenter.SetTierOutline(cell, item.Tier);
 		}
 
@@ -208,6 +213,43 @@ namespace WitchMendokusai.Idle.UI
 					(appraisal.Block == AppraiseBlock.TierTooLow) == false);
 				appraiseButtons[tier - 1].SetEnabled(appraisal.Block == AppraiseBlock.None);
 			}
+		}
+
+		/// <summary>길게 누르기. 손을 떼거나 벗어나면 취소. 마우스와 손가락 같음</summary>
+		private static void HookLongPress(VisualElement target, long holdMilliseconds, Action fired)
+		{
+			IVisualElementScheduledItem pending = null;
+			target.RegisterCallback<PointerDownEvent>(_ =>
+			{
+				pending?.Pause();
+				pending = target.schedule.Execute(fired).StartingIn(holdMilliseconds);
+			});
+			target.RegisterCallback<PointerUpEvent>(_ => pending?.Pause());
+			target.RegisterCallback<PointerLeaveEvent>(_ => pending?.Pause());
+			target.RegisterCallback<PointerCancelEvent>(_ => pending?.Pause());
+		}
+
+		private void ToggleLock(int bagIndex)
+		{
+			IdleSnapshot snapshot = session.Capture();
+			if (bagIndex < 0 || bagIndex >= snapshot.Bag.Length)
+			{
+				return;
+			}
+
+			if (session.Send(new IdleLockItemIntent(bagIndex, snapshot.Bag[bagIndex].Locked == false)))
+			{
+				writeDown();
+			}
+
+			requestRender();
+		}
+
+		private void SortBag()
+		{
+			session.Send(new IdleSortBagIntent());
+			writeDown();
+			requestRender();
 		}
 
 		private void MergeAll()

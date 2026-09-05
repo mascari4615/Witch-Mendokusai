@@ -356,6 +356,12 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// <summary>합치기 한 번에 드는 자원 — 감정의 절반으로 둔다(합치기가 더 흔한 행동이라).</summary>
         public double MergeCostFactor { get; set; } = 0d;
 
+        /// <summary>분해 한 개가 주는 골드 (등급 1 기준). 등급마다 <see cref="SalvageGoldRatio"/> 배 (사용자 2026-09-05)</summary>
+        public double SalvageGoldBase { get; set; } = 20d;
+
+        /// <summary>등급 하나 위마다 분해 골드가 이만큼 곱해진다.</summary>
+        public double SalvageGoldRatio { get; set; } = 3d;
+
         /// <summary>
         /// 아직 한 번도 안 환생했을 때의 등급 상한.
         ///

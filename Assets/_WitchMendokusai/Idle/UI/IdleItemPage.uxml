@@ -7,7 +7,10 @@
             <ui:Button name="forge-subtab" text="공방" class="idle-subtab" />
         </ui:VisualElement>
         <ui:VisualElement name="bag-view">
-            <ui:Label name="gear-summary" class="idle-row-title" />
+            <ui:VisualElement class="idle-bag-head">
+                <ui:Label name="gear-summary" class="idle-row-title" />
+                <ui:Button name="sort-button" text="정렬" class="idle-row-button idle-bag-sort" />
+            </ui:VisualElement>
             <ui:VisualElement name="bag-grid" class="idle-bag" />
             <ui:Button name="bulk-merge-button" class="idle-row-button idle-row-button--strong" />
         </ui:VisualElement>
@@ -33,6 +36,13 @@
             </ui:VisualElement>
             <ui:Label name="forge-title" class="idle-row-title" />
             <ui:Button name="forge-button" text="합치기" class="idle-row-button idle-row-button--strong idle-row-button--tall" />
+            <ui:VisualElement class="idle-salvage-row">
+                <ui:Button name="salvage-x1" class="idle-stat-buy idle-salvage-count" />
+                <ui:Button name="salvage-x10" class="idle-stat-buy idle-salvage-count" />
+                <ui:Button name="salvage-all" class="idle-stat-buy idle-salvage-count" />
+                <ui:Button name="salvage-button" text="분해" class="idle-row-button idle-salvage-button" />
+            </ui:VisualElement>
+            <ui:Label name="salvage-title" class="idle-row-title" />
         </ui:VisualElement>
         <ui:Label name="appraise-cap" text="감정" class="idle-cap" />
         <ui:VisualElement name="appraise-rows" />

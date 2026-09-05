@@ -15,6 +15,7 @@ namespace WitchMendokusai.DomainSDK.Idle
     /// </summary>
     public sealed class IdleSession : IIntentSink<IdleRaiseUpgradeIntent>, IIntentSink<IdlePrestigeIntent>, IIntentSink<IdleAppraiseIntent>, IIntentSink<IdleHoldStageIntent>, IIntentSink<IdleGoToStageIntent>,
         IIntentSink<IdleBuyProducerIntent>, IIntentSink<IdleMergeIntent>, IIntentSink<IdleEquipIntent>,
+        IIntentSink<IdleSalvageIntent>, IIntentSink<IdleLockItemIntent>, IIntentSink<IdleSortBagIntent>,
         IIntentSink<IdleCastCardIntent>, IIntentSink<IdleNextStageIntent>
     {
         private readonly IdleState state;
@@ -322,6 +323,36 @@ namespace WitchMendokusai.DomainSDK.Idle
         public bool Send(IdleMergeIntent intent)
         {
             return IdleGear.TryMerge(state, tuning, intent.Tier, intent.Slot, out IdleItem _);
+        }
+
+        public bool Send(IdleSalvageIntent intent)
+        {
+            return IdleGear.TrySalvage(state, tuning, intent.Tier, intent.Count, out int _, out double _);
+        }
+
+        /// <summary>분해 결과를 돌려주는 길. 화면이 「n개 분해, 골드 +g」를 말한다</summary>
+        public bool TrySalvage(int tier, int count, out int salvaged, out double gold)
+        {
+            return IdleGear.TrySalvage(state, tuning, tier, count, out salvaged, out gold);
+        }
+
+        /// <summary>분해 미리보기. 몇 개가 되고 골드가 얼마인지</summary>
+        public void ViewSalvage(int tier, int count, out int available, out double gold)
+        {
+            available = IdleGear.CountSalvageable(state, tier);
+            int would = count > 0 && count < available ? count : available;
+            gold = IdleGear.SalvageGold(tier, tuning) * would;
+        }
+
+        public bool Send(IdleLockItemIntent intent)
+        {
+            return IdleGear.TrySetLocked(state, intent.BagIndex, intent.Locked);
+        }
+
+        public bool Send(IdleSortBagIntent intent)
+        {
+            IdleGear.SortBag(state);
+            return true;
         }
 
         /// <summary>가방의 것을 찬다.</summary>

@@ -54,6 +54,11 @@ namespace WitchMendokusai.Idle
 		[SerializeField] private string forgeResultFormat;
 		[SerializeField] private string forgeSelectionFormat;
 		[SerializeField] private string forgeEmptyHintFormat;
+		[SerializeField] private string salvageTitleFormat;
+		[SerializeField] private string salvageCountFormat;
+		[SerializeField] private string salvageAllText;
+		[SerializeField] private string salvageFeedbackFormat;
+		[SerializeField] private string lockedTipSuffix;
 		[SerializeField] private string noEquippedGearText;
 		[SerializeField] private string rawEquippedGearText;
 		[SerializeField] private string appraisedEquippedGearText;
@@ -183,6 +188,11 @@ namespace WitchMendokusai.Idle
 		public string ForgeSelectionText(int tier, int count, int needed) =>
 			string.Format(forgeSelectionFormat, tier, count, needed);
 		public string ForgeEmptyHintText(int needed) => string.Format(forgeEmptyHintFormat, needed);
+		public string SalvageTitleText(int count, string gold) => string.Format(salvageTitleFormat, count, gold);
+		public string SalvageCountText(int count) => string.Format(salvageCountFormat, count);
+		public string SalvageAllText => salvageAllText;
+		public string SalvageFeedbackText(int count, string gold) => string.Format(salvageFeedbackFormat, count, gold);
+		public string LockedTipSuffix => lockedTipSuffix;
 		public string EquippedGearText(IdleItem item) => item.IsEmpty
 			? noEquippedGearText
 			: item.IsRaw ? rawEquippedGearText : appraisedEquippedGearText;
@@ -365,7 +375,8 @@ namespace WitchMendokusai.Idle
 				stageFormat, repeatOnText, repeatOffText, goldAmountFormat, goldIncomeFormat, mainSeatText,
 				supportSeatText, growthSuffix, emptySeatText, maxedText, bagSummaryFormat, bagFullSuffix,
 				unidentifiedText, bulkMergeFormat, forgeKindFormat, forgeCellFormat, forgeResultFormat,
-				forgeSelectionFormat, forgeEmptyHintFormat, noEquippedGearText, rawEquippedGearText,
+				forgeSelectionFormat, forgeEmptyHintFormat, salvageTitleFormat, salvageCountFormat, salvageAllText,
+				salvageFeedbackFormat, lockedTipSuffix, noEquippedGearText, rawEquippedGearText,
 				appraisedEquippedGearText, potentialFormat, gearPotentialFormat, dungeonRowFormat, awaySpanFormat,
 				awayWarningFormat, selectHeroBeforeGearText, appraiseUnavailableFormat, appraiseAvailableFormat,
 				codexSummaryFormat, codexOwnedHeroFormat, codexHiddenHeroFormat, bagUpgradeFormat, bagUpgradeMaxText,

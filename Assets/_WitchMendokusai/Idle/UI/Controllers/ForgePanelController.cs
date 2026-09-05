@@ -23,7 +23,13 @@ namespace WitchMendokusai.Idle.UI
 		private readonly Label result;
 		private readonly Label title;
 		private readonly Button mergeButton;
+		private readonly Button[] salvageCounts = new Button[3];
+		private readonly Button salvageButton;
+		private readonly Label salvageTitle;
 		private int tier;
+		/// <summary>분해 개수. 0 은 전부</summary>
+		private int salvageCount = 1;
+		private static readonly int[] SALVAGE_COUNTS = { 1, 10, 0 };
 
 		public ForgePanelController(
 			VisualElement page,
@@ -55,6 +61,20 @@ namespace WitchMendokusai.Idle.UI
 			title = page.Q<Label>("forge-title");
 			mergeButton = page.Q<Button>("forge-button");
 			mergeButton.clicked += Merge;
+
+			salvageCounts[0] = page.Q<Button>("salvage-x1");
+			salvageCounts[1] = page.Q<Button>("salvage-x10");
+			salvageCounts[2] = page.Q<Button>("salvage-all");
+			for (int index = 0; index < salvageCounts.Length; index++)
+			{
+				int captured = SALVAGE_COUNTS[index];
+				salvageCounts[index].text = captured > 0 ? content.SalvageCountText(captured) : content.SalvageAllText;
+				salvageCounts[index].clicked += () => PickSalvageCount(captured);
+			}
+
+			salvageButton = page.Q<Button>("salvage-button");
+			salvageButton.clicked += Salvage;
+			salvageTitle = page.Q<Label>("salvage-title");
 		}
 
 		public void Render(IdleSnapshot snapshot)
@@ -78,6 +98,8 @@ namespace WitchMendokusai.Idle.UI
 				cells[index].text = filled ? content.ForgeCellText(tier) : string.Empty;
 				gearVisualPresenter.SetTierOutline(cells[index], filled ? tier : 0);
 			}
+
+			RenderSalvage();
 
 			bool ready = tier > 0 && have >= snapshot.MergeCount;
 			result.text = tier > 0 ? content.ForgeResultText(tier + 1) : string.Empty;
@@ -167,6 +189,45 @@ namespace WitchMendokusai.Idle.UI
 			{
 				showFeedback(content.MergeFeedbackText(
 					content.GearSlotName((int)IdleItemSlot.Head), tier), feedbackSeconds);
+				writeDown();
+			}
+
+			requestRender();
+		}
+
+		/// <summary>분해 줄. 고른 등급을 x1, x10, 전부 중 하나로 골드로 (사용자 2026-09-05)</summary>
+		private void RenderSalvage()
+		{
+			session.ViewSalvage(tier, salvageCount, out int available, out double gold);
+			int would = salvageCount > 0 && salvageCount < available ? salvageCount : available;
+			for (int index = 0; index < salvageCounts.Length; index++)
+			{
+				salvageCounts[index].EnableInClassList("idle-salvage-count--on", SALVAGE_COUNTS[index] == salvageCount);
+			}
+
+			salvageTitle.text = tier > 0 && available > 0
+				? content.SalvageTitleText(would, WitchMendokusai.Numerics.BigNumberText.Format(gold))
+				: string.Empty;
+			salvageButton.SetEnabled(tier > 0 && available > 0);
+		}
+
+		private void PickSalvageCount(int count)
+		{
+			salvageCount = count;
+			requestRender();
+		}
+
+		private void Salvage()
+		{
+			if (tier <= 0)
+			{
+				return;
+			}
+
+			if (session.TrySalvage(tier, salvageCount, out int salvaged, out double gold))
+			{
+				showFeedback(content.SalvageFeedbackText(
+					salvaged, WitchMendokusai.Numerics.BigNumberText.Format(gold)), feedbackSeconds);
 				writeDown();
 			}
 

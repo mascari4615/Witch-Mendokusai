@@ -176,7 +176,8 @@ namespace WitchMendokusai.Idle.UI
 				RequestRender,
 				SayOnce,
 				playGood,
-				settings.NoteSeconds);
+				settings.NoteSeconds,
+				settings.BagLockHoldMilliseconds);
 		}
 
 		private void BuildAuxiliaryPopups()

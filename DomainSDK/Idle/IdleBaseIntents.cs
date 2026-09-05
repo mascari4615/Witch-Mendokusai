@@ -13,6 +13,37 @@ namespace WitchMendokusai.DomainSDK.Idle
         }
     }
 
+    /// <summary>「이 등급을 n개 분해한다」. 0 이하면 전부 (사용자 2026-09-05)</summary>
+    public readonly struct IdleSalvageIntent : IGameIntent
+    {
+        public int Tier { get; }
+        public int Count { get; }
+
+        public IdleSalvageIntent(int tier, int count)
+        {
+            Tier = tier;
+            Count = count;
+        }
+    }
+
+    /// <summary>「가방 칸 하나를 잠근다(푼다)」. 잠근 것은 합치기와 분해에서 제외</summary>
+    public readonly struct IdleLockItemIntent : IGameIntent
+    {
+        public int BagIndex { get; }
+        public bool Locked { get; }
+
+        public IdleLockItemIntent(int bagIndex, bool locked)
+        {
+            BagIndex = bagIndex;
+            Locked = locked;
+        }
+    }
+
+    /// <summary>「가방을 정렬한다」. 등급 내림차순, 같으면 부위 순</summary>
+    public readonly struct IdleSortBagIntent : IGameIntent
+    {
+    }
+
     /// <summary>「이 부위·이 등급을 합친다」 — 같은 것 셋이 한 단계 위가 된다.</summary>
     public readonly struct IdleMergeIntent : IGameIntent
     {

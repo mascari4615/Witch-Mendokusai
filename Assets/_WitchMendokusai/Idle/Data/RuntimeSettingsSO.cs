@@ -21,6 +21,8 @@ namespace WitchMendokusai.Idle
 		[SerializeField, Min(1)] private int modalRepaintMilliseconds = 16;
 		/// <summary>카드 조준 중 세상의 시간 배율. 1 이면 느려짐 없음 (layout.md 손패, 사용자 2026-09-05)</summary>
 		[SerializeField, Range(0.05f, 1f)] private float aimTimeScale = 0.2f;
+		/// <summary>가방 칸을 이만큼 누르고 있으면 잠금 토글 (사용자 2026-09-05)</summary>
+		[SerializeField, Min(0.1f)] private float bagLockHoldSeconds = 0.5f;
 		[SerializeField, Min(1)] private int previewStage = 4;
 		[SerializeField, Min(0f)] private double previewResource = 500d;
 		[SerializeField] private int[] previewPartyHeroIds = { 0, 3, 1 };
@@ -32,6 +34,7 @@ namespace WitchMendokusai.Idle
 		public float SoundMinGapSeconds => soundMinGapSeconds;
 		public long ModalRepaintMilliseconds => modalRepaintMilliseconds;
 		public float AimTimeScale => aimTimeScale;
+		public long BagLockHoldMilliseconds => (long)(bagLockHoldSeconds * 1000f);
 
 		public PointerTooltipController.Layout CreateTooltipLayout()
 		{
@@ -75,7 +78,8 @@ namespace WitchMendokusai.Idle
 				|| tooltipTouchSeconds <= 0f || tooltipMouseGap < 0f || tooltipTouchGap < 0f
 				|| tooltipEdgeMargin < 0f || tooltipRootFallbackSize.x <= 0f || tooltipRootFallbackSize.y <= 0f
 				|| tooltipTipFallbackSize.x <= 0f || tooltipTipFallbackSize.y <= 0f
-				|| modalRepaintMilliseconds <= 0 || aimTimeScale <= 0f || aimTimeScale > 1f || previewStage <= 0
+				|| modalRepaintMilliseconds <= 0 || aimTimeScale <= 0f || aimTimeScale > 1f || bagLockHoldSeconds <= 0f
+				|| previewStage <= 0
 				|| previewResource < 0d || previewPartyHeroIds == null || previewPartyHeroIds.Length == 0)
 			{
 				error = "runtime timings and sound values must be in range";

@@ -43,7 +43,8 @@ namespace WitchMendokusai.Idle.UI
 			Action requestRender,
 			Action<string, float> showNote,
 			Action playGood,
-			float noteSeconds)
+			float noteSeconds,
+			long lockHoldMilliseconds)
 		{
 			itemPage = new ItemPageController(
 				Bind(sidePanel, root, ManagementPage.Item, "item-page-host"),
@@ -58,7 +59,8 @@ namespace WitchMendokusai.Idle.UI
 				requestRender,
 				showNote,
 				hookTooltip,
-				noteSeconds);
+				noteSeconds,
+				lockHoldMilliseconds);
 			dollPage = new DollPageController(
 				Bind(sidePanel, root, ManagementPage.Doll, "doll-page-host"),
 				session,

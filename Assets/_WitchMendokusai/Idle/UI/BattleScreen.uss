@@ -1038,6 +1038,57 @@
 	opacity: 0.3;
 }
 
+/* 잠금 표시. 칸 우상. 길게 누르면 토글 (사용자 2026-09-05) */
+.idle-bag-lock {
+	position: absolute;
+	right: 4px;
+	top: 4px;
+	padding: 1px 5px;
+	font-size: 12px;
+	color: rgb(17, 17, 17);
+	background-color: rgb(245, 175, 16);
+	display: none;
+}
+
+.idle-bag-cell--locked .idle-bag-lock {
+	display: flex;
+}
+
+.idle-bag-head {
+	flex-direction: row;
+	align-items: center;
+	justify-content: space-between;
+}
+
+.idle-bag-sort {
+	width: 96px;
+	min-height: 44px;
+	margin-left: 8px;
+}
+
+/* 분해. 공방의 고른 등급을 개수만큼 골드로 */
+.idle-salvage-row {
+	flex-direction: row;
+	align-items: center;
+	margin-top: 8px;
+}
+
+.idle-salvage-count {
+	width: 88px;
+	height: 56px;
+	margin-right: 6px;
+}
+
+.idle-salvage-count--on {
+	border-color: rgb(245, 175, 16);
+	color: rgb(245, 175, 16);
+}
+
+.idle-salvage-button {
+	flex-grow: 1;
+	min-height: 56px;
+}
+
 .idle-warn {
 	color: rgb(220, 100, 100);
 	-unity-font-style: bold;

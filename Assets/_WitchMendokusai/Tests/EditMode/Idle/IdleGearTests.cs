@@ -296,6 +296,85 @@ namespace WitchMendokusai.Tests
 		}
 
 		/// <summary>네 축을 화면이 적은 순서대로 — 공격력·기지·속도·떨구기.</summary>
+		/// <summary>★ 잠근 것은 합치기 재료에서 빠진다. 세는 것도 (사용자 2026-09-05)</summary>
+		[Test]
+		public void Locked_IsNeverMerged()
+		{
+			IdleTuning tuning = new IdleTuning();
+			IdleState state = new IdleState();
+			state.Resource = 1e9d;
+
+			for (int spare = 0; spare < tuning.MergeCount; spare++)
+			{
+				state.Bag.Add(new IdleItem(2, IdleItemSlot.Head));
+			}
+
+			Assert.IsTrue(IdleGear.TrySetLocked(state, 0, true));
+			Assert.AreEqual(0, IdleGear.CountMergeable(state, tuning, 2, IdleItemSlot.Head), "하나 잠갔으니 한 벌이 안 된다");
+			Assert.IsFalse(IdleGear.TryMerge(state, tuning, 2, IdleItemSlot.Head, out IdleItem _));
+
+			state.Bag.Add(new IdleItem(2, IdleItemSlot.Head));
+			Assert.IsTrue(IdleGear.TryMerge(state, tuning, 2, IdleItemSlot.Head, out IdleItem _));
+			Assert.IsTrue(state.Bag[0].Locked, "잠근 것이 남아야 한다");
+		}
+
+		/// <summary>★ 분해도 나쁜 것부터, 잠근 것은 안 건드리고, 골드는 등급 곡선대로</summary>
+		[Test]
+		public void Salvage_EatsWorstFirst_SkipsLocked_PaysByTier()
+		{
+			IdleTuning tuning = new IdleTuning();
+			IdleState state = new IdleState();
+			state.Resource = 0d;
+
+			IdleItem treasure = new IdleItem(3, IdleItemSlot.Head);
+			treasure.PotentialValue = 0.9d;
+			treasure.PotentialGradeValue = 3;
+			state.Bag.Add(treasure);
+			IdleItem kept = new IdleItem(3, IdleItemSlot.Body);
+			kept.Locked = true;
+			state.Bag.Add(kept);
+			state.Bag.Add(new IdleItem(3, IdleItemSlot.Hands));
+			state.Bag.Add(new IdleItem(3, IdleItemSlot.Feet));
+
+			Assert.AreEqual(3, IdleGear.CountSalvageable(state, 3), "잠근 것 빼고 셋");
+
+			Assert.IsTrue(IdleGear.TrySalvage(state, tuning, 3, 2, out int salvaged, out double gold));
+			Assert.AreEqual(2, salvaged);
+			Assert.AreEqual(IdleGear.SalvageGold(3, tuning) * 2d, gold, 1e-9d);
+			Assert.AreEqual(gold, state.Resource, 1e-9d);
+			Assert.AreEqual(2, state.Bag.Count);
+			Assert.IsTrue(state.Bag[0].PotentialValue > 0.8d, "좋은 것은 남는다");
+			Assert.IsTrue(state.Bag[1].Locked, "잠근 것은 남는다");
+
+			Assert.IsTrue(IdleGear.TrySalvage(state, tuning, 3, 0, out salvaged, out gold), "전부는 남은 하나");
+			Assert.AreEqual(1, salvaged);
+			Assert.IsFalse(IdleGear.TrySalvage(state, tuning, 3, 0, out salvaged, out gold), "잠근 것만 남으면 실패");
+		}
+
+		/// <summary>★ 정렬은 등급 내림차순, 같으면 부위 순. 같은 것끼리는 자리 유지</summary>
+		[Test]
+		public void SortBag_TierDescThenSlot_Stable()
+		{
+			IdleState state = new IdleState();
+			IdleItem first = new IdleItem(2, IdleItemSlot.Feet);
+			first.PotentialValue = 0.1d;
+			IdleItem second = new IdleItem(2, IdleItemSlot.Feet);
+			second.PotentialValue = 0.2d;
+			state.Bag.Add(first);
+			state.Bag.Add(new IdleItem(1, IdleItemSlot.Head));
+			state.Bag.Add(new IdleItem(3, IdleItemSlot.Body));
+			state.Bag.Add(second);
+			state.Bag.Add(new IdleItem(2, IdleItemSlot.Head));
+
+			IdleGear.SortBag(state);
+
+			Assert.AreEqual(3, state.Bag[0].Tier);
+			Assert.AreEqual(IdleItemSlot.Head, state.Bag[1].Slot);
+			Assert.AreEqual(0.1d, state.Bag[2].PotentialValue, 1e-9d, "같은 등급 같은 부위는 원래 순서");
+			Assert.AreEqual(0.2d, state.Bag[3].PotentialValue, 1e-9d);
+			Assert.AreEqual(1, state.Bag[4].Tier);
+		}
+
 		private static double[] Axes(IdleState state, IdleTuning tuning)
 		{
 			return new double[]

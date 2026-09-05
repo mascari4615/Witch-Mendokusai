@@ -224,6 +224,8 @@ namespace WitchMendokusai.Idle
 
 		[Tooltip("합치기 값 = 그 등급 감정 값 x 이 값.")]
 		[SerializeField] private double mergeCostFactor = 0d;
+		[SerializeField] private double salvageGoldBase = 20d;
+		[SerializeField] private double salvageGoldRatio = 3d;
 
 		[Tooltip("잠재 등급의 최고값 = 최저값 x 이 값.")]
 		[SerializeField] private double potentialSpread = 2d;
@@ -481,6 +483,8 @@ namespace WitchMendokusai.Idle
 				AppraiseBaseCost = appraiseBaseCost,
 				AppraiseCostRatio = appraiseCostRatio,
 				MergeCostFactor = mergeCostFactor,
+				SalvageGoldBase = salvageGoldBase,
+				SalvageGoldRatio = salvageGoldRatio,
 				PotentialSpread = potentialSpread,
 				BaseMaxTier = baseMaxTier,
 				TiersPerAscension = tiersPerAscension,

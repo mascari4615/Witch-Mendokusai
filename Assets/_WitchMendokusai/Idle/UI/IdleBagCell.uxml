@@ -3,5 +3,6 @@
     <ui:Button name="bag-cell" class="idle-bag-cell">
         <ui:VisualElement name="bag-icon" class="idle-gear-visual" />
         <ui:Label name="bag-potential" class="idle-gear-potential" />
+        <ui:Label name="bag-lock" text="잠금" class="idle-bag-lock" />
     </ui:Button>
 </ui:UXML>

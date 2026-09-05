@@ -111,6 +111,11 @@ MonoBehaviour:
   forgeResultFormat: "랜덤\n{0}단계"
   forgeSelectionFormat: '{0}단계  {1}/{2}'
   forgeEmptyHintFormat: 같은 단계 {0}개가 랜덤 장비 한 단계 위로
+  salvageTitleFormat: '{0}개 분해. 골드 {1}'
+  salvageCountFormat: '×{0}'
+  salvageAllText: 전부
+  salvageFeedbackFormat: '{0}개 분해. 골드 +{1}'
+  lockedTipSuffix: "\n잠금. 합치기와 분해에서 뺀다. 길게 누르면 푼다"
   noEquippedGearText: 지금 낀 것 없음
   rawEquippedGearText: 지금 낀 장비, 미감정
   appraisedEquippedGearText: 지금 낀 장비, 감정됨

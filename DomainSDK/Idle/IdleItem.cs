@@ -44,12 +44,16 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// <summary>그 값의 등급 (<see cref="PotentialGrade"/>).</summary>
         public int PotentialGradeValue;
 
+        /// <summary>잠금. 합치기와 분해 재료에서 제외 (사용자 2026-09-05). 차는 것은 됨</summary>
+        public bool Locked;
+
         public IdleItem(int tier, IdleItemSlot slot)
         {
             Tier = tier;
             Slot = slot;
             PotentialValue = 0d;
             PotentialGradeValue = 0;
+            Locked = false;
         }
 
         /// <summary>아직 감정 안 했다.</summary>

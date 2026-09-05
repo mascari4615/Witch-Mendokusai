@@ -82,6 +82,8 @@ MonoBehaviour:
   appraiseBaseCost: 50
   appraiseCostRatio: 4
   mergeCostFactor: 0
+  salvageGoldBase: 20
+  salvageGoldRatio: 3
   potentialSpread: 2
   baseMaxTier: 6
   tiersPerAscension: 2

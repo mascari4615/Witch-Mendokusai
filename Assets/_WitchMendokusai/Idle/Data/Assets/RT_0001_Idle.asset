@@ -25,6 +25,7 @@ MonoBehaviour:
   tooltipTipFallbackSize: {x: 300, y: 120}
   modalRepaintMilliseconds: 16
   aimTimeScale: 0.2
+  bagLockHoldSeconds: 0.5
   previewStage: 4
   previewResource: 500
   previewPartyHeroIds:
