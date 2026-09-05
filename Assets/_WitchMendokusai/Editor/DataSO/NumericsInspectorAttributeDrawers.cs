@@ -16,7 +16,8 @@ namespace WitchMendokusai.EditorTools
 	[CustomPropertyDrawer(typeof(TowerDefenseMapParameters))]
 	public sealed class SdkAnnotatedStructDrawer : PropertyDrawer
 	{
-		private const float HEADER_HEIGHT_SCALE = 1.5f;
+		// 헤더 줄 높이: 한 줄 + 위 여백 (Unity Header 와 같은 비율)
+		private static float HeaderHeight => EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing * 4f;
 
 		public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
 		{
@@ -31,7 +32,7 @@ namespace WitchMendokusai.EditorTools
 				FieldInfo field = FieldOf(property, child);
 				if (field != null && field.GetCustomAttribute<SdkHeaderAttribute>() != null)
 				{
-					height += EditorGUIUtility.singleLineHeight * HEADER_HEIGHT_SCALE;
+					height += HeaderHeight;
 				}
 				height += EditorGUI.GetPropertyHeight(child, true) + EditorGUIUtility.standardVerticalSpacing;
 			}
@@ -55,7 +56,7 @@ namespace WitchMendokusai.EditorTools
 				SdkHeaderAttribute header = field?.GetCustomAttribute<SdkHeaderAttribute>();
 				if (header != null)
 				{
-					float headerHeight = EditorGUIUtility.singleLineHeight * HEADER_HEIGHT_SCALE;
+					float headerHeight = HeaderHeight;
 					Rect headerRect = new Rect(position.x, y + headerHeight - EditorGUIUtility.singleLineHeight, position.width, EditorGUIUtility.singleLineHeight);
 					GUI.Label(EditorGUI.IndentedRect(headerRect), header.header, EditorStyles.boldLabel);
 					y += headerHeight;
