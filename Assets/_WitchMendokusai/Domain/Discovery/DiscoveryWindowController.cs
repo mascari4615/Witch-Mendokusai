@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UIElements;
 using VContainer;
+using WitchMendokusai.DomainSDK.Discovery;
 
 namespace WitchMendokusai
 {
@@ -71,6 +72,10 @@ namespace WitchMendokusai
 
 		private void RegisterBuiltins()
 		{
+			// 해금 출처 꽂기 (호스트 몫). 판정 층은 누가 꽂는지 모름
+			// 블록, 아이템, 주민은 출처 없음 -> 전부 열림 (해금 기록 부재)
+			DiscoveryUnlocks.Register(new PlantSpecimenUnlockSource());
+
 			if (Providers.FindById("block") == null)
 				Providers.Register(new BlockDiscoveryCategory());
 			if (Providers.FindById("item") == null)

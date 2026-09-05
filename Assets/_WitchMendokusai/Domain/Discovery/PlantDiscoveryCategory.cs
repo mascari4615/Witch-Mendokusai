@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -11,12 +12,15 @@ namespace WitchMendokusai
 	/// 「봐줘야 진짜가 된다」: 관찰→개화→수확된 식물만 영구 표본으로 도감에 남는다(수확해 사라져도 영원).
 	///
 	/// ItemDiscoveryCategory 패턴. 작물 .asset 미존재(Grey Box) 시 빈 목록(throw X — TryGetValue 가드).
-	/// 해금은 `DiscoveryUnlocks` 에 묻는다. 표본을 출처로 꽂는 것은 다음 조각 — 지금은 출처가 없어 전부 열림이고,
-	/// 표본 여부는 BuildDetail 텍스트로 구분한다.
+	/// 해금은 `DiscoveryUnlocks` 에 묻는다. 출처는 `PlantSpecimenUnlockSource` (표본으로 남은 것만 열림).
 	/// </summary>
 	public class PlantDiscoveryCategory : IEntryProvider
 	{
-		public string Id => "plant";
+		public const string CATALOG_ID = "plant";
+
+		private const string ENTRY_ID_PREFIX = "P_";
+
+		public string Id => CATALOG_ID;
 		public string DisplayName => "마도 식물";
 		public Sprite Icon => null;
 		public IReadOnlyList<string> SubGroups => null;
@@ -37,7 +41,7 @@ namespace WitchMendokusai
 						continue;
 					}
 
-					string entryId = $"P_{plant.ID}";
+					string entryId = ToEntryId(plant.ID);
 
 					entries.Add(new EntryDescriptor(
 						id: entryId,
@@ -52,6 +56,21 @@ namespace WitchMendokusai
 		}
 
 		public void OnDeactivate() => entries.Clear();
+
+		/// <summary>식물 데이터 ID 를 도감 항목 ID 로. 해금 출처가 되돌리려면 <see cref="TryParseEntryId"/>.</summary>
+		public static string ToEntryId(int plantDataId) => ENTRY_ID_PREFIX + plantDataId;
+
+		/// <summary>도감 항목 ID 에서 식물 데이터 ID 를 되돌린다. 모양이 다르면 false.</summary>
+		public static bool TryParseEntryId(string entryId, out int plantDataId)
+		{
+			plantDataId = 0;
+			if (entryId == null || entryId.StartsWith(ENTRY_ID_PREFIX, StringComparison.Ordinal) == false)
+			{
+				return false;
+			}
+
+			return int.TryParse(entryId.Substring(ENTRY_ID_PREFIX.Length), out plantDataId);
+		}
 
 		public IReadOnlyList<EntryDescriptor> GetEntries() => entries;
 
