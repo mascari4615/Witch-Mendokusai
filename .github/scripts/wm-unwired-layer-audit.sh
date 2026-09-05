@@ -27,7 +27,7 @@ repo_root=$(git rev-parse --show-toplevel 2>/dev/null) || {
 }
 cd "$repo_root" || exit 2
 
-sdk_root="Assets/_WitchMendokusai/DomainSDK"
+sdk_root="DomainSDK"
 baseline=".github/scripts/wm-unwired-layer-baseline.tsv"
 
 if [ ! -d "$sdk_root" ]; then

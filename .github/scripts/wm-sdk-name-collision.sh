@@ -9,7 +9,7 @@
 # 게임 층이 먼저 있었으므로 **판정 층이 이름을 양보한다**(WorldDoll / WorldDollView).
 set -euo pipefail
 
-SDK_DIR='Assets/_WitchMendokusai/DomainSDK'
+SDK_DIR='DomainSDK'
 GAME_DIRS=('Assets/_WitchMendokusai/Domain' 'Assets/_WitchMendokusai/Core' 'Assets/_WitchMendokusai/Network' 'Assets/_WitchMendokusai/ViewModel')
 
 if [ ! -d "$SDK_DIR" ]; then

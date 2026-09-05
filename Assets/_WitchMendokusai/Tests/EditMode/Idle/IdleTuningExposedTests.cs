@@ -34,7 +34,7 @@ namespace WitchMendokusai.Tests
 		{
 			string root = FindProjectRoot();
 			string core = File.ReadAllText(Path.Combine(root,
-				"Assets/_WitchMendokusai/DomainSDK/Idle/IdleTuning.cs"));
+				"DomainSDK/Idle/IdleTuning.cs"));
 			string exposed = File.ReadAllText(Path.Combine(root,
 				"Assets/_WitchMendokusai/Idle/Data/TuningSO.cs"));
 
@@ -90,7 +90,7 @@ namespace WitchMendokusai.Tests
 		{
 			string root = FindProjectRoot();
 			string core = File.ReadAllText(Path.Combine(root,
-				"Assets/_WitchMendokusai/DomainSDK/Idle/IdleTuning.cs"));
+				"DomainSDK/Idle/IdleTuning.cs"));
 			string exposed = File.ReadAllText(Path.Combine(root,
 				"Assets/_WitchMendokusai/Idle/Data/TuningSO.cs"));
 

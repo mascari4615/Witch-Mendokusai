@@ -22,7 +22,7 @@ import { resolve, join } from 'node:path';
 const here = fileURLToPath(new URL('.', import.meta.url));
 const repo = resolve(here, '..', '..');
 
-const contract = resolve(repo, 'Assets/_WitchMendokusai/DomainSDK/Net/IWorldLink.cs');
+const contract = resolve(repo, 'DomainSDK/Net/IWorldLink.cs');
 const roots = [
   'Assets/_WitchMendokusai/Domain',
   'Assets/_WitchMendokusai/Core',
@@ -228,7 +228,7 @@ for (const source of sources) {
 //   못 도는 일이 실제로 있다(라이선스·점유). 그동안 게임 창은 <b>조용히 뒤처진다</b> —
 //   컴파일은 되고, 화면만 안 따라온다. 그건 유니티 없이도 잴 수 있다.
 const clientPath = resolve(repo, 'Assets/_WitchMendokusai/Network/WebWorldClient.cs');
-const typesPath = resolve(repo, 'Assets/_WitchMendokusai/DomainSDK/Net/NetMessages.cs');
+const typesPath = resolve(repo, 'DomainSDK/Net/NetMessages.cs');
 
 let clientSource = '';
 let typesSource = '';

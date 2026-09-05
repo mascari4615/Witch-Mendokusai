@@ -103,3 +103,4 @@ jobs:
 
           SCANNER
           node /tmp/dupscan.mjs Assets/_WitchMendokusai
+          node /tmp/dupscan.mjs DomainSDK

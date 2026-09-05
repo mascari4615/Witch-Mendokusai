@@ -3,7 +3,7 @@
   <!--
     TASK-WM-214 — DomainSDK 를 Unity 없이 컴파일한다.
 
-    이 프로젝트는 Unity 가 만드는 .csproj 와 무관하다. 같은 소스(Assets/_WitchMendokusai/DomainSDK)를
+    이 프로젝트는 Unity 가 만드는 .csproj 와 무관하다. 같은 소스(DomainSDK, 레포 루트의 로컬 UPM 패키지)를
     엔진 밖 컴파일러로 한 번 더 굽는 것이 목적 — "판정이 정말 엔진에서 독립했는가" 를 매번 증명하는 게이트.
     빌드가 초록이면 그 순간의 DomainSDK 는 헤드리스 서버 / 웹 백엔드에서 그대로 돌 수 있다.
 
@@ -28,7 +28,7 @@
     <EnforceCodeStyleInBuild>false</EnforceCodeStyleInBuild>
     <AnalysisLevel>none</AnalysisLevel>
     <!-- 소스는 Assets 아래 한 벌뿐 — 여기로 복사하지 않는다(사본 = drift). -->
-    <SdkSourceRoot>$(MSBuildThisFileDirectory)../Assets/_WitchMendokusai/DomainSDK/</SdkSourceRoot>
+    <SdkSourceRoot>$(MSBuildThisFileDirectory)../DomainSDK/</SdkSourceRoot>
   </PropertyGroup>
 
   <ItemGroup>

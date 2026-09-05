@@ -16,7 +16,7 @@ on:
     paths:
       - 'Assets/_WitchMendokusai/Core/**'
       - 'Assets/_WitchMendokusai/Domain/**'
-      - 'Assets/_WitchMendokusai/DomainSDK/**'
+      - 'DomainSDK/**'
       - 'Assets/_WitchMendokusai/Mods/**'
       - 'Assets/_WitchMendokusai/Network/**'
       - 'Portable/**'
@@ -33,7 +33,7 @@ on:
     paths:
       - 'Assets/_WitchMendokusai/Core/**'
       - 'Assets/_WitchMendokusai/Domain/**'
-      - 'Assets/_WitchMendokusai/DomainSDK/**'
+      - 'DomainSDK/**'
       - 'Assets/_WitchMendokusai/Mods/**'
       - 'Assets/_WitchMendokusai/Network/**'
       - 'Portable/**'
@@ -100,7 +100,7 @@ jobs:
                 FAIL=1
               fi
             done
-          done < <(find "$ROOT" -name '*.asmdef' -print0)
+          done < <(find "$ROOT" DomainSDK -name '*.asmdef' -print0)
 
           # ── 0-후) 「대상이 0개면 통과」 금지 ─────────────────────────────────────
           #    ★ 왜 (2026-08-06 실측): 아래 검사들은 전부 `grep ... 2>/dev/null || true` 다.
@@ -111,19 +111,19 @@ jobs:
           #    (memo 도구 6개가 폴더명 오타로 내내 조용히 실패 — automation-debt-ledger 참조).
           #    `Assets/_WitchMendokusai` 는 TASK-WM-056-D(폴더 재구조, 진행중)가 건드릴 수 있는 경로다.
           #    그래서 **찾은 게 0개면 통과가 아니라 실패**로 둔다. 셈은 위 루프와 같은 find 를 쓴다.
-          ASMDEF_COUNT=$(find "$ROOT" -name '*.asmdef' 2>/dev/null | wc -l)
+          ASMDEF_COUNT=$(find "$ROOT" DomainSDK -name '*.asmdef' 2>/dev/null | wc -l)
           if [ ! -d "$ROOT" ] || [ "$ASMDEF_COUNT" -eq 0 ]; then
             echo "::error::검사 대상이 0개다 (ROOT='$ROOT', asmdef=$ASMDEF_COUNT)."
             echo "::error::  위반이 없는 게 아니라 **아무것도 안 본 것**이다 — 경로가 옮겨졌는지 확인할 것."
             echo "::error::  정본 경로 수정 = memo/dotfiles/workflows/wm-asmdef-boundary.yml 의 env.ROOT"
             exit 1
           fi
-          echo "검사 대상 asmdef ${ASMDEF_COUNT}개 (ROOT=$ROOT)"
+          echo "검사 대상 asmdef ${ASMDEF_COUNT}개 (ROOT=$ROOT + DomainSDK)"
 
           # ── 2) FishNet 소스 토큰 — Network 외 layer 의 NetCode 직접 결합 금지 ──────
           #    asmdef GUID 참조·using·reflection 어느 우회든 잡는 방어선.
           #    FishNet 네임스페이스는 고유 = false-positive 0.
-          NETFREE="$ROOT/Core $ROOT/Domain $ROOT/DomainSDK $ROOT/Mods"
+          NETFREE="$ROOT/Core $ROOT/Domain DomainSDK $ROOT/Mods"
           FN=$(grep -rnE '(^|[^A-Za-z_.])(using[[:space:]]+FishNet|FishNet\.)' \
             $NETFREE --include='*.cs' 2>/dev/null || true)
           if [ -n "$FN" ]; then
@@ -135,7 +135,7 @@ jobs:
           # ── 3) DomainSDK·Mods reflection 크로스레이어 escape — Foundation/샌드박스 순수성 ──
           #    정당한 reflection 은 줄 끝 `// modding-reflection-ok` 로 면제.
           RF=$(grep -rnE '(Assembly\.Load|Assembly\.GetType|Type\.GetType|AppDomain\.)' \
-            "$ROOT/DomainSDK" "$ROOT/Mods" --include='*.cs' 2>/dev/null \
+            "DomainSDK" "$ROOT/Mods" --include='*.cs' 2>/dev/null \
             | grep -v 'modding-reflection-ok' || true)
           if [ -n "$RF" ]; then
             echo "::error::DomainSDK/Mods reflection 크로스레이어 escape 의심 (정당 시 // modding-reflection-ok):"
@@ -180,7 +180,7 @@ jobs:
             echo "::error::  (한 번 실제로 났던 사고: 루트 .gitignore 의 *.csproj 에 걸려 저장소에 안 들어가 있었다.)"
             exit 1
           fi
-          COUNT=$(find Assets/_WitchMendokusai/DomainSDK -name '*.cs' | wc -l)
+          COUNT=$(find DomainSDK -name '*.cs' | wc -l)
           if [ "$COUNT" -lt 50 ]; then
             echo "::error::DomainSDK .cs 가 ${COUNT}개뿐이다 — 경로가 옮겨졌는지 확인할 것."
             exit 1

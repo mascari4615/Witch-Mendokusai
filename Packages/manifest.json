@@ -7,6 +7,7 @@
     "com.firstgeargames.fishnet": "file:com.firstgeargames.fishnet",
     "com.firstgeargames.fishyfacepunch": "file:com.firstgeargames.fishyfacepunch",
     "com.mascari4615.karmo-editor": "file:com.mascari4615.karmo-editor",
+    "com.mascari4615.wm-domainsdk": "file:../DomainSDK",
     "com.unity.2d.animation": "16.0.0",
     "com.unity.addressables": "2.11.2",
     "com.unity.ai.assistant": "2.19.0-pre.2",

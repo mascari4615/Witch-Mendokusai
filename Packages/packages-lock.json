@@ -59,6 +59,12 @@
       "source": "embedded",
       "dependencies": {}
     },
+    "com.mascari4615.wm-domainsdk": {
+      "version": "file:../DomainSDK",
+      "depth": 0,
+      "source": "local",
+      "dependencies": {}
+    },
     "com.unity.2d.animation": {
       "version": "16.0.0",
       "depth": 0,

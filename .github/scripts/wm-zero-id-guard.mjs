@@ -19,6 +19,7 @@ import { resolve, join } from 'node:path';
 
 const ROOTS = [
   'WitchMendokusai/Assets/_WitchMendokusai',
+  'WitchMendokusai/DomainSDK',
   'WitchMendokusai/Server',
 ];
 

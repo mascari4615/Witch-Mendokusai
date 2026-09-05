@@ -44,8 +44,8 @@ on:
     paths:
       - 'Assets/_WitchMendokusai/Idle/**'
       - 'Assets/_WitchMendokusai/Presentation/**'
-      - 'Assets/_WitchMendokusai/DomainSDK/Idle/**'
-      - 'Assets/_WitchMendokusai/DomainSDK/Numerics/**'
+      - 'DomainSDK/Idle/**'
+      - 'DomainSDK/Numerics/**'
       - 'Assets/_WitchMendokusai/Editor/Idle/**'
       - 'Assets/_WitchMendokusai/Scenes/Idle/**'
       - '.github/workflows/wm-idle-build.yml'

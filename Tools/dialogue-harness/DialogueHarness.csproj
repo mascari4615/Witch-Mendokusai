@@ -43,13 +43,13 @@
     <Compile Include="../../Assets/_WitchMendokusai/Core/Scripts/NodeGraph/NodeConnection.cs" />
     <Compile Include="../../Assets/_WitchMendokusai/Core/Scripts/NodeGraph/NodeDomain.cs" />
     <Compile Include="../../Assets/_WitchMendokusai/Core/Scripts/NodeGraph/NodeGraphValidationResult.cs" />
-    <Compile Include="../../Assets/_WitchMendokusai/DomainSDK/Criteria/Criteria.cs" />
-    <Compile Include="../../Assets/_WitchMendokusai/DomainSDK/Criteria/ICriteria.cs" />
-    <Compile Include="../../Assets/_WitchMendokusai/DomainSDK/Effect/EffectType.cs" />
-    <Compile Include="../../Assets/_WitchMendokusai/DomainSDK/Common/ArithmeticOperator.cs" />
+    <Compile Include="../../DomainSDK/Criteria/Criteria.cs" />
+    <Compile Include="../../DomainSDK/Criteria/ICriteria.cs" />
+    <Compile Include="../../DomainSDK/Effect/EffectType.cs" />
+    <Compile Include="../../DomainSDK/Common/ArithmeticOperator.cs" />
     <!-- 엔진 무관 수학·좌표 (TASK-WM-214) — SDK 소스가 UnityEngine 대신 이걸 문다. -->
-    <Compile Include="../../Assets/_WitchMendokusai/DomainSDK/Numerics/*.cs" />
-    <Compile Include="../../Assets/_WitchMendokusai/DomainSDK/Quest/QuestState.cs" />
+    <Compile Include="../../DomainSDK/Numerics/*.cs" />
+    <Compile Include="../../DomainSDK/Quest/QuestState.cs" />
   </ItemGroup>
 
   <!-- 진짜 EditMode 시험 파일 (복사 X — 「시험을 썼다」가 아니라 「시험이 돈다」) -->

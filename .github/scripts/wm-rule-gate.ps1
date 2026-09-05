@@ -257,6 +257,20 @@ else
             Lines    = [System.IO.File]::ReadAllLines($file.FullName)
         })
     }
+    # DomainSDK sits at the repo root as a local package (2026-09-05). Same rules apply to it.
+    $sdkRoot = Join-Path (Split-Path (Split-Path $rootFull -Parent) -Parent) 'DomainSDK'
+    if (Test-Path -LiteralPath $sdkRoot)
+    {
+        $sdkFull = (Resolve-Path $sdkRoot).Path
+        foreach ($file in (Get-ChildItem -Path $sdkRoot -Filter *.cs -Recurse -File))
+        {
+            $relative = 'DomainSDK/' + $file.FullName.Substring($sdkFull.Length).TrimStart('\', '/').Replace('\', '/')
+            [void]$subjects.Add([pscustomobject]@{
+                Relative = $relative
+                Lines    = [System.IO.File]::ReadAllLines($file.FullName)
+            })
+        }
+    }
 }
 
 # "0 files scanned" is NOT a pass -- it is the gate not running at all.
@@ -364,7 +378,7 @@ $anchors = @(
     @{ File = 'Domain/TowerDefense/TowerDefenseMatch.cs'
        Needle = 'AddApproachRing(mapLayout.CoreCell)'
        Why = 'monsters converge on one cell again instead of surrounding the core' },
-    @{ File = 'DomainSDK/TowerDefense/TowerDefenseFlowField.cs'
+    @{ File = '../../DomainSDK/TowerDefense/TowerDefenseFlowField.cs'   # SDK lives at repo root (2026-09-05)
        Needle = 'SignedAngle(referenceStep'
        Why = 'path spreading drifts to one corner again -- the horde becomes a single line' },
     @{ File = 'Domain/TowerDefense/TowerDefenseTerrainView.cs'
@@ -677,7 +691,7 @@ if ($metaScoped)
 
     foreach ($relative in $scopedPaths)
     {
-        if ($relative -notlike 'Assets/*' -and $relative -notlike 'Assets\*') { continue }
+        if ($relative -notlike 'Assets/*' -and $relative -notlike 'Assets\*' -and $relative -notlike 'DomainSDK/*') { continue }
         if ($relative -notlike '*.cs') { continue }
 
         $full = Join-Path $repoRootForMeta $relative

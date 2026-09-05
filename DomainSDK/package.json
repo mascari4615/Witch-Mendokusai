@@ -1,0 +1,16 @@
+{
+	"name": "com.mascari4615.wm-domainsdk",
+	"version": "0.1.0",
+	"displayName": "WM DomainSDK",
+	"description": "Engine-free game rules shared by Unity, the .NET server and the web build. Every folder is its own asmdef with noEngineReferences.",
+	"unity": "6000.0",
+	"author": {
+		"name": "KarmoDDrine",
+		"url": "https://github.com/mascari4615"
+	},
+	"keywords": [
+		"domain",
+		"rules",
+		"sdk"
+	]
+}
