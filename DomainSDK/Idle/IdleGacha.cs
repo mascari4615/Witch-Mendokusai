@@ -169,12 +169,20 @@ namespace WitchMendokusai.DomainSDK.Idle
         }
 
         /// <summary>
+        /// 픽업을 셀 때 쓰는 판. 사진마다 새로 만들면 밤새 켜 둔 만큼 쌓인다 (실측 2026-09-05)
+        ///
+        /// ★ 값을 들고 있지 않다. 채우고 바로 읽고 버리는 자리라 판정 결과에 영향 없음
+        /// </summary>
+        private static readonly List<int> pickupPool = new List<int>();
+
+        /// <summary>
         /// 지금 픽업인 인형 (사용자 2026-09-05: 특정 인형 확률 2배, 주마다 교체).
         /// 얼굴이 있는 가장 높은 등급에서 주기 번호 순으로. 명단이 비면 -1
         /// </summary>
         public static int PickupHeroOf(IdleTuning tuning, long nowUnixSeconds)
         {
-            List<int> pool = new List<int>();
+            List<int> pool = pickupPool;
+            pool.Clear();
             for (IdleHeroGrade grade = IdleHeroGrade.Legend; grade >= IdleHeroGrade.Common; grade--)
             {
                 IdleHeroes.IdsOfGrade(grade, pool);
