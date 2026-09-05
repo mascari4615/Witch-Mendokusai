@@ -164,6 +164,38 @@
     <Compile Include="$(TestsRoot)Farming/FarmCoordTest.cs" />
     <Compile Include="$(TestsRoot)Farming/FarmGroundTest.cs" />
     <Compile Include="$(TestsRoot)Farming/LegacyGrowthTest.cs" />
+    <!-- 2026-09-05 에 더 담은 것 (엔진 밖에서 서는지 컴파일러로 재서 골랐다).
+         못 담은 것 둘: 소스 파일 경로를 보는 시험 (유니티 프로젝트 폴더가 작업 폴더여야 한다),
+         그리고 게임 층 타입을 보는 시험 (대사 파서, 진단, 개척 코어 등). 그건 유니티 러너가 정본. -->
+    <Compile Include="$(TestsRoot)Alchemy/BrewConsumptionTest.cs" />
+    <Compile Include="$(TestsRoot)Alchemy/BrewEngineTest.cs" />
+    <Compile Include="$(TestsRoot)Alchemy/BrewIngredientTest.cs" />
+    <Compile Include="$(TestsRoot)Alchemy/BrewOutcomeTest.cs" />
+    <Compile Include="$(TestsRoot)Alchemy/HazardFieldTest.cs" />
+    <Compile Include="$(TestsRoot)Care/WishResolverTest.cs" />
+    <Compile Include="$(TestsRoot)Farming/GreenhousePlotTest.cs" />
+    <Compile Include="$(TestsRoot)Farming/GreenhouseTest.cs" />
+    <Compile Include="$(TestsRoot)Farming/WitchPlantGrowthTest.cs" />
+    <Compile Include="$(TestsRoot)Life/ActivitySelectorCommitmentTest.cs" />
+    <Compile Include="$(TestsRoot)Life/ActivitySelectorTest.cs" />
+    <Compile Include="$(TestsRoot)Life/InterventionModelTest.cs" />
+    <Compile Include="$(TestsRoot)Life/NeedModelTest.cs" />
+    <Compile Include="$(TestsRoot)Life/RelationshipModelTest.cs" />
+    <Compile Include="$(TestsRoot)Life/TimeOfDayMapTest.cs" />
+    <Compile Include="$(TestsRoot)Life/WorkModelTest.cs" />
+    <Compile Include="$(TestsRoot)Life/WorkSelectorTest.cs" />
+    <Compile Include="$(TestsRoot)Life/WorkStateTest.cs" />
+    <Compile Include="$(TestsRoot)ModeControllerEdgeTriggerTest.cs" />
+    <Compile Include="$(TestsRoot)Refining/RefiningChainTest.cs" />
+    <Compile Include="$(TestsRoot)TowerDefense/TowerDefenseAdaptationTests.cs" />
+    <Compile Include="$(TestsRoot)TowerDefense/TowerDefenseBoonSummaryTests.cs" />
+    <Compile Include="$(TestsRoot)TowerDefense/TowerDefenseBuildingProgressTests.cs" />
+    <Compile Include="$(TestsRoot)TowerDefense/TowerDefenseDifficultyTests.cs" />
+    <Compile Include="$(TestsRoot)TowerDefense/TowerDefenseDraftTests.cs" />
+    <Compile Include="$(TestsRoot)TowerDefense/TowerDefenseNamesTests.cs" />
+    <Compile Include="$(TestsRoot)TowerDefense/TowerDefenseOutcomeTextTests.cs" />
+    <Compile Include="$(TestsRoot)TowerDefense/TowerDefenseUnlockScheduleTests.cs" />
+    <Compile Include="$(TestsRoot)TowerDefense/TowerDefenseWaveComposerTests.cs" />
   </ItemGroup>
 
 </Project>
