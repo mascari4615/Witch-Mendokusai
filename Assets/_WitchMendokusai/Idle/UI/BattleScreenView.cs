@@ -39,6 +39,9 @@ namespace WitchMendokusai.Idle.UI
 		private bool built;
 		/// <summary>Esc 를 받는 자리. 판의 맨 위 (초점이 없으면 이벤트가 거기로 감)</summary>
 		private VisualElement cancelTarget;
+		/// <summary>화면 알림. 설정 팝업 로그와 <b>같은 말</b>을 전투 창에도 띄운다</summary>
+		private Label battleNote;
+		private float battleNoteLeft;
 		private EventCallback<NavigationCancelEvent> onCancel;
 
 		public BattleScreenView(
@@ -93,6 +96,7 @@ namespace WitchMendokusai.Idle.UI
 				RequestRender,
 				SayOnce);
 
+			battleNote = root.Q<Label>("battle-note");
 			VisualElement shell = root.Q<VisualElement>("shell");
 			BuildBattle(shell);
 			BuildSide(shell);
@@ -276,6 +280,23 @@ namespace WitchMendokusai.Idle.UI
 		public void Tick(float delta)
 		{
 			auxiliaryPopupCoordinator?.Tick(delta);
+			TickNote(delta);
+		}
+
+		/// <summary>화면 알림을 서서히 지운다. 마지막 1초는 흐려짐</summary>
+		private void TickNote(float delta)
+		{
+			if (battleNote == null || battleNoteLeft <= 0f)
+			{
+				return;
+			}
+
+			battleNoteLeft -= delta;
+			battleNote.style.opacity = battleNoteLeft < 1f ? battleNoteLeft : 1f;
+			if (battleNoteLeft <= 0f)
+			{
+				battleNote.style.display = DisplayStyle.None;
+			}
 		}
 
 		public void Render(IdleSnapshot snapshot)
@@ -336,9 +357,25 @@ namespace WitchMendokusai.Idle.UI
 			RequestRender();
 		}
 
+		/// <summary>
+		/// 한 번 말한다. 전투 창 알림과 설정 팝업 로그 <b>둘 다</b>
+		///
+		/// ★ 전에는 설정 팝업 로그에만 적혔다. 팝업을 안 열면 아무 반응이 없어 보여
+		///   일제 사격 힌트도, 빗나감도 사람에게 안 닿았다 (사용자 2026-09-05)
+		/// </summary>
 		private void SayOnce(string what, float seconds)
 		{
 			auxiliaryPopupCoordinator.ShowNote(what, seconds);
+
+			if (battleNote == null)
+			{
+				return;
+			}
+
+			battleNote.text = what;
+			battleNote.style.opacity = 1f;
+			battleNote.style.display = DisplayStyle.Flex;
+			battleNoteLeft = seconds;
 		}
 	}
 }

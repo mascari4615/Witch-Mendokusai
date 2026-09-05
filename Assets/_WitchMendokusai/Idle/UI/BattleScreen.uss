@@ -430,6 +430,24 @@
 .idle-card-icon--supply { background-image: url("../../Domain/Item/Assets/_Common/Sprite/game-icons.net/round-potion.png"); }
 .idle-card-icon--appraise { background-image: url("../../Domain/Item/Assets/_Common/Sprite/game-icons.net/sparkles.png"); }
 
+/* 화면 알림. 전에는 설정 팝업 안 로그에만 적혀 아무 반응이 없어 보였다 (사용자 2026-09-05) */
+.idle-battle-note {
+	position: absolute;
+	left: 50%;
+	bottom: 286px;
+	translate: -50% 0;
+	max-width: 720px;
+	padding: 12px 22px;
+	font-size: 26px;
+	-unity-font-style: bold;
+	-unity-text-align: middle-center;
+	white-space: normal;
+	color: rgb(24, 18, 6);
+	background-color: rgba(255, 196, 64, 0.95);
+	border-width: 2px;
+	border-color: rgb(120, 88, 20);
+}
+
 .idle-skill-aim {
 	position: absolute;
 	left: 0;

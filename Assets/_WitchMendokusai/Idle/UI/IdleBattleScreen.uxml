@@ -24,6 +24,7 @@
                 <ui:VisualElement name="skill-aim-range" class="idle-skill-aim-range" />
                 <ui:Label name="skill-aim-caption" text="일제 사격 범위" class="idle-skill-aim-caption" />
             </ui:VisualElement>
+            <ui:Label name="battle-note" class="idle-battle-note idle-hidden" picking-mode="Ignore" />
             <ui:Button name="wipe-button" text="데이터 초기화" class="idle-chip-dark idle-icon-button idle-debug" />
         </ui:VisualElement>
         <ui:VisualElement name="side" class="idle-side">
