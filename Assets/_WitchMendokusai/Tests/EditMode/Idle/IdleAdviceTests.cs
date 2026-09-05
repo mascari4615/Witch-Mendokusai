@@ -369,7 +369,7 @@ namespace WitchMendokusai.Tests
 		public void OneBoardDoesNotLeakIntoTheNext()
 		{
 			IdleTuning tuning = new IdleTuning();
-			// 9개 합성 (울티마 그대로. 사용자 2026-08-30). 8 과 1 을 합치면 한 벌, 각각은 아님
+			// 9개 합성 (사용자 2026-08-30). 8 과 1 을 합치면 한 벌, 각각은 아님
 			Assert.AreEqual(9, tuning.MergeCount, "합치는 개수가 9 가 아니면 아래 수를 다시 골라야 한다");
 
 			IdleState few = Fresh(out IdleTuning _);

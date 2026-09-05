@@ -7,7 +7,7 @@ using VContainer;
 namespace WitchMendokusai
 {
 	/// <summary>
-	/// 전체화면 환경설정 UI (엔드필드/오버워치 스타일).
+	/// 전체화면 환경설정 UI (전체 화면 목록형).
 	/// UIRoot.ScreenLayer에 직접 VisualElement를 추가함.
 	/// 좌측 사이드바의 탭 버튼 클릭 → 우측 컨텐츠 swap (data-driven, RegisterTab).
 	/// </summary>

@@ -5,7 +5,7 @@ using UnityEngine.UIElements;
 namespace WitchMendokusai
 {
 	/// <summary>
-	/// 도감 윈도우 본체 — 엔드필드식 3 모드 전환.
+	/// 도감 윈도우 본체. 3 모드 전환.
 	/// - Root: 큰 주제 버튼 (블록/아이템/주민)
 	/// - Category: 뒤로 + DataExplorerView (좌 사이드바 + 우 카드 그리드)
 	/// - Detail: 뒤로 + CodexDetailPanel

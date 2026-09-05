@@ -4,7 +4,7 @@ using UnityEngine.UIElements;
 namespace WitchMendokusai
 {
 	/// <summary>
-	/// 도감 디테일 베이스 — 좌 큰 일러스트 + 우 정보 패널. 엔드필드 디테일 톤.
+	/// 도감 디테일 베이스. 좌 큰 일러스트 + 우 정보 패널.
 	///
 	/// 책임 분리(하이브리드):
 	/// - 베이스(이 클래스)가 *공통* 표시 — 큰 일러스트(entry.Icon, fallback 색 박스), 이름, grade 라벨, 카테고리 라벨, id

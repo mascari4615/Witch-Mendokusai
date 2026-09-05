@@ -3,7 +3,7 @@ using WitchMendokusai.DomainSDK.Idle;
 
 namespace WitchMendokusai.Tests
 {
-	/// <summary>상점에서 골드로 사는 것 (사용자 판정 2026-09-01, 울티마 스쿼드)</summary>
+	/// <summary>상점에서 골드로 사는 것 (사용자 판정 2026-09-01)</summary>
 	public sealed class IdleShopTests
 	{
 		/// <summary>★ 골드를 내고 가방이 넓어진다</summary>

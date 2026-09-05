@@ -1,4 +1,4 @@
-/* WM 도감 — 엔드필드식. 2 계층 + 3 모드.
+/* WM 도감. 2 계층 + 3 모드.
    Root(큰 주제 버튼) → Category(뒤로 + 카드 그리드) → Detail(뒤로 + BuildDetail).
    세부 분류 사이드바는 후속 TASK — 골격은 hide. */
 
