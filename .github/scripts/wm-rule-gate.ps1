@@ -372,7 +372,7 @@ $anchors = @(
 #
 # The rest of what a wide sweeping commit erased on 2026-08-06. Each of these is a single call
     # whose removal compiles fine, passes every test, and kills a feature the user explicitly asked for.
-    @{ File = 'Domain/TowerDefense/TowerDefenseHudView.cs'
+    @{ File = 'Domain/TowerDefense/TowerDefenseHudView.Selection.cs'
        Needle = 'ResearchPanelRequested()'
        Why = 'the research button stops opening the constellation -- the whole research screen becomes unreachable' },
     @{ File = 'Domain/TowerDefense/TowerDefenseMatch.Build.cs'

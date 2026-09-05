@@ -19,7 +19,6 @@ Domain/TowerDefense/TowerDefenseMatch.cs
 Domain/TowerDefense/TowerDefenseModeController.cs
 Domain/TowerDefense/TowerDefensePlacement.cs
 Domain/TowerDefense/TowerDefenseStageSO.cs
-Domain/UI/Mobile/MobileControlsView.cs
 DomainSDK/Identity/WorldIdentity.cs
 DomainSDK/Idle/IdleBattleSim.cs
 DomainSDK/Idle/IdleHeroes.cs
