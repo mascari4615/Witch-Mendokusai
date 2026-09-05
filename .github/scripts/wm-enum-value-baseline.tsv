@@ -10,7 +10,7 @@ Core/Time/Work/Work.cs	WorkType
 Core/UI/MouseManager.cs	MouseType
 Core/UI/Toolkit/Tooltip/TooltipMode.cs	TooltipMode
 Core/UI/Toolkit/WMWindow.cs	WindowSize
-Domain/City/CityPaintManager.cs	OverlayKind
+Domain/City/CityPaintManager.Overlay.cs	OverlayKind
 Domain/Unit/UnitAffiliation.cs	UnitAffiliation
 Domain/Unit/UnitAI/BT/Nodes/Node.cs	BTState
 Domain/Unit/UnitAI/FSM/FSM.cs	FSMStateCommon

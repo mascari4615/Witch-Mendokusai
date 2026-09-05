@@ -43,7 +43,7 @@ Editor/Sandbox/SandboxStage.cs	GROUND_SCALE
 Editor/Sandbox/SandboxStage.cs	MIN_TICK_INTERVAL
 Editor/TowerDefense/TowerDefensePlayVerify.cs	GATE_LOG_INTERVAL
 Editor/TowerDefense/TowerDefensePlayVerify.cs	HARD_TIMEOUT
-Editor/TowerDefense/TowerDefensePlayVerify.cs	NOISE_RAMP_AMOUNT
+Editor/TowerDefense/TowerDefensePlayVerify.Noise.cs	NOISE_RAMP_AMOUNT
 Editor/TowerDefense/TowerDefensePlayVerify.cs	PERF_LOG_INTERVAL
 Editor/TowerDefense/TowerDefensePlayVerify.cs	SAMPLE_INTERVAL
 Editor/Verify/WMBuilderPlayVerify.cs	RAY_DISTANCE

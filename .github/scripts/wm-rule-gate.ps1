@@ -349,7 +349,7 @@ $anchors = @(
     @{ File = 'Domain/Minigame/UIMinigameHubToolkit.cs'
        Needle = 'NavigationMoveEvent'
        Why = 'cannot move focus from the list to the start button' },
-    @{ File = 'Domain/TowerDefense/TowerDefensePlacement.cs'
+    @{ File = 'Domain/TowerDefense/TowerDefensePlacement.Preview.cs'
        Needle = 'aboveFog: true'
        Why = 'the cursor marker hides under the fog -- cannot build on unexplored ground' },
     @{ File = 'Domain/TowerDefense/TowerDefenseMatch.Hero.cs'
@@ -384,7 +384,7 @@ $anchors = @(
     @{ File = 'Domain/TowerDefense/TowerDefenseTerrainView.cs'
        Needle = 'MakeFloorDecal(laneRenderer'
        Why = 'the path overlay writes depth again and slices unit sprites in half' },
-    @{ File = 'Domain/TowerDefense/TowerDefensePlacement.cs'
+    @{ File = 'Domain/TowerDefense/TowerDefensePlacement.Preview.cs'
        Needle = 'animator.enabled = false'
        Why = 'the build preview ghost animates again and reads as an already-built unit' }
 )
@@ -413,7 +413,7 @@ $forbidden = @(
     @{ File = 'Domain/TowerDefense/TowerDefenseHudView.cs'
        Needle = '우클릭 판매'
        Why = 'selling is gone -- right click cancels now; the hint would teach a dead action' },
-    @{ File = 'Domain/TowerDefense/TowerDefensePlacement.cs'
+    @{ File = 'Domain/TowerDefense/TowerDefensePlacement.Preview.cs'
        Needle = 'match.TrySell('
        Why = 'right-click selling was removed on purpose (an irreversible action sitting on the undo gesture)' }
 )
