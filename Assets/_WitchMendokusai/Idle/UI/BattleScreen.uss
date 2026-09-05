@@ -1060,10 +1060,17 @@
 	justify-content: space-between;
 }
 
+.idle-bag-head > .idle-row-title {
+	flex-grow: 1;
+	flex-shrink: 1;
+	white-space: normal;
+}
+
 .idle-bag-sort {
 	width: 96px;
 	min-height: 44px;
 	margin-left: 8px;
+	flex-shrink: 0;
 }
 
 /* 분해. 공방의 고른 등급을 개수만큼 골드로 */

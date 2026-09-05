@@ -116,6 +116,12 @@ namespace WitchMendokusai.Idle.UI
 			int[] counts = new int[snapshot.TierCeiling + 2];
 			for (int index = 0; index < snapshot.Bag.Length; index++)
 			{
+				// 잠근 것은 재료가 아니니 세지 않음
+				if (snapshot.Bag[index].Locked)
+				{
+					continue;
+				}
+
 				int owned = snapshot.Bag[index].Tier;
 				if (owned >= 0 && owned < counts.Length)
 				{
