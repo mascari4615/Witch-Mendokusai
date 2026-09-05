@@ -10,19 +10,19 @@ namespace WitchMendokusai
 	/// - 베이스(이 클래스)가 *공통* 표시 — 큰 일러스트(entry.Icon, fallback 색 박스), 이름, grade 라벨, 카테고리 라벨, id
 	/// - 카테고리 `BuildDetail(entry)` = *카테고리 특화 정보 영역*만 — body 컨테이너에 attach
 	/// </summary>
-	public class CodexDetailPanel : VisualElement
+	public class DiscoveryDetailPanel : VisualElement
 	{
-		public const string USS_CLASS = "wm-codex-detail";
-		public const string USS_ILLUSTRATION = "wm-codex-detail__illustration";
-		public const string USS_ILLUSTRATION_IMAGE = "wm-codex-detail__illustration-image";
-		public const string USS_ILLUSTRATION_FALLBACK = "wm-codex-detail__illustration--fallback";
-		public const string USS_INFO = "wm-codex-detail__info";
-		public const string USS_NAME = "wm-codex-detail__name";
-		public const string USS_META = "wm-codex-detail__meta";
-		public const string USS_META_GRADE_PREFIX = "wm-codex-detail__meta--grade-";
-		public const string USS_BODY = "wm-codex-detail__body";
+		public const string USS_CLASS = "wm-discovery-detail";
+		public const string USS_ILLUSTRATION = "wm-discovery-detail__illustration";
+		public const string USS_ILLUSTRATION_IMAGE = "wm-discovery-detail__illustration-image";
+		public const string USS_ILLUSTRATION_FALLBACK = "wm-discovery-detail__illustration--fallback";
+		public const string USS_INFO = "wm-discovery-detail__info";
+		public const string USS_NAME = "wm-discovery-detail__name";
+		public const string USS_META = "wm-discovery-detail__meta";
+		public const string USS_META_GRADE_PREFIX = "wm-discovery-detail__meta--grade-";
+		public const string USS_BODY = "wm-discovery-detail__body";
 
-		public CodexDetailPanel(EntryDescriptor entry, IEntryProvider category)
+		public DiscoveryDetailPanel(EntryDescriptor entry, IEntryProvider category)
 		{
 			AddToClassList(USS_CLASS);
 			style.flexDirection = FlexDirection.Row;
@@ -43,14 +43,14 @@ namespace WitchMendokusai
 
 				// TASK-WM-133 — ctor 시점엔 panel == null(아직 미부착) 이라
 				// panel-context 미해결. AttachToPanelEvent 에서 panel-root
-				// owner-push 된 CodexPreviewController 를 1회 해결·캐싱 →
+				// owner-push 된 DiscoveryPreviewController 를 1회 해결·캐싱 →
 				// 드래그/detach 콜백은 캡처된 ref 사용(detach 시 조상 walk
 				// 불가 타이밍 안전). static Instance reach 제거.
-				CodexPreviewController previewController = null;
+				DiscoveryPreviewController previewController = null;
 
 				RegisterCallback<AttachToPanelEvent>(_ =>
 				{
-					previewController = this.GetUIServices()?.CodexPreview;
+					previewController = this.GetUIServices()?.DiscoveryPreview;
 					if (previewController == null)
 						return;
 					previewController.Show(entry.PreviewPrefab);

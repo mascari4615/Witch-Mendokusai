@@ -6,26 +6,26 @@ namespace WitchMendokusai
 {
 	/// <summary>
 	/// 도감 윈도우 진입점. WMWindow 생성·마운트, 카테고리 사이드바 빌드, 단축키 wire(단계 D).
-	/// World 씬 진입 시 Resources/Singletons/CodexWindowController.prefab 에서 자동 스폰 (단계 D 에서 prefab 추가).
+	/// World 씬 진입 시 Resources/Singletons/DiscoveryWindowController.prefab 에서 자동 스폰 (단계 D 에서 prefab 추가).
 	/// DevWindowController 와 같은 모양.
 	/// </summary>
-	public class CodexWindowController : MonoBehaviour
+	public class DiscoveryWindowController : MonoBehaviour
 	{
-		public static CodexWindowController Instance { get; private set; }
+		public static DiscoveryWindowController Instance { get; private set; }
 
-		public static bool TryGetExistingInstance(out CodexWindowController mgr)
+		public static bool TryGetExistingInstance(out DiscoveryWindowController mgr)
 		{
 			mgr = Instance;
 			return mgr != null;
 		}
 
-		private const string WINDOW_ID = "Codex";
+		private const string WINDOW_ID = "Discovery";
 		private const string WINDOW_TITLE = "도감";
 
 		private InputManager inputManager;
 		private UIRoot uiRoot;
 		private WMWindow window;
-		private CodexView view;
+		private DiscoveryView view;
 
 		public EntryProviderRegistry Providers { get; } = new();
 
@@ -55,13 +55,13 @@ namespace WitchMendokusai
 			view.OnCategorySelected += OnCategorySelected;
 			view.OnEntrySelected += OnEntrySelected;
 
-			inputManager.RegisterInputEvent(InputEventType.CodexToggle, InputEventResponseType.Performed, OnToggle);
+			inputManager.RegisterInputEvent(InputEventType.DiscoveryToggle, InputEventResponseType.Performed, OnToggle);
 		}
 
 		private void OnDestroy()
 		{
 			if (inputManager != null)
-				inputManager.UnregisterInputEvent(InputEventType.CodexToggle, InputEventResponseType.Performed, OnToggle);
+				inputManager.UnregisterInputEvent(InputEventType.DiscoveryToggle, InputEventResponseType.Performed, OnToggle);
 
 			if (Instance == this)
 				Instance = null;
@@ -72,13 +72,13 @@ namespace WitchMendokusai
 		private void RegisterBuiltins()
 		{
 			if (Providers.FindById("block") == null)
-				Providers.Register(new BlockCodexCategory());
+				Providers.Register(new BlockDiscoveryCategory());
 			if (Providers.FindById("item") == null)
-				Providers.Register(new ItemCodexCategory());
+				Providers.Register(new ItemDiscoveryCategory());
 			if (Providers.FindById("entity") == null)
-				Providers.Register(new EntityCodexCategory());
+				Providers.Register(new EntityDiscoveryCategory());
 			if (Providers.FindById("plant") == null)
-				Providers.Register(new PlantCodexCategory());
+				Providers.Register(new PlantDiscoveryCategory());
 		}
 
 		private void BuildWindow()
@@ -93,12 +93,12 @@ namespace WitchMendokusai
 			window.style.width = 900;
 			window.style.height = 600;
 
-			view = new CodexView();
+			view = new DiscoveryView();
 			view.style.flexGrow = 1;
 
-			StyleSheet codexStyleSheet = Resources.Load<StyleSheet>("Codex/CodexWindow");
-			if (codexStyleSheet != null)
-				view.styleSheets.Add(codexStyleSheet);
+			StyleSheet discoveryStyleSheet = Resources.Load<StyleSheet>("Discovery/DiscoveryWindow");
+			if (discoveryStyleSheet != null)
+				view.styleSheets.Add(discoveryStyleSheet);
 
 			window.Content.Add(view);
 

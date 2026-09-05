@@ -23,13 +23,13 @@ namespace WitchMendokusai
 		private readonly Func<TooltipController> tooltipFactory;
 		private TooltipController tooltipCache;
 
-		public CodexPreviewController CodexPreview { get; }
+		public DiscoveryPreviewController DiscoveryPreview { get; }
 		public WindowManager WindowManager { get; }
 		public TooltipController Tooltip => tooltipCache ??= tooltipFactory();
 
-		public UIServices(CodexPreviewController codexPreview, WindowManager windowManager, Func<TooltipController> tooltipFactory)
+		public UIServices(DiscoveryPreviewController discoveryPreview, WindowManager windowManager, Func<TooltipController> tooltipFactory)
 		{
-			CodexPreview = codexPreview;
+			DiscoveryPreview = discoveryPreview;
 			WindowManager = windowManager;
 			this.tooltipFactory = tooltipFactory;
 		}

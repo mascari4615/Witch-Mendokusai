@@ -56,7 +56,7 @@ namespace WitchMendokusai
 		// 개화·시듦이 일어난 칸을 상위에 알림(이벤트 발행 표면 — 연출은 구독자 몫). 초기값 = NRE 방지.
 		public System.Action<int> OnPlotBloomed = delegate { };
 		public System.Action<int> OnPlotWithered = delegate { };
-		// 관찰된 개체가 수확돼 영구 표본으로 「진짜」가 됐다(plotId, plantDataId). Codex 박물관·연출 구독 표면.
+		// 관찰된 개체가 수확돼 영구 표본으로 「진짜」가 됐다(plotId, plantDataId). Discovery 박물관·연출 구독 표면.
 		public System.Action<int, int> OnPlotBecameSpecimen = delegate { };
 
 		public Greenhouse Model => greenhouse;
@@ -146,7 +146,7 @@ namespace WitchMendokusai
 		}
 
 		// 자립 작물 결정 — ① 인스펙터 samplePlant ② 등록된 마도 식물 종(SOManager) ③ 런타임 기본작물.
-		// ②가 핵심: 수확이 기록하는 종 ID(DataManager.SpecimenCollected)가 Codex(박물관)에 나열되는 *등록된*
+		// ②가 핵심: 수확이 기록하는 종 ID(DataManager.SpecimenCollected)가 Discovery(박물관)에 나열되는 *등록된*
 		// WitchPlantSO 의 ID 와 일치해야 「봐줘야 진짜 → 영구 표본」이 도감에 보인다. 런타임 throwaway 는
 		// SOManager 미등록이라 도감에 안 떠서 "수확했는데 도감 비었다" 가 됨(루프 단절). 등록 종이 0개이거나
 		// 부트 전(EditMode)일 때만 ③ 런타임 폴백 — asset 없이도 자립 데모는 굴러간다.
@@ -174,7 +174,7 @@ namespace WitchMendokusai
 			// 같은 회귀를 에러 없이 흘려보내지 않게. EditMode·부트 전(SOManager 미로드)은 정상이라 경고 X.
 			if (Application.isPlaying)
 			{
-				Debug.LogWarning("[WitchGreenhouse] 등록된 WitchPlantSO 종이 0개 — 임시 종으로 자립하지만 도감(Codex) 표본엔 안 뜬다. "
+				Debug.LogWarning("[WitchGreenhouse] 등록된 WitchPlantSO 종이 0개 — 임시 종으로 자립하지만 도감(Discovery) 표본엔 안 뜬다. "
 					+ "WM/Farming/Ensure Sample Plant 실행 또는 WitchPlantSO .asset 을 Addressable(label WitchPlantSO)로 등록할 것.", this);
 			}
 
@@ -256,7 +256,7 @@ namespace WitchMendokusai
 			return true;
 		}
 
-		// 지금 「진짜화」 자격(관찰+개화+안시듦)을 갖춘 칸 수 — "봐준 것만 진짜" 집계(Codex 표본 후보).
+		// 지금 「진짜화」 자격(관찰+개화+안시듦)을 갖춘 칸 수 — "봐준 것만 진짜" 집계(Discovery 표본 후보).
 		public int SpecimenCount => greenhouse.SpecimenCount();
 
 		// ★ 개화한 칸을 수확한다(Fourth 입력 또는 시스템). 성공 시 칸을 비우고 시각 갱신. 관찰된 개체(IsSpecimen)면

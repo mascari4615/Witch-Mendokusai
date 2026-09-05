@@ -6,8 +6,8 @@ namespace WitchMendokusai
 {
 	/// <summary>
 	/// 데이터 탐색 화면의 카테고리/탭 plug-in 인터페이스.
-	/// Codex (런타임 도감) + DataSOWindow (에디터 툴) 등 데이터 탐색 도구 공통 베이스.
-	/// (구) ICodexCategory 의 일반화 — Codex 도메인 색 빠지고 일반 데이터 탐색 톤.
+	/// Discovery (런타임 도감) + DataSOWindow (에디터 툴) 등 데이터 탐색 도구 공통 베이스.
+	/// (구) IDiscoveryCategory 의 일반화 — Discovery 도메인 색 빠지고 일반 데이터 탐색 톤.
 	///
 	/// 데이터 중심 — provider 는 entries + 디테일 빌드만 책임. 카드/그리드/사이드바 표시는 view 가 담당.
 	/// 새 탐색 영역 추가 = `IEntryProvider` 구현 1개 + 도메인 registry 등록 1줄.

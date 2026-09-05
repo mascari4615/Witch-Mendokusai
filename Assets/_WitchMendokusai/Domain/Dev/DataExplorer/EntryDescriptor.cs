@@ -3,7 +3,7 @@ using UnityEngine;
 namespace WitchMendokusai
 {
 	/// <summary>
-	/// 데이터 탐색 항목 한 개. (구) CodexEntry 의 일반화.
+	/// 데이터 탐색 항목 한 개. (구) DiscoveryEntry 의 일반화.
 	/// Provider 가 자체 데이터(DataSO 등) → EntryDescriptor list 변환해 노출.
 	///
 	/// Source 는 의도적으로 untyped — provider 내부에서만 어떤 타입인지 알면 됨.
@@ -19,7 +19,7 @@ namespace WitchMendokusai
 		public object Source { get; }
 
 		/// <summary>
-		/// grade 테두리 USS class 변환용 (`wm-codex-card--grade-{key}`). nullable.
+		/// grade 테두리 USS class 변환용 (`wm-discovery-card--grade-{key}`). nullable.
 		/// ItemData 만 채움 (`item.Grade.ToString().ToLowerInvariant()`). 다른 provider 는 null = default 테두리.
 		/// </summary>
 		public string GradeKey { get; }
@@ -32,7 +32,7 @@ namespace WitchMendokusai
 
 		/// <summary>
 		/// 디테일 일러스트 영역에 표시할 3D 모델 prefab. nullable.
-		/// non-null = `CodexPreviewController` 가 instantiate + 회전. null = 정적 Icon 표시.
+		/// non-null = `DiscoveryPreviewController` 가 instantiate + 회전. null = 정적 Icon 표시.
 		/// </summary>
 		public GameObject PreviewPrefab { get; }
 

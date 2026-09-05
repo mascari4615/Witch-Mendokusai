@@ -9,10 +9,10 @@ namespace WitchMendokusai
 	/// 각 식물이 「표본으로 채집됐는가(DataManager.SpecimenCollected)」를 디테일에 보여준다 —
 	/// 「봐줘야 진짜가 된다」: 관찰→개화→수확된 식물만 영구 표본으로 도감에 남는다(수확해 사라져도 영원).
 	///
-	/// ItemCodexCategory 패턴. 작물 .asset 미존재(Grey Box) 시 빈 목록(throw X — TryGetValue 가드).
-	/// 현재 Codex 는 전체 노출(unlock 레이어 deferred) → 표본 여부는 BuildDetail 텍스트로 구분.
+	/// ItemDiscoveryCategory 패턴. 작물 .asset 미존재(Grey Box) 시 빈 목록(throw X — TryGetValue 가드).
+	/// 현재 Discovery 는 전체 노출(unlock 레이어 deferred) → 표본 여부는 BuildDetail 텍스트로 구분.
 	/// </summary>
-	public class PlantCodexCategory : IEntryProvider
+	public class PlantDiscoveryCategory : IEntryProvider
 	{
 		public string Id => "plant";
 		public string DisplayName => "마도 식물";

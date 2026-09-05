@@ -8,7 +8,7 @@ namespace WitchMendokusai
 {
     /// <summary>
     /// TASK-WM-174 Phase 5b-2 — 솥 지도 제조 UI 인게임 진입점.
-    /// World 씬 진입 시 Resources/Singletons/CauldronMapController.prefab 에서 자동 스폰 (CodexWindowController 와 같은 모양).
+    /// World 씬 진입 시 Resources/Singletons/CauldronMapController.prefab 에서 자동 스폰 (DiscoveryWindowController 와 같은 모양).
     /// 단축키(InputEventType.CauldronMapToggle, 기본 B) 로 펼쳐진 마도서 패널을 열고 닫는다.
     /// 패널 본체 = CauldronMapElement (Painter2D, EditorWindow 미리보기와 동일). 데이터 = placeholder(후속 SO/레시피 연동).
     /// ⚠ 트리거(키)는 임시 — 디제틱 트리거(솥 오브젝트 상호작용)는 후속 사용자 결정.
@@ -26,7 +26,7 @@ namespace WitchMendokusai
         private CauldronMapElement map;
         private bool isOpen;
 
-        // 디제틱 트리거(솥 오브젝트 상호작용)가 외부에서 Open 호출하는 진입점 (CodexWindowController 패턴).
+        // 디제틱 트리거(솥 오브젝트 상호작용)가 외부에서 Open 호출하는 진입점 (DiscoveryWindowController 패턴).
         public static CauldronMapController Instance { get; private set; }
 
         private void Awake()
@@ -199,7 +199,7 @@ namespace WitchMendokusai
             }
         }
 
-        // 외부 진입점(디제틱 솥 상호작용 / 단축키 공용) — CodexWindowController 패턴.
+        // 외부 진입점(디제틱 솥 상호작용 / 단축키 공용) — DiscoveryWindowController 패턴.
         public void Open()
         {
             isOpen = true;

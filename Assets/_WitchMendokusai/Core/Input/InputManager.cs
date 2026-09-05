@@ -76,7 +76,7 @@ namespace WitchMendokusai
 		[InputEvent("창", "개발자 창", "<Keyboard>/slash")]
 		DevWindowToggle,
 		[InputEvent("창", "도감", "<Keyboard>/b")]
-		CodexToggle,
+		DiscoveryToggle,
 		[InputEvent("창", "퀘스트", "<Keyboard>/j")]
 		QuestToggle,
 		[InputEvent("창", "인형", "<Keyboard>/k")]
@@ -177,7 +177,7 @@ namespace WitchMendokusai
 			{ InputEventType.Status, InputMapType.UI },
 			{ InputEventType.Inventory, InputMapType.UI },
 			{ InputEventType.DevWindowToggle, InputMapType.UI },
-			{ InputEventType.CodexToggle, InputMapType.UI },
+			{ InputEventType.DiscoveryToggle, InputMapType.UI },
 			{ InputEventType.QuestToggle, InputMapType.UI },
 			{ InputEventType.DollToggle, InputMapType.UI },
 			{ InputEventType.KeybindHelpToggle, InputMapType.UI },

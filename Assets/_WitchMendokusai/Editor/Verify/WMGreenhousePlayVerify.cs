@@ -142,31 +142,31 @@ namespace WitchMendokusai.EditorTools
 			bool specimenRecorded = DataManager.TryGetExistingInstance(out DataManager dataManager)
 				&& dataManager.SpecimenCollected.TryGetValue(plantedId, out bool collected) && collected;
 
-			// ── 4. Codex 「마도 식물」 탭이 종을 나열 + 표본 텍스트를 보여주나 ──
-			PlantCodexCategory codex = new();
-			codex.OnActivate();
-			IReadOnlyList<EntryDescriptor> entries = codex.GetEntries();
-			int codexCount = entries.Count;
-			bool codexSpecimenText = false;
-			if (codexCount > 0)
+			// ── 4. Discovery 「마도 식물」 탭이 종을 나열 + 표본 텍스트를 보여주나 ──
+			PlantDiscoveryCategory discovery = new();
+			discovery.OnActivate();
+			IReadOnlyList<EntryDescriptor> entries = discovery.GetEntries();
+			int discoveryCount = entries.Count;
+			bool discoverySpecimenText = false;
+			if (discoveryCount > 0)
 			{
-				VisualElement detail = codex.BuildDetail(entries[0]);
+				VisualElement detail = discovery.BuildDetail(entries[0]);
 				foreach (VisualElement element in detail.Children())
 				{
 					if (element is Label label && label.text.Contains("표본으로 남음"))
 					{
-						codexSpecimenText = true;
+						discoverySpecimenText = true;
 						break;
 					}
 				}
 			}
 
-			bool loopOk = speciesLoaded && observed && bloomed && harvested && specimenRecorded && codexCount > 0 && codexSpecimenText && lootInInventory >= 1;
+			bool loopOk = speciesLoaded && observed && bloomed && harvested && specimenRecorded && discoveryCount > 0 && discoverySpecimenText && lootInInventory >= 1;
 			Debug.Log(TAG + (loopOk ? " LOOP OK ✅" : " LOOP FAIL ❌")
 				+ " speciesLoaded=" + speciesLoaded + " regName=" + regName + " plantedId=" + plantedId
 				+ " observed=" + observed + " bloomTicks=" + ticks + " bloomed=" + bloomed + " harvested=" + harvested
 				+ " lootInInventory=" + lootInInventory
-				+ " specimenRecorded=" + specimenRecorded + " codexCount=" + codexCount + " codexSpecimenText=" + codexSpecimenText);
+				+ " specimenRecorded=" + specimenRecorded + " discoveryCount=" + discoveryCount + " discoverySpecimenText=" + discoverySpecimenText);
 
 			string shot = "Temp/gh-play-verify.png";
 			ScreenCapture.CaptureScreenshot(shot);

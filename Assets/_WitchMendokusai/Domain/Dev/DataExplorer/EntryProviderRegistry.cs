@@ -3,8 +3,8 @@ using System.Collections.Generic;
 namespace WitchMendokusai
 {
 	/// <summary>
-	/// IEntryProvider list. 도메인별로 instance 보유 (Codex 도메인 = 별도, DataSOWindow 도메인 = 별도).
-	/// (구) CodexCategoryRegistry 의 일반화 — Singleton 폐기, 도메인 controller 가 instance 보유.
+	/// IEntryProvider list. 도메인별로 instance 보유 (Discovery 도메인 = 별도, DataSOWindow 도메인 = 별도).
+	/// (구) DiscoveryCategoryRegistry 의 일반화 — Singleton 폐기, 도메인 controller 가 instance 보유.
 	/// </summary>
 	public class EntryProviderRegistry
 	{

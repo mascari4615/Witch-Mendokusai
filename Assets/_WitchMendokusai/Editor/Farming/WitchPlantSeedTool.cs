@@ -5,7 +5,7 @@ using UnityEngine;
 namespace WitchMendokusai
 {
 	// 마도 온실 「봐줘야 진짜가 된다」 + 수확 루프가 인게임에 보이려면 *등록된* 데이터가 필요하다:
-	//   ① WitchPlantSO 종 ≥1 (Codex 도감 — DataLoader Addressable 로드 → SOManager.DataSOs → PlantCodexCategory)
+	//   ① WitchPlantSO 종 ≥1 (Discovery 도감 — DataLoader Addressable 로드 → SOManager.DataSOs → PlantDiscoveryCategory)
 	//   ② 그 종의 HarvestLoots 에 ItemData ≥1 (수확 → 인벤토리 → 마도서 ItemCountCriteria 자동 집계)
 	// 둘 다 0이면 "수확했는데 아무것도 없다"(도감/인벤토리 무음). 이 도구가 그 최소 데이터를 멱등 보장 + canon
 	// Addressable 등록(DataSOUtil.SetAddressableAsset). 종/아이템 식별(이름·스프라이트·수치·변이표)=사용자 Grey Box —

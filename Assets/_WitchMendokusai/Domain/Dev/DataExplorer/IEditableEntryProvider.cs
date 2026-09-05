@@ -3,7 +3,7 @@ namespace WitchMendokusai
 {
 	/// <summary>
 	/// 편집 가능한 데이터 탐색 provider — Add/Copy/Remove + entry activate hook.
-	/// 에디터 (DataSOWindow 등) 가 사용. 런타임 Codex 는 base IEntryProvider 만.
+	/// 에디터 (DataSOWindow 등) 가 사용. 런타임 Discovery 는 base IEntryProvider 만.
 	/// </summary>
 	public interface IEditableEntryProvider : IEntryProvider
 	{

@@ -56,7 +56,7 @@ namespace WitchMendokusai.DomainSDK.Farming
             return count;
         }
 
-        /// <summary>지금 「진짜화」 자격(관찰+개화+안시듦)을 갖춘 칸 수 — Codex 표본 후보. 「봐준 것만 진짜」 집계.</summary>
+        /// <summary>지금 「진짜화」 자격(관찰+개화+안시듦)을 갖춘 칸 수 — Discovery 표본 후보. 「봐준 것만 진짜」 집계.</summary>
         public int SpecimenCount()
         {
             int count = 0;

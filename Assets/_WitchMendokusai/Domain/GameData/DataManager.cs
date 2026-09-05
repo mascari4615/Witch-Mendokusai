@@ -34,7 +34,7 @@ namespace WitchMendokusai
 		public int DummyDollCount { get; set; }
 		public Dictionary<int, bool> IsRecipeUnlocked { get; set; } = new();
 		// 마도 온실(TASK-WM-167) — 「봐줘야 진짜」 영구 표본 채집 기록(plantDataId → 채집됨). SaveManager 가
-		// hasSpecimen ↔ 이 dict 직렬화(IsRecipeUnlocked 와 동형). 도감(PlantCodexCategory)이 read.
+		// hasSpecimen ↔ 이 dict 직렬화(IsRecipeUnlocked 와 동형). 도감(PlantDiscoveryCategory)이 read.
 		public Dictionary<int, bool> SpecimenCollected { get; set; } = new();
 		// 특수시공 개척(TASK-WM-194) — 스테이지별 최고 도달 웨이브(stageID → wave). 무한 모드의 점수 그 자체.
 		// SaveManager 가 towerDefenseBestWave ↔ 이 dict 직렬화(SpecimenCollected 와 동형).

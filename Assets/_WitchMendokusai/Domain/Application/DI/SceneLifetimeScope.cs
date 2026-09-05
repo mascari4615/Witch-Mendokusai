@@ -114,10 +114,10 @@ namespace WitchMendokusai
 			DevWindowController devWindowControllerPrefab = catalog.Get<DevWindowController>();
 			builder.RegisterComponentInNewPrefab(devWindowControllerPrefab, Lifetime.Scoped);
 
-			CodexWindowController codexWindowControllerPrefab = catalog.Get<CodexWindowController>();
-			builder.RegisterComponentInNewPrefab(codexWindowControllerPrefab, Lifetime.Scoped);
+			DiscoveryWindowController discoveryWindowControllerPrefab = catalog.Get<DiscoveryWindowController>();
+			builder.RegisterComponentInNewPrefab(discoveryWindowControllerPrefab, Lifetime.Scoped);
 
-			// TASK-WM-174 Phase 5b-2 — 솥 지도 제조 UI 인게임 진입점 (Codex 와 같은 모양).
+			// TASK-WM-174 Phase 5b-2 — 솥 지도 제조 UI 인게임 진입점 (Discovery 와 같은 모양).
 			// prefab 미생성 윈도우(코드 먼저 push)에 World boot 안 깨지게 null-guard (cross-session build-red 회피).
 			CauldronMapController cauldronMapControllerPrefab = catalog.Get<CauldronMapController>();
 			if (cauldronMapControllerPrefab != null)
@@ -155,7 +155,7 @@ namespace WitchMendokusai
 				ResolveIfPresent<StageManager>(container);
 				ResolveIfPresent<DungeonManager>(container);
 				BootGuard.EagerResolve<DevWindowController>(container, "Scene");
-				BootGuard.EagerResolve<CodexWindowController>(container, "Scene");
+				BootGuard.EagerResolve<DiscoveryWindowController>(container, "Scene");
 				if (cauldronMapRegistered)
 					BootGuard.EagerResolve<CauldronMapController>(container, "Scene");
 				ResolveIfPresent<UIManager>(container);

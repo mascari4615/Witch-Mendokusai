@@ -8,25 +8,25 @@ namespace WitchMendokusai
 	/// 도감 윈도우 본체. 3 모드 전환.
 	/// - Root: 큰 주제 버튼 (블록/아이템/주민)
 	/// - Category: 뒤로 + DataExplorerView (좌 사이드바 + 우 카드 그리드)
-	/// - Detail: 뒤로 + CodexDetailPanel
+	/// - Detail: 뒤로 + DiscoveryDetailPanel
 	///
 	/// 사이드바/그리드 베이스는 DataExplorerView (TASK-WM-038 단계 A 추출).
-	/// CodexView 는 *Codex 도메인 흐름* (Root/Detail 모드 + 모드 전환) 만 담당.
+	/// DiscoveryView 는 *Discovery 도메인 흐름* (Root/Detail 모드 + 모드 전환) 만 담당.
 	/// </summary>
-	public class CodexView : VisualElement
+	public class DiscoveryView : VisualElement
 	{
-		public const string USS_CLASS = "wm-codex";
-		public const string USS_ROOT = "wm-codex__root";
-		public const string USS_ROOT_BUTTON = "wm-codex__root-button";
-		public const string USS_CATEGORY = "wm-codex__category";
-		public const string USS_BACK_BUTTON = "wm-codex__back-button";
-		public const string USS_DETAIL = "wm-codex__detail";
-		public const string USS_DETAIL_CONTENT = "wm-codex__detail-content";
+		public const string USS_CLASS = "wm-discovery";
+		public const string USS_ROOT = "wm-discovery__root";
+		public const string USS_ROOT_BUTTON = "wm-discovery__root-button";
+		public const string USS_CATEGORY = "wm-discovery__category";
+		public const string USS_BACK_BUTTON = "wm-discovery__back-button";
+		public const string USS_DETAIL = "wm-discovery__detail";
+		public const string USS_DETAIL_CONTENT = "wm-discovery__detail-content";
 
 		public event Action<IEntryProvider> OnCategorySelected = delegate { };
 		public event Action<EntryDescriptor> OnEntrySelected = delegate { };
 
-		private enum CodexMode
+		private enum DiscoveryMode
 		{
 			Root,
 			Category,
@@ -41,12 +41,12 @@ namespace WitchMendokusai
 
 		private IEntryProvider activeCategory;
 		private EntryDescriptor activeEntry;
-		private CodexMode currentMode;
+		private DiscoveryMode currentMode;
 
 		public IEntryProvider ActiveCategory => activeCategory;
 		public EntryDescriptor ActiveEntry => activeEntry;
 
-		public CodexView()
+		public DiscoveryView()
 		{
 			AddToClassList(USS_CLASS);
 			style.flexDirection = FlexDirection.Column;
@@ -92,17 +92,17 @@ namespace WitchMendokusai
 			detailContent.style.flexGrow = 1;
 			detailArea.Add(detailContent);
 
-			SetMode(CodexMode.Root);
+			SetMode(DiscoveryMode.Root);
 		}
 
-		private void SetMode(CodexMode mode)
+		private void SetMode(DiscoveryMode mode)
 		{
 			currentMode = mode;
 
 			Clear();
-			if (mode == CodexMode.Root)
+			if (mode == DiscoveryMode.Root)
 				Add(rootArea);
-			else if (mode == CodexMode.Category)
+			else if (mode == DiscoveryMode.Category)
 				Add(categoryArea);
 			else
 				Add(detailArea);
@@ -134,11 +134,11 @@ namespace WitchMendokusai
 
 			if (category == null)
 			{
-				SetMode(CodexMode.Root);
+				SetMode(DiscoveryMode.Root);
 				return;
 			}
 
-			SetMode(CodexMode.Category);
+			SetMode(DiscoveryMode.Category);
 		}
 
 		public void SetActiveEntry(EntryDescriptor entry)
@@ -150,7 +150,7 @@ namespace WitchMendokusai
 			activeEntry = entry;
 			if (entry == null)
 			{
-				SetMode(CodexMode.Category);
+				SetMode(DiscoveryMode.Category);
 				return;
 			}
 
@@ -159,17 +159,17 @@ namespace WitchMendokusai
 			if (entry.IsUnlocked == false)
 			{
 				detailContent.Add(new Label("???"));
-				SetMode(CodexMode.Detail);
+				SetMode(DiscoveryMode.Detail);
 				return;
 			}
 
 			if (activeCategory == null)
 				return;
 
-			CodexDetailPanel panel = new(entry, activeCategory);
+			DiscoveryDetailPanel panel = new(entry, activeCategory);
 			detailContent.Add(panel);
 
-			SetMode(CodexMode.Detail);
+			SetMode(DiscoveryMode.Detail);
 		}
 
 		private void BackToRoot()
@@ -178,7 +178,7 @@ namespace WitchMendokusai
 			activeCategory = null;
 			activeEntry = null;
 			detailContent.Clear();
-			SetMode(CodexMode.Root);
+			SetMode(DiscoveryMode.Root);
 		}
 
 		private void BackToCategory()
@@ -187,7 +187,7 @@ namespace WitchMendokusai
 				dataExplorerView.SetEntryActive(activeEntry, false);
 			activeEntry = null;
 			detailContent.Clear();
-			SetMode(CodexMode.Category);
+			SetMode(DiscoveryMode.Category);
 		}
 	}
 }

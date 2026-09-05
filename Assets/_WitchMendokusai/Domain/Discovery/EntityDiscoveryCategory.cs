@@ -7,7 +7,7 @@ namespace WitchMendokusai
 	/// <summary>
 	/// entity 카테고리. 골격은 Monster 만 (DevWindowController 가 같은 선택). Doll/NPC 는 후속 — 별도 카테고리 또는 sub-grouping 결정.
 	/// </summary>
-	public class EntityCodexCategory : IEntryProvider
+	public class EntityDiscoveryCategory : IEntryProvider
 	{
 		public string Id => "entity";
 		public string DisplayName => "주민";

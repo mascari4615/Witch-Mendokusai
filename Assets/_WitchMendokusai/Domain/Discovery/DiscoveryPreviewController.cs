@@ -6,13 +6,13 @@ namespace WitchMendokusai
 {
 	/// <summary>
 	/// 도감 디테일 일러스트 영역의 3D 미리보기. 별도 메뉴 카메라 + RenderTexture + 모델 mount.
-	/// CodexDetailPanel 좌측이 RT.image 로 받아서 표시. 카드 swap 시 prefab 만 갈음 (카메라/RT 재사용).
+	/// DiscoveryDetailPanel 좌측이 RT.image 로 받아서 표시. 카드 swap 시 prefab 만 갈음 (카메라/RT 재사용).
 	///
 	/// 단계 A (현재): 임시 placeholder Cube 자동 생성 — 모든 entry 디테일 진입 시 같은 회전 cube.
 	/// 단계 B (예정): entry.PreviewPrefab 로 swap. PreviewPrefab null 이면 Hide() — Detail Panel 이 정적 Icon 폴백.
 	/// 단계 C (예정): World Space UIDocument 추가 (모델 옆 라벨 3D anchor).
 	/// </summary>
-	public class CodexPreviewController : MonoBehaviour
+	public class DiscoveryPreviewController : MonoBehaviour
 	{
 		// TASK-WM-133 — static Instance/TryGetExistingInstance 삭제. RegisterLeaf
 		// prefab + DontDestroyOnLoad 가 단일성 보장(DI 소유), caller 는
@@ -53,12 +53,12 @@ namespace WitchMendokusai
 
 			renderTexture = new RenderTexture(RT_RESOLUTION, RT_RESOLUTION, 24, RenderTextureFormat.ARGB32)
 			{
-				name = "CodexPreviewRT",
+				name = "DiscoveryPreviewRT",
 				antiAliasing = 2,
 			};
 			renderTexture.Create();
 
-			GameObject cameraObject = new("CodexPreviewCamera");
+			GameObject cameraObject = new("DiscoveryPreviewCamera");
 			cameraObject.transform.SetParent(transform);
 			cameraObject.transform.localPosition = cameraLocalPosition;
 			cameraObject.transform.LookAt(transform.position + Vector3.up * cameraLookHeight);
@@ -86,10 +86,10 @@ namespace WitchMendokusai
 			// Directional light 안 만듦 — URP forward+ light culling 에서 cullingMask 가 자주 무시되어
 			// 메인 씬에 빛 누수. 대신 cube 를 Unlit material 로 박아 light 무관하게.
 
-			// 평소에는 disable — 활성 시점에만 메인 PP/GI 등 평가에 끼어듦. CodexDetailPanel 이 Activate/Deactivate.
+			// 평소에는 disable — 활성 시점에만 메인 PP/GI 등 평가에 끼어듦. DiscoveryDetailPanel 이 Activate/Deactivate.
 			previewCamera.enabled = false;
 
-			modelMount = new GameObject("CodexPreviewMount");
+			modelMount = new GameObject("DiscoveryPreviewMount");
 			modelMount.transform.SetParent(transform);
 			modelMount.transform.localPosition = Vector3.zero;
 		}
@@ -99,7 +99,7 @@ namespace WitchMendokusai
 			// Light 안 만들었으니 Unlit 이라야 보인다. 셰이더 이름은 공용 정본에서 — 여기서 문자열로 부르면
 			// 「항상 포함할 셰이더」 대조를 안 받아 빌드에서만 죽는다 (TASK-WM-208).
 			GameObject cube = CombatPrimitive.Create(PrimitiveType.Cube, unlit: true);
-			cube.name = "CodexPreviewPlaceholder";
+			cube.name = "DiscoveryPreviewPlaceholder";
 			cube.transform.SetParent(modelMount.transform);
 			cube.transform.localPosition = Vector3.zero;
 			cube.transform.localScale = Vector3.one * 0.8f;

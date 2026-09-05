@@ -55,7 +55,7 @@ namespace WitchMendokusai
 			RegisterLeaf<InputManager>(builder);
 			RegisterLeaf<ObjectPoolManager>(builder);
 			RegisterLeaf<UnitStatCalculator>(builder);
-			RegisterLeaf<CodexPreviewController>(builder);
+			RegisterLeaf<DiscoveryPreviewController>(builder);
 			RegisterLeaf<WorldClock>(builder);
 			RegisterLeaf<PlayerProvider>(builder);
 			RegisterLeaf<TimeManager>(builder);
@@ -114,7 +114,7 @@ namespace WitchMendokusai
 				// 적용외 — dev 툴링은 SpawnMonsterCommand 류 static accessor 정당).
 				BootGuard.EagerResolve<ObjectPoolManager>(container, "Root");
 				BootGuard.EagerResolve<UnitStatCalculator>(container, "Root");
-				BootGuard.EagerResolve<CodexPreviewController>(container, "Root");
+				BootGuard.EagerResolve<DiscoveryPreviewController>(container, "Root");
 				BootGuard.EagerResolve<WorldClock>(container, "Root");
 				BootGuard.EagerResolve<PlayerProvider>(container, "Root");
 				// TimeManager — TASK-WM-120 γ 2-a: 마지막 static caller(UITransition)

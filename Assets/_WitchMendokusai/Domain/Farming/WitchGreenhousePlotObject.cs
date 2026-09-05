@@ -29,10 +29,10 @@ namespace WitchMendokusai
 
 		public PlotPhase Phase => plot == null ? PlotPhase.Empty : plot.Phase;
 
-		// 발행 표면(Phase 1f+ seam) — Codex 표본 박물관 / 마도서 Criteria / UI 가 구독. 초기값=NRE 방지.
+		// 발행 표면(Phase 1f+ seam) — Discovery 표본 박물관 / 마도서 Criteria / UI 가 구독. 초기값=NRE 방지.
 		public System.Action<WitchGreenhousePlotObject> OnObserved = delegate { };
 		public System.Action<HarvestResult> OnHarvested = delegate { };
-		// 관찰된 개체가 영구 「진짜」로 정착하는 순간(수확 시). Codex 박물관 등록 진입점.
+		// 관찰된 개체가 영구 「진짜」로 정착하는 순간(수확 시). Discovery 박물관 등록 진입점.
 		public System.Action<PlantBecameSpecimenEvent> OnBecameSpecimen = delegate { };
 
 		// 상위 Greenhouse 소유 칸에 바인드(배선 진입점). 자기 칸 생성 대신 공유 칸을 래핑 → 인형 자동돌봄
@@ -98,7 +98,7 @@ namespace WitchMendokusai
 
 			OnHarvested.Invoke(result);
 
-			// 관찰된 개체만 영구 표본으로 Codex 에 「진짜」로 남는다(수확해 사라져도 증언은 남음).
+			// 관찰된 개체만 영구 표본으로 Discovery 에 「진짜」로 남는다(수확해 사라져도 증언은 남음).
 			if (result.IsSpecimen)
 			{
 				int carerId = result.HasDominantCarer ? result.DominantCarerId : -1;

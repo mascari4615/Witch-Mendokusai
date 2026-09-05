@@ -7,17 +7,17 @@ namespace WitchMendokusai
 	/// <summary>
 	/// 도감 카드 한 개. 일러스트 + 이름 + grade 테두리 (USS class).
 	/// hover/click 이벤트 + active(현재 선택된 카드) 시각 표시.
-	/// 시각은 `CodexWindow.uss` (단계 B) 에서 정의 — 본 단계는 USS class 만 부여.
+	/// 시각은 `DiscoveryWindow.uss` (단계 B) 에서 정의 — 본 단계는 USS class 만 부여.
 	/// </summary>
-	public class CodexCard : VisualElement
+	public class DiscoveryCard : VisualElement
 	{
-		public const string USS_CLASS = "wm-codex-card";
-		public const string USS_ICON = "wm-codex-card__icon";
-		public const string USS_NAME = "wm-codex-card__name";
-		public const string USS_GRADE_PREFIX = "wm-codex-card--grade-";
-		public const string USS_LOCKED = "wm-codex-card--locked";
-		public const string USS_HOVER = "wm-codex-card--hover";
-		public const string USS_ACTIVE = "wm-codex-card--active";
+		public const string USS_CLASS = "wm-discovery-card";
+		public const string USS_ICON = "wm-discovery-card__icon";
+		public const string USS_NAME = "wm-discovery-card__name";
+		public const string USS_GRADE_PREFIX = "wm-discovery-card--grade-";
+		public const string USS_LOCKED = "wm-discovery-card--locked";
+		public const string USS_HOVER = "wm-discovery-card--hover";
+		public const string USS_ACTIVE = "wm-discovery-card--active";
 
 		public event Action OnClicked = delegate { };
 
@@ -26,7 +26,7 @@ namespace WitchMendokusai
 		private readonly Image iconImage;
 		private readonly Label nameLabel;
 
-		public CodexCard(EntryDescriptor entry)
+		public DiscoveryCard(EntryDescriptor entry)
 		{
 			Entry = entry;
 

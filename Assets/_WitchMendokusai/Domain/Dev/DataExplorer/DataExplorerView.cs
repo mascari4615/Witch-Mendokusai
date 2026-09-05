@@ -6,10 +6,10 @@ namespace WitchMendokusai
 {
 	/// <summary>
 	/// 데이터 탐색 베이스 view — 좌 사이드바(SubGroups) + 우 카드 그리드.
-	/// Codex (런타임 도감) + DataSOWindow (에디터 툴) 둘 다 사용. (구) CodexView 의 Category 모드 부분을 추출.
+	/// Discovery (런타임 도감) + DataSOWindow (에디터 툴) 둘 다 사용. (구) DiscoveryView 의 Category 모드 부분을 추출.
 	///
 	/// 디테일 영역은 X — 도메인 controller 가 OnEntrySelected 받아 자체 처리:
-	/// - Codex = Detail 모드 전환 (CodexDetailPanel)
+	/// - Discovery = Detail 모드 전환 (DiscoveryDetailPanel)
 	/// - DataSOWindow = Inspector 연동 (Selection.activeObject)
 	/// </summary>
 	public class DataExplorerView : VisualElement
@@ -31,7 +31,7 @@ namespace WitchMendokusai
 		private readonly VisualElement gridContent;
 
 		private readonly Dictionary<string, Button> sidebarButtons = new();
-		private readonly Dictionary<string, CodexCard> cards = new();
+		private readonly Dictionary<string, DiscoveryCard> cards = new();
 
 		private IEntryProvider activeProvider;
 		private string currentSubGroup;
@@ -84,12 +84,12 @@ namespace WitchMendokusai
 				allButton.AddToClassList(USS_SIDEBAR_BUTTON_ACTIVE);
 		}
 
-		/// <summary>외부 controller (CodexView 등) 가 entry 선택 시 카드 강조 토글.</summary>
+		/// <summary>외부 controller (DiscoveryView 등) 가 entry 선택 시 카드 강조 토글.</summary>
 		public void SetEntryActive(EntryDescriptor entry, bool active)
 		{
 			if (entry == null)
 				return;
-			if (cards.TryGetValue(entry.Id, out CodexCard card))
+			if (cards.TryGetValue(entry.Id, out DiscoveryCard card))
 				card.SetActive(active);
 		}
 
@@ -154,7 +154,7 @@ namespace WitchMendokusai
 					continue;
 
 				EntryDescriptor captured = entry;
-				CodexCard card = new(entry);
+				DiscoveryCard card = new(entry);
 				card.OnClicked += () => OnEntrySelected.Invoke(captured);
 				cards[entry.Id] = card;
 				gridContent.Add(card);

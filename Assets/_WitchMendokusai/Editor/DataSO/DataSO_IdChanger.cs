@@ -82,7 +82,7 @@ namespace WitchMendokusai
 			badIdDataSOsRoot.Clear();
 			foreach (DataSO badIdData in curBadIdDataSOs)
 			{
-				CodexCard card = new(ToEntry(badIdData));
+				DiscoveryCard card = new(ToEntry(badIdData));
 				DataSO captured = badIdData;
 				card.OnClicked += () => Selection.activeObject = captured;
 				badIdDataSOsRoot.Add(card);
@@ -109,9 +109,9 @@ namespace WitchMendokusai
 		{
 			targetDataSOsRoot.Clear();
 			if (CurDataSO != null)
-				targetDataSOsRoot.Add(new CodexCard(ToEntry(CurDataSO)));
+				targetDataSOsRoot.Add(new DiscoveryCard(ToEntry(CurDataSO)));
 			if (targetDataSO != null)
-				targetDataSOsRoot.Add(new CodexCard(ToEntry(targetDataSO)));
+				targetDataSOsRoot.Add(new DiscoveryCard(ToEntry(targetDataSO)));
 		}
 
 		private void CheckID(ChangeEvent<int> evt)

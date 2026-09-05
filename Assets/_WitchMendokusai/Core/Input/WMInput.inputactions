@@ -1088,7 +1088,7 @@
                     "initialStateCheck": false
                 },
                 {
-                    "name": "CodexToggle",
+                    "name": "DiscoveryToggle",
                     "type": "Button",
                     "id": "ce58a49d-f643-4ecf-ba21-6de5bb9c9e28",
                     "expectedControlType": "",
@@ -1669,7 +1669,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "CodexToggle",
+                    "action": "DiscoveryToggle",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },

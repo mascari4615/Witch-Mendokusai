@@ -9,7 +9,7 @@ namespace WitchMendokusai
 	/// Air 블록은 게임상 의미 없어 제외.
 	/// SideTexture → Sprite 변환 후 캐시 (instance dict). 같은 블록 재진입 시 같은 Sprite 재사용.
 	/// </summary>
-	public class BlockCodexCategory : IEntryProvider
+	public class BlockDiscoveryCategory : IEntryProvider
 	{
 		public string Id => "block";
 		public string DisplayName => "블록";

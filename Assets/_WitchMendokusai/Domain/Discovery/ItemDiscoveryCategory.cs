@@ -7,7 +7,7 @@ namespace WitchMendokusai
 	/// <summary>
 	/// 아이템 카테고리. SOHelper.ForEach&lt;ItemData&gt; 자동 인덱스.
 	/// </summary>
-	public class ItemCodexCategory : IEntryProvider
+	public class ItemDiscoveryCategory : IEntryProvider
 	{
 		public string Id => "item";
 		public string DisplayName => "아이템";

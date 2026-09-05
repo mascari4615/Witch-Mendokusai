@@ -223,7 +223,7 @@ namespace WitchMendokusai
 
 			windowMenuColumn.Add(MakeTapButton("가방", InputEventType.Inventory));
 			windowMenuColumn.Add(MakeTapButton("퀘스트", InputEventType.QuestToggle));
-			windowMenuColumn.Add(MakeTapButton("도감", InputEventType.CodexToggle));
+			windowMenuColumn.Add(MakeTapButton("도감", InputEventType.DiscoveryToggle));
 			windowMenuColumn.Add(MakeTapButton("마도서", InputEventType.MagicBookToggle));
 			windowMenuColumn.Add(MakeTapButton("인형", InputEventType.DollToggle));
 			windowMenuColumn.Add(MakeTapButton("몸 상태", InputEventType.Status));
